@@ -217,6 +217,8 @@ type RuntimeApiWindow = Window & {
   // 단건 결제 leaf를 Play Billing으로 바꿔친다.
   __cdAppPaymentGuard?: { installed?: boolean };
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
+  // 셸이 세우는 공용 플래그 판정. "이용권 미커버 확정 → 결제창 노출" 구간이면 true.
+  __cdPreCheckoutWaitUiSuppressed?: (mode?: string) => boolean;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
   __cdSuppressPaymentFetchOverlayCount?: number;
@@ -2581,10 +2583,13 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   }
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
     if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("access_check", "subscription"), mode: "monthly" };
-    if (kind === "pass") return { message: formatLoadingMessage("access_check", "pass"), mode: "pass" };
-    if (kind === "single") return { message: formatLoadingMessage("access_check", "single"), mode: "payment" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
-    return { message: formatLoadingMessage("access_check", "single"), mode: "payment" };
+    // 🔴 접근 확인 단계에서 access_check.single("단건으로 카드 결제를 준비 중이에요")을 쓰지 않는다.
+    // 이 두 줄이 셸 오버레이로 중계돼 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를
+    // 준비 중이에요' 화면을 만들었다 — 셸 쪽 카피만 고치고 이 React 분기를 놓쳐서 여러 번 되살아났다.
+    // 아직 결제 수단이 확정되지 않은 구간이므로 이용권 확인 카피로 통일한다. 실제 단건 진행 상태
+    // (paymentPreparing/paymentWindowOpen/paymentProcessing)의 pg_processing.single 은 그대로다.
+    return { message: formatLoadingMessage("access_check", "pass"), mode: "pass" };
   }
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: formatPassLoadingMessage("access_check", detail), mode: "pass" };
@@ -2612,6 +2617,10 @@ function emitPaymentLoadingState(open: boolean, message?: string, mode?: string)
   const runtimeWindow = window as RuntimeApiWindow;
   const overlayMessage = toText(message) || "결제 상태를 안전하게 확인하고 있습니다.";
   const overlayMode = toText(mode) || "payment";
+  // 🔴 이용권 미커버 확정 → 결제창 노출 구간에는 대기 화면을 띄우지 않는다(셸이 세운 공용 플래그).
+  // 셸의 _cdSetCoinGateOverlay 안에도 같은 검사가 있지만, 셸이 없는 화면에서는 아래 커스텀 이벤트
+  // 경로로 나가므로 여기서도 봐야 한다.
+  if (open && runtimeWindow.__cdPreCheckoutWaitUiSuppressed?.(overlayMode)) return;
   if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
     runtimeWindow._cdSetCoinGateOverlay(open, overlayMessage, overlayMode);
     return;
