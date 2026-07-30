@@ -12,8 +12,10 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import CodexAmbience from "@/src/features/master-love-codex/components/CodexAmbience";
 import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
 import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
+import { masterLoveCodexBgmTracks } from "@/src/features/master-love-codex/data/assets";
 import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 
 type SessionState = {
@@ -90,19 +92,26 @@ export default function MasterLoveCodexResultClient() {
 
   useEffect(() => { void load(); }, [load]);
 
+  // 봉인을 여는 동안부터 본문까지 같은 트랙이 이어지도록, 프래그먼트의 첫 자식으로 둔다.
+  // (열지 못한 경우에는 붙이지 않는다 — 오류 화면에는 음악을 얹지 않는다.)
+  const ambience = <CodexAmbience track={masterLoveCodexBgmTracks.reading} />;
+
   if (loading) {
     return (
-      <CodexShell ariaLabel="보관된 인연의 서를 여는 중">
-        <div className="flex min-h-[100svh] items-center justify-center text-center">
-          <p
-            className={`${styles.numeral} text-[0.9375rem]`}
-            style={{ letterSpacing: "0.24em", color: "var(--codex-gold)" }}
-            aria-live="polite"
-          >
-            Unsealing
-          </p>
-        </div>
-      </CodexShell>
+      <>
+        {ambience}
+        <CodexShell ariaLabel="보관된 인연의 서를 여는 중">
+          <div className="flex min-h-[100svh] items-center justify-center text-center">
+            <p
+              className={`${styles.numeral} text-[0.9375rem]`}
+              style={{ letterSpacing: "0.24em", color: "var(--codex-gold)" }}
+              aria-live="polite"
+            >
+              Unsealing
+            </p>
+          </div>
+        </CodexShell>
+      </>
     );
   }
 
@@ -123,6 +132,7 @@ export default function MasterLoveCodexResultClient() {
 
   return (
     <>
+      {ambience}
       {session.status !== "completed" ? (
         <div className="bg-[#0a0818] pt-6">
           <p className={`${styles.measure} text-center text-[0.8125rem] leading-7`} style={{ color: "#b9ad99" }}>

@@ -40,6 +40,34 @@ export const masterLoveCodexAssets = {
   },
 } as const;
 
+/**
+ * 배경음 — 이미 R2 `Meditation/` 에 있는 앰비언트만 쓴다(신규 업로드 없음).
+ * 고요한 도서관에서 연애를 상담받는 자리라, 리듬이 도드라지는 보컬 트랙(DEST1NOVA·
+ * lunabloom)과 전투 트랙(DestinyWar)은 제외했다. 볼륨은 낭독을 덮지 않는 선.
+ */
+export const masterLoveCodexBgmTracks = {
+  /** 입장·프롤로그·생년 입력 — 달빛 문을 지나 서고로 들어가는 구간 */
+  libraryGate: {
+    key: "moonlit-temple-gate",
+    url: "https://music.code-destiny.com/Meditation/Moonlit%20Temple%20Gate.mp3",
+    volume: 0.22,
+  },
+  /** 생성 대기 — 20장이 쓰이는 동안 흐르는 필사실 */
+  scriptorium: {
+    key: "flowing-light",
+    url: "https://music.code-destiny.com/Meditation/Flowing%20Light.mp3",
+    volume: 0.2,
+  },
+  /** 열람 — 인연을 읽어 내려가는 구간 */
+  reading: {
+    key: "the-stars-remember-your-name",
+    url: "https://music.code-destiny.com/Meditation/The%20Stars%20Remember%20Your%20Name.mp3",
+    volume: 0.22,
+  },
+} as const;
+
+export type MasterLoveCodexBgmTrack = (typeof masterLoveCodexBgmTracks)[keyof typeof masterLoveCodexBgmTracks];
+
 /** 프롤로그 라인의 mood → 화자 컷 */
 export type CodexNarratorMood = "calm" | "base" | "speaking" | "speakingAlt";
 

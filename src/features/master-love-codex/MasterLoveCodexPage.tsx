@@ -25,12 +25,14 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import CodexAmbience from "./components/CodexAmbience";
 import CodexLanding from "./components/CodexLanding";
 import CodexPrologueScene from "./components/CodexPrologueScene";
 import CodexBirthGate, { EMPTY_CODEX_BIRTH, type CodexBirthInput } from "./components/CodexBirthGate";
 import CodexGenerating from "./components/CodexGenerating";
 import CodexShell from "./components/CodexShell";
 import type { CodexChapter, CodexLoveDna } from "./components/CodexReader";
+import { masterLoveCodexBgmTracks } from "./data/assets";
 import { codexPrologueStageOrder, type CodexPrologueChoiceKey, type CodexPrologueStage } from "./data/prologue";
 import {
   MASTER_LOVE_CODEX_FEATURE_AMOUNT_KRW,
@@ -356,14 +358,25 @@ export default function MasterLoveCodexPage() {
     }
   }
 
+  // 배경음은 모든 단계에서 프래그먼트의 첫 자식으로 둔다 — 단계가 바뀔 때 같은 자리·같은
+  // 타입이라 React 가 유지하므로, 트랙이 바뀌지 않는 한 음악이 끊기지 않는다.
+  const ambience = (
+    <CodexAmbience
+      track={phase === "generating" ? masterLoveCodexBgmTracks.scriptorium : masterLoveCodexBgmTracks.libraryGate}
+    />
+  );
+
   if (phase === "landing") {
     return (
-      <CodexLanding
-        hasSeenPrologue={hasSeenPrologue}
-        chapterCount={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
-        onEnter={enterCodex}
-        onReplayPrologue={replayPrologue}
-      />
+      <>
+        {ambience}
+        <CodexLanding
+          hasSeenPrologue={hasSeenPrologue}
+          chapterCount={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
+          onEnter={enterCodex}
+          onReplayPrologue={replayPrologue}
+        />
+      </>
     );
   }
 
@@ -371,49 +384,58 @@ export default function MasterLoveCodexPage() {
   // 섹션(배포 게이트용 1,800자)이 몰입 중에 비치지 않게 하기 위해서다.
   if (phase === "prologue") {
     return (
-      <CodexShell overlay ariaLabel="프롤로그">
-        <CodexPrologueScene
-          stage={prologueStage}
-          onStageChange={setPrologueStage}
-          onChoice={setPrologueChoice}
-          onComplete={completePrologue}
-          onSkip={skipPrologue}
-        />
-      </CodexShell>
+      <>
+        {ambience}
+        <CodexShell overlay ariaLabel="프롤로그">
+          <CodexPrologueScene
+            stage={prologueStage}
+            onStageChange={setPrologueStage}
+            onChoice={setPrologueChoice}
+            onComplete={completePrologue}
+            onSkip={skipPrologue}
+          />
+        </CodexShell>
+      </>
     );
   }
 
   if (phase === "generating") {
     return (
-      <CodexShell overlay motes={false} ariaLabel="인연의 서 생성 중">
-        <CodexGenerating
-          completed={chapters.length}
-          total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
-          latestTitles={chapters.map((chapter) => chapter.title)}
-          name={birth.name}
-        />
-      </CodexShell>
+      <>
+        {ambience}
+        <CodexShell overlay motes={false} ariaLabel="인연의 서 생성 중">
+          <CodexGenerating
+            completed={chapters.length}
+            total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
+            latestTitles={chapters.map((chapter) => chapter.title)}
+            name={birth.name}
+          />
+        </CodexShell>
+      </>
     );
   }
 
   return (
-    <CodexShell overlay ariaLabel="생년 정보 입력">
-      <CodexBirthGate
-        value={birth}
-        onChange={setBirth}
-        onSubmit={() => void startCodex()}
-        busy={phase === "checking" || phase === "payment"}
-        busyLabel={phase === "payment" ? "결제 진행 중..." : "이용권 확인 중..."}
-        error={error}
-        priceSlot={(
-          <PriceBadge
-            featureKey={MASTER_LOVE_CODEX_FEATURE_KEY}
-            fallbackCoins={MASTER_LOVE_CODEX_FEATURE_COST}
-            prefix="1회 "
-            className="text-xs"
-          />
-        )}
-      />
-    </CodexShell>
+    <>
+      {ambience}
+      <CodexShell overlay ariaLabel="생년 정보 입력">
+        <CodexBirthGate
+          value={birth}
+          onChange={setBirth}
+          onSubmit={() => void startCodex()}
+          busy={phase === "checking" || phase === "payment"}
+          busyLabel={phase === "payment" ? "결제 진행 중..." : "이용권 확인 중..."}
+          error={error}
+          priceSlot={(
+            <PriceBadge
+              featureKey={MASTER_LOVE_CODEX_FEATURE_KEY}
+              fallbackCoins={MASTER_LOVE_CODEX_FEATURE_COST}
+              prefix="1회 "
+              className="text-xs"
+            />
+          )}
+        />
+      </CodexShell>
+    </>
   );
 }

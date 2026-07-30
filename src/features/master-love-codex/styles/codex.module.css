@@ -196,6 +196,63 @@
   text-decoration: underline;
 }
 
+/* 배경음 토글 — .root 밖(형제)에 떠서 토큰을 못 받으므로 값을 직접 쓴다.
+   몰입 오버레이(.overlay, z-index 60)보다 위, 결제 게이트 오버레이보다 아래. */
+.bgmToggle {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 70;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(232, 213, 163, 0.42);
+  border-radius: 999px;
+  background: rgba(10, 8, 24, 0.78);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #b9ad99;
+  transition:
+    color var(--cd-dur-base, 220ms) ease,
+    border-color var(--cd-dur-base, 220ms) ease,
+    box-shadow var(--cd-dur-emph, 380ms) ease;
+}
+
+.bgmToggle em {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+}
+
+.bgmToggle[data-active="true"] {
+  color: #e8d5a3;
+  border-color: rgba(232, 213, 163, 0.66);
+}
+
+.bgmToggle:hover {
+  color: #e8d5a3;
+  border-color: #e8d5a3;
+  box-shadow: 0 0 30px -8px rgba(216, 179, 108, 0.4);
+}
+
+.bgmToggle:focus-visible {
+  outline: 2px solid #e8d5a3;
+  outline-offset: 3px;
+}
+
+/* 오디오 요소는 컨트롤 없이 재생만 담당 — 화면에서 지운다 */
+.bgmAudio {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 입력 — 박스 없이 하단 헤어라인만 */
 .field {
   width: 100%;
