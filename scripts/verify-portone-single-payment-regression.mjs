@@ -103,6 +103,29 @@ function assertContains(source, marker, label = marker) {
   assert.ok(source.includes(marker), `${label}: missing marker`);
 }
 
+function assertNotContains(source, marker, label = marker) {
+  assert.ok(!source.includes(marker), `${label}: forbidden marker present`);
+}
+
+// 🔴 PG 결제창 미노출 회귀 가드 (2026-07)
+// PR #104 가 requestPayment 요청에 windowType 을 새로 넣고 redirectUrl 을 서버 생성값 우선으로
+// 바꾼 뒤, 단건결제 클릭 시 PG 결제창이 아예 뜨지 않는 회귀가 발생했다. windowType 은 이 레포에서
+// 그 두 곳에만 있었고, 정상 동작하는 결제 경로(lib/payment/portone.ts, /points 이용권 결제)는
+// windowType 을 보내지 않으며 redirectUrl 을 클라이언트에서 페이지 origin 기준으로 만든다.
+// 두 클라이언트(정적 셸 / destiny-profile)를 정상 경로와 같은 형태로 고정한다.
+function runPortOneRequestShapeTests() {
+  for (const [label, source] of [["index.html", indexSource], ["js/destiny-profile.js", destinyProfileSource]]) {
+    // 코드 형태(속성 대입 / 실제 참조)로만 판정한다 — 설명 주석의 단어까지 잡으면 오탐이 된다.
+    assertNotContains(source, "windowType:", `${label}: PortOne requestPayment must not send windowType (PR #104 PG-window regression)`);
+    assertNotContains(source, "order.redirectUrl ||", `${label}: redirectUrl must be built from the page URL, not the server order`);
+    assertContains(source, "new URL(window.location.href)", `${label}: redirectUrl is derived from the current page URL`);
+    assertContains(source, "requestData.noticeUrls = [config.noticeUrl]", `${label}: noticeUrls stays in parity with lib/payment/portone.ts`);
+  }
+  // 정상 동작하는 참조 구현도 함께 고정한다 — 이쪽이 바뀌면 위 동등성 근거가 사라진다.
+  const portoneClientSource = readFileSync(resolve(root, "lib/payment/portone.ts"), "utf8");
+  assertNotContains(portoneClientSource, "windowType", "lib/payment/portone.ts must stay the windowType-free reference shape");
+}
+
 function assertBefore(source, first, second, label) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
@@ -624,6 +647,7 @@ function runE2EStaticTests() {
 try {
   await runServerTests();
   runClientStaticTests();
+  runPortOneRequestShapeTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");

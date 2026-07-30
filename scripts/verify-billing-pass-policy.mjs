@@ -592,8 +592,21 @@ assertNotContains(indexSource, "function showChoiceWait", "payment choice does n
 assertNotContains(indexSource, "showChoiceWait(mode)", "payment choice click does not flash a duplicate wait overlay");
 assertContains(indexSource, "window.__cdPortOneV2PreloadPromise", "payment choice modal preloads PortOne SDK for direct payment");
 assertContains(indexSource, "await portOneLoadPromise", "direct payment reuses preloaded PortOne SDK promise");
-assertContains(indexSource, "typeof _cdSetCoinGateOverlay === 'function' && (typeof _cdIsCoinGateOverlayVisible !== 'function' || !_cdIsCoinGateOverlayVisible())", "direct checkout keeps existing wait overlay instead of reopening it");
-assertContains(indexSource, "status: 'paymentWindowOpen'", "single payment wait UI remains while PortOne auth is open");
+// 🔴 단건결제는 클릭부터 PG 결제창이 열리기까지 어떤 대기 UI도 띄우지 않는다(사용자 요구사항).
+// 예전 규칙은 그 반대("PG 인증 중에도 대기 UI 유지")였는데, 실제로는 대기 오버레이만 보이고
+// PG창은 안 뜨는 것으로 체감됐고 페인트 대기가 user-gesture 소멸 위험까지 만들었다.
+// 대기 UI는 requestPayment 가 반환된 뒤 승인 확인 단계(paymentProcessing)에서만 띄운다 — 아래 597 라인.
+assertNotContains(indexSource, "단건 결제 주문 정보를 확인하고 있습니다.", "direct checkout must not open a wait overlay before the PG window");
+assertNotContains(indexSource, "status: 'paymentWindowOpen'", "single payment must not raise wait UI before/while opening the PG window");
+assertNotContains(indexSource, "status: 'paymentPreparing'", "single payment must not raise a preparing overlay before the PG window");
+// PG 호출 직전에는 아무것도 끼우지 않는다(한 프레임이라도 끼면 user-gesture 소멸에 가까워진다).
+// verify-paid-gate-ui 가 js/destiny-profile.js 에 대해 같은 성질을 고정한다.
+// 주의: _cdWaitForPaymentOverlayPaint 자체는 이용권 선검사 경로에서 정당하게 쓰이므로 전역 금지가 아니다.
+assertContains(
+  indexSource,
+  "window.__cdSuppressPaymentUnloadBlock = true;\n    var rsp = await window.PortOne.requestPayment(requestData);",
+  "nothing may sit between the direct-checkout handoff and PortOne requestPayment",
+);
 assertContains(indexSource, "status: 'paymentProcessing'", "payment wait UI remains during server confirmation");
 assertContains(indexSource, "updateSharedPaidGate('paymentProcessing', '월정석 이벤트 재화 사용 권한을 확인하고 있습니다.'", "monthly event currency wait UI starts from the actual monthly charge request");
 assertContains(indexSource, "__cdMonthlyCreditGateInFlight", "monthly payment request has single-flight guard");

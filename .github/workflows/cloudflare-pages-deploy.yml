@@ -107,7 +107,31 @@ jobs:
           NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH: ${{ vars.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || secrets.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH }}
         run: npm run secrets:cf:pages -- --skip-empty
 
+      # Pages 의 GitHub 연동이 프로덕션 자동빌드까지 켜면 같은 커밋을 CF 가 한 번 더 빌드해
+      # 커밋당 프로덕션 배포가 2개가 된다. 두 빌드는 청크 해시가 달라 _next/static 404 를 만들고,
+      # 그 404 는 엣지에 2일간 캐시된다. 2026-07-06 껐는데 07-22 스스로 켜져 재발한 이력이 있어
+      # 매 배포마다 확인하고 켜져 있으면 도로 끈다(프리뷰 빌드는 유지).
+      - name: Ensure single production deploy
+        run: npm run ensure:pages-single-deploy
+
       - name: Deploy Cloudflare Pages
         env:
           CF_PAGES_FORCE_DIRECT_DEPLOY: '1'
         run: npm run deploy:cf:pages
+
+      # 배포 전환 틈새에 엣지가 새 자산 URL 로 404 를 내면, Cloudflare 가 그 404 를
+      # max-age=172800(2일)으로 캐시해 오리진에 파일이 멀쩡해도 그 URL 만 이틀간 죽는다.
+      # HTML 은 no-store 라 새로고침해도 같은 죽은 URL 을 다시 요청 → 사용자에겐 영구 장애다.
+      # 2026-07-30 에 globals.css 산출물 하나가 이렇게 죽어 React 라우트 전부가 무스타일로 떴고,
+      # 사용자 신고로 발견되기까지가 곧 장애 시간이었다. 배포 시점에 바로 드러내야 한다.
+      - name: Verify deployed assets reachable
+        env:
+          CD_DEPLOY_VERIFY_ORIGIN: https://code-destiny.com
+          # 죽은 URL 만 골라 퍼지하려면 Zone Cache Purge 권한이 있는 별도 토큰이 필요하다.
+          # 기존 CLOUDFLARE_API_TOKEN 에는 그 권한이 없다(실측: Authentication error).
+          # 시크릿이 없으면 퍼지는 건너뛰고 실패로 보고만 한다.
+          CLOUDFLARE_CACHE_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          sleep 30
+          npm run verify:deployed-assets

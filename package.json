@@ -26,6 +26,7 @@
     "audit:content-headroom:live": "node scripts/audit-content-headroom.mjs --live",
     "ensure:ads-txt": "node scripts/ensure-ads-txt.mjs",
     "verify:ads-txt": "node scripts/ensure-ads-txt.mjs --check",
+    "verify:deployed-assets": "node scripts/verify-deployed-assets.mjs",
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
@@ -163,7 +164,7 @@
     "perf:psi:before": "node scripts/measure-psi.mjs --out reports/psi-before.json",
     "perf:psi:after": "node scripts/measure-psi.mjs --out reports/psi-after.json",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
-    "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/build-shell-cms-defaults.mjs && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
+    "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
     "build:cf": "npm run prebuild:cf && npm run build",
     "deploy:cf": "npm run deploy:cf:worker",
     "deploy:cf:pages": "npm run build:cf && node scripts/with-utf8-console.mjs node scripts/deploy-pages.mjs",
@@ -199,7 +200,8 @@
     "cms:apply-novel": "node scripts/apply-vn-overrides.mjs && node scripts/build-story-text.mjs",
     "verify:vn-override-safety": "node scripts/verify-vn-override-safety.mjs",
     "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
-    "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs"
+    "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
+    "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
