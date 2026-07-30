@@ -236,8 +236,12 @@ export default function HomePage() {
   // (verifyBlockedIndexableSitemapRouteQuality). 현재 out/index.html 실측 3,145자 —
   // 이 섹션들을 줄이면 빌드가 실패해 배포 자체가 막힌다.
   return (
-    <main className={styles.pageWrap}>
+    <>
+      {/* 되돌림 오버레이는 main 밖에 둔다. main(.pageWrap)이 `isolation: isolate` 로 자체
+          스택 컨텍스트를 만들어, 그 안에서는 z-index 를 아무리 올려도 레이아웃의 글로벌
+          헤더·푸터·하단 네비를 덮지 못한다(= React 화면이 그대로 비친다). */}
       <HomeRedirectToStatic />
+      <main className={styles.pageWrap}>
       <div className={styles.starLayer} aria-hidden />
 
       <section className={styles.heroSection} aria-labelledby="reactHomeHeroTitle">
@@ -347,6 +351,7 @@ export default function HomePage() {
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
-    </main>
+      </main>
+    </>
   );
 }

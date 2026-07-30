@@ -22,6 +22,9 @@ import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-typ
 // 앱 가격표 정본. import가 없는 순수 테이블이라 클라이언트 번들에 안전하게 들어간다
 // (미러를 두면 Play Console 등록가와 조용히 어긋나므로 정본을 직접 읽는다).
 import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
+// 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
+// classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
+import passVerdict from "@/js/core/pass-verdict.js";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -361,22 +364,10 @@ const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9322d379c0d2";
-const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
-const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
-// 활성 스냅샷이 살아 있는 동안은 이용권 보유자가 서버 왕복 없이 즉시 통과한다(낙관 fast-path).
-// 만료일·userId 검사가 스냅샷 자체에 내장돼 있어(readSubscriptionSnapshotForUser) 이용권이 만료되면
-// TTL과 무관하게 무효가 되고, 미커버면 백그라운드 coin-gate(402)가 낙관 허용을 꺼서 자기교정한다.
-// 🔴 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 읽으므로 값이 갈리면
-// 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라진다. 세 곳 모두 5분으로 고정한다.
-const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
-// 🔴 stale-while-revalidate 상한. TTL(60초)을 넘긴 'none' 은 **삭제하지 않고** 이 상한까지는 그대로
-// '미보유 확정'에 쓰고(= 결제창 직행, 서버 왕복 0) 백그라운드로만 갱신한다. 60초 만료를 그대로 두면
-// 이용권이 없는 사용자가 60초마다 차단형 서버 왕복을 다시 겪는데, 그것이 체감 지연의 최대 원인이었다.
-// 위험은 '다른 기기에서 방금 이용권을 산 사용자가 딱 1회 결제창을 본다'이고, 그 결제창에도 이용권
-// 상점·재확인이 있으며 단건을 눌러도 서버 grantPassFreeAccessBeforeCardIfAvailable 이 무료 통과시킨다.
-const SUBSCRIPTION_SNAPSHOT_NONE_STALE_MAX_MS = 24 * 60 * 60 * 1000;
-const SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES = new Set(["active", "subscribed", "paid", "success", "succeeded", "complete", "completed", "confirmed", "approved"]);
-const SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES = new Set(["none", "free", "inactive", "expired", "canceled", "cancelled", "refunded", "failed", "paused"]);
+// 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
+// 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
+// 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
+// 다른 쪽에서도 사라진다(실제로 active TTL 이 5분/15분으로 갈라져 있었다). 여기에 사본을 두지 말 것.
 
 const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
   gotoziweipremium: "ziwei-ai-consultation",
@@ -619,21 +610,8 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
-function normalizeSubscriptionSnapshotTier(value: unknown): SubscriptionSnapshotTier {
-  const tier = toText(value).toLowerCase();
-  if (tier.includes("family") || tier.includes("code destiny family")) return "family";
-  if (tier.includes("gold") || tier.includes("vvip")) return "vvip";
-  if (tier.includes("silver") || tier.includes("premium")) return "premium";
-  if (tier.includes("bronze") || tier.includes("standard")) return "standard";
-  return "free";
-}
-
 function subscriptionSnapshotPassLimit(tier: SubscriptionSnapshotTier): number {
-  if (tier === "family") return 999999999;
-  if (tier === "vvip") return 100;
-  if (tier === "premium") return 50;
-  if (tier === "standard") return 30;
-  return 0;
+  return passVerdict.passLimitForTier(tier);
 }
 
 function resolveSubscriptionSnapshotUserId(userId?: string): string {
@@ -643,170 +621,28 @@ function resolveSubscriptionSnapshotUserId(userId?: string): string {
   return resolveAuthScopeFromUser(readSanitizedAuthUser());
 }
 
-function subscriptionSnapshotKey(userId: string): string {
-  return `${SUBSCRIPTION_SNAPSHOT_KEY_PREFIX}${userId}`;
-}
-
-function normalizeSubscriptionSnapshotDate(value: unknown): string | null {
-  const text = toText(value);
-  if (!text) return null;
-  const time = Date.parse(text);
-  return Number.isFinite(time) ? new Date(time).toISOString() : null;
-}
-
-function subscriptionSnapshotStatusIsActive(value: unknown): boolean {
-  return SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES.has(toText(value).toLowerCase());
-}
-
-function subscriptionSnapshotStatusIsInactive(value: unknown): boolean {
-  return SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES.has(toText(value).toLowerCase());
-}
-
-function removeSubscriptionSnapshotByUserId(userId: string) {
-  if (typeof window === "undefined" || !userId) return;
-  try {
-    localStorage.removeItem(subscriptionSnapshotKey(userId));
-  } catch {
-    /* noop */
-  }
-}
-
 export function clearSubscriptionSnapshotForUser(userId?: string) {
-  removeSubscriptionSnapshotByUserId(resolveSubscriptionSnapshotUserId(userId));
+  passVerdict.removeSnapshot(resolveSubscriptionSnapshotUserId(userId));
 }
 
 // allowStaleNone: TTL 을 넘긴 'none' 도 { stale:true } 로 돌려받는다(삭제하지 않음). 호출부는 이것을
-// **미보유 확정** 판정에만 쓰고, 동시에 백그라운드 갱신을 예약해야 한다. 'active' 는 stale 을 허용하지
-// 않는다 — 만료된 이용권으로 낙관 통과시키면 유료 콘텐츠가 그대로 샌다.
+// **미보유 확정** 판정에만 쓰고, 동시에 백그라운드 갱신을 예약해야 한다.
+// 'active' 는 TTL 을 넘겨도 **이용권 만료일이 남아 있으면** { stale:true } 로 유지된다 — 판정 자체가
+// canUseByPass(등급, 만료일, 가격) 순수 함수라 만료 전까지는 다시 물을 이유가 없다. 만료된 이용권
+// (expiresAt <= now)과 만료일을 모르는 낡은 스냅샷은 어느 경우에도 폐기된다.
 export function readSubscriptionSnapshotForUser(
   userId?: string,
   options?: { allowStaleNone?: boolean },
 ): SubscriptionSnapshot | null {
   const resolvedUserId = resolveSubscriptionSnapshotUserId(userId);
   if (typeof window === "undefined" || !resolvedUserId) return null;
-  try {
-    const raw = localStorage.getItem(subscriptionSnapshotKey(resolvedUserId));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      removeSubscriptionSnapshotByUserId(resolvedUserId);
-      return null;
-    }
-    const snapshotUserId = toText(parsed.userId).toLowerCase();
-    const state = parsed.state === "active" || parsed.state === "none" ? parsed.state : "";
-    const tier = normalizeSubscriptionSnapshotTier(parsed.tier);
-    const checkedAt = Number(parsed.checkedAt);
-    const expiresAt = normalizeSubscriptionSnapshotDate(parsed.expiresAt);
-    if (snapshotUserId !== resolvedUserId || !state || !Number.isFinite(checkedAt) || (state === "active" && tier === "free")) {
-      removeSubscriptionSnapshotByUserId(resolvedUserId);
-      return null;
-    }
-    const age = Date.now() - checkedAt;
-    let stale = false;
-    if (state === "none" && age > SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS) {
-      if (!options?.allowStaleNone || age > SUBSCRIPTION_SNAPSHOT_NONE_STALE_MAX_MS) {
-        removeSubscriptionSnapshotByUserId(resolvedUserId);
-        return null;
-      }
-      stale = true;
-    }
-    if (state === "active" && age > SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS) {
-      removeSubscriptionSnapshotByUserId(resolvedUserId);
-      return null;
-    }
-    if (state === "active" && expiresAt && Date.parse(expiresAt) <= Date.now()) {
-      removeSubscriptionSnapshotByUserId(resolvedUserId);
-      return null;
-    }
-    return {
-      userId: snapshotUserId,
-      state,
-      tier: state === "active" ? tier : "free",
-      expiresAt: state === "active" ? expiresAt : null,
-      checkedAt,
-      purchaseVersion: toText(parsed.purchaseVersion),
-      source: toText(parsed.source || "local"),
-      stale,
-    };
-  } catch {
-    removeSubscriptionSnapshotByUserId(resolvedUserId);
-    return null;
-  }
-}
-
-function buildSubscriptionSnapshotPayload(userId: string, value: unknown, source: string): SubscriptionSnapshot {
-  const record = asRecord(value) || {};
-  const nested = asRecord(record.subscription) || asRecord(record.membership) || asRecord(record.membershipPass) || {};
-  const options = asRecord(record.paymentOptions) || {};
-  const membershipPass = asRecord(record.membershipPass) || {};
-  const tier = normalizeSubscriptionSnapshotTier(
-    record.tier
-      ?? record.plan
-      ?? record.planId
-      ?? record.passTier
-      ?? record.subscriptionTier
-      ?? options.tier
-      ?? options.passTier
-      ?? options.subscriptionTier
-      ?? membershipPass.tier
-      ?? membershipPass.passTier
-      ?? nested.tier
-      ?? nested.plan
-      ?? nested.passTier,
-  );
-  const expiresAt = normalizeSubscriptionSnapshotDate(
-    record.expiresAt
-      ?? record.currentPeriodEnd
-      ?? record.endsAt
-      ?? record.validUntil
-      ?? options.expiresAt
-      ?? nested.expiresAt
-      ?? nested.currentPeriodEnd
-      ?? nested.endsAt
-      ?? nested.validUntil,
-  );
-  const expiredByDate = !!expiresAt && Date.parse(expiresAt) <= Date.now();
-  const rawStatus = record.status ?? record.subscriptionStatus ?? record.membershipStatus ?? options.status ?? nested.status ?? nested.subscriptionStatus;
-  const hasFutureExpiry = !!expiresAt && Date.parse(expiresAt) > Date.now();
-  const explicitActive = record.isActive === true
-    || record.isSubscribed === true
-    || record.active === true
-    || record.enabled === true
-    || record.valid === true
-    || record.hasActivePass === true
-    || options.hasActivePass === true
-    || nested.isActive === true
-    || nested.isSubscribed === true
-    || subscriptionSnapshotStatusIsActive(rawStatus);
-  const explicitInactive = subscriptionSnapshotStatusIsInactive(rawStatus)
-    || (record.isActive === false && !explicitActive)
-    || (record.isSubscribed === false && !explicitActive)
-    || (record.hasActivePass === false && !explicitActive)
-    || (options.hasActivePass === false && !explicitActive)
-    || (nested.isActive === false && !explicitActive)
-    || (nested.isSubscribed === false && !explicitActive);
-  const state = tier !== "free" && !expiredByDate && !explicitInactive && (explicitActive || hasFutureExpiry) ? "active" : "none";
-  return {
-    userId,
-    state,
-    tier: state === "active" ? tier : "free",
-    expiresAt: state === "active" ? expiresAt : null,
-    checkedAt: Date.now(),
-    purchaseVersion: toText(record.purchaseVersion ?? record.paymentId ?? record.merchantUid ?? record.orderId ?? record.subscriptionId ?? record.updatedAt ?? expiresAt),
-    source: toText(source || record.source || "client"),
-  };
+  return passVerdict.readSnapshot(resolvedUserId, options) as SubscriptionSnapshot | null;
 }
 
 export function saveSubscriptionSnapshotForUser(userId: string | undefined, value: unknown, source = "client"): SubscriptionSnapshot | null {
   const resolvedUserId = resolveSubscriptionSnapshotUserId(userId);
   if (typeof window === "undefined" || !resolvedUserId) return null;
-  try {
-    const snapshot = buildSubscriptionSnapshotPayload(resolvedUserId, value, source);
-    localStorage.setItem(subscriptionSnapshotKey(resolvedUserId), JSON.stringify(snapshot));
-    return snapshot;
-  } catch {
-    return null;
-  }
+  return passVerdict.storeStatus(resolvedUserId, value, source) as SubscriptionSnapshot | null;
 }
 
 function readSubscriptionSnapshotMonthlyBalance(): number {
@@ -1993,38 +1829,27 @@ export type SnapshotPassVerdict = {
 // 켤지 말지)가 같은 함수를 써야 두 판정이 어긋나지 않는다 — 사본을 만들면 한쪽만 고쳐져 '확인 화면은
 // 떴는데 곧바로 결제창'/'결제창은 떴는데 확인 화면이 남음' 같은 어긋남이 생긴다.
 // 이용권 판정은 canUseByPass(tier, expiresAt, 가격)라는 순수 함수라 기능별 서버 조회가 필요 없다.
+// 판정 규칙 자체는 js/core/pass-verdict.js 가 소유한다(셸·독립 정적과 공유). 여기서는 결제수단 명시
+// 여부 같은 React 입력을 규칙에 얹기만 한다.
 export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): SnapshotPassVerdict {
   const requestedMode = normalizePaymentMode(input.paymentMode);
   const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
   const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
   const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
   const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
-  // 미보유 확정은 stale 스냅샷으로도 내린다(SWR). 커버 확정은 신선한 'active' 로만 내린다.
+  // 미보유 확정은 stale 스냅샷으로도 내린다(SWR). 커버 확정도 이용권 만료일이 남아 있으면 stale 로 낸다.
   const snapshot = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
   // stale 을 읽었으면 이번 판정은 그대로 쓰고 다음 클릭을 위해 백그라운드로만 갱신한다.
   // (warmSubscriptionSnapshotOnEntry 는 in-flight dedup + 신선 스냅샷 조기반환을 이미 갖고 있다.)
   if (snapshot?.stale) void warmSubscriptionSnapshotOnEntry();
-  const passLimit = snapshot?.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
   const knownCoinCost = resolveKnownCoinCost(input, null);
+  const verdict = passVerdict.resolveVerdict(snapshot, knownCoinCost);
   const usable = !explicitPaymentMode && !passDisabled && knownCoinCost > 0 && Boolean(snapshot);
   return {
     snapshot,
-    passLimit,
-    coversNow: Boolean(
-      usable
-      && snapshot?.state === "active"
-      && !snapshot.stale
-      && passLimit > 0
-      && (snapshot.tier === "family" || knownCoinCost <= passLimit),
-    ),
-    cannotCover: Boolean(
-      usable
-      && snapshot
-      && (
-        snapshot.state === "none"
-        || (snapshot.state === "active" && passLimit > 0 && snapshot.tier !== "family" && knownCoinCost > passLimit)
-      ),
-    ),
+    passLimit: verdict.passLimit,
+    coversNow: Boolean(usable && verdict.coversNow),
+    cannotCover: Boolean(usable && verdict.cannotCover),
   };
 }
 
@@ -3235,7 +3060,7 @@ async function fetchPaymentEligibilityUncached(input: {
       ?? membershipPass?.passTier
       ?? membershipPass?.tier,
   );
-  const passExpiresAt = normalizeSubscriptionSnapshotDate(data.expiresAt ?? options.expiresAt ?? membershipPass?.expiresAt);
+  const passExpiresAt = passVerdict.normalizeDate(data.expiresAt ?? options.expiresAt ?? membershipPass?.expiresAt);
   const passExpired = !!passExpiresAt && Date.parse(passExpiresAt) <= Date.now();
   const hasActivePass = !passExpired && Boolean(options.hasActivePass ?? data.hasActivePass);
   const passLimit = toNumber(
@@ -3324,7 +3149,10 @@ async function fetchPaymentEligibilityUncached(input: {
 let subscriptionWarmInFlight = false;
 export async function warmSubscriptionSnapshotOnEntry(): Promise<void> {
   if (typeof window === "undefined" || subscriptionWarmInFlight) return;
-  if (readSubscriptionSnapshotForUser()) return; // 이미 신선한 스냅샷 보유 → 재요청 불필요.
+  // 🔴 stale 스냅샷은 "있음"이 아니라 "갱신 대상"이다. 여기서 조기 반환하면 SWR 로 살려 둔 스냅샷이
+  // 영영 갱신되지 않고 상한(none 24시간 / active 이용권 만료일)까지 굳는다.
+  const warmCached = readSubscriptionSnapshotForUser();
+  if (warmCached && warmCached.stale !== true) return; // 이미 신선한 스냅샷 보유 → 재요청 불필요.
   subscriptionWarmInFlight = true;
   try {
     await fetchPaymentEligibility({ featureKey: "membership-status-refresh", reason: "app-entry" }, { phase: "full" });

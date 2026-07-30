@@ -8,6 +8,7 @@ import NavigationProvider from "./providers/NavigationProvider";
 import UserSessionProvider from "./providers/UserSessionProvider";
 import AppChrome from "./components/AppChrome";
 import RuntimeClientGuards from "./components/RuntimeClientGuards";
+import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
 import {
@@ -256,6 +257,7 @@ export default function RootLayout({ children }) {
             <UserSessionProvider>
               <NavigationProvider>
                 <RuntimeClientGuards />
+                <ShellHomeHardNavGuard />
                 <ToastProvider />
                 <AppChrome>{children}</AppChrome>
               </NavigationProvider>
