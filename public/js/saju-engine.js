@@ -15019,7 +15019,7 @@ function buildZwSummaryTableHtml(palace) {
     return '함';
   }
   function genSummary(gungName,mainMeta,zhi,sh,auxStars){
-    var gungDef = zwGungDef(gungName) || gungName;
+    var gungDef = ZW_GUNG_DEF[gungName] || gungName;
     var goodAux=['천괴','천월','좌보','우필','문창','문곡','녹존','천마'];
     var supportAux=[];
     (auxStars || []).forEach(function(a){
@@ -15086,7 +15086,7 @@ function buildZwSummaryTableHtml(palace) {
     var icon=ZW_PALACE_ICON[pName]||'◆';
     var borderStyle=mainSihua==='화기'?'border-left:3px solid #f87171':(mainSihua?'border-left:3px solid #4ade80':'border-left:3px solid transparent');
     rows+='<tr style="background:'+rowBg+';'+borderStyle+'">';
-    rows+='<td style="padding:9px 10px;white-space:nowrap;font-weight:800;color:#d8b4fe;font-size:0.82rem;vertical-align:top">'+icon+' '+zwDisplayPalaceName(pName)+'<br><span style="color:#64748b;font-size:0.67rem;font-weight:400">'+zwGungDef(pName)+'</span></td>';
+    rows+='<td style="padding:9px 10px;white-space:nowrap;font-weight:800;color:#d8b4fe;font-size:0.82rem;vertical-align:top">'+icon+' '+zwDisplayPalaceName(pName)+'<br><span style="color:#64748b;font-size:0.67rem;font-weight:400">'+ZW_GUNG_DEF[pName]+'</span></td>';
     rows+='<td style="padding:9px 10px;color:#fde68a;font-size:0.81rem;vertical-align:top;line-height:1.8">'+starsDisp+'</td>';
     rows+='<td style="padding:9px 10px;font-size:0.73rem;color:#94a3b8;vertical-align:top">'+auxDisp+'</td>';
     rows+='<td style="padding:9px 10px;font-size:0.78rem;color:#e2e8f0;line-height:1.6;vertical-align:top">'+summaryText+'</td>';
@@ -15096,7 +15096,7 @@ function buildZwSummaryTableHtml(palace) {
       pName: pName,
       pNameDisplay: zwDisplayPalaceName(pName),
       icon: icon,
-      defn: zwGungDef(pName),
+      defn: ZW_GUNG_DEF[pName],
       starsDisp: starsDisp,
       auxDisp: auxDisp || '<span style="color:#64748b">없음</span>',
       summaryText: summaryText,
@@ -15402,39 +15402,6 @@ var ZW_STAR_CORE_PROFILE = {
     loveFriction: '안정 욕구와의 충돌'
   }
 };
-
-/* 관리자 CMS(운세 콘텐츠 → 자미두수 기본 명반 해설) 오버라이드 접근자.
-   셸에는 정적 import 가 없어 js/core/cms-static.js 가 미리 받아 둔 표를 통해 읽는다.
-   읽을 때마다 조회하는 이유: 표를 로드 시점에 한 번 덮으면 아직 안 받아온 상태로 굳는다.
-   폴백 우선 — 오버라이드가 없으면 코드 기본값을 그대로 돌려준다. */
-function zwCmsText(recordName, recordKey, base) {
-  if (typeof window === 'undefined' || !window.__cdCmsRecord) return base;
-  return window.__cdCmsRecord('ziwei-basic', recordName, recordKey, 'text', base);
-}
-
-function zwCmsRow(recordName, recordKey, base) {
-  if (typeof window === 'undefined' || !window.__cdCmsRecord || !base) return base;
-  var patched = null;
-  for (var field in base) {
-    if (!Object.prototype.hasOwnProperty.call(base, field)) continue;
-    if (typeof base[field] !== 'string') continue;
-    var next = window.__cdCmsRecord('ziwei-basic', recordName, recordKey, field, base[field]);
-    if (next === base[field]) continue;
-    if (!patched) {
-      patched = {};
-      for (var copyKey in base) {
-        if (Object.prototype.hasOwnProperty.call(base, copyKey)) patched[copyKey] = base[copyKey];
-      }
-    }
-    patched[field] = next;
-  }
-  return patched || base;
-}
-
-function zwGungDef(name) { return zwCmsText('palace-def', name, ZW_GUNG_DEF[name] || ''); }
-function zwGungBrief(name) { return zwCmsText('palace-brief', name, ZW_GUNG_BRIEF[name] || ''); }
-function zwStarProfile(name) { return zwCmsRow('star', name, ZW_STAR_CORE_PROFILE[name]); }
-
 var ZW_PALACE_DEEP_FRAME = {
   '명궁':   { q: '나는 어떤 사람이고, 인생의 기본 태도는 무엇인가', field: 'self',   label: '기질 발현' },
   '형제궁': { q: '가장 가까운 사람들과 어떻게 협력하는가',          field: 'people', label: '관계 발현' },
@@ -15514,7 +15481,7 @@ function zwDeepPalaceBranchIdx(pd, pName) {
   return pd && pd.palacesByIndex ? pd.palacesByIndex.indexOf(pName) : -1;
 }
 function zwDeepMainStars(entry) {
-  return (entry && Array.isArray(entry.stars)) ? entry.stars.filter(function(s){ return s && s.name && zwStarProfile(s.name); }) : [];
+  return (entry && Array.isArray(entry.stars)) ? entry.stars.filter(function(s){ return s && s.name && ZW_STAR_CORE_PROFILE[s.name]; }) : [];
 }
 function zwDeepStarNames(entry) {
   var names = [];
@@ -15563,10 +15530,10 @@ function buildZwTwelvePalaceDeepHtml(pd) {
       var branchIdx = zwDeepPalaceBranchIdx(pd, pName);
       var body = '';
       body += '<div style="color:#c4b5fd;font-size:0.78rem;margin-bottom:8px;">이 궁이 답하는 질문 — <b style="color:#e9d5ff;">'+zwDeepEsc(frame.q)+'</b></div>';
-      body += '<div style="color:#cbd5e1;font-size:0.78rem;line-height:1.7;margin-bottom:10px;">'+zwDeepEsc(zwGungBrief(pName) || '')+'</div>';
+      body += '<div style="color:#cbd5e1;font-size:0.78rem;line-height:1.7;margin-bottom:10px;">'+zwDeepEsc(ZW_GUNG_BRIEF[pName] || '')+'</div>';
       if (mains.length) {
         mains.slice(0, 2).forEach(function(st){
-          var prof = zwStarProfile(st.name);
+          var prof = ZW_STAR_CORE_PROFILE[st.name];
           var brPhrase = ZW_BR_DEEP_PHRASE[st.strength] || ZW_BR_DEEP_PHRASE['평'];
           body += '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(196,181,253,0.18);border-radius:10px;padding:10px 11px;margin-bottom:8px;">'
             +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">'
@@ -15633,7 +15600,7 @@ function buildZwTwelvePalaceDeepHtml(pd) {
             : '스스로 균형을 만들어야 하는 자율 구조입니다. 기준과 루틴이 곧 귀인입니다.');
         body += '<div style="margin-bottom:6px;color:#cbd5e1;font-size:0.79rem;"><b style="color:#a5b4fc;">삼방사정:</b> 이 궁은 홀로 작동하지 않습니다. 정면의 '+relNames[0]+' 기류가 마주 들어오고, '+relNames[1]+' · '+relNames[2]+' 두 궁이 삼합으로 힘을 보탭니다. 네 궁을 겹쳐 읽으면 — '+zwDeepEsc(relSummary)+'</div>';
       }
-      var adviceProf = mains.length ? zwStarProfile(mains[0].name) : null;
+      var adviceProf = mains.length ? ZW_STAR_CORE_PROFILE[mains[0].name] : null;
       body += '<div style="background:linear-gradient(120deg,rgba(110,231,183,0.1),rgba(2,6,23,0.2));border:1px solid rgba(110,231,183,0.24);border-radius:9px;padding:8px 10px;color:#d1fae5;font-size:0.8rem;">'
         +'<b>실전 조언:</b> '+zwDeepEsc(adviceProf ? adviceProf.advice : '이 궁의 결정은 혼자 정하지 말고, 신뢰하는 한 사람의 의견을 거쳐 확정하세요. 공궁 축은 검증 절차가 곧 힘입니다.')
       +'</div>';
@@ -15668,7 +15635,7 @@ function buildZwSpouseDeepHtml(pd) {
     var spouseBody = '';
     if (mains.length) {
       mains.slice(0, 2).forEach(function(st){
-        var prof = zwStarProfile(st.name);
+        var prof = ZW_STAR_CORE_PROFILE[st.name];
         spouseBody += '<div style="margin-bottom:8px;">'
           +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;"><b style="color:#fecdd3;font-size:0.87rem;">'+zwDeepEsc(st.name)+'</b>'+zwDeepBrTag(st.strength)
           +(st.borrowed ? '<span style="color:#facc15;font-size:0.68rem;font-weight:800;">차성 — 대궁(관록궁)에서 빌려 읽음</span>' : '')+'</div>'
@@ -15682,8 +15649,8 @@ function buildZwSpouseDeepHtml(pd) {
     html += zwDeepCardShell('💞', '배우자상 정밀 리딩', mains.length ? mains.map(function(s){ return zwDeepEsc(s.name); }).join('·') : '공궁 — 시기 중심 해석', spouseBody, '#f9a8d4', true);
 
     if (mingMains.length && mains.length) {
-      var a = zwStarProfile(mingMains[0].name);
-      var b = zwStarProfile(mains[0].name);
+      var a = ZW_STAR_CORE_PROFILE[mingMains[0].name];
+      var b = ZW_STAR_CORE_PROFILE[mains[0].name];
       var chemBody = '<div style="margin-bottom:5px;">나(명궁 <b style="color:#fde68a;">'+zwDeepEsc(mingMains[0].name)+'</b>)의 관계 언어는 <b style="color:#fef3c7;">"'+zwDeepEsc(a.loveNeed)+'"</b>이고, 배우자 자리(부부궁 <b style="color:#fecdd3;">'+zwDeepEsc(mains[0].name)+'</b>)의 약속 조건은 <b style="color:#ffe4e6;">"'+zwDeepEsc(b.loveNeed)+'"</b>입니다.</div>'
         +'<div style="margin-bottom:5px;">이 두 언어가 서로 번역되는 동안 관계는 깊어지고, 번역을 멈추는 순간 각자 외로워집니다. 갈등의 불씨는 주로 <b style="color:#fda4af;">"'+zwDeepEsc(b.loveFriction)+'"</b>에서 시작되고, 나의 <b style="color:#fda4af;">"'+zwDeepEsc(a.loveFriction)+'"</b> 반응이 그 불을 키웁니다.</div>'
         +'<div style="color:#d1fae5;background:rgba(110,231,183,0.08);border:1px solid rgba(110,231,183,0.22);border-radius:8px;padding:7px 9px;font-size:0.8rem;"><b>처방:</b> 싸움이 시작되면 누가 옳은지 정하지 말고, 지금 상대가 "'+zwDeepEsc(b.loveNeed)+'"의 결핍을 말하고 있는 건 아닌지 먼저 확인하세요. 결핍을 짚어주는 한 문장이 논쟁 열 마디를 이깁니다.</div>';
@@ -15691,7 +15658,7 @@ function buildZwSpouseDeepHtml(pd) {
     }
 
     var stageMeet = mains.length
-      ? '이 인연은 '+zwDeepEsc(zwStarProfile(mains[0].name).spousePath)+' 시작 단계에서는 서로의 장점만 보이므로, 오히려 상대의 "'+zwDeepEsc(zwStarProfile(mains[0].name).loveFriction)+'" 신호를 한 번쯤 담담하게 관찰해 두세요. 콩깍지 시기의 메모가 훗날의 나침반이 됩니다.'
+      ? '이 인연은 '+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].spousePath)+' 시작 단계에서는 서로의 장점만 보이므로, 오히려 상대의 "'+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].loveFriction)+'" 신호를 한 번쯤 담담하게 관찰해 두세요. 콩깍지 시기의 메모가 훗날의 나침반이 됩니다.'
       : '공궁 배치는 시작이 조용한 편입니다. 첫인상보다 세 번째 만남의 편안함을 기준으로 판단하세요.';
     var stageConflict = risk === 'high'
       ? '이 명반의 갈등기는 짧고 굵게 오는 유형입니다. '+(hasGi ? '부부궁에 화기(忌)가 걸려 있어 말과 정산(돈·집안일·시간) 문제가 얽히기 쉽습니다. ' : '')+(badNames.length ? '특히 '+zwDeepEsc(badNames.join('·'))+'의 긴장이 감정 폭발의 방아쇠가 됩니다. ' : '')+'규칙 하나만 지키세요 — 감정이 올라온 날은 결론을 내리지 않는다. 다음 날 같은 주제를 다시 꺼내면 대화의 절반은 이미 풀려 있습니다.'
@@ -15699,7 +15666,7 @@ function buildZwSpouseDeepHtml(pd) {
         ? '갈등은 대체로 한 가지 패턴('+zwDeepEsc(badNames[0] || '')+' — '+zwDeepEsc(ZW_BAD_STAR_EFFECT[badNames[0]] || '작은 마찰')+')으로 반복됩니다. 패턴을 상대와 공유하는 것 자체가 절반의 해결입니다.'
         : '큰 흉성 압박이 없는 배치라, 갈등기는 극적인 사건보다 "권태와 무심함"으로 옵니다. 문제가 없다는 것이 곧 관리가 필요 없다는 뜻은 아닙니다. 계절마다 한 번, 관계의 안부를 묻는 대화를 일부러 만드세요.');
     var stageSettle = mains.length
-      ? '정착기의 핵심은 "'+zwDeepEsc(zwStarProfile(mains[0].name).loveNeed)+'"의 꾸준한 공급입니다. 이벤트보다 생활 속 반복(말투·역할 분담·기념 방식)으로 설계하세요. '+zwDeepEsc(zwStarProfile(mains[0].name).spouse)
+      ? '정착기의 핵심은 "'+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].loveNeed)+'"의 꾸준한 공급입니다. 이벤트보다 생활 속 반복(말투·역할 분담·기념 방식)으로 설계하세요. '+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].spouse)
       : '정착기에는 두 사람만의 규칙 문서(돈·집안일·부모님·휴식)를 만들면 공궁의 유연함이 그대로 강점이 됩니다.';
     var scenarioBody = '<div style="display:grid;gap:7px;">'
       +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fbcfe8;">1단계 · 만남기</b><br>'+stageMeet+'</div>'
@@ -15770,7 +15737,7 @@ function buildZwGrandLifeDeepHtml(pd) {
     var html = '<div data-cd-marker="ziwei-grand-life-deep-v20260711" style="margin-bottom:16px;">';
     html += zwDeepSectionHead('생애 서사 — 명궁 주성이 그리는 긴 곡선', '10년 단위 대한을 세 개의 막으로 묶고, 명궁 주성의 장기 곡선을 붙여 읽습니다.', '#f9a8d4');
     if (mingMains.length) {
-      var prof = zwStarProfile(mingMains[0].name);
+      var prof = ZW_STAR_CORE_PROFILE[mingMains[0].name];
       var lifeArr = prof.life || [];
       html += '<div style="display:grid;gap:7px;margin-bottom:12px;">'
         +'<div style="background:rgba(2,6,23,0.36);border:1px solid rgba(196,181,253,0.2);border-radius:9px;padding:9px 11px;"><b style="color:#c4b5fd;">성장 곡선</b><br><span style="font-size:0.83rem;">'+zwDeepEsc(lifeArr[0] || '')+'</span></div>'
@@ -15790,7 +15757,7 @@ function buildZwGrandLifeDeepHtml(pd) {
         if (!act.list.length) return;
         var span = act.list[0].startAge + '~' + act.list[act.list.length - 1].endAge + '세';
         var palaceSeq = act.list.map(function(dh){ return dh.palaceName; }).filter(Boolean);
-        var themeLine = palaceSeq.map(function(pn){ return '<b style="color:#e9d5ff;">' + zwDeepEsc(zwDisplayPalaceName(pn)) + '</b>(' + zwDeepEsc(zwGungDef(pn) || '') + ')'; }).join(' → ');
+        var themeLine = palaceSeq.map(function(pn){ return '<b style="color:#e9d5ff;">' + zwDeepEsc(zwDisplayPalaceName(pn)) + '</b>(' + zwDeepEsc(ZW_GUNG_DEF[pn] || '') + ')'; }).join(' → ');
         actHtml += '<div style="background:rgba(2,6,23,0.32);border:1px solid '+act.color+'33;border-radius:9px;padding:9px 11px;margin-bottom:7px;">'
           +'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><b style="color:'+act.color+';">'+zwDeepEsc(act.name)+'</b><span style="color:#94a3b8;font-size:0.75rem;">'+span+'</span></div>'
           +'<div style="font-size:0.79rem;color:#cbd5e1;line-height:1.7;margin-top:4px;">대한 경로: '+themeLine+'</div>'
@@ -15810,7 +15777,7 @@ function buildZwGrandLifeDeepHtml(pd) {
       var e = zwDeepPalaceEntry(pd, ax.palace);
       var ms = zwDeepMainStars(e);
       var text = ms.length
-        ? '('+zwDeepEsc(ms[0].name)+') '+zwDeepEsc(zwStarProfile(ms[0].name)[ax.field])
+        ? '('+zwDeepEsc(ms[0].name)+') '+zwDeepEsc(ZW_STAR_CORE_PROFILE[ms[0].name][ax.field])
         : '(공궁) 이 축은 고정된 방식이 없는 만큼, 좋은 습관 하나가 곧 팔자가 됩니다. 검증된 루틴을 정해 꾸준히 유지하세요.';
       axisHtml += '<div style="background:rgba(2,6,23,0.32);border:1px solid '+ax.color+'2e;border-radius:9px;padding:8px 10px;"><b style="color:'+ax.color+';font-size:0.8rem;">'+zwDeepEsc(ax.label)+'</b><div style="font-size:0.79rem;color:#e2e8f0;line-height:1.7;margin-top:3px;">'+text+'</div></div>';
     });
@@ -15851,11 +15818,11 @@ function buildZwYearlyFlowDeepHtml(pd) {
       var kwaPalace = kwaStar ? findStarPalace(kwaStar) : '';
       var body = '';
       if (flowMingPalace) {
-        body += '<div style="margin-bottom:6px;"><b style="color:#c4b5fd;">올해의 무대(유년 명궁):</b> 내 명반의 <b style="color:#e9d5ff;">'+zwDeepEsc(zwDisplayPalaceName(flowMingPalace))+'</b> 자리 — '+zwDeepEsc(zwGungDef(flowMingPalace) || '')+' 영역이 한 해의 기본 무대가 됩니다.</div>';
+        body += '<div style="margin-bottom:6px;"><b style="color:#c4b5fd;">올해의 무대(유년 명궁):</b> 내 명반의 <b style="color:#e9d5ff;">'+zwDeepEsc(zwDisplayPalaceName(flowMingPalace))+'</b> 자리 — '+zwDeepEsc(ZW_GUNG_DEF[flowMingPalace] || '')+' 영역이 한 해의 기본 무대가 됩니다.</div>';
       }
       body += '<div style="margin-bottom:6px;"><b style="color:#4ade80;">기회의 문(화록):</b> '
         + (rokPalace
-          ? '<b>'+zwDeepEsc(rokStar)+'</b> 별이 있는 <b style="color:#d1fae5;">'+zwDeepEsc(zwDisplayPalaceName(rokPalace))+'</b>에서 열립니다. '+zwDeepEsc(zwGungDef(rokPalace) || '')+' 쪽에서 들어오는 제안과 인연을 흘려보내지 마세요.'
+          ? '<b>'+zwDeepEsc(rokStar)+'</b> 별이 있는 <b style="color:#d1fae5;">'+zwDeepEsc(zwDisplayPalaceName(rokPalace))+'</b>에서 열립니다. '+zwDeepEsc(ZW_GUNG_DEF[rokPalace] || '')+' 쪽에서 들어오는 제안과 인연을 흘려보내지 마세요.'
           : '올해의 화록 별('+zwDeepEsc(rokStar || '-')+')이 내 명반에서 뚜렷하지 않아, 재물 기회는 크게 요동치지 않습니다. 기존 흐름을 지키는 해입니다.')
         +'</div>';
       if (kwonPalace || kwaPalace) {
@@ -15866,7 +15833,7 @@ function buildZwYearlyFlowDeepHtml(pd) {
       }
       body += '<div style="margin-bottom:6px;"><b style="color:#f87171;">조심할 문(화기):</b> '
         + (giPalace
-          ? '<b>'+zwDeepEsc(giStar)+'</b> 별이 있는 <b style="color:#fecaca;">'+zwDeepEsc(zwDisplayPalaceName(giPalace))+'</b>에 얽힘이 걸립니다. '+zwDeepEsc(zwGungDef(giPalace) || '')+' 영역의 말·계약·정산은 두 번 확인하고, 애매한 약속은 문장으로 남기세요.'
+          ? '<b>'+zwDeepEsc(giStar)+'</b> 별이 있는 <b style="color:#fecaca;">'+zwDeepEsc(zwDisplayPalaceName(giPalace))+'</b>에 얽힘이 걸립니다. '+zwDeepEsc(ZW_GUNG_DEF[giPalace] || '')+' 영역의 말·계약·정산은 두 번 확인하고, 애매한 약속은 문장으로 남기세요.'
           : '올해의 화기 별('+zwDeepEsc(giStar || '-')+')이 내 명반에서 뚜렷하지 않아, 직접적인 얽힘 신호는 약합니다. 기본기를 지키면 무난합니다.')
         +'</div>';
       var strategy;
@@ -15889,7 +15856,7 @@ function buildZwYearlyFlowDeepHtml(pd) {
 function buildZwSymbolicDeepHtml(ctx) {
   try {
     if (!ctx || !ctx.ming) return '';
-    var mingProf = zwStarProfile(ctx.ming.star) || null;
+    var mingProf = ZW_STAR_CORE_PROFILE[ctx.ming.star] || null;
     var shenProf = ZW_STAR_CORE_PROFILE[ctx.shen && ctx.shen.star] || null;
     var html = '<div data-cd-marker="ziwei-symbolic-deep-v20260711" style="margin-top:12px;">';
     html += zwDeepSectionHead('인장 서사 — 상징을 생활 언어로 풀기', '위 인장 카드들이 왜 당신의 명반에서 나왔는지, 그리고 일상에서 어떻게 쓰는지 이어서 설명합니다.', '#fde68a');
@@ -22200,7 +22167,7 @@ function renderZiwei(p, natal, targetId) {
           : '<span style="color:#888;font-style:italic">공궁(空宮)</span>';
         var auxJoin = auxClean.length ? fmtListWithStrength(auxClean, ZHI_LIST[idx], false) : '없음';
         var badJoin = badClean.length ? fmtListWithStrength(badClean, ZHI_LIST[idx], false) : '없음';
-        var palaceBrief = zwGungBrief(pName) || zwGungDef(pName) || '해당 궁의 흐름을 확인하세요.';
+        var palaceBrief = ZW_GUNG_BRIEF[pName] || ZW_GUNG_DEF[pName] || '해당 궁의 흐름을 확인하세요.';
 
         var sec1 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
           '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🗺️ [당신을 비추는 별의 지도]</h2>' +

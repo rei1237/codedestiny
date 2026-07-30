@@ -8080,15 +8080,8 @@ function syReadingOverrideByIndex(index, key) {
   var idx = Number(index);
   if (!Number.isFinite(idx)) return '';
   var scope = SY_MANSION_PROFILE_OVERRIDES[idx];
-  var base = scope && scope[key] ? scope[key] : '';
-  // 관리자 CMS(운세 콘텐츠 → 숙요 27수 해설)에서 고친 값이 있으면 그것을 쓴다.
-  // 셸에는 정적 import 가 없어 js/core/cms-static.js 가 미리 받아 둔 표를 통해 조회한다.
-  // 폴백 우선 — 아직 안 왔거나 오버라이드가 없으면 위 기본값이 그대로 쓰인다.
-  var text = typeof window !== 'undefined' && window.__cdCmsRecord
-    ? window.__cdCmsRecord('sukuyo-mansion', 'mansion', idx, key, base)
-    : base;
-  if (!text) return '';
-  return syEnsureSentenceEnding(String(text || '').trim());
+  if (!scope || !scope[key]) return '';
+  return syEnsureSentenceEnding(String(scope[key] || '').trim());
 }
 
 // 궁합 도감(인연 상대 27수)용 손필사 오버라이드. 기존 궁합 렌더는 관계유형 6종
