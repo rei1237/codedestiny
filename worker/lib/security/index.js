@@ -254,17 +254,36 @@ export async function addAbuseScore({ env, request, userId = "", endpoint = "", 
   }
 }
 
+// 🔴 이 가드의 Mongo 작업들은 재시도도 per-op 타임아웃도 없이 드라이버 기본값
+// (서버선택 8s / 소켓 20s)에만 묶여 있었다. 공유혀 Atlas 가 느려지면 두 작업이 각각 8~10초 창에
+// 걸려, **인증조차 없어 거절될 POST /api/billing/checkout 이 21.7초**를 소비했다(프로덕션 실측).
+// 이 가드는 원래 실패 시 fail-open 이므로(아래 catch), 짧은 시간 상한을 걸어도 정책이 바뀌지 않는다 —
+// 단지 "느린 DB 때문에 모든 결제 요청이 20초 느려지는" 것을 막는다.
+const SECURITY_DB_TIMEOUT_MS = 1500;
+
+function withSecurityDbTimeout(promise) {
+  let timer = null;
+  const timeout = new Promise((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error("SECURITY_DB_TIMEOUT")), SECURITY_DB_TIMEOUT_MS);
+  });
+  // 타이머를 반드시 정리한다 — Workers 에서 대기 중인 타이머가 요청을 살려두면 예산을 낭비한다.
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer !== null) clearTimeout(timer);
+  });
+}
+
 export async function checkSoftBlock({ env, request, userId = "", endpoint = "" } = {}) {
   if (!shouldEnforce(env)) return { ok: true };
   try {
-    await connectDb(env);
-    const subjectHash = getSecuritySubjectHash({ request, env, userId, endpoint });
-    const doc = await AbuseScore.findOne({
+    const subjectHash = await withSecurityDbTimeout(
+      connectDb(env).then(() => getSecuritySubjectHash({ request, env, userId, endpoint })),
+    );
+    const doc = await withSecurityDbTimeout(AbuseScore.findOne({
       subjectHash,
       endpoint: cleanText(endpoint),
       kind: "abuse",
       blockedUntil: { $gt: new Date() },
-    }).lean();
+    }).lean());
     if (!doc) return { ok: true };
     return {
       ok: false,
@@ -286,7 +305,7 @@ export async function enforceRateLimit({
 } = {}) {
   if (getSecurityGuardMode(env) === "off") return { ok: true };
   try {
-    await connectDb(env);
+    await withSecurityDbTimeout(connectDb(env));
     const nowMs = Date.now();
     const windowMs = Math.max(1, Number(windowSeconds || 60)) * 1000;
     const windowStart = Math.floor(nowMs / windowMs) * windowMs;
@@ -294,7 +313,7 @@ export async function enforceRateLimit({
     const subjectHash = hashValue(["rate", endpoint, rateKey, windowStart].join("|"), getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
     const now = new Date(nowMs);
     const expiresAt = new Date(nowMs + windowMs * 2);
-    const doc = await AbuseScore.findOneAndUpdate(
+    const doc = await withSecurityDbTimeout(AbuseScore.findOneAndUpdate(
       { subjectHash, endpoint: cleanText(endpoint), kind: "rate_limit" },
       {
         $inc: { score: 1 },
@@ -309,7 +328,7 @@ export async function enforceRateLimit({
         },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true },
-    ).lean();
+    ).lean());
     const count = Number(doc?.score || 0);
     if (count <= Number(limit || 60)) return { ok: true, count };
     const retryAfter = String(Math.max(1, Math.ceil((windowStart + windowMs - nowMs) / 1000)));

@@ -811,6 +811,10 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
       }
       return user;
     } catch (error) {
+      // 🔴 실패 경로에서도 쿨다운을 장전한다. 예전에는 성공 시에만 lastRefreshCompletedAt 을 세워서,
+      // 503 으로 실패하면 1.5초 쿨다운이 영영 꺼진 상태가 되고 이후 모든 refreshAuth({force:false})가
+      // 새 /api/auth/me 를 발사했다 — 정확히 DB 장애 중에 재발사가 폭주하는 조건이었다.
+      lastRefreshCompletedAt = Date.now();
       setState({
         authReady: true,
         isLoading: false,
