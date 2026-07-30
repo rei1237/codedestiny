@@ -335,7 +335,7 @@ AI는 **확정된 `DirectionField`를 근거로 설명만** 한다(값 생성·�
 
 ### 5-2. 인프라 / 프롬프트
 - 클라이언트 결정론 결과 즉시 렌더 → 유료·심화 산문만 워커 경유 생성.
-- 엔진: `lib/llm-client.ts`(Gemini 2.5-flash). 실패 시 CLAUDE.md 규칙대로 Workers AI(`@cf/meta/llama-3.1-8b-instruct`) 폴백.
+- 엔진: `lib/llm-client.ts`(Gemini 2.5-flash). 실패 시 CLAUDE.md 규칙대로 Workers AI(`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) 폴백. (구 `@cf/meta/llama-3.1-8b-instruct` 는 2026-05-30 폐기)
 - JSON 출력 시 `thinkingBudget:0`(잘림 방지 — 기존 사례).
 - system 프롬프트: 캐릭터 보이스(꽃돼지 힐링/네오 팩폭·애정) + 톤 금지(단정 예언·불안 조성·비하·의료/법률/투자 단정). user: `DirectionField` 사실 + emotion + question. 출력: 짧은 산문.
 
