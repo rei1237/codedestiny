@@ -2371,21 +2371,25 @@ function normalizeUnlockedFeatureList(values = []) {
 async function resolveProfileScopedUnlocks(authUserId, profileId, accountFeatureKeys = []) {
   if (!authUserId) return { unlockedFeatures: [], unlockMap: {}, contentKeys: [], profileScopedAuthoritative: false };
   const normalizedProfileId = cleanProfileId(profileId);
-  const keys = normalizedProfileId
-    ? await PointHistory.distinct("featureKey", {
-      userId: authUserId,
-      kind: "deduct",
-      featureKey: { $ne: "" },
-      $or: [
-        { "metadata.profileId": normalizedProfileId },
-        { "metadata.selectedProfileId": normalizedProfileId },
-      ],
-    })
-    : [];
-  const entitlementSnapshot = await getUnlockedContentSnapshot({
-    userId: String(authUserId),
-    profileId: normalizedProfileId,
-  });
+  // 두 조회는 서로의 결과를 참조하지 않는다(아래에서 union만 한다) — 직렬로 두면 왕복 1회가
+  // 순수 낭비로 이용권 확인 대기에 얹힌다.
+  const [keys, entitlementSnapshot] = await Promise.all([
+    normalizedProfileId
+      ? PointHistory.distinct("featureKey", {
+        userId: authUserId,
+        kind: "deduct",
+        featureKey: { $ne: "" },
+        $or: [
+          { "metadata.profileId": normalizedProfileId },
+          { "metadata.selectedProfileId": normalizedProfileId },
+        ],
+      })
+      : Promise.resolve([]),
+    getUnlockedContentSnapshot({
+      userId: String(authUserId),
+      profileId: normalizedProfileId,
+    }),
+  ]);
   const legacyProfileKeys = keys
     .map((key) => String(key || "").trim())
     .filter(isProfileScopedUnlockKey);
@@ -5760,13 +5764,12 @@ async function handleUnlockStatus(request, env) {
     }, "이용권 접근 상태를 조회했습니다.");
   }
 
-  const serverAccess = await canAccessPaidFeature(String(data.authUserId || ""), pricing.featureKey, {
-    env,
-    categoryKey,
-    subFeatureKey,
-    reason,
-  });
-
+  // 🔴 여기서 canAccessPaidFeature 를 부르지 않는다. 결과를 담던 serverAccessDecision 필드는
+  // 레포 전수 조회 결과 소비자가 없고(생산자 1곳뿐), 위 accessDecision/paymentDecision 이 이미
+  // 접근 판정을 끝냈다. 그런데도 이 호출은 위에서 읽은 것과 같은 User 문서를 다시 읽고
+  // (paid-feature-access.js) 이어서 Payment.find 를 직렬로 한 번 더 돌았다 — 그 두 왕복이
+  // 이용권 미보유자의 "이용권 확인" 대기에 그대로 얹혔다(미보유자는 사용자 문서의 해금 목록에
+  // 키가 없어 Payment 조회를 항상 수행하므로 보유자보다 비싸다).
   const legacyAccess = buildAccessDecision({
     pricing,
     authenticated: Boolean(data.authenticated),
@@ -5788,7 +5791,7 @@ async function handleUnlockStatus(request, env) {
     subscriptionTier: subscription.tier,
     freeLimit: Number(subscription.freeLimit || 0),
     freeBySubscription: passStatusCovered,
-    serverAccessDecision: serverAccess,
+    serverAccessDecision: null,
     accessGateResult: accessDecision.accessGateResult || null,
     licensePass: accessDecision.accessGateResult || null,
     currentBalance,
