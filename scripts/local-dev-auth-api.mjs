@@ -118,9 +118,11 @@ const workerEnv = {
   GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-2.5-flash",
   PREMIUM_GEMINI_MODEL: process.env.PREMIUM_GEMINI_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash",
   SUKYO_PREMIUM_GEMINI_MODEL: process.env.SUKYO_PREMIUM_GEMINI_MODEL || process.env.PREMIUM_GEMINI_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash",
-  SUKYO_PREMIUM_WORKERS_AI_MODEL: process.env.SUKYO_PREMIUM_WORKERS_AI_MODEL || process.env.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct",
+  // 아래 두 값은 현재 읽는 곳이 없다(pickWorkersAiModel 은 WORKERS_AI_PDF_MODEL/WORKERS_AI_MODEL 만 본다).
+  // 폐기된 8B 문자열이 남아 있으면 그대로 베껴 쓰게 되므로 현재 기본 모델로 맞춰 둔다.
+  SUKYO_PREMIUM_WORKERS_AI_MODEL: process.env.SUKYO_PREMIUM_WORKERS_AI_MODEL || process.env.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   ZIWEI_PREMIUM_GEMINI_MODEL: process.env.ZIWEI_PREMIUM_GEMINI_MODEL || process.env.PREMIUM_GEMINI_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash",
-  ZIWEI_PREMIUM_WORKERS_AI_MODEL: process.env.ZIWEI_PREMIUM_WORKERS_AI_MODEL || process.env.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct",
+  ZIWEI_PREMIUM_WORKERS_AI_MODEL: process.env.ZIWEI_PREMIUM_WORKERS_AI_MODEL || process.env.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
   ZIWEI_PREMIUM_LLM_PROVIDERS: process.env.ZIWEI_PREMIUM_LLM_PROVIDERS || "workers-ai,gemini",
   CORS_ORIGIN: process.env.CORS_ORIGIN || [
     frontendBase,
