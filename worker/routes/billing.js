@@ -116,7 +116,12 @@ const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
 const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
-const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 1400;
+// 🔴 이 값은 속도가 아니라 정확성 장치다. 너무 짧으면 '느림'이 '이용권 미보유'로 세탁된다:
+// 이 상한에 걸리면 PASS_STATUS_TEMPORARILY_UNAVAILABLE 이 되고, 정적 셸은 그걸 '결제창 재노출'로
+// 처리해 이용권 보유자에게 결제창이 뜬다. 기존 1400ms 는 드라이버 자체 하한(serverSelection 8s,
+// 시도당 11.5s)보다 훨씬 낮아 Cloudflare 아이들 소켓 회수 뒤 첫 조회에서 헛발동했다.
+// 왕복을 줄인 뒤(요청 단위 인증 메모·User 재사용) 4초면 정상 조회는 전부 통과한다.
+const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 4000;
 const PAID_PASS_DECISION_DB_TIMEOUT_MS = 10000;
 function billingRateLimitForPath(path = "", method = "GET") {
   if (path === "/coin-gate" || path === "/checkout") return { limit: 20, windowSeconds: 60 };
@@ -132,9 +137,30 @@ function isBillingSecurityPath(path = "", method = "GET") {
   return path === "/access";
 }
 
+// 🔴 요청 단위 인증 중복 제거(요청 간 캐시가 아니다). 결제 POST 한 건에서 인증 리졸버가 세 번
+// 돌았다 — 보안 단계(아래) · requireBillingAuth · readBillingSnapshot 이 각자 같은 User 문서를
+// 직렬로 다시 읽었고, Cloudflare 아이들 소켓이 회수된 상태면 그 왕복마다 재핸드셰이크를 냈다.
+// 항목은 가장 엄격한 옵션 하나로 고정한다: surfaceDbInfraError:true (DB 장애를 확정 401 로
+// 뭉개지 않고 503 으로 표면화하는 기존 의미 유지) + 결제 스냅샷 projection(모든 소비자의 상위집합).
+// 보안 단계만 지금처럼 catch 해서 게스트로 진행하고, requireBillingAuth 는 그대로 throw 를 받아
+// 기존 503 분기를 탄다 — 에러 의미는 바뀌지 않는다. 권위 있는 인증 조회는 여전히 요청당 정확히 1회다.
+const BILLING_REQUEST_AUTH_MEMO = new WeakMap();
+function resolveBillingRequestAuth(request, env) {
+  const options = { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION };
+  if (!request || typeof request !== "object") return getOptionalUserFromRequest(request, env, options);
+  const memoized = BILLING_REQUEST_AUTH_MEMO.get(request);
+  if (memoized) return memoized;
+  const promise = getOptionalUserFromRequest(request, env, options);
+  // 첫 소비자가 catch 하기 전에 거부되면 unhandled rejection 이 뜬다 — 분리된 no-op 핸들러를 달아
+  // 막되, 반환하는 promise 는 원본 그대로라 각 소비자의 catch/throw 동작은 유지된다.
+  promise.catch(() => {});
+  BILLING_REQUEST_AUTH_MEMO.set(request, promise);
+  return promise;
+}
+
 async function enforceBillingRouteSecurity(request, env, path, method) {
   if (!isBillingSecurityPath(path, method)) return { ok: true };
-  const auth = await getOptionalUserFromRequest(request, env).catch(() => null);
+  const auth = await resolveBillingRequestAuth(request, env).catch(() => null);
   const userId = String(auth?.userId || "");
   const meta = getRequestMeta(request);
   return enforceSensitiveEndpointSecurity({
@@ -376,10 +402,16 @@ async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey 
   return findActivePaidContentUnlock({ userId, profileId, featureKey });
 }
 
-async function hasUserScopedPermanentUnlock(env, { userId, featureKey }) {
+// unlockedFeatures: 이번 요청의 인증 조회가 이미 읽어 온 User.unlockedFeatures.
+// 넘어오면 같은 필드를 User.exists 로 다시 묻지 않는다 — 아래 쿼리가 보는 필드와 **완전히 동일**하다
+// (BILLING_SNAPSHOT_USER_PROJECTION 에 unlockedFeatures 포함). 판정 근거가 바뀌지 않는 순수 왕복 제거다.
+async function hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures = null }) {
   const key = String(featureKey || "").trim();
   if (!userId || !key || !isUnlockPaidFeatureKey(key) || resolveSajuProfileUnlockContentKey(key)) {
     return false;
+  }
+  if (Array.isArray(unlockedFeatures)) {
+    return unlockedFeatures.some((entry) => String(entry || "").trim() === key);
   }
   await connectDb(env);
   const row = await User.exists({ _id: userId, unlockedFeatures: key });
@@ -1006,6 +1038,8 @@ async function resolvePaidContentAccess(env, {
   requestedPaymentMode = "",
   allowPassAutoUnlock = true,
   subscriptionPass = null,
+  // 호출자가 이번 요청에서 이미 읽은 User.unlockedFeatures. 있으면 같은 필드를 다시 조회하지 않는다.
+  accountUnlockedFeatures = null,
   body = {},
 } = {}) {
   const priceCoin = resolvePricingCoinCost(pricing);
@@ -1040,7 +1074,7 @@ async function resolvePaidContentAccess(env, {
     // '일시 불가'로 떨어지지 않고 정확히 판정하도록 재시도로 감싼다(타임아웃 degrade는 유지).
     const [existingUnlock, userPermanentUnlock, existingPass] = await withMongoRetry(env, () => withDbAccessTimeout(Promise.all([
       findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }),
-      hasUserScopedPermanentUnlock(env, { userId, featureKey }),
+      hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures: accountUnlockedFeatures }),
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
     ]), PAID_ACCESS_DECISION_DB_TIMEOUT_MS, "UNLOCK_ACCESS_DECISION_TIMEOUT"));
     if (existingUnlock || userPermanentUnlock) {
@@ -1130,14 +1164,22 @@ async function resolvePaidContentAccess(env, {
   }
 }
 
-async function getActiveMembershipPassForUser(env, authUserId) {
-  const cached = readMembershipPassFromCache(authUserId);
-  // 캐시 히트는 최대 5초 stale 이라 프로필 id 재사용 근거로 쓰지 않는다(프로필 전환 직후 오기록 방지).
-  if (cached) return { ...cached, __userDocFresh: false };
-  await connectDb(env);
-  const user = await User.findById(authUserId)
-    .select("destinyProfilesCurrentId profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
+// authUserDoc: 이번 요청의 인증 조회가 이미 읽어 온 User 문서(resolveBillingRequestAuth 경유).
+// 넘어오면 같은 문서를 다시 읽지 않는다 — 방금 읽은 값이라 캐시보다 신선하므로 __userDocFresh 도 true 다.
+// (이것이 없으면 캐시 히트가 __userDocFresh:false 를 반환해 오히려 프로필 id 조회 왕복을 추가로 유발했다.)
+async function getActiveMembershipPassForUser(env, authUserId, authUserDoc = null) {
+  if (!authUserDoc) {
+    const cached = readMembershipPassFromCache(authUserId);
+    // 캐시 히트는 최대 5초 stale 이라 프로필 id 재사용 근거로 쓰지 않는다(프로필 전환 직후 오기록 방지).
+    if (cached) return { ...cached, __userDocFresh: false };
+  }
+  let user = authUserDoc;
+  if (!user) {
+    await connectDb(env);
+    user = await User.findById(authUserId)
+      .select("destinyProfilesCurrentId profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+      .lean();
+  }
   const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   const result = {
     isActive: entitlement.isActive,
@@ -1257,8 +1299,8 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
   };
 }
 
-async function getMembershipPassForBillingRequest(request, env, authUserId) {
-  const directPass = await getActiveMembershipPassForUser(env, authUserId);
+async function getMembershipPassForBillingRequest(request, env, authUserId, authUserDoc = null) {
+  const directPass = await getActiveMembershipPassForUser(env, authUserId, authUserDoc);
   if (directPass?.isActive === true) return directPass;
   // 🔴 왕복 2회 절감: readSubscriptionStatusSnapshot 은 getOptionalUserFromRequest(인증 읽기) +
   // User.findById(위와 **완전히 동일한 projection**)를 다시 한다. 위 조회가 성공했고 구독 신호가
@@ -3009,7 +3051,7 @@ async function requireBillingAuth(request, env, pricing = {}) {
 
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await resolveBillingRequestAuth(request, env);
   } catch (error) {
     // 로그인 사용자가 DB 풀 초기화 등 일시적 장애로 인증 확인이 안 되는 순간을
     // 확정 401(로그아웃 유발)로 뭉개지 않고 재시도 가능한 503으로 응답한다.
@@ -3238,6 +3280,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       request,
       env,
       authCheck.auth.userId,
+      // 인증 단계가 이미 읽은 문서를 넘겨 같은 User 를 다시 읽지 않는다(결제 임계경로 왕복 1회 제거).
+      authCheck.auth.authUserDoc || null,
     ),
     PAID_PASS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PASS_RESOLVE_TIMEOUT",
@@ -5232,6 +5276,9 @@ const BILLING_SNAPSHOT_USER_PROJECTION = {
   passTier: 1,
   status: 1,
   subscriptionStatus: 1,
+  // 이용권 조회(getActiveMembershipPassForUser)가 쓰는 유일한 미포함 필드였다. 여기에 넣어야
+  // 그 조회가 이 문서를 그대로 재사용할 수 있다(= User 왕복 1회 제거).
+  membershipStatus: 1,
   isActive: 1,
   isSubscribed: 1,
   expiresAt: 1,
@@ -5259,6 +5306,14 @@ async function readBillingSnapshot(request, env, options = {}) {
     const cachedSnapshot = readBillingBalanceFromCache(snapshotCacheKey);
     if (cachedSnapshot) return cachedSnapshot;
   }
+  // 🔴 캐시 키 파편화 해소: unlock 포함본(`|u`)은 미포함본(`|-`)의 **상위집합**이라 그대로 답이 된다.
+  // 예전에는 진입 프로브(`uid|-|-`)와 유료 클릭(`uid|-|u`)이 절대 서로를 못 써서, 방금 서버가 만든
+  // 스냅샷을 두고도 첫 클릭이 전체 조회를 다시 냈다. 반대 방향(미포함본으로 포함본 대체)은 unlock 이
+  // 비어 잘못된 답이 되므로 하지 않는다.
+  if (snapshotCacheUserId && !includeUnlocks) {
+    const supersetSnapshot = readBillingBalanceFromCache(`${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|u`);
+    if (supersetSnapshot) return supersetSnapshot;
+  }
 
   // 인증 해석 중 일시적 DB 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 infra 에러로
   // 로그인 이용권 보유자가 조용히 게스트로 강등돼 결제창이 뜨는 문제를 막는다.
@@ -5273,7 +5328,11 @@ async function readBillingSnapshot(request, env, options = {}) {
     // 밖에서 또 감싸면 시도·재연결만 배수로 늘어난다(verify:no-nested-retry 가 감시).
     // seed 경로(seedLegacyCredit=true)에서는 authUserDoc를 재사용하지 않으므로(아래 stage-2 주석 참고)
     // 인증 조회를 확장하지 않는다. 조회 전용 경로에서만 billing 필드를 함께 읽어 재조회 왕복을 없앤다.
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: seedLegacyCredit === true ? null : BILLING_SNAPSHOT_USER_PROJECTION });
+    // 조회 전용 경로는 요청 단위 인증 메모를 탄다 — 보안 단계·requireBillingAuth 와 같은 1회 조회를 공유한다.
+    // seed 경로만 projection 없는 전체 문서가 필요해 메모를 우회한다(옵션이 달라 같은 항목을 쓸 수 없다).
+    auth = seedLegacyCredit === true
+      ? await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: null })
+      : await resolveBillingRequestAuth(request, env);
   } catch (error) {
     if (!isAuthDbInfraError(error)) throw error;
     // 재시도 후에도 지속되는 infra 에러 = 토큰은 있으나 DB 장애로 확인 불가(진짜 게스트는 throw 없이 null).
@@ -5400,6 +5459,10 @@ async function readBillingSnapshot(request, env, options = {}) {
       currentProfileId: scopedProfileId || undefined,
       user: buildBillingSnapshotUser(auth, effectiveUser, balance, unlockedFeatures, membershipCreditBalance, membership),
       unlockedFeatures,
+      // 🔴 unlockedFeatures 와 다르다. 위쪽은 프로필 스코프 해금·레거시 이력까지 합친 **합집합**이고,
+      // 이건 User.unlockedFeatures 원본 그대로다. hasUserScopedPermanentUnlock 이 보는 필드와 동일해야
+      // 판정이 바뀌지 않으므로 재사용 목적으로는 반드시 이 원본을 쓴다(합집합을 쓰면 더 넓게 허용된다).
+      accountUnlockedFeatures: Array.isArray(effectiveUser?.unlockedFeatures) ? effectiveUser.unlockedFeatures : [],
       unlockMap,
       degraded: false,
     };
@@ -5692,6 +5755,8 @@ async function handleUnlockStatus(request, env) {
     requestId: String(url.searchParams.get("requestId") || "").trim(),
     allowPassAutoUnlock: false,
     subscriptionPass,
+    // 스냅샷이 이미 읽어 온 User.unlockedFeatures 원본을 넘겨 같은 필드의 User.exists 왕복을 없앤다.
+    accountUnlockedFeatures: Array.isArray(data.accountUnlockedFeatures) ? data.accountUnlockedFeatures : null,
     body: {
       actionType: String(url.searchParams.get("actionType") || "").trim(),
     },
