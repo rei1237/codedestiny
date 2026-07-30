@@ -1,5 +1,7 @@
 "use client";
 
+import { cmsRecord } from "@/lib/cms/build-text";
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { showToast } from "@/app/components/Toast";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -1075,7 +1077,7 @@ function readGuardianHandoffData() {
   }
 }
 
-const ELEMENT_GUARDIAN_READING: Record<string, {
+const ELEMENT_GUARDIAN_READING_DEFAULT: Record<string, {
   axis: string;
   protection: string;
   shadow: string;
@@ -1171,7 +1173,7 @@ const GUARDIAN_PREMIUM_POINTS_COPY = [
   { label: "실행 리딩", value: "관계·일·재물" },
 ] as const;
 
-const MONTH_BRANCH_READING: Record<string, string> = {
+const MONTH_BRANCH_READING_DEFAULT: Record<string, string> = {
   인: "봄의 첫 문이 열리는 월지라 시작과 확장이 빠릅니다. 새 판을 열되, 약속의 가지를 너무 많이 뻗지 않는 것이 수호의 핵심입니다.",
   묘: "봄의 결이 무르익는 월지라 관계 감각과 성장 본능이 섬세합니다. 부드럽게 설득하되, 경계가 흐려지지 않게 기준을 남기세요.",
   진: "봄에서 여름으로 넘어가는 저장의 월지라 가능성을 현실 구조로 묶는 힘이 있습니다. 미룬 정리를 끝낼수록 운이 붙습니다.",
@@ -1186,7 +1188,7 @@ const MONTH_BRANCH_READING: Record<string, string> = {
   축: "겨울의 끝을 저장하는 월지라 인내와 축적의 힘이 있습니다. 느린 운을 탓하기보다 기반을 다질수록 오래 갑니다.",
 };
 
-const HOUR_BRANCH_READING: Record<string, string> = {
+const HOUR_BRANCH_READING_DEFAULT: Record<string, string> = {
   자: "자시는 깊은 밤의 물길입니다. 혼자 정리하는 시간에 직감이 살아나며, 마음속 답을 글로 남길수록 수호력이 커집니다.",
   축: "축시는 새벽 전의 저장고입니다. 급하게 드러내기보다 준비를 단단히 하면 뒤늦게 큰 힘을 냅니다.",
   인: "인시는 아침의 첫 호흡입니다. 시작하는 힘이 빠르니 오늘 가장 중요한 일을 먼저 열어두는 편이 좋습니다.",
@@ -1200,6 +1202,12 @@ const HOUR_BRANCH_READING: Record<string, string> = {
   술: "술시는 하루의 불씨를 저장하는 시간입니다. 지켜야 할 약속과 내려놓을 걱정을 구분하면 마음이 단단해집니다.",
   해: "해시는 밤의 물길이 열리는 시간입니다. 회복과 영감이 깊어지니 휴식 속에서 다음 답이 옵니다.",
 };
+
+/* 관리자 CMS(운세 콘텐츠 → 사주 수호신 해설)에서 고친 값을 기본값 위에 얹는다.
+   오버라이드가 없는 칸은 기본값 그대로(폴백 우선). */
+const ELEMENT_GUARDIAN_READING = cmsRecord("saju-guardian", "element", ELEMENT_GUARDIAN_READING_DEFAULT);
+const MONTH_BRANCH_READING = cmsRecord("saju-guardian", "month-branch", MONTH_BRANCH_READING_DEFAULT);
+const HOUR_BRANCH_READING = cmsRecord("saju-guardian", "hour-branch", HOUR_BRANCH_READING_DEFAULT);
 
 /* ─────────────────────────── 셀렉터 UI ─────────────────────── */
 function SelectField({
@@ -2498,3 +2506,10 @@ export default function SajuGuardianPage() {
     </div>
   );
 }
+
+/* 관리자 CMS 기본값 노출용. */
+export const __cmsGuardianDefaults = {
+  element: ELEMENT_GUARDIAN_READING_DEFAULT as Record<string, unknown>,
+  monthBranch: MONTH_BRANCH_READING_DEFAULT as Record<string, unknown>,
+  hourBranch: HOUR_BRANCH_READING_DEFAULT as Record<string, unknown>,
+};

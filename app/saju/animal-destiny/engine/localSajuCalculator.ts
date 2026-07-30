@@ -1,4 +1,5 @@
 import { Lunar } from "lunar-javascript";
+import { cmsRecord } from "@/lib/cms/build-text";
 
 const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
   ko: {
@@ -1184,8 +1185,7 @@ function normalizeLuckPillars(input: LocalSajuInput) {
   }).filter((row) => row.stem || row.branch);
 }
 
-export function getTenGodOperation(tenGod: TenGodName) {
-  const rows: Record<TenGodName, Record<string, string>> = {
+const TEN_GOD_OPERATION_DEFAULT: Record<TenGodName, Record<string, string>> = {
     비견: {
       personality: "자기 기준, 독립성, 경쟁심이 직접 드러난다.",
       career: "독립 업무, 공동 창업, 동료 경쟁 구도에서 강하게 작동한다.",
@@ -1256,8 +1256,15 @@ export function getTenGodOperation(tenGod: TenGodName) {
       love: "돌봄과 신뢰가 커지나 의존성이 강해질 수 있다.",
       luckAmplification: "같은 글자가 대운·세운에 오면 배움, 문서, 보호 운이 증폭된다.",
     },
-  };
-  return rows[tenGod];
+};
+
+/* 관리자 CMS(운세 콘텐츠 → 사주 해설)에서 고친 값을 코드 기본값 위에 얹는다.
+   동물 사주와 사주 수호신이 같은 표를 읽으므로 한 번 고치면 두 화면에 함께 반영된다.
+   폴백 우선 — 오버라이드가 없으면 위 기본값이 그대로 쓰인다. */
+const TEN_GOD_OPERATION = cmsRecord("saju-reading", "ten-god", TEN_GOD_OPERATION_DEFAULT);
+
+export function getTenGodOperation(tenGod: TenGodName) {
+  return TEN_GOD_OPERATION[tenGod];
 }
 
 function getRelationTriggerBranches(branch: BranchKr) {
@@ -1931,53 +1938,33 @@ const YANGIN_BRANCH_BY_STEM: Partial<Record<StemKr, BranchKr>> = {
   [STEMS[8]]: BRANCHES[0],
 };
 
+/* 격국별 분야 해설. 어느 격인지는 명식에서 계산되지만 풀이 문장은 고정이라
+   관리자 CMS(사주 해설 → gyeokguk)에서 고칠 수 있게 떼둔다. */
+const GYEOK_DOMAIN_READING_DEFAULT: Record<string, Record<string, string>> = {
+  // 관성격
+  gwan: { personality: "책임감, 규범 의식, 긴장 속에서 성취하려는 성향이 강하다.", career: "조직, 관리, 자격, 공적 책임, 리스크 통제 직무와 맞는다.", wealth: "직위와 신뢰를 통해 재물이 축적되며 무리한 투기보다 안정 보상이 유리하다.", loveMarriage: "관계는 책임과 약속을 중시하며 결혼은 공식성, 신뢰, 역할 분담이 핵심이다." },
+  // 재성격
+  jae: { personality: "현실 감각, 계산력, 소유와 관리 욕구가 분명하다.", career: "사업, 영업, 재무, 운영, 자산 관리, 거래 기반 직무에 적성이 있다.", wealth: "돈의 흐름을 직접 다루는 구조이며 신강하면 큰 재물, 신약하면 재물 압박으로 나타난다.", loveMarriage: "현실 조건과 생활 안정이 관계 판단에 강하게 작동한다." },
+  // 식상격
+  siksang: { personality: "표현, 생산, 창작, 비판과 설계 능력이 전면에 드러난다.", career: "콘텐츠, 교육, 기획, 기술 생산, 브랜딩, 예술 직무에 맞는다.", wealth: "재물은 결과물과 노출, 생산성을 통해 열리며 지속 루틴이 관건이다.", loveMarriage: "매력과 표현력은 강하지만 말과 기대치 조율이 관계의 관건이다." },
+  // 인성격
+  in: { personality: "학습, 보호, 직감, 문서와 지식에 기대어 삶을 풀어간다.", career: "연구, 교육, 상담, 문서, 기획, 자격 기반 직무에 강하다.", wealth: "재물은 지식, 권한, 보호 자원, 장기 준비를 통해 안정화된다.", loveMarriage: "돌봄과 신뢰가 중요하며 의존과 거리감의 균형이 필요하다." },
+  // 비겁격
+  bigyeop: { personality: "자기 기준, 독립성, 강한 추진력과 버티는 힘이 중심이다.", career: "독립 업무, 리더십, 전문 기술, 경쟁 환경에서 힘을 발휘한다.", wealth: "재물은 주도권을 잡을수록 커지지만 비겁 과다 시 분산과 경쟁을 관리해야 한다.", loveMarriage: "관계에서도 독립성과 주도권이 강하므로 상대와 역할 균형이 중요하다." },
+  // 기타·종격
+  default: { personality: "한 기운에 삶의 방향이 크게 몰려 선택과 환경의 일치가 중요하다.", career: "격이 요구하는 오행과 십성이 살아나는 분야에서 크게 발복한다.", wealth: "격을 돕는 운에서는 재물이 열리고, 격을 깨는 운에서는 혼란이 커진다.", loveMarriage: "관계는 격의 균형을 보완하는 사람과 안정된다." },
+};
+
+const GYEOK_DOMAIN_READING = cmsRecord("saju-reading", "gyeokguk", GYEOK_DOMAIN_READING_DEFAULT);
+
 function getGyeokDomainReading(name: string) {
-  if (name.includes("관")) {
-    return {
-      personality: "책임감, 규범 의식, 긴장 속에서 성취하려는 성향이 강하다.",
-      career: "조직, 관리, 자격, 공적 책임, 리스크 통제 직무와 맞는다.",
-      wealth: "직위와 신뢰를 통해 재물이 축적되며 무리한 투기보다 안정 보상이 유리하다.",
-      loveMarriage: "관계는 책임과 약속을 중시하며 결혼은 공식성, 신뢰, 역할 분담이 핵심이다.",
-    };
-  }
-  if (name.includes("재")) {
-    return {
-      personality: "현실 감각, 계산력, 소유와 관리 욕구가 분명하다.",
-      career: "사업, 영업, 재무, 운영, 자산 관리, 거래 기반 직무에 적성이 있다.",
-      wealth: "돈의 흐름을 직접 다루는 구조이며 신강하면 큰 재물, 신약하면 재물 압박으로 나타난다.",
-      loveMarriage: "현실 조건과 생활 안정이 관계 판단에 강하게 작동한다.",
-    };
-  }
-  if (name.includes("식") || name.includes("상")) {
-    return {
-      personality: "표현, 생산, 창작, 비판과 설계 능력이 전면에 드러난다.",
-      career: "콘텐츠, 교육, 기획, 기술 생산, 브랜딩, 예술 직무에 맞는다.",
-      wealth: "재물은 결과물과 노출, 생산성을 통해 열리며 지속 루틴이 관건이다.",
-      loveMarriage: "매력과 표현력은 강하지만 말과 기대치 조율이 관계의 관건이다.",
-    };
-  }
-  if (name.includes("인")) {
-    return {
-      personality: "학습, 보호, 직감, 문서와 지식에 기대어 삶을 풀어간다.",
-      career: "연구, 교육, 상담, 문서, 기획, 자격 기반 직무에 강하다.",
-      wealth: "재물은 지식, 권한, 보호 자원, 장기 준비를 통해 안정화된다.",
-      loveMarriage: "돌봄과 신뢰가 중요하며 의존과 거리감의 균형이 필요하다.",
-    };
-  }
-  if (name.includes("건록") || name.includes("양인") || name.includes("종왕") || name.includes("종강")) {
-    return {
-      personality: "자기 기준, 독립성, 강한 추진력과 버티는 힘이 중심이다.",
-      career: "독립 업무, 리더십, 전문 기술, 경쟁 환경에서 힘을 발휘한다.",
-      wealth: "재물은 주도권을 잡을수록 커지지만 비겁 과다 시 분산과 경쟁을 관리해야 한다.",
-      loveMarriage: "관계에서도 독립성과 주도권이 강하므로 상대와 역할 균형이 중요하다.",
-    };
-  }
-  return {
-    personality: "한 기운에 삶의 방향이 크게 몰려 선택과 환경의 일치가 중요하다.",
-    career: "격이 요구하는 오행과 십성이 살아나는 분야에서 크게 발복한다.",
-    wealth: "격을 돕는 운에서는 재물이 열리고, 격을 깨는 운에서는 혼란이 커진다.",
-    loveMarriage: "관계는 격의 균형을 보완하는 사람과 안정된다.",
-  };
+  // 분기 순서를 유지한다 — 격 이름에 여러 글자가 같이 들 수 있어 먼저 걸리는 쪽이 정답이다.
+  if (name.includes("관")) return GYEOK_DOMAIN_READING.gwan;
+  if (name.includes("재")) return GYEOK_DOMAIN_READING.jae;
+  if (name.includes("식") || name.includes("상")) return GYEOK_DOMAIN_READING.siksang;
+  if (name.includes("인")) return GYEOK_DOMAIN_READING.in;
+  if (name.includes("건록") || name.includes("양인") || name.includes("종왕") || name.includes("종강")) return GYEOK_DOMAIN_READING.bigyeop;
+  return GYEOK_DOMAIN_READING.default;
 }
 
 function buildLuckTimingForGyeok(
@@ -3590,6 +3577,38 @@ function getCheondeokTarget(monthBranch: BranchKr): { stem?: StemKr; branch?: Br
   return rows[monthBranch];
 }
 
+/* 신살 해설 산문. 어느 지지·간지에 걸리는지는 사주 입력마다 계산되지만, 뜻풀이는 고정 문장이라
+   따로 떼어 관리자 CMS(사주 해설 → shinsal)에서 고칠 수 있게 한다. */
+/* 걸리는 자리(계산)와 뜻풀이(CMS)가 한 항목에 섞이므로 형태를 명시해 둔다.
+   자리 조건은 사주마다 달라 계산으로 채우고, 산문 3필드는 SHINSAL_PROSE 에서 스프레드한다. */
+type ShinsalDefinition = {
+  name: string;
+  branches?: BranchKr[];
+  stems?: StemKr[];
+  ganji?: string[];
+  category?: string;
+  meaning?: string;
+  manifestation?: string;
+};
+
+const SHINSAL_PROSE_DEFAULT: Record<string, Record<string, string>> = {
+  도화살: { category: "연애·대중성", meaning: "매력, 노출, 관계의 끌림을 보조로 밝힌다.", manifestation: "연애, 인기, 영업, 브랜딩, 무대성으로 나타난다." },
+  홍염살: { category: "연애·매력", meaning: "개인적 매혹과 감정의 온도를 보조로 밝힌다.", manifestation: "첫인상, 호감, 표현력, 관계의 빠른 발화로 나타난다." },
+  화개살: { category: "성격·예술·종교성", meaning: "고독, 예술성, 정신성, 마무리의 기운을 보조로 밝힌다.", manifestation: "연구, 예술, 상담, 종교성, 혼자 완성하는 일로 나타난다." },
+  역마살: { category: "이동·직업", meaning: "이동, 이직, 확장, 외부 활동성을 보조로 밝힌다.", manifestation: "출장, 이사, 해외, 플랫폼, 유통, 이동형 직업으로 나타난다." },
+  천을귀인: { category: "귀인운", meaning: "위기에서 도움을 받는 귀인성을 보조로 밝힌다.", manifestation: "상사, 스승, 제도, 후원자, 해결책의 등장으로 나타난다." },
+  문창귀인: { category: "학문·문서", meaning: "문장, 학습, 시험, 기록의 재능을 보조로 밝힌다.", manifestation: "글쓰기, 자격, 연구, 문서화, 설계 능력으로 나타난다." },
+  태극귀인: { category: "귀인운·정신성", meaning: "큰 틀의 보호와 정신적 회복력을 보조로 밝힌다.", manifestation: "위기 후 회복, 큰 방향 전환, 명예 회복으로 나타난다." },
+  월덕귀인: { category: "귀인운", meaning: "월령에서 온 덕과 사회적 완충력을 보조로 밝힌다.", manifestation: "조직의 도움, 평판 회복, 갈등 완화로 나타난다." },
+  천덕귀인: { category: "귀인운", meaning: "하늘의 덕처럼 재난을 줄이는 완충력을 보조로 밝힌다.", manifestation: "문제 해결, 보호자, 제도적 구제, 관계 중재로 나타난다." },
+  괴강살: { category: "성격·권한", meaning: "강한 결단, 압박, 권위와 승부성을 보조로 밝힌다.", manifestation: "리더십, 강한 직무, 경쟁, 독단, 압박으로 나타난다." },
+  백호살: { category: "건강·결단", meaning: "날카로운 결단과 사고성 긴장을 보조로 밝힌다.", manifestation: "수술, 금속, 속도, 충돌, 강한 결단의 사건으로 나타난다." },
+  양인살: { category: "성격·직업", meaning: "강한 자존, 칼날 같은 추진력, 독립성을 보조로 밝힌다.", manifestation: "권한, 전문 기술, 경쟁, 과격한 결단으로 나타난다." },
+  공망: { category: "공백·지연", meaning: "해당 궁의 작용이 비거나 지연되는 보조 신호다.", manifestation: "기대와 현실의 간극, 지연, 무형화, 정신적 거리감으로 나타난다." },
+};
+
+const SHINSAL_PROSE = cmsRecord("saju-reading", "shinsal", SHINSAL_PROSE_DEFAULT);
+
 function buildShinsalAnalysis(
   pillars: LocalSajuResult["pillars"],
   dayStem: StemKr,
@@ -3621,20 +3640,20 @@ function buildShinsalAnalysis(
     pairKey(BRANCHES[4], BRANCHES[11], BRANCHES),
     pairKey(BRANCHES[5], BRANCHES[10], BRANCHES),
   ]);
-  const definitions = [
-    { name: "도화살", branches: [getPeachBlossomBranch(dayBranch), getPeachBlossomBranch(yearBranch)], category: "연애·대중성", meaning: "매력, 노출, 관계의 끌림을 보조로 밝힌다.", manifestation: "연애, 인기, 영업, 브랜딩, 무대성으로 나타난다." },
-    { name: "홍염살", branches: [getHongyeomBranch(dayStem)], category: "연애·매력", meaning: "개인적 매혹과 감정의 온도를 보조로 밝힌다.", manifestation: "첫인상, 호감, 표현력, 관계의 빠른 발화로 나타난다." },
-    { name: "화개살", branches: [getHwagaeBranch(dayBranch), getHwagaeBranch(yearBranch)], category: "성격·예술·종교성", meaning: "고독, 예술성, 정신성, 마무리의 기운을 보조로 밝힌다.", manifestation: "연구, 예술, 상담, 종교성, 혼자 완성하는 일로 나타난다." },
-    { name: "역마살", branches: [getYeokmaBranch(dayBranch), getYeokmaBranch(yearBranch)], category: "이동·직업", meaning: "이동, 이직, 확장, 외부 활동성을 보조로 밝힌다.", manifestation: "출장, 이사, 해외, 플랫폼, 유통, 이동형 직업으로 나타난다." },
-    { name: "천을귀인", branches: getCheoneulBranches(dayStem), category: "귀인운", meaning: "위기에서 도움을 받는 귀인성을 보조로 밝힌다.", manifestation: "상사, 스승, 제도, 후원자, 해결책의 등장으로 나타난다." },
-    { name: "문창귀인", branches: [getMunchangBranch(dayStem)], category: "학문·문서", meaning: "문장, 학습, 시험, 기록의 재능을 보조로 밝힌다.", manifestation: "글쓰기, 자격, 연구, 문서화, 설계 능력으로 나타난다." },
-    { name: "태극귀인", branches: getTaegeukBranches(dayStem), category: "귀인운·정신성", meaning: "큰 틀의 보호와 정신적 회복력을 보조로 밝힌다.", manifestation: "위기 후 회복, 큰 방향 전환, 명예 회복으로 나타난다." },
-    { name: "월덕귀인", stems: [getWoldeokStem(monthBranch)], category: "귀인운", meaning: "월령에서 온 덕과 사회적 완충력을 보조로 밝힌다.", manifestation: "조직의 도움, 평판 회복, 갈등 완화로 나타난다." },
-    { name: "천덕귀인", stems: getCheondeokTarget(monthBranch).stem ? [getCheondeokTarget(monthBranch).stem as StemKr] : [], branches: getCheondeokTarget(monthBranch).branch ? [getCheondeokTarget(monthBranch).branch as BranchKr] : [], category: "귀인운", meaning: "하늘의 덕처럼 재난을 줄이는 완충력을 보조로 밝힌다.", manifestation: "문제 해결, 보호자, 제도적 구제, 관계 중재로 나타난다." },
-    { name: "괴강살", ganji: Array.from(dangerousGanji), category: "성격·권한", meaning: "강한 결단, 압박, 권위와 승부성을 보조로 밝힌다.", manifestation: "리더십, 강한 직무, 경쟁, 독단, 압박으로 나타난다." },
-    { name: "백호살", ganji: Array.from(whiteTigerGanji), category: "건강·결단", meaning: "날카로운 결단과 사고성 긴장을 보조로 밝힌다.", manifestation: "수술, 금속, 속도, 충돌, 강한 결단의 사건으로 나타난다." },
-    { name: "양인살", branches: YANGIN_BRANCH_BY_STEM[dayStem] ? [YANGIN_BRANCH_BY_STEM[dayStem] as BranchKr] : [], category: "성격·직업", meaning: "강한 자존, 칼날 같은 추진력, 독립성을 보조로 밝힌다.", manifestation: "권한, 전문 기술, 경쟁, 과격한 결단으로 나타난다." },
-    { name: "공망", branches: getGongMangBranches(pillars.day), category: "공백·지연", meaning: "해당 궁의 작용이 비거나 지연되는 보조 신호다.", manifestation: "기대와 현실의 간극, 지연, 무형화, 정신적 거리감으로 나타난다." },
+  const definitions: ShinsalDefinition[] = [
+    { name: "도화살", branches: [getPeachBlossomBranch(dayBranch), getPeachBlossomBranch(yearBranch)], ...SHINSAL_PROSE["도화살"] },
+    { name: "홍염살", branches: [getHongyeomBranch(dayStem)], ...SHINSAL_PROSE["홍염살"] },
+    { name: "화개살", branches: [getHwagaeBranch(dayBranch), getHwagaeBranch(yearBranch)], ...SHINSAL_PROSE["화개살"] },
+    { name: "역마살", branches: [getYeokmaBranch(dayBranch), getYeokmaBranch(yearBranch)], ...SHINSAL_PROSE["역마살"] },
+    { name: "천을귀인", branches: getCheoneulBranches(dayStem), ...SHINSAL_PROSE["천을귀인"] },
+    { name: "문창귀인", branches: [getMunchangBranch(dayStem)], ...SHINSAL_PROSE["문창귀인"] },
+    { name: "태극귀인", branches: getTaegeukBranches(dayStem), ...SHINSAL_PROSE["태극귀인"] },
+    { name: "월덕귀인", stems: [getWoldeokStem(monthBranch)], ...SHINSAL_PROSE["월덕귀인"] },
+    { name: "천덕귀인", stems: getCheondeokTarget(monthBranch).stem ? [getCheondeokTarget(monthBranch).stem as StemKr] : [], branches: getCheondeokTarget(monthBranch).branch ? [getCheondeokTarget(monthBranch).branch as BranchKr] : [], ...SHINSAL_PROSE["천덕귀인"] },
+    { name: "괴강살", ganji: Array.from(dangerousGanji), ...SHINSAL_PROSE["괴강살"] },
+    { name: "백호살", ganji: Array.from(whiteTigerGanji), ...SHINSAL_PROSE["백호살"] },
+    { name: "양인살", branches: YANGIN_BRANCH_BY_STEM[dayStem] ? [YANGIN_BRANCH_BY_STEM[dayStem] as BranchKr] : [], ...SHINSAL_PROSE["양인살"] },
+    { name: "공망", branches: getGongMangBranches(pillars.day), ...SHINSAL_PROSE["공망"] },
   ];
   const locationOf = (row: Record<string, unknown>) => `${row.source || "원국"} ${row.scope || ""} ${row.label || ""}`.trim();
   const resolveStateForElements = (elements: ElementKey[]) => elements.some((element) => usefulElements.includes(element))
@@ -3684,7 +3703,7 @@ function buildShinsalAnalysis(
           activated: matches.some((row) => row.source === "운"),
           rows: matches.filter((row) => row.source === "운").map((row) => ({ scope: row.scope, label: row.label, stem: row.stem, branch: row.branch })),
         },
-        actualLifeManifestation: actualManifestation(definition.manifestation, state),
+        actualLifeManifestation: actualManifestation(definition.manifestation || "", state),
       });
     };
     if (matches.length) matches.forEach((match) => addRow(match));
@@ -3717,7 +3736,7 @@ function buildShinsalAnalysis(
               activated: left.source === "운" || right.source === "운",
               rows: [left, right].filter((row) => row.source === "운").map((row) => ({ scope: row.scope, label: row.label, branch: row.branch })),
             },
-            actualLifeManifestation: actualManifestation(definition.manifestation, state),
+            actualLifeManifestation: actualManifestation(definition.manifestation || "", state),
           });
         }
       }
@@ -5369,3 +5388,11 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     },
   };
 }
+
+/* 관리자 CMS 기본값 노출용(app/admin/cms/_lib/base-values.ts).
+   화면에서 '지금 코드에 들어 있는 문장'을 보여 주기 위해만 쓴다. */
+export const __cmsSajuReadingDefaults = {
+  tenGod: TEN_GOD_OPERATION_DEFAULT as Record<string, unknown>,
+  gyeokguk: GYEOK_DOMAIN_READING_DEFAULT as Record<string, unknown>,
+  shinsal: SHINSAL_PROSE_DEFAULT as Record<string, unknown>,
+};

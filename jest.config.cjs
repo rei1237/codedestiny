@@ -10,6 +10,10 @@ module.exports = {
   moduleNameMapper: {
     "^astronomy-engine$": "<rootDir>/node_modules/astronomy-engine/astronomy.js",
     "^\\.\\./\\.\\./lib/llm-client\\.ts$": "<rootDir>/__tests__/__mocks__/llm-client.js",
+    // lib/cms/build-text.ts 도 같은 이유로 대역한다 — constants/*.js 같은 순수 JS 모듈이
+    // CMS 폴백 유틸을 물면서 파싱 단계에서 깨졌다. 테스트 환경엔 발행본이 없으므로
+    // "항상 코드 기본값을 돌려준다"는 대역이 실제 동작과 정확히 같다.
+    "(^|/)lib/cms/build-text(\\.ts)?$": "<rootDir>/__tests__/__mocks__/cms-build-text.js",
     "\\.wasm$": "<rootDir>/__tests__/__mocks__/swisseph-wasm-binary.js",
   },
   // __tests__ 아래에 러너가 다른 파일들이 섞여 있다. 걸러내지 않으면 jest 가 이들을 테스트로

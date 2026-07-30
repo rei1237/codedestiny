@@ -5,6 +5,8 @@
 // 그 재발을 막기 위해 관계 분류(거리→관계)와 정본 명칭을 이 파일 한 곳으로 모은다.
 // 정본 명칭은 "성위(成危)" — 서비스 전반의 다른 소비처가 이미 "성위"를 기준으로 삼고 있다.
 
+import { cmsRecordCellSync } from "./cms-record-store.js";
+
 const SUKUYO_RELATION_HAN = {
   "명": "命",
   "업태": "業胎",
@@ -300,9 +302,15 @@ function judgeDayFortune(myMansionIndex, dayMansionIndex) {
   const profile = SUKUYO_ROLE_PROFILES[role] || { han: "", meaning: "확인된 자리" };
   const tierLabel = DAY_TIER_LABEL[fortune.tier];
   // 본명수별 조언을 먼저 조회하고, 미저작이면 티어 공통 조언으로 폴백한다(기존 동작 보존).
-  const mansionAdvice =
-    (MANSION_DAY_ADVICE[myIdx] && MANSION_DAY_ADVICE[myIdx][fortune.tier]) ||
-    DAY_TIER_ADVICE[fortune.tier];
+  // 관리자 CMS(운세 콘텐츠 → 숙요 일진 조언)가 있으면 그것을 먼저 쓴다.
+  const mansionAdvice = cmsRecordCellSync(
+    "sukuyo-day",
+    "mansion",
+    myIdx,
+    fortune.tier,
+    (MANSION_DAY_ADVICE[myIdx] && MANSION_DAY_ADVICE[myIdx][fortune.tier])
+      || DAY_TIER_ADVICE[fortune.tier],
+  );
   return {
     relationType: relation.relationType,
     relationTypeHan: relation.relationTypeHan,

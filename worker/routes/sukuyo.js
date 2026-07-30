@@ -1,3 +1,4 @@
+import { primeCmsRecords } from "../lib/cms-records.js";
 import { Solar } from "lunar-javascript";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest, requireAuth, resolvePaidRouteAuth } from "../lib/auth.js";
@@ -271,6 +272,10 @@ async function resolveSukuyoViewerMansionIndex(request, env) {
 }
 
 async function handleSukuyoCalendar(request, env) {
+  // 해설 표 오버라이드를 조립 전에 채운다(동기 접근자가 읽기 때문).
+  // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다.
+  await primeCmsRecords(env);
+
   try {
     const url = new URL(request.url);
     const myMansionIndex = await resolveSukuyoViewerMansionIndex(request, env);

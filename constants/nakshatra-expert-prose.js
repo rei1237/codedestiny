@@ -10,7 +10,9 @@
 // 병합: constants/nakshatra-attributes.js(indianExpert)·nakshatra-fusion.js(easternExpert+FUSION_DEEP)가 소비.
 
 // ── 숙요점(宿曜) 대가 해설 — sukuyoIdx 0(각)…26(진) ──────────────────────────
-const EASTERN_EXPERT = {
+import { cmsRecord, cmsRecordFlat } from "../lib/cms/build-text";
+
+const EASTERN_EXPERT_DEFAULT = {
   0: "각수(角宿)는 동방 청룡의 뿔, 스물일곱 별자리의 첫 자리입니다. 칠요로는 목(木)에 배속되어 새싹이 흙을 밀어 올리듯 가장 먼저 뻗어 나가는 개척의 기운을 타고났지요. 격각으로 보면 남을 앞장서 이끌되, 그 앞섬이 조급함으로 새지 않도록 첫 삽 하나에 힘을 모으는 것이 이 별의 숙제입니다.",
   1: "항수(亢宿)는 청룡의 곧은 목으로, 칠요는 금(金)에 듭니다. 쇠붙이처럼 무르지 않는 원칙과 자존이 이 별의 뼈대예요. 다만 곧음이 지나치면 관계가 서늘해지니, 원칙을 세우되 그 안에 사람이 드나들 문 하나는 열어두시길 권합니다.",
   2: "저수(氐宿)는 청룡의 밑동, 칠요로는 토(土)의 자리입니다. 흙이 만물을 품어 기르듯 안으로 차곡차곡 쌓아 기반을 다지는 축적의 별이에요. 서두르기보다 뿌리를 깊게 내릴 때 가장 크게 이루는 결이니, 조급함이 들 땐 지금 딛고 선 바닥부터 살피세요.",
@@ -41,7 +43,7 @@ const EASTERN_EXPERT = {
 };
 
 // ── 베다(Jyotish) 대가 해설 — nakshatraIdx 0(Ashwini)…26(Revati) ─────────────
-const INDIAN_EXPERT = {
+const INDIAN_EXPERT_DEFAULT = {
   0: "아슈위니는 케투가 지배하는 첫 별로, 새벽의 치유신 아슈위니 쿠마라가 주신입니다. 그 샥티는 '빠르게 낫게 하는 힘' — 데바(신성) 기질과 바타(바람) 체질이 겹쳐 무엇이든 재빨리 시작하고 회복시키는 결이 있어요. 다만 서두름이 미완으로 남지 않게, 시작한 것을 끝까지 데려가는 연습이 이 별의 성장점입니다.",
   1: "바라니는 금성이 지배하되 주신은 죽음과 재탄생의 신 야마입니다. 샥티는 '데려가 정화하는 힘' — 낡은 것을 보내고 새것을 들이는 변혁의 별이지요. 마누샤(인간) 기질에 아르타(성취)의 동기가 흘러, 감당하기 벅찬 짐도 끝내 소화해 내는 뚝심이 있습니다.",
   2: "크리티카는 태양이 지배하고 불의 신 아그니가 주신입니다. 샥티는 '태워서 정화하는 힘' — 락샤사(격렬)의 집중과 카마(창의)의 동기가 만나 불순물을 가차 없이 잘라내는 날카로움이 있어요. 그 불이 남을 데우는 데 쓰일 때 가장 빛나니, 베기 전에 품는 온기를 잊지 마세요.",
@@ -73,7 +75,7 @@ const INDIAN_EXPERT = {
 
 // ── 통합 심화 — 두 전문가를 잇는다 (sukuyoIdx 0…26) ─────────────────────────
 // convergence: 두 전통의 공명 / divergence: 긴장과 그 의미 / fusionReading: 통합 조언
-const FUSION_DEEP = {
+const FUSION_DEEP_DEFAULT = {
   0: {
     convergence: "동양의 숙요가는 각수를 목(木)의 첫 뻗음, 남보다 먼저 하늘을 뚫는 청룡의 뿔로 읽습니다. 인도의 조티시는 같은 자리를 치트라, 우주의 장인 비슈와카르마가 '공덕을 빚어내는 샥티'로 세공한 별로 봅니다. 두 대가가 서로 다른 언어로 한 가지를 가리켜요 — 남보다 먼저, 남보다 예리하게 시작하는 힘.",
     divergence: "다만 결이 갈립니다. 숙요는 각수를 길(吉)한 개척의 별로 반기지만, 베다는 치트라에 격렬한 락샤사의 집중을 봅니다. 시작의 재능이 곧 조급함의 씨앗이라는 뜻이지요. 이 긴장이 당신을 특별하게도, 쉽게 지치게도 만듭니다.",
@@ -211,5 +213,18 @@ const FUSION_DEEP = {
   },
 };
 
+/* 관리자 CMS(운세 콘텐츠 → 나크샤트라 해설)에서 고친 값을 코드 기본값 위에 얹는다.
+   EASTERN/INDIAN 은 인덱스 → 문장 한 줄이라 { text } 한 필드로, FUSION 은 3필드 객체로 편집한다.
+   폴백 우선 — 오버라이드가 없는 인덱스는 기본 원고가 그대로 쓰인다. */
+const EASTERN_EXPERT = cmsRecordFlat("vedic-nakshatra", "eastern", EASTERN_EXPERT_DEFAULT);
+const INDIAN_EXPERT = cmsRecordFlat("vedic-nakshatra", "indian", INDIAN_EXPERT_DEFAULT);
+const FUSION_DEEP = cmsRecord("vedic-nakshatra", "fusion", FUSION_DEEP_DEFAULT);
+
 export { EASTERN_EXPERT, INDIAN_EXPERT, FUSION_DEEP };
 
+/* 관리자 CMS 기본값 노출용. */
+export const __cmsNakshatraDefaults = {
+  eastern: EASTERN_EXPERT_DEFAULT,
+  indian: INDIAN_EXPERT_DEFAULT,
+  fusion: FUSION_DEEP_DEFAULT,
+};
