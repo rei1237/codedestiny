@@ -318,10 +318,12 @@ export function useCoinGate() {
   useEffect(() => {
     if (getAuthState().isAuthenticated) {
       void warmSubscriptionSnapshotOnEntry();
-      // 첫 유료 액션의 결제 런타임 스크립트(destiny-profile.js — 내부에서 PortOne SDK를 프리로드) 로드 지연을
-      // 숨기려 인증 상태면 유휴 프리워밍한다(async 주입; 이미 로드/진행 중이면 내부에서 조기 반환 — 중복 없음).
-      void loadPaidServiceRuntimeGate();
     }
+    // 결제 런타임 스크립트(destiny-profile.js, ~400KB)는 인증 여부와 무관하게 미리 받는다. 예전에는
+    // 인증 상태일 때만 워밍해서, 하이드레이션이 늦어 아직 비인증으로 보이던 흔한 경우에 이 다운로드가
+    // 클릭 경로의 await(billing-client 의 runtimeGate)로 그대로 옮겨갔다. 인증과 무관한 정적 자산이고
+    // 내부에서 중복 주입을 막으므로 앞당겨도 부작용이 없다.
+    void loadPaidServiceRuntimeGate();
   }, []);
 
   const ensurePaidAccess = useCallback(async (input: EnsurePaidAccessInput): Promise<EnsurePaidAccessResult> => {

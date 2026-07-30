@@ -1602,7 +1602,7 @@ async function findExistingSocialUser(provider, profile, socialField) {
  * @param {object} [options]
  * @param {boolean} [options.createIfMissing] false면 신규 신원일 때 계정을 만들지 않고 null을 돌려준다.
  *   만 14세 미만 판정을 위해 생년월일을 받기 전에는 계정을 만들 수 없어서 필요하다.
- * @param {object} [options.signupProfile] 가입 마무리 단계에서 받은 생년월일·시각·성별.
+ * @param {object} [options.signupProfile] 가입 마무리 단계에서 받은 생년월일·시각·성별·휴대폰 번호.
  */
 async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   const socialField = `socialAccounts.${provider}.id`;
@@ -1615,7 +1615,10 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
 
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
   const joinedAt = new Date();
-  const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
+  // 가입 마무리 단계에서 직접 받은 번호를 우선한다. 공급자(Google/Kakao)는 번호를 거의 주지 않아
+  // 이게 없으면 소셜 계정은 번호 없이 만들어지고, 첫 단건결제마다 별도 입력 모달을 타게 된다.
+  const profilePhoneNumber = normalizeKoreanPhoneNumber(signupProfile?.phoneNumber)
+    || normalizeKoreanPhoneNumber(profile.phoneNumber);
   let createdUser;
   try {
     createdUser = await User.create({
@@ -3907,13 +3910,26 @@ async function handleOAuthCompleteSignup(request, env) {
   const genderRaw = String(body?.gender || "").trim().toUpperCase();
   const gender = ["M", "F", "OTHER"].includes(genderRaw) ? genderRaw : "OTHER";
 
+  // 이메일 가입(handleRegister)과 같은 기준으로 번호를 받는다. 소셜만 면제하면 그 계정들은
+  // 첫 단건결제 때 별도 입력 단계를 타야 하고, 그 저장이 실패하면 결제가 그대로 막힌다.
+  const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
+  if (!phoneNumber) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_phone_number",
+      "결제에 사용할 휴대폰 번호를 정확히 입력해주세요.",
+    );
+  }
+
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");
   } catch (error) {
     return signupErrorResponse(request, env, 503, "db_connection_failed", toErrorMessage(error) || "Database connection failed.");
   }
 
-  const signupProfile = { birthDate, birthTime, gender };
+  const signupProfile = { birthDate, birthTime, gender, phoneNumber };
 
   let socialUser;
   try {

@@ -847,9 +847,13 @@
     } catch (_) {}
   })();
 
+  // /api/me/* 는 워커에서 /api/auth/me/* 로 재작성돼 CSRF 동일출처 가드를 그대로 탄다. 비민감으로
+  // 두면 아래 _dpBuildApiCandidates 가 저장된 base 를 상대경로보다 먼저 시도하고 workers.dev 폴백까지
+  // 붙여, 교차출처 요청이 403 "Invalid auth request origin."으로 돌아왔다.
   function _dpIsAuthSensitivePath(pathname) {
     var path = String(pathname || '');
     return path.indexOf('/api/auth/') === 0
+      || path.indexOf('/api/me/') === 0
       || path.indexOf('/api/user/') === 0
       || path.indexOf('/api/fortune/pig-coin/') === 0
       || path.indexOf('/api/billing/') === 0
@@ -2109,12 +2113,12 @@
         resolve();
         return;
       }
+      // 단일 rAF. 중첩 rAF는 호출마다 프레임을 2개 먹어, 결제창 진입 경로에서만 6프레임이 쌓였다
+      // (정적 셸 _cdWaitForPaymentOverlayPaint 도 단일 rAF로 충분히 페인트를 보장한다).
       var raf = typeof window.requestAnimationFrame === 'function'
         ? window.requestAnimationFrame.bind(window)
         : function(callback) { return setTimeout(callback, 16); };
-      raf(function() {
-        raf(resolve);
-      });
+      raf(resolve);
     });
   }
 
@@ -2479,7 +2483,7 @@
       method: 'POST',
       body: JSON.stringify({ phone: phoneNumber })
     });
-    if (!result || !result.ok) throw new Error(_dpReadBillingMessage(result && result.payload, '휴대폰 번호 저장에 실패했습니다.'));
+    if (!result || !result.ok) throw new Error(_dpDescribePaymentPhoneSaveFailure(result));
     var saved = _dpReadPaymentPhoneState(result.payload);
     if (!saved.phoneNumber) saved.phoneNumber = _dpNormalizePaymentPhoneNumber(phoneNumber);
     try {
@@ -2489,16 +2493,124 @@
     return saved;
   }
 
+  // 서버 원문(예: 교차출처 승격으로 생긴 403 "Invalid auth request origin.")을 그대로 띄우지 않는다.
+  function _dpDescribePaymentPhoneSaveFailure(result) {
+    var status = Number((result && result.status) || 0);
+    var payload = (result && result.payload) || {};
+    var code = String(payload.code || '').trim().toLowerCase();
+    if (status === 0) return '네트워크가 불안정해 저장하지 못했어요. 잠시 후 다시 시도해 주세요.';
+    if (code === 'csrf_origin_mismatch') return '일시적인 문제로 저장하지 못했어요. 다시 시도해 주세요.';
+    if (status === 401) return '로그인이 만료됐어요. 다시 로그인한 뒤 시도해 주세요.';
+    if (status === 400) return '휴대폰 번호를 정확히 입력해 주세요.';
+    if (status >= 500) return '서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.';
+    return '휴대폰 번호 저장에 실패했어요. 잠시 후 다시 시도해 주세요.';
+  }
+
+  // window.prompt 는 카카오·인스타·네이버 등 인앱 웹뷰에서 억제되어 즉시 null 을 반환한다. 그러면
+  // 번호를 넣을 방법이 없는 채로 throw 되어 결제창이 아예 열리지 않았다 — 인페이지 모달로 교체한다.
+  function _dpPromptPaymentPhoneNumber() {
+    if (typeof document === 'undefined') return Promise.resolve(null);
+    return new Promise(function(resolve) {
+      var settled = false;
+      var overlay = document.createElement('div');
+      var card = document.createElement('form');
+      var title = document.createElement('h2');
+      var desc = document.createElement('p');
+      var input = document.createElement('input');
+      var error = document.createElement('p');
+      var notice = document.createElement('p');
+      var actions = document.createElement('div');
+      var cancelButton = document.createElement('button');
+      var submitButton = document.createElement('button');
+
+      function close(value) {
+        if (settled) return;
+        settled = true;
+        try { input.value = ''; } catch (_) {}
+        try { overlay.remove(); } catch (_) {}
+        resolve(value || null);
+      }
+
+      function setBusy(isBusy) {
+        input.disabled = !!isBusy;
+        cancelButton.disabled = !!isBusy;
+        submitButton.disabled = !!isBusy;
+        submitButton.textContent = isBusy ? '저장 중...' : '저장하고 결제 계속하기';
+      }
+
+      overlay.setAttribute('role', 'presentation');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,13,31,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);';
+      card.style.cssText = 'width:min(400px,100%);border:1px solid rgba(255,255,255,.22);border-radius:18px;background:linear-gradient(145deg,rgba(20,25,48,.98),rgba(45,31,82,.98));box-shadow:0 24px 80px rgba(0,0,0,.46);padding:22px;color:#fff;font-family:inherit;';
+      title.style.cssText = 'margin:0 0 10px;font-size:19px;font-weight:800;letter-spacing:0;';
+      desc.style.cssText = 'margin:0 0 16px;color:rgba(238,242,255,.78);font-size:14px;line-height:1.6;';
+      input.style.cssText = 'width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.78);color:#fff;font-size:16px;padding:0 14px;outline:none;';
+      error.style.cssText = 'min-height:20px;margin:8px 0 0;color:#fecdd3;font-size:13px;line-height:1.45;';
+      notice.style.cssText = 'margin:8px 0 0;color:rgba(221,214,254,.78);font-size:12px;line-height:1.45;';
+      actions.style.cssText = 'display:flex;gap:10px;margin-top:18px;';
+      cancelButton.style.cssText = 'flex:0 0 auto;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#e5e7eb;padding:0 16px;font-weight:700;';
+      submitButton.style.cssText = 'flex:1;min-height:44px;border-radius:12px;border:0;background:linear-gradient(135deg,#f59e0b,#fb7185);color:#111827;padding:0 16px;font-weight:900;';
+
+      title.textContent = '단건결제를 위해 휴대폰 번호가 필요해요';
+      desc.textContent = 'KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.';
+      input.type = 'tel';
+      input.inputMode = 'tel';
+      input.autocomplete = 'tel';
+      input.placeholder = '01012345678';
+      notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 저장됩니다.';
+      cancelButton.type = 'button';
+      cancelButton.textContent = '취소';
+      submitButton.type = 'submit';
+      submitButton.textContent = '저장하고 결제 계속하기';
+
+      cancelButton.addEventListener('click', function() { close(null); });
+      card.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var normalized = _dpNormalizePaymentPhoneNumber(input.value);
+        if (!normalized) {
+          error.textContent = '휴대폰 번호를 정확히 입력해 주세요.';
+          input.focus();
+          return;
+        }
+        setBusy(true);
+        error.textContent = '';
+        _dpSavePaymentPhoneNumber(normalized).then(function(saved) {
+          close(saved || { phoneNumber: normalized, hasPhone: true });
+        }).catch(function(saveError) {
+          setBusy(false);
+          error.textContent = String((saveError && saveError.message) || '휴대폰 번호 저장에 실패했어요. 잠시 후 다시 시도해 주세요.');
+          input.focus();
+        });
+      });
+
+      card.appendChild(title);
+      card.appendChild(desc);
+      card.appendChild(input);
+      card.appendChild(error);
+      card.appendChild(notice);
+      actions.appendChild(cancelButton);
+      actions.appendChild(submitButton);
+      card.appendChild(actions);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      try { input.focus(); } catch (_) {}
+    });
+  }
+
   async function _dpEnsurePaymentPhoneNumber() {
     try {
       var current = await _dpGetPaymentPhoneStatus();
       if (current && current.phoneNumber) return current.phoneNumber;
     } catch (_) {}
-    var typed = window.prompt('이니시스 단건결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.', '');
-    var normalized = _dpNormalizePaymentPhoneNumber(typed || '');
-    if (!normalized) throw new Error('이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.');
-    var saved = await _dpSavePaymentPhoneNumber(normalized);
-    return saved.phoneNumber || normalized;
+    // 정적 셸이 로드된 화면에서는 셸의 정본 모달을 재사용해 같은 UI가 두 벌 생기지 않게 한다.
+    var saved = null;
+    if (typeof window._cdPromptDirectCheckoutPhoneNumber === 'function') {
+      saved = await window._cdPromptDirectCheckoutPhoneNumber();
+    } else {
+      saved = await _dpPromptPaymentPhoneNumber();
+    }
+    var resolved = _dpNormalizePaymentPhoneNumber((saved && (saved.phoneNumber || saved.phone)) || '');
+    if (!resolved) throw new Error('단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.');
+    return resolved;
   }
 
   function _dpLoadPortOneV2Sdk() {
@@ -2525,6 +2637,109 @@
       existing.addEventListener('error', function() { finish(false); }, { once: true });
       setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, 8000);
     });
+  }
+
+  // 결제수단 모달을 띄우는 시점에 SDK 다운로드를 시작해 임계경로에서 뺀다. 예전에는 checkout 응답을
+  // 받은 뒤에야 <script> 를 붙여, CDN 왕복이 클릭~결제창 사이에 그대로 얹혔다(모바일에서 그 지연으로
+  // user-gesture 가 소멸해 결제창이 아예 안 열리는 원인).
+  // 정적 셸과 같은 전역 promise·같은 script#portone-v2-sdk 를 공유하므로 이중 로드가 되지 않는다.
+  function _dpPortOneV2SdkPromise() {
+    var shared = window.__cdPortOneV2PreloadPromise;
+    if (shared && typeof shared.then === 'function') return shared;
+    var created = _dpLoadPortOneV2Sdk();
+    window.__cdPortOneV2PreloadPromise = created;
+    // 실패한 promise 를 캐시에 남기면 재시도가 영구히 같은 실패를 재사용한다.
+    created.catch(function() {
+      if (window.__cdPortOneV2PreloadPromise === created) window.__cdPortOneV2PreloadPromise = null;
+    });
+    return created;
+  }
+
+  function _dpPreloadPortOneV2Sdk() {
+    try { _dpPortOneV2SdkPromise(); } catch (_) {}
+  }
+
+  // ── 모바일 리다이렉트 복귀 처리 ──────────────────────────────────────────────
+  // PortOne V2 는 모바일에서 결제를 상위 프레임 리다이렉트로 처리할 수 있다. 그러면 await 중이던
+  // requestPayment 프로미스가 페이지와 함께 죽어 /api/billing/confirm 이 호출되지 않는다 —
+  // 결제는 승인됐는데 권한이 안 붙고, 사용자에겐 "결제창이 안 뜨고 화면만 깜빡"으로 보였다.
+  // redirectUrl 에 심는 portone_redirect=1 의 소비자가 /points 하나뿐이어서 유료 기능은 방치됐다.
+  // 이 파일은 정적 셸(defer)과 React 유료 화면 양쪽에 로드되는 공통 런타임이라 복귀 처리를 여기 한 곳에 둔다.
+  var _DP_DIRECT_RESUME_KEY = 'cd_direct_payment_resume';
+  var _DP_DIRECT_RESUME_TTL_MS = 30 * 60 * 1000;
+
+  function _dpWriteDirectResumeTicket(ticket) {
+    try {
+      sessionStorage.setItem(_DP_DIRECT_RESUME_KEY, JSON.stringify(ticket));
+    } catch (_) {}
+  }
+
+  function _dpClearDirectResumeTicket() {
+    try { sessionStorage.removeItem(_DP_DIRECT_RESUME_KEY); } catch (_) {}
+  }
+
+  function _dpReadDirectResumeTicket() {
+    var raw = '';
+    try { raw = String(sessionStorage.getItem(_DP_DIRECT_RESUME_KEY) || ''); } catch (_) { return null; }
+    if (!raw) return null;
+    var parsed = null;
+    try { parsed = JSON.parse(raw); } catch (_) { parsed = null; }
+    if (!parsed || typeof parsed !== 'object') {
+      _dpClearDirectResumeTicket();
+      return null;
+    }
+    // 오래된 티켓이 훗날 무관한 리다이렉트에서 되살아나 엉뚱한 주문을 확정하지 않도록 만료시킨다.
+    if (!parsed.at || (Date.now() - Number(parsed.at)) > _DP_DIRECT_RESUME_TTL_MS) {
+      _dpClearDirectResumeTicket();
+      return null;
+    }
+    return parsed;
+  }
+
+  async function _dpResumeDirectPaymentAfterRedirect() {
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
+    var query;
+    try { query = new URLSearchParams(window.location.search || ''); } catch (_) { return; }
+    if (query.get('portone_redirect') !== '1') return;
+
+    var ticket = _dpReadDirectResumeTicket();
+    // 티켓이 없으면 이 복귀는 우리 것이 아니다(예: /points 가 자기 키로 처리하는 이용권·월정석 결제).
+    if (!ticket || !ticket.confirmBody) return;
+    _dpClearDirectResumeTicket();
+
+    var paymentId = String(
+      query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || ticket.merchantUid || '',
+    ).trim();
+    var failed = String(query.get('code') || '').trim() !== ''
+      || String(query.get('imp_success') || '').toLowerCase() === 'false';
+
+    if (!paymentId || failed) {
+      var failMessage = String(query.get('message') || query.get('error_msg') || '').trim();
+      window.alert(failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.');
+      return;
+    }
+
+    try {
+      _dpSetPaymentPending(true, '결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.', 'confirm');
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
+        method: 'POST',
+        body: JSON.stringify(Object.assign({}, ticket.confirmBody, {
+          impUid: paymentId,
+          paymentId: paymentId,
+        })),
+      });
+      _dpSetPaymentPending(false);
+      if (!confirmRes.ok) {
+        window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
+        return;
+      }
+      // 서버 confirm 은 멱등이다(existingUnlock 감지 → alreadyUnlocked). 중복 확정 위험은 없다.
+      _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+    } catch (error) {
+      _dpSetPaymentPending(false);
+      console.error('[direct-payment-resume]', error);
+      window.alert('결제 확인 중 오류가 발생했습니다. 잠시 후 주문 내역을 확인해 주세요.');
+    }
   }
 
 
@@ -2809,7 +3024,6 @@
         _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
         // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
         await _dpWaitForPaymentOverlayPaint();
-        var passShownAt = Date.now();
         var passFirst;
         try {
           passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
@@ -2833,9 +3047,9 @@
             }));
           }
         } finally {
-          // 최소 표시 시간 보장(초고속 응답에도 "이용권 확인 중"이 보이도록) + 예외 시에도 오버레이가 멈추지 않고 닫히도록.
-          var passShownElapsed = Date.now() - passShownAt;
-          if (passShownElapsed < 550) await new Promise(function(resolve) { setTimeout(resolve, 550 - passShownElapsed); });
+          // 최소 표시 시간(550ms) 보장은 제거했다 — 결제창 진입 임계경로에 얹히는 순수 인위적 지연이고,
+          // "이용권 확인 중"이 깜빡이는 것보다 결제창이 늦게 뜨는 비용이 훨씬 크다(정적 셸에는 이 floor가 없다).
+          // 예외 시에도 오버레이가 멈추지 않고 닫히도록 finally 자체는 유지한다.
           // pass 적용 성공 시엔 적용 완료 오버레이(_dpApplyMembershipPassBeforePayment 내부 _dpShowPassAppliedOverlay,
           // 자체 ~1.2s 후 자동 닫힘)를 유지해 "적용 완료" 프레임이 즉시 덮여 사라지지 않도록 한다. 미커버·에러만 닫는다.
           var passGrantedInFlight = passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked');
@@ -2848,6 +3062,8 @@
         // 결제창(단건+월정석)으로 fall-through한다(아래 _cdChooseServicePaymentMode). 요구사항: 이용권 확인
         // 실패 시 무조건 결제창 노출. 결제창 내 '이용권 다시 확인' 버튼으로 실제 보유자는 그 자리에서 재검증한다.
       }
+      // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
+      _dpPreloadPortOneV2Sdk();
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
       if (!choice || choice === 'cancel') {
         if (typeof opts.onCancel === 'function') opts.onCancel();
@@ -2958,10 +3174,19 @@
       if (!Number.isFinite(orderAmount) || orderAmount <= 0) {
         throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uacb0\uc81c \uae08\uc561\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.');
       }
-      await _dpLoadPortOneV2Sdk();
-      var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
-      if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
-      var config = _dpExtractBillingData(configRes.payload);
+      // 결제수단 모달 렌더 시점에 시작된 프리로드를 기다린다 — 정상 경로에서는 이미 resolve 상태다.
+      await _dpPortOneV2SdkPromise();
+      // storeId/channelKey 는 checkout 응답에 이미 실려 온다(worker/routes/payments.js). 그걸 쓰면
+      // /api/payments/config 왕복이 통째로 사라진다. 정적 셸의 _cdResolveDirectCheckoutConfig 와 같은 방식.
+      var config = {
+        storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
+        channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
+      };
+      if (!config.storeId || !config.channelKey) {
+        var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
+        if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
+        config = _dpExtractBillingData(configRes.payload);
+      }
       if (!config.storeId || !config.channelKey) {
         throw new Error('포트원 V2 결제 설정이 없습니다.');
       }
@@ -3060,12 +3285,35 @@
       };
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
 
+      // 확정 본문을 한 번만 만들어 정상 완료와 리다이렉트 복귀가 완전히 같은 값을 쓰게 한다.
+      var _dpDirectConfirmBody = Object.assign({}, checkoutPayload, {
+        merchantUid: merchantUid,
+        amount: orderAmount,
+        paymentAmount: orderAmount,
+        coinPrice: Number(order.coinPrice || coinPrice),
+        paymentType: 'digital_content',
+        paymentMode: 'DIRECT_KRW',
+        provider: 'PORTONE_V2',
+        pg: 'KG_INICIS',
+        paymentMethod: 'card_general',
+      });
+
       _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4') + ' ' + '\uB2E8\uAC74 \uACB0\uC81C\uCC3D\uC744 \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4. \uC8FC\uBB38 \uAE08\uC561\uACFC \uC778\uC99D \uC815\uBCF4\uB97C \uC548\uC804\uD558\uAC8C \uB9DE\uCD94\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'card');
-      await _dpWaitForPaymentOverlayPaint();
-      _dpSetPaymentPending(true, '\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744 \uC9C4\uD589\uD574 \uC8FC\uC138\uC694. \uC778\uC99D\uC774 \uB05D\uB098\uBA74 \uAD8C\uD55C\uC744 \uD655\uC778\uD569\uB2C8\uB2E4.', 'card');
-      await _dpWaitForPaymentOverlayPaint();
+      // \uC911\uAC04 \uBA54\uC2DC\uC9C0("\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744\u2026")\uB294 \uBC14\uB85C \uC544\uB798\uC5D0\uC11C \uC624\uBC84\uB808\uC774\uB97C \uB2EB\uC544 \uC2E4\uC81C\uB85C \uBCF4\uC774\uC9C0 \uC54A\uB294\uB370
+      // \uD504\uB808\uC784\uB9CC \uD55C \uBC88 \uB354 \uBA39\uC5C8\uB2E4 \u2014 \uC81C\uAC70\uD588\uB2E4. \uC624\uBC84\uB808\uC774 \uD574\uC81C\uC640 requestPayment \uC0AC\uC774\uC5D0\uB294 \uC544\uBB34\uAC83\uB3C4 \uB450\uC9C0 \uC54A\uB294\uB2E4
+      // (\uD55C \uD504\uB808\uC784\uC774\uB77C\uB3C4 \uB07C\uC6B0\uBA74 user-gesture \uC18C\uBA78\uC5D0 \uB354 \uAC00\uAE4C\uC6CC\uC9C4\uB2E4. verify:paid-gate-ui \uAC00 \uC774 \uC21C\uC11C\uB97C \uACE0\uC815\uD55C\uB2E4).
+      // PG가 상위 프레임을 리다이렉트하면 아래 await 는 페이지와 함께 죽는다. 그 경우에도 결제를 확정할
+      // 수 있도록 복귀 티켓을 미리 남긴다(_dpResumeDirectPaymentAfterRedirect 가 소비).
+      _dpWriteDirectResumeTicket({ at: Date.now(), merchantUid: merchantUid, confirmBody: _dpDirectConfirmBody });
+
+      // PG의 상위 프레임 리다이렉트는 의도된 이동이다 — PaymentProcessingContext 의 beforeunload
+      // 차단이 그걸 막지 않도록 이 구간만 예외로 표시한다.
+      window.__cdSuppressPaymentUnloadBlock = true;
       _dpSetPaymentPending(false);
       var rsp = await window.PortOne.requestPayment(requestData);
+      window.__cdSuppressPaymentUnloadBlock = false;
+      // 여기에 도달했다면 리다이렉트 없이 이 컨텍스트에서 끝났다 — 티켓은 더 필요 없다.
+      _dpClearDirectResumeTicket();
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
         throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
@@ -3075,18 +3323,9 @@
 
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
         method: 'POST',
-        body: JSON.stringify(Object.assign({}, checkoutPayload, {
+        body: JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
           impUid: paymentId,
           paymentId: paymentId,
-          merchantUid: merchantUid,
-          amount: orderAmount,
-          paymentAmount: orderAmount,
-          coinPrice: Number(order.coinPrice || coinPrice),
-          paymentType: 'digital_content',
-          paymentMode: 'DIRECT_KRW',
-          provider: 'PORTONE_V2',
-          pg: 'KG_INICIS',
-          paymentMethod: 'card_general',
         })),
       });
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
@@ -8399,5 +8638,11 @@
 
     return runMonthlyCreditGate();
   };
+
+  // 리다이렉트 복귀 확정은 한 번만 시도한다(같은 페이지에 이 스크립트가 두 번 주입되는 경우 대비).
+  if (!window.__cdDirectPaymentResumeStarted) {
+    window.__cdDirectPaymentResumeStarted = true;
+    try { void _dpResumeDirectPaymentAfterRedirect(); } catch (_) {}
+  }
 
 })();
