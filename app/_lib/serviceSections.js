@@ -7,7 +7,7 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/saju/sibyl", fallbackTitle: "시빌라 시스템", fallbackDesc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료", isStaticCanonical: true },
       { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 전문가 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 50,000원", isStaticCanonical: true },
       { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
-      { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 1회 50,000원" },
+      { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 개인 1회 30,000원 / 상대와의 궁합 50,000원" },
       { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 전문가 작명 · 30,000원" },
       { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 잠금 해제 10,000원", isStaticCanonical: true },
       { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "사주 기반 팬덤 공명 분석 · 1회 5,000원" },

@@ -39,12 +39,51 @@ import {
   buildMasterLoveCodexChapterPrompt,
   getMasterLoveCodexPlan,
 } from "../lib/master-love-codex-prompt.mjs";
+import {
+  LOVE_DNA_COMPAT_METRICS,
+  MASTER_LOVE_CODEX_COMPAT_CHAPTERS,
+  MASTER_LOVE_CODEX_COMPAT_META,
+  buildMasterLoveCodexCompatChapterPrompt,
+  getMasterLoveCodexCompatPlan,
+} from "../lib/master-love-codex-compat-prompt.mjs";
+import { buildMasterLoveCodexCompatibility } from "../lib/master-love-codex-compat.js";
 
 const SERVICE_KEY = "master-love-codex";
 const FEATURE_KEY = MASTER_LOVE_CODEX_META.featureKey;
+const COMPAT_FEATURE_KEY = MASTER_LOVE_CODEX_COMPAT_META.featureKey;
 const ACCESS_TOKEN_TYPE = "master-love-codex-access";
 const ACCESS_TOKEN_TTL = "45m";
 const TITLE = MASTER_LOVE_CODEX_META.label;
+
+/**
+ * 모드 정본 테이블.
+ *  - solo   : 본인 명식·명반만. featureKey `master-love-codex` (300코인=30,000원)
+ *  - compat : 상대 명식·명반까지 4개 차트 + 궁합 판정. featureKey `master-love-codex-compat` (500코인=50,000원)
+ * 상대 정보가 없으면 언제나 solo 로 떨어진다(가격이 낮은 쪽이 기본).
+ */
+const MODES = Object.freeze({
+  solo: Object.freeze({
+    mode: "solo",
+    featureKey: FEATURE_KEY,
+    title: MASTER_LOVE_CODEX_META.label,
+    chapters: MASTER_LOVE_CODEX_CHAPTERS,
+    dnaMetrics: LOVE_DNA_METRICS,
+    cacheKeyExtra: "master-love-codex-v2", // 프롬프트 지시문 상향(v2) — 캐시 키는 프롬프트 전문도 해시한다
+  }),
+  compat: Object.freeze({
+    mode: "compat",
+    featureKey: COMPAT_FEATURE_KEY,
+    title: MASTER_LOVE_CODEX_COMPAT_META.label,
+    chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS,
+    dnaMetrics: LOVE_DNA_COMPAT_METRICS,
+    cacheKeyExtra: "master-love-codex-compat-v1",
+  }),
+});
+
+function resolveMode(value) {
+  return clean(value) === "compat" ? MODES.compat : MODES.solo;
+}
+const KNOWN_FEATURE_KEYS = Object.freeze([FEATURE_KEY, COMPAT_FEATURE_KEY]);
 
 const CHAPTER_CONCURRENCY = 4; // Gemini 병렬 상한(레이트리밋·subrequest 안전)
 const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피
@@ -98,11 +137,10 @@ function isAdmin(auth = {}) {
   return clean(auth.role).toLowerCase() === "admin";
 }
 
-/** 입력 정규화: 명식·명반 계산에 필요한 출생 정보만 받는다. */
-function normalizeInput(body = {}) {
-  const src = asObject(body.birthInfo || body);
+/** 출생 정보 한 사람분 정규화 (본인·상대 공용) */
+function normalizePerson(src = {}) {
   const genderRaw = clean(src.gender).toLowerCase();
-  const birthInfo = {
+  const person = {
     name: clean(src.name, 40),
     gender: genderRaw === "male" || genderRaw === "female" ? genderRaw : "",
     birthDate: clean(src.birthDate, 10),
@@ -111,30 +149,74 @@ function normalizeInput(body = {}) {
     calendarType: clean(src.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar",
     isLeapMonth: src.isLeapMonth === true || src.isLeapMonth === "true",
   };
+  if (person.birthTimeUnknown) person.birthTime = "";
+  return person;
+}
+
+function personHashParts(person) {
+  return [
+    person.birthDate, person.birthTime, person.birthTimeUnknown,
+    person.calendarType, person.isLeapMonth, person.gender,
+  ];
+}
+
+/** 상대 정보가 실제로 들어왔는지 — 생년월일이 유일한 판정 기준이다. */
+function hasPartnerSignal(src) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(clean(asObject(src).birthDate, 10));
+}
+
+/**
+ * 입력 정규화: 명식·명반 계산에 필요한 출생 정보만 받는다.
+ * 상대(partnerInfo)가 함께 오면 궁합 모드로 전환된다 — 없으면 기존 솔로 경로 그대로다.
+ */
+function normalizeInput(body = {}) {
+  const src = asObject(body.birthInfo || body);
+  const birthInfo = normalizePerson(src);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birthInfo.birthDate)) return { ok: false, message: MESSAGES.invalidInput };
   if (!birthInfo.gender) return { ok: false, message: "성별을 선택해 주세요." };
   if (!birthInfo.birthTime && !birthInfo.birthTimeUnknown) {
     return { ok: false, message: "태어난 시각을 입력하거나 '태어난 시각 모름'을 선택해 주세요." };
   }
-  if (birthInfo.birthTimeUnknown) birthInfo.birthTime = "";
+
+  const partnerSrc = asObject(body.partnerInfo || body.partner || src.partnerInfo);
+  const wantsCompat = hasPartnerSignal(partnerSrc);
+  let partnerInfo = null;
+  if (wantsCompat) {
+    partnerInfo = normalizePerson(partnerSrc);
+    // 상대는 생년월일만 필수다. 시각을 안 적었으면 '모름'으로 받아 정오 기준으로 세운다.
+    if (!partnerInfo.birthTime) partnerInfo.birthTimeUnknown = true;
+  }
 
   const prologueChoiceRaw = clean(body.prologueChoice, 20).toLowerCase();
   const prologueChoice = ["yes", "unsure", "partner", "self"].includes(prologueChoiceRaw) ? prologueChoiceRaw : "";
 
-  const inputHash = sha256([
-    birthInfo.birthDate, birthInfo.birthTime, birthInfo.birthTimeUnknown,
-    birthInfo.calendarType, birthInfo.isLeapMonth, birthInfo.gender,
-  ].join("|"));
+  // 솔로 해시는 기존 문자열을 문자 단위로 보존한다 — 바꾸면 진행 중 세션의 토큰 검증이 깨진다.
+  const selfHashSource = personHashParts(birthInfo).join("|");
+  const inputHash = sha256(
+    partnerInfo ? `${selfHashSource}|compat|${personHashParts(partnerInfo).join("|")}` : selfHashSource,
+  );
 
-  return { ok: true, birthInfo, prologueChoice, inputHash };
+  return { ok: true, mode: partnerInfo ? "compat" : "solo", birthInfo, partnerInfo, prologueChoice, inputHash };
 }
 
-/** 명식·명반을 함께 세운다. 실패 시 code=CALCULATION_FAILED */
-function buildCharts(birthInfo) {
+/**
+ * 명식·명반을 세운다. 궁합이면 상대 것까지 4개를 세우고 궁합 판정을 함께 만든다.
+ * 실패 시 code=CALCULATION_FAILED
+ */
+function buildCharts(normalized) {
+  const { birthInfo, partnerInfo } = asObject(normalized);
   try {
+    const year = new Date().getFullYear();
     const saju = calculateLifeBookAiSaju(birthInfo);
-    const ziweiChart = calculateZiweiAiChart({ birthInfo }, { year: new Date().getFullYear() });
-    return { saju, ziweiChart };
+    const ziweiChart = calculateZiweiAiChart({ birthInfo }, { year });
+    if (!partnerInfo) return { saju, ziweiChart, partnerSaju: null, partnerZiweiChart: null, compatibility: null };
+
+    const partnerSaju = calculateLifeBookAiSaju(partnerInfo);
+    const partnerZiweiChart = calculateZiweiAiChart({ birthInfo: partnerInfo }, { year });
+    const compatibility = buildMasterLoveCodexCompatibility({
+      selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
+    });
+    return { saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility };
   } catch (error) {
     const failure = new Error(clean(error?.message, 200) || "chart calculation failed");
     failure.code = "CALCULATION_FAILED";
@@ -144,17 +226,23 @@ function buildCharts(birthInfo) {
 
 // ─── 가격 / 결제 페이로드 ────────────────────────────────────────────────────
 
-function getPricing() {
-  const resolved = getBillingFeaturePricing({ featureKey: FEATURE_KEY, reason: TITLE });
+function getPricing(modeKey = "solo") {
+  const modeDef = resolveMode(modeKey);
+  const resolved = getBillingFeaturePricing({ featureKey: modeDef.featureKey, reason: modeDef.title });
   const pricing = resolved?.pricing || null;
   const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
   const amountKRW = Number(pricing?.amountKRW || pricing?.paymentAmount || 0);
   if (!resolved?.ok || !pricing || !Number.isInteger(coinPrice) || coinPrice <= 0 || !Number.isInteger(amountKRW) || amountKRW <= 0) {
-    const error = new Error("master-love-codex price not found");
+    const error = new Error(`${modeDef.featureKey} price not found`);
     error.code = "PRICE_NOT_FOUND";
     throw error;
   }
-  return { pricing, coinPrice, amountKRW, membershipCreditCost: calculateMembershipCreditCost(coinPrice) };
+  return {
+    pricing, coinPrice, amountKRW,
+    membershipCreditCost: calculateMembershipCreditCost(coinPrice),
+    featureKey: modeDef.featureKey,
+    title: modeDef.title,
+  };
 }
 
 /**
@@ -162,14 +250,16 @@ function getPricing() {
  * 하드코딩하면 클라이언트 게이트가 이용권 선검사를 건너뛰고 월정석 옵션이 사라진다.
  */
 function buildBillingGatePayload(pricing, idempotencyKey) {
+  const featureKey = clean(pricing.featureKey) || FEATURE_KEY;
+  const title = clean(pricing.title) || TITLE;
   const gate = {
     categoryKey: "premium-consultation",
-    subFeatureKey: FEATURE_KEY,
-    featureKey: FEATURE_KEY,
-    reason: TITLE,
+    subFeatureKey: featureKey,
+    featureKey,
+    reason: title,
     productId: SERVICE_KEY,
     productType: SERVICE_KEY,
-    serviceType: FEATURE_KEY,
+    serviceType: featureKey,
     cost: pricing.coinPrice,
     coinPrice: pricing.coinPrice,
     totalAmount: pricing.amountKRW,
@@ -296,9 +386,14 @@ async function findBillingEvidence({ userId, idempotencyKey, body }) {
 
 // ─── 액세스 토큰 ─────────────────────────────────────────────────────────────
 
-async function createAccessToken(env, payload) {
+/**
+ * 액세스 토큰은 모드별 featureKey 를 함께 서명한다.
+ * 🔴 이걸 상수로 박으면 30,000원(개인) 결제로 받은 토큰이 50,000원(궁합) 생성에도 통과한다.
+ */
+async function createAccessToken(env, payload, modeKey = "solo") {
+  const modeDef = resolveMode(modeKey);
   return signJwt(
-    { typ: ACCESS_TOKEN_TYPE, serviceKey: SERVICE_KEY, featureKey: FEATURE_KEY, ...payload },
+    { typ: ACCESS_TOKEN_TYPE, serviceKey: SERVICE_KEY, featureKey: modeDef.featureKey, mode: modeDef.mode, ...payload },
     getAccessTokenSecret(env),
     { expiresIn: ACCESS_TOKEN_TTL, issuer: getJwtIssuer(env), audience: getJwtAudience(env) },
   );
@@ -306,12 +401,21 @@ async function createAccessToken(env, payload) {
 
 async function verifyAccessToken(env, token) {
   const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: getJwtIssuer(env), audience: getJwtAudience(env) });
-  if (payload?.typ !== ACCESS_TOKEN_TYPE || payload?.serviceKey !== SERVICE_KEY || payload?.featureKey !== FEATURE_KEY) {
+  if (payload?.typ !== ACCESS_TOKEN_TYPE
+    || payload?.serviceKey !== SERVICE_KEY
+    || !KNOWN_FEATURE_KEYS.includes(clean(payload?.featureKey))) {
     const error = new Error("invalid access token");
     error.code = "INVALID_ACCESS_TOKEN";
     throw error;
   }
   return payload;
+}
+
+/** 토큰이 이 모드용으로 발급된 것인지 — featureKey 와 mode 를 모두 본다. */
+function tokenMatchesMode(payload, modeKey) {
+  const modeDef = resolveMode(modeKey);
+  return clean(payload?.featureKey) === modeDef.featureKey
+    && resolveMode(payload?.mode).mode === modeDef.mode;
 }
 
 async function loadBillingUser(userId) {
@@ -336,9 +440,15 @@ async function runWithConcurrency(items, limit, worker) {
   return results;
 }
 
-function chapterCache(env) {
+function chapterCache(env, modeKey = "solo") {
   // 명식·명반 기반 결정론(자유질문 없음)이라 응답 캐시 + in-flight dedup 이 안전하다.
-  return { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 30 * 24 * 60 * 60, keyExtra: "master-love-codex-v1" };
+  // 캐시 키는 프롬프트 전문까지 해시하므로(lib/llm-cache.ts) keyExtra 는 모드 구분용 명시적 가드다.
+  return {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: resolveMode(modeKey).cacheKeyExtra,
+  };
 }
 
 function fallbackChapterBody(chapter, birthInfo) {
@@ -349,13 +459,13 @@ function fallbackChapterBody(chapter, birthInfo) {
   ].join("\n");
 }
 
-function normalizeLoveDna(parsed) {
+function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
   const source = asObject(parsed);
   const byKey = new Map(
     (Array.isArray(source.metrics) ? source.metrics : [])
       .map((item) => [clean(asObject(item).key), asObject(item)]),
   );
-  const metrics = LOVE_DNA_METRICS.map(({ key, label }) => {
+  const metrics = (Array.isArray(metricDefs) && metricDefs.length ? metricDefs : LOVE_DNA_METRICS).map(({ key, label }) => {
     const raw = byKey.get(key) || {};
     const score = Math.max(0, Math.min(100, Math.round(Number(raw.score) || 0)));
     return { key, label, score, basis: clean(raw.basis, 300) };
@@ -367,9 +477,18 @@ function normalizeLoveDna(parsed) {
   };
 }
 
-async function generateChapter(env, { saju, ziweiChart, birthInfo, chapter, prologueChoice, memory }) {
-  const prompt = buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory });
-  const cache = chapterCache(env);
+async function generateChapter(env, {
+  mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
+  birthInfo, partnerInfo, chapter, prologueChoice, memory,
+}) {
+  const modeDef = resolveMode(mode);
+  const prompt = modeDef.mode === "compat"
+    ? buildMasterLoveCodexCompatChapterPrompt({
+      selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
+      compatibility, birthInfo, partnerInfo, chapter, memory,
+    })
+    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory });
+  const cache = chapterCache(env, modeDef.mode);
   try {
     if (chapter.jsonMode) {
       const ai = await callGeminiJsonWithRetry(env, prompt, {
@@ -386,7 +505,7 @@ async function generateChapter(env, { saju, ziweiChart, birthInfo, chapter, prol
       if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
       return {
         chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
-        loveDna: normalizeLoveDna(parsed),
+        loveDna: normalizeLoveDna(parsed, modeDef.dnaMetrics),
       };
     }
 
@@ -437,20 +556,27 @@ function publicSession(doc) {
     .slice()
     .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
     .map(({ id, order, symbol, title, body, chars, ok }) => ({ id, order, symbol, title, body, chars, ok }));
+  const modeDef = resolveMode(doc?.mode);
   return {
     ok: true,
     sessionId: clean(doc?.id),
     status: clean(doc?.status) || "generating",
     accessType: clean(doc?.accessType),
-    label: TITLE,
+    mode: modeDef.mode,
+    featureKey: modeDef.featureKey,
+    label: modeDef.title,
     narrator: MASTER_LOVE_CODEX_META.narrator,
     birthInfo: doc?.birthInfo || null,
+    partnerInfo: doc?.partnerInfo || null,
     prologueChoice: clean(doc?.prologueChoice),
     sajuResult: doc?.sajuResult || null,
     ziweiChart: doc?.ziweiChart || null,
+    partnerSajuResult: doc?.partnerSajuResult || null,
+    partnerZiweiChart: doc?.partnerZiweiChart || null,
+    compatibility: doc?.compatibility || null,
     chapters,
     loveDna: doc?.loveDna || null,
-    totalChapters: MASTER_LOVE_CODEX_CHAPTERS.length,
+    totalChapters: modeDef.chapters.length,
     totalCharCount: Number(doc?.totalCharCount || 0),
     createdAt: doc?.createdAt || null,
     updatedAt: doc?.updatedAt || null,
@@ -459,8 +585,10 @@ function publicSession(doc) {
 
 // ─── 핸들러 ──────────────────────────────────────────────────────────────────
 
-function handlePlan() {
-  return json({ ok: true, plan: getMasterLoveCodexPlan() });
+function handlePlan(request) {
+  const mode = clean(new URL(request.url).searchParams.get("mode"));
+  const plan = mode === "compat" ? getMasterLoveCodexCompatPlan() : getMasterLoveCodexPlan();
+  return json({ ok: true, mode: resolveMode(mode).mode, plan });
 }
 
 async function handleEnsureAccess(request, env) {
@@ -470,7 +598,7 @@ async function handleEnsureAccess(request, env) {
   if (!normalized.ok) return invalidInput(normalized.message);
 
   try {
-    buildCharts(normalized.birthInfo);
+    buildCharts(normalized);
   } catch (_) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
@@ -478,11 +606,16 @@ async function handleEnsureAccess(request, env) {
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
-  const pricing = getPricing();
+  const pricing = getPricing(normalized.mode);
   const grant = async (accessType) => json({
     ok: true,
     accessType,
-    accessToken: await createAccessToken(env, { userId: auth.userId, accessType, idempotencyKey, inputHash: normalized.inputHash }),
+    mode: normalized.mode,
+    accessToken: await createAccessToken(
+      env,
+      { userId: auth.userId, accessType, idempotencyKey, inputHash: normalized.inputHash },
+      normalized.mode,
+    ),
   });
 
   if (isAdmin(auth)) return grant("admin");
@@ -497,6 +630,11 @@ async function handleEnsureAccess(request, env) {
   return paymentRequired(pricing, idempotencyKey);
 }
 
+/** 이 요청의 모드가 궁합인지 — 세션 문서/정규화 결과 어느 쪽에서든 같은 기준으로 읽는다. */
+function sessionMode(doc) {
+  return resolveMode(asObject(doc).mode).mode;
+}
+
 async function resolveStartAccess(request, env, auth, body, normalized, idempotencyKey) {
   const token = clean(asObject(body).accessToken || request.headers.get("x-master-love-codex-token"));
   if (token) {
@@ -505,6 +643,8 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
       if (clean(payload.userId) === clean(auth.userId)
         && clean(payload.idempotencyKey) === idempotencyKey
         && clean(payload.inputHash) === normalized.inputHash
+        // 🔴 모드(=featureKey)가 다르면 거부한다. 개인판 토큰으로 궁합을 생성할 수 없다.
+        && tokenMatchesMode(payload, normalized.mode)
         && ["admin", "pass"].includes(clean(payload.accessType))) {
         return { ok: true, accessType: clean(payload.accessType), paymentId: "", billingRequestId: idempotencyKey };
       }
@@ -518,7 +658,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (clean(user?.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", billingRequestId: idempotencyKey };
-  if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), getPricing().coinPrice)) {
+  if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), getPricing(normalized.mode).coinPrice)) {
     return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
   }
   return { ok: false };
@@ -535,7 +675,7 @@ async function handleStart(request, env) {
 
   let charts;
   try {
-    charts = buildCharts(normalized.birthInfo);
+    charts = buildCharts(normalized);
   } catch (_) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
@@ -549,7 +689,11 @@ async function handleStart(request, env) {
   if (existing) {
     return json({
       ...publicSession(existing),
-      accessToken: await createAccessToken(env, { userId: auth.userId, accessType: clean(existing.accessType), sessionId: clean(existing.id) }),
+      accessToken: await createAccessToken(
+        env,
+        { userId: auth.userId, accessType: clean(existing.accessType), sessionId: clean(existing.id) },
+        sessionMode(existing),
+      ),
     });
   }
 
@@ -557,10 +701,15 @@ async function handleStart(request, env) {
   const doc = await MasterLoveCodexSession.create({
     id: sessionId,
     userId: clean(auth.userId),
+    mode: normalized.mode,
     birthInfo: normalized.birthInfo,
+    partnerInfo: normalized.partnerInfo,
     prologueChoice: normalized.prologueChoice,
     sajuResult: charts.saju,
     ziweiChart: charts.ziweiChart,
+    partnerSajuResult: charts.partnerSaju,
+    partnerZiweiChart: charts.partnerZiweiChart,
+    compatibility: charts.compatibility,
     chapters: [],
     accessType: clean(access.accessType) || "paid",
     paymentId: clean(access.paymentId, 160),
@@ -572,7 +721,11 @@ async function handleStart(request, env) {
 
   return json({
     ...publicSession(doc.toObject ? doc.toObject() : doc),
-    accessToken: await createAccessToken(env, { userId: auth.userId, accessType: clean(access.accessType), sessionId }),
+    accessToken: await createAccessToken(
+      env,
+      { userId: auth.userId, accessType: clean(access.accessType), sessionId },
+      normalized.mode,
+    ),
   });
 }
 
@@ -606,14 +759,14 @@ async function handleGenerate(request, env) {
   if (!auth) return loginRequired();
 
   const token = clean(asObject(body).accessToken || request.headers.get("x-master-love-codex-token"));
-  let tokenOk = false;
+  let tokenPayload = null;
   if (token) {
     try {
       const payload = await verifyAccessToken(env, token);
-      tokenOk = clean(payload.userId) === clean(auth.userId) && clean(payload.sessionId) === sessionId;
-    } catch (_) { tokenOk = false; }
+      if (clean(payload.userId) === clean(auth.userId) && clean(payload.sessionId) === sessionId) tokenPayload = payload;
+    } catch (_) { tokenPayload = null; }
   }
-  if (!tokenOk && !isAdmin(auth)) return paymentVerifyFailed();
+  if (!tokenPayload && !isAdmin(auth)) return paymentVerifyFailed();
 
   await connectDb(env);
   const lock = await acquireBatchLock(sessionId, clean(auth.userId));
@@ -625,9 +778,19 @@ async function handleGenerate(request, env) {
   }
 
   const doc = lock.doc;
+  const modeDef = resolveMode(doc.mode);
+  // 🔴 토큰이 이 세션의 모드용으로 발급된 것인지 여기서 확인한다(토큰 검증 시점엔 세션을 아직 못 읽는다).
+  if (tokenPayload && !tokenMatchesMode(tokenPayload, modeDef.mode)) {
+    await MasterLoveCodexSession.updateOne(
+      { id: sessionId },
+      { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
+    ).catch(() => {});
+    return paymentVerifyFailed();
+  }
+
   const existingChapters = Array.isArray(doc.chapters) ? doc.chapters.slice() : [];
   const startIndex = existingChapters.length; // 서버가 진행 위치의 정본이다(클라이언트 값 미신뢰)
-  const slice = MASTER_LOVE_CODEX_CHAPTERS.slice(startIndex, startIndex + CHAPTER_BATCH_SIZE);
+  const slice = modeDef.chapters.slice(startIndex, startIndex + CHAPTER_BATCH_SIZE);
 
   if (!slice.length) {
     await MasterLoveCodexSession.updateOne(
@@ -641,9 +804,14 @@ async function handleGenerate(request, env) {
   try {
     const memory = buildMemory(existingChapters);
     const results = await runWithConcurrency(slice, CHAPTER_CONCURRENCY, (chapter) => generateChapter(env, {
+      mode: modeDef.mode,
       saju: doc.sajuResult,
       ziweiChart: doc.ziweiChart,
+      partnerSaju: doc.partnerSajuResult,
+      partnerZiweiChart: doc.partnerZiweiChart,
+      compatibility: doc.compatibility,
       birthInfo: doc.birthInfo,
+      partnerInfo: doc.partnerInfo,
       chapter,
       prologueChoice: clean(doc.prologueChoice),
       memory,
@@ -653,7 +821,7 @@ async function handleGenerate(request, env) {
     const loveDna = results.map((result) => result.loveDna).find(Boolean) || null;
     const merged = [...existingChapters, ...newChapters];
     const totalCharCount = merged.reduce((sum, chapter) => sum + Number(chapter.chars || 0), 0);
-    const done = merged.length >= MASTER_LOVE_CODEX_CHAPTERS.length;
+    const done = merged.length >= modeDef.chapters.length;
 
     await MasterLoveCodexSession.updateOne({ id: sessionId }, {
       $set: {
@@ -661,7 +829,7 @@ async function handleGenerate(request, env) {
         totalCharCount,
         status: done ? "completed" : "generating",
         ...(loveDna ? { loveDna } : {}),
-        generationProgress: { completed: merged.length, total: MASTER_LOVE_CODEX_CHAPTERS.length, lockedAt: null, lockToken: "" },
+        generationProgress: { completed: merged.length, total: modeDef.chapters.length, lockedAt: null, lockToken: "" },
       },
     });
 
@@ -695,7 +863,7 @@ export async function handleMasterLoveCodexRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/master-love-codex");
   try {
-    if (method === "GET" && (path === "/plan" || path === "")) return handlePlan();
+    if (method === "GET" && (path === "/plan" || path === "")) return handlePlan(request);
     if (method === "GET" && path === "/session") return await handleSession(request, env);
     if (method === "POST" && (path === "/ensure-access" || path === "/prepare")) return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
@@ -708,4 +876,8 @@ export async function handleMasterLoveCodexRoutes(request, env = {}) {
   }
 }
 
-export const __masterLoveCodexTestUtils = { FEATURE_KEY, SERVICE_KEY, normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna };
+export const __masterLoveCodexTestUtils = {
+  FEATURE_KEY, COMPAT_FEATURE_KEY, SERVICE_KEY, MODES,
+  normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
+  resolveMode, tokenMatchesMode, buildCharts,
+};

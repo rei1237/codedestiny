@@ -28,7 +28,30 @@ export interface CodexBirthInput {
   birthTimeUnknown: boolean;
   calendarType: "solar" | "lunar";
   isLeapMonth: boolean;
+  /** 상대 정보가 있으면 궁합 SKU 로 전환된다. null 이면 개인판. 금액은 서버 조회(PriceBadge)만 쓴다. */
+  partner: CodexPartnerInput | null;
 }
+
+/** 상대는 생년월일만 필수다. 성별·시각은 없어도 명반을 정오 기준으로 세운다. */
+export interface CodexPartnerInput {
+  name: string;
+  gender: "male" | "female" | "";
+  birthDate: string;
+  birthTime: string;
+  birthTimeUnknown: boolean;
+  calendarType: "solar" | "lunar";
+  isLeapMonth: boolean;
+}
+
+export const EMPTY_CODEX_PARTNER: CodexPartnerInput = {
+  name: "",
+  gender: "",
+  birthDate: "",
+  birthTime: "",
+  birthTimeUnknown: false,
+  calendarType: "solar",
+  isLeapMonth: false,
+};
 
 export const EMPTY_CODEX_BIRTH: CodexBirthInput = {
   name: "",
@@ -38,6 +61,7 @@ export const EMPTY_CODEX_BIRTH: CodexBirthInput = {
   birthTimeUnknown: false,
   calendarType: "solar",
   isLeapMonth: false,
+  partner: null,
 };
 
 interface CodexBirthGateProps {
@@ -79,6 +103,17 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
   function patch(partial: Partial<CodexBirthInput>) {
     onChange({ ...value, ...partial });
   }
+
+  // 상대 칸은 프로필 카드 시드로 채우지 않는다 — 프로필 카드는 본인 명식이다.
+  function patchPartner(partial: Partial<CodexPartnerInput>) {
+    onChange({ ...value, partner: { ...(value.partner || EMPTY_CODEX_PARTNER), ...partial } });
+  }
+
+  function togglePartner() {
+    onChange({ ...value, partner: value.partner ? null : { ...EMPTY_CODEX_PARTNER } });
+  }
+
+  const partner = value.partner;
 
   async function handleReload() {
     setReloading(true);
@@ -271,11 +306,137 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           </div>
         </CodexReveal>
 
+        {/*
+          궁합 전환은 사용자가 명시적으로 선택한다 — 금액이 바뀌므로(개인 → 궁합) 모르는 채
+          비싼 쪽으로 넘어가면 안 된다. 아래 결제 버튼의 priceSlot 이 즉시 금액을 다시 읽어 준다.
+        */}
+        <CodexReveal index={3} className="mt-12">
+          <hr className={styles.rule} />
+          <div className="mt-9">
+            <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
+              한 사람 더
+            </p>
+            <h3 className="mt-4 text-[1.0625rem] leading-8" style={{ color: "var(--codex-ink-text)" }}>
+              상대와의 궁합으로 읽을 수도 있습니다
+            </h3>
+            <p className="mt-3 max-w-[38ch] text-[0.875rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
+              상대의 생년월일을 넣으면 네 장(두 사람의 명식과 명반)을 겹쳐 관계를 읽는 스무 장으로 바뀝니다.
+              넣지 않으면 지금처럼 당신 한 사람의 연애를 읽습니다.
+            </p>
+
+            <button
+              type="button"
+              onClick={togglePartner}
+              aria-expanded={Boolean(partner)}
+              aria-controls="codex-partner-fields"
+              className={`${styles.choice} mt-6 w-full`}
+            >
+              {partner ? "상대 정보 지우고 개인 리딩으로" : "상대와의 궁합으로 읽기"}
+            </button>
+
+            {partner ? (
+              <div id="codex-partner-fields" className="mt-9 space-y-9 border-l pl-5" style={{ borderColor: "var(--codex-rule)" }}>
+                <div>
+                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-name">상대 이름 (선택)</label>
+                  <input
+                    id="codex-partner-name"
+                    className={styles.field}
+                    value={partner.name}
+                    maxLength={20}
+                    placeholder="본문에서 이렇게 부릅니다"
+                    onChange={(event) => patchPartner({ name: event.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-date">상대 생년월일</label>
+                  <input
+                    id="codex-partner-birth-date"
+                    type="date"
+                    className={styles.field}
+                    value={partner.birthDate}
+                    onChange={(event) => patchPartner({ birthDate: event.target.value })}
+                  />
+                </div>
+
+                <fieldset>
+                  <legend className={labelClass} style={labelStyle}>상대 성별 (선택)</legend>
+                  <div className="flex gap-2">
+                    {([["female", "여성"], ["male", "남성"]] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-pressed={partner.gender === key}
+                        onClick={() => patchPartner({ gender: partner.gender === key ? "" : key })}
+                        className={`${styles.choice} flex-1`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className={labelClass} style={labelStyle}>상대 양력 / 음력</legend>
+                  <div className="flex gap-2">
+                    {([["solar", "양력"], ["lunar", "음력"]] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-pressed={partner.calendarType === key}
+                        onClick={() => patchPartner({ calendarType: key, isLeapMonth: key === "lunar" ? partner.isLeapMonth : false })}
+                        className={`${styles.choice} flex-1`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {partner.calendarType === "lunar" ? (
+                    <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[#e8d5a3]"
+                        checked={partner.isLeapMonth}
+                        onChange={(event) => patchPartner({ isLeapMonth: event.target.checked })}
+                      />
+                      윤달입니다
+                    </label>
+                  ) : null}
+                </fieldset>
+
+                <div>
+                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-time">상대가 태어난 시각 (선택)</label>
+                  <input
+                    id="codex-partner-birth-time"
+                    type="time"
+                    className={styles.field}
+                    value={partner.birthTime}
+                    disabled={partner.birthTimeUnknown}
+                    onChange={(event) => patchPartner({ birthTime: event.target.value })}
+                  />
+                  <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-[#e8d5a3]"
+                      checked={partner.birthTimeUnknown}
+                      onChange={(event) => patchPartner({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : partner.birthTime })}
+                    />
+                    상대의 시각은 모릅니다
+                  </label>
+                  <p className="mt-2 text-[0.75rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                    상대 정보는 이 리딩을 만드는 데만 씁니다. 당신의 프로필 카드에 저장되지 않습니다.
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </CodexReveal>
+
         {error ? (
           <p role="alert" className="mt-9 text-[0.875rem] leading-7" style={{ color: "#ffb4b4" }}>{error}</p>
         ) : null}
 
-        <CodexReveal index={3} className="mt-12 flex flex-col items-center gap-5">
+        <CodexReveal index={4} className="mt-12 flex flex-col items-center gap-5">
           <button type="button" onClick={onSubmit} disabled={busy} className={styles.cta}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
             {busy ? busyLabel : "결과 보기"}

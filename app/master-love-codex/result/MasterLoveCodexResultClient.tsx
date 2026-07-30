@@ -21,6 +21,8 @@ import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 type SessionState = {
   sessionId: string;
   status: string;
+  /** 서버가 준 모드 — 궁합판이면 막 제목·표지가 관계 축으로 바뀐다 */
+  mode?: "solo" | "compat";
   chapters: CodexChapter[];
   loveDna: CodexLoveDna | null;
   totalCharCount: number;
@@ -150,6 +152,7 @@ export default function MasterLoveCodexResultClient() {
         birthLine={buildBirthLine(session.birthInfo)}
         totalCharCount={session.totalCharCount}
         sessionId={session.sessionId}
+        mode={session.mode === "compat" ? "compat" : "solo"}
       />
     </>
   );

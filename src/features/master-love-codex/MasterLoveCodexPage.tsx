@@ -35,12 +35,10 @@ import type { CodexChapter, CodexLoveDna } from "./components/CodexReader";
 import { masterLoveCodexBgmTracks } from "./data/assets";
 import { codexPrologueStageOrder, type CodexPrologueChoiceKey, type CodexPrologueStage } from "./data/prologue";
 import {
-  MASTER_LOVE_CODEX_FEATURE_AMOUNT_KRW,
-  MASTER_LOVE_CODEX_FEATURE_COST,
-  MASTER_LOVE_CODEX_FEATURE_KEY,
   MASTER_LOVE_CODEX_PROLOGUE_SEEN_KEY,
-  MASTER_LOVE_CODEX_TITLE,
   MASTER_LOVE_CODEX_TOTAL_CHAPTERS,
+  masterLoveCodexBilling,
+  type MasterLoveCodexMode,
 } from "./constants";
 
 // 읽기(reader)는 이 라우트에 없다 — 생성이 끝나면 /master-love-codex/result 로 넘긴다.
@@ -52,6 +50,7 @@ const ERROR_TEXT: Record<string, string> = {
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 끝났다면 잠시 후 다시 시도해 주세요.",
   PAYMENT_CANCELLED: "결제가 취소되었습니다.",
   INVALID_INPUT: "생년월일과 태어난 시각을 확인해 주세요.",
+  PARTNER_INPUT_REQUIRED: "궁합으로 읽으려면 상대의 생년월일이 필요합니다. 넣지 않으실 거면 '상대 정보 지우고 개인 리딩으로'를 눌러 주세요.",
   CALCULATION_FAILED: "명식과 명반을 세우지 못했습니다. 입력값을 확인해 주세요.",
   GENERATION_IN_PROGRESS: "이미 다른 창에서 이어 쓰는 중입니다. 잠시 후 다시 시도해 주세요.",
   SERVER_ERROR: "인연의 서를 준비하는 중 문제가 발생했습니다.",
@@ -146,21 +145,25 @@ function extractPayment(result: unknown, fallbackRequestId: string) {
  * 서버가 준 paymentPayload 를 공용 게이트 입력으로 바꾼다.
  * paymentMode 를 절대 강제하지 않는다 — 결제수단 판정은 게이트가 서버 결정으로 스스로 한다.
  */
-function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
+function buildBillingGateInput(
+  paymentPayload: Record<string, unknown>,
+  idempotencyKey: string,
+  billing = masterLoveCodexBilling("solo"),
+) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
-  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, MASTER_LOVE_CODEX_FEATURE_COST);
+  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, billing.cost);
   const amountKRW = toNumber(
     runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount,
-    MASTER_LOVE_CODEX_FEATURE_AMOUNT_KRW,
+    billing.amountKRW,
   );
   return {
     categoryKey: toText(runtimeGate.categoryKey ?? paymentPayload.categoryKey) || "premium-consultation",
-    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || MASTER_LOVE_CODEX_FEATURE_KEY,
-    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || MASTER_LOVE_CODEX_FEATURE_KEY,
-    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || MASTER_LOVE_CODEX_TITLE,
-    productId: toText(runtimeGate.productId ?? paymentPayload.productId) || MASTER_LOVE_CODEX_FEATURE_KEY,
-    productType: toText(runtimeGate.productType ?? paymentPayload.productType) || MASTER_LOVE_CODEX_FEATURE_KEY,
-    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || MASTER_LOVE_CODEX_FEATURE_KEY,
+    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || billing.featureKey,
+    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || billing.featureKey,
+    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || billing.title,
+    productId: toText(runtimeGate.productId ?? paymentPayload.productId) || billing.featureKey,
+    productType: toText(runtimeGate.productType ?? paymentPayload.productType) || billing.featureKey,
+    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || billing.featureKey,
     forceDeduct: false,
     requestId: idempotencyKey,
     idempotencyKey,
@@ -189,6 +192,9 @@ export default function MasterLoveCodexPage() {
   const [hasSeenPrologue, setHasSeenPrologue] = useState(false);
   const [prologueChoice, setPrologueChoice] = useState<CodexPrologueChoiceKey | "">("");
   const [birth, setBirth] = useState<CodexBirthInput>(EMPTY_CODEX_BIRTH);
+  // 상대 생년월일이 채워진 순간부터 궁합 SKU 다 — 금액 배지가 즉시 이 값을 따른다.
+  const activeMode: MasterLoveCodexMode = birth.partner?.birthDate ? "compat" : "solo";
+  const activeBilling = masterLoveCodexBilling(activeMode);
   const [error, setError] = useState("");
   const [chapters, setChapters] = useState<CodexChapter[]>([]);
   const busyRef = useRef(false);
@@ -268,12 +274,20 @@ export default function MasterLoveCodexPage() {
       setError(ERROR_TEXT.INVALID_INPUT);
       return;
     }
+    // 궁합으로 펼치기로 했는데 상대 생년월일이 비어 있으면 조용히 개인판으로 떨어뜨리지 않는다.
+    if (birth.partner && !birth.partner.birthDate) {
+      setError(ERROR_TEXT.PARTNER_INPUT_REQUIRED);
+      return;
+    }
     busyRef.current = true;
     const idempotencyKey = idempotencyRef.current || createIdempotencyKey();
     idempotencyRef.current = idempotencyKey;
     setError("");
     setPhase("checking");
 
+    const partner = birth.partner?.birthDate ? birth.partner : null;
+    // 결제 식별자는 이 시점의 상대 유무로 확정한다 — 렌더 시점 값에 의존하면 어긋날 수 있다.
+    const gateBilling = masterLoveCodexBilling(partner ? "compat" : "solo");
     const payload = {
       idempotencyKey,
       prologueChoice,
@@ -286,15 +300,28 @@ export default function MasterLoveCodexPage() {
         calendarType: birth.calendarType,
         isLeapMonth: birth.calendarType === "lunar" ? birth.isLeapMonth : false,
       },
+      ...(partner
+        ? {
+          partnerInfo: {
+            name: partner.name,
+            gender: partner.gender,
+            birthDate: partner.birthDate,
+            birthTime: partner.birthTimeUnknown ? "" : partner.birthTime,
+            birthTimeUnknown: partner.birthTimeUnknown,
+            calendarType: partner.calendarType,
+            isLeapMonth: partner.calendarType === "lunar" ? partner.isLeapMonth : false,
+          },
+        }
+        : {}),
     };
 
     let gateStarted = false;
     try {
       beginPaidFeatureGateCheck({
-        featureKey: MASTER_LOVE_CODEX_FEATURE_KEY,
+        featureKey: gateBilling.featureKey,
         requestId: idempotencyKey,
         title: "이용권 확인",
-        reason: MASTER_LOVE_CODEX_TITLE,
+        reason: gateBilling.title,
         paymentMode: "MEMBERSHIP_PASS",
       });
       gateStarted = true;
@@ -305,10 +332,10 @@ export default function MasterLoveCodexPage() {
 
       if (ensure.data?.ok) {
         completePaidFeatureGateCheck({
-          featureKey: MASTER_LOVE_CODEX_FEATURE_KEY,
+          featureKey: gateBilling.featureKey,
           requestId: idempotencyKey,
           title: "확인 완료",
-          reason: MASTER_LOVE_CODEX_TITLE,
+          reason: gateBilling.title,
           message: "인연의 서를 펼칩니다.",
         });
         startBody = { ...startBody, accessToken: ensure.data.accessToken, accessType: ensure.data.accessType };
@@ -317,15 +344,15 @@ export default function MasterLoveCodexPage() {
         // 보지 않으므로 여기서도 402 를 주지만, 결제창을 다시 열면 안 된다. /start 는
         // findBillingEvidence 가 같은 키의 결제 증빙을 찾아 그대로 통과시킨다.
         completePaidFeatureGateCheck({
-          featureKey: MASTER_LOVE_CODEX_FEATURE_KEY,
+          featureKey: gateBilling.featureKey,
           requestId: idempotencyKey,
           title: "결제 확인",
-          reason: MASTER_LOVE_CODEX_TITLE,
+          reason: gateBilling.title,
           message: "이미 결제된 회차입니다. 이어서 펼칩니다.",
         });
       } else if (ensure.data?.reason === "PAYMENT_REQUIRED") {
         setPhase("payment");
-        const gate = await runBillingCoinGate(buildBillingGateInput(asRecord(ensure.data.paymentPayload), idempotencyKey));
+        const gate = await runBillingCoinGate(buildBillingGateInput(asRecord(ensure.data.paymentPayload), idempotencyKey, gateBilling));
         if (!isPaymentGranted(gate)) {
           const code = String((gate as { error?: { code?: string } })?.error?.code || "").toUpperCase();
           if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
@@ -352,10 +379,10 @@ export default function MasterLoveCodexPage() {
       setError(message);
       if (gateStarted) {
         failPaidFeatureGateCheck({
-          featureKey: MASTER_LOVE_CODEX_FEATURE_KEY,
+          featureKey: gateBilling.featureKey,
           requestId: idempotencyKey,
           title: "확인 실패",
-          reason: MASTER_LOVE_CODEX_TITLE,
+          reason: gateBilling.title,
           message,
           cancelled: message === ERROR_TEXT.PAYMENT_CANCELLED,
         });
@@ -445,9 +472,10 @@ export default function MasterLoveCodexPage() {
           busyLabel={phase === "payment" ? "결제 진행 중..." : "이용권 확인 중..."}
           error={error}
           priceSlot={(
+            // 상대 정보를 넣으면 궁합 SKU 로 바뀌므로 금액 배지도 함께 바뀐다(리터럴 금지, 서버 가격 조회).
             <PriceBadge
-              featureKey={MASTER_LOVE_CODEX_FEATURE_KEY}
-              fallbackCoins={MASTER_LOVE_CODEX_FEATURE_COST}
+              featureKey={activeBilling.featureKey}
+              fallbackCoins={activeBilling.cost}
               prefix="1회 "
               className="text-xs"
             />
