@@ -373,16 +373,20 @@ export function getCelebrityBySlug(slug: string) {
   }) || null;
 }
 
+// 정본 슬러그만 프리렌더한다.
+// 예전에는 slug + nameKo + aliases 를 전부 돌려서 인물 1명이 URL 여러 개를 만들었고
+// (134명 → 303 URL, /famous-saju 와 /insights/famous-saju 두 트리라 실제 파일 606개),
+// 별칭 페이지는 본문이 정본과 100% 동일한 사본이었다. 전부 noindex + canonical 이라
+// 색인이 오염되지는 않았지만 크롤 예산과 품질 평가에는 그대로 부담이 됐다.
+// 내부 링크는 모두 item.slug 만 쓰므로(허브·카테고리·관련글 전부) 끊기는 경로는 없다.
 export function getCelebrityStaticSlugs() {
   const seen = new Set<string>();
   const slugs: string[] = [];
   for (const item of publishedCelebritySajuSeeds) {
-    for (const value of [item.slug, item.nameKo, ...item.aliases]) {
-      const routeSlug = normalizeCelebrityLookupKey(String(value || "").trim());
-      if (!routeSlug || routeSlug.includes("/") || routeSlug.includes("\\") || seen.has(routeSlug)) continue;
-      seen.add(routeSlug);
-      slugs.push(routeSlug);
-    }
+    const routeSlug = normalizeCelebrityLookupKey(String(item.slug || "").trim());
+    if (!routeSlug || routeSlug.includes("/") || routeSlug.includes("\\") || seen.has(routeSlug)) continue;
+    seen.add(routeSlug);
+    slugs.push(routeSlug);
   }
   return slugs;
 }
