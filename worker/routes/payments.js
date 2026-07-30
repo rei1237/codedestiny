@@ -997,6 +997,9 @@ function buildSinglePaymentOrderResponse({ config, paymentId, orderName, amountK
     amountKRW,
     currency: config.currency || "CURRENCY_KRW",
     payMethod,
+    // 🔴 noticeUrl 이 주문 응답에 없어서 클라가 인라인 config 경로를 탈 때 noticeUrls 가 전송되지
+    // 않았고, 그 결과 웹훅 기반 결제 확정이 해피패스에서 조용히 비활성이었다.
+    noticeUrl: config.noticeUrl || "",
     redirectUrl,
     customer,
     profileId,

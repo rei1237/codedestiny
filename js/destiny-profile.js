@@ -1322,9 +1322,13 @@
     pending: null
   };
 
+  // 🔴 실패 TTL 이 2000ms 라 9개 호출부가 2초마다 /api/auth/me 를 재발사했고, DB 장애 중에는
+  // 그게 /api/profile 과 짝을 이뤄 503 폭주의 박자를 만들었다. 인프라 실패는 곧 복구되지 않으므로
+  // 확정 미인증(401/403)보다 훨씬 길게 잡는다.
   function _dpGetSessionVerifyTtlMs(state) {
-    var isOk = !!(state && state.ok);
-    return isOk ? 30000 : 2000;
+    if (state && state.ok) return 30000;
+    if (state && state.indeterminate === true) return 15000;
+    return 2000;
   }
 
   function _dpGetSessionHintSignature() {
@@ -1379,6 +1383,15 @@
     _dpSessionVerify.checkedAt = Date.now();
     _dpSessionVerify.ok = !!ok;
     _dpSessionVerify.userId = ok ? String(userId || '') : '';
+    _dpSessionVerify.indeterminate = false;
+    _dpSessionVerify.signature = _dpGetSessionHintSignature();
+  }
+
+  // 인프라 실패로 판정을 못한 경우: 직전 ok/userId 는 그대로 두고 재발사 간격만 늘린다
+  // (_dpGetSessionVerifyTtlMs). 로그인 상태를 인프라 오류로 잃지 않게 하는 것이 핵심이다.
+  function _dpMarkSessionVerifyIndeterminate() {
+    _dpSessionVerify.checkedAt = Date.now();
+    _dpSessionVerify.indeterminate = true;
     _dpSessionVerify.signature = _dpGetSessionHintSignature();
   }
 
@@ -1413,11 +1426,19 @@
         if ((result.status === 401 || result.status === 403) && _dpIsSameOriginBase(result.base)) {
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
           try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
+          return null;
         }
-        return null;
+        // 확정 미인증이 아닌 실패(503/500/네트워크)는 "미확정"이다 — 짧은 TTL 로 재발사하지 않는다.
+        return { __dpAuthIndeterminate: true };
       }
       return (result.data && typeof result.data === 'object') ? result.data : null;
     }).then(function(payload) {
+      if (payload && payload.__dpAuthIndeterminate === true) {
+        // 직전 판정을 보존한다(ok/userId 유지) — 인프라 실패로 로그인 상태를 잃으면 안 된다.
+        // checkedAt·indeterminate 만 갱신해 재발사 간격을 늘린다.
+        _dpMarkSessionVerifyIndeterminate();
+        return !!_dpSessionVerify.ok;
+      }
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
       var ok = !!userId;
@@ -1433,8 +1454,9 @@
       _dpMarkSessionVerify(ok, userId);
       return ok;
     }).catch(function() {
-      _dpMarkSessionVerify(false, '');
-      return false;
+      // 네트워크 오류·타임아웃은 확정 미인증이 아니다 — 직전 판정을 유지한다.
+      _dpMarkSessionVerifyIndeterminate();
+      return !!_dpSessionVerify.ok;
     }).finally(function() {
       _dpSessionVerify.pending = null;
     });
@@ -2659,6 +2681,36 @@
     try { _dpPortOneV2SdkPromise(); } catch (_) {}
   }
 
+  // 서버 trimUtf8Bytes(worker/routes/payments.js)와 같은 규칙. 이니시스 orderName 제한은
+  // 바이트 기준이라 글자수 slice 로는 안 된다(한글 1자 = 3바이트).
+  function _dpTrimUtf8Bytes(value, maxBytes) {
+    var text = String(value == null ? '' : value);
+    if (typeof TextEncoder === 'undefined') return text.slice(0, Math.max(0, Math.floor(maxBytes / 3))).trim();
+    var encoder = new TextEncoder();
+    var output = '';
+    var chars = Array.from(text);
+    for (var i = 0; i < chars.length; i += 1) {
+      var next = output + chars[i];
+      if (encoder.encode(next).length > maxBytes) break;
+      output = next;
+    }
+    return output.trim();
+  }
+
+  function _dpResolvePortOneOrderName(order, checkoutPayload) {
+    var serverOrderName = _dpTrimUtf8Bytes((order && order.orderName) || '', 40);
+    if (serverOrderName) return serverOrderName;
+    var fallback = _dpTrimUtf8Bytes((checkoutPayload && checkoutPayload.reason) || '', 40);
+    return fallback || 'Code Destiny';
+  }
+
+  // PortOne V2 는 실패를 reject 하지 않고 {code, message} 로 resolve 한다. 사용자 취소만 취소로 분류한다.
+  function _dpIsPortOneUserCancelCode(code) {
+    var normalized = String(code || '').trim().toUpperCase();
+    if (!normalized) return false;
+    return normalized.indexOf('CANCEL') === 0 || normalized.indexOf('USER_CANCEL') === 0 || normalized === 'PAYMENT_CANCELLED';
+  }
+
   // ── 모바일 리다이렉트 복귀 처리 ──────────────────────────────────────────────
   // PortOne V2 는 모바일에서 결제를 상위 프레임 리다이렉트로 처리할 수 있다. 그러면 await 중이던
   // requestPayment 프로미스가 페이지와 함께 죽어 /api/billing/confirm 이 호출되지 않는다 —
@@ -3256,7 +3308,13 @@
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
       }
 
-      var redirectUrl = new URL(window.location.href);
+      // 서버가 만든 redirectUrl 우선(payment_id·merchant_uid·returnPath 포함).
+      var redirectUrl = null;
+      try {
+        redirectUrl = new URL(String(order.redirectUrl || window.location.href), window.location.href);
+      } catch (_dpRedirectUrlErr) {
+        redirectUrl = new URL(window.location.href);
+      }
       redirectUrl.searchParams.set('portone_redirect', '1');
       var customer = {
         customerId: customerId,
@@ -3268,10 +3326,15 @@
         storeId: config.storeId,
         channelKey: config.channelKey,
         paymentId: merchantUid,
-        orderName: String(order.productName || checkoutPayload.reason || '디지털 운세 콘텐츠').slice(0, 80),
+        // 🔴 order.productName 은 서버 응답에 없는 필드다(구독 응답 전용). 항상 undefined 가 되어
+        // reason 으로 흘렀고, 서버가 이니시스 제약에 맞춰 40 UTF-8 바이트로 다듬은 orderName 이 버려졌다.
+        // .slice(0,80) 은 글자 기준이라 한글이면 최대 240바이트 — 초과 시 PG 가 결제창을 그리기 전에 거절한다.
+        orderName: _dpResolvePortOneOrderName(order, checkoutPayload),
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
+        // 창 방식을 SDK 기본값에 맡기지 않고 명시한다(PC iframe / 모바일 상위프레임 리다이렉트).
+        windowType: { pc: 'IFRAME', mobile: 'REDIRECTION' },
         customer: customer,
         redirectUrl: redirectUrl.toString(),
         customData: {
@@ -3316,7 +3379,20 @@
       _dpClearDirectResumeTicket();
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
-        throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
+        var dpRspCode = String((rsp && rsp.code) || '').trim();
+        if (!_dpIsPortOneUserCancelCode(dpRspCode)) {
+          try {
+            console.error('[dp-direct-checkout] PortOne requestPayment failed', {
+              code: dpRspCode,
+              message: String((rsp && rsp.message) || ''),
+              paymentId: merchantUid,
+              orderName: requestData.orderName,
+              orderNameBytes: (typeof TextEncoder !== 'undefined') ? new TextEncoder().encode(String(requestData.orderName || '')).length : -1,
+              totalAmount: requestData.totalAmount
+            });
+          } catch (_dpLogErr) {}
+        }
+        throw new Error(String((rsp && rsp.message) || dpRspCode || '결제가 완료되지 않았습니다.'));
       }
 
       _dpSetPaymentPending(true, '\uB2E8\uAC74 \uACB0\uC81C \uC2B9\uC778\uACFC \uCF58\uD150\uCE20 \uC774\uC6A9 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'confirm');
@@ -3511,7 +3587,13 @@
             if (typeof onCancel === 'function') onCancel(access);
             return null;
           }
-          if (typeof window._cdChooseServicePaymentMode !== 'function' || typeof window._cdRunDirectKrwCheckout !== 'function') return null;
+          // 🔴 예전에는 여기서 alert 도 onCancel 도 없이 return null 이라, 결제 모듈 미로드 시
+          // 클릭이 완전 무음으로 먹혔다("아무 일도 안 일어남"의 두 원인 중 하나).
+          if (typeof window._cdChooseServicePaymentMode !== 'function' || typeof window._cdRunDirectKrwCheckout !== 'function') {
+            try { window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'); } catch (_dpChoiceMissingAlertErr) {}
+            if (typeof onCancel === 'function') onCancel();
+            return null;
+          }
           return window._cdChooseServicePaymentMode({
             title: reason,
             coinPrice: cost,
