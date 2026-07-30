@@ -543,7 +543,11 @@ assert.ok(handleSubscribeStart >= 0 && handleMonthlyCreditStart > handleSubscrib
 const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, handleMonthlyCreditStart);
 assertContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout")', "card subscription prepare uses checkout wait UI");
 assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
-assertBefore(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens after React overlay closes");
+// 🔴 오버레이 정리는 **await 하지 않는다**. 예전에는 이 함수가 rAF 를 await 해서 PG 창을 여는 직전에
+// 한 프레임을 더 먹었다 — 쓸모없는 지연이고, 사용자 제스처와 requestPayment 사이가 벌어져 모바일에서
+// 결제창이 차단될 위험까지 만든다. 정리 → 곧바로 requestPayment 순서만 고정한다.
+assertNotContains(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "overlay cleanup must not be awaited before opening the PG window");
+assertBefore(cardSubscriptionSource, "closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens right after the React overlay is cleared");
 assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"30일 이용권 결제를 확인하고 있어요", "subscription confirm wait starts only after PG response");
 const monthlyCreditSubscriptionSource = pointsSource.slice(handleMonthlyCreditStart, pointsSource.indexOf("const handleSubscriptionCancel", handleMonthlyCreditStart));
 assertContains(monthlyCreditSubscriptionSource, "monthlyStoneBalance < requiredMonthlyCredits", "monthly credit shortage check remains inside monthly-credit handler");
@@ -623,6 +627,16 @@ assertContains(
 assertContains(indexSource, "if (bodyMode === 'MEMBERSHIP_PASS') return { type: 'payment', mode: 'pass'", "membership pass check keeps its own wait overlay");
 // 사전발급은 결제수단 모달을 덮지 않도록 무음이어야 하고, 클릭을 절대 늦추지 않아야 한다
 // (진행 중인 사전발급을 await 하면 그 대기가 곧 '너무 느리다'+'네트워크 오류'가 된다).
+// 🔴 이용권 선검사가 '미커버'로 결론난 뒤에 대기 화면을 한 번 더 띄우지 않는다. 예전에는 React
+// 결제 클라이언트가 status:"loadingProducts" 를 셸 게이트로 보냈고, 셸 카피 해석기가 그것을
+// access_check.single 로 매핑해 '결제 상태 확인 중 / 단건으로 카드 결제를 준비 중이에요' 화면을
+// 띄웠다 — 이용권 확인 화면이 끝난 뒤 또 뜨던 그 화면이다. 미커버가 확정되면 할 일은 결제창을
+// 여는 것뿐이므로 중간 대기 UI가 없어야 한다.
+// (이용권 선검사 자체와 그 '이용권 확인 중' 화면은 유지된다 — 등급별 무료 통과가 거기 달려 있다.)
+assertNotContains(billingClientSource, 'status: "loadingProducts"', "no extra wait overlay after the pass pre-check concludes not-covered");
+assertContains(billingClientSource, ': "readyToPay";', "uncovered pass check goes straight to the payment choice stage");
+assertContains(indexSource, "if (status === 'checkingEntitlement')", "pass pre-check keeps its own dedicated wait copy");
+
 assertContains(indexSource, "__cdSuppressPaymentOverlay: true", "direct checkout prefetch must be silent");
 assertContains(indexSource, "prefetch.settled === true", "direct checkout must reuse the prefetch only when it already settled (never await a pending one)");
 assertNotContains(indexSource, "var settled = await prefetch.promise;", "direct checkout must not block on a pending prefetch");
