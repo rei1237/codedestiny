@@ -166,6 +166,19 @@
   X-Robots-Tag: noindex, nofollow
 /ifa-oracle-about.html
   X-Robots-Tag: noindex, nofollow
+# 아래 5개는 사이트맵에도 없고 canonical 도 없는 고아 셸인데 색인은 열려 있었다.
+# 실측 본문이 130~1,342자라 그대로 두면 "낮은 가치의 콘텐츠" 표본이 된다.
+# (destiny-island·codedestiny-novel 은 HTML meta 로만 막혀 있어 헤더로 이중 확정한다.)
+/vedic-astrology.html
+  X-Robots-Tag: noindex, nofollow
+/myungwun_final.html
+  X-Robots-Tag: noindex, nofollow
+/secret-house_real.html
+  X-Robots-Tag: noindex, nofollow
+/destiny-island.html
+  X-Robots-Tag: noindex, nofollow
+/codedestiny-novel.html
+  X-Robots-Tag: noindex, nofollow
 /fortune-teller-fish.html
   X-Robots-Tag: noindex, nofollow
 /royal-tea-oracle.html
