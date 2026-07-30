@@ -263,6 +263,12 @@ const xRobotsNoindexHeaderPatterns = [
   "/tadagochi.html",
   "/tarot-ijik.html",
   "/yoga-guru.html",
+  // 사이트맵·canonical 없이 색인만 열려 있던 고아 셸. 회귀하지 않도록 게이트에 고정한다.
+  "/vedic-astrology.html",
+  "/myungwun_final.html",
+  "/secret-house_real.html",
+  "/destiny-island.html",
+  "/codedestiny-novel.html",
 ];
 
 const sitemapRequiredRoutes = [
