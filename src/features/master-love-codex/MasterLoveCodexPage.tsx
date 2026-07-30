@@ -23,6 +23,7 @@ import {
   holdPaidFeatureGateOpen,
   releasePaidFeatureGate,
   runBillingCoinGate,
+  primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import CodexAmbience from "./components/CodexAmbience";
@@ -324,6 +325,8 @@ export default function MasterLoveCodexPage() {
         reason: gateBilling.title,
         paymentMode: "MEMBERSHIP_PASS",
       });
+      // 이용권 판정(unlock-status)을 아래 ensure-access 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+      void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey, gateBilling));
       gateStarted = true;
       holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
 

@@ -17,6 +17,7 @@ import {
   holdPaidFeatureGateOpen,
   releasePaidFeatureGate,
   runBillingCoinGate,
+  primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
@@ -480,6 +481,16 @@ export default function AstrologyAiClient() {
       title: "이용권 확인",
       reason: FEATURE_TITLE,
       paymentMode: "MEMBERSHIP_PASS",
+    });
+    // 이용권 판정(unlock-status)을 아래 접근 확인 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+    void primePaymentEligibility({
+      featureKey: FEATURE_KEY,
+      categoryKey: "premium-consultation",
+      subFeatureKey: FEATURE_KEY,
+      reason: FEATURE_TITLE,
+      cost: FEATURE_COST,
+      coinPrice: FEATURE_COST,
+      amountKRW: FEATURE_AMOUNT_KRW,
     });
     // 확인 완료 후 다음 화면(생성 로딩)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
     // release는 startConsultation의 setPhase("reading")에서 호출한다(안전장치 상한 8초).

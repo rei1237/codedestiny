@@ -11,6 +11,7 @@ import {
   holdPaidFeatureGateOpen,
   releasePaidFeatureGate,
   runBillingCoinGate,
+  primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { useContentUnlock } from "@/app/_lib/use-content-unlock";
@@ -363,6 +364,8 @@ export default function IslandConsultClient() {
       setPhase("checking");
       setNotice("이용권을 확인하는 중이에요…");
       beginPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS" });
+      // 이용권 판정(unlock-status)을 아래 prepare 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+      void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
       gateStarted = true;
       holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
       const { status, data } = await runAccessCheckWithTransientRetry(

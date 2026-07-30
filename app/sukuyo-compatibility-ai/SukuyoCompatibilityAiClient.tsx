@@ -17,6 +17,7 @@ import {
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
   runBillingCoinGate,
+  primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -1298,6 +1299,8 @@ export default function SukuyoCompatibilityAiClient() {
       reason: "숙요점 궁합 전문가 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
+    // 이용권 판정(unlock-status)을 아래 접근 확인 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+    void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
     try {
       // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 실패로 굳지 않게.
       const { status, data } = await runAccessCheckWithTransientRetry(

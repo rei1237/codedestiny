@@ -357,7 +357,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1b9e11827ec6";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-ecb946e5496b";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 // 활성 스냅샷이 살아 있는 동안은 이용권 보유자가 서버 왕복 없이 즉시 통과한다(낙관 fast-path).
@@ -1246,11 +1246,17 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     };
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
-      // 🔴 단건결제는 대기 오버레이를 띄우지 않는다 — 클릭하면 곧바로 PG 결제창이 열려야 하고,
-      // 대기 UI는 결제 승인 확인 단계에서만 보여야 한다. 예전에는 여기서 오버레이를 켠 탓에
-      // "대기 화면만 뜨고 PG창은 안 뜬다"로 보였다. 월정석은 즉시 서버 처리라 그대로 유지한다.
       if (mode === "monthly") {
         runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 이벤트 재화 사용 권한을 확인하고 있습니다.", "monthly");
+        return;
+      }
+      // 🔴 단건결제도 클릭~PG창 구간을 비워두지 않는다(빈 화면 = 이탈). 정적 셸·dp 런타임과 같은
+      // mode 'card' 오버레이를 쓰고 문구 인자는 비운다 — 카피는 mode 'card' 정본을 따라간다.
+      // 이 오버레이는 PG창 렌더 직전 한 곳(_dpSetPaymentPending(false))에서만 내려간다.
+      // 대기 UI가 결제창 노출을 늦추지 않도록, 실제 checkout 요청은 이 점등 뒤가 아니라
+      // js/destiny-profile.js 의 _dpTakeDirectCheckoutResponse 가 먼저 발사한다.
+      if (mode === "direct") {
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "", "card");
       }
     };
 
@@ -1346,8 +1352,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           node.disabled = true;
         });
         if (mode === "monthly") setStatus("월정석 이벤트 재화 사용 권한을 확인하고 있습니다.");
-        showWaitOverlay(mode);
+        // 🔴 오버레이는 결제창을 닫은 **뒤에** 켠다. 대기 UI 차단 판정(__cdPaymentWaitUiBlocked)은
+        // "결제수단 모달이 DOM 에 있으면 금지"를 포함하므로, 닫기 전에 켜면 그대로 무시된다
+        // (그래서 클릭~PG창 사이가 비어 보였다).
         close(mode);
+        showWaitOverlay(mode);
       });
     });
     // 🔴 결제창을 붙이는 순간 열려 있던 대기 오버레이를 내린다. 억제 판정은 "새로 여는 것"만 막고
@@ -3257,6 +3266,36 @@ export async function warmSubscriptionSnapshotOnEntry(): Promise<void> {
   }
 }
 
+// 게이트 입력 → unlock-status 조회 입력 매핑 정본. runBillingCoinGate 와 프리페치가 **같은 매핑**을
+// 써야 캐시 키(resolvePaymentEligibilityCacheKey)가 일치해 프리페치가 실제로 재사용된다.
+function buildEligibilityInput(input: BillingCoinGateInput) {
+  return {
+    categoryKey: input.categoryKey,
+    subFeatureKey: input.subFeatureKey,
+    featureKey: input.featureKey,
+    reason: input.reason,
+    productId: input.productId,
+    serviceType: input.serviceType || input.productType,
+    coinCost: input.cost,
+    coinPrice: input.coinPrice,
+    priceKRW: input.priceKRW,
+    amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
+  };
+}
+
+// 🔴 유료 클릭의 첫 순간에 이용권 판정을 미리 시작한다. 각 기능은 `/api/<기능>/prepare`(서버가
+// canAccessPaidFeature 로 이용권을 판정) 을 먼저 await 한 뒤에야 runBillingCoinGate 가
+// unlock-status 를 물었다 — 같은 질문을 서버에 두 번, 그것도 직렬로 하던 구조다. 여기서 미리 쏘면
+// 두 조회가 겹쳐 돌고, 실제 호출은 15초 캐시/in-flight dedup 에 히트해 왕복 1회가 사라진다.
+// 실패해도 무시한다(실제 호출이 다시 묻는다). 읽기 전용 GET 이라 과금·상태 변화가 없다.
+export function primePaymentEligibility(input: BillingCoinGateInput) {
+  try {
+    void fetchPaymentEligibility(buildEligibilityInput(input), { phase: "full" }).catch(() => null);
+  } catch {
+    // 프리페치는 실패해도 결제 흐름에 영향을 주지 않는다.
+  }
+}
+
 export async function fetchPaymentEligibility(input: {
   productId?: string;
   serviceType?: string;
@@ -3502,18 +3541,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // eligibility 응답이 온 뒤에야 스크립트를 받기 시작했고, 그 직렬 구간이 결제창 노출을 그만큼 늦췄다.
     // loadPaidServiceRuntimeGate 는 이미 멱등(중복 로드 방지)이라 미리 부르는 것이 안전하다.
     const runtimeGatePromise = loadRuntimeGateForPayment();
-    const eligibilityInput = {
-      categoryKey: input.categoryKey,
-      subFeatureKey: input.subFeatureKey,
-      featureKey: input.featureKey,
-      reason: input.reason,
-      productId: input.productId,
-      serviceType: input.serviceType || input.productType,
-      coinCost: input.cost,
-      coinPrice: input.coinPrice,
-      priceKRW: input.priceKRW,
-      amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
-    };
+    const eligibilityInput = buildEligibilityInput(input);
     // unlock-status를 pass/full 2회 호출하던 구조를 단일 full 조회로 통합한다.
     // full 응답에 이미 pass 커버 정보(access.canAccess / pass.canUse)가 포함되므로
     // 별도 pass 프로브 왕복이 불필요하며, 유료 액션마다 발생하던 요청 2배 증폭을 제거한다.
