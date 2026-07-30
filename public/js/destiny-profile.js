@@ -2384,7 +2384,11 @@
     }
     return _dpFetchJsonWithFallback(pathname, requestInit, Object.assign({
       retryOn401: true,
-      timeoutMs: 20000,
+      // 셸이 없는 App Router 페이지에서 쓰이는 폴백 경로다. 셸의 resolveTimeoutMs 는 결제 POST
+      // (coin-gate/checkout/confirm)에 25s 를 주는데 여기가 20s 라 어긋나 있었다 — 공유혀 Mongo 에서
+      // 클라가 먼저 끊으면 status 0 → "네트워크 오류" 로 PG창이 안 열리고, confirm 이 끊기면
+      // 승인은 됐는데 지급이 안 된다. 이 헬퍼의 호출부는 전부 결제 경로이므로 상한을 맞춘다.
+      timeoutMs: 25000,
     }, options || {})).then(_dpNormalizeBillingFetchResult);
   }
 

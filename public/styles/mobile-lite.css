@@ -773,13 +773,19 @@
 
   /* 바텀시트는 결제 UI 3종에만 남긴다 — 이들은 원설계가 시트다.
      일반 유료 기능까지 시트로 바꾸던 규칙은 재디자인이라 제거했다. */
-  #cdPaidFeatureGate {
+  /* 🔴 오버레이(풀스크린 컨테이너)와 카드(내부 패널)를 구분해서 걸어야 한다.
+     예전에는 아래 카드 규칙에 `.cd-direct-payment-modal` 이 들어가 있었다 — 그건 오버레이
+     (position:fixed; inset:0; display:flex)라서 max-height:82dvh / max-width:560px 가 걸리면
+     오버레이 자체가 눌리고, 그 안의 .cd-direct-payment-dialog(자기 max-height 를 가진)가
+     삐져나가 **결제창이 잘려 보였다**. 형제 선택자들이 전부 내부 패널/카드를 노리는 것과 어긋나 있었다. */
+  #cdPaidFeatureGate,
+  .cd-direct-payment-modal {
     align-items: flex-end !important;
     padding: 0 !important;
   }
 
   #cdPaidFeatureGate .cd-paid-gate__panel,
-  .cd-direct-payment-modal,
+  .cd-direct-payment-dialog,
   .golden-grain-modal__card {
     width: 100% !important;
     max-width: 560px !important;
