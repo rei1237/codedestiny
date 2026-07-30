@@ -1766,8 +1766,9 @@
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Überprüfen Sie erneut, ob die Prüfung bestanden hat",
       "passHint": {
-        "store": "Gehen Sie zum Moonlight Pass Shop, um den Pass zu kaufen, den Sie benötigen.",
-        "retry": "Wir prüfen erneut auf dem Server, ob Ihr Pass dies ohne Bezahlung öffnen kann."
+        "store": "Wechseln Sie zum Moonlight Pass, um diese und alle Funktionen unter seinem Limit 30 Tage lang ohne Zahlungsfenster unbegrenzt zu nutzen.",
+        "retry": "Wir prüfen erneut auf dem Server, ob Ihr Pass dies ohne Bezahlung öffnen kann.",
+        "upgrade": "Diese Funktion liegt über dem Limit Ihres aktuellen Passes. Prüfen Sie einen höheren Moonlight Pass."
       },
       "applyMethod": {
         "label": "Methode anwenden",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
-      }
+      },
+      "passUpgradeTitle": "Moonlight Pass upgraden",
+      "recommendBadge": "Empfohlen"
     },
     "overlay": {
       "unlockPreparing": {

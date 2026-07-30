@@ -1766,8 +1766,9 @@
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Check pass again",
       "passHint": {
-        "store": "Move to the Moonlight Pass Shop to purchase the pass you need.",
-        "retry": "We will check the server again to see whether your pass can open this without payment."
+        "store": "Switch to a Moonlight Pass to open this and every feature under its limit for 30 days, with no checkout window.",
+        "retry": "We will check the server again to see whether your pass can open this without payment.",
+        "upgrade": "This feature is above your current pass limit. Check a higher Moonlight Pass."
       },
       "applyMethod": {
         "label": "Apply method",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and cancellation of subscription may be restricted for content already provided, in accordance with e-commerce laws."
-      }
+      },
+      "passUpgradeTitle": "Upgrade Moonlight Pass",
+      "recommendBadge": "Recommended"
     },
     "overlay": {
       "unlockPreparing": {

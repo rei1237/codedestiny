@@ -962,14 +962,13 @@ export function PaymentProcessingProvider({
     if (typeof window === "undefined") return;
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
-    let warmed = false;
+    let idleHandle: number | null = null;
 
     const warmIfAuthenticated = async () => {
-      if (cancelled || warmed) return;
+      if (cancelled) return;
       try {
         const { getAuthState } = await import("../_lib/auth-store");
         if (cancelled || !getAuthState().isAuthenticated) return;
-        warmed = true;
         const { warmSubscriptionSnapshotOnEntry } = await import("../_lib/billing-client");
         if (!cancelled) void warmSubscriptionSnapshotOnEntry();
       } catch {
@@ -989,9 +988,32 @@ export function PaymentProcessingProvider({
       }
     })();
 
+    // 🔴 만료를 메우는 재워밍. 이용권 미보유 스냅샷 TTL은 60초(보유자는 5분)인데 예열이 진입 1회뿐이라,
+    // 1분 넘게 읽다가 누르는 사용자는 매번 서버 왕복 + 그게 느리면 "결제 처리 중" 화면까지 갔다.
+    // 느린 경로가 미보유자 전용이었던 이유가 이 TTL 비대칭이다. 정적 셸이 #129에서 같은 문제를
+    // 유휴+의도(pointerdown) 예열로 해결했고, React 경로에도 같은 방식을 둔다.
+    // 새 쿨다운·새 dedup을 만들지 않는다 — warmSubscriptionSnapshotOnEntry가 신선한 스냅샷이 있으면
+    // 조기 반환하고 in-flight 중복도 스스로 막으므로, 실제 요청은 '만료됐을 때만' 나간다(자기제한적).
+    // TTL 자체는 늘리지 않는다: 이용권 구매 직후 무효화 훅이 없어 늘리면 방금 산 사용자가 '미보유'로 남는다.
+    const warmOnIntent = () => { void warmIfAuthenticated(); };
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    if (typeof idleWindow.requestIdleCallback === "function") {
+      idleHandle = idleWindow.requestIdleCallback(warmOnIntent, { timeout: 4000 });
+    }
+    window.addEventListener("pointerdown", warmOnIntent, { passive: true });
+    document.addEventListener("visibilitychange", warmOnIntent);
+
     return () => {
       cancelled = true;
       if (unsubscribe) unsubscribe();
+      if (idleHandle !== null && typeof idleWindow.cancelIdleCallback === "function") {
+        idleWindow.cancelIdleCallback(idleHandle);
+      }
+      window.removeEventListener("pointerdown", warmOnIntent);
+      document.removeEventListener("visibilitychange", warmOnIntent);
     };
   }, []);
 

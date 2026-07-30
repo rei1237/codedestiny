@@ -2045,6 +2045,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   requestId: string;
   eligibility: PaymentEligibility | null;
   runtimeGate?: PaidServiceRuntimeGate | null;
+  // 워밍된 구독 스냅샷만으로 '이용권 미커버'가 확정된 경로(서버 왕복 없이 결제창 직행).
+  snapshotSaysNoPass?: boolean;
 }): Promise<BillingResult<BillingCoinGateData> | null> {
   if (typeof window === "undefined") return null;
   if (input.forceDeduct === false) return null;
@@ -2089,7 +2091,10 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   }
   const reason = toText(input.reason || featureKey);
   const membershipCoverage = buildRuntimeMembershipCoverage(context.eligibility);
+  // 이용권 선검사 결론이 이미 '미커버'로 확정된 경우들. 이게 참이면 레거시 런타임에게
+  // disablePassFirst 를 넘겨 **같은 검사를 한 번 더 돌리지 않게** 한다(아래 주석 참고).
   const passAlreadyChecked = Boolean(context.eligibility && !isSubscriptionSnapshotEligibility(context.eligibility));
+  const snapshotAlreadySaysNoPass = context.snapshotSaysNoPass === true;
   const runtimePaymentOptions = asRecord(context.eligibility?.raw?.paymentOptions) || asRecord(context.eligibility?.raw) || {};
 
   let runtimeResult: RuntimePaidServiceGateResult | null = null;
@@ -2122,7 +2127,14 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       recommendedMethods: runtimePaymentOptions.recommendedMethods,
       skipBalanceRefresh: passAlreadyChecked,
       allowedPaymentModes: input.allowedPaymentModes,
-      disablePassFirst: input.disablePassFirst === true || (passAlreadyChecked && context.eligibility?.pass.canUse !== true),
+      // 🔴 이중 이용권 프로브 방지. 스냅샷 즉시판정 경로에서는 eligibility 가 null 이라 passAlreadyChecked 가
+      // false 였고, 그러면 레거시 런타임이 __cdApplyMembershipPassBeforePayment 로 **같은 검사를 또** 돌렸다
+      // (6초 예산 + 재시도 2회). 지금까지는 런타임의 _dpResolveCertainPassMiss 가 같은 localStorage 스냅샷을
+      // 우연히 똑같이 읽어 대개 넘어갔을 뿐이고, 한쪽 읽기가 어긋나면 프로브가 통째로 한 번 더 돌았다.
+      // 새로 건너뛰는 검사는 없다 — 두 모듈이 이미 같은 근거로 같은 결론을 내던 것을 명시적으로 만든 것이다.
+      disablePassFirst: input.disablePassFirst === true
+        || snapshotAlreadySaysNoPass
+        || (passAlreadyChecked && context.eligibility?.pass.canUse !== true),
       disablePassChoice: input.disablePassChoice === true,
       skipPassProbe: input.skipPassProbe === true,
       internalMainGate: true,
@@ -3135,7 +3147,7 @@ async function fetchPaymentEligibilityUncached(input: {
     reason: input.reason,
     scope: phase === "pass" ? "pass" : undefined,
   });
-  // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(6초)으로 끊는다.
+  // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
   const response = await authFetchBilling(
     query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status",
     { method: "GET", cache: "no-store" },
@@ -3540,7 +3552,6 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       ? null
       : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
-    const passCoveredByServer = eligibility?.access.canAccess === true || eligibility?.pass.canUse === true;
     // 🔴 이용권 선검사가 '미커버'로 결론난 직후에는 대기 화면을 한 번 더 띄우지 않는다. 예전에는 여기서
     // status:"loadingProducts" 를 보냈고, 셸의 카피 해석기가 이를 access_check.single 로 매핑해
     // '결제 상태 확인 중 / 단건으로 카드 결제를 준비 중이에요' 화면을 띄웠다 — 이용권 확인 화면이
@@ -3660,6 +3671,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         requestId: gateRequestId,
         eligibility,
         runtimeGate: await runtimeGatePromise,
+        snapshotSaysNoPass: snapshotSaysNoPassFast,
       });
       if (runtimePaymentResult) {
         const parsed = await registerDeferredBillingUsage(input, runtimePaymentResult, {
@@ -3783,7 +3795,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // 표시했는데, PaidFeatureGateProvider의 자동 닫힘이 hasEntitlement/paymentSuccess에서만 돌기 때문에
     // 아직 왕복 중인 요청을 두고 오버레이가 800ms 뒤 닫혀 버렸다(= "확인 UI가 중간에 사라졌다가 한참 뒤 실행").
     // 확인이 끝나기 전에는 '확인 중' 상태를 유지하고, 진짜 hasEntitlement는 아래 성공 분기에서만 emit한다.
-    const processingStatus: PaidFeatureGateRuntimeStatus = passFirstEligible ? "checkingEntitlement" : "paymentProcessing";
+    // 🔴 사용자가 결제수단을 고르기 전에는 "결제 처리 중"을 띄우지 않는다. 여기는 아직 이용권 선검사
+    // 구간이고 결제는 시작되지도 않았는데, 예전에는 미커버로만 보이면 곧바로 paymentProcessing
+    // ("결제 처리 중 / 결제 승인과 이용 권한을 확인하고 있어요")으로 갈아탔다 — 사용자가 본
+    // "이용권 확인 중이다가 갑자기 결제 진행 중"이 바로 이것이다. 명시 결제모드(=사용자가 이미
+    // 단건/월정석을 고른 경우)에서만 결제 상태를 표시하고, 그 외에는 '이용권 확인'을 유지한다.
+    const processingStatus: PaidFeatureGateRuntimeStatus = (passFirstEligible || !explicitPaymentMode)
+      ? "checkingEntitlement"
+      : "paymentProcessing";
     const processingPaymentMode = passAccessEligible ? "MEMBERSHIP_PASS" : (accessAlreadyGranted ? "DIRECT_KRW" : requestedMode);
     const processingPassTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
     const processingOverlay = resolvePaymentWaitOverlay(processingStatus, undefined, {
@@ -3808,7 +3827,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     });
 
     // 이 호출이 실제로 과금될 수 있으면(forceDeduct) 결제 확정용 상한(60초)을 그대로 둔다 — 낮추면 결제 사고다.
-    // pass 커버 확인처럼 과금이 없는 호출만 선검사 상한(6초)으로 끊는다.
+    // pass 커버 확인처럼 과금이 없는 호출만 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
     const coinGateMayDeduct = !passAccessEligible && input.forceDeduct !== false;
     const runCoinGateRequest = async () => {
       const response = await authFetchBilling("/api/billing/coin-gate", {
@@ -3999,6 +4018,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           requestId: gateRequestId,
           eligibility,
           runtimeGate: await runtimeGatePromise,
+          snapshotSaysNoPass: snapshotSaysNoPassFast,
         });
         if (runtimePaymentResult) {
           const parsedRuntimePaymentResult = await registerDeferredBillingUsage(input, runtimePaymentResult, {

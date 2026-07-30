@@ -1766,8 +1766,9 @@
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Di chuyển đến Cửa hàng Moonlight Pass để mua thẻ bạn cần.",
-        "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không."
+        "store": "Chuyển sang Vé Ánh Trăng để mở tính năng này và mọi tính năng trong hạn mức suốt 30 ngày, không cần cửa sổ thanh toán.",
+        "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
+        "upgrade": "Tính năng này vượt hạn mức vé hiện tại. Hãy xem Vé Ánh Trăng cao hơn."
       },
       "applyMethod": {
         "label": "Áp dụng phương pháp",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
-      }
+      },
+      "passUpgradeTitle": "Nâng cấp Vé Ánh Trăng",
+      "recommendBadge": "Đề xuất"
     },
     "overlay": {
       "unlockPreparing": {
