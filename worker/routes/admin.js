@@ -1,6 +1,7 @@
 import { getEnv } from "../lib/env.js";
 import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { ContentOverride, Insight, PointHistory, User } from "../lib/models.js";
@@ -2975,6 +2976,21 @@ async function authorizeAdminRequest(request, env) {
 
   const flowerTokenGranted = await verifyFlowerAdminToken(request, env);
 
+  // 꽃 토큰이 유효하면 requireAuth(Mongo 왕복)를 돌리지 않는다.
+  // 아래 분기를 보면 알 수 있듯 flowerTokenGranted 가 true 인 순간 결과는 어느 경로로 가든
+  // "admin 허용"으로 같고, 달라지는 것은 기록용 userId 뿐이다. 관리자 요청마다 DB 왕복을
+  // 하나 더 태우는 대가로는 비싸고, Atlas 가 흔들리는 순간 관리자 화면이 죽는 경로를 하나 더 만든다.
+  // 트레이드오프: 실제 admin 계정으로도 로그인한 상태였다면 updatedBy 가 flower-admin 으로 남는다
+  // (기존에도 비-admin + 꽃토큰 조합은 동일하게 동작했다).
+  if (flowerTokenGranted) {
+    return {
+      mode: "flower",
+      auth: { userId: "flower-admin", role: "admin", isAdmin: true },
+      userId: "flower-admin",
+      isAdmin: true,
+    };
+  }
+
   let auth = null;
   let authError = null;
   try {
@@ -2983,35 +2999,18 @@ async function authorizeAdminRequest(request, env) {
     authError = error;
   }
 
+  // 여기까지 왔다면 꽃 토큰은 없다(위에서 이미 반환됨). JWT 관리자만 통과시킨다.
   if (auth) {
     const role = String(auth.role || "user").toLowerCase();
     const isAdmin = role === "admin" || auth.isAdmin === true;
-    if (!isAdmin && !flowerTokenGranted) {
+    if (!isAdmin) {
       throw createHttpError(403, "관리자 권한이 필요합니다.", { code: "FORBIDDEN" });
-    }
-
-    if (!isAdmin && flowerTokenGranted) {
-      return {
-        mode: "flower",
-        auth: { userId: "flower-admin", role: "admin", isAdmin: true },
-        userId: "flower-admin",
-        isAdmin: true,
-      };
     }
 
     return {
       mode: "jwt",
       auth,
       userId: String(auth.userId || ""),
-      isAdmin: true,
-    };
-  }
-
-  if (flowerTokenGranted) {
-    return {
-      mode: "flower",
-      auth: { userId: "flower-admin", role: "admin", isAdmin: true },
-      userId: "flower-admin",
       isAdmin: true,
     };
   }
@@ -4474,10 +4473,10 @@ async function handleAdminPaymentDiagnostics(request, env) {
   });
 }
 
+// 구 오버라이드 API. 신규 편집은 /api/admin/cms/* 로 가고 여기는 유명인 사주만 남는다
+// (웹소설이 라이트 노벨로 대체되며 story/chapter 편집은 폐기 — 라이트 노벨은 CmsEntry 의 light-novel).
 const CONTENT_OVERRIDE_FIELD_KEYS = {
   "famous-saju": ["shortDescription", "heroCopy", "summary", "conclusion", "seoTitle", "seoDescription"],
-  story: ["title", "description"],
-  chapter: ["title", "content"],
 };
 const CONTENT_OVERRIDE_STATUS_SET = new Set(["draft", "published"]);
 const CONTENT_OVERRIDE_MAX_CONTENT_LENGTH = 200000;
@@ -4527,15 +4526,24 @@ function toContentOverrideItem(doc) {
 
 async function handleSiteContentOverrideList(request, env) {
   await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
   const sourceRaw = String(new URL(request.url).searchParams.get("source") || "").toLowerCase();
   const query = CONTENT_OVERRIDE_FIELD_KEYS[sourceRaw] ? { source: sourceRaw } : {};
 
-  const items = await adminMongoRead(env, async () =>
-    ContentOverride.find(query).sort({ updatedAt: -1 }).limit(500).lean());
+  // DB 블립에도 편집 화면이 비지 않도록 캐시를 앞에 둔다. 재시도는 adminMongoRead 가 이미 하므로
+  // 여기서 또 걸지 않는다 — 캐시는 "재시도까지 끝난 결과"만 담는다(코딩 원칙 6).
+  const { value: items, stale, cachedAt } = await readCmsThroughCache({
+    key: `site-content-overrides:${sourceRaw || "all"}`,
+    ttlSeconds: 30,
+    load: async () => {
+      await connectDb(env);
+      const docs = await adminMongoRead(env, async () =>
+        ContentOverride.find(query).sort({ updatedAt: -1 }).limit(500).lean());
+      return docs.map((item) => toContentOverrideItem(item));
+    },
+  });
 
-  return json({ ok: true, items: items.map((item) => toContentOverrideItem(item)) });
+  return json({ ok: true, items, stale, cachedAt: cachedAt || null });
 }
 
 async function handleSiteContentOverrideGet(path, request, env) {
@@ -4549,6 +4557,11 @@ async function handleSiteContentOverrideGet(path, request, env) {
     ContentOverride.findOne({ source: parsed.source, key: parsed.key }).lean());
 
   return json({ ok: true, item: doc ? toContentOverrideItem(doc) : null });
+}
+
+/** 쓰기 직후 목록 캐시를 무효화한다. 안 하면 저장해도 최대 30초간 옛 목록이 보인다. */
+function purgeSiteContentOverrideCache(source) {
+  return purgeCmsCache(["site-content-overrides:all", `site-content-overrides:${source}`]);
 }
 
 async function handleSiteContentOverrideUpsert(path, request, env) {
@@ -4579,6 +4592,7 @@ async function handleSiteContentOverrideUpsert(path, request, env) {
     { new: true, upsert: true, setDefaultsOnInsert: true },
   ).lean();
 
+  await purgeSiteContentOverrideCache(parsed.source);
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
@@ -4602,6 +4616,7 @@ async function handleSiteContentOverridePublishStatus(path, request, env) {
   ).lean();
   if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
+  await purgeSiteContentOverrideCache(parsed.source);
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
@@ -4615,6 +4630,7 @@ async function handleSiteContentOverrideDelete(path, request, env) {
   const doc = await ContentOverride.findOneAndDelete({ source: parsed.source, key: parsed.key }).lean();
   if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
+  await purgeSiteContentOverrideCache(parsed.source);
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
@@ -5017,6 +5033,14 @@ export async function handleAdminRoutes(request, env) {
     if (path === "/site-deploy") {
       if (method === "POST") return await handleSiteDeploy(request, env);
       return methodNotAllowed();
+    }
+
+    // 통합 CMS. 인증은 여기서 끝내고 핸들러만 별도 청크(routes/cms.js)로 위임한다 —
+    // admin.js 는 이미 4천 줄이 넘고, CMS 는 공개 라우트와 코드를 공유해야 한다.
+    if (path === "/cms" || path.startsWith("/cms/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminCmsRoutes } = await import("./cms.js");
+      return await handleAdminCmsRoutes(path.slice("/cms".length) || "/", request, env, adminContext);
     }
 
     if (path === "/site-content/overrides") {

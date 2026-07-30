@@ -1,3 +1,5 @@
+import { cmsLines, cmsText } from "@/lib/cms/build-text";
+
 import type { YeoniMood } from "./yeoniSprites";
 
 export type TeaHouseStage =
@@ -50,7 +52,9 @@ export const teaHouseStageOrder: TeaHouseStage[] = [
   "result",
 ];
 
-export const teaHouseLandingCopy = {
+// 랜딩 문구는 관리자 CMS(feature-copy / fortune-tea-house:landing.*)에서 편집할 수 있다.
+// 폴백 우선 — CMS 값이 없으면 아래 원문이 그대로 쓰인다.
+const teaHouseLandingCopyDefault = {
   eyebrow: "달빛이 닿은 골목 끝",
   title: "운명의 찻집",
   lead: "연이가 달빛 찻잔과 카드, 사주와 인연의 흐름으로 당신의 고민을 차분히 비춰드립니다.",
@@ -80,13 +84,29 @@ export const teaHouseLandingCopy = {
   cta: "찻집에 들어가기",
 } as const;
 
-export const teaHouseCtaCopy = {
+export const teaHouseLandingCopy = {
+  eyebrow: cmsText("feature-copy", "fortune-tea-house:landing.eyebrow", "text", teaHouseLandingCopyDefault.eyebrow),
+  title: cmsText("feature-copy", "fortune-tea-house:landing.title", "text", teaHouseLandingCopyDefault.title),
+  lead: cmsText("feature-copy", "fortune-tea-house:landing.lead", "text", teaHouseLandingCopyDefault.lead),
+  prologue: cmsLines("feature-copy", "fortune-tea-house:landing.prologue", "lines", [...teaHouseLandingCopyDefault.prologue]),
+  cta: cmsText("feature-copy", "fortune-tea-house:landing.cta", "text", teaHouseLandingCopyDefault.cta),
+};
+
+const teaHouseCtaCopyDefault = {
   title: "오늘의 운세를 한 잔 따라볼까요?",
   text: "연이는 찻잔의 온도와 마음의 향을 맞추며, 당신이 꺼내고 싶은 이야기를 조용히 기다립니다.",
   cta: "상담 준비하기",
   reset: "처음 밤으로 돌아가기",
   notice: "찻잔은 아직 따뜻해지는 중이에요. 곧 연이가 이야기를 이어갈게요.",
 } as const;
+
+export const teaHouseCtaCopy = {
+  title: cmsText("feature-copy", "fortune-tea-house:cta.title", "text", teaHouseCtaCopyDefault.title),
+  text: cmsText("feature-copy", "fortune-tea-house:cta.text", "text", teaHouseCtaCopyDefault.text),
+  cta: cmsText("feature-copy", "fortune-tea-house:cta.cta", "text", teaHouseCtaCopyDefault.cta),
+  reset: cmsText("feature-copy", "fortune-tea-house:cta.reset", "text", teaHouseCtaCopyDefault.reset),
+  notice: cmsText("feature-copy", "fortune-tea-house:cta.notice", "text", teaHouseCtaCopyDefault.notice),
+};
 
 export const teaHouseFlowCards = [
   {

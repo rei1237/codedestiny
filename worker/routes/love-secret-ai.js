@@ -12,6 +12,7 @@ import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limi
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import {
   LOVE_SECRET_AI_SYSTEM_PROMPT,
@@ -765,7 +766,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     // plain callGeminiText는 잘림에 무방비라 잘리면 그대로 INVALID_LLM_JSON 하드 실패였다.
     // 잘림 반응형 재시도 헬퍼(JSON 모드 강제 + 잘리면 토큰 상향 재생성)로 교체.
     const ai = await callGeminiJsonWithRetry(env, prompt, {
-      systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
+      systemPrompt: await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT),
       temperature: 0.72,
       // 동기 POST 라우트라 왕복 시간을 묶기 위해 재시도는 1회로 제한(총 2회 시도).
       attempts: 2,
@@ -829,7 +830,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 
 async function generateFollowUp(env, consultation, message) {
   const ai = await callGeminiText(env, buildFollowUpConsultationPrompt(consultation, message), {
-    systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
+    systemPrompt: await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT),
     temperature: 0.7,
     maxOutputTokens: 5000,
     taskType: "fortune",

@@ -8,6 +8,7 @@ import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, Sukuyo
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -72,6 +73,15 @@ const MESSAGES = {
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   networkFailed: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
 };
+
+/** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return SYSTEM_PROMPT;
+}
+
+export function getDefaultCompatibilityJsonSystemPrompt() {
+  return COMPATIBILITY_JSON_SYSTEM_PROMPT;
+}
 
 const SYSTEM_PROMPT = [
   "당신은 숙요점 27숙과 관계 상담에 능한 전문 상담가입니다.",
@@ -1268,7 +1278,9 @@ async function createFirstAnswer(env, input, calculation) {
   };
   const isCompatibility = input.consultationType === "compatibility";
   const sukuyoCallOptions = {
-    systemPrompt: isCompatibility ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
+    systemPrompt: isCompatibility
+      ? await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT)
+      : await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
     taskType: "fortune",
     temperature: 0.74,
     timeoutMs: isCompatibility ? compatibilityTimeoutMs : (Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
@@ -1314,7 +1326,7 @@ async function createFirstAnswer(env, input, calculation) {
       let repaired = null;
       try {
         const repair = await callGeminiJsonWithRetry(env, buildSukuyoCompatibilityRepairPrompt(input, calculation, rawContent, normalizeError), {
-          systemPrompt: COMPATIBILITY_JSON_SYSTEM_PROMPT,
+          systemPrompt: await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT),
           taskType: "fortune",
           temperature: 0.72,
           baseTokens: compatibilityMaxOutputTokens,
@@ -1739,7 +1751,7 @@ async function handleMessage(request, env) {
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId });
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
   const ai = await callGeminiText(env, buildFollowupPrompt(consultation, content), {
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: 2600,

@@ -2,7 +2,6 @@
 
 import { EditorContent, useEditor } from "@tiptap/react";
 import ImageExtension from "@tiptap/extension-image";
-import LinkExtension from "@tiptap/extension-link";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "next/image";
 import Link from "next/link";
@@ -763,12 +762,11 @@ export default function AdminContentPage() {
 
   const editor = useEditor({
     extensions: [
+      // StarterKit v3 가 Link 를 이미 번들한다. 별도 LinkExtension 을 함께 등록하면
+      // "Duplicate extension names found: ['link']" 경고와 함께 두 인스턴스가 경쟁한다.
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
-      }),
-      LinkExtension.configure({
-        openOnClick: false,
-        autolink: true,
+        link: { openOnClick: false, autolink: true },
       }),
       ImageExtension.configure({
         allowBase64: false,
@@ -1228,7 +1226,7 @@ export default function AdminContentPage() {
               <p className="text-xs text-slate-400">{pagination.total.toLocaleString("ko-KR")}개</p>
             </div>
             <div className="flex gap-2">
-              <Link href="/admin/site-content" className={editorButtonClass()} title="사이트 콘텐츠 편집(유명인 사주·소설)" aria-label="사이트 콘텐츠 편집">
+              <Link href="/admin/cms" className={editorButtonClass()} title="콘텐츠 관리(AI 프롬프트·라이트 노벨·문구·FAQ)" aria-label="콘텐츠 관리">
                 <BookOpen className="h-4 w-4" />
               </Link>
               <Link href="/admin/reviews" className={editorButtonClass()} title="리뷰 관리" aria-label="리뷰 관리">

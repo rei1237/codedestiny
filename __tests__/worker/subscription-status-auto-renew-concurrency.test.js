@@ -59,6 +59,10 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "active" },
   CONTENT_ENTITLEMENT_SOURCES: { PURCHASE: "purchase" },
   User: UserMock,
+  // fortune.js -> cms-prompts.js 가 CMS 프롬프트 오버라이드를 읽으려고 들고 온다.
+  // 이 테스트에서는 조회가 실패하면 코드 기본 프롬프트로 떨어지므로 빈 스텁이면 충분하다.
+  CmsEntry: {},
+  CmsRevision: {},
   ProfileCard: {},
   Payment: {},
   PointHistory: PointHistoryMock,

@@ -66,6 +66,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
@@ -135,6 +136,11 @@ const SAJU_AI_PROMPT_ACCESS_MODE = "per_use";
 const SAJU_AI_PROMPT_STALE_GENERATING_MS = 390 * 1000;
 const SAJU_AI_PROMPT_TITLE = "사주 전문가 상담 결과";
 const SAJU_AI_PROMPT_AMOUNT_KRW = calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE);
+/** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSajuAiResultSystemPrompt() {
+  return SAJU_AI_RESULT_SYSTEM_PROMPT;
+}
+
 const SAJU_AI_RESULT_SYSTEM_PROMPT = [
   "당신은 최고 수준의 명리학 상담가입니다.",
   "십성, 오행, 천간/지지 관계는 절대 직접 추측하거나 재계산하지 않습니다.",
@@ -4005,6 +4011,10 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     return buildSajuAIPromptError("MISSING_SAJU_RESULT", "기본 사주 분석 결과가 필요합니다.", 400);
   }
 
+  // 분야별 템플릿 오버라이드는 동기 접근자 안쪽에서 읽히므로 빌드 전에 채워 둔다.
+  // 실패해도 코드 기본 템플릿으로 그대로 진행한다(내부에서 삼킴).
+  await primePromptTemplateOverrides(env);
+
   let builtPrompt = null;
   try {
     const calibration = body?.calibration;
@@ -4206,7 +4216,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         attempt: attempt + 1,
       });
       const ai = await callGeminiText(env, llmPrompt, {
-        systemPrompt: SAJU_AI_RESULT_SYSTEM_PROMPT,
+        systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
         // 늘어난 상담 분량(다장 구성)이 구 상한 14000에서 상시 잘려 완성 repair를 유발했다.
@@ -4245,7 +4255,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           attempt: attempt + 1,
         });
         const repairAi = await callGeminiText(env, repairPrompt, {
-          systemPrompt: SAJU_AI_RESULT_SYSTEM_PROMPT,
+          systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
           taskType: "fortune",
           temperature: 0.42,
           // 잘려서 이어붙이는 경우 여유 있는 토큰으로 완결시킨다.
@@ -4497,6 +4507,11 @@ function isAIPromptTransientDbError(error) {
 // 사주 전용 십성/챕터 검증 없이 일반화한다. 각 기능의 builtPrompt.generatedPrompt는
 // 이미 [답변 형식]까지 포함한 완결형 LLM 지시문(buildFortuneQuestionPromptPackage)이므로
 // 가볍게 감싸 그대로 호출하고, 잘림은 이어쓰기 repair로 완결시킨다(중간 끊김 방지).
+/** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultFeatureAiResultSystemPrompt() {
+  return FEATURE_AI_RESULT_SYSTEM_PROMPT;
+}
+
 const FEATURE_AI_RESULT_SYSTEM_PROMPT = [
   "당신은 해당 분야(자미두수·베다 점성술·서양 점성술·숙요점 등)의 최고 수준 상담가입니다.",
   "제공된 명반/차트/데이터만 근거로 상담하고, 없는 수치를 지어내거나 임의로 재계산하지 않습니다.",
@@ -4541,7 +4556,7 @@ async function runFeatureAiConsultation(env, { builtPrompt, systemPrompt = FEATU
       repairReason: attempt > 0 ? "이전 응답이 중간에 끊겼거나 비었습니다. 처음부터 끝까지 완결해 주세요." : "",
     });
     const ai = await callGeminiText(env, prompt, {
-      systemPrompt,
+      systemPrompt: await cmsPromptText(env, "feature-ai-result", systemPrompt),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.5 : 0.56,
       // 단일 질문 상담(약 9개 섹션) 기준 넉넉한 상한 — 늘어난 분량이 중간에 잘리지 않게 한다.

@@ -1,3 +1,5 @@
+import { applyPromptTemplateOverride } from "./cms-prompt-template-store.js";
+
 export const SAJU_PROMPT_TEMPLATES = Object.freeze({
   litigation: {
     domain: "litigation",
@@ -156,7 +158,8 @@ export const SAJU_PROMPT_TEMPLATES = Object.freeze({
 });
 
 export function getSajuPromptTemplate(domain) {
-  return SAJU_PROMPT_TEMPLATES[String(domain || "").trim()] || null;
+  const key = String(domain || "").trim();
+  return applyPromptTemplateOverride("saju", key, SAJU_PROMPT_TEMPLATES[key] || null);
 }
 
 export function getAvailableSajuDomains() {
