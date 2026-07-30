@@ -64,6 +64,12 @@ const reactGateFirstFeatureSources = [
     api: 'postJson<EnsureAccessResult>("/api/karma-destiny-ai/ensure-access"',
     checkout: "runCommonBillingGate",
   },
+  {
+    label: "master-love-codex",
+    source: readFileSync(resolve(root, "src/features/master-love-codex/MasterLoveCodexPage.tsx"), "utf8"),
+    api: '"/api/master-love-codex/ensure-access"',
+    checkout: "runBillingCoinGate",
+  },
 ];
 
 function assertContains(source, marker, label = marker) {

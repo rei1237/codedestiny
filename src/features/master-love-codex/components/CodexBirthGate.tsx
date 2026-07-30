@@ -1,17 +1,23 @@
 "use client";
 
 /**
- * 생년 정보 입력.
+ * 생년 정보 입력 — 결제 직전 화면.
  *
  * 공용 훅 useAiProfileSeed 로 현재 선택된 프로필 카드에서 자동 프리필한다.
  * 사용자가 이미 손댄 값은 덮어쓰지 않는다(빈 값만 채움).
  * 입력 박스를 두지 않는다 — 필드는 잉크 위에 놓이고 아래 헤어라인만 남는다.
+ *
+ * 프롤로그가 산문으로 말한 "두 장을 겹쳐 본다"를 여기서는 목록으로 다시 보여 준다.
+ * 결제가 붙은 버튼("결과 보기")이 이 화면에 있으므로, 무엇을 받고 무엇을 받지 못하는지가
+ * 버튼 위에 반드시 함께 있어야 한다. 가격은 priceSlot(PriceBadge)만 쓰고 리터럴로 적지 않는다.
  */
 
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import CodexReveal from "./CodexReveal";
+import { CODEX_ACTS } from "../data/acts";
+import { CODEX_HONEST_LIMITS, CODEX_VALUE_AXES } from "../data/value";
 import styles from "../styles/codex.module.css";
 
 export interface CodexBirthInput {
@@ -59,8 +65,10 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
       name: current.name || (seed.name || ""),
       gender: current.gender || (seed.gender === "male" || seed.gender === "female" ? seed.gender : ""),
       birthDate: current.birthDate || (seed.birthDate || ""),
-      birthTime: current.birthTime || (seed.birthTime || ""),
-      birthTimeUnknown: current.birthTime ? current.birthTimeUnknown : Boolean(seed.birthTimeUnknown),
+      // 사용자가 직접 체크한 "시각 모릅니다"는 프로필 전환·재마운트로 되살려지지 않는다
+      // (체크된 상태에서는 birthTime 이 빈 값이라, 시드로 채우면 그 선택이 조용히 뒤집힌다).
+      birthTime: current.birthTimeUnknown ? "" : (current.birthTime || (seed.birthTime || "")),
+      birthTimeUnknown: current.birthTimeUnknown || (current.birthTime ? false : Boolean(seed.birthTimeUnknown)),
       calendarType: current.calendarType !== "solar" ? current.calendarType : (seed.calendarType === "lunar" ? "lunar" : "solar"),
     };
     if (JSON.stringify(next) !== JSON.stringify(current)) onChange(next);
@@ -81,7 +89,9 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
   const labelStyle = { color: "var(--codex-gold-dim)" } as const;
 
   return (
-    <section className="flex min-h-[100svh] flex-col justify-center py-16" aria-label="생년 정보 입력">
+    // justify-center 를 쓰지 않는다 — 가치 블록이 붙어 100svh 를 넘기면 오버레이 안에서
+    // 위쪽이 잘려 아래 결제 버튼까지 스크롤로 닿지 못한다.
+    <section className="flex min-h-[100svh] flex-col justify-start pb-24 pt-16" aria-label="생년 정보 입력">
       <div className={styles.measure}>
         <CodexReveal>
           <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.28em", color: "var(--codex-gold-dim)" }}>
@@ -94,7 +104,68 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           <hr className={`${styles.rule} mt-9`} />
         </CodexReveal>
 
-        <CodexReveal index={1} className="mt-10 space-y-9">
+        <CodexReveal index={1} className="mt-10">
+          <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
+            두 장을 겹쳐 읽습니다
+          </p>
+          <dl className="mt-6 space-y-6">
+            {CODEX_VALUE_AXES.map((axis) => (
+              <div key={axis.source} className="border-l pl-5" style={{ borderColor: "var(--codex-rule)" }}>
+                <dt className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className={`${styles.numeral} text-[0.875rem]`} style={{ letterSpacing: "0.1em", color: "var(--codex-gold)" }}>
+                    {axis.source}
+                  </span>
+                  <span className="text-[0.9375rem] leading-7" style={{ color: "var(--codex-ink-text)" }}>
+                    {axis.reads}
+                  </span>
+                </dt>
+                <dd className="mt-1.5 text-[0.8125rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                  {axis.detail}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className={`${styles.numeral} mt-11 text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
+            스무 장 · 다섯 막
+          </p>
+          <ol className="mt-5 space-y-3">
+            {CODEX_ACTS.map((act) => (
+              <li key={act.order} className="flex gap-4">
+                <span
+                  className={`${styles.numeral} w-6 shrink-0 pt-0.5 text-[0.8125rem]`}
+                  style={{ letterSpacing: "0.06em", color: "var(--codex-gold-dim)" }}
+                  aria-hidden="true"
+                >
+                  {act.numeral}
+                </span>
+                <span className="min-w-0">
+                  <span className="text-[0.9375rem] leading-7" style={{ color: "var(--codex-ink-text)" }}>
+                    {act.title}
+                  </span>
+                  <span className="mt-0.5 block text-[0.8125rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                    {act.line}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
+
+          <p className={`${styles.numeral} mt-11 text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
+            미리 말씀드리는 것
+          </p>
+          <ul className="mt-5 space-y-3">
+            {CODEX_HONEST_LIMITS.map((limit) => (
+              <li key={limit} className="text-[0.8125rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                {limit}
+              </li>
+            ))}
+          </ul>
+
+          <hr className={`${styles.rule} mt-11`} />
+        </CodexReveal>
+
+        <CodexReveal index={2} className="mt-10 space-y-9">
           <div className="flex justify-end">
             <button
               type="button"
@@ -204,10 +275,10 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           <p role="alert" className="mt-9 text-[0.875rem] leading-7" style={{ color: "#ffb4b4" }}>{error}</p>
         ) : null}
 
-        <CodexReveal index={2} className="mt-12 flex flex-col items-center gap-5">
+        <CodexReveal index={3} className="mt-12 flex flex-col items-center gap-5">
           <button type="button" onClick={onSubmit} disabled={busy} className={styles.cta}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-            {busy ? busyLabel : "비책 펼치기"}
+            {busy ? busyLabel : "결과 보기"}
           </button>
           {priceSlot}
         </CodexReveal>

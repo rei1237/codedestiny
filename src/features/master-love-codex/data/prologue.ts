@@ -11,6 +11,9 @@ export type CodexPrologueStage =
   | "candle"
   | "library"
   | "narratorEnter"
+  | "sajuChart"
+  | "ziweiChart"
+  | "crossCheck"
   | "question"
   | "bookOpen";
 
@@ -142,6 +145,78 @@ export const codexPrologueScenes: readonly CodexPrologueSceneData[] = [
         text: "그런데 저 한 칸만 비어 있습니다.\n아직 아무도 당신의 이야기를 읽은 적이 없어서요.",
         cta: "빈 칸을 보기",
         mood: "base",
+      },
+    ],
+  },
+  {
+    stage: "sajuChart",
+    eyebrow: "첫 번째 두루마리",
+    title: "사주는 당신이 어떤 사람인지를 말합니다",
+    actor: "narrator",
+    background: "library",
+    effect: "reveal",
+    lines: [
+      {
+        speaker: "연애 고수",
+        text: "고수가 책상 위에 두루마리 하나를 펼칩니다.\n적힌 것은 여덟 글자뿐입니다. 태어난 해와 달, 날과 시각이 각각 두 글자씩.",
+        cta: "들여다보기",
+        mood: "speaking",
+      },
+      {
+        speaker: "연애 고수",
+        text: "여기서 당신의 연애 기질이 나옵니다.\n먼저 다가가는 사람인지 기다리는 사람인지, 마음이 식는 속도가 빠른지 느린지 — 일간과 십성, 오행의 무게가 말해 줍니다.",
+        cta: "두 번째 두루마리를 보기",
+        mood: "speakingAlt",
+      },
+    ],
+  },
+  {
+    stage: "ziweiChart",
+    eyebrow: "두 번째 두루마리",
+    title: "자미두수는 그 사람이 어디에 놓였는지를 봅니다",
+    actor: "narrator",
+    background: "library",
+    effect: "reveal",
+    lines: [
+      {
+        speaker: "연애 고수",
+        text: "두 번째 두루마리에는 글자 대신 원이 하나 그려져 있습니다.\n그 원은 열두 칸으로 나뉘어 있고, 칸마다 별이 앉아 있습니다.",
+        cta: "열두 칸을 보기",
+        mood: "speaking",
+      },
+      {
+        speaker: "연애 고수",
+        text: "명궁·부부궁·복덕궁·천이궁 — 칸마다 이름이 있습니다.\n어떤 사람이 배우자 자리에 오는지, 인연이 어느 문에서 열리는지는 이 칸들이 말해 줍니다.",
+        cta: "두 두루마리를 나란히 두기",
+        mood: "base",
+      },
+    ],
+  },
+  {
+    stage: "crossCheck",
+    eyebrow: "두 장을 겹쳐 놓는 이유",
+    title: "한 장만 보면 반드시 놓치는 자리가 생깁니다",
+    actor: "narrator",
+    background: "libraryDeep",
+    effect: "reveal",
+    lines: [
+      {
+        speaker: "연애 고수",
+        text: "사주로는 표현이 적은 기질로 읽히는데, 명반의 부부궁은 환하게 서 있는 사람이 있습니다.\n어느 쪽이 틀린 게 아닙니다. 두 장이 서로 다른 층을 보고 있는 겁니다.",
+        cta: "왜 그런지 듣기",
+        mood: "speakingAlt",
+      },
+      {
+        speaker: "연애 고수",
+        text: "그래서 저는 두 장을 늘 겹쳐 놓습니다.\n같은 말을 하는 자리는 확신을 갖고 말씀드리고, 엇갈리는 자리는 왜 엇갈리는지까지 짚습니다. 스무 장 중 한 장은 이 대조에만 씁니다.",
+        cta: "약속받기",
+        mood: "speaking",
+      },
+      {
+        speaker: "연애 고수",
+        text: "다만 약속드리지 못하는 것도 있습니다.\n저는 정해진 결말을 모릅니다. 이 책이 하는 일은 당신이 사랑에서 반복하는 방식을 근거와 함께 보여 드리는 것까지입니다.",
+        cta: "그걸로 충분합니다",
+        mood: "calm",
       },
     ],
   },
