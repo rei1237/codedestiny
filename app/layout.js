@@ -222,6 +222,15 @@ export default function RootLayout({ children }) {
                 (2026-07-30 사고 — /_next/static/css 공용 청크 하나가 죽어 React 라우트 전부가
                 무스타일로 떴다). 죽은 태그 바로 뒤에 우회 URL <link> 를 꽂아 캐스케이드 순서를
                 보존한 채 되받는다(head 끝에 붙이면 뒤 시트를 덮어써 순서가 뒤집힌다).
+                🔴 여기서 error 리스너만으로는 못 잡는다 — Next 는 스타일시트 <link> 를 <head>
+                맨 앞(이 스크립트보다 20여 태그 앞)에 박으므로, 이 스크립트가 파싱될 때쯤이면
+                그 링크들의 error 는 이미 끝나 있다(실측: 리스너를 addInitScript 로 더 먼저
+                걸면 잡히고, 배포본에서는 재시도 노드가 0개였다). 그래서 '이미 실패해 있는'
+                링크를 나중에 훑는 스윕을 함께 돌린다. 실패 판정은 같은 출처인데도
+                sheet.cssRules 접근이 throw 하거나 sheet 가 null 인 것으로 한다(정상 시트는
+                빈 파일이어도 CSSRuleList 를 돌려준다).
+                DOMContentLoaded 에서는 'sheet 는 있는데 cssRules 가 throw' 인 확실한 실패만
+                걷고(아직 로딩 중인 것을 오판하지 않게), 전부 정착한 load 에서 null 까지 본다.
             (1) 클라이언트 사이드 이동: 청크를 __webpack_require__.l 이 동적으로 받는다 → 로더를 감싼다.
             (2) 직접 진입·새로고침: 청크가 문서에 <script> 로 박혀 온다 → 로더를 타지 않는다.
                 게다가 .l 은 같은 src 의 기존 <script> 를 재사용하는데, 그 태그는 이미 error 를
@@ -237,7 +246,7 @@ export default function RootLayout({ children }) {
             로그인·결제가 통째로 죽은 적이 있다. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t)return;var isCss=t.nodeName===\"LINK\"&&String(t.rel||\"\").indexOf(\"stylesheet\")>-1;if(t.nodeName!==\"SCRIPT\"&&!isCss)return;var url=(isCss?t.href:t.src)||\"\";if(url.indexOf(\"/_next/static/\")<0||url.indexOf(\"cdcb=\")>-1||hit[url])return;hit[url]=1;var n;if(isCss){n=document.createElement(\"link\");n.rel=\"stylesheet\";n.href=bust(url);if(t.media)n.media=t.media}else{n=document.createElement(\"script\");n.src=bust(url);n.async=t.async}if(t.crossOrigin)n.crossOrigin=t.crossOrigin;if(isCss&&t.parentNode)t.parentNode.insertBefore(n,t.nextSibling);else (document.head||document.documentElement).appendChild(n)}catch(x){}},true)}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
+            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};function retryCss(l){var h=l.href||\"\";if(h.indexOf(\"/_next/static/\")<0||h.indexOf(\"cdcb=\")>-1||hit[h])return;hit[h]=1;var n=document.createElement(\"link\");n.rel=\"stylesheet\";n.href=bust(h);if(l.media)n.media=l.media;if(l.crossOrigin)n.crossOrigin=l.crossOrigin;if(l.parentNode)l.parentNode.insertBefore(n,l.nextSibling);else (document.head||document.documentElement).appendChild(n)}function sweep(strict){try{var ls=document.querySelectorAll('link[rel~=\"stylesheet\"]');for(var i=0;i<ls.length;i++){var l=ls[i],s=null,dead=false;try{s=l.sheet}catch(x){s=null}if(!s){dead=!strict}else{try{dead=!s.cssRules}catch(x){dead=true}}if(dead)retryCss(l)}}catch(x){}}try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t)return;var isCss=t.nodeName===\"LINK\"&&String(t.rel||\"\").indexOf(\"stylesheet\")>-1;if(t.nodeName!==\"SCRIPT\"&&!isCss)return;if(isCss){retryCss(t);return}var u2=t.src||\"\";if(u2.indexOf(\"/_next/static/\")<0||u2.indexOf(\"cdcb=\")>-1||hit[u2])return;hit[u2]=1;var s2=document.createElement(\"script\");s2.src=bust(u2);s2.async=t.async;if(t.crossOrigin)s2.crossOrigin=t.crossOrigin;(document.head||document.documentElement).appendChild(s2)}catch(x){}},true)}catch(x){}try{if(document.readyState===\"loading\")document.addEventListener(\"DOMContentLoaded\",function(){sweep(true)});else sweep(true);window.addEventListener(\"load\",function(){sweep(false)})}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
           }}
         />
       </head>
