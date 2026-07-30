@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import {
   createDefaultCanonicalPalmReading,
   type PalmAnalysisPurpose,
@@ -1514,7 +1514,6 @@ function buildCategoryConsultations(input: {
 }
 
 export default function PalmDestinyMain() {
-  const router = useRouter();
   const [isImmersiveView, setIsImmersiveView] = useState(true);
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null });
@@ -2549,7 +2548,7 @@ export default function PalmDestinyMain() {
 
   const handleBackToMain = () => {
     resetSessionForReanalysis({ clearImages: true, resetSelections: true });
-    router.push("/");
+    hardNavigateToShellHome();
   };
 
   const handleResetOnlyResult = () => {
