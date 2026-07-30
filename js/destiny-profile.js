@@ -2110,11 +2110,12 @@
       text = '단건 결제 준비 중입니다. 주문 정보와 인증 흐름이 조용히 맞춰지고 있어요.';
     }
 
-    // 🔴 이용권 미커버 확정 → 결제창 노출 구간에는 대기 화면을 띄우지 않는다(셸이 세운 공용 플래그).
+    // 🔴 대기 화면 금지 구간에는 띄우지 않는다(셸의 __cdPaymentWaitUiBlocked 가 판정 정본):
+    // 미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건 확정→PG창. 종단(결과)은 통과한다.
     // 셸이 없는 독립 페이지에서는 플래그도 없으니 그대로 동작한다.
     try {
-      if (show && typeof window.__cdPreCheckoutWaitUiSuppressed === 'function'
-        && window.__cdPreCheckoutWaitUiSuppressed(mode)) return;
+      if (show && typeof window.__cdPaymentWaitUiBlocked === 'function'
+        && window.__cdPaymentWaitUiBlocked(mode)) return;
     } catch (_dpPreCheckoutProbeError) {}
 
     try {
@@ -4038,7 +4039,9 @@
     window._cdCoinGatePerUseInFlight = true;
     window.__cdCoinGatePerUseLockAt = Date.now();
     var pendingLabel = String(reason || '').trim() || '유료 서비스';
-    _dpSetPaymentPending(true, pendingLabel + (membershipCoverage ? ' 이용권 한도를 확인하는 중입니다...' : ' 단건 결제를 확인하는 중입니다...'));
+    // coin-gate 는 "이용권으로 커버되는가"를 판정하는 접근 확인 단계다 — mode 를 빼먹으면 셸 기본값
+    // 'payment' 로 낙하해 'PAYMENT CHECK · 결제 상태 확인 중' 스킨이 뜬다(아직 결제는 시작도 안 했다).
+    _dpSetPaymentPending(true, pendingLabel + (membershipCoverage ? ' 이용권 한도를 확인하는 중입니다...' : ' 단건 결제를 확인하는 중입니다...'), 'pass');
     _dpWaitForPaymentOverlayPaint().then(function() {
       return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
         method: 'POST',
@@ -4277,7 +4280,8 @@
           return;
         }
         if (choice === 'direct' && typeof window._cdRunDirectKrwCheckout === 'function') {
-          _dpSetPaymentPending(true, info.name + ' 단건 결제를 준비하는 중입니다...');
+          // 바로 아래에서 PG창을 여는 구간이므로 'card'(= "PG사 결제창을 로드하는 중입니다.")를 쓴다.
+          _dpSetPaymentPending(true, info.name + ' 단건 결제를 준비하는 중입니다...', 'card');
           window._cdRunDirectKrwCheckout({
             coinPrice: info.cost,
             cost: info.cost,
@@ -4332,7 +4336,8 @@
         'Content-Type': 'application/json'
       };
       if (token) unlockHeaders.Authorization = 'Bearer ' + token;
-      _dpSetPaymentPending(true, info.name + ' 결제를 처리하는 중입니다...');
+      // forceDeduct 해금 요청 = 실제 차감 + 열람 권한 저장 단계.
+      _dpSetPaymentPending(true, info.name + ' 결제를 처리하는 중입니다...', 'unlock-saving');
       _dpWaitForPaymentOverlayPaint().then(function () {
         return _dpFetchJsonWithFallback(endpoint, {
           method: 'POST',
@@ -7260,7 +7265,7 @@
     _dpSetProfileDeleteLock(profileId);
 
     function requestDelete(paymentContext) {
-      _dpSetPaymentPending(true, '\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...');
+      _dpSetPaymentPending(true, '\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'confirm');
       return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
         method: 'DELETE',
         credentials: 'include',

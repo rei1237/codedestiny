@@ -1837,9 +1837,9 @@
         },
         "card": {
           "eyebrow": "PAGO ÚNICO SEGURO",
-          "title": "Preparando pago único",
+          "title": "Cargando la ventana de pago de la pasarela",
           "message": "Se están alineando los detalles del pedido y la autenticación.",
-          "meta": "Continúe la autenticación cuando se abra la ventana de pago seguro."
+          "meta": "Continúe la autenticación cuando se abra la ventana de pago."
         },
         "checkout": {
           "eyebrow": "PAGO LISTO",
@@ -1905,9 +1905,9 @@
         },
         "card": {
           "eyebrow": "PAGO ÚNICO SEGURO",
-          "title": "Preparando pago único",
+          "title": "Cargando la ventana de pago de la pasarela",
           "message": "Se están alineando los detalles del pedido y la autenticación.",
-          "meta": "Continúe la autenticación cuando se abra la ventana de pago seguro."
+          "meta": "Continúe la autenticación cuando se abra la ventana de pago."
         },
         "checkout": {
           "eyebrow": "PAGO LISTO",

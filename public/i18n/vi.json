@@ -1837,9 +1837,9 @@
         },
         "card": {
           "eyebrow": "THANH TOÁN AN TOÀN MỘT LẦN",
-          "title": "Đang chuẩn bị thanh toán một lần",
+          "title": "Đang tải cửa sổ thanh toán của cổng thanh toán",
           "message": "Chi tiết đơn đặt hàng và xác thực đang được căn chỉnh.",
-          "meta": "Tiếp tục xác thực khi cửa sổ thanh toán an toàn mở ra."
+          "meta": "Tiếp tục xác thực khi cửa sổ thanh toán mở ra."
         },
         "checkout": {
           "eyebrow": "SẴN SÀNG THANH TOÁN",
@@ -1905,9 +1905,9 @@
         },
         "card": {
           "eyebrow": "THANH TOÁN AN TOÀN MỘT LẦN",
-          "title": "Đang chuẩn bị thanh toán một lần",
+          "title": "Đang tải cửa sổ thanh toán của cổng thanh toán",
           "message": "Chi tiết đơn đặt hàng và xác thực đang được căn chỉnh.",
-          "meta": "Tiếp tục xác thực khi cửa sổ thanh toán an toàn mở ra."
+          "meta": "Tiếp tục xác thực khi cửa sổ thanh toán mở ra."
         },
         "checkout": {
           "eyebrow": "SẴN SÀNG THANH TOÁN",
