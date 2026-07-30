@@ -2638,10 +2638,20 @@
     };
   }
 
+  // 🔴 조회 실패를 던지지 않고 checked:false 로 구분한다(셸 _cdGetPaymentPhoneStatus 와 같은 계약).
+  // "확인 실패"는 "번호 없음"이 아니다 — 401/503/쿨다운을 미보유로 세탁하면 서버에 번호가 있어도 다시 묻는다.
+  // 재시도를 밖에서 감싸지 않는다: _dpPaymentFetchJson 이 이미 타임아웃(_DP_FETCH_TIMEOUT_MS)을 갖고 있다.
   async function _dpGetPaymentPhoneStatus() {
-    var result = await _dpPaymentFetchJson('/api/me/payment-phone', { method: 'GET' });
-    if (!result || !result.ok) throw new Error(_dpReadBillingMessage(result && result.payload, '결제용 휴대폰 번호를 확인하지 못했습니다.'));
-    return _dpReadPaymentPhoneState(result.payload);
+    var result;
+    try {
+      result = await _dpPaymentFetchJson('/api/me/payment-phone', { method: 'GET' });
+    } catch (_lookupError) {
+      return { checked: false, hasPhone: false, maskedPhone: '', phoneNumber: '' };
+    }
+    if (!result || !result.ok) return { checked: false, hasPhone: false, maskedPhone: '', phoneNumber: '' };
+    var state = _dpReadPaymentPhoneState(result.payload);
+    state.checked = true;
+    return state;
   }
 
   async function _dpSavePaymentPhoneNumber(phoneNumber) {
@@ -2792,14 +2802,19 @@
   async function _dpEnsurePaymentPhoneNumber() {
     var localPhone = _dpReadLocalPaymentPhoneNumber();
     if (localPhone) return localPhone;
-    try {
-      var current = await _dpGetPaymentPhoneStatus();
-      if (current && current.phoneNumber) return current.phoneNumber;
-    } catch (_) {
-      // 조회 실패(503 등)를 '번호 없음'으로 단정하지 않는다. 로컬에 값이 있으면 그것으로 진행하고,
-      // 아무 값도 없을 때에만 입력창을 띄운다.
+    var current = await _dpGetPaymentPhoneStatus();
+    if (current && current.phoneNumber) return current.phoneNumber;
+    // 조회 실패(503 등)를 '번호 없음'으로 단정하지 않는다. 확정 미보유가 아닐 때만 두 번째 소스를 본다 —
+    // /api/auth/me 는 같은 번호를 함께 실어 보내고(ME_USER_PROJECTION.phoneNumber), 성공하면
+    // _dpPersistSessionUser 가 로컬 캐시에 채워 준다. TTL memo + in-flight dedupe 가 이미 걸려 있다.
+    if (current && current.checked !== true) {
       var fallbackPhone = _dpReadLocalPaymentPhoneNumber();
       if (fallbackPhone) return fallbackPhone;
+      try {
+        if (typeof _dpVerifyLoginSession === 'function') await _dpVerifyLoginSession(false);
+      } catch (_sessionRecoveryError) {}
+      var recoveredPhone = _dpReadLocalPaymentPhoneNumber();
+      if (recoveredPhone) return recoveredPhone;
     }
     _dpCloseBlockingLayersBeforePhonePrompt();
     // 정적 셸이 로드된 화면에서는 셸의 정본 모달을 재사용해 같은 UI가 두 벌 생기지 않게 한다.
@@ -3477,6 +3492,10 @@
       }
 
       var payloadCustomer = checkoutPayload.customer && typeof checkoutPayload.customer === 'object' ? checkoutPayload.customer : {};
+      // 🔴 서버 주문 응답의 customer(worker/routes/payments.js buildSinglePaymentCustomer)도 소스로 쓴다.
+      // 예전에는 checkoutPayload.customer 만 봤기 때문에, 서버가 저장된 번호를 실어 보내도 이 경로(독립
+      // 정적 페이지 전부)는 매번 GET /api/me/payment-phone 을 다시 타야 했다 — 셸(index.html)과 순서를 맞춘다.
+      var orderCustomer = order && typeof order.customer === 'object' && order.customer ? order.customer : {};
       var customerName = _dpPickText([
         payloadCustomer.fullName,
         payloadCustomer.name,
@@ -3510,6 +3529,8 @@
         checkoutUser.userEmail,
       ]);
       var customerPhone = _dpNormalizePaymentPhoneNumber(_dpPickText([
+        orderCustomer.phoneNumber,
+        orderCustomer.phone,
         payloadCustomer.phoneNumber,
         payloadCustomer.phone,
         checkoutPayload.phoneNumber,
