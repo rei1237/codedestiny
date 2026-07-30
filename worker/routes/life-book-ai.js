@@ -1289,8 +1289,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
     // 인생의 책 32,000토큰 ≈ 160s. 인생종합운은 호출부에서 LIFE_FORTUNE_TIMEOUT_MS를 넘긴다.
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS) || 180000,
-    // 초기 장문 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
-    fallbackToWorkersAI: false,
+    // 폴백 허용. 목표(인생의 책 1만자 / 인생종합운 3만자)의 40% 미만이면 실패로 돌려 환불 경로 유지.
+    fallbackMinChars: Math.round((lifeFortune ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) * 0.4),
     logContext: options.logContext,
     cache: lifeBookLlmCache,
   });
@@ -1322,7 +1322,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: 0.52,
     maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : LIFE_BOOK_MAX_OUTPUT_TOKENS),
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS) || 180000,
-    fallbackToWorkersAI: false,
+    fallbackMinChars: Math.round((lifeFortune ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) * 0.4),
     cache: lifeBookLlmCache,
     logContext: {
       ...(options.logContext || {}),

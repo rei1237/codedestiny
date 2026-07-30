@@ -508,7 +508,7 @@ async function generatePalaceText(env, prompt, options = {}) {
   const baseTokens = options.maxOutputTokens || PALACE_CONSULT_MAX_OUTPUT_TOKENS;
   const ai = await callGeminiJsonWithRetry(env, prompt, {
     systemPrompt: buildSystemPrompt(), taskType: "fortune", temperature: 0.72, timeoutMs, cache,
-    baseTokens, capTokens: Math.round(baseTokens * 1.3), responseMimeType: "application/json", fallbackToWorkersAI: false,
+    baseTokens, capTokens: Math.round(baseTokens * 1.3), responseMimeType: "application/json", fallbackMinChars: 600,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;

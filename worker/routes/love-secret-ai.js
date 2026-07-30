@@ -776,8 +776,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       // 요청 안에서 생성을 끝내는 경로 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
       timeoutMs: clampSyncLlmTimeoutMs(Number(env?.LOVE_SECRET_AI_TIMEOUT_MS)),
       taskType: "fortune",
-      // 대형 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
-      fallbackToWorkersAI: false,
+      // 폴백 허용. 대형 JSON 이라 너무 짧으면 실패로 돌려 기존 재시도·환불 경로를 지킨다.
+      fallbackMinChars: 3000,
       cache: loveSecretLlmCache,
     });
     const provider = clean(ai?.provider);

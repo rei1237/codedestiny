@@ -1284,9 +1284,8 @@ async function createFirstAnswer(env, input, calculation) {
     taskType: "fortune",
     temperature: 0.74,
     timeoutMs: isCompatibility ? compatibilityTimeoutMs : (Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
-    // 궁합은 llama가 못 만드는 대형 JSON이라 Workers AI 폴백은 무의미하다. 폴백을 끊어
-    // Gemini 실패 시 즉시 실패시켜 선차감 환급을 빠르게 실행한다.
-    ...(isCompatibility ? { fallbackToWorkersAI: false } : {}),
+    // 궁합 대형 JSON 도 폴백을 허용하되, 너무 짧으면 실패로 돌려 선차감 환급 경로를 지킨다.
+    ...(isCompatibility ? { fallbackMinChars: 2000 } : {}),
     cache: sukuyoLlmCache,
   };
   // 궁합은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이 잘리지 않게 보장한다.
@@ -1333,7 +1332,7 @@ async function createFirstAnswer(env, input, calculation) {
           capTokens: Math.round(compatibilityMaxOutputTokens * 1.3),
           responseMimeType: "application/json",
           timeoutMs: compatibilityTimeoutMs,
-          fallbackToWorkersAI: false,
+          fallbackMinChars: 2000,
           cache: sukuyoLlmCache,
         });
         const repairProvider = clean(repair?.provider || "");

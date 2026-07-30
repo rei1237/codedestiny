@@ -1067,8 +1067,8 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
         capTokens: Math.round(baseMaxOutputTokens * 1.3),
         responseMimeType: "application/json",
         timeoutMs: vedicTimeoutMs,
-        // 대형 구조화 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
-        fallbackToWorkersAI: false,
+        // 폴백 허용(폴백 JSON 은 structured-consultation 이 정화). 너무 짧으면 실패로 돌린다.
+        fallbackMinChars: 2000,
       })
     : await callGeminiText(env, prompt, {
         systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
