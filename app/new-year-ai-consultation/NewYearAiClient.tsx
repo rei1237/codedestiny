@@ -7,6 +7,7 @@ import {
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
   runBillingCoinGate,
+  primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -1309,6 +1310,8 @@ export default function NewYearAiConsultationPage() {
       reason: "신년운세 전문가 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
+    // 이용권 판정(unlock-status)을 아래 ensure-access 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+    void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
 
     try {
       const { payload: access } = await postJson<EnsureAccessResult>("/api/new-year-ai/ensure-access", payload, idempotencyKey);

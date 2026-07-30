@@ -210,8 +210,13 @@ function runInstantPgLatencyTests() {
   assertContains(indexSource, "function _cdSnapshotSaysPassCannotCover(coinPrice) {", "snapshot 'cannot cover' verdict helper");
   const verdictIndex = indexSource.indexOf("function _cdSnapshotSaysPassCannotCover(coinPrice) {");
   const verdictBody = indexSource.slice(verdictIndex, verdictIndex + 900);
-  assertContains(verdictBody, "_cdCoverageFromSubscriptionSnapshot(Number(coinPrice))", "verdict must rely on the server-populated subscription snapshot");
+  // 인자까지 통째로 핀하지 않는다(옵션이 붙으면 의도와 무관하게 깨진다). 지키려는 성질은 두 가지 —
+  // ① 근거가 서버가 채운 구독 스냅샷일 것 ② pending 결제까지 받아주는 fast 빌더가 아닐 것.
+  assertContains(verdictBody, "_cdCoverageFromSubscriptionSnapshot(Number(coinPrice)", "verdict must rely on the server-populated subscription snapshot");
   assertNotContains(verdictBody, "_cdBuildFastMembershipCoverage", "verdict must not use the pending-tolerant fast coverage builder");
+  // ①-b 만료된 '미보유' 스냅샷도 판정에 쓴다(stale-while-revalidate). 이게 빠지면 이용권이 없는
+  // 사용자가 60초마다 차단형 서버 왕복으로 되돌아가고, 그게 정확히 이 가드가 막으려던 지연이다.
+  assertContains(verdictBody, "allowStaleNone: true", "verdict must accept a stale 'none' snapshot (SWR) instead of blocking on the server");
 
   // ① 확답이면 확인 화면(오버레이/게이트)과 페인트 대기를 건너뛴다 — 중복 클릭 가드는 유지한다.
   assertContains(indexSource, "var _cdSkipPassWaitUi = shouldRunPassFirst && _cdSnapshotSaysPassCannotCover(coinPrice);", "gate must compute the skip-wait-UI verdict");

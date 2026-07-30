@@ -2339,6 +2339,26 @@
   var _DP_SUB_SNAPSHOT_KEY_PREFIX = 'cd_subscription_snapshot_v2::';
   var _DP_SUB_SNAPSHOT_NONE_TTL_MS = 60000;
   var _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
+  // 🔴 stale-while-revalidate 상한. TTL(60초)을 넘긴 'none' 은 삭제하지 않고 이 상한까지 '미보유 확정'
+  // 판정에 그대로 쓰고(= 결제창 직행, 서버 왕복 0) 백그라운드로만 갱신한다. 셸·React 와 같은 값이다.
+  var _DP_SUB_SNAPSHOT_NONE_STALE_MAX_MS = 24 * 60 * 60 * 1000;
+  var _dpSnapshotRevalidateInFlight = false;
+
+  // stale 'none' 을 읽었을 때의 백그라운드 갱신. 결제창이 어차피 쓰는 /api/billing/balance 를 재사용하고
+  // (같은 응답이 스냅샷을 채운다) 동시 1건만 돌린다 — 이 경로에는 기존 dedup 이 없어 여기서 한 겹만 건다.
+  function _dpRevalidateSubscriptionSnapshot() {
+    try {
+      if (_dpSnapshotRevalidateInFlight) return;
+      if (typeof _dpFetchMoonlightStoneBalance !== 'function') return;
+      if (!_dpHasSessionHint()) return;
+      _dpSnapshotRevalidateInFlight = true;
+      _dpFetchMoonlightStoneBalance({}).catch(function() {}).then(function() {
+        _dpSnapshotRevalidateInFlight = false;
+      });
+    } catch (_) {
+      _dpSnapshotRevalidateInFlight = false;
+    }
+  }
 
   function _dpMembershipPassLimitForTier(tier) {
     if (tier === 'family') return 999999999;
@@ -2374,9 +2394,12 @@
     } catch (_) {}
   }
 
-  function _dpReadSubscriptionSnapshotLocal() {
+  // options.allowStaleNone: TTL 을 넘긴 'none' 도 { stale:true } 로 돌려받는다(삭제하지 않음).
+  // 미보유 확정 판정에만 쓴다 — 'active' 는 stale 을 허용하지 않는다(만료 이용권으로 콘텐츠가 샌다).
+  function _dpReadSubscriptionSnapshotLocal(options) {
     var userId = _dpSubSnapshotUserId();
     if (!userId) return null;
+    var allowStaleNone = Boolean(options && options.allowStaleNone);
     try {
       var raw = localStorage.getItem(_dpSubSnapshotKey(userId));
       if (!raw) return null;
@@ -2394,10 +2417,15 @@
         _dpRemoveSubscriptionSnapshot(userId);
         return null;
       }
+      var age = Date.now() - checkedAt;
       var ttl = state === 'none' ? _DP_SUB_SNAPSHOT_NONE_TTL_MS : _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS;
-      if (Date.now() - checkedAt > ttl) {
-        _dpRemoveSubscriptionSnapshot(userId);
-        return null;
+      var stale = false;
+      if (age > ttl) {
+        if (state !== 'none' || !allowStaleNone || age > _DP_SUB_SNAPSHOT_NONE_STALE_MAX_MS) {
+          _dpRemoveSubscriptionSnapshot(userId);
+          return null;
+        }
+        stale = true;
       }
       if (state === 'active' && expiresAt && Date.parse(expiresAt) <= Date.now()) {
         _dpRemoveSubscriptionSnapshot(userId);
@@ -2409,7 +2437,8 @@
         tier: state === 'active' ? tier : 'free',
         expiresAt: state === 'active' ? (expiresAt || null) : null,
         checkedAt: checkedAt,
-        source: String(parsed.source || 'local')
+        source: String(parsed.source || 'local'),
+        stale: stale
       };
     } catch (_) {
       _dpRemoveSubscriptionSnapshot(userId);
@@ -2417,14 +2446,15 @@
     }
   }
 
-  function _dpReadSubscriptionSnapshot() {
+  function _dpReadSubscriptionSnapshot(options) {
     try {
       if (typeof window.__cdReadSubscriptionSnapshot === 'function'
         && window.__cdReadSubscriptionSnapshot !== _dpReadSubscriptionSnapshotLocal) {
-        return window.__cdReadSubscriptionSnapshot();
+        // 셸 안에서 돌 때는 셸 리더가 정본 — 옵션도 그대로 넘겨 판정이 두 벌로 갈라지지 않게 한다.
+        return window.__cdReadSubscriptionSnapshot(options);
       }
     } catch (_) {}
-    return _dpReadSubscriptionSnapshotLocal();
+    return _dpReadSubscriptionSnapshotLocal(options);
   }
 
   // 서버가 확인해 준 등급만 저장한다(degraded 응답은 호출부에서 이미 걸러진다).
@@ -2462,9 +2492,11 @@
     if (!(cost > 0)) return '';
     // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
     if (!_dpHasSessionHint()) return 'signed_out';
-    var snapshot = _dpReadSubscriptionSnapshot();
+    // 미보유 확정은 stale 'none' 으로도 내린다(SWR) — TTL 60초 만료마다 차단형 왕복이 되살아나던 지점이다.
+    var snapshot = _dpReadSubscriptionSnapshot({ allowStaleNone: true });
     if (!snapshot) return '';
-    // (2) 서버가 최근(none TTL 60초) '이용권 없음'이라고 답한 기록.
+    if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
+    // (2) 서버가 '이용권 없음'이라고 답한 기록(만료됐어도 판정에 쓰고 갱신은 백그라운드).
     if (snapshot.state === 'none') return 'subscription_snapshot_none';
     // (3) 산술적 한도 초과 — 신선도와 무관하게 이 가격은 이 등급으로 커버되지 않는다.
     if (snapshot.state === 'active' && cost > _dpMembershipPassLimitForTier(snapshot.tier)) return 'snapshot_pass_limit_exceeded';
@@ -2852,6 +2884,18 @@
 
       var existing = document.getElementById('portone-v2-sdk');
       if (!existing) {
+        // React 라우트에는 정적 셸 <head> 의 preconnect 가 없다. 스크립트를 붙이기 직전에 연결을
+        // 예열해 DNS+TLS 왕복이 스크립트 다운로드와 직렬로 붙지 않게 한다(중복 삽입 방지).
+        try {
+          if (!document.getElementById('portone-v2-preconnect')) {
+            var preconnect = document.createElement('link');
+            preconnect.id = 'portone-v2-preconnect';
+            preconnect.rel = 'preconnect';
+            preconnect.href = 'https://cdn.portone.io';
+            preconnect.crossOrigin = 'anonymous';
+            document.head.appendChild(preconnect);
+          }
+        } catch (_preconnectError) {}
         existing = document.createElement('script');
         existing.id = 'portone-v2-sdk';
         existing.src = 'https://cdn.portone.io/v2/browser-sdk.js';
@@ -2883,6 +2927,106 @@
 
   function _dpPreloadPortOneV2Sdk() {
     try { _dpPortOneV2SdkPromise(); } catch (_) {}
+  }
+
+  // 단건 checkout 본문 정본. 사전발급(결제수단 모달을 여는 시점)과 클릭 시 실제 요청이 **같은 본문·같은
+  // 멱등키**를 써야 서버가 같은 주문으로 묶어준다. 예전에는 이 조립이 _cdRunDirectKrwCheckout 안에만
+  // 있어서 사전발급 자체가 불가능했고, 클릭 이후에야 checkout 왕복이 시작됐다(React 경로 최대 지연).
+  function _dpBuildDirectCheckoutPayload(options) {
+    var opts = options || {};
+    var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+    var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
+    var directFeatureKey = _dpResolvePaidGateFeatureKey(opts, String(opts.title || opts.reason || ''));
+    var checkoutPayload = Object.assign({
+      paymentType: 'digital_content',
+      paymentMode: 'DIRECT_KRW',
+      provider: 'PORTONE_V2',
+      pg: 'KG_INICIS',
+      featureKey: directFeatureKey,
+      reason: String(opts.reason || opts.title || '유료 서비스').trim(),
+      paymentAmount: amountKrw,
+      amountKrw: amountKrw,
+      coinPriceBasis: coinPrice,
+      paymentMethod: 'card_general',
+      requestId: String(opts.requestId || '').trim(),
+    }, opts.checkoutPayload || {});
+
+    checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '').trim();
+    if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
+    if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
+    if (opts.productId) checkoutPayload.productId = opts.productId;
+    if (opts.reportId) checkoutPayload.reportId = opts.reportId;
+    if (opts.sessionId) checkoutPayload.sessionId = opts.sessionId;
+    if (opts.reportSessionId || opts.sessionId) checkoutPayload.reportSessionId = opts.reportSessionId || opts.sessionId;
+    if (opts.purchaseId) checkoutPayload.purchaseId = opts.purchaseId;
+    if (opts.profileId) checkoutPayload.profileId = opts.profileId;
+    if (opts.selectedProfileId || opts.profileId) checkoutPayload.selectedProfileId = opts.selectedProfileId || opts.profileId;
+    if (opts.contentKey) checkoutPayload.contentKey = opts.contentKey;
+    if (opts.contentId || opts.contentKey) checkoutPayload.contentId = opts.contentId || opts.contentKey;
+    if (opts.targetYear !== undefined && opts.targetYear !== null) checkoutPayload.targetYear = opts.targetYear;
+    if (opts.serviceKey) checkoutPayload.serviceKey = opts.serviceKey;
+    if (opts.serviceId || opts.serviceKey) checkoutPayload.serviceId = opts.serviceId || opts.serviceKey;
+    return { checkoutPayload: checkoutPayload, coinPrice: coinPrice, amountKrw: amountKrw, featureKey: directFeatureKey };
+  }
+
+  // 정적 셸(index.html)의 __cdDirectCheckoutPrefetch 와 같은 규칙·같은 전역 슬롯을 쓴다(구현을 두 벌
+  // 두지 않는다). 사용자가 결제수단을 읽는 동안 주문을 미리 발급해 두고, 단건을 고르면 그 응답을 쓴다.
+  // 월정석/취소로 닫히면 발급된 주문은 그냥 버려진다(구독 prepare 가 이미 쓰는 트레이드오프).
+  function _dpResetDirectCheckoutPrefetch() {
+    window.__cdDirectCheckoutPrefetch = null;
+  }
+
+  function _dpStartDirectCheckoutPrefetch(checkoutPayload) {
+    try {
+      var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
+      if (!key) return;
+      var existing = window.__cdDirectCheckoutPrefetch;
+      if (existing && existing.key === key) return;
+      var slot = { key: key, settled: false, value: null, promise: null };
+      window.__cdDirectCheckoutPrefetch = slot;
+      slot.promise = _dpPaymentFetchJson('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Idempotency-Key': key },
+        body: JSON.stringify(checkoutPayload),
+        // 사전발급은 결제수단 모달 뒤에서 조용히 끝나야 한다 — 셸의 전역 fetch 오버레이가 모달을 덮지 않게.
+        __cdSuppressPaymentOverlay: true,
+      }).then(function(res) {
+        slot.settled = true;
+        slot.value = { ok: true, res: res };
+        return slot.value;
+      }, function(error) {
+        slot.settled = true;
+        slot.value = { ok: false, error: error };
+        return slot.value;
+      });
+    } catch (_dpPrefetchError) {
+      _dpResetDirectCheckoutPrefetch();
+    }
+  }
+
+  // 사전발급이 끝났으면 그대로 재사용(왕복 0), 아직 진행 중이면 새 요청과 **경합**시켜 먼저 도착한
+  // 응답을 쓴다. 같은 Idempotency-Key 라 서버가 멱등 처리하므로 두 요청이 겹쳐도 주문은 하나다.
+  function _dpTakeDirectCheckoutResponse(checkoutPayload) {
+    var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
+    var prefetch = window.__cdDirectCheckoutPrefetch;
+    _dpResetDirectCheckoutPrefetch();
+    var reusable = key && prefetch && prefetch.key === key;
+    if (reusable && prefetch.settled === true
+      && prefetch.value && prefetch.value.ok === true && prefetch.value.res) {
+      return Promise.resolve(prefetch.value.res);
+    }
+    var fresh = _dpPaymentFetchJson('/api/billing/checkout', {
+      method: 'POST',
+      headers: key ? { 'Idempotency-Key': key } : undefined,
+      body: JSON.stringify(checkoutPayload),
+    });
+    if (!reusable || prefetch.settled === true || !prefetch.promise || typeof prefetch.promise.then !== 'function') return fresh;
+    return Promise.race([
+      prefetch.promise.then(function(value) {
+        return value && value.ok === true && value.res ? value.res : fresh;
+      }, function() { return fresh; }),
+      fresh
+    ]);
   }
 
   // 서버 trimUtf8Bytes(worker/routes/payments.js)와 같은 규칙. 이니시스 orderName 제한은
@@ -3320,6 +3464,10 @@
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
         }
+        // 서버 이용권 확인 왕복 동안 PortOne SDK 를 함께 내려받아 임계경로에서 뺀다. 예전에는 이 확인이
+        // 끝난 뒤에야 <script> 를 붙여, CDN 왕복이 결제수단 선택 이후 구간에 그대로 얹혔다.
+        // (낙관적 이용권 통과 경로는 위에서 이미 return 했으므로 여기까지 오지 않는다 = 불필요 다운로드 없음.)
+        _dpPreloadPortOneV2Sdk();
         // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
         _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
         // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
@@ -3367,7 +3515,12 @@
       }
       // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
       _dpPreloadPortOneV2Sdk();
+      // 같은 이유로 단건 주문도 미리 발급해 둔다 — 단건을 고르면 그 응답을 그대로 써서 클릭~PG창 사이
+      // checkout 왕복이 사라진다(정적 셸이 이미 쓰는 방식). 월정석/취소로 닫히면 아래에서 폐기한다.
+      var _dpDirectPrefetchOpts = Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId });
+      _dpStartDirectCheckoutPrefetch(_dpBuildDirectCheckoutPayload(_dpDirectPrefetchOpts).checkoutPayload);
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
+      if (choice !== 'direct') _dpResetDirectCheckoutPrefetch();
       if (!choice || choice === 'cancel') {
         if (typeof opts.onCancel === 'function') opts.onCancel();
         return { status: 'cancelled' };
@@ -3402,55 +3555,31 @@
   }  if (typeof window._cdRunDirectKrwCheckout !== 'function') {
     window._cdRunDirectKrwCheckout = async function(options) {
       var opts = options || {};
-      var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
-      var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
+      var _dpDirectBuilt = _dpBuildDirectCheckoutPayload(opts);
+      var checkoutPayload = _dpDirectBuilt.checkoutPayload;
+      var coinPrice = _dpDirectBuilt.coinPrice;
+      var amountKrw = _dpDirectBuilt.amountKrw;
+      var directFeatureKey = _dpDirectBuilt.featureKey;
       var directGateAuthorized = opts.forceDirectPayment === true && (opts.internalMainGate === true || opts.__cdPaymentGateAuthorized === true);
-      var directFeatureKey = _dpResolvePaidGateFeatureKey(opts, String(opts.title || opts.reason || ''));
-      // 🔴 클릭~PG창 구간을 꽃돼지 '단건 결제창 준비 중'(mode 'card') 오버레이로 채운다. 빈 화면은
-      // 이탈로 이어진다. 결제수단 선택 모달이 이미 닫힌 뒤라 겹치지 않고, PG창 렌더 직전의
-      // _dpSetPaymentPending(false) 가 내린다. 문구는 mode 'card' 정본 카피에 맡긴다.
-      _dpSetPaymentPending(true, '', 'card');
       if (!directGateAuthorized && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+        // 게이트를 거치지 않은 진입점은 여기서 이용권 선검사를 한다 — 그 왕복 동안 화면을 비워두지 않는다.
+        _dpSetPaymentPending(true, '', 'card');
         var passBeforeDirect = await window.__cdApplyMembershipPassBeforePayment(opts);
         if (passBeforeDirect && (passBeforeDirect.status === 'pass_applied' || passBeforeDirect.status === 'already_unlocked')) {
           return passBeforeDirect.payload || {};
         }
       }
-      var checkoutPayload = Object.assign({
-        paymentType: 'digital_content',
-        paymentMode: 'DIRECT_KRW',
-        provider: 'PORTONE_V2',
-        pg: 'KG_INICIS',
-        featureKey: directFeatureKey,
-        reason: String(opts.reason || opts.title || '유료 서비스').trim(),
-        paymentAmount: amountKrw,
-        amountKrw: amountKrw,
-        coinPriceBasis: coinPrice,
-        paymentMethod: 'card_general',
-        requestId: String(opts.requestId || '').trim(),
-      }, opts.checkoutPayload || {});
 
-      checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '').trim();
-      if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
-      if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
-      if (opts.productId) checkoutPayload.productId = opts.productId;
-      if (opts.reportId) checkoutPayload.reportId = opts.reportId;
-      if (opts.sessionId) checkoutPayload.sessionId = opts.sessionId;
-      if (opts.reportSessionId || opts.sessionId) checkoutPayload.reportSessionId = opts.reportSessionId || opts.sessionId;
-      if (opts.purchaseId) checkoutPayload.purchaseId = opts.purchaseId;
-      if (opts.profileId) checkoutPayload.profileId = opts.profileId;
-      if (opts.selectedProfileId || opts.profileId) checkoutPayload.selectedProfileId = opts.selectedProfileId || opts.profileId;
-      if (opts.contentKey) checkoutPayload.contentKey = opts.contentKey;
-      if (opts.contentId || opts.contentKey) checkoutPayload.contentId = opts.contentId || opts.contentKey;
-      if (opts.targetYear !== undefined && opts.targetYear !== null) checkoutPayload.targetYear = opts.targetYear;
-      if (opts.serviceKey) checkoutPayload.serviceKey = opts.serviceKey;
-      if (opts.serviceId || opts.serviceKey) checkoutPayload.serviceId = opts.serviceId || opts.serviceKey;
-
-      var checkoutRes = await _dpPaymentFetchJson('/api/billing/checkout', {
-        method: 'POST',
-        headers: checkoutPayload.idempotencyKey ? { 'Idempotency-Key': checkoutPayload.idempotencyKey } : undefined,
-        body: JSON.stringify(checkoutPayload),
-      });
+      // 🔴 주문 요청을 **먼저 발사**하고 그 다음에 대기 오버레이를 켠다. 오버레이 점등은 리플로우와
+      // 스크롤락을 동반해(React 경로에서는 리렌더까지) 메인스레드를 붙잡으므로, 앞에 두면 그만큼
+      // checkout 요청 시작이 밀린다 — 대기 UI 때문에 PG창이 늦어지지 않게 하는 것이 이 순서의 목적이다.
+      // 결제수단 모달을 열 때 사전발급한 주문이 있으면 왕복 0으로 재사용한다.
+      var checkoutPending = _dpTakeDirectCheckoutResponse(checkoutPayload);
+      // 클릭~PG창 구간을 꽃돼지 '단건 결제창 준비 중'(mode 'card') 오버레이로 채운다. 빈 화면은
+      // 이탈로 이어진다. 결제수단 선택 모달이 이미 닫힌 뒤라 겹치지 않고, PG창 렌더 직전의
+      // _dpSetPaymentPending(false) 가 내린다. 문구는 mode 'card' 정본 카피에 맡긴다.
+      _dpSetPaymentPending(true, '', 'card');
+      var checkoutRes = await checkoutPending;
       if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
@@ -3835,7 +3964,10 @@
           profileAction: optionBag.profileAction,
           action: optionBag.action,
           profileId: optionBag.profileId,
-          selectedProfileId: optionBag.selectedProfileId
+          selectedProfileId: optionBag.selectedProfileId,
+          // 셸 메인 게이트와 같은 근거(_cdCoverageFromSubscriptionSnapshot)로 즉시 판정한다. 이 진입점만
+          // 빠져 있어 이용권 유무가 이미 확정된 사용자도 서버 왕복을 기다렸다.
+          allowSnapshotFastPath: true
         }).then(function(access) {
           if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
             var passPayload = access.payload || access.rawPayload || {};
@@ -8948,7 +9080,7 @@
     }
 
     if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
-      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
+      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId, allowSnapshotFastPath: true }).then(function(access) {
         if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
           var passPayload = access.payload || access.rawPayload || {};
           var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);

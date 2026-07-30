@@ -617,6 +617,13 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     startedAt: 0,
   });
   const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
+  // 🔴 표시 단계는 경과 시간이 아니라 실제 status 로만 움직인다(권한 확인 → 처리 진행 → 결과 준비).
+  // 예전에는 2.5초/6초 타이머가 단계를 올려, 서버 답만 기다리는 동안에도 다음 단계가 켜졌다.
+  const gateProgressStep = ["savingUnlock", "unlockSaving"].includes(state.status)
+    ? 2
+    : ["loadingProducts", "paymentPreparing", "paymentProcessing"].includes(state.status)
+      ? 1
+      : 0;
 
   const close = useCallback((requestId?: string) => {
     setState((prev) => {
@@ -934,6 +941,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
             {showSkeleton ? (
               <LoadingProgressMotion
                 phase={loadingPhase}
+                step={gateProgressStep}
                 tone={gateMotionTone}
                 label={gateUiCopy.progressLabel}
                 labels={gateUiCopy.progressSteps}

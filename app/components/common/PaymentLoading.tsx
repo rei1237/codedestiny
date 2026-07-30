@@ -235,6 +235,12 @@ export default function PaymentLoading({
   }, [open]);
 
   const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
+  // 이용권 확인 구간은 정상이면 서버 왕복 0~1회라 8초는 너무 늦다 — 정적 셸(2.5초/6초)과 같은 시점에
+  // 안내한다. 반대로 PG 승인 확인(checkout/confirm)은 원래 십수 초가 걸리는 구간이라, 거기까지
+  // 2.5초에 "지연되고 있습니다"를 띄우면 정상 흐름을 문제처럼 보이게 만든다. 그래서 구간별로 나눈다.
+  const isPassCheckingVariant = variant === "pass-checking" || variant === "payment" || variant === "monthly";
+  const warmDelayMs = isPassCheckingVariant ? 2500 : 8000;
+  const slowDelayMs = isPassCheckingVariant ? 6000 : 20000;
 
   useEffect(() => {
     if (!open) {
@@ -245,14 +251,14 @@ export default function PaymentLoading({
     setLoadingPhase("fresh");
     if (isPaymentComplete) return;
 
-    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 8000);
-    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 20000);
+    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), warmDelayMs);
+    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), slowDelayMs);
 
     return () => {
       window.clearTimeout(warmTimer);
       window.clearTimeout(slowTimer);
     };
-  }, [isPaymentComplete, open]);
+  }, [isPaymentComplete, open, warmDelayMs, slowDelayMs]);
 
   if (!open) return null;
 
@@ -306,6 +312,11 @@ export default function PaymentLoading({
         ? cleanedStatus
         : statusMap[variant];
   const showSkeleton = !isPaymentComplete;
+  // 🔴 진행 단계는 경과 시간이 아니라 **실제 단계**로만 움직인다. 예전에는 8초/20초 타이머 하나가
+  // 지연 안내 문구와 단계 인덱스를 함께 올려서, 이용권이 없어 서버 답만 기다리는 사용자에게도
+  // '혜택 적용 → 결과 준비'가 차례로 켜졌다(있지도 않은 혜택을 적용하는 것처럼 보였다).
+  // 지연 안내 문구(delayed8s/20s)는 시간 기반 그대로 둔다 — 그건 정직한 정보다.
+  const progressStep = resolvedStage === "result_loading" ? 2 : resolvedStage === "pg_processing" ? 1 : 0;
 
   return (
     <div
@@ -340,6 +351,7 @@ export default function PaymentLoading({
         {!isPaymentComplete ? (
           <LoadingProgressMotion
             phase={loadingPhase}
+            step={progressStep}
             tone={loadingTone}
             label={resolvedPaymentType === "pass" ? uiCopy.progressLabel : undefined}
             labels={resolvedPaymentType === "pass" ? uiCopy.passProgressSteps : undefined}
