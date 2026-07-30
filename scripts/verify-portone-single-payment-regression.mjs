@@ -173,6 +173,45 @@ function runInstantPgWindowTests() {
   assertContains(billingClientSource, 'const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";', "covered pass check must still report hasEntitlement");
 }
 
+// 🔴 "PG 결제창이 느리게 뜬다" 회귀 가드 (2026-07)
+// 실측: 셸 정본과 dp 폴백은 같은 엔드포인트(POST /api/billing/coin-gate)를 쓰는데도 셸 쪽이 훨씬
+// 느렸고, 원인은 구독 스냅샷 TTL 비대칭이었다 — 비패스 스냅샷은 60초(패스 보유자는 5분)인데 예열이
+// 앱 진입 1회뿐이라, 진입 1분 뒤의 유료 클릭은 전부 서버 왕복 + 6초 예산 + 재시도 2회를 탔다.
+// 여기서는 ① 스냅샷이 '미커버'를 확답하면 확인 화면·rAF 대기를 생략하고 곧바로 결제창으로 가는 배선과
+// ② 만료를 메우는 예열 두 지점(유휴/의도)의 존재를 고정한다. 선검사 단계 자체는 유지된다.
+function runInstantPgLatencyTests() {
+  // ① 스냅샷 즉답 판정은 _cdCoverageFromSubscriptionSnapshot 하나만 근거로 쓴다.
+  assertContains(indexSource, "function _cdSnapshotSaysPassCannotCover(coinPrice) {", "snapshot 'cannot cover' verdict helper");
+  const verdictIndex = indexSource.indexOf("function _cdSnapshotSaysPassCannotCover(coinPrice) {");
+  const verdictBody = indexSource.slice(verdictIndex, verdictIndex + 900);
+  assertContains(verdictBody, "_cdCoverageFromSubscriptionSnapshot(Number(coinPrice))", "verdict must rely on the server-populated subscription snapshot");
+  assertNotContains(verdictBody, "_cdBuildFastMembershipCoverage", "verdict must not use the pending-tolerant fast coverage builder");
+
+  // ① 확답이면 확인 화면(오버레이/게이트)과 페인트 대기를 건너뛴다 — 중복 클릭 가드는 유지한다.
+  assertContains(indexSource, "var _cdSkipPassWaitUi = shouldRunPassFirst && _cdSnapshotSaysPassCannotCover(coinPrice);", "gate must compute the skip-wait-UI verdict");
+  assertContains(indexSource, "suppressWaitUi: _cdSkipPassWaitUi", "gate must pass the verdict into the in-flight guard");
+  assertContains(indexSource, "if (!_cdSkipPassWaitUi) await _cdWaitForPaymentOverlayPaint();", "gate must skip the paint wait when no overlay is shown");
+  assertContains(indexSource, "if (shouldRunPassFirst && !_cdSkipPassWaitUi) {", "gate must skip the checkingEntitlement update when the snapshot already answered");
+  assertContains(indexSource, "if (opts.suppressWaitUi !== true) {", "paid-feature gate must honour suppressWaitUi");
+  assertContains(indexSource, "_cdBeginPaidFeatureInFlight(paidGateAction, featureKey, {", "duplicate-click guard must stay in place");
+
+  // ② 예열은 진입 1회로 끝나지 않는다(유휴 + 의도).
+  assertContains(indexSource, "var _cdWarmSubscriptionSnapshotIfMissing = function(reason) {", "snapshot warm-up helper");
+  assertContains(indexSource, "_cdWarmSubscriptionSnapshotIfMissing('idle')", "snapshot must be re-warmed on idle");
+  assertContains(indexSource, "_cdWarmSubscriptionSnapshotIfMissing('intent')", "snapshot must be re-warmed on pointer intent");
+  // 중첩 금지: 예열은 기존 3중 억제를 갖춘 함수를 그대로 부른다(새 쿨다운/새 dedup 금지).
+  const warmIndex = indexSource.indexOf("var _cdWarmSubscriptionSnapshotIfMissing = function(reason) {");
+  // 헬퍼 본문만 잘라서 본다. 넉넉히 슬라이스하면 뒤따르는 requestIdleCallback 폴백(setTimeout)까지
+  // 잡혀 오탐이 난다 — 그 setTimeout 은 쿨다운이 아니라 유휴 스케줄링 폴백이다.
+  const warmBody = indexSource.slice(warmIndex, indexSource.indexOf("\n    };", warmIndex));
+  assertContains(warmBody, "_cdRefreshSubscriptionSnapshotFromServer({ force: false, reason: reason })", "warm-up must reuse the deduped refresh helper");
+  assertContains(warmBody, "_cdReadSubscriptionSnapshot()", "warm-up must skip when a snapshot is already cached");
+  assertNotContains(warmBody, "setTimeout", "warm-up must not add its own cooldown timer on top of the existing three suppressors");
+
+  // ③ dp 경로도 PG창 앞에 '단건 결제를 진행 중입니다' 오버레이를 띄우지 않는다.
+  assertNotContains(destinyProfileSource, "' 단건 결제를 진행 중입니다.', 'card'", "dp must not raise a wait overlay right before the PG window opens");
+}
+
 function assertBefore(source, first, second, label) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
@@ -698,6 +737,7 @@ try {
   runClientStaticTests();
   runPortOneRequestShapeTests();
   runInstantPgWindowTests();
+  runInstantPgLatencyTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");
