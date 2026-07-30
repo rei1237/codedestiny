@@ -6695,7 +6695,28 @@
      6. UI — Profile Constellation List (바텀 시트)
   ────────────────────────────────────────── */
 
-  /* 사주 입력 폼 위의 "저장된 카드로 바로 보기" 칩 스트립.
+  /* 가로 캐러셀 양 끝 페이드. CSS mask 폭 두 개만 스크롤 위치에 따라 바꾼다.
+     카드가 한 장이라 넘칠 게 없으면 양쪽 0px 이라 아무것도 흐려지지 않는다. */
+  function _dpQpSyncFade(el) {
+    if (!el) return;
+    var max = el.scrollWidth - el.clientWidth;
+    var x = el.scrollLeft;
+    el.style.setProperty('--dp-qp-fade-l', (max > 2 && x > 2) ? '28px' : '0px');
+    el.style.setProperty('--dp-qp-fade-r', (max > 2 && x < max - 2) ? '28px' : '0px');
+  }
+
+  /* renderProfileList 가 저장·선택·삭제·서버동기화 20여 곳에서 스트립을 다시 그리므로
+     리스너는 컨테이너당 한 번만 붙인다(칩 클릭 자체는 전역 data-action 델리게이션 담당). */
+  function _dpQpBindFade(el) {
+    if (!el || el.dataset.qpFadeBound === '1') return;
+    el.dataset.qpFadeBound = '1';
+    el.addEventListener('scroll', function() { _dpQpSyncFade(el); }, { passive: true });
+    if (typeof ResizeObserver === 'function') {
+      try { new ResizeObserver(function() { _dpQpSyncFade(el); }).observe(el); } catch (roErr) {}
+    }
+  }
+
+  /* 사주 입력 폼 위의 "사주 바로보기" 프로필 카드 캐러셀.
      칩 클릭은 기존 data-action 디스패처가 window.dpRunWithProfile 로 넘겨주므로
      여기서 클릭 핸들러를 따로 달지 않는다(핸들러 중복 방지).
 
@@ -6741,13 +6762,14 @@
         + ' role="listitem" data-action="dpRunWithProfile" data-action-args="' + _esc(pid) + '"'
         + (isActive ? ' aria-current="true"' : '')
         + ' aria-label="' + _esc(pname) + ' 프로필로 사주 바로 보기">'
-        + '<span class="dp-qp__zodiac" aria-hidden="true">' + _zodiacEmoji(b.year) + '</span>'
+        + '<span class="dp-qp__badge" aria-hidden="true">' + _zodiacEmoji(b.year) + '</span>'
         + '<span class="dp-qp__name">' + _esc(pname) + '</span>'
         + '<span class="dp-qp__date">' + dateLabel + '</span>'
         + '</button>';
     }).join('');
 
     strip.hidden = !inner.innerHTML;
+    if (!strip.hidden) { _dpQpBindFade(inner); _dpQpSyncFade(inner); }
   }
 
   function renderProfileList() {
