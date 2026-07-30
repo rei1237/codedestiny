@@ -3468,45 +3468,39 @@ async function handleDigitalContentPrepare(request, auth, body) {
   const orderId = String(body?.orderId || idempotencyKey || requestId || "").trim().slice(0, 120);
   const membershipCreditCost = Number(resolved.pricing?.membershipCreditCost || calculateMembershipCreditCost(resolved.coinPrice));
 
-  if (idempotencyKey) {
-    const existing = await Payment.findOne({
-      userId: auth.userId,
-      idempotencyKey,
-      paymentType: "digital_content",
-    }).sort({ createdAt: -1 }).lean();
-
-    if (existing) {
-      const existingAmount = Number(existing.paymentAmount || 0);
-      const existingCoins = Number(existing.expectedChargedPoints || 0);
-      const existingFeatureKey = String(existing.featureKey || "");
-      if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice || (featureKey && existingFeatureKey && existingFeatureKey !== featureKey)) {
-        return json({
-          message: "Idempotency key conflict. Request payload does not match existing product payment preparation.",
-          code: "IDEMPOTENCY_CONFLICT",
-        }, { status: 409 });
-      }
-
-      return json({
-        message: "Product payment preparation already completed.",
-        idempotent: true,
-        order: {
-          merchantUid: String(existing.merchantUid || ""),
-          paymentAmount: existingAmount,
-          amountKRW: existingAmount,
-          coinPrice: existingCoins,
-          membershipCreditCost: Number(existing.membershipCreditCost || calculateMembershipCreditCost(existingCoins)),
-          featureKey: String(existing.featureKey || featureKey || ""),
-          accessType: String(existing.accessType || "single_purchase"),
-          productName,
-          customer: orderCustomer,
-          pricing: resolved.pricing,
-        },
-      });
-    }
-  }
-
   const merchantUid = buildMerchantUid(auth.userId);
-  await Payment.create({
+
+  // 기존 주문과 요청이 어긋나면 409 — 멱등 재요청 경로와 E11000 복구 경로가 **같은 판정**을 써야 한다.
+  // 🔴 featureKey 비교가 비대칭인 것은 의도된 것이다(둘 중 하나가 비면 충돌 아님) — 레거시 행이 409 나지 않게.
+  const buildIdempotentResponse = (existing) => {
+    const existingAmount = Number(existing.paymentAmount || 0);
+    const existingCoins = Number(existing.expectedChargedPoints || 0);
+    const existingFeatureKey = String(existing.featureKey || "");
+    if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice || (featureKey && existingFeatureKey && existingFeatureKey !== featureKey)) {
+      return json({
+        message: "Idempotency key conflict. Request payload does not match existing product payment preparation.",
+        code: "IDEMPOTENCY_CONFLICT",
+      }, { status: 409 });
+    }
+    return json({
+      message: "Product payment preparation already completed.",
+      idempotent: true,
+      order: {
+        merchantUid: String(existing.merchantUid || ""),
+        paymentAmount: existingAmount,
+        amountKRW: existingAmount,
+        coinPrice: existingCoins,
+        membershipCreditCost: Number(existing.membershipCreditCost || calculateMembershipCreditCost(existingCoins)),
+        featureKey: String(existing.featureKey || featureKey || ""),
+        accessType: String(existing.accessType || "single_purchase"),
+        productName,
+        customer: orderCustomer,
+        pricing: resolved.pricing,
+      },
+    });
+  };
+
+  const paymentDoc = {
     userId: auth.userId,
     merchantUid,
     idempotencyKey,
@@ -3539,7 +3533,45 @@ async function handleDigitalContentPrepare(request, auth, body) {
     source: "prepare",
     paymentType: "digital_content",
     subscriptionTier: "",
-  });
+  };
+
+  try {
+    if (idempotencyKey) {
+      // 🔴 조회 + 생성 2왕복을 upsert 1왕복으로 합친다. 무료/공유혀 Atlas 에서는 왕복 1회가 곧 체감 지연이다.
+      // 필터 3키는 유니크 부분 인덱스({userId, idempotencyKey, paymentType})와 정확히 일치한다.
+      // sort 를 넘겨야 종전 .sort({createdAt:-1}) 의 "최신 우선" 의미가 유지된다(인덱스 생성 전 중복 행 대비).
+      // $setOnInsert 에는 필터 3키를 넣지 않는다 — Mongo 가 필터 등식을 삽입 문서에 적용하므로 충돌한다.
+      const { userId: _f1, idempotencyKey: _f2, paymentType: _f3, ...insertOnly } = paymentDoc;
+      const upserted = await Payment.findOneAndUpdate(
+        { userId: auth.userId, idempotencyKey, paymentType: "digital_content" },
+        { $setOnInsert: insertOnly },
+        { upsert: true, new: true, includeResultMetadata: true, sort: { createdAt: -1 } },
+      );
+      const insertedNow = upserted?.lastErrorObject?.updatedExisting === false;
+      const doc = upserted?.value || null;
+      // 기존 행을 만난 경우($setOnInsert 는 no-op) 멱등 응답 또는 409.
+      if (!insertedNow && doc) return buildIdempotentResponse(doc);
+    } else {
+      // 🔴 키가 없으면 upsert 를 쓰면 안 된다. 유니크 부분 인덱스는 idempotencyKey: "" 를 덮지 않으므로
+      // 이 사용자의 키 없는 모든 prepare 가 한 문서로 접혀 버린다.
+      await Payment.create(paymentDoc);
+    }
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+    // 동시 요청이 같은 키로 동시에 insert 를 시도하면 진 쪽이 E11000 을 받는다. 그때만 한 번 더 읽어
+    // 기존 주문을 그대로 돌려준다. 예전에는 이 분기가 없어(구독 핸들러엔 있었다) 동시 요청이
+    // order 없는 409 로 죽었고, 클라는 그걸 복구할 방법이 없었다.
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      paymentType: "digital_content",
+      $or: [
+        { merchantUid },
+        ...(idempotencyKey ? [{ idempotencyKey }] : []),
+      ],
+    }).sort({ createdAt: -1 }).lean();
+    if (!existing) throw error;
+    return buildIdempotentResponse(existing);
+  }
 
   return json({
     message: "Product payment preparation completed.",
