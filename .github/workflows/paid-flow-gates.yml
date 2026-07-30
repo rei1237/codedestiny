@@ -87,6 +87,11 @@ jobs:
       - name: Verify AI prompt billing policy
         run: npm run verify:ai-prompt-billing-policy
 
+      # 결제수단 선택창은 렌더러가 3종(정적 셸 6미러 / React / 독립 폴백)이라 한쪽만 고치면
+      # 진입 경로에 따라 다른 결제창이 뜬다. 정본 CSS·구조 마커·3옵션 노출이 어긋나면 차단한다.
+      - name: Verify payment choice modal parity
+        run: npm run verify:payment-choice-parity
+
       # 재밌는 사주 콘텐츠 타일: 상세 팝업이 결제보다 먼저 뜨는지 + 해금 후 CTA 가 카드를
       # 열었다 닫지 않는지(이중 처리). 실제 클릭 재현은 verify:rpt-preview-cta(크롬 필요)가 맡고,
       # 여기서는 6미러 불변식만 본다.

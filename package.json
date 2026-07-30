@@ -96,6 +96,7 @@
     "verify:worker-security-guards": "node scripts/verify-worker-security-guards.mjs",
     "verify:no-nested-retry": "node scripts/verify-no-nested-retry.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
+    "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",
     "verify:static-paid-gate-failsafe": "node scripts/verify-static-paid-gate-failsafe.mjs",
     "verify:saju-fun-content-gate": "node scripts/verify-saju-fun-content-gate.mjs",
     "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
