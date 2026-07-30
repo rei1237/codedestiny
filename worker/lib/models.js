@@ -876,9 +876,27 @@ const masterLoveCodexChapterSchema = new mongoose.Schema({
   ok: { type: Boolean, default: true },
 }, { _id: false });
 
+/**
+ * 마스터 인연의 서 궁합 모드의 상대 출생 정보.
+ * 필드명은 loveSecretAiPersonInfoSchema 와 같게 맞춘다(프론트 AiPrefillSeed 와도 동일).
+ * 상대는 생년월일만 필수다 — 시각·성별은 없을 수 있다.
+ */
+const masterLoveCodexPartnerSchema = new mongoose.Schema({
+  name: { type: String, default: "", trim: true, maxlength: 80 },
+  gender: { type: String, default: "", trim: true, maxlength: 20 },
+  birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+  birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+  birthTimeUnknown: { type: Boolean, default: false },
+  calendarType: { type: String, enum: ["solar", "lunar"], default: "solar" },
+  isLeapMonth: { type: Boolean, default: false },
+}, { _id: false });
+
 const masterLoveCodexSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: String, required: true, trim: true, index: true },
+  // solo = 개인판(master-love-codex) / compat = 궁합판(master-love-codex-compat).
+  // 기존 문서에는 이 필드가 없으므로 default "solo" 로 하위호환한다(마이그레이션 불필요).
+  mode: { type: String, enum: ["solo", "compat"], default: "solo", index: true },
   birthInfo: {
     name: { type: String, default: "", trim: true, maxlength: 80 },
     gender: { type: String, required: true, trim: true, maxlength: 20 },
@@ -888,9 +906,13 @@ const masterLoveCodexSchema = new mongoose.Schema({
     calendarType: { type: String, enum: ["solar", "lunar"], required: true },
     isLeapMonth: { type: Boolean, default: false },
   },
+  partnerInfo: { type: masterLoveCodexPartnerSchema, default: null },
   prologueChoice: { type: String, default: "", trim: true, maxlength: 20 },
   sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
   ziweiChart: { type: mongoose.Schema.Types.Mixed, default: null },
+  partnerSajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
+  partnerZiweiChart: { type: mongoose.Schema.Types.Mixed, default: null },
+  compatibility: { type: mongoose.Schema.Types.Mixed, default: null },
   chapters: { type: [masterLoveCodexChapterSchema], default: [] },
   loveDna: { type: mongoose.Schema.Types.Mixed, default: null },
   generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },

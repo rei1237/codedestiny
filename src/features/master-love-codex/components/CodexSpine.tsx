@@ -7,7 +7,7 @@
  * 로마숫자는 ASCII(I~V) — Cinzel 이 커버하는 문자만 쓴다.
  */
 
-import { CODEX_ACTS, CODEX_ACT_ANCHOR_PREFIX } from "../data/acts";
+import { CODEX_ACT_ANCHOR_PREFIX, actsForMode, type CodexActMode } from "../data/acts";
 import styles from "../styles/codex.module.css";
 
 interface CodexSpineProps {
@@ -15,10 +15,13 @@ interface CodexSpineProps {
   activeOrder: number;
   /** 아직 생성되지 않은 막은 비활성 */
   availableOrders: number[];
+  /** 막 제목 세트 — 궁합판은 관계 축 제목을 쓴다 */
+  mode?: CodexActMode;
 }
 
-export default function CodexSpine({ activeOrder, availableOrders }: CodexSpineProps) {
+export default function CodexSpine({ activeOrder, availableOrders, mode = "solo" }: CodexSpineProps) {
   const available = new Set(availableOrders);
+  const acts = actsForMode(mode);
 
   function goToAct(order: number) {
     const target = document.getElementById(`${CODEX_ACT_ANCHOR_PREFIX}${order}`);
@@ -33,7 +36,7 @@ export default function CodexSpine({ activeOrder, availableOrders }: CodexSpineP
       aria-label="막 이동"
     >
       <ol className="mx-auto flex max-w-[680px] items-center justify-center gap-1 px-[var(--codex-gutter)] py-3">
-        {CODEX_ACTS.map((act) => {
+        {acts.map((act) => {
           const isActive = act.order === activeOrder;
           const isReady = available.has(act.order);
           return (
