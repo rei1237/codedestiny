@@ -16,7 +16,12 @@
  *
  * ── 판정 ─────────────────────────────────────────────────────────────────
  *  - bare 404 + `?cdcb=` 200  → 엣지에 캐시된 404(오리진은 정상). 퍼지 자격이 있으면 퍼지 후 재확인.
- *  - bare 404 + `?cdcb=` 404  → 진짜 산출물 누락. 빌드/업로드 문제이므로 즉시 실패.
+ *  - bare 404 + `?cdcb=` 404  → 산출물 누락, **또는 아직 전파되지 않음**.
+ *
+ * 🔴 이 둘은 배포 직후에는 구분되지 않는다. 엣지가 아직 옛 배포를 가리키는 동안에는 새 자산이
+ * 캐시 우회로 요청해도 404 다(실측 2026-07-30: 배포 30초 뒤 `chunks/2325-*.js` 가 bare/cdcb 모두
+ * 404 → 잠시 뒤 둘 다 200). 그래서 "오리진 부재"를 첫 라운드에 단정하면 배포마다 무작위로
+ * 빨간불이 뜬다. **모든 실패를 라운드가 소진될 때까지 재시도한 뒤에만** 최종 판정한다.
  *
  * ── 퍼지 자격 ────────────────────────────────────────────────────────────
  * `CLOUDFLARE_CACHE_PURGE_TOKEN` + `CLOUDFLARE_ZONE_ID` 가 있으면 죽은 URL 만 골라 퍼지한다.
@@ -35,8 +40,10 @@ const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || "";
  */
 const ROUTES = ["/", "/points/", "/me/", "/login/", "/music/", "/stories/"];
 
-const MAX_ROUNDS = 4;
-const ROUND_DELAY_MS = 20_000;
+// 전파 지연을 오탐으로 만들지 않을 만큼은 기다린다(실측: 배포 30초 뒤에도 미전파 자산이 있었다).
+// 워크플로의 선행 sleep 45초까지 더하면 약 3분까지 버틴다.
+const MAX_ROUNDS = 5;
+const ROUND_DELAY_MS = 25_000;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -135,21 +142,23 @@ async function main() {
 
   let dead = await checkAssets(assets);
 
-  for (let round = 1; dead.length && round < MAX_ROUNDS; round += 1) {
+  for (let round = 1; dead.length && round <= MAX_ROUNDS; round += 1) {
     const classified = await classify(dead);
     const poisoned = classified.filter((d) => d.edgePoisoned);
-    const missing = classified.filter((d) => !d.edgePoisoned);
+    const unresolved = classified.filter((d) => !d.edgePoisoned);
 
-    if (missing.length) {
-      console.error("::error::오리진에도 없는 자산이 있습니다(빌드/업로드 문제):");
-      report(missing.map((d) => `  - ${d.path} (bare=${d.status}, bypass=${d.bypassStatus})`));
-      process.exit(1);
+    console.log(
+      `[verify-deployed-assets] round ${round}/${MAX_ROUNDS}: 실패 ${classified.length}건` +
+        ` (엣지 캐시 404 ${poisoned.length} / 미전파·부재 ${unresolved.length})`,
+    );
+    report(classified.map((d) => `  - ${d.path} bare=${d.status} bypass=${d.bypassStatus}`));
+
+    // 엣지 오염분만 퍼지로 즉시 풀 수 있다. 미전파분은 기다리는 것 말고 할 수 있는 게 없다.
+    if (poisoned.length) {
+      const purged = await purge(poisoned.map((d) => d.path));
+      if (purged.attempted && purged.ok) console.log("[verify-deployed-assets] 엣지 오염 URL 캐시 퍼지 완료");
+      else console.log(`[verify-deployed-assets] 퍼지 건너뜀 — ${purged.reason}`);
     }
-
-    console.log(`[verify-deployed-assets] round ${round}: 엣지 캐시 404 ${poisoned.length}건 — ${poisoned.map((d) => d.path).join(", ")}`);
-    const purged = await purge(poisoned.map((d) => d.path));
-    if (purged.attempted && purged.ok) console.log("[verify-deployed-assets] 해당 URL 캐시 퍼지 완료");
-    else console.log(`[verify-deployed-assets] 퍼지 건너뜀 — ${purged.reason}`);
 
     await sleep(ROUND_DELAY_MS);
     dead = await checkAssets(assets);
@@ -161,9 +170,13 @@ async function main() {
   }
 
   const classified = await classify(dead);
-  console.error("::error::배포 후에도 죽어 있는 자산이 있습니다. 엣지에 404 가 캐시된 상태로, Cloudflare 대시보드에서 해당 URL 을 Custom Purge 해야 합니다.");
-  report(classified.map((d) => `  - ${ORIGIN}${d.path}  bare=${d.status} bypass=${d.bypassStatus} ${d.edgePoisoned ? "(엣지 캐시 오염)" : "(오리진 부재)"}`));
-  console.error("::error::재발 방지 권장: Cloudflare Cache Rules 에서 URI Path prefix /_next/static/ 에 대해 'Edge TTL - by status code - 404: Bypass cache' 를 설정하면 이 404 가 애초에 캐시되지 않습니다.");
+  const poisoned = classified.filter((d) => d.edgePoisoned);
+  console.error(`::error::재시도 ${MAX_ROUNDS}라운드(약 ${Math.round((MAX_ROUNDS * ROUND_DELAY_MS) / 1000)}초) 뒤에도 죽어 있는 자산이 있습니다.`);
+  report(classified.map((d) => `  - ${ORIGIN}${d.path}  bare=${d.status} bypass=${d.bypassStatus} ${d.edgePoisoned ? "(엣지 캐시 오염 — 퍼지 필요)" : "(오리진 부재 — 빌드/업로드 문제)"}`));
+  if (poisoned.length) {
+    console.error("::error::엣지 캐시 오염분은 Cloudflare 대시보드에서 해당 URL 을 Custom Purge 하면 즉시 풀립니다.");
+    console.error("::error::근본 차단: Cache Rules 에서 URI Path prefix /_next/static/ 에 'Edge TTL → status code 404 → No-store' 를 설정하면 이 404 가 애초에 캐시되지 않습니다.");
+  }
   process.exit(1);
 }
 

@@ -101,6 +101,28 @@ function normalizeFields(namespace, rawFields) {
       continue;
     }
 
+    /* 고정 키 표. `{ 키: { 필드: 문장 } }` 2단 구조만 통과시킨다.
+       키를 새로 만드는 것은 막지 않되(코드가 모르는 키는 cmsRecord 가 무시한다) 값이
+       문자열이 아닌 것은 버려, 편집기 버그가 표 구조를 망가뜨리지 못하게 한다. */
+    if (def.kind === "record") {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const table = {};
+      for (const [recordKey, row] of Object.entries(raw)) {
+        if (!row || typeof row !== "object" || Array.isArray(row)) continue;
+        const cleaned = {};
+        for (const [fieldName, value] of Object.entries(row)) {
+          if (typeof value !== "string") continue;
+          const trimmed = value.trim();
+          if (!trimmed) continue;
+          cleaned[fieldName] = value.length > 20000 ? value.slice(0, 20000) : value;
+        }
+        if (Object.keys(cleaned).length) table[String(recordKey)] = cleaned;
+      }
+      if (!Object.keys(table).length) continue;
+      fields[def.name] = table;
+      continue;
+    }
+
     if (def.kind === "select") {
       const value = String(raw).trim();
       if (Array.isArray(def.options) && !def.options.includes(value)) continue;
@@ -182,9 +204,14 @@ async function handleEntryList(path, request, env) {
 
   // 캐시 키는 검색어를 제외한 축으로만 잡고 검색은 메모리에서 거른다.
   // 검색어마다 캐시 엔트리를 만들면 히트율이 0에 수렴한다.
+  //
+  // ttlSeconds: 0 = 항상 재조회, 실패했을 때만 stale 폴백.
+  // 신선분을 들고 있으면 발행 직후 목록이 옛 상태로 보인다 — 아이솔레이트마다 메모가 따로라
+  // 쓰기 쪽 purge 가 읽기를 처리한 다른 아이솔레이트에는 닿지 않기 때문이다.
+  // 관리자 목록은 트래픽이 미미하므로 캐시의 목적은 속도가 아니라 DB 블립 방어 하나다.
   const { value: items, stale, cachedAt } = await readCmsThroughCache({
     key: `cms-entries:${ns || "all"}:${locale}:${statusFilter || "any"}`,
-    ttlSeconds: 20,
+    ttlSeconds: 0,
     load: async () => {
       await connectDb(env);
       const docs = await cmsMongoRead(env, async () =>

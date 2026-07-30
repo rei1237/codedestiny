@@ -1,3 +1,5 @@
+import { cmsRecordRow } from "@/lib/cms/build-text";
+
 import { STAGE_KEY_TO_LABEL } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData, TwelveGrowthAnimalResult, TwelveStageKey } from "./types";
 
@@ -358,7 +360,8 @@ function ensureSummaryLength(summary: string): string {
 export function resolveTwelveGrowthAnimalResult(animal: AnimalDestinyData): TwelveGrowthAnimalResult {
   const stageKey = animal.stageKey;
   const stageName = STAGE_KEY_TO_LABEL[stageKey];
-  const seed = STAGE_SEEDS[stageKey];
+  // 관리자 CMS 오버라이드를 기본 시드 위에 얹는다(폴백 우선).
+  const seed = cmsRecordRow("saju-animal", "stage-result", stageKey, STAGE_SEEDS[stageKey]);
 
   const summary = ensureSummaryLength(makeSummary(seed, animal));
 
@@ -509,3 +512,6 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult, loca
 export function getAllTwelveGrowthResults(source: Record<string, AnimalDestinyData>) {
   return Object.values(source).map((animal) => resolveTwelveGrowthAnimalResult(animal));
 }
+
+/* 관리자 CMS 기본값 노출용. */
+export const __cmsStageSeeds = STAGE_SEEDS;

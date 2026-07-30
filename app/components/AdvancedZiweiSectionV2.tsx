@@ -1,5 +1,7 @@
 "use client";
 
+import { cmsRecord } from "@/lib/cms/build-text";
+
 // ┌───────────────────────────────────────────────────────────────────────────┐
 // │ [심화(深化/advanced) 자미두수 명반] 라우트 /ziwei/chart 가 마운트하는 본체.  │
 // │ 파일명에 "Advanced"가 붙으면 = 심화 자미두수. 기본(基本) 자미두수 명반은     │
@@ -509,7 +511,7 @@ interface ZiweiTrackAnalysis {
   dataWarnings: string[];
 }
 
-const PALACE_DEFINITION_MAP: Record<ZiweiPalaceId, { name: string; definition: string; focus: string }> = {
+const PALACE_DEFINITION_MAP_DEFAULT: Record<ZiweiPalaceId, { name: string; definition: string; focus: string }> = {
   ming: {
     name: "명궁",
     definition: "선천적 기질과 삶을 대하는 기본 반응을 보여주는 중심 궁",
@@ -572,7 +574,7 @@ const PALACE_DEFINITION_MAP: Record<ZiweiPalaceId, { name: string; definition: s
   },
 };
 
-const STAR_MEANING_MAP: Record<string, { essence: string; strength: string; shadow: string }> = {
+const STAR_MEANING_MAP_DEFAULT: Record<string, { essence: string; strength: string; shadow: string }> = {
   자미: { essence: "중심성, 책임, 리더십", strength: "판을 정리하고 방향을 제시하는 힘", shadow: "통제욕, 고립감, 자존심 부담" },
   천기: { essence: "전략, 기획, 변통", strength: "상황을 읽고 최적 해법을 찾는 능력", shadow: "생각 과다, 결정 지연" },
   태양: { essence: "표현, 추진, 명료함", strength: "밖으로 빛을 내고 영향력을 확장하는 힘", shadow: "과열, 과책임" },
@@ -599,6 +601,10 @@ const STAR_MEANING_MAP: Record<string, { essence: string; strength: string; shad
   지겁: { essence: "변동, 긴장, 각성", strength: "안일함을 깨고 리스크 감각을 키우는 힘", shadow: "손실 체감" },
   천마: { essence: "이동, 확장, 전환", strength: "바깥에서 기회를 잡는 힘", shadow: "정착 어려움" },
 };
+
+/* 관리자 CMS(운세 콘텐츠 → 자미두수 심화 해설)에서 고친 값을 얹는다(폴백 우선). */
+const PALACE_DEFINITION_MAP = cmsRecord("ziwei-deep", "palace", PALACE_DEFINITION_MAP_DEFAULT);
+const STAR_MEANING_MAP = cmsRecord("ziwei-deep", "star", STAR_MEANING_MAP_DEFAULT);
 
 const BRIGHTNESS_RULES: Record<"묘" | "득" | "리" | "평" | "함", { symbol: string; score: number; tone: string; caution: string }> = {
   묘: { symbol: "◎", score: 30, tone: "장점이 선명하게 드러나 주도권을 잡기 좋습니다.", caution: "자신감이 과열되지 않게 리듬을 조절하세요." },
@@ -2671,3 +2677,9 @@ export default function AdvancedZiweiSectionV2({
     </section>
   );
 }
+
+/* 관리자 CMS 기본값 노출용. */
+export const __cmsZiweiDeepDefaults = {
+  palace: PALACE_DEFINITION_MAP_DEFAULT as Record<string, unknown>,
+  star: STAR_MEANING_MAP_DEFAULT as Record<string, unknown>,
+};

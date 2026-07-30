@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Check,
-  Clock,
   ExternalLink,
   LogOut,
   Plus,
@@ -28,6 +27,7 @@ import { loadBaseEntries, type CmsBaseEntry } from "./_lib/base-values";
 import FieldEditor, { type CmsFieldDef } from "./_components/FieldEditor";
 import RevisionPanel, { type CmsRevision } from "./_components/RevisionPanel";
 import BeatsEditor from "./_components/BeatsEditor";
+import RecordEditor from "./_components/RecordEditor";
 
 type Fields = Record<string, unknown>;
 
@@ -38,8 +38,6 @@ interface CmsEntryItem {
   fields: Fields;
   status: string;
   channel: string;
-  publishAt: string | null;
-  unpublishAt: string | null;
   version: number;
   note: string;
   updatedBy: string;
@@ -57,7 +55,6 @@ interface CmsNamespaceDef {
   fields: CmsFieldDef[];
   entries?: Array<{ key: string; label: string; hint?: string }>;
   constraints?: { beatMaxLength?: number; forbiddenInBeat?: string[]; minKoreanCharsPerEpisode?: number };
-  supportsSchedule?: boolean;
 }
 
 const NAMESPACES = CMS_NAMESPACES as unknown as CmsNamespaceDef[];
@@ -113,8 +110,6 @@ export default function AdminCmsPage() {
   const [error, setError] = useState("");
   const [stale, setStale] = useState(false);
   const [deploying, setDeploying] = useState(false);
-  const [publishAt, setPublishAt] = useState("");
-  const [unpublishAt, setUnpublishAt] = useState("");
 
   const namespace = useMemo(() => (getCmsNamespace(activeNs) as unknown as CmsNamespaceDef | null), [activeNs]);
   const channel = namespace ? CMS_CHANNELS[namespace.channel] : null;
@@ -224,8 +219,6 @@ export default function AdminCmsPage() {
     } catch { /* 손상된 초안은 무시하고 서버 값으로 간다 */ }
 
     setDraft({ ...(base?.fields || {}), ...(override?.fields || {}), ...(local || {}) });
-    setPublishAt(override?.publishAt ? String(override.publishAt).slice(0, 16) : "");
-    setUnpublishAt(override?.unpublishAt ? String(override.unpublishAt).slice(0, 16) : "");
     setRevisions([]);
 
     void adminFetch<{ items?: CmsRevision[] }>(
@@ -236,8 +229,26 @@ export default function AdminCmsPage() {
   }, [activeNs, overrides, baseByKey]);
 
   // ── 저장 ───────────────────────────────────────────────────────────────────
+  /* 저장이 겹치면 나중에 도착한 응답이 앞선 것을 덮는다. 실제로 자동저장 타이머가 도는 중에
+     '발행'을 누르면 뒤이어 도착한 자동저장(draft)이 발행을 되돌려, 발행이 안 되는 것처럼 보였다.
+     그래서 ① 명시적 저장은 대기 중 자동저장 타이머를 먼저 취소하고 ② 저장이 진행 중이면
+     자동저장은 건너뛴다(명시적 저장은 절대 건너뛰지 않는다 — 운영자 의도가 우선). */
+  const savingRef = useRef(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelPendingAutoSave = useCallback(() => {
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+      autoSaveTimer.current = null;
+    }
+  }, []);
+
   const save = useCallback(async (status: string, options: { silent?: boolean } = {}) => {
     if (!selectedKey || !namespace) return;
+    if (options.silent && savingRef.current) return;
+
+    cancelPendingAutoSave();
+    savingRef.current = true;
     setSaving(true);
     if (!options.silent) { setMessage(""); setError(""); }
 
@@ -246,11 +257,6 @@ export default function AdminCmsPage() {
         fields: stripDisplayOnlyFields(activeNs, draft),
         status,
       };
-      if (namespace.supportsSchedule) {
-        payload.publishAt = publishAt ? new Date(publishAt).toISOString() : null;
-        payload.unpublishAt = unpublishAt ? new Date(unpublishAt).toISOString() : null;
-      }
-
       const data = await adminFetch<{ item?: CmsEntryItem }>(
         `/api/admin/cms/entries/${encodeURIComponent(activeNs)}/${encodeURIComponent(selectedKey)}`,
         { method: "PUT", body: payload },
@@ -258,6 +264,10 @@ export default function AdminCmsPage() {
 
       if (data?.item) {
         setOverrides((prev) => ({ ...prev, [entryId(data.item!.namespace, data.item!.key)]: data.item! }));
+        // 서버가 정규화한 값(빈 필드 제거·길이 절단)으로 편집본을 되맞춘다.
+        // 안 그러면 draft 와 저장본이 영영 달라 "저장되지 않은 변경"이 가라앉지 않고,
+        // 자동저장이 계속 재점화된다.
+        setDraft((prev) => ({ ...prev, ...data.item!.fields }));
       }
       try { window.localStorage.removeItem(`${LOCAL_DRAFT_PREFIX}${entryId(activeNs, selectedKey)}`); } catch { /* 무시 */ }
 
@@ -273,12 +283,13 @@ export default function AdminCmsPage() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "저장에 실패했습니다.");
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
-  }, [selectedKey, namespace, activeNs, draft, publishAt, unpublishAt]);
+  }, [selectedKey, namespace, activeNs, draft, cancelPendingAutoSave]);
 
-  // ── 3초 자동 저장(임시저장) ────────────────────────────────────────────────
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ── 3초 자동 저장 ──────────────────────────────────────────────────────────
+  const savedStatus = selectedOverride?.status;
   useEffect(() => {
     if (!selectedKey || !dirty) return undefined;
 
@@ -287,16 +298,17 @@ export default function AdminCmsPage() {
       window.localStorage.setItem(`${LOCAL_DRAFT_PREFIX}${entryId(activeNs, selectedKey)}`, JSON.stringify(draft));
     } catch { /* 용량 초과 등은 무시 — 서버 자동저장이 본선이다 */ }
 
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    cancelPendingAutoSave();
     autoSaveTimer.current = setTimeout(() => {
-      // 이미 발행된 항목을 자동으로 임시저장 상태로 되돌리면 사이트에서 문구가 사라진다.
-      // 발행본은 자동저장하지 않고, 운영자가 직접 '발행'을 눌러야 반영되게 둔다.
-      if (selectedOverride?.status === "published") return;
-      void save("draft", { silent: true });
+      // 발행본은 자동저장하지 않는다. 자동으로 임시저장으로 되돌리면 사이트에서 문구가 사라진다.
+      if (savedStatus === "published") return;
+      // 상태를 draft 로 못박지 않고 지금 상태를 유지한다 — 검수 대기 중인 항목을
+      // 타이핑했다는 이유로 임시저장으로 강등시키지 않기 위함이다.
+      void save(savedStatus || "draft", { silent: true });
     }, AUTOSAVE_DELAY_MS);
 
-    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
-  }, [draft, dirty, selectedKey, activeNs, save, selectedOverride?.status]);
+    return cancelPendingAutoSave;
+  }, [draft, dirty, selectedKey, activeNs, save, savedStatus, cancelPendingAutoSave]);
 
   // ── 기타 동작 ──────────────────────────────────────────────────────────────
   const revertToBase = useCallback(async () => {
@@ -374,6 +386,7 @@ export default function AdminCmsPage() {
   }, []);
 
   const isBeatsEditor = namespace?.editor === "beats";
+  const isRecordEditor = namespace?.editor === "record";
   const isPromptEditor = namespace?.editor === "prompt";
 
   return (
@@ -527,8 +540,8 @@ export default function AdminCmsPage() {
             <div className="p-6 text-sm text-slate-400">
               <p>왼쪽 목록에서 편집할 콘텐츠를 선택하세요.</p>
               <p className="mt-3 max-w-xl text-xs leading-5 text-slate-500">
-                {CMS_CHANNELS.runtime.label} 그룹(AI 프롬프트·공지·이벤트·배너·버튼 문구)은 발행하면 다음 요청부터 바로 적용됩니다.
-                {" "}{CMS_CHANNELS.build.label} 그룹(라이트 노벨·페이지 문구·FAQ·유명인 사주·SEO)은 발행 후 &quot;사이트 반영&quot;으로 재빌드해야 노출됩니다.
+                {CMS_CHANNELS.runtime.label} 그룹(AI 프롬프트·버튼 문구)은 발행하면 다음 요청부터 바로 적용됩니다.
+                {" "}{CMS_CHANNELS.build.label} 그룹(운세 해설·라이트 노벨·페이지 문구·FAQ·유명인 사주·SEO)은 발행 후 &quot;사이트 반영&quot;으로 재빌드해야 노출됩니다.
               </p>
             </div>
           ) : (
@@ -537,7 +550,13 @@ export default function AdminCmsPage() {
                 {channel?.hint}
               </p>
 
-              {isBeatsEditor ? (
+              {isRecordEditor ? (
+                <RecordEditor
+                  value={(draft.record as Record<string, Record<string, string>>) || {}}
+                  base={(effectiveBaseFields.record as Record<string, Record<string, string>>) || {}}
+                  onChange={(next) => setDraft((prev) => ({ ...prev, record: next }))}
+                />
+              ) : isBeatsEditor ? (
                 <>
                   {namespace.fields
                     .filter((field) => field.kind !== "beats")
@@ -572,38 +591,6 @@ export default function AdminCmsPage() {
                 ))
               )}
 
-              {namespace.supportsSchedule ? (
-                <div className="grid gap-3 rounded-lg border border-slate-800 bg-[#12141f] p-3 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300" htmlFor="cms-publish-at">
-                      <Clock className="h-3.5 w-3.5" /> 게시 시작
-                    </label>
-                    <input
-                      id="cms-publish-at"
-                      type="datetime-local"
-                      value={publishAt}
-                      onChange={(event) => setPublishAt(event.target.value)}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300" htmlFor="cms-unpublish-at">
-                      <Clock className="h-3.5 w-3.5" /> 게시 종료
-                    </label>
-                    <input
-                      id="cms-unpublish-at"
-                      type="datetime-local"
-                      value={unpublishAt}
-                      onChange={(event) => setUnpublishAt(event.target.value)}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
-                    />
-                  </div>
-                  <p className="text-[11px] text-slate-500 sm:col-span-2">
-                    시작 시각을 지정하고 &quot;예약&quot;으로 저장하면 그 시각부터 자동 공개되고, 종료 시각이 지나면 자동으로 내려갑니다.
-                  </p>
-                </div>
-              ) : null}
-
               <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-4">
                 <button type="button" onClick={() => { void save("draft"); }} disabled={saving} className={buttonClass()}>
                   임시저장
@@ -611,11 +598,6 @@ export default function AdminCmsPage() {
                 <button type="button" onClick={() => { void save("review"); }} disabled={saving} className={buttonClass()}>
                   검수 요청
                 </button>
-                {namespace.supportsSchedule ? (
-                  <button type="button" onClick={() => { void save("scheduled"); }} disabled={saving || !publishAt} className={buttonClass()}>
-                    예약
-                  </button>
-                ) : null}
                 <button type="button" onClick={() => { void save("published"); }} disabled={saving} className={buttonClass("primary")}>
                   <Send className="h-4 w-4" />
                   발행

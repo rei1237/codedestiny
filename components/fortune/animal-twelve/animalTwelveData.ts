@@ -1,3 +1,5 @@
+import { cmsRecordRow } from "@/lib/cms/build-text";
+
 import type {
   AnimalDestinyData,
   AnimalId,
@@ -384,7 +386,8 @@ function paragraphsForLove(stageKey: TwelveStageKey, animalName: string, attract
 }
 
 function createProfile(stageKey: TwelveStageKey): AnimalTwelveProfile {
-  const base = BASE[stageKey];
+  // 관리자 CMS(운세 콘텐츠 → 십이운성 동물 해설)의 해당 단계 행을 기본값 위에 얹는다.
+  const base = cmsRecordRow("saju-animal", "stage", stageKey, BASE[stageKey]);
   const isGeonrokDog = stageKey === "geonrok";
   const personalitySummary = isGeonrokDog
     ? "당신의 운명 동물은 별빛 강아지입니다. 명리학에서 건록(建祿)은 스스로의 힘으로 관록을 얻고 재물을 쌓는 가장 안정적이고 독립적인 에너지입니다."
@@ -610,3 +613,6 @@ export function getProfileByStageLabel(stageLabel: TwelveStage | null | undefine
   const key = STAGE_LABEL_TO_KEY[stageLabel];
   return key ? ANIMAL_TWELVE_PROFILES[key] : null;
 }
+
+/* 관리자 CMS 기본값 노출용. */
+export const __cmsAnimalTwelveBase = BASE;

@@ -10,12 +10,15 @@
 //   4) listSource: "static" 이면 entries 가 있고 키가 유효·중복 없음
 //   5) build 채널 네임스페이스는 빌드 산출물(cms.generated.json)에 실릴 수 있는 형태여야 함
 //   6) 라이트 노벨 constraints 가 apply-vn-overrides / verify-vn-override-safety 와 일치
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { walkSourceFiles } from "./lib/i18n-source-scan.mjs";
 import { CMS_GROUPS, CMS_NAMESPACES, isValidCmsKey } from "../lib/cms/registry.mjs";
 
 const CHANNELS = new Set(["runtime", "build"]);
-const EDITORS = new Set(["plain", "rich", "beats", "prompt"]);
+const EDITORS = new Set(["plain", "rich", "beats", "prompt", "record"]);
 const LIST_SOURCES = new Set(["static", "code", "user"]);
-const FIELD_KINDS = new Set(["text", "textarea", "richtext", "lines", "qa-list", "beats", "json", "number", "select"]);
+const FIELD_KINDS = new Set(["text", "textarea", "richtext", "lines", "qa-list", "beats", "record", "json", "number", "select"]);
 
 // apply-vn-overrides.mjs / verify-vn-override-safety.mjs 의 상수와 같아야 한다.
 const EXPECTED_NOVEL_CONSTRAINTS = {
@@ -24,6 +27,7 @@ const EXPECTED_NOVEL_CONSTRAINTS = {
   minKoreanCharsPerEpisode: 1800,
 };
 
+const rootDir = process.cwd();
 const problems = [];
 const groupIds = new Set(CMS_GROUPS.map((group) => group.id));
 const seenNamespaces = new Set();
@@ -57,12 +61,14 @@ for (const entry of CMS_NAMESPACES) {
       }
     }
 
-    const beatsFields = entry.fields.filter((field) => field.kind === "beats");
-    if (entry.editor === "beats" && beatsFields.length !== 1) {
-      problems.push(`${label}: beats 에디터인데 beats 필드가 ${beatsFields.length}개입니다(1개여야 합니다).`);
-    }
-    if (entry.editor !== "beats" && beatsFields.length) {
-      problems.push(`${label}: beats 필드는 beats 에디터에서만 쓸 수 있습니다.`);
+    for (const [editor, kind] of [["beats", "beats"], ["record", "record"]]) {
+      const owned = entry.fields.filter((field) => field.kind === kind);
+      if (entry.editor === editor && owned.length !== 1) {
+        problems.push(`${label}: ${editor} 에디터인데 ${kind} 필드가 ${owned.length}개입니다(1개여야 합니다).`);
+      }
+      if (entry.editor !== editor && owned.length) {
+        problems.push(`${label}: ${kind} 필드는 ${editor} 에디터에서만 쓸 수 있습니다.`);
+      }
     }
   }
 
@@ -102,6 +108,59 @@ if (!novel) {
   for (const token of EXPECTED_NOVEL_CONSTRAINTS.forbiddenInBeat) {
     if (!forbidden.includes(token)) problems.push(`light-novel: 금칙문자 목록에 ${JSON.stringify(token)} 이 빠졌습니다.`);
   }
+}
+
+
+/* 🔴 소비 지점 검사 — 이 가드가 존재하는 이유.
+   1차 작업에서 page-copy·faq·seo·button-copy 네임스페이스를 관리자 메뉴에 올렸는데 정작
+   사이트에서 읽는 곳이 하나도 없었다. 운영자가 고치고 발행해도 아무 일이 안 일어나는
+   "유령 항목"이었고, 그걸 알아채는 데 한참 걸렸다. 다시는 그 상태로 배포되지 않게 막는다.
+
+   소스에서 CMS 소비 함수의 첫 인자(네임스페이스 문자열)를 모아 registry 와 대조한다. */
+const CONSUMER_CALL = /\b(?:cmsText|cmsLines|cmsQaList|cmsRecordRowAsync|cmsRecordCellSync|cmsRecordRowSync|cmsRecordFlat|cmsRecordCell|cmsRecordRow|cmsRecord|useCmsCopy|useCmsEntries|__cdCmsText|__cdCmsRecord)\s*\(\s*(?:env\s*,\s*)?[\"'`]([^\"'`]+)[\"'`]/g;
+
+// 워커/셸 리더가 네임스페이스를 배열 상수로만 들고 있는 경우(요청 시점 일괄 조회)도 소비로 본다.
+const READER_LIST = /(?:RECORD_NAMESPACES|PROMPT_NAMESPACES)\s*=\s*\[([^\]]*)\]/g;
+
+function collectConsumedNamespaces() {
+  const consumed = new Set();
+  const roots = ["app", "lib", "components", "src", "worker", "js", "constants"];
+
+  for (const root of roots) {
+    for (const file of walkSourceFiles(resolve(rootDir, root), { extensions: [".js", ".mjs", ".ts", ".tsx", ".jsx"] })) {
+      const rel = file.split("\\").join("/");
+      // 레지스트리 자신과 관리자 편집 화면은 "소비"가 아니다.
+      if (rel.includes("/lib/cms/registry.mjs") || rel.includes("/app/admin/cms/")) continue;
+
+      const source = readFileSync(file, "utf8");
+      if (!source.includes("cms") && !source.includes("Cms")) continue;
+
+      for (const match of source.matchAll(CONSUMER_CALL)) consumed.add(match[1]);
+      for (const match of source.matchAll(READER_LIST)) {
+        for (const raw of match[1].split(",")) {
+          const value = raw.trim().replace(/^["'`]|["'`]$/g, "");
+          if (value) consumed.add(value);
+        }
+      }
+    }
+  }
+
+  return consumed;
+}
+
+/* cms* 호출이 아니라 전용 generated JSON 파이프라인으로 소비되는 것들.
+   scripts/fetch-content-overrides.mjs 가 별도 파일로 뽑고, 각자 전용 병합 지점이 읽는다.
+     light-novel  -> scripts/apply-vn-overrides.mjs 가 VN 원본 HTML 을 패치
+     famous-saju  -> lib/famous-saju/celebrity-data.ts 가 overrides.generated.json 병합 */
+const PIPELINE_CONSUMED = new Set(["light-novel", "famous-saju"]);
+
+const consumedNamespaces = collectConsumedNamespaces();
+for (const entry of CMS_NAMESPACES) {
+  if (consumedNamespaces.has(entry.ns) || PIPELINE_CONSUMED.has(entry.ns)) continue;
+  problems.push(
+    `${entry.ns}: 사이트에서 이 네임스페이스를 읽는 곳이 없습니다. `
+    + "관리자가 발행해도 아무 변화가 없는 유령 항목이 됩니다 — 소비 지점을 붙이거나 registry 에서 빼세요.",
+  );
 }
 
 if (problems.length) {

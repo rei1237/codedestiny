@@ -1,3 +1,5 @@
+import { cmsRecordRowSync } from "./cms-record-store.js";
+
 import {
   VEDIC_PREMIUM_CHAPTERS,
   VEDIC_SOLO_TARGET_CHARS,
@@ -1112,9 +1114,11 @@ function buildVedicChartInsights(chartJson = {}) {
   const ketu = pickPlanet(planets, "Ketu");
   const moonNk = chart?.nakshatra || {};
   const nkName = clean(moonNk?.name || moon?.nakshatra);
-  const nkMeaning = VEDIC_NAKSHATRA_INTERPRETATION[nkName] || VEDIC_NAKSHATRA_INTERPRETATION.Ashwini;
+  const nkMeaning = cmsRecordRowSync("vedic-reading", "nakshatra", nkName,
+    VEDIC_NAKSHATRA_INTERPRETATION[nkName] || VEDIC_NAKSHATRA_INTERPRETATION.Ashwini);
   const activeDasha = normalizePlanetName(chart?.dashas?.currentMahaDasha) || normalizePlanetName(chart?.dashas?.periods?.[0]?.lord) || "Moon";
-  const dashaMeaning = VEDIC_DASHA_INTERPRETATION[activeDasha] || VEDIC_DASHA_INTERPRETATION.Moon;
+  const dashaMeaning = cmsRecordRowSync("vedic-reading", "dasha", activeDasha,
+    VEDIC_DASHA_INTERPRETATION[activeDasha] || VEDIC_DASHA_INTERPRETATION.Moon);
   const karakas = computeJaiminiKarakas(planets);
   const drishti = buildVedicDrishti(planets);
   const yogas = buildCoreVedicYogas(planets, houses);
@@ -2158,7 +2162,8 @@ function houseBrief(houses = [], number = 0) {
 function dashaMeaningFor(value = "") {
   const dashaKo = clean(value);
   const dashaEn = PLANET_EN_BY_KO[dashaKo] || normalizePlanetName(dashaKo) || dashaKo;
-  return VEDIC_DASHA_INTERPRETATION[dashaEn] || VEDIC_DASHA_INTERPRETATION.Moon;
+  return cmsRecordRowSync("vedic-reading", "dasha", dashaEn,
+    VEDIC_DASHA_INTERPRETATION[dashaEn] || VEDIC_DASHA_INTERPRETATION.Moon);
 }
 
 function softenVedicStaticProfileTerms(value = "") {
@@ -3254,3 +3259,6 @@ export function validateVedicPayloadForApi(rawInput = {}) {
     };
   }
 }
+
+/* 관리자 CMS 기본값 노출용(app/admin/cms/_lib/base-values.ts). */
+export { VEDIC_SIGN_INTERPRETATION, VEDIC_NAKSHATRA_INTERPRETATION, VEDIC_DASHA_INTERPRETATION };
