@@ -6,6 +6,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import {
   buildLocalizedRecommendedQuestionsForSpread,
@@ -2550,33 +2551,49 @@ export default function TarotPromptMakerPage() {
     return () => window.clearTimeout(timer);
   }, [copied]);
 
+  // 🔴 unlock-status 를 직접 fetch 하지 않는다. 공용 fetchPaymentEligibility 를 쓰면 (1) 클릭 시점의
+  // 이용권 검사와 캐시·in-flight 를 공유해 같은 요청이 두 번 나가지 않고, (2) 내부에서 구독 스냅샷을
+  // 저장하므로 이후 유료 클릭이 서버 왕복 없는 즉시 판정 경로(보유자=즉시 통과, 미보유자=즉시 결제창)를
+  // 탈 수 있다. 직접 fetch 는 그 신호를 그냥 버려서 두 경로가 모두 죽어 있었다.
   useEffect(() => {
     let active = true;
-    const controller = new AbortController();
-    // 응답 지연 시 "이용권 확인 중"에 갇히지 않도록 프리체크에도 타임아웃을 건다.
-    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
     async function loadBillingSnapshot() {
       setBillingLoading(true);
       try {
-        const query = new URLSearchParams({ featureKey: "tarot-prompt-maker", reason: feedbackCopy.subscriptionReason });
-        const response = await fetch(`/api/billing/unlock-status?${query.toString()}`, { method: "GET", credentials: "include", signal: controller.signal });
-        const payload = await response.json().catch(() => ({}));
-        const data = payload?.ok && payload?.data && typeof payload.data === "object" ? payload.data : null;
-        if (!active || !data) return;
-        const paymentOptions = data.paymentOptions && typeof data.paymentOptions === "object" ? data.paymentOptions as Record<string, unknown> : {};
-        const canUseByPass = Boolean(paymentOptions.canUseByPass || data.canUseByPass);
-        setBillingSnapshot({ requiredCoins: Number(data.requiredCoins || 0), canAccess: Boolean(data.canAccess || canUseByPass), freeBySubscription: Boolean(data.freeBySubscription || canUseByPass), canUseByPass, subscriptionTier: String(data.subscriptionTier || "free"), accessReason: String(data.accessReason || "").trim().toLowerCase() });
+        // coinCost 까지 실제 게이트(ensurePaidAccess)와 똑같이 넘겨야 캐시 키가 일치해 클릭 시
+        // 같은 조회가 다시 나가지 않는다(캐시 키에 coins/krw 가 들어간다).
+        const result = await fetchPaymentEligibility({
+          featureKey: "tarot-prompt-maker",
+          reason: feedbackCopy.subscriptionReason,
+          coinCost: lookupServerCoinPrice("tarot-prompt-maker"),
+        }, { phase: "full" });
+        if (!active) return;
+        if (!result.ok || !result.data) {
+          setBillingSnapshot(null);
+          return;
+        }
+        const eligibility = result.data;
+        const raw = (eligibility.raw && typeof eligibility.raw === "object" ? eligibility.raw : {}) as Record<string, unknown>;
+        const paymentOptions = (raw.paymentOptions && typeof raw.paymentOptions === "object" ? raw.paymentOptions : {}) as Record<string, unknown>;
+        const canUseByPass = Boolean(eligibility.pass.canUse || paymentOptions.canUseByPass || raw.canUseByPass);
+        setBillingSnapshot({
+          requiredCoins: Number(raw.requiredCoins ?? eligibility.coinCost ?? 0),
+          canAccess: Boolean(eligibility.access.canAccess || canUseByPass),
+          freeBySubscription: Boolean(raw.freeBySubscription || canUseByPass),
+          canUseByPass,
+          subscriptionTier: String(raw.subscriptionTier || eligibility.pass.tier || "free"),
+          accessReason: String(raw.accessReason || eligibility.access.reason || "").trim().toLowerCase(),
+        });
       } catch {
         // 타임아웃/네트워크 실패는 재시도 가능 상태로 두고, 게이팅은 실제 결제 게이트가 서버에서 재판정한다.
         if (!active) return;
         setBillingSnapshot(null);
       } finally {
-        window.clearTimeout(timeoutId);
         if (active) setBillingLoading(false);
       }
     }
     loadBillingSnapshot();
-    return () => { active = false; window.clearTimeout(timeoutId); controller.abort(); };
+    return () => { active = false; };
   }, [feedbackCopy.subscriptionReason]);
 
   function resetDrawState() {

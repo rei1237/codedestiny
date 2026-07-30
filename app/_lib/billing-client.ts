@@ -1905,23 +1905,16 @@ function normalizeAccessReason(value: unknown) {
   return toText(value).trim().toLowerCase();
 }
 
+// 🔴 '미커버' 결과도 캐싱한다. 예전에는 커버되는 결과만 캐싱해서, 정작 재시도·연타가 잦은
+// 이용권 미보유자만 매번 전체 서버 왕복을 다시 냈다(보유자만 캐시 혜택 — 정확히 반대였다).
+// 안전한 이유: (1) 503/degraded 는 result.ok === false 라 아래 첫 줄에서 이미 걸러진다.
+// (2) 로그인·로그아웃·이용권 구매·결제 성공은 모두 invalidateBillingBalanceCache() 를 거치고,
+//     그 안에서 paymentEligibilityRecent.clear() 가 돌아 stale 이 남지 않는다.
+// TTL 은 커버 결과와 동일(PAYMENT_ELIGIBILITY_RECENT_TTL_MS) — 별도 상한을 새로 두지 않는다.
 function shouldCachePaymentEligibilityResult(result: BillingResult<PaymentEligibility>) {
   if (!result.ok || !result.data) return false;
-  const code = toText(result.error?.code || asRecord(result.raw)?.code).toUpperCase();
-  const reason = normalizeAccessReason(result.data.access.reason || asRecord(result.raw)?.accessReason || asRecord(result.raw)?.decisionReason);
-  if (
-    result.status >= 400
-    || code === "PAYMENT_REQUIRED"
-    || code === "MEMBERSHIP_PASS_NOT_COVERED"
-    || code === "PRICE_EXCEEDS_PASS_LIMIT"
-    || reason === "payment_required"
-    || reason === "pass_unavailable"
-  ) return false;
-  return Boolean(
-    result.data.access.canAccess
-      || result.data.pass.canUse
-      || result.data.monthly.canUse
-  );
+  if (result.status >= 400) return false;
+  return true;
 }
 
 function shouldCacheBillingCoinGateResult(result: BillingResult<BillingCoinGateData>) {
@@ -3470,6 +3463,10 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const loadRuntimeGateForPayment = () => (!explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : Promise.resolve(null));
+    // 결제 런타임 스크립트 로드를 이용권 검사와 '동시에' 시작한다. 예전에는 사용 지점에서 await 해서
+    // eligibility 응답이 온 뒤에야 스크립트를 받기 시작했고, 그 직렬 구간이 결제창 노출을 그만큼 늦췄다.
+    // loadPaidServiceRuntimeGate 는 이미 멱등(중복 로드 방지)이라 미리 부르는 것이 안전하다.
+    const runtimeGatePromise = loadRuntimeGateForPayment();
     const eligibilityInput = {
       categoryKey: input.categoryKey,
       subFeatureKey: input.subFeatureKey,
@@ -3608,7 +3605,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureId,
         requestId: gateRequestId,
         eligibility,
-        runtimeGate: await loadRuntimeGateForPayment(),
+        runtimeGate: await runtimeGatePromise,
       });
       if (runtimePaymentResult) {
         const parsed = await registerDeferredBillingUsage(input, runtimePaymentResult, {
@@ -3947,7 +3944,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           featureId,
           requestId: gateRequestId,
           eligibility,
-          runtimeGate: await loadRuntimeGateForPayment(),
+          runtimeGate: await runtimeGatePromise,
         });
         if (runtimePaymentResult) {
           const parsedRuntimePaymentResult = await registerDeferredBillingUsage(input, runtimePaymentResult, {
