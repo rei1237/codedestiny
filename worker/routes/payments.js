@@ -3417,10 +3417,16 @@ async function handleDigitalContentPrepare(request, auth, body) {
     }, { status: 400 });
   }
 
-  const passUser = await User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+  // 인증 단계에서 이미 같은 필드를 읽어 두었다(PAYMENT_ROUTE_USER_PROJECTION). 그걸 재사용해
+  // 왕복 1회를 없앤다. authUserDoc 은 access-token 경로에만 붙으므로 부재 시 종전 조회로 폴백한다.
+  const passUser = auth.authUserDoc || await User.findById(auth.userId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt phoneNumber phone name email fullName displayName username")
     .lean();
   const entitlement = normalizeHoneyPassEntitlement(passUser || {});
+  // 주문 응답에 customer 를 실어 보낸다. 예전에는 이 필드가 없어서 클라의 order.customer 가 항상
+  // 비어 있었고, 결제마다 GET /api/me/payment-phone 을 한 번 더 타야 했다. 여기서 실어 보내면
+  // 저장된 번호가 있는 사용자는 그 왕복이 통째로 사라진다(추가 조회 없음 — 위 문서를 그대로 쓴다).
+  const orderCustomer = buildSinglePaymentCustomer(passUser || {}, auth.userId);
   const resolved = resolveDigitalContentPricing(body, entitlement);
   if (!resolved.ok) {
     await writeFailureLog({
@@ -3462,44 +3468,39 @@ async function handleDigitalContentPrepare(request, auth, body) {
   const orderId = String(body?.orderId || idempotencyKey || requestId || "").trim().slice(0, 120);
   const membershipCreditCost = Number(resolved.pricing?.membershipCreditCost || calculateMembershipCreditCost(resolved.coinPrice));
 
-  if (idempotencyKey) {
-    const existing = await Payment.findOne({
-      userId: auth.userId,
-      idempotencyKey,
-      paymentType: "digital_content",
-    }).sort({ createdAt: -1 }).lean();
-
-    if (existing) {
-      const existingAmount = Number(existing.paymentAmount || 0);
-      const existingCoins = Number(existing.expectedChargedPoints || 0);
-      const existingFeatureKey = String(existing.featureKey || "");
-      if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice || (featureKey && existingFeatureKey && existingFeatureKey !== featureKey)) {
-        return json({
-          message: "Idempotency key conflict. Request payload does not match existing product payment preparation.",
-          code: "IDEMPOTENCY_CONFLICT",
-        }, { status: 409 });
-      }
-
-      return json({
-        message: "Product payment preparation already completed.",
-        idempotent: true,
-        order: {
-          merchantUid: String(existing.merchantUid || ""),
-          paymentAmount: existingAmount,
-          amountKRW: existingAmount,
-          coinPrice: existingCoins,
-          membershipCreditCost: Number(existing.membershipCreditCost || calculateMembershipCreditCost(existingCoins)),
-          featureKey: String(existing.featureKey || featureKey || ""),
-          accessType: String(existing.accessType || "single_purchase"),
-          productName,
-          pricing: resolved.pricing,
-        },
-      });
-    }
-  }
-
   const merchantUid = buildMerchantUid(auth.userId);
-  await Payment.create({
+
+  // 기존 주문과 요청이 어긋나면 409 — 멱등 재요청 경로와 E11000 복구 경로가 **같은 판정**을 써야 한다.
+  // 🔴 featureKey 비교가 비대칭인 것은 의도된 것이다(둘 중 하나가 비면 충돌 아님) — 레거시 행이 409 나지 않게.
+  const buildIdempotentResponse = (existing) => {
+    const existingAmount = Number(existing.paymentAmount || 0);
+    const existingCoins = Number(existing.expectedChargedPoints || 0);
+    const existingFeatureKey = String(existing.featureKey || "");
+    if (existingAmount !== resolved.paymentAmount || existingCoins !== resolved.coinPrice || (featureKey && existingFeatureKey && existingFeatureKey !== featureKey)) {
+      return json({
+        message: "Idempotency key conflict. Request payload does not match existing product payment preparation.",
+        code: "IDEMPOTENCY_CONFLICT",
+      }, { status: 409 });
+    }
+    return json({
+      message: "Product payment preparation already completed.",
+      idempotent: true,
+      order: {
+        merchantUid: String(existing.merchantUid || ""),
+        paymentAmount: existingAmount,
+        amountKRW: existingAmount,
+        coinPrice: existingCoins,
+        membershipCreditCost: Number(existing.membershipCreditCost || calculateMembershipCreditCost(existingCoins)),
+        featureKey: String(existing.featureKey || featureKey || ""),
+        accessType: String(existing.accessType || "single_purchase"),
+        productName,
+        customer: orderCustomer,
+        pricing: resolved.pricing,
+      },
+    });
+  };
+
+  const paymentDoc = {
     userId: auth.userId,
     merchantUid,
     idempotencyKey,
@@ -3532,7 +3533,45 @@ async function handleDigitalContentPrepare(request, auth, body) {
     source: "prepare",
     paymentType: "digital_content",
     subscriptionTier: "",
-  });
+  };
+
+  try {
+    if (idempotencyKey) {
+      // 🔴 조회 + 생성 2왕복을 upsert 1왕복으로 합친다. 무료/공유혀 Atlas 에서는 왕복 1회가 곧 체감 지연이다.
+      // 필터 3키는 유니크 부분 인덱스({userId, idempotencyKey, paymentType})와 정확히 일치한다.
+      // sort 를 넘겨야 종전 .sort({createdAt:-1}) 의 "최신 우선" 의미가 유지된다(인덱스 생성 전 중복 행 대비).
+      // $setOnInsert 에는 필터 3키를 넣지 않는다 — Mongo 가 필터 등식을 삽입 문서에 적용하므로 충돌한다.
+      const { userId: _f1, idempotencyKey: _f2, paymentType: _f3, ...insertOnly } = paymentDoc;
+      const upserted = await Payment.findOneAndUpdate(
+        { userId: auth.userId, idempotencyKey, paymentType: "digital_content" },
+        { $setOnInsert: insertOnly },
+        { upsert: true, new: true, includeResultMetadata: true, sort: { createdAt: -1 } },
+      );
+      const insertedNow = upserted?.lastErrorObject?.updatedExisting === false;
+      const doc = upserted?.value || null;
+      // 기존 행을 만난 경우($setOnInsert 는 no-op) 멱등 응답 또는 409.
+      if (!insertedNow && doc) return buildIdempotentResponse(doc);
+    } else {
+      // 🔴 키가 없으면 upsert 를 쓰면 안 된다. 유니크 부분 인덱스는 idempotencyKey: "" 를 덮지 않으므로
+      // 이 사용자의 키 없는 모든 prepare 가 한 문서로 접혀 버린다.
+      await Payment.create(paymentDoc);
+    }
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+    // 동시 요청이 같은 키로 동시에 insert 를 시도하면 진 쪽이 E11000 을 받는다. 그때만 한 번 더 읽어
+    // 기존 주문을 그대로 돌려준다. 예전에는 이 분기가 없어(구독 핸들러엔 있었다) 동시 요청이
+    // order 없는 409 로 죽었고, 클라는 그걸 복구할 방법이 없었다.
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      paymentType: "digital_content",
+      $or: [
+        { merchantUid },
+        ...(idempotencyKey ? [{ idempotencyKey }] : []),
+      ],
+    }).sort({ createdAt: -1 }).lean();
+    if (!existing) throw error;
+    return buildIdempotentResponse(existing);
+  }
 
   return json({
     message: "Product payment preparation completed.",
@@ -3555,6 +3594,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
       idempotencyKey,
       orderId,
       productName,
+      customer: orderCustomer,
       pricing: resolved.pricing,
     },
   }, { status: 201 });
@@ -5596,6 +5636,12 @@ function handlePaymentConfig(env) {
 
 // 결제 라우트 핸들러가 인증 직후 곧바로 필요로 하는 User 필드. 인증 리졸버에 userProjection으로
 // 넘기면 인증 조회와 같은 왕복에서 함께 읽어 authUserDoc로 돌려준다(두 번째 Mongo 왕복 제거).
+// 인증할 때 어차피 User 를 한 번 읽으므로, 결제 핸들러가 곧바로 쓰는 필드를 그때 함께 읽는다.
+// Atlas 공유혀에서는 왕복 1회가 곧 체감 지연이라, 왕복 수를 줄이는 것이 유일하게 효과가 큰 레버다.
+// 아래 두 묶음이 여기 있는 이유:
+//  - pass/구독 필드: handleDigitalContentPrepare 가 이걸 위해 별도 User.findById 를 또 했다.
+//  - customer 필드(phone/이름): 주문 응답의 customer 를 만들기 위해 필요하다. 이게 없어서
+//    order.customer 가 아예 비어 있었고, 그 결과 클라가 결제마다 GET /api/me/payment-phone 을 탔다.
 const PAYMENT_ROUTE_USER_PROJECTION = {
   _id: 1,
   name: 1,
@@ -5605,6 +5651,29 @@ const PAYMENT_ROUTE_USER_PROJECTION = {
   birthDate: 1,
   unlockedFeatures: 1,
   profileSubscription: 1,
+  // pass/구독 판정용
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  // PortOne customer 구성용
+  phoneNumber: 1,
+  phone: 1,
+  fullName: 1,
+  displayName: 1,
+  username: 1,
 };
 
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가

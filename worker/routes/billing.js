@@ -1145,6 +1145,11 @@ async function getActiveMembershipPassForUser(env, authUserId) {
     freeLimit: entitlement.isActive ? Number(entitlement.maxCoveredCoin || 0) : 0,
     profileSubscription: user?.profileSubscription || null,
     entitlement,
+    // 이 조회가 성공했다는 사실 자체가 판정 근거다. "구독 신호가 전혀 없음"을 여기서 확정해 두면
+    // 아래 getMembershipPassForBillingRequest 가 같은 User 를 다시 읽는 스냅샷 경로를 건너뛸 수 있다.
+    // 🔴 조회 실패는 throw 로 전파되고 캐시는 성공만 기록하므로(아래 writeMembershipPassToCache),
+    // 이 플래그가 "확인 실패"를 "미보유"로 세탁할 수 없다.
+    hasSubscriptionSignal: hasResolvableSubscriptionSignal(user),
   };
   writeMembershipPassToCache(authUserId, result); // healthy 조회만 캐시(실패는 위에서 throw로 전파)
   return result;
@@ -1251,6 +1256,12 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
 async function getMembershipPassForBillingRequest(request, env, authUserId) {
   const directPass = await getActiveMembershipPassForUser(env, authUserId);
   if (directPass?.isActive === true) return directPass;
+  // 🔴 왕복 2회 절감: readSubscriptionStatusSnapshot 은 getOptionalUserFromRequest(인증 읽기) +
+  // User.findById(위와 **완전히 동일한 projection**)를 다시 한다. 위 조회가 성공했고 구독 신호가
+  // 전혀 없다면 스냅샷이 새로 알아낼 것이 없다 — 그 두 왕복을 건너뛴다.
+  // 이용권 미보유자가 다수이고 이 경로가 coin-gate(결제창 직전) 임계경로라 체감이 가장 크다.
+  // "확인 실패"는 위에서 throw 로 전파되므로 여기 도달하지 않는다(= degraded 처리 경로 그대로 유지).
+  if (directPass?.hasSubscriptionSignal === false) return directPass;
   const snapshot = await readSubscriptionStatusSnapshot(request, env);
   return buildMembershipPassFromStatusSnapshot(snapshot) || directPass;
 }
@@ -6191,6 +6202,11 @@ async function buildDiscountedPdfPaymentDelegation(request, env, body = {}, pric
 }
 
 async function handleCheckout(request, env) {
+  // 🔴 계측 기준점은 여기다. 예전에는 totalMs 로그가 delegateToPayments 안에만, 그것도 /confirm 에만
+  // 붙어 있어서 /checkout 은 총 소요가 아예 남지 않았다. 게다가 위임 전에 도는
+  // grantPassFreeAccessBeforeCardIfAvailable / buildDiscountedPdfPaymentDelegation 의 Mongo 왕복은
+  // delegateToPayments 안에서 재면 통째로 빠진다 — 결제창 앞 실제 대기를 과소보고하게 된다.
+  const checkoutStartedAt = Date.now();
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
   const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);
@@ -6198,14 +6214,37 @@ async function handleCheckout(request, env) {
   if (!isSubscription) {
     if (!directPaymentRequested) {
       const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
-      if (passAccess) return passAccess;
+      if (passAccess) {
+        logCheckoutElapsed(body, checkoutStartedAt, passAccess.status, "pass_free_access");
+        return passAccess;
+      }
     }
     const discounted = await buildDiscountedPdfPaymentDelegation(request, env, body);
-    if (discounted.response) return discounted.response;
+    if (discounted.response) {
+      logCheckoutElapsed(body, checkoutStartedAt, discounted.response.status, "pdf_discount");
+      return discounted.response;
+    }
     delegatedBody = discounted.body;
   }
   const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";
-  return delegateToPayments(request, env, targetPath, delegatedBody);
+  const response = await delegateToPayments(request, env, targetPath, delegatedBody);
+  logCheckoutElapsed(body, checkoutStartedAt, response?.status, isSubscription ? "subscription" : "direct");
+  return response;
+}
+
+// 기존 logPaidAccessStage 스키마에 elapsedMs·httpStatus 가 이미 있어 새 로그 채널을 만들지 않는다.
+// wrangler tail 에서 [worker-paid-access] 로 같이 조회된다.
+function logCheckoutElapsed(body, startedAt, httpStatus, branch) {
+  try {
+    logPaidAccessStage("CHECKOUT_DONE", {
+      featureKey: body?.featureKey || body?.reason || "",
+      requestId: body?.requestId || "",
+      idempotencyKey: body?.idempotencyKey || "",
+      httpStatus: Number(httpStatus || 0),
+      elapsedMs: Date.now() - startedAt,
+      scope: branch,
+    });
+  } catch (_) {}
 }
 
 async function handleConfirm(request, env) {
