@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import type { LoadingMotionTone } from "./LoadingProgressMotion";
 
-// 결제/이용권 대기 화면과 달빛 이용권 상점(/points)이 함께 쓰는 꽃돼지 로고 — R2 에셋 한 곳에서만 관리한다.
-// 찻집 assets.ts와 동일한 prefix:"" 규칙 → https://assets.code-destiny.com/DestinyCafe/nobackground/꽃돼지3-Photoroom.webp
-const PAYMENT_PIG_PUBLIC_PATH = "/DestinyCafe/nobackground/꽃돼지3-Photoroom.webp";
+// 결제/이용권 대기 화면과 달빛 이용권 상점(/points)이 함께 쓰는 마스코트 로고.
+// 🔴 메인 서비스 로고(부팅 게이트 로고 · PWA 아이콘 계열)를 그대로 쓴다. 로컬 동일 오리진 31,916B 이며,
+// 6개 정적 셸 <head> 에 이미 <link rel="preload" as="image" fetchpriority="high"> 로 선언돼 있어
+// 결제 클릭 시점에는 워엄 캐시다 — 즉 클릭 임계경로에 추가 네트워크가 0 이다.
+// 이전 자산은 외부 R2 호스트의 컷아웃 PNG(742,664B)였다. 무거운 데다 교차 오리진이라, 오버레이를
+// 여는 순간 POST /api/billing/checkout 과 PortOne SDK 와 대역폭을 다퉈 "네트워크 오류 + PG창 미노출"
+// 회귀를 냈다. #136 이 셸 3곳만 고쳐 React 에 남아 있던 것을 여기서 닫는다(742,664B → 31,916B, 23배).
+// 🔴 이 파일에 외부 호스트/무거운 PNG 경로를 다시 넣지 말 것 —
+// verify:portone-single-payment 가 문자열로 차단한다.
+const PAYMENT_PIG_PUBLIC_PATH = "/icons/app-logo-512.webp";
 
-export const PAYMENT_PIG_LOGO_URL = getAssetUrlFromPublicPath(PAYMENT_PIG_PUBLIC_PATH, {
-  // 빌드에 NEXT_PUBLIC_ASSETS_BASE_URL이 없어도 R2로 가도록 찻집 assets.ts와 동일한 하드코딩 폴백을 둔다.
-  // (로컬 폴백 경로는 public/에 존재하지 않아 env 미설정 빌드에서 이미지가 404로 사라졌다.)
-  baseUrl: process.env.NEXT_PUBLIC_ASSETS_BASE_URL || "https://assets.code-destiny.com",
-  fallbackPublicPath: PAYMENT_PIG_PUBLIC_PATH,
-  prefix: "",
-});
+export const PAYMENT_PIG_LOGO_URL = PAYMENT_PIG_PUBLIC_PATH;
 
 // 로딩 실패 폴백은 다른 이미지로 대체하지 않고 동일 에셋을 캐시버스트로 1회 재요청한다.
 const PAYMENT_PIG_LOGO_FALLBACK_URL =

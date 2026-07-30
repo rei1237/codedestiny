@@ -1837,9 +1837,9 @@
         },
         "card": {
           "eyebrow": "EENMALIGE VEILIGE AFREKENING",
-          "title": "Eenmalige betaling voorbereiden",
+          "title": "Betaalvenster van de provider wordt geladen",
           "message": "Bestelgegevens en authenticatie worden op elkaar afgestemd.",
-          "meta": "Ga door met de authenticatie wanneer het beveiligde afrekenvenster wordt geopend."
+          "meta": "Ga door met de authenticatie zodra het betaalvenster opent."
         },
         "checkout": {
           "eyebrow": "AFREKENEN KLAAR",
@@ -1905,9 +1905,9 @@
         },
         "card": {
           "eyebrow": "EENMALIGE VEILIGE AFREKENING",
-          "title": "Eenmalige betaling voorbereiden",
+          "title": "Betaalvenster van de provider wordt geladen",
           "message": "Bestelgegevens en authenticatie worden op elkaar afgestemd.",
-          "meta": "Ga door met de authenticatie wanneer het beveiligde afrekenvenster wordt geopend."
+          "meta": "Ga door met de authenticatie zodra het betaalvenster opent."
         },
         "checkout": {
           "eyebrow": "AFREKENEN KLAAR",

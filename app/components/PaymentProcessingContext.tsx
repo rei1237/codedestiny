@@ -383,6 +383,11 @@ function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: str
   if (/단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
   if (variant === "subscription" || variant === "monthly") return "subscription";
   if (variant === "pass-checking" || variant === "pass-applied") return "pass";
+  // 🔴 variant 'payment' 은 결제 수단이 확정되지 않은 기본 상태다(기본 prop · 초기 state · 리셋값).
+  // 여기서 'single' 을 돌려주면 access_check × single = "단건으로 카드 결제를 준비 중이에요" 가 되어
+  // 카드 결제를 고르지도 않은 사용자에게 카드 준비 중이라고 말한다(PaymentLoading 의 variant 매핑과 동일 규칙).
+  // checkout/confirm/payment-complete/unlock-saving 은 실제 단건 단계이므로 아래 기본값 'single' 을 유지한다.
+  if (variant === "payment") return "pass";
   return "single";
 }
 
@@ -397,7 +402,31 @@ const PaymentProcessingContext = createContext<PaymentProcessingContextValue | u
 type PaymentOverlayWindow = Window & {
   _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string, mode?: string) => void;
   __CD_REACT_PAYMENT_OVERLAY_OWNER__?: boolean;
+  // 셸이 세우는 "대기 오버레이 금지 구간" 판정의 정본(index.html `_cdPaymentWaitUiBlocked`).
+  __cdPaymentWaitUiBlocked?: (mode?: string) => boolean;
 };
+
+// 🔴 대기 오버레이를 띄우면 안 되는 구간인가. 정본은 셸의 `__cdPaymentWaitUiBlocked` 이며,
+// 이 Provider 가 window._cdSetCoinGateOverlay 를 자기 렌더러로 갈아치우는 탓에 셸 함수 본문 안의
+// 억제 검사가 통째로 우회되던 것을 여기서 되살린다.
+// 셸이 없는 Next 라우트에서는 정본이 없으므로(fail-open) 최소한 "결제수단 선택창이 떠 있으면
+// 겹치지 않는다"만 로컬로 판정한다 — `.cd-direct-payment-modal` 은 3렌더러 공통 클래스이고
+// verify:payment-choice-parity 가 동일성을 강제한다. 새 억제 창·타이머는 만들지 않는다.
+const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|refund|unlock-saving|confirm/;
+function isPaymentWaitUiBlocked(mode: string) {
+  if (typeof window === "undefined") return false;
+  const shellVerdict = (window as PaymentOverlayWindow).__cdPaymentWaitUiBlocked;
+  if (typeof shellVerdict === "function") {
+    try {
+      return Boolean(shellVerdict(mode));
+    } catch {
+      return false;
+    }
+  }
+  if (typeof document === "undefined") return false;
+  if (REACT_TERMINAL_OVERLAY_MODE_RE.test(String(mode || ""))) return false;
+  return Boolean(document.querySelector(".cd-direct-payment-modal"));
+}
 
 function closeStaticPaymentOverlay() {
   if (typeof document === "undefined") return;
@@ -1076,6 +1105,9 @@ export function PaymentProcessingProvider({
     const nextMode = String(mode || "").trim();
     const previous = overlayStateRef.current;
     if (show) {
+      // 🔴 결제창과 대기 화면이 겹치지 않게 한다. 셸의 _cdSetCoinGateOverlay 첫 줄과 같은 판정이며,
+      // 이 Provider 가 그 함수를 갈아치우는 탓에 판정이 우회되던 것을 되살린 것이다.
+      if (isPaymentWaitUiBlocked(nextMode)) return;
       if (previous.open && previous.message === nextMessage && previous.mode === nextMode) return;
       overlayStateRef.current = { open: true, message: nextMessage, mode: nextMode };
       closeStaticPaymentOverlay();

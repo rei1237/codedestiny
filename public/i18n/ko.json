@@ -1372,7 +1372,7 @@
       },
       "clean": {
         "card": {
-          "title": "단건 결제 준비 중"
+          "title": "PG사 결제창을 로드하는 중입니다."
         }
       },
       "deliveryProcessing": {
