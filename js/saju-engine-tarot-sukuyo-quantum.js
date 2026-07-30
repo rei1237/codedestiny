@@ -13445,7 +13445,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var token = localStorage.getItem('fortune_auth_token') || '';
       if (token) headers.Authorization = 'Bearer ' + token;
     } catch (_) {}
-    return fetch(path, Object.assign({}, options || {}, { headers: headers }))
+    // 1년운 3개 라우트는 전부 세션이 있어야 통과한다. 셸 헬퍼가 없는 폴백 경로에서도
+    // 자격증명을 명시해야 로그인 상태가 그대로 실린다(기본값에 기대면 조용히 게스트가 된다).
+    return fetch(path, Object.assign({}, options || {}, { headers: headers, credentials: 'include', cache: 'no-store' }))
       .then(function(res) {
         return res.json().catch(function() { return {}; }).then(function(payload) {
           return { ok: res.ok, status: res.status, payload: payload };
@@ -13715,6 +13717,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
   }
 
+  // 자동 하이드레이션이 실패 직후 곧바로 재발사되지 않도록 두는 최소 간격.
+  // (수동 경로 — 보기 버튼·Enter·다시 시도·해금 직후 — 는 이 쿨다운을 보지 않는다.)
+  var SY_YEARLY_AUTO_RETRY_COOLDOWN_MS = 5000;
+
+  function syBuildSukuyoYearlyHydrateKey(profileId, targetYear) {
+    return String(profileId || '') + ':' + String(targetYear || '');
+  }
+
   function syHydrateSukuyoYearlyFortune(reading) {
     var state = reading || window._sySukuyoYearlyReading || {};
     var target = document.getElementById('syYearlyFortuneContent');
@@ -13723,12 +13733,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var targetYear = syResolveSukuyoYearlyTargetYear(state);
     if (!targetYear) return;
     var profileId = syResolveSukuyoYearlyProfileId(state);
-    window._sySukuyoYearlyHydrateKey = String(profileId || '') + ':' + String(targetYear || '');
+    var hydrateKey = syBuildSukuyoYearlyHydrateKey(profileId, targetYear);
     if (!profileId) {
       if (status) status.textContent = '프로필 선택 필요';
       target.innerHTML = '<div class="sy-yearly-empty-state">프로필 카드를 먼저 선택하면 숙요점 1년운이 열립니다.</div>';
+      target.setAttribute('data-sy-yearly-rendered', hydrateKey);
       return;
     }
+    // 같은 (프로필, 연도) 요청이 이미 떠 있으면 새로 쏘지 않는다 — 렌더·바인딩이 겹칠 때
+    // 동일 왕복이 중복 발사되던 지점이다.
+    if (window._sySukuyoYearlyInFlightKey === hydrateKey) return;
+    window._sySukuyoYearlyInFlightKey = hydrateKey;
+    target.removeAttribute('data-sy-yearly-rendered');
     target.innerHTML = '<div class="sy-yearly-empty-state is-loading">숙요점 1년운을 열고 있어요. 결제 승인과 잠금 해제를 확인하는 중입니다.</div>';
     syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune?profileId=' + encodeURIComponent(profileId || '') + '&year=' + encodeURIComponent(targetYear), { method: 'GET' })
       .then(function(pack) {
@@ -13752,8 +13768,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
         if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 10,000원';
         target.innerHTML = payload.unlocked ? syRenderSukuyoYearlyFullV2(payload.result) : syRenderSukuyoYearlyLocked(payload);
+        target.setAttribute('data-sy-yearly-rendered', hydrateKey);
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
-        syBindSukuyoMonthlyUnlock(window._sySukuyoYearlyReading);
+        // 🔴 여기서 syBindSukuyoMonthlyUnlock 을 부르면 그 안의 자동 하이드레이션 분기가 다시
+        // 이 함수를 호출한다(하이드레이트 → 바인딩 → 하이드레이트 재귀). 새로 그려진 잠금 버튼에
+        // 리스너만 다시 붙인다.
+        syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
       })
       .catch(function(error) {
         // 워커는 일시적 DB 장애를 503으로 표면화한다(의도된 degrade). 그 영문 원문
@@ -13774,12 +13794,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
             : '')
           + '</div>';
+        // 실패는 렌더 완료로 치지 않는다(다시 열면 재시도 가능). 대신 자동 경로만 잠깐 쉬게 해
+        // 렌더가 반복될 때 같은 실패 요청이 연달아 나가지 않도록 한다.
+        window._sySukuyoYearlyAutoRetryAt = Date.now() + SY_YEARLY_AUTO_RETRY_COOLDOWN_MS;
         var retryButton = target.querySelector('[data-sy-yearly-retry]');
         if (retryButton) {
           retryButton.addEventListener('click', function() {
             syHydrateSukuyoYearlyFortune(state);
           }, { once: true });
         }
+      })
+      .then(function() {
+        if (window._sySukuyoYearlyInFlightKey === hydrateKey) window._sySukuyoYearlyInFlightKey = '';
       });
   }
 
@@ -13806,17 +13832,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       });
     }
     var stateForHydrate = window._sySukuyoYearlyReading || reading || {};
+    syBindSukuyoYearlyUnlockButton(stateForHydrate);
+
+    // 자동 하이드레이션은 "아직 이 조건으로 그려진 적 없는 화면"에만 건다.
+    // 렌더 완료 표식을 DOM(#syYearlyFortuneContent)에 남기므로, 모달을 다시 열어 화면이
+    // 새로 그려지면 표식이 사라져 정상적으로 다시 불러온다(종전 전역 키 방식은 두 번째
+    // 열람에서 로딩 문구에 그대로 멈췄다).
+    var content = document.getElementById('syYearlyFortuneContent');
+    if (!content) return;
     var hydrateProfileId = syResolveSukuyoYearlyProfileId(stateForHydrate);
     var hydrateYear = String((document.querySelector('[data-sy-yearly-input]') || {}).value || stateForHydrate.targetYear || '');
-    var hydrateKey = String(hydrateProfileId || '') + ':' + hydrateYear;
-    if (hydrateYear && window._sySukuyoYearlyHydrateKey !== hydrateKey) {
-      window._sySukuyoYearlyHydrateKey = hydrateKey;
-      syHydrateSukuyoYearlyFortune(stateForHydrate);
-    }
+    if (!/^\d{4}$/.test(hydrateYear)) return;
+    var hydrateKey = syBuildSukuyoYearlyHydrateKey(hydrateProfileId, hydrateYear);
+    if (content.getAttribute('data-sy-yearly-rendered') === hydrateKey) return;
+    if (window._sySukuyoYearlyInFlightKey) return;
+    if (Number(window._sySukuyoYearlyAutoRetryAt || 0) > Date.now()) return;
+    syHydrateSukuyoYearlyFortune(stateForHydrate);
+  }
+
+  function syBindSukuyoYearlyUnlockButton(reading) {
     var btn = document.querySelector('[data-sy-yearly-unlock]');
     if (!btn || btn._syYearlyUnlockBound) return;
     btn._syYearlyUnlockBound = true;
     btn.addEventListener('click', function() {
+      // 버튼 DOM 은 하이드레이션마다 새로 그려지므로 btn.disabled 만으로는 중복 실행을 못 막는다.
+      // 결제 게이트가 열려 있는 동안의 재진입은 전역 플래그로 막는다.
+      if (window._sySukuyoYearlyUnlockBusy) return;
       var state = window._sySukuyoYearlyReading || reading || {};
       var targetYear = syResolveSukuyoYearlyTargetYear(state);
       if (!targetYear) return;
@@ -13826,6 +13867,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return;
       }
       var contentKey = state.contentKey || syBuildSukuyoYearlyContentKey(targetYear);
+      window._sySukuyoYearlyUnlockBusy = true;
       btn.disabled = true;
       btn.textContent = '숙요점 1년운을 열고 있어요.';
       syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune/unlock', {
@@ -13886,6 +13928,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         btn.disabled = false;
         btn.textContent = '숙요점 1년운 전체 해석 잠금 해제 · 10,000원';
         window.alert(error && error.message ? error.message : '잠금 해제 처리에 실패했습니다.');
+      }).then(function() {
+        window._sySukuyoYearlyUnlockBusy = false;
       });
     });
   }
