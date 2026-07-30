@@ -235,6 +235,9 @@ function getTrackCoverShape(track: Track) {
   return track.artistKey === "neo" || track.artistKey === "dest1nova" ? "wide" : "square";
 }
 
+// 곡 수는 매니페스트에서 파생시킨다 — 문구에 숫자를 직접 적으면 곡이 늘어날 때 어긋난다.
+const TOTAL_TRACK_COUNT = allTracks.length;
+
 const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
   ko: {
     lyricsAria: "현재 곡 가사",
@@ -257,7 +260,7 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeHuman: "인간",
     close: "닫기",
     heroKicker: "MOON MUSIC",
-    heroTitle: "달빛 아래 열린 123곡의 운명 플레이리스트",
+    heroTitle: `달빛 아래 열린 ${TOTAL_TRACK_COUNT}곡의 운명 플레이리스트`,
     heroText: "DEST1NOVA, NEO, YEONI, LUNA BLOOM의 별빛 무드를 한곳에 모은 Code Destiny의 음악 서고.",
     heroPrimary: "전체 재생",
     heroSecondary: "무드별 탐색",
@@ -309,7 +312,7 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeHuman: "Human",
     close: "Close",
     heroKicker: "MOON MUSIC",
-    heroTitle: "123 fate tracks opened under moonlight",
+    heroTitle: `${TOTAL_TRACK_COUNT} fate tracks opened under moonlight`,
     heroText: "A Code Destiny music archive gathering the starlit moods of DEST1NOVA, NEO, YEONI, and LUNA BLOOM.",
     heroPrimary: "Play all",
     heroSecondary: "Explore moods",
@@ -361,7 +364,7 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeHuman: "ヒューマン",
     close: "閉じる",
     heroKicker: "MOON MUSIC",
-    heroTitle: "月明かりの下で開く123曲の運命プレイリスト",
+    heroTitle: `月明かりの下で開く${TOTAL_TRACK_COUNT}曲の運命プレイリスト`,
     heroText: "DEST1NOVA、NEO、YEONI、LUNA BLOOMの星明かりのムードを集めたCode Destinyの音楽書庫。",
     heroPrimary: "すべて再生",
     heroSecondary: "ムードで探す",

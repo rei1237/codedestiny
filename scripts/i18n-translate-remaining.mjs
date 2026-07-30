@@ -96,7 +96,7 @@ function repairEnglishValue(key, value) {
   if (typeof value !== "string") return value;
 
   const exact = {
-    "home.music.hint": "♪ 89 moonlit tracks",
+    "home.music.hint": "♪ 123 moonlit tracks",
     "home.startCards.freeBadge": "Collection No. {index} · Free",
     "home.tiles.animalFacePrice": "Free · Compatibility KRW 5,000",
     "home.tiles.palmMapMeta": "AI palm reading · Eastern palmistry · Destiny map",

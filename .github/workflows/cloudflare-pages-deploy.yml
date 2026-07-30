@@ -74,6 +74,10 @@ jobs:
       - name: Verify ads.txt present (AdSense)
         run: npm run verify:ads-txt
 
+      # 홈 배너의 "N곡"은 app/music 매니페스트가 정본이다. 곡을 추가하고 문구를 안 고치면 여기서 막는다.
+      - name: Verify music track count matches manifest
+        run: npm run verify:music-track-count
+
       - name: Verify locale main sync
         run: npm run verify:locale-main-sync
 
