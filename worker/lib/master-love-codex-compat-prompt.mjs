@@ -583,13 +583,23 @@ export function buildMasterLoveCodexCompatChapterPrompt({
   ].join("\n");
 }
 
-/** 목차/목표 분량 (무인증 공개용) */
+/**
+ * 목차/목표 분량 (무인증 공개용).
+ * 필드 구성은 개인판 getMasterLoveCodexPlan() 과 동일하게 맞춘다 — 같은 엔드포인트가
+ * mode 로만 갈리므로 형태가 다르면 소비처가 한쪽에서만 깨진다.
+ * 가격(costCoins/amountKRW)은 넣지 않는다. 가격 정본은 서버 가격 조회(PriceBadge)다.
+ */
 export function getMasterLoveCodexCompatPlan() {
+  const chapters = MASTER_LOVE_CODEX_COMPAT_CHAPTERS.map(({ id, order, symbol, title, minChars }) => ({
+    id, order, symbol, title, minChars,
+  }));
   return {
-    ...MASTER_LOVE_CODEX_COMPAT_META,
-    totalChapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS.length,
-    chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS.map(({ id, order, symbol, title, minChars }) => ({
-      id, order, symbol, title, minChars,
-    })),
+    featureKey: MASTER_LOVE_CODEX_COMPAT_META.featureKey,
+    label: MASTER_LOVE_CODEX_COMPAT_META.label,
+    narrator: MASTER_LOVE_CODEX_COMPAT_META.narrator,
+    chapterCount: chapters.length,
+    minTotalChars: chapters.reduce((sum, chapter) => sum + (chapter.minChars || 0), 0),
+    totalCharTarget: MASTER_LOVE_CODEX_COMPAT_META.totalCharTarget,
+    chapters,
   };
 }
