@@ -338,9 +338,22 @@ assert(
 assertIncludes(routeFile, routeSource, "CHAPTER_BATCH_SIZE");
 assertIncludes(routeFile, routeSource, "acquireBatchLock");
 assert(/BATCH_LOCK_TTL_MS\s*=\s*390_?000/.test(routeSource), `${routeFile}: 배치 락 TTL 은 390초여야 합니다(중복 기동 방지)`);
+// 🔴 2026-07-30 판단 반전 — Workers AI 폴백을 켠 상태로 유지한다.
+//  이전 가드는 "장문이 잘린다"며 폴백을 금지했다. 그 판단은 폐기된 8B 모델
+//  (@cf/meta/llama-3.1-8b-instruct, 2026-05-30 폐기) 기준이었고, 지금 기본 폴백은
+//  llama-3.3-70b-instruct-fp8-fast 다. 무엇보다 비교 대상이 잘못됐다 — 폴백을 끄면
+//  Gemini 장애 시 독자가 받는 건 짧은 장이 아니라 fallbackChapterBody() 사과 문구다.
+//  (실제로 Gemini 크레딧 소진 429 상황에서 결제한 책 20장이 전부 사과문으로 나갔다.)
 assert(
-  !/fallbackToWorkersAI\s*:\s*true/.test(routeSource),
-  `${routeFile}: 장문 생성은 Workers AI 폴백을 켜면 안 됩니다(모델 한계로 잘림)`,
+  !/fallbackToWorkersAI\s*:\s*false/.test(routeSource),
+  `${routeFile}: Workers AI 폴백을 끄면 Gemini 장애 시 결제한 책 20장이 전부 사과 문구로 나갑니다`,
+);
+// Workers AI(env.AI.run)는 responseMimeType 을 받지 않아 JSON 앞뒤에 잡음이 섞인다.
+// JSON.parse 를 그대로 쓰면 DNA 챕터가 폴백 문구로 떨어진다.
+assertIncludes(routeFile, routeSource, "parseChapterJson");
+assert(
+  !/JSON\.parse\(clean\(ai\?\.text/.test(routeSource),
+  `${routeFile}: DNA 챕터 JSON 은 parseChapterJson 으로 관대하게 파싱해야 합니다(Workers AI 는 코드펜스를 섞어 보냅니다)`,
 );
 assert(
   !/PREMIUM_GEMINI_TIMEOUT_MS/.test(routeSource),

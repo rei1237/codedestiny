@@ -459,6 +459,29 @@ function fallbackChapterBody(chapter, birthInfo) {
   ].join("\n");
 }
 
+/**
+ * DNA 챕터 JSON 파싱.
+ * Gemini 는 responseMimeType 으로 순수 JSON 을 보장하지만 Workers AI 폴백(env.AI.run)은
+ * 그 옵션을 받지 않아 코드펜스나 앞뒤 설명문이 섞여 온다. 첫 `{` ~ 마지막 `}` 만 잘라 쓴다.
+ * (같은 헬퍼가 nakshatra/love-secret/neo 프롬프트 모듈에 각자 있다 — 워커 번들 1MB 제약 때문에
+ *  그 모듈들을 끌어오지 않고 이 라우트에도 지역 사본을 둔다.)
+ */
+function parseChapterJson(text) {
+  const raw = clean(text);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch (_) { /* 폴백 경로: 앞뒤 잡음 제거 후 재시도 */ }
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start < 0 || end <= start) return {};
+  try {
+    return JSON.parse(raw.slice(start, end + 1));
+  } catch (_) {
+    return {};
+  }
+}
+
 function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
   const source = asObject(parsed);
   const byKey = new Map(
@@ -497,10 +520,9 @@ async function generateChapter(env, {
         capTokens: 14000,
         temperature: 0.6,
         timeoutMs: CHAPTER_TIMEOUT_MS,
-        fallbackToWorkersAI: false,
         cache,
       });
-      const parsed = JSON.parse(clean(ai?.text || "{}"));
+      const parsed = parseChapterJson(ai?.text);
       const body = clean(parsed?.body || "");
       if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
       return {
@@ -509,11 +531,15 @@ async function generateChapter(env, {
       };
     }
 
+    // Workers AI 폴백을 끄지 않는다(옵션 미지정 = 켜짐).
+    // 과거에는 "Workers AI 는 장문이 잘린다"고 껐지만, 그때의 폴백 모델 @cf/meta/llama-3.1-8b-instruct
+    // 는 2026-05-30 폐기되고 지금 기본값은 llama-3.3-70b-instruct-fp8-fast 다(lib/llm-client.ts).
+    // 더 중요한 건 비교 대상이다 — 끄면 Gemini 실패 시 독자가 받는 것은 짧은 장이 아니라
+    // fallbackChapterBody() 사과 문구다. 결제한 책에는 짧은 실제 해석이 사과문보다 낫다.
     const ai = await callGeminiText(env, prompt, {
       maxOutputTokens: 8000,
       temperature: 0.72,
       timeoutMs: CHAPTER_TIMEOUT_MS,
-      fallbackToWorkersAI: false,
       cache,
     });
     const body = clean(ai?.text || "");
