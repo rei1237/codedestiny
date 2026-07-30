@@ -3417,10 +3417,16 @@ async function handleDigitalContentPrepare(request, auth, body) {
     }, { status: 400 });
   }
 
-  const passUser = await User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+  // 인증 단계에서 이미 같은 필드를 읽어 두었다(PAYMENT_ROUTE_USER_PROJECTION). 그걸 재사용해
+  // 왕복 1회를 없앤다. authUserDoc 은 access-token 경로에만 붙으므로 부재 시 종전 조회로 폴백한다.
+  const passUser = auth.authUserDoc || await User.findById(auth.userId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt phoneNumber phone name email fullName displayName username")
     .lean();
   const entitlement = normalizeHoneyPassEntitlement(passUser || {});
+  // 주문 응답에 customer 를 실어 보낸다. 예전에는 이 필드가 없어서 클라의 order.customer 가 항상
+  // 비어 있었고, 결제마다 GET /api/me/payment-phone 을 한 번 더 타야 했다. 여기서 실어 보내면
+  // 저장된 번호가 있는 사용자는 그 왕복이 통째로 사라진다(추가 조회 없음 — 위 문서를 그대로 쓴다).
+  const orderCustomer = buildSinglePaymentCustomer(passUser || {}, auth.userId);
   const resolved = resolveDigitalContentPricing(body, entitlement);
   if (!resolved.ok) {
     await writeFailureLog({
@@ -3492,6 +3498,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
           featureKey: String(existing.featureKey || featureKey || ""),
           accessType: String(existing.accessType || "single_purchase"),
           productName,
+          customer: orderCustomer,
           pricing: resolved.pricing,
         },
       });
@@ -3555,6 +3562,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
       idempotencyKey,
       orderId,
       productName,
+      customer: orderCustomer,
       pricing: resolved.pricing,
     },
   }, { status: 201 });
@@ -5596,6 +5604,12 @@ function handlePaymentConfig(env) {
 
 // 결제 라우트 핸들러가 인증 직후 곧바로 필요로 하는 User 필드. 인증 리졸버에 userProjection으로
 // 넘기면 인증 조회와 같은 왕복에서 함께 읽어 authUserDoc로 돌려준다(두 번째 Mongo 왕복 제거).
+// 인증할 때 어차피 User 를 한 번 읽으므로, 결제 핸들러가 곧바로 쓰는 필드를 그때 함께 읽는다.
+// Atlas 공유혀에서는 왕복 1회가 곧 체감 지연이라, 왕복 수를 줄이는 것이 유일하게 효과가 큰 레버다.
+// 아래 두 묶음이 여기 있는 이유:
+//  - pass/구독 필드: handleDigitalContentPrepare 가 이걸 위해 별도 User.findById 를 또 했다.
+//  - customer 필드(phone/이름): 주문 응답의 customer 를 만들기 위해 필요하다. 이게 없어서
+//    order.customer 가 아예 비어 있었고, 그 결과 클라가 결제마다 GET /api/me/payment-phone 을 탔다.
 const PAYMENT_ROUTE_USER_PROJECTION = {
   _id: 1,
   name: 1,
@@ -5605,6 +5619,29 @@ const PAYMENT_ROUTE_USER_PROJECTION = {
   birthDate: 1,
   unlockedFeatures: 1,
   profileSubscription: 1,
+  // pass/구독 판정용
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  // PortOne customer 구성용
+  phoneNumber: 1,
+  phone: 1,
+  fullName: 1,
+  displayName: 1,
+  username: 1,
 };
 
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
