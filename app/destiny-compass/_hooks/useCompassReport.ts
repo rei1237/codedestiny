@@ -51,6 +51,8 @@ export type ReportPhase = "locked" | "paying" | "waveA" | "waveB" | "done" | "fa
 
 interface ReportState {
   phase: ReportPhase;
+  /** 저장본 재열람·공유 링크에 쓰는 서버 발급 id. 웨이브 A 응답에서 온다. */
+  reportId: string;
   sections: Partial<Record<ServerSectionKey, ReportSectionPayload>>;
   systemConfidence: SystemConfidenceRow[];
   error: string | null;
@@ -58,7 +60,7 @@ interface ReportState {
   canRetryWaveB: boolean;
 }
 
-const INITIAL: ReportState = { phase: "locked", sections: {}, systemConfidence: [], error: null, canRetryWaveB: false };
+const INITIAL: ReportState = { phase: "locked", reportId: "", sections: {}, systemConfidence: [], error: null, canRetryWaveB: false };
 
 function sessionKeyFor(field: DirectionField, question: string): string {
   let h = 5381;
@@ -232,6 +234,7 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
 
       const waveA: ReportState = {
         phase: "waveB",
+        reportId: typeof data.reportId === "string" ? data.reportId : "",
         sections: mergeSections({}, data.sections),
         systemConfidence: Array.isArray(data.systemConfidence) ? (data.systemConfidence as SystemConfidenceRow[]) : [],
         error: null,

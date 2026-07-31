@@ -10,6 +10,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { ReportActions } from "./ReportActions";
 import { CompassHero, ConfidenceMeta, coordinateLine } from "./CompassHero";
 import { DestinyRadar } from "./DestinyRadar";
 import { PigFace } from "./PigFace";
@@ -85,7 +86,9 @@ export function CompassReport({
   const question = situation || "";
   const report = useCompassReport(input, field, question);
   const causeTitleRef = useRef<HTMLHeadingElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const unlockedRef = useRef(false);
+  const coordinate = coordinateLine(field.primary.band, field.primary.key);
 
   const dest = regionByKey(DIRECTION_TO_REGION[field.primary.key]);
   const activeSystems = useMemo(() => new Set<SystemKey>(field.sources), [field.sources]);
@@ -192,14 +195,14 @@ export function CompassReport({
     <div className={`${styles.resultStage} ${styles.nightStage}`} data-fx={fxTier}>
       <Starfield />
 
-      <div className={styles.reportShell}>
+      <div className={styles.reportShell} ref={shellRef}>
         {/* ① 오늘의 운명 좌표 — 거대한 나침반이 먼저, 그 아래 좌표 한 문장이 이 화면의 h1 이다. */}
         <ReportSection
           spec={getReportSection("coordinate")}
           state="arrived"
           headingLevel={1}
           eyebrow="당신은 지금"
-          titleOverride={coordinateLine(field.primary.band, field.primary.key)}
+          titleOverride={coordinate}
           media={
             <CompassHero
               directions={field.directions}
@@ -420,6 +423,12 @@ export function CompassReport({
           <button type="button" className={styles.resultCta} onClick={onNext}>
             오늘의 한 걸음 →
           </button>
+          <ReportActions
+            targetRef={shellRef}
+            coordinate={coordinate}
+            question={question}
+            reportId={report.reportId}
+          />
           <button type="button" className={styles.resultCtaGhost} onClick={onRestart}>
             지도로 돌아가기
           </button>
