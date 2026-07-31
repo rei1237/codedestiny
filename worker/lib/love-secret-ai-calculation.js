@@ -2,8 +2,17 @@
 // 이유: 연애 상담이 요구하는 대운 10주기·세운 5년·지장간·합충형파해·삼합/방합이 그쪽에만 있고,
 // 기존 코어는 그중 무엇도 상담 데이터로 내보내지 않았다(대운은 계산하고도 버렸다).
 //
-// ⚠️ 교체로 잃는 것: buildSajuProfile 의 진태양시 시주 보정과 야자시 일자 변경 정책.
-// 23:00~01:00 출생은 시주가 이전 결과와 달라질 수 있다.
+// 🔴 시주 시각 보정·일자 변경 정책은 destiny-bias-engine 이 정본이고 여기서도 그대로 쓴다.
+// 코어만 바꾸고 이 정책을 빠뜨리면 23:00~01:00 출생자의 시주가 조용히 달라진다.
+// 기본값도 그 엔진과 동일하게 맞춘다 — 진태양시 보정 적용 + 일자 변경은 자정 기준.
+import {
+  DAY_CHANGE_POLICIES,
+  DEFAULT_LOCATION,
+  HOUR_PILLAR_TIME_POLICIES,
+  applyHourPillarTimeCorrection,
+  getHourBranchByClock,
+  getHourStemByDayStem,
+} from "./destiny-bias-engine.js";
 import { buildSajuAdvancedFactors } from "./saju-ai-prompt.js";
 import { buildLoveSecretReference } from "./love-secret-reference.js";
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
@@ -166,14 +175,65 @@ function hasPartnerSignal(source = {}) {
   );
 }
 
-function buildLifeBookInput(info) {
+/**
+ * 시주 시각 보정. destiny-bias-engine 의 기본 정책(진태양시 + 자정 기준 일자 변경)과 같다.
+ *
+ * 시지는 보정된 시각에서, 시간은 일간에서 도출한다 — 그 엔진의 산출 순서 그대로다.
+ * 보정이 자정을 넘겨도(dayOffset ≠ 0) 일주는 건드리지 않는다. 야자시로 일자를 넘기는 것은
+ * DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY 이며, 이 서비스의 기본값은 MIDNIGHT 이다.
+ */
+function resolveCorrectedHourPillar(info, dayStem) {
+  if (info.birthTimeUnknown || !info.birth) return null;
+  const time = splitBirthTime(info.birthTime);
+  if (!time.birthTime) return null;
+
+  const correction = applyHourPillarTimeCorrection(
+    { year: info.birth.year, month: info.birth.month, day: info.birth.day, hour: time.hour, minute: time.minute },
+    DEFAULT_LOCATION,
+    HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME,
+  );
+  const branch = getHourBranchByClock(correction.correctedHour);
+  const stem = getHourStemByDayStem(clean(dayStem, 4), branch);
+  if (!stem || !branch) return null;
+
+  return {
+    pillar: `${stem}${branch}`,
+    correction: {
+      policy: HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME,
+      dayChangePolicy: DAY_CHANGE_POLICIES.MIDNIGHT,
+      clockTime: time.birthTime,
+      correctedTime: `${String(correction.correctedHour).padStart(2, "0")}:${String(correction.correctedMinute).padStart(2, "0")}`,
+      longitudeCorrectionMinutes: Math.round(correction.longitudeCorrectionMinutes * 100) / 100,
+      equationOfTimeMinutes: Math.round(correction.equationOfTimeMinutes * 100) / 100,
+      dayOffset: correction.dayOffset,
+    },
+  };
+}
+
+function buildLifeBookInput(info, hourPillarOverride = "") {
   return {
     birthDate: info.birthDate,
     birthTime: info.birthTimeUnknown ? "" : info.birthTime,
     birthTimeUnknown: info.birthTimeUnknown,
     calendarType: info.calendarType,
     gender: normalizeGender(info.gender),
+    hourPillarOverride,
   };
+}
+
+/**
+ * 명식 1인분. 시주 보정은 일간이 있어야 계산되므로 두 단계로 돈다 —
+ * 1차로 일주를 얻고, 보정된 시주를 넣어 2차로 전체를 다시 세운다.
+ * 보정 결과가 원래 시주와 같으면 2차 호출을 건너뛴다(대부분의 시각이 여기에 해당).
+ */
+function calculateChartWithHourCorrection(info) {
+  const base = calculateLifeBookAiSaju(buildLifeBookInput(info));
+  const corrected = resolveCorrectedHourPillar(info, base.dayMaster);
+  if (!corrected || corrected.pillar === clean(base.hourPillar, 10)) {
+    return { saju: base, hourCorrection: corrected?.correction || null };
+  }
+  const adjusted = calculateLifeBookAiSaju(buildLifeBookInput(info, corrected.pillar));
+  return { saju: adjusted, hourCorrection: corrected.correction };
 }
 
 function distributionFromCounts(source = {}) {
@@ -348,7 +408,7 @@ function buildReferenceBase(saju, shinsal, partnerBase = null) {
  * 앞쪽 8개 키는 기존 계약 그대로다(publicChartSummary·결과 화면이 이 이름을 읽는다).
  * 그 뒤는 전부 가산 필드이며 프롬프트 투영(love-secret-ai-facts.js)에서만 쓴다.
  */
-function buildLoveChart(saju, { partnerBase = null } = {}) {
+function buildLoveChart(saju, { partnerBase = null, hourCorrection = null } = {}) {
   const details = saju.pillarDetails || {};
   const day = pillarPartsOf(details.day, saju.dayPillar);
   const year = pillarPartsOf(details.year, saju.yearPillar);
@@ -432,6 +492,7 @@ function buildLoveChart(saju, { partnerBase = null } = {}) {
     shinsal,
     loveReference: reference,
     calculationMeta: saju.calculationMeta || null,
+    hourCorrection,
   };
 }
 
@@ -636,10 +697,12 @@ export function calculateLoveSecretAiSaju(normalized, options = {}) {
   }
 
   let mySaju;
+  let myHourCorrection = null;
   let partnerSaju = null;
+  let partnerHourCorrection = null;
 
   try {
-    mySaju = calculateLifeBookAiSaju(buildLifeBookInput(myInfo));
+    ({ saju: mySaju, hourCorrection: myHourCorrection } = calculateChartWithHourCorrection(myInfo));
   } catch (error) {
     console.warn("[love-secret-ai] my chart calculation failed", {
       birthDate: myInfo.birthDate,
@@ -653,7 +716,7 @@ export function calculateLoveSecretAiSaju(normalized, options = {}) {
   const partnerInfo = internal.partnerInfo;
   if (partnerInfo?.birth) {
     try {
-      partnerSaju = calculateLifeBookAiSaju(buildLifeBookInput(partnerInfo));
+      ({ saju: partnerSaju, hourCorrection: partnerHourCorrection } = calculateChartWithHourCorrection(partnerInfo));
     } catch (error) {
       console.warn("[love-secret-ai] partner chart calculation failed", {
         birthDate: partnerInfo.birthDate,
@@ -676,8 +739,8 @@ export function calculateLoveSecretAiSaju(normalized, options = {}) {
   }
 
   const partnerBase = partnerSaju ? partnerReferenceBase(partnerSaju) : null;
-  const myChart = buildLoveChart(mySaju, { partnerBase });
-  const partnerChart = partnerSaju ? buildLoveChart(partnerSaju) : undefined;
+  const myChart = buildLoveChart(mySaju, { partnerBase, hourCorrection: myHourCorrection });
+  const partnerChart = partnerSaju ? buildLoveChart(partnerSaju, { hourCorrection: partnerHourCorrection }) : undefined;
   const compatibility = partnerSaju ? buildLoveCompatibility(mySaju, partnerSaju, myChart, partnerChart) : undefined;
   const calendar = buildLoveCalendarFor(myChart, options.nowMs);
 
