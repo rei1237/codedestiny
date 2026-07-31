@@ -1,7 +1,8 @@
 "use client";
 
 import { CalendarDays, Download, Loader2, Moon, Share2, Sparkles, WalletCards } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -125,12 +126,20 @@ type RecentSession = {
   updatedAt?: string;
 };
 
+// 서버가 분야별로 나눠 생성한 본문. 2026-08 이전 세션에는 없으므로 항상 옵셔널이다.
+type ConsultationSection = {
+  key: string;
+  label: string;
+  text: string;
+};
+
 type ConsultationResult = {
   ok: boolean;
   sessionId?: string;
   accessType?: AccessType;
   status?: string;
   messages?: ChatMessage[];
+  sections?: ConsultationSection[];
   sajuProfile?: SajuProfile | null;
   monthlyFlow?: MonthlyFlowRow[];
   targetYear?: TargetYearInfo | null;
@@ -326,6 +335,70 @@ const QUESTION_ANSWER_TITLE = "질문에 대한 답변";
 const MONTH_LETTER_HEADING_RE = /^(\d{1,2})월\s*[·∙・-]\s*(\S+)\s*[·∙・-]\s*(.+)$/;
 const CATEGORY_TITLE_PREFIXES = ["연애·재회", "재물·수입", "직업·이직", "건강·멘탈", "가족·관계", "학업·성장"];
 
+// 결과 화면의 네 장짜리 상담 카드. key는 서버 섹션 키(worker/routes/new-year-ai.js의
+// NEW_YEAR_AI_SECTIONS)와 같아야 한다 — 구조화 응답이 오면 이 키로 곧장 매칭한다.
+// marker는 구버전 세션(llmMeta.sections 없음)에서 조립본을 다시 가를 때 쓰는 굵은 소제목이다.
+const DOMAIN_CARDS: Array<{ key: string; label: string; marker: string; glyph: string; hint: string }> = [
+  { key: "overview", label: "올해의 총운", marker: "올해의 총운", glyph: "運", hint: "세운이 일간에 만드는 조후와 억부의 변화" },
+  { key: "wealth", label: "재물과 직업", marker: "재물과 직업", glyph: "財", hint: "재성·관성의 동태와 움직일 시기" },
+  { key: "romance", label: "애정과 대인관계", marker: "애정과 대인관계", glyph: "緣", hint: "귀인과 인연, 조심해야 할 관계" },
+  { key: "health", label: "건강과 개운법", marker: "건강과 개운법", glyph: "身", hint: "오행의 쏠림과 실생활 개운법" },
+];
+const DEFAULT_DOMAIN_KEY = DOMAIN_CARDS[0].key;
+// 구버전 조립본에는 분야 마커가 없고 6개 카테고리 소제목만 있다. 그 소제목을 새 분야로 흡수해
+// 이미 결제된 과거 상담도 같은 네 장 카드로 열린다.
+const LEGACY_CATEGORY_DOMAIN: Record<string, string> = {
+  "재물·수입": "wealth",
+  "직업·이직": "wealth",
+  "연애·재회": "romance",
+  "가족·관계": "romance",
+  "건강·멘탈": "health",
+  "학업·성장": "overview",
+};
+
+function stripBold(value: string) {
+  return value.replace(/\*\*/g, "").trim();
+}
+
+// 문단의 제목 줄 또는 본문 첫 줄에서 분야 마커를 찾는다. LLM이 소제목을 자기 문단으로 떼어
+// 쓸 때와 본문 첫 줄에 붙여 쓸 때가 모두 있어 두 자리를 함께 본다.
+function domainKeyFromSection(section: ParsedSection) {
+  const heads = [stripBold(section.title), stripBold(section.body.split("\n")[0] || "")];
+  for (const card of DOMAIN_CARDS) {
+    if (heads.some((head) => head === card.marker || head.startsWith(card.marker))) return card.key;
+  }
+  return "";
+}
+
+function legacyDomainFromTitle(title: string) {
+  const head = stripBold(title);
+  const prefix = CATEGORY_TITLE_PREFIXES.find((item) => head.startsWith(item));
+  return prefix ? LEGACY_CATEGORY_DOMAIN[prefix] || "" : "";
+}
+
+// 조립본을 분야별로 되돌린다. 분야 마커는 경계라서 뒤 문단까지 끌고 가고(sticky),
+// 6개 카테고리 소제목은 더 큰 절 안의 점 표시라서 그 문단 하나만 옮긴다.
+function groupSectionsByDomain(sections: ParsedSection[]) {
+  const buckets = new Map<string, ParsedSection[]>();
+  const push = (key: string, section: ParsedSection) => {
+    const list = buckets.get(key) || [];
+    list.push(section);
+    buckets.set(key, list);
+  };
+  let current = DEFAULT_DOMAIN_KEY;
+  for (const section of sections) {
+    const explicit = domainKeyFromSection(section);
+    if (explicit) {
+      current = explicit;
+      push(current, section);
+      continue;
+    }
+    const legacy = legacyDomainFromTitle(section.title);
+    push(legacy || current, section);
+  }
+  return buckets;
+}
+
 function classifySections(sections: ParsedSection[]) {
   const monthLetters = new Map<number, MonthLetter>();
   const restSections: ParsedSection[] = [];
@@ -343,9 +416,43 @@ function classifySections(sections: ParsedSection[]) {
     }
     restSections.push(section);
   }
-  const isCategorySection = (title: string) => CATEGORY_TITLE_PREFIXES.some((prefix) => title.startsWith(prefix));
-  restSections.sort((a, b) => Number(isCategorySection(b.title)) - Number(isCategorySection(a.title)));
-  return { questionAnswer, monthLetters, restSections };
+  // restSections의 원래 순서를 그대로 보존해야 분야 경계(sticky)가 어긋나지 않는다.
+  // 구 정렬(카테고리 먼저)은 분야 그룹핑이 순서를 대신하므로 더 이상 필요 없다.
+  return { questionAnswer, monthLetters, restSections, domains: groupSectionsByDomain(restSections) };
+}
+
+// 분야 카드 본문. 서버 구조화 응답이 있으면 그대로 쓰고, 없으면 조립본 그룹핑 결과를 쓴다.
+// 분야 마커 줄만 남은 문단은 카드 제목과 중복이라 본문에서 걷어낸다.
+function buildDomainBodies(
+  serverSections: ConsultationSection[],
+  grouped: Map<string, ParsedSection[]>,
+) {
+  const bodies = new Map<string, string>();
+  for (const card of DOMAIN_CARDS) {
+    const fromServer = serverSections.find((section) => section.key === card.key)?.text || "";
+    if (fromServer) {
+      bodies.set(card.key, stripLeadingMarker(fromServer, card.marker));
+      continue;
+    }
+    const chunks = (grouped.get(card.key) || [])
+      .map((section) => {
+        const body = stripLeadingMarker(section.body, card.marker);
+        const title = stripBold(section.title);
+        const isMarkerTitle = title === card.marker || title.startsWith(card.marker);
+        const isGeneratedTitle = /^새해 상담 편지 \d+$/.test(title);
+        return !isMarkerTitle && !isGeneratedTitle && body ? `**${title}**\n${body}` : body;
+      })
+      .filter(Boolean);
+    if (chunks.length) bodies.set(card.key, chunks.join("\n\n"));
+  }
+  return bodies;
+}
+
+function stripLeadingMarker(text: string, marker: string) {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  while (lines.length && !stripBold(lines[0])) lines.shift();
+  if (lines.length && stripBold(lines[0]) === marker) lines.shift();
+  return lines.join("\n").trim();
 }
 
 function AssistantMessageContent({ content, sections }: { content: string; sections: ParsedSection[] }) {
@@ -371,6 +478,112 @@ function NewYearQuestionAnswerCard({ name, question, answer }: { name: string; q
       <blockquote className="nyai-qa-question">“{question}”</blockquote>
       <AiResultProse value={answer} className="nyai-qa-answer" />
     </section>
+  );
+}
+
+// 결과 카드의 등장 연출. data-pdf-section 마커는 감싸는 쪽이 아니라 안쪽 요소에 그대로 두어
+// PDF 캡처 대상이 바뀌지 않게 한다. 대신 .nyai-reveal 클래스가 내보내기 시 강제 노출의 손잡이다.
+function RevealBlock({ index = 0, children }: { index?: number; children: ReactNode }) {
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) return <div className="nyai-reveal">{children}</div>;
+  return (
+    <motion.div
+      className="nyai-reveal"
+      initial={{ opacity: 0, y: 26 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: 0.55, delay: Math.min(index, 5) * 0.09, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function DomainConsultationCards({ bodies }: { bodies: Map<string, string> }) {
+  const cards = DOMAIN_CARDS.filter((card) => bodies.get(card.key));
+  if (!cards.length) return null;
+  return (
+    <div className="nyai-domain-report" aria-label="분야별 상담 결과">
+      {cards.map((card, index) => (
+        <RevealBlock key={card.key} index={index}>
+          <section className="nyai-report-card" data-pdf-section={`domain-${card.key}`}>
+            <details className="nyai-report-details" open>
+              <summary>
+                <span className="nyai-report-glyph" aria-hidden="true">{card.glyph}</span>
+                <span className="nyai-report-heading">
+                  <strong>{card.label}</strong>
+                  <small>{card.hint}</small>
+                </span>
+              </summary>
+              <div className="nyai-report-body">
+                <AiResultProse value={bodies.get(card.key) || ""} />
+              </div>
+            </details>
+          </section>
+        </RevealBlock>
+      ))}
+    </div>
+  );
+}
+
+// 진행바는 서버가 알려주는 값이 아니라 경과 시간의 함수다. 그래서 92%를 넘지 않게 묶어
+// 완료를 거짓으로 알리지 않는다 — 실제 완료는 폴링 응답이 도착할 때만 100%가 된다.
+const READING_STAGES = [
+  { at: 0, label: "명식과 세운을 세우는 중" },
+  { at: 16, label: "올해의 총운을 읽는 중" },
+  { at: 36, label: "재물과 직업의 결을 읽는 중" },
+  { at: 54, label: "애정과 대인관계를 살피는 중" },
+  { at: 70, label: "건강과 개운법, 열두 달을 정리하는 중" },
+  { at: 88, label: "명식과 다시 대조하는 중" },
+];
+const READING_PROGRESS_CAP = 92;
+// 4섹션 시절 실측 대역(40~55초)의 중앙값. 지수 완화라 이보다 오래 걸려도 상한에 수렴할 뿐 넘지 않는다.
+const READING_EXPECTED_MS = 48000;
+
+function readingProgressFromElapsed(elapsedMs: number) {
+  const ratio = 1 - Math.exp(-Math.max(0, elapsedMs) / (READING_EXPECTED_MS / 2.4));
+  return Math.min(READING_PROGRESS_CAP, READING_PROGRESS_CAP * ratio);
+}
+
+function readingStageLabel(percent: number) {
+  return READING_STAGES.reduce((label, stage) => (percent >= stage.at ? stage.label : label), READING_STAGES[0].label);
+}
+
+function ReadingProgressPanel({ percent }: { percent: number }) {
+  const rounded = Math.round(percent);
+  return (
+    <div className="nyai-progress" data-pdf-skip="true">
+      <div className="nyai-progress-head">
+        <strong>{readingStageLabel(percent)}</strong>
+        <span>{rounded}%</span>
+      </div>
+      <div
+        className="nyai-progress-track"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={rounded}
+        aria-valuetext={`${readingStageLabel(percent)} ${rounded}%`}
+        aria-label="상담문 생성 진행률"
+      >
+        <i style={{ width: `${rounded}%` }} />
+      </div>
+      <ol className="nyai-progress-steps">
+        {DOMAIN_CARDS.map((card, index) => {
+          const startsAt = READING_STAGES[index + 1]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
+          const endsAt = READING_STAGES[index + 2]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
+          const done = percent >= endsAt;
+          const active = !done && percent >= startsAt;
+          return (
+            <li key={card.key} className={done ? "is-done" : active ? "is-active" : ""}>
+              <span className="nyai-progress-glyph" aria-hidden="true">{card.glyph}</span>
+              {card.label}
+            </li>
+          );
+        })}
+      </ol>
+      <p className="nyai-progress-note">창을 닫지 마세요. 네 분야를 동시에 읽고 있어 잠시 시간이 걸립니다.</p>
+    </div>
   );
 }
 
@@ -459,6 +672,15 @@ function SajuProfilePanel({ profile }: { profile: SajuProfile | null }) {
   );
 }
 
+// 구버전 세션 재열람 폴백(마커 없는 조립본 → 분야 카드)은 화면 없이 검증할 수 있어야 한다.
+// 이미 결제된 과거 상담이 안 열리는 회귀가 가장 비싼 실패라서 파싱만 따로 떼어 노출한다.
+export const __newYearAiParserTestUtils = {
+  splitAssistantSections,
+  classifySections,
+  buildDomainBodies,
+  DOMAIN_CARDS,
+};
+
 function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   return {
@@ -500,13 +722,16 @@ function yearGanzi(year: number) {
   };
 }
 
-// 세운 천간 오행 → 시즌 테마 컬러 (목/화/토/금/수)
+// 세운 천간 오행 → 시즌 테마 컬러 (목/화/토/금/수).
+// 페이지 전반의 강조는 앤틱 골드·옥색으로 고정됐고, 이 표는 월별 캘린더의 기회 칸과
+// 공유 카드 배경에서만 소비된다. 채도를 낮춘 앤틱 톤이라 골드 옆에서 튀지 않는다.
+// 모든 accent는 딥 버건디 배경 위에서 본문 대비 4.5:1 이상이다.
 const ELEMENT_THEMES = [
-  { name: "목", accent: "#4ade80", soft: "rgba(74, 222, 128, 0.16)", deep: "#14532d" },
-  { name: "화", accent: "#fb7185", soft: "rgba(251, 113, 133, 0.16)", deep: "#7f1d1d" },
-  { name: "토", accent: "#fbbf24", soft: "rgba(251, 191, 36, 0.16)", deep: "#78350f" },
-  { name: "금", accent: "#e2e8f0", soft: "rgba(226, 232, 240, 0.14)", deep: "#334155" },
-  { name: "수", accent: "#818cf8", soft: "rgba(129, 140, 248, 0.18)", deep: "#312e81" },
+  { name: "목", accent: "#5ea882", soft: "rgba(94, 168, 130, 0.16)", deep: "#16352a" },
+  { name: "화", accent: "#c96a6a", soft: "rgba(201, 106, 106, 0.16)", deep: "#4a1420" },
+  { name: "토", accent: "#c9a227", soft: "rgba(201, 162, 39, 0.16)", deep: "#3d2a12" },
+  { name: "금", accent: "#b9b3a6", soft: "rgba(185, 179, 166, 0.14)", deep: "#2e2b2c" },
+  { name: "수", accent: "#7f86c4", soft: "rgba(127, 134, 196, 0.18)", deep: "#241f3d" },
 ];
 
 function buildSeasonCountdown(targetYear: number) {
@@ -655,32 +880,37 @@ async function drawShareCard(options: {
   const context = canvas.getContext("2d");
   if (!context) throw new Error("share canvas unavailable");
 
+  // 공유 카드도 페이지와 같은 칠흑·버건디 베이스에 앤틱 골드·옥색을 쓴다.
+  // 세운 오행색(theme.deep)은 중간 정지점에만 남겨 해마다 다른 결을 유지한다.
   const gradient = context.createLinearGradient(0, 0, 1080, 1350);
-  gradient.addColorStop(0, "#180a08");
+  gradient.addColorStop(0, "#100609");
   gradient.addColorStop(0.55, theme.deep);
-  gradient.addColorStop(1, "#0b0605");
+  gradient.addColorStop(1, "#0a0507");
   context.fillStyle = gradient;
   context.fillRect(0, 0, 1080, 1350);
 
-  context.strokeStyle = theme.accent;
-  context.lineWidth = 6;
+  context.strokeStyle = "#c9a227";
+  context.lineWidth = 3;
   context.strokeRect(48, 48, 1080 - 96, 1350 - 96);
+  context.strokeStyle = "rgba(201, 162, 39, 0.4)";
+  context.lineWidth = 1;
+  context.strokeRect(62, 62, 1080 - 124, 1350 - 124);
 
   context.textAlign = "center";
-  context.fillStyle = "rgba(255, 240, 220, 0.85)";
+  context.fillStyle = "#cbb49f";
   context.font = "600 44px 'Noto Sans KR', sans-serif";
   context.fillText("신년운세 전문가 상담", 540, 200);
 
-  context.fillStyle = theme.accent;
-  context.font = "800 220px 'Noto Serif KR', serif";
+  context.fillStyle = "#c9a227";
+  context.font = "800 220px 'Nanum Myeongjo', 'Noto Serif KR', serif";
   context.fillText(ganziHanja, 540, 560);
 
-  context.fillStyle = "#fff6ea";
-  context.font = "800 88px 'Noto Sans KR', sans-serif";
+  context.fillStyle = "#f2e6d8";
+  context.font = "800 88px 'Nanum Myeongjo', 'Noto Serif KR', serif";
   context.fillText(`${year} ${ganziKo}년`, 540, 700);
 
   if (name) {
-    context.fillStyle = "rgba(255, 240, 220, 0.92)";
+    context.fillStyle = "#e3c46a";
     context.font = "600 52px 'Noto Sans KR', sans-serif";
     context.fillText(`${name}님의 새해 흐름`, 540, 800);
   }
@@ -688,12 +918,12 @@ async function drawShareCard(options: {
   const opportunity = rows.filter((row) => row.timing === "기회").map((row) => `${row.month}월`).slice(0, 4);
   const caution = rows.filter((row) => row.timing === "주의").map((row) => `${row.month}월`).slice(0, 4);
   context.font = "600 46px 'Noto Sans KR', sans-serif";
-  context.fillStyle = theme.accent;
+  context.fillStyle = "#6fb79f";
   context.fillText(opportunity.length ? `기회의 달 · ${opportunity.join(" ")}` : "기회의 달을 함께 찾아드립니다", 540, 950);
-  context.fillStyle = "rgba(251, 146, 133, 0.95)";
+  context.fillStyle = "#e08a8a";
   context.fillText(caution.length ? `쉬어갈 달 · ${caution.join(" ")}` : "무리하지 않는 리듬이 열쇠", 540, 1030);
 
-  context.fillStyle = "rgba(255, 240, 220, 0.6)";
+  context.fillStyle = "#cbb49f";
   context.font = "500 38px 'Noto Sans KR', sans-serif";
   context.fillText("code-destiny.com", 540, 1230);
 
@@ -702,26 +932,29 @@ async function drawShareCard(options: {
   });
 }
 
+// 이 블록에서 --nyai-accent(세운 오행색)는 월별 캘린더 안쪽에서만 쓴다.
+// 페이지 전반의 강조는 앤틱 골드(--nyai-gold-*)와 옥색(--nyai-jade-*)으로 고정한다.
 const NYAI_SEASON_CSS = `
 .nyai-ganzi-chip {
   display: inline-block;
   margin-top: 6px;
   padding: 4px 10px;
   border-radius: 999px;
+  font-family: var(--nyai-serif);
   font-style: normal;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--nyai-accent, #fbbf24);
-  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16));
-  border: 1px solid var(--nyai-accent, #fbbf24);
+  color: var(--nyai-gold-bright);
+  background: var(--nyai-gold-veil);
+  border: 1px solid var(--nyai-gold-dim);
 }
 
 .nyai-countdown {
   margin: 8px 0 0;
   font-size: 13px;
   font-weight: 700;
-  color: var(--nyai-accent, #fbbf24);
+  color: var(--nyai-gold-bright);
 }
 
 .nyai-year-field > span {
@@ -741,10 +974,11 @@ const NYAI_SEASON_CSS = `
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: var(--nyai-radius-pill, 999px);
-  border: 1px solid rgba(255, 226, 191, 0.25);
-  background: rgba(46, 19, 15, 0.55);
+  border: 1px solid var(--nyai-gold-hair);
+  background: rgba(42, 16, 24, 0.55);
   color: inherit;
   cursor: pointer;
   text-align: left;
@@ -753,12 +987,12 @@ const NYAI_SEASON_CSS = `
 
 .nyai-year-chip small {
   font-size: 11px;
-  opacity: 0.7;
+  color: var(--nyai-text-dim);
 }
 
 .nyai-year-chip.is-active {
-  border-color: var(--nyai-accent, #fbbf24);
-  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16));
+  border-color: var(--nyai-gold);
+  background: var(--nyai-gold-veil);
 }
 
 .nyai-year-field input {
@@ -773,10 +1007,10 @@ const NYAI_SEASON_CSS = `
 }
 
 .nyai-month-calendar {
-  border: 1px solid rgba(255, 226, 191, 0.22);
+  border: 1px solid var(--nyai-gold-hair);
   border-radius: 16px;
   padding: 14px;
-  background: rgba(31, 12, 9, 0.65);
+  background: rgba(16, 6, 9, 0.62);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -791,13 +1025,14 @@ const NYAI_SEASON_CSS = `
 }
 
 .nyai-month-head strong {
-  font-size: 14px;
-  color: var(--nyai-accent, #fbbf24);
+  font-family: var(--nyai-serif);
+  font-size: 15px;
+  color: var(--nyai-gold-bright);
 }
 
 .nyai-month-head span {
   font-size: 11px;
-  opacity: 0.65;
+  color: var(--nyai-text-dim);
 }
 
 .nyai-quarter-row {
@@ -812,13 +1047,14 @@ const NYAI_SEASON_CSS = `
   gap: 3px;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(255, 226, 191, 0.06);
-  border: 1px solid rgba(255, 226, 191, 0.14);
+  background: rgba(242, 230, 216, 0.05);
+  border: 1px solid var(--nyai-gold-hair);
 }
 
-.nyai-quarter-card span { font-size: 10px; opacity: 0.65; }
-.nyai-quarter-card strong { font-size: 12px; color: var(--nyai-accent, #fbbf24); }
-.nyai-quarter-card small { font-size: 10px; opacity: 0.7; }
+.nyai-quarter-card span { font-size: 10px; color: var(--nyai-text-dim); }
+/* 세운 오행색 유지 구역 — 분기 요약과 아래 월별 칸이 그 해의 기운을 색으로 전달한다. */
+.nyai-quarter-card strong { font-size: 12px; color: var(--nyai-accent, #c9a227); }
+.nyai-quarter-card small { font-size: 10px; color: var(--nyai-text-dim); }
 
 .nyai-month-grid {
   display: grid;
@@ -831,36 +1067,38 @@ const NYAI_SEASON_CSS = `
   flex-direction: column;
   gap: 2px;
   align-items: flex-start;
+  min-height: 44px;
   padding: 10px 9px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 226, 191, 0.18);
-  background: rgba(255, 226, 191, 0.05);
+  border: 1px solid var(--nyai-gold-hair);
+  background: rgba(242, 230, 216, 0.04);
   color: inherit;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.2s ease;
 }
 
 .nyai-month-cell strong { font-size: 13px; }
-.nyai-month-cell span { font-size: 12px; opacity: 0.85; }
+.nyai-month-cell span { font-family: var(--nyai-serif); font-size: 12px; color: var(--nyai-text-dim); }
 .nyai-month-cell small { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; }
 
+/* 기회 칸은 그 해 세운의 오행색을 그대로 입는다(정보 전달 + 해마다 다른 시즌 아이덴티티). */
 .nyai-month-cell--opportunity {
-  border-color: var(--nyai-accent, #fbbf24);
-  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16));
+  border-color: var(--nyai-accent, #c9a227);
+  background: var(--nyai-accent-soft, rgba(201, 162, 39, 0.16));
 }
-.nyai-month-cell--opportunity small { color: var(--nyai-accent, #fbbf24); }
+.nyai-month-cell--opportunity small { color: var(--nyai-accent, #c9a227); }
 
 .nyai-month-cell--caution {
-  border-color: rgba(248, 113, 113, 0.55);
-  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(224, 138, 138, 0.5);
+  background: rgba(150, 40, 55, 0.24);
 }
-.nyai-month-cell--caution small { color: #fca5a5; }
+.nyai-month-cell--caution small { color: var(--nyai-danger); }
 
 .nyai-month-cell--maintain {
-  border-color: rgba(148, 163, 184, 0.4);
-  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(203, 180, 159, 0.28);
+  background: rgba(203, 180, 159, 0.08);
 }
-.nyai-month-cell--maintain small { color: rgba(226, 232, 240, 0.85); opacity: 0.85; }
+.nyai-month-cell--maintain small { color: var(--nyai-text-dim); }
 
 .nyai-month-cell.is-selected {
   transform: translateY(-2px);
@@ -869,33 +1107,35 @@ const NYAI_SEASON_CSS = `
 
 .nyai-month-detail {
   border-radius: 12px;
-  border: 1px dashed rgba(255, 226, 191, 0.3);
+  border: 1px dashed var(--nyai-gold-dim);
   padding: 10px 12px;
 }
 
 .nyai-month-detail strong {
-  font-size: 13px;
-  color: var(--nyai-accent, #fbbf24);
+  font-family: var(--nyai-serif);
+  font-size: 14px;
+  color: var(--nyai-accent, #c9a227);
 }
 
 .nyai-month-detail p {
   margin: 4px 0 0;
   font-size: 12.5px;
-  line-height: 1.65;
-  opacity: 0.9;
+  line-height: 1.72;
+  color: var(--nyai-text);
+  word-break: keep-all;
 }
 
 .nyai-month-hint {
   margin: 0;
   font-size: 11px;
-  opacity: 0.6;
+  color: var(--nyai-text-dim);
 }
 
 .nyai-month-meta {
   margin: 4px 0 0;
   font-size: 12px;
-  line-height: 1.6;
-  opacity: 0.8;
+  line-height: 1.7;
+  color: var(--nyai-text-dim);
 }
 
 .nyai-domain-grid {
@@ -907,8 +1147,8 @@ const NYAI_SEASON_CSS = `
 
 .nyai-domain-card {
   border-radius: 12px;
-  border: 1px solid rgba(255, 226, 191, 0.18);
-  background: rgba(255, 226, 191, 0.05);
+  border: 1px solid var(--nyai-gold-hair);
+  background: rgba(242, 230, 216, 0.04);
   padding: 9px 10px;
   display: flex;
   flex-direction: column;
@@ -921,7 +1161,7 @@ const NYAI_SEASON_CSS = `
   gap: 6px;
 }
 
-.nyai-domain-glyph { font-size: 12px; opacity: 0.75; }
+.nyai-domain-glyph { font-size: 12px; color: var(--nyai-text-dim); }
 .nyai-domain-label { font-size: 12.5px; font-weight: 700; }
 .nyai-domain-level {
   margin-left: auto;
@@ -931,14 +1171,14 @@ const NYAI_SEASON_CSS = `
   padding: 1px 7px;
   border-radius: 999px;
 }
-.nyai-domain-level--strong { color: var(--nyai-accent, #fbbf24); background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16)); }
-.nyai-domain-level--mid { color: inherit; background: rgba(255, 226, 191, 0.12); opacity: 0.9; }
-.nyai-domain-level--weak { color: inherit; background: rgba(148, 163, 184, 0.16); opacity: 0.8; }
+.nyai-domain-level--strong { color: var(--nyai-accent, #c9a227); background: var(--nyai-accent-soft, rgba(201, 162, 39, 0.16)); }
+.nyai-domain-level--mid { color: var(--nyai-text); background: rgba(242, 230, 216, 0.1); }
+.nyai-domain-level--weak { color: var(--nyai-text-dim); background: rgba(203, 180, 159, 0.1); }
 
 .nyai-domain-bar {
   height: 5px;
   border-radius: 999px;
-  background: rgba(255, 226, 191, 0.12);
+  background: rgba(242, 230, 216, 0.1);
   overflow: hidden;
 }
 .nyai-domain-bar i {
@@ -946,21 +1186,22 @@ const NYAI_SEASON_CSS = `
   height: 100%;
   border-radius: 999px;
 }
-.nyai-domain-bar--strong i { width: 100%; background: var(--nyai-accent, #fbbf24); }
-.nyai-domain-bar--mid i { width: 60%; background: rgba(255, 226, 191, 0.5); }
-.nyai-domain-bar--weak i { width: 32%; background: rgba(148, 163, 184, 0.55); }
+.nyai-domain-bar--strong i { width: 100%; background: var(--nyai-accent, #c9a227); }
+.nyai-domain-bar--mid i { width: 60%; background: rgba(242, 230, 216, 0.42); }
+.nyai-domain-bar--weak i { width: 32%; background: rgba(203, 180, 159, 0.4); }
 
 .nyai-domain-basis {
   margin: 0;
   font-size: 11.5px;
-  line-height: 1.55;
-  opacity: 0.82;
+  line-height: 1.62;
+  color: var(--nyai-text-dim);
+  word-break: keep-all;
 }
 
 .nyai-month-letter {
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 226, 191, 0.16);
+  border-top: 1px solid var(--nyai-gold-hair);
   display: grid;
   gap: 6px;
 }
@@ -969,33 +1210,35 @@ const NYAI_SEASON_CSS = `
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: var(--nyai-accent, #fbbf24);
+  color: var(--nyai-accent, #c9a227);
 }
 
 .nyai-question-answer {
-  border: 2px solid var(--nyai-accent, #fbbf24);
+  border: 1px solid var(--nyai-jade);
   border-radius: var(--nyai-radius-md, 16px);
   padding: 16px;
-  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.1));
+  background: var(--nyai-jade-veil);
   display: grid;
   gap: 10px;
 }
 
+/* 인용 부호를 대신하는 조판 규칙 — 카드 장식 띠가 아니라 사용자가 남긴 말의 표시다. */
 .nyai-qa-question {
   margin: 0;
   padding: 0.1em 0 0.1em 1em;
-  border-left: 3px solid var(--nyai-accent, #fbbf24);
-  font-size: 15px;
+  border-left: 2px solid var(--nyai-jade);
+  font-family: var(--nyai-serif);
+  font-size: 15.5px;
   font-weight: 700;
-  font-style: italic;
-  line-height: 1.6;
+  line-height: 1.7;
+  color: var(--nyai-text);
 }
 
 .nyai-letter-accordion {
-  border: 1px solid rgba(255, 226, 191, .22);
+  border: 1px solid var(--nyai-gold-hair);
   border-radius: var(--nyai-radius-md, 16px);
   padding: 14px;
-  background: rgba(31, 12, 9, 0.65);
+  background: rgba(16, 6, 9, 0.62);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1010,13 +1253,13 @@ const NYAI_SEASON_CSS = `
 .nyai-letter-card {
   grid-column: span 1;
   border-radius: var(--nyai-radius-md, 16px);
-  border: 1px solid rgba(255, 226, 191, .18);
-  background: rgba(255, 226, 191, .05);
+  border: 1px solid var(--nyai-gold-hair);
+  background: rgba(242, 230, 216, .04);
 }
 
 .nyai-letter-card[open] {
   grid-column: 1 / -1;
-  border-color: var(--nyai-accent, #fbbf24);
+  border-color: var(--nyai-gold-dim);
 }
 
 .nyai-letter-card summary {
@@ -1024,6 +1267,7 @@ const NYAI_SEASON_CSS = `
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px;
+  min-height: 44px;
   padding: 10px 12px;
   cursor: pointer;
   list-style: none;
@@ -1032,19 +1276,21 @@ const NYAI_SEASON_CSS = `
 .nyai-letter-card summary::-webkit-details-marker { display: none; }
 
 .nyai-letter-month {
-  font-size: 13px;
+  font-family: var(--nyai-serif);
+  font-size: 14px;
   font-weight: 900;
 }
 
 .nyai-letter-ganji {
+  font-family: var(--nyai-serif);
   font-size: 11px;
-  opacity: 0.75;
+  color: var(--nyai-text-dim);
 }
 
 .nyai-letter-keyword {
   font-size: 12px;
   font-weight: 700;
-  color: var(--nyai-accent, #fbbf24);
+  color: var(--nyai-gold-bright);
   flex-basis: 100%;
 }
 
@@ -1054,7 +1300,9 @@ const NYAI_SEASON_CSS = `
 
 .nyai-letter-body {
   padding: 0 12px 14px;
-  font-size: 13px;
+  font-size: 13.5px;
+  line-height: 1.8;
+  word-break: keep-all;
 }
 
 .nyai-recent-list {
@@ -1067,7 +1315,7 @@ const NYAI_SEASON_CSS = `
 
 .nyai-recent-list > strong {
   font-size: 12px;
-  color: var(--nyai-accent, #fbbf24);
+  color: var(--nyai-gold-bright);
 }
 
 .nyai-recent-item {
@@ -1075,10 +1323,11 @@ const NYAI_SEASON_CSS = `
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 226, 191, 0.2);
-  background: rgba(46, 19, 15, 0.5);
+  border: 1px solid var(--nyai-gold-hair);
+  background: rgba(42, 16, 24, 0.5);
   color: inherit;
   cursor: pointer;
   font-size: 13px;
@@ -1086,16 +1335,19 @@ const NYAI_SEASON_CSS = `
 }
 
 .nyai-recent-item:hover {
-  border-color: var(--nyai-accent, #fbbf24);
+  border-color: var(--nyai-gold);
 }
 
-.nyai-recent-item small { opacity: 0.6; }
+.nyai-recent-item small { color: var(--nyai-text-dim); }
 
 @media (max-width: 720px) {
   .nyai-quarter-row { grid-template-columns: repeat(2, 1fr); }
   .nyai-month-grid { grid-template-columns: repeat(3, 1fr); }
   .nyai-year-chips { grid-template-columns: 1fr 1fr; }
   .nyai-letter-grid { grid-template-columns: repeat(2, 1fr); }
+  .nyai-report-details > summary { padding: 14px; }
+  .nyai-report-body { padding: 14px 14px 16px; font-size: 15px; }
+  .nyai-progress-steps li { font-size: 12.5px; }
 }
 `;
 
@@ -1106,6 +1358,8 @@ export default function NewYearAiConsultationPage() {
   const [error, setError] = useState("");
   const [accessType, setAccessType] = useState<AccessType | "">("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [serverSections, setServerSections] = useState<ConsultationSection[]>([]);
+  const [readingProgress, setReadingProgress] = useState(0);
   const [sajuProfile, setSajuProfile] = useState<SajuProfile | null>(null);
   const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlowRow[]>([]);
   const [targetYearInfo, setTargetYearInfo] = useState<TargetYearInfo | null>(null);
@@ -1135,6 +1389,8 @@ export default function NewYearAiConsultationPage() {
   const applyResult = useCallback((result: ConsultationResult) => {
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
+    setServerSections(Array.isArray(result.sections) ? result.sections : []);
+    setReadingProgress(100);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
     setTargetYearInfo(result.targetYear || null);
@@ -1209,11 +1465,25 @@ export default function NewYearAiConsultationPage() {
     return () => window.clearInterval(timer);
   }, []);
 
+  // 서버는 진행률을 알려주지 않는다(생성이 waitUntil 백그라운드에서 돌고 클라는 /result만 폴링).
+  // 그래서 진행바는 경과 시간의 함수이며 상한 92%에 수렴한다 — 100%는 결과가 실제로 도착했을 때만.
+  useEffect(() => {
+    if (status !== "reading") return undefined;
+    const startedAt = Date.now();
+    setReadingProgress(readingProgressFromElapsed(0));
+    const timer = window.setInterval(() => {
+      setReadingProgress(readingProgressFromElapsed(Date.now() - startedAt));
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [status]);
+
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
     idempotencyKeyRef.current = createIdempotencyKey();
     setAccessType("");
     setMessages([]);
+    setServerSections([]);
+    setReadingProgress(0);
     setSajuProfile(null);
     setMonthlyFlow([]);
     setTargetYearInfo(null);
@@ -1385,13 +1655,17 @@ export default function NewYearAiConsultationPage() {
     setIsDownloading(true);
     setNotice("");
     setError("");
+    // 등장 애니메이션은 뷰포트에 들어온 카드만 불투명하게 만든다. 스크롤하지 않고 바로 저장하면
+    // 화면 밖 카드가 opacity:0 인 채로 캡처돼 빈 페이지가 된다 — 내보내는 동안만 강제로 드러낸다.
+    const messagesNode = resultRef.current;
+    messagesNode.classList.add("is-exporting");
     try {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const safeName = (form.userName.trim() || "new-year").replace(/[\\/:*?"<>|]/g, "_");
       await exportResultPdf({
         captureTargets: [".nyai-messages [data-pdf-section]"],
         fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
-        backgroundColor: "#2e130f",
+        backgroundColor: "#170b0f",
         cover: {
           title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
           name: form.userName,
@@ -1401,6 +1675,7 @@ export default function NewYearAiConsultationPage() {
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      messagesNode.classList.remove("is-exporting");
       setIsDownloading(false);
     }
   }, [assistantMessages.length, form.targetYear, form.userName, isDownloading]);
@@ -1665,7 +1940,9 @@ export default function NewYearAiConsultationPage() {
             )}
           </div>
           <div className="nyai-messages" ref={resultRef}>
+            {status === "reading" ? <ReadingProgressPanel percent={readingProgress} /> : null}
             {assistantMessages.length === 0 ? (
+              status === "reading" ? null : (
               <div className="nyai-empty">
                 <p>아직 새해의 첫 문장이 열리지 않았습니다.</p>
                 <span>생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.</span>
@@ -1686,28 +1963,50 @@ export default function NewYearAiConsultationPage() {
                   </div>
                 )}
               </div>
+              )
             ) : assistantMessages.map((message, index) => {
               const sections = splitAssistantSections(message.content);
               const classified = classifySections(sections);
               const showQuestionCard = index === 0
                 && Boolean(classified.questionAnswer)
                 && isGenuineCustomQuestion(userQuestionText);
+              // 서버 구조화 응답이 있으면 그대로, 없으면(구버전 세션) 조립본을 분야로 되돌린다.
+              const domainBodies = buildDomainBodies(index === 0 ? serverSections : [], classified.domains);
+              const hasDomainCards = DOMAIN_CARDS.some((card) => domainBodies.get(card.key));
               return (
                 <div className="nyai-result-bundle" key={`${message.role}-${index}`}>
                   {showQuestionCard && (
-                    <NewYearQuestionAnswerCard
-                      name={form.userName.trim()}
-                      question={userQuestionText}
-                      answer={classified.questionAnswer?.body || ""}
-                    />
+                    <RevealBlock index={0}>
+                      <NewYearQuestionAnswerCard
+                        name={form.userName.trim()}
+                        question={userQuestionText}
+                        answer={classified.questionAnswer?.body || ""}
+                      />
+                    </RevealBlock>
                   )}
-                  {index === 0 && <SajuProfilePanel profile={sajuProfile} />}
-                  {index === 0 && <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />}
-                  {index === 0 && <MonthlyLetterAccordion rows={monthlyFlow} letters={classified.monthLetters} />}
-                  <article className="nyai-message nyai-message--assistant">
-                    <span>새해 상담 편지</span>
-                    <AssistantMessageContent content={message.content} sections={classified.restSections} />
-                  </article>
+                  {index === 0 && (
+                    <RevealBlock index={1}>
+                      <SajuProfilePanel profile={sajuProfile} />
+                    </RevealBlock>
+                  )}
+                  <DomainConsultationCards bodies={domainBodies} />
+                  {index === 0 && (
+                    <RevealBlock index={4}>
+                      <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
+                    </RevealBlock>
+                  )}
+                  {index === 0 && (
+                    <RevealBlock index={5}>
+                      <MonthlyLetterAccordion rows={monthlyFlow} letters={classified.monthLetters} />
+                    </RevealBlock>
+                  )}
+                  {/* 분야 카드가 하나도 만들어지지 않은 예외 상황(파싱 실패)에서만 원문 편지를 그대로 보인다 — 결제한 본문을 잃지 않는다. */}
+                  {!hasDomainCards && (
+                    <article className="nyai-message nyai-message--assistant">
+                      <span>새해 상담 편지</span>
+                      <AssistantMessageContent content={message.content} sections={classified.restSections} />
+                    </article>
+                  )}
                 </div>
               );
             })}
@@ -1718,45 +2017,272 @@ export default function NewYearAiConsultationPage() {
       <style>{NYAI_SEASON_CSS}</style>
       <style>{`
         .nyai-page {
+          /* 오리엔탈 하이엔드 팔레트 — 칠흑·딥 버건디 베이스에 앤틱 골드와 옥색.
+             세운 오행 액센트(--nyai-accent)는 월별 캘린더 안에서만 소비한다. */
+          --nyai-ink-0: #100609;
+          --nyai-ink-1: #1c0c12;
+          --nyai-ink-2: #2a1018;
+          --nyai-gold: #c9a227;
+          --nyai-gold-bright: #e3c46a;
+          --nyai-gold-dim: rgba(201, 162, 39, .34);
+          --nyai-gold-hair: rgba(201, 162, 39, .2);
+          --nyai-gold-veil: rgba(201, 162, 39, .1);
+          --nyai-jade: #4a8f7b;
+          --nyai-jade-bright: #6fb79f;
+          --nyai-jade-veil: rgba(74, 143, 123, .14);
+          --nyai-text: #f2e6d8;
+          --nyai-text-dim: #cbb49f;
+          --nyai-danger: #e08a8a;
           --nyai-radius-md: 16px;
           --nyai-radius-pill: 999px;
           --nyai-label-size: 0.78rem;
+          --nyai-serif: var(--font-serif, "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif);
           min-height: 100vh;
           padding: clamp(18px, 3vw, 42px);
-          color: #fff7e3;
+          color: var(--nyai-text);
           background:
-            radial-gradient(circle at 12% 12%, rgba(255, 217, 118, .28), transparent 26%),
-            radial-gradient(circle at 88% 10%, rgba(134, 28, 47, .46), transparent 34%),
-            radial-gradient(circle at 76% 84%, rgba(98, 32, 88, .32), transparent 32%),
-            linear-gradient(140deg, #21090c 0%, #71151f 36%, #331022 68%, #130d09 100%);
-          font-family: CodeDestinyBody, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            radial-gradient(circle at 14% 10%, rgba(201, 162, 39, .16), transparent 30%),
+            radial-gradient(circle at 86% 12%, rgba(96, 20, 38, .42), transparent 36%),
+            radial-gradient(circle at 74% 88%, rgba(74, 143, 123, .12), transparent 34%),
+            linear-gradient(150deg, var(--nyai-ink-0) 0%, var(--nyai-ink-2) 34%, var(--nyai-ink-1) 66%, #0a0507 100%);
+          font-family: var(--font-body, CodeDestinyBody), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          line-height: 1.78;
           position: relative;
           overflow-x: hidden;
         }
 
+        /* 창호지 격자 — 밝기를 낮춰 텍스트 대비를 갉아먹지 않게 한다. */
         .nyai-page::before {
           content: "";
           position: fixed;
           inset: 0;
           pointer-events: none;
-          opacity: .24;
+          opacity: .16;
           background:
-            linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px),
-            linear-gradient(0deg, rgba(255,255,255,.05) 1px, transparent 1px),
-            radial-gradient(circle at 30% 20%, rgba(255, 229, 160, .32) 0 1px, transparent 2px);
-          background-size: 42px 42px, 42px 42px, 96px 96px;
+            linear-gradient(90deg, rgba(201, 162, 39, .1) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(201, 162, 39, .07) 1px, transparent 1px),
+            radial-gradient(circle at 30% 20%, rgba(201, 162, 39, .26) 0 1px, transparent 2px);
+          background-size: 46px 46px, 46px 46px, 104px 104px;
           mix-blend-mode: soft-light;
         }
 
+        .nyai-page h1,
+        .nyai-page h2,
+        .nyai-page h3 {
+          font-family: var(--nyai-serif);
+          font-weight: 700;
+          word-break: keep-all;
+        }
+
         .nyai-panel {
-          border: 1px solid rgba(246, 203, 115, .28);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-md);
           background:
-            linear-gradient(180deg, rgba(255, 248, 226, .14), rgba(67, 17, 22, .74)),
-            repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 1px, transparent 1px 12px),
-            rgba(29, 18, 16, .86);
-          box-shadow: 0 12px 28px rgba(120, 32, 20, .22), inset 0 1px 0 rgba(255, 244, 205, .12);
+            linear-gradient(180deg, rgba(201, 162, 39, .07), rgba(28, 12, 18, .82)),
+            repeating-linear-gradient(135deg, rgba(242, 230, 216, .022) 0 1px, transparent 1px 13px),
+            rgba(16, 6, 9, .9);
+          box-shadow: 0 18px 44px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(227, 196, 106, .12);
           backdrop-filter: blur(16px);
+        }
+
+        /* 등장 연출. 화면 밖 카드는 opacity:0 이라 PDF 캡처 직전 강제로 드러내야 한다.
+           display:contents 로 두면 박스가 사라져 opacity·transform이 먹지 않으므로 block 을 유지한다. */
+        .nyai-reveal {
+          display: block;
+          min-width: 0;
+        }
+
+        .nyai-messages.is-exporting .nyai-reveal,
+        .nyai-messages.is-exporting .nyai-reveal > * {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+
+        .nyai-progress {
+          display: grid;
+          gap: 12px;
+          padding: 18px;
+          border: 1px solid var(--nyai-gold-dim);
+          border-radius: var(--nyai-radius-md);
+          background:
+            linear-gradient(180deg, rgba(201, 162, 39, .09), rgba(16, 6, 9, .6)),
+            rgba(28, 12, 18, .78);
+        }
+
+        .nyai-progress-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .nyai-progress-head strong {
+          font-family: var(--nyai-serif);
+          font-size: 16px;
+          color: var(--nyai-gold-bright);
+        }
+
+        .nyai-progress-head span {
+          font-size: 13px;
+          font-variant-numeric: tabular-nums;
+          color: var(--nyai-text-dim);
+        }
+
+        .nyai-progress-track {
+          height: 6px;
+          border-radius: var(--nyai-radius-pill);
+          background: rgba(242, 230, 216, .1);
+          overflow: hidden;
+        }
+
+        .nyai-progress-track i {
+          display: block;
+          height: 100%;
+          border-radius: var(--nyai-radius-pill);
+          background: linear-gradient(90deg, var(--nyai-jade), var(--nyai-gold) 62%, var(--nyai-gold-bright));
+          transition: width .35s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .nyai-progress-steps {
+          display: grid;
+          gap: 6px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .nyai-progress-steps li {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 7px 10px;
+          border: 1px solid transparent;
+          border-radius: 10px;
+          color: var(--nyai-text-dim);
+          font-size: 13px;
+          transition: color .3s ease, border-color .3s ease, background .3s ease;
+        }
+
+        .nyai-progress-steps li.is-active {
+          border-color: var(--nyai-gold-dim);
+          background: var(--nyai-gold-veil);
+          color: var(--nyai-text);
+        }
+
+        .nyai-progress-steps li.is-done {
+          color: var(--nyai-jade-bright);
+        }
+
+        .nyai-progress-glyph {
+          display: inline-grid;
+          place-items: center;
+          width: 22px;
+          height: 22px;
+          flex-shrink: 0;
+          border: 1px solid var(--nyai-gold-hair);
+          border-radius: 50%;
+          font-family: var(--nyai-serif);
+          font-size: 12px;
+        }
+
+        .nyai-progress-steps li.is-active .nyai-progress-glyph {
+          border-color: var(--nyai-gold);
+          color: var(--nyai-gold-bright);
+        }
+
+        .nyai-progress-steps li.is-done .nyai-progress-glyph {
+          border-color: var(--nyai-jade);
+          color: var(--nyai-jade-bright);
+        }
+
+        .nyai-progress-note {
+          margin: 0;
+          font-size: 12px;
+          line-height: 1.6;
+          color: var(--nyai-text-dim);
+        }
+
+        .nyai-domain-report {
+          display: grid;
+          gap: 12px;
+        }
+
+        .nyai-report-card {
+          border: 1px solid var(--nyai-gold-hair);
+          border-radius: var(--nyai-radius-md);
+          background:
+            linear-gradient(180deg, rgba(201, 162, 39, .07), rgba(16, 6, 9, .5)),
+            rgba(28, 12, 18, .7);
+          overflow: hidden;
+        }
+
+        .nyai-report-details > summary {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 15px 16px;
+          cursor: pointer;
+          list-style: none;
+        }
+
+        .nyai-report-details > summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .nyai-report-glyph {
+          display: inline-grid;
+          place-items: center;
+          width: 38px;
+          height: 38px;
+          flex-shrink: 0;
+          border: 1px solid var(--nyai-gold-dim);
+          border-radius: 10px;
+          background: var(--nyai-gold-veil);
+          color: var(--nyai-gold-bright);
+          font-family: var(--nyai-serif);
+          font-size: 19px;
+        }
+
+        .nyai-report-heading {
+          display: grid;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .nyai-report-heading strong {
+          font-family: var(--nyai-serif);
+          font-size: 17px;
+          color: var(--nyai-gold-bright);
+        }
+
+        .nyai-report-heading small {
+          font-size: 12px;
+          color: var(--nyai-text-dim);
+        }
+
+        .nyai-report-details[open] > summary {
+          border-bottom: 1px solid var(--nyai-gold-hair);
+        }
+
+        .nyai-report-body {
+          padding: 15px 16px 18px;
+          font-size: 14.5px;
+          line-height: 1.82;
+          color: var(--nyai-text);
+        }
+
+        .nyai-report-body p {
+          margin: 0;
+          max-width: 66ch;
+          word-break: keep-all;
+        }
+
+        .nyai-report-body p + p {
+          margin-top: 12px;
+        }
+
+        .nyai-report-body strong {
+          color: var(--nyai-gold-bright);
         }
 
         .nyai-intro {
@@ -1780,7 +2306,7 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-intro::before {
           inset: 12px;
-          border: 1px solid rgba(246, 203, 115, .18);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: 8px;
         }
 
@@ -1791,10 +2317,10 @@ export default function NewYearAiConsultationPage() {
           top: -54px;
           border-radius: 50%;
           background:
-            radial-gradient(circle, rgba(255, 218, 122, .4) 0 2px, transparent 3px),
-            conic-gradient(from 20deg, transparent 0 18deg, rgba(255, 214, 119, .2) 18deg 24deg, transparent 24deg 48deg);
+            radial-gradient(circle, rgba(201, 162, 39, .34) 0 2px, transparent 3px),
+            conic-gradient(from 20deg, transparent 0 18deg, rgba(201, 162, 39, .16) 18deg 24deg, transparent 24deg 48deg);
           background-size: 24px 24px, 100% 100%;
-          opacity: .7;
+          opacity: .62;
         }
 
         .nyai-orbit {
@@ -1803,9 +2329,9 @@ export default function NewYearAiConsultationPage() {
           height: 118px;
           right: 32px;
           bottom: 28px;
-          border: 1px solid rgba(255, 218, 122, .28);
+          border: 1px solid var(--nyai-gold-dim);
           border-radius: 50%;
-          box-shadow: inset 0 0 0 12px rgba(255, 218, 122, .04);
+          box-shadow: inset 0 0 0 12px rgba(201, 162, 39, .04);
           animation: nyaiSpin 16s linear infinite;
           pointer-events: none;
         }
@@ -1815,7 +2341,7 @@ export default function NewYearAiConsultationPage() {
           content: "";
           position: absolute;
           border-radius: 50%;
-          background: #ffd976;
+          background: var(--nyai-gold);
         }
 
         .nyai-orbit::before {
@@ -1836,7 +2362,7 @@ export default function NewYearAiConsultationPage() {
           font-size: 11px;
           font-weight: 800;
           letter-spacing: .08em;
-          color: rgba(255, 224, 154, .58);
+          color: var(--nyai-text-dim);
         }
 
         .nyai-consult-card {
@@ -1848,14 +2374,14 @@ export default function NewYearAiConsultationPage() {
           min-height: 300px;
           overflow: hidden;
           padding: 18px;
-          border: 1px solid rgba(255, 222, 144, .22);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-md, 16px);
-          background: rgba(46, 19, 15, .3);
+          background: rgba(42, 16, 24, .42);
         }
 
         .nyai-consult-year span {
           display: block;
-          color: rgba(255, 237, 192, .72);
+          color: var(--nyai-text-dim);
           font-size: var(--nyai-label-size, 0.78rem);
           font-weight: 900;
           letter-spacing: .14em;
@@ -1865,8 +2391,8 @@ export default function NewYearAiConsultationPage() {
         .nyai-consult-year strong {
           display: block;
           margin-top: 8px;
-          color: #fff0bf;
-          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+          color: var(--nyai-gold-bright);
+          font-family: var(--nyai-serif);
           font-size: clamp(44px, 6vw, 72px);
           line-height: 1;
           letter-spacing: 0;
@@ -1884,16 +2410,16 @@ export default function NewYearAiConsultationPage() {
           gap: 12px;
           min-height: 34px;
           padding: 8px 10px;
-          border: 1px solid rgba(255, 224, 154, .2);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: 8px;
-          background: rgba(255, 248, 226, .08);
-          color: #fff3cb;
+          background: rgba(242, 230, 216, .05);
+          color: var(--nyai-text);
           font-size: 13px;
           font-weight: 800;
         }
 
         .nyai-consult-rows b {
-          color: rgba(255, 237, 192, .72);
+          color: var(--nyai-text-dim);
           font-size: 12px;
         }
 
@@ -1903,12 +2429,12 @@ export default function NewYearAiConsultationPage() {
           gap: 10px;
           max-width: 780px;
           margin: 8px 0 12px;
-          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
-          font-size: clamp(36px, 5.2vw, 72px);
-          line-height: 1.08;
+          font-family: var(--nyai-serif);
+          font-size: clamp(34px, 5vw, 66px);
+          line-height: 1.14;
           letter-spacing: 0;
-          color: #fff0bf;
-          text-shadow: 0 12px 34px rgba(48, 6, 10, .42);
+          color: var(--nyai-gold-bright);
+          text-shadow: 0 12px 34px rgba(0, 0, 0, .5);
         }
 
         .nyai-intro-copy h1 svg {
@@ -1918,11 +2444,12 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-intro-copy p {
-          max-width: 680px;
+          max-width: 62ch;
           margin: 0;
-          color: rgba(255, 247, 227, .82);
+          color: var(--nyai-text-dim);
           font-size: 16px;
-          line-height: 1.7;
+          line-height: 1.78;
+          word-break: keep-all;
         }
 
         .nyai-hero-badges {
@@ -1935,10 +2462,10 @@ export default function NewYearAiConsultationPage() {
         .nyai-hero-badges span {
           min-height: 28px;
           padding: 6px 10px;
-          border: 1px solid rgba(255, 224, 154, .26);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: 8px;
-          background: rgba(255, 248, 226, .08);
-          color: #ffedc0;
+          background: var(--nyai-gold-veil);
+          color: var(--nyai-gold-bright);
           font-size: 12px;
           font-weight: 800;
         }
@@ -1956,16 +2483,16 @@ export default function NewYearAiConsultationPage() {
           min-height: 34px;
           padding: 8px 10px;
           border-radius: 8px;
-          background: rgba(255, 235, 174, .13);
-          color: #ffe7a8;
+          background: var(--nyai-gold-veil);
+          color: var(--nyai-gold-bright);
           font-size: 14px;
-          border: 1px solid rgba(255, 218, 122, .18);
+          border: 1px solid var(--nyai-gold-hair);
         }
 
         .nyai-access {
           margin-top: 8px !important;
           font-size: 13px !important;
-          color: rgba(178, 238, 222, .82) !important;
+          color: var(--nyai-jade-bright) !important;
         }
 
         .nyai-workspace {
@@ -1984,7 +2511,7 @@ export default function NewYearAiConsultationPage() {
         .nyai-form-title,
         .nyai-chat-head {
           margin-bottom: 16px;
-          color: #ffe09a;
+          color: var(--nyai-gold-bright);
         }
 
         .nyai-chat-head {
@@ -2012,12 +2539,12 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-profile-load {
           flex-shrink: 0;
-          min-height: 30px;
+          min-height: 32px;
           padding: 5px 10px;
-          border: 1px solid var(--nyai-accent-soft, rgba(255, 224, 154, .3));
+          border: 1px solid var(--nyai-gold-dim);
           border-radius: 8px;
-          background: var(--nyai-accent-soft, rgba(255, 248, 226, .1));
-          color: var(--nyai-accent, #ffe09a);
+          background: var(--nyai-gold-veil);
+          color: var(--nyai-gold-bright);
           font: inherit;
           font-size: 12px;
           font-weight: 800;
@@ -2032,10 +2559,10 @@ export default function NewYearAiConsultationPage() {
           min-width: 108px;
           min-height: 36px;
           padding: 0 11px;
-          border: 1px solid rgba(255, 224, 154, .34);
+          border: 1px solid var(--nyai-gold-dim);
           border-radius: 8px;
-          background: rgba(255, 248, 226, .11);
-          color: #fff3cb;
+          background: var(--nyai-gold-veil);
+          color: var(--nyai-text);
           font: inherit;
           font-size: 13px;
           font-weight: 850;
@@ -2051,7 +2578,7 @@ export default function NewYearAiConsultationPage() {
         .nyai-form label {
           display: grid;
           gap: 7px;
-          color: rgba(255, 247, 227, .92);
+          color: var(--nyai-text);
           font-size: var(--nyai-label-size, 0.78rem);
           font-weight: 700;
         }
@@ -2060,10 +2587,10 @@ export default function NewYearAiConsultationPage() {
         .nyai-form select,
         .nyai-form textarea {
           width: 100%;
-          border: 1px solid rgba(246, 203, 115, .28);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: 8px;
-          background: rgba(255, 250, 235, .1);
-          color: #fff8e6;
+          background: rgba(242, 230, 216, .06);
+          color: var(--nyai-text);
           font: inherit;
           outline: none;
         }
@@ -2071,8 +2598,8 @@ export default function NewYearAiConsultationPage() {
         .nyai-form input:focus,
         .nyai-form select:focus,
         .nyai-form textarea:focus {
-          border-color: rgba(255, 218, 122, .72);
-          box-shadow: 0 0 0 3px rgba(255, 218, 122, .12);
+          border-color: var(--nyai-gold);
+          box-shadow: 0 0 0 3px rgba(201, 162, 39, .18);
         }
 
         .nyai-form input,
@@ -2090,9 +2617,9 @@ export default function NewYearAiConsultationPage() {
           gap: 10px;
           margin-top: 12px;
           padding: 12px;
-          border: 1px solid rgba(253, 230, 138, .22);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: 8px;
-          background: rgba(12, 10, 9, .28);
+          background: rgba(16, 6, 9, .4);
         }
 
         .nyai-focus-head {
@@ -2100,12 +2627,12 @@ export default function NewYearAiConsultationPage() {
           align-items: center;
           justify-content: space-between;
           gap: 10px;
-          color: #ffedc0;
+          color: var(--nyai-text-dim);
           font-size: 13px;
         }
 
         .nyai-focus-head span {
-          color: #fcd34d;
+          color: var(--nyai-gold-bright);
           font-weight: 900;
         }
 
@@ -2119,12 +2646,12 @@ export default function NewYearAiConsultationPage() {
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          min-height: 36px;
+          min-height: 40px;
           padding: 0 12px;
-          border: 1px solid rgba(253, 230, 138, .16);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-pill);
-          background: rgba(255, 255, 255, .04);
-          color: rgba(254, 243, 199, .68);
+          background: rgba(242, 230, 216, .04);
+          color: var(--nyai-text-dim);
           font: inherit;
           font-size: 13px;
           font-weight: 850;
@@ -2138,26 +2665,27 @@ export default function NewYearAiConsultationPage() {
           width: 22px;
           height: 22px;
           border-radius: 50%;
-          background: radial-gradient(circle at 32% 24%, #fff7d6, #fbbf24 55%, #92400e);
-          color: #40100d;
+          background: radial-gradient(circle at 32% 24%, #e8d29a, var(--nyai-gold) 58%, #6d5512);
+          color: #180a0d;
+          font-family: var(--nyai-serif);
           font-size: 12px;
           font-weight: 900;
         }
 
         .nyai-category-chip.is-active {
-          border-color: rgba(253, 230, 138, .9);
-          background: rgba(245, 158, 11, .32);
-          color: #fff7ed;
+          border-color: var(--nyai-gold);
+          background: rgba(201, 162, 39, .2);
+          color: var(--nyai-text);
           font-weight: 900;
-          box-shadow: 0 0 0 3px rgba(245, 158, 11, .16), 0 0 18px rgba(245, 158, 11, .22);
+          box-shadow: 0 0 0 3px rgba(201, 162, 39, .14), 0 0 18px rgba(201, 162, 39, .18);
         }
 
         .nyai-question-card {
           margin-top: 14px;
           padding: 14px;
-          border: 1px solid rgba(245, 158, 11, .38);
+          border: 1px solid var(--nyai-jade);
           border-radius: var(--nyai-radius-md);
-          background: rgba(245, 158, 11, .08);
+          background: var(--nyai-jade-veil);
         }
 
         .nyai-question-head {
@@ -2167,13 +2695,14 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-question-head strong {
+          font-family: var(--nyai-serif);
           font-size: 15px;
-          color: #fcd34d;
+          color: var(--nyai-jade-bright);
         }
 
         .nyai-question-head span {
           font-size: var(--nyai-label-size, 0.78rem);
-          color: rgba(255, 247, 227, .78);
+          color: var(--nyai-text-dim);
         }
 
         .nyai-topic {
@@ -2197,15 +2726,15 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-notice {
-          color: #ffe7a8;
-          background: rgba(245, 213, 141, .12);
-          border: 1px solid rgba(245, 213, 141, .16);
+          color: var(--nyai-gold-bright);
+          background: var(--nyai-gold-veil);
+          border: 1px solid var(--nyai-gold-hair);
         }
 
         .nyai-error {
-          color: #ffd8d8;
-          background: rgba(117, 24, 54, .32);
-          border: 1px solid rgba(255, 168, 168, .18);
+          color: var(--nyai-danger);
+          background: rgba(96, 20, 38, .34);
+          border: 1px solid rgba(224, 138, 138, .28);
         }
 
         .nyai-primary {
@@ -2213,20 +2742,20 @@ export default function NewYearAiConsultationPage() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          min-height: 46px;
+          min-height: 48px;
           border: 0;
           border-radius: var(--nyai-radius-pill);
-          color: #2a100f;
-          background: linear-gradient(135deg, #ffe8a8, #d89a38 48%, #ffd976);
+          color: #1a0c05;
+          background: linear-gradient(135deg, #e8d29a, var(--nyai-gold) 52%, #d9b545);
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 8px 18px rgba(74, 17, 13, .18);
+          box-shadow: 0 10px 24px rgba(0, 0, 0, .38);
           transition: box-shadow .15s ease, transform .15s ease;
         }
 
         .nyai-primary:hover:not(:disabled),
         .nyai-primary:focus-visible:not(:disabled) {
-          box-shadow: 0 0 0 3px rgba(255, 217, 118, .28), 0 10px 26px rgba(74, 17, 13, .3);
+          box-shadow: 0 0 0 3px rgba(201, 162, 39, .3), 0 12px 28px rgba(0, 0, 0, .45);
         }
 
         .nyai-primary {
@@ -2261,12 +2790,13 @@ export default function NewYearAiConsultationPage() {
           place-content: center;
           min-height: 330px;
           text-align: center;
-          color: rgba(255, 247, 227, .72);
+          color: var(--nyai-text-dim);
         }
 
         .nyai-empty p {
           margin: 0 0 8px;
-          color: #ffe09a;
+          color: var(--nyai-gold-bright);
+          font-family: var(--nyai-serif);
           font-size: 18px;
           font-weight: 800;
         }
@@ -2290,13 +2820,13 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-saju-profile {
           padding: 15px;
-          border: 1px solid rgba(178, 238, 222, .24);
+          border: 1px solid rgba(74, 143, 123, .34);
           border-radius: var(--nyai-radius-md);
           background:
-            linear-gradient(180deg, rgba(178, 238, 222, .11), rgba(255, 250, 235, .045)),
-            rgba(25, 42, 37, .36);
-          color: #fff8e6;
-          line-height: 1.62;
+            linear-gradient(180deg, rgba(74, 143, 123, .12), rgba(16, 6, 9, .5)),
+            rgba(22, 34, 31, .5);
+          color: var(--nyai-text);
+          line-height: 1.7;
         }
 
         .nyai-saju-head {
@@ -2305,16 +2835,17 @@ export default function NewYearAiConsultationPage() {
           justify-content: space-between;
           gap: 10px;
           margin-bottom: 8px;
-          color: #d9fff2;
+          color: var(--nyai-jade-bright);
         }
 
         .nyai-saju-head strong {
+          font-family: var(--nyai-serif);
           font-size: 15px;
         }
 
         .nyai-saju-head span,
         .nyai-saju-birth {
-          color: rgba(255, 248, 230, .78);
+          color: var(--nyai-text-dim);
           font-size: 12px;
         }
 
@@ -2334,20 +2865,21 @@ export default function NewYearAiConsultationPage() {
           gap: 4px;
           min-height: 58px;
           place-items: center;
-          border: 1px solid rgba(255, 224, 154, .2);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: 8px;
-          background: rgba(255, 248, 226, .08);
+          background: rgba(242, 230, 216, .05);
         }
 
         .nyai-pillar span,
         .nyai-saju-facts span {
-          color: rgba(255, 248, 230, .7);
+          color: var(--nyai-text-dim);
           font-size: 12px;
         }
 
         .nyai-pillar strong {
-          color: #ffe09a;
-          font-size: 18px;
+          color: var(--nyai-gold-bright);
+          font-family: var(--nyai-serif);
+          font-size: 19px;
         }
 
         .nyai-saju-facts {
@@ -2360,7 +2892,7 @@ export default function NewYearAiConsultationPage() {
         .nyai-saju-facts span {
           padding: 5px 8px;
           border-radius: 8px;
-          background: rgba(255, 248, 226, .08);
+          background: rgba(242, 230, 216, .06);
         }
 
         .nyai-saju-reading {
@@ -2370,33 +2902,35 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-saju-reading p {
           margin: 0;
-          color: rgba(255, 248, 230, .9);
+          color: var(--nyai-text);
           font-size: 13px;
+          line-height: 1.75;
+          word-break: keep-all;
         }
 
         .nyai-message span {
           display: block;
           margin-bottom: 7px;
-          color: #ffe09a;
+          color: var(--nyai-gold-bright);
           font-size: 12px;
           font-weight: 800;
         }
 
         .nyai-message p {
           margin: 0;
-          color: #fff8e6;
+          color: var(--nyai-text);
         }
 
         .nyai-message--assistant {
           align-self: flex-start;
-          background: rgba(255, 248, 226, .09);
-          border: 1px solid rgba(245, 213, 141, .22);
+          background: rgba(242, 230, 216, .05);
+          border: 1px solid var(--nyai-gold-hair);
         }
 
         .nyai-message--user {
           align-self: flex-end;
-          background: rgba(58, 31, 48, .42);
-          border: 1px solid rgba(255, 224, 154, .16);
+          background: rgba(42, 16, 24, .5);
+          border: 1px solid var(--nyai-gold-hair);
         }
 
         .nyai-section-list {
@@ -2406,24 +2940,26 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-result-section {
           padding: 15px;
-          border: 1px solid rgba(255, 224, 154, .22);
+          border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-md);
           background:
-            linear-gradient(180deg, rgba(255, 250, 235, .1), rgba(255, 250, 235, .045)),
-            rgba(46, 19, 15, .34);
+            linear-gradient(180deg, rgba(201, 162, 39, .06), rgba(16, 6, 9, .4)),
+            rgba(42, 16, 24, .4);
         }
 
         .nyai-result-section h3 {
           margin: 0 0 8px;
-          color: #ffe09a;
-          font-size: 15px;
-          line-height: 1.35;
+          color: var(--nyai-gold-bright);
+          font-family: var(--nyai-serif);
+          font-size: 16px;
+          line-height: 1.4;
           letter-spacing: 0;
         }
 
         .nyai-result-section p {
           margin: 0;
-          line-height: 1.8;
+          max-width: 66ch;
+          line-height: 1.82;
           word-break: keep-all;
           white-space: pre-line;
         }
@@ -2469,6 +3005,24 @@ export default function NewYearAiConsultationPage() {
           .nyai-saju-head {
             align-items: flex-start;
             flex-direction: column;
+          }
+
+          .nyai-report-heading strong {
+            font-size: 16px;
+          }
+
+          .nyai-progress {
+            padding: 15px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .nyai-orbit {
+            animation: none;
+          }
+
+          .nyai-progress-track i {
+            transition: none;
           }
         }
       `}</style>
