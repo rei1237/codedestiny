@@ -141,6 +141,33 @@ assert.doesNotMatch(
   '클라이언트: 검출기 미가용을 이유로 업로드를 막으면 안 됨(degrade 해야 함)',
 );
 
+// ── 10b. 품질 게이트는 막다른 길이 되면 안 된다 ──
+// 사전점검은 144px 샘플 휴리스틱이라 오탐이 난다. 확정 차단으로 두면 멀쩡한 사진을 든
+// 유료 사용자가 빠져나갈 길이 없어진다(과거 정적 게이트 leaf throw → alert 사고와 같은 형태).
+assert.match(client, /isQualityBlocked/, '클라이언트: 저품질 시 CTA 를 막아야 함');
+assert.match(
+  client,
+  /onClick=\{\(\) => setQualityOverride\(true\)\}/,
+  '클라이언트: 저품질 차단에는 사용자가 직접 진행할 수 있는 탈출 경로가 있어야 함',
+);
+// 새 사진이 들어오면 이전 "그대로 진행" 판단은 승계되면 안 된다.
+assert.match(
+  client,
+  /setLandmarkStateBySide\(\(prev\) => \(\{ \.\.\.prev, \[side\]: landmarkCheck \}\)\);\s*\n\s*\/\/[^\n]*\n\s*setQualityOverride\(false\);/,
+  '클라이언트: 새 사진 등록 시 품질 오버라이드가 해제돼야 함',
+);
+
+// ── 10c. 한 손만으로도 된다는 사실을 화면에 명시한다 ──
+// 종전에는 '양손 비교 업로드(선택)' 제목으로만 암시돼 양손 필수로 오해할 여지가 있었다.
+assert.match(client, /한 손만 등록해도 분석됩니다/, '클라이언트: 한 손 분석 가능 문구 필요');
+
+// ── 10d. 촬영/앨범 버튼 우선순위는 CSS 로 가른다 ──
+// JS 기기 판별은 SSR 과 첫 렌더가 어긋나 버튼이 튄다. 너비가 아니라 포인터 종류로 가른다.
+assert.match(client, /@media \(hover: none\) and \(pointer: coarse\)/, '터치 기기 분기 필요');
+assert.match(client, /@media \(hover: hover\) and \(pointer: fine\)/, '포인터 기기 분기 필요');
+assert.match(client, /\.cd-capture-actions__camera \{ order: 1; \}/, '터치=촬영 우선');
+assert.match(client, /\.cd-capture-actions__gallery \{ order: 1; \}/, '데스크톱=파일 선택 우선');
+
 // ── 11. 에러 문구: 워커 원문이 사용자에게 새지 않는다 ──
 for (const code of ['MISSING_IMAGE', 'MISSING_DOMINANT_HAND', 'AUTH_TEMPORARILY_UNAVAILABLE']) {
   assert.match(uiState, new RegExp(`code === "${code}"`), `palm-ui-state: ${code} 사용자 문구 매핑 누락`);
