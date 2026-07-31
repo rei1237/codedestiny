@@ -9,7 +9,9 @@ import {
 import { createHttpError } from "./http.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 
-const USER_SCOPE_PROFILE_ID = "__user__";
+// 계정 스코프(프로필 무관) 엔타이틀먼트의 profileId 자리표시자. 읽기 절(buildProfileScopeClause)과
+// 쓰기 경로가 같은 값을 써야 하므로 정산 코드(payments.js)에서도 이 상수를 가져다 쓴다.
+export const USER_SCOPE_PROFILE_ID = "__user__";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,

@@ -104,22 +104,53 @@ assert.ok(
 
 // ── 3-c. 프로필 스코프 게이트 (결제했는데 서비스가 사라지는 사고의 원인) ──
 // upsertSinglePaymentUnlockRecord 는 코드베이스에서 유일하게 이 게이트가 빠져 있었고, 그 결과
-// profileId 가 없는 UNLOCK 키(음악 트랙 등 50여 종)가 웹훅 정산에서 throw → 자동환불 → 권한 회수로
-// 이어졌다. 게이트를 지우면 같은 사고가 그대로 재발한다.
+// profileId 가 없는 결제(음악 트랙 등 계정 스코프 키 전부 + 프로필 카드가 0개인 계정의 모든 결제)가
+// 웹훅 정산에서 throw → 자동환불 → 권한 회수로 이어졌다. 게이트를 지우면 같은 사고가 재발한다.
 const upsertBody = payments.slice(
   payments.indexOf("async function upsertSinglePaymentUnlockRecord"),
   payments.indexOf("async function upsertSinglePaymentUnlockRecord") + 3000,
 );
 assert.ok(
-  /if \(!resolveProfileUnlockContentKey\([\s\S]{0,200}?\)\) \{\s*return null;/.test(upsertBody),
-  "upsertSinglePaymentUnlockRecord 는 프로필 스코프가 아니면 null 을 돌려주고 빠져야 한다",
+  /const requiresProfile = Boolean\(resolveProfileUnlockContentKey\(/.test(upsertBody),
+  "upsertSinglePaymentUnlockRecord 는 resolveProfileUnlockContentKey 로 프로필 스코프 여부를 판정해야 한다",
 );
-// 주석에도 같은 단어가 나오므로 실제 throw 문(error.code 대입)을 기준으로 순서를 본다.
-const throwAt = upsertBody.indexOf('error.code = "INVALID_UNLOCK_TARGET"');
-assert.ok(throwAt > 0, "INVALID_UNLOCK_TARGET throw 가 남아 있어야 한다(프로필 키의 진짜 결손은 계속 잡아야 함)");
+// 계정 스코프는 건너뛰는 게 아니라 USER 스코프로 기록한다 — 기록이 없으면 잠금 상품의 전달 증거가
+// 사라져 resolvePaidResultDelivery 의 "소비 후 환불" 차단이 무력화된다.
 assert.ok(
-  upsertBody.indexOf("return null;") < throwAt,
-  "프로필 스코프 게이트가 INVALID_UNLOCK_TARGET throw 보다 앞에 와야 한다",
+  /entitlementScope = requiresProfile \? CONTENT_ENTITLEMENT_SCOPES\.PROFILE : CONTENT_ENTITLEMENT_SCOPES\.USER/.test(upsertBody),
+  "계정 스코프 결제는 USER 스코프 엔타이틀먼트로 기록해야 한다(전달 증거 보존)",
+);
+// 🔴 계정 스코프는 주문에 profileId 가 실려 있어도 무시해야 한다. 셸이 모든 단건 결제에 현재
+// 프로필을 자동 주입하므로, 그대로 쓰면 계정 단위 상품이 프로필 단위로 잠겨 프로필 전환 시 재잠김된다.
+assert.ok(
+  /entitlementProfileId = requiresProfile \? profileId : USER_SCOPE_PROFILE_ID/.test(upsertBody),
+  "계정 스코프 결제는 주문 profileId 를 무시하고 USER_SCOPE_PROFILE_ID 로 고정해야 한다",
+);
+assert.ok(
+  upsertBody.includes('error.code = "INVALID_UNLOCK_TARGET"'),
+  "INVALID_UNLOCK_TARGET throw 가 남아 있어야 한다(프로필 키의 진짜 결손은 계속 잡아야 함)",
+);
+
+// ── 3-d. 지급 대상 식별 실패는 환불하지 않는다 ──────────────────────────
+// profileId 결손은 "콘텐츠 미전달"이 아니라 "귀속 대상 미상"이다. 이걸 자동환불로 처리하면
+// 정상 결제가 웹훅 한 번에 취소된다. 권한은 이미 recordUserPaidFeature 가 줬으므로 보류가 맞다.
+assert.ok(
+  /function isUnlockTargetIdentityError[\s\S]{0,300}?INVALID_UNLOCK_TARGET[\s\S]{0,120}?MISSING_PROFILE_ID/.test(payments),
+  "식별 실패 판정 헬퍼(isUnlockTargetIdentityError)가 있어야 한다",
+);
+assert.ok(
+  /refundOrDefer = async \(payment, reasonCode, reasonMessage, failureStage, \{ forceDefer = false \} = \{\}\)/.test(payments),
+  "refundOrDefer 는 forceDefer 로 PG 취소를 건너뛸 수 있어야 한다",
+);
+assert.ok(
+  (payments.match(/forceDefer: isUnlockTargetIdentityError\(error\)/g) || []).length >= 2,
+  "해금 기록 실패 catch 두 곳 모두 식별 실패를 forceDefer 로 넘겨야 한다",
+);
+// 🔴 권한 지급이 해금 기록보다 먼저여야 "환불 없이 보류"가 사용자에게 성립한다.
+// 순서가 뒤집히면 upsert throw 시 권한이 아예 안 나가 결제만 남는다.
+assert.ok(
+  (payments.match(/await recordUserPaidFeature\([\s\S]{0,220}?entitlement = await upsertSinglePaymentUnlockRecord\(/g) || []).length >= 2,
+  "recordUserPaidFeature 는 upsertSinglePaymentUnlockRecord 보다 먼저 호출해야 한다",
 );
 
 // ── 4. 관리자 주문 API 인증 ──────────────────────────────────────────────
