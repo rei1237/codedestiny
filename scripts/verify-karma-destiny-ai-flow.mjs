@@ -7,14 +7,24 @@ const root = process.cwd();
 const read = (file) => readFileSync(resolve(root, file), "utf8");
 
 const indexSource = read("index.html");
+// 결과 화면은 셸 + 하위 컴포넌트로 분할되어 있다. 새 파일을 여기 추가하지 않으면
+// 아래 문자열 단언들이 "사라진 것"으로 오판한다.
 const pageSource = [
   read("app/karma-destiny-ai/page.tsx"),
   read("app/karma-destiny-ai/KarmaDestinyAiClient.tsx"),
   read("app/karma-destiny-ai/result/page.tsx"),
   read("app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx"),
+  read("app/karma-destiny-ai/result/_lib/report-model.ts"),
+  read("app/karma-destiny-ai/result/_components/ResultStyles.tsx"),
+  read("app/karma-destiny-ai/result/_components/SectionTabs.tsx"),
+  read("app/karma-destiny-ai/result/_components/LensRadar.tsx"),
+  read("app/karma-destiny-ai/result/_components/EvidenceDisclosure.tsx"),
+  read("app/karma-destiny-ai/result/_components/ObservatoryLoader.tsx"),
+  read("app/karma-destiny-ai/result/_components/ObservatorySvg.tsx"),
 ].join("\n");
 const workerIndexSource = read("worker/index.js");
 const routeSource = read("worker/routes/karma-destiny-ai.js");
+const calculationSource = read("worker/lib/karma-destiny-ai-calculations.js");
 const modelSource = read("worker/lib/models.js");
 const registrySource = read("worker/lib/paid-feature-registry.js");
 
@@ -29,7 +39,7 @@ function assertNotIncludes(source, needle, label) {
 assertIncludes(indexSource, 'href="/karma-destiny-ai"', "main entry");
 assertIncludes(indexSource, 'data-feature-key="karma-destiny-ai-consultation"', "main entry feature key");
 assertIncludes(indexSource, "/fuctionassets/soul-origin-cover.webp", "image asset preserved");
-assertIncludes(indexSource, "AI Consultation · 50,000원", "price marker");
+assertIncludes(indexSource, "전문가 상담 · 50,000원", "price marker");
 assertNotIncludes(indexSource, "openSoulOriginModal", "legacy modal action removed");
 assertNotIncludes(indexSource, "soulOriginModal", "legacy modal removed");
 assertNotIncludes(indexSource, "/js/soul-origin-book.js", "legacy client script removed");
@@ -79,10 +89,25 @@ assertIncludes(routeSource, "PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2", "reinforce
 assertIncludes(routeSource, "handleGenerateBatch", "batch route handler");
 assertIncludes(routeSource, "handleResult", "result route handler");
 assertIncludes(routeSource, "같은 표현, 같은 조언, 같은 상징을 반복하지 않고", "quality anti-repetition instruction");
-assertIncludes(routeSource, "사주/명리 기반 업의 구조", "saju premium chapter");
-assertIncludes(routeSource, "전생적 상징 해석", "symbolic past-life chapter");
+assertIncludes(routeSource, "운명의 근원", "origin chapter");
+assertIncludes(routeSource, "업의 핵심 과제", "karmic task chapter");
+assertIncludes(routeSource, "다섯 관점의 종합 결론", "synthesis chapter");
 assertIncludes(routeSource, "최종 편지", "final letter chapter");
 assertIncludes(routeSource, "validatePremiumReportQuality", "premium quality gate");
+// 다섯 렌즈 구조 — 렌즈 분업을 강제하는 장치들이 사라지면 이 기능은 다시 "같은 결론의 반복"이 된다.
+assertIncludes(routeSource, "LENS_CONSTITUTION", "lens constitution present");
+assertIncludes(routeSource, "buildLensDigest", "differential lens digest present");
+assertIncludes(routeSource, "REPORT_SCHEMA_VERSION", "report schema version guard");
+assertIncludes(routeSource, "REPORT_SCHEMA_CHANGED", "stale in-flight document guard");
+assertIncludes(routeSource, "runWithConcurrency", "per-chapter parallel generation");
+assertIncludes(routeSource, "buildChapterEvidence", "server-side evidence extraction");
+// 근거·기여도는 반드시 서버가 계산값에서 뽑는다. LLM 이 만든 값이 들어오면 신뢰 검증 UI 가 환각을 싣는다.
+assertNotIncludes(routeSource, "payload?.lensContribution", "lens contribution must not come from the LLM");
+assertIncludes(calculationSource, "computeLensContribution", "deterministic lens contribution");
+assertIncludes(calculationSource, "buildSukuyoRelationAxis", "sukuyo relation axis wired");
+assertIncludes(calculationSource, "calculateZiweiAiChart", "ziwei engine wired");
+assertIncludes(calculationSource, "buildSukuyoFromLunar", "sukuyo engine wired");
+assertIncludes(calculationSource, "buildVimshottariDasha", "real vedic dasha wired");
 assertNotIncludes(routeSource, "function hasMonthlyCredit", "monthly credit balance must not grant direct access");
 assertNotIncludes(routeSource, "return { ok: true, accessType: \"subscription\", paymentId: \"\", usageAlreadyApplied: false }", "monthly credit must not be direct entitlement");
 assertNotIncludes(routeSource, "return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });", "start route must not re-check entitlement without access token");
@@ -91,6 +116,8 @@ assertIncludes(modelSource, "KarmaDestinyAiConsultation", "model export");
 assertIncludes(modelSource, "chapters", "chapter storage");
 assertIncludes(modelSource, "qualityCheck", "quality check storage");
 assertIncludes(modelSource, "generationProgress", "generation progress storage");
+assertIncludes(modelSource, "schemaVersion", "report schema version storage");
+assertIncludes(modelSource, "lensContribution", "lens contribution storage");
 assertIncludes(registrySource, "\"karma-destiny-ai-consultation\": { cost: 500, amountKRW: 50000", "pricing");
 
 assert.ok(!existsSync(resolve(root, "js/soul-origin-book.js")), "legacy soul-origin client should be deleted");
@@ -105,16 +132,42 @@ const {
   validateInitialConsultationQuality,
   validatePremiumReportQuality,
   PREMIUM_CHAPTERS,
+  LENS_USAGE_WEIGHTS,
+  FINAL_LETTER_CHAPTER_ID,
   buildKarmaDestinyAiMockConsultation,
 } = __karmaDestinyAiTestUtils;
 const mockConsultation = buildKarmaDestinyAiMockConsultation();
 const mockSections = parseKarmaConsultationSections(mockConsultation);
 const mockQuality = validateInitialConsultationQuality(mockConsultation);
-assert.equal(PREMIUM_CHAPTERS.length, 16, "premium report should define 16 chapters");
-assert.equal(mockSections.length, 16, "mock consultation should split into 16 sections");
+assert.equal(PREMIUM_CHAPTERS.length, 15, "premium report should define 15 chapters");
+assert.equal(mockSections.length, 15, "mock consultation should split into 15 sections");
 assert.equal(mockQuality.ok, true, `mock consultation quality should pass: ${JSON.stringify(mockQuality)}`);
 assert.ok(mockQuality.totalCharCount >= 30000, "mock consultation should be at least 30,000 visible chars");
-assert.equal(mockQuality.chapterCount, 16, "mock consultation should have 16 chapters");
+assert.equal(mockQuality.chapterCount, 15, "mock consultation should have 15 chapters");
+
+// 최종 편지 id 는 하드코딩 대신 상수로 잡혀야 한다. 어긋나면 finalLetter 가 빈 값으로 저장된다.
+assert.equal(FINAL_LETTER_CHAPTER_ID, PREMIUM_CHAPTERS[PREMIUM_CHAPTERS.length - 1].id, "final letter constant must point at the last chapter");
+
+// 렌즈 분업 계약: 모든 장이 렌즈 배정을 갖고, 다섯 렌즈가 모두 어딘가에서 주도를 맡는다.
+const LENS_KEYS = ["saju", "ziwei", "western", "vedic", "sukuyo"];
+for (const definition of PREMIUM_CHAPTERS) {
+  assert.ok(
+    definition.leadLens === "cross" || definition.leadLens === "none" || LENS_KEYS.includes(definition.leadLens),
+    `chapter ${definition.id} must declare a valid leadLens`,
+  );
+  for (const lens of definition.supportLens || []) {
+    assert.ok(LENS_KEYS.includes(lens), `chapter ${definition.id} supportLens ${lens} is not a known lens`);
+  }
+}
+const leadLenses = new Set(PREMIUM_CHAPTERS.map((definition) => definition.leadLens));
+for (const lens of LENS_KEYS) {
+  assert.ok(leadLenses.has(lens), `lens ${lens} must lead at least one chapter`);
+  assert.ok(Number(LENS_USAGE_WEIGHTS[lens]) > 0, `lens ${lens} must carry usage weight for the contribution radar`);
+}
+// 에너지 지표는 다섯 영역이 각각 정확히 한 장에서만 산출되어야 중복/누락이 생기지 않는다.
+const energyDomains = PREMIUM_CHAPTERS.map((definition) => definition.energyDomain).filter(Boolean);
+assert.equal(energyDomains.length, 5, "exactly five chapters should produce an energy score");
+assert.equal(new Set(energyDomains).size, 5, "energy domains must not repeat across chapters");
 const leakQuality = validatePremiumReportQuality(PREMIUM_CHAPTERS.map((chapter) => ({
   ...chapter,
   content: "프롬프트 JSON debug providerReason " + "상담 문장 ".repeat(500),
