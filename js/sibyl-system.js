@@ -4528,10 +4528,46 @@ function _sibylText(key) {
       });
     }
 
+    // 모바일 백스택(js/mobile-backstack-navigation.js closeAllKnownOverlays)은 오버레이를
+    // 인라인 style 로 감춘다. 인라인이 #sibylModal.sb-open{display:flex} 를 이기므로,
+    // 여는 쪽이 자기 가시성을 직접 회수하지 않으면 한 번 감춰진 뒤로는 영영 안 열린다.
+    modal.style.display = '';
+    modal.style.visibility = '';
+    modal.style.pointerEvents = '';
+    modal.removeAttribute('aria-hidden');
     modal.classList.add('sb-open');
     document.body.style.overflow = 'hidden';
     _bindSibylScrollLockGuard();
+
+    // 터치 탭은 활성 요소를 남기지 않아 activeElement 가 <html> 또는 <body> 가 된다.
+    // 그걸 그대로 저장하면 닫을 때 포커스가 문서 최상단으로 떨어져 복귀가 무의미해지므로,
+    // 실제 포커스 가능한 요소일 때만 쓰고 아니면 진입 타일로 되돌린다.
+    // 모달 안의 요소는 "여는 쪽"이 될 수 없다 — 탭 한 번에 이 함수가 두 번 불리면
+    // 두 번째 호출이 이미 포커스된 .sb-panel 을 opener 로 잡아, 닫을 때 숨겨진 패널로
+    // 포커스를 되돌리려다 body 로 떨어진다.
+    var activeEl = document.activeElement;
+    var focusableOpener = activeEl
+      && activeEl !== document.body
+      && activeEl !== document.documentElement
+      && !modal.contains(activeEl)
+      && typeof activeEl.focus === 'function';
+    _sibylOpener = focusableOpener ? activeEl : document.querySelector('[data-action="openSibylModal"]');
+    document.addEventListener('keydown', _onSibylKeydown);
+    var panel = modal.querySelector('.sb-panel');
+    if (panel && typeof panel.focus === 'function') {
+      try { panel.focus({ preventScroll: true }); } catch (_) { panel.focus(); }
+    }
   };
+
+  // 다른 모달(js/iching-modal.js 등)과 같은 방식: 모달별 Escape 핸들러.
+  var _sibylOpener = null;
+  function _onSibylKeydown(event) {
+    if (!event || (event.key !== 'Escape' && event.key !== 'Esc')) return;
+    var modal = _q('sibylModal');
+    if (!modal || !modal.classList.contains('sb-open')) return;
+    event.preventDefault();
+    window.closeSibylModal();
+  }
 
   // 모달을 정상 close 하지 않고 이탈(페이지 이동/뒤로가기/해시 변경)해도
   // 스크롤락(body overflow:hidden)이 영구히 남지 않도록 하는 이중 안전장치.
@@ -4554,7 +4590,21 @@ function _sibylText(key) {
     var modal = _q('sibylModal');
     if (!modal) return;
     modal.classList.remove('sb-open');
+    modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+
+    document.removeEventListener('keydown', _onSibylKeydown);
+    // 셸에도 Escape 핸들러가 있어 같은 프레임에서 포커스를 다시 만진다.
+    // 여기서 바로 되돌리면 그쪽에 덮여 포커스가 body 로 떨어지므로, 동기 핸들러가 모두
+    // 끝난 뒤에 복귀시킨다. 그 사이 모달이 다시 열렸다면 복귀를 포기한다.
+    var opener = _sibylOpener;
+    _sibylOpener = null;
+    if (!opener || typeof opener.focus !== 'function') return;
+    setTimeout(function() {
+      var reopened = modal.classList.contains('sb-open');
+      if (reopened || !document.contains(opener)) return;
+      try { opener.focus({ preventScroll: true }); } catch (_) { opener.focus(); }
+    }, 0);
   };
 
   /* ── Unlock dominator (exposed) ── */

@@ -226,6 +226,9 @@
       node.classList.remove('is-open');
       node.classList.remove('pvw-open');
       node.classList.remove('pvw-prem');
+      // 시빌라 모달의 개봉 클래스. 빼 주지 않으면 인라인 display:none 으로 감춰졌는데도
+      // 클래스상으론 계속 "열림"이라 다음 개봉·스크롤락 해제 판정이 모두 어긋난다.
+      node.classList.remove('sb-open');
       node.style.display = 'none';
       node.style.visibility = 'hidden';
       node.style.pointerEvents = 'none';

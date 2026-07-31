@@ -275,7 +275,7 @@
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__pass-cta,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card {
-    min-height: 44px !important;
+    min-height: 48px !important;
     border-radius: 14px !important;
     text-decoration: none !important;
     letter-spacing: 0 !important;
@@ -520,7 +520,7 @@
 
 @media (max-width: 380px) {
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__action {
-    min-width: 44px !important;
+    min-width: 48px !important;
     padding: 0 8px !important;
     font-size: 0.68rem !important;
   }
@@ -701,8 +701,8 @@
      텍스트 라벨이 붙은 본문 CTA 는 data-mobile-detail-close="inline" 이라 여기 걸리지 않는다. */
   [data-mobile-detail-close="primary"],
   [data-component="MobileFeatureDetail"] [data-naming-close="1"] {
-    min-width: 44px !important;
-    min-height: 44px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
     touch-action: manipulation !important;
   }
 
@@ -713,7 +713,7 @@
   [data-component="MobileFeatureDetail"] textarea {
     box-sizing: border-box !important;
     max-width: 100% !important;
-    min-height: 44px !important;
+    min-height: 48px !important;
     font-size: 16px !important;
     scroll-margin-bottom: 156px !important;
   }
@@ -725,7 +725,7 @@
   [data-component="MobileFeatureDetail"] button,
   [data-component="MobileFeatureDetail"] [role="button"],
   [data-component="MobileFeatureDetail"] a[href] {
-    min-height: 44px;
+    min-height: 48px;
     touch-action: manipulation;
     -webkit-tap-highlight-color: rgba(255, 255, 255, 0.08);
   }
@@ -746,7 +746,7 @@
      예전엔 summary 에 display:flex 를 강제해 그리드 헤더가 가로로 붕괴하고
      긴 한글이 한 글자씩 세로로 줄바꿈되는 회귀가 났다. */
   [data-component="MobileFeatureDetail"] details[data-mobile-detail-accordion] > summary {
-    min-height: 44px !important;
+    min-height: 48px !important;
     cursor: pointer !important;
   }
 

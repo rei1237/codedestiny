@@ -24,11 +24,6 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-export function getSiteBaseUrl(env) {
-  return String(getEnv(env, "SITE_BASE_URL") || getEnv(env, "AUTH_FRONTEND_BASE_URL") || "https://code-destiny.com")
-    .replace(/\/+$/, "");
-}
-
 function labelOf(map, key, fallback = "") {
   return map[String(key || "")] || String(key || "") || fallback;
 }
@@ -60,13 +55,12 @@ async function postWebhook(url, payload) {
   }
 }
 
-function buildNotificationText(doc, adminUrl) {
+function buildNotificationText(doc) {
   const lines = [
     `🐞 새 제보 · ${labelOf(FEEDBACK_CATEGORY_LABELS, doc?.category)}`,
     clamp(doc?.title, 80),
     doc?.url ? `URL: ${clamp(doc.url, 200)}` : "",
     clamp(doc?.content, 400),
-    adminUrl,
   ];
   return lines.filter(Boolean).join("\n");
 }
@@ -80,7 +74,7 @@ function renderRow(label, value) {
     </tr>`;
 }
 
-function buildAdminEmailHtml(doc, { adminUrl, attachmentUrls }) {
+function buildAdminEmailHtml(doc, { attachmentUrls }) {
   const categoryLabel = labelOf(FEEDBACK_CATEGORY_LABELS, doc?.category);
   const priorityLabel = labelOf(FEEDBACK_PRIORITY_LABELS, doc?.priority);
   const statusLabel = labelOf(FEEDBACK_STATUS_LABELS, doc?.status);
@@ -114,7 +108,7 @@ function buildAdminEmailHtml(doc, { adminUrl, attachmentUrls }) {
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);">
     <div style="padding:24px;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:#ffffff;">
       <div style="font-size:12px;letter-spacing:.16em;opacity:.85;">CODE DESTINY 연구소</div>
-      <div style="margin-top:8px;font-size:20px;font-weight:700;line-height:1.4;">${escapeHtml(categoryLabel)} · ${escapeHtml(clamp(doc?.title, 60))}</div>
+      <div style="margin-top:8px;font-size:20px;font-weight:700;line-height:1.4;">${escapeHtml(categoryLabel)} · ${escapeHtml(clamp(doc?.title, 80))}</div>
     </div>
 
     <div style="padding:24px;">
@@ -133,10 +127,6 @@ function buildAdminEmailHtml(doc, { adminUrl, attachmentUrls }) {
 
       ${attachmentsHtml}
       ${flagsHtml}
-
-      <div style="margin:24px 0 0;text-align:center;">
-        <a href="${escapeHtml(adminUrl)}" style="display:inline-block;padding:12px 28px;background:#4f46e5;color:#ffffff;border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;">관리자 화면에서 열기</a>
-      </div>
     </div>
 
     <div style="padding:16px 24px;background:#f9fafb;color:#9ca3af;font-size:12px;text-align:center;">
@@ -147,7 +137,7 @@ function buildAdminEmailHtml(doc, { adminUrl, attachmentUrls }) {
 </html>`;
 }
 
-async function sendAdminEmail(env, doc, { adminUrl, attachmentUrls }) {
+async function sendAdminEmail(env, doc, { attachmentUrls }) {
   // 하드코딩 폴백 주소를 두지 않는다(CLAUDE.md 환경변수 규칙).
   // 수신자가 없으면 제보는 정상 저장되고 알림만 건너뛴다.
   const to = String(getEnv(env, "ADMIN_FEEDBACK_EMAIL") || "").trim();
@@ -157,7 +147,7 @@ async function sendAdminEmail(env, doc, { adminUrl, attachmentUrls }) {
   const result = await sendEmail(env, {
     to,
     subject,
-    html: buildAdminEmailHtml(doc, { adminUrl, attachmentUrls }),
+    html: buildAdminEmailHtml(doc, { attachmentUrls }),
   });
 
   return { channel: "email", ok: Boolean(result?.ok), status: result?.status, error: result?.error };
@@ -167,13 +157,11 @@ async function sendAdminEmail(env, doc, { adminUrl, attachmentUrls }) {
  * 신규 제보 알림을 모든 설정된 채널로 보낸다.
  * 어떤 채널이 실패해도 throw 하지 않고 요약을 돌려준다.
  */
-export async function notifyNewFeedback(env, doc, { siteBaseUrl = "", attachmentUrls = [] } = {}) {
+export async function notifyNewFeedback(env, doc, { attachmentUrls = [] } = {}) {
   try {
-    const base = siteBaseUrl || getSiteBaseUrl(env);
-    const adminUrl = `${base}/admin/feedback?id=${encodeURIComponent(String(doc?._id || ""))}`;
-    const text = buildNotificationText(doc, adminUrl);
+    const text = buildNotificationText(doc);
 
-    const tasks = [sendAdminEmail(env, doc, { adminUrl, attachmentUrls })];
+    const tasks = [sendAdminEmail(env, doc, { attachmentUrls })];
     for (const channel of WEBHOOK_CHANNELS) {
       const url = String(getEnv(env, channel.envKey) || "").trim();
       if (!url) continue;
@@ -190,47 +178,3 @@ export async function notifyNewFeedback(env, doc, { siteBaseUrl = "", attachment
   }
 }
 
-/**
- * 관리자 답변을 제보자에게 메일로 보낸다. 관리자가 요청당 명시적으로 선택했을 때만 호출된다.
- */
-export async function notifyFeedbackReply(env, doc, replyBody, { siteBaseUrl = "" } = {}) {
-  try {
-    const to = String(doc?.authorEmail || "").trim();
-    if (!to) return { ok: false, error: "no_recipient" };
-
-    const base = siteBaseUrl || getSiteBaseUrl(env);
-    const html = `<!DOCTYPE html>
-<html lang="ko">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:24px 12px;background:#f3f4f6;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
-  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);">
-    <div style="padding:24px;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:#ffffff;">
-      <div style="font-size:12px;letter-spacing:.16em;opacity:.85;">CODE DESTINY 연구소</div>
-      <div style="margin-top:8px;font-size:20px;font-weight:700;line-height:1.4;">보내주신 의견에 답변드립니다</div>
-    </div>
-    <div style="padding:24px;color:#111827;font-size:14px;line-height:1.8;">
-      <p style="margin:0 0 16px;">안녕하세요, ${escapeHtml(doc?.authorName || "회원")}님.</p>
-      <p style="margin:0 0 16px;">보내주신 제보 <strong>${escapeHtml(clamp(doc?.title, 60))}</strong> 에 대한 답변입니다.</p>
-      <div style="padding:16px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb;white-space:pre-wrap;word-break:break-word;">${escapeHtml(replyBody)}</div>
-      <p style="margin:20px 0 0;color:#6b7280;font-size:13px;">현재 처리 상태: ${escapeHtml(labelOf(FEEDBACK_STATUS_LABELS, doc?.status))}</p>
-      <div style="margin:24px 0 0;text-align:center;">
-        <a href="${escapeHtml(`${base}/feedback`)}" style="display:inline-block;padding:12px 28px;background:#4f46e5;color:#ffffff;border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;">제보실로 이동</a>
-      </div>
-    </div>
-    <div style="padding:16px 24px;background:#f9fafb;color:#9ca3af;font-size:12px;text-align:center;">
-      더 좋은 CODE DESTINY를 만드는 데 큰 도움이 됩니다. 감사합니다.
-    </div>
-  </div>
-</body>
-</html>`;
-
-    const result = await sendEmail(env, {
-      to,
-      subject: `[CODE DESTINY] 제보 답변 · ${clamp(doc?.title, 40)}`,
-      html,
-    });
-    return { ok: Boolean(result?.ok), status: result?.status, error: result?.error };
-  } catch (error) {
-    return { ok: false, error: String(error?.message || "reply_notify_failed") };
-  }
-}

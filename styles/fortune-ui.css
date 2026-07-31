@@ -95,7 +95,7 @@ button, [role="button"], input[type="button"], input[type="submit"], label[for] 
 }
 /* 닫기 버튼 최소 터치 영역 44px 보장 */
 button[onclick*="close"], button[aria-label*="닫"] {
-  min-width: 44px; min-height: 44px;
+  min-width: 48px; min-height: 48px;
 }
 
 /* ─── 변수 & 리셋 ─── */
@@ -1485,7 +1485,7 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
 .dw-jong-badge.ga-str{background:#EDE7F6;color:#6A1B9A;border:1px dashed #9C27B0}
 /* ── 모바일/웹 클릭·터치 전역 최적화 ── */
 button,.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.lang-btn,.tog-btn,.oracle-cat-btn-m,.oracle-card-m,.iching-btn,.celeb-tab-btn,.celeb-btn,.feature-card,.tarot-cat-btn,.btn-kakao,.btn-insta{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-button,.tog-btn,.btn-main,.btn-sub,.feature-card{min-height:44px;}
+button,.tog-btn,.btn-main,.btn-sub,.feature-card{min-height:48px;}
 /* 모든 인터랙티브 요소 active 피드백 */
 button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.97)!important;}
 @media(hover:none){button:hover,.feature-card:hover{transform:none!important;}}

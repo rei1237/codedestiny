@@ -47,10 +47,13 @@ function adminMongoRead(env, operation) {
 
 // 관리자 진입 비밀번호는 소스에 두지 않는다 — 과거 이 자리에 평문 주석과 salt 없는 SHA-256이 함께
 // 커밋돼 있었고, 레포가 공개라 누구나 읽어 8시간 관리자 토큰을 받을 수 있었다.
-// 정본은 워커 시크릿 ADMIN_ENTRY_PASSWORD_HASH 하나다. 값은 bcrypt 해시를 쓴다 —
-// 레거시 server/routes/admin.routes.js 가 같은 값을 읽는데 그쪽은 bcrypt 만 다루므로,
-// 한 시크릿을 양쪽이 공유하려면 bcrypt 여야 한다(워커의 verifyPassword 는 pbkdf2 도 받는다).
-// 미설정이면 아래에서 fail-closed 로 막힌다.
+// 정본은 워커 시크릿 ADMIN_ENTRY_PASSWORD_HASH 하나다. 미설정이면 아래에서 fail-closed 로 막힌다.
+// 🔴 값은 **PBKDF2**(`pbkdf2-sha256$반복수$salt$hash`)를 쓴다. bcrypt 해시를 넣지 말 것 —
+// 이 워커의 bcryptjs 는 순수 JS 라 cost 12 검증이 ~270ms CPU 를 먹고, 실제로 관리자 로그인이
+// 간헐적으로 `error code: 1102`(Worker exceeded resource limits)로 죽었다(2026-07-31 실측).
+// PBKDF2 는 crypto.subtle 네이티브라 같은 강도에서 ~15ms 다. worker/lib/password.js 의
+// verifyPassword 가 두 포맷을 모두 받으므로 bcrypt 를 넣어도 "동작은 하다가 가끔 죽는" 형태가 되어
+// 원인을 찾기 어렵다. 레거시 server/routes/admin.routes.js 도 PBKDF2 를 우선 처리한다.
 const ADMIN_ENTRY_PASSWORD_HASH_KEY = "ADMIN_ENTRY_PASSWORD_HASH";
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
@@ -5084,14 +5087,6 @@ export async function handleAdminRoutes(request, env) {
       const adminContext = await authorizeAdminRequest(request, env);
       const { handleAdminCmsRoutes } = await import("./cms.js");
       return await handleAdminCmsRoutes(path.slice("/cms".length) || "/", request, env, adminContext);
-    }
-
-    // 버그 제보실. 위 CMS 와 같은 이유로 분리한다 — 공개 라우트(routes/feedback.js)와
-    // 직렬화·상수·첨부 읽기 함수를 공유해야 하고, admin.js 를 더 키우지 않는다.
-    if (path === "/feedback" || path.startsWith("/feedback/")) {
-      const adminContext = await authorizeAdminRequest(request, env);
-      const { handleAdminFeedbackRoutes } = await import("./admin-feedback.js");
-      return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
     }
 
     if (path === "/site-content/overrides") {
