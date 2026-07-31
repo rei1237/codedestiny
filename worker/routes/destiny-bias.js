@@ -509,6 +509,9 @@ export async function handleDestinyBiasRoutes(request, env) {
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    // exposeMessage 를 켜지 않는다 — 이 라우트가 던지는 것은 전부 createHttpError 라
+    // handleRouteError 의 HttpError 분기가 저자 메시지를 그대로 돌려준다(플래그와 무관).
+    // 플래그가 실제로 여는 것은 예상 밖 오류의 원문뿐이고, 거기엔 Mongo 토폴로지가 섞인다.
     return handleRouteError(error, {
       request,
       env,
@@ -516,7 +519,6 @@ export async function handleDestinyBiasRoutes(request, env) {
         route: "destiny-bias",
         method: request.method,
       },
-      exposeMessage: true,
     });
   }
 }

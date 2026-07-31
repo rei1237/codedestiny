@@ -376,14 +376,15 @@ async function handleAstrologyBasic(request, env) {
     else if (/wasm/i.test(message) || /ephemer/i.test(message)) code = "ASTRO_SWISS_INIT_FAILED";
     else if (/path/i.test(message) && /swiss/i.test(message)) code = "ASTRO_SWISS_EPHE_PATH_INVALID";
 
+    // 원본 message 는 위 code 분류에만 쓰고 응답 본문에는 싣지 않는다 — 스위스 에페메리스/WASM 실패
+    // 메시지에는 번들 파일시스템 경로와 내부 모듈명이 섞여 나온다. 같은 이유로 debug.cause 도 뺐다.
+    // 단, 입력 검증처럼 저자가 직접 쓴 4xx 메시지는 사용자에게 필요한 안내라 그대로 보낸다
+    // (본문 검증 실패는 애초에 위 normalizeBasicAstrologyInput 분기에서 따로 응답한다).
+    const isAuthoredClientError = (status >= 400 && status < 500) || code === "ASTRO_INVALID_BIRTH_INPUT";
     return json({
       ok: false,
       code,
-      message,
-      debug: {
-        stage: "chart-calculation",
-        cause: String(error?.cause || message),
-      },
+      message: isAuthoredClientError ? message : "Swiss astrology calculation failed.",
     }, { status });
   }
 }

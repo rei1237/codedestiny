@@ -221,6 +221,12 @@ export async function handleRouteError(error, context = {}) {
     console.error("[worker-route-error]", logPayload);
   }
 
+  /* isConfigError 는 503/500 갈림과 reason 라벨에만 쓴다 — 절대 "원본 메시지를 내보낼 이유"로 쓰지 말 것.
+     예전에는 (exposeMessage || isConfigError) 로 묶여 있어, 개발 모드가 아니어도 이 정규식에 걸리면
+     errorText 가 그대로 응답 본문에 실렸다. 그런데 아래 `connection timed out` 은 Atlas 서버선택 실패
+     메시지의 문구라, 리플리카셋 샤드 호스트명·해석된 IP·TLS/인증 실패 사유가 통째로 나갔다.
+     DB 타임아웃은 인증 없는 요청으로도 유발할 수 있으므로 사실상 무인증 정보노출이었다.
+     운영자용 원문은 이미 위 console.error("[worker-route-error]") 로 전량 남는다. */
   const isConfigError = /mongo_uri|mongodb_uri|required for worker-native|connection timed out/i.test(errorText);
   const isDbUnavailable = isDbUnavailableError(error);
 
@@ -229,13 +235,13 @@ export async function handleRouteError(error, context = {}) {
       ok: false,
       success: false,
       code: "SERVICE_UNAVAILABLE",
-      message: (exposeMessage || isConfigError) && errorText ? errorText : "Database is temporarily unavailable.",
-      requestPath: (exposeMessage || isConfigError) ? requestPath : undefined,
+      message: exposeMessage && errorText ? errorText : "Database is temporarily unavailable.",
+      requestPath: exposeMessage ? requestPath : undefined,
       errorDetails: {
         ...toPublicErrorDetails(error, context),
         code: "SERVICE_UNAVAILABLE",
         reason: isConfigError ? "CONFIG_ERROR" : "DB_UNAVAILABLE",
-        message: (exposeMessage || isConfigError) && errorText ? errorText : "Database is temporarily unavailable.",
+        message: exposeMessage && errorText ? errorText : "Database is temporarily unavailable.",
       },
     }, {
       status: 503,
@@ -249,12 +255,12 @@ export async function handleRouteError(error, context = {}) {
     ok: false,
     success: false,
     code: "INTERNAL_SERVER_ERROR",
-    message: (exposeMessage || isConfigError) && errorText ? errorText : "Internal server error.",
-    requestPath: (exposeMessage || isConfigError) ? requestPath : undefined,
+    message: exposeMessage && errorText ? errorText : "Internal server error.",
+    requestPath: exposeMessage ? requestPath : undefined,
     errorDetails: {
       ...toPublicErrorDetails(error, context),
       code: "INTERNAL_SERVER_ERROR",
-      message: (exposeMessage || isConfigError) && errorText ? errorText : "Internal server error.",
+      message: exposeMessage && errorText ? errorText : "Internal server error.",
     },
   }, {
     status: 500,
