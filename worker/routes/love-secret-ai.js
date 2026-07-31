@@ -17,6 +17,7 @@ import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/lo
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
+  LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
   assembleLoveSecretConsultation,
   buildFollowUpConsultationPrompt,
@@ -914,7 +915,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 
   const usableGroups = results.filter((result) => result.ok).length;
   const totalChars = countLoveSecretConsultationBodyChars(assembled);
-  const renderable = totalChars >= 18000 && clean(assembled.answer).length >= 4000;
+  // 하드 하한은 프롬프트 모듈이 소유한다 — 여기서 숫자를 복제하면 조용히 어긋난다.
+  const renderable = totalChars >= LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS && clean(assembled.answer).length >= 4000;
 
   logLoveSecretAi("LLM Provider Selected", {
     ...logContext,
