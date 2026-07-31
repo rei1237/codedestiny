@@ -18,6 +18,78 @@ let pendingPoolReset = false;
 // 미뤄 둔 리셋이 영영 실행되지 않는 데드락을 깨는 유일한 신호다 — 아래 withMongoRetry 주석 참고.
 let consecutiveConnectionFailures = 0;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mongo 연산 계측 — op-타임아웃의 원인을 세 갈래로 가르기 위한 최소 카운터.
+//
+// 2026-08-01 현재 인증 요청의 ~75%가 `resolveAuth` 12초 상한에 걸리는데, 핸드셰이크는
+// 1497ms 로 싸다(= 연결 수립이 아니라 '수립된 연결 위의 쿼리'가 멈춘다). 남은 후보는 셋이고
+// 드라이버 이벤트로만 구분할 수 있다:
+//   1) 풀 포화       → 체크아웃이 오래 걸리거나 실패한다(checkedOut.durationMS / checkOutFailed)
+//   2) 서버 지연     → 명령은 나갔는데 응답이 늦다(commandStarted 만 늘고 succeeded 가 안 는다)
+//   3) 요청간 I/O 격리 → 명령이 아예 나가지 않는다(checkOutStarted 조차 안 늘거나 즉시 실패)
+//
+// 카운터는 아이솔레이트 전역이라 op 단위로 정확히 귀속되지 않는다. 그래서 시도 시작 시점의
+// 스냅샷을 떠 두고 타임아웃 때 '차이'만 본다 — 그 시도 동안 무슨 일이 있었는지는 이걸로 갈린다.
+const mongoOpCounters = {
+  checkOutStarted: 0,
+  checkedOut: 0,
+  checkOutFailed: 0,
+  poolCleared: 0,
+  commandStarted: 0,
+  commandSucceeded: 0,
+  commandFailed: 0,
+  maxCheckoutWaitMs: 0,
+  maxCommandMs: 0,
+  lastCheckOutFailReason: "",
+};
+const instrumentedMongoClients = new WeakSet();
+
+function snapshotMongoCounters() {
+  return { ...mongoOpCounters };
+}
+
+// 시도 동안의 증분만 남긴다(0 인 항목은 빼서 로그를 짧게 유지).
+function diffMongoCounters(before) {
+  const delta = {};
+  for (const key of Object.keys(mongoOpCounters)) {
+    if (key === "lastCheckOutFailReason") continue;
+    const change = mongoOpCounters[key] - (before[key] || 0);
+    if (change) delta[key] = change;
+  }
+  if (mongoOpCounters.lastCheckOutFailReason) {
+    delta.lastCheckOutFailReason = mongoOpCounters.lastCheckOutFailReason;
+  }
+  return delta;
+}
+
+function instrumentMongoClient(client) {
+  if (!client || typeof client.on !== "function") return;
+  if (instrumentedMongoClients.has(client)) return;
+  instrumentedMongoClients.add(client);
+  try {
+    client.on("connectionCheckOutStarted", () => { mongoOpCounters.checkOutStarted += 1; });
+    client.on("connectionCheckedOut", (event) => {
+      mongoOpCounters.checkedOut += 1;
+      const waited = Number(event?.durationMS || 0);
+      if (waited > mongoOpCounters.maxCheckoutWaitMs) mongoOpCounters.maxCheckoutWaitMs = waited;
+    });
+    client.on("connectionCheckOutFailed", (event) => {
+      mongoOpCounters.checkOutFailed += 1;
+      mongoOpCounters.lastCheckOutFailReason = String(event?.reason || "unknown").slice(0, 40);
+    });
+    client.on("connectionPoolCleared", () => { mongoOpCounters.poolCleared += 1; });
+    client.on("commandStarted", () => { mongoOpCounters.commandStarted += 1; });
+    client.on("commandSucceeded", (event) => {
+      mongoOpCounters.commandSucceeded += 1;
+      const took = Number(event?.duration || 0);
+      if (took > mongoOpCounters.maxCommandMs) mongoOpCounters.maxCommandMs = took;
+    });
+    client.on("commandFailed", () => { mongoOpCounters.commandFailed += 1; });
+  } catch (e) {
+    // 계측 실패가 DB 접근을 막아서는 안 된다.
+  }
+}
+
 function extractDbNameFromUri(uri) {
   try {
     const parsed = new URL(String(uri || ""));
@@ -192,6 +264,9 @@ export async function connectDb(env = {}) {
           // 재사용할 때 "Cannot perform I/O on behalf of a different request"(→ Mongo 에러로 분류 안 돼 500)를
           // 유발했다. 'poll' 모드는 짧은 개별 하트비트만 써 이 지속 스트림을 만들지 않는다(서버리스/엣지 권장).
           serverMonitoringMode: "poll",
+          // commandStarted/Succeeded 이벤트를 켠다 — '명령이 나갔는지'와 '서버가 늦는지'를
+          // 가르는 유일한 신호다. 카운터만 올리므로 비용은 무시할 수준이다.
+          monitorCommands: true,
         };
         if (ipFamily === 4 || ipFamily === 6) {
           connectOptions.family = ipFamily;
@@ -242,6 +317,12 @@ export async function connectDb(env = {}) {
 
       if (mongoose.connection.readyState === 1) {
         lastHealthyAt = Date.now();
+        // 새 클라이언트가 생겼을 수 있으므로 여기서 계측을 건다(WeakSet 가드로 1회만 붙는다).
+        try {
+          instrumentMongoClient(mongoose.connection.getClient?.() || mongoose.connection.client);
+        } catch (e) {
+          // 계측 실패는 무시한다.
+        }
         return mongoose.connection;
       }
 
@@ -336,10 +417,15 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   inFlightOps += 1;
   try {
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      // 시도 단위 계측 — 타임아웃 났을 때 '연결에서 샜는지 / 쿼리에서 샜는지'를 가른다.
+      const attemptStartedAt = Date.now();
+      const countersAtStart = snapshotMongoCounters();
+      let connectFinishedAt = 0;
       try {
         const result = await withTimeout(
           (async () => {
             await connectDb(env);
+            connectFinishedAt = Date.now();
             return await operation();
           })(),
           attemptTimeoutMS,
@@ -360,6 +446,25 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
         const isConnectionLevelFailure = isOperationTimeout || isTransientMongoError(error);
         const willRetry = attempt < maxRetries && isTransientMongoError(error);
+        if (isOperationTimeout) {
+          // 이 한 줄이 세 후보를 가른다:
+          //   connectMs 가 크다        → 연결 수립이 범인(현재 실측상 아님, 중앙값 1497ms)
+          //   checkedOut 증가 없음     → 풀에서 커넥션을 못 받음(포화 또는 요청간 I/O 격리)
+          //   commandStarted 만 증가   → 명령은 나갔는데 서버 응답이 안 옴(Atlas 지연)
+          //   증분이 전부 0            → 명령이 아예 나가지 않음(요청간 I/O 격리 유력)
+          try {
+            console.log("[db-op-timeout]", JSON.stringify({
+              attempt: attempt + 1,
+              totalMs: Date.now() - attemptStartedAt,
+              connectMs: connectFinishedAt ? connectFinishedAt - attemptStartedAt : null,
+              opMs: connectFinishedAt ? Date.now() - connectFinishedAt : null,
+              inFlightOps,
+              delta: diffMongoCounters(countersAtStart),
+            }));
+          } catch (e) {
+            // 계측 실패가 에러 처리를 막아서는 안 된다.
+          }
+        }
         // ⚠️ "방금 맺은 연결은 좀비가 아니니 리셋을 건너뛴다"를 2026-08-01 에 넣었다가 되돌렸다.
         // 전제는 "콜드 핸드셰이크가 시도 예산을 태운다"였는데, 같은 변경에서 추가한 핸드셰이크 계측
         // (`[db-connect] ... elapsedMs`)이 그 전제를 반증했다 — 핸드셰이크 중앙값은 1497ms 로 싸다.
