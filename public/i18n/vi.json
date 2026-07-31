@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Chia sẻ kết quả saju",
       "kakao": "Chia sẻ KakaoTalk",
-      "instagram": "Tin nhắn trực tiếp trên Instagram"
+      "instagram": "Tin nhắn trực tiếp trên Instagram",
+      "image": "Chia sẻ dạng ảnh"
     },
     "actions": {
       "newSaju": "✨ Xem saju mới"

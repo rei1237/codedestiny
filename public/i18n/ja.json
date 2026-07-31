@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 四柱結果を共有",
       "kakao": "KakaoTalkで共有",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "画像で共有"
     },
     "actions": {
       "newSaju": "✨ 新しい四柱を見る"

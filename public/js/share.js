@@ -639,23 +639,25 @@ function shareZiweiKakao() {
   }, 'ziwei');
 }
 function shareLifeBookKakao() {
-  var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
-    || (window.USER_NAME || '사용자');
-  var base = cdBuildShareUrl('lifebook');
-  var text = '사주 [인생의 책 결과]\n\n'
-    + name + '님의 인생의 책 결과를 공유합니다.\n\n'
-    + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
-    + '아래 링크에서 확인하세요.\n' + base;
-  if (navigator.share) {
-    navigator.share({ title: _shareText("share.006"), text: text, url: base }).catch(function () {});
-    return;
-  }
-  var a = document.createElement('a');
-  a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
-  a.click();
-  setTimeout(function () {
-    copyToClipboard(text, '클립보드에 복사되었습니다. PC에서는 우클릭 붙여넣기 후 공유하세요.');
-  }, 800);
+  shareWithReward(function () {
+    var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
+      || (window.USER_NAME || '사용자');
+    var base = cdBuildShareUrl('lifebook');
+    var text = '사주 [인생의 책 결과]\n\n'
+      + name + '님의 인생의 책 결과를 공유합니다.\n\n'
+      + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
+      + '아래 링크에서 확인하세요.\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: _shareText("share.006"), text: text, url: base }).catch(function () {});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function () {
+      copyToClipboard(text, '클립보드에 복사되었습니다. PC에서는 우클릭 붙여넣기 후 공유하세요.');
+    }, 800);
+  }, 'lifebook');
 }
 
 function shareLoveSecretKakao() {
@@ -1008,9 +1010,24 @@ function shareSukuyoCompatInviteKakao(){
   }, 'sukuyo-compat-invite');
 }
 
+/* 사주 결과 카드를 이미지로 공유한다. cdShareResultCardImage 는 구현이 끝나 있었는데
+   호출부가 하나도 없어 죽어 있었다 — #shareSection 의 기존 버튼 줄에 항목 하나만
+   더해 살린다(새 모달/오버레이를 만들지 않는다).
+   캡처 실패나 html2canvas 부재는 cdShareResultCardImage 안에서 텍스트 공유로
+   폴백하므로 여기서 따로 방어하지 않는다. */
+function shareSajuResultImage() {
+  cdShareResultCardImage({
+    contentId: 'saju',
+    targetSelector: '#sajuCard',
+    title: _shareText('share.001'),
+    caption: '내 사주 결과 카드예요. 나도 무료로 보기 👇'
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.cdShareFortuneKakao = cdShareFortuneKakao;
   window.cdShareResultCardImage = cdShareResultCardImage;
+  window.shareSajuResultImage = shareSajuResultImage;
   window.shareStoryKakao = shareStoryKakao;
   window.cdAppendReferralQuery = cdAppendReferralQuery;
   window.cdBuildSukuyoCompatInviteUrl = cdBuildSukuyoCompatInviteUrl;

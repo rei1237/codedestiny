@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Deel het saju-resultaat",
       "kakao": "KakaoTalk delen",
-      "instagram": "Instagram-DM"
+      "instagram": "Instagram-DM",
+      "image": "Delen als afbeelding"
     },
     "actions": {
       "newSaju": "✨ Bekijk een nieuwe saju"

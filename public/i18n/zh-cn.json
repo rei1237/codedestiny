@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 分享四柱结果",
       "kakao": "KakaoTalk分享",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "以图片分享"
     },
     "actions": {
       "newSaju": "✨ 查看新的四柱"

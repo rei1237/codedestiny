@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Compartir saju resultado",
       "kakao": "KakaoTalk compartir",
-      "instagram": "Mensaje directo de Instagram"
+      "instagram": "Mensaje directo de Instagram",
+      "image": "Compartir como imagen"
     },
     "actions": {
       "newSaju": "✨ Ver un nuevo saju"

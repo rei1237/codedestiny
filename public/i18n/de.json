@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Saju-Ergebnis teilen",
       "kakao": "KakaoTalk-Aktie",
-      "instagram": "Instagram-DM"
+      "instagram": "Instagram-DM",
+      "image": "Als Bild teilen"
     },
     "actions": {
       "newSaju": "✨ Sehen Sie sich ein neues Saju an"

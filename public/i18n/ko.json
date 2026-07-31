@@ -1613,7 +1613,8 @@
     "share": {
       "title": "📤 사주 결과 공유하기",
       "kakao": "카카오톡 공유",
-      "instagram": "인스타 DM"
+      "instagram": "인스타 DM",
+      "image": "이미지로 공유"
     },
     "actions": {
       "newSaju": "✨ 새로운 사주 보기"
