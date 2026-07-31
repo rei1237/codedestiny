@@ -23,7 +23,7 @@ const RUNTIME_FILES = ["js/core/pass-verdict.js", "js/core/checkout-entry.js", "
 
 function bootRuntime({ appRuntime = false } = {}) {
   const storeUrls = [];
-  const beacons = [];
+  const telemetry = [];
 
   // jsdom 은 실제 내비게이션을 구현하지 않고 window.location 도 재정의할 수 없다. 대신 이동 직전에
   // 목적지를 만드는 공용 모듈(js/core/checkout-entry.js)의 buildPassStoreUrl 을 감싸 목적지를 기록한다.
@@ -40,8 +40,11 @@ function bootRuntime({ appRuntime = false } = {}) {
   const { window } = dom;
 
   // 네트워크는 전부 막는다 — 이 가드가 보는 것은 분기이지 서버 응답이 아니다.
-  window.fetch = async () => ({ ok: false, status: 503, json: async () => ({}), text: async () => "" });
-  window.navigator.sendBeacon = (url, blob) => { beacons.push({ url, blob }); return true; };
+  // 계측(퍼널 이벤트)은 따로 모아 content-type·본문을 검사한다.
+  window.fetch = async (url, init) => {
+    if (String(url || "").includes("/api/billing/funnel-event")) telemetry.push({ url, init: init || {} });
+    return { ok: false, status: 503, json: async () => ({}), text: async () => "" };
+  };
 
   if (appRuntime) window.__cdAppPaymentGuard = { installed: true };
 
@@ -56,7 +59,7 @@ function bootRuntime({ appRuntime = false } = {}) {
     storeUrls.push(url);
     return url;
   };
-  return { window, storeUrls, beacons };
+  return { window, storeUrls, telemetry };
 }
 
 function openChoice(window, options = {}) {
@@ -167,21 +170,80 @@ console.log("\n[4] 앱 런타임에서 /points 로 이동하지 않고 인앱 �
   check("/points URL 을 만들지도 않음(앱 번들에 없어 빈 화면이 된다)", () => assert.deepEqual(storeUrls, []));
 }
 
-// ── ⑤ 계측이 결제 흐름을 막지 않는다 ──────────────────────────────────────
+// ── ⑤ 계측이 결제 흐름을 막지 않고, 워커 보안 가드를 통과하는 형태로 나간다 ──
 console.log("\n[5] 퍼널 계측이 결제 경로에 영향을 주지 않는가");
 {
-  const { window, beacons } = bootRuntime();
-  window.navigator.sendBeacon = () => { throw new Error("beacon down"); };
+  const { window, telemetry } = bootRuntime();
   window.__cdApplyMembershipPassBeforePayment = async () => ({ status: "pass_applied" });
   const choicePromise = openChoice(window);
   findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-  check("계측이 터져도 이용권 무료 통과는 그대로", async () => assert.equal(await choicePromise, "pass"));
-  await choicePromise;
-  check("개인식별자를 실어 보내지 않는다", () => {
-    for (const beacon of beacons) {
-      assert.doesNotMatch(String(beacon.blob || ""), /userId|email/i);
+  const choice = await choicePromise;
+  await flush();
+  check("이용권 무료 통과는 그대로", () => assert.equal(choice, "pass"));
+  check("계측 이벤트가 실제로 나갔다", () => assert.ok(telemetry.length > 0, "funnel-event 요청 0건"));
+  // 🔴 /api/billing/* 은 requireJson 가드가 걸려 있고, 위반하면 400 일 뿐 아니라 addAbuseScore 까지
+  // 올린다 — 계측이 공격 트래픽으로 집계돼 실제 사용자가 차단될 수 있다. 첫 배포에서 sendBeacon 의
+  // text/plain 으로 나가 전 이벤트가 400 을 맞았던 자리다.
+  check("application/json 으로 보낸다(워커 requireJson 가드)", () => {
+    for (const call of telemetry) {
+      assert.equal(call.init?.headers?.["Content-Type"], "application/json");
+      assert.equal(call.init?.keepalive, true);
     }
   });
+  check("개인식별자를 실어 보내지 않는다", () => {
+    for (const call of telemetry) {
+      assert.doesNotMatch(String(call.init?.body || ""), /userId|email/i);
+    }
+  });
+}
+
+// ── ⑥ 계측이 터져도 결제는 계속된다 ───────────────────────────────────────
+console.log("\n[6] 계측이 예외를 던져도 이용권 무료 통과는 그대로인가");
+{
+  const { window } = bootRuntime();
+  // 계측 요청만 던지게 한다. fetch 전체를 던지게 하면 월정석 잔량 조회까지 막혀
+  // 이 케이스가 보려는 것(계측 실패의 격리)과 무관한 실패가 섞인다.
+  const passthroughFetch = window.fetch;
+  window.fetch = (url, init) => {
+    if (String(url || "").includes("/api/billing/funnel-event")) throw new Error("telemetry down");
+    return passthroughFetch(url, init);
+  };
+  window.__cdApplyMembershipPassBeforePayment = async () => ({ status: "pass_applied" });
+  const choicePromise = openChoice(window);
+  findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const choice = await choicePromise;
+  check("계측이 터져도 'pass' 로 닫힌다", () => assert.equal(choice, "pass"));
+}
+
+// ── ⑦ 대기 화면은 이용권 확인에서만 뜬다 ──────────────────────────────────
+// 2026-08 신고: 유료 기능을 누르면 결제창 대신 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드
+// 결제를 준비 중이에요' 전체화면이 떴다. 정책은 "진행 중 표시는 이용권 확인('pass')에서만"이다.
+// 독립 정적 환경의 집행 지점(window._cdSetCoinGateOverlay 심)을 실제로 눌러 확인한다.
+console.log("\n[7] 대기 오버레이가 이용권 확인 모드에서만 뜨는가");
+{
+  const { window } = bootRuntime();
+  const overlayVisible = () => {
+    const node = window.document.getElementById("cdStandalonePaymentOverlay");
+    return Boolean(node) && node.style.display === "flex";
+  };
+  for (const mode of ["payment", "checkout", "card", "confirm", "monthly", "subscription"]) {
+    check(`'${mode}' 진행 화면은 뜨지 않는다`, () => {
+      window._cdSetCoinGateOverlay(true, "테스트", mode);
+      assert.equal(overlayVisible(), false, `${mode} 오버레이가 떴다`);
+    });
+  }
+  check("'pass'(이용권 확인)는 뜬다", () => {
+    window._cdSetCoinGateOverlay(true, "이용권 확인 중입니다.", "pass");
+    assert.equal(overlayVisible(), true, "이용권 확인 화면이 뜨지 않았다");
+  });
+  window._cdSetCoinGateOverlay(false);
+  for (const mode of ["pass-applied", "payment-complete", "payment-failed"]) {
+    check(`'${mode}' 결과 표시는 뜬다`, () => {
+      window._cdSetCoinGateOverlay(true, "결과", mode);
+      assert.equal(overlayVisible(), true, `${mode} 결과 화면이 뜨지 않았다`);
+      window._cdSetCoinGateOverlay(false);
+    });
+  }
 }
 
 if (failures.length) {
