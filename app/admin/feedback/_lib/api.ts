@@ -99,6 +99,14 @@ export function listFeedback(params: AdminFeedbackListParams, signal?: AbortSign
   return adminFetch<AdminFeedbackListResponse>(`/api/admin/feedback${query ? `?${query}` : ""}`, { signal });
 }
 
+/**
+ * 단건 조회. 관리자 알림 메일의 `?id=` 딥링크는 현재 필터·페이지에 그 제보가 없을 수 있어
+ * 목록에서 찾는 것만으로는 빈 화면이 된다 — 그때 이걸로 직접 가져온다.
+ */
+export function fetchFeedbackDetail(id: string) {
+  return adminFetch<{ ok: boolean; item: AdminFeedbackItem }>(`/api/admin/feedback/${id}`);
+}
+
 export function fetchSummary() {
   return adminFetch<{ ok: boolean; counts: AdminFeedbackCounts; adminFeedbackEmailConfigured: boolean }>(
     "/api/admin/feedback/summary",

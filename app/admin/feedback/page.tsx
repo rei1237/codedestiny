@@ -19,6 +19,7 @@ import { FEEDBACK_CATEGORIES } from "../../feedback/_lib/categories";
 import { redirectToAdminLogin } from "../cms/_lib/admin-api";
 import {
   deleteFeedback,
+  fetchFeedbackDetail,
   listFeedback,
   patchFeedback,
   replyToFeedback,
@@ -118,8 +119,14 @@ export default function AdminFeedbackPage() {
   const [replyBody, setReplyBody] = useState("");
   const [notifyUser, setNotifyUser] = useState(false);
   const [busy, setBusy] = useState(false);
+  // 목록에 없는 제보(메일 딥링크로 들어온 오래된 건)를 단건 조회로 보관한다.
+  const [deepLinked, setDeepLinked] = useState<AdminFeedbackItem | null>(null);
 
-  const selected = useMemo(() => items.find((item) => item.id === selectedId) || null, [items, selectedId]);
+  const selected = useMemo(
+    () => items.find((item) => item.id === selectedId)
+      || (deepLinked && deepLinked.id === selectedId ? deepLinked : null),
+    [items, selectedId, deepLinked],
+  );
 
   // 검색어 디바운스 300ms.
   useEffect(() => {
@@ -172,8 +179,22 @@ export default function AdminFeedbackPage() {
   useEffect(() => {
     if (typeof window === "undefined" || selectedId) return;
     const id = new URLSearchParams(window.location.search).get("id");
-    if (id) setSelectedId(id);
+    if (/^[a-f0-9]{24}$/i.test(id || "")) setSelectedId(id as string);
   }, [selectedId]);
+
+  // 선택한 제보가 현재 목록에 없으면(오래된 건·다른 필터) 단건 조회로 채운다.
+  // 이게 없으면 메일 CTA 가 빈 상세 화면으로 떨어진다.
+  useEffect(() => {
+    if (!selectedId || loading) return;
+    if (items.some((item) => item.id === selectedId)) return;
+    if (deepLinked?.id === selectedId) return;
+
+    let cancelled = false;
+    fetchFeedbackDetail(selectedId)
+      .then((data) => { if (!cancelled) setDeepLinked(data.item); })
+      .catch(() => { if (!cancelled) setErrorMessage("해당 제보를 찾지 못했습니다."); });
+    return () => { cancelled = true; };
+  }, [selectedId, items, loading, deepLinked]);
 
   const runMutation = async (action: () => Promise<void>, successMessage: string) => {
     setBusy(true);

@@ -18,7 +18,6 @@ import {
 import { getFeedbackCategory, type FeedbackCategoryId } from "./_lib/categories";
 import { collectEnvironment, findEnvValue, minimalEnvironment } from "./_lib/environment";
 import { clearDraft, formatSavedAt, loadDraft, saveDraft, type FeedbackDraft } from "./_lib/draft";
-import { uploadFeedbackAttachment, MAX_ATTACHMENTS } from "./_lib/attachmentUpload";
 import { CANVAS, GLASS_CARD, GHOST_BUTTON, INK, INK_MUTED } from "./_lib/styles";
 
 const TITLE_MAX_LENGTH = 80;
@@ -43,6 +42,7 @@ export default function FeedbackClient() {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState<SubmittedFeedback | null>(null);
 
+  const [pastedFiles, setPastedFiles] = useState<File[]>([]);
   const [pendingDraft, setPendingDraft] = useState<FeedbackDraft | null>(null);
   const [savedAtLabel, setSavedAtLabel] = useState("");
   const draftTimerRef = useRef<number | null>(null);
@@ -138,22 +138,8 @@ export default function FeedbackClient() {
     setSavedAtLabel("");
   };
 
-  const handlePasteImages = useCallback(async (files: File[]) => {
-    const slots = MAX_ATTACHMENTS - attachments.length;
-    if (slots <= 0) return;
-
-    setUploading(true);
-    const uploaded: FeedbackAttachment[] = [];
-    for (const file of files.slice(0, slots)) {
-      try {
-        uploaded.push(await uploadFeedbackAttachment(file));
-      } catch (uploadError) {
-        setError(uploadError instanceof Error ? uploadError.message : "이미지 업로드에 실패했습니다.");
-      }
-    }
-    setUploading(false);
-    if (uploaded.length) setAttachments((prev) => [...prev, ...uploaded].slice(0, MAX_ATTACHMENTS));
-  }, [attachments.length]);
+  // 드롭존 effect 의 의존성이라 반드시 안정적인 참조여야 한다(매 렌더 새 함수면 재실행된다).
+  const emptyPastedFiles = useCallback(() => setPastedFiles([]), []);
 
   const persistDraftNow = useCallback(() => {
     saveDraft({ category: category || "", title, content, url, details, attachments, sendEnvironment });
@@ -281,7 +267,9 @@ export default function FeedbackClient() {
                     onAttachmentsChange={setAttachments}
                     onUploadingChange={setUploading}
                     onSendEnvironmentChange={setSendEnvironment}
-                    onPasteImages={(files) => { void handlePasteImages(files); }}
+                    onPasteImages={setPastedFiles}
+                    pastedFiles={pastedFiles}
+                    onPastedConsumed={emptyPastedFiles}
                     onSubmit={() => { void handleSubmit(); }}
                   />
                 </section>

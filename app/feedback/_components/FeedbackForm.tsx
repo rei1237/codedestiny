@@ -42,6 +42,8 @@ interface FeedbackFormProps {
   onUploadingChange: (uploading: boolean) => void;
   onSendEnvironmentChange: (next: boolean) => void;
   onPasteImages: (files: File[]) => void;
+  pastedFiles: File[];
+  onPastedConsumed: () => void;
   onSubmit: () => void;
 }
 
@@ -51,7 +53,8 @@ export default function FeedbackForm(props: FeedbackFormProps) {
     urlAutoFilled, disabled, submitting, uploading, error, savedAtLabel,
     titleMaxLength, contentMinLength, contentMaxLength,
     onTitleChange, onContentChange, onUrlChange, onDetailChange,
-    onAttachmentsChange, onUploadingChange, onSendEnvironmentChange, onPasteImages, onSubmit,
+    onAttachmentsChange, onUploadingChange, onSendEnvironmentChange, onPasteImages,
+    pastedFiles, onPastedConsumed, onSubmit,
   } = props;
 
   const canSubmit = !disabled
@@ -216,6 +219,8 @@ export default function FeedbackForm(props: FeedbackFormProps) {
           onChange={onAttachmentsChange}
           onUploadingChange={onUploadingChange}
           emphasize={category.emphasizeAttachment}
+          pastedFiles={pastedFiles}
+          onPastedConsumed={onPastedConsumed}
         />
 
         <EnvironmentPanel entries={environment} enabled={sendEnvironment} onToggle={onSendEnvironmentChange} />
