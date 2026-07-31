@@ -24,6 +24,8 @@ const entry = [
   `export { buildNakshatraLordReport, __nakshatraLordReportTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-lord-report.js"))};`,
   `export { buildNakshatraDashaMap, expandAntardashas, __nakshatraDashaMapTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-dasha-map.js"))};`,
   `export { buildNakshatraMuhurta, listMuhurtaPurposes, __nakshatraMuhurtaTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-muhurta.js"))};`,
+  `export { buildNakshatraVvipCodex, __nakshatraVvipTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-vvip-codex.js"))};`,
+  `export { getSukuyoByIndex } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
   `export { buildSukuyoFromLunar } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
   `export { Solar } from "lunar-javascript";`,
   `export { buildVimshottariDasha, nakshatraInfo, DASHA_ORDER, DASHA_YEARS } from ${JSON.stringify(path.join(repoRoot, "worker/lib/vedic-derived-calculations.js"))};`,
@@ -50,7 +52,8 @@ const {
   NAKSHATRA_ATTRIBUTES,
   UNLOCK_PRODUCT_BY_FEATURE_KEY, isUnlockPaidFeatureKey,
   buildNakshatraMuhurta, listMuhurtaPurposes, __nakshatraMuhurtaTestUtils,
-  buildSukuyoFromLunar, Solar,
+  buildNakshatraVvipCodex, __nakshatraVvipTestUtils,
+  buildSukuyoFromLunar, getSukuyoByIndex, Solar,
 } = m;
 
 // 택일 스캔 입력 — 달 황경은 실제 Swiss 대신 물리적으로 타당한 근사로 채운다(엔진은 황경만 받는다).
@@ -295,6 +298,74 @@ console.log("\n[5b] 택일(무후르타) — 두 축이 독립인가 · 목적�
   console.log(`      실측 최소 분량 ${minChars}자`);
 }
 
+console.log("\n[5c] VVIP 통합서 — 한 권으로 묶였는가 · 두 리포트가 두 벌이 아닌가");
+{
+  const { ROLE_GIST, CHAPTER_ORDER } = __nakshatraVvipTestUtils;
+  const moonLon = 123.4567;
+  const dasha = buildVimshottariDasha(moonLon, birthUtc, now);
+  const nak = nakshatraInfo(moonLon);
+  const sukuyo = getSukuyoByIndex(5);
+  const majorLuck = {
+    available: true, direction: "순행", startSolarDate: "1998-03-01",
+    cycles: Array.from({ length: 10 }, (_, i) => ({
+      pillar: "甲子", startYear: 1998 + i * 10, endYear: 2007 + i * 10,
+      startAge: 8 + i * 10, endAge: 17 + i * 10, stemTenGod: "정관", isCurrent: i === 2,
+    })),
+  };
+  const codex = buildNakshatraVvipCodex({ nak, sukuyo, pada: nak.pada, dasha, majorLuck, birthUtc, now, timeUnknown: false });
+  check("통합서가 조립된다", Boolean(codex));
+  check("5장 구성 + 목차가 장과 일치", codex.chapters.length === 5 && codex.toc.length === 5
+    && codex.toc.every((item, i) => item.id === codex.chapters[i].id));
+  check("장 순서가 고정된다(소장본이라 판본마다 흔들리면 안 된다)",
+    codex.chapters.map((c) => c.id).join() === CHAPTER_ORDER.join());
+  check("격각 자리 11종 모두 한 줄 해설을 갖는다", Object.keys(ROLE_GIST).length === 11);
+
+  const terrain = codex.chapters.find((c) => c.id === "terrain").terrain;
+  check("27수 지형이 27행", terrain.length === 27, String(terrain.length));
+  check("내 자리가 정확히 하나 표시된다", terrain.filter((row) => row.isSelf).length === 1);
+  check("모든 행에 격각 자리와 해설이 붙는다", terrain.every((row) => row.role && row.roleHan && row.gist));
+
+  // 🔴 두 유료 리포트는 각 엔진을 그대로 호출해야 한다 — 축약본을 따로 쓰면 두 벌이 되어
+  //    한쪽만 고쳐지는 사고가 난다.
+  const lordAlone = buildNakshatraLordReport({ nakIndex: nak.index, pada: nak.pada, dasha, timeUnknown: false });
+  const dashaAlone = buildNakshatraDashaMap({ dasha, majorLuck, nakIndex: nak.index, birthUtc, now });
+  check("제4장이 지배성 리포트 단품과 같은 섹션을 그대로 싣는다",
+    JSON.stringify(codex.chapters.find((c) => c.id === "lord").sections) === JSON.stringify(lordAlone.sections));
+  check("제5장이 인생지도 단품과 같은 섹션·구간을 그대로 싣는다",
+    JSON.stringify(codex.chapters.find((c) => c.id === "dasha").sections) === JSON.stringify(dashaAlone.sections)
+    && JSON.stringify(codex.chapters.find((c) => c.id === "dasha").periods) === JSON.stringify(dashaAlone.periods));
+
+  check("분량이 두 단품 합보다 크다(묶음이 덧셈 이상)",
+    codex.charCount > lordAlone.charCount + dashaAlone.charCount,
+    `${codex.charCount} vs ${lordAlone.charCount + dashaAlone.charCount}`);
+  console.log(`      실측 분량 ${codex.charCount}자 (단품 합 ${lordAlone.charCount + dashaAlone.charCount}자)`);
+
+  const problems = codex.chapters.flatMap((chapter) =>
+    (chapter.paragraphs || []).filter((p) => !p || BAD_TEXT.test(p)).map((p) => `${chapter.id}: ${String(p).slice(0, 100)}`));
+  check("장 본문에 깨진 문장이 없다", problems.length === 0, problems.slice(0, 2).join(" | "));
+
+  const again = buildNakshatraVvipCodex({ nak, sukuyo, pada: nak.pada, dasha, majorLuck, birthUtc, now, timeUnknown: false });
+  check("결정론 — 같은 명식이면 같은 책", JSON.stringify(codex) === JSON.stringify(again));
+
+  const noTime = buildNakshatraVvipCodex({ nak, sukuyo, pada: nak.pada, dasha, majorLuck, birthUtc, now, timeUnknown: true });
+  check("시각 미상이면 파다를 추정하지 않고 사유를 밝힌다",
+    noTime.meta.pada === null
+    && noTime.chapters.find((c) => c.id === "natal").paragraphs.some((p) => /출생 시각이 없어/.test(p)));
+
+  // 27수 × 27나크샤트라 대각선 전 조합
+  let bad = 0;
+  for (let i = 0; i < 27; i += 1) {
+    const c = buildNakshatraVvipCodex({
+      nak: { index: i, pada: (i % 4) + 1, lord: "Moon" },
+      sukuyo: getSukuyoByIndex((i * 5) % 27),
+      pada: (i % 4) + 1, dasha, majorLuck: null, birthUtc, now, timeUnknown: false,
+    });
+    if (!c || c.chapters.length !== 5) { bad += 1; continue; }
+    if (c.chapters.some((ch) => (ch.paragraphs || []).some((p) => BAD_TEXT.test(p)))) bad += 1;
+  }
+  check("27 조합 전부 무결", bad === 0, `결함 ${bad}`);
+}
+
 console.log("\n[6] 결정론 — 같은 입력이면 같은 본문");
 {
   const dasha = buildVimshottariDasha(45.5, birthUtc, now);
@@ -412,13 +483,29 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     /export async function getSwissMoonLongitudes[\s\S]{0,700}swe_calc_ut/.test(swissSource)
     && !/export async function getSwissMoonLongitudes[\s\S]{0,700}getExternalVedicPlanets/.test(swissSource));
 
+  // VVIP 도 회당 결제라 택일과 같은 계약이다.
+  const vvipClient = readFileSync(path.join(repoRoot, "app/nakshatra/vvip/VvipClient.tsx"), "utf8");
+  const vvipCode = stripComments(vvipClient);
+  check("VVIP 화면: 공용 게이트(useCoinGate) 사용", /useCoinGate/.test(vvipCode));
+  check("VVIP 화면: 🔴 회당 결제이므로 forceDeduct 를 주지 않는다", !/forceDeduct/.test(vvipCode));
+  check("VVIP 화면: paymentMode 를 강제하지 않는다", !/paymentMode/.test(vvipCode));
+  check("VVIP 화면: featureKey nakshatra-vvip-codex · 500코인 · 50,000원",
+    /FEATURE_KEY = "nakshatra-vvip-codex"/.test(vvipCode)
+    && /COIN_PRICE = 500/.test(vvipCode) && /AMOUNT_KRW = 50000/.test(vvipCode));
+  check("VVIP 화면: PDF 는 공용 헬퍼를 쓴다(새 PDF 파이프라인 추가 금지)",
+    /@\/lib\/pdf\/export-result-pdf/.test(vvipCode) && /data-pdf-section/.test(vvipCode));
+
+  check("VVIP 라우트가 배선돼 있다", /"vvip-codex"/.test(routeCodeAll));
+  check("VVIP 라우트도 canAccessPaidFeature 를 쓰지 않는다", !/canAccessPaidFeature/.test(routeCodeAll));
+  check("🔴 401 을 BAD_REQUEST 로 세탁하지 않는다(인증 실패가 '잘못된 요청'으로 보고되던 문제)",
+    /status === 401 \? "LOGIN_REQUIRED"/.test(routeCodeAll));
+
   const resultClient = readFileSync(path.join(repoRoot, "app/nakshatra/result/NakshatraResultClient.tsx"), "utf8");
-  check("결과 화면 업셀 카드가 구현된 3종으로 연결된다",
-    resultClient.includes('href: "/nakshatra/lord-report"')
-    && resultClient.includes('href: "/nakshatra/dasha-map"')
-    && resultClient.includes('href: "/nakshatra/muhurta"'));
-  check("결과 화면에 남은 '준비 중'은 VVIP 하나뿐",
-    (resultClient.match(/\{ title: "[^"]+", price: "[^"]+", desc: "[^"]+" \}/g) || []).length === 1);
+  for (const href of ["/nakshatra/lord-report", "/nakshatra/dasha-map", "/nakshatra/muhurta", "/nakshatra/vvip"]) {
+    check(`결과 화면 업셀이 ${href} 로 연결된다`, resultClient.includes(`href: "${href}"`));
+  }
+  check("결과 화면에 '준비 중' 상품이 하나도 남지 않았다",
+    (resultClient.match(/\{ title: "[^"]+", price: "[^"]+", desc: "[^"]+" \}/g) || []).length === 0);
 }
 
 console.log(`\n${failures === 0 ? "PASS" : `FAIL (${failures})`} — 나크샤트라 심화 리포트 검증`);

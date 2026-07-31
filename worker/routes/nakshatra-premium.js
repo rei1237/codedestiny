@@ -23,6 +23,7 @@ import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { buildNakshatraLordReport } from "../lib/nakshatra-lord-report.js";
 import { buildNakshatraDashaMap } from "../lib/nakshatra-dasha-map.js";
 import { buildNakshatraMuhurta, listMuhurtaPurposes } from "../lib/nakshatra-muhurta.js";
+import { buildNakshatraVvipCodex } from "../lib/nakshatra-vvip-codex.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
@@ -304,6 +305,52 @@ async function handleMuhurta(request, env) {
   );
 }
 
+// ── VVIP 결정판 통합서 — 회당 결제 ──────────────────────────────────────────
+// 택일과 같은 계약(회당 결제, 로그인만 보증). 위 handleMuhurta 주석 참고.
+async function handleVvipCodex(request, env) {
+  await requireAuth(request, env);
+
+  const body = await readJson(request);
+  const input = normalizeBirthBody(body);
+  if (!isValidBirth(input)) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const moonLon = await resolveMoon(env, input, request.url);
+  if (moonLon == null) {
+    return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
+  }
+
+  const lunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
+  const rawMonth = lunar.getMonth();
+  const sukuyo = buildSukuyoFromLunar(Math.abs(rawMonth), lunar.getDay(), { isLeapMonth: rawMonth < 0 });
+  if (!sukuyo) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const birthUtc = birthUtcFromInput(input);
+  const now = new Date();
+  const nak = nakshatraInfo(moonLon);
+  const report = buildNakshatraVvipCodex({
+    nak,
+    sukuyo,
+    pada: nak.pada,
+    dasha: buildVimshottariDasha(moonLon, birthUtc, now),
+    majorLuck: resolveMajorLuck(input),
+    birthUtc,
+    now,
+    timeUnknown: input.timeUnknown,
+  });
+  if (!report) {
+    return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.failed }, { status: 500 });
+  }
+
+  return json(
+    { ok: true, featureKey: "nakshatra-vvip-codex", report },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
 export async function handleNakshatraPremiumRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/nakshatra-premium");
@@ -315,6 +362,7 @@ export async function handleNakshatraPremiumRoutes(request, env = {}) {
     if (method === "POST") {
       const kind = path.replace(/^\/+/, "");
       if (kind === "muhurta") return await handleMuhurta(request, env);
+      if (kind === "vvip-codex") return await handleVvipCodex(request, env);
       const product = PRODUCTS[kind];
       if (product) return await handleProduct(request, env, product, kind);
     }
@@ -322,7 +370,10 @@ export async function handleNakshatraPremiumRoutes(request, env = {}) {
     return methodNotAllowed();
   } catch (error) {
     if (error instanceof HttpError) {
-      return json({ ok: false, reason: error.payload?.error || "BAD_REQUEST", message: error.message }, { status: error.status });
+      // 401 을 BAD_REQUEST 로 세탁하지 않는다 — requireAuth 는 payload.error 를 싣지 않아
+      // 그대로 두면 인증 실패가 "잘못된 요청"으로 보고된다(과거 오진의 원인).
+      const reason = error.payload?.error || (error.status === 401 ? "LOGIN_REQUIRED" : "BAD_REQUEST");
+      return json({ ok: false, reason, message: error.status === 401 ? MESSAGES.login : error.message }, { status: error.status });
     }
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) return degraded();
     console.error("[nakshatra-premium]", String(error?.message || error).slice(0, 300));
