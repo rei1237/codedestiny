@@ -9,6 +9,7 @@ import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { FAILURE_COPY, reasonCopy } from "../lifeBookCopy";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
@@ -239,6 +240,13 @@ function LoadingState({ message = "인생의 책을 불러오고 있습니다." 
   );
 }
 
+// 재시도해도 결과가 바뀌지 않는 확정 실패. 이 3개만 조기 종료하고 나머지 503 은 폴링이 흡수한다.
+const TERMINAL_RESULT_REASONS = new Set([
+  "GENERATION_STALLED",
+  "LLM_ERROR",
+  "GENERATION_ALREADY_FAILED",
+]);
+
 function LifeBookResultContent() {
   const params = useSearchParams();
   const attemptId = toText(params?.get("attemptId") || params?.get("sessionId") || "");
@@ -284,6 +292,17 @@ function LifeBookResultContent() {
         return;
       }
       rateLimitStreakRef.current = 0;
+      // 🔴 확정 실패는 isRetriableResultPollFailure 보다 **먼저** 판정한다.
+      //    그 공용 함수는 503 을 무조건 재시도로 보기 때문에, 확정 실패가 폴링 상한 400초를 다 태운 뒤에야
+      //    사용자에게 보였다. 공용 파일은 건드리지 않고(다른 기능 회귀 0) 호출부에서 화이트리스트로 끊는다.
+      //    DB_DEGRADED / AUTH_REFRESH_TEMPORARY_FAILURE / ACCESS_CHECK_DEGRADED / PASS_CHECK_BUDGET_EXCEEDED 는
+      //    자가 복구 가능한 일시 장애이므로 여기 넣지 않는다.
+      const terminalReason = toText(payload?.reason).toUpperCase();
+      if (TERMINAL_RESULT_REASONS.has(terminalReason)) {
+        setError(reasonCopy(terminalReason, toText(payload?.message)));
+        setLoading(false);
+        return;
+      }
       if (response.status === 202 && payload?.status === "generating") {
         setResult(payload);
         setError("");
@@ -319,7 +338,7 @@ function LifeBookResultContent() {
     // 폴링이 멈추지 않고, loadResult 성공 시 setPollAttempts(0) 리셋과 맞물려 상한이 무력화된다.
     if (result?.status !== "generating") return;
     if (pollAttempts >= maxPollAttempts) {
-      setError("생성에 시간이 걸리고 있습니다. 다시 시도해주세요.");
+      setError(FAILURE_COPY.exhausted);
       return;
     }
     const backoffFactor = Math.min(8, 2 ** rateLimitStreakRef.current);

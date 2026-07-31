@@ -14,10 +14,14 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes } from "./billing.js";
 
 const SERVICE_KEY = "life-book-ai";
 const FEATURE_KEY = "life-book-ai-consultation";
+// 인생 총운은 2026-08-01 부터 별도 SKU(50,000원). 구 SKU 로 결제된 세션은 문서의 featureKey 로 계속 정산한다.
+const LIFE_FORTUNE_FEATURE_KEY = "life-fortune-ai-consultation";
+const LEGACY_LIFE_FORTUNE_FEATURE_KEY = FEATURE_KEY;
 const ACCESS_TOKEN_TYPE = "life-book-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "인생의 책 전문가 상담";
@@ -79,18 +83,25 @@ const LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS = 2400;
 const LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS = 1200;
 const LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS = 30000;
 const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
-// 인생종합운은 총 30,000~60,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 40000은
-// 최소 분량 상단에서도 잘려 LIFE_FORTUNE_REPORT_INVALID 하드 실패를 유발했다(모델 한계 65,536).
-const LIFE_FORTUNE_MAX_OUTPUT_TOKENS = 65000;
-// 인생의 책은 총 10,000~20,000자 JSON — 구 상한 18000은 목표 상단에서 잘렸다.
-const LIFE_BOOK_MAX_OUTPUT_TOKENS = 32000;
-// 인생종합운 최소 30,000자 ≈ 45,000토큰(gemini-2.5-flash ~200tok/s ≈ 225s) — 90s는 상시 타임아웃이었다.
-const LIFE_FORTUNE_TIMEOUT_MS = 300000;
-const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;
-const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;
-// 2회 허용: 1회 생성 + 품질 미달 시 1회 수선. 1이면 수선 프롬프트가 데드코드가 된다.
-const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 2;
+// 🔴 장문 단일 호출은 구조적으로 불가능하다. 총운 30,000자 ≈ 45,000토큰이고 gemini-2.5-flash 는
+//    비스트리밍 ~200tok/s 라 225초가 필요한데 엣지 응답 데드라인은 100초다. 그래서 15섹션으로 쪼개
+//    한 요청 = 동시성 4 웨이브 하나(≈42초)만 돌리고, 클라가 /generate 를 반복 호출해 진행한다.
+//    (정본 패턴: master-love-codex.js CHAPTER_CONCURRENCY / nakshatra-ai.js SECTION_CONCURRENCY)
+const SECTION_CONCURRENCY = 4;
+const SECTION_BATCH_SIZE = SECTION_CONCURRENCY;
+// 웨이브 최악(≈42초)의 2배. 이 값보다 STALE 창이 짧으면 락 보유 중인 정상 세션을 죽인다.
+const SECTION_LOCK_TTL_MS = 90 * 1000;
+// 1회 생성 + 자동 재시도 2회.
+const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;
+// 세션당 웨이브 상한. /generate 는 레이트리밋상 하루 60회라 무한 재개를 막아야 한다.
+const MAX_GENERATION_WAVES = 8;
+const SECTION_TIMEOUT_MS = 45000;
+// 🔴 클라 폴링 예산(≈400초) 안이어야 GENERATION_STALLED 가 사용자에게 실제로 도달한다.
+//    하한은 락 TTL 90s + 웨이브 최악 42s = 132s 이므로 180s 밑으로 내리지 말 것.
+const LIFE_BOOK_GENERATING_STALE_MS = 3 * 60 * 1000;
 const LIFE_BOOK_RESULT_TEXT_MAX_CHARS = 140000;
+// 재시도를 다 쓰고도 미달일 때 총운을 전달할 하한(최소치의 80%). 그 미만은 환불.
+const LIFE_FORTUNE_DEGRADE_MIN_TOTAL_CHARS = Math.round(LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS * 0.8);
 const LIFE_FORTUNE_CHAPTER_TITLES = Object.freeze([
   "타고난 명식의 중심",
   "성격과 마음의 결",
@@ -125,6 +136,79 @@ const LIFE_FORTUNE_EVIDENCE_REF_ROOTS = Object.freeze([
   "interpretationPlan",
   "calculationMeta",
 ]);
+
+// ── 섹션 정본 ───────────────────────────────────────────────────────────────
+// 🔴 장 제목·evidenceRefs 는 getLifeBookReportQualityIssues 가 그대로 검사하므로 정본은 여기 하나다.
+//    섹션 프롬프트와 품질 게이트가 같은 배열을 보게 해서 둘이 갈라지지 않게 한다.
+const LIFE_FORTUNE_CHAPTER_GUIDES = Object.freeze([
+  "년주·월주·일주·시주, 일간, 월지, 지장간, 오행 분포, 신강·신약의 근거를 먼저 잡고 명식 전체의 중심축을 풉니다.",
+  "일간과 월령, 인성·비겁·식상의 작동을 통해 마음의 방어 방식, 회복 방식, 반복되는 감정 습관을 풉니다.",
+  "식상·재성·관성의 연결, 월주와 시주의 사회적 쓰임, 직업 선택에서 살아나는 강점과 피해야 할 소모를 풉니다.",
+  "재성의 위치와 강약, 비겁과 재성의 관계, 식상이 재성을 생하는 흐름, 지출과 축적의 리듬을 풉니다.",
+  "배우자성, 일지, 합충형파해 가능성, 관계에서 반복되는 끌림과 거리 조절 방식을 풉니다.",
+  "년주·월주가 드러내는 뿌리, 가족 안에서 맡기 쉬운 역할, 인간관계에서 생기는 책임과 경계의 문제를 풉니다.",
+  "월령과 조후, 오행 과다·부족, 수면·소화·호흡·긴장 패턴처럼 현실 생활에서 조절할 리듬을 풉니다.",
+  "majorLuck.currentCycle, cycles, direction, startSolarDate, natalInteractions를 근거로 현재 대운의 배경과 다음 전환의 준비를 풉니다.",
+  "yearlyLuck의 각 연도 간지, 세운 십성, majorLuckPillar, natalInteractions를 바탕으로 가까운 5년의 기회와 주의 흐름을 풉니다.",
+  "앞선 9장의 근거를 종합해 삶, 일, 재물, 관계, 건강을 어떤 순서로 조율하면 좋은지 구체적인 선택 기준을 남깁니다.",
+]);
+const LIFE_FORTUNE_CHAPTER_EVIDENCE_REFS = Object.freeze([
+  ["dayMaster", "monthPillar", "seasonalBalance"],
+  ["dayMaster", "tenGodsByPillar.day", "tenGods"],
+  ["tenGods", "tenGodsByPillar.month", "fortuneFacts.strongestTenGods"],
+  ["tenGods", "fiveElements", "usefulGod"],
+  ["pillarDetails.day", "natalInteractions", "tenGodsByPillar"],
+  ["pillarDetails.year", "pillarDetails.month", "relationSummary"],
+  ["seasonalBalance", "fiveElements", "strength"],
+  ["majorLuck.currentCycle", "majorLuck.cycles", "majorLuck.direction"],
+  ["yearlyLuck", "majorLuck.currentCycle", "yearlyLuck.natalInteractions"],
+  ["fortuneFacts", "interpretationPlan", "usefulGod"],
+]);
+const LIFE_BOOK_CHAPTER_TITLES = Object.freeze([
+  "타고난 사주의 원형",
+  "성격과 내면의 작동 방식",
+  "재능과 일의 방향",
+  "사랑과 인연",
+  "재물과 현실 기반",
+  "인간관계와 가족의 장",
+  "건강과 조후의 균형",
+  "대운으로 보는 인생의 큰 장면",
+  "가까운 시기의 세운 조언",
+  "인생의 책 마지막 문장",
+]);
+const LIFE_BOOK_CHAPTER_GUIDES = Object.freeze([
+  "일간과 월지, 지장간, 오행 분포로 타고난 성정의 원형을 이야기처럼 풉니다.",
+  "인성·비겁·식상의 작동으로 마음이 스스로를 지키고 회복하는 방식을 풉니다.",
+  "식상·재성·관성의 연결로 재능이 살아나는 자리와 소모되는 자리를 풉니다.",
+  "배우자성과 일지, 합충형파해로 사랑에서 반복되는 끌림과 거리감을 풉니다.",
+  "재성의 강약과 비겁·식상의 관계로 돈이 들어오고 나가는 리듬을 풉니다.",
+  "년주·월주의 뿌리로 가족 안의 역할과 관계에서 지게 되는 책임을 풉니다.",
+  "월령과 조후, 오행 과부족으로 몸이 먼저 반응하는 지점을 풉니다.",
+  "majorLuck 의 대운 흐름으로 인생의 큰 장면이 바뀌는 시기를 풉니다.",
+  "yearlyLuck 으로 가까운 시기에 붙잡을 기회와 조심할 결을 풉니다.",
+  "앞선 아홉 장을 한 사람의 이야기로 매듭짓는 마지막 문장을 남깁니다.",
+]);
+const EXPERT_READING_SPECS = Object.freeze([
+  { title: "일간과 월지가 여는 중심 기질", evidenceRefs: ["dayMaster", "seasonalBalance", "pillarDetails.month"] },
+  { title: "오행과 조후가 청하는 보완", evidenceRefs: ["fiveElements", "seasonalBalance", "usefulGod"] },
+  { title: "십성으로 읽는 관계와 일의 방식", evidenceRefs: ["tenGods", "tenGodsByPillar", "fortuneFacts.strongestTenGods"] },
+  { title: "대운과 세운이 비추는 선택의 시기", evidenceRefs: ["majorLuck", "yearlyLuck", "relationSummary"] },
+]);
+// 섹션 목표치. 총운 = 10×3,000 + 4×1,400 = 35,600자(요구 30,000~60,000 안).
+// 인생의 책 = 10×1,200 + 4×600 = 14,400자(요구 10,000~20,000 안).
+const SECTION_TARGETS = Object.freeze({
+  lifeFortune: Object.freeze({
+    chapter: Object.freeze({ minChars: LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS, targetChars: 3000, maxOutputTokens: 10000, minAdvice: 3 }),
+    expert: Object.freeze({ minChars: LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS, targetChars: 1400, maxOutputTokens: 8000, minAdvice: 2 }),
+    frame: Object.freeze({ minChars: 0, targetChars: 0, maxOutputTokens: 2000, minAdvice: 0 }),
+  }),
+  lifeBook: Object.freeze({
+    chapter: Object.freeze({ minChars: LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS, targetChars: 1200, maxOutputTokens: 6000, minAdvice: 2 }),
+    expert: Object.freeze({ minChars: 350, targetChars: 600, maxOutputTokens: 4000, minAdvice: 2 }),
+    frame: Object.freeze({ minChars: 0, targetChars: 0, maxOutputTokens: 2000, minAdvice: 0 }),
+  }),
+});
+
 const startLocks = new Map();
 
 function clean(value, maxLength = 0) {
@@ -283,7 +367,7 @@ function normalizeCalendarType(value) {
 
 function normalizeServiceType(value) {
   const text = clean(value || FEATURE_KEY, 80);
-  if ([FEATURE_KEY, SERVICE_KEY].includes(text)) return FEATURE_KEY;
+  if ([FEATURE_KEY, LIFE_FORTUNE_FEATURE_KEY, SERVICE_KEY].includes(text)) return FEATURE_KEY;
   return "";
 }
 
@@ -377,17 +461,32 @@ function paymentVerifyFailed() {
   return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: MESSAGES.paymentVerifyFailed }, { status: 402 });
 }
 
-function getPricing() {
-  const resolved = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
+// 이 요청이 어느 SKU 로 과금되어야 하는가. 인생의 책 30,000원 / 인생 총운 50,000원.
+function getConsultationFeatureKey(input = {}) {
+  return isLifeFortuneInput(input) ? LIFE_FORTUNE_FEATURE_KEY : FEATURE_KEY;
+}
+
+// 조회(access resolve)에서 허용할 SKU 집합. 총운은 구 SKU 로 결제된 증거도 계속 인정한다.
+// 🔴 과금 부작용(apply/cancel/refund)에는 이 집합을 쓰지 말 것 — 반드시 access.featureKey 한 값만 쓴다.
+function getAcceptedFeatureKeys(input = {}) {
+  return isLifeFortuneInput(input)
+    ? [LIFE_FORTUNE_FEATURE_KEY, LEGACY_LIFE_FORTUNE_FEATURE_KEY]
+    : [FEATURE_KEY];
+}
+
+function getPricing(input = {}) {
+  const featureKey = getConsultationFeatureKey(input);
+  const resolved = getBillingFeaturePricing({ featureKey });
   const pricing = resolved?.pricing || null;
   const coinPrice = Number(pricing?.coinPrice ?? pricing?.cost);
   const amountKRW = Number(pricing?.amountKRW ?? pricing?.paymentAmount ?? pricing?.cashPrice);
   if (!resolved?.ok || !pricing || !Number.isInteger(coinPrice) || coinPrice <= 0 || !Number.isInteger(amountKRW) || amountKRW <= 0) {
-    const error = new Error("life-book-ai price not found");
+    const error = new Error(`${featureKey} price not found`);
     error.code = "PRICE_NOT_FOUND";
     throw error;
   }
   return {
+    featureKey,
     pricing,
     coinPrice,
     amountKRW,
@@ -400,7 +499,7 @@ async function createAccessToken(env, payload) {
     {
       typ: ACCESS_TOKEN_TYPE,
       serviceKey: SERVICE_KEY,
-      featureKey: FEATURE_KEY,
+      featureKey: payload?.featureKey || FEATURE_KEY,
       ...payload,
     },
     getAccessTokenSecret(env),
@@ -412,12 +511,12 @@ async function createAccessToken(env, payload) {
   );
 }
 
-async function verifyAccessToken(env, token) {
+async function verifyAccessToken(env, token, acceptedFeatureKeys = [FEATURE_KEY]) {
   const payload = await verifyJwt(token, getAccessTokenSecret(env), {
     issuer: getJwtIssuer(env),
     audience: getJwtAudience(env),
   });
-  if (payload?.typ !== ACCESS_TOKEN_TYPE || payload?.serviceKey !== SERVICE_KEY || payload?.featureKey !== FEATURE_KEY) {
+  if (payload?.typ !== ACCESS_TOKEN_TYPE || payload?.serviceKey !== SERVICE_KEY || !acceptedFeatureKeys.includes(payload?.featureKey)) {
     const error = new Error("invalid access token");
     error.code = "INVALID_ACCESS_TOKEN";
     throw error;
@@ -436,14 +535,14 @@ async function loadBillingUser(userId) {
     .lean();
 }
 
-async function findPaidPayment({ userId, idempotencyKey = "", paymentId = "" }) {
+async function findPaidPayment({ userId, idempotencyKey = "", paymentId = "", acceptedFeatureKeys = [FEATURE_KEY] }) {
   const clauses = [];
   if (idempotencyKey) clauses.push({ idempotencyKey });
   if (paymentId) clauses.push({ merchantUid: paymentId }, { impUid: paymentId }, { requestId: paymentId });
   if (!clauses.length) return null;
   return Payment.findOne({
     userId,
-    featureKey: FEATURE_KEY,
+    featureKey: { $in: acceptedFeatureKeys },
     paymentType: "digital_content",
     accessType: "single_purchase",
     status: { $in: ["paid", "success", "fulfilled"] },
@@ -465,27 +564,30 @@ function mapPaidDecision(decision = {}) {
 
 async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash, input = {}, paymentId = "" }) {
   const orderName = getConsultationOrderName(input);
+  const featureKey = getConsultationFeatureKey(input);
+  const acceptedFeatureKeys = getAcceptedFeatureKeys(input);
   if (isAdmin(auth) || clean(user?.role).toLowerCase() === "admin") {
-    return { ok: true, accessType: "admin", accessSource: "admin", paymentId: "" };
+    return { ok: true, accessType: "admin", accessSource: "admin", paymentId: "", featureKey };
   }
 
   // canAccessPaidFeature(481)는 내부에 자체 withMongoRetry가 있어 통째 래핑 시 바깥 상한이
   // 안쪽 재시도를 절단한다 — 커버 안 된 read(findPaidPayment)만 개별 래핑.
-  const paidPayment = await withMongoRetry(pricing.env, () => findPaidPayment({ userId: auth.userId, idempotencyKey, paymentId }));
+  const paidPayment = await withMongoRetry(pricing.env, () => findPaidPayment({ userId: auth.userId, idempotencyKey, paymentId, acceptedFeatureKeys }));
   if (paidPayment) {
     const storedHash = clean(paidPayment?.pricingSnapshot?.inputHash);
     if (storedHash && storedHash !== inputHash) return { ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput };
-    return { ok: true, accessType: "paid", accessSource: "single_purchase", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
+    // 🔴 실제로 결제된 SKU 를 그대로 들고 간다(구 SKU 결제 세션이 신규 키로 정산되면 대사가 어긋난다).
+    return { ok: true, accessType: "paid", accessSource: "single_purchase", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160), featureKey: clean(paidPayment.featureKey, 80) || featureKey };
   }
 
   const pass = normalizeHoneyPassEntitlement(user || {});
-  if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", accessSource: "license_pass", paymentId: "" };
+  if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", accessSource: "license_pass", paymentId: "", featureKey };
 
   // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env: pricing.env, reason: orderName, userDoc: auth.authUserDoc });
+  const decision = await canAccessPaidFeature(auth.userId, featureKey, { env: pricing.env, reason: orderName, userDoc: auth.authUserDoc });
   if (decision?.allowed) {
     const mapped = mapPaidDecision(decision);
-    if (mapped) return { ok: true, ...mapped, paymentId: "" };
+    if (mapped) return { ok: true, ...mapped, paymentId: "", featureKey };
   }
 
   return { ok: false, reason: "PAYMENT_REQUIRED" };
@@ -494,12 +596,13 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
 function buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash = "") {
   const orderName = getConsultationOrderName(input);
   const consultationType = normalizeConsultationType(input.consultationType || "lifeBook");
+  const featureKey = pricing.featureKey || getConsultationFeatureKey(input);
   return {
     billingMode: "coin-gate",
-    featureKey: FEATURE_KEY,
+    featureKey,
     serviceId: SERVICE_KEY,
-    serviceType: FEATURE_KEY,
-    contentId: FEATURE_KEY,
+    serviceType: featureKey,
+    contentId: featureKey,
     contentType: SERVICE_KEY,
     consultationType,
     orderName,
@@ -517,14 +620,14 @@ function buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash 
     forceDeduct: true,
     runtimeGate: {
       categoryKey: "premium-consultation",
-      subFeatureKey: FEATURE_KEY,
-      featureKey: FEATURE_KEY,
+      subFeatureKey: featureKey,
+      featureKey,
       consultationType,
       orderName,
       reason: orderName,
       productId: SERVICE_KEY,
       productType: SERVICE_KEY,
-      serviceType: FEATURE_KEY,
+      serviceType: featureKey,
       cost: pricing.coinPrice,
       coinPrice: pricing.coinPrice,
       amountKRW: pricing.amountKRW,
@@ -563,7 +666,7 @@ function collectBillingObjects(body = {}) {
   return { gate, runtimeGate, consume, accessGrant, pricing, pricingSnapshot, payment, licensePass, metadata, deferredUsage };
 }
 
-function billingFeatureMatches(body = {}) {
+function billingFeatureMatches(body = {}, acceptedFeatureKeys = [FEATURE_KEY]) {
   const { gate, runtimeGate, consume, accessGrant, pricing, pricingSnapshot, payment, licensePass, metadata, deferredUsage } = collectBillingObjects(body);
   const keys = [
     body.featureKey,
@@ -588,7 +691,8 @@ function billingFeatureMatches(body = {}) {
     deferredUsage.featureKey,
     deferredUsage.serviceType,
   ].map((item) => clean(item).toLowerCase()).filter(Boolean);
-  return keys.includes(FEATURE_KEY) || keys.includes(SERVICE_KEY);
+  const accepted = acceptedFeatureKeys.map((key) => key.toLowerCase());
+  return keys.some((key) => accepted.includes(key)) || keys.includes(SERVICE_KEY);
 }
 
 function addEvidenceId(ids, value) {
@@ -789,8 +893,10 @@ function mapBillingGateAccessType(source = {}) {
   return "paid";
 }
 
-async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", inputHash = "", consultationType = "" }) {
-  if (!billingFeatureMatches(body)) return null;
+async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", inputHash = "", consultationType = "", acceptedFeatureKeys = [FEATURE_KEY] }) {
+  // 🔴 조회는 허용 집합, 반환은 실제로 매칭된 한 키. 이 값이 이후 apply/cancel/refund 의 정본이 된다.
+  const fallbackFeatureKey = acceptedFeatureKeys[0] || FEATURE_KEY;
+  if (!billingFeatureMatches(body, acceptedFeatureKeys)) return null;
   if (!billingContractMatches(body, { idempotencyKey, inputHash, consultationType })) return null;
   const ids = collectBillingEvidenceIds(body);
   if (!ids.length) return null;
@@ -805,13 +911,13 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
   const deferredRecord = deferredClauses.length
     ? await PaidExecutionRecord.findOne({
       userId: clean(auth.userId),
-      featureId: FEATURE_KEY,
+      featureId: { $in: acceptedFeatureKeys },
       status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
       $and: [
         { $or: deferredClauses },
         ...(contractClauses.length ? [{ $or: contractClauses }] : []),
       ],
-    }).sort({ updatedAt: -1, createdAt: -1 }).select("_id executionId accessMethod paymentId result status").lean()
+    }).sort({ updatedAt: -1, createdAt: -1 }).select("_id executionId accessMethod paymentId result status featureId").lean()
     : null;
   if (deferredRecord) {
     const deferredUsage = objectValue(deferredRecord?.result?.deferredUsage);
@@ -824,6 +930,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       accessSource: "billing_gate_deferred",
       executionId: clean(deferredRecord.executionId, 160),
       paymentId: String(deferredRecord._id || deferredRecord.paymentId || ""),
+      featureKey: clean(deferredRecord.featureId, 80) || fallbackFeatureKey,
     };
   }
 
@@ -832,13 +939,13 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
     ? await PointHistory.findOne({
       userId: auth.userId,
       kind: "deduct",
-      featureKey: FEATURE_KEY,
+      featureKey: { $in: acceptedFeatureKeys },
       "metadata.refundedForServiceExecution": { $ne: true },
       $and: [
         { $or: pointClauses },
         ...(contractClauses.length ? [{ $or: contractClauses }] : []),
       ],
-    }).sort({ createdAt: -1 }).select("_id delta metadata").lean()
+    }).sort({ createdAt: -1 }).select("_id delta metadata featureKey").lean()
     : null;
   if (pointHistory) {
     return {
@@ -849,6 +956,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       evidenceType: "coin",
       evidenceId: String(pointHistory._id || ""),
       amount: Math.max(0, Math.floor(Math.abs(Number(pointHistory.delta || pointHistory?.metadata?.chargedCoins || 0)))),
+      featureKey: clean(pointHistory.featureKey, 80) || fallbackFeatureKey,
     };
   }
 
@@ -857,13 +965,13 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
     ? await MonthlyCreditLedger.findOne({
       userId: auth.userId,
       type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: { $in: [FEATURE_KEY, SERVICE_KEY] },
+      serviceKey: { $in: [...acceptedFeatureKeys, SERVICE_KEY] },
       "metadata.refundedForServiceExecution": { $ne: true },
       $and: [
         { $or: ledgerClauses },
         ...(contractClauses.length ? [{ $or: contractClauses }] : []),
       ],
-    }).sort({ createdAt: -1 }).select("_id amount sourceId").lean()
+    }).sort({ createdAt: -1 }).select("_id amount sourceId serviceKey").lean()
     : null;
   if (ledger) {
     return {
@@ -874,6 +982,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       evidenceType: "monthly_credit",
       evidenceId: String(ledger._id || ""),
       amount: Math.max(0, Math.floor(Number(ledger.amount || 0))),
+      featureKey: acceptedFeatureKeys.includes(clean(ledger.serviceKey, 80)) ? clean(ledger.serviceKey, 80) : fallbackFeatureKey,
     };
   }
 
@@ -888,13 +997,13 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
         ...(contractClauses.length ? [{ $or: contractClauses }] : []),
         {
           $or: [
-            { featureKey: FEATURE_KEY },
-            { "pricingSnapshot.featureKey": FEATURE_KEY },
-            { "metadata.featureKey": FEATURE_KEY },
+            { featureKey: { $in: acceptedFeatureKeys } },
+            { "pricingSnapshot.featureKey": { $in: acceptedFeatureKeys } },
+            { "metadata.featureKey": { $in: acceptedFeatureKeys } },
           ],
         },
       ],
-    }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).select("_id merchantUid impUid requestId").lean()
+    }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).select("_id merchantUid impUid requestId featureKey").lean()
     : null;
   if (payment) {
     return {
@@ -904,6 +1013,7 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
       paymentId: clean(payment.merchantUid || payment.impUid || payment.requestId || payment._id, 160),
       evidenceType: "payment",
       evidenceId: String(payment._id || ""),
+      featureKey: clean(payment.featureKey, 80) || fallbackFeatureKey,
     };
   }
 
@@ -938,24 +1048,118 @@ function buildSystemPrompt(consultationType = "lifeBook") {
   ].join("\n");
 }
 
-function buildLifeFortunePrompt(input, sajuResult) {
+function getSectionTargets(lifeFortune) {
+  return lifeFortune ? SECTION_TARGETS.lifeFortune : SECTION_TARGETS.lifeBook;
+}
+
+// 15섹션(장 10 + 깊은 판독 4 + 프레임 1). 장 제목·evidenceRefs 는 품질 게이트가 검사하는 정본을 그대로 쓴다.
+function buildSectionPlan(input = {}) {
+  const lifeFortune = isLifeFortuneInput(input);
+  const targets = getSectionTargets(lifeFortune);
+  const chapterTitles = lifeFortune ? LIFE_FORTUNE_CHAPTER_TITLES : LIFE_BOOK_CHAPTER_TITLES;
+  const chapterGuides = lifeFortune ? LIFE_FORTUNE_CHAPTER_GUIDES : LIFE_BOOK_CHAPTER_GUIDES;
+  const sections = chapterTitles.map((title, index) => ({
+    id: `chapter-${index + 1}`,
+    kind: "chapter",
+    index,
+    title,
+    guide: chapterGuides[index] || "",
+    evidenceRefs: LIFE_FORTUNE_CHAPTER_EVIDENCE_REFS[index] || [],
+    minChars: targets.chapter.minChars,
+    targetChars: targets.chapter.targetChars,
+    maxOutputTokens: targets.chapter.maxOutputTokens,
+    minAdvice: targets.chapter.minAdvice,
+  }));
+  EXPERT_READING_SPECS.forEach((spec, index) => {
+    sections.push({
+      id: `expert-${index + 1}`,
+      kind: "expert",
+      index,
+      title: spec.title,
+      guide: "",
+      evidenceRefs: spec.evidenceRefs,
+      minChars: targets.expert.minChars,
+      targetChars: targets.expert.targetChars,
+      maxOutputTokens: targets.expert.maxOutputTokens,
+      minAdvice: targets.expert.minAdvice,
+    });
+  });
+  sections.push({
+    id: "frame",
+    kind: "frame",
+    index: 0,
+    title: lifeFortune ? "인생 총운" : "인생의 책",
+    guide: "",
+    evidenceRefs: [],
+    minChars: targets.frame.minChars,
+    targetChars: targets.frame.targetChars,
+    maxOutputTokens: targets.frame.maxOutputTokens,
+    minAdvice: 0,
+  });
+  return sections;
+}
+
+// 섹션이 실제로 참조하는 루트만 추린다. 계산 JSON 전량을 15번 반복 전송하면 입력 토큰이 15배가 되고
+// TTFT 도 그만큼 늘어나 웨이브가 엣지 예산을 넘긴다.
+const SECTION_SAJU_BASE_ROOTS = Object.freeze([
+  "yearPillar",
+  "monthPillar",
+  "dayPillar",
+  "hourPillar",
+  "dayMaster",
+  "fiveElements",
+  "strength",
+  "seasonalBalance",
+  "calculationMeta",
+]);
+
+function pickSajuSlice(sajuResult, evidenceRefs = []) {
+  if (!sajuResult || typeof sajuResult !== "object") return sajuResult;
+  const roots = new Set(SECTION_SAJU_BASE_ROOTS);
+  for (const ref of evidenceRefs) {
+    const root = evidenceRefRoot(ref);
+    if (root) roots.add(root);
+  }
+  const slice = {};
+  for (const root of roots) {
+    if (sajuResult[root] !== undefined) slice[root] = sajuResult[root];
+  }
+  return slice;
+}
+
+function buildSectionSchema(section, birth, lifeFortune) {
+  if (section.kind === "frame") {
+    return {
+      title: lifeFortune ? "인생 총운" : "인생의 책",
+      subtitle: "",
+      profileSummary: {
+        name: birth.name || "",
+        birthDate: birth.birthDate || "",
+        calendarType: birth.calendarType === "lunar" ? "음력" : "양력",
+        birthTime: birth.birthTimeUnknown ? "모름" : birth.birthTime || "",
+        gender: birth.gender || "",
+      },
+      coreSummary: { oneLine: "", lifeTheme: "", strongestElement: "", neededBalance: "" },
+      finalMessage: "",
+    };
+  }
+  if (section.kind === "expert") {
+    return lifeFortune
+      ? { title: section.title, content: "", guidance: [], evidenceRefs: section.evidenceRefs }
+      : { title: section.title, content: "", guidance: [] };
+  }
+  return lifeFortune
+    ? { chapterNumber: section.index + 1, title: section.title, summary: "", content: "", advice: [], evidenceRefs: section.evidenceRefs }
+    : { chapterNumber: section.index + 1, title: section.title, summary: "", content: "", advice: [] };
+}
+
+function buildSectionPrompt(input, sajuSlice, section, digest = "") {
+  const lifeFortune = isLifeFortuneInput(input);
   const birth = input.birthInfo || {};
-  const chapterGuides = [
-    "1장 타고난 명식의 중심: 년주·월주·일주·시주, 일간, 월지, 지장간, 오행 분포, 신강·신약의 근거를 먼저 잡고 명식 전체의 중심축을 풉니다.",
-    "2장 성격과 마음의 결: 일간과 월령, 인성·비겁·식상의 작동을 통해 마음의 방어 방식, 회복 방식, 반복되는 감정 습관을 풉니다.",
-    "3장 재능과 일의 방향: 식상·재성·관성의 연결, 월주와 시주의 사회적 쓰임, 직업 선택에서 살아나는 강점과 피해야 할 소모를 풉니다.",
-    "4장 재물과 생활 기반: 재성의 위치와 강약, 비겁과 재성의 관계, 식상이 재성을 생하는 흐름, 지출과 축적의 리듬을 풉니다.",
-    "5장 사랑과 인연의 흐름: 배우자성, 일지, 합충형파해 가능성, 관계에서 반복되는 끌림과 거리 조절 방식을 풉니다.",
-    "6장 관계와 가족의 장: 년주·월주가 드러내는 뿌리, 가족 안에서 맡기 쉬운 역할, 인간관계에서 생기는 책임과 경계의 문제를 풉니다.",
-    "7장 건강과 생활 리듬: 월령과 조후, 오행 과다·부족, 수면·소화·호흡·긴장 패턴처럼 현실 생활에서 조절할 리듬을 풉니다.",
-    "8장 대운으로 보는 큰 전환: majorLuck.currentCycle, cycles, direction, startSolarDate, natalInteractions를 근거로 현재 대운의 배경과 다음 전환의 준비를 풉니다.",
-    "9장 가까운 세운의 흐름: yearlyLuck의 각 연도 간지, 세운 십성, majorLuckPillar, natalInteractions를 바탕으로 가까운 5년의 기회와 주의 흐름을 풉니다.",
-    "10장 앞으로 열릴 선택: 앞선 9장의 근거를 종합해 삶, 일, 재물, 관계, 건강을 어떤 순서로 조율하면 좋은지 구체적인 선택 기준을 남깁니다.",
-  ];
-  return [
-    "아래 입력과 계산 가능한 명리 데이터를 바탕으로 인생 총운 상담문을 작성하세요.",
+  const reportName = lifeFortune ? "인생 총운 상담문" : "인생의 책 상담문";
+  const lines = [
+    `${reportName} 중 아래에 지정된 한 조각만 작성하세요. 다른 장은 쓰지 마세요.`,
     "문체는 전문 명리학자가 한 사람을 오래 마주하고 직접 읽어 주듯 따뜻하고 깊게 유지하세요.",
-    "각 장은 명식 근거, 삶에서 드러나는 의미, 현실에서 조정할 수 있는 선택을 자연스럽게 이어 주세요.",
     "반드시 JSON 객체 하나만 반환하세요. Markdown 제목, 코드블록, 안내 문장 없이 JSON만 남기세요.",
     "",
     "[사용자 입력]",
@@ -964,139 +1168,67 @@ function buildLifeFortunePrompt(input, sajuResult) {
     `- 생년월일: ${birth.birthDate}`,
     `- 출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
     `- 달력 기준: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
-    `- 상담 주제: ${input.topic || "전체 인생 총운"}`,
+    `- 상담 주제: ${input.topic || (lifeFortune ? "전체 인생 총운" : "전체 인생 흐름")}`,
     "",
     "[계산 가능한 사주 명리 데이터]",
-    JSON.stringify(sajuResult, null, 2),
+    JSON.stringify(sajuSlice, null, 2),
     "",
-    "[반환 JSON 구조]",
-    JSON.stringify({
-      title: "인생 총운",
-      subtitle: "타고난 명식과 시간의 흐름으로 읽는 삶의 큰 방향",
-      profileSummary: {
-        name: birth.name || "",
-        birthDate: birth.birthDate || "",
-        calendarType: birth.calendarType === "lunar" ? "음력" : "양력",
-        birthTime: birth.birthTimeUnknown ? "모름" : birth.birthTime || "",
-        gender: birth.gender || "",
-      },
-      coreSummary: {
-        oneLine: "",
-        lifeTheme: "",
-        strongestElement: "",
-        neededBalance: "",
-      },
-      chapters: [
-        { chapterNumber: 1, title: "타고난 명식의 중심", summary: "", content: "", advice: [], evidenceRefs: ["dayMaster", "monthPillar", "seasonalBalance"] },
-        { chapterNumber: 2, title: "성격과 마음의 결", summary: "", content: "", advice: [], evidenceRefs: ["dayMaster", "tenGodsByPillar.day", "tenGods"] },
-        { chapterNumber: 3, title: "재능과 일의 방향", summary: "", content: "", advice: [], evidenceRefs: ["tenGods", "tenGodsByPillar.month", "fortuneFacts.strongestTenGods"] },
-        { chapterNumber: 4, title: "재물과 생활 기반", summary: "", content: "", advice: [], evidenceRefs: ["tenGods", "fiveElements", "usefulGod"] },
-        { chapterNumber: 5, title: "사랑과 인연의 흐름", summary: "", content: "", advice: [], evidenceRefs: ["pillarDetails.day", "natalInteractions", "tenGodsByPillar"] },
-        { chapterNumber: 6, title: "관계와 가족의 장", summary: "", content: "", advice: [], evidenceRefs: ["pillarDetails.year", "pillarDetails.month", "relationSummary"] },
-        { chapterNumber: 7, title: "건강과 생활 리듬", summary: "", content: "", advice: [], evidenceRefs: ["seasonalBalance", "fiveElements", "strength"] },
-        { chapterNumber: 8, title: "대운으로 보는 큰 전환", summary: "", content: "", advice: [], evidenceRefs: ["majorLuck.currentCycle", "majorLuck.cycles", "majorLuck.direction"] },
-        { chapterNumber: 9, title: "가까운 세운의 흐름", summary: "", content: "", advice: [], evidenceRefs: ["yearlyLuck", "majorLuck.currentCycle", "yearlyLuck.natalInteractions"] },
-        { chapterNumber: 10, title: "앞으로 열릴 선택", summary: "", content: "", advice: [], evidenceRefs: ["fortuneFacts", "interpretationPlan", "usefulGod"] },
-      ],
-      expertReadings: [
-        { title: "일간과 월지가 여는 중심 기질", content: "", guidance: [], evidenceRefs: ["dayMaster", "seasonalBalance", "pillarDetails.month"] },
-        { title: "오행과 조후가 청하는 보완", content: "", guidance: [], evidenceRefs: ["fiveElements", "seasonalBalance", "usefulGod"] },
-        { title: "십성으로 읽는 관계와 일의 방식", content: "", guidance: [], evidenceRefs: ["tenGods", "tenGodsByPillar", "fortuneFacts.strongestTenGods"] },
-        { title: "대운과 세운이 비추는 선택의 시기", content: "", guidance: [], evidenceRefs: ["majorLuck", "yearlyLuck", "relationSummary"] },
-      ],
-      finalMessage: "",
-      pdfSections: [],
-    }, null, 2),
-    "",
-    "반드시 포함할 판독: 일간 중심 기질, 월지와 계절감, 오행 균형, 십성 구조, 조후, 강점과 약점, 사랑과 인연, 일과 재능, 재물 흐름, 인간관계, 가족과 뿌리, 건강과 생활 리듬, 대운 흐름, 가까운 세운 흐름, 삶의 목적, 지금 실천할 조언.",
-    "[각 장별 상세 판독 기준]",
-    chapterGuides.join("\n"),
-    "각 장과 깊은 판독에는 evidenceRefs를 반드시 넣으세요. evidenceRefs는 계산 JSON 안의 경로만 적고, 각 장은 최소 3개 이상, 깊은 판독은 최소 2개 이상을 담으세요.",
-    `evidenceRefs의 첫 경로는 다음 중 하나여야 합니다: ${LIFE_FORTUNE_EVIDENCE_REF_ROOTS.join(", ")}.`,
-    "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하세요. 없는 십성 이름을 새로 만들거나 바꿔 부르지 마세요.",
-    "대운은 majorLuck의 direction, startSolarDate, currentCycle, cycles, natalInteractions에 있는 값만 근거로 삼고, 세운은 yearlyLuck의 year, pillar, stemTenGod, majorLuckPillar, natalInteractions만 근거로 삼으세요.",
-    "합·충·형·파·해, 삼합, 방합은 natalInteractions, majorLuck.cycles[].natalInteractions, yearlyLuck[].natalInteractions에 있는 항목만 말하세요.",
-    "출생시간을 모르는 입력이거나 계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
-    "열 장의 content와 expertReadings의 content를 모두 합산한 전체 본문은 최소 30,000자 이상, 60,000자 이하로 맞추며, 단순 반복이 아니라 장별 근거와 현실 조언을 세밀하게 보강하세요.",
-    "분량이 부족할 때는 같은 문장을 늘리지 말고, 사주 전문가로서 일간·월지·오행·조후·십성·대운·세운을 더 세밀하게 판독하는 expertReadings를 보강하세요.",
-    "문장의 양보다 명식 근거, 해석의 연결성, 현실 조언의 정확도를 우선하고, 근거 없이 감성 문장만 길게 늘리지 마세요.",
-    "각 장 summary는 한 장의 핵심을 한 문장으로 담고, content는 최소 2,400자 이상의 6문단 이상으로 충분히 깊게 쓰며, advice는 사용자가 바로 붙잡을 수 있는 현실 조언을 3개 이상 담으세요.",
-    "expertReadings의 각 content는 최소 1,200자 이상으로 쓰고, 원국·오행·조후·십성·대운·세운을 서로 다른 관점에서 보강하세요.",
-    "열 장의 관점이 서로 겹치지 않게 하며, 같은 표현을 반복하기보다 장마다 다른 결을 살려 주세요.",
-    "각 장 content와 expertReadings의 content 안에서는 문단 사이를 빈 줄로 구분하고, 핵심 문구만 **굵게** 표시하세요. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 마세요.",
-  ].join("\n");
-}
+    "[이번에 쓸 조각]",
+  ];
 
-function buildFirstPrompt(input, sajuResult) {
-  if (isLifeFortuneInput(input)) return buildLifeFortunePrompt(input, sajuResult);
-  const birth = input.birthInfo || {};
-  return [
-    "아래 입력과 계산 가능한 명리 데이터를 바탕으로 인생의 책 리포트를 작성하세요.",
-    "문체는 전문 명리학자가 조용한 서재에서 한 사람을 오래 마주하고 직접 읽어 주듯 따뜻하고 깊게 유지하세요.",
-    "각 장은 명식 근거, 삶에서 드러나는 의미, 오늘부터 현실에서 조정할 수 있는 선택을 자연스럽게 이어 주세요.",
-    "가능하면 아래 JSON 구조만 반환하세요. JSON이 어렵다면 같은 장 구성을 Markdown `##` 제목으로 작성하세요.",
-    "",
-    "[사용자 입력]",
-    `- 이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
-    `- 성별: ${birth.gender}`,
-    `- 생년월일: ${birth.birthDate}`,
-    `- 출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
-    `- 달력 기준: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
-    `- 리포트 강조 영역: ${input.topic}`,
-    "",
-    "[계산 가능한 사주 명리 데이터]",
-    JSON.stringify(sajuResult, null, 2),
+  if (section.kind === "frame") {
+    lines.push(
+      "이 조각은 상담문 전체의 표지입니다. 제목, 부제, 핵심 요약(한 줄 요약·삶의 주제·가장 강한 기운·보완할 균형), 마지막 문장을 씁니다.",
+      lifeFortune
+        ? "title 은 반드시 \"인생 총운\" 을 포함하세요."
+        : "title 은 인생의 책의 결을 유지하세요.",
+      "finalMessage 는 상담을 닫는 세 문장 이내의 문단으로 씁니다.",
+    );
+  } else if (section.kind === "expert") {
+    lines.push(
+      `깊은 판독 ${section.index + 1}: "${section.title}".`,
+      `content 는 최소 ${section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
+      `guidance 는 현실에서 바로 쓸 수 있는 조언을 ${section.minAdvice}개 이상 담으세요.`,
+      "원국·오행·조후·십성·대운·세운 중 이 판독의 관점에서만 깊게 파고들고, 다른 판독과 겹치지 마세요.",
+    );
+  } else {
+    lines.push(
+      `${section.index + 1}장: "${section.title}".`,
+      section.guide ? `이 장에서 풀 내용: ${section.guide}` : "",
+      `summary 는 이 장의 핵심을 한 문장으로, content 는 최소 ${section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
+      "content 는 명식 근거 → 삶에서 드러나는 의미 → 현실에서 조정할 선택의 순서로 자연스럽게 이어 주세요.",
+    );
+  }
+
+  if (lifeFortune && section.evidenceRefs.length) {
+    lines.push(
+      `evidenceRefs 는 계산 JSON 안의 경로만 적고 ${section.kind === "chapter" ? 3 : 2}개 이상 담으세요. 기본값으로 ${section.evidenceRefs.join(", ")} 를 쓰되, 실제로 근거로 삼은 경로가 있으면 그것으로 바꿔도 됩니다.`,
+      `evidenceRefs 의 첫 경로는 다음 중 하나여야 합니다: ${LIFE_FORTUNE_EVIDENCE_REF_ROOTS.join(", ")}.`,
+      "대운은 majorLuck 의 direction, startSolarDate, currentCycle, cycles, natalInteractions 값만, 세운은 yearlyLuck 의 year, pillar, stemTenGod, majorLuckPillar, natalInteractions 값만 근거로 삼으세요.",
+      "합·충·형·파·해, 삼합, 방합은 계산 JSON 의 natalInteractions 에 있는 항목만 말하세요.",
+    );
+  }
+
+  if (digest) {
+    lines.push(
+      "",
+      "[이미 쓰인 다른 조각의 첫 문장들 — 같은 문장·같은 결론을 반복하지 마세요]",
+      digest,
+    );
+  }
+
+  lines.push(
     "",
     "[반환 JSON 구조]",
-    JSON.stringify({
-      title: "인생의 책",
-      subtitle: "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
-      profileSummary: {
-        name: birth.name || "",
-        birthDate: birth.birthDate || "",
-        calendarType: birth.calendarType === "lunar" ? "음력" : "양력",
-        birthTime: birth.birthTimeUnknown ? "모름" : birth.birthTime || "",
-        gender: birth.gender || "",
-      },
-      coreSummary: {
-        oneLine: "",
-        lifeTheme: "",
-        strongestElement: "",
-        neededBalance: "",
-      },
-      chapters: [
-        { chapterNumber: 1, title: "타고난 사주의 원형", summary: "", content: "", advice: [] },
-        { chapterNumber: 2, title: "성격과 내면의 작동 방식", summary: "", content: "", advice: [] },
-        { chapterNumber: 3, title: "재능과 일의 방향", summary: "", content: "", advice: [] },
-        { chapterNumber: 4, title: "사랑과 인연", summary: "", content: "", advice: [] },
-        { chapterNumber: 5, title: "재물과 현실 기반", summary: "", content: "", advice: [] },
-        { chapterNumber: 6, title: "인간관계와 가족의 장", summary: "", content: "", advice: [] },
-        { chapterNumber: 7, title: "건강과 조후의 균형", summary: "", content: "", advice: [] },
-        { chapterNumber: 8, title: "대운으로 보는 인생의 큰 장면", summary: "", content: "", advice: [] },
-        { chapterNumber: 9, title: "가까운 시기의 세운 조언", summary: "", content: "", advice: [] },
-        { chapterNumber: 10, title: "인생의 책 마지막 문장", summary: "", content: "", advice: [] },
-      ],
-      expertReadings: [
-        { title: "일간과 월지가 여는 중심 기질", content: "", guidance: [] },
-        { title: "오행과 조후가 청하는 보완", content: "", guidance: [] },
-        { title: "십성으로 읽는 관계와 일의 방식", content: "", guidance: [] },
-        { title: "대운과 세운이 비추는 선택의 시기", content: "", guidance: [] },
-      ],
-      finalMessage: "",
-      pdfSections: [],
-    }, null, 2),
+    JSON.stringify(buildSectionSchema(section, birth, lifeFortune), null, 2),
     "",
-    "반드시 포함할 분석: 일간 중심 기질, 월지와 계절감, 오행 균형, 십성 구조, 조후, 강점과 약점, 사랑과 인연, 일과 재능, 재물 흐름, 인간관계, 가족과 뿌리, 건강과 생활 리듬, 대운 흐름, 가까운 세운 흐름, 삶의 목적, 지금 실천할 조언.",
-    "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하세요. 없는 십성 이름을 새로 만들거나 바꿔 부르지 마세요.",
-    "계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
-    "열 장의 content와 expertReadings의 content를 모두 합산한 전체 본문은 10,000자 이상 20,000자 이하로 맞추며, 장별 10,000자가 아니라 전체 합산 기준입니다.",
-    "분량이 부족할 때는 같은 문장을 늘리지 말고, 사주 전문가로서 일간·월지·오행·조후·십성·대운·세운을 더 세밀하게 판독하는 expertReadings를 보강하세요.",
-    "문장의 양보다 명식 근거, 해석의 연결성, 현실 조언의 정확도를 우선하고, 근거 없이 감성 문장만 길게 늘리지 마세요.",
-    "각 장 summary는 한 장의 핵심을 한 문장으로 담고, content는 최소 700자 이상의 3문단 이상으로 충분히 깊게 쓰며, advice는 사용자가 바로 붙잡을 수 있는 현실 조언을 2개 이상 담으세요.",
-    "각 장 content에는 그 장과 관련된 명식 근거(일간, 월지, 오행, 십성, 대운 간지 중 해당되는 것)를 최소 2개, 설명체 각주가 아니라 이야기 속 문장으로 자연스럽게 녹여 언급하세요.",
-    "열 장의 관점이 서로 겹치지 않게 하며, 같은 문장을 다른 장에 다시 쓰지 마세요. 같은 표현을 반복하기보다 장마다 다른 결을 살려 주세요.",
-    "각 장 content와 expertReadings의 content 안에서는 문단 사이를 빈 줄로 구분하고, 핵심 문구만 **굵게** 표시하세요. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 마세요.",
-  ].join("\n");
+    "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하고, 없는 십성 이름을 새로 만들지 마세요.",
+    "출생시간을 모르는 입력이거나 계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
+    "분량이 부족할 때 같은 문장을 늘리지 말고, 일간·월지·오행·조후·십성·대운·세운을 더 세밀하게 판독해 채우세요.",
+    "content 안에서는 문단 사이를 빈 줄로 구분하고 핵심 문구만 **굵게** 표시하세요. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 마세요.",
+  );
+
+  return lines.filter((line) => line !== "").join("\n");
 }
 
 function cleanForbiddenResult(value) {
@@ -1215,143 +1347,274 @@ function getLifeBookReportQualityIssues(content, input = {}) {
   return issues;
 }
 
-function buildLifeBookRepairPrompt(content, issues, input = {}) {
-  const lifeFortune = isLifeFortuneInput(input);
-  const reportName = lifeFortune ? "인생 총운 상담문" : "인생의 책 상담문";
-  const chapterTitles = lifeFortune
-    ? LIFE_FORTUNE_CHAPTER_TITLES
-    : [
-      "타고난 사주의 원형",
-      "성격과 내면의 작동 방식",
-      "재능과 일의 방향",
-      "사랑과 인연",
-      "재물과 현실 기반",
-      "인간관계와 가족의 장",
-      "건강과 조후의 균형",
-      "대운으로 보는 인생의 큰 장면",
-      "가까운 시기의 세운 조언",
-      "인생의 책 마지막 문장",
-    ];
-  return [
-    `다음 ${reportName}을 같은 JSON 구조로 다시 정돈해 주세요.`,
-    lifeFortune ? "title은 반드시 \"인생 총운\"을 포함하고, 전체 상담은 총운의 큰 강줄기 안에서 삶, 일, 재물, 관계, 건강, 전환의 시기를 함께 펼쳐 주세요." : "title은 인생의 책 결을 유지하고, 전체 상담은 타고난 사주와 시간의 흐름을 한 권의 긴 상담문처럼 이어 주세요.",
-    `권장 장 이름: ${chapterTitles.join(" / ")}`,
-    lifeFortune
-      ? "열 장을 모두 채우고, 각 장에는 summary, content, advice, evidenceRefs를 빠짐없이 담아 주세요."
-      : "열 장을 모두 채우고, 각 장에는 summary, content, advice를 빠짐없이 담아 주세요.",
-    lifeFortune
-      ? "열 장 content와 expertReadings content의 전체 합산은 30,000자 이상 60,000자 이하로 조정하고, 각 장 content는 최소 2,400자 이상, expertReadings 각 content는 최소 1,200자 이상으로 유지해 주세요."
-      : "열 장 content와 expertReadings content의 전체 합산은 10,000자 이상 20,000자 이하로 조정하고, 각 장 content는 최소 700자 이상으로 유지해 주세요.",
-    lifeFortune
-      ? "짧은 문장을 반복하지 말고, 부족한 깊이는 일간·월지·오행·조후·십성·지장간·대운·세운의 구체 근거로 각 장에 나누어 보강하세요. 60,000자를 넘었다면 중복되는 위로와 반복 결론만 덜어내고 명식 근거는 남겨 주세요."
-      : "짧은 문장을 반복하지 말고, 부족한 깊이는 사주 전문가의 판독으로 expertReadings에 더해 주세요. 20,000자를 넘었다면 반복되는 위로와 중복 결론을 덜어내고 핵심 근거를 선명하게 남겨 주세요.",
-    "각 장 content는 명식 근거, 삶에서 드러나는 의미, 현실 조언이 자연스럽게 이어지도록 충분히 깊게 써 주세요.",
-    lifeFortune ? "대운과 세운은 계산 JSON의 majorLuck, yearlyLuck 값만 사용하고, 계산 데이터에 없는 간지·십성·대운 시작일은 만들지 마세요." : "",
-    lifeFortune ? `각 장 evidenceRefs는 최소 3개, expertReadings evidenceRefs는 최소 2개를 넣고, 첫 경로는 ${LIFE_FORTUNE_EVIDENCE_REF_ROOTS.join(", ")} 중 하나로 시작해야 합니다.` : "",
-    lifeFortune ? "합·충·형·파·해, 삼합, 방합은 natalInteractions, majorLuck.cycles[].natalInteractions, yearlyLuck[].natalInteractions에 있는 항목만 말하세요." : "",
-    "전체 본문은 짧게 줄이지 말고, 같은 표현을 반복하지 않으며 전문 명리학자의 상담처럼 부드럽고 분명하게 유지하세요.",
-    "기술 표현은 결과에 드러내지 말고, 계산 데이터에 없는 십성 이름은 만들지 마세요.",
-    issues.some((issue) => String(issue).startsWith("duplicate_narrative"))
-      ? "서로 다른 장에 같은 문장이 반복되었습니다. 각 장은 서로 다른 인생 영역과 시기를 다루므로, 겹친 문장을 그 장 고유의 근거와 장면으로 전부 새로 쓰세요."
-      : "",
-    `보완할 지점: ${issues.join(", ")}`,
-    "",
-    content,
-  ].join("\n");
-}
-
 function hasForbiddenResultTerms(value) {
   FORBIDDEN_RESULT_PATTERN.lastIndex = 0;
   return FORBIDDEN_RESULT_PATTERN.test(value);
 }
 
-async function generateConsultationText(env, prompt, options = {}) {
-  const diagnostics = getProviderDiagnostics(env);
-  logLifeBookAi("LLM Provider Selected", {
-    ...(options.logContext || {}),
-    ...diagnostics,
-    providerReason: diagnostics.providerReason,
-  });
-  const maxProviderCalls = Math.max(1, Math.floor(Number(options.maxProviderCalls || LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION) || 1));
-  const promptConsultationType = isLifeFortuneInput(options.input || {}) ? "lifeFortune" : "lifeBook";
-  // 결정적(생년월일+토픽 기반) 인생서 상담 → LLM 응답 캐시 + in-flight dedup.
-  const lifeBookLlmCache = {
-    store: createLlmCacheStore(env),
-    deterministic: true,
-    ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: "life-book-ai-v1",
-  };
-  const ai = await callGeminiText(env, prompt, {
-    systemPrompt: buildSystemPrompt(promptConsultationType),
-    taskType: "fortune",
-    temperature: options.temperature || 0.72,
-    maxOutputTokens: options.maxOutputTokens || LIFE_BOOK_MAX_OUTPUT_TOKENS,
-    // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
-    // 인생의 책 32,000토큰 ≈ 160s. 인생종합운은 호출부에서 LIFE_FORTUNE_TIMEOUT_MS를 넘긴다.
-    timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS) || 180000,
-    // 폴백 허용. 목표(인생의 책 1만자 / 인생종합운 3만자)의 40% 미만이면 실패로 돌려 환불 경로 유지.
-    fallbackMinChars: Math.round((lifeFortune ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) * 0.4),
-    logContext: options.logContext,
-    cache: lifeBookLlmCache,
-  });
-  const provider = clean(ai?.provider || ai?.model || "gemini");
-  const isMock = /mock/i.test(provider) || ai?.isMock === true;
-  const text = clean(ai?.text);
-  if (!ai?.ok || isMock || !text) {
-    const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
-    error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
-    throw error;
-  }
-  const qualityInput = options.input || {};
-  const lifeFortune = isLifeFortuneInput(qualityInput);
-  const issues = getLifeBookReportQualityIssues(text, qualityInput);
-  if (!issues.length) return { text, provider, model: clean(ai?.model) };
-  if (maxProviderCalls <= 1) {
-    // 경량 보장 계약: 수선 여력이 없어도 렌더 가능한 본문이면 버리지 않고 degrade로 전달한다.
-    if (hasRenderableLlmText(text, { minChars: 400 })) {
-      return { text, provider, model: clean(ai?.model), degraded: true };
+// nakshatra-ai.js / master-love-codex.js 와 같은 구현. 한 요청 = 1 웨이브라 동시성은 4로 고정한다
+// (Workers 동시 연결 6 + AI 라우트 레이트리밋 안전선).
+async function runWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  const runners = new Array(Math.min(Math.max(1, limit), items.length || 1)).fill(null).map(async () => {
+    for (;;) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index], index);
     }
-    const error = new Error(`Life book result quality check failed: ${issues.join(", ")}`);
-    error.code = "LLM_QUALITY_CHECK_FAILED";
-    throw error;
-  }
+  });
+  await Promise.all(runners);
+  return results;
+}
 
-  const repair = await callGeminiText(env, buildLifeBookRepairPrompt(text, issues, qualityInput), {
-    systemPrompt: buildSystemPrompt(promptConsultationType),
-    taskType: "fortune",
-    temperature: 0.52,
-    maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : LIFE_BOOK_MAX_OUTPUT_TOKENS),
-    timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS) || 180000,
-    fallbackMinChars: Math.round((lifeFortune ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) * 0.4),
-    cache: lifeBookLlmCache,
-    logContext: {
-      ...(options.logContext || {}),
-      providerCallCount: Number(options.logContext?.providerCallCount || 1) + 1,
-    },
-  });
-  const repaired = cleanForbiddenResult(repair?.ok ? repair?.text : text);
-  const repairedIssues = getLifeBookReportQualityIssues(repaired, qualityInput);
-  if (repairedIssues.length) {
-    // 경량 보장 계약: 수선 후에도 품질 미달이나, 렌더 가능한 본문이면 버리지 않고 degrade로 전달한다.
-    if (hasRenderableLlmText(repaired, { minChars: 400 })) {
-      return {
-        text: repaired,
-        provider: clean(repair?.provider || provider),
-        model: clean(repair?.model || ai?.model),
-        degraded: true,
-      };
+function resolveSectionTimeoutMs(env = {}) {
+  // 🔴 clampSyncLlmTimeoutMs 는 0/음수/NaN 을 받으면 상한 85s 로 되돌아간다 — 하한 가드가 반드시 앞에 있어야 한다.
+  const requested = Number(env.LIFE_BOOK_AI_TIMEOUT_MS) || SECTION_TIMEOUT_MS;
+  return clampSyncLlmTimeoutMs(Math.max(15000, requested));
+}
+
+// 🔴 절대 throw 하지 않는다. 한 섹션의 실패가 같은 웨이브의 나머지를 죽이면 안 된다.
+async function generateSectionOnce(env, section, prompt, options = {}) {
+  const startedAt = Date.now();
+  const base = {
+    id: section.id,
+    kind: section.kind,
+    ok: false,
+    body: null,
+    chars: 0,
+    provider: "",
+    model: "",
+    promptChars: prompt.length,
+    durationMs: 0,
+    parsed: false,
+    error: "",
+  };
+  try {
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt: buildSystemPrompt(options.consultationType || "lifeBook"),
+      taskType: "fortune",
+      temperature: options.temperature || 0.72,
+      maxOutputTokens: section.maxOutputTokens,
+      timeoutMs: resolveSectionTimeoutMs(env),
+      // 폴백은 켜 둔다. 섹션 목표가 3,000자까지 내려오면 Workers AI 실측 정지점(≈1,700자)이
+      // 이 문턱을 넘기므로, 단일 3만자 호출에서 무용지물이던 폴백이 여기서는 실제 안전망이 된다.
+      fallbackMinChars: Math.round(section.minChars * 0.4),
+      logContext: options.logContext,
+      cache: options.cache,
+    });
+    base.durationMs = Date.now() - startedAt;
+    const provider = clean(ai?.provider || ai?.model || "gemini");
+    const isMock = /mock/i.test(provider) || ai?.isMock === true;
+    const text = clean(ai?.text);
+    base.provider = provider;
+    base.model = clean(ai?.model);
+    if (!ai?.ok || isMock || !text) {
+      base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : clean(ai?.message || ai?.error || "LLM generation failed.", 300);
+      return base;
     }
-    const error = new Error(`Life book result quality check failed: ${repairedIssues.join(", ")}`);
-    error.code = "LLM_QUALITY_CHECK_FAILED";
-    throw error;
+    const parsed = extractReportJson(cleanForbiddenResult(text));
+    if (!parsed) {
+      base.error = "SECTION_JSON_MISSING";
+      return base;
+    }
+    base.parsed = true;
+    const normalizedBody = normalizeSectionBody(section, parsed);
+    base.body = normalizedBody;
+    base.chars = sectionBodyChars(section, normalizedBody);
+    base.ok = section.kind === "frame" ? true : base.chars > 0;
+    if (!base.ok) base.error = "SECTION_CONTENT_EMPTY";
+    return base;
+  } catch (error) {
+    base.durationMs = Date.now() - startedAt;
+    base.error = clean(error?.code || error?.message || error, 300);
+    return base;
+  }
+}
+
+function toStringList(value, maxItems = 12) {
+  return Array.isArray(value)
+    ? value.map((item) => clean(item, 1000)).filter(Boolean).slice(0, maxItems)
+    : [];
+}
+
+function normalizeSectionBody(section, parsed) {
+  if (section.kind === "frame") {
+    const core = parsed.coreSummary && typeof parsed.coreSummary === "object" ? parsed.coreSummary : {};
+    return {
+      title: clean(parsed.title, 120) || section.title,
+      subtitle: clean(parsed.subtitle, 300),
+      profileSummary: parsed.profileSummary && typeof parsed.profileSummary === "object" ? parsed.profileSummary : {},
+      coreSummary: {
+        oneLine: clean(core.oneLine, 400),
+        lifeTheme: clean(core.lifeTheme, 200),
+        strongestElement: clean(core.strongestElement, 200),
+        neededBalance: clean(core.neededBalance, 200),
+      },
+      finalMessage: clean(parsed.finalMessage, 2000),
+    };
+  }
+  if (section.kind === "expert") {
+    return {
+      title: clean(parsed.title, 200) || section.title,
+      content: clean(parsed.content, 20000),
+      guidance: toStringList(parsed.guidance),
+      evidenceRefs: cleanEvidenceRefs(parsed.evidenceRefs).length
+        ? cleanEvidenceRefs(parsed.evidenceRefs)
+        : [...section.evidenceRefs],
+    };
   }
   return {
-    text: repaired,
-    provider: clean(repair?.provider || provider),
-    model: clean(repair?.model || ai?.model),
+    chapterNumber: section.index + 1,
+    title: clean(parsed.title, 200) || section.title,
+    summary: clean(parsed.summary, 1200),
+    content: clean(parsed.content, 20000),
+    advice: toStringList(parsed.advice),
+    evidenceRefs: cleanEvidenceRefs(parsed.evidenceRefs).length
+      ? cleanEvidenceRefs(parsed.evidenceRefs)
+      : [...section.evidenceRefs],
   };
 }
 
+function sectionBodyChars(section, body) {
+  if (!body) return 0;
+  if (section.kind === "frame") return clean(body.finalMessage, 2000).length;
+  return clean(body.content, 20000).length;
+}
+
+// 앞 섹션의 첫 문장만 모아 장 간 중복 서사(duplicate_narrative)를 억제한다.
+function buildSectionDigest(plan, sections, currentId) {
+  const parts = [];
+  for (const section of plan) {
+    if (section.id === currentId || section.kind === "frame") continue;
+    const stored = sections[section.id];
+    const content = clean(stored?.body?.content, 20000);
+    if (!content) continue;
+    const first = content.split(/(?<=[.!?다요])\s+|\n+/).map((s) => s.trim()).find((s) => s.length >= 20);
+    if (first) parts.push(`- ${section.title}: ${first.slice(0, 160)}`);
+  }
+  return parts.join("\n");
+}
+
+function assembleReport(input, plan, sections) {
+  const lifeFortune = isLifeFortuneInput(input);
+  const birth = input.birthInfo || {};
+  const frame = sections.frame?.body || null;
+  const chapters = plan
+    .filter((section) => section.kind === "chapter")
+    .map((section) => sections[section.id]?.body)
+    .filter(Boolean);
+  const expertReadings = plan
+    .filter((section) => section.kind === "expert")
+    .map((section) => sections[section.id]?.body)
+    .filter(Boolean);
+  return {
+    title: clean(frame?.title, 120) || (lifeFortune ? "인생 총운" : "인생의 책"),
+    subtitle: clean(frame?.subtitle, 300) || (lifeFortune
+      ? "타고난 명식과 시간의 흐름으로 읽는 삶의 큰 방향"
+      : "타고난 사주와 시간의 흐름으로 읽는 삶의 장면"),
+    profileSummary: {
+      name: birth.name || "",
+      birthDate: birth.birthDate || "",
+      calendarType: birth.calendarType === "lunar" ? "음력" : "양력",
+      birthTime: birth.birthTimeUnknown ? "모름" : birth.birthTime || "",
+      gender: birth.gender || "",
+    },
+    coreSummary: frame?.coreSummary || { oneLine: "", lifeTheme: "", strongestElement: "", neededBalance: "" },
+    chapters,
+    expertReadings,
+    finalMessage: clean(frame?.finalMessage, 2000),
+    pdfSections: [],
+  };
+}
+
+function reportTotalContentChars(report) {
+  const chapters = Array.isArray(report?.chapters) ? report.chapters : [];
+  const readings = Array.isArray(report?.expertReadings) ? report.expertReadings : [];
+  return chapters.reduce((sum, chapter) => sum + clean(chapter?.content, 20000).length, 0)
+    + readings.reduce((sum, reading) => sum + clean(reading?.content, 12000).length, 0);
+}
+
+// 품질 이슈를 책임 섹션에 되돌린다. 이슈 코드가 chapter_{n}_* / expert_reading_{n}_* 형태라 기계적으로 매핑된다.
+// 🔴 전체 재생성 금지 — 결손이 있는 섹션만 다시 쓴다.
+function mapIssuesToSections(issues = [], plan = [], sections = {}) {
+  const targets = new Set();
+  let trimOnly = false;
+  for (const raw of issues) {
+    const issue = String(raw || "");
+    const chapterMatch = issue.match(/^chapter_(\d+)_/);
+    if (chapterMatch) {
+      targets.add(`chapter-${Number(chapterMatch[1])}`);
+      continue;
+    }
+    const expertMatch = issue.match(/^expert_reading_(\d+)_/);
+    if (expertMatch) {
+      targets.add(`expert-${Number(expertMatch[1])}`);
+      continue;
+    }
+    if (issue.startsWith("duplicate_narrative")) {
+      // 중복 문장의 뒤쪽 소유 섹션부터 다시 쓴다.
+      const withContent = plan.filter((section) => section.kind === "chapter" && sections[section.id]?.body);
+      const last = withContent[withContent.length - 1];
+      if (last) targets.add(last.id);
+      continue;
+    }
+    if (issue === "total_content_too_short") {
+      // 가장 짧은 장부터 보강한다.
+      const shortest = plan
+        .filter((section) => section.kind === "chapter")
+        .map((section) => ({ id: section.id, chars: sections[section.id]?.chars || 0 }))
+        .sort((a, b) => a.chars - b.chars)[0];
+      if (shortest) targets.add(shortest.id);
+      continue;
+    }
+    if (issue === "total_content_too_long") {
+      // 추가 호출 없이 절단으로 해소한다.
+      trimOnly = true;
+      continue;
+    }
+    if (issue === "life_fortune_title_missing" || issue === "chapter_count_mismatch" || issue === "expert_reading_count_too_short") {
+      if (issue === "life_fortune_title_missing") targets.add("frame");
+      continue;
+    }
+    if (issue === "forbidden_terms" || issue === "report_json_missing" || issue === "empty_result") {
+      continue;
+    }
+  }
+  return { targets: [...targets], trimOnly };
+}
+
+// total_content_too_long 은 재생성 없이 가장 긴 장을 문단 경계에서 잘라 해소한다.
+function trimLongestChapter(sections, plan, overflowChars) {
+  const chapterIds = plan.filter((section) => section.kind === "chapter").map((section) => section.id);
+  let longest = "";
+  let longestChars = 0;
+  for (const id of chapterIds) {
+    const chars = sections[id]?.chars || 0;
+    if (chars > longestChars) {
+      longestChars = chars;
+      longest = id;
+    }
+  }
+  if (!longest) return false;
+  const body = sections[longest].body;
+  const content = clean(body?.content, 20000);
+  const keep = Math.max(600, content.length - overflowChars);
+  const paragraphs = content.split(/\n{2,}/);
+  let trimmed = "";
+  for (const paragraph of paragraphs) {
+    if (trimmed && (trimmed.length + paragraph.length + 2) > keep) break;
+    trimmed = trimmed ? `${trimmed}\n\n${paragraph}` : paragraph;
+  }
+  if (!trimmed || trimmed.length >= content.length) return false;
+  sections[longest] = {
+    ...sections[longest],
+    body: { ...body, content: trimmed },
+    chars: trimmed.length,
+  };
+  return true;
+}
 function extractTitle(content, fallbackName = "", consultationType = "lifeBook") {
   const report = extractReportJson(content);
   if (report?.title) return clean(report.title, 100);
@@ -1401,6 +1664,11 @@ async function callDeferredBillingRoute({ request, env, path, body }) {
   }), env);
 }
 
+// 🔴 과금 부작용(apply/cancel/refund)의 유일한 featureKey 원천. 중간에 다시 계산하면 레거시 세션에서 어긋난다.
+function billingFeatureKeyOf(access = {}) {
+  return clean(access.featureKey, 80) || FEATURE_KEY;
+}
+
 async function finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, orderName = ORDER_NAME }) {
   if (access.accessSource !== "billing_gate_deferred") return true;
   const response = await callDeferredBillingRoute({
@@ -1408,9 +1676,9 @@ async function finalizeDeferredBillingUsage({ request, env, access, idempotencyK
     env,
     path: "apply",
     body: {
-      featureKey: FEATURE_KEY,
+      featureKey: billingFeatureKeyOf(access),
       productId: SERVICE_KEY,
-      serviceType: FEATURE_KEY,
+      serviceType: billingFeatureKeyOf(access),
       orderName,
       reason: orderName,
       requestId: idempotencyKey,
@@ -1435,9 +1703,9 @@ async function cancelDeferredBillingUsage({ request, env, access, idempotencyKey
     env,
     path: "cancel",
     body: {
-      featureKey: FEATURE_KEY,
+      featureKey: billingFeatureKeyOf(access),
       productId: SERVICE_KEY,
-      serviceType: FEATURE_KEY,
+      serviceType: billingFeatureKeyOf(access),
       orderName,
       reason: orderName,
       requestId: idempotencyKey,
@@ -1467,7 +1735,7 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
       delta: access.amount,
       balanceAfter: Number(updatedUser.points || 0),
       reason,
-      featureKey: FEATURE_KEY,
+      featureKey: billingFeatureKeyOf(access),
       metadata: {
         source: "life-book-ai",
         orderName,
@@ -1499,7 +1767,7 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
       afterBalance,
       reason,
       sourceId: refundSourceId,
-      serviceKey: FEATURE_KEY,
+      serviceKey: billingFeatureKeyOf(access),
       metadata: {
         source: "life-book-ai",
         orderName,
@@ -1520,7 +1788,7 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
 }
 
 async function applyUsageOnce({ request, env, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME }) {
-  const existing = await LifeBookAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+  const existing = await LifeBookAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt llmMeta.pricingSnapshot").lean();
   if (existing?.usageAppliedAt) return true;
 
   if (access.accessSource === "billing_gate_deferred") {
@@ -1530,31 +1798,35 @@ async function applyUsageOnce({ request, env, userId, sessionId, access, idempot
     const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
     if (!ledger) {
       // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
-      const consume = await consumeMonthlyCreditLots({ userId, amount: pricing.membershipCreditCost });
+      // 🔴 결제창이 안내한 금액(seed 의 pricingSnapshot)을 우선한다 — 안내와 다른 금액을 차감하지 않기 위해.
+      const chargedCredit = Math.max(0, Math.floor(Number(
+        existing?.llmMeta?.pricingSnapshot?.membershipCreditCost ?? pricing.membershipCreditCost,
+      ) || 0)) || pricing.membershipCreditCost;
+      const consume = await consumeMonthlyCreditLots({ userId, amount: chargedCredit });
       if (!consume.ok) {
         const error = new Error("membership credit balance is insufficient");
         error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
         throw error;
       }
       const afterBalance = Math.max(0, Math.floor(Number(consume.balance || 0)));
-      const beforeBalance = afterBalance + Math.max(0, Math.floor(Number(pricing.membershipCreditCost || 0)));
+      const beforeBalance = afterBalance + Math.max(0, Math.floor(Number(chargedCredit || 0)));
       await MonthlyCreditLedger.create({
         userId,
         type: "MONTHLY_CREDIT_SPEND",
-        amount: pricing.membershipCreditCost,
+        amount: chargedCredit,
         beforeBalance,
         afterBalance,
         reason: orderName,
         sourceId,
-        serviceKey: FEATURE_KEY,
-        metadata: { featureKey: FEATURE_KEY, sessionId, requestId: idempotencyKey, orderName },
+        serviceKey: billingFeatureKeyOf(access),
+        metadata: { featureKey: billingFeatureKeyOf(access), sessionId, requestId: idempotencyKey, orderName },
       }).catch((error) => {
         if (error?.code !== 11000) throw error;
       });
     }
   } else if (access.accessType === "paid" && access.paymentId) {
     await Payment.updateOne(
-      { userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId },
+      { userId, featureKey: billingFeatureKeyOf(access), merchantUid: access.paymentId },
       {
         $set: {
           status: "fulfilled",
@@ -1575,6 +1847,16 @@ async function applyUsageOnce({ request, env, userId, sessionId, access, idempot
   return true;
 }
 
+function buildSectionProgress(doc) {
+  const plan = Array.isArray(doc?.llmMeta?.plan) ? doc.llmMeta.plan : [];
+  const sections = doc?.llmMeta?.sections && typeof doc.llmMeta.sections === "object" ? doc.llmMeta.sections : {};
+  if (!plan.length) return null;
+  return {
+    completed: plan.filter((section) => sections[section.id]?.ok).length,
+    total: plan.length,
+  };
+}
+
 function publicSession(doc) {
   return {
     ok: true,
@@ -1590,6 +1872,10 @@ function publicSession(doc) {
     keywords: Array.isArray(doc.keywords) ? doc.keywords : [],
     sajuResult: doc.sajuResult || null,
     reportJson: doc.llmMeta?.reportJson || null,
+    featureKey: clean(doc.featureKey || FEATURE_KEY, 80),
+    // 🔴 열화 전달을 클라가 알 수 있어야 한다 — 없으면 조용한 과금이 된다.
+    degraded: doc.llmMeta?.degraded === true,
+    progress: buildSectionProgress(doc),
     generationError: doc.generationError || null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
@@ -1628,7 +1914,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
   });
 
   logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
-  const pricing = { ...getPricing(), env };
+  const pricing = { ...getPricing(normalized.input), env };
   if (isAdmin(auth)) {
     logLifeBookAction("entitlement_check", {
       route,
@@ -1643,6 +1929,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
       ok: true,
       accessToken: await createAccessToken(env, {
         userId: auth.userId,
+        featureKey: getConsultationFeatureKey(normalized.input),
         accessType: "admin",
         accessSource: "admin",
         idempotencyKey,
@@ -1672,6 +1959,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
       ok: true,
       accessToken: await createAccessToken(env, {
         userId: auth.userId,
+        featureKey: access.featureKey || getConsultationFeatureKey(normalized.input),
         accessType: access.accessType,
         accessSource: access.accessSource,
         idempotencyKey,
@@ -1703,15 +1991,20 @@ async function resolveStartAccess({ request, env, auth, body, normalized, idempo
   const token = clean(body?.accessToken || request.headers.get("x-life-book-ai-access-token"));
   if (token) {
     try {
-      const payload = await verifyAccessToken(env, token);
+      const acceptedFeatureKeys = getAcceptedFeatureKeys(normalized.input);
+      const payload = await verifyAccessToken(env, token, acceptedFeatureKeys);
       if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
         return { ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput };
+      }
+      if (clean(payload.featureKey, 80) === LEGACY_LIFE_FORTUNE_FEATURE_KEY && isLifeFortuneInput(normalized.input)) {
+        logLifeBookAi("Legacy SKU Token", { route: "/api/life-book-ai/generate", requestId: idempotencyKey, featureKey: clean(payload.featureKey, 80), marker: "legacy_sku_token" });
       }
       return {
         ok: true,
         accessType: clean(payload.accessType),
         accessSource: clean(payload.accessSource),
         paymentId: clean(payload.paymentId, 160),
+        featureKey: clean(payload.featureKey, 80) || getConsultationFeatureKey(normalized.input),
       };
     } catch (_) {
       return { ok: false, reason: "PAYMENT_VERIFY_FAILED" };
@@ -1725,6 +2018,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, idempo
     idempotencyKey,
     inputHash: normalized.inputHash,
     consultationType: normalized.input.consultationType,
+    acceptedFeatureKeys: getAcceptedFeatureKeys(normalized.input),
   }));
   if (billingGateAccess?.ok) return billingGateAccess;
 
@@ -1781,7 +2075,13 @@ async function restoreAccessBeforeGenerationFailure({ request, env, userId, acce
   return deferredCanceled || await restoreBillingGateAccessOnFailure({ userId, access, reason, orderName }).catch(() => false);
 }
 
+// 웨이브 단일비행. 인메모리 startLocks 는 아이솔레이트 단위라 다중 아이솔레이트에서 무효 —
+// 진짜 방어선은 이 DB 락이다(계층이 다르므로 중첩이 아니다).
+// 획득 실패는 PROVIDER_DUPLICATE_BLOCKED 로 남긴다(기존 클라 처리·회귀 가드 핀 보존).
 async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, route }) {
+  const now = Date.now();
+  const lockToken = randomToken(12);
+  const staleBefore = new Date(now - SECTION_LOCK_TTL_MS).toISOString();
   const updated = await LifeBookAiConsultation.findOneAndUpdate(
     {
       id: sessionId,
@@ -1789,14 +2089,17 @@ async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, rout
       idempotencyKey,
       status: "generating",
       $or: [
-        { "llmMeta.providerCallCount": { $exists: false } },
-        { "llmMeta.providerCallCount": { $lt: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION } },
+        { "llmMeta.lockedAt": { $exists: false } },
+        { "llmMeta.lockedAt": null },
+        { "llmMeta.lockedAt": { $lt: staleBefore } },
       ],
     },
     {
-      $inc: { "llmMeta.providerCallCount": 1 },
+      $inc: { "llmMeta.providerCallCount": 1, "llmMeta.waveCount": 1 },
       $set: {
-        "llmMeta.providerCallLastAt": new Date().toISOString(),
+        "llmMeta.lockedAt": new Date(now).toISOString(),
+        "llmMeta.lockToken": lockToken,
+        "llmMeta.providerCallLastAt": new Date(now).toISOString(),
       },
     },
     { new: true },
@@ -1811,15 +2114,23 @@ async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, rout
       idempotencyKey,
       status: existing?.status || "unknown",
       providerCallCount: Number(existing?.llmMeta?.providerCallCount || 0),
+      waveCount: Number(existing?.llmMeta?.waveCount || 0),
       duplicateBlocked: true,
-      reason: "provider_call_limit_reached",
+      reason: "wave_lock_held",
     }, "warn");
-    const error = new Error("Duplicate provider call blocked.");
+    const error = new Error("Generation wave already in progress.");
     error.code = "PROVIDER_DUPLICATE_BLOCKED";
     throw error;
   }
 
-  return Number(updated.llmMeta?.providerCallCount || 1);
+  return { lockToken, doc: updated, waveCount: Number(updated.llmMeta?.waveCount || 1), providerCallCount: Number(updated.llmMeta?.providerCallCount || 1) };
+}
+
+async function releaseSectionLock(sessionId, lockToken) {
+  await LifeBookAiConsultation.updateOne(
+    { id: sessionId, "llmMeta.lockToken": lockToken },
+    { $set: { "llmMeta.lockedAt": null, "llmMeta.lockToken": "" } },
+  ).catch(() => {});
 }
 
 async function handleResult(request, env, pathId = "") {
@@ -1868,6 +2179,22 @@ async function handleResult(request, env, pathId = "") {
   if (consultation.status === "generating") {
     const lastTouchedAt = new Date(consultation.updatedAt || consultation.createdAt).getTime();
     if (Date.now() - lastTouchedAt >= LIFE_BOOK_GENERATING_STALE_MS) {
+      // 🔴 stale 승격은 확정 실패다 — 보류된 차감(deferred hold)을 여기서 풀지 않으면 영영 방치된다.
+      await restoreAccessBeforeGenerationFailure({
+        request,
+        env,
+        userId: auth.userId,
+        access: {
+          accessType: clean(consultation.accessType),
+          accessSource: clean(consultation.accessSource),
+          paymentId: clean(consultation.paymentId, 160),
+          featureKey: clean(consultation.featureKey, 80) || FEATURE_KEY,
+        },
+        idempotencyKey: clean(consultation.idempotencyKey, 180),
+        sessionId: consultation.id,
+        error: Object.assign(new Error("Generation did not complete within the allowed window."), { code: "GENERATION_STALLED" }),
+        orderName: getConsultationOrderName({ consultationType: consultation.llmMeta?.input?.consultationType }),
+      }).catch(() => false);
       await LifeBookAiConsultation.updateOne(
         { id: consultation.id, status: "generating" },
         {
@@ -1957,7 +2284,7 @@ async function handleResult(request, env, pathId = "") {
   return json(payload, { headers: { "Cache-Control": "private, max-age=300" } });
 }
 
-async function handleStart(request, env, route = "/api/life-book-ai/generate", ctx) {
+async function handleStart(request, env, route = "/api/life-book-ai/generate") {
   logLifeBookAi("LLM Generate Start", { route });
   const body = await readJson(request);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -1999,7 +2326,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
 
   const pending = (async () => {
     await connectDb(env);
-    const pricing = getPricing();
+    const pricing = getPricing(normalized.input);
     const orderName = getConsultationOrderName(normalized.input);
 
     const existing = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
@@ -2160,9 +2487,13 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
 
     const sessionId = existing?.id || `lbai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
     const now = new Date();
+    const sectionPlan = buildSectionPlan(normalized.input);
     const seed = {
       id: sessionId,
       userId: clean(auth.userId),
+      // 🔴 실제로 돈이 움직인 SKU. 구 SKU 로 결제된 총운 세션은 이 값으로 계속 정산해야
+      //    apply/cancel/refund 가 원 차감 레코드와 같은 키로 대사된다.
+      featureKey: access.featureKey || getConsultationFeatureKey(normalized.input),
       birthInfo: normalized.input.birthInfo,
       sajuResult,
       topic: normalized.input.topic,
@@ -2179,6 +2510,18 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
       llmMeta: {
         providerCallCount: 0,
         providerCallLastAt: null,
+        waveCount: 0,
+        lockedAt: null,
+        lockToken: "",
+        plan: sectionPlan,
+        sections: {},
+        // 결제창이 사용자에게 보여준 금액. applyUsageOnce 가 현재가 대신 이 값을 쓰므로
+        // SKU 가격이 바뀌어도 진행 중 세션이 안내와 다른 금액으로 차감되지 않는다.
+        pricingSnapshot: {
+          coinPrice: Number(pricing.coinPrice || 0),
+          amountKRW: Number(pricing.amountKRW || 0),
+          membershipCreditCost: Number(pricing.membershipCreditCost || 0),
+        },
         input: {
           serviceType: normalized.input.serviceType,
           consultationType: normalized.input.consultationType,
@@ -2225,106 +2568,292 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
       }
     }
 
-    // 결제/이용권 확인·명식 계산·"생성중" 문서 기록이 끝난 이 시점에 즉시 202를 돌려주고,
-    // LLM 생성은 백그라운드(waitUntil)에서 완주한다. 클라는 /result 폴링으로 수렴한다(ziwei·찻집과 동일 패턴).
-    // 실패 시 환불(restoreAccessBeforeGenerationFailure)·generation_failed 기록은 아래 catch가 백그라운드에서도 그대로 수행한다.
-    const runGeneration = async () => {
+    // 🔴 waitUntil 백그라운드 금지(요청 간 I/O 격리 + 예외 소실). 대신 한 요청 = 동시성 4 웨이브 하나만
+    //    돌려 엣지 100초 안에서 끝내고, 남은 섹션이 있으면 202 + progress 를 돌려준다.
+    //    클라(master-love-codex 의 runBatches 패턴)가 /generate 를 반복 호출해 진행을 이어받는다.
     try {
-      const providerCallCount = await reserveProviderCallOnce({
-        userId: auth.userId,
-        sessionId,
-        idempotencyKey,
-        route,
-      });
-      const logContext = {
-        ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }),
-        ...buildProviderLogContext({
-          requestId: idempotencyKey,
-          userId: auth.userId,
-          idempotencyKey,
-          providerCallCount,
-        }),
-      };
-      const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
-        minLength: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS,
-        maxOutputTokens: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : LIFE_BOOK_MAX_OUTPUT_TOKENS,
-        timeoutMs: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_TIMEOUT_MS : undefined,
-        logContext,
-        maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION,
-        input: normalized.input,
-      });
-      const title = extractTitle(generated.text, normalized.input.birthInfo.name, normalized.input.consultationType);
-      const keywords = extractKeywords(generated.text, normalized.input.topic);
-      const reportJson = extractReportJson(generated.text);
-      if (isLifeFortuneInput(normalized.input)) {
-        const reportIssues = getLifeBookReportQualityIssues(generated.text, normalized.input);
-        if (!reportJson || reportIssues.length) {
-          const error = new Error(`Life fortune report quality check failed: ${reportIssues.join(", ") || "report_json_missing"}`);
-          error.code = "LIFE_FORTUNE_REPORT_INVALID";
-          throw error;
+      const doc = await LifeBookAiConsultation.findOne({ id: sessionId }).lean();
+      const plan = Array.isArray(doc?.llmMeta?.plan) && doc.llmMeta.plan.length ? doc.llmMeta.plan : sectionPlan;
+      const storedSections = doc?.llmMeta?.sections && typeof doc.llmMeta.sections === "object" ? { ...doc.llmMeta.sections } : {};
+      const waveCount = Number(doc?.llmMeta?.waveCount || 0);
+      if (waveCount >= MAX_GENERATION_WAVES) {
+        const error = Object.assign(new Error("Generation wave budget exhausted."), { code: "GENERATION_STALLED" });
+        throw error;
+      }
+
+      const lock = await reserveProviderCallOnce({ userId: auth.userId, sessionId, idempotencyKey, route });
+      let sections = storedSections;
+      let finished = false;
+      let responsePayload = null;
+
+      try {
+        const pending = plan.filter((section) => {
+          const stored = sections[section.id];
+          if (!stored) return true;
+          if (stored.needsRepair) return Number(stored.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS;
+          if (!stored.ok) return Number(stored.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS;
+          return false;
+        }).slice(0, SECTION_BATCH_SIZE);
+
+        const baseLogContext = {
+          ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }),
+          ...buildProviderLogContext({
+            requestId: idempotencyKey,
+            userId: auth.userId,
+            idempotencyKey,
+            providerCallCount: lock.providerCallCount,
+          }),
+          featureKey: seed.featureKey,
+          waveIndex: lock.waveCount,
+        };
+
+        if (pending.length) {
+          const consultationType = isLifeFortuneInput(normalized.input) ? "lifeFortune" : "lifeBook";
+          const results = await runWithConcurrency(pending, SECTION_CONCURRENCY, async (section) => {
+            const stored = sections[section.id];
+            const attempt = Number(stored?.attempts || 0) + 1;
+            // 재시도에서는 목표 분량을 올려 잡아 "또 짧게" 오는 것을 막는다.
+            const boosted = stored?.needsRepair
+              ? { ...section, targetChars: Math.round(section.targetChars * 1.25) }
+              : section;
+            const digest = buildSectionDigest(plan, sections, section.id);
+            const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest);
+            const result = await generateSectionOnce(env, boosted, prompt, {
+              consultationType,
+              // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
+              cache: attempt > 1 ? null : {
+                store: createLlmCacheStore(env),
+                deterministic: true,
+                ttlSeconds: 30 * 24 * 60 * 60,
+                keyExtra: `life-book-ai-v2-${consultationType}-${section.id}`,
+              },
+              logContext: { ...baseLogContext, sectionId: section.id, attempt },
+            });
+            logLifeBookAction(result.ok ? "section_generate" : "section_retry", {
+              route,
+              requestId: idempotencyKey,
+              userId: auth.userId,
+              idempotencyKey,
+              featureKey: seed.featureKey,
+              status: result.ok ? "ok" : "failed",
+              sectionId: section.id,
+              waveIndex: lock.waveCount,
+              attempt,
+              promptChars: result.promptChars,
+              responseChars: result.chars,
+              durationMs: result.durationMs,
+              parsed: result.parsed,
+              providerCallCount: lock.providerCallCount,
+              reason: result.error || "",
+            }, result.ok ? "info" : "warn");
+            return { section, attempt, result };
+          });
+
+          for (const entry of results) {
+            if (!entry) continue;
+            const { section, attempt, result } = entry;
+            const previous = sections[section.id];
+            // 실패했는데 이전 성공본이 있으면 그것을 지키고 시도 횟수만 올린다.
+            if (!result.ok && previous?.ok) {
+              sections[section.id] = { ...previous, attempts: attempt, needsRepair: previous.needsRepair || false };
+              continue;
+            }
+            sections[section.id] = {
+              id: section.id,
+              kind: section.kind,
+              ok: result.ok,
+              body: result.body,
+              chars: result.chars,
+              attempts: attempt,
+              provider: result.provider,
+              model: result.model,
+              error: result.error,
+              needsRepair: false,
+            };
+          }
         }
-      }
-      await applyUsageOnce({
-        request,
-        env,
-        userId: auth.userId,
-        sessionId,
-        access,
-        idempotencyKey,
-        pricing,
-        orderName,
-      });
-      if (access.accessType === "pass") {
-        logLifeBookAi("Pass Consumed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, payment: "usage_applied", env }));
-      }
-      const userMessage = normalized.input.consultationType === "lifeFortune"
-        ? `상담 주제: ${normalized.input.topic}`
-        : `리포트 강조 영역: ${normalized.input.topic}`;
-      const completed = await LifeBookAiConsultation.findOneAndUpdate(
-        { id: sessionId },
-        {
-          $set: {
-            status: "completed",
-            title,
-            keywords,
-            messages: [
-              { role: "user", content: userMessage, createdAt: now },
-              { role: "assistant", content: generated.text, createdAt: new Date() },
-            ],
-            llmMeta: {
-              provider: generated.provider,
-              model: generated.model,
-              reportJson,
-              providerCallCount,
-              providerCallLastAt: new Date().toISOString(),
-              completedAt: new Date().toISOString(),
-              input: {
-                serviceType: normalized.input.serviceType,
-                consultationType: normalized.input.consultationType,
-                focusArea: normalized.input.focusArea,
-                locale: normalized.input.locale,
+
+        // ── 조립 + 품질 게이트(정본 재사용). 결손은 책임 섹션에만 매핑한다.
+        const missing = plan.filter((section) => !sections[section.id]?.ok
+          && Number(sections[section.id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS);
+        let repairTargets = [];
+        let assembled = null;
+        let assembledText = "";
+        let issues = [];
+
+        if (!missing.length) {
+          assembled = assembleReport(normalized.input, plan, sections);
+          assembledText = JSON.stringify(assembled);
+          issues = getLifeBookReportQualityIssues(assembledText, normalized.input);
+          const mapped = mapIssuesToSections(issues, plan, sections);
+          if (mapped.trimOnly) {
+            const overflow = reportTotalContentChars(assembled) - (isLifeFortuneInput(normalized.input)
+              ? LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS
+              : LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS);
+            if (overflow > 0 && trimLongestChapter(sections, plan, overflow)) {
+              assembled = assembleReport(normalized.input, plan, sections);
+              assembledText = JSON.stringify(assembled);
+              issues = getLifeBookReportQualityIssues(assembledText, normalized.input);
+            }
+          }
+          repairTargets = mapIssuesToSections(issues, plan, sections).targets
+            .filter((id) => Number(sections[id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS);
+          for (const id of repairTargets) {
+            if (sections[id]) sections[id] = { ...sections[id], needsRepair: true };
+          }
+          logLifeBookAction("quality_gate", {
+            route,
+            requestId: idempotencyKey,
+            userId: auth.userId,
+            idempotencyKey,
+            featureKey: seed.featureKey,
+            status: issues.length ? "issues" : "passed",
+            waveIndex: lock.waveCount,
+            responseChars: reportTotalContentChars(assembled),
+            reason: issues.slice(0, 8).join(","),
+          }, issues.length ? "warn" : "info");
+        }
+
+        const stillPending = plan.filter((section) => {
+          const stored = sections[section.id];
+          if (!stored) return true;
+          if (stored.needsRepair || !stored.ok) return Number(stored.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS;
+          return false;
+        });
+        const completedCount = plan.filter((section) => sections[section.id]?.ok).length;
+
+        if (stillPending.length && (lock.waveCount < MAX_GENERATION_WAVES)) {
+          await LifeBookAiConsultation.updateOne(
+            { id: sessionId },
+            {
+              $set: {
+                "llmMeta.sections": sections,
+                // 정상 진행 중임을 stale 판정에 알린다.
+                updatedAt: new Date(),
+                // 부분 결과를 클라가 순차 공개할 수 있게 조립본을 미리 올려 둔다.
+                "llmMeta.reportJson": assembled || assembleReport(normalized.input, plan, sections),
               },
             },
-            generationError: null,
-          },
-        },
-        { new: true },
-      ).lean();
-      logLifeBookAi("LLM Generate Success", safeLogPayload({
-        route,
-        requestId: idempotencyKey,
-        body,
-        normalized,
-        validation: "passed",
-        access: access.accessType,
-        payment: "usage_applied",
-        env,
-        providerReason: generated.provider || generated.model,
-      }));
-      return json(publicSession(completed));
+          );
+          logLifeBookAction("wave_complete", {
+            route,
+            requestId: idempotencyKey,
+            userId: auth.userId,
+            idempotencyKey,
+            featureKey: seed.featureKey,
+            status: "generating",
+            waveIndex: lock.waveCount,
+            persisted: true,
+            reason: `pending:${stillPending.length}`,
+          });
+          responsePayload = json({
+            ok: true,
+            sessionId,
+            status: "generating",
+            progress: { completed: completedCount, total: plan.length },
+            message: `${orderName}을 완성하는 중입니다.`,
+          }, { status: 202, headers: { "Retry-After": "1" } });
+        } else {
+          finished = true;
+        }
+
+        if (finished) {
+          const finalReport = assembled || assembleReport(normalized.input, plan, sections);
+          const finalText = JSON.stringify(finalReport);
+          const finalIssues = issues.length ? issues : getLifeBookReportQualityIssues(finalText, normalized.input);
+          const totalChars = reportTotalContentChars(finalReport);
+          const degraded = finalIssues.length > 0;
+
+          if (isLifeFortuneInput(normalized.input)
+            && (totalChars < LIFE_FORTUNE_DEGRADE_MIN_TOTAL_CHARS
+              || (Array.isArray(finalReport.chapters) ? finalReport.chapters.length : 0) !== LIFE_BOOK_EXPECTED_CHAPTER_COUNT)) {
+            const error = new Error(`Life fortune report quality check failed: ${finalIssues.join(", ") || "total_content_too_short"}`);
+            error.code = "LIFE_FORTUNE_REPORT_INVALID";
+            throw error;
+          }
+          if (!hasRenderableLlmText(finalText, { minChars: 400 })) {
+            const error = new Error(`Life book result quality check failed: ${finalIssues.join(", ") || "empty_result"}`);
+            error.code = "LLM_QUALITY_CHECK_FAILED";
+            throw error;
+          }
+
+          await applyUsageOnce({
+            request,
+            env,
+            userId: auth.userId,
+            sessionId,
+            access,
+            idempotencyKey,
+            pricing,
+            orderName,
+          });
+          if (access.accessType === "pass") {
+            logLifeBookAi("Pass Consumed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, payment: "usage_applied", env }));
+          }
+          const title = extractTitle(finalText, normalized.input.birthInfo.name, normalized.input.consultationType);
+          const keywords = extractKeywords(finalText, normalized.input.topic);
+          const userMessage = normalized.input.consultationType === "lifeFortune"
+            ? `상담 주제: ${normalized.input.topic}`
+            : `리포트 강조 영역: ${normalized.input.topic}`;
+          const usedProvider = clean(Object.values(sections).find((section) => section?.provider)?.provider || "gemini");
+          const usedModel = clean(Object.values(sections).find((section) => section?.model)?.model);
+          const completed = await LifeBookAiConsultation.findOneAndUpdate(
+            { id: sessionId },
+            {
+              $set: {
+                status: "completed",
+                title,
+                keywords,
+                messages: [
+                  { role: "user", content: userMessage, createdAt: now },
+                  { role: "assistant", content: finalText, createdAt: new Date() },
+                ],
+                "llmMeta.provider": usedProvider,
+                "llmMeta.model": usedModel,
+                "llmMeta.reportJson": finalReport,
+                "llmMeta.sections": sections,
+                "llmMeta.degraded": degraded,
+                "llmMeta.qualityIssues": finalIssues.slice(0, 20),
+                "llmMeta.providerCallLastAt": new Date().toISOString(),
+                "llmMeta.completedAt": new Date().toISOString(),
+                generationError: null,
+              },
+            },
+            { new: true },
+          ).lean();
+          logLifeBookAction("wave_complete", {
+            route,
+            requestId: idempotencyKey,
+            userId: auth.userId,
+            idempotencyKey,
+            featureKey: seed.featureKey,
+            status: "completed",
+            waveIndex: lock.waveCount,
+            responseChars: totalChars,
+            persisted: Boolean(completed),
+            parsed: true,
+            degraded,
+          });
+          logLifeBookAi("LLM Generate Success", safeLogPayload({
+            route,
+            requestId: idempotencyKey,
+            body,
+            normalized,
+            validation: "passed",
+            access: access.accessType,
+            payment: "usage_applied",
+            env,
+            providerReason: usedProvider || usedModel,
+          }));
+          responsePayload = json(publicSession(completed));
+        }
+      } finally {
+        await releaseSectionLock(sessionId, lock.lockToken);
+      }
+      return responsePayload;
     } catch (error) {
       if (clean(error?.code) === "PROVIDER_DUPLICATE_BLOCKED") {
-        const duplicate = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+        const duplicate = await LifeBookAiConsultation.findOne({ id: sessionId }).lean();
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         if (duplicate?.status === "generation_failed") {
           return json({
@@ -2335,11 +2864,13 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
           }, { status: 409 });
         }
         return json({
-          ok: true,
-          sessionId: duplicate?.id || sessionId,
+          ok: false,
+          retryable: true,
+          reason: "GENERATION_IN_PROGRESS",
+          sessionId,
           status: "generating",
           message: `${orderName}을 완성하는 중입니다.`,
-        }, { status: 202 });
+        }, { status: 409, headers: { "Retry-After": "4" } });
       }
       const restored = await restoreAccessBeforeGenerationFailure({
         request,
@@ -2377,17 +2908,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
       ).catch(() => {});
       logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env, error }), "error");
       if (clean(error?.code) === "DEFERRED_USAGE_APPLY_FAILED") return paymentVerifyFailed();
-      return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
+      return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed, refunded: Boolean(restored) }, { status: 503 });
     }
-    };
-
-    if (ctx?.waitUntil) {
-      // 실패는 위 catch에서 이미 환불·기록됐다 — 여기서는 미처리 rejection만 삼킨다.
-      ctx.waitUntil(runGeneration().catch(() => {}));
-      return json({ ok: true, sessionId, status: "generating", message: `${orderName}을 완성하는 중입니다.` }, { status: 202 });
-    }
-    // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지.
-    return await runGeneration();
   })().catch((error) => {
     logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "server_error", env, error }), "error");
     return serverError();
@@ -2398,7 +2920,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
   return pending;
 }
 
-export async function handleLifeBookAiRoutes(request, env = {}, ctx) {
+// 🔴 ctx 를 받지 않는다 — waitUntil 백그라운드 생성은 이 레포에서 금지다(요청 간 I/O 격리로 결과 고착).
+export async function handleLifeBookAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/life-book-ai");
   const route = `/api/life-book-ai${path}`;
@@ -2410,7 +2933,7 @@ export async function handleLifeBookAiRoutes(request, env = {}, ctx) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/life-book-ai/prepare" : "/api/life-book-ai/ensure-access");
     }
     if (method === "POST" && (path === "/generate" || path === "/start")) {
-      return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start", ctx);
+      return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start");
     }
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
@@ -2440,6 +2963,10 @@ export const __lifeBookAiTestUtils = {
   extractKeywords,
   cleanForbiddenResult,
   getLifeBookReportQualityIssues,
-  buildLifeBookRepairPrompt,
-  buildFirstPrompt,
+  buildSectionPlan,
+  buildSectionPrompt,
+  pickSajuSlice,
+  assembleReport,
+  mapIssuesToSections,
+  reportTotalContentChars,
 };
