@@ -2943,13 +2943,22 @@
 
   // 사전발급이 끝났으면 그대로 재사용(왕복 0), 아직 진행 중이면 새 요청과 **경합**시켜 먼저 도착한
   // 응답을 쓴다. 같은 Idempotency-Key 라 서버가 멱등 처리하므로 두 요청이 겹쳐도 주문은 하나다.
+  //
+  // 🔴 value.ok 는 "promise 가 reject 되지 않았다"일 뿐 HTTP 성공이 아니다. _dpPaymentFetchJson 은
+  // 401/402/503/타임아웃도 reject 하지 않고 { ok:false } 로 resolve 하므로(_dpNormalizeBillingFetchResult),
+  // value.ok 로 판정하면 **실패한 사전발급이 정답으로 재사용**된다. 사전발급은 결제수단 모달 뒤에서
+  // 조용히 돌아 실패가 보이지 않다가, 단건을 고르는 순간 '결제 준비에 실패했습니다'로 터져 PG창이
+  // 영영 안 뜬다. 판정은 반드시 안쪽 응답의 HTTP 성공(value.res.ok)으로 한다 — 실패면 fresh 로 넘긴다.
+  function _dpIsUsableCheckoutPrefetch(value) {
+    return Boolean(value && value.res && value.res.ok === true);
+  }
+
   function _dpTakeDirectCheckoutResponse(checkoutPayload) {
     var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
     var prefetch = window.__cdDirectCheckoutPrefetch;
     _dpResetDirectCheckoutPrefetch();
     var reusable = key && prefetch && prefetch.key === key;
-    if (reusable && prefetch.settled === true
-      && prefetch.value && prefetch.value.ok === true && prefetch.value.res) {
+    if (reusable && prefetch.settled === true && _dpIsUsableCheckoutPrefetch(prefetch.value)) {
       return Promise.resolve(prefetch.value.res);
     }
     var fresh = _dpPaymentFetchJson('/api/billing/checkout', {
@@ -2960,7 +2969,7 @@
     if (!reusable || prefetch.settled === true || !prefetch.promise || typeof prefetch.promise.then !== 'function') return fresh;
     return Promise.race([
       prefetch.promise.then(function(value) {
-        return value && value.ok === true && value.res ? value.res : fresh;
+        return _dpIsUsableCheckoutPrefetch(value) ? value.res : fresh;
       }, function() { return fresh; }),
       fresh
     ]);
@@ -3552,9 +3561,15 @@
       await _dpPortOneV2SdkPromise();
       // storeId/channelKey 는 checkout 응답에 이미 실려 온다(worker/routes/payments.js). 그걸 쓰면
       // /api/payments/config 왕복이 통째로 사라진다. 정적 셸의 _cdResolveDirectCheckoutConfig 와 같은 방식.
+      // currency/payMethod/noticeUrl 도 함께 받는다 — storeId/channelKey 만 읽으면 /api/payments/config
+      // 폴백이 사라진 순간 noticeUrls(웹훅 통지 URL)가 조용히 빠진다. 셸의 _cdResolveDirectCheckoutConfig
+      // 와 같은 필드 집합으로 맞춘다.
       var config = {
         storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
         channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
+        currency: (order && order.currency) || (checkoutData && checkoutData.currency),
+        payMethod: (order && order.payMethod) || (checkoutData && checkoutData.payMethod),
+        noticeUrl: (order && order.noticeUrl) || (checkoutData && checkoutData.noticeUrl),
       };
       if (!config.storeId || !config.channelKey) {
         var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
@@ -3749,7 +3764,15 @@
       var title = String(opts.title || opts.reason || '').trim();
       var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
       return _dpJoinPaidServiceSingleFlight('__cdDirectKrwCheckoutInFlight', key, 60000, function() {
-        return _dpRunDirectKrwCheckoutCore(opts);
+        // 실패로 끝나도 '단건 결제창 준비 중' 오버레이가 남지 않게 여기 한 곳에서 정리한다.
+        // core 본문에는 outer try/finally 가 없어(결제 준비 실패·PortOne 설정 누락·이메일/번호 누락 등)
+        // 준비 구간에서 던지면 스피너가 그대로 멈춘 채 PG창도 안 뜬 화면이 된다. 셸의
+        // _cdRunDirectKrwCheckout 래퍼(index.html)와 같은 자리·같은 방식으로 맞춘다.
+        // 정상 경로는 PG창 직전에 이미 내려가 있으므로 무해하다.
+        return Promise.resolve(_dpRunDirectKrwCheckoutCore(opts)).catch(function(_dpDirectCheckoutError) {
+          _dpSetPaymentPending(false);
+          throw _dpDirectCheckoutError;
+        });
       });
     };
     _dpRunDirectKrwCheckoutGuarded.__cdSinglePaymentGuard = true;
