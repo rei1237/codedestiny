@@ -17,9 +17,6 @@ let pendingPoolReset = false;
 // 이 연결 위에서 성공한 작업 없이 연속으로 실패한 연결-레벨 오류 수(성공하면 0으로 돌아간다).
 // 미뤄 둔 리셋이 영영 실행되지 않는 데드락을 깨는 유일한 신호다 — 아래 withMongoRetry 주석 참고.
 let consecutiveConnectionFailures = 0;
-// 마지막으로 '새 연결을 실제로 수립한' 시각(웜 재사용은 갱신하지 않는다).
-// op-타임아웃이 좀비 소켓 때문인지, 그냥 콜드 핸드셰이크가 느렸던 것인지 가르는 신호다.
-let lastConnectedAt = 0;
 
 function extractDbNameFromUri(uri) {
   try {
@@ -245,8 +242,6 @@ export async function connectDb(env = {}) {
 
       if (mongoose.connection.readyState === 1) {
         lastHealthyAt = Date.now();
-        // 웜 재사용(위쪽 early-return)이 아니라 실제로 새 연결을 맺은 지점이다.
-        lastConnectedAt = lastHealthyAt;
         return mongoose.connection;
       }
 
@@ -341,7 +336,6 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   inFlightOps += 1;
   try {
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-      const attemptStartedAt = Date.now();
       try {
         const result = await withTimeout(
           (async () => {
@@ -366,21 +360,16 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
         const isConnectionLevelFailure = isOperationTimeout || isTransientMongoError(error);
         const willRetry = attempt < maxRetries && isTransientMongoError(error);
-        // 🔴 방금 맺은 연결은 좀비가 아니다 — 콜드 핸드셰이크가 느려 이 시도의 예산을 다 쓴 것뿐이다.
-        // 여기서 풀을 끊으면 다음 요청이 또 콜드 연결을 강요당하고, 그 요청도 같은 이유로 상한에 걸려
-        // 다시 끊는다. 즉 "매 요청 새 연결 → 12초 상한 → 리셋" 고리가 스스로를 유지한다.
-        // 2026-08-01 프로덕션 실측이 이 고리였다: auth 요청 30건 중 27건이 매번 새 연결을 맺었고
-        // 그중 20건이 resolveAuth 11.5초 이상(연결 실패는 0건 — 연결은 되는데 늘 콜드였다).
-        // 리셋을 건너뛰면 이 연결이 살아남아 다음 요청이 웜으로 재사용한다(건강 확인은 아래 lastHealthyAt
-        // 무효화로 다음 요청의 ping 이 맡는다 — 진짜 죽은 소켓이면 그때 걸러진다).
-        // 판정은 '이번 시도 안에서 연결을 새로 맺었는가' 하나다. 경과시간 창으로 재면 시도 상한을
-        // 꽉 채운 타임아웃이 정확히 경계에 떨어져 판정이 흔들린다(테스트가 이 결함을 잡았다).
-        const connectionIsFresh = lastConnectedAt >= attemptStartedAt;
+        // ⚠️ "방금 맺은 연결은 좀비가 아니니 리셋을 건너뛴다"를 2026-08-01 에 넣었다가 되돌렸다.
+        // 전제는 "콜드 핸드셰이크가 시도 예산을 태운다"였는데, 같은 변경에서 추가한 핸드셰이크 계측
+        // (`[db-connect] ... elapsedMs`)이 그 전제를 반증했다 — 핸드셰이크 중앙값은 1497ms 로 싸다.
+        // 실측 결과 느린 요청 비율도 74%(수정 전) → 78%(수정 후)로 개선이 없었고, 쿼리가 멈춘 연결을
+        // 그대로 붙들고 있을 위험만 남았다. 같은 아이디어를 다시 넣으려면 먼저 계측으로 전제를 세울 것.
+        // 실제 병목은 연결 수립이 아니라 **수립된 연결 위에서 쿼리가 12초를 넘기는 것**이다.
         if (isConnectionLevelFailure) {
           lastHealthyAt = 0;
           connectPromise = null;
-          // 방금 맺은 연결의 느림은 '연결 실패'가 아니다 — 강행 리셋 카운터를 올리지 않는다.
-          if (!connectionIsFresh) consecutiveConnectionFailures += 1;
+          consecutiveConnectionFailures += 1;
           // 🔴 데드락 탈출구. 아래 inFlightOps 가드는 '살아서 실행 중인 동시 요청'을 보호하려는 것인데,
           // 이 연결 위에서 성공한 작업 없이 연속으로 N번 실패했다면 보호할 건강한 요청이 없다 —
           // 동시 요청들도 전부 같은 죽은 소켓에 매달려 있다. 그런데도 계속 미루면, 실패를 본 클라이언트가
@@ -388,14 +377,12 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           // 죽은 연결에 붙박인다(2026-07-28 실측: 전 라우트가 auth/payments/billing 가릴 것 없이
           // "MongoDB operation timed out" 을 반복, 워커가 hung 으로 요청을 취소하기까지 함).
           // 그래서 연속 실패가 임계를 넘으면 쿨다운과 동시성 가드를 모두 우회해 즉시 끊는다.
-          // connectionIsFresh 면 강행 리셋도 하지 않는다 — 방금 맺은 소켓이라 끊을 근거가 없다.
-          const forceReset = !connectionIsFresh
-            && consecutiveConnectionFailures >= forceResetAfter
+          const forceReset = consecutiveConnectionFailures >= forceResetAfter
             && Date.now() - lastPoolResetAt >= forcedResetMinIntervalMS;
           // 전역 disconnect는 아이솔레이트 공유 풀을 끊어 동시 요청까지 절단하므로(재연결 폭풍), 쿨다운을 둔다:
           // op-타임아웃 버스트가 disconnect를 1회만 유발하게 해 동시 요청 연쇄 절단을 막는다. maxIdleTimeMS가
           // 좀비를 근절하므로 이 disconnect 자체가 드물어지며, connectDb의 좀비-보존 정책과도 정합한다.
-          if (!connectionIsFresh && (forceReset || Date.now() - lastPoolResetAt >= poolResetCooldownMS)) {
+          if (forceReset || Date.now() - lastPoolResetAt >= poolResetCooldownMS) {
             // 🔴 나 말고도 진행 중인 작업이 있으면 지금 끊지 않는다. 전역 disconnect는 '아직 살아서
             // 실행 중인' 동시 요청의 소켓까지 함께 잘라, 한 번의 블립을 동시 요청 전부의 실패로 번지게
             // 한다(메인 진입 시 auth/me·balance·subscription이 한꺼번에 503 나던 근본 원인).
