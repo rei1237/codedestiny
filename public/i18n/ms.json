@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "Pilih kaedah pembayaran",
       "readyMessage": "Pilih antara kredit bulanan dan pembayaran sekali.",
-      "directHint": "Bayar terus dengan kad atau pembayaran mudah.<br>Pembayaran diteruskan dalam tetingkap pembayaran PortOne V2 KG Inicis yang selamat.",
+      "directHint": "Hanya satu keputusan ini. Terbuka serta-merta dengan kad atau bayaran mudah.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Bayaran KRW sekali · {amount}",
       "amountLabel": "Amaun bayaran",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "Asas kredit bulanan · {amount}",
         "withPass": "Perkhidmatan berbayar am dibuka dengan pas apabila ia berada dalam had. PDF dan perkhidmatan melebihi had menggunakan pembayaran KRW sekali mengikut produk.",
-        "directOnly": "Tindakan ini disahkan dengan pembayaran KRW sekali."
+        "directOnly": "Tindakan ini disahkan dengan pembayaran KRW sekali.",
+        "passUnknown": "Jika anda ada pas, ketik kad pas di bawah dan kami semak terus di sini.",
+        "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
-        "store": "Beralih kepada Moonlight Pass untuk membuka ciri ini dan semua ciri dalam hadnya selama 30 hari, tanpa tetingkap pembayaran.",
+        "store": "Akses tanpa had kepada ciri di bawah had selama 30 hari, tanpa pembayaran. Sudah ada pas? Ketik untuk semak di sini.",
         "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
-        "upgrade": "Ciri ini melebihi had pas semasa anda. Sila semak Moonlight Pass yang lebih tinggi."
+        "upgrade": "Tahap semasa anda tidak meliputi ciri ini. Lihat pas yang lebih tinggi."
       },
       "applyMethod": {
         "label": "Gunakan kaedah",
@@ -1784,9 +1786,10 @@
         "checking": "Menyemak perlindungan pas"
       },
       "monthlyHint": {
-        "use": "Gunakan baki kredit bulanan anda dan bukanya sekarang.",
+        "use": "Dibayar dengan batu bulan yang sudah anda miliki. Terbuka tanpa perbelanjaan tambahan.",
         "insufficient": "Baki kredit bulanan anda adalah rendah. Anda boleh meneruskan pembayaran KRW sekali.",
-        "checking": "Baki kredit bulanan perlu disemak. Bayaran KRW sekali masih tersedia."
+        "checking": "Kami perlu semak baki batu bulan anda. Bayaran sekali KRW masih tersedia.",
+        "after": "{balance} akan berbaki selepas digunakan."
       },
       "monthlyBalance": {
         "needCheck": "Cek diperlukan",
@@ -1795,13 +1798,24 @@
         "refresh": "Muat semula kredit",
         "refreshing": "Menyegarkan baki kredit bulanan.",
         "refreshed": "Baki kredit bulanan disemak semula. Baki semasa ialah {balance}.",
-        "notFound": "Tiada kredit/pas bulanan aktif ditemui lagi. Sila muat semula semula selepas pembayaran selesai."
+        "notFound": "Tiada kredit/pas bulanan aktif ditemui lagi. Sila muat semula semula selepas pembayaran selesai.",
+        "owned": "Batu bulan dimiliki: {balance}",
+        "ownedUnknown": "Batu bulan · perlu disemak"
       },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."
       },
       "passUpgradeTitle": "Naik taraf Moonlight Pass",
-      "recommendBadge": "Disyorkan"
+      "recommendBadge": "Disyorkan",
+      "moonTitle": "Pilih cara pembayaran",
+      "moonSubtitle": "Pilih pilihan yang paling sesuai untuk anda.",
+      "directTitleLabel": "Bayaran sekali",
+      "monthlyUnit": "mata wang acara",
+      "passBuyTitle": "Beli dengan pas",
+      "passChecking": "Menyemak pas anda…",
+      "passMissGoStore": "Pas anda tidak meliputi ini, kami bawa anda ke kedai pas.",
+      "directHintApp": "Hanya satu keputusan ini. Terbuka serta-merta melalui pengebilan Google Play.",
+      "pgBadgeApp": "Pengebilan Google Play"
     },
     "overlay": {
       "unlockPreparing": {

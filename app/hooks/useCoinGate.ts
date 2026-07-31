@@ -5,7 +5,6 @@ import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/aut
 import {
   PAID_SERVICE_RUNTIME_SRC,
   loadPaidServiceRuntimeGate,
-  resolveSnapshotPassVerdict,
   runBillingCoinGate,
 } from "../_lib/billing-client";
 import {
@@ -309,7 +308,8 @@ function resolveLoginRequired(code: string, status: number) {
 }
 
 export function useCoinGate() {
-  const { startPayment, endPayment, setPaymentMessage } = usePayment();
+  // startPayment 는 더 이상 쓰지 않는다 — 진입 이용권 확인 화면이 사라졌다(2026-08 정책 전환).
+  const { endPayment, setPaymentMessage } = usePayment();
   const inFlightRef = useRef(false);
   const [isPaying, setIsPaying] = useState(false);
 
@@ -339,20 +339,11 @@ export function useCoinGate() {
 
     inFlightRef.current = true;
     setIsPaying(true);
-    // 🔴 이용권 '미보유'가 스냅샷만으로 확정되면 확인 화면을 아예 켜지 않는다. 켜 봐야 서버 왕복이
-    // 0이라 다음 프레임에 결제창으로 덮이고, 그 사이 진행바가 '혜택 적용 → 결과 준비'까지 흘러
-    // 이용권이 없는 사용자에게 있지도 않은 혜택을 적용하는 것처럼 보였다. 정적 셸의 _cdSkipPassWaitUi
-    // (index.html)와 같은 형태이며, 판정은 runBillingCoinGate 와 **같은 함수**를 쓴다(사본 금지).
-    const skipPassWaitUi = resolveSnapshotPassVerdict({
-      categoryKey: input.categoryKey,
-      subFeatureKey: input.subFeatureKey,
-      featureKey: input.featureKey,
-      reason: input.reason,
-      coinPrice: input.coinPrice,
-      cost: input.cost,
-      amountKRW: input.amountKRW,
-    }).cannotCover;
-    if (!skipPassWaitUi) startPayment(coinGateText("checkingPass"), "pass-checking");
+    // 🔴 진입 이용권 확인 화면은 더 이상 켜지 않는다(2026-08 정책 전환, 정적 셸과 동일).
+    // 판정 근거가 로컬 구독 스냅샷뿐이라 서버 왕복이 0이고, 켜 봐야 다음 프레임에 결제창으로 덮이면서
+    // 진행바가 '혜택 적용 → 결과 준비'까지 흘러 이용권이 없는 사용자에게 있지도 않은 혜택을 적용하는
+    // 것처럼 보인다. 이용권 확인은 결제창의 '이용권으로 구매' 카드가 맡는다.
+    // (스냅샷이 커버를 확답하는 경우의 '이용권 적용 완료' 프레임은 runBillingCoinGate 가 그대로 emit 한다.)
 
     let requiredCoins = 0;
 
@@ -393,16 +384,12 @@ export function useCoinGate() {
         }
       }
 
-      // 해금(영구 잠금 해제) 기능만 "기존 잠금 해제 내역 확인" 문구를 쓰고,
-      // 1회당 결제(per-use)는 중립적인 이용권 확인 문구를 재사용한다(잘못된 해제 안내 방지).
-      // 확인 화면을 켜지 않은 경로(미보유 확정)에서는 문구도 건드리지 않는다 — 다음 화면은 결제창이다.
-      if (!skipPassWaitUi) {
+      // 해금(영구 잠금 해제) 기능만 "기존 잠금 해제 내역 확인" 문구를 쓴다 — 이 확인은 이용권 선검사가
+      // 아니라 '이미 산 콘텐츠인가' 조회라서 남아 있고, 그때만 문구가 필요하다.
+      // 1회당 결제(per-use)는 진입 확인 화면 자체가 없으므로 문구도 건드리지 않는다(다음 화면이 결제창).
+      if (resolvePaidFeatureBillingType(input.featureKey) === "unlock") {
         setPaymentMessage(
-          coinGateText(
-            resolvePaidFeatureBillingType(input.featureKey) === "unlock"
-              ? "checkingEntitlements"
-              : "checkingPass",
-          ),
+          coinGateText("checkingEntitlements"),
         );
       }
 
@@ -571,7 +558,7 @@ export function useCoinGate() {
       setIsPaying(false);
       inFlightRef.current = false;
     }
-  }, [endPayment, setPaymentMessage, startPayment]);
+  }, [endPayment, setPaymentMessage]);
 
   return {
     isPaying,

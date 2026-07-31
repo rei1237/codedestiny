@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "Elige método de pago",
       "readyMessage": "Elige entre créditos mensuales y pago único.",
-      "directHint": "Pague directamente con tarjeta o pago simple.<br>El pago continúa en la ventana segura de pago de PortOne V2 KG Inicis.",
+      "directHint": "Solo este resultado, ahora. Se abre al instante con tarjeta o pago rápido.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Pago único en KRW · {amount}",
       "amountLabel": "Monto del pago",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "Base de crédito mensual · {amount}",
         "withPass": "Los servicios generales pagos se abren con un pase cuando están dentro del límite. Los archivos PDF y los servicios que superan el límite utilizan un pago único en KRW por producto.",
-        "directOnly": "Esta acción se confirma con un pago único en KRW."
+        "directOnly": "Esta acción se confirma con un pago único en KRW.",
+        "passUnknown": "Si tienes un pase, toca la tarjeta de pase de abajo y lo comprobamos aquí mismo.",
+        "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago."
       },
       "passBadge": "Pase a la luz de la luna",
       "passStoreTitle": "Tienda de pases a la luz de la luna",
       "passRetryTitle": "Verificar pase nuevamente",
       "passHint": {
-        "store": "Cambia al Pase Moonlight para abrir esta y todas las funciones dentro del límite durante 30 días, sin ventana de pago.",
+        "store": "30 días de acceso ilimitado a funciones bajo el límite, sin pasar por caja. ¿Ya tienes pase? Toca para comprobarlo aquí.",
         "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
-        "upgrade": "Esta función supera el límite de tu pase actual. Consulta un Pase Moonlight superior."
+        "upgrade": "Tu nivel actual no cubre esta función. Echa un vistazo a un pase superior."
       },
       "applyMethod": {
         "label": "Aplicar método",
@@ -1784,9 +1786,10 @@
         "checking": "Comprobando la cobertura del pase"
       },
       "monthlyHint": {
-        "use": "Utilice su saldo de crédito mensual y ábralo ahora.",
+        "use": "Paga con las piedras lunares que ya tienes. Se abre sin gasto adicional.",
         "insufficient": "Su saldo de crédito mensual es bajo. Puede continuar con el pago único en KRW.",
-        "checking": "Es necesario verificar el saldo de crédito mensual. El pago único en KRW todavía está disponible."
+        "checking": "Necesitamos comprobar tu saldo de piedras lunares. El pago único en KRW sigue disponible.",
+        "after": "Quedarán {balance} después de usarlo."
       },
       "monthlyBalance": {
         "needCheck": "Cheque necesario",
@@ -1795,13 +1798,24 @@
         "refresh": "Actualizar créditos",
         "refreshing": "Saldo de crédito mensual actualizado.",
         "refreshed": "Saldo de crédito mensual verificado nuevamente. El saldo actual es {balance}.",
-        "notFound": "Aún no se encontraron créditos/pase mensuales activos. Actualice nuevamente después de completar el pago."
+        "notFound": "Aún no se encontraron créditos/pase mensuales activos. Actualice nuevamente después de completar el pago.",
+        "owned": "Piedras lunares: {balance}",
+        "ownedUnknown": "Piedras lunares · falta comprobar"
       },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico."
       },
       "passUpgradeTitle": "Mejorar el pase Moonlight",
-      "recommendBadge": "Recomendado"
+      "recommendBadge": "Recomendado",
+      "moonTitle": "Elige cómo pagar",
+      "moonSubtitle": "Elige la opción que mejor te convenga.",
+      "directTitleLabel": "Pago único",
+      "monthlyUnit": "moneda de evento",
+      "passBuyTitle": "Comprar con pase",
+      "passChecking": "Comprobando tu pase…",
+      "passMissGoStore": "Tu pase no cubre esto, te llevamos a la tienda de pases.",
+      "directHintApp": "Solo este resultado, ahora. Se abre al instante con la facturación de Google Play.",
+      "pgBadgeApp": "Facturación de Google Play"
     },
     "overlay": {
       "unlockPreparing": {

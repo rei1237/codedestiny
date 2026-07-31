@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "选择支付方式",
       "readyMessage": "请选择月定石或单次支付。",
-      "directHint": "可使用银行卡或快捷支付直接付款。<br>支付将在 PortOne V2 KG Inicis 安全支付窗口中进行。",
+      "directHint": "只要這一份結果，用信用卡或快捷支付立即開啟。",
       "pgBadge": "PortOne V2·KG Inicis",
       "directTitle": "韩元单次支付 · {amount}",
       "amountLabel": "支付金额",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "月定石基准 · {amount}",
         "withPass": "一般付费服务在限额内可用通行券开启，PDF和超出限额的服务按商品使用韩元单次支付。",
-        "directOnly": "此操作将通过韩元单次支付确认。"
+        "directOnly": "此操作将通过韩元单次支付确认。",
+        "passUnknown": "如果你有通行證，點擊下方通行證卡片即可當場確認。",
+        "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。"
       },
       "passBadge": "月光通行券",
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "切換到月光通行券後，包括此功能在內的額度以內功能可在30天內無需支付視窗無限使用。",
+        "store": "30 天內額度以內的功能無限使用，無須再次付款。已有通行證？點一下即可當場確認。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
-        "upgrade": "此功能超出目前通行券額度。請查看更高階的月光通行券。"
+        "upgrade": "目前等級無法免費開啟此功能，請查看更高等級的通行證。"
       },
       "applyMethod": {
         "label": "适用方式",
@@ -1784,9 +1786,10 @@
         "checking": "正在确认通行券范围"
       },
       "monthlyHint": {
-        "use": "使用持有月定石余额并立即开启。",
+        "use": "使用你已獲得的月定石付款，無需額外花費即可開啟。",
         "insufficient": "月定石余额不足。可继续韩元单次支付。",
-        "checking": "需要确认月定石余额。仍可使用韩元单次支付。"
+        "checking": "需要確認月定石餘額。韓元單次付款仍可使用。",
+        "after": "使用後將剩餘 {balance}。"
       },
       "monthlyBalance": {
         "needCheck": "需要确认",
@@ -1795,13 +1798,24 @@
         "refresh": "重新查询月定石",
         "refreshing": "正在重新查询月定石余额。",
         "refreshed": "已重新确认月定石余额。当前为 {balance}。",
-        "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。"
+        "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。",
+        "owned": "持有月定石 {balance}",
+        "ownedUnknown": "持有月定石 · 需確認"
       },
       "legal": {
         "provisionTiming": "本服務於付款完成後立即提供。服務將於確認付款時開始使用，已開始提供的內容根據電子商務法可能限制撤銷訂單。"
       },
       "passUpgradeTitle": "月光通行券升級",
-      "recommendBadge": "推薦"
+      "recommendBadge": "推薦",
+      "moonTitle": "選擇付款方式",
+      "moonSubtitle": "請選擇最適合你的方式開啟內容。",
+      "directTitleLabel": "單次付款",
+      "monthlyUnit": "活動貨幣",
+      "passBuyTitle": "用通行證購買",
+      "passChecking": "正在確認你的通行證。",
+      "passMissGoStore": "你的通行證無法開啟此內容，正在前往通行證商店。",
+      "directHintApp": "只要這一份結果，透過 Google Play 結算立即開啟。",
+      "pgBadgeApp": "Google Play 結算"
     },
     "overlay": {
       "unlockPreparing": {

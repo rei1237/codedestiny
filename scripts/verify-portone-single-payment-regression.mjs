@@ -205,32 +205,50 @@ function runInstantPgWindowTests() {
   assertContains(billingClientSource, 'const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";', "covered pass check must still report hasEntitlement");
 }
 
-// 🔴 "PG 결제창이 느리게 뜬다" 회귀 가드 (2026-07)
-// 실측: 셸 정본과 dp 폴백은 같은 엔드포인트(POST /api/billing/coin-gate)를 쓰는데도 셸 쪽이 훨씬
-// 느렸고, 원인은 구독 스냅샷 TTL 비대칭이었다 — 비패스 스냅샷은 60초(패스 보유자는 5분)인데 예열이
-// 앱 진입 1회뿐이라, 진입 1분 뒤의 유료 클릭은 전부 서버 왕복 + 6초 예산 + 재시도 2회를 탔다.
-// 여기서는 ① 스냅샷이 '미커버'를 확답하면 확인 화면·rAF 대기를 생략하고 곧바로 결제창으로 가는 배선과
-// ② 만료를 메우는 예열 두 지점(유휴/의도)의 존재를 고정한다. 선검사 단계 자체는 유지된다.
+// 🔴 "PG 결제창이 느리게 뜬다" 회귀 가드 (2026-07, 2026-07 재작성)
+//
+// 예전 설계는 유료 클릭 시점에 서버로 이용권을 선검사했고(coin-gate 왕복 + 6초 예산 + 재시도 2회),
+// 스냅샷이 '미커버'를 확답할 때만 그 대기를 건너뛰었다. 스냅샷 none TTL 이 60초라 진입 1분 뒤의
+// 클릭은 대부분 다시 차단형 왕복을 탔고, 그게 곧 결제창이 늦게 뜨는 원인이었다.
+//
+// 지금은 **진입 경로에 서버 왕복이 아예 없다**. 스냅샷이 커버/미커버를 확답하면 그대로 쓰고,
+// 확답하지 못하면 기다리지 않고 결제창을 연다(snapshotVerdictOnly). 이용권 확인은 결제창의
+// '이용권으로 구매' 카드가 그 자리에서 수행하고, 카드 주문 직전 서버 안전망
+// (grantPassFreeAccessBeforeCardIfAvailable)이 한 번 더 검사한다.
 function runInstantPgLatencyTests() {
   // ① 스냅샷 즉답 판정은 _cdCoverageFromSubscriptionSnapshot 하나만 근거로 쓴다.
-  assertContains(indexSource, "function _cdSnapshotSaysPassCannotCover(coinPrice) {", "snapshot 'cannot cover' verdict helper");
-  const verdictIndex = indexSource.indexOf("function _cdSnapshotSaysPassCannotCover(coinPrice) {");
-  const verdictBody = indexSource.slice(verdictIndex, verdictIndex + 900);
-  // 인자까지 통째로 핀하지 않는다(옵션이 붙으면 의도와 무관하게 깨진다). 지키려는 성질은 두 가지 —
-  // ① 근거가 서버가 채운 구독 스냅샷일 것 ② pending 결제까지 받아주는 fast 빌더가 아닐 것.
-  assertContains(verdictBody, "_cdCoverageFromSubscriptionSnapshot(Number(coinPrice)", "verdict must rely on the server-populated subscription snapshot");
-  assertNotContains(verdictBody, "_cdBuildFastMembershipCoverage", "verdict must not use the pending-tolerant fast coverage builder");
+  //    (pending 결제까지 받아주는 _cdBuildFastMembershipCoverage 는 판정 근거로 부적합하다.)
+  const fastPathIndex = indexSource.indexOf("if (item.allowSnapshotFastPath === true && !isBackgroundPassRecord");
+  assert.ok(fastPathIndex >= 0, "snapshot fast-path verdict block");
+  const verdictBody = indexSource.slice(fastPathIndex, fastPathIndex + 1800);
+  assertContains(verdictBody, "_cdCoverageFromSubscriptionSnapshot(coinCost", "verdict must rely on the server-populated subscription snapshot");
+  // 호출만 금지한다 — 블록 안 주석이 이 이름을 '쓰면 안 되는 근거'로 언급하고 있어 이름 자체는 남는다.
+  assertNotContains(verdictBody, "_cdBuildFastMembershipCoverage(", "verdict must not use the pending-tolerant fast coverage builder");
   // ①-b 만료된 '미보유' 스냅샷도 판정에 쓴다(stale-while-revalidate). 이게 빠지면 이용권이 없는
   // 사용자가 60초마다 차단형 서버 왕복으로 되돌아가고, 그게 정확히 이 가드가 막으려던 지연이다.
   assertContains(verdictBody, "allowStaleNone: true", "verdict must accept a stale 'none' snapshot (SWR) instead of blocking on the server");
+  // ①-c 커버 확답이면 낙관 통과(서버 기록은 백그라운드). 이 분기가 이용권 보유자의 무료 즉시 실행이다.
+  assertContains(verdictBody, "_cdRecordMembershipPassInBackground(item, coinCost, requestId);", "covered snapshot must grant optimistically and record in the background");
 
-  // ① 확답이면 확인 화면(오버레이/게이트)과 페인트 대기를 건너뛴다 — 중복 클릭 가드는 유지한다.
-  assertContains(indexSource, "var _cdSkipPassWaitUi = shouldRunPassFirst && _cdSnapshotSaysPassCannotCover(coinPrice);", "gate must compute the skip-wait-UI verdict");
-  assertContains(indexSource, "suppressWaitUi: _cdSkipPassWaitUi", "gate must pass the verdict into the in-flight guard");
-  assertContains(indexSource, "if (!_cdSkipPassWaitUi) await _cdWaitForPaymentOverlayPaint();", "gate must skip the paint wait when no overlay is shown");
-  assertContains(indexSource, "if (shouldRunPassFirst && !_cdSkipPassWaitUi) {", "gate must skip the checkingEntitlement update when the snapshot already answered");
+  // ② 진입 경로에는 서버 왕복이 없다 — 두 진입점 모두 snapshotVerdictOnly 로 스냅샷 판정만 쓴다.
+  //    (메인 게이트 _cdOpenPaidServiceGate, 결제창 직행 경로 _cdResolvePassBeforePaymentChoice)
+  assertContains(indexSource, "snapshotVerdictOnly: true,", "entry pass check must be snapshot-only");
+  assert.ok(
+    indexSource.split("snapshotVerdictOnly: true,").length - 1 >= 2,
+    "both entry paths (main gate and payment-choice shortcut) must opt into the snapshot-only verdict",
+  );
+  assertContains(
+    indexSource,
+    "if (item.snapshotVerdictOnly === true && !isBackgroundPassRecord) {",
+    "indeterminate snapshot must open the checkout instead of asking the server",
+  );
+  // ③ 진입 확인 화면 자체가 없다 — 대기 UI 를 켜지 않고, 중복 클릭 가드만 남긴다.
+  assertContains(indexSource, "suppressWaitUi: true", "entry gate must not raise a pass-checking wait screen");
   assertContains(indexSource, "if (opts.suppressWaitUi !== true) {", "paid-feature gate must honour suppressWaitUi");
   assertContains(indexSource, "_cdBeginPaidFeatureInFlight(paidGateAction, featureKey, {", "duplicate-click guard must stay in place");
+  // ④ 되살아나면 안 되는 것: 선검사 예산·느림 안내·재시도. 전부 서버 왕복이 있을 때만 의미가 있었다.
+  assertNotContains(indexSource, "CD_PASS_FIRST_BUDGET_MS", "entry pass check must not reintroduce a server-round-trip budget");
+  assertNotContains(indexSource, "CD_PASS_SLOW_NOTE", "entry pass check must not reintroduce the slow-server notice");
 
   // ② 예열은 진입 1회로 끝나지 않는다(유휴 + 의도).
   assertContains(indexSource, "var _cdWarmSubscriptionSnapshotIfMissing = function(reason) {", "snapshot warm-up helper");

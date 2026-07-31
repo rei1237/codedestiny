@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "Zahlungsmethode auswählen",
       "readyMessage": "Wählen Sie zwischen monatlichem Guthaben und einmaliger Zahlung.",
-      "directHint": "Bezahlen Sie direkt mit Karte oder einfacher Zahlung.<br>Die Zahlung wird im sicheren Checkout-Fenster von PortOne V2 KG Inicis fortgesetzt.",
+      "directHint": "Nur dieses eine Ergebnis. Öffnet sofort per Karte oder Express-Zahlung.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Einmalige KRW-Zahlung · {amount}",
       "amountLabel": "Zahlungsbetrag",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "Monatliche Kreditbasis · {amount}",
         "withPass": "Allgemeine kostenpflichtige Dienste werden mit einem Pass geöffnet, wenn sie innerhalb des Limits liegen. Für PDFs und Dienste über dem Limit ist eine einmalige KRW-Zahlung pro Produkt erforderlich.",
-        "directOnly": "Diese Aktion wird mit einer einmaligen KRW-Zahlung bestätigt."
+        "directOnly": "Diese Aktion wird mit einer einmaligen KRW-Zahlung bestätigt.",
+        "passUnknown": "Wenn du einen Pass hast, tippe unten auf die Pass-Karte – wir prüfen ihn sofort.",
+        "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen."
       },
       "passBadge": "Mondscheinpass",
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Überprüfen Sie erneut, ob die Prüfung bestanden hat",
       "passHint": {
-        "store": "Wechseln Sie zum Moonlight Pass, um diese und alle Funktionen unter seinem Limit 30 Tage lang ohne Zahlungsfenster unbegrenzt zu nutzen.",
+        "store": "30 Tage unbegrenzt alle Funktionen unter dem Limit, ohne Checkout. Schon einen Pass? Tippen und direkt prüfen.",
         "retry": "Wir prüfen erneut auf dem Server, ob Ihr Pass dies ohne Bezahlung öffnen kann.",
-        "upgrade": "Diese Funktion liegt über dem Limit Ihres aktuellen Passes. Prüfen Sie einen höheren Moonlight Pass."
+        "upgrade": "Deine aktuelle Stufe deckt diese Funktion nicht ab. Sieh dir einen höheren Pass an."
       },
       "applyMethod": {
         "label": "Methode anwenden",
@@ -1784,9 +1786,10 @@
         "checking": "Überprüfung der Passabdeckung"
       },
       "monthlyHint": {
-        "use": "Nutzen Sie Ihr monatliches Guthaben und eröffnen Sie es jetzt.",
+        "use": "Bezahlt mit bereits vorhandenen Mondsteinen. Öffnet ohne zusätzliche Ausgaben.",
         "insufficient": "Ihr monatliches Guthaben ist niedrig. Sie können mit der einmaligen KRW-Zahlung fortfahren.",
-        "checking": "Das monatliche Guthaben muss überprüft werden. Eine einmalige KRW-Zahlung ist weiterhin möglich."
+        "checking": "Dein Mondstein-Guthaben muss geprüft werden. Einmalzahlung in KRW bleibt möglich.",
+        "after": "Danach verbleiben {balance}."
       },
       "monthlyBalance": {
         "needCheck": "Überprüfung erforderlich",
@@ -1795,13 +1798,24 @@
         "refresh": "Credits aktualisieren",
         "refreshing": "Erfrischender monatlicher Guthabensaldo.",
         "refreshed": "Monatliches Guthaben erneut überprüft. Der aktuelle Kontostand ist {balance}.",
-        "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist."
+        "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist.",
+        "owned": "Mondsteine: {balance}",
+        "ownedUnknown": "Mondsteine · Prüfung nötig"
       },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
       },
       "passUpgradeTitle": "Moonlight Pass upgraden",
-      "recommendBadge": "Empfohlen"
+      "recommendBadge": "Empfohlen",
+      "moonTitle": "Zahlungsart wählen",
+      "moonSubtitle": "Wähle die Option, die am besten zu dir passt.",
+      "directTitleLabel": "Einmalzahlung",
+      "monthlyUnit": "Event-Währung",
+      "passBuyTitle": "Mit Pass kaufen",
+      "passChecking": "Pass wird geprüft …",
+      "passMissGoStore": "Dein Pass deckt das nicht ab – wir bringen dich zum Pass-Shop.",
+      "directHintApp": "Nur dieses eine Ergebnis. Öffnet sofort über Google Play.",
+      "pgBadgeApp": "Google Play-Abrechnung"
     },
     "overlay": {
       "unlockPreparing": {

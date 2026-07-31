@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "Kies betaalmethode",
       "readyMessage": "Kies tussen maandelijkse tegoeden en eenmalige betaling.",
-      "directHint": "Betaal direct met kaart of eenvoudige betaling.<br>De betaling gaat verder in het beveiligde afrekenvenster van PortOne V2 KG Inicis.",
+      "directHint": "Alleen dit ene resultaat. Opent meteen met kaart of snelbetaling.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Eenmalige KRW-betaling · {amount}",
       "amountLabel": "Betalingsbedrag",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "Maandelijkse kredietbasis · {amount}",
         "withPass": "Algemene betaalde diensten worden geopend met een pas als ze binnen de limiet vallen. PDF's en services boven de limiet maken gebruik van eenmalige KRW-betaling per product.",
-        "directOnly": "Deze actie wordt bevestigd met een eenmalige betaling in KRW."
+        "directOnly": "Deze actie wordt bevestigd met een eenmalige betaling in KRW.",
+        "passUnknown": "Heb je een pas? Tik hieronder op de paskaart, dan controleren we hem meteen.",
+        "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
-        "store": "Stap over op de Moonlight Pass en gebruik deze en alle functies onder de limiet 30 dagen lang onbeperkt, zonder betaalvenster.",
+        "store": "30 dagen onbeperkt toegang tot functies onder de limiet, zonder afrekenen. Heb je al een pas? Tik om het hier te controleren.",
         "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen.",
-        "upgrade": "Deze functie ligt boven de limiet van je huidige pas. Bekijk een hogere Moonlight Pass."
+        "upgrade": "Je huidige niveau dekt deze functie niet. Bekijk een hogere pas."
       },
       "applyMethod": {
         "label": "Methode toepassen",
@@ -1784,9 +1786,10 @@
         "checking": "Pasdekking controleren"
       },
       "monthlyHint": {
-        "use": "Gebruik uw maandelijkse tegoed en open het nu.",
+        "use": "Betaalt met maanstenen die je al hebt. Opent zonder extra uitgaven.",
         "insufficient": "Uw maandelijkse tegoed is laag. U kunt doorgaan met een eenmalige betaling in KRW.",
-        "checking": "Maandelijks tegoed moet worden gecontroleerd. Eenmalige KRW-betaling is nog steeds mogelijk."
+        "checking": "We moeten je maansteensaldo controleren. Eenmalige KRW-betaling blijft beschikbaar.",
+        "after": "Er blijft {balance} over na gebruik."
       },
       "monthlyBalance": {
         "needCheck": "Controle nodig",
@@ -1795,13 +1798,24 @@
         "refresh": "Credits vernieuwen",
         "refreshing": "Maandelijks tegoedsaldo vernieuwen.",
         "refreshed": "Maandelijks tegoed opnieuw gecontroleerd. Het huidige saldo is {balance}.",
-        "notFound": "Er zijn nog geen actieve maandelijkse tegoeden/pas gevonden. Vernieuw de pagina opnieuw nadat de betaling is voltooid."
+        "notFound": "Er zijn nog geen actieve maandelijkse tegoeden/pas gevonden. Vernieuw de pagina opnieuw nadat de betaling is voltooid.",
+        "owned": "Maanstenen in bezit: {balance}",
+        "ownedUnknown": "Maanstenen · controle nodig"
       },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."
       },
       "passUpgradeTitle": "Moonlight Pass upgraden",
-      "recommendBadge": "Aanbevolen"
+      "recommendBadge": "Aanbevolen",
+      "moonTitle": "Kies een betaalwijze",
+      "moonSubtitle": "Kies de optie die het beste bij je past.",
+      "directTitleLabel": "Eenmalige betaling",
+      "monthlyUnit": "eventvaluta",
+      "passBuyTitle": "Kopen met pas",
+      "passChecking": "Je pas wordt gecontroleerd…",
+      "passMissGoStore": "Je pas dekt dit niet, we brengen je naar de paswinkel.",
+      "directHintApp": "Alleen dit ene resultaat. Opent meteen via Google Play-facturering.",
+      "pgBadgeApp": "Google Play-facturering"
     },
     "overlay": {
       "unlockPreparing": {

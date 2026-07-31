@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "Chọn phương thức thanh toán",
       "readyMessage": "Chọn giữa tín dụng hàng tháng và thanh toán một lần.",
-      "directHint": "Thanh toán trực tiếp bằng thẻ hoặc thanh toán đơn giản.<br>Thanh toán tiếp tục trong cửa sổ thanh toán PortOne V2 KG Inicis an toàn.",
+      "directHint": "Chỉ một kết quả này thôi. Mở ngay bằng thẻ hoặc thanh toán nhanh.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Thanh toán KRW một lần · {amount}",
       "amountLabel": "Số tiền thanh toán",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "Cơ sở tín dụng hàng tháng · {amount}",
         "withPass": "Các dịch vụ trả phí chung mở bằng thẻ khi chúng nằm trong giới hạn. Các tệp PDF và dịch vụ vượt quá giới hạn sẽ sử dụng khoản thanh toán KRW một lần cho từng sản phẩm.",
-        "directOnly": "Hành động này được xác nhận bằng khoản thanh toán KRW một lần."
+        "directOnly": "Hành động này được xác nhận bằng khoản thanh toán KRW một lần.",
+        "passUnknown": "Nếu bạn có vé, hãy chạm vào thẻ vé bên dưới, chúng tôi sẽ kiểm tra ngay.",
+        "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Chuyển sang Vé Ánh Trăng để mở tính năng này và mọi tính năng trong hạn mức suốt 30 ngày, không cần cửa sổ thanh toán.",
+        "store": "Truy cập không giới hạn các tính năng dưới hạn mức trong 30 ngày, không cần thanh toán. Đã có vé? Chạm để kiểm tra ngay.",
         "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
-        "upgrade": "Tính năng này vượt hạn mức vé hiện tại. Hãy xem Vé Ánh Trăng cao hơn."
+        "upgrade": "Hạng hiện tại của bạn không bao gồm tính năng này. Hãy xem vé cao hơn."
       },
       "applyMethod": {
         "label": "Áp dụng phương pháp",
@@ -1784,9 +1786,10 @@
         "checking": "Kiểm tra mức độ phù hợp của thẻ"
       },
       "monthlyHint": {
-        "use": "Sử dụng số dư tín dụng hàng tháng của bạn và mở nó ngay bây giờ.",
+        "use": "Thanh toán bằng nguyệt thạch bạn đã có. Mở mà không tốn thêm chi phí.",
         "insufficient": "Số dư tín dụng hàng tháng của bạn thấp. Bạn có thể tiếp tục thanh toán KRW một lần.",
-        "checking": "Cần kiểm tra số dư tín dụng hàng tháng. Thanh toán KRW một lần vẫn có sẵn."
+        "checking": "Chúng tôi cần kiểm tra số dư nguyệt thạch. Thanh toán một lần bằng KRW vẫn khả dụng.",
+        "after": "Còn lại {balance} sau khi dùng."
       },
       "monthlyBalance": {
         "needCheck": "Cần kiểm tra",
@@ -1795,13 +1798,24 @@
         "refresh": "Làm mới tín dụng",
         "refreshing": "Làm mới số dư tín dụng hàng tháng.",
         "refreshed": "Số dư tín dụng hàng tháng được kiểm tra lại. Số dư hiện tại là {balance}.",
-        "notFound": "Chưa tìm thấy tín dụng/thẻ hoạt động hàng tháng nào. Vui lòng làm mới lại sau khi thanh toán hoàn tất."
+        "notFound": "Chưa tìm thấy tín dụng/thẻ hoạt động hàng tháng nào. Vui lòng làm mới lại sau khi thanh toán hoàn tất.",
+        "owned": "Nguyệt thạch hiện có: {balance}",
+        "ownedUnknown": "Nguyệt thạch · cần kiểm tra"
       },
       "legal": {
         "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
       },
       "passUpgradeTitle": "Nâng cấp Vé Ánh Trăng",
-      "recommendBadge": "Đề xuất"
+      "recommendBadge": "Đề xuất",
+      "moonTitle": "Chọn cách thanh toán",
+      "moonSubtitle": "Chọn phương án phù hợp nhất với bạn.",
+      "directTitleLabel": "Thanh toán một lần",
+      "monthlyUnit": "tiền sự kiện",
+      "passBuyTitle": "Mua bằng vé",
+      "passChecking": "Đang kiểm tra vé của bạn…",
+      "passMissGoStore": "Vé của bạn không bao gồm mục này, chúng tôi sẽ đưa bạn đến cửa hàng vé.",
+      "directHintApp": "Chỉ một kết quả này thôi. Mở ngay qua thanh toán Google Play.",
+      "pgBadgeApp": "Thanh toán Google Play"
     },
     "overlay": {
       "unlockPreparing": {
