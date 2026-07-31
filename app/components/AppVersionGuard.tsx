@@ -441,6 +441,21 @@ export default function AppVersionGuard() {
       savedVersion = "";
     }
 
+    // 저장값이 없다 = 이 브라우저/앱이 이 사이트를 처음 본다. 방금 받아온 문서를 같은 URL 로
+    // 다시 로드해도 달라질 것이 없으므로, 이걸 "버전 변경"으로 흘려보내면 첫 방문·재설치·배포
+    // 직후 사용자가 전원 강제 리로드를 한 번씩 겪는다(=화면 이중 로딩). 버전만 기록하고 넘긴다.
+    // 셸(js/share.js)과 같은 storage 키를 공유하므로 양쪽 판정이 같아야 한다.
+    if (!savedVersion) {
+      try {
+        window.localStorage.setItem(VERSION_KEY, serverVersion);
+      } catch (e) {
+        // ignore
+      }
+      await purgeIfNeeded(serverVersion);
+      setPendingUpdate(null);
+      return;
+    }
+
     const versionChanged = savedVersion !== serverVersion;
     if (!versionChanged) {
       await purgeIfNeeded(serverVersion);
