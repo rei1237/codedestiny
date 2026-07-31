@@ -26,6 +26,12 @@ const LOGOUT_INFLIGHT_POLL_MS = 80;
 // 진입)에만 적용된다 — 그 로그아웃 fetch는 이미 끝났거나 중단됐으므로 짧게만 확인하고 진행한다.
 // (계정 전환 재로그인이 최대 3.5s 블로킹되던 문제 해소.)
 const PERSISTED_LOGOUT_SETTLE_CAP_MS = 800;
+// 🔴 authFetch 는 지금까지 요청 자체에 상한이 없었다. 그래서 401 이면
+// /api/auth/me → /api/auth/refresh → /api/auth/me 3연쇄가 무기한 매달릴 수 있었고,
+// 호출부(useCoinGate 등)의 Promise.race 상한은 "기다림"만 끊을 뿐 요청은 살려 뒀다.
+// 값은 정적 셸이 같은 경로에 이미 검증해 쓰고 있는 상한과 맞춘다(index.html resolveTimeoutMs).
+const AUTH_FETCH_TIMEOUT_MS = 22000;
+const AUTH_REFRESH_TIMEOUT_MS = 20000;
 
 type RefreshSessionState = "success" | "invalid" | "transient";
 
@@ -373,12 +379,12 @@ export function clearClientAuthState() {
 }
 
 async function requestTokenRefresh(apiBase: string) {
-  return fetch(toAbsoluteApiUrl("/api/auth/refresh", apiBase), {
+  return fetchWithTimeout(toAbsoluteApiUrl("/api/auth/refresh", apiBase), {
     method: "POST",
     credentials: "include",
     cache: "no-store",
     headers: { [CACHE_REFRESH_HEADER]: "1", ...mobileAppAuthHeaders() },
-  });
+  }, AUTH_REFRESH_TIMEOUT_MS);
 }
 
 async function refreshSession(apiBase: string) {
@@ -445,9 +451,31 @@ function isMeRequest(url: string, init: RequestInit = {}) {
   }
 }
 
+// 호출부가 자기 signal 을 준 경우(취소 제어를 이미 쥐고 있는 경우)에는 건드리지 않는다.
+// 그 외에만 상한을 걸어 hang 을 실제로 끊는다.
+async function fetchAuthRequest(request: Request, callerControlsAbort: boolean) {
+  if (callerControlsAbort || typeof AbortController === "undefined") {
+    return fetch(request);
+  }
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    try {
+      controller.abort();
+    } catch (e) {
+      void e;
+    }
+  }, AUTH_FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(request, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string) {
+  const callerControlsAbort = Boolean(init.signal);
   let request = buildAuthRequest(targetUrl, init);
-  let response = await fetch(request.clone());
+  let response = await fetchAuthRequest(request.clone(), callerControlsAbort);
   if (
     response.status === 401
     && retryOn401
@@ -456,7 +484,7 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
     const refreshState = await refreshSession(apiBase);
     if (refreshState === "success") {
       request = buildAuthRequest(targetUrl, init);
-      response = await fetch(request.clone());
+      response = await fetchAuthRequest(request.clone(), callerControlsAbort);
     } else if (refreshState === "transient") {
       return buildRefreshTransientResponse(response.status);
     }
