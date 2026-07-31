@@ -20,6 +20,10 @@ type AdminLoginCopy = {
   missing: string;
   placeholderKeys: string;
   permission: string;
+  // 429/503 을 "비밀번호가 올바르지 않습니다"로 뭉뚱그리면 관리자가 원인을 알 수 없다.
+  // 실제로 이것 때문에 "비밀번호를 바꿨더니 로그인이 안 된다"로 오진했다.
+  rateLimited: string;
+  serverBusy: string;
 };
 
 const ADMIN_LOGIN_COPY: Record<LoadingLocale, AdminLoginCopy> = {
@@ -39,6 +43,8 @@ const ADMIN_LOGIN_COPY: Record<LoadingLocale, AdminLoginCopy> = {
     missing: "누락",
     placeholderKeys: "임시값",
     permission: "관리자 권한이 필요합니다",
+    rateLimited: "로그인 시도가 많아 잠시 잠겼습니다. 10분 후 다시 시도해 주세요.",
+    serverBusy: "서버가 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
   },
   en: {
     console: "Admin Console",
@@ -56,6 +62,8 @@ const ADMIN_LOGIN_COPY: Record<LoadingLocale, AdminLoginCopy> = {
     missing: "Missing",
     placeholderKeys: "Placeholder",
     permission: "Admin permission is required",
+    rateLimited: "Too many attempts. Please wait about 10 minutes and try again.",
+    serverBusy: "The server is temporarily unavailable. Please try again shortly.",
   },
   ja: {
     console: "管理者コンソール",
@@ -73,6 +81,8 @@ const ADMIN_LOGIN_COPY: Record<LoadingLocale, AdminLoginCopy> = {
     missing: "不足",
     placeholderKeys: "一時値",
     permission: "管理者権限が必要です",
+    rateLimited: "試行回数が多いため一時的にロックされています。10分ほど後にお試しください。",
+    serverBusy: "サーバーが一時的に不安定です。しばらくしてからお試しください。",
   },
   "zh-CN": {
     console: "管理员控制台",
@@ -90,6 +100,8 @@ const ADMIN_LOGIN_COPY: Record<LoadingLocale, AdminLoginCopy> = {
     missing: "缺失",
     placeholderKeys: "临时值",
     permission: "需要管理员权限",
+    rateLimited: "请求次数过多，已暂时锁定。请约10分钟后重试。",
+    serverBusy: "服务器暂时不稳定，请稍后再试。",
   },
   "zh-TW": {
     console: "管理員控制台",
@@ -107,6 +119,8 @@ const ADMIN_LOGIN_COPY: Record<LoadingLocale, AdminLoginCopy> = {
     missing: "缺少",
     placeholderKeys: "暫存值",
     permission: "需要管理員權限",
+    rateLimited: "嘗試次數過多，已暫時鎖定。請約10分鐘後重試。",
+    serverBusy: "伺服器暫時不穩定，請稍後再試。",
   },
   vi: {} as AdminLoginCopy,
   hi: {} as AdminLoginCopy,
@@ -160,6 +174,17 @@ export default function AdminLoginPage() {
           setError(parts.length
             ? `${copy.configPrefix} ${parts.join(" / ")}`
             : copy.configFallback);
+          return;
+        }
+        // 상태 코드로 원인을 갈라 준다. 예전에는 전부 copy.invalid 로 뭉개져서
+        // 레이트리밋(429)에 걸린 관리자도 "비밀번호가 틀렸다"는 화면만 보고 계속 재시도했고,
+        // 그게 다시 상한을 소모하는 악순환이 됐다. 서버 장애(5xx)도 마찬가지로 구분한다.
+        if (res.status === 429) {
+          setError(copy.rateLimited);
+          return;
+        }
+        if (res.status >= 500) {
+          setError(copy.serverBusy);
           return;
         }
         setError(copy.invalid);
