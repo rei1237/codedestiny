@@ -18,10 +18,13 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import {
+  buildDomainAnalysisRuleLines,
   buildEvidenceRuleLines,
-  buildReasoningSectionRuleLines,
   buildReasoningSectionSchema,
+  REASONING_SECTION_SPECS,
 } from "../lib/fortune-reasoning-contract.js";
+import { applyZiweiHanjaToStructuredText, stripEmptyParens } from "../lib/ziwei-hanja.js";
+import { buildZiweiDomainBriefLines, getZiweiPromptTemplate, resolveZiweiDomainFromFocus } from "../lib/ziwei-ai-prompt-templates.mjs";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -36,7 +39,104 @@ const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
 // 최소 분량도 여유가 없어 상시 잘림→JSON 파싱 실패→degraded 결과를 유발했다.
 // 구 45000은 상한 30,000자를 최악 비율로 채우면 정확히 소진돼 완충이 0이었다(JSON 키·제목 몫도 없음).
 // tokensRequiredForChars(30000) = 47,250 이상을 확보한다.
+//
+// 🔴 이 예산은 "한 번의 호출"이 아니라 아래 SECTION_GROUP_SPECS 6그룹이 나눠 쓰는 총량이다.
+// 예전에는 단일 호출에 48,000토큰을 걸었는데, 동기 라우트라 LLM 대기가 85초(clampSyncLlmTimeoutMs)로
+// 잘리는 반면 20,000자를 뽑으려면 그 3~4배의 시간이 필요했다. 시간 예산 < 토큰 예산이라
+// 매번 잘리거나 Workers AI 폴백으로 넘어갔고(70B는 목표의 60~77%만 쓰고 멈춘다),
+// 최종적으로 degrade 경로가 그 짧은 결과를 ₩30,000 정상 결제로 배달했다.
+// 그룹으로 쪼개 병렬로 부르면 각 호출이 시간 예산 안에 완주해 실제 분량이 나온다.
 const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 48000;
+
+// ── 초기 상담 섹션 그룹(병렬 생성 단위) ──────────────────────────────
+// 그룹 하나가 담당하는 분량은 40초 안에 Gemini 가 완주할 수 있는 크기로 잡았다.
+// targetChars 합계는 MIN_INITIAL_CONSULTATION_BODY_CHARS 를 넘도록 배분한다.
+const SECTION_GROUP_TARGET_TOKENS = Math.floor(INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS / 6);
+// 그룹 1회 호출의 LLM 대기 상한. 잘림 재시도(attempts)까지 겹쳐도 아래 총 예산 안에 들도록 짧게 잡는다.
+const SECTION_GROUP_TIMEOUT_MS = 40000;
+// callGeminiJsonWithRetry 기본값은 attempts=3 이라 한 호출이 최악 timeout×3 을 쓴다.
+// 동기 라우트에서 그건 엣지 100초를 그냥 넘긴다 — 그룹 호출은 2회로 묶는다.
+const SECTION_GROUP_ATTEMPTS = 2;
+// 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산. 엣지 100초 앞에서 스스로 멈춘다.
+const INITIAL_CONSULTATION_DEADLINE_MS = 88000;
+// 재생성을 걸 가치가 있는 최소 잔여 시간.
+const SECTION_GROUP_RETRY_MIN_BUDGET_MS = 18000;
+
+// targetChars 합계는 MIN_INITIAL_CONSULTATION_BODY_CHARS(20,000)보다 넉넉히 위여야 한다.
+// 딱 맞춰 두면 모델이 목표의 90%만 써도 곧바로 미달로 떨어진다. 대신 그룹 하나의 몫은
+// SECTION_GROUP_TIMEOUT_MS(40초) 안에 완주할 크기(4,400자 ≈ 5,300 출력 토큰)를 넘기지 않는다.
+const SECTION_GROUP_SPECS = Object.freeze([
+  {
+    id: "foundation",
+    sections: ["reading_guide", "structure_core", "influence_factors"],
+    targetChars: 3600,
+    focus: "이 명반을 어떤 순서로 읽어야 하는지와, 이번 흐름을 만드는 핵심 구조·영향 요인",
+  },
+  {
+    id: "essence",
+    sections: ["evidence_basis", "essence"],
+    targetChars: 3800,
+    focus: "판단의 근거를 먼저 드러내고, 명궁·신궁이 말하는 타고난 본질로 잇는 흐름",
+  },
+  {
+    id: "flow",
+    sections: ["flow", "triad_axis", "twelve_palaces"],
+    targetChars: 4400,
+    focus: "사화의 흐름, 삼방사정이 여는 축, 12궁이 서로 주고받는 연결 구조",
+  },
+  {
+    id: "achievement",
+    sections: ["career", "wealth", "domain_matrix"],
+    targetChars: 4400,
+    focus: "사회적 성취와 금전 — 관록궁·재백궁을 중심으로 한 현실 영역",
+  },
+  {
+    id: "relation",
+    sections: ["relationship", "dayun_now", "timing_strategy"],
+    targetChars: 4200,
+    focus: "인연과 환경 — 부부궁·천이궁을 중심으로 한 관계, 그리고 현재 대운과 세운의 시기 전략",
+  },
+  {
+    id: "closing",
+    sections: ["caution", "core_answer", "action_plan", "prescription"],
+    targetChars: 4000,
+    focus: "반복되는 함정과 전환점, 질문에 대한 핵심 답, 지금 실행할 처방",
+  },
+]);
+
+const SECTION_TITLES = Object.freeze({
+  reading_guide: "이 명반을 읽는 순서",
+  essence: "명궁이 말하는 본질",
+  flow: "사화와 흐름의 물결",
+  triad_axis: "삼방사정이 여는 축",
+  twelve_palaces: "12궁의 연결 지도",
+  career: "일과 사업의 지도",
+  wealth: "재물이 머무는 방식",
+  relationship: "관계와 인연의 결",
+  dayun_now: "지금의 대운",
+  timing_strategy: "대한과 세운의 선택 전략",
+  caution: "반복되는 함정과 전환점",
+  core_answer: "지금 질문에 대한 별궁의 답",
+  prescription: "지금의 처방",
+});
+
+// 섹션별 작성 규칙. 그룹 프롬프트는 자기가 맡은 섹션의 규칙만 싣는다.
+const SECTION_RULES = Object.freeze({
+  reading_guide: "reading_guide는 이 명반을 어떤 순서로 읽으면 좋은지 안내하는 3~4문장입니다. '한 폭의 그림처럼'류의 상투적·일반론적 도입 대신, 실제 명궁 주성·신궁 위치·현재 대운궁을 직접 짚어 '먼저 명궁의 OO별로 타고난 성향을, 신궁으로 후천의 힘을 보고, 질문과 가까운 OO궁과 삼방사정으로 이어 읽으세요'처럼 이 사람의 명반에 맞춘 구체적 길잡이로 쓰세요. 이 문단만은 3단 구조를 적용하지 않습니다.",
+  essence: "essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 신궁·보성·살성의 영향까지 통합하세요.",
+  flow: "flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
+  triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요.",
+  twelve_palaces: "twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
+  career: "career는 관록궁의 주성 강약과 삼방사정, 대운·세운 흐름을 질문 주제와 연결해 일의 성질과 지속 가능성을 밝히세요.",
+  wealth: "wealth는 재백궁을 복덕궁·전택궁과 함께 읽어 버는 힘과 새는 통로를 나누어 말하세요.",
+  relationship: "relationship은 부부궁과 그 삼방사정(관록·천이·복덕)을 함께 읽고, 노복궁의 관계망까지 이어 인연의 결을 밝히세요.",
+  dayun_now: "dayun_now는 현재 대운궁의 주성과 사화를 근거로 지금 구간의 성격을 규정하세요.",
+  timing_strategy: "timing_strategy는 현재 대한, 올해 세운, 가까운 4주와 6개월의 선택 리듬을 분리해 말하세요.",
+  caution: "caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요. 화기가 앉은 궁이 있으면 그 주의점이 직관적으로 드러나게 짚되, 반드시 대처법을 함께 제시하세요.",
+  core_answer: "core_answer는 사용자의 질문에 대해 자미두수 전문가가 마지막으로 짚어 줄 핵심 답을 명확하게 전하세요.",
+  prescription: "prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
+  domain_matrix: "domain_matrix에서 건강을 다룰 때는 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
+});
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
   "GEMINI_API_KEY",
@@ -1089,8 +1189,12 @@ function describeZiweiGroundingIssues(issues, chart) {
   return lines;
 }
 
-function buildFirstPrompt(input, chart) {
+// 모든 그룹 프롬프트가 공유하는 머리말. 명반 데이터와 계산 확정값, 그리고 주제 특화 블록이 여기 들어간다.
+// 그룹마다 이 헤더가 반복되므로 입력 토큰은 늘지만(명반 JSON 몫), 출력 토큰 총량은 그대로다.
+function buildConsultationHeaderLines(input, chart) {
   const birth = input.birthInfo || {};
+  const domain = resolveZiweiDomainFromFocus(input.focusArea, input.userQuestion);
+  const domainTemplate = getZiweiPromptTemplate(domain);
   return [
     "[상담 정보]",
     `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
@@ -1108,11 +1212,96 @@ function buildFirstPrompt(input, chart) {
     "[계산 확정값 — 본문과 meta에서 이 값과 다르게 서술하는 것을 금지]",
     ...buildCanonicalZiweiFacts(chart),
     "",
-    "[한자 병기 대조표 — 한자를 병기할 때는 반드시 아래 표기만 쓰고, 이 표에 없는 한자는 병기하지 말 것]",
-    "12궁: 명궁(命宮), 형제궁(兄弟宮), 부부궁(夫妻宮), 자녀궁(子女宮), 재백궁(財帛宮), 질액궁(疾厄宮), 천이궁(遷移宮), 노복궁(奴僕宮), 관록궁(官祿宮), 전택궁(田宅宮), 복덕궁(福德宮), 부모궁(父母宮), 신궁(身宮)",
-    "사화: 화록(化祿), 화권(化權), 화과(化科), 화기(化忌)",
-    "핵심 용어: 삼방사정(三方四正), 대궁(對宮), 대운·대한(大限), 세운(歲運), 유년(流年), 공궁(空宮)",
-    "14주성: 자미(紫微), 천기(天機), 태양(太陽), 무곡(武曲), 천동(天同), 염정(廉貞), 천부(天府), 태음(太陰), 탐랑(貪狼), 거문(巨門), 천상(天相), 천량(天梁), 칠살(七殺), 파군(破軍)",
+    // 주제별로 주궁·삼방사정·리딩 순서·필수 확인 성요가 달라진다(worker/lib/ziwei-ai-prompt-templates.mjs).
+    ...buildZiweiDomainBriefLines(domainTemplate),
+  ].filter(Boolean);
+}
+
+// 전 섹션 공통 규칙. 한자는 서버(worker/lib/ziwei-hanja.js)가 붙이므로 여기서는 쓰지 못하게 막는다.
+function buildSharedSectionRuleLines(chart) {
+  return [
+    "공통 작성 규칙:",
+    "- 각 body는 완결된 상담 문단으로 작성하고, '① 한 줄 핵심(은유) → ② 근거(궁·별·강약·사화·삼방사정) → ③ 지금 실행할 행동 조언' 3단으로 자연스럽게 이어 쓰세요. 다만 3단 골격이 기계적으로 드러나지 않게 하고, 섹션마다 도입 은유와 첫 문장 문형을 서로 다르게 바꿔 같은 리듬이 반복되지 않게 하세요. '~은 ~를 보여줍니다/의미합니다'류의 설명 투나 동일한 접속·어미 패턴을 연달아 쓰지 마세요.",
+    "- 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
+    "- 리딩의 논리 사슬을 문장에 드러내세요: 명궁 주성과 강약 → 신궁이 실어 주는 후천의 힘 → 해당 주제의 궁 → 삼방사정 회조 → 사화의 비입·자화 순으로 근거를 이어 말합니다.",
+    "- 별 하나만 보고 길흉을 단정하지 마세요. 6길성(좌보·우필·문창·문곡·천괴·천월)의 부조와 6흉성(경양·타라·화성·영성·지공·지겁)의 충파를 명반에 실제로 있는 것만 근거로 함께 녹이세요.",
+    "- 사전식 별 정의를 나열하지 마세요('자미는 제왕의 별입니다' 같은 문장 금지). 그 근거가 이 사람의 삶에서 어떤 성향·사건 패턴·선택 습관으로 나타나는지로 풀어냅니다.",
+    "- [계산 확정값]의 '12궁 강약' 표기(◎묘·O득·▲리·△평·X함)를 모든 궁 해석의 핵심 근거로 사용하세요. 각 섹션은 추상적 서술에 그치지 말고 최소 한 번은 이 명반의 구체적 강약 표기·실제 별 이름·궁 위치를 근거로 인용하세요. 강한 별(◎/O)은 확장·기회로, 약한 별(△/X)은 관리·주의가 필요한 지점으로 명시적으로 연결하고, 표에 없는 별의 강약은 지어내지 마세요.",
+    // 🔴 한자 금지 — 규칙으로 "빈 괄호 금지"를 두 번 못 박았는데도 운영 화면에 `천이궁( )` 이 나왔다.
+    //    병기는 서버가 결정론적으로 붙인다. 모델이 괄호를 열 이유 자체를 없앤다.
+    "- 한자를 쓰지 마세요. 궁 이름·별 이름·전문 용어는 모두 한글로만 적습니다(예: '명궁', '자미', '화기'). 괄호를 열어 한자나 병기를 넣지 마세요. 강약 표기 괄호(예: 최상(◎))만 예외입니다.",
+    "- 초심자도 읽히게, 전문 용어를 처음 쓴 자리에서 한 번은 쉬운 말로 풀어 주세요.",
+    "- 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
+    "- 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",
+    chart?.uncertainty?.birthTimeUnknown ? "- 출생시간을 모르는 입력이므로, 단정하지 말고 '입력된 정보 기준으로 본 흐름'이라는 뉘앙스를 자연스럽게 반영해 주세요." : "",
+  ].filter(Boolean);
+}
+
+function buildSectionSchemaFor(sectionKeys) {
+  const reasoningSchema = buildReasoningSectionSchema();
+  const schema = {};
+  for (const key of sectionKeys) {
+    schema[key] = reasoningSchema[key] || { title: SECTION_TITLES[key] || key, body: "상담 본문" };
+  }
+  return schema;
+}
+
+// 그룹이 맡은 근거 중심 섹션의 규칙만 싣는다. domain_matrix 를 맡은 그룹만 분야별 분석 규칙을 받는다.
+function buildGroupReasoningRuleLines(sectionKeys) {
+  const specs = REASONING_SECTION_SPECS.filter((spec) => sectionKeys.includes(spec.key));
+  if (!specs.length) return [];
+  const lines = ["[근거 중심 섹션 작성 규칙]"];
+  for (const spec of specs) {
+    lines.push(`- ${spec.key}(${spec.title}): ${spec.guide} 최소 ${spec.minChars.toLocaleString("ko-KR")}자.`);
+  }
+  return sectionKeys.includes("domain_matrix") ? lines.concat(buildDomainAnalysisRuleLines()) : lines;
+}
+
+/**
+ * 섹션 그룹 하나를 생성시키는 프롬프트.
+ * group.sections 가 전체 18개면 예전과 동일한 단일 프롬프트가 되고(= buildFirstPrompt),
+ * 그보다 작으면 그 그룹만 쓰게 하는 병렬 생성용 프롬프트가 된다.
+ */
+function buildSectionGroupPrompt(input, chart, group) {
+  const birth = input.birthInfo || {};
+  const sectionKeys = group.sections;
+  const otherSections = SECTION_GROUP_SPECS
+    .filter((spec) => spec.id !== group.id)
+    .flatMap((spec) => spec.sections)
+    .filter((key) => !sectionKeys.includes(key));
+
+  return [
+    ...buildConsultationHeaderLines(input, chart),
+    "",
+    group.focus ? `[이번에 쓸 부분] ${group.focus}` : "",
+    "",
+    "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
+    JSON.stringify({ sections: buildSectionSchemaFor(sectionKeys) }, null, 2),
+    "",
+    `- 위 JSON 의 ${sectionKeys.join(", ")} 만 작성합니다. 다른 키를 새로 만들지 마세요.`,
+    otherSections.length
+      ? `- ${otherSections.join(", ")} 는 이 상담의 다른 대목에서 따로 다룹니다. 필요하면 한 줄로 언급만 하고 여기서 펼치지 마세요.`
+      : "",
+    `- 이 부분의 body 합산은 공백 포함 ${Number(group.targetChars).toLocaleString("ko-KR")}자 이상 ${Number(Math.round(group.targetChars * 1.35)).toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
+    "",
+    ...buildSharedSectionRuleLines(chart),
+    "",
+    "섹션별 작성 규칙:",
+    ...sectionKeys.map((key) => (SECTION_RULES[key] ? `- ${SECTION_RULES[key]}` : "")).filter(Boolean),
+    "",
+    // 위 [계산 확정값]이 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildZiweiAnalysisBasis(chart, birth), { includeFactTable: false }),
+    "",
+    ...buildGroupReasoningRuleLines(sectionKeys),
+  ].filter(Boolean).join("\n");
+}
+
+// meta 는 본문보다 훨씬 짧고, 대부분의 값은 enforceZiweiChartFacts 가 계산 확정값으로 덮어쓴다.
+// 모델에게는 description/theme/scores 같은 판단 몫만 맡기면 되므로 별도의 가벼운 호출로 분리했다.
+function buildMetaPrompt(input, chart) {
+  const birth = input.birthInfo || {};
+  return [
+    ...buildConsultationHeaderLines(input, chart),
     "",
     "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
     JSON.stringify({
@@ -1148,52 +1337,28 @@ function buildFirstPrompt(input, chart) {
           overall: 0,
         },
       },
-      sections: {
-        reading_guide: { title: "이 명반을 읽는 순서", body: "상담 본문" },
-        essence: { title: "명궁이 말하는 본질", body: "상담 본문" },
-        flow: { title: "사화와 흐름의 물결", body: "상담 본문" },
-        triad_axis: { title: "삼방사정이 여는 축", body: "상담 본문" },
-        twelve_palaces: { title: "12궁의 연결 지도", body: "상담 본문" },
-        career: { title: "일과 사업의 지도", body: "상담 본문" },
-        wealth: { title: "재물이 머무는 방식", body: "상담 본문" },
-        relationship: { title: "관계와 인연의 결", body: "상담 본문" },
-        dayun_now: { title: "지금의 대운", body: "상담 본문" },
-        timing_strategy: { title: "대한과 세운의 선택 전략", body: "상담 본문" },
-        caution: { title: "반복되는 함정과 전환점", body: "상담 본문" },
-        core_answer: { title: "지금 질문에 대한 별궁의 답", body: "상담 본문" },
-        prescription: { title: "지금의 처방", body: "상담 본문" },
-        // 근거를 먼저 밝히는 다섯 흐름 — 기존 키는 그대로 두고 뒤에 더한다.
-        ...buildReasoningSectionSchema(),
-      },
+      sections: {},
     }, null, 2),
     "",
-    "작성 규칙:",
-    "0. reading_guide는 이 명반을 어떤 순서로 읽으면 좋은지 안내하는 3~4문장입니다. '한 폭의 그림처럼'류의 상투적·일반론적 도입 대신, 위 meta의 실제 명궁 주성·신궁 위치·현재 대운궁을 직접 짚어 '먼저 명궁의 OO별로 타고난 성향을, 신궁으로 후천의 힘을 보고, 질문과 가까운 OO궁과 삼방사정으로 이어 읽으세요'처럼 이 사람의 명반에 맞춘 구체적 길잡이로 쓰세요. 이 문단은 3단 구조를 적용하지 않으며, 한자 병기 없이 순우리말로만 씁니다(빈 괄호가 남지 않도록).",
-    "1. reading_guide를 제외한 각 body는 완결된 상담 문단으로 작성하고, '① 한 줄 핵심(은유) → ② 근거(궁·별·강약·사화·삼방사정) → ③ 지금 실행할 행동 조언' 3단으로 자연스럽게 이어 쓰세요. 다만 3단 골격이 기계적으로 드러나지 않게 하고, 섹션마다 도입 은유와 첫 문장 문형을 서로 다르게 바꿔 같은 리듬이 반복되지 않게 하세요. '~은 ~를 보여줍니다/의미합니다'류의 설명 투나 동일한 접속·어미 패턴을 연달아 쓰지 마세요.",
-    `2. sections의 모든 body를 합산한 실제 상담 본문은 공백 포함 ${MIN_INITIAL_CONSULTATION_BODY_CHARS.toLocaleString("ko-KR")}자 이상 ${MAX_INITIAL_CONSULTATION_BODY_CHARS.toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
-    "3. 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
-    "4. essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 신궁·보성·살성의 영향까지 통합하세요.",
-    "5. flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 위 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
-    "6. triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요.",
-    "7. twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
-    "8. career, wealth, relationship, dayun_now는 관련 궁의 주성 강약, 삼방사정, 대운·세운 흐름을 질문 주제와 연결하세요.",
-    "9. timing_strategy는 현재 대한, 올해 세운, 가까운 4주와 6개월의 선택 리듬을 분리해 말하세요.",
-    "10. 건강은 domain_matrix 안에서 다루고, 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
-    "11. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요. 화기(化忌)가 앉은 궁이 있으면 그 주의점이 직관적으로 드러나게 짚되, 반드시 대처법을 함께 제시하세요.",
-    "12. core_answer는 사용자의 질문에 대해 자미두수 전문가가 마지막으로 짚어 줄 핵심 답을 명확하게 전하세요.",
-    "13. prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
-    "14. 한자 병기는 위 [한자 병기 대조표]에 있는 표기만, 각 별·용어를 처음 언급할 때 딱 1회만 병기하세요(예: 명궁(命宮), 자미(紫微)). 확실한 한자가 없으면 괄호를 아예 열지 말고, 빈 괄호 '( )'나 공백만 든 괄호 '（　）'는 어떤 경우에도 절대 출력하지 마세요. 초심자도 읽히게 그 자리에서 한 번은 쉬운 말로 풀어 주고, 별 하나만 보고 단정하지 말고 반드시 삼방사정 회조와 사화 근거를 함께 녹이세요.",
-    "15. career, wealth, relationship, health는 각 20점 만점, overall은 별도 종합 판단으로 100점 만점에 맞추세요.",
-    "16. 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
-    "17. 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",
-    "18. [계산 확정값]의 '12궁 강약' 표기(◎묘·O득·▲리·△평·X함)를 모든 궁 해석의 핵심 근거로 사용하세요. reading_guide를 제외한 모든 섹션은 추상적 서술에 그치지 말고, 최소 한 번은 이 명반의 구체적 강약 표기·실제 별 이름·궁 위치를 근거로 인용하세요. 강한 별(◎/O)은 확장·기회로, 약한 별(△/X)은 관리·주의가 필요한 지점으로 명시적으로 연결하고, 표에 없는 별의 강약은 지어내지 마세요.",
-    chart?.uncertainty?.birthTimeUnknown ? "출생시간을 모르는 입력이므로, 단정하지 말고 '입력된 정보 기준으로 본 흐름'이라는 뉘앙스를 자연스럽게 반영해 주세요." : "",
-    "",
-    // 위 [계산 확정값]이 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
-    ...buildEvidenceRuleLines(buildZiweiAnalysisBasis(chart, birth), { includeFactTable: false }),
-    "",
-    ...buildReasoningSectionRuleLines(),
+    "- mingong.description 은 명궁 주성과 강약을 근거로 한 2~3문장 요약입니다.",
+    "- dayun.theme 는 현재 대운의 성격을 한 줄로 규정합니다.",
+    "- career, wealth, relationship, health 는 각 20점 만점, overall 은 별도 종합 판단으로 100점 만점에 맞추세요.",
+    "- 점수는 계산 확정값의 강약 표기와 사화 배치를 근거로 매기고, 근거 없이 후하게 주지 마세요.",
+    "- sections 는 빈 객체 그대로 두세요.",
+    "- 한자를 쓰지 마세요. 궁 이름과 별 이름은 한글로만 적습니다.",
   ].filter(Boolean).join("\n");
+}
+
+// 전 섹션을 한 프롬프트에 담은 형태. 병렬 생성 이전의 계약(근거 규칙·분야별 분석 규칙·근거 섹션 키가
+// 하나의 프롬프트 안에 모두 있어야 한다)을 그대로 유지하며, verify:analysis-basis-contract 가 이 함수를 본다.
+function buildFirstPrompt(input, chart) {
+  const allSections = SECTION_GROUP_SPECS.flatMap((group) => group.sections);
+  return buildSectionGroupPrompt(input, chart, {
+    id: "__all__",
+    sections: allSections,
+    targetChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
+    focus: "명반 전체 — 읽는 순서와 근거부터 본질·성취·인연·마무리까지",
+  });
 }
 
 function buildFollowUpPrompt(consultation, question) {
@@ -1243,24 +1408,6 @@ function bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars) {
   return "";
 }
 
-function buildBodyRangeRepairPrompt(text, { minBodyChars, maxBodyChars, bodyChars }) {
-  const problem = bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars);
-  return [
-    "다음 자미두수 상담 JSON을 같은 JSON 구조로 유지하면서 상담 본문 품질을 정리해 주세요.",
-    `현재 sections body 합산은 약 ${Number(bodyChars || 0).toLocaleString("ko-KR")}자입니다.`,
-    `sections의 모든 body 합산은 공백 포함 ${Number(minBodyChars).toLocaleString("ko-KR")}자 이상 ${Number(maxBodyChars).toLocaleString("ko-KR")}자 이하로 맞춰 주세요.`,
-    problem === "short"
-      ? "부족한 분량은 같은 말을 늘리지 말고 triad_axis, twelve_palaces, timing_strategy, core_answer 흐름에 실제 자미두수 상담에서 더 살필 근거를 보강해 주세요."
-      : "너무 길어진 분량은 중복 문장과 반복 조언을 줄이고, 핵심 근거와 상담의 결은 보존해 주세요.",
-    "전체 body에 명궁, 신궁, 주성 강약, 보성, 살성, 사화, 삼방사정, 대운과 세운의 근거를 고르게 나누어 풀어 주세요.",
-    "사용자의 질문에 직접 닿는 현실 조언을 충분히 담되, 불안을 키우는 단정이나 건강 진단은 피하세요.",
-    "반드시 JSON만 반환하고, JSON 앞뒤에 설명이나 마크다운 코드블록을 붙이지 마세요.",
-    "금지 표현: AI, PDF, 챕터, chapter, job, progress, 프롬프트, 시스템",
-    "",
-    text,
-  ].join("\n");
-}
-
 async function generateConsultationText(env, prompt, options = {}) {
   const logContext = options.logContext || {};
   logZiweiAi("Provider Selected", {
@@ -1269,11 +1416,14 @@ async function generateConsultationText(env, prompt, options = {}) {
   });
   // 자미두수 상담(자유질문 포함) → 캐시 키가 프롬프트 전체(질문 포함)로 잡혀 동일 입력만 히트.
   // 재제출/더블클릭 dedup + 결정적 재열람. follow-up(handleMessage)은 캐시 대상 아님.
+  // 🔴 keyExtra 는 생성 방식을 바꿀 때마다 올린다. v1 시절의 짧은 결과가 30일 TTL 캐시에 남아 있어
+  //    그대로 두면 병렬 생성으로 바꿔도 옛 결과가 계속 히트해 변경이 통째로 무효가 된다.
+  //    그룹 병렬 생성은 그룹마다 다른 프롬프트를 쓰므로 keyExtra 에 그룹 id 까지 실어 서로 섞이지 않게 한다.
   const ziweiLlmCache = {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: "ziwei-ai-v1",
+    keyExtra: `ziwei-ai-v2${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
   };
   // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.
@@ -1283,7 +1433,9 @@ async function generateConsultationText(env, prompt, options = {}) {
   // 2.4배여서, 오래 걸리는 생성은 라우트가 실패를 판정하기도 전에 잘려 나갔다 — 생성 실패 기록도
   // 선차감 접근권 복원도 실행되지 못한 채 사용자만 정체불명의 오류를 봤다.
   // clamp를 걸면 라우트가 먼저 타임아웃을 판정해, 짧아진 결과라도 아래 degrade 경로로 반드시 전달한다.
-  const ziweiTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000);
+  // 초기 상담의 그룹 호출은 이보다 더 짧은 상한을 넘겨받는다(SECTION_GROUP_TIMEOUT_MS) —
+  // callGeminiJsonWithRetry 가 잘림 재시도를 하므로 한 그룹이 timeout×attempts 를 쓸 수 있기 때문이다.
+  const ziweiTimeoutMs = clampSyncLlmTimeoutMs(Number(options.timeoutMs) || Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000);
   const ziweiCallOptions = {
     systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
@@ -1294,11 +1446,13 @@ async function generateConsultationText(env, prompt, options = {}) {
   const ai = options.responseMimeType
     ? await callGeminiJsonWithRetry(env, prompt, {
         ...ziweiCallOptions,
+        ...(options.attempts ? { attempts: options.attempts } : {}),
         baseTokens: baseMaxOutputTokens,
         capTokens: Math.round(baseMaxOutputTokens * 1.3),
         responseMimeType: options.responseMimeType,
         // 폴백 허용(폴백 JSON 은 structured-consultation 이 정화). 너무 짧으면 실패로 돌린다.
-        fallbackMinChars: 2000,
+        // 관례는 그 호출의 최소 분량 × 0.4 — 그룹 호출은 그룹 목표 기준으로 넘겨받는다.
+        fallbackMinChars: Number(options.fallbackMinChars) || 2000,
       })
     : await callGeminiText(env, prompt, { ...ziweiCallOptions, maxOutputTokens: baseMaxOutputTokens });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1311,36 +1465,20 @@ async function generateConsultationText(env, prompt, options = {}) {
   }
   const minBodyChars = Number(options.minBodyChars || 0);
   const maxBodyChars = Number(options.maxBodyChars || 0);
-  let bodyChars = countStructuredConsultationBodyChars(text);
-  const initialRangeProblem = bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars);
-  if (initialRangeProblem) {
-    const expanded = await callGeminiText(env, buildBodyRangeRepairPrompt(text, { minBodyChars, maxBodyChars, bodyChars }), {
-      systemPrompt: await resolveSystemPrompt(env),
-      taskType: "fortune",
-      temperature: 0.62,
-      maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-      timeoutMs: ziweiTimeoutMs,
-      ...(options.responseMimeType ? { responseMimeType: options.responseMimeType, fallbackMinChars: 2000 } : {}),
-      cache: ziweiLlmCache,
-    });
-    const expandedText = clean(expanded?.text);
-    const expandedBodyChars = countStructuredConsultationBodyChars(expandedText);
-    const expandedRangeProblem = bodyCharRangeProblem(expandedBodyChars, minBodyChars, maxBodyChars);
-    const improved = initialRangeProblem === "short"
-      ? expandedBodyChars > bodyChars
-      : expandedBodyChars > 0 && expandedBodyChars < bodyChars;
-    if (expanded?.ok && !/mock/i.test(clean(expanded?.provider || expanded?.model)) && (!expandedRangeProblem || improved)) {
-      text = expandedText;
-      bodyChars = countStructuredConsultationBodyChars(text);
-    }
-  }
+  // 경량 보장 계약의 통과 하한. 기본 400자는 follow-up 처럼 짧은 응답을 위한 값이다.
+  // 초기 상담은 ₩30,000 상품이라 이 하한을 그대로 두면 목표의 2%짜리 결과가 정상 결제로 배달된다 —
+  // 호출부(generateInitialConsultation)가 목표 분량에 비례한 값을 명시적으로 넘긴다.
+  const renderableMinChars = Number(options.renderableMinChars) || 400;
+  // 분량 미달을 한 번 더 부르는 "range repair"는 없앴다. 이 함수는 초기 상담에서 그룹 단위로 불리는데,
+  // 그룹 안에서 추가 호출을 하면 한 그룹이 timeout×attempts + repair 를 써 엣지 100초를 넘긴다.
+  // 분량 보강은 상위(generateInitialConsultation)가 미달 그룹만 골라 다시 부르는 쪽으로 일원화했다.
   if (!FORBIDDEN_RESULT_PATTERN.test(text)) {
     const cleanText = cleanForbiddenResult(text);
     const finalBodyChars = countStructuredConsultationBodyChars(cleanText);
     const rangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
     if (rangeProblem) {
       // 경량 보장 계약: 목표 분량 범위를 벗어나도 렌더 가능한 상담문이면 버리지 않고 degrade로 전달한다.
-      if (hasRenderableLlmText(cleanText, { minChars: 400 })) {
+      if (hasRenderableLlmText(cleanText, { minChars: renderableMinChars })) {
         return { text: cleanText, provider, model: clean(ai?.model), degraded: true };
       }
       const error = new Error("Generated consultation body is outside required range.");
@@ -1371,7 +1509,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   const finalRangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
   if (finalRangeProblem) {
     // 경량 보장 계약: 수선 후에도 분량 범위를 벗어나나, 렌더 가능한 상담문이면 degrade로 전달한다.
-    if (hasRenderableLlmText(finalText, { minChars: 400 })) {
+    if (hasRenderableLlmText(finalText, { minChars: renderableMinChars })) {
       return {
         text: finalText,
         provider: clean(repair?.provider || provider),
@@ -1387,6 +1525,190 @@ async function generateConsultationText(env, prompt, options = {}) {
     text: finalText,
     provider: clean(repair?.provider || provider),
     model: clean(repair?.model || ai?.model),
+  };
+}
+
+function parseSectionsFromGroupText(text) {
+  const parsed = parseStructuredConsultationResult(text);
+  return parsed?.sections && typeof parsed.sections === "object" ? parsed.sections : {};
+}
+
+function parseMetaFromText(text) {
+  const jsonText = extractJsonObjectText(text);
+  if (!jsonText) return null;
+  try {
+    const parsed = JSON.parse(jsonText);
+    return parsed?.meta && typeof parsed.meta === "object" ? parsed.meta : null;
+  } catch {
+    return null;
+  }
+}
+
+function countSectionChars(sections, keys) {
+  return keys.reduce((sum, key) => sum + clean(sections?.[key]?.body).length, 0);
+}
+
+/**
+ * 초기 상담 생성 — meta 1회 + 섹션 그룹 5회를 병렬로 부르고 하나의 구조화 JSON으로 병합한다.
+ *
+ * 왜 병렬인가: 이 라우트는 동기 생성이라 LLM 대기가 85초(clampSyncLlmTimeoutMs)로 잘리는데,
+ * 목표 분량 20,000자를 단일 호출로 뽑으려면 그 3~4배의 시간이 든다. 시간 예산이 토큰 예산보다
+ * 먼저 바닥나 매번 잘리거나 Workers AI 폴백으로 넘어갔고, degrade 경로가 그 짧은 결과를
+ * ₩30,000 정상 결제로 배달했다. 그룹당 3,600~4,600자면 40초 안에 완주하므로 폴백을 타지 않는다.
+ * 전체 벽시계는 가장 느린 그룹 기준이라 예산 안에 들어온다.
+ */
+async function generateInitialConsultation(env, { input, chart, logContext = {} }) {
+  const startedAt = Date.now();
+  const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
+  const retryTimeoutMs = () => Math.max(18000, Math.min(SECTION_GROUP_TIMEOUT_MS, remainingMs() - 6000));
+
+  const runGroup = (group, { attempts = SECTION_GROUP_ATTEMPTS, timeoutMs = SECTION_GROUP_TIMEOUT_MS, extraPrompt = "" } = {}) => {
+    const basePrompt = buildSectionGroupPrompt(input, chart, group);
+    // 재생성은 프롬프트가 달라지므로 캐시 키도 달라진다 — 직전의 짧은 결과를 다시 집지 않는다.
+    const prompt = extraPrompt ? `${basePrompt}\n\n${extraPrompt}` : basePrompt;
+    const groupMinChars = Math.round(group.targetChars * 0.4);
+    return generateConsultationText(env, prompt, {
+      minLength: 200,
+      maxOutputTokens: SECTION_GROUP_TARGET_TOKENS,
+      responseMimeType: "application/json",
+      attempts,
+      timeoutMs,
+      fallbackMinChars: groupMinChars,
+      renderableMinChars: groupMinChars,
+      cacheKeyExtra: group.id,
+      logContext: { ...logContext, sectionGroup: group.id },
+    });
+  };
+
+  const settled = await Promise.allSettled([
+    generateConsultationText(env, buildMetaPrompt(input, chart), {
+      minLength: 120,
+      maxOutputTokens: 2600,
+      responseMimeType: "application/json",
+      attempts: SECTION_GROUP_ATTEMPTS,
+      timeoutMs: SECTION_GROUP_TIMEOUT_MS,
+      fallbackMinChars: 200,
+      renderableMinChars: 120,
+      cacheKeyExtra: "meta",
+      logContext: { ...logContext, sectionGroup: "meta" },
+    }),
+    ...SECTION_GROUP_SPECS.map((group) => runGroup(group)),
+  ]);
+
+  const [metaSettled, ...groupSettled] = settled;
+  const meta = metaSettled.status === "fulfilled" ? parseMetaFromText(metaSettled.value.text) : null;
+  if (metaSettled.status !== "fulfilled") {
+    // meta 대부분은 아래 enforceZiweiChartFacts 가 계산 확정값으로 덮어쓴다. 점수만 빠지므로 실패 처리하지 않는다.
+    logZiweiAi("Meta Group Failed", { ...logContext, errorMessage: clean(metaSettled.reason?.message || metaSettled.reason, 300) }, "warn");
+  }
+
+  const sections = {};
+  const providers = new Set();
+  const models = new Set();
+  const failedGroups = [];
+  let degraded = metaSettled.status !== "fulfilled";
+
+  groupSettled.forEach((result, index) => {
+    const group = SECTION_GROUP_SPECS[index];
+    if (result.status !== "fulfilled") {
+      failedGroups.push(group);
+      logZiweiAi("Section Group Failed", {
+        ...logContext,
+        sectionGroup: group.id,
+        errorMessage: clean(result.reason?.message || result.reason, 300),
+      }, "warn");
+      return;
+    }
+    Object.assign(sections, parseSectionsFromGroupText(result.value.text));
+    if (result.value.degraded) degraded = true;
+    if (result.value.provider) providers.add(clean(result.value.provider));
+    if (result.value.model) models.add(clean(result.value.model));
+  });
+
+  // 실패했거나 목표의 60%도 못 채운 그룹만 다시 부른다. 전체 재생성이 아니라 그룹 단위라 예산 안에 들어온다.
+  const shortGroups = SECTION_GROUP_SPECS.filter((group) => (
+    !failedGroups.includes(group) && countSectionChars(sections, group.sections) < group.targetChars * 0.6
+  ));
+  const retryTargets = [...failedGroups, ...shortGroups];
+  if (retryTargets.length && remainingMs() > SECTION_GROUP_RETRY_MIN_BUDGET_MS) {
+    const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
+      attempts: 1,
+      timeoutMs: retryTimeoutMs(),
+      extraPrompt: `직전 시도가 분량과 근거를 채우지 못했습니다. ${group.sections.join(", ")}를 처음부터 다시, 이 명반의 구체적인 별 이름·강약 표기·궁 위치를 근거로 들며 더 촘촘하게 채워 주세요.`,
+    })));
+    retried.forEach((result, index) => {
+      if (result.status !== "fulfilled") return;
+      const group = retryTargets[index];
+      const next = parseSectionsFromGroupText(result.value.text);
+      // 재생성이 더 길 때만 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
+      if (countSectionChars(next, group.sections) > countSectionChars(sections, group.sections)) {
+        Object.assign(sections, next);
+        if (result.value.provider) providers.add(clean(result.value.provider));
+      }
+    });
+  } else if (retryTargets.length) {
+    logZiweiAi("Section Group Retry Skipped", {
+      ...logContext,
+      remainingMs: remainingMs(),
+      groups: retryTargets.map((group) => group.id),
+    }, "warn");
+    degraded = true;
+  }
+
+  let grounding = enforceZiweiChartFacts(JSON.stringify({ meta: meta || {}, sections }, null, 2), chart);
+  if (grounding.issues.length && remainingMs() > SECTION_GROUP_RETRY_MIN_BUDGET_MS) {
+    // 근거 미달(사화 별 미언급·12궁 커버리지·명궁 주성 미언급)은 본질·사화·12궁을 맡은 essence 그룹의 몫이다.
+    // 예전처럼 상담 전체를 다시 만들지 않고 그 그룹만 다시 부른다.
+    const essenceGroup = SECTION_GROUP_SPECS.find((group) => group.id === "essence");
+    logZiweiAi("Grounding Retry", { ...logContext, issues: grounding.issues, sectionGroup: essenceGroup.id }, "warn");
+    try {
+      const regenerated = await runGroup(essenceGroup, {
+        attempts: 1,
+        timeoutMs: retryTimeoutMs(),
+        extraPrompt: [
+          "직전 답변이 아래 근거 기준을 지키지 못해 반려되었다. 전부 지켜 처음부터 다시 작성하라:",
+          ...describeZiweiGroundingIssues(grounding.issues, chart),
+        ].join("\n"),
+      });
+      const next = parseSectionsFromGroupText(regenerated.text);
+      if (Object.keys(next).length) {
+        Object.assign(sections, next);
+        grounding = enforceZiweiChartFacts(JSON.stringify({ meta: meta || {}, sections }, null, 2), chart);
+      }
+    } catch (retryError) {
+      logZiweiAi("Grounding Retry Failed", { ...logContext, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
+    }
+  }
+  // meta 는 서버 확정값으로 덮어썼으므로, 본문 인용이 여전히 부족해도 실패 처리하지 않고 경고만 남긴다.
+  if (grounding.issues.length) logZiweiAi("Grounding Residual", { ...logContext, issues: grounding.issues }, "warn");
+
+  // 한자는 여기서 서버가 붙인다(worker/lib/ziwei-hanja.js). 모델이 남긴 빈 괄호도 함께 사라진다.
+  const finalText = applyZiweiHanjaToStructuredText(cleanForbiddenResult(grounding.text));
+  const finalBodyChars = countStructuredConsultationBodyChars(finalText);
+  const rangeProblem = bodyCharRangeProblem(finalBodyChars, MIN_INITIAL_CONSULTATION_BODY_CHARS, MAX_INITIAL_CONSULTATION_BODY_CHARS);
+  // 경량 보장 계약의 하한. 구 400자는 ₩30,000 상품에 비해 터무니없이 낮아, 목표의 2%짜리 결과도
+  // 정상 결제로 배달됐다. 목표의 55% 아래면 실패로 돌려 기존 환불·접근권 복원 경로를 그대로 타게 한다.
+  const minDeliverableChars = Math.round(MIN_INITIAL_CONSULTATION_BODY_CHARS * 0.55);
+
+  logZiweiAi("Section Groups Merged", {
+    ...logContext,
+    bodyChars: finalBodyChars,
+    elapsedMs: Date.now() - startedAt,
+    failedGroups: failedGroups.map((group) => group.id),
+    retriedGroups: retryTargets.map((group) => group.id),
+  });
+
+  if (finalBodyChars < minDeliverableChars) {
+    const error = new Error(`Generated consultation body is too short (${finalBodyChars} chars, need ${minDeliverableChars}).`);
+    error.code = "INSUFFICIENT_RESULT_LENGTH";
+    throw error;
+  }
+
+  return {
+    text: finalText,
+    provider: Array.from(providers).filter(Boolean).join(",") || "gemini",
+    model: Array.from(models).filter(Boolean).join(","),
+    degraded: degraded || rangeProblem === "short",
   };
 }
 
@@ -1622,7 +1944,9 @@ function publicConsultation(doc) {
       messages: Array.isArray(doc.messages)
         ? doc.messages.map((message) => ({
           role: message.role,
-          content: message.content,
+          // 이 변경 이전에 저장된 상담에는 모델이 남긴 빈 괄호(`천이궁( ) 거문( )`)가 그대로 들어 있다.
+          // 재열람 응답에서 지워야 과거 상담도 화면에서 깨끗해진다(생성 경로는 이미 정화된 텍스트를 저장한다).
+          content: stripEmptyParens(message.content),
           createdAt: message.createdAt,
         }))
         : [],
@@ -1837,34 +2161,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", ctx =
   const runGeneration = async () => {
   try {
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
-    const generationOptions = {
-      minLength: 360,
-      minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
-      maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS,
-      maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-      responseMimeType: "application/json",
-      logContext,
-    };
-    let generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), generationOptions);
-    let grounding = enforceZiweiChartFacts(generated.text, chart);
-    if (grounding.issues.length) {
-      logZiweiAi("Grounding Retry", { ...logContext, issues: grounding.issues }, "warn");
-      const retryPrompt = [
-        buildFirstPrompt(normalized.input, chart),
-        "",
-        "직전 답변이 아래 근거 기준을 지키지 못해 반려되었다. 전부 지켜 처음부터 다시 작성하라:",
-        ...describeZiweiGroundingIssues(grounding.issues, chart),
-      ].join("\n");
-      try {
-        generated = await generateConsultationText(env, retryPrompt, generationOptions);
-        grounding = enforceZiweiChartFacts(generated.text, chart);
-      } catch (retryError) {
-        logZiweiAi("Grounding Retry Failed", { ...logContext, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
-      }
-      // meta는 서버 확정값으로 덮어썼으므로, 본문 인용이 여전히 부족해도 실패 처리하지 않고 경고만 남긴다.
-      if (grounding.issues.length) logZiweiAi("Grounding Residual", { ...logContext, issues: grounding.issues }, "warn");
-    }
-    generated = { ...generated, text: grounding.text };
+    // 섹션 그룹 병렬 생성 — 근거 재시도(grounding)와 한자 병기, 최종 분량 판정까지 이 안에서 끝난다.
+    // 예전의 단일 호출 옵션(minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
+    // maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS)은 병합 결과를 판정하는 기준으로 그대로 살아 있다.
+    const generated = await generateInitialConsultation(env, { input: normalized.input, chart, logContext });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true });
     const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
     const completed = await ZiweiAiConsultation.findOneAndUpdate(
@@ -2096,4 +2396,12 @@ export const __ziweiAiTestUtils = {
   countStructuredConsultationBodyChars,
   MIN_INITIAL_CONSULTATION_BODY_CHARS,
   MAX_INITIAL_CONSULTATION_BODY_CHARS,
+  // 섹션 그룹 병렬 생성
+  SECTION_GROUP_SPECS,
+  SECTION_GROUP_TIMEOUT_MS,
+  INITIAL_CONSULTATION_DEADLINE_MS,
+  buildSectionGroupPrompt,
+  buildMetaPrompt,
+  parseSectionsFromGroupText,
+  countSectionChars,
 };
