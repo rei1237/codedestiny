@@ -329,7 +329,7 @@ async function handleDelete(path, request, env) {
 
   // 첨부를 지우지 않으면 삭제된 제보의 이미지가 R2 에 영구 잔류한다.
   // 실패해도 삭제 응답을 막지 않는다.
-  const bucket = env?.INSIGHT_IMAGES_BUCKET;
+  const bucket = env?.FEEDBACK_IMAGES_BUCKET;
   if (bucket && typeof bucket.delete === "function") {
     await Promise.allSettled((Array.isArray(doc.attachments) ? doc.attachments : [])
       .map((file) => bucket.delete(String(file?.key || ""))));
