@@ -24,7 +24,7 @@ function uniqueNonEmpty(items) {
 function safeJsonBlock(value, fallback = "{}") {
   if (!value || typeof value !== "object") return fallback;
   try {
-    return JSON.stringify(value, null, 2);
+    return JSON.stringify(value);
   } catch (_) {
     return fallback;
   }
