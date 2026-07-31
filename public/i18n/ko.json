@@ -1369,6 +1369,7 @@
       "passBuyTitle": "이용권으로 구매",
       "passChecking": "이용권을 확인하고 있습니다.",
       "passMissGoStore": "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.",
+      "passCheckRetry": "이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요.",
       "directHintApp": "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.",
       "pgBadgeApp": "Google Play 결제"
     },

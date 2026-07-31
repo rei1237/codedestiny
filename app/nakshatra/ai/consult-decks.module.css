@@ -1,0 +1,142 @@
+/* 나크샤트라 결정판 심화 상담 결과 — 2만자 장문을 피로 없이 읽히게 하는 레이아웃.
+   팔레트는 새로 만들지 않고 nakshatra.module.css 의 토큰을 그대로 가져온다
+   (동양=청록 / 인도=골드 / 통합=로즈). 이 3색이 곧 정보 분류 체계다. */
+.vars {
+  --ink-900: #04050c;
+  --ink-800: #080a16;
+  --ink-700: #0e1124;
+  --east: #74c7d6;
+  --east-soft: #a7dfe8;
+  --gold: #e5c789;
+  --gold-soft: #f4e4b6;
+  --rose: #e0517f;
+  --rose-soft: #f4a6c1;
+  --t-100: #f4f4fb;
+  --t-200: #d9ddf0;
+  --t-300: #aab2d4;
+  --hair: rgba(213, 197, 148, 0.16);
+  --line: rgba(180, 190, 240, 0.12);
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-2: rgba(255, 255, 255, 0.055);
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 72px; }
+
+/* ── 상단 고정 요약 — 장문 어디를 읽든 내 명식이 보인다 ── */
+.summary {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 -20px 22px;
+  padding: 14px 20px 15px;
+  background: linear-gradient(180deg, rgba(8, 10, 22, 0.96), rgba(8, 10, 22, 0.82));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hair);
+}
+.summaryRow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
+.natal { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: var(--t-100); }
+.natalHan { color: var(--east-soft); }
+.natalNak { color: var(--gold-soft); }
+.scale { font-size: 12px; font-weight: 700; color: var(--t-300); font-variant-numeric: tabular-nums; }
+/* 사용자 질문 인용 — 카드 사이드스트라이프가 아니라 고전적 인용 표기다.
+   DESIGN.md 가 명시한 예외이며, AiResultProse 의 .quote 와 같은 형태(currentColor 3px)를 쓴다. */
+.question {
+  margin: 8px 0 0;
+  padding: 2px 0 2px 12px;
+  border-left: 3px solid currentColor;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--rose-soft);
+}
+
+/* ── 섹션 공통 ── */
+.sectionHead { display: flex; align-items: center; gap: 9px; margin: 30px 0 12px; }
+.sectionGlyph { font-size: 17px; line-height: 1; }
+.sectionTitle { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: 0.01em; color: var(--t-100); }
+.sectionRule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+/* ── Split View — 데스크톱 좌(인도)/우(동양), 모바일 세로 ── */
+.split { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .split { grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; } }
+
+.column { border: 1px solid var(--line); border-radius: 18px; background: var(--glass); padding: 16px 16px 8px; }
+.columnVedic { border-color: rgba(229, 199, 137, 0.24); }
+.columnSukuyo { border-color: rgba(116, 199, 214, 0.22); }
+.columnHead { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; }
+.columnName { margin: 0; font-size: 14.5px; font-weight: 800; color: var(--t-100); }
+.columnSub { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--t-300); }
+.columnVedic .columnName { color: var(--gold-soft); }
+.columnSukuyo .columnName { color: var(--east-soft); }
+
+.fusionList { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+/* ── 아코디언 — 접혀 있어도 한 줄 결론(keyInsight)은 항상 보인다 ── */
+.item { border-top: 1px solid var(--line); }
+.item:first-child { border-top: 0; }
+.itemCard {
+  border: 1px solid rgba(224, 81, 127, 0.2);
+  border-radius: 16px;
+  background: var(--glass);
+  padding: 0 15px;
+}
+.itemCard + .itemCard { margin-top: 0; }
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 0;
+  cursor: pointer;
+  list-style: none;
+  min-height: 44px;
+}
+.head::-webkit-details-marker { display: none; }
+.head:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 10px; }
+.headText { flex: 1; min-width: 0; }
+.headTitle { display: block; font-size: 13.5px; font-weight: 800; line-height: 1.4; color: var(--t-100); }
+.headInsight { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.62; color: var(--t-200); text-wrap: pretty; }
+.chevron {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: var(--t-300);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.item[open] .chevron, .itemCard[open] .chevron { transform: rotate(90deg); }
+.body { padding: 0 0 16px; font-size: 14px; line-height: 1.9; color: var(--t-200); }
+
+/* ── 핵심 3통찰 ── */
+/* 자체 숫자 배지(.insightNo)를 쓰므로 ol 기본 마커는 끈다 — 켜 두면 번호가 두 번 보인다. */
+.insights { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 14px 0 0; padding: 0; list-style: none; }
+@media (min-width: 760px) { .insights { grid-template-columns: repeat(3, 1fr); } }
+.insight {
+  position: relative;
+  padding: 16px 16px 17px;
+  border: 1px solid rgba(229, 199, 137, 0.28);
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(229, 199, 137, 0.08), rgba(255, 255, 255, 0.02));
+}
+.insightNo {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(229, 199, 137, 0.5);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold-soft);
+}
+.insightTitle { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.4; color: var(--t-100); }
+.insightDetail { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--t-200); text-wrap: pretty; }
+
+.note { margin: 26px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--t-300); }
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron { transition: none; }
+}

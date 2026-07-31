@@ -500,7 +500,7 @@ export async function calculatePrashnaChart(env, snapshot, options = {}) {
 function promptValue(value) {
   if (value === null || value === undefined) return UNKNOWN;
   if (Array.isArray(value)) return value.length ? value.join("\n") : UNKNOWN;
-  if (typeof value === "object") return JSON.stringify(fillMissing(value), null, 2);
+  if (typeof value === "object") return JSON.stringify(fillMissing(value));
   return clean(value, UNKNOWN);
 }
 

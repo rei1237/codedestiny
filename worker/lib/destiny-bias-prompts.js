@@ -13,7 +13,7 @@ function toneRule() {
 }
 
 export function buildDestinyBiasInterpretationPrompt(canonical) {
-  const payload = JSON.stringify(canonical, null, 2);
+  const payload = JSON.stringify(canonical);
 
   return clip(`
 당신은 Code Destiny의 "최애운명" 해석 에디터입니다.

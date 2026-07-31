@@ -933,7 +933,7 @@ function buildFirstPrompt(input, chart) {
     `해석 기준: ${chart.calculationMeta?.lagnaBhavaAvailable === false ? "출생시간이 없으므로 라그나와 바바는 계산하지 않고 달, 라시, 나크샤트라, 다샤 중심" : "Lagna Chart와 Whole Sign Bhava 중심"}`,
     "",
     "필수 sections 키와 title:",
-    JSON.stringify(REQUIRED_SECTION_LABELS, null, 2),
+    JSON.stringify(REQUIRED_SECTION_LABELS),
     "",
     "반환 JSON 형식:",
     JSON.stringify({
@@ -947,13 +947,13 @@ function buildFirstPrompt(input, chart) {
         // 빠지면 화면에서 생략될 뿐, 결제까지 끝난 상담 전체를 실패로 만들지 않기 위해서다.
         ...buildReasoningSectionSchema(),
       },
-    }, null, 2),
+    }),
     "",
     "계산된 VedicChartResult 데이터:",
-    JSON.stringify(compactChartForPrompt(chart), null, 2),
+    JSON.stringify(compactChartForPrompt(chart)),
     "",
     "전통 조티시 해석 어휘 (계산값에만 적용):",
-    JSON.stringify(buildVedicKnowledgeContext(chart), null, 2),
+    JSON.stringify(buildVedicKnowledgeContext(chart)),
     "",
     // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildVedicAnalysisBasis(chart)),

@@ -1814,6 +1814,7 @@
       "passBuyTitle": "用通行證購買",
       "passChecking": "正在確認你的通行證。",
       "passMissGoStore": "你的通行證無法開啟此內容，正在前往通行證商店。",
+      "passCheckRetry": "未能確認您的通行證狀態，請稍後再點擊一次。",
       "directHintApp": "只要這一份結果，透過 Google Play 結算立即開啟。",
       "pgBadgeApp": "Google Play 結算"
     },

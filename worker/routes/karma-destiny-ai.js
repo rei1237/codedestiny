@@ -1024,6 +1024,52 @@ function buildSystemPrompt(mode = "initial") {
   ].join("\n");
 }
 
+// 프롬프트에 실을 계산 근거 JSON 의 상한. 16장 배치가 4회 반복해 같은 blob 을 다시 보내므로
+// 여기서 새는 양이 그대로 4배가 된다.
+const INTEGRATED_RESULT_PROMPT_MAX_CHARS = 14000;
+
+function longestArrayHolder(node, best = { holder: null, key: "", size: 0 }) {
+  if (!node || typeof node !== "object") return best;
+  for (const [key, value] of Object.entries(node)) {
+    if (Array.isArray(value) && value.length > 3) {
+      const size = JSON.stringify(value).length;
+      if (size > best.size) best = { holder: node, key, size };
+    }
+    if (value && typeof value === "object") best = longestArrayHolder(value, best);
+  }
+  return best;
+}
+
+/**
+ * 계산 근거를 프롬프트용 JSON 문자열로 만든다.
+ *
+ * 🔴 직렬화된 문자열을 slice 하면 안 된다 — 문법이 깨진 JSON 이 모델에 가서 근거를 통째로 잃는다.
+ * 예산을 넘으면 가장 긴 배열부터 절반씩 줄여 **항상 유효한 JSON** 을 유지한다.
+ * (dasha 타임라인·aspects 목록이 대체로 가장 길고, 상담 본문이 전부를 인용하지도 않는다.)
+ */
+function serializeIntegratedResultForPrompt(integratedResult, maxChars = INTEGRATED_RESULT_PROMPT_MAX_CHARS) {
+  const source = integratedResult || {};
+  let json = JSON.stringify(source);
+  if (!maxChars || json.length <= maxChars) return json;
+
+  const shrunk = JSON.parse(json);
+  let trimmed = 0;
+  for (let i = 0; i < 24; i += 1) {
+    const { holder, key } = longestArrayHolder(shrunk);
+    if (!holder) break;
+    holder[key] = holder[key].slice(0, Math.max(3, Math.floor(holder[key].length / 2)));
+    trimmed += 1;
+    json = JSON.stringify(shrunk);
+    if (json.length <= maxChars) break;
+  }
+  console.info("[KarmaDestinyAI] integratedResult trimmed for prompt", {
+    trimmedArrays: trimmed,
+    chars: json.length,
+    maxChars,
+  });
+  return json;
+}
+
 function buildFirstPrompt(input, integratedResult) {
   const birth = input.birthInfo || {};
   const place = birth.birthPlace || {};
@@ -1065,7 +1111,8 @@ function buildFollowUpPrompt(consultation, question) {
     `처음 상담 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
     "",
     "[상담 근거]",
-    JSON.stringify(consultation.integratedResult || {}),
+    // 후속 질문 프롬프트만 상한이 없어 이력과 함께 무제한으로 실렸다. 배치 경로와 같은 상한을 쓴다.
+    serializeIntegratedResultForPrompt(consultation.integratedResult),
     "",
     "[이전 대화]",
     history,
@@ -1842,6 +1889,10 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     `상담 주제: ${consultation.topic}`,
     `현재 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
     "",
+    // 장별 프롬프트는 serializeIntegratedResultForPrompt(#224) 대신 buildLensDigest 를 쓴다.
+    // 둘 다 "프롬프트에 실을 근거를 예산 안으로 줄인다"는 같은 문제를 풀지만, 여기서는
+    // 총량 축소만으로는 부족하고 **렌즈별 차등 배분**이 필요하다 — 그게 이 기능의 핵심이다.
+    // (후속 질문 경로는 장 개념이 없어 #224 의 직렬화기를 그대로 쓴다.)
     "[계산 근거 · 다섯 렌즈]",
     buildLensDigest(consultation.integratedResult, definition),
     "",

@@ -17,6 +17,7 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { buildPalaceFirstPrompt, buildSystemPrompt, getPalaceConfig, isValidPalace } from "../lib/island/consult/palace-prompts.js";
 
 // ── 상품 상수(ziwei-ai와 유일하게 다른 부분) ──
@@ -464,7 +465,9 @@ function parseSections(text) {
 }
 function publicConsultation(doc) {
   const assistant = Array.isArray(doc.messages) ? doc.messages.find((m) => m.role === "assistant") : null;
-  const parsed = assistant ? parseSections(assistant.content) : null;
+  // 생성 경로는 이미 정화해 저장하지만, 이 변경 이전에 저장된 상담에는 빈 괄호가 남아 있다.
+  // 재열람 응답에서도 지워야 과거 상담이 화면에서 깨끗해진다.
+  const parsed = assistant ? parseSections(stripEmptyParens(assistant.content)) : null;
   return {
     ok: true,
     sessionId: clean(doc.id),
@@ -530,7 +533,10 @@ async function generatePalaceText(env, prompt, options = {}) {
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;
   }
-  return { text, provider, model: clean(ai?.model) };
+  // 이 프롬프트는 한자 화이트리스트 병기를 허용한다(palace-prompts 규칙 D). 모델이 확실한 한자를 못 찾으면
+  // 괄호만 열고 비우는 일이 있어 화면에 `천이궁( )` 이 남는다 — ziwei-ai 에서 실제로 났던 증상이라 같은
+  // 후처리를 여기서도 건다. 병기된 한자는 그대로 두고 빈 괄호만 지운다.
+  return { text: stripEmptyParens(text), provider, model: clean(ai?.model) };
 }
 
 // ── /prepare ──

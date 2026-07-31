@@ -1340,7 +1340,7 @@ function buildFirstPrompt(input, fortuneData, section = null) {
       "",
     ] : []),
     "[계산된 사주와 세운 데이터]",
-    JSON.stringify(fortuneData, null, 2),
+    JSON.stringify(fortuneData),
     "",
     "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
     ...buildCanonicalNewYearFacts(fortuneData),

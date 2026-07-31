@@ -1814,6 +1814,7 @@
       "passBuyTitle": "Mua bằng vé",
       "passChecking": "Đang kiểm tra vé của bạn…",
       "passMissGoStore": "Vé của bạn không bao gồm mục này, chúng tôi sẽ đưa bạn đến cửa hàng vé.",
+      "passCheckRetry": "Không thể kiểm tra trạng thái vé của bạn. Vui lòng nhấn lại sau giây lát.",
       "directHintApp": "Chỉ một kết quả này thôi. Mở ngay qua thanh toán Google Play.",
       "pgBadgeApp": "Thanh toán Google Play"
     },
