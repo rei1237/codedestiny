@@ -1528,10 +1528,10 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/naming-prompt");
-    if (method === "POST" && path === "/checkout") return handleCheckout(request, env);
-    if (method === "POST" && path === "/verify-payment") return handleVerifyPayment(request, env);
-    if (method === "POST" && path === "/generate") return handleGenerate(request, env, ctx);
-    if (method === "GET" && path.startsWith("/result/")) return handleResult(request, env, decodeURIComponent(path.slice("/result/".length)));
+    if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
+    if (method === "POST" && path === "/verify-payment") return await handleVerifyPayment(request, env);
+    if (method === "POST" && path === "/generate") return await handleGenerate(request, env, ctx);
+    if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, decodeURIComponent(path.slice("/result/".length)));
     if (["POST", "GET"].includes(method)) {
       return json({ ok: false, message: "Naming prompt route not found.", code: "NOT_FOUND" }, { status: 404 });
     }
