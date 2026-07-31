@@ -24,7 +24,7 @@ const markerIndex = html.indexOf('data-vedic-ai-card-marker="vedic-ai-direct-rou
 assert(markerIndex >= 0, "[verify:vedic-ai-flow] direct route marker missing");
 const cardSlice = html.slice(Math.max(0, markerIndex - 800), markerIndex + 1800);
 assertIncludes(cardSlice, 'href="/vedic-ai"', "main card href");
-assertIncludes(cardSlice, "AI 상담 · 30,000원", "main card price");
+assertIncludes(cardSlice, "전문가 상담 · 30,000원", "main card price");
 assertIncludes(html, "__cdVedicAiDirectClickGuard", "main card direct click guard");
 assertMissing(cardSlice, ['data-action="gotoVedicPremium"', 'data-coin-cost="300"'], "vedic card");
 assertMissing(html, ["/js/vedic-ai-consultation.js?v="], "index legacy script include");
@@ -90,7 +90,11 @@ const route = read("worker/routes/vedic-ai.js");
   "graha",
   "bhava",
   "nakshatra",
-  "vimshottari_dasha",
+  "karma_origin",
+  "dharma_artha",
+  "relationship_soul",
+  "dasha_upaya",
+  "divisionalCharts",
   "VedicChartResult",
 ].forEach((needle) => assertIncludes(route, needle, "worker route"));
 
@@ -120,22 +124,16 @@ assertIncludes(runtime, "window.location.assign('/vedic-ai')", "runtime navigati
 
 const { handleVedicAiRoutes, __vedicAiTestUtils } = await import(new URL("../worker/routes/vedic-ai.js", import.meta.url).href);
 const readingSectionKeys = [
-  "lagna",
-  "rashi",
-  "graha",
-  "bhava",
-  "nakshatra",
-  "dasha",
-  "vimshottari_dasha",
+  "karma_origin",
+  "dharma_artha",
+  "relationship_soul",
+  "dasha_upaya",
 ];
 const sectionTitles = {
-  lagna: "라그나, Lagna",
-  rashi: "라시, Rashi",
-  graha: "그라하, Graha",
-  bhava: "바바, Bhava",
-  nakshatra: "나크샤트라, Nakshatra",
-  dasha: "다샤, Dasha",
-  vimshottari_dasha: "빈쇼타리 다샤, Vimshottari Dasha",
+  karma_origin: "카르마의 기원",
+  dharma_artha: "물질적 성취와 다르마",
+  relationship_soul: "인연과 영혼의 파트너",
+  dasha_upaya: "현재의 다샤 흐름과 우파야",
 };
 function repeatedReading(seed, minChars) {
   let text = "";
@@ -148,7 +146,8 @@ const mockReading = JSON.stringify({
   scores: { dharma: 82, artha: 76, kama: 71, moksha: 88, overall: 81 },
   sections: Object.fromEntries(readingSectionKeys.map((key, index) => [
     key,
-    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 흐름은`, 1500) },
+    // 섹션이 7개에서 4개로 줄어, 합산 10,000자를 넘기려면 섹션당 분량이 그만큼 커진다.
+    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 흐름은`, 2600) },
   ])),
 });
 const mockQuality = __vedicAiTestUtils.validateConsultationQuality(mockReading, { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
@@ -166,7 +165,7 @@ const longMockQuality = __vedicAiTestUtils.validateConsultationQuality(JSON.stri
   scores: { dharma: 90, artha: 90, kama: 90, moksha: 90, overall: 90 },
   sections: Object.fromEntries(readingSectionKeys.map((key, index) => [
     key,
-    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 긴 흐름은`, 3200) },
+    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 긴 흐름은`, 5200) },
   ])),
 }), { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
 assert.equal(longMockQuality.ok, false, "[verify:vedic-ai-flow] long mock reading must fail");

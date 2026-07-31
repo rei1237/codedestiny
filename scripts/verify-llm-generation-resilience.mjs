@@ -159,7 +159,7 @@ function assertNeverThrows(feature, label, run) {
   const { __vedicAiTestUtils } = await import("../worker/routes/vedic-ai.js");
   const { validateConsultationQuality, sanitizeAssistantText } = __vedicAiTestUtils;
   const mocks = buildMockOutputs([
-    "lagna", "rashi", "graha", "bhava", "nakshatra", "dasha", "vimshottari_dasha",
+    "karma_origin", "dharma_artha", "relationship_soul", "dasha_upaya",
     "structure_core", "influence_factors", "evidence_basis", "domain_matrix", "action_plan",
   ]);
   assertDeliveryContract(feature, mocks);

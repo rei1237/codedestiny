@@ -38,26 +38,31 @@ const MAX_ASSISTANT_TEXT_CHARS = 60000;
 // 구 32000은 상한 20,000자를 최악 비율로 채우면 1,333자밖에 안 남아 완충이 부족했다.
 // tokensRequiredForChars(20000) = 32,250 이상을 확보한다.
 const INITIAL_MAX_OUTPUT_TOKENS = 33000;
+// 상담문은 차트 요소별 나열이 아니라 삶의 주제 네 갈래로 쓴다.
+// 요소별 7섹션 시절에는 라그나·라시·그라하를 각각 설명하느라 "요소 설명서"가 됐고,
+// 나바암샤(D9)는 데이터로만 들어가 관계·후반기 해석이 얕았다.
 const READING_SECTION_KEYS = [
-  "lagna",
-  "rashi",
-  "graha",
-  "bhava",
-  "nakshatra",
-  "dasha",
-  "vimshottari_dasha",
+  "karma_origin",
+  "dharma_artha",
+  "relationship_soul",
+  "dasha_upaya",
 ];
 const REQUIRED_SECTION_LABELS = Object.freeze({
-  lagna: "라그나, Lagna",
-  rashi: "라시, Rashi",
-  graha: "그라하, Graha",
-  bhava: "바바, Bhava",
-  nakshatra: "나크샤트라, Nakshatra",
-  dasha: "다샤, Dasha",
-  vimshottari_dasha: "빈쇼타리 다샤, Vimshottari Dasha",
+  karma_origin: "카르마의 기원",
+  dharma_artha: "물질적 성취와 다르마",
+  relationship_soul: "인연과 영혼의 파트너",
+  dasha_upaya: "현재의 다샤 흐름과 우파야",
+});
+// 구 7섹션 키 — 재시도/repair 응답이 옛 형식으로 돌아와도 일관성 검증이 빈 문자열을 보고
+// 오탐을 쌓지 않도록 본문 조회의 폴백으로만 남긴다(필수 섹션 목록에는 넣지 않는다).
+const LEGACY_SECTION_KEYS = Object.freeze({
+  karma_origin: ["lagna", "rashi", "nakshatra"],
+  dharma_artha: ["graha", "bhava"],
+  relationship_soul: [],
+  dasha_upaya: ["dasha", "vimshottari_dasha"],
 });
 const VEDIC_RESULT_ONLY_SYSTEM_PROMPT = `
-당신은 조티쉬(Jyotish) 베다 점성술 상담가입니다.
+당신은 파라샤라 전통을 따르는 조티쉬(Jyotish) 베다 점성술 상담가입니다.
 천체 위치, 라그나, 라시, 바바, 나크샤트라, 다샤를 직접 계산하지 않습니다.
 반드시 제공된 VedicChartResult JSON의 계산값만 해석합니다.
 JSON에 없는 행성 위치, 하우스, 나크샤트라, 파다, 다샤 기간은 지어내지 않습니다.
@@ -65,6 +70,15 @@ JSON에 없는 행성 위치, 하우스, 나크샤트라, 파다, 다샤 기간�
 sections의 각 body 안에서는 문단 사이를 빈 줄로 구분하고, 핵심 문구만 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.
 예언을 단정하지 말고 좋고 나쁨보다 어떤 삶의 주제가 강조되는지 초보자도 이해할 수 있는 한국어로 풉니다.
 라후와 케투는 물리 행성이 아니라 달의 노드로 설명합니다.
+
+해석의 기준은 다음 네 축이며, 용어를 처음 듣는 사람도 따라올 수 있게 매번 한 줄로 뜻을 풀어 씁니다.
+- 라그나(상승궁): 차트를 읽는 기준 자리. 그 사람의 본질과 인생 전반의 방향을 여기서부터 봅니다.
+- 나바암샤(D9): 라시(D1)가 드러난 삶이라면 D9는 내면의 잠재력, 인생 후반기, 결혼과 파트너십의 실제 결입니다. D1과 D9가 어긋날 때 그 차이 자체가 해석의 핵심이므로 두 차트를 대조해 서술합니다.
+- 나크샤트라: 달이 머무는 성수로 심리적 기질과 業(카르마)의 결을 읽습니다. 운명론으로 단정하지 말고 되풀이되는 경향으로 서술합니다.
+- 빔쇼타리 다샤: 지금 적용 중인 마하다샤·안타르다샤 로드를 근거로 시기를 말합니다. 기간이 언제 끝나는지 함께 밝혀 시의성을 잃지 않게 합니다.
+
+우파야(개운법)는 현재 다샤 로드와 품위가 약한 그라하에 근거해, 오늘 실제로 실행할 수 있는 행위(생활 습관, 관계에서의 태도, 시간의 배분, 전통적으로 그 그라하에 연결된 색·요일·보시)로 제시합니다.
+부적 판매, 유료 의식, 공포를 자극하는 경고, 의료·법률·투자 확정 조언은 쓰지 않습니다.
 `.trim();
 const startLocks = new Map();
 
@@ -857,6 +871,39 @@ function buildVedicAnalysisBasis(chart) {
   });
 }
 
+// 섹션 라벨만 주면 LLM 이 라그나 이야기로 쏠리고 D9·다샤는 한 줄 장식으로 남는다.
+// 섹션마다 어떤 계산값을 본문에 그대로 인용해야 하는지 값과 함께 못 박는다.
+function buildSectionEvidenceLines(chart) {
+  const lagnaAvailable = chart?.calculationMeta?.lagnaBhavaAvailable !== false;
+  const varga = (kind) => (chart?.divisionalCharts?.[kind] && typeof chart.divisionalCharts[kind] === "object" ? chart.divisionalCharts[kind] : null);
+  const vargaLine = (table, names) => {
+    if (!table) return "";
+    return names
+      .map((name) => {
+        const cell = table[name];
+        if (!cell?.sign) return "";
+        return `${GRAHA_KO_MAP[name] || name} ${cell.sign}${cell.natalSign && cell.natalSign !== cell.sign ? `(D1 ${cell.natalSign})` : ""}`;
+      })
+      .filter(Boolean)
+      .join(" · ");
+  };
+
+  const d9Line = vargaLine(varga("d9"), ["Venus", "Jupiter", "Moon", "Sun", "Mars", "Saturn"]);
+  const d10Line = vargaLine(varga("d10"), ["Sun", "Saturn", "Mercury", "Jupiter"]);
+  const dasha = chart?.vimshottariDasha || {};
+  const dashaLine = [
+    dasha.currentMahadasha?.lord ? `마하다샤 ${GRAHA_KO_MAP[dasha.currentMahadasha.lord] || dasha.currentMahadasha.lord}${dasha.currentMahadasha.end ? ` (${String(dasha.currentMahadasha.end).slice(0, 10)}까지)` : ""}` : "",
+    dasha.currentAntardasha?.lord ? `안타르다샤 ${GRAHA_KO_MAP[dasha.currentAntardasha.lord] || dasha.currentAntardasha.lord}${dasha.currentAntardasha.end ? ` (${String(dasha.currentAntardasha.end).slice(0, 10)}까지)` : ""}` : "",
+  ].filter(Boolean).join(" · ");
+
+  return [
+    `- karma_origin "${REQUIRED_SECTION_LABELS.karma_origin}": ${lagnaAvailable ? "lagna(라그나 라시와 도수)" : "출생시간이 없어 라그나는 확정하지 않는다고 밝히고 달 중심으로"}, moonNakshatra(이름·파다·로드), moon(라시)을 근거로 이 사람의 본질과 인생 전반의 방향, 되풀이되는 심리적 기질을 씁니다. 나크샤트라가 가리키는 業의 결을 운명 선고가 아니라 반복되는 패턴으로 설명하세요.`,
+    `- dharma_artha "${REQUIRED_SECTION_LABELS.dharma_artha}": ${lagnaAvailable ? "bhavas 중 2·6·10·11번" : "출생시간이 없어 바바는 확정하지 않는다고 밝히고 그라하의 라시와 품위만"}, grahas의 dignity(품위)와 배치를 근거로 직업의 성격, 재물이 들어오고 나가는 방식, 그 사람의 다르마(마땅히 할 일)를 씁니다.${d10Line ? ` D10(직업 분차트) 참고값: ${d10Line}.` : ""}`,
+    `- relationship_soul "${REQUIRED_SECTION_LABELS.relationship_soul}": ${d9Line ? `D9(나바암샤) 값을 반드시 본문에 인용하세요 — ${d9Line}.` : "divisionalCharts.d9 값이 비어 있으므로 D9 해석은 출생 정보 한계로 확정할 수 없다고 밝히고 지어내지 마세요."} D1(드러난 관계 방식)과 D9(내면의 잠재력·후반기·배우자의 실제 결)를 대조해, 두 차트가 어긋나는 지점 자체를 해석의 핵심으로 삼으세요.${lagnaAvailable ? " 7번 바바와 금성·목성의 배치도 함께 봅니다." : ""}`,
+    `- dasha_upaya "${REQUIRED_SECTION_LABELS.dasha_upaya}": ${dashaLine ? `현재 다샤를 반드시 본문에 인용하세요 — ${dashaLine}.` : "vimshottariDasha 값이 비어 있으므로 시기 예언을 지어내지 말고 확인이 제한된다고 밝히세요."} 지금 이 기간이 어떤 삶의 주제를 끌어올리는지, 언제까지 이어지는지 밝힌 뒤 우파야(개운법)로 마무리합니다. 우파야는 다샤 로드와 품위가 약한 그라하에 근거해 오늘 실행 가능한 행위로만 제시하고, 부적·유료 의식·공포 조장은 쓰지 마세요.`,
+  ];
+}
+
 function buildFirstPrompt(input, chart) {
   const canonicalFacts = buildCanonicalFactsLine(chart);
   return [
@@ -867,7 +914,11 @@ function buildFirstPrompt(input, chart) {
     "각 섹션 body는 (1) 계산값 근거 명시 → (2) 삶의 주제 해석 → (3) 실행 가능한 조언 순서로 쓰세요. 해당 섹션의 핵심 계산값(라시·나크샤트라·다샤 lord 등)을 본문에 그대로 언급한 뒤 해석하세요.",
     `모든 섹션의 마지막 문단은 상담 주제 "${input.topic}"${input.userQuestion ? "와 사용자의 자유 질문" : ""}에 연결해 마무리하세요.`,
     "첫 상담문은 sections body 전체 합산 공백 제외 10,000~20,000자 사이로 완성하세요.",
+    "섹션은 넷뿐이므로 한 섹션당 2,500~5,000자를 확보해 깊이 있게 쓰세요. 요약으로 끝내지 말고 근거→해석→조언을 각각 여러 문단으로 전개하세요.",
     "반환은 JSON 객체 하나만 허용합니다.",
+    "",
+    "섹션별로 반드시 인용해야 할 계산값과 다룰 내용:",
+    ...buildSectionEvidenceLines(chart),
     ...(canonicalFacts ? ["", `계산 확정값 (본문에서 이 값과 다르게 서술하는 것을 금지): ${canonicalFacts}`] : []),
     "",
     `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
@@ -947,7 +998,13 @@ function validateChartConsistency(content, chart) {
   if (!chart) return issues;
   const parsed = parseStructuredConsultationText(cleanMultiline(content, MAX_ASSISTANT_TEXT_CHARS));
   const sections = parsed?.sections && typeof parsed.sections === "object" ? parsed.sections : null;
-  const sectionBody = (key) => cleanMultiline(sections?.[key]?.body || "");
+  // 새 4섹션 키를 먼저 보고, 구 7섹션 키가 섞여 오면 그 본문도 함께 읽는다.
+  // 폴백이 없으면 옛 형식 응답에서 본문이 빈 문자열로 보여 검사가 통째로 건너뛰어진다.
+  const sectionBody = (key) => [key, ...(LEGACY_SECTION_KEYS[key] || [])]
+    .map((name) => cleanMultiline(sections?.[name]?.body || ""))
+    .filter(Boolean)
+    .join("\n")
+    .trim();
   const fullText = sections
     ? Object.values(sections).map((section) => cleanMultiline(section?.body || "")).join("\n")
     : cleanMultiline(content);
@@ -956,14 +1013,14 @@ function validateChartConsistency(content, chart) {
   if (lagnaKo) {
     const wrongLagna = ALL_SIGNS_KO.some((signKo) => signKo !== lagnaKo && new RegExp(`${signKo}\\s*라그나`).test(fullText));
     if (wrongLagna) issues.push("consistency.lagna_sign_mismatch");
-    const lagnaBody = sectionBody("lagna");
+    const lagnaBody = sectionBody("karma_origin");
     if (lagnaBody && !lagnaBody.includes(lagnaKo) && !lagnaBody.includes(clean(chart?.lagna?.sign, 20) || "\u0000")) {
       issues.push("consistency.lagna_sign_unstated");
     }
   }
 
   const nakshatraName = clean(chart?.moonNakshatra?.name, 40);
-  const nakshatraBody = sectionBody("nakshatra");
+  const nakshatraBody = sectionBody("karma_origin");
   if (nakshatraName && nakshatraBody && !nakshatraBody.includes(nakshatraName)) {
     issues.push("consistency.moon_nakshatra_unstated");
   }
@@ -971,7 +1028,7 @@ function validateChartConsistency(content, chart) {
   const mahaLord = clean(chart?.vimshottariDasha?.currentMahadasha?.lord, 20);
   if (mahaLord) {
     const lordKo = GRAHA_KO_MAP[mahaLord] || mahaLord;
-    const dashaText = [sectionBody("dasha"), sectionBody("vimshottari_dasha")].join("\n").trim();
+    const dashaText = sectionBody("dasha_upaya");
     if (dashaText && !dashaText.includes(mahaLord) && !dashaText.includes(lordKo)) {
       issues.push("consistency.mahadasha_lord_unstated");
     }
@@ -985,9 +1042,9 @@ function describeQualityIssuesForRepair(issues, chart) {
   if (issues.some((issue) => issue.startsWith("consistency."))) {
     lines.push(`- 본문 서술이 계산 확정값과 어긋났다. 반드시 이 값 그대로 서술하라: ${canonical}`);
   }
-  if (issues.includes("consistency.lagna_sign_unstated")) lines.push("- lagna 섹션 본문에 라그나 라시 이름을 그대로 언급한 뒤 해석하라.");
-  if (issues.includes("consistency.moon_nakshatra_unstated")) lines.push("- nakshatra 섹션 본문에 달의 나크샤트라 이름을 그대로 언급한 뒤 해석하라.");
-  if (issues.includes("consistency.mahadasha_lord_unstated")) lines.push("- dasha/vimshottari_dasha 섹션 본문에 현재 마하다샤 lord를 그대로 언급한 뒤 해석하라.");
+  if (issues.includes("consistency.lagna_sign_unstated")) lines.push("- karma_origin 섹션 본문에 라그나 라시 이름을 그대로 언급한 뒤 해석하라.");
+  if (issues.includes("consistency.moon_nakshatra_unstated")) lines.push("- karma_origin 섹션 본문에 달의 나크샤트라 이름을 그대로 언급한 뒤 해석하라.");
+  if (issues.includes("consistency.mahadasha_lord_unstated")) lines.push("- dasha_upaya 섹션 본문에 현재 마하다샤 lord를 그대로 언급한 뒤 해석하라.");
   if (issues.includes("total_body_too_short")) lines.push(`- sections body 전체 합산 공백 제외 ${MIN_INITIAL_READING_CHARS.toLocaleString()}자 이상으로 더 깊고 길게 쓰라.`);
   if (issues.includes("total_body_too_long")) lines.push(`- sections body 전체 합산 공백 제외 ${MAX_INITIAL_READING_CHARS.toLocaleString()}자 이하로 압축하라.`);
   if (issues.includes("structured_json.missing")) lines.push("- 반환은 JSON 객체 하나만 허용한다. JSON 밖에 어떤 텍스트도 쓰지 마라.");
