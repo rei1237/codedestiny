@@ -263,6 +263,21 @@ const standaloneMoonlightApplySource = section(
   "standalone moonlight balance apply",
 );
 assertContains(standaloneMoonlightApplySource, "var insufficient = known && balance < monthlyStones;", "standalone moonlight disable is decided by confirmed shortage only");
+assertContains(standaloneMoonlightApplySource, "lastKnownStandaloneBalance", "standalone moonlight keeps the last confirmed balance across a failed refresh");
+// 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을 준다. ok 를 먼저 검사하면 그 0 이
+// '잔여 확인 완료 · 현재 0개'로 렌더돼 월정석이 잠긴다 — signedOut 을 반드시 먼저 본다.
+const standaloneMoonlightRefreshSource = section(
+  destinyProfileSource,
+  "function refreshStandaloneMoonbal(fresh)",
+  "function finish(choice)",
+  "standalone moonlight balance refresh",
+);
+assertBefore(
+  standaloneMoonlightRefreshSource,
+  "if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);",
+  "else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);",
+  "standalone moonlight checks signed-out before treating a zero balance as confirmed",
+);
 
 // 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
 const reactAuthPrewarmSource = section(

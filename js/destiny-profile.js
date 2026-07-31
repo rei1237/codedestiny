@@ -9355,22 +9355,31 @@
       var monthlyCurrent = root.querySelector('[data-monthly-current]');
       var monthlyHintNode = root.querySelector('[data-monthly-hint]');
       var moonbalBusy = false;
+      // 한 번이라도 확인에 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을
+      // '확인 필요'로 되돌리지 않게 한다(셸·React 결제창의 sticky 계약과 동일).
+      var lastKnownStandaloneBalance = null;
       // 월정석 잔량을 모달을 닫지 않고 제자리 갱신한다. 미확정/실패는 '확인 필요'로 두고(0으로 오인 금지),
       // 알려진 잔량이 필요분보다 적을 때만 월정석 버튼을 비활성화한다(단건 결제는 항상 가능).
       function applyStandaloneMoonbal(state, balance) {
-        var known = state === 'fresh' && isFinite(balance) && balance >= 0;
+        var fresh = state === 'fresh' && isFinite(balance) && balance >= 0;
+        if (fresh) lastKnownStandaloneBalance = Math.floor(balance);
+        if (state === 'signed-out') lastKnownStandaloneBalance = null;
+        if (!fresh && state === 'error' && lastKnownStandaloneBalance !== null) balance = lastKnownStandaloneBalance;
+        var known = fresh || (state === 'error' && lastKnownStandaloneBalance !== null);
         var insufficient = known && balance < monthlyStones;
         var balanceLabel = known ? Math.floor(balance).toLocaleString('ko-KR') + '개' : '';
         if (moonbalText) {
           moonbalText.textContent = state === 'signed-out'
             ? '로그인 후 월정석 잔량을 확인할 수 있어요.'
             : state === 'error'
-              ? '월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요.'
+              ? (known
+                ? ('월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 ' + balanceLabel)
+                : '월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.')
               : known
                 ? ('월정석 잔여 확인 완료 · 현재 ' + balanceLabel)
                 : '월정석 잔여를 확인하고 있습니다.';
         }
-        if (moonbalStatus) moonbalStatus.setAttribute('data-state', known ? 'fresh' : (state === 'fresh' ? 'checking' : 'error'));
+        if (moonbalStatus) moonbalStatus.setAttribute('data-state', fresh ? 'fresh' : (state === 'fresh' ? 'checking' : state));
         if (monthlyCurrent) monthlyCurrent.textContent = known ? ('보유 월정석 ' + balanceLabel) : '보유 월정석 · 확인 필요';
         if (monthlyHintNode) {
           monthlyHintNode.textContent = !known
@@ -9396,8 +9405,12 @@
           : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
         fetcher.then(function(res) {
           if (settled) return;
-          if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
-          else if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          // 🔴 signedOut 을 ok 보다 먼저 본다. 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을
+          // 주는데(billing.js readBillingSnapshot 의 비인증 분기), ok 를 먼저 검사하면 그 0 이 '잔여 확인 완료 ·
+          // 현재 0개'라는 확신에 찬 거짓으로 렌더되고 월정석 버튼이 잠겼다 — signed-out 분기는 401/403 일 때만
+          // 도달했다. 로그인 안내를 띄우는 게 맞다.
+          if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
           else applyStandaloneMoonbal('error', 0);
         }).catch(function() {
           if (!settled) applyStandaloneMoonbal('error', 0);
