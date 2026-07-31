@@ -1096,8 +1096,9 @@ export default {
         });
       }
 
+      // ctx: 로그아웃의 세션 폐기를 즉시-응답 + waitUntil 백그라운드로 돌리기 위해 전달.
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
-        return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
+        return withCorsHeaders(request, env, await handleAuthRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/app-store" || url.pathname.startsWith("/api/app-store/")) {
