@@ -665,9 +665,11 @@ assertContains(indexSource, "'[direct-checkout] PortOne requestPayment failed'\n
 // PG 호출 직전에는 아무것도 끼우지 않는다(한 프레임이라도 끼면 user-gesture 소멸에 가까워진다).
 // verify-paid-gate-ui 가 js/destiny-profile.js 에 대해 같은 성질을 고정한다.
 // 주의: _cdWaitForPaymentOverlayPaint 자체는 이용권 선검사 경로에서 정당하게 쓰이므로 전역 금지가 아니다.
+// 🔴 try/finally 로 감싸는 것은 "끼우는 것"이 아니다 — PG 호출 자체는 여전히 핸드오프 직후 첫 문장이고,
+// finally 는 결제창이 닫힌 **뒤** 실행된다(오버레이 해제·억제 해제를 성공·실패·취소 한 곳에서 처리).
 assertContains(
   indexSource,
-  "window.__cdSuppressPaymentUnloadBlock = true;\n    var rsp = await window.PortOne.requestPayment(requestData);",
+  "window.__cdSuppressPaymentUnloadBlock = true;\n    var rsp;\n    try {\n      rsp = await window.PortOne.requestPayment(requestData);",
   "nothing may sit between the direct-checkout handoff and PortOne requestPayment",
 );
 assertContains(indexSource, "status: 'paymentProcessing'", "payment wait UI remains during server confirmation");
