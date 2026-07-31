@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Thanh toán bằng nguyệt thạch bạn đã có. Mở mà không tốn thêm chi phí.",
         "insufficient": "Số dư tín dụng hàng tháng của bạn thấp. Bạn có thể tiếp tục thanh toán KRW một lần.",
-        "checking": "Chúng tôi cần kiểm tra số dư nguyệt thạch. Thanh toán một lần bằng KRW vẫn khả dụng."
+        "checking": "Chúng tôi cần kiểm tra số dư nguyệt thạch. Thanh toán một lần bằng KRW vẫn khả dụng.",
+        "after": "Còn lại {balance} sau khi dùng."
       },
       "monthlyBalance": {
         "needCheck": "Cần kiểm tra",

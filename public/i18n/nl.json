@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Betaalt met maanstenen die je al hebt. Opent zonder extra uitgaven.",
         "insufficient": "Uw maandelijkse tegoed is laag. U kunt doorgaan met een eenmalige betaling in KRW.",
-        "checking": "We moeten je maansteensaldo controleren. Eenmalige KRW-betaling blijft beschikbaar."
+        "checking": "We moeten je maansteensaldo controleren. Eenmalige KRW-betaling blijft beschikbaar.",
+        "after": "Er blijft {balance} over na gebruik."
       },
       "monthlyBalance": {
         "needCheck": "Controle nodig",

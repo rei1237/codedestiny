@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Pays with moonstones you already have. Opens with no extra spending.",
         "insufficient": "Your monthly credit balance is low. You can continue with one-time KRW payment.",
-        "checking": "We need to check your moonstone balance. One-time KRW payment stays available."
+        "checking": "We need to check your moonstone balance. One-time KRW payment stays available.",
+        "after": "{balance} will remain after use."
       },
       "monthlyBalance": {
         "needCheck": "Check needed",

@@ -1019,27 +1019,43 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const hasActivePassTier = Boolean(passTier && passTier !== "free");
   // 무료/미보유 등급을 "FREE 이용권"으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
   // 활성 유료 등급일 때만 등급명을 배지로 노출하고, 그 외에는 중립적인 상점 라벨을 쓴다.
-  const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} 달빛 이용권` : "달빛 이용권";
-  const passHint = formatMembershipPassLimitLabel(passTier, passLimit);
-  const passStoreTitle = hasActivePassTier ? "달빛 이용권 업그레이드" : "이용권으로 구매";
+  // 🔴 결제창 문구는 셸·독립 정적과 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
+  // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
+  const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
+  const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} ${passBadgeLabel}` : passBadgeLabel;
+  const passStoreTitle = hasActivePassTier
+    ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "달빛 이용권 업그레이드")
+    : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 구매");
   const passStoreHint = hasActivePassTier
-    ? "지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요."
-    : "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.";
+    ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.")
+    : checkoutEntry.text("payment.directModal.passHint.store", "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.");
+  // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
+  // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
+  const passHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
 
+  // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과도 다르고 Play 정책에도 걸린다 — 배지·설명을 함께 바꾼다.
+  const directUsesAppStore = checkoutEntry.shouldUseAppStoreEntry();
+  const directBadgeLabel = directUsesAppStore
+    ? checkoutEntry.text("payment.directModal.pgBadgeApp", "Google Play 결제")
+    : checkoutEntry.text("payment.directModal.pgBadge", "PortOne V2 · KG이니시스");
+  const directHintLabel = directUsesAppStore
+    ? checkoutEntry.text("payment.directModal.directHintApp", "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.")
+    : checkoutEntry.text("payment.directModal.directHint", "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.");
+  const directTitleLabel = checkoutEntry.text("payment.directModal.directTitleLabel", "단건 결제");
   const directButtonHtml = canShowDirect ? `
-          <button type="button" class="cd-direct-payment-option" data-mode="direct" aria-label="단건 결제 ${formatPaymentWon(directAmount)}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${billingClientText("billingClient.text.003")}</span></span>
-            <strong>단건 결제 · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
-            <span>${billingClientText("billingClient.text.004")}</span>
+          <button type="button" class="cd-direct-payment-option" data-mode="direct" aria-label="${escapePaymentText(directTitleLabel)} ${formatPaymentWon(directAmount)}">
+            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${escapePaymentText(directBadgeLabel)}</span></span>
+            <strong>${escapePaymentText(directTitleLabel)} · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
+            <span>${escapePaymentText(directHintLabel)}</span>
           </button>` : "";
   const monthlyCurrentLabel = hasProvidedMonthlyBalance ? `보유 월정석 ${monthlyBalance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
   // 🔴 3렌더러(셸 index.html · 이 파일 · js/destiny-profile.js)가 같은 문구를 써야 한다.
   // 예전에는 이 카드만 "사용 후 N이 남습니다" 예측 문장을 더 달고 있어 셸과 눈에 띄게 달랐다.
   const monthlyDescInitial = monthlyCanUse
-    ? `이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.`
+    ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString("ko-KR") })}`
     : (hasProvidedMonthlyBalance
-      ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
-      : "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
+      ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.")
+      : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요."));
   const monthlyButtonHtml = canShowMonthly ? `
           <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="월정석 사용${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}">
             <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span></span>
@@ -1052,7 +1068,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           <button type="button" class="cd-direct-payment-option is-store${passStoreFirst ? " cd-direct-payment-option--recommended" : ""}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${passStoreFirst ? " (추천)" : ""}">
             <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>${passStoreFirst ? '<span class="cd-direct-payment-recommend">추천</span>' : ""}</span>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
-            <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
+            <span>${escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint)}</span>
           </button>` : "";
   const paymentChoiceButtonsHtml = passStoreFirst
     ? `${passStoreButtonHtml}${directButtonHtml}${monthlyButtonHtml}`

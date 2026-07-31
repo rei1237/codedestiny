@@ -43,6 +43,33 @@
     return String(value === null || value === undefined ? "" : value).trim();
   }
 
+  function interpolate(template, vars) {
+    var source = String(template === null || template === undefined ? "" : template);
+    if (!vars) return source;
+    return source.replace(/\{(\w+)\}/g, function (match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match;
+    });
+  }
+
+  /**
+   * 결제창 문구 조회. 🔴 세 렌더러(정적 셸 · React · 독립 정적)가 **같은 키와 같은 사전**을 보게 하는
+   * 지점이다. 예전에는 셸만 i18n 헬퍼를 쓰고 React·독립은 한국어 리터럴을 박아 두어, 문구가 서로
+   * 어긋나도 아무도 몰랐고 비한국어 사용자에게는 한국어가 그대로 나갔다.
+   *
+   * 사전은 public/i18n/<lang>.json 이고 조회기는 js/cd-lang-native.js 의 cdTranslate 다.
+   * ⚠ cdTranslate 는 lang==='ko' 일 때 딕셔너리를 무시하고 fallback 을 그대로 돌려준다 —
+   * 즉 여기 넘기는 한국어 fallback 이 ko 정본이므로 ko.json 과 항상 같이 맞춰야 한다.
+   * 조회기가 없는 환경(React 단독 페이지 등)에서도 fallback 보간으로 안전하게 동작한다.
+   */
+  function checkoutText(key, fallback, vars) {
+    try {
+      if (typeof globalThis !== "undefined" && typeof globalThis.cdTranslate === "function") {
+        return globalThis.cdTranslate(key, vars || {}, fallback);
+      }
+    } catch (_translateError) { /* 조회 실패는 폴백으로 흡수한다 */ }
+    return interpolate(fallback, vars);
+  }
+
   function runtimeWindow() {
     try {
       return typeof window !== "undefined" ? window : null;
@@ -214,6 +241,7 @@
     RETURN_TTL_MS: RETURN_TTL_MS,
     FUNNEL_PATH: FUNNEL_PATH,
     PASS_STORE_PLAN_ORDER: PASS_STORE_PLAN_ORDER,
+    text: checkoutText,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,
     shouldUseAppStoreEntry: shouldUseAppStoreEntry,

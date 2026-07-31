@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Payé avec les pierres de lune que vous avez déjà. S'ouvre sans dépense supplémentaire.",
         "insufficient": "Votre solde créditeur mensuel est faible. Vous pouvez continuer avec un paiement unique en KRW.",
-        "checking": "Nous devons vérifier votre solde de pierres de lune. Le paiement unique en KRW reste possible."
+        "checking": "Nous devons vérifier votre solde de pierres de lune. Le paiement unique en KRW reste possible.",
+        "after": "Il restera {balance} après utilisation."
       },
       "monthlyBalance": {
         "needCheck": "Chèque nécessaire",

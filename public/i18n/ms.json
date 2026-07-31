@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Dibayar dengan batu bulan yang sudah anda miliki. Terbuka tanpa perbelanjaan tambahan.",
         "insufficient": "Baki kredit bulanan anda adalah rendah. Anda boleh meneruskan pembayaran KRW sekali.",
-        "checking": "Kami perlu semak baki batu bulan anda. Bayaran sekali KRW masih tersedia."
+        "checking": "Kami perlu semak baki batu bulan anda. Bayaran sekali KRW masih tersedia.",
+        "after": "{balance} akan berbaki selepas digunakan."
       },
       "monthlyBalance": {
         "needCheck": "Cek diperlukan",

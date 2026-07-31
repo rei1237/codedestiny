@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Bezahlt mit bereits vorhandenen Mondsteinen. Öffnet ohne zusätzliche Ausgaben.",
         "insufficient": "Ihr monatliches Guthaben ist niedrig. Sie können mit der einmaligen KRW-Zahlung fortfahren.",
-        "checking": "Dein Mondstein-Guthaben muss geprüft werden. Einmalzahlung in KRW bleibt möglich."
+        "checking": "Dein Mondstein-Guthaben muss geprüft werden. Einmalzahlung in KRW bleibt möglich.",
+        "after": "Danach verbleiben {balance}."
       },
       "monthlyBalance": {
         "needCheck": "Überprüfung erforderlich",

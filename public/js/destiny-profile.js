@@ -2354,6 +2354,12 @@
     if (!api || typeof api.shouldUseAppStoreEntry !== 'function') return false;
     try { return api.shouldUseAppStoreEntry() === true; } catch (_appEntryError) { return false; }
   }
+  // 결제창 문구 조회. 셸·React 와 같은 키·같은 사전(public/i18n)을 본다.
+  function _dpCheckoutText(key, fallback, vars) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.text !== 'function') return String(fallback || '');
+    try { return api.text(key, fallback, vars); } catch (_checkoutTextError) { return String(fallback || ''); }
+  }
   function _dpTrackCheckoutEvent(name, payload) {
     var api = _dpCheckoutEntry();
     if (!api || typeof api.trackCheckoutEvent !== 'function') return;
@@ -8801,17 +8807,26 @@
     // 이용권 카드는 결제창의 첫 선택지이자 이용권 검사 지점이라 항상 맨 위 + '추천'이다
     // (단건/월정석 동등 노출은 그대로 유지 — 세 카드가 모두 보인다).
     var passStoreFirst = !hasActivePassTier;
-    var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' 달빛 이용권') : '달빛 이용권';
-    var passTitle = hasActivePassTier ? '달빛 이용권 업그레이드' : '이용권으로 구매';
+    // 🔴 결제창 문구는 셸·React 와 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
+    // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
+    var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '달빛 이용권');
+    var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' ' + passBadgeLabel) : passBadgeLabel;
+    var passTitle = hasActivePassTier
+      ? _dpCheckoutText('payment.directModal.passUpgradeTitle', '달빛 이용권 업그레이드')
+      : _dpCheckoutText('payment.directModal.passBuyTitle', '이용권으로 구매');
     var passHint = hasActivePassTier
-      ? '지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.'
-      : '30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.';
+      ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.')
+      : _dpCheckoutText('payment.directModal.passHint.store', '30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.');
     // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
     var directUsesAppStore = _dpShouldUseAppStoreEntry();
-    var directBadge = directUsesAppStore ? 'Google Play 결제' : 'PortOne V2 · KG이니시스';
+    var directBadge = directUsesAppStore
+      ? _dpCheckoutText('payment.directModal.pgBadgeApp', 'Google Play 결제')
+      : _dpCheckoutText('payment.directModal.pgBadge', 'PortOne V2 · KG이니시스');
     var directHint = directUsesAppStore
-      ? '지금 이 결과 하나만. Google Play 결제로 바로 열립니다.'
-      : '지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.';
+      ? _dpCheckoutText('payment.directModal.directHintApp', '지금 이 결과 하나만. Google Play 결제로 바로 열립니다.')
+      : _dpCheckoutText('payment.directModal.directHint', '지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.');
+    var directTitleLabel = _dpCheckoutText('payment.directModal.directTitleLabel', '단건 결제');
+    var monthlyHintChecking = _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.');
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
@@ -8824,13 +8839,13 @@
       '</button>';
     var directButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span></span>' +
-        '<strong>단건 결제 · <span class="cd-direct-payment-amount">' + esc(amountKrw.toLocaleString('ko-KR')) + '원</span></strong>' +
+        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(amountKrw.toLocaleString('ko-KR')) + '원</span></strong>' +
         '<span>' + esc(directHint) + '</span>' +
       '</button>';
     var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="monthly" data-monthly-option>' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>월정석 사용</span></span>' +
         '<strong>월정석 사용 · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> 이벤트 재화</strong>' +
-        '<span data-monthly-hint>월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.</span>' +
+        '<span data-monthly-hint>' + esc(monthlyHintChecking) + '</span>' +
         '<span class="cd-direct-payment-moonbal-current" data-monthly-current>보유 월정석 · 확인 필요</span>' +
       '</button>';
     _dpEnsureStandalonePaymentChoiceStyle();
@@ -8894,10 +8909,10 @@
         if (monthlyCurrent) monthlyCurrent.textContent = known ? ('보유 월정석 ' + balanceLabel) : '보유 월정석 · 확인 필요';
         if (monthlyHintNode) {
           monthlyHintNode.textContent = !known
-            ? '월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.'
+            ? monthlyHintChecking
             : (insufficient
-              ? '월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.'
-              : '이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.');
+              ? _dpCheckoutText('payment.directModal.monthlyHint.insufficient', '월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.')
+              : _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.'));
         }
         if (monthlyBtn) {
           if (insufficient) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }

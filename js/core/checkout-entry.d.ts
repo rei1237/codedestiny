@@ -32,6 +32,11 @@ declare const checkoutEntry: {
   RETURN_TTL_MS: number;
   FUNNEL_PATH: string;
   PASS_STORE_PLAN_ORDER: CheckoutStorePlan[];
+  /**
+   * 결제창 문구 조회. 세 렌더러가 같은 키·같은 사전(public/i18n)을 보게 하는 지점.
+   * 한국어 fallback 이 ko 정본이므로 ko.json 과 항상 함께 맞춘다.
+   */
+  text(key: string, fallback: string, vars?: Record<string, string | number>): string;
   /** 이 금액을 덮는 가장 낮은 이용권 등급(보유 등급 이하는 제외). 판정 불가 시 빈 문자열. */
   resolveStorePlan(costCoins: number, currentTier?: unknown): CheckoutStorePlan | "";
   buildPassStoreUrl(options: {

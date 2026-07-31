@@ -1788,7 +1788,8 @@
       "monthlyHint": {
         "use": "Paga con las piedras lunares que ya tienes. Se abre sin gasto adicional.",
         "insufficient": "Su saldo de crédito mensual es bajo. Puede continuar con el pago único en KRW.",
-        "checking": "Necesitamos comprobar tu saldo de piedras lunares. El pago único en KRW sigue disponible."
+        "checking": "Necesitamos comprobar tu saldo de piedras lunares. El pago único en KRW sigue disponible.",
+        "after": "Quedarán {balance} después de usarlo."
       },
       "monthlyBalance": {
         "needCheck": "Cheque necesario",
