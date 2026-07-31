@@ -39,6 +39,7 @@ function assertNotIncludes(source, needle, label) {
 assertIncludes(indexSource, 'href="/karma-destiny-ai"', "main entry");
 assertIncludes(indexSource, 'data-feature-key="karma-destiny-ai-consultation"', "main entry feature key");
 assertIncludes(indexSource, "/fuctionassets/soul-origin-cover.webp", "image asset preserved");
+// 라벨은 f728f7bf3 에서 'AI Consultation' → '전문가 상담' 으로 바뀌었다(프론트 일관성).
 assertIncludes(indexSource, "전문가 상담 · 50,000원", "price marker");
 assertNotIncludes(indexSource, "openSoulOriginModal", "legacy modal action removed");
 assertNotIncludes(indexSource, "soulOriginModal", "legacy modal removed");
