@@ -1123,7 +1123,15 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       settled = true;
       if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
       unlockBodyScroll();
-      modal.parentNode?.removeChild(modal);
+      // 🔴 단건만 잠깐 화면에 남긴다 — 클릭한 버튼이 disabled + .is-loading 인 채로 보여
+      // 'PG 결제창을 여는 중'이 그 자리에서 읽힌다(전체화면 대기 오버레이를 없앤 자리를 메운다).
+      // PG창은 z-index 99999 라 이 노드를 덮고, 다음 결제창 오픈이 맨 앞에서
+      // [data-cd-react-payment-choice] 를 모두 걷어내므로 남아도 재시도를 막지 않는다.
+      if (mode === "direct") {
+        window.setTimeout(() => { modal.parentNode?.removeChild(modal); }, 1500);
+      } else {
+        modal.parentNode?.removeChild(modal);
+      }
       // 이탈 계측 — 아무 것도 고르지 않고 닫은 경우만. dwellMs 로 '읽다가 포기'와 '즉시 닫음'을 가른다.
       if (mode === "cancel" && !leavingForPassStore) {
         checkoutEntry.trackCheckoutEvent("checkout_dismissed", {

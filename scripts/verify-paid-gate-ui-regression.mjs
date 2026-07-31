@@ -409,4 +409,56 @@ for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, '<link rel="stylesheet" href="/styles/fortune-ui.css', "fortune CSS blocking stylesheet");
 }
 
+// ── 🔴 대기 화면 정책: '진행 중' 전체화면은 이용권 확인에서만 ──────────────────────────────
+// 2026-08 재발 사고: 결제수단 선택창이 열릴 때 미리 발사하는 주문 사전발급(/api/billing/checkout)을
+// 전역 fetch 래퍼가 '결제 진행 중'으로 잡아 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를
+// 준비 중이에요' 전체화면이 결제창을 덮었다. 두 성질을 실제 평가로 고정한다.
+//   ⓐ 래퍼는 checkout/prepare 를 추적하지 않는다(문자열 핀이 아니라 함수를 실행해 확인).
+//   ⓑ 대기/결과 오버레이 허용목록에서 진행 중 모드는 'pass' 하나뿐이다.
+const indexRuntimeSource = readFileSync(resolve(root, "js/core/index-inline-runtime.js"), "utf8");
+const shouldTrackSource = section(
+  indexRuntimeSource,
+  "function __cdShouldTrackPaymentRequest(",
+  "function __cdResolvePaymentMeta(",
+  "global payment fetch tracker",
+);
+const shouldTrackPaymentRequest = new Function(`${shouldTrackSource}; return __cdShouldTrackPaymentRequest;`)();
+for (const path of ["/api/billing/checkout", "/api/payments/prepare"]) {
+  assert.equal(
+    shouldTrackPaymentRequest(path, "POST"),
+    false,
+    `주문 발급은 대기 UI를 켜지 않아야 한다: ${path}`,
+  );
+}
+// 승인 검증(confirm)은 결제창을 통과한 뒤라 그대로 추적한다 — 위 예외가 과하게 넓어지지 않게 고정.
+assert.equal(shouldTrackPaymentRequest("/api/billing/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+assert.equal(shouldTrackPaymentRequest("/api/payments/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+
+const waitUiAllowLists = [
+  { label: "shell", source: indexSource, name: "CD_WAIT_UI_ALLOWED_MODE_RE" },
+  { label: "react", source: paymentProcessingContextSource, name: "REACT_WAIT_UI_ALLOWED_MODE_RE" },
+  { label: "standalone", source: destinyProfileSource, name: "DP_WAIT_UI_ALLOWED_MODE_RE" },
+];
+for (const entry of waitUiAllowLists) {
+  const literal = entry.source.match(new RegExp(`${entry.name}\\s*=\\s*(/[^\\n]+/)\\s*;`))?.[1];
+  assert.ok(literal, `${entry.label}: ${entry.name} 정규식 리터럴을 찾지 못했다`);
+  const allowed = new Function(`return ${literal};`)();
+  for (const mode of ["pass", "pass-applied", "payment-complete", "payment-failed"]) {
+    assert.ok(allowed.test(mode), `${entry.label}: ${mode} 는 표시되어야 한다`);
+  }
+  for (const mode of ["payment", "checkout", "card", "confirm", "monthly", "subscription"]) {
+    assert.ok(!allowed.test(mode), `${entry.label}: ${mode} 대기 화면은 차단되어야 한다`);
+  }
+}
+// 실패는 성공(payment-complete)과 다른 모드로 갈라야 한다 — 같은 모드면 '결제 완료' 제목 아래 실패가 뜬다.
+assertContains(indexSource, "mode: 'payment-failed'", "failure overlay mode split");
+assertNotContains(indexSource, "'결제 또는 이용권 확인에 실패했습니다.'), mode: 'confirm' }", "failure no longer shares confirm mode");
+// 구간 차단은 결제창이 DOM 에 붙은 뒤에 끝나야 한다(사전발급이 무방비로 나가던 구멍).
+assertBefore(
+  indexSource,
+  "document.body.appendChild(modal);\n      // 🔴 구간 차단은 결제창이",
+  "_cdEndPreCheckoutWaitUiSuppression();\n      // 첫 번째 실제 결제 옵션에 포커스",
+  "pre-checkout suppression ends after the modal is mounted",
+);
+
 console.log("[verify-paid-gate-ui-regression] PASS");
