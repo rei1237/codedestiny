@@ -1504,11 +1504,14 @@ async function generateConsultationText(env, prompt, options = {}) {
   // 🔴 keyExtra 는 생성 방식을 바꿀 때마다 올린다. v1 시절의 짧은 결과가 30일 TTL 캐시에 남아 있어
   //    그대로 두면 병렬 생성으로 바꿔도 옛 결과가 계속 히트해 변경이 통째로 무효가 된다.
   //    그룹 병렬 생성은 그룹마다 다른 프롬프트를 쓰므로 keyExtra 에 그룹 id 까지 실어 서로 섞이지 않게 한다.
+  //    v3(2026-08-01): 섹션별 목표 배분 + JSON 파손 복구 이전에 v2 로 캐시된 결과는 목표의 66% 분량이라
+  //    같은 입력에서 30일간 그대로 히트한다. 프롬프트가 바뀌어 키가 달라지는 그룹도 있지만, 파싱 실패로
+  //    0자였던 그룹은 프롬프트가 같아 옛 결과를 그대로 집는다 — 버전을 올려 일괄로 끊는다.
   const ziweiLlmCache = {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: `ziwei-ai-v2${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
+    keyExtra: `ziwei-ai-v3${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
   };
   // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.
