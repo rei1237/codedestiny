@@ -23,6 +23,7 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { incrementRateLimit } from "../lib/rate-limit.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
@@ -631,6 +632,54 @@ function resolveActivePassPolicyWithProfileFallback(user = {}) {
   };
 }
 
+/**
+ * Family 이용권의 프리미엄 기능 이용을 관찰만 한다. **차단하지 않는다.**
+ *
+ * 차단하지 않는 이유가 두 가지다.
+ *
+ * 1) 약관(제7조 공정이용)이 "추가 요금 없는 정액 무제한 이용"을 약속하고, "단순히 이용
+ *    횟수가 많다는 사정만으로는 비정상 이용으로 판단하지 않는다"고 명시하며, 제한 전
+ *    7일 이상의 소명 기회를 보장한다. 횟수 기반 자동 차단은 그 약속을 깬다.
+ * 2) 기술적으로도 위험하다. consumeTierPassIfAvailable 이 ok:false 를 내면 호출부는
+ *    return null 로 결제 경로에 넘긴다 — 즉 여기서 막으면 "무제한이라 산 사용자에게
+ *    결제창을 다시 띄우는" 동작이 된다. 속도 제한을 결제 요구로 세탁하는 셈이다.
+ *
+ * 그래서 임계치를 넘으면 로그만 남긴다. 운영자가 그 신호를 보고 약관이 정한 절차
+ * (통지 → 7일 소명 → 속도 제한 → 최고 후 해지)를 수동으로 밟는다.
+ *
+ * 카운터는 기존 분산 rate limit 저장소(AbuseScore, TTL 자동 정리)를 재사용한다 —
+ * 세는 장치를 새로 만들지 않는다. 실패는 삼킨다(관찰이 결제를 막으면 안 된다).
+ */
+const FAMILY_FAIR_USE_OBSERVE_MIN_COIN_COST = 300; // 30,000원 이상 프리미엄 기능만 센다
+const FAMILY_FAIR_USE_OBSERVE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const FAMILY_FAIR_USE_OBSERVE_THRESHOLD = 20; // 사람이 하루에 도달하기 어려운 수준
+
+async function observeFamilyPremiumUsage(env, authUserId, { featureKey, coinCost, requestId }) {
+  if (!authUserId) return;
+  if (!Number.isFinite(coinCost) || coinCost < FAMILY_FAIR_USE_OBSERVE_MIN_COIN_COST) return;
+  try {
+    const { count } = await incrementRateLimit({
+      subjectHash: `family-premium:${authUserId}`,
+      endpoint: "family-premium-daily",
+      windowMs: FAMILY_FAIR_USE_OBSERVE_WINDOW_MS,
+      env,
+    });
+    if (Number(count) < FAMILY_FAIR_USE_OBSERVE_THRESHOLD) return;
+    logPaidAccessStage("FAMILY_FAIR_USE_OBSERVED", {
+      requestId,
+      userId: authUserId,
+      featureKey,
+      accessMethod: "family",
+      paymentMethod: "FAMILY",
+      amountCoins: coinCost,
+      passTier: "family",
+      scope: `daily=${count}/${FAMILY_FAIR_USE_OBSERVE_THRESHOLD}`,
+    });
+  } catch (_observeError) {
+    // 관찰 실패는 무시한다 — 이용권 통과를 막을 이유가 되지 않는다.
+  }
+}
+
 async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, body = {}, options = {}) {
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
@@ -786,6 +835,12 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
 
   if (!updatedUser) {
     return { ok: false, reason: "pass_access_conflict", featureKey, coinCost, amountKRW, passTier: usage.tier };
+  }
+
+  // 통과는 이미 확정됐다. 관찰만 하고 결과는 바꾸지 않는다(위 observeFamilyPremiumUsage 주석 참고).
+  // 멱등 재시도는 위에서 먼저 return 하므로 같은 이용이 두 번 세어지지 않는다.
+  if (usage.tier === "family") {
+    await observeFamilyPremiumUsage(env, authUserId, { featureKey, coinCost, requestId: normalizedRequestId });
   }
 
   return {
