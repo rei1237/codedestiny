@@ -1,10 +1,23 @@
 "use client";
 
-import { Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import { Bookmark, BookmarkCheck, Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getAuthState, primeAuthFromCache, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { PromptHubLoginGateModal, type PromptHubGateCopy } from "./PromptHubLoginGateModal";
+import {
+  consumeResumeSnapshot,
+  hasFreeGenerationLeft,
+  readLibrary,
+  recordFreeGeneration,
+  removeFromLibrary,
+  resolveLibraryOwnerKey,
+  saveResumeSnapshot,
+  saveToLibrary,
+  type PromptLibraryItem,
+} from "./prompt-hub-storage";
 import { buildSukuyoPromptFacts } from "./sukuyo-prompt-facts";
 
 const AI_TARGETS: { id: string; label: string; url: string }[] = [
@@ -838,6 +851,17 @@ type PromptHubCopy = {
   requiredInputPrefix: string;
   mobileToolAria: string;
   missingTranslation: string;
+  gate: PromptHubGateCopy;
+  library: {
+    title: string;
+    count: string;
+    save: string;
+    saved: string;
+    load: string;
+    loadAria: string;
+    removeAria: string;
+    note: string;
+  };
   scopeNoticeTitle: string;
   scopeNoticeBody: string;
   upsellTitle: string;
@@ -885,6 +909,31 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   requiredInputPrefix: "Required inputs:",
   mobileToolAria: "Select mobile tool",
   missingTranslation: "Translation unavailable",
+  gate: {
+    title: "Start using it for free",
+    lead: "You have used your free try. Become a free member and keep building prompts.",
+    benefits: [
+      "Unlimited prompt generation",
+      "Save what you build to your library",
+      "Full access to every tool",
+      "Free to join — no payment",
+    ],
+    signup: "Join for free",
+    login: "Log in",
+    dismiss: "Keep browsing",
+    closeAria: "Close",
+    note: "We keep what you typed, and finish generating it right after you log in.",
+  },
+  library: {
+    title: "My library",
+    count: "{count} saved",
+    save: "Save to library",
+    saved: "Saved",
+    load: "Open",
+    loadAria: "Open the saved {tool} prompt",
+    removeAria: "Delete the saved {tool} prompt",
+    note: "Saved in this browser only. Clearing browser data removes it.",
+  },
   scopeNoticeTitle: "Free prompts vs. an expert reading",
   scopeNoticeBody:
     "This hub pours every tradition into one shared frame and writes a general-purpose question from it. Our expert readings are built and tuned per discipline, so the same details take you somewhere far more precise.",
@@ -1137,6 +1186,32 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   requiredInputPrefix: "필수 입력:",
   mobileToolAria: "모바일 도구 선택",
   missingTranslation: "번역 문구를 확인해주세요",
+  gate: {
+    title: "무료 이용을 시작해보세요",
+    lead: "무료 체험 1회를 사용하셨어요. 무료 회원이 되면 프롬프트를 계속 만들 수 있어요.",
+    benefits: [
+      "프롬프트 무제한 생성",
+      "만든 프롬프트를 보관함에 저장",
+      "16가지 도구 전체 이용",
+      "결제 없이 무료 가입",
+    ],
+    signup: "무료 회원가입",
+    login: "로그인",
+    dismiss: "둘러보기 계속",
+    closeAria: "닫기",
+    note: "작성하신 입력은 그대로 두었다가, 로그인하면 이어서 생성해 드려요.",
+  },
+  library: {
+    title: "내 보관함",
+    count: "{count}개 저장됨",
+    save: "보관함에 저장",
+    saved: "저장 완료",
+    load: "불러오기",
+    loadAria: "저장한 {tool} 프롬프트 불러오기",
+    removeAria: "저장한 {tool} 프롬프트 삭제",
+    // 유료 상담의 "계정에 저장" 과 헷갈리지 않도록 저장 위치를 분명히 밝힌다.
+    note: "이 기기 브라우저에만 저장돼요. 브라우저 데이터를 지우면 사라집니다.",
+  },
   scopeNoticeTitle: "무료 프롬프트와 전문가 상담의 차이",
   scopeNoticeBody:
     "이 허브는 여러 운세를 하나의 공통 틀에 담아 범용 질문 문장을 만듭니다. 전문가 상담은 기능마다 전용으로 설계·조율되어 있어, 같은 정보를 넣어도 훨씬 세밀하고 정확한 해석에 닿습니다.",
@@ -1382,6 +1457,14 @@ export default function ComprehensivePromptHubPage() {
   // 하단 고정 CTA 는 도구 카드를 보고 있을 때만 띄운다. 그러지 않으면 페이지 아래쪽
   // 안내 문단 위에 계속 걸터앉아 본문을 가린다.
   const [isFormCardInView, setIsFormCardInView] = useState(true);
+  const auth = useAuthStore();
+  // 저장 키를 사용자별로 갈라 두면 계정을 바꿔도 남의 보관함이 보일 수 없다. 게스트는 빈 문자열.
+  const libraryOwnerKey = resolveLibraryOwnerKey(auth.user);
+  const [loginGateOpen, setLoginGateOpen] = useState(false);
+  const [libraryItems, setLibraryItems] = useState<PromptLibraryItem[]>([]);
+  const [savedToolId, setSavedToolId] = useState<ToolId | null>(null);
+  const gateCheckRef = useRef(false);
+  const resumeHandledRef = useRef(false);
 
   const currentTool = toolConfigById[activeToolId];
   const currentDraft = draftsByToolId[activeToolId] || getDefaultDraft(currentTool);
@@ -1436,6 +1519,52 @@ export default function ComprehensivePromptHubPage() {
     return () => observer.disconnect();
   }, []);
 
+  // 로그인·로그아웃·계정 전환이 곧바로 목록에 반영된다. 게스트면 빈 배열.
+  useEffect(() => {
+    setLibraryItems(libraryOwnerKey ? readLibrary(libraryOwnerKey) : []);
+  }, [libraryOwnerKey]);
+
+  // 이 라우트는 전역 헤더가 없는 몰입형이라 AuthWidget 이 뜨지 않는다 — 아무도 인증을 깨우지
+  // 않으므로 여기서 직접 깨워야 보관함과 재개가 동작한다. 다만 게스트 첫 방문에서 /api/auth/me 를
+  // 쏘고 싶지는 않아, 캐시에 세션 흔적이 있을 때와 로그인 화면을 다녀온 직후에만 확인한다.
+  useEffect(() => {
+    if (resumeHandledRef.current) return;
+    resumeHandledRef.current = true;
+    const snapshot = consumeResumeSnapshot();
+    stripResumeQueryParam();
+
+    let restored: { toolId: ToolId; draft: ToolDraft } | null = null;
+    if (snapshot) {
+      const toolId = normalizeToolId(snapshot.toolId);
+      const draft = { ...getDefaultDraft(toolConfigById[toolId]), ...(snapshot.draft as ToolDraft) };
+      setActiveToolId(toolId);
+      setDraftsByToolId((prev) => ({ ...prev, [toolId]: draft }));
+      restored = { toolId, draft };
+    }
+
+    if (!snapshot && !primeAuthFromCache()) return;
+
+    // 위 ref 가 이미 1회성을 보장하므로 cleanup 에서 취소하지 않는다. StrictMode 의 두 번째
+    // 마운트가 첫 실행을 취소해 버리면 개발 환경에서만 재개가 조용히 사라진다.
+    void (async () => {
+      try {
+        // refreshAuth 에는 타임아웃이 없다. 상한이 없으면 재개가 영영 끝나지 않는다.
+        await Promise.race([
+          refreshAuth({ force: Boolean(snapshot), silent: true }),
+          new Promise<void>((resolve) => {
+            window.setTimeout(resolve, 4000);
+          }),
+        ]);
+      } catch {
+        // 확인에 실패해도 게스트로 계속 쓸 수 있다. 입력은 이미 복원해 뒀다.
+      }
+      if (!restored) return;
+      // 로그인을 취소하고 돌아온 경우엔 입력만 되살리고 생성은 하지 않는다.
+      if (getAuthState().isAuthenticated) runPromptGeneration(restored.toolId, restored.draft);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function updateToolQueryParam(toolId: ToolId, mode: "push" | "replace" = "push") {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
@@ -1443,6 +1572,15 @@ export default function ComprehensivePromptHubPage() {
     url.searchParams.set("tool", toolId);
     if (mode === "replace") window.history.replaceState({}, "", url.toString());
     else window.history.pushState({}, "", url.toString());
+  }
+
+  // 재개 표식은 한 번 쓰고 지운다. 남겨 두면 새로고침·공유 링크에서 다시 복원을 시도한다.
+  function stripResumeQueryParam() {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("resume")) return;
+    url.searchParams.delete("resume");
+    window.history.replaceState({}, "", url.toString());
   }
 
   function selectTool(toolId: ToolId, options: { updateUrl?: boolean; replace?: boolean } = {}) {
@@ -1490,14 +1628,12 @@ export default function ComprehensivePromptHubPage() {
     setCopiedToolId(null);
   }
 
-  function generateCurrentToolPrompt() {
-    const toolId = activeToolId;
-    const config = currentTool;
-    const draft = currentDraft;
-    const missingFields = config.fields.filter((field) => field.required && !formatDraftValue(draft[field.id]));
-    setValidationAttemptedByToolId((prev) => ({ ...prev, [toolId]: true }));
-    setCopiedToolId(null);
-    if (missingFields.length) return;
+  /**
+   * 실제 조립부. 재개 흐름에서 setState 직후에도 불려야 해서 toolId·draft 를 인자로 받는다
+   * (state 를 읽으면 방금 복원한 값이 아니라 이전 draft 를 집는다).
+   */
+  function runPromptGeneration(toolId: ToolId, draft: ToolDraft) {
+    const config = toolConfigById[toolId];
     const computedFacts =
       config.id === "sukuyo"
         ? buildSukuyoPromptFacts({
@@ -1518,6 +1654,97 @@ export default function ComprehensivePromptHubPage() {
         }).format(new Date()),
       },
     }));
+    setExpandedResultsByToolId((prev) => ({ ...prev, [toolId]: true }));
+    resultPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  /**
+   * 생성 진입점. 게이트는 여기 한 곳에만 둔다 — 호출부가 셋(폼 제출·다시 생성·모바일 CTA)이라
+   * 각자에 걸면 조건이 서로 어긋난다. 인자를 받지 않는 것도 의도다: 두 호출부가
+   * onClick 에 그대로 물려 있어 첫 인자로 이벤트 객체가 들어온다.
+   */
+  async function generateCurrentToolPrompt() {
+    const toolId = activeToolId;
+    const config = currentTool;
+    const draft = currentDraft;
+
+    // ① 검증이 먼저다. 빈 폼으로 눌렀을 때는 로그인 모달이 아니라 기존 필수입력 안내가 떠야 한다.
+    const missingFields = config.fields.filter((field) => field.required && !formatDraftValue(draft[field.id]));
+    setValidationAttemptedByToolId((prev) => ({ ...prev, [toolId]: true }));
+    setCopiedToolId(null);
+    if (missingFields.length) return;
+
+    // ② 로그인 사용자는 무제한 — 카운터를 읽지도 않는다.
+    if (getAuthState().isAuthenticated) {
+      runPromptGeneration(toolId, draft);
+      return;
+    }
+
+    // ③ 무료 체험이 남았으면 인증 왕복 없이 바로 만들어 준다. 첫 방문 경험을 그대로 둔다.
+    if (hasFreeGenerationLeft()) {
+      runPromptGeneration(toolId, draft);
+      recordFreeGeneration();
+      return;
+    }
+
+    // ④ 체험을 다 썼다면, 하이드레이션이 늦어 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
+    if (gateCheckRef.current) return;
+    gateCheckRef.current = true;
+    try {
+      if (!getAuthState().authReady) {
+        // refreshAuth 에는 타임아웃이 없다. 상한을 걸지 않으면 버튼이 영영 반응하지 않는다.
+        await Promise.race([
+          refreshAuth({ force: true, silent: true }),
+          new Promise<void>((resolve) => {
+            window.setTimeout(resolve, 4000);
+          }),
+        ]).catch(() => undefined);
+      }
+    } finally {
+      gateCheckRef.current = false;
+    }
+
+    if (getAuthState().isAuthenticated) {
+      runPromptGeneration(toolId, draft);
+      return;
+    }
+    setLoginGateOpen(true);
+  }
+
+  function buildPromptHubAuthPath(kind: "login" | "signup") {
+    const next = encodeURIComponent(`/fortune/prompt-hub?tool=${activeToolId}&resume=1`);
+    // 로그인은 세 파라미터를 모두 받아 주고(auth-store 관례), 가입 화면은 returnTo 를 읽지 않는다.
+    return kind === "login"
+      ? `/login?next=${next}&returnTo=${next}&redirect=${next}`
+      : `/signup?next=${next}&redirect=${next}`;
+  }
+
+  function handleGateNavigate() {
+    saveResumeSnapshot(activeToolId, currentDraft);
+  }
+
+  function saveCurrentResultToLibrary() {
+    if (!currentResult?.prompt) return;
+    if (!libraryOwnerKey) {
+      setLoginGateOpen(true);
+      return;
+    }
+    setLibraryItems(
+      saveToLibrary(libraryOwnerKey, {
+        toolId: activeToolId,
+        toolLabel: tx(currentTool.shortLabel),
+        prompt: currentResult.prompt,
+        generatedAt: currentResult.generatedAt,
+      }),
+    );
+    setSavedToolId(activeToolId);
+    window.setTimeout(() => setSavedToolId(null), 1600);
+  }
+
+  function loadLibraryItem(item: PromptLibraryItem) {
+    const toolId = normalizeToolId(item.toolId);
+    selectTool(toolId);
+    setResultsByToolId((prev) => ({ ...prev, [toolId]: { prompt: item.prompt, generatedAt: item.generatedAt } }));
     setExpandedResultsByToolId((prev) => ({ ...prev, [toolId]: true }));
     resultPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -2281,6 +2508,14 @@ export default function ComprehensivePromptHubPage() {
                     </button>
                     <button
                       type="button"
+                      onClick={saveCurrentResultToLibrary}
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--hairline)] px-3 text-sm font-black text-[color:var(--ink-2)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
+                    >
+                      {savedToolId === activeToolId ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                      {savedToolId === activeToolId ? copy.library.saved : copy.library.save}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
                       className="inline-flex min-h-[44px] items-center rounded-xl border border-[color:var(--hairline)] px-3 text-sm font-black text-[color:var(--ink-2)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                     >
@@ -2346,6 +2581,52 @@ export default function ComprehensivePromptHubPage() {
               )}
             </section>
           </div>
+
+          {/* 업셀과 같은 이유로 결과 패널(aria-live) 바깥에 둔다 — 안에 넣으면 생성할 때마다
+              스크린리더가 목록 전체를 다시 읽는다. 접힌 채로 시작해 결과를 가리지 않는다. */}
+          {libraryOwnerKey && libraryItems.length ? (
+            <details className="mt-4 overflow-hidden rounded-[22px] border border-[color:var(--hairline)] bg-[color:var(--surface-1)] p-4 shadow-[var(--lift)] sm:p-5">
+              <summary className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-black text-[color:var(--ink-1)]">
+                <Bookmark size={16} className="text-[color:var(--tool-accent-strong)]" />
+                {copy.library.title}
+                <span className="text-xs font-bold text-[color:var(--ink-3)]">
+                  {copy.library.count.replace("{count}", String(libraryItems.length))}
+                </span>
+              </summary>
+              <ul className="mt-3 space-y-2">
+                {libraryItems.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[color:var(--hairline)] bg-[color:var(--surface-2)] px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-[color:var(--ink-1)]">{item.toolLabel}</p>
+                      <p className="mt-0.5 text-xs font-bold text-[color:var(--ink-3)]">{item.generatedAt}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => loadLibraryItem(item)}
+                        aria-label={copy.library.loadAria.replace("{tool}", item.toolLabel)}
+                        className="inline-flex min-h-[44px] items-center rounded-lg border border-[color:var(--tool-accent)] px-3 text-xs font-black text-[color:var(--tool-accent-strong)] transition hover:bg-[color:var(--tool-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
+                      >
+                        {copy.library.load}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLibraryItems(removeFromLibrary(libraryOwnerKey, item.id))}
+                        aria-label={copy.library.removeAria.replace("{tool}", item.toolLabel)}
+                        className="inline-flex min-h-[44px] w-11 items-center justify-center rounded-lg border border-[color:var(--hairline)] text-[color:var(--ink-3)] transition hover:border-[color:var(--danger-line)] hover:text-[color:var(--danger-ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs font-medium leading-6 text-[color:var(--ink-3)]">{copy.library.note}</p>
+            </details>
+          ) : null}
 
           {/* 결과 패널(aria-live) 바깥의 형제로 둔다. 안에 넣으면 프롬프트를 생성할 때마다
               스크린리더가 업셀 전체를 다시 읽는다. 결과가 나온 뒤에만 노출해 무료 도구를
@@ -2447,6 +2728,15 @@ export default function ComprehensivePromptHubPage() {
           <p className="mt-1.5 line-clamp-2 text-center text-xs font-bold text-[color:var(--ink-3)]">{disabledReason}</p>
         ) : null}
       </div>
+
+      <PromptHubLoginGateModal
+        open={loginGateOpen}
+        copy={copy.gate}
+        signupHref={buildPromptHubAuthPath("signup")}
+        loginHref={buildPromptHubAuthPath("login")}
+        onDismiss={() => setLoginGateOpen(false)}
+        onNavigate={handleGateNavigate}
+      />
     </main>
   );
 }

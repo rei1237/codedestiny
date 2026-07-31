@@ -55,7 +55,7 @@ export default function PromptHubPage() {
         <div className="relative">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ead089]/75 bg-[#fff8dc] px-3.5 py-1.5 text-xs font-black tracking-wide text-[#8a5a1e] dark:border-[#ead089]/55 dark:bg-[#ead089]/15 dark:text-[#ead089]">
             <span aria-hidden className="text-[#c99a2e] dark:text-[#ead089]">✦</span>
-            무료 · 로그인 불필요
+            1회 무료 체험 · 가입하면 무제한
           </span>
           <h1
             className="mt-4 text-balance text-[clamp(1.9rem,5.6vw,2.85rem)] font-bold leading-[1.14] tracking-[-0.02em] text-[#3c1830] [font-family:var(--font-display)] dark:text-[#fff1f7]"
@@ -64,6 +64,7 @@ export default function PromptHubPage() {
           </h1>
           <p className="mt-3 max-w-[46ch] text-[15px] font-semibold leading-7 text-[#70445c] dark:text-[rgba(255,214,232,0.86)]">
             사주·타로·점성술 등 11가지 도구로 나만의 상담 프롬프트를 만들어 보세요. 생년월일·태어난 시간만 넣으면 바로 시작합니다.
+            첫 프롬프트는 로그인 없이 만들어 볼 수 있고, 이어서 사용하려면 무료 회원가입만 하면 됩니다.
           </p>
           <p className="mt-2 max-w-[46ch] text-[13px] font-semibold leading-6 text-[#8a5a1e] dark:text-[#ead089]">
             {/* 전역 번역 레이어가 짧고 고립된 한글 텍스트 노드를 사전 매칭해 바꾼다. 이 문장을
@@ -170,11 +171,14 @@ export default function PromptHubPage() {
           </li>
           <li>
             <strong className="text-rose-600 dark:text-[#ffc4de]">결과 보관</strong> — 무료 허브는 입력도 결과도
-            저장하지 않아 화면을 닫으면 사라집니다. 유료 상담은 결과가 계정에 남아 나중에 다시 열어볼 수 있습니다.
+            저희 서버에 저장하지 않습니다. 로그인하시면 만든 프롬프트를 이 기기 브라우저 안의 보관함에 최근 20개까지
+            남겨 두고 다시 불러올 수 있지만, 브라우저 데이터를 지우면 함께 사라집니다. 유료 상담은 결과가 계정에 남아
+            어느 기기에서나 나중에 다시 열어볼 수 있습니다.
           </li>
           <li>
-            <strong className="text-rose-600 dark:text-[#ffc4de]">이용 조건</strong> — 무료 허브는 로그인도 결제도
-            필요 없습니다. 유료 상담은 이용권·월정석·단건 결제 가운데 하나로 이용합니다.
+            <strong className="text-rose-600 dark:text-[#ffc4de]">이용 조건</strong> — 무료 허브는 결제가 필요 없고,
+            로그인 없이 한 번 체험해 보실 수 있습니다. 이어서 사용하시려면 무료 회원가입만 하면 되며 카드 등록이나
+            결제 단계는 없습니다. 유료 상담은 이용권·월정석·단건 결제 가운데 하나로 이용합니다.
           </li>
         </ul>
         <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-[rgba(255,214,232,0.86)]">
@@ -239,7 +243,9 @@ export default function PromptHubPage() {
             <h3 className="font-bold text-slate-950 dark:text-[#fff1f7]">입력한 내용이나 결과가 서버에 저장되나요?</h3>
             <p className="mt-1">
               이 허브는 질문을 다듬는 도구로, 입력한 생년월일이나 질문 문구를 별도 계정 정보로 보관하지 않습니다.
-              결과는 화면에서 바로 확인하고 필요할 때 복사해 사용하세요.
+              결과는 화면에서 바로 확인하고 필요할 때 복사해 사용하세요. 로그인 후 보관함에 저장한 프롬프트와, 로그인
+              화면을 다녀오는 동안 잠시 보관되는 입력값은 모두 사용자의 브라우저 안에만 남고 저희 서버로 전송되지
+              않습니다.
             </p>
           </div>
           <div>
@@ -259,6 +265,15 @@ export default function PromptHubPage() {
                 전문가 상담
               </Link>
               을 이용해 주세요.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-950 dark:text-[#fff1f7]">왜 두 번째부터 로그인이 필요한가요?</h3>
+            <p className="mt-1">
+              첫 프롬프트는 로그인 없이 만들어 보실 수 있습니다. 품질을 직접 확인하신 뒤 이어서 사용하실 때만 무료
+              회원가입이 필요하며, 결제나 카드 등록 단계는 없습니다. 가입하시면 프롬프트를 제한 없이 만들 수 있고,
+              만든 프롬프트를 보관함에 저장해 다시 불러올 수 있습니다. 로그인하러 이동해도 작성하시던 입력은 그대로
+              남아 있다가 돌아오면 이어서 생성됩니다.
             </p>
           </div>
           <div>
