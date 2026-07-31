@@ -3429,6 +3429,14 @@
           var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
           var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
           if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
+            // 🔴 낙관 잠금은 전역 60초다. '이 가격이 이 등급 한도를 넘는다'는 미커버는 스냅샷이 이미 아는
+            // 사실이라 자기수정할 것이 없는데, 여기서 잠그면 한도 이내 기능들의 낙관 통과까지 함께 죽는다.
+            // 스냅샷과 서버 답이 실제로 어긋난 경우만 잠근다(셸 _cdRecordMembershipPassInBackground 와 동일 규칙).
+            var deniedSnapshot = _dpReadSubscriptionSnapshot({ allowStaleNone: true });
+            if (deniedSnapshot
+              && deniedSnapshot.state === 'active'
+              && deniedSnapshot.tier !== 'family'
+              && Math.max(0, Math.floor(Number(coinPrice || 0))) > _dpMembershipPassLimitForTier(deniedSnapshot.tier)) return;
             _dpDisableOptimisticPassBriefly();
             try { _dpRefreshAuthSessionSilently({}); } catch (_) {}
           }
@@ -9459,6 +9467,18 @@
             if (passReady && (passReady.status === 'pass_applied' || passReady.status === 'already_unlocked')) {
               _dpTrackCheckoutEvent('pass_verified_free', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
               finish('pass');
+              return;
+            }
+            // 확인 자체가 실패(5xx/degrade/타임아웃)면 상점으로 보내지 않는다 — 지연을 미커버 근거로 쓰면
+            // 실제 보유자가 이미 가진 이용권을 또 사러 가게 된다. 모달을 열어 둔 채 재시도를 안내한다.
+            if (!passReady || passReady.status === 'error') {
+              hit.removeAttribute('disabled');
+              hit.classList.remove('is-loading');
+              var passRetryNode = root.querySelector('[data-payment-status]');
+              if (passRetryNode) {
+                passRetryNode.textContent = _dpCheckoutText('payment.directModal.passCheckRetry', '이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요.');
+                passRetryNode.style.color = '#fca5a5';
+              }
               return;
             }
             goPassStore();

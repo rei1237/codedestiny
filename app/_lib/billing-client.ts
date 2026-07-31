@@ -1281,10 +1281,22 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             serviceType: toText(opts.serviceType || opts.productType) || undefined,
             coinPrice,
             amountKRW: directAmount,
-          }, { force: true, phase: "pass" }).catch(() => null);
+            // 🔴 force 가 아니라 revalidate 다. force 는 서버에 묻기 **전에** 로컬 스냅샷을 지우는데,
+            // 이 확인이 degrade/타임아웃으로 실패하면 판정 근거가 영구히 사라져 그 뒤 모든 유료 클릭에서
+            // 낙관 즉시통과가 죽는다(= 이 버튼을 눌렀다 실패한 뒤 매번 결제창이 뜨던 회귀).
+            // revalidate 는 서버 정본을 다시 읽되 성공했을 때만 덮어쓴다.
+          }, { revalidate: true, phase: "pass" }).catch(() => null);
           if (passProbe?.ok && passProbe.data?.pass.canUse === true) {
             checkoutEntry.trackCheckoutEvent("pass_verified_free", { option: "pass", renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
             close("pass");
+            return;
+          }
+          // 확인 자체가 실패했으면(응답 없음·5xx·degrade) 상점으로 보내지 않는다 — 지연을 미커버 근거로 쓰면
+          // 실제 보유자가 이미 가진 이용권을 또 사러 가게 된다. 모달을 열어 둔 채 재시도를 안내한다.
+          if (!passProbe?.ok || !passProbe.data) {
+            button.disabled = false;
+            button.classList.remove("is-loading");
+            setStatus(checkoutEntry.text("payment.directModal.passCheckRetry", "이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요."), true);
             return;
           }
           button.disabled = false;
@@ -1781,12 +1793,25 @@ function isSubscriptionSnapshotEligibility(eligibility: PaymentEligibility | nul
   return Boolean(asRecord(raw?.subscriptionSnapshot));
 }
 
+// 🔴 스냅샷을 **삭제**해도 되는 경우는 "보유 주체가 달라졌을 때"뿐이다(로그아웃·세션 만료·다른 계정).
+// 402 를 여기 넣으면 안 된다 — 402 는 "이 **가격**이 이 등급으로 안 열린다"는 가격에 대한 답이지
+// "이용권이 없다"는 보유 상태에 대한 답이 아니다. 스냅샷에는 state/tier/expiresAt 만 들어 있고 가격은
+// 판정 시점에 곱해지므로(js/core/pass-verdict.js resolveVerdict), 한도를 넘는 기능(예: 작명 300코인 >
+// vvip 100)을 한 번 눌렀다고 멀쩡한 보유 스냅샷을 버리면 **그 뒤 한도 이내 기능에서도** 낙관 통과가
+// 사라져 매번 차단형 서버 왕복을 탄다. 402 는 아래 shouldRefreshSubscriptionSnapshotAfterDenial 로
+// "삭제 없는 재검증"만 건다.
 function shouldInvalidateSubscriptionSnapshot(status: number, code?: string) {
   const normalizedCode = toText(code).toUpperCase();
   return status === 401
     || status === 403
-    || status === 402
-    || normalizedCode === "AUTH_REQUIRED"
+    || normalizedCode === "AUTH_REQUIRED";
+}
+
+// 402 계열(미커버·한도초과·잔액부족)은 스냅샷이 **낡았을 수도** 있다는 신호일 뿐이다(환불·해지로 이용권이
+// 사라진 경우). 삭제 대신 서버 재조회를 걸어, 성공하면 정본으로 덮어쓰고 실패하면 기존 판정을 유지한다.
+function shouldRefreshSubscriptionSnapshotAfterDenial(status: number, code?: string) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 402
     || normalizedCode === "PAYMENT_REQUIRED"
     || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED";
 }
@@ -3085,16 +3110,21 @@ async function fetchPaymentEligibilityUncached(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; revalidate?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
   const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
   const hasServerLookupKey = Boolean(input.productId || input.serviceType || input.categoryKey || input.subFeatureKey || input.featureKey || input.reason);
+  // revalidate: 로컬 스냅샷을 **지우지 않고** 서버 정본만 다시 읽는다. 응답이 오면 덮어쓰고, 실패하면
+  // 기존 판정이 그대로 살아남는다. force 는 종전대로 선삭제 — 계정이 바뀐 경우처럼 낡은 값이 위험할 때만 쓴다.
+  const skipLocalSnapshot = fetchOptions.force === true || fetchOptions.revalidate === true;
   if (fetchOptions.force === true) {
     clearSubscriptionSnapshotForUser();
     invalidateBillingBalanceCache();
+  } else if (fetchOptions.revalidate === true) {
+    invalidateBillingBalanceCache();
   }
-  const snapshot = fetchOptions.force === true ? null : readSubscriptionSnapshotForUser();
+  const snapshot = skipLocalSnapshot ? null : readSubscriptionSnapshotForUser();
   const snapshotAllowsLocalPass = Boolean(snapshot && (snapshot.state !== "none" || !hasServerLookupKey));
   const canUseLocalSubscriptionSnapshot = Boolean(snapshot && snapshot.state !== "none" && snapshotAllowsLocalPass && !hasServerLookupKey);
   if (snapshot && canUseLocalSubscriptionSnapshot) {
@@ -3308,11 +3338,12 @@ export async function fetchPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; revalidate?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
   const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const cacheKey = `${phase}:${resolvePaymentEligibilityCacheKey(input)}`;
   const now = Date.now();
-  if (fetchOptions.force === true) {
+  // revalidate 도 응답 캐시는 건너뛴다(서버 정본을 다시 읽는 것이 목적). 다른 점은 스냅샷을 선삭제하지 않는다는 것뿐.
+  if (fetchOptions.force === true || fetchOptions.revalidate === true) {
     paymentEligibilityRecent.delete(cacheKey);
     paymentEligibilityInFlight.delete(cacheKey);
   } else {
@@ -3323,7 +3354,7 @@ export async function fetchPaymentEligibility(input: {
     if (current) return current;
   }
 
-  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, phase, timeoutMs: fetchOptions.timeoutMs });
+  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, revalidate: fetchOptions.revalidate, phase, timeoutMs: fetchOptions.timeoutMs });
   paymentEligibilityInFlight.set(cacheKey, promise);
   try {
     const result = await promise;
@@ -3391,11 +3422,32 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
     }
     const code = String(parsed.error?.code || "").toUpperCase();
     if (parsed.status === 402 || code === "MEMBERSHIP_PASS_NOT_COVERED" || code === "PAYMENT_REQUIRED") {
-      disableOptimisticPassBriefly();
-      try {
-        const { refreshAuth } = await import("./auth-store");
-        void refreshAuth({ force: true, silent: true });
-      } catch {}
+      // 🔴 402 를 무조건 "이용권 상태가 틀렸다"로 읽지 않는다. 낙관 잠금은 **전역 60초**라, 한도를 넘는
+      // 기능(작명 300코인 > vvip 100) 하나가 402 를 받으면 한도 이내 기능 전부의 낙관 통과까지 같이 꺼졌다.
+      // 스냅샷이 "활성이지만 이 가격은 한도 밖"이라고 이미 말하고 있으면 서버 402 는 스냅샷과 **일치**하는
+      // 답이므로 고칠 것이 없다 — 이 경우엔 잠그지 않는다. 보유 상태가 실제로 어긋난 경우(스냅샷은 커버라는데
+      // 서버는 거절)만 잠그고 세션·스냅샷을 정정한다.
+      const snapshotAtDenial = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
+      const deniedCoinCost = resolveKnownCoinCost(input, null);
+      const deniedByPassLimitOnly = code === "PRICE_EXCEEDS_PASS_LIMIT"
+        || Boolean(
+          snapshotAtDenial
+          && snapshotAtDenial.state === "active"
+          && snapshotAtDenial.tier !== "family"
+          && deniedCoinCost > passVerdict.passLimitForTier(snapshotAtDenial.tier),
+        );
+      if (!deniedByPassLimitOnly) {
+        disableOptimisticPassBriefly();
+        try {
+          const { refreshAuth } = await import("./auth-store");
+          void refreshAuth({ force: true, silent: true });
+        } catch {}
+        // 스냅샷은 지우지 않고 서버 정본으로 덮어쓰기만 한다(재조회 실패 시 기존 판정 유지).
+        void fetchPaymentEligibility(
+          { featureKey: "membership-status-refresh", reason: "pass-denied" },
+          { revalidate: true },
+        ).catch(() => null);
+      }
     }
     // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
   } catch {
@@ -3991,20 +4043,25 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           // 세션 무효화 실패는 삼킨다 — 아래 에러 반환 흐름으로 이어진다.
         }
       }
+      const snapshotRefreshInput = {
+        categoryKey: input.categoryKey,
+        subFeatureKey: input.subFeatureKey,
+        featureKey: input.featureKey,
+        reason: input.reason,
+        productId: input.productId,
+        serviceType: input.serviceType || input.productType,
+        coinCost: input.cost,
+        coinPrice: input.coinPrice,
+        priceKRW: input.priceKRW,
+        amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
+      };
       if (shouldInvalidateSubscriptionSnapshot(parsed.status, code)) {
         clearSubscriptionSnapshotForUser();
-        void fetchPaymentEligibility({
-          categoryKey: input.categoryKey,
-          subFeatureKey: input.subFeatureKey,
-          featureKey: input.featureKey,
-          reason: input.reason,
-          productId: input.productId,
-          serviceType: input.serviceType || input.productType,
-          coinCost: input.cost,
-          coinPrice: input.coinPrice,
-          priceKRW: input.priceKRW,
-          amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
-        }, { force: true }).catch(() => null);
+        void fetchPaymentEligibility(snapshotRefreshInput, { force: true }).catch(() => null);
+      } else if (shouldRefreshSubscriptionSnapshotAfterDenial(parsed.status, code)) {
+        // 🔴 삭제하지 않는다. 402 는 가격에 대한 답이라 보유 스냅샷을 버릴 근거가 못 되고, 여기서 지우면
+        // 재조회가 실패했을 때 스냅샷이 영영 사라져 이후 모든 유료 클릭이 차단형 왕복이 된다(회귀 원인).
+        void fetchPaymentEligibility(snapshotRefreshInput, { revalidate: true }).catch(() => null);
       }
       if (!explicitPaymentMode && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
         markPaymentRequestedOnce();
