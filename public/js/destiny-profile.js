@@ -5582,6 +5582,24 @@
     quest:   { exp: 15, dailyLimit: 3 },
     paid:    { exp: 30, dailyLimit: 3 }
   };
+  /* 레벨 마일스톤 월정석 보상표. 서버 worker/routes/rpg.js의 LEVEL_MONTHLY_CREDIT_REWARDS와
+     같은 값이어야 하며, 값 일치는 scripts/verify-profile-card-level.mjs가 행 단위로 강제한다.
+     서버에 물어보지 않아도(비로그인·오프라인·503) "다음 보상"을 그릴 수 있어야 해서 사본을 둔다 —
+     레벨 곡선 상수를 이중으로 두는 것과 같은 이유다. 실제 지급 판단은 언제나 서버가 한다. */
+  var CD_LEVEL_REWARD_TABLE = [
+    { level: 5,  credits: 500 },
+    { level: 10, credits: 500 },
+    { level: 20, credits: 700 },
+    { level: 30, credits: 800 },
+    { level: 50, credits: 1000 },
+    { level: 70, credits: 1500 },
+    { level: 99, credits: 5000 }
+  ];
+  // 월정석 1개 = 10원 (KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)
+  var CD_LEVEL_REWARD_KRW_PER_CREDIT = 10;
+  // 지급된 월정석의 수명. worker/lib/monthly-credit-lots.js의 MONTHLY_CREDIT_TTL_MS와 같다.
+  var CD_LEVEL_REWARD_EXPIRE_DAYS = 30;
+
   /* 날짜 시드로 매일 3개를 고른다. 사주 무관한 생활 행동이라 프로필이 없어도 성립한다. */
   var CD_LEVEL_QUEST_POOL = [
     { id: 'water',    icon: '💧', text: '물 한 잔으로 하루 시작하기' },
@@ -5805,6 +5823,27 @@
     return picked;
   }
 
+  /* 서버가 알려준 수령 상태(있으면). 없으면 레벨만 보고 낙관적으로 그린다 —
+     이 값은 안내용이고 실제 지급 판정은 서버가 한다. */
+  var _cdLevelRewardStatus = null;
+
+  function _cdLevelGrantedRewardSet() {
+    var set = {};
+    var list = (_cdLevelRewardStatus && _cdLevelRewardStatus.grantedLevels) || [];
+    for (var i = 0; i < list.length; i += 1) set[Number(list[i])] = true;
+    return set;
+  }
+
+  /* 아직 못 받은 첫 마일스톤. 전부 받았거나 표를 다 지났으면 null. */
+  function _cdLevelNextReward(level) {
+    var granted = _cdLevelGrantedRewardSet();
+    for (var i = 0; i < CD_LEVEL_REWARD_TABLE.length; i += 1) {
+      var row = CD_LEVEL_REWARD_TABLE[i];
+      if (!granted[row.level] && row.level > level) return row;
+    }
+    return null;
+  }
+
   /* 카드 렌더에 필요한 값 전부. 네트워크를 타지 않으므로 항상 즉시 반환된다. */
   function _cdLevelSnapshot() {
     var store = _cdLevelRead();
@@ -5823,7 +5862,8 @@
       quests: _cdLevelTodayQuests(),
       synced: !!_cdLevelServer,
       loggedIn: _dpIsLoggedInScope(),
-      writeFailed: _cdLevelWriteFailed
+      writeFailed: _cdLevelWriteFailed,
+      nextReward: _cdLevelNextReward(state.currentLevel)
     };
   }
 
@@ -5879,7 +5919,21 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind: kind, key: key })
     }, { timeoutMs: 8000 }).then(function(res) {
-      if (res && res.ok && res.data && res.data.progress) _cdLevelApplyServer(res.data.progress);
+      var data = (res && res.ok && res.data) ? res.data : null;
+      if (data && data.progress) _cdLevelApplyServer(data.progress);
+      /* 서버는 예전부터 leveledUp·monthlyCreditGrants 를 실어 보냈는데 여기서 통째로 버려서,
+         월정석이 실제로 지급돼도 화면에는 아무 일도 일어나지 않았다. */
+      if (data) {
+        var grants = Array.isArray(data.monthlyCreditGrants) ? data.monthlyCreditGrants : [];
+        if (grants.length) _cdLevelRewardStatus = null; // 다음 시트 열람에서 서버 상태를 다시 받는다
+        if (grants.length || data.leveledUp === true) {
+          _dpCelebrateLevelUp({
+            level: (data.progress && Number(data.progress.currentLevel)) || _cdLevelSnapshot().currentLevel,
+            grants: grants
+          });
+        }
+        _dpRefreshLevelStrip();
+      }
       return res;
     }).catch(function() { return null; });
   }
@@ -5968,7 +6022,12 @@
     kstDate: _cdLevelKstDate,
     award: _cdLevelAward,
     sync: _cdLevelSync,
-    publishQuests: _cdLevelPublishQuests
+    publishQuests: _cdLevelPublishQuests,
+    rewardTable: CD_LEVEL_REWARD_TABLE,
+    buildStrip: function() { return _dpBuildLevelStrip(); },
+    // 보상 안내·연출은 순수 표시 계층이다(지급은 서버만 한다). 다른 화면에서도 같은 안내를 열 수 있게 노출한다.
+    openRewardSheet: function() { return _dpOpenLevelRewardSheet(); },
+    celebrate: function(options) { return _dpCelebrateLevelUp(options); }
   };
 
   /* ── 프로필 카드 레벨 스트립 UI ── */
@@ -5999,7 +6058,56 @@
       + '.dp-lvl__quest-exp{margin-left:auto;flex-shrink:0;font-size:.66rem;font-weight:900;color:#FFD700;}'
       + '.dp-lvl__note{margin-top:9px;font-size:.66rem;line-height:1.5;color:rgba(203,213,225,.72);}'
       + '.dp-lvl__note--warn{color:#fca5a5;}'
-      + '@media (prefers-reduced-motion: reduce){.dp-lvl__fill,.dp-lvl__chev{transition:none;}}';
+      /* 보상 요약 1줄. 달빛(월정석) 계열로 골드 EXP 바와 역할을 구분한다. */
+      + '.dp-lvl__reward{width:100%;min-height:44px;margin-top:9px;display:flex;align-items:center;gap:8px;padding:0 11px;border:1px solid rgba(196,181,253,.34);border-radius:10px;background:linear-gradient(120deg,rgba(124,101,214,.20),rgba(255,215,0,.08));color:#e9e4ff;font-size:.72rem;font-weight:800;line-height:1.35;text-align:left;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvl__reward-moon{flex-shrink:0;font-size:.86rem;}'
+      + '.dp-lvl__reward-amt{margin-left:auto;flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:900;color:#d9cbff;}'
+      + '.dp-lvl__reward-arrow{color:rgba(217,203,255,.7);font-weight:700;}'
+      + '.dp-lvl__reward--done{cursor:pointer;color:rgba(233,228,255,.86);}'
+      /* 보상 시트 — 기존 .dp-delete-gate 오버레이 관례를 그대로 따른다(스크롤락 없음). */
+      + '.dp-lvlrw{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
+      + '.dp-lvlrw__card{width:min(430px,100%);max-height:min(86vh,760px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:18px;border:1px solid rgba(196,181,253,.34);background:linear-gradient(160deg,rgba(22,18,48,.99),rgba(12,10,28,.99));box-shadow:0 26px 80px rgba(0,0,0,.5);padding:20px 18px 18px;color:#f2effd;}'
+      + '.dp-lvlrw__head{display:flex;align-items:flex-start;gap:10px;}'
+      + '.dp-lvlrw__title{margin:0;font-size:1.02rem;font-weight:900;letter-spacing:.01em;color:#fff;}'
+      + '.dp-lvlrw__sub{margin:6px 0 0;font-size:.74rem;line-height:1.6;color:rgba(221,214,254,.82);}'
+      + '.dp-lvlrw__close{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e9e4ff;font-size:1rem;font-weight:800;line-height:1;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvlrw__list{display:grid;gap:7px;margin-top:15px;}'
+      + '.dp-lvlrw__row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.04);}'
+      + '.dp-lvlrw__row--done{border-color:rgba(134,239,172,.34);background:rgba(134,239,172,.09);}'
+      + '.dp-lvlrw__row--next{border-color:rgba(255,215,0,.44);background:rgba(255,215,0,.10);}'
+      + '.dp-lvlrw__lv{flex-shrink:0;min-width:52px;font-size:.78rem;font-weight:900;color:#FFD700;}'
+      + '.dp-lvlrw__row--done .dp-lvlrw__lv{color:rgba(187,247,208,.95);}'
+      + '.dp-lvlrw__amt{font-size:.76rem;font-weight:800;color:#efeaff;}'
+      + '.dp-lvlrw__krw{display:block;margin-top:2px;font-size:.64rem;font-weight:700;color:rgba(203,213,225,.66);}'
+      + '.dp-lvlrw__state{margin-left:auto;flex-shrink:0;font-size:.66rem;font-weight:800;color:rgba(221,214,254,.72);}'
+      + '.dp-lvlrw__row--done .dp-lvlrw__state{color:#86efac;}'
+      + '.dp-lvlrw__row--next .dp-lvlrw__state{color:#FFD700;}'
+      + '.dp-lvlrw__terms{margin:14px 0 0;padding:12px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);}'
+      + '.dp-lvlrw__terms li{margin:0 0 6px;padding-left:14px;position:relative;font-size:.7rem;line-height:1.6;color:rgba(214,211,240,.82);list-style:none;}'
+      + '.dp-lvlrw__terms li:last-child{margin-bottom:0;}'
+      + '.dp-lvlrw__terms li::before{content:"·";position:absolute;left:4px;color:rgba(196,181,253,.8);font-weight:900;}'
+      + '.dp-lvlrw__claim{width:100%;min-height:48px;margin-top:14px;border-radius:12px;border:1px solid rgba(255,215,0,.5);background:linear-gradient(120deg,rgba(255,215,0,.24),rgba(196,181,253,.22));color:#fff6d8;font-size:.84rem;font-weight:900;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvlrw__claim[disabled]{opacity:.6;cursor:default;}'
+      /* 축하 연출 */
+      + '.dp-lvlup{position:fixed;inset:0;z-index:2147483400;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at 50% 42%,rgba(76,58,150,.62),rgba(5,7,18,.9) 62%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transition:opacity .3s ease;}'
+      + '.dp-lvlup--in{opacity:1;}'
+      + '.dp-lvlup__card{position:relative;width:min(360px,100%);padding:26px 22px 20px;border-radius:22px;border:1px solid rgba(255,215,0,.36);background:linear-gradient(165deg,rgba(30,24,64,.98),rgba(12,10,28,.98));box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 60px rgba(196,181,253,.18);text-align:center;color:#fff;transform:scale(.9);opacity:0;transition:transform .42s cubic-bezier(.16,1,.3,1),opacity .32s ease;}'
+      + '.dp-lvlup--in .dp-lvlup__card{transform:scale(1);opacity:1;}'
+      + '.dp-lvlup__eyebrow{margin:0;font-size:.68rem;font-weight:900;letter-spacing:.18em;color:rgba(255,215,0,.9);}'
+      + '.dp-lvlup__lv{margin:8px 0 0;font-size:1.9rem;font-weight:900;line-height:1.1;color:#FFD700;text-shadow:0 0 24px rgba(255,215,0,.36);}'
+      + '.dp-lvlup__stage{position:relative;height:96px;margin:10px 0 2px;display:flex;align-items:center;justify-content:center;}'
+      + '.dp-lvlup__moon{font-size:2.6rem;filter:drop-shadow(0 0 18px rgba(196,181,253,.7));animation:dpLvlUpMoonPulse 1.6s ease-in-out infinite;}'
+      + '.dp-lvlup__spark{position:absolute;left:50%;top:50%;font-size:1rem;opacity:0;animation:dpLvlUpGather .95s ease-out forwards;}'
+      + '.dp-lvlup__amt{margin:6px 0 0;font-size:1.34rem;font-weight:900;color:#e6dcff;}'
+      + '.dp-lvlup__amt b{color:#FFD700;}'
+      + '.dp-lvlup__balance{margin:8px 0 0;min-height:18px;font-size:.72rem;font-weight:800;color:rgba(214,211,240,.8);}'
+      + '.dp-lvlup__hint{margin:10px 0 0;font-size:.66rem;line-height:1.6;color:rgba(203,213,225,.66);}'
+      + '.dp-lvlup__close{width:100%;min-height:44px;margin-top:14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#f1eeff;font-size:.78rem;font-weight:800;cursor:pointer;touch-action:manipulation;}'
+      + '@keyframes dpLvlUpGather{0%{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.5);}30%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(.2);}}'
+      + '@keyframes dpLvlUpMoonPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.09);}}'
+      + '@media (prefers-reduced-motion: reduce){.dp-lvl__fill,.dp-lvl__chev{transition:none;}'
+        + '.dp-lvlup,.dp-lvlup__card{transition:none;opacity:1;transform:none;}'
+        + '.dp-lvlup__spark{display:none;}.dp-lvlup__moon{animation:none;}}';
     document.head.appendChild(style);
   }
 
@@ -6015,6 +6123,27 @@
     } else if (!snap.loggedIn) {
       note = '<div class="dp-lvl__note">로그인하면 기기가 바뀌어도 이어집니다.</div>';
     }
+
+    /* 보상 요약 1줄. 레벨을 올리면 월정석이 나온다는 사실 자체를 여기서 처음 알린다 —
+       그동안 서버는 지급하고 있었는데 화면 어디에도 설명이 없었다. */
+    var rewardLabel;
+    var rewardAmount = '';
+    if (!snap.loggedIn) {
+      rewardLabel = '레벨 보상 · 로그인 후 지급';
+    } else if (snap.nextReward) {
+      rewardLabel = '다음 보상 · Lv.' + snap.nextReward.level;
+      rewardAmount = '월정석 ' + snap.nextReward.credits.toLocaleString('ko-KR');
+    } else {
+      rewardLabel = '모든 레벨 보상을 받았어요';
+    }
+    var rewardHtml = '<button type="button" class="dp-lvl__reward'
+      + (snap.nextReward ? '' : ' dp-lvl__reward--done') + '" data-dp-level-reward'
+      + ' aria-label="레벨 보상 안내 열기">'
+      + '<span class="dp-lvl__reward-moon" aria-hidden="true">🌙</span>'
+      + '<span>' + rewardLabel + '</span>'
+      + (rewardAmount ? '<span class="dp-lvl__reward-amt">' + rewardAmount + '</span>' : '<span class="dp-lvl__reward-amt"></span>')
+      + '<span class="dp-lvl__reward-arrow" aria-hidden="true">›</span>'
+      + '</button>';
 
     var questsHtml = snap.quests.map(function(quest) {
       var done = snap.completedQuestIds.indexOf(quest.id) >= 0;
@@ -6036,6 +6165,7 @@
         + '<span class="dp-lvl__fill" style="transform:scaleX(' + (pct / 100) + ')"></span>'
       + '</div>'
       + '<div class="dp-lvl__meta">' + snap.currentLevelExp + ' / ' + snap.nextLevelExp + ' EXP</div>'
+      + rewardHtml
       + '<button type="button" class="dp-lvl__toggle" aria-expanded="' + (_dpLevelQuestsOpen ? 'true' : 'false') + '"'
         + ' aria-controls="dpLvlQuests" aria-label="오늘의 퀘스트 ' + (_dpLevelQuestsOpen ? '접기' : '펼치기') + '">'
         + '<span>오늘의 퀘스트 <b>' + doneCount + '/' + snap.quests.length + '</b></span>'
@@ -6066,18 +6196,297 @@
         _dpRefreshLevelStrip();
         return;
       }
+      var rewardBtn = event.target && event.target.closest ? event.target.closest('[data-dp-level-reward]') : null;
+      if (rewardBtn) {
+        _dpOpenLevelRewardSheet();
+        return;
+      }
       var questBtn = event.target && event.target.closest ? event.target.closest('[data-dp-quest]') : null;
       if (!questBtn || questBtn.disabled) return;
       var result = _cdLevelAward('quest', questBtn.getAttribute('data-dp-quest') || '');
-      if (result.changed) _dpRefreshLevelStrip();
+      if (result.changed) {
+        _dpRefreshLevelStrip();
+        _dpNoteLocalLevelUp(result);
+      }
     });
+  }
+
+  /* ── 레벨 보상 안내 시트 ── */
+
+  function _dpLevelRewardKrw(credits) {
+    return (credits * CD_LEVEL_REWARD_KRW_PER_CREDIT).toLocaleString('ko-KR');
+  }
+
+  /* 로컬 표만으로 그리는 기본형. 서버 상태를 못 받아도 시트가 비지 않게 하는 것이 목적이다. */
+  function _dpBuildLevelRewardRows(status, currentLevel) {
+    var granted = {};
+    var claimable = {};
+    var i;
+    if (status && Array.isArray(status.grantedLevels)) {
+      for (i = 0; i < status.grantedLevels.length; i += 1) granted[Number(status.grantedLevels[i])] = true;
+    }
+    if (status && Array.isArray(status.claimableLevels)) {
+      for (i = 0; i < status.claimableLevels.length; i += 1) claimable[Number(status.claimableLevels[i])] = true;
+    }
+    var unknown = !status || status.degraded === true;
+    var nextMarked = false;
+
+    return CD_LEVEL_REWARD_TABLE.map(function(row) {
+      var cls = 'dp-lvlrw__row';
+      var state;
+      if (granted[row.level]) {
+        cls += ' dp-lvlrw__row--done';
+        state = '수령 완료';
+      } else if (unknown) {
+        state = currentLevel >= row.level ? '도달' : 'Lv.' + row.level + ' 필요';
+      } else if (claimable[row.level]) {
+        cls += ' dp-lvlrw__row--next';
+        state = status.eligible === false ? '조건 대기' : '수령 대기';
+      } else if (!nextMarked) {
+        nextMarked = true;
+        cls += ' dp-lvlrw__row--next';
+        state = '다음 목표';
+      } else {
+        state = '잠김';
+      }
+      return '<div class="' + cls + '">'
+        + '<span class="dp-lvlrw__lv">Lv.' + row.level + '</span>'
+        + '<span class="dp-lvlrw__amt">월정석 ' + row.credits.toLocaleString('ko-KR') + '개'
+          + '<span class="dp-lvlrw__krw">' + _dpLevelRewardKrw(row.credits) + '원 상당</span>'
+        + '</span>'
+        + '<span class="dp-lvlrw__state">' + state + '</span>'
+      + '</div>';
+    }).join('');
+  }
+
+  function _dpOpenLevelRewardSheet() {
+    if (document.querySelector('.dp-lvlrw')) return;
+    _dpEnsureLevelStyles();
+
+    var snap = _cdLevelSnapshot();
+    var overlay = document.createElement('div');
+    overlay.className = 'dp-lvlrw';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', '레벨 보상 안내');
+
+    function render(status) {
+      var claimCount = (status && Array.isArray(status.claimableLevels)) ? status.claimableLevels.length : 0;
+      var canClaim = claimCount > 0 && status && status.eligible === true;
+      var loadFailed = !!(status && status.degraded);
+      overlay.innerHTML = '<div class="dp-lvlrw__card">'
+        + '<div class="dp-lvlrw__head">'
+          + '<div>'
+            + '<h3 class="dp-lvlrw__title">🌙 레벨 보상</h3>'
+            + '<p class="dp-lvlrw__sub">프로필 카드 레벨이 아래 단계에 도달하면 월정석을 드립니다.'
+              + (loadFailed ? '<br><b>수령 상태를 불러오지 못했어요.</b> 보상표만 표시합니다.' : '')
+              + (snap.loggedIn ? '' : '<br>로그인하면 내 수령 상태까지 함께 보여드려요.')
+            + '</p>'
+          + '</div>'
+          + '<button type="button" class="dp-lvlrw__close" data-dp-lvlrw-close aria-label="닫기">✕</button>'
+        + '</div>'
+        + '<div class="dp-lvlrw__list">' + _dpBuildLevelRewardRows(status, snap.currentLevel) + '</div>'
+        + '<ul class="dp-lvlrw__terms">'
+          + '<li>가입 후 14일이 지나고 결제 이력이 1회 이상이면 수령할 수 있어요.</li>'
+          + '<li>조건을 아직 못 채웠어도 보상은 사라지지 않아요 — 조건을 채우면 그동안 밀린 보상이 한 번에 지급됩니다.</li>'
+          + '<li>지급된 월정석은 받은 날부터 ' + CD_LEVEL_REWARD_EXPIRE_DAYS + '일 뒤 소멸합니다.</li>'
+          + '<li>월정석은 이벤트성 선불 재화로, 유료 기능 이용에 쓸 수 있어요.</li>'
+        + '</ul>'
+        + (claimCount
+          ? '<button type="button" class="dp-lvlrw__claim" data-dp-lvlrw-claim' + (canClaim ? '' : ' disabled') + '>'
+            + (canClaim ? '밀린 보상 ' + claimCount + '건 받기' : '수령 조건을 채우면 자동으로 지급됩니다')
+            + '</button>'
+          : '')
+      + '</div>';
+    }
+
+    render(null);
+    document.body.appendChild(overlay);
+    var closeBtn = overlay.querySelector('[data-dp-lvlrw-close]');
+    if (closeBtn) { try { closeBtn.focus(); } catch (_) {} }
+
+    function close() {
+      try { overlay.remove(); } catch (_) {}
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(event) { if (event.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+
+    overlay.addEventListener('click', function(event) {
+      if (event.target === overlay || (event.target.closest && event.target.closest('[data-dp-lvlrw-close]'))) {
+        close();
+        return;
+      }
+      var claimBtn = event.target.closest ? event.target.closest('[data-dp-lvlrw-claim]') : null;
+      if (!claimBtn || claimBtn.hasAttribute('disabled')) return;
+      claimBtn.setAttribute('disabled', 'disabled');
+      claimBtn.textContent = '수령 중...';
+      _dpFetchJsonWithFallback('/api/rpg/level-rewards/claim', {
+        method: 'POST',
+        credentials: 'include',
+        headers: _dpBuildAuthHeaders()
+      }, { timeoutMs: 12000 }).then(function(res) {
+        var grants = (res && res.ok && res.data && Array.isArray(res.data.granted)) ? res.data.granted : [];
+        if (grants.length) {
+          _cdLevelRewardStatus = null;
+          close();
+          _dpCelebrateLevelUp({ level: snap.currentLevel, grants: grants, force: true });
+          _dpRefreshLevelStrip();
+        } else {
+          claimBtn.textContent = '아직 받을 수 있는 보상이 없어요';
+        }
+      }).catch(function() {
+        claimBtn.textContent = '수령에 실패했어요. 잠시 후 다시 시도해 주세요';
+      });
+    });
+
+    /* 🔴 시트를 열 때만 부른다. 홈 진입에서 자동 호출하면 트래픽 1위 화면에 Mongo 왕복이 얹힌다. */
+    if (!snap.loggedIn) return;
+    if (_cdLevelRewardStatus) { render(_cdLevelRewardStatus); return; }
+    _dpFetchJsonWithFallback('/api/rpg/level-rewards', {
+      method: 'GET',
+      credentials: 'include',
+      headers: _dpBuildAuthHeaders()
+    }, { timeoutMs: 8000 }).then(function(res) {
+      var data = (res && res.ok && res.data) ? res.data : null;
+      if (!data) { render({ degraded: true }); return; }
+      if (data.degraded !== true) _cdLevelRewardStatus = data;
+      if (!overlay.parentNode) return; // 응답 전에 닫혔다
+      render(data);
+    }).catch(function() {
+      if (overlay.parentNode) render({ degraded: true });
+    });
+  }
+
+  /* ── 레벨업 축하 연출 ── */
+  var _dpLevelUpCelebratedLevel = 0;
+  var _dpLevelUpDeferTimer = null;
+
+  /* 결제 완료 직후(cd:unlocks-changed) 레벨업이 터지면 결제 오버레이 위를 덮게 된다.
+     사주 RPG 시트도 자체 레벨업 모달(entertain-engine.js [data-rpg-modal])을 띄우므로 겹친다.
+     최상단 오버레이가 열려 있는 동안은 미뤘다가, 닫히면 그때 띄운다. */
+  function _dpIsTopOverlayOpen() {
+    return !!document.querySelector('.cd-direct-payment-modal, .cd-direct-payment-backdrop, .dp-delete-gate, #cdCoinGateOverlay, [data-cd-payment-overlay], [data-rpg-modal].is-open');
+  }
+
+  function _dpCelebrateLevelUp(options) {
+    var opts = options || {};
+    var level = Math.max(1, Number(opts.level) || 1);
+    var grants = Array.isArray(opts.grants) ? opts.grants : [];
+    var credits = grants.reduce(function(sum, row) { return sum + (Number(row && row.credits) || 0); }, 0);
+
+    /* 로컬 낙관 → 서버 응답 → sync 재확인이 같은 레벨업을 세 번 통과할 수 있다. */
+    if (!opts.force) {
+      if (_dpLevelUpCelebratedLevel >= level && !credits) return;
+      _dpLevelUpCelebratedLevel = Math.max(_dpLevelUpCelebratedLevel, level);
+    }
+
+    // 보상이 없는 순수 레벨업은 오버레이를 띄우지 않는다(과한 방해).
+    if (!credits) {
+      var snap = _cdLevelSnapshot();
+      var tail = snap.nextReward ? ' · 다음 보상까지 ' + Math.max(1, snap.nextReward.level - level) + '레벨' : '';
+      _toast('✦ Lv.' + level + ' 달성' + tail, 'success');
+      return;
+    }
+
+    if (_dpIsTopOverlayOpen()) {
+      if (_dpLevelUpDeferTimer) return;
+      var waited = 0;
+      _dpLevelUpDeferTimer = setInterval(function() {
+        waited += 1200;
+        if (!_dpIsTopOverlayOpen() || waited >= 15000) {
+          clearInterval(_dpLevelUpDeferTimer);
+          _dpLevelUpDeferTimer = null;
+          _dpCelebrateLevelUp({ level: level, grants: grants, force: true });
+        }
+      }, 1200);
+      return;
+    }
+
+    _dpEnsureLevelStyles();
+    if (document.querySelector('.dp-lvlup')) return;
+
+    var sparks = '';
+    for (var i = 0; i < 12; i += 1) {
+      var angle = (i / 12) * Math.PI * 2;
+      var dx = Math.round(Math.cos(angle) * 88);
+      var dy = Math.round(Math.sin(angle) * 62);
+      sparks += '<span class="dp-lvlup__spark" aria-hidden="true" style="--dx:' + dx + 'px;--dy:' + dy + 'px;'
+        + 'animation-delay:' + (i * 45) + 'ms">🌙</span>';
+    }
+
+    var overlay = document.createElement('div');
+    overlay.className = 'dp-lvlup';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Lv.' + level + ' 달성 보상');
+    overlay.innerHTML = '<div class="dp-lvlup__card">'
+      + '<p class="dp-lvlup__eyebrow">LEVEL UP</p>'
+      + '<p class="dp-lvlup__lv">Lv.' + level + ' 달성</p>'
+      + '<div class="dp-lvlup__stage">' + sparks + '<span class="dp-lvlup__moon" aria-hidden="true">🌕</span></div>'
+      + '<p class="dp-lvlup__amt">월정석 <b data-dp-lvlup-count>0</b>개 지급</p>'
+      + '<p class="dp-lvlup__balance" data-dp-lvlup-balance></p>'
+      + '<p class="dp-lvlup__hint">' + _dpLevelRewardKrw(credits) + '원 상당 · 받은 날부터 '
+        + CD_LEVEL_REWARD_EXPIRE_DAYS + '일간 사용할 수 있어요.</p>'
+      + '<button type="button" class="dp-lvlup__close" data-dp-lvlup-close>확인</button>'
+    + '</div>';
+    document.body.appendChild(overlay);
+    requestAnimationFrame(function() { overlay.classList.add('dp-lvlup--in'); });
+
+    var closeTimer = null;
+    function close() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      document.removeEventListener('keydown', onKey);
+      overlay.classList.remove('dp-lvlup--in');
+      setTimeout(function() { try { overlay.remove(); } catch (_) {} }, 300);
+    }
+    function onKey(event) { if (event.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    overlay.addEventListener('click', function(event) {
+      if (event.target === overlay || (event.target.closest && event.target.closest('[data-dp-lvlup-close]'))) close();
+    });
+    closeTimer = setTimeout(close, 5200);
+
+    // 숫자 카운트업. reduced-motion 이면 곧장 최종값을 쓴다.
+    var countEl = overlay.querySelector('[data-dp-lvlup-count]');
+    var reduce = false;
+    try {
+      reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (_) {}
+    if (!countEl) { /* 렌더 실패는 무시 */ }
+    else if (reduce) { countEl.textContent = credits.toLocaleString('ko-KR'); }
+    else {
+      var startedAt = Date.now();
+      var tick = setInterval(function() {
+        var ratio = Math.min(1, (Date.now() - startedAt) / 900);
+        countEl.textContent = Math.round(credits * ratio).toLocaleString('ko-KR');
+        if (ratio >= 1) clearInterval(tick);
+      }, 40);
+    }
+
+    /* 갱신된 보유 잔량. fresh=1 이어야 서버의 5초 표시용 캐시를 우회한다.
+       실패하면 그 줄만 비운다(지급 사실 자체는 이미 서버가 확정했다). */
+    var balanceEl = overlay.querySelector('[data-dp-lvlup-balance]');
+    if (balanceEl && typeof _dpFetchMoonlightStoneBalance === 'function') {
+      _dpFetchMoonlightStoneBalance({ fresh: true }).then(function(result) {
+        if (!balanceEl.isConnected || !result || !result.ok) return;
+        balanceEl.textContent = '보유 월정석 ' + result.balance.toLocaleString('ko-KR') + '개';
+      }).catch(function() {});
+    }
+  }
+
+  /* 로컬 낙관 계산이 먼저 레벨업을 알아챈다. 월정석 지급 여부는 서버만 알기 때문에
+     여기서는 가벼운 토스트까지만 하고, 실제 보상 연출은 award 응답이 맡는다. */
+  function _dpNoteLocalLevelUp(result) {
+    if (!result || !result.leveledUp) return;
+    _dpCelebrateLevelUp({ level: result.level, grants: [] });
   }
 
   /* 하루 첫 방문에 출석 EXP를 주고 서버와 한 번 맞춘다. 세션당 1회만 돈다. */
   function _dpBootLevelDaily() {
     if (_dpLevelBootDone) return;
     _dpLevelBootDone = true;
-    _cdLevelAward('checkin', _cdLevelKstDate(0));
+    _dpNoteLocalLevelUp(_cdLevelAward('checkin', _cdLevelKstDate(0)));
     _cdLevelSyncWhenIdle();
     window.addEventListener('cd:auth-changed', function() {
       _cdLevelSync({ force: true }).then(function() { _dpRefreshLevelStrip(); });
@@ -6085,7 +6494,11 @@
     /* 유료 기능이 해금·열람되면 보너스 EXP. 결제 경로는 건드리지 않고 이벤트만 듣는다. */
     window.addEventListener('cd:unlocks-changed', function(event) {
       var key = (event && event.detail && event.detail.featureKey) ? String(event.detail.featureKey) : 'paid-view';
-      if (_cdLevelAward('paid', key).changed) _dpRefreshLevelStrip();
+      var paidResult = _cdLevelAward('paid', key);
+      if (paidResult.changed) {
+        _dpRefreshLevelStrip();
+        _dpNoteLocalLevelUp(paidResult);
+      }
     });
   }
 
