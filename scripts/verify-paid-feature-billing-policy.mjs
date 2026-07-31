@@ -46,6 +46,10 @@ const expectedCosts = {
   "physiognomy-compatibility": 50,
   "physiognomy-pastlife-compatibility": 50,
   "profile-card-manage": 50,
+  // 작명(훈민정음 작명소) — 300코인 = 30,000원. 워커 라우트(worker/routes/naming-prompt.js)와
+  // 프론트(app/naming-ai/NamingAiClient.tsx)가 이 값을 상수로 들고 있어 정본과 어긋나면
+  // verifyPaymentShape 의 금액 대조가 400 으로 결제를 되돌린다.
+  "premium-naming-prompt": 300,
 };
 
 for (const [featureKey, cost] of Object.entries(expectedCosts)) {

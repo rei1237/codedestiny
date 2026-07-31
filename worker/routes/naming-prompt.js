@@ -775,16 +775,50 @@ async function findPaymentForUser(env, auth, paymentId) {
   if (!normalized) {
     throw createHttpError(400, "paymentId is required.", { code: "PAYMENT_ID_REQUIRED" });
   }
+  // requestId·idempotencyKey 도 함께 본다 — 코인게이트가 단건 성공을 돌려줄 때 살아남는 식별자가
+  // merchantUid 하나로 정해져 있지 않다(경로에 따라 requestId 가 오기도 한다). 다른 유료 라우트의
+  // 정본 패턴(worker/routes/astrology-ai.js hasPaidPayment)이 이미 이 4개를 모두 본다.
   const payment = await withMongoRetry(env, () => Payment.findOne({
     userId: auth.userId,
     $or: [
       { merchantUid: normalized },
       { impUid: normalized },
+      { requestId: normalized },
+      { idempotencyKey: normalized },
       { _id: /^[a-f\d]{24}$/i.test(normalized) ? normalized : undefined },
     ].filter((item) => Object.values(item)[0] !== undefined),
-  }).lean());
+  }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).lean());
   if (!payment) throw createHttpError(404, "결제 기록을 찾을 수 없습니다.", { code: "PAYMENT_NOT_FOUND" });
   return payment;
+}
+
+/**
+ * 이 입력값으로 이미 완료된 단건 결제를 찾는다.
+ *
+ * 🔴 단건 결제는 PointHistory 차감 기록을 남기지 않는다(포인트가 아니라 카드로 결제하므로).
+ * 그래서 verifyNamingChargeEvidence 로는 절대 잡히지 않고, 식별자가 왕복 중 하나도 살아남지
+ * 못하면 결제를 마친 사용자가 canAccessPaidFeature 로 떨어져 402 를 받는다 — 돈만 나간다.
+ * Payment 문서를 reportId(입력 해시)로 직접 찾아 그 구멍을 막는다.
+ *
+ * 입력 해시에 묶여 있으므로 다른 입력으로 재사용할 수 없다. 같은 입력 재생성은 기존
+ * PaidExecutionRecord 멱등이 그대로 처리한다(paymentId 경로와 동일한 성질).
+ */
+async function findSettledNamingPayment(env, auth, inputHash) {
+  const hash = clean(inputHash, 160);
+  if (!hash) return null;
+  await connectDb(env);
+  return withMongoRetry(env, () => Payment.findOne({
+    userId: auth.userId,
+    paymentType: "digital_content",
+    featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
+    status: { $in: Array.from(PAYMENT_SUCCESS_STATUSES) },
+    $or: [
+      { reportId: hash },
+      { "pricingSnapshot.reportId": hash },
+      { "pricingSnapshot.contentId": hash },
+      { "pricingSnapshot.contentKey": hash },
+    ],
+  }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).lean());
 }
 
 function verifyPaymentShape(payment, inputHash = "") {
@@ -1104,6 +1138,24 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   const contextHash = readContextInputHash(ctx, body);
   if (inputHash && contextHash && contextHash !== inputHash) {
     throw createHttpError(409, "입력값이 바뀌면 새 결제가 필요합니다.", { code: "INPUT_HASH_MISMATCH" });
+  }
+
+  // 🔴 이 입력값으로 이미 완료된 단건 결제가 있으면 그걸로 통과시킨다. 단건은 PointHistory 차감
+  // 기록이 없어 아래 회당 결제 증빙으로는 잡히지 않고, 식별자가 왕복 중 유실되면 결제를 마친
+  // 사용자가 402 를 받는다.
+  const settledPayment = await findSettledNamingPayment(env, auth, inputHash);
+  if (settledPayment) {
+    verifyPaymentShape(settledPayment, inputHash);
+    return {
+      accessMethod: "single",
+      accessType: "single_purchase",
+      evidenceId: String(settledPayment.merchantUid || settledPayment._id || ""),
+      paymentId: String(settledPayment.merchantUid || ""),
+      requestId: String(settledPayment.requestId || settledPayment.merchantUid || ""),
+      profileId: "default",
+      payment: settledPayment,
+      raw: ctx,
+    };
   }
 
   // 🔴 회당 결제 차감 증빙을 먼저 본다. canAccessPaidFeature 는 지속 엔티틀먼트만 판정해서

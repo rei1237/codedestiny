@@ -175,6 +175,29 @@ for (const marker of ["pendingPaymentMiss", "resolveNamingYongshin", "suriPrompt
 // canAccessPaidFeature 는 지속 엔티틀먼트(이용권·영구해금)만 판정하고 회당 결제(월정석·코인 차감)에는
 // 항상 PAYMENT_REQUIRED 를 주므로, 순서가 뒤집히면 차감이 끝난 사용자가 402 로 막힌다(돈만 나감).
 assertIncludes("worker/routes/naming-prompt.js", route, "verifyNamingChargeEvidence");
+// 단건 결제는 PointHistory 차감 기록이 없다 — Payment 문서를 입력 해시로 찾는 경로가 있어야
+// 식별자가 왕복 중 유실돼도 결제를 마친 사용자가 402 로 막히지 않는다.
+assertIncludes("worker/routes/naming-prompt.js", route, "findSettledNamingPayment");
+// 코인게이트가 단건 성공에서 돌려주는 식별자가 merchantUid 로 고정돼 있지 않다.
+for (const marker of ["{ requestId: normalized }", "{ idempotencyKey: normalized }"]) {
+  assertIncludes("worker/routes/naming-prompt.js", route, marker);
+}
+// 가격 상수는 서버 레지스트리 정본과 같아야 한다(어긋나면 verifyPaymentShape 이 400 으로 되돌린다).
+{
+  const { FEATURE_KEY_PRICE_TABLE } = await import("../worker/lib/paid-feature-registry.js");
+  const row = FEATURE_KEY_PRICE_TABLE["premium-naming-prompt"] || {};
+  assert(row.cost === 300 && row.amountKRW === 30000, "작명 가격 정본이 300코인/30,000원이 아니다");
+  assertIncludes("worker/routes/naming-prompt.js", route, "const AMOUNT_KRW = 30000");
+  assertIncludes("worker/routes/naming-prompt.js", route, "const COIN_PRICE = 300");
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "const AMOUNT_KRW = 30000");
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "const COIN_PRICE = 300");
+  const { calculateMembershipCreditCost } = await import("../worker/lib/billing-policy.js");
+  assert(
+    calculateMembershipCreditCost(row.cost) === 3000,
+    "작명 월정석 가격이 정책 계산값(3,000)과 다르다",
+  );
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "const MEMBERSHIP_CREDIT_COST = 3000");
+}
 {
   const chargeAt = route.indexOf("const charge = await verifyNamingChargeEvidence(");
   const gateAt = route.indexOf("const decision = await canAccessPaidFeature(");
