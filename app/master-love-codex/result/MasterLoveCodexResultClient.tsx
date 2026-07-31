@@ -23,6 +23,8 @@ type SessionState = {
   status: string;
   /** 서버가 준 모드 — 궁합판이면 막 제목·표지가 관계 축으로 바뀐다 */
   mode?: "solo" | "compat";
+  /** paid / pass / monthly_credit / admin — 리포트 표식의 금액 표기를 가른다 */
+  accessType?: string;
   chapters: CodexChapter[];
   loveDna: CodexLoveDna | null;
   totalCharCount: number;
@@ -80,6 +82,10 @@ export default function MasterLoveCodexResultClient() {
       setSession({
         sessionId: String(payload.sessionId || sessionId),
         status: String(payload.status || ""),
+        // 🔴 mode 를 복사하지 않으면 아래 CodexReader 로 항상 undefined 가 내려가,
+        //    궁합판 리포트가 개인판 막 제목·표지로 열린다(서버는 정상적으로 내려준다).
+        mode: payload.mode === "compat" ? "compat" : "solo",
+        accessType: String(payload.accessType || ""),
         chapters: Array.isArray(payload.chapters) ? payload.chapters : [],
         loveDna: payload.loveDna || null,
         totalCharCount: Number(payload.totalCharCount || 0),
@@ -153,6 +159,7 @@ export default function MasterLoveCodexResultClient() {
         totalCharCount={session.totalCharCount}
         sessionId={session.sessionId}
         mode={session.mode === "compat" ? "compat" : "solo"}
+        accessType={session.accessType || ""}
       />
     </>
   );

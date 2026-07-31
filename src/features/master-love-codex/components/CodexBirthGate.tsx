@@ -10,6 +10,9 @@
  * 프롤로그가 산문으로 말한 "두 장을 겹쳐 본다"를 여기서는 목록으로 다시 보여 준다.
  * 결제가 붙은 버튼("결과 보기")이 이 화면에 있으므로, 무엇을 받고 무엇을 받지 못하는지가
  * 버튼 위에 반드시 함께 있어야 한다. 가격은 priceSlot(PriceBadge)만 쓰고 리터럴로 적지 않는다.
+ *
+ * 폼이 길어 CTA 까지 스크롤이 멀다 — 모바일에서는 하단 고정 바(floatingCta)가 지금 결제될
+ * 금액을 계속 들고 있는다. 두 슬롯 모두 현재 모드(개인/궁합)의 SKU 를 따라간다.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -71,10 +74,25 @@ interface CodexBirthGateProps {
   busy: boolean;
   busyLabel: string;
   error: string;
+  /** 결제 버튼 옆 금액 배지 — 상위가 현재 모드의 PriceBadge 를 넣는다 */
   priceSlot?: React.ReactNode;
+  /** 화면 최상단 프리미엄 상품 요약(배지 + 금액) */
+  headerSlot?: React.ReactNode;
+  /** 모바일 하단 고정 CTA — 상위가 현재 모드로 구성해 넣는다 */
+  floatingCta?: React.ReactNode;
 }
 
-export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLabel, error, priceSlot }: CodexBirthGateProps) {
+export default function CodexBirthGate({
+  value,
+  onChange,
+  onSubmit,
+  busy,
+  busyLabel,
+  error,
+  priceSlot,
+  headerSlot,
+  floatingCta,
+}: CodexBirthGateProps) {
   const { seed, seedVersion, reload } = useAiProfileSeed();
   const [reloading, setReloading] = useState(false);
   const valueRef = useRef(value);
@@ -126,14 +144,17 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
   return (
     // justify-center 를 쓰지 않는다 — 가치 블록이 붙어 100svh 를 넘기면 오버레이 안에서
     // 위쪽이 잘려 아래 결제 버튼까지 스크롤로 닿지 못한다.
-    <section className="flex min-h-[100svh] flex-col justify-start pb-24 pt-16" aria-label="생년 정보 입력">
+    // 오버레이는 자체 스크롤이라 body padding 이 닿지 않는다 — 하단 고정 바 높이만큼 직접 비운다.
+    <section className="flex min-h-[100svh] flex-col justify-start pb-32 pt-16 md:pb-24" aria-label="생년 정보 입력">
       <div className={styles.measure}>
         <CodexReveal>
+          {/* 지금 어떤 상품을 진행 중인지 화면 맨 위에서 먼저 알린다 */}
+          {headerSlot ? <div className="mb-8">{headerSlot}</div> : null}
           <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.28em", color: "var(--codex-gold-dim)" }}>
             THE FIRST PAGE
           </p>
           <h2 className={`${styles.chapterTitle} mt-4`}>당신의 명식과 명반을 세우겠습니다</h2>
-          <p className="mt-5 max-w-[38ch] text-[0.9375rem] leading-8" style={{ color: "var(--codex-ink-text-muted)" }}>
+          <p className="mt-5 max-w-[38ch] leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
             태어난 순간의 좌표가 있어야 스무 장을 채울 수 있습니다. 프로필 카드가 있으면 자동으로 채워집니다.
           </p>
           <hr className={`${styles.rule} mt-9`} />
@@ -154,7 +175,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
                     {axis.reads}
                   </span>
                 </dt>
-                <dd className="mt-1.5 text-[0.8125rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                <dd className="mt-1.5 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                   {axis.detail}
                 </dd>
               </div>
@@ -178,7 +199,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
                   <span className="text-[0.9375rem] leading-7" style={{ color: "var(--codex-ink-text)" }}>
                     {act.title}
                   </span>
-                  <span className="mt-0.5 block text-[0.8125rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                  <span className="mt-0.5 block leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                     {act.line}
                   </span>
                 </span>
@@ -191,7 +212,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           </p>
           <ul className="mt-5 space-y-3">
             {CODEX_HONEST_LIMITS.map((limit) => (
-              <li key={limit} className="text-[0.8125rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+              <li key={limit} className="leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                 {limit}
               </li>
             ))}
@@ -269,7 +290,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
               ))}
             </div>
             {value.calendarType === "lunar" ? (
-              <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+              <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                 <input
                   type="checkbox"
                   className="h-4 w-4 accent-[#e8d5a3]"
@@ -291,7 +312,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
               disabled={value.birthTimeUnknown}
               onChange={(event) => patch({ birthTime: event.target.value })}
             />
-            <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+            <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
               <input
                 type="checkbox"
                 className="h-4 w-4 accent-[#e8d5a3]"
@@ -300,7 +321,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
               />
               태어난 시각을 모릅니다
             </label>
-            <p className="mt-2 text-[0.75rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+            <p className="mt-2 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
               시각을 모르면 시주를 뺀 채로 읽습니다. 큰 흐름은 그대로지만 세부는 조금 흐려집니다.
             </p>
           </div>
@@ -319,9 +340,9 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
             <h3 className="mt-4 text-[1.0625rem] leading-8" style={{ color: "var(--codex-ink-text)" }}>
               상대와의 궁합으로 읽을 수도 있습니다
             </h3>
-            <p className="mt-3 max-w-[38ch] text-[0.875rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
+            <p className="mt-3 max-w-[38ch] leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
               상대의 생년월일을 넣으면 네 장(두 사람의 명식과 명반)을 겹쳐 관계를 읽는 스무 장으로 바뀝니다.
-              넣지 않으면 지금처럼 당신 한 사람의 연애를 읽습니다.
+              넣지 않으면 지금처럼 당신 한 사람의 연애를 읽습니다. 금액도 궁합 리딩으로 함께 바뀝니다.
             </p>
 
             <button
@@ -392,7 +413,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
                     ))}
                   </div>
                   {partner.calendarType === "lunar" ? (
-                    <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+                    <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                       <input
                         type="checkbox"
                         className="h-4 w-4 accent-[#e8d5a3]"
@@ -414,7 +435,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
                     disabled={partner.birthTimeUnknown}
                     onChange={(event) => patchPartner({ birthTime: event.target.value })}
                   />
-                  <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+                  <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                     <input
                       type="checkbox"
                       className="h-4 w-4 accent-[#e8d5a3]"
@@ -423,7 +444,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
                     />
                     상대의 시각은 모릅니다
                   </label>
-                  <p className="mt-2 text-[0.75rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
+                  <p className="mt-2 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
                     상대 정보는 이 리딩을 만드는 데만 씁니다. 당신의 프로필 카드에 저장되지 않습니다.
                   </p>
                 </div>
@@ -433,17 +454,29 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
         </CodexReveal>
 
         {error ? (
-          <p role="alert" className="mt-9 text-[0.875rem] leading-7" style={{ color: "#ffb4b4" }}>{error}</p>
+          <p role="alert" className="mt-9 leading-8" style={{ fontSize: "var(--codex-caption)", color: "#ffb4b4" }}>{error}</p>
         ) : null}
 
+        {/* 결제가 붙은 버튼이다 — 누르기 전에 금액이 버튼 안에서 보여야 한다.
+            문구는 "결과 보기" 하나로 유지한다(가격은 priceSlot 이 서버에서 읽어 온다). */}
         <CodexReveal index={4} className="mt-12 flex flex-col items-center gap-5">
           <button type="button" onClick={onSubmit} disabled={busy} className={styles.cta}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-            {busy ? busyLabel : "결과 보기"}
+            {busy ? busyLabel : (
+              <>
+                {priceSlot}
+                <span aria-hidden="true">·</span>
+                결과 보기
+              </>
+            )}
           </button>
-          {priceSlot}
+          <p className={`${styles.numeral} text-[0.75rem]`} style={{ letterSpacing: "0.14em", color: "var(--codex-gold-dim)" }}>
+            1회 결제 · 결과 영구 보관 · 재열람 무료
+          </p>
         </CodexReveal>
       </div>
+
+      {floatingCta}
     </section>
   );
 }

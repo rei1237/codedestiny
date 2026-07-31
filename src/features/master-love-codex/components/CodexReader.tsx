@@ -9,6 +9,15 @@
  *
  * 🔴 PDF: 캡처 직전 `isExporting` 을 올려 아직 화면에 안 들어온 장의 등장 애니메이션을
  * 건너뛴다. 이걸 빼면 결제한 사용자가 백지 페이지가 섞인 PDF 를 받는다.
+ *
+ * 🔴 PDF 캡처 계약 — 새 블록을 넣을 때 반드시 지킬 것:
+ *   ① 캡처 선택자는 `#master-love-codex-document [data-codex-pdf-page]` 다.
+ *      문서 div **안**에 있으면서 그 속성을 달아야 PDF 에 들어간다. 둘 중 하나만
+ *      빠져도 경고 없이 통째로 사라진다.
+ *   ② 데이터를 담은 값(막대 폭·게이지 offset)은 언제나 인라인 최종값이어야 한다.
+ *      @keyframes 로 그리면 html2canvas 클론에서 0프레임부터 다시 돌아 0% 로 찍힌다.
+ *   ③ 애니메이션이 붙는 컴포넌트에는 `forceVisible={isExporting}` 을 넘긴다.
+ *      추가 안전망으로 문서에 `data-codex-exporting` 을 달아 모션을 전역 정지시킨다.
  */
 
 import Image from "next/image";
@@ -19,6 +28,9 @@ import CodexSpine from "./CodexSpine";
 import CodexActInterstitial from "./CodexActInterstitial";
 import ChapterSection, { type CodexChapterData } from "./CodexChapter";
 import CodexLoveDnaPanel, { type CodexLoveDna, type CodexLoveDnaMetric } from "./CodexLoveDna";
+import CodexScoreOverview from "./CodexScoreOverview";
+import CodexReportOutro from "./CodexReportOutro";
+import CodexReportStamp from "./CodexReportStamp";
 import CodexSeal from "./CodexSeal";
 import CodexReveal from "./CodexReveal";
 import { getNarratorAsset } from "../data/assets";
@@ -38,6 +50,8 @@ interface CodexReaderProps {
   sessionId: string;
   /** solo = 개인판 / compat = 궁합판. 막 제목과 표지 제목이 갈린다 */
   mode?: CodexActMode;
+  /** paid / pass / monthly_credit / admin — 리포트 표식의 금액 표기를 가른다 */
+  accessType?: string;
 }
 
 function safeFilePart(value: string) {
@@ -55,6 +69,7 @@ export default function CodexReader({
   totalCharCount,
   sessionId,
   mode = "solo",
+  accessType = "",
 }: CodexReaderProps) {
   // 표지·PDF 파일명·막 제목이 모드에 따라 갈린다(리더 레이아웃은 두 모드가 공유한다).
   const bookTitle = masterLoveCodexBilling(mode).title;
@@ -167,11 +182,19 @@ export default function CodexReader({
     <CodexShell motes={false} ariaLabel={`${bookTitle} 본문`}>
       <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} />
 
-      <div ref={documentRef} id="master-love-codex-document">
+      {/* data-codex-exporting: 캡처 중 문서 전체의 모션을 정지시키는 안전망(codex.module.css) */}
+      <div
+        ref={documentRef}
+        id="master-love-codex-document"
+        className={styles.document}
+        data-codex-exporting={isExporting ? "true" : undefined}
+      >
         {/* 표지 */}
         <header data-codex-pdf-page className="flex min-h-[86svh] flex-col items-center justify-center text-center">
           <div className={styles.measure}>
             <CodexReveal forceVisible={isExporting}>
+              {/* 표식은 표지 헤더 '안'에 둔다 — 밖으로 빼면 캡처 대상에서 빠진다 */}
+              <CodexReportStamp mode={mode} accessType={accessType} className="mb-10" />
               <Image
                 src={getNarratorAsset("calm")}
                 alt="코덱스를 덮는 연애 고수"
@@ -197,6 +220,9 @@ export default function CodexReader({
           </div>
         </header>
 
+        {/* 종합 점수 — 표지 바로 다음. 문서 div 안이라 PDF 두 번째 장이 된다 */}
+        {loveDna ? <CodexScoreOverview loveDna={loveDna} mode={mode} forceVisible={isExporting} /> : null}
+
         {/* 5막 × 4장 */}
         {groups.map((group) => (
           <div key={group.act.order}>
@@ -210,6 +236,15 @@ export default function CodexReader({
         ))}
 
         {loveDna ? <CodexLoveDnaPanel loveDna={loveDna} forceVisible={isExporting} /> : null}
+
+        {/* 마무리 카드 — 문서 div 안 마지막. 아래 CodexSeal 은 다음 화면 CTA 라 밖에 둔다 */}
+        <CodexReportOutro
+          mode={mode}
+          accessType={accessType}
+          chapterCount={ordered.length}
+          totalCharCount={totalCharCount}
+          forceVisible={isExporting}
+        />
       </div>
 
       {/* 소장 */}

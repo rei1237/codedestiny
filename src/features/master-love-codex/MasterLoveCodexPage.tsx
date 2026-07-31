@@ -29,7 +29,8 @@ import { PriceBadge } from "@/app/components/PriceBadge";
 import CodexAmbience from "./components/CodexAmbience";
 import CodexLanding from "./components/CodexLanding";
 import CodexPrologueScene from "./components/CodexPrologueScene";
-import CodexBirthGate, { EMPTY_CODEX_BIRTH, type CodexBirthInput } from "./components/CodexBirthGate";
+import CodexBirthGate, { EMPTY_CODEX_BIRTH, EMPTY_CODEX_PARTNER, type CodexBirthInput } from "./components/CodexBirthGate";
+import CodexFloatingCta from "./components/CodexFloatingCta";
 import CodexGenerating from "./components/CodexGenerating";
 import CodexShell from "./components/CodexShell";
 import type { CodexChapter, CodexLoveDna } from "./components/CodexReader";
@@ -41,6 +42,7 @@ import {
   masterLoveCodexBilling,
   type MasterLoveCodexMode,
 } from "./constants";
+import codexStyles from "./styles/codex.module.css";
 
 // 읽기(reader)는 이 라우트에 없다 — 생성이 끝나면 /master-love-codex/result 로 넘긴다.
 type Phase = "landing" | "prologue" | "birth" | "checking" | "payment" | "generating";
@@ -198,6 +200,9 @@ export default function MasterLoveCodexPage() {
   const activeBilling = masterLoveCodexBilling(activeMode);
   const [error, setError] = useState("");
   const [chapters, setChapters] = useState<CodexChapter[]>([]);
+  // 이용권/월정석으로 통과했는지 — 진행 화면 배지가 금액 대신 그 사실을 말하게 한다
+  // (결제하지 않은 금액을 청구받은 것처럼 보이면 안 된다).
+  const [accessType, setAccessType] = useState("");
   const busyRef = useRef(false);
   const idempotencyRef = useRef("");
   // 결제 후 생성이 끊겼을 때 catch 에서 즉시 읽어야 하므로 state 가 아니라 ref 로 들고 있는다
@@ -224,7 +229,19 @@ export default function MasterLoveCodexPage() {
     try { window.localStorage.setItem(MASTER_LOVE_CODEX_PROLOGUE_SEEN_KEY, "seen"); } catch { /* best-effort */ }
   }, []);
 
-  function enterCodex() {
+  /**
+   * 랜딩의 상품 카드에서 들어오면 그 상품으로 입력 화면을 준비한다.
+   * 궁합으로 들어왔으면 상대 칸을 미리 펼쳐 둘 뿐이다 — 금액은 상대 **생년월일이 실제로
+   * 채워진 뒤**에 궁합가로 바뀐다(activeMode 기준). 칸만 열렸는데 비싼 금액을 먼저 띄우면
+   * 실제 청구액(제출 시점의 상대 유무로 확정)과 어긋난다.
+   */
+  function enterCodex(intent?: MasterLoveCodexMode) {
+    if (intent === "compat" && !birth.partner) {
+      setBirth((current) => (current.partner ? current : { ...current, partner: { ...EMPTY_CODEX_PARTNER } }));
+    }
+    if (intent === "solo" && birth.partner && !birth.partner.birthDate) {
+      setBirth((current) => ({ ...current, partner: null }));
+    }
     if (hasSeenPrologue) { setPhase("birth"); return; }
     setPrologueStage(codexPrologueStageOrder[0]);
     setPhase("prologue");
@@ -341,6 +358,7 @@ export default function MasterLoveCodexPage() {
           reason: gateBilling.title,
           message: "인연의 서를 펼칩니다.",
         });
+        setAccessType(toText(ensure.data.accessType));
         startBody = { ...startBody, accessToken: ensure.data.accessToken, accessType: ensure.data.accessType };
       } else if (ensure.data?.reason === "PAYMENT_REQUIRED" && chargedRef.current) {
         // 이미 이 idempotencyKey 로 결제가 끝난 회차의 재시도다. ensure-access 는 결제 이력을
@@ -457,6 +475,8 @@ export default function MasterLoveCodexPage() {
             total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
             latestTitles={chapters.map((chapter) => chapter.title)}
             name={birth.name}
+            mode={activeMode}
+            accessType={accessType}
           />
         </CodexShell>
       </>
@@ -479,8 +499,29 @@ export default function MasterLoveCodexPage() {
             <PriceBadge
               featureKey={activeBilling.featureKey}
               fallbackCoins={activeBilling.cost}
-              prefix="1회 "
-              className="text-xs"
+              className="font-bold"
+            />
+          )}
+          headerSlot={(
+            // 화면 최상단 — 지금 무슨 상품을 진행 중인지. 같은 SKU 를 따라간다.
+            <span className={codexStyles.badge}>
+              PREMIUM CONSULTATION
+              <span aria-hidden="true">·</span>
+              <PriceBadge
+                featureKey={activeBilling.featureKey}
+                fallbackCoins={activeBilling.cost}
+                className="font-bold"
+              />
+            </span>
+          )}
+          floatingCta={(
+            <CodexFloatingCta
+              featureKey={activeBilling.featureKey}
+              fallbackCoins={activeBilling.cost}
+              label="결과 보기"
+              onClick={() => void startCodex()}
+              busy={phase === "checking" || phase === "payment"}
+              busyLabel={phase === "payment" ? "결제 중..." : "확인 중..."}
             />
           )}
         />
