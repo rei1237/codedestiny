@@ -14,7 +14,9 @@ import fs from "node:fs/promises";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SOURCE = path.join(HERE, "vvip-card.html");
-const OUTPUT = path.join(HERE, "..", "..", "public", "og", "code-destiny-og-vvip.png");
+// 파일명에 버전을 붙인다 — 카카오/페북은 URL 단위로 미리보기를 캐시하므로
+// 같은 이름에 덮어쓰면 며칠간 옛 이미지가 계속 나간다. 디자인이 바뀌면 번호를 올릴 것.
+const OUTPUT = path.join(HERE, "..", "..", "public", "og", "code-destiny-og-vvip-v2.png");
 
 const WIDTH = 1200;
 const HEIGHT = 630;
