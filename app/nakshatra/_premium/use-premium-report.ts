@@ -89,6 +89,8 @@ export interface UsePremiumReportResult<T> {
   error: string;
   unlock: () => Promise<void>;
   reload: () => Promise<void>;
+  /** 성별이 필요한 리포트(동양 대운)에서 사용자가 직접 고를 때. 고른 뒤 본문을 다시 받는다. */
+  setGender: (gender: "male" | "female") => void;
 }
 
 export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportResult<T> {
@@ -115,11 +117,25 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
   }, []);
 
   // 세션에 명식이 없을 때만 프로필 카드 시드로 채운다(빈 값만 채우는 원칙).
+  //
+  // 🔴 성별은 예외로 세션 값이 있어도 보강한다 — /api/nakshatra/resolve 는 입력을 되돌려 줄 때
+  //    gender 를 싣지 않고(무료 폼도 성별을 받지 않는다), 다샤 인생지도의 동양 대운은 성별이 없으면
+  //    순행·역행이 정해지지 않아 통째로 빠진다. 프로필 카드가 이 값의 정본이다.
   useEffect(() => {
-    if (birth) return;
     const derived = birthFromProfileSeed(profileSeed);
-    if (derived) setBirth(derived);
-  }, [birth, profileSeed]);
+    if (!derived) return;
+    setBirth((prev) => {
+      if (!prev) return derived;
+      if (prev.gender || !derived.gender) return prev;
+      return { ...prev, gender: derived.gender };
+    });
+  }, [profileSeed]);
+
+  const setGender = useCallback((gender: "male" | "female") => {
+    setBirth((prev) => (prev ? { ...prev, gender } : prev));
+    fetchedRef.current = false;
+    setReport(null);
+  }, []);
 
   const isUnlocked = ledgerUnlocked || unlocked[product.featureKey] === true;
   const confirmedLocked = unlockStatus === "ready" && !isUnlocked;
@@ -201,5 +217,6 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     error,
     unlock,
     reload,
+    setGender,
   };
 }

@@ -257,6 +257,20 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   check(`${hookPath}: 402 를 잠금 유지로만 처리한다(에러 문구로 세탁 금지)`,
     /status === 402[\s\S]{0,120}return;/.test(hookCode));
   check(`${hookPath}: 프로필 카드 시드 공용 훅 재사용`, /useAiProfileSeed/.test(hookCode));
+  // 🔴 /api/nakshatra/resolve 는 입력을 되돌려 줄 때 gender 를 싣지 않는다(무료 폼도 안 받는다).
+  //    성별을 보강하지 않으면 다샤 인생지도의 동양 대운 축이 세션 경로 사용자 전원에게서 빠진다.
+  check(`${hookPath}: 세션에 성별이 없으면 프로필 카드에서 보강한다`,
+    /prev\.gender\s*\|\|\s*!derived\.gender/.test(hookCode));
+  check(`${hookPath}: 성별 직접 선택 후 본문을 다시 받는다`,
+    /setGender\s*=\s*useCallback/.test(hookCode) && /fetchedRef\.current\s*=\s*false/.test(hookCode));
+
+  const resolveRoute = readFileSync(path.join(repoRoot, "worker/routes/nakshatra.js"), "utf8");
+  check("무료 resolve 응답이 여전히 gender 를 싣지 않는다(보강 로직의 전제)",
+    !/input:\s*\{[\s\S]{0,220}gender/.test(resolveRoute));
+
+  const dashaClient = readFileSync(path.join(repoRoot, "app/nakshatra/dasha-map/DashaMapClient.tsx"), "utf8");
+  check("다샤 인생지도: 성별 미상이면 사용자에게 묻는다(조용히 축을 버리지 않는다)",
+    /GenderPrompt/.test(stripComments(dashaClient)));
 
   for (const [relative, featureKey, coin, krw] of [
     ["app/nakshatra/lord-report/LordReportClient.tsx", "nakshatra-lord-report", 100, 10000],

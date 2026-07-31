@@ -77,6 +77,30 @@ export function UnlockGate({
   );
 }
 
+/**
+ * 성별 보강 — 동양 대운은 성별이 있어야 순행·역행이 정해진다.
+ * 무료 폼도 resolve 응답도 성별을 싣지 않으므로, 프로필 카드에도 없으면 여기서 한 번 묻는다.
+ */
+export function GenderPrompt({ onPick, busy }: { onPick: (gender: "male" | "female") => void; busy: boolean }) {
+  return (
+    <div className={styles.genderPrompt}>
+      <p className={styles.genderTitle}>동양 대운을 함께 보려면 성별이 필요해요</p>
+      <p className={styles.genderNote}>
+        대운은 절기까지의 거리와 성별로 순행·역행이 정해집니다. 근거 없이 한쪽을 고르면 열 개 구간이
+        통째로 어긋나므로 추측하지 않았어요. 인도 축(비쇼타리)은 성별을 쓰지 않아 지금도 온전히 보입니다.
+      </p>
+      <div className={styles.genderRow}>
+        <button type="button" className={styles.genderBtn} onClick={() => onPick("male")} disabled={busy}>
+          남성
+        </button>
+        <button type="button" className={styles.genderBtn} onClick={() => onPick("female")} disabled={busy}>
+          여성
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function SectionCards({ sections }: { sections: ReportSection[] }) {
   return (
     <>

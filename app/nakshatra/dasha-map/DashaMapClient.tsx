@@ -4,7 +4,7 @@ import Link from "next/link";
 import styles from "../_premium/premium.module.css";
 import timeline from "./dasha-timeline.module.css";
 import { usePremiumReport } from "../_premium/use-premium-report";
-import { CrossSell, NatalBar, NeedBirth, SectionCards, UnlockGate, type ReportSection } from "../_premium/PremiumParts";
+import { CrossSell, GenderPrompt, NatalBar, NeedBirth, SectionCards, UnlockGate, type ReportSection } from "../_premium/PremiumParts";
 
 const PRODUCT = {
   featureKey: "nakshatra-dasha-map",
@@ -138,7 +138,7 @@ function PeriodRow({ period }: { period: Period }) {
 }
 
 export default function DashaMapClient() {
-  const { report, birth, natal, confirmedLocked, unlocked, checking, loading, paying, error, unlock } =
+  const { report, birth, natal, confirmedLocked, unlocked, checking, loading, paying, error, unlock, setGender } =
     usePremiumReport<DashaMap>(PRODUCT);
 
   const meta = report ? `${report.meta.periodCount}구간 · 안타르 ${report.meta.antardashaCount}` : undefined;
@@ -184,6 +184,11 @@ export default function DashaMapClient() {
         )}
 
         {error && <p className={styles.error} role="alert">{error}</p>}
+
+        {/* 성별이 비면 동양 대운 축이 통째로 빠진다 — 상품이 광고한 두 시계 중 하나다. */}
+        {birth && unlocked && !birth.gender && (
+          <GenderPrompt onPick={setGender} busy={loading} />
+        )}
 
         {report && (
           <>
