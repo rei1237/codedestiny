@@ -1171,7 +1171,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     `- 상담 주제: ${input.topic || (lifeFortune ? "전체 인생 총운" : "전체 인생 흐름")}`,
     "",
     "[계산 가능한 사주 명리 데이터]",
-    JSON.stringify(sajuSlice, null, 2),
+    JSON.stringify(sajuSlice),
     "",
     "[이번에 쓸 조각]",
   ];
@@ -1220,7 +1220,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
   lines.push(
     "",
     "[반환 JSON 구조]",
-    JSON.stringify(buildSectionSchema(section, birth, lifeFortune), null, 2),
+    JSON.stringify(buildSectionSchema(section, birth, lifeFortune)),
     "",
     "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하고, 없는 십성 이름을 새로 만들지 마세요.",
     "출생시간을 모르는 입력이거나 계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",

@@ -895,7 +895,7 @@ function buildFirstPrompt(input, chart) {
     input.userQuestion ? `현재 가장 궁금한 질문: ${input.userQuestion}` : "",
     "",
     "[계산된 차트 데이터]",
-    JSON.stringify(chart, null, 2),
+    JSON.stringify(chart),
     "",
     `첫 답변은 전체 본문 기준 공백 제외 ${ASTROLOGY_AI_MIN_RESULT_CHARS.toLocaleString("ko-KR")}자 이상 ${ASTROLOGY_AI_MAX_RESULT_CHARS.toLocaleString("ko-KR")}자 이하로 충분히 깊게 작성하세요.`,
     "섹션 제목은 자연스러운 상담 제목으로 쓰고, 각 섹션은 서로 다른 정보 가치를 가져야 합니다.",
@@ -927,10 +927,12 @@ function buildFollowUpPrompt(consultation, message) {
     consultation.topic,
     "",
     "[차트 데이터]",
-    JSON.stringify(consultation.astrologyChart || {}, null, 2),
+    JSON.stringify(consultation.astrologyChart || {}),
     "",
     "[최근 대화]",
-    ...recent.map((item) => `${item.role === "assistant" ? "상담가" : "사용자"}: ${item.content}`),
+    // 클립이 없으면 assistant 메시지 8개(각 1만~2만자)가 그대로 실려 한 턴에 16만자까지 간다.
+    // 형제 라우트(ziwei-ai·karma-destiny-ai·sukuyo-compatibility-ai)와 같은 1,400자 상한을 쓴다.
+    ...recent.map((item) => `${item.role === "assistant" ? "상담가" : "사용자"}: ${clean(item.content, 1400)}`),
     "",
     `[추가 질문]\n${message}`,
   ].join("\n");
