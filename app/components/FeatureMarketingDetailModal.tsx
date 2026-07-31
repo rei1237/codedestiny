@@ -248,6 +248,29 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     },
     ctaLabel: "인생의 책 열람하기",
   },
+  // 인생 총운은 인생의 책과 별도 SKU(50,000원)다. 분량이 3배(30,000자)이고 서사보다 진단이 중심이라
+  // 카피도 따로 간다 — 카테고리 폴백으로 떨어지면 5만원짜리에 일반 문구가 붙는다.
+  "life-fortune-ai-consultation": {
+    category: "프리미엄 리포트",
+    badge: "전문가 상담형",
+    headline: "삶, 일, 재물, 관계의 큰 흐름을 명식 근거로 끝까지 짚어드립니다.",
+    subheadline: "인생의 책이 이야기라면, 인생 총운은 진단입니다. 열 장 전부에 일간·용신·십성·대운의 근거를 붙여 3만 자 분량으로 풀어냅니다.",
+    painPoints: ["지금이 밀어붙일 때인지 버틸 때인지 모를 때", "강점과 리스크를 근거까지 함께 보고 싶을 때", "대운·세운이 바뀌는 시기를 정확히 알고 싶을 때"],
+    recommendedFor: [
+      "덕담이 아니라 근거 있는 진단을 원하는 분",
+      "일·재물·관계·건강을 어떤 순서로 조율할지 정해야 하는 분",
+      "가까운 5년의 기회와 주의 시기를 미리 잡아두고 싶은 분",
+    ],
+    resultPreview: {
+      lines: [
+        "경금 일간이 사월(巳月)에 태어나 조후가 급합니다. 뜨거운 자리에서 단단해지는 대신, 식히는 기운이 없으면 쉽게 지칩니다.",
+        "재성은 강한데 비겁이 그것을 나눠 갖는 구조입니다. 돈이 들어오는 속도보다 새어 나가는 경로를 먼저 막아야 합니다.",
+        "현재 대운은 관성이 힘을 얻는 구간입니다. 책임이 늘어나는 시기이며, 그 무게를 받아낼 인성을 함께 세워야 합니다.",
+      ],
+      caption: "실제 인생 총운 도입부 예시입니다. 결제 후에는 열 장 전체와 명식 깊은 판독 네 편이 이어집니다.",
+    },
+    ctaLabel: "인생 총운 열람하기",
+  },
   "ziwei-ai-consultation": {
     category: "자미두수",
     badge: "전문가 상담형",
@@ -326,6 +349,7 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
 
 const EXPLICIT_ALIAS: Record<string, string> = {
   "/life-book-ai": "life-book-ai-consultation",
+  "/premium-unlock": "life-fortune-ai-consultation",
   "/ziwei-ai": "ziwei-ai-consultation",
   "/saju/love-simulation": "loveSimulation",
   "/saju/destiny-meeting-place": "destiny_meeting_place",

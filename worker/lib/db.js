@@ -179,7 +179,17 @@ export async function connectDb(env = {}) {
   const guardTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"), 10000, 3000, 20000);
   const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
   const connectTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
-  const socketTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "20000"), 20000, 5000, 45000);
+  // 🔴 op 예산(withMongoRetry 의 attemptTimeoutMS, 기본 12000)보다 **짧게** 잡는다.
+  // 예전엔 20000 이라, op-타임아웃(12초)이 난 뒤에도 드라이버 작업은 취소되지 않아 소켓이 8초를
+  // 더 풀에 묶여 있었다. maxPoolSize 가 5 뿐이라 멈춘 op 5개면 풀이 통째로 20초간 마비되고,
+  // 그 사이 들어온 요청은 체크아웃 큐에서 굶다가 또 12초에 걸리는 자기증폭 고리가 됐다
+  // (2026-08-01 [db-op-timeout] 실측: 체크아웃 대기 최대 10,383ms, 한 창에서 41건 시작/4건 성사).
+  // 서버 명령 실행은 250~417ms 라 11초도 20배 이상 여유다.
+  const socketTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "11000"), 11000, 5000, 45000);
+  // 커넥션을 못 받고 큐에서 기다리는 상한. 이걸 넘겨 기다려봐야 어차피 op 예산을 넘기므로,
+  // 12초 stall 대신 빠른 실패로 바꿔 호출부가 즉시 degrade 하게 한다(연결 수 1.5초 + 큐 5초 +
+  // 쿼리 0.5초 = 7초라, 기다렸다 성공하는 op 는 여전히 예산 안에 들어온다).
+  const waitQueueTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "5000"), 5000, 1000, 15000);
   // 유휴 소켓을 드라이버가 능동적으로 닫아, Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓을 풀이
   // 보유하는 것을 근절한다(Atlas 유휴 컷보다 짧게). 이 설정 부재가 '웜 쿼리 op-타임아웃 다발·콜드 성공'의
   // 1차 근본 원인이었다 — 유휴 후 재개된 아이솔레이트가 죽은 소켓 위에서 쿼리를 매달았기 때문.
@@ -256,6 +266,7 @@ export async function connectDb(env = {}) {
           serverSelectionTimeoutMS,
           connectTimeoutMS,
           socketTimeoutMS,
+          waitQueueTimeoutMS,
           maxIdleTimeMS,
           bufferCommands: false,
           autoIndex: false,
@@ -356,6 +367,11 @@ export function isTransientMongoError(error) {
     || name === "MongoNetworkError"
     || name === "MongoNetworkTimeoutError"
     || name === "MongoServerSelectionError"
+    // 🔴 waitQueueTimeoutMS 도입과 한 세트다. 풀이 붐벼 커넥션을 못 받은 것은 명백히 '일시적'인데,
+    // 이 이름을 여기 넣지 않으면 하드 에러로 분류돼 유료·인증 라우트가 503(재시도) 대신 500을 낸다.
+    // 메시지가 "Timed out while checking out a connection..." 이라 아래 정규식(connection .*timed out)에도
+    // 걸리지 않는다(어순이 반대다) — 이름으로만 잡힌다.
+    || name === "MongoWaitQueueTimeoutError"
   ) {
     return true;
   }

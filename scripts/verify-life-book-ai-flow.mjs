@@ -208,26 +208,41 @@ assert(Array.isArray(mockSaju?.interpretationPlan) && mockSaju.interpretationPla
 assert(mockSaju?.majorLuck?.available === true && Array.isArray(mockSaju.majorLuck.cycles) && mockSaju.majorLuck.cycles.length >= 10, "lifeFortune saju mock must include major luck cycles");
 assert(Array.isArray(mockSaju?.yearlyLuck) && mockSaju.yearlyLuck.length >= 5, "lifeFortune saju mock must include yearly luck");
 
-includes("index.html", indexHtml, 'href="/premium-unlock"');
-includes("index.html", indexHtml, "life-fortune-ai-vvip-card-v20260701");
-includes("index.html", indexHtml, 'data-pvw-bypass="1"');
-const lifeFortuneCardStart = indexHtml.indexOf("tarot-tile--life-fortune-ai");
-const lifeFortuneCardEnd = indexHtml.indexOf("</a>", lifeFortuneCardStart);
-const lifeFortuneCard = lifeFortuneCardStart >= 0 && lifeFortuneCardEnd > lifeFortuneCardStart
-  ? indexHtml.slice(lifeFortuneCardStart, lifeFortuneCardEnd)
-  : "";
-// 카드에는 실제 판매가(레지스트리 300코인=30,000원)를 그대로 표기한다 — 2026-07-04 제품 결정.
-assert(lifeFortuneCard && lifeFortuneCard.includes('data-coin-cost="300"'), "life fortune card must carry coin cost data attribute");
-assert(lifeFortuneCard && lifeFortuneCard.includes("AI 상담 · 30,000원"), "life fortune card must show the KRW price");
+// 🔴 셸은 6개(루트 + public + public/{static,en,ja,zh})가 모두 같은 카드를 들고 있다.
+// 하나만 검사하면 미러 누락이 그대로 프로덕션 가격 불일치가 된다(verify:payment-choice-parity 는 CSS 만 본다).
+const SHELL_FILES = [
+  "index.html",
+  "public/index.html",
+  "public/static/index.html",
+  "public/en/index.html",
+  "public/ja/index.html",
+  "public/zh/index.html",
+];
+for (const shellFile of SHELL_FILES) {
+  const shell = shellFile === "index.html" ? indexHtml : read(shellFile);
+  if (!shell) continue;
+  includes(shellFile, shell, 'href="/premium-unlock"');
+  includes(shellFile, shell, "life-fortune-ai-vvip-card-v20260701");
+  includes(shellFile, shell, 'data-pvw-bypass="1"');
+  const cardStart = shell.indexOf("tarot-tile--life-fortune-ai");
+  const cardEnd = shell.indexOf("</a>", cardStart);
+  const card = cardStart >= 0 && cardEnd > cardStart ? shell.slice(cardStart, cardEnd) : "";
+  // 인생 총운은 인생의 책과 별도 SKU(500코인=50,000원) — 분량이 3배라 2026-08-01 분리.
+  assert(card && card.includes('data-feature-key="life-fortune-ai-consultation"'), `${shellFile}: life fortune card must carry the dedicated SKU`);
+  assert(card && card.includes('data-coin-cost="500"'), `${shellFile}: life fortune card must carry coin cost data attribute`);
+  assert(card && card.includes("전문가 상담 · 50,000원"), `${shellFile}: life fortune card must show the KRW price`);
+}
 
 for (const marker of [
   'const CONSULTATION_TYPE = "lifeFortune"',
+  'const FEATURE_KEY = "life-fortune-ai-consultation"',
+  // 워커가 한 요청에 한 웨이브만 돌리므로 클라가 반복 호출해야 생성이 끝까지 간다.
+  "runGenerateWave",
+  "MAX_GENERATE_WAVES",
   'const MAX_POLL_DURATION_MS = 8 * 60 * 1000',
   'const startLockRef = useRef(false);',
   'function postPrepare',
-  'function postGenerate',
   '"/api/life-book-ai/prepare"',
-  '"/api/life-book-ai/generate"',
   'consultationType: CONSULTATION_TYPE',
   'focusArea: "overall"',
   'topic: TOPIC',
@@ -250,22 +265,45 @@ for (const marker of ["49,000원", "해금"]) {
 
 for (const marker of [
   "lifeFortune",
-  "인생 총운 AI 상담",
+  "인생 총운 전문가 상담",
   "const LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS = 30000;",
   "const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;",
-  "const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;",
-  "const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;",
-  "const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 2;",
+  // 🔴 stale 창은 클라 폴링 예산(≈400초) 안이어야 GENERATION_STALLED 가 사용자에게 도달한다.
+  //    하한은 락 TTL 90s + 웨이브 최악 42s = 132s 이므로 180s 밑으로 내리지 말 것.
+  "const SECTION_LOCK_TTL_MS = 90 * 1000;",
+  "const LIFE_BOOK_GENERATING_STALE_MS = 3 * 60 * 1000;",
+  "const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;",
+  "const SECTION_CONCURRENCY = 4;",
+  "const MAX_GENERATION_WAVES = 8;",
+  // 🔴 엣지 100초를 넘길 수 없으므로 동기 상한을 공용 헬퍼로 clamp 한다(0/음수 하한 가드 포함).
+  "clampSyncLlmTimeoutMs",
+  "Math.max(15000, requested)",
+  // 신규 SKU + 구 SKU 하위호환
+  'const LIFE_FORTUNE_FEATURE_KEY = "life-fortune-ai-consultation";',
+  "const LEGACY_LIFE_FORTUNE_FEATURE_KEY = FEATURE_KEY;",
+  "getAcceptedFeatureKeys",
+  "billingFeatureKeyOf",
+  // 섹션 병렬 엔진
+  "buildSectionPlan",
+  "buildSectionPrompt",
+  "pickSajuSlice",
+  "assembleReport",
+  "mapIssuesToSections",
+  "runWithConcurrency",
+  "generateSectionOnce",
+  "releaseSectionLock",
   "buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash = \"\")",
   "deferUsage: true",
   "forceDeduct: true",
   "billingContractMatches",
   "billingContractEvidenceClauses",
-  "resolveBillingGateAccess({ env, auth, body, idempotencyKey = \"\", inputHash = \"\", consultationType = \"\" })",
+  "resolveBillingGateAccess({ env, auth, body, idempotencyKey = \"\", inputHash = \"\", consultationType = \"\", acceptedFeatureKeys = [FEATURE_KEY] })",
   "hasRequiredLifeFortuneSaju",
   "SAJU_CALCULATION_FAILED",
   "restoreAccessBeforeGenerationFailure",
-  "getLifeBookReportQualityIssues(generated.text, normalized.input)",
+  // 품질 검사는 조립본에 하고, 결손은 책임 섹션에만 매핑한다(전체 재생성 금지).
+  "getLifeBookReportQualityIssues(assembledText, normalized.input)",
+  "getLifeBookReportQualityIssues(finalText, normalized.input)",
   "LIFE_FORTUNE_REPORT_INVALID",
   "LIFE_FORTUNE_EVIDENCE_REF_ROOTS",
   "hasValidEvidenceRefs",
@@ -281,9 +319,9 @@ for (const marker of [
   "generate_blocked_duplicate",
   "status_check",
   "result_fetch",
-  "maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION",
-  // 장문 JSON은 llama 폴백이 감당 못 해 시간만 낭비 — 폴백 차단이 의도된 계약이다.
-  "fallbackToWorkersAI: false",
+  // 섹션 단위에서는 Workers AI 폴백이 실제 안전망이 된다(70B 실측 정지점 ≈1,700자 > 총운 장 문턱 960자).
+  // 단일 3만자 호출에서는 40% 문턱을 물리적으로 못 넘어 무용지물이었다.
+  "fallbackMinChars: Math.round(section.minChars * 0.4)",
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
 }
@@ -296,6 +334,20 @@ for (const marker of [
   "idempotencyKeyHash",
 ]) {
   includes("lib/llm-client.ts", llmClient, marker);
+}
+
+// 🔴 waitUntil 백그라운드 생성은 이 레포에서 금지다(요청 간 I/O 격리로 결과 고착 + 예외 소실).
+excludes("worker/routes/life-book-ai.js", route, "ctx.waitUntil");
+excludes("worker/routes/life-book-ai.js", route, "LIFE_FORTUNE_TIMEOUT_MS");
+
+// TDZ 재발 차단. 2026-07-30~08-01 사이 선언이 사용보다 뒤에 놓여 생성이 100% 실패했다.
+// 섹션 생성기는 바깥 스코프의 lifeFortune 바인딩에 의존하지 않아야 한다(section 인자만 쓴다).
+{
+  const fnStart = route.indexOf("async function generateSectionOnce");
+  const fnEnd = route.indexOf(String.fromCharCode(10) + "function toStringList", fnStart);
+  const body = fnStart >= 0 && fnEnd > fnStart ? route.slice(fnStart, fnEnd) : "";
+  assert(body.length > 0, "generateSectionOnce not found");
+  assert(!/[^A-Za-z]lifeFortune[^A-Za-z]/.test(body), "generateSectionOnce must not depend on an outer lifeFortune binding");
 }
 
 for (const marker of [
@@ -328,6 +380,17 @@ includes("worker/lib/life-book-ai-saju.js", saju, "interpretationPlan");
 includes("worker/lib/life-book-ai-saju.js", saju, "majorLuck");
 includes("worker/lib/life-book-ai-saju.js", saju, "yearlyLuck");
 includes("worker/lib/life-book-ai-saju.js", saju, "getYun");
+
+// 두 상품의 가격 정본은 레지스트리 하나다. 셸 표기와 어긋나면 위 셸 단언이 먼저 걸린다.
+{
+  const { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey, FRONTEND_PAID_FEATURE_KEYS } = await import(pathToFileURL(path.join(root, "worker/lib/paid-feature-registry.js")).href);
+  const lifeBook = FEATURE_KEY_PRICE_TABLE["life-book-ai-consultation"];
+  const lifeFortune = FEATURE_KEY_PRICE_TABLE["life-fortune-ai-consultation"];
+  assert(FRONTEND_PAID_FEATURE_KEYS.includes("life-fortune-ai-consultation"), "life-fortune-ai-consultation must be exposed to the frontend gate");
+  assert(lifeBook?.cost === 300 && lifeBook?.amountKRW === 30000, "life-book-ai-consultation must stay at 300 coins / 30,000 KRW");
+  assert(lifeFortune?.cost === 500 && lifeFortune?.amountKRW === 50000, "life-fortune-ai-consultation must be 500 coins / 50,000 KRW");
+  assert(isPerUsePaidFeatureKey("life-fortune-ai-consultation") === true, "life-fortune-ai-consultation must be registered as a per-use paid feature");
+}
 
 if (failures.length) {
   console.error("[verify-life-book-ai-flow] FAIL");
