@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import AiConsultDecks, { type Decks, type NatalIdentity } from "./AiConsultDecks";
 
@@ -79,6 +81,34 @@ function extractPaymentContext(gate: { data: unknown; raw?: unknown }, requestId
   };
 }
 
+// 프로필 카드 시드 → 나크샤트라 입력.
+// 홈 '대표 운명 상담' 카드에서 바로 들어온 사람은 /nakshatra/calc 를 거치지 않아
+// sessionStorage 가 비어 있고, 그대로 두면 결제창이 아니라 "먼저 별을 계산해 주세요"
+// 막다른 길에 떨어진다. 음력 카드는 변환이 /nakshatra/calc 에 있으므로 여기서 추정하지 않는다.
+function birthFromProfileSeed(seed: AiPrefillSeed | null): BirthInput | null {
+  if (!seed || seed.calendarType === "lunar") return null;
+  const matchedDate = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(toText(seed.birthDate));
+  if (!matchedDate) return null;
+  const year = Number(matchedDate[1]);
+  const month = Number(matchedDate[2]);
+  const day = Number(matchedDate[3]);
+  if (!year || !month || !day) return null;
+  const matchedTime = seed.birthTimeUnknown ? null : /^(\d{1,2}):(\d{2})$/.exec(toText(seed.birthTime));
+  const lat = Number(seed.latitude);
+  const lon = Number(seed.longitude);
+  return {
+    year,
+    month,
+    day,
+    hour: matchedTime ? Number(matchedTime[1]) : 12,
+    minute: matchedTime ? Number(matchedTime[2]) : 0,
+    timezone: Number(seed.timezone) || 9,
+    lat: Number.isFinite(lat) && lat !== 0 ? lat : 37.5665,
+    lon: Number.isFinite(lon) && lon !== 0 ? lon : 126.978,
+    timeUnknown: !matchedTime,
+  };
+}
+
 export default function NakshatraAiClient() {
   const [birth, setBirth] = useState<BirthInput | null>(null);
   const [identity, setIdentity] = useState<NatalIdentity | null>(null);
@@ -90,6 +120,7 @@ export default function NakshatraAiClient() {
   const [decks, setDecks] = useState<Decks | null>(null);
   const [askedQuestion, setAskedQuestion] = useState("");
   const busyRef = useRef(false);
+  const { seed: profileSeed } = useAiProfileSeed();
 
   useEffect(() => {
     try {
@@ -114,10 +145,17 @@ export default function NakshatraAiClient() {
         }
       }
     } catch {
-      // sessionStorage 불가 — 아래에서 계산 유도.
+      // sessionStorage 불가 — 아래 프로필 카드 시드 또는 계산 유도로 이어진다.
     }
     setLoaded(true);
   }, []);
+
+  // 프로필 카드 프리필(공용 훅) — 세션에 명식이 없을 때만 채우고, 이미 있으면 덮어쓰지 않는다.
+  useEffect(() => {
+    if (birth) return;
+    const derived = birthFromProfileSeed(profileSeed);
+    if (derived) setBirth(derived);
+  }, [birth, profileSeed]);
 
   const finish = useCallback((session: Record<string, unknown>) => {
     const nextDecks = asRecord(session.decks);
