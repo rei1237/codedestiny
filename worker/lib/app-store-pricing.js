@@ -21,7 +21,11 @@ export const APP_PASS_DURATION_DAYS = 30;
 // 이 코인가 이하 콘텐츠는 앱에서 무료로 통과시킨다.
 // 웹 ₩500(fortune-fish-gacha)은 인상해도 ₩625라 Play KRW 최저 판매가를 밑돌 수 있어
 // SKU를 만들지 않는다. 웹은 ₩500 유료 그대로다.
-export const APP_FREE_MAX_COIN_PRICE = 5;
+// 음악 트랙 다운로드(10코인/₩1,000, lib/music-access-policy.js)도 같은 이유로 여기에 포함한다 —
+// 웹가 인상분 ₩1,250 은 여전히 Play 최저가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
+// (웹 ₩300 → ₩1,000 인상 전에도 3코인이라 앱 무료였다. 이 값을 5로 되돌리면 앱에서 음악 구매가
+//  Play 티어 미등록 503 으로 하드블록된다 — 되돌리지 말 것.)
+export const APP_FREE_MAX_COIN_PRICE = 10;
 
 const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_01", amountKRW: 3900, webAmountKRW: 3000, coinPrices: Object.freeze([30]) },

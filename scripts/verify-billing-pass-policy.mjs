@@ -14,6 +14,10 @@ import {
 } from "../worker/lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../worker/lib/pdf-pass-discount.js";
 import {
+  MUSIC_TRACK_UNLOCK_COIN_COST,
+  MUSIC_TRACK_UNLOCK_PRICE_KRW,
+} from "../lib/music-access-policy.js";
+import {
   FEATURE_KEY_PRICE_TABLE,
   PAID_FEATURE_BILLING_TYPES,
   getPaidFeatureBillingType,
@@ -401,12 +405,32 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
 
 // ── pass 커버: 음악 트랙 ────────────────────────────────────────────────────
 // 키가 동적(music-track-<hash>)이라 아래 전기능 루프(listServerPricedFeatureKeys)가 절대 못 본다.
-// 정책(2026-07): 이용권 보유자는 전 등급에서 전곡 재생이 무료로 열린다(곡당 3코인 < 최저 한도 30코인).
+// 정책(2026-07): 이용권 보유자는 전 등급에서 전곡 재생이 무료로 열린다(곡당 코인가 < 최저 한도 30코인).
 // 다운로드만 이용권 대상이 아니며, 그 판정은 결제 결정이 아니라 worker/routes/music.js가 licenseType으로 한다.
+// 가격은 리터럴로 적지 말고 정본에서 읽는다 — 예전 픽스처는 3코인을 손으로 박아 두어, 실제 가격을
+// 올려도 가드가 옛 값만 계속 검사했다.
+assert.equal(
+  MUSIC_TRACK_UNLOCK_PRICE_KRW,
+  MUSIC_TRACK_UNLOCK_COIN_COST * 100,
+  "음악 트랙 원화가는 코인가 × KRW_PER_COIN(100)과 일치해야 한다",
+);
+// 🔴 KG이니시스 일반 카드결제는 1,000원 미만을 거부한다. 그 미만이면 PortOne requestPayment 가
+// PG창을 띄우기도 전에 실패해 사용자에게는 "결제창이 안 뜬다"로 보인다(2026-07 실사고).
+assert.ok(
+  MUSIC_TRACK_UNLOCK_PRICE_KRW >= 1000,
+  `음악 트랙 단건 결제금액은 이니시스 최소 결제금액(1,000원) 이상이어야 한다 — 현재 ${MUSIC_TRACK_UNLOCK_PRICE_KRW}원`,
+);
+
+const musicPricingFixture = {
+  featureKey: "music-track-abc123",
+  coinPrice: MUSIC_TRACK_UNLOCK_COIN_COST,
+  cost: MUSIC_TRACK_UNLOCK_COIN_COST,
+};
+
 for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
   const musicPassDecision = __billingTestUtils.buildPassPaymentDecision(
     activePass(tier),
-    { featureKey: "music-track-abc123", coinPrice: 3, cost: 3 },
+    { ...musicPricingFixture },
     { tier, passTier: tier, expiresAt: futureDate(), isActive: true },
   );
   assert.equal(
@@ -419,9 +443,9 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
 // 이용권이 없으면 음악 트랙도 단건결제와 월정석이 동등 노출되어야 한다(한쪽만 노출 금지).
 const musicNoPassDecision = __billingTestUtils.buildPassPaymentDecision(
   null,
-  { featureKey: "music-track-abc123", coinPrice: 3, cost: 3, membershipCreditCost: 30 },
+  { ...musicPricingFixture, membershipCreditCost: MUSIC_TRACK_UNLOCK_COIN_COST * 10 },
   {},
-  { monthlyBalance: 30 },
+  { monthlyBalance: MUSIC_TRACK_UNLOCK_COIN_COST * 10 },
 );
 assert.equal(
   musicNoPassDecision.canUseByPass,

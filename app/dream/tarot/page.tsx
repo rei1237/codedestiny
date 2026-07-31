@@ -3,10 +3,10 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const DREAM_TAROT_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "드림 프롬프트 - 꿈의 잔향을 전문가 상담 문장으로 봉인",
+    "meta.title": "드림 타로 - 꿈의 잔향을 전문가 상담 문장으로 봉인",
     "meta.description": "꿈속 장면과 깨어난 뒤의 감정이 세 장의 상징 카드에 머물며, AI에게 건넬 상담 문장으로 고요히 봉인됩니다.",
-    "service.h1": "드림 프롬프트",
-    "service.seoText": "드림 프롬프트는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 모아 지금 마음이 붙잡은 신호와 AI에게 건넬 질문을 봉인합니다.",
+    "service.h1": "드림 타로",
+    "service.seoText": "드림 타로는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 모아 지금 마음이 붙잡은 신호와 AI에게 건넬 질문을 봉인합니다.",
     "valueGuide.title": "꿈의 잔향을 전문가 상담 문장으로 봉인하는 6단계",
     "value.1.title": "1. 꿈해몽은 길흉 예언보다 감정 신호 해석입니다",
     "value.2.title": "2. 상징은 사전 뜻보다 개인 맥락이 우선입니다",
@@ -16,10 +16,10 @@ const DREAM_TAROT_TEXT_TRANSLATIONS = {
     "value.6.title": "6. 주간 꿈 로그를 만들면 패턴이 보입니다",
   },
   en: {
-    "meta.title": "Dream Prompt - Sealing Dream Echoes into AI Consultation Questions",
+    "meta.title": "Dream Tarot - Sealing Dream Echoes into AI Consultation Questions",
     "meta.description": "Scenes from your dream and the emotions that remain after waking settle into three symbolic cards, becoming quiet consultation questions to offer to AI.",
-    "service.h1": "Dream Prompt",
-    "service.seoText": "Dream Prompt gathers events, emotions, and repeated symbols from a dream into card language, sealing the signals your heart is holding and the question to ask AI.",
+    "service.h1": "Dream Tarot",
+    "service.seoText": "Dream Tarot gathers events, emotions, and repeated symbols from a dream into card language, sealing the signals your heart is holding and the question to ask AI.",
     "valueGuide.title": "Six Steps to Seal Dream Echoes into AI Consultation Questions",
     "value.1.title": "1. Dream interpretation is emotional signal reading, not fortune prediction",
     "value.2.title": "2. Personal context matters more than dictionary meanings",
@@ -38,7 +38,7 @@ const META = {
   path: "/dream/tarot",
   title: dreamTarotText("meta.title"),
   description: dreamTarotText("meta.description"),
-  keywords: ["꿈해몽", "드림 프롬프트", "꿈 상징", "dream prompt", "무의식"],
+  keywords: ["꿈해몽", "드림 타로", "드림 프롬프트", "꿈 타로", "꿈 상징", "dream tarot", "무의식"],
   image: "https://code-destiny.com/fuctionassets/heamong.webp",
   featureList: ["꿈 장면 정리", "깨어난 뒤 감정의 잔향", "AI에게 건넬 질문"],
   applicationCategory: "LifestyleApplication",
@@ -58,13 +58,13 @@ const SERVICE = {
   seoText: dreamTarotText("service.seoText"),
   localized: {
     en: {
-      title: "Dream Prompt - Sealing Dream Echoes into AI Consultation Questions",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Sealing Dream Echoes into AI Consultation Questions",
+      h1: "Dream Tarot",
       description:
         "Scenes from your dream and the emotions that remain after waking settle into three symbolic cards, becoming quiet consultation questions to offer to AI.",
       landingPoints: ["Organize dream scenes", "Trace the emotion after waking", "Questions to offer to AI"],
       seoText:
-        "Dream Prompt gathers events, emotions, and repeated symbols from a dream into card language, sealing the signals your heart is holding and the question to ask AI.",
+        "Dream Tarot gathers events, emotions, and repeated symbols from a dream into card language, sealing the signals your heart is holding and the question to ask AI.",
       valueGuideTitle: "Six Steps to Seal Dream Echoes into AI Consultation Questions",
       valueSections: [
         {
@@ -100,13 +100,13 @@ const SERVICE = {
       ],
     },
     ja: {
-      title: "ドリームプロンプト - 夢の余韻をAI相談文に封じる",
-      h1: "ドリームプロンプト",
+      title: "ドリームタロット - 夢の余韻をAI相談文に封じる",
+      h1: "ドリームタロット",
       description:
         "夢の中の場面と目覚めたあとの感情が三枚の象徴カードに宿り、AIへ手渡すための静かな相談文として封じられます。",
       landingPoints: ["夢の場面を整理", "目覚めた後に残る感情の余韻", "AIへ手渡す質問"],
       seoText:
-        "ドリームプロンプトは、夢の出来事、感情、くり返す象徴をカードの言葉に集め、今の心が抱えているサインとAIへ渡す質問をそっと封じます。",
+        "ドリームタロットは、夢の出来事、感情、くり返す象徴をカードの言葉に集め、今の心が抱えているサインとAIへ渡す質問をそっと封じます。",
       valueGuideTitle: "夢の余韻をAI相談文へ封じる6つのステップ",
       valueSections: [
         {
@@ -142,13 +142,13 @@ const SERVICE = {
       ],
     },
     "zh-CN": {
-      title: "梦境提示 - 将梦的余韵封存为AI咨询问题",
-      h1: "梦境提示",
+      title: "梦境塔罗 - 将梦的余韵封存为AI咨询问题",
+      h1: "梦境塔罗",
       description:
         "梦中的场景与醒来后的情绪停留在三张象征卡片中，安静地封存为可以交给AI的咨询问题。",
       landingPoints: ["整理梦中场景", "追踪醒后的情绪余韵", "交给AI的问题"],
       seoText:
-        "梦境提示把梦中的事件、情绪与重复象征收束成卡片语言，封存此刻内心抓住的信号与想问AI的问题。",
+        "梦境塔罗把梦中的事件、情绪与重复象征收束成卡片语言，封存此刻内心抓住的信号与想问AI的问题。",
       valueGuideTitle: "将梦的余韵封存为AI咨询问题的6个步骤",
       valueSections: [
         {
@@ -184,13 +184,13 @@ const SERVICE = {
       ],
     },
     "zh-TW": {
-      title: "夢境提示 - 將夢的餘韻封存為AI諮詢問題",
-      h1: "夢境提示",
+      title: "夢境塔羅 - 將夢的餘韻封存為AI諮詢問題",
+      h1: "夢境塔羅",
       description:
         "夢中的場景與醒來後的情緒停留在三張象徵卡片中，安靜地封存為可以交給AI的諮詢問題。",
       landingPoints: ["整理夢中場景", "追蹤醒後的情緒餘韻", "交給AI的問題"],
       seoText:
-        "夢境提示把夢中的事件、情緒與重複象徵收束成卡片語言，封存此刻內心抓住的訊號與想問AI的問題。",
+        "夢境塔羅把夢中的事件、情緒與重複象徵收束成卡片語言，封存此刻內心抓住的訊號與想問AI的問題。",
       valueGuideTitle: "將夢的餘韻封存為AI諮詢問題的6個步驟",
       valueSections: [
         {
@@ -226,13 +226,13 @@ const SERVICE = {
       ],
     },
     vi: {
-      title: "Dream Prompt - Niêm phong dư âm giấc mơ thành câu hỏi tư vấn AI",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Niêm phong dư âm giấc mơ thành câu hỏi tư vấn AI",
+      h1: "Dream Tarot",
       description:
         "Cảnh trong mơ và cảm xúc sau khi thức dậy lắng vào ba lá biểu tượng, trở thành câu hỏi tư vấn yên tĩnh để gửi cho AI.",
       landingPoints: ["Sắp xếp cảnh trong mơ", "Theo dấu dư âm cảm xúc sau khi thức dậy", "Câu hỏi gửi cho AI"],
       seoText:
-        "Dream Prompt gom sự kiện, cảm xúc và biểu tượng lặp lại trong mơ thành ngôn ngữ lá bài, niêm phong tín hiệu trái tim đang giữ và câu hỏi muốn gửi AI.",
+        "Dream Tarot gom sự kiện, cảm xúc và biểu tượng lặp lại trong mơ thành ngôn ngữ lá bài, niêm phong tín hiệu trái tim đang giữ và câu hỏi muốn gửi AI.",
       valueGuideTitle: "6 bước niêm phong dư âm giấc mơ thành câu hỏi tư vấn AI",
       valueSections: [
         {
@@ -268,13 +268,13 @@ const SERVICE = {
       ],
     },
     hi: {
-      title: "ड्रीम प्रॉम्प्ट - स्वप्न की प्रतिध्वनि को AI सलाह प्रश्नों में सील करना",
-      h1: "ड्रीम प्रॉम्प्ट",
+      title: "ड्रीम टैरो - स्वप्न की प्रतिध्वनि को AI सलाह प्रश्नों में सील करना",
+      h1: "ड्रीम टैरो",
       description:
         "स्वप्न के दृश्य और जागने के बाद बची भावना तीन प्रतीकात्मक कार्डों में ठहरती है और AI को सौंपे जाने वाले शांत सलाह प्रश्न बनती है.",
       landingPoints: ["स्वप्न दृश्यों को व्यवस्थित करें", "जागने के बाद भावना की प्रतिध्वनि", "AI को देने वाले प्रश्न"],
       seoText:
-        "ड्रीम प्रॉम्प्ट स्वप्न की घटनाओं, भावनाओं और दोहराते प्रतीकों को कार्ड भाषा में समेटकर मन द्वारा पकड़े संकेत और AI से पूछे जाने वाले प्रश्न को सील करता है.",
+        "ड्रीम टैरो स्वप्न की घटनाओं, भावनाओं और दोहराते प्रतीकों को कार्ड भाषा में समेटकर मन द्वारा पकड़े संकेत और AI से पूछे जाने वाले प्रश्न को सील करता है.",
       valueGuideTitle: "स्वप्न प्रतिध्वनि को AI सलाह प्रश्नों में सील करने के 6 चरण",
       valueSections: [
         {
@@ -310,13 +310,13 @@ const SERVICE = {
       ],
     },
     es: {
-      title: "Dream Prompt - Sellar ecos del sueño en preguntas para IA",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Sellar ecos del sueño en preguntas para IA",
+      h1: "Dream Tarot",
       description:
         "Las escenas del sueño y la emoción que queda al despertar reposan en tres cartas simbólicas y se sellan como preguntas tranquilas para consultar a la IA.",
       landingPoints: ["Ordenar escenas del sueño", "Rastrear la emoción al despertar", "Preguntas para entregar a la IA"],
       seoText:
-        "Dream Prompt reúne sucesos, emociones y símbolos repetidos del sueño en lenguaje de cartas, sellando la señal que sostiene el corazón y la pregunta para la IA.",
+        "Dream Tarot reúne sucesos, emociones y símbolos repetidos del sueño en lenguaje de cartas, sellando la señal que sostiene el corazón y la pregunta para la IA.",
       valueGuideTitle: "6 pasos para sellar ecos del sueño en preguntas para IA",
       valueSections: [
         {
@@ -352,13 +352,13 @@ const SERVICE = {
       ],
     },
     fr: {
-      title: "Dream Prompt - Sceller les échos du rêve en questions pour l'IA",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Sceller les échos du rêve en questions pour l'IA",
+      h1: "Dream Tarot",
       description:
         "Les scènes du rêve et l'émotion laissée au réveil se déposent dans trois cartes symboliques, puis deviennent des questions calmes à confier à l'IA.",
       landingPoints: ["Organiser les scènes du rêve", "Suivre l'émotion après le réveil", "Questions à confier à l'IA"],
       seoText:
-        "Dream Prompt rassemble événements, émotions et symboles répétés du rêve dans le langage des cartes, scellant le signal tenu par le cœur et la question pour l'IA.",
+        "Dream Tarot rassemble événements, émotions et symboles répétés du rêve dans le langage des cartes, scellant le signal tenu par le cœur et la question pour l'IA.",
       valueGuideTitle: "6 étapes pour sceller les échos du rêve en questions pour l'IA",
       valueSections: [
         {
@@ -394,13 +394,13 @@ const SERVICE = {
       ],
     },
     de: {
-      title: "Dream Prompt - Traum-Echos in KI-Beratungsfragen versiegeln",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Traum-Echos in KI-Beratungsfragen versiegeln",
+      h1: "Dream Tarot",
       description:
         "Traumszenen und die Gefühle nach dem Aufwachen ruhen in drei Symbolkarten und werden zu stillen Beratungsfragen für die KI.",
       landingPoints: ["Traumszenen ordnen", "Gefühlsnachhall nach dem Aufwachen verfolgen", "Fragen an die KI"],
       seoText:
-        "Dream Prompt sammelt Ereignisse, Gefühle und wiederkehrende Symbole eines Traums in Kartensprache und versiegelt das Signal des Herzens sowie die Frage an die KI.",
+        "Dream Tarot sammelt Ereignisse, Gefühle und wiederkehrende Symbole eines Traums in Kartensprache und versiegelt das Signal des Herzens sowie die Frage an die KI.",
       valueGuideTitle: "6 Schritte, um Traum-Echos in KI-Beratungsfragen zu versiegeln",
       valueSections: [
         {
@@ -436,13 +436,13 @@ const SERVICE = {
       ],
     },
     nl: {
-      title: "Dream Prompt - Droomnagalmen verzegelen als AI-consultvragen",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Droomnagalmen verzegelen als AI-consultvragen",
+      h1: "Dream Tarot",
       description:
         "Droomscènes en emoties na het wakker worden landen in drie symbolische kaarten en worden stille consultvragen om aan AI te geven.",
       landingPoints: ["Droomscènes ordenen", "Emotionele nagalm na het ontwaken volgen", "Vragen voor AI"],
       seoText:
-        "Dream Prompt verzamelt gebeurtenissen, emoties en terugkerende symbolen uit een droom in kaarttaal en verzegelt het signaal dat je hart vasthoudt met de vraag voor AI.",
+        "Dream Tarot verzamelt gebeurtenissen, emoties en terugkerende symbolen uit een droom in kaarttaal en verzegelt het signaal dat je hart vasthoudt met de vraag voor AI.",
       valueGuideTitle: "6 stappen om droomnagalmen als AI-consultvragen te verzegelen",
       valueSections: [
         {
@@ -478,13 +478,13 @@ const SERVICE = {
       ],
     },
     ms: {
-      title: "Dream Prompt - Memeterai gema mimpi menjadi soalan konsultasi AI",
-      h1: "Dream Prompt",
+      title: "Dream Tarot - Memeterai gema mimpi menjadi soalan konsultasi AI",
+      h1: "Dream Tarot",
       description:
         "Adegan mimpi dan emosi selepas bangun berlabuh pada tiga kad simbolik, lalu menjadi soalan konsultasi yang tenang untuk diserahkan kepada AI.",
       landingPoints: ["Susun adegan mimpi", "Jejaki gema emosi selepas bangun", "Soalan untuk AI"],
       seoText:
-        "Dream Prompt mengumpul peristiwa, emosi dan simbol berulang dalam mimpi ke dalam bahasa kad, memeterai isyarat yang dipegang hati dan soalan untuk AI.",
+        "Dream Tarot mengumpul peristiwa, emosi dan simbol berulang dalam mimpi ke dalam bahasa kad, memeterai isyarat yang dipegang hati dan soalan untuk AI.",
       valueGuideTitle: "6 langkah memeterai gema mimpi menjadi soalan konsultasi AI",
       valueSections: [
         {
