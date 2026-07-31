@@ -14,6 +14,7 @@
     - **무료 진입 후크 예외(2026-07-16)**: "지금 내 시기 · 올해의 나" 카드(`#currentSeasonCard`, 클라 `renderCurrentSeasonSummary`)는 **현재 소속 대운 1칸 + 올해 세운 요약만** 무료(C유형)로 노출한다. 게이트(`cd-section-gate`) 없이 렌더되며 서버 entitlement와 무관. **전체 10년 대운표·연도별 세운 상세·종합 풀이는 계속 `section_daewun`/`section_summary`로 유료 잠금**이며, 무료 카드는 이 잠긴 콘텐츠를 렌더하지 않는다(범위 초과 시 정책 위반).
   - 자미두수 심화: `ziwei_decade_luck`(대한 흐름), `ziwei_love_deep`(부부궁 심화), `ziwei_twelve_palaces`(12궁 정밀), `ziwei_symbolic_layer`, `ziwei_life_yearly_flow`
   - 숙요점 1년운 전체 해석: `sukyo_yearly_fortune_unlock`
+  - 숙요 인연 도감(`sukuyo-relationship-encyclopedia`, 50코인=5,000원), **극T 관계 회로 확장(`sukuyo-extreme-t-relationship`, 50코인=5,000원)** — 둘 다 내 명식에서 결정론으로 산출되는 고정 콘텐츠(LLM 미사용)라 재열람이 전제다. 극T는 2026-08-01까지 회당 결제로 잘못 등록돼 있었고(클라는 영구 해금으로 동작 → 서버가 `unlockedFeatures`를 안 남겨 **새로고침하면 결제한 잠금이 다시 닫혔다**), A유형으로 옮겨 정정했다. 계정 스코프(`PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY` 미등록)
   - **운명의 섬 12궁 전체 심층 리포트: `ziwei-island-deep-report`(50코인=5,000원)** — 명반에서 결정론으로 산출되는 고정 콘텐츠(LLM 미사용, `worker/lib/island/island-report.js`)라 재열람이 전제다. **계정 스코프 영구 해금**(`PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY`에 등록하지 않아 `User.unlockedFeatures`로 관리). 배달은 `worker/routes/ziwei-island-report.js`, 화면은 `/island-consult`. ⚠️ 같은 화면의 `ziwei-island-palace-consult`(20,000원)와 **별개 상품**이다 — 그쪽은 고른 궁 하나를 LLM이 매번 새로 쓰는 B유형.
 - **UI**: 잠금 아이콘 + 해제 유도 CTA (`PremiumBlurGate.tsx`)
 
@@ -27,6 +28,7 @@
   - 타로 전체: `tarot-year-fortune`, `tarot-love-relationship`, `tarot-reunion-reading` 등 `tarot-*`
   - AI 상담 전반: 인생의 책, 연애 비책, 신년운세, 운명 찻집, 팩폭 전략실(`life-book-ai`, `love-secret-ai`, `new-year-ai`, `fortune-tea-house`, `neo-operation-room` 등), 숙요점 궁합 AI 상담(`sukuyo-compatibility-ai`) — 위 이용권 커버 규칙 동일 적용
   - 숙요점 기본 궁합(`compat-sukuyo-compatibility`, 100코인=10,000원): **콘텐츠는 잠금 UI 없이 노출**되지만 궁합 계산 실행 시마다 회당 결제(위 이용권 커버 규칙 적용). "비잠금"이 "무료"를 뜻하지 않음에 주의
+  - **숙요 인연 레이더(`sukuyo-past-life-reading`, 100코인=10,000원)** — 상대의 생년월일을 넣을 때마다 새로 산출되는 관계 리포트라 **상대 1명당 1결제**다. 같은 상대·같은 관계목적은 서버 아카이브(`readSukuyoPastLifeArchive`)가 영수증 역할을 해 재결제 없이 다시 열린다. ⚠️ 이 키를 `PREMIUM_UNLOCK_POLICY`(영구 해금 후보)나 클라 `syMarkPaidSukuyoFeatureUnlocked` 에 되살리지 말 것 — 그러면 1회 결제로 모든 상대가 무료가 된다(2026-08-01 정정). 구 `sukuyo-symbolic-comparison`(인연 레이더 5,000원)은 이 기능에 통합돼 UI 미사용, 과거 결제 이력 보존용으로 레지스트리에만 남는다
 - **UI**: 이용권으로 커버되면 무료 처리 안내(결제창 미노출), 그렇지 않으면 결제창에 **단건결제(KRW)/월정석 2옵션**을 동등 제시(월정석은 잔액이 비용 이상일 때만 활성) — [3부 결제창 노출 규칙(공통)](payment-policy-flow.md#결제창-노출-규칙-공통) 참고
 
 ## C. 비잠금·무료 (Free Access)

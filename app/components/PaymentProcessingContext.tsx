@@ -349,7 +349,9 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (normalizedMode === "pass-applied" || normalizedMode === "passapplied") return "pass-applied";
   if (normalizedMode === "pass" || normalizedMode === "pass-checking" || normalizedMode === "membership") return "pass-checking";
   if (["checkout", "card", "prepare", "opening"].includes(normalizedMode)) return "checkout";
-  if (["confirm", "verification", "payment-confirm"].includes(normalizedMode)) return "confirm";
+  // 'payment-failed' 는 셸이 결제 실패를 성공(payment-complete)과 갈라 보내는 모드다. React 오버레이에는
+  // 전용 스킨이 없으므로 종전 실패 표시와 같은 'confirm' 스킨을 쓴다(문구는 statusMessage 가 나른다).
+  if (["confirm", "verification", "payment-confirm", "payment-failed"].includes(normalizedMode)) return "confirm";
   if (["monthly", "monthly-credit", "monthly_credit", "membership-credit", "membership_credit", "moonstone", "moonlight-stone", "moonlight_stone", "moonlight stone"].includes(normalizedMode)) return "monthly";
   if (["subscription", "subscription-confirm", "subscription-prepare"].includes(normalizedMode)) return "subscription";
   if (["unlock-saving", "savingunlock", "saving-unlock"].includes(normalizedMode)) return "unlock-saving";
@@ -412,7 +414,11 @@ type PaymentOverlayWindow = Window & {
 // 셸이 없는 Next 라우트에서는 정본이 없으므로(fail-open) 최소한 "결제수단 선택창이 떠 있으면
 // 겹치지 않는다"만 로컬로 판정한다 — `.cd-direct-payment-modal` 은 3렌더러 공통 클래스이고
 // verify:payment-choice-parity 가 동일성을 강제한다. 새 억제 창·타이머는 만들지 않는다.
-const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|refund|unlock-saving|confirm/;
+const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|payment-failed|refund|unlock-saving|confirm/;
+// 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 `CD_WAIT_UI_ALLOWED_MODE_RE` 의 거울.
+// 진행 중 표시는 이용권 확인('pass') 하나뿐이고 나머지는 결과 표시만 통과한다. 셸이 없는 Next
+// 라우트에는 정본이 없으므로 여기서 같은 규칙을 세운다(값이 갈리면 verify 가드가 잡는다).
+const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
 function isPaymentWaitUiBlocked(mode: string) {
   if (typeof window === "undefined") return false;
   const shellVerdict = (window as PaymentOverlayWindow).__cdPaymentWaitUiBlocked;
@@ -423,6 +429,7 @@ function isPaymentWaitUiBlocked(mode: string) {
       return false;
     }
   }
+  if (!REACT_WAIT_UI_ALLOWED_MODE_RE.test(String(mode || "").trim() || "payment")) return true;
   if (typeof document === "undefined") return false;
   if (REACT_TERMINAL_OVERLAY_MODE_RE.test(String(mode || ""))) return false;
   return Boolean(document.querySelector(".cd-direct-payment-modal"));
@@ -520,7 +527,12 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
     return { message: ACCESS_CHECKING_MESSAGE, mode: "checkout" };
   }
   if (status === "paymentProcessing") {
-    return { message: message || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: resolvePaymentLoadingVariant(message, "confirm") };
+    // 🔴 PG창을 통과한 뒤의 승인 검증 구간은 '확인 중'이 아니라 '적용됨' 한 장면으로 보여준다
+    // (셸 _cdResolvePaymentWaitCopy 의 같은 분기와 동일 규칙). 단건·월정석에는 진행 화면을 두지 않는다.
+    if (isPassPaidFeatureDetail(resolvedDetail)) {
+      return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
+    }
+    return { message: message || "콘텐츠를 여는 중이에요", mode: "payment-complete" };
   }
   if (status === "paymentPreparing") {
     return { message: message || "단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", mode: "checkout" };

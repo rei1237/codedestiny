@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "../home-cosmic.module.css";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
-const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png";
+const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip-v2.png";
 
 const SEO = {
   title: "꿀꿀 운세 | 무료 사주·타로·궁합 통합 플랫폼 — Code Destiny",

@@ -7384,9 +7384,9 @@ function syIsPaidSukuyoFeatureUnlocked(featureKey) {
   var root = typeof window !== 'undefined' ? window : {};
   var hasAuthToken = false;
   if (!key) return false;
-  if (key === SY_PAID_FEATURES.relationshipRadar.key && root._sySukuyoRadarUnlocked === true) return true;
+  // 인연 레이더·전생 인연 리딩(통합 리포트)은 회당 결제라 이 영구 해금 경로를 타지 않는다.
+  // 서버 아카이브 조회로만 재열람을 판정하므로 여기에 되살리지 말 것.
   if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key && root._sySukuyoEncyclopediaUnlocked === true) return true;
-  if (key === SY_PAID_FEATURES.pastLifeReading.key && root._sySukuyoPastLifeUnlocked === true) return true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key && root._syMonthlySukuyoFortuneUnlocked === true) return true;
   try {
     hasAuthToken = !!(localStorage.getItem('fortune_auth_token') || '');
@@ -7441,9 +7441,7 @@ function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
     }
   } catch (_) {}
   try { localStorage.setItem(syPaidFeatureStorageKey(key), '1'); } catch (_) {}
-  if (key === SY_PAID_FEATURES.relationshipRadar.key) root._sySukuyoRadarUnlocked = true;
   if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key) root._sySukuyoEncyclopediaUnlocked = true;
-  if (key === SY_PAID_FEATURES.pastLifeReading.key) root._sySukuyoPastLifeUnlocked = true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key) root._syMonthlySukuyoFortuneUnlocked = true;
 }
 

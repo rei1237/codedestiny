@@ -2104,6 +2104,8 @@
     } catch (_) {}
   }
 
+  // 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 CD_WAIT_UI_ALLOWED_MODE_RE 의 거울(셸이 없을 때만 쓴다).
+  var DP_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
   function _dpSetPaymentPending(show, message, mode) {
     var text = String(message || '').trim() || '결제가 진행 중입니다.';
     if (show && String(mode || '').trim() === 'card' && /준비|여는 중|열고 있|주문 정보를 확인|보안 결제창|결제를 처리하고 있어요|창을 닫지 말아 주세요|진행 중입니다/.test(text)) {
@@ -2113,6 +2115,7 @@
     // 🔴 대기 화면 금지 구간에는 띄우지 않는다(셸의 __cdPaymentWaitUiBlocked 가 판정 정본):
     // 미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건 확정→PG창. 종단(결과)은 통과한다.
     // 셸이 없는 독립 페이지에서는 플래그도 없으니 그대로 동작한다.
+    // 셸이 없는 독립 페이지에서는 아래 window._cdSetCoinGateOverlay 심이 같은 허용목록으로 거른다.
     try {
       if (show && typeof window.__cdPaymentWaitUiBlocked === 'function'
         && window.__cdPaymentWaitUiBlocked(mode)) return;
@@ -2287,6 +2290,9 @@
   // (메인 앱은 canonical이 먼저 등록되므로 이 심이 설치되지 않는다.)
   if (typeof window._cdSetCoinGateOverlay !== 'function') {
     window._cdSetCoinGateOverlay = function (isOpen, message, mode) {
+      // 🔴 정책 집행 지점(셸이 없는 환경). 독립 페이지들이 이 함수를 직접 부르므로 여기서 막아야
+      // 빠짐이 없다 — _dpSetPaymentPending 안에만 두면 tarot/geomancy/royal-tea 등의 직접 호출이 샌다.
+      if (isOpen && !DP_WAIT_UI_ALLOWED_MODE_RE.test(String(mode || '').trim() || 'payment')) return;
       _dpSetStandalonePaymentOverlay(!!isOpen, message, mode);
     };
   }

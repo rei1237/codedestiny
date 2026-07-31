@@ -100,18 +100,32 @@ describe("복귀 지점", () => {
 });
 
 describe("trackCheckoutEvent", () => {
+  afterEach(() => { delete globalThis.fetch; });
+
   it("화이트리스트에 없는 이벤트는 네트워크를 타지 않는다", () => {
-    const sendBeacon = jest.fn(() => true);
-    globalThis.navigator = { sendBeacon };
+    const fetchSpy = jest.fn(() => Promise.resolve({}));
+    globalThis.fetch = fetchSpy;
     expect(checkoutEntry.trackCheckoutEvent("something_else", {})).toBe(false);
-    expect(sendBeacon).not.toHaveBeenCalled();
-    delete globalThis.navigator;
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  // 🔴 /api/billing/* 은 requireJson 가드가 걸려 있고, 위반하면 400 일 뿐 아니라 addAbuseScore 까지
+  // 올린다 — 계측이 공격 트래픽으로 집계돼 실제 사용자가 차단될 수 있다. 첫 배포에서 sendBeacon 의
+  // text/plain 으로 나가 전 이벤트가 400 을 맞았던 자리라 content-type 을 여기서 고정한다.
+  it("application/json 으로 보낸다(다른 타입은 워커 보안 가드가 400 + 어뷰즈 점수)", () => {
+    const calls = [];
+    globalThis.fetch = (url, init) => { calls.push({ url, init }); return Promise.resolve({}); };
+    expect(checkoutEntry.trackCheckoutEvent("checkout_opened", {})).toBe(true);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].init.headers["Content-Type"]).toBe("application/json");
+    expect(calls[0].init.method).toBe("POST");
+    expect(calls[0].init.keepalive).toBe(true);
+    expect(calls[0].url).toContain("/api/billing/funnel-event");
   });
 
   it("개인식별자를 실어 보내지 않는다", () => {
     let body = "";
-    globalThis.Blob = class { constructor(parts) { body = parts.join(""); } };
-    globalThis.navigator = { sendBeacon: () => true };
+    globalThis.fetch = (_url, init) => { body = init.body; return Promise.resolve({}); };
     checkoutEntry.trackCheckoutEvent("checkout_option_click", {
       featureKey: "saju-deep",
       option: "pass",
@@ -123,16 +137,17 @@ describe("trackCheckoutEvent", () => {
     expect(parsed).toMatchObject({ name: "checkout_option_click", featureKey: "saju-deep", option: "pass", coinPrice: 50 });
     expect(Object.keys(parsed)).not.toContain("userId");
     expect(Object.keys(parsed)).not.toContain("email");
-    delete globalThis.navigator;
-    delete globalThis.Blob;
   });
 
   it("계측 실패가 결제 경로로 새지 않는다", () => {
-    globalThis.navigator = { sendBeacon: () => { throw new Error("beacon down"); } };
-    globalThis.Blob = class {};
+    globalThis.fetch = () => { throw new Error("network down"); };
     expect(() => checkoutEntry.trackCheckoutEvent("checkout_opened", {})).not.toThrow();
     expect(checkoutEntry.trackCheckoutEvent("checkout_opened", {})).toBe(false);
-    delete globalThis.navigator;
-    delete globalThis.Blob;
+  });
+
+  it("거부된 프로미스가 unhandled rejection 으로 새지 않는다", async () => {
+    globalThis.fetch = () => Promise.reject(new Error("blocked"));
+    expect(checkoutEntry.trackCheckoutEvent("checkout_opened", {})).toBe(true);
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
   });
 });

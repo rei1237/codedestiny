@@ -671,11 +671,13 @@ assertContains(
   "if (bodyMode === 'DIRECT_KRW') return null;",
   "coin-gate DIRECT_KRW must not raise the automatic payment fetch overlay",
 );
-// 반대 방향 회귀(대기 UI를 전부 없애 버리는 것)도 막는다 — 결제창 통과 후 승인 검증 대기 UI는 유지.
+// 반대 방향 회귀(표시를 전부 없애 버리는 것)도 막는다 — 결제창을 통과한 뒤에는 화면이 비지 않아야 한다.
+// 다만 2026-08 정책 전환으로 그 화면은 '결제 승인 확인 중'(mode 'confirm')이 아니라 '결제가 적용되었습니다'
+// (mode 'payment-complete')다. 단건·월정석에는 진행 화면을 두지 않고 적용 알림만 남긴다.
 assertContains(
   indexSource,
-  "path.indexOf('/api/billing/confirm') === 0 || path.indexOf('/api/payments/confirm') === 0) return { type: 'payment', mode: 'confirm'",
-  "payment confirmation must keep its wait overlay (this is the only stage that shows one)",
+  "path.indexOf('/api/billing/confirm') === 0 || path.indexOf('/api/payments/confirm') === 0) return { type: 'payment', mode: 'payment-complete'",
+  "payment confirmation must keep showing something (now the 'applied' frame, not a checking frame)",
 );
 assertContains(indexSource, "if (bodyMode === 'MEMBERSHIP_PASS') return { type: 'payment', mode: 'pass'", "membership pass check keeps its own wait overlay");
 // 사전발급은 결제수단 모달을 덮지 않도록 무음이어야 하고, 클릭을 절대 늦추지 않아야 한다

@@ -40,7 +40,7 @@ export const siteSeo = {
   titleTemplate: "%s",
   defaultDescription:
     "Code Destiny는 무료 사주팔자, 만세력, 타로, 오늘의 운세, 궁합, 자미두수, 점성술, 숙요점 해석을 한곳에서 제공하는 한국어 운세 플랫폼입니다.",
-  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png",
+  defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip-v2.png",
   twitterCard: "summary_large_image",
   organization: {
     name: "Code Destiny",
