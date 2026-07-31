@@ -438,9 +438,31 @@ export default function LoveSecretAiResultClient() {
     try {
       await document.fonts?.ready?.catch?.(() => {});
       const html2canvas = (await import("html2canvas")).default;
-      // scale: 1 — 노드가 이미 최종 1080px 이라 정확히 1080×1350 이 나온다.
-      // devicePixelRatio 를 쓰면 레티나에서 2160px, 아니면 1080px 로 결과가 비결정적이 된다.
-      const canvas = await html2canvas(node, { backgroundColor: null, scale: 1, useCORS: true, logging: false });
+      // 캡처 동안만 뷰포트 좌표로 들여놓고 페이지 뒤(z-index -1)에 둔다.
+      // 화면 밖 음수 좌표에서 그대로 캡처하면 html2canvas 가 빈 캔버스를 내는 경우가 있다.
+      const restore = { left: node.style.left, top: node.style.top, zIndex: node.style.zIndex };
+      node.style.left = "0px";
+      node.style.top = "0px";
+      node.style.zIndex = "-1";
+      let canvas: HTMLCanvasElement;
+      try {
+        // scale: 1 — 노드가 이미 최종 1080px 이라 정확히 1080×1350 이 나온다.
+        // devicePixelRatio 를 쓰면 레티나에서 2160px, 아니면 1080px 로 결과가 비결정적이 된다.
+        canvas = await html2canvas(node, {
+          backgroundColor: null,
+          scale: 1,
+          useCORS: true,
+          logging: false,
+          width: 1080,
+          height: 1350,
+          windowWidth: 1080,
+          windowHeight: 1350,
+        });
+      } finally {
+        node.style.left = restore.left;
+        node.style.top = restore.top;
+        node.style.zIndex = restore.zIndex;
+      }
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) throw new Error("capture failed");
       const fileName = `love-secret-${safeFilePart(myName)}.png`;
