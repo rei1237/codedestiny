@@ -1247,10 +1247,20 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   const serviceId = String(payment?.pricingSnapshot?.serviceId || payment?.productId || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU).trim().slice(0, 80);
   const contentId = String(payment?.pricingSnapshot?.contentId || payment?.featureKey || "").trim().slice(0, 160);
   const contentType = String(payment?.pricingSnapshot?.contentType || payment?.pricingSnapshot?.categoryKey || "digital_content").trim().slice(0, 80);
-  const contentKey = resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId) || contentId;
-  const serviceKey = resolveProfileUnlockServiceKey(payment?.featureKey, contentKey) || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
+  const scopedContentKey = resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId);
+  const scopedServiceKey = resolveProfileUnlockServiceKey(payment?.featureKey, scopedContentKey);
+  const contentKey = scopedContentKey || contentId;
+  const serviceKey = scopedServiceKey || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
   const coinPrice = Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || 0)));
   const amountKRW = Math.max(0, Math.floor(Number(payment?.paymentAmount || payment?.pricingSnapshot?.amountKRW || 0)));
+  // 🔴 프로필 개념이 없는 계정 스코프 단건결제(음악 트랙 등)는 프로필 엔타이틀먼트를 만들 대상이 아니다.
+  // 예전에는 여기서 profileId 부재만 보고 INVALID_UNLOCK_TARGET 을 던졌고, 호출부(handleSinglePaymentComplete)가
+  // 그것을 "콘텐츠 미전달"로 해석해 결제를 자동 전액 환불하고 unlockedFeatures 까지 회수했다 —
+  // Transaction.Paid 웹훅이 결제 직후 반드시 이 경로를 타므로, 결제가 성공해도 곧바로 환불·잠금되어
+  // 사용자가 같은 곡을 계속 다시 결제해야 했던 원인이다(음악 다운로드 결제 회귀).
+  // 계정 스코프 권한은 호출부의 recordUserPaidFeature 가 그대로 기록하므로 여기서는 건너뛰면 된다.
+  // 같은 파일의 upsertSajuPaymentUnlockEntitlement 가 쓰는 판정(contentKey+serviceKey)과 동일하게 맞춘다.
+  if (!scopedContentKey && !scopedServiceKey && !profileId) return null;
   if (!profileId || !contentId || !contentKey) {
     const error = new Error("Single payment unlock target is missing.");
     error.code = "INVALID_UNLOCK_TARGET";

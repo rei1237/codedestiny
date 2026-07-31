@@ -209,6 +209,91 @@ describe("single payment entitlement consistency", () => {
     },
   };
 
+  // 음악 트랙 다운로드처럼 프로필 카드 개념이 없는 계정 스코프 단건결제.
+  // pricingSnapshot 에 profileId 가 없다 — 예전에는 이 때문에 프로필 엔타이틀먼트 저장이
+  // INVALID_UNLOCK_TARGET 으로 실패하고, Transaction.Paid 웹훅이 결제를 자동 전액 환불하며
+  // 권한까지 회수해 사용자가 같은 곡을 계속 다시 결제해야 했다.
+  const accountScopedOrder = {
+    _id: "payment-doc-music-001",
+    userId: auth.userId,
+    merchantUid: "pay_music_001",
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+    status: "pending",
+    paymentAmount: 1000,
+    expectedChargedPoints: 10,
+    coinPrice: 10,
+    featureKey: "music-track-0rhpuvh",
+    productId: "unlock.music-track-0rhpuvh",
+    pricingSnapshot: {
+      categoryKey: "music-track",
+      contentId: "music-track-0rhpuvh",
+      amountKRW: 1000,
+    },
+  };
+
+  test("profileId 없는 계정 스코프 단건결제는 환불되지 않고 권한이 기록된다", async () => {
+    let paymentFindOneCall = 0;
+    Payment.findOne = jest.fn(() => {
+      paymentFindOneCall += 1;
+      return queryResult(paymentFindOneCall === 1 ? accountScopedOrder : null);
+    });
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...accountScopedOrder,
+      status: "processing",
+      orderState: "PAID_VERIFIED",
+      paidAt: new Date("2026-06-30T00:00:00.000Z"),
+    }));
+    Payment.findById = jest.fn().mockReturnValue(queryResult({ ...accountScopedOrder, status: "processing" }));
+    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...accountScopedOrder,
+      status: "fulfilled",
+      orderState: "UNLOCKED",
+    }));
+    ContentEntitlement.findOne = jest.fn().mockReturnValue(queryResult(null));
+    ContentEntitlement.findOneAndUpdate = jest.fn(() => {
+      throw new Error("profile entitlement must not be attempted for account-scoped unlock");
+    });
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({
+      payment: {
+        paymentId: "pay_music_001",
+        status: "PAID",
+        storeId: "store_test_001",
+        amount: { total: 1000, currency: "KRW" },
+        paidAt: "2026-06-30T00:00:00.000Z",
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } }));
+
+    const request = new Request("https://example.com/api/payments/single/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paymentId: "pay_music_001" }),
+    });
+
+    const response = await testUtils.handleSinglePaymentComplete(request, env, auth);
+    const parsed = await readResponse(response);
+
+    expect(parsed.status).toBe(200);
+    expect(parsed.payload.ok).toBe(true);
+    expect(parsed.payload.status).toBe("UNLOCKED");
+    // PortOne 단건 조회 1회만 — 취소(환불) 호출이 붙으면 회귀다.
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(String(global.fetch.mock.calls[0][0])).not.toContain("/cancel");
+    // 계정 스코프 권한은 그대로 기록된다(= 다운로드가 열린다).
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: auth.userId },
+      expect.objectContaining({
+        $addToSet: expect.objectContaining({
+          paidFeatures: "music-track-0rhpuvh",
+          unlockedFeatures: "music-track-0rhpuvh",
+        }),
+      }),
+      undefined,
+    );
+  });
+
   test("entitlement grant failure triggers automatic full refund", async () => {
     let paymentFindOneCall = 0;
     Payment.findOne = jest.fn(() => {
