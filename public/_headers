@@ -414,6 +414,13 @@
   CDN-Cache-Control: public, max-age=31536000, immutable
   Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
 
+# 링크 미리보기 카드: 파일명이 영구 고정이라 내용이 바뀐다.
+# 길게 잡으면 크롤러가 재조회해도 중간 캐시가 옛 카드를 되돌려준다.
+/og/*
+  Cache-Control: public, max-age=300, must-revalidate
+  CDN-Cache-Control: public, max-age=300
+  Cloudflare-CDN-Cache-Control: public, max-age=300
+
 /assets/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
