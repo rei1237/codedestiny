@@ -457,7 +457,10 @@ async function handleCreate(request, env, ctx) {
   });
   if (!security.ok) return security.response;
 
-  await connectDb(env);
+  // 🔴 여기서 connectDb 를 미리 부르지 않는다. 아래 DB 작업은 전부 withMongoRetry 를 거치고
+  //    그 안에서 시도마다 connectDb 를 부른다(db.js). 앞에서 한 번 더 부르면, 연결이 안 서는
+  //    동안 본문 파싱·검증조차 못 하고 요청이 통째로 죽는다 — 아래 '메일 우선' 폴백이
+  //    도달할 기회 자체를 잃는다.
   const body = await readJson(request);
 
   const category = toText(body?.category);
@@ -544,35 +547,63 @@ async function handleCreate(request, env, ctx) {
     contentHash,
     autoFlagReasons: flags,
   });
-  await withMongoRetry(env, () => doc.save().catch((error) => {
-    if (Number(error?.code) === 11000) return doc; // 앞선 시도가 이미 저장에 성공했다.
-    throw error;
-  }));
+  // 🔴 저장 실패가 곧 제보 유실이면 안 된다. 이 폼의 목적은 '관리자에게 닿는 것'이고,
+  //    알림 메일은 Resend HTTP 호출이라 DB 를 전혀 타지 않는다. DB 인프라 장애일 때만
+  //    메일 우선 모드로 내려간다 — 스키마 검증 실패 같은 진짜 잘못된 요청은 그대로 전파한다.
+  let persisted = true;
+  try {
+    await withMongoRetry(env, () => doc.save().catch((error) => {
+      if (Number(error?.code) === 11000) return doc; // 앞선 시도가 이미 저장에 성공했다.
+      throw error;
+    }));
+  } catch (error) {
+    if (!isAuthDbInfraError(error)) throw error;
+    persisted = false;
+    console.error("[feedback] persist failed, falling back to email-only:", String(error?.message || error));
+  }
 
-  const notify = notifyNewFeedback(env, doc, {
+  const notifyOptions = {
     siteBaseUrl: getSiteBaseUrl(env),
     attachmentUrls: attachments.map((file) => buildAttachmentUrl(request, file.key)),
-  })
-    .then((result) => Feedback.updateOne(
-      { _id: doc._id },
-      { $set: { notifiedAt: new Date(), notifyError: clampText(result?.error, 300) } },
-    ))
-    .catch(() => {});
+  };
 
-  // ctx 가 없는 경로(직접 import·테스트)에서 dangling promise 를 남기면 Workers 가 응답
-  // 반환 시점에 취소해 메일이 조용히 유실된다. 그때만 await 로 폴백한다.
-  if (typeof ctx?.waitUntil === "function") ctx.waitUntil(notify);
-  else await notify;
+  if (persisted) {
+    const notify = notifyNewFeedback(env, doc, notifyOptions)
+      .then((result) => Feedback.updateOne(
+        { _id: doc._id },
+        { $set: { notifiedAt: new Date(), notifyError: clampText(result?.error, 300) } },
+      ))
+      .catch(() => {});
+
+    // ctx 가 없는 경로(직접 import·테스트)에서 dangling promise 를 남기면 Workers 가 응답
+    // 반환 시점에 취소해 메일이 조용히 유실된다. 그때만 await 로 폴백한다.
+    if (typeof ctx?.waitUntil === "function") ctx.waitUntil(notify);
+    else await notify;
+  } else {
+    // 저장이 없으면 메일이 유일한 전달 경로다. 백그라운드로 돌리면 실패를 알 수 없어
+    // "접수됐다"고 거짓말하게 되므로 여기서만 await 하고, 메일이 **실제로** 나갔을 때만
+    // 성공으로 답한다(수신자 미설정으로 skip 된 것도 전달 실패로 친다).
+    const result = await notifyNewFeedback(env, doc, notifyOptions);
+    const email = (Array.isArray(result?.results) ? result.results : []).find((entry) => entry?.channel === "email");
+    if (!email?.ok || email?.skipped) {
+      throw createHttpError(503, "지금은 제보를 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.", {
+        code: "FEEDBACK_PERSIST_AND_NOTIFY_FAILED",
+      });
+    }
+  }
 
   return json({
     ok: true,
+    persisted,
     item: {
       id: String(doc._id),
       ticketNo: buildTicketNo(doc),
       status: doc.status,
-      createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : "",
+      createdAt: (doc.createdAt ? new Date(doc.createdAt) : new Date()).toISOString(),
     },
-    message: "제보가 접수되었습니다. 확인 후 업데이트에 반영하겠습니다.",
+    message: persisted
+      ? "제보가 접수되었습니다. 확인 후 업데이트에 반영하겠습니다."
+      : "제보가 관리자에게 전달되었습니다. 확인 후 업데이트에 반영하겠습니다.",
   }, { status: 201 });
 }
 
