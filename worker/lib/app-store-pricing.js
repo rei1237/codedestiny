@@ -56,7 +56,7 @@ const PASS_TIER_TABLE = Object.freeze([
   // 커버 10,000→13,000(+30.0%) → 이용권도 +28.6%
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 75900, webAmountKRW: 59000, coinLimit: 100 },
   // 전체 커버라 대응 티어가 없다 → 콘텐츠 티어 평균 인상률(+25% 부근)을 따른다.
-  { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 370000, webAmountKRW: 300000, coinLimit: null },
+  { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 185000, webAmountKRW: 149000, coinLimit: null },
 ]);
 
 const CONTENT_TIER_BY_COIN_PRICE = (() => {

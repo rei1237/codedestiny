@@ -222,7 +222,6 @@ type SubscriptionPlan = {
   baseWonPrice: number;
   durationMonths: 1;
   productType:  "membership_pass";
-  coins:        number;
   profileLimit: number | null; // null = unlimited
   freeUpTo:     number | null; // null = Family all-inclusive, number = normal paid-service pass limit
   theme:        "amber" | "rose" | "purple";
@@ -466,7 +465,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "standard",
     title:        "standard",
     baseWonPrice: 9900,
-    coins:        115,
     profileLimit: 3,
     freeUpTo:     30,
     theme:        "amber",
@@ -484,7 +482,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "premium",
     title:        "premium",
     baseWonPrice: 29900,
-    coins:        360,
     profileLimit: 7,
     freeUpTo:     50,
     theme:        "rose",
@@ -502,7 +499,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "vvip",
     title:        "vvip",
     baseWonPrice: 59000,
-    coins:        700,
     profileLimit: 15,
     freeUpTo:     100,
     theme:        "purple",
@@ -519,8 +515,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "family",
     title:        "family",
-    baseWonPrice: 300000,
-    coins:        3000,
+    baseWonPrice: 149000,
     profileLimit: null,
     freeUpTo:     null,
     theme:        "purple",
