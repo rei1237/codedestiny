@@ -63,7 +63,7 @@ export interface Evidence {
   detail?: string;
   /**
    * 안정 식별자(예: "saju.fiveElements"). 서버가 근거를 화이트리스트로 잠그고
-   * ★평점을 조인할 때의 키. 🔴 evidence[0]은 기존 소비처(MapResult의 도감 수집·체계별
+   * ★평점을 조인할 때의 키. 🔴 evidence[0]은 기존 소비처(CompassReport의 도감 수집·체계별
    * 근거 라벨)가 인덱스로 읽으므로 항목을 앞에 끼워 넣지 말고 뒤에만 append 한다.
    */
   id?: string;

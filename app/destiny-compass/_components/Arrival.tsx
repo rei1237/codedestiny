@@ -23,7 +23,7 @@ export function Arrival({
   const primaryLabel = DIRECTION_LABEL_KO[field.primary.key];
 
   return (
-    <div className={styles.resultStage}>
+    <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>Destination Reached</span>

@@ -94,7 +94,7 @@ for (const st of stages) {
 }
 
 // ── 7) evidence[0] 고정: 대표 근거를 앞에 끼워 넣지 않는다 ──
-// MapResult가 인덱스 0을 직접 읽는다 — 운명 도감 수집(`tarot:${term.split("(")[0]}`)과
+// CompassReport가 인덱스 0을 직접 읽는다 — 운명 도감 수집(`tarot:${term.split("(")[0]}`)과
 // 체계별 근거 라벨. 새 근거를 배열 앞에 넣으면 오류 없이 조용히 어긋난다.
 for (const [name, src, headId, headTerm] of [
   ["sajuAdapter", sajuA, "saju.stage", "`십이운성 ${stage}`"],

@@ -83,7 +83,7 @@ export const tarotAdapter: EngineAdapter = {
       timelineHint,
       // 상징 신호 — 명식 확정 신호(사주·자미)보다 낮은 품질.
       dataQuality: 0.7,
-      // 🔴 evidence[0] 고정 — MapResult가 이 term으로 운명 도감 카드를 수집한다(`tarot:바보`).
+      // 🔴 evidence[0] 고정 — CompassReport가 이 term으로 운명 도감 카드를 수집한다(`tarot:바보`).
       //    역방향(역위)은 이 엔진이 뽑지 않는다. 없는 것을 근거로 만들지 않기 위해 정위만 남긴다.
       evidence: [
         { system: "tarot", term: `${card.ko}(정위)`, detail: card.keyword, id: "tarot.card", group: "today" },

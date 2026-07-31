@@ -37,8 +37,11 @@ export const COMPASS_SYSTEM_LABEL = Object.freeze({
 });
 
 /**
- * 9섹션. wave A 는 결제 요청 안에서, wave B 는 이어받기 요청에서 생성한다.
+ * 10섹션. wave A(체계별 5) 는 결제 요청 안에서, wave B(종합 5) 는 이어받기 요청에서 생성한다.
  * system 이 있는 섹션은 그 체계의 근거만 프롬프트에 넣어 '한 전통 안에서' 추론하게 만든다.
+ *
+ * 화면의 ①~⑨ 와 1:1 이 아니다 — 체계별 4섹션이 화면에서는 ③ '운명의 원인' 하나로 묶인다.
+ * 매핑 정본은 app/destiny-compass/_components/reportSections.ts.
  */
 export const COMPASS_SECTIONS = Object.freeze([
   {
@@ -81,16 +84,22 @@ export const COMPASS_SECTIONS = Object.freeze([
     key: "timeline_reading", order: 7, wave: "B", system: null,
     title: "30일·90일·1년·3년 항로",
     minChars: 1100, maxChars: 2700,
-    guide: "네 구간의 날씨와 기세 수치를 확정값 그대로 쓰고, 구간마다 '무엇이 달라지는가'를 서로 다른 내용으로 쓴다. 네 구간이 같은 말을 반복하면 실패다. 잡아야 할 기회와 피해야 할 선택을 구간에 붙여 제시한다.",
+    guide: "네 구간의 날씨와 기세 수치를 확정값 그대로 쓰고, 구간마다 '무엇이 달라지는가'를 서로 다른 내용으로 쓴다. 네 구간이 같은 말을 반복하면 실패다. 기회와 주의는 다음 섹션에서 따로 다루므로 여기서는 흐름의 변화만 쓴다.",
   },
   {
-    key: "blocked_and_care", order: 8, wave: "B", system: null,
+    key: "opportunity_reading", order: 8, wave: "B", system: null,
+    title: "반드시 잡아야 하는 기회",
+    minChars: 900, maxChars: 2500,
+    guide: "강한 영역과 기세가 오르는 구간에서 실제로 붙잡을 수 있는 기회를 3가지 제시한다. 기회마다 ① 무엇을 ② 언제쯤 ③ 어느 근거에서 나왔는지를 함께 쓴다. 막연한 '기회가 온다'가 아니라 알아볼 수 있는 형태로 묘사한다.",
+  },
+  {
+    key: "blocked_and_care", order: 9, wave: "B", system: null,
     title: "막힌 자리와 돌보는 법",
     minChars: 900, maxChars: 2500,
-    guide: "쉬어갈 영역이 왜 막혀 보이는지 근거로 설명하고, 그 자리를 억지로 밀지 않으면서 회복시키는 방법을 제시한다. 불안을 키우지 말고, 지나가는 국면으로 다룬다.",
+    guide: "쉬어갈 영역이 왜 막혀 보이는지 근거로 설명하고, 지금 피하는 편이 나은 선택 3가지를 구체적으로 짚는다. 그 자리를 억지로 밀지 않으면서 회복시키는 방법을 함께 준다. 불안을 키우지 말고 지나가는 국면으로 다룬다.",
   },
   {
-    key: "action_plan", order: 9, wave: "B", system: null,
+    key: "action_plan", order: 10, wave: "B", system: null,
     title: "오늘부터의 다섯 걸음",
     minChars: 1000, maxChars: 2600,
     guide: "오늘 / 이번 주 / 이번 달로 나눠 손에 잡히는 행동을 제시한다. 각 행동에는 '어느 근거에서 나온 것인지'를 붙인다. '노력하세요' 같은 막연한 말은 실패로 친다. 마지막에 나침반이 가리키는 방향을 한 문장으로 다시 못 박는다.",

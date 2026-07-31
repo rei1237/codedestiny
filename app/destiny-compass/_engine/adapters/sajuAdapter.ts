@@ -82,7 +82,7 @@ export const sajuAdapter: EngineAdapter = {
     const timeUnknown = !input.birth.birthTime;
     const dataQuality = resolved.ok ? (timeUnknown ? 0.75 : 1) : 0.4;
 
-    // 🔴 evidence[0] 고정: 기존 소비처(MapResult의 체계별 근거 라벨)가 인덱스 0을 읽는다.
+    // 🔴 evidence[0] 고정: 기존 소비처(CompassReport의 체계별 근거 라벨)가 인덱스 0을 읽는다.
     //    신규 항목은 반드시 아래로만 append 한다.
     const evidence: Evidence[] = [];
     if (stage) {

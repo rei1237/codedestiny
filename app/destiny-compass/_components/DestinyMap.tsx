@@ -49,6 +49,11 @@ interface DestinyMapProps {
   hideHero?: boolean;
   /** 선택 화면 등에서 절차적 SVG 대륙 대신 밝은 '운명의 섬' 포스터를 지도 배경으로 쓴다. */
   islandArt?: boolean;
+  /**
+   * 무대 위상. "day"(기본)는 지금까지와 완전히 동일하다.
+   * 처리 단계에서 dusk → night 로 올리면 배경 레이어가 크로스페이드되고 밤 토큰이 부착된다.
+   */
+  phase?: "day" | "dusk" | "night";
   onRegion?: (key: string) => void;
   children?: ReactNode;
 }
@@ -65,6 +70,7 @@ export function DestinyMap({
   guideTilt = false,
   hideHero = false,
   islandArt = false,
+  phase = "day",
   onRegion,
   children,
 }: DestinyMapProps) {
@@ -89,9 +95,20 @@ export function DestinyMap({
   }, []);
   const fxTier = useFxTier();
   return (
-    <div className={styles.stage} data-fx={fxTier}>
+    <div
+      className={`${styles.stage} ${phase === "night" ? styles.nightStage : ""}`}
+      data-fx={fxTier}
+      data-phase={phase}
+    >
       {/* Z0 — 딥스페이스 */}
       <Starfield />
+      {/* 낮 → 황혼 → 밤. opacity 만 움직이는 크로스페이드 레이어(토큰은 원자적으로 교체된다). */}
+      {phase !== "day" && (
+        <>
+          <div className={`${styles.skyLayer} ${styles.skyScrim}`} aria-hidden="true" />
+          <div className={`${styles.skyLayer} ${styles.skyDusk}`} aria-hidden="true" />
+        </>
+      )}
 
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>{kicker}</span>

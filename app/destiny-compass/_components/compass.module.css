@@ -571,6 +571,47 @@
   }
 }
 
+/* 결과 다이얼 연출 상태(CompassHero) — 기존 dialSpin/needle 트랜지션 자산을 그대로 쓴다.
+   transform·opacity 만 움직인다(합성 레이어). state 미지정 시 아래 규칙은 붙지 않는다. */
+.dialSpinning .dialRotor {
+  animation: dialSpin 2.2s linear infinite;
+}
+.dialSpinning .dialNeedle {
+  animation: dialSpin 3.4s linear infinite;
+  transition: none;
+}
+.dialSettling .dialSettleRing {
+  animation: dialSettleGlow 600ms ease-out 1;
+}
+.dialSettleRing {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+@keyframes dialSettleGlow {
+  0% { opacity: 0; transform: scale(0.82); }
+  40% { opacity: 0.55; }
+  100% { opacity: 0; transform: scale(1.06); }
+}
+
+/* 🔴 useFxTier 는 SSR 에서 full 로 시작해 마운트 후 판정한다 — 첫 페인트에 한 번 돈다.
+   원시 미디어쿼리로 첫 프레임부터 막는다(이 파일의 다른 모션과 같은 방식). */
+@media (prefers-reduced-motion: reduce) {
+  .dialSpinning .dialRotor,
+  .dialSpinning .dialNeedle,
+  .dialSettling .dialSettleRing {
+    animation: none;
+  }
+}
+[data-fx="static"] .dialSpinning .dialRotor,
+[data-fx="static"] .dialSpinning .dialNeedle,
+[data-fx="static"] .dialSettling .dialSettleRing {
+  animation: none;
+}
+[data-fx="lite"] .dialSpinning .dialRotor {
+  animation-duration: 3.5s;
+}
+
 /* ── 몰입형 엔트리 셸 ──────────────────────────────────────── */
 .entry {
   min-height: 100dvh;
@@ -615,7 +656,9 @@
   text-transform: uppercase;
 }
 .entryTitle {
-  font-family: "Cinzel", "Cormorant Garamond", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", serif;
+  /* DESIGN.md brand-serif 정본 토큰. 원시 "Cinzel" 스택을 직접 쓰면 R2 미러 폰트(CodeDestinySerifLatin/KR)가
+     빠져 한글이 의도와 다른 명조로 떨어진다. */
+  font-family: var(--font-serif);
   font-weight: 700;
   font-size: clamp(1.9rem, 5.4vw, 3.2rem);
   line-height: 1.12;
