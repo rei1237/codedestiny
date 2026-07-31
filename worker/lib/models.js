@@ -93,6 +93,12 @@ const userSchema = new mongoose.Schema({
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },
+    // Family 공정이용: 이용권 기간당 프리미엄 상담(300코인 이상) 사용 횟수.
+    // cycleKey 는 이용권 만료일 ISO 문자열이라, 이용권을 새로 사면 키가 바뀌어
+    // 카운터가 자동으로 0부터 다시 센다(리셋 크론 불필요).
+    // 판정 정본은 lib/profile-limits.js 의 resolveFamilyPremiumQuota.
+    premiumUseCycleKey: { type: String, default: "", trim: true, maxlength: 40 },
+    premiumUseCount: { type: Number, default: 0, min: 0 },
     // 월정석 지급분별(lot) 만료: 각 지급분이 지급일+30일에 개별 소멸, FIFO 차감.
     // lot 배열이 신뢰 원천이고 membershipCreditBalance는 "미만료 lot.remaining 합계" 파생 캐시.
     membershipCreditLots: {

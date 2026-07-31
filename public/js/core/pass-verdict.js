@@ -39,6 +39,11 @@
   var FUTURE_CLOCK_SKEW_MAX_MS = 24 * 60 * 60 * 1000;
 
   var PASS_LIMIT_BY_TIER = { family: 999999999, vvip: 100, premium: 50, standard: 30, free: 0 };
+  // 서버 정본은 lib/profile-limits.js 의 FAMILY_PREMIUM_MIN_COIN_COST. 이 값 이상의 기능은
+  // family 라도 포함 횟수(기간당 N회)를 다 썼을 수 있어 스냅샷만으로 커버를 단정할 수 없다.
+  // 남은 횟수는 서버만 안다 — 그래서 '커버 확정'도 '커버 불가'도 아닌 미확정으로 두어
+  // 호출부가 서버에 물어보게 한다. 여기서 커버로 단정하면 결제창 없이 진행하다 402 를 맞는다.
+  var FAMILY_PREMIUM_MIN_COIN_COST = 300;
   var ACTIVE_STATUS_RE = /^(active|subscribed|paid|success|succeeded|complete|completed|confirmed|approved)$/i;
   var INACTIVE_STATUS_RE = /^(none|free|inactive|expired|canceled|cancelled|refunded|failed|paused)$/i;
 
@@ -310,6 +315,9 @@
       result.cannotCover = true;
       return result;
     }
+    // family 의 프리미엄 상담은 포함 횟수 소진 여부를 서버만 안다 → 미확정으로 남긴다.
+    // (coversNow=false, cannotCover=false = "모름". 호출부는 서버 판정을 기다린다.)
+    if (snapshot.tier === "family" && cost >= FAMILY_PREMIUM_MIN_COIN_COST) return result;
     // 커버 확정. TTL 을 넘겼어도 이용권 만료일이 아직 남아 있으면 판정은 그대로 유효하다.
     result.coversNow = !snapshot.stale || isFutureDate(snapshot.expiresAt);
     return result;

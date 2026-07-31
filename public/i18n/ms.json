@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
       "profileUnlimited": "Profil tanpa had",
       "profileLimit": "{count} profil",
-      "allFeatures": "Semua ciri tersedia",
+      "allFeatures": "Tanpa had di bawah KRW 30,000 · 10 sesi perundingan pakar disertakan",
       "upTo": "Tersedia sehingga {amount}",
       "benefits": "Manfaat sepintas lalu",
       "closeAria": "Tutup panduan Kedai Moonlight Pass",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Kod Destiny Keluarga 30 Hari",
-          "desc": "30 hari · Semua ciri berbayar · Profil tanpa had"
+          "desc": "30 hari · Tanpa had di bawah KRW 30,000 · 10 perundingan pakar · Profil tanpa had"
         }
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",

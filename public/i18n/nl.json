@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
       "profileUnlimited": "Onbeperkt aantal profielen",
       "profileLimit": "{count} profielen",
-      "allFeatures": "Alle functies beschikbaar",
+      "allFeatures": "Onbeperkt onder KRW 30.000 · 10 expertconsulten inbegrepen",
       "upTo": "Beschikbaar tot {amount}",
       "benefits": "Voordelen in één oogopslag",
       "closeAria": "Sluit de Moonlight Pass Shop-gids",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Familie 30 dagen",
-          "desc": "30 dagen · Alle betaalde functies · Onbeperkt aantal profielen"
+          "desc": "30 dagen · Onbeperkt onder KRW 30.000 · 10 expertconsulten · Onbeperkte profielen"
         }
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",

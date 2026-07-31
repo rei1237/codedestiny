@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Monthly credit basis {credits} · {price}",
       "profileUnlimited": "Unlimited profiles",
       "profileLimit": "{count} profiles",
-      "allFeatures": "All features available",
+      "allFeatures": "Unlimited under KRW 30,000 · 10 expert consultations included",
       "upTo": "Available up to {amount}",
       "benefits": "Benefits at a glance",
       "closeAria": "Close Moonlight Pass Shop guide",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30 Days",
-          "desc": "30 days · All paid features · Unlimited profiles"
+          "desc": "30 days · Unlimited under KRW 30,000 · 10 expert consultations · Unlimited profiles"
         }
       },
       "monthlyStatusChecking": "Checking remaining balance and Pass status.",

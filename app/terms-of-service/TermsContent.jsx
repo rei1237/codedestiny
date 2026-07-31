@@ -79,10 +79,13 @@ export const TERMS_SECTIONS = [
     body: (
       <>
         <p>
-          이용자는 유효한 이용권 계약기간 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 이용권이 적용되는 서비스를 이용할 수 있습니다(이하 &quot;정액 무제한 이용&quot;). 회사는 이용 횟수의 총량 상한을 두지 않으며, 상한을 초과했다는 이유만으로 이용을 자동 차단하지 않습니다. Pass holders may use covered services without additional charge for the pass validity period, unless their use qualifies as abnormal use under this section. We do not impose a total usage quota and do not auto-block usage for exceeding one.
+          이용자는 유효한 이용권 계약기간 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 <strong>해당 등급이 커버하는 금액 이하의 기능</strong>을 횟수 제한 없이 이용할 수 있습니다(이하 &quot;정액 이용&quot;). 등급별 커버 금액은 결제 화면에 표시됩니다. Pass holders may use features priced at or below their tier&apos;s coverage amount without additional charge and without a usage count limit, unless their use qualifies as abnormal use under this section.
         </p>
         <p>
-          이용권은 <strong>계약자 1인이 사용하는 것을 전제로 제공되며, 제3자에게 양도·대여하거나 계정을 공유할 수 없습니다.</strong> 이는 정액 무제한 이용의 전제 조건이며, 이를 위반한 이용은 아래 비정상 이용 판단에서 함께 고려됩니다. A pass is provided for use by the contracting individual only and may not be transferred, lent, or shared.
+          다만 <strong>Code Destiny Family 이용권의 경우, 1회 30,000원 이상인 전문가 상담 상품은 이용권 1기간(30일)당 10회까지 포함</strong>되며, 이를 초과하는 이용분은 단건 결제 또는 월정석으로 이용할 수 있습니다. 30,000원 미만 기능은 횟수 제한 없이 포함됩니다. 포함 횟수는 이용권을 새로 구매하면 다시 10회로 시작하고, 남은 횟수는 결제 화면에서 확인할 수 있습니다. 포함 횟수를 모두 사용해도 서비스 이용이 차단되지 않으며, 초과분에 대한 결제수단이 안내됩니다. <strong>이 포함 횟수는 이 조에서 정하는 &quot;비정상 이용&quot;과 무관한 상품 구성이며, 횟수를 모두 사용한 사실만으로는 어떠한 제재도 이루어지지 않습니다.</strong> For the Family pass, expert consultation products priced at KRW 30,000 or more are included up to 10 uses per 30-day pass period; usage beyond that remains available via single payment or Moonlight Stones. Features under KRW 30,000 are included without a count limit. This allowance is a product term, not a sanction, and exhausting it never blocks access.
+        </p>
+        <p>
+          이용권은 <strong>계약자 1인이 사용하는 것을 전제로 제공되며, 제3자에게 양도·대여하거나 계정을 공유할 수 없습니다.</strong> 이는 정액 이용의 전제 조건이며, 이를 위반한 이용은 아래 비정상 이용 판단에서 함께 고려됩니다. A pass is provided for use by the contracting individual only and may not be transferred, lent, or shared.
         </p>
         <p>
           회사는 서비스 안정성과 자동화 남용 방지를 위해 <strong>모든 이용자에게 동일하게 적용되는 상시 기술 조치</strong>를 운영합니다. 여기에는 단위 시간당 요청 수 제한, 동일 요청의 중복 실행 방지, 생성 작업의 동시 실행 제한이 포함됩니다. 이는 특정 이용자를 겨냥한 제재가 아니라 서비스 운영 파라미터이므로 아래의 사전 통지·소명 절차 대상이 아니며, 정상적인 사람의 이용 속도에서는 도달하지 않는 수준으로 설정합니다. 일시적으로 이에 도달한 경우 이용이 차단되는 것이 아니라 잠시 후 다시 시도할 수 있다는 안내가 표시됩니다. We operate uniform, always-on technical safeguards — per-interval request limits, duplicate-execution prevention, and concurrency limits on generation jobs. These are operating parameters applied equally to all users, not user-specific sanctions, and therefore fall outside the notice-and-cure process below.

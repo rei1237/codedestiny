@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "月定石基準 {credits} · {price}",
       "profileUnlimited": "プロフィール無制限",
       "profileLimit": "プロフィール{count}件",
-      "allFeatures": "すべての機能を利用可能",
+      "allFeatures": "3万ウォン未満は無制限・専門家相談10回込み",
       "upTo": "{amount}以下利用可能",
       "benefits": "特典を一覧で見る",
       "closeAria": "月光利用券ショップ案内を閉じる",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30日",
-          "desc": "30日 · すべての有料機能 · プロフィール無制限"
+          "desc": "30日 · 3万ウォン未満は無制限 · 専門家相談10回 · プロフィール無制限"
         }
       },
       "monthlyStatusChecking": "残量とパスの状態を確認しています。",

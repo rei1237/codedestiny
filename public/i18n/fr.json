@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Base de crédit mensuelle {credits} · {price}",
       "profileUnlimited": "Profils illimités",
       "profileLimit": "{count} profils",
-      "allFeatures": "Toutes les fonctionnalités disponibles",
+      "allFeatures": "Illimité sous 30 000 KRW · 10 consultations d'expert incluses",
       "upTo": "Disponible jusqu'au {amount}",
       "benefits": "Avantages en un coup d'œil",
       "closeAria": "Fermer le guide de la boutique Moonlight Pass",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Famille 30 jours",
-          "desc": "30 jours · Toutes les fonctionnalités payantes · Profils illimités"
+          "desc": "30 jours · Illimité sous 30 000 KRW · 10 consultations d'expert · Profils illimités"
         }
       },
       "monthlyStatusChecking": "Vérification du solde et de l'état du Pass.",

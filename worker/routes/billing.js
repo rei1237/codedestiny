@@ -23,7 +23,6 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
-import { incrementRateLimit } from "../lib/rate-limit.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
@@ -54,6 +53,9 @@ import {
   PASS_LIMITS,
   HONEY_PASS_POLICY,
   resolveActivePassPolicy,
+  resolveFamilyPremiumQuota,
+  FAMILY_PREMIUM_INCLUDED_USES,
+  FAMILY_PREMIUM_MIN_COIN_COST,
 } from "../lib/profile-limits.js";
 import {
   getProfileCardMutationPolicy,
@@ -632,54 +634,6 @@ function resolveActivePassPolicyWithProfileFallback(user = {}) {
   };
 }
 
-/**
- * Family 이용권의 프리미엄 기능 이용을 관찰만 한다. **차단하지 않는다.**
- *
- * 차단하지 않는 이유가 두 가지다.
- *
- * 1) 약관(제7조 공정이용)이 "추가 요금 없는 정액 무제한 이용"을 약속하고, "단순히 이용
- *    횟수가 많다는 사정만으로는 비정상 이용으로 판단하지 않는다"고 명시하며, 제한 전
- *    7일 이상의 소명 기회를 보장한다. 횟수 기반 자동 차단은 그 약속을 깬다.
- * 2) 기술적으로도 위험하다. consumeTierPassIfAvailable 이 ok:false 를 내면 호출부는
- *    return null 로 결제 경로에 넘긴다 — 즉 여기서 막으면 "무제한이라 산 사용자에게
- *    결제창을 다시 띄우는" 동작이 된다. 속도 제한을 결제 요구로 세탁하는 셈이다.
- *
- * 그래서 임계치를 넘으면 로그만 남긴다. 운영자가 그 신호를 보고 약관이 정한 절차
- * (통지 → 7일 소명 → 속도 제한 → 최고 후 해지)를 수동으로 밟는다.
- *
- * 카운터는 기존 분산 rate limit 저장소(AbuseScore, TTL 자동 정리)를 재사용한다 —
- * 세는 장치를 새로 만들지 않는다. 실패는 삼킨다(관찰이 결제를 막으면 안 된다).
- */
-const FAMILY_FAIR_USE_OBSERVE_MIN_COIN_COST = 300; // 30,000원 이상 프리미엄 기능만 센다
-const FAMILY_FAIR_USE_OBSERVE_WINDOW_MS = 24 * 60 * 60 * 1000;
-const FAMILY_FAIR_USE_OBSERVE_THRESHOLD = 20; // 사람이 하루에 도달하기 어려운 수준
-
-async function observeFamilyPremiumUsage(env, authUserId, { featureKey, coinCost, requestId }) {
-  if (!authUserId) return;
-  if (!Number.isFinite(coinCost) || coinCost < FAMILY_FAIR_USE_OBSERVE_MIN_COIN_COST) return;
-  try {
-    const { count } = await incrementRateLimit({
-      subjectHash: `family-premium:${authUserId}`,
-      endpoint: "family-premium-daily",
-      windowMs: FAMILY_FAIR_USE_OBSERVE_WINDOW_MS,
-      env,
-    });
-    if (Number(count) < FAMILY_FAIR_USE_OBSERVE_THRESHOLD) return;
-    logPaidAccessStage("FAMILY_FAIR_USE_OBSERVED", {
-      requestId,
-      userId: authUserId,
-      featureKey,
-      accessMethod: "family",
-      paymentMethod: "FAMILY",
-      amountCoins: coinCost,
-      passTier: "family",
-      scope: `daily=${count}/${FAMILY_FAIR_USE_OBSERVE_THRESHOLD}`,
-    });
-  } catch (_observeError) {
-    // 관찰 실패는 무시한다 — 이용권 통과를 막을 이유가 되지 않는다.
-  }
-}
-
 async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, body = {}, options = {}) {
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
@@ -760,6 +714,25 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     };
   }
 
+  // Family 공정이용: 포함 횟수를 다 썼으면 이용권으로는 통과시키지 않는다.
+  // 판정 단계(buildPassPaymentDecision)가 같은 헬퍼로 미리 같은 답을 내므로, 여기 도달할 때는
+  // 이미 결제창이 떠 있는 게 정상이다. 그래도 두 단계 사이에 횟수가 소진될 수 있어(동시 요청)
+  // 소비 단계에도 둔다 — 이건 이중 방어가 아니라 판정·소비 2단계 구조의 필수 짝이다.
+  const familyQuota = resolveFamilyPremiumQuota(user?.profileSubscription || {}, entitlement, coinCost);
+  if (familyQuota.applies && familyQuota.exhausted) {
+    return {
+      ok: false,
+      reason: "family_premium_quota_exhausted",
+      featureKey,
+      coinCost,
+      amountKRW,
+      passTier: usage.tier,
+      familyPremiumIncluded: familyQuota.included,
+      familyPremiumUsed: familyQuota.used,
+      familyPremiumRemaining: 0,
+    };
+  }
+
   const now = new Date();
   const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
   const tierMatchValues = buildPassTierMatchValues(usage.tier);
@@ -805,6 +778,19 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           "profileSubscription.freeLimit": coveredCoinLimit,
           "profileSubscription.passLimit": coveredCoinLimit,
           "profileSubscription.updatedAt": now,
+          // Family 프리미엄 포함 횟수 차감. 이미 도는 파이프라인 안에서 함께 증가시키므로
+          // 쓰기가 늘지 않고, 통과와 차감이 한 번의 원자적 write 로 묶인다.
+          // 사이클 키가 다르면(=새 이용권) 1부터 다시 센다.
+          ...(familyQuota.applies ? {
+            "profileSubscription.premiumUseCycleKey": familyQuota.cycleKey,
+            "profileSubscription.premiumUseCount": {
+              $cond: [
+                { $eq: [{ $ifNull: ["$profileSubscription.premiumUseCycleKey", ""] }, familyQuota.cycleKey] },
+                { $add: [{ $ifNull: ["$profileSubscription.premiumUseCount", 0] }, 1] },
+                1,
+              ],
+            },
+          } : {}),
           // 파이프라인 업데이트라 $push/$slice 연산자를 못 쓴다 → 집계 표현식으로 append + 상한.
           // $setUnion이 아니라 $concatArrays인 이유: $setUnion은 집합 연산이라 순서를 보장하지 않아
           // $slice(-N)과 조합하면 '최근 N개'가 아니라 '정렬 후 뒤 N개'가 남아 마커 의미가 붕괴한다.
@@ -835,12 +821,6 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
 
   if (!updatedUser) {
     return { ok: false, reason: "pass_access_conflict", featureKey, coinCost, amountKRW, passTier: usage.tier };
-  }
-
-  // 통과는 이미 확정됐다. 관찰만 하고 결과는 바꾸지 않는다(위 observeFamilyPremiumUsage 주석 참고).
-  // 멱등 재시도는 위에서 먼저 return 하므로 같은 이용이 두 번 세어지지 않는다.
-  if (usage.tier === "family") {
-    await observeFamilyPremiumUsage(env, authUserId, { featureKey, coinCost, requestId: normalizedRequestId });
   }
 
   return {
@@ -889,7 +869,12 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   // premium/vvip에게 PASS_COVERED + 결제수단 전부 숨김으로 뜬 뒤 소비 단계에서 거부되는 막다른 길이 됐다.
   // 제외 여부의 정본은 isPassExcludedPricing(=PASS_EXCLUDED_FEATURE_KEYS)뿐이다.
   const passExcluded = isPassExcludedPricing(pricing);
-  const passCovered = !passExcluded && canUseByPass(activeEntitlement, coinCost);
+  // Family 공정이용: 프리미엄 상담(300코인 이상)은 이용권 기간당 포함 횟수까지만 커버한다.
+  // 소비 단계(consumeTierPassIfAvailable)와 반드시 같은 답을 내야 한다 — 여기서 커버라 해놓고
+  // 소비가 거부하면 결제수단이 전부 숨겨진 막다른 길이 된다(바로 위 프로필 카드 사고와 같은 형태).
+  const familyPremiumQuota = resolveFamilyPremiumQuota(profileSubscription, activeEntitlement, coinCost);
+  const familyQuotaExhausted = familyPremiumQuota.applies && familyPremiumQuota.exhausted;
+  const passCovered = !passExcluded && !familyQuotaExhausted && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
   // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다.
@@ -915,9 +900,21 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
+    // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
+    // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
+    // 사유와 잔여 횟수를 함께 내린다.
+    ...(familyPremiumQuota.applies ? {
+      familyPremiumIncluded: familyPremiumQuota.included,
+      familyPremiumUsed: familyPremiumQuota.used,
+      familyPremiumRemaining: familyPremiumQuota.remaining,
+    } : {}),
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (passExcluded ? "PASS_EXCLUDED_PAYMENT_REQUIRED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
+      : (passExcluded
+        ? "PASS_EXCLUDED_PAYMENT_REQUIRED"
+        : (familyQuotaExhausted
+          ? "FAMILY_PREMIUM_QUOTA_EXHAUSTED"
+          : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"))),
     ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }

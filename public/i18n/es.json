@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
       "profileUnlimited": "Perfiles ilimitados",
       "profileLimit": "{count} perfiles",
-      "allFeatures": "Todas las funciones disponibles",
+      "allFeatures": "Ilimitado por debajo de KRW 30.000 · 10 consultas de experto incluidas",
       "upTo": "Disponible hasta {amount}",
       "benefits": "Beneficios de un vistazo",
       "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Todas las funciones pagas · Perfiles ilimitados"
+          "desc": "30 días · Ilimitado bajo KRW 30.000 · 10 consultas de experto · Perfiles ilimitados"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",

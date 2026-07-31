@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
       "profileLimit": "{count}个资料",
-      "allFeatures": "可使用全部功能",
+      "allFeatures": "3万韩元以下无限 · 含专家咨询10次",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",
       "closeAria": "关闭月光通行券商店说明",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30天",
-          "desc": "30天 · 所有付费功能 · 不限资料"
+          "desc": "30 天 · 3万韩元以下无限 · 专家咨询10次 · 档案不限"
         }
       },
       "monthlyStatusChecking": "正在确认余额和通行证状态。",
