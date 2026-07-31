@@ -21,7 +21,7 @@ import {
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { hashPassword, verifyPassword } from "../lib/password.js";
+import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge, validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
@@ -886,6 +886,35 @@ function logAuthDiagnostic(request, env, routePath, provider, marker, error) {
   } catch (e) {
     console.error("[auth-diagnostic]", payload);
   }
+}
+
+// 인증 라우트의 단계별 소요시간 계측. 지금까지 프로덕션에서 로그인 지연을 정량화할 수단이 없었다
+// (성공 로그가 아예 없고 오류 로그만 있었다). 한 요청당 한 줄만 찍고, 개인정보는 담지 않는다.
+// `wrangler tail | grep auth-timing` 으로 바로 읽힌다.
+function createAuthTimer(routePath) {
+  const startedAt = Date.now();
+  let lastAt = startedAt;
+  const stages = {};
+  return {
+    mark(stage) {
+      const now = Date.now();
+      stages[stage] = now - lastAt;
+      lastAt = now;
+    },
+    log(outcome, extra = {}) {
+      try {
+        console.log("[auth-timing]", JSON.stringify({
+          routePath,
+          outcome,
+          totalMs: Date.now() - startedAt,
+          stages,
+          ...extra,
+        }));
+      } catch (e) {
+        // 계측 실패가 인증을 막아서는 안 된다.
+      }
+    },
+  };
 }
 
 function resolveAuthTrustHost(env) {
@@ -1882,7 +1911,14 @@ async function getLoginRateLimitState(request, email, env) {
   const max = getLoginRateLimitMax(env);
   const windowMs = getLoginRateLimitWindowMs(env);
   try {
-    const state = await readRateLimitState({ subjectHash: key, endpoint: LOGIN_RATE_LIMIT_ENDPOINT, max, env });
+    // 🔴 이 조회는 로그인 임계경로의 첫 작업인데 readRateLimitState 안에는 maxTimeMS·재시도·타임아웃이
+    // 하나도 없다(worker/lib/rate-limit.js). 여기서 상한을 걸지 않으면 Mongo 가 느릴 때 소켓 타임아웃까지
+    // 그대로 매달린다. 타임아웃이면 아래 catch 가 기존대로 인메모리 상태로 폴백한다.
+    const state = await withAuthOpTimeout(
+      readRateLimitState({ subjectHash: key, endpoint: LOGIN_RATE_LIMIT_ENDPOINT, max, env }),
+      getAuthOpTimeoutMs(env),
+      "auth_login_rate_limit_read",
+    );
     return { key, source: "mongo", env, windowMs, max, ...state };
   } catch (error) {
     console.warn("[auth/login] rate-limit store unavailable, falling back to in-memory:", error?.message || error);
@@ -1920,6 +1956,14 @@ async function clearLoginRateLimit(rateLimitState) {
   } catch (error) {
     console.warn("[auth/login] rate-limit clear failed:", error?.message || error);
   }
+}
+
+// 성공 로그인의 대부분은 실패 기록이 하나도 없어 지울 문서 자체가 없다. 그런 경우 deleteOne 은
+// 순수한 Mongo 쓰기 낭비이므로 건너뛴다(카운트가 있을 때만 실제로 지운다).
+async function clearLoginRateLimitIfRecorded(rateLimitState) {
+  if (!rateLimitState?.key) return;
+  if (Number(rateLimitState.count || 0) <= 0) return;
+  await clearLoginRateLimit(rateLimitState);
 }
 
 function buildInvalidLoginResponse() {
@@ -2066,10 +2110,16 @@ async function markSessionRevoked(tokenHash, patch = {}) {
   await RefreshTokenSession.updateOne({ tokenHash }, { $set: setFields }).catch(() => {});
 }
 
-async function revokeAllUserRefreshSessions(userId) {
+// createdBefore 를 주면 그 시각 이전에 생성된 세션만 폐기한다(로그아웃의 백그라운드 실행 전용).
+// 재사용 탐지·탈퇴 등 "지금 즉시 전부 끊어야" 하는 호출은 옵션 없이 부르면 종전과 동일하다.
+async function revokeAllUserRefreshSessions(userId, options = {}) {
   if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return;
+  const filter = { userId: new mongoose.Types.ObjectId(String(userId)), revokedAt: null };
+  if (options.createdBefore instanceof Date) {
+    filter.createdAt = { $lte: options.createdBefore };
+  }
   await RefreshTokenSession.updateMany(
-    { userId: new mongoose.Types.ObjectId(String(userId)), revokedAt: null },
+    filter,
     { $set: { revokedAt: new Date() } },
   ).catch(() => {});
 }
@@ -2473,6 +2523,27 @@ async function handleRegister(request, env) {
   }
 }
 
+// 레거시 bcrypt 해시를 로그인 성공 시점에 PBKDF2 로 갈아끼운다(계정당 1회).
+// 평문 비밀번호가 손에 있는 지점은 여기뿐이라 이전은 여기서만 가능하다.
+// 🔴 실패·지연이 로그인을 막아서는 안 된다 — 자체 타임아웃을 두고 예외는 삼킨다(다음 로그인에서 재시도).
+// 필터에 기존 passwordHash 를 함께 넣어, 동시에 비밀번호가 바뀐 경우 새 해시를 덮어쓰지 않는다.
+async function upgradeLegacyPasswordHash(user, password, env) {
+  try {
+    if (!needsPasswordRehash(user?.passwordHash)) return;
+    const nextHash = await hashPassword(password);
+    await withAuthOpTimeout(
+      User.collection.updateOne(
+        { _id: user._id, passwordHash: user.passwordHash },
+        { $set: { passwordHash: nextHash } },
+      ),
+      getAuthOpTimeoutMs(env),
+      "auth_login_password_rehash",
+    );
+  } catch (error) {
+    console.warn("[auth/login] password rehash skipped:", error?.message || error);
+  }
+}
+
 async function handleLogin(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
@@ -2493,18 +2564,22 @@ async function handleLogin(request, env) {
     return await createLocalDevAuthSuccessResponse(request, env, localDevUser, 200, body?.nextPath);
   }
 
+  const timer = createAuthTimer("/api/auth/login");
   const loginRateLimitState = await getLoginRateLimitState(request, email, env);
+  timer.mark("rateLimitRead");
   if (loginRateLimitState.limited) {
     console.warn("[auth/login] rate limited:", {
       emailHash: hashEmailForAudit(email, env).slice(0, 12),
       retryAfterSeconds: loginRateLimitState.retryAfterSeconds,
     });
+    timer.log("rate_limited");
     return buildLoginRateLimitedResponse(loginRateLimitState);
   }
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_login_connect_db");
+      timer.mark("connectDb");
 
       const users = User.collection;
       const user = await withAuthOpTimeout(
@@ -2554,28 +2629,35 @@ async function handleLogin(request, env) {
         timeoutMs,
         "auth_login_find_user",
       );
+      timer.mark("findUser");
       if (!user) {
         await recordFailedLoginAttempt(loginRateLimitState);
+        timer.log("invalid_credentials");
         return buildInvalidLoginResponse();
       }
 
       if (isWithdrawnAuthUser(user)) {
         await recordFailedLoginAttempt(loginRateLimitState);
+        timer.log("withdrawn");
         return buildInvalidLoginResponse();
       }
 
       if (!isLocalAuthEnabled(user) || !user.passwordHash) {
         await recordFailedLoginAttempt(loginRateLimitState);
+        timer.log("no_local_auth");
         return buildInvalidLoginResponse();
       }
 
+      const legacyHash = needsPasswordRehash(user.passwordHash);
       const passwordOk = await withAuthOpTimeout(
         verifyPassword(password, user.passwordHash),
         timeoutMs,
         "auth_login_verify_password",
       );
+      timer.mark("verifyPassword");
       if (!passwordOk) {
         await recordFailedLoginAttempt(loginRateLimitState);
+        timer.log("invalid_credentials", { hashKind: legacyHash ? "bcrypt" : "pbkdf2" });
         return buildInvalidLoginResponse();
       }
 
@@ -2584,19 +2666,24 @@ async function handleLogin(request, env) {
       const guardianBlock = buildGuardianConsentLoginBlock(user);
       if (guardianBlock) {
         await clearLoginRateLimit(loginRateLimitState);
+        timer.log("guardian_consent_blocked");
         return guardianBlock;
       }
 
       // Rate-limit housekeeping doesn't gate whether the session gets issued, so run it
       // alongside session creation instead of serializing an extra DB round trip in front of it.
-      const [, response] = await Promise.all([
-        clearLoginRateLimit(loginRateLimitState),
+      // 레거시 bcrypt 해시의 PBKDF2 재해시도 같은 이유로 여기에 얹는다 — 세션 발급을 막지 않는다.
+      const [, , response] = await Promise.all([
+        clearLoginRateLimitIfRecorded(loginRateLimitState),
+        upgradeLegacyPasswordHash(user, password, env),
         withAuthOpTimeout(
           createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
           timeoutMs,
           "auth_login_issue_session",
         ),
       ]);
+      timer.mark("issueSession");
+      timer.log("success", { attempt, hashKind: legacyHash ? "bcrypt->pbkdf2" : "pbkdf2" });
       return response;
     } catch (error) {
       const infraFailure = isAuthInfraFailure(error, [
@@ -2614,6 +2701,7 @@ async function handleLogin(request, env) {
 
       if (infraFailure) {
         console.error("[auth/login] infrastructure failure:", error);
+        timer.log("infra_failure", { attempt });
         return json({
           ok: false,
           code: "login_service_unavailable",
@@ -2623,6 +2711,7 @@ async function handleLogin(request, env) {
 
       console.error("[auth/login] normalized auth failure:", error);
       await recordFailedLoginAttempt(loginRateLimitState);
+      timer.log("auth_failure", { attempt });
       return buildInvalidLoginResponse();
     }
   }
@@ -2677,6 +2766,7 @@ async function handleMe(request, env) {
   // 확정적 미인증(만료/무효 토큰·유저없음·철회) 응답에는 만료 쿠키 삭제 헤더를 부착해
   // 클라이언트의 유령 로그인 힌트(fortune_auth_role 등)를 서버가 직접 정리한다.
   // 일시 오류(degraded)·토큰 폴백 경로에서는 호출하지 않는다(로그인 유지).
+  const timer = createAuthTimer("/api/auth/me");
   const unauthenticatedJson = (body, init) => {
     const res = json(body, init);
     clearAuthCookies(res, request, env);
@@ -2686,8 +2776,9 @@ async function handleMe(request, env) {
     const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
     // 인증 확인과 동시에 me 응답용 User 문서를 함께 읽어(authUserDoc) 두 번째 Mongo 왕복을 없앤다.
-    // access-token 경로면 authUserDoc가 채워지고, refresh/token-폴백 경로면 없으므로 아래에서 재조회한다.
+    // access-token 경로와 refresh 폴백 경로 모두 authUserDoc가 채워진다(admin/dev 폴백만 아래에서 재조회).
     const auth = await requireUserFromRequest(request, env, { userProjection: ME_USER_PROJECTION });
+    timer.mark("resolveAuth");
 
     if (isLocalDevAuthTokenUser(request, env, auth)) {
       return json({
@@ -2707,6 +2798,7 @@ async function handleMe(request, env) {
 
     // 인증 리졸버가 함께 읽어준 문서(authUserDoc)가 있으면 재사용해 me 재조회 왕복을 건너뛴다.
     let user = auth.authUserDoc || null;
+    const userDocReused = Boolean(user);
     try {
       if (!user) {
         await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_me_connect_db");
@@ -2726,6 +2818,7 @@ async function handleMe(request, env) {
     } catch (error) {
       if (isAuthDbInfraError(error)) {
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
+        timer.log("token_fallback", { userDocReused });
         return json({
           ok: true,
           authenticated: true,
@@ -2736,13 +2829,17 @@ async function handleMe(request, env) {
       }
       throw error;
     }
+    timer.mark("loadUser");
     if (!user) {
+      timer.log("user_not_found", { userDocReused });
       return unauthenticatedJson({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
     }
     if (isWithdrawnAuthUser(user)) {
+      timer.log("withdrawn", { userDocReused });
       return unauthenticatedJson({ ok: false, code: "unauthorized", message: "User is not active." }, { status: 401 });
     }
 
+    timer.log("authenticated", { userDocReused });
     return json({
       ok: true,
       authenticated: true,
@@ -2762,6 +2859,7 @@ async function handleMe(request, env) {
       || error?.name === "JsonWebTokenError";
 
     if (unauthorized) {
+      timer.log("no_session");
       return unauthenticatedJson({
         ok: true,
         message: "No active authenticated session.",
@@ -2771,6 +2869,7 @@ async function handleMe(request, env) {
     }
 
     if (isAuthDbInfraError(error)) {
+      timer.log("degraded");
       return json({
         ok: true,
         message: "사용자 정보를 일시적으로 불러오지 못해 기본 세션 상태로 응답합니다.",
@@ -2781,6 +2880,7 @@ async function handleMe(request, env) {
       });
     }
 
+    timer.log("recovered");
     return json({
       ok: true,
       message: "사용자 세션 조회 중 예외가 발생해 기본 상태로 응답합니다.",
@@ -2912,6 +3012,7 @@ async function handleUpdatePhoneNumber(request, env) {
 }
 
 async function handleRefresh(request, env) {
+  const timer = createAuthTimer("/api/auth/refresh");
   const refreshToken = readRefreshTokenFromRequest(request);
   if (!refreshToken) {
     const response = json({ ok: false, message: "Refresh token is missing." }, { status: 401 });
@@ -2945,23 +3046,10 @@ async function handleRefresh(request, env) {
     }
   }
 
-  try {
-    // 풀 초기화(MongoPoolClearedError) 버스트에서 1회 실패로 즉시 503을 내지 않도록
-    // withMongoRetry로 감싼다(내부에서 connectDb + per-attempt 타임아웃 + 재연결·재시도).
-    await withMongoRetry(env, async () => {});
-  } catch (error) {
-    if (isAuthDbInfraError(error)) {
-      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_db_degraded", error);
-      return json({
-        ok: false,
-        code: "AUTH_REFRESH_DEGRADED",
-        message: "Authentication refresh is temporarily unavailable.",
-        degraded: true,
-      }, { status: 503 });
-    }
-    throw error;
-  }
-
+  // 예전에는 여기서 빈 워밍업(`withMongoRetry(env, async () => {})`)을 한 번 더 돌렸다. 바로 아래
+  // 회전 선점이 이미 withMongoRetry(=connectDb + per-attempt 타임아웃 + 재연결·재시도) 안에서 돌고
+  // 그 catch 가 동일한 AUTH_REFRESH_DEGRADED 503 을 반환하므로, 워밍업은 Mongo 왕복만 하나 더
+  // 얹는 순수 중복이었다. 다시 넣지 말 것.
   const tokenHash = hashRefreshToken(refreshToken, env);
 
   // 원자적 회전 권리 선점 — revokedAt:null 세션만 매칭해 즉시 revoked 처리한다.
@@ -2978,9 +3066,11 @@ async function handleRefresh(request, env) {
       { $set: { revokedAt: new Date() } },
       { returnDocument: "before" },
     ).lean());
+    timer.mark("claimRotation");
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_session_degraded", error);
+      timer.log("degraded");
       return json({
         ok: false,
         code: "AUTH_REFRESH_DEGRADED",
@@ -3023,6 +3113,7 @@ async function handleRefresh(request, env) {
       session = priorSession;
     } else {
       await revokeAllUserRefreshSessions(userId);
+      timer.log("reuse_detected");
       const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
       clearAuthCookies(response, request, env);
       return response;
@@ -3068,9 +3159,11 @@ async function handleRefresh(request, env) {
         },
       },
     ));
+    timer.mark("findUser");
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_user_lookup_degraded", error);
+      timer.log("degraded");
       return json({
         ok: false,
         code: "AUTH_REFRESH_DEGRADED",
@@ -3083,6 +3176,7 @@ async function handleRefresh(request, env) {
 
   if (!user || isWithdrawnAuthUser(user)) {
     await revokeAllUserRefreshSessions(userId);
+    timer.log("user_not_found");
     const response = json({ ok: false, message: "User not found." }, { status: 401 });
     clearAuthCookies(response, request, env);
     return response;
@@ -3090,11 +3184,17 @@ async function handleRefresh(request, env) {
 
   const accessToken = await signAuthToken(user, env);
   const nextRefresh = await issueRefreshTokenForUser(userId, env);
-  await createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt);
-  await markSessionRevoked(tokenHash, {
-    skipRevokedAt: true,
-    replacedByTokenHash: nextRefresh.tokenHash,
-  });
+  // 새 세션 insert 와 이전 세션의 replacedByTokenHash 기록은 서로를 참조하지 않는다
+  // (양쪽 다 nextRefresh.tokenHash 만 쓴다) — 직렬로 둘 이유가 없어 한 번에 보낸다.
+  await Promise.all([
+    createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt),
+    markSessionRevoked(tokenHash, {
+      skipRevokedAt: true,
+      replacedByTokenHash: nextRefresh.tokenHash,
+    }),
+  ]);
+  timer.mark("rotateSession");
+  timer.log("refreshed");
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
 
   const response = json({
@@ -3113,10 +3213,11 @@ async function handleRefresh(request, env) {
   return response;
 }
 
-async function handleLogout(request, env) {
-  const refreshToken = readRefreshTokenFromRequest(request);
+// 세션 폐기 본체. 사용자에게 보이는 로그아웃(=쿠키 삭제)은 이 작업의 완료를 기다릴 필요가 없다.
+// revokedBefore: 이 시각 이전에 만들어진 세션만 폐기한다 — 백그라운드 실행이 늦어지는 동안
+// 사용자가 이미 재로그인했다면 그 새 세션까지 죽여 "로그아웃 직후 다시 로그아웃" 이 나기 때문이다.
+async function revokeSessionsForLogout(request, env, refreshToken, revokedBefore) {
   const timeoutMs = getAuthOpTimeoutMs(env);
-
   try {
     await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_logout_connect_db");
 
@@ -3147,13 +3248,28 @@ async function handleLogout(request, env) {
 
     if (logoutUserId) {
       await withAuthOpTimeout(
-        revokeAllUserRefreshSessions(logoutUserId),
+        revokeAllUserRefreshSessions(logoutUserId, { createdBefore: revokedBefore }),
         timeoutMs,
         "auth_logout_revoke_user_sessions",
       );
     }
   } catch (error) {
     logAuthDiagnostic(request, env, "/api/auth/logout", "", "logout_revoke_failed", error);
+  }
+}
+
+async function handleLogout(request, env, ctx) {
+  const refreshToken = readRefreshTokenFromRequest(request);
+  const revokedBefore = new Date();
+
+  // 응답(=쿠키 삭제)을 먼저 확정하고 세션 폐기는 백그라운드로 넘긴다. 예전에는 Mongo 왕복 2~5회를
+  // 전부 await 한 뒤에야 응답해서, 클라이언트가 이미 로컬 상태를 지운 뒤에도 최대 수 초를 기다렸다.
+  // waitUntil 이 없는 환경(테스트 등)에서는 종전처럼 완료를 기다린다.
+  const revokeTask = revokeSessionsForLogout(request, env, refreshToken, revokedBefore);
+  if (typeof ctx?.waitUntil === "function") {
+    ctx.waitUntil(revokeTask);
+  } else {
+    await revokeTask;
   }
 
   const response = json({ ok: true, message: "Logged out." });
@@ -4027,7 +4143,8 @@ async function handleAppExchange(request, env) {
   });
 }
 
-export async function handleAuthRoutes(request, env) {
+// ctx 는 로그아웃의 세션 폐기를 waitUntil 백그라운드로 넘기기 위해서만 쓴다(없으면 종전대로 동기 처리).
+export async function handleAuthRoutes(request, env, ctx) {
   let path = "";
   try {
     const method = request.method.toUpperCase();
@@ -4101,7 +4218,7 @@ export async function handleAuthRoutes(request, env) {
     if ((method === "PATCH" || method === "POST") && path === "/me/phone-number") return await handleUpdatePhoneNumber(request, env);
     if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
-    if (method === "POST" && path === "/logout") return await handleLogout(request, env);
+    if (method === "POST" && path === "/logout") return await handleLogout(request, env, ctx);
     if (method === "POST" && path === "/oauth/complete") return await handleOAuthComplete(request, env);
     if (method === "POST" && path === "/oauth/complete-signup") return await handleOAuthCompleteSignup(request, env);
     if (method === "POST" && path === "/referral/kakao-share") return await handleKakaoReferralShare(request, env);

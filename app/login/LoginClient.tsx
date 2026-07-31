@@ -52,8 +52,6 @@ type LoginPageCopy = {
   portalConnecting: string;
   portalLoadingProfile: string;
   portalSuccess: string;
-  portalAligning: string;
-  portalRedirecting: string;
   loginProcessingError: string;
   loginServerUnavailable: string;
   socialRedirecting: string;
@@ -98,8 +96,6 @@ const LOGIN_PAGE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, LoginPageCopy>
     portalConnecting: "별빛 포털에 연결하는 중...",
     portalLoadingProfile: "당신의 운명 데이터를 안전하게 불러오고 있습니다.",
     portalSuccess: "인증이 완료되었습니다. 프로필 카드를 불러오는 중...",
-    portalAligning: "별자리가 정렬되고 있습니다...",
-    portalRedirecting: "별빛 여정이 시작되었습니다. 메인 화면으로 이동합니다.",
     loginProcessingError: "로그인 처리 중 오류가 발생했습니다.",
     loginServerUnavailable: "로그인 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.",
     socialRedirecting: "우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.",
@@ -142,8 +138,6 @@ const LOGIN_PAGE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, LoginPageCopy>
     portalConnecting: "Connecting to the starlight portal...",
     portalLoadingProfile: "Loading your destiny data safely.",
     portalSuccess: "Authentication complete. Loading your profile card...",
-    portalAligning: "The constellations are aligning...",
-    portalRedirecting: "Your starlight journey has begun. Moving to the main page.",
     loginProcessingError: "An error occurred while signing in.",
     loginServerUnavailable: "Could not connect to the login server. Please check your network or API routing.",
     socialRedirecting: "Synchronizing celestial coordinates... Please wait a moment.",
@@ -186,8 +180,6 @@ const LOGIN_PAGE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, LoginPageCopy>
     portalConnecting: "星明かりのポータルへ接続しています...",
     portalLoadingProfile: "運命データを安全に読み込んでいます。",
     portalSuccess: "認証が完了しました。プロフィールカードを読み込んでいます...",
-    portalAligning: "星座が整列しています...",
-    portalRedirecting: "星明かりの旅が始まりました。メイン画面へ移動します。",
     loginProcessingError: "ログイン処理中にエラーが発生しました。",
     loginServerUnavailable: "ログインサーバーに接続できませんでした。ネットワークまたはAPIルーティングを確認してください。",
     socialRedirecting: "星の座標を同期しています... 少しお待ちください。",
@@ -230,8 +222,6 @@ const LOGIN_PAGE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, LoginPageCopy>
     portalConnecting: "正在连接星光入口...",
     portalLoadingProfile: "正在安全加载你的命运数据。",
     portalSuccess: "认证已完成。正在加载个人资料卡...",
-    portalAligning: "星座正在对齐...",
-    portalRedirecting: "星光旅程已经开始。即将前往主页面。",
     loginProcessingError: "登录处理时发生错误。",
     loginServerUnavailable: "无法连接登录服务器。请检查网络或 API 路由设置。",
     socialRedirecting: "正在同步星辰坐标... 请稍候。",
@@ -274,8 +264,6 @@ const LOGIN_PAGE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, LoginPageCopy>
     portalConnecting: "正在連接星光入口...",
     portalLoadingProfile: "正在安全載入你的命運資料。",
     portalSuccess: "認證已完成。正在載入個人資料卡...",
-    portalAligning: "星座正在對齊...",
-    portalRedirecting: "星光旅程已經開始。即將前往主頁面。",
     loginProcessingError: "登入處理時發生錯誤。",
     loginServerUnavailable: "無法連接登入伺服器。請檢查網路或 API 路由設定。",
     socialRedirecting: "正在同步星辰座標... 請稍候。",
@@ -449,15 +437,11 @@ export default function LoginPage() {
         apiBase: authApiBase,
       });
 
+      // 성공 피드백은 한 단계만 보여주고 바로 넘어간다. 예전에는 서버 응답이 끝난 뒤에도
+      // 700+600+500ms(=1.8초)를 순수 연출로 더 기다려, 체감 로그인 시간이 그만큼 길어졌다.
       setLoginStatus("success");
       setPortalMessage(copy.portalSuccess);
-      await new Promise((resolve) => setTimeout(resolve, 700));
-
-      setPortalMessage(copy.portalAligning);
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
-      setPortalMessage(copy.portalRedirecting);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 400));
 
       const resolvedNextPath = sanitizeNextPath(loginResult.nextPath || null) || nextPath;
       redirectAfterAuth(resolvedNextPath, loginResult.user as LoginResult["user"]);
