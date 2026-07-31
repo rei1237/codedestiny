@@ -77,6 +77,8 @@ export async function reconcilePendingPayments(env, options = {}) {
   let sawSuccessfulLookup = false;
   // "PortOne 에 기록 없음"으로 보이는 주문들. 자격증명 생사가 확인된 뒤에만 만료 처리한다.
   const pendingExpire = [];
+  // 같은 사유가 수십 줄 찍히지 않도록 사유별 1회만 로그한다.
+  const loggedLookupErrors = new Set();
 
   for (const candidate of candidates) {
     // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(runWebhookReconcileTask 와 같은 관용구).
@@ -122,6 +124,13 @@ export async function reconcilePendingPayments(env, options = {}) {
       //
       // 대신 '파괴적 조치'(만료 처리)는 자격증명이 살아 있다는 양성 증거가 있을 때만 한다.
       // 시크릿이 정말 죽은 상태에서 만료 처리를 하면 멀쩡한 주문을 전부 실패로 덮어쓴다.
+      // 조회 실패 사유를 반드시 남긴다. 예전에는 카운터만 올려서, 프로덕션에서 전건 실패인데도
+      // 원인을 알 수 없었다(요약에 실패 건수만 보였다).
+      const reason = String(error?.message || error || "").slice(0, 200);
+      if (!loggedLookupErrors.has(reason)) {
+        loggedLookupErrors.add(reason);
+        console.error(`[CRON] payment reconcile lookup failed: ${reason} (예: ${lookupId})`);
+      }
       const expirable = isNotFoundLookupError(error)
         && (now - new Date(candidate.createdAt).getTime()) > expireUnknownAfterMs;
       if (expirable) {
