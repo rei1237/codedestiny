@@ -82,10 +82,28 @@ assertBefore(profile, "const security = await enforceProfileRouteSecurity(reques
   ["life-book-ai", "handleLifeBookAiRoutes"],
   ["astrology-ai", "handleAstrologyAiRoutes"],
   ["sukuyo-compatibility-ai", "handleSukuyoCompatibilityAiRoutes"],
+  ["destiny-compass-ai", "handleDestinyCompassAiRoutes"],
 ].forEach(([serviceKey, handler]) => {
   // 닫는 괄호를 포함하지 않는다: 일부 라우트는 `runAiRouteWithSecurity(..., handler, ctx)`처럼 ctx를 추가로 넘기므로
   // 접두 매칭으로 `handler)`·`handler, ctx)` 양쪽을 모두 허용한다(보안 배선 존재 검증 의도는 유지).
   assertContains(workerIndex, `runAiRouteWithSecurity(request, env, "${serviceKey}", ${handler}`, `ai route guard ${serviceKey}`);
+});
+
+/* 접두사가 겹치는 형제 라우트의 순서.
+   유료 `-ai` 블록이 무인증 형제 블록 아래로 내려가면, 무인증 핸들러가 유료 경로를 먹어
+   결제·인증 없이 결과가 나간다. 지금은 무인증 쪽이 `"/api/x/"`(슬래시 포함) 접두로만 매칭돼
+   우연히 안전하지만, 그 슬래시가 빠지는 순간 조용히 뚫린다 — 순서로 고정한다. */
+[
+  ["/api/ziwei-island-ai", "/api/ziwei-island"],
+  ["/api/pet-saju-ai", "/api/pet-saju"],
+  ["/api/destiny-compass-ai", "/api/destiny-compass"],
+].forEach(([paid, free]) => {
+  assertBefore(
+    workerIndex,
+    `url.pathname === "${paid}" || url.pathname.startsWith("${paid}/")`,
+    `url.pathname === "${free}" || url.pathname.startsWith("${free}/")`,
+    `paid sibling route ${paid} must be matched before ${free}`,
+  );
 });
 
 assertNotContains(security, "usage_pass", "security module usage pass access type");

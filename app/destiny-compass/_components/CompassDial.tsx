@@ -16,6 +16,13 @@ interface CompassDialProps {
   primary?: DirectionKey;
   onStart?: () => void;
   className?: string;
+  /**
+   * 결과 모드의 연출 상태. 생략하면 기존 동작 그대로다(엔트리 다이얼 회귀 방지).
+   * spinning = 분석 중 등속 회전, settling = 대표 방향으로 착지(바늘의 기존 900ms 트랜지션 재사용).
+   */
+  state?: "idle" | "spinning" | "settling";
+  /** 좁은 자리(처리 화면)에서 지름을 줄인다. 결과 화면의 기본 크기는 그대로. */
+  compact?: boolean;
 }
 
 const CX = 200;
@@ -25,11 +32,13 @@ function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function CompassDial({ mode, directions, primary, onStart, className }: CompassDialProps) {
+export function CompassDial({ mode, directions, primary, onStart, className, state, compact }: CompassDialProps) {
   const uid = useId().replace(/:/g, "");
   const [firing, setFiring] = useState(false);
   const scoreOf = (key: DirectionKey) => directions?.find((d) => d.key === key)?.score ?? 0;
-  const angle = mode === "result" && primary ? needleAngle(primary) : 0;
+  // 착지 각도에 두 바퀴를 얹어 오버슛 후 감쇠하게 만든다(바늘의 기존 900ms 트랜지션이 감쇠를 맡는다).
+  const settleSpin = state === "settling" ? 720 : 0;
+  const angle = mode === "result" && primary ? needleAngle(primary) + settleSpin : 0;
 
   const handleStart = () => {
     if (!onStart || firing) return;
@@ -150,6 +159,9 @@ export function CompassDial({ mode, directions, primary, onStart, className }: C
         <polygon points={`${CX},${CY + 26} ${CX + 9},${CY + 8} ${CX},346 ${CX - 9},${CY + 8}`} fill="var(--cd-border)" opacity={0.55} />
       </g>
 
+      {/* 착지 순간의 빛 고리 — state="settling" 일 때만 한 번 번진다(opacity/scale 만 움직임) */}
+      <circle className={styles.dialSettleRing} cx={CX} cy={CY} r={168} fill="none" stroke="var(--cd-accent)" strokeWidth={6} />
+
       {/* 센터 허브 */}
       <circle cx={CX} cy={CY} r={13} fill="var(--cd-text)" stroke={`url(#${uid}-gold)`} strokeWidth={4} filter={`url(#${uid}-glow)`} />
       <circle cx={CX} cy={CY} r={4} fill="var(--cd-gold)" />
@@ -160,6 +172,9 @@ export function CompassDial({ mode, directions, primary, onStart, className }: C
     styles.dial,
     mode === "entry" ? styles.dialEntry : styles.dialResult,
     firing ? styles.dialFiring : "",
+    state === "spinning" ? styles.dialSpinning : "",
+    state === "settling" ? styles.dialSettling : "",
+    compact ? styles.dialCompact : "",
     className || "",
   ]
     .filter(Boolean)

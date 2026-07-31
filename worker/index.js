@@ -408,6 +408,8 @@ const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js
 const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
 // 운명의 지도 — 무인증·무DB AI 문장화(규칙 산출 데이터 문장화만, 실패 시 클라 템플릿 폴백)
 const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
+// 운명의 지도 심층 리포트(₩10,000) — 회당 결제 9섹션 LLM 상담. 두 웨이브 동기 생성(waitUntil 금지)
+const handleDestinyCompassAiRoutes = createLazyRouteHandler("./routes/destiny-compass-ai.js", () => import("./routes/destiny-compass-ai.js"), "handleDestinyCompassAiRoutes", "api/destiny-compass-ai");
 // AI 반려동물 사주 — 무인증·무DB 결정론 계산(프로필→오행 청사진)
 const handlePetSajuRoutes = createLazyRouteHandler("./routes/pet-saju.js", () => import("./routes/pet-saju.js"), "handlePetSajuRoutes", "api/pet-saju");
 // AI 반려동물 사주 심층 리포트·궁합(각 ₩5,000) — 회당 결제 LLM 서술(결정론 수치는 위 엔진이 계산)
@@ -1336,6 +1338,12 @@ export default {
       // AI 반려동물 사주 청사진 (무인증·무DB 순수 계산)
       if (url.pathname === "/api/pet-saju" || url.pathname.startsWith("/api/pet-saju/")) {
         return withCorsHeaders(request, env, await handlePetSajuRoutes(request, env));
+      }
+
+      // ⚠️ 반드시 /api/destiny-compass 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      //    아래에 두면 유료 리포트가 무인증 핸들러로 새어 들어간다.
+      if (url.pathname === "/api/destiny-compass-ai" || url.pathname.startsWith("/api/destiny-compass-ai/")) {
+        return runAiRouteWithSecurity(request, env, "destiny-compass-ai", handleDestinyCompassAiRoutes, ctx);
       }
 
       if (url.pathname === "/api/destiny-compass" || url.pathname.startsWith("/api/destiny-compass/")) {

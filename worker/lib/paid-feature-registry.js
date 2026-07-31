@@ -216,6 +216,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "destiny-compass-crossroads": { cost: 100, amountKRW: 10000, reason: "운명의 갈림길 기운 비교" },
   "destiny-compass-life-voyage": { cost: 100, amountKRW: 10000, reason: "삶의 항로 안내" },
   "destiny-compass-future-sim": { cost: 100, amountKRW: 10000, reason: "미래 시뮬레이션 안내" },
+  "destiny-compass-deep-report": { cost: 100, amountKRW: 10000, reason: "운명의 지도 심층 리포트" },
   "pet-saju-ai-consultation": { cost: 50, amountKRW: 5000, reason: "반려동물 사주 AI 심층 리포트" },
   "pet-compatibility-ai": { cost: 50, amountKRW: 5000, reason: "반려동물 궁합 분석" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
@@ -466,6 +467,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "destiny-compass-crossroads",
   "destiny-compass-life-voyage",
   "destiny-compass-future-sim",
+  // 매번 새로 생성되는 개인화 리포트 → 회당 결제(영구 잠금해제 아님).
+  "destiny-compass-deep-report",
   "pet-saju-ai-consultation",
   "pet-compatibility-ai",
   "profile-card-manage",

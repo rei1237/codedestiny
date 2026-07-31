@@ -307,6 +307,81 @@ function assertNeverThrows(feature, label, run) {
   assert(charsAllowedByTokens(20000) >= 10000, `${feature}: 토큰 상한이 상담 최소 분량도 못 담는다`);
 }
 
+// ── 6. 운명의 지도 심층 리포트 ─────────────────────────
+// 9섹션을 두 웨이브로 나눠 동기 생성한다. 섹션 하나가 규칙을 어겨도 결제된 결과를 버리지 않는지,
+// 검증기가 던지지 않는지, 섹션 예산이 토큰 상한 안에 들어오는지를 본다.
+{
+  const feature = "destiny-compass-report";
+  const {
+    COMPASS_SECTIONS,
+    COMPASS_SECTION_MAX_OUTPUT_TOKENS,
+    validateCompassSection,
+    computeSystemStars,
+    splitGroundsLine,
+    trimToLastSentence,
+    compassFallbackMinChars,
+  } = await import("../worker/lib/destiny-compass-report-contract.js");
+
+  const spec = COMPASS_SECTIONS.find((s) => s.key === "saju_reading");
+  const badInputs = [
+    ["null", null], ["undefined", undefined], ["빈 문자열", ""], ["공백만", "   \n\t "],
+    ["숫자", 42], ["객체", {}], ["배열", []],
+    ["미계산 계 용어", `${paragraph("다샤가 바뀌는 시기라 나크샤트라가 흔들립니다.")}`],
+    ["상투구", `${paragraph("조심하세요. 좋은 일이 생깁니다.")}`],
+    ["모델이 만든 별점", `${paragraph("사주 흐름.")} ★★★★☆ 82% 확률`],
+  ];
+  for (const [name, value] of badInputs) {
+    assertNeverThrows(feature, `validateCompassSection("${name}")`, () => {
+      const issues = validateCompassSection(value, { spec, allowedLabels: ["오행 분포"], seenSentences: new Set() });
+      assert(Array.isArray(issues), `${feature}: 검증 결과가 배열이 아니다 — 호출부가 결과를 잃는다`);
+    });
+  }
+
+  // 정상 본문은 문제 없이 통과해야 한다(과잉 차단이면 유료 라우트가 상시 교정 루프에 빠진다).
+  {
+    const good = `${paragraph("오행 분포가 금으로 기울어 있습니다.", 40)}`;
+    const issues = validateCompassSection(good, { spec, allowedLabels: ["오행 분포"], seenSentences: new Set() });
+    assert(issues.length === 0, `${feature}: 정상 본문이 걸렸다 — ${issues.join(" / ")}`);
+  }
+
+  // 근거 줄 분리·잘린 문장 정리도 던지지 않는다.
+  for (const [name, value] of [["정상", "본문.\n근거: saju.stage"], ["근거 없음", "본문만."], ["빈값", ""]]) {
+    assertNeverThrows(feature, `splitGroundsLine("${name}")`, () => splitGroundsLine(value));
+    assertNeverThrows(feature, `trimToLastSentence("${name}")`, () => trimToLastSentence(value));
+  }
+  assertNeverThrows(feature, "computeSystemStars(빈 팩)", () => computeSystemStars({ systems: [] }));
+
+  // 🔴 폴백을 켠 유료 섹션은 문턱을 함께 줘야 한다(관례: 최소 분량 × 0.4).
+  //    없으면 Workers AI 의 짧은 응답이 정상 결제 결과로 나간다.
+  const routeSource = read("worker/routes/destiny-compass-ai.js");
+  assert(
+    routeSource.includes("fallbackMinChars: compassFallbackMinChars(spec)"),
+    `${feature}: fallbackToWorkersAI 를 켜고 fallbackMinChars 를 주지 않았다`,
+  );
+  for (const section of COMPASS_SECTIONS) {
+    assert(
+      compassFallbackMinChars(section) > 0 && compassFallbackMinChars(section) < section.minChars,
+      `${feature}: ${section.key} 의 폴백 문턱이 비정상 (${compassFallbackMinChars(section)})`,
+    );
+  }
+
+  // 섹션이 죽어도 웨이브가 계속되려면 생성기가 던지지 않아야 한다.
+  assert(
+    routeSource.includes("절대 던지지 않는다"),
+    `${feature}: generateCompassSection 의 무-throw 계약 주석이 사라졌다`,
+  );
+
+  // 예산: 가장 긴 섹션 기준.
+  const widest = COMPASS_SECTIONS.reduce((a, b) => (b.maxChars > a.maxChars ? b : a));
+  assertBudget(feature, {
+    minChars: widest.minChars,
+    maxChars: widest.maxChars,
+    maxOutputTokens: COMPASS_SECTION_MAX_OUTPUT_TOKENS,
+    tokenConstantName: "COMPASS_SECTION_MAX_OUTPUT_TOKENS",
+    sourcePath: "worker/lib/destiny-compass-report-contract.js",
+  });
+}
+
 // ── 예산 가드 ─────────────────────────────────────────
 function assertBudget(feature, { minChars, maxChars, maxOutputTokens, tokenConstantName, sourcePath }) {
   const lengthHeadroom = maxChars - minChars;
@@ -339,6 +414,7 @@ for (const [feature, path, timeoutVar] of [
   // 숙요 궁합은 그룹 병렬이라 라우트가 기다리는 단위가 "섹션 그룹"이다.
   ["sukuyo", "worker/routes/sukuyo-compatibility-ai.js", "SUKUYO_SECTION_TIMEOUT_MS"],
   ["astrology", "worker/routes/astrology-ai.js", "timeoutMs"],
+  ["destiny-compass-report", "worker/routes/destiny-compass-ai.js", "timeoutMs"],
 ]) {
   const source = read(path);
   // 파일 어딘가에 clamp가 있는지가 아니라, 그 라우트가 실제로 쓰는 타임아웃 변수의 할당을 감싸는지 본다.

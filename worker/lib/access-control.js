@@ -259,6 +259,23 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     ];
   }
 
+  if (reportType === "destinyCompassDeepReport") {
+    return [
+      {
+        featureKey: "destiny-compass-deep-report",
+        reason: "운명의 지도 심층 리포트",
+        minCost: 100,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "운명의 지도 심층 리포트",
+        minCost: 100,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
   if (reportType === "petSajuReport") {
     return [
       {
@@ -1093,7 +1110,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "petSajuReport", "petCompatReport"].includes(normalizedReportType) && alternativeRules.length) {
+  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;
