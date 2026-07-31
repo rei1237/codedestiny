@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -15,17 +15,40 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import {
+  LOVE_SECRET_AI_GROUPS,
+  LOVE_SECRET_AI_GROUP_MIN_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
-  buildFirstConsultationPrompt,
+  assembleLoveSecretConsultation,
   buildFollowUpConsultationPrompt,
-  describeLoveSecretGroundingIssues,
+  buildLoveSecretGroundingTerms,
+  buildLoveSecretGroupPrompt,
+  buildLoveSecretGroupSystemPrompt,
+  countLoveSecretConsultationBodyChars,
+  mapLoveSecretIssuesToGroups,
   normalizeFollowUpResponse,
-  parseFirstConsultationResponse,
-  validateLoveSecretGrounding,
+  parseLoveSecretGroupResponse,
+  validateLoveSecretConsultation,
 } from "../lib/love-secret-ai-prompt.js";
+import { buildLoveSecretGroundingFacts } from "../lib/love-secret-ai-facts.js";
 
 const SERVICE_KEY = "love-secret-ai";
 const FEATURE_KEY = "love-secret-ai-consultation";
+
+// ── 섹션 병렬 생성 예산 ────────────────────────────────────────────────────
+// 목표 분량 30,000~36,000자를 단일 호출로 뽑으면 gemini-2.5-flash(~200tok/s) 기준
+// 200초 이상이 필요해 엣지 100초 컷을 구조적으로 넘는다. 그래서 6개 그룹을 한 요청 안에서
+// 동시에 생성해 벽시계를 "합계 → 최댓값"으로 바꾼다(worker/routes/new-year-ai.js 선례).
+// tokensRequiredForChars(6,500) = (6500 + 1500) × 1.5 = 12,000 → 여유를 둬 12,500.
+const LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS = 12500;
+const LOVE_SECRET_AI_GROUP_TIMEOUT_MS = 54000;
+const LOVE_SECRET_AI_REPAIR_TIMEOUT_MS = 24000;
+const LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS = 22000;
+// handleStart 진입 시각 기준 총예산. 인증·DB 변동분을 LLM 예산이 흡수한다.
+const LOVE_SECRET_AI_LLM_DEADLINE_MS = 86000;
+// 6개 중 이만큼만 살아 있으면 degraded 로 전달한다(사용자는 이미 결제했다).
+const LOVE_SECRET_AI_MIN_USABLE_GROUPS = 4;
+// 생성이 요청 안에서 끝나므로 엣지 컷보다 오래된 "generating"은 진행이 아니라 잘린 시체다.
+const LOVE_SECRET_AI_GENERATING_FRESH_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
 const ACCESS_TOKEN_TYPE = "love-secret-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "연애 비책 전문가 상담";
@@ -741,90 +764,185 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
   return null;
 }
 
-function buildLoveSecretGroundingTerms(sajuResult = {}) {
-  return [
-    sajuResult?.myChart?.dayMaster,
-    sajuResult?.myChart?.reference?.dominantTenGod,
-    sajuResult?.partnerChart?.dayMaster,
-    sajuResult?.partnerChart?.reference?.dominantTenGod,
-    "일간",
-  ].map((term) => clean(term, 20)).filter(Boolean);
-}
+/**
+ * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 실패를 값으로 돌려
+ * 한 그룹이 나머지 다섯을 죽이지 못하게 한다(new-year-ai.js:1653 계약).
+ */
+async function generateLoveSecretGroup(env, {
+  input,
+  sajuResult,
+  group,
+  systemPromptBase,
+  cache,
+  timeoutMs,
+  logContext = {},
+  repairLines = [],
+  previousResult = null,
+}) {
+  const startedAt = Date.now();
+  const fail = (reason) => ({
+    key: group.key,
+    ok: false,
+    sections: previousResult?.sections || [],
+    extras: previousResult?.extras || {},
+    chars: Number(previousResult?.chars || 0),
+    reason,
+    provider: "",
+    model: "",
+    startedAt,
+    endedAt: Date.now(),
+  });
 
-async function generateFirstConsultation(env, input, sajuResult, logContext = {}) {
-  const basePrompt = buildFirstConsultationPrompt(input, sajuResult);
-  // 러브시크릿 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
-  // follow-up(generateFollowUp)은 캐시 대상 아님.
-  const loveSecretLlmCache = {
-    store: createLlmCacheStore(env),
-    deterministic: true,
-    ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: "love-secret-ai-v1",
-  };
-  const callOnce = async (prompt) => {
-    // 15개 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) —
-    // plain callGeminiText는 잘림에 무방비라 잘리면 그대로 INVALID_LLM_JSON 하드 실패였다.
-    // 잘림 반응형 재시도 헬퍼(JSON 모드 강제 + 잘리면 토큰 상향 재생성)로 교체.
-    const ai = await callGeminiJsonWithRetry(env, prompt, {
-      systemPrompt: await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT),
-      temperature: 0.72,
-      // 동기 POST 라우트라 왕복 시간을 묶기 위해 재시도는 1회로 제한(총 2회 시도).
-      attempts: 2,
-      baseTokens: 32000,
-      capTokens: Math.round(32000 * 1.3),
-      // 32,000토큰(gemini-2.5-flash ~200tok/s ≈ 160s) — 구 90s는 목표 분량대 상단에서 잘렸다.
-      // 요청 안에서 생성을 끝내는 경로 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
-      timeoutMs: clampSyncLlmTimeoutMs(Number(env?.LOVE_SECRET_AI_TIMEOUT_MS)),
-      taskType: "fortune",
-      // 폴백 허용. 대형 JSON 이라 너무 짧으면 실패로 돌려 기존 재시도·환불 경로를 지킨다.
-      fallbackMinChars: 3000,
-      cache: loveSecretLlmCache,
+  // 🔴 clampSyncLlmTimeoutMs 는 0/음수에 85초 상한을 되돌려주므로 그 앞에서 막아야 한다.
+  if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
+
+  try {
+    const prompt = buildLoveSecretGroupPrompt(input, sajuResult, group, {
+      repairLines,
+      previousText: previousResult?.sections?.map((section) => `${section.title}\n${section.body}`).join("\n\n") || "",
     });
+    const call = callGeminiJsonWithRetry(env, prompt, {
+      systemPrompt: buildLoveSecretGroupSystemPrompt(systemPromptBase, group),
+      temperature: 0.72,
+      // 내부 잘림 재시도는 데드라인을 모른 채 벽시계를 2배로 만든다 — 수리는 wave 2가 예산을 알고 한다.
+      attempts: 1,
+      baseTokens: LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS,
+      capTokens: LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS,
+      timeoutMs: clampSyncLlmTimeoutMs(timeoutMs),
+      taskType: "fortune",
+      // 그룹 최소 분량 × 0.4. 단일 호출 시절의 3,000은 2만자 목표에서 도달 불가능해 무용지물이었다.
+      fallbackMinChars: Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.4),
+      cache,
+    });
+    // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
+    // 그 경로가 예산을 넘겨 엣지 컷을 유발하지 않도록 하드 레이스를 건다.
+    const ai = await Promise.race([
+      call,
+      new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: "group_hard_deadline" }), timeoutMs + 4000)),
+    ]);
+
     const provider = clean(ai?.provider);
     const model = clean(ai?.model);
     const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
-    logLoveSecretAi("LLM Provider Selected", {
-      ...logContext,
-      providerReason: isMock ? "mock_provider_blocked" : provider || model || logContext.providerReason || "llm_provider_selected",
-      provider,
-      model,
-    });
     if (!ai?.ok || isMock || !clean(ai.text)) {
-      const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
-      error.code = "LLM_GENERATION_FAILED";
-      throw error;
+      return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model };
     }
-    return { parsed: parseFirstConsultationResponse(ai.text), provider, model };
-  };
 
-  let { parsed, provider, model } = await callOnce(basePrompt);
+    const parsed = parseLoveSecretGroupResponse(ai.text, group);
+    if (!parsed.ok) return { ...fail(parsed.reason || "PARSE_FAILED"), provider, model };
+    return { ...parsed, key: group.key, provider, model, startedAt, endedAt: Date.now() };
+  } catch (error) {
+    logLoveSecretAi("Group Generation Error", {
+      ...logContext,
+      groupKey: group.key,
+      errorMessage: clean(error?.message || error, 200),
+    }, "warn");
+    return fail("EXCEPTION");
+  }
+}
+
+async function generateFirstConsultation(env, input, sajuResult, logContext = {}, options = {}) {
+  const deadlineAt = Number(options.deadlineAt) || (Date.now() + LOVE_SECRET_AI_LLM_DEADLINE_MS);
+  const budgetedTimeout = (cap) => {
+    const remaining = deadlineAt - Date.now();
+    if (remaining < LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS) return 0;
+    return Math.min(cap, remaining);
+  };
+  // 그룹 프롬프트는 서로 다르므로 lib/llm-cache 의 프롬프트 해시가 6개 키로 자동 분리된다.
+  // 🔴 keyExtra 는 v2 여야 한다 — v1 항목은 통짜 상담 JSON 이라 그룹 파서에 먹이면 쓰레기가 된다.
+  const cache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "love-secret-ai-v2",
+  };
+  const systemPromptBase = await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT);
+  const groupTimeoutCap = Number(env?.LOVE_SECRET_AI_TIMEOUT_MS) > 0
+    ? Number(env.LOVE_SECRET_AI_TIMEOUT_MS)
+    : LOVE_SECRET_AI_GROUP_TIMEOUT_MS;
+
+  // Wave 1 — 6개 그룹 동시 생성. 벽시계 = 합계가 아니라 최댓값.
+  let results = await Promise.all(LOVE_SECRET_AI_GROUPS.map((group) => generateLoveSecretGroup(env, {
+    input,
+    sajuResult,
+    group,
+    systemPromptBase,
+    cache,
+    timeoutMs: budgetedTimeout(groupTimeoutCap),
+    logContext,
+  })));
+
   const groundingTerms = buildLoveSecretGroundingTerms(sajuResult);
-  let groundingIssues = validateLoveSecretGrounding(parsed, groundingTerms);
-  if (groundingIssues.length) {
-    logLoveSecretAi("Grounding Retry", { ...logContext, issues: groundingIssues }, "warn");
-    try {
-      const retry = await callOnce([
-        basePrompt,
-        "",
-        "직전 답변이 아래 근거 기준을 지키지 못해 반려되었다. 전부 지켜 처음부터 다시 작성하라:",
-        ...describeLoveSecretGroundingIssues(groundingIssues),
-      ].join("\n"));
-      const retryIssues = validateLoveSecretGrounding(retry.parsed, groundingTerms);
-      if (retryIssues.length <= groundingIssues.length) {
-        ({ parsed, provider, model } = retry);
-        groundingIssues = retryIssues;
-      }
-    } catch (retryError) {
-      logLoveSecretAi("Grounding Retry Failed", { ...logContext, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
-    }
-    if (groundingIssues.length) {
-      logLoveSecretAi("Grounding Residual", { ...logContext, issues: groundingIssues }, "warn");
+  let assembled = assembleLoveSecretConsultation(results, { input, sajuResult });
+  let quality = validateLoveSecretConsultation(assembled, { sajuResult, groundingTerms });
+
+  // Wave 2 — 책임 그룹만 다시 쓴다(전체 재생성 금지).
+  const targets = mapLoveSecretIssuesToGroups(quality, results);
+  if (targets.size && budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS) > 0) {
+    logLoveSecretAi("Group Repair", { ...logContext, issues: quality.issues, targets: [...targets.keys()] }, "warn");
+    const repaired = await Promise.all([...targets.entries()].map(([key, repairLines]) => {
+      const group = LOVE_SECRET_AI_GROUPS.find((item) => item.key === key);
+      const previousResult = results.find((item) => item.key === key) || null;
+      if (!group) return Promise.resolve(null);
+      return generateLoveSecretGroup(env, {
+        input,
+        sajuResult,
+        group,
+        systemPromptBase,
+        cache,
+        timeoutMs: budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS),
+        logContext,
+        repairLines,
+        previousResult,
+      });
+    }));
+
+    const candidateResults = results.map((result) => {
+      const replacement = repaired.find((item) => item?.key === result.key && item.ok);
+      return replacement || result;
+    });
+    const candidateAssembled = assembleLoveSecretConsultation(candidateResults, { input, sajuResult });
+    const candidateQuality = validateLoveSecretConsultation(candidateAssembled, { sajuResult, groundingTerms });
+    // 채택 조건: 조립본 이슈 수가 실제로 줄었을 때만. 단, 원래 비어 있던 그룹이 채워졌으면 무조건 채택.
+    const filledEmpty = results.some((result, index) => !result.ok && candidateResults[index].ok);
+    if (filledEmpty || candidateQuality.issues.length < quality.issues.length) {
+      results = candidateResults;
+      assembled = candidateAssembled;
+      quality = candidateQuality;
     }
   }
+
+  const usableGroups = results.filter((result) => result.ok).length;
+  const totalChars = countLoveSecretConsultationBodyChars(assembled);
+  const renderable = totalChars >= 18000 && clean(assembled.answer).length >= 4000;
+
+  logLoveSecretAi("LLM Provider Selected", {
+    ...logContext,
+    providerReason: results.find((result) => result.ok)?.provider || "llm_provider_selected",
+    provider: results.find((result) => result.ok)?.provider || "",
+    model: results.find((result) => result.ok)?.model || "",
+    usableGroups,
+    totalChars,
+    residualIssues: quality.issues,
+  });
+
+  if (usableGroups < LOVE_SECRET_AI_MIN_USABLE_GROUPS || !renderable) {
+    const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
+    error.code = "LLM_GENERATION_FAILED";
+    throw error;
+  }
+
+  if (quality.issues.length) {
+    logLoveSecretAi("Quality Residual", { ...logContext, issues: quality.issues }, "warn");
+  }
+
   return {
-    ...parsed,
-    provider,
-    model,
+    ...assembled,
+    degraded: usableGroups < results.length,
+    provider: results.find((result) => result.ok)?.provider || "",
+    model: results.find((result) => result.ok)?.model || "",
+    residualIssues: quality.issues,
+    totalChars,
   };
 }
 
@@ -1068,7 +1186,19 @@ function publicChartSummary(chart = {}) {
       deficientElement: clean(chart?.reference?.deficientElement, 20),
       dominantTenGod: clean(chart?.reference?.dominantTenGod, 30),
       yongshinElement: clean(chart?.reference?.yongshinElement, 20),
+      // 화면은 영문 오행 키(water/wood) 대신 이 한글 라벨을 렌더한다.
+      dayElementLabel: clean(chart?.reference?.dayElementLabel, 12),
+      dominantElementLabel: clean(chart?.reference?.dominantElementLabel, 12),
+      deficientElementLabel: clean(chart?.reference?.deficientElementLabel, 12),
+      yongshinElementLabel: clean(chart?.reference?.yongshinElementLabel, 12),
+      dayMasterLabel: clean(chart?.reference?.dayMasterLabel, 20),
     },
+    strength: clean(chart?.strength, 60),
+    gyeokguk: clean(chart?.gyeokguk?.finalGyeokguk, 40),
+    shinsalLines: (Array.isArray(chart?.shinsal?.summaryLines) ? chart.shinsal.summaryLines : []).map((line) => clean(line, 160)).filter(Boolean).slice(0, 8),
+    currentMajorLuck: chart?.majorLuck?.currentCycle
+      ? clean(`${chart.majorLuck.currentCycle.startAge}~${chart.majorLuck.currentCycle.endAge}세 ${chart.majorLuck.currentCycle.pillar} (${chart.majorLuck.currentCycle.stemTenGod || ""})`, 60)
+      : "",
   };
 }
 
@@ -1088,6 +1218,32 @@ function publicSajuSummary(sajuResult = {}) {
       : null,
     uncertainty: Array.isArray(sajuResult?.uncertainty) ? sajuResult.uncertainty.map((item) => clean(item, 80)).filter(Boolean) : [],
     consultationMode: clean(sajuResult?.consultationMode, 40),
+    // 결과 화면의 "좋은 날짜" 카드는 LLM 문장이 아니라 이 계산값을 렌더한다.
+    calendar: sajuResult?.calendar?.available
+      ? {
+        rangeStart: clean(sajuResult.calendar.rangeStart, 12),
+        rangeEnd: clean(sajuResult.calendar.rangeEnd, 12),
+        best: (sajuResult.calendar.best || []).slice(0, 8).map((day) => ({
+          date: clean(day.date, 12),
+          weekday: clean(day.weekday, 2),
+          ganji: clean(day.ganji, 6),
+          ganjiKo: clean(day.ganjiKo, 6),
+          grade: clean(day.grade, 6),
+          score: Number(day.score) || 0,
+          tags: (day.tags || []).map((tag) => clean(tag, 30)).filter(Boolean).slice(0, 4),
+        })),
+        caution: (sajuResult.calendar.caution || []).slice(0, 5).map((day) => ({
+          date: clean(day.date, 12),
+          ganji: clean(day.ganji, 6),
+          tags: (day.tags || []).map((tag) => clean(tag, 30)).filter(Boolean).slice(0, 3),
+        })),
+        monthlyFlow: (sajuResult.calendar.monthlyFlow || []).map((month) => ({
+          monthLabel: clean(month.monthLabel, 8),
+          avgScore: Number(month.avgScore) || 0,
+          grade: clean(month.grade, 6),
+        })),
+      }
+      : null,
   };
 }
 
@@ -1106,7 +1262,8 @@ async function handleEnsureAccess(request, env, route = "/api/love-secret-ai/pre
 
   try {
     logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
-    calculateLoveSecretAiSaju(normalized);
+    // 사전검사는 생년 정보가 계산 가능한지만 본다 — 고급 요소·일진 캘린더·궁합까지 돌릴 필요가 없다.
+    calculateLoveSecretAiSaju(normalized, { mode: "validate" });
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   } catch (error) {
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", env, error }), "error");
@@ -1181,6 +1338,8 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 }
 
 async function handleStart(request, env, route = "/api/love-secret-ai/generate", ctx) {
+  // 총예산의 기준점. 인증·DB 지연이 LLM 예산에 더해지는 게 아니라 흡수되도록 진입 즉시 찍는다.
+  const requestStartedAt = Date.now();
   logLoveSecretAi("LLM Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -1213,8 +1372,9 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
-  // 신선도 창 = 최악 파이프라인(초기 150s + grounding 재시도 150s) + 마진.
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 360000) {
+  // 생성은 이 요청 안에서 끝난다. 엣지 컷 + 마진보다 오래된 "generating"은 진행 중이 아니라
+  // 잘려 죽은 세션이므로 재시도를 막지 않는다(예전 360초 창은 4분간 재시도를 봉쇄했다).
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < LOVE_SECRET_AI_GENERATING_FRESH_MS) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "연애 비책 상담을 준비하고 있습니다" }, { status: 202 });
   }
 
@@ -1222,6 +1382,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   try {
     logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     sajuResult = calculateLoveSecretAiSaju(normalized);
+    // 6개 그룹 프롬프트 전부에 같은 문자열로 들어가는 계산 확정값(병렬 생성물의 일관성 앵커).
+    sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
@@ -1287,12 +1449,15 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   const runGeneration = async () => {
   try {
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
-    const generated = await generateFirstConsultation(env, normalized.input, sajuResult, logContext);
+    const generated = await generateFirstConsultation(env, normalized.input, sajuResult, logContext, {
+      deadlineAt: requestStartedAt + LOVE_SECRET_AI_LLM_DEADLINE_MS,
+    });
     const completed = await LoveSecretAiConsultation.findOneAndUpdate(
       { id: sessionId },
       {
         $set: {
           status: "completed",
+          degraded: Boolean(generated.degraded),
           keywords: generated.keywords,
           strategy: generated.strategy,
           messages: [
@@ -1309,8 +1474,13 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
             completedAt: new Date().toISOString(),
             sections: generated.sections,
             reading: generated.reading,
+            // sections 와 같으면 중복 저장하지 않는다(문서당 ~36KB 절약, 클라이언트가 폴백한다).
             pdfSections: generated.pdfSections,
             finalLine: generated.finalLine,
+            degraded: Boolean(generated.degraded),
+            groupStatus: generated.groupStatus,
+            totalChars: generated.totalChars,
+            residualIssues: generated.residualIssues,
           },
           generationError: null,
         },

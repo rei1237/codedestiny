@@ -1,5 +1,30 @@
-import { buildSajuProfile } from "./destiny-bias-engine.js";
+// 명식 코어는 life-book-ai-saju 를 쓴다(destiny-bias-engine 의 buildSajuProfile 에서 교체).
+// 이유: 연애 상담이 요구하는 대운 10주기·세운 5년·지장간·합충형파해·삼합/방합이 그쪽에만 있고,
+// 기존 코어는 그중 무엇도 상담 데이터로 내보내지 않았다(대운은 계산하고도 버렸다).
+//
+// ⚠️ 교체로 잃는 것: buildSajuProfile 의 진태양시 시주 보정과 야자시 일자 변경 정책.
+// 23:00~01:00 출생은 시주가 이전 결과와 달라질 수 있다.
+import { buildSajuAdvancedFactors } from "./saju-ai-prompt.js";
 import { buildLoveSecretReference } from "./love-secret-reference.js";
+import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
+import { buildSajuLoveCompatibility } from "./master-love-codex-compat.js";
+import { buildLoveDayCalendar, todayKstYmd } from "./love-secret-ai-calendar.js";
+import {
+  ELEMENT_KO,
+  buildLoveShinsal,
+  getBranchPairRelations,
+  getHongyeomBranch,
+  getPeachBlossomBranch,
+  getStemPairRelation,
+  normalizeBranchChar,
+  normalizeStemChar,
+  scoreShinsalIntensity,
+  toBranchKo,
+  toStemKo,
+} from "./saju-shinsal.js";
+import { getTwelveLifeStage } from "./saju-gyeokguk.js";
+
+export const LOVE_SECRET_AI_SAJU_VERSION = "love-secret-ai-saju-v2";
 
 export const LOVE_SECRET_RELATIONSHIP_STATUSES = Object.freeze([
   "솔로",
@@ -81,13 +106,6 @@ function normalizeGender(value) {
   return text || "";
 }
 
-function toSajuGender(value) {
-  const gender = normalizeGender(value);
-  if (gender === "male") return "M";
-  if (gender === "female") return "F";
-  return "OTHER";
-}
-
 function normalizeCalendarType(value, fallback = "solar") {
   const text = clean(value, 20).toLowerCase();
   if (text === "lunar" || text === "음력") return "lunar";
@@ -148,32 +166,14 @@ function hasPartnerSignal(source = {}) {
   );
 }
 
-function buildProfileInput(info) {
-  const birth = info.birth;
-  const time = splitBirthTime(info.birthTime);
+function buildLifeBookInput(info) {
   return {
-    name: info.name || "상담자",
-    gender: toSajuGender(info.gender),
-    birth: {
-      year: birth.year,
-      month: birth.month,
-      day: birth.day,
-      hour: info.birthTimeUnknown ? 12 : time.hour,
-      minute: info.birthTimeUnknown ? 0 : time.minute,
-      calendarType: info.calendarType,
-      unknownTime: info.birthTimeUnknown,
-      timezone: "Asia/Seoul",
-    },
+    birthDate: info.birthDate,
+    birthTime: info.birthTimeUnknown ? "" : info.birthTime,
+    birthTimeUnknown: info.birthTimeUnknown,
+    calendarType: info.calendarType,
+    gender: normalizeGender(info.gender),
   };
-}
-
-function distributionFromScores(source = {}) {
-  const scores = source?.scores && typeof source.scores === "object" ? source.scores : source;
-  return Object.fromEntries(
-    Object.entries(scores || {})
-      .filter(([, value]) => Number.isFinite(Number(value)))
-      .map(([key, value]) => [key, Math.round(Number(value) * 100) / 100]),
-  );
 }
 
 function distributionFromCounts(source = {}) {
@@ -185,10 +185,55 @@ function distributionFromCounts(source = {}) {
   );
 }
 
-function pillarText(pillar) {
-  if (!pillar) return "";
-  if (typeof pillar === "string") return pillar;
-  return clean(pillar.ganji || `${clean(pillar.stem)}${clean(pillar.branch)}`);
+const ELEMENT_KEY_BY_KO = Object.freeze({ 목: "wood", 화: "fire", 토: "earth", 금: "metal", 수: "water" });
+
+/** life-book 은 오행을 한글 키로 센다. 내부 계산(용신/궁합)은 영문 키를 쓰므로 경계에서 변환한다. */
+function elementKeyFromKo(value) {
+  const text = clean(value);
+  if (ELEMENT_KEY_BY_KO[text]) return ELEMENT_KEY_BY_KO[text];
+  return ["wood", "fire", "earth", "metal", "water"].includes(text) ? text : "";
+}
+
+/**
+ * 오행 분포. life-book 의 buildElementDistribution 은 천간·지지 본기만 세므로
+ * 지장간을 0.35 가중(그 파일의 십성 집계와 같은 관례)으로 더해 정밀도를 맞춘다.
+ * 키는 한글("목"…) — 화면에 그대로 렌더되기 때문이다.
+ */
+function buildElementCounts(saju = {}) {
+  const counts = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+  Object.entries(saju.fiveElements || {}).forEach(([key, value]) => {
+    if (counts[key] !== undefined) counts[key] = Number(value) || 0;
+  });
+  ["year", "month", "day", "hour"].forEach((key) => {
+    (saju.pillarDetails?.[key]?.hiddenStems || []).forEach((hidden) => {
+      const element = clean(hidden?.element);
+      if (counts[element] !== undefined) counts[element] = Number((counts[element] + 0.35).toFixed(2));
+    });
+  });
+  return counts;
+}
+
+/** love-secret-reference 의 normalizeCounts(:105)는 영문 키만 읽는다. 경계에서 변환. */
+function toEnglishElementCounts(koCounts = {}) {
+  return Object.fromEntries(
+    Object.entries(koCounts).map(([ko, value]) => [ELEMENT_KEY_BY_KO[ko] || ko, Number(value) || 0]),
+  );
+}
+
+function sortedEntries(counts = {}) {
+  return Object.entries(counts || {})
+    .map(([name, value]) => [name, Number(value || 0)])
+    .filter(([name, value]) => name && Number.isFinite(value))
+    .sort((a, b) => b[1] - a[1]);
+}
+
+function pillarPartsOf(detail, fallbackPillar = "") {
+  const pillar = clean(detail?.pillar || fallbackPillar, 10);
+  return {
+    pillar,
+    stem: normalizeStemChar(detail?.heavenlyStem || pillar),
+    branch: normalizeBranchChar(detail?.earthlyBranch || pillar),
+  };
 }
 
 function lovePatternFromReference(reference = {}) {
@@ -199,43 +244,161 @@ function lovePatternFromReference(reference = {}) {
   ].filter(Boolean).join(" ");
 }
 
-function referenceBaseFromProfile(profile = {}) {
+/**
+ * buildSajuAdvancedFactors 가 기대하는 입력 형태로 life-book 결과를 변환한다.
+ * (saju-ai-prompt.js 의 normalizeSajuPillarRows:504 / normalizeSajuLuckRows:562 계약)
+ */
+function buildAdvancedFactorAdapter(saju = {}) {
+  const details = saju.pillarDetails || {};
+  const pick = (key, fallback) => {
+    const parts = pillarPartsOf(details[key], fallback);
+    return parts.stem || parts.branch ? { gan: parts.stem, zhi: parts.branch } : null;
+  };
   return {
-    core: {
-      dayMaster: clean(profile?.dayMaster?.stem),
-      dayBranch: clean(profile?.pillars?.day?.branch),
-    },
-    elementBalance: {
-      counts: distributionFromScores(profile?.fiveElements),
-      dominant: clean(profile?.fiveElements?.strongest),
-      deficient: clean(profile?.fiveElements?.weakest),
-    },
-    tenGods: {
-      counts: distributionFromCounts(profile?.tenGods),
-      dominantTenGod: clean(profile?.tenGods?.dominant),
-    },
     pillars: {
-      year: { gan: clean(profile?.pillars?.year?.stem), zhi: clean(profile?.pillars?.year?.branch) },
-      month: { gan: clean(profile?.pillars?.month?.stem), zhi: clean(profile?.pillars?.month?.branch) },
-      day: { gan: clean(profile?.pillars?.day?.stem), zhi: clean(profile?.pillars?.day?.branch) },
-      hour: { gan: clean(profile?.pillars?.hour?.stem), zhi: clean(profile?.pillars?.hour?.branch) },
+      year: pick("year", saju.yearPillar),
+      month: pick("month", saju.monthPillar),
+      day: pick("day", saju.dayPillar),
+      hour: pick("hour", saju.hourPillar),
     },
-    strength: {
-      isStrong: Number(profile?.fiveElements?.scores?.[profile?.dayMaster?.element] || 0) >= 2.2,
+    daewoon: (saju.majorLuck?.cycles || [])
+      .filter((cycle) => clean(cycle?.pillar))
+      .map((cycle) => ({ ganji: cycle.pillar, startAge: cycle.startAge, scope: "daewoon" })),
+    yearlyLuck: (saju.yearlyLuck || [])
+      .filter((row) => clean(row?.pillar))
+      .map((row) => ({ ganji: row.pillar, year: row.year, scope: "sewoon" })),
+    power: {
+      yongshin: [clean(saju.usefulGod).charAt(0)].filter(Boolean),
+      kijishin: [clean(saju.unfavorableGod).charAt(0)].filter(Boolean),
     },
   };
 }
 
-function publicChartFromProfile(profile = {}) {
-  const reference = buildLoveSecretReference(referenceBaseFromProfile(profile));
+/** 상담 프롬프트가 쓰는 만큼만 남긴 고급 요소 투영(원본은 4만 자라 그대로 실을 수 없다). */
+function projectAdvancedFactors(saju) {
+  let factors = null;
+  try {
+    factors = buildSajuAdvancedFactors(buildAdvancedFactorAdapter(saju));
+  } catch (error) {
+    console.warn("[love-secret-ai] advanced factors skipped", { error: clean(error?.message || error, 200) });
+    return { gyeokguk: null, hiddenStemExposures: [] };
+  }
+  const gyeokguk = factors?.gyeokguk || null;
   return {
-    yearPillar: pillarText(profile?.pillars?.year),
-    monthPillar: pillarText(profile?.pillars?.month),
-    dayPillar: pillarText(profile?.pillars?.day),
-    hourPillar: profile?.calendar?.includeHour === false ? "" : pillarText(profile?.pillars?.hour),
-    dayMaster: clean(profile?.dayMaster?.stem || profile?.dayMaster?.stemKo),
-    fiveElements: distributionFromScores(profile?.fiveElements),
-    tenGods: distributionFromCounts(profile?.tenGods),
+    gyeokguk: gyeokguk
+      ? {
+        finalGyeokguk: clean(gyeokguk.finalGyeokguk || gyeokguk.gyeokguk, 40),
+        judgmentReason: clean(gyeokguk.judgmentReason || gyeokguk.reason, 300),
+        breakFactors: (Array.isArray(gyeokguk.breakFactors) ? gyeokguk.breakFactors : [])
+          .map((item) => (item && typeof item === "object" ? clean(`${item.type ? `${item.type} — ` : ""}${item.detail || ""}`, 160) : clean(item, 160)))
+          .filter(Boolean)
+          .slice(0, 4),
+      }
+      : null,
+    hiddenStemExposures: (Array.isArray(factors?.hiddenStemExposures) ? factors.hiddenStemExposures : [])
+      .filter((row) => row?.exposedInNatalHeavenlyStem || row?.exposedByLuckStem)
+      .map((row) => clean(row.summaryForPrompt || `${row.hiddenStem} 투출`, 160))
+      .filter(Boolean)
+      .slice(0, 6),
+  };
+}
+
+function buildReferenceBase(saju, shinsal, partnerBase = null) {
+  const details = saju.pillarDetails || {};
+  const year = pillarPartsOf(details.year, saju.yearPillar);
+  const month = pillarPartsOf(details.month, saju.monthPillar);
+  const day = pillarPartsOf(details.day, saju.dayPillar);
+  const hour = pillarPartsOf(details.hour, saju.hourPillar);
+  const elementCounts = buildElementCounts(saju);
+  const elementEntries = sortedEntries(elementCounts);
+  const tenGodEntries = sortedEntries(saju.tenGods);
+  const usefulElement = elementKeyFromKo(clean(saju.usefulGod).charAt(0));
+
+  return {
+    core: {
+      dayMaster: day.stem,
+      // relationTypeByBranch(love-secret-reference.js:230)가 한글 지지 테이블이라 한글로 넘긴다.
+      dayBranch: toBranchKo(day.branch),
+      monthBranch: toBranchKo(month.branch),
+    },
+    elementBalance: {
+      counts: toEnglishElementCounts(elementCounts),
+      dominant: elementKeyFromKo(elementEntries[0]?.[0]),
+      deficient: elementKeyFromKo([...elementEntries].reverse()[0]?.[0]),
+    },
+    tenGods: {
+      counts: distributionFromCounts(saju.tenGods),
+      dominantTenGod: clean(tenGodEntries[0]?.[0]),
+    },
+    pillars: {
+      year: { gan: year.stem, zhi: year.branch },
+      month: { gan: month.stem, zhi: month.branch },
+      day: { gan: day.stem, zhi: day.branch },
+      hour: { gan: hour.stem, zhi: hour.branch },
+    },
+    strength: { isStrong: clean(saju.strength).includes("강한") },
+    yongshin: { usefulElements: usefulElement ? [usefulElement] : [] },
+    specialStars: scoreShinsalIntensity(shinsal),
+    partner: partnerBase,
+  };
+}
+
+/**
+ * 상담용 명식 카드.
+ * 앞쪽 8개 키는 기존 계약 그대로다(publicChartSummary·결과 화면이 이 이름을 읽는다).
+ * 그 뒤는 전부 가산 필드이며 프롬프트 투영(love-secret-ai-facts.js)에서만 쓴다.
+ */
+function buildLoveChart(saju, { partnerBase = null } = {}) {
+  const details = saju.pillarDetails || {};
+  const day = pillarPartsOf(details.day, saju.dayPillar);
+  const year = pillarPartsOf(details.year, saju.yearPillar);
+  const usefulElement = elementKeyFromKo(clean(saju.usefulGod).charAt(0));
+  const unfavorableElement = elementKeyFromKo(clean(saju.unfavorableGod).charAt(0));
+
+  const luckRows = [
+    saju.majorLuck?.currentCycle
+      ? { scope: "daewoon", label: `${saju.majorLuck.currentCycle.startAge}~${saju.majorLuck.currentCycle.endAge}세 대운`, stem: saju.majorLuck.currentCycle.heavenlyStem, branch: saju.majorLuck.currentCycle.earthlyBranch }
+      : null,
+    ...(saju.yearlyLuck || []).slice(0, 2).map((row) => ({ scope: "sewoon", label: `${row.year} 세운`, stem: row.heavenlyStem, branch: row.earthlyBranch })),
+  ].filter(Boolean);
+
+  const shinsal = buildLoveShinsal({
+    pillars: {
+      year: { stem: year.stem, branch: year.branch },
+      month: pillarPartsOf(details.month, saju.monthPillar),
+      day: { stem: day.stem, branch: day.branch },
+      hour: pillarPartsOf(details.hour, saju.hourPillar),
+    },
+    dayStem: day.stem,
+    luckRows,
+    usefulElements: usefulElement ? [usefulElement] : [],
+    unfavorableElements: unfavorableElement ? [unfavorableElement] : [],
+  });
+
+  const reference = buildLoveSecretReference(buildReferenceBase(saju, shinsal, partnerBase));
+  const advanced = projectAdvancedFactors(saju);
+  const twelveLifeStages = ["year", "month", "day", "hour"]
+    .map((key) => {
+      const parts = pillarPartsOf(details[key], saju[`${key}Pillar`]);
+      if (!parts.branch) return null;
+      return {
+        position: key,
+        branch: parts.branch,
+        branchKo: toBranchKo(parts.branch),
+        stage: getTwelveLifeStage(day.stem, parts.branch),
+      };
+    })
+    .filter((row) => row && row.stage);
+
+  return {
+    // ── 기존 계약 (순서·타입 불변) ──
+    yearPillar: clean(saju.yearPillar, 10),
+    monthPillar: clean(saju.monthPillar, 10),
+    dayPillar: clean(saju.dayPillar, 10),
+    hourPillar: clean(saju.hourPillar, 10),
+    dayMaster: day.stem,
+    fiveElements: buildElementCounts(saju),
+    tenGods: distributionFromCounts(saju.tenGods),
     lovePattern: lovePatternFromReference(reference),
     reference: {
       dayElement: clean(reference.dayElement),
@@ -243,6 +406,74 @@ function publicChartFromProfile(profile = {}) {
       deficientElement: clean(reference.deficientElement),
       dominantTenGod: clean(reference.dominantTenGod),
       yongshinElement: clean(reference.yongshinElement),
+      // 화면에는 영문 오행 키가 아니라 이 한글 라벨을 쓴다.
+      dayElementLabel: ELEMENT_KO[reference.dayElement] || "",
+      dominantElementLabel: ELEMENT_KO[reference.dominantElement] || "",
+      deficientElementLabel: ELEMENT_KO[reference.deficientElement] || "",
+      yongshinElementLabel: ELEMENT_KO[reference.yongshinElement] || "",
+      dayMasterLabel: `${toStemKo(day.stem)}(${day.stem})`,
+    },
+    // ── 가산 필드 (프롬프트 투영 전용) ──
+    pillarDetails: details,
+    tenGodsByPillar: saju.tenGodsByPillar || null,
+    seasonalBalance: saju.seasonalBalance || null,
+    natalInteractions: saju.natalInteractions || null,
+    relationSummary: saju.relationSummary || null,
+    strength: clean(saju.strength, 60),
+    usefulGod: clean(saju.usefulGod, 80),
+    unfavorableGod: clean(saju.unfavorableGod, 80),
+    usefulElement,
+    unfavorableElement,
+    majorLuck: saju.majorLuck || null,
+    yearlyLuck: saju.yearlyLuck || [],
+    gyeokguk: advanced.gyeokguk,
+    hiddenStemExposures: advanced.hiddenStemExposures,
+    twelveLifeStages,
+    shinsal,
+    loveReference: reference,
+    calculationMeta: saju.calculationMeta || null,
+  };
+}
+
+/** 내 명식 기준 90일 일진 캘린더. "좋은 날짜" 는 전적으로 이 목록에서만 나온다. */
+function buildLoveCalendarFor(chart, nowMs) {
+  const dayStem = normalizeStemChar(chart.dayMaster);
+  const dayBranch = normalizeBranchChar(chart.pillarDetails?.day?.earthlyBranch || chart.dayPillar);
+  const natalBranches = ["year", "month", "day", "hour"]
+    .map((key) => normalizeBranchChar(chart.pillarDetails?.[key]?.earthlyBranch))
+    .filter(Boolean);
+  const dohwa = chart.shinsal?.byName?.도화살;
+  const hongyeom = chart.shinsal?.byName?.홍염살;
+  const gongmang = chart.shinsal?.byName?.공망;
+  const branchesOf = (star) => (star?.targets || [])
+    .map((target) => normalizeBranchChar(target))
+    .filter(Boolean);
+
+  return buildLoveDayCalendar({
+    dayStem,
+    dayBranch,
+    natalBranches,
+    yongshinElement: chart.usefulElement,
+    gisinElement: chart.unfavorableElement,
+    dohwaBranches: branchesOf(dohwa),
+    hongyeomBranch: branchesOf(hongyeom)[0] || "",
+    gongmangBranches: branchesOf(gongmang),
+    startDateKst: todayKstYmd(nowMs),
+    days: 90,
+  });
+}
+
+/** buildLoveSecretReference 가 상대 정보로 받는 최소 base. */
+function partnerReferenceBase(saju) {
+  const details = saju.pillarDetails || {};
+  const day = pillarPartsOf(details.day, saju.dayPillar);
+  const month = pillarPartsOf(details.month, saju.monthPillar);
+  const elementEntries = sortedEntries(buildElementCounts(saju));
+  return {
+    core: { dayMaster: day.stem, dayBranch: toBranchKo(day.branch), monthBranch: toBranchKo(month.branch) },
+    elementBalance: {
+      dominant: elementKeyFromKo(elementEntries[0]?.[0]),
+      deficient: elementKeyFromKo([...elementEntries].reverse()[0]?.[0]),
     },
   };
 }
@@ -259,23 +490,80 @@ function relationBetweenElements(a, b) {
   return `${aLabel}과 ${bLabel}의 흐름은 직접 겹치기보다 대화 방식과 생활 리듬에서 조율점이 드러납니다.`;
 }
 
-function buildCompatibility(myChart = {}, partnerChart = {}) {
+const BRANCH_RELATION_TEXT = Object.freeze({
+  육합: "일지끼리 육합이라 함께 있으면 긴장이 풀리고 대화가 길어집니다.",
+  삼합: "일지가 같은 삼합국이라 목표와 리듬이 자연스럽게 겹칩니다.",
+  충: "일지끼리 충이라 끌림이 강한 만큼 부딪히는 속도도 빠릅니다.",
+  형: "일지에 형이 걸려 서로의 방식이 옳다고 느끼는 지점에서 마찰이 생깁니다.",
+  파: "일지에 파가 걸려 잘 가다가 한 번씩 관계가 끊기는 결이 있습니다.",
+  해: "일지에 해가 걸려 사소한 오해가 감정을 잘라 먹습니다.",
+  원진: "일지가 원진이라 사건 없이도 서운함이 쌓이기 쉽습니다.",
+  귀문: "일지가 귀문이라 서로의 미세한 변화를 지나치게 읽어 냅니다.",
+});
+
+const STEM_RELATION_TEXT = Object.freeze({
+  합: "두 일간이 천간합이라 만나면 서로의 태도가 부드러워집니다.",
+  충: "두 일간이 천간충이라 정면으로 부딪히면 물러서기 어렵습니다.",
+  생: "한쪽 일간이 다른 쪽을 살려 주는 흐름이라 돌봄의 방향이 한쪽으로 기웁니다.",
+  극: "한쪽 일간이 다른 쪽을 제어하는 흐름이라 주도권 다툼이 생기기 쉽습니다.",
+  동: "두 일간이 같은 기운이라 마음을 빨리 알아보지만 자존심도 같이 걸립니다.",
+});
+
+/**
+ * 두 사람의 궁합. 앞의 4개 문자열은 기존 계약(publicSajuSummary 가 그대로 읽는다)이고,
+ * 나머지는 프롬프트가 쓰는 계산 근거다.
+ */
+function buildLoveCompatibility(mySaju, partnerSaju, myChart, partnerChart) {
+  const myDay = pillarPartsOf(mySaju?.pillarDetails?.day, mySaju?.dayPillar);
+  const partnerDay = pillarPartsOf(partnerSaju?.pillarDetails?.day, partnerSaju?.dayPillar);
+  const spouseRelations = getBranchPairRelations(myDay.branch, partnerDay.branch);
+  const stemRelation = getStemPairRelation(myDay.stem, partnerDay.stem);
+
+  let axes = null;
+  try {
+    axes = buildSajuLoveCompatibility({ selfSaju: mySaju, partnerSaju });
+  } catch (error) {
+    console.warn("[love-secret-ai] compatibility axes skipped", { error: clean(error?.message || error, 200) });
+  }
+
   const myElement = clean(myChart?.reference?.dayElement);
   const partnerElement = clean(partnerChart?.reference?.dayElement);
-  const elementSummary = relationBetweenElements(myElement, partnerElement);
-  const sameDayMaster = clean(myChart.dayMaster) && clean(myChart.dayMaster) === clean(partnerChart.dayMaster);
-  const myDominant = clean(myChart?.reference?.dominantTenGod);
-  const partnerDominant = clean(partnerChart?.reference?.dominantTenGod);
+  const relationLines = spouseRelations.map((name) => BRANCH_RELATION_TEXT[name]).filter(Boolean);
+
+  // 상대 지지가 내 도화/홍염/공망에 닿는가 — 끌림과 공백의 교차점.
+  const partnerBranches = ["year", "month", "day", "hour"]
+    .map((key) => pillarPartsOf(partnerSaju?.pillarDetails?.[key], partnerSaju?.[`${key}Pillar`]).branch)
+    .filter(Boolean);
+  const myDohwa = new Set([getPeachBlossomBranch(myDay.branch), getPeachBlossomBranch(pillarPartsOf(mySaju?.pillarDetails?.year, mySaju?.yearPillar).branch)].filter(Boolean));
+  const myHongyeom = getHongyeomBranch(myDay.stem);
+  const shinsalCross = [
+    partnerBranches.some((branch) => myDohwa.has(branch)) ? "상대 지지가 내 도화에 닿아 끌림이 먼저 올라옵니다." : "",
+    myHongyeom && partnerBranches.includes(myHongyeom) ? "상대 지지가 내 홍염에 닿아 분위기로 마음이 흔들립니다." : "",
+  ].filter(Boolean);
 
   return {
-    summary: elementSummary,
-    attractionPattern: sameDayMaster
-      ? "서로의 본질을 빠르게 알아보는 끌림이 있으나, 감정 처리 방식이 닮아 자존심도 함께 건드려질 수 있습니다."
-      : "서로 다른 결로 반응하는 지점이 끌림을 만들며, 상대를 내 방식대로 해석하지 않을 때 매력이 살아납니다.",
-    conflictPattern: myDominant && partnerDominant && myDominant === partnerDominant
-      ? "관계에서 중요하게 여기는 기준이 닮아 있어 좋을 때는 빠르게 맞지만, 서운함도 비슷한 방식으로 쌓일 수 있습니다."
+    summary: [relationBetweenElements(myElement, partnerElement), ...relationLines].join(" "),
+    attractionPattern: [
+      STEM_RELATION_TEXT[stemRelation] || "두 일간이 직접 얽히지 않아 끌림은 생활 리듬과 대화에서 만들어집니다.",
+      ...shinsalCross,
+    ].join(" "),
+    conflictPattern: relationLines.length
+      ? `갈등은 애정 부족이 아니라 계산된 관계에서 옵니다. ${relationLines.filter((line) => /충|형|파|해|원진|귀문/.test(line)).join(" ") || "표현 방식과 확인 속도의 차이에서 생기기 쉽습니다."}`
       : "갈등은 애정 부족보다 표현 방식과 확인 속도의 차이에서 생기기 쉽습니다.",
     stability: "안정성은 감정을 단정하는 데서 오지 않고, 연락 간격과 대화의 온도를 서로가 감당 가능한 수준으로 맞출 때 높아집니다.",
+    dayStemRelation: axes?.dayStemRelation || null,
+    elementBalance: axes?.elementBalance || null,
+    tenGodInteraction: axes?.tenGodInteraction || null,
+    yongshinSupport: axes?.yongshinSupport || null,
+    branchRelations: axes?.branchRelations || null,
+    axisScores: axes?.axisScores || null,
+    spousePalaceRelation: {
+      myDayBranch: `${myDay.branch}(${toBranchKo(myDay.branch)})`,
+      partnerDayBranch: `${partnerDay.branch}(${toBranchKo(partnerDay.branch)})`,
+      relations: spouseRelations,
+      stemRelation,
+    },
+    shinsalCross,
   };
 }
 
@@ -329,18 +617,29 @@ export function normalizeLoveSecretAiInput(body = {}) {
   };
 }
 
-export function calculateLoveSecretAiSaju(normalized) {
+/**
+ * 연애 상담용 명식 일체.
+ *
+ * @param {object} normalized  normalizeLoveSecretAiInput 결과
+ * @param {object} [options]
+ * @param {"full"|"validate"} [options.mode="full"]
+ *   "validate" — 사전검사(prepare)용. 생년 정보가 계산 가능한지만 확인하고
+ *   고급 요소·일진 캘린더·궁합 축은 건너뛴다(같은 요청에서 두 번 계산되는 비용 제거).
+ * @param {number} [options.nowMs]  일진 캘린더 시작일 기준 시각. 테스트에서 고정할 수 있게 주입받는다.
+ */
+export function calculateLoveSecretAiSaju(normalized, options = {}) {
+  const mode = options.mode === "validate" ? "validate" : "full";
   const internal = normalized?.internal || {};
   const myInfo = internal.myInfo;
   if (!myInfo?.birth) {
     throw Object.assign(new Error("missing my birth info"), { code: "CALCULATION_FAILED" });
   }
 
-  let myProfile;
-  let partnerProfile = null;
+  let mySaju;
+  let partnerSaju = null;
 
   try {
-    myProfile = buildSajuProfile(buildProfileInput(myInfo));
+    mySaju = calculateLifeBookAiSaju(buildLifeBookInput(myInfo));
   } catch (error) {
     console.warn("[love-secret-ai] my chart calculation failed", {
       birthDate: myInfo.birthDate,
@@ -354,7 +653,7 @@ export function calculateLoveSecretAiSaju(normalized) {
   const partnerInfo = internal.partnerInfo;
   if (partnerInfo?.birth) {
     try {
-      partnerProfile = buildSajuProfile(buildProfileInput(partnerInfo));
+      partnerSaju = calculateLifeBookAiSaju(buildLifeBookInput(partnerInfo));
     } catch (error) {
       console.warn("[love-secret-ai] partner chart calculation failed", {
         birthDate: partnerInfo.birthDate,
@@ -366,9 +665,21 @@ export function calculateLoveSecretAiSaju(normalized) {
     }
   }
 
-  const myChart = publicChartFromProfile(myProfile);
-  const partnerChart = partnerProfile ? publicChartFromProfile(partnerProfile) : undefined;
-  const compatibility = partnerChart ? buildCompatibility(myChart, partnerChart) : undefined;
+  if (mode === "validate") {
+    return {
+      version: LOVE_SECRET_AI_SAJU_VERSION,
+      mode,
+      myChart: { dayPillar: clean(mySaju.dayPillar, 10), dayMaster: clean(mySaju.dayMaster, 4) },
+      partnerChart: partnerSaju ? { dayPillar: clean(partnerSaju.dayPillar, 10), dayMaster: clean(partnerSaju.dayMaster, 4) } : undefined,
+      consultationMode: partnerSaju ? "with_partner" : "solo",
+    };
+  }
+
+  const partnerBase = partnerSaju ? partnerReferenceBase(partnerSaju) : null;
+  const myChart = buildLoveChart(mySaju, { partnerBase });
+  const partnerChart = partnerSaju ? buildLoveChart(partnerSaju) : undefined;
+  const compatibility = partnerSaju ? buildLoveCompatibility(mySaju, partnerSaju, myChart, partnerChart) : undefined;
+  const calendar = buildLoveCalendarFor(myChart, options.nowMs);
 
   const uncertainty = [];
   if (normalized.input.myInfo.birthTimeUnknown) uncertainty.push("my_birth_time_unknown");
@@ -385,10 +696,12 @@ export function calculateLoveSecretAiSaju(normalized) {
   }
 
   return {
+    version: LOVE_SECRET_AI_SAJU_VERSION,
     myChart,
     partnerChart,
     compatibility,
     uncertainty,
     consultationMode: partnerChart ? "with_partner" : "solo",
+    calendar,
   };
 }
