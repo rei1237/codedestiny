@@ -62,6 +62,12 @@ assert.ok(reconcileTask.includes("PORTONE_AUTH_REJECTED"), "중단 사유를 요
 assert.ok(/limit\s*=\s*clampInt/.test(reconcileTask), "배치 상한(limit)이 있어야 한다");
 assert.ok(/maxAttempts\s*=\s*clampInt/.test(reconcileTask), "시도 상한(maxAttempts)이 있어야 한다");
 assert.ok(reconcileTask.includes("metadata.reconcile.lastAt"), "동시 실행 클레임(CAS)이 있어야 한다");
+// 🔴 최신 주문 우선. 오름차순으로 되돌리면 방금 결제된 건이 오래된 이탈 주문들 뒤로 밀려,
+// 한 틱이 상한까지 못 돌 때 영영 정산되지 않는다(운영에서 실제로 발생).
+assert.ok(
+  /\.sort\(\{ createdAt: -1 \}\)/.test(reconcileTask),
+  "재조정 후보는 최신 주문부터 처리해야 한다(sort createdAt:-1)",
+);
 assert.ok(
   reconcileTask.includes("export async function runPaymentReconcileTask"),
   "크론 진입점 runPaymentReconcileTask 를 export 해야 한다",

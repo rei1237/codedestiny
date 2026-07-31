@@ -63,7 +63,11 @@ export async function reconcilePendingPayments(env, options = {}) {
     ],
   })
     .select("userId merchantUid impUid status orderState paymentAmount paymentType accessType featureKey pricingSnapshot createdAt metadata")
-    .sort({ createdAt: 1 })
+    // 🔴 최신 주문 우선. 예전에는 오래된 것부터(createdAt:1) 처리했는데, 앞자리를 며칠 지난 '결제창
+    // 이탈' 주문들이 차지해 방금 결제된 건이 대기열 맨 뒤로 밀렸다. 한 틱이 상한까지 못 돌면(운영에서
+    // 실제로 그랬다) 정작 급한 건은 영영 처리되지 않는다. 지급이 급한 쪽은 방금 결제된 주문이고,
+    // 오래된 이탈 건은 시도 상한(maxAttempts)이 알아서 정리한다.
+    .sort({ createdAt: -1 })
     .limit(limit)
     .lean());
 
