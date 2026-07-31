@@ -45,3 +45,15 @@
   word-break: keep-all;
   overflow-wrap: break-word;
 }
+
+/*
+ * 중요 문장 하이라이트. highlight prop 을 준 소비처에서만 나타난다.
+ * 텍스트 색은 건드리지 않는다 — 부모가 정한 본문 명암비를 그대로 지켜야 한다.
+ */
+.mark {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 48%, transparent);
+  border-radius: 2px;
+  padding: 0.05em 0.12em;
+  color: inherit;
+}
