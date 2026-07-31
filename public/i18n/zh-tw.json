@@ -7319,5 +7319,17 @@
       "010": "事業門檻7卡",
       "011": "對方內心塔羅"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "付費後你會得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "30,000～60,000字",
+      "chaptersLabel": "結構",
+      "chaptersValue": "共10章 · 每章2,400字以上",
+      "keepLabel": "保存",
+      "keepValue": "匯出PDF，永久保存",
+      "guarantee": "篇幅未達標準會自動重寫。若仍無法達標，則判定為失敗而不交付結果，重試與退款通道保持有效。"
+    }
   }
 }

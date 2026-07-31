@@ -7319,5 +7319,17 @@
       "010": "7 Kad Ambang Kerja",
       "011": "Tarot Perasaan Sebenar Orang Lain"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Apa yang anda dapat apabila membayar",
+      "volumeLabel": "Panjang",
+      "volumeValue": "30,000–60,000 aksara",
+      "chaptersLabel": "Struktur",
+      "chaptersValue": "10 bab · setiap satu melebihi 2,400 aksara",
+      "keepLabel": "Simpan",
+      "keepValue": "Simpan sebagai PDF dan miliki selamanya",
+      "guarantee": "Jika panjangnya tidak mencapai piawai itu, laporan ditulis semula secara automatik. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
+    }
   }
 }

@@ -7319,5 +7319,17 @@
       "010": "7 lá bài ngưỡng cửa công việc",
       "011": "Tarot nội tâm đối phương"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Bạn nhận được gì khi thanh toán",
+      "volumeLabel": "Độ dài",
+      "volumeValue": "30.000–60.000 ký tự",
+      "chaptersLabel": "Cấu trúc",
+      "chaptersValue": "10 chương · mỗi chương trên 2.400 ký tự",
+      "keepLabel": "Lưu giữ",
+      "keepValue": "Xuất PDF và giữ vĩnh viễn",
+      "guarantee": "Nếu không đạt độ dài trên, bài luận sẽ được viết lại tự động. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
+    }
   }
 }

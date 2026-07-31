@@ -4307,5 +4307,17 @@
       "010": "일의 문턱 7카드",
       "011": "상대방 속마음 타로"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "결제하면 받는 것",
+      "volumeLabel": "분량",
+      "volumeValue": "30,000~60,000자",
+      "chaptersLabel": "구성",
+      "chaptersValue": "10개 장 · 장마다 2,400자 이상",
+      "keepLabel": "보관",
+      "keepValue": "PDF로 저장해 영구 소장",
+      "guarantee": "분량이 기준에 못 미치면 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
+    }
   }
 }

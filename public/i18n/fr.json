@@ -7319,5 +7319,17 @@
       "010": "Tarot des 7 cartes du seuil professionnel",
       "011": "Tarot des pensées de l'autre"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Ce que votre paiement vous apporte",
+      "volumeLabel": "Longueur",
+      "volumeValue": "30 000 à 60 000 caractères",
+      "chaptersLabel": "Structure",
+      "chaptersValue": "10 chapitres · plus de 2 400 caractères chacun",
+      "keepLabel": "Conservation",
+      "keepValue": "Enregistrez en PDF et gardez-le à vie",
+      "guarantee": "Si le texte n'atteint pas cette longueur, il est réécrit automatiquement. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
+    }
   }
 }

@@ -7319,5 +7319,17 @@
       "010": "Berufliche Schwelle (7 Karten)",
       "011": "Tarot: Gefühle des Anderen"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Das bekommen Sie für Ihre Zahlung",
+      "volumeLabel": "Umfang",
+      "volumeValue": "30.000–60.000 Zeichen",
+      "chaptersLabel": "Aufbau",
+      "chaptersValue": "10 Kapitel · je über 2.400 Zeichen",
+      "keepLabel": "Aufbewahren",
+      "keepValue": "Als PDF speichern und dauerhaft behalten",
+      "guarantee": "Bleibt der Text unter diesem Umfang, wird er automatisch neu geschrieben. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
+    }
   }
 }

@@ -7319,5 +7319,17 @@
       "010": "Work Threshold 7-Card",
       "011": "Their Inner Thoughts Tarot"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "What your payment gets you",
+      "volumeLabel": "Length",
+      "volumeValue": "30,000–60,000 characters",
+      "chaptersLabel": "Structure",
+      "chaptersValue": "10 chapters · 2,400+ characters each",
+      "keepLabel": "Keep it",
+      "keepValue": "Save as PDF and own it for good",
+      "guarantee": "If the reading falls short of that length, it is rewritten automatically. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
+    }
   }
 }

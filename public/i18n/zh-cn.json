@@ -7319,5 +7319,17 @@
       "010": "事业门槛7牌阵",
       "011": "对方内心塔罗"
     }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "付费后你会得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "30,000～60,000字",
+      "chaptersLabel": "结构",
+      "chaptersValue": "共10章 · 每章2,400字以上",
+      "keepLabel": "保存",
+      "keepValue": "导出PDF，永久保存",
+      "guarantee": "篇幅未达标准会自动重写。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
+    }
   }
 }
