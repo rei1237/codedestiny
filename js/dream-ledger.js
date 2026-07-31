@@ -25,7 +25,7 @@
       stageSymbolTitle: '2장 · 상징과 감정 단서',
       stageQuestionTitle: '3장 · AI에게 건넬 질문',
       inputGuide: '누가(무엇이) 어떤 행동을 했고, 어떤 감정을 느꼈는지 적어주세요.',
-      shareTitle: '무의식의 마법 상점: 드림 프롬프트',
+      shareTitle: '무의식의 마법 상점: 드림 타로',
       tarotBackAria: '타로 카드 뒷면',
       copiedPrompt: '꿈 프롬프트를 클립보드에 복사했습니다.',
       shareUnsupported: '공유를 지원하지 않는 환경입니다.',
@@ -63,7 +63,7 @@
       stageSymbolTitle: 'Chapter 2 · Symbols and Emotional Clues',
       stageQuestionTitle: 'Chapter 3 · Questions for AI',
       inputGuide: 'Please describe who or what acted, what happened, and what emotion you felt.',
-      shareTitle: 'Unconscious Magic Shop: Dream Prompt',
+      shareTitle: 'Unconscious Magic Shop: Dream Tarot',
       tarotBackAria: 'Tarot card back',
       copiedPrompt: 'Dream prompt copied to clipboard.',
       shareUnsupported: 'Sharing is not supported in this environment.',
@@ -139,7 +139,7 @@
       stageSymbolTitle: '第2章 · 象征与情绪线索',
       stageQuestionTitle: '第3章 · 交给 AI 的问题',
       inputGuide: '请写下谁或什么做了什么，以及你感受到了什么情绪。',
-      shareTitle: '无意识魔法商店：梦境提示词',
+      shareTitle: '无意识魔法商店：梦境塔罗',
       tarotBackAria: '塔罗牌背面',
       copiedPrompt: '梦境提示词已复制到剪贴板。',
       shareUnsupported: '当前环境不支持分享。',
@@ -177,7 +177,7 @@
       stageSymbolTitle: '第2章 · 象徵與情緒線索',
       stageQuestionTitle: '第3章 · 交給 AI 的問題',
       inputGuide: '請寫下誰或什麼做了什麼，以及你感受到了什麼情緒。',
-      shareTitle: '無意識魔法商店：夢境提示詞',
+      shareTitle: '無意識魔法商店：夢境塔羅',
       tarotBackAria: '塔羅牌背面',
       copiedPrompt: '夢境提示詞已複製到剪貼簿。',
       shareUnsupported: '目前環境不支援分享。',
@@ -2219,14 +2219,14 @@
 
     var ai = window.DreamLedgerAI;
     if (!ai || typeof ai.interpretDream !== 'function') {
-      setLoaderText('드림 프롬프트의 문을 여는 중입니다...');
+      setLoaderText('드림 타로의 문을 여는 중입니다...');
       $('dreamLoader').style.display = 'block';
       ensureDreamLedgerAiReady().then(function (loadedAi) {
         if (loadedAi && typeof loadedAi.interpretDream === 'function') {
           window.startDreamReading();
           return;
         }
-        setLoaderText('드림 프롬프트의 문이 잠시 닫혀 있습니다. 잠시 후 다시 시도해 주세요.');
+        setLoaderText('드림 타로의 문이 잠시 닫혀 있습니다. 잠시 후 다시 시도해 주세요.');
         setTimeout(function () {
           $('dreamLoader').style.display = 'none';
         }, 1500);
@@ -2736,39 +2736,135 @@
     source = source || {};
     var nameKo = String(source.nameKo || source.nameKr || source.name || ('카드 ' + (idx + 1))).trim();
     var keywords = Array.isArray(source.keywords) ? source.keywords.slice(0, 4) : [];
+    // 정/역방향은 서버가 꿈 원문 시드로 확정한다. 클라이언트가 다시 뽑으면
+    // 화면의 역방향 배지와 서버가 만든 프롬프트 문구가 어긋난다.
+    var reversedFlag = typeof source.isReversed === 'boolean'
+      ? source.isReversed
+      : (typeof card.isReversed === 'boolean' ? card.isReversed : false);
     return {
       card: {
         id: source.id,
+        code: String(source.code || source.id || '').trim(),
         name: String(source.name || '').trim(),
         nameKo: nameKo,
         arcana: String(source.arcana || 'major').trim(),
+        suit: String(source.suit || '').trim(),
+        element: String(source.element || '').trim(),
+        number: source.number,
         keywords: keywords.length ? keywords : ['무의식', '상징'],
+        uprightKeywords: Array.isArray(source.uprightKeywords) ? source.uprightKeywords.slice(0, 5) : [],
+        reversedKeywords: Array.isArray(source.reversedKeywords) ? source.reversedKeywords.slice(0, 5) : [],
         dreamMeaning: String(source.dreamMeaning || '').trim(),
         uprightMeaning: String(source.uprightMeaning || '').trim(),
         reversedMeaning: String(source.reversedMeaning || '').trim(),
-        imageUrl: String(source.imageUrl || source.localImageUrl || source.tarot_image_url || '').trim()
+        imageUrl: String(source.imageUrl || source.localImageUrl || source.tarot_image_url || '').trim(),
+        imageFallbackUrl: String(source.imageFallbackUrl || '').trim()
       },
-      isReversed: typeof card.isReversed === 'boolean' ? card.isReversed : Math.random() > 0.7,
+      isReversed: reversedFlag,
       isRevealed: Boolean(card.isRevealed)
     };
   }
 
+  // 서버(worker/routes/dream.js buildDreamTarotConsultPrompt)와 같은 문안이어야 한다.
+  // 바닐라 스크립트라 워커 모듈을 import 할 수 없어 구조적으로 중복이며, 한쪽만 고치면 안 된다.
   function buildDreamV2ClientPrompt() {
     var compact = String(dreamPromptV2.dreamInput || '').replace(/\s+/g, ' ').trim();
-    if (compact.length > 260) compact = compact.slice(0, 259) + '…';
+    if (compact.length > 1200) compact = compact.slice(0, 1199) + '…';
     var themes = dreamPromptV2.dreamThemes.length ? dreamPromptV2.dreamThemes.join(', ') : '무의식, 감정의 잔향';
-    var cards = dreamPromptV2.drawnCards.map(function (entry) {
+    var cardCount = dreamPromptV2.drawnCards.length;
+    var cardLines = [];
+    dreamPromptV2.drawnCards.forEach(function (entry, idx) {
+      var card = entry.card || {};
       var orientation = entry.isReversed ? '역방향' : '정방향';
-      var keywords = entry.card.keywords.slice(0, 3).join(', ');
-      return entry.card.nameKo + '(' + orientation + ': ' + keywords + ')';
-    }).join(' / ');
+      var facets = card.arcana === 'major'
+        ? ['메이저 아르카나 ' + card.number, '수비학 ' + card.number]
+        : [(card.suit || '') + ' ' + card.number, '원소 ' + (card.element || ''), '수비학 ' + card.number];
+      cardLines.push((idx + 1) + '. ' + card.nameKo + ' (' + (card.name || '') + ') · ' + orientation + ' · ' + facets.join(' · '));
+      var upright = (card.uprightKeywords && card.uprightKeywords.length ? card.uprightKeywords : card.keywords).join(', ');
+      var reversed = (card.reversedKeywords || []).join(', ');
+      if (upright) cardLines.push('   정방향 키워드: ' + upright);
+      if (reversed) cardLines.push('   역방향 키워드: ' + reversed);
+      if (card.dreamMeaning) cardLines.push('   꿈에서의 결: ' + card.dreamMeaning);
+    });
+
     return [
-      '다음 꿈을 타로와 꿈 심리학의 관점으로 깊이 해석해 주세요. 꿈의 원문은 "' + compact + '"입니다.',
-      '중심 주제는 ' + themes + '이며, 뽑힌 카드는 ' + cards + '입니다.',
-      '각 카드가 꿈의 장면, 감정, 인물, 장소와 어떻게 맞물리는지 살피고, 정방향과 역방향의 결을 구분해 주세요.',
-      '융의 무의식, 그림자, 상징 원형의 관점을 자연스럽게 엮어 현재 내면에서 강하게 떠오르는 메시지를 짚어 주세요.',
-      '마지막에는 제가 오늘 붙들어야 할 한 문장, 현실에서 실천할 작은 의식, 그리고 스스로에게 던질 질문 3가지를 남겨 주세요.'
-    ].join(' ');
+      '# 역할',
+      '당신은 30년 이상 실전 경험을 가진 세계 최고 수준의 타로 마스터이자 꿈 해몽 전문가입니다.',
+      'Rider-Waite 78장을 기준 덱으로 삼되 Marseille·Thoth의 상징 체계를 함께 이해하고 있으며,',
+      'Carl Jung의 상징심리학을 해석의 뼈대로 사용합니다.',
+      '지금부터 아래 자료를 바탕으로, 실제 전문 타로 상담사가 진행하는 수준의 꿈 상담을 해 주세요.',
+      '',
+      '# 상담 자료',
+      '[꿈 원문]',
+      compact,
+      '',
+      '[감지된 중심 주제] ' + themes,
+      '[뽑힌 카드] ' + cardCount + '장'
+    ].concat(cardLines).concat([
+      '',
+      '# 분석 순서 (반드시 이 순서를 지켜 주세요)',
+      '① 꿈의 핵심 상징 분석 — 아래 항목으로 체계적으로 분류하되, 꿈에 실제로 등장한 것만 다룹니다.',
+      '   인물 / 장소 / 동물 / 자연물 / 물 / 불 / 하늘 / 색 / 숫자 / 방향 / 날씨 / 건물 / 탈것 /',
+      '   문 / 열쇠 / 음식 / 죽음 / 탄생 / 추락 / 비행 / 시험 / 학교 / 직장',
+      '② 가장 중요한 감정 분석 — 꿈은 사건보다 감정이 중요합니다.',
+      '   두려움 / 기쁨 / 안도 / 분노 / 슬픔 / 후회 / 죄책감 / 기대 / 설렘 중 어떤 감정이',
+      '   꿈에서 어떤 역할을 했는지, 깨어난 뒤 어떤 여운으로 남았는지 먼저 짚습니다.',
+      '③ 반복되는 상징 확인 — 같은 이미지·장면·감정이 되풀이되는지 살핍니다.',
+      '④ 현재 현실과 연결 — 상징의 사전 뜻보다 이 사람의 개인 맥락이 우선입니다.',
+      '⑤ 무의식의 메시지 추론',
+      '⑥ 가장 적합한 타로 스프레드 선택 — 아래에서 고르고 선택 이유를 반드시 설명합니다.',
+      '   불안한 꿈 → 3 Card Shadow Spread / 재회 꿈 → Relationship Spread /',
+      '   돈 꿈 → Prosperity Spread / 직장 꿈 → Career Spread /',
+      '   반복되는 꿈 → Cross Spread / 인생 전환 → Celtic Cross',
+      '   뽑힌 카드가 ' + cardCount + '장이므로 ' + cardCount + '장으로 운용 가능한 스프레드를 고르거나,',
+      '   ' + cardCount + '개의 자리 의미를 직접 정의하고 그 근거를 밝혀 주세요.',
+      '⑦ 카드별 질문 설계 — 카드를 읽기 전에 물어야 할 질문을 먼저 세웁니다.',
+      '   이 꿈은 무엇을 알려주려 하는가 / 내가 지금 놓치고 있는 것은 무엇인가 /',
+      '   현재 가장 중요한 선택은 무엇인가 / 무의식이 경고하는 부분은 어디인가 /',
+      '   앞으로 어떤 행동이 필요한가',
+      '⑧ 카드 의미를 꿈과 연결',
+      '⑨ 실질적인 조언',
+      '⑩ 종합 메시지',
+      '',
+      '# 카드 해석 원칙',
+      '각 카드마다 반드시 이 순서를 따릅니다. 단순한 카드 설명 나열은 금지합니다.',
+      '  카드의 기본 상징 → 꿈속 상징과 연결 → 현재 상황과 연결 → 심리적 의미 → 행동 조언 → 주의사항',
+      '정방향과 역방향을 정확히 구분합니다. 역방향은 \'나쁨\'이 아니라 방향·강도·내향화의 차이입니다.',
+      '카드 이름만 보고 단편적으로 해석하지 말고, 상징·슈트·원소·수비학·점성술 대응·색채·',
+      '인물이 향한 방향·배경 요소를 종합해 읽어 주세요.',
+      '꿈속 상징과 슈트를 적극적으로 연결합니다.',
+      '  물·감정 → Cups / 불·열정 → Wands / 돈·현실 → Pentacles / 갈등·생각 → Swords',
+      '',
+      '# 꿈 유형 분류',
+      '먼저 이 꿈이 어떤 유형인지 분류하고, 유형에 따라 상담 방향을 달리합니다.',
+      '  예지성 / 심리적 / 불안 / 희망 / 소망 / 스트레스 / 무의식 / 트라우마 / 성장 / 관계 / 치유',
+      '',
+      '# 융 심리학 관점',
+      '가능한 경우 그림자, 아니마·아니무스, 개성화, 집단무의식, 원형(archetype)의 관점을 함께 참고합니다.',
+      '단, 단정하지 말고 가능성으로 설명해 주세요.',
+      '',
+      '# 금지 사항',
+      '- 카드 의미만 나열하기',
+      '- 꿈 의미만 설명하고 카드와 연결하지 않기',
+      '- 긍정적인 말만 반복하기',
+      '- 모든 꿈을 길몽으로 해석하기',
+      '- 모든 역방향을 나쁘게 해석하기',
+      '- 근거 없는 예언, 단정적인 미래 예측',
+      '',
+      '# 출력 형식',
+      '1. 꿈 유형 분류와 그 근거',
+      '2. 상징 분석 (분류 / 등장한 것 / 상징적 의미 / 개인 맥락을 확인할 질문)',
+      '3. 감정 지도 (감정 / 꿈에서의 역할 / 현실에서의 대응)',
+      '4. 선택한 스프레드와 선택 이유, 각 자리의 의미',
+      '5. 카드별 해석 (위 6단계 순서를 그대로 지킬 것)',
+      '6. 카드 조합이 만드는 하나의 서사',
+      '7. 융의 관점에서 본 무의식의 메시지 (단정 없이 가능성으로)',
+      '8. 지금 붙잡아야 할 한 문장',
+      '9. 앞으로 48시간 안에 실행할 수 있는 구체적인 행동 1가지',
+      '10. 스스로에게 던질 질문 3가지',
+      '',
+      '읽는 사람이 "정말 상담을 받은 것 같다"고 느끼도록, 실제 프리미엄 타로 상담의 깊이와 일관성으로 작성해 주세요.'
+    ]).join('\n');
   }
 
   function renderDreamV2Card(entry, idx) {
@@ -2777,9 +2873,17 @@
     var flipped = entry.isRevealed ? ' flipped' : '';
     var reversed = entry.isReversed ? '1' : '0';
     var keywords = Array.isArray(card.keywords) ? card.keywords.slice(0, 3) : [];
-    var image = card.imageUrl
-      ? '<img src="' + escapeHtml(card.imageUrl) + '" alt="' + escapeHtml(card.nameKo || card.name || '') + '" loading="lazy" decoding="async">'
-      : '<span>' + escapeHtml(card.nameKo || card.name || 'Tarot') + '</span>';
+    // 카드 노출은 이미 순차 리빌 타이머로 게이트돼 있다. 여기에 loading="lazy" 를 겹치면
+    // 지연 장치가 이중으로 걸려 뒤집었을 때 빈 카드가 보인다.
+    var image;
+    if (card.imageUrl) {
+      var onError = card.imageFallbackUrl
+        ? " onerror=\"if(this.dataset.fb){this.onerror=null;this.replaceWith(document.createTextNode(this.alt));return;}this.dataset.fb='1';this.src='" + escapeHtml(card.imageFallbackUrl) + "';\""
+        : ' onerror="this.onerror=null;this.replaceWith(document.createTextNode(this.alt));"';
+      image = '<img src="' + escapeHtml(card.imageUrl) + '" alt="' + escapeHtml(card.nameKo || card.name || '') + '" loading="eager" decoding="async"' + onError + '>';
+    } else {
+      image = '<span>' + escapeHtml(card.nameKo || card.name || 'Tarot') + '</span>';
+    }
     return [
       '<article class="dream-v2-card"' + delay + '>',
         '<div class="card-flip' + flipped + '">',
@@ -2832,7 +2936,7 @@
       if (stage === 'drawing') title.textContent = '카드가 꿈의 문 앞에 놓입니다';
       else if (stage === 'revealing') title.textContent = '타로 상징이 하나씩 열립니다';
       else if (stage === 'result') title.textContent = '당신의 꿈을 위한 해몽 프롬프트';
-      else title.textContent = 'Dream Prompt';
+      else title.textContent = 'Dream Tarot';
     }
     if (summary) {
       summary.textContent = stage === 'result'
@@ -2865,17 +2969,25 @@
         return { id: id, nameKo: '카드 ' + (idx + 1), keywords: ['상징', '무의식'] };
       }) : []);
     dreamPromptV2.drawnCards = sourceCards.slice(0, getDreamCardCount()).map(function (card, idx) {
-      return normalizeDreamV2Card({
-        card: card,
-        isReversed: Math.random() > 0.7,
-        isRevealed: false
-      }, idx);
+      return normalizeDreamV2Card({ card: card, isRevealed: false }, idx);
     });
     dreamPromptV2.dreamThemes = Array.isArray(data && data.dreamThemes) ? data.dreamThemes.slice(0, 5) : [];
     dreamPromptV2.analysisNote = String(data && data.analysisNote ? data.analysisNote : '').trim();
     setDreamPromptStage('drawing');
     setDreamPromptLoader('운명의 카드를 소환하고 있어요...', true);
+    preloadDreamCardArt();
     queueDreamPromptV2Timer(revealDreamPromptV2Cards, 620 + dreamPromptV2.drawnCards.length * 150);
+  }
+
+  // 카드가 뒤집히기 전에 아트를 미리 받아 둔다(뒤집었을 때 빈 카드 방지).
+  function preloadDreamCardArt() {
+    dreamPromptV2.drawnCards.forEach(function (entry) {
+      var url = entry && entry.card && entry.card.imageUrl;
+      if (!url) return;
+      var probe = new Image();
+      probe.decoding = 'async';
+      probe.src = url;
+    });
   }
 
   function generateDreamPromptV2() {
@@ -2884,6 +2996,7 @@
     var cards = dreamPromptV2.drawnCards.map(function (entry) {
       return {
         id: entry.card.id,
+        code: entry.card.code,
         nameKo: entry.card.nameKo,
         isReversed: entry.isReversed,
         keywords: entry.card.keywords,

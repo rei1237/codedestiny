@@ -570,7 +570,7 @@
       "mayaAlt": "Bacaan Maya — plat kalendar emas dan corak waktu langit malam",
       "mayaTitle": "Bacaan Maya",
       "mayaDesc": "Aliran hari ini melalui corak masa",
-      "dreamPromptShortTitle": "Gesaan Mimpi",
+      "dreamPromptShortTitle": "Tarot Mimpi",
       "petSajuTitle": "🐾 Saju Haiwan AI",
       "petSajuDesc": "Lima unsur dan keserasian",
       "petSajuAria": "Buka Saju Haiwan AI",
@@ -886,9 +886,9 @@
       "cta": "Cari pas yang sesuai dengan saya"
     },
     "dreamPrompt": {
-      "closeAria": "Tutup gesaan impian",
+      "closeAria": "Tutup Tarot Mimpi",
       "kicker": "Whispering Star-Library",
-      "title": "Kedai Ajaib Orang Tidak Sedar: Gesaan Mimpi",
+      "title": "Kedai Ajaib Orang Tidak Sedar: Tarot Mimpi",
       "subtitle": "Buka adegan impian anda melalui simbol tarot, kemudian tinggalkan hanya gesaan untuk memberikan AI pembacaan mimpi.",
       "wizardLine": "Selamat datang, pengembara yang tidak sedarkan diri. Lejar impian bercahaya bintang membuka baris pertamanya secara senyap.",
       "entrancePrompt": "Tulis adegan paling jelas, makhluk yang muncul, dan perasaan yang ditinggalkan selepas bangun. Benih gesaan akan terjaga.",
