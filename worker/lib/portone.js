@@ -324,6 +324,24 @@ export async function fetchPortOnePayment(env, paymentId) {
   return payment;
 }
 
+// 🔴 PortOne 은 Idempotency-Key 형식을 검증한다(실측: 16~256자, ":" 같은 문자 불가).
+// 호출부가 만드는 키는 `refund:<paymentId>:<serviceId>:<jobId>` 형태라 콜론 때문에 항상
+// 400 INVALID_REQUEST "Invalid idempotency key format" 로 거절당했다 — 배송 실패 자동환불과
+// 서비스 실행 자동환불이 통째로 동작하지 않았다는 뜻이다. 호출부를 각각 고치는 대신 나가는
+// 지점 한 곳에서 정규화한다.
+const PORTONE_IDEMPOTENCY_KEY_MIN = 16;
+const PORTONE_IDEMPOTENCY_KEY_MAX = 256;
+
+function normalizePortOneIdempotencyKey(rawKey) {
+  const sanitized = String(rawKey || "").replace(/[^A-Za-z0-9_-]/g, "_");
+  if (!sanitized) return "";
+  // 너무 짧아도 거절되므로 결정적으로(= 같은 입력이면 같은 결과) 채운다. 멱등성이 깨지면 안 된다.
+  const padded = sanitized.length >= PORTONE_IDEMPOTENCY_KEY_MIN
+    ? sanitized
+    : `${sanitized}${"_".repeat(PORTONE_IDEMPOTENCY_KEY_MIN - sanitized.length)}`;
+  return padded.slice(0, PORTONE_IDEMPOTENCY_KEY_MAX);
+}
+
 export async function cancelPortOnePayment(env, params = {}) {
   const {
     impUid,
@@ -362,7 +380,10 @@ export async function cancelPortOnePayment(env, params = {}) {
       method: "POST",
       headers: getPortOneHeaders(
         env,
-        idempotencyKey ? { "Idempotency-Key": String(idempotencyKey).slice(0, 220) } : {},
+        (() => {
+          const normalizedKey = normalizePortOneIdempotencyKey(idempotencyKey);
+          return normalizedKey ? { "Idempotency-Key": normalizedKey } : {};
+        })(),
       ),
       body: JSON.stringify(body),
       env,
