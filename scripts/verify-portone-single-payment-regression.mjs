@@ -184,7 +184,13 @@ function runInstantPgWindowTests() {
   assertContains(indexSource, "if (_cdDirectPgWindowSuppressedMode(mode)) return true;", "overlay must honour the direct-PG suppression window");
   assertContains(indexSource, "if (_cdDirectPgWindowSuppressedStatus(status)) return;", "paid-feature gate must honour the direct-PG suppression window");
   assertBefore(indexSource, "_cdBeginDirectPgWindowSuppression();", "_cdEndDirectPgWindowSuppression();", "suppression must begin before it is released");
-  assertBefore(indexSource, "_cdEndDirectPgWindowSuppression();", "window.PortOne.requestPayment(requestData)", "suppression must be released right before the PG window renders");
+  // 🔴 규칙 정정(2026-07-31): 예전 규칙은 "PG 호출 직전에 억제를 푼다"였다. 그러면 결제창이 떠 있는
+  // 동안 억제가 꺼져 있어, 어떤 소스든 대기 오버레이를 켜면 그대로 결제창을 덮었다(실제 증상).
+  // 이제 PG 호출 직전에 상한을 **다시 장전**하고(준비 구간용 45초로는 카드 인증 시간을 못 덮는다),
+  // requestPayment 가 반환된 뒤 finally 에서 푼다.
+  assertContains(indexSource, "function _cdExtendDirectPgWindowSuppression()", "direct-PG suppression must be re-armed for the PG window itself");
+  assertBefore(indexSource, "_cdExtendDirectPgWindowSuppression();", "rsp = await window.PortOne.requestPayment(requestData);", "suppression must be re-armed before the PG window renders");
+  assertBefore(indexSource, "rsp = await window.PortOne.requestPayment(requestData);", "      _cdEndDirectPgWindowSuppression();\n    }", "suppression must be released only after the PG window closes");
 
   // ③ 접근 확인 단계에 단건/카드 카피를 붙이지 않는다.
   assertNotContains(indexSource, "_cdLoadingMessage('access_check', 'single')", "access-check copy must not claim a card checkout is being prepared");
@@ -274,9 +280,21 @@ function runDirectPgOverlayTests() {
     "no progress overlay may be shown while the payment-choice modal is open",
   );
 
-  // ⓒ PG창 직전에 내린다 + 실패해도 남지 않는다
-  assertBefore(indexSource, "_cdHideDirectPgWaitOverlay();", "window.PortOne.requestPayment(requestData)", "gap overlay must be hidden before the PG window renders");
+  // ⓒ 🔴 규칙 정정(2026-07-31): 예전 규칙은 "PG창 직전에 내린다"였다. 그런데 requestPayment 를 부른
+  // 뒤 PG SDK 가 결제창을 그릴 때까지 1~3초가 그대로 **빈 화면**이 되어 "결제창이 안 뜬다"로 보였고,
+  // 타이밍이 어긋나면 반대로 결제창을 덮었다. 이제 이 오버레이만 PG 결제창(body 직속
+  // #imp-iframe-wrapper, z-index:99999 — Playwright 실측) **아래**(99998)에 깔아 결제창이 뜨는
+  // 순간 자연히 덮이게 하고, 내리는 것은 requestPayment 가 끝난 뒤 한 번만 한다.
+  assertContains(indexSource, "overlay.style.zIndex = copy.mode === 'card' ? '99998' : '2147483647';", "the gap overlay must sit *below* the PG window instead of being timed against it");
+  assertBefore(indexSource, "rsp = await window.PortOne.requestPayment(requestData);", "      _cdHideDirectPgWaitOverlay();", "gap overlay must be released only after the PG window closes");
   assertContains(indexSource, "Promise.resolve(_cdRunDirectKrwCheckoutCore(opts)).catch(function(_cdDirectCheckoutError) {", "gap overlay must be cleared when the checkout fails");
+
+  // ⓔ PG 결제창을 덮는 body 직속 fixed UI(쿠키 배너·테마 스위치)를 결제창이 열려 있는 동안 물린다.
+  // 실측: 결제창 하단에서 elementsFromPoint 가 .cd-cookie-consent__actions 를 맨 앞으로 돌려줬다.
+  assertContains(indexSource, "body.cd-direct-pg-open #cdCookieConsent,", "cookie banner must be suppressed while the PG window is open");
+  assertContains(indexSource, "body:has(> #imp-iframe-wrapper) #cdCookieConsent,", "renderer-agnostic net: PG window presence must suppress the cookie banner");
+  assertContains(indexSource, "body.cd-direct-pg-open .theme-switch-wrapper,", "theme switch (inline z-index !important) must be suppressed while the PG window is open");
+  assertContains(indexSource, "document.body.classList.toggle('cd-direct-pg-open', !!isOpen);", "the suppression window must mirror itself onto body for the CSS above");
 
   // ⓓ 폐기된 '모달 제자리 진행 표시'가 다시 들어오지 않게 막는다
   for (const [label, source] of [["index.html", indexSource], ["app/_lib/billing-client.ts", billingClientSource], ["js/destiny-profile.js", destinyProfileSource]]) {
