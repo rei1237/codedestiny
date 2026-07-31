@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Bekijk het met een gerust hart",
     "resultPreviewLabel": "Resultaatvoorbeeld",
     "startNow": "Begin nu →",
-    "paywallNote": "Alle betaalde diensten worden onmiddellijk na voltooiing van de betaling (aankoop) geleverd; zodra de levering is begonnen, kan het herroepingsrecht op grond van de toepasselijke wetgeving beperkt zijn."
+    "paywallNote": "Alle betaalde diensten worden onmiddellijk na voltooiing van de betaling (aankoop) geleverd; zodra de levering is begonnen, kan het herroepingsrecht op grond van de toepasselijke wetgeving beperkt zijn.",
+    "deliverablesLabel": "Wat het rapport bevat",
+    "scaleLabel": "Diepte van de analyse",
+    "scaleChapters": "{count} hoofdstukken",
+    "scaleSections": "{count} gedetailleerde onderdelen",
+    "scaleDataPoints": "{count} analysepunten",
+    "scaleMinWords": "Meer dan {count} tekens",
+    "scaleReadMinutes": "Ongeveer {count} min leestijd",
+    "questionsLabel": "Helpt bij vragen zoals deze",
+    "stepsLabel": "Hoe de analyse verloopt",
+    "sampleLabel": "Voorbeeld van een echt rapport",
+    "sampleChip": "VOORBEELD",
+    "sampleContinuation": "Vanaf hier gaat de analyse verder, afgestemd op de gegevens die je invult.",
+    "compareLabel": "Waarom het betaald is",
+    "compareFree": "Gratis",
+    "comparePremium": "Premium",
+    "faqLabel": "Veelgestelde vragen",
+    "ctaNoteDefault": "Na betaling ga je direct naar het resultatenscherm."
   },
   "mbti": {
     "compat": {
