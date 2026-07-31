@@ -20,6 +20,7 @@ const PROFILE_CARD_MANAGE_COST = 50;
 const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
 const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
+// 서버 로그용. 원문 메시지를 포함한다 — 진단에 필요하고 콘솔은 클라이언트에 안 나간다.
 function buildErrorDetails(stage, error, extras = {}) {
   return {
     stage: String(stage || "user-route"),
@@ -28,6 +29,14 @@ function buildErrorDetails(stage, error, extras = {}) {
     message: String(error?.message || "Unknown error"),
     ...(extras && typeof extras === "object" ? extras : {}),
   };
+}
+
+// 응답 본문용. 원문 메시지를 뺀다 — Mongo 타임아웃 메시지에는 Atlas 샤드 호스트명·IP 가 들어 있어
+// 그대로 내보내면 무인증 정보노출이 된다(worker/lib/http.js 의 toPublicErrorDetails 와 같은 규칙).
+// stage/name/code 는 분류값이라 남긴다. degraded 응답의 클라이언트 분기는 code 로만 한다.
+function buildPublicErrorDetails(stage, error, extras = {}) {
+  const { message: _omitted, ...publicDetails } = buildErrorDetails(stage, error, extras);
+  return publicDetails;
 }
 
 function logUserRouteError(stage, error, request, extras = {}) {
@@ -400,8 +409,7 @@ async function handleGetDestinyProfiles(auth) {
       currentId: "",
       code: "DB_FALLBACK",
       message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
-      debugMessage: String(error?.message || ""),
-      errorDetails: buildErrorDetails("query-destiny-profiles-user", error, {
+      errorDetails: buildPublicErrorDetails("query-destiny-profiles-user", error, {
         userId: String(auth?.userId || ""),
       }),
     }, { status: 200 });
@@ -636,8 +644,7 @@ export async function handleUserRoutes(request, env) {
           degraded: true,
           code: "DB_FALLBACK",
           message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          debugMessage: String(error?.message || ""),
-          errorDetails: buildErrorDetails("auth-get-tamagotchi", error),
+          errorDetails: buildPublicErrorDetails("auth-get-tamagotchi", error),
         }, { status: 200 });
       }
       if (!auth) {
@@ -654,8 +661,7 @@ export async function handleUserRoutes(request, env) {
           degraded: true,
           code: "DB_FALLBACK",
           message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          debugMessage: String(error?.message || ""),
-          errorDetails: buildErrorDetails("connect-db-get-tamagotchi", error),
+          errorDetails: buildPublicErrorDetails("connect-db-get-tamagotchi", error),
         }, { status: 200 });
       }
       return await handleGetTamagotchi(auth);
@@ -674,8 +680,7 @@ export async function handleUserRoutes(request, env) {
           degraded: true,
           code: "DB_FALLBACK",
           message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          debugMessage: String(error?.message || ""),
-          errorDetails: buildErrorDetails("connect-db-put-tamagotchi", error),
+          errorDetails: buildPublicErrorDetails("connect-db-put-tamagotchi", error),
         }, { status: 202 });
       }
       return await handlePutTamagotchi(request, auth);
@@ -700,8 +705,7 @@ export async function handleUserRoutes(request, env) {
           degraded: true,
           code: "DB_FALLBACK",
           message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
-          debugMessage: String(error?.message || ""),
-          errorDetails: buildErrorDetails("auth-get-destiny-profiles", error),
+          errorDetails: buildPublicErrorDetails("auth-get-destiny-profiles", error),
         }, { status: 200 });
       }
       if (!auth) {
@@ -718,8 +722,7 @@ export async function handleUserRoutes(request, env) {
           degraded: true,
           code: "DB_FALLBACK",
           message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
-          debugMessage: String(error?.message || ""),
-          errorDetails: buildErrorDetails("connect-db-get-destiny-profiles", error),
+          errorDetails: buildPublicErrorDetails("connect-db-get-destiny-profiles", error),
         }, { status: 200 });
       }
       return await handleGetDestinyProfiles(auth);
@@ -738,8 +741,7 @@ export async function handleUserRoutes(request, env) {
           degraded: true,
           code: "DB_FALLBACK",
           message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
-          debugMessage: String(error?.message || ""),
-          errorDetails: buildErrorDetails("connect-db-post-destiny-profiles", error),
+          errorDetails: buildPublicErrorDetails("connect-db-post-destiny-profiles", error),
         }, { status: 202 });
       }
       return await handleSyncDestinyProfiles(request, auth);

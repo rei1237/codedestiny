@@ -27,6 +27,16 @@ try {
   });
   await page.goto(pathToFileURL(SOURCE).href, { waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready);
+
+  // 카메오 캐릭터는 R2 원격 자산이라 조용히 비어 나갈 수 있다 — 실패하면 렌더를 세운다.
+  const pigLoaded = await page.evaluate(() => {
+    const img = document.querySelector(".cameo__pig");
+    return Boolean(img && img.complete && img.naturalWidth > 0);
+  });
+  if (!pigLoaded) {
+    throw new Error("꽃돼지 카메오 이미지를 불러오지 못했습니다 — R2 자산 URL을 확인하세요.");
+  }
+
   const raw = await page.screenshot({ type: "png" });
 
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });

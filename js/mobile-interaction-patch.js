@@ -1047,7 +1047,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-b0645586fd8f').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-1e28b40b7f0f').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1134,25 +1134,40 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-b0645586fd8f'
+      'js/animal-totem-experience.js?v=build-1e28b40b7f0f'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-b0645586fd8f'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-b0645586fd8f'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-b0645586fd8f'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-1e28b40b7f0f'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-1e28b40b7f0f'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-1e28b40b7f0f'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-b0645586fd8f'],
-    openDreamModal: ['js/dream-ledger.js?v=build-b0645586fd8f'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-b0645586fd8f'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-1e28b40b7f0f'],
+    openDreamModal: ['js/dream-ledger.js?v=build-1e28b40b7f0f'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-1e28b40b7f0f'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-b0645586fd8f']
+    openSibylModal: ['js/sibyl-system.js?v=build-1e28b40b7f0f']
   };
+
+  // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
+  // 정본은 데스크탑 클릭 위임이 쓰는 __cdRouteActionAllowList (js/core/index-inline-runtime.js) 하나이며,
+  // 여기서 목록을 새로 만들지 않는다 — 두 경로가 어긋나면 한쪽만 고쳐지는 반쪽 수정이 재발한다.
+  // 핸들러(또는 지연 로더)가 실제로 있는 액션만 인정한다. 목록에만 있고 여는 코드가 없으면
+  // 앵커 이동을 막는 순간 "탭했는데 아무 일도 없음"이 되므로, 그때는 기존 이동을 그대로 둔다.
+  function isInPlaceModalAction(action) {
+    if (!action) return false;
+    var allowList = window.__cdRouteActionAllowList;
+    if (!allowList || !allowList[action]) return false;
+    if (typeof window[action] === 'function') return true;
+    var lazyPaths = LAZY_LOAD_ACTIONS[action];
+    if (lazyPaths && lazyPaths.length) return true;
+    return !!(window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[action]);
+  }
 
   function normalizeScriptSrc(src) {
     var raw = String(src || '').trim().replace(/^\.\//, '');
@@ -1267,6 +1282,13 @@
     var directLinkEl = origin && typeof origin.closest === 'function'
       ? origin.closest('a[href]')
       : null;
+    // 시빌라/자미두수/숙요/점성술/타로 진입 타일은 SEO·크롤용으로 <a href> 이지만 모달은 제자리에서
+    // 열려야 한다. 이 지름길이 그 앵커까지 삼키면 탭 한 번에 셸이 통째로 재로드되고, 사주 결과가
+    // 살아있어야 동작하는 시빌라는 데이터를 잃은 채 열려 "메인으로 튕긴" 것처럼 보인다.
+    // 데스크탑 클릭 위임은 같은 액션을 이미 preventDefault 하고 있다 — 그 짝을 여기에 맞춘다.
+    if (directLinkEl && isInPlaceModalAction(rule.action)) {
+      directLinkEl = null;
+    }
     if (directLinkEl) {
       var directCoinCost = Number(directLinkEl.getAttribute('data-coin-cost') || 0);
       var directLockCost = Number(directLinkEl.getAttribute('data-tile-lock-cost') || 0);
@@ -1488,6 +1510,10 @@
     if (!link) return null;
     var href = String(link.getAttribute('href') || '').trim();
     if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return null;
+    // 이 링크 탐색은 아래 rule 기반 액션 처리보다 먼저 돈다. 홈의 자미두수·숙요·점성술·타로
+    // 진입 카드는 .moon-preview-card 이면서 동시에 제자리 개봉 액션을 들고 있으므로,
+    // 여기서 걸러 주지 않으면 액션이 실행되기 전에 셸이 통째로 재로드된다.
+    if (isInPlaceModalAction(link.getAttribute('data-action'))) return null;
     return link;
   }
 

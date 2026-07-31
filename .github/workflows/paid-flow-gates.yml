@@ -36,6 +36,12 @@ on:
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
+      # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
+      # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
+      - "server/routes/admin.routes.js"
+      - "_headers"
+      - "public/_headers"
+      - "scripts/verify-security-hardening.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
   push:
@@ -72,6 +78,12 @@ on:
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
+      # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
+      # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
+      - "server/routes/admin.routes.js"
+      - "_headers"
+      - "public/_headers"
+      - "scripts/verify-security-hardening.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
 
@@ -98,6 +110,13 @@ jobs:
       - name: Verify runtime cache sync
         run: npm run verify:runtime-cache-sync
 
+      # 2026-07-31 보안 감사에서 닫은 것들의 재유입 가드.
+      # 관리자 진입 비밀번호 하드코딩(공개 레포에 평문으로 있었다), /entry/password 무제한 시도,
+      # /api/admin/keys 무인증, 응답 본문의 Mongo 원문 노출, 임의 포트 localhost 의 credentialed CORS.
+      # 워크트리가 30개 넘게 살아 있어 스테일 베이스에서 갈라진 브랜치가 조용히 되돌릴 수 있다.
+      - name: Verify security hardening (regression guard)
+        run: npm run verify:security-hardening
+
       # cd:auth-changed 재검증 증폭 루프 재발 방지 — source 필터 하나만 빠져도
       # 이용권 확인마다 캐시가 전멸하고 홈이 다시 그려진다(증상이 "가끔 느리다"로만 보인다).
       - name: Verify auth event loop guard
@@ -108,6 +127,13 @@ jobs:
 
       - name: Verify AI prompt billing policy
         run: npm run verify:ai-prompt-billing-policy
+
+      # 손금: 프로덕션 빌드가 output:"export" 라 app/api/** 가 통째로 빠진다는 사실 때문에
+      # Gemini Vision 이 로컬에서만 돌고 실제 사용자는 정적 템플릿을 받고 있었다(2026-07 발견).
+      # 워커에 LLM 이 배선돼 있는지 / 비전 호출이 Workers AI 폴백을 껐는지(폴백은 이미지를 버린다) /
+      # 문양이 미검출 기본값인지 / 인증·본문 상한이 살아 있는지를 소스 수준에서 강제한다.
+      - name: Verify palm reading flow
+        run: npm run verify:palm-flow
 
       # 결제수단 선택창은 렌더러가 3종(정적 셸 6미러 / React / 독립 폴백)이라 한쪽만 고치면
       # 진입 경로에 따라 다른 결제창이 뜬다. 정본 CSS·구조 마커·3옵션 노출이 어긋나면 차단한다.

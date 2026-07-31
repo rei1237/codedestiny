@@ -96,6 +96,13 @@ export async function callGeminiText(env, prompt, options = {}) {
       responseMimeType: clean(options.responseMimeType) || undefined,
       thinkingBudget: Number.isFinite(Number(options.thinkingBudget)) ? Number(options.thinkingBudget) : undefined,
       apiEndpoint: clean(options.apiEndpoint || options.endpoint),
+      // 비전(멀티모달) 입력. 지정되면 callLLM이 텍스트 파트 대신 이 배열을 그대로 contents로 쓴다.
+      // 🔴 Workers AI 폴백은 normalized.prompt만으로 메시지를 만들어 이미지를 버리므로,
+      // geminiParts를 쓰는 호출은 반드시 fallbackToWorkersAI:false 를 함께 줘야 한다.
+      // (안 그러면 사진 없이 판독을 요구받은 텍스트 모델이 결과를 지어낸다.)
+      geminiParts: Array.isArray(options.geminiParts) && options.geminiParts.length
+        ? options.geminiParts
+        : undefined,
       fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
       logContext: options.logContext && typeof options.logContext === "object" ? options.logContext : undefined,
       cache: options.cache && typeof options.cache === "object" ? options.cache : undefined,

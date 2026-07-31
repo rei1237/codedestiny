@@ -1245,6 +1245,9 @@ export async function handleAppStoreRoutes(request, env) {
         message: cleanText(error?.message) || "App store request failed.",
       }, { status });
     }
+    // exposeMessage 를 켜지 않는다 — 위 status 분기가 이미 저자가 쓴 메시지(결제 토큰 재사용 409 등)를
+    // 그대로 돌려주므로, 여기 도달하는 것은 status 없는 예상 밖 오류뿐이다. 그 원문에는 Mongo 타임아웃의
+    // Atlas 토폴로지나 스택 유래 문자열이 섞이고, 이 라우트는 결제 경로라 노출 대가가 크다.
     return handleRouteError(error, {
       request,
       env,
@@ -1253,7 +1256,6 @@ export async function handleAppStoreRoutes(request, env) {
         requestPath: `/api/app-store${path || ""}`,
         method: request?.method || "",
       },
-      exposeMessage: true,
     });
   }
 }
