@@ -816,7 +816,7 @@
       "vvipBenefit2": "Maximaal 15 profielen",
       "vvipCta": "Bekijk VVIP-voordelen",
       "familyName": "Code Destiny Familie 30 dagen",
-      "familyPrice": "30 dagen · KRW 300.000",
+      "familyPrice": "30 dagen · KRW 149.000",
       "familyLine": "Gebruik alle betaalde functies",
       "familyBenefit1": "Geen profiellimiet",
       "familyBenefit2": "Alle gezinsvoordelen",
@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
       "profileUnlimited": "Onbeperkt aantal profielen",
       "profileLimit": "{count} profielen",
-      "allFeatures": "Alle functies beschikbaar",
+      "allFeatures": "Onbeperkt onder KRW 30.000 · 10 expertconsulten inbegrepen",
       "upTo": "Beschikbaar tot {amount}",
       "benefits": "Voordelen in één oogopslag",
       "closeAria": "Sluit de Moonlight Pass Shop-gids",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Familie 30 dagen",
-          "desc": "30 dagen · Alle betaalde functies · Onbeperkt aantal profielen"
+          "desc": "30 dagen · Onbeperkt onder KRW 30.000 · 10 expertconsulten · Onbeperkte profielen"
         }
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",
@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Deel het saju-resultaat",
       "kakao": "KakaoTalk delen",
-      "instagram": "Instagram-DM"
+      "instagram": "Instagram-DM",
+      "image": "Delen als afbeelding"
     },
     "actions": {
       "newSaju": "✨ Bekijk een nieuwe saju"
@@ -7317,6 +7318,30 @@
       "009": "Zelfvertrouwen-boost Tarot",
       "010": "Werkdrempel 7-kaarten",
       "011": "Tarot: Innerlijke gedachten van de ander"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Dit krijgt u voor uw betaling",
+      "volumeLabel": "Omvang",
+      "volumeValue": "30.000–60.000 tekens",
+      "chaptersLabel": "Opbouw",
+      "chaptersValue": "10 hoofdstukken · elk meer dan 2.400 tekens",
+      "keepLabel": "Bewaren",
+      "keepValue": "Sla op als PDF en houd het voorgoed",
+      "guarantee": "Haalt de tekst die omvang niet, dan wordt hij automatisch herschreven. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Dit krijgt u voor uw betaling",
+      "volumeLabel": "Omvang",
+      "volumeValue": "Minimaal 30.000 tekens",
+      "chaptersLabel": "Opbouw",
+      "chaptersValue": "16 hoofdstukken · elk 1.900–2.400 tekens",
+      "keepLabel": "Bewaren",
+      "keepValue": "Sla op als PDF en houd het voorgoed",
+      "guarantee": "Elk hoofdstuk dat te kort is wordt automatisch herschreven, tot twee keer toe. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
     }
   }
 }

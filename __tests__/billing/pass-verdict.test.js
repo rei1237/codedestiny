@@ -210,10 +210,22 @@ describe("resolveVerdict — 한도 판정", () => {
     expect(verdict.cannotCover).toBe(true);
   });
 
-  it("family 는 가격과 무관하게 커버한다", () => {
-    const verdict = passVerdict.resolveVerdict(activeSnapshot("family"), 100000);
+  it("family 는 프리미엄 문턱 아래에서는 가격과 무관하게 커버한다", () => {
+    // 299코인(29,900원)까지는 한도가 사실상 무제한이라 즉시 커버 확정.
+    const verdict = passVerdict.resolveVerdict(activeSnapshot("family"), 299);
     expect(verdict.coversNow).toBe(true);
     expect(verdict.cannotCover).toBe(false);
+  });
+
+  it("family 의 프리미엄 상담(300코인 이상)은 어느 쪽도 확정하지 않는다", () => {
+    // 포함 횟수(기간당 10회) 소진 여부는 서버만 안다. 여기서 커버로 단정하면
+    // 결제창 없이 진행하다 402 를 맞고, 미커버로 단정하면 남은 횟수가 있는데도
+    // 결제를 요구한다. 그래서 미확정으로 두어 호출부가 서버에 물어보게 한다.
+    for (const cost of [300, 500, 100000]) {
+      const verdict = passVerdict.resolveVerdict(activeSnapshot("family"), cost);
+      expect(verdict.coversNow).toBe(false);
+      expect(verdict.cannotCover).toBe(false);
+    }
   });
 
   it("가격이 0이면 어느 쪽도 확정하지 않는다", () => {

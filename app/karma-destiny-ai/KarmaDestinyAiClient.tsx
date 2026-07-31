@@ -14,6 +14,7 @@ import {
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
@@ -1041,6 +1042,17 @@ export default function KarmaDestinyAiPage() {
 
           {notice && <p className="kdai-notice">{notice}</p>}
           {error && <p className="kdai-error">{error}</p>}
+          {/* 5만원이 무엇을 사는지 숫자로 밝힌다. 값은 worker/routes/karma-destiny-ai.js 의
+              INITIAL_CONSULTATION_MIN_LENGTH·PREMIUM_CHAPTERS·PREMIUM_REINFORCEMENT_MAX_ATTEMPTS
+              가 실제로 강제하는 계약이다. */}
+          <DeliverableSpec
+            keyPrefix="karmaDestiny.deliverable"
+            className="kdai-deliverable"
+            titleClassName="kdai-deliverable__title"
+            labelClassName="kdai-deliverable__label"
+            valueClassName="kdai-deliverable__value"
+            noteClassName="kdai-deliverable__note"
+          />
           <div className="flex items-center justify-end">
             <PriceBadge featureKey="karma-destiny-ai-consultation" fallbackCoins={500} prefix="상담 이용 가격 " />
           </div>
@@ -1674,6 +1686,51 @@ export default function KarmaDestinyAiPage() {
           padding: 12px;
           resize: vertical;
           line-height: 1.6;
+        }
+
+        .kdai-deliverable {
+          display: grid;
+          gap: 12px;
+          margin-top: 18px;
+          padding: 14px;
+          border: 1px solid rgba(241, 205, 124, .22);
+          border-radius: 10px;
+          background: rgba(0, 0, 0, .22);
+        }
+
+        @media (min-width: 640px) {
+          .kdai-deliverable {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        .kdai-deliverable__title {
+          margin: 0;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: .02em;
+          color: #f1cd7c;
+        }
+
+        .kdai-deliverable__label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #c3ab7d;
+        }
+
+        .kdai-deliverable__value {
+          margin: 4px 0 0;
+          font-size: 14px;
+          font-weight: 800;
+          line-height: 1.5;
+          color: #ffe4a3;
+        }
+
+        .kdai-deliverable__note {
+          margin: 0;
+          font-size: 11px;
+          line-height: 1.6;
+          color: #c3ab7d;
         }
 
         .kdai-notice,

@@ -12,6 +12,7 @@ import {
 } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 
 type GenderType = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -834,6 +835,17 @@ export default function PremiumSalesContent() {
               </p>
             ))}
           </div>
+
+          {/* 받는 것을 숫자로 못박는다. 값은 서버가 실제로 강제하는 계약이며(worker/routes/life-book-ai.js
+              의 LIFE_FORTUNE_* 상수), 미달이면 생성이 실패로 돌아 재시도·환불 경로를 탄다. */}
+          <DeliverableSpec
+            keyPrefix="premiumUnlock.deliverable"
+            className="mt-5 grid gap-3 border border-[#d8b56d]/20 bg-black/20 p-4 sm:grid-cols-3"
+            titleClassName="text-xs font-black tracking-wide text-[#f2cf82]"
+            labelClassName="text-[11px] font-bold text-[#bda986]"
+            valueClassName="mt-1 text-sm font-black leading-6 text-[#f4dfb7]"
+            noteClassName="text-[11px] leading-5 text-[#bda986]"
+          />
         </form>
 
         <section className="min-h-[70vh] rounded-lg border border-[#d8b56d]/20 bg-[#100d0a]/90 p-4 shadow-2xl shadow-black/25 backdrop-blur md:p-6">

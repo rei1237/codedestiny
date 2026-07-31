@@ -816,7 +816,7 @@
       "vvipBenefit2": "最大 15 個のプロファイル",
       "vvipCta": "VVIP の特典を見る",
       "familyName": "コード デスティニー ファミリー 30 日",
-      "familyPrice": "30日 · 300,000ウォン",
+      "familyPrice": "30日 · 149,000ウォン",
       "familyLine": "すべての有料機能を使用する",
       "familyBenefit1": "プロファイル制限なし",
       "familyBenefit2": "すべてのファミリー特典",
@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "月定石基準 {credits} · {price}",
       "profileUnlimited": "プロフィール無制限",
       "profileLimit": "プロフィール{count}件",
-      "allFeatures": "すべての機能を利用可能",
+      "allFeatures": "3万ウォン未満は無制限・専門家相談10回込み",
       "upTo": "{amount}以下利用可能",
       "benefits": "特典を一覧で見る",
       "closeAria": "月光利用券ショップ案内を閉じる",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30日",
-          "desc": "30日 · すべての有料機能 · プロフィール無制限"
+          "desc": "30日 · 3万ウォン未満は無制限 · 専門家相談10回 · プロフィール無制限"
         }
       },
       "monthlyStatusChecking": "残量とパスの状態を確認しています。",
@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 四柱結果を共有",
       "kakao": "KakaoTalkで共有",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "画像で共有"
     },
     "actions": {
       "newSaju": "✨ 新しい四柱を見る"
@@ -7317,6 +7318,30 @@
       "009": "自己肯定感アップタロット",
       "010": "仕事の転機7カード",
       "011": "相手の気持ちタロット"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "決済で受け取るもの",
+      "volumeLabel": "分量",
+      "volumeValue": "30,000〜60,000文字",
+      "chaptersLabel": "構成",
+      "chaptersValue": "全10章・各章2,400文字以上",
+      "keepLabel": "保存",
+      "keepValue": "PDFで保存して永久保存",
+      "guarantee": "分量が基準に届かない場合は自動で書き直します。それでも満たせないときは結果を出さず失敗として扱うため、再試行と返金の導線がそのまま残ります。"
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "決済で受け取るもの",
+      "volumeLabel": "分量",
+      "volumeValue": "最低30,000文字",
+      "chaptersLabel": "構成",
+      "chaptersValue": "全16章・各章1,900〜2,400文字",
+      "keepLabel": "保存",
+      "keepValue": "PDFで保存して永久保存",
+      "guarantee": "基準分量に届かない章は最大2回まで自動で書き直します。それでも満たせないときは結果を出さず失敗として扱うため、再試行と返金の導線がそのまま残ります。"
     }
   }
 }

@@ -816,7 +816,7 @@
       "vvipBenefit2": "Up to 15 profiles",
       "vvipCta": "View VVIP benefits",
       "familyName": "Code Destiny Family 30 days",
-      "familyPrice": "30 days · KRW 300,000",
+      "familyPrice": "30 days · KRW 149,000",
       "familyLine": "Use all paid features",
       "familyBenefit1": "No profile limit",
       "familyBenefit2": "All Family benefits",
@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Monthly credit basis {credits} · {price}",
       "profileUnlimited": "Unlimited profiles",
       "profileLimit": "{count} profiles",
-      "allFeatures": "All features available",
+      "allFeatures": "Unlimited under KRW 30,000 · 10 expert consultations included",
       "upTo": "Available up to {amount}",
       "benefits": "Benefits at a glance",
       "closeAria": "Close Moonlight Pass Shop guide",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30 Days",
-          "desc": "30 days · All paid features · Unlimited profiles"
+          "desc": "30 days · Unlimited under KRW 30,000 · 10 expert consultations · Unlimited profiles"
         }
       },
       "monthlyStatusChecking": "Checking remaining balance and Pass status.",
@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Share saju result",
       "kakao": "KakaoTalk share",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "Share as image"
     },
     "actions": {
       "newSaju": "✨ View a new saju"
@@ -7317,6 +7318,30 @@
       "009": "Self-Esteem Level-Up Tarot",
       "010": "Work Threshold 7-Card",
       "011": "Their Inner Thoughts Tarot"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "What your payment gets you",
+      "volumeLabel": "Length",
+      "volumeValue": "30,000–60,000 characters",
+      "chaptersLabel": "Structure",
+      "chaptersValue": "10 chapters · 2,400+ characters each",
+      "keepLabel": "Keep it",
+      "keepValue": "Save as PDF and own it for good",
+      "guarantee": "If the reading falls short of that length, it is rewritten automatically. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "What your payment gets you",
+      "volumeLabel": "Length",
+      "volumeValue": "30,000 characters minimum",
+      "chaptersLabel": "Structure",
+      "chaptersValue": "16 chapters · 1,900–2,400 characters each",
+      "keepLabel": "Keep it",
+      "keepValue": "Save as PDF and own it for good",
+      "guarantee": "Any chapter that falls short is rewritten automatically, up to twice. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
     }
   }
 }

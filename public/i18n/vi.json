@@ -816,7 +816,7 @@
       "vvipBenefit2": "Tối đa 15 hồ sơ",
       "vvipCta": "Xem lợi ích VVIP",
       "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
-      "familyPrice": "30 ngày · 300.000 KRW",
+      "familyPrice": "30 ngày · 149.000 KRW",
       "familyLine": "Sử dụng tất cả các tính năng trả phí",
       "familyBenefit1": "Không giới hạn hồ sơ",
       "familyBenefit2": "Tất cả lợi ích của Gia đình",
@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
       "profileUnlimited": "Hồ sơ không giới hạn",
       "profileLimit": "{count} hồ sơ",
-      "allFeatures": "Tất cả tính năng đều có sẵn",
+      "allFeatures": "Không giới hạn dưới 30.000 KRW · Bao gồm 10 lượt tư vấn chuyên gia",
       "upTo": "Có sẵn tới {amount}",
       "benefits": "Sơ lược về lợi ích",
       "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Tất cả tính năng trả phí · Hồ sơ không giới hạn"
+          "desc": "30 ngày · Không giới hạn dưới 30.000 KRW · 10 lượt tư vấn chuyên gia · Hồ sơ không giới hạn"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",
@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Chia sẻ kết quả saju",
       "kakao": "Chia sẻ KakaoTalk",
-      "instagram": "Tin nhắn trực tiếp trên Instagram"
+      "instagram": "Tin nhắn trực tiếp trên Instagram",
+      "image": "Chia sẻ dạng ảnh"
     },
     "actions": {
       "newSaju": "✨ Xem saju mới"
@@ -7317,6 +7318,30 @@
       "009": "Tarot nâng cấp lòng tự trọng",
       "010": "7 lá bài ngưỡng cửa công việc",
       "011": "Tarot nội tâm đối phương"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Bạn nhận được gì khi thanh toán",
+      "volumeLabel": "Độ dài",
+      "volumeValue": "30.000–60.000 ký tự",
+      "chaptersLabel": "Cấu trúc",
+      "chaptersValue": "10 chương · mỗi chương trên 2.400 ký tự",
+      "keepLabel": "Lưu giữ",
+      "keepValue": "Xuất PDF và giữ vĩnh viễn",
+      "guarantee": "Nếu không đạt độ dài trên, bài luận sẽ được viết lại tự động. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Bạn nhận được gì khi thanh toán",
+      "volumeLabel": "Độ dài",
+      "volumeValue": "Tối thiểu 30.000 ký tự",
+      "chaptersLabel": "Cấu trúc",
+      "chaptersValue": "16 chương · mỗi chương 1.900–2.400 ký tự",
+      "keepLabel": "Lưu giữ",
+      "keepValue": "Xuất PDF và giữ vĩnh viễn",
+      "guarantee": "Chương nào chưa đạt độ dài sẽ được viết lại tự động, tối đa hai lần. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
     }
   }
 }

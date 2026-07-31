@@ -104,7 +104,7 @@ function repairEnglishValue(key, value) {
     "home.passMini.standardPrice": "30 days · KRW 9,900",
     "home.passMini.premiumPrice": "30 days · KRW 29,900",
     "home.passMini.vvipPrice": "30 days · KRW 59,000",
-    "home.passMini.familyPrice": "30 days · KRW 300,000",
+    "home.passMini.familyPrice": "30 days · KRW 149,000",
     "home.premiumArchive.sukuyoPrice": "Premium PDF · KRW 49,000",
     "home.premiumArchive.ziweiPrice": "Premium PDF · KRW 59,000",
     "home.premiumArchive.report39000Price": "Premium Report · KRW 39,000",

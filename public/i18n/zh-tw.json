@@ -816,7 +816,7 @@
       "vvipBenefit2": "最多 15 個設定檔",
       "vvipCta": "查看 VVIP 福利",
       "familyName": "代碼命運家庭 30 天",
-      "familyPrice": "30 天 · 300,000 韓元",
+      "familyPrice": "30 天 · 149,000 韓元",
       "familyLine": "使用所有付費功能",
       "familyBenefit1": "無設定檔限制",
       "familyBenefit2": "所有家庭福利",
@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
       "profileLimit": "{count}个资料",
-      "allFeatures": "可使用全部功能",
+      "allFeatures": "3萬韓元以下無限 · 含專家諮詢10次",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",
       "closeAria": "关闭月光通行券商店说明",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30天",
-          "desc": "30天 · 所有付费功能 · 不限资料"
+          "desc": "30 天 · 3萬韓元以下無限 · 專家諮詢10次 · 檔案不限"
         }
       },
       "monthlyStatusChecking": "正在確認餘額和通行證狀態。",
@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 分享四柱结果",
       "kakao": "KakaoTalk分享",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "以圖片分享"
     },
     "actions": {
       "newSaju": "✨ 查看新的四柱"
@@ -7317,6 +7318,30 @@
       "009": "自尊心提升塔羅",
       "010": "事業門檻7卡",
       "011": "對方內心塔羅"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "付費後你會得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "30,000～60,000字",
+      "chaptersLabel": "結構",
+      "chaptersValue": "共10章 · 每章2,400字以上",
+      "keepLabel": "保存",
+      "keepValue": "匯出PDF，永久保存",
+      "guarantee": "篇幅未達標準會自動重寫。若仍無法達標，則判定為失敗而不交付結果，重試與退款通道保持有效。"
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "付費後你會得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "至少30,000字",
+      "chaptersLabel": "結構",
+      "chaptersValue": "共16章 · 每章1,900～2,400字",
+      "keepLabel": "保存",
+      "keepValue": "匯出PDF，永久保存",
+      "guarantee": "篇幅未達標準的章節最多自動重寫兩次。若仍無法達標，則判定為失敗而不交付結果，重試與退款通道保持有效。"
     }
   }
 }

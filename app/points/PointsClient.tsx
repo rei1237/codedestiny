@@ -222,7 +222,6 @@ type SubscriptionPlan = {
   baseWonPrice: number;
   durationMonths: 1;
   productType:  "membership_pass";
-  coins:        number;
   profileLimit: number | null; // null = unlimited
   freeUpTo:     number | null; // null = Family all-inclusive, number = normal paid-service pass limit
   theme:        "amber" | "rose" | "purple";
@@ -466,7 +465,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "standard",
     title:        "standard",
     baseWonPrice: 9900,
-    coins:        115,
     profileLimit: 3,
     freeUpTo:     30,
     theme:        "amber",
@@ -484,7 +482,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "premium",
     title:        "premium",
     baseWonPrice: 29900,
-    coins:        360,
     profileLimit: 7,
     freeUpTo:     50,
     theme:        "rose",
@@ -502,7 +499,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "vvip",
     title:        "vvip",
     baseWonPrice: 59000,
-    coins:        700,
     profileLimit: 15,
     freeUpTo:     100,
     theme:        "purple",
@@ -519,8 +515,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "family",
     title:        "family",
-    baseWonPrice: 300000,
-    coins:        3000,
+    baseWonPrice: 149000,
     profileLimit: null,
     freeUpTo:     null,
     theme:        "purple",
@@ -675,7 +670,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "회원",
     duration30: "30일",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "모든 유료 서비스 이용 가능",
+    allPaidPdfPolicy: "3만원 미만 무제한 · 전문가 상담 10회 포함",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
     familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
@@ -721,8 +716,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "모든 유료 서비스 이용 가능",
-        familyIncluded: "Family 전체 혜택 적용",
+        allPaidPdf: "3만원 미만 전 기능 무제한",
+        familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
         notAutoBilling: "월정석 또는 원화 구매 가능",
       },
@@ -781,7 +776,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "Member",
     duration30: "30 days",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "All paid services available",
+    allPaidPdfPolicy: "Unlimited under KRW 30,000 · 10 expert consultations",
     generalLimitPolicy: (value) => `General services up to ${value}`,
     familyValueLine: (duration) => `All Family benefits / ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
@@ -827,8 +822,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "Unlimited profile add/edit/delete",
-        allPaidPdf: "All paid services available",
-        familyIncluded: "Full Family benefits apply",
+        allPaidPdf: "Unlimited for features under KRW 30,000",
+        familyIncluded: "10 expert consultations per 30 days (extra via single payment)",
         activeImmediately: "30-day pass activates after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
       },

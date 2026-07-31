@@ -698,7 +698,7 @@
       "vvipBenefit2": "프로필 최대 15개",
       "vvipCta": "VVIP 혜택 보기",
       "familyName": "Code Destiny Family 30일",
-      "familyPrice": "30일 · 300,000원",
+      "familyPrice": "30일 · 149,000원",
       "familyLine": "모든 유료 리딩을 가장 넓은 달빛 범위로",
       "familyBenefit1": "프로필 제한 없음",
       "familyBenefit2": "Family 전체 혜택",
@@ -1401,7 +1401,7 @@
       "monthlyBasisWithPrice": "월정석 기준 {credits} · {price}",
       "profileUnlimited": "프로필 무제한",
       "profileLimit": "프로필 {count}개",
-      "allFeatures": "전체 기능 이용 가능",
+      "allFeatures": "3만원 미만 무제한 · 전문가 상담 10회 포함",
       "upTo": "{amount} 이하 이용 가능",
       "benefits": "혜택 한눈에",
       "closeAria": "달빛이용권 상점 안내 닫기",
@@ -1613,7 +1613,8 @@
     "share": {
       "title": "📤 사주 결과 공유하기",
       "kakao": "카카오톡 공유",
-      "instagram": "인스타 DM"
+      "instagram": "인스타 DM",
+      "image": "이미지로 공유"
     },
     "actions": {
       "newSaju": "✨ 새로운 사주 보기"
@@ -4305,6 +4306,30 @@
       "009": "자존감 레벨업 타로",
       "010": "일의 문턱 7카드",
       "011": "상대방 속마음 타로"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "결제하면 받는 것",
+      "volumeLabel": "분량",
+      "volumeValue": "30,000~60,000자",
+      "chaptersLabel": "구성",
+      "chaptersValue": "10개 장 · 장마다 2,400자 이상",
+      "keepLabel": "보관",
+      "keepValue": "PDF로 저장해 영구 소장",
+      "guarantee": "분량이 기준에 못 미치면 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "결제하면 받는 것",
+      "volumeLabel": "분량",
+      "volumeValue": "최소 30,000자",
+      "chaptersLabel": "구성",
+      "chaptersValue": "16개 장 · 장마다 1,900~2,400자",
+      "keepLabel": "보관",
+      "keepValue": "PDF로 저장해 영구 소장",
+      "guarantee": "장이 기준 분량에 못 미치면 최대 2회까지 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
     }
   }
 }

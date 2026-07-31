@@ -816,7 +816,7 @@
       "vvipBenefit2": "Hasta 15 perfiles",
       "vvipCta": "Ver beneficios VVIP",
       "familyName": "Código Destino Familia 30 días",
-      "familyPrice": "30 días · KRW 300.000",
+      "familyPrice": "30 días · KRW 149.000",
       "familyLine": "Usar todas las funciones pagas",
       "familyBenefit1": "Sin límite de perfil",
       "familyBenefit2": "Todos los beneficios familiares",
@@ -1978,7 +1978,7 @@
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
       "profileUnlimited": "Perfiles ilimitados",
       "profileLimit": "{count} perfiles",
-      "allFeatures": "Todas las funciones disponibles",
+      "allFeatures": "Ilimitado por debajo de KRW 30.000 · 10 consultas de experto incluidas",
       "upTo": "Disponible hasta {amount}",
       "benefits": "Beneficios de un vistazo",
       "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
@@ -2001,7 +2001,7 @@
         },
         "family": {
           "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Todas las funciones pagas · Perfiles ilimitados"
+          "desc": "30 días · Ilimitado bajo KRW 30.000 · 10 consultas de experto · Perfiles ilimitados"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",
@@ -3631,7 +3631,8 @@
     "share": {
       "title": "📤 Compartir saju resultado",
       "kakao": "KakaoTalk compartir",
-      "instagram": "Mensaje directo de Instagram"
+      "instagram": "Mensaje directo de Instagram",
+      "image": "Compartir como imagen"
     },
     "actions": {
       "newSaju": "✨ Ver un nuevo saju"
@@ -7317,6 +7318,30 @@
       "009": "Tarot para Subir la Autoestima",
       "010": "7 Cartas del Umbral del Trabajo",
       "011": "Tarot de los Sentimientos del Otro"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Lo que recibes al pagar",
+      "volumeLabel": "Extensión",
+      "volumeValue": "30.000–60.000 caracteres",
+      "chaptersLabel": "Estructura",
+      "chaptersValue": "10 capítulos · más de 2.400 caracteres cada uno",
+      "keepLabel": "Consérvalo",
+      "keepValue": "Guárdalo en PDF para siempre",
+      "guarantee": "Si el texto no alcanza esa extensión, se reescribe automáticamente. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Lo que recibes al pagar",
+      "volumeLabel": "Extensión",
+      "volumeValue": "Mínimo 30.000 caracteres",
+      "chaptersLabel": "Estructura",
+      "chaptersValue": "16 capítulos · 1.900–2.400 caracteres cada uno",
+      "keepLabel": "Consérvalo",
+      "keepValue": "Guárdalo en PDF para siempre",
+      "guarantee": "Todo capítulo que se quede corto se reescribe automáticamente, hasta dos veces. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
     }
   }
 }
