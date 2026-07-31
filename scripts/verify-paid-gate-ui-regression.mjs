@@ -19,7 +19,9 @@ const reactGateFirstFeatureSources = [
   {
     label: "life-book-ai",
     source: readFileSync(resolve(root, "app/life-book-ai/LifeBookAiClient.tsx"), "utf8"),
-    api: 'postJson<PrepareResult>("/api/life-book-ai/prepare"',
+    // 선검사 호출은 app/life-book-ai/lifeBookApi.ts 의 prepareLifeBook 로 옮겼다(authFetch + 일시장애 재시도 + 타임아웃).
+    // 계약(게이트 오픈 → 선검사 → 결제창)은 그대로다.
+    api: "prepareLifeBook<PrepareResult>(",
     checkout: "runBillingCoinGate",
   },
   {

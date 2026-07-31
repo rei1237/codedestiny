@@ -956,7 +956,9 @@ masterLoveCodexSchema.index({ userId: 1, createdAt: -1 });
 
 const lifeBookAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
-  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  // 인생 총운 본문 상한이 60,000자인데 저장되는 것은 그 본문을 감싼 JSON 이라 60000 으로는 모자란다.
+  // (update validator 가 안 돌아 지금까지 조용히 통과했을 뿐 계약상 잘릴 수 있는 값이었다.)
+  content: { type: String, required: true, trim: true, maxlength: 200000 },
   createdAt: { type: Date, default: Date.now },
   idempotencyKey: { type: String, default: "", trim: true, maxlength: 180 },
 }, { _id: false });
@@ -988,6 +990,9 @@ const lifeBookAiConsultationSchema = new mongoose.Schema({
     calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   topic: { type: String, required: true, trim: true, maxlength: 120 },
+  // 인생의 책(30,000원)과 인생 총운(50,000원)이 별도 SKU 다. consultationType 만으로는
+  // "어느 SKU 로 과금됐는지"를 알 수 없어(구 SKU 로 결제된 총운 세션이 실재) 실제 과금 키를 남긴다.
+  featureKey: { type: String, default: "life-book-ai-consultation", trim: true, maxlength: 80, index: true },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
   accessSource: { type: String, default: "", trim: true, maxlength: 80 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
