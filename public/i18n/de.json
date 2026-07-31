@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Prüfen Sie beruhigt",
     "resultPreviewLabel": "Ergebnisvorschau",
     "startNow": "Jetzt starten →",
-    "paywallNote": "Alle kostenpflichtigen Dienste werden unmittelbar nach Abschluss der Zahlung (des Kaufs) bereitgestellt; nach Beginn der Bereitstellung kann das Widerrufsrecht gemäß den geltenden Gesetzen eingeschränkt sein."
+    "paywallNote": "Alle kostenpflichtigen Dienste werden unmittelbar nach Abschluss der Zahlung (des Kaufs) bereitgestellt; nach Beginn der Bereitstellung kann das Widerrufsrecht gemäß den geltenden Gesetzen eingeschränkt sein.",
+    "deliverablesLabel": "Was der Bericht enthält",
+    "scaleLabel": "Analysetiefe",
+    "scaleChapters": "{count} Kapitel",
+    "scaleSections": "{count} detaillierte Abschnitte",
+    "scaleDataPoints": "{count} Analysekennzahlen",
+    "scaleMinWords": "Über {count} Zeichen",
+    "scaleReadMinutes": "Etwa {count} Min. Lesezeit",
+    "questionsLabel": "Hilft bei Fragen wie diesen",
+    "stepsLabel": "Wie die Analyse abläuft",
+    "sampleLabel": "Beispiel eines echten Berichts",
+    "sampleChip": "BEISPIEL",
+    "sampleContinuation": "Ab hier wird die Analyse mit den von Ihnen eingegebenen Daten personalisiert fortgesetzt.",
+    "compareLabel": "Warum kostenpflichtig",
+    "compareFree": "Kostenlos",
+    "comparePremium": "Premium",
+    "faqLabel": "Häufige Fragen",
+    "ctaNoteDefault": "Nach der Zahlung geht es direkt zur Ergebnisseite."
   },
   "mbti": {
     "compat": {

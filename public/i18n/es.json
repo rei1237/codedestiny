@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Compruébalo con tranquilidad",
     "resultPreviewLabel": "Vista previa del resultado",
     "startNow": "Empezar ahora →",
-    "paywallNote": "Todos los servicios de pago se proporcionan inmediatamente tras completar el pago (la compra), y una vez iniciada la prestación, el derecho de desistimiento puede quedar limitado conforme a la legislación aplicable."
+    "paywallNote": "Todos los servicios de pago se proporcionan inmediatamente tras completar el pago (la compra), y una vez iniciada la prestación, el derecho de desistimiento puede quedar limitado conforme a la legislación aplicable.",
+    "deliverablesLabel": "Qué incluye el informe",
+    "scaleLabel": "Profundidad del análisis",
+    "scaleChapters": "{count} capítulos",
+    "scaleSections": "{count} secciones detalladas",
+    "scaleDataPoints": "{count} indicadores de análisis",
+    "scaleMinWords": "Más de {count} caracteres",
+    "scaleReadMinutes": "Unos {count} min de lectura",
+    "questionsLabel": "Te ayuda con preguntas como estas",
+    "stepsLabel": "Cómo se realiza el análisis",
+    "sampleLabel": "Ejemplo de informe real",
+    "sampleChip": "MUESTRA",
+    "sampleContinuation": "A partir de aquí, el análisis continúa personalizado con los datos que introduzcas.",
+    "compareLabel": "Por qué es de pago",
+    "compareFree": "Gratis",
+    "comparePremium": "Premium",
+    "faqLabel": "Preguntas frecuentes",
+    "ctaNoteDefault": "Tras el pago accedes directamente a la pantalla de resultados."
   },
   "mbti": {
     "compat": {

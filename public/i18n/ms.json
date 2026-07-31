@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Semak dengan tenang",
     "resultPreviewLabel": "Pratonton keputusan",
     "startNow": "Mulakan sekarang →",
-    "paywallNote": "Semua perkhidmatan berbayar disediakan sebaik sahaja pembayaran (pembelian) selesai, dan setelah penyediaan bermula, hak untuk menarik diri daripada pembelian mungkin terhad menurut undang-undang yang berkaitan."
+    "paywallNote": "Semua perkhidmatan berbayar disediakan sebaik sahaja pembayaran (pembelian) selesai, dan setelah penyediaan bermula, hak untuk menarik diri daripada pembelian mungkin terhad menurut undang-undang yang berkaitan.",
+    "deliverablesLabel": "Kandungan dalam laporan",
+    "scaleLabel": "Kedalaman analisis",
+    "scaleChapters": "{count} bab",
+    "scaleSections": "{count} bahagian terperinci",
+    "scaleDataPoints": "{count} penunjuk analisis",
+    "scaleMinWords": "Lebih {count} aksara",
+    "scaleReadMinutes": "Kira-kira {count} min bacaan",
+    "questionsLabel": "Membantu untuk soalan seperti ini",
+    "stepsLabel": "Bagaimana analisis dijalankan",
+    "sampleLabel": "Contoh laporan sebenar",
+    "sampleChip": "CONTOH",
+    "sampleContinuation": "Selepas ini, analisis diteruskan mengikut maklumat yang anda masukkan.",
+    "compareLabel": "Mengapa ia berbayar",
+    "compareFree": "Percuma",
+    "comparePremium": "Premium",
+    "faqLabel": "Soalan lazim",
+    "ctaNoteDefault": "Selepas pembayaran anda terus ke skrin keputusan."
   },
   "mbti": {
     "compat": {

@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Consultez en toute tranquillité",
     "resultPreviewLabel": "Aperçu du résultat",
     "startNow": "Commencez maintenant →",
-    "paywallNote": "Tous les services payants sont fournis immédiatement après la finalisation du paiement (de l'achat) et, une fois la prestation commencée, le droit de rétractation peut être limité conformément à la législation en vigueur."
+    "paywallNote": "Tous les services payants sont fournis immédiatement après la finalisation du paiement (de l'achat) et, une fois la prestation commencée, le droit de rétractation peut être limité conformément à la législation en vigueur.",
+    "deliverablesLabel": "Ce que contient le rapport",
+    "scaleLabel": "Profondeur de l'analyse",
+    "scaleChapters": "{count} chapitres",
+    "scaleSections": "{count} sections détaillées",
+    "scaleDataPoints": "{count} indicateurs d'analyse",
+    "scaleMinWords": "Plus de {count} caractères",
+    "scaleReadMinutes": "Environ {count} min de lecture",
+    "questionsLabel": "Utile pour ce genre de questions",
+    "stepsLabel": "Comment l'analyse est réalisée",
+    "sampleLabel": "Exemple de rapport réel",
+    "sampleChip": "EXEMPLE",
+    "sampleContinuation": "À partir d'ici, l'analyse se poursuit selon les informations que vous saisissez.",
+    "compareLabel": "Pourquoi c'est payant",
+    "compareFree": "Gratuit",
+    "comparePremium": "Premium",
+    "faqLabel": "Questions fréquentes",
+    "ctaNoteDefault": "Après le paiement, vous accédez directement à l'écran des résultats."
   },
   "mbti": {
     "compat": {
