@@ -1204,7 +1204,15 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
   question: { type: String, default: "", trim: true, maxlength: 1200 },
   factSummary: { type: mongoose.Schema.Types.Mixed, default: null },
   decks: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 21섹션을 배치(4개/요청)로 생성하므로 완료분을 누적 보관한다. decks 는 완료 시 이걸로 조립한 결과.
+  // 서버가 진행 위치의 정본이다 — 클라이언트가 보낸 인덱스를 믿지 않는다(master-love-codex 패턴).
+  sections: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
+  totalCharCount: { type: Number, default: 0 },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  // 🔴 배치 생성은 정산(applyUsageOnce)이 마지막 배치에서 일어난다. 그 시점엔 원래 요청의 access.source 가
+  // 없으므로 세션에 보존한다 — 이걸 잃으면 billing-gate 로 이미 차감된 월정석을 완료 시 한 번 더 소비한다.
+  accessSource: { type: String, default: "", trim: true, maxlength: 40 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [neoOperationRoomMessageSchema], default: [] },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },

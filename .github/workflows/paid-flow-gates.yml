@@ -179,6 +179,15 @@ jobs:
       - name: Verify master love codex flow
         run: npm run verify:master-love-codex-flow
 
+      # 나크샤트라 결정판 — 27수 계산 결정성(크로스워크 앵커·파다·다샤)과
+      # 심화 상담 계약(3덱 21섹션·분량 하한·배치 생성 락/재개·폴백 짧은 응답 차단).
+      # 두 스크립트는 오래 고아 상태였다(package.json 미등록) — 여기서 CI 에 묶는다.
+      - name: Verify nakshatra calculation flow
+        run: npm run verify:nakshatra-flow
+
+      - name: Verify nakshatra deep consultation flow
+        run: npm run verify:nakshatra-ai-flow
+
       # 궁합 판정이 결정론을 잃거나 축 점수가 한쪽으로 쏠리면 20장이 모든 짝에게 같은 말을 한다.
       - name: Verify master love codex compat determinism
         run: npm run verify:master-love-codex-compat
