@@ -6,9 +6,8 @@
 import { createHash } from "node:crypto";
 
 import { connectDb, withMongoRetry } from "../lib/db.js";
-import { isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { getEnv } from "../lib/env.js";
-import { User } from "../lib/models.js";
 import {
   createHttpError,
   getRequestMeta,
@@ -121,8 +120,8 @@ function buildFeedbackAttachmentKey(fileName, mimeType) {
 }
 
 /**
- * 🔴 이 함수가 R2 버킷 공유(INSIGHT_IMAGES_BUCKET)의 유일한 실질 위험을 막는 지점이다.
- * feedback/ 접두를 강제하지 않으면 insights/ 원본 이미지를 이 라우트로 열람할 수 있다.
+ * 첨부 키 정규화. 전용 버킷(FEEDBACK_IMAGES_BUCKET)으로 분리되면서 "다른 용도 오브젝트 열람"
+ * 위험은 구조적으로 사라졌지만, 경로 조작(.. / 선행 슬래시 / 역슬래시 / 과길이)은 여기서 계속 막는다.
  * (쓰기 키는 서버가 100% 생성하므로 덮어쓰기 위험은 구조적으로 없다.)
  */
 export function normalizeFeedbackKey(rawKey) {
@@ -162,11 +161,11 @@ function buildAttachmentUrl(request, key) {
 }
 
 function resolveBucket(env) {
-  const bucket = env?.INSIGHT_IMAGES_BUCKET;
+  const bucket = env?.FEEDBACK_IMAGES_BUCKET;
   if (!bucket || typeof bucket.put !== "function") {
     throw createHttpError(503, "첨부 저장소가 설정되지 않았습니다.", {
       code: "ATTACHMENT_STORAGE_NOT_CONFIGURED",
-      requiredBindings: ["INSIGHT_IMAGES_BUCKET"],
+      requiredBindings: ["FEEDBACK_IMAGES_BUCKET"],
     });
   }
   return bucket;
@@ -181,11 +180,11 @@ export async function readFeedbackAttachmentObject(env, rawKey, { requireUploade
   const key = normalizeFeedbackKey(rawKey);
   if (!key) return notFound();
 
-  const bucket = env?.INSIGHT_IMAGES_BUCKET;
+  const bucket = env?.FEEDBACK_IMAGES_BUCKET;
   if (!bucket || typeof bucket.get !== "function") {
     throw createHttpError(503, "첨부 저장소가 설정되지 않았습니다.", {
       code: "ATTACHMENT_STORAGE_NOT_CONFIGURED",
-      requiredBindings: ["INSIGHT_IMAGES_BUCKET"],
+      requiredBindings: ["FEEDBACK_IMAGES_BUCKET"],
     });
   }
 
@@ -293,9 +292,19 @@ function toOwnFeedbackItem(doc, request) {
 }
 
 // ── 라우트 핸들러 ────────────────────────────────────────────────────────────
+/**
+ * 🔴 인증을 DB 임계경로에서 뺀다.
+ *
+ * 예전에는 surfaceDbInfraError:true 로 원본 infra 에러를 던졌는데, 이 워커의 Mongo 왕복이
+ * 요청당 4초를 넘고 connectDb 가드가 10초라 **제보 접수가 100% 실패했다**(feedbacks 컬렉션
+ * 문서 0건). 유료/권한 라우트라면 그 엄격함이 맞지만 버그 제보 폼은 금전·권한이 없으므로,
+ * 서명이 검증된 JWT 면 DB 확인을 못 해도 통과시킨다(allowDbFallback → authDbFallback:true).
+ * 진짜 게스트(토큰 없음/무효)는 종전대로 null → 401.
+ *
+ * 🔴 여기를 withMongoRetry 로 감싸지 말 것 — auth.js 내부에서 이미 재시도한다.
+ */
 async function resolveAuth(request, env) {
-  // 🔴 requireUserFromRequest를 withMongoRetry로 감싸지 말 것 — 내부에서 이미 재시도한다.
-  const auth = await requireUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true });
   if (!auth?.userId) throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
   return auth;
 }
@@ -414,7 +423,7 @@ async function resolveAttachments(env, rawList, userId) {
 
   if (!keys.length) return [];
 
-  const bucket = env?.INSIGHT_IMAGES_BUCKET;
+  const bucket = env?.FEEDBACK_IMAGES_BUCKET;
   if (!bucket || typeof bucket.head !== "function") return [];
 
   const resolved = [];
@@ -448,7 +457,10 @@ async function handleCreate(request, env, ctx) {
   });
   if (!security.ok) return security.response;
 
-  await connectDb(env);
+  // 🔴 여기서 connectDb 를 미리 부르지 않는다. 아래 DB 작업은 전부 withMongoRetry 를 거치고
+  //    그 안에서 시도마다 connectDb 를 부른다(db.js). 앞에서 한 번 더 부르면, 연결이 안 서는
+  //    동안 본문 파싱·검증조차 못 하고 요청이 통째로 죽는다 — 아래 '메일 우선' 폴백이
+  //    도달할 기회 자체를 잃는다.
   const body = await readJson(request);
 
   const category = toText(body?.category);
@@ -485,10 +497,13 @@ async function handleCreate(request, env, ctx) {
 
   const contentHash = buildContentHash(auth.userId, category, title, content);
   const since = new Date(Date.now() - DUPLICATE_WINDOW_MS);
+  // 🔴 중복 사전검사는 편의 기능이지 접수 조건이 아니다. 예전에는 이 조회가 실패하면 제보 전체가
+  //    503으로 죽었다 — 사용자가 쓴 글을 날리면서까지 지킬 값어치가 없다. 재시도 없이 한 번만
+  //    시도하고, 실패하면 중복검사를 건너뛰고 접수를 계속한다(최악의 결과는 중복 1건).
   const duplicate = await withMongoRetry(env, () => Feedback
     .findOne({ contentHash, createdAt: { $gte: since } })
     .select("_id createdAt")
-    .lean());
+    .lean(), { retries: 0 }).catch(() => null);
   if (duplicate) {
     throw createHttpError(409, "같은 내용의 제보가 이미 접수되었습니다.", {
       code: "DUPLICATE_FEEDBACK",
@@ -503,15 +518,18 @@ async function handleCreate(request, env, ctx) {
   const url = clampText(body?.url, 1000);
   const attachments = await resolveAttachments(env, body?.attachments, auth.userId);
 
-  const userDoc = await withMongoRetry(env, () => User.findById(auth.userId)
-    .select("name email")
-    .lean()).catch(() => null);
-
+  // 작성자 표시값은 인증이 이미 읽은 User 문서에서 온다(auth.name/auth.email) — 여기서 다시
+  // User.findById 를 치면 순수한 중복 왕복이고, 이 워커의 Mongo 왕복은 요청당 4초를 넘는다.
   const meta = getRequestMeta(request) || {};
-  const doc = await Feedback.create({
+
+  // 🔴 저장은 이 기능의 유일한 쓰기인데 이 파일에서 유일하게 재시도가 없었다(읽기 3곳은 전부 있음).
+  //    일시적 풀 초기화 한 번에 사용자가 쓴 제보가 통째로 날아간다. 문서를 먼저 한 번만 만들어
+  //    _id 를 고정한 뒤 재시도를 건다 — 앞선 시도가 실제로는 저장에 성공했더라도 같은 _id 재삽입은
+  //    중복키(11000)로 튕기므로 문서가 두 건 생기지 않는다.
+  const doc = new Feedback({
     userId: String(auth.userId),
-    authorName: clampText(userDoc?.name || auth.name, 60),
-    authorEmail: clampText(userDoc?.email || auth.email, 200).toLowerCase(),
+    authorName: clampText(auth.name, 60),
+    authorEmail: clampText(auth.email, 200).toLowerCase(),
     category,
     title,
     content,
@@ -529,31 +547,63 @@ async function handleCreate(request, env, ctx) {
     contentHash,
     autoFlagReasons: flags,
   });
+  // 🔴 저장 실패가 곧 제보 유실이면 안 된다. 이 폼의 목적은 '관리자에게 닿는 것'이고,
+  //    알림 메일은 Resend HTTP 호출이라 DB 를 전혀 타지 않는다. DB 인프라 장애일 때만
+  //    메일 우선 모드로 내려간다 — 스키마 검증 실패 같은 진짜 잘못된 요청은 그대로 전파한다.
+  let persisted = true;
+  try {
+    await withMongoRetry(env, () => doc.save().catch((error) => {
+      if (Number(error?.code) === 11000) return doc; // 앞선 시도가 이미 저장에 성공했다.
+      throw error;
+    }));
+  } catch (error) {
+    if (!isAuthDbInfraError(error)) throw error;
+    persisted = false;
+    console.error("[feedback] persist failed, falling back to email-only:", String(error?.message || error));
+  }
 
-  const notify = notifyNewFeedback(env, doc, {
+  const notifyOptions = {
     siteBaseUrl: getSiteBaseUrl(env),
     attachmentUrls: attachments.map((file) => buildAttachmentUrl(request, file.key)),
-  })
-    .then((result) => Feedback.updateOne(
-      { _id: doc._id },
-      { $set: { notifiedAt: new Date(), notifyError: clampText(result?.error, 300) } },
-    ))
-    .catch(() => {});
+  };
 
-  // ctx 가 없는 경로(직접 import·테스트)에서 dangling promise 를 남기면 Workers 가 응답
-  // 반환 시점에 취소해 메일이 조용히 유실된다. 그때만 await 로 폴백한다.
-  if (typeof ctx?.waitUntil === "function") ctx.waitUntil(notify);
-  else await notify;
+  if (persisted) {
+    const notify = notifyNewFeedback(env, doc, notifyOptions)
+      .then((result) => Feedback.updateOne(
+        { _id: doc._id },
+        { $set: { notifiedAt: new Date(), notifyError: clampText(result?.error, 300) } },
+      ))
+      .catch(() => {});
+
+    // ctx 가 없는 경로(직접 import·테스트)에서 dangling promise 를 남기면 Workers 가 응답
+    // 반환 시점에 취소해 메일이 조용히 유실된다. 그때만 await 로 폴백한다.
+    if (typeof ctx?.waitUntil === "function") ctx.waitUntil(notify);
+    else await notify;
+  } else {
+    // 저장이 없으면 메일이 유일한 전달 경로다. 백그라운드로 돌리면 실패를 알 수 없어
+    // "접수됐다"고 거짓말하게 되므로 여기서만 await 하고, 메일이 **실제로** 나갔을 때만
+    // 성공으로 답한다(수신자 미설정으로 skip 된 것도 전달 실패로 친다).
+    const result = await notifyNewFeedback(env, doc, notifyOptions);
+    const email = (Array.isArray(result?.results) ? result.results : []).find((entry) => entry?.channel === "email");
+    if (!email?.ok || email?.skipped) {
+      throw createHttpError(503, "지금은 제보를 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.", {
+        code: "FEEDBACK_PERSIST_AND_NOTIFY_FAILED",
+      });
+    }
+  }
 
   return json({
     ok: true,
+    persisted,
     item: {
       id: String(doc._id),
       ticketNo: buildTicketNo(doc),
       status: doc.status,
-      createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : "",
+      createdAt: (doc.createdAt ? new Date(doc.createdAt) : new Date()).toISOString(),
     },
-    message: "제보가 접수되었습니다. 확인 후 업데이트에 반영하겠습니다.",
+    message: persisted
+      ? "제보가 접수되었습니다. 확인 후 업데이트에 반영하겠습니다."
+      : "제보가 관리자에게 전달되었습니다. 확인 후 업데이트에 반영하겠습니다.",
   }, { status: 201 });
 }
 
@@ -660,9 +710,15 @@ export async function handleFeedbackRoutes(request, env, ctx) {
   } catch (error) {
     // 일시적 DB 장애를 확정 401로 세탁하면 로그인 사용자가 로그아웃된다(ghost login 회귀).
     if (isAuthDbInfraError(error)) {
+      // 🔴 문구는 유지하되 무엇이 죽었는지는 남긴다. 이 catch 가 모든 DB 계열 예외를 같은 한
+      //    문장으로 뭉갠 탓에, "제보가 한 건도 저장된 적 없다"는 영구 장애가 '일시적'으로
+      //    위장돼 있었다. code/reason 이 있으면 재현 1회로 원인이 드러난다.
+      console.error("[feedback] db-infra failure:", getRoutePath(request, "/api/feedback"), String(error?.message || error));
       return json({
         ok: false,
         error: "service_unavailable",
+        code: "DB_DEGRADED",
+        reason: clampText(error?.name || "", 60),
         message: "일시적으로 제보실을 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
       }, { status: 503 });
     }

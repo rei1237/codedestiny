@@ -16,6 +16,21 @@ routes = [
 [ai]
 binding = "AI"
 
+# 이미지 저장소 바인딩.
+# 🔴 대시보드에서만 걸면 안 된다 — wrangler deploy 는 이 설정에 없는 바인딩을 배포에서 제거한다.
+#    이 선언이 통째로 빠져 있던 동안 제보 첨부 업로드(503 ATTACHMENT_STORAGE_NOT_CONFIGURED)와
+#    인사이트 이미지 조회(500)가 모두 죽어 있었다.
+
+# 버그 제보 첨부 전용. 사용자가 올린 사적인 스크린샷이라 공개 자산 버킷과 물리적으로 분리한다.
+[[r2_buckets]]
+binding = "FEEDBACK_IMAGES_BUCKET"
+bucket_name = "bugs"
+
+# 관리자 인사이트 이미지(기존 자산 버킷).
+[[r2_buckets]]
+binding = "INSIGHT_IMAGES_BUCKET"
+bucket_name = "codedestinyassets"
+
 # Non-secret defaults. Secrets and deployment-specific values should be set
 # with `wrangler secret put` or in the Cloudflare dashboard.
 # Turnstile secret:
