@@ -1800,7 +1800,10 @@
         "refreshed": "Baki kredit bulanan disemak semula. Baki semasa ialah {balance}.",
         "notFound": "Tiada kredit/pas bulanan aktif ditemui lagi. Sila muat semula semula selepas pembayaran selesai.",
         "owned": "Batu bulan dimiliki: {balance}",
-        "ownedUnknown": "Batu bulan · perlu disemak"
+        "ownedUnknown": "Batu bulan · perlu disemak",
+        "signedOut": "Log masuk untuk menyemak baki Batu Bulan anda.",
+        "unconfirmed": "Kami tidak dapat mengesahkan baki Batu Bulan anda. Anda masih boleh mencuba — kami akan maklumkan semasa pembayaran jika tidak mencukupi.",
+        "staleAfterError": "Gagal menyegar semula baki Batu Bulan, memaparkan nilai sahih terakhir · kini {balance}"
       },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."

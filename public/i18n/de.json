@@ -1800,7 +1800,10 @@
         "refreshed": "Monatliches Guthaben erneut überprüft. Der aktuelle Kontostand ist {balance}.",
         "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist.",
         "owned": "Mondsteine: {balance}",
-        "ownedUnknown": "Mondsteine · Prüfung nötig"
+        "ownedUnknown": "Mondsteine · Prüfung nötig",
+        "signedOut": "Melde dich an, um dein Mondstein-Guthaben zu sehen.",
+        "unconfirmed": "Wir konnten dein Mondstein-Guthaben nicht bestätigen. Du kannst es trotzdem versuchen – bei zu wenig Guthaben melden wir uns beim Bezahlen.",
+        "staleAfterError": "Mondstein-Guthaben konnte nicht aktualisiert werden, zuletzt bestätigter Wert wird angezeigt · aktuell {balance}"
       },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
