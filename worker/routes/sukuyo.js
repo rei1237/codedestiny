@@ -1313,6 +1313,12 @@ async function handleSukuyoPastLifeReading(request, env) {
   const archived = await readSukuyoPastLifeArchive(env, auth.userId, signature);
   if (archived) return json({ ok: true, data: archived, source: "archive", reportId: `sukuyo-past-life-${signature}` });
 
+  // 회당 결제 기능이라 결제 전에도 "이 조합을 이미 샀는가"를 물어본다.
+  // 그 조회에서 숙요 계산·결제 증거 확인까지 돌 필요가 없으므로 여기서 끊는다.
+  if (body?.archiveOnly === true) {
+    return json({ ok: false, error: { code: "ARCHIVE_MISS", message: "저장된 리딩이 없습니다." } }, { status: 404 });
+  }
+
   let selfSukuyo;
   let partnerSukuyo;
   let canonical;
