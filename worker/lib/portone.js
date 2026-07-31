@@ -176,9 +176,11 @@ async function requestJson(url, options, errorPrefix) {
     clearTimeout(timeout);
   }
   const payload = await response.json().catch(() => null);
+  // 자격증명 거절(401/403)을 기억해 이후 신규 주문 생성을 막는다.
+  notePortOneAuthResult(response.status);
 
   if (!response.ok) {
-    const remoteMessage = payload?.message || payload?.code || response.statusText;
+    const remoteMessage = payload?.message || payload?.code || payload?.type || response.statusText;
     throw new Error(`${errorPrefix}: ${remoteMessage}`);
   }
 
@@ -274,37 +276,34 @@ export function getPortOnePublicConfig(env) {
   };
 }
 
-// 존재할 수 없는 결제 ID. 자격증명이 유효하면 404, 무효하면 401/403 이 온다 —
-// 이 차이로 "시크릿이 살아 있는지"만 판정한다.
-const PORTONE_AUTH_PROBE_PAYMENT_ID = "cd-portone-auth-probe";
+// 🔴 사전 프로브는 불가능하다. PortOne V2 는 '존재하지 않는 결제 ID' 에도 401 UNAUTHORIZED 를
+// 돌려주므로(payments/billing-keys/identity-verifications 모두 확인) 자격증명이 살아 있는지
+// 미리 물어볼 방법이 없다. 대신 '실제 호출이 401/403 으로 거절당한 사실' 을 기억해 두고,
+// 그 뒤의 신규 주문 생성을 막는다 — 두 번째 피해자부터는 결제창이 열리지 않는다.
+// (getPortOneConfig().configured 는 값의 존재만 보므로 이 판정을 대신할 수 없다.)
+const PORTONE_AUTH_REJECTION_TTL_MS = 10 * 60 * 1000;
+let portOneAuthRejectedAt = 0;
 
-// 🔴 getPortOneConfig().configured 는 값의 '존재'만 본다. 2026-07 장애에서 무효한 시크릿이
-// configured:true 로 보고돼, 카드 승인이 끝난 뒤 조회 단계에서야 401 을 알게 됐다(돈은 나가고
-// 지급은 안 됨). 이 함수는 실제 응답을 보고 자격증명 유효성만 판정한다.
-export async function probePortOneApiAuth(env) {
-  const config = getPortOneConfig(env);
-  if (!config.portoneApiSecret) return { ok: false, reason: "MISSING_SECRET" };
-
-  const timeoutMs = getPortOneTimeoutMs(env);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  let response;
-  try {
-    response = await fetch(
-      `${getPortOneBaseUrl(env)}/payments/${encodeURIComponent(PORTONE_AUTH_PROBE_PAYMENT_ID)}`,
-      { method: "GET", headers: getPortOneHeaders(env), signal: controller.signal },
-    );
-  } catch (_) {
-    // 네트워크·타임아웃은 자격증명 문제가 아니다. 결제를 막지 않는다(unknown).
-    return { ok: true, unknown: true, reason: "PROBE_UNREACHABLE" };
-  } finally {
-    clearTimeout(timeout);
+function notePortOneAuthResult(status) {
+  if (status === 401 || status === 403) {
+    if (!portOneAuthRejectedAt) {
+      console.error(`[portone-auth] PortOne API rejected our credential (HTTP ${status}). New payment orders will be blocked until a call succeeds.`);
+    }
+    portOneAuthRejectedAt = Date.now();
+    return;
   }
+  // 인증이 통하는 응답(성공/404/400 등)을 한 번이라도 받으면 즉시 해제한다.
+  if (status >= 200 && status < 500) portOneAuthRejectedAt = 0;
+}
 
-  if (response.status === 401 || response.status === 403) {
-    return { ok: false, reason: "UNAUTHORIZED", status: response.status };
+// 워커 isolate 단위의 best-effort 차단기다. 콜드 isolate 에서는 비어 있으므로 결제를 막지 않는다.
+export function getPortOneAuthRejection() {
+  if (!portOneAuthRejectedAt) return null;
+  if (Date.now() - portOneAuthRejectedAt > PORTONE_AUTH_REJECTION_TTL_MS) {
+    portOneAuthRejectedAt = 0;
+    return null;
   }
-  return { ok: true, status: response.status };
+  return { rejectedAt: portOneAuthRejectedAt };
 }
 
 export async function fetchPortOnePayment(env, paymentId) {

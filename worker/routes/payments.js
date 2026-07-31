@@ -20,9 +20,9 @@ import {
   fetchPortOnePayment,
   getPortOneConfig,
   getPortOnePublicConfig,
+  getPortOneAuthRejection,
   getPortOneWebhookSecret,
   getPortOneWebhookUrl,
-  probePortOneApiAuth,
 } from "../lib/portone.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -5804,32 +5804,11 @@ async function enforceMinorPaymentRestriction(env, auth, method, path) {
   }, { status: 403 });
 }
 
-// 🔴 결제창을 열기 전에 PortOne 자격증명이 살아 있는지 확인한다. 없으면 카드가 승인된 뒤
-// 조회 단계에서야 401 을 알게 되고, 그 시점엔 이미 돈이 나간 뒤라 되돌릴 방법이 사실상 없다
-// (2026-07 장애). 매 요청 프로브는 지연이므로 캐시한다.
-const PORTONE_AUTH_HEALTHY_TTL_MS = 5 * 60 * 1000;
-// 실패는 짧게 캐시한다 — 운영자가 시크릿을 고친 뒤 빨리 복구되어야 한다.
-const PORTONE_AUTH_UNHEALTHY_TTL_MS = 60 * 1000;
-// 주문(=PG 결제창)이 생성되는 경로에서만 검사한다. confirm/cancel 은 이미 승인된 건을 다루므로
-// 여기서 막으면 오히려 복구를 방해한다.
+// 🔴 결제창을 여는 주문 생성 경로에서만, 'PortOne 이 우리 자격증명을 이미 거절한 적이 있는지' 를
+// 본다. 사전 프로브는 불가능하고(PortOne 은 없는 결제 ID 에도 401 을 준다) 여기서 새로 네트워크를
+// 타지도 않는다 — portone.js 가 실제 호출에서 관측한 401/403 을 읽기만 한다. 왕복 0.
+// confirm/cancel 은 이미 승인된 건을 다루므로 막지 않는다(막으면 복구를 방해한다).
 const PORTONE_AUTH_GATED_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare"]);
-let portOneAuthHealthCache = { checkedAt: 0, ok: true, reason: "" };
-
-async function ensurePortOneApiAuthHealthy(env) {
-  const now = Date.now();
-  const ttl = portOneAuthHealthCache.ok ? PORTONE_AUTH_HEALTHY_TTL_MS : PORTONE_AUTH_UNHEALTHY_TTL_MS;
-  if (portOneAuthHealthCache.checkedAt > 0 && now - portOneAuthHealthCache.checkedAt < ttl) {
-    return portOneAuthHealthCache;
-  }
-  const probe = await probePortOneApiAuth(env);
-  // 네트워크 오류는 자격증명 판정이 아니므로 캐시하지 않고 통과시킨다.
-  if (probe.unknown === true) return { ok: true, reason: "" };
-  portOneAuthHealthCache = { checkedAt: now, ok: probe.ok !== false, reason: String(probe.reason || "") };
-  if (!portOneAuthHealthCache.ok) {
-    console.error(`[portone-auth-health] PortOne API credential rejected (${portOneAuthHealthCache.reason}) — blocking new payment orders.`);
-  }
-  return portOneAuthHealthCache;
-}
 
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
@@ -5888,15 +5867,12 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (method === "GET" && path === "/me") return await handleMe(auth, env);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
 
-    // 결제창을 여는 주문 생성 직전에만 PortOne 자격증명을 확인한다(캐시 5분).
-    if (method === "POST" && PORTONE_AUTH_GATED_PATHS.has(path)) {
-      const portOneAuthHealth = await ensurePortOneApiAuthHealthy(env);
-      if (!portOneAuthHealth.ok) {
-        return json({
-          message: "결제 시스템 점검 중입니다. 잠시 후 다시 시도해 주세요.",
-          code: "PAYMENT_GATEWAY_UNAVAILABLE",
-        }, { status: 503 });
-      }
+    // 직전에 PortOne 이 우리 자격증명을 거절했다면 결제창을 열지 않는다(돈부터 나가는 것을 막는다).
+    if (method === "POST" && PORTONE_AUTH_GATED_PATHS.has(path) && getPortOneAuthRejection()) {
+      return json({
+        message: "결제 시스템 점검 중입니다. 잠시 후 다시 시도해 주세요.",
+        code: "PAYMENT_GATEWAY_UNAVAILABLE",
+      }, { status: 503 });
     }
 
     await connectDb(env);
