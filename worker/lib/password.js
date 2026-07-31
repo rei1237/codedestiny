@@ -5,7 +5,10 @@ const PBKDF2_PREFIX = "pbkdf2-sha256";
 const PBKDF2_LEGACY_PREFIX = "pbkdf2$sha256";
 const PBKDF2_SALT_BYTES = 16;
 const PBKDF2_KEY_BYTES = 32;
-const BCRYPT_ROUNDS = 12;
+// OWASP 권고치(PBKDF2-HMAC-SHA256). 실측 ~89ms 로 bcrypt cost 12(~270ms)의 1/3 이라
+// CPU 헤드룸을 확보하면서도 강도를 낮추지 않는다. 반복수는 해시 문자열에 함께 저장되므로
+// 이 값을 올려도 기존 해시 검증은 그대로 동작한다.
+const PBKDF2_ITERATIONS = 600000;
 
 function toBase64Url(uint8Array) {
   if (typeof btoa !== "function" && typeof Buffer !== "undefined") {
@@ -84,12 +87,23 @@ async function signPasswordHmac(password, salt) {
 }
 
 export async function hashPassword(password) {
-  // bcryptjs(순수 JS, rounds 12)는 Workers CPU 시간의 주 소비원이다.
-  // rounds는 유지하되 경과 시간을 로깅해 실제 CPU 헤드룸을 모니터링한다.
+  // 🔴 신규 해시는 PBKDF2 다. bcryptjs(순수 JS, rounds 12)로 돌아가지 말 것 —
+  // 이 워커에서 cost 12 검증이 ~270ms CPU 를 먹어 로그인이 간헐적으로
+  // `error code: 1102`(Worker exceeded resource limits)로 죽었다(worker/routes/admin.js:51-56).
+  // PBKDF2 는 crypto.subtle 네이티브라 같은 자리에서 훨씬 싸다(실측: 100k≈18ms / 600k≈89ms).
   const startedAt = Date.now();
-  const hash = await bcrypt.hash(String(password || ""), BCRYPT_ROUNDS);
-  console.log(`[password] bcrypt hash rounds=${BCRYPT_ROUNDS} elapsedMs=${Date.now() - startedAt}`);
+  const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
+  const derived = await derivePbkdf2Key(password, salt, PBKDF2_ITERATIONS);
+  const hash = `${PBKDF2_PREFIX}$${PBKDF2_ITERATIONS}$${toBase64Url(salt)}$${toBase64Url(derived)}`;
+  console.log(`[password] pbkdf2 hash iterations=${PBKDF2_ITERATIONS} elapsedMs=${Date.now() - startedAt}`);
   return hash;
+}
+
+// 저장된 해시가 레거시 bcrypt 포맷이면 true — 로그인 성공 시 PBKDF2 로 갈아끼우는 신호다.
+// (PBKDF2/HMAC 는 이미 목표 포맷이므로 false. verifyPassword 는 세 포맷을 모두 계속 받는다.)
+export function needsPasswordRehash(encodedHash) {
+  const hash = String(encodedHash || "").trim();
+  return hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$");
 }
 
 async function verifyHmac(password, encodedHash) {
