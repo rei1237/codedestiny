@@ -4311,7 +4311,12 @@ async function enforceEntryPasswordSecurity(request, env) {
     endpoint: "admin:/entry/password",
     allowedMethods: ["POST"],
     requireJson: true,
-    rateLimit: { limit: 5, windowSeconds: 10 * 60 },
+    // 5회/10분은 실사용에서 너무 빡빡했다 — 오타 몇 번이면 관리자 본인이 잠기는데,
+    // 로그인 화면은 429 를 "비밀번호가 올바르지 않습니다"로 표시해서(지금은 구분한다)
+    // 잠긴 줄 모르고 계속 눌러 상한을 더 소모하는 악순환이 됐다.
+    // 20회/10분이어도 무차별 대입에는 무의미한 속도이고(비밀번호 강도가 실제 방어선),
+    // "상한 없음"이던 이전 상태와는 여전히 질적으로 다르다.
+    rateLimit: { limit: 20, windowSeconds: 10 * 60 },
     rateLimitKey: `${meta.ip || "unknown"}:admin-entry-password`,
   });
 }
