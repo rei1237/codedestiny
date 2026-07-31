@@ -5,12 +5,14 @@
 <title>Code Destiny — VVIP OG Card 1200x630</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Jost:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
      Code Destiny — VVIP Membership Card (Open Graph 1200x630)
-     딥 버건디 벨벳 + 유광 골드 베젤 + 꽃돼지 연이 골드 카메오
-     캐릭터는 운명 찻집 R2 자산(꽃돼지3-Photoroom.webp)을 그대로 쓴다
+
+     명함 구성: 좌측 = 브랜드(꽃돼지 카메오 + 워드마크)
+                우측 = 서비스 특장점 3줄
+     캐릭터는 운명 찻집 R2 자산(꽃돼지3-Photoroom.webp)을 그대로 쓴다.
      ============================================================ */
 
   :root {
@@ -127,12 +129,9 @@
     height: 100%;
     border-radius: 25px;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     /* 벨벳: 결 방향 조명 + 깊이 */
     background:
-      radial-gradient(64% 74% at 50% -6%,  rgba(196, 60, 122, .34), transparent 66%),
+      radial-gradient(64% 74% at 26% -6%,  rgba(196, 60, 122, .34), transparent 66%),
       radial-gradient(52% 60% at 8% 104%,  rgba(120, 22, 68, .40), transparent 72%),
       radial-gradient(46% 56% at 96% 96%,  rgba(88, 14, 52, .46), transparent 74%),
       linear-gradient(158deg, var(--velvet-lit) 0%, var(--velvet) 44%, var(--velvet-deep) 100%);
@@ -156,7 +155,7 @@
   .damask {
     position: absolute;
     inset: 0;
-    opacity: .075;
+    opacity: .07;
   }
 
   /* 벨벳 위 광택 스윕 */
@@ -181,24 +180,24 @@
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 22px 96px 30px;
+    padding: 30px 60px 74px;
   }
 
-  .sparkles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: -1;
+  /* ---- 3-1. 좌측 브랜드 ---- */
+  .brand {
+    width: 452px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   /* 카메오 — 유광 골드 링 안에 크림 원판, 그 위에 꽃돼지 연이 */
   .cameo {
     position: relative;
-    width: 212px;
-    height: 212px;
+    width: 228px;
+    height: 228px;
     flex: none;
     padding: 6px;
     border-radius: 50%;
@@ -218,7 +217,7 @@
     box-shadow:
       0 0 0 1px rgba(92, 63, 18, .9),
       0 14px 26px rgba(0, 0, 0, .58),
-      0 0 46px rgba(255, 196, 224, .2),
+      0 0 46px rgba(255, 196, 224, .22),
       0 0 78px rgba(232, 200, 120, .16);
   }
 
@@ -226,9 +225,9 @@
   .cameo::before {
     content: "";
     position: absolute;
-    inset: -58px;
+    inset: -62px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 176, 214, .2), transparent 62%);
+    background: radial-gradient(circle, rgba(255, 176, 214, .22), transparent 62%);
     z-index: -1;
   }
 
@@ -251,21 +250,21 @@
      전신이 다 들어오도록 잡고 3px 만 아래로 내려 바닥에 선 느낌을 준다. */
   .cameo__pig {
     position: absolute;
-    width: 214px;
-    height: 214px;
-    left: -10px;
-    top: -4px;
+    width: 231px;
+    height: 231px;
+    left: -11px;
+    top: -5px;
     object-fit: contain;
   }
 
   .title {
-    margin-top: 8px;
+    margin-top: 20px;
     font-family: 'Nanum Myeongjo', 'CodeDestinySerifKR', 'Batang', 'Noto Serif KR', serif;
     font-weight: 800;
-    font-size: 74px;
+    font-size: 66px;
     line-height: 1;
-    letter-spacing: .1em;
-    text-indent: .1em; /* letter-spacing 로 생긴 우측 여백 보정 */
+    letter-spacing: .08em;
+    text-indent: .08em; /* letter-spacing 로 생긴 우측 여백 보정 */
     color: var(--gold);
     /* 금박 스탬핑: 아래로 눌린 금속 단차 + 은은한 발광 */
     text-shadow:
@@ -277,72 +276,109 @@
   }
 
   .latin {
-    margin-top: 12px;
+    margin-top: 13px;
     font-family: 'Cinzel', 'CodeDestinySerifLatin', Georgia, serif;
     font-weight: 600;
-    font-size: 25px;
+    font-size: 21px;
     line-height: 1;
-    letter-spacing: .46em;
-    text-indent: .46em;
+    letter-spacing: .38em;
+    text-indent: .38em;
     color: var(--gold-light);
     text-shadow: var(--engrave), 0 3px 10px rgba(0, 0, 0, .5);
   }
 
-  /* 마름모를 낀 골드 세필 구분선 — 카드 폭을 가로질러 수평축을 잡는다 */
-  .rule {
-    margin-top: 18px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
+  /* ---- 3-2. 세로 구분선 ---- */
+  .split {
+    flex: none;
+    width: 1px;
+    height: 336px;
+    margin: 0 46px;
+    position: relative;
+    background: linear-gradient(180deg,
+      transparent, rgba(232, 200, 120, .5) 22%,
+      rgba(232, 200, 120, .5) 78%, transparent);
   }
-  .rule i {
-    display: block;
-    width: 232px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(232, 200, 120, .85) 62%, rgba(232, 200, 120, .95));
-  }
-  .rule i + b + i {
-    background: linear-gradient(270deg, transparent, rgba(232, 200, 120, .85) 62%, rgba(232, 200, 120, .95));
-  }
-  .rule b {
-    display: block;
-    width: 8px;
-    height: 8px;
+  .split::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
     transform: rotate(45deg);
     background: linear-gradient(135deg, var(--gold-hi), var(--gold-mid));
     box-shadow: 0 0 9px rgba(232, 200, 120, .6);
   }
 
-  .tagline {
-    margin-top: 17px;
+  /* ---- 3-3. 우측 특장점 ---- */
+  .perks {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .perks__lead {
     font-family: 'Jost', 'Pretendard', system-ui, sans-serif;
     font-weight: 500;
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1;
-    letter-spacing: .38em;
-    text-indent: .38em;
-    color: rgba(246, 226, 176, .96);
+    letter-spacing: .34em;
+    text-indent: .34em;
+    color: rgba(246, 226, 176, .9);
     text-shadow: var(--engrave);
+    margin-bottom: -6px;
   }
 
-  .disciplines {
-    margin-top: 12px;
+  .perk {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+  }
+
+  .perk__icon {
+    flex: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 36% 28%, rgba(255, 196, 224, .2), rgba(255, 176, 214, .07) 60%, transparent 72%);
+    box-shadow:
+      inset 0 0 0 1.4px rgba(232, 200, 120, .6),
+      0 3px 10px rgba(0, 0, 0, .38);
+  }
+  .perk__icon svg { width: 30px; height: 30px; display: block; }
+
+  .perk__name {
     font-family: 'Nanum Myeongjo', 'CodeDestinySerifKR', 'Batang', serif;
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 1;
-    letter-spacing: .3em;
-    text-indent: .3em;
-    color: rgba(255, 214, 232, .84);
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, .7);
+    font-weight: 800;
+    font-size: 27px;
+    line-height: 1.16;
+    letter-spacing: .012em;
+    color: #f7e6bc;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .72), 0 2px 7px rgba(0, 0, 0, .55);
   }
 
-  /* 카드 하단 각인 — 회원번호 / 발행처 */
+  .perk__desc {
+    margin-top: 5px;
+    font-family: 'Noto Sans KR', 'Pretendard', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 15.5px;
+    line-height: 1.2;
+    letter-spacing: .01em;
+    color: rgba(255, 216, 233, .88);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .6);
+  }
+
+  /* ---- 3-4. 카드 하단 각인 ---- */
   .plate {
     position: absolute;
-    left: 100px;
-    right: 100px;
-    bottom: 36px;
+    left: 92px;
+    right: 92px;
+    bottom: 34px;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -445,34 +481,87 @@
         <use href="#cornerLeaf" transform="translate(1118 0) scale(-1 1)"/>
         <use href="#cornerLeaf" transform="translate(0 532) scale(1 -1)"/>
         <use href="#cornerLeaf" transform="translate(1118 532) scale(-1 -1)"/>
+
+        <!-- 카메오 둘레에 흩날리는 금가루 -->
+        <g fill="#f4e0ae">
+          <path d="M132 148 L134 153 L139 155 L134 157 L132 162 L130 157 L125 155 L130 153 Z" opacity=".62"/>
+          <path d="M428 118 L429.6 122 L433.6 123.6 L429.6 125.2 L428 129.2 L426.4 125.2 L422.4 123.6 L426.4 122 Z" opacity=".5"/>
+          <path d="M120 300 L121.4 303.6 L125 305 L121.4 306.4 L120 310 L118.6 306.4 L115 305 L118.6 303.6 Z" opacity=".42"/>
+          <path d="M418 296 L419.2 299.2 L422.4 300.4 L419.2 301.6 L418 304.8 L416.8 301.6 L413.6 300.4 L416.8 299.2 Z" opacity=".38"/>
+        </g>
       </svg>
 
       <div class="content">
-        <!-- 카메오 둘레의 금가루 반짝임 -->
-        <svg class="sparkles" viewBox="0 0 1118 300" aria-hidden="true">
-          <g fill="#f4e0ae">
-            <path d="M408 97 L410 102 L415 104 L410 106 L408 111 L406 106 L401 104 L406 102 Z" opacity=".72"/>
-            <path d="M706 82 L707.7 86.3 L712 88 L707.7 89.7 L706 94 L704.3 89.7 L700 88 L704.3 86.3 Z" opacity=".58"/>
-            <path d="M688 187 L689.4 190.6 L693 192 L689.4 193.4 L688 197 L686.6 193.4 L683 192 L686.6 190.6 Z" opacity=".48"/>
-            <path d="M430 181.5 L431.3 184.7 L434.5 186 L431.3 187.3 L430 190.5 L428.7 187.3 L425.5 186 L428.7 184.7 Z" opacity=".42"/>
-          </g>
-        </svg>
-
-        <!-- ===== 꽃돼지 연이 카메오 ===== -->
-        <div class="cameo">
-          <div class="cameo__disc">
-            <img class="cameo__pig" alt="연꽃 관을 쓴 꽃돼지 연이"
-                 src="https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.webp">
+        <!-- ===== 좌: 브랜드 ===== -->
+        <div class="brand">
+          <div class="cameo">
+            <div class="cameo__disc">
+              <img class="cameo__pig" alt="연꽃 관을 쓴 꽃돼지 연이"
+                   src="https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.webp">
+            </div>
           </div>
+          <div class="title">꿀꿀 운세</div>
+          <div class="latin">HONEY FORTUNE</div>
         </div>
 
-        <div class="title">꿀꿀 운세</div>
-        <div class="latin">HONEY FORTUNE</div>
+        <div class="split"></div>
 
-        <div class="rule"><i></i><b></b><i></i></div>
+        <!-- ===== 우: 특장점 ===== -->
+        <div class="perks">
+          <div class="perks__lead">PRIVATE DESTINY CONSULTATION</div>
 
-        <div class="tagline">PRIVATE DESTINY CONSULTATION</div>
-        <div class="disciplines">사주 · 타로 · 자미두수 · 궁합</div>
+          <div class="perk">
+            <div class="perk__icon">
+              <svg viewBox="0 0 44 44" aria-hidden="true">
+                <g fill="none" stroke="#f2dda6" stroke-width="2" stroke-linejoin="round">
+                  <rect x="7"  y="7"  width="13" height="13" rx="2.5"/>
+                  <rect x="24" y="7"  width="13" height="13" rx="2.5"/>
+                  <rect x="7"  y="24" width="13" height="13" rx="2.5"/>
+                  <rect x="24" y="24" width="13" height="13" rx="2.5"/>
+                </g>
+              </svg>
+            </div>
+            <div>
+              <div class="perk__name">생년월일 하나면 충분해요</div>
+              <div class="perk__desc">사주팔자 · 자미두수 · 만세력을 바로 뽑아드려요</div>
+            </div>
+          </div>
+
+          <div class="perk">
+            <div class="perk__icon">
+              <svg viewBox="0 0 44 44" aria-hidden="true">
+                <!-- 초승달은 큰 원에서 어긋난 원을 빼서 만든다.
+                     두 호(arc)로 그리면 반지름이 현보다 작을 때 SVG 가 자동 확대해 서로 상쇄된다. -->
+                <mask id="crescentCut">
+                  <rect width="44" height="44" fill="#000"/>
+                  <circle cx="19" cy="23" r="13" fill="#fff"/>
+                  <circle cx="26.5" cy="18.5" r="12.5" fill="#000"/>
+                </mask>
+                <rect width="44" height="44" fill="#f2dda6" mask="url(#crescentCut)"/>
+                <path d="M33 7.5 L34.5 11.5 L38.5 13 L34.5 14.5 L33 18.5 L31.5 14.5 L27.5 13 L31.5 11.5 Z"
+                      fill="#f2dda6"/>
+              </svg>
+            </div>
+            <div>
+              <div class="perk__name">동서양 점술을 한자리에</div>
+              <div class="perk__desc">타로 · 점성술 · 숙요점 · 관상까지 함께 봐요</div>
+            </div>
+          </div>
+
+          <div class="perk">
+            <div class="perk__icon">
+              <svg viewBox="0 0 44 44" aria-hidden="true">
+                <path d="M22 6 C29.5 17 34 22.5 34 27.5 A12 12 0 0 1 10 27.5 C10 22.5 14.5 17 22 6 Z"
+                      fill="none" stroke="#f2dda6" stroke-width="2" stroke-linejoin="round"/>
+                <circle cx="17.5" cy="27" r="3" fill="#f2dda6" opacity=".55"/>
+              </svg>
+            </div>
+            <div>
+              <div class="perk__name">오늘의 운세는 무료</div>
+              <div class="perk__desc">궁합 · 신년운세도 먼저 보고 결정하세요</div>
+            </div>
+          </div>
+        </div>
 
         <div class="plate">
           <div>
