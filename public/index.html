@@ -19392,9 +19392,9 @@ return you.name.restore();</span>
         </div>
         </div><!-- /sibyl-entry-inner -->
       </a><!-- /sibyl-entry-tile -->
-      <div id="sibylModal">
-      <div class="sb-overlay" onclick="window.closeSibylModal()"></div>
-      <div class="sb-panel">
+      <div id="sibylModal" aria-hidden="true">
+      <div class="sb-overlay" onclick="window.closeSibylModal()" aria-hidden="true"></div>
+      <div class="sb-panel" role="dialog" aria-modal="true" aria-labelledby="sbModalTitle" tabindex="-1">
         <div class="sb-header">
           <div class="sb-header__grid" aria-hidden="true"></div>
           <button class="sb-back-btn" onclick="window.closeSibylModal()" aria-label="뒤로 가기" data-cd-trans="sibyl.modal.backButton" data-cd-trans-attr="aria-label:sibyl.modal.backAria">← 뒤로</button>
@@ -19405,7 +19405,7 @@ return you.name.restore();</span>
             </div>
             <div class="sb-header__text">
               <div class="sb-system-tag" data-cd-trans="sibyl.header.systemTag">SIBYL SYSTEM v3.14 — [ACTIVE]</div>
-              <h2 class="sb-title" data-cd-trans="sibyl.header.title">⚡ DESTINY SCANNER</h2>
+              <h2 class="sb-title" id="sbModalTitle" data-cd-trans="sibyl.header.title">⚡ DESTINY SCANNER</h2>
               <div class="sb-subtitle" data-cd-trans="sibyl.header.subtitle">사주팔자 기반 진로 적성 × 운명 위험 계수</div>
             </div>
           </div>
