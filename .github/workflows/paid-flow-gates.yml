@@ -36,6 +36,12 @@ on:
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
+      # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
+      # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
+      - "server/routes/admin.routes.js"
+      - "_headers"
+      - "public/_headers"
+      - "scripts/verify-security-hardening.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
   push:
@@ -72,6 +78,12 @@ on:
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
+      # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
+      # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
+      - "server/routes/admin.routes.js"
+      - "_headers"
+      - "public/_headers"
+      - "scripts/verify-security-hardening.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
 
@@ -97,6 +109,13 @@ jobs:
 
       - name: Verify runtime cache sync
         run: npm run verify:runtime-cache-sync
+
+      # 2026-07-31 보안 감사에서 닫은 것들의 재유입 가드.
+      # 관리자 진입 비밀번호 하드코딩(공개 레포에 평문으로 있었다), /entry/password 무제한 시도,
+      # /api/admin/keys 무인증, 응답 본문의 Mongo 원문 노출, 임의 포트 localhost 의 credentialed CORS.
+      # 워크트리가 30개 넘게 살아 있어 스테일 베이스에서 갈라진 브랜치가 조용히 되돌릴 수 있다.
+      - name: Verify security hardening (regression guard)
+        run: npm run verify:security-hardening
 
       # cd:auth-changed 재검증 증폭 루프 재발 방지 — source 필터 하나만 빠져도
       # 이용권 확인마다 캐시가 전멸하고 홈이 다시 그려진다(증상이 "가끔 느리다"로만 보인다).

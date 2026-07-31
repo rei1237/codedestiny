@@ -301,8 +301,13 @@ async function verifyFlowerAdminTokenForPaidService(request, env) {
   const nowSec = Math.floor(Date.now() / 1000);
   if (payload?.v !== 1 || !Number.isFinite(exp) || nowSec > exp) return null;
 
+  // jti 를 신원 문자열에 붙인다. 진입 비밀번호는 공유 자격증명이라 "누구인지"는 알 수 없지만,
+  // 세션은 갈라낼 수 있다. 이 값이 그대로 payments.js 의 pricingSnapshot.cancelledBy 로 남아
+  // "어느 관리자 세션이 이 고객 결제를 취소했는가"를 사후에 추적할 수 있게 된다
+  // (예전에는 모든 관리자 행위가 'flower-admin' 한 문자열로 뭉개졌다).
+  const sessionId = String(payload?.jti || "").slice(0, 16);
   return {
-    userId: FLOWER_ADMIN_USER_ID,
+    userId: sessionId ? `${FLOWER_ADMIN_USER_ID}:${sessionId}` : FLOWER_ADMIN_USER_ID,
     email: "",
     role: "admin",
     name: "ADMIN",

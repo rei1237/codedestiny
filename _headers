@@ -5,10 +5,17 @@
 #   - Fixed-name JS/CSS/assets: short edge cache
 
 # Security headers (all responses)
+# Permissions-Policy 주석은 반드시 이 위치(0열)에 둔다 — 규칙 블록 안에서 들여쓴 줄은
+# 전부 "헤더 이름: 값"으로 파싱되므로, 들여쓴 `#` 은 주석이 아니라 깨진 헤더가 된다.
+# camera/geolocation 은 실제로 쓴다(관상 라이브 카메라 PhysiognomyUI.js, 베다 현재위치 vedic-astrology.html)
+# — 끄지 말고 self 로 묶어 광고 등 서드파티 iframe 이 요청하지 못하게만 한다.
+# 나머지는 코드에 사용처가 없어 차단. payment/fullscreen/gyroscope/accelerometer 는 각각
+# PortOne 교차출처 결제 iframe·모션 연출이 쓰므로 일부러 넣지 않았다(브라우저 기본값 유지).
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(self), geolocation=(self), microphone=(), usb=(), serial=(), bluetooth=(), midi=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://t1.kakaocdn.net https://*.kakao.com https://*.kakaocdn.net https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; media-src 'self' https://music.code-destiny.com https://assets.code-destiny.com; style-src 'self' 'unsafe-inline' https://translate.googleapis.com https://www.gstatic.com; style-src-elem 'self' 'unsafe-inline' https://translate.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; font-src 'self' data: https://assets.code-destiny.com; frame-src 'self' https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://translate.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://tx-gateway-service.prod.iamport.co https://*.inicis.com; frame-ancestors 'self'; manifest-src 'self'; upgrade-insecure-requests
 
 # HTML entry points: no-store cache

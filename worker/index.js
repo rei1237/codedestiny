@@ -574,6 +574,14 @@ function getAllowedOrigins(env) {
   ].filter(Boolean));
 }
 
+function isProductionRuntime(env) {
+  const nodeEnv = String(getEnv(env, "NODE_ENV") || "").trim().toLowerCase();
+  if (nodeEnv === "production") return true;
+
+  const appEnv = String(getEnv(env, "APP_ENV") || getEnv(env, "DEPLOY_ENV") || getEnv(env, "ENVIRONMENT") || "").trim().toLowerCase();
+  return appEnv === "prod" || appEnv === "production";
+}
+
 function isAllowedOrigin(origin, env) {
   if (!origin) return true;
   if (origin === "null") return false;
@@ -587,8 +595,17 @@ function isAllowedOrigin(origin, env) {
     // credentialed CORS는 실제 웹 표면만 명시 허용 (서브도메인 와일드카드 금지 —
     // assets/music 등 정적 CDN 서브도메인 탈취 시 credentialed 호출을 막는다)
     if (hostname === "code-destiny.com" || hostname === "www.code-destiny.com" || hostname === "api.code-destiny.com") return true;
-    // localhost는 로컬 개발 + Capacitor 앱 셸(https://localhost) 오리진용으로 유지
-    if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+
+    // 🔴 프로덕션에서 여는 localhost 는 Capacitor 앱 셸 오리진 하나뿐이다.
+    // capacitor.config.ts 의 androidScheme:"https" 때문에 앱 문서 오리진은 정확히 "https://localhost"(포트 없음)다.
+    // 예전에는 hostname 만 봐서 임의 포트·http 까지 전부 통과시켰는데, 그러면 피해자 기기의 로컬호스트에서
+    // 페이지를 띄울 수 있는 공격자(악성 npm 패키지가 띄운 로컬 서버, 내장 HTTP 서버를 가진 다른 설치 앱)가
+    // Access-Control-Allow-Credentials: true 를 받아 인증된 결제·프로필 응답을 그대로 읽을 수 있었다.
+    if (origin === "https://localhost") return true;
+
+    // 로컬 개발용 임의 포트는 프로덕션이 아닐 때만. 상시 쓰는 포트(3000/3001/4000)는 이미
+    // DEFAULT_ALLOWED_ORIGINS 에 있고, 그 밖의 포트는 CORS_ORIGIN 으로 넣으면 프로덕션에서도 열린다.
+    if (!isProductionRuntime(env) && (hostname === "localhost" || hostname === "127.0.0.1")) return true;
   } catch (e) {
     return false;
   }

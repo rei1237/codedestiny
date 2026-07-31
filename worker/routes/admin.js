@@ -3,6 +3,8 @@ import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
 import { requireAuth } from "../lib/auth.js";
+import { verifyPassword } from "../lib/password.js";
+import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { ContentOverride, Insight, PointHistory, User } from "../lib/models.js";
 import {
@@ -21,7 +23,7 @@ import {
   listLegacyUnlockBaselineMismatches,
   listServerPricedFeatureKeys,
 } from "../lib/paid-feature-registry.js";
-import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { createHttpError, getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildFortuneQuestionPromptPackage } from "../lib/fortune-question-prompt.js";
 import { buildSajuAIPromptWithDomain } from "../lib/saju-ai-prompt.js";
 import { buildSukuyoAIPromptWithDomain } from "../lib/sukuyo-ai-prompt.js";
@@ -43,10 +45,13 @@ function adminMongoRead(env, operation) {
   return withMongoRetry(env, operation, { retries: 2 });
 }
 
-const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
-  // current admin entry password: kangta!7989
-  "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e",
-];
+// 관리자 진입 비밀번호는 소스에 두지 않는다 — 과거 이 자리에 평문 주석과 salt 없는 SHA-256이 함께
+// 커밋돼 있었고, 레포가 공개라 누구나 읽어 8시간 관리자 토큰을 받을 수 있었다.
+// 정본은 워커 시크릿 ADMIN_ENTRY_PASSWORD_HASH 하나다. 값은 bcrypt 해시를 쓴다 —
+// 레거시 server/routes/admin.routes.js 가 같은 값을 읽는데 그쪽은 bcrypt 만 다루므로,
+// 한 시크릿을 양쪽이 공유하려면 bcrypt 여야 한다(워커의 verifyPassword 는 pbkdf2 도 받는다).
+// 미설정이면 아래에서 fail-closed 로 막힌다.
+const ADMIN_ENTRY_PASSWORD_HASH_KEY = "ADMIN_ENTRY_PASSWORD_HASH";
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
 const INSIGHT_STATUS_SET = new Set(["draft", "scheduled", "published", "archived", "private", "trash"]);
@@ -2931,36 +2936,41 @@ function base64urlDecode(value) {
   return atob(base64 + "=".repeat(pad));
 }
 
+// 검증에 성공하면 페이로드를, 실패하면 null 을 돌려준다(전부 falsy 라 기존 진리값 호출부와 호환).
 async function verifyFlowerAdminToken(request, env) {
   const token = extractFlowerAdminToken(request);
-  if (!token) return false;
+  if (!token) return null;
 
   const dotIdx = token.lastIndexOf(".");
-  if (dotIdx < 1) return false;
+  if (dotIdx < 1) return null;
 
   const payloadB64 = token.slice(0, dotIdx);
   const signatureHex = token.slice(dotIdx + 1);
-  if (!/^[a-f0-9]{64}$/i.test(signatureHex)) return false;
+  if (!/^[a-f0-9]{64}$/i.test(signatureHex)) return null;
 
   let expectedHex = "";
   try {
     expectedHex = await hmacSha256Hex(payloadB64, resolveFlowerAdminSecret(env));
   } catch (error) {
-    return false;
+    return null;
   }
 
-  if (!timingSafeEqualText(expectedHex, signatureHex.toLowerCase())) return false;
+  if (!timingSafeEqualText(expectedHex, signatureHex.toLowerCase())) return null;
 
   let payload = null;
   try {
     payload = JSON.parse(base64urlDecode(payloadB64));
   } catch (e) {
-    return false;
+    return null;
   }
 
   const exp = Number(payload?.exp || 0);
   const nowSec = Math.floor(Date.now() / 1000);
-  return payload?.v === 1 && Number.isFinite(exp) && nowSec <= exp;
+  if (payload?.v !== 1 || !Number.isFinite(exp) || nowSec > exp) return null;
+
+  // 불리언 대신 페이로드를 돌려준다 — 호출부가 jti 로 감사 귀속을 남길 수 있게.
+  // 호출부는 진리값으로만 쓰던 곳이라 null/객체 전환이 그대로 호환된다.
+  return payload;
 }
 
 async function authorizeAdminRequest(request, env) {
@@ -2974,19 +2984,23 @@ async function authorizeAdminRequest(request, env) {
     throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
   }
 
-  const flowerTokenGranted = await verifyFlowerAdminToken(request, env);
+  const flowerTokenPayload = await verifyFlowerAdminToken(request, env);
 
   // 꽃 토큰이 유효하면 requireAuth(Mongo 왕복)를 돌리지 않는다.
-  // 아래 분기를 보면 알 수 있듯 flowerTokenGranted 가 true 인 순간 결과는 어느 경로로 가든
+  // 아래 분기를 보면 알 수 있듯 flowerTokenPayload 가 있는 순간 결과는 어느 경로로 가든
   // "admin 허용"으로 같고, 달라지는 것은 기록용 userId 뿐이다. 관리자 요청마다 DB 왕복을
   // 하나 더 태우는 대가로는 비싸고, Atlas 가 흔들리는 순간 관리자 화면이 죽는 경로를 하나 더 만든다.
   // 트레이드오프: 실제 admin 계정으로도 로그인한 상태였다면 updatedBy 가 flower-admin 으로 남는다
   // (기존에도 비-admin + 꽃토큰 조합은 동일하게 동작했다).
-  if (flowerTokenGranted) {
+  if (flowerTokenPayload) {
+    // jti 를 귀속 문자열에 붙인다. adminContext.userId 는 cms.js 의 updatedBy 등 14곳 이상이
+    // 그대로 저장하므로, 호출부를 하나도 건드리지 않고 세션 단위 감사 추적이 살아난다.
+    const sessionId = String(flowerTokenPayload.jti || "").slice(0, 16);
+    const actorId = sessionId ? `flower-admin:${sessionId}` : "flower-admin";
     return {
       mode: "flower",
-      auth: { userId: "flower-admin", role: "admin", isAdmin: true },
-      userId: "flower-admin",
+      auth: { userId: actorId, role: "admin", isAdmin: true },
+      userId: actorId,
       isAdmin: true,
     };
   }
@@ -4227,11 +4241,6 @@ async function handleContentDiag(request, env) {
   });
 }
 
-async function sha256Hex(text) {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
-  return bytesToHex(new Uint8Array(digest));
-}
-
 async function hmacSha256Hex(text, secret) {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -4244,20 +4253,30 @@ async function hmacSha256Hex(text, secret) {
   return bytesToHex(new Uint8Array(signature));
 }
 
-async function verifyAdminEntryPassword(rawInput) {
+async function verifyAdminEntryPassword(rawInput, env) {
   const input = String(rawInput || "");
   if (!input) return false;
 
-  const inputHex = await sha256Hex(input);
-  for (const expected of ADMIN_ENTRY_PASSWORD_SHA256_LIST) {
-    if (timingSafeEqualText(inputHex, expected)) return true;
+  // 시크릿이 없으면 통과시키지 않는다(fail-closed). 예전 하드코딩 폴백으로 되돌리지 말 것 —
+  // 그 값은 공개 레포에 남아 있어 이미 유출된 것으로 취급해야 한다.
+  const encodedHash = String(getEnv(env, ADMIN_ENTRY_PASSWORD_HASH_KEY) || "").trim();
+  if (!encodedHash || isPlaceholderAdminSecret(encodedHash)) {
+    // 비밀번호 실패(404)와 설정 누락을 클라이언트에서는 구분하지 않지만, 운영자가 원인을
+    // 추적할 수 있도록 서버 로그에는 남긴다. 값 자체는 절대 찍지 않는다.
+    console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} is not configured — entry password is disabled.`);
+    return false;
   }
-  return false;
+
+  return verifyPassword(input, encodedHash);
 }
 
 async function issueFlowerAdminToken(env) {
   const now = Math.floor(Date.now() / 1000);
-  const payload = JSON.stringify({ v: 1, issued: now, exp: now + FLOWER_TOKEN_TTL_SEC });
+  // jti: 발급 세션 식별자. 진입 비밀번호는 공유 자격증명이라 "누구인지"는 알 수 없지만,
+  // 이것만 있어도 감사 기록에서 "어느 세션이 무엇을 바꿨는지"는 갈라낼 수 있다.
+  // 예전에는 모든 관리자 행위가 'flower-admin' 한 문자열로 뭉개져 사후 추적이 불가능했다.
+  const jti = bytesToHex(crypto.getRandomValues(new Uint8Array(8)));
+  const payload = JSON.stringify({ v: 1, jti, issued: now, exp: now + FLOWER_TOKEN_TTL_SEC });
   const payloadB64 = base64urlEncode(payload);
   const secret = resolveFlowerAdminSecret(env);
   const signature = await hmacSha256Hex(payloadB64, secret);
@@ -4278,10 +4297,29 @@ function setFlowerAdminCookie(response, token, request) {
   response.headers.append("Set-Cookie", cookie);
 }
 
+// 관리자 진입은 인증 앞단이라 IP 하나로 무제한 추측이 가능했다. 이 라우트는 admin.js 안에서
+// 유일하게 자격증명을 "만들어 주는" 곳이므로 무차별 대입 상한을 여기 건다.
+// (원칙 6 사전검사: worker/index.js:1105 는 CORS 만 감싸고, admin.js 에는 다른 레이트리밋이 없다.)
+async function enforceEntryPasswordSecurity(request, env) {
+  const meta = getRequestMeta(request);
+  return enforceSensitiveEndpointSecurity({
+    env,
+    request,
+    endpoint: "admin:/entry/password",
+    allowedMethods: ["POST"],
+    requireJson: true,
+    rateLimit: { limit: 5, windowSeconds: 10 * 60 },
+    rateLimitKey: `${meta.ip || "unknown"}:admin-entry-password`,
+  });
+}
+
 async function handleEntryPassword(request, env) {
+  const security = await enforceEntryPasswordSecurity(request, env);
+  if (!security.ok) return security.response;
+
   const body = await readJson(request);
   const password = String(body?.password || "");
-  if (!await verifyAdminEntryPassword(password)) {
+  if (!await verifyAdminEntryPassword(password, env)) {
     return json({ message: "Not found" }, { status: 404 });
   }
 
@@ -4298,7 +4336,12 @@ async function handleEntryPassword(request, env) {
   return response;
 }
 
-function handleKeyHealth(env) {
+// 이 매트릭스는 기능별로 어떤 키가 비었는지·아직 placeholder 인지를 그대로 말해 준다.
+// 무인증으로 열려 있으면 공격자에게 "어느 시크릿을 먼저 노려야 하는지"를 알려주는 것과 같아
+// 나머지 관리자 핸들러와 동일하게 인가를 요구한다.
+async function handleKeyHealth(request, env) {
+  await authorizeAdminRequest(request, env);
+
   const matrix = buildRuntimeKeyMatrix(env);
   return json({
     ok: true,
@@ -5005,7 +5048,7 @@ export async function handleAdminRoutes(request, env) {
     }
 
     if (method === "GET" && path === "/keys") {
-      return handleKeyHealth(env);
+      return await handleKeyHealth(request, env);
     }
 
     if (method === "GET" && path === "/diag") {

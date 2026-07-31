@@ -2202,12 +2202,13 @@ function buildDbFallbackBalance(auth, error) {
     walletCreated: false,
     code: "DB_FALLBACK",
     message: "결제 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
-    debugMessage: String(error?.message || ""),
+    // 원본 드라이버 메시지(debugMessage / errorDetails.message)는 싣지 않는다 — Atlas 타임아웃 문구에는
+    // 샤드 호스트명·IP 가 들어 있고, 이 응답은 200 이라 클라이언트가 읽지도 않는 순수 유출이었다
+    // (billing-client 는 !ok 일 때 payload.error.debugMessage 만 본다). 원문은 서버 로그에 남는다.
     errorDetails: {
       stage: "fortune-db-fallback-balance",
       name: error?.name || "Error",
       code: error?.code || "DB_FALLBACK",
-      message: String(error?.message || "Unknown DB error"),
     },
     user: userPayload(auth, points, []),
     unlockedFeatures: [],
@@ -5282,12 +5283,12 @@ function buildDbFallbackSubscriptionStatus(auth, error) {
     recommendedCoins: policy.recommendedCoins,
     code: "DB_FALLBACK",
     message: "구독 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
-    debugMessage: String(error?.message || ""),
+    // 원본 드라이버 메시지는 싣지 않는다 — Atlas 타임아웃 문구의 샤드 호스트명·IP 가 그대로 나간다.
+    // 소비자 분기는 아래 degraded/code 로만 한다. 원문은 서버 로그에 남는다.
     errorDetails: {
       stage: "fortune-db-fallback-subscription-status",
       name: error?.name || "Error",
       code: error?.code || "DB_FALLBACK",
-      message: String(error?.message || "Unknown DB error"),
     },
     // 200 + degraded:true 로 내려보낸다. 이 응답은 "구독 없음"이 아니라 "지금은 확인 못 함"이며,
     // 소비자들은 degraded 를 보고 기존 값을 유지하도록 만들어져 있다(app/_lib/auth-store.ts 의

@@ -101,6 +101,7 @@
     "verify:physiognomy-report": "node scripts/verify-physiognomy-report.mjs",
     "verify:auth-public-origin": "node scripts/verify-auth-public-origin.mjs",
     "verify:worker-security-guards": "node scripts/verify-worker-security-guards.mjs",
+    "verify:security-hardening": "node scripts/verify-security-hardening.mjs",
     "verify:no-nested-retry": "node scripts/verify-no-nested-retry.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",

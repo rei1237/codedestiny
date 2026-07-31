@@ -25,29 +25,34 @@ const router = express.Router();
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
-const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
-  // 현재 운영 비밀번호: kangta!7989
-  "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e",
-];
+// 관리자 진입 비밀번호는 소스에 두지 않는다 — 이 자리에 평문 주석과 salt 없는 SHA-256 이 함께
+// 커밋돼 있었고, 레포가 공개라 누구나 읽을 수 있었다. 정본은 ADMIN_ENTRY_PASSWORD_HASH 하나이며
+// worker/routes/admin.js 와 같은 값(bcrypt 해시)을 공유한다. 미설정이면 fail-closed 다.
+const ADMIN_ENTRY_PASSWORD_HASH_KEY = "ADMIN_ENTRY_PASSWORD_HASH";
 
 function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function verifyAdminEntryPassword(rawInput) {
+async function verifyAdminEntryPassword(rawInput) {
   const input = String(rawInput || "");
   if (!input) return false;
 
-  const inputHex = crypto.createHash("sha256").update(input, "utf8").digest("hex");
-  const inputBuf = Buffer.from(inputHex, "hex");
-
-  for (const expectedHex of ADMIN_ENTRY_PASSWORD_SHA256_LIST) {
-    if (!/^[a-f0-9]{64}$/.test(expectedHex)) continue;
-    const expectedBuf = Buffer.from(expectedHex, "hex");
-    if (expectedBuf.length !== inputBuf.length) continue;
-    if (crypto.timingSafeEqual(expectedBuf, inputBuf)) return true;
+  const encodedHash = String(process.env[ADMIN_ENTRY_PASSWORD_HASH_KEY] || "").trim();
+  if (!encodedHash) {
+    console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} is not configured — entry password is disabled.`);
+    return false;
   }
-  return false;
+  if (!/^\$2[aby]\$/.test(encodedHash)) {
+    console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} must be a bcrypt hash.`);
+    return false;
+  }
+
+  try {
+    return await bcrypt.compare(input, encodedHash);
+  } catch (_) {
+    return false;
+  }
 }
 
 function base64urlEncode(input) {
@@ -339,7 +344,7 @@ router.post("/entry/password", async (req, res) => {
     const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
 
     const password = String(req.body?.password || "");
-    if (!verifyAdminEntryPassword(password)) return denyNotFound(res);
+    if (!await verifyAdminEntryPassword(password)) return denyNotFound(res);
 
     const adminToken = issueFlowerAdminToken();
     setCookie(res, "flower_admin_token", adminToken, {

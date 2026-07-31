@@ -9,6 +9,7 @@ import {
   PaymentFailureLog,
   PaymentWebhookEvent,
   MonthlyCreditLedger,
+  PaidExecutionRecord,
   PointHistory,
   ProfileCard,
   RECENT_CONSUME_REQUEST_ID_CAP,
@@ -112,12 +113,19 @@ function timingSafeEqualText(left, right) {
   return diff === 0;
 }
 
+/* Standard Webhooks 의 webhook-signature 는 **공백으로 구분된** `v1,<base64서명>` 목록이다.
+   키 로테이션 중에는 옛 키·새 키 서명이 함께 와서 `v1,AAA v1,BBB` 형태가 된다.
+   예전에는 쉼표로 먼저 잘라 ["v1", "AAA v1", "BBB"] 로 부서졌고, 앞쪽 서명이 "AAA v1" 이라는
+   쓰레기 문자열이 되어 그 서명이 유효한 경우에도 검증이 실패했다 — 로테이션 창에서 웹훅이
+   전량 거부되는 장애다(fail-closed 라 결제 지급이 멈춘다). 서명 1개인 평시에는 우연히 동작했다. */
 function parseStandardWebhookSignatures(headerValue) {
   return String(headerValue || "")
-    .split(",")
+    .split(/\s+/)
     .map((part) => part.trim())
-    .filter((part) => part && part.startsWith("v1,") === false)
-    .map((part) => part.replace(/^v1[=:]?/i, "").trim())
+    .filter(Boolean)
+    // 접두는 `v1,` 가 표준이고 일부 구현이 `v1=`/`v1:` 를 쓴다. 구분자를 요구하므로
+    // "v1" 로 시작하는 base64 서명 자체(예: v1abc…)는 잘리지 않는다.
+    .map((part) => part.replace(/^v1[,=:]\s*/i, "").trim())
     .filter(Boolean);
 }
 
@@ -4752,7 +4760,21 @@ async function handleConfirm(request, env, auth) {
   });
 }
 
-async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollback, auth, user, requestedCancelAmount, paidAmount }) {
+/* 취소 결과의 잠금-회수 흔적을 결제 문서에 남기는 필드 묶음.
+   관리자 취소 경로(handleSinglePaymentCancel)가 쓰는 것과 같은 키를 쓴다 — 두 경로가 서로 다른
+   필드에 기록하면 "환불했는데 콘텐츠가 남았는가"를 한 쿼리로 확인할 수 없다. */
+function buildCancelRevocationFields(revocation, { partial = false } = {}) {
+  const adminReviewRequired = partial || revocation?.adminReviewRequired === true;
+  return {
+    "pricingSnapshot.cancellationReviewRequired": adminReviewRequired,
+    "pricingSnapshot.unlockRevoked": revocation?.unlockRevoked === true,
+    "metadata.unlockRevoked": revocation?.unlockRevoked === true,
+    "metadata.unlockRevocationStatus": revocation?.status || (partial ? "" : CONTENT_ENTITLEMENT_STATUSES.CANCELLED),
+    "metadata.unlockRevocationError": revocation?.error || "",
+  };
+}
+
+async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollback, auth, user, requestedCancelAmount, paidAmount, revocationFields = {} }) {
   const runWithoutTransaction = async () => {
     const canceledPayment = await Payment.findByIdAndUpdate(
       paymentRecord._id,
@@ -4764,6 +4786,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           failureCode: null,
           failureMessage: null,
           failureStage: null,
+          ...revocationFields,
         },
       },
       { returnDocument: "after" },
@@ -4813,6 +4836,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
               failureCode: null,
               failureMessage: null,
               failureStage: null,
+              ...revocationFields,
             },
           },
           { returnDocument: "after", session },
@@ -4942,6 +4966,24 @@ async function handleCancel(request, env, auth) {
     checksum: paidAmount > 0 ? paidAmount : undefined,
   });
 
+  /* 🔴 셀프 취소도 잠금 콘텐츠를 회수한다.
+     예전에는 이 경로만 포인트 롤백으로 끝나고 ContentEntitlement·unlockedFeatures 를 그대로 둬,
+     콘텐츠를 열람한 뒤 스스로 취소하면 "환불받고 콘텐츠도 유지"가 됐다. 나머지 취소 경로는 전부
+     회수한다 — 관리자(1193-1198)·취소 웹훅(2005)·실패보고 자동환불(4994).
+     부분취소는 관리자 경로와 같은 판단을 따른다: 회수하지 않고 검토 플래그만 남긴다.
+     (원칙 6 사전검사: handleCancel·runCancelUpdate 어디에도 기존 회수 호출이 없어 중첩이 아니다.) */
+  const partialCancel = isPartialSingleCancel({
+    requestedAmount: requestedCancelAmount,
+    paidAmount,
+    cancelResult: canceledPortOne,
+  });
+  const revocation = partialCancel
+    ? { unlockRevoked: false, adminReviewRequired: true }
+    : await revokeSinglePaymentContentAccess(paymentRecord, {
+      status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
+      reason: "self_service_payment_cancellation",
+    });
+
   const updateResult = await runCancelUpdate({
     paymentRecord,
     canceledPortOne,
@@ -4950,6 +4992,7 @@ async function handleCancel(request, env, auth) {
     user,
     requestedCancelAmount,
     paidAmount,
+    revocationFields: buildCancelRevocationFields(revocation, { partial: partialCancel }),
   });
 
   return json({
@@ -4961,6 +5004,31 @@ async function handleCancel(request, env, auth) {
     },
     payment: formatPaymentResponse(updateResult?.canceledPayment),
   });
+}
+
+/* 🔴 자동 환불의 판단 근거를 클라이언트 주장에서 서버 기록으로 옮긴다.
+   아래 shouldAutoCancelReportedResultFailure 가 보는 값은 전부 요청 본문에서 온다 —
+   autoRefund/refundOnFailure/resultNotProvided 플래그도, reasonCode 문자열도 클라이언트가 정한다.
+   즉 결과를 이미 받아 본 사용자가 "결과를 못 받았다"고 주장하면 실제 PortOne 취소까지 실행됐다
+   (소비 후 환불). 그래서 "서버가 결과를 완성해 전달했다고 기록했는가"를 별도로 확인해 차단한다.
+   생성 실패·미시작이거나 기록 자체가 없는 정당한 미전달은 종전대로 자동 환불이 열려 있다.
+   판정 실패(Atlas 흔들림 등)는 fail-closed 로 둔다 — 환불을 미루는 것은 되돌릴 수 있지만,
+   이미 전달된 콘텐츠에 환불을 내주는 것은 되돌릴 수 없다. */
+async function resolvePaidResultDelivery(payment) {
+  const candidates = [payment?.merchantUid, payment?.impUid, payment?.requestId, payment?._id]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+  if (!candidates.length) return { ok: true, delivered: false };
+
+  try {
+    const delivered = await PaidExecutionRecord.findOne({
+      status: "completed",
+      $or: [{ paymentId: { $in: candidates } }, { orderId: { $in: candidates } }],
+    }).select("_id").lean();
+    return { ok: true, delivered: Boolean(delivered) };
+  } catch (error) {
+    return { ok: false, delivered: false, error: String(error?.message || error).slice(0, 200) };
+  }
 }
 
 function shouldAutoCancelReportedResultFailure(payment, body, reasonCode) {
@@ -5066,7 +5134,33 @@ async function handleReportFailure(request, env, auth) {
 
   let autoRefund = null;
   if (payment && shouldAutoCancelReportedResultFailure(payment, body, reasonCode)) {
-    autoRefund = await cancelReportedResultFailurePayment(env, payment, reasonCode, reasonMessage);
+    const delivery = await resolvePaidResultDelivery(payment);
+    if (delivery.ok && !delivery.delivered) {
+      autoRefund = await cancelReportedResultFailurePayment(env, payment, reasonCode, reasonMessage);
+    } else {
+      // 이미 전달된 결과이거나 확인 불가 — 자동 환불하지 않고 근거를 남긴다.
+      // 사용자에게는 아래 공통 응답이 그대로 나가고, 환불이 필요하면 관리자 취소 경로로 처리한다.
+      autoRefund = {
+        cancelled: false,
+        blocked: true,
+        code: delivery.ok ? "PAID_RESULT_ALREADY_DELIVERED" : "PAID_RESULT_DELIVERY_UNVERIFIED",
+        payment: formatPaymentResponse(payment),
+      };
+      await writeFailureLog({
+        request,
+        userId: auth.userId,
+        impUid,
+        merchantUid,
+        source: "client",
+        stage: "auto_refund_gate",
+        code: delivery.ok ? "auto_refund_blocked_delivered" : "auto_refund_blocked_unverified",
+        message: delivery.ok
+          ? "Auto refund blocked: server recorded a completed paid execution."
+          : `Auto refund blocked: delivery check failed. ${delivery.error || ""}`.trim(),
+        status: 409,
+        payload: body,
+      });
+    }
   } else if (payment && payment.status !== "success") {
     await markPaymentFailure(payment, {
       status: reasonCode === "cancelled" ? "cancelled" : "failed",
