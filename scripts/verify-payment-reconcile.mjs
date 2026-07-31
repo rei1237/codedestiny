@@ -57,8 +57,22 @@ for (const banned of ["cancelPortOnePayment", "refundPaymentAsOperator", "autoRe
     `재조정 태스크에 ${banned} 가 있으면 안 된다 — 크론이 사람 승인 없이 환불하게 된다`,
   );
 }
-assert.ok(reconcileTask.includes("getPortOneAuthRejection"), "PortOne 자격증명 거절 시 중단해야 한다");
-assert.ok(reconcileTask.includes("PORTONE_AUTH_REJECTED"), "중단 사유를 요약에 남겨야 한다");
+// 🔴 401 을 자격증명 신호로 쓰지 않는다. PortOne 은 '없는 결제 ID' 에도 401 을 주므로 구분이 불가능하고,
+// 이걸 근거로 중단/차단하면 오탐이 곧 장애가 된다(재조정이 매 틱 멈추고 신규 결제까지 막힐 뻔했다).
+assert.ok(
+  !reconcileTask.includes("getPortOneAuthRejection"),
+  "401 관측 기반 중단을 되살리면 안 된다(없는 ID 와 구분 불가 — 오탐이 곧 장애)",
+);
+assert.ok(
+  !payments.includes("getPortOneAuthRejection"),
+  "401 관측 기반 신규 주문 차단을 되살리면 안 된다(오탐 시 전 사용자 결제 차단)",
+);
+// 파괴적 조치(만료 처리)는 자격증명이 살아 있다는 양성 증거가 있을 때만 — 아니면 멀쩡한 주문을 덮어쓴다.
+assert.ok(
+  /if \(sawSuccessfulLookup\)/.test(reconcileTask),
+  "만료 처리는 이번 실행에서 조회 성공이 확인됐을 때만 해야 한다",
+);
+assert.ok(reconcileTask.includes("credentialSuspect"), "조회가 전부 실패하면 자격증명 의심 신호를 남겨야 한다");
 assert.ok(/limit\s*=\s*clampInt/.test(reconcileTask), "배치 상한(limit)이 있어야 한다");
 assert.ok(/maxAttempts\s*=\s*clampInt/.test(reconcileTask), "시도 상한(maxAttempts)이 있어야 한다");
 assert.ok(reconcileTask.includes("metadata.reconcile.lastAt"), "동시 실행 클레임(CAS)이 있어야 한다");

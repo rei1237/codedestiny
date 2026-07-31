@@ -20,7 +20,6 @@ import {
   fetchPortOnePayment,
   getPortOneConfig,
   getPortOnePublicConfig,
-  getPortOneAuthRejection,
   getPortOneWebhookSecret,
   getPortOneWebhookUrl,
 } from "../lib/portone.js";
@@ -5707,11 +5706,11 @@ async function enforceMinorPaymentRestriction(env, auth, method, path) {
   }, { status: 403 });
 }
 
-// 🔴 결제창을 여는 주문 생성 경로에서만, 'PortOne 이 우리 자격증명을 이미 거절한 적이 있는지' 를
-// 본다. 사전 프로브는 불가능하고(PortOne 은 없는 결제 ID 에도 401 을 준다) 여기서 새로 네트워크를
-// 타지도 않는다 — portone.js 가 실제 호출에서 관측한 401/403 을 읽기만 한다. 왕복 0.
-// confirm/cancel 은 이미 승인된 건을 다루므로 막지 않는다(막으면 복구를 방해한다).
-const PORTONE_AUTH_GATED_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare"]);
+// 🔴 여기 있던 "PortOne 401 관측 시 신규 주문 차단" 게이트는 제거했다.
+// PortOne 은 '없는 결제 ID' 에도 401 UNAUTHORIZED 를 주므로 401 로는 자격증명 생사를 판별할 수 없다.
+// 연속 카운트로도 구분이 안 됐고(재조정 크론이 그 오탐으로 매 틱 중단됐다), 이 게이트의 오탐은
+// '전 사용자 결제 차단' 이라 막으려던 사고보다 피해가 크다. 신뢰할 수 없는 차단기는 두지 않는다.
+// 자격증명 장애 감지는 재조정 태스크의 credentialSuspect 로그와 PaymentFailureLog 로 한다.
 
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
@@ -5769,14 +5768,6 @@ export async function handlePaymentRoutes(request, env, ctx) {
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
-
-    // 직전에 PortOne 이 우리 자격증명을 거절했다면 결제창을 열지 않는다(돈부터 나가는 것을 막는다).
-    if (method === "POST" && PORTONE_AUTH_GATED_PATHS.has(path) && getPortOneAuthRejection()) {
-      return json({
-        message: "결제 시스템 점검 중입니다. 잠시 후 다시 시도해 주세요.",
-        code: "PAYMENT_GATEWAY_UNAVAILABLE",
-      }, { status: 503 });
-    }
 
     await connectDb(env);
     trace.dbConnected = true;

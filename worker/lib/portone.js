@@ -176,8 +176,6 @@ async function requestJson(url, options, errorPrefix) {
     clearTimeout(timeout);
   }
   const payload = await response.json().catch(() => null);
-  // 자격증명 거절(401/403)을 기억해 이후 신규 주문 생성을 막는다.
-  notePortOneAuthResult(response.status);
 
   if (!response.ok) {
     const remoteMessage = payload?.message || payload?.code || payload?.type || response.statusText;
@@ -281,42 +279,10 @@ export function getPortOnePublicConfig(env) {
 // 미리 물어볼 방법이 없다. 대신 '실제 호출이 401/403 으로 거절당한 사실' 을 기억해 두고,
 // 그 뒤의 신규 주문 생성을 막는다 — 두 번째 피해자부터는 결제창이 열리지 않는다.
 // (getPortOneConfig().configured 는 값의 존재만 보므로 이 판정을 대신할 수 없다.)
-// 🔴 PortOne 은 '존재하지 않는 결제 ID' 에도 401 UNAUTHORIZED 를 준다 — 즉 401 한 번은 자격증명이
-// 죽었다는 증거가 못 된다. 잘못된 paymentId 조회 하나로 전체 결제를 막으면 그 자체가 장애다
-// (실제로 재조정 크론이 이 오탐으로 첫 건에서 중단됐다).
-// 그래서 '연속' 401/403 만 센다. 진짜 자격증명 장애면 모든 호출이 401 이므로 3연속이면 확정이고,
-// 잘못된 ID 하나는 그 사이에 성공 응답이 섞여 스트릭이 초기화된다.
-const PORTONE_AUTH_REJECTION_TTL_MS = 10 * 60 * 1000;
-const PORTONE_AUTH_REJECT_STREAK_THRESHOLD = 3;
-let portOneAuthRejectStreak = 0;
-let portOneAuthRejectedAt = 0;
-
-function notePortOneAuthResult(status) {
-  if (status === 401 || status === 403) {
-    portOneAuthRejectStreak += 1;
-    if (portOneAuthRejectStreak >= PORTONE_AUTH_REJECT_STREAK_THRESHOLD && !portOneAuthRejectedAt) {
-      console.error(`[portone-auth] PortOne API rejected our credential ${portOneAuthRejectStreak} times in a row (HTTP ${status}). New payment orders will be blocked until a call succeeds.`);
-      portOneAuthRejectedAt = Date.now();
-    }
-    return;
-  }
-  // 인증이 통하는 응답(성공/404/400 등)을 한 번이라도 받으면 스트릭과 차단을 모두 해제한다.
-  if (status >= 200 && status < 500) {
-    portOneAuthRejectStreak = 0;
-    portOneAuthRejectedAt = 0;
-  }
-}
-
-// 워커 isolate 단위의 best-effort 차단기다. 콜드 isolate 에서는 비어 있으므로 결제를 막지 않는다.
-export function getPortOneAuthRejection() {
-  if (!portOneAuthRejectedAt) return null;
-  if (Date.now() - portOneAuthRejectedAt > PORTONE_AUTH_REJECTION_TTL_MS) {
-    portOneAuthRejectStreak = 0;
-    portOneAuthRejectedAt = 0;
-    return null;
-  }
-  return { rejectedAt: portOneAuthRejectedAt, streak: portOneAuthRejectStreak };
-}
+// 🔴 PortOne 은 '존재하지 않는 결제 ID' 에도 401 UNAUTHORIZED 를 준다. 즉 401 로는 "시크릿이 죽었다"와
+// "그런 주문이 없다"를 구분할 수 없다. 이걸 관측해 결제를 차단하는 차단기를 뒀다가, 오탐으로 재조정이
+// 매 틱 중단되고 신규 결제까지 막힐 뻔했다 — 신뢰할 수 없는 신호이므로 차단기를 두지 않는다.
+// 자격증명 장애는 재조정 태스크의 credentialSuspect 로그로 감지한다.
 
 export async function fetchPortOnePayment(env, paymentId) {
   if (!paymentId) throw new Error("paymentId is required.");

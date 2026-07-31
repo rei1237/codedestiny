@@ -8,7 +8,7 @@
 // Cloudflare rate-limit 안전: 배치·상한·terminal 종료(무한 루프 금지).
 import { connectDb, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, Payment } from "./models.js";
-import { fetchPortOnePayment, getPortOneAuthRejection } from "./portone.js";
+import { fetchPortOnePayment } from "./portone.js";
 import { revokeSinglePaymentContentAccess } from "./payment-refund.js";
 
 function clampInt(value, fallback, min, max) {
@@ -73,8 +73,10 @@ export async function reconcilePendingPayments(env, options = {}) {
 
   summary.scanned = candidates.length;
   const reclaimCutoff = new Date(now - RECLAIM_AFTER_MS);
-  // 이번 실행에서 PortOne 조회가 한 번이라도 성공했는가 — 자격증명 생사 판정의 근거다.
+  // 이번 실행에서 PortOne 조회가 한 번이라도 성공했는가 — 자격증명이 살아 있다는 유일한 양성 증거다.
   let sawSuccessfulLookup = false;
+  // "PortOne 에 기록 없음"으로 보이는 주문들. 자격증명 생사가 확인된 뒤에만 만료 처리한다.
+  const pendingExpire = [];
 
   for (const candidate of candidates) {
     // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(runWebhookReconcileTask 와 같은 관용구).
@@ -112,28 +114,22 @@ export async function reconcilePendingPayments(env, options = {}) {
       portOnePayment = await fetchPortOnePayment(env, lookupId);
       sawSuccessfulLookup = true;
     } catch (error) {
-      // 🔴 자격증명이 정말 죽었을 때만 중단한다. PortOne 은 없는 결제 ID 에도 401 을 주므로
-      // 401 한 번으로 중단하면 주문 하나 때문에 재조정 전체가 멈춘다(실제로 그렇게 멈췄다).
-      // 이번 실행에서 성공한 조회가 한 번이라도 있었다면 자격증명은 살아 있는 것이므로 중단하지 않는다.
-      if (!sawSuccessfulLookup && getPortOneAuthRejection()) {
-        summary.ok = false;
-        summary.abortedReason = "PORTONE_AUTH_REJECTED";
-        console.error("[CRON] payment reconcile aborted: PortOne credential rejected (연속 401, 성공 조회 0건)");
-        break;
+      // 🔴 401 을 자격증명 신호로 쓰지 않는다. PortOne 은 '없는 결제 ID' 에도 401 UNAUTHORIZED 를
+      // 주기 때문에 401 만으로는 "시크릿이 죽었다"와 "그런 주문이 없다"를 원리적으로 구분할 수 없다.
+      // 연속 카운트로 추정해 봤지만, 최신 주문부터 처리하면 앞자리가 죄다 미등록 주문이라 그대로
+      // 오탐이 났다(실제로 재조정이 매 틱 중단됐다). 그래서 중단 판단 자체를 없앤다 — 조회 실패는
+      // 그 주문만 건너뛰고 계속 간다.
+      //
+      // 대신 '파괴적 조치'(만료 처리)는 자격증명이 살아 있다는 양성 증거가 있을 때만 한다.
+      // 시크릿이 정말 죽은 상태에서 만료 처리를 하면 멀쩡한 주문을 전부 실패로 덮어쓴다.
+      const expirable = isNotFoundLookupError(error)
+        && (now - new Date(candidate.createdAt).getTime()) > expireUnknownAfterMs;
+      if (expirable) {
+        // 아직 성공 조회가 없으면 자격증명 생사를 모른다 — 판단을 루프 끝으로 미룬다.
+        pendingExpire.push(candidate._id);
+      } else {
+        summary.failed += 1;
       }
-      if (isNotFoundLookupError(error) && (now - new Date(candidate.createdAt).getTime()) > expireUnknownAfterMs) {
-        // PortOne 에 결제가 없다 = 결제창조차 열지 않은 주문. 오래됐으면 만료 처리한다.
-        await markPayment(candidate._id, {
-          status: "failed",
-          orderState: "FAILED",
-          failureCode: "portone_order_never_created",
-          failureMessage: "PortOne has no record of this payment. Treated as abandoned checkout.",
-          failureStage: "reconcile_expire_unknown",
-        });
-        summary.expired += 1;
-        continue;
-      }
-      summary.failed += 1;
       continue;
     }
 
@@ -201,6 +197,28 @@ export async function reconcilePendingPayments(env, options = {}) {
 
     // ready / 가상계좌 발급대기 등 — 결제창 이탈은 정상 상태다. 손대지 않는다.
     summary.untouched += 1;
+  }
+
+  // 미뤄 둔 만료 처리. 자격증명이 살아 있다는 게 이번 실행에서 확인됐을 때만 실행한다.
+  // 확인이 안 됐으면 아무것도 덮어쓰지 않고 다음 틱으로 넘긴다 — 시크릿이 죽은 상태에서
+  // 만료 처리를 하면 멀쩡한 주문을 전부 실패로 만든다.
+  if (pendingExpire.length) {
+    if (sawSuccessfulLookup) {
+      for (const paymentId of pendingExpire) {
+        await markPayment(paymentId, {
+          status: "failed",
+          orderState: "FAILED",
+          failureCode: "portone_order_never_created",
+          failureMessage: "PortOne has no record of this payment. Treated as abandoned checkout.",
+          failureStage: "reconcile_expire_unknown",
+        });
+        summary.expired += 1;
+      }
+    } else {
+      summary.deferredExpire = pendingExpire.length;
+      summary.credentialSuspect = true;
+      console.error(`[CRON] payment reconcile: PortOne 조회가 한 건도 성공하지 않았다 — 자격증명 점검 필요. 만료 처리 ${pendingExpire.length}건을 보류한다.`);
+    }
   }
 
   return summary;
