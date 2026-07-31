@@ -2,12 +2,42 @@
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
+
+  /* 조티시 팔레트 — 딥 인디고 표면 위 사프란 포인트.
+     사프란 원색(#c9762e)은 이 파일의 가장 밝은 표면 위에서도 4.5:1을 넘기지만 여유가 크지 않으므로
+     테두리·아이콘·얇은 강조에 쓰고, 글자에는 밝은 변형(--vd-saffron-lit, 7.7:1 이상)을 쓴다.
+     보조 톤은 퍼플이 아니라 달빛 인디고 하나로 수렴한다(강조색은 사프란 하나 — One Accent Rule). */
+  --vd-bg-deep: #0b1026;
+  --vd-bg-deep-rgb: 11, 16, 38;
+  --vd-bg-abyss: #060a1a;
+  --vd-surface: #141b3d;
+  --vd-surface-rgb: 20, 27, 61;
+  --vd-saffron: #c9762e;
+  --vd-saffron-rgb: 201, 118, 46;
+  --vd-saffron-lit: #e9a05a;
+  --vd-saffron-deep: #8f4f1c;
+  --vd-saffron-deep-rgb: 143, 79, 28;
+  --vd-moon: #aeb8e0;
+  --vd-moon-rgb: 174, 184, 224;
+  --vd-text: #f2eee6;
+  --vd-text-rgb: 242, 238, 230;
+  --vd-text-dim: #b9c0da;
+  --vd-text-dim-rgb: 185, 192, 218;
+
+  /* 여백 스케일 — 이 페이지의 모든 패딩·간격은 여기서 나온다.
+     이전 값 대비 1.5배로 넓혀 장문 상담문이 숨 쉴 자리를 만든다. */
+  --vd-gap-xs: 0.6rem;
+  --vd-gap-sm: 0.9rem;
+  --vd-gap-md: 1.35rem;
+  --vd-gap-lg: 1.85rem;
+  --vd-gap-xl: 2.6rem;
+
   background:
-    radial-gradient(ellipse at 18% 8%, rgba(246, 214, 126, 0.2), transparent 24rem),
-    radial-gradient(ellipse at 82% 12%, rgba(139, 92, 246, 0.24), transparent 25rem),
-    radial-gradient(ellipse at 64% 88%, rgba(92, 196, 255, 0.12), transparent 22rem),
-    linear-gradient(145deg, #020617 0%, #08111f 36%, #1a1238 68%, #04020c 100%);
-  color: #fff8e7;
+    radial-gradient(ellipse at 18% 8%, rgba(var(--vd-saffron-rgb), 0.16), transparent 24rem),
+    radial-gradient(ellipse at 82% 12%, rgba(var(--vd-moon-rgb), 0.14), transparent 25rem),
+    radial-gradient(ellipse at 64% 88%, rgba(var(--vd-saffron-rgb), 0.08), transparent 22rem),
+    linear-gradient(145deg, var(--vd-bg-abyss) 0%, var(--vd-bg-deep) 38%, var(--vd-surface) 70%, var(--vd-bg-abyss) 100%);
+  color: var(--vd-text);
   font-family: CodeDestinyBody, system-ui, sans-serif;
 }
 
@@ -17,9 +47,9 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle, rgba(255, 244, 210, 0.76) 0 1px, transparent 1.6px),
-    radial-gradient(circle, rgba(199, 210, 254, 0.58) 0 1px, transparent 1.7px),
-    linear-gradient(115deg, transparent 0 47%, rgba(246, 214, 126, 0.08) 48% 48.5%, transparent 50%);
+    radial-gradient(circle, rgba(var(--vd-text-rgb), 0.76) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(var(--vd-moon-rgb), 0.58) 0 1px, transparent 1.7px),
+    linear-gradient(115deg, transparent 0 47%, rgba(var(--vd-saffron-rgb), 0.08) 48% 48.5%, transparent 50%);
   background-size: 72px 72px, 131px 131px, 100% 100%;
   background-position: 0 0, 27px 43px, 0 0;
   opacity: 0.34;
@@ -32,13 +62,12 @@
   width: min(54rem, 88vw);
   aspect-ratio: 1;
   pointer-events: none;
-  border: 1px solid rgba(226, 232, 240, 0.08);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.08);
   border-radius: 50%;
   background:
-    repeating-conic-gradient(from 18deg, rgba(246, 214, 126, 0.12) 0deg 1deg, transparent 1deg 16deg),
-    radial-gradient(circle, transparent 0 47%, rgba(148, 163, 184, 0.11) 47.2% 47.5%, transparent 48% 67%, rgba(139, 92, 246, 0.12) 67.3% 67.6%, transparent 68%);
+    repeating-conic-gradient(from 18deg, rgba(var(--vd-saffron-rgb), 0.12) 0deg 1deg, transparent 1deg 16deg),
+    radial-gradient(circle, transparent 0 47%, rgba(var(--vd-moon-rgb), 0.11) 47.2% 47.5%, transparent 48% 67%, rgba(var(--vd-moon-rgb), 0.12) 67.3% 67.6%, transparent 68%);
   opacity: 0.72;
-  animation: orbitTurn 64s linear infinite;
 }
 
 .hero {
@@ -52,11 +81,11 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(2, 6, 23, 0.94), rgba(8, 13, 35, 0.7) 52%, rgba(4, 2, 12, 0.96)),
-    radial-gradient(circle at 18% 26%, rgba(255, 248, 231, 0.82) 0 1px, transparent 1.8px),
-    radial-gradient(circle at 34% 19%, rgba(246, 214, 126, 0.72) 0 1px, transparent 1.8px),
-    radial-gradient(circle at 62% 31%, rgba(196, 181, 253, 0.7) 0 1px, transparent 1.8px),
-    radial-gradient(circle at 84% 18%, rgba(226, 232, 240, 0.7) 0 1px, transparent 1.8px);
+    linear-gradient(180deg, rgba(var(--vd-bg-deep-rgb), 0.94), rgba(var(--vd-bg-deep-rgb), 0.7) 52%, var(--vd-bg-abyss)),
+    radial-gradient(circle at 18% 26%, rgba(var(--vd-text-rgb), 0.82) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 34% 19%, rgba(var(--vd-saffron-rgb), 0.72) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 62% 31%, rgba(var(--vd-moon-rgb), 0.7) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 84% 18%, rgba(var(--vd-moon-rgb), 0.7) 0 1px, transparent 1.8px);
   background-size: auto, 13rem 13rem, 17rem 17rem, 19rem 19rem, 23rem 23rem;
   opacity: 1;
 }
@@ -69,13 +98,12 @@
   width: min(38rem, 76vw);
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 1px solid rgba(246, 214, 126, 0.2);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.2);
   background:
-    repeating-conic-gradient(from 0deg, rgba(246, 214, 126, 0.18) 0deg 4deg, transparent 4deg 12deg),
-    radial-gradient(circle, transparent 0 33%, rgba(246, 214, 126, 0.14) 34% 34.5%, transparent 35% 52%, rgba(196, 181, 253, 0.12) 52.5% 53%, transparent 54%);
+    repeating-conic-gradient(from 0deg, rgba(var(--vd-saffron-rgb), 0.18) 0deg 4deg, transparent 4deg 12deg),
+    radial-gradient(circle, transparent 0 33%, rgba(var(--vd-saffron-rgb), 0.14) 34% 34.5%, transparent 35% 52%, rgba(var(--vd-moon-rgb), 0.12) 52.5% 53%, transparent 54%);
   opacity: 0.64;
-  filter: drop-shadow(0 0 42px rgba(246, 214, 126, 0.16));
-  animation: mandalaDrift 36s linear infinite;
+  filter: drop-shadow(0 0 42px rgba(var(--vd-saffron-rgb), 0.16));
 }
 
 .starLayer {
@@ -83,13 +111,12 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 24% 22%, rgba(255, 248, 231, 0.85) 0 1px, transparent 2px),
-    radial-gradient(circle at 46% 18%, rgba(238, 198, 116, 0.82) 0 1px, transparent 2px),
-    radial-gradient(circle at 74% 30%, rgba(234, 92, 152, 0.62) 0 1px, transparent 2px),
-    radial-gradient(circle at 66% 64%, rgba(255, 248, 231, 0.72) 0 1px, transparent 2px),
-    linear-gradient(128deg, transparent 0 42%, rgba(226, 232, 240, 0.1) 43%, transparent 44% 100%);
+    radial-gradient(circle at 24% 22%, rgba(var(--vd-text-rgb), 0.85) 0 1px, transparent 2px),
+    radial-gradient(circle at 46% 18%, rgba(var(--vd-saffron-rgb), 0.82) 0 1px, transparent 2px),
+    radial-gradient(circle at 74% 30%, rgba(var(--vd-saffron-rgb), 0.62) 0 1px, transparent 2px),
+    radial-gradient(circle at 66% 64%, rgba(var(--vd-text-rgb), 0.72) 0 1px, transparent 2px),
+    linear-gradient(128deg, transparent 0 42%, rgba(var(--vd-moon-rgb), 0.1) 43%, transparent 44% 100%);
   opacity: 0.86;
-  animation: starFloat 13s ease-in-out infinite alternate;
 }
 
 .heroInner {
@@ -114,11 +141,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  border: 1px solid rgba(246, 214, 126, 0.46);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.46);
   border-radius: 999px;
-  background: rgba(3, 7, 18, 0.56);
-  color: #f6d67e;
-  box-shadow: 0 0 24px rgba(246, 214, 126, 0.08), inset 0 1px 0 rgba(255, 248, 231, 0.08);
+  background: rgba(var(--vd-bg-deep-rgb), 0.56);
+  color: var(--vd-saffron-lit);
+  box-shadow: 0 0 24px rgba(var(--vd-saffron-rgb), 0.08), inset 0 1px 0 rgba(var(--vd-text-rgb), 0.08);
 }
 
 .eyebrow {
@@ -126,21 +153,23 @@
   font-size: 0.84rem;
 }
 
+/* 제목은 전역 명조 스택(--font-serif, styles/globals.css)을 그대로 쓴다 — 이 페이지 전용 서체를 새로 만들지 않는다. */
 .copy h1 {
-  margin: 1rem 0 0.72rem;
-  font-family: CodeDestinyDisplay, CodeDestinyPremium, serif;
-  font-size: clamp(2.45rem, 5.6vw, 4.9rem);
-  line-height: 0.98;
-  letter-spacing: 0;
-  text-shadow: 0 0 38px rgba(246, 214, 126, 0.16);
+  margin: var(--vd-gap-md) 0 var(--vd-gap-sm);
+  font-family: var(--font-serif);
+  font-size: clamp(2.3rem, 5.2vw, 4.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .copy p {
-  max-width: 37rem;
+  max-width: 34rem;
   margin: 0;
-  color: rgba(255, 248, 231, 0.84);
-  font-size: clamp(1rem, 1.8vw, 1.18rem);
-  line-height: 1.78;
+  color: rgba(var(--vd-text-rgb), 0.88);
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  line-height: 1.85;
+  text-wrap: pretty;
 }
 
 .heroMeta {
@@ -174,21 +203,19 @@
 
 .mandalaStage::before {
   inset: -9%;
-  border: 1px solid rgba(226, 232, 240, 0.16);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.16);
   background:
-    repeating-conic-gradient(from 8deg, transparent 0deg 11deg, rgba(226, 232, 240, 0.16) 11deg 11.6deg, transparent 12deg 24deg),
-    radial-gradient(circle, transparent 0 62%, rgba(246, 214, 126, 0.1) 62.5% 63%, transparent 64%);
-  animation: orbitTurn 32s linear infinite;
+    repeating-conic-gradient(from 8deg, transparent 0deg 11deg, rgba(var(--vd-moon-rgb), 0.16) 11deg 11.6deg, transparent 12deg 24deg),
+    radial-gradient(circle, transparent 0 62%, rgba(var(--vd-saffron-rgb), 0.1) 62.5% 63%, transparent 64%);
 }
 
 .mandalaStage::after {
   inset: 22%;
-  border: 1px solid rgba(196, 181, 253, 0.2);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.2);
   box-shadow:
-    0 -9.2rem 0 -0.5rem rgba(246, 214, 126, 0.76),
-    7.6rem 4.9rem 0 -0.55rem rgba(196, 181, 253, 0.72),
-    -7.2rem 5.4rem 0 -0.58rem rgba(226, 232, 240, 0.66);
-  animation: orbitTurn 22s linear infinite reverse;
+    0 -9.2rem 0 -0.5rem rgba(var(--vd-saffron-rgb), 0.76),
+    7.6rem 4.9rem 0 -0.55rem rgba(var(--vd-moon-rgb), 0.72),
+    -7.2rem 5.4rem 0 -0.58rem rgba(var(--vd-moon-rgb), 0.66);
 }
 
 .mandalaCore,
@@ -198,34 +225,31 @@
 .loadingMandala {
   border-radius: 50%;
   background:
-    repeating-conic-gradient(from 0deg, rgba(246, 214, 126, 0.78) 0deg 3deg, transparent 3deg 9deg),
-    radial-gradient(circle, rgba(255, 248, 231, 0.13) 0 22%, transparent 23% 36%, rgba(246, 214, 126, 0.32) 37% 37.5%, transparent 38% 56%, rgba(196, 181, 253, 0.2) 57% 57.5%, transparent 58%);
+    repeating-conic-gradient(from 0deg, rgba(var(--vd-saffron-rgb), 0.78) 0deg 3deg, transparent 3deg 9deg),
+    radial-gradient(circle, rgba(var(--vd-text-rgb), 0.13) 0 22%, transparent 23% 36%, rgba(var(--vd-saffron-rgb), 0.32) 37% 37.5%, transparent 38% 56%, rgba(var(--vd-moon-rgb), 0.2) 57% 57.5%, transparent 58%);
   box-shadow:
-    inset 0 0 28px rgba(246, 214, 126, 0.18),
-    0 0 72px rgba(246, 214, 126, 0.16);
+    inset 0 0 28px rgba(var(--vd-saffron-rgb), 0.18),
+    0 0 72px rgba(var(--vd-saffron-rgb), 0.16);
 }
 
 .mandalaCore {
   width: 76%;
   aspect-ratio: 1;
-  animation: mandalaDrift 34s linear infinite;
 }
 
 .orbitOne,
 .orbitTwo {
   position: absolute;
-  border: 1px solid rgba(246, 214, 126, 0.26);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.26);
   background: transparent;
 }
 
 .orbitOne {
   inset: 7%;
-  animation: orbitTurn 24s linear infinite;
 }
 
 .orbitTwo {
   inset: 19%;
-  animation: orbitTurn 18s linear infinite reverse;
 }
 
 .workspace {
@@ -233,7 +257,7 @@
   z-index: 1;
   display: grid;
   grid-template-columns: minmax(20rem, 30rem) minmax(0, 1fr);
-  gap: 1rem;
+  gap: var(--vd-gap-lg);
   width: min(1180px, calc(100% - 2rem));
   margin: -1.75rem auto 0;
   padding: 0 0 3rem;
@@ -241,20 +265,20 @@
 
 .formPanel,
 .resultPanel {
-  border: 1px solid rgba(246, 214, 126, 0.2);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.2);
   border-radius: 8px;
   background:
-    linear-gradient(150deg, rgba(5, 10, 25, 0.9), rgba(20, 16, 48, 0.76)),
-    radial-gradient(circle at 18% 0%, rgba(246, 214, 126, 0.08), transparent 18rem);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 248, 231, 0.06);
+    linear-gradient(150deg, rgba(var(--vd-bg-deep-rgb), 0.9), rgba(var(--vd-surface-rgb), 0.76)),
+    radial-gradient(circle at 18% 0%, rgba(var(--vd-saffron-rgb), 0.08), transparent 18rem);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(var(--vd-text-rgb), 0.06);
   backdrop-filter: blur(18px);
 }
 
 .formPanel {
   display: grid;
-  gap: 0.9rem;
+  gap: var(--vd-gap-md);
   align-self: start;
-  padding: 1rem;
+  padding: var(--vd-gap-lg);
 }
 
 .panelHeader {
@@ -262,7 +286,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  color: #f6d67e;
+  color: var(--vd-saffron-lit);
 }
 
 .panelHeader span,
@@ -280,7 +304,7 @@
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--vd-gap-md);
 }
 
 .formPanel label {
@@ -293,7 +317,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: rgba(255, 248, 231, 0.78);
+  color: rgba(var(--vd-text-rgb), 0.78);
   font-size: 0.86rem;
 }
 
@@ -301,10 +325,10 @@
 .formPanel select,
 .formPanel textarea {
   width: 100%;
-  border: 1px solid rgba(246, 214, 126, 0.24);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.24);
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.38);
-  color: #fff8e7;
+  background: rgba(var(--vd-bg-deep-rgb), 0.38);
+  color: var(--vd-text);
   padding: 0.72rem 0.78rem;
   font: inherit;
   outline: none;
@@ -317,12 +341,12 @@
 }
 
 .formPanel option {
-  color: #17133d;
+  color: var(--vd-bg-deep);
 }
 
 .geoStatus {
   min-height: 1rem;
-  color: rgba(191, 219, 254, 0.82);
+  color: rgba(var(--vd-text-dim-rgb), 0.82);
   font-size: 0.76rem;
   overflow-wrap: anywhere;
 }
@@ -330,9 +354,9 @@
 .formPanel input:focus,
 .formPanel select:focus,
 .formPanel textarea:focus {
-  border-color: #f6d67e;
-  background: rgba(255, 248, 231, 0.09);
-  box-shadow: 0 0 0 3px rgba(246, 214, 126, 0.13), 0 0 24px rgba(139, 92, 246, 0.12);
+  border-color: var(--vd-saffron-lit);
+  background: rgba(var(--vd-text-rgb), 0.09);
+  box-shadow: 0 0 0 3px rgba(var(--vd-saffron-rgb), 0.13), 0 0 24px rgba(var(--vd-moon-rgb), 0.12);
 }
 
 .checkRow {
@@ -345,7 +369,7 @@
 .checkRow input {
   width: 1rem;
   height: 1rem;
-  accent-color: #f6d67e;
+  accent-color: var(--vd-saffron-lit);
 }
 
 .softNotice,
@@ -360,9 +384,9 @@
 
 .softNotice,
 .noticeBox {
-  border: 1px solid rgba(246, 214, 126, 0.24);
-  background: rgba(246, 214, 126, 0.09);
-  color: #f8e7b4;
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.24);
+  background: rgba(var(--vd-saffron-rgb), 0.09);
+  color: var(--vd-saffron-lit);
 }
 
 .errorBox {
@@ -386,18 +410,18 @@
   min-height: 3.25rem;
   border: 0;
   border-radius: 8px;
-  background: linear-gradient(135deg, #f8e7b4 0%, #f0bd59 47%, #c4b5fd 100%);
-  color: #130b23;
+  background: linear-gradient(135deg, var(--vd-saffron-lit) 0%, var(--vd-saffron) 47%, var(--vd-moon) 100%);
+  color: var(--vd-bg-deep);
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 16px 36px rgba(246, 214, 126, 0.18), 0 0 26px rgba(196, 181, 253, 0.12);
+  box-shadow: 0 16px 36px rgba(var(--vd-saffron-rgb), 0.18), 0 0 26px rgba(var(--vd-moon-rgb), 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .primaryButton:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: saturate(1.05);
-  box-shadow: 0 20px 42px rgba(246, 214, 126, 0.26), 0 0 28px rgba(196, 181, 253, 0.2);
+  box-shadow: 0 20px 42px rgba(var(--vd-saffron-rgb), 0.26), 0 0 28px rgba(var(--vd-moon-rgb), 0.2);
 }
 
 .primaryButton:disabled {
@@ -408,7 +432,7 @@
 .resultPanel {
   position: relative;
   min-height: 39rem;
-  padding: 1rem;
+  padding: var(--vd-gap-lg);
   overflow: hidden;
 }
 
@@ -418,9 +442,9 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(150deg, transparent 0 62%, rgba(246, 214, 126, 0.07) 63%, transparent 64%),
-    radial-gradient(circle at 88% 14%, rgba(196, 181, 253, 0.1), transparent 14rem),
-    radial-gradient(circle at 12% 86%, rgba(92, 196, 255, 0.08), transparent 16rem);
+    linear-gradient(150deg, transparent 0 62%, rgba(var(--vd-saffron-rgb), 0.07) 63%, transparent 64%),
+    radial-gradient(circle at 88% 14%, rgba(var(--vd-moon-rgb), 0.1), transparent 14rem),
+    radial-gradient(circle at 12% 86%, rgba(var(--vd-moon-rgb), 0.08), transparent 16rem);
 }
 
 .resultPanel > * {
@@ -439,7 +463,7 @@
   padding: 2rem;
   overflow: hidden;
   text-align: center;
-  background: radial-gradient(ellipse at 50% 40%, #080318 0%, #030010 60%, #010008 100%);
+  background: radial-gradient(ellipse at 50% 40%, var(--vd-bg-deep) 0%, var(--vd-bg-deep) 60%, var(--vd-bg-deep) 100%);
 }
 
 .cosmosStars {
@@ -452,7 +476,6 @@
   position: absolute;
   border-radius: 999px;
   background: #fff;
-  animation: twinkle 3.8s ease-in-out infinite alternate;
 }
 
 .cosmosOrbitStage {
@@ -468,16 +491,15 @@
   height: 100%;
 }
 
+/* 중앙 글리프. 그라디언트 텍스트는 쓰지 않는다 — 단색 사프란에 글로우만 얹는다. */
 .cosmosOrbitStage > span {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: transparent;
-  background-image: linear-gradient(135deg, #a78bfa, #fbbf24);
-  background-clip: text;
+  color: var(--vd-saffron-lit);
   font-size: 2.6rem;
-  filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.6));
+  filter: drop-shadow(0 0 18px rgba(var(--vd-saffron-rgb), 0.45));
 }
 
 /* 각 궤도의 행성을 SVG 중심(160,160) 기준으로 CSS 회전 — JS setInterval 리렌더 제거(GPU transform). */
@@ -488,24 +510,21 @@
   will-change: transform;
 }
 
-/* 중앙 글리프 미세 호흡감 */
-.cosmosOrbitGlyph {
-  animation: cosmosCoreBreath 6s ease-in-out infinite;
-}
-
 .cosmosLoadingText {
   display: grid;
-  gap: 0.45rem;
+  gap: var(--vd-gap-xs);
 }
 
 .cosmosLoadingText strong {
-  color: rgba(196, 181, 253, 0.88);
+  color: var(--vd-text);
+  font-size: 1.02rem;
   font-weight: 500;
 }
 
 .cosmosLoadingText span {
-  color: rgba(255, 255, 255, 0.28);
+  color: var(--vd-text-dim);
   font-size: 0.78rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -527,8 +546,8 @@
 }
 
 .cosmosStageDots .activeCosmosDot {
-  color: rgba(196, 181, 253, 0.86);
-  text-shadow: 0 0 10px rgba(167, 139, 250, 0.9);
+  color: rgba(var(--vd-moon-rgb), 0.86);
+  text-shadow: 0 0 10px rgba(var(--vd-moon-rgb), 0.9);
   transform: scale(1.25);
 }
 
@@ -540,18 +559,21 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* width가 아니라 scaleX로 늘린다 — 100ms마다 레이아웃을 다시 계산시키지 않는다. */
 .cosmosProgress span {
   display: block;
+  width: 100%;
   height: 100%;
+  transform-origin: left center;
   border-radius: inherit;
-  background: linear-gradient(90deg, #7c3aed, #a78bfa 50%, #fbbf24);
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
-  transition: width 0.1s linear;
+  background: linear-gradient(90deg, var(--vd-saffron-deep), var(--vd-saffron) 55%, var(--vd-saffron-lit));
+  box-shadow: 0 0 8px rgba(var(--vd-saffron-rgb), 0.5);
+  transition: transform 0.1s linear;
 }
 
 .cosmosLoading p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.18);
+  color: var(--vd-text-dim);
   font-size: 0.78rem;
 }
 
@@ -563,7 +585,7 @@
   min-height: 36rem;
   padding: 2rem 1rem;
   text-align: center;
-  color: rgba(255, 248, 231, 0.78);
+  color: rgba(var(--vd-text-rgb), 0.78);
 }
 
 .emptyMandala {
@@ -571,21 +593,23 @@
   aspect-ratio: 1;
   margin-bottom: 1.1rem;
   opacity: 0.82;
-  animation: mandalaDrift 34s linear infinite;
 }
 
 .emptyState h2 {
   max-width: 31rem;
-  margin: 0 0 0.55rem;
-  font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
-  font-size: clamp(1.45rem, 3vw, 2.25rem);
-  letter-spacing: 0;
+  margin: 0 0 var(--vd-gap-sm);
+  font-family: var(--font-serif);
+  font-size: clamp(1.45rem, 3vw, 2.1rem);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 .emptyState p {
   max-width: 31rem;
   margin: 0;
-  line-height: 1.7;
+  color: var(--vd-text-dim);
+  line-height: 1.85;
+  text-wrap: pretty;
 }
 
 .loadingVeil {
@@ -595,37 +619,36 @@
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 0.55rem;
-  padding: 2rem;
+  gap: var(--vd-gap-sm);
+  padding: var(--vd-gap-xl);
   text-align: center;
-  background: rgba(7, 9, 28, 0.68);
+  background: rgba(var(--vd-bg-deep-rgb), 0.68);
   backdrop-filter: blur(8px);
 }
 
 .loadingVeil strong {
-  color: #f7d992;
+  color: var(--vd-saffron-lit);
   font-size: 1.05rem;
 }
 
 .loadingVeil span {
-  color: rgba(255, 248, 231, 0.72);
+  color: rgba(var(--vd-text-rgb), 0.72);
 }
 
 .loadingMandala {
   width: 7.5rem;
   aspect-ratio: 1;
-  animation: mandalaDrift 12s linear infinite;
 }
 
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--vd-gap-md);
 }
 
 .summaryHeader {
-  margin-bottom: 0.75rem;
-  color: #f6d67e;
+  margin-bottom: var(--vd-gap-md);
+  color: var(--vd-saffron-lit);
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -635,16 +658,16 @@
 .sectionCard,
 .userMsg {
   min-width: 0;
-  border: 1px solid rgba(246, 214, 126, 0.18);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.18);
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.32);
-  box-shadow: inset 0 1px 0 rgba(255, 248, 231, 0.06), 0 12px 34px rgba(0, 0, 0, 0.16);
+  background: rgba(var(--vd-bg-deep-rgb), 0.32);
+  box-shadow: inset 0 1px 0 rgba(var(--vd-text-rgb), 0.06), 0 12px 34px rgba(0, 0, 0, 0.16);
 }
 
 .summaryGrid article,
 .chartCards article,
 .sectionCard {
-  padding: 0.88rem;
+  padding: var(--vd-gap-md);
 }
 
 .summaryGrid span,
@@ -652,29 +675,29 @@
 .sectionCard span,
 .userMsg span {
   display: block;
-  color: #f6d67e;
+  color: var(--vd-saffron-lit);
   font-size: 0.78rem;
 }
 
 .summaryGrid strong {
   display: block;
   margin-top: 0.35rem;
-  color: #fff8e7;
+  color: var(--vd-text);
   overflow-wrap: anywhere;
 }
 
 .keywordRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--vd-gap-xs);
   margin: 0.85rem 0;
 }
 
 .keywordRow span {
-  border: 1px solid rgba(196, 181, 253, 0.28);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.28);
   border-radius: 999px;
-  background: rgba(139, 92, 246, 0.14);
-  color: #ddd6fe;
+  background: rgba(var(--vd-moon-rgb), 0.14);
+  color: var(--vd-moon);
   padding: 0.38rem 0.62rem;
   font-size: 0.84rem;
 }
@@ -682,38 +705,38 @@
 .chartCards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--vd-gap-md);
+  margin-bottom: var(--vd-gap-lg);
 }
 
 .chartCards strong {
   display: block;
   margin: 0.35rem 0;
-  color: #fff8e7;
+  color: var(--vd-text);
   overflow-wrap: anywhere;
 }
 
 .chartCards p {
   margin: 0;
-  color: rgba(255, 248, 231, 0.76);
+  color: rgba(var(--vd-text-rgb), 0.76);
   line-height: 1.55;
 }
 
 .chatList {
   display: grid;
-  gap: 0.85rem;
+  gap: var(--vd-gap-lg);
 }
 
 .sectionGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--vd-gap-md);
 }
 
 .sectionCard p,
 .userMsg p {
   margin: 0.35rem 0 0;
-  color: rgba(255, 248, 231, 0.9);
+  color: rgba(var(--vd-text-rgb), 0.9);
   line-height: 1.78;
   white-space: pre-wrap;
   word-break: keep-all;
@@ -725,14 +748,14 @@
 
 .userMsg {
   margin-left: min(4rem, 12vw);
-  padding: 1rem;
-  border-color: rgba(196, 181, 253, 0.28);
-  background: rgba(139, 92, 246, 0.14);
+  padding: var(--vd-gap-md);
+  border-color: rgba(var(--vd-moon-rgb), 0.28);
+  background: rgba(var(--vd-moon-rgb), 0.14);
 }
 
 .structuredResult {
   display: grid;
-  gap: 1.2rem;
+  gap: var(--vd-gap-xl);
 }
 
 .structuredHeader {
@@ -745,9 +768,9 @@
   flex-wrap: wrap;
   gap: 0.6rem 1rem;
   padding: 0.9rem 0 0.9rem;
-  background: rgba(5, 10, 25, 0.92);
+  background: rgba(var(--vd-bg-deep-rgb), 0.92);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(246, 214, 126, 0.22);
+  border-bottom: 1px solid rgba(var(--vd-saffron-rgb), 0.22);
 }
 
 .structuredHeaderTitle {
@@ -757,7 +780,7 @@
 
 .structuredHeader p {
   margin: 0 0 0.3rem;
-  color: rgba(246, 214, 126, 0.62);
+  color: rgba(var(--vd-saffron-rgb), 0.62);
   font-size: 0.72rem;
   font-variant: small-caps;
   letter-spacing: 0.16em;
@@ -765,7 +788,7 @@
 
 .structuredHeader h2 {
   margin: 0;
-  color: #fdf3d6;
+  color: var(--vd-saffron-lit);
   font-size: clamp(1.05rem, 3.6vw, 1.35rem);
   font-weight: 600;
   line-height: 1.35;
@@ -777,10 +800,10 @@
   align-items: center;
   gap: 0.42rem;
   flex: 0 0 auto;
-  border: 1px solid rgba(246, 214, 126, 0.5);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.5);
   border-radius: 999px;
-  background: rgba(246, 214, 126, 0.12);
-  color: #f6d67e;
+  background: rgba(var(--vd-saffron-rgb), 0.12);
+  color: var(--vd-saffron-lit);
   padding: 0.5rem 0.95rem;
   font-size: 0.82rem;
   font-weight: 600;
@@ -792,10 +815,10 @@
 }
 
 .pdfButton:hover {
-  background: rgba(246, 214, 126, 0.2);
-  border-color: rgba(246, 214, 126, 0.72);
+  background: rgba(var(--vd-saffron-rgb), 0.2);
+  border-color: rgba(var(--vd-saffron-rgb), 0.72);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(246, 214, 126, 0.16);
+  box-shadow: 0 6px 18px rgba(var(--vd-saffron-rgb), 0.16);
 }
 
 .pdfButton:active {
@@ -813,9 +836,9 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   padding: 1.15rem 1rem;
-  border: 1px solid rgba(246, 214, 126, 0.22);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.22);
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(30, 22, 60, 0.6), rgba(12, 8, 28, 0.66));
+  background: linear-gradient(135deg, rgba(var(--vd-surface-rgb), 0.6), rgba(var(--vd-bg-deep-rgb), 0.66));
   overflow: hidden;
 }
 
@@ -826,9 +849,9 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 22% 30%, rgba(255, 244, 210, 0.5) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 74% 66%, rgba(199, 210, 254, 0.4) 0 1px, transparent 1.6px),
-    linear-gradient(118deg, transparent 0 46%, rgba(246, 214, 126, 0.14) 47% 47.6%, transparent 49%);
+    radial-gradient(circle at 22% 30%, rgba(var(--vd-text-rgb), 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 74% 66%, rgba(var(--vd-moon-rgb), 0.4) 0 1px, transparent 1.6px),
+    linear-gradient(118deg, transparent 0 46%, rgba(var(--vd-saffron-rgb), 0.14) 47% 47.6%, transparent 49%);
   background-size: 96px 96px, 128px 128px, 100% 100%;
   opacity: 0.5;
 }
@@ -851,23 +874,10 @@
   height: 2.9rem;
   margin-bottom: 0.35rem;
   border-radius: 50%;
-  border: 1px solid rgba(246, 214, 126, 0.55);
-  background: radial-gradient(circle, rgba(246, 214, 126, 0.14), rgba(12, 8, 28, 0.2));
-  color: #f6d67e;
-  box-shadow: 0 0 18px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
-  animation: medallionRingGlow 5.4s ease-in-out infinite;
-}
-
-/* 요약 링의 은은한 idle 글로우 호흡 — 어포던스가 아닌 생동감용 */
-@keyframes medallionRingGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 18px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
-  }
-
-  50% {
-    box-shadow: 0 0 26px rgba(246, 214, 126, 0.24), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
-  }
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.55);
+  background: radial-gradient(circle, rgba(var(--vd-saffron-rgb), 0.14), rgba(var(--vd-bg-deep-rgb), 0.2));
+  color: var(--vd-saffron-lit);
+  box-shadow: 0 0 18px rgba(var(--vd-saffron-rgb), 0.12), inset 0 0 0 3px rgba(var(--vd-saffron-deep-rgb), 0.16);
 }
 
 .medallionGlyph {
@@ -876,13 +886,13 @@
 }
 
 .medallionKo {
-  color: #f4eeff;
+  color: var(--vd-text);
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .medallionSans {
-  color: rgba(246, 214, 126, 0.7);
+  color: rgba(var(--vd-saffron-rgb), 0.7);
   font-size: 0.68rem;
   font-style: italic;
   font-variant: small-caps;
@@ -892,7 +902,7 @@
 .chartSummaryCard strong {
   display: block;
   margin-top: 0.35rem;
-  color: #e7defb;
+  color: var(--vd-text);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -900,19 +910,19 @@
 .chartSummaryCard small {
   display: block;
   margin-top: 0.15rem;
-  color: rgba(220, 214, 254, 0.5);
+  color: rgba(var(--vd-moon-rgb), 0.5);
   font-size: 0.74rem;
 }
 
 /* ── 이중언어 라벨 위계 (한글 주 라벨 + 산스크리트 캡션) ── */
 .cardLabelKo {
-  color: #f4eeff;
+  color: var(--vd-text);
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .cardLabelSans {
-  color: rgba(246, 214, 126, 0.7);
+  color: rgba(var(--vd-saffron-rgb), 0.7);
   font-size: 0.72rem;
   font-style: italic;
   font-variant: small-caps;
@@ -926,8 +936,8 @@
   justify-items: center;
   padding: 1.1rem 0.9rem;
   border-radius: 16px;
-  border: 1px solid rgba(246, 214, 126, 0.2);
-  background: linear-gradient(135deg, rgba(30, 22, 60, 0.5), rgba(12, 8, 28, 0.6));
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.2);
+  background: linear-gradient(135deg, rgba(var(--vd-surface-rgb), 0.5), rgba(var(--vd-bg-deep-rgb), 0.6));
   overflow: hidden;
 }
 
@@ -937,8 +947,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 84% 26%, rgba(255, 244, 210, 0.42) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 14% 72%, rgba(199, 210, 254, 0.36) 0 1px, transparent 1.6px);
+    radial-gradient(circle at 84% 26%, rgba(var(--vd-text-rgb), 0.42) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 14% 72%, rgba(var(--vd-moon-rgb), 0.36) 0 1px, transparent 1.6px);
   background-size: 118px 118px, 150px 150px;
   opacity: 0.5;
 }
@@ -968,13 +978,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: #f6d67e;
+  color: var(--vd-saffron-lit);
   font-size: 1.05rem;
   font-weight: 600;
 }
 
 .dashaBannerText small {
-  color: rgba(220, 214, 254, 0.6);
+  color: rgba(var(--vd-moon-rgb), 0.6);
   font-size: 0.82rem;
 }
 
@@ -994,13 +1004,13 @@
 
 .dashaRingTrack {
   fill: none;
-  stroke: rgba(196, 181, 253, 0.22);
+  stroke: rgba(var(--vd-moon-rgb), 0.22);
   stroke-width: 6;
 }
 
 .dashaRingProgress {
   fill: none;
-  stroke: #f6d67e;
+  stroke: var(--vd-saffron-lit);
   stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 1.1s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1008,7 +1018,7 @@
 
 .dashaRingPercent {
   position: absolute;
-  color: #f6d67e;
+  color: var(--vd-saffron-lit);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -1029,7 +1039,7 @@
 
 .grahaNatureMalefic {
   background: #d1637a;
-  box-shadow: 0 0 8px rgba(124, 31, 46, 0.55);
+  box-shadow: 0 0 8px rgba(var(--vd-saffron-deep-rgb), 0.55);
 }
 
 .srOnly {
@@ -1048,9 +1058,9 @@
   display: grid;
   gap: 0.9rem;
   padding: 1rem;
-  border: 1px solid rgba(196, 181, 253, 0.18);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.18);
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.28);
+  background: rgba(var(--vd-surface-rgb), 0.28);
 }
 
 .basicChartHeader {
@@ -1061,12 +1071,12 @@
 }
 
 .basicChartHeader span {
-  color: #f6d67e;
+  color: var(--vd-saffron-lit);
   font-size: 0.82rem;
 }
 
 .basicChartHeader strong {
-  color: rgba(196, 181, 253, 0.58);
+  color: rgba(var(--vd-moon-rgb), 0.58);
   font-size: 0.76rem;
   font-weight: 500;
 }
@@ -1086,7 +1096,7 @@
 }
 
 .chartDetail {
-  border: 1px solid rgba(196, 181, 253, 0.14);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
   padding: 0.85rem;
@@ -1094,7 +1104,7 @@
 
 .chartDetail summary {
   cursor: pointer;
-  color: rgba(246, 214, 126, 0.92);
+  color: rgba(var(--vd-saffron-rgb), 0.92);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -1110,7 +1120,7 @@
 }
 
 .rashiList span {
-  border: 1px solid rgba(196, 181, 253, 0.14);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.14);
   border-radius: 8px;
   padding: 0.5rem;
   color: rgba(255, 255, 255, 0.74);
@@ -1121,9 +1131,9 @@
 .chartDataGrid div {
   min-width: 0;
   padding: 0.72rem;
-  border: 1px solid rgba(246, 214, 126, 0.12);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.12);
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.24);
+  background: rgba(var(--vd-bg-deep-rgb), 0.24);
 }
 
 .chartDataGrid dt {
@@ -1133,7 +1143,7 @@
 
 .chartDataGrid dd {
   margin: 0.28rem 0 0;
-  color: rgba(255, 248, 231, 0.9);
+  color: rgba(var(--vd-text-rgb), 0.9);
   overflow-wrap: anywhere;
   font-size: 0.84rem;
 }
@@ -1146,20 +1156,20 @@
   width: 100%;
   min-width: 34rem;
   border-collapse: collapse;
-  color: rgba(255, 248, 231, 0.86);
+  color: rgba(var(--vd-text-rgb), 0.86);
   font-size: 0.78rem;
 }
 
 .planetTable th,
 .planetTable td {
   padding: 0.52rem 0.45rem;
-  border-bottom: 1px solid rgba(196, 181, 253, 0.12);
+  border-bottom: 1px solid rgba(var(--vd-moon-rgb), 0.12);
   text-align: left;
   vertical-align: top;
 }
 
 .planetTable th {
-  color: rgba(196, 181, 253, 0.62);
+  color: rgba(var(--vd-moon-rgb), 0.62);
   font-weight: 500;
 }
 
@@ -1176,12 +1186,12 @@
 }
 
 .scorePanel span {
-  color: rgba(196, 181, 253, 0.58);
+  color: rgba(var(--vd-moon-rgb), 0.58);
   font-size: 0.78rem;
 }
 
 .scorePanel strong {
-  color: rgba(251, 191, 36, 0.78);
+  color: rgba(var(--vd-saffron-rgb), 0.78);
   font-size: 0.78rem;
 }
 
@@ -1196,33 +1206,32 @@
 
 .scorePanel b {
   display: block;
+  width: 100%;
   height: 100%;
+  transform-origin: left center;
   border-radius: inherit;
-  background: linear-gradient(90deg, #7c3aed, #c4b5fd 50%, #f6d67e);
-  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(90deg, var(--vd-saffron-deep), var(--vd-saffron) 55%, var(--vd-saffron-lit));
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .structuredSection {
   position: relative;
   display: grid;
-  gap: 0.75rem;
-  padding: 1.1rem 1.1rem 1.2rem 1.35rem;
-  border: 1px solid rgba(246, 214, 126, 0.16);
+  gap: var(--vd-gap-md);
+  padding: var(--vd-gap-lg);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.24);
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(24, 18, 48, 0.5), rgba(10, 7, 22, 0.55));
+  background: linear-gradient(135deg, rgba(var(--vd-surface-rgb), 0.5), rgba(var(--vd-bg-deep-rgb), 0.55));
   overflow: hidden;
 }
 
-/* 왼쪽 세로 강조선 (골드→마룬→투명) */
+/* 카드 좌측 컬러 스트라이프는 쓰지 않는다 — 강조는 테두리 전체와 상단의 얇은 빛으로 준다. */
 .structuredSection::after {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0.9rem;
-  bottom: 0.9rem;
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(246, 214, 126, 0.85), rgba(124, 31, 46, 0.35), transparent);
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--vd-saffron-rgb), 0.6), transparent);
 }
 
 /* 코스믹 스타맵 모티프 (섹션마다 다른 위치) */
@@ -1232,8 +1241,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 90% 12%, rgba(255, 244, 210, 0.36) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 8% 88%, rgba(199, 210, 254, 0.3) 0 1px, transparent 1.6px);
+    radial-gradient(circle at 90% 12%, rgba(var(--vd-text-rgb), 0.36) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 8% 88%, rgba(var(--vd-moon-rgb), 0.3) 0 1px, transparent 1.6px);
   background-size: 140px 140px, 170px 170px;
   opacity: 0.42;
 }
@@ -1253,11 +1262,11 @@
   height: 2.3rem;
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1px solid rgba(246, 214, 126, 0.6);
-  background: radial-gradient(circle, rgba(246, 214, 126, 0.16), rgba(12, 8, 28, 0.25));
-  color: #f6d67e;
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.6);
+  background: radial-gradient(circle, rgba(var(--vd-saffron-rgb), 0.16), rgba(var(--vd-bg-deep-rgb), 0.25));
+  color: var(--vd-saffron-lit);
   font-size: 1.15rem;
-  box-shadow: 0 0 14px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.14);
+  box-shadow: 0 0 14px rgba(var(--vd-saffron-rgb), 0.12), inset 0 0 0 3px rgba(var(--vd-saffron-deep-rgb), 0.14);
 }
 
 .structuredSection h3 {
@@ -1269,45 +1278,42 @@
 }
 
 .sectionTitleKo {
-  color: #f4eeff;
-  font-size: 1rem;
-  font-weight: 600;
+  color: var(--vd-text);
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
+/* 반투명 사프란은 이 크기에서 2.9:1까지 떨어졌다 — 밝은 변형을 불투명하게 쓴다. */
 .sectionTitleSans {
-  color: rgba(246, 214, 126, 0.68);
+  color: var(--vd-saffron-lit);
   font-size: 0.76rem;
   font-style: italic;
   font-variant: small-caps;
   letter-spacing: 0.08em;
 }
 
+/* 상담문 본문 — 섹션당 2,500~5,000자를 읽는 자리다. 보조 톤(달빛)이 아니라 본문 잉크로 쓰고,
+   줄 길이를 68ch로 묶어 시선이 되돌아올 곳을 잃지 않게 한다. */
 .structuredSection p {
   position: relative;
   z-index: 1;
+  max-width: 68ch;
   margin: 0;
-  color: rgba(220, 214, 254, 0.78);
-  line-height: 2;
+  color: rgba(var(--vd-text-rgb), 0.9);
+  line-height: 1.9;
   white-space: pre-wrap;
+  text-wrap: pretty;
 }
 
 .structuredSection strong {
-  color: #f6d67e;
+  color: var(--vd-saffron-lit);
   font-weight: 700;
 }
 
 .spin {
   animation: spin 0.9s linear infinite;
-}
-
-@keyframes twinkle {
-  from {
-    opacity: 0.12;
-  }
-
-  to {
-    opacity: 0.82;
-  }
 }
 
 @keyframes spin {
@@ -1316,35 +1322,11 @@
   }
 }
 
+/* 생성 대기 화면의 궤도 회전에만 남긴다 — 이건 장식이 아니라 "지금 계산 중"이라는 상태 표시다.
+   히어로·빈 화면·요약 링의 상시 회전/호흡/반짝임은 전부 걷어냈다. */
 @keyframes mandalaDrift {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes orbitTurn {
-  to {
-    transform: rotate(-360deg);
-  }
-}
-
-@keyframes starFloat {
-  to {
-    transform: translateY(-14px);
-    opacity: 0.72;
-  }
-}
-
-@keyframes cosmosCoreBreath {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.55));
-  }
-
-  50% {
-    transform: scale(1.06);
-    filter: drop-shadow(0 0 26px rgba(167, 139, 250, 0.8));
   }
 }
 
@@ -1360,19 +1342,22 @@
   }
 }
 
-/* 결과 블록 순차 진입(stagger) — animation-delay는 인라인으로 주입 */
+/* 결과 블록 순차 진입(stagger) — animation-delay는 인라인으로 주입.
+   튀어 오르는 대신 흐림이 걷히듯 드러난다. 이동은 4px 이내로만 남겨 시선이 따라갈 방향만 준다. */
 .revealItem {
-  animation: revealRise 0.62s cubic-bezier(0.18, 0.83, 0.34, 1) both;
+  animation: revealFade 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes revealRise {
+@keyframes revealFade {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    filter: blur(6px);
+    transform: translateY(4px);
   }
 
   to {
     opacity: 1;
+    filter: blur(0);
     transform: none;
   }
 }
@@ -1543,9 +1528,9 @@
 .dashaTimelineCard {
   position: relative;
   margin-top: 1.1rem;
-  border: 1px solid rgba(246, 214, 126, 0.28);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.28);
   border-radius: 18px;
-  background: linear-gradient(160deg, rgba(30, 20, 60, 0.72), rgba(12, 8, 28, 0.85));
+  background: linear-gradient(160deg, rgba(var(--vd-surface-rgb), 0.72), rgba(var(--vd-bg-deep-rgb), 0.85));
   padding: 1rem 1.1rem 1.2rem;
   overflow: hidden;
 }
@@ -1557,9 +1542,9 @@
   inset: 0.5rem;
   z-index: 0;
   pointer-events: none;
-  border: 1px solid rgba(246, 214, 126, 0.3);
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.3);
   border-radius: 12px;
-  box-shadow: inset 0 0 0 3px rgba(124, 31, 46, 0.12);
+  box-shadow: inset 0 0 0 3px rgba(var(--vd-saffron-deep-rgb), 0.12);
 }
 
 /* 우하단 아스트로랍/천구 방사링 (시그니처 모티프, 은은) */
@@ -1575,8 +1560,8 @@
   border-radius: 50%;
   opacity: 0.5;
   background:
-    repeating-conic-gradient(from 0deg, rgba(246, 214, 126, 0.14) 0deg 2deg, transparent 2deg 14deg),
-    radial-gradient(circle, transparent 0 60%, rgba(196, 181, 253, 0.14) 61% 62%, transparent 63%);
+    repeating-conic-gradient(from 0deg, rgba(var(--vd-saffron-rgb), 0.14) 0deg 2deg, transparent 2deg 14deg),
+    radial-gradient(circle, transparent 0 60%, rgba(var(--vd-moon-rgb), 0.14) 61% 62%, transparent 63%);
 }
 
 .rashiChartHeader {
@@ -1601,12 +1586,12 @@
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #fbbf24;
+  color: var(--vd-saffron);
 }
 
 .rashiChartHeader small {
   font-size: 0.7rem;
-  color: rgba(226, 222, 255, 0.6);
+  color: rgba(var(--vd-text-rgb), 0.6);
 }
 
 .rashiChartBody {
@@ -1622,15 +1607,15 @@
 }
 
 .rashiFrame {
-  fill: rgba(20, 12, 44, 0.6);
-  stroke: rgba(251, 191, 36, 0.55);
+  fill: rgba(var(--vd-surface-rgb), 0.6);
+  stroke: rgba(var(--vd-saffron-rgb), 0.55);
   stroke-width: 1.6;
 }
 
 .rashiHouse polygon,
 .rashiHouseSelected polygon {
-  fill: rgba(124, 58, 237, 0.08);
-  stroke: rgba(196, 181, 253, 0.4);
+  fill: rgba(var(--vd-saffron-deep-rgb), 0.08);
+  stroke: rgba(var(--vd-moon-rgb), 0.4);
   stroke-width: 0.8;
   transition: fill 0.2s ease;
 }
@@ -1643,31 +1628,31 @@
 
 .rashiHouse:hover polygon,
 .rashiHouse:focus-visible polygon {
-  fill: rgba(251, 191, 36, 0.14);
+  fill: rgba(var(--vd-saffron-rgb), 0.14);
 }
 
 .rashiHouseSelected polygon {
-  fill: rgba(251, 191, 36, 0.22);
-  stroke: rgba(251, 191, 36, 0.8);
+  fill: rgba(var(--vd-saffron-rgb), 0.22);
+  stroke: rgba(var(--vd-saffron-rgb), 0.8);
 }
 
 .rashiSignNumber {
   font-size: 11px;
   font-weight: 700;
-  fill: rgba(226, 222, 255, 0.85);
+  fill: rgba(var(--vd-text-rgb), 0.85);
   pointer-events: none;
 }
 
 .rashiGrahaText {
   font-size: 10px;
   font-weight: 800;
-  fill: #fbbf24;
+  fill: var(--vd-saffron);
   pointer-events: none;
 }
 
 .rashiDetailPane {
   min-height: 90px;
-  border: 1px dashed rgba(139, 92, 246, 0.35);
+  border: 1px dashed rgba(var(--vd-moon-rgb), 0.35);
   border-radius: 14px;
   padding: 0.85rem 0.95rem;
   display: flex;
@@ -1677,26 +1662,26 @@
 
 .rashiDetailPane strong {
   font-size: 0.9rem;
-  color: #fbbf24;
+  color: var(--vd-saffron);
 }
 
 .rashiDetailPane p {
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.6;
-  color: rgba(236, 233, 255, 0.85);
+  color: rgba(var(--vd-text-rgb), 0.85);
 }
 
 .rashiDetailPane small {
   font-size: 0.72rem;
-  color: rgba(196, 181, 253, 0.75);
+  color: rgba(var(--vd-moon-rgb), 0.75);
 }
 
 .rashiDetailHint {
   margin: 0;
   font-size: 0.78rem;
   line-height: 1.6;
-  color: rgba(226, 222, 255, 0.55);
+  color: rgba(var(--vd-text-rgb), 0.55);
 }
 
 /* ── 다샤 타임라인 ─────────────────────────────────────── */
@@ -1728,7 +1713,7 @@
 .dashaSegment span {
   font-size: 0.68rem;
   font-weight: 800;
-  color: #17123a;
+  color: var(--vd-bg-deep);
   white-space: nowrap;
 }
 
@@ -1740,7 +1725,7 @@
 .dashaSegmentSelected {
   opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25);
+  box-shadow: 0 4px 14px rgba(var(--vd-saffron-rgb), 0.25);
 }
 
 .dashaNowMarker {
@@ -1749,8 +1734,8 @@
   transform: translateX(-50%);
   font-style: normal;
   font-size: 0.7rem;
-  color: #fbbf24;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+  color: var(--vd-saffron);
+  text-shadow: 0 0 8px rgba(var(--vd-saffron-rgb), 0.8);
 }
 
 .dashaSelectedInfo {
@@ -1760,11 +1745,11 @@
   gap: 0.4rem;
   margin: 0.7rem 0 0;
   font-size: 0.8rem;
-  color: rgba(236, 233, 255, 0.85);
+  color: rgba(var(--vd-text-rgb), 0.85);
 }
 
 .dashaSelectedInfo strong {
-  color: #fbbf24;
+  color: var(--vd-saffron);
 }
 
 /* ── 히어로 장식 차트 ──────────────────────────────────── */
@@ -1775,27 +1760,21 @@
   width: 76%;
   height: 76%;
   opacity: 0.85;
-  animation: heroChartPulse 6s ease-in-out infinite;
 }
 
 .heroChartPreview .rashiFrame {
-  fill: rgba(20, 12, 44, 0.3);
+  fill: rgba(var(--vd-surface-rgb), 0.3);
 }
 
 .heroChartHouse polygon {
-  fill: rgba(124, 58, 237, 0.06);
-  stroke: rgba(251, 191, 36, 0.35);
+  fill: rgba(var(--vd-saffron-deep-rgb), 0.06);
+  stroke: rgba(var(--vd-saffron-rgb), 0.35);
   stroke-width: 0.7;
 }
 
 .heroChartHouse text {
   font-size: 9px;
-  fill: rgba(226, 222, 255, 0.5);
-}
-
-@keyframes heroChartPulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 0.95; }
+  fill: rgba(var(--vd-text-rgb), 0.5);
 }
 
 /* ── 지난 상담 다시 보기 ───────────────────────────────── */
@@ -1810,28 +1789,28 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.3);
   border-radius: 14px;
   padding: 0.85rem 1rem;
-  background: rgba(24, 15, 52, 0.6);
+  background: rgba(var(--vd-surface-rgb), 0.6);
   color: inherit;
   text-decoration: none;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .resultListItem:hover {
-  border-color: rgba(251, 191, 36, 0.6);
-  background: rgba(30, 20, 64, 0.75);
+  border-color: rgba(var(--vd-saffron-rgb), 0.6);
+  background: rgba(var(--vd-surface-rgb), 0.75);
 }
 
 .resultListItem strong {
   font-size: 0.9rem;
-  color: #ece9ff;
+  color: var(--vd-text);
 }
 
 .resultListItem small {
   font-size: 0.72rem;
-  color: rgba(196, 181, 253, 0.7);
+  color: rgba(var(--vd-moon-rgb), 0.7);
 }
 
 @media (max-width: 720px) {
@@ -1877,13 +1856,13 @@
 .resultFooterRule {
   width: min(18rem, 70%);
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(246, 214, 126, 0.55), rgba(124, 31, 46, 0.4), rgba(246, 214, 126, 0.55), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--vd-saffron-rgb), 0.55), rgba(var(--vd-saffron-deep-rgb), 0.4), rgba(var(--vd-saffron-rgb), 0.55), transparent);
 }
 
 .resultFooterNote {
   margin: 0;
   text-align: center;
-  color: rgba(220, 214, 254, 0.6);
+  color: rgba(var(--vd-moon-rgb), 0.6);
   font-size: 0.84rem;
 }
 
@@ -1908,25 +1887,25 @@
 }
 
 .resultFooterPrimary {
-  border: 1px solid rgba(246, 214, 126, 0.55);
-  background: rgba(246, 214, 126, 0.12);
-  color: #f6d67e;
+  border: 1px solid rgba(var(--vd-saffron-rgb), 0.55);
+  background: rgba(var(--vd-saffron-rgb), 0.12);
+  color: var(--vd-saffron-lit);
 }
 
 .resultFooterPrimary:hover {
-  background: rgba(246, 214, 126, 0.2);
-  border-color: rgba(246, 214, 126, 0.78);
+  background: rgba(var(--vd-saffron-rgb), 0.2);
+  border-color: rgba(var(--vd-saffron-rgb), 0.78);
 }
 
 .resultFooterSecondary {
-  border: 1px solid rgba(196, 181, 253, 0.32);
-  background: rgba(24, 18, 48, 0.5);
-  color: rgba(228, 222, 255, 0.86);
+  border: 1px solid rgba(var(--vd-moon-rgb), 0.32);
+  background: rgba(var(--vd-surface-rgb), 0.5);
+  color: rgba(var(--vd-moon-rgb), 0.86);
 }
 
 .resultFooterSecondary:hover {
-  border-color: rgba(196, 181, 253, 0.6);
-  background: rgba(30, 22, 60, 0.62);
+  border-color: rgba(var(--vd-moon-rgb), 0.6);
+  background: rgba(var(--vd-surface-rgb), 0.62);
 }
 
 @media (max-width: 520px) {
@@ -1963,11 +1942,12 @@
     animation: none !important;
   }
 
-  /* 진입 stagger·라벨 크로스페이드는 즉시 표시 */
+  /* 진입 stagger·라벨 크로스페이드는 즉시 표시 (blur-reveal의 흐림도 남지 않게 함께 해제) */
   .revealItem,
   .cosmosLabelSwap {
     animation: none !important;
     opacity: 1 !important;
+    filter: none !important;
     transform: none !important;
   }
 

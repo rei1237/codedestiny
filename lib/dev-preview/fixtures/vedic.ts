@@ -3,19 +3,16 @@ import type { DevPreviewState } from "@/lib/dev-preview/core";
 const READING_SUCCESS = {
   scores: { dharma: 78, artha: 72, kama: 66, moksha: 60, overall: 70 },
   sections: {
-    lagna: { title: "라그나 (상승궁)", body: "라그나에 목성이 자리해 넓은 시야와 낙관적인 태도를 타고났습니다. 사람들에게 신뢰를 주는 인상을 자연스럽게 만들어냅니다." },
-    rashi: { title: "라시 (달의 별자리)", body: "달이 게자리에 위치해 감정이 섬세하고 가족·집과 관련된 안정감을 중요하게 여깁니다." },
-    graha: { title: "그라하 (행성 배치)", body: "목성과 금성이 우호적으로 배치되어 있어 재물과 관계 모두에서 무난한 흐름을 기대할 수 있습니다." },
-    bhava: { title: "바바 (하우스)", body: "10번째 하우스에 태양이 자리해 사회적 성취와 명예에 대한 열망이 뚜렷하게 드러납니다." },
-    nakshatra: { title: "나크샤트라", body: "출생 나크샤트라는 푸르바팔구니로, 창의성과 관계 지향적인 성향을 나타냅니다." },
-    dasha: { title: "다샤 (행성주기)", body: "현재 토성 다샤 기간으로, 책임과 구조를 다지는 시기를 지나고 있습니다." },
-    vimshottari_dasha: { title: "빔쇼타리 다샤", body: "토성 마하다샤 구간은 인내와 성실함이 결실로 이어지는 시기입니다. 이 시기엔 새로운 시도보다 기존의 것을 다지는 편이 유리합니다." },
+    karma_origin: { title: "카르마의 기원", body: "게자리 라그나에 목성이 자리해 넓은 시야와 낙관적인 태도를 타고났습니다. 달의 나크샤트라 푸르바팔구니 2파다는 창의성과 관계 지향을 되풀이되는 기질로 드러냅니다." },
+    dharma_artha: { title: "물질적 성취와 다르마", body: "10번째 바바에 태양이 자리해 사회적 성취와 명예에 대한 열망이 뚜렷합니다. 11번째 바바의 흐름은 네트워크를 통해 결실이 들어오는 방식을 보여 줍니다." },
+    relationship_soul: { title: "인연과 영혼의 파트너", body: "D1에서 금성은 황소자리에 있으나 D9(나바암샤)에서는 다른 결로 옮겨 갑니다. 드러난 관계 방식과 내면이 원하는 결이 어긋나는 지점이 이번 생 파트너십의 과제입니다." },
+    dasha_upaya: { title: "현재의 다샤 흐름과 우파야", body: "토성 마하다샤 구간(2035-01-01까지)은 인내와 성실함이 결실로 이어지는 시기입니다. 새로운 시도보다 기존의 것을 다지고, 토성에 연결된 규칙적인 생활 리듬을 지키는 편이 유리합니다." },
   },
 };
 
 function toTruncatedContent(): string {
   const clone = JSON.parse(JSON.stringify(READING_SUCCESS));
-  clone.sections.vimshottari_dasha.body = "토성 마하다샤 구간은 인내와 성실함이 결실로 이어지는 시기입";
+  clone.sections.dasha_upaya.body = "토성 마하다샤 구간은 인내와 성실함이 결실로 이어지는 시기입";
   const serialized = JSON.stringify(clone);
   const cutIndex = serialized.lastIndexOf("이어지는 시기입") + "이어지는 시기입".length;
   return serialized.slice(0, cutIndex);

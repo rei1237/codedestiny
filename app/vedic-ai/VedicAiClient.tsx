@@ -197,7 +197,13 @@ const ERROR_TEXT: Record<string, string> = {
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
 
+// 상담문은 삶의 주제 네 갈래로 온다. 구 7섹션 제목은 지우지 않는다 —
+// 이 배열은 구조화 파싱에 실패한 옛 상담문에서 문단 제목을 되찾는 폴백으로도 쓰인다.
 const SECTION_TITLES = [
+  "카르마의 기원",
+  "물질적 성취와 다르마",
+  "인연과 영혼의 파트너",
+  "현재의 다샤 흐름과 우파야",
   "라그나, Lagna",
   "라시, Rashi",
   "그라하, Graha",
@@ -206,6 +212,35 @@ const SECTION_TITLES = [
   "다샤, Dasha",
   "빈쇼타리 다샤, Vimshottari Dasha",
 ];
+
+// 결과 카드의 표시 순서. LLM이 내보낸 키 순서를 그대로 믿으면 근거 섹션이 본문 앞에 끼어들고,
+// 구 7섹션 상담은 아예 다른 순서로 열린다. 여기 없는 키(근거 섹션 등)는 원래 순서를 유지한 채 뒤에 붙는다.
+const ORDERED_SECTION_KEYS = [
+  "karma_origin",
+  "dharma_artha",
+  "relationship_soul",
+  "dasha_upaya",
+  // 아래는 이 개편 이전에 저장된 상담을 그대로 열기 위한 구버전 키다. 지우지 말 것.
+  "lagna",
+  "rashi",
+  "graha",
+  "bhava",
+  "nakshatra",
+  "dasha",
+  "vimshottari_dasha",
+];
+
+function orderReadingSections(sections: Record<string, unknown>) {
+  const entries = Object.entries(sections);
+  const rank = (key: string) => {
+    const index = ORDERED_SECTION_KEYS.indexOf(key);
+    return index === -1 ? ORDERED_SECTION_KEYS.length : index;
+  };
+  return entries
+    .map((entry, index) => ({ entry, index }))
+    .sort((a, b) => rank(a.entry[0]) - rank(b.entry[0]) || a.index - b.index)
+    .map((item) => item.entry);
+}
 
 const initialForm: FormState = {
   userName: "",
@@ -532,7 +567,6 @@ function dashaRows(chart: Record<string, unknown>) {
 
 function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
   const lagna = chartPoint(chart, "lagna");
-  const sun = chartPoint(chart, "sun");
   const moon = chartPoint(chart, "moon");
   const dasha = asRecord(chart.dasha);
   const config = asRecord(chart.calculationConfig);
@@ -827,7 +861,7 @@ function CosmosLoadingScreen({ fallbackText, basis }: { fallbackText: string; ba
       )}
 
       <div className={styles.cosmosProgress}>
-        <span style={{ width: `${progress}%` }} />
+        <span style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
       <p>행성들이 자리를 잡고 있습니다</p>
     </div>
@@ -906,7 +940,7 @@ export function StructuredReadingResult({
   const moonNakshatra = asRecord(chart.moonNakshatra);
   const vimshottari = asRecord(chart.vimshottariDasha);
   const currentMahadasha = asRecord(vimshottari.currentMahadasha);
-  const sectionEntries = Object.entries(reading.sections);
+  const sectionEntries = orderReadingSections(reading.sections);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   async function handlePdfDownload() {
@@ -1012,7 +1046,7 @@ export function StructuredReadingResult({
           <div key={key}>
             <span>{label}({key})</span>
             <strong>{scoreValue(reading.scores[key])}</strong>
-            <i><b style={{ width: `${scoreValue(reading.scores[key])}%` }} /></i>
+            <i><b style={{ transform: `scaleX(${scoreValue(reading.scores[key]) / 100})` }} /></i>
           </div>
         ))}
       </section>
@@ -1110,9 +1144,9 @@ export default function VedicAiClient() {
   const validationMessage = validateForm(form);
 
   const phaseText = useMemo(() => {
-    if (phase === "access") return "베다 상담 권한을 확인하는 중...";
+    if (phase === "access") return "이용권을 확인하는 중...";
     if (phase === "payment") return "결제 정보를 확인하는 중...";
-    if (phase === "start") return "나크샤트라의 빛을 읽는 중...";
+    if (phase === "start") return "차트를 분석하는 중...";
     return "";
   }, [phase]);
 
@@ -1169,6 +1203,10 @@ export default function VedicAiClient() {
     setPhase("start");
     // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(requestId);
+    // 근거 계산은 이용권 확인·결제를 통과한 뒤에만 시작한다 — 확인 단계에서 라그나·나크샤트라가
+    // 먼저 노출되면 "확인도 전에 결과를 만든다"로 읽히고, 결제 전 계산값이 새어 나간다.
+    // 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 생성 흐름을 막지 않는다).
+    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(form, requestId)).then(setBasis);
     const { status, data } = await postJson<StartResult>(
       "/api/vedic-ai/start",
       { ...buildPayload(form, requestId), ...access, idempotencyKey: requestId },
@@ -1225,8 +1263,6 @@ export default function VedicAiClient() {
       }
 
       setPhase("access");
-      // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 흐름을 막지 않는다).
-      void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(form, requestId)).then(setBasis);
       beginPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId,
@@ -1451,14 +1487,17 @@ export default function VedicAiClient() {
           <div className="flex items-center justify-end">
             <PriceBadge featureKey="vedic-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
           </div>
-          <button type="submit" className={styles.primaryButton} disabled={busy}>
+          <button type="submit" className={styles.primaryButton} disabled={busy} aria-busy={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}
-            {busy ? "나크샤트라의 흐름을 읽는 중..." : "베다점 전문가 상담 받기"}
+            {busy ? phaseText : "베다점 전문가 상담 받기"}
           </button>
         </form>
 
         <section className={styles.resultPanel}>
-          {busy && <CosmosLoadingScreen fallbackText={phaseText || "라시 차트를 정렬하는 중..."} basis={basis} />}
+          {/* 생성 대기 화면은 이용권 확인·결제를 통과한 뒤에만 띄운다.
+              확인 단계에 띄우면 "확인도 전에 결과를 만든다"로 읽히고,
+              결제 단계에 띄우면 결제창 뒤에 대기 UI가 깔려 결제 흐름을 가린다. */}
+          {phase === "start" && <CosmosLoadingScreen fallbackText={phaseText || "라시 차트를 정렬하는 중..."} basis={basis} />}
 
           {!consultation ? (
             <div className={styles.emptyState}>
