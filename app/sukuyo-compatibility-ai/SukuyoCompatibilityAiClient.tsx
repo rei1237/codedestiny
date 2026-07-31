@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -74,6 +75,10 @@ type CompatPersonMeta = {
   guardian: string;
   keyword: string;
 };
+type AxisKey =
+  | "emotionBond" | "trust" | "dialogue" | "longevity"
+  | "marriage" | "conflictRisk" | "growth" | "karmaBond";
+type CompatAxis = { score: number; label?: string; polarity?: "positive" | "inverse" };
 type CompatResult = {
   meta: {
     person_a: CompatPersonMeta;
@@ -85,7 +90,13 @@ type CompatResult = {
       intensity: string;
     };
     scores: Record<ScoreKey, number> & { total: number };
+    // 별점 8축. 이 필드가 없는 과거 상담이 그대로 남아 있으므로 전부 옵셔널이다.
+    axes?: Partial<Record<AxisKey, CompatAxis>>;
+    axesTotal?: number;
   };
+  headline?: string;
+  insight?: string;
+  scoreNotes?: Partial<Record<AxisKey, string>>;
   sections: Record<string, { title: string; body: string }>;
 };
 type EnsureAccessResult =
@@ -100,11 +111,11 @@ const FEATURE_REASON = "숙요점 궁합 전문가 상담";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
-const LOADING_STAGES = [
-  { phase: "1", label: "두 사람의 달빛 자리를 맞춰보고 있어요.", sub: "생년 정보 확인" },
-  { phase: "2", label: "본명숙과 관계 거리의 흐름을 차분히 읽는 중입니다.", sub: "본명숙 계산" },
-  { phase: "3", label: "끌림과 갈등이 머무는 자리를 살피고 있어요.", sub: "관계 거리 해석" },
-  { phase: "4", label: "두 사람에게 전할 상담문을 정성껏 써 내려가는 중이에요.", sub: "전문가 상담문 생성" },
+const CONSULTATION_VALUES = [
+  { title: "관계의 핵심", text: "두 사람을 잇는 27숙의 자리와 그 의미" },
+  { title: "감정의 흐름", text: "누가 표현하고 누가 기다리는지, 감정의 방향" },
+  { title: "장기 궁합", text: "결혼·동거·사업·친구·직장 다섯 영역별 적합도" },
+  { title: "인연의 목적", text: "이번 생에 왜 만났는지 — 카르마 해석" },
 ];
 const CONSULTATION_CARDS = [
   { icon: Orbit, title: "본명숙", text: "태어난 달의 자리로 보는 마음의 기본 결" },
@@ -130,20 +141,27 @@ const LUNAR_SCENE_STARS = [
   { x: 812, y: 412, r: 1.2, opacity: 0.36, delay: 1.9 },
   { x: 88, y: 218, r: 1.5, opacity: 0.3, delay: 1.5 },
 ];
+// 옛 상담(influence_factors·timing·treasure·crisis·moonLetter)도 다시 열리므로 그 키의 글자도 남겨 둔다.
 const SECTION_ICONS: Record<string, string> = {
   overview: "☯",
   twoStars: "☽",
-  influence_factors: "◇",
   evidence_basis: "◆",
   attraction: "✦",
-  conflict: "〜",
-  timing: "◎",
-  caution: "⚠",
-  treasure: "◈",
+  emotionalDirection: "⇄",
   communication: "🗣",
+  energyFlow: "⟳",
+  conflict: "〜",
+  caution: "⚠",
+  karma: "☸",
+  mutualGrowth: "🌙",
+  radiantMoment: "✨",
   domains: "💞",
-  crisis: "🌪",
   outlook: "🔭",
+  closingLetter: "💌",
+  influence_factors: "◇",
+  timing: "◎",
+  treasure: "◈",
+  crisis: "🌪",
   moonLetter: "♡",
 };
 // 챕터 진입 시 숙요 역술가 보이스 로딩 카피
@@ -168,6 +186,22 @@ function scoreStatus(score: number): ScoreTier {
   if (score >= 16) return "good";
   if (score >= 14) return "normal";
   return "caution";
+}
+
+// 별점 8축. 순서는 화면에 보이는 순서다. 서버 SUKUYO_AXIS_SPECS 와 키가 일치해야 한다.
+const AXIS_ROWS: { key: AxisKey; label: string; hint: string }[] = [
+  { key: "emotionBond", label: "감정 궁합", hint: "마음이 닿는 속도" },
+  { key: "trust", label: "신뢰", hint: "믿고 기댈 수 있는 정도" },
+  { key: "dialogue", label: "대화", hint: "말이 통하는 결" },
+  { key: "longevity", label: "장기 지속성", hint: "오래 이어질 힘" },
+  { key: "marriage", label: "결혼 적합도", hint: "생활을 함께할 궁합" },
+  { key: "conflictRisk", label: "갈등 위험도", hint: "낮을수록 좋아요" },
+  { key: "growth", label: "상호 성장", hint: "서로를 키우는 힘" },
+  { key: "karmaBond", label: "카르마 연결", hint: "인연의 깊이" },
+];
+/** master-love-codex codexScoreStars 와 같은 식 — 0~100 을 별 1~5 개로. */
+function scoreStars(score: number) {
+  return Math.max(1, Math.min(5, Math.round((Number(score) || 0) / 20)));
 }
 const MOON_PARTICLES = [
   { top: 12, left: 18, delay: 0.2, opacity: 0.68 },
@@ -543,21 +577,8 @@ function buildFallbackReadingPages(consultation: Consultation): ResultViewerPage
 }
 
 function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
-  const [stage, setStage] = useState(0);
   const reduceMotion = useReducedMotion() === true;
   useBodyScrollLock(true);
-
-  useEffect(() => {
-    const intervals = [2400, 3000, 3200, 3400];
-    let elapsed = 0;
-    const timers = intervals.map((duration, index) => {
-      elapsed += duration;
-      return window.setTimeout(() => setStage(index), elapsed - duration);
-    });
-    return () => {
-      timers.forEach(window.clearTimeout);
-    };
-  }, []);
 
   return (
     <div className={styles.loadingScreen} role="status" aria-live="polite">
@@ -591,30 +612,22 @@ function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
           </defs>
         </svg>
       </div>
-      {/* 달 애니메이션은 그대로 두고, 문구 자리만 실제 계산된 두 본명숙과 방위 관계로 바꾼다.
-          근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
+      {/* 달 애니메이션은 그대로 두고, 문구 자리는 서버가 실제로 계산한 두 본명숙과 방위 관계로 채운다.
+          🔴 시간만 흐르는 가짜 단계 라벨을 여기에 두지 말 것 — AnalysisBasisLoading 이 실제 계산값을
+          단계별로 드러내는 것이 이 프로젝트의 정본이다(components/fortune/AnalysisBasisLoading.tsx). */}
       <div className={styles.loadingText}>
         <AnalysisBasisLoading
           basis={basis}
-          fallbackLabel={LOADING_STAGES[stage].label}
-          fallbackDetail={LOADING_STAGES[stage].sub}
+          fallbackLabel="두 사람의 별자리를 맞춰보고 있어요."
+          fallbackDetail="본명숙과 관계 거리 계산"
         />
       </div>
-      {!basis?.stages?.length && (
-        <div className={styles.loadingDots}>
-          {LOADING_STAGES.map((item, index) => (
-            <span key={item.sub} className={index <= stage ? styles.loadingDotActive : styles.loadingDot}>
-              <b>{item.phase}</b>
-              <i />
-              <em>{item.sub}</em>
-            </span>
-          ))}
-        </div>
-      )}
       <div className={styles.loadingBar}>
         <span />
       </div>
-      <p className={styles.loadingFoot}>상담문을 한 자 한 자 길게 엮느라 5분에서 길게는 10분까지 걸릴 수 있어요. 화면을 닫지 말고 편히 기다려 주세요.</p>
+      <p className={styles.loadingFoot}>
+        열다섯 장을 한꺼번에 나눠 쓰느라 40초에서 길게는 1분쯤 걸려요. 화면을 닫지 말고 편히 기다려 주세요.
+      </p>
     </div>
   );
 }
@@ -794,6 +807,98 @@ function CompareSection({ a, b }: { a: CompatPersonMeta; b: CompatPersonMeta }) 
   );
 }
 
+/**
+ * 스크롤에 따라 부드럽게 등장. master-love-codex 의 CodexReveal 과 같은 규약이다.
+ *
+ * 🔴 PDF 캡처 안전장치: forceVisible 을 주지 않으면 아직 화면에 안 들어온 섹션이 opacity 0 인 채로
+ * 캡처돼 그 페이지가 백지로 저장된다.
+ */
+function SukuyoReveal({ children, index = 0, forceVisible = false, className }: {
+  children: ReactNode;
+  index?: number;
+  forceVisible?: boolean;
+  className?: string;
+}) {
+  const reduceMotion = useReducedMotion() === true;
+  const skip = forceVisible || reduceMotion;
+  if (skip) return <div className={className}>{children}</div>;
+  return (
+    <m.div
+      className={className}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15, margin: "0px 0px -8% 0px" }}
+      transition={{ duration: 0.36, delay: Math.min(index * 0.06, 0.36), ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </m.div>
+  );
+}
+
+/** ① 관계 한 줄 요약 — 큰 타이포, 가운데. */
+function HeadlineSection({ headline, meta }: { headline: string; meta: CompatResult["meta"] }) {
+  return (
+    <section className={styles.headlineSection} aria-label="관계 한 줄 요약">
+      <span className={styles.headlineEyebrow}>
+        {meta.person_a.sukuyo} ✦ {meta.person_b.sukuyo} · {meta.relation.type_a_to_b}
+      </span>
+      <h2 className={styles.headlineText}>{headline}</h2>
+    </section>
+  );
+}
+
+/**
+ * ② 관계 점수 8축.
+ *
+ * 별점만 나열하면 근거 없는 숫자가 된다 — 축마다 서버가 계산한 점수의 "왜"를 한 줄로 함께 놓는다.
+ * 갈등 위험도(polarity: inverse)는 별이 많을수록 나쁘므로 톤과 캡션을 반대로 준다.
+ */
+function AxisStarSection({ axes, notes, forceVisible = false }: {
+  axes: NonNullable<CompatResult["meta"]["axes"]>;
+  notes: CompatResult["scoreNotes"];
+  forceVisible?: boolean;
+}) {
+  const rows = AXIS_ROWS.filter((row) => Number.isFinite(Number(axes[row.key]?.score)));
+  if (!rows.length) return null;
+  return (
+    <section className={styles.axisSection} aria-label="관계 점수">
+      <h2>관계 점수</h2>
+      <ul className={styles.axisList}>
+        {rows.map((row, index) => {
+          const axis = axes[row.key] as CompatAxis;
+          const stars = scoreStars(axis.score);
+          const inverse = axis.polarity === "inverse";
+          return (
+            <SukuyoReveal key={row.key} index={index} forceVisible={forceVisible}>
+              <li className={styles.axisRow} data-polarity={inverse ? "inverse" : "positive"}>
+                <div className={styles.axisHead}>
+                  <strong>{row.label}</strong>
+                  <span className={styles.axisStars} aria-hidden="true">
+                    {"★".repeat(stars)}{"☆".repeat(5 - stars)}
+                  </span>
+                  <span className="sr-only">{`5점 만점에 ${stars}점${inverse ? " — 높을수록 갈등 위험이 큽니다" : ""}`}</span>
+                  <em>{row.hint}</em>
+                </div>
+                {notes?.[row.key] && <p className={styles.axisNote}>{notes[row.key]}</p>}
+              </li>
+            </SukuyoReveal>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** ③ AI 핵심 인사이트 — 이 관계의 본질 한 문단. */
+function InsightSection({ insight }: { insight: string }) {
+  return (
+    <section className={styles.insightSection} aria-label="핵심 인사이트">
+      <h2>이 관계의 본질</h2>
+      <div className={styles.insightBody}><AiResultProse value={insight} /></div>
+    </section>
+  );
+}
+
 function QuoteWelcomeCard({ quote }: { quote: string }) {
   return (
     <section className={styles.welcomeQuoteCard} aria-label="첫 방문 환영 문구">
@@ -890,7 +995,13 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
         {mounted && !hasSeenQuote && (
           <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
         )}
+        {/* ① 한 줄 요약 → ② 8축 별점 → ③ 핵심 인사이트 → ④ 기존 지표·비교 → ⑤ 근거 → ⑥ 전체 해설 */}
+        {result.headline && <HeadlineSection headline={result.headline} meta={meta} />}
         <CompatSummaryHeader meta={meta} />
+        {meta.axes && <AxisStarSection axes={meta.axes} notes={result.scoreNotes} />}
+        {result.insight && (
+          <SukuyoReveal><InsightSection insight={result.insight} /></SukuyoReveal>
+        )}
         {basis && (
           <section className={styles.basisPane}>
             <AnalysisBasisPanel basis={basis} />
@@ -906,10 +1017,10 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
             className={styles.detailToggleButton}
             onClick={() => setDetailOpen((prev) => !prev)}
           >
-            {detailOpen ? "상세 해설 접기" : "자세히 보기 · 12장 전체 해설"}
+            {detailOpen ? "상세 해설 접기" : `자세히 보기 · ${chapterEntries.length}장 전체 해설`}
           </button>
           {!detailOpen && (
-            <nav className={styles.chapterNav} aria-label="12장 미리보기 — 눌러서 펼치기">
+            <nav className={styles.chapterNav} aria-label={`${chapterEntries.length}장 미리보기 — 눌러서 펼치기`}>
               {chapterEntries.map(([key, section], index) => (
                 <button
                   key={key}
@@ -946,7 +1057,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
                 label: `${index + 1}장`,
                 content: <ChapterReadingArticle sectionKey={key} section={section} />,
               }))}
-              deckLabel="달빛 궁합 12장 해설"
+              deckLabel={`달빛 궁합 ${chapterEntries.length}장 해설`}
               className={styles.pagedViewer}
               pageClassName={styles.pagedPage}
               viewAll={chapterViewAll}
@@ -979,6 +1090,15 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
             <em>/ 100</em>
           </div>
         </section>
+
+        {/* 🔴 PDF 캡처 경로에는 forceVisible 을 준다 — 안 그러면 리빌 섹션이 백지로 저장된다. */}
+        {(result.headline || meta.axes || result.insight) && (
+          <section className={`${styles.chartSection} ${styles.pdfPage}`} data-pdf-section>
+            {result.headline && <HeadlineSection headline={result.headline} meta={meta} />}
+            {meta.axes && <AxisStarSection axes={meta.axes} notes={result.scoreNotes} forceVisible />}
+            {result.insight && <InsightSection insight={result.insight} />}
+          </section>
+        )}
 
         <section className={`${styles.chartSection} ${styles.pdfPage}`} data-pdf-section>
           <h2>궁합 분석 차트</h2>
@@ -1498,7 +1618,7 @@ export default function SukuyoCompatibilityAiClient() {
           </m.div>
         </m.aside>
 
-        <section className={styles.workPanel}>
+        <section className={`${styles.workPanel}${!consultation ? ` ${styles.workPanelWithCta}` : ""}`}>
           {!consultation ? (
             <>
               <div className={styles.panelHeader}>
@@ -1540,26 +1660,46 @@ export default function SukuyoCompatibilityAiClient() {
 
               <m.div
                 className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`}
-                aria-hidden="true"
                 animate={reduceMotion ? undefined : { scale: bothComplete ? [1, 1.03, 1] : 1 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className={styles.teaserGauge}>
-                  <span style={{ background: `conic-gradient(#ffe8b6 ${filledPercent * 3.6}deg, rgba(255,255,255,.08) 0deg)` }} />
-                  <em>{filledCount}/6 · {filledPercent}%</em>
+                <div className={styles.teaserTop} aria-hidden="true">
+                  <div className={styles.teaserGauge}>
+                    <span style={{ background: `conic-gradient(#ffe8b6 ${filledPercent * 3.6}deg, rgba(255,255,255,.08) 0deg)` }} />
+                    <em>{filledCount}/6 · {filledPercent}%</em>
+                  </div>
+                  <div className={styles.teaserLine}>
+                    <i className={personAComplete ? styles.teaserDotReady : undefined} />
+                    <b />
+                    <i className={personBComplete ? styles.teaserDotReady : undefined} />
+                  </div>
                 </div>
-                <div className={styles.teaserLine}>
-                  <i className={personAComplete ? styles.teaserDotReady : undefined} />
-                  <b />
-                  <i className={personBComplete ? styles.teaserDotReady : undefined} />
-                </div>
-                <p>{bothComplete ? "두 별의 자리가 모두 채워졌어요. 이제 달빛 궁합을 열 수 있습니다." : "두 별의 자리가 채워지면 미리보기가 선명해져요."}</p>
+                {/* 폼 진행률 옆에는 "곧 선명해진다"는 예고가 아니라, 실제로 무엇을 받는지를 둔다. */}
+                <ul className={styles.valueList} aria-label="이 상담에서 받는 것">
+                  {CONSULTATION_VALUES.map((item) => (
+                    <li key={item.title}>
+                      <span aria-hidden="true">✔</span>
+                      <strong>{item.title}</strong>
+                      <em>{item.text}</em>
+                    </li>
+                  ))}
+                </ul>
               </m.div>
 
               <div className={styles.actions}>
                 <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
                 <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
                   {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
+                  달빛 궁합 열기
+                </button>
+              </div>
+
+              {/* 모바일 전용 하단 고정 CTA. 이 화면은 전역 하단 네비를 숨기므로(.fullscreenBody) 겹칠 상대가 없다.
+                  가격은 반드시 PriceBadge(서버 조회)로만 — 숫자를 직접 렌더하지 않는다. */}
+              <div className={styles.mobileCta}>
+                <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="" className={styles.mobileCtaPrice} />
+                <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete}>
+                  {busy ? <Loader2 size={16} className={styles.spin} /> : <Sparkles size={16} />}
                   달빛 궁합 열기
                 </button>
               </div>

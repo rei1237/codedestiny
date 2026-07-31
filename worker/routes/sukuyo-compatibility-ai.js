@@ -11,6 +11,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { extractReadableTextFromJsonLike } from "../../lib/llm-text.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
@@ -43,25 +44,54 @@ const SUKUYO_RISK_GROUP_HANJA = new Set(["奎", "婁", "胃", "昴", "畢", "觜
 const SUKUYO_FIVE_ELEMENTS = new Set(["목", "화", "토", "금", "수"]);
 const SUKUYO_ELEMENT_CREATE = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const SUKUYO_ELEMENT_CONTROL = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
+// 읽는 순서 = 이 배열의 순서다(sections 객체의 키 삽입 순서가 곧 화면의 장 순서).
+// 키는 저장된 과거 상담·프론트 SECTION_ICONS·PDF 렌더가 물고 있으므로 기존 14개 키를 바꾸지 않는다.
 const SUKUYO_SECTION_SPECS = [
-  { key: "overview", title: "☯ 總論 — 종합 궁합 총평", minChars: 1000, guide: "종합 스코어 한 문장 요약 뒤 운명인연도, 기질조화도, 감정공명도, 성장시너지, 장기안정도를 각각 원국 요소와 연결해 풀이" },
-  { key: "twoStars", title: "☽ 兩星 — 두 별의 본질", minChars: 900, guide: "두 사람의 숙, 오행, 음양, 수호신이 회의실, 데이트, 갈등 상황에서 어떻게 드러나는지 생활 장면으로 풀이" },
-  // 근거를 먼저 밝히는 두 흐름. 나머지(핵심 구조·분야별·추천 행동)는 overview·domains·moonLetter가 이미 그 역할을 한다.
-  { key: "influence_factors", title: "◇ 影響 — 영향 요인", minChars: 480, guide: "'힘을 실어 주는 요소'와 '주의가 필요한 요소'를 나눠 각각 2~4개씩, 무엇이 / 왜 / 어떤 영향을 주는지 순서로 제시" },
-  { key: "evidence_basis", title: "◆ 根據 — 해석 근거", minChars: 520, guide: "결론보다 근거를 먼저 놓고, 3~7개의 근거를 '판단 한 줄' + '괄호 안에 그 판단이 나온 계산 확정값' 형태로 제시" },
-  { key: "attraction", title: "✦ 引力 — 끌림의 구조", minChars: 900, guide: "처음 만났을 때 끌렸을 구체적 시나리오 1개와 지금 관계에서 끌림을 재확인하는 시나리오 1개 포함" },
-  { key: "conflict", title: "〜 波紋 — 갈등의 파문", minChars: 1200, guide: "갈등 시나리오 3가지 이상을 발단, 각자의 반응, 흔한 실수, 이상적 대응 대사 예시 순서로 제시" },
-  { key: "timing", title: "◎ 時節 — 관계의 계절", minChars: 900, guide: "현재 이번 달, 1~3개월 후, 3~6개월 후, 6개월~1년 후 흐름과 주의사항을 별도 소단락으로 서술" },
-  { key: "caution", title: "⚠ 禁忌 — 조심해야 할 관계 습관", minChars: 900, guide: "하지 말아야 할 말과 행동 5가지를 원국 근거와 대안 행동까지 함께 제시" },
-  { key: "treasure", title: "◈ 金脈 — 이 관계만의 보물", minChars: 900, guide: "두 사람만의 강점을 함께 하면 좋은 활동과 방식 3가지 이상으로 제시" },
-  { key: "communication", title: "🗣 疏通 — 서로에게 맞는 대화법", minChars: 900, guide: "사람A와 사람B에게 효과적인 대화 방식을 대조하고 화해 대사 예시를 각자 기준 2개씩 제시" },
-  { key: "domains", title: "💞 領域 — 관계 영역별 궁합", minChars: 1200, guide: "연애·결혼 → 직장·사업 파트너 → 우정 → 가족 순서로 모두 다루고, 각 영역을 현재 흐름 → 해석 근거 → 추천 행동 세 조각으로 풀이. 영역마다 서로 다른 계산 확정값을 근거로 든다" },
-  { key: "crisis", title: "🌪 危機 — 위기 시나리오와 극복법", minChars: 900, guide: "권태기, 장거리, 가치관 충돌 등 취약한 위기 국면 1~2개와 단계별 행동 지침 제시" },
-  { key: "outlook", title: "🔭 展望 — 장기 전망", minChars: 900, guide: "1년 후와 3년 후를 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오로 제시" },
-  { key: "moonLetter", title: "♡ 月箋 — 오늘의 달빛 처방", minChars: 700, guide: "전체 흐름을 단정하지 말고 경향으로 정리한 뒤, 오늘부터 실제로 해볼 수 있는 행동 5가지를 번호로 제시. 언제 무엇을 하는지가 드러나게 쓰고 추상적인 조언은 피한다" },
+  { key: "overview", title: "☯ 總論 — 종합 궁합 총평", minChars: 1300, guide: "종합 스코어 한 문장 요약 뒤 운명인연도, 기질조화도, 감정공명도, 성장시너지, 장기안정도를 각각 원국 요소와 연결해 풀이. 좋은 점만 쓰지 말고 이 관계가 실제로 취약한 지점도 같은 무게로 밝힌다" },
+  { key: "twoStars", title: "☽ 兩星 — 두 별의 본질", minChars: 1400, guide: "각 본명숙이 그 사람의 타고난 성향·감정 처리 방식·인간관계 태도·사고방식·사랑하는 방식을 어떻게 만드는지 다섯 갈래로 나눠 서술하고, 오행·음양·수호신이 실제 생활 장면에서 드러나는 모습을 각각 붙인다" },
+  { key: "evidence_basis", title: "◆ 根據 — 해석 근거와 영향 요인", minChars: 1000, guide: "먼저 근거 4~6개를 '판단 한 줄' + '괄호 안에 그 판단이 나온 계산 확정값' 형태로 제시하고, 이어서 '힘을 실어 주는 요소'와 '주의가 필요한 요소'를 각각 2~3개씩 무엇이 / 왜 / 어떤 영향을 주는지 순서로 정리한다" },
+  { key: "attraction", title: "✦ 引力 — 끌림의 구조", minChars: 1300, guide: "두 사람이 서로에게 끌리는 이유를 외모·인상, 감정, 가치관, 대화, 에너지, 카르마 여섯 요소로 나눠 각각 어느 쪽이 더 강하게 작동하는지 밝힌다. 처음 만났을 때의 구체적 시나리오 1개와 지금 관계에서 끌림을 재확인하는 시나리오 1개를 포함한다" },
+  { key: "emotionalDirection", title: "⇄ 情向 — 감정의 방향성", minChars: 1200, guide: "누가 감정을 더 많이 표현하는지, 누가 기다리는지, 누가 주도권을 잡는지, 누가 더 쉽게 상처받는지, 누가 관계를 더 오래 붙잡는지를 다섯 항목으로 나눠 두 사람 중 한쪽을 이름으로 반드시 지목하고 그 판단의 계산 근거를 붙인다. 애매하게 '서로 비슷하다'로 얼버무리지 않는다" },
+  { key: "communication", title: "🗣 疏通 — 대화법과 관계 유지 전략", minChars: 1400, guide: "대화법, 갈등 해결, 감정 표현, 거리 조절, 신뢰 형성 다섯 축으로 나눠 각 축마다 두 사람 각자에게 효과적인 방식을 대조하고 실제 대사 예시를 붙인다. 마지막에 오늘부터 해볼 수 있는 행동 5가지를 번호로 정리하되, 언제 무엇을 하는지가 드러나게 쓴다" },
+  { key: "energyFlow", title: "⟳ 流轉 — 관계 에너지의 단계", minChars: 1400, guide: "처음 만났을 때 / 가까워질 때 / 연애가 안정될 때 / 권태기 / 갈등이 터질 때 / 화해할 때 / 장기 관계 일곱 단계를 각각 서술하고, 그 단계에서 두 사람의 에너지가 어떻게 움직이는지와 그 단계 특유의 신호를 밝힌다. 끝에 지금 이 계절 기준으로 앞으로 3~6개월 사이 주의할 시기와 좋은 시기를 덧붙인다" },
+  { key: "conflict", title: "〜 波紋 — 갈등의 파문과 위기", minChars: 1400, guide: "가장 자주 반복될 갈등 3가지를 각각 '어떤 상황에서 터지는가 → 근본 원인 → 그때 두 사람 각자의 심리 → 실제 해결법과 대사 예시' 네 단계 고정 순서로 제시하고, 이어서 권태기·장거리·가치관 충돌 중 이 조합이 가장 취약한 위기 국면 1개와 단계별 행동 지침을 붙인다" },
+  { key: "caution", title: "⚠ 禁忌 — 반드시 조심해야 할 패턴", minChars: 1100, guide: "이 조합에서 반복될 가능성이 높은 오해와 갈등 패턴 4가지를 숙요점 근거와 함께 밝히고, 각각에 예방 방법과 대안 행동을 붙인다" },
+  { key: "karma", title: "☸ 宿業 — 카르마 분석", minChars: 1400, guide: "숙요점 관점에서 이 두 사람이 왜 만났는지, 이번 생에서 서로를 통해 배우는 것이 무엇인지, 이 관계의 목적이 무엇인지, 인연 자체의 의미가 무엇인지를 네 갈래로 나눠 해석한다. 관계 유형(명·업태·영친·우쇠·안괴·성위)과 순행·역행 거리를 반드시 논거로 인용하고, 전생 서사를 사실처럼 단정하지 말고 상징으로 읽는다" },
+  { key: "mutualGrowth", title: "🌙 相長 — 서로를 성장시키는 방식", minChars: 1100, guide: "이 관계가 각자의 성격과 삶에 가져오는 긍정적 변화를 두 방향(A가 B에게 / B가 A에게)으로 나눠 서술하고, 그 성장이 실제로 일어나려면 무엇이 필요한지 조건까지 밝힌다. 끝에 두 사람만의 강점을 살릴 활동 2~3가지를 덧붙인다" },
+  { key: "radiantMoment", title: "✨ 光時 — 가장 빛나는 순간", minChars: 1000, guide: "두 사람의 관계가 가장 자연스럽고 행복하게 흘러가는 상황을 구체적인 장면 3개로 묘사한다. 계절·장소·대화·행동이 보이게 쓰고, 왜 그 상황에서 두 사람의 숙이 잘 맞는지 근거를 붙인다" },
+  { key: "domains", title: "💞 領域 — 관계 영역별 궁합", minChars: 1500, guide: "결혼 → 동거 → 사업·비즈니스 → 친구 → 직장 동료 다섯 영역을 모두 다루고, 각 영역을 현재 흐름 → 해석 근거 → 추천 행동 세 조각으로 풀이. 영역마다 서로 다른 계산 확정값을 근거로 들고, 적합도가 낮은 영역은 낮다고 분명히 말한다" },
+  { key: "outlook", title: "🔭 展望 — 시간에 따른 변화", minChars: 1200, guide: "만난 직후 / 1년 후 / 3년 후 / 5년 이후 네 구간으로 나눠 관계가 어떻게 변하는지 서술하고, 각 구간마다 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오를 함께 제시" },
+  { key: "closingLetter", title: "💌 一言 — 달빛이 전하는 한마디", minChars: 700, guide: "앞의 모든 해석을 종합해 두 사람에게 건네는 짧은 편지 한 편을 감성적인 문체로 쓴다. 번호 목록·체크리스트를 쓰지 않고 이어지는 문장으로만 쓰며, 마지막 문장은 반드시 두 사람의 이름을 모두 불러 마무리한다" },
 ];
+const SUKUYO_SECTION_SPEC_MAP = new Map(SUKUYO_SECTION_SPECS.map((spec) => [spec.key, spec]));
 const SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS = SUKUYO_SECTION_SPECS.reduce((total, section) => total + section.minChars, 0);
-const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 14000;
+const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 26000;
+
+/**
+ * 섹션 그룹 = LLM 호출 1회. 다섯 그룹을 한 요청 안에서 병렬로 부르고 하나의 JSON 으로 병합한다.
+ *
+ * 왜 병렬인가: 이 라우트는 동기 생성이라 LLM 대기가 85초(clampSyncLlmTimeoutMs)로 잘리는데,
+ * 목표 분량 18,400자를 단일 호출로 뽑으려면 그 두세 배가 든다. 시간 예산이 토큰 예산보다 먼저
+ * 바닥나 매번 잘리거나 Workers AI 폴백으로 넘어가고, degrade 경로가 그 짧은 결과를
+ * ₩30,000 정상 결제로 배달한다. 그룹당 3,400~3,900자면 40초 안에 완주한다.
+ * 전체 벽시계는 가장 느린 그룹 기준이라 예산 안에 들어온다.
+ *
+ * 정본 패턴: ziwei-ai.js generateInitialConsultation / life-book-ai.js SECTION_CONCURRENCY.
+ */
+const SUKUYO_SECTION_GROUPS = [
+  { id: "essence", keys: ["overview", "twoStars", "evidence_basis"] },
+  { id: "attraction", keys: ["attraction", "emotionalDirection", "communication"] },
+  { id: "flow", keys: ["energyFlow", "conflict", "caution"] },
+  { id: "karma", keys: ["karma", "mutualGrowth", "radiantMoment"] },
+  { id: "outlook", keys: ["domains", "outlook", "closingLetter"] },
+];
+// 그룹 1회가 엣지 100초 컷 안쪽에서 끝나야 한다. clamp 를 통과시키되(60s < 85s 상한),
+// 나중에 이 값을 올릴 때 자동으로 깎이도록 감싸 둔다.
+const SUKUYO_SECTION_TIMEOUT_MS = clampSyncLlmTimeoutMs(60000);
+// 한 장의 본문 상한. 토큰 예산(capTokens)은 그룹 합계 + 완충을 담을 수 있어야 한다(worker/lib/llm-budget.js).
+const SUKUYO_SECTION_BODY_MAX_CHARS = 6000;
+const SUKUYO_SECTION_BASE_TOKENS = 8000;
+const SUKUYO_SECTION_CAP_TOKENS = 12000;
 
 const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -108,8 +138,12 @@ const COMPATIBILITY_JSON_SYSTEM_PROMPT = [
   "서버가 제공한 본명숙, 숙 그룹, 음양, 오행, 수호신, 관계 거리, 양방향 관계 유형, 점수는 확정값입니다.",
   "확정값을 바꾸거나 새로 계산하지 말고, 주어진 JSON 뼈대의 meta 값은 그대로 유지합니다.",
   "결과는 한국어 JSON 객체 하나만 반환합니다.",
-  `sections.*.body의 합계는 공백 포함 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS.toLocaleString("ko-KR")}~${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS.toLocaleString("ko-KR")}자 사이여야 합니다.`,
-  "각 sections.*.body는 지정된 최소 글자수를 반드시 넘겨야 하며, 부족하면 구체적 사례, 실제 대사, 행동 지침, 시기별 전망을 추가합니다.",
+  "요청받은 항목의 지정된 최소 글자수를 넘기되, 분량을 늘리려고 같은 내용을 다시 쓰지 않습니다. 채울 것이 없으면 늘리지 말고 밀도를 높입니다.",
+  "각 문단은 150자 이상으로 쓰고, 문단마다 새로운 관점을 엽니다. 이미 한 말을 바꿔 쓰는 방식으로 분량을 채우지 않습니다.",
+  "장점만 나열하지 않습니다. 모든 해석에 장점 / 단점 / 주의점 / 가능성이 함께 드러나야 하며, 취약한 지점은 취약하다고 분명히 말합니다.",
+  "다른 장에서 이미 쓴 비유·첫 문장 구조·소제목을 재사용하지 않습니다. 이 장에서만 볼 수 있는 관점 하나를 반드시 제시합니다.",
+  "🔴 이 조합에만 해당하는 글을 씁니다. 두 사람의 본명숙·관계 유형·거리를 다른 값으로 바꿔도 그대로 성립하는 문장은 쓰지 않습니다.",
+  "일반적인 연애 상담으로 대체 가능한 조언(대화를 많이 하세요, 서로 존중하세요 같은 문장)을 금지합니다. 조언에는 언제·어떤 상황에서·무엇을 하라는지가 들어갑니다.",
   "마크다운 코드블록, JSON 밖 설명 문구, 후속 질문 유도 문구를 절대 넣지 않습니다.",
   "sections.*.body에 사용할 수 있는 마크업은 **굵게**, 번호 목록(1. ), 하이픈 목록(- ), 인용(> ) 네 가지뿐입니다. 표, 제목 기호(#), 코드블록, 링크, HTML 태그는 절대 쓰지 않습니다. 문단 사이는 반드시 빈 줄로 구분합니다.",
   "모든 body에는 구체적 상황 묘사, 실제 대화체 예시, 체크리스트 또는 번호 행동 지침, 시기별 전망 중 최소 2가지 이상을 포함합니다.",
@@ -506,6 +540,75 @@ function buildSukuyoScoreMeta(personA, personB, relation, compatibility = {}) {
   });
 }
 
+/**
+ * 화면의 별점 8축. score 는 0~100 이고, 프론트가 Math.max(1, Math.round(score/20)) 로 별 1~5개를 만든다.
+ *
+ * polarity: "inverse" 는 "높을수록 나쁨"이다(갈등 위험도 하나뿐). 총점 평균에서는 반전해 넣고,
+ * 화면에서는 caution 톤과 "낮을수록 좋아요" 캡션을 반드시 함께 보여준다 —
+ * 그러지 않으면 별 다섯 개가 좋은 뜻으로 읽힌다.
+ */
+const SUKUYO_AXIS_SPECS = [
+  { key: "emotionBond", label: "감정 궁합", polarity: "positive" },
+  { key: "trust", label: "신뢰", polarity: "positive" },
+  { key: "dialogue", label: "대화", polarity: "positive" },
+  { key: "longevity", label: "장기 지속성", polarity: "positive" },
+  { key: "marriage", label: "결혼 적합도", polarity: "positive" },
+  { key: "conflictRisk", label: "갈등 위험도", polarity: "inverse" },
+  { key: "growth", label: "상호 성장", polarity: "positive" },
+  { key: "karmaBond", label: "카르마 연결", polarity: "positive" },
+];
+
+function clampAxisScore(value) {
+  return Math.max(10, Math.min(98, Math.round(Number(value) || 50)));
+}
+
+/**
+ * 8축 점수는 전부 이미 확정된 계산값에서만 유도한다(LLM 이 만들지 않는다).
+ *
+ * 기존 5축(buildSukuyoScoreMeta)의 총점은 70~80 으로 강제 클램프돼 있어 어떤 조합이든 사실상
+ * 같은 점수가 나왔다. 별점으로 보여 주려면 실제 편차가 필요하므로 여기서는 클램프를 두지 않고
+ * 축마다 자기 근거로 흩어지게 둔다. 총점만 45~97 로 자른다.
+ */
+function buildSukuyoRelationAxes(personA, personB, relation, compatibility = {}) {
+  const harmonyType = elementRelation(personA.element, personB.element);
+  const distance = Number(relation.distance) || 0;
+  const traditional = clean(relation.traditional_relation || "");
+  const chemistry = Number(compatibility.chemistryScore) || 74;
+  const stability = Number(compatibility.stabilityScore) || 72;
+  const friction = Number(compatibility.conflictScore) || 40;
+  const intensity = clean(relation.intensity || "");
+
+  const yinYangComplement = personA.yin_yang !== personB.yin_yang;
+  const sameGuardian = Boolean(personA.guardian) && personA.guardian === personB.guardian;
+  const bothStable = SUKUYO_STABLE_GROUP_HANJA.has(personA.sukuyo_hanja) && SUKUYO_STABLE_GROUP_HANJA.has(personB.sukuyo_hanja);
+  const anyRisk = SUKUYO_RISK_GROUP_HANJA.has(personA.sukuyo_hanja) || SUKUYO_RISK_GROUP_HANJA.has(personB.sukuyo_hanja);
+  const sameGroup = Boolean(personA.group) && personA.group === personB.group;
+  const karmicType = ["안괴", "업태"].includes(traditional);
+  const friendlyType = ["영친", "명"].includes(traditional);
+
+  const harmonyBonus = harmonyType === "상생" ? 10 : harmonyType === "동류" ? 5 : harmonyType === "상극" ? -12 : 0;
+  const nearBonus = distance === 0 ? 10 : distance <= 4 ? 6 : distance >= 9 ? -6 : 0;
+
+  const raw = {
+    emotionBond: chemistry + (yinYangComplement ? 6 : -2) + (sameGuardian ? 5 : 0) + nearBonus * 0.6,
+    trust: stability + harmonyBonus + (bothStable ? 8 : 0) + (anyRisk ? -6 : 0) + (friendlyType ? 5 : 0),
+    dialogue: 62 + harmonyBonus + (sameGroup ? 8 : 0) + (yinYangComplement ? 4 : 0) + (distance >= 9 ? -5 : 3),
+    longevity: stability + (friendlyType ? 8 : 0) + (intensity === "잔잔" ? 5 : intensity === "강렬" ? -6 : 0) + (harmonyType === "상극" ? -8 : 0),
+    marriage: (stability * 0.55) + (chemistry * 0.25) + 18 + (friendlyType ? 7 : 0) + (karmicType ? -5 : 0) + harmonyBonus * 0.5,
+    conflictRisk: friction + (harmonyType === "상극" ? 14 : 0) + (karmicType ? 10 : 0) + (anyRisk ? 6 : 0) + (intensity === "강렬" ? 8 : intensity === "잔잔" ? -8 : 0) - (bothStable ? 8 : 0),
+    growth: 58 + (karmicType ? 16 : 0) + (harmonyType === "상극" ? 9 : 0) + (chemistry >= 82 ? 6 : 0) + (sameGroup ? -5 : 4),
+    karmaBond: 52 + (traditional === "명" ? 20 : 0) + (karmicType ? 18 : 0) + nearBonus + (intensity === "강렬" ? 8 : 0),
+  };
+
+  const axes = {};
+  SUKUYO_AXIS_SPECS.forEach((spec) => {
+    axes[spec.key] = { score: clampAxisScore(raw[spec.key]), label: spec.label, polarity: spec.polarity };
+  });
+  const effective = SUKUYO_AXIS_SPECS.map((spec) => (spec.polarity === "inverse" ? 100 - axes[spec.key].score : axes[spec.key].score));
+  const total = Math.max(45, Math.min(97, Math.round(effective.reduce((sum, value) => sum + value, 0) / effective.length)));
+  return { axes, total };
+}
+
 function buildSukuyoPromptPersonMeta(person = {}, sukuyo = {}) {
   const element = normalizeSukuyoFiveElement(sukuyo.element);
   return {
@@ -569,6 +672,9 @@ function buildSukuyoCompatibilityJsonSchema(input, calculation) {
   const personB = buildSukuyoPromptPersonMeta(input.personB, calculation.personBSukuyo);
   const relation = buildCompatibilityRelationMeta(calculation.compatibility);
   const scores = buildSukuyoScoreMeta(personA, personB, relation, calculation.compatibility);
+  // 기존 5축(scores)은 그대로 둔다 — 과거 저장 결과와 레이더·게이지가 그 키에 물려 있다.
+  // 별점 8축(axes)은 그 옆에 새로 붙인다.
+  const { axes, total: axesTotal } = buildSukuyoRelationAxes(personA, personB, relation, calculation.compatibility);
   return {
     meta: {
       person_a: personA,
@@ -580,6 +686,8 @@ function buildSukuyoCompatibilityJsonSchema(input, calculation) {
         intensity: relation.intensity,
       },
       scores,
+      axes,
+      axesTotal,
     },
     sections: Object.fromEntries(SUKUYO_SECTION_SPECS.map((section) => [section.key, {
       title: section.title,
@@ -588,6 +696,12 @@ function buildSukuyoCompatibilityJsonSchema(input, calculation) {
       body: `최소 ${section.minChars.toLocaleString("ko-KR")}자 상담문`,
     }])),
   };
+}
+
+function omitKeys(source, keys) {
+  if (!source || typeof source !== "object") return source;
+  const drop = new Set(keys);
+  return Object.fromEntries(Object.entries(source).filter(([key]) => !drop.has(key)));
 }
 
 function buildSukuyoCompatibilityPromptContext(input, calculation) {
@@ -624,17 +738,14 @@ function buildSukuyoCompatibilityPromptContext(input, calculation) {
         strengths: calculation.personBSukuyo?.strengths,
         shadows: calculation.personBSukuyo?.shadows,
       },
-      relation: relationMeta,
-      relationLogic: {
-        guide: "관계 유형과 두 사람의 방향별 자리(역할)는 두 본명숙 사이의 순행/역행 거리로 확정된 값이다. 아래 정의를 논거로 인용하되, 정의에 없는 의미를 지어내지 않는다. 순행 방향과 역행 방향의 자리가 다르면 방향별로 다르게 해석한다.",
-        relationType: relationMeta.traditional_relation,
-        directionalRoles: {
-          a_to_b: { role: relationMeta.type_a_to_b, meaning: relationMeta.directional_meaning.a_to_b },
-          b_to_a: { role: relationMeta.type_b_to_a, meaning: relationMeta.directional_meaning.b_to_a },
-        },
-        directionalDistanceGuide: relationMeta.directional_distance_guide,
+      // relationLogic 은 relation 을 통째로 다시 적고 있었다(역할·의미·거리 안내가 전부 중복).
+      // 장별로 20번 보내는 프롬프트라 중복이 그대로 20배가 된다 — 고유한 해석 지침 한 줄만 남긴다.
+      relation: {
+        ...relationMeta,
+        guide: "관계 유형과 두 사람의 방향별 자리(역할)는 두 본명숙 사이의 순행/역행 거리로 확정된 값이다. 이 정의를 논거로 인용하되, 정의에 없는 의미를 지어내지 않는다. 순행 방향과 역행 방향의 자리가 다르면 방향별로 다르게 해석한다.",
       },
-      traditionalCompatibility: calculation.compatibility,
+      // distanceMetrics 는 바로 위 forwardDistance·reverseDistance·shortestDistance·distanceLabel 의 사본이다.
+      traditionalCompatibility: omitKeys(calculation.compatibility, ["distanceMetrics"]),
       elementHarmony: {
         personAElement,
         personBElement,
@@ -1093,43 +1204,97 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
   return { ok: false };
 }
 
+/**
+ * 그룹 하나(장 3개)를 쓰게 하는 프롬프트. LLM 호출 1회의 단위다.
+ *
+ * 그룹별로 호출이 갈리면 서로가 뭘 썼는지 모른 채 같은 비유를 반복할 위험이 커진다.
+ * 그래서 (1) 다른 그룹이 맡은 주제를 알려 주고 건드리지 말라고 못 박고,
+ * (2) 시스템 프롬프트에 반복 금지 규칙을 따로 넣었다.
+ */
+function buildSectionGroupPrompt(input, calculation, group) {
+  const specs = group.keys.map((key) => {
+    const spec = SUKUYO_SECTION_SPEC_MAP.get(key);
+    if (!spec) throw new Error(`알 수 없는 숙요 섹션: ${key}`);
+    return spec;
+  });
+  const groupKeySet = new Set(group.keys);
+  const otherTitles = SUKUYO_SECTION_SPECS
+    .filter((section) => !groupKeySet.has(section.key))
+    .map((section) => section.title.replace(/^\S+\s+/, ""))
+    .join(" / ");
+  const includesDomains = groupKeySet.has("domains");
+  const shape = `{${group.keys.map((key) => `"${key}":{"body":"..."}`).join(",")}}`;
+  return [
+    `아래 숙요점 계산값만 근거로, 두 사람의 궁합 상담문 가운데 아래 ${specs.length}개 장을 작성하십시오.`,
+    "본명숙 산출, 관계 거리, 양방향 관계 유형, 기질 속성, 점수는 이미 확정된 값입니다. 다시 계산하거나 바꾸지 마십시오.",
+    "",
+    "[이번에 쓸 장]",
+    ...specs.map((spec) => [
+      `● ${spec.title}  (키: ${spec.key})`,
+      `   요구 사항: ${spec.guide}`,
+      `   분량: 공백 포함 최소 ${spec.minChars.toLocaleString("ko-KR")}자, 상한 ${Math.round(spec.minChars * 1.5).toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
+    ].join("\n")),
+    "",
+    "각 장 본문은 3~6개 소단락으로 나누고, 마크업은 **굵게**, 번호 목록(1. ), 하이픈 목록(- ), 인용(> ) 네 가지만 사용합니다.",
+    "🔴 각 장은 그 주제와 직접 관련된 계산 근거를 **서로 다른 것으로 최소 2개** 인용해 논거로 삼습니다(관계 유형 정의, 순행·역행 거리, 오행 상생·상극, 숙 그룹, 음양 조합, 끌림·안정·마찰 수치 중에서). 근거 없는 찬사 문장은 쓰지 않습니다.",
+    "🔴 각 장에서 두 사람의 이름을 실제로 부르며, 이 조합에서만 나올 수 있는 구체적인 장면을 최소 1개 씁니다. 다른 커플에게 그대로 옮겨도 말이 되는 문장은 지우고 다시 쓰십시오.",
+    "🔴 이 요청 안의 장들끼리도 같은 비유·같은 첫 문장 구조·같은 사례를 재사용하지 않습니다. 장마다 다른 각도로 접근합니다.",
+    "서사는 '운명적 끌림'(관계 유형·거리·상생 근거)과 '현실적 조율'(상극·그룹 차이·음양 과제)의 두 축을 오가며 짭니다.",
+    "각 장에 구체적 상황 묘사, 실제 대화체 예시, 번호 행동 지침, 시기별 전망 중 최소 2가지 이상을 넣습니다. 추상어로 분량을 채우지 마십시오.",
+    "",
+    "[다른 장이 맡은 주제 — 여기서 다루지 않습니다]",
+    otherTitles,
+    "",
+    `아래 형식의 JSON 객체 하나만 반환하십시오: ${shape}`,
+    "JSON 외 다른 텍스트를 절대 포함하지 마세요.",
+    "",
+    // 들여쓰기 없이 보낸다 — 그룹마다 반복되는 블록이라 공백이 그대로 5배가 된다.
+    "[숙요점 계산 context]",
+    JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation)),
+    "",
+    // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildSukuyoAnalysisBasis(input, calculation)),
+    // 궁합은 두 사람의 관계만 다루므로, 개인 운세용 6분야가 아니라 관계가 실제로 작동하는 무대로 나눈다.
+    // 영역별 궁합 장이 든 그룹에만 붙인다(나머지 그룹에 붙이면 프롬프트만 불어난다).
+    ...(includesDomains ? ["", ...buildDomainAnalysisRuleLines(RELATIONSHIP_ANALYSIS_DOMAINS)] : []),
+  ].join("\n");
+}
+
+/**
+ * 마지막 웨이브에서 한 번 더 부르는 종합 콜.
+ * 별점 8축은 서버가 이미 확정했으므로 LLM 은 "왜 그 점수인지" 한 줄만 쓴다.
+ */
+function buildSummaryPrompt(input, calculation) {
+  const schema = buildSukuyoCompatibilityJsonSchema(input, calculation);
+  const axisLines = SUKUYO_AXIS_SPECS
+    .map((spec) => `- ${spec.key} (${spec.label}): ${schema.meta.axes[spec.key].score}점${spec.polarity === "inverse" ? " ※ 높을수록 위험이 크다는 뜻" : ""}`)
+    .join("\n");
+  return [
+    "아래 숙요점 계산값과 이미 확정된 점수를 근거로, 궁합 상담의 요약부를 작성하십시오.",
+    "점수는 서버가 계산한 확정값입니다. 점수를 바꾸거나 새로 매기지 마십시오.",
+    "",
+    "반환할 JSON 형식:",
+    '{"headline": "…", "insight": "…", "scoreNotes": {"emotionBond": "…", "trust": "…", "dialogue": "…", "longevity": "…", "marriage": "…", "conflictRisk": "…", "growth": "…", "karmaBond": "…"}}',
+    "",
+    "- headline: 이 관계를 한 문장으로 요약합니다. 40~70자. 좋은 말만 쓰지 말고 이 관계의 핵심 긴장까지 담습니다. 예시 형식 — '강한 인연이지만 감정 표현 방식의 차이가 반복되는 관계입니다.'",
+    "- insight: 이 관계의 본질을 한 문단으로 설명합니다. 300~450자. 관계 유형과 거리, 오행 관계를 근거로 인용하고, 장점과 취약점을 함께 말합니다.",
+    "- scoreNotes: 여덟 축 각각에 대해 '왜 이 점수가 나왔는지'를 60~90자 한 줄로 씁니다. 계산 근거(관계 유형·거리·오행·음양·숙 그룹)를 반드시 하나 이상 인용하고, 점수를 그대로 반복해 읽지 마십시오.",
+    "  conflictRisk 는 점수가 높을수록 갈등 위험이 크다는 뜻이므로, 높으면 위험 요인을 낮으면 안정 요인을 설명합니다.",
+    "",
+    "JSON 외 다른 텍스트를 절대 포함하지 마세요.",
+    "",
+    "[확정된 별점 8축]",
+    axisLines,
+    "",
+    "[숙요점 계산 context]",
+    JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation)),
+    "",
+    ...buildEvidenceRuleLines(buildSukuyoAnalysisBasis(input, calculation)),
+  ].join("\n");
+}
+
 function buildFirstPrompt(input, calculation) {
   const personal = input.consultationType === "personal";
-  if (!personal) {
-    const schema = buildSukuyoCompatibilityJsonSchema(input, calculation);
-    const sectionGuide = SUKUYO_SECTION_SPECS
-      .map((section, index) => `${index + 1}. ${section.title} / 최소 ${section.minChars.toLocaleString("ko-KR")}자: ${section.guide}`)
-      .join("\n");
-    return [
-      "아래 숙요점 계산값만 근거로 두 사람의 숙요 궁합 상담 JSON을 작성하십시오.",
-      "본명숙 산출, 관계 거리, 양방향 관계 유형, 기질 속성, 점수는 이미 확정된 값입니다.",
-      "반환 JSON의 meta 값은 [반환 JSON 뼈대]와 정확히 같아야 하며, sections.*.title도 뼈대 title 그대로 유지합니다.",
-      `sections.*.body만 전문 숙요점 상담문으로 채우며, body 합계는 공백 포함 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS.toLocaleString("ko-KR")}~${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS.toLocaleString("ko-KR")}자 사이가 되어야 합니다.`,
-      "각 body는 3~5개 소단락으로 나누고, 마크업은 **굵게**, 번호 목록, 하이픈 목록, 인용(> ) 네 가지만 사용합니다.",
-      "각 body는 그 섹션 주제와 관련된 계산 근거(관계 유형 정의, 방향별 거리, 오행 상생·상극, 숙 그룹, 음양)를 최소 1회 인용해 논거로 삼고, 근거 없는 찬사 문장은 쓰지 않습니다.",
-      "서사는 '운명적 끌림'(관계 유형·거리·상생 근거)과 '현실적 조율'(상극·그룹 차이·음양 과제)의 두 축을 오가며 짭니다.",
-      "모든 body에는 구체적 상황 묘사, 실제 대화체 예시, 체크리스트 또는 번호 행동 지침, 시기별 전망 중 최소 2가지 이상을 넣습니다.",
-      "갈등, 금기, 대화법, 위기, 장기 전망은 추상어가 아니라 실제 말투와 행동으로 풀어야 합니다.",
-      "같은 비유와 같은 첫 문장 구조를 반복하지 마세요.",
-      "마지막 moonLetter.body의 마지막 문장은 반드시 두 사람의 이름을 모두 불러 따뜻하게 마무리하세요.",
-      "",
-      "[섹션별 최소 분량과 요구]",
-      sectionGuide,
-      "JSON 외 다른 텍스트를 절대 포함하지 마세요.",
-      "",
-      "[숙요점 계산 context]",
-      JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation)),
-      "",
-      "[반환 JSON 뼈대]",
-      JSON.stringify(schema),
-      "",
-      // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
-      ...buildEvidenceRuleLines(buildSukuyoAnalysisBasis(input, calculation)),
-      "",
-      // 궁합은 두 사람의 관계만 다루므로, 개인 운세용 6분야가 아니라 관계가 실제로 작동하는 무대로 나눈다.
-      ...buildDomainAnalysisRuleLines(RELATIONSHIP_ANALYSIS_DOMAINS),
-    ].join("\n");
-  }
   return [
     "아래 계산 데이터만 근거로 숙요점 AI 첫 상담 답변을 작성하세요.",
     "없는 사실을 지어내지 말고, 계산된 27숙과 관계 유형을 중심으로 말하세요.",
@@ -1168,36 +1333,6 @@ function buildFirstPrompt(input, calculation) {
   ].filter(Boolean).join("\n");
 }
 
-function buildSukuyoCompatibilityRepairPrompt(input, calculation, previousText, reason) {
-  const schema = buildSukuyoCompatibilityJsonSchema(input, calculation);
-  const sectionGuide = SUKUYO_SECTION_SPECS
-    .map((section, index) => `${index + 1}. ${section.title} / 최소 ${section.minChars.toLocaleString("ko-KR")}자: ${section.guide}`)
-    .join("\n");
-  return [
-    "이전 숙요점 궁합 상담 JSON은 분량 또는 구조 점검을 통과하지 못했습니다.",
-    "같은 계산값만 근거로 JSON을 다시 작성하십시오.",
-    "반환 JSON의 meta와 sections.*.title은 [반환 JSON 뼈대]와 정확히 같아야 합니다.",
-    `sections.*.body 합계는 공백 포함 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS.toLocaleString("ko-KR")}~${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS.toLocaleString("ko-KR")}자 사이, 각 body는 지정 최소 글자수를 반드시 넘겨야 합니다.`,
-    "반복 문장으로 분량을 채우지 말고 구체적 장면, 실제 대사, 행동 지침, 시기별 전망을 보강하십시오.",
-    "JSON 외 다른 텍스트를 절대 포함하지 마세요.",
-    "",
-    "[점검 실패 사유]",
-    clean(reason?.message || reason, 800),
-    "",
-    "[섹션별 최소 분량과 요구]",
-    sectionGuide,
-    "",
-    "[숙요점 계산 context]",
-    JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation)),
-    "",
-    "[반환 JSON 뼈대]",
-    JSON.stringify(schema),
-    "",
-    "[이전 출력]",
-    clean(previousText, 45000),
-  ].join("\n");
-}
-
 function sanitizeConsultationText(text) {
   let result = clean(text, 60000);
   // 🔴 삭제는 ko 에서만. FORBIDDEN_RESULT_PATTERNS 의 /chapter/gi·/progress/gi·/job/gi·/PDF/gi 가
@@ -1221,154 +1356,192 @@ function parseJsonObjectFromText(text) {
   }
 }
 
-function normalizeStructuredSukuyoCompatibilityText(text, input, calculation) {
-  const parsed = parseJsonObjectFromText(text);
-  if (!parsed) {
-    throw Object.assign(new Error("숙요점 궁합 상담 JSON을 읽지 못했습니다."), { code: "LLM_FAILED", status: 503 });
-  }
-  const expected = buildSukuyoCompatibilityJsonSchema(input, calculation);
-  const sourceSections = parsed.sections && typeof parsed.sections === "object" ? parsed.sections : {};
-  const sections = {};
-  let totalChars = 0;
-  for (const section of SUKUYO_SECTION_SPECS) {
-    const rawBody = cleanRichText(sourceSections[section.key]?.body);
-    // 상한 초과 시 문장 중간이 아니라 마지막 문장 경계에서 자른다.
-    let body = rawBody;
-    if (rawBody.length > 5200) {
-      const sliced = rawBody.slice(0, 5200);
-      const boundary = Math.max(sliced.lastIndexOf("다."), sliced.lastIndexOf("요."), sliced.lastIndexOf(".\n"), sliced.lastIndexOf("!"), sliced.lastIndexOf("?"));
-      body = boundary > section.minChars ? sliced.slice(0, boundary + 2).trim() : sliced;
-    }
-    // 경량 보장 계약: 짧은 섹션이라도 버리지 않고 그대로 담는다(아래에서 전체 분량만 최종 판정).
-    totalChars += body.length;
-    sections[section.key] = { title: section.title, body };
-  }
-  // 전체 본문이 사실상 비어 있을 때만(재시도로 회복 가능) 실패 신호. 그 외에는 다소 짧아도 결과를 전달한다.
-  if (totalChars < 600) {
-    throw Object.assign(new Error(`숙요점 궁합 상담 전체 본문이 부족합니다.`), { code: "LLM_FAILED", status: 503 });
-  }
-  return JSON.stringify({
-    meta: expected.meta,
-    sections,
-  }, null, 2);
+/**
+ * 장 하나의 응답에서 본문을 뽑는다. 순수 함수라 가드(verify:llm-generation-resilience)가 직접 돌린다.
+ *
+ * 🔴 경량 보장 계약: 던지지 않는다. 읽을 수 있는 텍스트가 남아 있는 한 버리지 않고,
+ * 정말 아무것도 없을 때만 "" 을 돌려준다 — 호출부가 그때만 실패로 판정해 환급 경로를 돌린다.
+ * 여기서 예외를 던지면 결제는 됐는데 결과가 사라진다.
+ */
+function extractSectionBody(text) {
+  const raw = String(text == null ? "" : text).trim();
+  if (!raw) return "";
+  const parsed = parseJsonObjectFromText(raw);
+  const fromJson = cleanRichText(parsed?.body);
+  if (fromJson.length >= 240) return fromJson.slice(0, SUKUYO_SECTION_BODY_MAX_CHARS);
+  // JSON 이 아니거나 잘렸으면 원문에서 읽을 수 있는 문장을 살린다.
+  if (!hasRenderableLlmText(raw, { minChars: 400 })) return fromJson;
+  const recovered = looksLikeJsonish(raw) ? (extractReadableTextFromJsonLike(raw) || raw) : raw;
+  return cleanRichText(recovered).slice(0, SUKUYO_SECTION_BODY_MAX_CHARS);
 }
 
-async function createFirstAnswer(env, input, calculation) {
-  logSukyoAi("[Sukyo AI LLM Generate Start]", {
-    route: "/api/sukuyo-compatibility-ai/generate",
-    requestId: input.idempotencyKey,
-    consultationType: input.consultationType,
-  });
-  // 궁합 상담 JSON 요구 분량(body 합계 ~11,300자)이 구 상한을 넘겨 잘리지 않도록 여유를 둔 상한.
-  const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 32000);
-  // PREMIUM_GEMINI_TIMEOUT_MS(45s)를 참조하면 truthy 단락으로 기본값이 죽어 대량 JSON 생성이
-  // 45초에 타임아웃 → LLM_FAILED 503으로 튕겼다. 궁합 전용 예산을 직접 확보한다.
-  // 잘림 재시도 시 토큰 cap이 41,600(32,000×1.3)까지 올라가므로(≈200tok/s ≈ 208s) 150s가 필요했지만,
-  // 이 라우트는 동기 생성이라 엣지가 100초에 요청을 끊는다. 150s는 그 한계를 넘겨, 오래 걸리는 생성이
-  // 라우트의 실패 처리(선차감 복원)를 건너뛴 채 잘려 나갔다. clamp를 걸면 라우트가 먼저 판정해
-  // 짧아진 결과라도 degrade 경로로 전달한다.
-  const compatibilityTimeoutMs = clampSyncLlmTimeoutMs(Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 150000);
-  // 숙요 궁합 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
-  // 프롬프트 개선 주기를 반영해 TTL 7일. follow-up(handleMessage)은 캐시 대상 아님.
-  const sukuyoLlmCache = {
+function looksLikeJsonish(text) {
+  const head = String(text || "").trimStart().slice(0, 2);
+  return head.startsWith("{") || head.startsWith("[");
+}
+
+// 장별 결정론 캐시. 프롬프트 구조가 v1(단일 대형 JSON)과 완전히 달라졌으므로 keyExtra 를 v2 로 올린다 —
+// 안 올리면 7일 TTL 캐시가 옛 구조 JSON 을 그대로 돌려준다.
+function sukuyoSectionCache(env, keyExtra) {
+  return {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 7 * 24 * 60 * 60,
-    keyExtra: "sukuyo-compat-ai-v1",
+    keyExtra: `sukuyo-compat-ai-v2-${keyExtra}`,
   };
-  const isCompatibility = input.consultationType === "compatibility";
-  const sukuyoCallOptions = {
-    systemPrompt: isCompatibility
-      ? await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT)
-      : await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
-    taskType: "fortune",
-    temperature: 0.74,
-    timeoutMs: isCompatibility ? compatibilityTimeoutMs : (Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
-    // 궁합 대형 JSON 도 폴백을 허용하되, 너무 짧으면 실패로 돌려 선차감 환급 경로를 지킨다.
-    ...(isCompatibility ? { fallbackMinChars: 2000 } : {}),
-    cache: sukuyoLlmCache,
-  };
-  // 궁합은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이 잘리지 않게 보장한다.
-  const ai = isCompatibility
-    ? await callGeminiJsonWithRetry(env, buildFirstPrompt(input, calculation), {
-        ...sukuyoCallOptions,
-        baseTokens: compatibilityMaxOutputTokens,
-        capTokens: Math.round(compatibilityMaxOutputTokens * 1.3),
-        responseMimeType: "application/json",
-      })
-    : await callGeminiText(env, buildFirstPrompt(input, calculation), {
-        ...sukuyoCallOptions,
-        maxOutputTokens: 4096,
-      });
-  let provider = clean(ai?.provider || "");
-  let model = clean(ai?.model || "");
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
-  logSukyoAi("[Sukyo AI LLM Provider Selected]", {
-    route: "/api/sukuyo-compatibility-ai/generate",
-    requestId: input.idempotencyKey,
-    consultationType: input.consultationType,
-    providerReason: isMock ? "mock_provider_blocked" : provider || model || "gemini",
-  });
-  let content = sanitizeConsultationText(ai?.text || "");
-  let degraded = false;
-  if (ai?.ok && !isMock && input.consultationType === "compatibility") {
-    const rawContent = content;
-    try {
-      content = normalizeStructuredSukuyoCompatibilityText(rawContent, input, calculation);
-    } catch (normalizeError) {
-      logSukyoAi("[Sukyo AI LLM Repair Start]", {
-        route: "/api/sukuyo-compatibility-ai/generate",
-        requestId: input.idempotencyKey,
-        consultationType: input.consultationType,
-        errorMessage: clean(normalizeError?.message || normalizeError, 500),
-      });
-      let repaired = null;
-      try {
-        const repair = await callGeminiJsonWithRetry(env, buildSukuyoCompatibilityRepairPrompt(input, calculation, rawContent, normalizeError), {
-          systemPrompt: await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT),
-          taskType: "fortune",
-          temperature: 0.72,
-          baseTokens: compatibilityMaxOutputTokens,
-          capTokens: Math.round(compatibilityMaxOutputTokens * 1.3),
-          responseMimeType: "application/json",
-          timeoutMs: compatibilityTimeoutMs,
-          fallbackMinChars: 2000,
-          cache: sukuyoLlmCache,
-        });
-        const repairProvider = clean(repair?.provider || "");
-        const repairModel = clean(repair?.model || "");
-        const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
-        if (repair?.ok && !repairIsMock) {
-          provider = repairProvider || provider;
-          model = repairModel || model;
-          repaired = normalizeStructuredSukuyoCompatibilityText(sanitizeConsultationText(repair?.text || ""), input, calculation);
-        }
-      } catch (repairError) {
-        logSukyoAi("[Sukyo AI LLM Repair Failed]", {
-          route: "/api/sukuyo-compatibility-ai/generate",
-          requestId: input.idempotencyKey,
-          consultationType: input.consultationType,
-          errorMessage: clean(repairError?.message || repairError, 500),
-        });
-      }
-      if (repaired) {
-        content = repaired;
-      } else if (hasRenderableLlmText(rawContent, { minChars: 400 })) {
-        // 경량 보장 계약: 구조화 파싱이 끝내 실패해도 렌더 가능한 원문이 있으면 버리지 않는다.
-        // 원문(잘린 JSON 포함)을 그대로 전달하면 프론트가 looksLikeRawJson 복구로 읽어낸다.
-        content = rawContent;
-        degraded = true;
-        logSukyoAi("[Sukyo AI LLM Degraded]", {
-          route: "/api/sukuyo-compatibility-ai/generate",
-          requestId: input.idempotencyKey,
-          consultationType: input.consultationType,
-          errorMessage: clean(normalizeError?.message || normalizeError, 300),
-        });
-      } else {
-        throw normalizeError;
+}
+
+/** 그룹 하나(장 3개)를 생성한다. 실패하면 빈 객체를 돌려주고 나머지 그룹을 죽이지 않는다. */
+async function generateSectionGroup(env, input, calculation, group, systemPrompt) {
+  const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).minChars, 0);
+  try {
+    const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group), {
+      systemPrompt,
+      taskType: "fortune",
+      temperature: 0.74,
+      baseTokens: SUKUYO_SECTION_BASE_TOKENS,
+      capTokens: SUKUYO_SECTION_CAP_TOKENS,
+      responseMimeType: "application/json",
+      timeoutMs: SUKUYO_SECTION_TIMEOUT_MS,
+      // 🔴 유료 라우트에서 폴백을 켰으면 fallbackMinChars 는 필수다(관례: 최소 분량 × 0.4).
+      // 없으면 Workers AI 폴백이 8% 분량을 정상 결제로 통과시킨다.
+      fallbackMinChars: Math.round(groupMinChars * 0.4),
+      cache: sukuyoSectionCache(env, group.id),
+    });
+    const provider = clean(ai?.provider || "");
+    const model = clean(ai?.model || "");
+    if (!ai?.ok || /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) return { sections: {}, provider: "", model: "" };
+    const raw = sanitizeConsultationText(ai?.text || "");
+    const parsed = parseJsonObjectFromText(raw) || {};
+    const sections = {};
+    group.keys.forEach((key) => {
+      const spec = SUKUYO_SECTION_SPEC_MAP.get(key);
+      const body = extractSectionBody(parsed[key]?.body ? JSON.stringify({ body: parsed[key].body }) : "");
+      if (body.length >= 240) sections[key] = { title: spec.title, body };
+    });
+    // 구조화 파싱이 통째로 실패했는데 읽을 만한 원문이 남아 있으면 첫 장에라도 실어 보낸다.
+    // 경량 보장 계약 — 결제된 생성물을 빈손으로 돌려보내지 않는다.
+    if (!Object.keys(sections).length) {
+      const recovered = extractSectionBody(raw);
+      if (recovered.length >= 240) {
+        const spec = SUKUYO_SECTION_SPEC_MAP.get(group.keys[0]);
+        sections[group.keys[0]] = { title: spec.title, body: recovered };
       }
     }
+    return { sections, provider, model };
+  } catch (error) {
+    logSukyoAi("[Sukyo AI Section Group Failed]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      requestId: input.idempotencyKey,
+      sectionGroup: group.id,
+      errorMessage: clean(error?.message || error, 300),
+    });
+    return { sections: {}, provider: "", model: "" };
   }
+}
+
+/** 요약부(한 줄 요약·핵심 인사이트·축별 근거). 실패해도 상담 자체는 성립하므로 null 을 허용한다. */
+async function generateSummary(env, input, calculation, systemPrompt) {
+  try {
+    const ai = await callGeminiJsonWithRetry(env, buildSummaryPrompt(input, calculation), {
+      systemPrompt,
+      taskType: "fortune",
+      temperature: 0.7,
+      baseTokens: 4000,
+      capTokens: 5200,
+      responseMimeType: "application/json",
+      timeoutMs: SUKUYO_SECTION_TIMEOUT_MS,
+      fallbackMinChars: 400,
+      cache: sukuyoSectionCache(env, "summary"),
+    });
+    if (!ai?.ok) return null;
+    const parsed = parseJsonObjectFromText(sanitizeConsultationText(ai?.text || ""));
+    if (!parsed) return null;
+    const scoreNotes = {};
+    SUKUYO_AXIS_SPECS.forEach((spec) => {
+      const note = clean(parsed?.scoreNotes?.[spec.key], 200);
+      if (note) scoreNotes[spec.key] = note;
+    });
+    const headline = clean(parsed.headline, 160);
+    const insight = cleanRichText(parsed.insight, 1200);
+    if (!headline && !insight && !Object.keys(scoreNotes).length) return null;
+    return { headline, insight, scoreNotes };
+  } catch (error) {
+    logSukyoAi("[Sukyo AI Summary Failed]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      requestId: input.idempotencyKey,
+      errorMessage: clean(error?.message || error, 300),
+    });
+    return null;
+  }
+}
+
+/**
+ * 궁합 상담 전체를 한 요청 안에서 만든다 — 다섯 섹션 그룹 + 요약을 병렬로 부르고 하나로 병합한다.
+ * 벽시계는 가장 느린 그룹 기준(약 40초)이라 엣지 100초 컷 안쪽에서 끝난다.
+ */
+async function createCompatibilityAnswer(env, input, calculation) {
+  const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+  const settled = await Promise.allSettled([
+    ...SUKUYO_SECTION_GROUPS.map((group) => generateSectionGroup(env, input, calculation, group, systemPrompt)),
+    generateSummary(env, input, calculation, systemPrompt),
+  ]);
+
+  const merged = {};
+  let provider = "";
+  let model = "";
+  settled.slice(0, SUKUYO_SECTION_GROUPS.length).forEach((entry) => {
+    if (entry.status !== "fulfilled") return;
+    Object.assign(merged, entry.value.sections);
+    provider = entry.value.provider || provider;
+    model = entry.value.model || model;
+  });
+  const summaryEntry = settled[settled.length - 1];
+  const summary = summaryEntry.status === "fulfilled" ? summaryEntry.value : null;
+
+  // 읽는 순서를 SUKUYO_SECTION_SPECS 순서로 고정한다(생성 순서가 아니라 목차 순서로 보여야 한다).
+  const sections = Object.fromEntries(
+    SUKUYO_SECTION_SPECS.filter((spec) => merged[spec.key]).map((spec) => [spec.key, merged[spec.key]]),
+  );
+  const totalChars = Object.values(sections).reduce((sum, section) => sum + clean(section.body).length, 0);
+  logSukyoAi("[Sukyo AI Generate Done]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: input.idempotencyKey,
+    sections: Object.keys(sections).length,
+    expected: SUKUYO_SECTION_SPECS.length,
+    totalChars,
+  });
+
+  // 전부 실패했을 때만 실패로 돌린다 — 그래야 선차감 복원 경로가 돈다.
+  // 일부만 왔으면 짧아도 전달한다(경량 보장 계약).
+  if (totalChars < 600) {
+    throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+  }
+
+  const result = {
+    meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta,
+    ...(summary?.headline ? { headline: summary.headline } : {}),
+    ...(summary?.insight ? { insight: summary.insight } : {}),
+    ...(summary && Object.keys(summary.scoreNotes).length ? { scoreNotes: summary.scoreNotes } : {}),
+    sections,
+  };
+  return { content: JSON.stringify(result, null, 2), provider, model };
+}
+
+/** 개인 상담(단일 텍스트)은 예전 그대로 한 번에 만든다 — 분량이 4천 토큰대라 배치가 필요 없다. */
+async function createPersonalAnswer(env, input, calculation) {
+  const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
+    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
+    taskType: "fortune",
+    temperature: 0.74,
+    timeoutMs: clampSyncLlmTimeoutMs(Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
+    maxOutputTokens: 4096,
+    cache: sukuyoSectionCache(env, "personal"),
+  });
+  const provider = clean(ai?.provider || "");
+  const model = clean(ai?.model || "");
+  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+  const content = sanitizeConsultationText(ai?.text || "");
   if (!ai?.ok || isMock || content.length < 240) {
     const llmError = Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
     logSukyoAi("[Sukyo AI LLM Error]", {
@@ -1380,13 +1553,7 @@ async function createFirstAnswer(env, input, calculation) {
     }, llmError, env);
     throw llmError;
   }
-  logSukyoAi("[Sukyo AI LLM Generate Success]", {
-    route: "/api/sukuyo-compatibility-ai/generate",
-    requestId: input.idempotencyKey,
-    consultationType: input.consultationType,
-    providerReason: provider || model || "real_llm_success",
-  });
-  return { content, provider, model, degraded };
+  return { content, provider, model };
 }
 
 // 저장된 상담 문서에서 근거를 다시 계산한다. 궁합 상담(두 사람)만 대상이며,
@@ -1619,7 +1786,11 @@ async function handleStart(request, env) {
     let firstAnswer;
     try {
       calculation = calculateSukuyo(normalized);
-      firstAnswer = await createFirstAnswer(env, { ...normalized, idempotencyKey }, calculation);
+      firstAnswer = normalized.consultationType === "compatibility"
+        // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
+        // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
+        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation)
+        : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
     } catch (genError) {
       // 선차감된 코인/월정석이 있으면 되돌린 뒤 에러를 전파한다.
       const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
@@ -1872,8 +2043,13 @@ export const __sukuyoCompatibilityAiTestUtils = {
   calculateSukuyo,
   buildSukuyoAnalysisBasis,
   buildFirstPrompt,
-  normalizeStructuredSukuyoCompatibilityText,
+  buildSectionGroupPrompt,
+  buildSummaryPrompt,
+  buildSukuyoRelationAxes,
+  extractSectionBody,
   SUKUYO_SECTION_SPECS,
+  SUKUYO_AXIS_SPECS,
+  SUKUYO_SECTION_GROUPS,
   SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
   SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
 };
