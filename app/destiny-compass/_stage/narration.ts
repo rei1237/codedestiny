@@ -23,12 +23,19 @@ export interface NarrationInput {
 
 const short = (k: DirectionKey) => DIRECTION_LABEL_KO[k].split("·")[0];
 
-/** field.raw의 각 시스템 evidence를 평탄화(원 용어 화이트리스트 — AI는 이 밖 용어 생성 금지). */
+/**
+ * field.raw의 각 시스템 **대표 근거 1개**를 평탄화(원 용어 화이트리스트 — AI는 이 밖 용어 생성 금지).
+ *
+ * 🔴 체계당 evidence[0] 만 담는다. 무료 /narrate 라우트가 받은 근거를 8개로 자르는데
+ *    (worker/routes/destiny-compass.js 의 evidence.slice(0, 8)), 심층 리포트용으로 늘어난
+ *    항목까지 전부 밀어 넣으면 앞쪽 사주 근거만 남고 자미·숙요·타로·베다 근거가
+ *    조용히 사라진다. 심층 리포트는 collectDeepEvidence(_engine/evidence) 를 따로 쓴다.
+ */
 export function collectEvidence(field: DirectionField): NarrationEvidence[] {
   const out: NarrationEvidence[] = [];
   for (const sys of field.sources) {
-    const ev = field.raw?.[sys]?.evidence;
-    if (ev) for (const e of ev) out.push({ system: e.system, term: e.term });
+    const head = field.raw?.[sys]?.evidence?.[0];
+    if (head) out.push({ system: head.system, term: head.term });
   }
   return out;
 }

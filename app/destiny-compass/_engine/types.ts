@@ -49,6 +49,11 @@ export type Weather = "storm" | "fog" | "breeze" | "clear"; // 폭풍/안개/순
 export type Severity = "low" | "mid" | "high";
 export type TimelineKey = "d30" | "d90" | "y1" | "y3";
 
+/** 근거 묶음 — 심층 리포트가 섹션별로 인용할 때 쓰는 분류. */
+export type EvidenceGroup = "core" | "structure" | "flow" | "today";
+/** 근거의 결(길/흉/중립) — 표시용. 점수에는 영향을 주지 않는다. */
+export type EvidenceTone = "positive" | "caution" | "neutral";
+
 /** 결과 근거(원 용어) — 각 엔진이 결론의 뿌리가 된 자기 체계의 용어를 남긴다. */
 export interface Evidence {
   system: SystemKey;
@@ -56,6 +61,14 @@ export interface Evidence {
   term: string;
   /** 보조 설명(짧게) */
   detail?: string;
+  /**
+   * 안정 식별자(예: "saju.fiveElements"). 서버가 근거를 화이트리스트로 잠그고
+   * ★평점을 조인할 때의 키. 🔴 evidence[0]은 기존 소비처(MapResult의 도감 수집·체계별
+   * 근거 라벨)가 인덱스로 읽으므로 항목을 앞에 끼워 넣지 말고 뒤에만 append 한다.
+   */
+  id?: string;
+  group?: EvidenceGroup;
+  tone?: EvidenceTone;
 }
 
 /** 엔진별 어댑터가 반환하는 정규화 기여(각 0..1) */

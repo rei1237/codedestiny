@@ -64,11 +64,34 @@ export const sukuyoAdapter: EngineAdapter = {
       timelineHint,
       // 날짜 기반이라 시각 결측 영향이 작다 → 품질 높게.
       dataQuality: 0.95,
+      // 🔴 evidence[0] 고정(본명숙) — 신규는 뒤로만 append.
       evidence: [
         {
           system: "sukuyo",
           term: `${res.mansion.split("(")[0]}수(${res.mansionCh}宿)`,
           detail: `${el}요 · ${res.direction}방 · ${res.animal}`,
+          id: "sukuyo.mansion",
+          group: "core",
+        },
+        {
+          system: "sukuyo",
+          term: "본명숙 기질",
+          detail: `재능 ${talent} · ${String(res.traits?.desc || "").slice(0, 120)}`.trim(),
+          id: "sukuyo.traits",
+          group: "core",
+        },
+        {
+          system: "sukuyo",
+          term: "분야별 결",
+          detail: [
+            res.traits?.work ? `일: ${String(res.traits.work).slice(0, 70)}` : "",
+            res.traits?.love ? `사랑: ${String(res.traits.love).slice(0, 70)}` : "",
+            res.traits?.wealth ? `재물: ${String(res.traits.wealth).slice(0, 70)}` : "",
+          ]
+            .filter(Boolean)
+            .join(" / "),
+          id: "sukuyo.field",
+          group: "structure",
         },
       ],
     };
