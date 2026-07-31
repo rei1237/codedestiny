@@ -56,7 +56,7 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
   }, [isPaying, ensurePaidAccess]);
 
   return (
-    <div className={styles.resultStage}>
+    <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>The Life Voyage</span>

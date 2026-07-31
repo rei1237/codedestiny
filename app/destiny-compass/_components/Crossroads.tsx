@@ -66,7 +66,7 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
   }, [a, b, isPaying, ensurePaidAccess]);
 
   return (
-    <div className={styles.resultStage}>
+    <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>The Crossroad</span>

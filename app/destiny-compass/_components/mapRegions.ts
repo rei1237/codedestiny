@@ -1,4 +1,4 @@
-/** 운명의 지도 지역 정의 + 방향→지역(목적지) 매핑. DestinyMap·MapResult 공용. */
+/** 운명의 지도 지역 정의 + 방향→지역(목적지) 매핑. DestinyMap·CompassReport 공용. */
 import type { DirectionKey } from "../_engine/types";
 
 export interface RegionDef {

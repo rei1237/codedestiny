@@ -267,14 +267,15 @@ export async function connectDb(env = {}) {
         console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
         const connectOptions = {
           dbName: resolveMongoDbName(env) || undefined,
-          // 🔴 늘리지 말 것. Atlas **M0 의 총 연결 상한은 500**이고 총 연결 = 아이솔레이트 수 ×
-          // maxPoolSize 라, 이 값은 '한 아이솔레이트의 성능'이 아니라 '전역 예산의 분모'다.
-          // 5 였을 때 아이솔레이트 100개면 이미 500 = 상한 포화 → 새 체크아웃이 커넥션을 못 만들고
-          // 큐에서 굶는다(2026-08-01 실측: 체크아웃 대기 최대 10,383ms, 41건 시작/4건 성사).
-          // 2 로 낮추면 같은 100 아이솔레이트가 200 만 쓰고 300 이 남아 버스트를 흡수한다.
-          // 아이솔레이트 내부 큐잉은 늘지만, 서버 명령이 250~417ms 라 커넥션 2개로 초당 6회 이상
-          // 처리된다(실측 요구량은 초당 ~4회) — 전역 고갈이 지배적인 상황에서 이쪽이 이득이다.
-          maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "2")),
+          // 🔴 이 값은 전역 예산의 분모다: 총 연결 = 아이솔레이트 수 × maxPoolSize.
+          // 2026-08-01 에 "M0 상한 500 에 포화됐다"고 보고 5 → 2 로 줄였다가 **되돌렸다**.
+          // 계측이 그 전제를 반증했다:
+          //   · 전 구간 `[db-connect-error]` **0건** — 상한에 닿았다면 연결 생성이 실패해야 한다.
+          //   · 풀 2 구간에서 체크아웃 **257건 시도 / 219건 실패(85%)**, inFlightOps 가 6까지 올라
+          //     커넥션 2개로는 아이솔레이트 내부 동시성을 감당하지 못했다.
+          // 즉 병목은 전역 상한이 아니라 **아이솔레이트 내부 풀 고갈**이고, 그건 소켓 점유 시간을
+          // 줄이는 쪽(socketTimeoutMS 11초)이 맞는 처방이었다. 근거 없이 다시 줄이지 말 것.
+          maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
           // 유휴 시 커넥션을 하나도 붙들지 않는다(드라이버 기본값이지만 전역 예산에 직결되므로 명시).
           minPoolSize: 0,
           serverSelectionTimeoutMS,

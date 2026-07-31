@@ -717,6 +717,15 @@ const karmaDestinyAiChapterSchema = new mongoose.Schema({
   keyTakeaways: { type: [String], default: [] },
   highlightQuotes: { type: [String], default: [] },
   charCount: { type: Number, default: 0 },
+  // ── 다섯 렌즈 리포트(schemaVersion 2) 전용. 전부 optional 이라 구 16장 문서는
+  //    undefined 로 남고 마이그레이션 없이 그대로 재열람된다.
+  symbol: { type: String, default: "", trim: true, maxlength: 4 },
+  leadLens: { type: String, default: "", trim: true, maxlength: 20 },
+  supportLens: { type: [String], default: [] },
+  // 서버가 evidenceKeys 로 integratedResult 에서 직접 뽑은 근거. LLM 이 만든 값이 아니다.
+  evidence: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 그 장이 담당한 영역의 에너지 강도({ domain, value, basis }).
+  energyScore: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { _id: false });
 
 const karmaDestinyAiConsultationSchema = new mongoose.Schema({
@@ -743,6 +752,11 @@ const karmaDestinyAiConsultationSchema = new mongoose.Schema({
   userQuestion: { type: String, default: "", trim: true, maxlength: 1600 },
   integratedResult: { type: mongoose.Schema.Types.Mixed, default: null },
   summaryCards: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 1 = 구 16장(3체계), 2 = 15장 다섯 렌즈. 생성 재개 시 장 정의가 바뀐 문서를 이어붙이면
+  // 챕터 id 가 충돌해 결제 후 무결과가 되므로, 재개 가능 여부 판정에도 쓰인다.
+  schemaVersion: { type: Number, default: 1, index: true },
+  lensContribution: { type: mongoose.Schema.Types.Mixed, default: null },
+  lensAvailability: { type: mongoose.Schema.Types.Mixed, default: null },
   accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },

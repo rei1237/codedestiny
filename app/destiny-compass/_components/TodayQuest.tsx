@@ -54,7 +54,7 @@ export function TodayQuest({
   const anyDone = doneCount > 0;
 
   return (
-    <div className={styles.resultStage}>
+    <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>The Quest</span>

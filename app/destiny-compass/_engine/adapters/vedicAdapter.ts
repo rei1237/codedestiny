@@ -65,7 +65,20 @@ export const vedicAdapter: EngineAdapter = {
       timelineHint: { d30: 0.7, d90: 0.7, y1: 0.7, y3: 0.7 },
       // 요일 기반 단일 요소라 명식 확정 신호보다 낮게.
       dataQuality: 0.7,
-      evidence: [{ system: "vedic", term: `${vara.ko}`, detail: `바라 지배성 · ${vara.planet}` }],
+      // 🔴 evidence[0] 고정. 두 번째 항목은 '정직성 라벨'이다 — 이 어댑터는 판차앙가 5요소 중
+      //    바라(요일 지배성) 하나만 계산한다. 이 문장을 프롬프트 입력에 그대로 실어, 상담 문장이
+      //    라그나·다샤·나크샤트라를 아는 척하지 못하게 막는다(서버 검증기와 이중 차단).
+      evidence: [
+        { system: "vedic", term: `${vara.ko}`, detail: `바라 지배성 · ${vara.planet}`, id: "vedic.vara", group: "core" },
+        {
+          system: "vedic",
+          term: "베다 산출 범위",
+          detail: "판차앙가 5요소 중 바라(요일 지배성)만 계산 — 라그나·바바·다샤·나크샤트라는 미산출",
+          id: "vedic.varaScope",
+          group: "core",
+          tone: "neutral",
+        },
+      ],
     };
   },
 };
