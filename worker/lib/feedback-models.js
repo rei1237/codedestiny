@@ -20,8 +20,8 @@ export const FEEDBACK_CATEGORIES = Object.freeze({
 
 export const FEEDBACK_CATEGORY_LIST = Object.freeze(Object.values(FEEDBACK_CATEGORIES));
 
-// 라벨 정본은 여기 하나다. /feedback 과 /admin/feedback 이 GET /api/feedback/meta 로
-// 이 값을 받아 쓰므로 프론트에 한글 라벨을 하드코딩하지 않는다(드리프트 방지).
+// 라벨 정본은 여기 하나다. /feedback 이 GET /api/feedback/meta 로 이 값을 받아 쓰므로
+// 프론트에 한글 라벨을 하드코딩하지 않는다(드리프트 방지).
 export const FEEDBACK_CATEGORY_LABELS = Object.freeze({
   bug: "버그",
   feature: "기능 제안",
