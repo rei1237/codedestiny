@@ -167,6 +167,10 @@ jobs:
       - name: Verify profile card action policy
         run: npm run verify:profile-card-action-policy
 
+      # 상세 팝업이 "무엇을 사는지"를 다시 가리지 못하게 막는다(블러 회귀·과장 수치·빈 카드).
+      - name: Verify feature marketing schema
+        run: npm run verify:feature-marketing-schema
+
       - name: Verify app store billing policy
         run: npm run verify:app-store-billing-policy
 

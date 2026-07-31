@@ -4451,7 +4451,24 @@
     "outcomesLabel": "请放心查看",
     "resultPreviewLabel": "结果预览",
     "startNow": "立即开始 →",
-    "paywallNote": "所有付费服务在支付（购买）完成后立即提供，服务开始后依据相关法律法规，撤回购买的权利可能受到限制。"
+    "paywallNote": "所有付费服务在支付（购买）完成后立即提供，服务开始后依据相关法律法规，撤回购买的权利可能受到限制。",
+    "deliverablesLabel": "报告包含的内容",
+    "scaleLabel": "分析深度",
+    "scaleChapters": "{count}个章节",
+    "scaleSections": "{count}个细分项目",
+    "scaleDataPoints": "{count}项分析指标",
+    "scaleMinWords": "{count}字以上",
+    "scaleReadMinutes": "约{count}分钟阅读量",
+    "questionsLabel": "这些问题都能得到解答",
+    "stepsLabel": "分析是如何进行的",
+    "sampleLabel": "真实报告示例",
+    "sampleChip": "示例",
+    "sampleContinuation": "接下来将根据您填写的信息继续进行个性化分析。",
+    "compareLabel": "为什么需要付费",
+    "compareFree": "免费",
+    "comparePremium": "高级版",
+    "faqLabel": "常见问题",
+    "ctaNoteDefault": "付款后立即进入结果页面。"
   },
   "mbti": {
     "compat": {

@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Check with peace of mind",
     "resultPreviewLabel": "Result preview",
     "startNow": "Start now →",
-    "paywallNote": "All paid services are provided immediately upon completion of payment (purchase), and once provision has begun, the right of withdrawal may be restricted in accordance with applicable laws."
+    "paywallNote": "All paid services are provided immediately upon completion of payment (purchase), and once provision has begun, the right of withdrawal may be restricted in accordance with applicable laws.",
+    "deliverablesLabel": "What the report includes",
+    "scaleLabel": "Analysis depth",
+    "scaleChapters": "{count} chapters",
+    "scaleSections": "{count} detailed sections",
+    "scaleDataPoints": "{count} analysis points",
+    "scaleMinWords": "{count}+ characters",
+    "scaleReadMinutes": "About {count} min read",
+    "questionsLabel": "Helpful for questions like these",
+    "stepsLabel": "How the analysis works",
+    "sampleLabel": "Sample report",
+    "sampleChip": "SAMPLE",
+    "sampleContinuation": "From here, the analysis continues personalized to the details you enter.",
+    "compareLabel": "Why it is paid",
+    "compareFree": "Free",
+    "comparePremium": "Premium",
+    "faqLabel": "Frequently asked questions",
+    "ctaNoteDefault": "You go straight to the result screen after payment."
   },
   "mbti": {
     "compat": {

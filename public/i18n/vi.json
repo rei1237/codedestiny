@@ -4451,7 +4451,24 @@
     "outcomesLabel": "Yên tâm kiểm tra",
     "resultPreviewLabel": "Xem trước kết quả",
     "startNow": "Bắt đầu ngay bây giờ →",
-    "paywallNote": "Tất cả dịch vụ trả phí được cung cấp ngay sau khi hoàn tất thanh toán (mua), và sau khi bắt đầu cung cấp, quyền rút lại giao dịch có thể bị hạn chế theo quy định pháp luật liên quan."
+    "paywallNote": "Tất cả dịch vụ trả phí được cung cấp ngay sau khi hoàn tất thanh toán (mua), và sau khi bắt đầu cung cấp, quyền rút lại giao dịch có thể bị hạn chế theo quy định pháp luật liên quan.",
+    "deliverablesLabel": "Nội dung có trong báo cáo",
+    "scaleLabel": "Độ sâu phân tích",
+    "scaleChapters": "{count} chương",
+    "scaleSections": "{count} mục chi tiết",
+    "scaleDataPoints": "{count} chỉ số phân tích",
+    "scaleMinWords": "Hơn {count} ký tự",
+    "scaleReadMinutes": "Khoảng {count} phút đọc",
+    "questionsLabel": "Hữu ích cho những câu hỏi này",
+    "stepsLabel": "Phân tích được thực hiện như thế nào",
+    "sampleLabel": "Ví dụ báo cáo thực tế",
+    "sampleChip": "MẪU",
+    "sampleContinuation": "Từ đây, phân tích cá nhân hóa sẽ tiếp tục dựa trên thông tin bạn nhập.",
+    "compareLabel": "Vì sao đây là dịch vụ trả phí",
+    "compareFree": "Miễn phí",
+    "comparePremium": "Cao cấp",
+    "faqLabel": "Câu hỏi thường gặp",
+    "ctaNoteDefault": "Sau khi thanh toán, bạn sẽ vào ngay màn hình kết quả."
   },
   "mbti": {
     "compat": {
