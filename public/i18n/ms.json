@@ -7331,5 +7331,17 @@
       "keepValue": "Simpan sebagai PDF dan miliki selamanya",
       "guarantee": "Jika panjangnya tidak mencapai piawai itu, laporan ditulis semula secara automatik. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Apa yang anda dapat apabila membayar",
+      "volumeLabel": "Panjang",
+      "volumeValue": "Sekurang-kurangnya 30,000 aksara",
+      "chaptersLabel": "Struktur",
+      "chaptersValue": "16 bab · setiap satu 1,900–2,400 aksara",
+      "keepLabel": "Simpan",
+      "keepValue": "Simpan sebagai PDF dan miliki selamanya",
+      "guarantee": "Mana-mana bab yang tidak cukup panjang akan ditulis semula secara automatik, sehingga dua kali. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
+    }
   }
 }

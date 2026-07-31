@@ -7331,5 +7331,17 @@
       "keepValue": "Xuất PDF và giữ vĩnh viễn",
       "guarantee": "Nếu không đạt độ dài trên, bài luận sẽ được viết lại tự động. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Bạn nhận được gì khi thanh toán",
+      "volumeLabel": "Độ dài",
+      "volumeValue": "Tối thiểu 30.000 ký tự",
+      "chaptersLabel": "Cấu trúc",
+      "chaptersValue": "16 chương · mỗi chương 1.900–2.400 ký tự",
+      "keepLabel": "Lưu giữ",
+      "keepValue": "Xuất PDF và giữ vĩnh viễn",
+      "guarantee": "Chương nào chưa đạt độ dài sẽ được viết lại tự động, tối đa hai lần. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
+    }
   }
 }

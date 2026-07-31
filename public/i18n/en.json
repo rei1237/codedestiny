@@ -7331,5 +7331,17 @@
       "keepValue": "Save as PDF and own it for good",
       "guarantee": "If the reading falls short of that length, it is rewritten automatically. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "What your payment gets you",
+      "volumeLabel": "Length",
+      "volumeValue": "30,000 characters minimum",
+      "chaptersLabel": "Structure",
+      "chaptersValue": "16 chapters · 1,900–2,400 characters each",
+      "keepLabel": "Keep it",
+      "keepValue": "Save as PDF and own it for good",
+      "guarantee": "Any chapter that falls short is rewritten automatically, up to twice. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
+    }
   }
 }

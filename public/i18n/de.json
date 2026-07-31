@@ -7331,5 +7331,17 @@
       "keepValue": "Als PDF speichern und dauerhaft behalten",
       "guarantee": "Bleibt der Text unter diesem Umfang, wird er automatisch neu geschrieben. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Das bekommen Sie für Ihre Zahlung",
+      "volumeLabel": "Umfang",
+      "volumeValue": "Mindestens 30.000 Zeichen",
+      "chaptersLabel": "Aufbau",
+      "chaptersValue": "16 Kapitel · je 1.900–2.400 Zeichen",
+      "keepLabel": "Aufbewahren",
+      "keepValue": "Als PDF speichern und dauerhaft behalten",
+      "guarantee": "Jedes zu kurze Kapitel wird automatisch neu geschrieben, bis zu zweimal. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
+    }
   }
 }

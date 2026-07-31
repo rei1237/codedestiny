@@ -7331,5 +7331,17 @@
       "keepValue": "Enregistrez en PDF et gardez-le à vie",
       "guarantee": "Si le texte n'atteint pas cette longueur, il est réécrit automatiquement. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Ce que votre paiement vous apporte",
+      "volumeLabel": "Longueur",
+      "volumeValue": "30 000 caractères minimum",
+      "chaptersLabel": "Structure",
+      "chaptersValue": "16 chapitres · 1 900 à 2 400 caractères chacun",
+      "keepLabel": "Conservation",
+      "keepValue": "Enregistrez en PDF et gardez-le à vie",
+      "guarantee": "Tout chapitre trop court est réécrit automatiquement, jusqu'à deux fois. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
+    }
   }
 }

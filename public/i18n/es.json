@@ -7331,5 +7331,17 @@
       "keepValue": "Guárdalo en PDF para siempre",
       "guarantee": "Si el texto no alcanza esa extensión, se reescribe automáticamente. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Lo que recibes al pagar",
+      "volumeLabel": "Extensión",
+      "volumeValue": "Mínimo 30.000 caracteres",
+      "chaptersLabel": "Estructura",
+      "chaptersValue": "16 capítulos · 1.900–2.400 caracteres cada uno",
+      "keepLabel": "Consérvalo",
+      "keepValue": "Guárdalo en PDF para siempre",
+      "guarantee": "Todo capítulo que se quede corto se reescribe automáticamente, hasta dos veces. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
+    }
   }
 }

@@ -7331,5 +7331,17 @@
       "keepValue": "Sla op als PDF en houd het voorgoed",
       "guarantee": "Haalt de tekst die omvang niet, dan wordt hij automatisch herschreven. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Dit krijgt u voor uw betaling",
+      "volumeLabel": "Omvang",
+      "volumeValue": "Minimaal 30.000 tekens",
+      "chaptersLabel": "Opbouw",
+      "chaptersValue": "16 hoofdstukken · elk 1.900–2.400 tekens",
+      "keepLabel": "Bewaren",
+      "keepValue": "Sla op als PDF en houd het voorgoed",
+      "guarantee": "Elk hoofdstuk dat te kort is wordt automatisch herschreven, tot twee keer toe. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
+    }
   }
 }

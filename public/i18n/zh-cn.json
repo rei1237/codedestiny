@@ -7331,5 +7331,17 @@
       "keepValue": "导出PDF，永久保存",
       "guarantee": "篇幅未达标准会自动重写。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "付费后你会得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "至少30,000字",
+      "chaptersLabel": "结构",
+      "chaptersValue": "共16章 · 每章1,900～2,400字",
+      "keepLabel": "保存",
+      "keepValue": "导出PDF，永久保存",
+      "guarantee": "篇幅未达标准的章节最多自动重写两次。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
+    }
   }
 }

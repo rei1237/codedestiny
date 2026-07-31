@@ -4319,5 +4319,17 @@
       "keepValue": "PDF로 저장해 영구 소장",
       "guarantee": "분량이 기준에 못 미치면 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
     }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "결제하면 받는 것",
+      "volumeLabel": "분량",
+      "volumeValue": "최소 30,000자",
+      "chaptersLabel": "구성",
+      "chaptersValue": "16개 장 · 장마다 1,900~2,400자",
+      "keepLabel": "보관",
+      "keepValue": "PDF로 저장해 영구 소장",
+      "guarantee": "장이 기준 분량에 못 미치면 최대 2회까지 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
+    }
   }
 }
