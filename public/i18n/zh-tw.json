@@ -4451,7 +4451,24 @@
     "outcomesLabel": "請放心查看",
     "resultPreviewLabel": "結果預覽",
     "startNow": "立即開始 →",
-    "paywallNote": "所有付費服務於付款（購買）完成後立即提供，服務開始後依相關法令，撤回購買之權利可能受到限制。"
+    "paywallNote": "所有付費服務於付款（購買）完成後立即提供，服務開始後依相關法令，撤回購買之權利可能受到限制。",
+    "deliverablesLabel": "報告包含的內容",
+    "scaleLabel": "分析深度",
+    "scaleChapters": "{count}個章節",
+    "scaleSections": "{count}個細分項目",
+    "scaleDataPoints": "{count}項分析指標",
+    "scaleMinWords": "{count}字以上",
+    "scaleReadMinutes": "約{count}分鐘閱讀量",
+    "questionsLabel": "這些問題都能獲得解答",
+    "stepsLabel": "分析是如何進行的",
+    "sampleLabel": "真實報告範例",
+    "sampleChip": "範例",
+    "sampleContinuation": "接下來將依據您填寫的資訊繼續進行個人化分析。",
+    "compareLabel": "為什麼需要付費",
+    "compareFree": "免費",
+    "comparePremium": "進階版",
+    "faqLabel": "常見問題",
+    "ctaNoteDefault": "付款後立即進入結果頁面。"
   },
   "mbti": {
     "compat": {

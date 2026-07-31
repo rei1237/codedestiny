@@ -4451,7 +4451,24 @@
     "outcomesLabel": "安心してご確認ください",
     "resultPreviewLabel": "結果プレビュー",
     "startNow": "今すぐ始める →",
-    "paywallNote": "すべての有料サービスは決済（購入）完了後ただちに提供され、提供開始後は関連法令に基づき申込みの撤回が制限される場合があります。"
+    "paywallNote": "すべての有料サービスは決済（購入）完了後ただちに提供され、提供開始後は関連法令に基づき申込みの撤回が制限される場合があります。",
+    "deliverablesLabel": "レポートに含まれる内容",
+    "scaleLabel": "分析の深さ",
+    "scaleChapters": "{count}章",
+    "scaleSections": "{count}項目の詳細分析",
+    "scaleDataPoints": "{count}個の分析指標",
+    "scaleMinWords": "{count}文字以上",
+    "scaleReadMinutes": "約{count}分の分量",
+    "questionsLabel": "こんな疑問に役立ちます",
+    "stepsLabel": "どのように分析しますか",
+    "sampleLabel": "実際のレポート例",
+    "sampleChip": "サンプル",
+    "sampleContinuation": "この先は、入力いただいた情報にもとづく個別の分析が続きます。",
+    "compareLabel": "なぜ有料なのか",
+    "compareFree": "無料",
+    "comparePremium": "プレミアム",
+    "faqLabel": "よくある質問",
+    "ctaNoteDefault": "決済後すぐに結果画面へ移動します。"
   },
   "mbti": {
     "compat": {
