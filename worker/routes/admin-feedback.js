@@ -151,9 +151,12 @@ function buildSort(sortKey) {
   return { createdAt: -1 };
 }
 
+// 🔴 읽기 핸들러들(list·summary·detail)은 선행 connectDb 를 두지 않는다. 아래 작업은 전부
+//    adminMongoRead → withMongoRetry 를 거치고 그 안에서 시도마다 connectDb 를 부른다(db.js).
+//    앞에서 한 번 더 부르면 재시도가 붙지 않은 연결 시도가 하나 더 생겨, 워커→Atlas 가 흔들릴 때
+//    재시도로 살아났을 요청까지 목록 전체를 503 으로 떨어뜨린다(제보 접수가 죽던 것과 같은 원인).
+//    반대로 patch·reply·delete 는 쓰기가 재시도로 감싸여 있지 않아 선행 connectDb 가 필요하다 — 그대로 둔다.
 async function handleList(request, env) {
-  await connectDb(env);
-
   const url = new URL(request.url);
   const filter = buildFilter(url);
   const pageRaw = Number.parseInt(String(url.searchParams.get("page") || ""), 10);
@@ -189,8 +192,6 @@ async function handleList(request, env) {
 }
 
 async function handleSummary(request, env) {
-  await connectDb(env);
-
   const rows = await adminMongoRead(env, () => Feedback.aggregate([
     { $group: { _id: "$status", count: { $sum: 1 } } },
   ]));
@@ -214,7 +215,6 @@ async function handleSummary(request, env) {
 }
 
 async function handleDetail(path, request, env) {
-  await connectDb(env);
   const id = parseId(path);
   if (!id) return notFound();
 
