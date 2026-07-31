@@ -5918,6 +5918,86 @@ function _cdAIPromptFailureResult(gateResult) {
   };
 }
 
+/* ── AI 상담 프롬프트 5종 공용: 결정적 requestId + 결제 증거 보관 ──────────────
+   생성 실패 후 '다시 시도'가 매번 새 requestId를 만들면 워커 consume 의 멱등이 무력화돼
+   재결제가 난다. 같은 입력이면 항상 같은 requestId 를 만들고, 결제 증거를 그대로 재사용해
+   게이트를 다시 열지 않는 것이 이 블록의 목적이다(사주가 이미 쓰는 계약을 나머지에 편다). */
+
+function _cdAIPromptHashText(value) {
+  var text = String(value == null ? '' : value);
+  var hash = 2166136261;
+  for (var i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+/* namespace 로 시작하는 결정적 requestId. parts 는 문자열/숫자/객체 혼합 가능하다.
+   32비트 해시 두 개를 이어 붙여 서로 다른 질문이 우연히 같은 id 를 받는 확률을 낮춘다. */
+function _cdAIPromptBuildRequestId(namespace, parts) {
+  var ns = String(namespace || 'ai-prompt').trim();
+  var list = Object.prototype.toString.call(parts) === '[object Array]' ? parts : [parts];
+  var seed = [ns].concat(list.map(function(part) {
+    if (part == null) return '';
+    if (typeof part === 'string' || typeof part === 'number') return String(part).trim().replace(/\s+/g, ' ');
+    try { return JSON.stringify(part); } catch (_) { return ''; }
+  })).join('|');
+  return ns + ':v1-' + _cdAIPromptHashText(seed) + _cdAIPromptHashText(seed.length + '|' + seed);
+}
+
+/* 카드 단위 결제 증거 보관소. 메모리(클로저)만 쓴다 — 이 상담들은 단발 POST 라
+   새로고침 후 이어보기 UI 가 없고, 스토리지에 두면 위조 표면만 넓어진다.
+   🔴 재사용 조건은 "현재 입력으로 다시 계산한 requestId 가 저장된 것과 완전히 같을 때" 하나뿐이다.
+      질문이 한 글자만 바뀌어도 id 가 달라져 자동 무효가 된다(조건문이 아니라 구조로 차단). */
+function _cdAIPromptEvidenceStore() {
+  var savedRequestId = '';
+  var savedEvidence = null;
+  function clear() {
+    savedRequestId = '';
+    savedEvidence = null;
+  }
+  try {
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      // 로그아웃·계정 전환 시 이전 사용자의 결제 증거가 남지 않도록 즉시 폐기.
+      window.addEventListener('cd:auth-changed', clear);
+    }
+  } catch (_) {}
+  return {
+    get: function(requestId) {
+      var id = String(requestId || '').trim();
+      return (savedEvidence && id && savedRequestId === id) ? savedEvidence : null;
+    },
+    set: function(requestId, evidence) {
+      savedRequestId = String(requestId || '').trim();
+      savedEvidence = (evidence && typeof evidence === 'object') ? evidence : null;
+    },
+    clear: clear
+  };
+}
+
+/* 워커가 "결제 권한을 보존한 채 실패"라고 명시했을 때만 증거를 보관한다.
+   구버전 워커 응답에는 이 필드가 없으므로 자동으로 보관하지 않는다(fail-closed) —
+   환불된 결제를 재사용해 무료 생성이 되는 구멍을 프론트에서도 막는다. */
+function _cdAIPromptShouldRetainEvidence(payload) {
+  var item = payload && typeof payload === 'object' ? payload : {};
+  return item.paymentRetainedForRetry === true && item.refundOk !== true;
+}
+
+var _CD_AI_PROMPT_RETRY_HINT = ' 이미 결제가 확인되었으니 추가 결제 없이 다시 시도할 수 있습니다.';
+
+try {
+  if (typeof window !== 'undefined') {
+    window._cdAIPromptHashText = _cdAIPromptHashText;
+    window._cdAIPromptBuildRequestId = _cdAIPromptBuildRequestId;
+    window._cdAIPromptEvidenceStore = _cdAIPromptEvidenceStore;
+    window._cdAIPromptShouldRetainEvidence = _cdAIPromptShouldRetainEvidence;
+    window._cdAIPromptGateEvidence = _cdAIPromptGateEvidence;
+    window._cdAIPromptRetryHint = _CD_AI_PROMPT_RETRY_HINT;
+    window._sajuPromptResolveProfileId = _sajuPromptResolveProfileId;
+  }
+} catch (_) {}
+
 function _sajuPromptClone(value) {
   try {
     return JSON.parse(JSON.stringify(value));
@@ -6122,13 +6202,7 @@ function _sajuPromptBuildAnalysisProfile(profile, snapshot) {
 }
 
 function _sajuPromptHashText(value) {
-  var text = String(value == null ? '' : value);
-  var hash = 2166136261;
-  for (var i = 0; i < text.length; i += 1) {
-    hash ^= text.charCodeAt(i);
-    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-  }
-  return (hash >>> 0).toString(36);
+  return _cdAIPromptHashText(value);
 }
 
 function _sajuPromptBuildSnapshotHash() {
@@ -13334,7 +13408,7 @@ function renderAstroInsightLegacyNeon() {
       return headers;
     }
 
-    function _astroRequestAIPrompt(body) {
+    function _astroRequestAIPrompt(body, requestId, savedEvidence) {
       var path = '/api/fortune/astrology/ai-prompt';
       var urls = [path];
       try {
@@ -13344,8 +13418,6 @@ function renderAstroInsightLegacyNeon() {
           if (urls.indexOf(full) < 0) urls.push(full);
         }
       } catch (_) {}
-
-      var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
 
       function runAt(index, finalBody) {
         return fetch(urls[index], {
@@ -13364,19 +13436,34 @@ function renderAstroInsightLegacyNeon() {
         });
       }
 
+      // 게이트 통과 후 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+      function postWithEvidence(evidence) {
+        var _astroFinalBody = Object.assign({}, body, evidence, { requestId: evidence.requestId || requestId });
+        var request = (typeof _cdRetryTransientPost === 'function')
+          ? _cdRetryTransientPost(function() { return runAt(0, _astroFinalBody); })
+          : runAt(0, _astroFinalBody);
+        return Promise.resolve(request).then(function(result) {
+          // 실패 처리에서 이 증거를 보관해 재결제 없는 재시도를 열어 준다.
+          if (result && typeof result === 'object') {
+            result.requestId = requestId;
+            result._cdPaidEvidence = evidence;
+          }
+          return result;
+        });
+      }
+
+      // 이미 결제가 확인된 재시도면 게이트를 다시 열지 않는다(재결제 차단).
+      if (savedEvidence) return postWithEvidence(savedEvidence);
+
       return _cdAIPromptGate({
         featureKey: 'astrology_ai_prompt_generator',
         reason: '점성술 AI 질문 프롬프트 생성',
         cost: ASTROLOGY_AI_PROMPT_COST,
-        requestId: 'astrology-ai-prompt:' + requestNonce,
+        requestId: requestId,
         categoryKey: 'astrology'
       }).then(function(gateResult) {
         if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
-        var _astroFinalBody = Object.assign({}, body, _cdAIPromptGateEvidence(gateResult));
-        // 게이트 통과 후 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
-        return (typeof _cdRetryTransientPost === 'function')
-          ? _cdRetryTransientPost(function() { return runAt(0, _astroFinalBody); })
-          : runAt(0, _astroFinalBody);
+        return postWithEvidence(_cdAIPromptGateEvidence(gateResult));
       });
     }
 
@@ -13395,6 +13482,10 @@ function renderAstroInsightLegacyNeon() {
       if (!inputEl || !countEl || !generateBtn || !copyBtn || !statusEl || !outputWrap || !outputEl || !typeEl) return;
 
       var inFlight = false;
+      var astroEvidenceStore = _cdAIPromptEvidenceStore();
+      // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
+      var astroRequestEpoch = 0;
+      var astroRetryFree = false;
       _astroSetCoinBalanceText(balanceEl);
 
       function setLoading(nextLoading) {
@@ -13402,7 +13493,9 @@ function renderAstroInsightLegacyNeon() {
         generateBtn.disabled = inFlight;
         inputEl.disabled = inFlight;
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
-        generateBtn.textContent = inFlight ? 'AI 상담 생성 중...' : '10,000원으로 AI 상담 받기';
+        generateBtn.textContent = inFlight
+          ? 'AI 상담 생성 중...'
+          : (astroRetryFree ? '추가 결제 없이 다시 상담 받기' : '10,000원으로 AI 상담 받기');
       }
 
       function updateCount() {
@@ -13424,14 +13517,25 @@ function renderAstroInsightLegacyNeon() {
         }
 
         var context = _astroBuildPromptContext();
+        // 같은 입력이면 항상 같은 requestId — 실패 후 재시도가 워커 consume 멱등에 걸려 재차감되지 않는다.
+        var astroRequestId = _cdAIPromptBuildRequestId('astrology-ai-prompt', [
+          _sajuPromptResolveProfileId(),
+          question,
+          context.astrologyResult,
+          context.compatibilityResult,
+          astroRequestEpoch
+        ]);
+        var astroReuse = astroEvidenceStore.get(astroRequestId);
         setLoading(true);
-        _astroSetPromptStatus(statusEl, '이용권과 결제 수단을 확인하고 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
+        _astroSetPromptStatus(statusEl, astroReuse
+          ? '이미 확인된 결제 권한으로 추가 결제 없이 상담 답변을 다시 만들고 있습니다...'
+          : '이용권과 결제 수단을 확인하고 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
 
         _astroRequestAIPrompt({
           question: question,
           astrologyResult: context.astrologyResult,
           compatibilityResult: context.compatibilityResult
-        }).then(function(result) {
+        }, astroRequestId, astroReuse).then(function(result) {
           var payload = result.payload || {};
           var resultText = String(payload.resultText || '').trim();
           var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
@@ -13456,6 +13560,11 @@ function renderAstroInsightLegacyNeon() {
 
             _astroSetCoinBalanceText(balanceEl);
 
+            // 성공했으므로 이 결제 증거는 소진됐다. epoch를 올려 같은 질문 재요청이 정상 결제로 가게 한다.
+            astroEvidenceStore.clear();
+            astroRetryFree = false;
+            astroRequestEpoch += 1;
+
             _astroSetPromptStatus(
               statusEl,
               'AI 상담이 완성되었습니다. 결제 확인이 완료되었습니다.',
@@ -13468,6 +13577,8 @@ function renderAstroInsightLegacyNeon() {
       var message = String(payload.message || '').trim() || '상담문 생성 중 오류가 발생했습니다.';
 
           if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+            astroEvidenceStore.clear();
+            astroRetryFree = false;
             _astroSetPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
             if (window.confirm(_sajuEngineText("se_11202_call_confirm"))) {
               var next = getSajuEncodedReturnPath('saju-login-return-path');
@@ -13477,12 +13588,26 @@ function renderAstroInsightLegacyNeon() {
           }
 
           if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+            astroEvidenceStore.clear();
+            astroRetryFree = false;
             _astroSetPromptStatus(statusEl, message, 'error');
             return;
           }
 
+          // 결제는 확인됐는데 생성만 실패 — 서버가 환불하지 않았을 때만 증거를 보관해 무료 재시도를 연다.
+          if (result && result._cdPaidEvidence && _cdAIPromptShouldRetainEvidence(payload)) {
+            astroEvidenceStore.set(result.requestId, result._cdPaidEvidence);
+            astroRetryFree = true;
+            _astroSetPromptStatus(statusEl, message + _CD_AI_PROMPT_RETRY_HINT, 'error');
+            return;
+          }
+
+          astroEvidenceStore.clear();
+          astroRetryFree = false;
           _astroSetPromptStatus(statusEl, message, 'error');
         }).catch(function() {
+          astroEvidenceStore.clear();
+          astroRetryFree = false;
           _astroSetPromptStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
         }).finally(function() {
           setLoading(false);
@@ -13502,7 +13627,15 @@ function renderAstroInsightLegacyNeon() {
         });
       });
 
-      inputEl.addEventListener('input', updateCount);
+      inputEl.addEventListener('input', function() {
+        // 질문이 바뀌면 requestId 가 달라져 증거는 어차피 못 쓴다. 버튼 문구도 함께 되돌린다.
+        if (astroRetryFree) {
+          astroEvidenceStore.clear();
+          astroRetryFree = false;
+          if (!inFlight) generateBtn.textContent = '10,000원으로 AI 상담 받기';
+        }
+        updateCount();
+      });
       updateCount();
       _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
     }
@@ -20342,6 +20475,10 @@ function renderZiwei(p, natal, targetId) {
     if (!questionEl || !statusEl || !outputEl || !generateBtn || !regenerateBtn || !copyBtn) return;
 
     var isLoading = false;
+    var zwEvidenceStore = _cdAIPromptEvidenceStore();
+    // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
+    var zwRequestEpoch = 0;
+    var zwRetryFree = false;
 
     function setStatus(message, tone) {
       statusEl.textContent = String(message || '');
@@ -20361,7 +20498,9 @@ function renderZiwei(p, natal, targetId) {
       questionEl.disabled = isLoading;
       generateBtn.textContent = isLoading
         ? 'AI 상담 생성 중...'
-        : ((_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원으로 AI 상담 받기');
+        : (zwRetryFree
+          ? '추가 결제 없이 다시 상담 받기'
+          : (_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원으로 AI 상담 받기');
       generateBtn.style.opacity = isLoading ? '0.7' : '1';
       regenerateBtn.style.opacity = isLoading ? '0.7' : '1';
     }
@@ -20394,21 +20533,30 @@ function renderZiwei(p, natal, targetId) {
         return;
       }
 
-      setLoading(true);
-      setStatus('명반 데이터를 바탕으로 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
+      // 같은 입력이면 항상 같은 requestId — 실패 후 재시도가 워커 consume 멱등에 걸려 재차감되지 않는다.
+      var zwRequestId = _cdAIPromptBuildRequestId('ziwei-ai-prompt', [
+        _sajuPromptResolveProfileId(),
+        question,
+        chartResult,
+        zwRequestEpoch
+      ]);
+      var zwReuse = zwEvidenceStore.get(zwRequestId);
 
-      var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      setLoading(true);
+      setStatus(zwReuse
+        ? '이미 확인된 결제 권한으로 추가 결제 없이 상담 답변을 다시 만들고 있습니다...'
+        : '명반 데이터를 바탕으로 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
 
       function requestPromptWithEvidence(evidence) {
         return fetch('/api/fortune/ziwei/ai-prompt', {
           method: 'POST',
           credentials: 'include',
-          headers: Object.assign(buildHeaders(), { 'idempotency-key': evidence.requestId || (_ZW_AI_PROMPT_REQUEST_PREFIX + requestNonce) }),
+          headers: Object.assign(buildHeaders(), { 'idempotency-key': evidence.requestId || zwRequestId }),
           cache: 'no-store',
           body: JSON.stringify({
             question: question,
             chartResult: chartResult,
-            requestId: evidence.requestId || (_ZW_AI_PROMPT_REQUEST_PREFIX + requestNonce),
+            requestId: evidence.requestId || zwRequestId,
             accessGrant: evidence.accessGrant,
             accessDecision: evidence.accessDecision,
             freeBySubscription: evidence.freeBySubscription,
@@ -20423,28 +20571,39 @@ function renderZiwei(p, natal, targetId) {
         });
       }
 
+      // 실패 처리에서 이 증거를 보관해 재결제 없는 재시도를 열어 준다.
+      function postWithEvidence(evidence) {
+        return _cdRetryTransientPost(function() { return requestPromptWithEvidence(evidence); })
+          .then(function(result) {
+            if (result && typeof result === 'object') {
+              result.requestId = zwRequestId;
+              result._cdPaidEvidence = evidence;
+            }
+            return result;
+          });
+      }
+
       // 게이트(결제)는 1회만. 게이트 통과 후 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
-      var promptRequest = paidPayload
-        ? _cdRetryTransientPost(function() {
-          return requestPromptWithEvidence(_cdAIPromptGateEvidence({
+      var promptRequest = zwReuse
+        ? postWithEvidence(zwReuse)
+        : (paidPayload
+          ? postWithEvidence(_cdAIPromptGateEvidence({
             ok: true,
             status: 200,
             payload: paidPayload,
             data: _cdAIPromptPayloadData(paidPayload),
-            requestId: _ZW_AI_PROMPT_REQUEST_PREFIX + requestNonce
+            requestId: zwRequestId
+          }))
+          : _cdAIPromptGate({
+            featureKey: _ZW_AI_PROMPT_FEATURE_KEY,
+            reason: _ZW_AI_PROMPT_REASON,
+            cost: _ZW_AI_PROMPT_COST,
+            requestId: zwRequestId,
+            categoryKey: 'ziwei'
+          }).then(function(gateResult) {
+            if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
+            return postWithEvidence(_cdAIPromptGateEvidence(gateResult));
           }));
-        })
-        : _cdAIPromptGate({
-          featureKey: _ZW_AI_PROMPT_FEATURE_KEY,
-          reason: _ZW_AI_PROMPT_REASON,
-          cost: _ZW_AI_PROMPT_COST,
-          requestId: _ZW_AI_PROMPT_REQUEST_PREFIX + requestNonce,
-          categoryKey: 'ziwei'
-        }).then(function(gateResult) {
-          if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
-          var ev = _cdAIPromptGateEvidence(gateResult);
-          return _cdRetryTransientPost(function() { return requestPromptWithEvidence(ev); });
-        });
 
       promptRequest.then(function(result) {
         var payload = result.payload || {};
@@ -20466,6 +20625,10 @@ function renderZiwei(p, natal, targetId) {
             copyBtn.style.display = 'inline-flex';
           }
           regenerateBtn.style.display = 'inline-flex';
+          // 성공했으므로 이 결제 증거는 소진됐다. epoch를 올려 같은 질문 재요청이 정상 결제로 가게 한다.
+          zwEvidenceStore.clear();
+          zwRetryFree = false;
+          zwRequestEpoch += 1;
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
           setStatus(
             chargedCoins > 0
@@ -20479,6 +20642,8 @@ function renderZiwei(p, natal, targetId) {
         var code = String(payload.code || '').trim();
         var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
         if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+          zwEvidenceStore.clear();
+          zwRetryFree = false;
           setStatus('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
           setTimeout(function() {
             try {
@@ -20489,11 +20654,24 @@ function renderZiwei(p, natal, targetId) {
           return;
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+          zwEvidenceStore.clear();
+          zwRetryFree = false;
           setStatus(message || '유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.', 'error');
           return;
         }
+        // 결제는 확인됐는데 생성만 실패 — 서버가 환불하지 않았을 때만 증거를 보관해 무료 재시도를 연다.
+        if (result && result._cdPaidEvidence && _cdAIPromptShouldRetainEvidence(payload)) {
+          zwEvidenceStore.set(result.requestId, result._cdPaidEvidence);
+          zwRetryFree = true;
+          setStatus(message + _CD_AI_PROMPT_RETRY_HINT, 'error');
+          return;
+        }
+        zwEvidenceStore.clear();
+        zwRetryFree = false;
         setStatus(message, 'error');
       }).catch(function() {
+        zwEvidenceStore.clear();
+        zwRetryFree = false;
         setStatus('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
       }).finally(function() {
         setLoading(false);
@@ -20501,6 +20679,12 @@ function renderZiwei(p, natal, targetId) {
     }
 
     questionEl.addEventListener('input', function() {
+      // 질문이 바뀌면 requestId 가 달라져 증거는 어차피 못 쓴다. 버튼 문구도 함께 되돌린다.
+      if (zwRetryFree) {
+        zwEvidenceStore.clear();
+        zwRetryFree = false;
+        if (!isLoading) setLoading(false);
+      }
       updateCount();
       if (statusEl && statusEl.textContent) {
         setStatus('', 'info');
