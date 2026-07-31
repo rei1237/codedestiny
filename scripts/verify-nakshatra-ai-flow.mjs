@@ -26,7 +26,7 @@ function section(t) { console.log(`\n▶ ${t}`); }
 
 // ── (A) 프롬프트 라이브러리 런타임 검증 ────────────────────────────────────────
 const entry = [
-  `export { NAKSHATRA_PERSONA, SUKUYO_SECTIONS, VEDIC_SECTIONS, NAKSHATRA_SECTIONS, buildFactContext, buildSectionPrompt, parseSectionResponse, mergeConsultationSections, hasForbiddenResultText, extractJsonObject } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ai-prompt.js"))};`,
+  `export { NAKSHATRA_PERSONA, SUKUYO_SECTIONS, VEDIC_SECTIONS, FUSION_SECTIONS, NAKSHATRA_SECTIONS, NAKSHATRA_PHASE_DECKS, NAKSHATRA_PHASE_FUSION, NAKSHATRA_TOTAL_MIN_CHARS, buildFactContext, buildSectionPrompt, buildDeckDigest, buildWrittenMemory, parseSectionResponse, mergeConsultationSections, extractTopInsights, hasForbiddenResultText, extractJsonObject } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ai-prompt.js"))};`,
   `export { assembleNatalCodex } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-codex.js"))};`,
 ].join("\n");
 
@@ -38,25 +38,63 @@ const tmpFile = path.join(tmpdir(), `nakshatra-ai-bundle-${process.pid}.cjs`);
 writeFileSync(tmpFile, bundled.outputFiles[0].text);
 const m = require(tmpFile);
 const {
-  NAKSHATRA_PERSONA, SUKUYO_SECTIONS, VEDIC_SECTIONS, NAKSHATRA_SECTIONS,
-  buildFactContext, buildSectionPrompt, parseSectionResponse, mergeConsultationSections, hasForbiddenResultText, extractJsonObject,
+  NAKSHATRA_PERSONA, SUKUYO_SECTIONS, VEDIC_SECTIONS, FUSION_SECTIONS, NAKSHATRA_SECTIONS,
+  NAKSHATRA_PHASE_DECKS, NAKSHATRA_PHASE_FUSION, NAKSHATRA_TOTAL_MIN_CHARS,
+  buildFactContext, buildSectionPrompt, buildDeckDigest, buildWrittenMemory,
+  parseSectionResponse, mergeConsultationSections, extractTopInsights, hasForbiddenResultText, extractJsonObject,
   assembleNatalCodex,
 } = m;
 
-section("2덱 섹션 레지스트리(숙요5 + 베다6 = 11)");
+// 상품이 광고하는 분량의 근거. 라우트의 SECTION_MIN_RATIO(0.75)가 이 합계를 실제로 떠받친다.
+const TARGET_TOTAL_MIN_CHARS = 19000;
+
+section("3덱 섹션 레지스트리(숙요5 + 베다6 + 융합10 = 21)");
 ok(SUKUYO_SECTIONS.length === 5, "숙요 덱 5섹션");
 ok(VEDIC_SECTIONS.length === 6, "베다 덱 6섹션");
-ok(NAKSHATRA_SECTIONS.length === 11, "통합 11섹션");
+ok(FUSION_SECTIONS.length === 10, "융합 덱 10섹션");
+ok(NAKSHATRA_SECTIONS.length === 21, "통합 21섹션");
 {
   let shapeOk = true; const ids = new Set();
   for (const s of NAKSHATRA_SECTIONS) {
     if (!s.id || !s.title || !s.scope || !Array.isArray(s.rules) || !Number.isInteger(s.minChars)) shapeOk = false;
-    if (s.deck !== "sukuyo" && s.deck !== "vedic") shapeOk = false;
+    if (s.deck !== "sukuyo" && s.deck !== "vedic" && s.deck !== "fusion") shapeOk = false;
     ids.add(s.id);
   }
   ok(shapeOk, "각 섹션 {id,deck,title,minChars,scope,rules[]} 완비");
-  ok(ids.size === 11, "섹션 id 11개 유일");
-  ok(SUKUYO_SECTIONS.every((s) => s.deck === "sukuyo") && VEDIC_SECTIONS.every((s) => s.deck === "vedic"), "덱 배속 일관");
+  ok(ids.size === 21, "섹션 id 21개 유일");
+  ok(
+    SUKUYO_SECTIONS.every((s) => s.deck === "sukuyo")
+    && VEDIC_SECTIONS.every((s) => s.deck === "vedic")
+    && FUSION_SECTIONS.every((s) => s.deck === "fusion"),
+    "덱 배속 일관",
+  );
+  // 🔴 분량 하한 단언 — 상품 카드/마케팅이 내거는 숫자의 근거다. 섹션을 줄이면 여기서 막힌다.
+  ok(NAKSHATRA_TOTAL_MIN_CHARS >= TARGET_TOTAL_MIN_CHARS, `섹션 minChars 합계 ≥ ${TARGET_TOTAL_MIN_CHARS} (현재 ${NAKSHATRA_TOTAL_MIN_CHARS})`);
+  ok(FUSION_SECTIONS.every((s) => s.needsDeckDigest === true), "융합 섹션 전부 needsDeckDigest(두 덱 결과 필요)");
+  ok(FUSION_SECTIONS.every((s) => Array.isArray(s.avoid) && s.avoid.length > 0), "융합 섹션 전부 avoid[](주제 침범·중복 서술 차단)");
+  ok(NAKSHATRA_PHASE_DECKS.length === 11 && NAKSHATRA_PHASE_FUSION.length === 10, "2페이즈 분리(덱 11 → 융합 10)");
+}
+
+section("융합 덱 계약(비교가 실제로 성립하는가)");
+{
+  const done = [
+    { id: "sukuyoOpening", deck: "sukuyo", title: "본명수 개시", body: "숙요 대가는 이렇게 보았습니다." },
+    { id: "vedicOpening", deck: "vedic", title: "나크샤트라 개시", body: "베다 대가는 이렇게 보았습니다." },
+  ];
+  const digest = buildDeckDigest(done);
+  ok(digest.includes("숙요 대가가 말한 것") && digest.includes("베다 대가가 말한 것"), "덱 다이제스트가 두 계통을 모두 담음");
+  ok(digest.includes("숙요 대가는 이렇게") && digest.includes("베다 대가는 이렇게"), "덱 다이제스트가 실제 본문을 인용");
+  const memory = buildWrittenMemory(done);
+  ok(memory.includes("본명수 개시") && memory.includes("나크샤트라 개시"), "이미 말한 것(중복 억제) 메모리 생성");
+  const fusionPrompt = buildSectionPrompt(FUSION_SECTIONS[1], { summaryText: "S", question: "Q", deckDigest: digest, writtenMemory: memory });
+  ok(fusionPrompt.includes("[앞서 두 대가가 읽은 것]"), "융합 프롬프트에 덱 다이제스트 주입");
+  ok(fusionPrompt.includes("[이미 말한 것 — 되풀이 금지]"), "융합 프롬프트에 중복 억제 메모리 주입");
+  ok(fusionPrompt.includes(NAKSHATRA_PERSONA.fusion), "융합 페르소나 주입");
+  const deckPrompt = buildSectionPrompt(SUKUYO_SECTIONS[0], { summaryText: "S", deckDigest: digest });
+  ok(!deckPrompt.includes("[앞서 두 대가가 읽은 것]"), "비융합 섹션엔 덱 다이제스트 미주입(1페이즈 오염 방지)");
+  ok(fusionPrompt.includes('"keyInsight"'), "출력 스키마에 keyInsight 포함(접힌 아코디언에서도 결론 노출)");
+  const insights = extractTopInsights("본문\n### 가장 중요한 세 가지\n- 첫째 — 설명1\n- 둘째 — 설명2\n- 셋째 — 설명3\n");
+  ok(insights.length === 3 && insights[0].title === "첫째", "핵심 3통찰 파서 동작");
 }
 
 section("페르소나(권위+따뜻함, 덱별 구분)");
@@ -137,7 +175,22 @@ for (const fn of ["resolveEnsureAccess", "resolveStartAccess", "applyUsageOnce",
 ok(routeSrc.includes("canAccessPaidFeature"), "pass-first: canAccessPaidFeature 선검사");
 ok(/allowedPaymentModes:\s*\["direct",\s*"monthly",\s*"pass"\]/.test(routeSrc), "결제창 단건·월정석·이용권 동등 노출(allowedPaymentModes)");
 ok(routeSrc.includes("consumeMonthlyCreditLots"), "월정석 lot FIFO 차감 경유");
-ok(routeSrc.includes("generateConsultation") && routeSrc.includes("computeNatalFacts"), "생성/계산 함수 존재");
+ok(routeSrc.includes("runGenerationBatch") && routeSrc.includes("computeNatalFacts"), "생성/계산 함수 존재");
+
+// 🔴 배치 생성 계약 — 21섹션을 한 요청에 전부 구우면 엣지 100초 컷을 넘는다.
+//    한 요청 = 1 동시성 웨이브 + 락 + 부분 저장 + 서버 권위 진행 위치가 함께 있어야 한다.
+ok(/SECTION_BATCH_SIZE\s*=\s*SECTION_CONCURRENCY/.test(routeSrc), "배치 크기 = 동시성(한 요청 = 1 웨이브)");
+ok(routeSrc.includes("acquireBatchLock") && /lockToken/.test(routeSrc), "중복 기동 차단 락(lockedAt/lockToken CAS)");
+ok(/BATCH_LOCK_TTL_MS/.test(routeSrc), "락 TTL 존재(끊긴 배치가 영구 점유하지 않게)");
+ok(routeSrc.includes("advanceGeneration") && routeSrc.includes("handleGenerate"), "재개 엔드포인트(/generate) 존재");
+ok(/path === "\/generate"/.test(routeSrc), "/generate 라우팅 배선");
+ok(/sections,\s*$/m.test(routeSrc) || routeSrc.includes("$set: {\n            sections"), "부분 저장(sections 누적)");
+ok(routeSrc.includes("accessSource"), "정산 소스 보존(재개 시 월정석 이중 차감 방지)");
+// 분량 강제 3종 — 이 상품이 광고하는 글자수를 실제로 떠받치는 장치다.
+ok(/fallbackMinChars:/.test(routeSrc), "Workers AI 폴백 짧은 응답 차단(fallbackMinChars)");
+ok(routeSrc.includes("clampSyncLlmTimeoutMs"), "엣지 예산 클램프 적용");
+ok(/SECTION_MIN_RATIO/.test(routeSrc) && /MIN_TOTAL_CHARS/.test(routeSrc), "섹션 하한 + 총량 관문 존재");
+ok(routeSrc.includes("totalCharCount"), "실측 분량 저장(totalCharCount)");
 ok(routeSrc.includes("mergeConsultationSections") && routeSrc.includes("buildSectionPrompt"), "프롬프트 라이브러리 사용");
 // 결과 생성 실패 시에도 결제 권한 보존(환불 강제) — forceRefundOnClose
 ok(/forceRefundOnClose:\s*true/.test(routeSrc), "생성 실패 시 환불 강제(forceRefundOnClose)");

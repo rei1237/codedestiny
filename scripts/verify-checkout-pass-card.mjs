@@ -246,6 +246,38 @@ console.log("\n[7] 대기 오버레이가 이용권 확인 모드에서만 뜨�
   }
 }
 
+// ── ⑧ 🔴 확인 '실패'를 '미커버'로 세탁하지 않는다 ──────────────────────────
+// 2026-08-01 사고: 이용권 확인이 degrade/타임아웃으로 실패하면 그대로 상점으로 보냈다. 실제 보유자에게는
+// "이미 가진 이용권을 또 사라"는 화면이고, 게다가 확인 전에 스냅샷을 지워 둬서 그 뒤 모든 유료 클릭의
+// 낙관 즉시통과까지 죽었다. 실패는 모달을 열어 둔 채 재시도를 안내해야 한다.
+console.log("\n[8] 이용권 확인이 실패하면 상점으로 보내지 않고 재시도를 안내하는가");
+{
+  const { window, storeUrls } = bootRuntime();
+  let chargeModalCalls = 0;
+  let settled = false;
+  window.__cdOpenChargeModal = () => { chargeModalCalls += 1; };
+  window.__cdApplyMembershipPassBeforePayment = async () => ({ status: "error", code: "PASS_STATUS_TEMPORARILY_UNAVAILABLE" });
+  const choicePromise = openChoice(window).then((value) => { settled = true; return value; });
+  const passCard = findCard(window, "pass-store");
+  passCard.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await flush();
+  check("이용권 상점으로 인계하지 않는다", () => assert.deepEqual(storeUrls, []));
+  check("충전 모달도 열지 않는다", () => assert.equal(chargeModalCalls, 0));
+  check("결제창이 닫히지 않는다(그 자리에서 다시 시도할 수 있어야 한다)", () => assert.equal(settled, false));
+  check("재시도 안내 문구를 보여준다", () => {
+    const status = window.document.querySelector("#cdStandalonePaymentChoice [data-payment-status]");
+    assert.ok(status && status.textContent.trim(), "상태 문구가 비어 있다");
+  });
+  check("이용권 카드를 다시 누를 수 있다(비활성으로 굳지 않는다)", () => {
+    assert.equal(findCard(window, "pass-store").hasAttribute("disabled"), false);
+  });
+  // 두 번째 클릭에서 커버가 확인되면 그대로 무료 통과한다 — 사용자가 요구한 구제 동작.
+  window.__cdApplyMembershipPassBeforePayment = async () => ({ status: "pass_applied" });
+  findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const retryChoice = await choicePromise;
+  check("다시 누르면 이용권이 적용돼 'pass' 로 닫힌다", () => assert.equal(retryChoice, "pass"));
+}
+
 if (failures.length) {
   console.error(`\n[verify-checkout-pass-card] FAIL (${failures.length})`);
   for (const failure of failures) console.error(`  - ${failure}`);

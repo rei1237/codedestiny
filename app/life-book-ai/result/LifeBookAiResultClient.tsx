@@ -9,6 +9,10 @@ import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { FAILURE_COPY, reasonCopy } from "../lifeBookCopy";
+import { useTypewriter } from "./useTypewriter";
+import BookOpenCover from "./_components/BookOpenCover";
+import ResultActionDock from "./_components/ResultActionDock";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
@@ -239,6 +243,31 @@ function LoadingState({ message = "인생의 책을 불러오고 있습니다." 
   );
 }
 
+// 재시도해도 결과가 바뀌지 않는 확정 실패. 이 3개만 조기 종료하고 나머지 503 은 폴링이 흡수한다.
+const TERMINAL_RESULT_REASONS = new Set([
+  "GENERATION_STALLED",
+  "LLM_ERROR",
+  "GENERATION_ALREADY_FAILED",
+]);
+
+/**
+ * 장 본문. 폴링으로 방금 도착한 마지막 장만 타이프라이터로 연출한다.
+ * 시각 연출(typed)은 aria-hidden, 스크린리더에는 전문을 한 번만 준다.
+ */
+function ChapterProse({ value = "", live, className }: { value?: string; live: boolean; className?: string }) {
+  const { typed, isTyping } = useTypewriter(value, live);
+  if (!live) return <AiResultProse value={value} className={className} />;
+  return (
+    <>
+      <div aria-hidden="true">
+        <AiResultProse value={typed} className={className} />
+        {isTyping && <span className={styles.typingCaret} aria-hidden="true" />}
+      </div>
+      <div className="sr-only">{value}</div>
+    </>
+  );
+}
+
 function LifeBookResultContent() {
   const params = useSearchParams();
   const attemptId = toText(params?.get("attemptId") || params?.get("sessionId") || "");
@@ -251,6 +280,8 @@ function LifeBookResultContent() {
   const [viewAll, setViewAll] = usePagedViewerMode("lifeBookViewerModeV1");
   const [exportExpand, setExportExpand] = useState(false);
   const [chapterPage, setChapterPage] = useState(0);
+  const [bookmarks, setBookmarks] = useState<Set<number>>(() => new Set());
+  const documentHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const [pollAttempts, setPollAttempts] = useState(0);
   // 서버 최악(본 생성 180s + 완성 repair 180s ≈ 360s)보다 짧으면 완료·저장된 유료 결과에
   // 거짓 "지연 실패"가 뜬다(버그). 상한을 넘겨 폴링(3.2s 간격이라 CF rate-limit 여유 큼).
@@ -284,6 +315,17 @@ function LifeBookResultContent() {
         return;
       }
       rateLimitStreakRef.current = 0;
+      // 🔴 확정 실패는 isRetriableResultPollFailure 보다 **먼저** 판정한다.
+      //    그 공용 함수는 503 을 무조건 재시도로 보기 때문에, 확정 실패가 폴링 상한 400초를 다 태운 뒤에야
+      //    사용자에게 보였다. 공용 파일은 건드리지 않고(다른 기능 회귀 0) 호출부에서 화이트리스트로 끊는다.
+      //    DB_DEGRADED / AUTH_REFRESH_TEMPORARY_FAILURE / ACCESS_CHECK_DEGRADED / PASS_CHECK_BUDGET_EXCEEDED 는
+      //    자가 복구 가능한 일시 장애이므로 여기 넣지 않는다.
+      const terminalReason = toText(payload?.reason).toUpperCase();
+      if (TERMINAL_RESULT_REASONS.has(terminalReason)) {
+        setError(reasonCopy(terminalReason, toText(payload?.message)));
+        setLoading(false);
+        return;
+      }
       if (response.status === 202 && payload?.status === "generating") {
         setResult(payload);
         setError("");
@@ -319,7 +361,7 @@ function LifeBookResultContent() {
     // 폴링이 멈추지 않고, loadResult 성공 시 setPollAttempts(0) 리셋과 맞물려 상한이 무력화된다.
     if (result?.status !== "generating") return;
     if (pollAttempts >= maxPollAttempts) {
-      setError("생성에 시간이 걸리고 있습니다. 다시 시도해주세요.");
+      setError(FAILURE_COPY.exhausted);
       return;
     }
     const backoffFactor = Math.min(8, 2 ** rateLimitStreakRef.current);
@@ -346,10 +388,50 @@ function LifeBookResultContent() {
   }, [result?.status]);
 
   const report = useMemo(() => buildReport(result), [result]);
+  // 서버가 웨이브마다 부분 조립본을 올려 주므로 chapters 가 늘어난다. 방금 늘어난 장만 연출 대상이다.
+  // 서버가 부분 배열을 주지 않으면(한 번에 10장) "완료 직후 마지막 장만 타이프라이터"로 자연히 강등된다.
+  const chapterCount = report.chapters.length;
+  const revealedCountRef = useRef(chapterCount);
+  const [freshChapterIndex, setFreshChapterIndex] = useState(-1);
+  useEffect(() => {
+    if (chapterCount > revealedCountRef.current) setFreshChapterIndex(chapterCount - 1);
+    revealedCountRef.current = Math.max(revealedCountRef.current, chapterCount);
+  }, [chapterCount]);
+  const isStreamingIn = result?.status === "generating";
   const birth = result?.birthInfo || {};
   const saju = result?.sajuResult || null;
   const generatedAt = toText(result?.updatedAt || result?.createdAt);
   const userName = toText(birth.name) || "당신";
+  const bookmarkStorageKey = `lifeBookBookmarksV1:${attemptId}`;
+
+  useEffect(() => {
+    if (!attemptId) return;
+    try {
+      const raw = window.localStorage.getItem(bookmarkStorageKey);
+      if (raw) setBookmarks(new Set(JSON.parse(raw) as number[]));
+    } catch {
+      // 저장소 접근 불가 시 책갈피만 비활성 — 본문 열람에는 영향 없다.
+    }
+  }, [attemptId, bookmarkStorageKey]);
+
+  const toggleBookmark = useCallback(() => {
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      if (next.has(chapterPage)) next.delete(chapterPage);
+      else next.add(chapterPage);
+      try {
+        window.localStorage.setItem(bookmarkStorageKey, JSON.stringify([...next]));
+      } catch {
+        // best-effort
+      }
+      return next;
+    });
+  }, [bookmarkStorageKey, chapterPage]);
+
+  // 표지가 걷힌 뒤 포커스를 본문 제목으로 옮긴다(키보드·스크린리더 사용자가 표지 뒤에 갇히지 않게).
+  const handleCoverOpened = useCallback(() => {
+    window.requestAnimationFrame(() => documentHeadingRef.current?.focus());
+  }, []);
   const isGenerating = result?.status === "generating";
   const dayStem = splitGanji(formatSajuValue(saju?.dayPillar)).stem;
   const tenGodOf = (ganji: string) => {
@@ -434,14 +516,22 @@ function LifeBookResultContent() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#050407] text-amber-50 [font-family:var(--font-body)]">
+    <main className="min-h-screen overflow-hidden bg-[#060912] text-amber-50 [font-family:var(--font-body)]">
+      <BookOpenCover
+        attemptId={attemptId}
+        title={report.title}
+        subtitle={report.subtitle}
+        ownerName={userName}
+        onOpened={handleCoverOpened}
+      />
       <div className="fixed inset-x-0 top-0 z-50 h-1 bg-black/40" aria-hidden="true">
         <div className="h-full bg-gradient-to-r from-[#b47b25] via-[#f2d07a] to-[#fff3b0] transition-[width] duration-150" style={{ width: `${readProgress}%` }} />
       </div>
       <div className="fixed right-3 top-2 z-50 rounded-full border border-amber-200/25 bg-black/55 px-2.5 py-0.5 text-[11px] font-black text-amber-100" aria-label={`책 진도 ${readProgress}%`}>
         {readProgress}%
       </div>
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(244,198,98,0.22),transparent_34%),radial-gradient(circle_at_18%_28%,rgba(120,43,38,0.20),transparent_30%),linear-gradient(135deg,#1b120b,#2a1a10_44%,#050407)]" />
+      {/* 밤하늘 아래 놓인 양장본 — 바깥 배경만 남색 계열로 두고 금박 글로우를 얹는다. */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(244,198,98,0.20),transparent_36%),radial-gradient(circle_at_18%_28%,rgba(87,101,190,0.22),transparent_32%),linear-gradient(135deg,#0a0f24,#131a38_46%,#060912)]" />
       <div className="pointer-events-none fixed inset-0 opacity-35 [background-image:radial-gradient(rgba(250,226,169,.58)_1px,transparent_1px),radial-gradient(rgba(255,255,255,.14)_1px,transparent_1px)] [background-position:0_0,38px_46px] [background-size:96px_96px,138px_138px]" />
 
       <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -471,9 +561,9 @@ function LifeBookResultContent() {
               <BookOpen className="h-4 w-4" aria-hidden="true" />
               인생의 책 전문가 상담 리포트
             </p>
-            <h1 className={`mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl ${styles.chapterTitle}`}>{report.title}</h1>
+            <h1 ref={documentHeadingRef} tabIndex={-1} className={`mt-5 text-3xl font-black leading-tight text-amber-50 outline-none sm:text-5xl ${styles.chapterTitle}`}>{report.title}</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-[#eadbb9]">{report.subtitle}</p>
-            <p className="mt-4 text-sm font-black tracking-[0.22em] text-amber-200/85">主人公 · {userName}</p>
+            <p className="mt-4 text-sm font-black tracking-[0.22em] text-amber-100">主人公 · {userName}</p>
             <dl className="mt-5 grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 ["이름", userName],
@@ -619,8 +709,9 @@ function LifeBookResultContent() {
                 </section>
               )}
 
-              <div id="life-book-chapter-deck" className="scroll-mt-6">
+              <div id="life-book-chapter-deck" className={`scroll-mt-6 ${styles.bookStage}`}>
                 <PagedResultViewer
+                  pageClassName={styles.bookPage}
                   pages={report.chapters.map((chapter, index): ResultViewerPage => ({
                     id: `chapter-page-${index + 1}`,
                     label: `${chapter.chapterNumber || index + 1}장`,
@@ -635,7 +726,11 @@ function LifeBookResultContent() {
                             {toText(chapter.summary)}
                           </p>
                         )}
-                        <AiResultProse value={chapter.content} className={styles.chapterProse} />
+                        <ChapterProse
+                          value={chapter.content}
+                          live={isStreamingIn && index === freshChapterIndex}
+                          className={styles.chapterProse}
+                        />
                         {Array.isArray(chapter.advice) && chapter.advice.length > 0 && (
                           <div className="mt-5 grid gap-2">
                             {chapter.advice.map((advice, adviceIndex) => (
@@ -655,6 +750,9 @@ function LifeBookResultContent() {
                   expandForExport={exportExpand}
                   activePage={chapterPage}
                   onPageChange={setChapterPage}
+                  renderPageExtras={(index) => (bookmarks.has(index) ? (
+                    <p className={styles.bookmarkNote}>책갈피를 꽂아 둔 장입니다.</p>
+                  ) : null)}
                 />
               </div>
 
@@ -706,7 +804,7 @@ function LifeBookResultContent() {
                     {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
                     이 책을 봉인해 간직하기
                   </button>
-                  <Link href="/life-book-ai" className="text-xs font-bold text-amber-200/60 underline decoration-dotted underline-offset-4 transition hover:text-amber-100">
+                  <Link href="/life-book-ai" className="text-xs font-bold text-amber-100 underline decoration-dotted underline-offset-4 transition hover:text-amber-50">
                     소중한 사람의 책도 열어 보기
                   </Link>
                 </div>
@@ -714,6 +812,28 @@ function LifeBookResultContent() {
             </section>
           </div>
         </article>
+
+        {/* 🔴 공유·이미지 저장 대상. 본문이 아니라 이 카드만 캡처한다 — 생년월일은 넣지 않는다.
+            backdrop-filter 는 html-to-image 가 재현하지 못하므로 단색·그라디언트만 쓴다. */}
+        <div className={styles.shareCardHost} aria-hidden="true">
+          <div id="life-book-share-card" className={styles.shareCard}>
+            <p className={styles.shareKicker}>인생의 책</p>
+            <p className={styles.shareTitle}>{report.title}</p>
+            <p className={styles.shareSubtitle}>{report.subtitle}</p>
+            <p className={styles.shareLine}>{toText(report.coreSummary?.oneLine)}</p>
+            <p className={styles.shareOwner}>主人公 · {userName}</p>
+          </div>
+        </div>
+
+        <ResultActionDock
+          pdfLoading={pdfLoading}
+          onDownloadPdf={() => void handlePdfDownload()}
+          shareCardId="life-book-share-card"
+          fileName={`life-book-cover-${safeFilePart(attemptId)}`}
+          bookmarked={bookmarks.has(chapterPage)}
+          onToggleBookmark={toggleBookmark}
+          onRegenerate={() => { window.location.href = "/life-book-ai"; }}
+        />
       </section>
     </main>
   );

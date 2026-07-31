@@ -1814,6 +1814,7 @@
       "passBuyTitle": "利用券で購入",
       "passChecking": "利用券を確認しています。",
       "passMissGoStore": "お持ちの利用券では開けないため、利用券ショップへ移動します。",
+      "passCheckRetry": "利用券の状態を確認できませんでした。しばらくしてからもう一度押してください。",
       "directHintApp": "今回の結果ひとつだけ。Google Play 決済ですぐ開きます。",
       "pgBadgeApp": "Google Play 決済"
     },

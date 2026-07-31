@@ -1814,6 +1814,7 @@
       "passBuyTitle": "Comprar con pase",
       "passChecking": "Comprobando tu pase…",
       "passMissGoStore": "Tu pase no cubre esto, te llevamos a la tienda de pases.",
+      "passCheckRetry": "No pudimos verificar el estado de tu pase. Vuelve a pulsar en un momento.",
       "directHintApp": "Solo este resultado, ahora. Se abre al instante con la facturación de Google Play.",
       "pgBadgeApp": "Facturación de Google Play"
     },

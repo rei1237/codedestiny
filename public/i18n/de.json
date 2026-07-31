@@ -1814,6 +1814,7 @@
       "passBuyTitle": "Mit Pass kaufen",
       "passChecking": "Pass wird geprüft …",
       "passMissGoStore": "Dein Pass deckt das nicht ab – wir bringen dich zum Pass-Shop.",
+      "passCheckRetry": "Der Status deines Passes konnte nicht geprüft werden. Bitte tippe gleich noch einmal.",
       "directHintApp": "Nur dieses eine Ergebnis. Öffnet sofort über Google Play.",
       "pgBadgeApp": "Google Play-Abrechnung"
     },

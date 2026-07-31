@@ -1814,6 +1814,7 @@
       "passBuyTitle": "Beli dengan pas",
       "passChecking": "Menyemak pas anda…",
       "passMissGoStore": "Pas anda tidak meliputi ini, kami bawa anda ke kedai pas.",
+      "passCheckRetry": "Kami tidak dapat menyemak status pas anda. Sila tekan semula sebentar lagi.",
       "directHintApp": "Hanya satu keputusan ini. Terbuka serta-merta melalui pengebilan Google Play.",
       "pgBadgeApp": "Pengebilan Google Play"
     },

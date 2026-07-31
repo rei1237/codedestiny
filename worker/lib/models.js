@@ -954,7 +954,9 @@ masterLoveCodexSchema.index({ userId: 1, createdAt: -1 });
 
 const lifeBookAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
-  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  // 인생 총운 본문 상한이 60,000자인데 저장되는 것은 그 본문을 감싼 JSON 이라 60000 으로는 모자란다.
+  // (update validator 가 안 돌아 지금까지 조용히 통과했을 뿐 계약상 잘릴 수 있는 값이었다.)
+  content: { type: String, required: true, trim: true, maxlength: 200000 },
   createdAt: { type: Date, default: Date.now },
   idempotencyKey: { type: String, default: "", trim: true, maxlength: 180 },
 }, { _id: false });
@@ -986,6 +988,9 @@ const lifeBookAiConsultationSchema = new mongoose.Schema({
     calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   topic: { type: String, required: true, trim: true, maxlength: 120 },
+  // 인생의 책(30,000원)과 인생 총운(50,000원)이 별도 SKU 다. consultationType 만으로는
+  // "어느 SKU 로 과금됐는지"를 알 수 없어(구 SKU 로 결제된 총운 세션이 실재) 실제 과금 키를 남긴다.
+  featureKey: { type: String, default: "life-book-ai-consultation", trim: true, maxlength: 80, index: true },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
   accessSource: { type: String, default: "", trim: true, maxlength: 80 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
@@ -1202,7 +1207,15 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
   question: { type: String, default: "", trim: true, maxlength: 1200 },
   factSummary: { type: mongoose.Schema.Types.Mixed, default: null },
   decks: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 21섹션을 배치(4개/요청)로 생성하므로 완료분을 누적 보관한다. decks 는 완료 시 이걸로 조립한 결과.
+  // 서버가 진행 위치의 정본이다 — 클라이언트가 보낸 인덱스를 믿지 않는다(master-love-codex 패턴).
+  sections: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
+  totalCharCount: { type: Number, default: 0 },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  // 🔴 배치 생성은 정산(applyUsageOnce)이 마지막 배치에서 일어난다. 그 시점엔 원래 요청의 access.source 가
+  // 없으므로 세션에 보존한다 — 이걸 잃으면 billing-gate 로 이미 차감된 월정석을 완료 시 한 번 더 소비한다.
+  accessSource: { type: String, default: "", trim: true, maxlength: 40 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [neoOperationRoomMessageSchema], default: [] },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
