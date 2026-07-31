@@ -264,6 +264,22 @@ check("R7a 셀프 취소가 잠금 콘텐츠를 회수한다", () => {
   );
 });
 
+check("R7a-2 셀프 취소 회수의 범위·우회 방지", () => {
+  const body = functionBody(payments, "async function handleCancel(");
+  // 부분취소 여부는 결국 클라이언트가 보낸 cancelAmount 로 결정된다. 잠금 상품에서 부분취소를
+  // 허용하면 `cancelAmount: paidAmount - 1` 한 줄로 회수를 건너뛸 수 있다.
+  assert.ok(
+    body.includes("PARTIAL_CANCEL_NOT_SUPPORTED"),
+    "handleCancel: 디지털 단건 상품의 부분취소 거절이 사라졌습니다 — 회수를 우회할 수 있습니다.",
+  );
+  // 회수는 단건 디지털에만. revokePaymentContentAccess 뒷부분이 User 문서를 전역 $pull 하므로
+  // 포인트충전·구독 결제까지 회수하면 무관한 해금이 날아간다.
+  assert.ok(
+    body.includes("isSinglePurchaseDigitalPayment("),
+    "handleCancel: 회수 대상이 단건 디지털 결제로 한정되지 않았습니다.",
+  );
+});
+
 check("R7b 자동 환불이 서버 관측 기록으로 게이팅된다", () => {
   const body = functionBody(payments, "async function handleReportFailure(");
   assert.ok(
@@ -276,8 +292,14 @@ check("R7b 자동 환불이 서버 관측 기록으로 게이팅된다", () => {
   assert.ok(gateIdx < cancelIdx, "handleReportFailure: 전달 여부 확인이 환불 실행보다 뒤에 있습니다.");
 
   const gate = functionBody(payments, "async function resolvePaidResultDelivery(");
-  assert.ok(gate.includes('status: "completed"'), "resolvePaidResultDelivery: 완료 기록을 조회하지 않습니다.");
+  assert.ok(gate.includes('"completed"'), "resolvePaidResultDelivery: 완료 판정이 사라졌습니다.");
   assert.ok(gate.includes("PaidExecutionRecord"), "resolvePaidResultDelivery: 서버 실행 기록을 보지 않습니다.");
+  // 잠금 콘텐츠 구매는 실행 기록을 남기지 않는다 — 엔타이틀먼트를 안 보면 그 상품군에서 게이트가 항상 통과한다.
+  assert.ok(
+    gate.includes("ContentEntitlement"),
+    "resolvePaidResultDelivery: 잠금 콘텐츠 증거(ContentEntitlement)를 보지 않아 그 상품군에서 게이트가 무효가 됩니다.",
+  );
+  assert.ok(gate.includes("userId: ownerId"), "resolvePaidResultDelivery: 결제 소유자로 좁히지 않았습니다.");
 });
 
 check("R7c 웹훅 다중서명 파싱", () => {

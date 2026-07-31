@@ -302,9 +302,11 @@ async function verifyFlowerAdminTokenForPaidService(request, env) {
   if (payload?.v !== 1 || !Number.isFinite(exp) || nowSec > exp) return null;
 
   // jti 를 신원 문자열에 붙인다. 진입 비밀번호는 공유 자격증명이라 "누구인지"는 알 수 없지만,
-  // 세션은 갈라낼 수 있다. 이 값이 그대로 payments.js 의 pricingSnapshot.cancelledBy 로 남아
-  // "어느 관리자 세션이 이 고객 결제를 취소했는가"를 사후에 추적할 수 있게 된다
-  // (예전에는 모든 관리자 행위가 'flower-admin' 한 문자열로 뭉개졌다).
+  // 세션은 갈라낼 수 있다(예전에는 모든 관리자 행위가 'flower-admin' 한 문자열로 뭉개졌다).
+  // 범위 주의: 이 함수는 위 PAID_SERVICE_ADMIN_AUTH_PATHS 에 걸린 유료 서비스 경로에서만 동작한다.
+  // 그 목록에 /api/payments 는 없으므로, 관리자 결제 취소의 pricingSnapshot.cancelledBy 는
+  // 이 값이 아니라 일반 JWT 인증의 userId 로 남는다 — 그쪽 추적은 admin.js 의 authorizeAdminRequest
+  // 가 붙이는 jti 가 담당한다. 여기서 얻는 것은 유료 AI 라우트 로그·기록의 세션 구분이다.
   const sessionId = String(payload?.jti || "").slice(0, 16);
   return {
     userId: sessionId ? `${FLOWER_ADMIN_USER_ID}:${sessionId}` : FLOWER_ADMIN_USER_ID,
