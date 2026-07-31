@@ -69,7 +69,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
 
   if (s.step === "processing") {
     return (
-      <DestinyMap showFog hideHero phase={s.stagePhase}>
+      <DestinyMap showFog hideHero hideHeader phase={s.stagePhase}>
         <ProcessingScene />
       </DestinyMap>
     );

@@ -54,6 +54,11 @@ interface DestinyMapProps {
    * 처리 단계에서 dusk → night 로 올리면 배경 레이어가 크로스페이드되고 밤 토큰이 부착된다.
    */
   phase?: "day" | "dusk" | "night";
+  /**
+   * 처리 단계처럼 children 이 자기 제목을 갖는 화면에서 지도 헤더를 숨긴다.
+   * 제목이 둘이면 중복일 뿐 아니라, 반투명 스크림 위로 지도 제목이 비쳐 겹쳐 읽힌다.
+   */
+  hideHeader?: boolean;
   onRegion?: (key: string) => void;
   children?: ReactNode;
 }
@@ -71,6 +76,7 @@ export function DestinyMap({
   hideHero = false,
   islandArt = false,
   phase = "day",
+  hideHeader = false,
   onRegion,
   children,
 }: DestinyMapProps) {
@@ -110,10 +116,12 @@ export function DestinyMap({
         </>
       )}
 
-      <header className={styles.mapHeader}>
-        <span className={styles.mapKicker}>{kicker}</span>
-        <h1 className={styles.mapTitle}>{title}</h1>
-      </header>
+      {!hideHeader && (
+        <header className={styles.mapHeader}>
+          <span className={styles.mapKicker}>{kicker}</span>
+          <h1 className={styles.mapTitle}>{title}</h1>
+        </header>
+      )}
 
       <div className={`${styles.mapField} ${showFog ? styles.mapFieldZoom : ""}`}>
         {/* Z1 — 선택 화면: 밝은 '운명의 섬' 포스터를 지도 배경으로 */}
