@@ -2342,6 +2342,50 @@
     var api = window.__cdPassVerdict;
     return api && typeof api.readSnapshot === 'function' ? api : null;
   }
+
+  // 🔴 결제창 진입·복귀·계측의 구현 정본은 /js/core/checkout-entry.js 하나다(셸·React 와 공유).
+  // 아래는 얇은 위임 래퍼이며, 모듈이 아직 안 붙었어도 결제 흐름이 죽지 않도록 안전한 기본값을 준다.
+  function _dpCheckoutEntry() {
+    try { return window.__cdCheckoutEntry || null; } catch (_checkoutEntryError) { return null; }
+  }
+  // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
+  function _dpShouldUseAppStoreEntry() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.shouldUseAppStoreEntry !== 'function') return false;
+    try { return api.shouldUseAppStoreEntry() === true; } catch (_appEntryError) { return false; }
+  }
+  function _dpTrackCheckoutEvent(name, payload) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.trackCheckoutEvent !== 'function') return;
+    try {
+      var detail = payload || {};
+      detail.renderer = 'standalone';
+      api.trackCheckoutEvent(name, detail);
+    } catch (_trackError) { /* 계측은 결제 흐름을 막지 않는다 */ }
+  }
+  // 빈 문자열을 돌려주면 호출부가 기존 충전 모달 폴백을 그대로 탄다(모듈 미로딩 대비).
+  function _dpBuildPassStoreUrl(coinPrice, passCoverage, source) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.buildPassStoreUrl !== 'function') return '';
+    try {
+      return api.buildPassStoreUrl({
+        costCoins: coinPrice,
+        currentTier: (passCoverage && (passCoverage.passTier || passCoverage.tier)) || '',
+        source: source
+      });
+    } catch (_passStoreUrlError) { return ''; }
+  }
+  // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
+  function _dpRememberCheckoutReturn(featureKey) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.rememberCheckoutReturn !== 'function') return;
+    try {
+      api.rememberCheckoutReturn({
+        url: String(window.location.pathname || '/') + String(window.location.search || '') + String(window.location.hash || ''),
+        featureKey: String(featureKey || '')
+      });
+    } catch (_rememberError) { /* 복귀 지점 저장 실패는 결제를 막지 않는다 */ }
+  }
   var _dpSnapshotRevalidateInFlight = false;
 
   // stale 'none' 을 읽었을 때의 백그라운드 갱신. 결제창이 어차피 쓰는 /api/billing/balance 를 재사용하고
@@ -3416,54 +3460,12 @@
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
         }
-        // 서버 이용권 확인 왕복 동안 PortOne SDK 를 함께 내려받아 임계경로에서 뺀다. 예전에는 이 확인이
-        // 끝난 뒤에야 <script> 를 붙여, CDN 왕복이 결제수단 선택 이후 구간에 그대로 얹혔다.
-        // (낙관적 이용권 통과 경로는 위에서 이미 return 했으므로 여기까지 오지 않는다 = 불필요 다운로드 없음.)
-        _dpPreloadPortOneV2Sdk();
-        // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
-        _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
-        // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
-        await _dpWaitForPaymentOverlayPaint();
-        var passFirst;
-        try {
-          passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-            title: title,
-            coinPrice: coinPrice,
-            cost: coinPrice,
-            requestId: requestId
-          }));
-          // 인프라/degraded로 이용권 확인이 실패(status:'error')하면 짧게 최대 2회 재시도(동일 requestId 재사용,
-          // 지수 백오프 250ms→450ms)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
-          // 않고 결제창(단건+월정석)으로 fall-through한다(요구사항: 이용권 확인 실패 시 무조건 결제창).
-          // 백오프는 정본 셸 게이트(index.html _cdOpenPaidServiceGate)와 같은 값으로 맞춘다 — 기존 800ms→1.44s는
-          // 대기만 2.24초를 더해 '결제가 느리다'는 체감의 절반을 차지했다.
-          // 전체 예산 6초(셸 CD_PASS_FIRST_BUDGET_MS 와 동일). 예산 소진은 '미커버'가 아니라 'error' 로 남겨
-          // 기존 폴백(결제창 재노출)을 타게 하고, 커버 여부는 서버가 최종 결정한다 — 지연을 미커버 근거로 쓰지 않는다.
-          var _dpPassDeadline = Date.now() + 6000;
-          for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error' && Date.now() < _dpPassDeadline; _dpPassRetry += 1) {
-            await new Promise(function(resolve) { setTimeout(resolve, Math.round(250 * Math.pow(1.8, _dpPassRetry - 1))); });
-            passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-              title: title,
-              coinPrice: coinPrice,
-              cost: coinPrice,
-              requestId: requestId
-            }));
-          }
-        } finally {
-          // 최소 표시 시간(550ms) 보장은 제거했다 — 결제창 진입 임계경로에 얹히는 순수 인위적 지연이고,
-          // "이용권 확인 중"이 깜빡이는 것보다 결제창이 늦게 뜨는 비용이 훨씬 크다(정적 셸에는 이 floor가 없다).
-          // 예외 시에도 오버레이가 멈추지 않고 닫히도록 finally 자체는 유지한다.
-          // pass 적용 성공 시엔 적용 완료 오버레이(_dpApplyMembershipPassBeforePayment 내부 _dpShowPassAppliedOverlay,
-          // 자체 ~1.2s 후 자동 닫힘)를 유지해 "적용 완료" 프레임이 즉시 덮여 사라지지 않도록 한다. 미커버·에러만 닫는다.
-          var passGrantedInFlight = passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked');
-          if (!passGrantedInFlight) _dpSetPaymentPending(false);
-        }
-        if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
-          return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
-        }
-        // passFirst.status === 'error'(재시도 후에도 인프라/degraded로 이용권 확인 실패)면 throw하지 않고
-        // 결제창(단건+월정석)으로 fall-through한다(아래 _cdChooseServicePaymentMode). 요구사항: 이용권 확인
-        // 실패 시 무조건 결제창 노출. 결제창 내 '이용권 다시 확인' 버튼으로 실제 보유자는 그 자리에서 재검증한다.
+        // 🔴 여기서 서버에 이용권을 묻지 않는다(2026-08 정책 전환, 셸 index.html · React 와 동일).
+        // 스냅샷이 커버를 확답하면 위에서 이미 무료로 통과했고, 확답하지 못하면 기다리지 않고 곧바로
+        // 결제창을 연다. 예전에는 여기서 __cdApplyMembershipPassBeforePayment 를 6초 예산 + 재시도 2회로
+        // 두드렸고, 그 대기가 곧 사용자가 결제창을 만나기까지의 지연이었다.
+        // 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 수행하고, 카드 주문 직전 서버가
+        // grantPassFreeAccessBeforeCardIfAvailable 로 한 번 더 검사한다.
       }
       // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
       _dpPreloadPortOneV2Sdk();
@@ -8796,13 +8798,20 @@
     var tierName = String((coverage && (coverage.tier || coverage.passTier)) || '').trim();
     // 무료/미보유 등급을 등급명으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
     var hasActivePassTier = !!(tierName && tierName.toLowerCase() !== 'free');
-    // 이용권 미보유자에게만 상점 카드를 맨 위 + '추천'으로 올린다(단건/월정석 동등 노출은 그대로 유지).
+    // 이용권 카드는 결제창의 첫 선택지이자 이용권 검사 지점이라 항상 맨 위 + '추천'이다
+    // (단건/월정석 동등 노출은 그대로 유지 — 세 카드가 모두 보인다).
     var passStoreFirst = !hasActivePassTier;
-    var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' 달빛 이용권') : '달빛 이용권 상점';
-    var passTitle = hasActivePassTier ? '달빛 이용권 업그레이드' : '달빛 이용권 상점';
+    var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' 달빛 이용권') : '달빛 이용권';
+    var passTitle = hasActivePassTier ? '달빛 이용권 업그레이드' : '이용권으로 구매';
     var passHint = hasActivePassTier
-      ? '현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요.'
-      : '달빛 이용권으로 전환하면 이 기능을 포함해 한도 이하 기능을 30일간 결제창 없이 무제한 이용합니다.';
+      ? '지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.'
+      : '30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.';
+    // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
+    var directUsesAppStore = _dpShouldUseAppStoreEntry();
+    var directBadge = directUsesAppStore ? 'Google Play 결제' : 'PortOne V2 · KG이니시스';
+    var directHint = directUsesAppStore
+      ? '지금 이 결과 하나만. Google Play 결제로 바로 열립니다.'
+      : '지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.';
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
@@ -8814,14 +8823,14 @@
         '<span>' + esc(passHint) + '</span>' +
       '</button>';
     var directButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>PortOne V2 · KG이니시스</span></span>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span></span>' +
         '<strong>단건 결제 · <span class="cd-direct-payment-amount">' + esc(amountKrw.toLocaleString('ko-KR')) + '원</span></strong>' +
-        '<span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>' +
+        '<span>' + esc(directHint) + '</span>' +
       '</button>';
     var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="monthly" data-monthly-option>' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>월정석 사용</span></span>' +
         '<strong>월정석 사용 · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> 이벤트 재화</strong>' +
-        '<span data-monthly-hint>월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.</span>' +
+        '<span data-monthly-hint>월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.</span>' +
         '<span class="cd-direct-payment-moonbal-current" data-monthly-current>보유 월정석 · 확인 필요</span>' +
       '</button>';
     _dpEnsureStandalonePaymentChoiceStyle();
@@ -8885,10 +8894,10 @@
         if (monthlyCurrent) monthlyCurrent.textContent = known ? ('보유 월정석 ' + balanceLabel) : '보유 월정석 · 확인 필요';
         if (monthlyHintNode) {
           monthlyHintNode.textContent = !known
-            ? '월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.'
+            ? '월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.'
             : (insufficient
               ? '월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.'
-              : '보유 월정석에서 차감됩니다. 월정석은 이벤트성 선불 재화입니다.');
+              : '이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.');
         }
         if (monthlyBtn) {
           if (insufficient) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }
@@ -8917,28 +8926,76 @@
           if (refreshBtn && !settled) refreshBtn.disabled = false;
         });
       }
+      var modalOpenedAt = Date.now();
+      // 이용권 상점으로 떠날 때도 finish('cancel') 로 닫는다(호출부 계약 유지) — 그건 이탈이 아니므로
+      // 계측에서 제외한다. pass_store_entered 가 그 전이를 이미 남긴다.
+      var leavingForPassStore = false;
       function finish(choice) {
         if (settled) return;
         settled = true;
         try { document.removeEventListener('keydown', onKey, true); } catch (_) {}
         if (root.parentNode) root.parentNode.removeChild(root);
-        resolve(choice === 'direct' || choice === 'monthly' ? choice : 'cancel');
+        var resolved = (choice === 'direct' || choice === 'monthly' || choice === 'pass') ? choice : 'cancel';
+        if (resolved === 'cancel' && !leavingForPassStore) {
+          _dpTrackCheckoutEvent('checkout_dismissed', { coinPrice: cost, featureKey: opts.featureKey, dwellMs: Date.now() - modalOpenedAt });
+        }
+        resolve(resolved);
       }
       function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); finish('cancel'); } }
-      root.addEventListener('click', function(e) {
+      function goPassStore() {
+        _dpTrackCheckoutEvent('pass_store_entered', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
+        leavingForPassStore = true;
+        finish('cancel');
+        // 앱: /points 는 앱 번들에 없고 app-payment-guard 는 앵커 클릭만 가로챈다 — 반드시 이 경로를 먼저 탄다.
+        try {
+          if (_dpShouldUseAppStoreEntry() && typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; }
+        } catch (_) {}
+        // 웹: 중간 충전 모달을 건너뛰고 /points 의 이용권 결제 확인 모달까지 한 번에 간다.
+        var storeUrl = _dpBuildPassStoreUrl(cost, coverage, 'standalone-payment-pass-store');
+        if (storeUrl) {
+          _dpRememberCheckoutReturn(opts.featureKey);
+          try { window.location.assign(storeUrl); } catch (_) { window.location.href = storeUrl; }
+          return;
+        }
+        try { if (typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; } } catch (_) {}
+        try { window.location.assign('/points?source=standalone-payment-pass-store'); } catch (_) { window.location.href = '/points?source=standalone-payment-pass-store'; }
+      }
+      root.addEventListener('click', async function(e) {
         var hit = e.target && e.target.closest ? e.target.closest('[data-mode]') : null;
         if (hit) {
           var act = hit.getAttribute('data-mode');
           if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(true); return; }
+          // 🔴 '이용권으로 구매' = 이용권 검사 지점(셸 index.html 과 같은 계약). 진입 선검사가 사라졌으므로
+          // 결제창을 여는 시점에는 보유 여부를 모른다 — 여기서 서버에 한 번 묻고, 커버되면 결제 없이
+          // 'pass' 로 닫아 호출부가 무료로 열게 하고, 아니면 이용권 상점으로 보낸다.
           if (act === 'pass-store') {
-            // 달빛 이용권 상점 바로가기: 충전 모달이 있으면 우선 열고, 없으면 /points로 이동. 모달은 닫는다.
             e.preventDefault();
-            finish('cancel');
-            try { if (typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; } } catch (_) {}
-            try { window.location.assign('/points?source=standalone-payment-pass-store'); } catch (_) { window.location.href = '/points?source=standalone-payment-pass-store'; }
+            if (hit.hasAttribute('disabled')) return;
+            hit.setAttribute('disabled', 'disabled');
+            hit.classList.add('is-loading');
+            _dpTrackCheckoutEvent('checkout_option_click', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
+            var passReady = null;
+            try {
+              if (typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+                passReady = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+                  title: title,
+                  coinPrice: cost,
+                  cost: cost
+                }));
+              }
+            } catch (_passProbeError) { passReady = null; }
+            if (passReady && (passReady.status === 'pass_applied' || passReady.status === 'already_unlocked')) {
+              _dpTrackCheckoutEvent('pass_verified_free', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
+              finish('pass');
+              return;
+            }
+            goPassStore();
             return;
           }
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
+          if (act === 'direct' || act === 'monthly') {
+            _dpTrackCheckoutEvent('checkout_option_click', { option: act, coinPrice: cost, featureKey: opts.featureKey });
+          }
           finish(act);
           return;
         }
@@ -8946,6 +9003,12 @@
       });
       document.addEventListener('keydown', onKey, true);
       document.body.appendChild(root);
+      // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
+      _dpTrackCheckoutEvent('checkout_opened', {
+        coinPrice: cost,
+        featureKey: opts.featureKey,
+        hasPassHint: hasActivePassTier ? 'active' : 'unknown'
+      });
       // 자동 1회 재조회: 열리는 즉시 최신 월정석 잔량을 채운다(수동 버튼과 별개).
       refreshStandaloneMoonbal();
     });
