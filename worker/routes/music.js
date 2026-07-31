@@ -7,6 +7,9 @@ import {
   isValidMusicAudioSourceKey,
   normalizeMusicAudioSourceKey,
   MUSIC_PREVIEW_MAX_BYTES,
+  MUSIC_PREVIEW_LIMIT_SECONDS,
+  MUSIC_TRACK_UNLOCK_COIN_COST,
+  MUSIC_TRACK_UNLOCK_PRICE_KRW,
 } from "../../lib/music-access-policy.js";
 
 const MUSIC_PREVIEW_CACHE_SECONDS = 3600;
@@ -81,9 +84,9 @@ function buildInvalidTrackEntry(input = {}) {
     accessTier: "invalid",
     hasFullAccess: false,
     canDownload: false,
-    previewLimitSeconds: 40,
-    priceKRW: 300,
-    coinCost: 3,
+    previewLimitSeconds: MUSIC_PREVIEW_LIMIT_SECONDS,
+    priceKRW: MUSIC_TRACK_UNLOCK_PRICE_KRW,
+    coinCost: MUSIC_TRACK_UNLOCK_COIN_COST,
     code: "INVALID_TRACK",
   };
 }
@@ -194,7 +197,7 @@ async function resolveTracksAccess(inputs, auth, env) {
     plan.entry || buildLockedTrackEntry(plan, decisions[plan.featureKey] || null, authenticated)
   ));
 
-  // 음악 트랙은 전곡이 같은 가격(3코인)이라 이용권 커버 여부가 곡별로 갈리지 않는다.
+  // 음악 트랙은 전곡이 같은 가격(lib/music-access-policy.js 정본)이라 이용권 커버 여부가 곡별로 갈리지 않는다.
   // 하나라도 "구매가 아닌 커버"로 열렸다면 이용권이 전곡을 덮는다는 뜻 — 클라이언트는 이 플래그로
   // 곡별 확인을 생략하고 전곡을 즉시 재생 가능 상태로 표시한다.
   const passCoversAll = Object.values(decisions).some((decision) => (

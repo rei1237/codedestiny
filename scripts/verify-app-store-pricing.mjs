@@ -10,6 +10,7 @@ import {
   PIG_COIN_UNLOCK_PRODUCTS,
   COIN_GATE_PER_USE_REASON_COSTS,
 } from "../worker/lib/paid-feature-registry.js";
+import { MUSIC_TRACK_UNLOCK_COIN_COST } from "../lib/music-access-policy.js";
 import {
   APP_FREE_MAX_COIN_PRICE,
   isAppFreeCoinPrice,
@@ -53,6 +54,10 @@ function collectRegistryCoinPrices() {
   for (const [key, spec] of Object.entries(FEATURE_KEY_PRICE_TABLE)) add(spec?.cost, key);
   for (const [key, spec] of Object.entries(PIG_COIN_UNLOCK_PRODUCTS)) add(spec?.cost, key);
   for (const [reason, cost] of Object.entries(COIN_GATE_PER_USE_REASON_COSTS)) add(cost, `reason:${reason}`);
+  // 음악 트랙(music-track-<hash>)은 키가 동적이라 위 정적 테이블 어디에도 나타나지 않는다.
+  // 여기서 명시적으로 넣지 않으면 음악 가격을 올려도 이 가드가 침묵하고, 앱에서만 조용히
+  // 결제가 막힌다(Play 티어 미등록 503). 정본은 lib/music-access-policy.js.
+  add(MUSIC_TRACK_UNLOCK_COIN_COST, "music-track-<hash>");
   return byCoinPrice;
 }
 

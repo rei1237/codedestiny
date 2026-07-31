@@ -11,6 +11,8 @@
  *  4-3. 프롤로그가 두 체계를 겹쳐 본다는 장점을 질문 씬 앞에서 말할 것(+ seen 키 v2)
  *  5. 20챕터·5만자 계약과 배치 생성(엣지 100초 컷 회피) 유지
  *  6. 라우트 등록(worker/index.js)·몰입형 크롬 제외·사이트맵 등재
+ *  7. PDF 캡처 계약: 캡처 대상이 문서 div 안에 있고, 데이터 값이 @keyframes 가 아니며,
+ *     애니메이션 컴포넌트가 forceVisible/skip 을 받을 것(결제 산출물이 백지·0% 로 나가는 것 방지)
  */
 
 import fs from "node:fs";
@@ -447,6 +449,88 @@ for (const shell of [
   }
   assertIncludes(shell, source, "destiny-compass-vvip-card-v20260729");
   assertIncludes(shell, source, "ziwei-island-vvip-card-v20260723");
+}
+
+// ── 7. PDF 캡처 계약 ────────────────────────────────────────────────────────
+// 결제한 사용자가 받는 최종 산출물이 PDF 다. html2canvas 는 ① 문서 div 안 +
+// data-codex-pdf-page 인 것만 찍고 ② 클론에서 @keyframes 를 0프레임부터 다시 돌린다.
+// 수동 확인은 잊히므로 계약을 코드로 강제한다.
+{
+  const readerFile = "src/features/master-love-codex/components/CodexReader.tsx";
+  const readerSource = read(readerFile);
+
+  // 7-1. 캡처 대상 두 개가 문서 div 여는 태그와 닫는 태그 '사이'에 있을 것.
+  //      밖으로 나가면 경고 없이 PDF 에서 통째로 사라진다.
+  const documentOpen = readerSource.indexOf('id="master-love-codex-document"');
+  const documentClose = readerSource.indexOf("{/* 소장 */}");
+  assert(documentOpen > 0, `${readerFile}: #master-love-codex-document 를 찾지 못했습니다`);
+  assert(documentClose > documentOpen, `${readerFile}: 문서 div 끝(소장 블록)을 찾지 못했습니다`);
+  for (const marker of ["<CodexScoreOverview", "<CodexReportOutro"]) {
+    const at = readerSource.indexOf(marker);
+    assert(
+      at > documentOpen && at < documentClose,
+      `${readerFile}: ${marker} 는 #master-love-codex-document 안에 있어야 PDF 에 들어갑니다`,
+    );
+  }
+  // 표지 표식도 캡처 대상(header) 안이어야 한다.
+  assert(
+    readerSource.indexOf("<CodexReportStamp") > documentOpen,
+    `${readerFile}: CodexReportStamp 는 표지 header 안(문서 div 내부)에 있어야 합니다`,
+  );
+
+  // 7-2. 애니메이션이 붙는 컴포넌트는 forceVisible 로 캡처 모드를 받는다.
+  for (const marker of ["<CodexScoreOverview", "<CodexLoveDnaPanel", "<CodexReportOutro"]) {
+    const at = readerSource.indexOf(marker);
+    const tagEnd = readerSource.indexOf("/>", at);
+    assert(
+      at > 0 && tagEnd > at && readerSource.slice(at, tagEnd).includes("forceVisible={isExporting}"),
+      `${readerFile}: ${marker} 에 forceVisible={isExporting} 이 없으면 PDF 에 애니메이션 도중 상태가 찍힙니다`,
+    );
+  }
+
+  // 7-3. 캡처 중 모션 전역 정지 안전망.
+  assertIncludes(readerFile, readerSource, "data-codex-exporting");
+
+  const cssFile = "src/features/master-love-codex/styles/codex.module.css";
+  const cssSource = read(cssFile);
+  assertIncludes(cssFile, cssSource, 'data-codex-exporting="true"');
+
+  // 7-4. 데이터를 담은 값을 @keyframes 로 그리지 말 것(클론에서 0프레임으로 리셋된다).
+  for (const [block] of cssSource.matchAll(/@keyframes[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g)) {
+    assert(
+      !/(^|[\s;{])(width|stroke-dashoffset)\s*:/.test(block),
+      `${cssFile}: width/stroke-dashoffset 을 @keyframes 로 그리면 PDF 에 0% 로 찍힙니다 — 인라인 최종값 + transition 을 쓰세요`,
+    );
+  }
+
+  // 7-4-2. 하단 고정 CTA 는 전역 모바일 네비 자리를 비켜서야 한다.
+  // 🔴 실사고: bottom:0 으로 붙였더니 .cd-mnav(z-index 960)가 CTA 를 통째로 덮어
+  //    가격도 안 보이고 탭도 먹혔다(배포본 elementFromPoint 가 네비를 반환). 네비가
+  //    내놓은 공용 토큰 --cd-mnav-offset 을 쓰지 않으면 같은 실수가 반복된다.
+  const floatingBlock = (cssSource.match(/\.floatingBar\s*\{[^}]*\}/) || [""])[0];
+  assert(
+    floatingBlock.includes("var(--cd-mnav-offset"),
+    `${cssFile}: .floatingBar 는 bottom 에 --cd-mnav-offset 을 써야 합니다(전역 모바일 네비가 CTA 를 덮습니다)`,
+  );
+  assert(
+    !/bottom:\s*0(px)?\s*;/.test(floatingBlock),
+    `${cssFile}: .floatingBar 를 bottom:0 으로 붙이면 .cd-mnav(z-index 960)에 가려집니다`,
+  );
+
+  // 7-5. 카운트업은 공용 훅으로만 돌리고 skip 을 반드시 넘긴다.
+  for (const file of [
+    "src/features/master-love-codex/components/CodexScoreOverview.tsx",
+    "src/features/master-love-codex/components/CodexLoveDna.tsx",
+  ]) {
+    const source = read(file);
+    assertIncludes(file, source, "useCodexCountUp");
+    for (const [, args] of source.matchAll(/useCodexCountUp\(([^)]*)\)/g)) {
+      assert(
+        /skip:\s*forceVisible/.test(args),
+        `${file}: useCodexCountUp 에 skip: forceVisible 을 넘기지 않으면 PDF 에 중간 숫자가 찍힙니다`,
+      );
+    }
+  }
 }
 
 if (failures.length) {
