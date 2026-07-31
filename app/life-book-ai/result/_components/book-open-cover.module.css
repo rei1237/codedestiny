@@ -1,0 +1,147 @@
+/* 책 펼침 — "밤하늘 아래 놓인 양장본".
+   배경(밤하늘 남색)은 결과 화면이 소유하고, 여기서는 표지(가죽 브라운 + 금박)만 그린다.
+   🔴 공용 PagedResultViewer 의 CSS 는 한 줄도 건드리지 않는다(8개 기능 공유). */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  gap: 20px;
+  align-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 25%, rgba(20, 28, 62, 0.94), rgba(6, 9, 22, 0.98));
+  perspective: 1600px;
+}
+
+.cover {
+  position: relative;
+  width: min(340px, 82vw);
+  aspect-ratio: 3 / 4;
+  border-radius: 10px 20px 20px 10px;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  background: linear-gradient(135deg, #2a1a10, #1b120b 52%, #120b06);
+  border: 1px solid rgba(244, 208, 122, 0.34);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 236, 190, 0.14);
+}
+
+.spine {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 12px;
+  border-radius: 10px 0 0 10px;
+  background: linear-gradient(180deg, #b47b25, #f2d07a 46%, #b47b25);
+}
+
+.plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 28px 22px 28px 32px;
+  text-align: center;
+}
+
+.emblem {
+  width: 34px;
+  height: 34px;
+  color: #f2d07a;
+}
+
+.kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  /* 가죽(#1b120b) 위 대비 ≈ 8.9:1 */
+  color: #f0d79a;
+}
+
+.title {
+  font-family: var(--font-display, serif);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff6e2;
+}
+
+.subtitle {
+  font-size: 13px;
+  line-height: 1.6;
+  /* 알파로 낮추지 않고 명도만 조정해 4.5:1 을 넘긴다(The Hue-Stays Rule). */
+  color: #e5d2ad;
+}
+
+.owner {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #f0d79a;
+}
+
+.skip {
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 208, 122, 0.4);
+  background: rgba(0, 0, 0, 0.32);
+  color: #f6e2b6;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.skip:focus-visible {
+  outline: 2px solid #f6e2b6;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .stage[data-phase="closed"] .cover {
+    animation: lifeBookCoverBreathe 3.2s ease-in-out infinite;
+  }
+  .cover:hover {
+    transform: rotateX(4deg) rotateY(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cover {
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .stage[data-phase="opening"] .cover {
+    animation: lifeBookCoverOpen 820ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  .stage[data-phase="opening"] {
+    animation: lifeBookStageFade 820ms ease forwards;
+  }
+}
+
+@keyframes lifeBookCoverOpen {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(-165deg); }
+}
+
+@keyframes lifeBookCoverBreathe {
+  0%, 100% { transform: rotateX(2deg) rotateY(-3deg); }
+  50% { transform: rotateX(4deg) rotateY(-6deg); }
+}
+
+@keyframes lifeBookStageFade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .cover {
+    animation: none !important;
+    transition: none !important;
+  }
+}
