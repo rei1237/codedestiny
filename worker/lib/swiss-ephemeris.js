@@ -921,6 +921,39 @@ export async function getSwissWesternChart(env, payload, options = {}) {
   }
 }
 
+/**
+ * 여러 날짜의 달 시데리얼(라히리) 황경을 한 번에 구한다. 택일(무후르타)처럼 수십 일을
+ * 스캔해야 하는 경로 전용이다.
+ *
+ * 🔴 getSwissVedicPlanets 를 날짜마다 부르면 안 된다 — 그쪽은 호출마다 외부 천체력
+ *    엔드포인트를 먼저 때리므로(getExternalVedicPlanets) 60일 스캔이 네트워크 왕복 60회가 된다.
+ *    여기서는 WASM 인스턴스를 한 번만 얻어 로컬 swe_calc_ut 만 반복한다.
+ *
+ * @param {object} env
+ * @param {Array<{year:number, month:number, day:number, hour?:number, minute?:number, timezone?:number}>} moments
+ * @param {object} options
+ * @returns {Promise<number[]>} moments 와 같은 순서의 시데리얼 황경(0~360)
+ */
+export async function getSwissMoonLongitudes(env, moments, options = {}) {
+  if (!Array.isArray(moments) || !moments.length) return [];
+  const swe = await getSwiss(env, options);
+  swe.swe_set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0);
+  const flag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED | swe.SEFLG_SIDEREAL;
+
+  return moments.map((moment) => {
+    const input = {
+      year: Number(moment.year),
+      month: Number(moment.month),
+      day: Number(moment.day),
+      hour: Number(moment.hour ?? 12),
+      minute: Number(moment.minute ?? 0),
+      timezone: Number(moment.timezone ?? 9),
+    };
+    const jd = julianDayFromInput(swe, input);
+    return readLongitudeFromResult(swe.swe_calc_ut(jd, swe.SE_MOON, flag), "Moon");
+  });
+}
+
 export async function getSwissVedicPlanets(env, payload, options = {}) {
   const input = normalizeChartInput(payload);
   validateChartInput(input);
