@@ -87,17 +87,25 @@ export function recordFreeGeneration() {
  * 읽는 즉시 삭제 + TTL 30분 + 크기 상한으로 노출 범위를 좁혔다. 서버로는 나가지 않는다.
  */
 
+/** 로그인 화면으로 나가기 직전에 누르려던 동작. 돌아왔을 때 그대로 이어서 해 준다. */
+export type PromptHubResumeIntent = "generate" | "save";
+
 export type PromptHubResumeSnapshot = {
   v: 1;
   toolId: string;
   draft: Record<string, unknown>;
+  intent: PromptHubResumeIntent;
   savedAt: number;
 };
 
-export function saveResumeSnapshot(toolId: string, draft: Record<string, unknown>) {
+export function saveResumeSnapshot(
+  toolId: string,
+  draft: Record<string, unknown>,
+  intent: PromptHubResumeIntent = "generate",
+) {
   let serialized = "";
   try {
-    serialized = JSON.stringify({ v: 1, toolId, draft, savedAt: Date.now() });
+    serialized = JSON.stringify({ v: 1, toolId, draft, intent, savedAt: Date.now() });
   } catch {
     return;
   }
@@ -114,7 +122,7 @@ export function consumeResumeSnapshot(): PromptHubResumeSnapshot | null {
     if (parsed?.v !== 1 || typeof parsed.toolId !== "string" || !parsed.draft) return null;
     const savedAt = Number(parsed.savedAt) || 0;
     if (!savedAt || Date.now() - savedAt > PROMPT_HUB_RESUME_TTL_MS) return null;
-    return parsed as PromptHubResumeSnapshot;
+    return { ...parsed, intent: parsed.intent === "save" ? "save" : "generate" } as PromptHubResumeSnapshot;
   } catch {
     return null;
   }
@@ -135,8 +143,10 @@ export type PromptLibraryItem = {
  * 저장 키를 사용자별로 갈라 둔다 — 계정을 바꾸면 키가 달라지므로 남의 보관함이 보일 수 없다.
  * 게스트는 빈 문자열이 나오고, 호출부는 그때 저장·조회를 하지 않는다.
  */
-export function resolveLibraryOwnerKey(user: { id?: string; email?: string } | null | undefined): string {
-  const raw = String(user?.id || user?.email || "").trim().toLowerCase();
+export function resolveLibraryOwnerKey(
+  user: { id?: string; _id?: string; userId?: string; email?: string } | null | undefined,
+): string {
+  const raw = String(user?.id || user?._id || user?.userId || user?.email || "").trim().toLowerCase();
   if (!raw) return "";
   return raw.replace(/[^a-z0-9_.@-]/g, "").slice(0, 64);
 }
@@ -167,7 +177,9 @@ function persistLibrary(ownerKey: string, items: PromptLibraryItem[]): PromptLib
   // 쿼터 초과면 가장 오래된 절반을 버리고 한 번만 더 시도한다.
   next = next.slice(0, Math.max(1, Math.floor(next.length / 2)));
   if (writeRaw("local", libraryKey(ownerKey), JSON.stringify(next))) return next;
-  return items;
+  // 끝내 못 썼다면 요청한 목록이 아니라 저장소의 실제 내용을 돌려준다. 화면에만 저장된 것처럼
+  // 보였다가 새로고침에서 사라지는 편이 훨씬 나쁘다.
+  return readLibrary(ownerKey);
 }
 
 export function saveToLibrary(

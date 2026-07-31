@@ -122,7 +122,7 @@ function hasAuthCookieHint() {
   return Boolean(role && role !== "guest" && role !== "anonymous");
 }
 
-function hasClientAuthHint() {
+export function hasClientAuthHint() {
   if (typeof window === "undefined") return false;
   try {
     const token = String(

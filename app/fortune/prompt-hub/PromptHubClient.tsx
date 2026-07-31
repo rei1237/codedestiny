@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, primeAuthFromCache, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { PromptHubLoginGateModal, type PromptHubGateCopy } from "./PromptHubLoginGateModal";
 import {
@@ -16,6 +17,8 @@ import {
   resolveLibraryOwnerKey,
   saveResumeSnapshot,
   saveToLibrary,
+  PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS,
+  type PromptHubResumeIntent,
   type PromptLibraryItem,
 } from "./prompt-hub-storage";
 import { buildSukuyoPromptFacts } from "./sukuyo-prompt-facts";
@@ -857,6 +860,7 @@ type PromptHubCopy = {
     count: string;
     save: string;
     saved: string;
+    saveFailed: string;
     load: string;
     loadAria: string;
     removeAria: string;
@@ -929,6 +933,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     count: "{count} saved",
     save: "Save to library",
     saved: "Saved",
+    saveFailed: "Could not save — this browser's storage is full.",
     load: "Open",
     loadAria: "Open the saved {tool} prompt",
     removeAria: "Delete the saved {tool} prompt",
@@ -1192,7 +1197,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
     benefits: [
       "프롬프트 무제한 생성",
       "만든 프롬프트를 보관함에 저장",
-      "16가지 도구 전체 이용",
+      "모든 운세 도구 이용",
       "결제 없이 무료 가입",
     ],
     signup: "무료 회원가입",
@@ -1206,6 +1211,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
     count: "{count}개 저장됨",
     save: "보관함에 저장",
     saved: "저장 완료",
+    saveFailed: "저장하지 못했어요. 이 브라우저의 저장 공간이 가득 찼습니다.",
     load: "불러오기",
     loadAria: "저장한 {tool} 프롬프트 불러오기",
     removeAria: "저장한 {tool} 프롬프트 삭제",
@@ -1463,8 +1469,13 @@ export default function ComprehensivePromptHubPage() {
   const [loginGateOpen, setLoginGateOpen] = useState(false);
   const [libraryItems, setLibraryItems] = useState<PromptLibraryItem[]>([]);
   const [savedToolId, setSavedToolId] = useState<ToolId | null>(null);
+  const [saveFailedToolId, setSaveFailedToolId] = useState<ToolId | null>(null);
+  // 게이트를 띄운 이유(생성 시도인지 저장 시도인지)를 로그인 복귀 후에도 이어 가려고 기억한다.
+  const gateIntentRef = useRef<PromptHubResumeIntent>("generate");
   const gateCheckRef = useRef(false);
   const resumeHandledRef = useRef(false);
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
 
   const currentTool = toolConfigById[activeToolId];
   const currentDraft = draftsByToolId[activeToolId] || getDefaultDraft(currentTool);
@@ -1530,19 +1541,27 @@ export default function ComprehensivePromptHubPage() {
   useEffect(() => {
     if (resumeHandledRef.current) return;
     resumeHandledRef.current = true;
+
+    // 스냅샷은 어느 경로로 들어왔든 소비해 남기지 않되, 되살리는 것은 로그인 화면이 붙여 준
+    // resume 표식을 달고 돌아왔을 때뿐이다. 이걸 확인하지 않으면 30분 안의 아무 재진입이나
+    // (공유 링크의 ?tool= 까지 덮으며) 예전 입력으로 화면을 되돌려 놓는다.
+    const wantsResume = new URLSearchParams(window.location.search).has("resume");
     const snapshot = consumeResumeSnapshot();
     stripResumeQueryParam();
+    const resuming = wantsResume ? snapshot : null;
 
     let restored: { toolId: ToolId; draft: ToolDraft } | null = null;
-    if (snapshot) {
-      const toolId = normalizeToolId(snapshot.toolId);
-      const draft = { ...getDefaultDraft(toolConfigById[toolId]), ...(snapshot.draft as ToolDraft) };
+    if (resuming) {
+      const toolId = normalizeToolId(resuming.toolId);
+      const draft = { ...getDefaultDraft(toolConfigById[toolId]), ...(resuming.draft as ToolDraft) };
       setActiveToolId(toolId);
       setDraftsByToolId((prev) => ({ ...prev, [toolId]: draft }));
       restored = { toolId, draft };
     }
 
-    if (!snapshot && !primeAuthFromCache()) return;
+    // 로컬 캐시가 비어 있어도 쿠키 세션만 살아 있는 경우가 있다. 그걸 놓치면 이 라우트에서
+    // 회원이 영영 게스트로 취급돼 기기 무료 1회를 태우고 보관함도 못 쓴다.
+    if (!resuming && !hasClientAuthHint() && !primeAuthFromCache()) return;
 
     // 위 ref 가 이미 1회성을 보장하므로 cleanup 에서 취소하지 않는다. StrictMode 의 두 번째
     // 마운트가 첫 실행을 취소해 버리면 개발 환경에서만 재개가 조용히 사라진다.
@@ -1550,7 +1569,7 @@ export default function ComprehensivePromptHubPage() {
       try {
         // refreshAuth 에는 타임아웃이 없다. 상한이 없으면 재개가 영영 끝나지 않는다.
         await Promise.race([
-          refreshAuth({ force: Boolean(snapshot), silent: true }),
+          refreshAuth({ force: Boolean(resuming), silent: true }),
           new Promise<void>((resolve) => {
             window.setTimeout(resolve, 4000);
           }),
@@ -1560,7 +1579,12 @@ export default function ComprehensivePromptHubPage() {
       }
       if (!restored) return;
       // 로그인을 취소하고 돌아온 경우엔 입력만 되살리고 생성은 하지 않는다.
-      if (getAuthState().isAuthenticated) runPromptGeneration(restored.toolId, restored.draft);
+      if (!getAuthState().isAuthenticated) return;
+      const entry = runPromptGeneration(restored.toolId, restored.draft);
+      // 저장하려다 로그인하러 갔던 것이라면, 다시 누르게 하지 않고 저장까지 끝낸다.
+      if (resuming?.intent === "save") {
+        persistResultToLibrary(resolveLibraryOwnerKey(getAuthState().user), restored.toolId, entry);
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1607,6 +1631,17 @@ export default function ComprehensivePromptHubPage() {
     updateCurrentDraft(fieldId, values.includes(option) ? values.filter((item) => item !== option) : [...values, option]);
   }
 
+  /**
+   * 입력을 갈아엎을 때 결과도 함께 지운다 — 단, 무료 체험을 이미 쓴 비회원의 결과는 남긴다.
+   * 지워 봐야 다시 만들 수단이 없어서, 옆에 붙은 "예시 입력"·"초기화" 를 한 번 잘못 누르면
+   * 체험으로 얻은 유일한 결과가 되돌릴 방법 없이 사라진다.
+   */
+  function clearResultUnlessLastFreeOne(toolId: ToolId) {
+    if (!getAuthState().isAuthenticated && !hasFreeGenerationLeft()) return;
+    setResultsByToolId((prev) => ({ ...prev, [toolId]: null }));
+    setExpandedResultsByToolId((prev) => ({ ...prev, [toolId]: false }));
+  }
+
   function fillCurrentToolExample() {
     setDraftsByToolId((prev) => ({
       ...prev,
@@ -1615,16 +1650,15 @@ export default function ComprehensivePromptHubPage() {
         ...currentTool.exampleValues,
       },
     }));
-    setResultsByToolId((prev) => ({ ...prev, [activeToolId]: null }));
+    clearResultUnlessLastFreeOne(activeToolId);
     setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: false }));
     setCopiedToolId(null);
   }
 
   function resetCurrentToolDraft() {
     setDraftsByToolId((prev) => ({ ...prev, [activeToolId]: getDefaultDraft(currentTool) }));
-    setResultsByToolId((prev) => ({ ...prev, [activeToolId]: null }));
+    clearResultUnlessLastFreeOne(activeToolId);
     setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: false }));
-    setExpandedResultsByToolId((prev) => ({ ...prev, [activeToolId]: false }));
     setCopiedToolId(null);
   }
 
@@ -1644,18 +1678,19 @@ export default function ComprehensivePromptHubPage() {
             relationshipType: formatDraftValue(draft.relationshipType),
           })
         : "";
-    setResultsByToolId((prev) => ({
-      ...prev,
-      [toolId]: {
-        prompt: buildStructuredFortunePrompt(config, draft, computedFacts),
-        generatedAt: new Intl.DateTimeFormat(getPromptHubDateLocale(locale), {
-          dateStyle: "medium",
-          timeStyle: "short",
-        }).format(new Date()),
-      },
-    }));
+    const entry = {
+      prompt: buildStructuredFortunePrompt(config, draft, computedFacts),
+      // 재개 흐름은 마운트 시점 클로저로 이 함수를 붙잡으므로 locale 을 ref 로 읽는다.
+      // state 를 그대로 쓰면 로케일이 늦게 확정된 화면에서 시각만 다른 언어로 찍힌다.
+      generatedAt: new Intl.DateTimeFormat(getPromptHubDateLocale(localeRef.current), {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date()),
+    };
+    setResultsByToolId((prev) => ({ ...prev, [toolId]: entry }));
     setExpandedResultsByToolId((prev) => ({ ...prev, [toolId]: true }));
     resultPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return entry;
   }
 
   /**
@@ -1687,28 +1722,36 @@ export default function ComprehensivePromptHubPage() {
       return;
     }
 
-    // ④ 체험을 다 썼다면, 하이드레이션이 늦어 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
-    if (gateCheckRef.current) return;
-    gateCheckRef.current = true;
-    try {
-      if (!getAuthState().authReady) {
-        // refreshAuth 에는 타임아웃이 없다. 상한을 걸지 않으면 버튼이 영영 반응하지 않는다.
-        await Promise.race([
-          refreshAuth({ force: true, silent: true }),
-          new Promise<void>((resolve) => {
-            window.setTimeout(resolve, 4000);
-          }),
-        ]).catch(() => undefined);
-      }
-    } finally {
-      gateCheckRef.current = false;
-    }
-
-    if (getAuthState().isAuthenticated) {
+    // ④ 체험을 다 썼다면 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
+    if (await confirmAuthenticated()) {
       runPromptGeneration(toolId, draft);
       return;
     }
+    gateIntentRef.current = "generate";
     setLoginGateOpen(true);
+  }
+
+  /**
+   * 서버에 다시 물어 인증 여부를 확정한다. authReady 로 한 번만 묻게 막아 두면, 다른 탭에서
+   * 로그인하고 돌아온 사용자는 이 탭을 새로고침할 때까지 영영 게이트에 갇힌다. refreshAuth 가
+   * 인플라이트 병합과 1.5초 쿨다운을 자체적으로 갖고 있어 연타해도 요청이 늘지 않는다.
+   */
+  async function confirmAuthenticated() {
+    if (getAuthState().isAuthenticated) return true;
+    if (gateCheckRef.current) return false;
+    gateCheckRef.current = true;
+    try {
+      // refreshAuth 에는 타임아웃이 없다. 상한을 걸지 않으면 버튼이 영영 반응하지 않는다.
+      await Promise.race([
+        refreshAuth({ force: false, silent: true }),
+        new Promise<void>((resolve) => {
+          window.setTimeout(resolve, 4000);
+        }),
+      ]).catch(() => undefined);
+    } finally {
+      gateCheckRef.current = false;
+    }
+    return getAuthState().isAuthenticated;
   }
 
   function buildPromptHubAuthPath(kind: "login" | "signup") {
@@ -1720,25 +1763,50 @@ export default function ComprehensivePromptHubPage() {
   }
 
   function handleGateNavigate() {
-    saveResumeSnapshot(activeToolId, currentDraft);
+    saveResumeSnapshot(activeToolId, currentDraft, gateIntentRef.current);
   }
 
-  function saveCurrentResultToLibrary() {
+  /**
+   * 실제로 저장소에 남았을 때만 "저장 완료" 를 띄운다. 쿼터가 찼는데도 성공처럼 보이면
+   * 사용자는 저장했다고 믿고 떠나고, 새로고침에서 통째로 사라진다.
+   */
+  function persistResultToLibrary(
+    ownerKey: string,
+    toolId: ToolId,
+    entry: { prompt: string; generatedAt: string },
+  ) {
+    if (!ownerKey) return;
+    const next = saveToLibrary(ownerKey, {
+      toolId,
+      // 재개 흐름은 마운트 시점 클로저라 tx(useCallback) 대신 최신 로케일로 직접 번역한다.
+      toolLabel: translatePromptHubText(toolConfigById[toolId].shortLabel, localeRef.current),
+      prompt: entry.prompt,
+      generatedAt: entry.generatedAt,
+    });
+    setLibraryItems(next);
+    // saveToLibrary 가 실제로 저장한 형태(길이 절단 포함)와 대조해야 거짓 성공을 걸러낼 수 있다.
+    const storedPrompt = entry.prompt.slice(0, PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS);
+    const stored = next.some((item) => item.toolId === toolId && item.prompt === storedPrompt);
+    setSaveFailedToolId(stored ? null : toolId);
+    if (!stored) return;
+    setSavedToolId(toolId);
+    window.setTimeout(() => setSavedToolId(null), 1600);
+  }
+
+  async function saveCurrentResultToLibrary() {
     if (!currentResult?.prompt) return;
+    const result = currentResult;
     if (!libraryOwnerKey) {
-      setLoginGateOpen(true);
+      // 캐시가 비어 게스트로 보일 뿐 실제로는 로그인 상태일 수 있다. 확정한 뒤에만 모달을 띄운다.
+      if (!(await confirmAuthenticated())) {
+        gateIntentRef.current = "save";
+        setLoginGateOpen(true);
+        return;
+      }
+      persistResultToLibrary(resolveLibraryOwnerKey(getAuthState().user), activeToolId, result);
       return;
     }
-    setLibraryItems(
-      saveToLibrary(libraryOwnerKey, {
-        toolId: activeToolId,
-        toolLabel: tx(currentTool.shortLabel),
-        prompt: currentResult.prompt,
-        generatedAt: currentResult.generatedAt,
-      }),
-    );
-    setSavedToolId(activeToolId);
-    window.setTimeout(() => setSavedToolId(null), 1600);
+    persistResultToLibrary(libraryOwnerKey, activeToolId, result);
   }
 
   function loadLibraryItem(item: PromptLibraryItem) {
@@ -2533,6 +2601,11 @@ export default function ComprehensivePromptHubPage() {
                   {chatGptPopupBlockedToolId === activeToolId ? (
                     <p role="alert" className="mt-2 text-xs font-bold text-[color:var(--danger-ink)]">
                       {copy.chatGptPopupBlocked}
+                    </p>
+                  ) : null}
+                  {saveFailedToolId === activeToolId ? (
+                    <p role="alert" className="mt-2 text-xs font-bold text-[color:var(--danger-ink)]">
+                      {copy.library.saveFailed}
                     </p>
                   ) : null}
                   {/* 복사하거나 외부 AI 로 넘기기 직전에 읽히도록 버튼 행과 프롬프트 사이에 둔다.

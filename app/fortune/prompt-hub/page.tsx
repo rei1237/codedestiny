@@ -63,7 +63,7 @@ export default function PromptHubPage() {
             종합 운세 프롬프트,<br className="hidden sm:block" /> 지금 바로 만들어보세요
           </h1>
           <p className="mt-3 max-w-[46ch] text-[15px] font-semibold leading-7 text-[#70445c] dark:text-[rgba(255,214,232,0.86)]">
-            사주·타로·점성술 등 11가지 도구로 나만의 상담 프롬프트를 만들어 보세요. 생년월일·태어난 시간만 넣으면 바로 시작합니다.
+            사주·타로·점성술 등 16가지 도구로 나만의 상담 프롬프트를 만들어 보세요. 생년월일·태어난 시간만 넣으면 바로 시작합니다.
             첫 프롬프트는 로그인 없이 만들어 볼 수 있고, 이어서 사용하려면 무료 회원가입만 하면 됩니다.
           </p>
           <p className="mt-2 max-w-[46ch] text-[13px] font-semibold leading-6 text-[#8a5a1e] dark:text-[#ead089]">

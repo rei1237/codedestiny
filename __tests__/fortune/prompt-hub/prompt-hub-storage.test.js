@@ -96,6 +96,21 @@ describe("로그인 재개 스냅샷", () => {
     );
     expect(storage.consumeResumeSnapshot()).toBeNull();
   });
+
+  test("저장하려던 의도를 그대로 되돌려준다", () => {
+    storage.saveResumeSnapshot("saju", { birthDate: "1990-01-01" }, "save");
+    expect(storage.consumeResumeSnapshot().intent).toBe("save");
+  });
+
+  test("의도를 주지 않으면 생성으로 취급하고, 이상한 값도 생성으로 정규화한다", () => {
+    storage.saveResumeSnapshot("saju", {});
+    expect(storage.consumeResumeSnapshot().intent).toBe("generate");
+    window.sessionStorage.setItem(
+      "cd:promptHub:resume:v1",
+      JSON.stringify({ v: 1, toolId: "saju", draft: {}, intent: "wipe", savedAt: Date.now() }),
+    );
+    expect(storage.consumeResumeSnapshot().intent).toBe("generate");
+  });
 });
 
 describe("보관함", () => {
@@ -145,5 +160,23 @@ describe("보관함", () => {
 
   test("이메일 소유자 키는 소문자로 정규화된다", () => {
     expect(storage.resolveLibraryOwnerKey({ email: "User@Example.com" })).toBe("user@example.com");
+  });
+
+  test("id 가 없으면 _id·userId 도 소유자 키로 인정한다", () => {
+    expect(storage.resolveLibraryOwnerKey({ _id: "abc123" })).toBe("abc123");
+    expect(storage.resolveLibraryOwnerKey({ userId: "def456" })).toBe("def456");
+  });
+
+  test("저장에 실패하면 저장소의 실제 내용을 돌려준다 (거짓 성공 금지)", () => {
+    const owner = storage.resolveLibraryOwnerKey({ id: "userA" });
+    storage.saveToLibrary(owner, item);
+    const original = window.localStorage.setItem;
+    window.localStorage.setItem = () => {
+      throw new Error("QuotaExceededError");
+    };
+    const returned = storage.saveToLibrary(owner, { ...item, prompt: "새 프롬프트" });
+    window.localStorage.setItem = original;
+    expect(returned).toHaveLength(1);
+    expect(returned.some((entry) => entry.prompt === "새 프롬프트")).toBe(false);
   });
 });
