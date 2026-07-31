@@ -46,7 +46,7 @@ export async function reconcilePendingPayments(env, options = {}) {
 
   const summary = {
     ok: true, scanned: 0, settled: 0, syncedCancelled: 0, syncedFailed: 0,
-    expired: 0, untouched: 0, skipped: 0, failed: 0,
+    expired: 0, untouched: 0, skipped: 0, claimErrors: 0, failed: 0,
   };
 
   await connectDb(env);
@@ -70,18 +70,30 @@ export async function reconcilePendingPayments(env, options = {}) {
 
   for (const candidate of candidates) {
     // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(runWebhookReconcileTask 와 같은 관용구).
-    const claimed = await Payment.findOneAndUpdate(
-      {
-        _id: candidate._id,
-        status: candidate.status,
-        $or: [
-          { "metadata.reconcile.lastAt": { $exists: false } },
-          { "metadata.reconcile.lastAt": { $lte: reclaimCutoff } },
-        ],
-      },
-      { $set: { "metadata.reconcile.lastAt": new Date() }, $inc: { "metadata.reconcile.attempts": 1 } },
-      { returnDocument: "after" },
-    ).lean().catch(() => null);
+    // 🔴 클레임 '실패'(Mongo 오류)와 '경합'(다른 실행이 이미 잡음)을 구분한다. 예전에는 둘 다 조용히
+    // skipped 로 셌는데, Atlas idle 연결 회수로 콜드 isolate 의 첫 쓰기가 자주 타임아웃 나는 이 환경에서는
+    // 크론이 거의 아무것도 못 하는데도 요약이 정상처럼 보였다. 재시도는 다음 크론 틱이 한다 —
+    // 여기에 새 재시도 계층을 만들지 않는다.
+    let claimed = null;
+    let claimFailed = false;
+    try {
+      claimed = await Payment.findOneAndUpdate(
+        {
+          _id: candidate._id,
+          status: candidate.status,
+          $or: [
+            { "metadata.reconcile.lastAt": { $exists: false } },
+            { "metadata.reconcile.lastAt": { $lte: reclaimCutoff } },
+          ],
+        },
+        { $set: { "metadata.reconcile.lastAt": new Date() }, $inc: { "metadata.reconcile.attempts": 1 } },
+        { returnDocument: "after" },
+      ).lean();
+    } catch (error) {
+      claimFailed = true;
+      console.error("[CRON] payment reconcile claim failed", candidate.merchantUid, error?.message || error);
+    }
+    if (claimFailed) { summary.claimErrors += 1; continue; }
     if (!claimed) { summary.skipped += 1; continue; }
 
     const lookupId = candidate.impUid || candidate.merchantUid;
