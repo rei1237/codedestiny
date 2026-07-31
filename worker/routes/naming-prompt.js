@@ -665,6 +665,8 @@ ${desiredNamesMarkdown(input.desiredNames)}
 ## [출력 형식 — 작명첩 8장]
 아래 8개 장을 정확히 이 헤딩(## 숫자. 제목)으로 쓰세요. 한 장 한 장이 충실해야 합니다(장마다 최소 3문단 이상, 4장은 이름마다 충분히). 표는 금지, 소제목(###)과 목록·문장만 사용하세요.
 
+**전체 분량은 공백 제외 ${NAMING_PROMPT_TARGET_MIN_CHARS.toLocaleString("en-US")}자 이상 ${NAMING_MAX_TOTAL_CONTENT_CHARS.toLocaleString("en-US")}자 이하로 쓰세요.** 분량을 채우려고 같은 말을 반복하거나 원론적인 설명을 늘리지 마세요 — 이 사주와 이 이름 후보에만 해당하는 구체적인 근거로 채우세요.
+
 ## 1. 작명가의 총평
 (이 사주를 처음 펼쳐 본 작명가의 첫인상. 어떤 기운을 타고났고, 이름이 무엇을 채워줘야 하는지를 부모에게 말하듯 서너 문단으로.)
 
@@ -1162,28 +1164,70 @@ async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSn
   return { state: "claimed", executionId };
 }
 
+/**
+ * 작명첩 분량 계약. 다른 30,000원대 전문가 상담은 전부 총 분량 하한을 갖는데
+ * (인생의 책 10,000자 / 자미두수 20,000자 / 인생 총운 30,000자) 이 라우트만 없었다.
+ *
+ * 하한을 5,000자로 잡은 이유: 프롬프트가 요구하는 "8장 × 최소 3문단"을 글자로 환산하면
+ * 형식만 겨우 지킨 최소치가 대략 3,000자대다. 하한은 목표가 아니라 그 아래를 걸러내는
+ * 안전망이므로 그보다 조금 위에 둔다 — 목표치는 프롬프트가 8,000~14,000자로 따로 지시한다.
+ * 너무 높이 잡으면 정상 결과가 실패로 돌아 결제한 사용자가 에러를 받는다.
+ *
+ * 실사용 분포를 보고 조정할 수 있게 env 로 덮을 수 있다(같은 함수의 TIMEOUT_MS·
+ * MAX_OUTPUT_TOKENS 와 같은 방식). 0 이하나 숫자가 아니면 기본값을 쓴다.
+ */
+const NAMING_MIN_TOTAL_CONTENT_CHARS = 5000;
+const NAMING_MAX_TOTAL_CONTENT_CHARS = 14000;
+const NAMING_PROMPT_TARGET_MIN_CHARS = 8000;
+
+function resolveNamingMinTotalChars(env) {
+  const override = Math.floor(Number(env?.NAMING_PROMPT_MIN_TOTAL_CHARS));
+  return Number.isFinite(override) && override > 0 ? override : NAMING_MIN_TOTAL_CONTENT_CHARS;
+}
+
+/** 공백 제외 글자 수. 프롬프트가 같은 기준("공백 제외")으로 지시한다. */
+function countNamingContentChars(text) {
+  return String(text || "").replace(/\s+/g, "").length;
+}
+
 async function generateNamingResult(env, prompt) {
   // 이 라우트는 요청 안에서 생성을 끝낸다 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
   const timeoutMs = clampSyncLlmTimeoutMs(Number(env?.NAMING_PROMPT_TIMEOUT_MS));
   const baseTokens = Number(env?.NAMING_PROMPT_MAX_OUTPUT_TOKENS) || 20000;
+  const minTotalChars = resolveNamingMinTotalChars(env);
   const callAt = (maxOutputTokens) => callGeminiText(env, prompt, {
     taskType: "fortune",
     temperature: 0.72,
     // env.PREMIUM_GEMINI_TIMEOUT_MS(운영 45초)를 || 체인에 넣지 않는다 — 45초 단락 함정(다른 -ai 라우트들 반복 경고).
     timeoutMs,
     maxOutputTokens,
-    fallbackMinChars: 800,
+    // 관례: 그 기능의 최소 분량 × 0.4 (CLAUDE.md). 폴백 응답에만 적용된다.
+    fallbackMinChars: Math.round(minTotalChars * 0.4),
   });
   let ai = await callAt(baseTokens);
   // 잘림(MAX_TOKENS)은 이름 카드 블록(nameCards/finalPick)을 통째로 날려 유료 결과를 반쪽으로 만든다 —
   // 잘렸으면 토큰캡을 30% 올려 1회 재생성해 완결본을 확보한다(더 긴 후보만 채택).
-  if (ai?.ok && ai.truncated === true) {
+  //
+  // 분량 미달도 같은 재시도를 태운다. 30,000원 상품인데 하한이 minChars 300 뿐이라, 모델이 8장을
+  // 한 문단씩 때우고 끝내도 정상 결제로 통과했다(다른 전문가 상담은 전부 총 분량 계약이 있다).
+  const isShort = (candidate) => countNamingContentChars(candidate?.text) < minTotalChars;
+  if (ai?.ok && (ai.truncated === true || isShort(ai))) {
     const retry = await callAt(Math.round(baseTokens * 1.3));
     if (retry?.ok && (String(retry.text || "").length > String(ai.text || "").length)) ai = retry;
   }
   if (!ai?.ok || !hasRenderableLlmText(ai.text, { minChars: 300 })) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
     error.code = "LLM_GENERATION_FAILED";
+    error.status = 503;
+    throw error;
+  }
+  // 재시도 뒤에도 하한 미달이면 결과를 내보내지 않는다. 이 라우트의 기존 실패 처리가 그대로 돌아
+  // 월정석은 환불되고 단건/이용권은 같은 증거로 재생성할 수 있다(추가 차감 없음).
+  if (isShort(ai)) {
+    const error = new Error(
+      `작명첩 분량이 기준(${minTotalChars}자)에 못 미쳐 결과를 전달하지 않았습니다. 다시 시도해 주세요.`,
+    );
+    error.code = "NAMING_RESULT_TOO_SHORT";
     error.status = 503;
     throw error;
   }
