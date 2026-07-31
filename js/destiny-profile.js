@@ -9405,10 +9405,12 @@
           : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
         fetcher.then(function(res) {
           if (settled) return;
-          // 🔴 signedOut 을 ok 보다 먼저 본다. 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을
-          // 주는데(billing.js readBillingSnapshot 의 비인증 분기), ok 를 먼저 검사하면 그 0 이 '잔여 확인 완료 ·
-          // 현재 0개'라는 확신에 찬 거짓으로 렌더되고 월정석 버튼이 잠겼다 — signed-out 분기는 401/403 일 때만
+          // 🔴 signedOut 을 ok 보다 먼저 본다. 서버는 게스트·만료 토큰에 200 + authenticated:false + 잔액 0 을
+          // 주는데(billing.js readBillingSnapshot 의 비인증 분기), ok 를 먼저 검사하면 그 0 이 「잔여 확인 완료 ·
+          // 현재 0개」라는 확신에 찬 거짓으로 렌더되고 월정석 버튼이 잠겼다 — signed-out 분기는 401·403 일 때만
           // 도달했다. 로그인 안내를 띄우는 게 맞다.
+          // (이 파일 주석에 홑따옴표를 홀수로 넣지 말 것 — verify-pass-recovery-path 의 중괄호 슬라이서가
+          //  esc() 의 정규식 리터럴을 문자열로 오인해, 이후 따옴표 짝이 어긋나면 함수 슬라이스가 잘린다.)
           if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
           else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
           else applyStandaloneMoonbal('error', 0);
