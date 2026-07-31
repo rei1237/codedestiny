@@ -252,19 +252,35 @@ const rewardTable = workerSource.slice(
   workerSource.indexOf("const LEVEL_MONTHLY_CREDIT_REWARDS"),
   workerSource.indexOf("const LEVEL_REWARD_TOTAL_CREDIT_CAP"),
 );
-const rewardRows = Array.from(rewardTable.matchAll(/level:\s*(\d+),\s*credits:\s*(\d+)/g))
-  .map((m) => ({ level: Number(m[1]), credits: Number(m[2]) }));
-assert.equal(rewardRows.length, 7, "마일스톤 개수가 바뀌었습니다");
+const rewardRows = Array.from(
+  rewardTable.matchAll(/level:\s*(\d+),\s*credits:\s*(\d+),\s*minPayments:\s*(\d+),\s*minPaidKrw:\s*(\d+)/g),
+).map((m) => ({
+  level: Number(m[1]),
+  credits: Number(m[2]),
+  minPayments: Number(m[3]),
+  minPaidKrw: Number(m[4]),
+}));
+assert.equal(rewardRows.length, 7, "마일스톤 개수가 바뀌었거나 단계별 결제 조건이 빠졌습니다");
 assert.deepEqual(
   rewardRows.find((r) => r.level === 5),
-  { level: 5, credits: 500 },
-  "Lv.5 보상은 500 월정석(=5,000원)이어야 합니다",
+  { level: 5, credits: 500, minPayments: 1, minPaidKrw: 3000 },
+  "Lv.5 보상은 500 월정석(=5,000원) / 결제 1회 · 3,000원이어야 합니다",
 );
 assert.deepEqual(
   rewardRows.find((r) => r.level === 99),
-  { level: 99, credits: 5000 },
-  "Lv.99 보상은 5,000 월정석(=50,000원)이어야 합니다",
+  { level: 99, credits: 5000, minPayments: 30, minPaidKrw: 200000 },
+  "Lv.99 보상은 5,000 월정석(=50,000원) / 결제 30회 · 200,000원이어야 합니다",
 );
+/* 🔴 정산 루프가 첫 미달에서 break 하므로, 요구 실적이 레벨 순서로 단조 증가하지 않으면
+   뒤쪽의 더 느슨한 단계가 영영 안 나간다. */
+for (let i = 1; i < rewardRows.length; i += 1) {
+  assert.ok(rewardRows[i].level > rewardRows[i - 1].level, "마일스톤 레벨이 오름차순이 아닙니다");
+  assert.ok(
+    rewardRows[i].minPayments >= rewardRows[i - 1].minPayments
+      && rewardRows[i].minPaidKrw >= rewardRows[i - 1].minPaidKrw,
+    `요구 결제 실적이 단조 증가하지 않습니다 (Lv.${rewardRows[i].level})`,
+  );
+}
 // 월정석 1개 = 10원 (KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)
 const billingPolicySource = readFileSync(`${root}/worker/lib/billing-policy.js`, "utf8");
 assert.ok(billingPolicySource.includes("KRW_PER_COIN = 100"), "코인 환산 상수가 바뀌었습니다");
@@ -276,37 +292,71 @@ assert.ok(
   "누적 지급 상한이 합계와 어긋납니다",
 );
 
-// 지급 조건(결제 이력 + 가입 14일)이 지급보다 앞에 있어야 한다
+// 지급 조건(단계별 결제 실적 + 가입 14일)이 지급보다 앞에 있어야 한다
 const settleBody = workerSource.slice(
   workerSource.indexOf("async function settleLevelMonthlyCreditRewards"),
   workerSource.indexOf("async function ensureRpgIndexes"),
 );
-assert.ok(settleBody.includes("isEligibleForLevelReward"), "지급 자격 검사가 없습니다");
+assert.ok(settleBody.includes("resolveLevelRewardStats"), "지급 실적 집계가 없습니다");
+assert.ok(settleBody.includes("meetsLevelRewardRequirement"), "단계별 요구 실적 판정이 없습니다");
 assert.ok(
-  settleBody.indexOf("isEligibleForLevelReward") < settleBody.indexOf("grantMonthlyCreditLot"),
-  "자격 검사가 지급보다 뒤에 있습니다",
+  settleBody.indexOf("meetsLevelRewardRequirement") < settleBody.indexOf("grantMonthlyCreditLot"),
+  "단계 조건 검사가 지급보다 뒤에 있습니다",
 );
 assert.ok(workerSource.includes("LEVEL_REWARD_MIN_ACCOUNT_AGE_MS = 14 * 24 * 60 * 60 * 1000"), "가입 14일 조건 누락");
-assert.ok(workerSource.includes("Payment.countDocuments"), "결제 이력 조건 누락");
+// 🔴 예전 구현은 countDocuments(...).limit(1) 이라 결제 횟수가 1에서 잘렸다 — 단계별 조건이 무의미해진다.
+assert.ok(!workerSource.includes("Payment.countDocuments"), "결제 실적을 다시 countDocuments 로 세고 있습니다(횟수가 잘립니다)");
+const statsBody = workerSource.slice(
+  workerSource.indexOf("async function resolveLevelRewardStats"),
+  workerSource.indexOf("function meetsLevelRewardRequirement"),
+);
+assert.ok(statsBody.includes("Payment.find("), "결제 실적 집계가 실제 문서를 읽지 않습니다");
+assert.ok(statsBody.includes("LEVEL_REWARD_PAYMENT_SCAN_LIMIT"), "결제 실적 집계에 비용 상한이 없습니다");
+assert.ok(statsBody.includes("amount <= 0"), "0원 결제를 실적에서 걸러내지 않습니다");
+assert.ok(statsBody.includes("LEVEL_REWARD_NON_CASH_METHODS"), "비현금 결제 제외가 없습니다");
+/* 🔴 월정석으로 이용권을 사도 Payment 문서가 생긴다(payments.js). 이걸 실적으로 세면
+   "보상 월정석 → 이용권 구매 → 다음 보상 개방" 순환 파밍이 성립한다. */
+assert.match(
+  workerSource,
+  /LEVEL_REWARD_NON_CASH_METHODS\s*=\s*\[[^\]]*"monthly_credit"/,
+  "월정석 결제가 실적 제외 목록에 없습니다(순환 파밍 가능)",
+);
+const meetsBody = workerSource.slice(
+  workerSource.indexOf("function meetsLevelRewardRequirement"),
+  workerSource.indexOf("function meetsLevelRewardRequirement") + 400,
+);
+for (const marker of ["accountAgeOk", "minPayments", "minPaidKrw"]) {
+  assert.ok(meetsBody.includes(marker), `단계 조건 판정에 ${marker} 가 없습니다`);
+}
 // 월정석은 오직 이 한 통로로만 나가야 한다
 assert.ok(
   (workerSource.match(/grantMonthlyCreditLot\(/g) || []).length === 1,
   "월정석 지급 호출이 여러 곳입니다",
 );
 assert.ok(!workerSource.includes("consumeMonthlyCreditLots"), "RPG 라우트가 월정석 차감을 건드립니다");
-console.log(`[14] 마일스톤 보상 표(합계 ${totalCredits.toLocaleString()} 월정석 = ${(totalCredits * 10).toLocaleString()}원)·조건·상한 OK`);
+console.log(
+  `[14] 마일스톤 보상 표(합계 ${totalCredits.toLocaleString()} 월정석 = ${(totalCredits * 10).toLocaleString()}원)`
+  + ` / 최종 요구 결제 ${rewardRows[rewardRows.length - 1].minPayments}회 · `
+  + `${rewardRows[rewardRows.length - 1].minPaidKrw.toLocaleString()}원 · 조건·상한 OK`,
+);
 
 // [15] 클라 보상표는 서버 표의 사본이다. 한쪽만 바꾸면 사용자에게 거짓 금액을 보여준다.
 const clientRewardTable = source.slice(
   source.indexOf("var CD_LEVEL_REWARD_TABLE"),
   source.indexOf("var CD_LEVEL_REWARD_KRW_PER_CREDIT"),
 );
-const clientRewardRows = Array.from(clientRewardTable.matchAll(/level:\s*(\d+),\s*credits:\s*(\d+)/g))
-  .map((m) => ({ level: Number(m[1]), credits: Number(m[2]) }));
+const clientRewardRows = Array.from(
+  clientRewardTable.matchAll(/level:\s*(\d+),\s*credits:\s*(\d+),\s*payments:\s*(\d+),\s*krw:\s*(\d+)/g),
+).map((m) => ({
+  level: Number(m[1]),
+  credits: Number(m[2]),
+  minPayments: Number(m[3]),
+  minPaidKrw: Number(m[4]),
+}));
 assert.deepEqual(
   clientRewardRows,
   rewardRows,
-  "클라(CD_LEVEL_REWARD_TABLE)와 서버(LEVEL_MONTHLY_CREDIT_REWARDS) 보상표가 다릅니다",
+  "클라(CD_LEVEL_REWARD_TABLE)와 서버(LEVEL_MONTHLY_CREDIT_REWARDS) 보상표·요구 실적이 다릅니다",
 );
 assert.ok(source.includes("CD_LEVEL_REWARD_KRW_PER_CREDIT = 10"), "클라 월정석 환산 상수가 서버와 다릅니다");
 const lotsSource = readFileSync(`${root}/worker/lib/monthly-credit-lots.js`, "utf8");
@@ -328,7 +378,18 @@ assert.ok(
 );
 // 수령 조건은 사용자에게 그대로 노출한다
 assert.ok(source.includes("가입 후 14일"), "수령 조건(가입 14일) 안내가 없습니다");
-assert.ok(source.includes("결제 이력이 1회 이상"), "수령 조건(결제 이력) 안내가 없습니다");
+assert.ok(
+  source.includes("누적 결제 횟수와 금액이 함께 올라갑니다"),
+  "단계별 결제 조건 안내가 없습니다",
+);
+assert.ok(
+  source.includes("월정석·이용권으로 이용한 건은 결제 실적에 포함되지 않아요"),
+  "비현금 결제 제외 고지가 없습니다",
+);
+// 각 단계 행이 요구 실적과 내 진행도를 보여줘야 한다
+assert.ok(source.includes("dp-lvlrw__req"), "시트 행에 단계별 요구 실적이 없습니다");
+assert.ok(source.includes("function _dpBuildLevelRewardProgress"), "내 결제 실적 표시가 없습니다");
+assert.ok(source.includes("dp-lvlrw__mine"), "내 결제 실적 줄의 스타일 훅이 없습니다");
 // 시트 진입 없이 홈에서 보상 상태를 자동 조회하면 트래픽 1위 화면에 왕복이 얹힌다
 const rewardStatusCalls = (source.match(/'\/api\/rpg\/level-rewards'/g) || []).length;
 assert.equal(rewardStatusCalls, 1, "레벨 보상 상태 조회 호출부가 1곳(시트 열람)이 아닙니다");
@@ -372,6 +433,10 @@ assert.equal(
 );
 assert.ok(sheet.textContent.includes("월정석 500개"), "시트에 보상 금액이 안 보입니다");
 assert.ok(sheet.textContent.includes("30일 뒤 소멸"), "시트에 소멸 안내가 없습니다");
+// 단계별 요구 실적이 각 행에 실제로 렌더돼야 한다
+assert.ok(sheet.textContent.includes("결제 1회 · 3,000원"), "Lv.5 요구 실적이 안 보입니다");
+assert.ok(sheet.textContent.includes("결제 30회 · 200,000원"), "Lv.99 요구 실적이 안 보입니다");
+assert.equal(sheet.querySelectorAll(".dp-lvlrw__req").length, 7, "요구 실적 줄이 모든 단계에 없습니다");
 CDLevel.openRewardSheet(); // 이중 오픈 방지
 assert.equal(window.document.querySelectorAll(".dp-lvlrw").length, 1, "보상 시트가 중복으로 열립니다");
 sheet.querySelector("[data-dp-lvlrw-close]").click();

@@ -5585,15 +5585,16 @@
   /* 레벨 마일스톤 월정석 보상표. 서버 worker/routes/rpg.js의 LEVEL_MONTHLY_CREDIT_REWARDS와
      같은 값이어야 하며, 값 일치는 scripts/verify-profile-card-level.mjs가 행 단위로 강제한다.
      서버에 물어보지 않아도(비로그인·오프라인·503) "다음 보상"을 그릴 수 있어야 해서 사본을 둔다 —
-     레벨 곡선 상수를 이중으로 두는 것과 같은 이유다. 실제 지급 판단은 언제나 서버가 한다. */
+     레벨 곡선 상수를 이중으로 두는 것과 같은 이유다. 실제 지급 판단은 언제나 서버가 한다.
+     payments/krw = 그 단계를 받는 데 필요한 누적 현금 결제 횟수·금액(단계가 올라갈수록 함께 오른다). */
   var CD_LEVEL_REWARD_TABLE = [
-    { level: 5,  credits: 500 },
-    { level: 10, credits: 500 },
-    { level: 20, credits: 700 },
-    { level: 30, credits: 800 },
-    { level: 50, credits: 1000 },
-    { level: 70, credits: 1500 },
-    { level: 99, credits: 5000 }
+    { level: 5,  credits: 500,  payments: 1,  krw: 3000 },
+    { level: 10, credits: 500,  payments: 2,  krw: 8000 },
+    { level: 20, credits: 700,  payments: 4,  krw: 20000 },
+    { level: 30, credits: 800,  payments: 6,  krw: 35000 },
+    { level: 50, credits: 1000, payments: 10, krw: 60000 },
+    { level: 70, credits: 1500, payments: 15, krw: 100000 },
+    { level: 99, credits: 5000, payments: 30, krw: 200000 }
   ];
   // 월정석 1개 = 10원 (KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)
   var CD_LEVEL_REWARD_KRW_PER_CREDIT = 10;
@@ -6071,7 +6072,9 @@
       + '.dp-lvlrw__title{margin:0;font-size:1.02rem;font-weight:900;letter-spacing:.01em;color:#fff;}'
       + '.dp-lvlrw__sub{margin:6px 0 0;font-size:.74rem;line-height:1.6;color:rgba(221,214,254,.82);}'
       + '.dp-lvlrw__close{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e9e4ff;font-size:1rem;font-weight:800;line-height:1;cursor:pointer;touch-action:manipulation;}'
-      + '.dp-lvlrw__list{display:grid;gap:7px;margin-top:15px;}'
+      + '.dp-lvlrw__mine{margin-top:14px;padding:9px 12px;border-radius:10px;border:1px solid rgba(196,181,253,.28);background:rgba(196,181,253,.10);font-size:.72rem;font-weight:700;color:rgba(233,228,255,.9);}'
+      + '.dp-lvlrw__mine b{color:#FFD700;font-weight:900;}'
+      + '.dp-lvlrw__list{display:grid;gap:7px;margin-top:11px;}'
       + '.dp-lvlrw__row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.04);}'
       + '.dp-lvlrw__row--done{border-color:rgba(134,239,172,.34);background:rgba(134,239,172,.09);}'
       + '.dp-lvlrw__row--next{border-color:rgba(255,215,0,.44);background:rgba(255,215,0,.10);}'
@@ -6079,7 +6082,9 @@
       + '.dp-lvlrw__row--done .dp-lvlrw__lv{color:rgba(187,247,208,.95);}'
       + '.dp-lvlrw__amt{font-size:.76rem;font-weight:800;color:#efeaff;}'
       + '.dp-lvlrw__krw{display:block;margin-top:2px;font-size:.64rem;font-weight:700;color:rgba(203,213,225,.66);}'
-      + '.dp-lvlrw__state{margin-left:auto;flex-shrink:0;font-size:.66rem;font-weight:800;color:rgba(221,214,254,.72);}'
+      + '.dp-lvlrw__right{margin-left:auto;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}'
+      + '.dp-lvlrw__state{font-size:.66rem;font-weight:800;color:rgba(221,214,254,.72);white-space:nowrap;}'
+      + '.dp-lvlrw__req{font-size:.6rem;font-weight:700;color:rgba(203,213,225,.58);white-space:nowrap;}'
       + '.dp-lvlrw__row--done .dp-lvlrw__state{color:#86efac;}'
       + '.dp-lvlrw__row--next .dp-lvlrw__state{color:#FFD700;}'
       + '.dp-lvlrw__terms{margin:14px 0 0;padding:12px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);}'
@@ -6217,6 +6222,19 @@
     return (credits * CD_LEVEL_REWARD_KRW_PER_CREDIT).toLocaleString('ko-KR');
   }
 
+  function _dpLevelRewardWon(amount) {
+    return (Number(amount) || 0).toLocaleString('ko-KR') + '원';
+  }
+
+  /* 내 결제 실적 한 줄. 서버가 준 값이 없으면(비로그인·degraded) 아예 그리지 않는다 —
+     0으로 보여주면 "결제했는데 0으로 나온다"는 오해가 생긴다. */
+  function _dpBuildLevelRewardProgress(status) {
+    if (!status || status.degraded === true || typeof status.paymentCount !== 'number') return '';
+    var note = status.accountAgeOk === false ? ' · 가입 14일 경과 대기' : '';
+    return '<div class="dp-lvlrw__mine">내 결제 실적 · <b>' + status.paymentCount.toLocaleString('ko-KR') + '회</b>'
+      + ' · <b>' + _dpLevelRewardWon(status.paidKrw) + '</b>' + note + '</div>';
+  }
+
   /* 로컬 표만으로 그리는 기본형. 서버 상태를 못 받아도 시트가 비지 않게 하는 것이 목적이다. */
   function _dpBuildLevelRewardRows(status, currentLevel) {
     var granted = {};
@@ -6229,6 +6247,7 @@
       for (i = 0; i < status.claimableLevels.length; i += 1) claimable[Number(status.claimableLevels[i])] = true;
     }
     var unknown = !status || status.degraded === true;
+    var hasStats = !unknown && typeof status.paymentCount === 'number';
     var nextMarked = false;
 
     return CD_LEVEL_REWARD_TABLE.map(function(row) {
@@ -6241,7 +6260,15 @@
         state = currentLevel >= row.level ? '도달' : 'Lv.' + row.level + ' 필요';
       } else if (claimable[row.level]) {
         cls += ' dp-lvlrw__row--next';
-        state = status.eligible === false ? '조건 대기' : '수령 대기';
+        state = '수령 대기';
+      } else if (currentLevel >= row.level && hasStats) {
+        /* 레벨은 도달했는데 결제 실적이 모자란 단계. 무엇이 얼마나 남았는지 그대로 보여준다. */
+        cls += ' dp-lvlrw__row--next';
+        state = status.accountAgeOk === false
+          ? '가입 14일 대기'
+          : (status.paymentCount < row.payments
+            ? '결제 ' + status.paymentCount + '/' + row.payments + '회'
+            : '누적 ' + Math.round(status.paidKrw / 1000) + '/' + Math.round(row.krw / 1000) + '천원');
       } else if (!nextMarked) {
         nextMarked = true;
         cls += ' dp-lvlrw__row--next';
@@ -6249,12 +6276,16 @@
       } else {
         state = '잠김';
       }
+      /* 요구 실적을 보상 밑에 붙이면 줄이 넘쳐 행이 3줄로 깨진다. 오른쪽 열에 상태와 세로로 쌓는다. */
       return '<div class="' + cls + '">'
         + '<span class="dp-lvlrw__lv">Lv.' + row.level + '</span>'
         + '<span class="dp-lvlrw__amt">월정석 ' + row.credits.toLocaleString('ko-KR') + '개'
           + '<span class="dp-lvlrw__krw">' + _dpLevelRewardKrw(row.credits) + '원 상당</span>'
         + '</span>'
-        + '<span class="dp-lvlrw__state">' + state + '</span>'
+        + '<span class="dp-lvlrw__right">'
+          + '<span class="dp-lvlrw__state">' + state + '</span>'
+          + '<span class="dp-lvlrw__req">결제 ' + row.payments + '회 · ' + _dpLevelRewardWon(row.krw) + '</span>'
+        + '</span>'
       + '</div>';
     }).join('');
   }
@@ -6272,31 +6303,38 @@
 
     function render(status) {
       var claimCount = (status && Array.isArray(status.claimableLevels)) ? status.claimableLevels.length : 0;
-      var canClaim = claimCount > 0 && status && status.eligible === true;
+      var pendingCount = (status && Array.isArray(status.pendingLevels)) ? status.pendingLevels.length : 0;
       var loadFailed = !!(status && status.degraded);
       overlay.innerHTML = '<div class="dp-lvlrw__card">'
         + '<div class="dp-lvlrw__head">'
           + '<div>'
             + '<h3 class="dp-lvlrw__title">🌙 레벨 보상</h3>'
-            + '<p class="dp-lvlrw__sub">프로필 카드 레벨이 아래 단계에 도달하면 월정석을 드립니다.'
+            + '<p class="dp-lvlrw__sub">레벨이 아래 단계에 도달하고 그 단계의 결제 실적을 채우면 월정석을 드립니다.'
               + (loadFailed ? '<br><b>수령 상태를 불러오지 못했어요.</b> 보상표만 표시합니다.' : '')
               + (snap.loggedIn ? '' : '<br>로그인하면 내 수령 상태까지 함께 보여드려요.')
             + '</p>'
           + '</div>'
           + '<button type="button" class="dp-lvlrw__close" data-dp-lvlrw-close aria-label="닫기">✕</button>'
         + '</div>'
-        + '<div class="dp-lvlrw__list">' + _dpBuildLevelRewardRows(status, snap.currentLevel) + '</div>'
+        + _dpBuildLevelRewardProgress(status)
+        /* 레벨은 서버 값이 정본이다. 로컬 스냅샷을 쓰면 서버가 이미 도달로 보는 단계를
+           "다음 목표"로 잘못 표시해, 왜 못 받는지(=결제 실적 부족)를 못 보여준다. */
+        + '<div class="dp-lvlrw__list">'
+          + _dpBuildLevelRewardRows(status, (status && Number(status.currentLevel)) || snap.currentLevel)
+        + '</div>'
         + '<ul class="dp-lvlrw__terms">'
-          + '<li>가입 후 14일이 지나고 결제 이력이 1회 이상이면 수령할 수 있어요.</li>'
+          + '<li>가입 후 14일이 지나야 수령할 수 있어요.</li>'
+          + '<li>단계가 올라갈수록 필요한 누적 결제 횟수와 금액이 함께 올라갑니다.</li>'
+          + '<li>월정석·이용권으로 이용한 건은 결제 실적에 포함되지 않아요.</li>'
           + '<li>조건을 아직 못 채웠어도 보상은 사라지지 않아요 — 조건을 채우면 그동안 밀린 보상이 한 번에 지급됩니다.</li>'
           + '<li>지급된 월정석은 받은 날부터 ' + CD_LEVEL_REWARD_EXPIRE_DAYS + '일 뒤 소멸합니다.</li>'
           + '<li>월정석은 이벤트성 선불 재화로, 유료 기능 이용에 쓸 수 있어요.</li>'
         + '</ul>'
         + (claimCount
-          ? '<button type="button" class="dp-lvlrw__claim" data-dp-lvlrw-claim' + (canClaim ? '' : ' disabled') + '>'
-            + (canClaim ? '밀린 보상 ' + claimCount + '건 받기' : '수령 조건을 채우면 자동으로 지급됩니다')
-            + '</button>'
-          : '')
+          ? '<button type="button" class="dp-lvlrw__claim" data-dp-lvlrw-claim>밀린 보상 ' + claimCount + '건 받기</button>'
+          : (pendingCount
+            ? '<button type="button" class="dp-lvlrw__claim" disabled>조건을 채우면 밀린 ' + pendingCount + '건이 한 번에 지급됩니다</button>'
+            : ''))
       + '</div>';
     }
 
