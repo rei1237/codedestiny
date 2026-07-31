@@ -47,7 +47,7 @@ function clean(value, maxLength = 0) {
 
 function safeJson(value) {
   try {
-    return JSON.stringify(value, null, 2);
+    return JSON.stringify(value);
   } catch (_) {
     return "{}";
   }

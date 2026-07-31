@@ -204,13 +204,25 @@ function assertNeverThrows(feature, label, run) {
       assert(Array.isArray(issues), `${feature}: 품질 이슈가 배열이 아님`);
     });
   }
-  assertBudget(feature, {
-    minChars: ASTROLOGY_AI_MIN_RESULT_CHARS,
-    maxChars: ASTROLOGY_AI_MAX_RESULT_CHARS,
-    maxOutputTokens: 33000,
-    tokenConstantName: "ASTROLOGY_AI_MAX_OUTPUT_TOKENS",
-    sourcePath: "worker/routes/astrology-ai.js",
-  });
+  // 점성술은 첫 상담을 섹션으로 나눠 쓴다 — 예산 단위가 "상담 전체"가 아니라 "섹션 하나"다.
+  // 그래서 전체 분량이 아니라 각 섹션의 목표 대비 토큰 여유를 본다.
+  // (섹션 합이 전체 게이트와 맞는지는 verify:astrology-sectioned 가 따로 단언한다.)
+  const { ASTROLOGY_SECTIONS } = __astrologyAiTestUtils;
+  assert(Array.isArray(ASTROLOGY_SECTIONS) && ASTROLOGY_SECTIONS.length > 0, `${feature}: 섹션 정의가 없다`);
+  for (const section of ASTROLOGY_SECTIONS) {
+    assertBudget(`${feature}:${section.key}`, {
+      minChars: section.minChars,
+      maxChars: section.maxChars,
+      maxOutputTokens: 9600,
+      tokenConstantName: "ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/routes/astrology-ai.js",
+    });
+  }
+  // 섹션 합이 전체 요구 분량을 덮는지 — 섹션을 줄이다 전체 하한이 깨지는 회귀를 막는다.
+  const sectionMinTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
+  const sectionMaxTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.maxChars, 0);
+  assert(sectionMinTotal >= ASTROLOGY_AI_MIN_RESULT_CHARS, `${feature}: 섹션 minChars 합 ${sectionMinTotal} < 전체 하한 ${ASTROLOGY_AI_MIN_RESULT_CHARS}`);
+  assert(sectionMaxTotal <= ASTROLOGY_AI_MAX_RESULT_CHARS, `${feature}: 섹션 maxChars 합 ${sectionMaxTotal} > 전체 상한 ${ASTROLOGY_AI_MAX_RESULT_CHARS}`);
 }
 
 // ── 4. 숙요 궁합 ──────────────────────────────────────

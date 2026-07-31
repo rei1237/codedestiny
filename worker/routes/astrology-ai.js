@@ -23,7 +23,7 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
-import { buildEvidenceRuleLines, buildReasoningFormatLines } from "../lib/fortune-reasoning-contract.js";
+import { buildEvidenceRuleLines, getReasoningSectionSpec } from "../lib/fortune-reasoning-contract.js";
 import {
   completeServiceExecution,
   failServiceExecution,
@@ -879,12 +879,61 @@ function buildSystemPrompt() {
   ].join("\n");
 }
 
-function buildFirstPrompt(input, chart) {
+/**
+ * 첫 상담을 나눠 쓰는 단위.
+ *
+ * 🔴 한 번의 호출로 1만~2만자를 요구하면 모델이 6천자 근처에서 스스로 멈춰,
+ *    초안 전체를 다시 입력에 넣고 처음부터 다시 쓰는 expand 호출이 상시 발동했다
+ *    (출력이 2~3배). 섹션당 목표를 모델이 한 번에 채우는 크기로 낮추면 그 고리가 사라진다.
+ *
+ * minChars 합계 10,800 ≥ ASTROLOGY_AI_MIN_RESULT_CHARS(10,000),
+ * maxChars 합계 17,200 ≤ ASTROLOGY_AI_MAX_RESULT_CHARS(20,000) 로 잡아
+ * 조립 결과가 기존 품질 게이트를 그대로 통과하게 한다.
+ * expertParts 는 ASTROLOGY_EXPERT_PARTS 를 빠짐없이 덮고(6/6),
+ * reasoningKeys 는 다섯 흐름을 순서대로 나눠 갖는다.
+ */
+const ASTROLOGY_SECTIONS = Object.freeze([
+  {
+    key: "opening_core",
+    label: "질문에 대한 답과 태양·달·상승궁의 중심축",
+    minChars: 2600,
+    maxChars: 4200,
+    reasoningKeys: ["structure_core"],
+    expertParts: ["core_identity"],
+    guide: "사용자의 현재 질문에 첫 문단에서 바로 답한 뒤, 태양·달·상승궁이 만드는 중심축과 그 축이 삶에서 반복시키는 장면을 풀어 주세요. 출생시간 미상이면 상승궁과 하우스는 확정하지 말고 제한적 해석임을 밝히세요.",
+  },
+  {
+    key: "personal_growth",
+    label: "개인 행성의 생활 패턴과 목성·토성의 성장 과제",
+    minChars: 2600,
+    maxChars: 4200,
+    reasoningKeys: ["influence_factors"],
+    expertParts: ["personal_planets", "growth_planets"],
+    guide: "수성·금성·화성이 만드는 생각·애정·추진 방식의 생활 패턴을 구체적 장면으로 보여 주고, 목성·토성이 요구하는 성장 과제와 그 과제가 지금 어떤 형태로 오는지 이어 주세요.",
+  },
+  {
+    key: "evidence_domains",
+    label: "각도·원소·모드 균형과 분야별 해석",
+    minChars: 3000,
+    maxChars: 4600,
+    reasoningKeys: ["evidence_basis", "domain_matrix"],
+    expertParts: ["aspects_balance"],
+    guide: "주요 각도와 원소·모드 균형을 해석 근거로 명확히 밝히고, 그 근거 위에서 분야별 분석을 이어 주세요. 계산 데이터에 없는 각도는 지어내지 말고, 없으면 행성 배치와 원소 균형 중심으로 이어가세요.",
+  },
+  {
+    key: "timing_action",
+    label: "하우스·트랜짓의 시기감과 실천 처방",
+    minChars: 2600,
+    maxChars: 4200,
+    reasoningKeys: ["action_plan"],
+    expertParts: ["houses_timing", "topic_practice"],
+    guide: "하우스 또는 현재 트랜짓이 주는 시기감을 짚고, 상담 주제에 맞는 선택 기준과 실천 루틴으로 좁혀 주세요. 마무리는 오늘 바로 해볼 수 있는 작은 행동과 2주 안에 점검할 선택 기준으로 닫아 주세요.",
+  },
+]);
+
+// 사용자 입력 + 차트 데이터. 전체 프롬프트와 섹션 프롬프트가 같은 근거를 보도록 한 곳에서 만든다.
+function buildSharedContextLines(input, chart) {
   return [
-    "아래 사용자의 입력과 서버에서 계산된 서양 점성술 차트 데이터만 근거로 첫 상담 답변을 작성하세요.",
-    "첫 문단에서 사용자의 현재 질문에 바로 닿는 답을 먼저 말하고, 이후 차트 근거를 따라 깊이를 넓혀 주세요.",
-    "행성 이름을 나열하는 대신 차트의 긴장, 재능, 반복 패턴, 현실 조언을 상담형 문장으로 풀어 주세요.",
-    "",
     "[사용자 입력]",
     `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
     `성별: ${input.birthInfo.gender}`,
@@ -895,24 +944,8 @@ function buildFirstPrompt(input, chart) {
     input.userQuestion ? `현재 가장 궁금한 질문: ${input.userQuestion}` : "",
     "",
     "[계산된 차트 데이터]",
-    JSON.stringify(chart, null, 2),
-    "",
-    `첫 답변은 전체 본문 기준 공백 제외 ${ASTROLOGY_AI_MIN_RESULT_CHARS.toLocaleString("ko-KR")}자 이상 ${ASTROLOGY_AI_MAX_RESULT_CHARS.toLocaleString("ko-KR")}자 이하로 충분히 깊게 작성하세요.`,
-    "섹션 제목은 자연스러운 상담 제목으로 쓰고, 각 섹션은 서로 다른 정보 가치를 가져야 합니다.",
-    "반드시 사용자의 현재 질문에 먼저 답하고, 그 답의 근거를 계산된 차트 흐름에서 이어 주세요.",
-    "차트 근거를 말할 때는 '이 배치는 이런 성향입니다'에서 멈추지 말고, 사용자가 실제로 겪을 수 있는 장면과 선택 기준까지 연결하세요.",
-    "태양·달·상승궁, 수성·금성·화성, 목성·토성, 천왕성·해왕성·명왕성, 원소와 모드, 주요 각도, 하우스, 현재 트랜짓, 상담 주제별 맞춤 해석, 이번 달 실천 조언, 피해야 할 패턴, 따뜻한 마무리를 자연스럽게 포함하세요.",
-    "분량이 부족해 보이면 앞 문장을 반복하지 말고, 태양·달·상승궁의 중심축, 개인 행성의 생활 패턴, 목성·토성의 성장 과제, 주요 각도와 원소·모드 균형, 하우스 또는 현재 트랜짓의 시기감, 상담 주제별 선택 기준과 실천 루틴 중 빠진 흐름을 새로 보강하세요.",
-    "주요 각도와 트랜짓은 계산 데이터에 있는 것만 사용하고, 없다면 없다고 말하지 말고 행성 배치와 원소 균형 중심으로 상담을 이어가세요.",
-    "출생시간 미상인 경우 상승궁과 하우스는 확정하지 말고 제한적 해석임을 분명히 밝히세요.",
-    "마무리는 사용자가 오늘 바로 해볼 수 있는 작은 행동과, 2주 안에 점검할 선택 기준으로 닫아 주세요.",
-    "",
-    // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
-    ...buildEvidenceRuleLines(buildAstrologyAnalysisBasis(chart)),
-    "",
-    "[반드시 포함할 근거 중심 흐름 — 아래 제목을 그대로 소제목으로 써 주세요]",
-    ...buildReasoningFormatLines(1),
-  ].filter(Boolean).join("\n");
+    JSON.stringify(chart),
+  ];
 }
 
 function buildFollowUpPrompt(consultation, message) {
@@ -927,10 +960,12 @@ function buildFollowUpPrompt(consultation, message) {
     consultation.topic,
     "",
     "[차트 데이터]",
-    JSON.stringify(consultation.astrologyChart || {}, null, 2),
+    JSON.stringify(consultation.astrologyChart || {}),
     "",
     "[최근 대화]",
-    ...recent.map((item) => `${item.role === "assistant" ? "상담가" : "사용자"}: ${item.content}`),
+    // 클립이 없으면 assistant 메시지 8개(각 1만~2만자)가 그대로 실려 한 턴에 16만자까지 간다.
+    // 형제 라우트(ziwei-ai·karma-destiny-ai·sukuyo-compatibility-ai)와 같은 1,400자 상한을 쓴다.
+    ...recent.map((item) => `${item.role === "assistant" ? "상담가" : "사용자"}: ${clean(item.content, 1400)}`),
     "",
     `[추가 질문]\n${message}`,
   ].join("\n");
@@ -1030,6 +1065,137 @@ function sanitizeConsultationText(text) {
     result = result.replace(pattern, "");
   });
   return result.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function buildSectionPrompt(input, chart, section, repairLines = []) {
+  const reasoningLines = section.reasoningKeys
+    .map((key) => getReasoningSectionSpec(key))
+    .filter(Boolean)
+    .map((spec) => `- ${spec.title}: ${spec.guide} (최소 ${spec.minChars.toLocaleString("ko-KR")}자)`);
+
+  return [
+    "아래 사용자의 입력과 서버에서 계산된 서양 점성술 차트 데이터만 근거로, 긴 상담문 중 **지정된 한 부분만** 작성하세요.",
+    "이 글은 다른 부분과 이어 붙여 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 말고 지정된 부분의 본문만 쓰세요.",
+    "행성 이름을 나열하는 대신 차트의 긴장, 재능, 반복 패턴, 현실 조언을 상담형 문장으로 풀어 주세요.",
+    "",
+    ...buildSharedContextLines(input, chart),
+    "",
+    `[이번에 쓸 부분] ${section.label}`,
+    section.guide,
+    `이 부분만으로 공백 제외 ${section.minChars.toLocaleString("ko-KR")}자 이상 ${section.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    "분량을 채우려고 같은 문장을 반복하지 말고, 새로 짚을 장면과 판단 기준을 더하세요.",
+    "도구명, 작성 지시, 내부 절차, 진행 상태처럼 상담의 바깥을 드러내는 표현은 쓰지 마세요.",
+    reasoningLines.length ? "" : "",
+    reasoningLines.length ? "[이 부분에 반드시 담을 근거 흐름 — 아래 제목을 그대로 소제목으로 써 주세요]" : "",
+    ...reasoningLines,
+    "",
+    ...buildEvidenceRuleLines(buildAstrologyAnalysisBasis(chart)),
+    ...(repairLines.length ? ["", "[보강 요청]", ...repairLines] : []),
+  ].filter(Boolean).join("\n");
+}
+
+/**
+ * 섹션을 나눠 병렬 생성하고 하나의 상담문으로 조립한다.
+ *
+ * 반환 형태는 generateConsultation 과 같다({content, provider, model, quality}) —
+ * 저장·렌더 경로가 산문 한 덩어리를 기대하므로 출력 계약을 바꾸지 않는다.
+ * 분량 미달은 전체 재생성이 아니라 **모자란 섹션만** 다시 쓴다.
+ */
+async function generateSectionedConsultation(env, input, chart, options = {}) {
+  const minLength = Math.max(0, Math.floor(Number(options.minLength || 0)));
+  const maxLength = Math.max(0, Math.floor(Number(options.maxLength || 0)));
+  const timeoutMs = clampSyncLlmTimeoutMs(Number(env.ASTROLOGY_AI_TIMEOUT_MS));
+  const sectionMaxOutputTokens = Number(options.sectionMaxOutputTokens || env.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS || 9600);
+  const astrologyLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "astrology-ai-sectioned-v1",
+  };
+
+  const runSection = async (section, repairLines, attempt) => {
+    const ai = await callGeminiText(env, buildSectionPrompt(input, chart, section, repairLines), {
+      systemPrompt: await resolveSystemPrompt(env),
+      taskType: "fortune",
+      temperature: options.temperature ?? 0.72,
+      maxOutputTokens: sectionMaxOutputTokens,
+      timeoutMs,
+      fallbackToWorkersAI: options.fallbackToWorkersAI,
+      // 섹션 단위 문턱 — 전체 목표가 아니라 이 섹션 목표의 40%.
+      fallbackMinChars: Math.round(section.minChars * 0.4),
+      cache: { ...astrologyLlmCache, keyExtra: `${astrologyLlmCache.keyExtra}-${section.key}-a${attempt}` },
+    });
+    const provider = clean(ai?.provider || "");
+    const model = clean(ai?.model || "");
+    if (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) {
+      const error = new Error(LLM_ERROR_MESSAGE);
+      error.code = "MOCK_PROVIDER_BLOCKED";
+      error.status = 503;
+      throw error;
+    }
+    return { section, ok: ai?.ok === true, text: sanitizeConsultationText(ai?.text || ""), provider, model };
+  };
+
+  // 웨이브 1 — 전 섹션 동시 생성. 벽시계는 섹션 시간의 합이 아니라 가장 느린 섹션 하나.
+  let results = await Promise.all(ASTROLOGY_SECTIONS.map((section) => runSection(section, [], 0)));
+
+  // 웨이브 2 — 모자란 섹션만 다시 쓴다(전체 재생성 금지).
+  const shortfall = results.filter((row) => !row.ok || countConsultationChars(row.text) < row.section.minChars);
+  if (shortfall.length) {
+    const repaired = await Promise.all(shortfall.map((row) => runSection(
+      row.section,
+      [
+        `현재 이 부분은 공백 제외 ${countConsultationChars(row.text).toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
+        `${row.section.minChars.toLocaleString("ko-KR")}자 이상이 되도록 빠진 장면과 판단 기준을 새로 더해 다시 쓰세요.`,
+      ],
+      1,
+    ).catch(() => null)));
+    for (const candidate of repaired) {
+      if (!candidate?.ok || !candidate.text) continue;
+      const index = results.findIndex((row) => row.section.key === candidate.section.key);
+      // 더 길어졌을 때만 채택한다 — 재시도가 더 짧아지는 경우가 있다.
+      if (index >= 0 && countConsultationChars(candidate.text) > countConsultationChars(results[index].text)) {
+        results[index] = candidate;
+      }
+    }
+  }
+
+  const usable = results.filter((row) => row.text);
+  const content = usable.map((row) => row.text).join("\n\n");
+  const finalProvider = usable.find((row) => row.provider)?.provider || "";
+  const finalModel = usable.find((row) => row.model)?.model || "";
+
+  if (!content) {
+    console.error("[AstrologyAI] sectioned generation empty result", { sections: results.length });
+    const error = new Error(LLM_ERROR_MESSAGE);
+    error.code = "LLM_FAILED";
+    error.status = 503;
+    throw error;
+  }
+
+  const qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
+  const charCount = countConsultationChars(content);
+  if (qualityIssues.length) {
+    console.error("[AstrologyAI] sectioned generation quality check failed", {
+      provider: finalProvider,
+      model: finalModel,
+      charCount,
+      minLength,
+      maxLength,
+      issues: qualityIssues,
+      sectionChars: results.map((row) => `${row.section.key}:${countConsultationChars(row.text)}`),
+    });
+    // 경량 보장 계약 — 단일 호출 경로와 같다. 렌더 가능하면 degrade 로 전달한다.
+    if (!hasRenderableLlmText(content, { minChars: 400 })) {
+      const error = new Error(LLM_ERROR_MESSAGE);
+      error.code = "LLM_QUALITY_CHECK_FAILED";
+      error.status = 503;
+      throw error;
+    }
+    return { content, provider: finalProvider, model: finalModel, quality: { charCount, minLength, maxLength, degraded: true } };
+  }
+
+  return { content, provider: finalProvider, model: finalModel, quality: { charCount, minLength, maxLength } };
 }
 
 async function generateConsultation(env, prompt, options = {}) {
@@ -1518,19 +1684,14 @@ async function handleStart(request, env, ctx) {
   try {
     console.info("[AstrologyAI] generation started", { route: "/api/astrology-ai/start", requestId: idempotencyKey, sessionId });
     const chart = await calculateAstrologyChart(env, normalized, request.url);
-    const generated = await generateConsultation(env, buildFirstPrompt(normalized.input, chart), {
+    // 섹션 분할 생성 — 한 호출에 1만~2만자를 요구하던 구조가 expand/condense 재생성을
+    // 상시 유발했다(출력 2~3배). 섹션당 목표는 모델이 한 번에 채우는 크기로 잡는다.
+    // 폴백 문턱은 섹션 단위(각 섹션 목표의 40%)로 내려가 있다.
+    const generated = await generateSectionedConsultation(env, normalized.input, chart, {
       minLength: ASTROLOGY_AI_MIN_RESULT_CHARS,
       maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
-      // 공백 제외 10,000~20,000자 요구(한국어 1자≈1~1.5토큰) — 구 기본 16000/12000은
-      // 목표 분량대에서 잘려 degraded 결과를 유발했다.
-      // 구 30000은 상한 20,000자를 최악 비율로 채우면 정확히 소진돼 완충이 0이었다.
-      // tokensRequiredForChars(20000) = 32,250 이상을 확보한다.
-      maxOutputTokens: Number(env.ASTROLOGY_AI_MAX_OUTPUT_TOKENS || 33000),
-      expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 33000),
-      condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 33000),
+      sectionMaxOutputTokens: Number(env.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS || 9600),
       requireExpertParts: true,
-      // 폴백 허용. 단 목표(1만자)의 40% 미만이면 gemini.js 가 실패로 돌려 재시도/환불 경로를 지킨다.
-      fallbackMinChars: Math.round(ASTROLOGY_AI_MIN_RESULT_CHARS * 0.4),
     });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
     await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
@@ -1734,7 +1895,9 @@ export const __astrologyAiTestUtils = {
   normalizeInput,
   calculateAstrologyChart,
   buildAstrologyAnalysisBasis,
-  buildFirstPrompt,
+  ASTROLOGY_SECTIONS,
+  buildSectionPrompt,
+  generateSectionedConsultation,
   sanitizeConsultationText,
   getConsultationQualityIssues,
   ASTROLOGY_AI_MIN_RESULT_CHARS,
