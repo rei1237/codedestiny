@@ -553,6 +553,31 @@ assertBefore(
 assertContains(billingSource, 'if (passAccess) return passAccess;', "card request stops when PASS is available");
 assertContains(billingSource, '"/api/payments/prepare"', "single card prepare path remains");
 assertContains(billingSource, '"/api/payments/confirm"', "single card confirm path remains");
+
+// 🔴 이용권 보유자 과금 방지 — 결제수단을 DIRECT_KRW 로 명시해도 이용권 커버가 이긴다.
+//
+// 위 finalAccess 모델은 이미 "card 를 요청해도 커버되면 accessMethod:PASS / charged:0 / cardCreated:false"
+// 를 단언한다(assertFinalPass(standard30, "card", …)). 그런데 실제 라우트에는 그 모델을 배신하는 조기
+// 반환이 있었다 — grantPassFreeAccessBeforeCardIfAvailable 맨 앞의 shouldCreateDirectPortOneOrder 바일아웃과,
+// handleCheckout/handleConfirm 이 그 호출을 !directPaymentRequested 로 감싼 것. 프론트 이용권 선검사가
+// 사라진 뒤로는 이 구멍이 곧 "스냅샷 없는 이용권 보유자가 카드로 결제" 사고가 되므로 소스에 고정한다.
+assertNotContains(
+  billingSource,
+  "if (shouldCreateDirectPortOneOrder(body)) return null;",
+  "PASS safety net must not disable itself when DIRECT_KRW is requested",
+);
+assertNotContains(
+  billingSource,
+  "const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);",
+  "checkout/confirm must not gate the PASS safety net behind an explicit direct-payment flag",
+);
+// 다만 이미 PG 결제가 끝나 검증 페이로드가 실린 confirm 요청은 그대로 검증·기록해야 한다.
+// 돈이 움직인 뒤에 이용권 무료로 바꾸면 그 결제가 고아가 된다.
+assertContains(
+  billingSource,
+  "if (!isSubscription && !hasPaymentVerificationPayload) {",
+  "confirm still skips the PASS conversion once a real payment has been made",
+);
 assertContains(paymentsSource, "fetchPortOnePayment", "PortOne verification remains");
 assertContains(paymentsSource, "PortOne V2 KG Inicis", "KG Inicis public config remains");
 assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remains");
