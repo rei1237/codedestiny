@@ -14,9 +14,14 @@ import fs from "node:fs/promises";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SOURCE = path.join(HERE, "vvip-card.html");
-// 파일명에 버전을 붙인다 — 카카오/페북은 URL 단위로 미리보기를 캐시하므로
-// 같은 이름에 덮어쓰면 며칠간 옛 이미지가 계속 나간다. 디자인이 바뀌면 번호를 올릴 것.
-const OUTPUT = path.join(HERE, "..", "..", "public", "og", "code-destiny-og-vvip-v2.png");
+// 🔴 이 경로는 영구 고정이다. 디자인이 바뀌어도 파일명을 바꾸지 말고 덮어쓸 것.
+//
+// 카카오는 og:image URL 이 아니라 "공유된 페이지 URL" 을 키로 스크랩 결과를 캐시하고,
+// 스크랩 시점의 이미지를 자기 CDN 에 복사해 둔다. 그래서 파일명을 바꿔도 캐시는 안 깨지고,
+// 오히려 옛 URL 에 옛 이미지가 영구 박제되어 캐시가 만료돼도 옛 카드가 되살아난다.
+// 고정 URL 을 덮어써야 어떤 소비자든 재조회하는 순간 최신 카드를 받는다.
+// 이미 캐시된 미리보기를 즉시 갱신하는 방법은 카카오 디버거의 캐시 초기화뿐이다.
+const OUTPUT = path.join(HERE, "..", "..", "public", "og", "code-destiny-og-vvip.png");
 
 const WIDTH = 1200;
 const HEIGHT = 630;
