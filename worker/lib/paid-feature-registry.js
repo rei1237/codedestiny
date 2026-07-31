@@ -402,7 +402,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fortune-tea-house-saju-compatibility-consultation",
   "fortune-tea-house-sukuyo-compatibility-consultation",
   "sukuyo-symbolic-comparison",
-  "sukuyo-extreme-t-relationship",
   "sukuyo-past-life-reading",
   "sukuyo-monthly-fortune",
   "sukuyo-compatibility-ai",
@@ -504,6 +503,11 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",
+  // 극T 관계 회로 확장 — 사주에서 결정론으로 산출되는 고정 콘텐츠(LLM 미사용)라 재열람이 전제.
+  // 회당 결제로 등록돼 있었으나 클라는 영구 해금으로 동작해 양쪽이 어긋나 있었고, 그 탓에
+  // 서버가 unlockedFeatures 를 기록하지 않아 새로고침하면 결제한 잠금이 다시 닫혔다.
+  // 인연 도감·운명의 섬 심층 리포트와 같은 A유형으로 맞춘다.
+  "sukuyo-extreme-t-relationship",
   "premium-fpti-report",
 ]);
 
