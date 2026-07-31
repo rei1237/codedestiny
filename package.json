@@ -213,7 +213,8 @@
     "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
     "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
     "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check",
-    "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs"
+    "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs",
+    "verify:payment-reconcile": "node scripts/verify-payment-reconcile.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

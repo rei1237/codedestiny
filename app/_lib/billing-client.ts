@@ -1514,6 +1514,8 @@ async function authFetchBilling(path: string, init: RequestInit, options: { time
 // 서버가 조금만 느려도 보유자가 결제창으로 새는 역전이 생겼다. 서버 pass 판정은 Mongo 왕복이 여러 번이고
 // 콜드 아이솔레이트에선 op-타임아웃 12s·서버선택 8s(worker/lib/db.js)라 6초는 정상 응답도 자르는 값이었다.
 const BILLING_PASS_PROBE_TIMEOUT_MS = 15000;
+// 결제창 노출을 막고 기다리는 선검사 전용 예산. 정본 셸의 CD_PASS_FIRST_BUDGET_MS(index.html)와 같은 값.
+const GATE_PASS_PROBE_TIMEOUT_MS = 6000;
 
 function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
   const method = String(init.method || "GET").toUpperCase();
@@ -2982,7 +2984,7 @@ async function fetchPaymentEligibilityUncached(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
   const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
@@ -3020,10 +3022,11 @@ async function fetchPaymentEligibilityUncached(input: {
     scope: phase === "pass" ? "pass" : undefined,
   });
   // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
+  // 결제창을 막고 기다리는 호출부는 더 짧은 예산을 넘긴다(GATE_PASS_PROBE_TIMEOUT_MS).
   const response = await authFetchBilling(
     query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status",
     { method: "GET", cache: "no-store" },
-    { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS },
+    { timeoutMs: Math.max(1000, Math.floor(Number(fetchOptions.timeoutMs) || BILLING_PASS_PROBE_TIMEOUT_MS)) },
   );
   const parsed = await parseBillingResponse<Record<string, unknown>>(response);
 
@@ -3204,7 +3207,7 @@ export async function fetchPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
   const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const cacheKey = `${phase}:${resolvePaymentEligibilityCacheKey(input)}`;
   const now = Date.now();
@@ -3219,7 +3222,7 @@ export async function fetchPaymentEligibility(input: {
     if (current) return current;
   }
 
-  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, phase });
+  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, phase, timeoutMs: fetchOptions.timeoutMs });
   paymentEligibilityInFlight.set(cacheKey, promise);
   try {
     const result = await promise;
@@ -3427,9 +3430,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // unlock-status를 pass/full 2회 호출하던 구조를 단일 full 조회로 통합한다.
     // full 응답에 이미 pass 커버 정보(access.canAccess / pass.canUse)가 포함되므로
     // 별도 pass 프로브 왕복이 불필요하며, 유료 액션마다 발생하던 요청 2배 증폭을 제거한다.
+    // 🔴 이 호출은 결제창을 '막고' 기다린다. 기본 선검사 상한 15초는 이 자리에 너무 길어, 스냅샷이
+    // 아직 없는 첫 진입 사용자가 결제창을 보기까지 그만큼 멈춰 있었다. 정본 셸이 같은 목적에 쓰는
+    // 예산(index.html CD_PASS_FIRST_BUDGET_MS = 6000)에 맞춘다. 예산을 넘겨 null 이 되어도 '미커버'로
+    // 단정하지 않는다 — 아래 런타임 게이트의 이용권 재검사가 그대로 살아 있어 보유자의 무료 통과 기회는
+    // 유지된다(지연을 미커버 근거로 쓰지 않는다는 기존 규칙 그대로).
     const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || snapshotSaysNoPassFast
       ? null
-      : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
+      : await fetchPaymentEligibility(eligibilityInput, { phase: "full", timeoutMs: GATE_PASS_PROBE_TIMEOUT_MS }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     // 🔴 이용권 선검사가 '미커버'로 결론난 직후에는 대기 화면을 한 번 더 띄우지 않는다. 예전에는 여기서
     // status:"loadingProducts" 를 보냈고, 셸의 카피 해석기가 이를 access_check.single 로 매핑해

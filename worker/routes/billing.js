@@ -5960,15 +5960,21 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
 
   if (!delegatedResponse.ok) {
     const rawCode = normalizeBillingErrorCode(toCode(payload));
+    const isConfirmTarget = String(targetPath || "").includes("/confirm");
     const code = delegatedResponse.status === 401 || delegatedResponse.status === 403
       ? "AUTH_REQUIRED"
-      : (rawCode !== "SERVER_ERROR" ? rawCode : (String(targetPath || "").includes("/confirm") ? "PAYMENT_VERIFICATION_FAILED" : "SERVER_ERROR"));
+      : (rawCode !== "SERVER_ERROR" ? rawCode : (isConfirmTarget ? "PAYMENT_VERIFICATION_FAILED" : "SERVER_ERROR"));
+    // confirm 은 카드 승인 이후 단계다. 5xx 를 "결제 검증에 실패했습니다"로만 알리면 사용자가
+    // 재결제를 시도해 이중 결제가 난다 — 이 경우에만 재시도 금지 안내를 붙인다.
+    const message = isConfirmTarget && delegatedResponse.status >= 500
+      ? CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE
+      : (code === "PAYMENT_VERIFICATION_FAILED"
+        ? "결제 검증에 실패했습니다."
+        : (delegatedResponse.status >= 500 ? "서버 결제 처리 중 오류가 발생했습니다." : "결제 요청이 거부되었습니다."));
     return failure(
       delegatedResponse.status,
       code,
-      code === "PAYMENT_VERIFICATION_FAILED"
-        ? "결제 검증에 실패했습니다."
-        : (delegatedResponse.status >= 500 ? "서버 결제 처리 중 오류가 발생했습니다." : "결제 요청이 거부되었습니다."),
+      message,
       toMessage(payload, "결제 요청 실패"),
     );
   }
@@ -6343,6 +6349,26 @@ function logCheckoutElapsed(body, startedAt, httpStatus, branch) {
   } catch (_) {}
 }
 
+// 카드 승인이 끝난 뒤(confirm 단계)의 실패에만 쓰는 문구. "다시 결제하지 마세요"가 핵심이다 —
+// 이 안내가 없으면 사용자가 재시도해서 이중 결제가 난다. 결제창을 여는 /checkout 단계에는 쓰지 않는다.
+const CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE = "일시적인 서버 오류로 결제 확인이 지연되고 있습니다. 카드는 이미 결제되었을 수 있으니 다시 결제하지 마시고, 내 정보 > 결제 내역에서 상태를 확인해 주세요.";
+
+// 상태코드·code 는 그대로 두고 사용자 문구만 결제 문맥으로 바꾼다(프론트 분기 보존).
+async function replaceConfirmAuthFailureMessage(response) {
+  try {
+    const payload = await response.clone().json();
+    return json({
+      ...payload,
+      message: CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE,
+      ...(payload?.error && typeof payload.error === "object"
+        ? { error: { ...payload.error, message: CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE } }
+        : {}),
+    }, { status: response.status });
+  } catch (_) {
+    return response;
+  }
+}
+
 async function handleConfirm(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
@@ -6367,7 +6393,11 @@ async function handleConfirm(request, env) {
     const reportType = resolvePremiumAccessReportType(delegatedFeatureKey, delegatedPricing?.reason);
     if (reportType || isUnlockPaidFeatureKey(delegatedFeatureKey)) {
       const authCheck = await requireBillingAuth(request, env, delegatedPricing);
-      if (!authCheck.ok) return authCheck.response;
+      // 🔴 여기는 카드 승인이 '이미 끝난' 뒤다(hasPaymentVerificationPayload). requireBillingAuth 의
+      // 기본 문구는 "로그인 상태를 일시적으로 확인하지 못했어요" 인데, 이 시점에 그 문구를 보여 주면
+      // 사용자가 재로그인 후 다시 결제를 시도해 이중 결제가 난다. 공유 함수는 그대로 두고(여러 라우트가
+      // 참조) 이 호출부에서만 결제 문맥 문구로 바꾼다. 상태코드는 유지해 프론트 분기를 깨지 않는다.
+      if (!authCheck.ok) return replaceConfirmAuthFailureMessage(authCheck.response);
       premiumAccessOptions = {
         premiumAccess: true,
         authUserId: authCheck.auth.userId,

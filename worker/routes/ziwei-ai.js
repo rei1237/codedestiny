@@ -789,7 +789,19 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
   let portOnePayment = null;
   try {
     portOnePayment = await fetchPortOnePayment(env, normalizedPaymentId);
-  } catch (_) {
+  } catch (error) {
+    // 🔴 예전에는 여기서 아무 흔적 없이 { ok:false } 만 돌려줬다. 2026-07 PortOne 401 장애 때
+    // 카드는 승인됐는데 주문은 pending 인 채 실패 사유가 어디에도 안 남아 원인 추적이 막혔다.
+    // 동작은 그대로 두고 실패 사유만 주문에 남긴다.
+    console.error("[ziwei-ai] PortOne payment lookup failed", normalizedPaymentId, error?.message || error);
+    await Payment.findByIdAndUpdate(order._id, {
+      $set: {
+        failureCode: "portone_fetch_failed",
+        failureMessage: String(error?.message || "PortOne payment lookup failed.").slice(0, 300),
+        failureStage: "ziwei_ai_portone_fetch",
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
     return { ok: false };
   }
 

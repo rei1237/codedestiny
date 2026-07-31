@@ -178,7 +178,7 @@ async function requestJson(url, options, errorPrefix) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const remoteMessage = payload?.message || payload?.code || response.statusText;
+    const remoteMessage = payload?.message || payload?.code || payload?.type || response.statusText;
     throw new Error(`${errorPrefix}: ${remoteMessage}`);
   }
 
@@ -274,6 +274,16 @@ export function getPortOnePublicConfig(env) {
   };
 }
 
+// 🔴 사전 프로브는 불가능하다. PortOne V2 는 '존재하지 않는 결제 ID' 에도 401 UNAUTHORIZED 를
+// 돌려주므로(payments/billing-keys/identity-verifications 모두 확인) 자격증명이 살아 있는지
+// 미리 물어볼 방법이 없다. 대신 '실제 호출이 401/403 으로 거절당한 사실' 을 기억해 두고,
+// 그 뒤의 신규 주문 생성을 막는다 — 두 번째 피해자부터는 결제창이 열리지 않는다.
+// (getPortOneConfig().configured 는 값의 존재만 보므로 이 판정을 대신할 수 없다.)
+// 🔴 PortOne 은 '존재하지 않는 결제 ID' 에도 401 UNAUTHORIZED 를 준다. 즉 401 로는 "시크릿이 죽었다"와
+// "그런 주문이 없다"를 구분할 수 없다. 이걸 관측해 결제를 차단하는 차단기를 뒀다가, 오탐으로 재조정이
+// 매 틱 중단되고 신규 결제까지 막힐 뻔했다 — 신뢰할 수 없는 신호이므로 차단기를 두지 않는다.
+// 자격증명 장애는 재조정 태스크의 credentialSuspect 로그로 감지한다.
+
 export async function fetchPortOnePayment(env, paymentId) {
   if (!paymentId) throw new Error("paymentId is required.");
 
@@ -290,6 +300,24 @@ export async function fetchPortOnePayment(env, paymentId) {
   const payment = normalizePortOnePayment(payload, paymentId);
   if (!payment) throw new Error("PortOne payment response was empty.");
   return payment;
+}
+
+// 🔴 PortOne 은 Idempotency-Key 형식을 검증한다(실측: 16~256자, ":" 같은 문자 불가).
+// 호출부가 만드는 키는 `refund:<paymentId>:<serviceId>:<jobId>` 형태라 콜론 때문에 항상
+// 400 INVALID_REQUEST "Invalid idempotency key format" 로 거절당했다 — 배송 실패 자동환불과
+// 서비스 실행 자동환불이 통째로 동작하지 않았다는 뜻이다. 호출부를 각각 고치는 대신 나가는
+// 지점 한 곳에서 정규화한다.
+const PORTONE_IDEMPOTENCY_KEY_MIN = 16;
+const PORTONE_IDEMPOTENCY_KEY_MAX = 256;
+
+function normalizePortOneIdempotencyKey(rawKey) {
+  const sanitized = String(rawKey || "").replace(/[^A-Za-z0-9_-]/g, "_");
+  if (!sanitized) return "";
+  // 너무 짧아도 거절되므로 결정적으로(= 같은 입력이면 같은 결과) 채운다. 멱등성이 깨지면 안 된다.
+  const padded = sanitized.length >= PORTONE_IDEMPOTENCY_KEY_MIN
+    ? sanitized
+    : `${sanitized}${"_".repeat(PORTONE_IDEMPOTENCY_KEY_MIN - sanitized.length)}`;
+  return padded.slice(0, PORTONE_IDEMPOTENCY_KEY_MAX);
 }
 
 export async function cancelPortOnePayment(env, params = {}) {
@@ -330,7 +358,10 @@ export async function cancelPortOnePayment(env, params = {}) {
       method: "POST",
       headers: getPortOneHeaders(
         env,
-        idempotencyKey ? { "Idempotency-Key": String(idempotencyKey).slice(0, 220) } : {},
+        (() => {
+          const normalizedKey = normalizePortOneIdempotencyKey(idempotencyKey);
+          return normalizedKey ? { "Idempotency-Key": normalizedKey } : {};
+        })(),
       ),
       body: JSON.stringify(body),
       env,
