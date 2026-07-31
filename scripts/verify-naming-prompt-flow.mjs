@@ -178,6 +178,24 @@ assertIncludes("worker/routes/naming-prompt.js", route, "verifyNamingChargeEvide
 // 단건 결제는 PointHistory 차감 기록이 없다 — Payment 문서를 입력 해시로 찾는 경로가 있어야
 // 식별자가 왕복 중 유실돼도 결제를 마친 사용자가 402 로 막히지 않는다.
 assertIncludes("worker/routes/naming-prompt.js", route, "findSettledNamingPayment");
+// 🔴 /generate 는 동기 생성 라우트다. authFetch 는 호출부가 signal 을 주지 않으면 22초에 끊는데
+// (app/_lib/auth-client.ts AUTH_FETCH_TIMEOUT_MS), 작명은 8,000~14,000자 목표라 항상 그보다 오래
+// 걸린다. 클라 상한이 엣지 예산보다 짧아지면 결과가 서버에 저장되는데도 "확인 실패"만 뜬다.
+{
+  const { EDGE_RESPONSE_DEADLINE_MS } = await import("../worker/lib/sync-llm-timeout.js");
+  const clientTimeout = Number((formClient.match(/const GENERATE_TIMEOUT_MS = (\d+)/) || [])[1] || 0);
+  assert(
+    clientTimeout > EDGE_RESPONSE_DEADLINE_MS,
+    `GENERATE_TIMEOUT_MS(${clientTimeout})는 엣지 한계(${EDGE_RESPONSE_DEADLINE_MS})보다 커야 한다`,
+  );
+  // signal 을 넘겨야 authFetch 가 자기 22초 타임아웃을 걸지 않는다.
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "signal: controller.signal");
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "GENERATE_TIMEOUT_MS)");
+  // 재시도 예산 가드 — 2차 LLM 호출이 엣지 한계를 넘기지 않아야 실패 처리·환불 경로가 돈다.
+  for (const marker of ["remainingBudgetMs", "MIN_RETRY_BUDGET_MS", "EDGE_RESPONSE_DEADLINE_MS"]) {
+    assertIncludes("worker/routes/naming-prompt.js", route, marker);
+  }
+}
 // 코인게이트가 단건 성공에서 돌려주는 식별자가 merchantUid 로 고정돼 있지 않다.
 for (const marker of ["{ requestId: normalized }", "{ idempotencyKey: normalized }"]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
