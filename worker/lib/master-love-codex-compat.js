@@ -621,11 +621,21 @@ function buildCross(sajuAxis, ziweiAxis) {
  * @param {object} params.partnerZiwei  calculateZiweiAiChart(상대)
  * @returns {object} 궁합 판정 결과 (signature 포함, 동일 입력 → 동일 출력)
  */
-export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partnerSaju, partnerZiwei } = {}) {
+/**
+ * 두 사람의 사주 명식만으로 궁합 축을 산출한다. 순수 함수.
+ *
+ * buildMasterLoveCodexCompatibility 의 사주 절반을 그대로 떼어낸 것이며,
+ * 자미두수 없이 사주만 쓰는 라우트(연애 비책 AI)가 재사용한다.
+ * 🔴 반환 객체의 키 순서는 buildMasterLoveCodexCompatibility 의 `saju` 와 동일해야 한다
+ *    — hashSignature 가 키 순서에 민감해 verify:master-love-codex-compat 이 이를 검사한다.
+ *
+ * @param {object} params
+ * @param {object} params.selfSaju     calculateLifeBookAiSaju(본인)
+ * @param {object} params.partnerSaju  calculateLifeBookAiSaju(상대)
+ */
+export function buildSajuLoveCompatibility({ selfSaju, partnerSaju } = {}) {
   const sSaju = asObject(selfSaju);
   const pSaju = asObject(partnerSaju);
-  const sZiwei = asObject(selfZiwei);
-  const pZiwei = asObject(partnerZiwei);
 
   if (!clean(sSaju.dayMaster) || !clean(pSaju.dayMaster)) {
     const error = new Error("missing day master for compatibility");
@@ -638,9 +648,21 @@ export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partner
   const tenGodInteraction = buildTenGodInteraction(sSaju, pSaju);
   const yongshinSupport = buildYongshinSupport(sSaju, pSaju);
   const branchRelations = buildBranchRelations(sSaju, pSaju);
-  const sajuAxisScores = buildSajuAxisScores({
+  const axisScores = buildSajuAxisScores({
     dayStemRelation, elementBalance, tenGodInteraction, yongshinSupport, branchRelations,
   });
+
+  return { dayStemRelation, elementBalance, tenGodInteraction, yongshinSupport, branchRelations, axisScores };
+}
+
+export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partnerSaju, partnerZiwei } = {}) {
+  const sSaju = asObject(selfSaju);
+  const pSaju = asObject(partnerSaju);
+  const sZiwei = asObject(selfZiwei);
+  const pZiwei = asObject(partnerZiwei);
+
+  const saju = buildSajuLoveCompatibility({ selfSaju, partnerSaju });
+  const sajuAxisScores = saju.axisScores;
 
   const palaceOverlay = buildPalaceOverlay(sZiwei, pZiwei);
   const spouseCross = buildSpouseCross(sZiwei, pZiwei);
@@ -656,7 +678,6 @@ export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partner
   if (asObject(sZiwei.uncertainty).birthTimeUnknown) uncertainty.push("self_ziwei_noon_basis");
   if (asObject(pZiwei.uncertainty).birthTimeUnknown) uncertainty.push("partner_ziwei_noon_basis");
 
-  const saju = { dayStemRelation, elementBalance, tenGodInteraction, yongshinSupport, branchRelations, axisScores: sajuAxisScores };
   const ziwei = { palaceOverlay, spouseCross, maleficImpact, sihuaExchange, axisScores: ziweiAxisScores };
 
   return {

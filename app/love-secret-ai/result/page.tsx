@@ -1,24 +1,18 @@
 "use client";
 
 import { useEffect, useState, type ComponentType } from "react";
+import theme from "../love-secret-theme.module.css";
 
+// 색은 인라인 스타일이 아니라 토큰 클래스로 준다 — 인라인은 prefers-color-scheme 를 표현할 수 없어
+// 라이트 모드 사용자에게 다크 플래시가 남는다. 레이아웃만 인라인으로 유지한다.
 function LoveSecretAiResultFallback() {
   return (
     <main
       aria-busy="true"
-      style={{
-        minHeight: "100dvh",
-        display: "grid",
-        placeItems: "center",
-        padding: "32px 18px",
-        color: "#ffe8ef",
-        background:
-          "radial-gradient(circle at 18% 8%, rgba(244, 114, 182, 0.20), transparent 30%), linear-gradient(135deg, #100814 0%, #210b18 52%, #09070d 100%)",
-      }}
+      className={`${theme.theme} ${theme.pageBg} text-[var(--ls-text)]`}
+      style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: "32px 18px" }}
     >
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 800, letterSpacing: 0 }}>
-        사랑의 비밀 리포트를 여는 중입니다.
-      </p>
+      <p className="m-0 text-sm font-extrabold">연애 비책 리포트를 여는 중입니다.</p>
     </main>
   );
 }

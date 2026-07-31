@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { Buffer } from "node:buffer";
+import { pathToFileURL } from "node:url";
 
 const root = process.cwd();
 const failures = [];
@@ -32,93 +32,14 @@ function assertNotIncludes(file, text, marker) {
   assert(!text.includes(marker), `${file} contains retired marker: ${marker}`);
 }
 
+// 실제 파일 경로로 import 한다. data: URL 로 감싸면 모듈 안의 상대 import 를 해석하지 못한다.
 async function importLocalEsm(file) {
-  const source = read(file);
-  const encoded = Buffer.from(source, "utf8").toString("base64");
-  return import(`data:text/javascript;base64,${encoded}`);
+  read(file);
+  return import(pathToFileURL(rel(file)).href);
 }
 
 function textLength(value) {
   return String(value || "").trim().length;
-}
-
-function sectionBodyLength(sections = []) {
-  return sections.reduce((sum, section) => sum + textLength(section?.body), 0);
-}
-
-const qualitySectionTitles = [
-  "현재 관계의 자리와 질문의 핵심",
-  "나의 명식이 사랑에서 반복하는 방식",
-  "상대의 기운과 감정 거리감",
-  "두 사람 사이 끌림이 살아나는 조건",
-  "오행과 조후로 보는 감정의 온도",
-  "십성으로 보는 애착과 표현 방식",
-  "속궁합과 친밀감 리듬",
-  "갈등의 뿌리와 회복 방식",
-  "연락/고백/재회/관계 진전 타이밍",
-  "관계 단계별 실행 비책",
-  "상대에게 다가가는 대화 문장",
-  "피해야 할 선택과 자기 보호",
-  "7일 실천 가이드",
-  "30일 관계 흐름 처방",
-  "마지막 상담사의 한마디",
-];
-
-function buildQualityBody(title, index) {
-  const tones = ["천천히", "분명하게", "부드럽게", "깊게", "현실적으로", "따뜻하게"];
-  return Array.from({ length: 3 }, (_, paragraphIndex) => {
-    const tone = tones[(index + paragraphIndex) % tones.length];
-    return `${title}에서는 ${tone} 드러나는 마음의 결을 먼저 살핍니다. 사용자의 질문은 관계가 어디에서 멈추고 어디에서 다시 열리는지를 묻고 있으므로, 이 대목은 감정의 속도와 실제 행동 사이의 간격을 함께 비춥니다. 명식의 기운은 사랑에서 표현 방식, 기다리는 힘, 가까워지는 리듬으로 나타나며, 지금은 서두른 결론보다 서로의 반응을 안정적으로 확인하는 태도가 더 크게 살아납니다. 상대의 마음은 단정하기보다 말투, 약속을 지키는 정도, 갈등 뒤의 회복 속도에서 읽어야 하고, 사용자는 자신의 불안을 곧바로 행동으로 옮기기보다 하루 정도 눌러 둔 뒤 차분한 문장으로 전하는 편이 좋습니다.`;
-  }).join("\n\n");
-}
-
-function buildQualityFixture() {
-  const sections = qualitySectionTitles.map((title, index) => ({
-    title,
-    body: buildQualityBody(title, index),
-  }));
-  return {
-    keywords: ["마음의 온도", "관계 리듬", "사랑의 선택"],
-    strategy: "지금은 불안을 앞세우기보다 관계의 반응을 차분히 확인하며 대화의 온도를 낮추는 흐름이 좋습니다.",
-    summaryTitle: "마음의 결을 다시 맞추는 사랑의 흐름",
-    oneLineDiagnosis: "이 관계는 끌림보다 속도 조율이 더 중요한 시기에 머물러 있습니다.",
-    relationshipTemperature: "감정은 살아 있지만 표현의 속도가 서로 다르게 흐릅니다.",
-    relationshipCore: sections[0].body,
-    userLovePattern: sections[1].body,
-    partnerLovePattern: sections[2].body,
-    attractionCondition: sections[3].body,
-    compatibilityFlow: sections[3].body,
-    fiveElementsInsight: sections[4].body,
-    tenGodsAttachmentPattern: sections[5].body,
-    johuIntimacyRhythm: sections[6].body,
-    conflictPattern: sections[7].body,
-    timingAdvice: sections[8].body,
-    stageActionSecrets: sections[9].body,
-    communicationAdvice: sections[10].body,
-    selfProtectionBoundary: sections[11].body,
-    actionSecrets: [
-      "오늘은 답을 재촉하지 말고 질문을 하나만 남깁니다.",
-      "감정이 올라오는 시간에는 바로 연락하지 않고 문장을 한 번 다듬습니다.",
-      "상대의 반응보다 내가 지킬 태도를 먼저 정합니다.",
-      "관계의 온도가 낮아질 때는 설명보다 안정된 반복을 보여 줍니다.",
-      "고백이나 재회 이야기는 서로의 생활 리듬이 맞을 때 꺼냅니다.",
-    ],
-    sevenDayGuide: [
-      "첫날은 마음의 불안을 적고 보내지 않을 말을 덜어냅니다.",
-      "둘째 날은 상대가 편히 답할 수 있는 짧은 안부를 고릅니다.",
-      "셋째 날은 관계에서 반복된 오해의 지점을 한 가지로 좁힙니다.",
-      "넷째 날은 상대의 반응을 해석하기보다 있는 그대로 둡니다.",
-      "다섯째 날은 내 생활 리듬을 회복하는 약속을 하나 지킵니다.",
-      "여섯째 날은 다음 대화에서 피해야 할 표현을 정리합니다.",
-      "일곱째 날은 관계를 이어 갈 기준과 멈출 기준을 나란히 세웁니다.",
-    ],
-    thirtyDayFlow: sections[13].body,
-    sections,
-    pdfSections: sections,
-    finalMessage: "사랑은 급히 붙잡을수록 흐려지고, 정직하게 바라볼수록 다시 길을 드러냅니다.",
-    finalLine: "오늘은 마음의 결론보다 말의 온도를 먼저 고르세요.",
-    answer: sections.map((section) => `${section.title}\n${section.body}`).join("\n\n"),
-  };
 }
 
 const legacyLoveSecretSlug = ["love", "secret"].join("-");
@@ -230,71 +151,190 @@ assertNotIncludes("worker/index.js", workerIndex, "routes/saju-love-secret.js");
 assertIncludes("worker/lib/models.js", models, "loveSecretAiConsultationSchema");
 assertIncludes("worker/lib/models.js", models, 'collection: "loveSecretAiConsultations"');
 assertIncludes("worker/lib/paid-feature-registry.js", registry, '"love-secret-ai-consultation"');
-assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "buildSajuProfile");
+assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "calculateLifeBookAiSaju");
+assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "buildLoveShinsal");
+assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "buildLoveDayCalendar");
 assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "calculateLoveSecretAiSaju");
 assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "속궁합과 친밀감 리듬");
 assertNotIncludes("worker/lib/love-secret-ai-calculation.js", calc, "pdf-v2");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "LOVE_SECRET_AI_SYSTEM_PROMPT");
-assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "parseFirstConsultationResponse");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "parseLoveSecretGroupResponse");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "assembleLoveSecretConsultation");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "LOVE_SECRET_AI_GROUPS");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "johuIntimacyRhythm");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "pdfSections");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS");
-assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "전체 상담 본문은 sections의 모든 body를 합산해 10,000~20,000자 사이");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "이 부분의 sections body 합계는");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "나의 명식이 사랑에서 반복하는 방식");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "십성으로 보는 애착과 표현 방식");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "30일 관계 흐름 처방");
 assertIncludes("worker/routes/love-secret-ai.js", route, "callGeminiJsonWithRetry");
-assertIncludes("worker/routes/love-secret-ai.js", route, "baseTokens: 32000");
+assertIncludes("worker/routes/love-secret-ai.js", route, "LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS");
+assertIncludes("worker/routes/love-secret-ai.js", route, "generateLoveSecretGroup");
+assertIncludes("worker/routes/love-secret-ai.js", route, "LOVE_SECRET_AI_GENERATING_FRESH_MS");
 assertIncludes("worker/routes/love-secret-ai.js", route, "sajuSummary: publicSajuSummary");
 assertIncludes("worker/routes/love-secret-ai.js", route, "publicChartSummary");
 assertIncludes("app/components/AppChrome.tsx", appChrome, '"/love-secret-ai"');
 
 const promptModule = await importLocalEsm("worker/lib/love-secret-ai-prompt.js");
-const qualityFixture = buildQualityFixture();
-const parsedQualityResult = promptModule.parseFirstConsultationResponse(JSON.stringify(qualityFixture));
-const parsedPdfBodyChars = sectionBodyLength(parsedQualityResult.pdfSections);
-const parsedTitles = new Set(parsedQualityResult.pdfSections.map((section) => section.title));
-assert(parsedQualityResult.sections.length >= 12, "mock quality result must preserve expert section count");
-for (const title of ["나의 명식이 사랑에서 반복하는 방식", "십성으로 보는 애착과 표현 방식", "피해야 할 선택과 자기 보호", "30일 관계 흐름 처방"]) {
-  assert(parsedTitles.has(title), `mock quality result missing expert section: ${title}`);
-}
-assert(parsedPdfBodyChars >= promptModule.LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS, `mock quality result body too short: ${parsedPdfBodyChars}`);
-assert(parsedPdfBodyChars <= promptModule.LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS, `mock quality result body too long: ${parsedPdfBodyChars}`);
+const calendarModule = await importLocalEsm("worker/lib/love-secret-ai-calendar.js");
+
+// ── 섹션 그룹 계약 ────────────────────────────────────────────────────────
+const groups = promptModule.LOVE_SECRET_AI_GROUPS;
+assert(groups.length === 6, `expected 6 section groups, got ${groups.length}`);
 assert(
-  promptModule.countLoveSecretConsultationBodyChars(parsedQualityResult) >= promptModule.LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
-  "mock quality result total body length must be at least 10000 chars",
+  groups.reduce((sum, group) => sum + group.sections.length, 0) === promptModule.LOVE_SECRET_AI_SECTION_TITLES.length,
+  "section titles must be derived from the group table",
 );
 assert(
-  !promptModule.__loveSecretAiPromptTestUtils.hasForbiddenResultText(qualityFixture.answer),
+  groups.length * promptModule.LOVE_SECRET_AI_GROUP_MIN_CHARS >= promptModule.LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS,
+  "group minimums must be able to reach the target body length",
+);
+// degrade 바닥(사용 가능 4그룹)이 하드 하한 위에 있어야 결제 후 하드 실패로 뒤집히지 않는다.
+assert(
+  4 * promptModule.LOVE_SECRET_AI_GROUP_MIN_CHARS >= promptModule.LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
+  "degrade floor must clear the hard minimum body length",
+);
+for (const title of ["나의 명식이 사랑에서 반복하는 방식", "십성으로 보는 애착과 표현 방식", "피해야 할 선택과 자기 보호", "30일 관계 흐름 처방"]) {
+  assert(promptModule.LOVE_SECRET_AI_SECTION_TITLES.includes(title), `group table missing expert section: ${title}`);
+}
+const emitted = new Set(groups.flatMap((group) => group.emits));
+for (const emit of ["header", "timing", "actions", "closing"]) {
+  assert(emitted.has(emit), `no group emits ${emit}`);
+}
+
+// ── 일진 캘린더 결정성 ─────────────────────────────────────────────────────
+const calendarArgs = {
+  dayStem: "壬", dayBranch: "辰", natalBranches: ["酉", "戌", "辰", "午"],
+  yongshinElement: "wood", gisinElement: "water",
+  dohwaBranches: ["酉"], hongyeomBranch: "子", gongmangBranches: ["申", "酉"],
+  startDateKst: "2026-08-01", days: 90,
+};
+const calendarA = calendarModule.buildLoveDayCalendar(calendarArgs);
+const calendarB = calendarModule.buildLoveDayCalendar(calendarArgs);
+assert(calendarA.available && calendarA.days.length === 90, "calendar must produce 90 scored days");
+assert(JSON.stringify(calendarA) === JSON.stringify(calendarB), "calendar must be deterministic for the same input");
+assert(!calendarModule.buildLoveDayCalendar({}).available, "calendar without a start date must report unavailable");
+
+// ── 그룹 파싱 → 조립 → 검증 ────────────────────────────────────────────────
+const fixtureSajuResult = {
+  consultationMode: "solo",
+  myChart: {
+    dayMaster: "壬",
+    reference: { dayMasterLabel: "임(壬)", dominantTenGod: "비견", yongshinElementLabel: "목", dayElementLabel: "수" },
+    lovePattern: "지적 자극과 자유를 중시합니다.",
+    loveReference: { strengthTip: "신강 구조라 상대가 주도할 공간을 남겨두는 운영이 중요합니다." },
+  },
+  calendar: calendarA,
+};
+const groundingParagraph = "일간 임수의 결로 보면 지금 관계는 확인보다 유지가 먼저입니다. 십성 비견이 두터워 스스로 결론을 내려는 습관이 강하고, 용신 목이 닿는 자리에서 관계가 부드러워집니다. 대운의 흐름이 표현을 밖으로 밀어 주고, 세운이 겹치는 구간에서는 속도를 늦추는 편이 낫습니다. 신살 도화가 시선을 모으므로 관심과 애정을 구분해야 합니다. ";
+const groupBody = (chars) => groundingParagraph.repeat(Math.ceil(chars / groundingParagraph.length)).slice(0, chars);
+
+function buildGroupPayload(group, { short = false } = {}) {
+  const perSection = Math.floor((short ? 600 : 5400) / group.sections.length);
+  const payload = { sections: group.sections.map((section) => ({ title: section.title, body: groupBody(perSection) })) };
+  if (group.emits.includes("header")) {
+    Object.assign(payload, {
+      keywords: ["확인 대신 유지", "먼저 건네는 말", "속도 조절"],
+      strategy: "지금은 확인을 미루고 먼저 말을 건네는 편이 낫습니다.",
+      summaryTitle: "임수의 연애 비책",
+      oneLineDiagnosis: "마음은 이미 기울었고 남은 것은 속도입니다.",
+      relationshipTemperature: "따뜻하지만 아직 확신 전입니다.",
+    });
+  }
+  if (group.emits.includes("timing")) {
+    Object.assign(payload, {
+      monthlyHighlights: { best: ["9월 — 용신 목이 닿는 달"], caution: ["8월 — 공망이 겹치는 달"] },
+      luckyDates: calendarA.best.slice(0, 4).map((day) => ({ date: day.date, ganji: day.ganji, why: "용신 기운이 닿는 날" })),
+    });
+  }
+  if (group.emits.includes("actions")) {
+    Object.assign(payload, {
+      actionSecrets: [
+        "[쉬움·오늘] 안부를 먼저 보내세요 (근거: 대운이 표현을 밀어 준다)",
+        "[보통·이번 주] 만남을 낮 시간으로 잡으세요 (근거: 용신 목)",
+        "[도전·이번 달] 관계 정의를 먼저 물어보세요 (근거: 십성 비견)",
+      ],
+      sevenDayGuide: Array.from({ length: 7 }, (_, index) => `${index + 1}일차 안부 한 줄 (근거: 일간 임수)`),
+    });
+  }
+  if (group.emits.includes("closing")) {
+    Object.assign(payload, { finalMessage: "오늘은 확인 대신 온기를 하나 남기세요.", finalLine: "오늘은 확인 대신 온기를 하나 남기세요." });
+  }
+  return payload;
+}
+
+const parsedGroups = groups.map((group) => ({
+  ...promptModule.parseLoveSecretGroupResponse(JSON.stringify(buildGroupPayload(group)), group),
+  key: group.key,
+}));
+assert(parsedGroups.every((result) => result.ok), "every mock group payload must parse");
+
+const assembled = promptModule.assembleLoveSecretConsultation(parsedGroups, { input: {}, sajuResult: fixtureSajuResult });
+const assembledChars = promptModule.countLoveSecretConsultationBodyChars(assembled);
+assert(assembled.sections.length === promptModule.LOVE_SECRET_AI_SECTION_TITLES.length, "assembled consultation must keep every section");
+assert(assembled.keywords.length === 3, "assembled consultation must carry exactly 3 keywords");
+assert(assembledChars >= promptModule.LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS, `assembled body too short: ${assembledChars}`);
+assert(assembledChars <= promptModule.LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS, `assembled body too long: ${assembledChars}`);
+assert(!assembled.degraded, "all-groups-ok assembly must not be flagged degraded");
+
+const quality = promptModule.validateLoveSecretConsultation(assembled, {
+  sajuResult: fixtureSajuResult,
+  groundingTerms: promptModule.buildLoveSecretGroundingTerms(fixtureSajuResult),
+});
+assert(quality.issues.length === 0, `clean mock consultation reported issues: ${quality.issues.join(", ")}`);
+assert(
+  !promptModule.__loveSecretAiPromptTestUtils.hasForbiddenResultText(assembled.answer),
   "mock quality result contains forbidden product/system wording",
 );
 assert(
-  !promptModule.__loveSecretAiPromptTestUtils.hasUnsafeAdvice(qualityFixture.answer),
+  !promptModule.__loveSecretAiPromptTestUtils.hasUnsafeAdvice(assembled.answer),
   "mock quality result contains unsafe relationship advice",
 );
-try {
-  promptModule.parseFirstConsultationResponse(JSON.stringify({
-    ...qualityFixture,
-    sections: qualityFixture.sections.slice(0, 8).map((section) => ({ ...section, body: section.body.slice(0, 120) })),
-    pdfSections: qualityFixture.pdfSections.slice(0, 8).map((section) => ({ ...section, body: section.body.slice(0, 120) })),
-    answer: "마음의 온도를 차분히 확인하세요.",
-  }));
-  assert(false, "short mock quality result should be rejected");
-} catch (error) {
-  assert(error?.code === "INCOMPLETE_LLM_RESPONSE", `short mock quality result rejected with unexpected code: ${error?.code || error}`);
-}
-try {
-  const longSections = qualityFixture.sections.map((section) => ({ ...section, body: `${section.body}\n\n${section.body}` }));
-  promptModule.parseFirstConsultationResponse(JSON.stringify({
-    ...qualityFixture,
-    sections: longSections,
-    pdfSections: longSections,
-    answer: longSections.map((section) => `${section.title}\n${section.body}`).join("\n\n"),
-  }));
-  assert(false, "overlong mock quality result should be rejected");
-} catch (error) {
-  assert(error?.code === "INCOMPLETE_LLM_RESPONSE", `overlong mock quality result rejected with unexpected code: ${error?.code || error}`);
-}
+
+// 그룹 2개가 죽어도 헤더 불변조건이 지켜지고 degraded 로 표시돼야 한다.
+const partialGroups = parsedGroups.map((result, index) => (
+  index === 1 || index === 3
+    ? { key: result.key, ok: false, sections: [], extras: {}, chars: 0, reason: "TIMEOUT" }
+    : result
+));
+const partial = promptModule.assembleLoveSecretConsultation(partialGroups, { input: {}, sajuResult: fixtureSajuResult });
+assert(partial.keywords.length === 3, "degraded assembly must still carry 3 keywords");
+assert(partial.degraded, "degraded assembly must be flagged");
+const partialQuality = promptModule.validateLoveSecretConsultation(partial, { sajuResult: fixtureSajuResult, groundingTerms: [] });
+const partialTargets = promptModule.mapLoveSecretIssuesToGroups(partialQuality, partialGroups);
+assert(partialTargets.size > 0 && partialTargets.size < groups.length, "repair must target the failing groups, not everything");
+
+// core 그룹이 죽어도 계산값에서 헤더를 복구한다.
+const withoutCore = parsedGroups.map((result, index) => (
+  index === 0 ? { key: result.key, ok: false, sections: [], extras: {}, chars: 0 } : result
+));
+const coreless = promptModule.assembleLoveSecretConsultation(withoutCore, { input: { relationshipStatus: "썸" }, sajuResult: fixtureSajuResult });
+assert(coreless.keywords.length === 3, "core failure must fall back to computed keywords");
+assert(textLength(coreless.strategy) >= 8, "core failure must fall back to a computed strategy");
+
+// 계산되지 않은 날짜는 반려된다.
+const inventedDate = promptModule.validateLoveSecretConsultation(
+  { ...assembled, answer: `${assembled.answer}\n2099-01-01에 고백하세요.` },
+  { sajuResult: fixtureSajuResult, groundingTerms: [] },
+);
+assert(
+  inventedDate.issues.some((issue) => issue.startsWith("INVENTED_DATE")),
+  "dates outside the computed calendar must be rejected",
+);
+
+// 분량 미달은 목표 미달 이슈로 잡힌다.
+const shortGroups = groups.map((group) => ({
+  ...promptModule.parseLoveSecretGroupResponse(JSON.stringify(buildGroupPayload(group, { short: true })), group),
+  key: group.key,
+}));
+const shortAssembled = promptModule.assembleLoveSecretConsultation(shortGroups, { input: {}, sajuResult: fixtureSajuResult });
+const shortQuality = promptModule.validateLoveSecretConsultation(shortAssembled, { sajuResult: fixtureSajuResult, groundingTerms: [] });
+assert(
+  shortQuality.issues.some((issue) => issue.startsWith("TOTAL_BELOW_TARGET")),
+  "short consultation must raise TOTAL_BELOW_TARGET",
+);
 
 if (failures.length) {
   console.error("[verify-love-secret-ai-flow] FAIL");
@@ -302,5 +342,5 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`[verify-love-secret-ai-flow] mock body chars: ${parsedPdfBodyChars}`);
+console.log(`[verify-love-secret-ai-flow] groups=${groups.length} sections=${assembled.sections.length} body chars=${assembledChars}`);
 console.log("[verify-love-secret-ai-flow] PASS");

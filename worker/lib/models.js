@@ -913,13 +913,9 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
   relationshipStatus: { type: String, required: true, trim: true, maxlength: 80, index: true },
   topic: { type: String, required: true, trim: true, maxlength: 80, index: true },
   userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
-  sajuResult: {
-    myChart: { type: mongoose.Schema.Types.Mixed, default: null },
-    partnerChart: { type: mongoose.Schema.Types.Mixed, default: null },
-    compatibility: { type: mongoose.Schema.Types.Mixed, default: null },
-    uncertainty: { type: [String], default: [] },
-    consultationMode: { type: String, enum: ["solo", "with_partner", ""], default: "" },
-  },
+  // 🔴 Mixed 여야 한다. 엄격한 5키 서브도큐먼트였을 때는 v2 계산이 추가하는
+  // version·calendar·facts 가 저장 시점에 조용히 버려졌다(mongoose strict).
+  sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   keywords: { type: [String], default: [] },
@@ -929,6 +925,8 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  // 섹션 그룹 일부가 실패한 채 전달된 상담. 운영이 찾아볼 수 있게 남긴다(자동 재생성은 하지 않는다).
+  degraded: { type: Boolean, default: false, index: true },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },

@@ -85,13 +85,16 @@ const DAY_STEM_TO_ZI_HOUR_STEM_INDEX = Object.freeze({
   癸: 8,
 });
 
-const HOUR_PILLAR_TIME_POLICIES = Object.freeze({
+// 시주 시각 보정·일자 변경 정책은 이 엔진이 정본이다. love-secret-ai 처럼 다른 명식 코어를
+// 쓰면서도 같은 시주 보정을 써야 하는 라우트가 재사용할 수 있게 export 만 열어 둔다
+// (동작·기본값은 그대로다 — 여기서 정책이 갈리면 기능마다 시주가 달라진다).
+export const HOUR_PILLAR_TIME_POLICIES = Object.freeze({
   KST_CLOCK_TIME: "KST_CLOCK_TIME",
   LOCAL_MEAN_TIME: "LOCAL_MEAN_TIME",
   TRUE_SOLAR_TIME: "TRUE_SOLAR_TIME",
 });
 
-const DAY_CHANGE_POLICIES = Object.freeze({
+export const DAY_CHANGE_POLICIES = Object.freeze({
   MIDNIGHT: "MIDNIGHT",
   LATE_ZI_NEXT_DAY: "LATE_ZI_NEXT_DAY",
   TRUE_SOLAR_ZI_NEXT_DAY: "TRUE_SOLAR_ZI_NEXT_DAY",
@@ -127,7 +130,7 @@ const SOLAR_TERM_NAME_MAP = Object.freeze({
   XIAO_HAN: "小寒",
 });
 
-const DEFAULT_LOCATION = Object.freeze({
+export const DEFAULT_LOCATION = Object.freeze({
   name: "서울",
   latitude: 37.5665,
   longitude: 126.978,
@@ -291,7 +294,7 @@ function parseTimezoneOffsetHours(timezone) {
   return sign * (hour + minute / 60);
 }
 
-function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
+export function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
   const rawLocation = rawPerson?.location && typeof rawPerson.location === "object"
     ? rawPerson.location
     : (rawBirth?.location && typeof rawBirth.location === "object" ? rawBirth.location : {});
@@ -652,7 +655,7 @@ function calculateEquationOfTimeMinutes(year, month, day) {
   return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
 }
 
-function applyHourPillarTimeCorrection(birth, location, policy) {
+export function applyHourPillarTimeCorrection(birth, location, policy) {
   const clockTotalMinutes = birth.hour * 60 + birth.minute;
   const longitudeCorrectionMinutes = (location.longitude - location.standardMeridian) * 4;
   const equationOfTimeMinutes = calculateEquationOfTimeMinutes(birth.year, birth.month, birth.day);
@@ -697,12 +700,12 @@ function buildEightCharForDayPolicy(lunar, dayPolicy) {
   return eightChar;
 }
 
-function getHourBranchByClock(hour) {
+export function getHourBranchByClock(hour) {
   const idx = Math.floor((hour + 1) / 2) % 12;
   return BRANCHES[idx < 0 ? idx + 12 : idx];
 }
 
-function getHourStemByDayStem(dayStem, hourBranch) {
+export function getHourStemByDayStem(dayStem, hourBranch) {
   const baseStemIndex = DAY_STEM_TO_ZI_HOUR_STEM_INDEX[dayStem];
   if (!Number.isFinite(baseStemIndex)) return "";
   const hourBranchIndex = BRANCHES.indexOf(hourBranch);

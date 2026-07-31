@@ -426,6 +426,59 @@ for (const [feature, path, timeoutVar] of [
   );
 }
 
+// ── 연애 비책 AI: 섹션 병렬 예산 ────────────────────────────────────────────
+// 이 라우트는 단일 호출이 아니라 6개 그룹을 한 요청 안에서 동시에 돌린다. 그래서 위 루프의
+// `const <var> = clampSyncLlmTimeoutMs(` 형태가 아니라 그룹 예산 함수를 통해 깎는다.
+{
+  const feature = "love-secret-ai";
+  const source = read("worker/routes/love-secret-ai.js");
+
+  checks += 1;
+  assertBudget(feature, {
+    minChars: 5000,
+    maxChars: 6500,
+    maxOutputTokens: 12500,
+    tokenConstantName: "LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS",
+    sourcePath: "worker/routes/love-secret-ai.js",
+  });
+
+  // 🔴 clampSyncLlmTimeoutMs는 0/음수를 받으면 상한 85s로 되돌아간다. 예산이 바닥났을 때
+  //    호출을 건너뛰는 가드가 그 앞에 있어야 한다.
+  checks += 1;
+  assert(
+    /if \(!\(timeoutMs > 0\)\) return fail\("BUDGET_EXHAUSTED"\);/.test(source),
+    `${feature}: 그룹 생성기에 남은 예산 하한 가드가 없다 — clampSyncLlmTimeoutMs(0)은 85s로 되돌아간다`,
+  );
+
+  checks += 1;
+  assert(
+    /timeoutMs: clampSyncLlmTimeoutMs\(timeoutMs\)/.test(source),
+    `${feature}: 그룹 호출 타임아웃이 clampSyncLlmTimeoutMs로 깎이지 않는다`,
+  );
+
+  // Gemini 타임아웃 뒤 Workers AI 폴백은 타임아웃이 없다. 하드 레이스가 사라지면 엣지 컷이 되돌아온다.
+  checks += 1;
+  assert(
+    source.includes("group_hard_deadline"),
+    `${feature}: 그룹 호출에 하드 데드라인 레이스가 없다 — Workers AI 폴백이 예산을 넘긴다`,
+  );
+
+  checks += 1;
+  const deadlineMatch = source.match(/const LOVE_SECRET_AI_LLM_DEADLINE_MS = (\d+);/);
+  assert(
+    deadlineMatch && Number(deadlineMatch[1]) <= SYNC_LLM_TIMEOUT_CEILING_MS + 5000,
+    `${feature}: 총 LLM 예산이 엣지 한계(${SYNC_LLM_TIMEOUT_CEILING_MS}ms) 대비 과하다`,
+  );
+
+  // 그룹 생성기는 절대 throw 하지 않아야 한 그룹의 실패가 나머지를 죽이지 않는다.
+  checks += 1;
+  assert(
+    /async function generateLoveSecretGroup\(env, \{[\s\S]*?\n\}/.test(source)
+    && /\} catch \(error\) \{[\s\S]*?return fail\("EXCEPTION"\);/.test(source),
+    `${feature}: generateLoveSecretGroup이 실패를 값으로 돌리지 않는다`,
+  );
+}
+
 // ── 셸 내장 상담 5종(worker/routes/fortune.js)의 LLM 예산 ─────────────────────
 // 이 파일은 라우트별 타임아웃 변수 대신 요청 시작 기준 총 예산(featureAiCallTimeoutMs)으로 나눠 쓴다.
 // 위 루프의 `const <var> = clampSyncLlmTimeoutMs(` 정규식과 형태가 다르므로 별도로 단언한다.
