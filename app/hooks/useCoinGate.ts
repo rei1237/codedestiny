@@ -308,7 +308,8 @@ function resolveLoginRequired(code: string, status: number) {
 }
 
 export function useCoinGate() {
-  const { startPayment, endPayment, setPaymentMessage } = usePayment();
+  // startPayment 는 더 이상 쓰지 않는다 — 진입 이용권 확인 화면이 사라졌다(2026-08 정책 전환).
+  const { endPayment, setPaymentMessage } = usePayment();
   const inFlightRef = useRef(false);
   const [isPaying, setIsPaying] = useState(false);
 
@@ -557,7 +558,7 @@ export function useCoinGate() {
       setIsPaying(false);
       inFlightRef.current = false;
     }
-  }, [endPayment, setPaymentMessage, startPayment]);
+  }, [endPayment, setPaymentMessage]);
 
   return {
     isPaying,
