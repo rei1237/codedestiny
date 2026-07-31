@@ -207,7 +207,7 @@
         "title": "운명의 꽃 & 해몽 컬렉션",
         "subtitle": "우주의 언어로 피어나는 나만의 운명",
         "lede": "사주와 점성술, 자미두수, 숙요 결과를 꽃의 상징으로 엮어 감성적인 운명 리포트로 풀어냅니다.",
-        "featureline": "운명의 꽃 아틀리에 · 점성술 꽃 · 자미두수 꽃 · 숙요 꽃 · 드림 프롬프트 · 정신분석 해몽",
+        "featureline": "운명의 꽃 아틀리에 · 점성술 꽃 · 자미두수 꽃 · 숙요 꽃 · 드림 타로 · 정신분석 해몽",
         "aria": "운명의 꽃 & 해몽 컬렉션 열기"
       },
       "vvip": {
@@ -307,7 +307,7 @@
       "ziweiFlowerDesc": "명궁 주성 · 별 밝기",
       "sukuyoFlowerTitle": "🌙 숙요 꽃",
       "sukuyoFlowerDesc": "27숙 · 달의 위상",
-      "dreamTarotTitle": "🌙 드림 프롬프트",
+      "dreamTarotTitle": "🌙 드림 타로",
       "dreamTarotDesc": "꿈 문장 AI 프롬프트",
       "psychoDreamTitle": "🕯️ 정신분석 해몽",
       "psychoDreamDesc": "Freud · British Study",
@@ -427,7 +427,7 @@
       "sukuyoFlowerAria": "숙요 운명의 꽃 아틀리에 열기",
       "sukuyoFlowerAlt": "숙요 운명의 꽃 — 27숙 달빛 꽃",
       "dreamTarotAria": "꿈 프롬프트 생성 시작",
-      "dreamTarotAlt": "드림 프롬프트 — 꿈의 잔향을 전문가 상담 문장으로 봉인",
+      "dreamTarotAlt": "드림 타로 — 꿈의 잔향을 전문가 상담 문장으로 봉인",
       "psychoDreamAria": "정신분석 해몽 시작",
       "psychoDreamAlt": "정신분석 해몽 — 프로이트 관점의 보고서",
       "soulKarmaAria": "운명의 업 상세 보기",
@@ -462,7 +462,7 @@
       "mayaAlt": "마야점 - 금빛 달력판과 밤하늘의 시간 문양",
       "mayaTitle": "마야점",
       "mayaDesc": "시간의 문양으로 읽는 오늘의 흐름",
-      "dreamPromptShortTitle": "Dream Prompt",
+      "dreamPromptShortTitle": "드림 타로",
       "petSajuTitle": "🐾 AI 반려동물 사주",
       "petSajuDesc": "우리 아이 오행과 궁합",
       "petSajuAria": "AI 반려동물 사주 시작",
@@ -745,9 +745,9 @@
       "cta": "내게 맞는 이용권 살펴보기"
     },
     "dreamPrompt": {
-      "closeAria": "드림 프롬프트 닫기",
+      "closeAria": "드림 타로 닫기",
       "kicker": "Whispering Star-Library",
-      "title": "무의식의 마법 상점: 드림 프롬프트",
+      "title": "무의식의 마법 상점: 드림 타로",
       "subtitle": "꿈의 장면을 타로 상징으로 펼치고, 마지막에는 해몽 AI에 건넬 프롬프트만 남깁니다.",
       "wizardLine": "반갑습니다, 무의식의 여행자여. 꿈의 별빛 장부가 조용히 첫 문장을 엽니다.",
       "entrancePrompt": "꿈속에서 가장 선명했던 장면, 등장한 존재, 깨어난 뒤 남은 감정을 순서대로 적으면 프롬프트의 씨앗이 깨어납니다.",

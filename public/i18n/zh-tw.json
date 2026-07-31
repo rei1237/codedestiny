@@ -570,7 +570,7 @@
       "mayaAlt": "瑪雅占卜 — 金色曆盤與夜空時間紋樣",
       "mayaTitle": "瑪雅占卜",
       "mayaDesc": "用時間紋樣讀取今日流向",
-      "dreamPromptShortTitle": "夢境提示",
+      "dreamPromptShortTitle": "夢境塔羅",
       "petSajuTitle": "🐾 AI寵物八字",
       "petSajuDesc": "毛孩子的五行與合盤",
       "petSajuAria": "開啟AI寵物八字",
@@ -886,9 +886,9 @@
       "cta": "找到適合我的通行證"
     },
     "dreamPrompt": {
-      "closeAria": "關閉夢境提示",
+      "closeAria": "關閉夢境塔羅",
       "kicker": "低語星圖書館",
-      "title": "無意識的魔法商店：夢境提示",
+      "title": "無意識的魔法商店：夢境塔羅",
       "subtitle": "透過塔羅符號展開你的夢境場景，然後只留下提示，給出解夢AI。",
       "wizardLine": "歡迎，無意識的旅人。星光夢想帳本悄悄開啟第一行。",
       "entrancePrompt": "寫出最清晰的場景，出現的眾生，以及醒來後留下的感受。提示的種子將會甦醒。",

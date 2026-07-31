@@ -112,7 +112,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
 }> = {
   ko: {
     title: "꿀꿀 만세력",
-    defaultIntro: "무료 사주 만세력·자미두수·명리학 타로·점성술·주역·숙요점·화투점·동물 관상·MBTI 궁합·운명의 꽃·드림 프롬프트 등 운세 서비스를 한곳에서 이용할 수 있습니다. 아래 카테고리에서 원하는 항목을 눌러 네이티브 페이지로 이동하세요.",
+    defaultIntro: "무료 사주 만세력·자미두수·명리학 타로·점성술·주역·숙요점·화투점·동물 관상·MBTI 궁합·운명의 꽃·드림 타로 등 운세 서비스를 한곳에서 이용할 수 있습니다. 아래 카테고리에서 원하는 항목을 눌러 네이티브 페이지로 이동하세요.",
     belowLegacyIntro: "위 화면에서 기존 메인과 동일하게 카드·모달로 이용할 수 있습니다. 검색·내부 링크용으로 서비스별 네이티브 페이지로 바로 갈 수 있는 목록입니다.",
     legacyCta: "전체 기능 화면 열기 (레거시 메인)",
     legacyNote: "카드·모달이 한 화면에 모여 있는 기존 메인입니다.",
@@ -122,12 +122,12 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
       { href: "/oracle/royal-tea", label: "타세오그래피" },
       { href: "/oracle/sikojen-povailu", label: "핀란드 주석점" },
       { href: "/flower/destiny", label: "운명의 꽃" },
-      { href: "/dream/tarot", label: "드림 프롬프트" },
+      { href: "/dream/tarot", label: "드림 타로" },
     ],
   },
   en: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Use free Saju, Zi Wei Dou Shu, Myeongri Tarot, astrology, I Ching, Sukuyo, Hwatu, animal face reading, MBTI compatibility, Destiny Flower, Dream Prompt, and more in one place. Choose a category below to open the native page.",
+    defaultIntro: "Use free Saju, Zi Wei Dou Shu, Myeongri Tarot, astrology, I Ching, Sukuyo, Hwatu, animal face reading, MBTI compatibility, Destiny Flower, Dream Tarot, and more in one place. Choose a category below to open the native page.",
     belowLegacyIntro: "The screen above still opens the same cards and modals as the legacy main. This list provides direct native pages for search and internal links.",
     legacyCta: "Open all features screen (legacy main)",
     legacyNote: "The legacy main gathers cards and modals on one screen.",
@@ -137,7 +137,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
       { href: "/oracle/royal-tea", label: "Tasseography" },
       { href: "/oracle/sikojen-povailu", label: "Finnish Tin Oracle" },
       { href: "/flower/destiny", label: "Destiny Flower" },
-      { href: "/dream/tarot", label: "Dream Prompt" },
+      { href: "/dream/tarot", label: "Dream Tarot" },
     ],
   },
   ja: {
@@ -167,7 +167,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
       { href: "/oracle/royal-tea", label: "茶叶占卜" },
       { href: "/oracle/sikojen-povailu", label: "芬兰锡占" },
       { href: "/flower/destiny", label: "命运之花" },
-      { href: "/dream/tarot", label: "梦境提示词" },
+      { href: "/dream/tarot", label: "梦境塔罗" },
     ],
   },
   "zh-TW": {
@@ -182,12 +182,12 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
       { href: "/oracle/royal-tea", label: "茶葉占卜" },
       { href: "/oracle/sikojen-povailu", label: "芬蘭錫占" },
       { href: "/flower/destiny", label: "命運之花" },
-      { href: "/dream/tarot", label: "夢境提示詞" },
+      { href: "/dream/tarot", label: "夢境塔羅" },
     ],
   },
   vi: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Dùng Saju miễn phí, Tử Vi, Myeongri Tarot, chiêm tinh, Kinh Dịch, Sukuyo, Hwatu, xem tướng động vật, tương hợp MBTI, Destiny Flower, Dream Prompt và nhiều dịch vụ vận may khác tại một nơi.",
+    defaultIntro: "Dùng Saju miễn phí, Tử Vi, Myeongri Tarot, chiêm tinh, Kinh Dịch, Sukuyo, Hwatu, xem tướng động vật, tương hợp MBTI, Destiny Flower, Dream Tarot và nhiều dịch vụ vận may khác tại một nơi.",
     belowLegacyIntro: "Màn hình phía trên vẫn mở thẻ và modal giống trang chính cũ. Danh sách này dẫn thẳng đến từng trang native cho tìm kiếm và liên kết nội bộ.",
     legacyCta: "Mở toàn bộ tính năng (main cũ)",
     legacyNote: "Main cũ gom thẻ và modal trên cùng một màn hình.",
@@ -202,7 +202,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   hi: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "मुफ्त Saju, Zi Wei, Myeongri Tarot, ज्योतिष, I Ching, Sukuyo, Hwatu, पशु-चेहरा रीडिंग, MBTI संगति, Destiny Flower, Dream Prompt और अन्य भाग्य सेवाएँ एक ही जगह उपलब्ध हैं.",
+    defaultIntro: "मुफ्त Saju, Zi Wei, Myeongri Tarot, ज्योतिष, I Ching, Sukuyo, Hwatu, पशु-चेहरा रीडिंग, MBTI संगति, Destiny Flower, Dream Tarot और अन्य भाग्य सेवाएँ एक ही जगह उपलब्ध हैं.",
     belowLegacyIntro: "ऊपर की स्क्रीन पुराने मुख्य पेज की तरह कार्ड और मोडल खोलती है. यह सूची खोज और आंतरिक लिंक के लिए सीधे native पेजों तक ले जाती है.",
     legacyCta: "सभी सुविधाएँ खोलें (पुराना मुख्य पेज)",
     legacyNote: "पुराना मुख्य पेज कार्ड और मोडल को एक ही स्क्रीन पर रखता है.",
@@ -217,7 +217,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   es: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Usa Saju gratis, Zi Wei, Myeongri Tarot, astrología, I Ching, Sukuyo, Hwatu, lectura animal, compatibilidad MBTI, Destiny Flower, Dream Prompt y más en un solo lugar.",
+    defaultIntro: "Usa Saju gratis, Zi Wei, Myeongri Tarot, astrología, I Ching, Sukuyo, Hwatu, lectura animal, compatibilidad MBTI, Destiny Flower, Dream Tarot y más en un solo lugar.",
     belowLegacyIntro: "La pantalla superior abre las mismas tarjetas y modales que el main heredado. Esta lista lleva directo a páginas nativas para búsqueda y enlaces internos.",
     legacyCta: "Abrir pantalla de funciones (main heredado)",
     legacyNote: "El main heredado reúne tarjetas y modales en una pantalla.",
@@ -232,7 +232,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   fr: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Utilisez Saju gratuit, Zi Wei, Myeongri Tarot, astrologie, Yi Jing, Sukuyo, Hwatu, lecture animale, compatibilité MBTI, Destiny Flower, Dream Prompt et plus au même endroit.",
+    defaultIntro: "Utilisez Saju gratuit, Zi Wei, Myeongri Tarot, astrologie, Yi Jing, Sukuyo, Hwatu, lecture animale, compatibilité MBTI, Destiny Flower, Dream Tarot et plus au même endroit.",
     belowLegacyIntro: "L'écran ci-dessus ouvre les mêmes cartes et modales que l'ancien main. Cette liste mène aux pages natives pour la recherche et les liens internes.",
     legacyCta: "Ouvrir toutes les fonctions (ancien main)",
     legacyNote: "L'ancien main rassemble cartes et modales sur un seul écran.",
@@ -247,7 +247,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   de: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Nutze kostenloses Saju, Zi Wei, Myeongri Tarot, Astrologie, I Ging, Sukuyo, Hwatu, Tiergesichtlesen, MBTI-Kompatibilität, Destiny Flower, Dream Prompt und mehr an einem Ort.",
+    defaultIntro: "Nutze kostenloses Saju, Zi Wei, Myeongri Tarot, Astrologie, I Ging, Sukuyo, Hwatu, Tiergesichtlesen, MBTI-Kompatibilität, Destiny Flower, Dream Tarot und mehr an einem Ort.",
     belowLegacyIntro: "Der obere Bereich öffnet Karten und Modals wie der alte Main. Diese Liste führt für Suche und interne Links direkt zu nativen Seiten.",
     legacyCta: "Alle Funktionen öffnen (alter Main)",
     legacyNote: "Der alte Main sammelt Karten und Modals auf einem Bildschirm.",
@@ -262,7 +262,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   nl: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Gebruik gratis Saju, Zi Wei, Myeongri Tarot, astrologie, I Tjing, Sukuyo, Hwatu, dierlijke gezichtslezing, MBTI-compatibiliteit, Destiny Flower, Dream Prompt en meer op één plek.",
+    defaultIntro: "Gebruik gratis Saju, Zi Wei, Myeongri Tarot, astrologie, I Tjing, Sukuyo, Hwatu, dierlijke gezichtslezing, MBTI-compatibiliteit, Destiny Flower, Dream Tarot en meer op één plek.",
     belowLegacyIntro: "Het scherm hierboven opent dezelfde kaarten en modals als de legacy main. Deze lijst leidt direct naar native pagina's voor zoeken en interne links.",
     legacyCta: "Alle functies openen (legacy main)",
     legacyNote: "De legacy main verzamelt kaarten en modals op één scherm.",
@@ -277,7 +277,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   ms: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Gunakan Saju percuma, Zi Wei, Myeongri Tarot, astrologi, I Ching, Sukuyo, Hwatu, bacaan wajah haiwan, keserasian MBTI, Destiny Flower, Dream Prompt dan banyak lagi di satu tempat.",
+    defaultIntro: "Gunakan Saju percuma, Zi Wei, Myeongri Tarot, astrologi, I Ching, Sukuyo, Hwatu, bacaan wajah haiwan, keserasian MBTI, Destiny Flower, Dream Tarot dan banyak lagi di satu tempat.",
     belowLegacyIntro: "Skrin di atas membuka kad dan modal seperti main lama. Senarai ini membawa terus ke halaman native untuk carian dan pautan dalaman.",
     legacyCta: "Buka semua fungsi (main lama)",
     legacyNote: "Main lama mengumpulkan kad dan modal pada satu skrin.",
