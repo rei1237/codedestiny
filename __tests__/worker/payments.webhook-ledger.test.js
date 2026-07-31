@@ -209,6 +209,40 @@ describe("single payment entitlement consistency", () => {
     },
   };
 
+  // 프로필 스코프 키(section_summary)인데 주문에 profileId 가 없는 경우.
+  // 프로필 카드가 0개인 계정이 결제하면 셸 자동주입도 서버 폴백도 빈 값을 낸다.
+  const profileScopedOrderWithoutProfile = {
+    ...order,
+    _id: "payment-doc-noprofile-001",
+    merchantUid: "pay_noprofile_001",
+    pricingSnapshot: {
+      contentId: "full_reading",
+      contentKey: "full_reading",
+      contentType: "saju_unlock",
+      serviceId: "saju",
+    },
+  };
+
+  // 회당 결제(PER_USE) 키. 타로·관상·꿈해몽처럼 프로필 카드 개념이 아예 없다.
+  const perUseOrderWithoutProfile = {
+    _id: "payment-doc-tarot-001",
+    userId: auth.userId,
+    merchantUid: "pay_tarot_001",
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+    status: "pending",
+    paymentAmount: 5000,
+    expectedChargedPoints: 50,
+    coinPrice: 50,
+    featureKey: "tarot-mindscan",
+    productId: "tarot",
+    pricingSnapshot: {
+      categoryKey: "tarot",
+      contentId: "tarot-mindscan",
+      amountKRW: 5000,
+    },
+  };
+
   // 음악 트랙 다운로드처럼 프로필 카드 개념이 없는 계정 스코프 단건결제.
   // pricingSnapshot 에 profileId 가 없다 — 예전에는 이 때문에 프로필 엔타이틀먼트 저장이
   // INVALID_UNLOCK_TARGET 으로 실패하고, Transaction.Paid 웹훅이 결제를 자동 전액 환불하며
@@ -251,9 +285,12 @@ describe("single payment entitlement consistency", () => {
       orderState: "UNLOCKED",
     }));
     ContentEntitlement.findOne = jest.fn().mockReturnValue(queryResult(null));
-    ContentEntitlement.findOneAndUpdate = jest.fn(() => {
-      throw new Error("profile entitlement must not be attempted for account-scoped unlock");
-    });
+    ContentEntitlement.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      _id: "ent-music-001",
+      profileId: "__user__",
+      scope: "USER",
+      contentKey: "music-track-0rhpuvh",
+    }));
     User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
     PaymentFailureLog.create = jest.fn().mockResolvedValue({});
     global.fetch = jest.fn(async () => new Response(JSON.stringify({
@@ -292,6 +329,190 @@ describe("single payment entitlement consistency", () => {
       }),
       undefined,
     );
+    // 🔴 해금 기록은 USER 스코프로 남아야 한다. 아예 남기지 않으면 잠금 상품의 전달 증거가 사라져
+    // "결과를 못 받았다" 자기신고 환불(resolvePaidResultDelivery)이 소비 후에도 그대로 통과한다.
+    expect(ContentEntitlement.findOneAndUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ profileId: "__user__", scope: "USER" }),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  test("계정 스코프 키는 주문에 profileId 가 실려 있어도 USER 스코프로 기록된다", async () => {
+    // 정적 셸(_cdBuildDirectCheckoutPayload)은 모든 단건 결제에 현재 프로필을 자동 주입한다.
+    // 그걸 그대로 쓰면 계정 단위 상품이 프로필 단위로 잠겨, 프로필을 바꾸는 순간 재잠김된다.
+    const orderWithStrayProfileId = {
+      ...accountScopedOrder,
+      _id: "payment-doc-music-002",
+      merchantUid: "pay_music_002",
+      pricingSnapshot: { ...accountScopedOrder.pricingSnapshot, profileId: "profile_777" },
+    };
+
+    let paymentFindOneCall = 0;
+    Payment.findOne = jest.fn(() => {
+      paymentFindOneCall += 1;
+      return queryResult(paymentFindOneCall === 1 ? orderWithStrayProfileId : null);
+    });
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...orderWithStrayProfileId,
+      status: "processing",
+      orderState: "PAID_VERIFIED",
+      paidAt: new Date("2026-06-30T00:00:00.000Z"),
+    }));
+    Payment.findById = jest.fn().mockReturnValue(queryResult({ ...orderWithStrayProfileId, status: "processing" }));
+    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...orderWithStrayProfileId,
+      status: "fulfilled",
+      orderState: "UNLOCKED",
+    }));
+    ContentEntitlement.findOne = jest.fn().mockReturnValue(queryResult(null));
+    ContentEntitlement.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({ _id: "ent-music-002" }));
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({
+      payment: {
+        paymentId: "pay_music_002",
+        status: "PAID",
+        storeId: "store_test_001",
+        amount: { total: 1000, currency: "KRW" },
+        paidAt: "2026-06-30T00:00:00.000Z",
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } }));
+
+    const request = new Request("https://example.com/api/payments/single/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paymentId: "pay_music_002" }),
+    });
+
+    const parsed = await readResponse(await testUtils.handleSinglePaymentComplete(request, env, auth));
+
+    expect(parsed.status).toBe(200);
+    expect(ContentEntitlement.findOneAndUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ profileId: "__user__", scope: "USER" }),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  test("profileId 없는 회당결제(PER_USE)도 환불되지 않고 권한이 기록된다", async () => {
+    let paymentFindOneCall = 0;
+    Payment.findOne = jest.fn(() => {
+      paymentFindOneCall += 1;
+      return queryResult(paymentFindOneCall === 1 ? perUseOrderWithoutProfile : null);
+    });
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...perUseOrderWithoutProfile,
+      status: "processing",
+      orderState: "PAID_VERIFIED",
+      paidAt: new Date("2026-06-30T00:00:00.000Z"),
+    }));
+    Payment.findById = jest.fn().mockReturnValue(queryResult({ ...perUseOrderWithoutProfile, status: "processing" }));
+    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...perUseOrderWithoutProfile,
+      status: "fulfilled",
+      orderState: "UNLOCKED",
+    }));
+    ContentEntitlement.findOne = jest.fn().mockReturnValue(queryResult(null));
+    ContentEntitlement.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({ _id: "ent-tarot-001" }));
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({
+      payment: {
+        paymentId: "pay_tarot_001",
+        status: "PAID",
+        storeId: "store_test_001",
+        amount: { total: 5000, currency: "KRW" },
+        paidAt: "2026-06-30T00:00:00.000Z",
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } }));
+
+    const request = new Request("https://example.com/api/payments/single/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paymentId: "pay_tarot_001" }),
+    });
+
+    const parsed = await readResponse(await testUtils.handleSinglePaymentComplete(request, env, auth));
+
+    expect(parsed.status).toBe(200);
+    expect(parsed.payload.ok).toBe(true);
+    // 취소(환불) 호출이 붙으면 회귀다.
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(String(global.fetch.mock.calls[0][0])).not.toContain("/cancel");
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: auth.userId },
+      expect.objectContaining({
+        $addToSet: expect.objectContaining({ paidFeatures: "tarot-mindscan" }),
+      }),
+      undefined,
+    );
+  });
+
+  test("프로필 스코프 키의 profileId 결손은 환불이 아니라 관리자 검토로 보류된다", async () => {
+    let paymentFindOneCall = 0;
+    Payment.findOne = jest.fn(() => {
+      paymentFindOneCall += 1;
+      return queryResult(paymentFindOneCall === 1 ? profileScopedOrderWithoutProfile : null);
+    });
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...profileScopedOrderWithoutProfile,
+      status: "processing",
+      orderState: "PAID_VERIFIED",
+      paidAt: new Date("2026-06-30T00:00:00.000Z"),
+    }));
+    Payment.findById = jest.fn().mockReturnValue(queryResult({ ...profileScopedOrderWithoutProfile, status: "processing" }));
+    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(queryResult({ ...profileScopedOrderWithoutProfile }));
+    ContentEntitlement.findOne = jest.fn().mockReturnValue(queryResult(null));
+    ContentEntitlement.findOneAndUpdate = jest.fn(() => {
+      throw new Error("entitlement must not be attempted without a profile id");
+    });
+    ContentEntitlement.updateMany = jest.fn().mockResolvedValue({ matchedCount: 0, modifiedCount: 0 });
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({
+      payment: {
+        paymentId: "pay_noprofile_001",
+        status: "PAID",
+        storeId: "store_test_001",
+        amount: { total: 12000, currency: "KRW" },
+        paidAt: "2026-06-30T00:00:00.000Z",
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } }));
+
+    const request = new Request("https://example.com/api/payments/single/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paymentId: "pay_noprofile_001" }),
+    });
+
+    const parsed = await readResponse(await testUtils.handleSinglePaymentComplete(request, env, auth));
+
+    expect(parsed.payload.code).toBe("UNLOCK_RECORD_DEFERRED_ADMIN_REVIEW");
+    expect(parsed.payload.refundStatus).toBe("not_refunded");
+    expect(parsed.payload.adminReviewRequired).toBe(true);
+    // 🔴 PortOne 단건 조회 1회뿐 — 취소 호출이 늘면 사용자 돈이 되돌아간 것이다.
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(String(global.fetch.mock.calls[0][0])).not.toContain("/cancel");
+    // 권한은 해금 기록보다 먼저 지급된다 — 그래야 "환불 없이 보류"가 사용자에게 성립한다.
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: auth.userId },
+      expect.objectContaining({
+        $addToSet: expect.objectContaining({ paidFeatures: "section_summary" }),
+      }),
+      undefined,
+    );
+    // 권한 회수($pull)가 일어나면 회귀다.
+    expect(User.updateOne).not.toHaveBeenCalledWith(
+      { _id: auth.userId },
+      expect.objectContaining({ $pull: expect.anything() }),
+    );
+    expect(Payment.findByIdAndUpdate).toHaveBeenCalledWith("payment-doc-noprofile-001", expect.objectContaining({
+      $set: expect.objectContaining({
+        failureCode: "delivery_failed_manual_review",
+        failureStage: "single_unlock_upsert",
+      }),
+    }));
   });
 
   test("entitlement grant failure triggers automatic full refund", async () => {

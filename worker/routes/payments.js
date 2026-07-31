@@ -32,7 +32,7 @@ import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKr
 import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { resolvePaidContentUnlockTarget } from "../lib/content-unlocks.js";
+import { resolvePaidContentUnlockTarget, USER_SCOPE_PROFILE_ID } from "../lib/content-unlocks.js";
 // 환불 코어는 관리자 라우트(/api/admin/orders)와 공유한다 — 두 벌이 되면 한쪽만 고쳐지는 사고가 난다.
 import {
   invalidatePaidAccessDecisionCacheForUser,
@@ -1173,19 +1173,25 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   const coinPrice = Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || 0)));
   const amountKRW = Math.max(0, Math.floor(Number(payment?.paymentAmount || payment?.pricingSnapshot?.amountKRW || 0)));
 
-  // 🔴 프로필 스코프 언락이 아닌 키는 ContentEntitlement 를 만들지 않는다. 권한은 recordUserPaidFeature 가
-  // paidFeatures/unlockedFeatures 로 주고, 실제 접근 판정(paid-feature-access.js)도 그걸 읽는다.
+  // 🔴 프로필 스코프 언락인지 아닌지로 엔타이틀먼트의 스코프가 갈린다. 판정 정본은
+  // resolveProfileUnlockContentKey 하나다(다른 정산 경로 upsertSajuPaymentUnlockEntitlement 와
+  // 코인 지급 경로 billing.js isProfileScopedUnlockKey 도 같은 판정을 쓴다).
   //
-  // 이 게이트가 없어서 profileId 가 없는 단건 결제(음악 트랙 등 프로필 무관 UNLOCK 키 전부)가
-  // Transaction.Paid 웹훅 정산에서 INVALID_UNLOCK_TARGET 으로 죽었고, 그 catch 가 자동환불을 불러
-  // PortOne 결제 취소 + paidFeatures 회수까지 갔다 — 즉 "결제 직후 서비스가 사라지는" 사고였다.
-  // 다른 정산 경로(upsertSajuPaymentUnlockEntitlement)와 코인 지급 경로(billing.js isProfileScopedUnlockKey)는
-  // 모두 이 판정을 이미 하고 있었고, 이 함수만 빠져 있었다. 판정 정본은 resolveProfileUnlockContentKey 하나다.
-  if (!resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId)) {
-    return null;
-  }
+  // 이 구분이 없어서 profileId 가 없는 단건 결제(음악 트랙 등 프로필 무관 키 전부, 그리고 프로필
+  // 카드가 0개인 계정의 모든 결제)가 Transaction.Paid 웹훅 정산에서 INVALID_UNLOCK_TARGET 으로
+  // 죽었고, 그 catch 가 자동환불을 불러 PortOne 결제 취소 + paidFeatures 회수까지 갔다
+  // — 즉 "결제 직후 서비스가 사라지는" 사고였다.
+  const requiresProfile = Boolean(resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId));
 
-  if (!profileId || !contentId || !contentKey) {
+  // 🔴 계정 스코프 키는 주문에 profileId 가 실려 있어도 무시하고 USER 스코프로 고정한다.
+  // 정적 셸(_cdBuildDirectCheckoutPayload)이 모든 단건 결제에 현재 프로필을 자동 주입하기 때문에,
+  // 그대로 두면 계정 단위 상품이 프로필 단위로 잠겨 프로필을 바꾸는 순간 산 콘텐츠가 재잠김된다.
+  const entitlementScope = requiresProfile ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER;
+  const entitlementProfileId = requiresProfile ? profileId : USER_SCOPE_PROFILE_ID;
+
+  // 프로필 스코프 키의 진짜 결손(profileId 부재)은 계속 실패로 잡는다. 다만 호출부는 이걸
+  // 자동환불이 아니라 관리자 검토 보류로 처리한다(handleSinglePaymentComplete 참고).
+  if (!entitlementProfileId || !contentId || !contentKey) {
     const error = new Error("Single payment unlock target is missing.");
     error.code = "INVALID_UNLOCK_TARGET";
     throw error;
@@ -1197,10 +1203,10 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   return ContentEntitlement.findOneAndUpdate(
     {
       userId: String(payment.userId),
-      profileId,
+      profileId: entitlementProfileId,
       serviceKey,
       contentKey,
-      scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+      scope: entitlementScope,
     },
     {
       $set: {
@@ -1220,16 +1226,24 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
       },
       $setOnInsert: {
         userId: String(payment.userId),
-        profileId,
+        profileId: entitlementProfileId,
         serviceKey,
         contentKey,
-        scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+        scope: entitlementScope,
         unlockedAt: Number.isNaN(effectiveUnlockedAt.getTime()) ? now : effectiveUnlockedAt,
         createdAt: now,
       },
     },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   ).lean();
+}
+
+// 지급 대상을 식별하지 못한 실패(프로필 결손 등)와 인프라 실패(Mongo 저장 실패)를 가른다.
+// 전자는 돈을 돌려줄 사유가 아니다 — 이 시점에 recordUserPaidFeature 가 이미 권한을 줬고
+// 실제 접근 판정(paid-feature-access.js)은 paidFeatures/unlockedFeatures 만 읽는다.
+function isUnlockTargetIdentityError(error) {
+  const code = String(error?.code || "").trim();
+  return code === "INVALID_UNLOCK_TARGET" || code === "MISSING_PROFILE_ID";
 }
 
 function buildSinglePaymentRefundIdempotencyKey(payment, jobId = "no-job") {
@@ -1399,8 +1413,9 @@ function extractPortOneCurrency(portOnePayment = {}) {
 // 재조정 크론이 이 경로를 재사용하는데, 크론이 사람 승인 없이 돈을 돌려주면 안 되기 때문이다.
 async function handleSinglePaymentComplete(request, env, auth, options = {}) {
   const allowAutoRefund = options.allowAutoRefund !== false;
-  const refundOrDefer = async (payment, reasonCode, reasonMessage, failureStage) => {
-    if (allowAutoRefund) {
+  // forceDefer=true 는 allowAutoRefund 와 무관하게 PG 취소를 막는다. 지급 대상 식별 실패에 쓴다.
+  const refundOrDefer = async (payment, reasonCode, reasonMessage, failureStage, { forceDefer = false } = {}) => {
+    if (allowAutoRefund && !forceDefer) {
       return autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, reasonMessage, failureStage);
     }
     await Payment.findByIdAndUpdate(payment._id, {
@@ -1412,6 +1427,30 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
       },
     }).catch(() => {});
     return { refunded: false, deferred: true, payment };
+  };
+  // 해금 기록 실패 응답. 식별 실패는 환불하지 않으므로 프론트가 "환불됐다"고 오안내하지 않도록
+  // 코드·문구·상태를 분리한다. 2xx 로 내려 웹훅을 processed 로 확정한다 — profileId 결손은
+  // 재시도해도 그대로라 재조정 크론이 같은 실패를 무한히 되풀이할 이유가 없다.
+  const buildUnlockFailureResponse = (refund, fallbackPayment) => {
+    if (refund.deferred) {
+      return json({
+        ok: false,
+        code: "UNLOCK_RECORD_DEFERRED_ADMIN_REVIEW",
+        message: "결제와 이용 권한은 정상 처리됐습니다. 해금 기록만 담당자가 확인 중이며 환불은 진행되지 않았습니다.",
+        refundStatus: "not_refunded",
+        adminReviewRequired: true,
+        payment: formatPaymentResponse(refund.payment || fallbackPayment),
+      }, { status: 202 });
+    }
+    return json({
+      ok: false,
+      code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
+      message: refund.refunded
+        ? "Paid content access could not be granted. The payment was fully refunded automatically."
+        : "Paid content access could not be granted. Automatic refund requires administrator review.",
+      refundStatus: refund.refunded ? "refunded" : "refund_failed",
+      payment: formatPaymentResponse(refund.payment || fallbackPayment),
+    }, { status: refund.refunded ? 502 : 500 });
   };
   const body = await readJson(request);
   const paymentId = normalizeSingleCompletePaymentId(body?.paymentId || body?.merchantUid || body?.merchant_uid);
@@ -1448,20 +1487,17 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
     let entitlement;
     try {
-      entitlement = await upsertSinglePaymentUnlockRecord({ payment: order, paidAt });
+      // 🔴 권한 지급을 해금 기록보다 먼저 한다. 반대 순서면 upsert 가 throw 할 때 권한이 아예 안 나가서
+      // "환불하지 않고 보류"가 성립하지 않는다. 정당한 환불 경로는 revokeSinglePaymentContentAccess 가
+      // 이 권한까지 회수하므로 순서를 바꿔도 과지급이 남지 않는다.
       await recordUserPaidFeature(order.userId, order.featureKey);
+      entitlement = await upsertSinglePaymentUnlockRecord({ payment: order, paidAt });
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
-      const refund = await refundOrDefer(order, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert");
-      return json({
-        ok: false,
-        code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
-        message: refund.refunded
-          ? "Paid content access could not be granted. The payment was fully refunded automatically."
-          : "Paid content access could not be granted. Automatic refund requires administrator review.",
-        refundStatus: refund.refunded ? "refunded" : "refund_failed",
-        payment: formatPaymentResponse(refund.payment || order),
-      }, { status: refund.refunded ? 502 : 500 });
+      const refund = await refundOrDefer(order, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert", {
+        forceDefer: isUnlockTargetIdentityError(error),
+      });
+      return buildUnlockFailureResponse(refund, order);
     }
     await Payment.findByIdAndUpdate(order._id, {
       $set: { orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED },
@@ -1705,20 +1741,15 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
   let entitlement = existingUnlock?.entitlement || null;
   if (!entitlement) {
     try {
-      entitlement = await upsertSinglePaymentUnlockRecord({ payment: finalPayment, paidAt });
+      // 권한 지급 먼저(위 멱등 경로와 같은 이유).
       await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
+      entitlement = await upsertSinglePaymentUnlockRecord({ payment: finalPayment, paidAt });
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
-      const refund = await refundOrDefer(finalPayment, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert");
-      return json({
-        ok: false,
-        code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
-        message: refund.refunded
-          ? "Paid content access could not be granted. The payment was fully refunded automatically."
-          : "Paid content access could not be granted. Automatic refund requires administrator review.",
-        refundStatus: refund.refunded ? "refunded" : "refund_failed",
-        payment: formatPaymentResponse(refund.payment || finalPayment),
-      }, { status: refund.refunded ? 502 : 500 });
+      const refund = await refundOrDefer(finalPayment, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert", {
+        forceDefer: isUnlockTargetIdentityError(error),
+      });
+      return buildUnlockFailureResponse(refund, finalPayment);
     }
   } else {
     await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
@@ -3335,7 +3366,7 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
   // 인증 단계에서 이미 같은 필드를 읽어 두었다(PAYMENT_ROUTE_USER_PROJECTION). 그걸 재사용해
   // 왕복 1회를 없앤다. authUserDoc 은 access-token 경로에만 붙으므로 부재 시 종전 조회로 폴백한다.
   const passUser = auth.authUserDoc || await User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt phoneNumber phone name email fullName displayName username")
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt phoneNumber phone name email fullName displayName username destinyProfilesCurrentId")
     .lean();
   const entitlement = normalizeHoneyPassEntitlement(passUser || {});
   // 주문 응답에 customer 를 실어 보낸다. 예전에는 이 필드가 없어서 클라의 order.customer 가 항상
@@ -3375,7 +3406,13 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
   const requestId = String(body?.requestId || "").trim().slice(0, 120);
   const reportId = String(body?.reportId || "").trim().slice(0, 120);
   const sessionId = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
-  const profileId = String(body?.profileId || body?.selectedProfileId || "").trim().slice(0, 80).replace(/\s+/g, "_");
+  // 🔴 profileId 는 기능 성격이 아니라 실행 런타임이 정한다 — 정적 셸은 모든 단건 결제에 현재 프로필을
+  // 자동 주입하지만, React 페이지(useCoinGate/billing-client)와 일부 독립 정적 페이지는 아무것도 싣지
+  // 않는다. 그러면 프로필 스코프 상품(사주 3·자미두수 5·숙요 연간·FPTI)이 프로필 결손인 채로 결제돼
+  // 정산이 관리자 검토로 빠진다. 서버가 마지막으로 기억하는 카드로 폴백해 그 격차를 메운다.
+  // 계정 스코프 상품은 upsertSinglePaymentUnlockRecord 가 profileId 를 무시하므로 영향이 없다.
+  // (passUser 는 위에서 이미 읽은 문서다 — 추가 왕복 없음)
+  const profileId = String(body?.profileId || body?.selectedProfileId || passUser?.destinyProfilesCurrentId || "").trim().slice(0, 80).replace(/\s+/g, "_");
   const productType = String(body?.productType || body?.serviceType || "").trim().slice(0, 80);
   const serviceType = String(body?.serviceType || body?.productType || "").trim().slice(0, 80);
   const actionType = String(body?.actionType || "").trim().slice(0, 80);
@@ -5808,6 +5845,9 @@ const PAYMENT_ROUTE_USER_PROJECTION = {
   fullName: 1,
   displayName: 1,
   username: 1,
+  // 주문 스냅샷 profileId 폴백용(handleDigitalContentPrepare). 없으면 프로필 스코프 상품이
+  // 프로필 결손 상태로 결제돼 정산이 관리자 검토로 빠진다.
+  destinyProfilesCurrentId: 1,
 };
 
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
