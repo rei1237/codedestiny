@@ -61,6 +61,13 @@ const SECTION_GROUP_ATTEMPTS = 2;
 const INITIAL_CONSULTATION_DEADLINE_MS = 88000;
 // 재생성을 걸 가치가 있는 최소 잔여 시간.
 const SECTION_GROUP_RETRY_MIN_BUDGET_MS = 18000;
+// `generating` 문서를 "아직 누가 만들고 있다"고 믿어 줄 창.
+// 생성은 요청 안에서 INITIAL_CONSULTATION_DEADLINE_MS(88초) 예산으로 끝나고 엣지는 100초에 요청을 끊으므로,
+// 이 창은 그 둘보다 조금만 길면 된다. 예전 값 540초는 "초기 240s + repair 240s" 순차 파이프라인 시절의
+// 계산인데 그 파이프라인이 사라진 뒤에도 남아 있었다 — 엣지에 잘린 세션이 9분간 좀비로 남고, 그동안
+// /start 는 202만 돌려주고 /result 는 창을 보지도 않아, 아무도 생성하지 않는 채로 클라이언트 폴링이
+// 통째로 헛돌았다(최대 65회·약 8분).
+const GENERATING_FRESHNESS_MS = 150000;
 
 // targetChars 합계는 MIN_INITIAL_CONSULTATION_BODY_CHARS(20,000)보다 넉넉히 위여야 한다.
 // 딱 맞춰 두면 모델이 목표의 90%만 써도 곧바로 미달로 떨어진다. 대신 그룹 하나의 몫은
@@ -1207,7 +1214,7 @@ function buildConsultationHeaderLines(input, chart) {
     `현재 가장 궁금한 질문: ${input.userQuestion || "자미두수 명반의 전체 흐름을 알고 싶습니다."}`,
     "",
     "[계산된 자미두수 명반 데이터]",
-    JSON.stringify(chart, null, 2),
+    JSON.stringify(chart),
     "",
     "[계산 확정값 — 본문과 meta에서 이 값과 다르게 서술하는 것을 금지]",
     ...buildCanonicalZiweiFacts(chart),
@@ -1276,7 +1283,7 @@ function buildSectionGroupPrompt(input, chart, group) {
     group.focus ? `[이번에 쓸 부분] ${group.focus}` : "",
     "",
     "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
-    JSON.stringify({ sections: buildSectionSchemaFor(sectionKeys) }, null, 2),
+    JSON.stringify({ sections: buildSectionSchemaFor(sectionKeys) }),
     "",
     `- 위 JSON 의 ${sectionKeys.join(", ")} 만 작성합니다. 다른 키를 새로 만들지 마세요.`,
     otherSections.length
@@ -1338,7 +1345,7 @@ function buildMetaPrompt(input, chart) {
         },
       },
       sections: {},
-    }, null, 2),
+    }),
     "",
     "- mingong.description 은 명궁 주성과 강약을 근거로 한 2~3문장 요약입니다.",
     "- dayun.theme 는 현재 대운의 성격을 한 줄로 규정합니다.",
@@ -1377,7 +1384,7 @@ function buildFollowUpPrompt(consultation, question) {
     `처음 상담 주제: ${consultation.topic}`,
     "",
     "[자미두수 명반 데이터]",
-    JSON.stringify(consultation.ziweiChart || {}, null, 2),
+    JSON.stringify(consultation.ziweiChart || {}),
     "",
     "[이전 대화]",
     history,
@@ -2103,8 +2110,8 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", ctx =
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicConsultation(existing));
-  // 신선도 창 = 최악 파이프라인(초기 240s + repair 240s) + 마진. 창이 짧으면 재-POST가 중복 생성을 기동한다.
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 540000) {
+  // 창이 짧으면 재-POST가 중복 생성을 기동하고, 길면 잘린 세션이 좀비로 남는다(GENERATING_FRESHNESS_MS 주석 참고).
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATING_FRESHNESS_MS) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "별궁의 흐름을 읽고 있습니다" }, { status: 202 });
   }
 
@@ -2320,6 +2327,13 @@ async function handleResult(request, env) {
   if (!consultation) return notFound();
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
   if (consultation.status === "generating") {
+    // 단, 신선도 창을 넘긴 `generating`은 생성 주체가 이미 사라진 좀비다(엣지 컷·워커 크래시).
+    // 계속 202를 돌려주면 클라이언트가 최대 65회를 헛돌다 타임아웃 문구로 끝난다 — 그 자리에서 종단시킨다.
+    const generatingAgeMs = Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime();
+    if (generatingAgeMs >= GENERATING_FRESHNESS_MS) {
+      logZiweiAi("Stale Generating Terminated", { route: "/api/ziwei-ai/result", sessionId: consultation.id, generatingAgeMs }, "warn");
+      return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+    }
     return json(
       { ok: true, sessionId: consultation.id, status: "generating", message: "별궁의 흐름을 읽고 있습니다" },
       { status: 202, headers: { "Retry-After": "3" } },
@@ -2400,6 +2414,7 @@ export const __ziweiAiTestUtils = {
   SECTION_GROUP_SPECS,
   SECTION_GROUP_TIMEOUT_MS,
   INITIAL_CONSULTATION_DEADLINE_MS,
+  GENERATING_FRESHNESS_MS,
   buildSectionGroupPrompt,
   buildMetaPrompt,
   parseSectionsFromGroupText,

@@ -181,7 +181,7 @@ export async function connectDb(env = {}) {
   const connectTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
   // 🔴 op 예산(withMongoRetry 의 attemptTimeoutMS, 기본 12000)보다 **짧게** 잡는다.
   // 예전엔 20000 이라, op-타임아웃(12초)이 난 뒤에도 드라이버 작업은 취소되지 않아 소켓이 8초를
-  // 더 풀에 묶여 있었다. maxPoolSize 가 5 뿐이라 멈춘 op 5개면 풀이 통째로 20초간 마비되고,
+  // 더 풀에 묶여 있었다. maxPoolSize 가 작아(M0 예산 때문에 의도적으로 작다) 멈춘 op 몇 개면 풀이 마비되고,
   // 그 사이 들어온 요청은 체크아웃 큐에서 굶다가 또 12초에 걸리는 자기증폭 고리가 됐다
   // (2026-08-01 [db-op-timeout] 실측: 체크아웃 대기 최대 10,383ms, 한 창에서 41건 시작/4건 성사).
   // 서버 명령 실행은 250~417ms 라 11초도 20배 이상 여유다.
@@ -193,7 +193,12 @@ export async function connectDb(env = {}) {
   // 유휴 소켓을 드라이버가 능동적으로 닫아, Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓을 풀이
   // 보유하는 것을 근절한다(Atlas 유휴 컷보다 짧게). 이 설정 부재가 '웜 쿼리 op-타임아웃 다발·콜드 성공'의
   // 1차 근본 원인이었다 — 유휴 후 재개된 아이솔레이트가 죽은 소켓 위에서 쿼리를 매달았기 때문.
-  const maxIdleTimeMS = clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "60000"), 60000, 10000, 300000);
+  // 🔴 M0(무료 티어)의 **총 연결 상한은 500**이고, 총 연결 = 아이솔레이트 수 × maxPoolSize 다.
+  // 유휴 커넥션을 오래 붙들수록 '지금 일하지 않는 아이솔레이트'가 전역 예산을 점유해,
+  // 정작 요청을 처리 중인 아이솔레이트가 커넥션을 못 받는다(= 체크아웃 굶음).
+  // 60초는 그 점유가 너무 길다. Atlas 유휴 리핑보다는 여전히 짧게 두면서 20초로 당겨
+  // 전역 예산 회전율을 3배로 올린다(좀비 소켓 근절이라는 원래 목적은 그대로 유지된다).
+  const maxIdleTimeMS = clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "20000"), 20000, 10000, 300000);
   const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
@@ -262,7 +267,16 @@ export async function connectDb(env = {}) {
         console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
         const connectOptions = {
           dbName: resolveMongoDbName(env) || undefined,
-          maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
+          // 🔴 늘리지 말 것. Atlas **M0 의 총 연결 상한은 500**이고 총 연결 = 아이솔레이트 수 ×
+          // maxPoolSize 라, 이 값은 '한 아이솔레이트의 성능'이 아니라 '전역 예산의 분모'다.
+          // 5 였을 때 아이솔레이트 100개면 이미 500 = 상한 포화 → 새 체크아웃이 커넥션을 못 만들고
+          // 큐에서 굶는다(2026-08-01 실측: 체크아웃 대기 최대 10,383ms, 41건 시작/4건 성사).
+          // 2 로 낮추면 같은 100 아이솔레이트가 200 만 쓰고 300 이 남아 버스트를 흡수한다.
+          // 아이솔레이트 내부 큐잉은 늘지만, 서버 명령이 250~417ms 라 커넥션 2개로 초당 6회 이상
+          // 처리된다(실측 요구량은 초당 ~4회) — 전역 고갈이 지배적인 상황에서 이쪽이 이득이다.
+          maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "2")),
+          // 유휴 시 커넥션을 하나도 붙들지 않는다(드라이버 기본값이지만 전역 예산에 직결되므로 명시).
+          minPoolSize: 0,
           serverSelectionTimeoutMS,
           connectTimeoutMS,
           socketTimeoutMS,

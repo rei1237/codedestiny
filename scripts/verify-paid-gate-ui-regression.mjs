@@ -148,10 +148,10 @@ assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setIt
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-// 결제/이용권 오버레이의 로고 자산. 예전에는 URL 인코딩된 '꿀꿀 운세 로고.webp' 경로를 핀했는데,
-// 정작 오버레이는 그 경로를 쓰지 않았고 카카오 공유 imageUrl 이 우연히 같은 문자열을 갖고 있어 통과했다.
-// #200 이 그 공유 URL 을 바꾸자 결제와 무관한 이유로 이 게이트가 빨개졌다. 실제 오버레이가 쓰는 자산으로 핀한다.
-assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp");', "payment/pass overlay uses the service logo asset");
+// 자산이 부팅 게이트와 같은 /icons/app-logo-512.webp 로 통합되면서(#200) 이 단언이 낡았고,
+// 같은 잡의 앞 단계(verify:security-hardening)가 먼저 죽어 있어 실패가 드러나지 않았다.
+// 가드의 의도는 "결제/이용권 대기 오버레이가 브랜드 로고를 쓴다"이므로 현재 정본 경로로 맞춘다.
+assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp")', "payment/pass overlay uses brand logo asset");
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
