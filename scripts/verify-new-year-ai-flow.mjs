@@ -181,6 +181,61 @@ assert(firstPrompt.includes("각 항목마다 10,000자를 쓰지 말고"), "new
 assert(firstPrompt.includes("단순히 문장을 길게 늘이지 말고"), "new-year-ai prompt should require expert additions instead of filler");
 assert(firstPrompt.includes("[카테고리별 참고 신호"), "new-year-ai prompt should surface per-category domain signals");
 assert(firstPrompt.includes("**연애·재회**, **재물·수입**, **직업·이직**, **건강·멘탈**, **가족·관계**, **학업·성장**"), "new-year-ai prompt should require the 6 category subsections");
+// 분야별 5섹션 병렬 생성 — 섹션 축이 결과 화면의 네 장 카드(+월별)와 1:1로 맞아야 한다.
+const sections = route.__newYearAiTestUtils.NEW_YEAR_AI_SECTIONS;
+assert(
+  sections.map((section) => section.key).join(",") === "overview,wealth,romance,monthly,health",
+  `new-year-ai sections should split by consultation domain, got: ${sections.map((s) => s.key).join(",")}`,
+);
+const sectionMinSum = sections.reduce((sum, section) => sum + section.minChars, 0);
+const sectionMaxSum = sections.reduce((sum, section) => sum + section.maxChars, 0);
+assert(sectionMinSum >= 10000, `section minChars sum should reach the 10k floor, got ${sectionMinSum}`);
+assert(sectionMaxSum <= 20000, `section maxChars sum should stay under the 20k ceiling, got ${sectionMaxSum}`);
+// 6개 카테고리 소제목은 빠짐없이 어느 한 분야 섹션이 책임져야 한다. 비면 그 이슈는 영원히 해소되지 않는다.
+const categorySectionKey = route.__newYearAiTestUtils.NEW_YEAR_AI_CATEGORY_SECTION_KEY;
+for (const category of ["love", "money", "career", "health", "relationship", "study"]) {
+  assert(categorySectionKey[category], `category "${category}" should be owned by a section`);
+}
+// 각 분야 섹션 프롬프트가 그 분야의 명리 근거를 실제로 요구하는지.
+const sectionPromptExpectations = {
+  overview: ["조후", "억부", "**올해의 총운**"],
+  wealth: ["재성", "관성", "**재물과 직업**", "**재물·수입**", "**직업·이직**"],
+  romance: ["식상", "비겁", "인성", "**애정과 대인관계**", "**연애·재회**", "**가족·관계**"],
+  monthly: ["1월부터 12월까지", "월주 간지"],
+  health: ["오행", "개운법", "**건강과 개운법**", "**건강·멘탈**"],
+};
+for (const section of sections) {
+  const sectionPrompt = route.__newYearAiTestUtils.buildFirstPrompt(normalized.input, fortuneData, section);
+  for (const expected of sectionPromptExpectations[section.key] || []) {
+    assert(sectionPrompt.includes(expected), `section "${section.key}" prompt should require "${expected}"`);
+  }
+}
+// 사용자 질문에 대한 답변 소제목은 총운 하나만 쓴다(다섯 번 반복되면 분야 카드마다 같은 답이 붙는다).
+const customQuestionInput = route.__newYearAiTestUtils.normalizeConsultationInput({
+  ...validInput,
+  focusArea: "custom",
+  question: "이직해도 될까요?",
+  hasCustomQuestion: true,
+});
+assert(customQuestionInput.ok === true, "custom question input should normalize");
+const questionAnswerOwners = sections.filter((section) => route.__newYearAiTestUtils
+  .buildFirstPrompt(customQuestionInput.input, fortuneData, section)
+  .includes("반드시 소제목 **질문에 대한 답변**"));
+assert(
+  questionAnswerOwners.length === 1 && questionAnswerOwners[0].key === "overview",
+  `only the overview section should own the question answer, got: ${questionAnswerOwners.map((s) => s.key).join(",")}`,
+);
+
+// 클라이언트: 분야별 구조화 응답을 쓰되 구버전 세션용 폴백 파서를 유지해야 한다.
+assertIncludes(pageSourcePath, "serverSections", "client should consume the server section payload");
+assertIncludes(pageSourcePath, "groupSectionsByDomain", "client should keep the legacy assembled-text fallback parser");
+assertIncludes(pageSourcePath, "DOMAIN_CARDS", "client should render the domain consultation cards");
+assertIncludes(pageSourcePath, "ReadingProgressPanel", "client should show generation progress");
+assertIncludes(pageSourcePath, 'data-pdf-section={`domain-${card.key}`}', "domain cards should stay in the PDF capture set");
+assertIncludes(pageSourcePath, "is-exporting", "client should force-reveal off-screen cards before PDF capture");
+assertIncludes("worker/routes/new-year-ai.js", "publicSections", "result payload should expose per-domain sections");
+assertIncludes("worker/routes/new-year-ai.js", "sections: generated.sections", "completed session should persist per-domain sections");
+
 const systemPrompt = route.__newYearAiTestUtils.buildSystemPrompt();
 assert(systemPrompt.includes("최고 수준의 명리학자"), "new-year-ai system prompt should strengthen expert saju voice");
 assert(systemPrompt.includes("격국과 용신·기신, 조후, 대운의 배경"), "new-year-ai system prompt should include advanced saju lenses");
