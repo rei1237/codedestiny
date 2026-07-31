@@ -917,6 +917,10 @@ async function proxyApiRequest(request, env) {
   });
 }
 
+// wrangler.toml 의 crons 배열과 반드시 같은 문자열이어야 한다. 다르면 재조정이 영영 안 돌거나,
+// 반대로 일일 태스크가 10분마다 도는 사고가 난다.
+const PAYMENT_RECONCILE_CRON = "*/10 * * * *";
+
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -1555,21 +1559,39 @@ export default {
     }
   },
 
+  // 🔴 크론이 둘이므로 event.cron 으로 반드시 분기한다. 분기 없이 두면 일일 태스크(운세 발송·구독 정산 등)가
+  // 10분마다 돌아 중복 지급이 난다. 알 수 없는 cron 값은 일일 세트로 폴백한다(스케줄을 추가했는데
+  // 분기를 빠뜨렸을 때 태스크가 통째로 멈추는 것보다 낫다).
   async scheduled(event, env, ctx) {
+    const cron = String(event?.cron || "").trim();
+
+    if (cron === PAYMENT_RECONCILE_CRON) {
+      const { runPaymentReconcileTask } = await import("./lib/payment-reconcile-task.js");
+      ctx.waitUntil(runPaymentReconcileTask(env).catch((error) => {
+        console.error("[payment-reconcile] task failed:", error?.message || error);
+      }));
+      return;
+    }
+
     const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
     const { runServiceExecutionTimeoutTask } = await import("./lib/service-execution-task.js");
     const { runMonthlyCreditExpiryTask } = await import("./lib/monthly-credit-expiry-task.js");
     // 웹훅 즉시-ack 전환으로 백그라운드 실패/유실된 Transaction.Paid 지급을 재조정한다.
     const { runWebhookReconcileTask } = await import("./routes/payments.js");
-    ctx.waitUntil(Promise.all([
-      runDailyFortuneTask(env),
-      runCardSubscriptionBillingTask(env),
-      runServiceExecutionTimeoutTask(env),
-      runMonthlyCreditExpiryTask(env),
-      runWebhookReconcileTask(env).catch((error) => {
-        console.error("[webhook-reconcile] task failed:", error?.message || error);
-      }),
-    ]));
+    // 🔴 allSettled — 예전 Promise.all 은 한 태스크가 throw 하면(runServiceExecutionTimeoutTask 는 실제로
+    // re-throw 한다) 나머지 태스크가 함께 죽었다. 실패는 반드시 로그로 남긴다(조용히 삼키지 않는다).
+    const tasks = [
+      ["daily-fortune", runDailyFortuneTask],
+      ["subscription-billing", runCardSubscriptionBillingTask],
+      ["service-execution-timeout", runServiceExecutionTimeoutTask],
+      ["monthly-credit-expiry", runMonthlyCreditExpiryTask],
+      ["webhook-reconcile", runWebhookReconcileTask],
+    ];
+    ctx.waitUntil(Promise.allSettled(tasks.map(([name, run]) => Promise.resolve()
+      .then(() => run(env))
+      .catch((error) => {
+        console.error(`[cron:${name}] task failed:`, error?.message || error);
+      }))));
   },
 };

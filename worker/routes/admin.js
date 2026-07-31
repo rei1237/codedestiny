@@ -5051,6 +5051,14 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
     }
 
+    // 주문 조회·환불. /api/payments 는 flower-admin 토큰을 인증하지 못하므로(auth.js 의
+    // PAID_SERVICE_ADMIN_AUTH_PATHS 미포함) 관리자 네임스페이스 안에 따로 둔다.
+    if (path === "/orders" || path.startsWith("/orders/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminOrderRoutes } = await import("./admin-orders.js");
+      return await handleAdminOrderRoutes(path.slice("/orders".length) || "/", request, env, adminContext);
+    }
+
     if (path === "/site-content/overrides") {
       if (method === "GET") return await handleSiteContentOverrideList(request, env);
       return methodNotAllowed();
