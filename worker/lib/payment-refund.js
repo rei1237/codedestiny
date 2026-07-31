@@ -223,14 +223,36 @@ export async function refundPaymentAsOperator({
     return { ok: false, status: 400, code: "CANCEL_AMOUNT_EXCEEDS_PAID_AMOUNT", message: "Cancel amount exceeds paid amount." };
   }
 
-  const cancelResult = await cancelPortOnePayment(env, {
-    impUid: payment.impUid || undefined,
-    merchantUid: payment.merchantUid || undefined,
-    reason: normalizedReason,
-    amount: requestedAmount,
-    currentCancellableAmount,
-    idempotencyKey: `refund-${String(payment.merchantUid || payment.impUid || payment._id)}-${requestedAmount || paidAmount}`,
-  });
+  // 🔴 cancelPortOnePayment 는 PG 거절 시 throw 한다(예: 이미 카드사에서 취소된 건 → PG_PROVIDER).
+  // 그대로 두면 관리자 화면이 500 과 스택을 받아 무엇이 문제인지 알 수 없다. 구조화된 오류로 바꾼다.
+  let cancelResult = null;
+  try {
+    cancelResult = await cancelPortOnePayment(env, {
+      impUid: payment.impUid || undefined,
+      merchantUid: payment.merchantUid || undefined,
+      reason: normalizedReason,
+      amount: requestedAmount,
+      currentCancellableAmount,
+      idempotencyKey: `refund-${String(payment.merchantUid || payment.impUid || payment._id)}-${requestedAmount || paidAmount}`,
+    });
+  } catch (error) {
+    const detail = String(error?.message || error || "").slice(0, 300);
+    await Payment.findByIdAndUpdate(payment._id, {
+      $set: {
+        failureCode: "portone_cancel_request_failed",
+        failureMessage: detail,
+        failureStage: "operator_refund_portone",
+        lastErrorAt: new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    }).catch(() => {});
+    return {
+      ok: false,
+      status: 502,
+      code: "PORTONE_CANCEL_REQUEST_FAILED",
+      message: `결제사 취소 요청이 거절되었습니다: ${detail}`,
+    };
+  }
 
   if (!isPortOneCancelSucceeded(cancelResult)) {
     await Payment.findByIdAndUpdate(payment._id, {
