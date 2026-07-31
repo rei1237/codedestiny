@@ -171,6 +171,19 @@ for (const marker of ["accessType: access.accessType", "accessMethod: access.acc
 for (const marker of ["pendingPaymentMiss", "resolveNamingYongshin", "suriPromptBlock()", "soundGuidanceForFamilyName"]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
 }
+// 🔴 회당 결제 증빙은 canAccessPaidFeature 보다 **먼저** 확인해야 한다.
+// canAccessPaidFeature 는 지속 엔티틀먼트(이용권·영구해금)만 판정하고 회당 결제(월정석·코인 차감)에는
+// 항상 PAYMENT_REQUIRED 를 주므로, 순서가 뒤집히면 차감이 끝난 사용자가 402 로 막힌다(돈만 나감).
+assertIncludes("worker/routes/naming-prompt.js", route, "verifyNamingChargeEvidence");
+{
+  const chargeAt = route.indexOf("const charge = await verifyNamingChargeEvidence(");
+  const gateAt = route.indexOf("const decision = await canAccessPaidFeature(");
+  assert(chargeAt > 0 && gateAt > 0, "회당 결제 증빙 검사와 이용권 검사 호출부를 찾지 못했다");
+  assert(
+    chargeAt < gateAt,
+    "verifyNamingChargeEvidence()는 canAccessPaidFeature()보다 먼저 호출되어야 한다 (회당 결제자가 402로 막힌다)",
+  );
+}
 
 const resultClient = read("app/naming-ai/result/NamingAiResultClient.tsx");
 for (const marker of [

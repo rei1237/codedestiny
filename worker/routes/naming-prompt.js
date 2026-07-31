@@ -984,6 +984,82 @@ async function verifyPassEvidence(env, auth, ctx = {}) {
   return history ? { source: "pass_history", evidenceId: String(history._id || "") } : null;
 }
 
+/** 증빙 후보 id 들을 정리·중복 제거한다(빈 값 제거). */
+function uniqueCleanIds(values) {
+  const seen = new Set();
+  for (const value of values) {
+    const id = clean(value, 160);
+    if (id) seen.add(id);
+  }
+  return Array.from(seen);
+}
+
+/**
+ * 회당 결제 차감 증빙을 직접 확인한다.
+ *
+ * 🔴 이게 왜 필요한가: `canAccessPaidFeature` 는 **지속 엔티틀먼트(이용권·영구 해금)만** 판정하고
+ * 회당 결제(월정석·코인 차감)는 판정하지 않아 **항상 PAYMENT_REQUIRED 를 준다**
+ * (같은 설계 설명이 worker/routes/dream.js 의 회당 결제 분기 주석에도 있다).
+ * 작명은 PER_USE 상품이라, 이걸 관문으로 세워 두면 **월정석·코인이 이미 차감된 사용자가 402 로 막힌다**
+ * — 돈만 나가고 결과는 못 받는다. 그래서 차감이 실제로 일어났는지를 여기서 먼저 본다.
+ *
+ * 중첩 검사가 아니다: 아래 canAccessPaidFeature 는 "이용권 보유"를, 이 함수는 "차감 발생"을 본다.
+ * 서로 다른 근거이며, 증빙을 찾으면 곧바로 반환해 뒤 검사를 돌리지 않는다.
+ */
+async function verifyNamingChargeEvidence(env, auth, ctx, body, inputHash = "") {
+  const ids = uniqueCleanIds([
+    readContextEvidenceId(ctx, body),
+    ctx.consume.transactionId,
+    ctx.consume.purchaseId,
+    ctx.consume.requestId,
+    ctx.accessGrant.evidenceId,
+    ctx.accessGrant.purchaseId,
+    ctx.accessGrant.requestId,
+    ctx.payload.transactionId,
+    ctx.payload.purchaseId,
+    ctx.payload.requestId,
+    body.requestId,
+  ]);
+  if (!ids.length) return null;
+
+  const objectIds = ids.filter((id) => isObjectId(id));
+  const clauses = [
+    objectIds.length ? { _id: { $in: objectIds } } : null,
+    { "metadata.requestId": { $in: ids } },
+    { "metadata.purchaseId": { $in: ids } },
+    { "metadata.transactionId": { $in: ids } },
+  ].filter(Boolean);
+
+  await connectDb(env);
+  const history = await withMongoRetry(env, () => PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
+    // 실패로 환불된 차감은 증빙이 아니다.
+    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
+    $or: clauses,
+  }).sort({ createdAt: -1 }).lean());
+  if (!history) return null;
+
+  // 결제를 입력값에 묶는다 — 한 번 결제하고 입력만 바꿔 계속 생성하는 것을 막는다.
+  // 기록에 reportId 가 없으면(구 기록) verifyPaymentShape 과 같은 관용으로 통과시킨다.
+  const recordedHash = clean(history.metadata?.reportId, 160);
+  if (inputHash && recordedHash && recordedHash !== inputHash) {
+    throw createHttpError(409, "입력값이 바뀌면 새 결제가 필요합니다.", { code: "INPUT_HASH_MISMATCH" });
+  }
+
+  const metadata = history.metadata || {};
+  return {
+    source: "point_history_charge",
+    evidenceId: String(history._id || ""),
+    accessType: clean(metadata.accessType, 80),
+    accessMethod: clean(metadata.accessMethod || metadata.paymentMethod, 80),
+    requestId: clean(metadata.requestId || metadata.purchaseId, 120),
+    profileId: clean(metadata.profileId || metadata.selectedProfileId, 80),
+  };
+}
+
 async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   const ctx = unwrapAccessContext(body);
   const paymentId = firstClean(
@@ -1028,6 +1104,27 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   const contextHash = readContextInputHash(ctx, body);
   if (inputHash && contextHash && contextHash !== inputHash) {
     throw createHttpError(409, "입력값이 바뀌면 새 결제가 필요합니다.", { code: "INPUT_HASH_MISMATCH" });
+  }
+
+  // 🔴 회당 결제 차감 증빙을 먼저 본다. canAccessPaidFeature 는 지속 엔티틀먼트만 판정해서
+  // 월정석·코인으로 이미 차감한 사용자에게도 PAYMENT_REQUIRED 를 주기 때문에, 이걸 뒤에 두면
+  // 차감된 사용자가 402 로 막힌다(돈만 나감).
+  const charge = await verifyNamingChargeEvidence(env, auth, ctx, body, inputHash);
+  if (charge) {
+    const chargeMethod = normalizeExecutionAccessMethod(
+      charge.accessType || readContextAccessType(ctx, body),
+      charge.accessMethod || readContextAccessMethod(ctx, body),
+    );
+    return {
+      accessMethod: chargeMethod,
+      accessType: charge.accessType || chargeMethod,
+      evidenceId: charge.evidenceId,
+      paymentId: "",
+      requestId: charge.requestId || readContextEvidenceId(ctx, body) || charge.evidenceId,
+      profileId: charge.profileId || "default",
+      raw: ctx,
+      evidence: charge,
+    };
   }
 
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, userDoc: auth.authUserDoc });
