@@ -9,6 +9,9 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-result-cards.js";
+import { analyzeSoundFlow, soundElementOf, soundFiveElementsList } from "../lib/naming-sound-elements.js";
+import { suriPromptBlock } from "../lib/naming-suri.js";
+import { ELEMENT_LABELS_KO, GENERATE_TO, labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
 const PRODUCT_TYPE = "naming_prompt";
@@ -44,12 +47,11 @@ function resolveGenderLabel(gender) {
   return GENDER_LABELS[key] || clean(gender, 20) || "미입력";
 }
 
-const SOUND_FIVE_ELEMENTS = Object.freeze({
-  "木": ["ㄱ", "ㅋ"],
-  "火": ["ㄴ", "ㄷ", "ㄹ", "ㅌ"],
-  "土": ["ㅇ", "ㅎ"],
-  "金": ["ㅅ", "ㅈ", "ㅊ"],
-  "水": ["ㅁ", "ㅂ", "ㅍ"],
+/** buildUsefulGods 가 내는 강약 enum 을 프롬프트에 그대로 넣으면 "weak" 같은 영문이 노출된다. */
+const STRENGTH_LABELS = Object.freeze({
+  strong: "신강(身强) 후보 — 일간을 덜어 내는 방향으로 용신을 잡는다",
+  weak: "신약(身弱) 후보 — 일간을 돕는 방향으로 용신을 잡는다",
+  balanced: "중화(中和)에 가까움 — 조후와 통관을 우선해 용신을 잡는다",
 });
 
 const PAYMENT_SUCCESS_STATUSES = new Set(["success", "paid", "fulfilled"]);
@@ -452,14 +454,26 @@ function buildFallbackSajuContext(input) {
     });
 
     const useful = profile.usefulGods || {};
-    const lacking = asElementLabelList(profile.fiveElements?.lacking || []);
-    const excessive = asElementLabelList(profile.fiveElements?.excessive || []);
+    // buildSajuProfile 은 억부만 본다. 조후 축을 얹어 최종 용신을 확정한다 — 이걸 안 하면
+    // 아래 "용신 판단 근거" 블록의 조후용신·억부기신 등 4줄이 "메인 사주 계산 기준 확인"이라는
+    // 내부 문구로 그대로 프롬프트에 나간다(무료 초안도 같은 모듈을 써서 축이 일치한다).
+    const verdict = resolveNamingYongshin(profile);
+    const lacking = asElementLabelList(verdict.lacking);
+    const excessive = asElementLabelList(verdict.excessive);
     const yong = asElementLabelList(useful.yong || []);
-    const hee = asElementLabelList(useful.hee || []);
-    const gi = asElementLabelList(useful.gi || []);
+    const hee = asElementLabelList(verdict.heesin);
+    const gi = asElementLabelList(verdict.eokbuKijishin);
 
     return {
       source: "buildSajuProfile",
+      engineVersion: "destiny-bias-engine + saju-yongshin-policy",
+      eokbuYongshin: labelElements(verdict.eokbuYongshin, "억부용신 판단 보류"),
+      johuYongshin: labelElements(verdict.johuYongshin, "조후 보정 불필요(한난조습 균형)"),
+      finalYongshin: labelElements(verdict.finalYongshin, "용신 후보 재검토 필요"),
+      eokbuKijishin: labelElements(verdict.eokbuKijishin, "억부기신 판단 보류"),
+      johuKijishin: labelElements(verdict.johuKijishin, "조후상 주의 오행 없음"),
+      finalKijishin: labelElements(verdict.finalKijishin, "기신 후보 재검토 필요"),
+      jongAnalysis: verdict.jongSignal,
       yearPillar: pillarText(profile.pillars?.year),
       monthPillar: pillarText(profile.pillars?.month),
       dayPillar: pillarText(profile.pillars?.day),
@@ -468,13 +482,16 @@ function buildFallbackSajuContext(input) {
       monthCommand: pillarText(profile.pillars?.month?.branch ? { ganji: profile.pillars.month.branch } : null),
       fiveElementBalance: elementBalanceText(profile.fiveElements),
       tenGodBalance: tenGodBalanceText(profile.tenGods),
-      strengthAnalysis: clean(useful.strength || "월령·통근·투간·오행 균형을 함께 보아 신강/신약 후보를 재검토", 200),
-      temperatureBalance: clean(useful.temperature || "계절성과 조후 필요성을 별도로 검토", 200),
+      strengthAnalysis: clean(STRENGTH_LABELS[useful.strength] || "월령·통근·투간·오행 균형을 함께 보아 신강/신약 후보를 재검토", 200),
+      temperatureBalance: clean(
+        `${verdict.johu.season}생 · ${verdict.johu.temperatureLabel} · ${verdict.johu.moistLabel}`,
+        200,
+      ),
       usefulGodCandidates: formatList(yong, "월령·일간·조후·통근·투간 검토 후 후보 제시"),
       supportiveGodCandidates: formatList(hee, "용신 후보를 돕는 희신 후보 제시"),
       unfavorableGodCandidates: formatList(gi, "과다하거나 균형을 해치는 기신 후보 제시"),
-      recommendedNameElements: formatList(lacking, "사주 구조 검토 후 보완 오행 제시"),
-      avoidNameElements: formatList(excessive, "과다 오행과 기신 후보를 비교해 제시"),
+      recommendedNameElements: labelElements(verdict.nameElements, formatList(lacking, "사주 구조 검토 후 보완 오행 제시")),
+      avoidNameElements: labelElements(verdict.avoidElements, formatList(excessive, "과다 오행과 기신 후보를 비교해 제시")),
       raw: {
         pillars: profile.pillars,
         fiveElements: profile.fiveElements,
@@ -527,10 +544,25 @@ function buildPreferenceContext(input) {
   return parts.length ? parts.join(" / ") : "미입력";
 }
 
-function soundFiveElementsList() {
-  return Object.entries(SOUND_FIVE_ELEMENTS)
-    .map(([element, initials]) => `- ${element}: ${initials.join(", ")}`)
-    .join("\n");
+/**
+ * 성씨의 소리오행과, 그 뒤에 붙었을 때 상생이 되는 오행을 실제로 계산해 프롬프트에 넣는다.
+ * 표만 주고 "상생이 되게 하라"고 하면 모델이 성씨 초성을 잘못 읽는 경우가 있다.
+ */
+function soundGuidanceForFamilyName(familyName) {
+  const syllables = Array.from(clean(familyName, 10)).filter((char) => /^[가-힣]$/.test(char));
+  if (!syllables.length) return "";
+  const lastElement = soundElementOf(syllables[syllables.length - 1]);
+  if (!lastElement) return "";
+  const flow = analyzeSoundFlow(syllables.join(""));
+  const chain = syllables.length > 1 && flow.elements.every(Boolean)
+    ? ` (성씨 자체 흐름 ${flow.elements.map((key) => ELEMENT_LABELS_KO[key] || key).join("→")})`
+    : "";
+  // 상생은 두 방향 모두 성립한다: 성씨가 생하는 오행, 성씨를 생하는 오행.
+  const generatedBy = Object.keys(GENERATE_TO).find((key) => GENERATE_TO[key] === lastElement);
+  const friendly = [GENERATE_TO[lastElement], generatedBy]
+    .filter(Boolean)
+    .map((key) => ELEMENT_LABELS_KO[key] || key);
+  return `\n**이 성씨의 소리오행은 ${ELEMENT_LABELS_KO[lastElement]}입니다${chain}.** 이름 첫 글자의 초성 오행을 ${friendly.join(" 또는 ")}로 두면 성씨와 상생으로 이어집니다. 다른 오행을 쓸 때는 왜 그 편이 나은지(용신 보완이 더 급한 경우 등) 근거를 밝히세요.`;
 }
 
 function buildGeneratedPrompt(input, saju) {
@@ -547,8 +579,14 @@ function buildGeneratedPrompt(input, saju) {
   const timeNote = input.birthTimeUnknown
     ? "\n9. **출생시간 미상**: 시주(時柱)가 확정되지 않았으므로, 시주에 크게 의존하는 판단(시주 천간의 통근 여부 등)은 \"시간 확인 시 재검토 권장\"으로 유보하고, 년·월·일주 기반 분석은 그대로 진행하세요."
     : "";
+  // 번호 없는 bullet 로 붙이면 위 원칙 목록의 번호 매김이 끊긴다 — 원칙 하나로 번호를 이어 붙인다.
   const hanjaNote = input.desiredNames.some((item) => item.hangul && item.hanjaCandidates.length === 0) || (input.currentName && !input.useHanja)
-    ? "\n- 한글 이름만 입력된 후보는 한자 획수와 수리 풀이를 한자 조합이 확정된 뒤 최종 판단하세요."
+    ? "\n11. **한글만 입력된 후보**: 한자 획수와 수리 풀이는 한자 조합이 확정된 뒤에 최종 판단하고, 그 전 단계에서는 소리오행과 어감 위주로 평가하세요."
+    : "";
+  // 사주 계산이 실패한 2차 폴백에서는 명식 자리에 "계산 실패" 문자열이 들어간다. 그대로 두면
+  // 모델이 그 문자열을 명식으로 읽는다 — 무엇을 해야 하는지 명시한다.
+  const sajuFailureNote = String(saju.source || "") === "input-fallback"
+    ? "\n12. 🔴 **사주 자동 계산 실패**: 아래 [사주 계산 결과]의 명식 칸이 \"계산 실패\"로 채워져 있습니다. 그 문자열을 명식으로 읽지 말고, [사용자 정보]의 생년월일·시각·양음력으로 직접 명식을 세운 뒤 용신을 도출하세요. 시각이 미상이면 년·월·일주만으로 진행하고 그 한계를 밝히세요."
     : "";
   const seedNote = hasSeedNames
     ? "\n10. **사용자 후보 이름 있음**: 아래 [사용자 이름 선호]의 후보 이름들을 4장에서 먼저 평가한 뒤, 더 좋은 이름 3~5개를 새로 제안해 함께 다루세요. 무료 입력 단계의 초안이 있었다면 참고안으로만 보고 반드시 사주와 작명 원칙으로 다시 검토하세요."
@@ -569,7 +607,7 @@ ${genderNote}
 5. **전통 + 현대 균형**: 한자의 뜻과 오행이 좋아도 현대 한국에서 부르기 어색하거나, 놀림 소지가 있거나, 발음이 어려운 이름은 피하세요.
 6. **불확실하면 단정하지 마세요**: 획수 계산이 불확실한 한자, 오행 배속이 논쟁적인 글자는 "검증 필요"로 명시하세요.
 7. **후보를 무조건 부정하지 마세요**: 사용자가 제시한 후보는 정성적으로 평가하되, 문제가 있으면 구체적인 대안과 함께 설명하세요.
-8. **사람의 말로 쓰세요**: "오행 균형이 양호합니다" 같은 기계적 요약이 아니라, 작명가가 부모 앞에서 직접 설명하듯 따뜻한 존댓말로, 단정할 것은 단정하고 권할 것은 분명히 권하세요. **마크다운 표(|)는 절대 쓰지 마세요** — 모든 비교는 소제목과 목록, 문장으로 풀어 쓰세요.${timeNote}${seedNote}${hanjaNote}
+8. **사람의 말로 쓰세요**: "오행 균형이 양호합니다" 같은 기계적 요약이 아니라, 작명가가 부모 앞에서 직접 설명하듯 따뜻한 존댓말로, 단정할 것은 단정하고 권할 것은 분명히 권하세요. **마크다운 표(|)는 절대 쓰지 마세요** — 모든 비교는 소제목과 목록, 문장으로 풀어 쓰세요.${timeNote}${seedNote}${hanjaNote}${sajuFailureNote}
 
 ---
 
@@ -632,10 +670,9 @@ ${genderNote}
 
 ### A. 소리오행 (초성 기준)
 ${soundFiveElementsList()}
-성씨와 이름 각 글자의 초성 오행 흐름이 상생(相生) 관계가 되도록 배치하세요.
+성씨와 이름 각 글자의 초성 오행 흐름이 상생(相生) 관계가 되도록 배치하세요. 상생은 木→火→土→金→水→木 순환이며, 서로 극(剋)하는 배치(木剋土·土剋水·水剋火·火剋金·金剋木)는 피합니다.${soundGuidanceForFamilyName(input.familyName)}
 
-### B. 수리오행 (원형이정 4격)
-성씨 획수와 이름 각 글자 획수로 원격(초년)·형격(청년)·이격(장년)·정격(총획/말년)을 계산하고, 각 격의 길흉과 수리오행·음양 배치를 함께 보세요. 최소 원격·형격·정격 3격은 길수가 되도록 하세요.
+${suriPromptBlock()}
 
 ### C. 자원오행 (한자 뜻·부수)
 한자의 부수·의미·상징에서 비롯되는 오행입니다. 사주 용신·희신 오행과 일치하는 한자를 최우선으로 선택하세요.${input.useHanja ? "" : "\n> 사용자가 한글 이름 중심을 원합니다. 한자는 참고용으로 제시하되 한글 소리오행과 수리 분석에 비중을 두세요."}
@@ -957,19 +994,31 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
     ctx.payment.merchantUid,
     ctx.payment.paymentId,
   );
+  // paymentId 가 있다고 곧바로 단건으로 확정하면 안 된다 — 코인게이트 성공 응답은 이용권·월정석·
+  // 코인에도 최상위 transactionId(=PointHistory/entitlement id)를 싣기 때문에, 그것을 paymentId 로
+  // 넘겨받으면 Payment 문서가 없어 404 로 죽는다(월정석은 이미 차감된 뒤라 돈만 나간다).
+  // 그래서 조회 실패(404)만 보류해 두고 아래 이용권/월정석 분기로 내려간다 — 거기서도 접근권이
+  // 없으면 보류한 404 를 그대로 던져 진단 정확도를 잃지 않는다. 금액·상품·해시 불일치는 폴백 없이
+  // 즉시 실패해야 하므로 그대로 통과시킨다.
+  let pendingPaymentMiss = null;
   if (paymentId) {
-    const payment = await findPaymentForUser(env, auth, paymentId);
-    verifyPaymentShape(payment, inputHash);
-    return {
-      accessMethod: "single",
-      accessType: "single_purchase",
-      evidenceId: String(payment.merchantUid || payment._id || ""),
-      paymentId: String(payment.merchantUid || ""),
-      requestId: String(payment.requestId || payment.merchantUid || ""),
-      profileId: "default",
-      payment,
-      raw: ctx,
-    };
+    try {
+      const payment = await findPaymentForUser(env, auth, paymentId);
+      verifyPaymentShape(payment, inputHash);
+      return {
+        accessMethod: "single",
+        accessType: "single_purchase",
+        evidenceId: String(payment.merchantUid || payment._id || ""),
+        paymentId: String(payment.merchantUid || ""),
+        requestId: String(payment.requestId || payment.merchantUid || ""),
+        profileId: "default",
+        payment,
+        raw: ctx,
+      };
+    } catch (caught) {
+      if (Number(caught?.status) !== 404) throw caught;
+      pendingPaymentMiss = caught;
+    }
   }
 
   const featureKey = readContextFeatureKey(ctx, body);
@@ -983,7 +1032,7 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
 
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, userDoc: auth.authUserDoc });
   if (!decision.allowed) {
-    throw createHttpError(402, "결제 또는 이용권 확인 후에만 프롬프트를 생성할 수 있습니다.", {
+    throw pendingPaymentMiss || createHttpError(402, "결제 또는 이용권 확인 후에만 프롬프트를 생성할 수 있습니다.", {
       code: "NAMING_ACCESS_REQUIRED",
       reason: decision.reason,
     });
@@ -993,7 +1042,7 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   const accessMethod = readContextAccessMethod(ctx, body);
   const method = normalizeExecutionAccessMethod(accessType, accessMethod, decision);
   if (method === "single") {
-    throw createHttpError(402, "단건 결제는 결제 ID 확인 후에만 프롬프트를 생성할 수 있습니다.", { code: "PAYMENT_ID_REQUIRED" });
+    throw pendingPaymentMiss || createHttpError(402, "단건 결제는 결제 ID 확인 후에만 프롬프트를 생성할 수 있습니다.", { code: "PAYMENT_ID_REQUIRED" });
   }
   let evidence = null;
   if (isMonthlyAccess(accessType, accessMethod, decision)) {
