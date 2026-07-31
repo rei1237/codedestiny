@@ -56,8 +56,8 @@ body {
 	/* 터치 타겟 최소 44x44px (패딩 포함) */
 	button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
 	label[for] {
-		min-height: 44px;
-		min-width: 44px;
+		min-height: 48px;
+		min-width: 48px;
 	}
 	/* 모바일에서 hover 고정 방지: 포인터 있는 기기에서만 hover 적용 */
 	@media (hover: hover) {

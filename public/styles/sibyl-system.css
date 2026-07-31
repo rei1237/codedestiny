@@ -310,8 +310,10 @@
   z-index: 1;
   width: 100%;
   max-width: 760px;
-  max-height: 92svh;
+  /* 폴백이 먼저, 지원 브라우저용 단위가 나중. 순서가 뒤집혀 있으면 svh 가 죽은 코드가 되고
+     iOS Safari 에서 vh(=large viewport)로 계산돼 시트 하단 CTA 가 툴바 아래로 잘린다. */
   max-height: 92vh;
+  max-height: 92svh;
   background: var(--sb-bg);
   border: 1px solid var(--sb-border-bright);
   border-bottom: none;
@@ -2647,4 +2649,19 @@
    .sb-cat-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── 모달 키보드 접근성 ──
+   .sb-panel 은 개봉 시 프로그램적으로 포커스를 받는 다이얼로그 시트다(tabindex="-1").
+   그 포커스에는 링을 그리지 않고, 실제 조작 요소에만 링을 준다.
+   링 모양은 이 파일의 기존 컨벤션(.sibyl-entry-tile / .sb-chapter-jump-btn)과 동일하다. */
+#sibylModal .sb-panel:focus {
+  outline: none;
+}
+
+#sibylModal .sb-close-btn:focus-visible,
+#sibylModal .sb-back-btn:focus-visible {
+  outline: none;
+  border-color: var(--sb-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.55);
 }
