@@ -14723,23 +14723,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }));
   }
 
+  // 정본은 js/saju-engine.js 의 _cdAIPromptGateEvidence 다(먼저 로드된다). 그쪽을 쓰면
+  // 이 사본에 빠져 있던 accessDecision·freeBySubscription 이 실제로 서버까지 전달된다 —
+  // 그 두 필드는 아래 POST 바디가 예전부터 보내고 있었지만 값이 항상 undefined 였다.
   function syPromptGateEvidence(gateResult) {
+    if (typeof window !== 'undefined' && typeof window._cdAIPromptGateEvidence === 'function') {
+      return window._cdAIPromptGateEvidence(gateResult);
+    }
     var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
     var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
     var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var accessDecision = data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
     return {
-      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+      requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
       accessGrant: accessGrant,
+      accessDecision: accessDecision,
+      freeBySubscription: data.freeBySubscription === true,
       consume: consume,
       payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
       _paymentContext: {
-        requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+        requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
         featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
-        transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-        accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
-        accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
-        paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
+        transactionId: String(data.transactionId || consume.transactionId || accessDecision.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+        accessType: String(data.accessType || accessDecision.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+        accessMethod: String(data.accessMethod || accessDecision.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+        paymentMode: String(data.paymentMode || accessDecision.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
       }
     };
   }
@@ -14759,6 +14768,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         requiredCoins: gate.requiredCoins || 0
       }
     };
+  }
+
+  /* 같은 (프로필·도메인·질문·명식·궁합·epoch) 이면 항상 같은 requestId 를 만든다.
+     워커 consume 은 requestId 멱등이라, 생성 실패 후 재시도가 재차감을 부르지 않는다.
+     epoch 는 생성 성공 시에만 올라가므로 "성공 후 같은 질문 재요청"은 정상 결제로 돌아간다. */
+  function syBuildSukuyoPromptRequestId(input) {
+    var item = input && typeof input === 'object' ? input : {};
+    var profileId = '';
+    try {
+      if (typeof window !== 'undefined' && typeof window._sajuPromptResolveProfileId === 'function') {
+        profileId = String(window._sajuPromptResolveProfileId() || '').trim();
+      }
+    } catch (_) {}
+    var parts = [
+      profileId,
+      item.domain,
+      item.question,
+      item.basicResult ? item.basicResult.mansionIdx : '',
+      item.compatibilityResult ? item.compatibilityResult.partnerIdx : '',
+      Number(item.epoch || 0)
+    ];
+    if (typeof window !== 'undefined' && typeof window._cdAIPromptBuildRequestId === 'function') {
+      return window._cdAIPromptBuildRequestId('sukuyo-ai-prompt', parts);
+    }
+    // 정본 미로드 폴백 — 결정성은 유지한다(재결제 차단이 목적이므로 무작위로 돌아가지 않는다).
+    return 'sukuyo-ai-prompt:v1-' + encodeURIComponent(parts.join('|')).slice(0, 100);
   }
 
   function syRequestSukuyoPromptByQuestion(question, options) {
@@ -14783,30 +14818,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
       });
     }
-    var requestNonce = Date.now() + ':' + Math.random().toString(16).slice(2);
+    var requestId = syBuildSukuyoPromptRequestId({
+      domain: domain,
+      question: question,
+      basicResult: basicResult,
+      compatibilityResult: compatibilityResult,
+      epoch: opts.epoch
+    });
+    // 이미 결제가 확인된 재시도면 게이트를 다시 열지 않는다(재결제 차단).
+    var savedEvidence = opts.paidEvidence && typeof opts.paidEvidence === 'object' ? opts.paidEvidence : null;
 
-    return syPromptGate({
-      featureKey: 'sukuyo_ai_prompt_generator',
-      reason: '숙요점 AI 상담',
-      cost: 100,
-      requestId: 'sukuyo-ai-prompt:' + requestNonce,
-      categoryKey: 'sukuyo'
-    }).then(function(gateResult) {
-      if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
-      var evidence = syPromptGateEvidence(gateResult);
-      // 게이트(결제)는 1회만. 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+    // 게이트(결제)는 1회만. 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+    function postWithEvidence(evidence) {
       var doFetch = function() {
         return fetch('/api/fortune/sukuyo/ai-prompt', {
           method: 'POST',
           credentials: 'include',
           cache: 'no-store',
-          headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce) }),
+          headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || requestId }),
           body: JSON.stringify({
             question: question,
             domain: domain,
             basicResult: basicResult,
             compatibilityResult: compatibilityResult,
-            requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
+            requestId: evidence.requestId || requestId,
             accessGrant: evidence.accessGrant,
             accessDecision: evidence.accessDecision,
             freeBySubscription: evidence.freeBySubscription,
@@ -14824,9 +14859,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           });
         });
       };
-      return (typeof window !== 'undefined' && typeof window._cdRetryTransientPost === 'function')
+      var request = (typeof window !== 'undefined' && typeof window._cdRetryTransientPost === 'function')
         ? window._cdRetryTransientPost(doFetch)
         : doFetch();
+      return request.then(function(result) {
+        // 실패 처리에서 이 증거를 보관해 재결제 없는 재시도를 열어 준다.
+        if (result && typeof result === 'object') {
+          result.requestId = requestId;
+          result._cdPaidEvidence = evidence;
+        }
+        return result;
+      });
+    }
+
+    if (savedEvidence) return postWithEvidence(savedEvidence);
+
+    return syPromptGate({
+      featureKey: 'sukuyo_ai_prompt_generator',
+      reason: '숙요점 AI 상담',
+      cost: 100,
+      requestId: requestId,
+      categoryKey: 'sukuyo'
+    }).then(function(gateResult) {
+      if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
+      return postWithEvidence(syPromptGateEvidence(gateResult));
     }).catch(function(error) {
       return {
         ok: false,
@@ -14862,6 +14918,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var isFreePrompt = opts.freePrompt === true;
     var generateLabel = opts.generateLabel || '10,000원 AI 상담 받기';
     var loadingLabel = opts.loadingLabel || 'AI 상담 생성 중...';
+    // 카드 인스턴스마다 별도 보관소 — 솔로 카드와 궁합 카드가 증거를 공유하면 안 된다.
+    var paidEvidenceStore = (typeof window !== 'undefined' && typeof window._cdAIPromptEvidenceStore === 'function')
+      ? window._cdAIPromptEvidenceStore()
+      : null;
+    // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
+    var requestEpoch = 0;
+    var retryHint = (typeof window !== 'undefined' && window._cdAIPromptRetryHint)
+      || ' 이미 결제가 확인되었으니 추가 결제 없이 다시 시도할 수 있습니다.';
 
     function setStatus(message, tone) {
       statusEl.textContent = String(message || '');
@@ -14906,10 +14970,27 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return;
       }
 
-      setLoading(true);
-      setStatus('숙요 데이터를 분석해 질문에 대한 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
+      // 같은 질문으로 다시 눌렀고 직전 실패가 결제 권한을 남겼다면 게이트를 건너뛴다.
+      var pendingRequestId = syBuildSukuyoPromptRequestId({
+        domain: String(opts.domain || syInferSukuyoPromptDomain(question, !!opts.preferCompatibility)).trim(),
+        question: question,
+        basicResult: syGetPromptBasicResult(),
+        compatibilityResult: syGetPromptCompatibilityResult(syGetPromptBasicResult(), !!opts.preferCompatibility),
+        epoch: requestEpoch
+      });
+      var reusableEvidence = paidEvidenceStore ? paidEvidenceStore.get(pendingRequestId) : null;
 
-      syRequestSukuyoPromptByQuestion(question, { preferCompatibility: !!opts.preferCompatibility }).then(function(result) {
+      setLoading(true);
+      setStatus(reusableEvidence
+        ? '이미 확인된 결제 권한으로 추가 결제 없이 상담 답변을 다시 만들고 있습니다...'
+        : '숙요 데이터를 분석해 질문에 대한 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
+
+      syRequestSukuyoPromptByQuestion(question, {
+        preferCompatibility: !!opts.preferCompatibility,
+        domain: opts.domain,
+        epoch: requestEpoch,
+        paidEvidence: reusableEvidence
+      }).then(function(result) {
         var payload = result && result.payload ? result.payload : {};
         var resultText = String(payload.resultText || '').trim();
         var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
@@ -14931,6 +15012,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             Array.prototype.forEach.call(openBtns, function(openBtn) { openBtn.style.display = 'inline-flex'; });
           }
           regenerateBtn.style.display = 'inline-flex';
+          regenerateBtn.textContent = '다시 상담';
+          // 성공했으므로 이 결제 증거는 소진됐다. epoch를 올려 같은 질문 재요청이 정상 결제로 가게 한다.
+          if (paidEvidenceStore) paidEvidenceStore.clear();
+          requestEpoch += 1;
 
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
 
@@ -14946,14 +15031,31 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var code = String(payload.code || '');
         var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
         if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+          if (paidEvidenceStore) paidEvidenceStore.clear();
           setStatus('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
           setTimeout(function() { syOpenLoginForPrompt(); }, 700);
           return;
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+          if (paidEvidenceStore) paidEvidenceStore.clear();
           setStatus(message, 'error');
           return;
         }
+        // 결제는 확인됐는데 생성만 실패 — 서버가 환불하지 않았을 때만 증거를 보관해 무료 재시도를 연다.
+        // 이 판정은 워커가 내려주는 paymentRetainedForRetry 하나에만 의존한다(구버전 워커면 보관 안 함).
+        var canRetryFree = paidEvidenceStore
+          && result && result._cdPaidEvidence
+          && typeof window !== 'undefined'
+          && typeof window._cdAIPromptShouldRetainEvidence === 'function'
+          && window._cdAIPromptShouldRetainEvidence(payload);
+        if (canRetryFree) {
+          paidEvidenceStore.set(result.requestId, result._cdPaidEvidence);
+          regenerateBtn.style.display = 'inline-flex';
+          regenerateBtn.textContent = '추가 결제 없이 다시 상담';
+          setStatus(message + retryHint, 'error');
+          return;
+        }
+        if (paidEvidenceStore) paidEvidenceStore.clear();
         setStatus(message, 'error');
       }).finally(function() {
         setLoading(false);
@@ -14961,6 +15063,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     questionEl.addEventListener('input', function() {
+      // 질문이 바뀌면 requestId 가 달라져 증거는 어차피 못 쓴다. 라벨도 함께 되돌린다.
+      if (paidEvidenceStore) paidEvidenceStore.clear();
+      if (regenerateBtn.textContent === '추가 결제 없이 다시 상담') regenerateBtn.textContent = '다시 상담';
       updateCount();
     });
     generateBtn.addEventListener('click', onGenerate);
