@@ -86,4 +86,7 @@ PDF_DEBUG_MODE = "true"
 # that have not been ported to this Worker yet.
 
 [triggers]
-crons = ["0 22 * * *"] # 7:00 AM KST
+# "0 22 * * *"   = 7:00 AM KST — 일일 태스크(운세 발송·구독 정산·실행 타임아웃·월정석 만료·웹훅 재조정)
+# "*/10 * * * *" = pending 주문 재조정(PortOne 실제 상태 대조). 문자열은 worker/index.js 의
+#                  PAYMENT_RECONCILE_CRON 과 정확히 일치해야 한다.
+crons = ["0 22 * * *", "*/10 * * * *"]

@@ -32,7 +32,17 @@ import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKr
 import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { resolvePaidContentUnlockTarget, revokePaymentContentAccess } from "../lib/content-unlocks.js";
+import { resolvePaidContentUnlockTarget } from "../lib/content-unlocks.js";
+// 환불 코어는 관리자 라우트(/api/admin/orders)와 공유한다 — 두 벌이 되면 한쪽만 고쳐지는 사고가 난다.
+import {
+  invalidatePaidAccessDecisionCacheForUser,
+  isPartialCancel,
+  refundPaymentAsOperator,
+  revokeSinglePaymentContentAccess,
+} from "../lib/payment-refund.js";
+
+// 부분취소 판정도 환불 코어와 같은 함수를 쓴다(사본 금지). 기존 호출부 이름을 그대로 유지한다.
+const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
 
@@ -1086,36 +1096,8 @@ function readPositiveInteger(value) {
   return number;
 }
 
-function extractPortOneCancelStatus(cancelResult = {}) {
-  const raw = cancelResult?.rawV2 && typeof cancelResult.rawV2 === "object" ? cancelResult.rawV2 : cancelResult;
-  const cancellations = Array.isArray(raw?.cancellations) ? raw.cancellations : [];
-  return String(
-    raw?.cancellation?.status
-      || raw?.cancel?.status
-      || cancellations[0]?.status
-      || raw?.status
-      || cancelResult?.status
-      || "",
-  ).trim().toUpperCase();
-}
-
-function isPortOneCancelSucceeded(cancelResult = {}) {
-  const status = extractPortOneCancelStatus(cancelResult);
-  return ["SUCCEEDED", "SUCCESS", "CANCELLED", "CANCELED", "PARTIAL_CANCELLED"].includes(status);
-}
-
-function isPartialSingleCancel({ requestedAmount, paidAmount, cancelResult }) {
-  const cancelStatus = extractPortOneCancelStatus(cancelResult);
-  if (cancelStatus === "PARTIAL_CANCELLED") return true;
-  return Number.isInteger(requestedAmount) && requestedAmount > 0 && requestedAmount < Number(paidAmount || 0);
-}
-
 async function handleSinglePaymentCancel(request, env, auth) {
-  /*
-   * 운영 정책: KG이니시스 PG사 관리자 페이지에서 직접 취소하지 말고
-   * 포트원 대시보드 또는 이 서버 API를 통해서만 취소 상태를 동기화한다.
-   * 디지털 콘텐츠 unlock은 정책 확정 전까지 자동 회수하지 않고 관리자 검토 플래그만 남긴다.
-   */
+  // 인증·입력검증만 여기서 하고, 실제 취소/회수는 공용 코어(lib/payment-refund.js)에 위임한다.
   if (!isAdminPaymentAuth(auth)) {
     return json({ ok: false, message: "Admin permission is required.", code: "FORBIDDEN_ADMIN_REQUIRED" }, { status: 403 });
   }
@@ -1158,87 +1140,26 @@ async function handleSinglePaymentCancel(request, env, auth) {
     return json({ ok: false, message: "Single payment order was not found.", code: "ORDER_NOT_FOUND" }, { status: 404 });
   }
 
-  if (paymentRecord.status === "cancelled" || paymentRecord.orderState === SINGLE_PAYMENT_ORDER_STATES.CANCELLED) {
-    return json({
-      ok: true,
-      idempotent: true,
-      status: SINGLE_PAYMENT_ORDER_STATES.CANCELLED,
-      unlockRevoked: false,
-      adminReviewRequired: true,
-      payment: formatPaymentResponse(paymentRecord),
-    });
-  }
-
-  const paidAmount = Number(paymentRecord.paymentAmount || 0);
-  if (requestedAmount !== undefined && requestedAmount > paidAmount) {
-    return json({ ok: false, message: "Cancel amount exceeds paid amount.", code: "CANCEL_AMOUNT_EXCEEDS_PAID_AMOUNT" }, { status: 400 });
-  }
-
-  const cancelResult = await cancelPortOnePayment(env, {
-    merchantUid: paymentId,
+  const result = await refundPaymentAsOperator({
+    env,
+    payment: paymentRecord,
     reason,
     amount: requestedAmount,
     currentCancellableAmount,
+    actorId: auth.userId,
   });
-  if (!isPortOneCancelSucceeded(cancelResult)) {
-    await Payment.findByIdAndUpdate(paymentRecord._id, {
-      $set: {
-        orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
-        rawPortOne: cancelResult,
-        failureCode: "portone_cancel_not_succeeded",
-        failureMessage: "PortOne cancellation response was not successful.",
-        failureStage: "single_cancel_portone",
-        lastErrorAt: new Date(),
-      },
-      $inc: { confirmAttempts: 1 },
-    }).catch(() => {});
-    return json({ ok: false, message: "PortOne cancellation was not successful.", code: "PORTONE_CANCEL_NOT_SUCCEEDED" }, { status: 502 });
-  }
 
-  const partial = isPartialSingleCancel({ requestedAmount, paidAmount, cancelResult });
-  const orderState = partial ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED : SINGLE_PAYMENT_ORDER_STATES.CANCELLED;
-  const status = partial ? "refunded" : "cancelled";
-  const revocation = partial
-    ? { unlockRevoked: false, adminReviewRequired: true }
-    : await revokeSinglePaymentContentAccess(paymentRecord, {
-      status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
-      reason: "admin_single_payment_cancellation",
-    });
-  const adminReviewRequired = partial || revocation.adminReviewRequired === true;
-  const updatedPayment = await Payment.findByIdAndUpdate(paymentRecord._id, {
-    $set: {
-      status,
-      orderState,
-      source: "system",
-      rawPortOne: cancelResult,
-      "pricingSnapshot.cancellationReviewRequired": adminReviewRequired,
-      "pricingSnapshot.unlockRevoked": revocation.unlockRevoked === true,
-      "pricingSnapshot.cancelledBy": String(auth.userId || "admin"),
-      "pricingSnapshot.cancelReason": reason,
-      "pricingSnapshot.cancelAmount": requestedAmount || paidAmount,
-      "pricingSnapshot.cancelledAt": new Date().toISOString(),
-      "metadata.unlockRevoked": revocation.unlockRevoked === true,
-      "metadata.unlockRevocationStatus": revocation.status || (partial ? "" : CONTENT_ENTITLEMENT_STATUSES.CANCELLED),
-      "metadata.unlockRevocationError": revocation.error || "",
-      failureCode: partial ? "partial_cancel_admin_review" : "cancel_admin_review",
-      failureMessage: partial
-        ? "Partial cancellation completed. Unlock is not revoked automatically."
-        : (adminReviewRequired
-          ? "Cancellation completed. Unlock revocation requires administrator review."
-          : "Cancellation completed. Unlock was revoked."),
-      failureStage: adminReviewRequired ? "single_cancel_admin_review" : "single_cancel_unlock_revoked",
-      lastErrorAt: new Date(),
-    },
-    $inc: { confirmAttempts: 1 },
-  }, { returnDocument: "after" }).lean();
+  if (!result.ok) {
+    return json({ ok: false, message: result.message, code: result.code }, { status: result.status || 400 });
+  }
 
   return json({
     ok: true,
-    idempotent: false,
-    status: orderState,
-    unlockRevoked: revocation.unlockRevoked === true,
-    adminReviewRequired,
-    payment: formatPaymentResponse(updatedPayment),
+    idempotent: Boolean(result.idempotent),
+    status: result.orderState,
+    unlockRevoked: result.unlockRevoked === true,
+    adminReviewRequired: result.adminReviewRequired === true,
+    payment: formatPaymentResponse(result.payment || paymentRecord),
   });
 }
 
@@ -1251,6 +1172,19 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   const serviceKey = resolveProfileUnlockServiceKey(payment?.featureKey, contentKey) || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
   const coinPrice = Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || 0)));
   const amountKRW = Math.max(0, Math.floor(Number(payment?.paymentAmount || payment?.pricingSnapshot?.amountKRW || 0)));
+
+  // 🔴 프로필 스코프 언락이 아닌 키는 ContentEntitlement 를 만들지 않는다. 권한은 recordUserPaidFeature 가
+  // paidFeatures/unlockedFeatures 로 주고, 실제 접근 판정(paid-feature-access.js)도 그걸 읽는다.
+  //
+  // 이 게이트가 없어서 profileId 가 없는 단건 결제(음악 트랙 등 프로필 무관 UNLOCK 키 전부)가
+  // Transaction.Paid 웹훅 정산에서 INVALID_UNLOCK_TARGET 으로 죽었고, 그 catch 가 자동환불을 불러
+  // PortOne 결제 취소 + paidFeatures 회수까지 갔다 — 즉 "결제 직후 서비스가 사라지는" 사고였다.
+  // 다른 정산 경로(upsertSajuPaymentUnlockEntitlement)와 코인 지급 경로(billing.js isProfileScopedUnlockKey)는
+  // 모두 이 판정을 이미 하고 있었고, 이 함수만 빠져 있었다. 판정 정본은 resolveProfileUnlockContentKey 하나다.
+  if (!resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId)) {
+    return null;
+  }
+
   if (!profileId || !contentId || !contentKey) {
     const error = new Error("Single payment unlock target is missing.");
     error.code = "INVALID_UNLOCK_TARGET";
@@ -1418,25 +1352,6 @@ async function autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, 
   }
 }
 
-// billing.js의 결제-접근 결정 캐시 + 표시용 잔량 캐시(둘 다 globalThis 공유)를 해당 유저 단위로 무효화한다.
-// import 순환(billing.js→payments.js)을 피하려고 캐시 객체에 붙은 메서드를 직접 호출한다.
-// 결제/환불로 잠금해제 상태나 잔량이 바뀌므로 두 캐시를 함께 무효화해 결제 직후 stale 응답을 막는다.
-function invalidatePaidAccessDecisionCacheForUser(userId) {
-  const uid = String(userId || "").trim();
-  if (!uid) return;
-  try {
-    globalThis.__paidAccessDecisionCache?.invalidateForUser?.(uid);
-  } catch {}
-  try {
-    globalThis.__billingBalanceCache?.invalidateForUser?.(uid);
-  } catch {}
-  // 이용권 캐시는 그동안 billing.js 의 paidAccessDecisionCache.invalidateForUser 경유로만 간접 무효화됐다.
-  // 결제/환불 직후 이용권 상태가 즉시 반영되도록 직접 무효화한다(간접 의존 제거).
-  try {
-    globalThis.__membershipPassCache?.invalidateForUser?.(uid);
-  } catch {}
-}
-
 async function recordUserPaidFeature(userId, featureKey, options = {}) {
   const key = String(featureKey || "").trim();
   if (!userId || !key) return null;
@@ -1452,33 +1367,6 @@ async function recordUserPaidFeature(userId, featureKey, options = {}) {
   );
   invalidatePaidAccessDecisionCacheForUser(userId);
   return result;
-}
-
-async function revokeSinglePaymentContentAccess(payment, { status = CONTENT_ENTITLEMENT_STATUSES.REFUNDED, reason = "", session = null } = {}) {
-  if (!payment?._id && !payment?.merchantUid && !payment?.impUid) {
-    return { unlockRevoked: false, adminReviewRequired: true, reason: "PAYMENT_MISSING" };
-  }
-  try {
-    const result = await revokePaymentContentAccess({
-      payment,
-      revokedStatus: status,
-      reason,
-      session,
-    });
-    invalidatePaidAccessDecisionCacheForUser(payment?.userId);
-    return {
-      ...result,
-      unlockRevoked: result.unlockRevoked === true,
-      adminReviewRequired: result.ok !== true,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      unlockRevoked: false,
-      adminReviewRequired: true,
-      error: String(error?.message || error || "Unlock revocation failed.").slice(0, 500),
-    };
-  }
 }
 
 function buildSafePortOneLookupLog(portOnePayment = {}) {
@@ -1507,7 +1395,24 @@ function extractPortOneCurrency(portOnePayment = {}) {
   return normalizePortOneCurrency(raw?.currency || amountNode?.currency || portOnePayment?.currency);
 }
 
-async function handleSinglePaymentComplete(request, env, auth) {
+// options.allowAutoRefund=false 로 부르면 지급 실패 시에도 PG 취소를 하지 않고 관리자 검토로 남긴다.
+// 재조정 크론이 이 경로를 재사용하는데, 크론이 사람 승인 없이 돈을 돌려주면 안 되기 때문이다.
+async function handleSinglePaymentComplete(request, env, auth, options = {}) {
+  const allowAutoRefund = options.allowAutoRefund !== false;
+  const refundOrDefer = async (payment, reasonCode, reasonMessage, failureStage) => {
+    if (allowAutoRefund) {
+      return autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, reasonMessage, failureStage);
+    }
+    await Payment.findByIdAndUpdate(payment._id, {
+      $set: {
+        failureCode: "delivery_failed_manual_review",
+        failureMessage: String(reasonMessage || "").slice(0, 300),
+        failureStage,
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
+    return { refunded: false, deferred: true, payment };
+  };
   const body = await readJson(request);
   const paymentId = normalizeSingleCompletePaymentId(body?.paymentId || body?.merchantUid || body?.merchant_uid);
   if (!paymentId) {
@@ -1547,13 +1452,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
       await recordUserPaidFeature(order.userId, order.featureKey);
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
-      const refund = await autoRefundSinglePaymentDeliveryFailure(
-        env,
-        order,
-        "unlock_upsert_failed",
-        reasonMessage,
-        "single_unlock_upsert",
-      );
+      const refund = await refundOrDefer(order, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert");
       return json({
         ok: false,
         code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
@@ -1810,13 +1709,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
       await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
-      const refund = await autoRefundSinglePaymentDeliveryFailure(
-        env,
-        finalPayment,
-        "unlock_upsert_failed",
-        reasonMessage,
-        "single_unlock_upsert",
-      );
+      const refund = await refundOrDefer(finalPayment, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert");
       return json({
         ok: false,
         code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
@@ -3365,6 +3258,20 @@ async function settleReservedWebhookEvent({ request, env, eventType, paymentId, 
 // 재조정 크론 진입점: 백그라운드 실패/유실로 미처리 상태에 머문 Transaction.Paid 웹훅 이벤트를
 // 재클레임해 재처리한다. 즉시-ack 전환으로 포트원 재전송에 기대지 못하게 된 신뢰성을 대체하며,
 // 사용자가 없는 가상계좌 입금 완료 건이 특히 이 경로에 의존한다. attempts 상한으로 폭주를 막는다.
+// pending 주문 재조정 태스크가 쓰는 정산 진입점. 웹훅 경로와 똑같은 검증(포트원 재조회 → paymentId·
+// storeId·금액·통화 대조 → 지급)을 그대로 태우기 위해 handleSinglePaymentComplete 를 합성 요청으로
+// 부른다. 새 정산 로직을 만들지 않는다 — 멱등 CAS 도 그쪽 것을 그대로 쓴다.
+export async function settleSinglePaymentForReconcile(env, { paymentId, userId }) {
+  const request = new Request("https://internal.reconcile/api/payments/single/complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ paymentId }),
+  });
+  // 🔴 allowAutoRefund:false — 크론은 절대 돈을 돌려주지 않는다. 지급에 실패하면 주문에 사유만 남기고
+  // 관리자 화면(/admin/orders)에서 사람이 판단하게 한다.
+  return handleSinglePaymentComplete(request, env, { userId }, { allowAutoRefund: false });
+}
+
 export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 10 } = {}) {
   await connectDb(env);
   const staleCutoff = new Date(Date.now() - WEBHOOK_STALE_PROCESSING_MS);
@@ -4884,6 +4791,15 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
   }
 }
 
+// 🔴 단건 디지털콘텐츠 결제는 "success" 로 끝나지 않는다 — /prepare 가 "pending" 으로 만들고(3532)
+// 웹훅 정산은 "fulfilled" 로 끝난다(1827). "success" 는 레거시 confirm 정산 경로에서만 찍힌다.
+// 그래서 아래 취소 가드가 "success" 만 허용하는 동안, 카드가 실제로 승인된 단건 주문조차 사용자
+// 셀프 취소가 400 으로 막혔다(= 결제는 됐는데 환불 불가). 단건 주문에 한해 허용 상태를 넓힌다.
+const SINGLE_PURCHASE_CANCELLABLE_STATUSES = new Set(["success", "fulfilled", "processing", "pending"]);
+const DEFAULT_CANCELLABLE_STATUSES = new Set(["success"]);
+// 우리 DB 가 아직 PG 승인 여부를 모르는 상태 — 취소를 쏘기 전에 PortOne 조회로 확인이 필요하다.
+const CANCEL_REQUIRES_PORTONE_VERIFY_STATUSES = new Set(["processing", "pending"]);
+
 async function handleCancel(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.imp_uid || "").trim() || undefined;
@@ -4939,13 +4855,61 @@ async function handleCancel(request, env, auth) {
     });
   }
 
-  if (paymentRecord.status !== "success") {
+  const recordStatus = String(paymentRecord.status || "");
+  const isSinglePurchaseOrder = String(paymentRecord.paymentType || "") === "digital_content"
+    && String(paymentRecord.accessType || "") === "single_purchase";
+  const cancellableStatuses = isSinglePurchaseOrder
+    ? SINGLE_PURCHASE_CANCELLABLE_STATUSES
+    : DEFAULT_CANCELLABLE_STATUSES;
+  if (!cancellableStatuses.has(recordStatus)) {
     return json({ message: "Only successful payments can be cancelled." }, { status: 400 });
   }
 
   const paidAmount = Number(paymentRecord.paymentAmount || 0);
   if (requestedCancelAmount !== undefined && requestedCancelAmount > paidAmount) {
     return json({ message: "Cancel amount exceeds paid amount." }, { status: 400 });
+  }
+
+  // 미확정 상태(pending/processing)는 PortOne 이 실제로 승인했는지부터 확인한다. 조회만 하고
+  // 취소 요청 자체는 아래 기존 cancelPortOnePayment 경로를 그대로 쓴다.
+  if (CANCEL_REQUIRES_PORTONE_VERIFY_STATUSES.has(recordStatus)) {
+    let portOnePayment = null;
+    try {
+      portOnePayment = await fetchPortOnePayment(env, paymentRecord.impUid || paymentRecord.merchantUid || impUid || merchantUid);
+    } catch (error) {
+      await writeFailureLog({
+        request,
+        userId: auth.userId,
+        impUid,
+        merchantUid,
+        source: "confirm",
+        stage: "cancel_portone_verify",
+        code: "portone_fetch_failed",
+        message: error?.message || "PortOne payment lookup failed.",
+        status: 502,
+        payload: body,
+      });
+      return json({
+        message: "Payment lookup failed. Please try again.",
+        code: "PORTONE_FETCH_FAILED",
+      }, { status: 502 });
+    }
+
+    const verifiedStatus = String(portOnePayment?.status || "").toLowerCase();
+    if (verifiedStatus === "cancelled") {
+      return json({
+        message: "Payment was already cancelled.",
+        idempotent: true,
+        payment: formatPaymentResponse(paymentRecord),
+      });
+    }
+    if (verifiedStatus !== "paid") {
+      return json({
+        message: "Only successful payments can be cancelled.",
+        code: "PORTONE_NOT_PAID",
+        status: verifiedStatus || undefined,
+      }, { status: 400 });
+    }
   }
 
   const pointsToRollback = Number(paymentRecord.chargedPoints || paymentRecord.expectedChargedPoints || 0);
@@ -5021,9 +4985,14 @@ async function handleCancel(request, env, auth) {
     revocationFields: buildCancelRevocationFields(revocation, { partial: partialCancel }),
   });
 
+  // (엔타이틀먼트 회수는 위 #172 블록이 이미 수행한다 — 디지털 단건으로 스코프되어 있어
+  //  포인트충전·구독 결제의 무관한 해금까지 날리지 않는다. 여기서 다시 회수하지 않는다.)
+
   return json({
     message: "Payment cancelled.",
     idempotent: false,
+    unlockRevoked: revocation.unlockRevoked === true,
+    adminReviewRequired: revocation.adminReviewRequired === true,
     user: {
       id: String(auth.userId),
       points: Number(updateResult?.updatedPoints || 0),
@@ -5874,6 +5843,12 @@ async function enforceMinorPaymentRestriction(env, auth, method, path) {
     code: "MINOR_PAYMENT_BLOCKED",
   }, { status: 403 });
 }
+
+// 🔴 여기 있던 "PortOne 401 관측 시 신규 주문 차단" 게이트는 제거했다.
+// PortOne 은 '없는 결제 ID' 에도 401 UNAUTHORIZED 를 주므로 401 로는 자격증명 생사를 판별할 수 없다.
+// 연속 카운트로도 구분이 안 됐고(재조정 크론이 그 오탐으로 매 틱 중단됐다), 이 게이트의 오탐은
+// '전 사용자 결제 차단' 이라 막으려던 사고보다 피해가 크다. 신뢰할 수 없는 차단기는 두지 않는다.
+// 자격증명 장애 감지는 재조정 태스크의 credentialSuspect 로그와 PaymentFailureLog 로 한다.
 
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
