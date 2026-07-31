@@ -1,0 +1,129 @@
+/* 택일(무후르타) 전용 — 목적 선택 · 길일 카드 · 전체 달력 목록.
+   팔레트 토큰은 부모(.vars, _premium/premium.module.css)에서 상속받는다. */
+
+.form {
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.2rem;
+  border: 1px solid var(--hair);
+  border-radius: 1.05rem;
+  background: var(--glass);
+}
+.label {
+  display: block;
+  margin: 0 0 0.55rem;
+  color: var(--east-soft);
+  font-size: 0.83rem;
+  font-weight: 800;
+}
+.purposeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+@media (min-width: 640px) {
+  .purposeGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.purposeBtn {
+  min-height: 48px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: transparent;
+  color: var(--t-200);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.purposeBtn:hover { border-color: var(--hair); color: var(--t-100); }
+.purposeOn {
+  border-color: rgba(229, 199, 137, 0.55);
+  background: rgba(229, 199, 137, 0.1);
+  color: var(--gold-soft);
+}
+.purposeFocus {
+  margin: -0.5rem 0 1.1rem;
+  color: var(--t-400);
+  font-size: 0.78rem;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.dateRow { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.dateInput {
+  flex: 1 1 10rem;
+  min-height: 48px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--t-100);
+  /* 16px 미만이면 iOS 가 포커스 시 화면을 확대한다. */
+  font-size: 1rem;
+}
+
+/* ── 길일 카드 ── */
+.pickList { margin: 0 0 1.4rem; padding: 0; list-style: none; }
+.pick {
+  margin-bottom: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.95rem;
+  background: var(--glass);
+}
+.pickTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.mark { flex: none; font-size: 1rem; color: var(--gold); }
+.pickDate { color: var(--t-100); font-size: 0.98rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pickGrade { color: var(--gold-soft); font-size: 0.8rem; font-weight: 700; }
+.pickScore { margin-left: auto; color: var(--t-400); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.pickMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.7rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.78rem;
+}
+.metaEast { color: var(--east-soft); }
+.metaIndia { color: var(--gold-soft); }
+.pickReason { margin: 0; color: var(--t-200); font-size: 0.85rem; line-height: 1.9; word-break: keep-all; }
+.bothGood { border-color: rgba(229, 199, 137, 0.42); background: rgba(229, 199, 137, 0.05); }
+.bothBad { border-color: rgba(224, 81, 127, 0.3); background: rgba(224, 81, 127, 0.04); }
+.agree {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(229, 199, 137, 0.16);
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.agreeBad { background: rgba(224, 81, 127, 0.16); color: var(--rose-soft); }
+
+/* ── 전체 목록 ── */
+.allTitle { margin: 1.6rem 0 0.3rem; color: var(--t-100); font-size: 1rem; font-weight: 800; }
+.allNote { margin: 0 0 0.9rem; color: var(--t-400); font-size: 0.78rem; line-height: 1.8; word-break: keep-all; }
+.rows { margin: 0; padding: 0; list-style: none; }
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  padding: 0.55rem 0.3rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem;
+}
+.rowDate { flex: none; min-width: 7.2rem; color: var(--t-300); font-variant-numeric: tabular-nums; }
+.rowMark { flex: none; width: 1.1rem; text-align: center; }
+.rowBody { color: var(--t-400); word-break: keep-all; }
+.rowScore { margin-left: auto; color: var(--t-400); font-variant-numeric: tabular-nums; }
+.gradeBest { color: var(--gold); }
+.gradeGood { color: var(--gold-soft); }
+.gradeFair { color: var(--t-300); }
+.gradePoor { color: var(--rose-soft); }
+.gradeAvoid { color: var(--rose); }

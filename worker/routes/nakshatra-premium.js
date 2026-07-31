@@ -12,14 +12,17 @@
 // 정본 템플릿: worker/routes/ziwei-island-report.js (같은 계약의 결정론 유료 리포트).
 // 무인증·무DB 계약인 무료 라우트(worker/routes/nakshatra.js)는 건드리지 않고 파일을 분리했다.
 
+import { Solar } from "lunar-javascript";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
-import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { User } from "../lib/models.js";
-import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
+import { getSwissVedicPlanets, getSwissMoonLongitudes } from "../lib/swiss-ephemeris.js";
 import { nakshatraInfo, buildVimshottariDasha } from "../lib/vedic-derived-calculations.js";
+import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { buildNakshatraLordReport } from "../lib/nakshatra-lord-report.js";
 import { buildNakshatraDashaMap } from "../lib/nakshatra-dasha-map.js";
+import { buildNakshatraMuhurta, listMuhurtaPurposes } from "../lib/nakshatra-muhurta.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
@@ -43,6 +46,8 @@ const MESSAGES = Object.freeze({
   paymentRequired: "이 리포트는 1회 해금이 필요합니다. 이용권이 있으면 무료로 열립니다.",
   degraded: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
   invalidInput: "생년월일(year/month/day)이 필요합니다.",
+  invalidPurpose: "택일 목적을 골라 주세요.",
+  invalidRange: "조회할 기간을 만들 수 없습니다. 시작 날짜를 확인해 주세요.",
   moonUnavailable: "달의 위치 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.",
   failed: "리포트를 만드는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
 });
@@ -200,13 +205,116 @@ async function handleProduct(request, env, product, kind) {
   );
 }
 
+// ── 택일(무후르타) — 회당 결제 ───────────────────────────────────────────────
+//
+// 앞의 두 리포트와 달리 영구 해금이 아니라 매번 결제하는 기능이라 해금 상태를 읽지 않는다.
+// 🔴 canAccessPaidFeature 로 관문을 세우지 않는다 — 그 함수는 엔티틀먼트 전용이라 회당결제
+//    키에는 언제나 PAYMENT_REQUIRED 를 돌려주고, 이미 차감된 사용자가 402 를 맞아 돈만 나간다.
+//    결제는 프론트 공용 게이트(useCoinGate, pass-first)가 처리하고 여기선 로그인만 보증한다 —
+//    같은 회당결제인 /api/nakshatra/compat 와 동일한 계약이다.
+const MUHURTA_MAX_DAYS = 60;
+
+function pad2(value) {
+  return String(value).padStart(2, "0");
+}
+
+// KST 벽시계 기준으로 하루씩 전진하며 날짜·요일·숙요를 만든다.
+function buildScanDays(startDate, dayCount) {
+  const base = new Date(`${startDate}T00:00:00Z`);
+  if (!Number.isFinite(base.getTime())) return [];
+  const out = [];
+  for (let offset = 0; offset < dayCount; offset += 1) {
+    const cursor = new Date(base.getTime() + offset * 86400000);
+    const year = cursor.getUTCFullYear();
+    const month = cursor.getUTCMonth() + 1;
+    const day = cursor.getUTCDate();
+    const lunar = Solar.fromYmdHms(year, month, day, 12, 0, 0).getLunar();
+    const rawMonth = lunar.getMonth();
+    const suk = buildSukuyoFromLunar(Math.abs(rawMonth), lunar.getDay(), { isLeapMonth: rawMonth < 0 });
+    if (!suk) continue;
+    out.push({
+      date: `${year}-${pad2(month)}-${pad2(day)}`,
+      weekdayIndex: cursor.getUTCDay(),
+      sukuyoIndex: suk.index,
+      moment: { year, month, day, hour: 12, minute: 0, timezone: 9 },
+    });
+  }
+  return out;
+}
+
+async function handleMuhurta(request, env) {
+  // 결제 재검증은 하지 않는다(위 주석). 로그인 실패는 requireAuth 가 401 로 던진다.
+  await requireAuth(request, env);
+
+  const body = await readJson(request);
+  const input = normalizeBirthBody(body);
+  if (!isValidBirth(input)) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const purposeKey = String(body?.purpose || "").trim();
+  if (!listMuhurtaPurposes().some((item) => item.key === purposeKey)) {
+    return json({ ok: false, reason: "INVALID_PURPOSE", message: MESSAGES.invalidPurpose, purposes: listMuhurtaPurposes() }, { status: 400 });
+  }
+
+  const startDate = /^\d{4}-\d{2}-\d{2}$/.test(String(body?.startDate || ""))
+    ? String(body.startDate)
+    : new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+  const dayCount = Math.min(MUHURTA_MAX_DAYS, Math.max(14, Number(body?.days) || MUHURTA_MAX_DAYS));
+
+  // 본인 명식 — 본명수(숙요)와 본명 나크샤트라. Swiss 호출 1회.
+  const moonLon = await resolveMoon(env, input, request.url);
+  if (moonLon == null) {
+    return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
+  }
+  const myLunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
+  const myRawMonth = myLunar.getMonth();
+  const mySuk = buildSukuyoFromLunar(Math.abs(myRawMonth), myLunar.getDay(), { isLeapMonth: myRawMonth < 0 });
+  if (!mySuk) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const scan = buildScanDays(startDate, dayCount);
+  if (!scan.length) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidRange }, { status: 400 });
+  }
+
+  // 🔴 날짜별 나크샤트라는 그날 달의 실제 황경에서 나와야 한다. 숙요에서 크로스워크로
+  //    유도하면 타라발라가 격각과 같은 값의 함수가 되어 "두 체계의 교집합"이 가짜가 된다.
+  const longitudes = await getSwissMoonLongitudes(env, scan.map((day) => day.moment), { requestUrl: request.url });
+
+  const report = buildNakshatraMuhurta({
+    purposeKey,
+    myMansionIndex: mySuk.index,
+    myNakIndex: nakshatraInfo(moonLon).index,
+    days: scan.map((day, index) => ({
+      date: day.date,
+      weekdayIndex: day.weekdayIndex,
+      sukuyoIndex: day.sukuyoIndex,
+      moonLongitude: longitudes[index],
+    })),
+  });
+  if (!report) {
+    return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.failed }, { status: 500 });
+  }
+
+  return json(
+    { ok: true, featureKey: "nakshatra-muhurta", report },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
 export async function handleNakshatraPremiumRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/nakshatra-premium");
   try {
     if (method === "OPTIONS") return new Response(null, { status: 204 });
+    if (method === "GET" && path === "/muhurta/purposes") {
+      return json({ ok: true, purposes: listMuhurtaPurposes() }, { headers: { "Cache-Control": "public, max-age=3600" } });
+    }
     if (method === "POST") {
       const kind = path.replace(/^\/+/, "");
+      if (kind === "muhurta") return await handleMuhurta(request, env);
       const product = PRODUCTS[kind];
       if (product) return await handleProduct(request, env, product, kind);
     }

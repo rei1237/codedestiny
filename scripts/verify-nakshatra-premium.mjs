@@ -23,6 +23,9 @@ const DASHA_MIN_CHARS = 3500;
 const entry = [
   `export { buildNakshatraLordReport, __nakshatraLordReportTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-lord-report.js"))};`,
   `export { buildNakshatraDashaMap, expandAntardashas, __nakshatraDashaMapTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-dasha-map.js"))};`,
+  `export { buildNakshatraMuhurta, listMuhurtaPurposes, __nakshatraMuhurtaTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-muhurta.js"))};`,
+  `export { buildSukuyoFromLunar } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
+  `export { Solar } from "lunar-javascript";`,
   `export { buildVimshottariDasha, nakshatraInfo, DASHA_ORDER, DASHA_YEARS } from ${JSON.stringify(path.join(repoRoot, "worker/lib/vedic-derived-calculations.js"))};`,
   `export { NAKSHATRA_ATTRIBUTES } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-attributes.js"))};`,
   `export { UNLOCK_PAID_FEATURE_KEYS, UNLOCK_PRODUCT_BY_FEATURE_KEY, isUnlockPaidFeatureKey } from ${JSON.stringify(path.join(repoRoot, "worker/lib/paid-feature-registry.js"))};`,
@@ -46,7 +49,33 @@ const {
   buildVimshottariDasha, nakshatraInfo, DASHA_ORDER, DASHA_YEARS,
   NAKSHATRA_ATTRIBUTES,
   UNLOCK_PRODUCT_BY_FEATURE_KEY, isUnlockPaidFeatureKey,
+  buildNakshatraMuhurta, listMuhurtaPurposes, __nakshatraMuhurtaTestUtils,
+  buildSukuyoFromLunar, Solar,
 } = m;
+
+// 택일 스캔 입력 — 달 황경은 실제 Swiss 대신 물리적으로 타당한 근사로 채운다(엔진은 황경만 받는다).
+// 🔴 숙요에서 크로스워크로 유도하지 않는 것이 핵심이다 — 유도하면 두 축이 같은 값의 함수가 된다.
+function buildMuhurtaScanDays(startIso, count) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const base = new Date(`${startIso}T00:00:00Z`);
+  const out = [];
+  for (let i = 0; i < count; i += 1) {
+    const cursor = new Date(base.getTime() + i * 86400000);
+    const lunar = Solar.fromYmdHms(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, cursor.getUTCDate(), 12, 0, 0).getLunar();
+    const rawMonth = lunar.getMonth();
+    const suk = buildSukuyoFromLunar(Math.abs(rawMonth), lunar.getDay(), { isLeapMonth: rawMonth < 0 });
+    if (!suk) continue;
+    const mean = (35 + i * 13.1763) % 360;
+    const wobble = 6.29 * Math.sin(((i * 13.06) * Math.PI) / 180);
+    out.push({
+      date: `${cursor.getUTCFullYear()}-${pad(cursor.getUTCMonth() + 1)}-${pad(cursor.getUTCDate())}`,
+      weekdayIndex: cursor.getUTCDay(),
+      sukuyoIndex: suk.index,
+      moonLongitude: ((mean + wobble) % 360 + 360) % 360,
+    });
+  }
+  return out;
+}
 
 let failures = 0;
 function check(label, condition, detail = "") {
@@ -60,6 +89,10 @@ function check(label, condition, detail = "") {
 }
 
 const BAD_TEXT = /undefined|NaN|\[object |null,|,\s*,/;
+
+function nakIndexOf(longitude) {
+  return Math.floor((((Number(longitude) % 360) + 360) % 360) / (360 / 27)) % 27;
+}
 
 // 소스 단언용 — 주석 안의 설명 문구가 코드로 오인되지 않게 걷어낸다.
 function stripComments(source) {
@@ -195,6 +228,73 @@ console.log("\n[5] 다샤 인생지도 — 성별 미상 폴백(대운 없이도
   check("동양 대운 병렬 배열이 비어 있다", map.periods.every((p) => p.easternCycles.length === 0));
 }
 
+console.log("\n[5b] 택일(무후르타) — 두 축이 독립인가 · 목적별로 갈리는가");
+{
+  const { ACTIVITY_CLASS, CLASS_BY_INDEX, PURPOSES } = __nakshatraMuhurtaTestUtils;
+  const indices = Object.values(ACTIVITY_CLASS).flatMap((value) => value.indices);
+  check("무후르타 분류 7종이 27수를 빠짐없이 한 번씩 덮는다",
+    indices.length === 27 && new Set(indices).size === 27 && CLASS_BY_INDEX.length === 27,
+    `${indices.length}개 / 고유 ${new Set(indices).size}`);
+  check("전통 분류 개수(고정4·이동5·부드러움4·빠름3·맹렬5·예리4·혼합2)",
+    ACTIVITY_CLASS.dhruva.indices.length === 4 && ACTIVITY_CLASS.chara.indices.length === 5
+    && ACTIVITY_CLASS.mridu.indices.length === 4 && ACTIVITY_CLASS.kshipra.indices.length === 3
+    && ACTIVITY_CLASS.ugra.indices.length === 5 && ACTIVITY_CLASS.tikshna.indices.length === 4
+    && ACTIVITY_CLASS.mishra.indices.length === 2);
+  check("목적 6종 모두 분류 7종 가중치 + 요일 7칸을 갖는다",
+    Object.values(PURPOSES).every((purpose) =>
+      Object.keys(ACTIVITY_CLASS).every((key) => Number.isFinite(purpose.classFit[key]))
+      && Array.isArray(purpose.varaFit) && purpose.varaFit.length === 7));
+  check("목적 목록이 6종", listMuhurtaPurposes().length === 6);
+
+  const days = buildMuhurtaScanDays("2026-08-01", 60);
+  check("60일 스캔이 만들어진다", days.length === 60, String(days.length));
+
+  // 🔴 이 상품의 존재 이유 — 두 개인축이 서로 다른 천문에서 나와야 "교집합"이 성립한다.
+  //    나크샤트라를 숙요에서 (idx+13)%27 로 유도하면 아래가 27/27 로 붙어 버린다.
+  const derived = days.filter((day) => nakIndexOf(day.moonLongitude) === (day.sukuyoIndex + 13) % 27).length;
+  check("날짜별 나크샤트라가 숙요 크로스워크의 함수가 아니다(교집합이 가짜가 아님)",
+    derived < days.length * 0.5, `${derived}/${days.length} 일치`);
+
+  const report = buildNakshatraMuhurta({ purposeKey: "marriage", myMansionIndex: 5, myNakIndex: 12, days });
+  check("택일 리포트가 조립된다", Boolean(report));
+  check("전체 날짜 수가 보존된다", report.days.length === days.length);
+  check("길일·피할 날이 뽑힌다", report.best.length > 0 && report.avoid.length > 0);
+  check("두 체계 합치 판정이 붙는다", report.days.every((day) => ["both-good", "both-bad", "split"].includes(day.agreement)));
+  check("길일이 점수 내림차순", report.best.every((day, i) => i === 0 || report.best[i - 1].score >= day.score));
+  check("분량 ≥ 8000자", report.charCount >= 8000, `실측 ${report.charCount}`);
+  const problems = scanText(report.sections, "muhurta");
+  check("서사에 깨진 문장이 없다", problems.length === 0, problems.slice(0, 2).join(" | "));
+  check("날짜 해설에 깨진 문장이 없다",
+    report.days.every((day) => day.reason && !BAD_TEXT.test(day.reason)));
+
+  const topByPurpose = Object.keys(PURPOSES).map((key) =>
+    buildNakshatraMuhurta({ purposeKey: key, myMansionIndex: 5, myNakIndex: 12, days }).best.map((day) => day.date).join(","));
+  check("목적 6종이 서로 다른 길일 목록을 낸다", new Set(topByPurpose).size === 6, `고유 ${new Set(topByPurpose).size}/6`);
+
+  const other = buildNakshatraMuhurta({ purposeKey: "marriage", myMansionIndex: 18, myNakIndex: 3, days });
+  check("본명수·본명 나크샤트라가 다르면 결과도 다르다",
+    report.best.map((d) => d.date).join() !== other.best.map((d) => d.date).join());
+
+  const again = buildNakshatraMuhurta({ purposeKey: "marriage", myMansionIndex: 5, myNakIndex: 12, days });
+  check("결정론 — 같은 입력 2회가 동일", JSON.stringify(report) === JSON.stringify(again));
+
+  check("잘못된 목적은 null", buildNakshatraMuhurta({ purposeKey: "nope", myMansionIndex: 5, myNakIndex: 12, days }) === null);
+
+  // 27수 × 6목적 전 조합
+  let bad = 0;
+  let minChars = Infinity;
+  for (let mansion = 0; mansion < 27; mansion += 1) {
+    for (const key of Object.keys(PURPOSES)) {
+      const r = buildNakshatraMuhurta({ purposeKey: key, myMansionIndex: mansion, myNakIndex: (mansion * 7) % 27, days });
+      if (!r) { bad += 1; continue; }
+      minChars = Math.min(minChars, r.charCount);
+      if (scanText(r.sections, `${mansion}/${key}`).length) bad += 1;
+    }
+  }
+  check("27수 × 6목적 = 162 조합 전부 무결", bad === 0, `결함 ${bad}`);
+  console.log(`      실측 최소 분량 ${minChars}자`);
+}
+
 console.log("\n[6] 결정론 — 같은 입력이면 같은 본문");
 {
   const dasha = buildVimshottariDasha(45.5, birthUtc, now);
@@ -287,11 +387,38 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     check(`${relative}: paymentMode 를 강제하지 않는다`, !/paymentMode/.test(code));
   }
 
+  // 택일은 회당 결제라 해금 상태를 읽지 않는다 — 계약이 다르므로 따로 단언한다.
+  const muhurtaClient = readFileSync(path.join(repoRoot, "app/nakshatra/muhurta/MuhurtaClient.tsx"), "utf8");
+  const muhurtaCode = stripComments(muhurtaClient);
+  check("택일 화면: 공용 게이트(useCoinGate) 사용", /useCoinGate/.test(muhurtaCode));
+  check("택일 화면: 🔴 회당 결제이므로 forceDeduct 를 주지 않는다", !/forceDeduct/.test(muhurtaCode));
+  check("택일 화면: paymentMode 를 강제하지 않는다", !/paymentMode/.test(muhurtaCode));
+  check("택일 화면: featureKey nakshatra-muhurta · 50코인 · 5,000원",
+    /FEATURE_KEY = "nakshatra-muhurta"/.test(muhurtaCode)
+    && /COIN_PRICE = 50/.test(muhurtaCode) && /AMOUNT_KRW = 5000/.test(muhurtaCode));
+  check("택일 화면: 결제 성공 뒤에만 본문을 요청한다", /if \(!gate\.ok\)[\s\S]{0,400}setLoading\(true\)/.test(muhurtaCode));
+
+  const routeCodeAll = stripComments(readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8"));
+  check("택일 라우트: 🔴 canAccessPaidFeature 를 관문으로 쓰지 않는다(회당결제는 항상 402 → 돈만 나감)",
+    !/canAccessPaidFeature/.test(routeCodeAll));
+  check("택일 라우트: 로그인은 보증한다", /handleMuhurta[\s\S]{0,400}requireAuth\(/.test(routeCodeAll));
+  check("택일 라우트: 날짜별 달 황경을 배치로 구한다(getSwissVedicPlanets 반복 금지)",
+    /getSwissMoonLongitudes\(/.test(routeCodeAll));
+  check("택일 라우트: 날짜별 나크샤트라를 크로스워크로 유도하지 않는다",
+    !/crosswalkFromSukuyo/.test(routeCodeAll));
+
+  const swissSource = stripComments(readFileSync(path.join(repoRoot, "worker/lib/swiss-ephemeris.js"), "utf8"));
+  check("swiss-ephemeris: 달 황경 배치 헬퍼가 외부 엔드포인트를 타지 않는다",
+    /export async function getSwissMoonLongitudes[\s\S]{0,700}swe_calc_ut/.test(swissSource)
+    && !/export async function getSwissMoonLongitudes[\s\S]{0,700}getExternalVedicPlanets/.test(swissSource));
+
   const resultClient = readFileSync(path.join(repoRoot, "app/nakshatra/result/NakshatraResultClient.tsx"), "utf8");
-  check("결과 화면 업셀 카드가 두 리포트로 연결된다",
-    resultClient.includes('href: "/nakshatra/lord-report"') && resultClient.includes('href: "/nakshatra/dasha-map"'));
-  check("결과 화면에 '준비 중' 상품이 남아 있지 않다(택일·VVIP 는 Phase 3)",
-    (resultClient.match(/\{ title: "[^"]+", price: "[^"]+", desc: "[^"]+" \}/g) || []).length <= 2);
+  check("결과 화면 업셀 카드가 구현된 3종으로 연결된다",
+    resultClient.includes('href: "/nakshatra/lord-report"')
+    && resultClient.includes('href: "/nakshatra/dasha-map"')
+    && resultClient.includes('href: "/nakshatra/muhurta"'));
+  check("결과 화면에 남은 '준비 중'은 VVIP 하나뿐",
+    (resultClient.match(/\{ title: "[^"]+", price: "[^"]+", desc: "[^"]+" \}/g) || []).length === 1);
 }
 
 console.log(`\n${failures === 0 ? "PASS" : `FAIL (${failures})`} — 나크샤트라 심화 리포트 검증`);
