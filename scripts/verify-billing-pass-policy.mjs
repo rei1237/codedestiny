@@ -621,9 +621,13 @@ assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"
 assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment CTA restored");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly payment includes profile add/delete");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "payment modal pass option is available by default unless explicitly disabled");
-assertNotContains(indexSource, "var passMode = 'pass';", "payment modal does not offer pass apply option");
-assertNotContains(indexSource, "entitlementGranted = await refreshDirectEntitlementStatus", "payment modal does not re-run pass entitlement check");
-assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
+// 🔴 이용권 확인 지점이 진입 선검사에서 결제창으로 옮겨졌다(2026-07 정책 전환).
+// 이 세 단언은 예전 정책("결제창을 열기 전에만 이용권을 확인한다")을 고정하고 있었다. 진입 선검사의
+// 서버 왕복을 없앤 지금 그대로 두면, 스냅샷 없는 이용권 보유자가 이용권을 확인할 방법 자체가 없어진다.
+// 이제 지켜야 할 성질은 반대다 — 결제창의 이용권 카드가 반드시 서버 검사를 수행할 것.
+assertContains(indexSource, "var passMode = 'pass-store';", "payment modal keeps the canonical pass card mode (CSS/parity markers bind to it)");
+assertContains(indexSource, "var passReady = await refreshDirectEntitlementStatus();", "payment modal verifies the entitlement when the pass card is chosen");
+assertNotContains(indexSource, "이용권은 결제창을 열기 전에만 확인됩니다.", "in-modal pass verification must not be blocked again");
 assertNotContains(indexSource, "paymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "unlock modal never routes monthly choice through membership pass");
 assertNotContains(indexSource, "perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "per-use modal never routes monthly choice through membership pass");
 assertNotContains(indexSource, "tilePaymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "tile lock modal never routes monthly choice through membership pass");

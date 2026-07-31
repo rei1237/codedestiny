@@ -289,8 +289,27 @@ assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBe
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "pass option is available by default unless explicitly disabled");
-assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
+// 🔴 결제창 안에서 이용권을 확인할 수 있어야 한다(2026-07 정책 전환).
+// 진입 선검사의 서버 왕복을 없앤 대신 '이용권으로 구매' 카드가 그 자리에서 서버에 묻는다. 예전에는
+// 반대로 "이용권은 결제창을 열기 전에만 확인됩니다"라는 막다른 안내가 있었고, 그 문구를 여기서 고정하고
+// 있었다 — 그 상태로 선검사를 없애면 스냅샷 없는 이용권 보유자가 확인할 방법 자체를 잃는다.
+assertNotContains(indexSource, "이용권은 결제창을 열기 전에만 확인됩니다.", "in-modal pass verification must not be blocked again");
+assertContains(indexSource, "var passReady = await refreshDirectEntitlementStatus();", "pass card verifies the entitlement in place");
+assertBefore(
+  indexSource,
+  "var passReady = await refreshDirectEntitlementStatus();",
+  "window.setTimeout(openPassStoreAfterCheck, 450);",
+  "pass card must verify first and only then fall through to the store",
+);
 assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "canonical pass choice opens pass store");
+// 🔴 앱에서는 /points 로 프로그래매틱 이동하면 404 다(앱 번들에 없고, 가드는 앵커 클릭만 가로챈다).
+// 반드시 __cdOpenChargeModal(가드가 /app/store/ 로 고정) 분기를 먼저 타야 한다.
+assertBefore(
+  indexSource,
+  "if (_cdShouldUseAppStoreEntry() && typeof window.__cdOpenChargeModal === 'function') {",
+  "var passStoreUrl = _cdBuildPassStoreUrl(coinPrice, passCoverage, 'direct-payment-pass-store');",
+  "app runtime must take the in-app store before any /points navigation",
+);
 assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pass choice must grant instead of cancelling");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
