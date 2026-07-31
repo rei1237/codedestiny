@@ -148,7 +148,10 @@ assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setIt
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-assertContains(indexSource, "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "payment/pass overlay uses honey fortune logo");
+// #200 이 카카오 초대 공유 이미지를 파일명 고정 OG 카드로 바꿨다(크롤러가 재조회해도
+// 중간 캐시가 옛 카드를 되돌려주던 문제). 옛 로고 URL 을 리터럴로 박아 두면 그 수정이 여기 걸린다.
+// 이 핀이 실제로 보던 자리는 결제 오버레이가 아니라 카카오 초대 공유의 imageUrl 이다.
+assertContains(indexSource, "/og/code-destiny-og-vvip.png", "kakao share image pinned to fixed OG card");
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
