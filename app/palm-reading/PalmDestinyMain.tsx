@@ -9,6 +9,7 @@ import {
   type PalmHandRole,
   type PalmSpecialPattern,
 } from "@/types/palm-reading";
+import { computePalmRegion, detectPalmLandmarks, toEngineLandmarkMap } from "./palm-hand-landmarks";
 import PalmLineOverlay, {
   type OverlayLineKey,
   type OverlayPathMap,
@@ -16,7 +17,6 @@ import PalmLineOverlay, {
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
-import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
 const PALM_DESTINY_TEXT_TRANSLATIONS = {
   ko: {
@@ -102,6 +102,8 @@ type PalmCardKey =
 type HandImageState = {
   file: File | null;
   previewUrl: string | null;
+  /** 등록 시각(ms). 사용자가 어떤 사진을 언제 올렸는지 카드에서 확인할 수 있게 한다. */
+  registeredAt: number | null;
 };
 
 type HandRoleResult = {
@@ -131,12 +133,6 @@ type PalmImageQualityFeedback = {
     edgeStrength: number;
     glareRatio: number;
   };
-};
-
-type PalmAiPromptState = {
-  prompt: string;
-  isLoading: boolean;
-  error: string;
 };
 
 type PalmVisionPoint = {
@@ -169,6 +165,19 @@ type PalmClientLineCandidate = {
 type PalmClientVisionPayload = {
   handLandmarks: Record<string, PalmVisionPoint>;
   lineCandidates: PalmClientLineCandidate[];
+};
+
+/**
+ * 업로드 시점 손 검출 결과.
+ * - "detected": MediaPipe 가 손을 찾음 → 실좌표로 앵커링
+ * - "no-hand": MediaPipe 가 돌았지만 손 없음 → 업로드 단계에서 거부(과금 이전)
+ * - "unavailable": 검출기를 못 씀(CDN 차단 등) → 막지 않고 기존 근사 경로로 degrade
+ */
+type PalmLandmarkState = {
+  status: "detected" | "no-hand" | "unavailable";
+  landmarks: Record<string, PalmVisionPoint> | null;
+  region: { minX: number; minY: number; width: number; height: number } | null;
+  handedness: string;
 };
 
 type PalmSampleBounds = {
@@ -237,6 +246,8 @@ type AnalysisResultState = {
   report: Record<string, unknown> | null;
   canonical: ReturnType<typeof createDefaultCanonicalPalmReading>;
   interpretation: PalmInterpretationPayload | null;
+  /** 서버가 생성한 심층 해석문. 구 palm-reading-ai-consult(별도 과금)를 기본 분석에 통합한 것. */
+  consultText: string;
   overlayPaths: OverlayPathMap;
   overlayPathsBySide: {
     left: OverlayPathMap | null;
@@ -260,7 +271,7 @@ const {
     analysisPurpose: AnalysisPurpose | "";
     isSubmitting: boolean;
   }) => boolean;
-  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string }) => string;
+  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string; reason?: string }) => string;
   shouldShowPalmResult: (canonicalPalmReading: unknown) => boolean;
   revokeObjectUrls: (urls: Array<string | null | undefined>, revokeFn?: (url: string) => void) => number;
 };
@@ -286,15 +297,11 @@ const HAND_ROLE_META: Record<HandRole, { label: string; description: string }> =
 
 const DEFAULT_ANALYSIS_PURPOSE: AnalysisPurpose = "general";
 
-const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
-  general: "general",
-  love: "love",
-  wealth: "wealth",
-  career: "career",
-  personality: "personality",
-  relationship: "relationship",
-};
-const PALM_AI_CONSULT_SUB_FEATURE_KEY = "palm-reading-ai-consult";
+// 손금은 판독 + 심층 해석을 한 번에 제공하는 단일 상품이므로 하위키는 general 하나다.
+// 이전에는 purpose 별로 love/wealth/career/... 를 보냈는데, 그 키들은
+// worker/lib/billing-feature-registry.js 에 존재한 적이 없다(가격 조회가 빈다).
+// UI 가 purpose 를 general 로 고정해 두어 드러나지 않았을 뿐인 잠재 결함이라 여기서 정리한다.
+const PALM_BILLING_SUB_FEATURE_KEY = "general";
 
 const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
   { value: "right", label: palmDestinyText("palmDestiny.label.005") },
@@ -309,12 +316,13 @@ const DOMINANT_HAND_HINT_LABEL: Record<DominantHand, string> = {
 };
 
 const SHOOTING_GUIDES = [
-  "손바닥 전체가 보이게 촬영해 주세요.",
-  "손가락을 자연스럽게 펼쳐 주세요.",
-  "그림자가 너무 진하지 않게 밝은 곳에서 촬영해 주세요.",
-  "손바닥이 화면 중앙에 오도록 촬영해 주세요.",
-  "손등이 아니라 손바닥을 촬영해 주세요.",
-  "손금이 흐릿하면 다시 촬영해 주세요.",
+  "손바닥을 활짝 펴고 손목까지 함께 담아 주세요.",
+  "손가락을 자연스럽게 벌려 서로 겹치지 않게 해 주세요.",
+  "창가나 밝은 조명 아래에서, 정면 플래시는 끄고 촬영해 주세요.",
+  "손바닥이 화면 중앙을 꽉 채우도록 가까이 찍어 주세요.",
+  "손등이 아니라 손금이 있는 손바닥 면을 촬영해 주세요.",
+  "손을 카메라와 나란히 두어 기울어지지 않게 해 주세요.",
+  "초점이 맞아 잔주름까지 보이는지 확인하고 촬영해 주세요.",
 ];
 
 const LOADING_PHASES = [
@@ -731,7 +739,82 @@ function detectPalmSampleBounds(data: Uint8ClampedArray, sampleWidth: number, sa
   };
 }
 
-async function extractPalmVisionPayload(file: File, side: HandSide): Promise<PalmClientVisionPayload | null> {
+/**
+ * 업로드된 파일에서 실제 손 랜드마크를 검출한다.
+ * MediaPipe 를 못 쓰는 환경에서는 "unavailable" 로 떨어져 기존 근사 경로가 그대로 돈다.
+ */
+async function detectHandForFile(file: File, side: HandSide): Promise<PalmLandmarkState> {
+  const unavailable: PalmLandmarkState = { status: "unavailable", landmarks: null, region: null, handedness: "" };
+  let renderer: Awaited<ReturnType<typeof createImageRenderer>> | null = null;
+  try {
+    renderer = await createImageRenderer(file);
+    const canvas = document.createElement("canvas");
+    canvas.width = renderer.width;
+    canvas.height = renderer.height;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return unavailable;
+    renderer.draw(ctx, renderer.width, renderer.height);
+
+    const detection = await detectPalmLandmarks(canvas, renderer.width, renderer.height);
+    canvas.width = 0;
+    canvas.height = 0;
+
+    if (detection.status === "no-hand") return { ...unavailable, status: "no-hand" };
+    if (detection.status === "unavailable") return unavailable;
+
+    return {
+      status: "detected",
+      landmarks: toEngineLandmarkMap(detection.result),
+      region: computePalmRegion(detection.result),
+      handedness: detection.result.handedness,
+    };
+  } catch (error) {
+    console.warn("[palm] landmark detection error", { side, message: (error as Error)?.message });
+    return unavailable;
+  } finally {
+    renderer?.cleanup();
+  }
+}
+
+/**
+ * 실측 손바닥 영역(원본 이미지 좌표)을 샘플 캔버스 좌표계로 변환한다.
+ * 가이드 선을 실제 손 해부에 앵커링하기 위한 변환이다.
+ */
+function landmarkRegionToSampleBounds(
+  landmarkState: PalmLandmarkState | null,
+  width: number,
+  height: number,
+  sampleWidth: number,
+  sampleHeight: number,
+): PalmSampleBounds | null {
+  const region = landmarkState?.status === "detected" ? landmarkState.region : null;
+  if (!region || !width || !height) return null;
+
+  const scaleX = sampleWidth / width;
+  const scaleY = sampleHeight / height;
+  const minX = region.minX * scaleX;
+  const minY = region.minY * scaleY;
+  const boundsWidth = region.width * scaleX;
+  const boundsHeight = region.height * scaleY;
+  if (boundsWidth <= 0 || boundsHeight <= 0) return null;
+
+  return {
+    minX,
+    minY,
+    maxX: minX + boundsWidth,
+    maxY: minY + boundsHeight,
+    width: boundsWidth,
+    height: boundsHeight,
+    // 실측 기반이므로 피부톤 추정보다 높은 신뢰도를 준다.
+    confidence: 0.9,
+  };
+}
+
+async function extractPalmVisionPayload(
+  file: File,
+  side: HandSide,
+  landmarkState: PalmLandmarkState | null,
+): Promise<PalmClientVisionPayload | null> {
   const renderer = await createImageRenderer(file);
   try {
     const width = renderer.width;
@@ -748,7 +831,10 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
 
     renderer.draw(ctx, sampleWidth, sampleHeight);
     const data = ctx.getImageData(0, 0, sampleWidth, sampleHeight).data;
-    const palmBounds = detectPalmSampleBounds(data, sampleWidth, sampleHeight);
+    // 손바닥 영역: 실제 랜드마크가 있으면 그걸 쓴다(피부톤 추정보다 훨씬 정확하다).
+    // 없으면 종전의 피부톤 bbox 로 degrade 한다.
+    const palmBounds = landmarkRegionToSampleBounds(landmarkState, width, height, sampleWidth, sampleHeight)
+      || detectPalmSampleBounds(data, sampleWidth, sampleHeight);
     const lumaAt = (x: number, y: number) => {
       const safeX = Math.max(0, Math.min(sampleWidth - 1, Math.round(x)));
       const safeY = Math.max(0, Math.min(sampleHeight - 1, Math.round(y)));
@@ -928,7 +1014,11 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
     canvas.height = 0;
 
     return {
-      handLandmarks: buildApproxPalmLandmarks(width, height, side, sampleWidth, sampleHeight, palmBounds),
+      // 실측 21점이 있으면 그것을, 없으면 종전의 근사 랜드마크를 보낸다.
+      handLandmarks:
+        landmarkState?.status === "detected" && landmarkState.landmarks
+          ? landmarkState.landmarks
+          : buildApproxPalmLandmarks(width, height, side, sampleWidth, sampleHeight, palmBounds),
       lineCandidates,
     };
   } finally {
@@ -1002,6 +1092,39 @@ const LINE_TO_CARD_KEY: Record<OverlayLineKey, PalmCardKey> = {
   heartLine: "heartLine",
   fateLine: "fateLine",
 };
+
+/**
+ * 등록 시각 표기. 오늘이면 시:분만, 아니면 월/일까지.
+ * 서버 렌더에는 등록된 사진이 없으므로(항상 null) 하이드레이션 불일치 걱정은 없다.
+ */
+function formatRegisteredAt(timestamp: number | null): string {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "";
+  const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  const now = new Date();
+  const sameDay =
+    date.getFullYear() === now.getFullYear()
+    && date.getMonth() === now.getMonth()
+    && date.getDate() === now.getDate();
+  return sameDay ? `${time} 등록` : `${date.getMonth() + 1}/${date.getDate()} ${time} 등록`;
+}
+
+/**
+ * 서버 심층 해석문 추출.
+ * normalizeInterpretation 은 알려진 필드만 남기므로 consultText 는 여기서 따로 꺼낸다.
+ */
+function extractConsultText(payload: unknown): string {
+  if (!payload || typeof payload !== "object") return "";
+  const root = payload as Record<string, unknown>;
+  const interpretation = root.interpretation;
+  if (interpretation && typeof interpretation === "object") {
+    const text = (interpretation as Record<string, unknown>).consultText;
+    if (typeof text === "string" && text.trim()) return text.trim();
+  }
+  const direct = root.consultText;
+  return typeof direct === "string" ? direct.trim() : "";
+}
 
 function normalizeInterpretation(payload: unknown): PalmInterpretationPayload | null {
   if (!payload || typeof payload !== "object") return null;
@@ -1515,19 +1638,14 @@ function buildCategoryConsultations(input: {
 
 export default function PalmDestinyMain() {
   const [isImmersiveView, setIsImmersiveView] = useState(true);
-  const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
-  const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null });
+  const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null, registeredAt: null });
+  const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null, registeredAt: null });
   const [dominantHand, setDominantHand] = useState<DominantHand | "">("");
   const [analysisPurpose, setAnalysisPurpose] = useState<AnalysisPurpose>(DEFAULT_ANALYSIS_PURPOSE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultState | null>(null);
-  const [palmAiPrompt, setPalmAiPrompt] = useState<PalmAiPromptState>({
-    prompt: "",
-    isLoading: false,
-    error: "",
-  });
   const [activeCardKey, setActiveCardKey] = useState<PalmCardKey>("lifeLine");
   const [overlaySide, setOverlaySide] = useState<HandSide>("right");
   const [selectedCaptureSide, setSelectedCaptureSide] = useState<HandSide>("right");
@@ -1536,6 +1654,12 @@ export default function PalmDestinyMain() {
     left: null,
     right: null,
   });
+  const [landmarkStateBySide, setLandmarkStateBySide] = useState<Record<HandSide, PalmLandmarkState | null>>({
+    left: null,
+    right: null,
+  });
+  /** 저품질 경고를 사용자가 확인하고 그대로 진행하기로 한 경우. 새 사진을 올리면 해제된다. */
+  const [qualityOverride, setQualityOverride] = useState(false);
   const [fileSignatureBySide, setFileSignatureBySide] = useState<Record<HandSide, string | null>>({
     left: null,
     right: null,
@@ -1565,13 +1689,25 @@ export default function PalmDestinyMain() {
 
   const handRoles = getPalmHandRoles(dominantHand);
   const activeAnalysisPurpose: AnalysisPurpose = analysisPurpose || DEFAULT_ANALYSIS_PURPOSE;
-  const canStartAnalysis = canStartPalmAnalysis({
+  const baseCanStartAnalysis = canStartPalmAnalysis({
     leftFile: leftHand.file,
     rightFile: rightHand.file,
     dominantHand,
     analysisPurpose: activeAnalysisPurpose,
     isSubmitting,
   });
+
+  // 품질 사전점검이 '낮음'인 사진은 기본적으로 분석을 막는다.
+  // 🔴 단 이 판정은 144px 샘플의 휴리스틱이라 오탐이 난다. 확정 차단으로 두면
+  //    멀쩡한 사진을 든 유료 사용자가 빠져나갈 길이 없어진다(과거 정적 게이트
+  //    leaf throw → alert 막다른 길 사고와 같은 형태). 사유를 보여준 뒤
+  //    사용자가 직접 넘길 수 있는 경로를 항상 함께 둔다.
+  const lowQualitySides = (["left", "right"] as HandSide[]).filter((side) => {
+    const file = side === "left" ? leftHand.file : rightHand.file;
+    return Boolean(file) && qualityFeedbackBySide[side]?.confidence === "낮음";
+  });
+  const isQualityBlocked = lowQualitySides.length > 0 && !qualityOverride;
+  const canStartAnalysis = baseCanStartAnalysis && !isQualityBlocked;
   const hasAnyPreview = Boolean(leftHand.previewUrl || rightHand.previewUrl);
   const flowStep: PalmFlowStep = analysisResult ? "result" : isSubmitting ? "analyzing" : hasAnyPreview ? "preview" : "pick";
 
@@ -1679,7 +1815,6 @@ export default function PalmDestinyMain() {
   const resetAnalysisState = () => {
     setAnalysisResult(null);
     setSubmitMessage("");
-    setPalmAiPrompt({ prompt: "", isLoading: false, error: "" });
     setIsSubmitting(false);
     submitLockedRef.current = false;
     setLoadingPhaseIndex(0);
@@ -1704,9 +1839,11 @@ export default function PalmDestinyMain() {
 
     if (clearImages) {
       revokeObjectUrls([leftHand.previewUrl, rightHand.previewUrl]);
-      setLeftHand({ file: null, previewUrl: null });
-      setRightHand({ file: null, previewUrl: null });
+      setLeftHand({ file: null, previewUrl: null, registeredAt: null });
+      setRightHand({ file: null, previewUrl: null, registeredAt: null });
       setQualityFeedbackBySide({ left: null, right: null });
+      setLandmarkStateBySide({ left: null, right: null });
+      setQualityOverride(false);
       setFileSignatureBySide({ left: null, right: null });
       setLastSelectedSide("right");
     }
@@ -1733,10 +1870,12 @@ export default function PalmDestinyMain() {
       ? {
           file,
           previewUrl: URL.createObjectURL(file),
+          registeredAt: Date.now(),
         }
       : {
           file: null,
           previewUrl: null,
+          registeredAt: null,
         };
 
     if (side === "left") {
@@ -1803,6 +1942,21 @@ export default function PalmDestinyMain() {
         [side]: quality,
       }));
 
+      // 실제 손 검출. 결과를 캐시해 분석 시작 때 재사용한다(같은 사진을 두 번 추론하지 않는다).
+      const landmarkCheck = await detectHandForFile(normalizedFile, side);
+      setLandmarkStateBySide((prev) => ({ ...prev, [side]: landmarkCheck }));
+      // 새 사진이 들어왔으므로 이전 "그대로 진행" 판단은 무효다.
+      setQualityOverride(false);
+
+      // MediaPipe 가 실제로 돌았는데 손이 없으면 여기서 막는다 — 과금 이전 지점이다.
+      // 검출기를 못 쓴 경우(CDN 차단 등)는 막지 않고 기존 경로로 진행한다.
+      if (landmarkCheck.status === "no-hand") {
+        setSubmitMessage(
+          `${side === "left" ? "왼손" : "오른손"} 사진에서 손을 찾지 못했습니다. 손바닥을 펴고 손목부터 손가락 끝까지 화면에 담아 다시 촬영해 주세요.`,
+        );
+        return;
+      }
+
       if (quality?.confidence === "낮음") {
         const warningSuffix = prepWarning ? ` ${prepWarning}` : "";
         setSubmitMessage(`분석은 가능하지만 사진이 조금 어둡거나 흐릴 수 있습니다. 결과는 참고용으로 확인해 주세요.${warningSuffix}`);
@@ -1849,6 +2003,11 @@ export default function PalmDestinyMain() {
       ...prev,
       [side]: null,
     }));
+    setLandmarkStateBySide((prev) => ({
+      ...prev,
+      [side]: null,
+    }));
+    setQualityOverride(false);
     setFileSignatureBySide((prev) => ({
       ...prev,
       [side]: null,
@@ -1926,8 +2085,7 @@ export default function PalmDestinyMain() {
 
     submitLockedRef.current = true;
     inFlightSignatureRef.current = requestSignature;
-    const initialPurpose = activeAnalysisPurpose;
-    const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[initialPurpose] || "general";
+    const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_KEY;
     const billingRequestId = `palm-reading:${initialSubFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
     const handleCoinGateFailure = (coinGateResult: Awaited<ReturnType<typeof runBillingCoinGate>>, requestIdForGate: string) => {
@@ -1987,8 +2145,12 @@ export default function PalmDestinyMain() {
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
         leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
         rightHand.file ? fileToDataUrl(rightHand.file) : Promise.resolve(null),
-        leftHand.file ? extractPalmVisionPayload(leftHand.file, "left").catch(() => null) : Promise.resolve(null),
-        rightHand.file ? extractPalmVisionPayload(rightHand.file, "right").catch(() => null) : Promise.resolve(null),
+        leftHand.file
+          ? extractPalmVisionPayload(leftHand.file, "left", landmarkStateBySide.left).catch(() => null)
+          : Promise.resolve(null),
+        rightHand.file
+          ? extractPalmVisionPayload(rightHand.file, "right", landmarkStateBySide.right).catch(() => null)
+          : Promise.resolve(null),
       ]);
 
       const requestBody = JSON.stringify({
@@ -2054,6 +2216,12 @@ export default function PalmDestinyMain() {
             : typeof data?.data?.reasonCode === "string"
             ? data.data.reasonCode
             : "";
+        const serverReason =
+          typeof data?.reason === "string"
+            ? data.reason
+            : typeof data?.data?.reason === "string"
+            ? data.data.reason
+            : "";
         const message =
           typeof data?.message === "string"
             ? data.message
@@ -2065,9 +2233,9 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
           status: "error",
-          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }),
+          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason }),
         });
-        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }));
+        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason }));
         return;
       }
 
@@ -2197,11 +2365,11 @@ export default function PalmDestinyMain() {
         report: reportPayload,
         canonical,
         interpretation,
+        consultText: extractConsultText(payloadRoot),
         overlayPaths,
         overlayPathsBySide,
         raw: payloadRoot,
       });
-      setPalmAiPrompt({ prompt: "", isLoading: false, error: "" });
 
       const firstKey = interpretation?.cards?.[0]?.key;
       if (firstKey && firstKey in CARD_KEY_TO_LABEL) {
@@ -2277,259 +2445,6 @@ export default function PalmDestinyMain() {
     }
   };
 
-  const handleGeneratePalmAiConsult = async () => {
-    if (!analysisResult || submitLockedRef.current) return;
-
-    const dominantHandForPrompt =
-      toDominantHand(analysisResult.canonical.profile.dominantHand) || dominantHand || "right";
-    const analysisPurposeForPrompt =
-      toAnalysisPurpose(analysisResult.canonical.profile.analysisPurpose) || activeAnalysisPurpose;
-    const promptSeed = analysisResult.raw;
-
-    if (!promptSeed || typeof promptSeed !== "object") {
-      setPalmAiPrompt({
-        prompt: "",
-        isLoading: false,
-        error: palmDestinyText("palmDestiny.error.001"),
-      });
-      return;
-    }
-
-    const requestSignature = [
-      analysisResult.canonical.profile.analysisPurpose || "general",
-      dominantHandForPrompt || "right",
-      String(analysisResult.qualityScore || 0),
-      analysisResult.missingData.join("|"),
-      String(analysisResult.report ? "report" : "no-report"),
-    ].join("::");
-
-    if (inFlightSignatureRef.current === requestSignature) {
-      setSubmitMessage("동일 분석 결과 기준으로 전문가 상담이 이미 진행 중입니다.");
-      return;
-    }
-
-    const billingRequestId = `palm-reading:ai-consult:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-
-    const handleCoinGateFailure = (
-      coinGateResult: Awaited<ReturnType<typeof runBillingCoinGate>>,
-      requestIdForGate: string,
-    ) => {
-      const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
-      const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
-      const message =
-        coinGateCode === "AUTH_REQUIRED"
-          ? "로그인이 필요합니다. 로그인 후 다시 이용해 주세요."
-          : coinGateCode === "INSUFFICIENT_COINS"
-          ? `잔액이 부족합니다. 현재 이용 비용은 ${formatKrwFromCoins(serverCost)}입니다.`
-          : coinGateCode === "PRICE_NOT_FOUND"
-          ? "현재 이용 가능한 결제 가격을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요."
-          : coinGateResult.error?.message || "결제 상태 확인 중 문제가 발생했습니다.";
-
-      updatePaidFeatureGate({
-        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: requestIdForGate,
-        status: "error",
-        message,
-      });
-      setPalmAiPrompt((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: message,
-      }));
-      setSubmitMessage(message);
-
-      if (coinGateCode === "AUTH_REQUIRED" && typeof window !== "undefined") {
-        const next = encodeURIComponent(window.location.pathname + window.location.search);
-        window.setTimeout(() => {
-          window.location.href = `/login?next=${next}`;
-        }, 600);
-      }
-    };
-
-    cancelInFlightRequest();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-
-    submitLockedRef.current = true;
-    inFlightSignatureRef.current = requestSignature;
-
-    try {
-      setPalmAiPrompt({ prompt: "", isLoading: true, error: "" });
-      setSubmitMessage("전문가 상담을 생성하고 있습니다.");
-
-      openPaidFeatureGate({
-        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: billingRequestId,
-        message: palmDestinyText("palmDestiny.message.006"),
-      });
-      holdPaidFeatureGateOpen({ requestId: billingRequestId, maxMs: 45000 });
-      updatePaidFeatureGate({
-        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: billingRequestId,
-        message: "전문가 상담을 준비하고 있어요",
-      });
-
-      const requestBody = JSON.stringify({
-        action: "ai_prompt",
-        dominantHand: dominantHandForPrompt,
-        analysisPurpose: analysisPurposeForPrompt || "general",
-        analysisResult: promptSeed,
-      });
-
-      let response = await fetch("/api/palm/analyze", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: requestBody,
-      });
-
-      if (response.status === 401) {
-        const authToken = getClientAuthToken();
-        if (authToken) {
-          response = await fetch("/api/palm/analyze", {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
-            signal: controller.signal,
-            body: requestBody,
-          });
-        }
-      }
-
-      if (requestIdRef.current !== requestId) {
-        return;
-      }
-
-      const data = await response.json().catch(() => ({}));
-      const payloadRoot =
-        data?.data && typeof data.data === "object"
-          ? (data.data as Record<string, unknown>)
-          : (data as Record<string, unknown>);
-
-      if (!response.ok) {
-        const code =
-          typeof data?.code === "string"
-            ? data.code
-            : typeof data?.error === "string"
-            ? data.error
-            : "UNKNOWN_ERROR";
-        const reasonCode =
-          typeof data?.reasonCode === "string"
-            ? data.reasonCode
-            : typeof data?.data?.reasonCode === "string"
-            ? data.data.reasonCode
-            : "";
-        const message =
-          typeof data?.message === "string"
-            ? data.message
-            : typeof data?.error === "string"
-            ? data.error
-            : "전문가 상담 응답을 불러오는 중 문제가 발생했습니다.";
-        const mappedMessage = mapPalmAnalyzeError({ status: response.status, code, reasonCode, message });
-        updatePaidFeatureGate({
-          featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-          requestId: billingRequestId,
-          status: "error",
-          message: mappedMessage,
-        });
-        setPalmAiPrompt((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: mappedMessage,
-        }));
-        setSubmitMessage(mappedMessage);
-        return;
-      }
-
-      const coinGateResult = await runBillingCoinGate({
-        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: billingRequestId,
-        payloadHash: `${requestSignature}:charge`,
-        forceDeduct: true,
-      });
-
-      if (!coinGateResult.ok) {
-        handleCoinGateFailure(coinGateResult, billingRequestId);
-        return;
-      }
-
-      try {
-        const nextPoints = Number(
-          coinGateResult.data?.balance
-            ?? (coinGateResult.data?.user && (coinGateResult.data.user as Record<string, unknown>).points)
-            ?? NaN,
-        );
-        if (typeof window !== "undefined" && Number.isFinite(nextPoints)) {
-          window.localStorage.setItem("fortune_user_points", String(nextPoints));
-          const rawUser = window.localStorage.getItem("fortune_auth_user") || "";
-          const parsedUser = rawUser ? JSON.parse(rawUser) : {};
-          parsedUser.points = nextPoints;
-          window.localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
-        }
-      } catch (err) {
-        // ignore client-side storage failures
-      }
-
-      const promptText = typeof payloadRoot?.prompt === "string" ? payloadRoot.prompt.trim() : "";
-      if (!promptText) {
-        setPalmAiPrompt({
-          prompt: "",
-          isLoading: false,
-          error: palmDestinyText("palmDestiny.error.002"),
-        });
-        setSubmitMessage("전문가 상담 생성 결과가 비어 있습니다.");
-        return;
-      }
-
-      setPalmAiPrompt({
-        prompt: promptText,
-        isLoading: false,
-        error: "",
-      });
-      setSubmitMessage("전문가 상담이 준비되었습니다.");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return;
-      }
-
-      if (error instanceof TypeError) {
-        setPalmAiPrompt((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: palmDestinyText("palmDestiny.error.003"),
-        }));
-        setSubmitMessage("전문가 상담 API 연결이 일시적으로 불안정합니다.");
-        return;
-      }
-
-      const message = `전문가 상담 처리 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`;
-      setPalmAiPrompt((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: message,
-      }));
-      setSubmitMessage(message);
-    } finally {
-      releasePaidFeatureGate(billingRequestId);
-      if (requestIdRef.current === requestId) {
-        submitLockedRef.current = false;
-        lastCompletedSignatureRef.current = requestSignature;
-        lastCompletedAtRef.current = Date.now();
-      }
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null;
-      }
-      if (inFlightSignatureRef.current === requestSignature) {
-        inFlightSignatureRef.current = null;
-      }
-    }
-  };
   const handlePhotoReselect = () => {
     resetSessionForReanalysis({
       clearImages: true,
@@ -2683,6 +2598,26 @@ export default function PalmDestinyMain() {
     const cameraInputId = getCameraInputId(side);
     const role = side === "left" ? handRoles.leftHandRole : handRoles.rightHandRole;
     const roleMeta = HAND_ROLE_META[role];
+    const registeredLabel = formatRegisteredAt(state.registeredAt);
+    const landmarkState = landmarkStateBySide[side];
+    const quality = qualityFeedbackBySide[side];
+    const detectionBadge = landmarkState
+      ? landmarkState.status === "detected"
+        ? { text: "손 인식됨", className: "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]" }
+        : { text: "손 위치 추정", className: "border-[#8a6a2a]/70 bg-[#241a08] text-[#f0cf9a]" }
+      : null;
+    const qualityBadge = quality
+      ? {
+          text: `사진 품질 ${quality.confidence}`,
+          className:
+            quality.confidence === "높음"
+              ? "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]"
+              : quality.confidence === "보통"
+              ? "border-[#8a6a2a]/70 bg-[#241a08] text-[#f0cf9a]"
+              : "border-[#9b1a1a]/70 bg-[#230a0a] text-[#ffc8c8]",
+        }
+      : null;
+    const qualityReasons = quality && quality.confidence !== "높음" ? quality.warnings.slice(0, 3) : [];
 
     return (
       <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/45 bg-[linear-gradient(145deg,rgba(8,4,4,0.97),rgba(18,8,8,0.97))] p-4 md:p-5" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.14)" }}>
@@ -2699,10 +2634,41 @@ export default function PalmDestinyMain() {
 
         {hasPreview ? (
           <div className="mt-3 rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/80 px-3 py-2">
-            <p className="text-xs font-bold text-[#f5d987] md:text-sm">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="inline-flex items-center gap-1 rounded-sm border border-[#4f7a3a]/70 bg-[#12200f] px-2 py-0.5 text-[11px] font-bold text-[#c6e8ac]">
+                <span aria-hidden>✓</span> 등록 완료
+              </span>
+              {registeredLabel ? (
+                <span className="text-[11px] text-[#d8c090]/80">{registeredLabel}</span>
+              ) : null}
+            </div>
+            <p className="mt-2 text-xs font-bold text-[#f5d987] md:text-sm">
               {handName} · {roleMeta.label}
             </p>
             <p className="mt-1 text-xs text-[#d8c090]/80">{roleMeta.description}</p>
+
+            {/* 실제 손 인식 결과와 품질 사전점검을 한자리에 모아 보여준다.
+                Phase 1 에서 만든 검출 상태가 화면에 안 나와 사용자가 알 수 없었다. */}
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {detectionBadge ? (
+                <span className={`rounded-sm border px-2 py-0.5 text-[11px] font-bold ${detectionBadge.className}`}>
+                  {detectionBadge.text}
+                </span>
+              ) : null}
+              {qualityBadge ? (
+                <span className={`rounded-sm border px-2 py-0.5 text-[11px] font-bold ${qualityBadge.className}`}>
+                  {qualityBadge.text}
+                </span>
+              ) : null}
+            </div>
+
+            {qualityReasons.length > 0 ? (
+              <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#f0cf9a]">
+                {qualityReasons.map((reason) => (
+                  <li key={reason}>· {reason}</li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         ) : null}
 
@@ -2736,37 +2702,36 @@ export default function PalmDestinyMain() {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 md:gap-3">
-          <label
-            htmlFor={galleryInputId}
-            className="cd-ghost-btn inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-center text-sm font-bold text-[#e8d090] transition"
-            aria-label={`${handName} 앨범에서 사진 선택`}
-          >
-            이미지 업로드
-          </label>
+        {/* 미등록일 때 '삭제'·'다시 선택'을 띄우면 눌러도 아무 일이 없는 죽은 버튼이 된다.
+            상태에 따라 필요한 동작만 보여준다. */}
+        <div className="cd-capture-actions mt-4">
           <label
             htmlFor={cameraInputId}
-            className="cd-ghost-btn inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-lg border border-[#c8a84b]/40 bg-[#0e0608] px-3 py-2 text-center text-sm font-bold text-[#e8d090] transition"
-            aria-label={`${handName} 카메라 촬영`}
+            className="cd-capture-cta cd-capture-actions__camera"
+            aria-label={`${handName} ${hasPreview ? "다시 촬영" : "카메라 촬영"}`}
           >
-            실시간 촬영
+            <span aria-hidden>📷</span> {hasPreview ? "다시 촬영" : "촬영하기"}
           </label>
+          <label
+            htmlFor={galleryInputId}
+            className="cd-capture-cta cd-capture-actions__gallery"
+            aria-label={`${handName} ${hasPreview ? "다른 사진 선택" : "앨범에서 사진 선택"}`}
+          >
+            <span aria-hidden>🖼️</span> {hasPreview ? "다른 사진 선택" : "앨범에서 선택"}
+          </label>
+        </div>
+
+        {hasPreview ? (
           <button
             type="button"
             onClick={() => clearHandImage(side)}
-            className="cd-red-btn min-h-[44px] rounded-lg border border-[#9b1a1a]/65 px-3 py-2 text-sm font-bold text-[#ffd8d8] transition"
+            className="cd-red-btn mt-2 min-h-[44px] w-full rounded-lg border border-[#9b1a1a]/65 px-3 py-2 text-sm font-bold text-[#ffd8d8] transition"
             style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
+            aria-label={`${handName} 등록 사진 삭제`}
           >
-            이미지 삭제
+            {handName} 사진 삭제
           </button>
-          <button
-            type="button"
-            onClick={() => uploadRef.current?.click()}
-            className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#100a06] px-3 py-2 text-sm font-bold text-[#e8d090] transition"
-          >
-            다시 선택
-          </button>
-        </div>
+        ) : null}
 
         <input
           id={galleryInputId}
@@ -2952,6 +2917,14 @@ export default function PalmDestinyMain() {
               </div>
               <p className="mt-3 text-sm leading-7 text-[#f0dfc0]/90">손바닥이 화면 중앙에 오도록 촬영해 주세요. 밝은 곳에서 손 전체가 보이면 분석 정확도가 높아집니다.</p>
 
+              {/* 한 손만으로도 분석된다는 사실을 명시한다.
+                  종전에는 아래 '양손 비교 업로드(선택)' 제목으로만 암시돼, 양손을 다 올려야
+                  하는 줄 알고 이탈하는 경로가 있었다. */}
+              <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#f0dfc0]/90 md:text-sm">
+                <span className="font-black text-[#f5d987]">한 손만 등록해도 분석됩니다.</span>
+                <span className="text-[#e8d8b0]/85">양손을 모두 등록하면 선천·후천을 비교한 해석이 더해집니다.</span>
+              </p>
+
               <div className="mt-4 grid grid-cols-2 gap-2 sm:w-fit">
                 <button
                   type="button"
@@ -2979,25 +2952,26 @@ export default function PalmDestinyMain() {
                 </button>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {/* 순서·강조는 CSS 미디어쿼리가 정한다(터치=촬영 우선, 포인터=파일 선택 우선). */}
+              <div className="cd-capture-actions mt-4">
                 <label
                   htmlFor={getCameraInputId(selectedCaptureSide)}
-                  className="cd-main-cta inline-flex min-h-[52px] cursor-pointer items-center justify-center rounded-xl border border-[#d4af37]/70 bg-[linear-gradient(140deg,#8b0000_0%,#6b1a0a_35%,#5a1200_65%,#7a1800_100%)] px-4 py-3 text-sm font-black text-[#fff8e0]"
+                  className="cd-capture-cta cd-capture-actions__camera"
                   aria-label={palmDestinyText("palmDestiny.aria-label.001")}
                 >
-                  📷 손바닥 바로 촬영하기
+                  <span aria-hidden>📷</span> 손바닥 바로 촬영하기
                 </label>
                 <label
                   htmlFor={getGalleryInputId(selectedCaptureSide)}
-                  className="cd-ghost-btn inline-flex min-h-[52px] cursor-pointer items-center justify-center rounded-xl border border-[#c8a84b]/45 bg-[#0d0808] px-4 py-3 text-sm font-black text-[#f0d9a2]"
+                  className="cd-capture-cta cd-capture-actions__gallery"
                   aria-label={palmDestinyText("palmDestiny.aria-label.002")}
                 >
-                  🖼️ 앨범에서 사진 선택하기
+                  <span aria-hidden>🖼️</span> 앨범에서 사진 선택하기
                 </label>
               </div>
 
-              <p className="mt-3 text-xs leading-6 text-[#e8d8b0]/80">
-                현재 선택 대상: {selectedCaptureSide === "left" ? "왼손" : "오른손"}. 데스크톱에서는 두 버튼 모두 파일 선택 창으로 동작합니다.
+              <p className="mt-3 text-xs leading-6 text-[#e8d8b0]/85">
+                현재 선택 대상: <strong className="font-bold text-[#f5d987]">{selectedCaptureSide === "left" ? "왼손" : "오른손"}</strong>
               </p>
 
               <div className="mt-4 overflow-x-auto">
@@ -3046,6 +3020,18 @@ export default function PalmDestinyMain() {
                       ) : (
                         <p className="mt-1 text-xs text-[#e8d8b0]/90 md:text-sm">품질 체크가 양호합니다. 이 사진으로 분석을 진행할 수 있습니다.</p>
                       )}
+
+                      {/* 아래 CTA 가 비활성인 이유와 빠져나갈 길을 같은 자리에 둔다.
+                          설명이 화면 아래쪽에만 있으면 비활성 버튼만 보고 이탈한다. */}
+                      {isQualityBlocked ? (
+                        <button
+                          type="button"
+                          onClick={() => setQualityOverride(true)}
+                          className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#c8a84b]/45 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#f0d9a2] md:text-sm"
+                        >
+                          이 사진 그대로 분석하기
+                        </button>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -3185,9 +3171,41 @@ export default function PalmDestinyMain() {
                 )}
               </button>
 
-              <p className="mt-3 text-xs leading-6 text-[#d4b45c]/75 md:text-sm">
-                활성 조건: 왼손 또는 오른손 이미지 1개 이상 + 주로 쓰는 손 선택
-              </p>
+              {isQualityBlocked ? (
+                <div
+                  role="status"
+                  className="mt-3 rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/85 px-3 py-3"
+                >
+                  <p className="text-xs font-black text-[#ffd8d8] md:text-sm">
+                    {lowQualitySides.map((side) => (side === "left" ? "왼손" : "오른손")).join("·")} 사진 품질이 낮게 측정됐습니다
+                  </p>
+                  <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#ffc8c8]/90 md:text-xs">
+                    {Array.from(
+                      new Set(lowQualitySides.flatMap((side) => qualityFeedbackBySide[side]?.warnings || [])),
+                    )
+                      .slice(0, 4)
+                      .map((reason) => (
+                        <li key={reason}>· {reason}</li>
+                      ))}
+                  </ul>
+                  <p className="mt-2 text-[11px] leading-5 text-[#e8d8b0]/85 md:text-xs">
+                    더 밝은 곳에서 손바닥 전체가 또렷하게 나오도록 다시 찍으면 해석이 훨씬 정확해집니다.
+                  </p>
+                  {/* 막다른 길 금지 — 사전점검은 휴리스틱이라 오탐이 난다.
+                      사유를 본 뒤에는 사용자가 직접 진행을 선택할 수 있어야 한다. */}
+                  <button
+                    type="button"
+                    onClick={() => setQualityOverride(true)}
+                    className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#c8a84b]/45 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#f0d9a2] md:text-sm"
+                  >
+                    이 사진 그대로 분석하기
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">
+                  활성 조건: 왼손 또는 오른손 사진 1장 이상 + 주로 쓰는 손 선택
+                </p>
+              )}
 
               {(leftHand.file || rightHand.file) && dominantHand ? (
                 <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs text-[#e8d090]/90 md:text-sm">
@@ -3477,36 +3495,23 @@ export default function PalmDestinyMain() {
                     <section className="space-y-3 rounded-xl border border-[#f5d987]/30 bg-[linear-gradient(145deg,rgba(22,8,8,0.95),rgba(30,12,12,0.94))] p-4">
                       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#c8a84b]/30 pb-3">
                         <div>
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">손금 전문가 상담</h3>
-                          <p className="mt-1 text-xs text-[#d4b45c]/85">분석 결과를 바탕으로 전문가가 한 번 더 정리해 드립니다.</p>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">손금 전문가 심층 해석</h3>
+                          <p className="mt-1 text-xs text-[#d4b45c]/85">판독 결과를 바탕으로 전문가가 항목별로 풀어 드립니다.</p>
                         </div>
-                        <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">5,000원</span>
+                        <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">포함</span>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={handleGeneratePalmAiConsult}
-                        disabled={!analysisResult || palmAiPrompt.isLoading}
-                        className={`cd-gold-btn cd-oriental-premium-btn min-h-[44px] rounded-lg border px-4 py-2 text-xs font-black tracking-[0.02em] md:text-sm ${
-                          !analysisResult || palmAiPrompt.isLoading
-                            ? "cursor-not-allowed border-[#7a6020]/30 bg-[#2b1d0d] text-[#b39a5f]"
-                            : "border-[#f5d987]/70 bg-[linear-gradient(140deg,#8b0000,#6b1a0a_35%,#5a1200_65%,#7a1800)] text-[#fff8e0] shadow-[0_0_0_1px_rgba(212,176,92,0.25),0_12px_24px_rgba(0,0,0,0.5),0_0_24px_rgba(139,0,0,0.4)]"
-                        }`}
-                      >
-                        {palmAiPrompt.isLoading ? "전문가 상담 작성 중..." : "전문가 상담 보기 (5,000원)"}
-                      </button>
-
-                      {palmAiPrompt.error ? (
-                        <p className="rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/80 px-3 py-2 text-xs leading-6 text-[#ffd8d8]">
-                          {palmAiPrompt.error}
-                        </p>
-                      ) : null}
-
-                      {palmAiPrompt.prompt ? (
+                      {analysisResult.consultText ? (
                         <div className="rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/75 px-3 py-3">
-                          <p className="whitespace-pre-wrap text-xs leading-7 text-[#e8d090] md:text-sm">{palmAiPrompt.prompt}</p>
+                          <p className="whitespace-pre-wrap text-xs leading-7 text-[#e8d090] md:text-sm">
+                            {analysisResult.consultText}
+                          </p>
                         </div>
-                      ) : null}
+                      ) : (
+                        <p className="rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/60 px-3 py-2 text-xs leading-6 text-[#d4b45c]/85">
+                          이번 판독에서는 심층 해석문을 생성하지 못했습니다. 아래 항목별 리포트는 정상적으로 제공됩니다.
+                        </p>
+                      )}
                     </section>
 
                     <section className="space-y-4">
@@ -3740,6 +3745,64 @@ export default function PalmDestinyMain() {
         .cd-cta-btn { transition: box-shadow 0.24s ease, transform 0.24s ease; }
         .cd-cta-btn:hover:enabled { box-shadow: 0 0 16px rgba(212,176,92,0.32), 0 10px 24px rgba(0,0,0,0.28); transform: translateY(-1px); }
         .cd-soft-tab:hover { box-shadow: 0 0 10px rgba(200,168,75,0.22); }
+
+        /* 촬영/앨범 버튼의 기기별 우선순위.
+           JS 로 기기를 판별하면 SSR 과 클라이언트 첫 렌더가 어긋나(hydration mismatch)
+           버튼이 한 번 튄다. 순서·강조를 CSS 미디어쿼리로만 처리해 그 문제를 피한다.
+           너비가 아니라 포인터 종류로 가른다 — 좁은 데스크톱 창은 여전히 파일 선택이 맞다. */
+        .cd-capture-actions { display: grid; gap: 12px; }
+        @media (min-width: 640px) { .cd-capture-actions { grid-template-columns: 1fr 1fr; } }
+
+        .cd-capture-cta {
+          display: inline-flex;
+          min-height: 52px;
+          cursor: pointer;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border-radius: 12px;
+          border: 1px solid rgba(200,168,75,0.45);
+          background: #0d0808;
+          padding: 12px 16px;
+          font-size: 14px;
+          font-weight: 900;
+          color: #f0d9a2;
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .cd-capture-cta:hover { box-shadow: 0 0 14px rgba(200,168,75,0.26); transform: translateY(-1px); }
+        .cd-capture-cta:focus-visible { outline: 2px solid #f5d987; outline-offset: 2px; }
+
+        /* 우선 수단은 실물 CTA 로, 보조 수단은 고스트로. */
+        .cd-capture-cta--lead {
+          border-color: rgba(212,175,55,0.7);
+          background: linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%);
+          color: #fff8e0;
+        }
+
+        /* 터치 기기(휴대폰·태블릿): 촬영 우선 */
+        @media (hover: none) and (pointer: coarse) {
+          .cd-capture-actions__camera { order: 1; }
+          .cd-capture-actions__gallery { order: 2; }
+          .cd-capture-actions__camera.cd-capture-cta {
+            border-color: rgba(212,175,55,0.7);
+            background: linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%);
+            color: #fff8e0;
+          }
+        }
+        /* 포인터 기기(데스크톱): 파일 선택 우선 — capture 속성이 파일 대화상자로 떨어지므로 */
+        @media (hover: hover) and (pointer: fine) {
+          .cd-capture-actions__gallery { order: 1; }
+          .cd-capture-actions__camera { order: 2; }
+          .cd-capture-actions__gallery.cd-capture-cta {
+            border-color: rgba(212,175,55,0.7);
+            background: linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%);
+            color: #fff8e0;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .cd-capture-cta { transition: none !important; transform: none !important; }
+        }
 
         @media (prefers-reduced-motion: reduce) {
           .cd-select-btn,

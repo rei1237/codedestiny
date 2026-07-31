@@ -128,6 +128,13 @@ jobs:
       - name: Verify AI prompt billing policy
         run: npm run verify:ai-prompt-billing-policy
 
+      # 손금: 프로덕션 빌드가 output:"export" 라 app/api/** 가 통째로 빠진다는 사실 때문에
+      # Gemini Vision 이 로컬에서만 돌고 실제 사용자는 정적 템플릿을 받고 있었다(2026-07 발견).
+      # 워커에 LLM 이 배선돼 있는지 / 비전 호출이 Workers AI 폴백을 껐는지(폴백은 이미지를 버린다) /
+      # 문양이 미검출 기본값인지 / 인증·본문 상한이 살아 있는지를 소스 수준에서 강제한다.
+      - name: Verify palm reading flow
+        run: npm run verify:palm-flow
+
       # 결제수단 선택창은 렌더러가 3종(정적 셸 6미러 / React / 독립 폴백)이라 한쪽만 고치면
       # 진입 경로에 따라 다른 결제창이 뜬다. 정본 CSS·구조 마커·3옵션 노출이 어긋나면 차단한다.
       - name: Verify payment choice modal parity

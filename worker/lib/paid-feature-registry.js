@@ -237,7 +237,10 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "saju-guardian-unlock": { cost: 100, reason: "사주 가디언 소환진 해금" },
   destiny_meeting_place: { cost: 100, reason: "사주로 보는 인연의 장소 1회 분석" },
   premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
-  "palm-reading-general": { cost: 50, reason: "손금 전체운 분석" },
+  // 손금은 Gemini Vision 판독(손당 1회) + 심층 해석까지 한 번에 제공하는 단일 상품이다.
+  // 구 palm-reading-ai-consult(별도 5,000원)는 기본 분석에 통합돼 더 이상 호출되지 않지만,
+  // 과거 주문·환불 이력이 참조하므로 키와 가격은 그대로 남긴다.
+  "palm-reading-general": { cost: 100, reason: "손금 정밀 판독 + 심층 해석" },
   "palm-reading-ai-consult": { cost: 50, reason: "손금 전문가 상담 생성" },
   "life-book-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생의 책 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },

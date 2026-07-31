@@ -347,7 +347,15 @@ function runNuclearVersionGuard() {
     var saved = '';
     try { saved = localStorage.getItem(APP_VERSION_KEY) || ''; } catch (e) { saved = ''; }
 
-    if (saved === version) {
+    // 저장값이 없다 = 이 브라우저/앱이 이 사이트를 처음 본다. 지금 손에 든 문서는 방금 받아온
+    // 것이라(셸은 no-store, 앱은 번들 에셋) 같은 URL 을 다시 로드해도 달라질 것이 없다.
+    // 이걸 "버전 불일치"로 흘려보내면 첫 방문·재설치·배포 직후 사용자가 전원 강제 리로드를
+    // 한 번씩 겪는다(=메인 화면 이중 로딩). 버전만 기록하고 캐시 정리는 그대로 수행한다.
+    if (!saved) {
+      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
+    }
+
+    if (!saved || saved === version) {
       removeVersionUpdateBanner();
       // 버전 동일: SW/캐시만 정리 (이미 정리된 버전이면 skip)
       var purged = '';

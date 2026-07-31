@@ -80,6 +80,14 @@ async function collectAssetUrls() {
     for (const match of res.body.matchAll(/\/_next\/static\/[^"'\s>]+?\.(?:css|js)/g)) {
       found.add(match[0]);
     }
+    // 정적 셸(`/`)이 참조하는 자산은 `_next/static` 이 아니라 `/js`·`/styles`·`/css` 에 있다.
+    // 같은 엣지 캐시 404 사고가 나도 위 정규식으로는 하나도 잡히지 않아 그동안 무방비였다.
+    // 지연 로더가 쓰는 data-cd-noncritical-* 속성도 결국 같은 URL 을 요청하므로 함께 본다.
+    for (const match of res.body.matchAll(
+      /(?:\ssrc|\shref|data-cd-noncritical-src|data-cd-noncritical-style-src)=["'](\/(?:js|styles|css)\/[^"'?\s>]+\.(?:js|css))/g,
+    )) {
+      found.add(match[1]);
+    }
   }
   return { assets: [...found].sort(), routeFailures };
 }
@@ -135,7 +143,7 @@ async function main() {
     report(routeFailures.map((l) => `  - ${l}`));
   }
   if (!assets.length) {
-    console.error("::error::배포된 HTML 에서 _next/static 자산을 하나도 찾지 못했습니다. 라우트 응답을 확인하세요.");
+    console.error("::error::배포된 HTML 에서 참조 자산(_next/static · 셸 /js·/styles·/css)을 하나도 찾지 못했습니다. 라우트 응답을 확인하세요.");
     process.exit(1);
   }
   console.log(`[verify-deployed-assets] 검사 대상 ${assets.length}개`);
@@ -165,7 +173,7 @@ async function main() {
   }
 
   if (!dead.length) {
-    console.log("[verify-deployed-assets] OK — 참조된 _next/static 자산 전부 200");
+    console.log("[verify-deployed-assets] OK — 참조된 자산 전부 200(_next/static + 셸 /js·/styles·/css)");
     return;
   }
 
