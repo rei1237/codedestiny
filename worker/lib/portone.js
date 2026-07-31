@@ -274,6 +274,39 @@ export function getPortOnePublicConfig(env) {
   };
 }
 
+// 존재할 수 없는 결제 ID. 자격증명이 유효하면 404, 무효하면 401/403 이 온다 —
+// 이 차이로 "시크릿이 살아 있는지"만 판정한다.
+const PORTONE_AUTH_PROBE_PAYMENT_ID = "cd-portone-auth-probe";
+
+// 🔴 getPortOneConfig().configured 는 값의 '존재'만 본다. 2026-07 장애에서 무효한 시크릿이
+// configured:true 로 보고돼, 카드 승인이 끝난 뒤 조회 단계에서야 401 을 알게 됐다(돈은 나가고
+// 지급은 안 됨). 이 함수는 실제 응답을 보고 자격증명 유효성만 판정한다.
+export async function probePortOneApiAuth(env) {
+  const config = getPortOneConfig(env);
+  if (!config.portoneApiSecret) return { ok: false, reason: "MISSING_SECRET" };
+
+  const timeoutMs = getPortOneTimeoutMs(env);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(
+      `${getPortOneBaseUrl(env)}/payments/${encodeURIComponent(PORTONE_AUTH_PROBE_PAYMENT_ID)}`,
+      { method: "GET", headers: getPortOneHeaders(env), signal: controller.signal },
+    );
+  } catch (_) {
+    // 네트워크·타임아웃은 자격증명 문제가 아니다. 결제를 막지 않는다(unknown).
+    return { ok: true, unknown: true, reason: "PROBE_UNREACHABLE" };
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    return { ok: false, reason: "UNAUTHORIZED", status: response.status };
+  }
+  return { ok: true, status: response.status };
+}
+
 export async function fetchPortOnePayment(env, paymentId) {
   if (!paymentId) throw new Error("paymentId is required.");
 

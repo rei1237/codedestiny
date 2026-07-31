@@ -22,6 +22,7 @@ import {
   getPortOnePublicConfig,
   getPortOneWebhookSecret,
   getPortOneWebhookUrl,
+  probePortOneApiAuth,
 } from "../lib/portone.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -4860,6 +4861,15 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
   }
 }
 
+// 🔴 단건 디지털콘텐츠 결제는 "success" 로 끝나지 않는다 — /prepare 가 "pending" 으로 만들고(3532)
+// 웹훅 정산은 "fulfilled" 로 끝난다(1827). "success" 는 레거시 confirm 정산 경로에서만 찍힌다.
+// 그래서 아래 취소 가드가 "success" 만 허용하는 동안, 카드가 실제로 승인된 단건 주문조차 사용자
+// 셀프 취소가 400 으로 막혔다(= 결제는 됐는데 환불 불가). 단건 주문에 한해 허용 상태를 넓힌다.
+const SINGLE_PURCHASE_CANCELLABLE_STATUSES = new Set(["success", "fulfilled", "processing", "pending"]);
+const DEFAULT_CANCELLABLE_STATUSES = new Set(["success"]);
+// 우리 DB 가 아직 PG 승인 여부를 모르는 상태 — 취소를 쏘기 전에 PortOne 조회로 확인이 필요하다.
+const CANCEL_REQUIRES_PORTONE_VERIFY_STATUSES = new Set(["processing", "pending"]);
+
 async function handleCancel(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.imp_uid || "").trim() || undefined;
@@ -4915,13 +4925,61 @@ async function handleCancel(request, env, auth) {
     });
   }
 
-  if (paymentRecord.status !== "success") {
+  const recordStatus = String(paymentRecord.status || "");
+  const isSinglePurchaseOrder = String(paymentRecord.paymentType || "") === "digital_content"
+    && String(paymentRecord.accessType || "") === "single_purchase";
+  const cancellableStatuses = isSinglePurchaseOrder
+    ? SINGLE_PURCHASE_CANCELLABLE_STATUSES
+    : DEFAULT_CANCELLABLE_STATUSES;
+  if (!cancellableStatuses.has(recordStatus)) {
     return json({ message: "Only successful payments can be cancelled." }, { status: 400 });
   }
 
   const paidAmount = Number(paymentRecord.paymentAmount || 0);
   if (requestedCancelAmount !== undefined && requestedCancelAmount > paidAmount) {
     return json({ message: "Cancel amount exceeds paid amount." }, { status: 400 });
+  }
+
+  // 미확정 상태(pending/processing)는 PortOne 이 실제로 승인했는지부터 확인한다. 조회만 하고
+  // 취소 요청 자체는 아래 기존 cancelPortOnePayment 경로를 그대로 쓴다.
+  if (CANCEL_REQUIRES_PORTONE_VERIFY_STATUSES.has(recordStatus)) {
+    let portOnePayment = null;
+    try {
+      portOnePayment = await fetchPortOnePayment(env, paymentRecord.impUid || paymentRecord.merchantUid || impUid || merchantUid);
+    } catch (error) {
+      await writeFailureLog({
+        request,
+        userId: auth.userId,
+        impUid,
+        merchantUid,
+        source: "confirm",
+        stage: "cancel_portone_verify",
+        code: "portone_fetch_failed",
+        message: error?.message || "PortOne payment lookup failed.",
+        status: 502,
+        payload: body,
+      });
+      return json({
+        message: "Payment lookup failed. Please try again.",
+        code: "PORTONE_FETCH_FAILED",
+      }, { status: 502 });
+    }
+
+    const verifiedStatus = String(portOnePayment?.status || "").toLowerCase();
+    if (verifiedStatus === "cancelled") {
+      return json({
+        message: "Payment was already cancelled.",
+        idempotent: true,
+        payment: formatPaymentResponse(paymentRecord),
+      });
+    }
+    if (verifiedStatus !== "paid") {
+      return json({
+        message: "Only successful payments can be cancelled.",
+        code: "PORTONE_NOT_PAID",
+        status: verifiedStatus || undefined,
+      }, { status: 400 });
+    }
   }
 
   const pointsToRollback = Number(paymentRecord.chargedPoints || paymentRecord.expectedChargedPoints || 0);
@@ -4952,9 +5010,22 @@ async function handleCancel(request, env, auth) {
     paidAmount,
   });
 
+  // 🔴 다른 모든 취소 경로(1195·1347·2005)는 엔타이틀먼트를 회수하는데 이 사용자 셀프 취소만
+  // 빠져 있었다 — 돈은 돌려주고 잠금 해제는 남는 불일치. 부분 취소는 기존 관례대로 회수하지 않고
+  // 관리자 검토로 넘긴다.
+  const isPartialCancel = requestedCancelAmount !== undefined && requestedCancelAmount < paidAmount;
+  const revocation = isPartialCancel
+    ? { unlockRevoked: false, adminReviewRequired: true }
+    : await revokeSinglePaymentContentAccess(paymentRecord, {
+      status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
+      reason: "user_self_cancellation",
+    });
+
   return json({
     message: "Payment cancelled.",
     idempotent: false,
+    unlockRevoked: revocation.unlockRevoked === true,
+    adminReviewRequired: revocation.adminReviewRequired === true,
     user: {
       id: String(auth.userId),
       points: Number(updateResult?.updatedPoints || 0),
@@ -5733,6 +5804,33 @@ async function enforceMinorPaymentRestriction(env, auth, method, path) {
   }, { status: 403 });
 }
 
+// 🔴 결제창을 열기 전에 PortOne 자격증명이 살아 있는지 확인한다. 없으면 카드가 승인된 뒤
+// 조회 단계에서야 401 을 알게 되고, 그 시점엔 이미 돈이 나간 뒤라 되돌릴 방법이 사실상 없다
+// (2026-07 장애). 매 요청 프로브는 지연이므로 캐시한다.
+const PORTONE_AUTH_HEALTHY_TTL_MS = 5 * 60 * 1000;
+// 실패는 짧게 캐시한다 — 운영자가 시크릿을 고친 뒤 빨리 복구되어야 한다.
+const PORTONE_AUTH_UNHEALTHY_TTL_MS = 60 * 1000;
+// 주문(=PG 결제창)이 생성되는 경로에서만 검사한다. confirm/cancel 은 이미 승인된 건을 다루므로
+// 여기서 막으면 오히려 복구를 방해한다.
+const PORTONE_AUTH_GATED_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare"]);
+let portOneAuthHealthCache = { checkedAt: 0, ok: true, reason: "" };
+
+async function ensurePortOneApiAuthHealthy(env) {
+  const now = Date.now();
+  const ttl = portOneAuthHealthCache.ok ? PORTONE_AUTH_HEALTHY_TTL_MS : PORTONE_AUTH_UNHEALTHY_TTL_MS;
+  if (portOneAuthHealthCache.checkedAt > 0 && now - portOneAuthHealthCache.checkedAt < ttl) {
+    return portOneAuthHealthCache;
+  }
+  const probe = await probePortOneApiAuth(env);
+  // 네트워크 오류는 자격증명 판정이 아니므로 캐시하지 않고 통과시킨다.
+  if (probe.unknown === true) return { ok: true, reason: "" };
+  portOneAuthHealthCache = { checkedAt: now, ok: probe.ok !== false, reason: String(probe.reason || "") };
+  if (!portOneAuthHealthCache.ok) {
+    console.error(`[portone-auth-health] PortOne API credential rejected (${portOneAuthHealthCache.reason}) — blocking new payment orders.`);
+  }
+  return portOneAuthHealthCache;
+}
+
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/payments");
@@ -5789,6 +5887,17 @@ export async function handlePaymentRoutes(request, env, ctx) {
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
+
+    // 결제창을 여는 주문 생성 직전에만 PortOne 자격증명을 확인한다(캐시 5분).
+    if (method === "POST" && PORTONE_AUTH_GATED_PATHS.has(path)) {
+      const portOneAuthHealth = await ensurePortOneApiAuthHealthy(env);
+      if (!portOneAuthHealth.ok) {
+        return json({
+          message: "결제 시스템 점검 중입니다. 잠시 후 다시 시도해 주세요.",
+          code: "PAYMENT_GATEWAY_UNAVAILABLE",
+        }, { status: 503 });
+      }
+    }
 
     await connectDb(env);
     trace.dbConnected = true;

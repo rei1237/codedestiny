@@ -1056,6 +1056,21 @@ function formatMonthlyCreditLedgerReason(entry: MonthlyCreditLedgerItem) {
   return "월정석 내역";
 }
 
+// 서버 취소 허용 규칙(worker/routes/payments.js handleCancel)과 같은 기준을 쓴다. 단건 디지털콘텐츠
+// 주문은 "success" 로 끝나지 않아(prepare=pending / 웹훅정산=fulfilled) 예전 조건이면 카드가 승인된
+// 주문에서도 취소 버튼이 영영 비활성이었다. 최종 판정은 서버가 하고 여기서는 버튼만 열어 준다.
+function canRequestPaymentCancel(payment: PaymentHistoryItem) {
+  if (payment.isPassAccess === true) return false;
+  const isSinglePurchase = payment.paymentType === "digital_content" && payment.accessType === "single_purchase";
+  if (isSinglePurchase) {
+    return payment.status === "success"
+      || payment.status === "fulfilled"
+      || payment.status === "processing"
+      || payment.status === "pending";
+  }
+  return payment.status === "success";
+}
+
 function mapPaymentStatusLabel(status: string, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
   if (status === "success" || status === "fulfilled") return { label: copy.paymentStatuses.success, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
   if (status === "paid") return { label: copy.paymentStatuses.paid, cls: "bg-sky-100 text-sky-800 border-sky-300" };
@@ -2616,7 +2631,7 @@ function MoonlightOrderHistory({
             const isPassAccess = payment.isPassAccess === true;
             const statusMeta = mapPaymentStatusLabel(payment.status, copy);
             // 이용권 이용 건은 실제 결제가 아니므로 취소·영수증 대상이 아니다.
-            const canCancel = !isPassAccess && payment.status === "success";
+            const canCancel = canRequestPaymentCancel(payment);
             return (
               <div key={payment.id} className="rounded-[18px] border border-[color:var(--moon-rim)] bg-[rgba(21,24,64,0.78)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">

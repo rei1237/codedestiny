@@ -364,7 +364,19 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
   if (clean(order?.pricingSnapshot?.inputHash) !== inputHash || clean(order.idempotencyKey) !== idempotencyKey) return { ok: false };
   if (["paid", "success", "fulfilled"].includes(clean(order.status).toLowerCase())) return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
   let portOnePayment = null;
-  try { portOnePayment = await fetchPortOnePayment(env, normalizedPaymentId); } catch (_) { return { ok: false }; }
+  // 🔴 실패를 삼키면 카드 승인 후 원인 추적이 불가능해진다(2026-07 PortOne 401 장애). 동작은 그대로 두고 사유만 남긴다.
+  try { portOnePayment = await fetchPortOnePayment(env, normalizedPaymentId); } catch (error) {
+    console.error("[ziwei-island-ai] PortOne payment lookup failed", normalizedPaymentId, error?.message || error);
+    await Payment.findByIdAndUpdate(order._id, {
+      $set: {
+        failureCode: "portone_fetch_failed",
+        failureMessage: String(error?.message || "PortOne payment lookup failed.").slice(0, 300),
+        failureStage: "ziwei_island_ai_portone_fetch",
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
+    return { ok: false };
+  }
   const config = getPortOnePublicConfig(env);
   const portOneStoreId = extractPortOneStoreId(portOnePayment);
   const amount = Number(portOnePayment?.amount || 0);

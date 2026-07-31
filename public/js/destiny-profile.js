@@ -3051,7 +3051,6 @@
     var ticket = _dpReadDirectResumeTicket();
     // 티켓이 없으면 이 복귀는 우리 것이 아니다(예: /points 가 자기 키로 처리하는 이용권·월정석 결제).
     if (!ticket || !ticket.confirmBody) return;
-    _dpClearDirectResumeTicket();
 
     var paymentId = String(
       query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || ticket.merchantUid || '',
@@ -3060,6 +3059,8 @@
       || String(query.get('imp_success') || '').toLowerCase() === 'false';
 
     if (!paymentId || failed) {
+      // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
+      _dpClearDirectResumeTicket();
       var failMessage = String(query.get('message') || query.get('error_msg') || '').trim();
       window.alert(failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.');
       return;
@@ -3067,19 +3068,24 @@
 
     try {
       _dpSetPaymentPending(true, '결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.', 'confirm');
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
-        method: 'POST',
-        body: JSON.stringify(Object.assign({}, ticket.confirmBody, {
-          impUid: paymentId,
-          paymentId: paymentId,
-        })),
-      });
+      // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
+      // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
+      var dpResumeBody = JSON.stringify(Object.assign({}, ticket.confirmBody, {
+        impUid: paymentId,
+        paymentId: paymentId,
+      }));
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
+      if (!confirmRes.ok && Number(confirmRes.status) >= 500) {
+        await new Promise(function (resolveRetryDelay) { setTimeout(resolveRetryDelay, 1500); });
+        confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
+      }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
         window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
         return;
       }
       // 서버 confirm 은 멱등이다(existingUnlock 감지 → alreadyUnlocked). 중복 확정 위험은 없다.
+      _dpClearDirectResumeTicket();
       _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
     } catch (error) {
       _dpSetPaymentPending(false);
@@ -3718,10 +3724,10 @@
       _dpSetPaymentPending(false);
       var rsp = await window.PortOne.requestPayment(requestData);
       window.__cdSuppressPaymentUnloadBlock = false;
-      // 여기에 도달했다면 리다이렉트 없이 이 컨텍스트에서 끝났다 — 티켓은 더 필요 없다.
-      _dpClearDirectResumeTicket();
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
+        // 승인 자체가 나지 않았으니 복귀 티켓은 의미가 없다 — 여기서만 회수한다.
+        _dpClearDirectResumeTicket();
         var dpRspCode = String((rsp && rsp.code) || '').trim();
         if (!_dpIsPortOneUserCancelCode(dpRspCode)) {
           try {
@@ -3740,14 +3746,22 @@
 
       _dpSetPaymentPending(true, '\uB2E8\uAC74 \uACB0\uC81C \uC2B9\uC778\uACFC \uCF58\uD150\uCE20 \uC774\uC6A9 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'confirm');
 
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
-        method: 'POST',
-        body: JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
-          impUid: paymentId,
-          paymentId: paymentId,
-        })),
-      });
+      // 🔴 복귀 티켓은 confirm 이 성공한 뒤에 지운다. 예전에는 requestPayment 반환 직후 지워서,
+      // 카드 승인은 났는데 confirm 이 5xx 로 죽으면 복구 수단이 통째로 사라졌다(돈은 나가고 지급은 안 됨).
+      // 5xx 는 서버측 일시 오류이므로 한 번만 더 시도한다. 중복 confirm 은 서버 settlePaymentByImpUid 의
+      // 기존 CAS 멱등이 이미 막으므로 여기에 새 락·새 dedup 을 만들지 않는다.
+      var dpConfirmBody = JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
+        impUid: paymentId,
+        paymentId: paymentId,
+      }));
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
+      if (!confirmRes.ok && Number(confirmRes.status) >= 500) {
+        await new Promise(function (resolveRetryDelay) { setTimeout(resolveRetryDelay, 1500); });
+        confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
+      }
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+      // 확정됐으니 이제 복귀 티켓을 회수한다.
+      _dpClearDirectResumeTicket();
       // \uB2E8\uAC74 \uACB0\uC81C \uC644\uB8CC \uD504\uB808\uC784(\uC81C\uBAA9 "\uACB0\uC81C \uC644\uB8CC"\u00B7\uC2A4\uD53C\uB108 off) \uD45C\uC2DC \uD6C4 ~1.2s \uC790\uB3D9 \uB2EB\uD798. \uC774\uD6C4 \uCF58\uD150\uCE20 \uC0DD\uC131\uC740 \uBCD1\uB82C \uC9C4\uD589.
       _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
       await _dpWaitForPaymentOverlayPaint();
