@@ -23,7 +23,7 @@ import {
   getSecuritySubjectHash,
 } from "../lib/security/index.js";
 import { screenReviewText } from "../lib/review-moderation.js";
-import { notifyNewFeedback, getSiteBaseUrl } from "../lib/feedback-notify.js";
+import { notifyNewFeedback } from "../lib/feedback-notify.js";
 import {
   FEEDBACK_ALLOWED_MIME,
   FEEDBACK_CATEGORY_LABELS,
@@ -172,11 +172,9 @@ function resolveBucket(env) {
 }
 
 /**
- * 첨부 오브젝트를 R2 에서 읽어 Response 로 만든다.
- * 소유자 검사는 호출부가 한다(사용자 라우트는 uploaderId 대조, 관리자 라우트는 관리자 인증).
- * admin-feedback.js 가 이 함수를 재사용한다.
+ * 첨부 오브젝트를 R2 에서 읽어 Response 로 만든다. 소유자 검사는 호출부가 한다(uploaderId 대조).
  */
-export async function readFeedbackAttachmentObject(env, rawKey, { requireUploaderId = "" } = {}) {
+async function readFeedbackAttachmentObject(env, rawKey, { requireUploaderId = "" } = {}) {
   const key = normalizeFeedbackKey(rawKey);
   if (!key) return notFound();
 
@@ -309,8 +307,7 @@ async function resolveAuth(request, env) {
   return auth;
 }
 
-// 라벨 정본을 서버가 내려준다. 프론트 두 곳(/feedback, /admin/feedback)에 한글 라벨을
-// 하드코딩하면 반드시 어긋나기 때문이다.
+// 라벨 정본을 서버가 내려준다. 프론트에 한글 라벨을 하드코딩하면 반드시 어긋나기 때문이다.
 function handleMeta() {
   return json({
     ok: true,
@@ -563,7 +560,6 @@ async function handleCreate(request, env, ctx) {
   }
 
   const notifyOptions = {
-    siteBaseUrl: getSiteBaseUrl(env),
     attachmentUrls: attachments.map((file) => buildAttachmentUrl(request, file.key)),
   };
 
@@ -609,7 +605,7 @@ async function handleCreate(request, env, ctx) {
 
 // 사용자에게 보여줄 짧은 티켓 번호. ObjectId 는 생성 시각이 앞 4바이트에 들어 있어
 // 별도 시퀀스 없이도 "연월-일련" 형태를 만들 수 있다.
-export function buildTicketNo(doc) {
+function buildTicketNo(doc) {
   const id = String(doc?._id || "");
   if (!id) return "";
   const createdAt = doc?.createdAt ? new Date(doc.createdAt) : new Date();
