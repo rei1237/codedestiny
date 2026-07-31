@@ -61,6 +61,9 @@ const SECTION_GROUP_ATTEMPTS = 2;
 const INITIAL_CONSULTATION_DEADLINE_MS = 88000;
 // 재생성을 걸 가치가 있는 최소 잔여 시간.
 const SECTION_GROUP_RETRY_MIN_BUDGET_MS = 18000;
+// 그룹이 목표의 이 비율에 못 미치면 다시 부른다. 낮게 잡으면(구 0.6) 목표의 65%짜리 그룹들이
+// 그대로 통과해 합계가 MIN_INITIAL_CONSULTATION_BODY_CHARS 아래로 내려앉는다.
+const SECTION_GROUP_RETRY_RATIO = 0.8;
 // `generating` 문서를 "아직 누가 만들고 있다"고 믿어 줄 창.
 // 생성은 요청 안에서 INITIAL_CONSULTATION_DEADLINE_MS(88초) 예산으로 끝나고 엣지는 100초에 요청을 끊으므로,
 // 이 창은 그 둘보다 조금만 길면 된다. 예전 값 540초는 "초기 240s + repair 240s" 순차 파이프라인 시절의
@@ -204,14 +207,51 @@ function extractJsonObjectText(text) {
   return normalized.slice(start, end + 1);
 }
 
+/**
+ * JSON 문자열 리터럴 안에 들어온 raw 제어문자를 이스케이프해 되살린다.
+ *
+ * 🔴 실측(2026-08-01, 6그룹 병렬 라이브 호출): `responseMimeType: "application/json"` 을 줘도
+ * gemini-2.5-flash 는 긴 한국어 상담문에서 문단을 나누며 **문자열 안에 raw 개행을 그대로** 넣는다.
+ * 그러면 JSON.parse 가 `Bad control character in string literal` 로 죽고, 토큰은 정상 생성됐는데도
+ * (2,000토큰 안팎) 그 그룹이 통째로 0자로 집계된다. 6그룹 중 2그룹이 이렇게 날아가
+ * 합계가 목표의 66%에 머물렀다 — 분량 미달의 가장 큰 원인이었다.
+ * 파싱은 값을 버리는 자리라, 되살릴 수 있으면 되살리는 편이 항상 낫다.
+ */
+function escapeRawControlCharsInJsonStrings(jsonText) {
+  let out = "";
+  let inString = false;
+  let escaped = false;
+  for (const ch of jsonText) {
+    if (escaped) { out += ch; escaped = false; continue; }
+    if (ch === "\\") { out += ch; escaped = true; continue; }
+    if (ch === '"') { inString = !inString; out += ch; continue; }
+    if (inString && ch.charCodeAt(0) < 0x20) {
+      // 개행·탭은 의미가 있으니 이스케이프해 살리고, 나머지 제어문자는 버린다.
+      if (ch === "\n") out += "\\n";
+      else if (ch === "\r") out += "\\r";
+      else if (ch === "\t") out += "\\t";
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
 function parseStructuredConsultationResult(text) {
   const jsonText = extractJsonObjectText(text);
   if (!jsonText) return null;
+  const isUsable = (value) => (
+    value && typeof value === "object" && value.sections && typeof value.sections === "object" ? value : null
+  );
   try {
-    const parsed = JSON.parse(jsonText);
-    return parsed && typeof parsed === "object" && parsed.sections && typeof parsed.sections === "object" ? parsed : null;
+    return isUsable(JSON.parse(jsonText));
   } catch {
-    return null;
+    // 1차 실패는 대개 문자열 안 raw 개행이다. 이스케이프해서 한 번 더 시도한다.
+    try {
+      return isUsable(JSON.parse(escapeRawControlCharsInJsonStrings(jsonText)));
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -1253,13 +1293,44 @@ function buildSectionSchemaFor(sectionKeys) {
   return schema;
 }
 
+// reading_guide 는 "3~4문장 길잡이"라 길게 쓰면 오히려 나쁘다. 이 섹션만 고정된 짧은 몫을 주고
+// 나머지 분량은 다른 섹션이 나눠 갖는다.
+const SHORT_SECTION_CHARS = Object.freeze({ reading_guide: 300 });
+
+/**
+ * 그룹 목표 분량을 섹션별 목표로 배분한다.
+ *
+ * 🔴 왜 필요한가: "이 그룹 합산 3,600자 이상"처럼 총량만 주면 모델이 배분을 스스로 낮게 잡는다.
+ * 게다가 근거 중심 섹션에는 REASONING_SECTION_SPECS 의 minChars(360~780자)가 함께 실리는데,
+ * 그 구체적인 숫자가 앵커가 되어 그룹 전체를 그 수준으로 끌어내렸다 — foundation 그룹은 목표가
+ * 3,600자인데 섹션 지시를 다 더하면 1,100자(31%)여서, 목표 분량 도달이 구조적으로 불가능했다.
+ * 그 minChars 는 "다섯 섹션을 단일 호출에 더하면 maxOutputTokens 상한에 걸린다"는 이유로
+ * 의도적으로 작게 잡힌 값이라(fortune-reasoning-contract.js 주석), 그룹당 8,000토큰을 따로 쓰는
+ * 지금의 병렬 생성에는 해당되지 않는다. 공유 상수는 그대로 두고 여기서만 그룹 목표로 덮어쓴다.
+ */
+function buildSectionCharTargets(group) {
+  const shortKeys = group.sections.filter((key) => SHORT_SECTION_CHARS[key]);
+  const normalKeys = group.sections.filter((key) => !SHORT_SECTION_CHARS[key]);
+  const shortTotal = shortKeys.reduce((sum, key) => sum + SHORT_SECTION_CHARS[key], 0);
+  const perNormal = normalKeys.length
+    ? Math.ceil(Math.max(0, group.targetChars - shortTotal) / normalKeys.length)
+    : 0;
+  const targets = {};
+  for (const key of shortKeys) targets[key] = SHORT_SECTION_CHARS[key];
+  for (const key of normalKeys) targets[key] = perNormal;
+  return targets;
+}
+
 // 그룹이 맡은 근거 중심 섹션의 규칙만 싣는다. domain_matrix 를 맡은 그룹만 분야별 분석 규칙을 받는다.
-function buildGroupReasoningRuleLines(sectionKeys) {
+// 최소 분량은 공유 상수의 minChars 가 아니라 위에서 배분한 그룹 목표를 쓴다(같은 프롬프트 안에서
+// 두 숫자가 충돌하면 모델은 작은 쪽을 따른다).
+function buildGroupReasoningRuleLines(sectionKeys, charTargets = {}) {
   const specs = REASONING_SECTION_SPECS.filter((spec) => sectionKeys.includes(spec.key));
   if (!specs.length) return [];
   const lines = ["[근거 중심 섹션 작성 규칙]"];
   for (const spec of specs) {
-    lines.push(`- ${spec.key}(${spec.title}): ${spec.guide} 최소 ${spec.minChars.toLocaleString("ko-KR")}자.`);
+    const minChars = Math.max(spec.minChars, Number(charTargets[spec.key]) || 0);
+    lines.push(`- ${spec.key}(${spec.title}): ${spec.guide} 최소 ${minChars.toLocaleString("ko-KR")}자.`);
   }
   return sectionKeys.includes("domain_matrix") ? lines.concat(buildDomainAnalysisRuleLines()) : lines;
 }
@@ -1272,6 +1343,7 @@ function buildGroupReasoningRuleLines(sectionKeys) {
 function buildSectionGroupPrompt(input, chart, group) {
   const birth = input.birthInfo || {};
   const sectionKeys = group.sections;
+  const charTargets = buildSectionCharTargets(group);
   const otherSections = SECTION_GROUP_SPECS
     .filter((spec) => spec.id !== group.id)
     .flatMap((spec) => spec.sections)
@@ -1285,11 +1357,17 @@ function buildSectionGroupPrompt(input, chart, group) {
     "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
     JSON.stringify({ sections: buildSectionSchemaFor(sectionKeys) }),
     "",
+    // 실측(2026-08-01): responseMimeType 을 줘도 긴 한국어 본문에서 JSON 이 확률적으로 깨진다.
+    // 문자열 안 큰따옴표가 흔한 원인이라 아예 쓰지 않게 한다(개행은 파서가 복구하므로 허용).
+    "- body 문자열 안에서 큰따옴표(\") 를 쓰지 마세요. 인용이나 강조가 필요하면 작은따옴표(') 나 낫표(「」) 를 쓰세요.",
     `- 위 JSON 의 ${sectionKeys.join(", ")} 만 작성합니다. 다른 키를 새로 만들지 마세요.`,
     otherSections.length
       ? `- ${otherSections.join(", ")} 는 이 상담의 다른 대목에서 따로 다룹니다. 필요하면 한 줄로 언급만 하고 여기서 펼치지 마세요.`
       : "",
     `- 이 부분의 body 합산은 공백 포함 ${Number(group.targetChars).toLocaleString("ko-KR")}자 이상 ${Number(Math.round(group.targetChars * 1.35)).toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
+    "- 섹션별 최소 분량(반드시 지킬 것. 짧게 쓰고 넘어가면 상담이 성립하지 않습니다):",
+    ...sectionKeys.map((key) => `  · ${key}: 최소 ${Number(charTargets[key] || 0).toLocaleString("ko-KR")}자`),
+    "- 분량을 채우려고 같은 말을 바꿔 쓰지 마세요. 명반에서 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고, 그 근거가 현실에서 어떤 장면으로 나타나는지 구체적인 예를 들어 늘리세요.",
     "",
     ...buildSharedSectionRuleLines(chart),
     "",
@@ -1299,7 +1377,7 @@ function buildSectionGroupPrompt(input, chart, group) {
     // 위 [계산 확정값]이 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildZiweiAnalysisBasis(chart, birth), { includeFactTable: false }),
     "",
-    ...buildGroupReasoningRuleLines(sectionKeys),
+    ...buildGroupReasoningRuleLines(sectionKeys, charTargets),
   ].filter(Boolean).join("\n");
 }
 
@@ -1426,11 +1504,14 @@ async function generateConsultationText(env, prompt, options = {}) {
   // 🔴 keyExtra 는 생성 방식을 바꿀 때마다 올린다. v1 시절의 짧은 결과가 30일 TTL 캐시에 남아 있어
   //    그대로 두면 병렬 생성으로 바꿔도 옛 결과가 계속 히트해 변경이 통째로 무효가 된다.
   //    그룹 병렬 생성은 그룹마다 다른 프롬프트를 쓰므로 keyExtra 에 그룹 id 까지 실어 서로 섞이지 않게 한다.
+  //    v3(2026-08-01): 섹션별 목표 배분 + JSON 파손 복구 이전에 v2 로 캐시된 결과는 목표의 66% 분량이라
+  //    같은 입력에서 30일간 그대로 히트한다. 프롬프트가 바뀌어 키가 달라지는 그룹도 있지만, 파싱 실패로
+  //    0자였던 그룹은 프롬프트가 같아 옛 결과를 그대로 집는다 — 버전을 올려 일괄로 끊는다.
   const ziweiLlmCache = {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: `ziwei-ai-v2${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
+    keyExtra: `ziwei-ai-v3${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
   };
   // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.
@@ -1632,17 +1713,41 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
     if (result.value.model) models.add(clean(result.value.model));
   });
 
-  // 실패했거나 목표의 60%도 못 채운 그룹만 다시 부른다. 전체 재생성이 아니라 그룹 단위라 예산 안에 들어온다.
+  // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 전체 재생성이 아니라 그룹 단위라 예산 안에 들어온다.
+  // 임계가 낮으면(구 0.6) 목표의 65%짜리 그룹이 그대로 통과해 합계가 MIN 아래로 내려앉는다.
   const shortGroups = SECTION_GROUP_SPECS.filter((group) => (
-    !failedGroups.includes(group) && countSectionChars(sections, group.sections) < group.targetChars * 0.6
+    !failedGroups.includes(group) && countSectionChars(sections, group.sections) < group.targetChars * SECTION_GROUP_RETRY_RATIO
   ));
+  // 🔴 그룹별 비율만 보면 합계를 보장하지 못한다. 목표 합계(24,400)는 MIN(20,000) 대비 여유가 22%뿐이라,
+  // 모든 그룹이 임계 바로 위(80%)를 써도 합계는 19,520자로 MIN 아래다. 합계가 모자라면 부족분이 있는
+  // 그룹을 부족한 순서로 더 담는다. 재생성은 병렬이라 대상이 늘어도 벽시계는 그대로다.
+  const mergedChars = () => SECTION_GROUP_SPECS.reduce((sum, group) => sum + countSectionChars(sections, group.sections), 0);
+  if (mergedChars() < MIN_INITIAL_CONSULTATION_BODY_CHARS) {
+    const extra = SECTION_GROUP_SPECS
+      .filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group))
+      .map((group) => ({ group, deficit: group.targetChars - countSectionChars(sections, group.sections) }))
+      .filter((item) => item.deficit > 0)
+      .sort((a, b) => b.deficit - a.deficit)
+      .map((item) => item.group);
+    shortGroups.push(...extra);
+  }
   const retryTargets = [...failedGroups, ...shortGroups];
   if (retryTargets.length && remainingMs() > SECTION_GROUP_RETRY_MIN_BUDGET_MS) {
-    const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
-      attempts: 1,
-      timeoutMs: retryTimeoutMs(),
-      extraPrompt: `직전 시도가 분량과 근거를 채우지 못했습니다. ${group.sections.join(", ")}를 처음부터 다시, 이 명반의 구체적인 별 이름·강약 표기·궁 위치를 근거로 들며 더 촘촘하게 채워 주세요.`,
-    })));
+    const retried = await Promise.allSettled(retryTargets.map((group) => {
+      const currentChars = countSectionChars(sections, group.sections);
+      const perSection = buildSectionCharTargets(group);
+      return runGroup(group, {
+        attempts: 1,
+        timeoutMs: retryTimeoutMs(),
+        // 얼마나 모자란지 숫자로 알려 준다. "더 촘촘하게" 같은 정성적 지시만으로는 분량이 안 는다.
+        extraPrompt: [
+          `직전 시도는 이 부분을 ${currentChars.toLocaleString("ko-KR")}자로 썼습니다. 목표 ${Number(group.targetChars).toLocaleString("ko-KR")}자에 크게 못 미칩니다.`,
+          "처음부터 다시 쓰되, 아래 섹션별 최소 분량을 반드시 채우세요:",
+          ...group.sections.map((key) => `  · ${key}: 최소 ${Number(perSection[key] || 0).toLocaleString("ko-KR")}자`),
+          "같은 말을 바꿔 쓰지 말고, 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고 현실의 장면으로 풀어 늘리세요.",
+        ].join("\n"),
+      });
+    }));
     retried.forEach((result, index) => {
       if (result.status !== "fulfilled") return;
       const group = retryTargets[index];
@@ -2413,8 +2518,10 @@ export const __ziweiAiTestUtils = {
   // 섹션 그룹 병렬 생성
   SECTION_GROUP_SPECS,
   SECTION_GROUP_TIMEOUT_MS,
+  SECTION_GROUP_RETRY_RATIO,
   INITIAL_CONSULTATION_DEADLINE_MS,
   GENERATING_FRESHNESS_MS,
+  buildSectionCharTargets,
   buildSectionGroupPrompt,
   buildMetaPrompt,
   parseSectionsFromGroupText,

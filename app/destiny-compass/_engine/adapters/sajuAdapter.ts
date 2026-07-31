@@ -3,7 +3,7 @@
  * 소비해 방향성 기여로 변환한다. 계산 경로는 수정하지 않는다(import만).
  */
 import type { EngineAdapter } from "./types";
-import type { CompassInput, DirectionKey, EngineContribution } from "../types";
+import type { CompassInput, DirectionKey, EngineContribution, Evidence } from "../types";
 import { resolveAnimalTwelveResult } from "@/app/saju/animal-destiny/lib/sajuAdapter";
 import {
   SAJU_ENERGY_DIRECTION,
@@ -14,6 +14,20 @@ import {
 
 function clamp01(n: number): number {
   return n < 0 ? 0 : n > 1 ? 1 : n;
+}
+
+const PILLAR_KO: Record<string, string> = { year: "연주", month: "월주", day: "일주", hour: "시주" };
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+/** {stem, branch} → "갑자". 어느 한쪽이라도 없으면 null(빈 간지를 근거로 내보내지 않는다). */
+function ganjiOf(value: unknown): string | null {
+  const p = asRecord(value);
+  const stem = String(p?.stem ?? "").trim();
+  const branch = String(p?.branch ?? "").trim();
+  return stem && branch ? `${stem}${branch}` : null;
 }
 
 export const sajuAdapter: EngineAdapter = {
@@ -68,10 +82,72 @@ export const sajuAdapter: EngineAdapter = {
     const timeUnknown = !input.birth.birthTime;
     const dataQuality = resolved.ok ? (timeUnknown ? 0.75 : 1) : 0.4;
 
-    const evidence = stage
-      ? [{ system: "saju" as const, term: `십이운성 ${stage}`, detail: "일간 기준 대표 단계" }]
-      : undefined;
+    // 🔴 evidence[0] 고정: 기존 소비처(CompassReport의 체계별 근거 라벨)가 인덱스 0을 읽는다.
+    //    신규 항목은 반드시 아래로만 append 한다.
+    const evidence: Evidence[] = [];
+    if (stage) {
+      evidence.push({
+        system: "saju",
+        term: `십이운성 ${stage}`,
+        detail: "일간 기준 대표 단계",
+        id: "saju.stage",
+        group: "core",
+      });
+    }
 
-    return { directions, timelineHint, dataQuality, evidence };
+    const sajuResult = asRecord(resolved.sajuResult);
+    const pillars = asRecord(sajuResult?.pillars);
+    if (pillars) {
+      const text = (["year", "month", "day", "hour"] as const)
+        .map((k) => {
+          const gz = ganjiOf(pillars[k]);
+          return gz ? `${PILLAR_KO[k]} ${gz}` : null;
+        })
+        .filter(Boolean)
+        .join(" · ");
+      if (text) {
+        evidence.push({ system: "saju", term: "사주 명식", detail: text, id: "saju.pillars", group: "structure" });
+      }
+    }
+    const dayStem = String(sajuResult?.dayStem ?? "").trim();
+    if (dayStem) {
+      evidence.push({ system: "saju", term: `일간 ${dayStem}`, detail: "명식의 주체", id: "saju.dayStem", group: "core" });
+    }
+
+    // 주별 십이운성 — 대표 단계 하나만으로는 '어느 자리에서 강한지'가 드러나지 않는다.
+    const stageRows = (resolved.allStages || [])
+      .map((s) => (s?.pillar && s?.labelKo ? `${PILLAR_KO[s.pillar] || s.pillar} ${s.labelKo}` : null))
+      .filter(Boolean);
+    if (stageRows.length) {
+      evidence.push({
+        system: "saju",
+        term: "주별 십이운성",
+        detail: stageRows.join(" · "),
+        id: "saju.stagesByPillar",
+        group: "structure",
+      });
+    }
+
+    if (profile?.energyScores) {
+      const e = profile.energyScores;
+      const rows: [string, number][] = [
+        ["매력", Number(e.charm) || 0],
+        ["추진", Number(e.drive) || 0],
+        ["회복", Number(e.recovery) || 0],
+        ["재물", Number(e.money) || 0],
+        ["애정", Number(e.love) || 0],
+        ["직관", Number(e.intuition) || 0],
+      ];
+      rows.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+      evidence.push({
+        system: "saju",
+        term: "기운 분포",
+        detail: rows.map(([k, v]) => `${k} ${v}`).join(" · "),
+        id: "saju.energy",
+        group: "flow",
+      });
+    }
+
+    return { directions, timelineHint, dataQuality, evidence: evidence.length ? evidence : undefined };
   },
 };

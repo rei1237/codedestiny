@@ -1800,7 +1800,10 @@
         "refreshed": "Maandelijks tegoed opnieuw gecontroleerd. Het huidige saldo is {balance}.",
         "notFound": "Er zijn nog geen actieve maandelijkse tegoeden/pas gevonden. Vernieuw de pagina opnieuw nadat de betaling is voltooid.",
         "owned": "Maanstenen in bezit: {balance}",
-        "ownedUnknown": "Maanstenen · controle nodig"
+        "ownedUnknown": "Maanstenen · controle nodig",
+        "signedOut": "Log in om je Maansteen-saldo te bekijken.",
+        "unconfirmed": "We konden je Maansteen-saldo niet bevestigen. Je kunt het toch proberen — bij te weinig saldo laten we het weten bij het afrekenen.",
+        "staleAfterError": "Maansteen-saldo kon niet worden ververst, laatst bevestigde waarde wordt getoond · nu {balance}"
       },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."

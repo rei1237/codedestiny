@@ -1800,7 +1800,10 @@
         "refreshed": "已重新确认月定石余额。当前为 {balance}。",
         "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。",
         "owned": "持有月定石 {balance}",
-        "ownedUnknown": "持有月定石 · 需確認"
+        "ownedUnknown": "持有月定石 · 需確認",
+        "signedOut": "登入後即可查看月定石餘額。",
+        "unconfirmed": "未能確認月定石餘額。您仍可繼續嘗試，若餘額不足會在結帳時提示。",
+        "staleAfterError": "未能重新確認月定石餘額，顯示上次確認值 · 目前 {balance}"
       },
       "legal": {
         "provisionTiming": "本服務於付款完成後立即提供。服務將於確認付款時開始使用，已開始提供的內容根據電子商務法可能限制撤銷訂單。"

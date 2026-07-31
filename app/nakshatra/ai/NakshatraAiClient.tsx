@@ -5,8 +5,8 @@ import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
-import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
+import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
 import AiConsultDecks, { type Decks, type NatalIdentity, type TopInsight } from "./AiConsultDecks";
 
 const FEATURE_KEY = "nakshatra-ai-consultation";
@@ -28,10 +28,7 @@ const TOTAL_SECTIONS = 21;
 const GENERATE_MAX_ATTEMPTS = 24;
 const GENERATE_GAP_MS = 400;
 
-interface BirthInput {
-  year: number; month: number; day: number; hour: number; minute: number;
-  timezone: number; lat: number; lon: number; timeUnknown: boolean;
-}
+type BirthInput = NakshatraBirthInput;
 type Phase = "intro" | "checking" | "payment" | "generating" | "done" | "error";
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -83,34 +80,6 @@ function extractPaymentContext(gate: { data: unknown; raw?: unknown }, requestId
     featureKey: FEATURE_KEY,
     billingGate: data,
     requestId,
-  };
-}
-
-// 프로필 카드 시드 → 나크샤트라 입력.
-// 홈 '대표 운명 상담' 카드에서 바로 들어온 사람은 /nakshatra/calc 를 거치지 않아
-// sessionStorage 가 비어 있고, 그대로 두면 결제창이 아니라 "먼저 별을 계산해 주세요"
-// 막다른 길에 떨어진다. 음력 카드는 변환이 /nakshatra/calc 에 있으므로 여기서 추정하지 않는다.
-function birthFromProfileSeed(seed: AiPrefillSeed | null): BirthInput | null {
-  if (!seed || seed.calendarType === "lunar") return null;
-  const matchedDate = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(toText(seed.birthDate));
-  if (!matchedDate) return null;
-  const year = Number(matchedDate[1]);
-  const month = Number(matchedDate[2]);
-  const day = Number(matchedDate[3]);
-  if (!year || !month || !day) return null;
-  const matchedTime = seed.birthTimeUnknown ? null : /^(\d{1,2}):(\d{2})$/.exec(toText(seed.birthTime));
-  const lat = Number(seed.latitude);
-  const lon = Number(seed.longitude);
-  return {
-    year,
-    month,
-    day,
-    hour: matchedTime ? Number(matchedTime[1]) : 12,
-    minute: matchedTime ? Number(matchedTime[2]) : 0,
-    timezone: Number(seed.timezone) || 9,
-    lat: Number.isFinite(lat) && lat !== 0 ? lat : 37.5665,
-    lon: Number.isFinite(lon) && lon !== 0 ? lon : 126.978,
-    timeUnknown: !matchedTime,
   };
 }
 

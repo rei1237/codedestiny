@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const read = (rel) => readFileSync(resolve(root, rel), "utf8");
@@ -32,33 +33,9 @@ const SHELL_MIRRORS = [
 const REACT_CLIENT = "app/_lib/billing-client.ts";
 const STANDALONE_FALLBACKS = ["js/destiny-profile.js", "public/js/destiny-profile.js"];
 
-// ── 함수 본문 슬라이스 (verify-payment-choice-parity.mjs 와 동일 구현) ────────────────────
-function sliceFunction(source, startMarker, label) {
-  const start = source.indexOf(startMarker);
-  assert.ok(start >= 0, `${label}: 시작 마커 없음 (${startMarker.trim()})`);
-  let depth = 0;
-  let inLine = false;
-  let inBlock = false;
-  let quote = "";
-  for (let i = start; i < source.length; i += 1) {
-    const ch = source[i];
-    const next = source[i + 1];
-    if (inLine) { if (ch === "\n") inLine = false; continue; }
-    if (inBlock) { if (ch === "*" && next === "/") { inBlock = false; i += 1; } continue; }
-    if (quote) {
-      if (ch === "\\") { i += 1; continue; }
-      if (ch === quote) quote = "";
-      continue;
-    }
-    if (ch === "/" && next === "/") { inLine = true; i += 1; continue; }
-    if (ch === "/" && next === "*") { inBlock = true; i += 1; continue; }
-    if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
-    if (ch === "{") depth += 1;
-    else if (ch === "}") { depth -= 1; if (depth === 0) return source.slice(start, i + 1); }
-  }
-  throw new Error(`${label}: 중괄호 불균형`);
-}
-
+// 함수 본문 슬라이스·주석 제거는 verify-payment-choice-parity.mjs 와 **같은 공용 모듈**을 쓴다.
+// 예전에는 두 스크립트가 같은 구현을 각자 복사해 갖고 있었고, 둘 다 정규식 리터럴을 문자열로 오인해
+// 검사 대상 파일의 주석에 홑따옴표를 홀수로 쓰면 슬라이스가 잘렸다(자세한 경위는 모듈 상단 주석).
 // TS 함수는 파라미터가 객체 타입({ force?: boolean ... })이면 중괄호 균형 슬라이서가 본문 대신
 // 파라미터를 잘라 낸다. 그런 경우만 다음 최상위 선언 직전까지를 본문으로 본다.
 function sliceUntilNextTopLevelDeclaration(source, startMarker, label) {
@@ -67,32 +44,6 @@ function sliceUntilNextTopLevelDeclaration(source, startMarker, label) {
   const rest = source.slice(start + startMarker.length);
   const next = rest.search(/\n(?:export\s+)?(?:async\s+)?function\s/);
   return next >= 0 ? source.slice(start, start + startMarker.length + next) : source.slice(start);
-}
-
-// 주석은 계약이 아니다 — "지우지 않는다"고 적어 둔 주석이 금지 패턴 검사에 걸려 통과/실패가 뒤집히면
-// 가드가 무의미해진다. 검사 대상 본문에서 주석을 걷어내고 코드만 본다.
-function stripComments(source) {
-  let out = "";
-  let inLine = false;
-  let inBlock = false;
-  let quote = "";
-  for (let i = 0; i < source.length; i += 1) {
-    const ch = source[i];
-    const next = source[i + 1];
-    if (inLine) { if (ch === "\n") { inLine = false; out += ch; } continue; }
-    if (inBlock) { if (ch === "*" && next === "/") { inBlock = false; i += 1; } continue; }
-    if (quote) {
-      out += ch;
-      if (ch === "\\") { out += next === undefined ? "" : next; i += 1; continue; }
-      if (ch === quote) quote = "";
-      continue;
-    }
-    if (ch === "/" && next === "/") { inLine = true; i += 1; continue; }
-    if (ch === "/" && next === "*") { inBlock = true; i += 1; continue; }
-    if (ch === "'" || ch === '"' || ch === "`") { quote = ch; out += ch; continue; }
-    out += ch;
-  }
-  return out;
 }
 
 const failures = [];

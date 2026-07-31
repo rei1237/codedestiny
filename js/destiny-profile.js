@@ -2361,10 +2361,19 @@
     try { return api.shouldUseAppStoreEntry() === true; } catch (_appEntryError) { return false; }
   }
   // 결제창 문구 조회. 셸·React 와 같은 키·같은 사전(public/i18n)을 본다.
+  // 폴백도 보간한다. 예전에는 checkout-entry 가 아직/영영 로드되지 않으면 인자를 버린 원문을 그대로
+  // 돌려줘서, 결제창에 '{amount}원'·'보유 월정석 {balance}' 같은 자리표시자가 그대로 노출됐다.
+  function _dpInterpolateText(text, vars) {
+    var value = String(text == null ? '' : text);
+    if (!vars || typeof vars !== 'object') return value;
+    return value.replace(/\{(\w+)\}/g, function(match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) && vars[name] != null ? String(vars[name]) : match;
+    });
+  }
   function _dpCheckoutText(key, fallback, vars) {
     var api = _dpCheckoutEntry();
-    if (!api || typeof api.text !== 'function') return String(fallback || '');
-    try { return api.text(key, fallback, vars); } catch (_checkoutTextError) { return String(fallback || ''); }
+    if (!api || typeof api.text !== 'function') return _dpInterpolateText(fallback, vars);
+    try { return api.text(key, fallback, vars); } catch (_checkoutTextError) { return _dpInterpolateText(fallback, vars); }
   }
   function _dpTrackCheckoutEvent(name, payload) {
     var api = _dpCheckoutEntry();
@@ -9292,26 +9301,39 @@
       : _dpCheckoutText('payment.directModal.directHint', '지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.');
     var directTitleLabel = _dpCheckoutText('payment.directModal.directTitleLabel', '단건 결제');
     var monthlyHintChecking = _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.');
+    // 잔량 표기는 셸 formatMonthlyCreditValueWon 과 같은 키를 쓴다(코인 수치를 그대로 노출하지 않는 규칙).
+    var formatMonthlyCredits = function(value) {
+      var creditValue = Math.max(0, Math.floor(Number(value || 0)));
+      return _dpCheckoutText('payment.currency.monthlyCredits', '{count}개', { count: creditValue.toLocaleString('ko-KR') });
+    };
+    var moonTitleText = _dpCheckoutText('payment.directModal.moonTitle', '달빛 결제 방식 선택');
+    var recommendBadgeText = _dpCheckoutText('payment.directModal.recommendBadge', '추천');
+    var monthlyBadgeText = _dpCheckoutText('payment.directModal.monthlyBadge', '월정석 사용');
+    var monthlyTitleText = _dpCheckoutText('payment.directModal.monthlyTitle', '월정석 사용');
+    var monthlyUnitText = _dpCheckoutText('payment.directModal.monthlyUnit', '이벤트 재화');
+    var monthlyOwnedUnknownText = _dpCheckoutText('payment.directModal.monthlyBalance.ownedUnknown', '보유 월정석 · 확인 필요');
+    var monthlyCheckingText = _dpCheckoutText('payment.directModal.monthlyBalance.checking', '월정석 잔여를 확인하고 있습니다.');
+    var monthlyRefreshText = _dpCheckoutText('payment.directModal.monthlyBalance.refresh', '월정석 재조회');
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
       });
     }
     var passButtonHtml = '<button type="button" class="cd-direct-payment-option is-store' + (passStoreFirst ? ' cd-direct-payment-option--recommended' : '') + '" data-mode="pass-store">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + (passStoreFirst ? '<span class="cd-direct-payment-recommend">추천</span>' : '') + '</span>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + (passStoreFirst ? '<span class="cd-direct-payment-recommend">' + esc(recommendBadgeText) + '</span>' : '') + '</span>' +
         '<strong>' + esc(passTitle) + '</strong>' +
         '<span>' + esc(passHint) + '</span>' +
       '</button>';
     var directButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span></span>' +
-        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(amountKrw.toLocaleString('ko-KR')) + '원</span></strong>' +
+        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutText('payment.currency.krw', '{amount}원', { amount: amountKrw.toLocaleString('ko-KR') })) + '</span></strong>' +
         '<span>' + esc(directHint) + '</span>' +
       '</button>';
     var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="monthly" data-monthly-option>' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>월정석 사용</span></span>' +
-        '<strong>월정석 사용 · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> 이벤트 재화</strong>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span></span>' +
+        '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
         '<span data-monthly-hint>' + esc(monthlyHintChecking) + '</span>' +
-        '<span class="cd-direct-payment-moonbal-current" data-monthly-current>보유 월정석 · 확인 필요</span>' +
+        '<span class="cd-direct-payment-moonbal-current" data-monthly-current>' + esc(monthlyOwnedUnknownText) + '</span>' +
       '</button>';
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
@@ -9322,7 +9344,7 @@
       root.setAttribute('data-marker', 'direct-payment-pass-store-v20260607');
       root.setAttribute('role', 'dialog');
       root.setAttribute('aria-modal', 'true');
-      root.setAttribute('aria-label', '달빛 결제 방식 선택');
+      root.setAttribute('aria-label', moonTitleText);
       root.innerHTML =
         '<div class="cd-direct-payment-dialog">' +
           '<div class="cd-direct-payment-moon-header" data-marker="direct-payment-luxury-moon-v20260611" aria-hidden="true">' +
@@ -9333,21 +9355,24 @@
             '<span class="cd-direct-payment-moon-stars"></span>' +
             '<span class="cd-direct-payment-moon-reflect"></span>' +
           '</div>' +
-          '<h2 class="cd-direct-payment-title">달빛 결제 방식 선택</h2>' +
-          '<p class="cd-direct-payment-sub">이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.</p>' +
-          '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>월정석 이벤트 재화 기준 · ' + esc(amountKrw.toLocaleString('ko-KR')) + '원<br>한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다.</div>' +
+          '<h2 class="cd-direct-payment-title">' + esc(moonTitleText) + '</h2>' +
+          '<p class="cd-direct-payment-sub">' + esc(_dpCheckoutText('payment.directModal.moonSubtitle', '이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.')) + '</p>' +
+          '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
+            esc(_dpCheckoutText('payment.directModal.note.basis', '월정석 이벤트 재화 기준 · {amount}', { amount: amountKrw.toLocaleString('ko-KR') + '원' })) + '<br>' +
+            esc(_dpCheckoutText('payment.directModal.note.withPass', '한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다.')) +
+          '</div>' +
           '<div class="cd-direct-payment-choice-grid">' +
             (passStoreFirst
               ? (passButtonHtml + directButtonHtml + monthlyButtonHtml)
               : (directButtonHtml + monthlyButtonHtml + passButtonHtml)) +
           '</div>' +
           '<div class="cd-direct-payment-balance-check" data-monthly-balance-status data-state="checking">' +
-            '<span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>월정석 잔여를 확인하고 있습니다.</span>' +
-            '<button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">월정석 재조회</button>' +
+            '<span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>' + esc(monthlyCheckingText) + '</span>' +
+            '<button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">' + esc(monthlyRefreshText) + '</button>' +
           '</div>' +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
           '<p class="cd-direct-payment-legal">' + _dpText('paymentBeforeWarning') + '</p>' +
-          '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">닫기</button></div>' +
+          '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';
       var monthlyBtn = root.querySelector('[data-monthly-option]');
       var moonbalText = root.querySelector('[data-monthly-balance-text]');
@@ -9355,23 +9380,36 @@
       var monthlyCurrent = root.querySelector('[data-monthly-current]');
       var monthlyHintNode = root.querySelector('[data-monthly-hint]');
       var moonbalBusy = false;
+      // 한 번이라도 확인에 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을
+      // '확인 필요'로 되돌리지 않게 한다(셸·React 결제창의 sticky 계약과 동일).
+      var lastKnownStandaloneBalance = null;
       // 월정석 잔량을 모달을 닫지 않고 제자리 갱신한다. 미확정/실패는 '확인 필요'로 두고(0으로 오인 금지),
       // 알려진 잔량이 필요분보다 적을 때만 월정석 버튼을 비활성화한다(단건 결제는 항상 가능).
       function applyStandaloneMoonbal(state, balance) {
-        var known = state === 'fresh' && isFinite(balance) && balance >= 0;
+        var fresh = state === 'fresh' && isFinite(balance) && balance >= 0;
+        if (fresh) lastKnownStandaloneBalance = Math.floor(balance);
+        if (state === 'signed-out') lastKnownStandaloneBalance = null;
+        if (!fresh && state === 'error' && lastKnownStandaloneBalance !== null) balance = lastKnownStandaloneBalance;
+        var known = fresh || (state === 'error' && lastKnownStandaloneBalance !== null);
         var insufficient = known && balance < monthlyStones;
-        var balanceLabel = known ? Math.floor(balance).toLocaleString('ko-KR') + '개' : '';
+        var balanceLabel = known ? formatMonthlyCredits(balance) : '';
         if (moonbalText) {
           moonbalText.textContent = state === 'signed-out'
-            ? '로그인 후 월정석 잔량을 확인할 수 있어요.'
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.signedOut', '로그인 후 월정석 잔량을 확인할 수 있어요.')
             : state === 'error'
-              ? '월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요.'
+              ? (known
+                ? _dpCheckoutText('payment.directModal.monthlyBalance.staleAfterError', '월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 {balance}', { balance: balanceLabel })
+                : _dpCheckoutText('payment.directModal.monthlyBalance.unconfirmed', '월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.'))
               : known
-                ? ('월정석 잔여 확인 완료 · 현재 ' + balanceLabel)
-                : '월정석 잔여를 확인하고 있습니다.';
+                ? _dpCheckoutText('payment.directModal.monthlyBalance.ready', '월정석 잔여 확인 완료 · 현재 {balance}', { balance: balanceLabel })
+                : monthlyCheckingText;
         }
-        if (moonbalStatus) moonbalStatus.setAttribute('data-state', known ? 'fresh' : (state === 'fresh' ? 'checking' : 'error'));
-        if (monthlyCurrent) monthlyCurrent.textContent = known ? ('보유 월정석 ' + balanceLabel) : '보유 월정석 · 확인 필요';
+        if (moonbalStatus) moonbalStatus.setAttribute('data-state', fresh ? 'fresh' : (state === 'fresh' ? 'checking' : state));
+        if (monthlyCurrent) {
+          monthlyCurrent.textContent = known
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.owned', '보유 월정석 {balance}', { balance: balanceLabel })
+            : monthlyOwnedUnknownText;
+        }
         if (monthlyHintNode) {
           monthlyHintNode.textContent = !known
             ? monthlyHintChecking
@@ -9380,7 +9418,10 @@
               : _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.'));
         }
         if (monthlyBtn) {
-          if (insufficient) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }
+          // 미인증은 월정석 결제 자체가 불가능하므로 비활성한다(React 결제창과 같은 계약).
+          // 조회 실패(error)는 비활성 사유가 아니다 — 확인된 부족일 때만 잠근다.
+          var blocked = insufficient || state === 'signed-out';
+          if (blocked) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }
           else { monthlyBtn.removeAttribute('disabled'); monthlyBtn.classList.remove('is-disabled'); }
         }
       }
@@ -9389,15 +9430,23 @@
         moonbalBusy = true;
         var refreshBtn = root.querySelector('[data-mode="monthly-refresh"]');
         if (refreshBtn) refreshBtn.disabled = true;
-        if (moonbalText) moonbalText.textContent = '월정석 잔여를 확인하고 있습니다.';
+        if (moonbalText) {
+          moonbalText.textContent = fresh === true
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.refreshing', '월정석 잔량을 다시 조회하고 있습니다.')
+            : monthlyCheckingText;
+        }
         // 수동 재조회(fresh=true)는 서버 캐시를 우회해 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
         var fetcher = (typeof window._dpFetchMoonlightStoneBalance === 'function')
           ? window._dpFetchMoonlightStoneBalance({ fresh: fresh === true })
           : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
         fetcher.then(function(res) {
           if (settled) return;
-          if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
-          else if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          // 🔴 signedOut 을 ok 보다 먼저 본다. 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을
+          // 주는데(billing.js readBillingSnapshot 의 비인증 분기), ok 를 먼저 검사하면 그 0 이 '잔여 확인 완료 ·
+          // 현재 0개'라는 확신에 찬 거짓으로 렌더되고 월정석 버튼이 잠겼다 — signed-out 분기는 401/403 일 때만
+          // 도달했다. 로그인 안내를 띄우는 게 맞다.
+          if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
           else applyStandaloneMoonbal('error', 0);
         }).catch(function() {
           if (!settled) applyStandaloneMoonbal('error', 0);
