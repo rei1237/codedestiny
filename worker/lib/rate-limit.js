@@ -47,7 +47,12 @@ export async function incrementRateLimit({ subjectHash, endpoint, windowMs, env 
         },
       },
     ],
-    { upsert: true, returnDocument: "after" },
+    // 🔴 updatePipeline: true 가 없으면 Mongoose 9 가 배열(집계 파이프라인) 업데이트를 거부한다
+    // ("Cannot pass an array to query updates unless the `updatePipeline` option is set").
+    // 이게 빠져 있던 동안 이 호출은 **항상 실패**했고, 로그인 실패 카운터가 한 번도 증가하지 않아
+    // Mongo 기반 분산 브루트포스 차단이 사실상 꺼져 있었다(아이솔레이트별 인메모리 폴백만 동작).
+    // 프로덕션 tail 실측으로 확인: `[auth/login] rate-limit increment failed: Cannot pass an array...`
+    { upsert: true, returnDocument: "after", updatePipeline: true },
   ).lean();
 
   const resetAt = doc?.expiresAt ? new Date(doc.expiresAt).getTime() : newExpiry.getTime();
