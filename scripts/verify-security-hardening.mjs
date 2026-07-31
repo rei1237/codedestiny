@@ -165,7 +165,18 @@ check("R1c 관리자 진입 비밀번호 env 배선 + fail-closed", () => {
 
   const expressBody = functionBody(adminExpress, "async function verifyAdminEntryPassword(");
   assert.ok(expressBody.includes("ADMIN_ENTRY_PASSWORD_HASH_KEY"), "express: env 키를 읽지 않습니다.");
-  assert.ok(expressBody.includes("bcrypt.compare"), "express: bcrypt 검증을 쓰지 않습니다.");
+  // PBKDF2 가 정본이다 — 같은 시크릿을 워커가 읽는데, 워커에서 bcrypt(순수 JS, cost 12)는
+  // CPU 한도(1102)를 간헐적으로 넘긴다. Express 가 PBKDF2 를 못 읽으면 한 시크릿 공유가 깨진다.
+  assert.ok(expressBody.includes("pbkdf2"), "express: PBKDF2 검증 경로가 없습니다.");
+});
+
+check("R1d 관리자 해시 포맷 경고 유지", () => {
+  // 주석이 사라지면 다음 사람이 bcrypt 해시를 넣고, 로그인이 '가끔' 죽는 상태로 돌아간다.
+  const raw = source("worker/routes/admin.js");
+  assert.ok(
+    raw.includes("1102") && /PBKDF2/i.test(raw),
+    "worker/routes/admin.js: ADMIN_ENTRY_PASSWORD_HASH 는 PBKDF2 여야 한다는 경고(1102 사유 포함)가 사라졌습니다.",
+  );
 });
 
 /* ── R2. /entry/password 무차별 대입 상한 유지 ─────────────────────────────────

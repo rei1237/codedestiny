@@ -43,8 +43,27 @@ async function verifyAdminEntryPassword(rawInput) {
     console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} is not configured — entry password is disabled.`);
     return false;
   }
+  // PBKDF2 를 먼저 본다 — 워커(Cloudflare Workers)에서 bcrypt 는 쓸 수 없기 때문이다.
+  // bcryptjs 는 순수 JS 라 cost 12 검증이 ~270ms CPU 를 먹고, 관리자 로그인이 간헐적으로
+  // `error code: 1102`(Worker exceeded resource limits)로 죽었다. 같은 시크릿을 양쪽이 공유하므로
+  // 정본 포맷은 PBKDF2(`pbkdf2-sha256$반복수$salt$hash`, worker/lib/password.js 와 동일 인코딩)다.
+  // bcrypt 는 Express 단독 운용을 위한 하위호환으로만 남긴다.
+  if (/^pbkdf2-sha256\$/.test(encodedHash)) {
+    try {
+      const [, iterationsRaw, saltRaw, hashRaw] = encodedHash.split("$");
+      const iterations = Number(iterationsRaw);
+      if (!Number.isFinite(iterations) || iterations <= 0) return false;
+      const salt = Buffer.from(saltRaw.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+      const expected = Buffer.from(hashRaw.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+      const actual = crypto.pbkdf2Sync(input, salt, iterations, expected.length, "sha256");
+      return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+    } catch (_) {
+      return false;
+    }
+  }
+
   if (!/^\$2[aby]\$/.test(encodedHash)) {
-    console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} must be a bcrypt hash.`);
+    console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} must be a pbkdf2-sha256 or bcrypt hash.`);
     return false;
   }
 
