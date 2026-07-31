@@ -43,10 +43,11 @@ test("socketTimeoutMS 와 waitQueueTimeoutMS 가 op 예산 안으로 정렬되�
   await connectDb({ MONGO_URI: "mongodb://127.0.0.1:27017/test" });
 
   expect(seenOptions).toBeTruthy();
-  // 🔴 Atlas M0 총 연결 상한은 500이고 총 연결 = 아이솔레이트 수 × maxPoolSize 다.
-  // 이 값은 '한 아이솔레이트의 성능'이 아니라 '전역 예산의 분모'이므로 함부로 키우면
-  // 상한 포화 → 체크아웃 굶음(실측 대기 10,383ms)으로 되돌아간다.
-  expect(seenOptions.maxPoolSize).toBeLessThanOrEqual(3);
+  // 🔴 풀을 2 로 줄였다가 되돌린 자리다(체크아웃 257건 시도 / 219건 실패 = 85%).
+  // "Atlas M0 총 연결 상한 500 에 포화됐다"는 전제로 줄였는데, 전 구간 [db-connect-error] 0건이
+  // 그 전제를 반증했다 — 상한에 닿았다면 연결 생성이 실패했어야 한다.
+  // 실제 병목은 아이솔레이트 내부 풀 고갈이므로 하한을 지킨다.
+  expect(seenOptions.maxPoolSize).toBeGreaterThanOrEqual(3);
   expect(seenOptions.minPoolSize).toBe(0);
   // 유휴 커넥션이 전역 예산을 오래 점유하지 않도록 회전시킨다.
   expect(seenOptions.maxIdleTimeMS).toBeLessThanOrEqual(30000);
