@@ -9,6 +9,7 @@ import {
   Archive,
   Bold,
   BookOpen,
+  Bug,
   Clock,
   ExternalLink,
   Eye,
@@ -1231,6 +1232,9 @@ export default function AdminContentPage() {
               </Link>
               <Link href="/admin/reviews" className={editorButtonClass()} title="리뷰 관리" aria-label="리뷰 관리">
                 <MessageSquare className="h-4 w-4" />
+              </Link>
+              <Link href="/admin/feedback" className={editorButtonClass()} title="버그 제보실" aria-label="버그 제보실">
+                <Bug className="h-4 w-4" />
               </Link>
               <button type="button" onClick={startNewPost} className={editorButtonClass()} title="새 글">
                 <Plus className="h-4 w-4" />
