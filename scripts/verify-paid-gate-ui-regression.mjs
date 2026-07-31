@@ -148,7 +148,10 @@ assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setIt
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-assertContains(indexSource, "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "payment/pass overlay uses honey fortune logo");
+// 결제/이용권 오버레이의 로고 자산. 예전에는 URL 인코딩된 '꿀꿀 운세 로고.webp' 경로를 핀했는데,
+// 정작 오버레이는 그 경로를 쓰지 않았고 카카오 공유 imageUrl 이 우연히 같은 문자열을 갖고 있어 통과했다.
+// #200 이 그 공유 URL 을 바꾸자 결제와 무관한 이유로 이 게이트가 빨개졌다. 실제 오버레이가 쓰는 자산으로 핀한다.
+assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp");', "payment/pass overlay uses the service logo asset");
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
@@ -213,6 +216,53 @@ assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILA
 // degraded-503은 결제창을 열기 전에 먼저 재시도해 이용권 보유자의 무료 통과를 살린다(재시도-우선).
 assertContains(billingClientSource, "function isRetryableBillingInfraDegraded(", "React coin-gate has transient-degraded retry predicate");
 assertContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React coin-gate retries the request on transient degraded 503");
+
+// 🔴 잔량 '조회 실패'를 '잔량 부족'과 같이 묶어 월정석 버튼을 비활성하면, 재조회가 계속 실패할 때
+// 월정석이 영구 회색이 돼 결제 자체가 불가능해진다(2026-08 /naming-ai 사고: 회당결제는 eligibility
+// 왕복을 건너뛰어 결제창이 항상 '확인 필요'로 열리므로, 자동 재조회 1회의 실패가 곧 결제 불가였다).
+// 결제 후 재노출 경로에는 verify-static-paid-gate-failsafe.mjs 가 이미 같은 계약을 강제한다 —
+// 여기서는 '잔량 조회' 경로에 대해 3렌더러 모두를 강제한다. 확인된 잔량이 필요분보다 적을 때만 비활성.
+const reactMoonlightApplySource = section(
+  billingClientSource,
+  "const applyMoonlightBalance = (rawBalance: number | null",
+  "const refreshMonthlyBalance = async (",
+  "React moonlight balance apply",
+);
+assertContains(reactMoonlightApplySource, "const insufficient = known && balance < monthlyCost;", "React moonlight disable is decided by confirmed shortage only");
+assertContains(reactMoonlightApplySource, 'const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;', "React moonlight stays enabled while the balance is unconfirmed");
+assertNotContains(reactMoonlightApplySource, "const canUse = known && monthlyCost > 0 && balance >= monthlyCost;", "React moonlight must not treat a failed lookup as insufficient");
+assertContains(reactMoonlightApplySource, "lastKnownMonthlyBalance", "React moonlight keeps the last confirmed balance across a failed refresh");
+assertContains(billingClientSource, "const snapshotMonthlyBalance = hasCallerMonthlyBalance ? 0 : readSubscriptionSnapshotMonthlyBalance();", "React payment choice seeds the moonlight balance from the local subscription snapshot");
+
+const shellMoonlightRefreshSource = section(
+  indexSource,
+  "async function refreshDirectMonthlyBalance(options)",
+  "function close(mode)",
+  "shell moonlight balance refresh",
+);
+assertContains(
+  shellMoonlightRefreshSource,
+  "canUseMonthly = allowMonthlyChoice && requiredMonthlyCredits > 0 && (!monthlyBalanceFresh || monthlyBalance >= requiredMonthlyCredits);",
+  "shell moonlight stays enabled while the balance is unconfirmed",
+);
+assertNotContains(
+  shellMoonlightRefreshSource,
+  "canUseMonthly = monthlyBalanceFresh && monthlyBalance >= requiredMonthlyCredits",
+  "shell moonlight must not treat a failed lookup as insufficient",
+);
+assertNotContains(
+  shellMoonlightRefreshSource,
+  "if (silent && !monthlyBalanceFresh && previousMonthlyBalanceFresh)",
+  "shell keeps the last confirmed balance on manual refresh failure too, not only silent ones",
+);
+
+const standaloneMoonlightApplySource = section(
+  destinyProfileSource,
+  "function applyStandaloneMoonbal(state, balance)",
+  "function refreshStandaloneMoonbal(",
+  "standalone moonlight balance apply",
+);
+assertContains(standaloneMoonlightApplySource, "var insufficient = known && balance < monthlyStones;", "standalone moonlight disable is decided by confirmed shortage only");
 
 // 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
 const reactAuthPrewarmSource = section(

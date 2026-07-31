@@ -4857,7 +4857,12 @@ async function handleBillingSnapshotBalance(request, env) {
   // 페이지 로드 시 자동으로 도는 프리페치가 스스로를 밝히는 표시. 사용자가 연 모달·재조회와 구분한다.
   const isBackgroundRequest = billingUrl.searchParams.get("background") === "1";
   const isCompactRequest = billingUrl.searchParams.get("compact") === "1" || isMoonlightStoneRequest;
-  const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : !isCompactRequest;
+  // 월정석 모달 전용 경로(?moonlightStone=1)는 compact 라서 레거시 포인트→월정석 시드를 건너뛰고 있었다.
+  // 그 결과 미시드 레거시 사용자는 결제창에서만 잔량 0 을 보고(그 0 이 healthy 라 5초 캐시에까지 저장됨),
+  // 같은 계정이 /points·React 결제창에서는 실제 잔량을 보는 모순이 났다. 시드는 legacyCoinCreditSeeded
+  // 가드로 멱등이고 전환할 포인트가 없으면 쓰기 없이 즉시 반환하므로(seedMembershipCreditFromUserDoc),
+  // 잔량을 보여주는 게 목적인 이 경로에서는 켠다.
+  const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : (!isCompactRequest || isMoonlightStoneRequest);
   const includeUnlocks = !isCompactRequest;
   // 수동 "재조회"(fresh=1)는 항상 서버 캐시를 우회해 최신값을 읽는다. 자동 조회는 캐시를 허용해 빠르게 응답한다.
   const isFresh = billingUrl.searchParams.get("fresh") === "1";
