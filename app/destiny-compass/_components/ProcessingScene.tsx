@@ -49,7 +49,7 @@ export function ProcessingScene() {
         <b>꽃돼지</b> &ldquo;{YEONI_VOYAGE_LINE}&rdquo;
       </p>
 
-      <CompassHero state="spinning" />
+      <CompassHero state="spinning" compact />
 
       <ol className={styles.processLines}>
         {PROCESS_LINES.map((line, i) => {

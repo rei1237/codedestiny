@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import AiResultProse from "@/components/fortune/AiResultProse";
-import { CompassHero } from "./CompassHero";
+import { CompassHero, ConfidenceMeta, coordinateLine } from "./CompassHero";
 import { DestinyRadar } from "./DestinyRadar";
 import { PigFace } from "./PigFace";
 import { Starfield } from "./Starfield";
@@ -193,16 +193,24 @@ export function CompassReport({
       <Starfield />
 
       <div className={styles.reportShell}>
-        {/* ① 오늘의 운명 좌표 */}
-        <ReportSection spec={getReportSection("coordinate")} state="arrived">
-          <CompassHero
-            directions={field.directions}
-            primary={field.primary.key}
-            band={field.primary.band}
-            confidence={field.confidence}
-            state="settling"
-            showCoordinate
-          />
+        {/* ① 오늘의 운명 좌표 — 거대한 나침반이 먼저, 그 아래 좌표 한 문장이 이 화면의 h1 이다. */}
+        <ReportSection
+          spec={getReportSection("coordinate")}
+          state="arrived"
+          headingLevel={1}
+          eyebrow="당신은 지금"
+          titleOverride={coordinateLine(field.primary.band, field.primary.key)}
+          media={
+            <CompassHero
+              directions={field.directions}
+              primary={field.primary.key}
+              band={field.primary.band}
+              confidence={field.confidence}
+              state="settling"
+            />
+          }
+        >
+          <ConfidenceMeta confidence={field.confidence} />
           {question && <p className={styles.resultQuestion}>&ldquo;{question}&rdquo;</p>}
           {sectionBody("opening") && <AiResultProse value={sectionBody("opening")?.body} />}
           <div className={styles.sysHint} aria-label="종합에 참여한 운세 체계">

@@ -21,6 +21,8 @@ interface CompassDialProps {
    * spinning = 분석 중 등속 회전, settling = 대표 방향으로 착지(바늘의 기존 900ms 트랜지션 재사용).
    */
   state?: "idle" | "spinning" | "settling";
+  /** 좁은 자리(처리 화면)에서 지름을 줄인다. 결과 화면의 기본 크기는 그대로. */
+  compact?: boolean;
 }
 
 const CX = 200;
@@ -30,7 +32,7 @@ function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function CompassDial({ mode, directions, primary, onStart, className, state }: CompassDialProps) {
+export function CompassDial({ mode, directions, primary, onStart, className, state, compact }: CompassDialProps) {
   const uid = useId().replace(/:/g, "");
   const [firing, setFiring] = useState(false);
   const scoreOf = (key: DirectionKey) => directions?.find((d) => d.key === key)?.score ?? 0;
@@ -172,6 +174,7 @@ export function CompassDial({ mode, directions, primary, onStart, className, sta
     firing ? styles.dialFiring : "",
     state === "spinning" ? styles.dialSpinning : "",
     state === "settling" ? styles.dialSettling : "",
+    compact ? styles.dialCompact : "",
     className || "",
   ]
     .filter(Boolean)

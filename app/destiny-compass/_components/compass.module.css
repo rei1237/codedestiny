@@ -477,6 +477,11 @@
 .dialResult .dialSvg {
   width: min(86vw, 400px);
 }
+/* 처리 화면처럼 지도 위에 겹쳐 놓는 자리 — 결과 크기 그대로 두면 지역 노드를 덮는다.
+   .dialResult .dialSvg 와 특이도가 같으므로 반드시 그 뒤에 와야 이긴다. */
+.dialCompact .dialSvg {
+  width: min(46vw, 200px);
+}
 .dialLabel {
   font-family: var(--font-body, "Pretendard", system-ui, sans-serif);
   font-weight: 700;

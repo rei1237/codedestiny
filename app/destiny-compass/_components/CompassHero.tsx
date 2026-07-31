@@ -19,11 +19,28 @@ const COORDINATE_BY_BAND: Record<ScoreBand, string> = {
   caution: "휴식의 계절",
 };
 
+/** 받침 유무 판정. 한글이 아니면 받침 없음으로 본다. */
+function hasFinalConsonant(word: string): { has: boolean; isRieul: boolean } {
+  const ch = word.trim().slice(-1);
+  const code = ch.charCodeAt(0);
+  if (Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return { has: false, isRieul: false };
+  const jong = (code - 0xac00) % 28;
+  return { has: jong !== 0, isRieul: jong === 8 };
+}
+
+/** 조사 자동 선택 — "연애으로"/"재물를" 같은 문장이 화면에 나가지 않게. */
+function josa(word: string, kind: "euro" | "eul" | "i"): string {
+  const { has, isRieul } = hasFinalConsonant(word);
+  if (kind === "euro") return has && !isRieul ? "으로" : "로";
+  if (kind === "eul") return has ? "을" : "를";
+  return has ? "이" : "가";
+}
+
 export function coordinateLine(band: ScoreBand, primary: DirectionKey): string {
   const area = DIRECTION_LABEL_KO[primary]?.split("·")[0] || "";
   if (band === "strong") return `${area}의 문 앞, ${COORDINATE_BY_BAND.strong}`;
-  if (band === "caution") return `${area}을 잠시 내려놓는, ${COORDINATE_BY_BAND.caution}`;
-  return `${area}으로 기우는, ${COORDINATE_BY_BAND.steady}`;
+  if (band === "caution") return `${area}${josa(area, "eul")} 잠시 내려놓는, ${COORDINATE_BY_BAND.caution}`;
+  return `${area}${josa(area, "euro")} 기우는, ${COORDINATE_BY_BAND.steady}`;
 }
 
 interface CompassHeroProps {
@@ -33,34 +50,32 @@ interface CompassHeroProps {
   /** 0..1 */
   confidence?: number;
   state?: "idle" | "spinning" | "settling";
-  /** 좌표 문장을 h1 으로 그릴지(결과 ①) — 처리 화면에서는 문장을 그리지 않는다. */
-  showCoordinate?: boolean;
+  /** 처리 화면처럼 좁은 자리에서는 다이얼을 줄인다. */
+  compact?: boolean;
 }
 
-export function CompassHero({ directions, primary, band, confidence, state, showCoordinate }: CompassHeroProps) {
-  const stars = typeof confidence === "number" ? Math.max(3, Math.min(5, Math.round(confidence * 5))) : null;
-
+/**
+ * 🔴 좌표 문장은 여기서 그리지 않는다 — 섹션 제목(h1)이 그 문장이다.
+ *    예전엔 여기서 h1 을 그려 섹션 헤더(h2)보다 뒤에 h1 이 오는 헤딩 역전이 났다.
+ */
+export function CompassHero({ directions, primary, state, compact }: CompassHeroProps) {
   return (
     <div className={styles.heroWrap}>
-      <CompassDial mode="result" directions={directions} primary={primary} state={state} />
-      {showCoordinate && band && primary && (
-        <>
-          <span className={styles.heroLead}>당신은 지금</span>
-          <h1 className={styles.heroCoordinate}>{coordinateLine(band, primary)}</h1>
-          {stars != null && (
-            <p className={styles.heroMeta}>
-              <span
-                className={styles.heroStars}
-                role="img"
-                aria-label={`방향 일치도 5점 만점에 ${stars}점 · 신뢰도 ${Math.round((confidence as number) * 100)}%`}
-              >
-                <span aria-hidden="true">{"★".repeat(stars)}{"☆".repeat(5 - stars)}</span>
-              </span>
-              <span>신뢰도 {Math.round((confidence as number) * 100)}%</span>
-            </p>
-          )}
-        </>
-      )}
+      <CompassDial mode="result" directions={directions} primary={primary} state={state} compact={compact} />
     </div>
+  );
+}
+
+/** 신뢰도 별점 — ① 좌표 아래에 붙는다. */
+export function ConfidenceMeta({ confidence }: { confidence: number }) {
+  const stars = Math.max(3, Math.min(5, Math.round(confidence * 5)));
+  const pct = Math.round(confidence * 100);
+  return (
+    <p className={styles.heroMeta}>
+      <span className={styles.heroStars} role="img" aria-label={`방향 일치도 5점 만점에 ${stars}점 · 신뢰도 ${pct}%`}>
+        <span aria-hidden="true">{"★".repeat(stars)}{"☆".repeat(5 - stars)}</span>
+      </span>
+      <span>신뢰도 {pct}%</span>
+    </p>
   );
 }

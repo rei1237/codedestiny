@@ -809,9 +809,21 @@
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 22px;
+  gap: 14px;
   padding: 24px;
   text-align: center;
+  /* 지도 위에 겹쳐 뜨는 층이다. 스크림이 없으면 지역 노드·라벨이 글자 사이로 비쳐 읽히지 않는다. */
+  background: radial-gradient(78% 62% at 50% 48%, rgba(12, 10, 32, 0.9), rgba(12, 10, 32, 0.62) 68%, rgba(12, 10, 32, 0.34));
+  overflow-y: auto;
+}
+@media (max-width: 640px) {
+  .processing {
+    gap: 10px;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    align-content: start;
+    /* 상단 지도 헤더(제목)와 겹치지 않게 그 아래에서 시작한다. */
+    padding-top: 96px;
+  }
 }
 .crystalWrap {
   position: relative;
@@ -2605,6 +2617,8 @@
   font-size: clamp(1.15rem, 3.4vw, 1.6rem);
   font-weight: 700;
   color: var(--cd-map-ink);
+  word-break: keep-all;
+  overflow-wrap: break-word;
   margin: 0;
 }
 .reportTitle:focus-visible {
@@ -2738,13 +2752,21 @@
 }
 .heroCoordinate {
   font-family: var(--font-serif);
-  font-size: clamp(1.6rem, 5.2vw, 2.6rem);
+  font-size: clamp(1.5rem, 4.6vw, 2.4rem);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.32;
   color: var(--cd-map-ink);
   text-wrap: balance;
+  /* 🔴 한글은 단어 중간에서 끊긴다("연애로 기우\n는") — 어절 단위로만 줄바꿈한다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
   margin: 0;
   text-shadow: 0 0 30px rgba(124, 92, 255, 0.42);
+}
+.heroCoordinate:focus-visible {
+  outline: 3px solid var(--cd-focus-ring);
+  outline-offset: 6px;
+  border-radius: 10px;
 }
 .heroLead {
   font-size: 0.86rem;
