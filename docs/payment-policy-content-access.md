@@ -50,7 +50,7 @@
 
 ## E. 음악 트랙 — 재생 무료 · 다운로드 유료 (UX 게이트) — 2026-07 개정
 
-- **정책**: 달빛 음악실(`/music`)의 **전곡 재생은 무료**(free_full, 직접 CDN 스트리밍)로 열되, **MP3 다운로드는 곡당 300원(3코인) UNLOCK 구매**를 요구한다. 이용권/월정구독 커버는 재생권일 뿐 다운로드를 열지 않는다(실제 구매=단건결제·월정석만). 원본 MP3가 공개 R2 버킷(`music.code-destiny.com`)에 있어 다운로드 게이트는 하드 DRM이 아닌 **결제 UX 게이트**다(고급 사용자는 공개 URL 우회 가능 — 종전과 동일).
+- **정책**: 달빛 음악실(`/music`)의 **전곡 재생은 무료**(free_full, 직접 CDN 스트리밍)로 열되, **MP3 다운로드는 곡당 1,000원(10코인) UNLOCK 구매**를 요구한다(2026-07-31 300원→1,000원 인상 — KG이니시스 일반 카드결제가 1,000원 미만을 거부해 PG창이 뜨기 전에 실패했다. 이 하한은 `verify:billing-pass-policy`가 강제한다). 이용권/월정구독 커버는 재생권일 뿐 다운로드를 열지 않는다(실제 구매=단건결제·월정석만). 원본 MP3가 공개 R2 버킷(`music.code-destiny.com`)에 있어 다운로드 게이트는 하드 DRM이 아닌 **결제 UX 게이트**다(고급 사용자는 공개 URL 우회 가능 — 종전과 동일).
 - **재생 지연 수정(핵심)**: 과거 `free_full`이어도 `MusicPlayerExample.tsx`의 `buildPlaybackTrack`이 재생 URL을 워커 프록시(`/api/music/audio`)로 재작성해 `클라→워커→R2→워커` 왕복이 배가됐다. `buildPlaybackTrack`이 `free_full` 트랙을 **매니페스트 CDN 직결 URL 그대로 반환**하도록 고쳐(조기 반환) 프록시 홉을 제거했다.
 - **정본 레버**: `lib/music-access-policy.js`의 `MUSIC_DOWNLOAD_REQUIRES_PURCHASE`(단일 스위치). `true`면 `getMusicTrackAccessPolicy`가 `free_full` 트랙에도 다운로드 구매 필드(`downloadRequiresPurchase`/`purchaseFeatureKey`/`priceKRW`/`coinCost`)를 노출한다. `false`로 두면 재생·다운로드 모두 무료(2026-07-25 전곡 무료 정책)로 복귀 — 되돌리기 1줄.
   - **재생**: `audioUrl = buildMusicPublicUrl(...)` **직접 CDN URL**(hasFreeFullAccess=true), 미리듣기 컷 없음.

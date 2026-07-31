@@ -23,9 +23,10 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { loadPaidServiceRuntimeGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
+import { MUSIC_TRACK_UNLOCK_COIN_COST, MUSIC_TRACK_UNLOCK_PRICE_KRW } from "@/lib/music-access-policy";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
@@ -238,6 +239,10 @@ function getTrackCoverShape(track: Track) {
 // 곡 수는 매니페스트에서 파생시킨다 — 문구에 숫자를 직접 적으면 곡이 늘어날 때 어긋난다.
 const TOTAL_TRACK_COUNT = allTracks.length;
 
+// 가격 문구는 정본 상수에서 만든다 — 예전에는 로케일마다 "300원"을 손으로 적어 두어,
+// 가격을 올리면 화면은 구가격을 광고하면서 결제는 신가격으로 나가는 드리프트가 생겼다.
+const MUSIC_TRACK_PRICE_LABEL = MUSIC_TRACK_UNLOCK_PRICE_KRW.toLocaleString("ko-KR");
+
 const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
   ko: {
     lyricsAria: "현재 곡 가사",
@@ -284,12 +289,13 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     previewBadge: "40\ucd08 \ubbf8\ub9ac\ub4e3\uae30",
     fullAccessBadge: "\uc804\uccb4\ub4e3\uae30 \uc5f4\ub9bc",
     passAccessBadge: "\uc774\uc6a9\uad8c\uc73c\ub85c \uc804\uace1 \uc5f4\ub9bc",
-    buyFullTrack: "\uc804\uccb4\ub4e3\uae30 300\uc6d0",
+    buyFullTrack: `\uc804\uccb4\ub4e3\uae30 ${MUSIC_TRACK_PRICE_LABEL}\uc6d0`,
     buyingFullTrack: "\uacb0\uc81c \ud655\uc778 \uc911",
-    buyForDownload: "\ub2e4\uc6b4\ub85c\ub4dc \uad6c\ub9e4 300\uc6d0",
+    buyForDownload: `\ub2e4\uc6b4\ub85c\ub4dc \uad6c\ub9e4 ${MUSIC_TRACK_PRICE_LABEL}\uc6d0`,
     downloadTrack: "\ub2e4\uc6b4\ub85c\ub4dc",
     previewLimitReached: "40\ucd08 \ubbf8\ub9ac\ub4e3\uae30\uac00 \ub05d\ub0ac\uc2b5\ub2c8\ub2e4.",
     purchaseFailed: "\uacb0\uc81c\ub97c \uc644\ub8cc\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.",
+    priceChanged: "\uac00\uaca9\uc774 \ubcc0\uacbd\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \uc0c8\ub85c\uace0\uce68 \ud6c4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
   },
   en: {
     lyricsAria: "Current track lyrics",
@@ -336,12 +342,13 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     previewBadge: "40 sec preview",
     fullAccessBadge: "Full track open",
     passAccessBadge: "Open with your pass",
-    buyFullTrack: "Full track 300 KRW",
+    buyFullTrack: `Full track ${MUSIC_TRACK_PRICE_LABEL} KRW`,
     buyingFullTrack: "Checking payment",
-    buyForDownload: "Buy to download 300 KRW",
+    buyForDownload: `Buy to download ${MUSIC_TRACK_PRICE_LABEL} KRW`,
     downloadTrack: "Download",
     previewLimitReached: "The 40 second preview has ended.",
     purchaseFailed: "Payment was not completed.",
+    priceChanged: "The price has changed. Please refresh and try again.",
   },
   ja: {
     lyricsAria: "現在の曲の歌詞",
@@ -388,12 +395,13 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     previewBadge: "40 sec preview",
     fullAccessBadge: "Full track open",
     passAccessBadge: "Open with your pass",
-    buyFullTrack: "Full track 300 KRW",
+    buyFullTrack: `Full track ${MUSIC_TRACK_PRICE_LABEL} KRW`,
     buyingFullTrack: "Checking payment",
-    buyForDownload: "Buy to download 300 KRW",
+    buyForDownload: `Buy to download ${MUSIC_TRACK_PRICE_LABEL} KRW`,
     downloadTrack: "Download",
     previewLimitReached: "The 40 second preview has ended.",
     purchaseFailed: "Payment was not completed.",
+    priceChanged: "The price has changed. Please refresh and try again.",
   },
 } as const;
 
@@ -921,6 +929,21 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     };
   }, []);
 
+  // 결제 런타임(/js/destiny-profile.js)은 구매 버튼을 누른 뒤에야 내려받으므로, 클릭~결제창 사이에
+  // 스크립트 다운로드가 통째로 끼어든다. useCoinGate 와 같은 방식으로 미리 받아 두되, 유휴 시점으로
+  // 미뤄 초기 렌더·오디오 재생을 방해하지 않는다(이 페이지는 useCoinGate 를 쓰지 않아 프리워밍이 없었다).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const prewarm = () => { void loadPaidServiceRuntimeGate(); };
+    const idle = window.requestIdleCallback;
+    if (typeof idle === "function") {
+      const handle = idle(prewarm, { timeout: 4000 });
+      return () => window.cancelIdleCallback?.(handle);
+    }
+    const timer = window.setTimeout(prewarm, 2000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   // 서버가 전곡을 Mongo 왕복 2회로 한 번에 판정하므로, 우선 12곡 → 7초 뒤 전곡으로 나눠 부르던
   // 2단계 조회를 전곡 1회로 합친다(요청 2회 → 1회, 이용권 보유자는 곡별 확인 자체가 사라진다).
   useEffect(() => {
@@ -1245,9 +1268,9 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         productId: `unlock.${track.purchaseFeatureKey}`,
         productType: "music_track",
         serviceType: "music_track",
-        cost: track.coinCost || 3,
-        amountKRW: track.priceKRW || 300,
-        membershipCreditCost: (track.coinCost || 3) * 10,
+        cost: track.coinCost || MUSIC_TRACK_UNLOCK_COIN_COST,
+        amountKRW: track.priceKRW || MUSIC_TRACK_UNLOCK_PRICE_KRW,
+        membershipCreditCost: (track.coinCost || MUSIC_TRACK_UNLOCK_COIN_COST) * 10,
         ...(isDownloadOnlyPurchase
           ? {
             allowedPaymentModes: ["direct", "monthly"],
@@ -1267,13 +1290,21 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         return;
       }
 
-      setMusicAccessMessage(copy.purchaseFailed);
+      // 실패 원인을 한 문장으로 뭉개면 결제준비 실패·PortOne 설정 누락·PG 거부가 구분되지 않아
+      // 사용자도 우리도 "그냥 안 된다"만 보게 된다. 서버/런타임이 준 메시지를 그대로 살린다.
+      const failureCode = String(result.error?.code || "").toUpperCase();
+      if (failureCode === "PAYMENT_CANCELLED") return;
+      if (failureCode === "CLIENT_AMOUNT_MISMATCH") {
+        setMusicAccessMessage(copy.priceChanged);
+        return;
+      }
+      setMusicAccessMessage(result.message || copy.purchaseFailed);
     } catch {
       setMusicAccessMessage(copy.purchaseFailed);
     } finally {
       setPurchasingTrackId("");
     }
-  }, [accessByTrackId, copy.purchaseFailed, markTrackFullAccess, passCoversAll, player.currentTrack, refreshMusicAccess]);
+  }, [accessByTrackId, copy.priceChanged, copy.purchaseFailed, markTrackFullAccess, passCoversAll, player.currentTrack, refreshMusicAccess]);
 
   const handleDownloadCurrentTrack = useCallback(() => {
     const track = player.currentTrack;

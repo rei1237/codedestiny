@@ -3409,7 +3409,7 @@ export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 1
   return summary;
 }
 
-async function handleDigitalContentPrepare(request, auth, body) {
+async function handleDigitalContentPrepare(request, env, auth, body) {
   if (isRemovedCountPassProductId(body?.productId)) {
     return json({
       message: "지원하지 않는 결제 상품입니다.",
@@ -3470,6 +3470,20 @@ async function handleDigitalContentPrepare(request, auth, body) {
 
   const merchantUid = buildMerchantUid(auth.userId);
 
+  // 🔴 주문 응답에 PortOne V2 공개 설정을 함께 싣는다. 이게 없으면 클라이언트가 주문을 받은 뒤
+  // GET /api/payments/config 를 **직렬로 한 번 더** 왕복해야 하고(js/destiny-profile.js), 그 왕복이
+  // 503(PORTONE_V2_PUBLIC_CONFIG_MISSING)이면 그것만으로 PG창이 안 뜬다. 새 노출이 아니다 —
+  // /api/payments/config 가 이미 같은 값을 공개하고, PortOne 브라우저 SDK 가 요구하는 값이다.
+  // (buildSinglePaymentOrderResponse 가 쓰는 필드 형태를 그대로 따른다.)
+  const portOneClientConfig = getPortOnePublicConfig(env);
+  const orderClientConfig = {
+    storeId: portOneClientConfig.storeId,
+    channelKey: portOneClientConfig.channelKey,
+    currency: portOneClientConfig.currency || "CURRENCY_KRW",
+    payMethod: portOneClientConfig.payMethod || "CARD",
+    noticeUrl: portOneClientConfig.noticeUrl,
+  };
+
   // 기존 주문과 요청이 어긋나면 409 — 멱등 재요청 경로와 E11000 복구 경로가 **같은 판정**을 써야 한다.
   // 🔴 featureKey 비교가 비대칭인 것은 의도된 것이다(둘 중 하나가 비면 충돌 아님) — 레거시 행이 409 나지 않게.
   const buildIdempotentResponse = (existing) => {
@@ -3486,6 +3500,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
       message: "Product payment preparation already completed.",
       idempotent: true,
       order: {
+        ...orderClientConfig,
         merchantUid: String(existing.merchantUid || ""),
         paymentAmount: existingAmount,
         amountKRW: existingAmount,
@@ -3577,6 +3592,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
     message: "Product payment preparation completed.",
     idempotent: false,
     order: {
+      ...orderClientConfig,
       merchantUid,
       paymentAmount: resolved.paymentAmount,
       amountKRW: resolved.paymentAmount,
@@ -3604,7 +3620,7 @@ async function handlePrepare(request, env, auth) {
   const body = await readJson(request);
 
   if (isDigitalContentPaymentRequest(body)) {
-    return handleDigitalContentPrepare(request, auth, body);
+    return handleDigitalContentPrepare(request, env, auth, body);
   }
 
   return json({
