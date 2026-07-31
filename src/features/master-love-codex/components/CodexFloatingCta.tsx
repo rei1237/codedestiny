@@ -15,9 +15,10 @@ import { Loader2 } from "lucide-react";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import styles from "../styles/codex.module.css";
 
-/** 바가 문서 마지막 줄을 덮지 않도록 그만큼 아래를 비워 둔다(CodexShell 의 body overflow 관례와 같은 방식). */
+/** 바가 문서 마지막 줄을 덮지 않도록 그만큼 아래를 비워 둔다(CodexShell 의 body overflow 관례와 같은 방식).
+ *  바는 전역 모바일 네비 위에 서므로(--cd-mnav-offset) 그 높이까지 함께 비운다. */
 const MOBILE_QUERY = "(max-width: 767px)";
-const BAR_CLEARANCE = "104px";
+const BAR_CLEARANCE = "calc(var(--cd-mnav-offset, 0px) + 88px)";
 
 interface CodexFloatingCtaProps {
   featureKey: string;

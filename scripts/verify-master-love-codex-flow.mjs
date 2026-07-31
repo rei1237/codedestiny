@@ -503,6 +503,20 @@ for (const shell of [
     );
   }
 
+  // 7-4-2. 하단 고정 CTA 는 전역 모바일 네비 자리를 비켜서야 한다.
+  // 🔴 실사고: bottom:0 으로 붙였더니 .cd-mnav(z-index 960)가 CTA 를 통째로 덮어
+  //    가격도 안 보이고 탭도 먹혔다(배포본 elementFromPoint 가 네비를 반환). 네비가
+  //    내놓은 공용 토큰 --cd-mnav-offset 을 쓰지 않으면 같은 실수가 반복된다.
+  const floatingBlock = (cssSource.match(/\.floatingBar\s*\{[^}]*\}/) || [""])[0];
+  assert(
+    floatingBlock.includes("var(--cd-mnav-offset"),
+    `${cssFile}: .floatingBar 는 bottom 에 --cd-mnav-offset 을 써야 합니다(전역 모바일 네비가 CTA 를 덮습니다)`,
+  );
+  assert(
+    !/bottom:\s*0(px)?\s*;/.test(floatingBlock),
+    `${cssFile}: .floatingBar 를 bottom:0 으로 붙이면 .cd-mnav(z-index 960)에 가려집니다`,
+  );
+
   // 7-5. 카운트업은 공용 훅으로만 돌리고 skip 을 반드시 넘긴다.
   for (const file of [
     "src/features/master-love-codex/components/CodexScoreOverview.tsx",
