@@ -979,7 +979,7 @@
     openTarotReunionModal: '타로 결과 화면을 준비하고 있습니다.',
     openTarotSelfEsteemModal: '타로 결과 화면을 준비하고 있습니다.',
     openTarotYearFortuneModal: '타로 연간 운세 화면을 준비하고 있습니다.',
-    openDreamModal: '드림 프롬프트 화면을 준비하고 있습니다.',
+    openDreamModal: '드림 타로 화면을 준비하고 있습니다.',
     openPsychoDreamModal: '심리 해석 화면을 준비하고 있습니다.',
     openKemetModal: '오라클 분석 화면을 준비하고 있습니다.',
     openRoyalTeaOracle: '로얄티 오라클 화면을 준비하고 있습니다.',

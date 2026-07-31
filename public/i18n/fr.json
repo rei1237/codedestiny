@@ -570,7 +570,7 @@
       "mayaAlt": "Lecture maya — plaque de calendrier dorée et motifs horaires du ciel nocturne",
       "mayaTitle": "Lecture maya",
       "mayaDesc": "Le flux d'aujourd'hui à travers les schémas du temps",
-      "dreamPromptShortTitle": "Invite de rêve",
+      "dreamPromptShortTitle": "Tarot des Rêves",
       "petSajuTitle": "🐾 Saju animal IA",
       "petSajuDesc": "Cinq éléments et compatibilité",
       "petSajuAria": "Ouvrir le Saju animal IA",
@@ -886,9 +886,9 @@
       "cta": "Trouver le pass qui me convient"
     },
     "dreamPrompt": {
-      "closeAria": "Fermer l'invite de rêve",
+      "closeAria": "Fermer le Tarot des Rêves",
       "kicker": "Bibliothèque des étoiles murmurantes",
-      "title": "La boutique magique de l'inconscient: invite de rêve",
+      "title": "La boutique magique de l'inconscient: Tarot des Rêves",
       "subtitle": "Dépliez votre scène de rêve à travers les symboles du tarot, puis ne laissez que l'invite pour donner une IA de lecture de rêve.",
       "wizardLine": "Bienvenue, voyageur de l'inconscient. Le grand livre des rêves étoilés ouvre tranquillement sa première ligne.",
       "entrancePrompt": "Écrivez la scène la plus claire, les êtres qui sont apparus et les sentiments laissés après le réveil. La graine de l’invite s’éveillera.",

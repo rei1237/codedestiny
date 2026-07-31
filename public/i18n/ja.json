@@ -570,7 +570,7 @@
       "mayaAlt": "マヤ占い — 金色の暦盤と夜空の時間模様",
       "mayaTitle": "マヤ占い",
       "mayaDesc": "時間の模様で読む今日の流れ",
-      "dreamPromptShortTitle": "夢のプロンプト",
+      "dreamPromptShortTitle": "ドリームタロット",
       "petSajuTitle": "🐾 AIペット四柱推命",
       "petSajuDesc": "うちの子の五行と相性",
       "petSajuAria": "AIペット四柱推命を開く",
@@ -886,9 +886,9 @@
       "cta": "自分に合ったパスを見つける"
     },
     "dreamPrompt": {
-      "closeAria": "夢プロンプトを閉じる",
+      "closeAria": "ドリームタロットを閉じる",
       "kicker": "ささやきの星の図書館",
-      "title": "無意識の魔法の店: 夢のプロンプト",
+      "title": "無意識の魔法の店: ドリームタロット",
       "subtitle": "タロットのシンボルを通してあなたの夢のシーンを展開し、夢を読む AI に指示だけを残します。",
       "wizardLine": "ようこそ、無意識の旅人。星明かりの夢帳が静かに最初の一行を開く。",
       "entrancePrompt": "最も鮮明な情景、現れた存在、そして目覚めた後に残った感情を書きます。プロンプトの種が目覚めます。",

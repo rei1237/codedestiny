@@ -570,7 +570,7 @@
       "mayaAlt": "Mayan reading — golden calendar plate and night-sky time patterns",
       "mayaTitle": "Mayan reading",
       "mayaDesc": "Today’s flow through the patterns of time",
-      "dreamPromptShortTitle": "Dream Prompt",
+      "dreamPromptShortTitle": "Dream Tarot",
       "petSajuTitle": "🐾 AI Pet Saju",
       "petSajuDesc": "Five elements & pet compatibility",
       "petSajuAria": "Open AI Pet Saju",
@@ -886,9 +886,9 @@
       "cta": "Find the pass that fits me"
     },
     "dreamPrompt": {
-      "closeAria": "Close dream prompt",
+      "closeAria": "Close dream tarot",
       "kicker": "Whispering Star-Library",
-      "title": "The Magic Shop of the Unconscious: Dream Prompt",
+      "title": "The Magic Shop of the Unconscious: Dream Tarot",
       "subtitle": "Unfold your dream scene through tarot symbols, then leave only the prompt to give a dream-reading AI.",
       "wizardLine": "Welcome, traveler of the unconscious. The starlit dream ledger quietly opens its first line.",
       "entrancePrompt": "Write the clearest scene, the beings that appeared, and the feelings left after waking. The seed of the prompt will awaken.",

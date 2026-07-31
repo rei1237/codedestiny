@@ -570,7 +570,7 @@
       "mayaAlt": "Lectura maya: placa de calendario dorada y patrones de tiempo del cielo nocturno",
       "mayaTitle": "Lectura maya",
       "mayaDesc": "El flujo de hoy a través de los patrones del tiempo",
-      "dreamPromptShortTitle": "Mensaje de sueño",
+      "dreamPromptShortTitle": "Tarot de Sueños",
       "petSajuTitle": "🐾 Saju de mascotas IA",
       "petSajuDesc": "Cinco elementos y compatibilidad",
       "petSajuAria": "Abrir Saju de mascotas IA",
@@ -886,9 +886,9 @@
       "cta": "Encuentra el pase que me conviene"
     },
     "dreamPrompt": {
-      "closeAria": "Cerrar mensaje de sueño",
+      "closeAria": "Cerrar Tarot de Sueños",
       "kicker": "Biblioteca de estrellas susurrantes",
-      "title": "La tienda mágica del inconsciente: mensaje de sueño",
+      "title": "La tienda mágica del inconsciente: Tarot de Sueños",
       "subtitle": "Despliegue la escena de sus sueños a través de los símbolos del tarot, luego deje solo el mensaje para proporcionar una IA que lea los sueños.",
       "wizardLine": "Bienvenido, viajero del inconsciente. El libro de sueños iluminado por las estrellas abre silenciosamente su primera línea.",
       "entrancePrompt": "Escribe la escena más clara, los seres que aparecieron y los sentimientos que quedaron después de despertar. La semilla del aviso despertará.",

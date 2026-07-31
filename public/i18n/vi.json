@@ -570,7 +570,7 @@
       "mayaAlt": "Cách đọc của người Maya — tấm lịch vàng và mô hình thời gian trên bầu trời đêm",
       "mayaTitle": "Cách đọc của người Maya",
       "mayaDesc": "Dòng chảy hôm nay theo dòng thời gian",
-      "dreamPromptShortTitle": "Lời nhắc ước mơ",
+      "dreamPromptShortTitle": "Tarot Giấc mơ",
       "petSajuTitle": "🐾 Tứ trụ thú cưng AI",
       "petSajuDesc": "Ngũ hành và hợp mệnh",
       "petSajuAria": "Mở Tứ trụ thú cưng AI",
@@ -886,9 +886,9 @@
       "cta": "Tìm pass phù hợp với tôi"
     },
     "dreamPrompt": {
-      "closeAria": "Lời nhắc đóng giấc mơ",
+      "closeAria": "Đóng Tarot Giấc mơ",
       "kicker": "Thư Viện Ngôi Sao Thì Thầm",
-      "title": "Cửa hàng ma thuật của vô thức: Lời nhắc ước mơ",
+      "title": "Cửa hàng ma thuật của vô thức: Tarot Giấc mơ",
       "subtitle": "Hãy khám phá khung cảnh trong mơ của bạn thông qua các biểu tượng tarot, sau đó chỉ để lại lời nhắc đưa ra AI đọc giấc mơ.",
       "wizardLine": "Chào mừng, lữ khách của vô thức. Cuốn sổ giấc mơ đầy sao lặng lẽ mở dòng đầu tiên.",
       "entrancePrompt": "Viết rõ ràng nhất cảnh tượng, những chúng sinh xuất hiện, và những cảm xúc để lại sau khi thức giấc. Hạt giống của lời nhắc sẽ thức tỉnh.",
