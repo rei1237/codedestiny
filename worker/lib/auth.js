@@ -443,28 +443,21 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
     const expiresAt = new Date(session.expiresAt || 0).getTime();
     if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
 
+    // access-token 경로(resolveActiveUserAuth)와 동일하게, userProjection이 주어지면 identity 필드에
+    // 그 필드를 더한 상위집합으로 한 번에 읽고 원본 문서를 authUserDoc로 첨부한다.
+    // 🔴 반드시 상위집합이어야 한다 — identity 필드가 빠지면 normalizeAuthResultFromUser가 조용히 오판한다.
+    const projection = options.userProjection
+      ? { ...AUTH_USER_IDENTITY_PROJECTION, ...options.userProjection, _id: 1, status: 1 }
+      : AUTH_USER_IDENTITY_PROJECTION;
     const user = await withMongoRetry(env, () => User.collection.findOne(
       { _id: new mongoose.Types.ObjectId(userId) },
-      {
-        projection: {
-          _id: 1,
-          name: 1,
-          email: 1,
-          birthDate: 1,
-          birthTime: 1,
-          gender: 1,
-          role: 1,
-          points: 1,
-          joinedAt: 1,
-          image: 1,
-          profileImage: 1,
-          status: 1,
-        },
-      },
+      { projection },
     ));
     if (!user || isWithdrawnUser(user)) return null;
 
-    return normalizeAuthResultFromUser(user);
+    const authResult = normalizeAuthResultFromUser(user);
+    if (options.userProjection) authResult.authUserDoc = user;
+    return authResult;
   } catch (error) {
     logAuthError("verify-refresh-session-db", error, { hasRefreshToken: true, userId });
     // Only a request that already tolerates DB blips (e.g. /api/auth/me) or explicitly
@@ -520,9 +513,10 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
     const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
     const allowTokenDbFallback = options?.allowDbFallback === true || isAuthMeRequest(request);
     const surfaceDbInfraError = options?.surfaceDbInfraError === true;
-    // userProjection: 주어지면 access-token 인증 경로의 User 조회를 이 필드까지 확장해 원본 문서를
-    // authUserDoc로 첨부한다(호출자의 인증-후 재조회 왕복 제거). refresh/admin/dev 폴백 경로엔 미부착 →
-    // 호출자는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
+    // userProjection: 주어지면 access-token 경로와 refresh 폴백 경로 **양쪽** 모두 User 조회를 이 필드까지
+    // 확장해 원본 문서를 authUserDoc로 첨부한다(호출자의 인증-후 재조회 왕복 제거).
+    // 예전엔 refresh 폴백만 미부착이라, access 만료 직후 첫 /api/auth/me 가 Mongo 3왕복을 돌았다.
+    // admin/dev 폴백 경로는 여전히 미부착 → 호출자는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
     const verifyOptions = { allowDbFallback: allowTokenDbFallback, surfaceDbInfraError, userProjection: options?.userProjection || null };
 
     const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
