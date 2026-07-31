@@ -889,7 +889,7 @@ export async function handleMasterLoveCodexRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/master-love-codex");
   try {
-    if (method === "GET" && (path === "/plan" || path === "")) return handlePlan(request);
+    if (method === "GET" && (path === "/plan" || path === "")) return await handlePlan(request);
     if (method === "GET" && path === "/session") return await handleSession(request, env);
     if (method === "POST" && (path === "/ensure-access" || path === "/prepare")) return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);

@@ -135,6 +135,12 @@ jobs:
       - name: Verify palm reading flow
         run: npm run verify:palm-flow
 
+      # 워커 라우터가 try/catch 안에서 await 없이 핸들러를 위임하면, 그 거부(rejection)는
+      # catch 를 빠져나가 Cloudflare 1101(불투명 500, CORS 헤더 없음)이 된다.
+      # 2026-08-01 작명 AI 가 이 상태였다 — 비로그인 401 조차 500 으로 나가 원인 추적이 오래 걸렸다.
+      - name: Verify router await dispatch
+        run: npm run verify:route-await-dispatch
+
       # 결제수단 선택창은 렌더러가 3종(정적 셸 6미러 / React / 독립 폴백)이라 한쪽만 고치면
       # 진입 경로에 따라 다른 결제창이 뜬다. 정본 CSS·구조 마커·3옵션 노출이 어긋나면 차단한다.
       - name: Verify payment choice modal parity

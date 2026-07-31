@@ -342,9 +342,9 @@ export async function handleMusicRoutes(request, env) {
   try {
     const path = getRoutePath(request, "/api/music");
 
-    if (path === "/access") return handleAccess(request, env);
-    if (path === "/audio") return proxyMusicFile(request, env);
-    if (path === "/download") return proxyMusicFile(request, env, { download: true });
+    if (path === "/access") return await handleAccess(request, env);
+    if (path === "/audio") return await proxyMusicFile(request, env);
+    if (path === "/download") return await proxyMusicFile(request, env, { download: true });
 
     return notFound();
   } catch (error) {
