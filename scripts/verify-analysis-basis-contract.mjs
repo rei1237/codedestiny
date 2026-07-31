@@ -110,7 +110,7 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
 // ── 1c. 숙요 궁합 (두 사람 → 근거, 실제 계산) ───────────
 {
   const { __sukuyoCompatibilityAiTestUtils } = await import("../worker/routes/sukuyo-compatibility-ai.js");
-  const { normalizeInput, calculateSukuyo, buildSukuyoAnalysisBasis, buildFirstPrompt, SUKUYO_SECTION_SPECS, SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS, SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS } = __sukuyoCompatibilityAiTestUtils;
+  const { normalizeInput, calculateSukuyo, buildSukuyoAnalysisBasis, buildSectionGroupPrompt, SUKUYO_SECTION_SPECS, SUKUYO_SECTION_GROUPS, SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS, SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS } = __sukuyoCompatibilityAiTestUtils;
   const input = normalizeInput({
     consultationType: "compatibility",
     personA: { name: "나", gender: "female", birthDate: "1993-07-21", calendarType: "solar" },
@@ -132,7 +132,18 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
     `sukuyo: 최소(${minSum})와 상한(${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS}) 사이 여유가 ${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS - minSum}자뿐 — 잘림 위험`,
   );
 
-  const prompt = buildFirstPrompt(input, calculation);
+  // 섹션 그룹(= LLM 호출 1회)이 모든 장을 빠짐없이 한 번씩만 덮어야 한다.
+  // 빠지면 그 장은 영영 안 만들어지고, 겹치면 뒤엣것이 앞엣것을 덮는다.
+  const groupKeys = SUKUYO_SECTION_GROUPS.flatMap((group) => group.keys);
+  assert(groupKeys.length === new Set(groupKeys).size, "sukuyo: 섹션 그룹에 중복된 키가 있음");
+  assert(
+    groupKeys.length === SUKUYO_SECTION_SPECS.length
+      && SUKUYO_SECTION_SPECS.every((spec) => groupKeys.includes(spec.key)),
+    "sukuyo: 섹션 그룹이 덮지 못한 장이 있음",
+  );
+
+  // 근거·분야 규칙은 그룹 프롬프트가 이어받는다(단일 대형 프롬프트 → 그룹 병렬).
+  const prompt = buildSectionGroupPrompt(input, calculation, SUKUYO_SECTION_GROUPS.find((g) => g.keys.includes("domains")));
   assert(prompt.includes("[근거 고정 규칙]"), "sukuyo: 프롬프트에 근거 고정 규칙이 없음");
   assert(prompt.includes("[분야별 분석 규칙]"), "sukuyo: 프롬프트에 분야별 분석 규칙이 없음");
   // 궁합은 개인 운세용 6분야가 아니라 관계 무대로 나뉘어야 한다.

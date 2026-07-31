@@ -230,7 +230,7 @@ function assertNeverThrows(feature, label, run) {
   const feature = "sukuyo";
   const { __sukuyoCompatibilityAiTestUtils } = await import("../worker/routes/sukuyo-compatibility-ai.js");
   const {
-    normalizeInput, calculateSukuyo, normalizeStructuredSukuyoCompatibilityText,
+    normalizeInput, calculateSukuyo, extractSectionBody,
     SUKUYO_SECTION_SPECS, SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS, SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
   } = __sukuyoCompatibilityAiTestUtils;
 
@@ -243,35 +243,48 @@ function assertNeverThrows(feature, label, run) {
     question: "이 관계를 오래 이어가려면 무엇을 조심해야 할까요?",
   });
   assert(input.ok, `${feature}: 샘플 입력 정규화 실패`);
-  const calculation = calculateSukuyo(input);
+  calculateSukuyo(input); // 계산 경로가 살아 있는지만 확인(그룹 생성은 계산값을 그대로 받는다)
 
   const mocks = buildMockOutputs(SUKUYO_SECTION_SPECS.map((spec) => spec.key));
   assertDeliveryContract(feature, mocks);
   assertTruncationRecovery(feature, mocks[1].text);
 
-  // 숙요만 정규화가 실패 시 throw한다(호출부가 hasRenderableLlmText로 받아 degrade한다).
-  // 여기서는 "던지더라도 그 입력이 전달 가능하면 호출부 폴백이 살아 있는지"를 함께 본다.
+  // 숙요는 그룹 병렬이라 LLM 응답에서 장 본문을 뽑아내는 지점이 계약의 관문이다.
+  // 🔴 절대 던지면 안 된다 — 던지면 결제된 장이 통째로 사라진다.
   for (const mock of mocks) {
-    let threw = false;
-    try {
-      normalizeStructuredSukuyoCompatibilityText(mock.text, input, calculation);
-    } catch {
-      threw = true;
-    }
-    checks += 1;
-    if (threw && mock.deliverable) {
-      const route = read("worker/routes/sukuyo-compatibility-ai.js");
-      assert(
-        route.includes("hasRenderableLlmText(rawContent, { minChars: 400 })"),
-        `${feature}: "${mock.name}"에서 정규화가 던지는데 호출부 degrade 폴백이 없다`,
-      );
-    }
+    assertNeverThrows(feature, `extractSectionBody("${mock.name}")`, () => {
+      const body = extractSectionBody(mock.text);
+      assert(typeof body === "string", `${feature}: extractSectionBody가 문자열을 돌려주지 않음`);
+      if (mock.deliverable) {
+        assert(body.length >= 240, `${feature}: "${mock.name}"에서 렌더 가능한 본문이 버려졌다 (${body.length}자)`);
+      } else {
+        assert(body.length === 0, `${feature}: "${mock.name}"에서 빈 응답이 본문으로 통과했다 — 조용한 과금`);
+      }
+    });
   }
+
+  // 장 단위 응답({"body": "..."})도 같은 계약을 지켜야 한다.
+  assertNeverThrows(feature, "extractSectionBody(장 단위 JSON)", () => {
+    const sectionJson = JSON.stringify({ body: paragraph("한 장짜리 본문.") });
+    const body = extractSectionBody(sectionJson);
+    assert(body.length >= 240 && !body.includes('"body"'), `${feature}: 장 단위 JSON에서 본문을 뽑지 못했다`);
+    const truncated = extractSectionBody(sectionJson.slice(0, Math.floor(sectionJson.length * 0.6)));
+    assert(truncated.length >= 240, `${feature}: 잘린 장 응답에서 본문이 사라졌다 — 결제된 장이 빈 화면이 된다`);
+  });
+
+  // 문서 전체 예산: 한 요청 안에서 그룹별로 나눠 담긴다.
+  checks += 1;
+  assert(
+    SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS - SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS >= MIN_BUDGET_HEADROOM_CHARS,
+    `${feature}: 문서 분량 여유가 부족하다 (상한 ${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS}, 하한 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS})`,
+  );
+
+  // 실제 LLM 호출 단위는 "섹션 그룹"이다. 토큰 예산은 그 단위로 재야 의미가 있다.
   assertBudget(feature, {
-    minChars: SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
-    maxChars: SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
-    maxOutputTokens: 32000,
-    tokenConstantName: "SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS",
+    minChars: Math.max(...SUKUYO_SECTION_SPECS.map((spec) => spec.minChars)),
+    maxChars: 6000, // SUKUYO_SECTION_BODY_MAX_CHARS
+    maxOutputTokens: 12000, // SUKUYO_SECTION_CAP_TOKENS
+    tokenConstantName: "SUKUYO_SECTION_CAP_TOKENS",
     sourcePath: "worker/routes/sukuyo-compatibility-ai.js",
   });
 }
@@ -323,7 +336,8 @@ function assertBudget(feature, { minChars, maxChars, maxOutputTokens, tokenConst
 for (const [feature, path, timeoutVar] of [
   ["ziwei", "worker/routes/ziwei-ai.js", "ziweiTimeoutMs"],
   ["vedic", "worker/routes/vedic-ai.js", "vedicTimeoutMs"],
-  ["sukuyo", "worker/routes/sukuyo-compatibility-ai.js", "compatibilityTimeoutMs"],
+  // 숙요 궁합은 그룹 병렬이라 라우트가 기다리는 단위가 "섹션 그룹"이다.
+  ["sukuyo", "worker/routes/sukuyo-compatibility-ai.js", "SUKUYO_SECTION_TIMEOUT_MS"],
   ["astrology", "worker/routes/astrology-ai.js", "timeoutMs"],
 ]) {
   const source = read(path);
