@@ -27,7 +27,6 @@ import map from "./map.module.css";
 
 export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
   const s = useCompassSession(start);
-  const [notice, setNotice] = useState<string | null>(null);
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [pigExpr, setPigExpr] = useState<PigExpr>("talk");
@@ -124,16 +123,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
   }
 
   if (s.step === "arrival" && s.field) {
-    return (
-      <>
-        <Arrival
-          field={s.field}
-          onRestart={() => s.reset()}
-          onShare={() => setNotice("항로 저장·공유는 다음 단계에서 연결돼요.")}
-        />
-        {notice && <div className={map.toast} role="status">{notice}</div>}
-      </>
-    );
+    return <Arrival field={s.field} onRestart={() => s.reset()} />;
   }
 
   return null;

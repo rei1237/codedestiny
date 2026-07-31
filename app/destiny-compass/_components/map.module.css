@@ -2870,6 +2870,14 @@
 .reportActions .resultCtaGhost {
   min-height: 48px;
 }
+.reportShare {
+  display: flex;
+  align-items: center;
+}
+/* 캡처 결과물에 공유 버튼이 찍히면 안 된다. */
+[data-export="true"] .reportShare {
+  display: none;
+}
 
 /* PDF 캡처(Phase 3) — sticky·content-visibility 를 풀고 표면을 불투명하게.
    html2canvas 는 sticky 를 잘못 배치하고, 반투명 위에 별밭이 겹치면 지저분해진다. */
