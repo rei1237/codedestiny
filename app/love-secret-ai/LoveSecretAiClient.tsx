@@ -2,20 +2,24 @@
 
 import {
   AlertCircle,
-  CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
   Clock3,
   Heart,
   Loader2,
+  MessageCircleHeart,
   Moon,
   Sparkles,
   Star,
+  UserRound,
+  Users,
   WalletCards,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import theme from "./love-secret-theme.module.css";
+import styles from "./LoveSecretAiClient.module.css";
 import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -130,22 +134,75 @@ const FOCUS_AREAS: Array<{ value: FocusArea; label: string; desc: string }> = [
   { value: "custom", label: "직접 입력", desc: "지금 가장 아픈 질문을 그대로 적습니다." },
 ];
 
+const FORM_ANCHOR_ID = "love-secret-form";
+
+const HERO_PROMISES = ["사주 명식 기반", "연애 심리 분석", "오늘 할 행동까지"];
+
+/**
+ * 입력 스텝.
+ * ① 질문과 ③ 상담 스타일을 한 스텝에 둔 이유: focusArea === "custom" 일 때만 question 이
+ * 필수라, 둘을 다른 스텝으로 나누면 "뒤 스텝의 선택이 앞 스텝의 필수 여부를 바꾸는" 검증 버그가
+ * 구조적으로 생긴다. ④ 결과 생성은 스텝이 아니라 phase 상태 머신이 담당한다.
+ */
+const STEPS = [
+  {
+    id: "status",
+    title: "지금의 연애 상태",
+    helper: "어디쯤 서 있는지부터 알려 주세요. 조언의 온도가 여기서 정해집니다.",
+    Icon: Heart,
+    valid: (form: ConsultationForm) => Boolean(form.relationshipStatus),
+    error: () => INVALID_INPUT_MESSAGE,
+  },
+  {
+    id: "focus",
+    title: "상담 스타일과 질문",
+    helper: "가장 듣고 싶은 이야기를 고르고, 궁금한 질문을 그대로 적어 주세요.",
+    Icon: MessageCircleHeart,
+    valid: (form: ConsultationForm) => Boolean(form.focusArea) && (form.focusArea !== "custom" || form.question.trim().length >= 2),
+    error: () => QUESTION_REQUIRED_MESSAGE,
+  },
+  {
+    id: "me",
+    title: "내 정보",
+    helper: "명식을 세우기 위한 생년 정보입니다. 프로필 카드가 있으면 자동으로 채워집니다.",
+    Icon: UserRound,
+    valid: (form: ConsultationForm) => Boolean(
+      form.myInfo.gender && form.myInfo.birthDate && form.myInfo.calendarType
+      && (form.myInfo.birthTimeUnknown || form.myInfo.birthTime),
+    ),
+    error: (form: ConsultationForm) => (!form.myInfo.birthTimeUnknown && !form.myInfo.birthTime ? BIRTH_TIME_MESSAGE : INVALID_INPUT_MESSAGE),
+  },
+  {
+    id: "partner",
+    title: "상대방 정보 · 확인",
+    helper: "상대 정보는 선택입니다. 없으면 내 연애 흐름 중심으로 읽어 드립니다.",
+    Icon: Users,
+    valid: () => true,
+    error: () => INVALID_INPUT_MESSAGE,
+  },
+] as const;
+
+const LAST_STEP = STEPS.length - 1;
+
+// 응답은 요청 안에서 완결되며 최대 90초까지 걸린다(섹션 6개 동시 생성). 문구도 그 길이에 맞춘다.
 const GENERATING_STEPS = [
-  "입력한 생년월일과 관계 정보를 정리하고 있어요",
-  "사주의 오행 균형과 조후를 살피고 있어요",
-  "두 사람의 애정 표현 방식과 관계 리듬을 비교하고 있어요",
-  "궁합과 속궁합의 온도 차이를 해석하고 있어요",
-  "지금 필요한 현실적인 연애 조언을 정리하고 있어요",
+  "생년 정보로 명식을 세우고 있어요",
+  "오행·조후·십성과 신살을 살피고 있어요",
+  "대운과 올해 흐름, 좋은 날짜를 계산하고 있어요",
+  "여섯 갈래의 상담을 동시에 쓰고 있어요",
+  "근거가 빠진 대목이 없는지 다시 읽고 있어요",
   "상담 리포트를 새 창에서 열 준비를 하고 있어요",
 ];
 
 const ANALYSIS_ITEMS = [
-  "사주 오행 균형",
-  "일간/일지 관계",
-  "십성 기반 애정 표현 방식",
-  "조후와 감정 온도",
-  "두 사람의 관계 흐름",
-  "현실 조언",
+  "핵심 연애운과 명식이 그리는 결",
+  "연애 장점·약점과 반복되는 패턴",
+  "상대의 마음, 궁합, 이상형",
+  "갈등·바람기·재회 가능성",
+  "결혼운과 올해 좋은 달",
+  "계산된 일진으로 고른 좋은 날짜",
+  "썸 전략·대화 문장·매력 연출",
+  "오늘부터 할 행동과 7일 가이드",
 ];
 
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
@@ -515,15 +572,11 @@ export default function LoveSecretAiPage() {
   }
 
   function validateCurrentStep() {
-    if (step === 0) return Boolean(form.myInfo.gender && form.myInfo.birthDate && form.myInfo.calendarType && (form.myInfo.birthTimeUnknown || form.myInfo.birthTime));
-    if (step === 1) return true;
-    return Boolean(form.relationshipStatus && form.focusArea && (form.focusArea !== "custom" || form.question.trim().length >= 2));
+    return STEPS[step].valid(form);
   }
 
   function currentStepError() {
-    if (step === 0 && !form.myInfo.birthTimeUnknown && !form.myInfo.birthTime) return BIRTH_TIME_MESSAGE;
-    if (step === 2 && form.focusArea === "custom" && form.question.trim().length < 2) return QUESTION_REQUIRED_MESSAGE;
-    return INVALID_INPUT_MESSAGE;
+    return STEPS[step].error(form);
   }
 
   function openPendingResultWindow(requestId: string) {
@@ -712,144 +765,203 @@ export default function LoveSecretAiPage() {
       return;
     }
     setError("");
-    setStep((current) => Math.min(2, current + 1));
+    setStep((current) => Math.min(LAST_STEP, current + 1));
   }
 
+  function focusFirstStepField() {
+    setStep(0);
+    if (typeof window === "undefined") return;
+    const target = document.getElementById(FORM_ANCHOR_ID);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => target?.querySelector<HTMLButtonElement>("button")?.focus(), 420);
+  }
+
+  const stepPercent = busy ? Math.max(5, Math.min(100, progress)) : Math.round(((step + 1) / STEPS.length) * 100);
+  const activeStep = STEPS[step];
+
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#140014] text-[#fff8ef] [font-family:var(--font-body)]" data-cd-marker="love-secret-ai-page-v20260627">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(251,207,232,0.24),transparent_28%),radial-gradient(circle_at_82%_12%,rgba(250,204,21,0.16),transparent_26%),radial-gradient(circle_at_60%_88%,rgba(159,18,57,0.28),transparent_36%),linear-gradient(135deg,#140014_0%,#4a0b25_42%,#160f2d_100%)]" aria-hidden="true" />
-      <div className="pointer-events-none fixed inset-0 opacity-70 [background-image:radial-gradient(#fff8ef_1px,transparent_1px),radial-gradient(#f9a8d4_1px,transparent_1px)] [background-position:0_0,42px_58px] [background-size:96px_96px,132px_132px]" aria-hidden="true" />
-      <div className="pointer-events-none fixed left-[-10%] right-[-10%] top-56 h-28 rotate-[-4deg] bg-[linear-gradient(92deg,transparent_0_14%,rgba(244,114,182,0.34)_16%,rgba(250,204,21,0.18)_46%,rgba(244,114,182,0.3)_78%,transparent_88%)] blur-xl" aria-hidden="true" />
+    <main
+      className={`${theme.theme} relative min-h-screen overflow-hidden text-[var(--ls-text)] [font-family:var(--font-body)]`}
+      data-cd-marker="love-secret-ai-page-v20260627"
+    >
+      <div className={`pointer-events-none fixed inset-0 ${theme.pageBg}`} aria-hidden="true" />
+      <div className={`pointer-events-none fixed inset-0 ${theme.pageGlow}`} aria-hidden="true" />
+      <div className={`pointer-events-none fixed inset-0 ${styles.petalTexture}`} aria-hidden="true" />
 
-      <section className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
-        <LoveSecretHero phase={phase} phaseText={phaseText} busy={busy} step={step} />
+      <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-10 pt-16 sm:px-6 sm:pt-14 lg:px-8">
+        <LoveSecretHero onStart={focusFirstStepField} busy={busy} />
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <form onSubmit={handleSubmit} className="rounded-3xl border border-white/15 bg-white/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
-            <LoveSecretStepper step={step} />
+        <LoveSecretProgressRail
+          mode={busy ? "generating" : "form"}
+          label={busy ? phaseText : `${step + 1}단계 · ${activeStep.title}`}
+          percent={stepPercent}
+        />
 
-            <div className="mt-5 rounded-3xl border border-white/10 bg-black/15 p-4 sm:p-6">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-rose-300/15 text-rose-100 ring-1 ring-rose-200/20">
-                  <CalendarDays className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Step {step + 1}</p>
-                  <h2 className="text-xl font-black text-white sm:text-2xl">
-                    {step === 0 ? "내 정보" : step === 1 ? "상대방 정보" : "상담 주제"}
-                  </h2>
-                </div>
-                {step === 0 && (
-                  <button
-                    type="button"
-                    onClick={loadFormFromProfileCard}
-                    className="shrink-0 rounded-lg border border-amber-200/30 bg-amber-100/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-100/20"
-                    aria-label="프로필 카드에서 출생 정보 불러오기"
-                  >
-                    프로필 카드에서 불러오기
-                  </button>
-                )}
-              </div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <form onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className="min-w-0">
+            <div
+              key={busy ? "busy" : activeStep.id}
+              className={`${styles.stepEnter} rounded-[28px] border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 shadow-[var(--ls-glow)] sm:p-7`}
+            >
+              {busy ? (
+                <LoveSecretGeneratingCard phase={phase} text={phaseText} progress={progress} progressIndex={progressIndex} />
+              ) : (
+                <>
+                  <header className="mb-6 flex items-start gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--ls-surface-sunken)] text-[var(--ls-accent)] ring-1 ring-[var(--ls-line)]">
+                      <activeStep.Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black tracking-[0.14em] text-[var(--ls-accent)]">
+                        STEP {step + 1} / {STEPS.length}
+                      </p>
+                      <h2 className="mt-1 break-keep text-xl font-black text-[var(--ls-text)] [font-family:var(--font-display)] sm:text-2xl">
+                        {activeStep.title}
+                      </h2>
+                      <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{activeStep.helper}</p>
+                    </div>
+                    {activeStep.id === "me" && (
+                      <button
+                        type="button"
+                        onClick={loadFormFromProfileCard}
+                        className={`${theme.focusRing} shrink-0 rounded-xl border border-[var(--ls-line-control)] px-3 py-2 text-xs font-bold text-[var(--ls-accent)] transition hover:bg-[var(--ls-surface-sunken)]`}
+                        aria-label="프로필 카드에서 출생 정보 불러오기"
+                      >
+                        프로필 카드에서 불러오기
+                      </button>
+                    )}
+                  </header>
 
-              {step === 0 && (
-                <PersonFields
-                  label="내"
-                  value={form.myInfo}
-                  required
-                  disabled={busy}
-                  onChange={(field, value) => setPersonField("myInfo", field, value)}
-                />
-              )}
+                  {activeStep.id === "status" && (
+                    <LoveSecretStatusPicker
+                      value={form.relationshipStatus}
+                      disabled={busy}
+                      onChange={(value) => {
+                        setForm((current) => ({ ...current, relationshipStatus: value }));
+                        resetAttempt();
+                      }}
+                    />
+                  )}
 
-              {step === 1 && (
-                <PersonFields
-                  label="상대방"
-                  value={form.partnerInfo}
-                  disabled={busy}
-                  onChange={(field, value) => setPersonField("partnerInfo", field, value)}
-                />
-              )}
+                  {activeStep.id === "focus" && (
+                    <LoveSecretTopicSelector
+                      focusArea={form.focusArea}
+                      question={form.question}
+                      disabled={busy}
+                      onTopicChange={setTopic}
+                      onQuestionChange={(value) => {
+                        setForm((current) => ({ ...current, question: value }));
+                        resetAttempt();
+                      }}
+                    />
+                  )}
 
-              {step === 2 && (
-                <LoveSecretTopicSelector
-                  relationshipStatus={form.relationshipStatus}
-                  focusArea={form.focusArea}
-                  question={form.question}
-                  disabled={busy}
-                  onRelationshipChange={(value) => {
-                    setForm((current) => ({ ...current, relationshipStatus: value }));
-                    resetAttempt();
-                  }}
-                  onTopicChange={setTopic}
-                  onQuestionChange={(value) => {
-                    setForm((current) => ({ ...current, question: value }));
-                    resetAttempt();
-                  }}
-                />
+                  {activeStep.id === "me" && (
+                    <>
+                      {profileSeed && !formTouchedRef.current && (
+                        <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--ls-surface-sunken)] px-3 py-1.5 text-xs font-bold text-[var(--ls-accent)]">
+                          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                          프로필 카드에서 자동으로 채웠어요
+                        </p>
+                      )}
+                      <PersonFields
+                        label="내"
+                        value={form.myInfo}
+                        required
+                        disabled={busy}
+                        onChange={(field, value) => setPersonField("myInfo", field, value)}
+                      />
+                    </>
+                  )}
+
+                  {activeStep.id === "partner" && (
+                    <div className="grid gap-6">
+                      <PersonFields
+                        label="상대방"
+                        value={form.partnerInfo}
+                        disabled={busy}
+                        onChange={(field, value) => setPersonField("partnerInfo", field, value)}
+                      />
+                      <LoveSecretReadyCard form={form} topic={selectedTopic.label} />
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
             {(notice || error) && (
-              <div className={cx(
-                "mt-4 flex gap-3 rounded-2xl border p-4 text-sm leading-6",
-                error ? "border-rose-200/30 bg-rose-500/15 text-rose-50" : "border-amber-200/25 bg-amber-300/10 text-amber-50",
-              )}>
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <div
+                role={error ? "alert" : undefined}
+                className={cx(
+                  "mt-4 flex gap-3 rounded-2xl border p-4 text-sm leading-6",
+                  error
+                    ? "border-[var(--ls-accent)] bg-[var(--ls-surface-sunken)] text-[var(--ls-text)]"
+                    : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text-muted)]",
+                )}
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ls-accent)]" aria-hidden="true" />
                 <p>{error || notice}</p>
               </div>
             )}
 
-            {busy && <LoveSecretGeneratingCard phase={phase} text={phaseText} progress={progress} progressIndex={progressIndex} />}
-
-            {step === 2 && (
-              <div className="mt-5 flex items-center justify-end">
-                <PriceBadge featureKey="love-secret-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
-              </div>
-            )}
-            <div className="sticky bottom-3 z-10 mt-5 flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-[#22061a]/90 p-3 shadow-2xl shadow-black/35 backdrop-blur-xl">
-              <button
-                type="button"
-                className="inline-flex min-h-12 items-center gap-2 rounded-2xl border border-white/15 px-4 text-sm font-bold text-white transition hover:border-rose-200/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45"
-                onClick={() => setStep((current) => Math.max(0, current - 1))}
-                disabled={busy || step === 0}
-              >
-                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-                이전
-              </button>
-              {step < 2 ? (
+            <div className="sticky bottom-3 z-10 mt-5 rounded-[22px] border border-[var(--ls-line)] bg-[var(--ls-veil)] p-3 shadow-[var(--ls-glow)] backdrop-blur-xl [padding-bottom:calc(0.75rem+env(safe-area-inset-bottom))]">
+              <div className="flex items-center justify-between gap-3">
                 <button
                   type="button"
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-300 via-pink-200 to-amber-200 px-5 text-sm font-black text-[#35101e] shadow-lg shadow-rose-950/30 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55"
-                  onClick={goNext}
-                  disabled={busy}
+                  className={`${theme.focusRing} inline-flex min-h-12 items-center gap-2 rounded-2xl border border-[var(--ls-line-control)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:cursor-not-allowed disabled:opacity-45`}
+                  onClick={() => setStep((current) => Math.max(0, current - 1))}
+                  disabled={busy || step === 0}
                 >
-                  다음
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                  이전
                 </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-300 via-pink-200 to-amber-200 px-5 text-sm font-black text-[#35101e] shadow-lg shadow-rose-950/30 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55"
-                  disabled={busy}
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <WalletCards className="h-4 w-4" aria-hidden="true" />}
-                  {busy ? phaseText : "연애 비책 상담 시작하기"}
-                </button>
+                {step < LAST_STEP ? (
+                  <button
+                    type="button"
+                    className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
+                    onClick={goNext}
+                    disabled={busy}
+                  >
+                    다음
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
+                    disabled={busy}
+                  >
+                    {busy
+                      ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                      : <Heart className="h-4 w-4 fill-current" aria-hidden="true" />}
+                    {busy ? phaseText : "❤️ 연애 비책 상담 시작하기"}
+                  </button>
+                )}
+              </div>
+              {step === LAST_STEP && !busy && (
+                <div className="mt-3 flex items-center justify-end border-t border-[var(--ls-line)] pt-3">
+                  <PriceBadge
+                    featureKey="love-secret-ai-consultation"
+                    fallbackCoins={300}
+                    prefix="상담 이용 가격 "
+                    className="text-sm font-bold text-[var(--ls-text-muted)]"
+                  />
+                </div>
               )}
             </div>
           </form>
 
           <aside className="space-y-5">
-            <LoveSecretReadyCard form={form} topic={selectedTopic.label} />
+            <LoveSecretPromiseCard />
             {(resultUrl || resultOpenMessage) && (
-              <section className="rounded-3xl border border-amber-200/20 bg-white/10 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl">
-                <p className="text-sm font-bold text-amber-100">{resultOpenMessage || "결과 페이지를 열 수 있습니다."}</p>
+              <section className="rounded-3xl border border-[var(--ls-line-control)] bg-[var(--ls-surface)] p-5 shadow-[var(--ls-glow)]">
+                <p className="text-sm font-bold text-[var(--ls-text)]">{resultOpenMessage || "결과 페이지를 열 수 있습니다."}</p>
                 {resultUrl && (
                   <a
                     href={resultUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-amber-200 px-4 text-sm font-black text-[#35101e] transition hover:bg-amber-100"
+                    className={`${theme.focusRing} mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[image:var(--ls-cta)] px-4 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5`}
                   >
                     결과 새 창 열기
                   </a>
@@ -863,90 +975,95 @@ export default function LoveSecretAiPage() {
   );
 }
 
-function LoveSecretHero({ phase, phaseText, busy, step }: { phase: Phase; phaseText: string; busy: boolean; step: number }) {
-  const labels = ["내 정보", "상대방 정보", "상담 주제"];
-
+function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean }) {
   return (
-    <header className="rounded-3xl border border-white/10 bg-white/[0.07] p-4 shadow-2xl shadow-black/30 backdrop-blur-xl lg:p-6">
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-        <div className="relative flex flex-col justify-center py-2">
-          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200/25 bg-amber-100/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-amber-100">
-            <Moon className="h-4 w-4" aria-hidden="true" />
-            Love Secret · AI Romance Reading
-          </p>
-          <h1 className="mt-4 text-4xl font-black leading-tight text-white [font-family:var(--font-display)] sm:text-6xl">
-            연애 비책 전문가 상담
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-rose-50/85 sm:text-lg">
-            마음의 온도, 사주의 균형, 두 사람의 리듬을 함께 읽어 지금 가장 필요한 연애의 한 수를 전해드립니다.
-          </p>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            {["사주 기반 연애 성향", "궁합과 관계 흐름", "조후로 보는 친밀감 리듬", "현실적인 연애 조언"].map((item) => (
-              <span key={item} className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-bold text-rose-50">
-                {item}
-              </span>
-            ))}
-          </div>
-          <div className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm font-bold text-rose-50" data-phase={phase}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin text-amber-200 motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-4 w-4 text-amber-200" aria-hidden="true" />}
-            <span>{phaseText}</span>
-          </div>
-        </div>
-
-        <div className="grid gap-3 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100">상담 준비 단계</p>
-          <div className="grid gap-2">
-            {labels.map((label, index) => {
-              const active = step === index;
-              const done = step > index;
-              return (
-                <div key={label} className={cx(
-                  "flex min-h-12 items-center gap-3 rounded-2xl border px-3 text-sm font-black transition",
-                  active ? "border-amber-200/45 bg-amber-200/15 text-white" : done ? "border-rose-100/25 bg-white/10 text-rose-50" : "border-white/10 bg-black/15 text-rose-100/70",
-                )}>
-                  <span className={cx(
-                    "grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm",
-                    active ? "bg-amber-200 text-[#35101e]" : done ? "bg-rose-200 text-[#35101e]" : "bg-white/10 text-rose-50",
-                  )}>
-                    {done ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
-                  </span>
-                  <span>{label}</span>
-                  {active && <span className="ml-auto rounded-full border border-amber-200/30 px-2 py-1 text-[11px] text-amber-100">현재</span>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+    <header className="relative overflow-hidden rounded-[32px] border border-[var(--ls-line)] bg-[var(--ls-surface)] px-5 py-9 text-center shadow-[var(--ls-glow)] sm:px-8 sm:py-12">
+      <div className={`pointer-events-none absolute inset-0 ${styles.petalTexture}`} aria-hidden="true" />
+      <div className="relative mx-auto flex max-w-2xl flex-col items-center">
+        <span className={`${styles.heroRing} relative grid h-16 w-16 place-items-center rounded-full bg-[var(--ls-surface-sunken)]`}>
+          <Heart className={`${styles.heroHeart} h-8 w-8 fill-[var(--ls-accent)] text-[var(--ls-accent)]`} aria-hidden="true" />
+        </span>
+        <h1 className="mt-8 break-keep text-[clamp(2.1rem,7vw,3.4rem)] font-black leading-[1.12] tracking-[-0.02em] text-[var(--ls-text)] [font-family:var(--font-display)]">
+          연애 비책 AI
+        </h1>
+        <p className="mt-4 break-keep text-lg font-bold leading-8 text-[var(--ls-accent)] sm:text-xl">
+          당신만을 위한 연애 컨설턴트
+        </p>
+        <p className="mt-3 max-w-xl break-keep text-[0.95rem] leading-7 text-[var(--ls-text-muted)]">
+          사주 명식과 연애 심리를 함께 읽어, 오늘 무엇을 하고 무엇을 미뤄야 하는지까지 짚어 드립니다.
+        </p>
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={busy}
+          className={`${theme.focusRing} mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-[image:var(--ls-cta)] px-7 text-sm font-black text-[var(--ls-cta-ink)] shadow-[var(--ls-glow)] transition hover:-translate-y-0.5 disabled:opacity-55`}
+        >
+          <Heart className="h-4 w-4 fill-current" aria-hidden="true" />
+          상담 시작하기
+        </button>
+        <ul className="mt-8 flex flex-wrap justify-center gap-2">
+          {HERO_PROMISES.map((item) => (
+            <li
+              key={item}
+              className="rounded-full border border-[var(--ls-line)] bg-[var(--ls-surface-2)] px-3.5 py-1.5 text-xs font-bold text-[var(--ls-text-muted)]"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
     </header>
   );
 }
 
-function LoveSecretStepper({ step }: { step: number }) {
-  const labels = ["내 정보", "상대방 정보", "상담 주제"];
+function LoveSecretProgressRail({ mode, label, percent }: { mode: "form" | "generating"; label: string; percent: number }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
-      {labels.map((label, index) => {
-        const active = step === index;
-        const done = step > index;
-        return (
-          <div
-            key={label}
-            className={cx(
-              "flex items-center gap-3 rounded-2xl border p-3 transition",
-              active ? "border-amber-200/45 bg-rose-300/15 shadow-lg shadow-rose-950/25" : done ? "border-rose-100/25 bg-white/10" : "border-white/10 bg-white/[0.04]",
-            )}
-          >
-            <span className={cx(
-              "grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-black",
-              active ? "bg-amber-200 text-[#35101e]" : done ? "bg-rose-200 text-[#35101e]" : "bg-white/10 text-rose-50",
-            )}>
-              {done ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
-            </span>
-            <span className="text-sm font-black text-white">{label}</span>
-          </div>
-        );
-      })}
+    <div className="rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface)] px-4 py-3">
+      <div className="flex items-center justify-between gap-3 text-xs font-black">
+        <span className="min-w-0 truncate text-[var(--ls-text)]">{label}</span>
+        <span className="shrink-0 text-[var(--ls-accent)]">{percent}%</span>
+      </div>
+      {/* 접근 가능한 진행 안내는 생성 카드의 aria-live 가 담당한다. 여기서 또 알리면 중복 낭독이 된다. */}
+      <div className={`mt-2 h-2 overflow-hidden rounded-full ${styles.railTrack}`} aria-hidden="true">
+        <div
+          className={`h-full rounded-full ${styles.railFill}`}
+          style={{ "--ls-progress": percent / 100 } as CSSProperties}
+        />
+      </div>
+      <span className="sr-only">{mode === "generating" ? "상담 생성 진행률" : "입력 진행률"} {percent}퍼센트</span>
+    </div>
+  );
+}
+
+function LoveSecretStatusPicker({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: RelationshipStatus | "";
+  disabled: boolean;
+  onChange: (value: RelationshipStatus) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2.5">
+      {RELATIONSHIP_STATUSES.map((item) => (
+        <button
+          key={item.value}
+          type="button"
+          disabled={disabled}
+          aria-pressed={value === item.value}
+          onClick={() => onChange(item.value)}
+          className={cx(
+            theme.focusRing,
+            "min-h-11 rounded-full border px-4 text-sm font-black transition disabled:opacity-55",
+            value === item.value
+              ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
+              : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]",
+          )}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -964,21 +1081,22 @@ function PersonFields({
   disabled: boolean;
   onChange: (field: keyof PersonInfo, value: string | boolean) => void;
 }) {
+  const inputClass = `${theme.focusRing} min-h-12 rounded-2xl border border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] px-4 text-[var(--ls-text)] outline-none transition placeholder:text-[var(--ls-text-muted)] disabled:opacity-55`;
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-5">
       <label className="grid gap-2">
-        <span className="text-sm font-bold text-rose-50">{label} 이름 또는 별칭{required ? "" : " · 선택"}</span>
+        <span className="text-sm font-bold text-[var(--ls-text)]">{label} 이름 또는 별칭{required ? "" : " · 선택"}</span>
         <input
           value={value.name}
           onChange={(event) => onChange("name", event.target.value)}
           maxLength={80}
           disabled={disabled}
-          className="min-h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none transition placeholder:text-rose-100/40 focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/20 disabled:opacity-55"
+          className={inputClass}
           placeholder={required ? "이름을 입력해 주세요" : "상대방을 부르는 이름"}
         />
       </label>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <FieldGroup label={`${label} 성별${required ? "" : " · 선택"}`}>
           <div className="grid grid-cols-3 gap-2">
             {[
@@ -990,10 +1108,14 @@ function PersonFields({
                 key={option}
                 type="button"
                 disabled={disabled}
+                aria-pressed={value.gender === option}
                 onClick={() => onChange("gender", option)}
                 className={cx(
-                  "min-h-11 rounded-2xl border px-3 text-sm font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/40 disabled:opacity-55",
-                  value.gender === option ? "border-amber-200 bg-amber-100 text-[#35101e]" : "border-white/10 bg-white/10 text-rose-50 hover:border-rose-100/35",
+                  theme.focusRing,
+                  "min-h-11 rounded-2xl border px-3 text-sm font-black transition disabled:opacity-55",
+                  value.gender === option
+                    ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
+                    : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]",
                 )}
               >
                 {text}
@@ -1002,7 +1124,7 @@ function PersonFields({
           </div>
         </FieldGroup>
         <FieldGroup label={`${label} 양력/음력`}>
-          <div className="grid grid-cols-2 rounded-2xl border border-white/10 bg-black/15 p-1">
+          <div className="grid grid-cols-2 gap-2">
             {[
               ["solar", "양력"],
               ["lunar", "음력"],
@@ -1011,10 +1133,14 @@ function PersonFields({
                 key={option}
                 type="button"
                 disabled={disabled}
+                aria-pressed={value.calendarType === option}
                 onClick={() => onChange("calendarType", option)}
                 className={cx(
-                  "min-h-10 rounded-xl text-sm font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/40 disabled:opacity-55",
-                  value.calendarType === option ? "bg-rose-100 text-[#35101e]" : "text-rose-50 hover:bg-white/10",
+                  theme.focusRing,
+                  "min-h-11 rounded-2xl border text-sm font-black transition disabled:opacity-55",
+                  value.calendarType === option
+                    ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
+                    : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]",
                 )}
               >
                 {text}
@@ -1024,37 +1150,37 @@ function PersonFields({
         </FieldGroup>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-2">
-          <span className="text-sm font-bold text-rose-50">{label} 생년월일{required ? "" : " · 선택"}</span>
+          <span className="text-sm font-bold text-[var(--ls-text)]">{label} 생년월일{required ? "" : " · 선택"}</span>
           <input
             type="date"
             value={value.birthDate}
             onChange={(event) => onChange("birthDate", event.target.value)}
             disabled={disabled}
-            className="min-h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none transition focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/20 disabled:opacity-55"
+            className={inputClass}
           />
         </label>
         <label className="grid gap-2">
-          <span className="text-sm font-bold text-rose-50">{label} 출생시간{required ? "" : " · 선택"}</span>
+          <span className="text-sm font-bold text-[var(--ls-text)]">{label} 출생시간{required ? "" : " · 선택"}</span>
           <input
             type="time"
             value={value.birthTime}
             onChange={(event) => onChange("birthTime", event.target.value)}
             disabled={disabled || value.birthTimeUnknown}
-            className="min-h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none transition focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/20 disabled:opacity-55"
+            className={inputClass}
           />
         </label>
       </div>
 
-      <label className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-bold text-rose-50">
+      <label className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] px-4 text-sm font-bold text-[var(--ls-text)]">
         <span>출생시간 모름</span>
         <input
           type="checkbox"
           checked={value.birthTimeUnknown}
           onChange={(event) => onChange("birthTimeUnknown", event.target.checked)}
           disabled={disabled}
-          className="h-5 w-5 rounded border-white/20 bg-white/10 accent-rose-200"
+          className="h-5 w-5 rounded accent-[var(--ls-accent)]"
         />
       </label>
     </div>
@@ -1064,79 +1190,64 @@ function PersonFields({
 function FieldGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-2">
-      <span className="text-sm font-bold text-rose-50">{label}</span>
+      <span className="text-sm font-bold text-[var(--ls-text)]">{label}</span>
       {children}
     </div>
   );
 }
 
 function LoveSecretTopicSelector({
-  relationshipStatus,
   focusArea,
   question,
   disabled,
-  onRelationshipChange,
   onTopicChange,
   onQuestionChange,
 }: {
-  relationshipStatus: RelationshipStatus | "";
   focusArea: FocusArea;
   question: string;
   disabled: boolean;
-  onRelationshipChange: (value: RelationshipStatus) => void;
   onTopicChange: (value: FocusArea) => void;
   onQuestionChange: (value: string) => void;
 }) {
   return (
-    <div className="grid gap-5">
-      <FieldGroup label="현재 관계 상태">
-        <div className="flex flex-wrap gap-2">
-          {RELATIONSHIP_STATUSES.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              disabled={disabled}
-              onClick={() => onRelationshipChange(item.value)}
-              className={cx(
-                "min-h-10 rounded-full border px-4 text-sm font-black transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/40 disabled:opacity-55",
-                relationshipStatus === item.value ? "border-amber-200 bg-amber-100 text-[#35101e]" : "border-white/10 bg-white/10 text-rose-50 hover:border-rose-100/35",
-              )}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </FieldGroup>
-
-      <FieldGroup label="상담 주제">
+    <div className="grid gap-6">
+      <FieldGroup label="상담 스타일">
         <div className="grid gap-3 sm:grid-cols-2">
           {FOCUS_AREAS.map((item) => (
             <button
               key={item.value}
               type="button"
               disabled={disabled}
+              aria-pressed={focusArea === item.value}
               onClick={() => onTopicChange(item.value)}
               className={cx(
-                "rounded-3xl border p-4 text-left transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/40 disabled:opacity-55",
-                focusArea === item.value ? "border-amber-200/70 bg-rose-200/18 shadow-lg shadow-rose-950/25" : "border-white/10 bg-white/10 hover:border-rose-100/35",
+                theme.focusRing,
+                "rounded-3xl border p-4 text-left transition hover:-translate-y-0.5 disabled:opacity-55",
+                focusArea === item.value
+                  ? "border-[var(--ls-accent)] bg-[var(--ls-surface-sunken)] shadow-[var(--ls-glow)]"
+                  : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] hover:bg-[var(--ls-surface-sunken)]",
               )}
             >
-              <span className="block text-sm font-black text-white">{item.label}</span>
-              <span className="mt-2 block text-xs leading-5 text-rose-50/70">{item.desc}</span>
+              <span className="block text-sm font-black text-[var(--ls-text)]">{item.label}</span>
+              <span className="mt-2 block text-xs leading-5 text-[var(--ls-text-muted)]">{item.desc}</span>
             </button>
           ))}
         </div>
       </FieldGroup>
 
       <label className="grid gap-2">
-        <span className="text-sm font-bold text-rose-50">추가 질문</span>
+        <span className="text-sm font-bold text-[var(--ls-text)]">
+          지금 가장 궁금한 질문{focusArea === "custom" ? "" : " · 선택"}
+        </span>
         <textarea
           value={question}
           onChange={(event) => onQuestionChange(event.target.value)}
           maxLength={1200}
           disabled={disabled}
-          placeholder={focusArea === "custom" ? "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요." : "비워두어도 상담은 가능하지만, 지금의 마음과 상황을 적으면 더 섬세하게 읽어드립니다."}
-          className="min-h-[140px] resize-y rounded-3xl border border-white/10 bg-white/10 px-4 py-3 text-white outline-none transition placeholder:text-rose-100/40 focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/20 disabled:opacity-55"
+          placeholder={focusArea === "custom"
+            ? "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요."
+            : "비워두어도 상담은 가능하지만, 지금의 마음과 상황을 적으면 더 섬세하게 읽어드립니다."}
+          className={`${theme.focusRing} min-h-[140px] resize-y rounded-3xl border border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] px-4 py-3 text-[var(--ls-text)] outline-none transition placeholder:text-[var(--ls-text-muted)] disabled:opacity-55`}
         />
       </label>
     </div>
@@ -1154,27 +1265,15 @@ function LoveSecretReadyCard({ form, topic }: { form: ConsultationForm; topic: s
     : "상대방 정보 없이 내 연애 흐름 중심";
 
   return (
-    <section className="rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl">
-      <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-100/15 text-amber-100 ring-1 ring-amber-100/20">
-          <Heart className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-100">Ready</p>
-          <h2 className="mt-1 text-xl font-black text-white">연애 비책을 펼칠 준비가 되었습니다</h2>
-        </div>
+    <section className="rounded-3xl border border-[var(--ls-gold)] bg-[var(--ls-surface-sunken)] p-5">
+      <div className="flex items-center gap-2 text-[var(--ls-accent)]">
+        <Sparkles className="h-4 w-4" aria-hidden="true" />
+        <h3 className="text-base font-black text-[var(--ls-text)]">이대로 상담을 시작합니다</h3>
       </div>
-      <div className="mt-5 grid gap-3 text-sm leading-6">
+      <div className="mt-4 grid gap-2.5 text-sm leading-6">
         <InfoLine title="내 정보" value={mySummary} />
         <InfoLine title="상대방 정보" value={partnerSummary} />
-        <InfoLine title="상담 주제" value={topic} />
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-2">
-        {ANALYSIS_ITEMS.map((item) => (
-          <span key={item} className="rounded-2xl border border-white/10 bg-black/15 px-3 py-2 text-xs font-bold text-rose-50">
-            {item}
-          </span>
-        ))}
+        <InfoLine title="상담 스타일" value={topic} />
       </div>
     </section>
   );
@@ -1182,44 +1281,84 @@ function LoveSecretReadyCard({ form, topic }: { form: ConsultationForm; topic: s
 
 function InfoLine({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/15 p-3">
-      <p className="text-xs font-black text-amber-100">{title}</p>
-      <p className="mt-1 break-words text-sm font-bold text-white">{value}</p>
+    <div className="rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-3">
+      <p className="text-xs font-black text-[var(--ls-accent)]">{title}</p>
+      <p className="mt-1 break-words text-sm font-bold text-[var(--ls-text)]">{value}</p>
     </div>
+  );
+}
+
+function LoveSecretPromiseCard() {
+  return (
+    <section className="rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 shadow-[var(--ls-glow)]">
+      <div className="flex items-center gap-2 text-[var(--ls-accent)]">
+        <Moon className="h-4 w-4" aria-hidden="true" />
+        <h2 className="text-base font-black text-[var(--ls-text)]">상담에서 읽어 드리는 것</h2>
+      </div>
+      <ul className="mt-4 grid gap-2">
+        {ANALYSIS_ITEMS.map((item) => (
+          <li key={item} className="flex items-start gap-2.5 text-sm leading-6 text-[var(--ls-text-muted)]">
+            <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-[var(--ls-accent)]" aria-hidden="true" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-xs leading-6 text-[var(--ls-text-muted)]">
+        계산된 명식과 일진 안에서만 해석합니다. 근거 없는 단정이나 지어낸 날짜는 쓰지 않습니다.
+      </p>
+    </section>
   );
 }
 
 function LoveSecretGeneratingCard({ phase, text, progress, progressIndex }: { phase: Phase; text: string; progress: number; progressIndex: number }) {
   return (
-    <section className="mt-4 rounded-3xl border border-rose-100/20 bg-white/10 p-5 backdrop-blur-xl" aria-live="polite">
-      <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-rose-200/15 text-amber-100 ring-1 ring-amber-100/20">
-          {phase === "payment" ? <WalletCards className="h-5 w-5" aria-hidden="true" /> : <Clock3 className="h-5 w-5" aria-hidden="true" />}
+    <section className="relative overflow-hidden rounded-3xl bg-[var(--ls-surface-sunken)] p-6" aria-live="polite">
+      <div className={`${styles.petalField} ${styles.sparkleField}`} aria-hidden="true">
+        {Array.from({ length: 14 }, (_, index) => (
+          <span key={index} className={styles.petal} />
+        ))}
+      </div>
+
+      <div className="relative flex items-start gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--ls-surface)] text-[var(--ls-accent)] ring-1 ring-[var(--ls-line)]">
+          {phase === "payment"
+            ? <WalletCards className="h-5 w-5" aria-hidden="true" />
+            : <Clock3 className="h-5 w-5" aria-hidden="true" />}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-black text-white">두 사람의 마음의 온도를 읽는 중입니다</h3>
-          <p className="mt-1 text-sm leading-6 text-rose-50/80">{text}</p>
+          <h3 className="break-keep text-lg font-black text-[var(--ls-text)] [font-family:var(--font-display)]">
+            마음의 온도를 읽는 중입니다
+          </h3>
+          <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{text}</p>
+          <p className="mt-1 text-xs text-[var(--ls-text-muted)]">보통 1분 30초 안에 끝나요. 창을 닫지 말고 잠시만 기다려 주세요.</p>
         </div>
       </div>
-      <div className="mt-4 h-3 overflow-hidden rounded-full bg-black/25">
-        <div className="h-full rounded-full bg-gradient-to-r from-rose-300 via-pink-200 to-amber-200 transition-all duration-700" style={{ width: `${Math.max(5, Math.min(100, progress))}%` }} />
+
+      <div className="relative mt-5 h-2.5 overflow-hidden rounded-full bg-[var(--ls-surface)]" aria-hidden="true">
+        <div
+          className={`h-full rounded-full ${styles.railFill}`}
+          style={{ "--ls-progress": Math.max(5, Math.min(100, progress)) / 100 } as CSSProperties}
+        />
       </div>
-      <div className="mt-4 grid gap-2">
-        {GENERATING_STEPS.slice(0, 3).map((item, index) => (
-          <div key={item} className={cx(
-            "flex items-center gap-3 rounded-2xl border px-3 py-2 text-xs font-bold",
-            progressIndex >= index ? "border-amber-200/25 bg-amber-100/10 text-amber-50" : "border-white/10 bg-white/5 text-rose-50/55",
-          )}>
-            {progressIndex >= index ? <Check className="h-4 w-4 text-amber-100" aria-hidden="true" /> : <Star className="h-4 w-4" aria-hidden="true" />}
-            <span>{item}</span>
-          </div>
+
+      <ul className="relative mt-5 grid gap-2">
+        {GENERATING_STEPS.map((item, index) => (
+          <li
+            key={item}
+            className={cx(
+              "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-xs font-bold transition",
+              progressIndex >= index
+                ? "border-[var(--ls-line-control)] bg-[var(--ls-surface)] text-[var(--ls-text)]"
+                : "border-[var(--ls-line)] bg-transparent text-[var(--ls-text-muted)]",
+            )}
+          >
+            {progressIndex >= index
+              ? <Check className="h-4 w-4 shrink-0 text-[var(--ls-accent)]" aria-hidden="true" />
+              : <Star className="h-4 w-4 shrink-0" aria-hidden="true" />}
+            <span className="min-w-0">{item}</span>
+          </li>
         ))}
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {[0, 1, 2].map((item) => (
-          <div key={item} className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/10 motion-reduce:animate-none" />
-        ))}
-      </div>
+      </ul>
     </section>
   );
 }
