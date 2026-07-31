@@ -256,7 +256,11 @@ describe("single payment entitlement consistency", () => {
     expect(Payment.findOneAndUpdate.mock.calls[0][1].$set.status).toBe("processing");
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(String(global.fetch.mock.calls[1][0])).toContain("/payments/pay_single_001/cancel");
-    expect(global.fetch.mock.calls[1][1].headers["Idempotency-Key"]).toBe("refund:pay_single_001:saju:no-job");
+    // 🔴 콜론이 아니라 언더스코어다. PortOne 은 Idempotency-Key 형식을 검증하며(실측: 16~256자,
+    // ":" 불가) 예전의 `refund:<id>:<svc>:<job>` 형식은 항상 400 INVALID_REQUEST 로 거절당했다 —
+    // 즉 이 테스트가 고정하던 값은 실제로는 자동환불을 한 번도 성공시키지 못하는 형식이었다.
+    // 정규화는 PG 로 나가는 단일 지점(worker/lib/portone.js normalizePortOneIdempotencyKey)에서 한다.
+    expect(global.fetch.mock.calls[1][1].headers["Idempotency-Key"]).toBe("refund_pay_single_001_saju_no-job");
     expect(Payment.findByIdAndUpdate).toHaveBeenCalledWith("payment-doc-001", expect.objectContaining({
       $set: expect.objectContaining({
         status: "cancelled",
