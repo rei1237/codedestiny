@@ -1814,6 +1814,7 @@
       "passBuyTitle": "Buy with a pass",
       "passChecking": "Checking your pass…",
       "passMissGoStore": "Your pass does not cover this, so we're taking you to the pass shop.",
+      "passCheckRetry": "We couldn't check your pass status. Please tap again in a moment.",
       "directHintApp": "Just this one result, right now. Opens instantly via Google Play billing.",
       "pgBadgeApp": "Google Play billing"
     },

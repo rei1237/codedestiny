@@ -1814,6 +1814,7 @@
       "passBuyTitle": "Kopen met pas",
       "passChecking": "Je pas wordt gecontroleerd…",
       "passMissGoStore": "Je pas dekt dit niet, we brengen je naar de paswinkel.",
+      "passCheckRetry": "We konden je passtatus niet controleren. Tik zo meteen opnieuw.",
       "directHintApp": "Alleen dit ene resultaat. Opent meteen via Google Play-facturering.",
       "pgBadgeApp": "Google Play-facturering"
     },
