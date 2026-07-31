@@ -12,7 +12,7 @@ import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-
 import { analyzeSoundFlow, soundElementOf, soundFiveElementsList } from "../lib/naming-sound-elements.js";
 import { suriPromptBlock } from "../lib/naming-suri.js";
 import { ELEMENT_LABELS_KO, GENERATE_TO, labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
@@ -1374,6 +1374,11 @@ async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSn
  * 실사용 분포를 보고 조정할 수 있게 env 로 덮을 수 있다(같은 함수의 TIMEOUT_MS·
  * MAX_OUTPUT_TOKENS 와 같은 방식). 0 이하나 숫자가 아니면 기본값을 쓴다.
  */
+/** 재시도 전에 남겨 둘 여유 — 응답 직렬화·DB 기록·후처리 몫. */
+const RETRY_RESERVE_MS = 12000;
+/** 이만큼도 안 남았으면 재시도를 걸지 않는다(걸어 봐야 엣지에 잘린다). */
+const MIN_RETRY_BUDGET_MS = 20000;
+
 const NAMING_MIN_TOTAL_CONTENT_CHARS = 5000;
 const NAMING_MAX_TOTAL_CONTENT_CHARS = 14000;
 const NAMING_PROMPT_TARGET_MIN_CHARS = 8000;
@@ -1393,15 +1398,21 @@ async function generateNamingResult(env, prompt) {
   const timeoutMs = clampSyncLlmTimeoutMs(Number(env?.NAMING_PROMPT_TIMEOUT_MS));
   const baseTokens = Number(env?.NAMING_PROMPT_MAX_OUTPUT_TOKENS) || 20000;
   const minTotalChars = resolveNamingMinTotalChars(env);
-  const callAt = (maxOutputTokens) => callGeminiText(env, prompt, {
+  const callAt = (maxOutputTokens, overrideTimeoutMs) => callGeminiText(env, prompt, {
     taskType: "fortune",
     temperature: 0.72,
     // env.PREMIUM_GEMINI_TIMEOUT_MS(운영 45초)를 || 체인에 넣지 않는다 — 45초 단락 함정(다른 -ai 라우트들 반복 경고).
-    timeoutMs,
+    timeoutMs: overrideTimeoutMs ? Math.min(timeoutMs, overrideTimeoutMs) : timeoutMs,
     maxOutputTokens,
     // 관례: 그 기능의 최소 분량 × 0.4 (CLAUDE.md). 폴백 응답에만 적용된다.
     fallbackMinChars: Math.round(minTotalChars * 0.4),
   });
+  // 재시도까지 합쳐 엣지 한계(100초) 안에서 끝나야 한다. 1차가 오래 끌었는데 2차를 그대로 태우면
+  // 라우트가 실패 처리(생성 실패 표시·접근권 복원)를 하기 전에 엣지가 요청을 끊는다 —
+  // 사용자는 결제만 하고 정체불명의 오류를 본다(worker/lib/sync-llm-timeout.js 의 경고 그대로).
+  const startedAt = Date.now();
+  const remainingBudgetMs = () => EDGE_RESPONSE_DEADLINE_MS - RETRY_RESERVE_MS - (Date.now() - startedAt);
+
   let ai = await callAt(baseTokens);
   // 잘림(MAX_TOKENS)은 이름 카드 블록(nameCards/finalPick)을 통째로 날려 유료 결과를 반쪽으로 만든다 —
   // 잘렸으면 토큰캡을 30% 올려 1회 재생성해 완결본을 확보한다(더 긴 후보만 채택).
@@ -1410,8 +1421,13 @@ async function generateNamingResult(env, prompt) {
   // 한 문단씩 때우고 끝내도 정상 결제로 통과했다(다른 전문가 상담은 전부 총 분량 계약이 있다).
   const isShort = (candidate) => countNamingContentChars(candidate?.text) < minTotalChars;
   if (ai?.ok && (ai.truncated === true || isShort(ai))) {
-    const retry = await callAt(Math.round(baseTokens * 1.3));
-    if (retry?.ok && (String(retry.text || "").length > String(ai.text || "").length)) ai = retry;
+    // 남은 예산 안에서만 재시도한다. 부족하면 1차 결과를 그대로 쓰고(짧으면 아래에서 실패 처리로
+    // 넘어가 환불·재시도 경로가 정상 작동한다) 엣지가 끊기 전에 응답을 돌려준다.
+    const budget = remainingBudgetMs();
+    if (budget > MIN_RETRY_BUDGET_MS) {
+      const retry = await callAt(Math.min(Math.round(baseTokens * 1.3), baseTokens * 2), budget);
+      if (retry?.ok && (String(retry.text || "").length > String(ai.text || "").length)) ai = retry;
+    }
   }
   if (!ai?.ok || !hasRenderableLlmText(ai.text, { minChars: 300 })) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");

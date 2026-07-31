@@ -217,6 +217,68 @@ assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILA
 assertContains(billingClientSource, "function isRetryableBillingInfraDegraded(", "React coin-gate has transient-degraded retry predicate");
 assertContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React coin-gate retries the request on transient degraded 503");
 
+// 🔴 잔량 '조회 실패'를 '잔량 부족'과 같이 묶어 월정석 버튼을 비활성하면, 재조회가 계속 실패할 때
+// 월정석이 영구 회색이 돼 결제 자체가 불가능해진다(2026-08 /naming-ai 사고: 회당결제는 eligibility
+// 왕복을 건너뛰어 결제창이 항상 '확인 필요'로 열리므로, 자동 재조회 1회의 실패가 곧 결제 불가였다).
+// 결제 후 재노출 경로에는 verify-static-paid-gate-failsafe.mjs 가 이미 같은 계약을 강제한다 —
+// 여기서는 '잔량 조회' 경로에 대해 3렌더러 모두를 강제한다. 확인된 잔량이 필요분보다 적을 때만 비활성.
+const reactMoonlightApplySource = section(
+  billingClientSource,
+  "const applyMoonlightBalance = (rawBalance: number | null",
+  "const refreshMonthlyBalance = async (",
+  "React moonlight balance apply",
+);
+assertContains(reactMoonlightApplySource, "const insufficient = known && balance < monthlyCost;", "React moonlight disable is decided by confirmed shortage only");
+assertContains(reactMoonlightApplySource, 'const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;', "React moonlight stays enabled while the balance is unconfirmed");
+assertNotContains(reactMoonlightApplySource, "const canUse = known && monthlyCost > 0 && balance >= monthlyCost;", "React moonlight must not treat a failed lookup as insufficient");
+assertContains(reactMoonlightApplySource, "lastKnownMonthlyBalance", "React moonlight keeps the last confirmed balance across a failed refresh");
+assertContains(billingClientSource, "const snapshotMonthlyBalance = hasCallerMonthlyBalance ? 0 : readSubscriptionSnapshotMonthlyBalance();", "React payment choice seeds the moonlight balance from the local subscription snapshot");
+
+const shellMoonlightRefreshSource = section(
+  indexSource,
+  "async function refreshDirectMonthlyBalance(options)",
+  "function close(mode)",
+  "shell moonlight balance refresh",
+);
+assertContains(
+  shellMoonlightRefreshSource,
+  "canUseMonthly = allowMonthlyChoice && requiredMonthlyCredits > 0 && (!monthlyBalanceFresh || monthlyBalance >= requiredMonthlyCredits);",
+  "shell moonlight stays enabled while the balance is unconfirmed",
+);
+assertNotContains(
+  shellMoonlightRefreshSource,
+  "canUseMonthly = monthlyBalanceFresh && monthlyBalance >= requiredMonthlyCredits",
+  "shell moonlight must not treat a failed lookup as insufficient",
+);
+assertNotContains(
+  shellMoonlightRefreshSource,
+  "if (silent && !monthlyBalanceFresh && previousMonthlyBalanceFresh)",
+  "shell keeps the last confirmed balance on manual refresh failure too, not only silent ones",
+);
+
+const standaloneMoonlightApplySource = section(
+  destinyProfileSource,
+  "function applyStandaloneMoonbal(state, balance)",
+  "function refreshStandaloneMoonbal(",
+  "standalone moonlight balance apply",
+);
+assertContains(standaloneMoonlightApplySource, "var insufficient = known && balance < monthlyStones;", "standalone moonlight disable is decided by confirmed shortage only");
+assertContains(standaloneMoonlightApplySource, "lastKnownStandaloneBalance", "standalone moonlight keeps the last confirmed balance across a failed refresh");
+// 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을 준다. ok 를 먼저 검사하면 그 0 이
+// '잔여 확인 완료 · 현재 0개'로 렌더돼 월정석이 잠긴다 — signedOut 을 반드시 먼저 본다.
+const standaloneMoonlightRefreshSource = section(
+  destinyProfileSource,
+  "function refreshStandaloneMoonbal(fresh)",
+  "function finish(choice)",
+  "standalone moonlight balance refresh",
+);
+assertBefore(
+  standaloneMoonlightRefreshSource,
+  "if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);",
+  "else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);",
+  "standalone moonlight checks signed-out before treating a zero balance as confirmed",
+);
+
 // 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
 const reactAuthPrewarmSource = section(
   billingClientSource,

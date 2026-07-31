@@ -107,17 +107,39 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
-async function postJson<T = Record<string, unknown>>(path: string, body: Record<string, unknown>) {
+// 🔴 /generate 는 요청 안에서 LLM 생성을 끝내는 동기 라우트다(worker/routes/naming-prompt.js —
+// waitUntil 백그라운드 폴링은 Workers 요청 간 I/O 격리로 결과가 고착돼 의도적으로 배제됐다).
+// 서버 예산은 엣지 한계 100초 / LLM 85초인데 authFetch 는 자체 AbortController 로 22초에 끊는다
+// (AUTH_FETCH_TIMEOUT_MS). 8,000~14,000자 목표라 생성은 항상 22초를 넘고, 결과는 서버에서
+// 정상 저장되는데 클라만 먼저 포기해 "확인 실패 / 네트워크 연결을 확인한 뒤…" 가 떴다.
+// authFetch 는 호출부가 signal 을 주면 자기 타임아웃을 걸지 않으므로, 여기서 엣지 한계보다
+// 넉넉한 상한을 직접 준다.
+const GENERATE_TIMEOUT_MS = 115000;
+
+async function postJson<T = Record<string, unknown>>(
+  path: string,
+  body: Record<string, unknown>,
+  timeoutMs = 0,
+) {
+  const controller = timeoutMs > 0 && typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : 0;
   try {
     const response = await authFetch(
       path,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        ...(controller ? { signal: controller.signal } : {}),
+      },
       { retryOn401: false },
     );
     const data = await response.json().catch(() => ({}));
     return { status: response.status, data: data as T };
   } catch {
     throw new Error("NETWORK_ERROR");
+  } finally {
+    if (timer) window.clearTimeout(timer);
   }
 }
 
@@ -496,10 +518,11 @@ export default function NamingAiClient() {
   }) {
     const { input, inputHash, access } = args;
     setPhase("generating");
-    // /generate가 이용권/결제 접근권을 직접 검증(verifyNamingAccess→canAccessPaidFeature)하므로 별도
-    // verify-payment 선검사는 두지 않는다(이용권 중복 검사 제거 — 서버 검사 1회). 접근권 성공 시 즉시
-    // 202+executionId가 오고 LLM 생성은 백그라운드(waitUntil)에서 완주하며, 결과 페이지가 폴링을 이어받는다.
-    const genRes = await postJson<{
+    // /generate가 이용권/결제 접근권을 직접 검증하므로 별도 verify-payment 선검사는 두지 않는다
+    // (이용권 중복 검사 제거 — 서버 검사 1회). 생성은 그 요청 안에서 동기로 끝나고 201로 결과가 온다.
+    // 네트워크가 끊겨도 서버 쪽 생성은 대개 완주해 실행 레코드가 남는다 — 같은 입력·같은 증거로 한 번
+    // 더 부르면 beginNamingGeneration이 그 레코드를 그대로 돌려주므로(추가 차감 없음) 1회 재시도한다.
+    const generateOnce = () => postJson<{
       ok: boolean;
       code?: string;
       reason?: string;
@@ -516,7 +539,15 @@ export default function NamingAiClient() {
       accessGrant: access.accessGrant,
       consume: access.consume,
       payment: access.payment,
-    });
+    }, GENERATE_TIMEOUT_MS);
+
+    let genRes;
+    try {
+      genRes = await generateOnce();
+    } catch (caught) {
+      if ((caught instanceof Error ? caught.message : "") !== "NETWORK_ERROR") throw caught;
+      genRes = await generateOnce();
+    }
 
     assertAuthorized(genRes.status);
     if (genRes.status === 402) throw new Error("PAYMENT_FAILED");

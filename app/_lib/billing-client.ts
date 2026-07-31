@@ -993,7 +993,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
   const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
-  const providedMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
+  const callerMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
+  const hasCallerMonthlyBalance = typeof callerMonthlyBalanceRaw === "number" && Number.isFinite(callerMonthlyBalanceRaw) && callerMonthlyBalanceRaw >= 0;
+  // 회당결제(per-use)는 eligibility 서버 왕복을 건너뛰므로(runBillingCoinGate의 mayBeAlreadyUnlocked 분기)
+  // 호출부가 잔량을 아예 넘기지 못한다 — 그래서 결제창이 항상 '확인 필요'로 열리고, 아래 자동 재조회 1회가
+  // 유일한 근거였다. 셸에는 로컬 잔량 캐시(_cdGetMonthlyCreditBalance)가 있는데 여기엔 없었다.
+  // 이미 있는 로컬 구독 스냅샷을 읽어 같은 자리를 메운다(새 캐시 계층·새 요청 없음).
+  const snapshotMonthlyBalance = hasCallerMonthlyBalance ? 0 : readSubscriptionSnapshotMonthlyBalance();
+  const providedMonthlyBalanceRaw = hasCallerMonthlyBalance
+    ? callerMonthlyBalanceRaw
+    : (snapshotMonthlyBalance > 0 ? snapshotMonthlyBalance : undefined);
   const hasProvidedMonthlyBalance = typeof providedMonthlyBalanceRaw === "number" && Number.isFinite(providedMonthlyBalanceRaw) && providedMonthlyBalanceRaw >= 0;
   const monthlyBalance = Math.max(0, Math.floor(toNumber(providedMonthlyBalanceRaw, 0)));
   // 스냅샷 잔량이 제공되지 않았으면(=조회 실패/미확정) '잔량 부족'이 아니라 '확인 필요'로 취급한다.
@@ -1182,36 +1191,52 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     };
 
     let moonlightRefreshBusy = false;
+    // 조회에 한 번이라도 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을 지우지 않게 한다
+    // (셸 index.html 의 sticky 계약과 동일). 초기값은 호출부/로컬 스냅샷이 준 잔량.
+    let lastKnownMonthlyBalance: number | null = hasProvidedMonthlyBalance ? monthlyBalance : null;
     // 월정석 잔량 UI를 모달을 닫지 않고 제자리 갱신한다. state!=="fresh"면 '확인 필요'로 두어 조회 실패를 0으로 오인하지 않는다.
     // 단건 결제 버튼은 어떤 상태에서도 건드리지 않아 사용자가 막히지 않는다(CLAUDE.md 동등 노출).
     const applyMoonlightBalance = (rawBalance: number | null, state: "fresh" | "error" | "signed-out") => {
       if (settled) return;
-      const known = state === "fresh" && typeof rawBalance === "number" && Number.isFinite(rawBalance) && rawBalance >= 0;
-      const balance = known ? Math.floor(rawBalance as number) : 0;
-      const canUse = known && monthlyCost > 0 && balance >= monthlyCost;
+      const fresh = state === "fresh" && typeof rawBalance === "number" && Number.isFinite(rawBalance) && rawBalance >= 0;
+      if (fresh) lastKnownMonthlyBalance = Math.floor(rawBalance as number);
+      if (state === "signed-out") lastKnownMonthlyBalance = null;
+      const known = fresh || (state === "error" && lastKnownMonthlyBalance !== null);
+      const balance = known ? (lastKnownMonthlyBalance as number) : 0;
+      // 🔴 미확정(조회 실패) ≠ 잔량 부족. 확인된 잔량이 필요분보다 적을 때만 비활성한다 —
+      // 조회 실패까지 비활성으로 묶으면 재조회가 계속 실패할 때 월정석이 영구 회색이 돼 결제 자체가
+      // 불가능해진다(위 초기 렌더 monthlyCanUse·독립 정적 렌더러 applyStandaloneMoonbal 과 같은 계약).
+      // 실제로 부족하면 서버 coin-gate 가 lot 정본 잔량을 실은 402 로 되돌려 1왕복에 수렴하고, 차감은 없다.
+      const insufficient = known && balance < monthlyCost;
+      const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;
       const afterBalance = Math.max(0, balance - monthlyCost);
       const monthlyButton = modal.querySelector<HTMLButtonElement>('[data-mode="monthly"]');
       const currentNode = modal.querySelector<HTMLElement>("[data-monthly-current]");
       const descNode = modal.querySelector<HTMLElement>("[data-monthly-hint]");
       const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
+      const balanceStatus = modal.querySelector<HTMLElement>("[data-monthly-balance-status]");
       if (currentNode) currentNode.textContent = known ? `보유 월정석 ${balance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+      // 상태 표시가 초기 렌더값('checking')에 굳어 실패해도 '확인하고 있습니다'로 남던 문제(셸은 갱신함).
+      if (balanceStatus) balanceStatus.setAttribute("data-state", fresh ? "fresh" : state);
       if (balanceText) {
         balanceText.textContent = state === "signed-out"
           ? "로그인 후 월정석 잔량을 확인할 수 있어요."
           : state === "error"
-            ? "월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요."
+            ? (known
+              ? `월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`
+              : "월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.")
             : `월정석 잔여 확인 완료 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`;
       }
       if (monthlyButton) {
         monthlyButton.disabled = !canUse;
         monthlyButton.classList.toggle("is-disabled", !canUse);
         monthlyButton.setAttribute("aria-disabled", canUse ? "false" : "true");
-        monthlyButton.setAttribute("aria-label", `월정석 사용${canUse ? "" : (known ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
+        monthlyButton.setAttribute("aria-label", `월정석 사용${canUse ? "" : (insufficient ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
         if (descNode) {
-          descNode.textContent = canUse
-            ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${afterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
+          descNode.textContent = insufficient
+            ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
             : (known
-              ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
+              ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${afterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
               : "월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
         }
       }
@@ -1349,8 +1374,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       };
       window.addEventListener("cd:billing-balance-updated", onBalanceEvent);
       removeBalanceListener = () => window.removeEventListener("cd:billing-balance-updated", onBalanceEvent);
-      // 자동 1회 재조회: 스냅샷 잔량이 없으면(조회 실패로 결제창이 열린 경우) 조용히 최신 잔량을 채운다.
-      if (!hasProvidedMonthlyBalance) void refreshMonthlyBalance();
+      // 자동 1회 재조회: 월정석이 선택지인 한 항상 최신 잔량을 확인한다. 예전에는 잔량이 '제공되지 않았을 때'만
+      // 돌아서, 호출부가 하드 0(예: buildRecoverablePaymentEligibility 의 401 복구 경로)을 넘기면 '잔량 부족'으로
+      // 굳고 자가치유 기회조차 없었다. 클라 15초 캐시 + in-flight dedup(fetchBillingBalance) 이 이미 있어
+      // 왕복이 늘지 않는다 — 새 캐시/재시도 계층을 얹지 않는다.
+      void refreshMonthlyBalance();
     }
   });
 }
