@@ -436,6 +436,7 @@ const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuy
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
 const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
+const handleFeedbackRoutes = createLazyRouteHandler("./routes/feedback.js", () => import("./routes/feedback.js"), "handleFeedbackRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
 const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
 const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
@@ -1117,6 +1118,12 @@ export default {
 
       if (url.pathname === "/api/reviews" || url.pathname.startsWith("/api/reviews/")) {
         return withCorsHeaders(request, env, await handleReviewRoutes(request, env));
+      }
+
+      // ctx 를 넘기는 이유: 관리자 알림 메일/웹훅을 응답 이후 백그라운드로 돌려
+      // 제보 접수 응답을 지연시키지 않는다(routes/feedback.js handleCreate).
+      if (url.pathname === "/api/feedback" || url.pathname.startsWith("/api/feedback/")) {
+        return withCorsHeaders(request, env, await handleFeedbackRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/content" || url.pathname.startsWith("/api/content/")) {

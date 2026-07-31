@@ -70,6 +70,7 @@
     "migrate:llm-cache-indexes": "node scripts/migrations/20260705-add-llm-response-cache-indexes.mjs",
     "migrate:rpg-indexes": "node scripts/migrations/20260721-add-rpg-progress-indexes.mjs",
     "verify:rpg-indexes": "node scripts/migrations/20260721-add-rpg-progress-indexes.mjs --check",
+    "migrate:feedback-indexes": "node scripts/migrations/20260731-add-feedback-indexes.mjs",
     "migrate:fix-ttl-index-drift": "node scripts/migrations/20260705-fix-ttl-index-drift.mjs",
     "migrate:monthly-credit-lot-expiry": "node scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs",
     "verify:mongo-launch-indexes": "node scripts/verify-mongo-launch-indexes.mjs",

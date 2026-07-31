@@ -59,6 +59,7 @@ const CHROMELESS_ROUTES = [
   "/journey",
   "/island-consult",
   "/lock-screen-fortune",
+  "/feedback",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [

@@ -5043,6 +5043,14 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminCmsRoutes(path.slice("/cms".length) || "/", request, env, adminContext);
     }
 
+    // 버그 제보실. 위 CMS 와 같은 이유로 분리한다 — 공개 라우트(routes/feedback.js)와
+    // 직렬화·상수·첨부 읽기 함수를 공유해야 하고, admin.js 를 더 키우지 않는다.
+    if (path === "/feedback" || path.startsWith("/feedback/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminFeedbackRoutes } = await import("./admin-feedback.js");
+      return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
+    }
+
     if (path === "/site-content/overrides") {
       if (method === "GET") return await handleSiteContentOverrideList(request, env);
       return methodNotAllowed();
