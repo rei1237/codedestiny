@@ -439,6 +439,25 @@ const paymentWebhookEventSchema = new mongoose.Schema({
 paymentWebhookEventSchema.index({ provider: 1, eventId: 1 }, { unique: true });
 paymentWebhookEventSchema.index({ paymentId: 1, createdAt: -1 });
 
+// 결제창(체크아웃) 퍼널 계측. "결제창까지 왔는데 왜 안 사는가"를 데이터로 볼 수 있는 유일한 채널이다
+// — 이 프로젝트에는 GA/GTM 이 없고 그동안 결제 퍼널 이벤트가 0건이었다.
+// 🔴 개인식별자를 저장하지 않는다(userId·이메일·프로필·생년 정보 없음). 집계용 익명 이벤트 전용이며,
+// 90일 TTL 로 스스로 사라진다. 클라는 sendBeacon 으로 fire-and-forget 하고 응답을 보지 않는다.
+const checkoutFunnelEventSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 60, index: true },
+  featureKey: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  option: { type: String, default: "", trim: true, maxlength: 40 },
+  renderer: { type: String, default: "", trim: true, maxlength: 40 },
+  runtime: { type: String, default: "", trim: true, maxlength: 20 },
+  coinPrice: { type: Number, default: 0, min: 0 },
+  hasPassHint: { type: String, default: "", trim: true, maxlength: 20 },
+  dwellMs: { type: Number, default: 0, min: 0 },
+  createdAt: { type: Date, default: Date.now },
+}, { collection: "checkout_funnel_events", versionKey: false });
+
+checkoutFunnelEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+checkoutFunnelEventSchema.index({ name: 1, createdAt: -1 });
+
 const securityEventSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
   ipHash: { type: String, trim: true, maxlength: 96, index: true, default: "" },
@@ -1231,6 +1250,8 @@ export const ContentEntitlement = mongoose.models.ContentEntitlement
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
   || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema);
+export const CheckoutFunnelEvent = mongoose.models.CheckoutFunnelEvent
+  || mongoose.model("CheckoutFunnelEvent", checkoutFunnelEventSchema);
 export const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema);
 export const IdempotencyKey = mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema);
 export const AbuseScore = mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema);

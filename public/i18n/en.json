@@ -1745,7 +1745,7 @@
     "directModal": {
       "title": "Choose payment method",
       "readyMessage": "Choose between monthly credits and one-time payment.",
-      "directHint": "Pay directly with card or simple payment.<br>Payment continues in the secure PortOne V2 KG Inicis checkout window.",
+      "directHint": "Just this one result, right now. Opens instantly with card or easy pay.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "One-time KRW payment · {amount}",
       "amountLabel": "Payment amount",
@@ -1761,15 +1761,17 @@
       "note": {
         "basis": "Monthly credit basis · {amount}",
         "withPass": "General paid services open with a pass when they are within the limit. PDFs and services above the limit use one-time KRW payment by product.",
-        "directOnly": "This action is confirmed with a one-time KRW payment."
+        "directOnly": "This action is confirmed with a one-time KRW payment.",
+        "passUnknown": "If you have a pass, tap the pass card below and we'll check it right here.",
+        "passMiss": "Your pass does not open this content for free, so here are the payment options."
       },
       "passBadge": "Moonlight Pass",
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Check pass again",
       "passHint": {
-        "store": "Switch to a Moonlight Pass to open this and every feature under its limit for 30 days, with no checkout window.",
+        "store": "Unlimited access to features under the limit for 30 days, with no checkout. Already have a pass? Tap to check right here.",
         "retry": "We will check the server again to see whether your pass can open this without payment.",
-        "upgrade": "This feature is above your current pass limit. Check a higher Moonlight Pass."
+        "upgrade": "Your current tier does not cover this feature. Take a look at a higher pass."
       },
       "applyMethod": {
         "label": "Apply method",
@@ -1784,9 +1786,9 @@
         "checking": "Checking pass coverage"
       },
       "monthlyHint": {
-        "use": "Use your monthly credit balance and open it now.",
+        "use": "Pays with moonstones you already have. Opens with no extra spending.",
         "insufficient": "Your monthly credit balance is low. You can continue with one-time KRW payment.",
-        "checking": "Monthly credit balance needs checking. One-time KRW payment is still available."
+        "checking": "We need to check your moonstone balance. One-time KRW payment stays available."
       },
       "monthlyBalance": {
         "needCheck": "Check needed",
@@ -1795,13 +1797,24 @@
         "refresh": "Refresh credits",
         "refreshing": "Refreshing monthly credit balance.",
         "refreshed": "Monthly credit balance checked again. Current balance is {balance}.",
-        "notFound": "No active monthly credits/pass were found yet. Please refresh again after payment is complete."
+        "notFound": "No active monthly credits/pass were found yet. Please refresh again after payment is complete.",
+        "owned": "Moonstones held: {balance}",
+        "ownedUnknown": "Moonstones held · needs checking"
       },
       "legal": {
         "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and cancellation of subscription may be restricted for content already provided, in accordance with e-commerce laws."
       },
       "passUpgradeTitle": "Upgrade Moonlight Pass",
-      "recommendBadge": "Recommended"
+      "recommendBadge": "Recommended",
+      "moonTitle": "Choose how to pay",
+      "moonSubtitle": "Pick the option that suits you best.",
+      "directTitleLabel": "One-time payment",
+      "monthlyUnit": "event currency",
+      "passBuyTitle": "Buy with a pass",
+      "passChecking": "Checking your pass…",
+      "passMissGoStore": "Your pass does not cover this, so we're taking you to the pass shop.",
+      "directHintApp": "Just this one result, right now. Opens instantly via Google Play billing.",
+      "pgBadgeApp": "Google Play billing"
     },
     "overlay": {
       "unlockPreparing": {

@@ -26,6 +26,7 @@ import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
+  CheckoutFunnelEvent,
   MonthlyCreditLedger,
   PaidExecutionRecord,
   Payment,
@@ -6546,6 +6547,7 @@ export async function handleBillingRoutes(request, env) {
     if ((method === "GET" || method === "POST") && path === "/access") return await handlePaidAccessCheck(request, env);
     if ((method === "GET" || method === "POST") && path === "/dev-payment-tester") return await handleDevPaymentTester(request, env);
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
+    if (method === "POST" && path === "/funnel-event") return await handleCheckoutFunnelEvent(request, env);
 
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
     if (method === "POST" && path === "/coin-gate/deferred/register") return await handleDeferredUsageRegister(request, env);
@@ -6567,6 +6569,59 @@ export async function handleBillingRoutes(request, env) {
     logBillingRouteError("handle-billing-routes", error, request);
     return handleRouteError(error, { request, env, trace });
   }
+}
+
+// 결제창 퍼널 계측 수집구. 이 프로젝트에는 GA/GTM 이 없어 "결제창까지 왔는데 왜 안 사는가"를
+// 볼 수단이 없었다 — 그 공백을 메우는 최소 채널이다.
+//
+// 계약(전부 의도적):
+//   · 인증 불필요. 비로그인 이탈도 퍼널의 일부이고, 어차피 개인식별자를 받지 않는다.
+//   · 항상 204. 클라는 sendBeacon 으로 fire-and-forget 하며 응답을 읽지 않는다.
+//   · 어떤 실패도 밖으로 내보내지 않는다 — 계측이 결제 경로에 영향을 주면 안 된다.
+//   · 이벤트명 화이트리스트 + 본문 1KB 상한. 재시도 없음(중첩 재시도 금지 원칙).
+const CHECKOUT_FUNNEL_EVENT_NAMES = new Set([
+  "checkout_opened",
+  "checkout_option_click",
+  "pass_verified_free",
+  "pass_store_entered",
+  "checkout_dismissed",
+]);
+const CHECKOUT_FUNNEL_MAX_BODY_BYTES = 1024;
+
+function clampFunnelText(value, maxLength) {
+  return String(value === null || value === undefined ? "" : value).trim().slice(0, maxLength);
+}
+
+function clampFunnelNumber(value, max) {
+  const parsed = Math.floor(Number(value || 0));
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.min(parsed, max);
+}
+
+async function handleCheckoutFunnelEvent(request, env) {
+  const noContent = () => new Response(null, { status: 204 });
+  try {
+    const raw = await request.text();
+    if (!raw || raw.length > CHECKOUT_FUNNEL_MAX_BODY_BYTES) return noContent();
+    const body = JSON.parse(raw);
+    const name = clampFunnelText(body?.name, 60);
+    if (!CHECKOUT_FUNNEL_EVENT_NAMES.has(name)) return noContent();
+    await connectDb(env);
+    await CheckoutFunnelEvent.create({
+      name,
+      featureKey: clampFunnelText(body?.featureKey, 120),
+      option: clampFunnelText(body?.option, 40),
+      renderer: clampFunnelText(body?.renderer, 40),
+      runtime: clampFunnelText(body?.runtime, 20),
+      coinPrice: clampFunnelNumber(body?.coinPrice, 1000000),
+      hasPassHint: clampFunnelText(body?.hasPassHint, 20),
+      dwellMs: clampFunnelNumber(body?.dwellMs, 24 * 60 * 60 * 1000),
+      createdAt: new Date(),
+    });
+  } catch (_funnelEventError) {
+    // 계측 유실은 허용한다. 로그도 남기지 않는다 — 비정상 트래픽이 로그를 밀어내면 그게 더 나쁘다.
+  }
+  return noContent();
 }
 
 export const __billingTestUtils = {
