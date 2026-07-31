@@ -9,8 +9,11 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import { getNarratorAsset } from "../data/assets";
-import { CODEX_ACTS } from "../data/acts";
+import { actsForMode } from "../data/acts";
+import { codexAccessLabel } from "../data/premium";
+import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
 import styles from "../styles/codex.module.css";
 
 const DECRYPT_LINES = [
@@ -27,15 +30,30 @@ interface CodexGeneratingProps {
   total: number;
   latestTitles: string[];
   name: string;
+  /** 결제된 상품 — 막 제목과 상단 금액 배지가 이 값을 따른다 */
+  mode?: MasterLoveCodexMode;
+  /** ensure-access 가 준 통과 경로 — 이용권/월정석이면 금액 대신 그 사실을 적는다 */
+  accessType?: string;
 }
 
-export default function CodexGenerating({ completed, total, latestTitles, name }: CodexGeneratingProps) {
+export default function CodexGenerating({
+  completed,
+  total,
+  latestTitles,
+  name,
+  mode = "solo",
+  accessType = "",
+}: CodexGeneratingProps) {
   const [lineIndex, setLineIndex] = useState(0);
+  const billing = masterLoveCodexBilling(mode);
+  const access = codexAccessLabel(accessType);
 
   // 시작 직후 0%로 멈춰 보이거나 끝나기 전에 100%로 보이지 않게 5~95로 가둔다.
   const raw = total > 0 ? Math.round((completed / total) * 100) : 0;
   const percent = completed >= total && total > 0 ? 100 : Math.min(95, Math.max(5, raw));
-  const currentAct = CODEX_ACTS.find((act) => completed + 1 >= act.from && completed + 1 <= act.to) || CODEX_ACTS[0];
+  // 궁합판은 막 제목이 다르다 — 개인판 목록으로 고정하면 진행 중에 엉뚱한 제목이 뜬다.
+  const acts = actsForMode(mode);
+  const currentAct = acts.find((act) => completed + 1 >= act.from && completed + 1 <= act.to) || acts[0];
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -49,6 +67,24 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
   return (
     <section className="flex min-h-[100svh] flex-col items-center justify-center py-16 text-center" aria-label="인연의 서 생성 중">
       <div className={styles.measure}>
+        {/* 지금 어떤 상품을 이용 중인지 대기 화면에서도 계속 보이게 한다.
+            이용권/월정석으로 통과했으면 금액 대신 그 사실을 적는다. */}
+        <p className={`${styles.badge} mb-10`}>
+          PREMIUM CONSULTATION
+          {access.showPrice ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <PriceBadge featureKey={billing.featureKey} fallbackCoins={billing.cost} className="font-bold" />
+            </>
+          ) : null}
+          {access.note ? (
+            <>
+              <span aria-hidden="true">·</span>
+              {access.note}
+            </>
+          ) : null}
+        </p>
+
         <Image
           src={getNarratorAsset("calm")}
           alt="책을 읽고 있는 연애 고수"
@@ -90,7 +126,7 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
           {currentAct.numeral} · {completed} / {total}
         </p>
 
-        <p className="mt-3 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+        <p className="mt-3" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
           {name ? `${name}님의 인연의 서를 쓰는 중입니다` : "당신의 인연의 서를 쓰는 중입니다"}
         </p>
 
@@ -99,8 +135,8 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
             {latestTitles.slice(-3).map((title) => (
               <li
                 key={title}
-                className="truncate border-b border-[color:var(--codex-rule)] pb-2 text-[0.8125rem]"
-                style={{ color: "var(--codex-ink-text-muted)" }}
+                className="truncate border-b border-[color:var(--codex-rule)] pb-2"
+                style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}
               >
                 {title}
               </li>
@@ -108,7 +144,7 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
           </ul>
         ) : null}
 
-        <p className="mt-12 text-[0.75rem] leading-6" style={{ color: "rgba(185,173,153,.62)" }}>
+        <p className="mt-12 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
           창을 닫아도 지금까지 쓰인 장은 보관됩니다. 다시 들어오면 이어서 완성할 수 있습니다.
         </p>
       </div>
