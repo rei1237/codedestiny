@@ -195,6 +195,11 @@ jobs:
       - name: Verify nakshatra deep consultation flow
         run: npm run verify:nakshatra-ai-flow
 
+      # 영구 해금 리포트 2종(지배성·다샤 인생지도) — 결정론 본문의 분량·무결성과
+      # 결제 계약(해금 상태만 읽음·paymentMode 미지정·확인 실패를 미구매로 취급 금지).
+      - name: Verify nakshatra premium unlock reports
+        run: npm run verify:nakshatra-premium
+
       # 궁합 판정이 결정론을 잃거나 축 점수가 한쪽으로 쏠리면 20장이 모든 짝에게 같은 말을 한다.
       - name: Verify master love codex compat determinism
         run: npm run verify:master-love-codex-compat

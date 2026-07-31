@@ -1,0 +1,305 @@
+/* 나크샤트라 영구 해금 리포트 2종 공유 스타일.
+   팔레트는 나크샤트라 결정판 토큰(nakshatra.module.css .vars)과 같은 값을 쓴다 —
+   CSS module 은 파일 경계를 넘어 상속되지 않으므로 여기서 다시 선언한다(신규 팔레트 도입 아님). */
+
+.vars {
+  --ink-900: #04050c;
+  --ink-800: #080a16;
+  --ink-700: #0e1124;
+  --east: #74c7d6;
+  --east-soft: #a7dfe8;
+  --gold: #e5c789;
+  --gold-soft: #f4e4b6;
+  --rose: #e0517f;
+  --rose-soft: #f4a6c1;
+  --t-100: #f4f4fb;
+  --t-200: #d9ddf0;
+  --t-300: #aab2d4;
+  --t-400: #7c85aa;
+  --hair: rgba(213, 197, 148, 0.16);
+  --line: rgba(180, 190, 240, 0.12);
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-2: rgba(255, 255, 255, 0.055);
+}
+
+.shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  padding: 1.75rem 1rem 4rem;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(116, 199, 214, 0.1), transparent 40%),
+    radial-gradient(circle at 84% 14%, rgba(229, 199, 137, 0.09), transparent 42%),
+    linear-gradient(158deg, #04050c 0%, #0e1124 55%, #050610 100%);
+  color: var(--t-200);
+  font-family: var(--font-body);
+}
+.inner {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.35rem;
+  color: var(--gold-soft);
+  font-size: 0.86rem;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.back:hover { color: var(--gold); }
+
+/* ── 머리말 ── */
+.head { margin-bottom: 1.6rem; text-align: center; }
+.eyebrow {
+  margin: 0;
+  color: rgba(229, 199, 137, 0.78);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.title {
+  margin: 0.7rem 0 0;
+  color: var(--t-100);
+  font-family: var(--font-display, inherit);
+  font-size: clamp(1.6rem, 5.2vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.34;
+  word-break: keep-all;
+}
+.lede {
+  max-width: 30rem;
+  margin: 0.85rem auto 0;
+  color: var(--t-300);
+  font-size: 0.9rem;
+  line-height: 1.85;
+  word-break: keep-all;
+}
+
+/* ── 명식 요약(고정) ── */
+.natal {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid var(--hair);
+  border-radius: 0.9rem;
+  background: rgba(8, 10, 22, 0.92);
+  backdrop-filter: blur(8px);
+  font-size: 0.82rem;
+}
+.natalEast { color: var(--east-soft); font-weight: 700; }
+.natalIndia { color: var(--gold-soft); font-weight: 700; }
+.natalMeta { margin-left: auto; color: var(--t-400); font-size: 0.75rem; }
+
+/* ── 잠금 화면 ── */
+.gate {
+  padding: 1.6rem 1.25rem;
+  border: 1px solid rgba(229, 199, 137, 0.26);
+  border-radius: 1.25rem;
+  background: var(--glass);
+  text-align: center;
+}
+.gatePrice {
+  margin: 0 0 0.35rem;
+  color: var(--gold);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.gateNote { margin: 0 0 1.15rem; color: var(--t-400); font-size: 0.78rem; line-height: 1.7; }
+.bullets { margin: 0 0 1.35rem; padding: 0; list-style: none; text-align: left; }
+.bullets li {
+  position: relative;
+  padding: 0.42rem 0 0.42rem 1.35rem;
+  color: var(--t-200);
+  font-size: 0.86rem;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.bullets li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+  font-size: 0.75rem;
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f4e4b6, #dda44f);
+  color: #1a1305;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.18s ease, transform 0.18s ease;
+}
+.cta:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.cta:disabled { opacity: 0.55; cursor: default; }
+
+.needBirth {
+  padding: 1.5rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--glass);
+  color: var(--t-300);
+  font-size: 0.88rem;
+  line-height: 1.85;
+  text-align: center;
+  word-break: keep-all;
+}
+.needBirthLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 1rem;
+  padding: 0 1.35rem;
+  border: 1px solid rgba(229, 199, 137, 0.4);
+  border-radius: 999px;
+  color: var(--gold-soft);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.status { padding: 2.5rem 1rem; color: var(--t-300); font-size: 0.9rem; text-align: center; }
+.error {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(224, 81, 127, 0.34);
+  border-radius: 0.8rem;
+  background: rgba(224, 81, 127, 0.07);
+  color: var(--rose-soft);
+  font-size: 0.84rem;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* ── 본문 카드 ── */
+.headline {
+  margin: 0 0 1.5rem;
+  padding: 1.25rem 1.3rem;
+  border: 1px solid var(--hair);
+  border-radius: 1.05rem;
+  background: var(--glass-2);
+  color: var(--gold-soft);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.95;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.card {
+  margin-bottom: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 1.05rem;
+  background: var(--glass);
+  overflow: hidden;
+}
+.card[open] { border-color: var(--hair); }
+.summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+.summary::-webkit-details-marker { display: none; }
+.icon {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(229, 199, 137, 0.12);
+  color: var(--gold);
+  font-size: 0.86rem;
+}
+.summaryText { min-width: 0; }
+/* 두 줄은 각각 블록이어야 한다 — 인라인 span 이면 세로 여백이 먹지 않아 제목과 한 줄이 붙는다. */
+.cardTitle {
+  display: block;
+  margin: 0;
+  color: var(--t-100);
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.keyInsight {
+  display: block;
+  margin: 0.3rem 0 0;
+  color: var(--gold-soft);
+  font-size: 0.83rem;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.body { padding: 0 1.1rem 1.2rem 3.7rem; }
+.body p {
+  margin: 0 0 0.85rem;
+  color: var(--t-200);
+  font-size: 0.9rem;
+  line-height: 2;
+  word-break: keep-all;
+}
+.body p:last-child { margin-bottom: 0; }
+.practice { margin: 1rem 0 0; padding: 0; list-style: none; }
+.practice li {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--t-200);
+  font-size: 0.87rem;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.practiceLabel { flex: none; color: var(--east-soft); font-weight: 700; }
+
+@media (max-width: 480px) {
+  .body { padding-left: 1.1rem; }
+}
+
+/* ── 상호 안내 ── */
+.crossSell {
+  margin-top: 1.75rem;
+  padding: 1.15rem 1.2rem;
+  border: 1px solid var(--hair);
+  border-radius: 1.05rem;
+  background: var(--glass);
+}
+.crossTitle { margin: 0 0 0.5rem; color: var(--gold-soft); font-size: 0.88rem; font-weight: 800; }
+.crossText { margin: 0 0 0.85rem; color: var(--t-300); font-size: 0.84rem; line-height: 1.85; word-break: keep-all; }
+.crossLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--east-soft);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.disclaimer {
+  margin-top: 1.75rem;
+  color: var(--t-400);
+  font-size: 0.74rem;
+  line-height: 1.85;
+  text-align: center;
+  word-break: keep-all;
+}
