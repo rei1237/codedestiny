@@ -1123,7 +1123,31 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       settled = true;
       if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
       unlockBodyScroll();
-      modal.parentNode?.removeChild(modal);
+      // 🔴 단건만 화면에 남긴다 — 클릭한 버튼이 disabled + .is-loading 인 채로 보여
+      // 'PG 결제창을 여는 중'이 그 자리에서 읽힌다(전체화면 대기 오버레이를 없앤 자리를 메운다).
+      // 🔴 반드시 PG 결제창이 그려지기 **전에** 내려야 한다 — 이 모달은 z-index 2147483004 라
+      // PG창(#imp-iframe-wrapper, 99999)보다 높아서 남아 있으면 결제창을 덮어 버린다.
+      // 신호는 새로 만들지 않고 결제 런타임이 이미 쏘는 것을 쓴다: js/destiny-profile.js 가
+      // requestPayment 직전에 _dpSetPaymentPending(false) 로 'cd:payment-pending' 를 발사한다.
+      // 그 신호가 오지 않는 예외(런타임 미로드 등)를 대비해 상한 하나만 둔다.
+      if (mode === "direct") {
+        let removed = false;
+        const dropModal = () => {
+          if (removed) return;
+          removed = true;
+          window.removeEventListener("cd:payment-pending", onPending);
+          window.clearTimeout(failsafe);
+          modal.parentNode?.removeChild(modal);
+        };
+        const onPending = (event: Event) => {
+          const pending = (event as CustomEvent<{ pending?: boolean }>).detail?.pending;
+          if (pending === false) dropModal();
+        };
+        window.addEventListener("cd:payment-pending", onPending);
+        const failsafe = window.setTimeout(dropModal, 6000);
+      } else {
+        modal.parentNode?.removeChild(modal);
+      }
       // 이탈 계측 — 아무 것도 고르지 않고 닫은 경우만. dwellMs 로 '읽다가 포기'와 '즉시 닫음'을 가른다.
       if (mode === "cancel" && !leavingForPassStore) {
         checkoutEntry.trackCheckoutEvent("checkout_dismissed", {

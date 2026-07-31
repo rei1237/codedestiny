@@ -3348,7 +3348,12 @@ function vedicAiCreateState(chartKey){
     inFlight:false,
     lastChargedCoins:0,
     balanceAfter:null,
-    compatibilityHint:''
+    compatibilityHint:'',
+    // 생성 실패 후 재결제 없이 다시 시도하기 위한 결제 증거. requestId 완전 일치일 때만 재사용한다.
+    paidRequestId:'',
+    paidEvidence:null,
+    // 생성 성공 시에만 올린다 — 성공 후 같은 질문 재요청은 정상 결제로 돌아간다.
+    requestEpoch:0
   };
 }
 
@@ -3360,9 +3365,39 @@ function vedicAiEnsureState(){
 const VEDIC_AI_PROMPT_FEATURE_KEY='vedic_ai_prompt_generator';
 const VEDIC_AI_PROMPT_AMOUNT_KRW=10000;
 
-function vedicAiCreateRequestId(){
-  return 'vedic-ai-prompt:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+/* 이 페이지는 js/saju-engine.js 를 로드하지 않아 공용 _cdAIPromptBuildRequestId 를 쓸 수 없다.
+   같은 알고리즘을 페이지 로컬로 둔다 — 대안(공용 파일 신설 + 전 페이지 script 태그)은 파급이 훨씬 크다. */
+function vedicAiHashText(value){
+  var text=String(value==null?'':value);
+  var hash=2166136261;
+  for(var i=0;i<text.length;i+=1){
+    hash^=text.charCodeAt(i);
+    hash+=(hash<<1)+(hash<<4)+(hash<<7)+(hash<<8)+(hash<<24);
+  }
+  return (hash>>>0).toString(36);
 }
+
+/* 같은 (차트·질문·궁합·epoch) 이면 항상 같은 requestId 를 만든다. 워커 consume 은 requestId 멱등이라,
+   생성 실패 후 재시도가 재차감을 부르지 않는다. epoch 는 생성 성공 시에만 올라간다. */
+function vedicAiCreateRequestId(chart,question,compatibilityResult,epoch){
+  const seed=[
+    'vedic-ai-prompt-v1',
+    vedicAiBuildChartKey(chart),
+    String(question||'').trim().replace(/\s+/g,' '),
+    (function(){ try{ return JSON.stringify(compatibilityResult||null); }catch(_){ return ''; } })(),
+    String(Number(epoch||0))
+  ].join('|');
+  return 'vedic-ai-prompt:v1-'+vedicAiHashText(seed)+vedicAiHashText(seed.length+'|'+seed);
+}
+
+/* 워커가 "결제 권한을 보존한 채 실패"라고 명시했을 때만 증거를 보관한다(fail-closed).
+   구버전 워커 응답에는 이 필드가 없으므로 자동 보관되지 않아, 환불된 결제로 무료 생성이 되지 않는다. */
+function vedicAiShouldRetainEvidence(payload){
+  const item=payload&&typeof payload==='object'?payload:{};
+  return item.paymentRetainedForRetry===true&&item.refundOk!==true;
+}
+
+const VEDIC_AI_RETRY_HINT=' 이미 결제가 확인되었으니 추가 결제 없이 다시 시도할 수 있습니다.';
 
 function vedicAiPayloadLayers(payload){
   var layers=[];
@@ -3559,7 +3594,7 @@ function renderVedicAIPromptSection(){
       <button class="btn-sm" type="button" onclick="vedicAiUseExample('상대와의 궁합 데이터 기반으로 갈등을 줄이는 실전 행동 계획을 알려줘.')">예시: 궁합</button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'상담 생성 중...':'✨ AI 상담 받기 (10,000원)'}</button>
+      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'상담 생성 중...':(state.paidEvidence?'🔄 추가 결제 없이 다시 상담 받기':'✨ AI 상담 받기 (10,000원)')}</button>
       <button class="btn-sm" id="vedicAiCopyBtn" type="button" onclick="vedicAiCopyPrompt()" ${state.prompt?'':'disabled'}>📋 프롬프트 복사</button>
       <button class="btn-sm" id="vedicAiRegenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" ${state.prompt?'':'disabled'}>🔄 다시 상담</button>
     </div>
@@ -3596,7 +3631,10 @@ function vedicAiRefreshUi(){
   }
   if(gBtn){
     gBtn.disabled=!!state.inFlight;
-    gBtn.textContent=state.inFlight?'상담 생성 중...':'✨ AI 상담 받기 (10,000원)';
+    // 결제 권한이 보존된 실패 뒤에는 추가 결제가 없다는 것을 버튼에서도 알린다.
+    gBtn.textContent=state.inFlight
+      ?'상담 생성 중...'
+      :(state.paidEvidence?'🔄 추가 결제 없이 다시 상담 받기':'✨ AI 상담 받기 (10,000원)');
   }
   if(cpBtn) cpBtn.disabled=!state.prompt||state.inFlight;
   if(reBtn) reBtn.disabled=!state.prompt||state.inFlight;
@@ -3627,6 +3665,11 @@ function vedicAiRefreshUi(){
 function vedicAiOnQuestionInput(value){
   const state=vedicAiEnsureState();
   state.question=String(value||'').slice(0,1000);
+  // 질문이 바뀌면 requestId 가 달라져 보관된 결제 증거는 어차피 못 쓴다. 버튼 문구도 함께 되돌린다.
+  if(state.paidEvidence){
+    state.paidEvidence=null;
+    state.paidRequestId='';
+  }
   vedicAiRefreshUi();
 }
 
@@ -3676,11 +3719,15 @@ async function vedicAiGeneratePrompt(){
     try{ token=localStorage.getItem('fortune_auth_token')||''; }catch(_){ }
     const headers={ 'Content-Type':'application/json' };
     if(token) headers.Authorization='Bearer '+token;
-    const requestId=vedicAiCreateRequestId();
-    const gate=await vedicAiPaidGate(requestId);
+    const requestId=vedicAiCreateRequestId(G.chart,question,G.vedicCompatibilityResult||null,state.requestEpoch);
+    // 이미 결제가 확인된 재시도면 게이트를 다시 열지 않는다(재결제 차단).
+    const reuse=(state.paidRequestId===requestId&&state.paidEvidence)?state.paidEvidence:null;
+    const gate=reuse||await vedicAiPaidGate(requestId);
 
-    if(!gate||gate.ok!==true){
+    if(!reuse&&(!gate||gate.ok!==true)){
       const code=String(gate&&gate.code||'PAYMENT_REQUIRED').trim();
+      state.paidEvidence=null;
+      state.paidRequestId='';
       state.statusError=true;
       state.statusMessage=vedicAiStatusText(code, gate&&gate.message);
       if((gate&&gate.status)===401||code==='AUTH_REQUIRED'){
@@ -3694,7 +3741,9 @@ async function vedicAiGeneratePrompt(){
 
     headers['idempotency-key']=gate.requestId||requestId;
     state.statusError=false;
-    state.statusMessage='결제 권한이 확인되었습니다. 상담 답변을 작성하고 있습니다.';
+    state.statusMessage=reuse
+      ? '이미 확인된 결제 권한으로 추가 결제 없이 상담 답변을 다시 만들고 있습니다.'
+      : '결제 권한이 확인되었습니다. 상담 답변을 작성하고 있습니다.';
     vedicAiRefreshUi();
 
     // 게이트(결제)는 위에서 1회만. 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
@@ -3727,8 +3776,16 @@ async function vedicAiGeneratePrompt(){
 
     if(!resp.ok){
       const code=String(data&&data.code||'').trim();
+      // 결제는 확인됐는데 생성만 실패 — 서버가 환불하지 않았을 때만 증거를 보관해 무료 재시도를 연다.
+      if(vedicAiShouldRetainEvidence(data)){
+        state.paidEvidence=gate;
+        state.paidRequestId=requestId;
+      }else{
+        state.paidEvidence=null;
+        state.paidRequestId='';
+      }
       state.statusError=true;
-      state.statusMessage=vedicAiStatusText(code, data&&data.message);
+      state.statusMessage=vedicAiStatusText(code, data&&data.message)+(state.paidEvidence?VEDIC_AI_RETRY_HINT:'');
       if(code==='AUTH_REQUIRED'&&window.confirm('로그인이 필요합니다. 로그인 화면으로 이동할까요?')){
         window.location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
       }
@@ -3743,6 +3800,10 @@ async function vedicAiGeneratePrompt(){
     state.lastChargedCoins=Math.max(0, Number(data&&data.chargedCoins||0));
     state.balanceAfter=Number.isFinite(Number(data&&data.balanceAfter))?Number(data.balanceAfter):null;
     state.compatibilityHint=String(data&&data.compatibilityHint||'').trim();
+    // 성공했으므로 이 결제 증거는 소진됐다. epoch를 올려 같은 질문 재요청이 정상 결제로 가게 한다.
+    state.paidEvidence=null;
+    state.paidRequestId='';
+    state.requestEpoch=Number(state.requestEpoch||0)+1;
     state.statusError=false;
     state.statusMessage='AI 상담 완성: '+(Number(state.lastChargedCoins||0)*100).toLocaleString('ko-KR')+'원 결제 확인'+(Number.isFinite(state.balanceAfter)?(' · 잔여 원화 가치 '+(Number(state.balanceAfter)*100).toLocaleString('ko-KR')+'원'):'');
     if(Number.isFinite(state.balanceAfter)) vedicAiSyncBalance(state.balanceAfter);

@@ -18,7 +18,7 @@ import {
   tokenHeadroomChars,
   tokensRequiredForChars,
 } from "../worker/lib/llm-budget.js";
-import { SYNC_LLM_TIMEOUT_CEILING_MS } from "../worker/lib/sync-llm-timeout.js";
+import { EDGE_RESPONSE_DEADLINE_MS, SYNC_LLM_TIMEOUT_CEILING_MS } from "../worker/lib/sync-llm-timeout.js";
 
 const LABEL = "[verify:llm-generation-resilience]";
 // degrade 관문이 쓰는 값과 같아야 한다(각 라우트의 hasRenderableLlmText(..., { minChars: 400 })).
@@ -321,6 +321,129 @@ for (const [feature, path, timeoutVar] of [
     assignment.test(source),
     `${feature}: ${timeoutVar} 할당이 clampSyncLlmTimeoutMs로 감싸여 있지 않다 — `
     + `엣지 ${SYNC_LLM_TIMEOUT_CEILING_MS}ms 한계를 넘기면 라우트가 실패 처리를 못 한 채 잘린다 (${path})`,
+  );
+}
+
+// ── 셸 내장 상담 5종(worker/routes/fortune.js)의 LLM 예산 ─────────────────────
+// 이 파일은 라우트별 타임아웃 변수 대신 요청 시작 기준 총 예산(featureAiCallTimeoutMs)으로 나눠 쓴다.
+// 위 루프의 `const <var> = clampSyncLlmTimeoutMs(` 정규식과 형태가 다르므로 별도로 단언한다.
+{
+  const feature = "fortune-shell-consult";
+  const source = read("worker/routes/fortune.js");
+
+  checks += 1;
+  assert(
+    /function featureAiCallTimeoutMs\(deadlineAt, capMs, fallbackReserveMs = FEATURE_AI_FALLBACK_RESERVE_MS\) \{[\s\S]*?clampSyncLlmTimeoutMs\(/.test(source),
+    `${feature}: featureAiCallTimeoutMs가 clampSyncLlmTimeoutMs로 남은 예산을 깎지 않는다 (worker/routes/fortune.js)`,
+  );
+
+  // 🔴 clampSyncLlmTimeoutMs는 0/음수를 받으면 상한 85s로 되돌아간다. 그 앞의 하한 가드가 사라지면
+  //    예산이 바닥난 순간 오히려 최대치로 기다리게 되어 엣지 컷이 되돌아온다.
+  checks += 1;
+  assert(
+    /if \(budget < FEATURE_AI_MIN_CALL_MS\) return 0;/.test(source),
+    `${feature}: 남은 예산 하한 가드가 없다 — clampSyncLlmTimeoutMs(0)은 85s로 되돌아간다`,
+  );
+
+  // 고정 타임아웃으로 되돌아가면 예산이 무의미해진다.
+  for (const literal of ["timeoutMs: 120000", "timeoutMs: 90000"]) {
+    checks += 1;
+    assert(
+      !source.includes(literal),
+      `${feature}: 고정 타임아웃 \`${literal}\`이 되살아났다 — 엣지 100s 예산 밖으로 나간다`,
+    );
+  }
+
+  // 공용 생성기 호출부가 하나라도 deadlineAt을 빠뜨리면 그 라우트만 조용히 기본 예산으로 떨어져
+  // 인증·결제에 쓴 시간이 예산에서 누락된다(컴파일로는 잡히지 않는다).
+  // `await`로 시작하는 것만 호출부다(선언부 `async function runFeatureAiConsultation(env, {`는 제외).
+  const consultCalls = source.match(/await runFeatureAiConsultation\(env, \{/g) || [];
+  const budgetedCalls = source.match(/await runFeatureAiConsultation\(env, \{[\s\S]{0,200}?deadlineAt:/g) || [];
+  checks += 1;
+  assert(
+    consultCalls.length > 0 && consultCalls.length === budgetedCalls.length,
+    `${feature}: runFeatureAiConsultation 호출 ${consultCalls.length}건 중 ${budgetedCalls.length}건만 deadlineAt을 넘긴다`,
+  );
+
+  // 예산 + 뒤처리(결과 저장·자동 환불) 몫이 엣지 안에 들어와야 실패 처리가 실제로 실행된다.
+  const budgetMs = Number((source.match(/const FEATURE_AI_LLM_BUDGET_MS = (\d+);/) || [])[1]);
+  const primaryMs = Number((source.match(/const FEATURE_AI_PRIMARY_TIMEOUT_MS = (\d+);/) || [])[1]);
+  const reserveMs = Number((source.match(/const FEATURE_AI_FALLBACK_RESERVE_MS = (\d+);/) || [])[1]);
+  checks += 1;
+  assert(
+    Number.isFinite(budgetMs) && budgetMs + 20000 <= EDGE_RESPONSE_DEADLINE_MS,
+    `${feature}: FEATURE_AI_LLM_BUDGET_MS(${budgetMs})에 뒤처리 20s를 더하면 엣지 ${EDGE_RESPONSE_DEADLINE_MS}ms를 넘는다`,
+  );
+  checks += 1;
+  assert(
+    Number.isFinite(primaryMs) && Number.isFinite(reserveMs) && primaryMs + reserveMs <= budgetMs,
+    `${feature}: 1회 생성(${primaryMs}) + Workers AI 폴백 예약(${reserveMs})이 총 예산(${budgetMs})을 넘는다`,
+  );
+
+  // 사주 generating 신선도 창이 엣지보다 길면, 잘린 좀비 세션이 그동안 재시도를 202로 막는다.
+  const staleWindow = source.match(/const SAJU_AI_PROMPT_STALE_GENERATING_MS = ([^;]+);/);
+  checks += 1;
+  assert(
+    staleWindow && /EDGE_RESPONSE_DEADLINE_MS \+ 20000/.test(staleWindow[1]),
+    `${feature}: SAJU_AI_PROMPT_STALE_GENERATING_MS가 엣지 기준 창(EDGE_RESPONSE_DEADLINE_MS + 20000)이 아니다`,
+  );
+
+  // 폴백을 켠 유료 라우트는 fallbackMinChars를 함께 줘야 짧은 스텁이 상품 결과로 나가지 않는다(CLAUDE.md).
+  checks += 1;
+  assert(
+    (source.match(/fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS/g) || []).length >= 2,
+    `${feature}: 풀 생성 경로에 fallbackMinChars가 빠졌다 — Workers AI 스텁이 유료 결과로 전달된다`,
+  );
+  // 이어쓰기 repair는 분량 문턱을 정할 수 없고 예산이 가장 얇은 구간이라 무제한 폴백을 감당할 수 없다.
+  checks += 1;
+  assert(
+    (source.match(/fallbackToWorkersAI: false/g) || []).length >= 2,
+    `${feature}: repair 호출에 fallbackToWorkersAI: false가 빠졌다 — 폴백이 예산 밖으로 넘어간다`,
+  );
+
+  // 결제 증거 재사용이 켜진 뒤로는, 환불된 차감을 걸러 내는 이 검사가 유일한 "무료 재생성" 차단선이다.
+  checks += 1;
+  assert(
+    /kind: "refund",\s*\n\s*"metadata\.refundForPointHistoryId": String\(deducted\._id\)/.test(source),
+    `${feature}: findAIPromptPaymentEvidence가 환불된 차감을 결제 증거로 인정한다 — 환불 후 무료 생성이 열린다`,
+  );
+}
+
+// ── 프론트: 결정적 requestId + 결제 증거 재사용 ────────────────────────────────
+// 매 클릭마다 새 requestId를 만들면 워커 consume의 멱등이 무력화돼, 생성 실패 후 재시도가 재결제가 된다.
+for (const [feature, path, namespace] of [
+  ["astrology", "js/saju-engine.js", "astrology-ai-prompt"],
+  ["ziwei", "js/saju-engine.js", "ziwei-ai-prompt"],
+  ["sukuyo", "js/saju-engine-tarot-sukuyo-quantum.js", "sukuyo-ai-prompt"],
+]) {
+  const source = read(path);
+  checks += 1;
+  assert(
+    !new RegExp(`['"]${namespace}:['"]\\s*\\+\\s*(requestNonce|Date\\.now)`).test(source),
+    `${feature}: requestId가 비결정적이다 — 생성 실패 후 재시도가 재결제를 부른다 (${path})`,
+  );
+}
+{
+  const vedicSource = read("vedic-astrology.html");
+  checks += 1;
+  assert(
+    /function vedicAiCreateRequestId\(chart,question,compatibilityResult,epoch\)/.test(vedicSource)
+    && !/'vedic-ai-prompt:'\+Date\.now/.test(vedicSource),
+    `vedic: requestId가 비결정적이다 — 생성 실패 후 재시도가 재결제를 부른다 (vedic-astrology.html)`,
+  );
+  // 워커가 결제 권한 보존을 명시했을 때만 증거를 재사용해야 환불된 결제로 무료 생성이 되지 않는다.
+  checks += 1;
+  assert(
+    /paymentRetainedForRetry===true&&item\.refundOk!==true/.test(vedicSource),
+    `vedic: 결제 증거 보관 조건이 paymentRetainedForRetry 기반이 아니다`,
+  );
+}
+{
+  const sajuEngineSource = read("js/saju-engine.js");
+  checks += 1;
+  assert(
+    /paymentRetainedForRetry === true && item\.refundOk !== true/.test(sajuEngineSource),
+    `_cdAIPromptShouldRetainEvidence: 결제 증거 보관 조건이 paymentRetainedForRetry 기반이 아니다 (js/saju-engine.js)`,
   );
 }
 

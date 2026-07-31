@@ -367,7 +367,17 @@ function runPreCheckoutWaitUiAndArtWeightTests() {
   );
   // 결제창을 여는 함수 진입에서 세우고, 실제로 붙으면 해제한다.
   assertBefore(indexSource, "_cdBeginPreCheckoutWaitUiSuppression();", "_cdEndPreCheckoutWaitUiSuppression();", "suppression must begin before it is released");
-  assertContains(indexSource, "window.__cdDirectPaymentChoiceActive = { modal: modal, startedAt: Date.now() };\n      // 결제창이 실제로 붙었으므로 구간 차단은 여기서 끝난다", "suppression must be released when the choice modal mounts");
+  // 🔴 해제는 결제창이 **DOM 에 붙은 뒤**여야 한다. 예전에는 그 앞(주문 사전발급 직전)에서 풀었고,
+  // 그 사이 사전발급의 /api/billing/checkout 이 전역 fetch 래퍼를 깨워 'PAYMENT CHECK · 결제 상태
+  // 확인 중' 화면이 갓 열린 결제창을 덮었다(2026-08 재발). 순서를 리터럴로 고정한다.
+  assert.ok(
+    /document\.body\.appendChild\(modal\);[\s\S]{0,600}?_cdEndPreCheckoutWaitUiSuppression\(\);/.test(indexSource),
+    "suppression must be released only after the choice modal is mounted",
+  );
+  assert.ok(
+    !/_cdEndPreCheckoutWaitUiSuppression\(\);[\s\S]{0,600}?_cdStartDirectCheckoutPrefetch\(/.test(indexSource),
+    "order prefetch must never run inside the unguarded gap after suppression is released",
+  );
 
   // ③ 결제 마스코트 자산 경량화: 무거운 외부 PNG 가 CSS 배경으로 남아 있지 않다(img onerror 폴백만 허용).
   // 정본은 메인 서비스 로고이고, head 의 rel=preload fetchpriority=high 덕분에 클릭 시점엔 워엄 캐시다.

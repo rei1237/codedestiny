@@ -53,6 +53,8 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
 jest.unstable_mockModule("../../worker/lib/password.js", () => ({
   hashPassword: jest.fn(async () => "hashed-password"),
   verifyPassword: mockVerifyPassword,
+  // 레거시 bcrypt 해시를 로그인 시 PBKDF2로 갈아끼우는 경로. 목 해시는 bcrypt가 아니므로 false.
+  needsPasswordRehash: jest.fn(() => false),
 }));
 
 let authRoutes;

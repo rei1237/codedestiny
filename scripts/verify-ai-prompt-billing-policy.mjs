@@ -26,7 +26,7 @@ const sajuPromptRequestSource = extractSourceBlock(sajuEngineSource, "function _
 const astrologyPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleAstrologyAIPrompt(request, auth, env) {", "async function handleVedicAIPrompt(request, auth, env) {");
 const vedicPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleVedicAIPrompt(request, auth, env) {", "async function handleSajuAIPrompt(request, auth, env, ctx = null) {");
 const sajuPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSajuAIPrompt(request, auth, env, ctx = null) {", "async function handleZiweiAIPrompt(request, auth, env) {");
-const ziweiPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleZiweiAIPrompt(request, auth, env) {", "function buildSukuyoAIPromptError(code, message, status = 400) {");
+const ziweiPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleZiweiAIPrompt(request, auth, env) {", "function buildSukuyoAIPromptError(code, message, status = 400, details = {}) {");
 const sukuyoPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSukuyoAIPrompt(request, auth, env) {", "async function handleSubscriptionStatus(request, env, auth) {");
 const allPromptRouteSource = [
   astrologyPromptRouteSource,
