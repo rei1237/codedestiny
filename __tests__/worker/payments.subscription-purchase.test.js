@@ -30,7 +30,7 @@ const WEB_PASS_PRICES = {
   standard: 9900,
   premium: 29900,
   vvip: 59000,
-  family: 300000,
+  family: 149000,
 };
 
 function chain(result) {
