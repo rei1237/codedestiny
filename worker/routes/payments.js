@@ -1161,6 +1161,19 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   const serviceKey = resolveProfileUnlockServiceKey(payment?.featureKey, contentKey) || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
   const coinPrice = Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || 0)));
   const amountKRW = Math.max(0, Math.floor(Number(payment?.paymentAmount || payment?.pricingSnapshot?.amountKRW || 0)));
+
+  // 🔴 프로필 스코프 언락이 아닌 키는 ContentEntitlement 를 만들지 않는다. 권한은 recordUserPaidFeature 가
+  // paidFeatures/unlockedFeatures 로 주고, 실제 접근 판정(paid-feature-access.js)도 그걸 읽는다.
+  //
+  // 이 게이트가 없어서 profileId 가 없는 단건 결제(음악 트랙 등 프로필 무관 UNLOCK 키 전부)가
+  // Transaction.Paid 웹훅 정산에서 INVALID_UNLOCK_TARGET 으로 죽었고, 그 catch 가 자동환불을 불러
+  // PortOne 결제 취소 + paidFeatures 회수까지 갔다 — 즉 "결제 직후 서비스가 사라지는" 사고였다.
+  // 다른 정산 경로(upsertSajuPaymentUnlockEntitlement)와 코인 지급 경로(billing.js isProfileScopedUnlockKey)는
+  // 모두 이 판정을 이미 하고 있었고, 이 함수만 빠져 있었다. 판정 정본은 resolveProfileUnlockContentKey 하나다.
+  if (!resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId)) {
+    return null;
+  }
+
   if (!profileId || !contentId || !contentKey) {
     const error = new Error("Single payment unlock target is missing.");
     error.code = "INVALID_UNLOCK_TARGET";
@@ -1371,7 +1384,24 @@ function extractPortOneCurrency(portOnePayment = {}) {
   return normalizePortOneCurrency(raw?.currency || amountNode?.currency || portOnePayment?.currency);
 }
 
-async function handleSinglePaymentComplete(request, env, auth) {
+// options.allowAutoRefund=false 로 부르면 지급 실패 시에도 PG 취소를 하지 않고 관리자 검토로 남긴다.
+// 재조정 크론이 이 경로를 재사용하는데, 크론이 사람 승인 없이 돈을 돌려주면 안 되기 때문이다.
+async function handleSinglePaymentComplete(request, env, auth, options = {}) {
+  const allowAutoRefund = options.allowAutoRefund !== false;
+  const refundOrDefer = async (payment, reasonCode, reasonMessage, failureStage) => {
+    if (allowAutoRefund) {
+      return autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, reasonMessage, failureStage);
+    }
+    await Payment.findByIdAndUpdate(payment._id, {
+      $set: {
+        failureCode: "delivery_failed_manual_review",
+        failureMessage: String(reasonMessage || "").slice(0, 300),
+        failureStage,
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
+    return { refunded: false, deferred: true, payment };
+  };
   const body = await readJson(request);
   const paymentId = normalizeSingleCompletePaymentId(body?.paymentId || body?.merchantUid || body?.merchant_uid);
   if (!paymentId) {
@@ -1411,13 +1441,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
       await recordUserPaidFeature(order.userId, order.featureKey);
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
-      const refund = await autoRefundSinglePaymentDeliveryFailure(
-        env,
-        order,
-        "unlock_upsert_failed",
-        reasonMessage,
-        "single_unlock_upsert",
-      );
+      const refund = await refundOrDefer(order, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert");
       return json({
         ok: false,
         code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
@@ -1674,13 +1698,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
       await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
-      const refund = await autoRefundSinglePaymentDeliveryFailure(
-        env,
-        finalPayment,
-        "unlock_upsert_failed",
-        reasonMessage,
-        "single_unlock_upsert",
-      );
+      const refund = await refundOrDefer(finalPayment, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert");
       return json({
         ok: false,
         code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
@@ -3238,7 +3256,9 @@ export async function settleSinglePaymentForReconcile(env, { paymentId, userId }
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ paymentId }),
   });
-  return handleSinglePaymentComplete(request, env, { userId });
+  // 🔴 allowAutoRefund:false — 크론은 절대 돈을 돌려주지 않는다. 지급에 실패하면 주문에 사유만 남기고
+  // 관리자 화면(/admin/orders)에서 사람이 판단하게 한다.
+  return handleSinglePaymentComplete(request, env, { userId }, { allowAutoRefund: false });
 }
 
 export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 10 } = {}) {

@@ -70,6 +70,38 @@ assert.ok(
 const runTaskBody = reconcileTask.slice(reconcileTask.indexOf("export async function runPaymentReconcileTask"));
 assert.ok(runTaskBody.includes("try {") && runTaskBody.includes("catch"), "runPaymentReconcileTask 는 절대 throw 하지 않아야 한다");
 
+// ── 3-b. 크론은 간접적으로도 환불하지 않는다 ────────────────────────────
+// 파일 안 문자열만 보는 것으로는 부족했다 — 재조정은 handleSinglePaymentComplete 를 재사용하는데
+// 그 안에 자동환불이 들어 있어서, 실제로는 크론이 돈을 돌려줄 수 있었다.
+assert.ok(
+  /settleSinglePaymentForReconcile[\s\S]{0,600}?allowAutoRefund:\s*false/.test(payments),
+  "재조정 정산 진입점은 allowAutoRefund:false 로 호출해야 한다(크론이 자동환불하면 안 된다)",
+);
+assert.ok(
+  /const allowAutoRefund = options\.allowAutoRefund !== false/.test(payments),
+  "handleSinglePaymentComplete 는 allowAutoRefund 옵션을 지원해야 한다",
+);
+
+// ── 3-c. 프로필 스코프 게이트 (결제했는데 서비스가 사라지는 사고의 원인) ──
+// upsertSinglePaymentUnlockRecord 는 코드베이스에서 유일하게 이 게이트가 빠져 있었고, 그 결과
+// profileId 가 없는 UNLOCK 키(음악 트랙 등 50여 종)가 웹훅 정산에서 throw → 자동환불 → 권한 회수로
+// 이어졌다. 게이트를 지우면 같은 사고가 그대로 재발한다.
+const upsertBody = payments.slice(
+  payments.indexOf("async function upsertSinglePaymentUnlockRecord"),
+  payments.indexOf("async function upsertSinglePaymentUnlockRecord") + 3000,
+);
+assert.ok(
+  /if \(!resolveProfileUnlockContentKey\([\s\S]{0,200}?\)\) \{\s*return null;/.test(upsertBody),
+  "upsertSinglePaymentUnlockRecord 는 프로필 스코프가 아니면 null 을 돌려주고 빠져야 한다",
+);
+// 주석에도 같은 단어가 나오므로 실제 throw 문(error.code 대입)을 기준으로 순서를 본다.
+const throwAt = upsertBody.indexOf('error.code = "INVALID_UNLOCK_TARGET"');
+assert.ok(throwAt > 0, "INVALID_UNLOCK_TARGET throw 가 남아 있어야 한다(프로필 키의 진짜 결손은 계속 잡아야 함)");
+assert.ok(
+  upsertBody.indexOf("return null;") < throwAt,
+  "프로필 스코프 게이트가 INVALID_UNLOCK_TARGET throw 보다 앞에 와야 한다",
+);
+
 // ── 4. 관리자 주문 API 인증 ──────────────────────────────────────────────
 assert.ok(
   /if \(path === "\/orders" \|\| path\.startsWith\("\/orders\/"\)\) \{[\s\S]{0,200}?authorizeAdminRequest/.test(adminRouter),
