@@ -23,8 +23,10 @@ const DEFAULT_EXPIRE_UNKNOWN_AFTER_MS = 24 * 60 * 60 * 1000;
 // 같은 주문을 여러 실행이 동시에/연달아 잡지 않도록 하는 재시도 간격.
 const RECLAIM_AFTER_MS = 5 * 60 * 1000;
 
+// PortOne 은 없는 결제 ID 에 404 PAYMENT_NOT_FOUND 를 주기도 하고 401 UNAUTHORIZED 를 주기도 한다
+// (스토어 네임스페이스 밖 ID). 자격증명이 살아 있는 게 확인된 상태라면 둘 다 "그런 결제 없음"으로 본다.
 function isNotFoundLookupError(error) {
-  return /PAYMENT_NOT_FOUND|not found/i.test(String(error?.message || ""));
+  return /PAYMENT_NOT_FOUND|not found|Unauthorized|UNAUTHORIZED/i.test(String(error?.message || ""));
 }
 
 async function markPayment(paymentId, set) {
@@ -67,6 +69,8 @@ export async function reconcilePendingPayments(env, options = {}) {
 
   summary.scanned = candidates.length;
   const reclaimCutoff = new Date(now - RECLAIM_AFTER_MS);
+  // 이번 실행에서 PortOne 조회가 한 번이라도 성공했는가 — 자격증명 생사 판정의 근거다.
+  let sawSuccessfulLookup = false;
 
   for (const candidate of candidates) {
     // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(runWebhookReconcileTask 와 같은 관용구).
@@ -102,12 +106,15 @@ export async function reconcilePendingPayments(env, options = {}) {
     let portOnePayment = null;
     try {
       portOnePayment = await fetchPortOnePayment(env, lookupId);
+      sawSuccessfulLookup = true;
     } catch (error) {
-      // 🔴 자격증명이 거절된 상태라면 남은 주문을 전부 오분류할 수 있다 — 즉시 중단한다.
-      if (getPortOneAuthRejection()) {
+      // 🔴 자격증명이 정말 죽었을 때만 중단한다. PortOne 은 없는 결제 ID 에도 401 을 주므로
+      // 401 한 번으로 중단하면 주문 하나 때문에 재조정 전체가 멈춘다(실제로 그렇게 멈췄다).
+      // 이번 실행에서 성공한 조회가 한 번이라도 있었다면 자격증명은 살아 있는 것이므로 중단하지 않는다.
+      if (!sawSuccessfulLookup && getPortOneAuthRejection()) {
         summary.ok = false;
         summary.abortedReason = "PORTONE_AUTH_REJECTED";
-        console.error("[CRON] payment reconcile aborted: PortOne credential rejected");
+        console.error("[CRON] payment reconcile aborted: PortOne credential rejected (연속 401, 성공 조회 0건)");
         break;
       }
       if (isNotFoundLookupError(error) && (now - new Date(candidate.createdAt).getTime()) > expireUnknownAfterMs) {
