@@ -200,12 +200,22 @@
   /**
    * 결제 퍼널 계측. 개인식별자는 보내지 않는다(userId·프로필·생년 정보 없음).
    * 🔴 결제 경로에서 불리므로 어떤 실패도 밖으로 새면 안 된다 — 전 구간 try/catch, 응답도 보지 않는다.
-   * sendBeacon 은 text/plain 으로 보낸다(단순 요청이라 프리플라이트가 없고, 화면 전환 중에도 살아남는다).
+   *
+   * 🔴 반드시 application/json 으로 보낸다. /api/billing/* 은 enforceSensitiveEndpointSecurity 의
+   * requireJson 가드가 걸려 있어 다른 content-type 은 400(INVALID_CONTENT_TYPE)일 뿐 아니라
+   * **addAbuseScore 까지 올린다** — 즉 계측 요청이 공격 트래픽으로 집계돼 실제 사용자가 차단될 수 있다.
+   * (첫 배포에서 sendBeacon 의 text/plain 으로 나가 전 이벤트가 400 을 맞았다.)
+   *
+   * sendBeacon 대신 keepalive fetch 를 쓴다 — 화면 전환·언로드에서 살아남는 보장은 같으면서,
+   * 교차 출처(앱 런타임의 __CD_API_BASE_URL)에서 프리플라이트가 필요할 때도 정상 동작한다.
+   * sendBeacon 은 프리플라이트를 못 해 그 경우 조용히 유실된다. 본문은 200바이트 남짓이라
+   * keepalive 의 64KB 상한과 무관하다.
    */
   function trackCheckoutEvent(name, payload) {
     try {
       var eventName = text(name);
       if (!FUNNEL_EVENTS[eventName]) return false;
+      if (typeof fetch !== "function") return false;
       var body = JSON.stringify({
         name: eventName,
         featureKey: text(payload && payload.featureKey),
@@ -216,19 +226,13 @@
         dwellMs: Math.max(0, Math.floor(Number((payload && payload.dwellMs) || 0))),
         runtime: shouldUseAppStoreEntry() ? "app" : "web",
       });
-      var url = funnelEndpoint();
-      if (typeof navigator !== "undefined" && navigator && typeof navigator.sendBeacon === "function") {
-        navigator.sendBeacon(url, new Blob([body], { type: "text/plain;charset=UTF-8" }));
-        return true;
-      }
-      if (typeof fetch === "function") {
-        void fetch(url, {
-          method: "POST",
-          body: body,
-          keepalive: true,
-          headers: { "Content-Type": "text/plain;charset=UTF-8" },
-        }).catch(function () { /* 계측 실패는 삼킨다 */ });
-      }
+      void fetch(funnelEndpoint(), {
+        method: "POST",
+        body: body,
+        keepalive: true,
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+      }).catch(function () { /* 계측 실패는 삼킨다 */ });
       return true;
     } catch (_trackError) {
       return false;
