@@ -117,6 +117,8 @@
     "verify:life-book-ai-flow": "node scripts/verify-life-book-ai-flow.mjs",
     "verify:love-secret-ai-flow": "node scripts/verify-love-secret-ai-flow.mjs",
     "verify:master-love-codex-flow": "node scripts/verify-master-love-codex-flow.mjs",
+    "verify:nakshatra-flow": "node scripts/verify-nakshatra-flow.mjs",
+    "verify:nakshatra-ai-flow": "node scripts/verify-nakshatra-ai-flow.mjs",
     "verify:master-love-codex-compat": "node scripts/verify-master-love-codex-compat-determinism.mjs",
     "verify:love-compat": "node scripts/verify-love-compat-determinism.mjs",
     "verify:love-secret-llm": "node scripts/verify-love-secret-ai-flow.mjs",

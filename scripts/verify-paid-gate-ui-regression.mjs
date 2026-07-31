@@ -148,7 +148,10 @@ assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setIt
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-assertContains(indexSource, "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "payment/pass overlay uses honey fortune logo");
+// 자산이 부팅 게이트와 같은 /icons/app-logo-512.webp 로 통합되면서(#200) 이 단언이 낡았고,
+// 같은 잡의 앞 단계(verify:security-hardening)가 먼저 죽어 있어 실패가 드러나지 않았다.
+// 가드의 의도는 "결제/이용권 대기 오버레이가 브랜드 로고를 쓴다"이므로 현재 정본 경로로 맞춘다.
+assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp")', "payment/pass overlay uses brand logo asset");
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");

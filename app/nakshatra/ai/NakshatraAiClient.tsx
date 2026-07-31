@@ -7,7 +7,7 @@ import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client"
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
-import AiConsultDecks, { type Decks, type NatalIdentity } from "./AiConsultDecks";
+import AiConsultDecks, { type Decks, type NatalIdentity, type TopInsight } from "./AiConsultDecks";
 
 const FEATURE_KEY = "nakshatra-ai-consultation";
 const SERVICE_ID = "nakshatra-ai";
@@ -18,10 +18,15 @@ const ACCESS_TOKEN_HEADER = "x-nakshatra-ai-access-token";
 const API = {
   ensureAccess: "/api/nakshatra-ai/ensure-access",
   start: "/api/nakshatra-ai/start",
+  generate: "/api/nakshatra-ai/generate",
   result: "/api/nakshatra-ai/result",
 };
 const POLL_INTERVAL_MS = 3500;
 const POLL_MAX_ATTEMPTS = 45;
+// 21섹션 ÷ 배치 4 = 6웨이브. 재시도(섹션 하한 미달 시)까지 감안해 넉넉히 잡는다.
+const TOTAL_SECTIONS = 21;
+const GENERATE_MAX_ATTEMPTS = 24;
+const GENERATE_GAP_MS = 400;
 
 interface BirthInput {
   year: number; month: number; day: number; hour: number; minute: number;
@@ -118,6 +123,9 @@ export default function NakshatraAiClient() {
   const [statusMsg, setStatusMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [decks, setDecks] = useState<Decks | null>(null);
+  const [topInsights, setTopInsights] = useState<TopInsight[]>([]);
+  const [totalChars, setTotalChars] = useState(0);
+  const [progress, setProgress] = useState({ completed: 0, total: TOTAL_SECTIONS, phase: "decks" });
   const [askedQuestion, setAskedQuestion] = useState("");
   const busyRef = useRef(false);
   const { seed: profileSeed } = useAiProfileSeed();
@@ -162,7 +170,10 @@ export default function NakshatraAiClient() {
     setDecks({
       sukuyo: Array.isArray(nextDecks.sukuyo) ? (nextDecks.sukuyo as Decks["sukuyo"]) : [],
       vedic: Array.isArray(nextDecks.vedic) ? (nextDecks.vedic as Decks["vedic"]) : [],
+      fusion: Array.isArray(nextDecks.fusion) ? (nextDecks.fusion as Decks["fusion"]) : [],
     });
+    setTopInsights(Array.isArray(session.topInsights) ? (session.topInsights as TopInsight[]) : []);
+    setTotalChars(Number(session.totalCharCount) || 0);
     const natal = asRecord(session.natal);
     if (natal.sukuyoKo || natal.nakshatraKo) {
       setIdentity({ sukuyoKo: toText(natal.sukuyoKo), sukuyoHan: toText(natal.sukuyoHan), nakshatraKo: toText(natal.nakshatraKo), nakshatraEn: toText(natal.nakshatraEn) });
@@ -177,6 +188,17 @@ export default function NakshatraAiClient() {
     busyRef.current = false;
   }, []);
 
+  const applyProgress = useCallback((data: Record<string, unknown>) => {
+    const next = asRecord(data.progress);
+    if (!Number(next.total)) return;
+    setProgress({
+      completed: Number(next.completed) || 0,
+      total: Number(next.total) || TOTAL_SECTIONS,
+      phase: toText(next.phase) || "decks",
+    });
+  }, []);
+
+  // 연결이 끊겨 /generate 를 이어 부르지 못한 경우의 폴백. 서버가 락으로 이어 굽고 있을 수 있다.
   const pollResult = useCallback(async (resultId: string, accessToken: string) => {
     const headers: Record<string, string> = { Accept: "application/json" };
     if (accessToken) headers[ACCESS_TOKEN_HEADER] = accessToken;
@@ -189,25 +211,50 @@ export default function NakshatraAiClient() {
         continue;
       }
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      applyProgress(data);
       if (res.status === 200 && data.ok && data.decks) { finish(data); return; }
       if (res.status === 202 || res.status === 503 || res.status === 404) continue;
       if (res.status === 409) { fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요."); return; }
     }
     fail("상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.");
-  }, [finish, fail]);
+  }, [finish, fail, applyProgress]);
+
+  // 21섹션은 한 요청에 다 굽지 못한다(엣지 100초 컷). 서버가 한 번에 4섹션씩 굽고 진행률을 돌려주므로
+  // 완료될 때까지 /generate 를 이어 부른다. 진행 위치의 정본은 서버다 — 여기서 인덱스를 보내지 않는다.
+  const driveGeneration = useCallback(async (sessionId: string, idempotencyKey: string, accessToken: string) => {
+    for (let attempt = 0; attempt < GENERATE_MAX_ATTEMPTS; attempt += 1) {
+      const step = await postJson(API.generate, { sessionId, idempotencyKey }, idempotencyKey).catch(() => null);
+      if (!step) { await pollResult(sessionId, accessToken); return; }
+      const { response, data } = step;
+      applyProgress(data);
+      if (data.ok && data.decks) { finish(data); return; }
+      if (response.status === 202) { await sleep(GENERATE_GAP_MS); continue; }
+      if (response.status === 503) { await sleep(POLL_INTERVAL_MS); continue; }
+      if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
+      if (response.status === 409 || response.status === 404) { await pollResult(sessionId, accessToken); return; }
+      fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    fail("상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.");
+  }, [finish, fail, pollResult, applyProgress]);
 
   const startConsult = useCallback(async (payload: Record<string, unknown>, access: Record<string, unknown>) => {
     setPhase("generating");
     setStatusMsg("숙요·베다 두 대가가 당신의 별을 읽는 중이에요.");
     const accessToken = toText(access.accessToken);
-    const started = await postJson(API.start, { ...payload, ...access }, toText(payload.idempotencyKey)).catch(() => null);
-    if (!started) { await pollResult(toText(payload.idempotencyKey), accessToken); return; }
+    const idempotencyKey = toText(payload.idempotencyKey);
+    const started = await postJson(API.start, { ...payload, ...access }, idempotencyKey).catch(() => null);
+    if (!started) { await pollResult(idempotencyKey, accessToken); return; }
     const { response, data } = started;
+    applyProgress(data);
     if (data.ok && data.decks) { finish(data); return; }
-    if (response.status === 202) { await pollResult(toText(data.sessionId) || toText(payload.idempotencyKey), accessToken); return; }
+    if (response.status === 202) {
+      await driveGeneration(toText(data.sessionId) || idempotencyKey, idempotencyKey, accessToken);
+      return;
+    }
     if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
     fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
-  }, [finish, fail, pollResult]);
+  }, [finish, fail, pollResult, driveGeneration, applyProgress]);
 
   const beginConsultation = useCallback(async () => {
     if (!birth || busyRef.current) return;
@@ -293,7 +340,13 @@ export default function NakshatraAiClient() {
     return (
       <main className={bgClass}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" />
-        <AiConsultDecks decks={decks} natal={identity} question={askedQuestion} />
+        <AiConsultDecks
+          decks={decks}
+          natal={identity}
+          question={askedQuestion}
+          topInsights={topInsights}
+          totalChars={totalChars}
+        />
       </main>
     );
   }
@@ -303,7 +356,7 @@ export default function NakshatraAiClient() {
   return (
     <main className={`grid place-items-center ${bgClass}`}>
       {working ? (
-        <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} />
+        <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} progress={progress} />
       ) : (
         <IntroView
           identity={identity}
@@ -369,9 +422,29 @@ function IntroView({
   );
 }
 
-function WaitingView({ phase, statusMsg, identity }: { phase: Phase; statusMsg: string; identity: NatalIdentity | null }) {
+// 진행 인디케이터의 4단계. 서버 generationProgress(completed/total/phase)에 실제로 물려 있다 —
+// 시간만 흐르는 가짜 진행바를 쓰지 않는다.
+const STEP_LABELS = ["나크샤트라 분석", "숙요 분석", "융합 해석", "실전 조언"] as const;
+
+function resolveStepIndex(progress: { completed: number; total: number; phase: string }) {
+  if (progress.phase === "done") return 3;
+  if (progress.phase === "fusion") return progress.completed >= progress.total - 1 ? 3 : 2;
+  // 덱 페이즈: 베다 6편이 먼저 끝나야 숙요 쪽으로 넘어간 것으로 본다(11편 중 6편 기준).
+  return progress.completed >= 6 ? 1 : 0;
+}
+
+function WaitingView({
+  phase, statusMsg, identity, progress,
+}: {
+  phase: Phase;
+  statusMsg: string;
+  identity: NatalIdentity | null;
+  progress: { completed: number; total: number; phase: string };
+}) {
   const generating = phase === "generating";
   const headline = phase === "payment" ? "결제 수단을 확인하는 중이에요" : phase === "checking" ? "이용권을 확인하는 중이에요" : "두 대가가 당신의 별을 읽는 중이에요";
+  const stepIndex = resolveStepIndex(progress);
+  const ratio = progress.total > 0 ? Math.min(1, progress.completed / progress.total) : 0;
   return (
     <div className="mx-auto w-full max-w-md text-center motion-safe:animate-fade-in-up">
       {/* Moon Glow 오브 — 두 대가가 별을 읽는 신비로운 대기(달빛 골드+바이올렛 글로우) */}
@@ -400,7 +473,39 @@ function WaitingView({ phase, statusMsg, identity }: { phase: Phase; statusMsg: 
         </p>
       ) : null}
       {generating ? (
-        <p className="mt-5 break-keep text-xs leading-6 text-slate-400">숙요 5장 + 베다 6장, 총 11편의 상담을 정성껏 쓰는 중이라 조금 걸릴 수 있어요.</p>
+        <div className="mt-7">
+          <ol className="flex items-center justify-center gap-1.5" aria-label="상담 진행 단계">
+            {STEP_LABELS.map((label, index) => {
+              const state = index < stepIndex ? "done" : index === stepIndex ? "current" : "todo";
+              return (
+                <li
+                  key={label}
+                  aria-current={state === "current" ? "step" : undefined}
+                  className={`min-w-0 flex-1 rounded-lg border px-1.5 py-2 text-[11px] font-semibold leading-tight transition-colors duration-300 ${
+                    state === "done"
+                      ? "border-amber-200/40 bg-amber-200/10 text-amber-100"
+                      : state === "current"
+                        ? "border-amber-200/70 bg-amber-200/20 text-amber-50"
+                        : "border-white/10 bg-white/[0.03] text-slate-300"
+                  }`}
+                >
+                  {label}
+                </li>
+              );
+            })}
+          </ol>
+          <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/10" role="presentation">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-blue-200 to-amber-200 transition-[width] duration-500 ease-out"
+              style={{ width: `${Math.round(ratio * 100)}%` }}
+            />
+          </div>
+          <p className="mt-3 break-keep text-xs leading-6 text-slate-300" aria-live="polite">
+            {progress.completed > 0
+              ? `${progress.total}편 중 ${progress.completed}편을 썼어요. 두 전통을 각각 읽은 뒤 겹쳐 읽는 순서라 조금 걸려요.`
+              : "숙요 5편 + 베다 6편 + 융합 10편, 총 21편의 상담을 정성껏 쓰는 중이라 조금 걸릴 수 있어요."}
+          </p>
+        </div>
       ) : null}
     </div>
   );
