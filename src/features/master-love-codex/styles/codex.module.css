@@ -420,26 +420,36 @@
 }
 
 /* 모바일 하단 고정 CTA — 스크롤해도 금액이 사라지지 않게 한다.
-   z-index 는 배경음 토글(70)보다 아래, 몰입 오버레이(60)보다 위. */
+   z-index 는 배경음 토글(70)보다 아래, 몰입 오버레이(60)보다 위.
+
+   🔴 바닥(bottom:0)에 붙이면 안 된다 — 전역 모바일 네비(.cd-mnav, z-index 960)가
+   그 자리를 이미 차지하고 있어 CTA 가 통째로 가려지고 탭도 먹힌다(실측: 배포본에서
+   elementFromPoint 가 버튼이 아니라 네비를 반환했다). 네비가 쓰라고 내놓은 공용 토큰
+   --cd-mnav-offset(= 56px + safe-area, 네비가 없는 뷰포트에서는 0)만큼 올라선다.
+   app/saju/destiny-bias 가 자체 CTA 에 쓰는 방식과 같다.
+   (safe-area 는 이미 오프셋 안에 들어 있으므로 아래 패딩에서 이중으로 더하지 않는다.) */
 .floatingBar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--cd-mnav-offset, 0px);
   z-index: 68;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px max(16px, env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right));
+  padding: 12px max(16px, env(safe-area-inset-left))
+    calc(12px + max(0px, env(safe-area-inset-bottom) - var(--cd-mnav-offset, 0px)))
+    max(16px, env(safe-area-inset-right));
   border-top: 1px solid var(--codex-surface-line);
   background: rgba(10, 8, 24, 0.94);
 }
 
-/* 🔴 배지 토글이 이미 우하단 fixed(z-70)로 떠 있다. 새 오버레이를 얹지 않고
-   그 자리를 비켜 준다 — 두 개를 겹쳐 두면 탭 타깃이 서로를 먹는다. */
+/* 🔴 배경음 토글이 이미 우하단 fixed(z-70)로 떠 있다. 새 오버레이를 얹지 않고
+   그 자리를 비켜 준다 — 겹쳐 두면 탭 타깃이 서로를 먹는다.
+   네비 오프셋 + 고정 CTA 높이(약 76px)를 합해 그 위로 올린다. */
 @media (max-width: 767px) {
   .bgmToggle {
-    bottom: calc(env(safe-area-inset-bottom) + 84px);
+    bottom: calc(var(--cd-mnav-offset, 0px) + 84px);
   }
 }
 

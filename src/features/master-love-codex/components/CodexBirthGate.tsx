@@ -144,8 +144,13 @@ export default function CodexBirthGate({
   return (
     // justify-center 를 쓰지 않는다 — 가치 블록이 붙어 100svh 를 넘기면 오버레이 안에서
     // 위쪽이 잘려 아래 결제 버튼까지 스크롤로 닿지 못한다.
-    // 오버레이는 자체 스크롤이라 body padding 이 닿지 않는다 — 하단 고정 바 높이만큼 직접 비운다.
-    <section className="flex min-h-[100svh] flex-col justify-start pb-32 pt-16 md:pb-24" aria-label="생년 정보 입력">
+    // 오버레이는 자체 스크롤이라 body padding 이 닿지 않는다 — 하단 고정 바(+전역 모바일
+    // 네비 --cd-mnav-offset) 높이만큼 직접 비운다. 안 그러면 마지막 입력이 바에 가린다.
+    <section
+      className="flex min-h-[100svh] flex-col justify-start pt-16"
+      style={{ paddingBottom: "calc(var(--cd-mnav-offset, 0px) + 104px)" }}
+      aria-label="생년 정보 입력"
+    >
       <div className={styles.measure}>
         <CodexReveal>
           {/* 지금 어떤 상품을 진행 중인지 화면 맨 위에서 먼저 알린다 */}
