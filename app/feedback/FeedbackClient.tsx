@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 
-import { useAuthStore } from "@/app/_lib/auth-store";
+import { primeAuthFromCache, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import CategoryGrid from "./_components/CategoryGrid";
 import FeedbackForm from "./_components/FeedbackForm";
 import FeedbackHero from "./_components/FeedbackHero";
+import FeedbackTopNav from "./_components/FeedbackTopNav";
 import LoginGate from "./_components/LoginGate";
 import SuccessScreen from "./_components/SuccessScreen";
 import {
@@ -49,6 +50,16 @@ export default function FeedbackClient() {
   const hydratedRef = useRef(false);
 
   const selectedCategory = useMemo(() => getFeedbackCategory(category), [category]);
+
+  // 🔴 이 페이지는 몰입형(CHROMELESS_ROUTES)이라 GlobalHeader → AuthWidget 이 렌더되지 않는다.
+  //    평소 authReady 를 true 로 올리는 건 그 AuthWidget 의 refreshAuth 호출이므로,
+  //    여기서 직접 부트스트랩하지 않으면 로그인 상태와 무관하게 authReady 가 영원히 false 다.
+  useEffect(() => {
+    primeAuthFromCache();
+    refreshAuth({ force: false, silent: true }).catch(() => {
+      // best-effort — 실패해도 폼은 계속 쓸 수 있어야 한다.
+    });
+  }, []);
 
   // 제보 대상 URL 자동 입력: ?from= → 동일 출처 referrer → 빈 값.
   useEffect(() => {
@@ -145,6 +156,13 @@ export default function FeedbackClient() {
     saveDraft({ category: category || "", title, content, url, details, attachments, sendEnvironment });
   }, [category, title, content, url, details, attachments, sendEnvironment]);
 
+  // 미로그인 상태에서 제출을 누른 경우. 초안을 먼저 확정 저장하고 로그인으로 보낸다.
+  const goToLogin = useCallback(() => {
+    persistDraftNow();
+    const next = `${window.location.pathname}${window.location.search}`;
+    window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+  }, [persistDraftNow]);
+
   const handleSubmit = async () => {
     if (!selectedCategory) return;
     setSubmitting(true);
@@ -191,6 +209,7 @@ export default function FeedbackClient() {
   return (
     <main className={`${CANVAS} px-4 py-10 sm:py-14`}>
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+        <FeedbackTopNav />
         <FeedbackHero />
 
         <AnimatePresence mode="wait">
@@ -252,7 +271,7 @@ export default function FeedbackClient() {
                     environment={environment}
                     sendEnvironment={sendEnvironment}
                     urlAutoFilled={urlAutoFilled}
-                    disabled={!authReady || !isAuthenticated}
+                    isAuthenticated={isAuthenticated}
                     submitting={submitting}
                     uploading={uploading}
                     error={error}
@@ -271,6 +290,7 @@ export default function FeedbackClient() {
                     pastedFiles={pastedFiles}
                     onPastedConsumed={emptyPastedFiles}
                     onSubmit={() => { void handleSubmit(); }}
+                    onRequireLogin={goToLogin}
                   />
                 </section>
               )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, m } from "framer-motion";
-import { AlertTriangle, Send } from "lucide-react";
+import { AlertTriangle, LogIn, Send } from "lucide-react";
 
 import type { FeedbackAttachment } from "../_lib/api";
 import type { FeedbackCategory } from "../_lib/categories";
@@ -26,7 +26,7 @@ interface FeedbackFormProps {
   environment: EnvEntry[];
   sendEnvironment: boolean;
   urlAutoFilled: boolean;
-  disabled: boolean;
+  isAuthenticated: boolean;
   submitting: boolean;
   uploading: boolean;
   error: string;
@@ -45,38 +45,46 @@ interface FeedbackFormProps {
   pastedFiles: File[];
   onPastedConsumed: () => void;
   onSubmit: () => void;
+  /** 미로그인 상태에서 제출을 누르면 초안을 저장하고 로그인으로 보낸다. */
+  onRequireLogin: () => void;
 }
 
 export default function FeedbackForm(props: FeedbackFormProps) {
   const {
     category, title, content, url, details, attachments, environment, sendEnvironment,
-    urlAutoFilled, disabled, submitting, uploading, error, savedAtLabel,
+    urlAutoFilled, isAuthenticated, submitting, uploading, error, savedAtLabel,
     titleMaxLength, contentMinLength, contentMaxLength,
     onTitleChange, onContentChange, onUrlChange, onDetailChange,
     onAttachmentsChange, onUploadingChange, onSendEnvironmentChange, onPasteImages,
-    pastedFiles, onPastedConsumed, onSubmit,
+    pastedFiles, onPastedConsumed, onSubmit, onRequireLogin,
   } = props;
 
-  const canSubmit = !disabled
-    && !submitting
-    && !uploading
-    && Boolean(title.trim())
-    && content.trim().length >= contentMinLength;
+  // 🔴 입력은 로그인과 무관하게 항상 열어 둔다. 초안이 로그인 왕복에서 살아남는 설계인데
+  //    폼을 잠가 두면 저장할 내용 자체를 쓸 수 없어 앞뒤가 맞지 않는다.
+  //    로그인은 "제출" 시점에만 요구한다.
+  const contentReady = Boolean(title.trim()) && content.trim().length >= contentMinLength;
+  const canSubmit = contentReady && !submitting && !uploading;
+
+  const submitNow = () => {
+    if (!canSubmit) return;
+    if (!isAuthenticated) { onRequireLogin(); return; }
+    onSubmit();
+  };
 
   return (
     <form
       noValidate
-      onSubmit={(event) => { event.preventDefault(); if (canSubmit) onSubmit(); }}
+      onSubmit={(event) => { event.preventDefault(); submitNow(); }}
       onKeyDown={(event) => {
         // Ctrl/⌘+Enter 제출. canSubmit 으로 가드해 업로드 중에는 발사되지 않는다.
         if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
           event.preventDefault();
-          if (canSubmit) onSubmit();
+          submitNow();
         }
       }}
       className="space-y-5"
     >
-      <fieldset disabled={disabled} className="space-y-5 disabled:opacity-60">
+      <div className="space-y-5">
         {category.warning && (
           <p
             className="flex items-start gap-2 rounded-xl border border-[#e5a3b8] bg-[#fff1f5] p-3 text-[13px] font-bold leading-relaxed text-[#8e1240] dark:border-[#7c3350] dark:bg-[#2a0d1c] dark:text-[#ffc4de]"
@@ -214,6 +222,7 @@ export default function FeedbackForm(props: FeedbackFormProps) {
           ))}
         </AnimatePresence>
 
+        {/* 첨부는 업로드가 서버 인증을 요구하므로 로그인 전에는 막고 이유를 알린다. */}
         <AttachmentDropzone
           attachments={attachments}
           onChange={onAttachmentsChange}
@@ -221,10 +230,12 @@ export default function FeedbackForm(props: FeedbackFormProps) {
           emphasize={category.emphasizeAttachment}
           pastedFiles={pastedFiles}
           onPastedConsumed={onPastedConsumed}
+          disabled={!isAuthenticated}
+          disabledNote="로그인하면 스크린샷을 첨부할 수 있어요. 지금 쓰신 내용은 그대로 저장됩니다."
         />
 
         <EnvironmentPanel entries={environment} enabled={sendEnvironment} onToggle={onSendEnvironmentChange} />
-      </fieldset>
+      </div>
 
       {error && (
         <p className="rounded-xl border border-[#e5a3b8] bg-[#fff1f5] p-3 text-[13px] font-bold text-[#8e1240] dark:border-[#7c3350] dark:bg-[#2a0d1c] dark:text-[#ffc4de]" role="alert">
@@ -244,8 +255,16 @@ export default function FeedbackForm(props: FeedbackFormProps) {
             <kbd className={`rounded border border-current px-1.5 py-0.5 text-[11px] ${INK}`}>Enter</kbd>
           </span>
           <button type="submit" disabled={!canSubmit} className={`${CTA_BUTTON} w-full sm:w-auto`}>
-            <Send aria-hidden="true" className="h-4 w-4" />
-            {submitting ? "보내는 중…" : uploading ? "이미지 올리는 중…" : "의견 보내기"}
+            {isAuthenticated
+              ? <Send aria-hidden="true" className="h-4 w-4" />
+              : <LogIn aria-hidden="true" className="h-4 w-4" />}
+            {submitting
+              ? "보내는 중…"
+              : uploading
+                ? "이미지 올리는 중…"
+                : isAuthenticated
+                  ? "의견 보내기"
+                  : "로그인하고 보내기"}
           </button>
         </div>
       </div>
