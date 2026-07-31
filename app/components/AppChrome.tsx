@@ -76,6 +76,8 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/olympus",
   "/island-consult",
   "/lock-screen-fortune",
+  // 밝은 배경이라 공용 나브(어두운 페이지 전용 스타일)가 묻힌다 — 자체 상단바를 쓴다.
+  "/feedback",
 ];
 
 function isUnsafePaymentReferrer(referrer: string) {

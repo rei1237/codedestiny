@@ -21,6 +21,9 @@ interface AttachmentDropzoneProps {
   /** 본문에서 붙여넣은 이미지. 업로드 경로를 여기 한 곳으로 모아 미리보기 처리를 일치시킨다. */
   pastedFiles?: File[];
   onPastedConsumed?: () => void;
+  /** 업로드가 서버 인증을 요구하므로 미로그인 시 막는다. */
+  disabled?: boolean;
+  disabledNote?: string;
 }
 
 export default function AttachmentDropzone({
@@ -30,6 +33,8 @@ export default function AttachmentDropzone({
   emphasize = false,
   pastedFiles,
   onPastedConsumed,
+  disabled = false,
+  disabledNote = "",
 }: AttachmentDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
@@ -52,6 +57,7 @@ export default function AttachmentDropzone({
 
   // 선택 즉시 업로드한다 — 제출 시 한꺼번에 올리면 제출 클릭이 몇 초씩 멎는다.
   const handleFiles = useCallback(async (files: FileList | File[] | null) => {
+    if (disabled) return;
     const picked = pickImageFiles(files, MAX_ATTACHMENTS - attachments.length);
     if (!picked.length) return;
 
@@ -76,7 +82,7 @@ export default function AttachmentDropzone({
 
     onUploadingChange(false);
     if (uploaded.length) onChange([...attachments, ...uploaded].slice(0, MAX_ATTACHMENTS));
-  }, [attachments, onChange, onUploadingChange]);
+  }, [attachments, onChange, onUploadingChange, disabled]);
 
   // 🔴 배열 인스턴스 단위로 1회만 올린다. handleFiles 는 attachments 가 바뀌면 새 함수가 되어
   //    effect 가 다시 도는데, 그 시점에 pastedFiles 가 아직 비워지기 전이면 같은 파일을 두 번 올린다.
@@ -111,7 +117,13 @@ export default function AttachmentDropzone({
         </span>
       </div>
 
-      {remainingSlots > 0 && (
+      {disabled && disabledNote && (
+        <p className={`mt-2 rounded-xl border border-dashed border-[rgba(216,63,120,0.24)] bg-white/40 p-3 text-[12px] ${INK_MUTED} dark:border-white/14 dark:bg-white/[0.03]`}>
+          {disabledNote}
+        </p>
+      )}
+
+      {!disabled && remainingSlots > 0 && (
         <div
           onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}

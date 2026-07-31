@@ -17,15 +17,18 @@ export default function LoginGate({ onBeforeNavigate }: LoginGateProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-[rgba(216,63,120,0.2)] bg-white/70 p-5 text-center backdrop-blur-xl dark:border-white/12 dark:bg-white/[0.06]">
-      <p className={`text-[15px] font-bold ${INK}`}>제보하려면 로그인이 필요해요</p>
-      <p className={`mx-auto mt-2 max-w-[42ch] text-[13px] leading-relaxed ${INK_MUTED}`}>
-        확인 결과를 회신드리기 위해서예요. 지금 쓰신 내용은 그대로 저장해 두었다가
-        돌아오시면 이어서 쓸 수 있게 해드릴게요.
-      </p>
-      <button type="button" onClick={goToLogin} className={`${CTA_BUTTON} mt-4`}>
+    // 차단이 아니라 안내다 — 폼은 그대로 쓸 수 있고 로그인은 제출 시점에만 필요하다.
+    <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(216,63,120,0.2)] bg-white/70 p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between dark:border-white/12 dark:bg-white/[0.06]">
+      <div>
+        <p className={`text-[14px] font-bold ${INK}`}>먼저 편하게 작성하세요</p>
+        <p className={`mt-1 max-w-[46ch] text-[13px] leading-relaxed ${INK_MUTED}`}>
+          보낼 때만 로그인이 필요해요(회신을 드리기 위해서예요). 지금 쓰신 내용은
+          자동 저장돼서 로그인 후 그대로 이어집니다.
+        </p>
+      </div>
+      <button type="button" onClick={goToLogin} className={`${CTA_BUTTON} shrink-0`}>
         <LogIn aria-hidden="true" className="h-4 w-4" />
-        로그인하고 제보하기
+        로그인
       </button>
     </div>
   );
