@@ -100,6 +100,18 @@ assert(
 assertIncludes(routeFile, routeSource, "collectBillingTokens");
 assertIncludes(routeFile, routeSource, "metadata.requestId");
 
+// 🔴 결제 증빙 조회는 이 요청의 모드 featureKey 로 해야 한다. 상수(개인판)로 박으면 궁합판
+//    (500코인) 결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어,
+//    결제를 마친 사용자가 /start 에서 402 를 받는다(돈만 나간다).
+assert(
+  /findBillingEvidence\([\s\S]{0,260}?featureKey:\s*resolveMode\(normalized\.mode\)\.featureKey/.test(routeSource),
+  `${routeFile}: findBillingEvidence 에 resolveMode(normalized.mode).featureKey 를 넘겨야 궁합판 결제 증빙을 찾습니다`,
+);
+assert(
+  !/featureKey:\s*FEATURE_KEY,\s*\n\s*kind:\s*"deduct"/.test(routeSource),
+  `${routeFile}: 결제 증빙 조회에 개인판 FEATURE_KEY 를 상수로 박으면 궁합판 결제를 못 찾습니다`,
+);
+
 // ── 4. 프론트: 공용 게이트만 사용 ────────────────────────────────────────────
 const pageFile = "src/features/master-love-codex/MasterLoveCodexPage.tsx";
 const pageSource = read(pageFile);

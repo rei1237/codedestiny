@@ -361,15 +361,23 @@ function paymentTokenClauses(tokens = []) {
   return clauses;
 }
 
-async function findBillingEvidence({ userId, idempotencyKey, body }) {
+/**
+ * @param {{ userId: string, idempotencyKey: string, body: object, featureKey: string }} params
+ *   🔴 featureKey 는 반드시 이 요청의 모드 것을 넘긴다. 상수(개인판)로 박으면 궁합판(500코인)
+ *      결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어 증빙을 못 찾고,
+ *      결제를 마친 사용자가 /start 에서 402 를 받는다(돈만 나간다).
+ *      반대로 두 키를 함께 받아들이면 30,000원 결제로 50,000원 상품을 받게 되므로 정확히 일치시킨다.
+ */
+async function findBillingEvidence({ userId, idempotencyKey, body, featureKey }) {
   if (!objectIdLike(userId)) return null;
+  const evidenceFeatureKey = clean(featureKey) || FEATURE_KEY;
   const tokens = collectBillingTokens(body, idempotencyKey);
   if (!tokens.length) return null;
 
   const pointClauses = metadataTokenClauses(tokens);
   const point = await PointHistory.findOne({
     userId,
-    featureKey: FEATURE_KEY,
+    featureKey: evidenceFeatureKey,
     kind: "deduct",
     "metadata.coinRefundedForUnlockFailure": { $ne: true },
     "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
@@ -383,7 +391,7 @@ async function findBillingEvidence({ userId, idempotencyKey, body }) {
   const ledger = await MonthlyCreditLedger.findOne({
     userId,
     type: "MONTHLY_CREDIT_SPEND",
-    "metadata.featureKey": FEATURE_KEY,
+    "metadata.featureKey": evidenceFeatureKey,
     "metadata.refundedForUnlockFailure": { $ne: true },
     "metadata.refundedForServiceExecution": { $ne: true },
     $or: pointClauses,
@@ -394,7 +402,7 @@ async function findBillingEvidence({ userId, idempotencyKey, body }) {
 
   const payment = await Payment.findOne({
     userId,
-    featureKey: FEATURE_KEY,
+    featureKey: evidenceFeatureKey,
     status: { $in: ["paid", "success", "fulfilled"] },
     $or: paymentTokenClauses(tokens),
   }).sort({ updatedAt: -1, createdAt: -1 }).lean();
@@ -758,7 +766,13 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
   if (isAdmin(auth)) return { ok: true, accessType: "admin", paymentId: "", billingRequestId: idempotencyKey };
 
   await connectDb(env);
-  const evidence = await findBillingEvidence({ userId: auth.userId, idempotencyKey, body });
+  const evidence = await findBillingEvidence({
+    userId: auth.userId,
+    idempotencyKey,
+    body,
+    // 궁합판 결제는 `master-love-codex-compat` 로 기록된다 — 이 요청의 모드 키로 찾아야 한다.
+    featureKey: resolveMode(normalized.mode).featureKey,
+  });
   if (evidence?.ok) return evidence;
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
