@@ -38,6 +38,7 @@
     "clean:build": "node scripts/clean-cloudflare-build.mjs",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "og:render": "node scripts/og/render-og-card.mjs",
+    "og:cache-bust": "node scripts/og/set-og-cache-bust.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
     "sync:music-track-count": "node scripts/sync-music-track-count.mjs",
     "generate:music-manifest": "node scripts/generate-music-manifest.ts",
