@@ -154,6 +154,9 @@ export default function MuhurtaClient() {
   const run = useCallback(async () => {
     if (!birth || isPaying || loading) return;
     setError("");
+    // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾아
+    // 결제가 실제로 일어났는지 확인한다(worker/lib/nakshatra-paid-access.js).
+    const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     // 회당 결제 — 매번 결제하므로 forceDeduct 를 주지 않는다.
     const gate = await ensurePaidAccess({
       featureKey: FEATURE_KEY,
@@ -161,7 +164,7 @@ export default function MuhurtaClient() {
       cost: COIN_PRICE,
       amountKRW: AMOUNT_KRW,
       reason: REASON,
-      requestId: `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      requestId,
     });
     if (!gate.ok) {
       if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
@@ -174,7 +177,7 @@ export default function MuhurtaClient() {
       const response = await authFetch(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...birth, purpose, startDate }),
+        body: JSON.stringify({ ...birth, purpose, startDate, requestId }),
       });
       const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
       if (data.ok && data.report) { setReport(data.report as MuhurtaReport); return; }

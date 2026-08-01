@@ -24,6 +24,7 @@ import { buildNakshatraLordReport } from "../lib/nakshatra-lord-report.js";
 import { buildNakshatraDashaMap } from "../lib/nakshatra-dasha-map.js";
 import { buildNakshatraMuhurta, listMuhurtaPurposes } from "../lib/nakshatra-muhurta.js";
 import { buildNakshatraVvipCodex } from "../lib/nakshatra-vvip-codex.js";
+import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-paid-access.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
@@ -45,6 +46,7 @@ const PRODUCTS = Object.freeze({
 const MESSAGES = Object.freeze({
   login: "리포트를 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   paymentRequired: "이 리포트는 1회 해금이 필요합니다. 이용권이 있으면 무료로 열립니다.",
+  paymentRequiredPerUse: "결제 확인이 필요합니다. 결제창에서 다시 진행해 주세요.",
   degraded: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
   invalidInput: "생년월일(year/month/day)이 필요합니다.",
   invalidPurpose: "택일 목적을 골라 주세요.",
@@ -209,11 +211,43 @@ async function handleProduct(request, env, product, kind) {
 // ── 택일(무후르타) — 회당 결제 ───────────────────────────────────────────────
 //
 // 앞의 두 리포트와 달리 영구 해금이 아니라 매번 결제하는 기능이라 해금 상태를 읽지 않는다.
+// 결제창(이용권 선검사 → 단건/월정석 동등 노출)은 프론트 공용 게이트(useCoinGate)가 처리하고,
+// 서버는 **그 결제가 실제로 일어났는지**만 DB 기록으로 확인한다(worker/lib/nakshatra-paid-access.js).
 // 🔴 canAccessPaidFeature 로 관문을 세우지 않는다 — 그 함수는 엔티틀먼트 전용이라 회당결제
 //    키에는 언제나 PAYMENT_REQUIRED 를 돌려주고, 이미 차감된 사용자가 402 를 맞아 돈만 나간다.
-//    결제는 프론트 공용 게이트(useCoinGate, pass-first)가 처리하고 여기선 로그인만 보증한다 —
-//    같은 회당결제인 /api/nakshatra/compat 와 동일한 계약이다.
 const MUHURTA_MAX_DAYS = 60;
+
+// 회당 결제 상품 — 레지스트리 등록값과 일치해야 한다(이용권 커버 판정에 코인가가 필요).
+const PER_USE_PRODUCTS = Object.freeze({
+  muhurta: Object.freeze({ featureKey: "nakshatra-muhurta", coinPrice: 50 }),
+  "vvip-codex": Object.freeze({ featureKey: "nakshatra-vvip-codex", coinPrice: 500 }),
+});
+
+// 🔴 1단계는 관측 전용이다 — 증빙 결과를 로그로만 남기고 아무것도 막지 않는다.
+//    차단(402)은 실사용 로그에서 정상 결제 경로가 전부 proven:true 로 찍히는 것을 확인한 뒤 켠다.
+//    이 순서를 지키는 이유: 검증이 과하면 이미 결제한 사용자가 402 를 맞아 돈만 나간다.
+const PER_USE_ENFORCE = false;
+
+async function observePerUsePayment(env, auth, kind, body) {
+  const product = PER_USE_PRODUCTS[kind];
+  if (!product) return null;
+  try {
+    const proof = await verifyPerUsePayment(env, {
+      userId: auth?.userId,
+      featureKey: product.featureKey,
+      coinPrice: product.coinPrice,
+      requestId: body?.requestId || body?.idempotencyKey || "",
+    });
+    logPerUsePaymentProof(product.featureKey, proof);
+    return proof;
+  } catch (error) {
+    // 🔴 증빙 확인이 터져도 결제한 사용자의 본문을 막지 않는다 — 관측 단계에서 500 을 새로 만드는 것은
+    //    고치려던 문제보다 나쁘다. 차단을 켤 때도 이 경로는 "판단 보류"로 남아 503 이 된다.
+    logPerUsePaymentProof(product.featureKey, { proven: null, source: "", reason: "VERIFY_THREW" });
+    console.error("[nakshatra-paid-access] verify failed", String(error?.message || error).slice(0, 200));
+    return { proven: null, source: "", reason: "VERIFY_THREW" };
+  }
+}
 
 function pad2(value) {
   return String(value).padStart(2, "0");
@@ -244,13 +278,18 @@ function buildScanDays(startDate, dayCount) {
 }
 
 async function handleMuhurta(request, env) {
-  // 결제 재검증은 하지 않는다(위 주석). 로그인 실패는 requireAuth 가 401 로 던진다.
-  await requireAuth(request, env);
+  const auth = await requireAuth(request, env);
 
   const body = await readJson(request);
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const proof = await observePerUsePayment(env, auth, "muhurta", body);
+  if (PER_USE_ENFORCE && proof) {
+    if (proof.proven === null) return degraded();
+    if (proof.proven === false) return json({ ok: false, reason: "PAYMENT_REQUIRED", message: MESSAGES.paymentRequiredPerUse }, { status: 402 });
   }
 
   const purposeKey = String(body?.purpose || "").trim();
@@ -306,14 +345,20 @@ async function handleMuhurta(request, env) {
 }
 
 // ── VVIP 결정판 통합서 — 회당 결제 ──────────────────────────────────────────
-// 택일과 같은 계약(회당 결제, 로그인만 보증). 위 handleMuhurta 주석 참고.
+// 택일과 같은 계약(회당 결제). 위 handleMuhurta 주석 참고.
 async function handleVvipCodex(request, env) {
-  await requireAuth(request, env);
+  const auth = await requireAuth(request, env);
 
   const body = await readJson(request);
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const proof = await observePerUsePayment(env, auth, "vvip-codex", body);
+  if (PER_USE_ENFORCE && proof) {
+    if (proof.proven === null) return degraded();
+    if (proof.proven === false) return json({ ok: false, reason: "PAYMENT_REQUIRED", message: MESSAGES.paymentRequiredPerUse }, { status: 402 });
   }
 
   const moonLon = await resolveMoon(env, input, request.url);

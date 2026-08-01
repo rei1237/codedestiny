@@ -508,5 +508,72 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     (resultClient.match(/\{ title: "[^"]+", price: "[^"]+", desc: "[^"]+" \}/g) || []).length === 0);
 }
 
+console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확인하는가");
+{
+  const accessPath = "worker/lib/nakshatra-paid-access.js";
+  const access = stripComments(readFileSync(path.join(repoRoot, accessPath), "utf8"));
+
+  check(`${accessPath}: 🔴 canAccessPaidFeature 를 쓰지 않는다(회당결제는 항상 402 → 차감된 사용자가 돈만 잃음)`,
+    !/canAccessPaidFeature/.test(access));
+  check(`${accessPath}: 단건결제를 Payment 문서로 확인한다`,
+    /Payment\.findOne/.test(access) && /status:\s*\{\s*\$in:\s*\["paid", "success", "fulfilled"\]/.test(access));
+  check(`${accessPath}: 코인·월정석 차감을 PointHistory 로 확인한다`,
+    /PointHistory\.findOne/.test(access) && /kind:\s*"deduct"/.test(access));
+  check(`${accessPath}: 월정석 원장도 함께 본다`, /MonthlyCreditLedger\.findOne/.test(access) && /MONTHLY_CREDIT_SPEND/.test(access));
+  check(`${accessPath}: 이용권 커버는 서버가 직접 판정한다(클라 주장 미신뢰)`,
+    /canUseByPass\(normalizeHoneyPassEntitlement\(/.test(access));
+  check(`${accessPath}: 🔴 DB 블립을 '미결제'로 세탁하지 않는다(proven: null)`,
+    /isTransientMongoError\(error\)\s*\|\|\s*isAuthDbInfraError\(error\)/.test(access) && /proven:\s*null/.test(access));
+  check(`${accessPath}: 로그에 userId·결제 식별자를 남기지 않는다`,
+    /logPerUsePaymentProof/.test(access) && !/userId:\s*uid/.test(access.split("logPerUsePaymentProof")[1] || ""));
+
+  // 🔴 requestId 는 DB 를 찾는 열쇠일 뿐 증빙 자체가 아니다 — 기록이 없으면 통과하지 못한다.
+  check(`${accessPath}: 클라이언트가 보낸 값을 증빙으로 삼지 않는다(accessType/accessMethod 미신뢰)`,
+    !/body\.accessType|body\.accessMethod|ctx\.accessType/.test(access));
+
+  const premium = stripComments(readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8"));
+  const compat = stripComments(readFileSync(path.join(repoRoot, "worker/routes/nakshatra.js"), "utf8"));
+  check("택일·VVIP 라우트가 결제 증빙을 확인한다", /observePerUsePayment\(env, auth, "muhurta"/.test(premium) && /observePerUsePayment\(env, auth, "vvip-codex"/.test(premium));
+  check("compat 라우트가 결제 증빙을 확인한다", /verifyPerUsePayment\(env, \{/.test(compat) && /COMPAT_FEATURE_KEY/.test(compat));
+  check("회당결제 상품 코인가가 레지스트리와 일치(이용권 커버 판정 근거)",
+    /featureKey: "nakshatra-muhurta", coinPrice: 50/.test(premium)
+    && /featureKey: "nakshatra-vvip-codex", coinPrice: 500/.test(premium)
+    && /COMPAT_COIN_PRICE = 100/.test(compat));
+
+  // 1단계는 관측 전용 — 차단 스위치가 꺼져 있어야 한다. 2단계에서 true 로 바꾸면서 이 단언도 뒤집는다.
+  check("🔴 1단계: 차단 스위치가 꺼져 있다(PER_USE_ENFORCE = false)", /PER_USE_ENFORCE = false/.test(premium));
+  check("차단을 켰을 때 DB 블립은 402 가 아니라 503 이다",
+    /proof\.proven === null\) return degraded\(\)/.test(premium));
+  // 🔴 증빙 확인이 예외를 던져도 결제한 사용자의 본문을 막으면 안 된다 —
+  //    관측 단계에서 500 을 새로 만드는 것은 고치려던 문제보다 나쁘다.
+  check("증빙 확인이 터져도 본문을 막지 않는다(택일·VVIP)", /VERIFY_THREW/.test(premium));
+  check("증빙 확인이 터져도 본문을 막지 않는다(compat)", /VERIFY_THREW/.test(compat));
+
+  for (const [relative, marker] of [
+    ["app/nakshatra/muhurta/MuhurtaClient.tsx", "purpose, startDate, requestId"],
+    ["app/nakshatra/vvip/VvipClient.tsx", "...birth, requestId"],
+    ["app/nakshatra/compat/NakshatraCompatClient.tsx", "b: payload(b), requestId"],
+  ]) {
+    const source = stripComments(readFileSync(path.join(repoRoot, relative), "utf8"));
+    check(`${relative}: 결제에 쓴 requestId 를 본문에도 싣는다`,
+      /const requestId = `\$\{FEATURE_KEY\}/.test(source) && source.includes(marker));
+  }
+
+  // 🔴 모든 유료 기능이 쓰는 공유 훅이라 반환 스키마를 건드리면 파급이 너무 넓다.
+  const coinGate = readFileSync(path.join(repoRoot, "app/hooks/useCoinGate.ts"), "utf8");
+  check("useCoinGate 반환 스키마가 그대로다(공유 훅 불변)",
+    /type EnsurePaidAccessResult = \{\s*\n\s*ok: boolean;\s*\n\s*code: string;\s*\n\s*message: string;/.test(coinGate));
+
+  const vvip = stripComments(readFileSync(path.join(repoRoot, "app/nakshatra/vvip/VvipClient.tsx"), "utf8"));
+  check("🔴 VVIP: 성별을 결제 **전에** 묻는다(회당결제라 재실행이 곧 재결제)",
+    vvip.indexOf("<GenderPrompt") > 0 && vvip.indexOf("<GenderPrompt") < vvip.indexOf("styles.gatePrice"));
+  check("VVIP: 성별이 이미 있으면 묻지 않는다", /!birth\.gender && \(/.test(vvip));
+
+  const claudeMd = readFileSync(path.join(repoRoot, "CLAUDE.md"), "utf8");
+  check("CLAUDE.md: PERSISTENT_UNLOCK_KEY_SET 위치가 fortune.js 로 정정됐다",
+    /worker\/routes\/fortune\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd)
+    && !/content-unlocks\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd));
+}
+
 console.log(`\n${failures === 0 ? "PASS" : `FAIL (${failures})`} — 나크샤트라 심화 리포트 검증`);
 process.exit(failures === 0 ? 0 : 1);
