@@ -1274,6 +1274,19 @@
       "placeholder": "Diensten zoeken (bijv. tarot, match, droom)",
       "searchAria": "Alle diensten zoeken",
       "empty": "Geen resultaten. Probeer een ander trefwoord."
+    },
+    "todayHub": {
+      "kicker": "✦ Today's Fortune ✦",
+      "title": "Het fortuin van vandaag",
+      "lead": "De dagpijler van Saju, de 27 maanhuizen en de Vedische dagheerser op één plek. Gratis, zonder inloggen.",
+      "tabsAria": "Systeem van het fortuin van vandaag wisselen",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Vedisch",
+      "personalized": "Met je geboortedatum",
+      "noteGuest": "Dit is de algemene stroom van de dag. Zet je geboortedatum in je profielkaart, dan lezen we hem naast je eigen kaart.",
+      "ctaAll": "De volledige daglezing bekijken",
+      "share": "Delen"
     }
   },
   "terms": {

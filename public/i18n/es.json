@@ -1274,6 +1274,19 @@
       "placeholder": "Buscar servicios (ej.: tarot, compatibilidad, sueño)",
       "searchAria": "Buscar todos los servicios",
       "empty": "Sin resultados. Prueba otra palabra clave."
+    },
+    "todayHub": {
+      "kicker": "✦ Today's Fortune ✦",
+      "title": "La fortuna de hoy",
+      "lead": "El pilar del día del Saju, las 27 mansiones lunares y el regente védico del día, todo en un lugar. Gratis y sin registro.",
+      "tabsAria": "Cambiar el sistema de la fortuna de hoy",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Védico",
+      "personalized": "Con tu fecha de nacimiento",
+      "noteGuest": "Este es el flujo general del día. Añade tu fecha de nacimiento a la tarjeta de perfil y lo leeremos junto a tu propia carta.",
+      "ctaAll": "Ver la lectura completa de hoy",
+      "share": "Compartir"
     }
   },
   "terms": {

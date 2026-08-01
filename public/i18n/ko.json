@@ -1108,6 +1108,19 @@
       "placeholder": "찾고 싶은 운세를 검색하세요 (예: 타로, 궁합, 꿈해몽, 관상)",
       "searchAria": "전체 서비스 검색",
       "empty": "검색 결과가 없어요. 다른 키워드로 찾아보세요."
+    },
+    "todayHub": {
+      "kicker": "✦ Today's Fortune ✦",
+      "title": "오늘의 운세",
+      "lead": "사주 일진 · 숙요 27수 · 베다 요일 지배성을 한자리에서. 로그인 없이 무료입니다.",
+      "tabsAria": "오늘의 운세 점술 전환",
+      "tabSaju": "사주",
+      "tabSukuyo": "숙요점",
+      "tabVedic": "베다점",
+      "personalized": "내 생일 반영",
+      "noteGuest": "지금은 오늘 하루 전체의 흐름입니다. 프로필 카드에 생년월일을 넣어 두면 내 명식과 견주어 읽어 드려요.",
+      "ctaAll": "오늘의 운세 전체 보기",
+      "share": "공유하기"
     }
   },
   "footer": {

@@ -1274,6 +1274,19 @@
       "placeholder": "搜尋服務（如：塔羅、合婚、夢）",
       "searchAria": "搜尋全部服務",
       "empty": "沒有結果，换個關鍵詞試試。"
+    },
+    "todayHub": {
+      "kicker": "✦ Today's Fortune ✦",
+      "title": "今日運勢",
+      "lead": "四柱日柱、宿曜二十七宿、吠陀星期主星，一次看齊。免登入，免費。",
+      "tabsAria": "切換今日運勢占術",
+      "tabSaju": "四柱",
+      "tabSukuyo": "宿曜",
+      "tabVedic": "吠陀",
+      "personalized": "已結合生日",
+      "noteGuest": "目前顯示的是今天整體的走勢。在個人卡片中填入出生日期，即可對照你的命盤解讀。",
+      "ctaAll": "查看今日完整運勢",
+      "share": "分享"
     }
   },
   "terms": {
