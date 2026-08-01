@@ -80,11 +80,13 @@ export default function NakshatraCompatClient() {
   async function submit() {
     setError(null);
     if (!valid(a) || !valid(b)) { setError("두 사람의 생년월일을 정확히 입력해 주세요."); return; }
-    const gate = await ensurePaidAccess({ featureKey: FEATURE_KEY, cost: 100, amountKRW: 10000, reason: "나크샤트라 동서 통합 궁합" });
+    // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾는다.
+    const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const gate = await ensurePaidAccess({ featureKey: FEATURE_KEY, cost: 100, amountKRW: 10000, reason: "나크샤트라 동서 통합 궁합", requestId });
     if (!gate || !gate.ok) { setError((gate && gate.message) || "결제가 완료되지 않았어요."); return; }
     setLoading(true);
     try {
-      const res = await authFetch("/api/nakshatra/compat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ a: payload(a), b: payload(b) }) });
+      const res = await authFetch("/api/nakshatra/compat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ a: payload(a), b: payload(b), requestId }) });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data || !data.ok) { setError((data && data.message) || "궁합 계산에 실패했어요."); setLoading(false); return; }
       setResult(data);

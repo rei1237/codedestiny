@@ -13,7 +13,7 @@ import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
 import local from "./vvip.module.css";
-import { NatalBar, NeedBirth, type ReportSection } from "../_premium/PremiumParts";
+import { GenderPrompt, NatalBar, NeedBirth, type ReportSection } from "../_premium/PremiumParts";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
 
@@ -124,6 +124,11 @@ export default function VvipClient() {
   const [loading, setLoading] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
 
+  // 성별은 제5장 동양 대운에만 쓰인다 — 고르면 birth 에 덧대기만 하고 다른 필드는 건드리지 않는다.
+  const setGender = useCallback((gender: "male" | "female") => {
+    setBirth((prev) => (prev ? { ...prev, gender } : prev));
+  }, []);
+
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(NAKSHATRA_RESULT_STORAGE_KEY);
@@ -162,13 +167,15 @@ export default function VvipClient() {
   const run = useCallback(async () => {
     if (!birth || isPaying || loading) return;
     setError("");
+    // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾는다.
+    const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const gate = await ensurePaidAccess({
       featureKey: FEATURE_KEY,
       coinPrice: COIN_PRICE,
       cost: COIN_PRICE,
       amountKRW: AMOUNT_KRW,
       reason: REASON,
-      requestId: `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      requestId,
     });
     if (!gate.ok) {
       if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
@@ -181,7 +188,7 @@ export default function VvipClient() {
       const response = await authFetch(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(birth),
+        body: JSON.stringify({ ...birth, requestId }),
       });
       const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
       if (data.ok && data.report) { setReport(data.report as VvipCodex); return; }
@@ -236,6 +243,17 @@ export default function VvipClient() {
         <NatalBar natal={natal} meta={meta} />
 
         {!birth && <NeedBirth />}
+
+        {/* 🔴 성별은 제5장(동양 대운)에만 쓰이는데, 없으면 그 축이 통째로 빠진다.
+            VVIP 는 회당 결제라 다시 받으려면 또 50,000원이므로 반드시 **결제 전에** 묻는다.
+            (영구 해금인 다샤 인생지도는 결제 뒤에 물어도 재열람이 무료라 사정이 달랐다.) */}
+        {birth && !report && !birth.gender && (
+          <GenderPrompt
+            onPick={setGender}
+            busy={isPaying || loading}
+            note="대운은 절기까지의 거리와 성별로 순행·역행이 정해집니다. 근거 없이 한쪽을 고르면 열 개 구간이 통째로 어긋나므로 추측하지 않아요. 지금 골라 두시면 제5장에 동양 대운이 함께 실립니다 — 고르지 않아도 나머지 네 장과 인도 축(비쇼타리)은 그대로 나옵니다."
+          />
+        )}
 
         {birth && !report && (
           <div className={styles.gate}>
