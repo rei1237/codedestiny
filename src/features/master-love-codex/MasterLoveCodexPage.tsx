@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -56,17 +57,31 @@ const ERROR_TEXT: Record<string, string> = {
   PARTNER_INPUT_REQUIRED: "궁합으로 읽으려면 상대의 생년월일이 필요합니다. 넣지 않으실 거면 '상대 정보 지우고 개인 리딩으로'를 눌러 주세요.",
   CALCULATION_FAILED: "명식과 명반을 세우지 못했습니다. 입력값을 확인해 주세요.",
   GENERATION_IN_PROGRESS: "이미 다른 창에서 이어 쓰는 중입니다. 잠시 후 다시 시도해 주세요.",
+  GENERATION_BUDGET_EXCEEDED: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 보관돼 있으니 이어서 쓸 수 있습니다.",
+  DB_DEGRADED: "연결이 잠시 불안정합니다. 잠시 후 다시 시도해 주세요.",
+  EDGE_TIMEOUT: "서버가 응답할 시간을 넘겼습니다. 지금까지 쓰인 장은 보관돼 있으니 이어서 쓸 수 있습니다.",
   SERVER_ERROR: "인연의 서를 준비하는 중 문제가 발생했습니다.",
   NETWORK_ERROR: "연결이 불안정합니다. 잠시 후 다시 시도해 주세요.",
 };
 
-// 20장 / 배치 4장 = 5회 + 여유. 무한루프 방지용 터미널 가드.
-const MAX_BATCHES = 12;
+// 서버가 예산을 넘기면 4장이 아니라 1~3장만 커밋하고 돌아온다(worker/routes/master-love-codex.js).
+// 그래서 왕복 수는 20/4=5 회로 고정되지 않는다 — 최악(장당 1회)까지 여유를 둔 터미널 가드다.
+const MAX_BATCHES = 32;
+// 200 을 받았는데 장이 하나도 안 늘어난 경우의 상한. 서버는 1장 이상 커밋하거나 503 을 주므로
+// 정상 경로에서는 발생하지 않는다 — 순수 무한루프 방지용이다.
+const MAX_NO_PROGRESS_BATCHES = 3;
+// 🔴 '연속 실패'가 이어지는 시간의 상한이다(생성 시작 시각 기준이 아니다). 성공 배치가 하나라도
+//    끼면 초기화된다 — 20장 생성은 정상적으로도 몇 분이 걸려서, 시작 기준으로 재면 후반 배치의
+//    일시적 실패에는 완충이 하나도 남지 않는다.
+//    서버 배치 락 TTL(120초)보다 길어야 엣지 컷 뒤 남은 락이 풀릴 때까지 버틴다.
+const GENERATION_STALL_BUDGET_MS = 240_000;
 
 type SessionPayload = {
   ok?: boolean;
   reason?: string;
   message?: string;
+  /** 서버가 "일시적이니 다시 불러도 된다"고 표시한 응답 — 공용 판정(isRetriableResultPollFailure)이 읽는다 */
+  retryable?: boolean;
   sessionId?: string;
   status?: string;
   accessToken?: string;
@@ -97,7 +112,15 @@ async function postJson(url: string, body: Record<string, unknown>, idempotencyK
     credentials: "include",
     body: JSON.stringify(body),
   }, { retryOn401: false });
-  const data = (await response.json().catch(() => ({}))) as SessionPayload;
+  let data = (await response.json().catch(() => null)) as SessionPayload | null;
+  // 🔴 엣지 컷(524)·게이트웨이 오류는 JSON 이 아니라 HTML 을 돌려준다. 예전처럼 {} 로 뭉개면
+  //    상태 코드까지 사라져 "일시적 지연"과 "확정 실패"를 구분할 수 없게 되고, 모든 실패가
+  //    같은 제네릭 문구 하나로 표면화된다. 본문이 없으면 상태 코드로 사유를 세운다.
+  if (!data) {
+    data = response.ok
+      ? { ok: false, reason: "SERVER_ERROR" }
+      : { ok: false, reason: response.status >= 500 ? "EDGE_TIMEOUT" : "SERVER_ERROR", retryable: response.status >= 500 };
+  }
   return { status: response.status, data };
 }
 
@@ -181,10 +204,15 @@ function buildBillingGateInput(
 
 function mapError(data: SessionPayload, status = 0) {
   const reason = String(data?.reason || "").toUpperCase();
+  const serverMessage = String(data?.message || "").trim();
+  // SERVER_ERROR 는 서버가 상황을 훨씬 정확히 안다 — 제네릭 상수로 덮어쓰면
+  // "결제와 지금까지 쓰인 장은 보존됩니다" 같은 안내가 사용자에게 영영 닿지 않는다.
+  // (다른 사유는 기존 문구를 그대로 쓴다 — 이 화면의 표현 계약이 바뀌지 않게.)
+  if (reason === "SERVER_ERROR" && serverMessage) return serverMessage;
   if (reason && ERROR_TEXT[reason]) return ERROR_TEXT[reason];
   if (status === 401) return ERROR_TEXT.LOGIN_REQUIRED;
   if (status === 402) return ERROR_TEXT.PAYMENT_VERIFY_FAILED;
-  return data?.message || ERROR_TEXT.SERVER_ERROR;
+  return serverMessage || ERROR_TEXT.SERVER_ERROR;
 }
 
 
@@ -211,6 +239,13 @@ export default function MasterLoveCodexPage() {
   // 이번 시도에서 실제로 결제가 완료됐는지. 완료됐다면 idempotencyKey 를 절대 버리지 않는다
   // (ensure-access 는 결제 이력을 보지 않으므로 새 키로 재시도하면 그대로 두 번 결제된다).
   const chargedRef = useRef(false);
+  // 생성 단계에 들어섰는지. 여기부터의 실패는 이용권/결제 실패가 아니므로 결제 게이트 모달을
+  // 다시 열면 안 된다("확인 실패"라는 거짓 제목이 그렇게 붙었다).
+  const generationStartedRef = useRef(false);
+  // 생성만 재시도할 때 필요한 최신 토큰·세션 스냅샷(결제 왕복을 다시 타지 않기 위해).
+  const lastTokenRef = useRef("");
+  const lastSessionRef = useRef<SessionPayload>({});
+  const [generationError, setGenerationError] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -264,26 +299,73 @@ export default function MasterLoveCodexPage() {
 
   const runBatches = useCallback(async (startSessionId: string, startToken: string, seed: SessionPayload) => {
     setPhase("generating");
+    setGenerationError("");
+    generationStartedRef.current = true;
+    sessionIdRef.current = startSessionId;
+    // 🔴 첫 배치가 실패해도 재시도가 같은 토큰으로 돌 수 있게 진입 시점에 스냅샷을 채운다.
+    //    (비워 두면 재시도가 빈 토큰으로 /generate 를 불러 402 로 죽는다.)
+    lastTokenRef.current = startToken;
+    lastSessionRef.current = seed;
     let token = startToken;
     let current = seed;
-    for (let guard = 0; guard < MAX_BATCHES; guard += 1) {
-      if (current.done || String(current.status) === "completed") break;
+    let written = Array.isArray(seed.chapters) ? seed.chapters.length : 0;
+    let batches = 0;
+    let retries = 0;
+    let noProgress = 0;
+    let stallStartedAt = 0;
+
+    while (!(current.done || String(current.status) === "completed")) {
+      if (batches >= MAX_BATCHES) throw new Error(ERROR_TEXT.GENERATION_BUDGET_EXCEEDED);
       const { status, data } = await postJson("/api/master-love-codex/generate", { sessionId: startSessionId, accessToken: token });
+
       if (!data?.ok) {
-        if (data?.reason === "GENERATION_IN_PROGRESS") {
-          await new Promise((resolve) => setTimeout(resolve, 4000));
+        // 일시적 실패(409 재기동 대기 · 503 예산 초과/DB 블립 · 엣지 컷)는 종료 사유가 아니다.
+        // 판정은 다른 유료 화면 10곳이 쓰는 공용 함수를 그대로 재사용한다(중복 구현 금지).
+        if (!stallStartedAt) stallStartedAt = Date.now();
+        const withinStallBudget = Date.now() - stallStartedAt < GENERATION_STALL_BUDGET_MS;
+        if (isRetriableResultPollFailure(status, data) && withinStallBudget) {
+          retries += 1;
+          const delayMs = Math.min(8000, Math.round(1500 * 1.8 ** Math.min(retries - 1, 4)));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
           continue;
         }
         throw new Error(mapError(data, status));
       }
+
+      batches += 1;
+      retries = 0;
+      stallStartedAt = 0;
       if (data.accessToken) token = data.accessToken;
       current = data;
-      setChapters(Array.isArray(data.chapters) ? data.chapters : []);
-      if (data.done || String(data.status) === "completed") break;
+      const chapters = Array.isArray(data.chapters) ? data.chapters : [];
+      setChapters(chapters);
+      lastTokenRef.current = token;
+      lastSessionRef.current = data;
+      // 서버는 1장 이상 커밋하거나 503 을 준다. 진행 없는 200 이 이어지면 그건 무한루프다.
+      if (chapters.length > written) { written = chapters.length; noProgress = 0; } else { noProgress += 1; }
+      if (noProgress >= MAX_NO_PROGRESS_BATCHES) throw new Error(ERROR_TEXT.GENERATION_BUDGET_EXCEEDED);
     }
     // 읽기는 몰입 전용 라우트에서 한다 — 그쪽은 사이트맵에 없어 서버 렌더 설명 하한(1,800자)
     // 대상이 아니고, 따라서 코덱스 아래에 아무 설명도 남지 않는다.
     router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
+  }, [router]);
+
+  /** 생성만 다시 돈다 — 결제·ensure-access 를 재실행하지 않으므로 이중 결제 위험이 없다. */
+  const retryGeneration = useCallback(() => {
+    if (busyRef.current || !sessionIdRef.current) return;
+    busyRef.current = true;
+    void runBatches(sessionIdRef.current, lastTokenRef.current, lastSessionRef.current)
+      .catch((caught) => {
+        setGenerationError(caught instanceof TypeError
+          ? ERROR_TEXT.NETWORK_ERROR
+          : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
+      })
+      .finally(() => { busyRef.current = false; });
+  }, [runBatches]);
+
+  const openStoredCodex = useCallback(() => {
+    if (!sessionIdRef.current) return;
+    router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionIdRef.current)}`);
   }, [router]);
 
   async function startCodex() {
@@ -397,6 +479,15 @@ export default function MasterLoveCodexPage() {
       const message = caught instanceof TypeError
         ? ERROR_TEXT.NETWORK_ERROR
         : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR;
+
+      // 🔴 생성 단계 실패는 이용권 확인 실패가 아니다. 여기서 공용 결제 게이트를 다시 열면
+      //    이미 releasePaidFeatureGate 로 닫힌 모달이 "확인 실패" 제목으로 되살아나, 실제
+      //    원인(생성 중단)과 무관한 화면이 사용자에게 뜬다. 생성 실패는 이 기능이 직접 처리한다.
+      if (generationStartedRef.current) {
+        setGenerationError(message);
+        return;
+      }
+
       setError(message);
       if (gateStarted) {
         failPaidFeatureGateCheck({
@@ -408,17 +499,11 @@ export default function MasterLoveCodexPage() {
           cancelled: message === ERROR_TEXT.PAYMENT_CANCELLED,
         });
       }
-      // 결제까지 끝난 뒤 생성이 끊긴 경우엔 세션이 남아 있으므로 보관된 코덱스로 보낸다.
-      // 같은 idempotencyKey 로 다시 시도하면 서버가 같은 세션을 돌려주므로 재결제되지 않는다.
-      if (sessionIdRef.current) {
-        router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionIdRef.current)}`);
-      } else {
-        setPhase("birth");
-        // 결제까지 성공했는데 /start 가 실패한 경우엔 키를 버리면 안 된다 — ensure-access 는
-        // 결제 이력을 보지 않으므로 새 키로 재시도하면 402 를 다시 받고 이중 결제된다.
-        // 같은 키를 유지하면 resolveStartAccess 의 findBillingEvidence 가 결제를 찾아 통과시킨다.
-        if (!chargedRef.current) idempotencyRef.current = "";
-      }
+      setPhase("birth");
+      // 결제까지 성공했는데 /start 가 실패한 경우엔 키를 버리면 안 된다 — ensure-access 는
+      // 결제 이력을 보지 않으므로 새 키로 재시도하면 402 를 다시 받고 이중 결제된다.
+      // 같은 키를 유지하면 resolveStartAccess 의 findBillingEvidence 가 결제를 찾아 통과시킨다.
+      if (!chargedRef.current) idempotencyRef.current = "";
     } finally {
       busyRef.current = false;
     }
@@ -477,6 +562,9 @@ export default function MasterLoveCodexPage() {
             name={birth.name}
             mode={activeMode}
             accessType={accessType}
+            error={generationError}
+            onRetry={retryGeneration}
+            onOpenStored={chapters.length ? openStoredCodex : undefined}
           />
         </CodexShell>
       </>

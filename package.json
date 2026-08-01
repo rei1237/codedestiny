@@ -123,6 +123,7 @@
     "verify:life-book-ai-flow": "node scripts/verify-life-book-ai-flow.mjs",
     "verify:love-secret-ai-flow": "node scripts/verify-love-secret-ai-flow.mjs",
     "verify:master-love-codex-flow": "node scripts/verify-master-love-codex-flow.mjs",
+    "verify:master-love-codex-budget": "node scripts/verify-master-love-codex-batch-budget.mjs",
     "verify:nakshatra-flow": "node scripts/verify-nakshatra-flow.mjs",
     "verify:nakshatra-ai-flow": "node scripts/verify-nakshatra-ai-flow.mjs",
     "verify:nakshatra-premium": "node scripts/verify-nakshatra-premium.mjs",
