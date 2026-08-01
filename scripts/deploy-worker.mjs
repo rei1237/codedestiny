@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
 import { readFileSync } from "node:fs";
+import { assertWorkerBaseIsFresh, buildDeployMessage } from "./lib/worker-deploy-base-guard.mjs";
 
 function normalizeOriginOnly(rawValue, label) {
   const value = String(rawValue || "").trim();
@@ -26,6 +27,7 @@ function hasRoutePattern(configText, pattern) {
   const escaped = String(pattern || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`pattern\\s*=\\s*"${escaped}"`).test(configText);
 }
+
 
 const rootDir = process.cwd();
 const envFiles = [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"];
@@ -103,13 +105,21 @@ if (vedicForceExternal) {
   }
 }
 
+// 🔴 낡은 베이스로 배포하면 그 사이 머지된 남의 워커 커밋이 조용히 사라진다. 여기서 막는다.
+assertWorkerBaseIsFresh(rootDir, { argv: process.argv });
+
 const args = ["wrangler", "deploy", "--config", "worker/wrangler.toml"];
 if (workerName.trim()) {
   args.push("--name", workerName.trim());
   console.log(`[deploy-worker] Using Worker name override: ${workerName.trim()}`);
 }
 
+// 배포에 커밋을 새겨 `wrangler deployments list` 에서 "지금 뜬 게 어느 코드인지" 보이게 한다.
+const deployMessage = buildDeployMessage(rootDir);
+args.push("--message", deployMessage);
+
 console.log("[deploy-worker] Deploying Cloudflare backend Worker using --config worker/wrangler.toml.");
+console.log(`[deploy-worker] Deploy message: ${deployMessage}`);
 
 const result = process.platform === "win32"
   ? spawnSync("npx", args, {

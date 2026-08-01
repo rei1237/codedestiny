@@ -242,6 +242,11 @@ jobs:
       - name: Verify worker security guards
         run: npm run verify:worker-security-guards
 
+      # 배포 스테일 베이스 가드가 무력화되면 증상이 "배포가 그냥 잘 됨"이라 아무도 모르고,
+      # 다음 사고는 남의 워커 커밋이 프로덕션에서 사라지는 형태로 온다.
+      - name: Verify worker deploy base guard
+        run: npm run verify:deploy-base-guard
+
       - name: Verify no secret leak
         run: npm run verify:no-secret-leak
 
