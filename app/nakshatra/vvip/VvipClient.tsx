@@ -6,9 +6,9 @@
 // 🔴 결제 계약은 택일과 같다 — 공용 게이트(useCoinGate, pass-first, forceDeduct 없음)에만 맡기고
 //    여기서 paymentMode 를 지정하거나 pass 를 재판정하지 않는다.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { authFetch } from "@/app/_lib/auth-client";
+import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
@@ -123,6 +123,9 @@ export default function VvipClient() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
+  // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
+  const [canRetry, setCanRetry] = useState(false);
+  const paidRef = useRef<{ birth: NakshatraBirthInput; requestId: string } | null>(null);
 
   // 성별은 제5장 동양 대운에만 쓰인다 — 고르면 birth 에 덧대기만 하고 다른 필드는 건드리지 않는다.
   const setGender = useCallback((gender: "male" | "female") => {
@@ -164,6 +167,31 @@ export default function VvipClient() {
     });
   }, [profileSeed]);
 
+  // 결제 뒤의 본문 요청만 담당한다. 결제는 다시 하지 않는다.
+  const fetchCodex = useCallback(async (paid: { birth: NakshatraBirthInput; requestId: string }) => {
+    setLoading(true);
+    setError("");
+    try {
+      const { data, status, transient } = await postPaidBody(ENDPOINT, { ...paid.birth, requestId: paid.requestId });
+      if (data.ok && data.report) { setReport(data.report as VvipCodex); setCanRetry(false); return; }
+      if (status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); setCanRetry(true); return; }
+      if (transient) {
+        setError("연결이 잠시 불안정해요. 결제는 그대로 남아 있으니 아래 버튼으로 다시 받아보세요.");
+        setCanRetry(true);
+        return;
+      }
+      setError(String(data.message || "통합서를 만들지 못했어요. 잠시 후 다시 시도해 주세요."));
+      setCanRetry(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const retry = useCallback(async () => {
+    if (!paidRef.current || loading) return;
+    await fetchCodex(paidRef.current);
+  }, [fetchCodex, loading]);
+
   const run = useCallback(async () => {
     if (!birth || isPaying || loading) return;
     setError("");
@@ -183,24 +211,10 @@ export default function VvipClient() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await authFetch(ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...birth, requestId }),
-      });
-      const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-      if (data.ok && data.report) { setReport(data.report as VvipCodex); return; }
-      if (response.status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
-      if (response.status === 503) { setError("연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요."); return; }
-      setError(String(data.message || "통합서를 만들지 못했어요. 잠시 후 다시 시도해 주세요."));
-    } catch {
-      setError("통합서를 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setLoading(false);
-    }
-  }, [birth, ensurePaidAccess, isPaying, loading]);
+    // 🔴 결제가 끝났다(₩50,000). 여기서부터는 실패해도 재결제를 요구하지 않는다.
+    paidRef.current = { birth, requestId };
+    await fetchCodex({ birth, requestId });
+  }, [birth, ensurePaidAccess, fetchCodex, isPaying, loading]);
 
   const savePdf = useCallback(async () => {
     if (!report || savingPdf) return;
@@ -272,6 +286,12 @@ export default function VvipClient() {
         )}
 
         {error && <p className={styles.error} role="alert">{error}</p>}
+
+        {canRetry && paidRef.current && !report && (
+          <button type="button" className={styles.cta} onClick={() => void retry()} disabled={loading}>
+            {loading ? "다시 받는 중…" : "결제 없이 다시 받기"}
+          </button>
+        )}
 
         {report && (
           <>

@@ -467,7 +467,9 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   check("택일 화면: featureKey nakshatra-muhurta · 50코인 · 5,000원",
     /FEATURE_KEY = "nakshatra-muhurta"/.test(muhurtaCode)
     && /COIN_PRICE = 50/.test(muhurtaCode) && /AMOUNT_KRW = 5000/.test(muhurtaCode));
-  check("택일 화면: 결제 성공 뒤에만 본문을 요청한다", /if \(!gate\.ok\)[\s\S]{0,400}setLoading\(true\)/.test(muhurtaCode));
+  // 본문 요청은 결제 성공 뒤에만 — 게이트 실패는 그 앞에서 early-return 한다.
+  check("택일 화면: 결제 성공 뒤에만 본문을 요청한다",
+    /if \(!gate\.ok\)[\s\S]{0,400}return;[\s\S]{0,400}fetchReport\(/.test(muhurtaCode));
 
   const routeCodeAll = stripComments(readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8"));
   check("택일 라우트: 🔴 canAccessPaidFeature 를 관문으로 쓰지 않는다(회당결제는 항상 402 → 돈만 나감)",
@@ -551,7 +553,7 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
 
   for (const [relative, marker] of [
     ["app/nakshatra/muhurta/MuhurtaClient.tsx", "purpose, startDate, requestId"],
-    ["app/nakshatra/vvip/VvipClient.tsx", "...birth, requestId"],
+    ["app/nakshatra/vvip/VvipClient.tsx", "requestId: paid.requestId"],
     ["app/nakshatra/compat/NakshatraCompatClient.tsx", "b: payload(b), requestId"],
   ]) {
     const source = stripComments(readFileSync(path.join(repoRoot, relative), "utf8"));
@@ -573,6 +575,46 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   check("CLAUDE.md: PERSISTENT_UNLOCK_KEY_SET 위치가 fortune.js 로 정정됐다",
     /worker\/routes\/fortune\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd)
     && !/content-unlocks\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd));
+}
+
+console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않는가");
+{
+  // 🔴 이 저장소의 API 는 Mongo 블립을 재시도 가능한 503(DB_DEGRADED)으로 내려준다.
+  //    나크샤트라만 공용 완충(app/_lib/consultationResultPolling.ts)을 안 써서 블립 한 번에 죽었다.
+  const fetchPath = "app/nakshatra/nakshatra-fetch.ts";
+  const fetchSrc = stripComments(readFileSync(path.join(repoRoot, fetchPath), "utf8"));
+  check(`${fetchPath}: 공용 재시도 유틸을 재사용한다(새 재시도 로직 발명 금지)`,
+    /consultationResultPolling/.test(fetchSrc)
+    && /runAccessCheckWithTransientRetry/.test(fetchSrc) && /isRetriableResultPollFailure/.test(fetchSrc));
+  check(`${fetchPath}: 네트워크 단절도 일시 장애로 표면화한다`, /reason: "DB_DEGRADED", retryable: true/.test(fetchSrc));
+  check(`${fetchPath}: 결제 뒤 요청이라 선검사보다 넉넉한 예산을 준다`, /PAID_BODY_BUDGET_MS = \d{5}/.test(fetchSrc));
+
+  // 🔴 회당결제는 재시도 = 재결제다. 결제 성공 뒤 본문을 못 받으면 돈만 나간다.
+  for (const [relative, label] of [
+    ["app/nakshatra/muhurta/MuhurtaClient.tsx", "택일(5,000원)"],
+    ["app/nakshatra/vvip/VvipClient.tsx", "VVIP(50,000원)"],
+    ["app/nakshatra/compat/NakshatraCompatClient.tsx", "궁합(10,000원)"],
+  ]) {
+    const src = stripComments(readFileSync(path.join(repoRoot, relative), "utf8"));
+    check(`${label}: 결제 뒤 본문 요청이 일시 장애를 자동 재시도한다`, /postPaidBody\(/.test(src));
+    check(`${label}: 🔴 결제를 다시 요구하지 않는 재시도 경로가 있다`,
+      /paidRef/.test(src) && /canRetry/.test(src) && src.includes("결제 없이 다시 받기"));
+    check(`${label}: 재시도 버튼이 결제(ensurePaidAccess)를 다시 부르지 않는다`,
+      !/canRetry[\s\S]{0,400}ensurePaidAccess/.test(src));
+  }
+
+  const hook = stripComments(readFileSync(path.join(repoRoot, "app/nakshatra/_premium/use-premium-report.ts"), "utf8"));
+  check("영구해금 2종도 일시 장애를 자동 재시도한다", /postPaidBody\(/.test(hook));
+
+  const ai = stripComments(readFileSync(path.join(repoRoot, "app/nakshatra/ai/NakshatraAiClient.tsx"), "utf8"));
+  check("🔴 심화 상담: /start 가 일시 장애면 죽이지 않고 폴링으로 넘긴다(생성 자체가 안 되던 원인)",
+    /isRetriableResultPollFailure\(response\.status, data\)\) \{[\s\S]{0,220}pollResult\(idempotencyKey/.test(ai));
+  check("🔴 심화 상담: 일시 장애가 진행 예산을 먹지 않는다(별도 카운터)",
+    /TRANSIENT_MAX_RETRIES/.test(ai) && /transientLeft -= 1/.test(ai));
+  check("🔴 심화 상담: 블립 예산을 회복시키지 않는다(상한이 곱해지는 것 방지)",
+    !/transientLeft = TRANSIENT_MAX_RETRIES;\s*\n\s*attempt \+= 1/.test(ai));
+  check("🔴 심화 상담: 카운터와 별개로 벽시계 상한이 있다",
+    /GENERATION_DEADLINE_MS/.test(ai) && (ai.match(/Date\.now\(\) < deadline/g) || []).length === 2);
 }
 
 console.log(`\n${failures === 0 ? "PASS" : `FAIL (${failures})`} — 나크샤트라 심화 리포트 검증`);

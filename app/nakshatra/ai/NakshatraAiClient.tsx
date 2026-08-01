@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
@@ -27,6 +28,13 @@ const POLL_MAX_ATTEMPTS = 45;
 const TOTAL_SECTIONS = 21;
 const GENERATE_MAX_ATTEMPTS = 24;
 const GENERATE_GAP_MS = 400;
+// 일시 장애(503 DB_DEGRADED · 세션 리프레시 지연)에만 쓰는 별도 한도.
+// 진행 예산(GENERATE_MAX_ATTEMPTS/POLL_MAX_ATTEMPTS)과 섞으면 블립이 웨이브를 잡아먹는다.
+// 🔴 회복시키지 않는다 — 회복을 넣으면 최악의 경우 (진행예산 × 블립예산)회까지 돌 수 있다.
+const TRANSIENT_MAX_RETRIES = 40;
+// 두 카운터와 별개인 벽시계 상한. 카운터만으로는 상한이 곱해져 사실상 무한이 된다.
+// 21섹션 6웨이브 + 블립 재시도까지 담고도 사용자를 방치하지 않는 값.
+const GENERATION_DEADLINE_MS = 10 * 60 * 1000;
 
 type BirthInput = NakshatraBirthInput;
 type Phase = "intro" | "checking" | "payment" | "generating" | "done" | "error";
@@ -171,18 +179,31 @@ export default function NakshatraAiClient() {
   const pollResult = useCallback(async (resultId: string, accessToken: string) => {
     const headers: Record<string, string> = { Accept: "application/json" };
     if (accessToken) headers[ACCESS_TOKEN_HEADER] = accessToken;
-    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt += 1) {
+    // 일시 장애는 폴링 예산을 먹지 않는다(아래 driveGeneration 과 같은 이유).
+    let transientLeft = TRANSIENT_MAX_RETRIES;
+    let attempt = 0;
+    const deadline = Date.now() + GENERATION_DEADLINE_MS;
+    while (attempt < POLL_MAX_ATTEMPTS && Date.now() < deadline) {
       await sleep(POLL_INTERVAL_MS);
       let res: Response;
       try {
         res = await authFetch(`${API.result}?attemptId=${encodeURIComponent(resultId)}`, { headers });
       } catch {
+        // 네트워크 단절도 일시 장애다.
+        if (transientLeft <= 0) break;
+        transientLeft -= 1;
         continue;
       }
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       applyProgress(data);
       if (res.status === 200 && data.ok && data.decks) { finish(data); return; }
-      if (res.status === 202 || res.status === 503 || res.status === 404) continue;
+      if (isRetriableResultPollFailure(res.status, data)) {
+        if (transientLeft <= 0) break;
+        transientLeft -= 1;
+        continue;
+      }
+      attempt += 1;
+      if (res.status === 202 || res.status === 404) continue;
       if (res.status === 409) { fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요."); return; }
     }
     fail("상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.");
@@ -191,14 +212,24 @@ export default function NakshatraAiClient() {
   // 21섹션은 한 요청에 다 굽지 못한다(엣지 100초 컷). 서버가 한 번에 4섹션씩 굽고 진행률을 돌려주므로
   // 완료될 때까지 /generate 를 이어 부른다. 진행 위치의 정본은 서버다 — 여기서 인덱스를 보내지 않는다.
   const driveGeneration = useCallback(async (sessionId: string, idempotencyKey: string, accessToken: string) => {
-    for (let attempt = 0; attempt < GENERATE_MAX_ATTEMPTS; attempt += 1) {
+    // 🔴 일시 장애는 "진행"이 아니므로 웨이브 예산을 먹으면 안 된다. 블립이 조금만 길어도
+    //    24회를 503으로 다 써 버려 21섹션을 끝내지 못하고 죽었다. 별도 한도로 센다.
+    let transientLeft = TRANSIENT_MAX_RETRIES;
+    const deadline = Date.now() + GENERATION_DEADLINE_MS;
+    for (let attempt = 0; attempt < GENERATE_MAX_ATTEMPTS && Date.now() < deadline; ) {
       const step = await postJson(API.generate, { sessionId, idempotencyKey }, idempotencyKey).catch(() => null);
       if (!step) { await pollResult(sessionId, accessToken); return; }
       const { response, data } = step;
       applyProgress(data);
       if (data.ok && data.decks) { finish(data); return; }
+      if (isRetriableResultPollFailure(response.status, data)) {
+        if (transientLeft <= 0) { await pollResult(sessionId, accessToken); return; }
+        transientLeft -= 1;
+        await sleep(POLL_INTERVAL_MS);
+        continue;
+      }
+      attempt += 1;
       if (response.status === 202) { await sleep(GENERATE_GAP_MS); continue; }
-      if (response.status === 503) { await sleep(POLL_INTERVAL_MS); continue; }
       if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
       if (response.status === 409 || response.status === 404) { await pollResult(sessionId, accessToken); return; }
       fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
@@ -222,6 +253,14 @@ export default function NakshatraAiClient() {
       return;
     }
     if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
+    // 🔴 /start 가 일시 장애(503 DB_DEGRADED 등)면 여기서 죽이지 않는다 — 이 분기가 없어서
+    //    Mongo 블립 중에 시작하면 "상담문 생성에 실패했어요"로 즉시 끝나 생성 자체가 안 됐다.
+    //    서버가 세션을 이미 만들었을 수도 있으므로 폴링으로 넘겨 자가 복구시킨다.
+    if (isRetriableResultPollFailure(response.status, data)) {
+      setStatusMsg("연결이 잠시 불안정해요. 이어서 다시 시도하는 중입니다.");
+      await pollResult(idempotencyKey, accessToken);
+      return;
+    }
     fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
   }, [finish, fail, pollResult, driveGeneration, applyProgress]);
 

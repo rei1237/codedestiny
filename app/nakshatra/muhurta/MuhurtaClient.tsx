@@ -7,9 +7,9 @@
 //    이용권 선검사 → 미커버 시 단건/월정석 동등 노출은 그쪽이 서버 결정으로 수행하므로
 //    여기서 paymentMode 를 지정하거나 pass 를 재판정하지 않는다.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { authFetch } from "@/app/_lib/auth-client";
+import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
@@ -118,6 +118,9 @@ export default function MuhurtaClient() {
   const [report, setReport] = useState<MuhurtaReport | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
+  const [canRetry, setCanRetry] = useState(false);
+  const paidRef = useRef<{ birth: NakshatraBirthInput; purpose: string; startDate: string; requestId: string } | null>(null);
 
   useEffect(() => {
     try {
@@ -151,6 +154,33 @@ export default function MuhurtaClient() {
 
   const selected = useMemo(() => PURPOSES.find((item) => item.key === purpose) || PURPOSES[0], [purpose]);
 
+  // 결제 뒤의 본문 요청만 담당한다. 결제는 다시 하지 않는다.
+  const fetchReport = useCallback(async (paid: { birth: NakshatraBirthInput; purpose: string; startDate: string; requestId: string }) => {
+    setLoading(true);
+    setError("");
+    try {
+      const { data, status, transient } = await postPaidBody(ENDPOINT, {
+        ...paid.birth, purpose: paid.purpose, startDate: paid.startDate, requestId: paid.requestId,
+      });
+      if (data.ok && data.report) { setReport(data.report as MuhurtaReport); setCanRetry(false); return; }
+      if (status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); setCanRetry(true); return; }
+      if (transient) {
+        setError("연결이 잠시 불안정해요. 결제는 그대로 남아 있으니 아래 버튼으로 다시 받아보세요.");
+        setCanRetry(true);
+        return;
+      }
+      setError(String(data.message || "길일을 찾지 못했어요. 잠시 후 다시 시도해 주세요."));
+      setCanRetry(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const retry = useCallback(async () => {
+    if (!paidRef.current || loading) return;
+    await fetchReport(paidRef.current);
+  }, [fetchReport, loading]);
+
   const run = useCallback(async () => {
     if (!birth || isPaying || loading) return;
     setError("");
@@ -172,24 +202,11 @@ export default function MuhurtaClient() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await authFetch(ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...birth, purpose, startDate, requestId }),
-      });
-      const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-      if (data.ok && data.report) { setReport(data.report as MuhurtaReport); return; }
-      if (response.status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
-      if (response.status === 503) { setError("연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요."); return; }
-      setError(String(data.message || "길일을 찾지 못했어요. 잠시 후 다시 시도해 주세요."));
-    } catch {
-      setError("길일을 찾지 못했어요. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setLoading(false);
-    }
-  }, [birth, ensurePaidAccess, isPaying, loading, purpose, startDate]);
+    // 🔴 결제가 끝났다. 여기서부터는 실패해도 재결제를 요구하지 않는다 —
+    //    일시 장애는 자동 재시도하고, 그래도 안 되면 '다시 시도' 버튼으로 같은 결제를 재사용한다.
+    paidRef.current = { birth, purpose, startDate, requestId };
+    await fetchReport({ birth, purpose, startDate, requestId });
+  }, [birth, ensurePaidAccess, fetchReport, isPaying, loading, purpose, startDate]);
 
   const meta = report ? `${report.meta.dayCount}일 · 일치 ${report.meta.bothGoodCount}일` : undefined;
 
@@ -247,6 +264,12 @@ export default function MuhurtaClient() {
         )}
 
         {error && <p className={styles.error} role="alert">{error}</p>}
+
+        {canRetry && paidRef.current && !report && (
+          <button type="button" className={styles.cta} onClick={() => void retry()} disabled={loading}>
+            {loading ? "다시 받는 중…" : "결제 없이 다시 받기"}
+          </button>
+        )}
 
         {report && (
           <>
