@@ -2880,8 +2880,16 @@
       function finish(ok) {
         if (settled) return;
         settled = true;
-        if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') resolve();
-        else reject(new Error('포트원 V2 결제 SDK가 초기화되지 않았습니다.'));
+        if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') {
+          resolve();
+          return;
+        }
+        // 죽은 태그를 남기면 다음 시도가 그 태그를 물려받아 새 요청 없이 상한까지 기다린다.
+        try {
+          var dead = document.getElementById('portone-v2-sdk');
+          if (dead && dead.parentNode) dead.parentNode.removeChild(dead);
+        } catch (_removeError) {}
+        reject(new Error('포트원 V2 결제 SDK가 초기화되지 않았습니다.'));
       }
 
       var existing = document.getElementById('portone-v2-sdk');

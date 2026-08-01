@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
@@ -124,6 +125,52 @@ function runPortOneRequestShapeTests() {
   // 정상 동작하는 참조 구현도 함께 고정한다 — 이쪽이 바뀌면 위 동등성 근거가 사라진다.
   const portoneClientSource = readFileSync(resolve(root, "lib/payment/portone.ts"), "utf8");
   assertNotContains(portoneClientSource, "windowType", "lib/payment/portone.ts must stay the windowType-free reference shape");
+}
+
+// 🔴 SDK 로더 영구 행 회귀 가드 (2026-08-01)
+// script 의 load/error 는 한 번만 발화한다. 로더가 **이미 끝난** 태그를 물려받아 리스너만 붙이면
+// 영영 resolve 도 reject 도 하지 않고, await 뒤의 requestPayment 에 도달하지 못해 PG 결제창이
+// 아예 안 뜬다(예외가 아니라서 콘솔에도 흔적이 없다). 실측: 12초 무반응 + CDN 재요청 0회.
+// 방아쇠는 로더가 두 벌이었던 것 — 예열 함수가 자기 <script> 를 따로 주입하고 promise 는 남기지
+// 않아, 그 태그가 실패하면 본 로더가 죽은 태그를 상속했다. 셸·dp 양쪽에 같은 규율을 고정한다.
+function runPortOneSdkLoaderResilienceTests() {
+  for (const [label, source, loaderName] of [
+    ["index.html", indexSource, "_cdLoadPortOneV2Sdk"],
+    ["js/destiny-profile.js", destinyProfileSource, "_dpLoadPortOneV2Sdk"],
+  ]) {
+    const loader = stripComments(sliceFunction(source, `function ${loaderName}(`, `${label} ${loaderName}`));
+    // ① 상한이 있어야 이미 발화가 끝난 태그를 물려받아도 빠져나온다.
+    assert.ok(
+      /setTimeout\(/.test(loader),
+      `${label}: ${loaderName} must bound the wait — a settled <script> never fires load/error again`,
+    );
+    // ② 실패한 태그를 걷어내야 다음 시도가 실제로 새 요청을 낸다(제거 없이는 재시도가 무의미).
+    assert.ok(
+      /removeChild\(|\.remove\(\)/.test(loader),
+      `${label}: ${loaderName} must drop the dead <script> so a retry actually re-requests the SDK`,
+    );
+    // ③ 이중 해결 방지.
+    assert.ok(
+      /settled/.test(loader),
+      `${label}: ${loaderName} must guard against double settle`,
+    );
+  }
+  // ④ 셸의 예열은 자기 <script> 를 따로 붙이지 않고 공용 로더 하나를 거친다.
+  const warm = stripComments(sliceFunction(indexSource, "function _cdWarmPortOneV2Sdk(", "index.html _cdWarmPortOneV2Sdk"));
+  assert.ok(
+    !/createElement\('script'\)/.test(warm),
+    "index.html: _cdWarmPortOneV2Sdk must not inject its own <script> — it orphaned a tag the loader then inherited",
+  );
+  assert.ok(
+    /_cdPortOneV2SdkPromise\(\)/.test(warm),
+    "index.html: _cdWarmPortOneV2Sdk must warm through the shared loader promise",
+  );
+  // ⑤ 공용 promise 는 실패 시 캐시에서 버려야 재시도가 같은 실패를 재사용하지 않는다.
+  const shared = stripComments(sliceFunction(indexSource, "function _cdPortOneV2SdkPromise(", "index.html _cdPortOneV2SdkPromise"));
+  assert.ok(
+    /__cdPortOneV2PreloadPromise = null/.test(shared),
+    "index.html: _cdPortOneV2SdkPromise must evict a rejected promise from the cache",
+  );
 }
 
 // 🔴 "단건결제를 눌렀는데 PG창 앞에 또 다른 화면이 뜬다" 회귀 가드 (2026-07)
@@ -896,7 +943,7 @@ function runClientStaticTests() {
   assertContains(indexSource, "redirectUrl.searchParams.set('portone_redirect', '1')", "mobile redirect marker");
   assertContains(paymentsRouteSource, 'redirectUrl.searchParams.set("payment_id", paymentId)', "redirectUrl carries paymentId");
   assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "server complete failure must block unlock success");
-  assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "already unlocked/pass branch should not open payment modal");
+  assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdPortOneV2SdkPromise()", "already unlocked/pass branch should not open payment modal");
   assertContains(indexSource, "alreadyUnlocked", "already unlocked branch");
   assertContains(pagesHeadersSource, "connect-src 'self'", "Cloudflare Pages CSP connect-src");
   assertContains(pagesHeadersSource, "connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co", "PortOne checkout prepare API must be allowed by connect-src");
@@ -922,6 +969,7 @@ try {
   await runServerTests();
   runClientStaticTests();
   runPortOneRequestShapeTests();
+  runPortOneSdkLoaderResilienceTests();
   runInstantPgWindowTests();
   runInstantPgLatencyTests();
   runDirectPgOverlayTests();
