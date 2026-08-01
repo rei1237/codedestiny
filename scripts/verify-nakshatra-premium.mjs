@@ -544,6 +544,10 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   check("🔴 1단계: 차단 스위치가 꺼져 있다(PER_USE_ENFORCE = false)", /PER_USE_ENFORCE = false/.test(premium));
   check("차단을 켰을 때 DB 블립은 402 가 아니라 503 이다",
     /proof\.proven === null\) return degraded\(\)/.test(premium));
+  // 🔴 증빙 확인이 예외를 던져도 결제한 사용자의 본문을 막으면 안 된다 —
+  //    관측 단계에서 500 을 새로 만드는 것은 고치려던 문제보다 나쁘다.
+  check("증빙 확인이 터져도 본문을 막지 않는다(택일·VVIP)", /VERIFY_THREW/.test(premium));
+  check("증빙 확인이 터져도 본문을 막지 않는다(compat)", /VERIFY_THREW/.test(compat));
 
   for (const [relative, marker] of [
     ["app/nakshatra/muhurta/MuhurtaClient.tsx", "purpose, startDate, requestId"],

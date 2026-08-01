@@ -231,14 +231,22 @@ const PER_USE_ENFORCE = false;
 async function observePerUsePayment(env, auth, kind, body) {
   const product = PER_USE_PRODUCTS[kind];
   if (!product) return null;
-  const proof = await verifyPerUsePayment(env, {
-    userId: auth?.userId,
-    featureKey: product.featureKey,
-    coinPrice: product.coinPrice,
-    requestId: body?.requestId || body?.idempotencyKey || "",
-  });
-  logPerUsePaymentProof(product.featureKey, proof);
-  return proof;
+  try {
+    const proof = await verifyPerUsePayment(env, {
+      userId: auth?.userId,
+      featureKey: product.featureKey,
+      coinPrice: product.coinPrice,
+      requestId: body?.requestId || body?.idempotencyKey || "",
+    });
+    logPerUsePaymentProof(product.featureKey, proof);
+    return proof;
+  } catch (error) {
+    // 🔴 증빙 확인이 터져도 결제한 사용자의 본문을 막지 않는다 — 관측 단계에서 500 을 새로 만드는 것은
+    //    고치려던 문제보다 나쁘다. 차단을 켤 때도 이 경로는 "판단 보류"로 남아 503 이 된다.
+    logPerUsePaymentProof(product.featureKey, { proven: null, source: "", reason: "VERIFY_THREW" });
+    console.error("[nakshatra-paid-access] verify failed", String(error?.message || error).slice(0, 200));
+    return { proven: null, source: "", reason: "VERIFY_THREW" };
+  }
 }
 
 function pad2(value) {

@@ -163,12 +163,18 @@ export async function handleNakshatraRoutes(request, env) {
       // 🔴 1단계는 관측 전용이다 — 로그만 남기고 막지 않는다(차단은 실로그 확인 후 2단계에서).
       const auth = await requireAuth(request, env);
       const body = await readJson(request);
-      logPerUsePaymentProof(COMPAT_FEATURE_KEY, await verifyPerUsePayment(env, {
-        userId: auth?.userId,
-        featureKey: COMPAT_FEATURE_KEY,
-        coinPrice: COMPAT_COIN_PRICE,
-        requestId: body?.requestId || body?.idempotencyKey || "",
-      }));
+      // 🔴 증빙 확인이 터져도 결제한 사용자의 본문을 막지 않는다(관측 단계에서 500 을 새로 만들지 않는다).
+      try {
+        logPerUsePaymentProof(COMPAT_FEATURE_KEY, await verifyPerUsePayment(env, {
+          userId: auth?.userId,
+          featureKey: COMPAT_FEATURE_KEY,
+          coinPrice: COMPAT_COIN_PRICE,
+          requestId: body?.requestId || body?.idempotencyKey || "",
+        }));
+      } catch (error) {
+        logPerUsePaymentProof(COMPAT_FEATURE_KEY, { proven: null, source: "", reason: "VERIFY_THREW" });
+        console.error("[nakshatra-paid-access] verify failed", String(error?.message || error).slice(0, 200));
+      }
       return await resolveCompat(env, body, { requestUrl: request.url });
     }
     return notFound(); // /api/nakshatra/* 하위 미해당 경로.
