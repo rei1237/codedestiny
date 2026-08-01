@@ -212,11 +212,15 @@ function applyVersionRefresh(version) {
 function showVersionUpdateBanner(version, reason) {
   if (!document || !document.body) return;
 
+  var messageText = reason
+    ? ('현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.')
+    : '준비되면 새로고침해 주세요. 지금 화면은 그대로 유지됩니다.';
+
   var existing = document.getElementById(VERSION_GUARD_BANNER_ID);
   if (existing) {
     var messageNode = existing.querySelector('[data-cd-version-message]');
     if (messageNode) {
-      messageNode.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
+      messageNode.textContent = messageText;
     }
     existing.setAttribute('data-version', version);
     return;
@@ -266,7 +270,7 @@ function showVersionUpdateBanner(version, reason) {
 
   var message = document.createElement('div');
   message.setAttribute('data-cd-version-message', '1');
-  message.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
+  message.textContent = messageText;
   message.style.fontSize = '12px';
   message.style.opacity = '0.92';
   if (compactMobileBanner) {
@@ -385,16 +389,25 @@ function runNuclearVersionGuard() {
       return version;
     }
 
+    // 🔴 자동 location.replace 는 하지 않는다(2026-08-01 폐지). 배포마다 저장된 버전과 다른 모든
+    // 재방문자가 매번 자동 리로드를 1회씩 겪었고, 하필 noncritical-defer-loader 가 share.js 를
+    // 첫 기능 탭/45초 방치/앱 전환 시점에 주입해 "탭했더니 화면이 통째로 새로고침됨"으로 보였다
+    // (15초 interval + focus + visibilitychange 가 계속 재검사한다). 스토리지가 막힌 환경(iOS
+    // 프라이빗 모드 등)에서는 무한 reload 방지 가드까지 무력화돼 15초마다 영구 리로드로 번졌다.
+    // '/' · '/index.html' 은 no-store 라 다음 문서 이동에서 어차피 최신을 받는다 — 자동 리로드는
+    // 신선도 유지의 필수 수단이 아니라 가장 거친 수단이었다. 캐시 정리는 그대로 하고 배너로 맡긴다.
     var blockingReason = isCriticalOperationInProgress();
-    if (blockingReason) {
-      showVersionUpdateBanner(version, blockingReason);
-      return version;
+    // 배너는 응답 없이 매 15초/포커스마다 재호출되므로, 캐시 정리는 이 버전당 한 번만 한다
+    // (안 그러면 SW 해제·Cache Storage 삭제가 사용자가 새로고침을 누를 때까지 계속 반복된다).
+    var purgedForVersion = '';
+    try { purgedForVersion = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
+    if (purgedForVersion !== version) {
+      nukeAllCachesLegacy().then(function() {
+        try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
+      });
     }
-
-    removeVersionUpdateBanner();
-
-    // SW 전체 해제 + Cache Storage 전부 삭제 후 reload
-    return applyVersionRefresh(version);
+    showVersionUpdateBanner(version, blockingReason);
+    return version;
   }).finally(function() {
     __versionGuardInFlight = false;
   });

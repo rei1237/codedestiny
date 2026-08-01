@@ -16,9 +16,16 @@
 
 export const SHELL_HOME_PATH = "/";
 
-/** 정적 메인 셸이 담당하는 홈 경로인가. 쿼리·해시는 목적지가 아니라 셸이 해석할 인자다. */
+/**
+ * 정적 메인 셸이 담당하는 홈 경로인가. 쿼리·해시는 목적지가 아니라 셸이 해석할 인자다.
+ *
+ * `/index.html`도 같은 홈으로 취급한다 — GlobalHeader 등 일부 링크가 `/index.html`을 쓰고
+ * (Capacitor 앱은 확장자 없는 경로를 못 열어 셸 내부 네비게이션이 그 URL로 귀결된다),
+ * 여기서 걸러내지 않으면 이 가드가 그 링크를 못 잡아 `/`와 `/index.html` 사이를 오갈 때마다
+ * 셸이 다른 문서로 취급돼 전체 재로드가 난다.
+ */
 export function isShellHomePath(pathname: string | null | undefined) {
-  return pathname === SHELL_HOME_PATH;
+  return pathname === SHELL_HOME_PATH || pathname === "/index.html";
 }
 
 /**
