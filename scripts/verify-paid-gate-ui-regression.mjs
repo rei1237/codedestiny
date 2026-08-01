@@ -135,7 +135,7 @@ assertContains(indexSource, "window.location.assign('/points?source=direct-payme
 assertContains(indexSource, 'data-payment-status', "payment choice status state");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly option includes profile add/delete");
 
-assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
+assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdPortOneV2SdkPromise()", "pass access returns before PortOne SDK");
 assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");
 assertContains(indexSource, "pg: 'KG_INICIS'", "KG Inicis pg in checkout payload");
 assertContains(indexSource, "window.PortOne.requestPayment(requestData)", "PortOne V2 requestPayment call");

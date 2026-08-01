@@ -648,7 +648,9 @@ assertContains(indexSource, "closePassCheckOverlay", "membership pass check clos
 assertNotContains(indexSource, "function showChoiceWait", "payment choice does not open duplicate wait overlay before checkout handler");
 assertNotContains(indexSource, "showChoiceWait(mode)", "payment choice click does not flash a duplicate wait overlay");
 assertContains(indexSource, "window.__cdPortOneV2PreloadPromise", "payment choice modal preloads PortOne SDK for direct payment");
-assertContains(indexSource, "await portOneLoadPromise", "direct payment reuses preloaded PortOne SDK promise");
+// 프리로드 재사용의 정본은 공용 진입점 하나다(_cdPortOneV2SdkPromise 가 __cdPortOneV2PreloadPromise 를
+// 메모이즈한다). 예전 마커는 호출부에 흩어져 있던 promise 변수였다.
+assertContains(indexSource, "await _cdPortOneV2SdkPromise()", "direct payment reuses preloaded PortOne SDK promise");
 // 🔴 단건결제는 클릭부터 PG 결제창이 열리기까지 어떤 대기 UI도 띄우지 않는다(사용자 요구사항).
 // 예전 규칙은 그 반대("PG 인증 중에도 대기 UI 유지")였는데, 실제로는 대기 오버레이만 보이고
 // PG창은 안 뜨는 것으로 체감됐고 페인트 대기가 user-gesture 소멸 위험까지 만들었다.
