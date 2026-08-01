@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCoinGate } from "../../hooks/useCoinGate";
-import { authFetch } from "../../_lib/auth-client";
+import { postPaidBody } from "../nakshatra-fetch";
 import CompatResultView, { type CompatResult } from "./CompatResultView";
 
 const FEATURE_KEY = "nakshatra-compat";
@@ -66,6 +66,9 @@ export default function NakshatraCompatClient() {
   const [aLocked, setALocked] = useState(false);
   const [result, setResult] = useState<CompatResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
+  const [canRetry, setCanRetry] = useState(false);
+  const paidRef = useRef<{ a: unknown; b: unknown; requestId: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -84,14 +87,30 @@ export default function NakshatraCompatClient() {
     const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const gate = await ensurePaidAccess({ featureKey: FEATURE_KEY, cost: 100, amountKRW: 10000, reason: "나크샤트라 동서 통합 궁합", requestId });
     if (!gate || !gate.ok) { setError((gate && gate.message) || "결제가 완료되지 않았어요."); return; }
+    // 🔴 결제가 끝났다. 여기서부터는 실패해도 재결제를 요구하지 않는다 —
+    //    일시 장애는 자동 재시도하고, 그래도 안 되면 '다시 받기'로 같은 결제를 재사용한다.
+    paidRef.current = { a: payload(a), b: payload(b), requestId };
+    await fetchCompat(paidRef.current);
+  }
+
+  // 결제 뒤의 본문 요청만 담당한다. 결제는 다시 하지 않는다.
+  async function fetchCompat(paid: { a: unknown; b: unknown; requestId: string }) {
     setLoading(true);
+    setError(null);
     try {
-      const res = await authFetch("/api/nakshatra/compat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ a: payload(a), b: payload(b), requestId }) });
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data || !data.ok) { setError((data && data.message) || "궁합 계산에 실패했어요."); setLoading(false); return; }
-      setResult(data);
-    } catch { setError("네트워크 오류가 발생했어요."); }
-    setLoading(false);
+      const { data, status, transient } = await postPaidBody("/api/nakshatra/compat", paid as Record<string, unknown>);
+      if (data && data.ok) { setResult(data as unknown as CompatResult); setCanRetry(false); return; }
+      if (status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); setCanRetry(true); return; }
+      if (transient) {
+        setError("연결이 잠시 불안정해요. 결제는 그대로 남아 있으니 아래 버튼으로 다시 받아보세요.");
+        setCanRetry(true);
+        return;
+      }
+      setError(String(data?.message || "궁합 계산에 실패했어요."));
+      setCanRetry(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function copyInvite() {
@@ -111,6 +130,16 @@ export default function NakshatraCompatClient() {
         <Person title="상대" v={b} set={setB} />
       </div>
       {error && <p role="alert" className="mt-4 rounded-lg border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">{error}</p>}
+      {canRetry && paidRef.current && !result && (
+        <button
+          type="button"
+          onClick={() => { void fetchCompat(paidRef.current!); }}
+          disabled={loading}
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-amber-200/40 px-4 text-sm font-bold text-amber-100 transition hover:bg-amber-200/10 disabled:opacity-55"
+        >
+          {loading ? "다시 받는 중…" : "결제 없이 다시 받기"}
+        </button>
+      )}
       <button onClick={submit} disabled={loading || isPaying}
         className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 transition hover:bg-amber-100 disabled:opacity-60">
         {loading ? "두 별을 겹쳐 보는 중…" : isPaying ? "결제 확인 중…" : "동서 통합 궁합 보기 (10,000원)"}

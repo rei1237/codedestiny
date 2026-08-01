@@ -10,7 +10,7 @@
 //    여기서 paymentMode 를 지정하거나 pass 를 재판정하지 않는다.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { authFetch } from "@/app/_lib/auth-client";
+import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { useContentUnlock } from "@/app/_lib/use-content-unlock";
 import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
@@ -145,20 +145,17 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     setLoading(true);
     setError("");
     try {
-      const response = await authFetch(product.endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(birth),
-      });
-      const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+      // 🔴 일시적 503(Mongo 블립·세션 리프레시 지연)은 공용 판정·백오프로 자동 재시도한다.
+      //    이 완충이 없으면 블립 한 번에 "연결이 불안정해요"로 굳어 사용자가 수동 재시도해야 했다.
+      const { data, status, transient } = await postPaidBody(product.endpoint, birth as unknown as Record<string, unknown>);
       if (data.ok && data.report) {
         setReport(data.report as T);
         fetchedRef.current = true;
         return;
       }
-      if (response.status === 402 || data.reason === "PAYMENT_REQUIRED") return;   // 잠금 유지
-      if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return; }
-      if (response.status === 503 || data.reason === "DB_DEGRADED") { setError(ERROR_TEXT.degraded); return; }
+      if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;   // 잠금 유지
+      if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return; }
+      if (transient) { setError(ERROR_TEXT.degraded); return; }
       setError(toText(data.message) || ERROR_TEXT.failed);
     } catch {
       setError(ERROR_TEXT.failed);
