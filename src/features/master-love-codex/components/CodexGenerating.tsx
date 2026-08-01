@@ -34,6 +34,15 @@ interface CodexGeneratingProps {
   mode?: MasterLoveCodexMode;
   /** ensure-access 가 준 통과 경로 — 이용권/월정석이면 금액 대신 그 사실을 적는다 */
   accessType?: string;
+  /**
+   * 생성이 끊겼을 때의 안내. 이 단계의 실패는 이용권 확인 실패가 아니므로 공용 결제 게이트
+   * 모달로 띄우지 않고 이 화면이 직접 말한다(모달에는 재시도 수단이 없어 막다른 길이었다).
+   */
+  error?: string;
+  /** 결제·이용권 확인을 다시 타지 않고 생성만 이어서 돌린다 */
+  onRetry?: () => void;
+  /** 지금까지 쓰인 장이 있을 때만 준다 — 없으면 보여줄 것이 없다 */
+  onOpenStored?: () => void;
 }
 
 export default function CodexGenerating({
@@ -43,6 +52,9 @@ export default function CodexGenerating({
   name,
   mode = "solo",
   accessType = "",
+  error = "",
+  onRetry,
+  onOpenStored,
 }: CodexGeneratingProps) {
   const [lineIndex, setLineIndex] = useState(0);
   const billing = masterLoveCodexBilling(mode);
@@ -55,17 +67,22 @@ export default function CodexGenerating({
   const acts = actsForMode(mode);
   const currentAct = acts.find((act) => completed + 1 >= act.from && completed + 1 <= act.to) || acts[0];
 
+  // 멈춘 뒤에도 문구가 계속 도는 것은 거짓말이다 — 실패 상태에서는 순환을 세운다.
   useEffect(() => {
+    if (error) return undefined;
     const timer = window.setInterval(() => {
       setLineIndex((current) => (current + 1) % DECRYPT_LINES.length);
     }, 4200);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [error]);
 
   const line = DECRYPT_LINES[lineIndex];
 
   return (
-    <section className="flex min-h-[100svh] flex-col items-center justify-center py-16 text-center" aria-label="인연의 서 생성 중">
+    <section
+      className="flex min-h-[100svh] flex-col items-center justify-center py-16 text-center"
+      aria-label={error ? "인연의 서 생성 중단" : "인연의 서 생성 중"}
+    >
       <div className={styles.measure}>
         {/* 지금 어떤 상품을 이용 중인지 대기 화면에서도 계속 보이게 한다.
             이용권/월정석으로 통과했으면 금액 대신 그 사실을 적는다. */}
@@ -100,11 +117,17 @@ export default function CodexGenerating({
           style={{ letterSpacing: "0.2em", color: "var(--codex-gold)" }}
           aria-live="polite"
         >
-          {line.latin}
+          {error ? "Interrupted" : line.latin}
         </p>
-        <p className="mt-4 text-[0.9375rem] leading-8" style={{ color: "var(--codex-ink-text-muted)" }}>
-          {line.korean}
-        </p>
+        {error ? (
+          <p role="alert" className="mt-4 text-[0.9375rem] leading-8" style={{ color: "#ffb4b4" }}>
+            {error}
+          </p>
+        ) : (
+          <p className="mt-4 text-[0.9375rem] leading-8" style={{ color: "var(--codex-ink-text-muted)" }}>
+            {line.korean}
+          </p>
+        )}
 
         <hr className={`${styles.rule} mt-10`} />
 
@@ -142,6 +165,20 @@ export default function CodexGenerating({
               </li>
             ))}
           </ul>
+        ) : null}
+
+        {error ? (
+          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            {onRetry ? (
+              <button type="button" className={styles.cta} onClick={onRetry}>이어서 쓰기</button>
+            ) : null}
+            {/* .quiet 는 텍스트 링크용이라 높이가 없다 — 공용 클래스를 고치지 않고 여기서만 탭 타깃을 채운다. */}
+            {onOpenStored ? (
+              <button type="button" className={`${styles.quiet} inline-flex min-h-[44px] items-center px-4 underline`} onClick={onOpenStored}>
+                지금까지 쓰인 서 열기
+              </button>
+            ) : null}
+          </div>
         ) : null}
 
         <p className="mt-12 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
