@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -177,5 +177,56 @@ assert.match(kemetSource, /_cdCoinGatePerUse/, "Kemet oracle must still call com
 assert.match(tarotYearSource, /_cdCoinGatePerUse/, "year tarot must still call common paid gate");
 assert.match(tarotLoveSource, /_cdCoinGatePerUse/, "love tarot must still call common paid gate");
 assert.match(tarotReunionSource, /_cdCoinGatePerUse/, "reunion tarot must still call common paid gate");
+
+// ── forceDeduct: false 는 '접근 확인'에만 허용한다 ────────────────────────────
+//
+// 🔴 실사고(2026-08-01): 마스터 인연의 서(300/500코인)와 자미두수 심층 PDF(300코인)가
+//    결제 게이트 입력에 forceDeduct:false 를 넣고 있었다. 이 값은 공용 게이트에서
+//    결제창을 여는 분기를 **전부** 끈다(app/_lib/billing-client.ts —
+//    runPaidServiceRuntimePayment 즉시 null · shouldShowPayment · 선제 오픈 ·
+//    402 후 폴백 오픈). 그래서 이용권 미보유 사용자는 결제창을 한 번도 못 보고
+//    PAYMENT_VERIFY_FAILED 만 받았다 = 상품을 살 방법이 아예 없었다.
+//
+// 정당한 사용은 '차감 없는 접근 확인'뿐이고, 그 호출은 paymentMode 를 함께 명시한다
+// (예: app/saju-guardian — paymentMode:"MEMBERSHIP_PASS" + forceDeduct:false).
+// paymentMode 없이 forceDeduct:false 만 있으면 그건 결제창을 끈 체크아웃 경로다.
+{
+  const uiRoots = ["app", "src", "components"];
+  const offenders = [];
+  for (const uiRoot of uiRoots) {
+    let entries = [];
+    try {
+      entries = readdirSync(resolve(root, uiRoot), { recursive: true, encoding: "utf8" });
+    } catch {
+      continue; // 디렉터리가 없으면 건너뛴다
+    }
+    for (const entry of entries) {
+      const relativePath = `${uiRoot}/${String(entry).replace(/\\/g, "/")}`;
+      if (!/\.(tsx?|jsx?)$/.test(relativePath)) continue;
+      if (relativePath === "app/_lib/billing-client.ts") continue; // 게이트 구현 자체(정본)
+      let text = "";
+      try {
+        text = source(relativePath);
+      } catch {
+        continue; // 디렉터리 엔트리 등
+      }
+      if (!/forceDeduct:\s*false/.test(text)) continue;
+      const lines = text.split("\n");
+      lines.forEach((line, index) => {
+        if (!/forceDeduct:\s*false/.test(line)) return;
+        // 같은 게이트 입력 객체 안에 paymentMode 가 있는지 본다(휴리스틱: ±20줄 창).
+        const window = lines.slice(Math.max(0, index - 20), index + 21).join("\n");
+        if (/paymentMode:\s*["']/.test(window)) return;
+        offenders.push(`${relativePath}:${index + 1}`);
+      });
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `결제 게이트 입력의 forceDeduct:false 는 결제창을 통째로 막습니다(상품을 살 수 없게 됩니다). `
+    + `차감 없는 접근 확인이라면 paymentMode 를 함께 명시하세요. 위반: ${offenders.join(", ")}`,
+  );
+}
 
 console.log("[verify-paid-feature-billing-policy] PASS");
