@@ -1274,6 +1274,18 @@
       "placeholder": "Rechercher (ex. : tarot, compatibilité, rêve)",
       "searchAria": "Rechercher tous les services",
       "empty": "Aucun résultat. Essayez un autre mot-clé."
+    },
+    "todayHub": {
+      "title": "La fortune du jour",
+      "lead": "Le pilier du jour en Saju, les 27 demeures lunaires et le régent védique du jour, réunis. Gratuit, sans connexion.",
+      "tabsAria": "Changer le système de la fortune du jour",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Védique",
+      "personalized": "Selon votre naissance",
+      "noteGuest": "Voici le courant général de la journée. Ajoutez votre date de naissance à votre carte de profil et nous la lirons avec votre propre thème.",
+      "ctaAll": "Voir toute la lecture du jour",
+      "share": "Partager"
     }
   },
   "terms": {

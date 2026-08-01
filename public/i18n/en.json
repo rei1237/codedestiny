@@ -1274,6 +1274,18 @@
       "placeholder": "Search services (e.g. tarot, match, dream)",
       "searchAria": "Search all services",
       "empty": "No results. Try another keyword."
+    },
+    "todayHub": {
+      "title": "Today's Fortune",
+      "lead": "Saju day pillar, the 27 lunar mansions, and the Vedic day ruler — all in one place. Free, no sign-in.",
+      "tabsAria": "Switch today's fortune system",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Vedic",
+      "personalized": "Personalized",
+      "noteGuest": "This is the general flow of the day. Add your birth date to your profile card and we'll read it against your own chart.",
+      "ctaAll": "See the full daily reading",
+      "share": "Share"
     }
   },
   "terms": {

@@ -1274,6 +1274,18 @@
       "placeholder": "Cari perkhidmatan (cth: tarot, keserasian, mimpi)",
       "searchAria": "Cari semua perkhidmatan",
       "empty": "Tiada hasil. Cuba kata kunci lain."
+    },
+    "todayHub": {
+      "title": "Nasib hari ini",
+      "lead": "Tiang hari Saju, 27 rumah bulan dan penguasa hari Veda — semuanya di satu tempat. Percuma, tanpa log masuk.",
+      "tabsAria": "Tukar sistem nasib hari ini",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Veda",
+      "personalized": "Mengikut tarikh lahir",
+      "noteGuest": "Ini aliran umum sepanjang hari. Isikan tarikh lahir pada kad profil anda, dan kami akan membacanya bersama carta anda sendiri.",
+      "ctaAll": "Lihat bacaan penuh hari ini",
+      "share": "Kongsi"
     }
   },
   "terms": {

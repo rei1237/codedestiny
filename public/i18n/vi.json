@@ -1274,6 +1274,18 @@
       "placeholder": "Tìm dịch vụ (vd: tarot, hợp đôi, giấc mơ)",
       "searchAria": "Tìm mọi dịch vụ",
       "empty": "Không có kết quả. Hãy thử từ khóa khác."
+    },
+    "todayHub": {
+      "title": "Vận trình hôm nay",
+      "lead": "Trụ ngày Tứ Trụ, 27 tú của Tú Diệu và chủ tinh ngày Vệ Đà — gộp về một nơi. Miễn phí, không cần đăng nhập.",
+      "tabsAria": "Chuyển hệ bói vận trình hôm nay",
+      "tabSaju": "Tứ Trụ",
+      "tabSukuyo": "Tú Diệu",
+      "tabVedic": "Vệ Đà",
+      "personalized": "Đã theo ngày sinh",
+      "noteGuest": "Đây là dòng chảy chung của cả ngày. Thêm ngày sinh vào thẻ hồ sơ để chúng tôi đọc theo lá số của riêng bạn.",
+      "ctaAll": "Xem toàn bộ vận trình hôm nay",
+      "share": "Chia sẻ"
     }
   },
   "terms": {
