@@ -44,7 +44,12 @@ export function buildDeployMessage(rootDir) {
   const sha = git(["rev-parse", "--short", "HEAD"], rootDir) || "unknown";
   const branch = git(["rev-parse", "--abbrev-ref", "HEAD"], rootDir) || "unknown";
   const dirty = git(["status", "--porcelain"], rootDir) ? "+dirty" : "";
-  return `${sha}${dirty} @${branch}`;
+  // 🔴 공백을 넣지 말 것. deploy-worker.mjs 는 win32 에서 `spawnSync("npx", args, {shell:true})` 로
+  // 도는데, 그러면 공백이 든 인자가 셸에서 쪼개져 뒷부분이 **위치 인자(엔트리포인트)로 오인**된다.
+  // 실제로 "sha @branch" 로 만들었다가 `entry-point file at "@fix\..." was not found` 로 배포가 죽었다.
+  // 브랜치명에 셸 특수문자가 들어갈 수 있으므로 영숫자·`-_./+@` 외에는 전부 치환한다.
+  const safeBranch = branch.replace(/[^A-Za-z0-9._/-]/g, "-");
+  return `${sha}${dirty}@${safeBranch}`;
 }
 
 /**

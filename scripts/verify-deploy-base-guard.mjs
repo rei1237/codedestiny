@@ -120,6 +120,16 @@ try {
   const message = buildDeployMessage(repo);
   assert(/^[0-9a-f]{7,}/.test(message), `배포 메시지에 커밋 SHA 가 없다: ${message}`);
   assert(message.includes("@"), `배포 메시지에 브랜치가 없다: ${message}`);
+  // 🔴 공백이 들어가면 win32 의 shell:true 경로에서 인자가 쪼개져 배포가 죽는다.
+  //    ("sha @branch" 로 만들었다가 entry-point 오인으로 실제 배포 실패)
+  assert(!/\s/.test(message), `배포 메시지에 공백이 있다 — win32 셸에서 인자가 쪼개진다: ${message}`);
+  assert(!/["'`$&|<>^]/.test(message), `배포 메시지에 셸 특수문자가 있다: ${message}`);
+
+  // 브랜치명에 셸 특수문자가 있어도 안전해야 한다.
+  // (공백·`|` 는 git/Windows 가 애초에 막지만 `&` 는 통과한다 — 셸에서는 명령 구분자다.)
+  run(["checkout", "-q", "-b", "feature/weird&stuff"], repo);
+  const weird = buildDeployMessage(repo);
+  assert(!/\s/.test(weird) && !/[&|<>^"'`$]/.test(weird), `이상한 브랜치명이 그대로 샜다: ${weird}`);
 
   // ── 7. 배포 스크립트가 가드를 실제로 호출하는지 ───────────────────────────
   const deployScript = readFileSync(new URL("./deploy-worker.mjs", import.meta.url), "utf8");
