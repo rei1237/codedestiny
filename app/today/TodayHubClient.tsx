@@ -13,7 +13,7 @@
 // 무료다. 어떤 결제 게이트도 로그인 요구도 걸지 않는다.
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getDailyFortune, type DailyFortune } from "@/lib/lock-screen-daily-fortune";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 
@@ -78,7 +78,7 @@ function TodayMoonStrip() {
 
 function FortuneCard({ fortune }: { fortune: DailyFortune }) {
   return (
-    <article className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
+    <article className="flex min-h-[11.5rem] flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
       <div className="flex items-center gap-2">
         <span aria-hidden="true" className="text-lg">
           {fortune.emoji}
@@ -92,7 +92,7 @@ function FortuneCard({ fortune }: { fortune: DailyFortune }) {
       </div>
       <p className="mt-3 text-xs font-semibold tracking-tight text-rose-700 dark:text-rose-200">{fortune.anchor}</p>
       <p className="mt-1 break-keep text-base font-bold leading-relaxed text-slate-900 dark:text-slate-50">{fortune.headline}</p>
-      <p className="mt-2 break-keep text-sm leading-7 text-slate-600 dark:text-slate-300">{fortune.body}</p>
+      <p className="mt-2 max-w-[68ch] break-keep text-sm leading-7 text-slate-600 dark:text-slate-300">{fortune.body}</p>
     </article>
   );
 }
@@ -111,30 +111,69 @@ export default function TodayHubClient() {
     return HUB_SYSTEMS.map((system) => getDailyFortune(system, input, now));
   }, [now, seed?.birthDate, seed?.birthTime]);
 
-  const personalized = fortunes.some((f) => f.personalized);
+  // fortunes 가 아직 비었을 때 안내 문구를 먼저 띄웠다 지우면 레이아웃이 튄다 — 계산 후에만 판단한다.
+  const ready = fortunes.length > 0;
+  const personalized = ready && fortunes.some((f) => f.personalized);
+
+  // 카드 3장을 한 장의 이미지로 공유한다. html2canvas 는 무겁고 이 페이지의 주 기능이 아니므로
+  // 버튼을 누른 순간에만 내려받고, 그동안 버튼은 진행 중 상태로 잠근다.
+  const cardsRef = useRef<HTMLDivElement | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const share = useCallback(async () => {
+    const node = cardsRef.current;
+    if (!node || sharing) return;
+    setSharing(true);
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(node, { backgroundColor: null, scale: 2, useCORS: true });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("capture failed");
+      const file = new File([blob], "today-fortune.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
+      if (nav.share && nav.canShare?.({ files: [file] })) {
+        await nav.share({ files: [file], title: "오늘의 운세", text: "오늘의 운세를 확인해 보세요." });
+      } else {
+        // 공유 시트가 없는 환경(대부분의 데스크톱)에서는 이미지를 내려받는다.
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "today-fortune.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      // 사용자가 공유 시트를 닫은 경우까지 오류로 알리지 않는다 — 조용히 원상 복귀한다.
+    } finally {
+      setSharing(false);
+    }
+  }, [sharing]);
 
   return (
     <section className="mx-auto w-full max-w-4xl px-4 pt-8 md:pt-12" aria-labelledby="today-hub-heading">
-      <p className="text-xs font-bold tracking-widest text-rose-600 dark:text-rose-300">TODAY&apos;S FORTUNE</p>
-      <h2 id="today-hub-heading" className="mt-1 break-keep text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 md:text-3xl">
+      {/* 작은 대문자 트래킹 라벨(eyebrow)을 두지 않는다 — 홈 허브와 같은 판단. 제목이 이미 명확하다. */}
+      <h2 id="today-hub-heading" className="text-balance break-keep text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 md:text-3xl">
         오늘의 운세
       </h2>
-      <p className="mt-2 break-keep text-sm leading-7 text-slate-600 dark:text-slate-300">
-        {now ? formatKstDate(now) : " "} · 사주 일진, 숙요 27수, 베다 요일 지배성을 한자리에서 봅니다. 로그인 없이 무료입니다.
+      {/* 날짜는 마운트 후에 채워진다 — 자리를 미리 잡아, 빈 줄이 날짜로 바뀌며 아래가 밀리지 않게 한다. */}
+      <p className="mt-2 min-h-[1.75rem] break-keep text-sm font-semibold leading-7 text-slate-700 dark:text-slate-200">
+        {now ? formatKstDate(now) : "\u00a0"}
+      </p>
+      <p className="mt-0.5 max-w-[68ch] break-keep text-sm leading-7 text-slate-600 dark:text-slate-300">
+        사주 일진, 숙요 27수, 베다 요일 지배성을 한자리에서 봅니다. 로그인 없이 무료입니다.
       </p>
 
       <TodayMoonStrip />
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {fortunes.length > 0
+      <div ref={cardsRef} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {ready
           ? fortunes.map((fortune) => <FortuneCard key={fortune.system} fortune={fortune} />)
-          : // 계산 전 한 프레임 동안의 자리맡이 — 카드 높이만큼 잡아 레이아웃이 튀지 않게 한다.
+          : // 계산 전 한 프레임 동안의 자리맡이 — 카드와 같은 최소 높이라 레이아웃이 튀지 않는다.
             HUB_SYSTEMS.map((system) => (
-              <div key={system} aria-hidden="true" className="h-44 rounded-3xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.03]" />
+              <div key={system} aria-hidden="true" className="min-h-[11.5rem] rounded-3xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.03]" />
             ))}
       </div>
 
-      {!personalized && (
+      {ready && !personalized && (
         <p className="mt-4 break-keep rounded-2xl border border-rose-200/80 bg-rose-50/70 px-4 py-3 text-sm leading-7 text-rose-950 dark:border-rose-300/20 dark:bg-rose-400/10 dark:text-rose-50">
           지금은 오늘 하루 전체의 흐름입니다. 프로필 카드에 생년월일을 넣어 두면 내 일간과 견주어 읽어 드려요.{" "}
           <Link href="/#dpMasterCard" className="font-bold text-rose-700 underline underline-offset-2 dark:text-rose-200">
@@ -142,6 +181,18 @@ export default function TodayHubClient() {
           </Link>
         </p>
       )}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={share}
+          disabled={!ready || sharing}
+          aria-busy={sharing}
+          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-rose-300 px-5 text-sm font-bold text-rose-700 transition-colors hover:border-rose-500 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-300/40 dark:text-rose-200 dark:hover:border-rose-300/70 dark:hover:bg-rose-400/10"
+        >
+          {sharing ? "이미지 만드는 중…" : "오늘의 운세 공유하기"}
+        </button>
+      </div>
 
       <h3 className="mt-10 break-keep text-lg font-extrabold text-slate-900 dark:text-slate-50">더 깊게 보기</h3>
       <p className="mt-1 break-keep text-sm leading-7 text-slate-600 dark:text-slate-300">
