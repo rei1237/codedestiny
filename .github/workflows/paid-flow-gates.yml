@@ -35,6 +35,7 @@ on:
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
+      - "scripts/verify-master-love-codex-batch-budget.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
       # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
       # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
@@ -77,6 +78,7 @@ on:
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
+      - "scripts/verify-master-love-codex-batch-budget.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
       # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
       # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
@@ -185,6 +187,12 @@ jobs:
 
       - name: Verify master love codex flow
         run: npm run verify:master-love-codex-flow
+
+      # 배치 시간 예산 — 이게 없으면 /generate 가 엣지 100초 컷에 잘려 클라이언트가 JSON 대신
+      # 게이트웨이 HTML 을 받고, 모든 실패가 같은 제네릭 문구 하나로 표면화된다.
+      # LLM 을 호출하지 않는다(순수 함수·상수만 검증).
+      - name: Verify master love codex batch budget
+        run: npm run verify:master-love-codex-budget
 
       # 나크샤트라 결정판 — 27수 계산 결정성(크로스워크 앵커·파다·다샤)과
       # 심화 상담 계약(3덱 21섹션·분량 하한·배치 생성 락/재개·폴백 짧은 응답 차단).

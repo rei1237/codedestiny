@@ -339,7 +339,72 @@ assert(
 // 배치 생성이 빠지면 20장 동기 생성이 되어 엣지 100초 컷에 걸린다.
 assertIncludes(routeFile, routeSource, "CHAPTER_BATCH_SIZE");
 assertIncludes(routeFile, routeSource, "acquireBatchLock");
-assert(/BATCH_LOCK_TTL_MS\s*=\s*390_?000/.test(routeSource), `${routeFile}: 배치 락 TTL 은 390초여야 합니다(중복 기동 방지)`);
+
+// ── 5-1d. 배치 시간 예산 (엣지 컷 방어) ──────────────────────────────────────
+// 🔴 CHAPTER_TIMEOUT_MS 는 Gemini fetch 하나만 묶는다. 그 뒤 Workers AI 폴백 체인에는
+//    타임아웃이 아예 없어서(lib/llm-client.ts callCloudflareWorkersAI), 예산이 없으면 배치가
+//    엣지 100초 컷에 잘리고 클라이언트는 JSON 대신 게이트웨이 HTML 을 받는다 —
+//    그게 "생성이 되다가 갑자기 실패"의 정체였다.
+assertIncludes(routeFile, routeSource, "EDGE_RESPONSE_DEADLINE_MS");
+assertIncludes(routeFile, routeSource, "BATCH_BUDGET_MS");
+assert(
+  /deadlineAt,?\n/.test(routeSource) && /generateChapter\(env, \{/.test(routeSource),
+  `${routeFile}: /generate 는 배치 예산(deadlineAt)을 generateChapter 에 넘겨야 합니다`,
+);
+assert(
+  routeSource.includes("planBatchCommit"),
+  `${routeFile}: 예산 초과로 못 쓴 장은 저장하지 말고 앞쪽 연속분만 커밋해야 합니다(planBatchCommit)`,
+);
+assert(
+  routeSource.includes("GENERATION_BUDGET_EXCEEDED"),
+  `${routeFile}: 한 장도 못 쓴 배치는 retryable 503 으로 돌려야 클라가 백오프 재시도합니다`,
+);
+// 일시적 DB 블립이 하드 500 으로 굳으면 "생성 실패"가 확정돼 재시도 경로가 사라진다.
+assert(
+  routeSource.includes("DB_DEGRADED") && routeSource.includes("isTransientMongoError"),
+  `${routeFile}: 디스패처 catch 는 transient Mongo/인증DB 오류를 retryable 503(DB_DEGRADED)로 내려야 합니다`,
+);
+
+// 🔴 락 TTL 은 배치 예산과 한 세트다. 예전 390초는 엣지 컷(100초)의 4배라, 엣지가 요청을
+//    끊어 락 해제 코드가 돌지 못하면 세션이 6분 반 동안 409 만 뱉어 재시도가 통째로 막혔다.
+//    리터럴을 핀으로 박는 대신 불변식(예산 < 락 TTL ≤ 150초)을 강제한다.
+{
+  const budgetMs = Number(
+    (routeSource.match(/EDGE_RESPONSE_DEADLINE_MS\s*-\s*([\d_]+)/) || [])[1]?.replace(/_/g, ""),
+  );
+  const lockTtlMs = Number((routeSource.match(/BATCH_LOCK_TTL_MS\s*=\s*([\d_]+)/) || [])[1]?.replace(/_/g, ""));
+  const edgeDeadlineMs = 100_000; // worker/lib/sync-llm-timeout.js EDGE_RESPONSE_DEADLINE_MS
+  assert(Number.isFinite(budgetMs) && budgetMs > 0, `${routeFile}: BATCH_BUDGET_MS 를 EDGE_RESPONSE_DEADLINE_MS 기준으로 잡아야 합니다`);
+  assert(Number.isFinite(lockTtlMs) && lockTtlMs > 0, `${routeFile}: BATCH_LOCK_TTL_MS 를 읽지 못했습니다`);
+  assert(
+    edgeDeadlineMs - budgetMs < edgeDeadlineMs && edgeDeadlineMs - budgetMs >= 15_000,
+    `${routeFile}: 배치 예산은 엣지 컷보다 최소 15초 짧아야 합니다(인증·DB·병합 몫)`,
+  );
+  assert(
+    lockTtlMs > edgeDeadlineMs - budgetMs && lockTtlMs <= 150_000,
+    `${routeFile}: 배치 락 TTL 은 배치 예산보다 크고 150초 이하여야 합니다 (현재 ${lockTtlMs}ms) — 길면 엣지 컷 뒤 재시도가 그만큼 막힙니다`,
+  );
+}
+
+// ── 5-1e. 클라이언트: 일시적 실패를 하드 종료로 굳히지 않을 것 ────────────────
+// 다른 유료 화면 10곳이 쓰는 공용 판정을 이 화면만 안 써서, 503·retryable 이 전부
+// "생성 실패"로 확정되고 있었다.
+assertIncludes(pageFile, pageSource, "isRetriableResultPollFailure");
+// 🔴 생성 단계 실패를 공용 결제 게이트로 띄우면 "확인 실패"라는 거짓 제목이 뜬다
+//    (게이트는 /start 직전에 이미 release 된 뒤라, 이 호출이 모달을 되살린 것이었다).
+assert(
+  /generationStartedRef\.current\)\s*\{[\s\S]{0,200}?setGenerationError/.test(pageSource),
+  `${pageFile}: 생성 단계 실패는 failPaidFeatureGateCheck 가 아니라 기능 화면(setGenerationError)이 처리해야 합니다`,
+);
+// 미완성인 채로 결과 페이지로 밀어 넣으면 사용자는 20장을 받은 줄 안다.
+assert(
+  /throw new Error\(ERROR_TEXT\.GENERATION_BUDGET_EXCEEDED\)/.test(pageSource),
+  `${pageFile}: 배치 루프가 미완성으로 끝나면 실패로 표면화해야 합니다(GENERATION_BUDGET_EXCEEDED)`,
+);
+assert(
+  !/catch \(caught\)[\s\S]{0,900}?router\.replace/.test(pageSource),
+  `${pageFile}: 실패 catch 에서 결과 페이지로 자동 이동하면 미완성 책이 완성본처럼 열립니다(재시도 수단도 사라집니다)`,
+);
 // 🔴 2026-07-30 판단 반전 — Workers AI 폴백을 켠 상태로 유지한다.
 //  이전 가드는 "장문이 잘린다"며 폴백을 금지했다. 그 판단은 폐기된 8B 모델
 //  (@cf/meta/llama-3.1-8b-instruct, 2026-05-30 폐기) 기준이었고, 지금 기본 폴백은
