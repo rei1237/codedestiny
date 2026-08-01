@@ -245,6 +245,34 @@ jobs:
       - name: Verify no secret leak
         run: npm run verify:no-secret-leak
 
+      # AI 상담 가드는 어느 워크플로에도 걸려 있지 않아 조용히 낡았다 — 결제창 라벨이
+      # 'AI 상담' → '전문가 상담' 으로 바뀐 뒤 ziwei·karma 가드가 오래 빨간불이었는데
+      # CI 가 안 돌리니 아무도 몰랐다. 유료 상담 라우트의 가드이므로 여기서 함께 돌린다.
+      - name: Verify LLM token accounting
+        run: npm run verify:llm-token-usage
+
+      - name: Verify LLM generation resilience
+        run: npm run verify:llm-generation-resilience
+
+      - name: Verify Workers AI fallback chain
+        run: npm run verify:workers-ai-fallback
+
+      - name: Verify analysis basis contract
+        run: npm run verify:analysis-basis-contract
+
+      - name: Verify astrology sectioned generation
+        run: npm run verify:astrology-sectioned
+
+      - name: Verify AI consultation flows
+        run: |
+          npm run verify:astrology-ai-flow
+          npm run verify:ziwei-ai-consultation-flow
+          npm run verify:karma-destiny-ai-flow
+          npm run verify:vedic-ai-flow
+          npm run verify:life-book-ai-flow
+          npm run verify:new-year-ai-flow
+          npm run verify:love-secret-ai-flow
+
       # verify:all-paid-services-payment-flow 는 여기 넣지 않는다 — 코드 가드가 아니라 MONGO_URI
       # 실환경을 요구하는 라이브 점검이라, 시크릿 없는 PR 러너에서는 항상 실패한다.
 

@@ -143,7 +143,9 @@ const html = read("index.html");
 assert(html.includes("data-ziwei-premium-card=\"ziwei-ai-consultation-v20260627\""), "main card marker missing");
 assert(html.includes("data-href=\"/ziwei-ai\""), "main card route missing");
 assert(html.includes("/fuctionassets/jamipremiun.webp"), "representative image asset missing");
-assert(html.includes("AI 상담 · 30,000원"), "main card price missing");
+// 라벨은 f728f7bf3 에서 'AI 상담' → '전문가 상담' 으로 바뀌었다(프론트 일관성).
+// 가드가 안 따라가 오래 빨간불이었다 — 문구를 바꾸려면 여기도 같이 고친다.
+assert(html.includes("전문가 상담 · 30,000원"), "main card price missing");
 assertMissing(html, retiredTerms.filter((term) => term !== "premium-ziwei-report" && term !== "premium_pdf_ziwei"), "index.html");
 
 const bindings = read("js/core/uiBindings.js");
