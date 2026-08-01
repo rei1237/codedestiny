@@ -146,10 +146,58 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   assert(message.includes("@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "실패 메시지에 2차 모델명이 없다");
 }
 
+// (9) 🔴 무응답 모델을 시간으로 끊어야 한다.
+//     `env.AI.run` 은 AbortSignal 을 보장하지 않아 signal 로는 못 끊는다. 이 상한이 없던 동안
+//     한 호출의 실제 상한은 "timeoutMs(Gemini) + 무제한(폴백 2개 순차)"이었고, 그 초과분을
+//     엣지(100초)가 끊으면 라우트의 실패 처리·정리 코드가 아예 돌지 못했다.
+{
+  const { env, calls } = stubEnv(() => new Promise(() => {}));
+  const startedAt = Date.now();
+  let message = "";
+  try {
+    await callLLM({ prompt: "테스트", timeoutMs: 300 }, env);
+  } catch (error) {
+    message = String(error?.message || "");
+  }
+  const elapsedMs = Date.now() - startedAt;
+  assert(message.includes("timed out"), `무응답 모델을 시간으로 끊어야 한다 (실제: ${message})`);
+  assert(elapsedMs < 3000, `폴백 체인이 예산(300ms) 안에서 끝나야 한다 (실제 ${elapsedMs}ms)`);
+  // 예산은 모델마다가 아니라 체인 전체에 걸린다 — 1차가 다 써 버리면 2차는 호출조차 하지 않는다.
+  assert(calls.length === 1, `예산 소진 후 다음 모델을 호출하면 안 된다 (실제 ${calls.length}회 호출)`);
+  assert(
+    message.includes("fallback budget exhausted"),
+    `건너뛴 모델의 사유가 실패 메시지에 남아야 한다 (실제: ${message})`,
+  );
+}
+
+// (10) 예산 안에서 끝난 느린 응답은 종전대로 성공해야 한다(상한 도입이 정상 경로를 깨지 않을 것).
+{
+  const { env } = stubEnv(() => new Promise((resolve) => setTimeout(() => resolve({ response: "느리지만 성공" }), 120)));
+  const result = await callLLM({ prompt: "테스트", timeoutMs: 5000 }, env);
+  assert(result.text === "느리지만 성공", "예산 안에서 끝난 응답은 그대로 성공해야 한다");
+}
+
+// (11) 레이스에서 진 프라미스가 나중에 거부해도 unhandled rejection 으로 새면 안 된다
+//      (Workers 런타임에서 처리되지 않은 거부는 요청을 통째로 죽일 수 있다).
+{
+  let unhandled = null;
+  const onUnhandled = (reason) => { unhandled = reason; };
+  process.on("unhandledRejection", onUnhandled);
+  const { env } = stubEnv(() => new Promise((_, reject) => setTimeout(() => reject(new Error("late boom")), 250)));
+  try {
+    await callLLM({ prompt: "테스트", timeoutMs: 60 }, env);
+  } catch {
+    // 예상된 실패 — 여기서 확인할 것은 아래의 미처리 거부 여부다.
+  }
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  process.off("unhandledRejection", onUnhandled);
+  assert(unhandled === null, `레이스에서 진 프라미스의 거부가 새어 나왔다 (${unhandled?.message || unhandled})`);
+}
+
 if (failures.length) {
   console.error("❌ Workers AI 폴백 가드 실패:");
   for (const failure of failures) console.error(`  - ${failure}`);
   process.exit(1);
 }
 
-console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드)");
+console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한)");

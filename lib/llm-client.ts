@@ -169,14 +169,42 @@ function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
   return `${endpointWithModel}:generateContent`;
 }
 
+function resolveTimeoutMs(timeoutMs: number | undefined): number {
+  return Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
+    ? Number(timeoutMs)
+    : DEFAULT_TIMEOUT_MS;
+}
+
+/**
+ * 🔴 `env.AI.run` 은 AbortSignal 을 받는다는 보장이 없어 fetch 처럼 signal 로 끊을 수 없다.
+ *    그래서 race 로 묶는다. 진 프라미스의 거부는 값으로 접어 unhandled rejection 을 막는다
+ *    (Workers 런타임에서 처리되지 않은 거부는 요청을 통째로 죽일 수 있다).
+ */
+async function raceWithDeadline<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+  const settled = promise.then(
+    (value) => ({ ok: true as const, value }),
+    (error: unknown) => ({ ok: false as const, error }),
+  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<{ ok: "timeout" }>((resolve) => {
+    timer = setTimeout(() => resolve({ ok: "timeout" }), timeoutMs);
+  });
+  try {
+    const outcome = await Promise.race([settled, timeout]);
+    if (outcome.ok === "timeout") throw new Error(timeoutMessage);
+    if (outcome.ok === false) throw outcome.error;
+    return outcome.value;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function createTimeoutSignal(timeoutMs = DEFAULT_TIMEOUT_MS): {
   signal: AbortSignal;
   clear: () => void;
   timeoutMs: number;
 } {
-  const safeTimeoutMs = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
-    ? Number(timeoutMs)
-    : DEFAULT_TIMEOUT_MS;
+  const safeTimeoutMs = resolveTimeoutMs(timeoutMs);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), safeTimeoutMs);
   return {
@@ -507,10 +535,25 @@ async function callCloudflareWorkersAI(
   ];
 
   const failures: string[] = [];
+  // 🔴 폴백 체인에도 시간 상한을 준다. 이게 없던 동안 한 호출의 실제 상한은 "timeoutMs"가 아니라
+  //    "timeoutMs(Gemini) + 무제한(폴백 모델 2개 순차)"이었고, Gemini 가 죽는 순간에만 드러나
+  //    평소 계측으로는 잡히지 않았다. 엣지(100초)가 요청을 끊으면 라우트의 실패 처리·정리 코드가
+  //    아예 돌지 못한다. 예산은 호출자가 준 timeoutMs 를 **체인 전체**에 배분한다 — 폐기 모델은
+  //    빠르게 실패하므로(5028) 체인의 목적인 폐기 대응은 그대로 유지된다.
+  const chainDeadlineAt = Date.now() + resolveTimeoutMs(normalized.timeoutMs);
   for (const model of models) {
+    const remainingMs = chainDeadlineAt - Date.now();
+    if (remainingMs <= 0) {
+      failures.push(`${model}: skipped (fallback budget exhausted)`);
+      continue;
+    }
     try {
       emitProviderCallLog("cloudflare", model, normalized, env);
-      const result = await env.AI.run(model, buildWorkersAiInput(model, normalized, messages));
+      const result = await raceWithDeadline(
+        Promise.resolve(env.AI.run(model, buildWorkersAiInput(model, normalized, messages))),
+        remainingMs,
+        `Cloudflare Workers AI (${model}) timed out after ${remainingMs}ms.`,
+      );
 
       const text = extractWorkersAiText(result);
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
