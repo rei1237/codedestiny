@@ -39,6 +39,7 @@ const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
     links: [
+      { href: "/kkul-kkul-unse", text: "꿀꿀 운세 — 코드 데스티니 브랜드 안내" },
       { href: "/saju", text: "무료 사주풀이 보기" },
       { href: "/manse", text: "꿀꿀 만세력 확인하기" },
       { href: "/daily-fortune", text: "오늘의 운세 확인하기" },
@@ -75,11 +76,11 @@ const SEO_LINK_GROUPS = [
       // noindex,nofollow 인 인터랙티브 라우트만 가리켜서, 전 페이지 푸터의 링크 자산이
       // 색인되지 않는 화면에서 끊겼고 정작 허브는 유입 링크가 0이었다.
       // 각 허브 페이지가 자체 CTA 로 인터랙티브 화면까지 이어 준다.
-      { href: "/ziwei", text: "자미두수 명반 보기" },
-      { href: "/astrology", text: "점성술 출생차트 보기" },
-      { href: "/sukuyo", text: "숙요점 27숙 분석" },
-      { href: "/vedic", text: "베다점성술 운세 분석" },
-      { href: "/nakshatra", text: "나크샤트라 27수 통합 별자리" },
+      { href: "/ziwei", text: "무료 자미두수 12궁 명반 보기" },
+      { href: "/astrology", text: "무료 점성술 운세 출생차트 보기" },
+      { href: "/sukuyo", text: "무료 숙요점 27수 궁합 보기" },
+      { href: "/vedic", text: "무료 베다 점성술(베다점) 운세" },
+      { href: "/nakshatra", text: "숙요점 × 베다 점성술 통합 별자리" },
       { href: "/dream", text: "꿈해몽 무료 해석" },
       { href: "/oracle/hwatu-life", text: "화투 인생 패 테스트" },
       { href: "/ifa-oracle.html", text: "IFA 오라클" },
