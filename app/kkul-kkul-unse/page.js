@@ -34,6 +34,21 @@ const SERVICES = [
     title: "자미두수",
     description: "12궁 명반의 별 흐름으로 성향, 일, 인연의 길을 입체적으로 살핍니다.",
   },
+  {
+    href: "/sukuyo",
+    title: "숙요점",
+    description: "태어난 날 달이 머문 27수로 본명숙과 두 사람 사이 인연의 거리를 읽습니다.",
+  },
+  {
+    href: "/astrology",
+    title: "점성술",
+    description: "출생차트의 태양·달·상승궁으로 별자리 운세와 관계의 리듬을 살핍니다.",
+  },
+  {
+    href: "/vedic",
+    title: "베다 점성술",
+    description: "인도 조티쉬의 라그나와 다샤 흐름으로 지금 지나는 시기의 주제를 봅니다.",
+  },
 ];
 
 const FAQS = [
@@ -46,6 +61,16 @@ const FAQS = [
     question: "꿀꿀 만세력과 꿀꿀 운세의 차이는?",
     answer:
       "동일한 서비스입니다. 기존 명칭인 '꿀꿀 만세력'에서 '꿀꿀 운세'로 서비스명이 변경되었습니다.",
+  },
+  {
+    question: "꿀꿀 운세에서 어떤 운세를 볼 수 있나요?",
+    answer:
+      "사주팔자와 만세력, 타로, 궁합, 자미두수, 숙요점, 점성술, 베다 점성술, 꿈해몽을 봅니다. 생년월일 하나면 대부분의 기본 해석을 무료로 확인할 수 있습니다.",
+  },
+  {
+    question: "코드 데스티니와 꿀꿀 운세는 같은 곳인가요?",
+    answer:
+      "같은 곳입니다. 코드 데스티니(Code Destiny)가 플랫폼 이름이고 꿀꿀 운세는 그 한국어 서비스명입니다. 주소는 code-destiny.com 하나입니다.",
   },
 ];
 
@@ -81,7 +106,23 @@ export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: { absolute: SEO.title },
   description: SEO.description,
-  keywords: ["꿀꿀 운세", "꿀꿀운세", "꿀꿀 만세력", "꿀꿀 사주", "무료 사주", "무료 타로", "궁합"],
+  keywords: [
+    "꿀꿀 운세",
+    "꿀꿀운세",
+    "코드 데스티니",
+    "코드데스티니",
+    "code destiny",
+    "꿀꿀 만세력",
+    "꿀꿀 운세 사주",
+    "꿀꿀 운세 타로",
+    "꿀꿀 운세 궁합",
+    "꿀꿀 운세 자미두수",
+    "꿀꿀 운세 숙요점",
+    "꿀꿀 운세 점성술",
+    "무료 사주",
+    "무료 타로",
+    "무료 궁합",
+  ],
   alternates: {
     canonical: PAGE_URL,
   },
