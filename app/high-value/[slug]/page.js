@@ -74,7 +74,7 @@ export function generateMetadata({ params }) {
     path: `/high-value/${page.slug}`,
     title: `${page.title} | Code Destiny`,
     description: page.summary,
-    ogImage: "https://code-destiny.com/og/code-destiny-og-vvip.png",
+    ogImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
     keywords: [page.title, page.category, highValueDetailText("insightKeyword"), highValueDetailText("sajuKeyword"), highValueDetailText("tarotKeyword")],
   });
 }

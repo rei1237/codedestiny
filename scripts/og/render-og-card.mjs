@@ -11,6 +11,7 @@ import sharp from "sharp";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SOURCE = path.join(HERE, "vvip-card.html");
@@ -53,7 +54,12 @@ try {
     .toFile(OUTPUT);
 
   const { size } = await fs.stat(OUTPUT);
+  const hash = createHash("sha256").update(await fs.readFile(OUTPUT)).digest("hex").slice(0, 10);
   console.log(`OK ${path.relative(process.cwd(), OUTPUT)} — ${WIDTH}x${HEIGHT}, ${(size / 1024).toFixed(0)}KB`);
+  console.log(`content hash (og:image ?v= 쿼리로 쓸 것): ${hash}`);
+  console.log(
+    `다음: node scripts/og/set-og-cache-bust.mjs ${hash}  ← 10곳 참조를 이 해시로 갱신 (필수, 안 하면 CDN·카카오 캐시가 옛 이미지를 계속 서빙)`
+  );
 } finally {
   await browser.close();
 }
