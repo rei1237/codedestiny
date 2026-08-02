@@ -36,7 +36,7 @@ if ($status) {
   throw 'The worktree must be committed and clean before push/PR creation.'
 }
 
-& gh auth status
+& gh auth status *> $null
 if ($LASTEXITCODE -ne 0) {
   throw 'GitHub CLI authentication is unavailable. Re-authenticate before continuing.'
 }
