@@ -2,13 +2,11 @@
  * @jest-environment node
  */
 
-let buildPremiumYearReading;
-let validatePremiumYearReading;
-let drawPremiumYearCards;
-
-beforeAll(async () => {
-  ({ buildPremiumYearReading, validatePremiumYearReading, drawPremiumYearCards } = await import("../../lib/tarot/tarot-year-premium.mjs"));
-});
+import {
+  buildPremiumYearReading,
+  validatePremiumYearReading,
+  drawPremiumYearCards,
+} from "../../lib/tarot/tarot-year-premium.mjs";
 
 function mockMonths() {
   return Array.from({ length: 12 }, (_, index) => ({
