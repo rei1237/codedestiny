@@ -27,6 +27,17 @@ export function generateMetadata() {
       ...(metadata.alternates || {}),
       canonical: "https://code-destiny.com/account/delete",
     },
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
   };
 }
 
