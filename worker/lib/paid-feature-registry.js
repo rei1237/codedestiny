@@ -171,7 +171,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "physiognomy-compatibility": { cost: 50, reason: "관상 궁합 분석" },
   "physiognomy-pastlife-compatibility": { cost: 50, reason: "전생 관상 궁합 분석" },
   "physiognomy-ogwan-mole-deep": { cost: 50, reason: "오관·점 정밀 분석" },
-  "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
+  "tarot-year-fortune": { cost: 100, amountKRW: 10000, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
   "tarot-myeongri-three-card": { cost: 50, reason: "명리학 타로 3장 스프레드" },

@@ -296,7 +296,7 @@ const PAID_SLUG_META: Record<string, { coins: string; featureKey: string }> = {
   "/dream/psycho":     { coins: "3,000원", featureKey: "dream-psycho-analysis" },
   "/tarot/love": { coins: "5,000원", featureKey: "tarot-love-relationship" },
   "/tarot/reunion": { coins: "5,000원", featureKey: "tarot-reunion-reading" },
-  "/tarot/year": { coins: "3,000원", featureKey: "tarot-year-fortune" },
+  "/tarot/year": { coins: "10,000원", featureKey: "tarot-year-fortune" },
   "/oracle/royal-tea": { coins: "3,000원", featureKey: "royal-tea-oracle" },
   "/yoga-guru": { coins: "3,000원", featureKey: "yoga-guru-per-use" },
 };

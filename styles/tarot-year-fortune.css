@@ -1469,3 +1469,472 @@
     font-size: 0.88rem;
   }
 }
+
+/* Premium annual reading refresh: low-saturation wine surfaces, readable prose, responsive book-like rhythm. */
+:root {
+  --ty-ink: #16090f;
+  --ty-ink-soft: #211019;
+  --ty-panel: #2a1620;
+  --ty-panel-raised: #351922;
+  --ty-text: #f7f2e8;
+  --ty-text-muted: #ead4cf;
+  --ty-accent: #e8d5a3;
+  --ty-accent-soft: #d8ad9b;
+  --ty-line: rgba(238, 192, 174, 0.34);
+  --ty-glow: rgba(154, 54, 82, 0.18);
+}
+
+.tarot-year-overlay { background: var(--ty-ink); color: var(--ty-text); }
+.tarot-year-shell { max-width: 1040px; padding: 28px 18px 72px; }
+.tarot-year-panel { border: 1px solid var(--ty-line); border-radius: 26px; background: var(--ty-ink-soft); box-shadow: 0 24px 90px rgba(0,0,0,.55), 0 0 52px var(--ty-glow); }
+.ty-hero, .ty-result-header, .ty-result-hint, .ty-result-summary, .ty-premium-sections, .ty-month-detail-panel, .ty-advice-section, .ty-result-actions { max-width: 860px; margin-left: auto; margin-right: auto; }
+.ty-hero { padding: clamp(32px,7vw,72px) clamp(18px,6vw,68px); text-align: left; }
+.ty-hero-badge, .ty-result-kicker { color: var(--ty-accent); letter-spacing: .18em; font-size: .68rem; font-weight: 800; }
+.ty-hero-title, .ty-result-title, .ty-premium-section-title, .ty-premium-hero h3 { color: var(--ty-text); text-wrap: balance; }
+.ty-hero-title { max-width: 15ch; margin: 18px 0 14px; font-family: "Noto Serif KR",serif; font-size: clamp(2rem,6vw,4.4rem); line-height: 1.12; letter-spacing: -.035em; }
+.ty-hero-subtitle, .ty-hero-includes, .ty-result-hint, .ty-premium-section p, .ty-premium-copy p, .ty-category-card p, .ty-turning-point p, .ty-turning-point span, .ty-lucky-actions p { color: var(--ty-text-muted); line-height: 1.85; text-wrap: pretty; }
+.ty-hero-subtitle { max-width: 62ch; margin: 0; font-size: 1rem; }
+.ty-hero-includes { max-width: 62ch; margin: 16px 0 28px; color: var(--ty-accent); font-size: .8rem; }
+.ty-cta-btn, .ty-result-btn { border: 1px solid var(--ty-accent); border-radius: 12px; background: var(--ty-accent); color: #171321; font-weight: 800; box-shadow: 0 10px 28px rgba(232,213,163,.18); }
+.ty-cta-btn:hover, .ty-cta-btn:focus-visible, .ty-result-btn:hover, .ty-result-btn:focus-visible { background: #f5e7bf; box-shadow: 0 12px 34px rgba(232,213,163,.28); }
+.ty-result-header { padding: 38px 22px 0; text-align: left; }
+.ty-result-title { margin: 9px 0 0; font-family: "Noto Serif KR",serif; font-size: clamp(1.7rem,4vw,3rem); line-height: 1.18; }
+.ty-result-hint { padding: 0 22px; text-align: left; }
+.ty-premium-sections { display: grid; gap: 18px; margin-top: 22px; margin-bottom: 24px; }
+.ty-premium-section { border: 1px solid var(--ty-line); border-radius: 18px; background: var(--ty-panel); padding: clamp(20px,4vw,34px); box-shadow: 0 14px 32px rgba(0,0,0,.2); }
+.ty-premium-section--core, .ty-premium-section--final { background: var(--ty-panel-raised); }
+.ty-premium-section-title { margin: 0 0 18px; color: var(--ty-accent); font-family: "Noto Serif KR",serif; font-size: clamp(1.2rem,3vw,1.7rem); }
+.ty-premium-hero { border: 1px solid var(--ty-accent-soft); border-radius: 22px; background: #2d1721; padding: clamp(24px,5vw,42px); box-shadow: 0 0 42px var(--ty-glow); }
+.ty-premium-hero-mark { display: inline-flex; align-items: center; min-height: 132px; min-width: 102px; justify-content: center; padding: 10px; border: 1px solid var(--ty-accent); border-radius: 12px 12px 28px 28px; color: var(--ty-accent); background: #45232d; font-family: "Noto Serif KR",serif; font-size: 1.05rem; text-align: center; overflow: hidden; }
+.ty-premium-hero-card-img { display: block; width: 82px; height: 112px; object-fit: cover; border: 1px solid rgba(238, 192, 174, 0.42); border-radius: 8px; }
+.ty-premium-hero-meta { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 20px 0 10px; color: var(--ty-accent-soft); font-size: .68rem; letter-spacing: .12em; }
+.ty-premium-hero h3 { max-width: 62ch; margin: 0 0 12px; font-family: "Noto Serif KR",serif; font-size: clamp(1.25rem,3vw,2rem); line-height: 1.5; }
+.ty-premium-hero p { margin: 0; max-width: 68ch; }
+.ty-guardian-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 24px; }
+.ty-guardian-chip { border: 1px solid rgba(232,213,163,.3); border-radius: 999px; padding: 7px 10px; color: var(--ty-text-muted); background: #24111a; font-size: .76rem; }
+.ty-core-card { display: grid; gap: 6px; }
+.ty-core-card-name { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.ty-core-card-name strong { display: block; color: var(--ty-text); font-size: 1.25rem; }
+.ty-core-card-name small { display: block; margin-top: 4px; color: var(--ty-accent-soft); }
+.ty-core-card-orb { color: var(--ty-accent); font-size: 2rem; }
+.ty-premium-copy { padding: 12px 0; border-top: 1px solid rgba(232,213,163,.14); }
+.ty-premium-copy strong { color: var(--ty-accent); font-size: .82rem; }
+.ty-premium-copy p { margin: 6px 0 0; max-width: 68ch; }
+.ty-category-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.ty-category-card { border: 1px solid rgba(232,213,163,.22); border-radius: 14px; padding: 16px; background: #321a24; }
+.ty-category-heading { display: flex; align-items: center; gap: 9px; }
+.ty-category-heading span { color: var(--ty-accent); font-size: 1.15rem; }
+.ty-category-heading h4 { margin: 0; color: var(--ty-text); font-size: 1rem; }
+.ty-category-card p { margin: 12px 0 0; font-size: .9rem; }
+.ty-turning-list { display: grid; gap: 10px; }
+.ty-turning-point { border: 1px solid rgba(232,213,163,.22); border-radius: 14px; padding: 16px; background: #321a24; }
+.ty-turning-point strong { color: var(--ty-accent); }
+.ty-turning-point p { margin: 8px 0; }
+.ty-turning-point span { display: block; color: var(--ty-text); font-size: .9rem; }
+.ty-lucky-actions { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ty-lucky-actions li { display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; }
+.ty-lucky-actions li > span { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--ty-accent); border-radius: 50%; color: var(--ty-accent); }
+.ty-lucky-actions p { margin: 2px 0 0; }
+.ty-result-summary { display: none; border: 1px solid rgba(232,213,163,.2); border-radius: 14px; background: #321a24; color: var(--ty-text-muted); white-space: pre-line; line-height: 1.8; }
+.ty-result-cards--twelve { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; max-width: 860px; margin: 22px auto; padding: 0 22px; }
+.ty-result-card-wrap--month { width: auto; min-height: 132px; border: 1px solid rgba(232,213,163,.24); border-radius: 14px; background: #321a24; }
+.ty-result-card-wrap--month .ty-result-card-inner { min-height: 132px; }
+.ty-result-card-wrap--month .ty-result-card-front { min-height: 132px; background: #45232d; border: 0; padding: 10px; }
+.ty-result-card-wrap--month .ty-result-card-back { background: #24111a; border: 0; }
+.ty-result-card-img { display: block; width: 56px; height: 76px; object-fit: cover; margin: 5px auto 7px; border: 1px solid rgba(238, 192, 174, 0.4); border-radius: 6px; }
+.ty-result-card-wrap--month .ty-result-card-month { color: var(--ty-accent-soft); }
+.ty-result-card-wrap--month:hover { transform: translateY(-3px); border-color: var(--ty-accent); }
+.ty-result-card-wrap--month[data-current="1"] { outline: 2px solid var(--ty-accent); outline-offset: 3px; }
+.ty-result-card-guide { max-width: 10ch; text-align: center; line-height: 1.3; }
+.ty-month-detail-panel { background: var(--ty-panel); border: 1px solid var(--ty-line); border-radius: 18px; }
+.ty-month-detail-content { max-width: 72ch; margin: 0 auto; }
+.ty-advice-section { display: none; }
+.ty-result-actions { position: sticky; bottom: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 22px calc(14px + env(safe-area-inset-bottom)); background: rgba(22,9,15,.96); border-top: 1px solid rgba(232,213,163,.2); }
+.ty-loading-skeleton { display: grid; gap: 9px; max-width: 480px; margin-top: 24px; }
+.ty-loading-skeleton span { display: block; height: 14px; border-radius: 999px; background: #4b2731; animation: tySkeletonPulse 1.4s ease-in-out infinite; }
+.ty-loading-skeleton span:nth-child(2) { width: 82%; animation-delay: .12s; }
+.ty-loading-skeleton span:nth-child(3) { width: 64%; animation-delay: .24s; }
+@keyframes tySkeletonPulse { 0%,100% { opacity: .42; } 50% { opacity: 1; } }
+@media (max-width: 640px) {
+  .tarot-year-shell { margin: 10px auto; padding: 10px 8px 44px; }
+  .tarot-year-panel { border-radius: 18px; }
+  .ty-hero { padding: 34px 18px 28px; }
+  .ty-hero-title { font-size: clamp(1.85rem,10vw,2.8rem); }
+  .ty-result-header { padding: 28px 16px 0; }
+  .ty-result-hint { padding: 0 16px; }
+  .ty-premium-sections { margin-top: 16px; padding: 0 10px; }
+  .ty-premium-section { border-radius: 14px; padding: 18px 16px; }
+  .ty-premium-hero { padding: 20px 16px; }
+  .ty-premium-hero-mark { min-height: 108px; min-width: 84px; }
+  .ty-category-grid { grid-template-columns: 1fr; }
+  .ty-result-cards--twelve { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 10px; }
+  .ty-result-card-wrap--month, .ty-result-card-wrap--month .ty-result-card-inner, .ty-result-card-wrap--month .ty-result-card-front { min-height: 112px; }
+  .ty-result-actions { padding-left: 14px; padding-right: 14px; }
+  .ty-result-btn { flex: 1 1 100%; min-height: 46px; }
+}
+@media (prefers-reduced-motion: reduce) { .ty-loading-skeleton span { animation: none; } }
+
+/* ─── 주칠 서책 디테일: 중국풍 프리미엄 레이어 ─── */
+@font-face {
+  font-family: "TarotR2Body";
+  src: url("https://assets.code-destiny.com/PretendardVariable.ttf") format("truetype-variations");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.tarot-year-overlay {
+  --ty-font-body: "TarotR2Body", "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --ty-font-serif: "CodeDestinySerifKR", "Noto Serif KR", "Nanum Myeongjo", serif;
+  font-family: var(--ty-font-body);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  letter-spacing: -0.012em;
+}
+
+.tarot-year-overlay button,
+.tarot-year-overlay [role="button"] {
+  font-family: var(--ty-font-body);
+}
+
+.tarot-year-overlay p,
+.tarot-year-overlay li,
+.tarot-year-overlay span,
+.tarot-year-overlay small {
+  font-family: var(--ty-font-body);
+}
+
+.tarot-year-overlay {
+  background:
+    radial-gradient(circle at 50% -12%, rgba(194, 91, 83, 0.16), transparent 34%),
+    radial-gradient(circle at 8% 88%, rgba(118, 30, 54, 0.22), transparent 36%),
+    linear-gradient(135deg, #16090f 0%, #211019 48%, #180b12 100%);
+}
+
+.tarot-year-panel {
+  border: 1px solid rgba(238, 192, 174, 0.48);
+  background:
+    linear-gradient(135deg, rgba(89, 27, 40, 0.32), transparent 28%),
+    linear-gradient(180deg, #28121c 0%, #1d0d15 100%);
+  box-shadow:
+    0 0 0 5px rgba(93, 25, 43, 0.35),
+    0 0 0 6px rgba(232, 213, 163, 0.12),
+    0 24px 90px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 235, 220, 0.12);
+}
+
+.tarot-year-panel::before {
+  inset: 12px;
+  border: 1px solid rgba(232, 213, 163, 0.24);
+  border-radius: 18px;
+}
+
+.tarot-year-panel::after {
+  inset: 20px;
+  border: 1px solid rgba(154, 54, 82, 0.5);
+  border-radius: 14px;
+}
+
+.tarot-year-close {
+  width: 44px;
+  height: 44px;
+  top: 18px;
+  right: 18px;
+  border: 1px solid rgba(232, 213, 163, 0.7);
+  border-radius: 8px 16px 8px 16px;
+  background: #351522;
+  color: var(--ty-text);
+  font-size: 20px;
+  box-shadow: inset 0 0 0 2px rgba(154, 54, 82, 0.42);
+}
+
+.tarot-year-close:hover,
+.tarot-year-close:focus-visible {
+  background: #7e3047;
+  color: #fff5e9;
+  border-color: var(--ty-accent);
+  box-shadow: 0 0 0 3px rgba(232, 213, 163, 0.14), 0 0 24px rgba(154, 54, 82, 0.4);
+  transform: translateY(-1px);
+}
+
+.ty-hero,
+.ty-result-header {
+  position: relative;
+}
+
+.ty-hero::before,
+.ty-result-header::before {
+  content: "◈";
+  display: block;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(232, 213, 163, 0.68);
+  border-radius: 5px 14px 5px 14px;
+  color: var(--ty-accent);
+  font-size: 1.15rem;
+  line-height: 40px;
+  text-align: center;
+  background: #571f31;
+  box-shadow: inset 0 0 0 3px rgba(154, 54, 82, 0.5);
+}
+
+.ty-hero-badge,
+.ty-result-kicker {
+  padding: 7px 14px;
+  border: 1px solid rgba(232, 213, 163, 0.58);
+  border-radius: 3px 12px 3px 12px;
+  background: #742f43;
+  color: #fff1dc;
+  box-shadow: 0 5px 18px rgba(93, 25, 43, 0.32);
+}
+
+.ty-hero-title,
+.ty-result-title,
+.ty-premium-section-title,
+.ty-premium-hero h3,
+.ty-month-detail-title,
+.ty-month-spread-title,
+.ty-month-category-title {
+  font-family: var(--ty-font-serif);
+  font-weight: 700;
+}
+
+.ty-hero-title,
+.ty-result-title {
+  color: #fff2df;
+  text-shadow: 0 2px 18px rgba(118, 30, 54, 0.52);
+}
+
+.ty-hero-subtitle,
+.ty-hero-includes,
+.ty-result-hint,
+.ty-premium-section p,
+.ty-premium-copy p,
+.ty-category-card p,
+.ty-turning-point p,
+.ty-turning-point span,
+.ty-lucky-actions p {
+  color: #ead4cf;
+}
+
+.ty-cta-btn,
+.ty-result-btn {
+  min-height: 48px;
+  border: 1px solid var(--ty-accent);
+  border-radius: 7px 18px 7px 18px;
+  background: linear-gradient(135deg, #8e374e, #602039);
+  color: #fff4df;
+  box-shadow: 0 9px 24px rgba(93, 25, 43, 0.34), inset 0 1px 0 rgba(255, 235, 220, 0.16);
+}
+
+.ty-cta-btn:hover,
+.ty-cta-btn:focus-visible,
+.ty-result-btn:hover,
+.ty-result-btn:focus-visible {
+  background: linear-gradient(135deg, #a8475d, #762a43);
+  color: #fff9ef;
+  box-shadow: 0 12px 30px rgba(118, 30, 54, 0.42), 0 0 0 3px rgba(232, 213, 163, 0.12);
+}
+
+.ty-premium-sections {
+  gap: 20px;
+}
+
+.ty-premium-section {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(232, 213, 163, 0.24);
+  border-radius: 6px 22px 6px 22px;
+  background: linear-gradient(145deg, #2c1520, #25111a);
+  box-shadow: inset 0 1px 0 rgba(255, 235, 220, 0.08), 0 16px 34px rgba(0, 0, 0, 0.18);
+}
+
+.ty-premium-section::after {
+  content: "";
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  right: -14px;
+  bottom: -16px;
+  border: 1px solid rgba(232, 213, 163, 0.16);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.ty-premium-section--core,
+.ty-premium-section--final {
+  background: linear-gradient(145deg, #3b1a27, #2a131e);
+}
+
+.ty-premium-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f1d9a8;
+}
+
+.ty-premium-section-title::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 22px;
+  border-radius: 2px;
+  background: #a8475d;
+  box-shadow: 0 0 0 1px rgba(232, 213, 163, 0.4);
+}
+
+.ty-premium-hero {
+  background:
+    linear-gradient(135deg, rgba(126, 48, 71, 0.42), transparent 34%),
+    radial-gradient(circle at 92% 12%, rgba(232, 213, 163, 0.1), transparent 24%),
+    #321722;
+  box-shadow: inset 0 1px 0 rgba(255, 235, 220, 0.1), 0 0 38px rgba(118, 30, 54, 0.2);
+}
+
+.ty-premium-hero-mark {
+  border-radius: 4px 16px 4px 16px;
+  background: #552335;
+  box-shadow: inset 0 0 0 3px rgba(126, 48, 71, 0.64), 0 12px 24px rgba(0, 0, 0, 0.22);
+}
+
+.ty-guardian-chip {
+  border-color: rgba(232, 213, 163, 0.28);
+  background: #351522;
+  color: #ead4cf;
+  box-shadow: inset 0 1px 0 rgba(255, 235, 220, 0.08);
+}
+
+.ty-core-card,
+.ty-category-card,
+.ty-turning-point,
+.ty-result-summary {
+  background: #351a25;
+  border-color: rgba(232, 213, 163, 0.22);
+}
+
+.ty-category-card,
+.ty-turning-point {
+  border-radius: 5px 15px 5px 15px;
+}
+
+.ty-result-cards--twelve {
+  gap: 12px;
+}
+
+.ty-result-card-wrap--month {
+  border-radius: 5px 16px 5px 16px;
+  background: #321722;
+  box-shadow: inset 0 0 0 2px rgba(126, 48, 71, 0.34), 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.ty-result-card-wrap--month .ty-result-card-front {
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #562536 0%, #381a26 100%);
+}
+
+.ty-result-card-wrap--month .ty-result-card-back {
+  background:
+    radial-gradient(circle at center, rgba(232, 213, 163, 0.12), transparent 30%),
+    repeating-linear-gradient(45deg, rgba(232, 213, 163, 0.05) 0 1px, transparent 1px 10px),
+    #421b2a;
+}
+
+.ty-premium-hero-card-img {
+  background: #1b0b12;
+}
+
+.ty-result-card-month {
+  color: #f1d9a8;
+  font-family: var(--ty-font-serif);
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ty-result-card-zodiac {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(232, 213, 163, 0.32);
+  border-radius: 999px;
+  color: #fff1df;
+  max-width: calc(100% - 4px);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  white-space: nowrap;
+  filter: saturate(0.78);
+}
+
+.ty-result-card-guide {
+  max-width: 12ch;
+  color: #dcbab6;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.ty-result-card-wrap--month:hover,
+.ty-result-card-wrap--month[data-current="1"] {
+  border-color: #e8d5a3;
+  box-shadow: 0 0 0 3px rgba(232, 213, 163, 0.1), 0 12px 24px rgba(118, 30, 54, 0.34);
+}
+
+.ty-month-detail-panel {
+  background:
+    linear-gradient(135deg, rgba(126, 48, 71, 0.18), transparent 32%),
+    #24101a;
+  border: 1px solid rgba(232, 213, 163, 0.36);
+  border-radius: 6px 22px 6px 22px;
+  box-shadow: inset 0 0 0 4px rgba(93, 25, 43, 0.28), 0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+.ty-month-oracle-hero,
+.ty-month-spread-wrap,
+.ty-month-category-panel {
+  background: #351a25;
+  border-color: rgba(232, 213, 163, 0.22);
+  border-radius: 5px 15px 5px 15px;
+}
+
+.ty-month-oracle-card {
+  border-radius: 5px 15px 5px 15px;
+  border-color: rgba(232, 213, 163, 0.68);
+  background: #1b0b12;
+}
+
+.ty-month-cat-btn {
+  border-radius: 4px 12px 4px 12px;
+  border-color: rgba(232, 213, 163, 0.26);
+  background: #351522;
+  color: #ead4cf;
+}
+
+.ty-month-cat-btn.is-active,
+.ty-month-cat-btn:hover,
+.ty-month-cat-btn:focus-visible {
+  background: #7e3047;
+  border-color: var(--ty-accent);
+  color: #fff4df;
+}
+
+.ty-result-actions {
+  background: rgba(22, 9, 15, 0.97);
+  border-top-color: rgba(232, 213, 163, 0.28);
+}
+
+@media (max-width: 640px) {
+  .tarot-year-panel { box-shadow: 0 0 0 3px rgba(93, 25, 43, 0.32), 0 16px 52px rgba(0, 0, 0, 0.52); }
+  .tarot-year-panel::before { inset: 8px; }
+  .tarot-year-panel::after { inset: 14px; }
+  .ty-hero::before,
+  .ty-result-header::before { width: 34px; height: 34px; line-height: 32px; margin-bottom: 10px; }
+  .ty-premium-hero-card-img { width: 70px; height: 96px; }
+  .ty-result-card-wrap--month .ty-result-card-front { gap: 6px; padding: 12px 6px; }
+  .ty-result-card-month { font-size: 1rem; }
+  .ty-result-card-zodiac { padding: 0 7px; font-size: 0.82rem; }
+  .ty-premium-section { border-radius: 5px 16px 5px 16px; }
+  .ty-month-detail-panel { border-radius: 5px 16px 5px 16px; }
+}
