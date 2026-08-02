@@ -12198,6 +12198,21 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         border-color: rgba(255,80,80,0.42);
         color: rgba(255,130,130,0.95);
       }
+      .dp-li-edit {
+        min-width: 44px; min-height: 34px;
+        border: 1px solid rgba(125,211,252,0.22);
+        border-radius: 8px;
+        background: rgba(125,211,252,0.07);
+        color: rgba(186,230,253,0.9); font-size: 0.8rem; font-weight: 800;
+        padding: 6px 9px; cursor: pointer; flex-shrink: 0;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+      }
+      .dp-li-edit:active {
+        background: rgba(125,211,252,0.16);
+        border-color: rgba(125,211,252,0.48);
+        color: #e0f2fe;
+      }
 
       /* ── Stardust 파티클 ── */
       .dp-stardust {

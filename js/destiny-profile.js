@@ -4960,6 +4960,14 @@
     }
 
     btn.disabled = false;
+    if (hasProfiles) {
+      var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
+      setSaveButtonContent('프로필 카드 수정', isFamilyPlan ? '무료' : '5,000원');
+      btn.title = isFamilyPlan
+        ? 'Code Destiny Family 이용권으로 프로필 정보를 무료로 수정합니다.'
+        : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
+      return;
+    }
     if (!hasProfiles && canCreateWithoutPayment) {
       setSaveButtonContent('이 정보를 나의 운명 카드에 저장', slotLabel);
     } else if (canCreateWithoutPayment) {
@@ -5498,6 +5506,7 @@
 
   function _dpOpenProfileDeleteGate(profile, profileId, requestId) {
     return new Promise(function(resolve) {
+      var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
       _dpEnsureProfileDeleteGateStyles();
       var previous = document.getElementById('dpProfileDeleteGate');
       if (previous && typeof previous.__dpClose === 'function') previous.__dpClose(null);
@@ -5538,7 +5547,9 @@
       body.className = 'dp-delete-gate__body';
       var copy = document.createElement('p');
       copy.className = 'dp-delete-gate__copy';
-      copy.textContent = '\uC774 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uBA74 \uC800\uC7A5\uB41C \uC0DD\uB144\uC6D4\uC77C\uACFC \uC785\uB825 \uC815\uBCF4\uAC00 \uD568\uAED8 \uC0AD\uC81C\uB429\uB2C8\uB2E4.';
+      copy.textContent = isFamilyPlan
+        ? 'Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다.'
+        : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
       var warning = document.createElement('div');
       warning.className = 'dp-delete-gate__warning';
       warning.textContent = '\uC0AD\uC81C \uD6C4\uC5D0\uB294 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694. \uC0AD\uC81C\uD560 \uD504\uB85C\uD544\uC774 \uB9DE\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694.';
@@ -5563,12 +5574,19 @@
       options.appendChild(directBtn);
       var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C', '\uBCF4\uC720 \uC6D4\uC815\uC11D\uC5D0\uC11C ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9\uC744 \uC0AC\uC6A9');
       options.appendChild(monthlyBtn);
+      var familyBtn = null;
+      if (isFamilyPlan) {
+        directBtn.hidden = true;
+        monthlyBtn.hidden = true;
+        familyBtn = buildOption('family', '프로필 삭제', 'Family 이용권으로 무료 진행');
+        options.appendChild(familyBtn);
+      }
 
       var foot = document.createElement('div');
       foot.className = 'dp-delete-gate__foot';
       var status = document.createElement('div');
       status.className = 'dp-delete-gate__status';
-      status.textContent = '\uC0AD\uC81C\uD560 \uACB0\uC81C \uBC29\uC2DD\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';
+      status.textContent = isFamilyPlan ? 'Family 이용권을 적용해 삭제합니다.' : '\uC0AD\uC81C\uD560 \uACB0\uC81C \uBC29\uC2DD\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';
       var cancel = document.createElement('button');
       cancel.type = 'button';
       cancel.className = 'dp-delete-gate__cancel';
@@ -5598,6 +5616,7 @@
         status.textContent = '\uACB0\uC81C \uC120\uD0DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.';
         directBtn.disabled = true;
         monthlyBtn.disabled = true;
+        if (familyBtn) familyBtn.disabled = true;
         cancel.disabled = true;
         done(mode);
       }
@@ -5607,16 +5626,18 @@
       });
       directBtn.addEventListener('click', function() { pick('direct'); });
       monthlyBtn.addEventListener('click', function() { pick('monthly'); });
+      if (familyBtn) familyBtn.addEventListener('click', function() { pick('family'); });
       cancel.addEventListener('click', function() { done(null); });
       document.addEventListener('keydown', onKey);
       document.body.appendChild(overlay);
-      directBtn.focus({ preventScroll: true });
+      (familyBtn || directBtn || cancel).focus({ preventScroll: true });
     });
   }
 
   async function _dpRunProfileDeleteGate(profile, profileId, requestId) {
     var choice = await _dpOpenProfileDeleteGate(profile, profileId, requestId);
     if (!choice) return null;
+    if (choice === 'family') return {};
     var base = _dpBuildProfileDeletePaymentBase(profileId, requestId);
     if (choice === 'monthly') {
       _dpSetPaymentPending(true, '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
@@ -5655,9 +5676,9 @@
         reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
         return;
       }
-      var normalizedAction = action === 'delete' ? 'delete' : 'create';
-      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : 'profile_card_create';
-      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00';
+      var normalizedAction = action === 'delete' ? 'delete' : (action === 'update' ? 'update' : 'create');
+      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : (normalizedAction === 'update' ? 'profile_card_update' : 'profile_card_create');
+      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : (normalizedAction === 'update' ? '프로필 카드 수정' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00');
       var isDeleteAction = normalizedAction === 'delete';
       window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
         var data = (payload && typeof payload === 'object') ? payload : {};
@@ -7465,7 +7486,8 @@
     // Render placeholder first to prevent blank modal during slower mobile paints.
     container.innerHTML = '<div class="dp-list-empty">프로필 목록을 불러오는 중...</div>';
 
-    requestAnimationFrame(function() {
+    var _dpRenderProfileListFrame = function(callback) { callback(); };
+    _dpRenderProfileListFrame(function() {
       try {
         var listMaxProfiles = _dpGetMaxProfiles();
         var isFreeUser = !_dpIsUnlimitedProfileLimit(listMaxProfiles) && _dpGetPositiveProfileLimit(listMaxProfiles) <= 1;
@@ -7475,7 +7497,7 @@
         var lockedNotice = selectionRequired
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
           : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 카드 추가 생성/삭제는 서버 확인 후 5,000원으로 처리됩니다.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.</div>'
           : '');
 
     container.innerHTML = list.map(function(p, idx) {
@@ -7531,8 +7553,9 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
-              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C" title="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C</button>'
+              + '<button type="button" class="dp-li-del" aria-label="프로필 수정·삭제 정책 확인" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
             + '</div>'
+            + '<button type="button" class="dp-li-edit" aria-label="프로필 카드 수정" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원') + '</button>'
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
@@ -7663,11 +7686,17 @@
     var maxProfiles = _dpGetMaxProfiles();
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
-    var createRequiresPayment = !canUsePlanSlot;
-    var createProfileId = String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
+    var currentProfile = DPStorage.current();
+    var isUpdate = !!(currentProfile && (currentProfile.id || currentProfile.profileId));
+    var mutationAction = isUpdate ? 'update' : 'create';
+    var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
+    var createRequiresPayment = isUpdate ? !isFamilyPlan : !canUsePlanSlot;
+    var createProfileId = isUpdate
+      ? String(currentProfile.id || currentProfile.profileId)
+      : String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
     data.profileId = createProfileId;
     data.id = createProfileId;
-    var createRequestId = _dpBuildProfileManageRequestId('create', createProfileId);
+    var createRequestId = _dpBuildProfileManageRequestId(mutationAction, createProfileId);
     var createScope = '';
     if (createRequiresPayment) {
       var limitLabel = _dpFormatLimitLabel(maxProfiles);
@@ -7677,7 +7706,10 @@
     var createConfirm = createRequiresPayment
       ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
-    if ((createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
+    if (isUpdate) {
+      createConfirm = '프로필 정보를 수정할까요?\n수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
+    }
+    if ((isUpdate || createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
@@ -7740,8 +7772,8 @@
       }
       createScope = _dpGetProfileScope();
       function postProfile(paymentContext) {
-        return _dpFetchJsonWithFallback('/api/profile', {
-          method: 'POST',
+        return _dpFetchJsonWithFallback(isUpdate ? '/api/profile/' + encodeURIComponent(createProfileId) : '/api/profile', {
+          method: isUpdate ? 'PATCH' : 'POST',
           credentials: 'include',
           cache: 'no-store',
           headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -7749,9 +7781,9 @@
             profile: data,
             requestId: createRequestId,
             featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-            actionType: 'create',
-            profileAction: 'create',
-            action: 'create',
+            actionType: isUpdate ? 'profile_card_update' : 'create',
+            profileAction: mutationAction,
+            action: mutationAction,
             profileId: createProfileId,
             selectedProfileId: createProfileId
           }, paymentContext || {}))
@@ -7766,7 +7798,7 @@
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-          return _dpRunProfileManageGate('create', createProfileId, createRequestId).then(function(paymentContext) {
+          return _dpRunProfileManageGate(mutationAction, createProfileId, createRequestId).then(function(paymentContext) {
             if (!paymentContext) {
               restoreCardAfterSaveAttempt();
               return null;
@@ -7962,6 +7994,22 @@
     document.body.style.width = '';
   };
 
+  window.dpEditProfile = function(id) {
+    var profileId = String(id || '').trim();
+    var profile = _dpFindProfileById(DPStorage.list(), profileId);
+    if (!profile) {
+      alert('수정할 프로필 카드를 찾을 수 없습니다.');
+      return;
+    }
+    DPStorage.setCurrent(profileId);
+    _dpSyncProfileFormToCurrent(profile);
+    renderMasterCard(profile);
+    renderProfileList();
+    _dpUpdateSaveBtn();
+    dpCloseList();
+    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+  };
+
   window.dpSelectProfile = function(id) {
     var profileId = String(id || '').trim();
     var selectedProfile = _dpFindProfileById(DPStorage.list(), profileId);
@@ -8147,12 +8195,13 @@
       });
     }
 
-    _dpVerifyLoginSession(false, { allowIndeterminate: true }).then(function(ok) {
-      if (!ok) throw new Error('AUTH_REQUIRED');
-      _dpSetPaymentPending(false);
-      return _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
-        if (!paymentContext) return null;
-        applyOptimisticDelete();
+    // 삭제창은 로컬 카드만으로 먼저 열어 체감 지연을 없앤다. 인증과 결제 검증은
+    // 사용자가 삭제/결제 방식을 확정한 뒤 서버 요청 직전에 수행한다.
+    _dpSetPaymentPending(false);
+    _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
+      if (!paymentContext) return null;
+      return _dpVerifyLoginSession(true).then(function(ok) {
+        if (!ok) throw new Error('AUTH_REQUIRED');
         return requestDelete(paymentContext);
       });
     }).then(function(result) {
@@ -9291,15 +9340,17 @@
           return;
         }
         var delBtn = targetEl.closest('.dp-li-del');
+        var editBtn = targetEl.closest('.dp-li-edit');
         var actionItem = targetEl.closest('[data-profile-id]');
         var actionPid = actionItem ? actionItem.getAttribute('data-profile-id') : '';
         if (!actionPid) return;
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         listTouchState.lastHandledAt = Date.now();
-        listTouchState.lastHandledAction = delBtn ? 'delete' : 'select';
+        listTouchState.lastHandledAction = editBtn ? 'update' : (delBtn ? 'delete' : 'select');
         listTouchState.lastHandledProfileId = actionPid;
-        if (delBtn) dpDeleteProfile(actionPid);
+        if (editBtn) dpEditProfile(actionPid);
+        else if (delBtn) dpDeleteProfile(actionPid);
         else dpSelectProfile(actionPid);
       }, true);
       listInner.addEventListener('touchend', function(e) {
@@ -9308,6 +9359,20 @@
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
         var delBtn = targetEl.closest('.dp-li-del');
+        var editBtn = targetEl.closest('.dp-li-edit');
+        if (editBtn) {
+          var editItem = targetEl.closest('[data-profile-id]');
+          var editPid = editItem ? editItem.getAttribute('data-profile-id') : '';
+          if (editPid) {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            listTouchState.lastHandledAt = Date.now();
+            listTouchState.lastHandledAction = 'update';
+            listTouchState.lastHandledProfileId = editPid;
+            dpEditProfile(editPid);
+          }
+          return;
+        }
         if (delBtn) {
           var delItem = targetEl.closest('[data-profile-id]');
           var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
