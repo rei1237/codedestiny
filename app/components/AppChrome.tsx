@@ -33,6 +33,7 @@ const CHROMELESS_ROUTES = [
   "/tarot/prompt-maker",
   "/tarot/crystal-soul",
   "/tarot/healing",
+  "/tarot/mindscan",
   "/saju/animal-destiny",
   "/saju/animal-test",
   "/palm-reading",
