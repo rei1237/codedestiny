@@ -163,7 +163,7 @@ beforeEach(() => {
   };
 });
 
-describe("subscription auto-renewal concurrency guard", () => {
+describe("subscription auto-renewal legacy compatibility", () => {
   test("동시에 두 요청이 만료된 이용권을 갱신 시도하면 코인은 한 번만 차감된다", async () => {
     const handleSubscriptionStatus = global.__handleSubscriptionStatus;
     const auth = { userId: TEST_USER_ID };
@@ -184,12 +184,10 @@ describe("subscription auto-renewal concurrency guard", () => {
     const firstPayload = await first.json();
     const secondPayload = await second.json();
 
-    expect(firstPayload.isActive || secondPayload.isActive).toBe(true);
-    // Only one of the two concurrent renewals should have actually deducted coins.
-    expect(userDoc.points).toBe(STANDARD_PLAN_COINS * 3 - STANDARD_PLAN_COINS);
-    expect(pointHistoryRecords).toHaveLength(1);
-    // The loser must not report "free" — it should see the winner's renewed state.
-    expect(firstPayload.isActive).toBe(true);
-    expect(secondPayload.isActive).toBe(true);
+    expect(firstPayload.isActive || secondPayload.isActive).toBe(false);
+    expect(userDoc.points).toBe(STANDARD_PLAN_COINS * 3);
+    expect(pointHistoryRecords).toHaveLength(0);
+    expect(firstPayload.isActive).toBe(false);
+    expect(secondPayload.isActive).toBe(false);
   });
 });

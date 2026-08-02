@@ -7041,7 +7041,6 @@ async function _vedicCompatCoinGate(cost, reason){
         featureKey:'vedic-compatibility-per-use',
         serviceKey:'vedic-compatibility',
         action:'calculateVedicCompatibility',
-        forceDeduct:true,
         requestId:requestId
       });
       if(gateResult&&typeof gateResult.then==='function')gateResult=await gateResult;

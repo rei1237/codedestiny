@@ -682,7 +682,6 @@ export default function DestinyBiasClient() {
         featureKey: "destiny-bias-analyze",
         reason: "최애운명 분석",
         requestId,
-        forceDeduct: true,
       });
 
       if (!coinGateResult.ok) {
@@ -699,7 +698,6 @@ export default function DestinyBiasClient() {
             featureKey: "destiny-bias-analyze",
             reason: "최애운명 분석",
             requestId,
-            forceDeduct: true,
           });
         }
       }

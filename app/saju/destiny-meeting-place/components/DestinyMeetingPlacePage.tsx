@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { fetchBillingBalance, holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { getAuthState } from "@/app/_lib/auth-store";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
@@ -89,15 +90,7 @@ export default function DestinyMeetingPlacePage() {
   useEffect(() => {
     let mounted = true;
 
-    fetchBillingBalance()
-      .then((res) => {
-        if (!mounted || !res.ok || !res.data) return;
-        setIsLoggedIn(Boolean(res.data.authenticated));
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setIsLoggedIn(false);
-      });
+    setIsLoggedIn(getAuthState().isAuthenticated);
 
     try {
       const params = new URLSearchParams(window.location.search);
@@ -166,10 +159,9 @@ export default function DestinyMeetingPlacePage() {
       // 클라이언트 cost/coinPrice를 넘기면 snapshotPassServerCheckFirst가 켜져 서버 이용권
       // 프로브를 건너뛰고 로컬 스냅샷만 신뢰한다(→ '이용권 확인이 제대로 안 됨'). 정상 형제
       // destiny-bias처럼 가격은 서버 정본(가격표 destiny_meeting_place=100)에 맡겨 프로브를 강제한다.
-      const gate = await runBillingCoinGate({
+      const gate = await runPaidAccessGate({
         featureKey: FEATURE_KEY,
         reason: FEATURE_REASON,
-        forceDeduct: true,
         requestId,
       });
 

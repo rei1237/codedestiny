@@ -437,7 +437,6 @@ function buildBillingGateInput(paymentPayload: BillingGatePayload, idempotencyKe
     serviceType: toText(runtimeGate.serviceType || "karma-ai-consultation"),
     requestId: idempotencyKey,
     idempotencyKey,
-    forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
     cost: toNumber(runtimeGate.cost ?? paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST),

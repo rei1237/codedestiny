@@ -196,7 +196,6 @@ function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiRespo
     paymentAmount: amountKRW,
     membershipCreditCost,
     deferUsage: true,
-    forceDeduct: true,
   };
 }
 

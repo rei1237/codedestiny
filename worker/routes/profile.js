@@ -423,7 +423,6 @@ function profilePaymentRequiredResponse(action, requestId) {
       membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
       amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
       cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-      forceDeduct: true,
     },
     checkout: {
       endpoint: "/api/billing/checkout",
@@ -525,7 +524,6 @@ function profileDeletePaymentRequiredResponse(action, requestId, profileId, poli
       membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
       amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
       cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-      forceDeduct: true,
     },
     checkout: {
       endpoint: "/api/billing/checkout",
@@ -563,7 +561,6 @@ function profileCardActionPaymentRequiredResponse(action, requestId, profileId =
       membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
       amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
       cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-      forceDeduct: true,
     },
     checkout: {
       endpoint: "/api/billing/checkout",
@@ -1138,7 +1135,6 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
       paymentMethod: "MONTHLY",
       paymentMode: "membership_credit",
       purpose: "profile_card_manage",
-      forceDeduct: true,
       requestId: paymentRequestId,
       profilePaymentKey: paymentRequestId,
       actionType: resolveProfileMutationActionType(action),

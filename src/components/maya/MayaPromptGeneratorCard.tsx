@@ -90,7 +90,6 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         const gate = await runBillingCoinGate({
           featureKey: FEATURE_KEY,
           reason: FEATURE_REASON,
-          forceDeduct: true,
           requestId,
           cost: FEATURE_COST,
           coinPrice: FEATURE_COST,

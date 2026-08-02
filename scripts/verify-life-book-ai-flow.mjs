@@ -248,7 +248,6 @@ for (const marker of [
   'topic: TOPIC',
   'inputHash',
   'deferUsage: true',
-  'forceDeduct: true',
   'min={MIN_BIRTH_DATE}',
   'max={MAX_BIRTH_DATE}',
   'html2canvas',
@@ -294,7 +293,6 @@ for (const marker of [
   "releaseSectionLock",
   "buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash = \"\")",
   "deferUsage: true",
-  "forceDeduct: true",
   "billingContractMatches",
   "billingContractEvidenceClauses",
   "resolveBillingGateAccess({ env, auth, body, idempotencyKey = \"\", inputHash = \"\", consultationType = \"\", acceptedFeatureKeys = [FEATURE_KEY] })",
@@ -325,6 +323,9 @@ for (const marker of [
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
 }
+
+excludes("app/premium-unlock/PremiumSalesContent.tsx", premiumClient, "forceDeduct");
+excludes("worker/routes/life-book-ai.js", route, "forceDeduct");
 
 const llmClient = read("lib/llm-client.ts");
 for (const marker of [

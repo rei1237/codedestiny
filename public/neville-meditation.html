@@ -1535,7 +1535,6 @@ async function _consumeMeditationCoin(cost, reason) {
         featureKey: 'neville-meditation',
         serviceKey: 'neville-meditation',
         action: 'openNevilleMeditationPage',
-        forceDeduct: true,
         requestId: requestId
       });
       if (gateResult && typeof gateResult.then === 'function') {

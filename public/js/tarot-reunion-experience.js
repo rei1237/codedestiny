@@ -461,7 +461,6 @@
         amountKRW: Math.max(0, Number(cost || 0)) * 100,
         featureKey: featureKey,
         requestId: requestId,
-        forceDeduct: true,
       })).then(function(result) {
         rememberReunionCharge(result && result.transactionId, result && (result.payload || result));
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
@@ -516,7 +515,7 @@
     var sourceTransactionId = String(state.lastChargeTransactionId || "").trim();
     var requestId = "tarot-reunion-refund:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
     // 정본 환불 라우트(/api/billing/refund → /api/fortune/pig-coin/refund 위임). 과거의
-    // /api/fortune/pig-coin/earn은 존재하지 않아 404로 환불이 조용히 실패하던 버그를 교정.
+    // 과거 포인트 적립 경로는 사용하지 않고 정본 환불 경로만 호출한다.
     return fetch("/api/billing/refund", {
       method: "POST",
       headers: rollbackHeaders,

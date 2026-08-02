@@ -21,6 +21,8 @@ const ignoredDirs = new Set([
 ]);
 const sourceExt = /\.(?:[cm]?[jt]sx?|html)$/i;
 const directCoinGateCallPattern = /(?:fetch|authFetchBilling|_fetchApiJson|_cdAIPromptRequestJson|syPromptRequestJson|fetchJsonWithAuth|_dpFetchJsonWithFallback|_dpPaymentFetchJson)\s*\([^)]*['"]\/api\/billing\/coin-gate(?:\/[^'"]*)?['"]/s;
+const directLegacyCoinCallPattern = /(?:fetch|authFetch|_fetchApiJson|fetchJsonWithAuth|_dpFetchJsonWithFallback|_dpPaymentFetchJson)\s*\([^)]*['"]\/api\/fortune\/pig-coin\/(?:balance|consume|unlock|share-reward|charge-simulate|earn)(?:[/?'"\\)]|$)/s;
+const activeLegacyCoinFlagPattern = /forceDeduct\s*:\s*true|paymentMode\s*:\s*['"]COIN['"]/;
 
 function walk(dir, files = []) {
   if (!fs.existsSync(dir)) return files;
@@ -46,10 +48,14 @@ const violations = [];
 for (const file of candidates) {
   const rel = path.normalize(path.relative(root, file));
   const source = fs.readFileSync(file, "utf8");
-  if (!source.includes("/api/billing/coin-gate")) continue;
-  if (allowedFiles.has(rel)) continue;
-  if (directCoinGateCallPattern.test(source)) {
+  if (!allowedFiles.has(rel) && directCoinGateCallPattern.test(source)) {
     violations.push(rel);
+  }
+  if (directLegacyCoinCallPattern.test(source)) {
+    violations.push(`${rel} (legacy coin endpoint)`);
+  }
+  if (activeLegacyCoinFlagPattern.test(source)) {
+    violations.push(`${rel} (active COIN flag)`);
   }
 }
 
@@ -59,9 +65,47 @@ const billingClient = fs.readFileSync(path.join(root, "app/_lib/billing-client.t
 assert.match(billingClient, /DUPLICATE_CLIENT_FLOW_BLOCKED/, "React billing client keeps duplicate flow guard");
 assert.match(billingClient, /equalPriorityMethods/, "React payment choice reads equal-priority methods");
 assert.doesNotMatch(billingClient, /code:\s*"PAYMENT_REQUIRED"[\s\S]{0,240}requiredCoins,[\s\S]{0,160}chargedCoins:\s*0/, "useCoinGate must not surface raw PAYMENT_REQUIRED to paid feature UIs");
+assert.doesNotMatch(billingClient, /paymentMode\s*:\s*['"]COIN['"]|forceDeduct\s*:\s*true/, "React common billing bridge never sends active legacy COIN flags");
 
 const indexSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
 assert.match(indexSource, /var equalPriorityMethods = normalizeChoiceMethods/, "static payment choice reads equal-priority methods");
 assert.match(indexSource, /월정석은 이벤트성 선불 재화입니다\./, "static payment choice clarifies monthly stone as event currency");
+
+assert.match(indexSource, /includeBilling === true/, "static session bootstrap does not warm billing balance by default");
+
+const independentStaticPages = [
+  "celestial-harmony.html",
+  "cosmic-soul-meditation.html",
+  "geomancy-oracle-v4.html",
+  "ifa_oracle_v2_full.html",
+  "neville-meditation.html",
+  "royal-tea-oracle.html",
+  "tarot-ijik.html",
+  "vedic-astrology.html",
+  "yoga-guru.html",
+  "pet-saju.html",
+];
+for (const rel of independentStaticPages) {
+  const page = fs.readFileSync(path.join(root, rel), "utf8");
+  assert.match(page, /(?:js\/destiny-profile\.js|destiny-profile\.js)/, `${rel} uses the common static paid bridge`);
+}
+
+const generatedStaticPages = [
+  "public/celestial-harmony.html",
+  "public/cosmic-soul-meditation.html",
+  "public/geomancy-oracle-v4.html",
+  "public/ifa-oracle.html",
+  "public/neville-meditation.html",
+  "public/royal-tea-oracle.html",
+  "public/tarot-ijik.html",
+  "public/vedic-astrology.html",
+  "public/yoga-guru.html",
+  "public/static/geomancy-oracle-v4.html",
+];
+for (const rel of generatedStaticPages) {
+  const page = fs.readFileSync(path.join(root, rel), "utf8");
+  assert.match(page, /(?:js\/destiny-profile\.js|destiny-profile\.js)/, `${rel} uses the common static paid bridge`);
+  assert.doesNotMatch(page, /forceDeduct\s*:\s*true|paymentMode\s*:\s*["']COIN["']|\/api\/fortune\/pig-coin\/(?:balance|consume|unlock|share-reward|charge-simulate|earn)/, `${rel} has no active legacy COIN path`);
+}
 
 console.log("[verify-paid-feature-common-flow] PASS");

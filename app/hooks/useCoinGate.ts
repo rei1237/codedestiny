@@ -5,7 +5,7 @@ import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/aut
 import {
   PAID_SERVICE_RUNTIME_SRC,
   loadPaidServiceRuntimeGate,
-  runBillingCoinGate,
+  runPaidAccessGate,
 } from "../_lib/billing-client";
 import {
   logPaidAttemptEvent,
@@ -393,13 +393,12 @@ export function useCoinGate() {
         );
       }
 
-      const chargeResult = await runBillingCoinGate({
+      const chargeResult = await runPaidAccessGate({
         categoryKey: input.categoryKey,
         subFeatureKey: input.subFeatureKey,
         featureKey: input.featureKey,
         reason: input.reason,
         payloadHash: input.payloadHash,
-        forceDeduct: input.forceDeduct,
         requestId: input.requestId,
         coinPrice: input.coinPrice,
         cost: input.cost,

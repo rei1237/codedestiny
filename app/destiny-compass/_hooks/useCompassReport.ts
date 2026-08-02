@@ -176,7 +176,6 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
         coinPrice: COIN_PRICE,
         amountKRW: AMOUNT_KRW,
         reason: "운명의 지도 심층 리포트",
-        forceDeduct: true,
         requestId: makeGateRequestId(FEATURE_KEY),
       });
 

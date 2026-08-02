@@ -215,29 +215,9 @@
   ══════════════════════════════════════════════════════════════════ */
 
   function _requestReward(contentId, onSuccess, onError) {
-    var token = _getToken();
-    fetch(_getApiBase() + '/api/fortune/pig-coin/share-reward', {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': 'Bearer ' + token,
-      },
-      body: JSON.stringify({ contentId: contentId }),
-    })
-      .then(function (res) {
-        return res.json().then(function (data) { return { status: res.status, data: data }; });
-      })
-      .then(function (r) {
-        if (r.status === 200) {
-          onSuccess(r.data);
-        } else {
-          onError(r.status, r.data || {});
-        }
-      })
-      .catch(function (err) {
-        console.warn('[share-reward] network error', err);
-        onError(0, { message: getShareRewardCopy().networkError });
-      });
+    void contentId;
+    void onSuccess;
+    onError(410, { code: 'POINT_REWARD_DISABLED', message: '기존 코인 공유 보상은 더 이상 사용하지 않습니다.' });
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -261,6 +241,11 @@
 
     /* ── 1. 공유 실행 (보상과 무관하게 항상 실행) ── */
     try { shareFn(); } catch (e) { console.warn('[share-reward] shareFn threw:', e); }
+
+    // Legacy coin rewards are retired. Keep sharing intact without calling
+    // the old point-grant endpoint or mutating a coin balance.
+    setTimeout(function () { showShareRewardToast('공유가 완료되었습니다.'); }, 700);
+    return;
 
     /* ── 2. 비로그인: 안내 토스트만 표시 ── */
     if (!_isLoggedIn()) {

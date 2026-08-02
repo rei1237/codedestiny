@@ -49,7 +49,6 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
       coinPrice: 100,
       amountKRW: 10000,
       reason: "운명의 갈림길 기운 비교",
-      forceDeduct: true,
       requestId: makeGateRequestId("destiny-compass-crossroads"),
     });
     if (!r.ok) {

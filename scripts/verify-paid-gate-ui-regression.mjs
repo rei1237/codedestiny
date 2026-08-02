@@ -296,9 +296,10 @@ const gateRunBillingFeatureSources = [
   { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
 ];
 for (const feature of gateRunBillingFeatureSources) {
+  const commonGateMarker = feature.source.includes("runPaidAccessGate") ? "runPaidAccessGate" : "runBillingCoinGate";
   assertContains(feature.source, "openPaidFeatureGate", `${feature.label} opens paid gate overlay`);
-  assertContains(feature.source, "runBillingCoinGate", `${feature.label} routes through common billing gate`);
-  assertBefore(feature.source, "openPaidFeatureGate(", "runBillingCoinGate(", `${feature.label} opens gate before billing`);
+  assertContains(feature.source, commonGateMarker, `${feature.label} routes through common billing gate`);
+  assertBefore(feature.source, "openPaidFeatureGate(", `${commonGateMarker}(`, `${feature.label} opens gate before billing`);
   assertNotContains(feature.source, "window.PortOne.requestPayment", `${feature.label} must not run custom PortOne checkout`);
   assertNotContains(feature.source, 'fetch("/api/billing/coin-gate"', `${feature.label} must not bypass common coin-gate`);
   assertNotContains(feature.source, "/points?source=", `${feature.label} must not jump straight to charge page`);

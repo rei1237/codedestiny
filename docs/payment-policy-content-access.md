@@ -8,7 +8,7 @@
 
 - **정의**: 기본적으로 숨겨져 있다가 조건 충족 시 해제되는 콘텐츠. 1회 결제 후 `ContentEntitlement` DB에 영구 저장되어 이후 재결제 없이 반복 이용 가능
 - **해제 방법**: 이용권 보유 시 무료 해제 (가격 상한 이내) 또는 단건 PG 결제
-- **식별 마커**: `worker/lib/paid-feature-registry.js`의 `RAW_PIG_COIN_UNLOCK_PRODUCTS`(`unlock.` 접두 + `forceDeduct: true`), `worker/routes/fortune.js`의 `PERSISTENT_UNLOCK_KEY_SET` 등록, 결제 후 `upsertPaidContentUnlock()`(`worker/lib/content-unlocks.js`) 호출
+- **식별 마커**: `worker/lib/paid-feature-registry.js`의 `RAW_PIG_COIN_UNLOCK_PRODUCTS`(`unlock.` 접두; `forceDeduct`는 신규 정책 결정값으로 사용하지 않음), `worker/routes/fortune.js`의 `PERSISTENT_UNLOCK_KEY_SET` 등록, 결제 후 `upsertPaidContentUnlock()`(`worker/lib/content-unlocks.js`) 호출
 - **현재 예시**:
   - 사주 분석 화면: 대운(`section_daewun`), 총평/1년 운(`section_summary`), 궁합 미리보기(`section_compat`)
     - **무료 진입 후크 예외(2026-07-16)**: "지금 내 시기 · 올해의 나" 카드(`#currentSeasonCard`, 클라 `renderCurrentSeasonSummary`)는 **현재 소속 대운 1칸 + 올해 세운 요약만** 무료(C유형)로 노출한다. 게이트(`cd-section-gate`) 없이 렌더되며 서버 entitlement와 무관. **전체 10년 대운표·연도별 세운 상세·종합 풀이는 계속 `section_daewun`/`section_summary`로 유료 잠금**이며, 무료 카드는 이 잠긴 콘텐츠를 렌더하지 않는다(범위 초과 시 정책 위반).
@@ -60,6 +60,13 @@
   - **프론트 게이트**: `canDownloadTrack`이 `downloadRequiresPurchase` 트랙은 서버 확인 `canDownload`에만 허용. `refreshMusicAccess`가 잠금곡 + 다운로드 게이트 트랙을 배치 조회(로그인 사용자, Mongo 왕복 2회)해 곡별 다운로드 권한을 복원한다. 구매는 기존 `handlePurchaseCurrentTrack`(다운로드 전용 = `direct`+`monthly`, 이용권 선검사 스킵) 재사용.
 - **과거 구매/이용권**: 구매한 곡은 `canDownload`로 다운로드 유지, 이용권은 재생만 커버. 환불·마이그레이션 불필요.
 - **회귀 가드**: `__tests__/worker/music.pass-access-policy.test.js`(재생 무료 / 미구매·이용권=다운로드 잠금·402 / 구매=다운로드 통과 / 다운로드 게이트 트랙은 배치 호출).
+
+## Legacy COIN 차감 호환성
+
+- 레거시 COIN 이름과 과거 원장 데이터는 읽기 호환을 위해 보존하지만, 신규 `User.points` 차감·신규 COIN 해금·COIN 자동 갱신은 금지한다.
+- 과거 `PointHistory`·`Payment` 증거는 entitlement backfill과 환불/보상 복구에서만 사용한다. 증거가 없는 구형 소비 요청은 `PAYMENT_REQUIRED`로 결제 선택창을 안내한다.
+- 모든 클라이언트 표면(React, 루트 정적 셸, 독립 정적 HTML)은 중립 공통 게이트를 사용한다. 결제 게이트가 로드되지 않은 정적 페이지는 직접 레거시 API를 호출하지 않고 안전한 재시도 안내를 표시한다.
+- 최종 접근 권한은 서버 entitlement와 결제 검증이 결정하며, 로컬 unlock map은 화면 표시 최적화에만 사용한다.
 
 ## 신규 기능 추가 시 체크리스트
 

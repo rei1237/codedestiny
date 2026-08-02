@@ -148,3 +148,11 @@
 - Monthly-credit and legacy coin balance reads are reserved for payment/store entry and explicit payment refresh flows.
 - The client unlock map and shop summary are display state only. Server-side content access checks, pass purchase policy, payment confirmation, and post-payment entitlement writes remain authoritative.
 - A DB lookup failure must be represented as lookup failure (`retryable`, request-scoped error code) and must not be converted to an empty unlock list, balance `0`, unlimited balance, or successful deduction.
+
+## Legacy COIN 차감 제거와 호환성 경계
+
+- 신규 콘텐츠 해금과 신규 결제에서는 `User.points`를 차감하지 않는다. 이용 가능한 결제 방식은 `이용권`, `월정석`, `단건 결제`다.
+- 호환성을 위해 `/api/billing/coin-gate`와 레거시 fortune/daehan 경로 이름은 유지하지만, `paymentMode=COIN`, `forceDeduct`, 결제 방식이 없는 구형 요청은 `PAYMENT_REQUIRED`로 fail-closed 처리한다.
+- 차단 응답에는 `legacyCoinDisabled: true`, `blockedPaymentMode: "COIN"`, 현재 결제 선택 정보가 포함되며, 차단 경로에서 포인트 조회·차감·신규 `PointHistory` 생성은 하지 않는다.
+- 기존 `ContentEntitlement`, `User.unlockedFeatures`, `PointHistory`, `daehan_purchases` 및 과거 결제 기록은 삭제하지 않는다. backfill·환불·보상 복구는 과거 거래 증거가 있을 때만 읽기 호환으로 유지한다.
+- 메인 셸과 일반 잠금 상태 조회는 `/api/access/unlocks` 또는 entitlement 전용 조회를 사용한다. 월정석/레거시 잔액 조회는 결제 선택창과 명시적 결제 갱신에서만 수행한다.

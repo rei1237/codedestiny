@@ -260,7 +260,6 @@ function buildBillingGateInput(paymentPayload: PaymentPayload, requestId: string
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || "life-book-ai",
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || "life-book-ai",
     serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
-    forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
     executionKey: `life-fortune:${requestId}`,

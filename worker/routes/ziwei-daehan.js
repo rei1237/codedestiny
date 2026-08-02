@@ -1,29 +1,20 @@
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { json, methodNotAllowed, notFound, readJson, getRoutePath } from "../lib/http.js";
-import {
-  CONTENT_ENTITLEMENT_SCOPES,
-  CONTENT_ENTITLEMENT_SOURCES,
-  PointHistory,
-  RECENT_CONSUME_REQUEST_ID_CAP,
-  User,
-} from "../lib/models.js";
-import { hasUnlockedContent, upsertContentUnlock } from "../lib/content-unlocks.js";
+import { User } from "../lib/models.js";
+import { hasUnlockedContent } from "../lib/content-unlocks.js";
+import { handleBillingRoutes } from "./billing.js";
 
-const DAEHAN_COST = 200;
+const DAEHAN_COST = 100;
 const DAEHAN_SERVICE_KEY = "ziwei";
-const DAEHAN_FEATURE_KEY = "ziwei_daehan_timeline";
-const DAEHAN_CONTENT_KEY = "ziwei.daehanTimeline";
-const DAEHAN_REASON = "대한(大限) 타임라인 인생 전체 분석 해금";
+const DAEHAN_FEATURE_KEY = "ziwei_decade_luck";
+const DAEHAN_CONTENT_KEY = "ziwei.decadeLuck";
+const LEGACY_DAEHAN_CONTENT_KEY = "ziwei.daehanTimeline";
 
 let daehanIndexPromise = null;
 
 function cleanId(value, maxLen = 100) {
   return String(value || "").trim().slice(0, maxLen).replace(/\s+/g, "_");
-}
-
-function nowIso() {
-  return new Date().toISOString();
 }
 
 function getRequestProfileSource(request, body = {}) {
@@ -58,33 +49,29 @@ async function resolveDaehanProfileId(userId, source = {}) {
 
 async function getDaehanPurchase(userId, profileId) {
   if (!userId || !profileId) return null;
-  const collection = mongoose.connection.db.collection("daehan_purchases");
-  return collection.findOne({ userId: String(userId), profileId: String(profileId) });
+  return mongoose.connection.db.collection("daehan_purchases").findOne({
+    userId: String(userId),
+    profileId: String(profileId),
+  });
 }
 
 async function isDaehanPurchased(userId, profileId, env = {}) {
   if (!userId || !profileId) return false;
   return withMongoRetry(env, async () => {
-    const purchase = await getDaehanPurchase(userId, profileId);
-    if (purchase) return true;
-    return hasUnlockedContent({
-      userId: String(userId),
-      profileId: String(profileId),
-      serviceKey: DAEHAN_SERVICE_KEY,
-      contentKey: DAEHAN_CONTENT_KEY,
-    });
+    if (await getDaehanPurchase(userId, profileId)) return true;
+    for (const contentKey of [DAEHAN_CONTENT_KEY, LEGACY_DAEHAN_CONTENT_KEY]) {
+      if (await hasUnlockedContent({
+        userId: String(userId),
+        profileId: String(profileId),
+        serviceKey: DAEHAN_SERVICE_KEY,
+        contentKey,
+      })) return true;
+    }
+    return false;
   });
 }
 
-async function getUserCoinBalance(userId) {
-  const user = await User.findById(userId).select("points recentConsumeRequestIds").lean();
-  return {
-    points: Math.max(0, Math.floor(Number(user?.points || 0))),
-    recentConsumeRequestIds: Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [],
-  };
-}
-
-function daehanStatusPayload({ profileId, isPurchased, userCoins, data = null }) {
+function daehanStatusPayload({ profileId, isPurchased, data = null }) {
   return {
     ok: true,
     success: true,
@@ -92,7 +79,6 @@ function daehanStatusPayload({ profileId, isPurchased, userCoins, data = null })
     data,
     profileId,
     required: DAEHAN_COST,
-    userCoins,
     featureKey: DAEHAN_FEATURE_KEY,
     contentKey: DAEHAN_CONTENT_KEY,
   };
@@ -108,16 +94,8 @@ async function handleDaehanStatus(request, env) {
     return json({ ok: false, error: "MISSING_PROFILE_ID", message: "프로필을 먼저 선택해 주세요." }, { status: 400 });
   }
 
-  const [isPurchased, balance] = await Promise.all([
-    isDaehanPurchased(auth.userId, profileId, env),
-    getUserCoinBalance(auth.userId),
-  ]);
-
-  return json(daehanStatusPayload({
-    profileId,
-    isPurchased,
-    userCoins: balance.points,
-  }));
+  const isPurchased = await isDaehanPurchased(auth.userId, profileId, env);
+  return json(daehanStatusPayload({ profileId, isPurchased }));
 }
 
 async function handleDaehanUnlock(request, env) {
@@ -131,160 +109,41 @@ async function handleDaehanUnlock(request, env) {
     return json({ ok: false, error: "MISSING_PROFILE_ID", message: "프로필을 먼저 선택해 주세요." }, { status: 400 });
   }
 
-  const alreadyPurchased = await isDaehanPurchased(auth.userId, profileId, env);
-  const initialBalance = await getUserCoinBalance(auth.userId);
-  if (alreadyPurchased) {
+  if (await isDaehanPurchased(auth.userId, profileId, env)) {
     return json({
-      ...daehanStatusPayload({ profileId, isPurchased: true, userCoins: initialBalance.points }),
+      ...daehanStatusPayload({ profileId, isPurchased: true }),
       alreadyPurchased: true,
       localOnly: true,
     });
   }
 
-  const requestId = cleanId(
-    body?.requestId
-      || body?.idempotencyKey
-      || body?.purchaseId
-      || `${DAEHAN_FEATURE_KEY}:${profileId}:${Date.now().toString(36)}`,
-    160,
-  );
-
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: auth.userId,
-      points: { $gte: DAEHAN_COST },
-      ...(requestId ? { recentConsumeRequestIds: { $ne: requestId } } : {}),
-    },
-    {
-      $inc: { points: -DAEHAN_COST },
-      // 중복 방지는 위 필터의 `$ne: requestId` 가드가 담당한다($push는 스스로 못 막는다).
-      ...(requestId ? {
-        $push: {
-          recentConsumeRequestIds: { $each: [requestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
-        },
-      } : {}),
-    },
-    { returnDocument: "after", projection: { points: 1, recentConsumeRequestIds: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    const current = await getUserCoinBalance(auth.userId);
-    if (requestId && current.recentConsumeRequestIds.includes(requestId)) {
-      const purchased = await isDaehanPurchased(auth.userId, profileId, env);
-      if (!purchased) {
-        return json({
-          ok: false,
-          success: false,
-          error: "REQUEST_ALREADY_PROCESSED",
-          message: "이미 처리 중인 해금 요청입니다. 잠시 후 다시 확인해 주세요.",
-          profileId,
-          userCoins: current.points,
-        }, { status: 409 });
-      }
-      return json({
-        ...daehanStatusPayload({ profileId, isPurchased: purchased, userCoins: current.points }),
-        idempotent: true,
-      });
-    }
-    return json({
-      ok: false,
-      success: false,
-      error: "INSUFFICIENT_COINS",
-      required: DAEHAN_COST,
-      current: current.points,
-      userCoins: current.points,
-      message: `대한 타임라인 해금에 ${(DAEHAN_COST * 100).toLocaleString("ko-KR")}원 결제가 필요합니다. 현재 보유 원화 가치: ${(Math.max(0, Number(current.points || 0)) * 100).toLocaleString("ko-KR")}원`,
-    }, { status: 402 });
-  }
-
-  const balanceAfter = Math.max(0, Math.floor(Number(updatedUser?.points || 0)));
-  let history = null;
-
-  try {
-    history = await PointHistory.create({
-      userId: auth.userId,
-      kind: "deduct",
-      delta: -DAEHAN_COST,
-      balanceAfter,
-      reason: DAEHAN_REASON,
+  const billingUrl = new URL("/api/billing/coin-gate", request.url);
+  const billingHeaders = new Headers(request.headers || {});
+  billingHeaders.set("Content-Type", "application/json");
+  const billingRequest = new Request(billingUrl.toString(), {
+    method: "POST",
+    headers: billingHeaders,
+    body: JSON.stringify({
+      ...body,
       featureKey: DAEHAN_FEATURE_KEY,
-      metadata: {
-        accessType: "coin",
-        accessMethod: "COIN",
-        paymentMethod: "COIN",
-        transactionType: "coin",
-        requestId,
-        purchaseId: requestId,
-        idempotencyKey: cleanId(body?.idempotencyKey || requestId, 160),
-        orderId: cleanId(body?.orderId || requestId, 160),
-        profileId,
-        selectedProfileId: profileId,
-        serviceKey: DAEHAN_SERVICE_KEY,
-        contentKey: DAEHAN_CONTENT_KEY,
-        featureKey: DAEHAN_FEATURE_KEY,
-        coinPrice: DAEHAN_COST,
-        chargedCoins: DAEHAN_COST,
-        paidAt: nowIso(),
-      },
-    });
-
-    await mongoose.connection.db.collection("daehan_purchases").updateOne(
-      { userId: String(auth.userId), profileId },
-      {
-        $set: {
-          userId: String(auth.userId),
-          profileId,
-          coinsPaid: DAEHAN_COST,
-          contentKey: DAEHAN_CONTENT_KEY,
-          featureKey: DAEHAN_FEATURE_KEY,
-          purchaseId: requestId,
-          pointHistoryId: String(history?._id || ""),
-          purchasedAt: new Date(),
-          updatedAt: new Date(),
-        },
-        $setOnInsert: { createdAt: new Date() },
-      },
-      { upsert: true },
-    );
-
-    await upsertContentUnlock({
-      userId: String(auth.userId),
-      profileId,
-      serviceKey: DAEHAN_SERVICE_KEY,
       contentKey: DAEHAN_CONTENT_KEY,
-      scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
-      source: CONTENT_ENTITLEMENT_SOURCES.COIN,
-      paymentId: String(history?._id || requestId),
-      orderId: requestId,
-      coinAmount: DAEHAN_COST,
-    });
-  } catch (error) {
-    await User.findByIdAndUpdate(auth.userId, {
-      $inc: { points: DAEHAN_COST },
-      ...(requestId ? { $pull: { recentConsumeRequestIds: requestId } } : {}),
-    }).catch(() => {});
-    if (history?._id) {
-      await PointHistory.updateOne(
-        { _id: history._id, userId: auth.userId },
-        {
-          $set: {
-            "metadata.coinRefundedForUnlockFailure": true,
-            "metadata.coinRefundedAt": new Date(),
-            "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
-          },
-        },
-      ).catch(() => {});
-    }
-    throw error;
-  }
-
-  return json({
-    ...daehanStatusPayload({ profileId, isPurchased: true, userCoins: balanceAfter }),
-    chargedCoins: DAEHAN_COST,
-    balanceAfter,
-    purchaseId: requestId,
-    localOnly: true,
+      reason: "자미두수 대한 흐름 해금",
+      cost: DAEHAN_COST,
+      coinPrice: DAEHAN_COST,
+      profileId,
+      selectedProfileId: profileId,
+    }),
   });
+  const billingResponse = await handleBillingRoutes(billingRequest, env);
+  if (!billingResponse.ok) return billingResponse;
+
+  let billingPayload = {};
+  try { billingPayload = await billingResponse.clone().json(); } catch (_) {}
+  return json({
+    ...(billingPayload && typeof billingPayload === "object" ? billingPayload : {}),
+    ...daehanStatusPayload({ profileId, isPurchased: true, data: billingPayload?.data || null }),
+    billing: billingPayload?.data || billingPayload || null,
+  }, { status: billingResponse.status, headers: billingResponse.headers });
 }
 
 function routeError(error) {

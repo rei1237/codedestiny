@@ -436,7 +436,6 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
     subFeatureKey: SERVICE_TYPE,
     featureKey: SERVICE_TYPE,
     reason: toText(runtimeGate.reason || paymentPayload.orderName) || "연애 비책 전문가 상담",
-    forceDeduct: true,
     requestId: idempotencyKey,
     idempotencyKey,
     cost: toNumber(runtimeGate.cost ?? runtimeGate.coinPrice, 300),

@@ -357,7 +357,6 @@
           featureKey: spec.featureKey,
           serviceKey: "animal-totem",
           action: "drawAnimalTotemSpread",
-          forceDeduct: true,
           requestId: requestId,
         }
       );

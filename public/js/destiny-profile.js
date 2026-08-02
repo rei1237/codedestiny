@@ -3472,7 +3472,6 @@
       reason: String(opts.reason || title),
       featureKey: _dpResolvePaidGateFeatureKey(opts, title) || undefined,
       paymentMode: paymentMode,
-      forceDeduct: paymentMode === 'MEMBERSHIP_PASS' ? false : true,
       requestId: requestId,
       categoryKey: opts.categoryKey || undefined,
       subFeatureKey: opts.subFeatureKey || undefined,
@@ -4332,7 +4331,7 @@
         headers: consumeHeaders,
         credentials: 'include',
         cache: 'no-store',
-        body: JSON.stringify({ cost: cost, reason: reason, featureKey: normalizedFeatureKey, forceDeduct: true, requestId: requestId })
+        body: JSON.stringify({ cost: cost, reason: reason, featureKey: normalizedFeatureKey, requestId: requestId })
       }, {
         retryOn401: true,
         timeoutMs: _DP_FETCH_TIMEOUT_MS,
@@ -4531,14 +4530,6 @@
     if (_cdIsAdminLikeUser()) { cb(); return; }
 
     var token = _dpGetAuthToken();
-    var balance = _dpGetUserBalance();
-    var hasBalanceSnapshot = false;
-    try {
-      var _uLock = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
-      hasBalanceSnapshot = !!(_uLock && typeof _uLock.points === 'number');
-    } catch (_) {}
-    var balanceLabel = hasBalanceSnapshot ? Number(balance).toLocaleString('ko-KR') : '알 수 없음';
-
     var unlockProductId = _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY[info.key] || '';
     var unlockRequestId = 'unlock-' + (unlockProductId || info.key) + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     if (typeof window._cdChooseServicePaymentMode === 'function') {
@@ -4550,8 +4541,6 @@
         featureKey: info.key,
         productId: unlockProductId,
         requestId: unlockRequestId,
-        currentCoins: balance,
-        balanceLabel: balanceLabel
       }).then(function(choice) {
         if (choice === 'pass' || choice === 'pass_applied') {
           _dpSaveFeatureUnlock(info.key);
@@ -4603,17 +4592,35 @@
     function runFeatureUnlock() {
       var inFlight = false;
       if (inFlight) return;
+      _dpSetPaymentPending(true, info.name + ' 결제 권한을 확인하는 중입니다...', 'monthly');
+      _dpRunMonthlyCreditFromMainGate({
+        title: info.name + ' 영구 해금',
+        reason: info.name + ' 영구 해금',
+        coinPrice: info.cost,
+        cost: info.cost,
+        featureKey: info.key,
+        requestId: unlockRequestId,
+      }).then(function (payload) {
+        _dpSetPaymentPending(false);
+        _dpSaveFeatureUnlock(info.key);
+        if (info.extraUnlockKeys) { for (var _ekMonthlyI = 0; _ekMonthlyI < info.extraUnlockKeys.length; _ekMonthlyI++) _dpSaveFeatureUnlock(info.extraUnlockKeys[_ekMonthlyI]); }
+        cb(payload && (payload.transactionId || payload.paymentId || payload.purchaseId || unlockRequestId));
+      }).catch(function (error) {
+        _dpSetPaymentPending(false);
+        console.error('[dp-monthly-unlock]', error);
+        window.alert(String(error && error.message || '월정석 결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
+      });
+      return;
       inFlight = true;
       var productId = _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY[info.key] || '';
       var requestId = 'unlock-' + (productId || info.key) + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-      var endpoint = productId ? '/api/fortune/pig-coin/unlock' : '/api/billing/coin-gate';
+      var endpoint = '/api/billing/coin-gate';
       var payload = productId
         ? { productId: productId, requestId: requestId }
         : {
           cost: info.cost,
           featureKey: info.key,
           reason: info.name + ' 영구 해금',
-          forceDeduct: true,
           requestId: requestId
         };
       var unlockHeaders = {
@@ -5445,7 +5452,6 @@
       disablePassFirst: true,
       disablePassChoice: true,
       skipPassProbe: true,
-      forceDeduct: true
     };
   }
 
@@ -9526,14 +9532,9 @@
       _dpFetchMoonlightStoneBalance({});
     } catch (_) {}
   }
-  try {
-    var _dpScheduleSnapshotPrewarm = function(fn) {
-      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(fn, { timeout: 3000 });
-      else window.setTimeout(fn, 1200);
-    };
-    if (document.readyState === 'complete') _dpScheduleSnapshotPrewarm(_dpPrewarmSubscriptionSnapshot);
-    else window.addEventListener('load', function() { _dpScheduleSnapshotPrewarm(_dpPrewarmSubscriptionSnapshot); }, { once: true });
-  } catch (_) {}
+  // 이용권·월정석 잔량은 결제 선택창을 열 때만 조회한다. 독립 정적 페이지 진입 시
+  // idle/load 예열을 하면 사용자가 결제하지 않아도 잔액 API가 실행되어 메인 타일 판정과
+  // 결제 잔액 조회가 다시 결합된다.
 
   // 독립(정적) 페이지용 자체 결제 선택 모달 스타일(1회 주입).
   function _dpEnsureStandalonePaymentChoiceStyle() {
@@ -10068,7 +10069,6 @@
             profileId: optionBag.profileId,
             selectedProfileId: optionBag.selectedProfileId,
             paymentMode: 'MOONLIGHT_STONE',
-            forceDeduct: true,
             requestId: requestId
           })
         }, {

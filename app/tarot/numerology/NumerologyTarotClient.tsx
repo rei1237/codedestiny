@@ -960,7 +960,6 @@ export default function NumerologyTarotClient() {
         featureKey: NUMEROLOGY_READING_FEATURE_KEY,
         cost: lookupServerCoinPrice(NUMEROLOGY_READING_FEATURE_KEY),
         reason: "수비학 타로 상담",
-        forceDeduct: true,
         requestId,
         payloadHash,
         onPaid: (context) => {

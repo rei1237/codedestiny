@@ -1488,7 +1488,6 @@ async function _consumeMeditationCoin(cost, reason) {
         featureKey: 'yoga-guru-per-use',
         serviceKey: 'yoga-guru',
         action: 'openYogaGuru',
-        forceDeduct: true,
         requestId: requestId
       });
       if (gateResult && typeof gateResult.then === 'function') {

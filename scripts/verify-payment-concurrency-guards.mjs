@@ -16,14 +16,12 @@ const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), 
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const monthlyCreditStoreSource = readFileSync(resolve(root, "worker/lib/monthly-credit-store.js"), "utf8");
-const ziweiDaehanSource = readFileSync(resolve(root, "worker/routes/ziwei-daehan.js"), "utf8");
 
-// 멱등 마커를 write하는 소스 전량 — 상한/페어링 assert가 전수 검사한다.
+// 멱등 마커를 직접 write하는 소스 전량 — 공통 billing 위임 라우트는 제외한다.
 const MARKER_WRITE_SOURCES = {
   "billing.js": billingSource,
   "payments.js": paymentsSource,
   "fortune.js": fortuneSource,
-  "ziwei-daehan.js": ziweiDaehanSource,
   "monthly-credit-store.js": monthlyCreditStoreSource,
 };
 

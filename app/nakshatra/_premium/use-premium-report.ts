@@ -180,7 +180,6 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
       cost: product.coinPrice,
       amountKRW: product.amountKRW,
       reason: product.reason,
-      forceDeduct: true,
       requestId: `${product.featureKey}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
     if (!result.ok) {

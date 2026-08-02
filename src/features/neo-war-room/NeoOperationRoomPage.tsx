@@ -1907,7 +1907,6 @@ export default function NeoOperationRoomPage() {
         productId: toText(runtimeGate.productId || paymentPayload.productId || "neo-operation-room"),
         productType: toText(runtimeGate.productType || paymentPayload.productType || "neo-operation-room"),
         serviceType: toText(runtimeGate.serviceType || paymentPayload.serviceType || FEATURE_KEY),
-        forceDeduct: true,
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();

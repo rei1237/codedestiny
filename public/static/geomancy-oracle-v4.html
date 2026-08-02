@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/js/destiny-profile.js?v=build-1b9e11827ec6"></script>
 <title>Geomancy Oracle — Codex Alchemicus</title>
 <style>
 /* ═══════════════════════════════════════════════
@@ -822,6 +823,10 @@ function consumeGeomancyPerUseCoin() {
       } catch (_gateErr) {}
     }
 
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    resolve(false);
+    return;
+    /* Disabled legacy fallback: this page must use the common paid bridge. */
     var token = '';
     try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
     if (!token) {
@@ -832,7 +837,7 @@ function consumeGeomancyPerUseCoin() {
       return;
     }
 
-    fetch('/api/fortune/pig-coin/consume', {
+    legacyFallbackRequest({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -870,6 +875,7 @@ function consumeGeomancyPerUseCoin() {
       window.alert('원화 결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       resolve(false);
     });
+    */
   });
 }
 

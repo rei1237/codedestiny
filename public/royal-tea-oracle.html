@@ -2205,7 +2205,6 @@ async function runRoyalTeaGate() {
         featureKey: 'royal-tea-oracle',
         serviceKey: 'royal-tea-oracle',
         action: 'openRoyalTeaOracle',
-        forceDeduct: true,
         requestId: requestId
       });
       if (gateResult && typeof gateResult.then === 'function') gateResult = await gateResult;

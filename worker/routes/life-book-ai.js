@@ -617,7 +617,6 @@ function buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash 
     idempotencyKey,
     inputHash,
     deferUsage: true,
-    forceDeduct: true,
     runtimeGate: {
       categoryKey: "premium-consultation",
       subFeatureKey: featureKey,
@@ -638,7 +637,6 @@ function buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash 
       idempotencyKey,
       inputHash,
       deferUsage: true,
-      forceDeduct: true,
     },
   };
 }

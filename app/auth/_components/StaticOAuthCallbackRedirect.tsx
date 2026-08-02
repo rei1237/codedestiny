@@ -232,22 +232,6 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       } catch (e) {}
     }
 
-    function extractBalancePoints(payload) {
-      if (!payload || typeof payload !== "object") return NaN;
-      const candidates = [
-        payload.balance,
-        payload.legacyCoinBalance,
-        payload?.user?.points,
-        payload?.user?.legacyCoinBalance,
-        payload.points,
-      ];
-      for (let i = 0; i < candidates.length; i += 1) {
-        const value = Number(candidates[i]);
-        if (Number.isFinite(value)) return value;
-      }
-      return NaN;
-    }
-
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("error") || params.get("social_error");
     const socialGrant = params.get("social_grant");
@@ -297,9 +281,6 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
 
       const completeUrl = apiBase + "/api/auth/oauth/complete";
       const meUrl = apiBase + "/api/auth/me";
-      const balanceUrl = apiBase + "/api/fortune/pig-coin/balance";
-      const subscriptionUrl = apiBase + "/api/fortune/pig-coin/profile-subscription/status";
-      const entitlementUrl = apiBase + "/api/billing/balance";
       const MAX_RETRIES = 3;
       const RETRY_BASE_DELAY_MS = 250;
       // OAuth 완료(/oauth/complete)·/me는 워커가 인증+세션생성으로 콜드 시 ~12s+ 걸린다. 12000이면
@@ -437,94 +418,6 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         persistAuthFromCallback(payload);
         debugAuth("[auth] auth store updated");
 
-        await Promise.allSettled([
-          fetch(balanceUrl, {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          })
-            .then((response) => response.ok ? response.json() : null)
-            .then((balancePayload) => {
-              const nextPoints = extractBalancePoints(balancePayload);
-              if (!Number.isFinite(nextPoints)) return;
-              try {
-                const rawUser = localStorage.getItem("fortune_auth_user") || "{}";
-                const parsedUser = JSON.parse(rawUser);
-                parsedUser.points = nextPoints;
-                localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
-              } catch (e) {}
-      debugAuth("[auth] payment value refreshed");
-            }),
-          fetch(subscriptionUrl, {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          })
-            .then((response) => response.ok ? response.json() : null)
-            .then((subPayload) => {
-              if (!subPayload) return;
-              // 로그인 직후 DB가 일시 불안정하면 서버는 degraded 스냅샷(tier:"free")을 준다.
-              // 그대로 저장하면 방금 로그인한 이용권 보유자가 무료로 기록되고, 이 캐시를 읽는
-              // 하위 화면 전체로 번진다 — 갱신을 건너뛰고 다음 동기화에 맡긴다.
-              if (subPayload.degraded === true) return;
-              try {
-                const rawUser = localStorage.getItem("fortune_auth_user") || "{}";
-                const parsedUser = JSON.parse(rawUser);
-                const subscription = subPayload.subscription && typeof subPayload.subscription === "object" ? subPayload.subscription : {};
-                const tierRaw = String(subPayload.tier || subscription.tier || subPayload.passTier || subscription.passTier || subPayload.plan || subscription.plan || "free").toLowerCase();
-                const tier = tierRaw.includes("family") ? "family" : (tierRaw.includes("vvip") ? "vvip" : (tierRaw.includes("premium") ? "premium" : (tierRaw.includes("standard") ? "standard" : "free")));
-                const passLimit = tier === "family" ? 999999999 : (tier === "vvip" ? 100 : (tier === "premium" ? 50 : (tier === "standard" ? 30 : 0)));
-                const status = String(subPayload.status || subPayload.subscriptionStatus || subPayload.membershipStatus || subscription.status || "").toLowerCase();
-                const statusActive = [
-                  "active",
-                  "paid",
-                  "current",
-                  "subscribed",
-                  "trialing",
-                  "success",
-                  "registered",
-                  "registering",
-                  "pending",
-                  "processing",
-                  "enrolled",
-                  "enabled",
-                  "valid",
-                  "ok",
-                  "complete",
-                  "completed",
-                  "confirmed",
-                  "approved",
-                  "\uB4F1\uB85D\uC911",
-                  "\uC774\uC6A9\uC911",
-                  "\uC720\uD6A8",
-                  "\uC644\uB8CC",
-                ].includes(status);
-                parsedUser.profileSubscription = {
-                  tier,
-                  passTier: subPayload.passTier || subscription.passTier || tier,
-                  plan: subPayload.plan || subscription.plan || tier,
-                  planId: subPayload.planId || subscription.planId || subPayload.plan || subscription.plan || tier,
-                  isActive: !!(subPayload.isActive || subPayload.isSubscribed || subscription.isSubscribed || statusActive),
-                  isSubscribed: !!(subPayload.isActive || subPayload.isSubscribed || subscription.isSubscribed || statusActive),
-                  status: subPayload.status || subPayload.subscriptionStatus || subPayload.membershipStatus || subscription.status || "",
-                  subscriptionStatus: subPayload.subscriptionStatus || subscription.subscriptionStatus || subPayload.status || "",
-                  membershipStatus: subPayload.membershipStatus || subscription.membershipStatus || "",
-                  expiresAt: subPayload.expiresAt || subscription.expiresAt || null,
-                  freeLimit: passLimit || Number(subPayload.freeLimit || subscription.freeLimit || 0),
-                  passLimit: passLimit || Number(subPayload.passLimit || subscription.passLimit || subPayload.freeLimit || subscription.freeLimit || 0),
-                  maxCoveredCoin: passLimit || Number(subPayload.maxCoveredCoin || subscription.maxCoveredCoin || subPayload.freeLimit || subscription.freeLimit || 0),
-                  source: subPayload.source || subscription.source || "oauth_subscription_status",
-                  profileLimit: Number.isFinite(Number(subPayload.profileLimit)) ? Number(subPayload.profileLimit) : undefined,
-                };
-                localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
-              } catch (e) {}
-            }),
-          fetch(entitlementUrl, {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          }),
-        ]);
 
         if (isStaleFlow()) {
           return;

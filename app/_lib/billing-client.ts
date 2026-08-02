@@ -316,7 +316,7 @@ type BillingBalanceData = {
 
 type BillingCoinGatePromise = Promise<BillingResult<BillingCoinGateData>>;
 
-type BillingCoinGateInput = {
+export type BillingCoinGateInput = {
   categoryKey?: string;
   subFeatureKey?: string;
   featureKey?: string;
@@ -2139,7 +2139,6 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       productType: input.productType,
       serviceType: input.serviceType || input.productType,
       requestId: context.requestId,
-      forceDeduct: true,
       reportId: input.reportId,
       sessionId: input.sessionId,
       reportSessionId: input.reportSessionId || input.sessionId,
@@ -3419,13 +3418,14 @@ async function registerDeferredBillingUsage(
   context: { requestId: string; featureId: string },
 ): Promise<BillingResult<BillingCoinGateData>> {
   if (input.deferUsage !== true || !result.ok || !result.data) return result;
+  const { forceDeduct: _legacyForceDeduct, ...billingInput } = input;
   const response = await authFetchBilling("/api/billing/coin-gate/deferred/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      ...(input || {}),
+      ...billingInput,
       requestId: context.requestId,
       idempotencyKey: input.idempotencyKey || context.requestId,
       featureKey: input.featureKey || context.featureId,
@@ -3447,10 +3447,11 @@ function disableOptimisticPassBriefly() { optimisticPassDisabledUntil = Date.now
 // 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 낙관적 허용을 잠시 끄고 세션을 갱신한다.
 async function recordMembershipPassInBackground(input: BillingCoinGateInput, attemptId: string) {
   try {
+    const { forceDeduct: _legacyForceDeduct, ...billingInput } = input;
     const response = await authFetchBilling("/api/billing/coin-gate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...(input || {}), paymentMode: "MEMBERSHIP_PASS", forceDeduct: false, attemptId }),
+      body: JSON.stringify({ ...billingInput, paymentMode: "MEMBERSHIP_PASS", attemptId }),
     }, { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS });
     const parsed = await parseBillingResponse<BillingCoinGateData>(response);
     if (parsed.ok && parsed.data) {
@@ -3921,17 +3922,26 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
 
     // 이 호출이 실제로 과금될 수 있으면(forceDeduct) 결제 확정용 상한(60초)을 그대로 둔다 — 낮추면 결제 사고다.
     // pass 커버 확인처럼 과금이 없는 호출만 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
-    const coinGateMayDeduct = !passAccessEligible && input.forceDeduct !== false;
+    const coinGateMayDeduct = explicitMonthlyMode || explicitDirectMode;
     const runCoinGateRequest = async () => {
+      const {
+        forceDeduct: _legacyForceDeduct,
+        paymentMode: _legacyPaymentMode,
+        ...billingInput
+      } = input;
+      const safeRequestedMode = requestedMode === "MEMBERSHIP_PASS"
+        || requestedMode === "MOONLIGHT_STONE"
+        || requestedMode === "DIRECT_KRW"
+        ? requestedMode
+        : "";
       const response = await authFetchBilling("/api/billing/coin-gate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...(input || {}),
-          paymentMode: passAccessEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
-          forceDeduct: passAccessEligible ? false : input.forceDeduct,
+          ...billingInput,
+          paymentMode: passAccessEligible ? "MEMBERSHIP_PASS" : (safeRequestedMode || undefined),
           attemptId: activeAttempt.attemptId,
           // 서버 멱등 키. 서버(resolveRequestId)는 body.requestId/Idempotency-Key 헤더만 읽고, 없으면 요청마다
           // 난수를 만든다 — attemptId는 읽지 않는다. 주입하지 않으면 아래 재시도마다 purchaseId가 달라져
@@ -4242,6 +4252,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   return requestPromise;
 }
 
+/** Neutral paid-access API. The legacy name remains for source compatibility. */
+export async function runPaidAccessGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
+  return runBillingCoinGate(input);
+}
+
 export async function purchaseFeature(input: {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -4267,7 +4282,7 @@ export async function purchaseFeature(input: {
   profileId?: string;
   selectedProfileId?: string;
 }) {
-  return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
+  return runPaidAccessGate(input as Parameters<typeof runPaidAccessGate>[0]);
 }
 
 export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean; fresh?: boolean; clientSource?: string } = {}): Promise<BillingResult<{

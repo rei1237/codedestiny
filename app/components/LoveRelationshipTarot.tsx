@@ -491,7 +491,6 @@ export default function LoveRelationshipTarot() {
         featureKey: "tarot-love-relationship",
         cost: lookupServerCoinPrice("tarot-love-relationship"),
         reason: copy.paymentReason,
-        forceDeduct: true,
         requestId: `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {

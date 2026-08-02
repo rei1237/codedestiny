@@ -1813,7 +1813,6 @@ async function ijikCoinGate(cost, reason) {
         featureKey: 'tarot-ijik',
         serviceKey: 'tarot-ijik',
         action: 'getReading',
-        forceDeduct: true,
         requestId: requestId
       });
       if (gateResult && typeof gateResult.then === 'function') {

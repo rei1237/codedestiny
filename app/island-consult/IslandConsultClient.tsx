@@ -118,7 +118,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || FEATURE_KEY,
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || FEATURE_KEY,
     serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
-    forceDeduct: true, requestId: idempotencyKey, idempotencyKey,
     cost, coinPrice: cost, amountKRW, amountKrw: amountKRW, paymentAmount: amountKRW,
     membershipCreditCost: toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, FEATURE_MEMBERSHIP_CREDIT_COST),
   };
@@ -293,7 +292,6 @@ export default function IslandConsultClient() {
       cost: REPORT_COIN_PRICE,
       amountKRW: REPORT_AMOUNT_KRW,
       reason: REPORT_REASON,
-      forceDeduct: true,
       requestId: `${REPORT_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
     if (!r.ok) {

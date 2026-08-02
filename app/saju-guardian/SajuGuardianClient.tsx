@@ -732,7 +732,6 @@ async function verifyGuardianUnlockAccess() {
         subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
         featureKey: SAJU_GUARDIAN_FEATURE_KEY,
         paymentMode: "MEMBERSHIP_PASS",
-        forceDeduct: false,
         cost: 100,
         coinPrice: 100,
         reason,

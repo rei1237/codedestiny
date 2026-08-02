@@ -1279,7 +1279,6 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             skipPassProbe: true,
           }
           : {}),
-        forceDeduct: true,
         requestId: purchaseRequestId,
         idempotencyKey: purchaseRequestId,
       });

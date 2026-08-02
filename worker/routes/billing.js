@@ -2438,6 +2438,14 @@ async function handleDeferredUsageApply(request, env) {
 
   const snapshot = deferredUsageSnapshot(record);
   const paymentMethod = normalizeDeferredPaymentMethod(snapshot.paymentMethod || body?.paymentMode);
+  if (paymentMethod === "COIN" && snapshot.source !== "verified_payment" && !snapshot.evidence) {
+    return failure(402, "PAYMENT_REQUIRED", "기존 코인 결제 기록은 새 코인 차감으로 재처리하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.", undefined, {
+      legacyCoinDisabled: true,
+      blockedPaymentMode: "COIN",
+      paymentOptions: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
+      checkout: {},
+    });
+  }
   if (snapshot.source === "verified_payment" || snapshot.evidence) {
     const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", { source: snapshot.source, evidence: snapshot.evidence || null });
     return success({ deferredUsage: true, executionId: completed?.executionId || record.executionId, status: "completed" }, "이용 권한이 확정되었습니다.");
@@ -2449,7 +2457,6 @@ async function handleDeferredUsageApply(request, env) {
     requestId: record.requestId || requestId,
     idempotencyKey: record.requestId || requestId,
     paymentMode: applyPaymentModeForDeferred(paymentMethod),
-    forceDeduct: paymentMethod === "COIN",
     deferUsage: false,
     usagePolicy: "",
   };
@@ -3281,12 +3288,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     amountKRW: initialAmountKRW,
     idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
   });
-  const forceDeductRaw = body?.forceDeduct;
-  const forceDeduct = forceDeductRaw === undefined
-    ? true
-    : (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
-  const forceDeductRequested = forceDeductRaw !== undefined
-    && (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
   const requestedPaymentMode = String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase();
   const pricingFeatureKey = String(pricing?.featureKey || "").trim();
   // featureKey별 예외 분기 금지 — 제외 여부의 정본은 isPassExcludedPricing 하나뿐이다(buildPassPaymentDecision 주석 참고).
@@ -3306,7 +3307,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     || requestedPaymentMode === "coin_payment"
     || requestedPaymentMode === "pig_coin"
     || requestedPaymentMode === "pig-coin"
-    || (!requestedPaymentMode && forceDeductRequested && !directPaymentRequested);
+    || (!requestedPaymentMode && !directPaymentRequested);
   const deferUsage = isDeferredUsageRequested(body);
   const knownPaymentMode = !requestedPaymentMode
     || requestedPaymentMode === "single_purchase"
@@ -4328,6 +4329,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       accessDecision,
       shouldOpenPaymentSelector: true,
       availableMethods: passExcludedPaymentMethods,
+      legacyCoinDisabled: true,
+      blockedPaymentMode: "COIN",
       accessGrant: null,
       balance: null,
       checkout: {
@@ -4351,6 +4354,46 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   }
 
   if (coinPaymentRequested) {
+    logPaidAccessStage("LEGACY_COIN_BLOCKED", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: String(pricing?.featureKey || ""),
+      paymentMode: "COIN",
+      legacyCoinDisabled: true,
+    });
+    return failure(402, "PAYMENT_REQUIRED", "기존 코인 결제는 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.", undefined, {
+      pricing,
+      ...paymentDecision,
+      paymentOptions: paymentDecision,
+      accessDecision,
+      shouldOpenPaymentSelector: true,
+      availableMethods: paymentDecision.recommendedMethods || ["DIRECT_KRW", "MOONLIGHT_STONE"],
+      legacyCoinDisabled: true,
+      blockedPaymentMode: "COIN",
+      accessGrant: null,
+      balance: null,
+      checkout: {
+        endpoint: "/api/billing/checkout",
+        payload: {
+          paymentType: "digital_content",
+          featureKey: String(pricing.featureKey || ""),
+          reason: String(pricing.reason || ""),
+          categoryKey: pricing.categoryKey,
+          subFeatureKey: pricing.subFeatureKey,
+          paymentAmount: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+          coinPrice: resolvePricingCoinCost(pricing),
+          membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(resolvePricingCoinCost(pricing))),
+          requestId,
+          reportId: reportId || undefined,
+          sessionId: reportSessionId || undefined,
+          profileId: profileId || undefined,
+        },
+      },
+    });
+
+    // The legacy debit implementation below is intentionally unreachable. Keep this
+    // compatibility boundary until all stale clients have migrated, but never allow
+    // a legacy request to mutate points or create a new COIN ledger entry.
     await connectDb(env);
     const requiredCoins = resolvePricingCoinCost(pricing);
     const coinPurchaseId = String(body?.purchaseId || body?.idempotencyKey || body?.orderId || requestId || "").trim();
@@ -4699,7 +4742,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     reason: String(pricing.reason),
     featureKey: String(pricing.featureKey),
     requestId,
-    forceDeduct,
     categoryKey: pricing.categoryKey,
     subFeatureKey: pricing.subFeatureKey,
     payloadHash: String(body?.payloadHash || "").trim().slice(0, 120),
@@ -5351,10 +5393,9 @@ function buildBillingSubscriptionSnapshot(user = {}) {
   };
 }
 
-function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthlyCredits, membership) {
-  return {
+function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthlyCredits, membership, includeLegacyCoinBalance = true) {
+  const payload = {
     id: String(auth?.userId || user?._id || ""),
-    points: Number(balance || 0),
     monthlyStoneBalance: monthlyCredits,
     monthlyCredits,
     membershipCreditBalance: monthlyCredits,
@@ -5363,6 +5404,8 @@ function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthly
     profileSubscription: user?.profileSubscription || null,
     unlockedFeatures,
   };
+  if (includeLegacyCoinBalance) payload.points = Number(balance || 0);
+  return payload;
 }
 
 function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
@@ -5420,6 +5463,8 @@ async function readBillingSnapshot(request, env, options = {}) {
   const {
     seedLegacyCredit = true,
     includeUnlocks = true,
+    includeLegacyCoinBalance = true,
+    includeMonthlyCreditBalance = true,
     allowCache = true,
   } = options || {};
 
@@ -5429,7 +5474,7 @@ async function readBillingSnapshot(request, env, options = {}) {
   // (/balance는 자체 표시용 캐시가 있어 allowCache:false로 넘겨 이중 캐시를 피한다.)
   const snapshotCacheUserId = allowCache ? await peekAccessTokenUserId(request, env).catch(() => "") : "";
   const snapshotCacheKey = snapshotCacheUserId
-    ? `${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}`
+    ? `${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}|${includeLegacyCoinBalance ? "b" : "-"}|${includeMonthlyCreditBalance ? "m" : "-"}`
     : "";
   if (snapshotCacheKey) {
     const cachedSnapshot = readBillingBalanceFromCache(snapshotCacheKey);
@@ -5440,7 +5485,7 @@ async function readBillingSnapshot(request, env, options = {}) {
   // 스냅샷을 두고도 첫 클릭이 전체 조회를 다시 냈다. 반대 방향(미포함본으로 포함본 대체)은 unlock 이
   // 비어 잘못된 답이 되므로 하지 않는다.
   if (snapshotCacheUserId && !includeUnlocks) {
-    const supersetSnapshot = readBillingBalanceFromCache(`${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|u`);
+    const supersetSnapshot = readBillingBalanceFromCache(`${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|u|${includeLegacyCoinBalance ? "b" : "-"}|${includeMonthlyCreditBalance ? "m" : "-"}`);
     if (supersetSnapshot) return supersetSnapshot;
   }
 
@@ -5523,8 +5568,10 @@ async function readBillingSnapshot(request, env, options = {}) {
     //   seed를 안 하는 조회 경로(unlock-status·subscription-status 등)만 authUserDoc를 재사용한다.
     const reusableUserDoc = seedLegacyCredit === true ? null : (auth.authUserDoc || null);
     const freshSnapshot = await withMongoRetry(env, async () => {
+    const snapshotProjection = { ...BILLING_SNAPSHOT_USER_PROJECTION };
+    if (!includeLegacyCoinBalance) delete snapshotProjection.points;
     const user = reusableUserDoc || await User.findById(auth.userId)
-      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
+      .select(snapshotProjection)
       .lean();
     const seededUser = seedLegacyCredit === true
       ? await seedMembershipCreditFromUserDoc(auth.userId, user)
@@ -5543,9 +5590,11 @@ async function readBillingSnapshot(request, env, options = {}) {
         };
     const unlockedFeatures = Array.from(new Set(scopedUnlocks.unlockedFeatures));
     const unlockMap = { ...scopedUnlocks.unlockMap };
-    const balance = Number(effectiveUser?.points || 0);
+    const balance = includeLegacyCoinBalance ? Number(effectiveUser?.points || 0) : null;
     // 스칼라 캐시 대신 활성(미만료) lot 합계로 표시 잔액 산출 — 아직 스윕 안 된 만료분을 즉시 제외한다.
-    const membershipCreditBalance = Math.max(0, Math.floor(Number(ensureLotsForBalance(sub || {}, Date.now()).balance || 0)));
+    const membershipCreditBalance = includeMonthlyCreditBalance
+      ? Math.max(0, Math.floor(Number(ensureLotsForBalance(sub || {}, Date.now()).balance || 0)))
+      : 0;
     // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
     const monthlyStoneExpiresAt = resolveNextExpiry(sub?.membershipCreditLots);
     const membership = {
@@ -5568,16 +5617,18 @@ async function readBillingSnapshot(request, env, options = {}) {
       membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
       legacyCoinCreditSeeded: Boolean(sub?.legacyCoinCreditSeeded),
       legacyCoinCreditSeededPoints: Number(sub?.legacyCoinCreditSeededPoints || 0),
-      legacyCoinBalance: balance,
+      ...(includeLegacyCoinBalance ? { legacyCoinBalance: balance } : {}),
     };
     const subscription = buildBillingSubscriptionSnapshot(effectiveUser || {});
 
     return {
       authenticated: true,
       authUserId: String(auth.userId || ""),
-      balance: Number.isFinite(balance) ? balance : 0,
-      legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
-      coins: Number.isFinite(balance) ? balance : 0,
+      ...(includeLegacyCoinBalance ? {
+        balance: Number.isFinite(balance) ? balance : 0,
+        legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
+        coins: Number.isFinite(balance) ? balance : 0,
+      } : {}),
       membershipCreditBalance,
       monthlyStoneBalance: membershipCreditBalance,
       monthlyStoneExpiresAt,
@@ -5586,7 +5637,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       membership,
       subscription,
       currentProfileId: scopedProfileId || undefined,
-      user: buildBillingSnapshotUser(auth, effectiveUser, balance, unlockedFeatures, membershipCreditBalance, membership),
+      user: buildBillingSnapshotUser(auth, effectiveUser, balance, unlockedFeatures, membershipCreditBalance, membership, includeLegacyCoinBalance),
       unlockedFeatures,
       // 🔴 unlockedFeatures 와 다르다. 위쪽은 프로필 스코프 해금·레거시 이력까지 합친 **합집합**이고,
       // 이건 User.unlockedFeatures 원본 그대로다. hasUserScopedPermanentUnlock 이 보는 필드와 동일해야
@@ -5611,13 +5662,15 @@ async function readBillingSnapshot(request, env, options = {}) {
     return freshSnapshot;
   } catch (error) {
     logBillingRouteError("billing-snapshot", error, request);
-    const fallbackBalance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
+    const fallbackBalance = includeLegacyCoinBalance && Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
     return {
       authenticated: true,
       authUserId: String(auth.userId || ""),
-      balance: fallbackBalance,
-      legacyCoinBalance: fallbackBalance,
-      coins: fallbackBalance,
+      ...(includeLegacyCoinBalance ? {
+        balance: fallbackBalance,
+        legacyCoinBalance: fallbackBalance,
+        coins: fallbackBalance,
+      } : {}),
       membershipCreditBalance: 0,
       monthlyCredits: 0,
       monthlyCreditsAsCoins: 0,
@@ -5626,7 +5679,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       currentProfileId: undefined,
       user: {
         id: String(auth.userId || ""),
-        points: fallbackBalance,
+        ...(includeLegacyCoinBalance ? { points: fallbackBalance } : {}),
         monthlyStoneBalance: 0,
         monthlyCredits: 0,
         membershipCreditBalance: 0,
@@ -5666,7 +5719,7 @@ async function handleSajuAnalysisEntitlements(request, env) {
   const url = new URL(request.url);
   const requestedAttemptId = cleanProfileId(url.searchParams.get("attemptId") || "");
   const requestedProfileId = cleanProfileId(url.searchParams.get("profileId") || "");
-  const snapshot = await readBillingSnapshot(request, env, { seedLegacyCredit: false, includeUnlocks: false });
+  const snapshot = await readBillingSnapshot(request, env, { seedLegacyCredit: false, includeUnlocks: false, includeLegacyCoinBalance: false });
 
   if (!snapshot?.authenticated || !snapshot?.authUserId) {
     return withSajuEntitlementNoStore(failure(401, "AUTH_REQUIRED", "Authentication is required."));
@@ -5758,13 +5811,65 @@ async function handleSajuAnalysisEntitlements(request, env) {
 // 클라이언트가 앱 진입 시 멤버십 커버리지만 새로고침하려고 보내는 상태 조회 전용 의사 키.
 // 실제 구매 가능한 기능이 아니므로 서버 가격표를 요구하지 않는다(index.html `_cdRefreshMembershipCoverage`).
 const MEMBERSHIP_STATUS_PROBE_FEATURE_KEY = "membership-status-refresh";
+const ENTITLEMENT_ONLY_PROBE_FEATURE_KEYS = new Set([
+  "ad_free",
+  "ad_free_pass",
+  "ad-free",
+  "ad_removal",
+  "ads_free",
+  "ads_removed",
+  "code_destiny_ad_free",
+  "no_ads",
+  "remove_ads",
+]);
+
+const AD_REMOVAL_ENTITLEMENT_KEYS = new Set([
+  "ad_free",
+  "ad_free_pass",
+  "adfree",
+  "ad_removal",
+  "adremoval",
+  "ads_disabled",
+  "adsdisabled",
+  "ads_free",
+  "adsfree",
+  "ads_removed",
+  "code_destiny_ad_free",
+  "has_ad_removal",
+  "hasadremoval",
+  "no_ads",
+  "noads",
+  "remove_ads",
+  "removeads",
+]);
+
+function normalizeEntitlementProbeKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "_");
+}
+
+function hasEntitlementProbeUnlock(data = {}, featureKey = "") {
+  const target = normalizeEntitlementProbeKey(featureKey);
+  const targetKeys = AD_REMOVAL_ENTITLEMENT_KEYS.has(target)
+    ? AD_REMOVAL_ENTITLEMENT_KEYS
+    : new Set([target]);
+  const lists = [data.unlockedFeatures, data.accountUnlockedFeatures];
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+    if (list.some((entry) => targetKeys.has(normalizeEntitlementProbeKey(entry)))) return true;
+  }
+  const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
+  return Object.entries(unlockMap).some(([key, value]) => targetKeys.has(normalizeEntitlementProbeKey(key)) && value === true);
+}
 
 // membership-status-refresh 상태 조회: 가격표 없이 스냅샷에서 이용권 커버리지만 200으로 반환한다.
 // 응답 필드는 `_cdRefreshMembershipCoverage`의 unlock-status 성공 분기가 읽는 계약에 맞춘다.
 async function handleMembershipStatusProbe(request, env) {
   // 이용권 상태 프로브는 unlockMap을 사용하지 않으므로 unlock 조회(프로필 스코프 2 RTT)를 건너뛴다.
   // (handleSajuAnalysisEntitlements와 동일 패턴 — pass/월정석 커버리지만 필요.)
-  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false, includeUnlocks: false });
+  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false, includeUnlocks: false, includeLegacyCoinBalance: false });
   if (data?.degraded === true) {
     return failure(
       503,
@@ -5826,7 +5931,9 @@ async function handleUnlockStatus(request, env) {
   const subFeatureKey = String(url.searchParams.get("subFeatureKey") || "").trim();
   const featureKey = String(url.searchParams.get("featureKey") || "").trim();
   const reason = String(url.searchParams.get("reason") || "").trim();
-  const passOnly = String(url.searchParams.get("scope") || "").trim().toLowerCase() === "pass";
+  const requestedScope = String(url.searchParams.get("scope") || "").trim().toLowerCase();
+  const passOnly = requestedScope === "pass";
+  const entitlementOnly = requestedScope === "entitlement";
 
   // 상태 조회 전용 의사 키: 구매 가능한 유료 기능이 아니라 멤버십 커버리지 스냅샷만 필요하다.
   // 가격표 조회를 건너뛰고 스냅샷 기반 커버리지를 200으로 반환한다(가격표가 없어 404가 나던 문제 해결).
@@ -5834,12 +5941,37 @@ async function handleUnlockStatus(request, env) {
     return await handleMembershipStatusProbe(request, env);
   }
 
+  // 광고 제거처럼 가격표에 등록되지 않은 계정 entitlement만 확인하는 경로다.
+  // 일반 잔액 스냅샷과 분리해 User.points·월정석 잔액을 읽지 않는다.
+  if (entitlementOnly && ENTITLEMENT_ONLY_PROBE_FEATURE_KEYS.has(normalizeEntitlementProbeKey(featureKey))) {
+    const data = await readBillingSnapshot(request, env, {
+      seedLegacyCredit: false,
+      includeLegacyCoinBalance: false,
+      includeMonthlyCreditBalance: false,
+    });
+    if (data?.degraded === true) {
+      return failure(503, "BALANCE_SNAPSHOT_UNAVAILABLE", "Entitlement snapshot is temporarily unavailable.", undefined, {
+        status: "error",
+        degraded: true,
+      });
+    }
+    return success({
+      featureKey: normalizeEntitlementProbeKey(featureKey),
+      unlocked: hasEntitlementProbeUnlock(data, featureKey),
+      entitlementOnly: true,
+    }, "Entitlement status loaded.");
+  }
+
   const pricingResult = getBillingFeaturePricing({ categoryKey, subFeatureKey, featureKey, reason });
   if (!pricingResult.ok) {
     return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
-  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false });
+  const data = await readBillingSnapshot(request, env, {
+    seedLegacyCredit: false,
+    includeLegacyCoinBalance: false,
+    includeMonthlyCreditBalance: !entitlementOnly,
+  });
   if (data?.degraded === true) {
     return failure(
       503,
@@ -5859,7 +5991,7 @@ async function handleUnlockStatus(request, env) {
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
   let pricing = pricingResult.pricing;
   let unlocked = Boolean(unlockMap[pricing.featureKey]);
-  const currentBalance = Number(data.balance || 0);
+  const currentBalance = null;
   const subscription = data.subscription || { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
   const subscriptionEntitlement = {
     isActive: subscription.isActive,
@@ -5872,7 +6004,7 @@ async function handleUnlockStatus(request, env) {
   let paymentDecision = buildPassPaymentDecision(
     subscriptionEntitlement,
     pricing,
-    passOnly ? {} : {
+    passOnly || entitlementOnly ? {} : {
       membershipCreditBalance: Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0),
     },
     passOnly ? { monthlyBalance: 0 } : {},
