@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -394,7 +394,7 @@ async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
   });
     const parsed = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
     return { status: response.status, data: { ...parsed, ok: response.ok } };
-  }, { maxAttempts: 3, baseDelayMs: 700 });
+  }, { maxAttempts: 1, baseDelayMs: 700 });
 
   if (attempt.data.ok !== true) {
     throw new Error(attempt.data.message || "결제용 휴대폰 번호를 확인하지 못했습니다.");
@@ -2861,38 +2861,30 @@ export default function PointsPage() {
     method: string,
   ): Promise<SubscriptionPrepareAttempt> => {
     const flowerAdminToken = getFlowerAdminTokenClient();
-    // 일시적 DB 장애(503)는 결제 준비를 하드 실패시키지 말고 공용 완충으로 흡수한다.
-    return runAccessCheckWithTransientRetry<SubscriptionPrepareAttempt>(async () => {
-      const response = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKey,
-          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          tier: plan.tier,
-          planId: plan.planId,
-          durationMonths: plan.durationMonths,
-          durationDays: 30,
-          amount: plan.wonPrice,
-          currency: "KRW",
-          productType: plan.productType,
-          paymentMethod: method,
-        }),
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
-      const data = await safeParseJson<PrepareSubscriptionOrderResponse>(response);
-      return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
-      // 🔴 재시도 예산은 관대하게 유지한다. 이 prepare 는 결제수단 모달이 열릴 때 프리페치로
-      // 시작되므로 재시도가 사용자 시간을 쓰지 않는다. 반대로 예산을 줄이면 503 구간에서 실패율이
-      // 올라가 주문이 발급되지 않고, 그러면 requestPayment 에 도달하지 못해 **PG창이 아예 안 뜬다**
-      // (실제로 그 증상이 보고됐다). 클릭 지연은 예산을 줄여서가 아니라 '클릭이 미완료 프리페치를
-      // 기다리지 않게' 만들어 해결한다.
-    }, { maxAttempts: 3, baseDelayMs: 700 });
+    const response = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
+        ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        tier: plan.tier,
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
+        durationDays: 30,
+        amount: plan.wonPrice,
+        currency: "KRW",
+        productType: plan.productType,
+        paymentMethod: method,
+      }),
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
+    const data = await safeParseJson<PrepareSubscriptionOrderResponse>(response);
+    return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
   }, [apiBase]);
 
   const startSubscriptionPrepare = useCallback((plan: SubscriptionPlan): SubscriptionPrepareEntry => {
@@ -3117,7 +3109,7 @@ export default function PointsPage() {
         // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
         const parsed = await safeParseJson<MeResponse>(res);
         return { status: res.status, data: { ...parsed, ok: res.ok } };
-      }, { maxAttempts: 2, baseDelayMs: 700 });
+      }, { maxAttempts: 1, baseDelayMs: 700 });
 
       const response = { status: attempt.status, ok: attempt.data.ok === true, statusText: "" };
       if (response.status === 401 || response.status === 403) {
@@ -3931,26 +3923,12 @@ export default function PointsPage() {
           pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
           return;
         }
-        // 🔴 일시 장애(503/네트워크)를 확정 실패로 세탁하지 않는다. 예전에는 여기서 토스트만 띄우고
-        // return 해서 주문이 없는 채로 끝났고, 그래서 **PG 결제창이 아예 안 떴다**(실제 보고된 증상).
-        // 새 idempotency key 로 즉시 1회 재시도해 결제창까지 도달시킨다. 확정 실패(409·4xx 정책
-        // 오류)는 위/아래에서 그대로 안내하므로 무한 재시도가 되지 않는다.
         if (prepareStatus === 503 || prepareStatus === 0) {
-          setProcessingStage("결제 서버가 혼잡해 다시 준비하고 있어요", "checkout");
-          setIsProcessing(true);
-          const retryAttempt = await startSubscriptionPrepare(plan).promise;
-          if (retryAttempt.data?.order) {
-            prepareStatus = retryAttempt.status;
-            prepareData = retryAttempt.data;
-          } else {
-            subscriptionPrepareRef.current = null;
-            pushToast("error", "결제 서버가 잠시 혼잡합니다. 잠시 후 다시 시도해 주세요.");
-            return;
-          }
-        } else {
-          pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
+          pushToast("error", "결제 서버가 잠시 혼잡합니다. 잠시 후 다시 시도해 주세요.");
           return;
         }
+        pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
+        return;
       }
 
       // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.

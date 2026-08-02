@@ -412,6 +412,81 @@ async function findRecentPaymentsForUser(userId, limit = 20) {
     .toArray();
 }
 
+function readPaymentHeader(request, name) {
+  try {
+    return String(request?.headers?.get(name) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function createPaymentRequestId(request) {
+  const incoming = readPaymentHeader(request, "x-request-id") || readPaymentHeader(request, "x-correlation-id");
+  if (incoming) return incoming.slice(0, 120);
+  const cfRay = readPaymentHeader(request, "cf-ray");
+  if (cfRay) return `cf-${cfRay.slice(0, 80)}`;
+  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") return globalThis.crypto.randomUUID();
+  return `payments-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function hashPaymentLogValue(value) {
+  const input = String(value || "");
+  if (!input) return "";
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `h${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+function classifyPaymentDbError(error) {
+  const name = String(error?.name || "");
+  const code = String(error?.code || "");
+  const message = String(error?.message || "").toLowerCase();
+  if (code === "11000" || name === "MongoServerError" && message.includes("duplicate")) return "MONGO_DUPLICATE_KEY";
+  if (name === "MongoOperationOverloadedError" || code === "MONGO_OPERATION_ADMISSION_TIMEOUT") return "MONGO_POOL_EXHAUSTED";
+  if (name === "MongoServerSelectionError" || message.includes("server selection")) return "MONGO_SERVER_SELECTION_TIMEOUT";
+  if (message.includes("wait queue") || message.includes("pool") || message.includes("checkout")) return "MONGO_POOL_EXHAUSTED";
+  if (message.includes("network") || name === "MongoNetworkError") return "MONGO_NETWORK_ERROR";
+  if (message.includes("timed out") || message.includes("timeout")) return "MONGO_QUERY_TIMEOUT";
+  if (message.includes("write conflict")) return "MONGO_WRITE_CONFLICT";
+  return "DATABASE_TEMPORARILY_UNAVAILABLE";
+}
+
+function getPaymentDeploySha(env) {
+  return String(env?.CF_PAGES_COMMIT_SHA || env?.COMMIT_SHA || env?.DEPLOY_COMMIT_SHA || "").slice(0, 80);
+}
+
+function logPaymentsMeTrace(level, fields) {
+  const line = { event: "payments.me.lookup", ...fields };
+  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
+  try {
+    writer(JSON.stringify(line));
+  } catch {
+    writer(line);
+  }
+}
+
+async function runPaymentsMeOptionalQuery(metrics, stage, operation) {
+  const startedAt = Date.now();
+  metrics.dbQueryCount += 1;
+  try {
+    const value = await withMongoRetry(metrics.env, operation);
+    metrics.stageMs[stage] = Date.now() - startedAt;
+    return { ok: true, value };
+  } catch (error) {
+    metrics.stageMs[stage] = Date.now() - startedAt;
+    metrics.errors.push({
+      stage,
+      code: classifyPaymentDbError(error),
+      originalErrorName: String(error?.name || "Error").slice(0, 120),
+      message: String(error?.message || "").slice(0, 300),
+    });
+    return { ok: false, value: [] };
+  }
+}
+
 function hasActiveSubscriptionConflict(sub) {
   const tier = normalizePassTier(sub?.tier || sub?.passTier || sub?.subscriptionTier || sub?.plan) || "free";
   const expAt = toValidDate(sub?.expiresAt);
@@ -5747,46 +5822,110 @@ function buildTokenFallbackPaymentsMe(auth, message) {
   };
 }
 
-async function handleMe(auth, env) {
-  try {
-    // 일시적 풀 초기화에도 월정석/결제내역을 정확히 반환하도록 조회를 재시도로 감싼다.
-    // 라우터가 인증과 같은 조회에서 함께 읽어준 문서가 있으면 재사용한다(왕복 1회 절감).
-    const user = auth.authUserDoc || await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
-      name: 1,
-      email: 1,
-      points: 1,
-      joinedAt: 1,
-      unlockedFeatures: 1,
-      profileSubscription: 1,
-    }));
+async function handleMe(auth, env, request) {
+  const startedAt = Date.now();
+  const requestId = createPaymentRequestId(request);
+  const metrics = {
+    env,
+    requestId,
+    endpoint: "/api/payments/me",
+    userHash: hashPaymentLogValue(auth?.userId),
+    dbQueryCount: 0,
+    internalFetchCount: 0,
+    retryCount: 0,
+    cache: auth?.authUserDoc ? "authUserDoc" : "miss",
+    stageMs: {},
+    errors: [],
+    commitSha: getPaymentDeploySha(env),
+  };
 
-    const [recentPaymentsResult, pointHistoriesResult, monthlyCreditLedgersResult] = await Promise.allSettled([
-      withMongoRetry(env, () => findRecentPaymentsForUser(auth.userId, 20)),
-      withMongoRetry(env, () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean()),
-      withMongoRetry(env, () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean()),
-    ]);
-    const recentPayments = recentPaymentsResult.status === "fulfilled" ? recentPaymentsResult.value : [];
-    const pointHistories = pointHistoriesResult.status === "fulfilled" ? pointHistoriesResult.value : [];
-    const monthlyCreditLedgers = monthlyCreditLedgersResult.status === "fulfilled" ? monthlyCreditLedgersResult.value : [];
+  try {
+    let user = auth.authUserDoc || null;
+    if (!user) {
+      const userStartedAt = Date.now();
+      metrics.dbQueryCount += 1;
+      user = await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
+        name: 1,
+        email: 1,
+        points: 1,
+        joinedAt: 1,
+        unlockedFeatures: 1,
+        profileSubscription: 1,
+      }));
+      metrics.stageMs.user = Date.now() - userStartedAt;
+    }
+
+    if (!user) {
+      logPaymentsMeTrace("warn", {
+        ...metrics,
+        env: undefined,
+        status: 404,
+        durationMs: Date.now() - startedAt,
+        result: "user_missing",
+      });
+      return json({
+        success: false,
+        ok: false,
+        code: "USER_NOT_FOUND",
+        requestId,
+        message: "User profile was not found.",
+      }, { status: 404 });
+    }
+
+    const recentPaymentsResult = await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
+    const pointHistoriesResult = await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
+    const monthlyCreditLedgersResult = await runPaymentsMeOptionalQuery(metrics, "monthlyCreditLedgers", () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
+
+    const recentPayments = recentPaymentsResult.ok ? recentPaymentsResult.value : [];
+    const pointHistories = pointHistoriesResult.ok ? pointHistoriesResult.value : [];
+    const monthlyCreditLedgers = monthlyCreditLedgersResult.ok ? monthlyCreditLedgersResult.value : [];
 
     const body = buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers);
-    body.data.degradedPayments = recentPaymentsResult.status === "rejected";
-    body.data.degradedTransactions = pointHistoriesResult.status === "rejected";
-    body.data.degradedMonthlyCredits = monthlyCreditLedgersResult.status === "rejected";
-    if (!user) {
-      body.message = "User profile is missing. Returned safe defaults.";
-      body.userFound = false;
-      // User 문서를 못 읽었으면 월정석 잔량 0 은 계산 결과가 아니라 기본값이다 — 진짜 0 과 구분시킨다.
-      body.data.degradedMonthlyCredits = true;
-    }
+    body.requestId = requestId;
+    body.data.degradedPayments = !recentPaymentsResult.ok;
+    body.data.degradedTransactions = !pointHistoriesResult.ok;
+    body.data.degradedMonthlyCredits = !monthlyCreditLedgersResult.ok;
+    body.data.queryBudget = {
+      dbQueryCount: metrics.dbQueryCount,
+      maxConcurrentDbOps: 1,
+    };
+
+    logPaymentsMeTrace(metrics.errors.length ? "warn" : "info", {
+      ...metrics,
+      env: undefined,
+      status: 200,
+      durationMs: Date.now() - startedAt,
+      result: metrics.errors.length ? "partial" : "ok",
+      paymentsCount: recentPayments.length,
+      transactionsCount: pointHistories.length,
+      monthlyCreditLedgerCount: monthlyCreditLedgers.length,
+    });
 
     return json(body);
   } catch (error) {
-    console.warn("[payments/me] degraded fallback to token:", String(error?.message || "unknown"));
-    return json(buildTokenFallbackPaymentsMe(auth));
+    const code = classifyPaymentDbError(error);
+    logPaymentsMeTrace("warn", {
+      ...metrics,
+      env: undefined,
+      status: 503,
+      durationMs: Date.now() - startedAt,
+      result: "failed",
+      errorCode: code,
+      originalErrorName: String(error?.name || "Error").slice(0, 120),
+      stack: String(error?.stack || "").slice(0, 2000),
+    });
+    return json({
+      success: false,
+      ok: false,
+      retryable: true,
+      reason: "DB_DEGRADED",
+      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      dbErrorCode: code,
+      requestId,
+      message: "Database is temporarily unavailable.",
+    }, { status: 503 });
   }
 }
-
 async function handlePointsMe(auth, env) {
   try {
     await connectDb(env);
@@ -6028,7 +6167,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
     const minorBlocked = await enforceMinorPaymentRestriction(env, auth, method, path);
     if (minorBlocked) return minorBlocked;
 
-    if (method === "GET" && path === "/me") return await handleMe(auth, env);
+    if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
 
     await connectDb(env);
@@ -6064,6 +6203,7 @@ export const __paymentsTestUtils = {
   markPaymentCancellationForAdminReview,
   handleSubscriptionPrepare,
   handleSubscriptionConfirm,
+  handleMe,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
   signStandardWebhookPayload,

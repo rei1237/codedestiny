@@ -9,6 +9,7 @@ let User;
 let originalPaymentFindOne;
 let originalPaymentCreate;
 let originalUserFindById;
+let originalUserCollectionFindOne;
 
 function mockPaymentFindOne(result) {
   const lean = jest.fn().mockResolvedValue(result);
@@ -46,16 +47,40 @@ beforeAll(async () => {
   originalPaymentFindOne = Payment.findOne;
   originalPaymentCreate = Payment.create;
   originalUserFindById = User.findById;
+  originalUserCollectionFindOne = User.collection.findOne;
 });
 
 afterEach(() => {
   Payment.findOne = originalPaymentFindOne;
   Payment.create = originalPaymentCreate;
   User.findById = originalUserFindById;
+  User.collection.findOne = originalUserCollectionFindOne;
 });
 
 describe("Payments prepare idempotency", () => {
   const auth = { userId: "64f0a1b2c3d4e5f678901234" };
+  test("payments/me: canonical user DB failure returns 503 instead of a token fallback balance", async () => {
+    User.collection.findOne = jest.fn().mockRejectedValue(Object.assign(new Error("server selection timeout"), {
+      name: "MongoServerSelectionError",
+    }));
+
+    const response = await testUtils.handleMe(
+      { userId: auth.userId },
+      { MONGO_OP_RETRIES: "0" },
+      new Request("https://example.com/api/payments/me", { headers: { "x-request-id": "payments-me-test" } }),
+    );
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(503);
+    expect(payload).toMatchObject({
+      ok: false,
+      retryable: true,
+      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      dbErrorCode: "MONGO_SERVER_SELECTION_TIMEOUT",
+      requestId: "payments-me-test",
+    });
+    expect(payload.data).toBeUndefined();
+  });
 
   test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {
     mockPaymentFindOne({

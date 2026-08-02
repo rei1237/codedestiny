@@ -814,7 +814,7 @@
     showTarotYearFinalReading();
   }
 
-  
+
 function renderTarotYearDrawCards() {
     var grid = byId("tarotYearDrawCardGrid");
     if (!grid || !state.cards.length) return;
@@ -1618,7 +1618,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
       section("12지신이 전하는 마지막 메시지", paragraph("올해의 한 문장", reading.finalMessage?.oneLine || reading.finalAdvice) + paragraph("당신에게 필요한 태도", reading.finalMessage?.attitude || annual.stance) + paragraph("붙잡아야 할 기회", reading.finalMessage?.opportunity) + paragraph("버려야 할 습관", reading.finalMessage?.release) + paragraph("천운의 메시지", reading.finalMessage?.zodiacMessage || reading.finalAdvice), "ty-premium-section--final");
   }
 
-  
+
 function renderTarotYearResult() {
     var r = state.reading;
     if (!r) return;
