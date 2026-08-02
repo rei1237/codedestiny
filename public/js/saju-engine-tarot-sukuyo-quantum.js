@@ -7248,10 +7248,12 @@ function syCanonicalEsc(value) {
 }
 
 var SY_PAID_FEATURES = Object.freeze({
+  // 레거시 — 인연 레이더는 전생 인연 리딩과 통합돼 pastLifeReading 키로 과금한다.
+  // 과거 결제 이력과 서버 레지스트리 정합성을 위해 키 정의만 남긴다(UI 미사용).
   relationshipRadar: { key: 'sukuyo-symbolic-comparison', cost: 50, reason: '숙요 인연 레이더' },
   extremeTRelationshipCircuit: { key: 'sukuyo-extreme-t-relationship', cost: 50, reason: '극T 관계 회로 확장' },
   relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 50, reason: '숙요 인연 도감' },
-  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 전생 인연 리딩' },
+  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 인연 레이더' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 100, reason: '숙요점 궁합 분석' },
   compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 120, reason: '숙요점 정밀 궁합 확장 분석' }
@@ -7382,9 +7384,9 @@ function syIsPaidSukuyoFeatureUnlocked(featureKey) {
   var root = typeof window !== 'undefined' ? window : {};
   var hasAuthToken = false;
   if (!key) return false;
-  if (key === SY_PAID_FEATURES.relationshipRadar.key && root._sySukuyoRadarUnlocked === true) return true;
+  // 인연 레이더·전생 인연 리딩(통합 리포트)은 회당 결제라 이 영구 해금 경로를 타지 않는다.
+  // 서버 아카이브 조회로만 재열람을 판정하므로 여기에 되살리지 말 것.
   if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key && root._sySukuyoEncyclopediaUnlocked === true) return true;
-  if (key === SY_PAID_FEATURES.pastLifeReading.key && root._sySukuyoPastLifeUnlocked === true) return true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key && root._syMonthlySukuyoFortuneUnlocked === true) return true;
   try {
     hasAuthToken = !!(localStorage.getItem('fortune_auth_token') || '');
@@ -7439,9 +7441,7 @@ function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
     }
   } catch (_) {}
   try { localStorage.setItem(syPaidFeatureStorageKey(key), '1'); } catch (_) {}
-  if (key === SY_PAID_FEATURES.relationshipRadar.key) root._sySukuyoRadarUnlocked = true;
   if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key) root._sySukuyoEncyclopediaUnlocked = true;
-  if (key === SY_PAID_FEATURES.pastLifeReading.key) root._sySukuyoPastLifeUnlocked = true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key) root._syMonthlySukuyoFortuneUnlocked = true;
 }
 
@@ -9956,74 +9956,39 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     const _radarBirth = syCanonicalEsc((sourceProfile && (sourceProfile.birthDate || sourceProfile.date)) || (window._ziweiBirth && window._ziweiBirth.birthDate) || '');
     const _radarBirthDigits = _radarBirth.replace(/\D/g, '').slice(0, 8);
     const _radarHasSelf = !!sData;
-    html += `<div class="sy-card sy-radar-card" data-sy-radar-card="20260616-sukyo-relationship-radar" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipRadar.key}">
+    html += `<div class="sy-card sy-past-life-card sy-bond-card" data-sy-bond-card="20260801-sukyo-bond-report-v1" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
         <div class="sy-paid-card-head">
           <div>
-            <div class="sy-paid-kicker">숙요 관계 분석 · ${syPaidPriceLabel(SY_PAID_FEATURES.relationshipRadar)}</div>
-            <h4 class="sy-radar-title">숙요 인연 레이더</h4>
+            <div class="sy-paid-kicker">숙요 관계 심층 · ${syPaidPriceLabel(SY_PAID_FEATURES.pastLifeReading)}</div>
+            <h4 class="sy-past-life-title">숙요 인연 레이더</h4>
           </div>
-          <span class="sy-paid-status" data-sy-radar-status-pill>27숙 관계법</span>
-        </div>
-        <p class="sy-radar-copy">
-          이 사람은 내게 편안한 인연일까, 강하게 흔드는 인연일까? 27숙 관계법으로 끌림, 안정감, 소모도, 장기 인연 가능성을 분석합니다.
-        </p>
-        <div class="sy-radar-self-note">상대의 생년월일을 입력하면, 나와의 숙요 관계를 레이더처럼 분석해드립니다. ${_radarHasSelf ? ('기준 프로필: ' + _radarProfileName + (_radarBirth ? ' · ' + _radarBirth : '') + ' · ' + syCanonicalEsc(sData.mansion) + '숙') : '저장된 프로필이 없으면 아래 내 정보를 함께 입력해 주세요.'}</div>
-        <form class="sy-radar-form" data-sy-radar-form data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-has-self="${_radarHasSelf ? '1' : '0'}">
-          <div class="sy-radar-self-fields ${_radarHasSelf ? '' : 'is-visible'}" data-sy-radar-self-fields>
-            <div class="sy-radar-grid">
-              <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-radar-user-name value="${_radarProfileName}" autocomplete="name"></label>
-              <label class="sy-radar-field"><span>내 성별</span><select data-sy-radar-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-              <label class="sy-radar-field"><span>내 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-radar-user-date value="${_radarBirthDigits}"></label>
-              <label class="sy-radar-field"><span>내 달력</span><select data-sy-radar-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            </div>
-          </div>
-          <div class="sy-radar-grid">
-            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8669_attr_placeholder"))}" maxlength="40" autocomplete="off"></label>
-            <label class="sy-radar-field"><span>상대 성별</span><select data-sy-radar-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-            <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-radar-partner-date required></label>
-            <label class="sy-radar-field"><span>상대 달력</span><select data-sy-radar-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8673_attr_placeholder"))}"></label>
-            <label class="sy-radar-field"><span>관계 목적</span><select data-sy-radar-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
-          </div>
-          <button type="submit" class="sy-radar-submit">인연 레이더 분석하기</button>
-          <div class="sy-radar-status" data-sy-radar-status aria-live="polite"></div>
-        </form>
-        <div class="sy-radar-result" data-sy-radar-result></div>
-    </div>`;
-
-    html += `<div class="sy-card sy-past-life-card" data-sy-past-life-card="20260621-sukyo-past-life-v2" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
-        <div class="sy-paid-card-head">
-          <div>
-            <div class="sy-paid-kicker">숙요 전생 서사 · ${syPaidPriceLabel(SY_PAID_FEATURES.pastLifeReading)}</div>
-            <h4 class="sy-past-life-title">숙요 전생 인연 리딩</h4>
-          </div>
-          <span class="sy-paid-status" data-sy-past-life-status-pill>심화 해금</span>
+          <span class="sy-paid-status" data-sy-bond-status-pill>27숙 관계법</span>
         </div>
         <p class="sy-past-life-copy">
-          왜 이 사람은 처음부터 낯설지 않았을까? 두 사람의 27숙 관계 안에서 오래된 인연처럼 남는 끌림, 미완의 숙제, 반복되는 감정 패턴을 비춥니다.
+          이 사람은 내게 편안한 인연일까, 강하게 흔드는 인연일까? 왜 처음부터 낯설지 않았을까? 두 사람의 본명숙과 27숙 관계법으로 끌림·안정감·소모도·장기 인연 가능성부터 오래된 인연처럼 남는 여운, 미완의 숙제, 반복되는 감정 패턴까지 한 번에 읽어드립니다.
         </p>
-        <div class="sy-radar-self-note">전생의 사실을 단정하지 않고, 숙요 관계 구조가 만드는 익숙함과 여운의 결을 살핍니다. ${_radarHasSelf ? ('기준 프로필: ' + _radarProfileName + (_radarBirth ? ' · ' + _radarBirth : '') + ' · ' + syCanonicalEsc(sData.mansion) + '숙') : '저장된 프로필이 없으면 아래 내 정보를 함께 입력해 주세요.'}</div>
-        <form class="sy-radar-form" data-sy-past-life-form data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-has-self="${_radarHasSelf ? '1' : '0'}">
-          <div class="sy-radar-self-fields ${_radarHasSelf ? '' : 'is-visible'}" data-sy-past-life-self-fields>
+        <div class="sy-radar-self-note">전생을 사실로 단정하지 않고, 숙요 관계 구조가 만드는 익숙함과 흔들림의 결을 살핍니다. ${_radarHasSelf ? ('기준 프로필: ' + _radarProfileName + (_radarBirth ? ' · ' + _radarBirth : '') + ' · ' + syCanonicalEsc(sData.mansion) + '숙') : '저장된 프로필이 없으면 아래 내 정보를 함께 입력해 주세요.'}</div>
+        <form class="sy-radar-form" data-sy-bond-form data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-has-self="${_radarHasSelf ? '1' : '0'}">
+          <div class="sy-radar-self-fields ${_radarHasSelf ? '' : 'is-visible'}" data-sy-bond-self-fields>
             <div class="sy-radar-grid">
-              <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-past-life-user-name value="${_radarProfileName}" autocomplete="name"></label>
-              <label class="sy-radar-field"><span>내 성별</span><select data-sy-past-life-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-              <label class="sy-radar-field"><span>내 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-past-life-user-date value="${_radarBirthDigits}"></label>
-              <label class="sy-radar-field"><span>내 달력</span><select data-sy-past-life-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
+              <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-bond-user-name value="${_radarProfileName}" autocomplete="name"></label>
+              <label class="sy-radar-field"><span>내 성별</span><select data-sy-bond-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
+              <label class="sy-radar-field"><span>내 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-bond-user-date value="${_radarBirthDigits}"></label>
+              <label class="sy-radar-field"><span>내 달력</span><select data-sy-bond-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
             </div>
           </div>
           <div class="sy-radar-grid">
-            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8704_attr_placeholder"))}" maxlength="40" autocomplete="off"></label>
-            <label class="sy-radar-field"><span>상대 성별</span><select data-sy-past-life-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-            <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-past-life-partner-date required></label>
-            <label class="sy-radar-field"><span>상대 달력</span><select data-sy-past-life-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8708_attr_placeholder"))}"></label>
-            <label class="sy-radar-field"><span>관계 목적</span><select data-sy-past-life-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="crush">짝사랑</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-bond-partner-name placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8669_attr_placeholder"))}" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 성별</span><select data-sy-bond-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
+            <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-bond-partner-date required></label>
+            <label class="sy-radar-field"><span>상대 달력</span><select data-sy-bond-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-bond-partner-time placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8673_attr_placeholder"))}"></label>
+            <label class="sy-radar-field"><span>관계 목적</span><select data-sy-bond-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="crush">짝사랑</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
           </div>
-          <button type="submit" class="sy-past-life-submit">전생 인연 리딩 열기</button>
-          <div class="sy-past-life-status" data-sy-past-life-status aria-live="polite"></div>
+          <button type="submit" class="sy-past-life-submit">인연 레이더 분석하기</button>
+          <div class="sy-past-life-status" data-sy-bond-status aria-live="polite"></div>
         </form>
-        <div class="sy-past-life-result" data-sy-past-life-result></div>
+        <div class="sy-past-life-result" data-sy-bond-result></div>
     </div>`;
 
     html += `<div class="sy-card sy-dogam-card" data-sy-dogam-card="20260616-sukyo-relationship-encyclopedia" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipEncyclopedia.key}">
@@ -10285,8 +10250,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             });
           });
         }
-        if (typeof syBindSukuyoRadar === 'function') syBindSukuyoRadar(_renderMIdx, sData ? sData.mansion : '');
-        if (typeof syBindSukuyoPastLife === 'function') syBindSukuyoPastLife(_renderMIdx, sData ? sData.mansion : '');
+        if (typeof syBindSukuyoBondReport === 'function') syBindSukuyoBondReport(_renderMIdx, sData ? sData.mansion : '');
         if (typeof syBindSukuyoEncyclopedia === 'function') syBindSukuyoEncyclopedia(_renderMIdx, sData ? sData.mansion : '');
         if (typeof syBindSukuyoMonthlyUnlock === 'function') syBindSukuyoMonthlyUnlock(_annualMonthlyReading);
     }, 150);
@@ -11118,44 +11082,38 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         seedSignature: hash([input.userBirthDate, input.partnerBirthDate, userMansion, partnerMansion, relationType].join('|')).toString(36)
       };
     }
-    function chartSvg(scores) {
-      var labels = [
-        ['끌림', scores.attraction],
-        ['안정', scores.stability],
-        ['소모', scores.exhaustion],
-        ['장기', scores.longevity],
-        ['성장', scores.growth]
-      ];
-      var cx = 110, cy = 110, r = 74;
+    // 축 개수를 인자로 받는다. 통합 리포트는 레이더 5축 + 전생 4축 = 9축을 그린다.
+    function chartSvg(axisList) {
+      var labels = (Array.isArray(axisList) ? axisList : []).filter(function(item) { return item && item.length >= 2; });
+      if (!labels.length) return '';
+      var step = 360 / labels.length;
+      var cx = 120, cy = 120, r = 78;
+      function radAt(idx) { return (-90 + idx * step) * Math.PI / 180; }
       var points = labels.map(function(item, idx) {
-        var angle = -90 + idx * 72;
-        var rad = angle * Math.PI / 180;
-        var rr = r * (Number(item[1]) / 100);
+        var rad = radAt(idx);
+        var rr = r * (clamp(item[1]) / 100);
         return [cx + Math.cos(rad) * rr, cy + Math.sin(rad) * rr];
       });
       var grid = [0.25,0.5,0.75,1].map(function(scale) {
         var ring = labels.map(function(_item, idx) {
-          var angle = -90 + idx * 72;
-          var rad = angle * Math.PI / 180;
+          var rad = radAt(idx);
           return (cx + Math.cos(rad) * r * scale).toFixed(1) + ',' + (cy + Math.sin(rad) * r * scale).toFixed(1);
         }).join(' ');
         return '<polygon points="' + ring + '" fill="none" stroke="rgba(226,232,240,0.16)" stroke-width="1"/>';
       }).join('');
-      var axes = labels.map(function(_item, idx) {
-        var angle = -90 + idx * 72;
-        var rad = angle * Math.PI / 180;
+      var axisLines = labels.map(function(_item, idx) {
+        var rad = radAt(idx);
         return '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + Math.cos(rad) * r).toFixed(1) + '" y2="' + (cy + Math.sin(rad) * r).toFixed(1) + '" stroke="rgba(226,232,240,0.14)" stroke-width="1"/>';
       }).join('');
       var text = labels.map(function(item, idx) {
-        var angle = -90 + idx * 72;
-        var rad = angle * Math.PI / 180;
-        return '<text x="' + (cx + Math.cos(rad) * 94).toFixed(1) + '" y="' + (cy + Math.sin(rad) * 94).toFixed(1) + '" text-anchor="middle" dominant-baseline="middle" fill="rgba(226,232,240,0.9)" font-size="11" font-weight="800">' + syCanonicalEsc(item[0]) + '</text>';
+        var rad = radAt(idx);
+        return '<text x="' + (cx + Math.cos(rad) * 99).toFixed(1) + '" y="' + (cy + Math.sin(rad) * 99).toFixed(1) + '" text-anchor="middle" dominant-baseline="middle" fill="rgba(226,232,240,0.9)" font-size="10" font-weight="800">' + syCanonicalEsc(item[0]) + '</text>';
       }).join('');
       var dataPoints = points.map(function(p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
-      return '<svg viewBox="0 0 220 220" role="img" aria-label="' + _sajuQuantumText("sq_9794_attr_aria_label") + '" style="width:100%;max-width:220px;height:auto;display:block;">'
+      return '<svg viewBox="0 0 240 240" role="img" aria-label="' + _sajuQuantumText("sq_9794_attr_aria_label") + '" style="width:100%;max-width:240px;height:auto;display:block;">'
         + '<defs><radialGradient id="syRadarGlow" cx="50%" cy="50%" r="58%"><stop offset="0%" stop-color="rgba(196,181,253,0.36)"/><stop offset="100%" stop-color="rgba(147,197,253,0.02)"/></radialGradient></defs>'
-        + '<circle cx="' + cx + '" cy="' + cy + '" r="92" fill="url(#syRadarGlow)" stroke="rgba(196,181,253,0.18)"/>'
-        + grid + axes
+        + '<circle cx="' + cx + '" cy="' + cy + '" r="96" fill="url(#syRadarGlow)" stroke="rgba(196,181,253,0.18)"/>'
+        + grid + axisLines
         + '<polygon points="' + dataPoints + '" fill="rgba(196,181,253,0.34)" stroke="#f8e7b7" stroke-width="2"/>'
         + points.map(function(p) { return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3.4" fill="#fef3c7" stroke="#c4b5fd" stroke-width="1"/>'; }).join('')
         + text
@@ -11165,37 +11123,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var n = clamp(value);
       return '<article class="sy-radar-score-card"><span>' + syCanonicalEsc(label) + '</span><strong>' + n + '</strong><div class="sy-radar-score-bar"><i style="width:' + n + '%"></i></div></article>';
     }
-    function render(result) {
-      var scores = result.scores || {};
-      var sections = [
-        ['핵심 판정', result.summary],
-        ['이 관계의 끌림', result.chemistry],
-        ['안정감과 장기 가능성', '안정 지수 ' + scores.stability + ', 장기 인연 지수 ' + scores.longevity + '로 드러납니다. 높은 점수는 관계가 저절로 완성된다는 뜻이 아니라, 서로의 리듬을 지킬 때 오래 머무를 바탕이 있다는 뜻입니다.'],
-        ['조심해야 할 소모 패턴', result.risk],
-        ['관계 목적별 조언', result.purposeReading],
-        ['오래 가져가기 위한 전략', result.advice]
-      ];
-      return '<div class="sy-radar-result-card" data-relation="' + syCanonicalEsc(result.relationType) + '">'
-        + '<div class="sy-radar-head">'
-          + '<div class="sy-radar-badges"><span>내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span>상대 숙 ' + syCanonicalEsc(result['partner宿']) + '</span><span>관계 타입 ' + syCanonicalEsc(result.relationLabel) + '</span><span>' + syCanonicalEsc(result.purposeLabel) + '</span></div>'
-          + '<h5>' + syCanonicalEsc(result.title) + '</h5><p>' + syCanonicalEsc(result.subtitle) + ' · ' + syCanonicalEsc(result.directionLabel) + '</p>'
-        + '</div>'
-        + '<div class="sy-radar-body">'
-          + '<div class="sy-radar-chart-row"><div class="sy-radar-svg-wrap">' + chartSvg(scores) + '</div><div class="sy-radar-score-grid">'
-            + scoreCard('끌림 지수', scores.attraction)
-            + scoreCard('안정 지수', scores.stability)
-            + scoreCard('소모 지수', scores.exhaustion)
-            + scoreCard('장기 인연 지수', scores.longevity)
-            + scoreCard('성장 지수', scores.growth)
-          + '</div></div>'
-          + '<div class="sy-radar-section-grid">' + sections.map(function(item) {
-            return '<article class="sy-radar-section"><h6>' + syCanonicalEsc(item[0]) + '</h6><p>' + syCanonicalEsc(item[1]) + '</p></article>';
-          }).join('') + '</div>'
-          + '<div class="sy-radar-one-line">오늘의 한 문장 · ' + syCanonicalEsc(result.oneLine) + '</div>'
-        + '</div>'
-      + '</div>';
-    }
-    return { build: build, render: render, relationFromD: relationFromD, distanceKo: distanceKo, directionFromD: directionFromD, clamp: clamp, hash: hash, mansionName: mansionName };
+    return { build: build, chartSvg: chartSvg, scoreCard: scoreCard, relationFromD: relationFromD, distanceKo: distanceKo, directionFromD: directionFromD, clamp: clamp, hash: hash, mansionName: mansionName };
   })();
 
   function syRadarParseDate(value) {
@@ -11254,122 +11182,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return el ? String(el.value || '').trim() : '';
   }
 
-  function syBindSukuyoRadar(myIdx, myMansionName) {
-    var form = document.querySelector('[data-sy-radar-form]');
-    if (!form || form.__syRadarBound) return;
-    form.__syRadarBound = true;
-    var status = document.querySelector('[data-sy-radar-status]');
-    var resultHost = document.querySelector('[data-sy-radar-result]');
-    var statusPill = document.querySelector('[data-sy-radar-status-pill]');
-    var submitBtn = form.querySelector('.sy-radar-submit');
-    if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key)) {
-      statusPill.textContent = '열람 완료';
-      statusPill.classList.add('is-unlocked');
-    }
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      var run = async function() {
-        if (submitBtn) submitBtn.disabled = true;
-        if (status) status.textContent = '두 사람의 달빛 궤도를 맞추고 있습니다...';
-        try {
-          var hasSelf = form.getAttribute('data-has-self') === '1';
-          var userDate = syRadarReadField(form, '[data-sy-radar-user-date]');
-          var userCalendar = syRadarReadField(form, '[data-sy-radar-user-calendar]') || 'solar';
-          var userName = syRadarReadField(form, '[data-sy-radar-user-name]') || '나';
-          var userGender = syRadarReadField(form, '[data-sy-radar-user-gender]') || 'unknown';
-          var partnerName = syRadarReadField(form, '[data-sy-radar-partner-name]') || '상대';
-          var partnerDate = syRadarReadField(form, '[data-sy-radar-partner-date]');
-          var partnerCalendar = syRadarReadField(form, '[data-sy-radar-partner-calendar]') || 'solar';
-          var partnerTime = syRadarReadField(form, '[data-sy-radar-partner-time]') || '12:00';
-          var partnerGender = syRadarReadField(form, '[data-sy-radar-partner-gender]') || 'unknown';
-          var purpose = syRadarReadField(form, '[data-sy-radar-purpose]') || 'general';
-          if (!partnerDate) throw new Error('상대 생년월일을 입력해 주세요.');
-          var userIdx = syWheelNormalizeIndex(myIdx);
-          var userMansion = myMansionName || '';
-          if (!hasSelf || userIdx == null || !userMansion) {
-            if (!userDate) throw new Error('저장된 프로필이 없어 내 생년월일이 필요합니다.');
-            var userLunar = await syRadarResolveLunar(userDate, userCalendar, '12:00');
-            var userData = calcSukuyoData(userLunar);
-            if (!userData) throw new Error('내 숙요 계산에 실패했습니다.');
-            userIdx = userData.mansionIdx;
-            userMansion = SukuyoRadarEngine.mansionName(userData);
-          } else {
-            userMansion = String(userMansion || '').replace(/숙$/,'') + '숙';
-          }
-          var partnerLunar = await syRadarResolveLunar(partnerDate, partnerCalendar, partnerTime);
-          var partnerData = calcSukuyoData(partnerLunar);
-          if (!partnerData) throw new Error('상대 숙요 계산에 실패했습니다.');
-          var partnerIdx = partnerData.mansionIdx;
-          var partnerMansion = SukuyoRadarEngine.mansionName(partnerData);
-          var D = (partnerIdx - userIdx + 27) % 27;
-          var distInfo = SukuyoCompatEngine.calcDistance(D);
-          var rel = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: userIdx, partnerIdx: partnerIdx });
-          var radarResult = SukuyoRadarEngine.build({
-            userProfileId: '',
-            userName: userName,
-            userBirthDate: userDate || '',
-            userCalendarType: userCalendar === 'lunar_leap' ? 'lunar' : userCalendar,
-            userGender: userGender,
-            partnerName: partnerName,
-            partnerBirthDate: partnerDate,
-            partnerCalendarType: partnerCalendar === 'lunar_leap' ? 'lunar' : partnerCalendar,
-            partnerGender: partnerGender,
-            relationshipPurpose: purpose,
-            userMansionIdx: userIdx,
-            partnerMansionIdx: partnerIdx,
-            userMansion: userMansion,
-            partnerMansion: partnerMansion
-          });
-          window._syLastCompat = {
-            myIdx: userIdx,
-            partnerIdx: partnerIdx,
-            partnerMansion: partnerMansion,
-            relationType: radarResult.relationLabel,
-            distanceLabel: radarResult.distance,
-            temperature: rel.temperature || 0,
-            score: rel.score || 0,
-            magnetism: rel.magnetism || 0,
-            stamp: rel.stamp || '',
-            compatibilityIndex: Number(rel.compatibilityIndex || rel.score || 0),
-            distanceMetrics: rel.distanceMetrics || {},
-            roleActionGuide: rel.roleActionGuide || {},
-            elementHarmony: rel.elementHarmony || {},
-            strengthShadowMap: rel.strengthShadowMap || {},
-            relationVariant: 'sukyo-radar-' + radarResult.seedSignature,
-            radar: radarResult
-          };
-          try {
-            var wheelState = window._syWheelState;
-            var wheelHost = document.getElementById('syWheelCardHost');
-            if (wheelState && wheelHost && typeof syRenderWheelCard === 'function') {
-              wheelHost.outerHTML = syRenderWheelCard(wheelState, window._syLastCompat);
-            }
-          } catch (_wheelErr) {}
-          if (resultHost) resultHost.innerHTML = SukuyoRadarEngine.render(radarResult);
-          if (status) status.textContent = '인연 레이더가 열렸습니다.';
-          if (statusPill) {
-            statusPill.textContent = '열람 완료';
-            statusPill.classList.add('is-unlocked');
-          }
-        } catch (error) {
-          if (status) status.textContent = error && error.message ? String(error.message) : '인연 레이더를 열지 못했습니다. 입력값을 다시 확인해 주세요.';
-        } finally {
-          if (submitBtn) submitBtn.disabled = false;
-        }
-      };
-      if (syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key)) {
-        run();
-        return;
-      }
-      syRequirePaidSukuyoFeature(SY_PAID_FEATURES.relationshipRadar, function() {
-        syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key);
-        run();
-      });
-    });
-  }
-
-  var SukuyoPastLifeEngine = (function() {
-    var LOGIC_VERSION = 'sukyo-past-life-v2';
+  // 인연 레이더 + 전생 인연 리딩 통합 리포트 엔진.
+  // 관계유형 6종 서술(RELATION_META)에 27수 개인 데이터를 직조해 "내 숙 × 상대 숙"까지 개인화한다.
+  var SukuyoBondReportEngine = (function() {
+    var LOGIC_VERSION = 'sukyo-bond-report-v1';
     var PURPOSE_LABELS = {
       love: '연애',
       reunion: '재회',
@@ -11634,7 +11450,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         '',
         '[이미 드러난 결]',
         '- 핵심: ' + (result.summary || ''),
+        '- 나의 기질: ' + (result.selfPortrait || ''),
+        '- 상대의 기질: ' + (result.partnerPortrait || ''),
         '- 관계명 해석: ' + (result.relationNameReading || result.karmicTheme || ''),
+        '- 끌림의 구조: ' + (result.attractionWeave || ''),
+        '- 부딪히는 지점: ' + (result.frictionWeave || ''),
+        '- 오행의 결: ' + (result.elementWeave || ''),
         '- 거리 흐름: ' + (result.distanceReading || ''),
         '- 방향 흐름: ' + (result.directionReading || ''),
         '- 반복 패턴: ' + (result.repeatPattern || ''),
@@ -11642,7 +11463,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         '- 감정 버튼: ' + (result.emotionalTrigger || ''),
         '',
         '[지표]',
-        '- 전생감 ' + (s.pastLifeFeeling != null ? s.pastLifeFeeling : '-') + '/100, 끌림 ' + (s.attraction != null ? s.attraction : '-') + '/100, 미완의 숙제 ' + (s.unfinishedTask != null ? s.unfinishedTask : '-') + '/100',
+        '- 끌림 ' + (s.attraction != null ? s.attraction : '-') + '/100, 안정 ' + (s.stability != null ? s.stability : '-') + '/100, 소모 ' + (s.exhaustion != null ? s.exhaustion : '-') + '/100, 장기 인연 ' + (s.longevity != null ? s.longevity : '-') + '/100, 성장 ' + (s.growth != null ? s.growth : '-') + '/100',
+        '- 전생감 ' + (s.pastLifeFeeling != null ? s.pastLifeFeeling : '-') + '/100, 미완의 숙제 ' + (s.unfinishedTask != null ? s.unfinishedTask : '-') + '/100',
         '- 반복 패턴 ' + (s.repeatPattern != null ? s.repeatPattern : '-') + '/100, 감정 소모 ' + (s.emotionalExhaustion != null ? s.emotionalExhaustion : '-') + '/100, 치유 가능성 ' + (s.healingPotential != null ? s.healingPotential : '-') + '/100',
         '',
         '[이어 듣고 싶은 것]',
@@ -11660,40 +11482,171 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return lines.join('\n');
     }
 
+    // 아래 6개는 27수 개인 데이터(SY_MANSION_PROFILE_OVERRIDES / SY_MANSION_COMPAT_OVERRIDES)를
+    // 관계유형 6종 서술과 직조한다. 관계유형만 쓰던 기존 문장은 27×27 조합이 전부 같았다.
+    function selfPortrait(userIdx, userName) {
+      var lines = ['archetype', 'loveStyle'].map(function(key) { return syReadingOverrideByIndex(userIdx, key); }).filter(Boolean);
+      if (!lines.length) return userName + '님의 본명숙 기질이 이 관계의 출발점입니다. 상대의 반응보다 내 리듬을 먼저 확인하세요.';
+      return userName + '님은 ' + lines.join(' ');
+    }
+
+    function partnerPortrait(partnerIdx, partnerName) {
+      var lines = ['relationalNature', 'loveAsPartner'].map(function(key) { return syCompatOverrideByIndex(partnerIdx, key); }).filter(Boolean);
+      if (!lines.length) return partnerName + '님의 숙은 이 관계에서 고유한 온도를 만듭니다. 관계 유형의 결과 함께 살펴보세요.';
+      return partnerName + '님은 ' + lines.join(' ');
+    }
+
+    function attractionWeave(userIdx, partnerIdx, relationType) {
+      var mine = syReadingOverrideByIndex(userIdx, 'attractionType');
+      var theirs = syCompatOverrideByIndex(partnerIdx, 'loveAsPartner');
+      var tail = relationType === '안괴'
+        ? '두 결이 겹치는 지점에서 끌림이 가장 크게 일지만, 그만큼 빨리 소모되기도 합니다.'
+        : (relationType === '영친' ? '두 결이 자연스럽게 포개져 편안함이 먼저 자리 잡습니다.' : '두 결이 맞물리는 방식이 이 관계의 속도를 정합니다.');
+      var parts = [mine, theirs, tail].filter(Boolean);
+      return parts.join(' ');
+    }
+
+    function frictionWeave(userIdx, partnerIdx, relationType) {
+      var myAvoid = syReadingOverrideByIndex(userIdx, 'avoidPattern');
+      var theirConflict = syCompatOverrideByIndex(partnerIdx, 'conflictStyle');
+      var parts = [];
+      if (myAvoid) parts.push('내가 되풀이하기 쉬운 자리는 ' + String(myAvoid).replace(/[.。]$/, '') + '입니다.');
+      if (theirConflict) parts.push('상대 쪽에서는 ' + theirConflict);
+      parts.push(relationType === '명'
+        ? '닮은 관계라 두 방어가 동시에 켜지기 쉬우니, 누가 먼저 멈출지를 미리 정해 두세요.'
+        : '두 패턴이 만나는 순간을 미리 알아두면 같은 다툼을 반복하지 않습니다.');
+      return parts.join(' ');
+    }
+
+    function longevityWeave(userIdx, partnerIdx) {
+      var parts = [syReadingOverrideByIndex(userIdx, 'longTermAdvice'), syCompatOverrideByIndex(partnerIdx, 'bondAdvice')].filter(Boolean);
+      if (!parts.length) return '오래된 느낌보다 지금 지켜지는 행동을 기준으로 삼을 때 이 인연이 길어집니다.';
+      return parts.join(' ');
+    }
+
+    function realityWeave(userIdx, purpose) {
+      var keys = (purpose === 'business' || purpose === 'work')
+        ? ['workStrength', 'collaborationTip']
+        : (purpose === 'marriage' || purpose === 'family' ? ['moneyFlow', 'savingPoint'] : ['moneyFlow', 'workStrength']);
+      var parts = keys.map(function(key) { return syReadingOverrideByIndex(userIdx, key); }).filter(Boolean);
+      if (!parts.length) return '';
+      var head = (purpose === 'business' || purpose === 'work')
+        ? '일로 엮인 관계라 감정보다 역할과 기준이 먼저 관계를 지킵니다.'
+        : (purpose === 'marriage' || purpose === 'family' ? '생활을 함께 굴리는 관계라 돈과 리듬이 곧 신뢰의 언어가 됩니다.' : '마음만큼 생활의 결도 관계의 수명을 좌우합니다.');
+      return head + ' ' + parts.join(' ');
+    }
+
+    function elementWeave(elementHarmony) {
+      var relation = String(elementHarmony && elementHarmony.relation || '').trim();
+      var summary = String(elementHarmony && elementHarmony.summary || '').trim();
+      var body = relation === '상생'
+        ? '한쪽의 기운이 다른 쪽을 살리는 흐름이라, 함께 있을 때 일이 풀리고 회복도 빠릅니다. 다만 주는 쪽이 고정되면 한 사람만 소진되니 방향을 번갈아 두세요.'
+        : relation === '상극'
+          ? '서로의 기운이 부딪히는 흐름이라 자극과 성장이 크지만 피로도 빨리 옵니다. 부딪힘을 성격 문제로 읽지 말고 역할과 시간을 나누는 문제로 다루세요.'
+          : relation === '동류'
+            ? '같은 기운이라 말이 빨리 통하지만 약점도 같이 커집니다. 서로 없는 감각은 관계 밖에서 채워 오는 편이 낫습니다.'
+            : '서로 다른 기운이 빈칸을 메우는 흐름입니다. 익숙해질 때까지 시간이 걸리지만 자리 잡으면 안정적입니다.';
+      return (summary ? summary + ' ' : '') + body;
+    }
+
+    var PLAN_BY_RELATION = {
+      '업태': ['1주차 — 의미 해석을 멈추고 사실만 기록합니다. 연락 간격과 약속 이행 여부를 그대로 적어 두세요.', '2주차 — 관계의 이름과 기대를 한 문장으로 물어봅니다. 답을 미루면 그 자체가 답입니다.', '3주차 — 내가 먼저 움직인 횟수와 상대가 먼저 움직인 횟수를 비교합니다.', '4주차 — 기록을 근거로 계속할지 거리를 둘지 정합니다. 감정이 아니라 기록으로 결정하세요.'],
+      '안괴': ['1주차 — 불안이 올라온 순간과 그때 한 행동을 적습니다. 확인 전화·추궁은 세지 말고 그냥 기록만 하세요.', '2주차 — 지킬 수 있는 경계 세 가지를 함께 정합니다. 연락 시간, 개인 시간, 돈이 우선입니다.', '3주차 — 감정이 커진 날은 24시간 결론 유예를 실제로 실행합니다.', '4주차 — 경계가 지켜진 날의 비율을 봅니다. 절반을 넘지 못하면 관계보다 안전을 먼저 챙기세요.'],
+      '명': ['1주차 — 서로 닮은 반응 세 가지를 찾아 적습니다. 장점과 약점을 나란히 씁니다.', '2주차 — 같은 방어가 동시에 켜졌을 때 먼저 멈출 사람을 번갈아 정합니다.', '3주차 — 각자 혼자 보내는 시간을 주 2회 확보합니다. 닮은 관계일수록 여백이 약입니다.', '4주차 — 반복이 줄었는지 확인하고, 줄지 않았다면 대화 대신 규칙을 하나 더 만듭니다.'],
+      '영친': ['1주차 — 당연하게 여겨 온 배려를 찾아 말로 표현합니다. 하루 한 문장이면 충분합니다.', '2주차 — 익숙함에 눌린 새 경험을 하나 함께 만듭니다. 장소든 계획이든 처음이면 됩니다.', '3주차 — 서운했지만 넘어간 일을 꺼내 가볍게 정리합니다.', '4주차 — 고마움과 애정 표현을 습관으로 고정합니다. 이 관계는 표현이 곧 수명입니다.'],
+      '우쇠': ['1주차 — 연락과 만남의 적정 빈도를 각자 숫자로 적어 비교합니다.', '2주차 — 차이의 중간값을 시험 삼아 2주간 지켜 봅니다.', '3주차 — 애정 표현 방식이 다를 뿐인 장면을 하나씩 번역해 말해 줍니다.', '4주차 — 맞추는 사람이 한쪽으로 고정됐는지 확인하고, 고정됐다면 기준을 다시 씁니다.'],
+      '성위': ['1주차 — 관계에 섞여 든 평가의 말을 찾아냅니다. 칭찬도 평가면 적어 두세요.', '2주차 — 공동 목표를 하나로 줄이고 나머지는 각자의 몫으로 돌립니다.', '3주차 — 성과와 무관한 시간을 주 1회 만듭니다. 목적 없는 시간이 안전감을 만듭니다.', '4주차 — 실패했을 때 돌아올 문장을 미리 정합니다. 그 문장이 이 관계의 안전망입니다.']
+    };
+
+    function thirtyDayPlan(relationType, purpose) {
+      var base = (PLAN_BY_RELATION[relationType] || PLAN_BY_RELATION['성위']).slice();
+      if (purpose === 'reunion') base.push('재회 목적이라면 4주 안에 답을 받아내려 하지 마세요. 상대가 안전하다고 느끼는 속도가 재회의 조건입니다.');
+      else if (purpose === 'crush') base.push('짝사랑이라면 이 계획의 목표는 고백 시점이 아니라 내 감정이 건강하게 머무는 거리를 찾는 것입니다.');
+      else if (purpose === 'marriage') base.push('결혼을 본다면 4주 기록에 생활비 분담과 가사 분담 대화를 반드시 한 번 넣으세요.');
+      else if (purpose === 'business' || purpose === 'work') base.push('일로 엮였다면 4주 안에 역할·권한·보상 기준을 문서 한 장으로 남기세요.');
+      return base;
+    }
+
     function build(input) {
       var userIdx = syWheelNormalizeIndex(input.userMansionIdx);
       var partnerIdx = syWheelNormalizeIndex(input.partnerMansionIdx);
       if (userIdx == null || partnerIdx == null) throw new Error('숙 계산값이 올바르지 않습니다.');
       var D = (partnerIdx - userIdx + 27) % 27;
       var distInfo = SukuyoCompatEngine.calcDistance(D);
-      SukuyoCompatEngine.resolve(D, distInfo, { myIdx: userIdx, partnerIdx: partnerIdx });
+      var rel = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: userIdx, partnerIdx: partnerIdx }) || {};
       var relationType = SukuyoRadarEngine.relationFromD(D);
       var distance = SukuyoRadarEngine.distanceKo(distInfo, relationType);
       var direction = SukuyoRadarEngine.directionFromD(D);
       var purpose = PURPOSE_LABELS[input.purpose] ? input.purpose : 'general';
       var userMansion = String(input.userMansion || '').replace(/숙$/,'') + '숙';
       var partnerMansion = String(input.partnerMansion || '').replace(/숙$/,'') + '숙';
+      var userName = input.userName || '나';
+      var partnerName = input.partnerName || '상대';
       var seed = [userMansion, partnerMansion, relationType, input.userBirthDate || '', input.partnerBirthDate || '', purpose].join('|');
       var meta = RELATION_META[relationType] || RELATION_META['성위'];
       var directionLine = directionReading(direction);
       var scores = buildScores(relationType, distance, seed);
+      // 인연 레이더(5축·목적별 조언)를 그대로 끌어와 합친다. 두 카드를 합치면서 레이더 쪽 서술을 잃지 않기 위함.
+      var radar = SukuyoRadarEngine.build({
+        userProfileId: input.userProfileId || '',
+        userName: userName,
+        userBirthDate: input.userBirthDate || '',
+        userGender: input.userGender,
+        partnerName: partnerName,
+        partnerBirthDate: input.partnerBirthDate || '',
+        partnerGender: input.partnerGender,
+        relationshipPurpose: purpose,
+        userMansionIdx: userIdx,
+        partnerMansionIdx: partnerIdx,
+        userMansion: userMansion,
+        partnerMansion: partnerMansion
+      });
+      var radarScores = radar.scores || {};
       var result = {
         userProfileId: input.userProfileId || '',
-        userName: input.userName || '나',
-        partnerName: input.partnerName || '상대',
+        userName: userName,
+        partnerName: partnerName,
         'user宿': userMansion,
         'partner宿': partnerMansion,
+        userMansionIdx: userIdx,
+        partnerMansionIdx: partnerIdx,
         relationType: relationType,
         distance: distance,
         direction: direction,
         purpose: purpose,
+        purposeLabel: PURPOSE_LABELS[purpose] || PURPOSE_LABELS.general,
         title: meta.title,
         subtitle: meta.subtitle,
         karmicTheme: meta.theme,
-        scores: scores,
+        scores: {
+          attraction: radarScores.attraction,
+          stability: radarScores.stability,
+          exhaustion: radarScores.exhaustion,
+          longevity: radarScores.longevity,
+          growth: radarScores.growth,
+          pastLifeFeeling: scores.pastLifeFeeling,
+          unfinishedTask: scores.unfinishedTask,
+          repeatPattern: scores.repeatPattern,
+          healingPotential: scores.healingPotential,
+          emotionalExhaustion: scores.emotionalExhaustion,
+          realityPotential: scores.realityPotential
+        },
         summary: meta.summary,
         firstImpression: meta.first,
-        relationNameReading: relationNameReading(relationType, meta, input.userName || '나', input.partnerName || '상대'),
+        selfPortrait: selfPortrait(userIdx, userName),
+        partnerPortrait: partnerPortrait(partnerIdx, partnerName),
+        attractionWeave: attractionWeave(userIdx, partnerIdx, relationType),
+        frictionWeave: frictionWeave(userIdx, partnerIdx, relationType),
+        longevityWeave: longevityWeave(userIdx, partnerIdx),
+        realityWeave: realityWeave(userIdx, purpose),
+        elementWeave: elementWeave(rel.elementHarmony),
+        complementSummary: String((rel.strengthShadowMap && rel.strengthShadowMap.complementSummary) || '').trim(),
+        roleActionGuide: rel.roleActionGuide || null,
+        chemistry: radar.chemistry,
+        risk: radar.risk,
+        radarAdvice: radar.advice,
+        radarPurposeReading: radar.purposeReading,
+        relationNameReading: relationNameReading(relationType, meta, userName, partnerName),
         distanceReading: distanceReading(distance, relationType),
         directionReading: directionLine,
         relationshipRhythm: relationshipRhythm(relationType, distance, direction),
@@ -11704,9 +11657,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         currentLifeLesson: meta.lesson,
         relationshipAdvice: meta.advice,
         purposeReading: purposeReading(purpose, relationType),
+        thirtyDayPlan: thirtyDayPlan(relationType, purpose),
         warningSigns: warningSigns(purpose, relationType),
         healingActions: healingActions(relationType),
-        conversationScript: conversationScript(purpose, relationType, input.userName || '나', input.partnerName || '상대'),
+        conversationScript: conversationScript(purpose, relationType, userName, partnerName),
         oneLine: meta.oneLine,
         disclaimer: '전생을 실제 사실로 단정하지 않습니다. 숙요점 관계 구조가 만드는 오래된 인연 같은 감정 패턴을 상담 언어로 비춘 것입니다.',
         generatedAt: new Date().toISOString(),
@@ -11734,58 +11688,89 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var promptText = String(result.aiFollowupPrompt || buildAiFollowupPrompt(result) || '').trim();
       if (!promptText) return '';
       return '<section class="sy-past-life-ai" data-sy-past-life-ai>'
-        + '<div class="sy-past-life-ai-head"><div><p class="sy-past-life-ai-kicker">달빛 질문문</p><h6 class="sy-past-life-ai-title">AI에게 이어 묻는 숙요 전생 인연 질문</h6></div><span class="sy-paid-status is-unlocked">리딩 포함</span></div>'
+        + '<div class="sy-past-life-ai-head"><div><p class="sy-past-life-ai-kicker">달빛 질문문</p><h6 class="sy-past-life-ai-title">AI에게 이어 묻는 숙요 인연 질문</h6></div><span class="sy-paid-status is-unlocked">리포트 포함</span></div>'
         + '<p class="sy-past-life-ai-copy">방금 열린 두 사람의 숙요 결을 그대로 담았습니다. 필요한 AI에게 옮기면 관계의 매듭과 다음 대화를 더 깊게 이어 볼 수 있습니다.</p>'
         + '<textarea class="sy-past-life-ai-output" data-sy-past-life-ai-output readonly aria-label="' + _sajuQuantumText("sq_10378_attr_aria_label") + '">' + syCanonicalEsc(promptText) + '</textarea>'
-        + '<div class="sy-past-life-ai-actions"><button type="button" class="sy-past-life-ai-btn" data-sy-past-life-ai-copy>프롬프트 복사</button>' + SY_AI_TARGETS.map(function(t){return '<button type="button" class="sy-past-life-ai-btn sy-past-life-ai-btn--open" data-sy-past-life-ai-open data-ai-url="'+t.url+'">'+t.label+'</button>';}).join('') + '<span class="sy-past-life-ai-status" data-sy-past-life-ai-status aria-live="polite">이 달빛 질문문은 전생 리딩 안에 함께 열렸습니다.</span></div>'
+        + '<div class="sy-past-life-ai-actions"><button type="button" class="sy-past-life-ai-btn" data-sy-past-life-ai-copy>프롬프트 복사</button>' + SY_AI_TARGETS.map(function(t){return '<button type="button" class="sy-past-life-ai-btn sy-past-life-ai-btn--open" data-sy-past-life-ai-open data-ai-url="'+t.url+'">'+t.label+'</button>';}).join('') + '<span class="sy-past-life-ai-status" data-sy-past-life-ai-status aria-live="polite">이 달빛 질문문은 인연 레이더 리포트 안에 함께 열렸습니다.</span></div>'
         + '</section>';
     }
 
     function render(result, unlocked) {
       var s = result.scores || {};
+      var chartHtml = SukuyoRadarEngine.chartSvg([
+        ['끌림', s.attraction],
+        ['안정', s.stability],
+        ['소모', s.exhaustion],
+        ['장기', s.longevity],
+        ['성장', s.growth],
+        ['전생감', s.pastLifeFeeling],
+        ['숙제', s.unfinishedTask],
+        ['반복', s.repeatPattern],
+        ['치유', s.healingPotential]
+      ]);
       var scoreHtml = [
-        scoreCard('전생감 지수', s.pastLifeFeeling),
         scoreCard('끌림 지수', s.attraction),
+        scoreCard('안정 지수', s.stability),
+        scoreCard('소모 지수', s.exhaustion),
+        scoreCard('장기 인연 지수', s.longevity),
+        scoreCard('성장 지수', s.growth),
+        scoreCard('전생감 지수', s.pastLifeFeeling),
         scoreCard('미완의 숙제 지수', s.unfinishedTask),
         scoreCard('반복 패턴 지수', s.repeatPattern),
-        scoreCard('감정 소모 지수', s.emotionalExhaustion),
         scoreCard('치유 가능성', s.healingPotential),
         scoreCard('현실 지속 가능성', s.realityPotential)
       ].join('');
       var body = [
-        section('핵심 판정', result.summary),
+        section('핵심 판정', result.summary, true),
         section('처음부터 낯설지 않았던 이유', result.firstImpression)
       ];
       if (unlocked) {
         body = body.concat([
+          section('나라는 사람', result.selfPortrait, true),
+          section('상대라는 사람', result.partnerPortrait, true),
           section('관계명으로 보는 두 사람', result.relationNameReading || result.karmicTheme, true),
+          section('이 관계의 끌림', result.attractionWeave || result.chemistry, true),
           section('거리의 결', result.distanceReading || result.distance),
           section('방향의 결', result.directionReading || result.direction),
+          section('오행의 결', result.elementWeave),
+          section('강점과 그림자가 맞물리는 자리', result.complementSummary),
           section('전생 서사로 본 이 관계', result.pastLifeStory),
           section('이번 생에 반복되는 감정 패턴', result.repeatPattern),
           section('이 관계의 미완의 숙제', result.unfinishedTask),
           section('상대가 건드리는 감정 버튼', result.emotionalTrigger),
+          section('두 사람이 부딪히는 지점', result.frictionWeave, true),
+          section('안정감과 장기 가능성', '안정 지수 ' + SukuyoRadarEngine.clamp(s.stability) + ', 장기 인연 지수 ' + SukuyoRadarEngine.clamp(s.longevity) + '로 드러납니다. 높은 점수는 관계가 저절로 완성된다는 뜻이 아니라, 서로의 리듬을 지킬 때 오래 머무를 바탕이 있다는 뜻입니다.'),
+          section('조심해야 할 소모 패턴', result.risk),
           section('이번 생에서 풀어야 할 관계 과제', result.currentLifeLesson),
+          section('이 인연을 오래 가게 하는 법', result.longevityWeave, true)
+        ]);
+        if (result.realityWeave) body.push(section('생활과 현실의 궁합', result.realityWeave, true));
+        body = body.concat([
           section('관계 리듬 처방', result.relationshipRhythm || result.relationshipAdvice, true),
-          section('관계 목적별 리딩', result.purposeReading),
+          section('관계 목적별 리딩', result.purposeReading, true),
+          section('관계 목적별 조언', result.radarPurposeReading || result.radarAdvice, true),
+          listSection('30일 실행 플랜', result.thirtyDayPlan, true),
           listSection('위험 신호', result.warningSigns),
           listSection('치유 행동', result.healingActions),
           listSection('실제로 건넬 수 있는 말', result.conversationScript, true)
         ]);
+        if (result.roleActionGuide && (result.roleActionGuide.meAction || result.roleActionGuide.otherAction)) {
+          body.push(listSection('서로의 역할 행동', [result.roleActionGuide.meAction, result.roleActionGuide.otherAction, result.roleActionGuide.resetLine].filter(Boolean), true));
+        }
       } else {
-        body.push(section('잠긴 심화 리딩', '전생 서사 전체, 미완의 숙제, 반복 패턴, 감정 버튼, 목적별 리딩, 위험 신호와 치유 행동은 해금 후 열립니다.'));
+        body.push(section('잠긴 심층 리딩', '나와 상대의 본명숙 해설, 끌림과 부딪힘의 구조, 오행의 결, 전생 서사와 미완의 숙제, 반복 패턴, 목적별 리딩, 30일 실행 플랜, 위험 신호와 치유 행동, 건넬 수 있는 말까지 결제 후 이어집니다.', true));
       }
       var aiPromptHtml = unlocked ? renderAiPrompt(result) : '';
       return '<div class="sy-past-life-panel" data-relation="' + syCanonicalEsc(result.relationType) + '">'
         + '<div class="sy-past-life-head">'
-        + '<div class="sy-past-life-badges"><span>내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span>상대 숙 ' + syCanonicalEsc(result['partner宿']) + '</span><span>' + syCanonicalEsc(result.relationType + ' · ' + result.distance) + '</span><span>' + syCanonicalEsc(result.direction) + '</span></div>'
-        + '<h5>' + syCanonicalEsc(result.userName) + '님과 ' + syCanonicalEsc(result.partnerName) + '님의 숙요 전생 인연 리딩</h5>'
-        + '<p>' + syCanonicalEsc(result.karmicTheme) + '</p>'
+        + '<div class="sy-past-life-badges"><span>내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span>상대 숙 ' + syCanonicalEsc(result['partner宿']) + '</span><span>' + syCanonicalEsc(result.relationType + ' · ' + result.distance) + '</span><span>' + syCanonicalEsc(result.direction) + '</span><span>' + syCanonicalEsc(result.purposeLabel || '전체 분석') + '</span></div>'
+        + '<h5>' + syCanonicalEsc(result.userName) + '님과 ' + syCanonicalEsc(result.partnerName) + '님의 숙요 인연 레이더</h5>'
+        + '<p>' + syCanonicalEsc(result.title) + ' · ' + syCanonicalEsc(result.karmicTheme) + '</p>'
         + '</div>'
         + '<div class="sy-past-life-body">'
-        + '<div class="sy-past-life-score-grid">' + scoreHtml + '</div>'
+        + '<div class="sy-radar-chart-row"><div class="sy-radar-svg-wrap">' + chartHtml + '</div><div class="sy-past-life-score-grid">' + scoreHtml + '</div></div>'
         + '<div class="sy-past-life-section-grid">' + body.join('') + '</div>'
-        + '<div class="sy-past-life-one-line">' + syCanonicalEsc(result.oneLine) + '</div>'
+        + '<div class="sy-past-life-one-line">오늘의 한 문장 · ' + syCanonicalEsc(result.oneLine) + '</div>'
         + aiPromptHtml
         + '<div class="sy-past-life-disclaimer">' + syCanonicalEsc(result.disclaimer) + '</div>'
         + '</div></div>';
@@ -11877,35 +11862,67 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     throw new Error(String(error.message || payload.message || '숙요 전생 인연 리딩을 열지 못했습니다.'));
   }
 
-  function syBindSukuyoPastLife(myIdx, myMansionName) {
-    var form = document.querySelector('[data-sy-past-life-form]');
-    if (!form || form.__syPastLifeBound) return;
-    form.__syPastLifeBound = true;
-    var status = document.querySelector('[data-sy-past-life-status]');
-    var resultHost = document.querySelector('[data-sy-past-life-result]');
-    var statusPill = document.querySelector('[data-sy-past-life-status-pill]');
+  // 이미 결제한 조합(같은 상대·같은 목적)인지 서버 아카이브로만 판정한다.
+  // 회당 결제 기능이라 로컬 해금 플래그(syIsPaidSukuyoFeatureUnlocked)를 쓰면
+  // 1회 결제로 모든 상대가 무료가 되므로 여기서는 쓰지 않는다.
+  async function syLookupSukuyoBondArchive(input) {
+    try {
+      // 비로그인 상태에서는 아카이브가 있을 수 없다. 불필요한 401 왕복을 만들지 않는다.
+      if (!(localStorage.getItem('fortune_auth_token') || '')) return null;
+      var body = Object.assign({}, input || {}, { archiveOnly: true });
+      var profileId = syResolveCurrentProfileIdForPaidGate();
+      if (profileId) {
+        body.userProfileId = body.userProfileId || profileId;
+        body.profileId = body.profileId || profileId;
+        body.selectedProfileId = body.selectedProfileId || profileId;
+      }
+      body.featureKey = SY_PAID_FEATURES.pastLifeReading.key;
+      body.reportType = 'sukuyoPastLifeReading';
+      body.mode = 'past-life-reading';
+      var response = await syPromptRequestJson('/api/sukuyo/past-life-reading', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      var payload = response && response.payload ? response.payload : {};
+      if (response && response.ok && payload && payload.ok && payload.data) return payload.data;
+    } catch (_) {}
+    return null;
+  }
+
+  function syBindSukuyoBondReport(myIdx, myMansionName) {
+    var form = document.querySelector('[data-sy-bond-form]');
+    if (!form || form.__syBondBound) return;
+    form.__syBondBound = true;
+    var status = document.querySelector('[data-sy-bond-status]');
+    var resultHost = document.querySelector('[data-sy-bond-result]');
+    var statusPill = document.querySelector('[data-sy-bond-status-pill]');
     var submitBtn = form.querySelector('.sy-past-life-submit');
-    if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key)) {
-      statusPill.textContent = '열람 완료';
-      statusPill.classList.add('is-unlocked');
+    // 배지는 "이번 상대"의 결과가 열렸을 때만 켠다. 입력이 바뀌면 다시 꺼진다.
+    function setPill(opened) {
+      if (!statusPill) return;
+      statusPill.textContent = opened ? '이번 상대 열람 완료' : '27숙 관계법';
+      if (opened) statusPill.classList.add('is-unlocked');
+      else statusPill.classList.remove('is-unlocked');
     }
+    form.addEventListener('input', function() { setPill(false); });
+    form.addEventListener('change', function() { setPill(false); });
     form.addEventListener('submit', function(event) {
       event.preventDefault();
       var run = async function() {
         if (submitBtn) submitBtn.disabled = true;
-        if (status) status.textContent = '두 사람 사이에 남은 오래된 결을 맞추고 있습니다...';
+        if (status) status.textContent = '두 사람의 달빛 궤도를 맞추고 있습니다...';
         try {
           var hasSelf = form.getAttribute('data-has-self') === '1';
-          var userDate = syRadarReadField(form, '[data-sy-past-life-user-date]');
-          var userCalendar = syRadarReadField(form, '[data-sy-past-life-user-calendar]') || 'solar';
-          var userName = syRadarReadField(form, '[data-sy-past-life-user-name]') || '나';
-          var userGender = syRadarReadField(form, '[data-sy-past-life-user-gender]') || 'unknown';
-          var partnerName = syRadarReadField(form, '[data-sy-past-life-partner-name]') || '상대';
-          var partnerDate = syRadarReadField(form, '[data-sy-past-life-partner-date]');
-          var partnerCalendar = syRadarReadField(form, '[data-sy-past-life-partner-calendar]') || 'solar';
-          var partnerTime = syRadarReadField(form, '[data-sy-past-life-partner-time]') || '12:00';
-          var partnerGender = syRadarReadField(form, '[data-sy-past-life-partner-gender]') || 'unknown';
-          var purpose = syRadarReadField(form, '[data-sy-past-life-purpose]') || 'general';
+          var userDate = syRadarReadField(form, '[data-sy-bond-user-date]');
+          var userCalendar = syRadarReadField(form, '[data-sy-bond-user-calendar]') || 'solar';
+          var userName = syRadarReadField(form, '[data-sy-bond-user-name]') || '나';
+          var userGender = syRadarReadField(form, '[data-sy-bond-user-gender]') || 'unknown';
+          var partnerName = syRadarReadField(form, '[data-sy-bond-partner-name]') || '상대';
+          var partnerDate = syRadarReadField(form, '[data-sy-bond-partner-date]');
+          var partnerCalendar = syRadarReadField(form, '[data-sy-bond-partner-calendar]') || 'solar';
+          var partnerTime = syRadarReadField(form, '[data-sy-bond-partner-time]') || '12:00';
+          var partnerGender = syRadarReadField(form, '[data-sy-bond-partner-gender]') || 'unknown';
+          var purpose = syRadarReadField(form, '[data-sy-bond-purpose]') || 'general';
           if (!partnerDate) throw new Error('상대 생년월일을 입력해 주세요.');
           var userIdx = syWheelNormalizeIndex(myIdx);
           var userMansion = myMansionName || '';
@@ -11943,39 +11960,61 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             userMansion: userMansion,
             partnerMansion: partnerMansion
           };
-          var result = SukuyoPastLifeEngine.build(inputPayload);
+          var result = SukuyoBondReportEngine.build(inputPayload);
+          try {
+            var D = (partnerIdx - userIdx + 27) % 27;
+            var distInfo = SukuyoCompatEngine.calcDistance(D);
+            var rel = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: userIdx, partnerIdx: partnerIdx }) || {};
+            window._syLastCompat = {
+              myIdx: userIdx,
+              partnerIdx: partnerIdx,
+              partnerMansion: partnerMansion,
+              relationType: result.relationType,
+              distanceLabel: result.distance,
+              temperature: rel.temperature || 0,
+              score: rel.score || 0,
+              magnetism: rel.magnetism || 0,
+              stamp: rel.stamp || '',
+              compatibilityIndex: Number(rel.compatibilityIndex || rel.score || 0),
+              distanceMetrics: rel.distanceMetrics || {},
+              roleActionGuide: rel.roleActionGuide || {},
+              elementHarmony: rel.elementHarmony || {},
+              strengthShadowMap: rel.strengthShadowMap || {},
+              relationVariant: 'sukyo-bond-' + result.seedSignature,
+              radar: result
+            };
+            var wheelState = window._syWheelState;
+            var wheelHost = document.getElementById('syWheelCardHost');
+            if (wheelState && wheelHost && typeof syRenderWheelCard === 'function') {
+              wheelHost.outerHTML = syRenderWheelCard(wheelState, window._syLastCompat);
+            }
+          } catch (_wheelErr) {}
           var reveal = function(unlocked) {
             if (resultHost) {
-              resultHost.innerHTML = SukuyoPastLifeEngine.render(result, unlocked);
+              resultHost.innerHTML = SukuyoBondReportEngine.render(result, unlocked);
               if (unlocked) syBindSukuyoPastLifeAiPrompt(resultHost);
             }
-            if (status) status.textContent = unlocked ? '숙요 전생 인연 리딩이 열렸습니다.' : '무료 미리보기가 열렸습니다. 전체 전생 서사는 결제 후 이어집니다.';
-            if (statusPill && unlocked) {
-              statusPill.textContent = '열람 완료';
-              statusPill.classList.add('is-unlocked');
-            }
+            if (status) status.textContent = unlocked ? '숙요 인연 레이더가 열렸습니다.' : '무료 미리보기가 열렸습니다. 전체 리포트는 결제 후 이어집니다.';
+            setPill(unlocked);
           };
-          if (syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key)) {
-            try {
-              if (status) status.textContent = '저장된 전생 인연 리딩을 불러오고 있습니다...';
-              result = await syRequestSukuyoPastLifeReading(inputPayload, null);
-            } catch (_serverError) {}
+          if (status) status.textContent = '이미 열어 본 인연인지 확인하고 있습니다...';
+          var archived = await syLookupSukuyoBondArchive(inputPayload);
+          if (archived) {
             reveal(true);
-          } else {
-            reveal(false);
-            syRequirePaidSukuyoFeature(SY_PAID_FEATURES.pastLifeReading, async function(gateResult) {
-              syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key);
-              try {
-                if (status) status.textContent = '전생 인연 리딩을 저장하고 있습니다...';
-                result = await syRequestSukuyoPastLifeReading(inputPayload, gateResult);
-              } catch (serverError) {
-                if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '서버 저장은 잠시 지연되고 있습니다. 리딩은 이 자리에서 열립니다.';
-              }
-              reveal(true);
-            });
+            return;
           }
+          reveal(false);
+          syRequirePaidSukuyoFeature(SY_PAID_FEATURES.pastLifeReading, async function(gateResult) {
+            try {
+              if (status) status.textContent = '인연 레이더 리포트를 저장하고 있습니다...';
+              await syRequestSukuyoPastLifeReading(inputPayload, gateResult);
+            } catch (serverError) {
+              if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '서버 저장은 잠시 지연되고 있습니다. 리포트는 이 자리에서 열립니다.';
+            }
+            reveal(true);
+          });
         } catch (error) {
-          if (status) status.textContent = error && error.message ? String(error.message) : '전생 인연 리딩을 열지 못했습니다. 입력값을 다시 확인해 주세요.';
+          if (status) status.textContent = error && error.message ? String(error.message) : '인연 레이더를 열지 못했습니다. 입력값을 다시 확인해 주세요.';
         } finally {
           if (submitBtn) submitBtn.disabled = false;
         }
@@ -12361,9 +12400,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
   if (typeof window !== 'undefined') {
     window.SukuyoRadarEngine = SukuyoRadarEngine;
-    window.syBindSukuyoRadar = syBindSukuyoRadar;
-    window.SukuyoPastLifeEngine = SukuyoPastLifeEngine;
-    window.syBindSukuyoPastLife = syBindSukuyoPastLife;
+    window.SukuyoBondReportEngine = SukuyoBondReportEngine;
+    window.syBindSukuyoBondReport = syBindSukuyoBondReport;
     window.SukuyoEncyclopediaEngine = SukuyoEncyclopediaEngine;
     window.syBindSukuyoEncyclopedia = syBindSukuyoEncyclopedia;
   }
@@ -14683,23 +14721,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }));
   }
 
+  // 정본은 js/saju-engine.js 의 _cdAIPromptGateEvidence 다(먼저 로드된다). 그쪽을 쓰면
+  // 이 사본에 빠져 있던 accessDecision·freeBySubscription 이 실제로 서버까지 전달된다 —
+  // 그 두 필드는 아래 POST 바디가 예전부터 보내고 있었지만 값이 항상 undefined 였다.
   function syPromptGateEvidence(gateResult) {
+    if (typeof window !== 'undefined' && typeof window._cdAIPromptGateEvidence === 'function') {
+      return window._cdAIPromptGateEvidence(gateResult);
+    }
     var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
     var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
     var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var accessDecision = data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
     return {
-      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+      requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
       accessGrant: accessGrant,
+      accessDecision: accessDecision,
+      freeBySubscription: data.freeBySubscription === true,
       consume: consume,
       payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
       _paymentContext: {
-        requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+        requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
         featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
-        transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-        accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
-        accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
-        paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
+        transactionId: String(data.transactionId || consume.transactionId || accessDecision.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+        accessType: String(data.accessType || accessDecision.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+        accessMethod: String(data.accessMethod || accessDecision.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+        paymentMode: String(data.paymentMode || accessDecision.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
       }
     };
   }
@@ -14719,6 +14766,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         requiredCoins: gate.requiredCoins || 0
       }
     };
+  }
+
+  /* 같은 (프로필·도메인·질문·명식·궁합·epoch) 이면 항상 같은 requestId 를 만든다.
+     워커 consume 은 requestId 멱등이라, 생성 실패 후 재시도가 재차감을 부르지 않는다.
+     epoch 는 생성 성공 시에만 올라가므로 "성공 후 같은 질문 재요청"은 정상 결제로 돌아간다. */
+  function syBuildSukuyoPromptRequestId(input) {
+    var item = input && typeof input === 'object' ? input : {};
+    var profileId = '';
+    try {
+      if (typeof window !== 'undefined' && typeof window._sajuPromptResolveProfileId === 'function') {
+        profileId = String(window._sajuPromptResolveProfileId() || '').trim();
+      }
+    } catch (_) {}
+    var parts = [
+      profileId,
+      item.domain,
+      item.question,
+      item.basicResult ? item.basicResult.mansionIdx : '',
+      item.compatibilityResult ? item.compatibilityResult.partnerIdx : '',
+      Number(item.epoch || 0)
+    ];
+    if (typeof window !== 'undefined' && typeof window._cdAIPromptBuildRequestId === 'function') {
+      return window._cdAIPromptBuildRequestId('sukuyo-ai-prompt', parts);
+    }
+    // 정본 미로드 폴백 — 결정성은 유지한다(재결제 차단이 목적이므로 무작위로 돌아가지 않는다).
+    return 'sukuyo-ai-prompt:v1-' + encodeURIComponent(parts.join('|')).slice(0, 100);
   }
 
   function syRequestSukuyoPromptByQuestion(question, options) {
@@ -14743,30 +14816,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
       });
     }
-    var requestNonce = Date.now() + ':' + Math.random().toString(16).slice(2);
+    var requestId = syBuildSukuyoPromptRequestId({
+      domain: domain,
+      question: question,
+      basicResult: basicResult,
+      compatibilityResult: compatibilityResult,
+      epoch: opts.epoch
+    });
+    // 이미 결제가 확인된 재시도면 게이트를 다시 열지 않는다(재결제 차단).
+    var savedEvidence = opts.paidEvidence && typeof opts.paidEvidence === 'object' ? opts.paidEvidence : null;
 
-    return syPromptGate({
-      featureKey: 'sukuyo_ai_prompt_generator',
-      reason: '숙요점 AI 상담',
-      cost: 100,
-      requestId: 'sukuyo-ai-prompt:' + requestNonce,
-      categoryKey: 'sukuyo'
-    }).then(function(gateResult) {
-      if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
-      var evidence = syPromptGateEvidence(gateResult);
-      // 게이트(결제)는 1회만. 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+    // 게이트(결제)는 1회만. 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+    function postWithEvidence(evidence) {
       var doFetch = function() {
         return fetch('/api/fortune/sukuyo/ai-prompt', {
           method: 'POST',
           credentials: 'include',
           cache: 'no-store',
-          headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce) }),
+          headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || requestId }),
           body: JSON.stringify({
             question: question,
             domain: domain,
             basicResult: basicResult,
             compatibilityResult: compatibilityResult,
-            requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
+            requestId: evidence.requestId || requestId,
             accessGrant: evidence.accessGrant,
             accessDecision: evidence.accessDecision,
             freeBySubscription: evidence.freeBySubscription,
@@ -14784,9 +14857,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           });
         });
       };
-      return (typeof window !== 'undefined' && typeof window._cdRetryTransientPost === 'function')
+      var request = (typeof window !== 'undefined' && typeof window._cdRetryTransientPost === 'function')
         ? window._cdRetryTransientPost(doFetch)
         : doFetch();
+      return request.then(function(result) {
+        // 실패 처리에서 이 증거를 보관해 재결제 없는 재시도를 열어 준다.
+        if (result && typeof result === 'object') {
+          result.requestId = requestId;
+          result._cdPaidEvidence = evidence;
+        }
+        return result;
+      });
+    }
+
+    if (savedEvidence) return postWithEvidence(savedEvidence);
+
+    return syPromptGate({
+      featureKey: 'sukuyo_ai_prompt_generator',
+      reason: '숙요점 AI 상담',
+      cost: 100,
+      requestId: requestId,
+      categoryKey: 'sukuyo'
+    }).then(function(gateResult) {
+      if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
+      return postWithEvidence(syPromptGateEvidence(gateResult));
     }).catch(function(error) {
       return {
         ok: false,
@@ -14822,6 +14916,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var isFreePrompt = opts.freePrompt === true;
     var generateLabel = opts.generateLabel || '10,000원 AI 상담 받기';
     var loadingLabel = opts.loadingLabel || 'AI 상담 생성 중...';
+    // 카드 인스턴스마다 별도 보관소 — 솔로 카드와 궁합 카드가 증거를 공유하면 안 된다.
+    var paidEvidenceStore = (typeof window !== 'undefined' && typeof window._cdAIPromptEvidenceStore === 'function')
+      ? window._cdAIPromptEvidenceStore()
+      : null;
+    // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
+    var requestEpoch = 0;
+    var retryHint = (typeof window !== 'undefined' && window._cdAIPromptRetryHint)
+      || ' 이미 결제가 확인되었으니 추가 결제 없이 다시 시도할 수 있습니다.';
 
     function setStatus(message, tone) {
       statusEl.textContent = String(message || '');
@@ -14866,10 +14968,27 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return;
       }
 
-      setLoading(true);
-      setStatus('숙요 데이터를 분석해 질문에 대한 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
+      // 같은 질문으로 다시 눌렀고 직전 실패가 결제 권한을 남겼다면 게이트를 건너뛴다.
+      var pendingRequestId = syBuildSukuyoPromptRequestId({
+        domain: String(opts.domain || syInferSukuyoPromptDomain(question, !!opts.preferCompatibility)).trim(),
+        question: question,
+        basicResult: syGetPromptBasicResult(),
+        compatibilityResult: syGetPromptCompatibilityResult(syGetPromptBasicResult(), !!opts.preferCompatibility),
+        epoch: requestEpoch
+      });
+      var reusableEvidence = paidEvidenceStore ? paidEvidenceStore.get(pendingRequestId) : null;
 
-      syRequestSukuyoPromptByQuestion(question, { preferCompatibility: !!opts.preferCompatibility }).then(function(result) {
+      setLoading(true);
+      setStatus(reusableEvidence
+        ? '이미 확인된 결제 권한으로 추가 결제 없이 상담 답변을 다시 만들고 있습니다...'
+        : '숙요 데이터를 분석해 질문에 대한 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
+
+      syRequestSukuyoPromptByQuestion(question, {
+        preferCompatibility: !!opts.preferCompatibility,
+        domain: opts.domain,
+        epoch: requestEpoch,
+        paidEvidence: reusableEvidence
+      }).then(function(result) {
         var payload = result && result.payload ? result.payload : {};
         var resultText = String(payload.resultText || '').trim();
         var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
@@ -14891,6 +15010,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             Array.prototype.forEach.call(openBtns, function(openBtn) { openBtn.style.display = 'inline-flex'; });
           }
           regenerateBtn.style.display = 'inline-flex';
+          regenerateBtn.textContent = '다시 상담';
+          // 성공했으므로 이 결제 증거는 소진됐다. epoch를 올려 같은 질문 재요청이 정상 결제로 가게 한다.
+          if (paidEvidenceStore) paidEvidenceStore.clear();
+          requestEpoch += 1;
 
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
 
@@ -14906,14 +15029,31 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var code = String(payload.code || '');
         var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
         if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+          if (paidEvidenceStore) paidEvidenceStore.clear();
           setStatus('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
           setTimeout(function() { syOpenLoginForPrompt(); }, 700);
           return;
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
+          if (paidEvidenceStore) paidEvidenceStore.clear();
           setStatus(message, 'error');
           return;
         }
+        // 결제는 확인됐는데 생성만 실패 — 서버가 환불하지 않았을 때만 증거를 보관해 무료 재시도를 연다.
+        // 이 판정은 워커가 내려주는 paymentRetainedForRetry 하나에만 의존한다(구버전 워커면 보관 안 함).
+        var canRetryFree = paidEvidenceStore
+          && result && result._cdPaidEvidence
+          && typeof window !== 'undefined'
+          && typeof window._cdAIPromptShouldRetainEvidence === 'function'
+          && window._cdAIPromptShouldRetainEvidence(payload);
+        if (canRetryFree) {
+          paidEvidenceStore.set(result.requestId, result._cdPaidEvidence);
+          regenerateBtn.style.display = 'inline-flex';
+          regenerateBtn.textContent = '추가 결제 없이 다시 상담';
+          setStatus(message + retryHint, 'error');
+          return;
+        }
+        if (paidEvidenceStore) paidEvidenceStore.clear();
         setStatus(message, 'error');
       }).finally(function() {
         setLoading(false);
@@ -14921,6 +15061,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     questionEl.addEventListener('input', function() {
+      // 질문이 바뀌면 requestId 가 달라져 증거는 어차피 못 쓴다. 라벨도 함께 되돌린다.
+      if (paidEvidenceStore) paidEvidenceStore.clear();
+      if (regenerateBtn.textContent === '추가 결제 없이 다시 상담') regenerateBtn.textContent = '다시 상담';
       updateCount();
     });
     generateBtn.addEventListener('click', onGenerate);

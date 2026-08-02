@@ -42,6 +42,21 @@ export interface LLMRequest {
   cache?: LLMCacheConfig;
 }
 
+/**
+ * 한 번의 프로바이더 호출이 실제로 쓴 토큰. 비용은 출력이 입력의 8배 단가라
+ * input/output 을 따로 봐야 어디를 줄일지 판단할 수 있다.
+ * Workers AI 는 사용량을 안 주는 경우가 있어 그때는 문자수 기반 추정치에 estimated 를 세운다.
+ */
+export interface LLMUsage {
+  inputTokens: number;
+  outputTokens: number;
+  /** 프로바이더가 접두사 캐시로 할인해 준 입력 토큰(있을 때만). */
+  cachedInputTokens?: number;
+  /** thinking 토큰. 기본값 0(OFF)이라 평시 0이어야 한다 — 0이 아니면 어딘가 옵트인한 것이다. */
+  thinkingTokens?: number;
+  estimated?: boolean;
+}
+
 export interface LLMResponse {
   text: string;
   provider: "gemini" | "cloudflare";
@@ -49,6 +64,7 @@ export interface LLMResponse {
   /** finishReason이 MAX_TOKENS면 true — 응답이 중간에 잘렸음을 의미. 호출부에서 재시도 판단. */
   truncated?: boolean;
   finishReason?: string;
+  usage?: LLMUsage;
 }
 
 export interface CloudflareEnv {
@@ -72,6 +88,13 @@ type GeminiPayload = {
     };
     finishReason?: string;
   }>;
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    cachedContentTokenCount?: number;
+    thoughtsTokenCount?: number;
+    totalTokenCount?: number;
+  };
   error?: {
     message?: string;
   };
@@ -146,14 +169,42 @@ function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
   return `${endpointWithModel}:generateContent`;
 }
 
+function resolveTimeoutMs(timeoutMs: number | undefined): number {
+  return Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
+    ? Number(timeoutMs)
+    : DEFAULT_TIMEOUT_MS;
+}
+
+/**
+ * 🔴 `env.AI.run` 은 AbortSignal 을 받는다는 보장이 없어 fetch 처럼 signal 로 끊을 수 없다.
+ *    그래서 race 로 묶는다. 진 프라미스의 거부는 값으로 접어 unhandled rejection 을 막는다
+ *    (Workers 런타임에서 처리되지 않은 거부는 요청을 통째로 죽일 수 있다).
+ */
+async function raceWithDeadline<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+  const settled = promise.then(
+    (value) => ({ ok: true as const, value }),
+    (error: unknown) => ({ ok: false as const, error }),
+  );
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<{ ok: "timeout" }>((resolve) => {
+    timer = setTimeout(() => resolve({ ok: "timeout" }), timeoutMs);
+  });
+  try {
+    const outcome = await Promise.race([settled, timeout]);
+    if (outcome.ok === "timeout") throw new Error(timeoutMessage);
+    if (outcome.ok === false) throw outcome.error;
+    return outcome.value;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function createTimeoutSignal(timeoutMs = DEFAULT_TIMEOUT_MS): {
   signal: AbortSignal;
   clear: () => void;
   timeoutMs: number;
 } {
-  const safeTimeoutMs = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
-    ? Number(timeoutMs)
-    : DEFAULT_TIMEOUT_MS;
+  const safeTimeoutMs = resolveTimeoutMs(timeoutMs);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), safeTimeoutMs);
   return {
@@ -193,6 +244,66 @@ function emitProviderCallLog(provider: LLMResponse["provider"], model: string, r
     providerCallCount: Number(context.providerCallCount || 0) || undefined,
     cacheHit: Boolean(context.cacheHit),
     duplicateBlocked: Boolean(context.duplicateBlocked),
+  });
+}
+
+function toTokenCount(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+}
+
+/**
+ * 사용량을 안 주는 프로바이더(Workers AI 일부 모델)를 위한 보수적 추정.
+ * 한국어는 대략 문자당 1토큰 안팎이라 4로 나누는 영어 기준 휴리스틱은 크게 과소평가한다.
+ * 정확도가 목적이 아니라 "어느 라우트가 큰가"를 가르는 용도이므로 문자수/2 로 잡고 estimated 를 세운다.
+ */
+function estimateTokens(text: string): number {
+  return Math.ceil(String(text || "").length / 2);
+}
+
+function extractGeminiUsage(payload: GeminiPayload): LLMUsage | undefined {
+  const meta = payload.usageMetadata;
+  if (!meta) return undefined;
+  const inputTokens = toTokenCount(meta.promptTokenCount);
+  const outputTokens = toTokenCount(meta.candidatesTokenCount);
+  if (!inputTokens && !outputTokens) return undefined;
+  const cachedInputTokens = toTokenCount(meta.cachedContentTokenCount);
+  const thinkingTokens = toTokenCount(meta.thoughtsTokenCount);
+  return {
+    inputTokens,
+    outputTokens,
+    ...(cachedInputTokens ? { cachedInputTokens } : {}),
+    ...(thinkingTokens ? { thinkingTokens } : {}),
+  };
+}
+
+/**
+ * 라우트별 토큰 사용량을 한 줄 구조화 로그로 남긴다.
+ * scripts/report-llm-token-usage.mjs 가 이 줄을 파싱해 기능별 집계표를 만든다.
+ * 로그 형식을 바꾸면 그 스크립트도 함께 고쳐야 한다.
+ */
+function emitTokenUsageLog(
+  provider: LLMResponse["provider"],
+  model: string,
+  request: LLMRequest,
+  usage: LLMUsage,
+  env?: CloudflareEnv,
+): void {
+  if (!shouldLogProviderCall(env)) return;
+  const context = request.logContext || {};
+  console.info("[llm token_usage]", {
+    action: "token_usage",
+    provider,
+    model: cleanLogValue(model, 120),
+    taskType: cleanLogValue(request.taskType || "general", 40),
+    serviceId: cleanLogValue(context.serviceId || context.serviceType || context.featureKey, 80),
+    requestId: cleanLogValue(context.requestId, 180),
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+    cachedInputTokens: usage.cachedInputTokens || 0,
+    thinkingTokens: usage.thinkingTokens || 0,
+    maxTokens: Number(request.maxTokens) || 0,
+    estimated: Boolean(usage.estimated),
   });
 }
 
@@ -384,12 +495,17 @@ async function callGeminiPrimary(
       });
     }
 
+    const usage = extractGeminiUsage(payload)
+      || { inputTokens: estimateTokens(normalized.prompt), outputTokens: estimateTokens(text), estimated: true };
+    emitTokenUsageLog("gemini", model, normalized, usage, env);
+
     return {
       text,
       provider: "gemini",
       model,
       truncated,
       ...(finishReason ? { finishReason } : {}),
+      usage,
     };
   } catch (error) {
     if (timeout.signal.aborted) throw new Error(`Gemini request timed out after ${timeout.timeoutMs}ms.`);
@@ -419,18 +535,42 @@ async function callCloudflareWorkersAI(
   ];
 
   const failures: string[] = [];
+  // 🔴 폴백 체인에도 시간 상한을 준다. 이게 없던 동안 한 호출의 실제 상한은 "timeoutMs"가 아니라
+  //    "timeoutMs(Gemini) + 무제한(폴백 모델 2개 순차)"이었고, Gemini 가 죽는 순간에만 드러나
+  //    평소 계측으로는 잡히지 않았다. 엣지(100초)가 요청을 끊으면 라우트의 실패 처리·정리 코드가
+  //    아예 돌지 못한다. 예산은 호출자가 준 timeoutMs 를 **체인 전체**에 배분한다 — 폐기 모델은
+  //    빠르게 실패하므로(5028) 체인의 목적인 폐기 대응은 그대로 유지된다.
+  const chainDeadlineAt = Date.now() + resolveTimeoutMs(normalized.timeoutMs);
   for (const model of models) {
+    const remainingMs = chainDeadlineAt - Date.now();
+    if (remainingMs <= 0) {
+      failures.push(`${model}: skipped (fallback budget exhausted)`);
+      continue;
+    }
     try {
       emitProviderCallLog("cloudflare", model, normalized, env);
-      const result = await env.AI.run(model, buildWorkersAiInput(model, normalized, messages));
+      const result = await raceWithDeadline(
+        Promise.resolve(env.AI.run(model, buildWorkersAiInput(model, normalized, messages))),
+        remainingMs,
+        `Cloudflare Workers AI (${model}) timed out after ${remainingMs}ms.`,
+      );
 
       const text = extractWorkersAiText(result);
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
+
+      // Workers AI 는 사용량 필드를 안 주는 모델이 있어 문자수 기반 추정으로 통일한다.
+      const usage: LLMUsage = {
+        inputTokens: estimateTokens(normalized.systemPrompt || "") + estimateTokens(normalized.prompt),
+        outputTokens: estimateTokens(text),
+        estimated: true,
+      };
+      emitTokenUsageLog("cloudflare", model, normalized, usage, env);
 
       return {
         text,
         provider: "cloudflare",
         model,
+        usage,
       };
     } catch (error) {
       // 폐기(5028)·스키마 거부·빈 응답 — 사유를 가리지 않고 다음 모델로 넘긴다.

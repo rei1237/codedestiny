@@ -1255,7 +1255,12 @@ export default function ZiweiAiPage() {
 
       <style>{ZWV_CSS}</style>
       <style>{`
-        .ziweiAiShell{position:relative;min-height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 22% 6%,rgba(116,82,170,.42),transparent 34%),radial-gradient(ellipse at 78% 18%,rgba(212,175,95,.20),transparent 28%),radial-gradient(ellipse at 52% 92%,rgba(83,121,177,.22),transparent 38%),linear-gradient(145deg,#050714 0%,#0d1027 42%,#161033 72%,#060712 100%);color:#f8fafc;padding:22px;font-family:var(--font-body)}
+        /* 한자 폴백을 명시한 본문·제목 스택.
+           --font-body 는 "…, system-ui, sans-serif" 로 끝나는데, 그 generic family 가 last-resort 로
+           매칭돼 버려서 뒤에 한자 폰트를 더 붙여도 도달하지 못한다. 그래서 변수를 쓰지 않고 여기서 새로 쓴다.
+           Pretendard(=CodeDestinyBody)와 세리프 청크(CodeDestinySerifKR)에는 한자 글리프가 없어
+           명궁(命宮) 같은 병기가 OS 폰트로 넘어가야 보인다. */
+        .ziweiAiShell{--zwv-han:"Apple SD Gothic Neo","Malgun Gothic","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK KR","Noto Sans KR";--zwv-body:"CodeDestinyBody","Pretendard",var(--zwv-han),system-ui,sans-serif;--zwv-serif:"CodeDestinySerifKR","Nanum Myeongjo","Noto Serif KR",var(--zwv-han),Georgia,serif;position:relative;min-height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 22% 6%,rgba(116,82,170,.42),transparent 34%),radial-gradient(ellipse at 78% 18%,rgba(212,175,95,.20),transparent 28%),radial-gradient(ellipse at 52% 92%,rgba(83,121,177,.22),transparent 38%),linear-gradient(145deg,#050714 0%,#0d1027 42%,#161033 72%,#060712 100%);color:#f8fafc;padding:22px;font-family:var(--zwv-body)}
         .ziweiAiShell::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(250,235,182,.58) 0 1px,transparent 1.2px);background-size:92px 92px,137px 137px;background-position:12px 18px,54px 36px;opacity:.22;pointer-events:none}
         .ziweiAiShell::after{content:"";position:absolute;inset:-15% -10%;background:linear-gradient(112deg,transparent 12%,rgba(183,180,232,.10) 36%,rgba(236,204,132,.13) 48%,rgba(130,111,190,.10) 62%,transparent 84%);filter:blur(18px);transform:rotate(-7deg);pointer-events:none}
         .ziweiHero,.workspace{position:relative;z-index:1}
@@ -1314,8 +1319,8 @@ export default function ZiweiAiPage() {
         .resultToolbar button:disabled{cursor:not-allowed;opacity:.62}
         .resultDocument{display:grid;gap:14px;background:#060712;color:#f8fafc}
         .resultCover{display:grid;gap:8px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:radial-gradient(ellipse at 74% 18%,rgba(245,217,145,.16),transparent 38%),linear-gradient(145deg,rgba(14,16,43,.96),rgba(7,9,25,.98));padding:24px}
-        .resultCover span{color:#fff0b8;font-family:var(--font-premium);font-size:18px;font-weight:900}
-        .resultCover h2{margin:0;color:#fffaf0;font-family:var(--font-premium);font-size:30px;line-height:1.2;letter-spacing:0}
+        .resultCover span{color:#fff0b8;font-family:var(--zwv-serif);font-size:19px;font-weight:700;letter-spacing:.22em}
+        .resultCover h2{margin:0;color:#fffaf0;font-family:var(--zwv-serif);font-size:31px;font-weight:700;line-height:1.28;letter-spacing:.01em}
         .resultCover p{margin:0;color:#d9c7ff;line-height:1.65}
         .chartDataPanel{display:grid;gap:13px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.11),rgba(32,38,78,.78));padding:16px}
         .chartDataHeader{display:grid;gap:4px}
@@ -1372,14 +1377,27 @@ export default function ZiweiAiPage() {
         @keyframes ziweiTwinkle{0%,100%{opacity:.09}50%{opacity:.22}}
         @keyframes ziweiGlow{0%,100%{text-shadow:0 0 6px rgba(252,211,77,.32)}50%{text-shadow:0 0 13px rgba(252,211,77,.7)}}
         @keyframes ziweiHuaJi{0%,100%{box-shadow:0 0 0 rgba(248,113,113,0)}50%{box-shadow:0 0 12px rgba(248,113,113,.55)}}
-        @media(prefers-reduced-motion:reduce){.palaceBoardSky,.palaceCard.isLife .star.main,.hua.huaJi{animation:none!important}}
-        .chatList{display:grid;gap:12px}
-        .chatCard{display:grid;gap:10px;border:1px solid rgba(224,210,255,.22);border-radius:8px;background:linear-gradient(145deg,rgba(8,11,30,.92),rgba(28,26,64,.78));padding:16px;color:#f8fafc}
+        @media(prefers-reduced-motion:reduce){.palaceBoardSky,.palaceCard.isLife .star.main,.hua.huaJi,.chatCard{animation:none!important}}
+        .chatList{display:grid;gap:18px}
+        /* 유리 질감 + 골드 헤어라인. 안쪽 실선 하나를 inset 그림자로 얹어 테두리를 두 겹으로 보이게 한다. */
+        .chatCard{position:relative;display:grid;gap:13px;border:1px solid rgba(224,210,255,.20);border-radius:16px;background:linear-gradient(145deg,rgba(8,11,30,.86),rgba(28,26,64,.70));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:24px 22px;color:#f8fafc;box-shadow:inset 0 1px 0 rgba(245,217,145,.14),0 14px 32px rgba(4,6,20,.34);animation:zwvSectionRise 420ms cubic-bezier(.22,1,.36,1) both}
+        .chatCard:nth-child(2){animation-delay:60ms}
+        .chatCard:nth-child(3){animation-delay:120ms}
+        .chatCard:nth-child(4){animation-delay:180ms}
+        .chatCard:nth-child(5){animation-delay:240ms}
+        .chatCard:nth-child(n+6){animation-delay:300ms}
+        @keyframes zwvSectionRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
         .chatCardTitle{display:flex;align-items:center;gap:8px;color:#fff0b8}
         .chatCardTitle b{display:grid;place-items:center;width:32px;aspect-ratio:1;border-radius:999px;background:rgba(245,217,145,.10);color:#fff0b8;font-family:var(--font-premium);font-size:17px;font-weight:800}
-        .chatCardTitle h3{margin:0;font-family:var(--font-display);font-size:16px;line-height:1.35;color:#fff0b8}
+        .chatCardTitle h3{margin:0;font-family:var(--zwv-serif);font-size:19px;font-weight:700;line-height:1.4;letter-spacing:.01em;color:#fff0b8}
         .chatCardTitle svg{color:#f5d991}
-        .chatCard p{margin:0;white-space:pre-wrap;line-height:1.84;font-size:15px;color:#f3efff;word-break:keep-all}
+        .chatCard p{margin:0;white-space:pre-wrap;line-height:1.92;font-size:16px;letter-spacing:-.003em;color:#f3efff;word-break:keep-all}
+        .chatCard p+p{margin-top:15px}
+        /* 한자를 직접 렌더하는 자리들. 브랜드 서체(The Jamsil·Mulmaru)와 세리프 청크 모두 한자 글리프가 없어
+           OS 한자 폰트로 넘어가야 命·紫微斗數 가 보인다. 이 규칙이 앞선 font-family 선언을 덮는다. */
+        .eyebrow,.heroBackdropText,.heroConstellation b,.palaceTag,.chatCardTitle b,.loadingSteps i,.palaceSigil{font-family:var(--font-premium),var(--zwv-han),serif}
+        .palaceHead strong,.summaryGrid strong,.chartDataHeader strong,.resultToolbar strong{font-family:var(--zwv-serif);font-weight:700}
+        .summaryGrid strong{letter-spacing:.01em}
         .spin{animation:ziweiSpin 1s linear infinite}
         @keyframes ziweiSpin{to{transform:rotate(360deg)}}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}

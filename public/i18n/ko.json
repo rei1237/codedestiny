@@ -698,7 +698,7 @@
       "vvipBenefit2": "프로필 최대 15개",
       "vvipCta": "VVIP 혜택 보기",
       "familyName": "Code Destiny Family 30일",
-      "familyPrice": "30일 · 300,000원",
+      "familyPrice": "30일 · 149,000원",
       "familyLine": "모든 유료 리딩을 가장 넓은 달빛 범위로",
       "familyBenefit1": "프로필 제한 없음",
       "familyBenefit2": "Family 전체 혜택",
@@ -1108,6 +1108,18 @@
       "placeholder": "찾고 싶은 운세를 검색하세요 (예: 타로, 궁합, 꿈해몽, 관상)",
       "searchAria": "전체 서비스 검색",
       "empty": "검색 결과가 없어요. 다른 키워드로 찾아보세요."
+    },
+    "todayHub": {
+      "title": "오늘의 운세",
+      "lead": "사주 일진 · 숙요 27수 · 베다 요일 지배성을 한자리에서. 로그인 없이 무료입니다.",
+      "tabsAria": "오늘의 운세 점술 전환",
+      "tabSaju": "사주",
+      "tabSukuyo": "숙요점",
+      "tabVedic": "베다점",
+      "personalized": "내 생일 반영",
+      "noteGuest": "지금은 오늘 하루 전체의 흐름입니다. 프로필 카드에 생년월일을 넣어 두면 내 명식과 견주어 읽어 드려요.",
+      "ctaAll": "오늘의 운세 전체 보기",
+      "share": "공유하기"
     }
   },
   "footer": {
@@ -1300,7 +1312,7 @@
     "directModal": {
       "title": "결제 방식 선택",
       "readyMessage": "월정석과 단건 결제 중 선택해 주세요.",
-      "directHint": "카드 또는 간편결제 수단으로 바로 결제합니다.<br>결제는 PortOne V2 KG이니시스 보안 결제창에서 진행됩니다.",
+      "directHint": "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.",
       "pgBadge": "PortOne V2 · KG이니시스",
       "directTitle": "원화 단건 결제 · {amount}",
       "amountLabel": "결제 금액",
@@ -1316,15 +1328,17 @@
       "note": {
         "basis": "월정석 이벤트 재화 기준 · {amount}",
         "withPass": "한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다.",
-        "directOnly": "이 작업은 원화 단건 결제로 확정됩니다."
+        "directOnly": "이 작업은 원화 단건 결제로 확정됩니다.",
+        "passUnknown": "이용권이 있으시면 아래 이용권 카드를 누르면 그 자리에서 확인됩니다.",
+        "passMiss": "보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요."
       },
       "passBadge": "달빛 이용권",
       "passStoreTitle": "달빛 이용권 상점",
       "passRetryTitle": "이용권 다시 확인",
       "passHint": {
-        "store": "달빛 이용권으로 전환하면 이 기능을 포함해 한도 이하 기능을 30일간 결제창 없이 무제한 이용합니다.",
+        "store": "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.",
         "retry": "보유 이용권으로 결제 없이 열릴 수 있는지 서버에서 다시 확인합니다.",
-        "upgrade": "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
+        "upgrade": "지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요."
       },
       "applyMethod": {
         "label": "적용 방식",
@@ -1339,9 +1353,10 @@
         "checking": "이용권 범위 확인 중"
       },
       "monthlyHint": {
-        "use": "보유 월정석에서 차감됩니다. 월정석은 이벤트성 선불 재화입니다.",
+        "use": "이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.",
         "insufficient": "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.",
-        "checking": "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요."
+        "checking": "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.",
+        "after": "사용 후 {balance}이 남습니다."
       },
       "monthlyBalance": {
         "needCheck": "확인 필요",
@@ -1350,13 +1365,28 @@
         "refresh": "월정석 재조회",
         "refreshing": "월정석 잔량을 다시 조회하고 있습니다.",
         "refreshed": "월정석 잔량을 다시 확인했습니다. 현재 {balance}입니다.",
-        "notFound": "아직 활성화된 월정석/이용권을 확인하지 못했습니다. 결제 완료 후 다시 재조회해 주세요."
+        "notFound": "아직 활성화된 월정석/이용권을 확인하지 못했습니다. 결제 완료 후 다시 재조회해 주세요.",
+        "owned": "보유 월정석 {balance}",
+        "ownedUnknown": "보유 월정석 · 확인 필요",
+        "signedOut": "로그인 후 월정석 잔량을 확인할 수 있어요.",
+        "unconfirmed": "월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.",
+        "staleAfterError": "월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 {balance}"
       },
       "legal": {
         "provisionTiming": "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다."
       },
       "passUpgradeTitle": "달빛 이용권 업그레이드",
-      "recommendBadge": "추천"
+      "recommendBadge": "추천",
+      "moonTitle": "달빛 결제 방식 선택",
+      "moonSubtitle": "달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.",
+      "directTitleLabel": "단건 결제",
+      "monthlyUnit": "이벤트 재화",
+      "passBuyTitle": "이용권으로 구매",
+      "passChecking": "이용권을 확인하고 있습니다.",
+      "passMissGoStore": "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.",
+      "passCheckRetry": "이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요.",
+      "directHintApp": "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.",
+      "pgBadgeApp": "Google Play 결제"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1401,7 +1431,7 @@
       "monthlyBasisWithPrice": "월정석 기준 {credits} · {price}",
       "profileUnlimited": "프로필 무제한",
       "profileLimit": "프로필 {count}개",
-      "allFeatures": "전체 기능 이용 가능",
+      "allFeatures": "3만원 미만 무제한 · 전문가 상담 10회 포함",
       "upTo": "{amount} 이하 이용 가능",
       "benefits": "혜택 한눈에",
       "closeAria": "달빛이용권 상점 안내 닫기",
@@ -1613,7 +1643,8 @@
     "share": {
       "title": "📤 사주 결과 공유하기",
       "kakao": "카카오톡 공유",
-      "instagram": "인스타 DM"
+      "instagram": "인스타 DM",
+      "image": "이미지로 공유"
     },
     "actions": {
       "newSaju": "✨ 새로운 사주 보기"
@@ -3183,7 +3214,7 @@
     "sq_9794_attr_aria_label": "숙요 인연 레이더 차트"
   },
   "shell": {
-    "CODEDESTINY": "CODE DESTINY | 무료 사주팔자·타로·자미두수·궁합 — 꿀꿀 운세",
+    "CODEDESTINY": "코드 데스티니 꿀꿀 운세 | 무료 사주팔자·타로·숙요점·점성술 — CODE DESTINY",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "동의하기",
@@ -4305,6 +4336,30 @@
       "009": "자존감 레벨업 타로",
       "010": "일의 문턱 7카드",
       "011": "상대방 속마음 타로"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "결제하면 받는 것",
+      "volumeLabel": "분량",
+      "volumeValue": "30,000~60,000자",
+      "chaptersLabel": "구성",
+      "chaptersValue": "10개 장 · 장마다 2,400자 이상",
+      "keepLabel": "보관",
+      "keepValue": "PDF로 저장해 영구 소장",
+      "guarantee": "분량이 기준에 못 미치면 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "결제하면 받는 것",
+      "volumeLabel": "분량",
+      "volumeValue": "최소 30,000자",
+      "chaptersLabel": "구성",
+      "chaptersValue": "16개 장 · 장마다 1,900~2,400자",
+      "keepLabel": "보관",
+      "keepValue": "PDF로 저장해 영구 소장",
+      "guarantee": "장이 기준 분량에 못 미치면 최대 2회까지 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
     }
   }
 }

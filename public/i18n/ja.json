@@ -816,7 +816,7 @@
       "vvipBenefit2": "最大 15 個のプロファイル",
       "vvipCta": "VVIP の特典を見る",
       "familyName": "コード デスティニー ファミリー 30 日",
-      "familyPrice": "30日 · 300,000ウォン",
+      "familyPrice": "30日 · 149,000ウォン",
       "familyLine": "すべての有料機能を使用する",
       "familyBenefit1": "プロファイル制限なし",
       "familyBenefit2": "すべてのファミリー特典",
@@ -1274,6 +1274,18 @@
       "placeholder": "サービスを検索（例：タロット、相性、夢）",
       "searchAria": "全サービス検索",
       "empty": "結果がありません。別のキーワードでお試しください。"
+    },
+    "todayHub": {
+      "title": "今日の運勢",
+      "lead": "四柱推命の日柱・宿曜の二十七宿・ヴェーダの曜日支配星をひとまとめに。ログイン不要・無料です。",
+      "tabsAria": "今日の運勢の占術を切り替え",
+      "tabSaju": "四柱推命",
+      "tabSukuyo": "宿曜",
+      "tabVedic": "ヴェーダ",
+      "personalized": "生年月日を反映",
+      "noteGuest": "今は一日全体の流れです。プロフィールカードに生年月日を登録すると、あなたの命式と照らして読み解きます。",
+      "ctaAll": "今日の運勢をすべて見る",
+      "share": "共有する"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "決済方法を選択",
       "readyMessage": "月定石と単発決済のどちらかを選んでください。",
-      "directHint": "カードまたは簡単決済ですぐにお支払いできます。<br>決済はPortOne V2 KGイニシスの安全な決済画面で進みます。",
+      "directHint": "今回の結果ひとつだけ。カード・簡単決済ですぐ開きます。",
       "pgBadge": "PortOne V2 · KGイニシス",
       "directTitle": "ウォン単発決済 · {amount}",
       "amountLabel": "決済金額",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "月定石基準 · {amount}",
         "withPass": "通常の有料サービスは上限内なら利用券で開き、PDFと上限超過サービスは商品別のウォン単発決済で利用できます。",
-        "directOnly": "この操作はウォン単発決済で確定します。"
+        "directOnly": "この操作はウォン単発決済で確定します。",
+        "passUnknown": "利用券をお持ちなら、下の利用券カードを押すとその場で確認できます。",
+        "passMiss": "お持ちの利用券ではこのコンテンツが無料になりません。決済方法をお選びください。"
       },
       "passBadge": "月光利用券",
       "passStoreTitle": "月光利用券ショップ",
       "passRetryTitle": "利用券を再確認",
       "passHint": {
-        "store": "月光利用券に切り替えると、この機能を含む上限以下の機能を30日間、決済画面なしで無制限に利用できます。",
+        "store": "30日間、上限以下の機能を決済画面なしで無制限に。すでに利用券をお持ちならタップですぐ確認できます。",
         "retry": "保有利用券で決済なしに開けるかサーバーで再確認します。",
-        "upgrade": "現在の利用券の上限を超える機能です。上位の月光利用券をご確認ください。"
+        "upgrade": "現在の等級ではこの機能は無料になりません。上位の利用券をご確認ください。"
       },
       "applyMethod": {
         "label": "適用方式",
@@ -1784,9 +1798,10 @@
         "checking": "利用券範囲を確認中"
       },
       "monthlyHint": {
-        "use": "保有月定石残高で決済し、すぐに利用します。",
+        "use": "すでにお持ちの月定石でお支払いします。追加の出費なしで開きます。",
         "insufficient": "月定石残高が不足しています。ウォン単発決済で進めます。",
-        "checking": "月定石残高の確認が必要です。ウォン単発決済は続けられます。"
+        "checking": "月定石残高の確認が必要です。ウォン単発決済は続けられます。",
+        "after": "使用後は {balance} が残ります。"
       },
       "monthlyBalance": {
         "needCheck": "確認必要",
@@ -1795,13 +1810,28 @@
         "refresh": "月定石を再照会",
         "refreshing": "月定石残高を再照会しています。",
         "refreshed": "月定石残高を再確認しました。現在 {balance}です。",
-        "notFound": "有効な月定石/利用券をまだ確認できません。決済完了後に再照会してください。"
+        "notFound": "有効な月定石/利用券をまだ確認できません。決済完了後に再照会してください。",
+        "owned": "保有月定石 {balance}",
+        "ownedUnknown": "保有月定石 · 確認が必要",
+        "signedOut": "ログイン後に月定石の残高を確認できます。",
+        "unconfirmed": "月定石の残高を確認できませんでした。そのままお試しいただけます。不足していれば決済時にお知らせします。",
+        "staleAfterError": "月定石の残高を再確認できず、前回の確認値を表示しています · 現在 {balance}"
       },
       "legal": {
         "provisionTiming": "本サービスは決済完了後すぐに提供されます。決済確認時点からサービス利用が開始され、サービス提供が開始されたコンテンツは電子商取引法に基づき、申し込み撤回が制限される場合があります。"
       },
       "passUpgradeTitle": "月光利用券アップグレード",
-      "recommendBadge": "おすすめ"
+      "recommendBadge": "おすすめ",
+      "moonTitle": "決済方法を選択",
+      "moonSubtitle": "ご自身に合った方法でコンテンツを開いてください。",
+      "directTitleLabel": "単発決済",
+      "monthlyUnit": "イベント通貨",
+      "passBuyTitle": "利用券で購入",
+      "passChecking": "利用券を確認しています。",
+      "passMissGoStore": "お持ちの利用券では開けないため、利用券ショップへ移動します。",
+      "passCheckRetry": "利用券の状態を確認できませんでした。しばらくしてからもう一度押してください。",
+      "directHintApp": "今回の結果ひとつだけ。Google Play 決済ですぐ開きます。",
+      "pgBadgeApp": "Google Play 決済"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "月定石基準 {credits} · {price}",
       "profileUnlimited": "プロフィール無制限",
       "profileLimit": "プロフィール{count}件",
-      "allFeatures": "すべての機能を利用可能",
+      "allFeatures": "3万ウォン未満は無制限・専門家相談10回込み",
       "upTo": "{amount}以下利用可能",
       "benefits": "特典を一覧で見る",
       "closeAria": "月光利用券ショップ案内を閉じる",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30日",
-          "desc": "30日 · すべての有料機能 · プロフィール無制限"
+          "desc": "30日 · 3万ウォン未満は無制限 · 専門家相談10回 · プロフィール無制限"
         }
       },
       "monthlyStatusChecking": "残量とパスの状態を確認しています。",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 四柱結果を共有",
       "kakao": "KakaoTalkで共有",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "画像で共有"
     },
     "actions": {
       "newSaju": "✨ 新しい四柱を見る"
@@ -7317,6 +7348,30 @@
       "009": "自己肯定感アップタロット",
       "010": "仕事の転機7カード",
       "011": "相手の気持ちタロット"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "決済で受け取るもの",
+      "volumeLabel": "分量",
+      "volumeValue": "30,000〜60,000文字",
+      "chaptersLabel": "構成",
+      "chaptersValue": "全10章・各章2,400文字以上",
+      "keepLabel": "保存",
+      "keepValue": "PDFで保存して永久保存",
+      "guarantee": "分量が基準に届かない場合は自動で書き直します。それでも満たせないときは結果を出さず失敗として扱うため、再試行と返金の導線がそのまま残ります。"
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "決済で受け取るもの",
+      "volumeLabel": "分量",
+      "volumeValue": "最低30,000文字",
+      "chaptersLabel": "構成",
+      "chaptersValue": "全16章・各章1,900〜2,400文字",
+      "keepLabel": "保存",
+      "keepValue": "PDFで保存して永久保存",
+      "guarantee": "基準分量に届かない章は最大2回まで自動で書き直します。それでも満たせないときは結果を出さず失敗として扱うため、再試行と返金の導線がそのまま残ります。"
     }
   }
 }

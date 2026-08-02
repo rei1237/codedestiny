@@ -1,0 +1,120 @@
+/* 다샤 인생지도 전용 — 120년 타임라인 + 안타르다샤 펼침 + 동양 대운 병렬.
+   팔레트 토큰은 부모(.vars, _premium/premium.module.css)에서 상속받는다. */
+
+.map { margin-top: 1.6rem; }
+.mapTitle {
+  margin: 0 0 0.35rem;
+  color: var(--t-100);
+  font-size: 1rem;
+  font-weight: 800;
+}
+.mapNote {
+  margin: 0 0 1rem;
+  color: var(--t-400);
+  font-size: 0.78rem;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.period {
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.95rem;
+  background: var(--glass);
+  overflow: hidden;
+}
+.periodCurrent {
+  border-color: rgba(229, 199, 137, 0.45);
+  background: rgba(229, 199, 137, 0.06);
+}
+.periodPast { opacity: 0.62; }
+
+.periodHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+.periodHead::-webkit-details-marker { display: none; }
+.age {
+  flex: none;
+  min-width: 5.2rem;
+  color: var(--t-400);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+.lord {
+  color: var(--gold-soft);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+.periodCurrent .lord { color: var(--gold); }
+.phase {
+  color: var(--t-300);
+  font-size: 0.82rem;
+  word-break: keep-all;
+}
+.nowBadge {
+  margin-left: auto;
+  flex: none;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(229, 199, 137, 0.18);
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.periodBody { padding: 0 1rem 1rem; }
+.line {
+  margin: 0 0 0.5rem;
+  color: var(--t-200);
+  font-size: 0.85rem;
+  line-height: 1.9;
+  word-break: keep-all;
+}
+.lineLabel { color: var(--east-soft); font-weight: 700; }
+.lineCaution .lineLabel { color: var(--rose-soft); }
+
+.eastern {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  color: var(--t-300);
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+.easternLabel { color: var(--east-soft); font-weight: 700; }
+
+.subs { margin: 0.85rem 0 0; padding: 0; list-style: none; }
+.sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem;
+  line-height: 1.75;
+}
+.subCurrent { color: var(--gold-soft); }
+.subDate {
+  flex: none;
+  min-width: 10.5rem;
+  color: var(--t-400);
+  font-variant-numeric: tabular-nums;
+}
+.subCurrent .subDate { color: var(--gold-soft); }
+.subLord { flex: none; font-weight: 700; color: var(--t-200); }
+.subCurrent .subLord { color: var(--gold); }
+.subTone { color: var(--t-300); word-break: keep-all; }
+.subCurrent .subTone { color: var(--gold-soft); }
+
+@media (max-width: 560px) {
+  .periodHead { flex-wrap: wrap; }
+  .age { min-width: 100%; }
+  .subDate { min-width: 100%; }
+}

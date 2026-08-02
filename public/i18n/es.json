@@ -816,7 +816,7 @@
       "vvipBenefit2": "Hasta 15 perfiles",
       "vvipCta": "Ver beneficios VVIP",
       "familyName": "Código Destino Familia 30 días",
-      "familyPrice": "30 días · KRW 300.000",
+      "familyPrice": "30 días · KRW 149.000",
       "familyLine": "Usar todas las funciones pagas",
       "familyBenefit1": "Sin límite de perfil",
       "familyBenefit2": "Todos los beneficios familiares",
@@ -1274,6 +1274,18 @@
       "placeholder": "Buscar servicios (ej.: tarot, compatibilidad, sueño)",
       "searchAria": "Buscar todos los servicios",
       "empty": "Sin resultados. Prueba otra palabra clave."
+    },
+    "todayHub": {
+      "title": "La fortuna de hoy",
+      "lead": "El pilar del día del Saju, las 27 mansiones lunares y el regente védico del día, todo en un lugar. Gratis y sin registro.",
+      "tabsAria": "Cambiar el sistema de la fortuna de hoy",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Védico",
+      "personalized": "Con tu fecha de nacimiento",
+      "noteGuest": "Este es el flujo general del día. Añade tu fecha de nacimiento a la tarjeta de perfil y lo leeremos junto a tu propia carta.",
+      "ctaAll": "Ver la lectura completa de hoy",
+      "share": "Compartir"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "Elige método de pago",
       "readyMessage": "Elige entre créditos mensuales y pago único.",
-      "directHint": "Pague directamente con tarjeta o pago simple.<br>El pago continúa en la ventana segura de pago de PortOne V2 KG Inicis.",
+      "directHint": "Solo este resultado, ahora. Se abre al instante con tarjeta o pago rápido.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Pago único en KRW · {amount}",
       "amountLabel": "Monto del pago",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "Base de crédito mensual · {amount}",
         "withPass": "Los servicios generales pagos se abren con un pase cuando están dentro del límite. Los archivos PDF y los servicios que superan el límite utilizan un pago único en KRW por producto.",
-        "directOnly": "Esta acción se confirma con un pago único en KRW."
+        "directOnly": "Esta acción se confirma con un pago único en KRW.",
+        "passUnknown": "Si tienes un pase, toca la tarjeta de pase de abajo y lo comprobamos aquí mismo.",
+        "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago."
       },
       "passBadge": "Pase a la luz de la luna",
       "passStoreTitle": "Tienda de pases a la luz de la luna",
       "passRetryTitle": "Verificar pase nuevamente",
       "passHint": {
-        "store": "Cambia al Pase Moonlight para abrir esta y todas las funciones dentro del límite durante 30 días, sin ventana de pago.",
+        "store": "30 días de acceso ilimitado a funciones bajo el límite, sin pasar por caja. ¿Ya tienes pase? Toca para comprobarlo aquí.",
         "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
-        "upgrade": "Esta función supera el límite de tu pase actual. Consulta un Pase Moonlight superior."
+        "upgrade": "Tu nivel actual no cubre esta función. Echa un vistazo a un pase superior."
       },
       "applyMethod": {
         "label": "Aplicar método",
@@ -1784,9 +1798,10 @@
         "checking": "Comprobando la cobertura del pase"
       },
       "monthlyHint": {
-        "use": "Utilice su saldo de crédito mensual y ábralo ahora.",
+        "use": "Paga con las piedras lunares que ya tienes. Se abre sin gasto adicional.",
         "insufficient": "Su saldo de crédito mensual es bajo. Puede continuar con el pago único en KRW.",
-        "checking": "Es necesario verificar el saldo de crédito mensual. El pago único en KRW todavía está disponible."
+        "checking": "Necesitamos comprobar tu saldo de piedras lunares. El pago único en KRW sigue disponible.",
+        "after": "Quedarán {balance} después de usarlo."
       },
       "monthlyBalance": {
         "needCheck": "Cheque necesario",
@@ -1795,13 +1810,28 @@
         "refresh": "Actualizar créditos",
         "refreshing": "Saldo de crédito mensual actualizado.",
         "refreshed": "Saldo de crédito mensual verificado nuevamente. El saldo actual es {balance}.",
-        "notFound": "Aún no se encontraron créditos/pase mensuales activos. Actualice nuevamente después de completar el pago."
+        "notFound": "Aún no se encontraron créditos/pase mensuales activos. Actualice nuevamente después de completar el pago.",
+        "owned": "Piedras lunares: {balance}",
+        "ownedUnknown": "Piedras lunares · falta comprobar",
+        "signedOut": "Inicia sesión para consultar tu saldo de Piedra Lunar.",
+        "unconfirmed": "No pudimos confirmar tu saldo de Piedra Lunar. Puedes intentarlo igualmente; te avisaremos al pagar si no alcanza.",
+        "staleAfterError": "No se pudo actualizar tu saldo de Piedra Lunar; se muestra el último valor confirmado · actualmente {balance}"
       },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico."
       },
       "passUpgradeTitle": "Mejorar el pase Moonlight",
-      "recommendBadge": "Recomendado"
+      "recommendBadge": "Recomendado",
+      "moonTitle": "Elige cómo pagar",
+      "moonSubtitle": "Elige la opción que mejor te convenga.",
+      "directTitleLabel": "Pago único",
+      "monthlyUnit": "moneda de evento",
+      "passBuyTitle": "Comprar con pase",
+      "passChecking": "Comprobando tu pase…",
+      "passMissGoStore": "Tu pase no cubre esto, te llevamos a la tienda de pases.",
+      "passCheckRetry": "No pudimos verificar el estado de tu pase. Vuelve a pulsar en un momento.",
+      "directHintApp": "Solo este resultado, ahora. Se abre al instante con la facturación de Google Play.",
+      "pgBadgeApp": "Facturación de Google Play"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
       "profileUnlimited": "Perfiles ilimitados",
       "profileLimit": "{count} perfiles",
-      "allFeatures": "Todas las funciones disponibles",
+      "allFeatures": "Ilimitado por debajo de KRW 30.000 · 10 consultas de experto incluidas",
       "upTo": "Disponible hasta {amount}",
       "benefits": "Beneficios de un vistazo",
       "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Todas las funciones pagas · Perfiles ilimitados"
+          "desc": "30 días · Ilimitado bajo KRW 30.000 · 10 consultas de experto · Perfiles ilimitados"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 Compartir saju resultado",
       "kakao": "KakaoTalk compartir",
-      "instagram": "Mensaje directo de Instagram"
+      "instagram": "Mensaje directo de Instagram",
+      "image": "Compartir como imagen"
     },
     "actions": {
       "newSaju": "✨ Ver un nuevo saju"
@@ -7317,6 +7348,30 @@
       "009": "Tarot para Subir la Autoestima",
       "010": "7 Cartas del Umbral del Trabajo",
       "011": "Tarot de los Sentimientos del Otro"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Lo que recibes al pagar",
+      "volumeLabel": "Extensión",
+      "volumeValue": "30.000–60.000 caracteres",
+      "chaptersLabel": "Estructura",
+      "chaptersValue": "10 capítulos · más de 2.400 caracteres cada uno",
+      "keepLabel": "Consérvalo",
+      "keepValue": "Guárdalo en PDF para siempre",
+      "guarantee": "Si el texto no alcanza esa extensión, se reescribe automáticamente. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Lo que recibes al pagar",
+      "volumeLabel": "Extensión",
+      "volumeValue": "Mínimo 30.000 caracteres",
+      "chaptersLabel": "Estructura",
+      "chaptersValue": "16 capítulos · 1.900–2.400 caracteres cada uno",
+      "keepLabel": "Consérvalo",
+      "keepValue": "Guárdalo en PDF para siempre",
+      "guarantee": "Todo capítulo que se quede corto se reescribe automáticamente, hasta dos veces. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
     }
   }
 }

@@ -1,0 +1,110 @@
+/* 인생의 책 결과 액션 독 — 데스크탑은 문서 하단에 흐르고, 모바일에서만 화면 하단에 고정된다.
+   🔴 모바일 처리는 공용 래퍼(styles/mobile-lite.css)가 아니라 이 기능의 CSS 에서만 한다. */
+
+.dock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 24px;
+  padding: 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(244, 208, 122, 0.28);
+  background: rgba(16, 10, 8, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  /* 탭 타깃 하한 — 인체공학 기준(44px)보다 여유를 준다. */
+  min-width: 64px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(244, 208, 122, 0.22);
+  background: rgba(0, 0, 0, 0.24);
+  /* 대비 4.5:1 이상 — 앰버 계열을 유지한 채 명도만 올린다(The Hue-Stays Rule). */
+  color: #f6e2b6;
+  font-weight: 800;
+  font-size: 12px;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.action:hover:not(:disabled) {
+  background: rgba(244, 208, 122, 0.16);
+  transform: translateY(-1px);
+}
+
+.action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.action[data-active="true"] {
+  color: #ffe9b8;
+  border-color: rgba(244, 208, 122, 0.55);
+  background: rgba(244, 208, 122, 0.2);
+}
+
+.action:focus-visible {
+  outline: 2px solid #f6e2b6;
+  outline-offset: 2px;
+}
+
+.label {
+  line-height: 1;
+}
+
+.dockMessage {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f6e2b6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action {
+    transition: none;
+  }
+  .action:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* 모바일: 한 손 조작을 위해 하단 고정 + 세이프에어리어.
+   🔴 본문 하단 패딩을 함께 주지 않으면 마지막 장이 독에 가린다. */
+@media (max-width: 640px) {
+  .dock {
+    position: fixed;
+    inset-inline: 8px;
+    bottom: 0;
+    z-index: 40;
+    margin-top: 0;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .action {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+  .dockMessage {
+    margin-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* PDF 캡처 중에는 독이 페이지에 찍히면 안 된다. */
+:global([data-export="true"]) .dock,
+:global(.life-book-exporting) .dock {
+  display: none;
+}

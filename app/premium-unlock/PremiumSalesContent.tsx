@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { BookOpen, Download, Loader2, RefreshCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { runGenerateWave } from "@/app/life-book-ai/lifeBookApi";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -12,6 +13,7 @@ import {
 } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 
 type GenderType = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -79,7 +81,8 @@ type LifeFortuneReport = {
   finalMessage?: string;
 };
 
-const FEATURE_KEY = "life-book-ai-consultation";
+// 인생 총운은 2026-08-01 부터 인생의 책과 별도 SKU(50,000원). 구 SKU 결제 증거는 워커가 계속 인정한다.
+const FEATURE_KEY = "life-fortune-ai-consultation";
 const FEATURE_TITLE = "인생 총운 전문가 상담";
 const CONSULTATION_TYPE = "lifeFortune";
 const TOPIC = "전체 인생 총운";
@@ -91,6 +94,9 @@ const POLL_INTERVAL_MS = 3200;
 const EXTENDED_POLL_INTERVAL_MS = 6000;
 const MAX_POLL_DURATION_MS = 8 * 60 * 1000;
 const LONG_GENERATION_NOTICE_MS = 90 * 1000;
+// 총운 15섹션 ÷ 웨이브당 4 = 4웨이브 + 재시도 여유(서버 MAX_GENERATION_WAVES 는 8).
+const MAX_GENERATE_WAVES = 12;
+const WAVE_LOCK_RETRY_DELAY_MS = 4000;
 const MIN_BIRTH_DATE = "1900-01-01";
 const MAX_BIRTH_DATE = "2100-12-31";
 const PRICE_NOT_FOUND_MESSAGE = "가격 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
@@ -223,14 +229,6 @@ function postPrepare(body: Record<string, unknown>, idempotencyKey: string) {
   return postApi<PrepareResult>("/api/life-book-ai/prepare", body, idempotencyKey, {
     allowExpectedReasons: ["PAYMENT_REQUIRED", "LOGIN_REQUIRED"],
   });
-}
-
-async function postGenerate(body: Record<string, unknown>, idempotencyKey: string) {
-  const payload = await postApi<ConsultationResult>("/api/life-book-ai/generate", body, idempotencyKey);
-  if (payload.ok === false || payload.reason) {
-    throw new Error(toText(payload.message) || "인생 총운을 열지 못했습니다.");
-  }
-  return payload;
 }
 
 async function fetchStoredResult(attemptId: string): Promise<ConsultationResult | null> {
@@ -509,19 +507,28 @@ export default function PremiumSalesContent() {
     setProgressTick(0);
     setNotice("");
 
-    const generated = await postGenerate({
-      ...payload,
-      ...accessEvidence,
-    }, requestId);
-
-    if (generated.status === "completed") {
-      setResult(generated);
-      setStatus("completed");
-      setNotice("인생 총운이 차분히 펼쳐졌습니다.");
-      return;
+    // 🔴 워커는 한 요청에 한 웨이브(섹션 4개)만 돌린다 — 클라가 반복 호출해야 생성이 끝까지 간다.
+    //    매 호출이 같은 requestId 를 쓰므로 중복 결제·중복 생성은 워커의 멱등 인덱스와 락이 막는다.
+    for (let wave = 0; wave < MAX_GENERATE_WAVES; wave += 1) {
+      const outcome = await runGenerateWave(payload, requestId, accessEvidence);
+      if (outcome.status === "completed") {
+        setResult(outcome.data as ConsultationResult);
+        setStatus("completed");
+        setNotice("인생 총운이 차분히 펼쳐졌습니다.");
+        return;
+      }
+      if (outcome.status === "failed") {
+        throw new Error(toText(outcome.message) || "인생 총운을 열지 못했습니다.");
+      }
+      setResult(outcome.data as ConsultationResult);
+      if (outcome.progress) {
+        setNotice(`인생 총운을 ${outcome.progress.completed}/${outcome.progress.total}장까지 완성했습니다.`);
+      }
+      if (outcome.httpStatus === 409) {
+        await new Promise((resolve) => setTimeout(resolve, WAVE_LOCK_RETRY_DELAY_MS));
+      }
     }
-
-    setResult(generated);
+    // 상한을 다 써도 안 끝났으면 폴링이 이어받는다(서버가 stale 을 확정 실패로 승격한다).
     pollResult(requestId);
   }
 
@@ -834,6 +841,17 @@ export default function PremiumSalesContent() {
               </p>
             ))}
           </div>
+
+          {/* 받는 것을 숫자로 못박는다. 값은 서버가 실제로 강제하는 계약이며(worker/routes/life-book-ai.js
+              의 LIFE_FORTUNE_* 상수), 미달이면 생성이 실패로 돌아 재시도·환불 경로를 탄다. */}
+          <DeliverableSpec
+            keyPrefix="premiumUnlock.deliverable"
+            className="mt-5 grid gap-3 border border-[#d8b56d]/20 bg-black/20 p-4 sm:grid-cols-3"
+            titleClassName="text-xs font-black tracking-wide text-[#f2cf82]"
+            labelClassName="text-[11px] font-bold text-[#bda986]"
+            valueClassName="mt-1 text-sm font-black leading-6 text-[#f4dfb7]"
+            noteClassName="text-[11px] leading-5 text-[#bda986]"
+          />
         </form>
 
         <section className="min-h-[70vh] rounded-lg border border-[#d8b56d]/20 bg-[#100d0a]/90 p-4 shadow-2xl shadow-black/25 backdrop-blur md:p-6">

@@ -5,7 +5,7 @@
  * timezone은 자미 자체 입력 필드일 뿐, 사주 계산 경로에는 주입하지 않는다(하드 제약 2).
  */
 import type { EngineAdapter } from "./types";
-import type { CompassInput, DirectionKey, EngineContribution } from "../types";
+import type { CompassInput, DirectionKey, EngineContribution, Evidence } from "../types";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { ZiweiUserInput } from "@/app/_lib/ziwei-types";
 import { calculateZiweiChart } from "@/app/_lib/ziwei-engine";
@@ -14,6 +14,14 @@ import { ZIWEI_PALACE_DIRECTION, ZIWEI_STUDY_STARS, DIRECTION_KEYS } from "../co
 
 function clamp01(n: number): number {
   return n < 0 ? 0 : n > 1 ? 1 : n;
+}
+
+const SIHUA_LABELS = ["화록", "화권", "화과", "화기"] as const;
+
+function starNames(stars: unknown): string[] {
+  return (Array.isArray(stars) ? stars : [])
+    .map((s) => String((s as { name?: unknown })?.name ?? "").trim())
+    .filter(Boolean);
 }
 
 function toZiweiInput(birth: AnimalDestinyInput): ZiweiUserInput {
@@ -72,6 +80,79 @@ export const ziweiAdapter: EngineAdapter = {
 
     // 시주 결측이면 시주 궁 불확실 → 품질 감점
     const dataQuality = input.birth.birthTime ? 1 : 0.75;
-    return { directions, dataQuality };
+
+    // 근거(원 용어) — 지금까지 자미만 evidence가 비어 있어 "명반을 봤다"는 말의 뿌리를 보여주지 못했다.
+    // 🔴 신규 배열이므로 순서를 뒤에서 바꾸지 말 것(0번이 명궁이라는 전제로 UI가 라벨을 뽑는다).
+    const evidence: Evidence[] = [];
+    const ming = palaces.find((p) => p.id === "ming");
+    if (ming) {
+      const mainStars = starNames(ming.mainStars);
+      evidence.push({
+        system: "ziwei",
+        term: `명궁 ${mainStars.length ? mainStars.join("·") : "무주성"}`,
+        detail: `${ming.name} · ${ming.branch || ming.earthlyBranch || ""}`.trim(),
+        id: "ziwei.ming",
+        group: "core",
+      });
+      const triad = (ming.sanFangSiZheng?.palaceNames || []).filter(Boolean);
+      if (triad.length) {
+        evidence.push({
+          system: "ziwei",
+          term: "명궁 삼방사정",
+          detail: triad.join(" · "),
+          id: "ziwei.sanfang",
+          group: "structure",
+        });
+      }
+      const triadStars = starNames(ming.sanFangSiZheng?.mainStars);
+      if (triadStars.length) {
+        evidence.push({
+          system: "ziwei",
+          term: "삼방 회조 주성",
+          detail: triadStars.join(" · "),
+          id: "ziwei.sanfangStars",
+          group: "structure",
+        });
+      }
+      if (ming.dahan) {
+        evidence.push({ system: "ziwei", term: "명궁 대한", detail: String(ming.dahan), id: "ziwei.dahan", group: "flow" });
+      }
+    }
+
+    // 사화 착지 궁 — 화록/화권/화과/화기가 각각 어느 궁에 떨어졌는지.
+    const sihuaRows: string[] = [];
+    for (const label of SIHUA_LABELS) {
+      const host = palaces.find((p) => (Array.isArray(p.sihua) ? p.sihua : []).includes(label));
+      if (host) sihuaRows.push(`${label} → ${host.name}`);
+    }
+    if (sihuaRows.length) {
+      evidence.push({
+        system: "ziwei",
+        term: "사화 착지",
+        detail: sihuaRows.join(" · "),
+        id: "ziwei.sihua",
+        // 화기는 주의 신호 — 사화가 섞여 있으면 중립으로 둔다.
+        tone: sihuaRows.some((r) => r.startsWith("화기")) ? "caution" : "positive",
+        group: "structure",
+      });
+    }
+
+    // 궁 강약 — 방향 점수의 뿌리가 어느 궁이었는지 보여준다(점수 산출식은 위와 동일한 p.score).
+    const ranked = [...palaces].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || a.id.localeCompare(b.id));
+    if (ranked.length >= 2) {
+      evidence.push({
+        system: "ziwei",
+        term: "궁 강약",
+        detail: `강한 궁 ${ranked[0].name} · 약한 궁 ${ranked[ranked.length - 1].name}`,
+        id: "ziwei.palaceRank",
+        group: "flow",
+      });
+    }
+
+    if (hasStudyStar) {
+      evidence.push({ system: "ziwei", term: "문창·문곡 동반", detail: "배움·문서 계열 보좌성", id: "ziwei.studyStar", group: "structure" });
+    }
+
+    return { directions, dataQuality, evidence: evidence.length ? evidence : undefined };
   },
 };

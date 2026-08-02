@@ -1,9 +1,21 @@
-import { createHttpError, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
+import { createHttpError, handleRouteError, json, methodNotAllowed } from "../lib/http.js";
+import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import palmMapEngine from "../../lib/palm/palm-map-engine.js";
 import bothHandsComparisonLib from "../../lib/palm/both-hands-comparison.js";
+import {
+  analyzeHandWithGeminiVision,
+  buildPalmDeepConsult,
+  majorLineDetectedCount,
+  resolveAnalysisMode,
+  visionToSideAnalysis,
+} from "../lib/palm-vision.js";
 
-const { analyzePalmHandInput } = palmMapEngine;
+const { analyzePalmHandInput, applySafetyExpressionFilter } = palmMapEngine;
 const { buildBothHandsComparison } = bothHandsComparisonLib;
+
+// 이미지 2장이 base64 로 오므로 본문이 크다. 상한이 없으면 무제한 메모리 유입 경로가 된다.
+// 클라이언트 상한(파일당 25MB) × 2 를 base64 팽창(4/3)까지 감안한 값.
+const MAX_REQUEST_BODY_BYTES = 72 * 1024 * 1024;
 
 function normalizeDominantHand(value) {
   const lowered = String(value || "").trim().toLowerCase();
@@ -29,6 +41,55 @@ function toCandidateArray(value) {
 
 function hasMeaningfulInput(sideData) {
   return Boolean(sideData.image || sideData.landmarks || sideData.candidates.length > 0);
+}
+
+function hasImage(sideData) {
+  return typeof sideData?.image === "string" && sideData.image.length > 32;
+}
+
+/**
+ * 본문 크기 상한을 건 JSON 리더.
+ * 공용 readJson 은 무제한 request.text() 라 이 라우트(이미지 2장)에는 쓰지 않는다.
+ */
+async function readJsonWithLimit(request, maxBytes) {
+  const declared = Number(request.headers.get("Content-Length") || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    throw createHttpError(413, "이미지 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.", {
+      code: "IMAGE_TOO_LARGE",
+    });
+  }
+
+  const text = await request.text();
+  if (text.length > maxBytes) {
+    throw createHttpError(413, "이미지 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.", {
+      code: "IMAGE_TOO_LARGE",
+    });
+  }
+  if (!text.trim()) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw createHttpError(400, "Request body must be valid JSON.", { code: "INVALID_JSON" });
+  }
+}
+
+/**
+ * 인증 게이트.
+ * 🔴 DB 일시 장애를 확정 401 로 세탁하지 않는다 — 로그인 유저가 게스트로 강등되면
+ *    결제/이용권 경로가 통째로 어긋난다. 인프라 오류는 503 으로 표면화한다.
+ */
+async function requirePalmAuth(request, env) {
+  try {
+    return await requireAuth(request, env);
+  } catch (error) {
+    if (isAuthDbInfraError(error)) {
+      throw createHttpError(503, "일시적인 접속 문제로 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", {
+        code: "AUTH_TEMPORARILY_UNAVAILABLE",
+      });
+    }
+    throw createHttpError(401, "로그인이 필요합니다.", { code: "LOGIN_REQUIRED" });
+  }
 }
 
 function toSide(payload, side) {
@@ -160,7 +221,11 @@ export async function handlePalmRoutes(request, env) {
   };
 
   try {
-    const body = await readJson(request);
+    // 🔴 인증 필수. 이 라우트는 Gemini Vision(사진 최대 2장)을 태우는 유료 경로라,
+    //    무인증이면 무제한 무과금 비용 경로가 된다.
+    await requirePalmAuth(request, env);
+
+    const body = await readJsonWithLimit(request, MAX_REQUEST_BODY_BYTES);
 
     const payload = {
       leftPalmImage: body.leftPalmImage ?? null,
@@ -191,60 +256,100 @@ export async function handlePalmRoutes(request, env) {
       });
     }
 
-    const analyses = [];
-
-    if (hasMeaningfulInput(leftInput)) {
-      const left = analyzePalmHandInput({
-        uploadedHandSide: "left",
+    // 결정론 엔진(선 후보 기반). Gemini 가 실패했을 때의 degrade 대상이자
+    // 오버레이 좌표(overlayPaths)의 공급원이다 — Gemini 는 좌표를 주지 않는다.
+    const runLocalEngine = (side, input) =>
+      analyzePalmHandInput({
+        uploadedHandSide: side,
         dominantHand: payload.dominantHand,
         analysisPurpose: payload.analysisPurpose,
-        rawImage: leftInput.image,
-        imageQuality: leftInput.quality,
-        handLandmarks: leftInput.landmarks,
-        lineCandidates: leftInput.candidates,
+        rawImage: input.image,
+        imageQuality: input.quality,
+        handLandmarks: input.landmarks,
+        lineCandidates: input.candidates,
       });
 
-      analyses.push({
-        side: "left",
-        handReading: left.handReading,
-        recognitionData: left.recognitionData,
-        overlayPaths: left.overlayPaths,
-        hasMajorDetected: left.hasMajorDetected,
-        handRole: left.handRole,
-      });
-    }
+    // 이미지가 있는 손은 Gemini Vision 으로 판독한다. 양손이면 병렬.
+    // 실패는 null 로 떨어지고(모듈 내부에서 로깅), 아래에서 결정론 엔진으로 degrade 한다.
+    const [leftVision, rightVision] = await Promise.all([
+      hasImage(leftInput)
+        ? analyzeHandWithGeminiVision(env, leftInput.image, "left", payload.analysisPurpose, trace)
+        : Promise.resolve(null),
+      hasImage(rightInput)
+        ? analyzeHandWithGeminiVision(env, rightInput.image, "right", payload.analysisPurpose, trace)
+        : Promise.resolve(null),
+    ]);
 
-    if (hasMeaningfulInput(rightInput)) {
-      const right = analyzePalmHandInput({
-        uploadedHandSide: "right",
-        dominantHand: payload.dominantHand,
-        analysisPurpose: payload.analysisPurpose,
-        rawImage: rightInput.image,
-        imageQuality: rightInput.quality,
-        handLandmarks: rightInput.landmarks,
-        lineCandidates: rightInput.candidates,
-      });
+    const buildSideAnalysis = (side, input, vision) => {
+      if (!hasMeaningfulInput(input)) return null;
 
-      analyses.push({
-        side: "right",
-        handReading: right.handReading,
-        recognitionData: right.recognitionData,
-        overlayPaths: right.overlayPaths,
-        hasMajorDetected: right.hasMajorDetected,
-        handRole: right.handRole,
-      });
-    }
+      const local = runLocalEngine(side, input);
+      const visionSide = visionToSideAnalysis(vision, side);
+
+      // Gemini 가 "손이 아니다"라고 명시적으로 판정하면 그 판정을 존중한다.
+      // 결정론 엔진은 조작 랜드마크만으로도 palmDetected 를 내주기 때문에,
+      // 이걸 안 막으면 손이 아닌 사진에도 판독이 나온다.
+      const visionRejected = Boolean(vision) && vision.palmDetected === false;
+
+      // Gemini 판독 성공 → Gemini 를 본문으로, 로컬 엔진은 좌표/보조 데이터로 사용.
+      if (visionSide?.palmDetected) {
+        return {
+          side,
+          source: "gemini",
+          handReading: visionSide.handReading,
+          recognitionData: {
+            ...visionSide.recognitionData,
+            extraction: local?.recognitionData?.extraction || null,
+            sections: local?.recognitionData?.sections || [],
+          },
+          overlayPaths: local?.overlayPaths || null,
+          hasMajorDetected: majorLineDetectedCount(visionSide.handReading) > 0,
+          handRole: local?.handRole || "unknown",
+          purposeAnalysis: visionSide.purposeAnalysis,
+          specialMarks: visionSide.specialMarks,
+          qualityScore: visionSide.qualityScore,
+          notPalmReason: "",
+        };
+      }
+
+      return {
+        side,
+        source: visionRejected ? "vision-rejected" : "local",
+        handReading: local.handReading,
+        recognitionData: visionRejected
+          ? { ...local.recognitionData, palmDetected: false }
+          : local.recognitionData,
+        overlayPaths: local.overlayPaths,
+        hasMajorDetected: visionRejected ? false : local.hasMajorDetected,
+        handRole: local.handRole,
+        purposeAnalysis: null,
+        specialMarks: [],
+        qualityScore: 0,
+        notPalmReason: visionRejected ? String(vision.notPalmReason || "") : "",
+      };
+    };
+
+    const analyses = [
+      buildSideAnalysis("left", leftInput, leftVision),
+      buildSideAnalysis("right", rightInput, rightVision),
+    ].filter(Boolean);
 
     const palmDetectedAny = analyses.some((a) => a?.recognitionData?.palmDetected);
     if (!palmDetectedAny) {
+      // Gemini 가 이유를 말해줬으면 그대로 전달한다("손이 아닌 사진입니다" 등).
+      // 종전에는 어떤 경우든 "손바닥 인식에 실패했습니다" 하나뿐이라 사용자가
+      // 무엇을 고쳐야 하는지 알 수 없었다.
+      const visionReason = analyses.map((a) => a.notPalmReason).find((reason) => reason) || "";
       return json(
         {
           ok: false,
           code: "PALM_NOT_DETECTED",
           reasonCode: "NO_PALM",
-          error: "손바닥 인식에 실패했습니다.",
+          error: visionReason || "손바닥 인식에 실패했습니다.",
+          reason: visionReason,
           checks: analyses.map((item) => ({
             side: item.side,
+            source: item.source,
             isPalmDetected: item?.recognitionData?.palmDetected,
             warnings: item?.recognitionData?.extraction?.warnings || [],
           })),
@@ -295,24 +400,31 @@ export async function handlePalmRoutes(request, env) {
     const primaryRecognition = analyses.find((a) => a.side === primarySide)?.recognitionData || analyses[0]?.recognitionData || null;
 
     const patternByCode = new Map();
+    const mergePattern = (item, labelKey) => {
+      if (!item || typeof item !== "object") return;
+      const code = String(item.code || "").trim();
+      if (!code) return;
+      const confidence = Number(item.confidence || 0);
+      const prev = patternByCode.get(code);
+      if (prev && Number(prev.confidence || 0) >= confidence) return;
+      patternByCode.set(code, {
+        code,
+        label: String(item[labelKey] || item.label || item.labelKo || code),
+        detected: true,
+        confidence: Number.isFinite(confidence) ? confidence : 0,
+        summary: String(item.summary || ""),
+        location: String(item.location || ""),
+      });
+    };
+
     for (const analysis of analyses) {
-      const list = analysis?.recognitionData?.specialPatterns?.detected;
-      if (!Array.isArray(list)) continue;
-      for (const item of list) {
-        if (!item || typeof item !== "object") continue;
-        const code = String(item.code || "").trim();
-        if (!code) continue;
-        const confidence = Number(item.confidence || 0);
-        const prev = patternByCode.get(code);
-        if (!prev || confidence > Number(prev.confidence || 0)) {
-          patternByCode.set(code, {
-            code,
-            label: String(item.label || code),
-            detected: true,
-            confidence: Number.isFinite(confidence) ? confidence : 0,
-            summary: String(item.summary || ""),
-          });
-        }
+      for (const item of analysis?.recognitionData?.specialPatterns?.detected || []) {
+        mergePattern(item, "label");
+      }
+      // Gemini 가 본 문양(십자문·삼각문·별문·섬문·사각문·격자문).
+      // palm-vision 에서 detected!==true 또는 confidence<=0 인 항목은 이미 걸러져 온다.
+      for (const item of analysis?.specialMarks || []) {
+        mergePattern(item, "labelKo");
       }
     }
 
@@ -357,9 +469,67 @@ export async function handlePalmRoutes(request, env) {
 
     const resultSections = Array.isArray(primaryRecognition?.sections) ? primaryRecognition.sections : [];
 
+    const usedVision = analyses.some((a) => a.source === "gemini");
+    const primaryAnalysis = analyses.find((a) => a.side === primarySide) || analyses[0] || null;
+    const qualityScore = Math.max(0, ...analyses.map((a) => Number(a.qualityScore) || 0));
+    const mode = resolveAnalysisMode({
+      palmDetected: true,
+      qualityScore: qualityScore || (canonical.validation.hasEnoughQuality ? 0.62 : 0.45),
+      majorLineCount: Math.max(
+        majorLineDetectedCount(leftHandReading),
+        majorLineDetectedCount(rightHandReading),
+      ),
+    });
+
+    // 심층 해석. 구 palm-reading-ai-consult(별도 5,000원 과금)가 하던 일을 기본 분석에 통합했다.
+    // 🔴 실패해도 throw 하지 않는다 — 결제된 요청은 결과를 반드시 전달한다(degrade-not-throw).
+    //    해석이 비면 클라이언트가 기존 로컬 템플릿으로 폴백하므로 화면이 비지 않는다.
+    const deepConsult = await buildPalmDeepConsult(
+      env,
+      {
+        analysisPurpose: payload.analysisPurpose,
+        dominantHand: payload.dominantHand,
+        uploadedHands,
+        leftHandRole: leftAnalysis?.handRole || "unknown",
+        rightHandRole: rightAnalysis?.handRole || "unknown",
+        mode,
+        qualityScore,
+        leftHandReading,
+        rightHandReading,
+        bothHandsComparison,
+        specialMarks: specialPatterns.detected,
+        missingData: canonical.validation.missingFields,
+      },
+      trace,
+    ).catch((error) => {
+      console.warn("[palm] deep consult threw", { message: error?.message });
+      return null;
+    });
+
+    // 안전 표현 필터를 LLM 산출물에도 적용한다(수명/질병 단정 등).
+    // 결정론 엔진 텍스트에만 걸려 있던 가드를 Gemini 문장에도 동일하게 건다.
+    const consultText = deepConsult?.text ? applySafetyExpressionFilter(deepConsult.text) : "";
+
+    const purposeAnalysis = primaryAnalysis?.purposeAnalysis
+      || analyses.find((a) => a.purposeAnalysis)?.purposeAnalysis
+      || null;
+
     return json({
       ...canonical,
-      interpretation: null,
+      interpretation: consultText
+        ? {
+            oneLiner: "",
+            focusSummary: "",
+            sections: [],
+            cards: [],
+            consultText,
+            policy: {
+              imageDirectVisionUsed: usedVision,
+              provider: deepConsult?.provider || "",
+            },
+          }
+        : null,
+      purposeAnalysis,
       overlayPaths,
       overlayPathsBySide,
       recognitionData,
@@ -367,7 +537,9 @@ export async function handlePalmRoutes(request, env) {
       resultSections,
       missingData: canonical.validation.missingFields,
       warnings: imageQuality.warnings || [],
-      mode: canonical.validation.hasEnoughQuality ? "full" : "partial",
+      mode,
+      visionUsed: usedVision,
+      qualityScore,
     });
   } catch (error) {
     return handleRouteError(error, { request, env, trace });

@@ -24,6 +24,9 @@ const sukuyoA = read(`${BASE}/adapters/sukuyoAdapter.ts`);
 const tarotA = read(`${BASE}/adapters/tarotAdapter.ts`);
 const vedicA = read(`${BASE}/adapters/vedicAdapter.ts`);
 const constants = read(`${BASE}/constants.ts`);
+// 심층 근거 모듈 — 스코어링 경로 밖이지만 결정론·읽기전용 요구는 동일하다.
+const sajuNatalEvidence = read(`${BASE}/evidence/sajuNatalEvidence.ts`);
+const collectDeep = read(`${BASE}/evidence/collectDeepEvidence.ts`);
 
 // ── 1) 순수성(결정론): Math.random·Date 미사용 ──
 for (const [name, src] of [
@@ -34,6 +37,8 @@ for (const [name, src] of [
   ["tarotAdapter", tarotA],
   ["vedicAdapter", vedicA],
   ["constants", constants],
+  ["sajuNatalEvidence", sajuNatalEvidence],
+  ["collectDeepEvidence", collectDeep],
 ]) {
   const code = stripComments(src);
   check(!/Math\.random/.test(code), `${name}: Math.random 금지(결정론)`);
@@ -87,6 +92,49 @@ const stages = ["장생", "목욕", "관대", "건록", "제왕", "쇠", "병", 
 for (const st of stages) {
   check(constants.includes(`"${st}"`), `SAJU_STAGE_GROUP에 십이운성 '${st}' 누락`);
 }
+
+// ── 7) evidence[0] 고정: 대표 근거를 앞에 끼워 넣지 않는다 ──
+// CompassReport가 인덱스 0을 직접 읽는다 — 운명 도감 수집(`tarot:${term.split("(")[0]}`)과
+// 체계별 근거 라벨. 새 근거를 배열 앞에 넣으면 오류 없이 조용히 어긋난다.
+for (const [name, src, headId, headTerm] of [
+  ["sajuAdapter", sajuA, "saju.stage", "`십이운성 ${stage}`"],
+  ["ziweiAdapter", ziweiA, "ziwei.ming", "명궁 ${mainStars.length"],
+  ["sukuyoAdapter", sukuyoA, "sukuyo.mansion", "${res.mansion.split(\"(\")[0]}수(${res.mansionCh}宿)"],
+  ["tarotAdapter", tarotA, "tarot.card", "`${card.ko}(정위)`"],
+  ["vedicAdapter", vedicA, "vedic.vara", "`${vara.ko}`"],
+]) {
+  const code = stripComments(src);
+  const firstId = code.match(/id:\s*"([a-z]+\.[A-Za-z]+)"/);
+  check(
+    firstId?.[1] === headId,
+    `${name}: 첫 evidence의 id가 "${headId}"가 아니다(실제 "${firstId?.[1] || "없음"}") — 새 근거는 배열 뒤로만 append`,
+  );
+  check(code.includes(headTerm), `${name}: evidence[0]의 term 표현이 바뀌었다 — 도감 수집·근거 라벨이 깨진다`);
+}
+
+// ── 8) 심층 근거 모듈은 field를 수정하지 않는다(읽기 전용 소비) ──
+check(
+  !/field\.raw\s*\[[^\]]+\]\s*=/.test(stripComments(collectDeep)) && !/field\.\w+\s*=[^=]/.test(stripComments(collectDeep)),
+  "collectDeepEvidence는 field를 수정하면 안 된다(읽기 전용)",
+);
+check(
+  /computeNatalFromInput/.test(sajuNatalEvidence),
+  "sajuNatalEvidence는 computeNatalFromInput을 읽기 전용으로 import 해야 한다(어댑터가 아니라 여기서만 허용)",
+);
+// 이 경로는 luckRows를 주지 않아 엔진이 대운을 'not_supplied'로 돌려준다 — 없는 것을 근거로 만들지 않는다.
+check(
+  !/daewoon/i.test(stripComments(sajuNatalEvidence)),
+  "sajuNatalEvidence는 대운을 근거로 뽑으면 안 된다(이 경로에서는 산출되지 않는다)",
+);
+
+// ── 9) 무료 /narrate 근거는 체계당 1개만 ──
+// 라우트가 근거를 8개로 자르므로(worker/routes/destiny-compass.js), 심층용 항목까지 밀어 넣으면
+// 앞쪽 사주만 남고 나머지 체계 근거가 조용히 사라진다.
+const narration = read("app/destiny-compass/_stage/narration.ts");
+check(
+  /evidence\?\.\[0\]/.test(narration),
+  "collectEvidence는 체계당 evidence[0]만 담아야 한다 — 전체를 평탄화하면 /narrate 근거가 사주로 쏠린다",
+);
 
 if (failures.length) {
   console.error("❌ verify:destiny-compass FAIL");

@@ -19,7 +19,9 @@ const reactGateFirstFeatureSources = [
   {
     label: "life-book-ai",
     source: readFileSync(resolve(root, "app/life-book-ai/LifeBookAiClient.tsx"), "utf8"),
-    api: 'postJson<PrepareResult>("/api/life-book-ai/prepare"',
+    // 선검사 호출은 app/life-book-ai/lifeBookApi.ts 의 prepareLifeBook 로 옮겼다(authFetch + 일시장애 재시도 + 타임아웃).
+    // 계약(게이트 오픈 → 선검사 → 결제창)은 그대로다.
+    api: "prepareLifeBook<PrepareResult>(",
     checkout: "runBillingCoinGate",
   },
   {
@@ -133,7 +135,7 @@ assertContains(indexSource, "window.location.assign('/points?source=direct-payme
 assertContains(indexSource, 'data-payment-status', "payment choice status state");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly option includes profile add/delete");
 
-assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
+assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdPortOneV2SdkPromise()", "pass access returns before PortOne SDK");
 assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");
 assertContains(indexSource, "pg: 'KG_INICIS'", "KG Inicis pg in checkout payload");
 assertContains(indexSource, "window.PortOne.requestPayment(requestData)", "PortOne V2 requestPayment call");
@@ -146,7 +148,10 @@ assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setIt
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-assertContains(indexSource, "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "payment/pass overlay uses honey fortune logo");
+// 자산이 부팅 게이트와 같은 /icons/app-logo-512.webp 로 통합되면서(#200) 이 단언이 낡았고,
+// 같은 잡의 앞 단계(verify:security-hardening)가 먼저 죽어 있어 실패가 드러나지 않았다.
+// 가드의 의도는 "결제/이용권 대기 오버레이가 브랜드 로고를 쓴다"이므로 현재 정본 경로로 맞춘다.
+assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp")', "payment/pass overlay uses brand logo asset");
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
@@ -211,6 +216,68 @@ assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILA
 // degraded-503은 결제창을 열기 전에 먼저 재시도해 이용권 보유자의 무료 통과를 살린다(재시도-우선).
 assertContains(billingClientSource, "function isRetryableBillingInfraDegraded(", "React coin-gate has transient-degraded retry predicate");
 assertContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React coin-gate retries the request on transient degraded 503");
+
+// 🔴 잔량 '조회 실패'를 '잔량 부족'과 같이 묶어 월정석 버튼을 비활성하면, 재조회가 계속 실패할 때
+// 월정석이 영구 회색이 돼 결제 자체가 불가능해진다(2026-08 /naming-ai 사고: 회당결제는 eligibility
+// 왕복을 건너뛰어 결제창이 항상 '확인 필요'로 열리므로, 자동 재조회 1회의 실패가 곧 결제 불가였다).
+// 결제 후 재노출 경로에는 verify-static-paid-gate-failsafe.mjs 가 이미 같은 계약을 강제한다 —
+// 여기서는 '잔량 조회' 경로에 대해 3렌더러 모두를 강제한다. 확인된 잔량이 필요분보다 적을 때만 비활성.
+const reactMoonlightApplySource = section(
+  billingClientSource,
+  "const applyMoonlightBalance = (rawBalance: number | null",
+  "const refreshMonthlyBalance = async (",
+  "React moonlight balance apply",
+);
+assertContains(reactMoonlightApplySource, "const insufficient = known && balance < monthlyCost;", "React moonlight disable is decided by confirmed shortage only");
+assertContains(reactMoonlightApplySource, 'const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;', "React moonlight stays enabled while the balance is unconfirmed");
+assertNotContains(reactMoonlightApplySource, "const canUse = known && monthlyCost > 0 && balance >= monthlyCost;", "React moonlight must not treat a failed lookup as insufficient");
+assertContains(reactMoonlightApplySource, "lastKnownMonthlyBalance", "React moonlight keeps the last confirmed balance across a failed refresh");
+assertContains(billingClientSource, "const snapshotMonthlyBalance = hasCallerMonthlyBalance ? 0 : readSubscriptionSnapshotMonthlyBalance();", "React payment choice seeds the moonlight balance from the local subscription snapshot");
+
+const shellMoonlightRefreshSource = section(
+  indexSource,
+  "async function refreshDirectMonthlyBalance(options)",
+  "function close(mode)",
+  "shell moonlight balance refresh",
+);
+assertContains(
+  shellMoonlightRefreshSource,
+  "canUseMonthly = allowMonthlyChoice && requiredMonthlyCredits > 0 && (!monthlyBalanceFresh || monthlyBalance >= requiredMonthlyCredits);",
+  "shell moonlight stays enabled while the balance is unconfirmed",
+);
+assertNotContains(
+  shellMoonlightRefreshSource,
+  "canUseMonthly = monthlyBalanceFresh && monthlyBalance >= requiredMonthlyCredits",
+  "shell moonlight must not treat a failed lookup as insufficient",
+);
+assertNotContains(
+  shellMoonlightRefreshSource,
+  "if (silent && !monthlyBalanceFresh && previousMonthlyBalanceFresh)",
+  "shell keeps the last confirmed balance on manual refresh failure too, not only silent ones",
+);
+
+const standaloneMoonlightApplySource = section(
+  destinyProfileSource,
+  "function applyStandaloneMoonbal(state, balance)",
+  "function refreshStandaloneMoonbal(",
+  "standalone moonlight balance apply",
+);
+assertContains(standaloneMoonlightApplySource, "var insufficient = known && balance < monthlyStones;", "standalone moonlight disable is decided by confirmed shortage only");
+assertContains(standaloneMoonlightApplySource, "lastKnownStandaloneBalance", "standalone moonlight keeps the last confirmed balance across a failed refresh");
+// 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을 준다. ok 를 먼저 검사하면 그 0 이
+// '잔여 확인 완료 · 현재 0개'로 렌더돼 월정석이 잠긴다 — signedOut 을 반드시 먼저 본다.
+const standaloneMoonlightRefreshSource = section(
+  destinyProfileSource,
+  "function refreshStandaloneMoonbal(fresh)",
+  "function finish(choice)",
+  "standalone moonlight balance refresh",
+);
+assertBefore(
+  standaloneMoonlightRefreshSource,
+  "if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);",
+  "else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);",
+  "standalone moonlight checks signed-out before treating a zero balance as confirmed",
+);
 
 // 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
 const reactAuthPrewarmSource = section(
@@ -289,8 +356,27 @@ assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBe
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "pass option is available by default unless explicitly disabled");
-assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
+// 🔴 결제창 안에서 이용권을 확인할 수 있어야 한다(2026-07 정책 전환).
+// 진입 선검사의 서버 왕복을 없앤 대신 '이용권으로 구매' 카드가 그 자리에서 서버에 묻는다. 예전에는
+// 반대로 "이용권은 결제창을 열기 전에만 확인됩니다"라는 막다른 안내가 있었고, 그 문구를 여기서 고정하고
+// 있었다 — 그 상태로 선검사를 없애면 스냅샷 없는 이용권 보유자가 확인할 방법 자체를 잃는다.
+assertNotContains(indexSource, "이용권은 결제창을 열기 전에만 확인됩니다.", "in-modal pass verification must not be blocked again");
+assertContains(indexSource, "var passReady = await refreshDirectEntitlementStatus();", "pass card verifies the entitlement in place");
+assertBefore(
+  indexSource,
+  "var passReady = await refreshDirectEntitlementStatus();",
+  "window.setTimeout(openPassStoreAfterCheck, 450);",
+  "pass card must verify first and only then fall through to the store",
+);
 assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "canonical pass choice opens pass store");
+// 🔴 앱에서는 /points 로 프로그래매틱 이동하면 404 다(앱 번들에 없고, 가드는 앵커 클릭만 가로챈다).
+// 반드시 __cdOpenChargeModal(가드가 /app/store/ 로 고정) 분기를 먼저 타야 한다.
+assertBefore(
+  indexSource,
+  "if (_cdShouldUseAppStoreEntry() && typeof window.__cdOpenChargeModal === 'function') {",
+  "var passStoreUrl = _cdBuildPassStoreUrl(coinPrice, passCoverage, 'direct-payment-pass-store');",
+  "app runtime must take the in-app store before any /points navigation",
+);
 assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pass choice must grant instead of cancelling");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
@@ -389,5 +475,57 @@ for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");
   assertContains(source, '<link rel="stylesheet" href="/styles/fortune-ui.css', "fortune CSS blocking stylesheet");
 }
+
+// ── 🔴 대기 화면 정책: '진행 중' 전체화면은 이용권 확인에서만 ──────────────────────────────
+// 2026-08 재발 사고: 결제수단 선택창이 열릴 때 미리 발사하는 주문 사전발급(/api/billing/checkout)을
+// 전역 fetch 래퍼가 '결제 진행 중'으로 잡아 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를
+// 준비 중이에요' 전체화면이 결제창을 덮었다. 두 성질을 실제 평가로 고정한다.
+//   ⓐ 래퍼는 checkout/prepare 를 추적하지 않는다(문자열 핀이 아니라 함수를 실행해 확인).
+//   ⓑ 대기/결과 오버레이 허용목록에서 진행 중 모드는 'pass' 하나뿐이다.
+const indexRuntimeSource = readFileSync(resolve(root, "js/core/index-inline-runtime.js"), "utf8");
+const shouldTrackSource = section(
+  indexRuntimeSource,
+  "function __cdShouldTrackPaymentRequest(",
+  "function __cdResolvePaymentMeta(",
+  "global payment fetch tracker",
+);
+const shouldTrackPaymentRequest = new Function(`${shouldTrackSource}; return __cdShouldTrackPaymentRequest;`)();
+for (const path of ["/api/billing/checkout", "/api/payments/prepare"]) {
+  assert.equal(
+    shouldTrackPaymentRequest(path, "POST"),
+    false,
+    `주문 발급은 대기 UI를 켜지 않아야 한다: ${path}`,
+  );
+}
+// 승인 검증(confirm)은 결제창을 통과한 뒤라 그대로 추적한다 — 위 예외가 과하게 넓어지지 않게 고정.
+assert.equal(shouldTrackPaymentRequest("/api/billing/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+assert.equal(shouldTrackPaymentRequest("/api/payments/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+
+const waitUiAllowLists = [
+  { label: "shell", source: indexSource, name: "CD_WAIT_UI_ALLOWED_MODE_RE" },
+  { label: "react", source: paymentProcessingContextSource, name: "REACT_WAIT_UI_ALLOWED_MODE_RE" },
+  { label: "standalone", source: destinyProfileSource, name: "DP_WAIT_UI_ALLOWED_MODE_RE" },
+];
+for (const entry of waitUiAllowLists) {
+  const literal = entry.source.match(new RegExp(`${entry.name}\\s*=\\s*(/[^\\n]+/)\\s*;`))?.[1];
+  assert.ok(literal, `${entry.label}: ${entry.name} 정규식 리터럴을 찾지 못했다`);
+  const allowed = new Function(`return ${literal};`)();
+  for (const mode of ["pass", "pass-applied", "payment-complete", "payment-failed"]) {
+    assert.ok(allowed.test(mode), `${entry.label}: ${mode} 는 표시되어야 한다`);
+  }
+  for (const mode of ["payment", "checkout", "card", "confirm", "monthly", "subscription"]) {
+    assert.ok(!allowed.test(mode), `${entry.label}: ${mode} 대기 화면은 차단되어야 한다`);
+  }
+}
+// 실패는 성공(payment-complete)과 다른 모드로 갈라야 한다 — 같은 모드면 '결제 완료' 제목 아래 실패가 뜬다.
+assertContains(indexSource, "mode: 'payment-failed'", "failure overlay mode split");
+assertNotContains(indexSource, "'결제 또는 이용권 확인에 실패했습니다.'), mode: 'confirm' }", "failure no longer shares confirm mode");
+// 구간 차단은 결제창이 DOM 에 붙은 뒤에 끝나야 한다(사전발급이 무방비로 나가던 구멍).
+assertBefore(
+  indexSource,
+  "document.body.appendChild(modal);\n      // 🔴 구간 차단은 결제창이",
+  "_cdEndPreCheckoutWaitUiSuppression();\n      // 첫 번째 실제 결제 옵션에 포커스",
+  "pre-checkout suppression ends after the modal is mounted",
+);
 
 console.log("[verify-paid-gate-ui-regression] PASS");

@@ -13,8 +13,10 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import {
   buildRecommendationBundle,
+  STYLE_PRESETS,
   type DraftNameCandidate,
   type NamingRecommendationInput,
+  type NamingSajuHints,
 } from "./namingRecommendations";
 import { stashNamingRetryPayload } from "./retryHandoff";
 
@@ -84,6 +86,11 @@ const ERROR_TEXT: Record<string, string> = {
   HANJA_LENGTH_MISMATCH: "입력한 한자 후보의 글자 수가 한글 이름 음절 수와 맞지 않습니다.",
   PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 시도할 수 있습니다.",
   PAYMENT_FAILED: "결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+  PAYMENT_NOT_FOUND: "결제 기록을 확인하지 못했습니다. 차감된 금액이 있다면 그대로 남아 있으니 잠시 후 다시 시도해 주세요.",
+  NAMING_ACCESS_REQUIRED: "이용권·월정석·결제 중 하나를 확인한 뒤에 생성할 수 있습니다.",
+  PAYMENT_ID_REQUIRED: "단건 결제 확인이 끝나지 않았습니다. 잠시 후 다시 시도해 주세요.",
+  INPUT_HASH_MISMATCH: "입력값이 바뀌었습니다. 입력을 확인한 뒤 다시 시작해 주세요.",
+  ACCESS_PRODUCT_MISMATCH: "작명 프롬프트 결제 권한이 아닙니다. 다시 시도해 주세요.",
   CHECKOUT_FAILED: "결제 준비 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
   GENERATE_FAILED: "작명 결과 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
   LLM_ERROR: "작명 결과 생성에 실패했습니다. 결제는 유지되며 같은 입력으로 다시 시도할 수 있습니다.",
@@ -100,17 +107,39 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
-async function postJson<T = Record<string, unknown>>(path: string, body: Record<string, unknown>) {
+// 🔴 /generate 는 요청 안에서 LLM 생성을 끝내는 동기 라우트다(worker/routes/naming-prompt.js —
+// waitUntil 백그라운드 폴링은 Workers 요청 간 I/O 격리로 결과가 고착돼 의도적으로 배제됐다).
+// 서버 예산은 엣지 한계 100초 / LLM 85초인데 authFetch 는 자체 AbortController 로 22초에 끊는다
+// (AUTH_FETCH_TIMEOUT_MS). 8,000~14,000자 목표라 생성은 항상 22초를 넘고, 결과는 서버에서
+// 정상 저장되는데 클라만 먼저 포기해 "확인 실패 / 네트워크 연결을 확인한 뒤…" 가 떴다.
+// authFetch 는 호출부가 signal 을 주면 자기 타임아웃을 걸지 않으므로, 여기서 엣지 한계보다
+// 넉넉한 상한을 직접 준다.
+const GENERATE_TIMEOUT_MS = 115000;
+
+async function postJson<T = Record<string, unknown>>(
+  path: string,
+  body: Record<string, unknown>,
+  timeoutMs = 0,
+) {
+  const controller = timeoutMs > 0 && typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : 0;
   try {
     const response = await authFetch(
       path,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        ...(controller ? { signal: controller.signal } : {}),
+      },
       { retryOn401: false },
     );
     const data = await response.json().catch(() => ({}));
     return { status: response.status, data: data as T };
   } catch {
     throw new Error("NETWORK_ERROR");
+  } finally {
+    if (timer) window.clearTimeout(timer);
   }
 }
 
@@ -148,16 +177,31 @@ function isPaymentGranted(result: unknown): boolean {
   );
 }
 
+// paymentId 에는 실제 단건 결제 식별자(merchantUid/impUid)만 담는다.
+// transactionId·purchaseId 를 여기에 섞으면 안 된다 — worker/routes/billing.js의
+// successWithPremiumAccess()는 이용권·월정석·코인 성공 응답에도 최상위 transactionId
+// (= PointHistory _id 또는 entitlement evidenceId)를 무조건 싣는데, 이걸 paymentId로 보내면
+// 워커 verifyNamingAccess()가 단건 분기로 들어가 Payment 문서를 못 찾고 404로 죽는다
+// (월정석은 이미 차감된 뒤라 돈만 나간다). 증빙은 accessGrant/consume 쪽으로 그대로 전달되고,
+// 워커의 readContextEvidenceId()가 거기서 transactionId·ledgerId를 읽어 간다.
 function extractNamingAccess(result: unknown) {
   const payload = runtimePayload(result);
   const payment = asRecord(payload.payment);
   const accessGrant = asRecord(payload.accessGrant);
   const consume = asRecord(payload.consume);
   const paymentId = String(
-    payload.paymentId || payload.transactionId || payload.purchaseId
-    || payment.paymentId || payment.impUid || payment.merchantUid || "",
+    payload.paymentId || payment.paymentId || payment.merchantUid || payment.impUid || "",
   ).trim();
-  return { paymentId, accessGrant, consume, payment, raw: payload };
+  // 접근 방식을 최상위로도 넘긴다 — 워커 readContextAccessType/Method가 body를 1순위로 읽어
+  // normalizeExecutionAccessMethod가 "single"로 오폴백하지 않게 한다.
+  const accessType = String(
+    consume.accessType || accessGrant.accessType || payload.accessType || "",
+  ).trim();
+  const accessMethod = String(
+    consume.accessMethod || consume.paymentMethod
+    || accessGrant.accessMethod || accessGrant.paymentMethod || "",
+  ).trim();
+  return { paymentId, accessType, accessMethod, accessGrant, consume, payment, raw: payload };
 }
 
 function parseListText(value: string): string[] {
@@ -227,6 +271,64 @@ const LABEL = "flex flex-col gap-1.5 text-sm font-semibold text-[#e6ddfa]";
 const PANEL = "rounded-[28px] border border-[#c4b5fd]/20 bg-[#13102a]/70";
 const VIOLET_GLOW = "shadow-[0_0_0_1px_rgba(167,139,250,0.14),0_0_28px_-10px_rgba(147,51,234,0.4)]";
 
+// 세부 취향 선택 칩 — 자유 입력을 대체하지 않고 위에 얹는다. 고르면 해당 입력칸에 쉼표로 붙고,
+// 다시 누르면 빠진다. 분위기 옵션은 초안 추천이 쓰는 STYLE_PRESETS 라벨·무드를 그대로 재사용해
+// 사용자가 고른 문구가 초안 랭킹(rankStylePresets)에도 실제로 반영되게 한다.
+const NAME_TYPE_OPTIONS = [
+  "현대적이고 부드러운",
+  "고전적이고 단정한",
+  "중성적인",
+  "부르기 쉬운",
+  "흔하지 않은",
+  "국제적으로 통하는",
+];
+const TONE_OPTIONS = Array.from(
+  new Set(STYLE_PRESETS.flatMap((preset) => [preset.label, ...preset.moods])),
+);
+const GENERATION_RULE_OPTIONS = ["돌림자 없음", "가운데 글자 돌림자", "끝 글자 돌림자"];
+const SIBLING_OPTIONS = ["형제자매 없음", "첫 글자 통일", "분위기만 맞추기"];
+const AVOID_OPTIONS = ["가족 이름과 같은 발음 제외", "받침 없는 이름 선호", "된소리·거센소리 제외"];
+const PURPOSE_OPTIONS = ["출생신고용", "개명용", "태명 대체용"];
+
+function ChipGroup({
+  options,
+  selected,
+  onToggle,
+  disabled,
+  label,
+}: {
+  options: string[];
+  selected: string;
+  onToggle: (token: string) => void;
+  disabled: boolean;
+  label: string;
+}) {
+  const chosen = new Set(selected.split(",").map((item) => item.trim()).filter(Boolean));
+  return (
+    <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
+      {options.map((option) => {
+        const active = chosen.has(option);
+        return (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onToggle(option)}
+            disabled={disabled}
+            className={`min-h-9 rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+              active
+                ? "border-[#e8d5a3]/70 bg-[#e8d5a3]/20 text-[#f7efdc]"
+                : "border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.06] text-[#f2e9d3] hover:border-[#e8d5a3]/55"
+            }`}
+          >
+            {option}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 const GENERATING_STEPS = [
   "입력값과 사주 기준을 확인하는 중",
   "이용권·결제를 확인하는 중",
@@ -251,6 +353,7 @@ export default function NamingAiClient() {
   const [error, setError] = useState("");
   const [step, setStep] = useState(0);
   const [recommendation, setRecommendation] = useState<{ candidates: DraftNameCandidate[]; moods: string[]; status: string } | null>(null);
+  const [sajuHints, setSajuHints] = useState<NamingSajuHints | null>(null);
 
   const retryRef = useRef<{
     input: Record<string, unknown>;
@@ -300,18 +403,77 @@ export default function NamingAiClient() {
         gender: form.gender,
       };
       if (cancelled) return;
-      // 오행 힌트는 서버(사주 자체 계산 폴백)만 알 수 있어 무료 초안 단계에서는 쓰지 않는다 —
-      // 성씨·분위기·성별 키워드 매칭만으로 초안을 고르고, 최종 판단은 결제 후 AI 결과가 정리한다.
-      setRecommendation(buildRecommendationBundle(recInput, null));
+      // 사주 힌트는 별도 useEffect가 비동기로 채운다(무거운 만세력 모듈을 dynamic import 하기 때문).
+      // 아직 안 왔으면 null로 먼저 그리고, 도착하면 이 effect가 다시 돌아 오행 축이 반영된다.
+      setRecommendation(buildRecommendationBundle(recInput, sajuHints));
     }, 250);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.familyName, form.nameLength, form.desiredType, form.preferenceTone, form.currentName, form.desiredSyllablesText, form.requiredSyllablesText, form.blockedSyllablesText, form.desiredNamesText, form.birthDate, form.gender]);
+  }, [sajuHints, form.familyName, form.nameLength, form.desiredType, form.preferenceTone, form.currentName, form.desiredSyllablesText, form.requiredSyllablesText, form.blockedSyllablesText, form.desiredNamesText, form.birthDate, form.gender]);
+
+  // 무료 초안용 용신 계산 — 생년월일이 채워진 뒤에만 만세력 모듈을 dynamic import 한다.
+  // 유료 프롬프트(worker/routes/naming-prompt.js)와 같은 모듈을 쓰므로 무료 초안과 결과의 오행 축이 같다.
+  // 결과는 화면 표시 전용이며 서버로 보내지 않는다 — 서버는 자체 계산으로 접근권·프롬프트를 만든다.
+  useEffect(() => {
+    const [year, month, day] = form.birthDate.split("-").map((part) => Number(part));
+    if (!year || !month || !day) {
+      setSajuHints(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const [{ buildSajuProfile }, { resolveNamingYongshin }] = await Promise.all([
+            import("@/worker/lib/destiny-bias-engine.js"),
+            import("@/worker/lib/saju-yongshin-policy.js"),
+          ]);
+          if (cancelled) return;
+          const [hour, minute] = form.birthTimeUnknown || !form.birthTime
+            ? [12, 0]
+            : form.birthTime.split(":").map((part) => Number(part) || 0);
+          const profile = buildSajuProfile({
+            name: form.familyName || "사용자",
+            gender: form.gender,
+            timezone: form.timezone,
+            birthPlace: form.birthPlace,
+            hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+            dayChangePolicy: "MIDNIGHT",
+            birth: {
+              year,
+              month,
+              day,
+              hour,
+              minute,
+              calendarType: form.isLeapMonth ? "lunar_leap" : form.calendarType,
+              timezone: form.timezone,
+              birthPlace: form.birthPlace,
+              unknownTime: form.birthTimeUnknown,
+            },
+          });
+          if (cancelled) return;
+          setSajuHints(resolveNamingYongshin(profile) as NamingSajuHints);
+        } catch {
+          // 만세력 계산이 실패해도 초안은 계속 나와야 한다 — 오행 축 없이 성별·분위기 기준으로 폴백.
+          if (!cancelled) setSajuHints(null);
+        }
+      })();
+    }, 300);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [form.birthDate, form.birthTime, form.birthTimeUnknown, form.calendarType, form.isLeapMonth, form.gender, form.timezone, form.birthPlace, form.familyName]);
 
   const missing = useMemo(() => validateRequired(form), [form]);
+  // 복성(남궁·황보)은 2음절이라 통과한다. 3음절 이상이면 이름 전체를 성씨 칸에 적은 것으로 본다.
+  const familyNameLooksLikeFullName = useMemo(
+    () => (form.familyName.match(/[가-힣]/g) || []).length >= 3,
+    [form.familyName],
+  );
   const stepDone = [
     Boolean(form.gender && form.birthDate && form.calendarType),
     Boolean(form.familyName.trim()),
@@ -325,6 +487,19 @@ export default function NamingAiClient() {
         ? `${prev.desiredNamesText}\n${candidate.name}`
         : candidate.name,
     }));
+  }
+
+  // 쉼표로 이어진 자유 입력칸에 선택 칩을 넣고 뺀다. maxLength를 넘으면 추가하지 않는다.
+  type TokenField = "desiredType" | "preferenceTone" | "generationNameRule" | "siblingHarmony" | "avoidFamilyNames" | "memo";
+  function toggleToken(field: TokenField, token: string, maxLength: number) {
+    setForm((prev) => {
+      const tokens = String(prev[field] || "").split(",").map((item) => item.trim()).filter(Boolean);
+      const index = tokens.indexOf(token);
+      const next = index >= 0 ? tokens.filter((_, i) => i !== index) : tokens.concat(token);
+      const value = next.join(", ");
+      if (index < 0 && value.length > maxLength) return prev;
+      return { ...prev, [field]: value };
+    });
   }
 
   function applyMood(mood: string) {
@@ -343,10 +518,11 @@ export default function NamingAiClient() {
   }) {
     const { input, inputHash, access } = args;
     setPhase("generating");
-    // /generate가 이용권/결제 접근권을 직접 검증(verifyNamingAccess→canAccessPaidFeature)하므로 별도
-    // verify-payment 선검사는 두지 않는다(이용권 중복 검사 제거 — 서버 검사 1회). 접근권 성공 시 즉시
-    // 202+executionId가 오고 LLM 생성은 백그라운드(waitUntil)에서 완주하며, 결과 페이지가 폴링을 이어받는다.
-    const genRes = await postJson<{
+    // /generate가 이용권/결제 접근권을 직접 검증하므로 별도 verify-payment 선검사는 두지 않는다
+    // (이용권 중복 검사 제거 — 서버 검사 1회). 생성은 그 요청 안에서 동기로 끝나고 201로 결과가 온다.
+    // 네트워크가 끊겨도 서버 쪽 생성은 대개 완주해 실행 레코드가 남는다 — 같은 입력·같은 증거로 한 번
+    // 더 부르면 beginNamingGeneration이 그 레코드를 그대로 돌려주므로(추가 차감 없음) 1회 재시도한다.
+    const generateOnce = () => postJson<{
       ok: boolean;
       code?: string;
       reason?: string;
@@ -355,13 +531,23 @@ export default function NamingAiClient() {
       result?: { id: string };
     }>("/api/naming-prompt/generate", {
       paymentId: access.paymentId,
+      accessType: access.accessType,
+      accessMethod: access.accessMethod,
       inputHash,
       input,
       paymentContext: access.raw,
       accessGrant: access.accessGrant,
       consume: access.consume,
       payment: access.payment,
-    });
+    }, GENERATE_TIMEOUT_MS);
+
+    let genRes;
+    try {
+      genRes = await generateOnce();
+    } catch (caught) {
+      if ((caught instanceof Error ? caught.message : "") !== "NETWORK_ERROR") throw caught;
+      genRes = await generateOnce();
+    }
 
     assertAuthorized(genRes.status);
     if (genRes.status === 402) throw new Error("PAYMENT_FAILED");
@@ -700,6 +886,14 @@ export default function NamingAiClient() {
                         disabled={busy}
                         className={FIELD}
                       />
+                      <span className="text-xs font-normal text-[#c8aaff]/70">
+                        성(姓)만 적어 주세요. 쓰고 싶은 이름은 아래 &ldquo;후보 이름&rdquo;이나 &ldquo;반드시 넣고 싶은 글자&rdquo;에 적습니다.
+                      </span>
+                      {familyNameLooksLikeFullName && (
+                        <span className="text-xs font-semibold text-[#e8d5a3]">
+                          세 글자 이상이라 성씨가 아니라 이름 전체로 보입니다. 이대로 두면 추천 후보 앞에 그대로 붙습니다.
+                        </span>
+                      )}
                     </label>
                     <label className={LABEL}>
                       이름 글자 수
@@ -842,7 +1036,7 @@ export default function NamingAiClient() {
                 <section className={`${PANEL} p-6 sm:p-7`}>
                   <h2 className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">세부 취향 (선택)</h2>
                   <p className="mt-1.5 text-xs leading-relaxed text-[#c8aaff]/75">
-                    비워 두어도 작명은 진행됩니다. 적어 주시면 작명가가 그대로 반영합니다.
+                    비워 두어도 작명은 진행됩니다. 아래 항목을 눌러 고르거나 직접 적어 주시면 작명가가 그대로 반영합니다.
                   </p>
                   <div className="mt-4 grid gap-3.5">
                     <label className={LABEL}>
@@ -856,6 +1050,13 @@ export default function NamingAiClient() {
                         disabled={busy}
                         className={FIELD}
                       />
+                      <ChipGroup
+                        options={NAME_TYPE_OPTIONS}
+                        selected={form.desiredType}
+                        onToggle={(token) => toggleToken("desiredType", token, 120)}
+                        disabled={busy}
+                        label="원하는 이름 유형 선택"
+                      />
                     </label>
                     <label className={LABEL}>
                       이름 분위기/이미지
@@ -867,6 +1068,13 @@ export default function NamingAiClient() {
                         onChange={(event) => updateForm({ preferenceTone: event.target.value })}
                         disabled={busy}
                         className={FIELD}
+                      />
+                      <ChipGroup
+                        options={TONE_OPTIONS}
+                        selected={form.preferenceTone}
+                        onToggle={(token) => toggleToken("preferenceTone", token, 240)}
+                        disabled={busy}
+                        label="이름 분위기 선택"
                       />
                     </label>
                     <div className="grid gap-3.5 sm:grid-cols-2">
@@ -881,6 +1089,13 @@ export default function NamingAiClient() {
                           disabled={busy}
                           className={FIELD}
                         />
+                        <ChipGroup
+                          options={GENERATION_RULE_OPTIONS}
+                          selected={form.generationNameRule}
+                          onToggle={(token) => toggleToken("generationNameRule", token, 200)}
+                          disabled={busy}
+                          label="돌림자 규칙 선택"
+                        />
                       </label>
                       <label className={LABEL}>
                         형제자매 이름과의 조화
@@ -892,6 +1107,13 @@ export default function NamingAiClient() {
                           onChange={(event) => updateForm({ siblingHarmony: event.target.value })}
                           disabled={busy}
                           className={FIELD}
+                        />
+                        <ChipGroup
+                          options={SIBLING_OPTIONS}
+                          selected={form.siblingHarmony}
+                          onToggle={(token) => toggleToken("siblingHarmony", token, 200)}
+                          disabled={busy}
+                          label="형제자매 조화 선택"
                         />
                       </label>
                     </div>
@@ -906,9 +1128,23 @@ export default function NamingAiClient() {
                         disabled={busy}
                         className={FIELD}
                       />
+                      <ChipGroup
+                        options={AVOID_OPTIONS}
+                        selected={form.avoidFamilyNames}
+                        onToggle={(token) => toggleToken("avoidFamilyNames", token, 240)}
+                        disabled={busy}
+                        label="피할 조건 선택"
+                      />
                     </label>
                     <label className={LABEL}>
                       기타 요청
+                      <ChipGroup
+                        options={PURPOSE_OPTIONS}
+                        selected={form.memo}
+                        onToggle={(token) => toggleToken("memo", token, 1500)}
+                        disabled={busy}
+                        label="작명 목적 선택"
+                      />
                       <textarea
                         value={form.memo}
                         rows={3}

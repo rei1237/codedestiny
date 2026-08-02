@@ -408,6 +408,8 @@ const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js
 const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
 // 운명의 지도 — 무인증·무DB AI 문장화(규칙 산출 데이터 문장화만, 실패 시 클라 템플릿 폴백)
 const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
+// 운명의 지도 심층 리포트(₩10,000) — 회당 결제 9섹션 LLM 상담. 두 웨이브 동기 생성(waitUntil 금지)
+const handleDestinyCompassAiRoutes = createLazyRouteHandler("./routes/destiny-compass-ai.js", () => import("./routes/destiny-compass-ai.js"), "handleDestinyCompassAiRoutes", "api/destiny-compass-ai");
 // AI 반려동물 사주 — 무인증·무DB 결정론 계산(프로필→오행 청사진)
 const handlePetSajuRoutes = createLazyRouteHandler("./routes/pet-saju.js", () => import("./routes/pet-saju.js"), "handlePetSajuRoutes", "api/pet-saju");
 // AI 반려동물 사주 심층 리포트·궁합(각 ₩5,000) — 회당 결제 LLM 서술(결정론 수치는 위 엔진이 계산)
@@ -432,6 +434,7 @@ const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => 
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
 const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", () => import("./routes/nakshatra.js"), "handleNakshatraRoutes");
 const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js", () => import("./routes/nakshatra-ai.js"), "handleNakshatraAiRoutes", "api/nakshatra-ai");
+const handleNakshatraPremiumRoutes = createLazyRouteHandler("./routes/nakshatra-premium.js", () => import("./routes/nakshatra-premium.js"), "handleNakshatraPremiumRoutes");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
@@ -934,6 +937,10 @@ async function proxyApiRequest(request, env) {
   });
 }
 
+// wrangler.toml 의 crons 배열과 반드시 같은 문자열이어야 한다. 다르면 재조정이 영영 안 돌거나,
+// 반대로 일일 태스크가 10분마다 도는 사고가 난다.
+const PAYMENT_RECONCILE_CRON = "*/10 * * * *";
+
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -1092,8 +1099,9 @@ export default {
         });
       }
 
+      // ctx: 로그아웃의 세션 폐기를 즉시-응답 + waitUntil 백그라운드로 돌리기 위해 전달.
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
-        return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
+        return withCorsHeaders(request, env, await handleAuthRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/app-store" || url.pathname.startsWith("/api/app-store/")) {
@@ -1333,6 +1341,12 @@ export default {
         return withCorsHeaders(request, env, await handlePetSajuRoutes(request, env));
       }
 
+      // ⚠️ 반드시 /api/destiny-compass 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      //    아래에 두면 유료 리포트가 무인증 핸들러로 새어 들어간다.
+      if (url.pathname === "/api/destiny-compass-ai" || url.pathname.startsWith("/api/destiny-compass-ai/")) {
+        return runAiRouteWithSecurity(request, env, "destiny-compass-ai", handleDestinyCompassAiRoutes, ctx);
+      }
+
       if (url.pathname === "/api/destiny-compass" || url.pathname.startsWith("/api/destiny-compass/")) {
         return withCorsHeaders(request, env, await handleDestinyCompassRoutes(request, env));
       }
@@ -1474,6 +1488,11 @@ export default {
         return runAiRouteWithSecurity(request, env, "nakshatra-ai", handleNakshatraAiRoutes, ctx);
       }
 
+      // 나크샤트라 심화 리포트 2종(유료·영구해금) — 결정론 조립. 무료 라우트보다 먼저 검사한다.
+      if (url.pathname === "/api/nakshatra-premium" || url.pathname.startsWith("/api/nakshatra-premium/")) {
+        return withCorsHeaders(request, env, await handleNakshatraPremiumRoutes(request, env));
+      }
+
       // 나크샤트라 결정판(무료·무인증) — 숙요×나크샤트라 통합 계산.
       if (
         url.pathname === "/api/nakshatra"
@@ -1572,21 +1591,39 @@ export default {
     }
   },
 
+  // 🔴 크론이 둘이므로 event.cron 으로 반드시 분기한다. 분기 없이 두면 일일 태스크(운세 발송·구독 정산 등)가
+  // 10분마다 돌아 중복 지급이 난다. 알 수 없는 cron 값은 일일 세트로 폴백한다(스케줄을 추가했는데
+  // 분기를 빠뜨렸을 때 태스크가 통째로 멈추는 것보다 낫다).
   async scheduled(event, env, ctx) {
+    const cron = String(event?.cron || "").trim();
+
+    if (cron === PAYMENT_RECONCILE_CRON) {
+      const { runPaymentReconcileTask } = await import("./lib/payment-reconcile-task.js");
+      ctx.waitUntil(runPaymentReconcileTask(env).catch((error) => {
+        console.error("[payment-reconcile] task failed:", error?.message || error);
+      }));
+      return;
+    }
+
     const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
     const { runServiceExecutionTimeoutTask } = await import("./lib/service-execution-task.js");
     const { runMonthlyCreditExpiryTask } = await import("./lib/monthly-credit-expiry-task.js");
     // 웹훅 즉시-ack 전환으로 백그라운드 실패/유실된 Transaction.Paid 지급을 재조정한다.
     const { runWebhookReconcileTask } = await import("./routes/payments.js");
-    ctx.waitUntil(Promise.all([
-      runDailyFortuneTask(env),
-      runCardSubscriptionBillingTask(env),
-      runServiceExecutionTimeoutTask(env),
-      runMonthlyCreditExpiryTask(env),
-      runWebhookReconcileTask(env).catch((error) => {
-        console.error("[webhook-reconcile] task failed:", error?.message || error);
-      }),
-    ]));
+    // 🔴 allSettled — 예전 Promise.all 은 한 태스크가 throw 하면(runServiceExecutionTimeoutTask 는 실제로
+    // re-throw 한다) 나머지 태스크가 함께 죽었다. 실패는 반드시 로그로 남긴다(조용히 삼키지 않는다).
+    const tasks = [
+      ["daily-fortune", runDailyFortuneTask],
+      ["subscription-billing", runCardSubscriptionBillingTask],
+      ["service-execution-timeout", runServiceExecutionTimeoutTask],
+      ["monthly-credit-expiry", runMonthlyCreditExpiryTask],
+      ["webhook-reconcile", runWebhookReconcileTask],
+    ];
+    ctx.waitUntil(Promise.allSettled(tasks.map(([name, run]) => Promise.resolve()
+      .then(() => run(env))
+      .catch((error) => {
+        console.error(`[cron:${name}] task failed:`, error?.message || error);
+      }))));
   },
 };

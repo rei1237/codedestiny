@@ -452,6 +452,7 @@ const LOCALE_SHELL_SEO = {
       "生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
+    dictionaryFile: "ja.json",
   },
   "/zh": {
     lang: "zh-CN",
@@ -462,6 +463,7 @@ const LOCALE_SHELL_SEO = {
       "输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
+    dictionaryFile: "zh-cn.json",
   },
   "/en": {
     lang: "en",
@@ -472,8 +474,30 @@ const LOCALE_SHELL_SEO = {
       "Enter your birth date for free Korean Saju (Four Pillars) readings, tarot, Zi Wei Dou Shu, Sukuyo compatibility and daily horoscopes — warm, in-depth AI interpretations.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
+    dictionaryFile: "en.json",
   },
 };
+
+/**
+ * <title> 만은 seo.title 이 아니라 사전(shell.CODEDESTINY) 값을 쓴다.
+ *
+ * 셸의 title 태그에는 data-cd-trans 마커가 붙어 있어 런타임에 cd-lang-native.js 가
+ * 사전 값으로 덮어쓴다. 여기서 seo.title 을 넣으면 JS 를 실행하지 않는 크롤러와
+ * 렌더링하는 크롤러가 서로 다른 제목을 보게 된다. 마커를 떼는 방법은 못 쓴다 —
+ * verify-i18n-runtime-readiness 가 미러의 마커 수를 루트와 정확히 일치시킨다.
+ */
+function resolveLocaleShellTitle(seo) {
+  if (!seo?.dictionaryFile) return seo?.title || null;
+  try {
+    const dictPath = resolve(publicDir, "i18n", seo.dictionaryFile);
+    if (!existsSync(dictPath)) return seo.title;
+    const dict = JSON.parse(stripLeadingBom(readFileSync(dictPath)).toString("utf8"));
+    const localized = dict?.shell?.CODEDESTINY;
+    return typeof localized === "string" && localized.trim() ? localized.trim() : seo.title;
+  } catch {
+    return seo.title;
+  }
+}
 
 /**
  * 로케일 셸의 PWA 매니페스트. 홈 화면에 추가하면 앱 이름·설명이 그대로 노출되므로
@@ -520,13 +544,17 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
 
   const canonicalUrl = `https://code-destiny.com${localePath}/`;
   const manifestFile = writeLocaleManifest(localePath);
+  const localeShellTitle = resolveLocaleShellTitle(seo);
   return indexHtml
     .replace(
       /<link rel="manifest" href="\/manifest\.json([^"]*)">/i,
       manifestFile ? `<link rel="manifest" href="/${manifestFile}$1">` : "$&",
     )
     .replace(/<html lang="ko"/i, `<html lang="${seo.lang}"`)
-    .replace(/<title>[^<]*<\/title>/i, `<title>${seo.title}</title>`)
+    // 셸의 title 은 <title data-cd-trans="shell.CODEDESTINY"> 처럼 속성을 갖는다.
+    // 속성 없는 <title> 만 매칭하던 과거 정규식은 조용히 no-op 이라 로케일 셸이
+    // 한국어 제목을 그대로 물려받았다. 여는 태그(=마커)는 보존하고 본문만 바꾼다.
+    .replace(/(<title\b[^>]*>)[^<]*(<\/title>)/i, `$1${localeShellTitle}$2`)
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
     .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${seo.description}"/>`)
     .replace(/<meta name="keywords" content="[^"]*"/i, `<meta name="keywords" content="${seo.keywords}"`)

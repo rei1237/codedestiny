@@ -93,6 +93,12 @@ const userSchema = new mongoose.Schema({
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },
+    // Family 공정이용: 이용권 기간당 프리미엄 상담(300코인 이상) 사용 횟수.
+    // cycleKey 는 이용권 만료일 ISO 문자열이라, 이용권을 새로 사면 키가 바뀌어
+    // 카운터가 자동으로 0부터 다시 센다(리셋 크론 불필요).
+    // 판정 정본은 lib/profile-limits.js 의 resolveFamilyPremiumQuota.
+    premiumUseCycleKey: { type: String, default: "", trim: true, maxlength: 40 },
+    premiumUseCount: { type: Number, default: 0, min: 0 },
     // 월정석 지급분별(lot) 만료: 각 지급분이 지급일+30일에 개별 소멸, FIFO 차감.
     // lot 배열이 신뢰 원천이고 membershipCreditBalance는 "미만료 lot.remaining 합계" 파생 캐시.
     membershipCreditLots: {
@@ -433,6 +439,25 @@ const paymentWebhookEventSchema = new mongoose.Schema({
 paymentWebhookEventSchema.index({ provider: 1, eventId: 1 }, { unique: true });
 paymentWebhookEventSchema.index({ paymentId: 1, createdAt: -1 });
 
+// 결제창(체크아웃) 퍼널 계측. "결제창까지 왔는데 왜 안 사는가"를 데이터로 볼 수 있는 유일한 채널이다
+// — 이 프로젝트에는 GA/GTM 이 없고 그동안 결제 퍼널 이벤트가 0건이었다.
+// 🔴 개인식별자를 저장하지 않는다(userId·이메일·프로필·생년 정보 없음). 집계용 익명 이벤트 전용이며,
+// 90일 TTL 로 스스로 사라진다. 클라는 sendBeacon 으로 fire-and-forget 하고 응답을 보지 않는다.
+const checkoutFunnelEventSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 60, index: true },
+  featureKey: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  option: { type: String, default: "", trim: true, maxlength: 40 },
+  renderer: { type: String, default: "", trim: true, maxlength: 40 },
+  runtime: { type: String, default: "", trim: true, maxlength: 20 },
+  coinPrice: { type: Number, default: 0, min: 0 },
+  hasPassHint: { type: String, default: "", trim: true, maxlength: 20 },
+  dwellMs: { type: Number, default: 0, min: 0 },
+  createdAt: { type: Date, default: Date.now },
+}, { collection: "checkout_funnel_events", versionKey: false });
+
+checkoutFunnelEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+checkoutFunnelEventSchema.index({ name: 1, createdAt: -1 });
+
 const securityEventSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
   ipHash: { type: String, trim: true, maxlength: 96, index: true, default: "" },
@@ -692,6 +717,15 @@ const karmaDestinyAiChapterSchema = new mongoose.Schema({
   keyTakeaways: { type: [String], default: [] },
   highlightQuotes: { type: [String], default: [] },
   charCount: { type: Number, default: 0 },
+  // ── 다섯 렌즈 리포트(schemaVersion 2) 전용. 전부 optional 이라 구 16장 문서는
+  //    undefined 로 남고 마이그레이션 없이 그대로 재열람된다.
+  symbol: { type: String, default: "", trim: true, maxlength: 4 },
+  leadLens: { type: String, default: "", trim: true, maxlength: 20 },
+  supportLens: { type: [String], default: [] },
+  // 서버가 evidenceKeys 로 integratedResult 에서 직접 뽑은 근거. LLM 이 만든 값이 아니다.
+  evidence: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 그 장이 담당한 영역의 에너지 강도({ domain, value, basis }).
+  energyScore: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { _id: false });
 
 const karmaDestinyAiConsultationSchema = new mongoose.Schema({
@@ -718,6 +752,11 @@ const karmaDestinyAiConsultationSchema = new mongoose.Schema({
   userQuestion: { type: String, default: "", trim: true, maxlength: 1600 },
   integratedResult: { type: mongoose.Schema.Types.Mixed, default: null },
   summaryCards: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 1 = 구 16장(3체계), 2 = 15장 다섯 렌즈. 생성 재개 시 장 정의가 바뀐 문서를 이어붙이면
+  // 챕터 id 가 충돌해 결제 후 무결과가 되므로, 재개 가능 여부 판정에도 쓰인다.
+  schemaVersion: { type: Number, default: 1, index: true },
+  lensContribution: { type: mongoose.Schema.Types.Mixed, default: null },
+  lensAvailability: { type: mongoose.Schema.Types.Mixed, default: null },
   accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
@@ -812,6 +851,45 @@ const ziweiAiConsultationSchema = new mongoose.Schema({
 ziweiAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 ziweiAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// 운명의 지도 심층 리포트 — 웨이브 A/B 로 나눠 도착하는 섹션을 누적 저장한다.
+// 저장 이유 세 가지: ① 재열람 ② 웨이브 A~B 사이 연결이 끊겨도 결제한 내용이 남는다
+// ③ 같은 idempotencyKey 재요청 시 재생성·재과금 대신 저장본을 돌려준다.
+const destinyCompassSectionSchema = new mongoose.Schema({
+  key: { type: String, required: true, trim: true, maxlength: 60 },
+  order: { type: Number, default: 0 },
+  title: { type: String, default: "", trim: true, maxlength: 120 },
+  system: { type: String, default: null, trim: true, maxlength: 40 },
+  body: { type: String, default: "", maxlength: 20000 },
+  chars: { type: Number, default: 0 },
+  status: { type: String, enum: ["ok", "degraded", "failed"], default: "ok" },
+  grounds: { type: mongoose.Schema.Types.Mixed, default: [] },
+}, { _id: false });
+
+const destinyCompassReportSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  // seed 원문은 생년·응답을 담고 있어 저장하지 않는다 — 해시만 남긴다.
+  inputHash: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  seedHash: { type: String, default: "", trim: true, maxlength: 40 },
+  question: { type: String, default: "", trim: true, maxlength: 300 },
+  emotion: { type: String, default: "", trim: true, maxlength: 24 },
+  field: { type: mongoose.Schema.Types.Mixed, default: null },
+  evidencePack: { type: mongoose.Schema.Types.Mixed, default: null },
+  basis: { type: mongoose.Schema.Types.Mixed, default: null },
+  systemConfidence: { type: mongoose.Schema.Types.Mixed, default: [] },
+  sections: { type: [destinyCompassSectionSchema], default: [] },
+  // partial = 웨이브 A 만 도착. completed = B 까지. 재열람은 partial 도 보여준다.
+  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "generating", index: true },
+  accessType: { type: String, default: "", trim: true, maxlength: 40 },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "destinyCompassReports" });
+
+destinyCompassReportSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+destinyCompassReportSchema.index({ userId: 1, createdAt: -1 });
+
 const loveSecretAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
   content: { type: String, required: true, trim: true, maxlength: 60000 },
@@ -835,13 +913,9 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
   relationshipStatus: { type: String, required: true, trim: true, maxlength: 80, index: true },
   topic: { type: String, required: true, trim: true, maxlength: 80, index: true },
   userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
-  sajuResult: {
-    myChart: { type: mongoose.Schema.Types.Mixed, default: null },
-    partnerChart: { type: mongoose.Schema.Types.Mixed, default: null },
-    compatibility: { type: mongoose.Schema.Types.Mixed, default: null },
-    uncertainty: { type: [String], default: [] },
-    consultationMode: { type: String, enum: ["solo", "with_partner", ""], default: "" },
-  },
+  // 🔴 Mixed 여야 한다. 엄격한 5키 서브도큐먼트였을 때는 v2 계산이 추가하는
+  // version·calendar·facts 가 저장 시점에 조용히 버려졌다(mongoose strict).
+  sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   keywords: { type: [String], default: [] },
@@ -851,6 +925,8 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  // 섹션 그룹 일부가 실패한 채 전달된 상담. 운영이 찾아볼 수 있게 남긴다(자동 재생성은 하지 않는다).
+  degraded: { type: Boolean, default: false, index: true },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
@@ -931,7 +1007,9 @@ masterLoveCodexSchema.index({ userId: 1, createdAt: -1 });
 
 const lifeBookAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
-  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  // 인생 총운 본문 상한이 60,000자인데 저장되는 것은 그 본문을 감싼 JSON 이라 60000 으로는 모자란다.
+  // (update validator 가 안 돌아 지금까지 조용히 통과했을 뿐 계약상 잘릴 수 있는 값이었다.)
+  content: { type: String, required: true, trim: true, maxlength: 200000 },
   createdAt: { type: Date, default: Date.now },
   idempotencyKey: { type: String, default: "", trim: true, maxlength: 180 },
 }, { _id: false });
@@ -963,6 +1041,9 @@ const lifeBookAiConsultationSchema = new mongoose.Schema({
     calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   topic: { type: String, required: true, trim: true, maxlength: 120 },
+  // 인생의 책(30,000원)과 인생 총운(50,000원)이 별도 SKU 다. consultationType 만으로는
+  // "어느 SKU 로 과금됐는지"를 알 수 없어(구 SKU 로 결제된 총운 세션이 실재) 실제 과금 키를 남긴다.
+  featureKey: { type: String, default: "life-book-ai-consultation", trim: true, maxlength: 80, index: true },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
   accessSource: { type: String, default: "", trim: true, maxlength: 80 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
@@ -1179,7 +1260,15 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
   question: { type: String, default: "", trim: true, maxlength: 1200 },
   factSummary: { type: mongoose.Schema.Types.Mixed, default: null },
   decks: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 21섹션을 배치(4개/요청)로 생성하므로 완료분을 누적 보관한다. decks 는 완료 시 이걸로 조립한 결과.
+  // 서버가 진행 위치의 정본이다 — 클라이언트가 보낸 인덱스를 믿지 않는다(master-love-codex 패턴).
+  sections: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
+  totalCharCount: { type: Number, default: 0 },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  // 🔴 배치 생성은 정산(applyUsageOnce)이 마지막 배치에서 일어난다. 그 시점엔 원래 요청의 access.source 가
+  // 없으므로 세션에 보존한다 — 이걸 잃으면 billing-gate 로 이미 차감된 월정석을 완료 시 한 번 더 소비한다.
+  accessSource: { type: String, default: "", trim: true, maxlength: 40 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [neoOperationRoomMessageSchema], default: [] },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
@@ -1225,6 +1314,8 @@ export const ContentEntitlement = mongoose.models.ContentEntitlement
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
   || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema);
+export const CheckoutFunnelEvent = mongoose.models.CheckoutFunnelEvent
+  || mongoose.model("CheckoutFunnelEvent", checkoutFunnelEventSchema);
 export const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema);
 export const IdempotencyKey = mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema);
 export const AbuseScore = mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema);
@@ -1243,6 +1334,8 @@ export const ZiweiAiConsultation = mongoose.models.ZiweiAiConsultation
   || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema);
 export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
+export const DestinyCompassReport = mongoose.models.DestinyCompassReport
+  || mongoose.model("DestinyCompassReport", destinyCompassReportSchema);
 export const MasterLoveCodexSession = mongoose.models.MasterLoveCodexSession
   || mongoose.model("MasterLoveCodexSession", masterLoveCodexSchema);
 export const LifeBookAiConsultation = mongoose.models.LifeBookAiConsultation

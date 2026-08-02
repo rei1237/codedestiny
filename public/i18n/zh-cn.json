@@ -816,7 +816,7 @@
       "vvipBenefit2": "最多 15 个配置文件",
       "vvipCta": "查看 VVIP 福利",
       "familyName": "代码命运家庭 30 天",
-      "familyPrice": "30 天 · 300,000 韩元",
+      "familyPrice": "30 天 · 149,000 韩元",
       "familyLine": "使用所有付费功能",
       "familyBenefit1": "无配置文件限制",
       "familyBenefit2": "所有家庭福利",
@@ -1274,6 +1274,18 @@
       "placeholder": "搜索服务（如：塔罗、合婚、梦）",
       "searchAria": "搜索全部服务",
       "empty": "没有结果，换个关键词试试。"
+    },
+    "todayHub": {
+      "title": "今日运势",
+      "lead": "四柱日柱、宿曜二十七宿、吠陀星期主星，一站呈现。免登录，免费。",
+      "tabsAria": "切换今日运势占术",
+      "tabSaju": "四柱",
+      "tabSukuyo": "宿曜",
+      "tabVedic": "吠陀",
+      "personalized": "已结合生日",
+      "noteGuest": "当前显示的是今天整体的走势。在个人卡片中填写出生日期，即可对照你的命盘解读。",
+      "ctaAll": "查看今日完整运势",
+      "share": "分享"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "选择支付方式",
       "readyMessage": "请选择月定石或单次支付。",
-      "directHint": "可使用银行卡或快捷支付直接付款。<br>支付将在 PortOne V2 KG Inicis 安全支付窗口中进行。",
+      "directHint": "只要这一份结果，用信用卡或快捷支付立即开启。",
       "pgBadge": "PortOne V2·KG Inicis",
       "directTitle": "韩元单次支付 · {amount}",
       "amountLabel": "支付金额",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "月定石基准 · {amount}",
         "withPass": "一般付费服务在限额内可用通行券开启，PDF和超出限额的服务按商品使用韩元单次支付。",
-        "directOnly": "此操作将通过韩元单次支付确认。"
+        "directOnly": "此操作将通过韩元单次支付确认。",
+        "passUnknown": "如果你有通行证，点击下方通行证卡片即可当场确认。",
+        "passMiss": "你的通行证无法免费开启此内容，请选择支付方式。"
       },
       "passBadge": "月光通行券",
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "切换到月光通行券后，包括此功能在内的额度以内功能可在30天内无需支付窗口无限使用。",
+        "store": "30 天内额度以内的功能无限使用，无需再次付款。已有通行证？点一下即可当场确认。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
-        "upgrade": "此功能超出当前通行券额度。请查看更高级的月光通行券。"
+        "upgrade": "当前等级无法免费开启此功能，请查看更高等级的通行证。"
       },
       "applyMethod": {
         "label": "适用方式",
@@ -1784,9 +1798,10 @@
         "checking": "正在确认通行券范围"
       },
       "monthlyHint": {
-        "use": "使用持有月定石余额并立即开启。",
+        "use": "使用你已获得的月定石支付，无需额外花费即可开启。",
         "insufficient": "月定石余额不足。可继续韩元单次支付。",
-        "checking": "需要确认月定石余额。仍可使用韩元单次支付。"
+        "checking": "需要确认月定石余额。韩元单次支付仍可使用。",
+        "after": "使用后将剩余 {balance}。"
       },
       "monthlyBalance": {
         "needCheck": "需要确认",
@@ -1795,13 +1810,28 @@
         "refresh": "重新查询月定石",
         "refreshing": "正在重新查询月定石余额。",
         "refreshed": "已重新确认月定石余额。当前为 {balance}。",
-        "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。"
+        "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。",
+        "owned": "持有月定石 {balance}",
+        "ownedUnknown": "持有月定石 · 需确认",
+        "signedOut": "登录后即可查看月定石余额。",
+        "unconfirmed": "未能确认月定石余额。您仍可继续尝试，若余额不足会在结算时提示。",
+        "staleAfterError": "未能重新确认月定石余额，显示上次确认值 · 当前 {balance}"
       },
       "legal": {
         "provisionTiming": "本服务在支付完成后立即提供。服务使用从支付确认时开始，根据电子商务法，已开始提供的內容可能限制撤销。"
       },
       "passUpgradeTitle": "月光通行券升级",
-      "recommendBadge": "推荐"
+      "recommendBadge": "推荐",
+      "moonTitle": "选择支付方式",
+      "moonSubtitle": "请选择最适合你的方式打开内容。",
+      "directTitleLabel": "单次支付",
+      "monthlyUnit": "活动货币",
+      "passBuyTitle": "用通行证购买",
+      "passChecking": "正在确认你的通行证。",
+      "passMissGoStore": "你的通行证无法开启此内容，正在前往通行证商店。",
+      "passCheckRetry": "未能确认您的通行证状态，请稍后再点击一次。",
+      "directHintApp": "只要这一份结果，通过 Google Play 结算立即开启。",
+      "pgBadgeApp": "Google Play 结算"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
       "profileLimit": "{count}个资料",
-      "allFeatures": "可使用全部功能",
+      "allFeatures": "3万韩元以下无限 · 含专家咨询10次",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",
       "closeAria": "关闭月光通行券商店说明",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30天",
-          "desc": "30天 · 所有付费功能 · 不限资料"
+          "desc": "30 天 · 3万韩元以下无限 · 专家咨询10次 · 档案不限"
         }
       },
       "monthlyStatusChecking": "正在确认余额和通行证状态。",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 分享四柱结果",
       "kakao": "KakaoTalk分享",
-      "instagram": "Instagram DM"
+      "instagram": "Instagram DM",
+      "image": "以图片分享"
     },
     "actions": {
       "newSaju": "✨ 查看新的四柱"
@@ -7317,6 +7348,30 @@
       "009": "自尊心升级塔罗",
       "010": "事业门槛7牌阵",
       "011": "对方内心塔罗"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "付费后你会得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "30,000～60,000字",
+      "chaptersLabel": "结构",
+      "chaptersValue": "共10章 · 每章2,400字以上",
+      "keepLabel": "保存",
+      "keepValue": "导出PDF，永久保存",
+      "guarantee": "篇幅未达标准会自动重写。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "付费后你会得到",
+      "volumeLabel": "篇幅",
+      "volumeValue": "至少30,000字",
+      "chaptersLabel": "结构",
+      "chaptersValue": "共16章 · 每章1,900～2,400字",
+      "keepLabel": "保存",
+      "keepValue": "导出PDF，永久保存",
+      "guarantee": "篇幅未达标准的章节最多自动重写两次。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
     }
   }
 }

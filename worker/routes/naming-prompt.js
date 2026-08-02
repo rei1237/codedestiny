@@ -9,7 +9,10 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-result-cards.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { analyzeSoundFlow, soundElementOf, soundFiveElementsList } from "../lib/naming-sound-elements.js";
+import { suriPromptBlock } from "../lib/naming-suri.js";
+import { ELEMENT_LABELS_KO, GENERATE_TO, labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
+import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
@@ -44,12 +47,11 @@ function resolveGenderLabel(gender) {
   return GENDER_LABELS[key] || clean(gender, 20) || "미입력";
 }
 
-const SOUND_FIVE_ELEMENTS = Object.freeze({
-  "木": ["ㄱ", "ㅋ"],
-  "火": ["ㄴ", "ㄷ", "ㄹ", "ㅌ"],
-  "土": ["ㅇ", "ㅎ"],
-  "金": ["ㅅ", "ㅈ", "ㅊ"],
-  "水": ["ㅁ", "ㅂ", "ㅍ"],
+/** buildUsefulGods 가 내는 강약 enum 을 프롬프트에 그대로 넣으면 "weak" 같은 영문이 노출된다. */
+const STRENGTH_LABELS = Object.freeze({
+  strong: "신강(身强) 후보 — 일간을 덜어 내는 방향으로 용신을 잡는다",
+  weak: "신약(身弱) 후보 — 일간을 돕는 방향으로 용신을 잡는다",
+  balanced: "중화(中和)에 가까움 — 조후와 통관을 우선해 용신을 잡는다",
 });
 
 const PAYMENT_SUCCESS_STATUSES = new Set(["success", "paid", "fulfilled"]);
@@ -452,14 +454,26 @@ function buildFallbackSajuContext(input) {
     });
 
     const useful = profile.usefulGods || {};
-    const lacking = asElementLabelList(profile.fiveElements?.lacking || []);
-    const excessive = asElementLabelList(profile.fiveElements?.excessive || []);
+    // buildSajuProfile 은 억부만 본다. 조후 축을 얹어 최종 용신을 확정한다 — 이걸 안 하면
+    // 아래 "용신 판단 근거" 블록의 조후용신·억부기신 등 4줄이 "메인 사주 계산 기준 확인"이라는
+    // 내부 문구로 그대로 프롬프트에 나간다(무료 초안도 같은 모듈을 써서 축이 일치한다).
+    const verdict = resolveNamingYongshin(profile);
+    const lacking = asElementLabelList(verdict.lacking);
+    const excessive = asElementLabelList(verdict.excessive);
     const yong = asElementLabelList(useful.yong || []);
-    const hee = asElementLabelList(useful.hee || []);
-    const gi = asElementLabelList(useful.gi || []);
+    const hee = asElementLabelList(verdict.heesin);
+    const gi = asElementLabelList(verdict.eokbuKijishin);
 
     return {
       source: "buildSajuProfile",
+      engineVersion: "destiny-bias-engine + saju-yongshin-policy",
+      eokbuYongshin: labelElements(verdict.eokbuYongshin, "억부용신 판단 보류"),
+      johuYongshin: labelElements(verdict.johuYongshin, "조후 보정 불필요(한난조습 균형)"),
+      finalYongshin: labelElements(verdict.finalYongshin, "용신 후보 재검토 필요"),
+      eokbuKijishin: labelElements(verdict.eokbuKijishin, "억부기신 판단 보류"),
+      johuKijishin: labelElements(verdict.johuKijishin, "조후상 주의 오행 없음"),
+      finalKijishin: labelElements(verdict.finalKijishin, "기신 후보 재검토 필요"),
+      jongAnalysis: verdict.jongSignal,
       yearPillar: pillarText(profile.pillars?.year),
       monthPillar: pillarText(profile.pillars?.month),
       dayPillar: pillarText(profile.pillars?.day),
@@ -468,13 +482,16 @@ function buildFallbackSajuContext(input) {
       monthCommand: pillarText(profile.pillars?.month?.branch ? { ganji: profile.pillars.month.branch } : null),
       fiveElementBalance: elementBalanceText(profile.fiveElements),
       tenGodBalance: tenGodBalanceText(profile.tenGods),
-      strengthAnalysis: clean(useful.strength || "월령·통근·투간·오행 균형을 함께 보아 신강/신약 후보를 재검토", 200),
-      temperatureBalance: clean(useful.temperature || "계절성과 조후 필요성을 별도로 검토", 200),
+      strengthAnalysis: clean(STRENGTH_LABELS[useful.strength] || "월령·통근·투간·오행 균형을 함께 보아 신강/신약 후보를 재검토", 200),
+      temperatureBalance: clean(
+        `${verdict.johu.season}생 · ${verdict.johu.temperatureLabel} · ${verdict.johu.moistLabel}`,
+        200,
+      ),
       usefulGodCandidates: formatList(yong, "월령·일간·조후·통근·투간 검토 후 후보 제시"),
       supportiveGodCandidates: formatList(hee, "용신 후보를 돕는 희신 후보 제시"),
       unfavorableGodCandidates: formatList(gi, "과다하거나 균형을 해치는 기신 후보 제시"),
-      recommendedNameElements: formatList(lacking, "사주 구조 검토 후 보완 오행 제시"),
-      avoidNameElements: formatList(excessive, "과다 오행과 기신 후보를 비교해 제시"),
+      recommendedNameElements: labelElements(verdict.nameElements, formatList(lacking, "사주 구조 검토 후 보완 오행 제시")),
+      avoidNameElements: labelElements(verdict.avoidElements, formatList(excessive, "과다 오행과 기신 후보를 비교해 제시")),
       raw: {
         pillars: profile.pillars,
         fiveElements: profile.fiveElements,
@@ -527,10 +544,25 @@ function buildPreferenceContext(input) {
   return parts.length ? parts.join(" / ") : "미입력";
 }
 
-function soundFiveElementsList() {
-  return Object.entries(SOUND_FIVE_ELEMENTS)
-    .map(([element, initials]) => `- ${element}: ${initials.join(", ")}`)
-    .join("\n");
+/**
+ * 성씨의 소리오행과, 그 뒤에 붙었을 때 상생이 되는 오행을 실제로 계산해 프롬프트에 넣는다.
+ * 표만 주고 "상생이 되게 하라"고 하면 모델이 성씨 초성을 잘못 읽는 경우가 있다.
+ */
+function soundGuidanceForFamilyName(familyName) {
+  const syllables = Array.from(clean(familyName, 10)).filter((char) => /^[가-힣]$/.test(char));
+  if (!syllables.length) return "";
+  const lastElement = soundElementOf(syllables[syllables.length - 1]);
+  if (!lastElement) return "";
+  const flow = analyzeSoundFlow(syllables.join(""));
+  const chain = syllables.length > 1 && flow.elements.every(Boolean)
+    ? ` (성씨 자체 흐름 ${flow.elements.map((key) => ELEMENT_LABELS_KO[key] || key).join("→")})`
+    : "";
+  // 상생은 두 방향 모두 성립한다: 성씨가 생하는 오행, 성씨를 생하는 오행.
+  const generatedBy = Object.keys(GENERATE_TO).find((key) => GENERATE_TO[key] === lastElement);
+  const friendly = [GENERATE_TO[lastElement], generatedBy]
+    .filter(Boolean)
+    .map((key) => ELEMENT_LABELS_KO[key] || key);
+  return `\n**이 성씨의 소리오행은 ${ELEMENT_LABELS_KO[lastElement]}입니다${chain}.** 이름 첫 글자의 초성 오행을 ${friendly.join(" 또는 ")}로 두면 성씨와 상생으로 이어집니다. 다른 오행을 쓸 때는 왜 그 편이 나은지(용신 보완이 더 급한 경우 등) 근거를 밝히세요.`;
 }
 
 function buildGeneratedPrompt(input, saju) {
@@ -547,8 +579,14 @@ function buildGeneratedPrompt(input, saju) {
   const timeNote = input.birthTimeUnknown
     ? "\n9. **출생시간 미상**: 시주(時柱)가 확정되지 않았으므로, 시주에 크게 의존하는 판단(시주 천간의 통근 여부 등)은 \"시간 확인 시 재검토 권장\"으로 유보하고, 년·월·일주 기반 분석은 그대로 진행하세요."
     : "";
+  // 번호 없는 bullet 로 붙이면 위 원칙 목록의 번호 매김이 끊긴다 — 원칙 하나로 번호를 이어 붙인다.
   const hanjaNote = input.desiredNames.some((item) => item.hangul && item.hanjaCandidates.length === 0) || (input.currentName && !input.useHanja)
-    ? "\n- 한글 이름만 입력된 후보는 한자 획수와 수리 풀이를 한자 조합이 확정된 뒤 최종 판단하세요."
+    ? "\n11. **한글만 입력된 후보**: 한자 획수와 수리 풀이는 한자 조합이 확정된 뒤에 최종 판단하고, 그 전 단계에서는 소리오행과 어감 위주로 평가하세요."
+    : "";
+  // 사주 계산이 실패한 2차 폴백에서는 명식 자리에 "계산 실패" 문자열이 들어간다. 그대로 두면
+  // 모델이 그 문자열을 명식으로 읽는다 — 무엇을 해야 하는지 명시한다.
+  const sajuFailureNote = String(saju.source || "") === "input-fallback"
+    ? "\n12. 🔴 **사주 자동 계산 실패**: 아래 [사주 계산 결과]의 명식 칸이 \"계산 실패\"로 채워져 있습니다. 그 문자열을 명식으로 읽지 말고, [사용자 정보]의 생년월일·시각·양음력으로 직접 명식을 세운 뒤 용신을 도출하세요. 시각이 미상이면 년·월·일주만으로 진행하고 그 한계를 밝히세요."
     : "";
   const seedNote = hasSeedNames
     ? "\n10. **사용자 후보 이름 있음**: 아래 [사용자 이름 선호]의 후보 이름들을 4장에서 먼저 평가한 뒤, 더 좋은 이름 3~5개를 새로 제안해 함께 다루세요. 무료 입력 단계의 초안이 있었다면 참고안으로만 보고 반드시 사주와 작명 원칙으로 다시 검토하세요."
@@ -569,7 +607,7 @@ ${genderNote}
 5. **전통 + 현대 균형**: 한자의 뜻과 오행이 좋아도 현대 한국에서 부르기 어색하거나, 놀림 소지가 있거나, 발음이 어려운 이름은 피하세요.
 6. **불확실하면 단정하지 마세요**: 획수 계산이 불확실한 한자, 오행 배속이 논쟁적인 글자는 "검증 필요"로 명시하세요.
 7. **후보를 무조건 부정하지 마세요**: 사용자가 제시한 후보는 정성적으로 평가하되, 문제가 있으면 구체적인 대안과 함께 설명하세요.
-8. **사람의 말로 쓰세요**: "오행 균형이 양호합니다" 같은 기계적 요약이 아니라, 작명가가 부모 앞에서 직접 설명하듯 따뜻한 존댓말로, 단정할 것은 단정하고 권할 것은 분명히 권하세요. **마크다운 표(|)는 절대 쓰지 마세요** — 모든 비교는 소제목과 목록, 문장으로 풀어 쓰세요.${timeNote}${seedNote}${hanjaNote}
+8. **사람의 말로 쓰세요**: "오행 균형이 양호합니다" 같은 기계적 요약이 아니라, 작명가가 부모 앞에서 직접 설명하듯 따뜻한 존댓말로, 단정할 것은 단정하고 권할 것은 분명히 권하세요. **마크다운 표(|)는 절대 쓰지 마세요** — 모든 비교는 소제목과 목록, 문장으로 풀어 쓰세요.${timeNote}${seedNote}${hanjaNote}${sajuFailureNote}
 
 ---
 
@@ -632,10 +670,9 @@ ${genderNote}
 
 ### A. 소리오행 (초성 기준)
 ${soundFiveElementsList()}
-성씨와 이름 각 글자의 초성 오행 흐름이 상생(相生) 관계가 되도록 배치하세요.
+성씨와 이름 각 글자의 초성 오행 흐름이 상생(相生) 관계가 되도록 배치하세요. 상생은 木→火→土→金→水→木 순환이며, 서로 극(剋)하는 배치(木剋土·土剋水·水剋火·火剋金·金剋木)는 피합니다.${soundGuidanceForFamilyName(input.familyName)}
 
-### B. 수리오행 (원형이정 4격)
-성씨 획수와 이름 각 글자 획수로 원격(초년)·형격(청년)·이격(장년)·정격(총획/말년)을 계산하고, 각 격의 길흉과 수리오행·음양 배치를 함께 보세요. 최소 원격·형격·정격 3격은 길수가 되도록 하세요.
+${suriPromptBlock()}
 
 ### C. 자원오행 (한자 뜻·부수)
 한자의 부수·의미·상징에서 비롯되는 오행입니다. 사주 용신·희신 오행과 일치하는 한자를 최우선으로 선택하세요.${input.useHanja ? "" : "\n> 사용자가 한글 이름 중심을 원합니다. 한자는 참고용으로 제시하되 한글 소리오행과 수리 분석에 비중을 두세요."}
@@ -664,6 +701,8 @@ ${desiredNamesMarkdown(input.desiredNames)}
 
 ## [출력 형식 — 작명첩 8장]
 아래 8개 장을 정확히 이 헤딩(## 숫자. 제목)으로 쓰세요. 한 장 한 장이 충실해야 합니다(장마다 최소 3문단 이상, 4장은 이름마다 충분히). 표는 금지, 소제목(###)과 목록·문장만 사용하세요.
+
+**전체 분량은 공백 제외 ${NAMING_PROMPT_TARGET_MIN_CHARS.toLocaleString("en-US")}자 이상 ${NAMING_MAX_TOTAL_CONTENT_CHARS.toLocaleString("en-US")}자 이하로 쓰세요.** 분량을 채우려고 같은 말을 반복하거나 원론적인 설명을 늘리지 마세요 — 이 사주와 이 이름 후보에만 해당하는 구체적인 근거로 채우세요.
 
 ## 1. 작명가의 총평
 (이 사주를 처음 펼쳐 본 작명가의 첫인상. 어떤 기운을 타고났고, 이름이 무엇을 채워줘야 하는지를 부모에게 말하듯 서너 문단으로.)
@@ -736,16 +775,50 @@ async function findPaymentForUser(env, auth, paymentId) {
   if (!normalized) {
     throw createHttpError(400, "paymentId is required.", { code: "PAYMENT_ID_REQUIRED" });
   }
+  // requestId·idempotencyKey 도 함께 본다 — 코인게이트가 단건 성공을 돌려줄 때 살아남는 식별자가
+  // merchantUid 하나로 정해져 있지 않다(경로에 따라 requestId 가 오기도 한다). 다른 유료 라우트의
+  // 정본 패턴(worker/routes/astrology-ai.js hasPaidPayment)이 이미 이 4개를 모두 본다.
   const payment = await withMongoRetry(env, () => Payment.findOne({
     userId: auth.userId,
     $or: [
       { merchantUid: normalized },
       { impUid: normalized },
+      { requestId: normalized },
+      { idempotencyKey: normalized },
       { _id: /^[a-f\d]{24}$/i.test(normalized) ? normalized : undefined },
     ].filter((item) => Object.values(item)[0] !== undefined),
-  }).lean());
+  }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).lean());
   if (!payment) throw createHttpError(404, "결제 기록을 찾을 수 없습니다.", { code: "PAYMENT_NOT_FOUND" });
   return payment;
+}
+
+/**
+ * 이 입력값으로 이미 완료된 단건 결제를 찾는다.
+ *
+ * 🔴 단건 결제는 PointHistory 차감 기록을 남기지 않는다(포인트가 아니라 카드로 결제하므로).
+ * 그래서 verifyNamingChargeEvidence 로는 절대 잡히지 않고, 식별자가 왕복 중 하나도 살아남지
+ * 못하면 결제를 마친 사용자가 canAccessPaidFeature 로 떨어져 402 를 받는다 — 돈만 나간다.
+ * Payment 문서를 reportId(입력 해시)로 직접 찾아 그 구멍을 막는다.
+ *
+ * 입력 해시에 묶여 있으므로 다른 입력으로 재사용할 수 없다. 같은 입력 재생성은 기존
+ * PaidExecutionRecord 멱등이 그대로 처리한다(paymentId 경로와 동일한 성질).
+ */
+async function findSettledNamingPayment(env, auth, inputHash) {
+  const hash = clean(inputHash, 160);
+  if (!hash) return null;
+  await connectDb(env);
+  return withMongoRetry(env, () => Payment.findOne({
+    userId: auth.userId,
+    paymentType: "digital_content",
+    featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
+    status: { $in: Array.from(PAYMENT_SUCCESS_STATUSES) },
+    $or: [
+      { reportId: hash },
+      { "pricingSnapshot.reportId": hash },
+      { "pricingSnapshot.contentId": hash },
+      { "pricingSnapshot.contentKey": hash },
+    ],
+  }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).lean());
 }
 
 function verifyPaymentShape(payment, inputHash = "") {
@@ -945,6 +1018,82 @@ async function verifyPassEvidence(env, auth, ctx = {}) {
   return history ? { source: "pass_history", evidenceId: String(history._id || "") } : null;
 }
 
+/** 증빙 후보 id 들을 정리·중복 제거한다(빈 값 제거). */
+function uniqueCleanIds(values) {
+  const seen = new Set();
+  for (const value of values) {
+    const id = clean(value, 160);
+    if (id) seen.add(id);
+  }
+  return Array.from(seen);
+}
+
+/**
+ * 회당 결제 차감 증빙을 직접 확인한다.
+ *
+ * 🔴 이게 왜 필요한가: `canAccessPaidFeature` 는 **지속 엔티틀먼트(이용권·영구 해금)만** 판정하고
+ * 회당 결제(월정석·코인 차감)는 판정하지 않아 **항상 PAYMENT_REQUIRED 를 준다**
+ * (같은 설계 설명이 worker/routes/dream.js 의 회당 결제 분기 주석에도 있다).
+ * 작명은 PER_USE 상품이라, 이걸 관문으로 세워 두면 **월정석·코인이 이미 차감된 사용자가 402 로 막힌다**
+ * — 돈만 나가고 결과는 못 받는다. 그래서 차감이 실제로 일어났는지를 여기서 먼저 본다.
+ *
+ * 중첩 검사가 아니다: 아래 canAccessPaidFeature 는 "이용권 보유"를, 이 함수는 "차감 발생"을 본다.
+ * 서로 다른 근거이며, 증빙을 찾으면 곧바로 반환해 뒤 검사를 돌리지 않는다.
+ */
+async function verifyNamingChargeEvidence(env, auth, ctx, body, inputHash = "") {
+  const ids = uniqueCleanIds([
+    readContextEvidenceId(ctx, body),
+    ctx.consume.transactionId,
+    ctx.consume.purchaseId,
+    ctx.consume.requestId,
+    ctx.accessGrant.evidenceId,
+    ctx.accessGrant.purchaseId,
+    ctx.accessGrant.requestId,
+    ctx.payload.transactionId,
+    ctx.payload.purchaseId,
+    ctx.payload.requestId,
+    body.requestId,
+  ]);
+  if (!ids.length) return null;
+
+  const objectIds = ids.filter((id) => isObjectId(id));
+  const clauses = [
+    objectIds.length ? { _id: { $in: objectIds } } : null,
+    { "metadata.requestId": { $in: ids } },
+    { "metadata.purchaseId": { $in: ids } },
+    { "metadata.transactionId": { $in: ids } },
+  ].filter(Boolean);
+
+  await connectDb(env);
+  const history = await withMongoRetry(env, () => PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
+    // 실패로 환불된 차감은 증빙이 아니다.
+    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
+    $or: clauses,
+  }).sort({ createdAt: -1 }).lean());
+  if (!history) return null;
+
+  // 결제를 입력값에 묶는다 — 한 번 결제하고 입력만 바꿔 계속 생성하는 것을 막는다.
+  // 기록에 reportId 가 없으면(구 기록) verifyPaymentShape 과 같은 관용으로 통과시킨다.
+  const recordedHash = clean(history.metadata?.reportId, 160);
+  if (inputHash && recordedHash && recordedHash !== inputHash) {
+    throw createHttpError(409, "입력값이 바뀌면 새 결제가 필요합니다.", { code: "INPUT_HASH_MISMATCH" });
+  }
+
+  const metadata = history.metadata || {};
+  return {
+    source: "point_history_charge",
+    evidenceId: String(history._id || ""),
+    accessType: clean(metadata.accessType, 80),
+    accessMethod: clean(metadata.accessMethod || metadata.paymentMethod, 80),
+    requestId: clean(metadata.requestId || metadata.purchaseId, 120),
+    profileId: clean(metadata.profileId || metadata.selectedProfileId, 80),
+  };
+}
+
 async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   const ctx = unwrapAccessContext(body);
   const paymentId = firstClean(
@@ -955,19 +1104,31 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
     ctx.payment.merchantUid,
     ctx.payment.paymentId,
   );
+  // paymentId 가 있다고 곧바로 단건으로 확정하면 안 된다 — 코인게이트 성공 응답은 이용권·월정석·
+  // 코인에도 최상위 transactionId(=PointHistory/entitlement id)를 싣기 때문에, 그것을 paymentId 로
+  // 넘겨받으면 Payment 문서가 없어 404 로 죽는다(월정석은 이미 차감된 뒤라 돈만 나간다).
+  // 그래서 조회 실패(404)만 보류해 두고 아래 이용권/월정석 분기로 내려간다 — 거기서도 접근권이
+  // 없으면 보류한 404 를 그대로 던져 진단 정확도를 잃지 않는다. 금액·상품·해시 불일치는 폴백 없이
+  // 즉시 실패해야 하므로 그대로 통과시킨다.
+  let pendingPaymentMiss = null;
   if (paymentId) {
-    const payment = await findPaymentForUser(env, auth, paymentId);
-    verifyPaymentShape(payment, inputHash);
-    return {
-      accessMethod: "single",
-      accessType: "single_purchase",
-      evidenceId: String(payment.merchantUid || payment._id || ""),
-      paymentId: String(payment.merchantUid || ""),
-      requestId: String(payment.requestId || payment.merchantUid || ""),
-      profileId: "default",
-      payment,
-      raw: ctx,
-    };
+    try {
+      const payment = await findPaymentForUser(env, auth, paymentId);
+      verifyPaymentShape(payment, inputHash);
+      return {
+        accessMethod: "single",
+        accessType: "single_purchase",
+        evidenceId: String(payment.merchantUid || payment._id || ""),
+        paymentId: String(payment.merchantUid || ""),
+        requestId: String(payment.requestId || payment.merchantUid || ""),
+        profileId: "default",
+        payment,
+        raw: ctx,
+      };
+    } catch (caught) {
+      if (Number(caught?.status) !== 404) throw caught;
+      pendingPaymentMiss = caught;
+    }
   }
 
   const featureKey = readContextFeatureKey(ctx, body);
@@ -979,9 +1140,48 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
     throw createHttpError(409, "입력값이 바뀌면 새 결제가 필요합니다.", { code: "INPUT_HASH_MISMATCH" });
   }
 
+  // 🔴 이 입력값으로 이미 완료된 단건 결제가 있으면 그걸로 통과시킨다. 단건은 PointHistory 차감
+  // 기록이 없어 아래 회당 결제 증빙으로는 잡히지 않고, 식별자가 왕복 중 유실되면 결제를 마친
+  // 사용자가 402 를 받는다.
+  const settledPayment = await findSettledNamingPayment(env, auth, inputHash);
+  if (settledPayment) {
+    verifyPaymentShape(settledPayment, inputHash);
+    return {
+      accessMethod: "single",
+      accessType: "single_purchase",
+      evidenceId: String(settledPayment.merchantUid || settledPayment._id || ""),
+      paymentId: String(settledPayment.merchantUid || ""),
+      requestId: String(settledPayment.requestId || settledPayment.merchantUid || ""),
+      profileId: "default",
+      payment: settledPayment,
+      raw: ctx,
+    };
+  }
+
+  // 🔴 회당 결제 차감 증빙을 먼저 본다. canAccessPaidFeature 는 지속 엔티틀먼트만 판정해서
+  // 월정석·코인으로 이미 차감한 사용자에게도 PAYMENT_REQUIRED 를 주기 때문에, 이걸 뒤에 두면
+  // 차감된 사용자가 402 로 막힌다(돈만 나감).
+  const charge = await verifyNamingChargeEvidence(env, auth, ctx, body, inputHash);
+  if (charge) {
+    const chargeMethod = normalizeExecutionAccessMethod(
+      charge.accessType || readContextAccessType(ctx, body),
+      charge.accessMethod || readContextAccessMethod(ctx, body),
+    );
+    return {
+      accessMethod: chargeMethod,
+      accessType: charge.accessType || chargeMethod,
+      evidenceId: charge.evidenceId,
+      paymentId: "",
+      requestId: charge.requestId || readContextEvidenceId(ctx, body) || charge.evidenceId,
+      profileId: charge.profileId || "default",
+      raw: ctx,
+      evidence: charge,
+    };
+  }
+
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, userDoc: auth.authUserDoc });
   if (!decision.allowed) {
-    throw createHttpError(402, "결제 또는 이용권 확인 후에만 프롬프트를 생성할 수 있습니다.", {
+    throw pendingPaymentMiss || createHttpError(402, "결제 또는 이용권 확인 후에만 프롬프트를 생성할 수 있습니다.", {
       code: "NAMING_ACCESS_REQUIRED",
       reason: decision.reason,
     });
@@ -991,7 +1191,7 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   const accessMethod = readContextAccessMethod(ctx, body);
   const method = normalizeExecutionAccessMethod(accessType, accessMethod, decision);
   if (method === "single") {
-    throw createHttpError(402, "단건 결제는 결제 ID 확인 후에만 프롬프트를 생성할 수 있습니다.", { code: "PAYMENT_ID_REQUIRED" });
+    throw pendingPaymentMiss || createHttpError(402, "단건 결제는 결제 ID 확인 후에만 프롬프트를 생성할 수 있습니다.", { code: "PAYMENT_ID_REQUIRED" });
   }
   let evidence = null;
   if (isMonthlyAccess(accessType, accessMethod, decision)) {
@@ -1162,28 +1362,86 @@ async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSn
   return { state: "claimed", executionId };
 }
 
+/**
+ * 작명첩 분량 계약. 다른 30,000원대 전문가 상담은 전부 총 분량 하한을 갖는데
+ * (인생의 책 10,000자 / 자미두수 20,000자 / 인생 총운 30,000자) 이 라우트만 없었다.
+ *
+ * 하한을 5,000자로 잡은 이유: 프롬프트가 요구하는 "8장 × 최소 3문단"을 글자로 환산하면
+ * 형식만 겨우 지킨 최소치가 대략 3,000자대다. 하한은 목표가 아니라 그 아래를 걸러내는
+ * 안전망이므로 그보다 조금 위에 둔다 — 목표치는 프롬프트가 8,000~14,000자로 따로 지시한다.
+ * 너무 높이 잡으면 정상 결과가 실패로 돌아 결제한 사용자가 에러를 받는다.
+ *
+ * 실사용 분포를 보고 조정할 수 있게 env 로 덮을 수 있다(같은 함수의 TIMEOUT_MS·
+ * MAX_OUTPUT_TOKENS 와 같은 방식). 0 이하나 숫자가 아니면 기본값을 쓴다.
+ */
+/** 재시도 전에 남겨 둘 여유 — 응답 직렬화·DB 기록·후처리 몫. */
+const RETRY_RESERVE_MS = 12000;
+/** 이만큼도 안 남았으면 재시도를 걸지 않는다(걸어 봐야 엣지에 잘린다). */
+const MIN_RETRY_BUDGET_MS = 20000;
+
+const NAMING_MIN_TOTAL_CONTENT_CHARS = 5000;
+const NAMING_MAX_TOTAL_CONTENT_CHARS = 14000;
+const NAMING_PROMPT_TARGET_MIN_CHARS = 8000;
+
+function resolveNamingMinTotalChars(env) {
+  const override = Math.floor(Number(env?.NAMING_PROMPT_MIN_TOTAL_CHARS));
+  return Number.isFinite(override) && override > 0 ? override : NAMING_MIN_TOTAL_CONTENT_CHARS;
+}
+
+/** 공백 제외 글자 수. 프롬프트가 같은 기준("공백 제외")으로 지시한다. */
+function countNamingContentChars(text) {
+  return String(text || "").replace(/\s+/g, "").length;
+}
+
 async function generateNamingResult(env, prompt) {
   // 이 라우트는 요청 안에서 생성을 끝낸다 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
   const timeoutMs = clampSyncLlmTimeoutMs(Number(env?.NAMING_PROMPT_TIMEOUT_MS));
   const baseTokens = Number(env?.NAMING_PROMPT_MAX_OUTPUT_TOKENS) || 20000;
-  const callAt = (maxOutputTokens) => callGeminiText(env, prompt, {
+  const minTotalChars = resolveNamingMinTotalChars(env);
+  const callAt = (maxOutputTokens, overrideTimeoutMs) => callGeminiText(env, prompt, {
     taskType: "fortune",
     temperature: 0.72,
     // env.PREMIUM_GEMINI_TIMEOUT_MS(운영 45초)를 || 체인에 넣지 않는다 — 45초 단락 함정(다른 -ai 라우트들 반복 경고).
-    timeoutMs,
+    timeoutMs: overrideTimeoutMs ? Math.min(timeoutMs, overrideTimeoutMs) : timeoutMs,
     maxOutputTokens,
-    fallbackMinChars: 800,
+    // 관례: 그 기능의 최소 분량 × 0.4 (CLAUDE.md). 폴백 응답에만 적용된다.
+    fallbackMinChars: Math.round(minTotalChars * 0.4),
   });
+  // 재시도까지 합쳐 엣지 한계(100초) 안에서 끝나야 한다. 1차가 오래 끌었는데 2차를 그대로 태우면
+  // 라우트가 실패 처리(생성 실패 표시·접근권 복원)를 하기 전에 엣지가 요청을 끊는다 —
+  // 사용자는 결제만 하고 정체불명의 오류를 본다(worker/lib/sync-llm-timeout.js 의 경고 그대로).
+  const startedAt = Date.now();
+  const remainingBudgetMs = () => EDGE_RESPONSE_DEADLINE_MS - RETRY_RESERVE_MS - (Date.now() - startedAt);
+
   let ai = await callAt(baseTokens);
   // 잘림(MAX_TOKENS)은 이름 카드 블록(nameCards/finalPick)을 통째로 날려 유료 결과를 반쪽으로 만든다 —
   // 잘렸으면 토큰캡을 30% 올려 1회 재생성해 완결본을 확보한다(더 긴 후보만 채택).
-  if (ai?.ok && ai.truncated === true) {
-    const retry = await callAt(Math.round(baseTokens * 1.3));
-    if (retry?.ok && (String(retry.text || "").length > String(ai.text || "").length)) ai = retry;
+  //
+  // 분량 미달도 같은 재시도를 태운다. 30,000원 상품인데 하한이 minChars 300 뿐이라, 모델이 8장을
+  // 한 문단씩 때우고 끝내도 정상 결제로 통과했다(다른 전문가 상담은 전부 총 분량 계약이 있다).
+  const isShort = (candidate) => countNamingContentChars(candidate?.text) < minTotalChars;
+  if (ai?.ok && (ai.truncated === true || isShort(ai))) {
+    // 남은 예산 안에서만 재시도한다. 부족하면 1차 결과를 그대로 쓰고(짧으면 아래에서 실패 처리로
+    // 넘어가 환불·재시도 경로가 정상 작동한다) 엣지가 끊기 전에 응답을 돌려준다.
+    const budget = remainingBudgetMs();
+    if (budget > MIN_RETRY_BUDGET_MS) {
+      const retry = await callAt(Math.min(Math.round(baseTokens * 1.3), baseTokens * 2), budget);
+      if (retry?.ok && (String(retry.text || "").length > String(ai.text || "").length)) ai = retry;
+    }
   }
   if (!ai?.ok || !hasRenderableLlmText(ai.text, { minChars: 300 })) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
     error.code = "LLM_GENERATION_FAILED";
+    error.status = 503;
+    throw error;
+  }
+  // 재시도 뒤에도 하한 미달이면 결과를 내보내지 않는다. 이 라우트의 기존 실패 처리가 그대로 돌아
+  // 월정석은 환불되고 단건/이용권은 같은 증거로 재생성할 수 있다(추가 차감 없음).
+  if (isShort(ai)) {
+    const error = new Error(
+      `작명첩 분량이 기준(${minTotalChars}자)에 못 미쳐 결과를 전달하지 않았습니다. 다시 시도해 주세요.`,
+    );
+    error.code = "NAMING_RESULT_TOO_SHORT";
     error.status = 503;
     throw error;
   }
@@ -1528,10 +1786,10 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/naming-prompt");
-    if (method === "POST" && path === "/checkout") return handleCheckout(request, env);
-    if (method === "POST" && path === "/verify-payment") return handleVerifyPayment(request, env);
-    if (method === "POST" && path === "/generate") return handleGenerate(request, env, ctx);
-    if (method === "GET" && path.startsWith("/result/")) return handleResult(request, env, decodeURIComponent(path.slice("/result/".length)));
+    if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
+    if (method === "POST" && path === "/verify-payment") return await handleVerifyPayment(request, env);
+    if (method === "POST" && path === "/generate") return await handleGenerate(request, env, ctx);
+    if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, decodeURIComponent(path.slice("/result/".length)));
     if (["POST", "GET"].includes(method)) {
       return json({ ok: false, message: "Naming prompt route not found.", code: "NOT_FOUND" }, { status: 404 });
     }

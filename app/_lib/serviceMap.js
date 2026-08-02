@@ -1146,10 +1146,10 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "숙요 인연 레이더 | Code Destiny",
     h1: "숙요 인연 레이더",
-    description: "상대의 생년월일로 나와의 숙요 관계를 분석하고, 끌림·안정감·소모도·장기 인연 가능성을 확인해보세요.",
-    seoText: "숙요 인연 레이더는 두 사람의 본명숙과 27숙 관계를 바탕으로 끌림, 안정감, 소모도, 장기 인연 가능성을 비춥니다.",
+    description: "상대의 생년월일로 나와의 숙요 관계를 분석하고, 끌림·안정감·소모도·장기 인연 가능성부터 오래된 인연처럼 남는 여운까지 확인해보세요.",
+    seoText: "숙요 인연 레이더는 두 사람의 본명숙과 27숙 관계를 바탕으로 끌림, 안정감, 소모도, 장기 인연 가능성을 비춥니다. 여기에 내 숙과 상대 숙의 기질을 겹쳐 처음부터 낯설지 않았던 이유, 반복되는 감정 패턴, 미완의 숙제까지 함께 읽습니다.",
     ogImage: "https://code-destiny.com/fuctionassets/sukyo.webp",
-    landingPoints: ["27숙 관계 타입", "인연 레이더 지수", "관계 목적별 조언"],
+    landingPoints: ["27숙 관계 타입", "인연 레이더 9지수", "내 숙 × 상대 숙 개인 해설", "관계 목적별 조언과 30일 실행 플랜"],
     localized: {
       en: {
         title: "Sukuyo Bond Radar | Code Destiny",

@@ -816,7 +816,7 @@
       "vvipBenefit2": "Sehingga 15 profil",
       "vvipCta": "Lihat faedah VVIP",
       "familyName": "Keluarga Kod Destiny 30 hari",
-      "familyPrice": "30 hari · KRW 300,000",
+      "familyPrice": "30 hari · KRW 149,000",
       "familyLine": "Gunakan semua ciri berbayar",
       "familyBenefit1": "Tiada had profil",
       "familyBenefit2": "Manfaat Semua Keluarga",
@@ -1274,6 +1274,18 @@
       "placeholder": "Cari perkhidmatan (cth: tarot, keserasian, mimpi)",
       "searchAria": "Cari semua perkhidmatan",
       "empty": "Tiada hasil. Cuba kata kunci lain."
+    },
+    "todayHub": {
+      "title": "Nasib hari ini",
+      "lead": "Tiang hari Saju, 27 rumah bulan dan penguasa hari Veda — semuanya di satu tempat. Percuma, tanpa log masuk.",
+      "tabsAria": "Tukar sistem nasib hari ini",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Veda",
+      "personalized": "Mengikut tarikh lahir",
+      "noteGuest": "Ini aliran umum sepanjang hari. Isikan tarikh lahir pada kad profil anda, dan kami akan membacanya bersama carta anda sendiri.",
+      "ctaAll": "Lihat bacaan penuh hari ini",
+      "share": "Kongsi"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "Pilih kaedah pembayaran",
       "readyMessage": "Pilih antara kredit bulanan dan pembayaran sekali.",
-      "directHint": "Bayar terus dengan kad atau pembayaran mudah.<br>Pembayaran diteruskan dalam tetingkap pembayaran PortOne V2 KG Inicis yang selamat.",
+      "directHint": "Hanya satu keputusan ini. Terbuka serta-merta dengan kad atau bayaran mudah.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Bayaran KRW sekali · {amount}",
       "amountLabel": "Amaun bayaran",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "Asas kredit bulanan · {amount}",
         "withPass": "Perkhidmatan berbayar am dibuka dengan pas apabila ia berada dalam had. PDF dan perkhidmatan melebihi had menggunakan pembayaran KRW sekali mengikut produk.",
-        "directOnly": "Tindakan ini disahkan dengan pembayaran KRW sekali."
+        "directOnly": "Tindakan ini disahkan dengan pembayaran KRW sekali.",
+        "passUnknown": "Jika anda ada pas, ketik kad pas di bawah dan kami semak terus di sini.",
+        "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
-        "store": "Beralih kepada Moonlight Pass untuk membuka ciri ini dan semua ciri dalam hadnya selama 30 hari, tanpa tetingkap pembayaran.",
+        "store": "Akses tanpa had kepada ciri di bawah had selama 30 hari, tanpa pembayaran. Sudah ada pas? Ketik untuk semak di sini.",
         "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
-        "upgrade": "Ciri ini melebihi had pas semasa anda. Sila semak Moonlight Pass yang lebih tinggi."
+        "upgrade": "Tahap semasa anda tidak meliputi ciri ini. Lihat pas yang lebih tinggi."
       },
       "applyMethod": {
         "label": "Gunakan kaedah",
@@ -1784,9 +1798,10 @@
         "checking": "Menyemak perlindungan pas"
       },
       "monthlyHint": {
-        "use": "Gunakan baki kredit bulanan anda dan bukanya sekarang.",
+        "use": "Dibayar dengan batu bulan yang sudah anda miliki. Terbuka tanpa perbelanjaan tambahan.",
         "insufficient": "Baki kredit bulanan anda adalah rendah. Anda boleh meneruskan pembayaran KRW sekali.",
-        "checking": "Baki kredit bulanan perlu disemak. Bayaran KRW sekali masih tersedia."
+        "checking": "Kami perlu semak baki batu bulan anda. Bayaran sekali KRW masih tersedia.",
+        "after": "{balance} akan berbaki selepas digunakan."
       },
       "monthlyBalance": {
         "needCheck": "Cek diperlukan",
@@ -1795,13 +1810,28 @@
         "refresh": "Muat semula kredit",
         "refreshing": "Menyegarkan baki kredit bulanan.",
         "refreshed": "Baki kredit bulanan disemak semula. Baki semasa ialah {balance}.",
-        "notFound": "Tiada kredit/pas bulanan aktif ditemui lagi. Sila muat semula semula selepas pembayaran selesai."
+        "notFound": "Tiada kredit/pas bulanan aktif ditemui lagi. Sila muat semula semula selepas pembayaran selesai.",
+        "owned": "Batu bulan dimiliki: {balance}",
+        "ownedUnknown": "Batu bulan · perlu disemak",
+        "signedOut": "Log masuk untuk menyemak baki Batu Bulan anda.",
+        "unconfirmed": "Kami tidak dapat mengesahkan baki Batu Bulan anda. Anda masih boleh mencuba — kami akan maklumkan semasa pembayaran jika tidak mencukupi.",
+        "staleAfterError": "Gagal menyegar semula baki Batu Bulan, memaparkan nilai sahih terakhir · kini {balance}"
       },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."
       },
       "passUpgradeTitle": "Naik taraf Moonlight Pass",
-      "recommendBadge": "Disyorkan"
+      "recommendBadge": "Disyorkan",
+      "moonTitle": "Pilih cara pembayaran",
+      "moonSubtitle": "Pilih pilihan yang paling sesuai untuk anda.",
+      "directTitleLabel": "Bayaran sekali",
+      "monthlyUnit": "mata wang acara",
+      "passBuyTitle": "Beli dengan pas",
+      "passChecking": "Menyemak pas anda…",
+      "passMissGoStore": "Pas anda tidak meliputi ini, kami bawa anda ke kedai pas.",
+      "passCheckRetry": "Kami tidak dapat menyemak status pas anda. Sila tekan semula sebentar lagi.",
+      "directHintApp": "Hanya satu keputusan ini. Terbuka serta-merta melalui pengebilan Google Play.",
+      "pgBadgeApp": "Pengebilan Google Play"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
       "profileUnlimited": "Profil tanpa had",
       "profileLimit": "{count} profil",
-      "allFeatures": "Semua ciri tersedia",
+      "allFeatures": "Tanpa had di bawah KRW 30,000 · 10 sesi perundingan pakar disertakan",
       "upTo": "Tersedia sehingga {amount}",
       "benefits": "Manfaat sepintas lalu",
       "closeAria": "Tutup panduan Kedai Moonlight Pass",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Kod Destiny Keluarga 30 Hari",
-          "desc": "30 hari · Semua ciri berbayar · Profil tanpa had"
+          "desc": "30 hari · Tanpa had di bawah KRW 30,000 · 10 perundingan pakar · Profil tanpa had"
         }
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 Kongsi hasil saju",
       "kakao": "Kongsi KakaoTalk",
-      "instagram": "DM Instagram"
+      "instagram": "DM Instagram",
+      "image": "Kongsi sebagai imej"
     },
     "actions": {
       "newSaju": "✨ Lihat saju baharu"
@@ -7317,6 +7348,30 @@
       "009": "Tarot Peningkatan Harga Diri",
       "010": "7 Kad Ambang Kerja",
       "011": "Tarot Perasaan Sebenar Orang Lain"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Apa yang anda dapat apabila membayar",
+      "volumeLabel": "Panjang",
+      "volumeValue": "30,000–60,000 aksara",
+      "chaptersLabel": "Struktur",
+      "chaptersValue": "10 bab · setiap satu melebihi 2,400 aksara",
+      "keepLabel": "Simpan",
+      "keepValue": "Simpan sebagai PDF dan miliki selamanya",
+      "guarantee": "Jika panjangnya tidak mencapai piawai itu, laporan ditulis semula secara automatik. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Apa yang anda dapat apabila membayar",
+      "volumeLabel": "Panjang",
+      "volumeValue": "Sekurang-kurangnya 30,000 aksara",
+      "chaptersLabel": "Struktur",
+      "chaptersValue": "16 bab · setiap satu 1,900–2,400 aksara",
+      "keepLabel": "Simpan",
+      "keepValue": "Simpan sebagai PDF dan miliki selamanya",
+      "guarantee": "Mana-mana bab yang tidak cukup panjang akan ditulis semula secara automatik, sehingga dua kali. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
     }
   }
 }

@@ -29,46 +29,66 @@ const NEW_YEAR_AI_MAX_TOTAL_CHARS = 20000;
 // gemini-2.5-flash(~200tok/s) 기준 75~112s가 필요한데, Cloudflare 엣지는 100s에 요청을 끊는다.
 // 그 조합에서 라우트는 실패 판정을 내리기도 전에 잘려 generation_failed 기록도, 이용권 복원도
 // 실행되지 못했다(사용자는 결제 후 503 또는 정체불명의 오류를 봤다).
-// 그래서 아래 9항목 아웃라인을 4섹션으로 쪼개 한 요청 안에서 동시에 던진다.
+// 그래서 아웃라인을 상담 분야별 5섹션으로 쪼개 한 요청 안에서 동시에 던진다.
 // 벽시계가 "섹션 시간의 합"이 아니라 "가장 느린 섹션 하나"가 되어 엣지 한계 안쪽에서 완결된다.
 // 4 동시성이 이 워커에서 안전하다는 것은 master-love-codex의 CHAPTER_CONCURRENCY=4가 이미 증명했다.
+//
+// 분할 축은 "총론/카테고리/월별/마무리"(작성 순서)가 아니라 **상담 분야**다 — 사용자가 결과 화면에서
+// 총운·재물직업·애정대인·건강개운 네 장의 카드로 소비하기 때문에, 그 경계와 생성 단위를 일치시켜야
+// 섹션 하나가 실패해도 "그 분야만" 비고 나머지 분야는 온전하게 배달된다.
+// heading은 각 섹션 본문이 반드시 시작해야 하는 굵은 소제목 마커다. 구조화 응답(llmMeta.sections)이
+// 없는 구버전 세션을 클라이언트가 다시 분야별로 가를 때 이 마커가 유일한 앵커가 된다.
+// categories는 validateFortuneDataConsistency의 6개 카테고리 소제목 중 이 섹션이 책임지는 것들이다.
 const NEW_YEAR_AI_SECTIONS = Object.freeze([
   {
     key: "overview",
-    label: "총론과 명식 근거",
-    items: [0, 1, 2, 3, 4],
-    minChars: 3200,
-    maxChars: 4800,
-    covered: "6개 카테고리 소제목, 1~12월 월별 흐름, 마지막 현실 처방과 마무리 한 줄",
+    label: "올해의 총운",
+    heading: "올해의 총운",
+    categories: ["study"],
+    minChars: 2600,
+    maxChars: 3600,
+    covered: "재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름, 건강과 개운법, 마무리 한 줄",
   },
   {
-    key: "domains",
-    label: "집중 분야와 6개 카테고리",
-    items: [5, 6],
-    minChars: 3600,
-    maxChars: 5200,
-    covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 1~12월 월별 흐름, 마무리 한 줄",
+    key: "wealth",
+    label: "재물과 직업",
+    heading: "재물과 직업",
+    categories: ["money", "career"],
+    minChars: 2400,
+    maxChars: 3400,
+    covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 애정·대인관계, 1~12월 월별 흐름, 건강과 개운법",
+  },
+  {
+    key: "romance",
+    label: "애정과 대인관계",
+    heading: "애정과 대인관계",
+    categories: ["love", "relationship"],
+    minChars: 2400,
+    maxChars: 3400,
+    covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 재물·직업, 1~12월 월별 흐름, 건강과 개운법",
   },
   {
     key: "monthly",
     label: "1월~12월 월별 흐름",
-    items: [7],
-    minChars: 3600,
-    maxChars: 5200,
-    covered: "총론과 명식 근거, 6개 카테고리 소제목, 마무리 한 줄",
+    heading: "",
+    categories: [],
+    minChars: 3200,
+    maxChars: 4600,
+    covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 건강과 개운법, 마무리 한 줄",
   },
   {
-    key: "closing",
-    label: "주의 패턴과 현실 처방",
-    items: [8, 9],
-    minChars: 1600,
-    maxChars: 2600,
-    covered: "총론과 명식 근거, 6개 카테고리 소제목, 1~12월 월별 흐름",
+    key: "health",
+    label: "건강과 개운법",
+    heading: "건강과 개운법",
+    categories: ["health"],
+    minChars: 2000,
+    maxChars: 2800,
+    covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름",
   },
 ]);
-// 섹션 min 합 12,000자 / max 합 17,800자 → 권장 밴드(12,000~18,000자) 안쪽.
+// 섹션 min 합 12,600자 / max 합 17,800자 → 권장 밴드(12,000~18,000자) 안쪽.
 // 정상 경로에서 MIN_TOTAL_CHARS·MAX_TOTAL_CHARS 어느 쪽도 걸리지 않아 압축 패스가 불필요하다.
-// 상한 5,200자 × 1.5tok/자 + 완충 = llm-budget의 tokensRequiredForChars(5200)=10,050 이상.
+// 상한 4,600자 × 1.5tok/자 + 완충 = llm-budget의 tokensRequiredForChars(4600)=8,900 이상.
 const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = 10500;
 // 섹션 1개의 LLM 대기 상한. 4개가 동시에 도니 이 값이 곧 1웨이브의 벽시계 상한이다.
 const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
@@ -1300,6 +1320,57 @@ function buildConsultationOutline(input) {
   ];
 }
 
+// 분야별 섹션이 실제로 쓰는 아웃라인. 위 buildConsultationOutline(전체 1회 생성용)은
+// verify-new-year-ai-flow가 문장을 리터럴로 단언하므로 건드리지 않고, 섹션 모드만 이 표를 쓴다.
+// 월별(monthly)은 기존 7번 항목을 그대로 재사용한다 — 그 문장의 `**{월}월 · {간지} · {키워드}**`
+// 형식은 클라이언트 MONTH_LETTER_HEADING_RE가 파싱하는 계약이라 바꾸면 월별 편지가 통째로 사라진다.
+const NEW_YEAR_AI_SECTION_OUTLINES = Object.freeze({
+  overview: [
+    "1. 타고난 성향 총론을 가장 먼저 씁니다. 일간·월령·격국·오행 분포를 근거로 이 사람이 타고난 기질과 성향이 어떤지 전반적으로 짚어, 상담자가 '나를 정확히 봤다'고 느끼도록 신뢰를 먼저 세웁니다.",
+    "2. 올해 세운의 천간과 지지가 일간(日主)과 원국 전체에 어떤 변화를 만드는지, 조후(온도·습도)와 억부(일간의 강약)를 중심으로 짚습니다. 세운 천간이 일간을 돕는지 누르는지, 세운 지지가 월령의 계절 기운을 어느 쪽으로 기울이는지를 명시하고, 그 결과 올해 이 사람의 기운이 작년보다 강해지는지 약해지는지 결론을 냅니다.",
+    "3. 원국의 격국, 용신·기신, 조후가 올해 어떤 방식으로 쓰이는지 쉽게 풀어냅니다.",
+    "4. 대운의 배경 위에 세운이 어떤 사건성과 선택 압력을 일으키는지 짚습니다. 이때 세운 간지와, 세운이 원국의 어느 기둥과 합·충하는지를 본문에 직접 인용해 근거로 삼습니다.",
+    "5. 사용자가 선택한 집중 상담 분야를 이 총운 안에서 한 문단 이상 깊게 다룹니다.",
+    "6. 소제목 **학업·성장**을 굵게 표시하고 최소 한 문단 이상 씁니다. 위 카테고리별 참고 신호의 학업·성장 항목을 출발점으로 삼되 표현은 자연스럽게 재구성합니다.",
+  ],
+  wealth: [
+    "1. 재성(정재·편재)의 동태를 먼저 봅니다. 원국에 재성이 있는지·강한지 약한지, 올해 세운과 월운이 그 재성을 살리는지 흩는지를 십신 이름과 함께 짚어, 올해 돈이 모이는 방식과 새는 자리를 구분해 말합니다.",
+    "2. 관성(정관·편관)의 동태를 봅니다. 명예와 직장, 조직 안에서의 자리와 책임이 올해 어떻게 움직이는지, 세운의 십신이 관성을 밀어 올리는지 눌러 앉히는지를 근거로 삼습니다.",
+    "3. 구체적인 시기를 반드시 월 숫자로 지목합니다. 위 월별 확정 스펙에서 재물 도메인이 강한 달과 약한 달, 직업 도메인이 강한 달과 약한 달을 골라 '몇 월에 무엇을 하고 무엇을 미룰지'를 말합니다. 여기서는 열두 달을 모두 나열하지 말고, 재물과 직업에서 의미 있는 달만 골라 씁니다.",
+    "4. 투자와 이직 판단 기준을 제시합니다. 올해의 재성·관성 흐름과 용신·기신을 근거로, 어떤 조건이면 움직이고 어떤 조건이면 지키는 편이 나은지 판단 기준으로 말합니다. 특정 종목이나 회사를 지목하지 말고, 무조건 벌린다·무조건 접는다 같은 단정도 하지 않습니다.",
+    "5. 소제목 **재물·수입**과 **직업·이직**을 각각 **굵게** 표시하고 각각 최소 한 문단 이상 씁니다. 위 카테고리별 참고 신호의 해당 항목을 출발점으로 삼되 표현은 자연스럽게 재구성합니다.",
+  ],
+  romance: [
+    "1. 식상(식신·상관)과 비겁(비견·겁재), 인성(정인·편인)의 흐름을 먼저 봅니다. 올해 이 사람의 표현과 마음이 밖으로 나가는 결(식상), 사람들과 자원을 나누는 결(비겁), 보호받고 기대는 결(인성) 중 어디가 살아나고 어디가 과해지는지를 십신 이름과 함께 짚습니다.",
+    "2. 올해의 귀인운을 말합니다. 어떤 성향의 사람이 도움이 되고 어떤 자리(조직·모임·오래된 인연)에서 그 사람이 나타나기 쉬운지를, 인성과 세운 십신의 흐름을 근거로 구체적으로 씁니다.",
+    "3. 연애운을 봅니다. 남성 명식이면 재성, 여성 명식이면 관성을 인연의 축으로 삼고, 일지(배우자궁)에 합이 드는 달과 충이 드는 달을 근거로 인연이 가까워지는 시기와 서두르지 말아야 할 시기를 나눠 말합니다. 재회 가능성을 물었다면 지난 인연이 다시 닿는 결과 그때 필요한 태도를 함께 짚습니다.",
+    "4. 주의해야 할 인간관계의 단절과 구설수를 다룹니다. 겁재가 강해지는 자리에서는 돈과 사람이 함께 빠지고, 상관이 과해지는 자리에서는 말이 앞서 신뢰가 깎입니다. 겁주지 말고, 어떤 말과 선택을 피하면 관계가 유지되는지 회복 방법과 함께 말합니다.",
+    "5. 소제목 **연애·재회**와 **가족·관계**를 각각 **굵게** 표시하고 각각 최소 한 문단 이상 씁니다. 위 카테고리별 참고 신호의 해당 항목을 출발점으로 삼되 표현은 자연스럽게 재구성합니다.",
+  ],
+  monthly: [
+    "1. 1월부터 12월까지 열두 달을 하나도 빠뜨리지 않고 각각 최소 한 문단씩 씁니다. 각 달 문단은 반드시 `**{월}월 · {그 달의 월주 간지} · {4~8자 핵심 키워드}**` 형식의 소제목으로 시작하세요(예: **3월 · 병인 · 관계 재정비**). 키워드는 그 달의 조언을 한눈에 요약하는 짧은 표현이어야 합니다. 이어지는 본문에서는 위 월별 확정 스펙의 월주 간지와 십신을 직접 언급하고, 판정(기회/주의/정비)에 맞는 조언을 이웃한 달과 겹치지 않게 다르게 씁니다. 또한 각 달의 도메인 강약(총운·재물·애정·직업·건강) 중 그 달에 두드러진 축(강하거나 약한 것)을 근거로 삼아, 해당 도메인에 대한 구체적인 실천 조언을 문단 안에 자연스럽게 녹여 쓰세요. 다섯 도메인을 매달 기계적으로 나열하지 말고, 그 달에 의미 있는 축을 골라 이야기하듯 풀어냅니다.",
+  ],
+  health: [
+    "1. 오행 분포의 쏠림을 먼저 봅니다. 어떤 오행이 과하고 어떤 오행이 비어 있는지를 원국의 오행 분포로 짚고, 그 쏠림이 몸의 어느 계통(예: 목=간담과 근육, 화=심장과 순환, 토=소화, 금=호흡기와 피부, 수=신장과 수분 대사)과 어떤 멘탈 리듬으로 드러나기 쉬운지 말합니다. 병을 단정하지 말고 '무리하면 먼저 신호가 오는 자리'로 표현합니다.",
+    "2. 조심해야 할 패턴은 겁주지 말고, 피해야 할 선택과 회복 방법을 함께 말합니다. 기신이 강해지는 시기와 조후가 흐트러지는 시기를 근거로, 그때 몸과 마음이 어떻게 흔들리고 무엇을 먼저 되돌리면 되는지 씁니다.",
+    "3. 실생활에서 바로 쓸 수 있는 개운법을 제시합니다. 용신·희신 오행과 조후 급용신을 근거로 삼아 (가) 가까이 두면 좋은 색, (나) 힘을 얻는 방향, (다) 생활 습관과 리듬, (라) 마음가짐 네 가지를 구체적으로 말합니다. 오행과 색·방향의 연결(목=청록/동쪽, 화=붉은색/남쪽, 토=황토색/중앙, 금=흰색/서쪽, 수=검정과 남색/북쪽)을 근거로 쓰되, 부적이나 값비싼 물건을 사라는 식으로 말하지 않고 옷·소품·공간 배치·산책 방향처럼 돈이 들지 않는 실천으로 풀어냅니다.",
+    "4. 소제목 **건강·멘탈**을 굵게 표시하고 최소 한 문단 이상 씁니다. 위 카테고리별 참고 신호의 해당 항목을 출발점으로 삼되 표현은 자연스럽게 재구성합니다.",
+    "5. 마지막에는 사용자가 올해 붙잡을 수 있는 현실 조언과 새해를 여는 한 줄을 남깁니다. 이 문장이 상담문 전체의 마지막이 되므로 새 주제를 열지 말고 조용히 닫습니다.",
+  ],
+});
+
+function buildSectionOutlineLines(input, section) {
+  const lines = NEW_YEAR_AI_SECTION_OUTLINES[section.key] || [];
+  // 사용자가 직접 남긴 질문은 총운 섹션이 맨 앞에서 책임진다(조립 순서상 상담문 첫머리).
+  const questionLine = input.hasCustomQuestion && section.key === "overview"
+    ? ["0. 다른 무엇보다 먼저, 소제목 **질문에 대한 답변**을 굵게 쓰고 사용자가 직접 남긴 질문에 직접적이고 구체적으로 답합니다. 이 답변을 마친 뒤에 아래 1번부터 이어갑니다."]
+    : [];
+  const headingLine = section.heading
+    ? [`이 부분의 본문은 반드시 소제목 **${section.heading}**을(를) 굵게 쓴 줄로 시작하고, 그 아래에 아래 항목들을 이어서 씁니다.`]
+    : [];
+  return [...headingLine, ...questionLine, ...lines];
+}
+
 // 섹션 모드에서 전체 분량 지시(10,000~20,000자)를 대신하는 줄들.
 // covered로 다른 섹션이 담당하는 내용을 명시해 이어 붙였을 때의 중복을 막는다.
 function buildSectionLengthLines(section) {
@@ -1333,14 +1404,23 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     `- 집중 상담 분야: ${FOCUS_AREA_LABELS[input.focusArea] || FOCUS_AREA_LABELS.overall}`,
     `- 처음 입력한 더 깊게 보고 싶은 흐름: ${input.question || "전체 흐름 중심"}`,
     "",
-    ...(input.hasCustomQuestion ? [
+    // "질문에 대한 답변" 소제목은 총운 섹션 하나만 쓴다. 섹션 전부에 이 지시가 들어가면
+    // 조립본에 같은 소제목이 다섯 번 반복되고, 분야 카드마다 같은 답이 머리에 붙는다.
+    ...(input.hasCustomQuestion && (!section || section.key === "overview") ? [
       "[사용자가 직접 남긴 질문 — 최우선으로 답할 것]",
       `"${input.question}"`,
       "이 질문은 사용자가 가장 궁금해하는 개인화된 질문입니다. 아래 답변 맨 앞에 반드시 소제목 **질문에 대한 답변**을 굵게 쓰고, 그 아래에 이 질문에 대한 직접적이고 구체적인 결론을 먼저 씁니다. 범용적인 총론과 겹치지 않게, 이 질문의 단어와 맥락에 특화된 근거와 조언을 담으세요.",
       "",
     ] : []),
+    // 다른 분야 섹션에는 질문을 맥락으로만 준다 — 답변 소제목은 만들지 않는다.
+    ...(input.hasCustomQuestion && section && section.key !== "overview" ? [
+      "[사용자가 직접 남긴 질문 — 맥락 참고용]",
+      `"${input.question}"`,
+      "이 질문에 대한 직접적인 답변 소제목은 다른 부분에서 이미 씁니다. 여기서는 **질문에 대한 답변** 소제목을 만들지 말고, 이 부분이 맡은 분야가 그 질문과 맞닿는 지점만 자연스럽게 반영하세요.",
+      "",
+    ] : []),
     "[계산된 사주와 세운 데이터]",
-    JSON.stringify(fortuneData, null, 2),
+    JSON.stringify(fortuneData),
     "",
     "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
     ...buildCanonicalNewYearFacts(fortuneData),
@@ -1354,7 +1434,7 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     ] : [
       "첫 답변은 아래 흐름을 모두 자연스럽게 포함하세요.",
     ]),
-    ...(section ? outline.filter((item) => section.items.includes(item.no)) : outline).map((item) => item.line),
+    ...(section ? buildSectionOutlineLines(input, section) : outline.map((item) => item.line)),
     "",
     ...(section ? buildSectionLengthLines(section) : [
       "완성 상담문 전체 본문 합계는 공백을 제외하고 10,000자 이상 20,000자 이하로 맞추세요.",
@@ -1462,11 +1542,16 @@ function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
   if (missingMonths) {
     lines.push(`빠진 달이 있습니다(${missingMonths.split(":")[1]}월). 1월부터 12월까지 모든 달을 각각 최소 한 문단씩 쓰세요.`);
   }
-  const missingCategories = issues.find((issue) => issue.startsWith("MISSING_CATEGORIES:"));
-  if (missingCategories) {
-    const labels = missingCategories.split(":")[1].split(",")
-      .map((category) => NEW_YEAR_AI_REQUIRED_CATEGORY_LABELS[category]?.[0]).filter(Boolean);
-    lines.push(`빠진 카테고리 소제목이 있습니다(${labels.join(", ")}). 월별 흐름과 별개로 연애·재회, 재물·수입, 직업·이직, 건강·멘탈, 가족·관계, 학업·성장 6개 소제목을 각각 최소 한 문단씩 굵게 표시해 보강하세요.`);
+  // 이제 카테고리는 분야 섹션마다 나뉘어 있으므로, 그 섹션이 실제로 책임지는 소제목만 지목한다
+  // (6개 전부를 요구하면 남의 섹션 내용을 중복 생성해 조립본이 어지러워진다).
+  const missingCategoryLabels = issues
+    .filter((issue) => issue.startsWith("MISSING_CATEGORIES:"))
+    .flatMap((issue) => issue.split(":")[1].split(","))
+    .map((category) => NEW_YEAR_AI_REQUIRED_CATEGORY_LABELS[category]?.join("·"))
+    .filter(Boolean);
+  if (missingCategoryLabels.length) {
+    const bolded = [...new Set(missingCategoryLabels)].map((label) => `**${label}**`).join(", ");
+    lines.push(`이 부분이 책임지는 카테고리 소제목이 빠졌습니다(${bolded}). 월별 흐름과 별개로 각각 최소 한 문단씩 굵게 표시해 보강하세요.`);
   }
   if (issues.includes("ANNUAL_PILLAR_UNSTATED") && fortuneData?.targetYear?.pillar) {
     lines.push(`올해의 세운 간지 "${fortuneData.targetYear.pillar}"를 본문에 직접 언급하며 해석하세요.`);
@@ -1501,11 +1586,11 @@ function buildSectionPrompt(input, fortuneData, section, repairLines = [], previ
 }
 
 // 조립본 검증 이슈를 그 이슈를 책임지는 섹션에만 매핑하기 위한 표.
+// MISSING_CATEGORIES는 여기 없다 — 카테고리마다 책임 섹션이 달라 아래 표로 낱개 분배한다.
 const NEW_YEAR_AI_ISSUE_SECTION_KEY = Object.freeze({
   QUESTION_ANSWER_SECTION_MISSING: "overview",
   ANNUAL_PILLAR_UNSTATED: "overview",
   SEWOON_INTERACTION_UNSTATED: "overview",
-  MISSING_CATEGORIES: "domains",
   MISSING_MONTHS: "monthly",
   MONTHLY_PILLAR_CITATIONS: "monthly",
 });
@@ -1516,8 +1601,13 @@ const NEW_YEAR_AI_TOPIC_SECTION_KEY = Object.freeze({
   luckCycle: "overview",
   interaction: "overview",
   monthly: "monthly",
-  practice: "closing",
+  practice: "health",
 });
+// 6개 카테고리 소제목 각각의 책임 섹션. NEW_YEAR_AI_SECTIONS[].categories에서 파생하므로
+// 섹션 표를 고치면 여기도 자동으로 따라온다(두 곳이 어긋나면 이슈가 영영 해소되지 않는다).
+const NEW_YEAR_AI_CATEGORY_SECTION_KEY = Object.freeze(
+  Object.fromEntries(NEW_YEAR_AI_SECTIONS.flatMap((section) => section.categories.map((category) => [category, section.key]))),
+);
 
 // 전체를 다시 쓰지 않기 위해, 어떤 섹션이 어떤 이슈를 책임지는지 가려낸다.
 function mapIssuesToSections(quality, results) {
@@ -1533,6 +1623,15 @@ function mapIssuesToSections(quality, results) {
     const code = issue.split(":")[0];
     if (code === "MISSING_EXPERT_TOPICS") {
       for (const topic of issue.split(":")[1].split("|")) push(NEW_YEAR_AI_TOPIC_SECTION_KEY[topic], issue);
+      continue;
+    }
+    // 카테고리 소제목은 분야별로 책임 섹션이 갈린다. 빠진 카테고리만 해당 섹션에 낱개로 보낸다
+    // (한 섹션에 몰아주면 그 섹션은 남의 카테고리를 못 쓰고, 이슈가 매 웨이브 재발해 예산을 태운다).
+    if (code === "MISSING_CATEGORIES") {
+      for (const category of issue.split(":")[1].split(",")) {
+        const key = NEW_YEAR_AI_CATEGORY_SECTION_KEY[category];
+        if (key) push(key, `MISSING_CATEGORIES:${category}`);
+      }
       continue;
     }
     if (code === "FORBIDDEN_RESULT_PATTERN") {
@@ -1826,6 +1925,12 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
 
   return {
     text: quality.text,
+    // 분야별 본문. 조립본(text)은 PDF·구버전 호환을 위해 그대로 두고, 클라이언트는 이 배열이 있으면
+    // 분야 카드를 마커 파싱 없이 곧바로 그린다. 조립본과 달리 금지어 정화(cleanForbiddenResult)를
+    // 여기서도 한 번 통과시켜야 배달 본문과 카드 본문이 어긋나지 않는다.
+    sections: results
+      .map((row) => ({ key: row.key, label: row.section.label, text: cleanForbiddenResult(row.text) }))
+      .filter((row) => row.text),
     provider: clean(results.find((row) => row.provider)?.provider || "gemini"),
     model: clean(results.find((row) => row.model)?.model),
     quality,
@@ -1924,6 +2029,15 @@ function publicMonthlyFlow(doc) {
   })).filter((row) => row.month >= 1 && row.month <= 12);
 }
 
+// 분야별 본문. 이 필드가 없는 구버전 세션(2026-08 이전 상담)은 빈 배열을 돌려주고,
+// 클라이언트가 조립본을 소제목 마커로 다시 가르는 폴백 경로를 탄다.
+function publicSections(doc) {
+  const rows = Array.isArray(doc?.llmMeta?.sections) ? doc.llmMeta.sections : [];
+  return rows
+    .map((row) => ({ key: clean(row?.key, 40), label: clean(row?.label, 80), text: clean(row?.text) }))
+    .filter((row) => row.key && row.text);
+}
+
 function publicSession(doc) {
   const fortuneData = doc?.llmMeta?.fortuneData && typeof doc.llmMeta.fortuneData === "object" ? doc.llmMeta.fortuneData : null;
   const target = fortuneData?.targetYear && typeof fortuneData.targetYear === "object" ? fortuneData.targetYear : {};
@@ -1942,6 +2056,7 @@ function publicSession(doc) {
       tenGod: clean(target.tenGodToDayMaster),
     },
     monthlyFlow: publicMonthlyFlow(doc),
+    sections: publicSections(doc),
     messages: Array.isArray(doc.messages)
       ? doc.messages.map((message) => ({
         role: message.role,
@@ -2226,6 +2341,7 @@ async function handleStart(request, env, ctx) {
             deferredUsageApplied: access.deferredUsage === true,
             billingRequestId: clean(access.billingRequestId || idempotencyKey, 180),
             fortuneData,
+            sections: generated.sections,
             quality: generated.quality,
           },
           generationError: null,
@@ -2406,8 +2522,9 @@ export const __newYearAiTestUtils = {
   buildMockConsultationText,
   buildBasicSajuProfile,
   publicSession,
-  // 4섹션 병렬 생성의 조립·라우팅 로직 — LLM 없이 검증할 수 있게 노출한다.
+  // 분야별 5섹션 병렬 생성의 조립·라우팅 로직 — LLM 없이 검증할 수 있게 노출한다.
   NEW_YEAR_AI_SECTIONS,
+  NEW_YEAR_AI_CATEGORY_SECTION_KEY,
   assembleConsultationSections,
   mapIssuesToSections,
   adoptRepairedSection,

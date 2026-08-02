@@ -1,4 +1,5 @@
 import TodayClient from "./TodayClient";
+import SeoLandingTemplate from "../components/SeoLandingTemplate";
 import { buildSeoMetadata } from "../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 
@@ -17,5 +18,10 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function TodayLandingPage() {
-  return <TodayClient />;
+  return (
+    <>
+      <TodayClient />
+      <SeoLandingTemplate page={page} />
+    </>
+  );
 }

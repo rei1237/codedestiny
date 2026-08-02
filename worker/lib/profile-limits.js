@@ -8,6 +8,58 @@ export const PASS_TIERS = Object.freeze({
 export const FAMILY_PASS_MAX_COVERED_COIN = 999999999;
 export const KRW_PER_COIN = 100;
 
+// ── Family 공정이용: 프리미엄 상담 포함 횟수 ──────────────────────────────
+// Family 는 10,000원 이하 기능을 무제한 커버하고, 그 위(300코인=30,000원 이상)의
+// 프리미엄 상담은 이용권 기간당 정해진 횟수만 포함한다. 초과분은 차단이 아니라
+// 단건/월정석 결제로 넘긴다 — 막다른 길을 만들지 않는 것이 이 설계의 핵심이다.
+//
+// 카운터는 profileSubscription 안에 둔다. 이용권 판정이 이미 그 문서를 읽고,
+// 소비 시 이미 findOneAndUpdate 를 돌리므로 왕복도 쓰기도 늘지 않는다.
+export const FAMILY_PREMIUM_MIN_COIN_COST = 300;
+export const FAMILY_PREMIUM_INCLUDED_USES = 10;
+
+/**
+ * 사이클 키 = 이용권 만료일. 이용권을 새로 사면 만료일이 바뀌어 키가 달라지고,
+ * 카운터가 자동으로 0부터 다시 센다. 별도의 리셋 크론이 필요 없다.
+ */
+export function resolveFamilyPremiumCycleKey(entitlement) {
+  const raw = entitlement?.expiresAt;
+  if (!raw) return "";
+  const expiresAt = new Date(raw);
+  return Number.isFinite(expiresAt.getTime()) ? expiresAt.toISOString() : "";
+}
+
+/**
+ * 이 요청이 Family 프리미엄 포함 횟수의 적용 대상인지, 남은 횟수가 얼마인지.
+ *
+ * 판정 단계(buildPassPaymentDecision)와 소비 단계(consumeTierPassIfAvailable)가
+ * 같은 답을 내야 한다 — 판정이 "커버"라 해놓고 소비가 거부하면 결제수단이 전부
+ * 숨겨진 막다른 길이 된다(billing.js 의 과거 사고 주석 참고). 그래서 두 곳이
+ * 이 함수 하나를 공유한다.
+ *
+ * cycleKey 를 못 구하면(만료일 없음) 적용하지 않는다 — 셀 수 없는 상태에서
+ * 막으면 정상 이용자를 가로막게 되므로 열어두는 쪽이 맞다.
+ */
+export function resolveFamilyPremiumQuota(profileSubscription, entitlement, coinCost) {
+  const price = Number(coinCost || 0);
+  const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
+  const cycleKey = resolveFamilyPremiumCycleKey(entitlement);
+  const included = FAMILY_PREMIUM_INCLUDED_USES;
+  const applies = tier === PASS_TIERS.FAMILY
+    && Number.isFinite(price)
+    && price >= FAMILY_PREMIUM_MIN_COIN_COST
+    && Boolean(cycleKey);
+  if (!applies) {
+    return { applies: false, cycleKey, included, used: 0, remaining: included, exhausted: false };
+  }
+  const storedKey = String(profileSubscription?.premiumUseCycleKey || "");
+  const used = storedKey === cycleKey
+    ? Math.max(0, Math.floor(Number(profileSubscription?.premiumUseCount || 0)))
+    : 0;
+  const remaining = Math.max(0, included - used);
+  return { applies: true, cycleKey, included, used, remaining, exhausted: remaining <= 0 };
+}
+
 export const PASS_LIMITS = Object.freeze({
   [PASS_TIERS.STANDARD]: 30,
   [PASS_TIERS.PREMIUM]: 50,

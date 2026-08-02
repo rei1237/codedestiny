@@ -35,6 +35,7 @@ on:
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
+      - "scripts/verify-master-love-codex-batch-budget.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
       # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
       # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
@@ -77,6 +78,7 @@ on:
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
+      - "scripts/verify-master-love-codex-batch-budget.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
       # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
       # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
@@ -128,10 +130,36 @@ jobs:
       - name: Verify AI prompt billing policy
         run: npm run verify:ai-prompt-billing-policy
 
+      # 손금: 프로덕션 빌드가 output:"export" 라 app/api/** 가 통째로 빠진다는 사실 때문에
+      # Gemini Vision 이 로컬에서만 돌고 실제 사용자는 정적 템플릿을 받고 있었다(2026-07 발견).
+      # 워커에 LLM 이 배선돼 있는지 / 비전 호출이 Workers AI 폴백을 껐는지(폴백은 이미지를 버린다) /
+      # 문양이 미검출 기본값인지 / 인증·본문 상한이 살아 있는지를 소스 수준에서 강제한다.
+      - name: Verify palm reading flow
+        run: npm run verify:palm-flow
+
+      # 워커 라우터가 try/catch 안에서 await 없이 핸들러를 위임하면, 그 거부(rejection)는
+      # catch 를 빠져나가 Cloudflare 1101(불투명 500, CORS 헤더 없음)이 된다.
+      # 2026-08-01 작명 AI 가 이 상태였다 — 비로그인 401 조차 500 으로 나가 원인 추적이 오래 걸렸다.
+      - name: Verify router await dispatch
+        run: npm run verify:route-await-dispatch
+
       # 결제수단 선택창은 렌더러가 3종(정적 셸 6미러 / React / 독립 폴백)이라 한쪽만 고치면
       # 진입 경로에 따라 다른 결제창이 뜬다. 정본 CSS·구조 마커·3옵션 노출이 어긋나면 차단한다.
       - name: Verify payment choice modal parity
         run: npm run verify:payment-choice-parity
+
+      # 문자열 마커로는 "이용권 카드가 있다"까지만 본다. 2026-08 정책 전환으로 그 카드가
+      # **이용권 검사 지점**이 됐으므로, jsdom 에서 실제로 눌러 두 갈래(커버→무료 통과 /
+      # 미커버→상점 인계)가 갈라지는지와 앱에서 /points 로 새지 않는지를 실행으로 확인한다.
+      - name: Verify checkout pass card behaviour (jsdom)
+        run: npm run verify:checkout-pass-card
+
+      # 이용권 구제 경로(결제창에서 보유 이용권이 그 자리에서 적용되는 길)의 회귀 방지.
+      # 과거 두 사고가 모두 "핸들러·소비자는 남고 진입점만 사라진" 형태라 이름 grep 으로는 정상으로
+      # 보였다. 여기서는 함수 본문을 중괄호 균형으로 잘라, 확인 전 스냅샷 선삭제·402 로 인한 스냅샷
+      # 폐기·확인 실패의 미커버 세탁을 3런타임 9소스에서 함께 막는다.
+      - name: Verify membership pass recovery path
+        run: npm run verify:pass-recovery-path
 
       # 재밌는 사주 콘텐츠 타일: 상세 팝업이 결제보다 먼저 뜨는지 + 해금 후 CTA 가 카드를
       # 열었다 닫지 않는지(이중 처리). 실제 클릭 재현은 verify:rpt-preview-cta(크롬 필요)가 맡고,
@@ -159,6 +187,26 @@ jobs:
 
       - name: Verify master love codex flow
         run: npm run verify:master-love-codex-flow
+
+      # 배치 시간 예산 — 이게 없으면 /generate 가 엣지 100초 컷에 잘려 클라이언트가 JSON 대신
+      # 게이트웨이 HTML 을 받고, 모든 실패가 같은 제네릭 문구 하나로 표면화된다.
+      # LLM 을 호출하지 않는다(순수 함수·상수만 검증).
+      - name: Verify master love codex batch budget
+        run: npm run verify:master-love-codex-budget
+
+      # 나크샤트라 결정판 — 27수 계산 결정성(크로스워크 앵커·파다·다샤)과
+      # 심화 상담 계약(3덱 21섹션·분량 하한·배치 생성 락/재개·폴백 짧은 응답 차단).
+      # 두 스크립트는 오래 고아 상태였다(package.json 미등록) — 여기서 CI 에 묶는다.
+      - name: Verify nakshatra calculation flow
+        run: npm run verify:nakshatra-flow
+
+      - name: Verify nakshatra deep consultation flow
+        run: npm run verify:nakshatra-ai-flow
+
+      # 영구 해금 리포트 2종(지배성·다샤 인생지도) — 결정론 본문의 분량·무결성과
+      # 결제 계약(해금 상태만 읽음·paymentMode 미지정·확인 실패를 미구매로 취급 금지).
+      - name: Verify nakshatra premium unlock reports
+        run: npm run verify:nakshatra-premium
 
       # 궁합 판정이 결정론을 잃거나 축 점수가 한쪽으로 쏠리면 20장이 모든 짝에게 같은 말을 한다.
       - name: Verify master love codex compat determinism
@@ -202,8 +250,41 @@ jobs:
       - name: Verify worker security guards
         run: npm run verify:worker-security-guards
 
+      # 배포 스테일 베이스 가드가 무력화되면 증상이 "배포가 그냥 잘 됨"이라 아무도 모르고,
+      # 다음 사고는 남의 워커 커밋이 프로덕션에서 사라지는 형태로 온다.
+      - name: Verify worker deploy base guard
+        run: npm run verify:deploy-base-guard
+
       - name: Verify no secret leak
         run: npm run verify:no-secret-leak
+
+      # AI 상담 가드는 어느 워크플로에도 걸려 있지 않아 조용히 낡았다 — 결제창 라벨이
+      # 'AI 상담' → '전문가 상담' 으로 바뀐 뒤 ziwei·karma 가드가 오래 빨간불이었는데
+      # CI 가 안 돌리니 아무도 몰랐다. 유료 상담 라우트의 가드이므로 여기서 함께 돌린다.
+      - name: Verify LLM token accounting
+        run: npm run verify:llm-token-usage
+
+      - name: Verify LLM generation resilience
+        run: npm run verify:llm-generation-resilience
+
+      - name: Verify Workers AI fallback chain
+        run: npm run verify:workers-ai-fallback
+
+      - name: Verify analysis basis contract
+        run: npm run verify:analysis-basis-contract
+
+      - name: Verify astrology sectioned generation
+        run: npm run verify:astrology-sectioned
+
+      - name: Verify AI consultation flows
+        run: |
+          npm run verify:astrology-ai-flow
+          npm run verify:ziwei-ai-consultation-flow
+          npm run verify:karma-destiny-ai-flow
+          npm run verify:vedic-ai-flow
+          npm run verify:life-book-ai-flow
+          npm run verify:new-year-ai-flow
+          npm run verify:love-secret-ai-flow
 
       # verify:all-paid-services-payment-flow 는 여기 넣지 않는다 — 코드 가드가 아니라 MONGO_URI
       # 실환경을 요구하는 라이브 점검이라, 시크릿 없는 PR 러너에서는 항상 실패한다.

@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { sliceFunction } from "./lib/js-source-slice.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const read = (rel) => readFileSync(resolve(root, rel), "utf8");
@@ -29,32 +30,8 @@ const REACT_CLIENT = "app/_lib/billing-client.ts";
 const STANDALONE_FALLBACKS = ["js/destiny-profile.js", "public/js/destiny-profile.js"];
 
 // ── 함수 본문 슬라이스 (이름 grep이 아니라 중괄호 균형으로 실제 본문을 연다) ──────────────
-function sliceFunction(source, startMarker, label) {
-  const start = source.indexOf(startMarker);
-  assert.ok(start >= 0, `${label}: 시작 마커 없음 (${startMarker.trim()})`);
-  let depth = 0;
-  let inLine = false;
-  let inBlock = false;
-  let quote = "";
-  for (let i = start; i < source.length; i += 1) {
-    const ch = source[i];
-    const next = source[i + 1];
-    if (inLine) { if (ch === "\n") inLine = false; continue; }
-    if (inBlock) { if (ch === "*" && next === "/") { inBlock = false; i += 1; } continue; }
-    if (quote) {
-      if (ch === "\\") { i += 1; continue; }
-      if (ch === quote) quote = "";
-      continue;
-    }
-    if (ch === "/" && next === "/") { inLine = true; i += 1; continue; }
-    if (ch === "/" && next === "*") { inBlock = true; i += 1; continue; }
-    if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
-    if (ch === "{") depth += 1;
-    else if (ch === "}") { depth -= 1; if (depth === 0) return source.slice(start, i + 1); }
-  }
-  throw new Error(`${label}: 중괄호 불균형`);
-}
-
+// verify-pass-recovery-path.mjs 와 **같은 공용 모듈**을 쓴다(예전엔 같은 구현을 각자 복사해 갖고
+// 있었고 둘 다 정규식 리터럴을 문자열로 오인했다 — 경위는 모듈 상단 주석).
 // ── 1) 정본 CSS 규칙 집합 ────────────────────────────────────────────────────────────────
 // 정본은 셸 인라인. 규칙 배열을 실제로 평가해 문자열 집합으로 비교하므로 따옴표 스타일이나
 // 줄바꿈(배열 join vs 템플릿 리터럴) 차이는 무시하고 '적용되는 CSS가 같은가'만 본다.
@@ -155,9 +132,17 @@ const STRUCTURE_MARKERS = [
   "data-monthly-hint",
   "data-payment-status",
   "월정석 재조회",
-  "달빛 이용권 상점",
+  // 🔴 이용권 카드는 '상점 바로가기'가 아니라 '이용권으로 구매'(= 이용권 검사 지점)다.
+  // 진입 선검사를 없애면서 세 렌더러가 같은 라벨·같은 동작을 갖도록 고정한다.
+  "이용권으로 구매",
   "달빛 이용권 업그레이드",
   "추천",
+  // 3옵션 설명 문구 통일. 예전에는 이 문구들이 렌더러마다 미묘하게 달랐고(월정석 설명·단건 설명),
+  // 마커가 없어 패리티 검사를 그대로 통과했다.
+  "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.",
+  "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.",
+  "이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.",
+  "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.",
 ];
 
 // 셸은 i18n 헬퍼 경유라 제목이 키+폴백 형태로 들어간다. 셋 다 같은 정본 문구를 써야 한다.
@@ -213,4 +198,50 @@ for (const rel of ["celestial-harmony.html", "public/celestial-harmony.html"]) {
   assert.ok(source.includes("/js/destiny-profile.js"), `${rel}: 정본 폴백 런타임을 로드하지 않습니다`);
 }
 
-console.log(`[verify-payment-choice-parity] PASS (${RENDERERS.length} renderers, ${CANONICAL_RULES.length} css rules)`);
+// ── 결제창 문구는 3렌더러가 **같은 i18n 키**로 해결한다 ──────────────────────────────────
+// 독립 정적 폴백은 결제창 제목·월정석 카드·잔량 상태 문구를 한국어로 하드코딩하고 있어서,
+// /en·/ja·/zh 등 비한국어 사용자에게 결제창만 한국어로 보였다(2026-08-01). 셸이 이미 쓰던 키를
+// 그대로 쓰게 하고, 되돌아가지 않도록 키 사용을 강제한다. 키 자체의 12로케일 존재는 아래에서 확인.
+const STANDALONE_REQUIRED_KEYS = [
+  "payment.directModal.moonTitle",
+  "payment.directModal.moonSubtitle",
+  "payment.directModal.recommendBadge",
+  "payment.directModal.monthlyBadge",
+  "payment.directModal.monthlyTitle",
+  "payment.directModal.monthlyUnit",
+  "payment.directModal.note.basis",
+  "payment.directModal.note.withPass",
+  "payment.directModal.monthlyBalance.owned",
+  "payment.directModal.monthlyBalance.ownedUnknown",
+  "payment.directModal.monthlyBalance.ready",
+  "payment.directModal.monthlyBalance.checking",
+  "payment.directModal.monthlyBalance.refresh",
+  "payment.directModal.monthlyBalance.refreshing",
+  "payment.directModal.monthlyBalance.signedOut",
+  "payment.directModal.monthlyBalance.unconfirmed",
+  "payment.directModal.monthlyBalance.staleAfterError",
+  "payment.currency.krw",
+  "payment.currency.monthlyCredits",
+  "common.cancel",
+];
+for (const rel of STANDALONE_FALLBACKS) {
+  const modal = sliceFunction(read(rel), "  function _dpRenderStandalonePaymentChoice(", `${rel}/standalone-modal`);
+  for (const key of STANDALONE_REQUIRED_KEYS) {
+    assert.ok(
+      modal.includes(`'${key}'`),
+      `${rel}: 독립 결제창이 ${key} 를 i18n 키로 해결하지 않습니다(한국어 하드코딩 회귀 — 비한국어 로케일에 한글이 노출됩니다)`,
+    );
+  }
+}
+
+const I18N_LOCALES = ["ko", "en", "ja", "zh-cn", "zh-tw", "es", "fr", "de", "nl", "vi", "ms", "hi"];
+const readI18nKey = (data, key) => key.split(".").reduce((node, part) => (node && typeof node === "object" ? node[part] : undefined), data);
+for (const locale of I18N_LOCALES) {
+  const data = JSON.parse(read(`public/i18n/${locale}.json`));
+  for (const key of STANDALONE_REQUIRED_KEYS) {
+    const value = readI18nKey(data, key);
+    assert.ok(typeof value === "string" && value.trim(), `public/i18n/${locale}.json: 결제창 문구 키 ${key} 가 없습니다`);
+  }
+}
+
+console.log(`[verify-payment-choice-parity] PASS (${RENDERERS.length} renderers, ${CANONICAL_RULES.length} css rules, ${STANDALONE_REQUIRED_KEYS.length} copy keys x ${I18N_LOCALES.length} locales)`);

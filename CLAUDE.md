@@ -100,14 +100,15 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 **핵심 요약**:
 - **이용권**(30일, 구독형이나 자동갱신 없음) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
-- 🔒 **[필수·예외없음] 모든 유료 결제 게이팅 순서** — 신규/수정 불문 모든 유료 기능은 반드시 아래 순서를 그대로 따른다. 이 순서를 벗어나는 결제 구현은 금지이며, 발견 시 즉시 사용자에게 보고한다(작업 중 우연히 마주쳐도 그냥 지나치지 말 것):
-  1. **이용권(pass) 선(先)검사** — 서버 `canUseByPass`/`buildPassPaymentDecision`(정본: `worker/routes/billing.js`)로 이용권 커버 여부를 먼저 판정. 커버되면 **결제창 없이 무료 통과**.
-  2. **미커버 시에만 결제창 노출** — 결제창에는 **단건결제(KRW, PortOne)와 월정석(월정석 잔액 기반)이 항상 함께, 동등 우선순위로** 표시되어야 한다(`equalPriorityMethods: ["DIRECT_KRW","MOONLIGHT_STONE"]`). 한쪽만 노출하거나 한쪽으로 직행하면 안 된다.
-  3. **단건 결제(PortOne)는 사용자가 결제창에서 '단건'을 고른 이후에만** 실행(`_cdRunDirectKrwCheckout`/`_dpRunDirectKrwCheckout`에 도달). 그 이전 단계에서 `paymentMode: "DIRECT_KRW"`를 게이트에 강제하지 않는다.
-  - **금지 패턴(=위반, 발견 시 보고 대상)**: ① 이용권 선검사 없이 결제창/PortOne/`openChargeModal`/`/points`로 직행 ② 결제창에 단건 또는 월정석 한쪽만 노출 ③ 서버 runtimeGate/paymentPayload에 `paymentMode:"DIRECT_KRW"` 하드코딩(선검사 스킵+월정석 옵션 소거 — 과거 ziwei-ai에서 제거된 결함) ④ 공유 게이트(`useCoinGate`/`_cdOpenPaidServiceGate`/정적 결제 모달) 우회하는 커스텀 체크아웃.
-  - **예외**: 프로필 카드 추가·삭제(D유형, `passExcluded`) **모두** 이용권 결제 불가라 선검사 없이 곧바로 결제창(단건/월정석)을 연다 — 그래도 두 결제수단은 동등 노출. **family 포함 모든 등급**이 이용권 커버 대상이 아니며(서버 정본은 `isPassExcludedPricing` 하나 — featureKey별 예외 분기 금지), family 무료는 이용권 결제가 아니라 정책 계층(`profile-card-mutation-policy.js`)의 0원 바이패스로 처리된다. 계정당 첫 카드도 등급 무관 무조건 무료. 상세는 [content-access D유형](docs/payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료).
-  - **검증**: 결제 관련 수정 시 `npm run verify:billing-pass-policy`·`verify:portone-single-payment`·`verify:paid-gate-ui`·`verify:payment-choice-parity`·`verify:paid-feature-billing-policy`·`verify:ai-prompt-billing-policy`를 먼저 실행. 뒤 두 개는 가격/과금유형 정본(`paid-feature-registry.js`)과 프론트 게이트·워커 라우트의 정합성을 보는 가드로, GitHub Actions "Paid Flow Gates"에서도 차단한다. 상세 규칙은 [flow 문서 결제창 노출 규칙](docs/payment-policy-flow.md) 참고.
-  - 🔴 **결제수단 선택창 UI는 단일 규격이다** — 렌더러가 3종(정적 셸 `index.html` `_cdChooseServicePaymentMode` + 5미러 / React `app/_lib/billing-client.ts` `openReactPaymentChoiceModalInner` / 독립 정적 폴백 `js/destiny-profile.js` `_dpRenderStandalonePaymentChoice` + `public/js` 사본)이지만 **정본은 셸 인라인 하나**다. CSS 정본은 `_cdEnsureDirectPaymentStyles`의 규칙 배열이고 클래스 프리픽스는 `cd-direct-payment-*`로 고정. 세 곳 모두 "달빛 결제 방식 선택" 제목 + 달 헤더 + **이용권 상점/단건 결제/월정석 3옵션**(이용권 미보유 시 상점 카드가 맨 위 + `추천` 배지) + 월정석 잔여바(`월정석 재조회`)를 렌더해야 하며, `npm run verify:payment-choice-parity`가 CSS 텍스트 동일성과 구조 마커를 강제한다. 페이지 전용 결제창을 새로 만들지 말 것(과거 `celestial-harmony.html`의 `.celestial-pay-*`는 이용권 상점 카드가 없어 제거됨 — 독립 정적 페이지는 `/js/destiny-profile.js`를 로드하면 정본 폴백이 자동 인계된다).
+- 🔒 **[필수·예외없음] 모든 유료 결제 게이팅 순서** (2026-08-01 개정 — 축이 "언제 검사하는가"에서 "이용권 보유자가 어떤 경로로도 돈을 내지 않는가"로 바뀌었다). 신규/수정 불문 모든 유료 기능은 아래를 그대로 따른다. 벗어나는 결제 구현은 금지이며, 발견 시 즉시 사용자에게 보고한다(작업 중 우연히 마주쳐도 그냥 지나치지 말 것):
+  1. **진입 판정은 로컬 스냅샷만** — 구독 스냅샷(`cd_subscription_snapshot_v2`, 판정 정본 `js/core/pass-verdict.js`)이 커버를 확답하면 서버 왕복 없이 **즉시 무료 통과**(낙관 grant, 서버 기록은 백그라운드). 확답하지 못하면 **기다리지 말고 결제창**을 연다. 🔴 **진입 시 서버 이용권 선검사를 되살리지 말 것** — 그 왕복(구 셸 6초 예산+재시도 2회, React 15초 프로브)이 결제창 앞 지연의 본체였다.
+  2. **결제창이 이용권 검사 지점** — 결제창 첫 카드는 **[이용권으로 구매]**(`data-mode="pass-store"`)이고, 누르면 그 자리에서 서버에 물어 커버되면 결제 없이 무료로 열고, 아니면 이용권 상점으로 인계한다(`/points?plan=…&cdco=1` → 결제 확인 모달 자동 오픈 → 결제 후 원래 화면 복귀). 결제창에는 **[이용권으로 구매] · 단건결제(KRW, PortOne) · 월정석 3옵션이 항상 함께** 보이고, 단건/월정석은 동등 우선순위다(`equalPriorityMethods: ["DIRECT_KRW","MOONLIGHT_STONE"]`).
+  3. **서버 최종 안전망** — 카드 주문 직전 `grantPassFreeAccessBeforeCardIfAvailable`(`worker/routes/billing.js`)이 **DIRECT_KRW를 명시했더라도** 이용권 커버를 검사해 커버되면 주문을 만들지 않고 `accessMethod:"PASS"`/`charged:0`을 반환한다. 스냅샷 없는 이용권 보유자(새 기기·시크릿창·저장소 삭제)가 결제되지 않는 근거가 여기다.
+  4. **단건 결제(PortOne)는 사용자가 결제창에서 '단건'을 고른 이후에만** 실행(`_cdRunDirectKrwCheckout`/`_dpRunDirectKrwCheckout`에 도달).
+  - **금지 패턴(=위반, 발견 시 보고 대상)**: ① 결제창에서 **[이용권으로 구매] 카드를 없애거나 단순 상점 링크로 되돌리기**(스냅샷 없는 보유자가 확인할 방법을 잃는다) ② 진입 경로에 서버 이용권 선검사 부활(`CD_PASS_FIRST_BUDGET_MS`·`CD_PASS_SLOW_NOTE` 부활 금지, `snapshotVerdictOnly` 제거 금지) ③ `grantPassFreeAccessBeforeCardIfAvailable` 앞에 `shouldCreateDirectPortOneOrder` 조기 반환 재삽입(= 안전망 자폭) ④ 결제창에 단건 또는 월정석 한쪽만 노출 ⑤ 서버 runtimeGate/paymentPayload에 `paymentMode:"DIRECT_KRW"` 하드코딩(월정석 옵션 소거 — 과거 ziwei-ai에서 제거된 결함) ⑥ 공유 게이트(`useCoinGate`/`_cdOpenPaidServiceGate`/정적 결제 모달) 우회하는 커스텀 체크아웃 ⑦ 🔴 **앱에서 `/points`로 프로그래매틱 이동**(앱 번들에 없고 `app-payment-guard`는 앵커 클릭만 가로챈다 → 빈 화면). 반드시 `window.__cdOpenChargeModal`(가드가 `/app/store/`로 고정)을 먼저 타며, 판정 정본은 `js/core/checkout-entry.js`의 `shouldUseAppStoreEntry()`(애매하면 앱 경로로 폴백).
+  - **예외**: 프로필 카드 추가·삭제(D유형, `passExcluded`) **모두** 이용권 결제 불가라 이용권 옵션 없이 곧바로 결제창(단건/월정석)을 연다 — 그래도 두 결제수단은 동등 노출. **family 포함 모든 등급**이 이용권 커버 대상이 아니며(서버 정본은 `isPassExcludedPricing` 하나 — featureKey별 예외 분기 금지), family 무료는 이용권 결제가 아니라 정책 계층(`profile-card-mutation-policy.js`)의 0원 바이패스로 처리된다. 계정당 첫 카드도 등급 무관 무조건 무료. 상세는 [content-access D유형](docs/payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료).
+  - **검증**: 결제 관련 수정 시 `npm run verify:billing-pass-policy`·`verify:portone-single-payment`·`verify:paid-gate-ui`·`verify:payment-choice-parity`·`verify:checkout-pass-card`·`verify:paid-feature-billing-policy`·`verify:ai-prompt-billing-policy`를 먼저 실행. `verify:checkout-pass-card`는 문자열이 아니라 **jsdom에서 이용권 카드를 실제로 눌러** 두 갈래(커버→무료 통과 / 미커버→상점 인계)와 앱 분기를 확인한다. 뒤 두 개는 가격/과금유형 정본(`paid-feature-registry.js`)과 프론트 게이트·워커 라우트의 정합성을 보는 가드로, GitHub Actions "Paid Flow Gates"에서도 차단한다. 상세 규칙은 [flow 문서 결제창 노출 규칙](docs/payment-policy-flow.md) 참고.
+  - 🔴 **결제수단 선택창 UI는 단일 규격이다** — 렌더러가 3종(정적 셸 `index.html` `_cdChooseServicePaymentMode` + 5미러 / React `app/_lib/billing-client.ts` `openReactPaymentChoiceModalInner` / 독립 정적 폴백 `js/destiny-profile.js` `_dpRenderStandalonePaymentChoice` + `public/js` 사본)이지만 **정본은 셸 인라인 하나**다. CSS 정본은 `_cdEnsureDirectPaymentStyles`의 규칙 배열이고 클래스 프리픽스는 `cd-direct-payment-*`로 고정. 세 곳 모두 "달빛 결제 방식 선택" 제목 + 달 헤더 + **[이용권으로 구매]/단건 결제/월정석 3옵션**(이용권 카드가 맨 위 + `추천` 배지, 클릭 시 그 자리에서 서버 이용권 검사) + 월정석 잔여바(`월정석 재조회`)를 렌더해야 하며, `npm run verify:payment-choice-parity`가 CSS 텍스트 동일성·구조 마커·**3옵션 설명 문구 동일성**을 강제한다(예전에는 문구가 렌더러마다 달라도 통과했다). 진입·복귀·계측 배관은 `js/core/checkout-entry.js` 하나를 공유한다. 페이지 전용 결제창을 새로 만들지 말 것(과거 `celestial-harmony.html`의 `.celestial-pay-*`는 이용권 상점 카드가 없어 제거됨 — 독립 정적 페이지는 `/js/destiny-profile.js`를 로드하면 정본 폴백이 자동 인계된다).
 - **코인은 폐지된 개념** — 서버 내부 계산에만 남아있고, 사용자에게는 항상 통화(현재 KRW, `1코인=100원` 고정 — `worker/lib/billing-policy.js`, 프론트는 `lib/payment/coin-pricing.ts`)로 환산해 표시. 신규 UI 작성 시 `coinPrice`/`cost`를 그대로 렌더링하지 말 것
 - 신규 유료 기능은 "재열람 가능한 고정 콘텐츠"인지 "매번 생성되는 개인화 결과"인지에 따라 잠금 콘텐츠(`unlock.*`, `forceDeduct: true`) 또는 회당 결제(`PER_USE_PAID_FEATURE_KEY_LIST`)로 등록 — 판별 기준은 [content-access 문서](docs/payment-policy-content-access.md) 참고
 
@@ -116,12 +117,15 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 | 파일 | 역할 |
 |------|------|
 | `worker/lib/paid-feature-registry.js` | 모든 유료 기능 가격/유형 정의 |
-| `worker/lib/content-unlocks.js` | 콘텐츠 잠금 해제 관리 (`ContentEntitlement`, `PERSISTENT_UNLOCK_KEY_SET`) |
+| `worker/lib/content-unlocks.js` | 콘텐츠 잠금 해제 관리 (`ContentEntitlement`, `getUnlockedContentSnapshot`) |
 | `worker/lib/billing-policy.js` | 코인↔KRW 환산 상수/함수 (`KRW_PER_COIN = 100`) |
 | `lib/payment/coin-pricing.ts` | 프론트용 코인→KRW 표시 유틸(`formatKrwFromCoins`) |
 | `worker/lib/models.js` | DB 스키마 (`profileSubscription`, `MonthlyCreditLedger`, `pointHistorySchema`) |
-| `worker/routes/fortune.js` | 사주/자미두수 접근 게이팅 (`accessSource` 분기) |
+| `worker/routes/fortune.js` | 사주/자미두수 접근 게이팅 (`accessSource` 분기) · `PERSISTENT_UNLOCK_KEY_SET` |
+| `worker/lib/nakshatra-paid-access.js` | 회당결제 라우트의 서버측 결제 증빙 확인 (`verifyPerUsePayment`) |
 | `app/hooks/useCoinGate.ts` | 프론트 단건 결제 훅 |
+
+🔴 **`PERSISTENT_UNLOCK_KEY_SET`은 영구 해금의 기록 주체가 아니다** — 위치도 `content-unlocks.js`가 아니라 `worker/routes/fortune.js`다. 해금을 실제로 기록하는 곳은 `User.unlockedFeatures`이고, coin-gate(`billing.js`)와 카드 단건결제(`payments.js` `recordUserPaidFeature`)가 `isUnlockPaidFeatureKey` 기준으로 함께 쓴다. 저 상수는 `/api/fortune/*` 응답의 `unlockedFeatures`/`unlockMap` 필터와 PointHistory 복구 경로 전용이라, **신규 잠금 기능을 추가할 때 여기 등록하지 않아도 결제·재열람은 정상 동작한다**(같은 계약의 `ziwei-island-deep-report`·`nakshatra-lord-report`·`nakshatra-dasha-map`이 모두 미등록 상태로 동작 중). 등록이 필요한 경우는 그 키를 `/api/fortune/*` 응답으로 내보내야 할 때뿐이다.
 
 ## Content Assets
 
@@ -212,6 +216,10 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **문제없음(자동 배포 진행) 조건**: `typecheck`·관련 `verify:*`·해당 테스트가 모두 통과 + 변경이 수술적이고 회귀 위험이 낮음 + 배포 자체가 표준 절차(강제/롤백/시크릿 변경 없음).
   - **문제 가능성 있음(자동 배포 보류 + 먼저 안내)**: 신뢰성/우선순위/기본값 등 동작 모델을 바꾸는 변경, 공유 모듈·여러 라우트가 참조하는 함수 수정, 크론/`wrangler.toml`(수정 금지)·바인딩·시크릿에 영향, 검증이 변경을 충분히 커버하지 못함, 또는 결제·인증 등 장애 시 파급이 큰 영역. 이때는 위험·시나리오·확인 필요 여부를 먼저 안내하고 사용자 판단을 받은 뒤 배포한다.
   - 판단이 애매하면 자동 배포하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
+- 🔴 **워커 배포는 커밋이 아니라 워킹트리를 민다 — 낡은 베이스면 남의 워커 커밋이 사라진다**: `wrangler deploy` 는 PR·CI 를 안 거치고 현재 트리를 그대로 프로덕션에 올린다. 그래서 베이스가 낡았으면 그 사이 main 에 머지된 `worker/`·`lib/` 변경이 **즉시 조용히 증발**한다(2026-08-01 하루에 서로 다른 세션에서 3회 발생 — #222·#223·#224·#226 이 각각 사라졌다). `git status` 가 깨끗한 것과 베이스가 최신인 것은 **별개 문제**라 눈으로는 안 잡힌다.
+  - 이제 `scripts/lib/worker-deploy-base-guard.mjs` 가 배포 직전 자동으로 막는다 — "내 HEAD 에 없는데 origin/main 에는 있는 `worker/`·`lib/` 커밋"이 하나라도 있으면 사라질 커밋 목록과 함께 exit 1. 내 변경은 안 잡히고(오탐 없음), `scripts/`·`.github/` 만 바뀐 커밋도 안 잡힌다. 막히면 `git rebase origin/main` → verify 재실행 → 재배포. 의도한 롤백이면 `-- --allow-stale`.
+  - 배포에는 `--message "<sha> @<branch>"` 가 자동으로 붙는다. `npx wrangler deployments list` 로 **라이브 버전이 어느 커밋인지 확인**할 수 있다(예전엔 전부 `-` 라 "지금 뜬 게 내 코드인가"를 따질 방법이 없었고, 그게 사고를 키웠다).
+  - 가드 자체는 `npm run verify:deploy-base-guard` 가 임시 저장소를 만들어 차단·통과·오탐없음까지 실제 실행으로 검증한다(CI 포함).
 - 🔴 **`_next/static` 404 = 파일 부재가 아닐 수 있다**: Pages 배포 전환 틈새에 나간 404 를 Cloudflare 가 `max-age=172800`(2일)로 캐시해, 오리진에 파일이 멀쩡해도 그 URL 만 이틀간 죽는다. HTML 은 `no-store` 라 새로고침해도 같은 죽은 URL 을 다시 요청한다 — **롤백해도 안 고쳐진다**(내용이 같으면 해시가 같아 같은 URL 을 가리킴). 판별은 `curl <url>` vs `curl <url>?cdcb=1` 로 하고, 다르면 엣지 캐시 오염이다. 배포 파이프라인에 가드 2종이 있다: 배포 전 `ensure:pages-single-deploy`(CF 프로덕션 Git 자동빌드가 켜지면 이중 배포 → 청크 해시 불일치, 자동으로 되끔), 배포 후 `verify:deployed-assets`(참조 자산 전량 200 확인, 죽었으면 잡 실패). 클라이언트 자가복구는 `app/layout.js` 인라인 패치(스타일시트는 error 이벤트가 리스너보다 먼저 끝나므로 사후 스윕이 필수).
   - **남은 수동 조치**: Cloudflare 대시보드 → Caching → Cache Rules 에 `URI Path starts with /_next/static/` → `Edge TTL: by status code → 404: Bypass cache` 를 걸면 이 404 가 애초에 캐시되지 않아 근본 차단된다. 레포 토큰들에는 Zone 권한이 없어 코드로는 못 넣는다.
 - 세션 전환 시 `/clear`로 컨텍스트 오염 방지

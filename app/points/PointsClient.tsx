@@ -15,7 +15,8 @@ import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
+import { clearSubscriptionSnapshotForUser, readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
+import checkoutEntry from "@/js/core/checkout-entry.js";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
@@ -222,7 +223,6 @@ type SubscriptionPlan = {
   baseWonPrice: number;
   durationMonths: 1;
   productType:  "membership_pass";
-  coins:        number;
   profileLimit: number | null; // null = unlimited
   freeUpTo:     number | null; // null = Family all-inclusive, number = normal paid-service pass limit
   theme:        "amber" | "rose" | "purple";
@@ -466,7 +466,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "standard",
     title:        "standard",
     baseWonPrice: 9900,
-    coins:        115,
     profileLimit: 3,
     freeUpTo:     30,
     theme:        "amber",
@@ -484,7 +483,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "premium",
     title:        "premium",
     baseWonPrice: 29900,
-    coins:        360,
     profileLimit: 7,
     freeUpTo:     50,
     theme:        "rose",
@@ -502,7 +500,6 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "vvip",
     title:        "vvip",
     baseWonPrice: 59000,
-    coins:        700,
     profileLimit: 15,
     freeUpTo:     100,
     theme:        "purple",
@@ -519,8 +516,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "family",
     title:        "family",
-    baseWonPrice: 300000,
-    coins:        3000,
+    baseWonPrice: 149000,
     profileLimit: null,
     freeUpTo:     null,
     theme:        "purple",
@@ -675,7 +671,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "회원",
     duration30: "30일",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "모든 유료 서비스 이용 가능",
+    allPaidPdfPolicy: "3만원 미만 무제한 · 전문가 상담 10회 포함",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
     familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
@@ -721,8 +717,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "모든 유료 서비스 이용 가능",
-        familyIncluded: "Family 전체 혜택 적용",
+        allPaidPdf: "3만원 미만 전 기능 무제한",
+        familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
         notAutoBilling: "월정석 또는 원화 구매 가능",
       },
@@ -781,7 +777,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "Member",
     duration30: "30 days",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "All paid services available",
+    allPaidPdfPolicy: "Unlimited under KRW 30,000 · 10 expert consultations",
     generalLimitPolicy: (value) => `General services up to ${value}`,
     familyValueLine: (duration) => `All Family benefits / ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
@@ -827,8 +823,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "Unlimited profile add/edit/delete",
-        allPaidPdf: "All paid services available",
-        familyIncluded: "Full Family benefits apply",
+        allPaidPdf: "Unlimited for features under KRW 30,000",
+        familyIncluded: "10 expert consultations per 30 days (extra via single payment)",
         activeImmediately: "30-day pass activates after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
@@ -1054,6 +1050,21 @@ function formatMonthlyCreditLedgerReason(entry: MonthlyCreditLedgerItem) {
   if (entry.type === "MONTHLY_CREDIT_SPEND") return "보너스 월정석 사용";
   if (entry.type === "MONTHLY_CREDIT_REFUND") return "보너스 월정석 복원";
   return "월정석 내역";
+}
+
+// 서버 취소 허용 규칙(worker/routes/payments.js handleCancel)과 같은 기준을 쓴다. 단건 디지털콘텐츠
+// 주문은 "success" 로 끝나지 않아(prepare=pending / 웹훅정산=fulfilled) 예전 조건이면 카드가 승인된
+// 주문에서도 취소 버튼이 영영 비활성이었다. 최종 판정은 서버가 하고 여기서는 버튼만 열어 준다.
+function canRequestPaymentCancel(payment: PaymentHistoryItem) {
+  if (payment.isPassAccess === true) return false;
+  const isSinglePurchase = payment.paymentType === "digital_content" && payment.accessType === "single_purchase";
+  if (isSinglePurchase) {
+    return payment.status === "success"
+      || payment.status === "fulfilled"
+      || payment.status === "processing"
+      || payment.status === "pending";
+  }
+  return payment.status === "success";
 }
 
 function mapPaymentStatusLabel(status: string, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
@@ -2616,7 +2627,7 @@ function MoonlightOrderHistory({
             const isPassAccess = payment.isPassAccess === true;
             const statusMeta = mapPaymentStatusLabel(payment.status, copy);
             // 이용권 이용 건은 실제 결제가 아니므로 취소·영수증 대상이 아니다.
-            const canCancel = !isPassAccess && payment.status === "success";
+            const canCancel = canRequestPaymentCancel(payment);
             return (
               <div key={payment.id} className="rounded-[18px] border border-[color:var(--moon-rim)] bg-[rgba(21,24,64,0.78)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -2803,6 +2814,9 @@ export default function PointsPage() {
   const [pointStateError, setPointStateError] = useState<string | null>(null);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | "family" | null>(null);
+  // 결제창에서 인계(cdco=1)받은 진입인지. 인계일 때만 결제 확인 모달을 자동으로 연다.
+  const [checkoutHandoffRequested, setCheckoutHandoffRequested] = useState(false);
+  const checkoutHandoffFiredRef = useRef(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
   const [isSubscriptionRefundAgreed, setIsSubscriptionRefundAgreed] = useState(false);
@@ -2928,7 +2942,26 @@ export default function PointsPage() {
     if (raw === "standard" || raw === "premium" || raw === "vvip" || raw === "family") {
       setLandingPlanPreset(raw);
     }
+    // 결제창의 '이용권으로 구매'에서 넘어온 진입(cdco=1)만 결제 확인 모달을 자동으로 연다.
+    // 그냥 상점을 구경하러 들어온 사용자에게는 열지 않는다.
+    if (query.get("cdco") === "1") setCheckoutHandoffRequested(true);
   }, []);
+
+  /**
+   * 🔴 결제창 → 이용권 상점 원클릭 인계. 예전에는 ?plan= 이 플랜을 '강조'만 해서 사용자가 그 플랜을
+   * 다시 찾아 누르고 결제 버튼을 또 눌러야 했다(클릭 2회 + 화면 탐색). 여기서 결제 확인 모달까지
+   * 바로 열어 준다 — 이 state 는 PortOne SDK·prepare·config 프리페치도 함께 태우므로(아래 effect)
+   * 사용자는 결제 버튼 한 번이면 왕복 0으로 PG창에 도달한다.
+   * 비로그인이면 열지 않는다(기존 로그인 유도 흐름을 그대로 둔다). ref 가드로 한 번만 발화한다.
+   */
+  useEffect(() => {
+    if (!checkoutHandoffRequested || checkoutHandoffFiredRef.current) return;
+    if (!landingPlanPreset || !authUser) return;
+    const plan = SUBSCRIPTION_PLANS.find((item) => item.tier === landingPlanPreset && item.durationMonths === 1);
+    if (!plan) return;
+    checkoutHandoffFiredRef.current = true;
+    setPendingSubscriptionPaymentPlan(plan);
+  }, [checkoutHandoffRequested, landingPlanPreset, authUser]);
 
   /* ── Toast 헬퍼 ───────────────────────────────────────────────── */
 
@@ -2943,6 +2976,24 @@ export default function PointsPage() {
   const dismissToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  /**
+   * 🔴 결제창의 '이용권으로 구매'로 넘어온 사용자를 원래 보던 화면으로 돌려보낸다.
+   * 예전에는 상점으로 이동하는 순간 원래 요청이 버려져(status:'cancelled') 사용자가 스스로
+   * 되돌아가야 했다. 기능을 자동 재실행하지는 않는다 — 돌아간 화면에서 다시 누르면 이용권
+   * 커버로 무료 통과한다(자동 실행은 의도치 않은 생성·중복 실행 위험이 이득보다 크다).
+   * 복귀 지점은 consumeCheckoutReturn 이 읽는 즉시 지우므로 왕복 루프가 생기지 않는다.
+   */
+  const scheduleCheckoutReturn = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    const target = checkoutEntry.consumeCheckoutReturn();
+    if (!target?.url) return false;
+    // 방금 산 이용권을 목적지가 서버에서 새로 읽도록 스냅샷을 버린다(옛 'none' 이 남으면 결제창이 또 뜬다).
+    try { clearSubscriptionSnapshotForUser(); } catch { /* 스냅샷 정리 실패는 복귀를 막지 않는다 */ }
+    pushToast("success", "달빛 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
+    window.setTimeout(() => { window.location.assign(target.url); }, 1200);
+    return true;
+  }, [pushToast]);
 
   const acquirePaymentActionLock = useCallback((key: string) => {
     const now = Date.now();
@@ -3397,6 +3448,9 @@ export default function PointsPage() {
         if (!response.ok) {
           throw new Error(data.message || "Subscription payment confirm failed.");
         }
+        // 결제 성공 지점은 카드·월정석·모바일 리다이렉트 복귀 세 곳인데 전부 이 헬퍼를 지난다.
+        // 여기서 '예약'만 하므로(1.2초 뒤 이동) 호출부의 상태 갱신·토스트가 끝날 시간이 남는다.
+        scheduleCheckoutReturn();
         return data;
       })();
 
@@ -3409,7 +3463,7 @@ export default function PointsPage() {
         }
       }
     },
-    [apiBase],
+    [apiBase, scheduleCheckoutReturn],
   );
 
   const reportPaymentFailureToServer = useCallback(

@@ -1,0 +1,256 @@
+/**
+ * 결제창(체크아웃) 진입·복귀·계측 단일 정본.
+ *
+ * 🔴 정적 셸(index.html 인라인) · React(app/_lib/billing-client.ts) · 독립 정적 페이지
+ * (js/destiny-profile.js) 세 렌더러가 같은 "이용권으로 구매" 카드를 그리고, 같은 세션 스토리지 키로
+ * 복귀 지점을 주고받는다. 사본을 만들면 한쪽만 앱 분기를 놓쳐 /points 404 로 떨어지거나(아래 참고)
+ * 복귀 키가 어긋나 이용권을 사고도 원래 화면으로 못 돌아온다. 새 사본을 만들지 말고 여기를 고칠 것.
+ *
+ * 🔴 앱(Android WebView)에서 /points 로 프로그래매틱 이동하면 404 다.
+ * scripts/app-payment-guard.js 의 PRUNED_ROUTES 는 **앵커 클릭만** 가로채고(click 리스너 + 링크 스크럽),
+ * location.assign 은 걸리지 않는다. 게다가 scripts/build-mobile-app.mjs 가 앱 번들에서 /points 파일을
+ * 지운다. 앱에서는 반드시 window.__cdOpenChargeModal()(가드가 /app/store/ 로 고정) 을 타야 한다 —
+ * shouldUseAppStoreEntry() 가 그 판정이며, 애매하면 앱 쪽으로 폴백한다(웹에서 잘못 걸리면 상점 모달이
+ * 열릴 뿐이지만, 앱에서 잘못 걸리면 빈 화면이다).
+ *
+ * 로딩 방식(번들러 없이 3런타임 공유 — js/core/pass-verdict.js 와 같은 패턴):
+ *   - 브라우저 classic script: `globalThis.__cdCheckoutEntry`
+ *   - webpack/Node(require): `module.exports` (package.json type=commonjs)
+ */
+(function (factory) {
+  var api = factory();
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  if (typeof globalThis !== "undefined") globalThis.__cdCheckoutEntry = api;
+})(function () {
+  "use strict";
+
+  var PASS_STORE_PLAN_ORDER = ["standard", "premium", "vvip", "family"];
+  var RETURN_KEY = "cd_checkout_return_v1";
+  // 이용권을 사고 돌아오기까지의 현실적 상한. 이 시간을 넘긴 복귀 지점은 사용자가 이미 다른 일을
+  // 하고 있다는 뜻이라 조용히 버린다(엉뚱한 화면으로 튕기는 게 안 돌아가는 것보다 나쁘다).
+  var RETURN_TTL_MS = 30 * 60 * 1000;
+  var FUNNEL_PATH = "/api/billing/funnel-event";
+  // 서버 화이트리스트와 같은 목록. 여기서 한 번 거르면 오타 난 이벤트가 네트워크를 타지 않는다.
+  var FUNNEL_EVENTS = {
+    checkout_opened: true,
+    checkout_option_click: true,
+    pass_verified_free: true,
+    pass_store_entered: true,
+    checkout_dismissed: true,
+  };
+
+  function text(value) {
+    return String(value === null || value === undefined ? "" : value).trim();
+  }
+
+  function interpolate(template, vars) {
+    var source = String(template === null || template === undefined ? "" : template);
+    if (!vars) return source;
+    return source.replace(/\{(\w+)\}/g, function (match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match;
+    });
+  }
+
+  /**
+   * 결제창 문구 조회. 🔴 세 렌더러(정적 셸 · React · 독립 정적)가 **같은 키와 같은 사전**을 보게 하는
+   * 지점이다. 예전에는 셸만 i18n 헬퍼를 쓰고 React·독립은 한국어 리터럴을 박아 두어, 문구가 서로
+   * 어긋나도 아무도 몰랐고 비한국어 사용자에게는 한국어가 그대로 나갔다.
+   *
+   * 사전은 public/i18n/<lang>.json 이고 조회기는 js/cd-lang-native.js 의 cdTranslate 다.
+   * ⚠ cdTranslate 는 lang==='ko' 일 때 딕셔너리를 무시하고 fallback 을 그대로 돌려준다 —
+   * 즉 여기 넘기는 한국어 fallback 이 ko 정본이므로 ko.json 과 항상 같이 맞춰야 한다.
+   * 조회기가 없는 환경(React 단독 페이지 등)에서도 fallback 보간으로 안전하게 동작한다.
+   */
+  function checkoutText(key, fallback, vars) {
+    try {
+      if (typeof globalThis !== "undefined" && typeof globalThis.cdTranslate === "function") {
+        return globalThis.cdTranslate(key, vars || {}, fallback);
+      }
+    } catch (_translateError) { /* 조회 실패는 폴백으로 흡수한다 */ }
+    return interpolate(fallback, vars);
+  }
+
+  function runtimeWindow() {
+    try {
+      return typeof window !== "undefined" ? window : null;
+    } catch (_windowError) {
+      return null;
+    }
+  }
+
+  // 등급 사다리의 정본은 pass-verdict.js 하나다(PASS_LIMIT_BY_TIER). 여기서 30/50/100 을 다시 적으면
+  // 한도가 바뀔 때 결제창 추천 플랜만 옛 값으로 남는다. 셸·독립은 script 순서로, React 는
+  // billing-client 의 import 부수효과로 이 시점에 이미 globalThis 에 올라와 있다.
+  function passVerdictApi() {
+    try {
+      if (typeof globalThis !== "undefined" && globalThis.__cdPassVerdict) return globalThis.__cdPassVerdict;
+    } catch (_verdictError) { /* noop */ }
+    return null;
+  }
+
+  /**
+   * 이 금액을 덮는 가장 낮은 이용권 등급. 이미 가진 등급 이하는 후보에서 뺀다(업그레이드 유도).
+   * 판정 근거를 못 구하면 빈 문자열을 돌려준다 — 상점은 그냥 하이라이트 없이 열린다.
+   * (여기서 임의로 family 를 고르면 300,000원 플랜을 들이미는 셈이라 절대 폴백으로 쓰지 않는다.)
+   */
+  function resolveStorePlan(costCoins, currentTier) {
+    var verdict = passVerdictApi();
+    if (!verdict || typeof verdict.passLimitForTier !== "function") return "";
+    var cost = Math.max(0, Math.floor(Number(costCoins || 0)));
+    var owned = typeof verdict.normalizeTier === "function" ? verdict.normalizeTier(currentTier) : text(currentTier).toLowerCase();
+    var ownedIndex = PASS_STORE_PLAN_ORDER.indexOf(owned);
+    for (var i = 0; i < PASS_STORE_PLAN_ORDER.length; i += 1) {
+      var tier = PASS_STORE_PLAN_ORDER[i];
+      if (i <= ownedIndex) continue;
+      if (cost <= Number(verdict.passLimitForTier(tier) || 0)) return tier;
+    }
+    return PASS_STORE_PLAN_ORDER[PASS_STORE_PLAN_ORDER.length - 1];
+  }
+
+  /**
+   * 이용권 상점 진입 URL. cdco=1 이 붙은 진입만 /points 가 결제 확인 모달을 자동으로 연다
+   * (app/points/PointsClient.tsx) — 그냥 상점 구경으로 들어온 사용자에게는 열지 않는다.
+   */
+  function buildPassStoreUrl(options) {
+    var opts = options || {};
+    var plan = text(opts.plan) || resolveStorePlan(opts.costCoins, opts.currentTier);
+    var params = [];
+    if (plan) params.push("plan=" + encodeURIComponent(plan));
+    params.push("source=" + encodeURIComponent(text(opts.source) || "payment-choice-pass-store"));
+    params.push("cdco=1");
+    return "/points?" + params.join("&");
+  }
+
+  function shouldUseAppStoreEntry() {
+    var win = runtimeWindow();
+    if (!win) return false;
+    try {
+      if (win.__cdAppPaymentGuard && win.__cdAppPaymentGuard.installed === true) return true;
+      if (text(win.__CODE_DESTINY_RUNTIME_TARGET) === "mobile-app") return true;
+      if (typeof document !== "undefined" && document.documentElement
+        && text(document.documentElement.getAttribute("data-runtime-target")) === "mobile-app") return true;
+    } catch (_appError) { /* noop */ }
+    return false;
+  }
+
+  function sessionStore() {
+    try {
+      if (typeof sessionStorage === "undefined" || !sessionStorage) return null;
+      return sessionStorage;
+    } catch (_sessionError) {
+      return null;
+    }
+  }
+
+  /** 이용권을 사러 떠나기 직전에 남기는 복귀 지점. 이동 전에 호출한다. */
+  function rememberCheckoutReturn(options) {
+    var store = sessionStore();
+    if (!store) return false;
+    var opts = options || {};
+    var url = text(opts.url);
+    if (!url) return false;
+    try {
+      store.setItem(RETURN_KEY, JSON.stringify({
+        url: url,
+        label: text(opts.label),
+        featureKey: text(opts.featureKey),
+        savedAt: Date.now(),
+      }));
+      return true;
+    } catch (_writeError) {
+      return false;
+    }
+  }
+
+  /**
+   * 복귀 지점을 읽고 **즉시 지운다**. 지우고 나서 이동해야 목적지에서 같은 지점을 다시 읽어
+   * 왕복하는 루프가 생기지 않는다.
+   */
+  function consumeCheckoutReturn() {
+    var store = sessionStore();
+    if (!store) return null;
+    var raw = null;
+    try {
+      raw = store.getItem(RETURN_KEY);
+      store.removeItem(RETURN_KEY);
+    } catch (_readError) {
+      return null;
+    }
+    if (!raw) return null;
+    try {
+      var parsed = JSON.parse(raw);
+      if (!parsed || !text(parsed.url)) return null;
+      var age = Date.now() - Number(parsed.savedAt || 0);
+      if (!(age >= 0) || age > RETURN_TTL_MS) return null;
+      return { url: text(parsed.url), label: text(parsed.label), featureKey: text(parsed.featureKey) };
+    } catch (_parseError) {
+      return null;
+    }
+  }
+
+  function funnelEndpoint() {
+    var win = runtimeWindow();
+    var base = "";
+    try {
+      base = text(win && win.__CD_API_BASE_URL);
+    } catch (_baseError) { /* noop */ }
+    return (base ? base.replace(/\/+$/, "") : "") + FUNNEL_PATH;
+  }
+
+  /**
+   * 결제 퍼널 계측. 개인식별자는 보내지 않는다(userId·프로필·생년 정보 없음).
+   * 🔴 결제 경로에서 불리므로 어떤 실패도 밖으로 새면 안 된다 — 전 구간 try/catch, 응답도 보지 않는다.
+   *
+   * 🔴 반드시 application/json 으로 보낸다. /api/billing/* 은 enforceSensitiveEndpointSecurity 의
+   * requireJson 가드가 걸려 있어 다른 content-type 은 400(INVALID_CONTENT_TYPE)일 뿐 아니라
+   * **addAbuseScore 까지 올린다** — 즉 계측 요청이 공격 트래픽으로 집계돼 실제 사용자가 차단될 수 있다.
+   * (첫 배포에서 sendBeacon 의 text/plain 으로 나가 전 이벤트가 400 을 맞았다.)
+   *
+   * sendBeacon 대신 keepalive fetch 를 쓴다 — 화면 전환·언로드에서 살아남는 보장은 같으면서,
+   * 교차 출처(앱 런타임의 __CD_API_BASE_URL)에서 프리플라이트가 필요할 때도 정상 동작한다.
+   * sendBeacon 은 프리플라이트를 못 해 그 경우 조용히 유실된다. 본문은 200바이트 남짓이라
+   * keepalive 의 64KB 상한과 무관하다.
+   */
+  function trackCheckoutEvent(name, payload) {
+    try {
+      var eventName = text(name);
+      if (!FUNNEL_EVENTS[eventName]) return false;
+      if (typeof fetch !== "function") return false;
+      var body = JSON.stringify({
+        name: eventName,
+        featureKey: text(payload && payload.featureKey),
+        option: text(payload && payload.option),
+        renderer: text(payload && payload.renderer),
+        coinPrice: Math.max(0, Math.floor(Number((payload && payload.coinPrice) || 0))),
+        hasPassHint: text(payload && payload.hasPassHint),
+        dwellMs: Math.max(0, Math.floor(Number((payload && payload.dwellMs) || 0))),
+        runtime: shouldUseAppStoreEntry() ? "app" : "web",
+      });
+      void fetch(funnelEndpoint(), {
+        method: "POST",
+        body: body,
+        keepalive: true,
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+      }).catch(function () { /* 계측 실패는 삼킨다 */ });
+      return true;
+    } catch (_trackError) {
+      return false;
+    }
+  }
+
+  return {
+    VERSION: 1,
+    RETURN_KEY: RETURN_KEY,
+    RETURN_TTL_MS: RETURN_TTL_MS,
+    FUNNEL_PATH: FUNNEL_PATH,
+    PASS_STORE_PLAN_ORDER: PASS_STORE_PLAN_ORDER,
+    text: checkoutText,
+    resolveStorePlan: resolveStorePlan,
+    buildPassStoreUrl: buildPassStoreUrl,
+    shouldUseAppStoreEntry: shouldUseAppStoreEntry,
+    rememberCheckoutReturn: rememberCheckoutReturn,
+    consumeCheckoutReturn: consumeCheckoutReturn,
+    trackCheckoutEvent: trackCheckoutEvent,
+  };
+});

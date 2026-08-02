@@ -10,7 +10,7 @@ import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
 import { useFxTier } from "../_hooks/useFxTier";
 import { JourneyHub } from "./JourneyHub";
-import { MapResult } from "./MapResult";
+import { CompassReport } from "./CompassReport";
 import { Crossroads } from "./Crossroads";
 import { FutureSim } from "./FutureSim";
 import { LifeVoyage } from "./LifeVoyage";
@@ -27,7 +27,6 @@ import map from "./map.module.css";
 
 export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
   const s = useCompassSession(start);
-  const [notice, setNotice] = useState<string | null>(null);
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [pigExpr, setPigExpr] = useState<PigExpr>("talk");
@@ -69,7 +68,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
 
   if (s.step === "processing") {
     return (
-      <DestinyMap showFog hideHero>
+      <DestinyMap showFog hideHero hideHeader phase={s.stagePhase}>
         <ProcessingScene />
       </DestinyMap>
     );
@@ -79,7 +78,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
     const destRegion = DIRECTION_TO_REGION[s.field.primary.key];
     const destLabel = regionByKey(destRegion)?.label ?? "";
     return (
-      <DestinyMap title="운명의 길이 나타났어요" kicker="The Path Revealed" pathTo={destRegion} highlightRegion={destRegion}>
+      <DestinyMap title="운명의 길이 나타났어요" kicker="The Path Revealed" pathTo={destRegion} highlightRegion={destRegion} phase="night">
         <div className={map.revealPanel}>
           <p className={map.revealText}>
             안개가 걷히자, <b>{destLabel}</b>로 향하는 길이 금빛으로 빛나기 시작했어요.
@@ -92,9 +91,10 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
     );
   }
 
-  if (s.step === "result" && s.field) {
+  if (s.step === "result" && s.field && s.input) {
     return (
-      <MapResult
+      <CompassReport
+        input={s.input}
         field={s.field}
         situation={s.situation}
         onNext={() => s.setStep("today")}
@@ -123,16 +123,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
   }
 
   if (s.step === "arrival" && s.field) {
-    return (
-      <>
-        <Arrival
-          field={s.field}
-          onRestart={() => s.reset()}
-          onShare={() => setNotice("항로 저장·공유는 다음 단계에서 연결돼요.")}
-        />
-        {notice && <div className={map.toast} role="status">{notice}</div>}
-      </>
-    );
+    return <Arrival field={s.field} onRestart={() => s.reset()} />;
   }
 
   return null;

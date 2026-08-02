@@ -151,9 +151,79 @@ for (const marker of [
   assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, marker);
 }
 // sajuEvidence는 더 이상 클라이언트가 계산/전송하지 않는다 — 서버 자체 계산 폴백에 맡긴다.
+// (무료 초안용 용신은 클라에서 계산하지만 화면 표시 전용이고 서버로 보내지 않는다.)
 // verify-payment 선검사는 제거됐다 — /generate가 접근권을 직접 검증하므로 이용권 검사는 서버 1회뿐이어야 한다.
 for (const marker of ["sajuEvidence:", "buildNamingSajuEvidence", "namingSajuEvidence", '"/api/naming-prompt/verify-payment"']) {
   assertNotIncludes("app/naming-ai/NamingAiClient.tsx", formClient, marker);
+}
+// 🔴 결제 회귀 가드: 코인게이트 성공 응답은 이용권·월정석·코인에도 최상위 transactionId를 싣는다.
+// 그걸 paymentId로 세탁해 보내면 워커가 단건 분기로 들어가 Payment 문서를 못 찾고 404로 죽는다
+// (월정석은 이미 차감된 뒤라 돈만 나간다). paymentId 산출식에 되돌아오지 못하게 고정한다.
+assertNotIncludes(
+  "app/naming-ai/NamingAiClient.tsx",
+  formClient,
+  "payload.paymentId || payload.transactionId",
+);
+for (const marker of ["accessType: access.accessType", "accessMethod: access.accessMethod", "PAYMENT_NOT_FOUND:"]) {
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, marker);
+}
+// 워커 쪽 방어 — Payment 조회 404는 즉시 던지지 말고 이용권/월정석 분기로 폴백해야 한다.
+for (const marker of ["pendingPaymentMiss", "resolveNamingYongshin", "suriPromptBlock()", "soundGuidanceForFamilyName"]) {
+  assertIncludes("worker/routes/naming-prompt.js", route, marker);
+}
+// 🔴 회당 결제 증빙은 canAccessPaidFeature 보다 **먼저** 확인해야 한다.
+// canAccessPaidFeature 는 지속 엔티틀먼트(이용권·영구해금)만 판정하고 회당 결제(월정석·코인 차감)에는
+// 항상 PAYMENT_REQUIRED 를 주므로, 순서가 뒤집히면 차감이 끝난 사용자가 402 로 막힌다(돈만 나감).
+assertIncludes("worker/routes/naming-prompt.js", route, "verifyNamingChargeEvidence");
+// 단건 결제는 PointHistory 차감 기록이 없다 — Payment 문서를 입력 해시로 찾는 경로가 있어야
+// 식별자가 왕복 중 유실돼도 결제를 마친 사용자가 402 로 막히지 않는다.
+assertIncludes("worker/routes/naming-prompt.js", route, "findSettledNamingPayment");
+// 🔴 /generate 는 동기 생성 라우트다. authFetch 는 호출부가 signal 을 주지 않으면 22초에 끊는데
+// (app/_lib/auth-client.ts AUTH_FETCH_TIMEOUT_MS), 작명은 8,000~14,000자 목표라 항상 그보다 오래
+// 걸린다. 클라 상한이 엣지 예산보다 짧아지면 결과가 서버에 저장되는데도 "확인 실패"만 뜬다.
+{
+  const { EDGE_RESPONSE_DEADLINE_MS } = await import("../worker/lib/sync-llm-timeout.js");
+  const clientTimeout = Number((formClient.match(/const GENERATE_TIMEOUT_MS = (\d+)/) || [])[1] || 0);
+  assert(
+    clientTimeout > EDGE_RESPONSE_DEADLINE_MS,
+    `GENERATE_TIMEOUT_MS(${clientTimeout})는 엣지 한계(${EDGE_RESPONSE_DEADLINE_MS})보다 커야 한다`,
+  );
+  // signal 을 넘겨야 authFetch 가 자기 22초 타임아웃을 걸지 않는다.
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "signal: controller.signal");
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "GENERATE_TIMEOUT_MS)");
+  // 재시도 예산 가드 — 2차 LLM 호출이 엣지 한계를 넘기지 않아야 실패 처리·환불 경로가 돈다.
+  for (const marker of ["remainingBudgetMs", "MIN_RETRY_BUDGET_MS", "EDGE_RESPONSE_DEADLINE_MS"]) {
+    assertIncludes("worker/routes/naming-prompt.js", route, marker);
+  }
+}
+// 코인게이트가 단건 성공에서 돌려주는 식별자가 merchantUid 로 고정돼 있지 않다.
+for (const marker of ["{ requestId: normalized }", "{ idempotencyKey: normalized }"]) {
+  assertIncludes("worker/routes/naming-prompt.js", route, marker);
+}
+// 가격 상수는 서버 레지스트리 정본과 같아야 한다(어긋나면 verifyPaymentShape 이 400 으로 되돌린다).
+{
+  const { FEATURE_KEY_PRICE_TABLE } = await import("../worker/lib/paid-feature-registry.js");
+  const row = FEATURE_KEY_PRICE_TABLE["premium-naming-prompt"] || {};
+  assert(row.cost === 300 && row.amountKRW === 30000, "작명 가격 정본이 300코인/30,000원이 아니다");
+  assertIncludes("worker/routes/naming-prompt.js", route, "const AMOUNT_KRW = 30000");
+  assertIncludes("worker/routes/naming-prompt.js", route, "const COIN_PRICE = 300");
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "const AMOUNT_KRW = 30000");
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "const COIN_PRICE = 300");
+  const { calculateMembershipCreditCost } = await import("../worker/lib/billing-policy.js");
+  assert(
+    calculateMembershipCreditCost(row.cost) === 3000,
+    "작명 월정석 가격이 정책 계산값(3,000)과 다르다",
+  );
+  assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "const MEMBERSHIP_CREDIT_COST = 3000");
+}
+{
+  const chargeAt = route.indexOf("const charge = await verifyNamingChargeEvidence(");
+  const gateAt = route.indexOf("const decision = await canAccessPaidFeature(");
+  assert(chargeAt > 0 && gateAt > 0, "회당 결제 증빙 검사와 이용권 검사 호출부를 찾지 못했다");
+  assert(
+    chargeAt < gateAt,
+    "verifyNamingChargeEvidence()는 canAccessPaidFeature()보다 먼저 호출되어야 한다 (회당 결제자가 402로 막힌다)",
+  );
 }
 
 const resultClient = read("app/naming-ai/result/NamingAiResultClient.tsx");
@@ -166,6 +236,59 @@ for (const marker of [
   "naming-ai-result-document",
 ]) {
   assertIncludes("app/naming-ai/result/NamingAiResultClient.tsx", resultClient, marker);
+}
+
+// ---- 7-2. 작명 계산 모듈 계약 — 라이브 import 테스트 ----
+{
+  const sound = await import("../worker/lib/naming-sound-elements.js");
+  // 🔴 배속 정본 = 작명 실무설(土 ㅇㅎ / 水 ㅁㅂㅍ). 훈민정음 해례본 원전은 土·水가 반대이며,
+  // 되돌리면 모든 추천의 소리오행 판정이 뒤집힌다.
+  assert(sound.SOUND_FIVE_ELEMENTS["土"].join("") === "ㅇㅎ", "소리오행 土 배속은 ㅇㅎ(작명 실무설)이어야 한다");
+  assert(sound.SOUND_FIVE_ELEMENTS["水"].join("") === "ㅁㅂㅍ", "소리오행 水 배속은 ㅁㅂㅍ(작명 실무설)이어야 한다");
+  assert(sound.getInitialConsonant("김") === "ㄱ" && sound.getInitialConsonant("A") === "", "초성 분해가 어긋났다");
+  assert(sound.soundElementOf("박") === "water" && sound.soundElementOf("서") === "metal", "초성→오행 매핑이 어긋났다");
+  const flow = sound.analyzeSoundFlow("박준서");
+  assert(flow.harmonious === true && flow.elements.join(",") === "water,metal,metal", "소리 흐름 판정이 어긋났다");
+  assert(sound.analyzeSoundFlow("김서윤").clashCount === 1, "상극 카운트가 어긋났다");
+  // SEO 설명 문구도 같은 배속을 말해야 한다(과거 page.tsx가 반대로 적혀 있었다).
+  const namingPage = read("app/naming-ai/page.tsx");
+  assertIncludes("app/naming-ai/page.tsx", namingPage, "목구멍소리 ㅇㅎ 토");
+  assertIncludes("app/naming-ai/page.tsx", namingPage, "입술소리 ㅁㅂㅍ 수");
+
+  const suri = await import("../worker/lib/naming-suri.js");
+  const suriAll = [...suri.AUSPICIOUS, ...suri.HALF, ...suri.INAUSPICIOUS].sort((a, b) => a - b);
+  assert(suriAll.length === 81, `81수리표는 81개여야 한다(현재 ${suriAll.length})`);
+  assert(
+    suriAll.join(",") === Array.from({ length: 81 }, (_, i) => i + 1).join(","),
+    "81수리표에 중복이나 누락이 있다",
+  );
+  assert(suri.suriFortune(82) === suri.suriFortune(1), "81 초과 수는 81을 빼고 판정해야 한다");
+  const suriBlock = suri.suriPromptBlock();
+  for (const marker of ["원격", "형격", "이격", "정격", "강희자전", "길수(吉)", "흉수(凶)"]) {
+    assert(suriBlock.includes(marker), `suriPromptBlock()에 "${marker}"가 없다`);
+  }
+
+  const { buildSajuProfile } = await import("../worker/lib/destiny-bias-engine.js");
+  const { resolveNamingYongshin } = await import("../worker/lib/saju-yongshin-policy.js");
+  const profile = buildSajuProfile({
+    name: "테스트",
+    gender: "F",
+    timezone: "Asia/Seoul",
+    birthPlace: "대한민국",
+    hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+    dayChangePolicy: "MIDNIGHT",
+    birth: { year: 1990, month: 7, day: 15, hour: 13, minute: 20, calendarType: "solar", timezone: "Asia/Seoul", birthPlace: "대한민국" },
+  });
+  const verdict = resolveNamingYongshin(profile);
+  for (const key of ["eokbuYongshin", "johuYongshin", "finalYongshin", "eokbuKijishin", "johuKijishin", "finalKijishin", "lacking", "excessive", "nameElements", "avoidElements"]) {
+    assert(Array.isArray(verdict[key]), `resolveNamingYongshin().${key} 는 배열이어야 한다`);
+  }
+  assert(verdict.johu && verdict.johu.type && verdict.johu.season, "조후 판정이 비었다");
+  // 용신과 기신에 같은 오행이 동시에 들어가면 프롬프트가 모순된 지시를 받는다.
+  const overlap = verdict.finalYongshin.filter((element) => verdict.finalKijishin.includes(element));
+  assert(overlap.length === 0, `최종 용신과 기신이 겹친다: ${overlap.join(",")}`);
+  // 여름 한낮생이면 조후용신에 水가 잡혀야 한다(조후 축이 실제로 도는지 확인).
+  assert(verdict.johuYongshin.includes("water"), "여름생인데 조후용신에 水가 없다 — 조후 계산이 안 돈다");
 }
 
 // ---- 8. 이름 카드 계약 — worker/lib/naming-result-cards.js 라이브 테스트 ----

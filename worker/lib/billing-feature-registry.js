@@ -20,7 +20,8 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
     label: "손금 분석",
     featureKey: "palm-reading",
     subFeatures: Object.freeze({
-      general: Object.freeze({ featureKey: "palm-reading-general", cost: 50, reason: "손금 전체운 분석" }),
+      // 판독 + 심층 해석 통합 상품(100코인 = 10,000원). aiConsult 는 레거시 호환용으로만 남는다.
+      general: Object.freeze({ featureKey: "palm-reading-general", cost: 100, reason: "손금 정밀 판독 + 심층 해석" }),
       aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult", cost: 50, reason: "손금 전문가 상담 생성" }),
     }),
   }),

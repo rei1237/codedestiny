@@ -816,7 +816,7 @@
       "vvipBenefit2": "Maximaal 15 profielen",
       "vvipCta": "Bekijk VVIP-voordelen",
       "familyName": "Code Destiny Familie 30 dagen",
-      "familyPrice": "30 dagen · KRW 300.000",
+      "familyPrice": "30 dagen · KRW 149.000",
       "familyLine": "Gebruik alle betaalde functies",
       "familyBenefit1": "Geen profiellimiet",
       "familyBenefit2": "Alle gezinsvoordelen",
@@ -1274,6 +1274,18 @@
       "placeholder": "Diensten zoeken (bijv. tarot, match, droom)",
       "searchAria": "Alle diensten zoeken",
       "empty": "Geen resultaten. Probeer een ander trefwoord."
+    },
+    "todayHub": {
+      "title": "Het fortuin van vandaag",
+      "lead": "De dagpijler van Saju, de 27 maanhuizen en de Vedische dagheerser op één plek. Gratis, zonder inloggen.",
+      "tabsAria": "Systeem van het fortuin van vandaag wisselen",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Vedisch",
+      "personalized": "Met je geboortedatum",
+      "noteGuest": "Dit is de algemene stroom van de dag. Zet je geboortedatum in je profielkaart, dan lezen we hem naast je eigen kaart.",
+      "ctaAll": "De volledige daglezing bekijken",
+      "share": "Delen"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "Kies betaalmethode",
       "readyMessage": "Kies tussen maandelijkse tegoeden en eenmalige betaling.",
-      "directHint": "Betaal direct met kaart of eenvoudige betaling.<br>De betaling gaat verder in het beveiligde afrekenvenster van PortOne V2 KG Inicis.",
+      "directHint": "Alleen dit ene resultaat. Opent meteen met kaart of snelbetaling.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Eenmalige KRW-betaling · {amount}",
       "amountLabel": "Betalingsbedrag",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "Maandelijkse kredietbasis · {amount}",
         "withPass": "Algemene betaalde diensten worden geopend met een pas als ze binnen de limiet vallen. PDF's en services boven de limiet maken gebruik van eenmalige KRW-betaling per product.",
-        "directOnly": "Deze actie wordt bevestigd met een eenmalige betaling in KRW."
+        "directOnly": "Deze actie wordt bevestigd met een eenmalige betaling in KRW.",
+        "passUnknown": "Heb je een pas? Tik hieronder op de paskaart, dan controleren we hem meteen.",
+        "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
-        "store": "Stap over op de Moonlight Pass en gebruik deze en alle functies onder de limiet 30 dagen lang onbeperkt, zonder betaalvenster.",
+        "store": "30 dagen onbeperkt toegang tot functies onder de limiet, zonder afrekenen. Heb je al een pas? Tik om het hier te controleren.",
         "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen.",
-        "upgrade": "Deze functie ligt boven de limiet van je huidige pas. Bekijk een hogere Moonlight Pass."
+        "upgrade": "Je huidige niveau dekt deze functie niet. Bekijk een hogere pas."
       },
       "applyMethod": {
         "label": "Methode toepassen",
@@ -1784,9 +1798,10 @@
         "checking": "Pasdekking controleren"
       },
       "monthlyHint": {
-        "use": "Gebruik uw maandelijkse tegoed en open het nu.",
+        "use": "Betaalt met maanstenen die je al hebt. Opent zonder extra uitgaven.",
         "insufficient": "Uw maandelijkse tegoed is laag. U kunt doorgaan met een eenmalige betaling in KRW.",
-        "checking": "Maandelijks tegoed moet worden gecontroleerd. Eenmalige KRW-betaling is nog steeds mogelijk."
+        "checking": "We moeten je maansteensaldo controleren. Eenmalige KRW-betaling blijft beschikbaar.",
+        "after": "Er blijft {balance} over na gebruik."
       },
       "monthlyBalance": {
         "needCheck": "Controle nodig",
@@ -1795,13 +1810,28 @@
         "refresh": "Credits vernieuwen",
         "refreshing": "Maandelijks tegoedsaldo vernieuwen.",
         "refreshed": "Maandelijks tegoed opnieuw gecontroleerd. Het huidige saldo is {balance}.",
-        "notFound": "Er zijn nog geen actieve maandelijkse tegoeden/pas gevonden. Vernieuw de pagina opnieuw nadat de betaling is voltooid."
+        "notFound": "Er zijn nog geen actieve maandelijkse tegoeden/pas gevonden. Vernieuw de pagina opnieuw nadat de betaling is voltooid.",
+        "owned": "Maanstenen in bezit: {balance}",
+        "ownedUnknown": "Maanstenen · controle nodig",
+        "signedOut": "Log in om je Maansteen-saldo te bekijken.",
+        "unconfirmed": "We konden je Maansteen-saldo niet bevestigen. Je kunt het toch proberen — bij te weinig saldo laten we het weten bij het afrekenen.",
+        "staleAfterError": "Maansteen-saldo kon niet worden ververst, laatst bevestigde waarde wordt getoond · nu {balance}"
       },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."
       },
       "passUpgradeTitle": "Moonlight Pass upgraden",
-      "recommendBadge": "Aanbevolen"
+      "recommendBadge": "Aanbevolen",
+      "moonTitle": "Kies een betaalwijze",
+      "moonSubtitle": "Kies de optie die het beste bij je past.",
+      "directTitleLabel": "Eenmalige betaling",
+      "monthlyUnit": "eventvaluta",
+      "passBuyTitle": "Kopen met pas",
+      "passChecking": "Je pas wordt gecontroleerd…",
+      "passMissGoStore": "Je pas dekt dit niet, we brengen je naar de paswinkel.",
+      "passCheckRetry": "We konden je passtatus niet controleren. Tik zo meteen opnieuw.",
+      "directHintApp": "Alleen dit ene resultaat. Opent meteen via Google Play-facturering.",
+      "pgBadgeApp": "Google Play-facturering"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
       "profileUnlimited": "Onbeperkt aantal profielen",
       "profileLimit": "{count} profielen",
-      "allFeatures": "Alle functies beschikbaar",
+      "allFeatures": "Onbeperkt onder KRW 30.000 · 10 expertconsulten inbegrepen",
       "upTo": "Beschikbaar tot {amount}",
       "benefits": "Voordelen in één oogopslag",
       "closeAria": "Sluit de Moonlight Pass Shop-gids",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Code Destiny Familie 30 dagen",
-          "desc": "30 dagen · Alle betaalde functies · Onbeperkt aantal profielen"
+          "desc": "30 dagen · Onbeperkt onder KRW 30.000 · 10 expertconsulten · Onbeperkte profielen"
         }
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 Deel het saju-resultaat",
       "kakao": "KakaoTalk delen",
-      "instagram": "Instagram-DM"
+      "instagram": "Instagram-DM",
+      "image": "Delen als afbeelding"
     },
     "actions": {
       "newSaju": "✨ Bekijk een nieuwe saju"
@@ -7317,6 +7348,30 @@
       "009": "Zelfvertrouwen-boost Tarot",
       "010": "Werkdrempel 7-kaarten",
       "011": "Tarot: Innerlijke gedachten van de ander"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Dit krijgt u voor uw betaling",
+      "volumeLabel": "Omvang",
+      "volumeValue": "30.000–60.000 tekens",
+      "chaptersLabel": "Opbouw",
+      "chaptersValue": "10 hoofdstukken · elk meer dan 2.400 tekens",
+      "keepLabel": "Bewaren",
+      "keepValue": "Sla op als PDF en houd het voorgoed",
+      "guarantee": "Haalt de tekst die omvang niet, dan wordt hij automatisch herschreven. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Dit krijgt u voor uw betaling",
+      "volumeLabel": "Omvang",
+      "volumeValue": "Minimaal 30.000 tekens",
+      "chaptersLabel": "Opbouw",
+      "chaptersValue": "16 hoofdstukken · elk 1.900–2.400 tekens",
+      "keepLabel": "Bewaren",
+      "keepValue": "Sla op als PDF en houd het voorgoed",
+      "guarantee": "Elk hoofdstuk dat te kort is wordt automatisch herschreven, tot twee keer toe. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
     }
   }
 }

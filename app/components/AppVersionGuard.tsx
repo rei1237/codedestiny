@@ -38,6 +38,8 @@ type BlockingReasonKey = "paymentProcessing" | "paidAttempt" | "importantInput" 
 type AppVersionCopy = {
   updateTitle: string;
   updateBody: (reason: string) => string;
+  /** 자동 새로고침을 막는 구체적 사유가 없을 때(=평범한 배포 갱신)의 안내문. */
+  updateBodyIdle: string;
   later: string;
   reloadNow: string;
   reasons: Record<BlockingReasonKey, string>;
@@ -47,6 +49,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   ko: {
     updateTitle: "새 버전이 배포되었습니다.",
     updateBody: (reason) => `현재 ${reason} 상태여서 자동 새로고침을 보류했습니다.`,
+    updateBodyIdle: "준비되면 새로고침해 주세요. 지금 화면은 그대로 유지됩니다.",
     later: "나중에",
     reloadNow: "지금 새로고침",
     reasons: {
@@ -60,6 +63,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   en: {
     updateTitle: "A new version has been deployed.",
     updateBody: (reason) => `Auto refresh is paused because ${reason}.`,
+    updateBodyIdle: "Refresh whenever you're ready. This screen will stay as-is until then.",
     later: "Later",
     reloadNow: "Refresh now",
     reasons: {
@@ -73,6 +77,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   ja: {
     updateTitle: "新しいバージョンが配信されました。",
     updateBody: (reason) => `現在${reason}のため、自動更新を保留しています。`,
+    updateBodyIdle: "準備ができたら更新してください。それまでこの画面のままです。",
     later: "あとで",
     reloadNow: "今すぐ更新",
     reasons: {
@@ -86,6 +91,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   "zh-CN": {
     updateTitle: "新版本已发布。",
     updateBody: (reason) => `当前正在${reason}，已暂停自动刷新。`,
+    updateBodyIdle: "准备好后请刷新。此前页面将保持不变。",
     later: "稍后",
     reloadNow: "立即刷新",
     reasons: {
@@ -99,6 +105,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   "zh-TW": {
     updateTitle: "新版本已發布。",
     updateBody: (reason) => `目前正在${reason}，已暫停自動重新整理。`,
+    updateBodyIdle: "準備好後請重新整理。此前畫面將維持不變。",
     later: "稍後",
     reloadNow: "立即重新整理",
     reasons: {
@@ -112,6 +119,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   vi: {
     updateTitle: "Phiên bản mới đã được phát hành.",
     updateBody: (reason) => `Tự làm mới đang tạm dừng vì ${reason}.`,
+    updateBodyIdle: "Hãy làm mới khi bạn đã sẵn sàng. Màn hình này sẽ giữ nguyên cho đến lúc đó.",
     later: "Để sau",
     reloadNow: "Làm mới ngay",
     reasons: {
@@ -125,6 +133,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   hi: {
     updateTitle: "नया संस्करण जारी हो गया है.",
     updateBody: (reason) => `${reason} के कारण ऑटो रिफ्रेश रोका गया है.`,
+    updateBodyIdle: "जब आप तैयार हों तब रिफ्रेश करें. तब तक यह स्क्रीन ऐसी ही रहेगी.",
     later: "बाद में",
     reloadNow: "अभी रिफ्रेश करें",
     reasons: {
@@ -138,6 +147,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   es: {
     updateTitle: "Se ha publicado una nueva versión.",
     updateBody: (reason) => `La actualización automática está pausada porque ${reason}.`,
+    updateBodyIdle: "Actualiza cuando estés listo. Esta pantalla se mantendrá igual hasta entonces.",
     later: "Más tarde",
     reloadNow: "Actualizar ahora",
     reasons: {
@@ -151,6 +161,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   fr: {
     updateTitle: "Une nouvelle version a été déployée.",
     updateBody: (reason) => `L'actualisation automatique est suspendue car ${reason}.`,
+    updateBodyIdle: "Actualisez quand vous serez prêt. Cet écran restera tel quel jusque-là.",
     later: "Plus tard",
     reloadNow: "Actualiser",
     reasons: {
@@ -164,6 +175,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   de: {
     updateTitle: "Eine neue Version wurde bereitgestellt.",
     updateBody: (reason) => `Die automatische Aktualisierung pausiert, weil ${reason}.`,
+    updateBodyIdle: "Aktualisiere, sobald du bereit bist. Dieser Bildschirm bleibt bis dahin unverändert.",
     later: "Später",
     reloadNow: "Jetzt aktualisieren",
     reasons: {
@@ -177,6 +189,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   nl: {
     updateTitle: "Er is een nieuwe versie uitgerold.",
     updateBody: (reason) => `Automatisch vernieuwen is gepauzeerd omdat ${reason}.`,
+    updateBodyIdle: "Vernieuw zodra je er klaar voor bent. Dit scherm blijft tot dan ongewijzigd.",
     later: "Later",
     reloadNow: "Nu vernieuwen",
     reasons: {
@@ -190,6 +203,7 @@ const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
   ms: {
     updateTitle: "Versi baharu telah dikeluarkan.",
     updateBody: (reason) => `Muat semula automatik dijeda kerana ${reason}.`,
+    updateBodyIdle: "Muat semula apabila anda sudah bersedia. Skrin ini akan kekal sehingga itu.",
     later: "Kemudian",
     reloadNow: "Muat semula sekarang",
     reasons: {
@@ -441,6 +455,21 @@ export default function AppVersionGuard() {
       savedVersion = "";
     }
 
+    // 저장값이 없다 = 이 브라우저/앱이 이 사이트를 처음 본다. 방금 받아온 문서를 같은 URL 로
+    // 다시 로드해도 달라질 것이 없으므로, 이걸 "버전 변경"으로 흘려보내면 첫 방문·재설치·배포
+    // 직후 사용자가 전원 강제 리로드를 한 번씩 겪는다(=화면 이중 로딩). 버전만 기록하고 넘긴다.
+    // 셸(js/share.js)과 같은 storage 키를 공유하므로 양쪽 판정이 같아야 한다.
+    if (!savedVersion) {
+      try {
+        window.localStorage.setItem(VERSION_KEY, serverVersion);
+      } catch (e) {
+        // ignore
+      }
+      await purgeIfNeeded(serverVersion);
+      setPendingUpdate(null);
+      return;
+    }
+
     const versionChanged = savedVersion !== serverVersion;
     if (!versionChanged) {
       await purgeIfNeeded(serverVersion);
@@ -496,9 +525,13 @@ export default function AppVersionGuard() {
       return;
     }
 
-    setPendingUpdate(null);
-    await applyUpdate(serverVersion);
-  }, [applyUpdate]);
+    // 🔴 자동 location.replace 는 하지 않는다(2026-08-01 폐지). 배포마다 저장된 버전과 다른
+    // 모든 재방문자가 매번 자동 리로드를 1회씩 겪었고(60초 interval + focus/visibility/online 이
+    // 계속 재검사), 정작 '/'·'/index.html'은 no-store 라 다음 문서 이동에서 어차피 최신을 받는다.
+    // 셸(js/share.js)과 동일하게 배너로 맡긴다 — 캐시 정리만 이 버전당 한 번 수행한다.
+    await purgeIfNeeded(serverVersion);
+    setPendingUpdate({ version: serverVersion, reason: "" });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -546,7 +579,11 @@ export default function AppVersionGuard() {
   if (!pendingUpdate) return null;
   const locale = getCurrentLoadingLocale();
   const copy = resolveAppVersionCopy(locale);
-  const pendingReason = resolveBlockingReasonText(pendingUpdate.reason, copy, locale);
+  // reason이 없으면(=자동 새로고침을 막을 구체적 사유 없이 그냥 새 배포가 있는 평범한 경우)
+  // "핵심 작업 진행 중" 폴백으로 흘려보내지 않고 일반 안내문을 쓴다.
+  const pendingReason = pendingUpdate.reason
+    ? resolveBlockingReasonText(pendingUpdate.reason, copy, locale)
+    : "";
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[2147483647] px-3 pb-3 sm:px-4 sm:pb-4">
@@ -554,7 +591,7 @@ export default function AppVersionGuard() {
         <div>
           <p className="text-sm font-semibold">{copy.updateTitle}</p>
           <p className="text-xs text-amber-900/90">
-            {copy.updateBody(pendingReason)}
+            {pendingReason ? copy.updateBody(pendingReason) : copy.updateBodyIdle}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

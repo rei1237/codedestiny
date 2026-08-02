@@ -2,8 +2,9 @@
 //
 //   POST /api/nakshatra/resolve  : 생년월일(+시각·출생지) → 동양/인도/통합 3-뷰
 //   GET  /api/nakshatra/today    : 오늘의 달(달의 나크샤트라 + 대응 숙요) + (선택)개인 격각·타라발라
+//   POST /api/nakshatra/compat   : 동서 통합 궁합(유료·회당결제 ₩10,000)
 //
-// 무료 기능이라 결제 게이팅·인증 없음(requireAuth / runAiRouteWithSecurity 미사용).
+// 위 두 무료 라우트는 결제 게이팅·인증이 없다. compat 만 인증 + 결제 증빙 확인을 거친다.
 // 순수 조립 로직은 worker/lib/nakshatra-codex.js(WASM 비의존)에 있고, 이 파일은
 // Swiss WASM(시데리얼 Lahiri) + lunar-javascript(음력) I/O만 배선한다.
 
@@ -14,6 +15,11 @@ import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { assembleNatalCodex, assembleTodayMoon } from "../lib/nakshatra-codex.js";
 import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
 import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-paid-access.js";
+
+// 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
+const COMPAT_FEATURE_KEY = "nakshatra-compat";
+const COMPAT_COIN_PRICE = 100;
 
 // ── I/O 배선 ─────────────────────────────────────────────────────────────────
 
@@ -152,9 +158,23 @@ export async function handleNakshatraRoutes(request, env) {
     }
     if (path === "/api/nakshatra/compat") {
       if (request.method !== "POST") return methodNotAllowed();
-      // 유료(nakshatra-compat) — 결제는 프론트 useCoinGate(pass-first)가 처리, 여기선 로그인만 보증.
-      await requireAuth(request, env);
+      // 유료(nakshatra-compat) — 결제창은 프론트 useCoinGate(pass-first)가 처리하고,
+      // 서버는 그 결제가 실제로 일어났는지만 DB 기록으로 확인한다.
+      // 🔴 1단계는 관측 전용이다 — 로그만 남기고 막지 않는다(차단은 실로그 확인 후 2단계에서).
+      const auth = await requireAuth(request, env);
       const body = await readJson(request);
+      // 🔴 증빙 확인이 터져도 결제한 사용자의 본문을 막지 않는다(관측 단계에서 500 을 새로 만들지 않는다).
+      try {
+        logPerUsePaymentProof(COMPAT_FEATURE_KEY, await verifyPerUsePayment(env, {
+          userId: auth?.userId,
+          featureKey: COMPAT_FEATURE_KEY,
+          coinPrice: COMPAT_COIN_PRICE,
+          requestId: body?.requestId || body?.idempotencyKey || "",
+        }));
+      } catch (error) {
+        logPerUsePaymentProof(COMPAT_FEATURE_KEY, { proven: null, source: "", reason: "VERIFY_THREW" });
+        console.error("[nakshatra-paid-access] verify failed", String(error?.message || error).slice(0, 200));
+      }
       return await resolveCompat(env, body, { requestUrl: request.url });
     }
     return notFound(); // /api/nakshatra/* 하위 미해당 경로.

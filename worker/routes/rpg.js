@@ -3,6 +3,7 @@ import { Solar } from "lunar-javascript";
 
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import {
+  MonthlyCreditLedger,
   Payment,
   ProfileCard,
   User,
@@ -109,22 +110,36 @@ const STREAK_BONUS_TABLE = [
 
 /* 레벨 마일스톤 월정석 보상.
    월정석 1개 = 10원(KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)이고 지급 후 30일이면 소멸한다.
-   누적 합계는 정확히 10,000개(=100,000원)이며 아래 상한이 이를 코드로 강제한다. */
+   누적 합계는 정확히 10,000개(=100,000원)이며 아래 상한이 이를 코드로 강제한다.
+
+   minPayments·minPaidKrw 는 그 단계를 받기 위한 "누적" 현금 결제 실적이다. 전 단계 공통으로
+   결제 1회만 요구하던 때는 3,000원 한 번 쓴 계정이 10만원어치를 전부 가져갈 수 있었다.
+   최종 단계 기준 요구 20만원 / 보상 10만원 = 전 구간 보상률 50%로 맞춰 두었다.
+   🔴 두 값은 레벨 오름차순으로 단조 증가해야 한다 — 정산 루프가 첫 미달에서 멈추기 때문이다
+   (verify:profile-card-level 이 단조성을 강제한다). */
 const LEVEL_MONTHLY_CREDIT_REWARDS = [
-  { level: 5, credits: 500 },
-  { level: 10, credits: 500 },
-  { level: 20, credits: 700 },
-  { level: 30, credits: 800 },
-  { level: 50, credits: 1000 },
-  { level: 70, credits: 1500 },
-  { level: 99, credits: 5000 },
+  { level: 5, credits: 500, minPayments: 1, minPaidKrw: 3000 },
+  { level: 10, credits: 500, minPayments: 2, minPaidKrw: 8000 },
+  { level: 20, credits: 700, minPayments: 4, minPaidKrw: 20000 },
+  { level: 30, credits: 800, minPayments: 6, minPaidKrw: 35000 },
+  { level: 50, credits: 1000, minPayments: 10, minPaidKrw: 60000 },
+  { level: 70, credits: 1500, minPayments: 15, minPaidKrw: 100000 },
+  { level: 99, credits: 5000, minPayments: 30, minPaidKrw: 200000 },
 ];
 const LEVEL_REWARD_TOTAL_CREDIT_CAP = 10000;
 const LEVEL_REWARD_LOG_TYPE = "monthly_credit_grant";
-/* 다계정 파밍 방어. 레벨은 누구나 올릴 수 있지만 월정석 수령은 이 두 조건을 모두 만족해야 한다.
-   조건을 못 채웠다고 몰수하지 않는다 — 나중에 채우면 밀린 마일스톤을 한꺼번에 준다. */
+/* 다계정 파밍 방어. 레벨은 누구나 올릴 수 있지만 월정석 수령은 가입 경과일 + 단계별 결제 실적을
+   모두 만족해야 한다. 조건을 못 채웠다고 몰수하지 않는다 — 나중에 채우면 밀린 단계가 한꺼번에 나간다. */
 const LEVEL_REWARD_MIN_ACCOUNT_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 const LEVEL_REWARD_PAID_STATUSES = ["paid", "success", "fulfilled"];
+/* 🔴 현금이 아닌 결제는 실적에서 뺀다. 월정석으로 산 이용권도 Payment 문서를 만들기 때문에
+   (payments.js 의 paymentMethod:"monthly_credit" prepare → status:"success"), 그대로 세면
+   "레벨 보상 월정석 → 이용권 구매 → 결제 실적 상승 → 다음 보상 개방"이라는 순환 파밍이 성립한다.
+   월정석으로 기능을 해금하거나 코인·포인트를 쓰는 경로는 Payment 문서를 만들지 않아 해당 없음. */
+const LEVEL_REWARD_NON_CASH_METHODS = ["monthly_credit"];
+/* 실적 집계 비용 상한. 최고 요구(30회)보다 훨씬 커서 판정에 영향이 없고,
+   결제가 아주 많은 계정에서 읽는 문서 수만 묶는다. */
+const LEVEL_REWARD_PAYMENT_SCAN_LIMIT = 200;
 
 /* 메인 홈은 이 사이트에서 트래픽이 가장 높은 화면이라, 카드가 쓰지도 않는 값을 곁들여 읽으면
    과거에 이 기능을 로컬 전용으로 되돌리게 만든 것과 같은 종류의 부하가 된다.
@@ -858,20 +873,77 @@ function buildRewardEvents({
   };
 }
 
-/* 월정석 수령 자격: 결제 이력 1회 이상 + 가입 14일 경과.
-   레벨은 누구나 올릴 수 있고, 이 검사는 "지급"에만 건다. */
-async function isEligibleForLevelReward(env, userId) {
+/* 월정석 수령 실적: 가입 경과일 + 현금 결제 횟수·누적 금액.
+   레벨은 누구나 올릴 수 있고, 이 검사는 "지급"에만 건다.
+
+   🔴 예전에는 countDocuments(...).limit(1) 이라 횟수가 1에서 잘렸다. 단계별 요구 횟수를 걸려면
+   실제 횟수가 필요하므로 문서를 직접 읽어 센다. {userId:1, createdAt:-1} 인덱스를 타고
+   본인 문서로 한정되며 LEVEL_REWARD_PAYMENT_SCAN_LIMIT 로 상한이 걸린다
+   ({userId:1,status:1} 복합 인덱스는 없고, autoIndex:false 라 선언만으로는 생기지도 않는다). */
+async function resolveLevelRewardStats(env, userId) {
   const user = await withMongoRetry(env, () => User.findById(userId).select("joinedAt createdAt").lean());
   const joinedAt = new Date(user?.joinedAt || user?.createdAt || 0).getTime();
-  if (!Number.isFinite(joinedAt) || joinedAt <= 0) return { ok: false, reason: "ACCOUNT_AGE_UNKNOWN" };
-  if (Date.now() - joinedAt < LEVEL_REWARD_MIN_ACCOUNT_AGE_MS) return { ok: false, reason: "ACCOUNT_TOO_NEW" };
+  if (!Number.isFinite(joinedAt) || joinedAt <= 0) {
+    return { accountAgeOk: false, reason: "ACCOUNT_AGE_UNKNOWN", paymentCount: 0, paidKrw: 0 };
+  }
+  if (Date.now() - joinedAt < LEVEL_REWARD_MIN_ACCOUNT_AGE_MS) {
+    return { accountAgeOk: false, reason: "ACCOUNT_TOO_NEW", paymentCount: 0, paidKrw: 0 };
+  }
 
-  const paidCount = await withMongoRetry(env, () => Payment.countDocuments({
+  const rows = await withMongoRetry(env, () => Payment.find({
     userId,
     status: { $in: LEVEL_REWARD_PAID_STATUSES },
-  }).limit(1));
-  if (!paidCount) return { ok: false, reason: "NO_PAYMENT_HISTORY" };
-  return { ok: true, reason: "OK" };
+  }).select("paymentAmount paymentMethod").sort({ createdAt: -1 }).limit(LEVEL_REWARD_PAYMENT_SCAN_LIMIT).lean());
+
+  let paymentCount = 0;
+  let paidKrw = 0;
+  for (const row of rows || []) {
+    if (LEVEL_REWARD_NON_CASH_METHODS.includes(String(row?.paymentMethod || ""))) continue;
+    const amount = toSafeNumber(row?.paymentAmount, 0);
+    if (amount <= 0) continue;
+    paymentCount += 1;
+    paidKrw += amount;
+  }
+  return { accountAgeOk: true, reason: "OK", paymentCount, paidKrw };
+}
+
+/* 이 단계를 열 실적이 되는가. 정산·상태 조회가 같은 판정을 써야 화면과 지급이 어긋나지 않는다. */
+function meetsLevelRewardRequirement(row, stats) {
+  return stats.accountAgeOk
+    && stats.paymentCount >= row.minPayments
+    && stats.paidKrw >= row.minPaidKrw;
+}
+
+/* 지급 원장 한 줄. 회원가입(auth.js recordMonthlyCreditGrantLedger)·추천과 달리 레벨 보상은
+   여태 lot 만 적립하고 원장을 안 남겨, 월정석 내역 타임라인에 흔적이 전혀 없었다
+   (payments.js formatMonthlyCreditGrantSummary 의 합성 행은 GRANT 행이 하나도 없을 때만 도는데
+   가입 시 이미 한 줄이 생기므로 영영 안 돈다). 연출로 "+500"을 보여주고 내역이 비어 있으면
+   사용자는 지급 자체를 의심한다.
+   {userId,type,sourceId} 유니크 인덱스가 멱등을 보장하며, 실패는 삼킨다 — 원장 실패가 재화를 막으면 안 된다. */
+async function recordLevelRewardLedger({ userId, level, credits, balanceAfter }) {
+  const sourceId = `rpg-level_${level}`;
+  try {
+    await MonthlyCreditLedger.updateOne(
+      { userId, type: "MONTHLY_CREDIT_GRANT", sourceId },
+      {
+        $setOnInsert: {
+          userId,
+          type: "MONTHLY_CREDIT_GRANT",
+          amount: credits,
+          beforeBalance: Math.max(0, balanceAfter - credits),
+          afterBalance: Math.max(credits, balanceAfter),
+          reason: `레벨 ${level} 달성 보상`,
+          sourceId,
+          serviceKey: "rpg_level_reward",
+          profileId: "",
+          metadata: { level, credits, krw: credits * 10 },
+        },
+      },
+      { upsert: true },
+    );
+  } catch (error) {
+    console.warn("[RPG][LevelRewardLedgerFailed]", { level, message: String(error?.message || error || "") });
+  }
 }
 
 /* 도달한 마일스톤을 정산한다. 자격 미달이면 아무것도 지급하지 않고 그대로 둔다 —
@@ -890,9 +962,9 @@ async function settleLevelMonthlyCreditRewards(env, userId, currentLevel) {
   const outstanding = reached.filter((row) => !grantedKeys.has(`level_${row.level}`));
   if (!outstanding.length) return { granted: [], pending: [], reason: "ALREADY_SETTLED" };
 
-  const eligibility = await isEligibleForLevelReward(env, userId);
-  if (!eligibility.ok) {
-    return { granted: [], pending: outstanding.map((row) => row.level), reason: eligibility.reason };
+  const stats = await resolveLevelRewardStats(env, userId);
+  if (!stats.accountAgeOk) {
+    return { granted: [], pending: outstanding.map((row) => row.level), reason: stats.reason, stats };
   }
 
   // 계정당 누적 지급 상한. 이미 나간 금액을 합산해 남은 여유 안에서만 지급한다.
@@ -900,7 +972,14 @@ async function settleLevelMonthlyCreditRewards(env, userId, currentLevel) {
   let remainingCap = Math.max(0, LEVEL_REWARD_TOTAL_CREDIT_CAP - alreadyGrantedCredits);
 
   const granted = [];
+  const blocked = [];
   for (const row of outstanding) {
+    /* 요구 실적은 레벨 오름차순으로 단조 증가하므로, 한 단계가 막히면 그 뒤도 전부 막힌다.
+       몰수가 아니라 보류다 — 실적을 채우고 다시 들어오면 밀린 단계가 한꺼번에 나간다. */
+    if (!meetsLevelRewardRequirement(row, stats)) {
+      for (const rest of outstanding.slice(outstanding.indexOf(row))) blocked.push(rest.level);
+      break;
+    }
     if (remainingCap < row.credits) break;
     const rewardKey = `level_${row.level}`;
     try {
@@ -933,11 +1012,18 @@ async function settleLevelMonthlyCreditRewards(env, userId, currentLevel) {
       }).catch(() => {});
       break;
     }
+    await recordLevelRewardLedger({
+      userId,
+      level: row.level,
+      credits: row.credits,
+      balanceAfter: toSafeNumber(applied?.profileSubscription?.membershipCreditBalance, row.credits),
+    });
     remainingCap -= row.credits;
     granted.push({ level: row.level, credits: row.credits, krw: row.credits * 10 });
   }
 
-  return { granted, pending: [], reason: granted.length ? "GRANTED" : "CAP_REACHED" };
+  const reason = granted.length ? "GRANTED" : (blocked.length ? "REQUIREMENT_NOT_MET" : "CAP_REACHED");
+  return { granted, pending: blocked, reason, stats };
 }
 
 async function ensureRpgIndexes() {
@@ -1696,6 +1782,111 @@ async function getRpgCollectibles(request, env) {
   return json({ ok: true, items, count: items.length });
 }
 
+/* 레벨 보상 안내 시트 전용. 프로필 카드가 "보상표 + 내 수령 상태"를 그리는 데 필요한 값만 준다.
+   🔴 홈 진입에서 자동으로 부르지 말 것 — 트래픽 1위 화면에 Mongo 왕복을 얹지 않으려고
+   /progress 를 경량화한 것(위 RPG_PROGRESS_CACHE 주석)을 그대로 되돌리는 셈이 된다.
+   단계마다 요구 실적이 다르므로 결제 진행도는 받을 게 있든 없든 항상 필요하다(시트가 그걸 그린다).
+   시트를 여는 사용자 조작에서만 도는 경로라 왕복 2회는 감수한다. */
+async function getLevelRewardStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  const milestones = LEVEL_MONTHLY_CREDIT_REWARDS.map((row) => ({
+    level: row.level,
+    credits: row.credits,
+    krw: row.credits * 10,
+    minPayments: row.minPayments,
+    minPaidKrw: row.minPaidKrw,
+  }));
+
+  try {
+    const [progress, logs] = await Promise.all([
+      withMongoRetry(env, () => UserRpgProgress.findOne({
+        userId: auth.userId,
+        profileId: ACCOUNT_PROFILE_SCOPE,
+      }).select("totalExp").lean()),
+      withMongoRetry(env, () => UserRpgRewardLog.find({
+        userId: auth.userId,
+        profileId: ACCOUNT_PROFILE_SCOPE,
+        rewardType: LEVEL_REWARD_LOG_TYPE,
+      }).select("rewardKey meta").lean()),
+    ]);
+
+    const currentLevel = calculateLevelState(progress?.totalExp || 0).currentLevel;
+    const grantedLevels = (logs || [])
+      .map((row) => Number(String(row?.rewardKey || "").replace("level_", "")))
+      .filter((level) => Number.isFinite(level) && level > 0)
+      .sort((a, b) => a - b);
+    const grantedSet = new Set(grantedLevels);
+    const totalGrantedCredits = (logs || []).reduce((sum, row) => sum + toSafeNumber(row?.meta?.credits, 0), 0);
+    const reachedUngranted = LEVEL_MONTHLY_CREDIT_REWARDS
+      .filter((row) => currentLevel >= row.level && !grantedSet.has(row.level));
+
+    const stats = await resolveLevelRewardStats(env, auth.userId);
+    // 지금 당장 실적이 되는 단계만 "받을 수 있음"이다. 도달했지만 실적이 모자란 단계는 pending.
+    const claimableLevels = reachedUngranted
+      .filter((row) => meetsLevelRewardRequirement(row, stats))
+      .map((row) => row.level);
+    const pendingLevels = reachedUngranted
+      .filter((row) => !meetsLevelRewardRequirement(row, stats))
+      .map((row) => row.level);
+
+    return json({
+      ok: true,
+      currentLevel,
+      milestones,
+      grantedLevels,
+      claimableLevels,
+      pendingLevels,
+      totalGrantedCredits,
+      accountAgeOk: stats.accountAgeOk,
+      paymentCount: stats.paymentCount,
+      paidKrw: stats.paidKrw,
+      eligible: claimableLevels.length > 0,
+      eligibleReason: stats.reason,
+    });
+  } catch (error) {
+    /* /progress 와 같은 계약 — 200 + degraded. 시트는 보상표(정적)만으로도 그려져야 하므로
+       milestones 는 항상 채워 보낸다(수령 상태만 비운다). */
+    console.warn("[RPG][LevelRewardStatusDegraded]", { message: String(error?.message || error || "") });
+    return json({
+      ok: true,
+      degraded: true,
+      code: "RPG_LEVEL_REWARD_DEGRADED",
+      milestones,
+      grantedLevels: [],
+      claimableLevels: [],
+      message: "보상 수령 상태를 잠시 불러오지 못했습니다.",
+    });
+  }
+}
+
+/* 밀린 마일스톤 수령. 지금까지 정산은 "레벨이 오른 순간"에만 돌아서(applyRpgAward),
+   자격 미달로 미뤄진 보상은 다음 레벨업이 있어야 나갔다 — 만렙(99)에 먼저 도달하고 나중에
+   조건을 채운 사용자는 영영 못 받는다. 지급 규칙·자격·상한은 손대지 않고 정산 시점만 하나 더 연다.
+   중복 지급은 UserRpgRewardLog 유니크 인덱스와 lot 의 lotId 중복 거부가 이미 이중으로 막는다. */
+async function claimLevelRewards(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const progress = await withMongoRetry(env, () => UserRpgProgress.findOne({
+    userId: auth.userId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
+  }).select("totalExp").lean());
+  const currentLevel = calculateLevelState(progress?.totalExp || 0).currentLevel;
+
+  const settled = await settleLevelMonthlyCreditRewards(env, auth.userId, currentLevel);
+  const granted = settled.granted || [];
+  if (granted.length) invalidateRpgProgressCacheForUser(auth.userId);
+
+  return json({
+    ok: true,
+    currentLevel,
+    granted,
+    pending: settled.pending || [],
+    reason: settled.reason,
+  });
+}
+
 export async function handleRpgRoutes(request, env) {
   let path = "";
   try {
@@ -1724,6 +1915,14 @@ export async function handleRpgRoutes(request, env) {
 
     if (method === "POST" && path === "/collect") {
       return await collectRpgItem(request, env);
+    }
+
+    if (method === "GET" && path === "/level-rewards") {
+      return await getLevelRewardStatus(request, env);
+    }
+
+    if (method === "POST" && path === "/level-rewards/claim") {
+      return await claimLevelRewards(request, env);
     }
 
     if (method === "GET" && path === "/collectibles") {

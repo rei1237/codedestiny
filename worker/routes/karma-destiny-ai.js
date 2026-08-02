@@ -10,6 +10,7 @@ import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limi
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { runWithConcurrency } from "../lib/concurrency.js";
 
 // 결정적(생년월일+질문 기반) 생성 → 캐시 + in-flight dedup으로 재시도/새로고침 중복 과금 방지.
 // 초기 생성이 최대 3회(생성→교정→확장) 순차 호출이라 각 단계에 개별 키로 캐시를 건다.
@@ -21,7 +22,13 @@ function buildKarmaLlmCache(env, stageKey) {
     keyExtra: `karma-destiny-ai-v1-${stageKey}`,
   };
 }
-import { buildKarmaDestinyIntegratedResult } from "../lib/karma-destiny-ai-calculations.js";
+import {
+  LENS_FIELD_PRIORITY,
+  LENS_IDS,
+  LENS_ROLES,
+  buildKarmaDestinyIntegratedResult,
+  computeLensContribution,
+} from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes } from "./billing.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
@@ -71,47 +78,311 @@ const VALID_TOPICS = new Set([
   "현재 고민 상담",
 ]);
 
+// 리포트 구조 판(version). 1 = 구 16장(3체계), 2 = 15장 다섯 렌즈.
+// 진행 중 문서를 판이 다른 정의로 이어붙이면 챕터 id 가 충돌해 결제 후 무결과가 되므로,
+// 생성 재개 가능 여부 판정(isResumableExisting)의 기준이기도 하다.
+const REPORT_SCHEMA_VERSION = 2;
+
 const INITIAL_CONSULTATION_MIN_LENGTH = 30000;
 const INITIAL_CONSULTATION_MAX_LENGTH = 0;
 const INITIAL_CONSULTATION_SECTION_MIN_LENGTH = 1500;
-// 배치 1회 = 4챕터 × 1,900~2,400자 + 요약/인용 JSON ≈ 9천~1.15만자(한국어 1자≈1~1.5토큰).
-// 구 상한 12000은 잘림→JSON 파싱 실패(LLM_JSON_PARSE_FAILED)를 유발했다.
+// 장 단위 병렬 생성으로 바뀌면서 한 호출이 쓰는 분량은 1장(2,100~2,400자)뿐이다.
+// llm-budget 기준 (2400+1500)×1.5 ≈ 5,850 토큰이므로 7,000이면 충분하고, 구 20,000처럼
+// MAX_TOKENS 잘림 → extractJsonPayload 실패 → 수선 재호출로 가는 경로가 사실상 사라진다.
+const CHAPTER_MAX_OUTPUT_TOKENS = 7000;
+// 통짜(비배치) 경로 — repair/expand 재작성용으로만 남는다.
 const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 20000;
 const PREMIUM_BATCH_SIZE = 4;
+// 배치 안에서 장을 몇 개까지 동시에 굽는가. master-love-codex 가 이 워커에서 4가 안전함을
+// 이미 증명했다.
+const PREMIUM_CHAPTER_CONCURRENCY = 4;
 // 배치 1회 = 생성(120s) + JSON 수선/보강 재호출 가능성까지의 최악 시간을 덮어야 한다.
 // 락이 파이프라인보다 짧으면 병렬 폴링 POST가 같은 배치를 중복 기동한다(찻집 390s 락과 같은 원리).
 const PREMIUM_BATCH_LOCK_TTL_MS = 390_000;
 const PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2;
-const PREMIUM_CHAPTER_TARGET_LENGTH = "1,900~2,400자";
-const INITIAL_SECTION_SYMBOLS = ["業", "柱", "情", "家", "財", "職", "心", "前", "試", "緣", "年", "策", "儀", "禁", "句", "箋"];
+const PREMIUM_CHAPTER_TARGET_LENGTH = "2,100~2,400자";
+const INITIAL_SECTION_SYMBOLS = ["業", "源", "流", "課", "緣", "情", "財", "職", "體", "才", "轉", "策", "總", "句", "箋"];
+
+// 프롬프트에 싣는 계산 근거 총량. 구조가 바뀌어도 총량은 기존(14,000자)을 유지한다 —
+// 이미 운영에서 검증된 안전대이기 때문이다. 달라지는 것은 **배분 방식**이다.
+const LENS_DIGEST_TOTAL_CHARS = 14000;
+// 주도 렌즈에 몰아준다. 배경 렌즈는 한 줄 요약 수준만 남아 그 렌즈로는 말할 수 없게 된다 —
+// 이것이 "같은 결론을 표현만 바꿔 반복"을 막는 유일한 실효 장치다.
+const LENS_WEIGHT = Object.freeze({ lead: 3.2, support: 1.4, background: 0.35 });
+
+// 영역별 에너지 강도를 산출하는 장. 그 영역을 실제로 분석한 장이 자기 근거 안에서 판정한다.
+// (기여도·근거와 달리 이것은 해석 판단이라 서버가 결정론적으로 낼 수 없다.)
+const ENERGY_DOMAIN_LABELS = Object.freeze({
+  relationship: "관계",
+  love: "사랑",
+  money: "돈",
+  career: "직업",
+  health: "건강",
+});
+
+/**
+ * 15장 정의 — 사용자 12구조 + 종합 결론 + 핵심 문장 + 최종 편지.
+ *
+ * leadLens   그 장의 시작과 끝을 맡는 렌즈. "cross"는 다섯 렌즈를 엮는 장, "none"은
+ *            특정 렌즈에 매이지 않는 장(핵심 문장·편지).
+ * notCovered 다른 장이 다루므로 여기서 쓰지 말 것. 오염이 심한 쌍에만 손으로 박는다
+ *            (5↔6 인간관계/사랑, 7↔8 돈/직업, 2↔4 근원/과제, 3↔11 현재흐름/전환점,
+ *             12↔13 전략/결론). 나머지는 buildCoveredHint 가 자동 생성한다.
+ * evidenceKeys "왜 이런 결론인가" 펼치기에 서버가 직접 인용할 계산값 경로.
+ * relay      렌즈가 서로를 이어받는 순서. 같은 결론을 반복하는 대신 확장하게 만든다.
+ */
 const PREMIUM_CHAPTERS = Object.freeze([
-  { id: "chapter-01", order: 1, symbol: "業", title: "운명의 업 총론", minLength: 1500, required: ["타고난 성향과 선택 패턴(일간·오행 근거로 가장 먼저 전반적으로 짚어 신뢰를 세운다)", "반복해서 마주치는 핵심 과제", "비슷한 상황이 반복되는 이유", "이번 생에서 풀어야 할 주제"] },
-  { id: "chapter-02", order: 2, symbol: "柱", title: "사주/명리 기반 업의 구조", minLength: 1500, required: ["일간", "월지", "십성", "오행 균형", "강약", "용신/기신 흐름", "가능성 중심 표현"] },
-  { id: "chapter-03", order: 3, symbol: "情", title: "관계의 업", minLength: 1500, required: ["연애", "이별", "재회", "결혼", "끌리는 사람의 유형", "상처받는 방식", "좋은 인연의 기준"] },
-  { id: "chapter-04", order: 4, symbol: "家", title: "가족과 원가족의 업", minLength: 1500, required: ["부모와 형제", "가족 분위기", "인정 욕구", "책임감", "죄책감", "감정적 독립"] },
-  { id: "chapter-05", order: 5, symbol: "財", title: "돈과 생존의 업", minLength: 1500, required: ["돈을 버는 방식", "돈이 새는 패턴", "불안 때문에 하는 선택", "손실 구조", "재물운을 살리는 행동 지침"] },
-  { id: "chapter-06", order: 6, symbol: "職", title: "직업과 사명의 업", minLength: 1500, required: ["잘 맞는 일", "직장/사업 문제", "성공을 위해 버릴 태도", "타고난 재능", "장기 전문성"] },
-  { id: "chapter-07", order: 7, symbol: "心", title: "마음의 업과 자기파괴 패턴", minLength: 1500, required: ["불안", "회피", "과몰입", "인정 욕구", "분노", "무기력", "회복 루틴"] },
-  { id: "chapter-08", order: 8, symbol: "前", title: "전생적 상징 해석", minLength: 1500, required: ["상징적 서사", "무의식의 archetype", "왕", "수행자", "상인", "전사", "예술가", "방랑자", "치유자"] },
-  { id: "chapter-09", order: 9, symbol: "試", title: "이번 생에서 반복되는 시험", minLength: 1500, required: ["선택의 갈림길", "같은 실수의 상황", "운이 막히는 신호", "운이 열리는 신호", "선택 기준"] },
-  { id: "chapter-10", order: 10, symbol: "緣", title: "인연의 빚과 갚아야 할 감정", minLength: 1500, required: ["매달리는 이유", "밀어내는 이유", "미련과 집착", "정리할 때", "기다릴 때", "감정의 빚 정리"] },
-  { id: "chapter-11", order: 11, symbol: "年", title: "앞으로 1년의 업 해소 흐름", minLength: 1500, required: ["12개월 흐름", "분기별 주의점", "관계", "일", "돈", "건강한 루틴", "전략적 표현"] },
-  { id: "chapter-12", order: 12, symbol: "策", title: "3년 장기 운명 전략", minLength: 1500, required: ["1년 차 정리", "2년 차 재구성", "3년 차 확장", "실제 행동"] },
-  { id: "chapter-13", order: 13, symbol: "儀", title: "업을 풀기 위한 실천 의식", minLength: 1500, required: ["글쓰기", "정리", "사과", "거리두기", "감사 기록", "매일 5분", "매주 1회", "매월 1회"] },
-  { id: "chapter-14", order: 14, symbol: "禁", title: "피해야 할 선택과 사람", minLength: 1500, required: ["불운을 키우는 선택", "피해야 할 관계 유형", "일의 방식", "돈 습관", "약해질 때 하지 말아야 할 행동"] },
-  { id: "chapter-15", order: 15, symbol: "句", title: "운명을 바꾸는 핵심 문장", minLength: 900, required: ["사용자가 기억할 문장 10개", "상담 맥락에 맞춘 문장", "흔한 자기계발 문구 금지"] },
-  { id: "chapter-16", order: 16, symbol: "箋", title: "최종 편지", minLength: 1500, required: ["따뜻한 편지", "현실적 결심", "감정적 만족감", "여운 있는 마지막 문장"] },
-]);
-const GENERATION_STAGES = Object.freeze([
-  "운명의 실타래를 펼치는 중",
-  "반복된 인생 패턴을 읽는 중",
-  "관계와 감정의 업을 해석하는 중",
-  "돈과 직업의 흐름을 정리하는 중",
-  "앞으로의 해소 전략을 작성하는 중",
-  "최종 편지를 봉인하는 중",
+  {
+    id: "chapter-01", order: 1, symbol: "業", title: "운명의 핵심 주제",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "cross", supportLens: ["saju", "ziwei", "western", "vedic", "sukuyo"],
+    required: [
+      "이번 삶 전체를 관통하는 운명의 주제를 한 문장으로 먼저 제시",
+      "그 한 문장이 왜 성립하는지를 서로 다른 관점이 어떻게 같은 곳을 가리키는지로 설명",
+      "이 주제가 일상에서 반복적으로 나타나는 장면",
+    ],
+    notCovered: "운명이 형성된 원인의 상세(2장 담당), 지금이 어느 시기인지(3장 담당), 구체적 행동 목록(12장 담당)",
+    evidenceKeys: ["synthesis.convergence", "saju.dayMaster", "ziwei.lifePalace", "vedic.nakshatra", "sukuyo.archetypeTitle"],
+    relay: "다섯 관점이 각각 어디를 가리키는지 한 번씩만 짚고, 그것들이 겹치는 한 점을 이번 삶의 주제로 세운다. 같은 말을 다섯 번 하지 않는다.",
+  },
+  {
+    id: "chapter-02", order: 2, symbol: "源", title: "운명의 근원",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "saju", supportLens: ["ziwei", "vedic"],
+    required: [
+      "타고난 기질과 결정 구조가 어떻게 만들어졌는지(일간·오행 균형·강약 근거)",
+      "그 기질이 만들어 내는 반복 선택의 모양",
+      "이 구조가 삶의 어느 무대에서 펼쳐지도록 짜였는지",
+      "이 생이 시작될 때 이미 정해진 성장 방향",
+    ],
+    notCovered: "이번 생에서 풀어야 할 과제의 내용(4장 담당), 현재 시기 판정(3장 담당)",
+    evidenceKeys: ["saju.dayMaster", "saju.pillars", "saju.fiveElements", "saju.strength", "saju.seasonalBalance", "ziwei.lifePalace", "vedic.lagna", "vedic.nakshatra"],
+    relay: "사주가 기질과 결정 구조의 뿌리를 세우면, 자미두수가 그 구조가 놓인 무대를 지정하고, 베다가 이 생이 애초에 어디로 향하도록 짜였는지로 닫는다.",
+  },
+  {
+    id: "chapter-03", order: 3, symbol: "流", title: "현재 삶의 흐름",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "ziwei", supportLens: ["saju", "vedic"],
+    required: [
+      "성장기·전환기·정체기·확장기·수확기 중 지금이 어디인지 하나로 판정하고 그 근거를 계산값으로 제시",
+      "그 시기가 언제 시작해 언제까지 이어지는지(계산된 구간 안에서만)",
+      "이 시기에 힘이 실리는 영역과 힘이 빠지는 영역",
+      "이 시기를 잘못 쓰면 남는 것과 잘 쓰면 남는 것",
+    ],
+    notCovered: "앞으로의 전환점 연도 나열(11장 담당), 직업 선택의 방향(8장 담당), 실행 행동 목록(12장 담당)",
+    evidenceKeys: ["ziwei.majorLuckActive", "ziwei.yearlyLuck", "saju.majorLuckActive", "saju.yearlyLuck", "vedic.dashaCurrent"],
+    relay: "자미두수가 지금이 인생의 어느 구간인지 무대를 지정하면, 사주가 그 구간에 실제로 어떤 기운이 도는지 현실 감각으로 받고, 베다가 그 구간이 영혼의 성장에서 무엇을 요구하는지로 닫는다.",
+  },
+  {
+    id: "chapter-04", order: 4, symbol: "課", title: "업의 핵심 과제",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "vedic", supportLens: ["saju", "western"],
+    required: [
+      "이번 생에서 반복되는 패턴의 정체",
+      "배워야 하는 것과 놓아야 하는 집착",
+      "익숙해서 자꾸 돌아가는 자리와, 낯설어서 피하는 성장 방향",
+      "이 과제가 현실에서 어떤 신호로 나타나는지",
+    ],
+    notCovered: "기질이 만들어진 경위(2장 담당), 관계에서의 구체적 패턴(5장 담당), 마음의 회복 루틴(9장 담당)",
+    evidenceKeys: ["vedic.rahuKetu", "vedic.nakshatra", "vedic.dashaCurrent", "saju.unfavorableGod", "saju.natalInteractions", "western.corePlanets"],
+    relay: "베다가 이번 생의 과제를 영혼의 언어로 지정하면, 사주가 그 과제가 현실에서 어떤 선택으로 나타나는지 받고, 서양 점성술이 그 선택을 붙드는 무의식의 이유로 닫는다.",
+  },
+  {
+    id: "chapter-05", order: 5, symbol: "緣", title: "인간관계의 업",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "sukuyo", supportLens: ["ziwei", "western"],
+    energyDomain: "relationship",
+    required: [
+      "가족·친구·직장·사회에서 각각 반복되는 관계 패턴",
+      "어떤 유형의 사람 앞에서 내가 어떤 자리에 서게 되는지",
+      "관계에서 소모되는 지점과 채워지는 지점",
+      "건강한 거리 조절의 기준",
+    ],
+    notCovered: "연애와 이별의 반복(6장 담당 — 여기서는 연인 관계를 다루지 않는다), 원가족이 만든 기질(2장 담당), 협업으로 일하는 방식(8장 담당)",
+    evidenceKeys: ["sukuyo.relationAxis", "sukuyo.shadows", "sukuyo.archetypeTitle", "ziwei.keyPalaces", "western.houseCusps"],
+    relay: "숙요가 사람과 사람 사이에서 내가 서는 자리를 지정하면, 자미두수가 그 자리가 어느 관계 영역에서 특히 강하게 작동하는지 받고, 서양 점성술이 그때 올라오는 감정의 이유로 닫는다.",
+  },
+  {
+    id: "chapter-06", order: 6, symbol: "情", title: "사랑의 업",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "western", supportLens: ["sukuyo", "ziwei"],
+    energyDomain: "love",
+    required: [
+      "왜 비슷한 유형의 사람에게 끌리는지",
+      "왜 이별이 비슷한 방식으로 반복되는지",
+      "끌림이 시작되는 순간 무의식이 무엇을 찾고 있는지",
+      "이 반복을 끊는 기준",
+    ],
+    notCovered: "연인이 아닌 관계 전반(5장 담당), 결혼 시기 예측, 가족 관계",
+    evidenceKeys: ["western.corePlanets", "western.moon", "western.tightAspects", "sukuyo.relationAxis", "ziwei.keyPalaces"],
+    relay: "서양 점성술이 끌림의 무의식적 이유를 밝히면, 숙요가 그래서 실제로 어떤 사람과 어떤 자리로 만나게 되는지 받고, 자미두수가 그 인연이 삶의 어느 국면에서 강해지는지로 닫는다.",
+  },
+  {
+    id: "chapter-07", order: 7, symbol: "財", title: "돈의 업",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "saju", supportLens: ["ziwei", "western"],
+    energyDomain: "money",
+    required: [
+      "돈과 맺고 있는 관계 자체(불안·통제·자유 중 무엇에 묶여 있는지)",
+      "돈이 새는 패턴과 모이는 방식",
+      "돈을 잘 버는 환경의 조건",
+      "투자 성향과 소비 습관에서 반복되는 결정",
+    ],
+    notCovered: "어떤 일을 해야 하는지·어떻게 일할 때 운이 열리는지(8장 담당 — 여기서는 직업을 다루지 않는다)",
+    evidenceKeys: ["saju.tenGods", "saju.usefulGod", "saju.strength", "ziwei.keyPalaces", "ziwei.transformationPlacement", "western.houseCusps"],
+    relay: "사주가 돈을 다루는 기질과 손실 구조를 현실 감각으로 짚으면, 자미두수가 재물이 어느 영역을 통해 들어오고 나가는지 받고, 서양 점성술이 지출 직전에 올라오는 감정으로 닫는다.",
+  },
+  {
+    id: "chapter-08", order: 8, symbol: "職", title: "직업의 업",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "ziwei", supportLens: ["saju", "vedic"],
+    energyDomain: "career",
+    required: [
+      "어떤 방식으로 일할 때 운이 열리는지(직업명 추천이 아니라 일하는 방식)",
+      "혼자 할 때와 함께 할 때의 차이",
+      "성과가 나는 구조와 소모되는 구조",
+      "장기적으로 쌓아야 할 전문성의 방향",
+    ],
+    notCovered: "수입과 재물의 흐름(7장 담당), 아직 모르는 강점의 발견(10장 담당)",
+    evidenceKeys: ["ziwei.keyPalaces", "ziwei.sanFangSiZheng", "ziwei.transformationPlacement", "saju.tenGodsByPillar", "vedic.houseLords"],
+    relay: "자미두수가 사회에서 맡게 되는 역할과 무대를 지정하면, 사주가 그 무대에서 실제로 잘 도는 일하는 방식을 받고, 베다가 그 일이 이번 생의 소명과 어떻게 이어지는지로 닫는다.",
+  },
+  {
+    id: "chapter-09", order: 9, symbol: "體", title: "건강 에너지",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "saju", supportLens: ["ziwei", "western"],
+    energyDomain: "health",
+    required: [
+      "에너지가 소모되는 방식과 회복되는 방식",
+      "스트레스가 몸의 어느 방향으로 먼저 나타나는지",
+      "잘 맞는 생활 리듬과 무너지는 리듬",
+      "무리하고 있다는 것을 알아차리는 신호",
+    ],
+    notCovered: "질병 예측이나 진단, 마음의 과제 자체(4장 담당)",
+    evidenceKeys: ["saju.fiveElements", "saju.seasonalBalance", "saju.strength", "ziwei.keyPalaces", "western.corePlanets"],
+    relay: "사주가 기운의 치우침에서 소모와 회복의 축을 짚으면, 자미두수가 그 부담이 삶의 어느 국면에서 커지는지 받고, 서양 점성술이 몸보다 먼저 지치는 감정의 자리로 닫는다.",
+  },
+  {
+    id: "chapter-10", order: 10, symbol: "才", title: "숨겨진 재능",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "western", supportLens: ["ziwei", "saju"],
+    required: [
+      "사용자 스스로도 강점으로 세지 않는 능력",
+      "그 능력이 지금 어디에 묻혀 있는지",
+      "그것이 밖으로 드러날 때의 모양",
+      "그 재능을 쓰기 시작하는 첫 조건",
+    ],
+    notCovered: "일하는 방식(8장 담당), 이미 자각하고 있는 강점의 반복",
+    evidenceKeys: ["western.mc", "western.chartRuler", "western.elementBalance", "western.modalityBalance", "ziwei.transformationPlacement", "saju.tenGods"],
+    relay: "서양 점성술이 아직 이름 붙이지 못한 성향을 재능으로 번역하면, 자미두수가 그것이 어느 영역에서 빛나는지 받고, 사주가 그것을 현실 능력으로 바꾸는 조건으로 닫는다.",
+  },
+  {
+    id: "chapter-11", order: 11, symbol: "轉", title: "운명의 전환점",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "ziwei", supportLens: ["saju", "vedic"],
+    required: [
+      "삶에서 중요한 변화가 일어나는 방식(갑자기인지 서서히인지)",
+      "계산된 구간을 근거로 한 다음 전환 시기",
+      "기회가 왔다는 것을 알아보는 신호",
+      "갈림길에서의 선택 기준",
+    ],
+    notCovered: "지금이 어느 시기인지의 판정(3장 담당 — 여기서는 앞으로 올 변화만 다룬다), 실행 행동 목록(12장 담당)",
+    evidenceKeys: ["ziwei.majorLuckTimeline", "saju.majorLuckTimeline", "vedic.dashaNext", "synthesis.convergence"],
+    relay: "자미두수가 무대가 바뀌는 지점을 표시하면, 사주가 그 지점에서 실제로 무엇이 달라지는지 받고, 베다가 그 변화가 요구하는 내려놓음으로 닫는다.",
+  },
+  {
+    id: "chapter-12", order: 12, symbol: "策", title: "앞으로의 성장 전략",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "cross", supportLens: ["saju", "ziwei", "western", "vedic", "sukuyo"],
+    required: [
+      "지금 바로 실행할 수 있는 구체적 행동 5~10개(각각 왜 그 행동인지 근거 한 줄 포함)",
+      "당장 멈춰야 할 것과 시작해야 할 것의 구분",
+      "관계·일·돈·마음 각 영역에서 하나씩",
+      "이 전략이 실패하는 가장 흔한 방식",
+    ],
+    notCovered: "다섯 관점의 통합 결론 자체(13장 담당), 기억할 문장(14장 담당)",
+    evidenceKeys: ["synthesis.convergence", "synthesis.divergence", "saju.usefulGod", "ziwei.majorLuckActive", "vedic.dashaCurrent"],
+    relay: "앞 장들에서 이미 밝혀진 것만 재료로 쓴다. 새 해석을 꺼내지 말고, 밝혀진 것을 실행 가능한 행동으로 옮기는 데만 집중한다.",
+  },
+  {
+    id: "chapter-13", order: 13, symbol: "總", title: "다섯 관점의 종합 결론",
+    minLength: 1800, targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+    leadLens: "cross", supportLens: ["saju", "ziwei", "western", "vedic", "sukuyo"],
+    required: [
+      "각 관점이 무엇을 말했는지 한 줄씩(반복이 아니라 요약)",
+      "다섯이 공통으로 가리키는 하나의 결론",
+      "서로 어긋나는 지점과 그 어긋남이 뜻하는 것",
+      "이 결론을 받아들일 때 삶에서 달라지는 것",
+    ],
+    notCovered: "새로운 해석의 도입, 행동 목록의 재나열(12장 담당)",
+    evidenceKeys: ["synthesis.convergence", "synthesis.divergence", "synthesis.patternSummaries", "synthesis.lensAvailability"],
+    relay: "각 관점이 앞서 맡았던 역할을 한 문장씩만 회수하고, 그것들이 겹치는 한 점을 결론으로 세운다. 어긋나는 지점도 숨기지 않고 그것이 무엇을 뜻하는지 밝힌다.",
+  },
+  {
+    id: "chapter-14", order: 14, symbol: "句", title: "운명을 바꾸는 핵심 문장",
+    minLength: 800, targetLength: "900~1,200자",
+    leadLens: "none", supportLens: [],
+    required: [
+      "이 상담의 맥락에서만 나올 수 있는 문장 10개",
+      "각 문장은 한 줄로 완결되고 바로 기억할 수 있어야 함",
+      "흔한 자기계발 문구 금지",
+    ],
+    notCovered: "설명이나 해석의 반복",
+    evidenceKeys: [],
+    relay: "앞 장들의 결론을 문장으로 압축한다. 새 근거를 꺼내지 않는다.",
+  },
+  {
+    id: "chapter-15", order: 15, symbol: "箋", title: "최종 편지",
+    minLength: 1500, targetLength: "1,700~2,000자",
+    leadLens: "none", supportLens: [],
+    required: [
+      "상담가가 사용자에게 직접 건네는 따뜻한 편지",
+      "현실적인 결심 하나",
+      "여운이 남는 마지막 문장",
+    ],
+    notCovered: "앞 장 내용의 요약 나열, 추가 질문 유도",
+    evidenceKeys: [],
+    relay: "설명을 멈추고 사람의 목소리로 말한다.",
+  },
 ]);
 
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|JSON|rawProviderDebug|providerReason|debug|model|token|토큰|모델명|이 기능은|해당 기능|본 기능|기능|이 결과는|결과는|상담 결과|생성 결과|분석 결과|결과물|출력|서버 계산 데이터|분석 데이터/i;
+const FINAL_LETTER_CHAPTER_ID = PREMIUM_CHAPTERS[PREMIUM_CHAPTERS.length - 1].id;
+const KEY_SENTENCES_CHAPTER_ID = "chapter-14";
+const SYNTHESIS_CHAPTER_ID = "chapter-13";
+
+/**
+ * 렌즈별 "리포트 내 비중" 원점수 — lensContribution 의 usageWeight 축.
+ * 장 정의만으로 결정되므로 사용자 입력과 무관하게 재현된다(LLM 관여 0).
+ */
+const LENS_USAGE_WEIGHTS = Object.freeze(PREMIUM_CHAPTERS.reduce((acc, definition) => {
+  if (definition.leadLens === "cross") {
+    for (const id of definition.supportLens) acc[id] = (acc[id] || 0) + 0.6;
+  } else if (definition.leadLens && definition.leadLens !== "none") {
+    acc[definition.leadLens] = (acc[definition.leadLens] || 0) + 2;
+    for (const id of definition.supportLens) acc[id] = (acc[id] || 0) + 1;
+  }
+  return acc;
+}, {}));
+
+// 진행 화면의 별자리 6노드와 1:1로 대응한다(사주 → 자미두수 → 숙요 → 서양 → 베다 → 종합).
+// 클라이언트는 generationProgress.stageIndex 로 어느 노드를 밝힐지 정한다.
+const GENERATION_STAGES = Object.freeze([
+  "사주의 기둥을 세우는 중",
+  "자미두수 12궁을 펼치는 중",
+  "숙요 27수의 인연을 잇는 중",
+  "별자리의 심리를 읽는 중",
+  "베다의 업을 헤아리는 중",
+  "다섯 관점을 하나로 모으는 중",
+]);
+
+// 상담 본문에 새어 나오면 안 되는 것은 (1) 내부 작업 용어와 (2) AI 자기지칭 두 종류뿐이다.
+// 구 패턴의 `시스템`·`기능`·단독 `\bAI\b`·`출력`·`결과는`은 "면역 시스템"·"소화 기능"·
+// "신장 기능" 같은 정상 한국어를 오탐했다(new-year-ai.js:108-114 의 사후 분석과 동일한 사고).
+// 이 라우트에서는 오탐의 대가가 더 크다 — promptLeakDetected → quality.ok=false →
+// reinforcePremiumReport 2회 실패 → handleGenerateBatch throw → 결제 후 무결과 503.
+// 게다가 cleanForbiddenResult 가 배달 본문을 "면역 상담 흐름"으로 훼손한다.
+// 「건강 에너지」장(chapter-09)이 신설되면서 오탐은 가능성이 아니라 확정이 됐다.
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템\s*(?:메시지|지시)|rawProviderDebug|providerReason|maxOutputTokens|(?:AI|인공지능)\s*(?:가|이|는|은|를|을|로|로서|에\s*의해)?\s*(?:생성|작성|제작|답변|응답|만들)|(?:저는|제가|나는)\s*(?:AI|인공지능|언어\s*모델)|서버 계산 데이터/i;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -666,14 +937,43 @@ function buildBillingGatePayload(pricing, idempotencyKey) {
   };
 }
 
+// 렌즈 헌법 — 각 렌즈의 "담당" 뒤에 반드시 **"이 렌즈로 말하지 않는 것"** 을 붙인다.
+// 담당만 쓰면 LLM 은 모든 렌즈로 모든 것을 말한다. 금지가 있어야 분업이 성립한다.
+// (다만 이 텍스트는 보조 장치다. 실효 장치는 buildLensDigest 의 데이터 차등 공급이다.)
+const LENS_CONSTITUTION = [
+  "이 상담은 하나의 운명을 다섯 개의 렌즈로 보는 구조입니다. 다섯 개의 운세를 각각 보는 것이 아닙니다.",
+  "",
+  "사주명리 — 현실, 기질, 오행, 행동과 결정의 구조를 맡습니다.",
+  "  사주로 심리의 무의식적 뿌리를 말하지 않습니다. 그것은 서양 점성술의 몫입니다.",
+  "  사주로 사람과의 인연 유형을 말하지 않습니다. 그것은 숙요의 몫입니다.",
+  "",
+  "자미두수 — 인생의 큰 흐름, 사회적 역할, 명궁과 12궁의 영역 배치를 맡습니다.",
+  "  자미두수로 감정의 이유를 설명하지 않습니다. 어느 영역에서 벌어지는지만 지정합니다.",
+  "  자미두수로 영혼의 과제를 말하지 않습니다. 그것은 베다의 몫입니다.",
+  "",
+  "서양 점성술 — 심리, 감정, 무의식, 대인관계의 내면을 맡습니다.",
+  "  서양 점성술로 시기와 연도를 말하지 않습니다. 시기는 자미두수와 베다의 몫입니다.",
+  "  서양 점성술로 현실 처방을 내리지 않습니다. 처방은 사주의 몫입니다.",
+  "",
+  "베다 점성술 — 영혼, 업, 다르마, 성장의 방향을 맡습니다.",
+  "  베다로 성격을 설명하지 않습니다. 이번 생이 요구하는 방향만 말합니다.",
+  "  베다로 구체적 행동 지침을 내리지 않습니다.",
+  "",
+  "숙요 27수 — 인연, 관계, 인간관계 패턴을 맡습니다.",
+  "  숙요로 개인의 기질을 설명하지 않습니다. 사람과 사람 사이에서만 말합니다.",
+  "  숙요로 재물이나 직업을 말하지 않습니다.",
+  "",
+  "다섯 렌즈가 같은 결론에 이르더라도, 각 렌즈는 그 결론의 서로 다른 면만 말합니다.",
+  "앞 렌즈가 이미 말한 것을 다음 렌즈가 다른 표현으로 되풀이하면 그 문장은 실패입니다.",
+  "다음 렌즈는 앞 렌즈가 답할 수 없었던 질문에만 답합니다.",
+  "계산 근거로 주어지지 않은 값은 어떤 경우에도 추정하거나 지어내지 않습니다. 없으면 없는 대로 다른 관점으로 답합니다.",
+].join("\n");
+
 function buildSystemPrompt(mode = "initial") {
   const shared = [
     "당신은 오래 상담해 온 운명의 업 상담가입니다.",
-    "명리학자의 현실 감각, 서양 점성술사의 상징 해석, 베다 점성술사의 카르마 통찰을 한 목소리로 엮습니다.",
-    "사주명리학은 일간의 기질, 오행 구조, 대운 흐름, 육친 관계, 강약 오행에서 드러나는 현실 처방을 맡습니다.",
-    "서양 점성술은 태양의 욕구, 달의 감정 반응, 상승궁의 대면 방식, 카이런의 상처와 치유 서사를 맡습니다.",
-    "베다 점성술은 라시와 나크샤트라의 본질, 다샤 행성 주기, 라후-케투 축의 카르마 과제, 다르마와 아르타 하우스의 소명을 맡습니다.",
-    "세 체계의 이름을 설명표처럼 나열하지 말고, 필요한 근거가 상담 문장 안에서 자연스럽게 드러나게 합니다.",
+    LENS_CONSTITUTION,
+    "다섯 렌즈의 이름을 설명표처럼 나열하지 말고, 필요한 근거가 상담 문장 안에서 자연스럽게 드러나게 합니다.",
     "",
     "언어와 문체:",
     "한국어 격식체로 씁니다.",
@@ -682,7 +982,8 @@ function buildSystemPrompt(mode = "initial") {
     "분량을 채우기 위해 같은 표현, 같은 조언, 같은 상징을 반복하지 않고, 부족한 분량은 계산 근거에서 새 관점과 구체적 처방을 꺼내 채웁니다.",
     "‘업’은 벌이나 저주가 아니라 반복되는 선택, 감정 습관, 관계 패턴, 성장 과제로 해석합니다.",
     "불안감이나 죄책감을 자극하지 않고, 운명 확정 표현을 사실처럼 단정하지 않습니다.",
-    "PDF, 챕터, chapter, job, progress, 프롬프트, 시스템, AI, 기능, 결과, 분석 결과, 출력, 데이터 같은 작업 표현을 노출하지 않습니다.",
+    "PDF, 챕터, chapter, job, progress, 프롬프트, 시스템 메시지 같은 작업 표현을 노출하지 않습니다.",
+    "자신을 AI나 언어 모델로 지칭하지 않고, 상담문이 생성된 결과라는 사실도 언급하지 않습니다.",
     "문단 사이는 빈 줄로 구분하고, 핵심 문구만 **굵게** 표시합니다. 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
   ];
 
@@ -691,10 +992,10 @@ function buildSystemPrompt(mode = "initial") {
       ...shared,
       "",
       "추가 질문 응답 방식:",
-      "처음 상담의 16개 장 제목을 반복하지 않습니다.",
+      `처음 상담의 ${PREMIUM_CHAPTERS.length}개 장 제목을 반복하지 않습니다.`,
       "첫 문장부터 사용자의 새 질문에 직접 답합니다.",
       "이전 상담에서 이미 말한 내용을 길게 되풀이하지 말고, 새 질문에 필요한 흐름만 다시 짚습니다.",
-      "사주, 서양 점성술, 베다 점성술의 근거는 필요한 만큼만 섞어 2~4개의 완성된 산문 단락으로 답합니다.",
+      "다섯 렌즈의 근거는 필요한 만큼만 섞어 2~4개의 완성된 산문 단락으로 답합니다.",
       "단순 위로가 아니라 지금 사용자가 취할 수 있는 말, 태도, 선택을 구체적으로 비춥니다.",
       "불릿 포인트와 번호 나열을 사용하지 않습니다.",
       "전체 분량은 900~1,600자로 맞춥니다.",
@@ -706,10 +1007,9 @@ function buildSystemPrompt(mode = "initial") {
     ...shared,
     "",
     "초기 상담 구조:",
-    "최종 상담은 16개 장으로 완성합니다. 한 번에 전부 쓰지 않고 요청받은 장만 깊게 씁니다.",
+    `최종 상담은 ${PREMIUM_CHAPTERS.length}개 장으로 완성합니다. 한 번에 전부 쓰지 않고 요청받은 한 장만 깊게 씁니다.`,
     `각 장은 목표 ${PREMIUM_CHAPTER_TARGET_LENGTH}의 완성된 산문이며, 각 장 마지막에는 “이번 장의 핵심” 3줄을 둡니다.`,
-    "장마다 감정적 해석과 현실적 전략을 함께 담고, 관계·직업·돈·가족·전생적 상징·1년 흐름·3년 전략이 서로 이어지게 씁니다.",
-    "전생은 사실 단정이 아니라 무의식의 상징적 서사로만 다룹니다.",
+    "장마다 감정적 해석과 현실적 전략을 함께 담되, 그 장에 지정된 주도 렌즈의 언어로 시작하고 닫습니다.",
     "질병, 사망, 사고, 파산, 이혼, 투자 손실 같은 일을 확정 예언하지 않습니다.",
     "법률·의료·투자 판단을 대신하지 않습니다.",
     "내부 작업 표현, 결제 표현, 모델명, 토큰, 원시 응답, 디버그 사유를 노출하지 않습니다.",
@@ -722,6 +1022,52 @@ function buildSystemPrompt(mode = "initial") {
     "마지막에 추가 질문을 유도하지 않습니다.",
     `최종 합산 분량은 실제 사용자가 읽는 plain text 기준 ${INITIAL_CONSULTATION_MIN_LENGTH.toLocaleString("ko-KR")}자 이상이어야 합니다.`,
   ].join("\n");
+}
+
+// 프롬프트에 실을 계산 근거 JSON 의 상한. 16장 배치가 4회 반복해 같은 blob 을 다시 보내므로
+// 여기서 새는 양이 그대로 4배가 된다.
+const INTEGRATED_RESULT_PROMPT_MAX_CHARS = 14000;
+
+function longestArrayHolder(node, best = { holder: null, key: "", size: 0 }) {
+  if (!node || typeof node !== "object") return best;
+  for (const [key, value] of Object.entries(node)) {
+    if (Array.isArray(value) && value.length > 3) {
+      const size = JSON.stringify(value).length;
+      if (size > best.size) best = { holder: node, key, size };
+    }
+    if (value && typeof value === "object") best = longestArrayHolder(value, best);
+  }
+  return best;
+}
+
+/**
+ * 계산 근거를 프롬프트용 JSON 문자열로 만든다.
+ *
+ * 🔴 직렬화된 문자열을 slice 하면 안 된다 — 문법이 깨진 JSON 이 모델에 가서 근거를 통째로 잃는다.
+ * 예산을 넘으면 가장 긴 배열부터 절반씩 줄여 **항상 유효한 JSON** 을 유지한다.
+ * (dasha 타임라인·aspects 목록이 대체로 가장 길고, 상담 본문이 전부를 인용하지도 않는다.)
+ */
+function serializeIntegratedResultForPrompt(integratedResult, maxChars = INTEGRATED_RESULT_PROMPT_MAX_CHARS) {
+  const source = integratedResult || {};
+  let json = JSON.stringify(source);
+  if (!maxChars || json.length <= maxChars) return json;
+
+  const shrunk = JSON.parse(json);
+  let trimmed = 0;
+  for (let i = 0; i < 24; i += 1) {
+    const { holder, key } = longestArrayHolder(shrunk);
+    if (!holder) break;
+    holder[key] = holder[key].slice(0, Math.max(3, Math.floor(holder[key].length / 2)));
+    trimmed += 1;
+    json = JSON.stringify(shrunk);
+    if (json.length <= maxChars) break;
+  }
+  console.info("[KarmaDestinyAI] integratedResult trimmed for prompt", {
+    trimmedArrays: trimmed,
+    chars: json.length,
+    maxChars,
+  });
+  return json;
 }
 
 function buildFirstPrompt(input, integratedResult) {
@@ -742,10 +1088,10 @@ function buildFirstPrompt(input, integratedResult) {
     "[상담 근거]",
     JSON.stringify(integratedResult),
     "",
-    "위 계산 데이터를 바탕으로 16개 장을 순서대로 작성하고, 전체 상담문은 실제 사용자가 읽는 plain text 기준 30,000자 이상으로 완성하세요.",
+    `위 계산 데이터를 바탕으로 ${PREMIUM_CHAPTERS.length}개 장을 순서대로 작성하고, 전체 상담문은 실제 사용자가 읽는 plain text 기준 ${INITIAL_CONSULTATION_MIN_LENGTH.toLocaleString("ko-KR")}자 이상으로 완성하세요.`,
     "각 장 제목은 지정된 순서와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
     "사용자의 선택 주제와 질문은 전체 서사의 중심 감정으로 녹이고, 별도 문답 형식으로 나누지 마세요.",
-    "각 파트에는 사주명리학, 서양 점성술, 베다 점성술의 근거가 설명표처럼 분리되지 않고 자연스럽게 스며들어야 합니다.",
+    "각 파트에는 다섯 렌즈의 근거가 설명표처럼 분리되지 않고 자연스럽게 스며들어야 합니다.",
   ].join("\n");
 }
 
@@ -765,7 +1111,8 @@ function buildFollowUpPrompt(consultation, question) {
     `처음 상담 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
     "",
     "[상담 근거]",
-    JSON.stringify(consultation.integratedResult || {}),
+    // 후속 질문 프롬프트만 상한이 없어 이력과 함께 무제한으로 실렸다. 배치 경로와 같은 상한을 쓴다.
+    serializeIntegratedResultForPrompt(consultation.integratedResult),
     "",
     "[이전 대화]",
     history,
@@ -773,7 +1120,7 @@ function buildFollowUpPrompt(consultation, question) {
     "[새 질문]",
     question,
     "",
-    "16개 장을 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.",
+    `${PREMIUM_CHAPTERS.length}개 장을 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.`,
     "이전 상담 흐름을 이어받되 필요한 부분만 짚고, 업을 죄나 벌이 아닌 반복 패턴과 성장 과제로 풀어주세요.",
   ].join("\n");
 }
@@ -785,15 +1132,13 @@ function cleanForbiddenResult(text) {
     .replace(/\bchapter\b/gi, "상담 항목")
     .replace(/\bprogress\b/gi, "흐름")
     .replace(/\bjob\b/gi, "상담")
+    // "시스템 메시지"는 "프롬프트" 치환보다 먼저 걷어낸다(둘 다 걸리는 문구가 있다).
+    .replace(/시스템\s*(?:메시지|지시)/g, "상담 안내")
     .replace(/프롬프트/g, "상담 문장")
-    .replace(/시스템/g, "상담 흐름")
-    .replace(/\bAI\b/g, "상담")
-    .replace(/이 기능은|해당 기능|본 기능/g, "이 흐름은")
-    .replace(/기능/g, "흐름")
-    .replace(/분석 결과는|이 결과는|상담 결과는|생성 결과는|결과는/g, "상담 흐름은")
-    .replace(/분석 결과|상담 결과|생성 결과|결과물/g, "상담 흐름")
-    .replace(/출력/g, "상담")
-    .replace(/서버 계산 데이터|분석 데이터/g, "상담 근거");
+    // 자기지칭을 먼저 없애야 아래 "AI+생성" 치환이 남은 문장을 어색하게 만들지 않는다.
+    .replace(/(?:저는|제가|나는)\s*(?:AI|인공지능|언어\s*모델)/gi, "저는 상담자")
+    .replace(/(?:AI|인공지능)\s*(?:가|이|는|은|를|을|로|로서|에\s*의해)?\s*(생성|작성|제작|답변|응답|만들)/gi, "상담자가 $1")
+    .replace(/서버 계산 데이터/g, "상담 근거");
 }
 
 function normalizePlainText(text) {
@@ -888,7 +1233,125 @@ function detectGenericAdviceWarnings(text) {
     .filter((item) => item.count >= 3);
 }
 
-function normalizeChapter(rawChapter, definition) {
+// 렌즈별 전용 용어. 그 장의 주도/보조가 아닌 렌즈의 용어가 쏟아지면 분업이 무너진 것이다.
+const LENS_TERMS = Object.freeze({
+  saju: /일간|십성|용신|기신|희신|대운|세운|오행|비견|겁재|식신|상관|편재|정재|편관|정관|편인|정인|조후/g,
+  ziwei: /명궁|신궁|부부궁|재백궁|관록궁|천이궁|복덕궁|질액궁|노복궁|전택궁|화록|화권|화과|화기|삼방사정|자미|칠살|파군|탐랑/g,
+  western: /상승궁|어센던트|하우스|어스펙트|스퀘어|트라인|오포지션|카이런|노스노드|사우스노드|미드헤븐|스텔리움/g,
+  vedic: /라그나|나크샤트라|다샤|마하다샤|안타르|라후|케투|다르마|아트마카라카|나밤샤|파다/g,
+  sukuyo: /27수|이십칠수|본명숙|업태|영친|우쇠|안괴|성위|청룡|현무|백호|주작/g,
+});
+
+/**
+ * 렌즈 침범 탐지 — ⚠️ **경고 전용**.
+ *
+ * quality.ok 를 false 로 만들면 안 된다. "명궁"처럼 문맥상 겹칠 수 있는 어휘가 있어 오탐이
+ * 확실히 존재하고, 오탐이 하드 실패가 되면 handleGenerateBatch 의 throw 를 타고
+ * 결제 후 무결과 503 이 된다. 보강 대상 선정 입력과 로깅에만 쓴다.
+ */
+function detectLensRoleViolation(chapters, threshold = 3) {
+  return safeArray(chapters).flatMap((chapter) => {
+    const definition = PREMIUM_CHAPTERS.find((item) => item.id === chapter?.id);
+    if (!definition || definition.leadLens === "none" || definition.leadLens === "cross") return [];
+    const allowed = new Set([definition.leadLens, ...safeArray(definition.supportLens)]);
+    const content = clean(chapter?.content);
+    return LENS_IDS
+      .filter((id) => !allowed.has(id))
+      .map((id) => ({ chapterId: chapter.id, lens: id, count: (content.match(LENS_TERMS[id]) || []).length }))
+      .filter((row) => row.count >= threshold);
+  }).slice(0, 12);
+}
+
+function bigramSet(text) {
+  const normalized = normalizePlainText(text).replace(/[^가-힣a-zA-Z0-9]/g, "");
+  const grams = new Set();
+  for (let i = 0; i + 2 <= normalized.length; i += 1) grams.add(normalized.slice(i, i + 2));
+  return grams;
+}
+
+/**
+ * 교차장 결론 중복 탐지 — ⚠️ **경고 전용**(위와 같은 이유).
+ *
+ * detectRepeatedParagraphs 는 완전 일치만 잡아 "표현만 바꾼 반복"을 놓친다.
+ * summary + keyTakeaways 를 2-gram 자카드로 비교해 결론 자체가 겹치는 쌍을 찾는다.
+ */
+function detectCrossChapterConclusionOverlap(chapters, threshold = 0.45) {
+  const rows = safeArray(chapters)
+    .map((chapter) => ({
+      id: chapter?.id,
+      grams: bigramSet([clean(chapter?.summary), ...safeArray(chapter?.keyTakeaways)].join(" ")),
+    }))
+    .filter((row) => row.id && row.grams.size >= 20);
+  const overlaps = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    for (let j = i + 1; j < rows.length; j += 1) {
+      let shared = 0;
+      for (const gram of rows[i].grams) if (rows[j].grams.has(gram)) shared += 1;
+      const union = rows[i].grams.size + rows[j].grams.size - shared;
+      const similarity = union > 0 ? shared / union : 0;
+      if (similarity >= threshold) {
+        overlaps.push({ a: rows[i].id, b: rows[j].id, similarity: Number(similarity.toFixed(3)) });
+      }
+    }
+  }
+  return overlaps.sort((a, b) => b.similarity - a.similarity).slice(0, 8);
+}
+
+function getByPath(source, path) {
+  return clean(path).split(".").reduce((acc, key) => (acc === null || acc === undefined ? acc : acc[key]), source);
+}
+
+function formatEvidenceValue(value, maxLength = 240) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return clean(value, maxLength);
+  return clean(JSON.stringify(value), maxLength);
+}
+
+/**
+ * "왜 이런 결론이 나왔나요?" 펼치기에 들어갈 근거.
+ *
+ * 🔴 LLM 이 인용한 값을 받지 않고 **서버가 integratedResult 에서 직접 뽑는다.**
+ * 근거 펼치기는 사용자가 신뢰성을 검증하는 자리라, 여기에 환각값이 들어가면 신뢰 붕괴가
+ * 가장 큰 지점이다. 서버는 계산값을 100% 정확히 갖고 있으므로 경로 조회로 충분하고,
+ * 반환 JSON 을 키우지 않아 파싱 실패 위험도 늘지 않는다.
+ * 값이 없으면 만들지 않고 뺀다.
+ */
+function buildChapterEvidence(integratedResult, definition) {
+  const lenses = asObject(integratedResult?.lenses);
+  return safeArray(definition?.evidenceKeys).map((path) => {
+    const [lensId, ...rest] = clean(path).split(".");
+    const tail = rest.join(".");
+    const value = lensId === "synthesis"
+      ? getByPath(asObject(integratedResult?.synthesis), tail)
+      : getByPath(asObject(lenses[lensId]?.data), tail);
+    if (value === null || value === undefined) return null;
+    if (Array.isArray(value) && !value.length) return null;
+    const formatted = formatEvidenceValue(value);
+    if (!formatted) return null;
+    return {
+      lens: lensId,
+      lensLabel: lensId === "synthesis" ? "관점 교차" : (LENS_ROLES[lensId]?.label || lensId),
+      path,
+      value: formatted,
+      confidence: lensId === "synthesis" ? "full" : clean(lenses[lensId]?.confidence) || "full",
+      provisional: safeArray(lenses[lensId]?.provisionalFields).some((field) => tail === field || tail.startsWith(`${field}.`)),
+    };
+  }).filter(Boolean).slice(0, 8);
+}
+
+function normalizeEnergyScore(rawChapter, definition) {
+  if (!definition?.energyDomain) return null;
+  const value = Number(rawChapter?.energyScore?.value ?? rawChapter?.energyScore);
+  if (!Number.isFinite(value)) return null;
+  return {
+    domain: definition.energyDomain,
+    label: ENERGY_DOMAIN_LABELS[definition.energyDomain] || definition.energyDomain,
+    value: Math.max(0, Math.min(100, Math.round(value))),
+    basis: cleanForbiddenResult(clean(rawChapter?.energyScore?.basis, 200)),
+  };
+}
+
+function normalizeChapter(rawChapter, definition, integratedResult = null) {
   const content = cleanForbiddenResult(clean(rawChapter?.content || rawChapter?.body, 14000));
   const rawTakeaways = safeArray(rawChapter?.keyTakeaways || rawChapter?.takeaways || rawChapter?.coreLines)
     .map((item) => cleanForbiddenResult(clean(item, 220)))
@@ -918,6 +1381,11 @@ function normalizeChapter(rawChapter, definition) {
   };
   return {
     ...normalized,
+    symbol: clean(definition.symbol, 4),
+    leadLens: clean(definition.leadLens, 20),
+    supportLens: safeArray(definition.supportLens).map((item) => clean(item, 20)).filter(Boolean),
+    evidence: integratedResult ? buildChapterEvidence(integratedResult, definition) : null,
+    energyScore: normalizeEnergyScore(rawChapter, definition),
     charCount: countUserVisibleChars(formatChapterContent(normalized)),
   };
 }
@@ -939,6 +1407,9 @@ function validatePremiumReportQuality(chapters, options = {}) {
     .map((chapter) => chapter.id);
   const repeatedPhraseWarnings = detectRepeatedParagraphs(reportText);
   const genericAdviceWarnings = detectGenericAdviceWarnings(reportText);
+  // ⚠️ 아래 두 경고는 ok 계산에 넣지 않는다. 오탐이 하드 실패가 되면 결제 후 무결과가 된다.
+  const lensRoleWarnings = detectLensRoleViolation(ordered);
+  const conclusionOverlapWarnings = detectCrossChapterConclusionOverlap(ordered);
   const promptLeakDetected = FORBIDDEN_RESULT_PATTERN.test(reportText);
   const ok = totalChars >= minLength
     && ordered.length >= chapterMinCount
@@ -961,6 +1432,8 @@ function validatePremiumReportQuality(chapters, options = {}) {
     summaryWarnings,
     repeatedPhraseWarnings,
     genericAdviceWarnings,
+    lensRoleWarnings,
+    conclusionOverlapWarnings,
     promptLeakDetected,
     hasForbiddenText: promptLeakDetected,
     tooShort: totalChars < minLength,
@@ -1062,8 +1535,10 @@ function buildKarmaDestinyAiMockConsultation() {
     "이 생의 과제는 모든 것을 혼자 감당하는 품을 내려놓고, 필요한 순간에 도움과 협력을 받아들이는 데 있습니다. 운명은 당신에게 강함만을 요구하지 않습니다. 오히려 부드럽게 기대고도 무너지지 않는 법, 마음을 열고도 자신을 잃지 않는 법을 배우도록 이끌고 있습니다.",
     "오늘은 오래 미뤄 둔 작은 결정을 하나만 실제 행동으로 옮겨 보세요. 누군가에게 답장을 보내거나, 정리하지 못한 문장을 적거나, 마음속에서만 재던 제안을 조용히 꺼내는 것으로 충분합니다. 운명은 거창한 선언보다 정확한 한 걸음에 더 빠르게 반응합니다.",
   ];
+  // 핵심 문장 장(order 14)만 구조상 짧다. 인덱스를 정의에서 끌어와 장 수가 바뀌어도 어긋나지 않게 한다.
+  const shortChapterIndex = PREMIUM_CHAPTERS.findIndex((definition) => definition.id === KEY_SENTENCES_CHAPTER_ID);
   const chapters = PREMIUM_CHAPTERS.map((definition, sectionIndex) => {
-    const paragraphs = Array.from({ length: sectionIndex === 14 ? 6 : 9 }, (_, paragraphIndex) => {
+    const paragraphs = Array.from({ length: sectionIndex === shortChapterIndex ? 6 : 9 }, (_, paragraphIndex) => {
       const first = paragraphSeeds[(sectionIndex + paragraphIndex) % paragraphSeeds.length];
       const second = paragraphSeeds[(sectionIndex + paragraphIndex + 2) % paragraphSeeds.length];
       return `${definition.title}의 ${paragraphIndex + 1}번째 흐름에서, ${first} ${second}`;
@@ -1169,6 +1644,10 @@ function buildGenerationProgress(doc = {}, overrides = {}) {
     activeBatchIndex: Number(overrides.activeBatchIndex ?? doc.generationProgress?.activeBatchIndex ?? Math.floor(completedChapters / PREMIUM_BATCH_SIZE)),
     totalBatches: Math.ceil(totalChapters / PREMIUM_BATCH_SIZE),
     percent: status === "completed" ? 100 : Number(overrides.percent ?? basePercent),
+    // 진행 화면의 별자리 6노드가 이 인덱스로 어느 노드를 밝힐지 정한다(GENERATION_STAGES 와 1:1).
+    // percent 만으로 역산하면 노드 라벨과 실제 계산이 어긋날 수 있어 서버가 직접 실어 준다.
+    stageIndex: status === "completed" ? GENERATION_STAGES.length - 1 : stageIndex,
+    totalStages: GENERATION_STAGES.length,
     stageLabel: clean(overrides.stageLabel || GENERATION_STAGES[stageIndex] || GENERATION_STAGES[0], 80),
     lockedAt: overrides.lockedAt ?? doc.generationProgress?.lockedAt ?? null,
     lockToken: clean(overrides.lockToken ?? doc.generationProgress?.lockToken, 80),
@@ -1222,16 +1701,183 @@ function extractJsonPayload(text) {
   return JSON.parse(unfenced.slice(first, last + 1));
 }
 
-function buildBatchPrompt(consultation, batchIndex) {
+/**
+ * 그 장에서 실제로 주도를 맡을 렌즈를 정한다.
+ *
+ * 출생지 정보가 없으면 서양·베다가 통째로 계산 불가가 된다. 그때 지정된 주도 렌즈를 그대로
+ * 밀면 그 장은 "주도 렌즈 없음" 상태로 쓰이고, 데이터가 비었으니 LLM 이 지어내기 쉬워진다.
+ * 계산된 보조 렌즈로 주도를 승계시켜 장의 성격을 유지한다.
+ */
+function resolveEffectiveLead(definition, lenses = {}) {
+  const available = (id) => clean(lenses?.[id]?.confidence) && lenses[id].confidence !== "none";
+  const lead = definition?.leadLens;
+  if (lead === "cross" || lead === "none") return { leadLens: lead, supportLens: safeArray(definition?.supportLens), demoted: false };
+  if (available(lead)) return { leadLens: lead, supportLens: safeArray(definition?.supportLens), demoted: false };
+  const promoted = safeArray(definition?.supportLens).find(available);
+  if (!promoted) return { leadLens: "cross", supportLens: LENS_IDS.filter(available), demoted: true };
+  return {
+    leadLens: promoted,
+    supportLens: [...safeArray(definition?.supportLens).filter((id) => id !== promoted), lead].filter(Boolean),
+    demoted: true,
+  };
+}
+
+/**
+ * 이 장의 렌즈 구성에 따라 렌즈별 문자 예산을 배분한다.
+ * 주도 렌즈에 몰아주고 배경 렌즈는 한 줄 요약 수준만 남긴다.
+ * 계산되지 않은 렌즈에는 예산을 주지 않는다 — 그 몫은 살아 있는 렌즈로 돌아간다.
+ */
+function lensBudget(resolved, lenses = {}) {
+  const support = new Set(safeArray(resolved?.supportLens));
+  const isCross = resolved?.leadLens === "cross" || resolved?.leadLens === "none";
+  const weights = LENS_IDS.map((id) => {
+    if (clean(lenses?.[id]?.confidence) === "none" || !lenses?.[id]) return 0;
+    if (isCross) return LENS_WEIGHT.support;
+    if (id === resolved?.leadLens) return LENS_WEIGHT.lead;
+    if (support.has(id)) return LENS_WEIGHT.support;
+    return LENS_WEIGHT.background;
+  });
+  const total = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+  return Object.fromEntries(LENS_IDS.map((id, index) => [
+    id,
+    Math.floor(LENS_DIGEST_TOTAL_CHARS * (weights[index] / total)),
+  ]));
+}
+
+/**
+ * 렌즈 블록을 예산 안에서 직렬화한다.
+ *
+ * 🔴 문자열을 자르지 않는다. 우선순위 순으로 넣다가 예산을 넘는 필드는 **통째로 버리고**
+ * notCalculated 에 기록한다. 구현 전에는 JSON.stringify 결과를 14,000자에서 잘랐는데,
+ * 그러면 (1) 키 삽입 순서상 뒤쪽 렌즈가 통째로 사라지고 (2) 잘린 JSON 은 문법이 깨진
+ * 문자열이라 LLM 이 어떻게 읽을지 보장이 없었다.
+ */
+function packLens(block, budgetChars) {
+  if (!block || block.confidence === "none") {
+    return { confidence: "none", data: null, notCalculated: ["all"] };
+  }
+  const priority = LENS_FIELD_PRIORITY[block.id] || Object.keys(asObject(block.data));
+  const data = {};
+  const dropped = [];
+  let used = 0;
+  for (const key of priority) {
+    const value = block.data?.[key];
+    if (value === undefined || value === null) continue;
+    const size = JSON.stringify(value).length;
+    if (used + size > budgetChars) {
+      dropped.push(key);
+      continue;
+    }
+    data[key] = value;
+    used += size;
+  }
+  return {
+    confidence: block.confidence,
+    provisionalFields: safeArray(block.provisionalFields),
+    notCalculated: uniq([...safeArray(block.omittedFields), ...dropped]),
+    data,
+  };
+}
+
+/**
+ * 계산 근거 블록 — 렌즈 분업을 강제하는 실효 장치.
+ *
+ * 주도 렌즈만 두껍게 주고 나머지는 한 줄 요약만 준다. 데이터가 없으면 그 렌즈의 언어로
+ * 말할 수 없으므로, "같은 결론을 표현만 바꿔 반복"이 구조적으로 불가능해진다.
+ * 프롬프트 문장으로 반복을 금지하는 것은 보조 장치일 뿐이다.
+ */
+function buildLensDigest(integratedResult, definition) {
+  const lenses = asObject(integratedResult?.lenses);
+  const resolved = resolveEffectiveLead(definition, lenses);
+  const budget = lensBudget(resolved, lenses);
+  const support = new Set(safeArray(resolved.supportLens));
+  const isCross = resolved.leadLens === "cross" || resolved.leadLens === "none";
+  const lines = [];
+
+  LENS_IDS.forEach((id, index) => {
+    const block = lenses[id];
+    const role = isCross ? "보조"
+      : id === resolved.leadLens ? "주도"
+        : support.has(id) ? "보조" : "배경";
+    const label = block?.label || LENS_ROLES[id]?.label || id;
+    const roleText = block?.role || LENS_ROLES[id]?.role || "";
+    const packed = packLens(block, budget[id]);
+
+    lines.push(`── 렌즈 ${index + 1} · ${label} — ${roleText} ── [${role} / 신뢰도 ${packed.confidence}]`);
+    if (packed.confidence === "none") {
+      lines.push("※ 이 관점은 계산되지 않았습니다. 이 관점의 용어와 논리를 쓰지 마세요.");
+      return;
+    }
+    if (packed.provisionalFields.length) {
+      lines.push(`※ 다음 항목은 값이 있으나 단정하면 안 됩니다(가능성으로만 서술): ${packed.provisionalFields.join(", ")}`);
+    }
+    lines.push(JSON.stringify(packed.data));
+    if (packed.notCalculated.length) {
+      // 🔴 없는 것을 명시해야 LLM 이 그 항목을 지어내지 않는다.
+      lines.push(`※ 계산되지 않은 항목: ${packed.notCalculated.join(", ")} — 이 항목의 내용을 추정하거나 서술하지 마세요.`);
+    }
+    lines.push("");
+  });
+
+  const synthesis = asObject(integratedResult?.synthesis);
+  if (safeArray(synthesis.convergence).length || safeArray(synthesis.divergence).length) {
+    lines.push("── 관점 교차 결과(계산 대조만, 해석 아님) ──");
+    lines.push(JSON.stringify({ convergence: synthesis.convergence, divergence: synthesis.divergence }));
+  }
+  return lines.join("\n");
+}
+
+/** 다른 장이 다루는 주제를 자동으로 나열해 중복 서술을 막는다. */
+function buildCoveredHint(definition) {
+  return PREMIUM_CHAPTERS
+    .filter((other) => other.id !== definition.id)
+    .map((other) => `${other.order}장 ${other.title}`)
+    .join(" / ");
+}
+
+/** 받침 유무에 따라 주격 조사를 고른다("사주명리가" / "서양 점성술이"). */
+function subjectParticle(word) {
+  const last = clean(word).slice(-1);
+  const code = last.charCodeAt(0);
+  if (!(code >= 0xac00 && code <= 0xd7a3)) return "가";
+  return (code - 0xac00) % 28 === 0 ? "가" : "이";
+}
+
+function describeLensRelay(definition, lenses = {}) {
+  const resolved = resolveEffectiveLead(definition, lenses);
+  const available = (id) => clean(lenses?.[id]?.confidence) && lenses[id].confidence !== "none";
+  if (resolved.leadLens === "none") return "특정 관점에 매이지 않고 사람의 목소리로 씁니다.";
+  if (resolved.leadLens === "cross") {
+    return [
+      "계산된 관점들을 엮되, 각 관점은 자기 몫만 한 번씩 말합니다.",
+      resolved.demoted ? "지정된 주도 관점이 계산되지 않아 남은 관점들로만 씁니다." : "",
+    ].filter(Boolean).join("\n");
+  }
+  const leadLabel = LENS_ROLES[resolved.leadLens]?.label || resolved.leadLens;
+  const supportLabels = safeArray(resolved.supportLens).filter(available).map((id) => LENS_ROLES[id]?.label || id);
+  const bannedLabels = LENS_IDS
+    .filter((id) => id !== resolved.leadLens && !safeArray(resolved.supportLens).includes(id))
+    .map((id) => LENS_ROLES[id]?.label || id);
+  return [
+    `주도 렌즈: ${leadLabel} — 이 장의 시작과 끝은 ${leadLabel}의 언어로 씁니다.`,
+    resolved.demoted ? `(원래 주도로 지정된 관점은 계산되지 않아 ${leadLabel}${subjectParticle(leadLabel)} 그 자리를 대신합니다.)` : "",
+    supportLabels.length ? `보조 렌즈: ${supportLabels.join(", ")}` : "",
+    bannedLabels.length ? `사용 금지 렌즈: ${bannedLabels.join(", ")} — 이 장에서는 이 관점의 용어와 논리를 쓰지 않습니다.` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function buildChapterPrompt(consultation, definition, context = {}) {
   const birth = consultation.birthInfo || {};
   const place = birth.birthPlace || {};
-  const start = batchIndex * PREMIUM_BATCH_SIZE;
-  const definitions = PREMIUM_CHAPTERS.slice(start, start + PREMIUM_BATCH_SIZE);
-  const previousSummaries = safeArray(consultation.chapterSummaries)
-    .map((item) => clean(item?.summary || item?.carryForward || item, 500))
-    .filter(Boolean)
-    .slice(-8);
-  const avoidPhrases = uniq(safeArray(consultation.generationProgress?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 16);
+  const previousSummaries = safeArray(context.previousSummaries).slice(-8);
+  const avoidPhrases = safeArray(context.avoidPhrases).slice(0, 16);
+  const siblingTitles = safeArray(context.siblingDefinitions)
+    .filter((sibling) => sibling.id !== definition.id)
+    .map((sibling) => `${sibling.order}장 ${sibling.title}(주도: ${LENS_ROLES[sibling.leadLens]?.label || sibling.leadLens})`);
+  const energyLabel = ENERGY_DOMAIN_LABELS[definition.energyDomain];
+  const lensesForChapter = asObject(consultation.integratedResult?.lenses);
+  const resolvedLead = resolveEffectiveLead(definition, lensesForChapter);
+
   return [
     "[사용자 입력]",
     `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
@@ -1243,30 +1889,50 @@ function buildBatchPrompt(consultation, batchIndex) {
     `상담 주제: ${consultation.topic}`,
     `현재 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
     "",
-    "[명리·점성·베다 계산 요약]",
-    clean(JSON.stringify(consultation.integratedResult || {}), 14000),
+    // 장별 프롬프트는 serializeIntegratedResultForPrompt(#224) 대신 buildLensDigest 를 쓴다.
+    // 둘 다 "프롬프트에 실을 근거를 예산 안으로 줄인다"는 같은 문제를 풀지만, 여기서는
+    // 총량 축소만으로는 부족하고 **렌즈별 차등 배분**이 필요하다 — 그게 이 기능의 핵심이다.
+    // (후속 질문 경로는 장 개념이 없어 #224 의 직렬화기를 그대로 쓴다.)
+    "[계산 근거 · 다섯 렌즈]",
+    buildLensDigest(consultation.integratedResult, definition),
+    "",
+    "[이 장의 렌즈 구성]",
+    describeLensRelay(definition, lensesForChapter),
+    // 릴레이 문장은 원래 주도 렌즈를 전제로 쓰여 있다. 승계가 일어났다면 그 문장을 그대로
+    // 주면 "베다가 지정하면…" 처럼 없는 관점을 쓰라고 지시하는 꼴이 되므로 뺀다.
+    (definition.relay && !resolvedLead.demoted) ? `릴레이: ${definition.relay}` : "",
     "",
     "[앞 장에서 이어받을 흐름]",
     previousSummaries.length ? previousSummaries.join("\n") : "아직 앞 장이 없습니다. 전체 상담의 기둥을 세우듯 시작합니다.",
+    "",
+    "[다른 장이 담당하므로 여기서 쓰지 않을 것]",
+    definition.notCovered ? `특히: ${definition.notCovered}` : "",
+    `전체 목차: ${buildCoveredHint(definition)}`,
+    siblingTitles.length ? `같은 묶음에서 함께 쓰이는 장: ${siblingTitles.join(" / ")}` : "",
     "",
     "[반복하지 않을 표현]",
     avoidPhrases.length ? avoidPhrases.join(", ") : "흔한 위로, 뻔한 자기계발 문장, 같은 은유의 반복",
     "",
     "[이번에 작성할 장]",
-    JSON.stringify(definitions.map((definition) => ({
+    JSON.stringify({
       id: definition.id,
       order: definition.order,
       title: definition.title,
-      targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+      targetLength: definition.targetLength || PREMIUM_CHAPTER_TARGET_LENGTH,
       required: definition.required,
-    }))),
+    }),
     "",
-    "위 장들만 깊게 작성하세요. 각 장 content는 산문 중심으로 충분히 길게 쓰고, 각 장 마지막 흐름을 summary와 keyTakeaways 3개로 정리하세요.",
-    "전생적 상징은 사실 단정이 아니라 무의식의 상징처럼 보이는 서사로만 표현하세요.",
-    "사용자가 실제로 취할 수 있는 관계, 돈, 일, 가족, 마음의 행동 전략을 각 장 안에 자연스럽게 넣으세요.",
-    "반환은 아래 형태의 JSON 객체 하나만 허용합니다. content 안에는 JSON, 프롬프트, 시스템, AI, 모델, 토큰, 결제, 디버그 표현을 넣지 마세요.",
-    '{"chapters":[{"id":"chapter-01","title":"운명의 업 총론","content":"...","summary":"...","keyTakeaways":["...","...","..."],"highlightQuotes":["..."]}],"chapterSummary":{"summary":"...","carryForward":"...","avoidPhrases":["..."]},"avoidPhrases":["..."]}',
-  ].join("\n");
+    `이 한 장만 깊게 작성하세요. content는 산문 중심으로 목표 ${definition.targetLength || PREMIUM_CHAPTER_TARGET_LENGTH}를 채우고, 마지막 흐름을 summary와 keyTakeaways 3개로 정리하세요.`,
+    "계산 근거에 없는 값은 절대 추정하거나 지어내지 마세요. 근거가 없으면 그 항목을 다루지 말고 있는 근거로 깊이를 만드세요.",
+    "사용자가 실제로 취할 수 있는 행동 전략을 장 안에 자연스럽게 넣으세요.",
+    energyLabel
+      ? `이 장은 '${energyLabel}' 영역을 담당합니다. 이 장에서 실제로 짚은 계산 근거만으로 그 영역의 에너지 강도를 0~100 사이 정수로 판정하고, 그렇게 본 이유 한 문장을 energyScore에 담으세요. 근거 없이 숫자를 만들지 마세요.`
+      : "",
+    "반환은 아래 형태의 JSON 객체 하나만 허용합니다.",
+    energyLabel
+      ? '{"id":"chapter-05","title":"...","content":"...","summary":"...","keyTakeaways":["...","...","..."],"highlightQuotes":["..."],"energyScore":{"value":72,"basis":"..."},"carryForward":"...","avoidPhrases":["..."]}'
+      : '{"id":"chapter-01","title":"...","content":"...","summary":"...","keyTakeaways":["...","...","..."],"highlightQuotes":["..."],"carryForward":"...","avoidPhrases":["..."]}',
+  ].filter((line) => line !== "").join("\n");
 }
 
 async function callRealGeminiText(env, prompt, options = {}) {
@@ -1275,10 +1941,12 @@ async function callRealGeminiText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-    // 45s 단락 함정 회피. 배치 JSON 폴백은 허용하되 섹션 최소치의 40% 미만이면 실패로 돌린다.
+    // 45s 단락 함정 회피. 장 하나가 2,400자면 여유 있게 75s 안에 끝난다.
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
-    fallbackMinChars: Math.round(INITIAL_CONSULTATION_SECTION_MIN_LENGTH * 0.4),
-    cache: buildKarmaLlmCache(env, "chapter-batch"),
+    // 유료 라우트라 Workers AI 폴백에는 최소 분량 문턱을 반드시 함께 건다.
+    // 문턱 미달이면 호출이 실패로 돌아 아래 실패 처리가 그대로 돈다.
+    fallbackMinChars: Math.round(Number(options.chapterMinLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH) * 0.4),
+    cache: buildKarmaLlmCache(env, clean(options.cacheStage) || "chapter-batch"),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
@@ -1291,63 +1959,126 @@ async function callRealGeminiText(env, prompt, options = {}) {
   return { text: clean(ai.text), provider, model: clean(ai?.model) };
 }
 
-async function generateChapterBatch(env, consultation, batchIndex, logContext = {}) {
-  const prompt = buildBatchPrompt(consultation, batchIndex);
-  const generated = await callRealGeminiText(env, prompt, {
-    temperature: 0.72,
-    maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-    systemPrompt: buildSystemPrompt("initial"),
-  });
-  let payload;
+/**
+ * 한 장을 생성한다. **절대 throw 하지 않는다** — 실패를 값으로 돌려 한 장의 실패가
+ * 같은 배치의 나머지 장을 죽이지 않게 한다(new-year-ai.js 의 섹션 생성 철학).
+ */
+async function generateOneChapter(env, consultation, definition, context = {}) {
   try {
-    payload = extractJsonPayload(generated.text);
-  } catch (error) {
-    const repaired = await callRealGeminiText(env, [
-      "아래 답변을 내용 손실 없이 지정된 JSON 객체 형식으로만 다시 정리하세요.",
-      "새 내용을 쓰지 말고, 이미 쓴 상담문을 장별 content, summary, keyTakeaways, highlightQuotes로만 옮기세요.",
-      "",
-      generated.text,
-    ].join("\n"), {
-      temperature: 0.35,
-      maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-      systemPrompt: "당신은 텍스트를 지정된 JSON 구조로 정리하는 편집자입니다. JSON 객체 하나만 반환합니다.",
+    const generated = await callRealGeminiText(env, buildChapterPrompt(consultation, definition, context), {
+      temperature: context.retry ? 0.66 : 0.72,
+      maxOutputTokens: CHAPTER_MAX_OUTPUT_TOKENS,
+      systemPrompt: buildSystemPrompt("initial"),
+      // 장별 캐시 키 — 재시도 시 이미 성공한 장은 캐시에서 즉시 돌아온다.
+      cacheStage: `chapter-${definition.id}`,
+      chapterMinLength: definition.minLength,
     });
-    payload = extractJsonPayload(repaired.text);
-    generated.provider = repaired.provider || generated.provider;
-    generated.model = repaired.model || generated.model;
-  }
-  const definitions = PREMIUM_CHAPTERS.slice(batchIndex * PREMIUM_BATCH_SIZE, (batchIndex + 1) * PREMIUM_BATCH_SIZE);
-  const incoming = safeArray(payload?.chapters);
-  const chapters = definitions.map((definition) => {
-    const raw = incoming.find((item) => clean(item?.id) === definition.id || Number(item?.order) === definition.order || clean(item?.title) === definition.title);
-    if (!raw) {
-      const error = new Error(`Missing generated chapter ${definition.id}`);
-      error.code = "LLM_BATCH_CHAPTER_MISSING";
-      throw error;
+    let payload;
+    try {
+      payload = extractJsonPayload(generated.text);
+    } catch {
+      // 장당 7,000토큰이면 MAX_TOKENS 잘림이 사실상 없어 이 경로는 드물다.
+      // 그래도 남겨 두는 이유는 모델이 코드펜스·설명문을 덧붙이는 경우가 있기 때문이다.
+      const repaired = await callRealGeminiText(env, [
+        "아래 답변을 내용 손실 없이 지정된 JSON 객체 형식으로만 다시 정리하세요.",
+        "새 내용을 쓰지 말고, 이미 쓴 상담문을 content, summary, keyTakeaways, highlightQuotes로만 옮기세요.",
+        "",
+        generated.text,
+      ].join("\n"), {
+        temperature: 0.35,
+        maxOutputTokens: CHAPTER_MAX_OUTPUT_TOKENS,
+        systemPrompt: "당신은 텍스트를 지정된 JSON 구조로 정리하는 편집자입니다. JSON 객체 하나만 반환합니다.",
+        cacheStage: `chapter-repair-${definition.id}`,
+      });
+      payload = extractJsonPayload(repaired.text);
+      generated.provider = repaired.provider || generated.provider;
+      generated.model = repaired.model || generated.model;
     }
-    return normalizeChapter(raw, definition);
-  });
-  logKarmaAi("LLM Batch Generated", { ...logContext, batchIndex, chapterIds: chapters.map((chapter) => chapter.id), provider: generated.provider, model: generated.model });
+    const raw = safeArray(payload?.chapters).find((item) => clean(item?.id) === definition.id) || payload;
+    if (!clean(raw?.content)) {
+      return { ok: false, definition, reason: "EMPTY_CHAPTER_CONTENT" };
+    }
+    return {
+      ok: true,
+      definition,
+      chapter: normalizeChapter(raw, definition, consultation.integratedResult),
+      carryForward: clean(raw?.carryForward || raw?.summary, 800),
+      avoidPhrases: uniq(safeArray(raw?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 6),
+      provider: generated.provider,
+      model: generated.model,
+    };
+  } catch (error) {
+    return { ok: false, definition, reason: clean(error?.code || error?.message, 120) };
+  }
+}
+
+/**
+ * 배치 안의 장들을 동시에 굽는다.
+ *
+ * 배치 경계·락·클라이언트 폴링 계약은 그대로다(PREMIUM_BATCH_SIZE, 락 TTL 불변) —
+ * 달라지는 것은 배치 **내부**가 1회 호출에서 장별 병렬 호출로 바뀌었다는 점뿐이다.
+ * 이 전환이 필요한 이유는 성능이 아니라 렌즈 분업이다: 4장을 한 프롬프트로 쓰면 그 4장의
+ * 렌즈 합집합을 줘야 해서 "이 장은 자미두수로만" 이 성립하지 않는다.
+ */
+async function generateChapterBatch(env, consultation, batchIndex, logContext = {}) {
+  const definitions = PREMIUM_CHAPTERS.slice(batchIndex * PREMIUM_BATCH_SIZE, (batchIndex + 1) * PREMIUM_BATCH_SIZE);
+  const context = {
+    previousSummaries: safeArray(consultation.chapterSummaries)
+      .map((item) => clean(item?.summary || item?.carryForward || item, 500))
+      .filter(Boolean)
+      .slice(-8),
+    avoidPhrases: uniq(safeArray(consultation.generationProgress?.avoidPhrases).map((item) => clean(item, 120))),
+    siblingDefinitions: definitions,
+  };
+
+  let rows = await runWithConcurrency(definitions, PREMIUM_CHAPTER_CONCURRENCY,
+    (definition) => generateOneChapter(env, consultation, definition, context));
+
+  // 웨이브 2 — 실패한 장만 다시 시도한다. 성공한 장을 다시 굽지 않는다.
+  const failed = rows.filter((row) => !row.ok);
+  if (failed.length) {
+    logKarmaAi("LLM Chapter Retry", { ...logContext, batchIndex, retrying: failed.map((row) => `${row.definition.id}:${row.reason}`) }, "warn");
+    const retried = await runWithConcurrency(failed.map((row) => row.definition), PREMIUM_CHAPTER_CONCURRENCY,
+      (definition) => generateOneChapter(env, consultation, definition, { ...context, retry: true }));
+    const byId = new Map(retried.map((row) => [row.definition.id, row]));
+    rows = rows.map((row) => (row.ok ? row : (byId.get(row.definition.id)?.ok ? byId.get(row.definition.id) : row)));
+  }
+
+  const stillFailed = rows.filter((row) => !row.ok);
+  if (stillFailed.length) {
+    const error = new Error(`Missing generated chapter ${stillFailed.map((row) => row.definition.id).join(", ")}`);
+    error.code = "LLM_BATCH_CHAPTER_MISSING";
+    error.failedChapters = stillFailed.map((row) => ({ id: row.definition.id, reason: row.reason }));
+    throw error;
+  }
+
+  const chapters = rows.map((row) => row.chapter);
+  const provider = clean(rows.find((row) => row.provider)?.provider);
+  const model = clean(rows.find((row) => row.model)?.model);
+  logKarmaAi("LLM Batch Generated", { ...logContext, batchIndex, chapterIds: chapters.map((chapter) => chapter.id), provider, model });
   return {
     chapters,
     chapterSummary: {
       batchIndex,
-      summary: clean(payload?.chapterSummary?.summary, 800),
-      carryForward: clean(payload?.chapterSummary?.carryForward, 800),
-      avoidPhrases: uniq(safeArray(payload?.chapterSummary?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 12),
+      summary: clean(chapters.map((chapter) => chapter.summary).filter(Boolean).join(" "), 800),
+      carryForward: clean(rows.map((row) => row.carryForward).filter(Boolean).join(" "), 800),
+      avoidPhrases: uniq(rows.flatMap((row) => safeArray(row.avoidPhrases))).slice(0, 12),
     },
-    avoidPhrases: uniq(safeArray(payload?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 12),
-    provider: generated.provider,
-    model: generated.model,
+    avoidPhrases: uniq(rows.flatMap((row) => safeArray(row.avoidPhrases))).slice(0, 12),
+    provider,
+    model,
   };
 }
 
 function pickReinforcementTargets(chapters, quality) {
   const byId = new Map(safeArray(chapters).map((chapter) => [chapter.id, chapter]));
-  const explicit = [
+  const explicit = uniq([
     ...safeArray(quality.shortChapters),
     ...safeArray(quality.missingChapters),
-  ].map((id) => PREMIUM_CHAPTERS.find((definition) => definition.id === id)).filter(Boolean);
+    // 경고 전용 신호는 실패를 만들지 않지만, 보강할 장을 고를 때는 우선순위가 된다.
+    ...safeArray(quality.lensRoleWarnings).map((row) => row.chapterId),
+    ...safeArray(quality.conclusionOverlapWarnings).map((row) => row.b),
+  ]).map((id) => PREMIUM_CHAPTERS.find((definition) => definition.id === id)).filter(Boolean);
   if (explicit.length) return explicit.slice(0, PREMIUM_BATCH_SIZE);
   return [...PREMIUM_CHAPTERS]
     .sort((a, b) => countUserVisibleChars(formatChapterContent(byId.get(a.id) || {})) - countUserVisibleChars(formatChapterContent(byId.get(b.id) || {})))
@@ -1379,8 +2110,12 @@ async function reinforcePremiumReport(env, consultation, chapters, quality, atte
       shortChapters: quality.shortChapters,
       repeatedPhraseWarnings: quality.repeatedPhraseWarnings,
       genericAdviceWarnings: quality.genericAdviceWarnings,
+      lensRoleWarnings: quality.lensRoleWarnings,
+      conclusionOverlapWarnings: quality.conclusionOverlapWarnings,
     }),
     "",
+    "lensRoleWarnings 에 표시된 장은 그 장이 맡지 않은 관점의 용어를 쓰고 있습니다. 해당 관점의 용어를 걷어내고 그 장의 주도 관점으로 다시 쓰세요.",
+    "conclusionOverlapWarnings 에 표시된 두 장은 결론이 겹칩니다. 뒤쪽 장을 그 장만의 각도로 다시 쓰세요.",
     "각 supplement content는 기존 장에 이어 붙일 수 있는 새 산문이어야 합니다. 이미 쓴 문단을 다시 쓰지 말고, 더 구체적인 사례와 선택 기준을 추가하세요.",
     "반환은 JSON 객체 하나만 허용합니다.",
     '{"supplements":[{"id":"chapter-01","content":"...","summary":"...","keyTakeaways":["...","...","..."],"highlightQuotes":["..."]}],"avoidPhrases":["..."]}',
@@ -1461,16 +2196,18 @@ async function cancelDeferredUsageIfNeeded({ request, env, consultation, error }
 
 function buildSummaryCards(integratedResult = {}) {
   const synthesis = asObject(integratedResult.synthesis);
-  const themes = safeArray(synthesis.karmicThemes).map((item) => clean(item)).filter(Boolean);
-  const patterns = safeArray(synthesis.commonPatterns).map((item) => clean(item)).filter(Boolean);
-  const keywordCandidates = uniq([...themes, ...patterns]
+  // 개편 전 synthesis 는 karmicThemes/currentLifeTask 가 전부 하드코딩 문자열이라 모든
+  // 사용자에게 같은 카드가 나갔다. 지금은 렌즈별 실제 요약과 교차 결과에서만 뽑는다.
+  const patterns = safeArray(synthesis.patternSummaries).map((row) => clean(row?.summary)).filter(Boolean);
+  const convergence = safeArray(synthesis.convergence).map((row) => clean(row?.label)).filter(Boolean);
+  const keywordCandidates = uniq([...convergence, ...patterns]
     .map((item) => clean(String(item).replace(/[.!?。]/g, "").split(/[·ㆍ,，:：/]/)[0], 28))
     .filter(Boolean));
   const keywords = uniq([...keywordCandidates, "반복 선택", "관계의 매듭", "재능의 숙제"]).slice(0, 3);
   return {
     keywords,
     repeatingPattern: clean(patterns[0], 180) || "익숙한 감정 반응이 관계와 일의 선택에서 되풀이되는 흐름",
-    currentTask: clean(synthesis.currentLifeTask, 180) || clean(themes[0], 180) || "같은 장면에서 한 번 더 느린 선택을 연습하는 일",
+    currentTask: clean(convergence[0], 180) || clean(patterns[1], 180) || "같은 장면에서 한 번 더 느린 선택을 연습하는 일",
   };
 }
 
@@ -1495,6 +2232,12 @@ function publicSession(doc) {
     keyTakeaways: safeArray(chapter.keyTakeaways).map((item) => clean(item, 220)).filter(Boolean).slice(0, 3),
     highlightQuotes: safeArray(chapter.highlightQuotes).map((item) => clean(item, 180)).filter(Boolean).slice(0, 3),
     charCount: Number(chapter.charCount || countUserVisibleChars(formatChapterContent(chapter))),
+    // schemaVersion 1 문서에는 없다. 프론트는 값이 없으면 해당 UI 를 렌더하지 않는다.
+    symbol: clean(chapter.symbol, 4),
+    leadLens: clean(chapter.leadLens, 20),
+    supportLens: safeArray(chapter.supportLens).map((item) => clean(item, 20)).filter(Boolean),
+    evidence: safeArray(chapter.evidence).length ? chapter.evidence : null,
+    energyScore: chapter.energyScore || null,
   })).sort((a, b) => a.order - b.order);
   const assistantMessages = safeArray(doc.messages).filter((message) => message.role === "assistant");
   const generatedAt = doc.generatedAt || assistantMessages[assistantMessages.length - 1]?.createdAt || null;
@@ -1510,6 +2253,10 @@ function publicSession(doc) {
     userInput: buildPublicUserInput(doc),
     integratedResult: doc.integratedResult || null,
     summaryCards: doc.summaryCards || null,
+    // 1 = 구 16장(3체계), 2 = 15장 다섯 렌즈. 프론트는 이 값으로 레이더·근거 패널 렌더를 가른다.
+    schemaVersion: Number(doc.schemaVersion || 1),
+    lensContribution: doc.lensContribution || doc.integratedResult?.lensContribution || null,
+    lensAvailability: doc.lensAvailability || doc.integratedResult?.lensAvailability || null,
     chapters,
     finalLetter: clean(doc.finalLetter, 14000),
     qualityCheck: doc.qualityCheck ? {
@@ -1699,6 +2446,15 @@ async function handleStart(request, env) {
 
   const sessionId = existing?.id || `kdai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   const now = new Date();
+  // 🔴 판이 다른 진행중 문서를 이어붙이면 안 된다. 구 16장 문서에 15장 정의를 적용하면
+  // chapter-09 같은 id 가 서로 다른 장을 가리켜 LLM_BATCH_CHAPTER_MISSING → 결제 후 무결과가
+  // 된다. 과금은 아직 deferredUsage 상태라 처음부터 다시 생성해도 사용자 손해가 없다.
+  const resumable = existing?.status === "generating"
+    && Number(existing?.schemaVersion || 1) === REPORT_SCHEMA_VERSION;
+  const resumedChapters = resumable ? safeArray(existing.chapters) : [];
+  if (existing?.status === "generating" && !resumable) {
+    logKarmaAi("Report Schema Changed", { requestId: idempotencyKey, sessionId: clean(existing.id), from: Number(existing?.schemaVersion || 1), to: REPORT_SCHEMA_VERSION }, "warn");
+  }
   const seed = {
     id: sessionId,
     reportId: clean(existing?.reportId || sessionId, 120),
@@ -1717,17 +2473,18 @@ async function handleStart(request, env) {
       billingRequestId: clean(access.billingRequestId || idempotencyKey, 180),
       preparedAt: now.toISOString(),
     },
-    messages: existing?.status === "generating" ? safeArray(existing.messages) : [],
-    chapters: existing?.status === "generating" ? safeArray(existing.chapters) : [],
-    chapterSummaries: existing?.status === "generating" ? safeArray(existing.chapterSummaries) : [],
-    finalLetter: existing?.status === "generating" ? clean(existing.finalLetter, 14000) : "",
+    messages: resumable ? safeArray(existing.messages) : [],
+    chapters: resumedChapters,
+    chapterSummaries: resumable ? safeArray(existing.chapterSummaries) : [],
+    finalLetter: resumable ? clean(existing.finalLetter, 14000) : "",
     generatedAt: null,
-    totalCharCount: existing?.status === "generating" ? Number(existing.totalCharCount || 0) : 0,
+    totalCharCount: resumable ? Number(existing.totalCharCount || 0) : 0,
     qualityCheck: null,
+    schemaVersion: REPORT_SCHEMA_VERSION,
     generationProgress: buildGenerationProgress(existing || {}, {
-      chapters: existing?.status === "generating" ? safeArray(existing.chapters) : [],
+      chapters: resumedChapters,
       stageLabel: GENERATION_STAGES[0],
-      activeBatchIndex: Math.floor((existing?.status === "generating" ? safeArray(existing.chapters).length : 0) / PREMIUM_BATCH_SIZE),
+      activeBatchIndex: Math.floor(resumedChapters.length / PREMIUM_BATCH_SIZE),
       lockToken: "",
       lockedAt: null,
     }),
@@ -1757,14 +2514,20 @@ async function handleStart(request, env) {
     }
 
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    const integratedResult = existing?.integratedResult || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo);
-    if (!integratedResult?.saju && !integratedResult?.westernAstrology && !integratedResult?.vedicAstrology) {
+    const integratedResult = (resumable && existing?.integratedResult)
+      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS });
+    // 다섯 렌즈가 모두 계산되지 않았을 때만 실패다. 구 검사는 사주·서양·베다 세 개만 봐서
+    // 좌표 미상으로 자미·숙요만 살아남은 정상 케이스를 실패로 오판했다.
+    const usableLens = LENS_IDS.some((id) => clean(integratedResult?.lenses?.[id]?.confidence) !== "none");
+    if (!usableLens) {
       const calculationError = new Error(CALCULATION_ERROR_MESSAGE);
       calculationError.code = "CALCULATION_ERROR";
       throw calculationError;
     }
     logKarmaAi("LLM Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    const summaryCards = existing?.summaryCards || buildSummaryCards(integratedResult);
+    const summaryCards = (resumable && existing?.summaryCards) || buildSummaryCards(integratedResult);
+    const lensContribution = integratedResult?.lensContribution
+      || computeLensContribution(asObject(integratedResult?.lenses), LENS_USAGE_WEIGHTS);
     const prepared = await KarmaDestinyAiConsultation.findOneAndUpdate(
       { id: sessionId },
       {
@@ -1772,6 +2535,9 @@ async function handleStart(request, env) {
           status: "generating",
           integratedResult,
           summaryCards,
+          schemaVersion: REPORT_SCHEMA_VERSION,
+          lensContribution,
+          lensAvailability: integratedResult?.lensAvailability || null,
           generationProgress: buildGenerationProgress({ ...seed, integratedResult, summaryCards }),
           generationError: null,
         },
@@ -1834,6 +2600,18 @@ async function handleGenerateBatch(request, env) {
   }
   if (!consultation.integratedResult) {
     return json({ ok: false, reason: "CALCULATION_ERROR", message: CALCULATION_ERROR_MESSAGE }, { status: 422 });
+  }
+  // handleStart 가 이미 판이 다른 문서를 재개 대상에서 제외하지만, 배포 전환 틈새에 잡힌
+  // 폴링이 구 문서를 그대로 밀고 들어오는 경로가 남는다. 여기서 한 번 더 막는다 —
+  // 막지 않으면 챕터 id 가 서로 다른 장을 가리켜 결제 후 무결과가 된다.
+  if (Number(consultation.schemaVersion || 1) !== REPORT_SCHEMA_VERSION) {
+    logKarmaAi("Report Schema Changed", { sessionId: clean(consultation.id), from: Number(consultation.schemaVersion || 1), to: REPORT_SCHEMA_VERSION }, "warn");
+    return json({
+      ok: false,
+      reason: "REPORT_SCHEMA_CHANGED",
+      message: "리포트 구성이 갱신되었습니다. 같은 세션으로 다시 시작하면 처음부터 새로 작성됩니다.",
+      sessionId: consultation.id,
+    }, { status: 409 });
   }
 
   const lock = asObject(consultation.generationProgress);
@@ -1946,7 +2724,7 @@ async function handleGenerateBatch(request, env) {
     await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
     const completedAt = new Date();
     const assistantContent = formatChaptersAsConsultationText(chapters);
-    const finalLetter = clean(chapters.find((chapter) => chapter.id === "chapter-16")?.content, 14000);
+    const finalLetter = clean(chapters.find((chapter) => chapter.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000);
     const completed = await KarmaDestinyAiConsultation.findOneAndUpdate(
       { id: consultation.id, userId: clean(auth.userId) },
       {
@@ -2129,5 +2907,16 @@ export const __karmaDestinyAiTestUtils = {
   validatePremiumReportQuality,
   formatChaptersAsConsultationText,
   PREMIUM_CHAPTERS,
+  LENS_USAGE_WEIGHTS,
+  REPORT_SCHEMA_VERSION,
+  FINAL_LETTER_CHAPTER_ID,
+  KEY_SENTENCES_CHAPTER_ID,
+  SYNTHESIS_CHAPTER_ID,
+  ENERGY_DOMAIN_LABELS,
+  buildLensDigest,
+  buildChapterPrompt,
+  buildChapterEvidence,
+  detectLensRoleViolation,
+  detectCrossChapterConclusionOverlap,
   buildKarmaDestinyAiMockConsultation,
 };

@@ -24,15 +24,18 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class MainActivity extends BridgeActivity {
-    /** WebView 가 첫 프레임을 그릴 준비를 마쳤는지. 네이티브 스플래시를 걷는 조건이다. */
+    /** 웹 메인 화면이 실제로 보여줄 준비를 마쳤는지. 네이티브 스플래시를 걷는 조건이다. */
     private final boolean[] webViewDrawn = { false };
 
     /**
-     * 웹 첫 프레임 신호가 끝내 오지 않아도 스플래시에 갇히지 않도록 하는 상한.
+     * 웹 준비 신호가 끝내 오지 않아도 스플래시에 갇히지 않도록 하는 상한.
      * 스플래시를 붙잡는 동안에도 WebView 의 로딩·레이아웃은 계속 진행되므로(막히는 것은 draw 뿐)
-     * 이 값은 앱이 준비되는 시각을 늦추지 않는다 — 어느 스플래시를 보여줄지만 정한다.
+     * 이 값은 앱이 준비되는 시각을 늦추지 않는다 — 어느 화면을 보여줄지만 정한다.
      */
-    private static final long SPLASH_HANDOFF_CAP_MS = 1500L;
+    private static final long SPLASH_HANDOFF_CAP_MS = 3000L;
+
+    /** 웹 부팅 게이트 상태를 되묻는 간격. */
+    private static final long SPLASH_POLL_MS = 120L;
 
     private static final int SPLASH_BG_YEON = 0xFFFFFAF7;
     private static final int SPLASH_BG_NEO = 0xFF0A0818;
@@ -131,24 +134,45 @@ public class MainActivity extends BridgeActivity {
     }
 
     /**
-     * 네이티브 스플래시를 웹 부팅 게이트에 넘긴다.
+     * 네이티브 스플래시를 웹 부팅 게이트(cd-boot-gate)에 넘긴다.
      *
-     * postVisualStateCallback 은 "이 시점까지의 DOM 이 다음 draw 에 반영될 준비가 됐다"를 알려준다(API 23+).
-     * Capacitor 의 WebViewClient 를 갈아끼우지 않고도 첫 프레임을 잡을 수 있는 지점이라 이 방식을 쓴다.
-     * 콜백이 오지 않는 기기·상황을 대비해 상한 타이머를 함께 건다.
+     * 예전 신호는 postVisualStateCallback("WebView 가 그릴 준비를 마쳤다")이었는데, 그건 셸이
+     * 데이터를 받았다는 뜻이 아니다. 그래서 스플래시가 1.5초에 걷힌 뒤 아직 준비 안 된 메인이
+     * 드러나고, 인증·이용권 확인이 끝나며 카드가 뒤늦게 통째로 교체되는 장면이 "다시 로딩"으로 읽혔다.
+     *
+     * 🔴 이건 게이트를 하나 더 얹는 게 아니다. 네이티브 스플래시와 웹 베일은 이미 둘 다 있었고,
+     * 순차로 이어붙어 이음매가 보이던 것이 문제였다. 네이티브가 웹 게이트에 종속되면
+     * 사용자가 보는 커버는 하나가 된다. 웹 쪽 하드캡(8초)은 건드리지 않는다 —
+     * scripts/verify-auth-event-loop-guard.mjs 가 7500ms 이상을 강제한다.
+     *
+     * 게이트가 애초에 안 붙는 경우(cdBootGateShownV1 세션 래치)에도 readyState 항이 있어 즉시 걷힌다.
      */
     private void scheduleSplashHandoff() {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> webViewDrawn[0] = true, SPLASH_HANDOFF_CAP_MS);
+        pollWebBootGate(handler, android.os.SystemClock.uptimeMillis() + SPLASH_HANDOFF_CAP_MS);
+    }
+
+    private void pollWebBootGate(Handler handler, long deadlineUptimeMs) {
+        if (webViewDrawn[0]) return;
+        if (android.os.SystemClock.uptimeMillis() >= deadlineUptimeMs) {
+            webViewDrawn[0] = true;
+            return;
+        }
         try {
-            getBridge().getWebView().postVisualStateCallback(1L, new android.webkit.WebView.VisualStateCallback() {
-                @Override
-                public void onComplete(long requestId) {
-                    webViewDrawn[0] = true;
-                }
-            });
+            getBridge().getWebView().evaluateJavascript(
+                    "(function(){try{return document.readyState!=='loading'"
+                            + "&&!document.documentElement.classList.contains('cd-boot-gate');}"
+                            + "catch(e){return true;}})()",
+                    value -> {
+                        if ("true".equals(value)) {
+                            webViewDrawn[0] = true;
+                            return;
+                        }
+                        handler.postDelayed(() -> pollWebBootGate(handler, deadlineUptimeMs), SPLASH_POLL_MS);
+                    });
         } catch (Exception ignored) {
-            // 콜백을 걸지 못하면 위 상한 타이머가 대신 걷는다.
+            // 평가를 걸지 못하는 기기에서는 상한 타이머가 대신 걷는다.
             webViewDrawn[0] = true;
         }
     }

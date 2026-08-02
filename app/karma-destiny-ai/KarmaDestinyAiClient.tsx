@@ -14,6 +14,7 @@ import {
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
@@ -61,6 +62,9 @@ type SummaryCards = {
 };
 
 type IntegratedResult = {
+  /** 다섯 렌즈 정본(schemaVersion 2). 각 항목은 { confidence, data, ... } 형태다. */
+  lenses?: Record<string, { confidence?: string; data?: Record<string, unknown> | null }> | null;
+  /** 구 3체계 이름 별칭 — schemaVersion 1 문서와의 호환을 위해 서버가 함께 내려준다. */
   saju?: Record<string, unknown> | null;
   westernAstrology?: Record<string, unknown> | null;
   vedicAstrology?: Record<string, unknown> | null;
@@ -68,7 +72,7 @@ type IntegratedResult = {
 };
 
 type ChartDataBlock = {
-  key: "saju" | "westernAstrology" | "vedicAstrology";
+  key: LensKey;
   label: string;
   title: string;
   summary: string;
@@ -125,24 +129,35 @@ const BIRTH_TIME_REQUIRED_MESSAGE = "운명의 업 상담은 출생시간에 따
 const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 지금 가장 궁금한 내용을 짧게 적어 주세요.";
 const NETWORK_ERROR_MESSAGE = "연결이 불안정해요. 잠시 후 다시 시도해 주세요.";
 
+// 상담문 파싱이 실패했을 때만 쓰이는 폴백 제목. 워커 PREMIUM_CHAPTERS 와 어긋나면
+// 사용자가 실제로 받은 것과 다른 제목이 표시되므로 순서·심볼을 그대로 맞춘다.
 const KARMA_SECTIONS = [
-  { symbol: "命", fallbackTitle: "命 — 당신이라는 별의 본질" },
-  { symbol: "業", fallbackTitle: "業 — 반복되는 삶의 문양" },
-  { symbol: "時", fallbackTitle: "時 — 지금 이 계절의 의미" },
-  { symbol: "情", fallbackTitle: "情 — 관계에서 흐르는 강물" },
-  { symbol: "財", fallbackTitle: "財 — 재능과 물질이 만나는 지점" },
-  { symbol: "課", fallbackTitle: "課 — 이 생의 핵심 과제" },
-  { symbol: "箋", fallbackTitle: "箋 — 오늘을 위한 운명의 처방" },
-  { symbol: "柱", fallbackTitle: "柱 — 명리학자가 짚는 삶의 균형" },
-  { symbol: "星", fallbackTitle: "星 — 점성술사가 비추는 영혼의 하늘" },
-  { symbol: "梵", fallbackTitle: "梵 — 베다 점성술사가 여는 카르마의 길" },
+  { symbol: "業", fallbackTitle: "業 — 운명의 핵심 주제" },
+  { symbol: "源", fallbackTitle: "源 — 운명의 근원" },
+  { symbol: "流", fallbackTitle: "流 — 현재 삶의 흐름" },
+  { symbol: "課", fallbackTitle: "課 — 업의 핵심 과제" },
+  { symbol: "緣", fallbackTitle: "緣 — 인간관계의 업" },
+  { symbol: "情", fallbackTitle: "情 — 사랑의 업" },
+  { symbol: "財", fallbackTitle: "財 — 돈의 업" },
+  { symbol: "職", fallbackTitle: "職 — 직업의 업" },
+  { symbol: "體", fallbackTitle: "體 — 건강 에너지" },
+  { symbol: "才", fallbackTitle: "才 — 숨겨진 재능" },
+  { symbol: "轉", fallbackTitle: "轉 — 운명의 전환점" },
+  { symbol: "策", fallbackTitle: "策 — 앞으로의 성장 전략" },
+  { symbol: "總", fallbackTitle: "總 — 다섯 관점의 종합 결론" },
+  { symbol: "句", fallbackTitle: "句 — 운명을 바꾸는 핵심 문장" },
+  { symbol: "箋", fallbackTitle: "箋 — 최종 편지" },
 ] as const;
 
+// 진행 화면 6노드(사주 → 자미두수 → 숙요 → 서양 → 베다 → 종합)와 1:1로 맞춘다.
+// 이 화면에는 서버 진행률이 없어 시간 기반으로 넘어간다.
 const LOADING_STAGES = [
-  { icon: "☯", label: "운명의 실타래를 펼치는 중...", duration: 1800 },
-  { icon: "♄", label: "반복된 인생 패턴을 읽는 중...", duration: 2200 },
-  { icon: "☽", label: "관계와 감정의 업을 해석하는 중...", duration: 2200 },
-  { icon: "✦", label: "장문 리포트의 문을 여는 중...", duration: 2600 },
+  { icon: "柱", label: "사주의 기둥을 세우는 중...", duration: 1800 },
+  { icon: "紫", label: "자미두수 12궁을 펼치는 중...", duration: 2000 },
+  { icon: "宿", label: "숙요 27수의 인연을 잇는 중...", duration: 2000 },
+  { icon: "星", label: "별자리의 심리를 읽는 중...", duration: 2000 },
+  { icon: "梵", label: "베다의 업을 헤아리는 중...", duration: 2000 },
+  { icon: "業", label: "다섯 관점을 하나로 모으는 중...", duration: 2600 },
 ] as const;
 
 const PREMIUM_VALUE_CARDS = [
@@ -295,14 +310,33 @@ async function postJson<T>(path: string, body: Record<string, unknown>, idempote
   return { response, payload };
 }
 
-function summarizeSystem(result: IntegratedResult | null | undefined, key: "saju" | "westernAstrology" | "vedicAstrology") {
-  const source = result?.[key] || {};
-  if (!source || typeof source !== "object") return "입력된 정보 기준으로 큰 흐름을 살핍니다.";
+type LensKey = "saju" | "ziwei" | "sukuyo" | "westernAstrology" | "vedicAstrology";
+
+const LENS_FALLBACK_SUMMARY: Record<LensKey, string> = {
+  saju: "일간과 오행의 균형으로 반복되는 선택 습관을 살핍니다.",
+  ziwei: "명궁과 12궁의 배치로 삶의 무대와 사회적 역할을 살핍니다.",
+  sukuyo: "본명숙과 27수의 거리로 인연에서 서게 되는 자리를 살핍니다.",
+  westernAstrology: "태양과 달의 흐름으로 마음의 반복 방식을 살핍니다.",
+  vedicAstrology: "라후와 케투의 축으로 익숙한 습관과 성장 방향을 살핍니다.",
+};
+
+/** 다섯 렌즈는 integratedResult.lenses 아래에 있고, 구 3체계는 최상위 별칭으로도 남아 있다. */
+function readLensData(result: IntegratedResult | null | undefined, key: LensKey): unknown {
+  const lenses = (result as Record<string, unknown> | null | undefined)?.lenses;
+  const lensId = key === "westernAstrology" ? "western" : key === "vedicAstrology" ? "vedic" : key;
+  const block = lenses && typeof lenses === "object" ? (lenses as Record<string, unknown>)[lensId] : null;
+  if (block && typeof block === "object") {
+    const data = (block as Record<string, unknown>).data;
+    if (data && typeof data === "object") return data;
+  }
+  return (result as Record<string, unknown> | null | undefined)?.[key];
+}
+
+function summarizeSystem(result: IntegratedResult | null | undefined, key: LensKey) {
+  const source = readLensData(result, key);
+  if (!source || typeof source !== "object") return LENS_FALLBACK_SUMMARY[key];
   const summary = String((source as Record<string, unknown>).patternSummary || "").trim();
-  if (summary) return summary;
-  if (key === "saju") return "일간과 오행의 균형으로 반복되는 선택 습관을 살핍니다.";
-  if (key === "westernAstrology") return "태양과 달의 흐름으로 마음의 반복 방식을 살핍니다.";
-  return "라후와 케투의 축으로 익숙한 습관과 성장 방향을 살핍니다.";
+  return summary || LENS_FALLBACK_SUMMARY[key];
 }
 
 function formatChartDataValue(value: unknown): string {
@@ -356,19 +390,26 @@ function collectChartDataRows(source: unknown, prefix = "", limit = 18): { label
 }
 
 function buildChartDataBlocks(result: IntegratedResult | null | undefined): ChartDataBlock[] {
+  // 자미 12궁·숙요 27수 관계축은 항목이 많아 기본 limit(18)로는 잘린다.
   const configs = [
-    { key: "saju", label: "명리", title: "사주 원국 데이터" },
-    { key: "westernAstrology", label: "서양 점성술", title: "서양 점성술 차트 데이터" },
-    { key: "vedicAstrology", label: "베다 점성술", title: "베다 점성술 차트 데이터" },
+    { key: "saju", label: "명리", title: "사주 원국 데이터", limit: 18 },
+    { key: "ziwei", label: "자미두수", title: "자미두수 명반 데이터", limit: 30 },
+    { key: "sukuyo", label: "숙요", title: "숙요 27수 데이터", limit: 26 },
+    { key: "westernAstrology", label: "서양 점성술", title: "서양 점성술 차트 데이터", limit: 22 },
+    { key: "vedicAstrology", label: "베다 점성술", title: "베다 점성술 차트 데이터", limit: 22 },
   ] as const;
-  return configs.map((config) => {
-    const rows = collectChartDataRows(result?.[config.key]).filter((row) => row.value.length <= 260);
-    return {
-      ...config,
-      summary: summarizeSystem(result, config.key),
-      rows: rows.length ? rows : [{ label: "기준", value: "입력된 출생 정보와 계산 흐름을 바탕으로 상담문에 반영되었습니다." }],
-    };
-  });
+  return configs
+    .map(({ limit, ...config }) => {
+      const data = readLensData(result, config.key);
+      const rows = collectChartDataRows(data, "", limit).filter((row) => row.value.length <= 260);
+      return {
+        ...config,
+        summary: summarizeSystem(result, config.key),
+        rows,
+      };
+    })
+    // 계산되지 않은 렌즈는 빈 카드로 남기지 않고 아예 뺀다("기준" 한 줄짜리 유령 카드 금지).
+    .filter((block) => block.rows.length > 0);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -1041,6 +1082,17 @@ export default function KarmaDestinyAiPage() {
 
           {notice && <p className="kdai-notice">{notice}</p>}
           {error && <p className="kdai-error">{error}</p>}
+          {/* 5만원이 무엇을 사는지 숫자로 밝힌다. 값은 worker/routes/karma-destiny-ai.js 의
+              INITIAL_CONSULTATION_MIN_LENGTH·PREMIUM_CHAPTERS·PREMIUM_REINFORCEMENT_MAX_ATTEMPTS
+              가 실제로 강제하는 계약이다. */}
+          <DeliverableSpec
+            keyPrefix="karmaDestiny.deliverable"
+            className="kdai-deliverable"
+            titleClassName="kdai-deliverable__title"
+            labelClassName="kdai-deliverable__label"
+            valueClassName="kdai-deliverable__value"
+            noteClassName="kdai-deliverable__note"
+          />
           <div className="flex items-center justify-end">
             <PriceBadge featureKey="karma-destiny-ai-consultation" fallbackCoins={500} prefix="상담 이용 가격 " />
           </div>
@@ -1674,6 +1726,51 @@ export default function KarmaDestinyAiPage() {
           padding: 12px;
           resize: vertical;
           line-height: 1.6;
+        }
+
+        .kdai-deliverable {
+          display: grid;
+          gap: 12px;
+          margin-top: 18px;
+          padding: 14px;
+          border: 1px solid rgba(241, 205, 124, .22);
+          border-radius: 10px;
+          background: rgba(0, 0, 0, .22);
+        }
+
+        @media (min-width: 640px) {
+          .kdai-deliverable {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        .kdai-deliverable__title {
+          margin: 0;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: .02em;
+          color: #f1cd7c;
+        }
+
+        .kdai-deliverable__label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #c3ab7d;
+        }
+
+        .kdai-deliverable__value {
+          margin: 4px 0 0;
+          font-size: 14px;
+          font-weight: 800;
+          line-height: 1.5;
+          color: #ffe4a3;
+        }
+
+        .kdai-deliverable__note {
+          margin: 0;
+          font-size: 11px;
+          line-height: 1.6;
+          color: #c3ab7d;
         }
 
         .kdai-notice,

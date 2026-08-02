@@ -2104,6 +2104,8 @@
     } catch (_) {}
   }
 
+  // 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 CD_WAIT_UI_ALLOWED_MODE_RE 의 거울(셸이 없을 때만 쓴다).
+  var DP_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
   function _dpSetPaymentPending(show, message, mode) {
     var text = String(message || '').trim() || '결제가 진행 중입니다.';
     if (show && String(mode || '').trim() === 'card' && /준비|여는 중|열고 있|주문 정보를 확인|보안 결제창|결제를 처리하고 있어요|창을 닫지 말아 주세요|진행 중입니다/.test(text)) {
@@ -2113,6 +2115,7 @@
     // 🔴 대기 화면 금지 구간에는 띄우지 않는다(셸의 __cdPaymentWaitUiBlocked 가 판정 정본):
     // 미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건 확정→PG창. 종단(결과)은 통과한다.
     // 셸이 없는 독립 페이지에서는 플래그도 없으니 그대로 동작한다.
+    // 셸이 없는 독립 페이지에서는 아래 window._cdSetCoinGateOverlay 심이 같은 허용목록으로 거른다.
     try {
       if (show && typeof window.__cdPaymentWaitUiBlocked === 'function'
         && window.__cdPaymentWaitUiBlocked(mode)) return;
@@ -2287,6 +2290,9 @@
   // (메인 앱은 canonical이 먼저 등록되므로 이 심이 설치되지 않는다.)
   if (typeof window._cdSetCoinGateOverlay !== 'function') {
     window._cdSetCoinGateOverlay = function (isOpen, message, mode) {
+      // 🔴 정책 집행 지점(셸이 없는 환경). 독립 페이지들이 이 함수를 직접 부르므로 여기서 막아야
+      // 빠짐이 없다 — _dpSetPaymentPending 안에만 두면 tarot/geomancy/royal-tea 등의 직접 호출이 샌다.
+      if (isOpen && !DP_WAIT_UI_ALLOWED_MODE_RE.test(String(mode || '').trim() || 'payment')) return;
       _dpSetStandalonePaymentOverlay(!!isOpen, message, mode);
     };
   }
@@ -2341,6 +2347,65 @@
   function _dpPassVerdict() {
     var api = window.__cdPassVerdict;
     return api && typeof api.readSnapshot === 'function' ? api : null;
+  }
+
+  // 🔴 결제창 진입·복귀·계측의 구현 정본은 /js/core/checkout-entry.js 하나다(셸·React 와 공유).
+  // 아래는 얇은 위임 래퍼이며, 모듈이 아직 안 붙었어도 결제 흐름이 죽지 않도록 안전한 기본값을 준다.
+  function _dpCheckoutEntry() {
+    try { return window.__cdCheckoutEntry || null; } catch (_checkoutEntryError) { return null; }
+  }
+  // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
+  function _dpShouldUseAppStoreEntry() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.shouldUseAppStoreEntry !== 'function') return false;
+    try { return api.shouldUseAppStoreEntry() === true; } catch (_appEntryError) { return false; }
+  }
+  // 결제창 문구 조회. 셸·React 와 같은 키·같은 사전(public/i18n)을 본다.
+  // 폴백도 보간한다. 예전에는 checkout-entry 가 아직/영영 로드되지 않으면 인자를 버린 원문을 그대로
+  // 돌려줘서, 결제창에 '{amount}원'·'보유 월정석 {balance}' 같은 자리표시자가 그대로 노출됐다.
+  function _dpInterpolateText(text, vars) {
+    var value = String(text == null ? '' : text);
+    if (!vars || typeof vars !== 'object') return value;
+    return value.replace(/\{(\w+)\}/g, function(match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) && vars[name] != null ? String(vars[name]) : match;
+    });
+  }
+  function _dpCheckoutText(key, fallback, vars) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.text !== 'function') return _dpInterpolateText(fallback, vars);
+    try { return api.text(key, fallback, vars); } catch (_checkoutTextError) { return _dpInterpolateText(fallback, vars); }
+  }
+  function _dpTrackCheckoutEvent(name, payload) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.trackCheckoutEvent !== 'function') return;
+    try {
+      var detail = payload || {};
+      detail.renderer = 'standalone';
+      api.trackCheckoutEvent(name, detail);
+    } catch (_trackError) { /* 계측은 결제 흐름을 막지 않는다 */ }
+  }
+  // 빈 문자열을 돌려주면 호출부가 기존 충전 모달 폴백을 그대로 탄다(모듈 미로딩 대비).
+  function _dpBuildPassStoreUrl(coinPrice, passCoverage, source) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.buildPassStoreUrl !== 'function') return '';
+    try {
+      return api.buildPassStoreUrl({
+        costCoins: coinPrice,
+        currentTier: (passCoverage && (passCoverage.passTier || passCoverage.tier)) || '',
+        source: source
+      });
+    } catch (_passStoreUrlError) { return ''; }
+  }
+  // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
+  function _dpRememberCheckoutReturn(featureKey) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.rememberCheckoutReturn !== 'function') return;
+    try {
+      api.rememberCheckoutReturn({
+        url: String(window.location.pathname || '/') + String(window.location.search || '') + String(window.location.hash || ''),
+        featureKey: String(featureKey || '')
+      });
+    } catch (_rememberError) { /* 복귀 지점 저장 실패는 결제를 막지 않는다 */ }
   }
   var _dpSnapshotRevalidateInFlight = false;
 
@@ -2815,8 +2880,16 @@
       function finish(ok) {
         if (settled) return;
         settled = true;
-        if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') resolve();
-        else reject(new Error('포트원 V2 결제 SDK가 초기화되지 않았습니다.'));
+        if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') {
+          resolve();
+          return;
+        }
+        // 죽은 태그를 남기면 다음 시도가 그 태그를 물려받아 새 요청 없이 상한까지 기다린다.
+        try {
+          var dead = document.getElementById('portone-v2-sdk');
+          if (dead && dead.parentNode) dead.parentNode.removeChild(dead);
+        } catch (_removeError) {}
+        reject(new Error('포트원 V2 결제 SDK가 초기화되지 않았습니다.'));
       }
 
       var existing = document.getElementById('portone-v2-sdk');
@@ -3051,7 +3124,6 @@
     var ticket = _dpReadDirectResumeTicket();
     // 티켓이 없으면 이 복귀는 우리 것이 아니다(예: /points 가 자기 키로 처리하는 이용권·월정석 결제).
     if (!ticket || !ticket.confirmBody) return;
-    _dpClearDirectResumeTicket();
 
     var paymentId = String(
       query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || ticket.merchantUid || '',
@@ -3060,6 +3132,8 @@
       || String(query.get('imp_success') || '').toLowerCase() === 'false';
 
     if (!paymentId || failed) {
+      // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
+      _dpClearDirectResumeTicket();
       var failMessage = String(query.get('message') || query.get('error_msg') || '').trim();
       window.alert(failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.');
       return;
@@ -3067,19 +3141,24 @@
 
     try {
       _dpSetPaymentPending(true, '결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.', 'confirm');
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
-        method: 'POST',
-        body: JSON.stringify(Object.assign({}, ticket.confirmBody, {
-          impUid: paymentId,
-          paymentId: paymentId,
-        })),
-      });
+      // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
+      // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
+      var dpResumeBody = JSON.stringify(Object.assign({}, ticket.confirmBody, {
+        impUid: paymentId,
+        paymentId: paymentId,
+      }));
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
+      if (!confirmRes.ok && Number(confirmRes.status) >= 500) {
+        await new Promise(function (resolveRetryDelay) { setTimeout(resolveRetryDelay, 1500); });
+        confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
+      }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
         window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
         return;
       }
       // 서버 confirm 은 멱등이다(existingUnlock 감지 → alreadyUnlocked). 중복 확정 위험은 없다.
+      _dpClearDirectResumeTicket();
       _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
     } catch (error) {
       _dpSetPaymentPending(false);
@@ -3367,6 +3446,14 @@
           var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
           var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
           if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
+            // 🔴 낙관 잠금은 전역 60초다. '이 가격이 이 등급 한도를 넘는다'는 미커버는 스냅샷이 이미 아는
+            // 사실이라 자기수정할 것이 없는데, 여기서 잠그면 한도 이내 기능들의 낙관 통과까지 함께 죽는다.
+            // 스냅샷과 서버 답이 실제로 어긋난 경우만 잠근다(셸 _cdRecordMembershipPassInBackground 와 동일 규칙).
+            var deniedSnapshot = _dpReadSubscriptionSnapshot({ allowStaleNone: true });
+            if (deniedSnapshot
+              && deniedSnapshot.state === 'active'
+              && deniedSnapshot.tier !== 'family'
+              && Math.max(0, Math.floor(Number(coinPrice || 0))) > _dpMembershipPassLimitForTier(deniedSnapshot.tier)) return;
             _dpDisableOptimisticPassBriefly();
             try { _dpRefreshAuthSessionSilently({}); } catch (_) {}
           }
@@ -3410,54 +3497,12 @@
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
         }
-        // 서버 이용권 확인 왕복 동안 PortOne SDK 를 함께 내려받아 임계경로에서 뺀다. 예전에는 이 확인이
-        // 끝난 뒤에야 <script> 를 붙여, CDN 왕복이 결제수단 선택 이후 구간에 그대로 얹혔다.
-        // (낙관적 이용권 통과 경로는 위에서 이미 return 했으므로 여기까지 오지 않는다 = 불필요 다운로드 없음.)
-        _dpPreloadPortOneV2Sdk();
-        // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
-        _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
-        // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
-        await _dpWaitForPaymentOverlayPaint();
-        var passFirst;
-        try {
-          passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-            title: title,
-            coinPrice: coinPrice,
-            cost: coinPrice,
-            requestId: requestId
-          }));
-          // 인프라/degraded로 이용권 확인이 실패(status:'error')하면 짧게 최대 2회 재시도(동일 requestId 재사용,
-          // 지수 백오프 250ms→450ms)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
-          // 않고 결제창(단건+월정석)으로 fall-through한다(요구사항: 이용권 확인 실패 시 무조건 결제창).
-          // 백오프는 정본 셸 게이트(index.html _cdOpenPaidServiceGate)와 같은 값으로 맞춘다 — 기존 800ms→1.44s는
-          // 대기만 2.24초를 더해 '결제가 느리다'는 체감의 절반을 차지했다.
-          // 전체 예산 6초(셸 CD_PASS_FIRST_BUDGET_MS 와 동일). 예산 소진은 '미커버'가 아니라 'error' 로 남겨
-          // 기존 폴백(결제창 재노출)을 타게 하고, 커버 여부는 서버가 최종 결정한다 — 지연을 미커버 근거로 쓰지 않는다.
-          var _dpPassDeadline = Date.now() + 6000;
-          for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error' && Date.now() < _dpPassDeadline; _dpPassRetry += 1) {
-            await new Promise(function(resolve) { setTimeout(resolve, Math.round(250 * Math.pow(1.8, _dpPassRetry - 1))); });
-            passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-              title: title,
-              coinPrice: coinPrice,
-              cost: coinPrice,
-              requestId: requestId
-            }));
-          }
-        } finally {
-          // 최소 표시 시간(550ms) 보장은 제거했다 — 결제창 진입 임계경로에 얹히는 순수 인위적 지연이고,
-          // "이용권 확인 중"이 깜빡이는 것보다 결제창이 늦게 뜨는 비용이 훨씬 크다(정적 셸에는 이 floor가 없다).
-          // 예외 시에도 오버레이가 멈추지 않고 닫히도록 finally 자체는 유지한다.
-          // pass 적용 성공 시엔 적용 완료 오버레이(_dpApplyMembershipPassBeforePayment 내부 _dpShowPassAppliedOverlay,
-          // 자체 ~1.2s 후 자동 닫힘)를 유지해 "적용 완료" 프레임이 즉시 덮여 사라지지 않도록 한다. 미커버·에러만 닫는다.
-          var passGrantedInFlight = passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked');
-          if (!passGrantedInFlight) _dpSetPaymentPending(false);
-        }
-        if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
-          return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
-        }
-        // passFirst.status === 'error'(재시도 후에도 인프라/degraded로 이용권 확인 실패)면 throw하지 않고
-        // 결제창(단건+월정석)으로 fall-through한다(아래 _cdChooseServicePaymentMode). 요구사항: 이용권 확인
-        // 실패 시 무조건 결제창 노출. 결제창 내 '이용권 다시 확인' 버튼으로 실제 보유자는 그 자리에서 재검증한다.
+        // 🔴 여기서 서버에 이용권을 묻지 않는다(2026-08 정책 전환, 셸 index.html · React 와 동일).
+        // 스냅샷이 커버를 확답하면 위에서 이미 무료로 통과했고, 확답하지 못하면 기다리지 않고 곧바로
+        // 결제창을 연다. 예전에는 여기서 __cdApplyMembershipPassBeforePayment 를 6초 예산 + 재시도 2회로
+        // 두드렸고, 그 대기가 곧 사용자가 결제창을 만나기까지의 지연이었다.
+        // 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 수행하고, 카드 주문 직전 서버가
+        // grantPassFreeAccessBeforeCardIfAvailable 로 한 번 더 검사한다.
       }
       // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
       _dpPreloadPortOneV2Sdk();
@@ -3718,10 +3763,10 @@
       _dpSetPaymentPending(false);
       var rsp = await window.PortOne.requestPayment(requestData);
       window.__cdSuppressPaymentUnloadBlock = false;
-      // 여기에 도달했다면 리다이렉트 없이 이 컨텍스트에서 끝났다 — 티켓은 더 필요 없다.
-      _dpClearDirectResumeTicket();
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
+        // 승인 자체가 나지 않았으니 복귀 티켓은 의미가 없다 — 여기서만 회수한다.
+        _dpClearDirectResumeTicket();
         var dpRspCode = String((rsp && rsp.code) || '').trim();
         if (!_dpIsPortOneUserCancelCode(dpRspCode)) {
           try {
@@ -3740,14 +3785,22 @@
 
       _dpSetPaymentPending(true, '\uB2E8\uAC74 \uACB0\uC81C \uC2B9\uC778\uACFC \uCF58\uD150\uCE20 \uC774\uC6A9 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'confirm');
 
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
-        method: 'POST',
-        body: JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
-          impUid: paymentId,
-          paymentId: paymentId,
-        })),
-      });
+      // 🔴 복귀 티켓은 confirm 이 성공한 뒤에 지운다. 예전에는 requestPayment 반환 직후 지워서,
+      // 카드 승인은 났는데 confirm 이 5xx 로 죽으면 복구 수단이 통째로 사라졌다(돈은 나가고 지급은 안 됨).
+      // 5xx 는 서버측 일시 오류이므로 한 번만 더 시도한다. 중복 confirm 은 서버 settlePaymentByImpUid 의
+      // 기존 CAS 멱등이 이미 막으므로 여기에 새 락·새 dedup 을 만들지 않는다.
+      var dpConfirmBody = JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
+        impUid: paymentId,
+        paymentId: paymentId,
+      }));
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
+      if (!confirmRes.ok && Number(confirmRes.status) >= 500) {
+        await new Promise(function (resolveRetryDelay) { setTimeout(resolveRetryDelay, 1500); });
+        confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
+      }
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+      // 확정됐으니 이제 복귀 티켓을 회수한다.
+      _dpClearDirectResumeTicket();
       // \uB2E8\uAC74 \uACB0\uC81C \uC644\uB8CC \uD504\uB808\uC784(\uC81C\uBAA9 "\uACB0\uC81C \uC644\uB8CC"\u00B7\uC2A4\uD53C\uB108 off) \uD45C\uC2DC \uD6C4 ~1.2s \uC790\uB3D9 \uB2EB\uD798. \uC774\uD6C4 \uCF58\uD150\uCE20 \uC0DD\uC131\uC740 \uBCD1\uB82C \uC9C4\uD589.
       _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
       await _dpWaitForPaymentOverlayPaint();
@@ -5554,6 +5607,25 @@
     quest:   { exp: 15, dailyLimit: 3 },
     paid:    { exp: 30, dailyLimit: 3 }
   };
+  /* 레벨 마일스톤 월정석 보상표. 서버 worker/routes/rpg.js의 LEVEL_MONTHLY_CREDIT_REWARDS와
+     같은 값이어야 하며, 값 일치는 scripts/verify-profile-card-level.mjs가 행 단위로 강제한다.
+     서버에 물어보지 않아도(비로그인·오프라인·503) "다음 보상"을 그릴 수 있어야 해서 사본을 둔다 —
+     레벨 곡선 상수를 이중으로 두는 것과 같은 이유다. 실제 지급 판단은 언제나 서버가 한다.
+     payments/krw = 그 단계를 받는 데 필요한 누적 현금 결제 횟수·금액(단계가 올라갈수록 함께 오른다). */
+  var CD_LEVEL_REWARD_TABLE = [
+    { level: 5,  credits: 500,  payments: 1,  krw: 3000 },
+    { level: 10, credits: 500,  payments: 2,  krw: 8000 },
+    { level: 20, credits: 700,  payments: 4,  krw: 20000 },
+    { level: 30, credits: 800,  payments: 6,  krw: 35000 },
+    { level: 50, credits: 1000, payments: 10, krw: 60000 },
+    { level: 70, credits: 1500, payments: 15, krw: 100000 },
+    { level: 99, credits: 5000, payments: 30, krw: 200000 }
+  ];
+  // 월정석 1개 = 10원 (KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)
+  var CD_LEVEL_REWARD_KRW_PER_CREDIT = 10;
+  // 지급된 월정석의 수명. worker/lib/monthly-credit-lots.js의 MONTHLY_CREDIT_TTL_MS와 같다.
+  var CD_LEVEL_REWARD_EXPIRE_DAYS = 30;
+
   /* 날짜 시드로 매일 3개를 고른다. 사주 무관한 생활 행동이라 프로필이 없어도 성립한다. */
   var CD_LEVEL_QUEST_POOL = [
     { id: 'water',    icon: '💧', text: '물 한 잔으로 하루 시작하기' },
@@ -5777,6 +5849,27 @@
     return picked;
   }
 
+  /* 서버가 알려준 수령 상태(있으면). 없으면 레벨만 보고 낙관적으로 그린다 —
+     이 값은 안내용이고 실제 지급 판정은 서버가 한다. */
+  var _cdLevelRewardStatus = null;
+
+  function _cdLevelGrantedRewardSet() {
+    var set = {};
+    var list = (_cdLevelRewardStatus && _cdLevelRewardStatus.grantedLevels) || [];
+    for (var i = 0; i < list.length; i += 1) set[Number(list[i])] = true;
+    return set;
+  }
+
+  /* 아직 못 받은 첫 마일스톤. 전부 받았거나 표를 다 지났으면 null. */
+  function _cdLevelNextReward(level) {
+    var granted = _cdLevelGrantedRewardSet();
+    for (var i = 0; i < CD_LEVEL_REWARD_TABLE.length; i += 1) {
+      var row = CD_LEVEL_REWARD_TABLE[i];
+      if (!granted[row.level] && row.level > level) return row;
+    }
+    return null;
+  }
+
   /* 카드 렌더에 필요한 값 전부. 네트워크를 타지 않으므로 항상 즉시 반환된다. */
   function _cdLevelSnapshot() {
     var store = _cdLevelRead();
@@ -5795,7 +5888,8 @@
       quests: _cdLevelTodayQuests(),
       synced: !!_cdLevelServer,
       loggedIn: _dpIsLoggedInScope(),
-      writeFailed: _cdLevelWriteFailed
+      writeFailed: _cdLevelWriteFailed,
+      nextReward: _cdLevelNextReward(state.currentLevel)
     };
   }
 
@@ -5851,7 +5945,21 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind: kind, key: key })
     }, { timeoutMs: 8000 }).then(function(res) {
-      if (res && res.ok && res.data && res.data.progress) _cdLevelApplyServer(res.data.progress);
+      var data = (res && res.ok && res.data) ? res.data : null;
+      if (data && data.progress) _cdLevelApplyServer(data.progress);
+      /* 서버는 예전부터 leveledUp·monthlyCreditGrants 를 실어 보냈는데 여기서 통째로 버려서,
+         월정석이 실제로 지급돼도 화면에는 아무 일도 일어나지 않았다. */
+      if (data) {
+        var grants = Array.isArray(data.monthlyCreditGrants) ? data.monthlyCreditGrants : [];
+        if (grants.length) _cdLevelRewardStatus = null; // 다음 시트 열람에서 서버 상태를 다시 받는다
+        if (grants.length || data.leveledUp === true) {
+          _dpCelebrateLevelUp({
+            level: (data.progress && Number(data.progress.currentLevel)) || _cdLevelSnapshot().currentLevel,
+            grants: grants
+          });
+        }
+        _dpRefreshLevelStrip();
+      }
       return res;
     }).catch(function() { return null; });
   }
@@ -5940,7 +6048,12 @@
     kstDate: _cdLevelKstDate,
     award: _cdLevelAward,
     sync: _cdLevelSync,
-    publishQuests: _cdLevelPublishQuests
+    publishQuests: _cdLevelPublishQuests,
+    rewardTable: CD_LEVEL_REWARD_TABLE,
+    buildStrip: function() { return _dpBuildLevelStrip(); },
+    // 보상 안내·연출은 순수 표시 계층이다(지급은 서버만 한다). 다른 화면에서도 같은 안내를 열 수 있게 노출한다.
+    openRewardSheet: function() { return _dpOpenLevelRewardSheet(); },
+    celebrate: function(options) { return _dpCelebrateLevelUp(options); }
   };
 
   /* ── 프로필 카드 레벨 스트립 UI ── */
@@ -5971,7 +6084,60 @@
       + '.dp-lvl__quest-exp{margin-left:auto;flex-shrink:0;font-size:.66rem;font-weight:900;color:#FFD700;}'
       + '.dp-lvl__note{margin-top:9px;font-size:.66rem;line-height:1.5;color:rgba(203,213,225,.72);}'
       + '.dp-lvl__note--warn{color:#fca5a5;}'
-      + '@media (prefers-reduced-motion: reduce){.dp-lvl__fill,.dp-lvl__chev{transition:none;}}';
+      /* 보상 요약 1줄. 달빛(월정석) 계열로 골드 EXP 바와 역할을 구분한다. */
+      + '.dp-lvl__reward{width:100%;min-height:44px;margin-top:9px;display:flex;align-items:center;gap:8px;padding:0 11px;border:1px solid rgba(196,181,253,.34);border-radius:10px;background:linear-gradient(120deg,rgba(124,101,214,.20),rgba(255,215,0,.08));color:#e9e4ff;font-size:.72rem;font-weight:800;line-height:1.35;text-align:left;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvl__reward-moon{flex-shrink:0;font-size:.86rem;}'
+      + '.dp-lvl__reward-amt{margin-left:auto;flex-shrink:0;display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:900;color:#d9cbff;}'
+      + '.dp-lvl__reward-arrow{color:rgba(217,203,255,.7);font-weight:700;}'
+      + '.dp-lvl__reward--done{cursor:pointer;color:rgba(233,228,255,.86);}'
+      /* 보상 시트 — 기존 .dp-delete-gate 오버레이 관례를 그대로 따른다(스크롤락 없음). */
+      + '.dp-lvlrw{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
+      + '.dp-lvlrw__card{width:min(430px,100%);max-height:min(86vh,760px);overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:18px;border:1px solid rgba(196,181,253,.34);background:linear-gradient(160deg,rgba(22,18,48,.99),rgba(12,10,28,.99));box-shadow:0 26px 80px rgba(0,0,0,.5);padding:20px 18px 18px;color:#f2effd;}'
+      + '.dp-lvlrw__head{display:flex;align-items:flex-start;gap:10px;}'
+      + '.dp-lvlrw__title{margin:0;font-size:1.02rem;font-weight:900;letter-spacing:.01em;color:#fff;}'
+      + '.dp-lvlrw__sub{margin:6px 0 0;font-size:.74rem;line-height:1.6;color:rgba(221,214,254,.82);}'
+      + '.dp-lvlrw__close{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e9e4ff;font-size:1rem;font-weight:800;line-height:1;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvlrw__mine{margin-top:14px;padding:9px 12px;border-radius:10px;border:1px solid rgba(196,181,253,.28);background:rgba(196,181,253,.10);font-size:.72rem;font-weight:700;color:rgba(233,228,255,.9);}'
+      + '.dp-lvlrw__mine b{color:#FFD700;font-weight:900;}'
+      + '.dp-lvlrw__list{display:grid;gap:7px;margin-top:11px;}'
+      + '.dp-lvlrw__row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.04);}'
+      + '.dp-lvlrw__row--done{border-color:rgba(134,239,172,.34);background:rgba(134,239,172,.09);}'
+      + '.dp-lvlrw__row--next{border-color:rgba(255,215,0,.44);background:rgba(255,215,0,.10);}'
+      + '.dp-lvlrw__lv{flex-shrink:0;min-width:52px;font-size:.78rem;font-weight:900;color:#FFD700;}'
+      + '.dp-lvlrw__row--done .dp-lvlrw__lv{color:rgba(187,247,208,.95);}'
+      + '.dp-lvlrw__amt{font-size:.76rem;font-weight:800;color:#efeaff;}'
+      + '.dp-lvlrw__krw{display:block;margin-top:2px;font-size:.64rem;font-weight:700;color:rgba(203,213,225,.66);}'
+      + '.dp-lvlrw__right{margin-left:auto;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;}'
+      + '.dp-lvlrw__state{font-size:.66rem;font-weight:800;color:rgba(221,214,254,.72);white-space:nowrap;}'
+      + '.dp-lvlrw__req{font-size:.6rem;font-weight:700;color:rgba(203,213,225,.58);white-space:nowrap;}'
+      + '.dp-lvlrw__row--done .dp-lvlrw__state{color:#86efac;}'
+      + '.dp-lvlrw__row--next .dp-lvlrw__state{color:#FFD700;}'
+      + '.dp-lvlrw__terms{margin:14px 0 0;padding:12px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);}'
+      + '.dp-lvlrw__terms li{margin:0 0 6px;padding-left:14px;position:relative;font-size:.7rem;line-height:1.6;color:rgba(214,211,240,.82);list-style:none;}'
+      + '.dp-lvlrw__terms li:last-child{margin-bottom:0;}'
+      + '.dp-lvlrw__terms li::before{content:"·";position:absolute;left:4px;color:rgba(196,181,253,.8);font-weight:900;}'
+      + '.dp-lvlrw__claim{width:100%;min-height:48px;margin-top:14px;border-radius:12px;border:1px solid rgba(255,215,0,.5);background:linear-gradient(120deg,rgba(255,215,0,.24),rgba(196,181,253,.22));color:#fff6d8;font-size:.84rem;font-weight:900;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvlrw__claim[disabled]{opacity:.6;cursor:default;}'
+      /* 축하 연출 */
+      + '.dp-lvlup{position:fixed;inset:0;z-index:2147483400;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at 50% 42%,rgba(76,58,150,.62),rgba(5,7,18,.9) 62%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transition:opacity .3s ease;}'
+      + '.dp-lvlup--in{opacity:1;}'
+      + '.dp-lvlup__card{position:relative;width:min(360px,100%);padding:26px 22px 20px;border-radius:22px;border:1px solid rgba(255,215,0,.36);background:linear-gradient(165deg,rgba(30,24,64,.98),rgba(12,10,28,.98));box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 60px rgba(196,181,253,.18);text-align:center;color:#fff;transform:scale(.9);opacity:0;transition:transform .42s cubic-bezier(.16,1,.3,1),opacity .32s ease;}'
+      + '.dp-lvlup--in .dp-lvlup__card{transform:scale(1);opacity:1;}'
+      + '.dp-lvlup__eyebrow{margin:0;font-size:.68rem;font-weight:900;letter-spacing:.18em;color:rgba(255,215,0,.9);}'
+      + '.dp-lvlup__lv{margin:8px 0 0;font-size:1.9rem;font-weight:900;line-height:1.1;color:#FFD700;text-shadow:0 0 24px rgba(255,215,0,.36);}'
+      + '.dp-lvlup__stage{position:relative;height:96px;margin:10px 0 2px;display:flex;align-items:center;justify-content:center;}'
+      + '.dp-lvlup__moon{font-size:2.6rem;filter:drop-shadow(0 0 18px rgba(196,181,253,.7));animation:dpLvlUpMoonPulse 1.6s ease-in-out infinite;}'
+      + '.dp-lvlup__spark{position:absolute;left:50%;top:50%;font-size:1rem;opacity:0;animation:dpLvlUpGather .95s ease-out forwards;}'
+      + '.dp-lvlup__amt{margin:6px 0 0;font-size:1.34rem;font-weight:900;color:#e6dcff;}'
+      + '.dp-lvlup__amt b{color:#FFD700;}'
+      + '.dp-lvlup__balance{margin:8px 0 0;min-height:18px;font-size:.72rem;font-weight:800;color:rgba(214,211,240,.8);}'
+      + '.dp-lvlup__hint{margin:10px 0 0;font-size:.66rem;line-height:1.6;color:rgba(203,213,225,.66);}'
+      + '.dp-lvlup__close{width:100%;min-height:44px;margin-top:14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#f1eeff;font-size:.78rem;font-weight:800;cursor:pointer;touch-action:manipulation;}'
+      + '@keyframes dpLvlUpGather{0%{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.5);}30%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(.2);}}'
+      + '@keyframes dpLvlUpMoonPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.09);}}'
+      + '@media (prefers-reduced-motion: reduce){.dp-lvl__fill,.dp-lvl__chev{transition:none;}'
+        + '.dp-lvlup,.dp-lvlup__card{transition:none;opacity:1;transform:none;}'
+        + '.dp-lvlup__spark{display:none;}.dp-lvlup__moon{animation:none;}}';
     document.head.appendChild(style);
   }
 
@@ -5987,6 +6153,27 @@
     } else if (!snap.loggedIn) {
       note = '<div class="dp-lvl__note">로그인하면 기기가 바뀌어도 이어집니다.</div>';
     }
+
+    /* 보상 요약 1줄. 레벨을 올리면 월정석이 나온다는 사실 자체를 여기서 처음 알린다 —
+       그동안 서버는 지급하고 있었는데 화면 어디에도 설명이 없었다. */
+    var rewardLabel;
+    var rewardAmount = '';
+    if (!snap.loggedIn) {
+      rewardLabel = '레벨 보상 · 로그인 후 지급';
+    } else if (snap.nextReward) {
+      rewardLabel = '다음 보상 · Lv.' + snap.nextReward.level;
+      rewardAmount = '월정석 ' + snap.nextReward.credits.toLocaleString('ko-KR');
+    } else {
+      rewardLabel = '모든 레벨 보상을 받았어요';
+    }
+    var rewardHtml = '<button type="button" class="dp-lvl__reward'
+      + (snap.nextReward ? '' : ' dp-lvl__reward--done') + '" data-dp-level-reward'
+      + ' aria-label="레벨 보상 안내 열기">'
+      + '<span class="dp-lvl__reward-moon" aria-hidden="true">🌙</span>'
+      + '<span>' + rewardLabel + '</span>'
+      + (rewardAmount ? '<span class="dp-lvl__reward-amt">' + rewardAmount + '</span>' : '<span class="dp-lvl__reward-amt"></span>')
+      + '<span class="dp-lvl__reward-arrow" aria-hidden="true">›</span>'
+      + '</button>';
 
     var questsHtml = snap.quests.map(function(quest) {
       var done = snap.completedQuestIds.indexOf(quest.id) >= 0;
@@ -6008,6 +6195,7 @@
         + '<span class="dp-lvl__fill" style="transform:scaleX(' + (pct / 100) + ')"></span>'
       + '</div>'
       + '<div class="dp-lvl__meta">' + snap.currentLevelExp + ' / ' + snap.nextLevelExp + ' EXP</div>'
+      + rewardHtml
       + '<button type="button" class="dp-lvl__toggle" aria-expanded="' + (_dpLevelQuestsOpen ? 'true' : 'false') + '"'
         + ' aria-controls="dpLvlQuests" aria-label="오늘의 퀘스트 ' + (_dpLevelQuestsOpen ? '접기' : '펼치기') + '">'
         + '<span>오늘의 퀘스트 <b>' + doneCount + '/' + snap.quests.length + '</b></span>'
@@ -6038,18 +6226,330 @@
         _dpRefreshLevelStrip();
         return;
       }
+      var rewardBtn = event.target && event.target.closest ? event.target.closest('[data-dp-level-reward]') : null;
+      if (rewardBtn) {
+        _dpOpenLevelRewardSheet();
+        return;
+      }
       var questBtn = event.target && event.target.closest ? event.target.closest('[data-dp-quest]') : null;
       if (!questBtn || questBtn.disabled) return;
       var result = _cdLevelAward('quest', questBtn.getAttribute('data-dp-quest') || '');
-      if (result.changed) _dpRefreshLevelStrip();
+      if (result.changed) {
+        _dpRefreshLevelStrip();
+        _dpNoteLocalLevelUp(result);
+      }
     });
+  }
+
+  /* ── 레벨 보상 안내 시트 ── */
+
+  function _dpLevelRewardKrw(credits) {
+    return (credits * CD_LEVEL_REWARD_KRW_PER_CREDIT).toLocaleString('ko-KR');
+  }
+
+  function _dpLevelRewardWon(amount) {
+    return (Number(amount) || 0).toLocaleString('ko-KR') + '원';
+  }
+
+  /* 내 결제 실적 한 줄. 서버가 준 값이 없으면(비로그인·degraded) 아예 그리지 않는다 —
+     0으로 보여주면 "결제했는데 0으로 나온다"는 오해가 생긴다. */
+  function _dpBuildLevelRewardProgress(status) {
+    if (!status || status.degraded === true || typeof status.paymentCount !== 'number') return '';
+    var note = status.accountAgeOk === false ? ' · 가입 14일 경과 대기' : '';
+    return '<div class="dp-lvlrw__mine">내 결제 실적 · <b>' + status.paymentCount.toLocaleString('ko-KR') + '회</b>'
+      + ' · <b>' + _dpLevelRewardWon(status.paidKrw) + '</b>' + note + '</div>';
+  }
+
+  /* 로컬 표만으로 그리는 기본형. 서버 상태를 못 받아도 시트가 비지 않게 하는 것이 목적이다. */
+  function _dpBuildLevelRewardRows(status, currentLevel) {
+    var granted = {};
+    var claimable = {};
+    var i;
+    if (status && Array.isArray(status.grantedLevels)) {
+      for (i = 0; i < status.grantedLevels.length; i += 1) granted[Number(status.grantedLevels[i])] = true;
+    }
+    if (status && Array.isArray(status.claimableLevels)) {
+      for (i = 0; i < status.claimableLevels.length; i += 1) claimable[Number(status.claimableLevels[i])] = true;
+    }
+    var unknown = !status || status.degraded === true;
+    var hasStats = !unknown && typeof status.paymentCount === 'number';
+    var nextMarked = false;
+
+    return CD_LEVEL_REWARD_TABLE.map(function(row) {
+      var cls = 'dp-lvlrw__row';
+      var state;
+      if (granted[row.level]) {
+        cls += ' dp-lvlrw__row--done';
+        state = '수령 완료';
+      } else if (unknown) {
+        state = currentLevel >= row.level ? '도달' : 'Lv.' + row.level + ' 필요';
+      } else if (claimable[row.level]) {
+        cls += ' dp-lvlrw__row--next';
+        state = '수령 대기';
+      } else if (currentLevel >= row.level && hasStats) {
+        /* 레벨은 도달했는데 결제 실적이 모자란 단계. 무엇이 얼마나 남았는지 그대로 보여준다. */
+        cls += ' dp-lvlrw__row--next';
+        state = status.accountAgeOk === false
+          ? '가입 14일 대기'
+          : (status.paymentCount < row.payments
+            ? '결제 ' + status.paymentCount + '/' + row.payments + '회'
+            : '누적 ' + Math.round(status.paidKrw / 1000) + '/' + Math.round(row.krw / 1000) + '천원');
+      } else if (!nextMarked) {
+        nextMarked = true;
+        cls += ' dp-lvlrw__row--next';
+        state = '다음 목표';
+      } else {
+        state = '잠김';
+      }
+      /* 요구 실적을 보상 밑에 붙이면 줄이 넘쳐 행이 3줄로 깨진다. 오른쪽 열에 상태와 세로로 쌓는다. */
+      return '<div class="' + cls + '">'
+        + '<span class="dp-lvlrw__lv">Lv.' + row.level + '</span>'
+        + '<span class="dp-lvlrw__amt">월정석 ' + row.credits.toLocaleString('ko-KR') + '개'
+          + '<span class="dp-lvlrw__krw">' + _dpLevelRewardKrw(row.credits) + '원 상당</span>'
+        + '</span>'
+        + '<span class="dp-lvlrw__right">'
+          + '<span class="dp-lvlrw__state">' + state + '</span>'
+          + '<span class="dp-lvlrw__req">결제 ' + row.payments + '회 · ' + _dpLevelRewardWon(row.krw) + '</span>'
+        + '</span>'
+      + '</div>';
+    }).join('');
+  }
+
+  function _dpOpenLevelRewardSheet() {
+    if (document.querySelector('.dp-lvlrw')) return;
+    _dpEnsureLevelStyles();
+
+    var snap = _cdLevelSnapshot();
+    var overlay = document.createElement('div');
+    overlay.className = 'dp-lvlrw';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', '레벨 보상 안내');
+
+    function render(status) {
+      var claimCount = (status && Array.isArray(status.claimableLevels)) ? status.claimableLevels.length : 0;
+      var pendingCount = (status && Array.isArray(status.pendingLevels)) ? status.pendingLevels.length : 0;
+      var loadFailed = !!(status && status.degraded);
+      overlay.innerHTML = '<div class="dp-lvlrw__card">'
+        + '<div class="dp-lvlrw__head">'
+          + '<div>'
+            + '<h3 class="dp-lvlrw__title">🌙 레벨 보상</h3>'
+            + '<p class="dp-lvlrw__sub">레벨이 아래 단계에 도달하고 그 단계의 결제 실적을 채우면 월정석을 드립니다.'
+              + (loadFailed ? '<br><b>수령 상태를 불러오지 못했어요.</b> 보상표만 표시합니다.' : '')
+              + (snap.loggedIn ? '' : '<br>로그인하면 내 수령 상태까지 함께 보여드려요.')
+            + '</p>'
+          + '</div>'
+          + '<button type="button" class="dp-lvlrw__close" data-dp-lvlrw-close aria-label="닫기">✕</button>'
+        + '</div>'
+        + _dpBuildLevelRewardProgress(status)
+        /* 레벨은 서버 값이 정본이다. 로컬 스냅샷을 쓰면 서버가 이미 도달로 보는 단계를
+           "다음 목표"로 잘못 표시해, 왜 못 받는지(=결제 실적 부족)를 못 보여준다. */
+        + '<div class="dp-lvlrw__list">'
+          + _dpBuildLevelRewardRows(status, (status && Number(status.currentLevel)) || snap.currentLevel)
+        + '</div>'
+        + '<ul class="dp-lvlrw__terms">'
+          + '<li>가입 후 14일이 지나야 수령할 수 있어요.</li>'
+          + '<li>단계가 올라갈수록 필요한 누적 결제 횟수와 금액이 함께 올라갑니다.</li>'
+          + '<li>월정석·이용권으로 이용한 건은 결제 실적에 포함되지 않아요.</li>'
+          + '<li>조건을 아직 못 채웠어도 보상은 사라지지 않아요 — 조건을 채우면 그동안 밀린 보상이 한 번에 지급됩니다.</li>'
+          + '<li>지급된 월정석은 받은 날부터 ' + CD_LEVEL_REWARD_EXPIRE_DAYS + '일 뒤 소멸합니다.</li>'
+          + '<li>월정석은 이벤트성 선불 재화로, 유료 기능 이용에 쓸 수 있어요.</li>'
+        + '</ul>'
+        + (claimCount
+          ? '<button type="button" class="dp-lvlrw__claim" data-dp-lvlrw-claim>밀린 보상 ' + claimCount + '건 받기</button>'
+          : (pendingCount
+            ? '<button type="button" class="dp-lvlrw__claim" disabled>조건을 채우면 밀린 ' + pendingCount + '건이 한 번에 지급됩니다</button>'
+            : ''))
+      + '</div>';
+    }
+
+    render(null);
+    document.body.appendChild(overlay);
+    var closeBtn = overlay.querySelector('[data-dp-lvlrw-close]');
+    if (closeBtn) { try { closeBtn.focus(); } catch (_) {} }
+
+    function close() {
+      try { overlay.remove(); } catch (_) {}
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(event) { if (event.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+
+    overlay.addEventListener('click', function(event) {
+      if (event.target === overlay || (event.target.closest && event.target.closest('[data-dp-lvlrw-close]'))) {
+        close();
+        return;
+      }
+      var claimBtn = event.target.closest ? event.target.closest('[data-dp-lvlrw-claim]') : null;
+      if (!claimBtn || claimBtn.hasAttribute('disabled')) return;
+      claimBtn.setAttribute('disabled', 'disabled');
+      claimBtn.textContent = '수령 중...';
+      _dpFetchJsonWithFallback('/api/rpg/level-rewards/claim', {
+        method: 'POST',
+        credentials: 'include',
+        headers: _dpBuildAuthHeaders()
+      }, { timeoutMs: 12000 }).then(function(res) {
+        var grants = (res && res.ok && res.data && Array.isArray(res.data.granted)) ? res.data.granted : [];
+        if (grants.length) {
+          _cdLevelRewardStatus = null;
+          close();
+          _dpCelebrateLevelUp({ level: snap.currentLevel, grants: grants, force: true });
+          _dpRefreshLevelStrip();
+        } else {
+          claimBtn.textContent = '아직 받을 수 있는 보상이 없어요';
+        }
+      }).catch(function() {
+        claimBtn.textContent = '수령에 실패했어요. 잠시 후 다시 시도해 주세요';
+      });
+    });
+
+    /* 🔴 시트를 열 때만 부른다. 홈 진입에서 자동 호출하면 트래픽 1위 화면에 Mongo 왕복이 얹힌다. */
+    if (!snap.loggedIn) return;
+    if (_cdLevelRewardStatus) { render(_cdLevelRewardStatus); return; }
+    _dpFetchJsonWithFallback('/api/rpg/level-rewards', {
+      method: 'GET',
+      credentials: 'include',
+      headers: _dpBuildAuthHeaders()
+    }, { timeoutMs: 8000 }).then(function(res) {
+      var data = (res && res.ok && res.data) ? res.data : null;
+      if (!data) { render({ degraded: true }); return; }
+      if (data.degraded !== true) _cdLevelRewardStatus = data;
+      if (!overlay.parentNode) return; // 응답 전에 닫혔다
+      render(data);
+    }).catch(function() {
+      if (overlay.parentNode) render({ degraded: true });
+    });
+  }
+
+  /* ── 레벨업 축하 연출 ── */
+  var _dpLevelUpCelebratedLevel = 0;
+  var _dpLevelUpDeferTimer = null;
+
+  /* 결제 완료 직후(cd:unlocks-changed) 레벨업이 터지면 결제 오버레이 위를 덮게 된다.
+     사주 RPG 시트도 자체 레벨업 모달(entertain-engine.js [data-rpg-modal])을 띄우므로 겹친다.
+     최상단 오버레이가 열려 있는 동안은 미뤘다가, 닫히면 그때 띄운다. */
+  function _dpIsTopOverlayOpen() {
+    return !!document.querySelector('.cd-direct-payment-modal, .cd-direct-payment-backdrop, .dp-delete-gate, #cdCoinGateOverlay, [data-cd-payment-overlay], [data-rpg-modal].is-open');
+  }
+
+  function _dpCelebrateLevelUp(options) {
+    var opts = options || {};
+    var level = Math.max(1, Number(opts.level) || 1);
+    var grants = Array.isArray(opts.grants) ? opts.grants : [];
+    var credits = grants.reduce(function(sum, row) { return sum + (Number(row && row.credits) || 0); }, 0);
+
+    /* 로컬 낙관 → 서버 응답 → sync 재확인이 같은 레벨업을 세 번 통과할 수 있다. */
+    if (!opts.force) {
+      if (_dpLevelUpCelebratedLevel >= level && !credits) return;
+      _dpLevelUpCelebratedLevel = Math.max(_dpLevelUpCelebratedLevel, level);
+    }
+
+    // 보상이 없는 순수 레벨업은 오버레이를 띄우지 않는다(과한 방해).
+    if (!credits) {
+      var snap = _cdLevelSnapshot();
+      var tail = snap.nextReward ? ' · 다음 보상까지 ' + Math.max(1, snap.nextReward.level - level) + '레벨' : '';
+      _toast('✦ Lv.' + level + ' 달성' + tail, 'success');
+      return;
+    }
+
+    if (_dpIsTopOverlayOpen()) {
+      if (_dpLevelUpDeferTimer) return;
+      var waited = 0;
+      _dpLevelUpDeferTimer = setInterval(function() {
+        waited += 1200;
+        if (!_dpIsTopOverlayOpen() || waited >= 15000) {
+          clearInterval(_dpLevelUpDeferTimer);
+          _dpLevelUpDeferTimer = null;
+          _dpCelebrateLevelUp({ level: level, grants: grants, force: true });
+        }
+      }, 1200);
+      return;
+    }
+
+    _dpEnsureLevelStyles();
+    if (document.querySelector('.dp-lvlup')) return;
+
+    var sparks = '';
+    for (var i = 0; i < 12; i += 1) {
+      var angle = (i / 12) * Math.PI * 2;
+      var dx = Math.round(Math.cos(angle) * 88);
+      var dy = Math.round(Math.sin(angle) * 62);
+      sparks += '<span class="dp-lvlup__spark" aria-hidden="true" style="--dx:' + dx + 'px;--dy:' + dy + 'px;'
+        + 'animation-delay:' + (i * 45) + 'ms">🌙</span>';
+    }
+
+    var overlay = document.createElement('div');
+    overlay.className = 'dp-lvlup';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Lv.' + level + ' 달성 보상');
+    overlay.innerHTML = '<div class="dp-lvlup__card">'
+      + '<p class="dp-lvlup__eyebrow">LEVEL UP</p>'
+      + '<p class="dp-lvlup__lv">Lv.' + level + ' 달성</p>'
+      + '<div class="dp-lvlup__stage">' + sparks + '<span class="dp-lvlup__moon" aria-hidden="true">🌕</span></div>'
+      + '<p class="dp-lvlup__amt">월정석 <b data-dp-lvlup-count>0</b>개 지급</p>'
+      + '<p class="dp-lvlup__balance" data-dp-lvlup-balance></p>'
+      + '<p class="dp-lvlup__hint">' + _dpLevelRewardKrw(credits) + '원 상당 · 받은 날부터 '
+        + CD_LEVEL_REWARD_EXPIRE_DAYS + '일간 사용할 수 있어요.</p>'
+      + '<button type="button" class="dp-lvlup__close" data-dp-lvlup-close>확인</button>'
+    + '</div>';
+    document.body.appendChild(overlay);
+    requestAnimationFrame(function() { overlay.classList.add('dp-lvlup--in'); });
+
+    var closeTimer = null;
+    function close() {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      document.removeEventListener('keydown', onKey);
+      overlay.classList.remove('dp-lvlup--in');
+      setTimeout(function() { try { overlay.remove(); } catch (_) {} }, 300);
+    }
+    function onKey(event) { if (event.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    overlay.addEventListener('click', function(event) {
+      if (event.target === overlay || (event.target.closest && event.target.closest('[data-dp-lvlup-close]'))) close();
+    });
+    closeTimer = setTimeout(close, 5200);
+
+    // 숫자 카운트업. reduced-motion 이면 곧장 최종값을 쓴다.
+    var countEl = overlay.querySelector('[data-dp-lvlup-count]');
+    var reduce = false;
+    try {
+      reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (_) {}
+    if (!countEl) { /* 렌더 실패는 무시 */ }
+    else if (reduce) { countEl.textContent = credits.toLocaleString('ko-KR'); }
+    else {
+      var startedAt = Date.now();
+      var tick = setInterval(function() {
+        var ratio = Math.min(1, (Date.now() - startedAt) / 900);
+        countEl.textContent = Math.round(credits * ratio).toLocaleString('ko-KR');
+        if (ratio >= 1) clearInterval(tick);
+      }, 40);
+    }
+
+    /* 갱신된 보유 잔량. fresh=1 이어야 서버의 5초 표시용 캐시를 우회한다.
+       실패하면 그 줄만 비운다(지급 사실 자체는 이미 서버가 확정했다). */
+    var balanceEl = overlay.querySelector('[data-dp-lvlup-balance]');
+    if (balanceEl && typeof _dpFetchMoonlightStoneBalance === 'function') {
+      _dpFetchMoonlightStoneBalance({ fresh: true }).then(function(result) {
+        if (!balanceEl.isConnected || !result || !result.ok) return;
+        balanceEl.textContent = '보유 월정석 ' + result.balance.toLocaleString('ko-KR') + '개';
+      }).catch(function() {});
+    }
+  }
+
+  /* 로컬 낙관 계산이 먼저 레벨업을 알아챈다. 월정석 지급 여부는 서버만 알기 때문에
+     여기서는 가벼운 토스트까지만 하고, 실제 보상 연출은 award 응답이 맡는다. */
+  function _dpNoteLocalLevelUp(result) {
+    if (!result || !result.leveledUp) return;
+    _dpCelebrateLevelUp({ level: result.level, grants: [] });
   }
 
   /* 하루 첫 방문에 출석 EXP를 주고 서버와 한 번 맞춘다. 세션당 1회만 돈다. */
   function _dpBootLevelDaily() {
     if (_dpLevelBootDone) return;
     _dpLevelBootDone = true;
-    _cdLevelAward('checkin', _cdLevelKstDate(0));
+    _dpNoteLocalLevelUp(_cdLevelAward('checkin', _cdLevelKstDate(0)));
     _cdLevelSyncWhenIdle();
     window.addEventListener('cd:auth-changed', function() {
       _cdLevelSync({ force: true }).then(function() { _dpRefreshLevelStrip(); });
@@ -6057,7 +6557,11 @@
     /* 유료 기능이 해금·열람되면 보너스 EXP. 결제 경로는 건드리지 않고 이벤트만 듣는다. */
     window.addEventListener('cd:unlocks-changed', function(event) {
       var key = (event && event.detail && event.detail.featureKey) ? String(event.detail.featureKey) : 'paid-view';
-      if (_cdLevelAward('paid', key).changed) _dpRefreshLevelStrip();
+      var paidResult = _cdLevelAward('paid', key);
+      if (paidResult.changed) {
+        _dpRefreshLevelStrip();
+        _dpNoteLocalLevelUp(paidResult);
+      }
     });
   }
 
@@ -8782,33 +9286,62 @@
     var tierName = String((coverage && (coverage.tier || coverage.passTier)) || '').trim();
     // 무료/미보유 등급을 등급명으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
     var hasActivePassTier = !!(tierName && tierName.toLowerCase() !== 'free');
-    // 이용권 미보유자에게만 상점 카드를 맨 위 + '추천'으로 올린다(단건/월정석 동등 노출은 그대로 유지).
+    // 이용권 카드는 결제창의 첫 선택지이자 이용권 검사 지점이라 항상 맨 위 + '추천'이다
+    // (단건/월정석 동등 노출은 그대로 유지 — 세 카드가 모두 보인다).
     var passStoreFirst = !hasActivePassTier;
-    var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' 달빛 이용권') : '달빛 이용권 상점';
-    var passTitle = hasActivePassTier ? '달빛 이용권 업그레이드' : '달빛 이용권 상점';
+    // 🔴 결제창 문구는 셸·React 와 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
+    // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
+    var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '달빛 이용권');
+    var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' ' + passBadgeLabel) : passBadgeLabel;
+    var passTitle = hasActivePassTier
+      ? _dpCheckoutText('payment.directModal.passUpgradeTitle', '달빛 이용권 업그레이드')
+      : _dpCheckoutText('payment.directModal.passBuyTitle', '이용권으로 구매');
     var passHint = hasActivePassTier
-      ? '현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요.'
-      : '달빛 이용권으로 전환하면 이 기능을 포함해 한도 이하 기능을 30일간 결제창 없이 무제한 이용합니다.';
+      ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.')
+      : _dpCheckoutText('payment.directModal.passHint.store', '30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.');
+    // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
+    var directUsesAppStore = _dpShouldUseAppStoreEntry();
+    var directBadge = directUsesAppStore
+      ? _dpCheckoutText('payment.directModal.pgBadgeApp', 'Google Play 결제')
+      : _dpCheckoutText('payment.directModal.pgBadge', 'PortOne V2 · KG이니시스');
+    var directHint = directUsesAppStore
+      ? _dpCheckoutText('payment.directModal.directHintApp', '지금 이 결과 하나만. Google Play 결제로 바로 열립니다.')
+      : _dpCheckoutText('payment.directModal.directHint', '지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.');
+    var directTitleLabel = _dpCheckoutText('payment.directModal.directTitleLabel', '단건 결제');
+    var monthlyHintChecking = _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.');
+    // 잔량 표기는 셸 formatMonthlyCreditValueWon 과 같은 키를 쓴다(코인 수치를 그대로 노출하지 않는 규칙).
+    var formatMonthlyCredits = function(value) {
+      var creditValue = Math.max(0, Math.floor(Number(value || 0)));
+      return _dpCheckoutText('payment.currency.monthlyCredits', '{count}개', { count: creditValue.toLocaleString('ko-KR') });
+    };
+    var moonTitleText = _dpCheckoutText('payment.directModal.moonTitle', '달빛 결제 방식 선택');
+    var recommendBadgeText = _dpCheckoutText('payment.directModal.recommendBadge', '추천');
+    var monthlyBadgeText = _dpCheckoutText('payment.directModal.monthlyBadge', '월정석 사용');
+    var monthlyTitleText = _dpCheckoutText('payment.directModal.monthlyTitle', '월정석 사용');
+    var monthlyUnitText = _dpCheckoutText('payment.directModal.monthlyUnit', '이벤트 재화');
+    var monthlyOwnedUnknownText = _dpCheckoutText('payment.directModal.monthlyBalance.ownedUnknown', '보유 월정석 · 확인 필요');
+    var monthlyCheckingText = _dpCheckoutText('payment.directModal.monthlyBalance.checking', '월정석 잔여를 확인하고 있습니다.');
+    var monthlyRefreshText = _dpCheckoutText('payment.directModal.monthlyBalance.refresh', '월정석 재조회');
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
       });
     }
     var passButtonHtml = '<button type="button" class="cd-direct-payment-option is-store' + (passStoreFirst ? ' cd-direct-payment-option--recommended' : '') + '" data-mode="pass-store">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + (passStoreFirst ? '<span class="cd-direct-payment-recommend">추천</span>' : '') + '</span>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + (passStoreFirst ? '<span class="cd-direct-payment-recommend">' + esc(recommendBadgeText) + '</span>' : '') + '</span>' +
         '<strong>' + esc(passTitle) + '</strong>' +
         '<span>' + esc(passHint) + '</span>' +
       '</button>';
     var directButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>PortOne V2 · KG이니시스</span></span>' +
-        '<strong>단건 결제 · <span class="cd-direct-payment-amount">' + esc(amountKrw.toLocaleString('ko-KR')) + '원</span></strong>' +
-        '<span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span></span>' +
+        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutText('payment.currency.krw', '{amount}원', { amount: amountKrw.toLocaleString('ko-KR') })) + '</span></strong>' +
+        '<span>' + esc(directHint) + '</span>' +
       '</button>';
     var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="monthly" data-monthly-option>' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>월정석 사용</span></span>' +
-        '<strong>월정석 사용 · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> 이벤트 재화</strong>' +
-        '<span data-monthly-hint>월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.</span>' +
-        '<span class="cd-direct-payment-moonbal-current" data-monthly-current>보유 월정석 · 확인 필요</span>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span></span>' +
+        '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
+        '<span data-monthly-hint>' + esc(monthlyHintChecking) + '</span>' +
+        '<span class="cd-direct-payment-moonbal-current" data-monthly-current>' + esc(monthlyOwnedUnknownText) + '</span>' +
       '</button>';
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
@@ -8819,7 +9352,7 @@
       root.setAttribute('data-marker', 'direct-payment-pass-store-v20260607');
       root.setAttribute('role', 'dialog');
       root.setAttribute('aria-modal', 'true');
-      root.setAttribute('aria-label', '달빛 결제 방식 선택');
+      root.setAttribute('aria-label', moonTitleText);
       root.innerHTML =
         '<div class="cd-direct-payment-dialog">' +
           '<div class="cd-direct-payment-moon-header" data-marker="direct-payment-luxury-moon-v20260611" aria-hidden="true">' +
@@ -8830,21 +9363,24 @@
             '<span class="cd-direct-payment-moon-stars"></span>' +
             '<span class="cd-direct-payment-moon-reflect"></span>' +
           '</div>' +
-          '<h2 class="cd-direct-payment-title">달빛 결제 방식 선택</h2>' +
-          '<p class="cd-direct-payment-sub">이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.</p>' +
-          '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>월정석 이벤트 재화 기준 · ' + esc(amountKrw.toLocaleString('ko-KR')) + '원<br>한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다.</div>' +
+          '<h2 class="cd-direct-payment-title">' + esc(moonTitleText) + '</h2>' +
+          '<p class="cd-direct-payment-sub">' + esc(_dpCheckoutText('payment.directModal.moonSubtitle', '이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.')) + '</p>' +
+          '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
+            esc(_dpCheckoutText('payment.directModal.note.basis', '월정석 이벤트 재화 기준 · {amount}', { amount: amountKrw.toLocaleString('ko-KR') + '원' })) + '<br>' +
+            esc(_dpCheckoutText('payment.directModal.note.withPass', '한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다.')) +
+          '</div>' +
           '<div class="cd-direct-payment-choice-grid">' +
             (passStoreFirst
               ? (passButtonHtml + directButtonHtml + monthlyButtonHtml)
               : (directButtonHtml + monthlyButtonHtml + passButtonHtml)) +
           '</div>' +
           '<div class="cd-direct-payment-balance-check" data-monthly-balance-status data-state="checking">' +
-            '<span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>월정석 잔여를 확인하고 있습니다.</span>' +
-            '<button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">월정석 재조회</button>' +
+            '<span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>' + esc(monthlyCheckingText) + '</span>' +
+            '<button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">' + esc(monthlyRefreshText) + '</button>' +
           '</div>' +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
           '<p class="cd-direct-payment-legal">' + _dpText('paymentBeforeWarning') + '</p>' +
-          '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">닫기</button></div>' +
+          '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';
       var monthlyBtn = root.querySelector('[data-monthly-option]');
       var moonbalText = root.querySelector('[data-monthly-balance-text]');
@@ -8852,32 +9388,48 @@
       var monthlyCurrent = root.querySelector('[data-monthly-current]');
       var monthlyHintNode = root.querySelector('[data-monthly-hint]');
       var moonbalBusy = false;
+      // 한 번이라도 확인에 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을
+      // '확인 필요'로 되돌리지 않게 한다(셸·React 결제창의 sticky 계약과 동일).
+      var lastKnownStandaloneBalance = null;
       // 월정석 잔량을 모달을 닫지 않고 제자리 갱신한다. 미확정/실패는 '확인 필요'로 두고(0으로 오인 금지),
       // 알려진 잔량이 필요분보다 적을 때만 월정석 버튼을 비활성화한다(단건 결제는 항상 가능).
       function applyStandaloneMoonbal(state, balance) {
-        var known = state === 'fresh' && isFinite(balance) && balance >= 0;
+        var fresh = state === 'fresh' && isFinite(balance) && balance >= 0;
+        if (fresh) lastKnownStandaloneBalance = Math.floor(balance);
+        if (state === 'signed-out') lastKnownStandaloneBalance = null;
+        if (!fresh && state === 'error' && lastKnownStandaloneBalance !== null) balance = lastKnownStandaloneBalance;
+        var known = fresh || (state === 'error' && lastKnownStandaloneBalance !== null);
         var insufficient = known && balance < monthlyStones;
-        var balanceLabel = known ? Math.floor(balance).toLocaleString('ko-KR') + '개' : '';
+        var balanceLabel = known ? formatMonthlyCredits(balance) : '';
         if (moonbalText) {
           moonbalText.textContent = state === 'signed-out'
-            ? '로그인 후 월정석 잔량을 확인할 수 있어요.'
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.signedOut', '로그인 후 월정석 잔량을 확인할 수 있어요.')
             : state === 'error'
-              ? '월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요.'
+              ? (known
+                ? _dpCheckoutText('payment.directModal.monthlyBalance.staleAfterError', '월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 {balance}', { balance: balanceLabel })
+                : _dpCheckoutText('payment.directModal.monthlyBalance.unconfirmed', '월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.'))
               : known
-                ? ('월정석 잔여 확인 완료 · 현재 ' + balanceLabel)
-                : '월정석 잔여를 확인하고 있습니다.';
+                ? _dpCheckoutText('payment.directModal.monthlyBalance.ready', '월정석 잔여 확인 완료 · 현재 {balance}', { balance: balanceLabel })
+                : monthlyCheckingText;
         }
-        if (moonbalStatus) moonbalStatus.setAttribute('data-state', known ? 'fresh' : (state === 'fresh' ? 'checking' : 'error'));
-        if (monthlyCurrent) monthlyCurrent.textContent = known ? ('보유 월정석 ' + balanceLabel) : '보유 월정석 · 확인 필요';
+        if (moonbalStatus) moonbalStatus.setAttribute('data-state', fresh ? 'fresh' : (state === 'fresh' ? 'checking' : state));
+        if (monthlyCurrent) {
+          monthlyCurrent.textContent = known
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.owned', '보유 월정석 {balance}', { balance: balanceLabel })
+            : monthlyOwnedUnknownText;
+        }
         if (monthlyHintNode) {
           monthlyHintNode.textContent = !known
-            ? '월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.'
+            ? monthlyHintChecking
             : (insufficient
-              ? '월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.'
-              : '보유 월정석에서 차감됩니다. 월정석은 이벤트성 선불 재화입니다.');
+              ? _dpCheckoutText('payment.directModal.monthlyHint.insufficient', '월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.')
+              : _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.'));
         }
         if (monthlyBtn) {
-          if (insufficient) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }
+          // 미인증은 월정석 결제 자체가 불가능하므로 비활성한다(React 결제창과 같은 계약).
+          // 조회 실패(error)는 비활성 사유가 아니다 — 확인된 부족일 때만 잠근다.
+          var blocked = insufficient || state === 'signed-out';
+          if (blocked) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }
           else { monthlyBtn.removeAttribute('disabled'); monthlyBtn.classList.remove('is-disabled'); }
         }
       }
@@ -8886,15 +9438,23 @@
         moonbalBusy = true;
         var refreshBtn = root.querySelector('[data-mode="monthly-refresh"]');
         if (refreshBtn) refreshBtn.disabled = true;
-        if (moonbalText) moonbalText.textContent = '월정석 잔여를 확인하고 있습니다.';
+        if (moonbalText) {
+          moonbalText.textContent = fresh === true
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.refreshing', '월정석 잔량을 다시 조회하고 있습니다.')
+            : monthlyCheckingText;
+        }
         // 수동 재조회(fresh=true)는 서버 캐시를 우회해 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
         var fetcher = (typeof window._dpFetchMoonlightStoneBalance === 'function')
           ? window._dpFetchMoonlightStoneBalance({ fresh: fresh === true })
           : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
         fetcher.then(function(res) {
           if (settled) return;
-          if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
-          else if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          // 🔴 signedOut 을 ok 보다 먼저 본다. 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을
+          // 주는데(billing.js readBillingSnapshot 의 비인증 분기), ok 를 먼저 검사하면 그 0 이 '잔여 확인 완료 ·
+          // 현재 0개'라는 확신에 찬 거짓으로 렌더되고 월정석 버튼이 잠겼다 — signed-out 분기는 401/403 일 때만
+          // 도달했다. 로그인 안내를 띄우는 게 맞다.
+          if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
           else applyStandaloneMoonbal('error', 0);
         }).catch(function() {
           if (!settled) applyStandaloneMoonbal('error', 0);
@@ -8903,28 +9463,88 @@
           if (refreshBtn && !settled) refreshBtn.disabled = false;
         });
       }
+      var modalOpenedAt = Date.now();
+      // 이용권 상점으로 떠날 때도 finish('cancel') 로 닫는다(호출부 계약 유지) — 그건 이탈이 아니므로
+      // 계측에서 제외한다. pass_store_entered 가 그 전이를 이미 남긴다.
+      var leavingForPassStore = false;
       function finish(choice) {
         if (settled) return;
         settled = true;
         try { document.removeEventListener('keydown', onKey, true); } catch (_) {}
         if (root.parentNode) root.parentNode.removeChild(root);
-        resolve(choice === 'direct' || choice === 'monthly' ? choice : 'cancel');
+        var resolved = (choice === 'direct' || choice === 'monthly' || choice === 'pass') ? choice : 'cancel';
+        if (resolved === 'cancel' && !leavingForPassStore) {
+          _dpTrackCheckoutEvent('checkout_dismissed', { coinPrice: cost, featureKey: opts.featureKey, dwellMs: Date.now() - modalOpenedAt });
+        }
+        resolve(resolved);
       }
       function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); finish('cancel'); } }
-      root.addEventListener('click', function(e) {
+      function goPassStore() {
+        _dpTrackCheckoutEvent('pass_store_entered', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
+        leavingForPassStore = true;
+        finish('cancel');
+        // 앱: /points 는 앱 번들에 없고 app-payment-guard 는 앵커 클릭만 가로챈다 — 반드시 이 경로를 먼저 탄다.
+        try {
+          if (_dpShouldUseAppStoreEntry() && typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; }
+        } catch (_) {}
+        // 웹: 중간 충전 모달을 건너뛰고 /points 의 이용권 결제 확인 모달까지 한 번에 간다.
+        var storeUrl = _dpBuildPassStoreUrl(cost, coverage, 'standalone-payment-pass-store');
+        if (storeUrl) {
+          _dpRememberCheckoutReturn(opts.featureKey);
+          try { window.location.assign(storeUrl); } catch (_) { window.location.href = storeUrl; }
+          return;
+        }
+        try { if (typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; } } catch (_) {}
+        try { window.location.assign('/points?source=standalone-payment-pass-store'); } catch (_) { window.location.href = '/points?source=standalone-payment-pass-store'; }
+      }
+      root.addEventListener('click', async function(e) {
         var hit = e.target && e.target.closest ? e.target.closest('[data-mode]') : null;
         if (hit) {
           var act = hit.getAttribute('data-mode');
           if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(true); return; }
+          // 🔴 '이용권으로 구매' = 이용권 검사 지점(셸 index.html 과 같은 계약). 진입 선검사가 사라졌으므로
+          // 결제창을 여는 시점에는 보유 여부를 모른다 — 여기서 서버에 한 번 묻고, 커버되면 결제 없이
+          // 'pass' 로 닫아 호출부가 무료로 열게 하고, 아니면 이용권 상점으로 보낸다.
           if (act === 'pass-store') {
-            // 달빛 이용권 상점 바로가기: 충전 모달이 있으면 우선 열고, 없으면 /points로 이동. 모달은 닫는다.
             e.preventDefault();
-            finish('cancel');
-            try { if (typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; } } catch (_) {}
-            try { window.location.assign('/points?source=standalone-payment-pass-store'); } catch (_) { window.location.href = '/points?source=standalone-payment-pass-store'; }
+            if (hit.hasAttribute('disabled')) return;
+            hit.setAttribute('disabled', 'disabled');
+            hit.classList.add('is-loading');
+            _dpTrackCheckoutEvent('checkout_option_click', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
+            var passReady = null;
+            try {
+              if (typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+                passReady = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+                  title: title,
+                  coinPrice: cost,
+                  cost: cost
+                }));
+              }
+            } catch (_passProbeError) { passReady = null; }
+            if (passReady && (passReady.status === 'pass_applied' || passReady.status === 'already_unlocked')) {
+              _dpTrackCheckoutEvent('pass_verified_free', { option: 'pass', coinPrice: cost, featureKey: opts.featureKey });
+              finish('pass');
+              return;
+            }
+            // 확인 자체가 실패(5xx/degrade/타임아웃)면 상점으로 보내지 않는다 — 지연을 미커버 근거로 쓰면
+            // 실제 보유자가 이미 가진 이용권을 또 사러 가게 된다. 모달을 열어 둔 채 재시도를 안내한다.
+            if (!passReady || passReady.status === 'error') {
+              hit.removeAttribute('disabled');
+              hit.classList.remove('is-loading');
+              var passRetryNode = root.querySelector('[data-payment-status]');
+              if (passRetryNode) {
+                passRetryNode.textContent = _dpCheckoutText('payment.directModal.passCheckRetry', '이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요.');
+                passRetryNode.style.color = '#fca5a5';
+              }
+              return;
+            }
+            goPassStore();
             return;
           }
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
+          if (act === 'direct' || act === 'monthly') {
+            _dpTrackCheckoutEvent('checkout_option_click', { option: act, coinPrice: cost, featureKey: opts.featureKey });
+          }
           finish(act);
           return;
         }
@@ -8932,6 +9552,12 @@
       });
       document.addEventListener('keydown', onKey, true);
       document.body.appendChild(root);
+      // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
+      _dpTrackCheckoutEvent('checkout_opened', {
+        coinPrice: cost,
+        featureKey: opts.featureKey,
+        hasPassHint: hasActivePassTier ? 'active' : 'unknown'
+      });
       // 자동 1회 재조회: 열리는 즉시 최신 월정석 잔량을 채운다(수동 버튼과 별개).
       refreshStandaloneMoonbal();
     });

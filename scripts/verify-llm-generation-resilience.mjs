@@ -18,7 +18,7 @@ import {
   tokenHeadroomChars,
   tokensRequiredForChars,
 } from "../worker/lib/llm-budget.js";
-import { SYNC_LLM_TIMEOUT_CEILING_MS } from "../worker/lib/sync-llm-timeout.js";
+import { EDGE_RESPONSE_DEADLINE_MS, SYNC_LLM_TIMEOUT_CEILING_MS } from "../worker/lib/sync-llm-timeout.js";
 
 const LABEL = "[verify:llm-generation-resilience]";
 // degrade 관문이 쓰는 값과 같아야 한다(각 라우트의 hasRenderableLlmText(..., { minChars: 400 })).
@@ -204,13 +204,25 @@ function assertNeverThrows(feature, label, run) {
       assert(Array.isArray(issues), `${feature}: 품질 이슈가 배열이 아님`);
     });
   }
-  assertBudget(feature, {
-    minChars: ASTROLOGY_AI_MIN_RESULT_CHARS,
-    maxChars: ASTROLOGY_AI_MAX_RESULT_CHARS,
-    maxOutputTokens: 33000,
-    tokenConstantName: "ASTROLOGY_AI_MAX_OUTPUT_TOKENS",
-    sourcePath: "worker/routes/astrology-ai.js",
-  });
+  // 점성술은 첫 상담을 섹션으로 나눠 쓴다 — 예산 단위가 "상담 전체"가 아니라 "섹션 하나"다.
+  // 그래서 전체 분량이 아니라 각 섹션의 목표 대비 토큰 여유를 본다.
+  // (섹션 합이 전체 게이트와 맞는지는 verify:astrology-sectioned 가 따로 단언한다.)
+  const { ASTROLOGY_SECTIONS } = __astrologyAiTestUtils;
+  assert(Array.isArray(ASTROLOGY_SECTIONS) && ASTROLOGY_SECTIONS.length > 0, `${feature}: 섹션 정의가 없다`);
+  for (const section of ASTROLOGY_SECTIONS) {
+    assertBudget(`${feature}:${section.key}`, {
+      minChars: section.minChars,
+      maxChars: section.maxChars,
+      maxOutputTokens: 9600,
+      tokenConstantName: "ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/routes/astrology-ai.js",
+    });
+  }
+  // 섹션 합이 전체 요구 분량을 덮는지 — 섹션을 줄이다 전체 하한이 깨지는 회귀를 막는다.
+  const sectionMinTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
+  const sectionMaxTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.maxChars, 0);
+  assert(sectionMinTotal >= ASTROLOGY_AI_MIN_RESULT_CHARS, `${feature}: 섹션 minChars 합 ${sectionMinTotal} < 전체 하한 ${ASTROLOGY_AI_MIN_RESULT_CHARS}`);
+  assert(sectionMaxTotal <= ASTROLOGY_AI_MAX_RESULT_CHARS, `${feature}: 섹션 maxChars 합 ${sectionMaxTotal} > 전체 상한 ${ASTROLOGY_AI_MAX_RESULT_CHARS}`);
 }
 
 // ── 4. 숙요 궁합 ──────────────────────────────────────
@@ -218,7 +230,7 @@ function assertNeverThrows(feature, label, run) {
   const feature = "sukuyo";
   const { __sukuyoCompatibilityAiTestUtils } = await import("../worker/routes/sukuyo-compatibility-ai.js");
   const {
-    normalizeInput, calculateSukuyo, normalizeStructuredSukuyoCompatibilityText,
+    normalizeInput, calculateSukuyo, extractSectionBody,
     SUKUYO_SECTION_SPECS, SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS, SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
   } = __sukuyoCompatibilityAiTestUtils;
 
@@ -231,35 +243,48 @@ function assertNeverThrows(feature, label, run) {
     question: "이 관계를 오래 이어가려면 무엇을 조심해야 할까요?",
   });
   assert(input.ok, `${feature}: 샘플 입력 정규화 실패`);
-  const calculation = calculateSukuyo(input);
+  calculateSukuyo(input); // 계산 경로가 살아 있는지만 확인(그룹 생성은 계산값을 그대로 받는다)
 
   const mocks = buildMockOutputs(SUKUYO_SECTION_SPECS.map((spec) => spec.key));
   assertDeliveryContract(feature, mocks);
   assertTruncationRecovery(feature, mocks[1].text);
 
-  // 숙요만 정규화가 실패 시 throw한다(호출부가 hasRenderableLlmText로 받아 degrade한다).
-  // 여기서는 "던지더라도 그 입력이 전달 가능하면 호출부 폴백이 살아 있는지"를 함께 본다.
+  // 숙요는 그룹 병렬이라 LLM 응답에서 장 본문을 뽑아내는 지점이 계약의 관문이다.
+  // 🔴 절대 던지면 안 된다 — 던지면 결제된 장이 통째로 사라진다.
   for (const mock of mocks) {
-    let threw = false;
-    try {
-      normalizeStructuredSukuyoCompatibilityText(mock.text, input, calculation);
-    } catch {
-      threw = true;
-    }
-    checks += 1;
-    if (threw && mock.deliverable) {
-      const route = read("worker/routes/sukuyo-compatibility-ai.js");
-      assert(
-        route.includes("hasRenderableLlmText(rawContent, { minChars: 400 })"),
-        `${feature}: "${mock.name}"에서 정규화가 던지는데 호출부 degrade 폴백이 없다`,
-      );
-    }
+    assertNeverThrows(feature, `extractSectionBody("${mock.name}")`, () => {
+      const body = extractSectionBody(mock.text);
+      assert(typeof body === "string", `${feature}: extractSectionBody가 문자열을 돌려주지 않음`);
+      if (mock.deliverable) {
+        assert(body.length >= 240, `${feature}: "${mock.name}"에서 렌더 가능한 본문이 버려졌다 (${body.length}자)`);
+      } else {
+        assert(body.length === 0, `${feature}: "${mock.name}"에서 빈 응답이 본문으로 통과했다 — 조용한 과금`);
+      }
+    });
   }
+
+  // 장 단위 응답({"body": "..."})도 같은 계약을 지켜야 한다.
+  assertNeverThrows(feature, "extractSectionBody(장 단위 JSON)", () => {
+    const sectionJson = JSON.stringify({ body: paragraph("한 장짜리 본문.") });
+    const body = extractSectionBody(sectionJson);
+    assert(body.length >= 240 && !body.includes('"body"'), `${feature}: 장 단위 JSON에서 본문을 뽑지 못했다`);
+    const truncated = extractSectionBody(sectionJson.slice(0, Math.floor(sectionJson.length * 0.6)));
+    assert(truncated.length >= 240, `${feature}: 잘린 장 응답에서 본문이 사라졌다 — 결제된 장이 빈 화면이 된다`);
+  });
+
+  // 문서 전체 예산: 한 요청 안에서 그룹별로 나눠 담긴다.
+  checks += 1;
+  assert(
+    SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS - SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS >= MIN_BUDGET_HEADROOM_CHARS,
+    `${feature}: 문서 분량 여유가 부족하다 (상한 ${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS}, 하한 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS})`,
+  );
+
+  // 실제 LLM 호출 단위는 "섹션 그룹"이다. 토큰 예산은 그 단위로 재야 의미가 있다.
   assertBudget(feature, {
-    minChars: SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
-    maxChars: SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
-    maxOutputTokens: 32000,
-    tokenConstantName: "SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS",
+    minChars: Math.max(...SUKUYO_SECTION_SPECS.map((spec) => spec.minChars)),
+    maxChars: 6000, // SUKUYO_SECTION_BODY_MAX_CHARS
+    maxOutputTokens: 12000, // SUKUYO_SECTION_CAP_TOKENS
+    tokenConstantName: "SUKUYO_SECTION_CAP_TOKENS",
     sourcePath: "worker/routes/sukuyo-compatibility-ai.js",
   });
 }
@@ -280,6 +305,81 @@ function assertNeverThrows(feature, label, run) {
   // 사주는 자유 텍스트라 요구 상한이 없다. 토큰 예산만 최소 분량 기준으로 확인한다.
   checks += 1;
   assert(charsAllowedByTokens(20000) >= 10000, `${feature}: 토큰 상한이 상담 최소 분량도 못 담는다`);
+}
+
+// ── 6. 운명의 지도 심층 리포트 ─────────────────────────
+// 9섹션을 두 웨이브로 나눠 동기 생성한다. 섹션 하나가 규칙을 어겨도 결제된 결과를 버리지 않는지,
+// 검증기가 던지지 않는지, 섹션 예산이 토큰 상한 안에 들어오는지를 본다.
+{
+  const feature = "destiny-compass-report";
+  const {
+    COMPASS_SECTIONS,
+    COMPASS_SECTION_MAX_OUTPUT_TOKENS,
+    validateCompassSection,
+    computeSystemStars,
+    splitGroundsLine,
+    trimToLastSentence,
+    compassFallbackMinChars,
+  } = await import("../worker/lib/destiny-compass-report-contract.js");
+
+  const spec = COMPASS_SECTIONS.find((s) => s.key === "saju_reading");
+  const badInputs = [
+    ["null", null], ["undefined", undefined], ["빈 문자열", ""], ["공백만", "   \n\t "],
+    ["숫자", 42], ["객체", {}], ["배열", []],
+    ["미계산 계 용어", `${paragraph("다샤가 바뀌는 시기라 나크샤트라가 흔들립니다.")}`],
+    ["상투구", `${paragraph("조심하세요. 좋은 일이 생깁니다.")}`],
+    ["모델이 만든 별점", `${paragraph("사주 흐름.")} ★★★★☆ 82% 확률`],
+  ];
+  for (const [name, value] of badInputs) {
+    assertNeverThrows(feature, `validateCompassSection("${name}")`, () => {
+      const issues = validateCompassSection(value, { spec, allowedLabels: ["오행 분포"], seenSentences: new Set() });
+      assert(Array.isArray(issues), `${feature}: 검증 결과가 배열이 아니다 — 호출부가 결과를 잃는다`);
+    });
+  }
+
+  // 정상 본문은 문제 없이 통과해야 한다(과잉 차단이면 유료 라우트가 상시 교정 루프에 빠진다).
+  {
+    const good = `${paragraph("오행 분포가 금으로 기울어 있습니다.", 40)}`;
+    const issues = validateCompassSection(good, { spec, allowedLabels: ["오행 분포"], seenSentences: new Set() });
+    assert(issues.length === 0, `${feature}: 정상 본문이 걸렸다 — ${issues.join(" / ")}`);
+  }
+
+  // 근거 줄 분리·잘린 문장 정리도 던지지 않는다.
+  for (const [name, value] of [["정상", "본문.\n근거: saju.stage"], ["근거 없음", "본문만."], ["빈값", ""]]) {
+    assertNeverThrows(feature, `splitGroundsLine("${name}")`, () => splitGroundsLine(value));
+    assertNeverThrows(feature, `trimToLastSentence("${name}")`, () => trimToLastSentence(value));
+  }
+  assertNeverThrows(feature, "computeSystemStars(빈 팩)", () => computeSystemStars({ systems: [] }));
+
+  // 🔴 폴백을 켠 유료 섹션은 문턱을 함께 줘야 한다(관례: 최소 분량 × 0.4).
+  //    없으면 Workers AI 의 짧은 응답이 정상 결제 결과로 나간다.
+  const routeSource = read("worker/routes/destiny-compass-ai.js");
+  assert(
+    routeSource.includes("fallbackMinChars: compassFallbackMinChars(spec)"),
+    `${feature}: fallbackToWorkersAI 를 켜고 fallbackMinChars 를 주지 않았다`,
+  );
+  for (const section of COMPASS_SECTIONS) {
+    assert(
+      compassFallbackMinChars(section) > 0 && compassFallbackMinChars(section) < section.minChars,
+      `${feature}: ${section.key} 의 폴백 문턱이 비정상 (${compassFallbackMinChars(section)})`,
+    );
+  }
+
+  // 섹션이 죽어도 웨이브가 계속되려면 생성기가 던지지 않아야 한다.
+  assert(
+    routeSource.includes("절대 던지지 않는다"),
+    `${feature}: generateCompassSection 의 무-throw 계약 주석이 사라졌다`,
+  );
+
+  // 예산: 가장 긴 섹션 기준.
+  const widest = COMPASS_SECTIONS.reduce((a, b) => (b.maxChars > a.maxChars ? b : a));
+  assertBudget(feature, {
+    minChars: widest.minChars,
+    maxChars: widest.maxChars,
+    maxOutputTokens: COMPASS_SECTION_MAX_OUTPUT_TOKENS,
+    tokenConstantName: "COMPASS_SECTION_MAX_OUTPUT_TOKENS",
+    sourcePath: "worker/lib/destiny-compass-report-contract.js",
+  });
 }
 
 // ── 예산 가드 ─────────────────────────────────────────
@@ -311,8 +411,10 @@ function assertBudget(feature, { minChars, maxChars, maxOutputTokens, tokenConst
 for (const [feature, path, timeoutVar] of [
   ["ziwei", "worker/routes/ziwei-ai.js", "ziweiTimeoutMs"],
   ["vedic", "worker/routes/vedic-ai.js", "vedicTimeoutMs"],
-  ["sukuyo", "worker/routes/sukuyo-compatibility-ai.js", "compatibilityTimeoutMs"],
+  // 숙요 궁합은 그룹 병렬이라 라우트가 기다리는 단위가 "섹션 그룹"이다.
+  ["sukuyo", "worker/routes/sukuyo-compatibility-ai.js", "SUKUYO_SECTION_TIMEOUT_MS"],
   ["astrology", "worker/routes/astrology-ai.js", "timeoutMs"],
+  ["destiny-compass-report", "worker/routes/destiny-compass-ai.js", "timeoutMs"],
 ]) {
   const source = read(path);
   // 파일 어딘가에 clamp가 있는지가 아니라, 그 라우트가 실제로 쓰는 타임아웃 변수의 할당을 감싸는지 본다.
@@ -321,6 +423,182 @@ for (const [feature, path, timeoutVar] of [
     assignment.test(source),
     `${feature}: ${timeoutVar} 할당이 clampSyncLlmTimeoutMs로 감싸여 있지 않다 — `
     + `엣지 ${SYNC_LLM_TIMEOUT_CEILING_MS}ms 한계를 넘기면 라우트가 실패 처리를 못 한 채 잘린다 (${path})`,
+  );
+}
+
+// ── 연애 비책 AI: 섹션 병렬 예산 ────────────────────────────────────────────
+// 이 라우트는 단일 호출이 아니라 6개 그룹을 한 요청 안에서 동시에 돌린다. 그래서 위 루프의
+// `const <var> = clampSyncLlmTimeoutMs(` 형태가 아니라 그룹 예산 함수를 통해 깎는다.
+{
+  const feature = "love-secret-ai";
+  const source = read("worker/routes/love-secret-ai.js");
+
+  checks += 1;
+  assertBudget(feature, {
+    minChars: 5000,
+    maxChars: 6500,
+    maxOutputTokens: 12500,
+    tokenConstantName: "LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS",
+    sourcePath: "worker/routes/love-secret-ai.js",
+  });
+
+  // 🔴 clampSyncLlmTimeoutMs는 0/음수를 받으면 상한 85s로 되돌아간다. 예산이 바닥났을 때
+  //    호출을 건너뛰는 가드가 그 앞에 있어야 한다.
+  checks += 1;
+  assert(
+    /if \(!\(timeoutMs > 0\)\) return fail\("BUDGET_EXHAUSTED"\);/.test(source),
+    `${feature}: 그룹 생성기에 남은 예산 하한 가드가 없다 — clampSyncLlmTimeoutMs(0)은 85s로 되돌아간다`,
+  );
+
+  checks += 1;
+  assert(
+    /timeoutMs: clampSyncLlmTimeoutMs\(timeoutMs\)/.test(source),
+    `${feature}: 그룹 호출 타임아웃이 clampSyncLlmTimeoutMs로 깎이지 않는다`,
+  );
+
+  // Gemini 타임아웃 뒤 Workers AI 폴백은 타임아웃이 없다. 하드 레이스가 사라지면 엣지 컷이 되돌아온다.
+  checks += 1;
+  assert(
+    source.includes("group_hard_deadline"),
+    `${feature}: 그룹 호출에 하드 데드라인 레이스가 없다 — Workers AI 폴백이 예산을 넘긴다`,
+  );
+
+  checks += 1;
+  const deadlineMatch = source.match(/const LOVE_SECRET_AI_LLM_DEADLINE_MS = (\d+);/);
+  assert(
+    deadlineMatch && Number(deadlineMatch[1]) <= SYNC_LLM_TIMEOUT_CEILING_MS + 5000,
+    `${feature}: 총 LLM 예산이 엣지 한계(${SYNC_LLM_TIMEOUT_CEILING_MS}ms) 대비 과하다`,
+  );
+
+  // 그룹 생성기는 절대 throw 하지 않아야 한 그룹의 실패가 나머지를 죽이지 않는다.
+  checks += 1;
+  assert(
+    /async function generateLoveSecretGroup\(env, \{[\s\S]*?\n\}/.test(source)
+    && /\} catch \(error\) \{[\s\S]*?return fail\("EXCEPTION"\);/.test(source),
+    `${feature}: generateLoveSecretGroup이 실패를 값으로 돌리지 않는다`,
+  );
+}
+
+// ── 셸 내장 상담 5종(worker/routes/fortune.js)의 LLM 예산 ─────────────────────
+// 이 파일은 라우트별 타임아웃 변수 대신 요청 시작 기준 총 예산(featureAiCallTimeoutMs)으로 나눠 쓴다.
+// 위 루프의 `const <var> = clampSyncLlmTimeoutMs(` 정규식과 형태가 다르므로 별도로 단언한다.
+{
+  const feature = "fortune-shell-consult";
+  const source = read("worker/routes/fortune.js");
+
+  checks += 1;
+  assert(
+    /function featureAiCallTimeoutMs\(deadlineAt, capMs, fallbackReserveMs = FEATURE_AI_FALLBACK_RESERVE_MS\) \{[\s\S]*?clampSyncLlmTimeoutMs\(/.test(source),
+    `${feature}: featureAiCallTimeoutMs가 clampSyncLlmTimeoutMs로 남은 예산을 깎지 않는다 (worker/routes/fortune.js)`,
+  );
+
+  // 🔴 clampSyncLlmTimeoutMs는 0/음수를 받으면 상한 85s로 되돌아간다. 그 앞의 하한 가드가 사라지면
+  //    예산이 바닥난 순간 오히려 최대치로 기다리게 되어 엣지 컷이 되돌아온다.
+  checks += 1;
+  assert(
+    /if \(budget < FEATURE_AI_MIN_CALL_MS\) return 0;/.test(source),
+    `${feature}: 남은 예산 하한 가드가 없다 — clampSyncLlmTimeoutMs(0)은 85s로 되돌아간다`,
+  );
+
+  // 고정 타임아웃으로 되돌아가면 예산이 무의미해진다.
+  for (const literal of ["timeoutMs: 120000", "timeoutMs: 90000"]) {
+    checks += 1;
+    assert(
+      !source.includes(literal),
+      `${feature}: 고정 타임아웃 \`${literal}\`이 되살아났다 — 엣지 100s 예산 밖으로 나간다`,
+    );
+  }
+
+  // 공용 생성기 호출부가 하나라도 deadlineAt을 빠뜨리면 그 라우트만 조용히 기본 예산으로 떨어져
+  // 인증·결제에 쓴 시간이 예산에서 누락된다(컴파일로는 잡히지 않는다).
+  // `await`로 시작하는 것만 호출부다(선언부 `async function runFeatureAiConsultation(env, {`는 제외).
+  const consultCalls = source.match(/await runFeatureAiConsultation\(env, \{/g) || [];
+  const budgetedCalls = source.match(/await runFeatureAiConsultation\(env, \{[\s\S]{0,200}?deadlineAt:/g) || [];
+  checks += 1;
+  assert(
+    consultCalls.length > 0 && consultCalls.length === budgetedCalls.length,
+    `${feature}: runFeatureAiConsultation 호출 ${consultCalls.length}건 중 ${budgetedCalls.length}건만 deadlineAt을 넘긴다`,
+  );
+
+  // 예산 + 뒤처리(결과 저장·자동 환불) 몫이 엣지 안에 들어와야 실패 처리가 실제로 실행된다.
+  const budgetMs = Number((source.match(/const FEATURE_AI_LLM_BUDGET_MS = (\d+);/) || [])[1]);
+  const primaryMs = Number((source.match(/const FEATURE_AI_PRIMARY_TIMEOUT_MS = (\d+);/) || [])[1]);
+  const reserveMs = Number((source.match(/const FEATURE_AI_FALLBACK_RESERVE_MS = (\d+);/) || [])[1]);
+  checks += 1;
+  assert(
+    Number.isFinite(budgetMs) && budgetMs + 20000 <= EDGE_RESPONSE_DEADLINE_MS,
+    `${feature}: FEATURE_AI_LLM_BUDGET_MS(${budgetMs})에 뒤처리 20s를 더하면 엣지 ${EDGE_RESPONSE_DEADLINE_MS}ms를 넘는다`,
+  );
+  checks += 1;
+  assert(
+    Number.isFinite(primaryMs) && Number.isFinite(reserveMs) && primaryMs + reserveMs <= budgetMs,
+    `${feature}: 1회 생성(${primaryMs}) + Workers AI 폴백 예약(${reserveMs})이 총 예산(${budgetMs})을 넘는다`,
+  );
+
+  // 사주 generating 신선도 창이 엣지보다 길면, 잘린 좀비 세션이 그동안 재시도를 202로 막는다.
+  const staleWindow = source.match(/const SAJU_AI_PROMPT_STALE_GENERATING_MS = ([^;]+);/);
+  checks += 1;
+  assert(
+    staleWindow && /EDGE_RESPONSE_DEADLINE_MS \+ 20000/.test(staleWindow[1]),
+    `${feature}: SAJU_AI_PROMPT_STALE_GENERATING_MS가 엣지 기준 창(EDGE_RESPONSE_DEADLINE_MS + 20000)이 아니다`,
+  );
+
+  // 폴백을 켠 유료 라우트는 fallbackMinChars를 함께 줘야 짧은 스텁이 상품 결과로 나가지 않는다(CLAUDE.md).
+  checks += 1;
+  assert(
+    (source.match(/fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS/g) || []).length >= 2,
+    `${feature}: 풀 생성 경로에 fallbackMinChars가 빠졌다 — Workers AI 스텁이 유료 결과로 전달된다`,
+  );
+  // 이어쓰기 repair는 분량 문턱을 정할 수 없고 예산이 가장 얇은 구간이라 무제한 폴백을 감당할 수 없다.
+  checks += 1;
+  assert(
+    (source.match(/fallbackToWorkersAI: false/g) || []).length >= 2,
+    `${feature}: repair 호출에 fallbackToWorkersAI: false가 빠졌다 — 폴백이 예산 밖으로 넘어간다`,
+  );
+
+  // 결제 증거 재사용이 켜진 뒤로는, 환불된 차감을 걸러 내는 이 검사가 유일한 "무료 재생성" 차단선이다.
+  checks += 1;
+  assert(
+    /kind: "refund",\s*\n\s*"metadata\.refundForPointHistoryId": String\(deducted\._id\)/.test(source),
+    `${feature}: findAIPromptPaymentEvidence가 환불된 차감을 결제 증거로 인정한다 — 환불 후 무료 생성이 열린다`,
+  );
+}
+
+// ── 프론트: 결정적 requestId + 결제 증거 재사용 ────────────────────────────────
+// 매 클릭마다 새 requestId를 만들면 워커 consume의 멱등이 무력화돼, 생성 실패 후 재시도가 재결제가 된다.
+for (const [feature, path, namespace] of [
+  ["astrology", "js/saju-engine.js", "astrology-ai-prompt"],
+  ["ziwei", "js/saju-engine.js", "ziwei-ai-prompt"],
+  ["sukuyo", "js/saju-engine-tarot-sukuyo-quantum.js", "sukuyo-ai-prompt"],
+]) {
+  const source = read(path);
+  checks += 1;
+  assert(
+    !new RegExp(`['"]${namespace}:['"]\\s*\\+\\s*(requestNonce|Date\\.now)`).test(source),
+    `${feature}: requestId가 비결정적이다 — 생성 실패 후 재시도가 재결제를 부른다 (${path})`,
+  );
+}
+{
+  const vedicSource = read("vedic-astrology.html");
+  checks += 1;
+  assert(
+    /function vedicAiCreateRequestId\(chart,question,compatibilityResult,epoch\)/.test(vedicSource)
+    && !/'vedic-ai-prompt:'\+Date\.now/.test(vedicSource),
+    `vedic: requestId가 비결정적이다 — 생성 실패 후 재시도가 재결제를 부른다 (vedic-astrology.html)`,
+  );
+  // 워커가 결제 권한 보존을 명시했을 때만 증거를 재사용해야 환불된 결제로 무료 생성이 되지 않는다.
+  checks += 1;
+  assert(
+    /paymentRetainedForRetry===true&&item\.refundOk!==true/.test(vedicSource),
+    `vedic: 결제 증거 보관 조건이 paymentRetainedForRetry 기반이 아니다`,
+  );
+}
+{
+  const sajuEngineSource = read("js/saju-engine.js");
+  checks += 1;
+  assert(
+    /paymentRetainedForRetry === true && item\.refundOk !== true/.test(sajuEngineSource),
+    `_cdAIPromptShouldRetainEvidence: 결제 증거 보관 조건이 paymentRetainedForRetry 기반이 아니다 (js/saju-engine.js)`,
   );
 }
 

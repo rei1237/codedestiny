@@ -26,6 +26,7 @@ import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
+  CheckoutFunnelEvent,
   MonthlyCreditLedger,
   PaidExecutionRecord,
   Payment,
@@ -53,6 +54,9 @@ import {
   PASS_LIMITS,
   HONEY_PASS_POLICY,
   resolveActivePassPolicy,
+  resolveFamilyPremiumQuota,
+  FAMILY_PREMIUM_INCLUDED_USES,
+  FAMILY_PREMIUM_MIN_COIN_COST,
 } from "../lib/profile-limits.js";
 import {
   getProfileCardMutationPolicy,
@@ -711,6 +715,25 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     };
   }
 
+  // Family 공정이용: 포함 횟수를 다 썼으면 이용권으로는 통과시키지 않는다.
+  // 판정 단계(buildPassPaymentDecision)가 같은 헬퍼로 미리 같은 답을 내므로, 여기 도달할 때는
+  // 이미 결제창이 떠 있는 게 정상이다. 그래도 두 단계 사이에 횟수가 소진될 수 있어(동시 요청)
+  // 소비 단계에도 둔다 — 이건 이중 방어가 아니라 판정·소비 2단계 구조의 필수 짝이다.
+  const familyQuota = resolveFamilyPremiumQuota(user?.profileSubscription || {}, entitlement, coinCost);
+  if (familyQuota.applies && familyQuota.exhausted) {
+    return {
+      ok: false,
+      reason: "family_premium_quota_exhausted",
+      featureKey,
+      coinCost,
+      amountKRW,
+      passTier: usage.tier,
+      familyPremiumIncluded: familyQuota.included,
+      familyPremiumUsed: familyQuota.used,
+      familyPremiumRemaining: 0,
+    };
+  }
+
   const now = new Date();
   const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
   const tierMatchValues = buildPassTierMatchValues(usage.tier);
@@ -756,6 +779,19 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           "profileSubscription.freeLimit": coveredCoinLimit,
           "profileSubscription.passLimit": coveredCoinLimit,
           "profileSubscription.updatedAt": now,
+          // Family 프리미엄 포함 횟수 차감. 이미 도는 파이프라인 안에서 함께 증가시키므로
+          // 쓰기가 늘지 않고, 통과와 차감이 한 번의 원자적 write 로 묶인다.
+          // 사이클 키가 다르면(=새 이용권) 1부터 다시 센다.
+          ...(familyQuota.applies ? {
+            "profileSubscription.premiumUseCycleKey": familyQuota.cycleKey,
+            "profileSubscription.premiumUseCount": {
+              $cond: [
+                { $eq: [{ $ifNull: ["$profileSubscription.premiumUseCycleKey", ""] }, familyQuota.cycleKey] },
+                { $add: [{ $ifNull: ["$profileSubscription.premiumUseCount", 0] }, 1] },
+                1,
+              ],
+            },
+          } : {}),
           // 파이프라인 업데이트라 $push/$slice 연산자를 못 쓴다 → 집계 표현식으로 append + 상한.
           // $setUnion이 아니라 $concatArrays인 이유: $setUnion은 집합 연산이라 순서를 보장하지 않아
           // $slice(-N)과 조합하면 '최근 N개'가 아니라 '정렬 후 뒤 N개'가 남아 마커 의미가 붕괴한다.
@@ -834,7 +870,12 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   // premium/vvip에게 PASS_COVERED + 결제수단 전부 숨김으로 뜬 뒤 소비 단계에서 거부되는 막다른 길이 됐다.
   // 제외 여부의 정본은 isPassExcludedPricing(=PASS_EXCLUDED_FEATURE_KEYS)뿐이다.
   const passExcluded = isPassExcludedPricing(pricing);
-  const passCovered = !passExcluded && canUseByPass(activeEntitlement, coinCost);
+  // Family 공정이용: 프리미엄 상담(300코인 이상)은 이용권 기간당 포함 횟수까지만 커버한다.
+  // 소비 단계(consumeTierPassIfAvailable)와 반드시 같은 답을 내야 한다 — 여기서 커버라 해놓고
+  // 소비가 거부하면 결제수단이 전부 숨겨진 막다른 길이 된다(바로 위 프로필 카드 사고와 같은 형태).
+  const familyPremiumQuota = resolveFamilyPremiumQuota(profileSubscription, activeEntitlement, coinCost);
+  const familyQuotaExhausted = familyPremiumQuota.applies && familyPremiumQuota.exhausted;
+  const passCovered = !passExcluded && !familyQuotaExhausted && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
   // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다.
@@ -860,9 +901,21 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
+    // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
+    // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
+    // 사유와 잔여 횟수를 함께 내린다.
+    ...(familyPremiumQuota.applies ? {
+      familyPremiumIncluded: familyPremiumQuota.included,
+      familyPremiumUsed: familyPremiumQuota.used,
+      familyPremiumRemaining: familyPremiumQuota.remaining,
+    } : {}),
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (passExcluded ? "PASS_EXCLUDED_PAYMENT_REQUIRED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
+      : (passExcluded
+        ? "PASS_EXCLUDED_PAYMENT_REQUIRED"
+        : (familyQuotaExhausted
+          ? "FAMILY_PREMIUM_QUOTA_EXHAUSTED"
+          : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"))),
     ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }
@@ -4804,7 +4857,12 @@ async function handleBillingSnapshotBalance(request, env) {
   // 페이지 로드 시 자동으로 도는 프리페치가 스스로를 밝히는 표시. 사용자가 연 모달·재조회와 구분한다.
   const isBackgroundRequest = billingUrl.searchParams.get("background") === "1";
   const isCompactRequest = billingUrl.searchParams.get("compact") === "1" || isMoonlightStoneRequest;
-  const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : !isCompactRequest;
+  // 월정석 모달 전용 경로(?moonlightStone=1)는 compact 라서 레거시 포인트→월정석 시드를 건너뛰고 있었다.
+  // 그 결과 미시드 레거시 사용자는 결제창에서만 잔량 0 을 보고(그 0 이 healthy 라 5초 캐시에까지 저장됨),
+  // 같은 계정이 /points·React 결제창에서는 실제 잔량을 보는 모순이 났다. 시드는 legacyCoinCreditSeeded
+  // 가드로 멱등이고 전환할 포인트가 없으면 쓰기 없이 즉시 반환하므로(seedMembershipCreditFromUserDoc),
+  // 잔량을 보여주는 게 목적인 이 경로에서는 켠다.
+  const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : (!isCompactRequest || isMoonlightStoneRequest);
   const includeUnlocks = !isCompactRequest;
   // 수동 "재조회"(fresh=1)는 항상 서버 캐시를 우회해 최신값을 읽는다. 자동 조회는 캐시를 허용해 빠르게 응답한다.
   const isFresh = billingUrl.searchParams.get("fresh") === "1";
@@ -5960,15 +6018,21 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
 
   if (!delegatedResponse.ok) {
     const rawCode = normalizeBillingErrorCode(toCode(payload));
+    const isConfirmTarget = String(targetPath || "").includes("/confirm");
     const code = delegatedResponse.status === 401 || delegatedResponse.status === 403
       ? "AUTH_REQUIRED"
-      : (rawCode !== "SERVER_ERROR" ? rawCode : (String(targetPath || "").includes("/confirm") ? "PAYMENT_VERIFICATION_FAILED" : "SERVER_ERROR"));
+      : (rawCode !== "SERVER_ERROR" ? rawCode : (isConfirmTarget ? "PAYMENT_VERIFICATION_FAILED" : "SERVER_ERROR"));
+    // confirm 은 카드 승인 이후 단계다. 5xx 를 "결제 검증에 실패했습니다"로만 알리면 사용자가
+    // 재결제를 시도해 이중 결제가 난다 — 이 경우에만 재시도 금지 안내를 붙인다.
+    const message = isConfirmTarget && delegatedResponse.status >= 500
+      ? CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE
+      : (code === "PAYMENT_VERIFICATION_FAILED"
+        ? "결제 검증에 실패했습니다."
+        : (delegatedResponse.status >= 500 ? "서버 결제 처리 중 오류가 발생했습니다." : "결제 요청이 거부되었습니다."));
     return failure(
       delegatedResponse.status,
       code,
-      code === "PAYMENT_VERIFICATION_FAILED"
-        ? "결제 검증에 실패했습니다."
-        : (delegatedResponse.status >= 500 ? "서버 결제 처리 중 오류가 발생했습니다." : "결제 요청이 거부되었습니다."),
+      message,
       toMessage(payload, "결제 요청 실패"),
     );
   }
@@ -6030,10 +6094,17 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
   return success(payload, toMessage(payload, "결제 요청이 성공했습니다."));
 }
 
+// 🔴 이용권 최종 안전망. 카드 주문이 만들어지기 전 마지막 관문이며, **결제수단을 명시했더라도**
+// 이용권이 커버하면 커버가 이긴다. 예전에는 여기 맨 앞에 `shouldCreateDirectPortOneOrder(body)` 조기
+// 반환이 있어서 DIRECT_KRW(=provider PORTONE_V2 + pg KG_INICIS)를 보내면 안전망이 스스로 꺼졌다.
+// 그때는 프론트 선검사가 그 앞을 막고 있어 드러나지 않았지만, 선검사가 사라진 지금은 스냅샷 없는
+// 이용권 보유자(새 기기·시크릿창·저장소 삭제·타 기기에서 방금 구매)가 자기 이용권으로 무료인
+// 콘텐츠를 카드로 결제하게 된다. 커버되지 않는 건은 아래 `canUseByPass` 검사가 그대로 걸러내므로
+// (이용권 제외 기능 `profile-card-manage` 포함) 이 관문이 넓히는 범위는 "커버되는데 카드로 결제하려는
+// 경우" 하나뿐이고, 그 경우의 결론은 항상 사용자에게 유리한 쪽(무료)이다.
 async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {}) {
   const pricingResult = resolvePricingFromBody(body);
   if (!pricingResult?.ok) return null;
-  if (shouldCreateDirectPortOneOrder(body)) return null;
 
   const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
   if (!authCheck.ok || !authCheck?.auth?.userId) return null;
@@ -6305,10 +6376,11 @@ async function handleCheckout(request, env) {
   const checkoutStartedAt = Date.now();
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
-  const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);
   let delegatedBody = body;
   if (!isSubscription) {
-    if (!directPaymentRequested) {
+    // 결제수단을 DIRECT_KRW 로 명시했더라도 이용권 커버 검사를 건너뛰지 않는다 — 여기가 카드 주문이
+    // 생성되기 전 마지막 지점이다(자세한 근거는 grantPassFreeAccessBeforeCardIfAvailable 주석).
+    {
       const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
       if (passAccess) {
         logCheckoutElapsed(body, checkoutStartedAt, passAccess.status, "pass_free_access");
@@ -6343,15 +6415,37 @@ function logCheckoutElapsed(body, startedAt, httpStatus, branch) {
   } catch (_) {}
 }
 
+// 카드 승인이 끝난 뒤(confirm 단계)의 실패에만 쓰는 문구. "다시 결제하지 마세요"가 핵심이다 —
+// 이 안내가 없으면 사용자가 재시도해서 이중 결제가 난다. 결제창을 여는 /checkout 단계에는 쓰지 않는다.
+const CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE = "일시적인 서버 오류로 결제 확인이 지연되고 있습니다. 카드는 이미 결제되었을 수 있으니 다시 결제하지 마시고, 내 정보 > 결제 내역에서 상태를 확인해 주세요.";
+
+// 상태코드·code 는 그대로 두고 사용자 문구만 결제 문맥으로 바꾼다(프론트 분기 보존).
+async function replaceConfirmAuthFailureMessage(response) {
+  try {
+    const payload = await response.clone().json();
+    return json({
+      ...payload,
+      message: CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE,
+      ...(payload?.error && typeof payload.error === "object"
+        ? { error: { ...payload.error, message: CONFIRM_AFTER_CHARGE_FAILURE_MESSAGE } }
+        : {}),
+    }, { status: response.status });
+  } catch (_) {
+    return response;
+  }
+}
+
 async function handleConfirm(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
   const hasPaymentVerificationPayload = Boolean(body?.impUid || body?.paymentId || body?.merchantUid || body?.merchant_uid);
-  const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);
   const pricingResult = !isSubscription ? resolvePricingFromBody(body) : null;
   let delegatedBody = body;
   let delegatedPricing = pricingResult?.pricing || null;
-  if (!isSubscription && !hasPaymentVerificationPayload && !directPaymentRequested) {
+  // 결제수단 명시(DIRECT_KRW)는 더 이상 이용권 검사를 끄지 않는다. 다만 이미 PG 결제가 끝나
+  // 검증 페이로드(impUid/paymentId 등)가 실린 요청은 그대로 검증·기록해야 한다 — 돈이 움직인 뒤에
+  // 이용권 무료로 바꾸면 그 결제가 고아가 된다.
+  if (!isSubscription && !hasPaymentVerificationPayload) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
   }
@@ -6367,7 +6461,11 @@ async function handleConfirm(request, env) {
     const reportType = resolvePremiumAccessReportType(delegatedFeatureKey, delegatedPricing?.reason);
     if (reportType || isUnlockPaidFeatureKey(delegatedFeatureKey)) {
       const authCheck = await requireBillingAuth(request, env, delegatedPricing);
-      if (!authCheck.ok) return authCheck.response;
+      // 🔴 여기는 카드 승인이 '이미 끝난' 뒤다(hasPaymentVerificationPayload). requireBillingAuth 의
+      // 기본 문구는 "로그인 상태를 일시적으로 확인하지 못했어요" 인데, 이 시점에 그 문구를 보여 주면
+      // 사용자가 재로그인 후 다시 결제를 시도해 이중 결제가 난다. 공유 함수는 그대로 두고(여러 라우트가
+      // 참조) 이 호출부에서만 결제 문맥 문구로 바꾼다. 상태코드는 유지해 프론트 분기를 깨지 않는다.
+      if (!authCheck.ok) return replaceConfirmAuthFailureMessage(authCheck.response);
       premiumAccessOptions = {
         premiumAccess: true,
         authUserId: authCheck.auth.userId,
@@ -6454,6 +6552,7 @@ export async function handleBillingRoutes(request, env) {
     if ((method === "GET" || method === "POST") && path === "/access") return await handlePaidAccessCheck(request, env);
     if ((method === "GET" || method === "POST") && path === "/dev-payment-tester") return await handleDevPaymentTester(request, env);
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
+    if (method === "POST" && path === "/funnel-event") return await handleCheckoutFunnelEvent(request, env);
 
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
     if (method === "POST" && path === "/coin-gate/deferred/register") return await handleDeferredUsageRegister(request, env);
@@ -6475,6 +6574,59 @@ export async function handleBillingRoutes(request, env) {
     logBillingRouteError("handle-billing-routes", error, request);
     return handleRouteError(error, { request, env, trace });
   }
+}
+
+// 결제창 퍼널 계측 수집구. 이 프로젝트에는 GA/GTM 이 없어 "결제창까지 왔는데 왜 안 사는가"를
+// 볼 수단이 없었다 — 그 공백을 메우는 최소 채널이다.
+//
+// 계약(전부 의도적):
+//   · 인증 불필요. 비로그인 이탈도 퍼널의 일부이고, 어차피 개인식별자를 받지 않는다.
+//   · 항상 204. 클라는 sendBeacon 으로 fire-and-forget 하며 응답을 읽지 않는다.
+//   · 어떤 실패도 밖으로 내보내지 않는다 — 계측이 결제 경로에 영향을 주면 안 된다.
+//   · 이벤트명 화이트리스트 + 본문 1KB 상한. 재시도 없음(중첩 재시도 금지 원칙).
+const CHECKOUT_FUNNEL_EVENT_NAMES = new Set([
+  "checkout_opened",
+  "checkout_option_click",
+  "pass_verified_free",
+  "pass_store_entered",
+  "checkout_dismissed",
+]);
+const CHECKOUT_FUNNEL_MAX_BODY_BYTES = 1024;
+
+function clampFunnelText(value, maxLength) {
+  return String(value === null || value === undefined ? "" : value).trim().slice(0, maxLength);
+}
+
+function clampFunnelNumber(value, max) {
+  const parsed = Math.floor(Number(value || 0));
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.min(parsed, max);
+}
+
+async function handleCheckoutFunnelEvent(request, env) {
+  const noContent = () => new Response(null, { status: 204 });
+  try {
+    const raw = await request.text();
+    if (!raw || raw.length > CHECKOUT_FUNNEL_MAX_BODY_BYTES) return noContent();
+    const body = JSON.parse(raw);
+    const name = clampFunnelText(body?.name, 60);
+    if (!CHECKOUT_FUNNEL_EVENT_NAMES.has(name)) return noContent();
+    await connectDb(env);
+    await CheckoutFunnelEvent.create({
+      name,
+      featureKey: clampFunnelText(body?.featureKey, 120),
+      option: clampFunnelText(body?.option, 40),
+      renderer: clampFunnelText(body?.renderer, 40),
+      runtime: clampFunnelText(body?.runtime, 20),
+      coinPrice: clampFunnelNumber(body?.coinPrice, 1000000),
+      hasPassHint: clampFunnelText(body?.hasPassHint, 20),
+      dwellMs: clampFunnelNumber(body?.dwellMs, 24 * 60 * 60 * 1000),
+      createdAt: new Date(),
+    });
+  } catch (_funnelEventError) {
+    // 계측 유실은 허용한다. 로그도 남기지 않는다 — 비정상 트래픽이 로그를 밀어내면 그게 더 나쁘다.
+  }
+  return noContent();
 }
 
 export const __billingTestUtils = {

@@ -215,8 +215,15 @@ function buildHiddenStemDetails(dayStem, branch) {
   }));
 }
 
-function buildPillarDetail(key, pillar, eightChar, dayStem) {
+/**
+ * @param {object} [options]
+ * @param {boolean} [options.detached]
+ *   기둥이 eightChar 와 다른 시각에서 나온 경우(예: 진태양시 보정된 시주).
+ *   naYin·십이운성·순공 같은 eightChar 파생 필드는 보정 전 시각 기준이라 틀리므로 비운다.
+ */
+function buildPillarDetail(key, pillar, eightChar, dayStem, options = {}) {
   if (!pillar) return null;
+  const detached = options.detached === true;
   const methodPrefix = key.charAt(0).toUpperCase() + key.slice(1);
   const stem = pillarStem(pillar);
   const branch = pillarBranch(pillar);
@@ -233,14 +240,14 @@ function buildPillarDetail(key, pillar, eightChar, dayStem) {
     branchElement: BRANCH_ELEMENT[branch] || "",
     hiddenStems: buildHiddenStemDetails(dayStem, branch),
     stemTenGod: key === "day" ? "일간" : tenGodFor(dayStem, stem),
-    branchTenGods: Array.isArray(rawBranchTenGods)
+    branchTenGods: !detached && Array.isArray(rawBranchTenGods)
       ? rawBranchTenGods.map(normalizeTenGodName).filter(Boolean)
       : [],
-    elementPair: typeof eightChar?.[`get${methodPrefix}WuXing`] === "function" ? clean(eightChar[`get${methodPrefix}WuXing`](), 20) : "",
-    naYin: typeof eightChar?.[`get${methodPrefix}NaYin`] === "function" ? clean(eightChar[`get${methodPrefix}NaYin`](), 40) : "",
-    twelveStage: typeof eightChar?.[`get${methodPrefix}DiShi`] === "function" ? clean(eightChar[`get${methodPrefix}DiShi`](), 20) : "",
-    xun: typeof eightChar?.[`get${methodPrefix}Xun`] === "function" ? clean(eightChar[`get${methodPrefix}Xun`](), 20) : "",
-    xunKong: typeof eightChar?.[`get${methodPrefix}XunKong`] === "function" ? clean(eightChar[`get${methodPrefix}XunKong`](), 20) : "",
+    elementPair: !detached && typeof eightChar?.[`get${methodPrefix}WuXing`] === "function" ? clean(eightChar[`get${methodPrefix}WuXing`](), 20) : "",
+    naYin: !detached && typeof eightChar?.[`get${methodPrefix}NaYin`] === "function" ? clean(eightChar[`get${methodPrefix}NaYin`](), 40) : "",
+    twelveStage: !detached && typeof eightChar?.[`get${methodPrefix}DiShi`] === "function" ? clean(eightChar[`get${methodPrefix}DiShi`](), 20) : "",
+    xun: !detached && typeof eightChar?.[`get${methodPrefix}Xun`] === "function" ? clean(eightChar[`get${methodPrefix}Xun`](), 20) : "",
+    xunKong: !detached && typeof eightChar?.[`get${methodPrefix}XunKong`] === "function" ? clean(eightChar[`get${methodPrefix}XunKong`](), 20) : "",
   };
 }
 
@@ -621,7 +628,12 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
   const yearPillar = clean(eightChar?.getYear?.(), 10) || lunar.getYearInGanZhiExact?.() || lunar.getYearInGanZhi();
   const monthPillar = clean(eightChar?.getMonth?.(), 10) || lunar.getMonthInGanZhiExact?.() || lunar.getMonthInGanZhi();
   const dayPillar = clean(eightChar?.getDay?.(), 10) || lunar.getDayInGanZhiExact?.() || lunar.getDayInGanZhi();
-  const hourPillar = timeUnknown ? "" : clean(eightChar?.getTime?.(), 10) || lunar.getTimeInGanZhi();
+  // hourPillarOverride: 호출부가 자체 시각 보정(진태양시 등)으로 계산한 시주를 넘길 수 있다.
+  // 넘기지 않으면 기존 동작(시계 시각 기준) 그대로다 — 나머지 5개 라우트는 영향받지 않는다.
+  const hourPillarOverride = clean(birthInfo.hourPillarOverride, 10);
+  const hourPillar = timeUnknown
+    ? ""
+    : (hourPillarOverride || clean(eightChar?.getTime?.(), 10) || lunar.getTimeInGanZhi());
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = clean(eightChar?.getDayGan?.(), 4) || pillarStem(dayPillar);
   const fiveElements = buildElementDistribution(pillars);
@@ -633,7 +645,7 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
     year: buildPillarDetail("year", yearPillar, eightChar, dayMaster),
     month: buildPillarDetail("month", monthPillar, eightChar, dayMaster),
     day: buildPillarDetail("day", dayPillar, eightChar, dayMaster),
-    hour: timeUnknown ? null : buildPillarDetail("hour", hourPillar, eightChar, dayMaster),
+    hour: timeUnknown ? null : buildPillarDetail("hour", hourPillar, eightChar, dayMaster, { detached: Boolean(hourPillarOverride) }),
   };
   const tenGodsByPillar = buildTenGodByPillar(pillarDetails);
   const seasonalBalance = buildSeasonalBalance(pillarBranch(monthPillar), fiveElements, dayMaster);

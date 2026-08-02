@@ -1,0 +1,102 @@
+/* VVIP 결정판 통합서 전용 — 목차 · 장(章) · 27수 지형표.
+   팔레트 토큰은 부모(.vars, _premium/premium.module.css)에서 상속받는다. */
+
+.toc {
+  margin-bottom: 1.4rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--hair);
+  border-radius: 1.05rem;
+  background: var(--glass);
+}
+.tocTitle { margin: 0 0 0.7rem; color: var(--gold-soft); font-size: 0.86rem; font-weight: 800; letter-spacing: 0.06em; }
+.tocList { margin: 0; padding: 0; list-style: none; }
+.tocItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  padding: 0.42rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--t-200);
+  font-size: 0.88rem;
+}
+.tocItem:first-child { border-top: 0; }
+.tocIcon { flex: none; width: 1.2rem; color: var(--gold); text-align: center; }
+
+.chapter { margin-bottom: 1.6rem; }
+.chapterHead {
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid var(--hair);
+}
+.chapterTitle {
+  margin: 0;
+  color: var(--t-100);
+  font-family: var(--font-display, inherit);
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.chapterKey {
+  margin: 0.35rem 0 0;
+  color: var(--gold-soft);
+  font-size: 0.84rem;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.para {
+  margin: 0 0 0.9rem;
+  color: var(--t-200);
+  font-size: 0.9rem;
+  line-height: 2;
+  word-break: keep-all;
+}
+
+/* ── 27수 지형표 ── */
+.terrain { margin: 1rem 0 0; padding: 0; list-style: none; }
+.trow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.55rem;
+  padding: 0.5rem 0.35rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.tself {
+  border-radius: 0.5rem;
+  background: rgba(229, 199, 137, 0.09);
+}
+.tname { flex: none; min-width: 4.6rem; color: var(--t-100); font-weight: 700; }
+.trole { flex: none; min-width: 4.2rem; color: var(--east-soft); font-weight: 700; }
+.tgist { color: var(--t-400); word-break: keep-all; }
+.tmine { flex: none; padding: 0.06rem 0.42rem; border-radius: 999px; background: rgba(229, 199, 137, 0.2); color: var(--gold); font-size: 0.68rem; font-weight: 800; }
+
+/* ── 저장 액션 ── */
+.actions {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.6rem;
+  margin: 1.5rem 0 0;
+}
+.pdfBtn {
+  flex: 1;
+  min-height: 48px;
+  border: 1px solid rgba(229, 199, 137, 0.45);
+  border-radius: 999px;
+  background: rgba(8, 10, 22, 0.92);
+  backdrop-filter: blur(8px);
+  color: var(--gold-soft);
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.pdfBtn:hover:not(:disabled) { background: rgba(229, 199, 137, 0.14); color: var(--t-100); }
+.pdfBtn:disabled { opacity: 0.55; cursor: default; }
+
+@media print {
+  .actions { display: none; }
+}

@@ -81,6 +81,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "palm-reading-general",
   "palm-reading-ai-consult",
   "life-book-ai-consultation",
+  "life-fortune-ai-consultation",
   "new-year-ai-consultation",
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
@@ -215,6 +216,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "destiny-compass-crossroads": { cost: 100, amountKRW: 10000, reason: "운명의 갈림길 기운 비교" },
   "destiny-compass-life-voyage": { cost: 100, amountKRW: 10000, reason: "삶의 항로 안내" },
   "destiny-compass-future-sim": { cost: 100, amountKRW: 10000, reason: "미래 시뮬레이션 안내" },
+  "destiny-compass-deep-report": { cost: 100, amountKRW: 10000, reason: "운명의 지도 심층 리포트" },
   "pet-saju-ai-consultation": { cost: 50, amountKRW: 5000, reason: "반려동물 사주 AI 심층 리포트" },
   "pet-compatibility-ai": { cost: 50, amountKRW: 5000, reason: "반려동물 궁합 분석" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
@@ -237,9 +239,14 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "saju-guardian-unlock": { cost: 100, reason: "사주 가디언 소환진 해금" },
   destiny_meeting_place: { cost: 100, reason: "사주로 보는 인연의 장소 1회 분석" },
   premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
-  "palm-reading-general": { cost: 50, reason: "손금 전체운 분석" },
+  // 손금은 Gemini Vision 판독(손당 1회) + 심층 해석까지 한 번에 제공하는 단일 상품이다.
+  // 구 palm-reading-ai-consult(별도 5,000원)는 기본 분석에 통합돼 더 이상 호출되지 않지만,
+  // 과거 주문·환불 이력이 참조하므로 키와 가격은 그대로 남긴다.
+  "palm-reading-general": { cost: 100, reason: "손금 정밀 판독 + 심층 해석" },
   "palm-reading-ai-consult": { cost: 50, reason: "손금 전문가 상담 생성" },
   "life-book-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생의 책 전문가 상담" },
+  // 인생 총운은 분량이 3배(30,000자 vs 10,000자)라 2026-08-01 부터 별도 SKU 로 분리했다.
+  "life-fortune-ai-consultation": { cost: 500, amountKRW: 50000, reason: "인생 총운 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },
   "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
   "saju_ai_question_prompt": { cost: 200, reason: "사주 전문가 상담 결과 생성" },
@@ -399,7 +406,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fortune-tea-house-saju-compatibility-consultation",
   "fortune-tea-house-sukuyo-compatibility-consultation",
   "sukuyo-symbolic-comparison",
-  "sukuyo-extreme-t-relationship",
   "sukuyo-past-life-reading",
   "sukuyo-monthly-fortune",
   "sukuyo-compatibility-ai",
@@ -442,6 +448,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "master-love-codex",
   "master-love-codex-compat",
   "life-book-ai-consultation",
+  "life-fortune-ai-consultation",
   "karma-destiny-ai-consultation",
   "ziwei-ai-consultation",
   "ziwei-island-palace-consult",
@@ -460,6 +467,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "destiny-compass-crossroads",
   "destiny-compass-life-voyage",
   "destiny-compass-future-sim",
+  // 매번 새로 생성되는 개인화 리포트 → 회당 결제(영구 잠금해제 아님).
+  "destiny-compass-deep-report",
   "pet-saju-ai-consultation",
   "pet-compatibility-ai",
   "profile-card-manage",
@@ -501,6 +510,11 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",
+  // 극T 관계 회로 확장 — 사주에서 결정론으로 산출되는 고정 콘텐츠(LLM 미사용)라 재열람이 전제.
+  // 회당 결제로 등록돼 있었으나 클라는 영구 해금으로 동작해 양쪽이 어긋나 있었고, 그 탓에
+  // 서버가 unlockedFeatures 를 기록하지 않아 새로고침하면 결제한 잠금이 다시 닫혔다.
+  // 인연 도감·운명의 섬 심층 리포트와 같은 A유형으로 맞춘다.
+  "sukuyo-extreme-t-relationship",
   "premium-fpti-report",
 ]);
 

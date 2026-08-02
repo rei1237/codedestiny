@@ -20,9 +20,10 @@
 
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
+import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, MonthlyCreditLedger, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -88,8 +89,28 @@ const KNOWN_FEATURE_KEYS = Object.freeze([FEATURE_KEY, COMPAT_FEATURE_KEY]);
 const CHAPTER_CONCURRENCY = 4; // Gemini 병렬 상한(레이트리밋·subrequest 안전)
 const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피
 const CHAPTER_TIMEOUT_MS = 60000;
-// 배치 1회(생성 + JSON 수선 재호출 최악 시간)를 덮어야 병렬 폴링이 같은 배치를 중복 기동하지 않는다.
-const BATCH_LOCK_TTL_MS = 390_000;
+
+/**
+ * 🔴 배치 1회의 벽시계 상한. 이 예산이 없으면 요청이 엣지 컷(100초)에 잘려
+ *    JSON 대신 게이트웨이 HTML 이 나가고, 클라이언트는 원인을 잃은 채 "생성 실패"만 본다.
+ *
+ * 왜 CHAPTER_TIMEOUT_MS 로는 부족한가 — 그 값은 `callGeminiText` 안에서 **Gemini fetch 하나만**
+ * 묶는다. 그 뒤에 붙는 Workers AI 폴백 체인(lib/llm-client.ts `callCloudflareWorkersAI`)은
+ * `env.AI.run` 에 signal 을 넘기지 않아 **아무 타임아웃도 없고**, 모델 2개를 순차로 시도한다.
+ * 그래서 한 장의 실제 상한은 "60초"가 아니라 "60초 + 폴백 무제한"이다.
+ *
+ * 남는 22초는 인증·DB 왕복·프롬프트 구성·병합 저장 몫이다.
+ */
+const BATCH_BUDGET_MS = EDGE_RESPONSE_DEADLINE_MS - 22_000;
+/** 이보다 적게 남았으면 새 장을 시작하지 않는다 — 시작해도 예산 안에 못 끝낸다. */
+const CHAPTER_MIN_BUDGET_MS = 12_000;
+/**
+ * 배치 락 TTL. 반드시 BATCH_BUDGET_MS 보다 크고 엣지 컷보다 크게 두되 과하게 길면 안 된다.
+ * 🔴 예전 390초는 엣지 컷(100초)의 4배라, 엣지가 요청을 끊어 락 해제 코드가 돌지 못하면
+ *    세션이 6분 반 동안 409(GENERATION_IN_PROGRESS)만 뱉어 재시도가 통째로 막혔다.
+ *    이제 배치가 BATCH_BUDGET_MS 안에서 반드시 반환하므로 이 값을 그에 맞춰 좁힌다.
+ */
+const BATCH_LOCK_TTL_MS = 120_000;
 
 const MESSAGES = {
   loginRequired: "마스터 인연의 서를 열려면 로그인이 필요합니다.",
@@ -340,15 +361,23 @@ function paymentTokenClauses(tokens = []) {
   return clauses;
 }
 
-async function findBillingEvidence({ userId, idempotencyKey, body }) {
+/**
+ * @param {{ userId: string, idempotencyKey: string, body: object, featureKey: string }} params
+ *   🔴 featureKey 는 반드시 이 요청의 모드 것을 넘긴다. 상수(개인판)로 박으면 궁합판(500코인)
+ *      결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어 증빙을 못 찾고,
+ *      결제를 마친 사용자가 /start 에서 402 를 받는다(돈만 나간다).
+ *      반대로 두 키를 함께 받아들이면 30,000원 결제로 50,000원 상품을 받게 되므로 정확히 일치시킨다.
+ */
+async function findBillingEvidence({ userId, idempotencyKey, body, featureKey }) {
   if (!objectIdLike(userId)) return null;
+  const evidenceFeatureKey = clean(featureKey) || FEATURE_KEY;
   const tokens = collectBillingTokens(body, idempotencyKey);
   if (!tokens.length) return null;
 
   const pointClauses = metadataTokenClauses(tokens);
   const point = await PointHistory.findOne({
     userId,
-    featureKey: FEATURE_KEY,
+    featureKey: evidenceFeatureKey,
     kind: "deduct",
     "metadata.coinRefundedForUnlockFailure": { $ne: true },
     "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
@@ -362,7 +391,7 @@ async function findBillingEvidence({ userId, idempotencyKey, body }) {
   const ledger = await MonthlyCreditLedger.findOne({
     userId,
     type: "MONTHLY_CREDIT_SPEND",
-    "metadata.featureKey": FEATURE_KEY,
+    "metadata.featureKey": evidenceFeatureKey,
     "metadata.refundedForUnlockFailure": { $ne: true },
     "metadata.refundedForServiceExecution": { $ne: true },
     $or: pointClauses,
@@ -373,7 +402,7 @@ async function findBillingEvidence({ userId, idempotencyKey, body }) {
 
   const payment = await Payment.findOne({
     userId,
-    featureKey: FEATURE_KEY,
+    featureKey: evidenceFeatureKey,
     status: { $in: ["paid", "success", "fulfilled"] },
     $or: paymentTokenClauses(tokens),
   }).sort({ updatedAt: -1, createdAt: -1 }).lean();
@@ -451,6 +480,47 @@ function chapterCache(env, modeKey = "solo") {
   };
 }
 
+/**
+ * 예산 안에서만 기다린다. 초과하면 `{ deferred: true }` 를 돌려주고 원래 프라미스는 버린다.
+ *
+ * 🔴 중첩이 아니다 — `callGeminiText(timeoutMs)` 가 묶는 것은 Gemini fetch 하나뿐이고,
+ *    그 뒤 Workers AI 폴백 체인에는 타임아웃이 아예 없다(lib/llm-client.ts:402~443).
+ *    안쪽(timeoutMs)은 항상 바깥(deadlineAt)보다 짧게 주므로 두 장치가 서로를 무력화하지 않는다.
+ */
+async function withDeadline(promise, deadlineAt) {
+  const remainingMs = deadlineAt - Date.now();
+  if (remainingMs <= 0) return { deferred: true };
+  // 거부를 값으로 접어 둔다 — 타이머가 레이스를 이긴 뒤 원래 프라미스가 거부해도
+  // 처리되지 않은 거부(unhandled rejection)로 남지 않는다.
+  const settled = promise.then((value) => ({ value }), (error) => ({ error }));
+  let timer = null;
+  try {
+    return await Promise.race([
+      settled,
+      new Promise((resolve) => { timer = setTimeout(() => resolve({ deferred: true }), remainingMs); }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/**
+ * 이번 배치에서 실제로 저장할 장을 고른다.
+ *
+ * 챕터는 반드시 연속이어야 한다(`startIndex = chapters.length` 가 진행 위치의 정본이므로
+ * 중간에 구멍이 나면 그 뒤 장이 영영 다른 번호로 밀린다). 그래서 예산 초과로 못 쓴 장이
+ * 나오면 그 지점에서 자르고 앞쪽 연속분만 커밋한다. 버려진 장은 다음 /generate 가 다시
+ * 쓰는데, 챕터 캐시가 결정론(30일 TTL)이라 재생성은 대개 캐시 히트다.
+ */
+function planBatchCommit(results = []) {
+  const committed = [];
+  for (const result of results) {
+    if (!result || result.status === "deferred") break;
+    committed.push(result);
+  }
+  return committed;
+}
+
 function fallbackChapterBody(chapter, birthInfo) {
   return [
     `● ${clean(chapter.title).replace(/^제\d+장 · /, "")}`,
@@ -502,8 +572,14 @@ function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
 
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
-  birthInfo, partnerInfo, chapter, prologueChoice, memory,
+  birthInfo, partnerInfo, chapter, prologueChoice, memory, deadlineAt = Infinity,
 }) {
+  // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
+  const remainingMs = deadlineAt - Date.now();
+  if (remainingMs < CHAPTER_MIN_BUDGET_MS) return { status: "deferred", chapter: null, loveDna: null };
+  // 안쪽 타임아웃은 항상 바깥 예산보다 짧게 — 두 장치가 경합하지 않도록.
+  const timeoutMs = Math.min(CHAPTER_TIMEOUT_MS, remainingMs);
+
   const modeDef = resolveMode(mode);
   const prompt = modeDef.mode === "compat"
     ? buildMasterLoveCodexCompatChapterPrompt({
@@ -514,18 +590,23 @@ async function generateChapter(env, {
   const cache = chapterCache(env, modeDef.mode);
   try {
     if (chapter.jsonMode) {
-      const ai = await callGeminiJsonWithRetry(env, prompt, {
-        attempts: 3,
+      // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
+      const raced = await withDeadline(callGeminiJsonWithRetry(env, prompt, {
+        attempts: 2,
         baseTokens: 6000,
         capTokens: 14000,
         temperature: 0.6,
-        timeoutMs: CHAPTER_TIMEOUT_MS,
+        timeoutMs,
         cache,
-      });
+      }), deadlineAt);
+      if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
+      if (raced.error) throw raced.error;
+      const ai = raced.value;
       const parsed = parseChapterJson(ai?.text);
       const body = clean(parsed?.body || "");
       if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
       return {
+        status: "ok",
         chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
         loveDna: normalizeLoveDna(parsed, modeDef.dnaMetrics),
       };
@@ -536,23 +617,29 @@ async function generateChapter(env, {
     // 는 2026-05-30 폐기되고 지금 기본값은 llama-3.3-70b-instruct-fp8-fast 다(lib/llm-client.ts).
     // 더 중요한 건 비교 대상이다 — 끄면 Gemini 실패 시 독자가 받는 것은 짧은 장이 아니라
     // fallbackChapterBody() 사과 문구다. 결제한 책에는 짧은 실제 해석이 사과문보다 낫다.
-    const ai = await callGeminiText(env, prompt, {
+    const raced = await withDeadline(callGeminiText(env, prompt, {
       maxOutputTokens: 8000,
       temperature: 0.72,
-      timeoutMs: CHAPTER_TIMEOUT_MS,
+      timeoutMs,
       cache,
-    });
+    }), deadlineAt);
+    if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
+    if (raced.error) throw raced.error;
+    const ai = raced.value;
     const body = clean(ai?.text || "");
     if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
     return {
+      status: "ok",
       chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
       loveDna: null,
     };
   } catch (error) {
-    // 결제 후 결과는 반드시 전달한다 — 한 장이 실패해도 책 전체를 실패시키지 않는다.
+    // 결제 후 결과는 반드시 전달한다 — 한 장이 예산 안에서 실패해도 책 전체를 실패시키지 않는다.
+    // (예산 초과로 못 쓴 장은 여기 오지 않는다 — 위에서 deferred 로 빠져 저장 자체를 건너뛴다.)
     console.error("[master-love-codex] chapter", chapter.id, clean(error?.message, 200));
     const body = fallbackChapterBody(chapter, birthInfo);
     return {
+      status: "fallback",
       chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: "fallback", ok: false },
       loveDna: null,
     };
@@ -679,7 +766,13 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
   if (isAdmin(auth)) return { ok: true, accessType: "admin", paymentId: "", billingRequestId: idempotencyKey };
 
   await connectDb(env);
-  const evidence = await findBillingEvidence({ userId: auth.userId, idempotencyKey, body });
+  const evidence = await findBillingEvidence({
+    userId: auth.userId,
+    idempotencyKey,
+    body,
+    // 궁합판 결제는 `master-love-codex-compat` 로 기록된다 — 이 요청의 모드 키로 찾아야 한다.
+    featureKey: resolveMode(normalized.mode).featureKey,
+  });
   if (evidence?.ok) return evidence;
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
@@ -777,6 +870,8 @@ async function acquireBatchLock(sessionId, userId) {
 }
 
 async function handleGenerate(request, env) {
+  // 예산 시계는 핸들러 진입 시점부터 돈다 — 앞단의 인증·DB 왕복·락 획득이 자동으로 예산에서 빠진다.
+  const deadlineAt = Date.now() + BATCH_BUDGET_MS;
   const body = await readJson(request);
   const sessionId = clean(asObject(body).sessionId, 120);
   if (!sessionId) return invalidInput("세션 정보가 없습니다. 처음부터 다시 시작해 주세요.");
@@ -841,10 +936,27 @@ async function handleGenerate(request, env) {
       chapter,
       prologueChoice: clean(doc.prologueChoice),
       memory,
+      deadlineAt,
     }));
 
-    const newChapters = results.map((result) => result.chapter);
-    const loveDna = results.map((result) => result.loveDna).find(Boolean) || null;
+    // 예산 초과로 못 쓴 장이 나오면 그 앞까지만 커밋한다(챕터는 연속이어야 한다).
+    const committed = planBatchCommit(results);
+    if (!committed.length) {
+      await MasterLoveCodexSession.updateOne(
+        { id: sessionId },
+        { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
+      ).catch(() => {});
+      console.warn("[master-love-codex] batch budget exceeded", sessionId, `startIndex=${startIndex}`);
+      return json({
+        ok: false,
+        reason: "GENERATION_BUDGET_EXCEEDED",
+        retryable: true,
+        message: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 그대로 보관되니 잠시 후 이어서 쓰면 됩니다.",
+      }, { status: 503 });
+    }
+
+    const newChapters = committed.map((result) => result.chapter);
+    const loveDna = committed.map((result) => result.loveDna).find(Boolean) || null;
     const merged = [...existingChapters, ...newChapters];
     const totalCharCount = merged.reduce((sum, chapter) => sum + Number(chapter.chars || 0), 0);
     const done = merged.length >= modeDef.chapters.length;
@@ -889,7 +1001,7 @@ export async function handleMasterLoveCodexRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/master-love-codex");
   try {
-    if (method === "GET" && (path === "/plan" || path === "")) return handlePlan(request);
+    if (method === "GET" && (path === "/plan" || path === "")) return await handlePlan(request);
     if (method === "GET" && path === "/session") return await handleSession(request, env);
     if (method === "POST" && (path === "/ensure-access" || path === "/prepare")) return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
@@ -898,6 +1010,17 @@ export async function handleMasterLoveCodexRoutes(request, env = {}) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[master-love-codex]", clean(error?.code || error?.message || error, 300));
+    // 네 핸들러 모두 surfaceDbInfraError:true 로 인증 DB 장애를 throw 시킨다. 그걸 여기서
+    // 하드 500 으로 굳히면 일시적 블립이 "생성 실패"로 확정되어 클라가 재시도하지 못한다.
+    // (ziwei-ai.js 등 14개 라우트가 쓰는 것과 같은 판정을 재사용한다.)
+    if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return serverError();
   }
 }
@@ -906,4 +1029,7 @@ export const __masterLoveCodexTestUtils = {
   FEATURE_KEY, COMPAT_FEATURE_KEY, SERVICE_KEY, MODES,
   normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
   resolveMode, tokenMatchesMode, buildCharts,
+  // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
+  withDeadline, planBatchCommit,
+  BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
 };

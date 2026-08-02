@@ -816,7 +816,7 @@
       "vvipBenefit2": "Bis zu 15 Profile",
       "vvipCta": "VVIP-Vorteile anzeigen",
       "familyName": "Code Destiny Family 30 Tage",
-      "familyPrice": "30 Tage · 300.000 KRW",
+      "familyPrice": "30 Tage · 149.000 KRW",
       "familyLine": "Nutzen Sie alle kostenpflichtigen Funktionen",
       "familyBenefit1": "Keine Profilbeschränkung",
       "familyBenefit2": "Alle Familienleistungen",
@@ -1274,6 +1274,18 @@
       "placeholder": "Dienste suchen (z. B. Tarot, Partnerschaft, Traum)",
       "searchAria": "Alle Dienste durchsuchen",
       "empty": "Keine Ergebnisse. Versuche ein anderes Stichwort."
+    },
+    "todayHub": {
+      "title": "Das Tagesorakel",
+      "lead": "Die Tagessäule des Saju, die 27 Mondhäuser und der vedische Wochentagsherrscher an einem Ort. Kostenlos, ohne Anmeldung.",
+      "tabsAria": "System des Tagesorakels wechseln",
+      "tabSaju": "Saju",
+      "tabSukuyo": "Sukuyo",
+      "tabVedic": "Vedisch",
+      "personalized": "Mit deinem Geburtsdatum",
+      "noteGuest": "Das ist der allgemeine Verlauf des Tages. Trage dein Geburtsdatum in die Profilkarte ein, dann lesen wir ihn zu deinem eigenen Chart.",
+      "ctaAll": "Die ganze Tagesdeutung ansehen",
+      "share": "Teilen"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "Zahlungsmethode auswählen",
       "readyMessage": "Wählen Sie zwischen monatlichem Guthaben und einmaliger Zahlung.",
-      "directHint": "Bezahlen Sie direkt mit Karte oder einfacher Zahlung.<br>Die Zahlung wird im sicheren Checkout-Fenster von PortOne V2 KG Inicis fortgesetzt.",
+      "directHint": "Nur dieses eine Ergebnis. Öffnet sofort per Karte oder Express-Zahlung.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Einmalige KRW-Zahlung · {amount}",
       "amountLabel": "Zahlungsbetrag",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "Monatliche Kreditbasis · {amount}",
         "withPass": "Allgemeine kostenpflichtige Dienste werden mit einem Pass geöffnet, wenn sie innerhalb des Limits liegen. Für PDFs und Dienste über dem Limit ist eine einmalige KRW-Zahlung pro Produkt erforderlich.",
-        "directOnly": "Diese Aktion wird mit einer einmaligen KRW-Zahlung bestätigt."
+        "directOnly": "Diese Aktion wird mit einer einmaligen KRW-Zahlung bestätigt.",
+        "passUnknown": "Wenn du einen Pass hast, tippe unten auf die Pass-Karte – wir prüfen ihn sofort.",
+        "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen."
       },
       "passBadge": "Mondscheinpass",
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Überprüfen Sie erneut, ob die Prüfung bestanden hat",
       "passHint": {
-        "store": "Wechseln Sie zum Moonlight Pass, um diese und alle Funktionen unter seinem Limit 30 Tage lang ohne Zahlungsfenster unbegrenzt zu nutzen.",
+        "store": "30 Tage unbegrenzt alle Funktionen unter dem Limit, ohne Checkout. Schon einen Pass? Tippen und direkt prüfen.",
         "retry": "Wir prüfen erneut auf dem Server, ob Ihr Pass dies ohne Bezahlung öffnen kann.",
-        "upgrade": "Diese Funktion liegt über dem Limit Ihres aktuellen Passes. Prüfen Sie einen höheren Moonlight Pass."
+        "upgrade": "Deine aktuelle Stufe deckt diese Funktion nicht ab. Sieh dir einen höheren Pass an."
       },
       "applyMethod": {
         "label": "Methode anwenden",
@@ -1784,9 +1798,10 @@
         "checking": "Überprüfung der Passabdeckung"
       },
       "monthlyHint": {
-        "use": "Nutzen Sie Ihr monatliches Guthaben und eröffnen Sie es jetzt.",
+        "use": "Bezahlt mit bereits vorhandenen Mondsteinen. Öffnet ohne zusätzliche Ausgaben.",
         "insufficient": "Ihr monatliches Guthaben ist niedrig. Sie können mit der einmaligen KRW-Zahlung fortfahren.",
-        "checking": "Das monatliche Guthaben muss überprüft werden. Eine einmalige KRW-Zahlung ist weiterhin möglich."
+        "checking": "Dein Mondstein-Guthaben muss geprüft werden. Einmalzahlung in KRW bleibt möglich.",
+        "after": "Danach verbleiben {balance}."
       },
       "monthlyBalance": {
         "needCheck": "Überprüfung erforderlich",
@@ -1795,13 +1810,28 @@
         "refresh": "Credits aktualisieren",
         "refreshing": "Erfrischender monatlicher Guthabensaldo.",
         "refreshed": "Monatliches Guthaben erneut überprüft. Der aktuelle Kontostand ist {balance}.",
-        "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist."
+        "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist.",
+        "owned": "Mondsteine: {balance}",
+        "ownedUnknown": "Mondsteine · Prüfung nötig",
+        "signedOut": "Melde dich an, um dein Mondstein-Guthaben zu sehen.",
+        "unconfirmed": "Wir konnten dein Mondstein-Guthaben nicht bestätigen. Du kannst es trotzdem versuchen – bei zu wenig Guthaben melden wir uns beim Bezahlen.",
+        "staleAfterError": "Mondstein-Guthaben konnte nicht aktualisiert werden, zuletzt bestätigter Wert wird angezeigt · aktuell {balance}"
       },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
       },
       "passUpgradeTitle": "Moonlight Pass upgraden",
-      "recommendBadge": "Empfohlen"
+      "recommendBadge": "Empfohlen",
+      "moonTitle": "Zahlungsart wählen",
+      "moonSubtitle": "Wähle die Option, die am besten zu dir passt.",
+      "directTitleLabel": "Einmalzahlung",
+      "monthlyUnit": "Event-Währung",
+      "passBuyTitle": "Mit Pass kaufen",
+      "passChecking": "Pass wird geprüft …",
+      "passMissGoStore": "Dein Pass deckt das nicht ab – wir bringen dich zum Pass-Shop.",
+      "passCheckRetry": "Der Status deines Passes konnte nicht geprüft werden. Bitte tippe gleich noch einmal.",
+      "directHintApp": "Nur dieses eine Ergebnis. Öffnet sofort über Google Play.",
+      "pgBadgeApp": "Google Play-Abrechnung"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "Monatliche Kreditbasis {credits} · {price}",
       "profileUnlimited": "Unbegrenzte Profile",
       "profileLimit": "{count} Profile",
-      "allFeatures": "Alle Funktionen verfügbar",
+      "allFeatures": "Unbegrenzt unter 30.000 KRW · 10 Expertenberatungen inklusive",
       "upTo": "Verfügbar bis {amount}",
       "benefits": "Vorteile auf einen Blick",
       "closeAria": "Moonlight Pass Shop-Guide schließen",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Code Destiny Family 30 Tage",
-          "desc": "30 Tage · Alle kostenpflichtigen Funktionen · Unbegrenzte Profile"
+          "desc": "30 Tage · Unbegrenzt unter 30.000 KRW · 10 Expertenberatungen · Unbegrenzte Profile"
         }
       },
       "monthlyStatusChecking": "Guthaben und Pass-Status werden überprüft.",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 Saju-Ergebnis teilen",
       "kakao": "KakaoTalk-Aktie",
-      "instagram": "Instagram-DM"
+      "instagram": "Instagram-DM",
+      "image": "Als Bild teilen"
     },
     "actions": {
       "newSaju": "✨ Sehen Sie sich ein neues Saju an"
@@ -7317,6 +7348,30 @@
       "009": "Selbstwertgefühl-Tarot",
       "010": "Berufliche Schwelle (7 Karten)",
       "011": "Tarot: Gefühle des Anderen"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Das bekommen Sie für Ihre Zahlung",
+      "volumeLabel": "Umfang",
+      "volumeValue": "30.000–60.000 Zeichen",
+      "chaptersLabel": "Aufbau",
+      "chaptersValue": "10 Kapitel · je über 2.400 Zeichen",
+      "keepLabel": "Aufbewahren",
+      "keepValue": "Als PDF speichern und dauerhaft behalten",
+      "guarantee": "Bleibt der Text unter diesem Umfang, wird er automatisch neu geschrieben. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Das bekommen Sie für Ihre Zahlung",
+      "volumeLabel": "Umfang",
+      "volumeValue": "Mindestens 30.000 Zeichen",
+      "chaptersLabel": "Aufbau",
+      "chaptersValue": "16 Kapitel · je 1.900–2.400 Zeichen",
+      "keepLabel": "Aufbewahren",
+      "keepValue": "Als PDF speichern und dauerhaft behalten",
+      "guarantee": "Jedes zu kurze Kapitel wird automatisch neu geschrieben, bis zu zweimal. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
     }
   }
 }

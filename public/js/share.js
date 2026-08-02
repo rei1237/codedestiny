@@ -212,11 +212,15 @@ function applyVersionRefresh(version) {
 function showVersionUpdateBanner(version, reason) {
   if (!document || !document.body) return;
 
+  var messageText = reason
+    ? ('현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.')
+    : '준비되면 새로고침해 주세요. 지금 화면은 그대로 유지됩니다.';
+
   var existing = document.getElementById(VERSION_GUARD_BANNER_ID);
   if (existing) {
     var messageNode = existing.querySelector('[data-cd-version-message]');
     if (messageNode) {
-      messageNode.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
+      messageNode.textContent = messageText;
     }
     existing.setAttribute('data-version', version);
     return;
@@ -266,7 +270,7 @@ function showVersionUpdateBanner(version, reason) {
 
   var message = document.createElement('div');
   message.setAttribute('data-cd-version-message', '1');
-  message.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
+  message.textContent = messageText;
   message.style.fontSize = '12px';
   message.style.opacity = '0.92';
   if (compactMobileBanner) {
@@ -347,7 +351,15 @@ function runNuclearVersionGuard() {
     var saved = '';
     try { saved = localStorage.getItem(APP_VERSION_KEY) || ''; } catch (e) { saved = ''; }
 
-    if (saved === version) {
+    // 저장값이 없다 = 이 브라우저/앱이 이 사이트를 처음 본다. 지금 손에 든 문서는 방금 받아온
+    // 것이라(셸은 no-store, 앱은 번들 에셋) 같은 URL 을 다시 로드해도 달라질 것이 없다.
+    // 이걸 "버전 불일치"로 흘려보내면 첫 방문·재설치·배포 직후 사용자가 전원 강제 리로드를
+    // 한 번씩 겪는다(=메인 화면 이중 로딩). 버전만 기록하고 캐시 정리는 그대로 수행한다.
+    if (!saved) {
+      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
+    }
+
+    if (!saved || saved === version) {
       removeVersionUpdateBanner();
       // 버전 동일: SW/캐시만 정리 (이미 정리된 버전이면 skip)
       var purged = '';
@@ -377,16 +389,25 @@ function runNuclearVersionGuard() {
       return version;
     }
 
+    // 🔴 자동 location.replace 는 하지 않는다(2026-08-01 폐지). 배포마다 저장된 버전과 다른 모든
+    // 재방문자가 매번 자동 리로드를 1회씩 겪었고, 하필 noncritical-defer-loader 가 share.js 를
+    // 첫 기능 탭/45초 방치/앱 전환 시점에 주입해 "탭했더니 화면이 통째로 새로고침됨"으로 보였다
+    // (15초 interval + focus + visibilitychange 가 계속 재검사한다). 스토리지가 막힌 환경(iOS
+    // 프라이빗 모드 등)에서는 무한 reload 방지 가드까지 무력화돼 15초마다 영구 리로드로 번졌다.
+    // '/' · '/index.html' 은 no-store 라 다음 문서 이동에서 어차피 최신을 받는다 — 자동 리로드는
+    // 신선도 유지의 필수 수단이 아니라 가장 거친 수단이었다. 캐시 정리는 그대로 하고 배너로 맡긴다.
     var blockingReason = isCriticalOperationInProgress();
-    if (blockingReason) {
-      showVersionUpdateBanner(version, blockingReason);
-      return version;
+    // 배너는 응답 없이 매 15초/포커스마다 재호출되므로, 캐시 정리는 이 버전당 한 번만 한다
+    // (안 그러면 SW 해제·Cache Storage 삭제가 사용자가 새로고침을 누를 때까지 계속 반복된다).
+    var purgedForVersion = '';
+    try { purgedForVersion = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
+    if (purgedForVersion !== version) {
+      nukeAllCachesLegacy().then(function() {
+        try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
+      });
     }
-
-    removeVersionUpdateBanner();
-
-    // SW 전체 해제 + Cache Storage 전부 삭제 후 reload
-    return applyVersionRefresh(version);
+    showVersionUpdateBanner(version, blockingReason);
+    return version;
   }).finally(function() {
     __versionGuardInFlight = false;
   });
@@ -639,23 +660,25 @@ function shareZiweiKakao() {
   }, 'ziwei');
 }
 function shareLifeBookKakao() {
-  var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
-    || (window.USER_NAME || '사용자');
-  var base = cdBuildShareUrl('lifebook');
-  var text = '사주 [인생의 책 결과]\n\n'
-    + name + '님의 인생의 책 결과를 공유합니다.\n\n'
-    + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
-    + '아래 링크에서 확인하세요.\n' + base;
-  if (navigator.share) {
-    navigator.share({ title: _shareText("share.006"), text: text, url: base }).catch(function () {});
-    return;
-  }
-  var a = document.createElement('a');
-  a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
-  a.click();
-  setTimeout(function () {
-    copyToClipboard(text, '클립보드에 복사되었습니다. PC에서는 우클릭 붙여넣기 후 공유하세요.');
-  }, 800);
+  shareWithReward(function () {
+    var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
+      || (window.USER_NAME || '사용자');
+    var base = cdBuildShareUrl('lifebook');
+    var text = '사주 [인생의 책 결과]\n\n'
+      + name + '님의 인생의 책 결과를 공유합니다.\n\n'
+      + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
+      + '아래 링크에서 확인하세요.\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: _shareText("share.006"), text: text, url: base }).catch(function () {});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function () {
+      copyToClipboard(text, '클립보드에 복사되었습니다. PC에서는 우클릭 붙여넣기 후 공유하세요.');
+    }, 800);
+  }, 'lifebook');
 }
 
 function shareLoveSecretKakao() {
@@ -1008,9 +1031,24 @@ function shareSukuyoCompatInviteKakao(){
   }, 'sukuyo-compat-invite');
 }
 
+/* 사주 결과 카드를 이미지로 공유한다. cdShareResultCardImage 는 구현이 끝나 있었는데
+   호출부가 하나도 없어 죽어 있었다 — #shareSection 의 기존 버튼 줄에 항목 하나만
+   더해 살린다(새 모달/오버레이를 만들지 않는다).
+   캡처 실패나 html2canvas 부재는 cdShareResultCardImage 안에서 텍스트 공유로
+   폴백하므로 여기서 따로 방어하지 않는다. */
+function shareSajuResultImage() {
+  cdShareResultCardImage({
+    contentId: 'saju',
+    targetSelector: '#sajuCard',
+    title: _shareText('share.001'),
+    caption: '내 사주 결과 카드예요. 나도 무료로 보기 👇'
+  });
+}
+
 if (typeof window !== 'undefined') {
   window.cdShareFortuneKakao = cdShareFortuneKakao;
   window.cdShareResultCardImage = cdShareResultCardImage;
+  window.shareSajuResultImage = shareSajuResultImage;
   window.shareStoryKakao = shareStoryKakao;
   window.cdAppendReferralQuery = cdAppendReferralQuery;
   window.cdBuildSukuyoCompatInviteUrl = cdBuildSukuyoCompatInviteUrl;

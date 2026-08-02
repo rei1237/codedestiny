@@ -71,6 +71,7 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
+import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -129,11 +130,12 @@ async function sha256Hex(text) {
 }
 
 const SAJU_AI_PROMPT_ACCESS_MODE = "per_use";
-// 생성 최악치(하드실패 재시도 + 완성 repair)는 약 210~330s다. 구 120s는 이보다 짧아, 진행 중인
-// 정상 생성을 "stale"로 오판→실패 처리→이중 생성/이중 과금할 위험이 있으므로 찻집 락(390s)과 동형으로 상향한다.
-// (현재 sync 흐름에선 stale 체커 isSajuAIPromptStaleGeneratingExecution가 미배선이라 무효이며,
-//  Phase 2에서 generating 레코드 + 폴링을 부활시킬 때 이 값이 유효해진다.)
-const SAJU_AI_PROMPT_STALE_GENERATING_MS = 390 * 1000;
+// 생성이 요청 안에서 끝나고 그 대기는 엣지(100s) 안쪽으로 예산화되어 있으므로, 이보다 오래된
+// generating 은 진행 중일 수가 없다 — 그 레코드를 쓴 요청은 이미 죽었다.
+// 구 390s 는 아무도 생성하지 않는 6.5분 동안 재-POST 를 202로만 돌려보내 재시도를 통째로 막았다.
+// 🔴 이 값은 FEATURE_AI_LLM_BUDGET_MS 예산화와 한 세트다. 예산화 없이 이것만 내리면 살아 있는
+//    생성을 stale 로 오판해 이중 생성이 난다.
+const SAJU_AI_PROMPT_STALE_GENERATING_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
 const SAJU_AI_PROMPT_TITLE = "사주 전문가 상담 결과";
 const SAJU_AI_PROMPT_AMOUNT_KRW = calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE);
 /** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
@@ -1223,10 +1225,23 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
   const minCost = Math.floor(Number(cost || 0));
   if (minCost > 0 && !isAIPromptPassAccessPayload(body)) query.delta = { $lte: -minCost };
 
-  return PointHistory.findOne(query)
+  const deducted = await PointHistory.findOne(query)
     .select("_id delta balanceAfter featureKey reason metadata")
     .sort({ createdAt: -1 })
     .lean();
+  if (!deducted) return null;
+
+  // 🔴 환불된 차감은 결제 증거가 아니다. 생성 실패 시 라우트가 자동 환불하는데(handlePigCoinRefund),
+  // 그 차감 기록은 그대로 남으므로 이 검사가 없으면 "실패 → 환불받음 → 같은 requestId 로 무료 생성"이
+  // 성립한다. 프론트가 결제 증거를 재사용하게 된 뒤로는 이 한 곳이 유일한 안전장치다.
+  const refunded = await PointHistory.findOne({
+    userId,
+    kind: "refund",
+    "metadata.refundForPointHistoryId": String(deducted._id),
+  }).select("_id").lean();
+  if (refunded) return null;
+
+  return deducted;
 }
 
 function isAIPromptMonthlyCreditAccessPayload(body = {}) {
@@ -2869,8 +2884,10 @@ async function handlePigCoinRefund(request, auth) {
   });
 }
 
-function buildZiweiAIPromptError(code, message, status = 400) {
-  return json({ ok: false, code, message }, { status });
+// details 는 생성 실패 시 재시도 계약을 프론트에 알리는 자리다(paymentRetainedForRetry 등).
+// 사주의 buildSajuAILlmRetryableError 가 이미 같은 형태라 계약이 통일된다.
+function buildZiweiAIPromptError(code, message, status = 400, details = {}) {
+  return json({ ok: false, code, message, ...details }, { status });
 }
 
 function mapZiweiConsumeFailure(response, payload) {
@@ -2952,12 +2969,12 @@ function mapSajuConsumeFailure(response, payload) {
   );
 }
 
-function buildAstrologyAIPromptError(code, message, status = 400) {
-  return json({ ok: false, code, message }, { status });
+function buildAstrologyAIPromptError(code, message, status = 400, details = {}) {
+  return json({ ok: false, code, message, ...details }, { status });
 }
 
-function buildVedicAIPromptError(code, message, status = 400) {
-  return json({ ok: false, code, message }, { status });
+function buildVedicAIPromptError(code, message, status = 400, details = {}) {
+  return json({ ok: false, code, message, ...details }, { status });
 }
 
 function buildVedicPrashnaError(code, message, status = 400, extra = {}) {
@@ -3681,6 +3698,8 @@ async function enrichAstrologyPromptResultWithSwiss(astrologyResult, env, reques
 }
 
 async function handleAstrologyAIPrompt(request, auth, env) {
+  // LLM 예산의 기산점. 인증·결제·Swiss 보강·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
+  const startedAt = Date.now();
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
@@ -3779,7 +3798,10 @@ async function handleAstrologyAIPrompt(request, auth, env) {
 
     // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
     // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    const consultation = await runFeatureAiConsultation(env, {
+      builtPrompt,
+      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
+    });
     if (!consultation.ok) {
       const genError = new Error(consultation.error || "Astrology AI consultation generation failed.");
       genError.code = "LLM_GENERATION_RETRYABLE";
@@ -3808,7 +3830,10 @@ async function handleAstrologyAIPrompt(request, auth, env) {
       provider: consultation.provider,
     });
   } catch (error) {
+    let refundAttempted = false;
+    let refundOk = false;
     if (chargedCoins > 0 && sourceTransactionId) {
+      refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
           method: "POST",
@@ -3821,7 +3846,8 @@ async function handleAstrologyAIPrompt(request, auth, env) {
             reason: "Astrology AI consultation generation failed auto-refund",
           }),
         });
-        await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][astrology-ai-prompt] refund failed:", refundError);
       }
@@ -3838,13 +3864,16 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     }
     return buildAstrologyAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      buildAIPromptRetryMessage(refundOk),
       500,
+      buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
   }
 }
 
 async function handleVedicAIPrompt(request, auth, env) {
+  // LLM 예산의 기산점. 인증·결제·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
+  const startedAt = Date.now();
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const vedicResult = body?.vedicResult;
@@ -3932,7 +3961,10 @@ async function handleVedicAIPrompt(request, auth, env) {
 
     // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
     // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    const consultation = await runFeatureAiConsultation(env, {
+      builtPrompt,
+      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
+    });
     if (!consultation.ok) {
       const genError = new Error(consultation.error || "Vedic AI consultation generation failed.");
       genError.code = "LLM_GENERATION_RETRYABLE";
@@ -3962,7 +3994,10 @@ async function handleVedicAIPrompt(request, auth, env) {
       provider: consultation.provider,
     });
   } catch (error) {
+    let refundAttempted = false;
+    let refundOk = false;
     if (chargedCoins > 0 && sourceTransactionId) {
+      refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
           method: "POST",
@@ -3975,7 +4010,8 @@ async function handleVedicAIPrompt(request, auth, env) {
             reason: "Vedic AI consultation generation failed auto-refund",
           }),
         });
-        await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][vedic-ai-prompt] refund failed:", refundError);
       }
@@ -3992,13 +4028,16 @@ async function handleVedicAIPrompt(request, auth, env) {
     }
     return buildVedicAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      buildAIPromptRetryMessage(refundOk),
       500,
+      buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
   }
 }
 
 async function handleSajuAIPrompt(request, auth, env, ctx = null) {
+  // LLM 예산의 기산점. 인증·결제·명식 검증에 쓴 시간만큼 생성 시간이 줄어든다.
+  const startedAt = Date.now();
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const sajuResult = body?.sajuResult;
@@ -4201,6 +4240,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
 
   // LLM 생성 전체(성공 저장·실패 환불·레코드 마킹 포함)를 클로저로 묶는다 — ctx가 있으면 즉시 202 후
   // 백그라운드(waitUntil)에서 완주하고, 없으면(테스트/로컬) 기존 동기 계약 그대로 이 Response를 반환한다.
+  const sajuDeadlineAt = startedAt + FEATURE_AI_LLM_BUDGET_MS;
   const runGeneration = async () => {
   try {
     let finalAi = null;
@@ -4208,6 +4248,14 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     let lastValidation = null;
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      // 2회차 풀 시도는 예산이 실제로 남았을 때만. 1회차가 타임아웃으로 끝났다면 여기서 멈춘다.
+      if (attempt > 0 && sajuDeadlineAt - Date.now() < FEATURE_AI_RETRY_MIN_REMAINING_MS) break;
+      // 예산 소진 → 호출을 건너뛰고 아래 경량 보장(lastValidation.text salvage)으로 넘긴다.
+      const llmTimeoutMs = featureAiCallTimeoutMs(sajuDeadlineAt, FEATURE_AI_PRIMARY_TIMEOUT_MS);
+      if (!(llmTimeoutMs > 0)) {
+        console.warn("[SajuMyeongsikAI] llm budget exhausted before generation", { requestId });
+        break;
+      }
       const llmPrompt = buildSajuAIResultPrompt(builtPrompt, {
         repairReason: lastValidation?.reason || "",
       });
@@ -4220,10 +4268,13 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
-        // 늘어난 상담 분량(다장 구성)이 구 상한 14000에서 상시 잘려 완성 repair를 유발했다.
-        maxOutputTokens: 20000,
-        // 20,000토큰(gemini-2.5-flash ~200tok/s ≈ 100s) — 구 90s는 목표 분량대 상단에서 잘렸다.
-        timeoutMs: 120000,
+        // 200tok/s 기준 50s. 구 20000(=100s)은 엣지(100s) 안쪽 어떤 타임아웃으로도 채울 수 없어
+        // 목표가 아니라 "느린 생성이 abort 를 지나쳐 달리게 두는 장치"로만 작동했다.
+        // 잘리면 아래 이어쓰기 repair 가 덧붙이므로 실효 상한은 10,000 + 6,000 이다.
+        maxOutputTokens: 10000,
+        timeoutMs: llmTimeoutMs,
+        // 폴백 스텁이 20,000원 상품 결과로 전달되지 않도록 문턱을 건다(미달이면 실패→환불 경로).
+        fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS,
         cache: sajuLlmCache,
       });
       const resultText = normalizeSajuAIResultText(ai?.text);
@@ -4241,7 +4292,11 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         });
       }
       // 잘림(MAX_TOKENS)은 검증이 놓칠 수 있으므로 완성 repair 대상에 명시적으로 포함한다.
-      if (ai?.ok && (validation.incomplete || ai.truncated)) {
+      // repair 는 폴백을 끄므로(아래) 폴백 예약분을 떼지 않는다. 예산이 없으면 건너뛰고 현재 결과로 간다.
+      const repairTimeoutMs = (ai?.ok && (validation.incomplete || ai.truncated))
+        ? featureAiCallTimeoutMs(sajuDeadlineAt, FEATURE_AI_REPAIR_TIMEOUT_MS, 0)
+        : 0;
+      if (repairTimeoutMs > 0) {
         console.warn("[SajuMyeongsikAI] incomplete result", {
           requestId,
           promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
@@ -4259,9 +4314,12 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
           taskType: "fortune",
           temperature: 0.42,
-          // 잘려서 이어붙이는 경우 여유 있는 토큰으로 완결시킨다.
-          maxOutputTokens: ai.truncated ? 12000 : 8000,
-          timeoutMs: 90000,
+          // 잘려서 이어붙이는 경우 꼬리만 채우므로 이 정도면 완결된다.
+          maxOutputTokens: ai.truncated ? 6000 : 4000,
+          timeoutMs: repairTimeoutMs,
+          // 이어쓰기는 분량 문턱을 정할 수 없고 예산이 가장 얇은 구간이라 무제한 폴백을 감당할 수 없다.
+          // 실패해도 아래 repairedValidation 분기가 원본 본문을 그대로 보존한다.
+          fallbackToWorkersAI: false,
           cache: sajuLlmCache,
         });
         if (repairAi?.ok) {
@@ -4503,6 +4561,28 @@ function isAIPromptTransientDbError(error) {
   return isSajuAIPromptDbUnavailableError(error);
 }
 
+// 생성 실패 시 "다시 시도하면 또 결제되는가"를 사용자에게 정확히 알린다.
+// 환불했으면 재결제, 결제 권한이 남아 있으면 추가 결제 없이 재시도다.
+function buildAIPromptRetryMessage(refundOk) {
+  return refundOk
+    ? "상담 생성에 실패해 결제를 환불했습니다. 다시 시도하시면 새로 결제됩니다."
+    : "상담 생성 중 오류가 발생했습니다. 결제 권한은 보존되어 있으니 추가 결제 없이 다시 시도할 수 있습니다.";
+}
+
+/**
+ * paymentRetainedForRetry 는 프론트가 결제 증거를 보관해 재결제 없이 재시도할지 판정하는 유일한 신호다.
+ * 구버전 워커 응답에는 이 필드가 없으므로 프론트는 자동으로 보관하지 않는다(fail-closed).
+ */
+function buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }) {
+  return {
+    refundAttempted: Boolean(refundAttempted),
+    refundOk: Boolean(refundOk),
+    retryable: true,
+    paymentRetainedForRetry: !refundOk,
+    requestId: String(requestId || ""),
+  };
+}
+
 // ── 기본 코스믹 상담(자미두수·베다·점성술·숙요점) 공용 LLM 생성 ──────────────
 // 사주 상담(handleSajuAIPrompt)과 동일한 "질문 → 서버가 직접 답변 생성" 계약을,
 // 사주 전용 십성/챕터 검증 없이 일반화한다. 각 기능의 builtPrompt.generatedPrompt는
@@ -4536,6 +4616,40 @@ function buildFeatureAiResultPrompt(builtPrompt, options = {}) {
   ].filter(Boolean).join("\n\n").trim();
 }
 
+// ── 동기 LLM 생성의 시간 예산 ────────────────────────────────────────────────
+// 이 파일의 상담 라우트는 요청 안에서 생성을 끝내고 응답한다. 엣지는 100s(EDGE_RESPONSE_DEADLINE_MS)에
+// 요청을 끊으므로, LLM 대기가 그보다 길면 라우트가 실패를 판정하기도 전에 잘려 나가 catch 의 자동
+// 환불조차 실행되지 못한다(결제 후 무결과·무환불). 그래서 대기는 반드시 엣지보다 먼저 끝나야 한다.
+
+/** 요청 시작 기준 LLM 총 예산. 남는 20s 는 결과 저장·실패 시 자동 환불 Mongo 왕복 몫이다. */
+const FEATURE_AI_LLM_BUDGET_MS = 80000;
+/**
+ * Workers AI 폴백에는 timeoutMs 가 걸리지 않는다(lib/llm-client.ts callCloudflareWorkersAI 는
+ * AbortSignal 없이 env.AI.run 을 호출한다). 폴백이 붙어도 예산 안에서 끝나도록 Gemini 대기치에서
+ * 그 몫을 미리 뗀다.
+ */
+const FEATURE_AI_FALLBACK_RESERVE_MS = 12000;
+/** 풀 생성 1회 대기 상한. gemini-2.5-flash ~200tok/s 기준 10,000토큰(=50s) + TTFT·속도변동 여유. */
+const FEATURE_AI_PRIMARY_TIMEOUT_MS = 60000;
+/** 이어쓰기 repair 상한. 꼬리만 채우므로 6,000토큰(=30s)이면 충분하다. */
+const FEATURE_AI_REPAIR_TIMEOUT_MS = 32000;
+/** 이보다 짧게밖에 못 기다리면 호출해도 잘려서 빈손이 된다(비스트리밍 abort 는 부분 텍스트가 0). */
+const FEATURE_AI_MIN_CALL_MS = 15000;
+/** 2회차 풀 생성은 1회차가 빠르게 하드 실패했을 때만 의미가 있다. */
+const FEATURE_AI_RETRY_MIN_REMAINING_MS = 45000;
+/** 폴백 수용 문턱 = 목표 분량(10,000토큰 ÷ 1.5 ≈ 6,600자)의 40%. CLAUDE.md 의 fallbackMinChars 관례. */
+const FEATURE_AI_FALLBACK_MIN_CHARS = 2500;
+
+/**
+ * 남은 예산 안에서만 기다린다. 0을 돌려주면 호출부가 그 호출을 건너뛴다.
+ * 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아가므로 반드시 그 앞에서 막는다.
+ */
+function featureAiCallTimeoutMs(deadlineAt, capMs, fallbackReserveMs = FEATURE_AI_FALLBACK_RESERVE_MS) {
+  const budget = deadlineAt - Date.now() - fallbackReserveMs;
+  if (budget < FEATURE_AI_MIN_CALL_MS) return 0;
+  return clampSyncLlmTimeoutMs(Math.min(capMs, budget));
+}
+
 function buildFeatureAiCompletionRepairPrompt(partialText) {
   return [
     "아래 상담문은 중간에 끊겼거나 마지막까지 완성되지 않았습니다.",
@@ -4549,10 +4663,27 @@ function buildFeatureAiCompletionRepairPrompt(partialText) {
 
 // 반환: { ok, text, model, provider, truncated }. ok=false면 호출부(핸들러)가 throw해
 // 기존 결제 환불 catch 경로로 넘겨 결제 후 무결과를 막는다.
-async function runFeatureAiConsultation(env, { builtPrompt, systemPrompt = FEATURE_AI_RESULT_SYSTEM_PROMPT, baseTokens = 16000 } = {}) {
+async function runFeatureAiConsultation(env, {
+  builtPrompt,
+  systemPrompt = FEATURE_AI_RESULT_SYSTEM_PROMPT,
+  // 200tok/s 기준 50s. 구 16000(=80s)은 엣지 안쪽 어떤 타임아웃으로도 채울 수 없는 상한이라,
+  // 목표가 아니라 "느린 생성이 abort 를 지나쳐 달리게 두는 장치"로만 작동했다.
+  baseTokens = 10000,
+  // 요청 시작 기준 예산. 호출부가 인증·결제에 쓴 시간만큼 생성 시간이 줄어든다.
+  deadlineAt = Date.now() + FEATURE_AI_LLM_BUDGET_MS,
+} = {}) {
   let finalAi = null;
   let finalText = "";
   for (let attempt = 0; attempt < 2; attempt += 1) {
+    // 2회차 풀 시도는 예산이 실제로 남았을 때만. 1회차가 타임아웃으로 끝났다면 여기서 멈춘다 —
+    // 같은 이유로 또 타임아웃 날 뿐이고, 그 사이 엣지가 환불 경로를 잘라 간다.
+    if (attempt > 0 && deadlineAt - Date.now() < FEATURE_AI_RETRY_MIN_REMAINING_MS) break;
+    // 예산 소진 → 호출을 건너뛰고 지금까지 확보한 텍스트로 degrade(throw 금지).
+    const timeoutMs = featureAiCallTimeoutMs(deadlineAt, FEATURE_AI_PRIMARY_TIMEOUT_MS);
+    if (!(timeoutMs > 0)) {
+      console.warn("[feature-ai] llm budget exhausted before generation");
+      break;
+    }
     const prompt = buildFeatureAiResultPrompt(builtPrompt, {
       repairReason: attempt > 0 ? "이전 응답이 중간에 끊겼거나 비었습니다. 처음부터 끝까지 완결해 주세요." : "",
     });
@@ -4560,29 +4691,43 @@ async function runFeatureAiConsultation(env, { builtPrompt, systemPrompt = FEATU
       systemPrompt: await cmsPromptText(env, "feature-ai-result", systemPrompt),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.5 : 0.56,
-      // 단일 질문 상담(약 9개 섹션) 기준 넉넉한 상한 — 늘어난 분량이 중간에 잘리지 않게 한다.
+      // 단일 질문 상담(약 9개 섹션) 기준 상한 — 잘리면 아래 이어쓰기 repair 가 덧붙인다.
       maxOutputTokens: baseTokens,
-      timeoutMs: 120000,
+      timeoutMs,
+      // 폴백은 켜 둔다(Gemini 장애 시 안전망). 단 목표 분량의 40%에 못 미치는 스텁이
+      // 유료 결과로 전달되지 않도록 문턱을 건다 — 미달이면 호출이 실패로 돌아 환불 경로를 탄다.
+      fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS,
     });
     const text = normalizeSajuAIResultText(ai?.text);
     if (!ai?.ok || !text) {
-      finalAi = ai;
+      // 이미 전달 가능한 텍스트를 쥐고 있으면 실패한 ai 로 덮지 않는다 —
+      // 덮으면 아래 최종 게이트의 !finalAi?.ok 가 살아 있는 상담문을 통째로 버린다.
+      if (!hasRenderableLlmText(finalText, { minChars: 200 })) finalAi = ai;
       continue;
     }
     finalAi = ai;
     finalText = text;
     // 잘림(MAX_TOKENS)이나 미완결이면 이어쓰기 repair로 완결(결과 말미가 끊기지 않도록).
     if (ai.truncated || detectSajuAIIncompleteResult(text).incomplete) {
-      const repairAi = await callGeminiText(env, buildFeatureAiCompletionRepairPrompt(text), {
-        systemPrompt,
-        taskType: "fortune",
-        temperature: 0.42,
-        maxOutputTokens: ai.truncated ? 12000 : 8000,
-        timeoutMs: 90000,
-      });
-      if (repairAi?.ok && String(repairAi.text || "").trim()) {
-        finalText = normalizeSajuAIResultText(`${text}\n\n${repairAi.text}`);
-        finalAi = { ...ai, repairProvider: repairAi.provider, repairModel: repairAi.model };
+      // repair 는 폴백을 끄므로(아래) 폴백 예약분을 떼지 않는다.
+      const repairTimeoutMs = featureAiCallTimeoutMs(deadlineAt, FEATURE_AI_REPAIR_TIMEOUT_MS, 0);
+      if (repairTimeoutMs > 0) {
+        const repairAi = await callGeminiText(env, buildFeatureAiCompletionRepairPrompt(text), {
+          systemPrompt,
+          taskType: "fortune",
+          temperature: 0.42,
+          maxOutputTokens: ai.truncated ? 6000 : 4000,
+          timeoutMs: repairTimeoutMs,
+          // 이어쓰기는 꼬리만 채우므로 분량 문턱을 정할 수 없고, 예산이 가장 얇은 구간이라
+          // 무제한 폴백을 감당할 수 없다. 실패해도 아래 조건이 원본 본문을 그대로 보존한다.
+          fallbackToWorkersAI: false,
+        });
+        if (repairAi?.ok && String(repairAi.text || "").trim()) {
+          finalText = normalizeSajuAIResultText(`${text}\n\n${repairAi.text}`);
+          finalAi = { ...ai, repairProvider: repairAi.provider, repairModel: repairAi.model };
+        }
+      } else {
+        console.warn("[feature-ai] llm budget exhausted before repair; delivering as-is");
       }
     }
     if (hasRenderableLlmText(finalText, { minChars: 400 })) break;
@@ -4600,6 +4745,8 @@ async function runFeatureAiConsultation(env, { builtPrompt, systemPrompt = FEATU
 }
 
 async function handleZiweiAIPrompt(request, auth, env) {
+  // LLM 예산의 기산점. 인증·결제·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
+  const startedAt = Date.now();
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
@@ -4717,7 +4864,10 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
     // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
     // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    const consultation = await runFeatureAiConsultation(env, {
+      builtPrompt,
+      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
+    });
     if (!consultation.ok) {
       const genError = new Error(consultation.error || "Ziwei AI consultation generation failed.");
       genError.code = "LLM_GENERATION_RETRYABLE";
@@ -4745,7 +4895,10 @@ async function handleZiweiAIPrompt(request, auth, env) {
       provider: consultation.provider,
     });
   } catch (error) {
+    let refundAttempted = false;
+    let refundOk = false;
     if (chargedCoins > 0 && sourceTransactionId) {
+      refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
           method: "POST",
@@ -4758,7 +4911,8 @@ async function handleZiweiAIPrompt(request, auth, env) {
             reason: "Ziwei AI consultation generation failed auto-refund",
           }),
         });
-        await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][ziwei-ai-prompt] refund failed:", refundError);
       }
@@ -4775,14 +4929,15 @@ async function handleZiweiAIPrompt(request, auth, env) {
     }
     return buildZiweiAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      buildAIPromptRetryMessage(refundOk),
       500,
+      buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
   }
 }
 
-function buildSukuyoAIPromptError(code, message, status = 400) {
-  return json({ ok: false, code, message }, { status });
+function buildSukuyoAIPromptError(code, message, status = 400, details = {}) {
+  return json({ ok: false, code, message, ...details }, { status });
 }
 
 function mapSukuyoConsumeFailure(response, payload) {
@@ -4810,6 +4965,8 @@ function mapSukuyoConsumeFailure(response, payload) {
 }
 
 async function handleSukuyoAIPrompt(request, auth, env) {
+  // LLM 예산의 기산점. 인증·결제·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
+  const startedAt = Date.now();
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
@@ -4868,7 +5025,10 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   try {
     if (SUKUYO_AI_PROMPT_PRICE <= 0) {
       // 기본 숙요점 질문 상담은 무료(price 0) — 서버가 직접 답변을 생성한다.
-      const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+      const consultation = await runFeatureAiConsultation(env, {
+        builtPrompt,
+        deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
+      });
       if (!consultation.ok) {
         return buildSukuyoAIPromptError(
           "LLM_GENERATION_RETRYABLE",
@@ -4939,7 +5099,10 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
     // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
     // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    const consultation = await runFeatureAiConsultation(env, {
+      builtPrompt,
+      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
+    });
     if (!consultation.ok) {
       const genError = new Error(consultation.error || "Sukuyo AI consultation generation failed.");
       genError.code = "LLM_GENERATION_RETRYABLE";
@@ -4969,7 +5132,10 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       provider: consultation.provider,
     });
   } catch (error) {
+    let refundAttempted = false;
+    let refundOk = false;
     if (chargedCoins > 0 && sourceTransactionId) {
+      refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
           method: "POST",
@@ -4982,7 +5148,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
             reason: "Sukuyo AI consultation generation failed auto-refund",
           }),
         });
-        await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][sukuyo-ai-prompt] refund failed:", refundError);
       }
@@ -4999,8 +5166,9 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     }
     return buildSukuyoAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      buildAIPromptRetryMessage(refundOk),
       500,
+      buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
   }
 }

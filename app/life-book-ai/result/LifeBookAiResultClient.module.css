@@ -240,3 +240,140 @@
   letter-spacing: 0.08em;
   color: rgba(232, 218, 190, 0.6);
 }
+
+/* ── 타이프라이터 커서 — "지금 쓰이는 중" 연출용. 시각 전용(aria-hidden)이다. ── */
+.typingCaret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: #8a5a2b;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .typingCaret {
+    animation: lifeBookCaretBlink 900ms steps(2, start) infinite;
+  }
+}
+
+@keyframes lifeBookCaretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── 3D 책 넘김. 공용 PagedResultViewer 에는 prop 만 넘기고 CSS 는 여기서만 얹는다. ── */
+.bookStage {
+  perspective: 1600px;
+}
+
+.bookPage {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bookStage [data-dir="next"] .bookPage[data-active="true"] {
+    animation: lifeBookFlipNext 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .bookStage [data-dir="prev"] .bookPage[data-active="true"] {
+    animation: lifeBookFlipPrev 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes lifeBookFlipNext {
+  from { opacity: 0; transform: rotateY(14deg) translateX(3%); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes lifeBookFlipPrev {
+  from { opacity: 0; transform: rotateY(-14deg) translateX(-3%); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 🔴 PDF 캡처(html2canvas)는 3D transform 을 재현하지 못한다 — 빈 페이지가 된다.
+   내보내기 중에는 원근·회전을 전부 무효화한다. */
+.bookStage [data-export="true"] .bookPage,
+.bookStage [data-export="true"] {
+  animation: none !important;
+  transform: none !important;
+  perspective: none !important;
+  transform-style: flat !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bookPage {
+    animation: none !important;
+  }
+}
+
+.bookmarkNote {
+  margin-top: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 90, 43, 0.35);
+  background: rgba(138, 90, 43, 0.12);
+  padding: 6px 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #6d4620;
+}
+
+/* ── 공유 카드 — 화면 밖에 두되 렌더는 유지해야 html-to-image 가 캡처할 수 있다. ── */
+.shareCardHost {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 1080px;
+  pointer-events: none;
+}
+
+.shareCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 1080px;
+  height: 1080px;
+  padding: 96px;
+  text-align: center;
+  background: linear-gradient(150deg, #0a0f24, #1b120b 58%, #120b06);
+  border: 6px solid #b47b25;
+}
+
+.shareKicker {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+  color: #f0d79a;
+}
+
+.shareTitle {
+  font-family: var(--font-display, serif);
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff6e2;
+}
+
+.shareSubtitle {
+  font-size: 30px;
+  line-height: 1.6;
+  color: #e5d2ad;
+}
+
+.shareLine {
+  margin-top: 12px;
+  font-size: 34px;
+  line-height: 1.6;
+  color: #f6e2b6;
+}
+
+.shareOwner {
+  margin-top: 24px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #f0d79a;
+}

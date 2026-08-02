@@ -816,7 +816,7 @@
       "vvipBenefit2": "Tối đa 15 hồ sơ",
       "vvipCta": "Xem lợi ích VVIP",
       "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
-      "familyPrice": "30 ngày · 300.000 KRW",
+      "familyPrice": "30 ngày · 149.000 KRW",
       "familyLine": "Sử dụng tất cả các tính năng trả phí",
       "familyBenefit1": "Không giới hạn hồ sơ",
       "familyBenefit2": "Tất cả lợi ích của Gia đình",
@@ -1274,6 +1274,18 @@
       "placeholder": "Tìm dịch vụ (vd: tarot, hợp đôi, giấc mơ)",
       "searchAria": "Tìm mọi dịch vụ",
       "empty": "Không có kết quả. Hãy thử từ khóa khác."
+    },
+    "todayHub": {
+      "title": "Vận trình hôm nay",
+      "lead": "Trụ ngày Tứ Trụ, 27 tú của Tú Diệu và chủ tinh ngày Vệ Đà — gộp về một nơi. Miễn phí, không cần đăng nhập.",
+      "tabsAria": "Chuyển hệ bói vận trình hôm nay",
+      "tabSaju": "Tứ Trụ",
+      "tabSukuyo": "Tú Diệu",
+      "tabVedic": "Vệ Đà",
+      "personalized": "Đã theo ngày sinh",
+      "noteGuest": "Đây là dòng chảy chung của cả ngày. Thêm ngày sinh vào thẻ hồ sơ để chúng tôi đọc theo lá số của riêng bạn.",
+      "ctaAll": "Xem toàn bộ vận trình hôm nay",
+      "share": "Chia sẻ"
     }
   },
   "terms": {
@@ -1745,7 +1757,7 @@
     "directModal": {
       "title": "Chọn phương thức thanh toán",
       "readyMessage": "Chọn giữa tín dụng hàng tháng và thanh toán một lần.",
-      "directHint": "Thanh toán trực tiếp bằng thẻ hoặc thanh toán đơn giản.<br>Thanh toán tiếp tục trong cửa sổ thanh toán PortOne V2 KG Inicis an toàn.",
+      "directHint": "Chỉ một kết quả này thôi. Mở ngay bằng thẻ hoặc thanh toán nhanh.",
       "pgBadge": "PortOne V2 · KG Inicis",
       "directTitle": "Thanh toán KRW một lần · {amount}",
       "amountLabel": "Số tiền thanh toán",
@@ -1761,15 +1773,17 @@
       "note": {
         "basis": "Cơ sở tín dụng hàng tháng · {amount}",
         "withPass": "Các dịch vụ trả phí chung mở bằng thẻ khi chúng nằm trong giới hạn. Các tệp PDF và dịch vụ vượt quá giới hạn sẽ sử dụng khoản thanh toán KRW một lần cho từng sản phẩm.",
-        "directOnly": "Hành động này được xác nhận bằng khoản thanh toán KRW một lần."
+        "directOnly": "Hành động này được xác nhận bằng khoản thanh toán KRW một lần.",
+        "passUnknown": "Nếu bạn có vé, hãy chạm vào thẻ vé bên dưới, chúng tôi sẽ kiểm tra ngay.",
+        "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Chuyển sang Vé Ánh Trăng để mở tính năng này và mọi tính năng trong hạn mức suốt 30 ngày, không cần cửa sổ thanh toán.",
+        "store": "Truy cập không giới hạn các tính năng dưới hạn mức trong 30 ngày, không cần thanh toán. Đã có vé? Chạm để kiểm tra ngay.",
         "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
-        "upgrade": "Tính năng này vượt hạn mức vé hiện tại. Hãy xem Vé Ánh Trăng cao hơn."
+        "upgrade": "Hạng hiện tại của bạn không bao gồm tính năng này. Hãy xem vé cao hơn."
       },
       "applyMethod": {
         "label": "Áp dụng phương pháp",
@@ -1784,9 +1798,10 @@
         "checking": "Kiểm tra mức độ phù hợp của thẻ"
       },
       "monthlyHint": {
-        "use": "Sử dụng số dư tín dụng hàng tháng của bạn và mở nó ngay bây giờ.",
+        "use": "Thanh toán bằng nguyệt thạch bạn đã có. Mở mà không tốn thêm chi phí.",
         "insufficient": "Số dư tín dụng hàng tháng của bạn thấp. Bạn có thể tiếp tục thanh toán KRW một lần.",
-        "checking": "Cần kiểm tra số dư tín dụng hàng tháng. Thanh toán KRW một lần vẫn có sẵn."
+        "checking": "Chúng tôi cần kiểm tra số dư nguyệt thạch. Thanh toán một lần bằng KRW vẫn khả dụng.",
+        "after": "Còn lại {balance} sau khi dùng."
       },
       "monthlyBalance": {
         "needCheck": "Cần kiểm tra",
@@ -1795,13 +1810,28 @@
         "refresh": "Làm mới tín dụng",
         "refreshing": "Làm mới số dư tín dụng hàng tháng.",
         "refreshed": "Số dư tín dụng hàng tháng được kiểm tra lại. Số dư hiện tại là {balance}.",
-        "notFound": "Chưa tìm thấy tín dụng/thẻ hoạt động hàng tháng nào. Vui lòng làm mới lại sau khi thanh toán hoàn tất."
+        "notFound": "Chưa tìm thấy tín dụng/thẻ hoạt động hàng tháng nào. Vui lòng làm mới lại sau khi thanh toán hoàn tất.",
+        "owned": "Nguyệt thạch hiện có: {balance}",
+        "ownedUnknown": "Nguyệt thạch · cần kiểm tra",
+        "signedOut": "Đăng nhập để xem số dư Nguyệt Định Thạch.",
+        "unconfirmed": "Không xác nhận được số dư Nguyệt Định Thạch. Bạn vẫn có thể thử — nếu thiếu, chúng tôi sẽ báo ở bước thanh toán.",
+        "staleAfterError": "Không làm mới được số dư Nguyệt Định Thạch, đang hiển thị giá trị xác nhận gần nhất · hiện tại {balance}"
       },
       "legal": {
         "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
       },
       "passUpgradeTitle": "Nâng cấp Vé Ánh Trăng",
-      "recommendBadge": "Đề xuất"
+      "recommendBadge": "Đề xuất",
+      "moonTitle": "Chọn cách thanh toán",
+      "moonSubtitle": "Chọn phương án phù hợp nhất với bạn.",
+      "directTitleLabel": "Thanh toán một lần",
+      "monthlyUnit": "tiền sự kiện",
+      "passBuyTitle": "Mua bằng vé",
+      "passChecking": "Đang kiểm tra vé của bạn…",
+      "passMissGoStore": "Vé của bạn không bao gồm mục này, chúng tôi sẽ đưa bạn đến cửa hàng vé.",
+      "passCheckRetry": "Không thể kiểm tra trạng thái vé của bạn. Vui lòng nhấn lại sau giây lát.",
+      "directHintApp": "Chỉ một kết quả này thôi. Mở ngay qua thanh toán Google Play.",
+      "pgBadgeApp": "Thanh toán Google Play"
     },
     "overlay": {
       "unlockPreparing": {
@@ -1978,7 +2008,7 @@
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
       "profileUnlimited": "Hồ sơ không giới hạn",
       "profileLimit": "{count} hồ sơ",
-      "allFeatures": "Tất cả tính năng đều có sẵn",
+      "allFeatures": "Không giới hạn dưới 30.000 KRW · Bao gồm 10 lượt tư vấn chuyên gia",
       "upTo": "Có sẵn tới {amount}",
       "benefits": "Sơ lược về lợi ích",
       "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
@@ -2001,7 +2031,7 @@
         },
         "family": {
           "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Tất cả tính năng trả phí · Hồ sơ không giới hạn"
+          "desc": "30 ngày · Không giới hạn dưới 30.000 KRW · 10 lượt tư vấn chuyên gia · Hồ sơ không giới hạn"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",
@@ -3631,7 +3661,8 @@
     "share": {
       "title": "📤 Chia sẻ kết quả saju",
       "kakao": "Chia sẻ KakaoTalk",
-      "instagram": "Tin nhắn trực tiếp trên Instagram"
+      "instagram": "Tin nhắn trực tiếp trên Instagram",
+      "image": "Chia sẻ dạng ảnh"
     },
     "actions": {
       "newSaju": "✨ Xem saju mới"
@@ -7317,6 +7348,30 @@
       "009": "Tarot nâng cấp lòng tự trọng",
       "010": "7 lá bài ngưỡng cửa công việc",
       "011": "Tarot nội tâm đối phương"
+    }
+  },
+  "premiumUnlock": {
+    "deliverable": {
+      "title": "Bạn nhận được gì khi thanh toán",
+      "volumeLabel": "Độ dài",
+      "volumeValue": "30.000–60.000 ký tự",
+      "chaptersLabel": "Cấu trúc",
+      "chaptersValue": "10 chương · mỗi chương trên 2.400 ký tự",
+      "keepLabel": "Lưu giữ",
+      "keepValue": "Xuất PDF và giữ vĩnh viễn",
+      "guarantee": "Nếu không đạt độ dài trên, bài luận sẽ được viết lại tự động. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
+    }
+  },
+  "karmaDestiny": {
+    "deliverable": {
+      "title": "Bạn nhận được gì khi thanh toán",
+      "volumeLabel": "Độ dài",
+      "volumeValue": "Tối thiểu 30.000 ký tự",
+      "chaptersLabel": "Cấu trúc",
+      "chaptersValue": "16 chương · mỗi chương 1.900–2.400 ký tự",
+      "keepLabel": "Lưu giữ",
+      "keepValue": "Xuất PDF và giữ vĩnh viễn",
+      "guarantee": "Chương nào chưa đạt độ dài sẽ được viết lại tự động, tối đa hai lần. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
     }
   }
 }

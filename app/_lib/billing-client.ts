@@ -25,13 +25,14 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
+import checkoutEntry from "@/js/core/checkout-entry.js";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
     "billingClient.text.001": "달빛 결제 방식 선택",
-    "billingClient.text.002": "이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.",
+    "billingClient.text.002": "달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.",
     "billingClient.text.003": "PortOne V2 · KG이니시스",
-    "billingClient.text.004": "카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.",
+    "billingClient.text.004": "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.",
     "billingClient.text.005": "월정석 사용",
     "billingClient.text.006": "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.",
     "billingClient.text.007": "취소",
@@ -66,7 +67,7 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
 // 결제수단을 알리는 문구만 앱용으로 갈아끼운다.
 const BILLING_CLIENT_TEXT_APP_OVERRIDES: Partial<Record<keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko, string>> = {
   "billingClient.text.003": "Google Play 결제",
-  "billingClient.text.004": "Google Play로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.",
+  "billingClient.text.004": "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.",
 };
 
 function billingClientText(key: keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko) {
@@ -839,26 +840,32 @@ function emitBillingBalanceUpdated(source: Record<string, unknown> | null | unde
   window.dispatchEvent(new CustomEvent("cd:billing-balance-updated", { detail }));
 }
 
-function resolvePassStorePlan(coinPrice: number, currentTier?: string): "standard" | "premium" | "vvip" | "family" {
-  const tier = toText(currentTier).toLowerCase();
-  if (coinPrice <= 30 && tier !== "standard" && tier !== "premium" && tier !== "vvip" && tier !== "family") return "standard";
-  if (coinPrice <= 50 && tier !== "premium" && tier !== "vvip" && tier !== "family") return "premium";
-  if (coinPrice <= 100 && tier !== "vvip" && tier !== "family") return "vvip";
-  return "family";
-}
-
-function openMembershipPassStore(coinPrice: number, currentTier?: string) {
+// 🔴 이용권 상점 진입은 셸·독립 정적과 **같은 모듈**을 쓴다(js/core/checkout-entry.js).
+// 특히 앱 분기가 중요하다 — 앱 번들에는 /points 가 없고 app-payment-guard 는 앵커 클릭만
+// 가로채므로, 프로그래매틱 이동은 그대로 빈 화면이 된다.
+function openMembershipPassStore(coinPrice: number, currentTier?: string, featureKey?: string) {
   if (typeof window === "undefined") return;
   const runtimeWindow = window as RuntimeApiWindow;
   runtimeWindow._cdSetCoinGateOverlay?.(false);
+  checkoutEntry.trackCheckoutEvent("pass_store_entered", { option: "pass", renderer: "react", featureKey, coinPrice });
+  if (checkoutEntry.shouldUseAppStoreEntry() && typeof runtimeWindow.__cdOpenChargeModal === "function") {
+    runtimeWindow.__cdOpenChargeModal();
+    return;
+  }
+  const storeUrl = checkoutEntry.buildPassStoreUrl({ costCoins: coinPrice, currentTier, source: "react-payment-pass-store" });
+  if (storeUrl) {
+    checkoutEntry.rememberCheckoutReturn({
+      url: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      featureKey,
+    });
+    window.location.assign(storeUrl);
+    return;
+  }
   if (typeof runtimeWindow.__cdOpenChargeModal === "function") {
     runtimeWindow.__cdOpenChargeModal();
     return;
   }
-  const url = new URL("/points", window.location.origin);
-  url.searchParams.set("source", "react-payment-pass-store");
-  url.searchParams.set("plan", resolvePassStorePlan(coinPrice, currentTier));
-  window.location.assign(url.toString());
+  window.location.assign("/points?source=react-payment-pass-store");
 }
 
 function hasActiveReactPaymentChoiceModal() {
@@ -986,7 +993,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
   const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
-  const providedMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
+  const callerMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
+  const hasCallerMonthlyBalance = typeof callerMonthlyBalanceRaw === "number" && Number.isFinite(callerMonthlyBalanceRaw) && callerMonthlyBalanceRaw >= 0;
+  // 회당결제(per-use)는 eligibility 서버 왕복을 건너뛰므로(runBillingCoinGate의 mayBeAlreadyUnlocked 분기)
+  // 호출부가 잔량을 아예 넘기지 못한다 — 그래서 결제창이 항상 '확인 필요'로 열리고, 아래 자동 재조회 1회가
+  // 유일한 근거였다. 셸에는 로컬 잔량 캐시(_cdGetMonthlyCreditBalance)가 있는데 여기엔 없었다.
+  // 이미 있는 로컬 구독 스냅샷을 읽어 같은 자리를 메운다(새 캐시 계층·새 요청 없음).
+  const snapshotMonthlyBalance = hasCallerMonthlyBalance ? 0 : readSubscriptionSnapshotMonthlyBalance();
+  const providedMonthlyBalanceRaw = hasCallerMonthlyBalance
+    ? callerMonthlyBalanceRaw
+    : (snapshotMonthlyBalance > 0 ? snapshotMonthlyBalance : undefined);
   const hasProvidedMonthlyBalance = typeof providedMonthlyBalanceRaw === "number" && Number.isFinite(providedMonthlyBalanceRaw) && providedMonthlyBalanceRaw >= 0;
   const monthlyBalance = Math.max(0, Math.floor(toNumber(providedMonthlyBalanceRaw, 0)));
   // 스냅샷 잔량이 제공되지 않았으면(=조회 실패/미확정) '잔량 부족'이 아니라 '확인 필요'로 취급한다.
@@ -1005,30 +1021,50 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
+  // 이용권 카드가 그 자리에서 서버 검사를 돌릴 때 쓰는 식별자. 계측 payload 에도 같은 값을 쓴다.
+  const passCheckFeatureKey = toText(opts.featureKey || opts.subFeatureKey || opts.categoryKey || opts.reason);
   // 이용권이 없는 사용자에게는 달빛 이용권 상점을 결제 선택지 맨 위에 우선 노출하고
   // "추천" 배지/하이라이트로 위계를 준다(단건결제/월정석/게이팅은 그대로 유지).
   const hasActivePassTier = Boolean(passTier && passTier !== "free");
   // 무료/미보유 등급을 "FREE 이용권"으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
   // 활성 유료 등급일 때만 등급명을 배지로 노출하고, 그 외에는 중립적인 상점 라벨을 쓴다.
-  const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} 달빛 이용권` : "달빛 이용권 상점";
-  const passHint = formatMembershipPassLimitLabel(passTier, passLimit);
-  const passStoreTitle = hasActivePassTier ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
+  // 🔴 결제창 문구는 셸·독립 정적과 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
+  // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
+  const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
+  const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} ${passBadgeLabel}` : passBadgeLabel;
+  const passStoreTitle = hasActivePassTier
+    ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "달빛 이용권 업그레이드")
+    : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 구매");
   const passStoreHint = hasActivePassTier
-    ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
-    : "달빛 이용권으로 전환하면 이 기능을 포함해 한도 이하 기능을 30일간 결제창 없이 무제한 이용합니다.";
+    ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.")
+    : checkoutEntry.text("payment.directModal.passHint.store", "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.");
+  // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
+  // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
+  const passHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
 
+  // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과도 다르고 Play 정책에도 걸린다 — 배지·설명을 함께 바꾼다.
+  const directUsesAppStore = checkoutEntry.shouldUseAppStoreEntry();
+  const directBadgeLabel = directUsesAppStore
+    ? checkoutEntry.text("payment.directModal.pgBadgeApp", "Google Play 결제")
+    : checkoutEntry.text("payment.directModal.pgBadge", "PortOne V2 · KG이니시스");
+  const directHintLabel = directUsesAppStore
+    ? checkoutEntry.text("payment.directModal.directHintApp", "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.")
+    : checkoutEntry.text("payment.directModal.directHint", "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.");
+  const directTitleLabel = checkoutEntry.text("payment.directModal.directTitleLabel", "단건 결제");
   const directButtonHtml = canShowDirect ? `
-          <button type="button" class="cd-direct-payment-option" data-mode="direct" aria-label="단건 결제 ${formatPaymentWon(directAmount)}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${billingClientText("billingClient.text.003")}</span></span>
-            <strong>단건 결제 · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
-            <span>${billingClientText("billingClient.text.004")}</span>
+          <button type="button" class="cd-direct-payment-option" data-mode="direct" aria-label="${escapePaymentText(directTitleLabel)} ${formatPaymentWon(directAmount)}">
+            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${escapePaymentText(directBadgeLabel)}</span></span>
+            <strong>${escapePaymentText(directTitleLabel)} · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
+            <span>${escapePaymentText(directHintLabel)}</span>
           </button>` : "";
   const monthlyCurrentLabel = hasProvidedMonthlyBalance ? `보유 월정석 ${monthlyBalance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+  // 🔴 3렌더러(셸 index.html · 이 파일 · js/destiny-profile.js)가 같은 문구를 써야 한다.
+  // 예전에는 이 카드만 "사용 후 N이 남습니다" 예측 문장을 더 달고 있어 셸과 눈에 띄게 달랐다.
   const monthlyDescInitial = monthlyCanUse
-    ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
+    ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString("ko-KR") })}`
     : (hasProvidedMonthlyBalance
-      ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
-      : "월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
+      ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.")
+      : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요."));
   const monthlyButtonHtml = canShowMonthly ? `
           <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="월정석 사용${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}">
             <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span></span>
@@ -1041,7 +1077,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           <button type="button" class="cd-direct-payment-option is-store${passStoreFirst ? " cd-direct-payment-option--recommended" : ""}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${passStoreFirst ? " (추천)" : ""}">
             <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>${passStoreFirst ? '<span class="cd-direct-payment-recommend">추천</span>' : ""}</span>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
-            <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
+            <span>${escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint)}</span>
           </button>` : "";
   const paymentChoiceButtonsHtml = passStoreFirst
     ? `${passStoreButtonHtml}${directButtonHtml}${monthlyButtonHtml}`
@@ -1087,12 +1123,49 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       </div>
     `;
 
+    const modalOpenedAt = Date.now();
+    // 이용권 상점으로 떠날 때도 close("cancel") 로 닫는다(호출부 계약 유지) — 그건 이탈이 아니므로
+    // 계측에서 제외한다. pass_store_entered 가 그 전이를 이미 남긴다.
+    let leavingForPassStore = false;
     const close = (mode: PaymentChoiceMode) => {
       if (settled) return;
       settled = true;
       if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
       unlockBodyScroll();
-      modal.parentNode?.removeChild(modal);
+      // 🔴 단건만 화면에 남긴다 — 클릭한 버튼이 disabled + .is-loading 인 채로 보여
+      // 'PG 결제창을 여는 중'이 그 자리에서 읽힌다(전체화면 대기 오버레이를 없앤 자리를 메운다).
+      // 🔴 반드시 PG 결제창이 그려지기 **전에** 내려야 한다 — 이 모달은 z-index 2147483004 라
+      // PG창(#imp-iframe-wrapper, 99999)보다 높아서 남아 있으면 결제창을 덮어 버린다.
+      // 신호는 새로 만들지 않고 결제 런타임이 이미 쏘는 것을 쓴다: js/destiny-profile.js 가
+      // requestPayment 직전에 _dpSetPaymentPending(false) 로 'cd:payment-pending' 를 발사한다.
+      // 그 신호가 오지 않는 예외(런타임 미로드 등)를 대비해 상한 하나만 둔다.
+      if (mode === "direct") {
+        let removed = false;
+        const dropModal = () => {
+          if (removed) return;
+          removed = true;
+          window.removeEventListener("cd:payment-pending", onPending);
+          window.clearTimeout(failsafe);
+          modal.parentNode?.removeChild(modal);
+        };
+        const onPending = (event: Event) => {
+          const pending = (event as CustomEvent<{ pending?: boolean }>).detail?.pending;
+          if (pending === false) dropModal();
+        };
+        window.addEventListener("cd:payment-pending", onPending);
+        const failsafe = window.setTimeout(dropModal, 6000);
+      } else {
+        modal.parentNode?.removeChild(modal);
+      }
+      // 이탈 계측 — 아무 것도 고르지 않고 닫은 경우만. dwellMs 로 '읽다가 포기'와 '즉시 닫음'을 가른다.
+      if (mode === "cancel" && !leavingForPassStore) {
+        checkoutEntry.trackCheckoutEvent("checkout_dismissed", {
+          renderer: "react",
+          featureKey: passCheckFeatureKey,
+          coinPrice,
+          dwellMs: Date.now() - modalOpenedAt,
+        });
+      }
       resolve(mode);
     };
     const setStatus = (message: string, error = false) => {
@@ -1118,36 +1191,52 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     };
 
     let moonlightRefreshBusy = false;
+    // 조회에 한 번이라도 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을 지우지 않게 한다
+    // (셸 index.html 의 sticky 계약과 동일). 초기값은 호출부/로컬 스냅샷이 준 잔량.
+    let lastKnownMonthlyBalance: number | null = hasProvidedMonthlyBalance ? monthlyBalance : null;
     // 월정석 잔량 UI를 모달을 닫지 않고 제자리 갱신한다. state!=="fresh"면 '확인 필요'로 두어 조회 실패를 0으로 오인하지 않는다.
     // 단건 결제 버튼은 어떤 상태에서도 건드리지 않아 사용자가 막히지 않는다(CLAUDE.md 동등 노출).
     const applyMoonlightBalance = (rawBalance: number | null, state: "fresh" | "error" | "signed-out") => {
       if (settled) return;
-      const known = state === "fresh" && typeof rawBalance === "number" && Number.isFinite(rawBalance) && rawBalance >= 0;
-      const balance = known ? Math.floor(rawBalance as number) : 0;
-      const canUse = known && monthlyCost > 0 && balance >= monthlyCost;
+      const fresh = state === "fresh" && typeof rawBalance === "number" && Number.isFinite(rawBalance) && rawBalance >= 0;
+      if (fresh) lastKnownMonthlyBalance = Math.floor(rawBalance as number);
+      if (state === "signed-out") lastKnownMonthlyBalance = null;
+      const known = fresh || (state === "error" && lastKnownMonthlyBalance !== null);
+      const balance = known ? (lastKnownMonthlyBalance as number) : 0;
+      // 🔴 미확정(조회 실패) ≠ 잔량 부족. 확인된 잔량이 필요분보다 적을 때만 비활성한다 —
+      // 조회 실패까지 비활성으로 묶으면 재조회가 계속 실패할 때 월정석이 영구 회색이 돼 결제 자체가
+      // 불가능해진다(위 초기 렌더 monthlyCanUse·독립 정적 렌더러 applyStandaloneMoonbal 과 같은 계약).
+      // 실제로 부족하면 서버 coin-gate 가 lot 정본 잔량을 실은 402 로 되돌려 1왕복에 수렴하고, 차감은 없다.
+      const insufficient = known && balance < monthlyCost;
+      const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;
       const afterBalance = Math.max(0, balance - monthlyCost);
       const monthlyButton = modal.querySelector<HTMLButtonElement>('[data-mode="monthly"]');
       const currentNode = modal.querySelector<HTMLElement>("[data-monthly-current]");
       const descNode = modal.querySelector<HTMLElement>("[data-monthly-hint]");
       const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
+      const balanceStatus = modal.querySelector<HTMLElement>("[data-monthly-balance-status]");
       if (currentNode) currentNode.textContent = known ? `보유 월정석 ${balance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+      // 상태 표시가 초기 렌더값('checking')에 굳어 실패해도 '확인하고 있습니다'로 남던 문제(셸은 갱신함).
+      if (balanceStatus) balanceStatus.setAttribute("data-state", fresh ? "fresh" : state);
       if (balanceText) {
         balanceText.textContent = state === "signed-out"
           ? "로그인 후 월정석 잔량을 확인할 수 있어요."
           : state === "error"
-            ? "월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요."
+            ? (known
+              ? `월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`
+              : "월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.")
             : `월정석 잔여 확인 완료 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`;
       }
       if (monthlyButton) {
         monthlyButton.disabled = !canUse;
         monthlyButton.classList.toggle("is-disabled", !canUse);
         monthlyButton.setAttribute("aria-disabled", canUse ? "false" : "true");
-        monthlyButton.setAttribute("aria-label", `월정석 사용${canUse ? "" : (known ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
+        monthlyButton.setAttribute("aria-label", `월정석 사용${canUse ? "" : (insufficient ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
         if (descNode) {
-          descNode.textContent = canUse
-            ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${afterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
+          descNode.textContent = insufficient
+            ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
             : (known
-              ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
+              ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${afterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
               : "월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
         }
       }
@@ -1186,7 +1275,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (event.target === modal) close("cancel");
     });
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
         const rawMode = toText(button.dataset.mode);
         if (rawMode === "monthly-refresh") {
           // 월정석 재조회는 모달을 닫지 않고 잔량만 제자리 갱신한다(결제 선택 모드가 아님).
@@ -1199,12 +1288,54 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           close("cancel");
           return;
         }
+        // 🔴 '이용권으로 구매' = 이용권 검사 지점(셸 index.html 과 같은 계약). 진입 선검사가 사라졌으므로
+        // 결제창을 여는 시점에는 보유 여부를 모른다 — 여기서 서버에 한 번 묻고, 커버되면 결제 없이
+        // 'pass' 로 닫아 호출부가 무료로 열게 하고, 아니면 이용권 상점으로 보낸다.
         if (mode === "pass-store") {
+          if (button.disabled) return;
+          button.disabled = true;
+          button.classList.add("is-loading");
+          checkoutEntry.trackCheckoutEvent("checkout_option_click", { option: "pass", renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
+          setStatus("이용권을 확인하고 있습니다.");
+          const passProbe = await fetchPaymentEligibility({
+            categoryKey: toText(opts.categoryKey) || undefined,
+            subFeatureKey: toText(opts.subFeatureKey) || undefined,
+            featureKey: passCheckFeatureKey || undefined,
+            reason: toText(opts.reason) || undefined,
+            productId: toText(opts.productId) || undefined,
+            serviceType: toText(opts.serviceType || opts.productType) || undefined,
+            coinPrice,
+            amountKRW: directAmount,
+            // 🔴 force 가 아니라 revalidate 다. force 는 서버에 묻기 **전에** 로컬 스냅샷을 지우는데,
+            // 이 확인이 degrade/타임아웃으로 실패하면 판정 근거가 영구히 사라져 그 뒤 모든 유료 클릭에서
+            // 낙관 즉시통과가 죽는다(= 이 버튼을 눌렀다 실패한 뒤 매번 결제창이 뜨던 회귀).
+            // revalidate 는 서버 정본을 다시 읽되 성공했을 때만 덮어쓴다.
+          }, { revalidate: true, phase: "pass" }).catch(() => null);
+          if (passProbe?.ok && passProbe.data?.pass.canUse === true) {
+            checkoutEntry.trackCheckoutEvent("pass_verified_free", { option: "pass", renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
+            close("pass");
+            return;
+          }
+          // 확인 자체가 실패했으면(응답 없음·5xx·degrade) 상점으로 보내지 않는다 — 지연을 미커버 근거로 쓰면
+          // 실제 보유자가 이미 가진 이용권을 또 사러 가게 된다. 모달을 열어 둔 채 재시도를 안내한다.
+          if (!passProbe?.ok || !passProbe.data) {
+            button.disabled = false;
+            button.classList.remove("is-loading");
+            setStatus(checkoutEntry.text("payment.directModal.passCheckRetry", "이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요."), true);
+            return;
+          }
+          button.disabled = false;
+          button.classList.remove("is-loading");
+          setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
+          leavingForPassStore = true;
           close("cancel");
-          openMembershipPassStore(coinPrice, passTier);
+          openMembershipPassStore(coinPrice, passTier, passCheckFeatureKey);
           return;
         }
         if (button.disabled) return;
+        if (mode === "direct" || mode === "monthly") {
+          checkoutEntry.trackCheckoutEvent("checkout_option_click", { option: mode, renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
+        }
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
@@ -1223,6 +1354,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // 이 React 렌더러에는 닫는 호출이 아예 없었다.
     emitPaymentLoadingState(false);
     document.body.appendChild(modal);
+    // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
+    checkoutEntry.trackCheckoutEvent("checkout_opened", {
+      renderer: "react",
+      featureKey: passCheckFeatureKey,
+      coinPrice,
+      hasPassHint: hasActivePassTier ? "active" : "unknown",
+    });
     // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
     (modal.querySelector<HTMLButtonElement>(".cd-direct-payment-option")
       || modal.querySelector<HTMLButtonElement>('[data-mode="direct"]'))?.focus();
@@ -1236,8 +1374,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       };
       window.addEventListener("cd:billing-balance-updated", onBalanceEvent);
       removeBalanceListener = () => window.removeEventListener("cd:billing-balance-updated", onBalanceEvent);
-      // 자동 1회 재조회: 스냅샷 잔량이 없으면(조회 실패로 결제창이 열린 경우) 조용히 최신 잔량을 채운다.
-      if (!hasProvidedMonthlyBalance) void refreshMonthlyBalance();
+      // 자동 1회 재조회: 월정석이 선택지인 한 항상 최신 잔량을 확인한다. 예전에는 잔량이 '제공되지 않았을 때'만
+      // 돌아서, 호출부가 하드 0(예: buildRecoverablePaymentEligibility 의 401 복구 경로)을 넘기면 '잔량 부족'으로
+      // 굳고 자가치유 기회조차 없었다. 클라 15초 캐시 + in-flight dedup(fetchBillingBalance) 이 이미 있어
+      // 왕복이 늘지 않는다 — 새 캐시/재시도 계층을 얹지 않는다.
+      void refreshMonthlyBalance();
     }
   });
 }
@@ -1514,6 +1655,8 @@ async function authFetchBilling(path: string, init: RequestInit, options: { time
 // 서버가 조금만 느려도 보유자가 결제창으로 새는 역전이 생겼다. 서버 pass 판정은 Mongo 왕복이 여러 번이고
 // 콜드 아이솔레이트에선 op-타임아웃 12s·서버선택 8s(worker/lib/db.js)라 6초는 정상 응답도 자르는 값이었다.
 const BILLING_PASS_PROBE_TIMEOUT_MS = 15000;
+// 결제창 노출을 막고 기다리는 선검사 전용 예산. 정본 셸의 CD_PASS_FIRST_BUDGET_MS(index.html)와 같은 값.
+const GATE_PASS_PROBE_TIMEOUT_MS = 6000;
 
 function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
   const method = String(init.method || "GET").toUpperCase();
@@ -1678,12 +1821,25 @@ function isSubscriptionSnapshotEligibility(eligibility: PaymentEligibility | nul
   return Boolean(asRecord(raw?.subscriptionSnapshot));
 }
 
+// 🔴 스냅샷을 **삭제**해도 되는 경우는 "보유 주체가 달라졌을 때"뿐이다(로그아웃·세션 만료·다른 계정).
+// 402 를 여기 넣으면 안 된다 — 402 는 "이 **가격**이 이 등급으로 안 열린다"는 가격에 대한 답이지
+// "이용권이 없다"는 보유 상태에 대한 답이 아니다. 스냅샷에는 state/tier/expiresAt 만 들어 있고 가격은
+// 판정 시점에 곱해지므로(js/core/pass-verdict.js resolveVerdict), 한도를 넘는 기능(예: 작명 300코인 >
+// vvip 100)을 한 번 눌렀다고 멀쩡한 보유 스냅샷을 버리면 **그 뒤 한도 이내 기능에서도** 낙관 통과가
+// 사라져 매번 차단형 서버 왕복을 탄다. 402 는 아래 shouldRefreshSubscriptionSnapshotAfterDenial 로
+// "삭제 없는 재검증"만 건다.
 function shouldInvalidateSubscriptionSnapshot(status: number, code?: string) {
   const normalizedCode = toText(code).toUpperCase();
   return status === 401
     || status === 403
-    || status === 402
-    || normalizedCode === "AUTH_REQUIRED"
+    || normalizedCode === "AUTH_REQUIRED";
+}
+
+// 402 계열(미커버·한도초과·잔액부족)은 스냅샷이 **낡았을 수도** 있다는 신호일 뿐이다(환불·해지로 이용권이
+// 사라진 경우). 삭제 대신 서버 재조회를 걸어, 성공하면 정본으로 덮어쓰고 실패하면 기존 판정을 유지한다.
+function shouldRefreshSubscriptionSnapshotAfterDenial(status: number, code?: string) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 402
     || normalizedCode === "PAYMENT_REQUIRED"
     || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED";
 }
@@ -2982,16 +3138,21 @@ async function fetchPaymentEligibilityUncached(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; revalidate?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
   const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
   const hasServerLookupKey = Boolean(input.productId || input.serviceType || input.categoryKey || input.subFeatureKey || input.featureKey || input.reason);
+  // revalidate: 로컬 스냅샷을 **지우지 않고** 서버 정본만 다시 읽는다. 응답이 오면 덮어쓰고, 실패하면
+  // 기존 판정이 그대로 살아남는다. force 는 종전대로 선삭제 — 계정이 바뀐 경우처럼 낡은 값이 위험할 때만 쓴다.
+  const skipLocalSnapshot = fetchOptions.force === true || fetchOptions.revalidate === true;
   if (fetchOptions.force === true) {
     clearSubscriptionSnapshotForUser();
     invalidateBillingBalanceCache();
+  } else if (fetchOptions.revalidate === true) {
+    invalidateBillingBalanceCache();
   }
-  const snapshot = fetchOptions.force === true ? null : readSubscriptionSnapshotForUser();
+  const snapshot = skipLocalSnapshot ? null : readSubscriptionSnapshotForUser();
   const snapshotAllowsLocalPass = Boolean(snapshot && (snapshot.state !== "none" || !hasServerLookupKey));
   const canUseLocalSubscriptionSnapshot = Boolean(snapshot && snapshot.state !== "none" && snapshotAllowsLocalPass && !hasServerLookupKey);
   if (snapshot && canUseLocalSubscriptionSnapshot) {
@@ -3020,10 +3181,11 @@ async function fetchPaymentEligibilityUncached(input: {
     scope: phase === "pass" ? "pass" : undefined,
   });
   // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
+  // 결제창을 막고 기다리는 호출부는 더 짧은 예산을 넘긴다(GATE_PASS_PROBE_TIMEOUT_MS).
   const response = await authFetchBilling(
     query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status",
     { method: "GET", cache: "no-store" },
-    { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS },
+    { timeoutMs: Math.max(1000, Math.floor(Number(fetchOptions.timeoutMs) || BILLING_PASS_PROBE_TIMEOUT_MS)) },
   );
   const parsed = await parseBillingResponse<Record<string, unknown>>(response);
 
@@ -3204,11 +3366,12 @@ export async function fetchPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; revalidate?: boolean; phase?: PaymentEligibilityPhase; timeoutMs?: number } = {}): Promise<BillingResult<PaymentEligibility>> {
   const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const cacheKey = `${phase}:${resolvePaymentEligibilityCacheKey(input)}`;
   const now = Date.now();
-  if (fetchOptions.force === true) {
+  // revalidate 도 응답 캐시는 건너뛴다(서버 정본을 다시 읽는 것이 목적). 다른 점은 스냅샷을 선삭제하지 않는다는 것뿐.
+  if (fetchOptions.force === true || fetchOptions.revalidate === true) {
     paymentEligibilityRecent.delete(cacheKey);
     paymentEligibilityInFlight.delete(cacheKey);
   } else {
@@ -3219,7 +3382,7 @@ export async function fetchPaymentEligibility(input: {
     if (current) return current;
   }
 
-  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, phase });
+  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, revalidate: fetchOptions.revalidate, phase, timeoutMs: fetchOptions.timeoutMs });
   paymentEligibilityInFlight.set(cacheKey, promise);
   try {
     const result = await promise;
@@ -3287,11 +3450,32 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
     }
     const code = String(parsed.error?.code || "").toUpperCase();
     if (parsed.status === 402 || code === "MEMBERSHIP_PASS_NOT_COVERED" || code === "PAYMENT_REQUIRED") {
-      disableOptimisticPassBriefly();
-      try {
-        const { refreshAuth } = await import("./auth-store");
-        void refreshAuth({ force: true, silent: true });
-      } catch {}
+      // 🔴 402 를 무조건 "이용권 상태가 틀렸다"로 읽지 않는다. 낙관 잠금은 **전역 60초**라, 한도를 넘는
+      // 기능(작명 300코인 > vvip 100) 하나가 402 를 받으면 한도 이내 기능 전부의 낙관 통과까지 같이 꺼졌다.
+      // 스냅샷이 "활성이지만 이 가격은 한도 밖"이라고 이미 말하고 있으면 서버 402 는 스냅샷과 **일치**하는
+      // 답이므로 고칠 것이 없다 — 이 경우엔 잠그지 않는다. 보유 상태가 실제로 어긋난 경우(스냅샷은 커버라는데
+      // 서버는 거절)만 잠그고 세션·스냅샷을 정정한다.
+      const snapshotAtDenial = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
+      const deniedCoinCost = resolveKnownCoinCost(input, null);
+      const deniedByPassLimitOnly = code === "PRICE_EXCEEDS_PASS_LIMIT"
+        || Boolean(
+          snapshotAtDenial
+          && snapshotAtDenial.state === "active"
+          && snapshotAtDenial.tier !== "family"
+          && deniedCoinCost > passVerdict.passLimitForTier(snapshotAtDenial.tier),
+        );
+      if (!deniedByPassLimitOnly) {
+        disableOptimisticPassBriefly();
+        try {
+          const { refreshAuth } = await import("./auth-store");
+          void refreshAuth({ force: true, silent: true });
+        } catch {}
+        // 스냅샷은 지우지 않고 서버 정본으로 덮어쓰기만 한다(재조회 실패 시 기존 판정 유지).
+        void fetchPaymentEligibility(
+          { featureKey: "membership-status-refresh", reason: "pass-denied" },
+          { revalidate: true },
+        ).catch(() => null);
+      }
     }
     // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
   } catch {
@@ -3424,12 +3608,27 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // loadPaidServiceRuntimeGate 는 이미 멱등(중복 로드 방지)이라 미리 부르는 것이 안전하다.
     const runtimeGatePromise = loadRuntimeGateForPayment();
     const eligibilityInput = buildEligibilityInput(input);
-    // unlock-status를 pass/full 2회 호출하던 구조를 단일 full 조회로 통합한다.
-    // full 응답에 이미 pass 커버 정보(access.canAccess / pass.canUse)가 포함되므로
-    // 별도 pass 프로브 왕복이 불필요하며, 유료 액션마다 발생하던 요청 2배 증폭을 제거한다.
-    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || snapshotSaysNoPassFast
+    // 🔴 진입 이용권 선검사에 서버 왕복을 쓰지 않는다(2026-08 정책 전환, 셸 index.html 과 동일).
+    // 판정 근거는 로컬 구독 스냅샷뿐이고, 스냅샷이 커버/미커버를 확답하지 못하면 기다리지 않고
+    // 곧바로 결제창을 연다. 예전에는 여기서 /api/billing/unlock-status 를 기다렸고, 그 대기가 곧
+    // 사용자가 결제창을 만나기까지의 지연이었다.
+    // 안전성: ① 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 서버로 수행하고
+    //        ② 카드 주문 직전 서버가 grantPassFreeAccessBeforeCardIfAvailable 로 한 번 더 검사하므로
+    //        스냅샷이 없는 이용권 보유자도 결제되지 않는다.
+    //
+    // 단, **영구 해금(unlock/pdf) 기능은 예외로 이 조회를 유지한다.** 이 조회는 이용권만 보는 게 아니라
+    // "이미 해금한 콘텐츠인가"(access.canAccess)도 함께 답하는데, React 쪽에는 셸의 isTileKeyUnlocked 같은
+    // 로컬 해금 상태가 없다. 빼 버리면 이미 구매한 콘텐츠를 다시 열 때 결제창이 뜬다. 회당 결제(per-use)는
+    // 애초에 '이미 해금' 상태가 존재하지 않으므로 그대로 건너뛴다 — 전환 퍼널의 대부분이 여기 해당한다.
+    // 기존 스킵 조건은 그대로 두고 조건 하나만 더한다 — 이 변경은 왕복을 줄이기만 하고 늘리지 않는다.
+    //
+    // 남아 있는 unlock/pdf 조회는 결제창을 '막고' 기다리므로 상한을 짧게 유지한다
+    // (GATE_PASS_PROBE_TIMEOUT_MS). 예산을 넘겨 null 이 되어도 '미커버'로 단정하지 않는다 —
+    // 아래 런타임 게이트의 이용권 재검사가 그대로 살아 있다(지연을 미커버 근거로 쓰지 않는다).
+    const mayBeAlreadyUnlocked = resolvePaidFeatureBillingType(input.featureKey || featureId) !== "per-use";
+    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || snapshotSaysNoPassFast || !mayBeAlreadyUnlocked
       ? null
-      : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
+      : await fetchPaymentEligibility(eligibilityInput, { phase: "full", timeoutMs: GATE_PASS_PROBE_TIMEOUT_MS }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     // 🔴 이용권 선검사가 '미커버'로 결론난 직후에는 대기 화면을 한 번 더 띄우지 않는다. 예전에는 여기서
     // status:"loadingProducts" 를 보냈고, 셸의 카피 해석기가 이를 access_check.single 로 매핑해
@@ -3533,7 +3732,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       });
     }
 
-    if (!explicitPaymentMode && !passFirstEligible && (eligibility || snapshotSaysNoPassFast) && knownCoinCost > 0 && input.forceDeduct !== false) {
+    // 🔴 이용권 커버가 확인되지 않았으면 **무조건** 결제창을 연다. 예전 조건 (eligibility || snapshotSaysNoPassFast)
+    // 은 "서버가 답했거나 스냅샷이 미커버를 확답한 경우"만 결제창을 열었고, 둘 다 아닌 경우(스냅샷 부재·만료)는
+    // 아래 coin-gate 왕복으로 떨어져 402 를 받은 뒤에야 결제창이 떴다. 진입 선검사를 없앤 지금 그 경로는
+    // 곧 "결제창 뜨기 전 서버 왕복 1회"라서, 미확인은 곧바로 결제창으로 보낸다.
+    if (!explicitPaymentMode && !passFirstEligible && knownCoinCost > 0 && input.forceDeduct !== false) {
       markPaymentRequestedOnce();
       // 🔴 결제수단 모달을 열기 직전에는 게이트를 '열지' 않고 '닫는다'. 예전에는 여기서
       // status:"readyToPay" 를 emit 해 '선택 대기 / 결제 상품 보기' 패널이 떴고, 그 패널이
@@ -3868,20 +4071,25 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           // 세션 무효화 실패는 삼킨다 — 아래 에러 반환 흐름으로 이어진다.
         }
       }
+      const snapshotRefreshInput = {
+        categoryKey: input.categoryKey,
+        subFeatureKey: input.subFeatureKey,
+        featureKey: input.featureKey,
+        reason: input.reason,
+        productId: input.productId,
+        serviceType: input.serviceType || input.productType,
+        coinCost: input.cost,
+        coinPrice: input.coinPrice,
+        priceKRW: input.priceKRW,
+        amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
+      };
       if (shouldInvalidateSubscriptionSnapshot(parsed.status, code)) {
         clearSubscriptionSnapshotForUser();
-        void fetchPaymentEligibility({
-          categoryKey: input.categoryKey,
-          subFeatureKey: input.subFeatureKey,
-          featureKey: input.featureKey,
-          reason: input.reason,
-          productId: input.productId,
-          serviceType: input.serviceType || input.productType,
-          coinCost: input.cost,
-          coinPrice: input.coinPrice,
-          priceKRW: input.priceKRW,
-          amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
-        }, { force: true }).catch(() => null);
+        void fetchPaymentEligibility(snapshotRefreshInput, { force: true }).catch(() => null);
+      } else if (shouldRefreshSubscriptionSnapshotAfterDenial(parsed.status, code)) {
+        // 🔴 삭제하지 않는다. 402 는 가격에 대한 답이라 보유 스냅샷을 버릴 근거가 못 되고, 여기서 지우면
+        // 재조회가 실패했을 때 스냅샷이 영영 사라져 이후 모든 유료 클릭이 차단형 왕복이 된다(회귀 원인).
+        void fetchPaymentEligibility(snapshotRefreshInput, { revalidate: true }).catch(() => null);
       }
       if (!explicitPaymentMode && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
         markPaymentRequestedOnce();

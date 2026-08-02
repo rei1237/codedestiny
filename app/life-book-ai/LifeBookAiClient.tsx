@@ -26,12 +26,25 @@ import {
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { useRouter } from "next/navigation";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { prepareLifeBook, runGenerateWave } from "./lifeBookApi";
+import {
+  FAILURE_COPY,
+  MODE_FALLBACK_PRICE,
+  MODE_FEATURE_KEY,
+  MODE_TITLE,
+  PHASE_COPY,
+  REASON_COPY,
+  WRITING_STAGES,
+  reasonCopy,
+} from "./lifeBookCopy";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
 type GenderType = "male" | "female" | "unknown" | "";
 type FocusAreaType = "overall" | "love" | "money" | "career" | "relationship" | "family" | "lifePurpose" | "turningPoint";
-type FlowStatus = "idle" | "opening" | "payment" | "generating" | "completed" | "error";
+type FlowStatus = "idle" | "opening" | "payment" | "generating" | "navigating" | "completed" | "error";
 
 type LifeBookMode = "lifeBook" | "lifeFortune";
 
@@ -53,19 +66,12 @@ type PrepareResult =
   | { ok: false; reason: "INVALID_INPUT"; message: string }
   | { ok: false; reason?: string; message?: string };
 
-type ConsultationResult = {
-  ok: boolean;
-  sessionId?: string;
-  consultationId?: string;
-  accessType?: AccessType;
-  status?: string;
-  reason?: string;
-  message?: string;
-};
-
 const FEATURE_KEY = "life-book-ai-consultation";
-const FEATURE_REASON = "인생의 책 전문가 상담";
 const ROUTE = "/life-book-ai";
+// 클라가 /generate 를 반복 호출해 웨이브를 진행시킨다(master-love-codex runBatches 패턴).
+// 총운 15섹션 ÷ 웨이브당 4 = 4웨이브 + 재시도 여유. 서버 MAX_GENERATION_WAVES(8)보다 넉넉히.
+const MAX_GENERATE_WAVES = 12;
+const WAVE_LOCK_RETRY_DELAY_MS = 4000;
 
 const FOCUS_OPTIONS: Array<{ value: FocusAreaType; label: string; hint: string }> = [
   { value: "overall", label: "전체 인생 흐름", hint: "삶 전체의 큰 장면을 넓게 읽습니다." },
@@ -102,29 +108,20 @@ const PREVIEW_CHAPTERS = [
   "제10장 인생의 책 마지막 문장",
 ];
 
-const GENERATION_STEPS = [
-  "명리학자가 당신의 책을 펼치는 중입니다… 명식의 기본 구조를 계산하고 있어요",
-  "타고난 오행과 십성의 균형을 살피고 있어요",
-  "조후와 삶의 온도를 읽어 내려가고 있어요",
-  "성격, 재능, 관계의 반복 패턴을 한 장씩 정리하고 있어요",
-  "대운과 세운의 큰 흐름을 책갈피로 표시하고 있어요",
-  "사랑, 일, 재물, 인연의 장을 정성껏 집필하고 있어요",
-  "마지막 장의 조언과 저장용 원고를 다듬고 있어요",
-  "완성된 책을 새 창에서 열 준비를 하고 있어요",
-];
+const GENERATION_STEPS = WRITING_STAGES;
 
 const HERO_BADGES = ["타고난 사주", "대운과 세운", "사랑과 인연", "재물과 직업", "삶의 목적", "인생 전환점"];
 
-const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const PAYMENT_REQUIRED_MESSAGE = "이 리포트는 이용권 또는 결제 확인 후 생성됩니다. 결제창을 확인해 주세요.";
-const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
-const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
-const PRICE_NOT_FOUND_MESSAGE = "결제 금액을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
-const INVALID_INPUT_MESSAGE = "인생의 책을 열기 위한 정보가 부족합니다. 생년월일과 성별을 다시 확인해 주세요.";
+const LOGIN_REQUIRED_MESSAGE = REASON_COPY.LOGIN_REQUIRED;
+const PAYMENT_REQUIRED_MESSAGE = REASON_COPY.PAYMENT_REQUIRED;
+const PAYMENT_VERIFY_FAILED_MESSAGE = REASON_COPY.PAYMENT_VERIFY_FAILED;
+const PAYMENT_CANCELLED_MESSAGE = REASON_COPY.PAYMENT_CANCELLED;
+const PRICE_NOT_FOUND_MESSAGE = REASON_COPY.PRICE_NOT_FOUND;
+const INVALID_INPUT_MESSAGE = REASON_COPY.INVALID_INPUT;
 const BIRTH_TIME_REQUIRED_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
-const SERVER_ERROR_MESSAGE = "인생의 책을 준비하는 중 문제가 발생했습니다. 결제나 이용권은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "인생의 책을 완성하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-const NETWORK_ERROR_MESSAGE = "연결이 불안정해 결과를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.";
+const SERVER_ERROR_MESSAGE = REASON_COPY.SERVER_ERROR;
+const LLM_ERROR_MESSAGE = REASON_COPY.LLM_ERROR;
+const NETWORK_ERROR_MESSAGE = REASON_COPY.NETWORK;
 
 const defaultForm = (): ConsultationForm => ({
   name: "",
@@ -199,9 +196,10 @@ function buildResultUrl(attemptId: string, pending = false) {
 
 function buildConsultationPayload(form: ConsultationForm, requestId: string) {
   const topic = FOCUS_TOPIC[form.focusArea];
+  const mode = form.mode || "lifeBook";
   return {
-    serviceType: FEATURE_KEY,
-    consultationType: form.mode || "lifeBook",
+    serviceType: MODE_FEATURE_KEY[mode],
+    consultationType: mode,
     userName: form.name.trim(),
     gender: form.gender || "unknown",
     birthDate: form.birthDate,
@@ -231,7 +229,8 @@ function validateForm(form: ConsultationForm) {
   return "";
 }
 
-function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
+function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string, mode: LifeBookMode) {
+  const modeFeatureKey = MODE_FEATURE_KEY[mode];
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, 0);
   const amountKRW = toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, 0);
@@ -241,12 +240,12 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   }
   return {
     categoryKey: toText(runtimeGate.categoryKey ?? paymentPayload.categoryKey) || "premium-consultation",
-    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || FEATURE_KEY,
-    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || FEATURE_KEY,
-    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || FEATURE_REASON,
+    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || modeFeatureKey,
+    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || modeFeatureKey,
+    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || MODE_TITLE[mode],
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || "life-book-ai",
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || "life-book-ai",
-    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
+    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || modeFeatureKey,
     forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
@@ -262,30 +261,20 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
-async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string): Promise<T> {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
-    },
-    credentials: "include",
-    body: JSON.stringify(idempotencyKey ? { ...body, idempotencyKey } : body),
-  });
-  return await response.json().catch(() => ({})) as T;
-}
-
 export default function LifeBookAiClient() {
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [resultUrl, setResultUrl] = useState("");
-  const [popupBlocked, setPopupBlocked] = useState(false);
-  const [progressTick, setProgressTick] = useState(0);
+  const [waveProgress, setWaveProgress] = useState<{ completed: number; total: number } | null>(null);
+  const [startedAt, setStartedAt] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [refunded, setRefunded] = useState(false);
   const startLockRef = useRef(false);
-  const resultWindowRef = useRef<Window | null>(null);
+  const retryRef = useRef<{ payload: ReturnType<typeof buildConsultationPayload>; requestId: string; access: Record<string, unknown> | null; mode: LifeBookMode } | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const router = useRouter();
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
 
@@ -307,29 +296,48 @@ export default function LifeBookAiClient() {
     console.info("[LifeBook AI Initial Render Success]", { route: ROUTE, serviceType: FEATURE_KEY });
   }, []);
 
-  const isBusy = status === "opening" || status === "payment" || status === "generating";
+  const isBusy = status === "opening" || status === "payment" || status === "generating" || status === "navigating";
   const validationMessage = useMemo(() => validateForm(form), [form]);
   const isReadyToGenerate = !validationMessage;
-  const activeStep = Math.min(progressTick % GENERATION_STEPS.length, GENERATION_STEPS.length - 1);
-  const progress = status === "completed"
-    ? 100
-    : isBusy
-      ? Math.min(95, 16 + activeStep * 10 + Math.min(9, progressTick))
-      : 0;
+
+  // 🔴 예전 activeStep = tick % 8 은 11초마다 1단계로 되돌아갔다(사용자에겐 "멈춘 것"처럼 보인다).
+  //    서버가 주는 progress(completed/total)를 1순위로 쓰고, 없을 때만 경과 시간 기반 점근선을 쓴다.
+  //    점근선은 단조 증가하며 100에 닿지 않는다.
+  const progress = useMemo(() => {
+    if (status === "completed" || status === "navigating") return 100;
+    if (!isBusy) return 0;
+    if (status === "opening") return 12;
+    if (status === "payment") return 26;
+    if (waveProgress && waveProgress.total > 0) {
+      return Math.min(97, 45 + Math.round((waveProgress.completed / waveProgress.total) * 52));
+    }
+    return Math.min(96, Math.round(45 + 50 * (1 - Math.exp(-elapsedMs / 90000))));
+  }, [status, isBusy, waveProgress, elapsedMs]);
+
+  const activeStep = useMemo(() => {
+    if (status !== "generating") return 0;
+    if (waveProgress && waveProgress.total > 0) {
+      const ratio = waveProgress.completed / waveProgress.total;
+      return Math.min(GENERATION_STEPS.length - 1, Math.floor(ratio * GENERATION_STEPS.length));
+    }
+    return Math.min(GENERATION_STEPS.length - 1, Math.floor(elapsedMs / 30000));
+  }, [status, waveProgress, elapsedMs]);
 
   useEffect(() => {
-    if (!isBusy) return;
-    const timer = window.setInterval(() => setProgressTick((prev) => prev + 1), 1400);
+    if (!isBusy || !startedAt) return;
+    const timer = window.setInterval(() => setElapsedMs(Date.now() - startedAt), 1000);
     return () => window.clearInterval(timer);
-  }, [isBusy]);
+  }, [isBusy, startedAt]);
 
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
     idempotencyKeyRef.current = createIdempotencyKey();
-    resultWindowRef.current = null;
+    retryRef.current = null;
     setResultUrl("");
-    setPopupBlocked(false);
-    setProgressTick(0);
+    setWaveProgress(null);
+    setStartedAt(0);
+    setElapsedMs(0);
+    setRefunded(false);
     setError("");
     setNotice("");
     setStatus("idle");
@@ -345,63 +353,56 @@ export default function LifeBookAiClient() {
     resetAttempt();
   }, [resetAttempt]);
 
-  const openPendingResultWindow = useCallback((attemptId: string) => {
-    const pendingUrl = buildResultUrl(attemptId, true);
-    setResultUrl(buildResultUrl(attemptId));
-    setPopupBlocked(false);
-    if (typeof window === "undefined") return null;
-    const nextWindow = window.open(pendingUrl, "_blank");
-    if (!nextWindow) {
-      setPopupBlocked(true);
-      return null;
-    }
-    resultWindowRef.current = nextWindow;
-    return nextWindow;
-  }, []);
-
-  const openCompletedResult = useCallback((attemptId: string) => {
+  // 🔴 결과는 같은 탭에서 연다. 팝업(window.open)은 별도 document 라 게이트 오버레이·세션 캐시가
+  //    인계되지 않았고, 차단돼도 결제/생성이 그대로 진행돼 사용자가 빈 화면에 남았다.
+  const goToResult = useCallback((attemptId: string) => {
     const finalUrl = buildResultUrl(attemptId);
     setResultUrl(finalUrl);
-    if (resultWindowRef.current && !resultWindowRef.current.closed) {
-      resultWindowRef.current.location.href = finalUrl;
-      resultWindowRef.current.focus();
-      return;
-    }
-    setPopupBlocked(true);
-  }, []);
+    setStatus("navigating");
+    router.push(finalUrl);
+  }, [router]);
 
-  const generateConsultation = useCallback(async (
+  /**
+   * 워커의 웨이브를 완료까지 반복 호출한다.
+   * 🔴 매 호출이 같은 idempotencyKey 를 쓴다 — 새 키를 만들면 이중 결제가 된다.
+   */
+  const runGeneration = useCallback(async (
     payload: ReturnType<typeof buildConsultationPayload>,
     idempotencyKey: string,
-    access: { accessToken?: string; billingGate?: Record<string, unknown> },
+    access: Record<string, unknown>,
   ) => {
     setStatus("generating");
     // 다음 화면(집필 중 상태)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(idempotencyKey);
-    const result = await postJson<ConsultationResult>("/api/life-book-ai/generate", {
-      ...payload,
-      ...access,
-    }, idempotencyKey);
 
-    if (result.ok && result.status === "completed") {
-      setStatus("completed");
-      setNotice("완성된 인생의 책을 새 창에서 열고 있습니다.");
-      setError("");
-      setProgressTick(GENERATION_STEPS.length);
-      openCompletedResult(idempotencyKey);
-      return;
+    for (let wave = 0; wave < MAX_GENERATE_WAVES; wave += 1) {
+      const outcome = await runGenerateWave(payload, idempotencyKey, access, () => {
+        setNotice(FAILURE_COPY.retrying);
+      });
+
+      if (outcome.status === "completed") {
+        setNotice("");
+        setError("");
+        setStatus("completed");
+        setWaveProgress({ completed: 1, total: 1 });
+        goToResult(idempotencyKey);
+        return;
+      }
+      if (outcome.status === "failed") {
+        const error = new Error(reasonCopy(outcome.reason, outcome.message || LLM_ERROR_MESSAGE));
+        (error as Error & { refunded?: boolean }).refunded = outcome.data?.refunded === true;
+        throw error;
+      }
+      if (outcome.progress) setWaveProgress(outcome.progress);
+      setNotice("");
+      // 다른 웨이브가 락을 쥐고 있으면 잠깐 기다렸다 이어받는다.
+      if (outcome.httpStatus === 409) {
+        await new Promise((resolve) => setTimeout(resolve, WAVE_LOCK_RETRY_DELAY_MS));
+      }
     }
-
-    if (result.ok && result.status === "generating") {
-      setNotice("인생의 책을 완성하는 중입니다. 열린 결과 창에서 진행 상태를 확인해 주세요.");
-      return;
-    }
-
-    const reason = String(result.reason || "");
-    if (reason === "LLM_ERROR") throw new Error(LLM_ERROR_MESSAGE);
-    if (reason === "PAYMENT_VERIFY_FAILED") throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
-    throw new Error(result.message || LLM_ERROR_MESSAGE);
-  }, [openCompletedResult]);
+    // 웨이브 상한을 다 써도 안 끝났다면 결과 화면이 폴링으로 이어받는다(서버가 stale 을 확정 실패로 승격한다).
+    goToResult(idempotencyKey);
+  }, [goToResult]);
 
   const submit = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -409,10 +410,12 @@ export default function LifeBookAiClient() {
 
     const requestId = idempotencyKeyRef.current;
     const currentValidation = validateForm(form);
+    const mode: LifeBookMode = form.mode || "lifeBook";
+    const modeFeatureKey = MODE_FEATURE_KEY[mode];
     console.info("[LifeBook AI Submit Start]", {
       route: ROUTE,
       requestId,
-      serviceType: FEATURE_KEY,
+      serviceType: modeFeatureKey,
       focusArea: form.focusArea,
       validation: currentValidation ? "failed" : "passed",
       birthDate: maskBirthDate(form.birthDate),
@@ -425,35 +428,38 @@ export default function LifeBookAiClient() {
     }
 
     startLockRef.current = true;
-    openPendingResultWindow(requestId);
     const payload = buildConsultationPayload(form, requestId);
     setError("");
     setNotice("");
-    setProgressTick(0);
+    setStartedAt(Date.now());
+    setWaveProgress(null);
     setStatus("opening");
     beginPaidFeatureGateCheck({
-      featureKey: FEATURE_KEY,
+      featureKey: modeFeatureKey,
       requestId,
       title: "이용권 확인",
-      reason: "인생의 책 전문가 상담",
-      paymentMode: "MEMBERSHIP_PASS",
+      reason: MODE_TITLE[mode],
     });
     // 확인 완료 후 다음 화면(집필 중 상태)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
-    // release는 generateConsultation의 setStatus("generating")에서 호출한다(안전장치 상한 8초).
+    // release는 runGeneration의 setStatus("generating")에서 호출한다(안전장치 상한 8초).
     holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
 
     try {
-      const access = await postJson<PrepareResult>("/api/life-book-ai/prepare", payload, requestId);
+      // 🔴 일시 장애 재시도는 공용 헬퍼가 전담한다(4회/15초 예산). 그 위에 또 감싸지 않는다.
+      const prepared = await prepareLifeBook<PrepareResult>(payload, requestId);
+      const access = prepared.data;
+      retryRef.current = { payload, requestId, access: null, mode };
+
       if (access.ok) {
         completePaidFeatureGateCheck({
-          featureKey: FEATURE_KEY,
+          featureKey: modeFeatureKey,
           requestId,
           title: "이용권 확인 완료",
-          reason: "인생의 책 전문가 상담",
-          paymentMode: "MEMBERSHIP_PASS",
+          reason: MODE_TITLE[mode],
           message: "이용권 확인이 끝났습니다. 인생의 책을 준비하고 있습니다.",
         });
-        await generateConsultation(payload, requestId, { accessToken: access.accessToken });
+        retryRef.current = { payload, requestId, access: { accessToken: access.accessToken }, mode };
+        await runGeneration(payload, requestId, { accessToken: access.accessToken });
         return;
       }
 
@@ -469,16 +475,26 @@ export default function LifeBookAiClient() {
         return;
       }
       // 이용권 확인 앞단의 일시 장애(degraded)면 dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 확인 실패 시 무조건 결제창).
-      const passGateDegraded = (denied as Record<string, unknown>).retryable === true || String(denied.reason) === "DB_DEGRADED";
+      const passGateDegraded = (denied as Record<string, unknown>).retryable === true
+        || String(denied.reason) === "DB_DEGRADED"
+        || prepared.httpStatus >= 500;
       if (denied.reason === "PAYMENT_REQUIRED" || passGateDegraded) {
         setNotice(PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
         // degrade면 서버 paymentPayload가 없어 buildBillingGateInput의 가격검증(cost>0)에서 throw되므로,
-        // 서버 레지스트리(life-book-ai-consultation: 300코인/₩30,000/월정석 3,000)와 동일한 폴백 가격을 주입한다.
+        // 서버 레지스트리와 동일한 폴백 가격을 주입한다(🔴 모드별로 갈라야 총운에 오과금이 안 난다).
         // 실제 금액은 runBillingCoinGate→billing.js coin-gate가 featureKey로 재확정한다.
-        const degradedFallbackPayload = { runtimeGate: { cost: 300, coinPrice: 300, amountKRW: 30000, membershipCreditCost: 3000 } };
+        const fallback = MODE_FALLBACK_PRICE[mode];
+        const degradedFallbackPayload = {
+          runtimeGate: {
+            cost: fallback.coinPrice,
+            coinPrice: fallback.coinPrice,
+            amountKRW: fallback.amountKRW,
+            membershipCreditCost: fallback.membershipCreditCost,
+          },
+        };
         const gatePayloadSource = "paymentPayload" in denied ? denied.paymentPayload : (passGateDegraded ? degradedFallbackPayload : undefined);
-        const billingInput = buildBillingGateInput(asRecord(gatePayloadSource), requestId);
+        const billingInput = buildBillingGateInput(asRecord(gatePayloadSource), requestId, mode);
         const gate = await runBillingCoinGate(billingInput);
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();
@@ -489,44 +505,68 @@ export default function LifeBookAiClient() {
         console.info("[LifeBook AI Payment Success]", {
           route: ROUTE,
           requestId,
-          serviceType: FEATURE_KEY,
+          serviceType: modeFeatureKey,
           focusArea: form.focusArea,
         });
-        await generateConsultation(payload, requestId, { billingGate: gate.data as Record<string, unknown> });
+        retryRef.current = { payload, requestId, access: { billingGate: gate.data as Record<string, unknown> }, mode };
+        await runGeneration(payload, requestId, { billingGate: gate.data as Record<string, unknown> });
         return;
       }
       throw new Error(("message" in denied && denied.message) ? denied.message : SERVER_ERROR_MESSAGE);
     } catch (err) {
-      const message = err instanceof TypeError
+      // 🔴 개발자 문구가 화면에 뜨지 않게 마지막 안전망을 통과시킨다(한글 없는 메시지는 콘솔로만 간다).
+      const raw = err instanceof TypeError
         ? NETWORK_ERROR_MESSAGE
         : err instanceof Error
           ? err.message
           : SERVER_ERROR_MESSAGE;
+      const message = friendlyErrorMessage(raw, SERVER_ERROR_MESSAGE);
       const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
+      setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
       setStatus("error");
       failPaidFeatureGateCheck({
-        featureKey: FEATURE_KEY,
+        featureKey: modeFeatureKey,
         requestId,
         title: "이용권 확인 실패",
-        reason: "인생의 책 전문가 상담",
-        paymentMode: "MEMBERSHIP_PASS",
+        reason: MODE_TITLE[mode],
         message,
         cancelled: paymentCancelled,
       });
     } finally {
       startLockRef.current = false;
     }
-  }, [form, generateConsultation, isBusy, openPendingResultWindow]);
+  }, [form, runGeneration, isBusy]);
 
+  // 확정 실패 후 사용자가 직접 누르는 재시도. 이미 환불이 끝난 세션은 새 키(=새 결제)로 다시 연다.
+  const handleRetry = useCallback(async () => {
+    if (startLockRef.current || isBusy) return;
+    const stashed = retryRef.current;
+    setRefunded(false);
+    setError("");
+    setNotice(FAILURE_COPY.retrying);
+    if (!stashed?.access) {
+      // 결제 증거가 없으면 처음부터 다시 — 새 키가 발급된다.
+      idempotencyKeyRef.current = createIdempotencyKey();
+      retryRef.current = null;
+      await submit();
+      return;
+    }
+    startLockRef.current = true;
+    try {
+      await runGeneration(stashed.payload, stashed.requestId, stashed.access);
+    } catch (err) {
+      const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
+      setError(message);
+      setStatus("error");
+    } finally {
+      startLockRef.current = false;
+    }
+  }, [isBusy, runGeneration, submit]);
   const statusLabel = useMemo(() => {
-    if (status === "opening") return "권한을 확인하고 있습니다";
-    if (status === "payment") return "결제 상태를 확인하고 있습니다";
-    if (status === "generating") return "당신의 인생의 책을 집필하는 중입니다";
-    if (status === "completed") return "인생의 책이 완성되었습니다";
-    if (status === "error") return "흐름을 다시 확인해 주세요";
-    return "아직 쓰이지 않은 다음 장이 기다리고 있습니다";
-  }, [status]);
+    if (status === "generating") return GENERATION_STEPS[activeStep] || GENERATION_STEPS[0];
+    return PHASE_COPY[status] || PHASE_COPY.idle;
+  }, [status, activeStep]);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#050407] text-amber-50 [font-family:var(--font-body)]">
@@ -689,16 +729,36 @@ export default function LifeBookAiClient() {
               </div>
 
               <div className="mt-4 flex items-center justify-end">
-                <PriceBadge featureKey="life-book-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+                <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} fallbackCoins={MODE_FALLBACK_PRICE[form.mode || "lifeBook"].coinPrice} prefix="상담 이용 가격 " />
               </div>
               <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-black text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
-                {isBusy ? "인생의 책을 여는 중..." : "인생의 책 펼치기"}
+                {isBusy ? "책을 여는 중..." : `${MODE_TITLE[form.mode || "lifeBook"].replace(" 전문가 상담", "")} 펼치기`}
               </button>
 
               {(notice || error) && (
-                <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm font-semibold ${error ? "border-[#fb718540] bg-[#3b111bcc] text-[#fecdd3]" : "border-[#f4d27a38] bg-[#302513cc] text-[#ffe8b0]"}`}>
-                  {error || notice}
+                <div
+                  role={error ? "alert" : "status"}
+                  aria-live="polite"
+                  className={`mt-4 rounded-2xl border px-4 py-3 text-sm font-semibold ${error ? "border-[#fb718540] bg-[#3b111bcc] text-[#fecdd3]" : "border-[#f4d27a38] bg-[#302513cc] text-[#ffe8b0]"}`}
+                >
+                  {error ? (
+                    <>
+                      <p className="font-black text-[#ffd8de]">{FAILURE_COPY.headline}</p>
+                      <p className="mt-1 leading-6">{error}</p>
+                      {refunded && <p className="mt-1 leading-6 text-[#fecdd3]/85">{FAILURE_COPY.refunded}</p>}
+                      <button
+                        type="button"
+                        onClick={() => void handleRetry()}
+                        disabled={isBusy}
+                        aria-label="인생의 책 생성 다시 시도"
+                        className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#fecdd3]/40 bg-[#fecdd3]/10 px-5 font-black text-[#ffe4e8] transition hover:bg-[#fecdd3]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Sparkles className="h-4 w-4" aria-hidden="true" />
+                        다시 이야기 이어가기
+                      </button>
+                    </>
+                  ) : notice}
                 </div>
               )}
             </form>
@@ -746,12 +806,23 @@ export default function LifeBookAiClient() {
                   사주의 뼈대와 시간의 흐름을 엮어 각 장을 차례로 완성하고 있습니다.
                 </p>
 
-                <div className="mt-5 overflow-hidden rounded-full border border-amber-200/20 bg-black/30">
-                  <div className="h-3 rounded-full bg-gradient-to-r from-[#9f6b24] via-[#f2d07a] to-[#fff3b0] transition-all duration-700" style={{ width: `${progress}%` }} />
+                <div
+                  role="progressbar"
+                  aria-valuenow={progress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuetext={statusLabel}
+                  aria-label="인생의 책 집필 진행률"
+                  className="mt-5 overflow-hidden rounded-full border border-amber-200/20 bg-black/30"
+                >
+                  <div className="h-3 rounded-full bg-gradient-to-r from-[#9f6b24] via-[#f2d07a] to-[#fff3b0] transition-all duration-700 motion-reduce:transition-none" style={{ width: `${progress}%` }} />
                 </div>
+                {/* ⚠️ 진행률 숫자는 aria-live 에 넣지 않는다 — 1초마다 숫자를 읽어 스크린리더 사용이 불가능해진다. */}
                 <div className="mt-3 flex items-center justify-between text-xs font-bold text-amber-100">
-                  <span>{GENERATION_STEPS[activeStep]}</span>
-                  <span>{progress}%</span>
+                  <span aria-live="polite" aria-atomic="true">{statusLabel}</span>
+                  <span aria-hidden="true">
+                    {waveProgress ? `${waveProgress.completed}/${waveProgress.total}장 · ` : ""}{progress}%
+                  </span>
                 </div>
 
                 <div className="mt-5 grid gap-3">
@@ -765,7 +836,7 @@ export default function LifeBookAiClient() {
 
                 <div className="mt-5 grid grid-cols-3 gap-2">
                   {[0, 1, 2].map((item) => (
-                    <div key={item} className="h-28 animate-pulse rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-100/15 to-black/20" />
+                    <div key={item} className="h-28 animate-pulse rounded-2xl border border-amber-200/15 bg-gradient-to-br from-amber-100/15 to-black/20 motion-reduce:animate-none" />
                   ))}
                 </div>
               </section>
@@ -776,21 +847,19 @@ export default function LifeBookAiClient() {
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Completed</p>
                 <h2 className="mt-1 text-2xl font-black text-amber-50">완성된 인생의 책이 열렸습니다</h2>
                 <p className="mt-2 text-sm leading-6 text-[#e7d2b5]">
-                  새 창이 열리지 않았다면 아래 버튼으로 전용 결과 페이지를 열어 주세요.
+                  화면이 자동으로 넘어가지 않았다면 아래 버튼으로 결과 페이지를 열어 주세요.
                 </p>
-                <a href={resultUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-black text-[#171007] transition hover:-translate-y-0.5">
-                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                <a href={resultUrl} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-black text-[#171007] transition hover:-translate-y-0.5">
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
                   완성된 인생의 책 열기
+                </a>
+                <a href={resultUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 px-5 text-sm font-black text-amber-100 transition hover:bg-amber-50/10">
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  새 탭에서 열기
                 </a>
               </section>
             )}
 
-            {popupBlocked && resultUrl && status !== "completed" && (
-              <a href={resultUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/30 bg-black/20 px-5 text-sm font-black text-amber-100 transition hover:bg-amber-50/10">
-                <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                결과 창 다시 열기
-              </a>
-            )}
           </section>
         </div>
       </section>

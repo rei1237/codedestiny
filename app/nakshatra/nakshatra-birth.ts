@@ -3,7 +3,7 @@
 // 프로필 카드(음력 저장분 포함)를 양력 폼 값으로 정규화한다.
 
 import { authFetch } from "@/app/_lib/auth-client";
-import { seedFromDestinyProfile } from "@/app/_lib/ai-prefill-seed";
+import { seedFromDestinyProfile, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import {
   normalizeDestinyProfileCard,
   resolveDestinyProfileBirthParts,
@@ -110,6 +110,48 @@ export async function fetchNakshatraProfileCards(): Promise<DestinyProfileCard[]
   } catch {
     return [];
   }
+}
+
+/** resolve/premium API 가 받는 숫자형 출생 입력. */
+export interface NakshatraBirthInput {
+  year: number; month: number; day: number; hour: number; minute: number;
+  timezone: number; lat: number; lon: number; timeUnknown: boolean;
+  gender?: "male" | "female" | "";
+}
+
+function toText(value: unknown): string {
+  return value == null ? "" : String(value).trim();
+}
+
+/**
+ * 프로필 카드 시드 → 나크샤트라 입력.
+ * 홈 '대표 운명 상담' 카드에서 바로 들어온 사람은 /nakshatra/calc 를 거치지 않아
+ * sessionStorage 가 비어 있고, 그대로 두면 결제창이 아니라 "먼저 별을 계산해 주세요"
+ * 막다른 길에 떨어진다. 음력 카드는 변환이 /nakshatra/calc 에 있으므로 여기서 추정하지 않는다.
+ */
+export function birthFromProfileSeed(seed: AiPrefillSeed | null): NakshatraBirthInput | null {
+  if (!seed || seed.calendarType === "lunar") return null;
+  const matchedDate = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(toText(seed.birthDate));
+  if (!matchedDate) return null;
+  const year = Number(matchedDate[1]);
+  const month = Number(matchedDate[2]);
+  const day = Number(matchedDate[3]);
+  if (!year || !month || !day) return null;
+  const matchedTime = seed.birthTimeUnknown ? null : /^(\d{1,2}):(\d{2})$/.exec(toText(seed.birthTime));
+  const lat = Number(seed.latitude);
+  const lon = Number(seed.longitude);
+  return {
+    year,
+    month,
+    day,
+    hour: matchedTime ? Number(matchedTime[1]) : 12,
+    minute: matchedTime ? Number(matchedTime[2]) : 0,
+    timezone: Number(seed.timezone) || 9,
+    lat: Number.isFinite(lat) && lat !== 0 ? lat : 37.5665,
+    lon: Number.isFinite(lon) && lon !== 0 ? lon : 126.978,
+    timeUnknown: !matchedTime,
+    gender: seed.gender === "male" || seed.gender === "female" ? seed.gender : "",
+  };
 }
 
 export interface NakshatraFormValues {

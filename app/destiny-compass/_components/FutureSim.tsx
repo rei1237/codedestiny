@@ -79,7 +79,7 @@ export function FutureSim({ field, onBack }: { field: DirectionField; onBack: ()
   const poly = stops.map((s) => `${s.x},${s.y}`).join(" ");
 
   return (
-    <div className={styles.resultStage}>
+    <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>The Future Voyage</span>

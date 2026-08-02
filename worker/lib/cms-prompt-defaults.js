@@ -27,6 +27,12 @@ const SYSTEM_PROMPT_SOURCES = [
     load: async () => (await import("../routes/destiny-compass.js")).getDefaultSystemPrompt(),
   },
   {
+    key: "destiny-compass-report",
+    label: "운명의 지도 심층 리포트 (9섹션)",
+    service: "운명의 지도",
+    load: async () => (await import("./destiny-compass-report-contract.js")).buildCompassSystemPrompt(),
+  },
+  {
     key: "saju-ai-result",
     label: "사주 AI 결과 해설",
     service: "사주",

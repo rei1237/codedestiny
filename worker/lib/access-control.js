@@ -10,7 +10,10 @@ import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
-  sukuyoPastLifeReading: ["sukuyo-past-life-reading", "premiumDivinationPack"],
+  // sukuyo-past-life-reading 은 회당 결제(PER_USE_PAID_FEATURE_KEY_LIST)다.
+  // 이 목록은 영구 해금(ContentEntitlement) 후보 키라, 회당 결제 키를 넣으면
+  // 1회 결제로 이후 모든 상대 조회가 무료가 된다. 번들 상품만 남긴다.
+  sukuyoPastLifeReading: ["premiumDivinationPack"],
   celestialHarmony: ["premiumDivinationPack"],
   fptiPremium: ["premium-fpti-report"],
 });
@@ -256,6 +259,23 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     ];
   }
 
+  if (reportType === "destinyCompassDeepReport") {
+    return [
+      {
+        featureKey: "destiny-compass-deep-report",
+        reason: "운명의 지도 심층 리포트",
+        minCost: 100,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "운명의 지도 심층 리포트",
+        minCost: 100,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
   if (reportType === "petSajuReport") {
     return [
       {
@@ -294,13 +314,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [
       {
         featureKey: "sukuyo-past-life-reading",
-        reason: "숙요 전생 인연 리딩",
+        reason: "숙요 인연 레이더",
         minCost: 100,
         windowMinutes: 240,
       },
       {
         featureKey: "coin-gate-per-use",
-        reason: "숙요 전생 인연 리딩",
+        reason: "숙요 인연 레이더",
         minCost: 100,
         windowMinutes: 240,
       },
@@ -1090,7 +1110,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "petSajuReport", "petCompatReport"].includes(normalizedReportType) && alternativeRules.length) {
+  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;
