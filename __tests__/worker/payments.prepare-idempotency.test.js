@@ -5,11 +5,13 @@
 let testUtils;
 let Payment;
 let User;
+let mongoose;
 
 let originalPaymentFindOne;
 let originalPaymentCreate;
 let originalUserFindById;
 let originalUserCollectionFindOne;
+let originalConnectionCollection;
 
 function mockPaymentFindOne(result) {
   const lean = jest.fn().mockResolvedValue(result);
@@ -43,11 +45,13 @@ beforeAll(async () => {
   testUtils = paymentsMod.__paymentsTestUtils;
   Payment = modelsMod.Payment;
   User = modelsMod.User;
+  mongoose = dbMod.mongoose;
 
   originalPaymentFindOne = Payment.findOne;
   originalPaymentCreate = Payment.create;
   originalUserFindById = User.findById;
   originalUserCollectionFindOne = User.collection.findOne;
+  originalConnectionCollection = mongoose.connection.collection;
 });
 
 afterEach(() => {
@@ -55,6 +59,7 @@ afterEach(() => {
   Payment.create = originalPaymentCreate;
   User.findById = originalUserFindById;
   User.collection.findOne = originalUserCollectionFindOne;
+  mongoose.connection.collection = originalConnectionCollection;
 });
 
 describe("Payments prepare idempotency", () => {
@@ -80,6 +85,39 @@ describe("Payments prepare idempotency", () => {
       requestId: "payments-me-test",
     });
     expect(payload.data).toBeUndefined();
+  });
+
+  test("payments/me shop summary reuses the authenticated user snapshot without history reads", async () => {
+    const collection = jest.fn();
+    mongoose.connection.collection = collection;
+
+    const response = await testUtils.handleMe(
+      {
+        userId: auth.userId,
+        authUserDoc: {
+          _id: auth.userId,
+          name: "Shop user",
+          email: "shop@example.com",
+          points: 0,
+          unlockedFeatures: [],
+          profileSubscription: {
+            tier: "family",
+            isActive: true,
+            expiresAt: "2099-01-01T00:00:00.000Z",
+            membershipCreditBalance: 80,
+          },
+        },
+      },
+      { MONGO_OP_RETRIES: "0" },
+      new Request("https://example.com/api/payments/me?view=shop"),
+    );
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload.data.historyDeferred).toBe(true);
+    expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
+    expect(payload.data.monthlyCredits).toBe(80);
+    expect(collection).not.toHaveBeenCalled();
   });
 
   test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {

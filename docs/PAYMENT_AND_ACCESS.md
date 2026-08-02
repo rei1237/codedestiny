@@ -143,7 +143,7 @@
 - Main-shell unlock hydration uses `GET /api/access/unlocks?profileId=...&serviceKey=saju,ziwei`.
 - `GET /api/access/unlocks` is read-only. Legacy `includeBackfill=1` and `backfill=1` are accepted as compatibility inputs only and must not run `PointHistory`/`Payment` scans or write `ContentEntitlement` records during a normal lookup.
 - Legacy entitlement repair must run through an explicit backfill/reconcile path, not through page-entry GET requests.
-- The points shop initial summary uses one in-flight `GET /api/payments/me` request per page entry. It reuses the auth-loaded user snapshot, then reads recent payments, point history, and monthly-credit ledger with bounded sequential DB operations.
+- The points shop initial summary uses one in-flight `GET /api/payments/me?view=shop` request per page entry. It reuses the auth-loaded user snapshot for pass and monthly-credit state and defers payment, point-history, and monthly-credit-ledger reads to the dedicated history surface.
 - Static shell moonlight balance hydration uses the compact `/api/billing/balance?moonlightStone=1` path only. It must not call `/api/payments/me` as an automatic balance fallback during page entry.
 - Monthly-credit and legacy coin balance reads are reserved for payment/store entry and explicit payment refresh flows.
 - The client unlock map and shop summary are display state only. Server-side content access checks, pass purchase policy, payment confirmation, and post-payment entitlement writes remain authoritative.

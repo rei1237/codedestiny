@@ -454,6 +454,14 @@ function classifyPaymentDbError(error) {
   return "DATABASE_TEMPORARILY_UNAVAILABLE";
 }
 
+function isPaymentShopSummaryRequest(request) {
+  try {
+    return new URL(request.url).searchParams.get("view") === "shop";
+  } catch {
+    return false;
+  }
+}
+
 function getPaymentDeploySha(env) {
   return String(env?.CF_PAGES_COMMIT_SHA || env?.COMMIT_SHA || env?.DEPLOY_COMMIT_SHA || "").slice(0, 80);
 }
@@ -5825,6 +5833,7 @@ function buildTokenFallbackPaymentsMe(auth, message) {
 async function handleMe(auth, env, request) {
   const startedAt = Date.now();
   const requestId = createPaymentRequestId(request);
+  const shopSummary = isPaymentShopSummaryRequest(request);
   const metrics = {
     env,
     requestId,
@@ -5836,6 +5845,7 @@ async function handleMe(auth, env, request) {
     cache: auth?.authUserDoc ? "authUserDoc" : "miss",
     stageMs: {},
     errors: [],
+    view: shopSummary ? "shop" : "full",
     commitSha: getPaymentDeploySha(env),
   };
 
@@ -5872,9 +5882,15 @@ async function handleMe(auth, env, request) {
       }, { status: 404 });
     }
 
-    const recentPaymentsResult = await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
-    const pointHistoriesResult = await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
-    const monthlyCreditLedgersResult = await runPaymentsMeOptionalQuery(metrics, "monthlyCreditLedgers", () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
+    const recentPaymentsResult = shopSummary
+      ? { ok: true, value: [] }
+      : await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
+    const pointHistoriesResult = shopSummary
+      ? { ok: true, value: [] }
+      : await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
+    const monthlyCreditLedgersResult = shopSummary
+      ? { ok: true, value: [] }
+      : await runPaymentsMeOptionalQuery(metrics, "monthlyCreditLedgers", () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
 
     const recentPayments = recentPaymentsResult.ok ? recentPaymentsResult.value : [];
     const pointHistories = pointHistoriesResult.ok ? pointHistoriesResult.value : [];
@@ -5885,6 +5901,7 @@ async function handleMe(auth, env, request) {
     body.data.degradedPayments = !recentPaymentsResult.ok;
     body.data.degradedTransactions = !pointHistoriesResult.ok;
     body.data.degradedMonthlyCredits = !monthlyCreditLedgersResult.ok;
+    body.data.historyDeferred = shopSummary;
     body.data.queryBudget = {
       dbQueryCount: metrics.dbQueryCount,
       maxConcurrentDbOps: 1,
