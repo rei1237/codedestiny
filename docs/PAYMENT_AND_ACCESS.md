@@ -138,10 +138,13 @@
 - Google Play pass SKUs are legacy/deprecated for new entitlement grants. Content SKUs remain a separate policy surface.
 - Policy implementation: `worker/lib/entitlement-policy.js`; audit events are written through `writeSecurityLog` without payment credentials or raw personal data.
 
-## Unlock state and balance read separation
+## Unlock state and shop read separation
 
-- Main-shell unlock hydration uses `GET /api/access/unlocks?profileId=...&serviceKey=saju,ziwei&includeBackfill=1`.
-- This endpoint reads the profile/account-scoped `ContentEntitlement` snapshot only. It does not require monthly-credit or legacy `User.points` balance reads.
-- `includeBackfill=1` remains enabled so legacy `PointHistory`/`Payment` evidence can restore missing entitlement records without deleting or resetting existing unlocks.
+- Main-shell unlock hydration uses `GET /api/access/unlocks?profileId=...&serviceKey=saju,ziwei`.
+- `GET /api/access/unlocks` is read-only. Legacy `includeBackfill=1` and `backfill=1` are accepted as compatibility inputs only and must not run `PointHistory`/`Payment` scans or write `ContentEntitlement` records during a normal lookup.
+- Legacy entitlement repair must run through an explicit backfill/reconcile path, not through page-entry GET requests.
+- The points shop initial summary uses one in-flight `GET /api/payments/me` request per page entry. It reuses the auth-loaded user snapshot, then reads recent payments, point history, and monthly-credit ledger with bounded sequential DB operations.
+- Static shell moonlight balance hydration uses the compact `/api/billing/balance?moonlightStone=1` path only. It must not call `/api/payments/me` as an automatic balance fallback during page entry.
 - Monthly-credit and legacy coin balance reads are reserved for payment/store entry and explicit payment refresh flows.
-- The client unlock map is display state only. Server-side content access checks and post-payment entitlement writes remain authoritative.
+- The client unlock map and shop summary are display state only. Server-side content access checks, pass purchase policy, payment confirmation, and post-payment entitlement writes remain authoritative.
+- A DB lookup failure must be represented as lookup failure (`retryable`, request-scoped error code) and must not be converted to an empty unlock list, balance `0`, unlimited balance, or successful deduction.

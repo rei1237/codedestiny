@@ -31,7 +31,19 @@ test("main unlock bootstrap requests both profile services in one access request
   const initialBootstrapBlock = between(shellSource, "function scheduleInitialUnlockSync", "// 관리자 모드:");
 
   assert.match(accessFetchBlock, /params\.set\('serviceKey', serviceKeys\.join\(','\)\)/);
-  assert.match(accessFetchBlock, /params\.set\('includeBackfill', '1'\)/);
+  assert.doesNotMatch(accessFetchBlock, /includeBackfill/);
   assert.doesNotMatch(initialBootstrapBlock, /syncGoldenMonthlyCreditsFromPaymentsMe/);
   assert.doesNotMatch(initialBootstrapBlock, /syncBalanceFromServer/);
+});
+test("main unlock GET is deduped and cooled down by the shared API guard", () => {
+  const dedupeBlock = between(shellSource, "function shouldDedupeApiGet", "function getApiCooldownKey");
+  const cooldownBlock = between(shellSource, "function shouldApplyApiCooldown", "function readApiCooldown");
+  const cacheBlock = between(shellSource, "function getApiResultCacheTtl", "function cloneApiResult");
+  const retryBlock = between(shellSource, "async function _cdFetchAccessUnlocksWithRetry", "var serviceKeys = _cdCollectSajuAccessServiceKeys");
+
+  assert.match(dedupeBlock, /\/api\/access\/unlocks/);
+  assert.match(cooldownBlock, /\/api\/access\/unlocks/);
+  assert.match(cacheBlock, /\/api\/access\/unlocks/);
+  assert.doesNotMatch(retryBlock, /SAJU_UNLOCK_CONFIRM_DELAYS_MS/);
+  assert.doesNotMatch(retryBlock, /1500|3000/);
 });
