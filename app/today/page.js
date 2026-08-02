@@ -1,4 +1,4 @@
-import TodayClient from "./TodayClient";
+import TodayHubClient from "./TodayHubClient";
 import { buildSeoMetadata } from "../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 
@@ -17,5 +17,5 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function TodayLandingPage() {
-  return <TodayClient />;
+  return <TodayHubClient />;
 }
