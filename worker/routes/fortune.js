@@ -69,8 +69,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { isActiveStatus, isInactiveStatus } from "../lib/profile-limits.js";
-import { resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
@@ -1432,8 +1432,8 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     const passUser = await User.findById(userId)
       .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
       .lean();
-    const featureAccess = resolveFeatureAccessPolicy({ user: passUser || {}, coinCost: cost });
-    if (featureAccess.allowed) {
+    const passEntitlement = normalizeHoneyPassEntitlement(passUser || {});
+    if (canUseByPass(passEntitlement, cost)) {
       return {
         source: "pass_payload",
         record: {
@@ -1444,7 +1444,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
             requestId,
             accessMethod: "PASS",
             paymentMode: "MEMBERSHIP_PASS",
-            passTier: featureAccess.tier || "",
+            passTier: passEntitlement.tier || "",
           },
         },
       };
