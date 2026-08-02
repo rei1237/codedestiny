@@ -1,6 +1,6 @@
 "use client";
 /**
- * 운명의 지도 결과 — ①~⑨ 프리미엄 리포트(다크 코스믹).
+ * 운명의 나침반 결과 — ①~⑨ 프리미엄 리포트(다크 코스믹).
  *
  * 무료: ① 좌표 ② 흐름 ⑧ 종합 조언(단문) ⑨ 나침반 + 레이더·행운
  * 유료(destiny-compass-deep-report, 회당 10,000원): ③ 원인(체계별) ④ 변화 ⑤ 기회 ⑥ 피할 선택 ⑦ 행동
@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { ReportActions } from "./ReportActions";
 import { CompassHero, ConfidenceMeta, coordinateLine } from "./CompassHero";
+import { CompassInsightCards } from "./CompassInsightCards";
 import { DestinyRadar } from "./DestinyRadar";
 import { PigFace } from "./PigFace";
 import { Starfield } from "./Starfield";
@@ -225,6 +226,8 @@ export function CompassReport({
           </div>
         </ReportSection>
 
+        <CompassInsightCards field={field} />
+
         {/* ② 현재의 흐름 */}
         <ReportSection spec={getReportSection("flow")} state="arrived">
           <div className={styles.flowCards}>
@@ -430,7 +433,7 @@ export function CompassReport({
             reportId={report.reportId}
           />
           <button type="button" className={styles.resultCtaGhost} onClick={onRestart}>
-            지도로 돌아가기
+            나침반으로 돌아가기
           </button>
         </div>
       </div>

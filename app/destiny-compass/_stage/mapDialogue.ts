@@ -1,5 +1,5 @@
 /**
- * 운명의 지도 입력 화면 — 상태별 대사 템플릿(캐릭터별 물리 분리).
+ * 운명의 나침반 입력 화면 — 상태별 대사 템플릿(캐릭터별 물리 분리).
  * 톤 가드레일: 꽃돼지는 이 화면에서 절대 팩폭하지 않는다(힐링·따뜻한 존댓말).
  * 사자(네오)는 입력 완료 후에만 한 마디, 짧게. 연이는 제출 트랜지션 내레이션 1줄.
  */
@@ -19,8 +19,8 @@ export interface PigLine {
 export const PIG_LINES: Record<MapInputPhase, PigLine> = {
   intro: { expr: "talk", text: "지금 마음에 걸리는 걸, 한 가지만 들려주세요." },
   waiting: { expr: "think", text: "천천히 괜찮아요. 떠오르는 그대로 적어도 돼요." },
-  typing: { expr: "happy", text: "좋아요. 그 마음, 지도가 듣고 있어요." },
-  valid: { expr: "happy", text: "준비됐어요. 함께 길을 찾아볼까요?" },
+  typing: { expr: "happy", text: "좋아요. 그 마음, 나침반이 듣고 있어요." },
+  valid: { expr: "happy", text: "준비됐어요. 함께 방향을 찾아볼까요?" },
   submit: { expr: "surprise", text: "자, 안개 너머로 가볼게요." },
 };
 

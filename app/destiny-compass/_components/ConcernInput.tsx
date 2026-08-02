@@ -109,13 +109,13 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
           maxLength={80}
           autoComplete="off"
         />
-        <button type="submit" className={styles.oracleGo} disabled={!trimmed} aria-label="길 찾기">
+        <button type="submit" className={styles.oracleGo} disabled={!trimmed} aria-label="방향 찾기">
           <svg className={styles.needle} viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" strokeWidth="1.4" opacity="0.55" />
             <path d="M12 3.4L14.4 12 12 20.6 9.6 12z" fill="currentColor" />
             <circle cx="12" cy="12" r="1.6" fill="#12061f" />
           </svg>
-          <span className={styles.oracleGoText}>길 찾기</span>
+          <span className={styles.oracleGoText}>방향 찾기</span>
         </button>
       </form>
 

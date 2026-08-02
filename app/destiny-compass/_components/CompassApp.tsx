@@ -1,6 +1,6 @@
 "use client";
 /**
- * 운명의 지도 오케스트레이터 — 생년 → 맵(고민 입력) → 처리(안개+사고) → 결과 → 오늘.
+ * 운명의 나침반 오케스트레이터 — 히어로 → 생년 → 선택 무대(고민 입력) → 처리 → 결과 → 오늘.
  * 결정론 엔진은 세션(useCompassSession)이 처리 단계에서 실행. 결과/오늘 화면은 기존 재사용(P2에서 격상).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -25,7 +25,7 @@ import { Starfield } from "./Starfield";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
 import map from "./map.module.css";
 
-export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
+export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const s = useCompassSession(start);
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
@@ -78,13 +78,13 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
     const destRegion = DIRECTION_TO_REGION[s.field.primary.key];
     const destLabel = regionByKey(destRegion)?.label ?? "";
     return (
-      <DestinyMap title="운명의 길이 나타났어요" kicker="The Path Revealed" pathTo={destRegion} highlightRegion={destRegion} phase="night">
+      <DestinyMap title="나침반이 방향을 잡았어요" kicker="The Bearing Revealed" pathTo={destRegion} highlightRegion={destRegion} phase="night">
         <div className={map.revealPanel}>
           <p className={map.revealText}>
-            안개가 걷히자, <b>{destLabel}</b>로 향하는 길이 금빛으로 빛나기 시작했어요.
+            안개가 걷히자, <b>{destLabel}</b> 쪽으로 바늘이 금빛으로 고정됐어요.
           </p>
           <button type="button" className={map.revealCta} onClick={() => s.setStep("result")}>
-            이 길의 끝을 보기 →
+            결과 확인하기 →
           </button>
         </div>
       </DestinyMap>
@@ -208,8 +208,8 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
       <Starfield />
       {showConfirm ? (
         <div className={map.birthPanel}>
-          <span className={map.birthKicker}>The Destiny Map</span>
-          <h1 className={map.birthTitle}>이 정보로 길을 찾을게요</h1>
+          <span className={map.birthKicker}>Destiny Compass</span>
+          <h1 className={map.birthTitle}>이 정보로 방향을 맞출게요</h1>
           <p className={map.birthSub}>프로필 카드에서 불러왔어요. 계산에만 쓰이고 저장되지 않아요.</p>
           <div className={map.birthConfirm}>
             {rpg?.level != null && (
@@ -225,7 +225,7 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
             </dl>
           </div>
           <button type="button" className={map.birthCta} onClick={submit}>
-            이 정보로 길 찾기 →
+            이 정보로 나침반 맞추기 →
           </button>
           <button type="button" className={map.birthPrefillLink} onClick={() => setEditing(true)}>
             정보 변경
@@ -239,9 +239,9 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
             submit();
           }}
         >
-          <span className={map.birthKicker}>The Destiny Map</span>
-          <h1 className={map.birthTitle}>운명의 지도에 들어서기 전에</h1>
-          <p className={map.birthSub}>당신의 명식으로 지도가 그려져요. 계산에만 쓰이고 저장되지 않아요.</p>
+          <span className={map.birthKicker}>Destiny Compass</span>
+          <h1 className={map.birthTitle}>나침반을 맞추기 전에</h1>
+          <p className={map.birthSub}>당신의 명식으로 방향을 읽어요. 계산에만 쓰이고 저장되지 않아요.</p>
           {seed?.birthDate && !prefilled && (
             <button type="button" className={map.birthPrefillLink} onClick={reloadFromProfile}>
               프로필 카드에서 불러오기 →
@@ -290,7 +290,7 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
             )}
           </div>
           <button type="submit" className={map.birthCta} disabled={!birthDate}>
-            지도 열기
+            나침반 맞추기
           </button>
         </form>
       )}

@@ -1,299 +1,400 @@
-/* 운명 여정 허브 전용 스타일 — '따뜻한 밤하늘 스토리북'.
-   BirthGate와 공유하던 map.module.css의 .birth*를 쓰지 않고 격리한다(공유 파일 무변경 → 회귀 0).
-   규칙: Glow-Not-Shadow(평상시 플랫→상태변화에서 글로우), Veil Rule(반투명=깊이 기법),
-   Hue-Stays(보라·금 코스믹 계열 유지), 본문 대비 4.5:1↑. */
-
 .stage {
   position: relative;
   min-height: 100dvh;
   width: 100%;
   overflow: hidden;
-  display: grid;
-  place-items: center;
-  /* 딥 트와일라잇 + 상단 라벤더 달빛 / 하단 허니·로즈 온기 글로우로 차갑지 않게. */
+  color: #f5f0ff;
   background:
-    radial-gradient(120% 78% at 50% 12%, rgba(124, 90, 214, 0.42), transparent 56%),
-    radial-gradient(88% 58% at 16% 6%, rgba(196, 181, 253, 0.16), transparent 60%),
-    radial-gradient(82% 62% at 50% 114%, rgba(232, 213, 163, 0.17), transparent 62%),
-    radial-gradient(66% 48% at 84% 98%, rgba(179, 25, 85, 0.14), transparent 64%),
-    linear-gradient(180deg, #0b0722 0%, #140a2e 48%, #08061a 100%);
-  padding: calc(28px + env(safe-area-inset-top, 0px)) 18px calc(28px + env(safe-area-inset-bottom, 0px));
+    radial-gradient(52% 46% at 50% 10%, rgba(232, 213, 163, 0.2), transparent 62%),
+    radial-gradient(60% 44% at 78% 18%, rgba(91, 124, 255, 0.22), transparent 68%),
+    radial-gradient(58% 52% at 18% 88%, rgba(196, 181, 253, 0.13), transparent 66%),
+    linear-gradient(180deg, #040713 0%, #081027 46%, #03050c 100%);
 }
-/* 가장자리 비네트(깊이) */
+
 .stage::after {
   content: "";
   position: absolute;
   inset: 0;
-  pointer-events: none;
   z-index: 1;
-  box-shadow: inset 0 0 170px rgba(4, 3, 14, 0.72);
+  pointer-events: none;
+  box-shadow: inset 0 0 170px rgba(0, 0, 0, 0.72);
 }
 
-.bgmAudio {
-  display: none;
-}
-
-.bgmToggle {
-  position: absolute;
-  top: calc(14px + env(safe-area-inset-top, 0px));
-  right: 16px;
-  z-index: 5;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border: 1px solid rgba(232, 213, 163, 0.34);
-  border-radius: 999px;
-  background: rgba(19, 14, 42, 0.5);
-  color: #f4e8ca;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-}
-.bgmToggle:hover {
-  border-color: rgba(232, 213, 163, 0.62);
-  color: #fff6e2;
-  box-shadow: 0 0 20px -6px rgba(232, 213, 163, 0.55);
-}
-.bgmToggle:focus-visible {
-  outline: 2px solid rgba(232, 213, 163, 0.7);
-  outline-offset: 2px;
-}
-
-.panel {
+.hero {
   position: relative;
   z-index: 2;
-  width: 100%;
-  max-width: 448px;
+  min-height: 100dvh;
+  width: min(100%, 1120px);
+  margin: 0 auto;
   display: grid;
+  align-content: center;
   justify-items: center;
-  gap: 13px;
-  padding: clamp(30px, 5vw, 40px) clamp(22px, 4.5vw, 34px) clamp(24px, 4vw, 32px);
-  border-radius: clamp(22px, 4vw, 28px);
-  border: 1px solid rgba(232, 213, 163, 0.42);
-  background:
-    radial-gradient(130% 72% at 50% 0%, rgba(196, 181, 253, 0.16), transparent 58%),
-    radial-gradient(120% 58% at 50% 106%, rgba(232, 213, 163, 0.1), transparent 60%),
-    linear-gradient(180deg, rgba(30, 21, 60, 0.92), rgba(14, 9, 34, 0.94));
-  /* 평상시 플랫에 가깝게 + 은은한 골드/라벤더 inset(Glow-Not-Shadow). */
-  box-shadow:
-    0 0 0 1px rgba(196, 181, 253, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 34px rgba(10, 6, 26, 0.5),
-    0 26px 66px rgba(0, 0, 0, 0.56),
-    0 0 44px rgba(196, 181, 253, 0.1);
-  animation: panelIn 560ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  gap: 18px;
+  padding: calc(34px + env(safe-area-inset-top, 0px)) 18px calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
-/* 상단 일러스트 나침반 — 신비로움을 상징하는 요소라 Moon Glow 계열 드롭섀도 허용. */
-.compass {
-  width: clamp(76px, 20vw, 92px);
-  height: auto;
-  margin-bottom: 2px;
-  filter: drop-shadow(0 0 18px rgba(232, 213, 163, 0.42)) drop-shadow(0 0 40px rgba(156, 135, 212, 0.32));
-}
-.needle {
-  transform-origin: 50px 50px;
-  animation: needleSway 7s ease-in-out infinite;
+.copy {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
 }
 
 .kicker {
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
   color: #e8d5a3;
-  text-shadow: 0 0 14px rgba(232, 213, 163, 0.4);
-  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
 }
+
 .title {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: clamp(1.7rem, 5.2vw, 2.15rem);
-  line-height: 1.2;
+  font-size: 2.35rem;
+  line-height: 1.05;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   color: #fff8ec;
-  text-align: center;
   text-wrap: balance;
-  text-shadow: 0 0 30px rgba(232, 213, 163, 0.3);
-}
-
-/* 연이 메달리온 — 달빛 로켓 속 캐릭터. 부드러운 원반 + Moon Glow, 아주 느린 bob. */
-.mascot {
-  position: relative;
-  width: clamp(104px, 28vw, 122px);
-  height: clamp(104px, 28vw, 122px);
-  margin: 4px 0 2px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 42%, rgba(255, 244, 210, 0.22), rgba(196, 181, 253, 0.1) 54%, transparent 72%);
-  box-shadow:
-    inset 0 0 0 1.5px rgba(232, 213, 163, 0.5),
-    0 0 42px -6px rgba(216, 179, 108, 0.36),
-    0 0 82px -26px rgba(156, 135, 212, 0.34);
-  animation: mascotBob 4.6s ease-in-out infinite;
-}
-.mascotFace {
-  filter: drop-shadow(0 6px 14px rgba(6, 4, 20, 0.5));
-}
-
-.badge {
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: #12061f;
-  background: linear-gradient(135deg, #fff2c6, #e8d5a3 58%, #c4b5fd);
-  border-radius: 999px;
-  padding: 5px 15px;
-  box-shadow: 0 4px 16px rgba(232, 213, 163, 0.4);
+  text-shadow: 0 0 28px rgba(232, 213, 163, 0.24);
 }
 
 .sub {
   margin: 0;
-  max-width: 30ch;
-  color: rgba(230, 221, 255, 0.92);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  text-align: center;
-}
-.dex {
-  margin: -4px 0 0;
-  color: rgba(233, 214, 166, 0.92);
-  font-size: 0.82rem;
-  line-height: 1.5;
-  text-align: center;
-}
-.dex span {
-  color: #e8d5a3;
+  max-width: 34ch;
+  color: rgba(244, 238, 255, 0.96);
+  font-size: 1.08rem;
+  line-height: 1.62;
+  text-wrap: pretty;
 }
 
-.cta {
+.microcopy {
+  margin: 0;
+  max-width: 48ch;
+  color: rgba(206, 217, 255, 0.78);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.dial {
+  --bearing: 45deg;
   position: relative;
-  overflow: hidden;
-  margin-top: 6px;
-  width: 100%;
-  min-height: 58px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 0;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 800;
-  font-size: 1.04rem;
-  letter-spacing: 0.01em;
-  color: #12061f;
-  cursor: pointer;
-  /* 3-스톱 금→라벤더에 미세한 하이라이트 밴드를 더해 금속 질감(고급감). */
-  background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.5) 0%, transparent 26%),
-    linear-gradient(135deg, #fff2c6, #e8d5a3 52%, #c4b5fd);
-  box-shadow:
-    0 0 26px rgba(232, 213, 163, 0.42),
-    0 10px 26px -12px rgba(120, 90, 200, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(120, 90, 200, 0.28);
-  transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 220ms ease, filter 180ms ease;
+  width: min(76vw, 370px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  filter: drop-shadow(0 30px 54px rgba(0, 0, 0, 0.42));
 }
-/* 잔잔한 아이들 광택 스윕 — 버튼 위를 천천히 지나는 빛(럭셔리 CTA). */
-.cta::after {
-  content: "";
+
+.dial:active {
+  cursor: grabbing;
+}
+
+.dialHalo {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -40%;
-  width: 34%;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55) 50%, transparent);
-  transform: skewX(-16deg);
-  animation: ctaGleam 4.6s ease-in-out infinite;
+  inset: 6%;
+  border-radius: 50%;
+  background:
+    conic-gradient(from var(--bearing), rgba(232, 213, 163, 0.24), rgba(196, 181, 253, 0.08), rgba(232, 213, 163, 0.24)),
+    radial-gradient(circle at 50% 50%, rgba(232, 213, 163, 0.14), transparent 62%);
+  filter: blur(12px);
+  opacity: 0.8;
+  transform: translateZ(0);
 }
-.cta > * {
+
+.rose {
   position: relative;
   z-index: 1;
+  width: 73%;
+  height: auto;
+  overflow: visible;
 }
-.cta:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-  box-shadow:
-    0 0 38px rgba(232, 213, 163, 0.62),
-    0 0 70px -20px rgba(156, 135, 212, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+
+.needleShape {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: rotate(var(--bearing));
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.cta:active {
-  transform: translateY(0) scale(0.986);
+
+.dial[data-settling="true"] .needleShape {
+  animation: compassLock 520ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.cta:focus-visible {
-  outline: 2px solid #fff2c6;
+
+.direction {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  min-width: 52px;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(232, 213, 163, 0.28);
+  border-radius: 999px;
+  color: rgba(238, 232, 255, 0.82);
+  background: rgba(7, 12, 27, 0.74);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--point))
+    translateY(calc(-1 * min(34vw, 164px)))
+    rotate(calc(-1 * var(--point)));
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.direction:hover,
+.direction:focus-visible,
+.direction[data-active="true"] {
+  color: #fff8ec;
+  border-color: rgba(232, 213, 163, 0.78);
+  background: rgba(25, 31, 57, 0.94);
+  box-shadow: 0 0 24px rgba(232, 213, 163, 0.25);
+}
+
+.direction:focus-visible {
+  outline: 2px solid rgba(232, 213, 163, 0.86);
   outline-offset: 3px;
 }
 
-.arrow {
-  display: inline-block;
-  transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-.cta:hover .arrow {
-  transform: translateX(3px);
+.direction[data-active="true"] {
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--point))
+    translateY(calc(-1 * min(34vw, 164px)))
+    rotate(calc(-1 * var(--point)))
+    scale(1.06);
 }
 
-@keyframes panelIn {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.985);
+.reading {
+  min-height: 74px;
+  width: min(100%, 420px);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 14px 18px;
+  border: 1px solid rgba(232, 213, 163, 0.22);
+  border-radius: 18px;
+  background: rgba(7, 12, 27, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.reading[data-pulse="true"] {
+  animation: readingPulse 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.readingMark {
+  grid-row: span 2;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: #e8d5a3;
+  border-radius: 50%;
+  background: rgba(232, 213, 163, 0.1);
+}
+
+.readingLabel {
+  color: rgba(206, 217, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.reading strong {
+  color: #fff8ec;
+  font-size: 1.06rem;
+  line-height: 1.3;
+}
+
+.statusLine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(232, 213, 163, 0.92);
+  font-size: 0.82rem;
+}
+
+.statusLine span {
+  padding: 5px 10px;
+  border: 1px solid rgba(232, 213, 163, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cta {
+  width: min(100%, 420px);
+  min-height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 999px;
+  color: #080c19;
+  background: linear-gradient(135deg, #fff2c6, #e8d5a3 54%, #c4b5fd);
+  box-shadow:
+    0 0 34px rgba(232, 213, 163, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.54);
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 170ms ease, filter 170ms ease, box-shadow 200ms ease;
+}
+
+.cta:hover:not(:disabled),
+.cta:focus-visible {
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 44px rgba(232, 213, 163, 0.6),
+    0 0 78px -20px rgba(196, 181, 253, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.54);
+}
+
+.cta:active:not(:disabled) {
+  transform: scale(0.986);
+}
+
+.cta:focus-visible {
+  outline: 2px solid #fff2c6;
+  outline-offset: 4px;
+}
+
+.cta:disabled {
+  cursor: wait;
+  filter: saturate(0.82);
+}
+
+.ctaIcon {
+  width: 22px;
+  height: 22px;
+}
+
+@keyframes compassLock {
+  0% { transform: rotate(calc(var(--bearing) - 240deg)); }
+  70% { transform: rotate(calc(var(--bearing) + 8deg)); }
+  100% { transform: rotate(var(--bearing)); }
+}
+
+@keyframes readingPulse {
+  0% { transform: translateY(0) scale(1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+  45% { transform: translateY(-2px) scale(1.012); box-shadow: 0 0 28px rgba(232, 213, 163, 0.22); }
+  100% { transform: translateY(0) scale(1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+}
+
+@media (min-width: 860px) {
+  .hero {
+    grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1.1fr);
+    grid-template-areas:
+      "copy dial"
+      "reading dial"
+      "status dial"
+      "cta dial";
+    justify-items: start;
+    gap: 18px 42px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+
+  .copy {
+    grid-area: copy;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .title {
+    font-size: 4.2rem;
+  }
+
+  .sub {
+    font-size: 1.2rem;
+  }
+
+  .dial {
+    grid-area: dial;
+    justify-self: center;
+    width: min(44vw, 470px);
+  }
+
+  .reading {
+    grid-area: reading;
+  }
+
+  .statusLine {
+    grid-area: status;
+    justify-content: flex-start;
+  }
+
+  .cta {
+    grid-area: cta;
+  }
+
+  .direction {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--point))
+      translateY(calc(-1 * min(20vw, 206px)))
+      rotate(calc(-1 * var(--point)));
+  }
+
+  .direction[data-active="true"] {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--point))
+      translateY(calc(-1 * min(20vw, 206px)))
+      rotate(calc(-1 * var(--point)))
+      scale(1.06);
   }
 }
-@keyframes mascotBob {
-  0%, 100% {
-    transform: translateY(0);
+
+@media (max-width: 430px) {
+  .hero {
+    gap: 14px;
   }
-  50% {
-    transform: translateY(-5px);
+
+  .dial {
+    width: min(82vw, 330px);
   }
-}
-@keyframes needleSway {
-  0%, 100% {
-    transform: rotate(-6deg);
+
+  .direction {
+    min-width: 48px;
+    min-height: 44px;
+    padding: 7px 8px;
+    font-size: 0.72rem;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--point))
+      translateY(calc(-1 * min(37vw, 132px)))
+      rotate(calc(-1 * var(--point)));
   }
-  50% {
-    transform: rotate(6deg);
-  }
-}
-@keyframes ctaGleam {
-  0% {
-    left: -40%;
-  }
-  50%, 100% {
-    left: 118%;
+
+  .direction[data-active="true"] {
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--point))
+      translateY(calc(-1 * min(37vw, 132px)))
+      rotate(calc(-1 * var(--point)))
+      scale(1.05);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .panel,
-  .mascot,
-  .needle,
-  .cta,
-  .arrow {
-    animation: none;
+  .needleShape,
+  .direction,
+  .reading,
+  .cta {
     transition: none;
-  }
-  .cta::after {
-    animation: none;
-    opacity: 0;
-  }
-  .cta:hover {
-    transform: none;
-  }
-  .cta:hover .arrow {
-    transform: none;
+    animation: none !important;
   }
 }
