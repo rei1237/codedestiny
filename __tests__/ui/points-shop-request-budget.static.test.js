@@ -38,6 +38,8 @@ test("points shop keeps a last confirmed monthly-stone snapshot display-only unt
   assert.match(bootBlock, /setMonthlyStoneUnverified\(true\)/);
   assert.match(fetchStateBlock, /persistSanitizedAuthUser/);
   assert.match(fetchStateBlock, /membershipCreditBalance: normalized\.monthlyStoneBalance/);
+  assert.match(pointsSource, /isAuthUserCacheVerified\(parsedUser\)/);
+  assert.match(pointsSource, /shop summary unavailable; keeping verified snapshot/);
 });
 
 test("subscription prepare does not auto retry with a new idempotency key", () => {

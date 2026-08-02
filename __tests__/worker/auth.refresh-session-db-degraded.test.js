@@ -4,7 +4,9 @@
 
 let getOptionalUserFromRequest;
 let requireAuth;
+let requireUserFromRequest;
 let signJwt;
+let signAuthToken;
 let REFRESH_COOKIE_NAME;
 
 beforeAll(async () => {
@@ -12,6 +14,8 @@ beforeAll(async () => {
   const jwtMod = await import("../../worker/lib/jwt.js");
   getOptionalUserFromRequest = authMod.getOptionalUserFromRequest;
   requireAuth = authMod.requireAuth;
+  requireUserFromRequest = authMod.requireUserFromRequest;
+  signAuthToken = authMod.signAuthToken;
   REFRESH_COOKIE_NAME = authMod.REFRESH_COOKIE_NAME;
   signJwt = jwtMod.signJwt;
 });
@@ -52,6 +56,27 @@ describe("refresh-session verification tolerates transient DB infra errors on /a
   test("로그인 사용자의 DB 인프라 오류는 401로 강등되지 않고 전파돼야 한다", async () => {
     const request = await buildRefreshOnlyRequest("/api/fortune/pig-coin/consume");
     await expect(requireAuth(request, env)).rejects.toThrow(/mongo/i);
+  });
+
+  test("read-only payment snapshot may use a valid access token when Mongo is degraded", async () => {
+    const accessToken = await signAuthToken({
+      _id: "64f0a1b2c3d4e5f678901234",
+      email: "snapshot@example.com",
+      role: "user",
+      name: "Snapshot user",
+      points: 0,
+    }, env);
+    const request = new Request("https://example.com/api/payments/me?view=shop", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    await expect(requireUserFromRequest(request, env, {
+      allowDbFallback: true,
+      userProjection: { profileSubscription: 1 },
+    })).resolves.toMatchObject({
+      userId: "64f0a1b2c3d4e5f678901234",
+      authDbFallback: true,
+    });
   });
 
   test("자격증명이 아예 없는 진짜 게스트는 그대로 401 UNAUTHORIZED", async () => {

@@ -69,4 +69,5 @@ test("op-타임아웃 시 [db-op-timeout] 진단 로그를 남긴다", async () 
   expect(payload).toHaveProperty("delta");
   // 드라이버 이벤트 계측이 실제로 연결에 붙었는지(붙지 않으면 delta 가 영원히 비어 진단이 죽는다).
   expect(client.on).toHaveBeenCalled();
+  expect(mongooseMock.disconnect).toHaveBeenCalledTimes(1);
 }, ATTEMPT_TIMEOUT_FLOOR_MS + 10000);
