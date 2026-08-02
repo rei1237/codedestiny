@@ -6,7 +6,9 @@
   var STORAGE_VERSION = 2;
   var STORAGE_PREFIX = 'cd_access_store_v2::';
   var LEGACY_LEDGER_KEY = 'cd_verified_unlock_grants_v1';
-  var RETRY_DELAYS = [1000, 3000, 10000];
+  // A transient lookup gets one bounded retry. More retries amplify a Mongo/Worker
+  // outage while the caller is already showing a degraded access state.
+  var RETRY_DELAYS = [1000];
   var DEFAULT_SERVICE_KEYS = ['saju', 'ziwei', 'ad_free'];
   var CONTENT_KEY_TO_FEATURE_KEY = {
     'saju.daewunAnalysis': 'section_daewun',
@@ -542,7 +544,7 @@
     abortController = typeof global.AbortController === 'function' ? new global.AbortController() : null;
     var controller = abortController;
     var query = '/api/access/unlocks?profileId=' + encodeURIComponent(context.profileId) +
-      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(',')) + '&includeBackfill=1';
+      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(','));
     var epoch = bootEpoch;
     var request = global.fetch(query, {
       credentials: 'include',

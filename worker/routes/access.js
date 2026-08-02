@@ -550,8 +550,6 @@ async function handleUnlocks(request, env) {
   );
   const serviceKeys = normalizeServiceKeys(serviceKeyParam);
   const serviceKey = serviceKeys.join(",");
-  const includeBackfill = url.searchParams.get("backfill") === "1"
-    || url.searchParams.get("includeBackfill") === "1";
 
   if (!profileId) {
     throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
@@ -562,18 +560,9 @@ async function handleUnlocks(request, env) {
   const activeDocs = await withMongoRetry(env, async () => {
     await verifyProfileOwnership({ userId, profileId });
     const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
-    const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-    const backfilledDocs = [];
-    if (includeBackfill) {
-      const created = await backfillMissingUnlocksForServices({
-        userId,
-        profileId,
-        serviceKeys,
-        existingDocs: docs,
-      });
-      backfilledDocs.push(...created);
-    }
-    return docs.concat(backfilledDocs);
+    // GET is an entitlement snapshot only. Legacy backfill remains an explicit
+    // repair concern; page entry must never scan payment history or write rows.
+    return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
   });
 
   const unlocks = createLockedMap(serviceKeys);

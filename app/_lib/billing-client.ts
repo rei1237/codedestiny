@@ -3207,9 +3207,36 @@ async function fetchPaymentEligibilityUncached(input: {
   }
   // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
   // 결제창을 막고 기다리는 호출부는 더 짧은 예산을 넘긴다(GATE_PASS_PROBE_TIMEOUT_MS).
-  const accessStore = typeof window !== "undefined"
+  const detectedAccessStore = typeof window !== "undefined"
     ? (window as RuntimeApiWindow).CodeDestinyAccessStore
     : undefined;
+  const accessStore = typeof detectedAccessStore?.getAccessDecision === "function"
+    ? detectedAccessStore
+    : {
+      getAccessDecision: async (options: Record<string, unknown>) => {
+        const { force: _force, revalidate: _revalidate, timeoutMs, ...requestInput } = options;
+        const query = toQuery(requestInput);
+        const response = await authFetchBilling(
+          `/api/billing/unlock-status${query ? `?${query}` : ""}`,
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+            cache: "no-store",
+          },
+          {
+            timeoutMs: Math.max(1000, Math.floor(Number(timeoutMs) || BILLING_PASS_PROBE_TIMEOUT_MS)),
+            clientSource: "app:billing-client-access-store-fallback",
+          },
+        );
+        const payload = await response.json().catch(() => ({} as Record<string, unknown>));
+        return {
+          ok: Boolean(response.ok && payload && payload.ok === true),
+          status: Number(response.status || 0),
+          payload,
+          code: toText(asRecord(payload.error)?.code || payload.code),
+        };
+      },
+    };
   if (!accessStore?.getAccessDecision) {
     return {
       ok: false,

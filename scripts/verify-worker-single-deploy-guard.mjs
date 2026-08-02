@@ -44,6 +44,7 @@ async function verifyPackageAndDeployScript() {
 
   const deployScript = await readRepoFile("scripts/deploy-worker.mjs");
   assert(deployScript.includes('"wrangler", "deploy", "--config", "worker/wrangler.toml"'), "scripts/deploy-worker.mjs must deploy from worker/wrangler.toml.");
+  assert(deployScript.includes('"--var", `COMMIT_SHA:${deployCommit}`'), "scripts/deploy-worker.mjs must bind the deployed commit SHA at runtime.");
 }
 
 async function verifyNoOtherWorkflowDeploys() {
