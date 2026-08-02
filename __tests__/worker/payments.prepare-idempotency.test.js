@@ -64,7 +64,7 @@ afterEach(() => {
 
 describe("Payments prepare idempotency", () => {
   const auth = { userId: "64f0a1b2c3d4e5f678901234" };
-  test("payments/me: canonical user DB failure returns 503 instead of a token fallback balance", async () => {
+  test("payments/me: canonical user DB failure returns a degraded snapshot without inventing a balance", async () => {
     User.collection.findOne = jest.fn().mockRejectedValue(Object.assign(new Error("server selection timeout"), {
       name: "MongoServerSelectionError",
     }));
@@ -76,15 +76,36 @@ describe("Payments prepare idempotency", () => {
     );
     const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(503);
+    expect(status).toBe(200);
     expect(payload).toMatchObject({
-      ok: false,
+      ok: true,
+      degraded: true,
       retryable: true,
-      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      code: "PAYMENTS_ME_DEGRADED",
       dbErrorCode: "MONGO_SERVER_SELECTION_TIMEOUT",
       requestId: "payments-me-test",
+      source: "token",
+      userFound: false,
     });
-    expect(payload.data).toBeUndefined();
+    expect(payload.data.degradedMonthlyCredits).toBe(true);
+    expect(payload.data.monthlyCredits).toBe(0);
+    expect(payload.data.historyDeferred).toBe(true);
+  });
+
+  test("payments/me: verified token fallback does not issue another Mongo query", async () => {
+    User.collection.findOne = jest.fn();
+
+    const response = await testUtils.handleMe(
+      { userId: auth.userId, authDbFallback: true },
+      { MONGO_OP_RETRIES: "0" },
+      new Request("https://example.com/api/payments/me?view=shop"),
+    );
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, degraded: true, source: "token" });
+    expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
+    expect(User.collection.findOne).not.toHaveBeenCalled();
   });
 
   test("payments/me shop summary reuses the authenticated user snapshot without history reads", async () => {

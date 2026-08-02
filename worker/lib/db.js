@@ -671,10 +671,10 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
             // connectDb의 ping 실패 경로가 readyState===1이면 disconnect를 거부하는 것과 같은 이유다 —
             // 두 경로의 정책을 일치시킨다. 여기서는 예약만 하고, 마지막 작업이 빠져나갈 때 처리한다.
             // 위의 lastHealthyAt/connectPromise 무효화는 그대로라 다음 요청은 어차피 재검증한다.
-            // Even the forced-reset threshold must not disconnect a pool while
-            // a timed-out attempt is still in flight. finalizeOperation drains
-            // the deferred reset after every pending attempt settles.
-            if (inFlightOps > 0) {
+            // A lone timed-out attempt may never settle, so deferring its reset
+            // forever leaves the isolate pinned to a dead pool. Protect other
+            // active requests, but let the lone/forced recovery reset proceed.
+            if (inFlightOps > 1 && !forceReset) {
               pendingPoolReset = true;
             } else {
               // 나 혼자거나(끊어도 아무도 안 다침) 연속 실패로 강행 판정 = 지금 끊는다.

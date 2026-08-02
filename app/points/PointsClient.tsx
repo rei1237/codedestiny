@@ -17,7 +17,7 @@ import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import checkoutEntry from "@/js/core/checkout-entry.js";
-import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
+import { isAuthUserCacheVerified, persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
 import { runAccessCheckWithTransientRetry } from "../_lib/consultationResultPolling";
@@ -2792,6 +2792,7 @@ export default function PointsPage() {
   const confirmSubscriptionInFlightRef = useRef(new Map<string, Promise<ConfirmSubscriptionResponse>>());
   const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   const fetchSubscriptionStatusInFlightRef = useRef<Promise<void> | null>(null);
+  const hasVerifiedShopSnapshotRef = useRef(false);
   /** Toast ID 증가용 카운터 */
   const toastCounter = useRef(0);
 
@@ -3236,6 +3237,7 @@ export default function PointsPage() {
 
     if (parsedUser) {
       setAuthUser(parsedUser);
+      const verifiedSnapshot = isAuthUserCacheVerified(parsedUser);
       const cachedSubscription = normalizeSubscriptionStatusFromPayload(parsedUser.profileSubscription);
       if (cachedSubscription?.isActive) {
         setSubscription((prev) => mergeSubscriptionState(prev, cachedSubscription));
@@ -3246,6 +3248,8 @@ export default function PointsPage() {
         // This is display-only until the single shop summary request confirms it.
         setMonthlyStoneUnverified(true);
       }
+      hasVerifiedShopSnapshotRef.current = verifiedSnapshot
+        && (cachedSubscription?.isActive === true || cachedMonthlyBalance !== null);
     }
 
     setIsBooting(false);
@@ -3260,6 +3264,14 @@ export default function PointsPage() {
     fetchMyPointState().then(() => {
       setPointStateStatus("ready");
     }).catch((error) => {
+      if (hasVerifiedShopSnapshotRef.current) {
+        setMonthlyStoneUnverified(true);
+        setPaymentHistoryDeferred(true);
+        setPointStateStatus("ready");
+        setPointStateError(null);
+        console.warn("[points-page] shop summary unavailable; keeping verified snapshot", error);
+        return;
+      }
       setPointStateStatus("error");
       setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
       console.warn("[points-page] shop summary unavailable", error);

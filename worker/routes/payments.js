@@ -5830,6 +5830,30 @@ function buildTokenFallbackPaymentsMe(auth, message) {
   };
 }
 
+function buildDegradedPaymentsMeResponse(auth, {
+  message,
+  requestId,
+  dbErrorCode = "DATABASE_TEMPORARILY_UNAVAILABLE",
+  dbQueryCount = 0,
+} = {}) {
+  const body = buildTokenFallbackPaymentsMe(auth, message);
+  body.requestId = requestId;
+  body.degraded = true;
+  body.retryable = true;
+  body.reason = "DB_DEGRADED";
+  body.code = "PAYMENTS_ME_DEGRADED";
+  body.dbErrorCode = dbErrorCode;
+  body.data.degradedPayments = true;
+  body.data.degradedTransactions = true;
+  body.data.degradedMonthlyCredits = true;
+  body.data.historyDeferred = true;
+  body.data.queryBudget = {
+    dbQueryCount,
+    maxConcurrentDbOps: 1,
+  };
+  return body;
+}
+
 async function handleMe(auth, env, request) {
   const startedAt = Date.now();
   const requestId = createPaymentRequestId(request);
@@ -5848,6 +5872,23 @@ async function handleMe(auth, env, request) {
     view: shopSummary ? "shop" : "full",
     commitSha: getPaymentDeploySha(env),
   };
+
+  if (auth?.authDbFallback === true) {
+    metrics.cache = "verifiedToken";
+    logPaymentsMeTrace("warn", {
+      ...metrics,
+      env: undefined,
+      status: 200,
+      durationMs: Date.now() - startedAt,
+      result: "degraded_token_snapshot",
+    });
+    return json(buildDegradedPaymentsMeResponse(auth, {
+      message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
+      requestId,
+      dbErrorCode: "AUTH_DB_DEGRADED",
+      dbQueryCount: 0,
+    }));
+  }
 
   try {
     let user = auth.authUserDoc || null;
@@ -5924,23 +5965,19 @@ async function handleMe(auth, env, request) {
     logPaymentsMeTrace("warn", {
       ...metrics,
       env: undefined,
-      status: 503,
+      status: 200,
       durationMs: Date.now() - startedAt,
-      result: "failed",
+      result: "degraded_token_snapshot",
       errorCode: code,
       originalErrorName: String(error?.name || "Error").slice(0, 120),
       stack: String(error?.stack || "").slice(0, 2000),
     });
-    return json({
-      success: false,
-      ok: false,
-      retryable: true,
-      reason: "DB_DEGRADED",
-      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
-      dbErrorCode: code,
+    return json(buildDegradedPaymentsMeResponse(auth, {
+      message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
       requestId,
-      message: "Database is temporarily unavailable.",
-    }, { status: 503 });
+      dbErrorCode: code,
+      dbQueryCount: metrics.dbQueryCount,
+    }));
   }
 }
 async function handlePointsMe(auth, env) {
@@ -6182,7 +6219,10 @@ export async function handlePaymentRoutes(request, env, ctx) {
       : null;
     const auth = delegatedAuth?.userId
       ? delegatedAuth
-      : await requireUserFromRequest(request, env, { userProjection: PAYMENT_ROUTE_USER_PROJECTION });
+      : await requireUserFromRequest(request, env, {
+        userProjection: PAYMENT_ROUTE_USER_PROJECTION,
+        allowDbFallback: method === "GET" && path === "/me",
+      });
     trace.authVerified = true;
 
     const security = await enforcePaymentRouteSecurity(request, env, auth, path);
