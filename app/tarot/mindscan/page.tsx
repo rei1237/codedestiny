@@ -81,6 +81,23 @@ export default function MindScanTarotPage() {
           ))}
         </div>
 
+        <section className="mt-10 space-y-5 leading-8 text-slate-300">
+          <h2 className="text-xl font-semibold text-slate-100">결과를 활용하는 방법</h2>
+          <p>
+            리딩을 마친 뒤에는 카드의 문장을 사실 확인 목록처럼 사용해 보세요. 실제로 들은 말과
+            직접 본 행동, 내가 기대한 해석을 세 칸으로 나누어 적으면 감정이 커진 순간에도
+            상황을 조금 더 정확하게 바라볼 수 있습니다. 확인할 수 없는 부분은 결론으로
+            확정하지 않고, 다음 대화에서 질문할 내용으로 남겨 두는 편이 좋습니다.
+          </p>
+          <p>
+            관계의 방향을 정하는 기준은 카드 한 장의 인상보다 반복되는 행동과 서로 지킬 수
+            있는 약속에 있습니다. 연락을 이어갈지 잠시 거리를 둘지 고민될 때는 오늘 당장
+            반응을 얻는 선택보다 한 주 뒤에도 후회가 적을 선택을 고르세요. 이 페이지의
+            해석은 그 판단을 대신하기보다, 마음속에 흩어진 질문을 차분한 문장으로 정리하는
+            데 쓰이도록 설계되어 있습니다.
+          </p>
+        </section>
+
         <nav className="mt-7 flex flex-wrap gap-3" aria-label="관련 타로 서비스">
           {relatedLinks.map((link) => (
             <Link key={link.path} href={link.path} className="rounded-md border border-violet-300/30 px-3 py-2 text-sm text-violet-100">
