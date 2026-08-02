@@ -46,6 +46,7 @@ type DestinyProfile = {
   gender?: "M" | "F" | "OTHER";
   birthDate?: string;
   birthTime?: string;
+  birthIso?: string;
   calendarType?: string;
   isDefault?: boolean;
   selected?: boolean;
@@ -87,7 +88,7 @@ type ProfileStatePayload = {
 };
 
 
-type ProfileActionType = "create" | "delete";
+type ProfileActionType = "create" | "update" | "delete";
 
 type ProfileActionStage = "" | "payment" | "coin" | "saving" | "deleting";
 type ProfileActionPaymentMethod = "card" | "monthly_stones";
@@ -179,6 +180,11 @@ const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COIN
 const PROFILE_CARD_ACTION_FEATURE_KEY = "profile-card-manage";
 const PROFILE_CARD_ACTION_SERVICE_TYPE = "profile_card_action";
 const PROFILE_CARD_ACTION_PRODUCTS = {
+  update: {
+    productId: "profile_card_update_50c",
+    actionType: "profile_card_update",
+    orderName: "프로필 카드 수정",
+  },
   delete: {
     productId: "profile_card_delete_50c",
     actionType: "profile_card_delete",
@@ -212,7 +218,9 @@ async function safeParseJson<T>(response: Response): Promise<T & { message?: str
 }
 
 function profileActionLabel(action: ProfileActionType) {
-  return action === "create" ? "\uCD94\uAC00" : "\uC0AD\uC81C";
+  if (action === "create") return "\uCD94\uAC00";
+  if (action === "update") return "\uC218\uC815";
+  return "\uC0AD\uC81C";
 }
 
 function profileActionProductName(action: ProfileActionType) {
@@ -221,7 +229,7 @@ function profileActionProductName(action: ProfileActionType) {
 
 function profileActionButtonLabel(action: ProfileActionType) {
   const label = profileActionLabel(action);
-  if (action === "delete") return `${label} · ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원`;
+  if (action === "update" || action === "delete") return `${label} · ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원`;
   return label;
 }
 
@@ -242,7 +250,7 @@ function profileActionProgressLabel(action: ProfileActionType, stage: ProfileAct
   if (stage === "coin") return "월정석을 적용하는 중입니다.";
   if (stage === "saving") return action === "delete" ? "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4." : `${profileActionLabel(action)} \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.`;
   if (stage === "deleting") return "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
-  return action === "create" ? "\uCD94\uAC00 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
+  return `${profileActionLabel(action)} \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.`;
 }
 
 
@@ -265,6 +273,33 @@ function buildCreateDraft(): ProfileCreateDraft {
     longitude: "127.0",
     latitude: "37.5",
     timezone: "Asia/Seoul",
+  };
+}
+
+function buildProfileEditDraft(profile: DestinyProfile): ProfileCreateDraft {
+  const birth = profile.birth || {};
+  const birthDateSource = String(profile.birthDate || profile.birthIso || "").trim();
+  const dateMatch = birthDateSource.match(/(\d{4})[-./]?(\d{2})[-./]?(\d{2})/);
+  const birthDate = dateMatch
+    ? `${dateMatch[1]}${dateMatch[2]}${dateMatch[3]}`
+    : [birth.year, birth.month, birth.day].every(Boolean)
+      ? `${String(birth.year).padStart(4, "0")}${String(birth.month).padStart(2, "0")}${String(birth.day).padStart(2, "0")}`
+      : "";
+  const timeMatch = String(profile.birthTime || profile.birthIso || "").match(/(\d{2}):(\d{2})/);
+  const birthTime = timeMatch
+    ? `${timeMatch[1]}:${timeMatch[2]}`
+    : `${String(Number(birth.hour || 0)).padStart(2, "0")}:${String(Number(birth.minute || 0)).padStart(2, "0")}`;
+  const calType = String(profile.calendarType || birth.calType || "solar").toLowerCase();
+  return {
+    name: String(profile.name || ""),
+    gender: profile.gender === "M" || profile.gender === "F" ? profile.gender : "OTHER",
+    birthDate,
+    birthTime,
+    calType: calType === "lunar_leap" || calType === "lunar" ? calType : "solar",
+    locationLabel: String(profile.location?.label || ""),
+    longitude: String(Number.isFinite(Number(profile.location?.lng)) ? profile.location?.lng : 127),
+    latitude: String(Number.isFinite(Number(profile.location?.lat)) ? profile.location?.lat : 37.5),
+    timezone: String(profile.location?.tz || "Asia/Seoul"),
   };
 }
 
@@ -485,6 +520,7 @@ export default function MePage() {
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
   const [monthlyStoneExpiresAt, setMonthlyStoneExpiresAt] = useState<string | null>(null);
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<DestinyProfile | null>(null);
   const [createDraft, setCreateDraft] = useState<ProfileCreateDraft>(buildCreateDraft());
   const [viewingProfile, setViewingProfile] = useState<DestinyProfile | null>(null);
   const [viewingProfileLoadingId, setViewingProfileLoadingId] = useState("");
@@ -505,10 +541,11 @@ export default function MePage() {
   const hasEnoughMonthlyStonesForProfileAction = monthlyStoneBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
   const canCreateInitialProfileForFree = profiles.length === 0;
   const createRequiresProfileActionPayment = !isFamilyProfilePlan && !canCreateInitialProfileForFree;
+  const updateRequiresProfileActionPayment = !isFamilyProfilePlan;
   const deleteRequiresProfileActionPayment = !isFamilyProfilePlan;
   const profileActionPolicyNotice = isFamilyProfilePlan
-    ? "Code Destiny Family 이용권으로 프로필 생성과 삭제를 제한 없이 진행할 수 있습니다."
-    : "프로필 카드 삭제에는 5,000원 결제가 필요합니다.";
+    ? "Code Destiny Family 이용권으로 프로필 생성·수정·삭제를 제한 없이 진행할 수 있습니다."
+    : "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.";
   const subscriptionStartedAtLabel = formatProfileSubscriptionDate(subscription.startedAt);
   const subscriptionExpiresAtLabel = formatProfileSubscriptionDate(subscription.expiresAt);
   const subscriptionDaysLeftLabel = formatProfileSubscriptionDaysLeft(subscription.expiresAt);
@@ -987,11 +1024,13 @@ export default function MePage() {
   }, [apiBase, busyAction, currentId, profiles]);
 
   const executeProfileAction = useCallback(async (
-    action: "delete",
+    action: "update" | "delete",
     profile: DestinyProfile,
     requestId: string,
     paymentContext: Record<string, unknown> | null,
+    draft?: ProfileCreateDraft,
   ) => {
+    const isUpdate = action === "update";
     const body: Record<string, unknown> = {
       requestId,
       productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
@@ -1005,24 +1044,40 @@ export default function MePage() {
       amountKrw: PROFILE_CARD_ACTION_COST_KRW,
       ...(paymentContext || {}),
     };
+    if (isUpdate && draft) {
+      body.profile = {
+        profileId: profile.id,
+        name: draft.name.trim(),
+        gender: draft.gender,
+        birthDate: draft.birthDate,
+        birthTime: draft.birthTime,
+        birth: { calType: draft.calType },
+        location: {
+          label: draft.locationLabel.trim(),
+          tz: draft.timezone.trim() || "Asia/Seoul",
+          lng: Number(draft.longitude),
+          lat: Number(draft.latitude),
+        },
+      };
+    }
     const response = await authFetch(`${apiBase}/api/profile/${encodeURIComponent(profile.id)}`, {
-      method: "DELETE",
+      method: isUpdate ? "PATCH" : "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }, {
       retryOn401: true,
       apiBase,
     });
-    const payload = await safeParseJson<{ profiles?: DestinyProfile[]; currentId?: string; profile?: DestinyProfile }>(response);
+    const payload = await safeParseJson<{ profiles?: DestinyProfile[]; currentId?: string; profile?: DestinyProfile; canCreateMore?: boolean }>(response);
     if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}에 실패했습니다.`);
 
     const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
     const nextCurrentId = typeof payload.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
-    clearActiveDestinyProfileCache(profile.id);
+    if (!isUpdate) clearActiveDestinyProfileCache(profile.id);
     publishDestinyProfileList(nextProfiles, nextCurrentId);
     setProfiles(nextProfiles);
     setCurrentId(nextCurrentId);
-    setCanCreateMore(true);
+    if (typeof payload.canCreateMore === "boolean") setCanCreateMore(payload.canCreateMore);
     emitDestinyProfileChanged(nextProfiles, nextCurrentId);
     await refreshProfileActionBalance();
   }, [apiBase, refreshProfileActionBalance]);
@@ -1073,7 +1128,7 @@ export default function MePage() {
     if (!response.ok || !payload?.ok) {
       const code = String(payload?.code || "").toUpperCase();
       if (response.status === 402 || code === "PAYMENT_REQUIRED" || code === "INSUFFICIENT_COINS" || code.startsWith("PROFILE_CREATE_")) {
-        throw new Error("\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00\uB294 \uC774\uC6A9\uAD8C\uAC00 \uC5C6\uC73C\uBA74 50\uCF54\uC778 \uACB0\uC81C\uAC00 \ud544\uc694\ud569\uB2C8\uB2E4.");
+        throw new Error("프로필 카드 추가는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.");
       }
       throw new Error(payload?.message || "\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00 \uC2E4\uD328.");
     }
@@ -1084,13 +1139,18 @@ export default function MePage() {
     setCreateDraft(buildCreateDraft());
   }, [apiBase, applyProfilePayload, refreshProfileActionBalance]);
 
-  const runProfileActionFlow = useCallback(async (action: "delete", profile: DestinyProfile, paymentMethod?: ProfileActionPaymentMethod) => {
+  const runProfileActionFlow = useCallback(async (
+    action: "update" | "delete",
+    profile: DestinyProfile,
+    paymentMethod?: ProfileActionPaymentMethod,
+    draft?: ProfileCreateDraft,
+  ) => {
     if (busyAction) return;
     const requestId = buildProfileActionRequestId(action, profile.id);
-    const requiresPayment = deleteRequiresProfileActionPayment;
+    const requiresPayment = action === "update" ? updateRequiresProfileActionPayment : deleteRequiresProfileActionPayment;
     const selectedPaymentMethod = paymentMethod || (requiresPayment ? "card" : undefined);
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice(`월정석이 부족합니다. 프로필 카드 삭제에는 월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 월정석을 확보한 뒤 다시 시도해주세요.`);
+      setAuthNotice(`월정석이 부족합니다. 프로필 ${action === "update" ? "수정" : "삭제"}에는 월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 월정석을 확보한 뒤 다시 시도해 주세요.`);
       return;
     }
     setBusyAction(`${action}:${profile.id}`);
@@ -1117,23 +1177,46 @@ export default function MePage() {
         };
       }
       setProfileActionStage(action === "delete" ? "deleting" : "saving");
-      await executeProfileAction(action, profile, requestId, paymentContext);
+      await executeProfileAction(action, profile, requestId, paymentContext, draft);
       setAuthNotice(action === "delete" ? "프로필 카드가 삭제되었습니다." : `${profileActionProductName(action)}이 완료되었습니다.`);
       if (action === "delete") setDeleteTarget(null);
+      if (action === "update") {
+        setIsCreateProfileOpen(false);
+        setEditingProfile(null);
+      }
     } catch (error) {
       setAuthNotice(error instanceof Error ? error.message : `${profileActionProductName(action)} \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.`);
     } finally {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, deleteRequiresProfileActionPayment, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment]);
+  }, [busyAction, deleteRequiresProfileActionPayment, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment, updateRequiresProfileActionPayment]);
 
   const openCreateProfile = () => {
     setActiveProfileMenuId("");
+    setEditingProfile(null);
     setCreateDraft(buildCreateDraft());
     setIsCreateProfileOpen(true);
     setAuthNotice("");
   };
+
+  const openEditProfile = (profile: DestinyProfile) => {
+    setActiveProfileMenuId("");
+    setEditingProfile(profile);
+    setCreateDraft(buildProfileEditDraft(profile));
+    setIsCreateProfileOpen(true);
+    setAuthNotice("");
+  };
+
+  const updateProfile = useCallback(async (paymentMethod?: ProfileActionPaymentMethod) => {
+    if (!editingProfile || busyAction) return;
+    const draft = { ...createDraft, name: createDraft.name.trim() };
+    if (!draft.name || !draft.birthDate || !draft.birthTime || !draft.locationLabel.trim()) {
+      setAuthNotice("이름, 생년월일, 출생시간, 출생지를 입력해 주세요.");
+      return;
+    }
+    await runProfileActionFlow("update", editingProfile, paymentMethod, draft);
+  }, [busyAction, createDraft, editingProfile, runProfileActionFlow]);
 
   const createProfile = useCallback(async (paymentMethod?: ProfileActionPaymentMethod) => {
     if (busyAction) return;
@@ -1474,6 +1557,19 @@ export default function MePage() {
                                 <span>{mePageText("mePage.005")}</span>
                                 <span className="text-xs text-slate-400">{viewing ? "..." : ""}</span>
                               </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openEditProfile(profile);
+                                }}
+                                disabled={viewing || activating || deleting || (!!busyAction && !activating)}
+                                className="flex min-h-[44px] w-full touch-manipulation items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold text-sky-100 hover:bg-sky-300/10 disabled:opacity-40"
+                              >
+                                <span>프로필 수정</span>
+                                <span className="text-xs text-slate-400">{isFamilyProfilePlan ? "무료" : "5,000원"}</span>
+                              </button>
                               {!active ? (
                                 <button
                                   type="button"
@@ -1568,9 +1664,13 @@ export default function MePage() {
       {isCreateProfileOpen ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-amber-100">새 프로필 추가</h3>
+            <h3 className="text-lg font-bold text-amber-100">{editingProfile ? "프로필 수정" : "새 프로필 추가"}</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-              {isFamilyProfilePlan
+              {editingProfile
+                ? isFamilyProfilePlan
+                  ? "Code Destiny Family 이용권으로 프로필 정보를 결제 없이 수정할 수 있습니다."
+                  : "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다."
+                : isFamilyProfilePlan
                 ? "Code Destiny Family 이용권으로 새 프로필 카드를 제한 없이 추가할 수 있습니다."
                 : canCreateInitialProfileForFree
                 ? "첫 프로필 카드는 이용권 없이 결제 없이 만들 수 있습니다."
@@ -1688,13 +1788,41 @@ export default function MePage() {
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setIsCreateProfileOpen(false)}
+                onClick={() => { setIsCreateProfileOpen(false); setEditingProfile(null); }}
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
               >
                 취소
               </button>
-              {createRequiresProfileActionPayment ? (
+              {editingProfile ? updateRequiresProfileActionPayment ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void updateProfile("monthly_stones")}
+                    disabled={!createDraft.name.trim() || !createDraft.birthDate || !createDraft.birthTime || !createDraft.locationLabel.trim() || !!busyAction}
+                    className="min-h-[44px] rounded-md border border-sky-300/45 px-3 py-2 text-sm font-bold text-sky-100 disabled:opacity-45"
+                  >
+                    {busyAction === `update:${editingProfile.id}` && profileActionStage === "coin" ? profileActionProgressLabel("update", profileActionStage) : profileActionPrimaryLabel("update", "monthly_stones")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void updateProfile("card")}
+                    disabled={!createDraft.name.trim() || !createDraft.birthDate || !createDraft.birthTime || !createDraft.locationLabel.trim() || !!busyAction}
+                    className="min-h-[44px] rounded-md bg-sky-200 px-3 py-2 text-sm font-bold text-slate-950 disabled:opacity-45"
+                  >
+                    {busyAction === `update:${editingProfile.id}` && profileActionStage === "payment" ? profileActionProgressLabel("update", profileActionStage) : profileActionPrimaryLabel("update", "card")}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void updateProfile()}
+                  disabled={!createDraft.name.trim() || !createDraft.birthDate || !createDraft.birthTime || !createDraft.locationLabel.trim() || !!busyAction}
+                  className="min-h-[44px] rounded-md bg-sky-200 px-3 py-2 text-sm font-bold text-slate-950 disabled:opacity-45"
+                >
+                  {busyAction === `update:${editingProfile.id}` ? "수정 중" : "프로필 수정"}
+                </button>
+              ) : createRequiresProfileActionPayment ? (
                 <>
                   <button
                     type="button"
@@ -1735,7 +1863,7 @@ export default function MePage() {
             <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
               {isFamilyProfilePlan
                 ? "Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다."
-                : "프로필 카드 삭제는 5,000원 기준 결제로 진행됩니다."}
+                : "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다."}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               프로필 카드를 삭제할까요?

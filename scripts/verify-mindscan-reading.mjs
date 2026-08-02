@@ -146,14 +146,7 @@ async function runMockSuite() {
   check("llmFailReason 기록", errorReading?.validation?.llmFailReason === "gemini_http_500", `reason=${errorReading?.validation?.llmFailReason}`);
   check("최대 2회 재시도 수행(총 3회 호출)", errorFetch.calls.length === 3, `calls=${errorFetch.calls.length}`);
   check("폴백 섹션 7개", Array.isArray(errorReading?.sections) && errorReading.sections.length === 7);
-  const fallbackText = (errorReading?.sections || []).map((section) => [
-    section.cardMeaning,
-    section.positionMeaning,
-    section.emotionalReading,
-    section.hiddenMessage,
-    section.caution,
-    section.advice,
-  ].join(" ")).join(" ");
+  const fallbackText = (errorReading?.sections || []).map((section) => [section.cardMeaning, section.positionMeaning, section.emotionalReading, section.hiddenMessage, section.caution, section.advice].join(" ")).join(" ");
   check("폴백이 보조 카드 조합을 반영", fallbackText.includes("보조 카드"));
   check("폴백 포지션별 조언이 구분됨", new Set((errorReading?.sections || []).map((section) => section.advice)).size > 1);
   check("폴백 결정론 표현 완화", !/(100\s*%|무조건|반드시|운명이다)/.test(fallbackText));

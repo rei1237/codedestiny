@@ -350,6 +350,41 @@ export function resolveProfileLimitForClient(subscription, options = {}) {
   return 1;
 }
 
+export const PROFILE_POLICY_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
+
+export function buildProfilePolicySnapshot(userOrSubscription = {}, options = {}) {
+  const fetchedAt = Number.isFinite(Number(options.fetchedAt))
+    ? Math.floor(Number(options.fetchedAt))
+    : Date.now();
+  const ttlMs = Number.isFinite(Number(options.ttlMs)) && Number(options.ttlMs) > 0
+    ? Math.floor(Number(options.ttlMs))
+    : PROFILE_POLICY_SNAPSHOT_TTL_MS;
+  const entitlement = normalizeHoneyPassEntitlement(userOrSubscription || {});
+  const tier = entitlement?.isActive && entitlement?.tier && entitlement.tier !== "none"
+    ? String(entitlement.tier || "free").toLowerCase()
+    : "free";
+  const isActive = tier !== "free";
+  const maxProfileCount = isActive
+    ? resolveProfileLimitForClient({
+      tier,
+      isActive: true,
+      profileLimit: entitlement.maxProfiles,
+    }, { allowZeroLimit: true })
+    : 1;
+
+  return {
+    tier,
+    isActive,
+    profileLimit: maxProfileCount,
+    maxProfileCount,
+    unlimited: maxProfileCount === 0,
+    expiresAt: isActive ? (entitlement.expiresAt || null) : null,
+    fetchedAt,
+    ttlMs,
+    source: String(options.source || entitlement?.source || "server"),
+  };
+}
+
 function sanitizeProfileId(value, maxLen = 80) {
   return String(value || "").trim().slice(0, maxLen).replace(/\s+/g, "_");
 }

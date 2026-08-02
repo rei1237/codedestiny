@@ -1064,6 +1064,7 @@ function buildPassStatusTemporarilyUnavailableFailure(pricing, options = {}) {
 
 function resolveProfileCardActionType(value) {
   const text = String(value || "").trim().toLowerCase();
+  if (text.includes("update") || text.includes("edit") || text.includes("modify")) return PROFILE_CARD_MUTATION_ACTIONS.UPDATE;
   if (text.includes("delete") || text.includes("remove")) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
   if (
     text === PROFILE_CARD_MUTATION_ACTIONS.CREATE
@@ -1084,6 +1085,13 @@ function buildProfileCardMutationMetadata(body = {}) {
       action: PROFILE_CARD_MUTATION_ACTIONS.CREATE,
     };
   }
+  if (actionType === PROFILE_CARD_MUTATION_ACTIONS.UPDATE) {
+    return {
+      actionType: "profile_card_update",
+      profileAction: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+      action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    };
+  }
   if (actionType !== PROFILE_CARD_MUTATION_ACTIONS.DELETE) return {};
   return {
     actionType: "profile_card_delete",
@@ -1096,7 +1104,14 @@ function resolveMonthlyCreditCostForBilling(pricing, body = {}) {
   const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
-  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && actionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
+  if (
+    featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY
+    && (
+      actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE
+      || actionType === PROFILE_CARD_MUTATION_ACTIONS.UPDATE
+      || actionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE
+    )
+  ) {
     return Math.max(0, Math.floor(Number(PROFILE_CARD_DELETE_COST_MONTHLY_STONES || 0)));
   }
   return calculateMembershipCreditCost(coinPrice);
@@ -6609,11 +6624,14 @@ export async function handleBillingRoutes(request, env) {
     route: "billing",
     requestPath: new URL(request.url).pathname,
     method,
+    stage: "security",
   };
 
   try {
     const security = await enforceBillingRouteSecurity(request, env, path, method);
     if (!security.ok) return security.response;
+
+    trace.stage = "dispatch";
 
     if (method === "GET" && path === "/features") return await handleFeatures(request);
     if (method === "GET" && path === "/balance") return await handleBillingSnapshotBalance(request, env);
@@ -6623,7 +6641,10 @@ export async function handleBillingRoutes(request, env) {
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
     if (method === "POST" && path === "/funnel-event") return await handleCheckoutFunnelEvent(request, env);
 
-    if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
+    if (method === "POST" && path === "/coin-gate") {
+      trace.stage = "coin_gate";
+      return await handleCoinGate(request, env);
+    }
     if (method === "POST" && path === "/coin-gate/deferred/register") return await handleDeferredUsageRegister(request, env);
     if (method === "POST" && path === "/coin-gate/deferred/apply") return await handleDeferredUsageApply(request, env);
     if (method === "POST" && path === "/coin-gate/deferred/cancel") return await handleDeferredUsageCancel(request, env);

@@ -5,6 +5,7 @@ import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthl
 import { applyGrantLot, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
 import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
+  buildProfilePolicySnapshot,
   normalizeHoneyPassEntitlement,
   resolveCurrentProfileId as resolveCurrentId,
   resolveProfileLimitForClient,
@@ -17,7 +18,6 @@ import {
   PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
   getProfileCardMutationPolicy,
-  resolveProfileCardActionAccess,
 } from "../lib/profile-card-mutation-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
@@ -280,6 +280,35 @@ function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
   return count < limit;
 }
 
+function hasProfileMutationPaymentContext(body = {}) {
+  const source = body && typeof body === "object" ? body : {};
+  const payment = source.payment && typeof source.payment === "object" ? source.payment : null;
+  const consume = source.consume && typeof source.consume === "object" ? source.consume : null;
+  const accessGrant = source.accessGrant && typeof source.accessGrant === "object" ? source.accessGrant : null;
+  const values = [
+    source.paymentMode,
+    source.paymentMethod,
+    source.accessMethod,
+    source.accessType,
+    source.transactionId,
+    source.paymentId,
+    source.impUid,
+    source.merchantUid,
+    payment?.paymentMode,
+    payment?.paymentMethod,
+    payment?.paymentId,
+    payment?.impUid,
+    payment?.merchantUid,
+    consume?.paymentMode,
+    consume?.paymentMethod,
+    consume?.transactionId,
+    accessGrant?.paymentMode,
+    accessGrant?.paymentMethod,
+    accessGrant?.transactionId,
+  ];
+  return values.some((value) => String(value || "").trim());
+}
+
 function getRemainingProfileActionCoins(user) {
   const creditBalance = Number(user?.profileSubscription?.membershipCreditBalance);
   if (Number.isFinite(creditBalance) && creditBalance > 0) return Math.max(0, Math.floor(creditBalance / 10));
@@ -412,11 +441,13 @@ function profilePaymentRequiredResponse(action, requestId) {
 }
 
 function resolveProfileMutationActionType(action) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.UPDATE) return "profile_card_update";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "profile_card_delete";
   return "profile_card_add_extra";
 }
 
 function resolveProfileMutationReason(action) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.UPDATE) return "프로필 카드 수정";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "프로필 카드 삭제";
   return "프로필 카드 추가";
 }
@@ -721,6 +752,24 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
   return { ok: true, evidence };
 }
 
+async function findCompletedProfileMutationReplay(auth, { action, profileId, requestId, body }) {
+  if (!requestId) return null;
+  const clauses = buildProfileMutationEvidenceClauses({ requestId, body, profileId });
+  const evidence = await PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    $and: [
+      { $or: clauses },
+      { "metadata.profileMutationCompleted": true },
+    ],
+  }).sort({ createdAt: -1 }).lean();
+  if (!evidence) return null;
+  if (!evidenceProfileMatches(evidence, profileId)) return null;
+  if (!evidenceActionMatches(evidence, action)) return null;
+  return evidence;
+}
+
 function policyFailureStatus(reason) {
   if (reason === "AUTH_REQUIRED") return 401;
   if (reason === "INVALID_ACTION_TYPE" || reason === "PROFILE_CARD_ID_REQUIRED") return 400;
@@ -728,7 +777,7 @@ function policyFailureStatus(reason) {
   return 403;
 }
 
-async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) {
+async function ensureProfileMutationAuthorized(auth, { action, profileId, body }) {
   const requestId = readProfileMutationRequestId(body, action, profileId);
   const paymentMethod = resolveProfileMutationPaymentMethod(body);
   const policy = await getProfileCardMutationPolicy(auth.userId, profileId, action);
@@ -798,6 +847,9 @@ async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) 
   return { ok: true, requestId, policy: paidPolicy, evidence };
 }
 
+// 하위 검증 스크립트와 레거시 호출 흔적의 의미를 유지하되, 실제 정책은 모든 변경 작업이 공유한다.
+const ensureProfileDeleteAuthorized = ensureProfileMutationAuthorized;
+
 async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
   const action = "create";
   const requestId = readProfileMutationRequestId(body, action, profileId);
@@ -835,6 +887,27 @@ async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
 
   const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
   if (!claim.ok) return claim;
+
+  const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
+  if (!paidPolicy.allowed) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action,
+      profileId,
+      requestId,
+      evidence,
+      reason: "프로필 카드 생성 한도 초과 환불",
+    });
+    return {
+      ok: false,
+      response: json({
+        ok: false,
+        success: false,
+        code: paidPolicy.reason,
+        message: paidPolicy.reason,
+        policy: paidPolicy,
+      }, { status: policyFailureStatus(paidPolicy.reason) }),
+    };
+  }
   return { ok: true, requestId, evidence };
 }
 
@@ -1129,6 +1202,8 @@ async function handleGetProfiles(auth, env) {
     profiles: markCurrentProfile(access.profiles, currentId),
     currentId,
     subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "profile_get" }),
+    serverSyncedAt: new Date().toISOString(),
     profileAccess: access.profileAccess,
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
@@ -1181,6 +1256,8 @@ async function handleGetCurrentProfile(auth, env) {
     profiles: markedProfiles,
     currentId,
     subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "profile_current" }),
+    serverSyncedAt: new Date().toISOString(),
     profileAccess: access.profileAccess,
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
@@ -1219,26 +1296,27 @@ async function handleCreateProfile(request, auth) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
 
-    const createPolicy = await resolveProfileCardActionAccess({
-      userId: auth.userId,
-      action: PROFILE_CARD_MUTATION_ACTIONS.CREATE,
-      currentProfileCount: count,
-    });
+    const profilePolicySnapshot = buildProfilePolicySnapshot(user, { source: "profile_create" });
+    const createFitsLocalPolicy = canCreateProfileWithinSubscriptionLimit(subscription, count);
     let createPayment = null;
-    if (createPolicy.requiresPayment) {
+    if (!createFitsLocalPolicy && !hasProfileMutationPaymentContext(body)) {
+      return json({
+        ok: false,
+        success: false,
+        code: "PROFILE_LIMIT_RECONCILE_REQUIRED",
+        message: "현재 이용권의 기본 프로필 카드 저장 개수를 초과했습니다. 기존 카드를 정리하거나 이용권을 확인해 주세요.",
+        subscription,
+        profilePolicySnapshot,
+        serverSyncedAt: new Date().toISOString(),
+      }, { status: 409 });
+    }
+
+    if (!createFitsLocalPolicy) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
       });
       if (!createPayment.ok) return createPayment.response;
-    } else if (!createPolicy.allowed) {
-      return json({
-        ok: false,
-        success: false,
-        code: createPolicy.reason || "PROFILE_CREATE_NOT_ALLOWED",
-        message: "프로필 카드를 추가할 수 없습니다.",
-        policy: createPolicy,
-      }, { status: 403 });
     }
 
     let created;
@@ -1292,6 +1370,8 @@ async function handleCreateProfile(request, auth) {
       profiles: markCurrentProfile(profiles, nextCurrentId),
       currentId: nextCurrentId,
       subscription,
+      profilePolicySnapshot,
+      serverSyncedAt: new Date().toISOString(),
       canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
     }, { status: 201 });
   } catch (error) {
@@ -1438,20 +1518,64 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
   normalized.profileId = profileId;
   normalized.birth = birthValidation.birth;
 
-  const updated = await ProfileCard.findOneAndUpdate(
-    { userId: auth.userId, profileId },
-    {
-      $set: {
-        name: normalized.name,
-        gender: normalized.gender,
-        birth: normalized.birth,
-        location: normalized.location,
-      },
-    },
-    { returnDocument: "after" },
-  ).lean();
+  const authorization = await ensureProfileMutationAuthorized(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    profileId,
+    body,
+  });
+  if (!authorization.ok) return authorization.response;
 
-  if (!updated) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  const claim = await claimProfileMutationEvidence(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    profileId,
+    requestId: authorization.requestId,
+    evidence: authorization.evidence,
+  });
+  if (!claim.ok) return claim.response;
+
+  let updated;
+  try {
+    updated = await ProfileCard.findOneAndUpdate(
+      { userId: auth.userId, profileId },
+      {
+        $set: {
+          name: normalized.name,
+          gender: normalized.gender,
+          birth: normalized.birth,
+          location: normalized.location,
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+  } catch (error) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+      profileId,
+      requestId: authorization.requestId,
+      evidence: authorization.evidence,
+      reason: "프로필 카드 수정 실패 환불",
+    });
+    throw error;
+  }
+
+  if (!updated) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+      profileId,
+      requestId: authorization.requestId,
+      evidence: authorization.evidence,
+      reason: "프로필 카드 수정 실패 환불",
+    });
+    return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  await recordProfileMutationCompleted(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    profileId,
+    requestId: authorization.requestId,
+    policy: authorization.policy,
+    evidence: authorization.evidence,
+  });
 
   const user = await User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
@@ -1474,20 +1598,76 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
     profiles: markCurrentProfile(profiles, nextCurrentId),
     currentId: nextCurrentId,
     subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_update" }),
+    serverSyncedAt: new Date().toISOString(),
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    chargedCoins: Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0))),
+    freeByMembership: Number(authorization.policy?.costCoins || 0) === 0,
+    actionType: "profile_card_update",
+    policy: authorization.policy,
   });
 }
 
-async function handleDeleteProfile(request, auth, profileIdRaw) {
+async function buildProfileDeleteResponse(auth, profileId, { policy = null, evidence = null, replayed = false } = {}) {
+  const profiles = await listUserProfiles(auth.userId);
+  const user = await User.findById(auth.userId)
+    .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
+  const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+  const subscription = resolveSubscriptionPolicy(user || {});
+  if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {
+    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+  }
+  const metadata = evidence?.metadata || {};
+  const chargedCoins = Math.max(0, Math.floor(Number(
+    policy
+      ? (policy.costCoins || 0)
+      : (metadata.coinPrice || Math.abs(Number(evidence?.delta || 0)) || 0),
+  )));
+  const freeByMembership = chargedCoins === 0;
+  return json({
+    ok: true,
+    success: true,
+    deletedId: profileId,
+    deletedProfileId: profileId,
+    chargedCoins,
+    freeByMembership,
+    remainingCoins: getRemainingProfileActionCoins(user),
+    profiles: markCurrentProfile(profiles, nextCurrentId),
+    currentId: nextCurrentId,
+    currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
+    subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_delete" }),
+    serverSyncedAt: new Date().toISOString(),
+    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    actionType: "profile_card_delete",
+    policy: policy || { allowed: true, reason: "IDEMPOTENT_REPLAY" },
+    replayed,
+  });
+}
+
+async function handleDeleteProfile(request, auth, profileIdRaw, trace) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
 
-  const [existingProfile, body] = await Promise.all([
-    ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
-    readJson(request).catch(() => ({})),
-  ]);
+  const body = await readJson(request).catch(() => ({}));
+  const requestId = readProfileMutationRequestId(body, PROFILE_CARD_MUTATION_ACTIONS.DELETE, profileId);
+  const replay = await findCompletedProfileMutationReplay(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+    profileId,
+    requestId,
+    body,
+  });
+  if (replay) {
+    if (trace) trace.stage = "delete_replay";
+    return buildProfileDeleteResponse(auth, profileId, { evidence: replay, replayed: true });
+  }
+
+  if (trace) trace.stage = "delete_read";
+  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
   if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
+  if (trace) trace.stage = "delete_policy";
   const authorization = await ensureProfileDeleteAuthorized(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
@@ -1495,6 +1675,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   });
   if (!authorization.ok) return authorization.response;
 
+  if (trace) trace.stage = "delete_claim";
   const claim = await claimProfileMutationEvidence(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
@@ -1503,6 +1684,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   });
   if (!claim.ok) return claim.response;
 
+  if (trace) trace.stage = "delete_mutation";
   const deleted = await ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean();
   if (!deleted) {
     await refundProfileMutationCreditIfNeeded(auth, {
@@ -1523,38 +1705,14 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
     evidence: authorization.evidence,
   });
 
-  const profiles = await listUserProfiles(auth.userId);
-  const user = await User.findById(auth.userId)
-    .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
-  const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
-  const subscription = resolveSubscriptionPolicy(user || {});
-
-  await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
-  const chargedCoins = Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0)));
-  const freeByMembership = chargedCoins === 0;
-
-  return json({
-    ok: true,
-    success: true,
-    deletedId: profileId,
-    deletedProfileId: profileId,
-    chargedCoins,
-    freeByMembership,
-    remainingCoins: getRemainingProfileActionCoins(user),
-    profiles: markCurrentProfile(profiles, nextCurrentId),
-    currentId: nextCurrentId,
-    currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
-    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
-    actionType: "profile_card_delete",
-    policy: authorization.policy,
-  });
+  if (trace) trace.stage = "delete_finalize";
+  return buildProfileDeleteResponse(auth, profileId, { policy: authorization.policy });
 }
 
 export async function handleProfileRoutes(request, env) {
   // 503 진단용: 실패가 인증 왕복(auth)인지, DB 연결(connect)인지, 핸들러 READ인지
   // 구분하려고 단계마다 플래그를 갱신한다(handleRouteError가 이 필드를 로그에 남김).
-  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false, userId: "" };
+  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false, stage: "auth", userId: "" };
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/profile");
@@ -1564,11 +1722,14 @@ export async function handleProfileRoutes(request, env) {
     trace.userId = String(auth?.userId || "");
     trace.authPresent = true;
     trace.authVerified = true;
+    trace.stage = "security";
     const security = await enforceProfileRouteSecurity(request, env, auth, method, path);
     if (!security.ok) return security.response;
 
+    trace.stage = "connect";
     await connectDb(env);
     trace.dbConnected = true;
+    trace.stage = "dispatch";
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
@@ -1583,7 +1744,7 @@ export async function handleProfileRoutes(request, env) {
       return await handleUpdateProfile(request, auth, profileMatch[1]);
     }
     if (profileMatch && method === "DELETE") {
-      return await handleDeleteProfile(request, auth, profileMatch[1]);
+      return await handleDeleteProfile(request, auth, profileMatch[1], trace);
     }
 
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
