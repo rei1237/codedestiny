@@ -27,7 +27,7 @@ import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, MonthlyCreditLedger, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -738,8 +738,7 @@ async function handleEnsureAccess(request, env) {
   if (clean(user?.role).toLowerCase() === "admin") return grant("admin");
 
   // 이용권 선검사 — 커버되면 결제창 없이 무료 통과한다.
-  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-  if (featureAccess.allowed) return grant(featureAccess.accessType || "pass");
+  if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), pricing.coinPrice)) return grant("pass");
 
   return paymentRequired(pricing, idempotencyKey);
 }
@@ -778,10 +777,8 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (clean(user?.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", billingRequestId: idempotencyKey };
-  const pricing = getPricing(normalized.mode);
-  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
-  if (featureAccess.allowed) {
-    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "", billingRequestId: idempotencyKey };
+  if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), getPricing(normalized.mode).coinPrice)) {
+    return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
   }
   return { ok: false };
 }
