@@ -229,15 +229,17 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **파일 검색·스캔**(Glob, Grep, 코드베이스 탐색): `claude-haiku-4-5-20251001` 고정 — 검색은 정확도·속도 충분, 사용자 요청 여부 무관 반드시 Haiku 사용 및 안내 필수
   - **커밋 메시지·코드 리뷰·일상 대화**: `claude-haiku-4-5-20251001` 고정 — 토큰 효율성과 빠른 응답 속도 우선
 
-## Codex Override: PR-First Deployment
+## Codex Override: Worktree-Only PR-First Delivery
 
-- This section overrides any older Worker auto-deploy rule in this file.
+- This section is authoritative for Codex and supersedes any older Worker auto-deploy, current-worktree branch, or direct-deploy wording in this file.
+- Never edit, commit, push, or deploy from the primary repository worktree, `main`, `master`, or detached HEAD. Create a secondary worktree from the latest `origin/main` with `scripts/create-safe-worktree.ps1`.
+- Run `npm run verify:worktree-policy -- --mode=edit` before editing and `npm run verify:worktree-policy -- --mode=pr` before PR creation. PreToolUse hooks enforce the edit rule where supported.
 - Do not deploy directly to production during normal coding work.
-- Put deployable changes into a PR first.
+- Push only a feature branch and create or update a PR targeting `main` before any merge or production deployment.
 - The PR must record validation commands, mock/sandbox validation results, regression risks, confirmed no-regression scope, and rollback method.
 - Do not run real LLM API calls, real payments, production DB writes, production Pages/Worker deploys, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
 - Use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.
-- Deploy only after PR review, regression validation, and explicit user approval for production deployment.
+- Merge only after required CI checks and review approvals pass, no blocking review or conflict remains, the final diff matches the approved scope, and the user explicitly approves the merge for the current task. Production deployment remains a separate explicit approval and is CI-only from `main`.
 
 ## Doc Precedence
 

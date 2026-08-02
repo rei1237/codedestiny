@@ -42,6 +42,12 @@ Last curated: `2026-08-02`
 - Source files: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`
 - Why it matters now: the root shell is still the live home source of truth, and mirror sync remains a recurring regression risk.
 
+### 5. Worktree and PR delivery safety
+
+- Source files: `AGENTS.md`, `scripts/verify-worktree-policy.mjs`, `.github/workflows/worktree-pr-policy.yml`, `.codex/PR_WORKFLOW.md`
+- The primary worktree and protected branches are read-only for normal development. Changes begin in a secondary worktree based on the latest `origin/main`, then move through a PR before merge or production deployment.
+- Run `npm run verify:worktree-policy -- --mode=edit` before editing and `npm run verify:worktree-policy -- --mode=pr` before opening a PR. Production deploy scripts require the CI `main` context.
+
 ## Working Rules For Current Tasks
 
 1. Start with this file only for what is current right now. If it drifts, update it instead of adding another summary document.
