@@ -71,6 +71,33 @@ function applyEngineQuality(spreadType, reading, cardReadings) {
   }
 }
 
+async function buildServerYearPremiumReading(reading, year) {
+  const { buildPremiumYearReading } = await import("../../lib/tarot/tarot-year-premium.mjs");
+  const monthlyReadings = (Array.isArray(reading?.monthlyReadings) ? reading.monthlyReadings : []).map((month, index) => ({
+    ...month,
+    month: month.month || index + 1,
+    monthLabel: month.monthLabel || `${month.month || index + 1}월`,
+    zodiacAnimal: month.zodiacAnimal || month.zodiac?.name || "",
+    zodiacSymbol: month.zodiacSymbol || month.zodiac?.emoji || "",
+    zodiacTheme: month.zodiacTheme || month.zodiac?.traits || "",
+    mainCard: month.mainCard || {
+      cardId: month.cardId,
+      nameKo: month.nameKr,
+      orientation: month.orientation,
+      suit: "major",
+      keywords: month.keywords,
+    },
+    moneyWork: month.moneyWork || month.money,
+    healthMind: month.healthMind || month.exam,
+    advice: month.advice || month.flow,
+    caution: month.caution || "조건과 속도를 한 번 더 확인하세요.",
+  }));
+  return buildPremiumYearReading({
+    year: year || new Date().getFullYear(),
+    reading: { ...reading, monthlyReadings },
+  });
+}
+
 function buildJobChangeGeminiPrompt({ cards, baseReading }) {
   const cardLines = (Array.isArray(cards) ? cards : []).map((card, idx) => {
     const name = card?.nameKr || card?.name || `카드 ${idx + 1}`;
@@ -380,6 +407,7 @@ router.post("/reading", async (req, res, next) => {
 
     if (spreadType === "yearly_twelve_card" && drawnCards.length === 12) {
       const reading = createYearlyTwelveCardReading({ drawnCards });
+      const premiumReading = await buildServerYearPremiumReading(reading.reading, req.body?.year);
 
       const cardsForUi = reading.cardReadings.map((item) => ({
         cardId: item.cardId,
@@ -400,7 +428,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: applyEngineQuality(reading.spreadType, reading.reading, reading.cardReadings),
+        reading: applyEngineQuality(reading.spreadType, premiumReading, reading.cardReadings),
         isYearlyTwelveCardReading: true,
       });
     }

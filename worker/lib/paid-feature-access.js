@@ -2,10 +2,8 @@ import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { Payment, User } from "./models.js";
-import {
-  canUseByPass,
-  normalizeHoneyPassEntitlement,
-} from "./profile-limits.js";
+import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
+import { resolveFeatureAccessPolicy } from "./entitlement-policy.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_EXCLUDED_FEATURE_KEYS = new Set([
@@ -251,17 +249,23 @@ function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
     });
   }
 
-  if (!passExcluded && canUseByPass(pass, coinCost)) {
+  const featureAccess = resolveFeatureAccessPolicy({
+    user: user || {},
+    pricing: pricing || {},
+    coinCost,
+    passExcluded,
+  });
+  if (featureAccess.allowed) {
     return buildDecision({
       allowed: true,
-      reason: resolveLicenseReason(pass.passTier || pass.tier),
+      reason: resolveLicenseReason(featureAccess.tier || pass.passTier || pass.tier),
       userId,
       featureKey: effectiveFeatureKey,
-      licenseType: "license_pass",
-      licenseTier: pass.passTier || pass.tier || "",
-      accessSource: "license_pass",
+      licenseType: featureAccess.accessType || "license_pass",
+      licenseTier: featureAccess.tier || pass.passTier || pass.tier || "",
+      accessSource: featureAccess.accessMethod === "FAMILY" ? "family_access" : "license_pass",
       pricing,
-      pass,
+      pass: featureAccess.entitlement || pass,
     });
   }
 

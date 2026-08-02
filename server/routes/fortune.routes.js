@@ -30,7 +30,7 @@ const FEATURE_KEY_REASON_COSTS = Object.freeze({
 });
 
 const FEATURE_KEY_PRICE_TABLE = Object.freeze({
-  "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
+  "tarot-year-fortune": { cost: 100, amountKRW: 10000, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
   "tarot-mindscan": { cost: 50, reason: "마인드 스캔 타로 리딩" },
@@ -440,6 +440,9 @@ function resolveEffectiveActiveTier(user) {
 }
 
 async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
+  // Legacy coin-based subscription renewal is permanently disabled. Expired
+  // subscriptions must be renewed through the server-owned PG/monthly policy.
+  return { user, effectiveTier: resolveEffectiveActiveTier(user), autoRenewed: false };
   const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
   const source = String(user?.profileSubscription?.source || "coin").toLowerCase();
   if (!tier) {
@@ -1393,6 +1396,10 @@ router.post("/pig-coin/share-reward", async (req, res, next) => {
 */
 router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) => {
   try {
+    return res.status(410).json({
+      message: "이용권/월정석 구매는 PG 결제 또는 허용된 월정석 정책으로만 진행할 수 있습니다.",
+      code: "LEGACY_COIN_SUBSCRIPTION_DISABLED",
+    });
     const reqTier = String(req.body?.tier || "").trim();
     const plan = PROFILE_SUB_PLANS[reqTier];
     if (!plan) {

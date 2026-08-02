@@ -27,7 +27,7 @@ const tarotLoveSource = source("js/tarot-love-experience.js");
 const tarotReunionSource = source("js/tarot-reunion-experience.js");
 
 const expectedCosts = {
-  "tarot-year-fortune": 30,
+  "tarot-year-fortune": 100,
   "tarot-love-relationship": 50,
   "tarot-reunion-reading": 50,
   openJuyukModal: 30,
@@ -55,6 +55,8 @@ const expectedCosts = {
 for (const [featureKey, cost] of Object.entries(expectedCosts)) {
   assert.equal(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost, cost, `${featureKey} must be priced by server registry`);
 }
+
+assert.equal(FEATURE_KEY_PRICE_TABLE["tarot-year-fortune"]?.amountKRW, 10000, "tarot-year-fortune must use KRW 10,000 for new purchases");
 
 for (const featureKey of [
   "tarot-year-fortune",
