@@ -81,6 +81,44 @@ export default function MindScanTarotPage() {
           ))}
         </div>
 
+        <section className="mt-8 space-y-4" aria-label="마인드 스캔 리딩 안내">
+          <article>
+            <h3 className="text-lg font-semibold">겉으로 드러난 말과 실제 감정</h3>
+            <p className="mt-2 leading-8 text-slate-300">
+              이 리딩은 상대의 말을 곧바로 진심이나 거짓으로 판정하지 않습니다. 겉으로 건넨 표현과 그 뒤에서 조절되고 있는 감정의 온도를 나누어 살피며, 다정함·무심함·머뭇거림이 관계 안에서 어떤 역할을 하는지 읽습니다.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-lg font-semibold">행동이 말보다 늦어지는 이유</h3>
+            <p className="mt-2 leading-8 text-slate-300">
+              연락이 늦거나 행동이 어긋나는 흐름은 마음의 크기 하나로 설명되지 않을 수 있습니다. 상처를 다시 겪을까 하는 경계, 책임에 대한 부담, 현실적인 거리와 타이밍을 함께 놓고 카드 조합의 긴장을 해석합니다.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-lg font-semibold">침묵과 관계의 간격</h3>
+            <p className="mt-2 leading-8 text-slate-300">
+              침묵은 거절일 수도 있고 감정을 정리하는 시간이 필요하다는 신호일 수도 있습니다. 어느 한쪽으로 단정하기보다 반응의 빈도, 대화의 질감, 다시 안전해질 수 있는 조건을 확인할 수 있도록 안내합니다.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-lg font-semibold">지금 다가갈 수 있는 속도</h3>
+            <p className="mt-2 leading-8 text-slate-300">
+              결과는 특정 날짜나 재회를 보장하는 예언이 아닙니다. 지금 건넬 수 있는 말의 길이와 부담의 정도, 기다림과 확인 사이에서 사용자가 선택할 수 있는 현실적인 대화 속도를 제안합니다.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-lg font-semibold">카드 결과를 현실에 적용하는 기준</h3>
+            <p className="mt-2 leading-8 text-slate-300">
+              카드의 상징은 상대의 마음을 대신 확정하는 판결문이 아니라 관계를 바라보는 질문입니다. 호감의 흔적을 약속으로 확대하지 않고, 한 번의 연락을 전체 흐름으로 오해하지 않도록 행동으로 확인할 기준과 나의 경계를 함께 살핍니다.
+            </p>
+          </article>
+          <article>
+            <h3 className="text-lg font-semibold">차분한 상담을 위한 안내</h3>
+            <p className="mt-2 leading-8 text-slate-300">
+              불안이 큰 순간일수록 결과를 반복해서 확인하기보다 한 번의 리딩에서 핵심 질문과 실행 가능한 한 가지를 골라보세요. 관계의 방향은 카드만으로 결정되지 않으며, 서로의 선택과 실제 대화가 흐름을 바꿀 수 있습니다.
+            </p>
+          </article>
+        </section>
         <nav className="mt-7 flex flex-wrap gap-3" aria-label="관련 타로 서비스">
           {relatedLinks.map((link) => (
             <Link key={link.path} href={link.path} className="rounded-md border border-violet-300/30 px-3 py-2 text-sm text-violet-100">
