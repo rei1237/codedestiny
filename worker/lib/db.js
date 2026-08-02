@@ -14,6 +14,10 @@ let lastPoolResetAt = 0;
 let inFlightOps = 0;
 // 동시 요청 때문에 미뤄 둔 전역 disconnect가 있는지. 마지막 작업이 빠져나갈 때 한 번만 처리한다.
 let pendingPoolReset = false;
+// A topology failure can be observed by several requests at once. Keep the
+// disconnect/reset operation single-flight so one request cannot close a pool
+// that another request has just started reconnecting to.
+let poolResetPromise = null;
 // 이 연결 위에서 성공한 작업 없이 연속으로 실패한 연결-레벨 오류 수(성공하면 0으로 돌아간다).
 // 미뤄 둔 리셋이 영영 실행되지 않는 데드락을 깨는 유일한 신호다 — 아래 withMongoRetry 주석 참고.
 let consecutiveConnectionFailures = 0;
@@ -207,18 +211,26 @@ export function resolveMongoDbName(env = {}) {
 }
 
 export async function resetMongooseConnection() {
+  if (poolResetPromise) return poolResetPromise;
   const disconnectTimeoutMs = 1500;
-  try {
-    if (mongoose.connection.readyState !== 0) {
-      await Promise.race([
-        mongoose.disconnect(),
-        new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("mongoose_disconnect_timeout")), disconnectTimeoutMs);
-        }),
-      ]);
+  poolResetPromise = (async () => {
+    try {
+      if (mongoose.connection.readyState !== 0) {
+        await Promise.race([
+          mongoose.disconnect(),
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("mongoose_disconnect_timeout")), disconnectTimeoutMs);
+          }),
+        ]);
+      }
+    } catch (e) {
+      // Ignore disconnect failures; next connect attempt will retry.
     }
-  } catch (e) {
-    // Ignore disconnect failures; next connect attempt will retry.
+  })();
+  try {
+    await poolResetPromise;
+  } finally {
+    poolResetPromise = null;
   }
 }
 
@@ -655,7 +667,10 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
             // connectDb의 ping 실패 경로가 readyState===1이면 disconnect를 거부하는 것과 같은 이유다 —
             // 두 경로의 정책을 일치시킨다. 여기서는 예약만 하고, 마지막 작업이 빠져나갈 때 처리한다.
             // 위의 lastHealthyAt/connectPromise 무효화는 그대로라 다음 요청은 어차피 재검증한다.
-            if (inFlightOps > 1 && !forceReset) {
+            // Even the forced-reset threshold must not disconnect a pool while
+            // a timed-out attempt is still in flight. finalizeOperation drains
+            // the deferred reset after every pending attempt settles.
+            if (inFlightOps > 0) {
               pendingPoolReset = true;
             } else {
               // 나 혼자거나(끊어도 아무도 안 다침) 연속 실패로 강행 판정 = 지금 끊는다.

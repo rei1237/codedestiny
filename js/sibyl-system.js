@@ -3612,17 +3612,36 @@ function _sibylText(key) {
     return promise;
   }
 
-  async function _resolveSibylBalance() {
-    var balanceRes = await _fetchApiJson('/api/billing/balance');
-    if (!balanceRes.ok) {
-      throw _toApiError(balanceRes, '결제 권한을 확인하지 못했습니다.');
-    }
-    var balanceData = _extractApiData(balanceRes.payload);
-    var balance = Number(balanceData && balanceData.balance || 0);
-    return Number.isFinite(balance) ? balance : 0;
-  }
-
   async function _fetchSibylUnlockStatus() {
+    var accessStore = window.CodeDestinyAccessStore;
+    if (accessStore && typeof accessStore.getAccessDecision === 'function') {
+      var storeResult = await accessStore.getAccessDecision({
+        featureKey: SIBYL_FEATURE_KEY,
+        reason: 'sibyl-access',
+        authenticated: true,
+      });
+      var payload = storeResult && storeResult.payload && typeof storeResult.payload === 'object' ? storeResult.payload : {};
+      var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+      var decision = data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
+      var unlocked = Boolean(
+        data.unlocked === true
+        || data.alreadyUnlocked === true
+        || data.canAccess === true
+        || decision.accessGranted === true
+        || typeof accessStore.isUnlocked === 'function' && accessStore.isUnlocked(SIBYL_FEATURE_KEY),
+      );
+      if (storeResult && storeResult.ok === false && !unlocked) {
+        return { ok: false, status: storeResult.status || 0, error: { code: 'ACCESS_STORE_DEGRADED' } };
+      }
+      return {
+        ok: true,
+        unlocked: unlocked,
+        pricing: data.pricing || null,
+        currentBalance: Number(data.currentBalance || data.monthlyBalance || 0),
+      };
+    }
+    return { ok: false, status: 0, error: { code: 'ACCESS_STORE_UNAVAILABLE' } };
+    /*
     var statusRes = await _fetchApiJson('/api/billing/unlock-status?featureKey=' + encodeURIComponent(SIBYL_FEATURE_KEY));
     if (!statusRes.ok) {
       return {
@@ -3639,6 +3658,7 @@ function _sibylText(key) {
       pricing: statusData && statusData.pricing ? statusData.pricing : null,
       currentBalance: Number(statusData && statusData.currentBalance || 0)
     };
+    */
   }
 
   // unlock-status는 계정 단위라 짧은 TTL 캐시로 재사용한다.
