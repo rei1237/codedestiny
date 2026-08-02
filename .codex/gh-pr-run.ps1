@@ -42,7 +42,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 if (-not $SkipPush) {
-  git push -u origin $Head
+  # Use the GitHub CLI credential helper for this push so stale Git Credential
+  # Manager entries cannot override the current GH_TOKEN authentication.
+  $gitCredentialHelper = 'credential.helper=!gh auth git-credential'
+  git -c $gitCredentialHelper push -u origin $Head
   if ($LASTEXITCODE -ne 0) { throw "Failed to push feature branch: $Head" }
 }
 
