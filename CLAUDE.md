@@ -33,6 +33,11 @@ npm run deploy:cf:opennext # OpenNext 경유 배포
    - **확인 방법**: 이름 grep만으로 판단하지 말 것 — 함수 본문을 **중괄호 균형으로 잘라 내부를 실제로 열어본다**. 이번 감사에서 이름 기반 스캔이 9곳을 오탐했다. 검사 도구: `npm run verify:no-nested-retry`
    - **실제 사고 사례**: 재시도 중첩 → 시도·재연결 배수 증가(`auth.js`가 이미 재시도 중인데 상위에서 또 감쌈) / 지연 장치 중첩 → 요청이 영영 안 나감(IO 하이드레이션 + `loading="lazy"`) / 모달 중첩 → 스크롤락·포커스 상실
 7. **회귀 위험 상시 점검 및 안내**: 기존 동작이 있는 코드를 수정할 때는 항상 "이 변경이 다른 기능/경로/케이스를 깨뜨릴 수 있는가"를 점검한다. 공유 모듈·공통 훅·여러 라우트가 참조하는 함수 수정, 조건 분기 변경, 기본값/우선순위 변경 등 회귀 가능성이 있는 지점을 발견하면 작업을 끝낸 뒤 결과만 보고하지 말고, 어떤 회귀 위험이 있는지·어떤 시나리오에서 발생할 수 있는지·확인이 필요한지 여부를 사용자에게 먼저 안내한다. 위험이 낮아 보여도 판단이 애매하면 안내를 생략하지 않는다.
+8. 🔴🔴 **LLM 검증은 mock 이 기본 — 실제 모델 호출은 사용자 허락 없이 절대 금지 (예외 없음)**: Gemini(`GEMINIF_API_KEY`)·Workers AI(`env.AI.run`)처럼 **과금·쿼터가 걸린 모델을 실제로 때리는 검증은 어떤 이유로도 임의 실행하지 않는다.** 프롬프트 수정, 분량 조정, 파서·폴백·타임아웃 변경, "품질이 궁금해서", "한 번만 확인" 전부 해당한다. 기본은 **응답을 mock 해서** 로직만 검증한다.
+   - **mock 정본 패턴(둘 중 하나를 따를 것, 새 방식 발명 금지)**: `scripts/verify-mindscan-reading.mjs` — `mockFetch` + `fetchImpl` 주입으로 가짜 응답 주입, 실호출은 `--live` 플래그 뒤로 격리 / `scripts/verify-workers-ai-fallback.mjs` — `delete process.env.GEMINIF_API_KEY` 로 폴백 경로 강제. 신규 검증 스크립트도 **기본 실행은 mock, 실호출은 반드시 명시 플래그 뒤**에 둔다.
+   - **실호출이 정말 필요하면 실행 전에 멈추고 묻는다**: ①mock 으로는 왜 확인이 안 되는지 ②몇 회 호출하는지 ③어떤 키·모델·라우트를 쓰는지를 한국어로 안내하고 **사용자의 명시적 허락을 받은 뒤에만** 실행한다. 허락은 **그 1회 한정**이며 다음 호출·다음 세션으로 자동 연장되지 않는다. 애매하면 실행하지 말고 묻는다.
+   - **금지 행위 예시**: `--live` 플래그 임의 사용 / 실제 프롬프트를 돌려 "실측 분량·품질"을 눈으로 확인 / `curl`·`wrangler dev`·배포된 워커 유료 라우트로 모델 호출 / 테스트용 계정·키로 유료 AI 기능 실행. 문서에 남은 "실측" 수치(예: 폴백 60~77%)는 **이미 측정된 값을 인용하라는 뜻**이지 다시 재보라는 뜻이 아니다.
+   - **왜**: 실호출은 (1) 사용자 돈·쿼터를 말없이 태우고 (2) 유료 라우트를 건드리면 결제/차감 부작용까지 남기며 (3) 어차피 1회 샘플이라 로직 검증 근거로도 약하다.
 
 ## Folder Structure
 
@@ -74,6 +79,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 ## AI & API
 
+- 🔴🔴 **검증은 mock 기본, 실호출은 사전 허락 필수** — 코딩 원칙 8번(최우선)이 이 섹션 전체에 적용된다. 프롬프트·분량·폴백을 고쳤다고 실제 Gemini/Workers AI 를 부르지 말 것. mock 정본은 `scripts/verify-mindscan-reading.mjs`(`fetchImpl` 주입)·`scripts/verify-workers-ai-fallback.mjs`(키 제거), 실호출은 `--live` + **사용자 허락 1회 한정**.
 - **Gemini 호출**: `lib/llm-client.ts` (실제 구현체, `worker/lib/gemini.js`·`gemini-client.js`는 얇은 래퍼). 모델 `gemini-2.5-flash`, REST `generateContent` 엔드포인트 직접 호출(SDK 미사용). API 키는 `GEMINIF_API_KEY` 단일 키만 사용(다른 키 이름 참조는 제거됨).
 - **Workers AI 폴백**: Gemini 실패/타임아웃 시 자동으로 `env.AI.run()` 호출. 기본값은 단일 모델이 아니라 **체인**이다(`lib/llm-client.ts`의 `DEFAULT_WORKERS_AI_MODELS`) — 1차 `@cf/zai-org/glm-4.7-flash`(컨텍스트 131k, `response_format` 지원, 출력 $0.40/M), 2차 `@cf/meta/llama-3.3-70b-instruct-fp8-fast`(컨텍스트 24k, 출력 $2.25/M). 앞에서부터 시도해 첫 성공을 쓰고, 폐기·스키마 거부·빈 응답이면 다음으로 넘어간다. PDF/비PDF는 모델이 아니라 **env 오버라이드 키만** 다르다 — PDF는 `WORKERS_AI_PDF_MODEL`, 그 외는 `WORKERS_AI_MODEL`(둘 다 없으면 `WORKERS_AI_MODEL` → 기본 체인). 오버라이드는 **쉼표 구분 목록**도 받으며 그 순서가 체인이 된다.
 - 🔴 **모델 폐기는 예고 없이 온다** — `@cf/meta/llama-3.1-8b-instruct` 와 `@cf/moonshotai/kimi-k2.5` 는 **같은 날(2026-05-30) 폐기**됐다(`5028: This model was deprecated`). 둘 다 새로 쓰지 말 것. Gemini 가 살아 있는 동안은 폴백이 안 쓰여 폐기를 아무도 모르다가 장애 순간에 안전망이 없는 게 드러나므로, **단일 모델로 되돌리지 말 것**(체인이 그 대비다). 유료 전용(Workers Free plan 미지원) 상위 모델로 올리려면 `@cf/zai-org/glm-5.2`(출력 $4.40/M)·`@cf/moonshotai/kimi-k2.6`($4.00/M)를 env 오버라이드로 넣는다.

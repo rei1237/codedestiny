@@ -1,9 +1,14 @@
+import TodayClient from "./TodayClient";
 import SeoLandingTemplate from "../components/SeoLandingTemplate";
-import TodayHubClient from "./TodayHubClient";
 import { buildSeoMetadata } from "../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 
-const page = SEO_LANDING_PAGES.today;
+const page = SEO_LANDING_PAGES.today || {
+  path: "/today",
+  title: "오늘의 운세 | 코드 데스티니 (Code: Destiny)",
+  description: "오늘 당신의 재물운, 연애운, 직장운, 건강운 파동과 럭키 아이템을 정밀하게 확인해 보세요.",
+  keywords: ["오늘의운세", "일일운세", "재물운", "연애운", "코드데스티니"],
+};
 
 export const metadata = buildSeoMetadata({
   path: page.path,
@@ -12,13 +17,10 @@ export const metadata = buildSeoMetadata({
   keywords: page.keywords,
 });
 
-// 허브가 위, 기존 랜딩 본문이 아래. 랜딩 본문을 걷어내면 안 된다 —
-// 허브는 클라이언트에서 마운트 후 계산하므로 서버 렌더 텍스트에 잡히지 않고,
-// /today 는 광고 불가·색인 가능 라우트라 verify-adsense-readiness 가 최소 분량을 요구한다.
 export default function TodayLandingPage() {
   return (
     <>
-      <TodayHubClient />
+      <TodayClient />
       <SeoLandingTemplate page={page} />
     </>
   );
