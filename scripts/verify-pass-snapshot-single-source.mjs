@@ -121,12 +121,16 @@ assertNotContains(
 const billingClientSource = read("app/_lib/billing-client.ts");
 assertContains(billingClientSource, 'from "@/js/core/pass-verdict.js"', "React 런타임이 정본 모듈을 import 해야 한다");
 assertContains(billingClientSource, "passVerdict.readSnapshot(", "React 런타임이 정본 리더를 써야 한다");
+assertContains(billingClientSource, "isAuthUserCacheVerified(authUser)", "React는 최근 검증된 인증 캐시만 스냅샷으로 승격해야 한다");
+assertContains(billingClientSource, '"verified-auth-cache"', "React가 검증된 인증 캐시를 공통 스냅샷에 저장해야 한다");
 for (const marker of DUPLICATE_MARKERS) {
   assertNotContains(billingClientSource, marker, "React 런타임에 스냅샷 로직 사본이 되살아났다");
 }
 
 const destinyProfileSource = read("js/destiny-profile.js");
 assertContains(destinyProfileSource, "window.__cdPassVerdict", "독립 정적 런타임이 정본 모듈을 소비해야 한다");
+assertContains(destinyProfileSource, "_dpHasVerifiedAuthCacheForUser(user)", "독립 정적 런타임은 검증된 인증 캐시만 사용해야 한다");
+assertContains(destinyProfileSource, "api.storeStatus(_dpResolveIdScope(user), sub, 'verified-auth-cache')", "독립 정적 런타임이 모든 등급을 공통 스냅샷 판정기로 보내야 한다");
 for (const marker of DUPLICATE_MARKERS) {
   assertNotContains(destinyProfileSource, marker, "독립 정적 런타임에 스냅샷 로직 사본이 되살아났다");
 }
@@ -204,6 +208,20 @@ assertContains(
   "스냅샷 갱신 in-flight 플래그를 동기로 선점해야 한다(stale 상태에서 무한 재귀 방지)",
 );
 assertContains(billingClientSource, "warmCached.stale !== true", "React 워밍이 stale 스냅샷에서 조기 반환하면 갱신이 영영 안 돈다");
+assertContains(shellSource, "window.__cdHasVerifiedAuthCache = __cdHasVerifiedAuthCache", "정적 셸이 검증된 인증 캐시 판정을 독립 런타임과 공유해야 한다");
+assertContains(shellSource, "verdictApi.storeStatus(userId, sub, 'verified-auth-cache')", "정적 셸이 family 포함 모든 등급을 공통 스냅샷 판정기로 보내야 한다");
+assertContains(shellSource, "tier !== 'vvip' && tier !== 'family'", "정적 셸 이용권 표시에서 family 등급을 누락하면 안 된다");
+
+const refreshStart = shellSource.indexOf("async function _cdRefreshSubscriptionSnapshotFromServer(");
+const refreshEnd = shellSource.indexOf("function _cdScheduleSubscriptionSnapshotRefresh(", refreshStart);
+const refreshSource = shellSource.slice(refreshStart, refreshEnd);
+assertNotContains(refreshSource, "if (opts.force) _cdClearSubscriptionSnapshotForCurrentUser();", "강제 재검증도 성공 전 마지막 정상 이용권 스냅샷을 지우면 안 된다");
+
+const accessStoreSource = read("js/core/access-store.js");
+assertContains(accessStoreSource, "var RETRY_DELAYS = [];", "AccessStore 503은 자동 재시도하지 않아야 한다");
+const applyPaymentStart = accessStoreSource.indexOf("function applyPaymentPayload(");
+const applyPaymentEnd = accessStoreSource.indexOf("function ensureLoaded(", applyPaymentStart);
+assertNotContains(accessStoreSource.slice(applyPaymentStart, applyPaymentEnd), "startFetch(", "검증된 결제 응답 직후 unlock을 다시 조회하면 안 된다");
 
 if (failures.length) {
   console.error("pass snapshot single-source checks FAILED:");

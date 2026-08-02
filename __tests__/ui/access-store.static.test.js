@@ -98,7 +98,7 @@ test("AccessStore keeps cached unlocks when revalidation returns 503 and applies
   assert.equal(store.getSnapshot().status, "degraded");
 });
 
-test("AccessStore requests a read-only unlock snapshot with one bounded retry policy", async () => {
+test("AccessStore requests one read-only unlock snapshot without an automatic 503 retry", async () => {
   const requests = [];
   const timers = [];
   const store = loadStore(async (url) => {
@@ -112,14 +112,11 @@ test("AccessStore requests a read-only unlock snapshot with one bounded retry po
   });
 
   await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
-  timers.shift()();
-  await new Promise((resolve) => setImmediate(resolve));
-  await new Promise((resolve) => setImmediate(resolve));
 
-  assert.equal(requests.length, 2);
+  assert.equal(requests.length, 1);
   assert.equal(timers.length, 0);
   assert.doesNotMatch(requests[0], /includeBackfill|backfill/);
-  assert.match(storeSource, /var RETRY_DELAYS = \[1000\];/);
+  assert.match(storeSource, /var RETRY_DELAYS = \[\];/);
 });
 
 test("AccessStore deduplicates payment access decisions separately from persistent unlock loads", async () => {
