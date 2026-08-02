@@ -91,6 +91,7 @@ type BillingResult<T> = {
   message: string;
   error: BillingError | null;
   raw: Record<string, unknown>;
+  retryAfterMs?: number;
 };
 
 type LicenseTier = "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
@@ -2255,6 +2256,15 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   };
 }
 
+function parseRetryAfterMs(response: Response) {
+  const value = String(response.headers.get("Retry-After") || "").trim();
+  if (!value) return 0;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, Math.ceil(seconds * 1000));
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? Math.max(0, timestamp - Date.now()) : 0;
+}
+
 async function parseBillingResponse<T>(response: Response): Promise<BillingResult<T>> {
   let payload: Record<string, unknown> = {};
   try {
@@ -2284,6 +2294,7 @@ async function parseBillingResponse<T>(response: Response): Promise<BillingResul
     message,
     error,
     raw: payload,
+    retryAfterMs: parseRetryAfterMs(response),
   };
 }
 
@@ -3318,18 +3329,37 @@ async function fetchPaymentEligibilityUncached(input: {
 // 진입 시 구독 스냅샷을 미리 워밍한다(멤버십 상태 프로브 1회 → saveSubscriptionSnapshotForUser 경유 저장).
 // 이미 신선한 스냅샷이 있으면 재요청하지 않는다. index.html의 app-entry 워밍(_cdRefreshSubscriptionSnapshotFromServer)의
 // React 대응물 — 유료 화면 진입 시 호출하면 첫 유료 액션이 낙관적 즉시 허용(snapshotPassServerCheckFirst) 경로로 들어간다.
+const SUBSCRIPTION_WARM_FAILURE_COOLDOWN_MS = 60_000;
 let subscriptionWarmInFlight = false;
+let subscriptionWarmBlockedUntil = 0;
+let subscriptionWarmBlockedUserKey = "";
 export async function warmSubscriptionSnapshotOnEntry(): Promise<void> {
   if (typeof window === "undefined" || subscriptionWarmInFlight) return;
+  const warmUserKey = resolveAuthScopeFromUser(readSanitizedAuthUser()) || "guest";
+  if (subscriptionWarmBlockedUserKey === warmUserKey && Date.now() < subscriptionWarmBlockedUntil) return;
   // 🔴 stale 스냅샷은 "있음"이 아니라 "갱신 대상"이다. 여기서 조기 반환하면 SWR 로 살려 둔 스냅샷이
   // 영영 갱신되지 않고 상한(none 24시간 / active 이용권 만료일)까지 굳는다.
   const warmCached = readSubscriptionSnapshotForUser();
   if (warmCached && warmCached.stale !== true) return; // 이미 신선한 스냅샷 보유 → 재요청 불필요.
   subscriptionWarmInFlight = true;
   try {
-    await fetchPaymentEligibility({ featureKey: "membership-status-refresh", reason: "app-entry" }, { phase: "full" });
+    const result = await fetchPaymentEligibility(
+      { featureKey: "membership-status-refresh", reason: "app-entry" },
+      { phase: "full" },
+    );
+    if (result.ok) {
+      subscriptionWarmBlockedUntil = 0;
+      subscriptionWarmBlockedUserKey = "";
+    } else if (result.status === 503 || result.status === 504) {
+      subscriptionWarmBlockedUserKey = warmUserKey;
+      subscriptionWarmBlockedUntil = Date.now() + Math.max(
+        SUBSCRIPTION_WARM_FAILURE_COOLDOWN_MS,
+        Number(result.retryAfterMs) || 0,
+      );
+    }
   } catch {
-    // 워밍 실패는 무시 — 첫 유료 액션이 서버 판정으로 폴백한다.
+    subscriptionWarmBlockedUserKey = warmUserKey;
+    subscriptionWarmBlockedUntil = Date.now() + SUBSCRIPTION_WARM_FAILURE_COOLDOWN_MS;
   } finally {
     subscriptionWarmInFlight = false;
   }
