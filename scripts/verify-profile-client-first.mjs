@@ -62,6 +62,10 @@ expect("client", "maxTransientRetries: 2", "client caps transient retries at two
 expect("client", "retryTransient: true", "profile mutations opt into transient retry");
 expect("client", "PROFILE_MUTATION_TRANSIENT_UNAVAILABLE", "client shows a degraded mutation fallback");
 expect("client", "status === 503 || status === 504", "client retries only server transient statuses");
+expect("client", "dp-delete-gate__warning", "delete gate explains irreversible deletion");
+expect("client", "프로필 카드 \"' + String((profile && profile.name)", "delete success names the removed profile");
+expectAbsent("client", "DP_PROFILE_DELETE_GATE_SPRITE_URL", "delete gate does not depend on sprite animation");
+expectAbsent("client", "setInterval(applyFrame, 140)", "delete gate has no animated frame loop");
 expect("packageJson", "verify:profile-client-first", "package exposes client-first verifier");
 expect("profileRoute", "trace.stage", "profile 503 logs include mutation stage");
 expect("authRoute", "profilePolicySnapshot", "auth response carries profile policy");
