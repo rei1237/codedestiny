@@ -5,6 +5,7 @@ import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthl
 import { applyGrantLot, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
 import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
+  buildProfilePolicySnapshot,
   normalizeHoneyPassEntitlement,
   resolveCurrentProfileId as resolveCurrentId,
   resolveProfileLimitForClient,
@@ -17,7 +18,6 @@ import {
   PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
   getProfileCardMutationPolicy,
-  resolveProfileCardActionAccess,
 } from "../lib/profile-card-mutation-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 
@@ -277,6 +277,35 @@ function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
   if (limit <= 0) return true;
   const count = Math.max(0, Math.floor(Number(currentCount || 0)));
   return count < limit;
+}
+
+function hasProfileMutationPaymentContext(body = {}) {
+  const source = body && typeof body === "object" ? body : {};
+  const payment = source.payment && typeof source.payment === "object" ? source.payment : null;
+  const consume = source.consume && typeof source.consume === "object" ? source.consume : null;
+  const accessGrant = source.accessGrant && typeof source.accessGrant === "object" ? source.accessGrant : null;
+  const values = [
+    source.paymentMode,
+    source.paymentMethod,
+    source.accessMethod,
+    source.accessType,
+    source.transactionId,
+    source.paymentId,
+    source.impUid,
+    source.merchantUid,
+    payment?.paymentMode,
+    payment?.paymentMethod,
+    payment?.paymentId,
+    payment?.impUid,
+    payment?.merchantUid,
+    consume?.paymentMode,
+    consume?.paymentMethod,
+    consume?.transactionId,
+    accessGrant?.paymentMode,
+    accessGrant?.paymentMethod,
+    accessGrant?.transactionId,
+  ];
+  return values.some((value) => String(value || "").trim());
 }
 
 function getRemainingProfileActionCoins(user) {
@@ -1128,6 +1157,8 @@ async function handleGetProfiles(auth, env) {
     profiles: markCurrentProfile(access.profiles, currentId),
     currentId,
     subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "profile_get" }),
+    serverSyncedAt: new Date().toISOString(),
     profileAccess: access.profileAccess,
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
@@ -1180,6 +1211,8 @@ async function handleGetCurrentProfile(auth, env) {
     profiles: markedProfiles,
     currentId,
     subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "profile_current" }),
+    serverSyncedAt: new Date().toISOString(),
     profileAccess: access.profileAccess,
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
@@ -1218,26 +1251,27 @@ async function handleCreateProfile(request, auth) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
 
-    const createPolicy = await resolveProfileCardActionAccess({
-      userId: auth.userId,
-      action: PROFILE_CARD_MUTATION_ACTIONS.CREATE,
-      currentProfileCount: count,
-    });
+    const profilePolicySnapshot = buildProfilePolicySnapshot(user, { source: "profile_create" });
+    const createFitsLocalPolicy = canCreateProfileWithinSubscriptionLimit(subscription, count);
     let createPayment = null;
-    if (createPolicy.requiresPayment) {
+    if (!createFitsLocalPolicy && !hasProfileMutationPaymentContext(body)) {
+      return json({
+        ok: false,
+        success: false,
+        code: "PROFILE_LIMIT_RECONCILE_REQUIRED",
+        message: "현재 이용권의 기본 프로필 카드 저장 개수를 초과했습니다. 기존 카드를 정리하거나 이용권을 확인해 주세요.",
+        subscription,
+        profilePolicySnapshot,
+        serverSyncedAt: new Date().toISOString(),
+      }, { status: 409 });
+    }
+
+    if (!createFitsLocalPolicy) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
       });
       if (!createPayment.ok) return createPayment.response;
-    } else if (!createPolicy.allowed) {
-      return json({
-        ok: false,
-        success: false,
-        code: createPolicy.reason || "PROFILE_CREATE_NOT_ALLOWED",
-        message: "프로필 카드를 추가할 수 없습니다.",
-        policy: createPolicy,
-      }, { status: 403 });
     }
 
     let created;
@@ -1291,6 +1325,8 @@ async function handleCreateProfile(request, auth) {
       profiles: markCurrentProfile(profiles, nextCurrentId),
       currentId: nextCurrentId,
       subscription,
+      profilePolicySnapshot,
+      serverSyncedAt: new Date().toISOString(),
       canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
     }, { status: 201 });
   } catch (error) {
@@ -1473,6 +1509,8 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
     profiles: markCurrentProfile(profiles, nextCurrentId),
     currentId: nextCurrentId,
     subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_update" }),
+    serverSyncedAt: new Date().toISOString(),
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
 }
@@ -1544,6 +1582,9 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
     profiles: markCurrentProfile(profiles, nextCurrentId),
     currentId: nextCurrentId,
     currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
+    subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_delete" }),
+    serverSyncedAt: new Date().toISOString(),
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
     actionType: "profile_card_delete",
     policy: authorization.policy,
