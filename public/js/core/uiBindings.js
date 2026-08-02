@@ -60,40 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-<<<<<<< HEAD
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-81191eb31c23'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-81191eb31c23'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-81191eb31c23'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-3f0ecc4e333c'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-3f0ecc4e333c'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-3f0ecc4e333c'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-81191eb31c23')
-=======
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-81191eb31c23'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-81191eb31c23'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-81191eb31c23'),
-  openAnimalTotemModal: () =>
-    __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-81191eb31c23')
->>>>>>> origin/main
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-3f0ecc4e333c')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-<<<<<<< HEAD
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-81191eb31c23'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-81191eb31c23'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-3f0ecc4e333c'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-3f0ecc4e333c'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-81191eb31c23'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-81191eb31c23'),
-=======
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-81191eb31c23'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-81191eb31c23'),
-  openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-81191eb31c23'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-81191eb31c23'),
->>>>>>> origin/main
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-3f0ecc4e333c'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-3f0ecc4e333c'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -123,22 +105,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-<<<<<<< HEAD
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-81191eb31c23').then(() => {
-=======
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-81191eb31c23').then(() => {
->>>>>>> origin/main
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-3f0ecc4e333c').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-<<<<<<< HEAD
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-81191eb31c23')
-=======
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-81191eb31c23')
->>>>>>> origin/main
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-3f0ecc4e333c')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
