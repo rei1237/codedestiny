@@ -822,6 +822,9 @@ async function loadMeFromServer() {
   }
 
   applyResolvedUser(user);
+  if (payload?.degraded !== true && patchSubSource !== "token") {
+    markAuthUserCacheVerified(user);
+  }
   return user;
 }
 

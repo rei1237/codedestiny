@@ -1,7 +1,7 @@
 import { authFetch } from "@/app/_lib/auth-client";
 import { lockBodyScroll, unlockBodyScroll } from "@/app/_lib/body-scroll-lock";
 import { normalizeBaseUrl } from "@/app/_lib/api-config";
-import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
+import { isAuthUserCacheVerified, readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { assignMonthlyStoneBalance, resolveMonthlyStoneBalance } from "@/app/_lib/monthly-stone";
 import { recordUnlocksFromPaymentPayload } from "@/app/_lib/optimistic-unlock-ledger";
 import {
@@ -239,6 +239,7 @@ type RuntimeApiWindow = Window & {
   // (미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건 확정→PG창).
   __cdPaymentWaitUiBlocked?: (mode?: string) => boolean;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
+  _cdRunDirectKrwCheckout?: PaidServiceRuntimeGate;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
   __cdSuppressPaymentFetchOverlayCount?: number;
   __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
@@ -651,7 +652,19 @@ export function readSubscriptionSnapshotForUser(
 ): SubscriptionSnapshot | null {
   const resolvedUserId = resolveSubscriptionSnapshotUserId(userId);
   if (typeof window === "undefined" || !resolvedUserId) return null;
-  return passVerdict.readSnapshot(resolvedUserId, options) as SubscriptionSnapshot | null;
+  const stored = passVerdict.readSnapshot(resolvedUserId, options) as SubscriptionSnapshot | null;
+  if (stored) return stored;
+
+  // /api/auth/me 또는 로그인 성공으로 최근 검증된 캐시만 이용권 스냅샷으로 승격한다.
+  // 등급 판정은 pass-verdict 한 곳에서 수행해 standard/premium/vvip/family가 같은 규칙을 쓴다.
+  const authUser = readSanitizedAuthUser();
+  if (!authUser || !isAuthUserCacheVerified(authUser)) return null;
+  if (resolveAuthScopeFromUser(authUser) !== resolvedUserId || !authUser.profileSubscription) return null;
+  return passVerdict.storeStatus(
+    resolvedUserId,
+    authUser.profileSubscription,
+    "verified-auth-cache",
+  ) as SubscriptionSnapshot | null;
 }
 
 export function saveSubscriptionSnapshotForUser(userId: string | undefined, value: unknown, source = "client"): SubscriptionSnapshot | null {
@@ -2091,9 +2104,14 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   if (input.forceDeduct === false) return null;
 
   const requestedMode = normalizePaymentMode(input.paymentMode);
-  if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW") return null;
+  if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE") return null;
 
-  const runtimeGate = context.runtimeGate || await loadPaidServiceRuntimeGate();
+  const runtimeWindow = window as RuntimeApiWindow;
+  const loadedRuntimeGate = context.runtimeGate || await loadPaidServiceRuntimeGate();
+  const explicitDirectGate = requestedMode === "DIRECT_KRW" && typeof runtimeWindow._cdRunDirectKrwCheckout === "function"
+    ? runtimeWindow._cdRunDirectKrwCheckout
+    : null;
+  const runtimeGate = explicitDirectGate || loadedRuntimeGate;
   if (!runtimeGate) return null;
 
   const cost = resolveKnownCoinCost(input, context.eligibility);
@@ -2176,6 +2194,9 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       disablePassChoice: input.disablePassChoice === true,
       skipPassProbe: input.skipPassProbe === true,
       internalMainGate: true,
+      paymentMode: requestedMode || undefined,
+      forceDirectPayment: requestedMode === "DIRECT_KRW",
+      __cdDirectPaymentChoiceConfirmed: requestedMode === "DIRECT_KRW",
     });
   } catch (error) {
     return {
@@ -3703,7 +3724,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // 불가가 확실하면, 차단형 eligibility 서버 왕복을 건너뛰고 곧장 결제 런타임(모달)로 진입한다. 권위 검증은
     // 실제 결제(coin-gate forceDeduct) 시. 드문 stale-none 보유자는 결제창의 이용권 확인/상점 버튼으로 구제.
     const snapshotSaysNoPassFast = snapshotVerdict.cannotCover;
-    const loadRuntimeGateForPayment = () => (!explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
+    const loadRuntimeGateForPayment = () => ((!explicitPaymentMode || explicitDirectMode) && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : Promise.resolve(null));
     // 결제 런타임 스크립트 로드를 이용권 검사와 '동시에' 시작한다. 예전에는 사용 지점에서 await 해서
@@ -4051,7 +4072,18 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
     // 과금 없는 pass 확인은 재시도까지 합쳐 6초를 넘기지 않는다. 확인이 더 늦어지면 붙잡는 대신 결제창을 연다.
     const coinGatePassProbeDeadline = coinGateMayDeduct ? Number.POSITIVE_INFINITY : Date.now() + COIN_GATE_PASS_PROBE_BUDGET_MS;
-    let parsed = await runCoinGateRequest();
+    // DIRECT_KRW를 이미 고른 뒤에는 coin-gate 402를 한 번 더 받을 이유가 없다. 카드 주문 직전
+    // /api/billing/checkout가 이용권 커버를 서버에서 다시 확인하므로 곧바로 그 경로로 넘긴다.
+    let parsed: BillingResult<BillingCoinGateData> = explicitDirectMode
+      ? {
+          ok: false,
+          status: 402,
+          data: null,
+          message: "단건 결제를 진행합니다.",
+          error: { code: "PAYMENT_REQUIRED", message: "단건 결제를 진행합니다." },
+          raw: {},
+        }
+      : await runCoinGateRequest();
     for (let retryIndex = 1; retryIndex <= COIN_GATE_TRANSIENT_MAX_RETRIES; retryIndex += 1) {
       if (!isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)) break;
       const backoffMs = Math.round(COIN_GATE_TRANSIENT_BASE_DELAY_MS * Math.pow(1.8, retryIndex - 1));
@@ -4203,7 +4235,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         // 재조회가 실패했을 때 스냅샷이 영영 사라져 이후 모든 유료 클릭이 차단형 왕복이 된다(회귀 원인).
         void fetchPaymentEligibility(snapshotRefreshInput, { revalidate: true }).catch(() => null);
       }
-      if (!explicitPaymentMode && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
+      if ((!explicitPaymentMode || explicitDirectMode) && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
         markPaymentRequestedOnce();
         // 위와 같은 이유로 결제수단 모달 직전에는 게이트를 닫는다(패널이 모달·번호 입력창을 덮지 않게).
         emitPaidFeatureGate("close", {

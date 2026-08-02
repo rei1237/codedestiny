@@ -6,7 +6,9 @@
   var STORAGE_VERSION = 2;
   var STORAGE_PREFIX = 'cd_access_store_v2::';
   var LEGACY_LEDGER_KEY = 'cd_verified_unlock_grants_v1';
-  var RETRY_DELAYS = [1000, 3000, 10000];
+  // Access reads are display probes. A 503 keeps the last usable snapshot and waits
+  // for an explicit user/session action instead of adding another request to the burst.
+  var RETRY_DELAYS = [];
   var DEFAULT_SERVICE_KEYS = ['saju', 'ziwei', 'ad_free'];
   var CONTENT_KEY_TO_FEATURE_KEY = {
     'saju.daewunAnalysis': 'section_daewun',
@@ -542,7 +544,7 @@
     abortController = typeof global.AbortController === 'function' ? new global.AbortController() : null;
     var controller = abortController;
     var query = '/api/access/unlocks?profileId=' + encodeURIComponent(context.profileId) +
-      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(',')) + '&includeBackfill=1';
+      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(','));
     var epoch = bootEpoch;
     var request = global.fetch(query, {
       credentials: 'include',
@@ -583,7 +585,6 @@
       state.status = hasUsableCache() ? 'degraded' : 'error';
       state.error = { status: error && error.status || 0, code: 'UNLOCK_FETCH_FAILED' };
       notify();
-      scheduleRetry(context);
       debug('fetch failed', { cacheKey: context.key, status: error && error.status, attempt: attempt || 0 });
       return { ok: false, status: state.status, stale: hasUsableCache() };
     }).finally(function () {
@@ -664,12 +665,6 @@
     Object.keys(unlockMap).forEach(function (key) {
       markOptimisticallyUnlocked(key, profileId, { source: 'payment-payload' });
     });
-    if (Object.keys(unlockMap).length && state.profileId) {
-      var context = { key: contextKey, userId: state.userId, profileId: state.profileId, serviceKeys: state.serviceKeys.slice() };
-      global.setTimeout(function () {
-        if (context.key === contextKey) startFetch(context, 0);
-      }, 0);
-    }
     return Object.keys(unlockMap);
   }
 
@@ -751,6 +746,9 @@
       contextKey = '';
       return;
     }
+    var authEvent = String(detail.event || detail.type || '').toLowerCase();
+    var authSource = String(detail.source || '').toLowerCase();
+    if (authEvent === 'subscription' || authSource === 'membership-cache') return;
     revalidate({ userId: detail.userId, profileId: detail.profileId, authenticated: true });
   });
   global.addEventListener && global.addEventListener('cd:profile-changed', function (event) {

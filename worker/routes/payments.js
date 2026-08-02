@@ -6175,7 +6175,14 @@ export async function handlePaymentRoutes(request, env, ctx) {
     // 왕복 하나를 줄이는 것이 지연과 503을 동시에 줄인다. (/api/auth/me 에서 검증된 패턴)
     // access-token 경로에서만 authUserDoc가 붙고, refresh/admin 폴백 경로에서는 없으므로
     // 각 핸들러는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
-    const auth = await requireUserFromRequest(request, env, { userProjection: PAYMENT_ROUTE_USER_PROJECTION });
+    // /api/billing/checkout|confirm already authenticated the same original request.
+    // Reuse only that internal auth object so delegation does not issue a second User read.
+    const delegatedAuth = ctx && typeof ctx === "object" && ctx.preverifiedAuth && typeof ctx.preverifiedAuth === "object"
+      ? ctx.preverifiedAuth
+      : null;
+    const auth = delegatedAuth?.userId
+      ? delegatedAuth
+      : await requireUserFromRequest(request, env, { userProjection: PAYMENT_ROUTE_USER_PROJECTION });
     trace.authVerified = true;
 
     const security = await enforcePaymentRouteSecurity(request, env, auth, path);

@@ -1,6 +1,7 @@
 import { resolveMonthlyStoneBalance } from "./monthly-stone";
 
 const AUTH_CACHE_VERIFICATION_KEY = "fortune_auth_cache_verified_v1";
+const AUTH_CACHE_VERIFICATION_TTL_MS = 10 * 60 * 1000;
 
 export type ClientAuthUser = {
   id?: string;
@@ -154,7 +155,12 @@ export function isAuthUserCacheVerified(user: unknown): boolean {
     if (!scope) return false;
     const raw = localStorage.getItem(AUTH_CACHE_VERIFICATION_KEY);
     if (!raw) return false;
-    const parsed = JSON.parse(raw) as { scope?: unknown };
+    const parsed = JSON.parse(raw) as { scope?: unknown; verifiedAt?: unknown };
+    const verifiedAt = Number(parsed?.verifiedAt || 0);
+    if (!Number.isFinite(verifiedAt) || verifiedAt <= 0 || Date.now() - verifiedAt > AUTH_CACHE_VERIFICATION_TTL_MS) {
+      localStorage.removeItem(AUTH_CACHE_VERIFICATION_KEY);
+      return false;
+    }
     return String(parsed?.scope || "").trim().toLowerCase() === scope;
   } catch (e) {
     return false;

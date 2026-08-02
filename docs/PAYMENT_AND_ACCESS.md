@@ -149,6 +149,14 @@
 - The client unlock map and shop summary are display state only. Server-side content access checks, pass purchase policy, payment confirmation, and post-payment entitlement writes remain authoritative.
 - A DB lookup failure must be represented as lookup failure (`retryable`, request-scoped error code) and must not be converted to an empty unlock list, balance `0`, unlimited balance, or successful deduction.
 
+## Verified pass snapshot and checkout recovery
+
+- A recent successful `/api/auth/me` result may hydrate the shared pass snapshot for `standard`, `premium`, `vvip`, and `family`. Unverified or expired local auth data must not grant access.
+- A last-known-good pass or unlock snapshot survives transient 503 responses. AccessStore must not persist `unlocked: false`, automatically refetch after a verified payment payload, or retry a display probe without an explicit user or session action.
+- Snapshot coverage is an optimistic read path only. Family premium-quota decisions, monthly-credit deduction, PortOne order creation, payment confirmation, and entitlement writes remain server-authoritative.
+- An explicit `DIRECT_KRW` client choice may skip the redundant coin-gate probe, but `/api/billing/checkout` must still recheck pass coverage before creating a PortOne order.
+- Billing-to-payments delegation may reuse authentication verified from the same original request. Payment route security, minor restrictions, server pricing, provider verification, and idempotency checks must still run.
+
 ## Legacy COIN 차감 제거와 호환성 경계
 
 - 신규 콘텐츠 해금과 신규 결제에서는 `User.points`를 차감하지 않는다. 이용 가능한 결제 방식은 `이용권`, `월정석`, `단건 결제`다.

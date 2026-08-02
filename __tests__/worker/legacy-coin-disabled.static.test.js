@@ -13,6 +13,31 @@ function read(relativePath) {
 
 describe("legacy COIN removal regression guards", () => {
   test.each([
+    [undefined, false],
+    [null, false],
+    ["", false],
+    ["   ", false],
+    ["DIRECT_KRW", false],
+    ["MOONLIGHT_STONE", false],
+    ["MEMBERSHIP_PASS", false],
+    ["unknown", false],
+    ["COIN", true],
+    ["coins", true],
+    ["coin_credit", true],
+    ["coin_payment", true],
+    ["pig_coin", true],
+    ["pig-coin", true],
+  ])("classifies paymentMode %p as explicit legacy coin=%p", (paymentMode, expected) => {
+    const source = read("worker/routes/billing.js");
+    const modeSetStart = source.indexOf("const LEGACY_COIN_PAYMENT_MODES = new Set([");
+    const modeSetEnd = source.indexOf("]);", modeSetStart);
+    const modeSetSource = source.slice(modeSetStart, modeSetEnd);
+    const modes = new Set(Array.from(modeSetSource.matchAll(/"([^"]+)"/g), (match) => match[1]));
+    const actual = modes.has(String(paymentMode ?? "").trim().toLowerCase());
+    expect(actual).toBe(expected);
+  });
+
+  test.each([
     ["worker/routes/billing.js", 'legacyCoinDisabled: true', "$inc: { points: -requiredCoins"],
     ["worker/routes/fortune.js", 'reason: "LEGACY_COIN_DISABLED"', "$inc: { points: -cost"],
     ["server/routes/fortune.routes.js", 'reason: "LEGACY_COIN_DISABLED"', "$inc: { points: -cost"],
@@ -39,8 +64,7 @@ describe("legacy COIN removal regression guards", () => {
     const end = source.indexOf("const deferUsage =", start);
     const paymentModeBlock = source.slice(start, end);
 
-    expect(paymentModeBlock).toMatch(/requestedPaymentMode === "coin"/);
-    expect(paymentModeBlock).toMatch(/requestedPaymentMode === "pig-coin"/);
+    expect(paymentModeBlock).toMatch(/isExplicitLegacyCoinPaymentMode\(requestedPaymentMode\)/);
     expect(paymentModeBlock).not.toMatch(/!requestedPaymentMode\s*&&\s*!directPaymentRequested/);
     expect(source).toMatch(/const knownPaymentMode = !requestedPaymentMode/);
   });

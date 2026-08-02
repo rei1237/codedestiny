@@ -207,6 +207,19 @@ const PAID_ACCESS_DB_ERROR_SIGNATURES = [
   "network",
 ];
 
+const LEGACY_COIN_PAYMENT_MODES = new Set([
+  "coin",
+  "coins",
+  "coin_credit",
+  "coin_payment",
+  "pig_coin",
+  "pig-coin",
+]);
+
+function isExplicitLegacyCoinPaymentMode(value) {
+  return LEGACY_COIN_PAYMENT_MODES.has(String(value ?? "").trim().toLowerCase());
+}
+
 const paidAccessDecisionCache = globalThis.__paidAccessDecisionCache
   || (globalThis.__paidAccessDecisionCache = {
     entries: new Map(),
@@ -2497,9 +2510,11 @@ async function handleDeferredUsageCancel(request, env) {
   return success({ deferredUsage: true, executionId: record.executionId, status: "generation_failed" }, "보류된 이용 권한을 정리했습니다.");
 }
 
-async function resolveBillingProfileId(authUserId, body = {}, env = {}) {
+async function resolveBillingProfileId(authUserId, body = {}, env = {}, authUserDoc = null) {
   const explicit = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
   if (explicit || !authUserId) return explicit;
+  const fromAuth = cleanProfileId(authUserDoc?.destinyProfilesCurrentId);
+  if (fromAuth) return fromAuth;
   await connectDb(env);
   const user = await User.findById(authUserId).select("destinyProfilesCurrentId").lean();
   return cleanProfileId(user?.destinyProfilesCurrentId);
@@ -3301,12 +3316,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     || requestedPaymentMode === "moonlight stone"
     || requestedPaymentMode === "moonlightstone";
   const directPaymentRequested = shouldCreateDirectPortOneOrder(body);
-  const coinPaymentRequested = requestedPaymentMode === "coin"
-    || requestedPaymentMode === "coins"
-    || requestedPaymentMode === "coin_credit"
-    || requestedPaymentMode === "coin_payment"
-    || requestedPaymentMode === "pig_coin"
-    || requestedPaymentMode === "pig-coin";
+  const coinPaymentRequested = isExplicitLegacyCoinPaymentMode(requestedPaymentMode);
   const deferUsage = isDeferredUsageRequested(body);
   const knownPaymentMode = !requestedPaymentMode
     || requestedPaymentMode === "single_purchase"
@@ -3367,7 +3377,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   // 떨어지지 않도록 재시도로 감싼다(재시도 소진 시 degrade 마커는 기존 유지).
   const lookupStartedAt = Date.now();
   const resolveProfileIdFromDb = () => withMongoRetry(env, () => withDbAccessTimeout(
-    resolveBillingProfileId(authCheck.auth.userId, body, env),
+    resolveBillingProfileId(authCheck.auth.userId, body, env, authCheck.auth.authUserDoc || null),
     PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PROFILE_RESOLVE_TIMEOUT",
   )).catch((error) => {
@@ -5434,6 +5444,10 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
 // 결제 스냅샷 stage-2 User 조회가 쓰는 필드. 인증 리졸버에 userProjection으로 넘겨 인증 확인과
 // 같은 조회에서 함께 읽어(authUserDoc) 인증-후 재조회(stage-2 User 왕복)를 없앤다.
 const BILLING_SNAPSHOT_USER_PROJECTION = {
+  _id: 1,
+  name: 1,
+  email: 1,
+  joinedAt: 1,
   profileSubscription: 1,
   subscription: 1,
   membership: 1,
@@ -5456,6 +5470,12 @@ const BILLING_SNAPSHOT_USER_PROJECTION = {
   points: 1,
   destinyProfilesCurrentId: 1,
   unlockedFeatures: 1,
+  birthDate: 1,
+  phoneNumber: 1,
+  phone: 1,
+  fullName: 1,
+  displayName: 1,
+  username: 1,
 };
 
 async function readBillingSnapshot(request, env, options = {}) {
@@ -6203,7 +6223,9 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
   let payload = {};
   try {
     const delegatedRequest = buildRoutedRequest(request, targetPath, "POST", body);
-    delegatedResponse = await handlePaymentRoutes(delegatedRequest, env);
+    delegatedResponse = await handlePaymentRoutes(delegatedRequest, env, {
+      preverifiedAuth: options?.preverifiedAuth || null,
+    });
     payload = await readPayloadSafe(delegatedResponse);
   } catch (error) {
     logBillingRouteError("delegate-to-payments", error, request, { targetPath });
@@ -6303,11 +6325,11 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
 // 콘텐츠를 카드로 결제하게 된다. 커버되지 않는 건은 아래 `canUseByPass` 검사가 그대로 걸러내므로
 // (이용권 제외 기능 `profile-card-manage` 포함) 이 관문이 넓히는 범위는 "커버되는데 카드로 결제하려는
 // 경우" 하나뿐이고, 그 경우의 결론은 항상 사용자에게 유리한 쪽(무료)이다.
-async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {}) {
-  const pricingResult = resolvePricingFromBody(body);
+async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {}, authCheckOverride = null, pricingResultOverride = null) {
+  const pricingResult = pricingResultOverride || resolvePricingFromBody(body);
   if (!pricingResult?.ok) return null;
 
-  const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
+  const authCheck = authCheckOverride || await requireBillingAuth(request, env, pricingResult.pricing);
   if (!authCheck.ok || !authCheck?.auth?.userId) return null;
 
   let pricing = pricingResult.pricing;
@@ -6316,7 +6338,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   const reportSessionId = String(
     body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId),
   ).trim();
-  const profileId = await resolveBillingProfileId(authCheck.auth.userId, body, env);
+  const profileId = await resolveBillingProfileId(authCheck.auth.userId, body, env, authCheck.auth.authUserDoc || null);
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
   if (persistProfileUnlockEntitlement) {
@@ -6364,7 +6386,12 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     }
   }
 
-  const subscriptionPass = await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
+  const subscriptionPass = await getMembershipPassForBillingRequest(
+    request,
+    env,
+    authCheck.auth.userId,
+    authCheck.auth.authUserDoc || null,
+  );
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPass.entitlement || {});
   const paymentDecision = buildPassPaymentDecision(
     subscriptionPass.entitlement,
@@ -6540,16 +6567,21 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   }, "PASS_FREE");
 }
 
-async function buildDiscountedPdfPaymentDelegation(request, env, body = {}, pricingResult = null) {
+async function buildDiscountedPdfPaymentDelegation(request, env, body = {}, pricingResult = null, authCheckOverride = null) {
   const resolved = pricingResult || resolvePricingFromBody(body);
   if (!resolved?.ok || !canGeneratePaidPdf(resolved.pricing)) {
     return { body, pricing: resolved?.pricing || null };
   }
 
-  const authCheck = await requireBillingAuth(request, env, resolved.pricing);
+  const authCheck = authCheckOverride || await requireBillingAuth(request, env, resolved.pricing);
   if (!authCheck.ok || !authCheck?.auth?.userId) return { body, pricing: resolved.pricing, response: authCheck.response };
 
-  const subscriptionPass = await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
+  const subscriptionPass = await getMembershipPassForBillingRequest(
+    request,
+    env,
+    authCheck.auth.userId,
+    authCheck.auth.authUserDoc || null,
+  );
   const pricing = applyPdfPassDiscountToPricing(resolved.pricing, subscriptionPass.entitlement || {});
   if (!pricing?.passDiscount || Number(pricing.coinPrice || pricing.cost || 0) <= 0) return { body, pricing };
 
@@ -6584,18 +6616,40 @@ async function handleCheckout(request, env) {
   const isSubscription = isPassLikeProductType(serverProductType)
     || Boolean(body?.subscriptionTier)
     || String(body?.paymentType || "").toLowerCase() === "subscription";
+  const checkoutPricingResult = isSubscription ? null : resolvePricingFromBody(body);
+  const checkoutAuthCheck = await requireBillingAuth(
+    request,
+    env,
+    checkoutPricingResult?.ok ? checkoutPricingResult.pricing : { cost: 1 },
+  );
+  if (!checkoutAuthCheck.ok) {
+    logCheckoutElapsed(body, checkoutStartedAt, checkoutAuthCheck.response?.status, "auth");
+    return checkoutAuthCheck.response;
+  }
   let delegatedBody = body;
   if (!isSubscription) {
     // 결제수단을 DIRECT_KRW 로 명시했더라도 이용권 커버 검사를 건너뛰지 않는다 — 여기가 카드 주문이
     // 생성되기 전 마지막 지점이다(자세한 근거는 grantPassFreeAccessBeforeCardIfAvailable 주석).
     {
-      const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
+      const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(
+        request,
+        env,
+        body,
+        checkoutAuthCheck,
+        checkoutPricingResult,
+      );
       if (passAccess) {
         logCheckoutElapsed(body, checkoutStartedAt, passAccess.status, "pass_free_access");
         return passAccess;
       }
     }
-    const discounted = await buildDiscountedPdfPaymentDelegation(request, env, body);
+    const discounted = await buildDiscountedPdfPaymentDelegation(
+      request,
+      env,
+      body,
+      checkoutPricingResult,
+      checkoutAuthCheck,
+    );
     if (discounted.response) {
       logCheckoutElapsed(body, checkoutStartedAt, discounted.response.status, "pdf_discount");
       return discounted.response;
@@ -6603,7 +6657,9 @@ async function handleCheckout(request, env) {
     delegatedBody = discounted.body;
   }
   const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";
-  const response = await delegateToPayments(request, env, targetPath, delegatedBody);
+  const response = await delegateToPayments(request, env, targetPath, delegatedBody, {
+    preverifiedAuth: checkoutAuthCheck.auth,
+  });
   logCheckoutElapsed(body, checkoutStartedAt, response?.status, isSubscription ? "subscription" : "direct");
   return response;
 }
@@ -6655,17 +6711,35 @@ async function handleConfirm(request, env) {
     || String(body?.paymentType || "").toLowerCase() === "subscription";
   const hasPaymentVerificationPayload = Boolean(body?.impUid || body?.paymentId || body?.merchantUid || body?.merchant_uid);
   const pricingResult = !isSubscription ? resolvePricingFromBody(body) : null;
+  const confirmAuthCheck = await requireBillingAuth(
+    request,
+    env,
+    pricingResult?.ok ? pricingResult.pricing : { cost: 1 },
+  );
+  if (!confirmAuthCheck.ok) return replaceConfirmAuthFailureMessage(confirmAuthCheck.response);
   let delegatedBody = body;
   let delegatedPricing = pricingResult?.pricing || null;
   // 결제수단 명시(DIRECT_KRW)는 더 이상 이용권 검사를 끄지 않는다. 다만 이미 PG 결제가 끝나
   // 검증 페이로드(impUid/paymentId 등)가 실린 요청은 그대로 검증·기록해야 한다 — 돈이 움직인 뒤에
   // 이용권 무료로 바꾸면 그 결제가 고아가 된다.
   if (!isSubscription && !hasPaymentVerificationPayload) {
-    const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
+    const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(
+      request,
+      env,
+      body,
+      confirmAuthCheck,
+      pricingResult,
+    );
     if (passAccess) return passAccess;
   }
   if (!isSubscription && pricingResult?.ok) {
-    const discounted = await buildDiscountedPdfPaymentDelegation(request, env, body, pricingResult);
+    const discounted = await buildDiscountedPdfPaymentDelegation(
+      request,
+      env,
+      body,
+      pricingResult,
+      confirmAuthCheck,
+    );
     if (discounted.response) return discounted.response;
     delegatedBody = discounted.body;
     delegatedPricing = discounted.pricing || delegatedPricing;
@@ -6675,21 +6749,18 @@ async function handleConfirm(request, env) {
     const delegatedFeatureKey = String(delegatedPricing?.featureKey || "").trim();
     const reportType = resolvePremiumAccessReportType(delegatedFeatureKey, delegatedPricing?.reason);
     if (reportType || isUnlockPaidFeatureKey(delegatedFeatureKey)) {
-      const authCheck = await requireBillingAuth(request, env, delegatedPricing);
-      // 🔴 여기는 카드 승인이 '이미 끝난' 뒤다(hasPaymentVerificationPayload). requireBillingAuth 의
-      // 기본 문구는 "로그인 상태를 일시적으로 확인하지 못했어요" 인데, 이 시점에 그 문구를 보여 주면
-      // 사용자가 재로그인 후 다시 결제를 시도해 이중 결제가 난다. 공유 함수는 그대로 두고(여러 라우트가
-      // 참조) 이 호출부에서만 결제 문맥 문구로 바꾼다. 상태코드는 유지해 프론트 분기를 깨지 않는다.
-      if (!authCheck.ok) return replaceConfirmAuthFailureMessage(authCheck.response);
       premiumAccessOptions = {
         premiumAccess: true,
-        authUserId: authCheck.auth.userId,
+        authUserId: confirmAuthCheck.auth.userId,
         pricing: delegatedPricing,
       };
     }
   }
   const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";
-  return delegateToPayments(request, env, targetPath, delegatedBody, premiumAccessOptions || undefined);
+  return delegateToPayments(request, env, targetPath, delegatedBody, {
+    ...(premiumAccessOptions || {}),
+    preverifiedAuth: confirmAuthCheck.auth,
+  });
 }
 
 async function runServiceExecutionAction(request, env, action) {
@@ -6858,6 +6929,7 @@ export const __billingTestUtils = {
   buildMembershipPassFromStatusSnapshot,
   buildRefundedSpendSourceId,
   isPassExcludedPricing,
+  isExplicitLegacyCoinPaymentMode,
   requireBillingAuth,
   resolvePaidContentAccess,
 };
