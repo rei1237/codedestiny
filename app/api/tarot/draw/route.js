@@ -20,7 +20,7 @@ export async function POST(req) {
     const body = await req.json().catch(() => ({}));
     const engine = await getTarotEngine();
     const spreadType = engine.normalizeSpreadType(body?.spreadType || "one_card");
-    const cards = engine.drawCards(spreadType);
+    const cards = engine.drawCards(spreadType, { seed: body?.seed, year: body?.year });
 
     return NextResponse.json({
       ok: true,
@@ -33,3 +33,4 @@ export async function POST(req) {
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }
 }
+

@@ -1925,6 +1925,75 @@
   border-top-color: rgba(232, 213, 163, 0.28);
 }
 
+.ty-premium-keywords,
+.ty-premium-core-advice,
+.ty-category-keyword {
+  color: #e8d5a3;
+  line-height: 1.75;
+}
+
+.ty-premium-core-advice {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid rgba(232, 213, 163, 0.72);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.ty-zodiac-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ty-zodiac-profile {
+  padding: 15px;
+  border: 1px solid rgba(232, 213, 163, 0.18);
+  border-radius: 5px 14px 5px 14px;
+  background: rgba(53, 26, 37, 0.72);
+}
+
+.ty-zodiac-profile h4 {
+  margin: 0 0 9px;
+  color: #f1d9a8;
+}
+
+.ty-zodiac-profile p,
+.ty-category-card p,
+.ty-year-narrative p {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.ty-zodiac-profile p { margin: 7px 0 0; line-height: 1.72; }
+
+.ty-category-card p { line-height: 1.75; }
+
+.ty-category-card p + p { margin-top: 11px; }
+
+.ty-category-keyword { margin: 0 0 8px; font-size: 0.86rem; }
+
+.ty-year-narrative {
+  display: grid;
+  gap: 9px;
+}
+
+.ty-year-narrative p {
+  margin: 0;
+  padding: 11px 13px;
+  border-bottom: 1px solid rgba(232, 213, 163, 0.12);
+  line-height: 1.8;
+}
+
+.ty-year-narrative strong { display: inline-block; min-width: 3em; color: #e8d5a3; }
+
+.ty-month-item--fields .ty-month-detail-item,
+.ty-month-item--card-reading .ty-month-detail-item,
+.ty-month-item--action .ty-month-detail-item { line-height: 1.8; }
+
+@media (max-width: 860px) {
+  .ty-zodiac-profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 640px) {
   .tarot-year-panel { box-shadow: 0 0 0 3px rgba(93, 25, 43, 0.32), 0 16px 52px rgba(0, 0, 0, 0.52); }
   .tarot-year-panel::before { inset: 8px; }

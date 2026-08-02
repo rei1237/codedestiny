@@ -787,7 +787,12 @@
     intro.classList.remove("is-active");
     draw.classList.add("is-active");
 
-    callTarotApi("draw", { spreadType: "yearly_twelve_card" })
+    state.requestId = state.requestId || getOrCreateYearRequestId(state.year);
+    callTarotApi("draw", {
+      spreadType: "yearly_twelve_card",
+      year: state.year,
+      seed: state.requestId,
+    })
       .then(function (drawData) {
         if (!drawData.cards || drawData.cards.length !== 12) throw new Error("Invalid draw");
         state.cards = drawData.cards;
@@ -800,15 +805,23 @@
   }
 
   function tryClientSideDraw() {
-    var fullDeck = ["M00","M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19","M20","M21",
-      "W01","W02","W03","W04","W05","W06","W07","W08","W09","W10","W11","W12","W13","W14",
-      "C01","C02","C03","C04","C05","C06","C07","C08","C09","C10","C11","C12","C13","C14",
-      "S01","S02","S03","S04","S05","S06","S07","S08","S09","S10","S11","S12","S13","S14",
-      "P01","P02","P03","P04","P05","P06","P07","P08","P09","P10","P11","P12","P13","P14"];
-    var shuffled = fullDeck.slice().sort(function(){ return Math.random()-0.5; });
+    var fullDeck = ["M00","M01","M02","M03","M04","M05","M06","M07","M08","M09","M10","M11","M12","M13","M14","M15","M16","M17","M18","M19","M20","M21"];
+    var seed = String(state.requestId || getOrCreateYearRequestId(state.year));
+    var hash = 2166136261;
+    for (var seedIndex = 0; seedIndex < seed.length; seedIndex += 1) {
+      hash ^= seed.charCodeAt(seedIndex);
+      hash = Math.imul(hash, 16777619);
+    }
+    var shuffled = fullDeck.slice();
+    for (var shuffleIndex = shuffled.length - 1; shuffleIndex > 0; shuffleIndex -= 1) {
+      hash += hash << 13; hash ^= hash >>> 7; hash += hash << 3; hash ^= hash >>> 17; hash += hash << 5;
+      var swapIndex = Math.abs(hash) % (shuffleIndex + 1);
+      var swap = shuffled[shuffleIndex]; shuffled[shuffleIndex] = shuffled[swapIndex]; shuffled[swapIndex] = swap;
+    }
     var labels = ["month_1","month_2","month_3","month_4","month_5","month_6","month_7","month_8","month_9","month_10","month_11","month_12"];
     state.cards = shuffled.slice(0, 12).map(function(id, i){
-      var ori = Math.random()<0.5?"upright":"reversed";
+      hash += hash << 13; hash ^= hash >>> 7; hash += hash << 3; hash ^= hash >>> 17; hash += hash << 5;
+      var ori = Math.abs(hash) % 5 === 0 ? "reversed" : "upright";
       var fn = CARD_TO_FILENAME[id];
       return {
         cardId:id, name:id, nameKr:getCardNameKr(id), orientation:ori, position:labels[i],
@@ -819,7 +832,8 @@
     showTarotYearFinalReading();
   }
 
-  function renderTarotYearDrawCards() {
+  
+function renderTarotYearDrawCards() {
     var grid = byId("tarotYearDrawCardGrid");
     if (!grid || !state.cards.length) return;
     grid.innerHTML = "";
@@ -1076,8 +1090,16 @@ function getMonthlySectionText(monthly, key, fallback) {
     if (joined) return joined;
   }
   if (typeof direct === "string" && direct.trim()) return direct.trim();
+  if (direct && typeof direct === "object") {
+    var objectText = [direct.title, direct.summary, direct.reading, direct.advice, direct.action]
+      .map(function (line) { return String(line || "").trim(); })
+      .filter(Boolean)
+      .join(" ");
+    if (objectText) return objectText;
+  }
   return fallback || "";
 }
+
 
 function buildMonthNarrativeItem(title, bodyHtml, extraClass) {
   return '<article class="ty-month-item ty-month-item--open ' + (extraClass || "") + '">' +
@@ -1115,7 +1137,7 @@ function buildMonthDetailHtml(monthly, spreadCards, triadReading, cat) {
     buildMonthNarrativeItem(
       "십이지신 × 타로 결합 해석",
       '<p class="ty-month-detail-item"><strong>' + escapeHtml(monthly.zodiacSymbol + " " + monthly.zodiacAnimal) + '</strong> ' + escapeHtml(monthly.zodiacTheme || "") + '</p>' +
-        '<p class="ty-month-detail-item"><strong>' + escapeHtml(monthly.zodiacTarotDynamic || "결합") + '</strong> ' + escapeHtml(getMonthlySectionText(monthly, "zodiacReading", "")) + '</p>',
+        '<p class="ty-month-detail-item"><strong>' + escapeHtml(monthly.zodiacTarotDynamic || "결합") + '</strong> ' + escapeHtml(getMonthlySectionText(monthly, "combinationReading", getMonthlySectionText(monthly, "zodiacReading", ""))) + '</p>',
       "ty-month-item--zodiac"
     ),
     buildMonthNarrativeItem(
@@ -1126,10 +1148,34 @@ function buildMonthDetailHtml(monthly, spreadCards, triadReading, cat) {
       "ty-month-item--triad"
     ),
     buildMonthNarrativeItem("이달의 조언", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "advice", mainCard.advice || "")) + '</p>', "ty-month-item--advice"),
+    buildMonthNarrativeItem(
+      "월별 분야 리딩",
+      '<p class="ty-month-detail-item"><strong>흐름</strong> ' + escapeHtml(getMonthlySectionText(monthly, "flow", monthly.summary || "")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>금전</strong> ' + escapeHtml(getMonthlySectionText(monthly, "money", "")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>일·사업</strong> ' + escapeHtml(getMonthlySectionText(monthly, "work", "")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>관계</strong> ' + escapeHtml(getMonthlySectionText(monthly, "relationship", monthly.love || "")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>건강</strong> ' + escapeHtml(getMonthlySectionText(monthly, "health", "")) + '</p>',
+      "ty-month-item--fields"
+    ),
+    buildMonthNarrativeItem(
+      "카드의 연간 의미",
+      '<p class="ty-month-detail-item"><strong>올해의 테마</strong> ' + escapeHtml(mainCard.annualTheme || "") + '</p>' +
+        '<p class="ty-month-detail-item"><strong>밝은 면</strong> ' + escapeHtml((monthly.cardReading || {}).light || "") + '</p>' +
+        '<p class="ty-month-detail-item"><strong>그림자 면</strong> ' + escapeHtml((monthly.cardReading || {}).shadow || "") + '</p>' +
+        '<p class="ty-month-detail-item"><strong>피해야 할 태도</strong> ' + escapeHtml((monthly.cardReading || {}).avoid || "") + '</p>',
+      "ty-month-item--card-reading"
+    ),
+    buildMonthNarrativeItem(
+      "이번 달에 남길 행동",
+      '<p class="ty-month-detail-item"><strong>주의</strong> ' + escapeHtml(getMonthlySectionText(monthly, "caution", "")) + '</p>' +
+        '<p class="ty-month-detail-item"><strong>실천</strong> ' + escapeHtml(getMonthlySectionText(monthly, "action", mainCard.annualAdvice || "")) + '</p>',
+      "ty-month-item--action"
+    ),
   ];
 
   return sections.join("");
 }
+
 
 function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
   var monthly = getMonthlyReadingByMonth(state.reading, monthNum);
@@ -1516,13 +1562,17 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     var top = byId("tarotYearPremiumTop");
     var bottom = byId("tarotYearPremiumBottom");
     if (!top || !bottom || !reading) return;
+    var summary = reading.annualSummary || {};
     var theme = reading.yearTheme || {};
-    var annual = reading.annualOverview || reading.annualSummary || {};
-    var core = theme.mainCard || {};
+    var annual = reading.annualOverview || summary;
+    var core = reading.mainCardReading || theme.mainCard || {};
     var guardians = Array.isArray(reading.zodiacGuardians) ? reading.zodiacGuardians : [];
-    var categories = reading.categoryReading || {};
+    var categories = reading.categoryReadings || reading.categoryReading || {};
     var turningPoints = Array.isArray(reading.turningPoints) ? reading.turningPoints : [];
     var luckyActions = Array.isArray(reading.luckyActions) ? reading.luckyActions : [];
+    var profiles = Array.isArray(reading.zodiacProfiles) ? reading.zodiacProfiles : [];
+    var coreKeywords = Array.isArray(core.keywords) ? core.keywords.join(" · ") : String(core.keywords || "").trim();
+    if (!coreKeywords && Array.isArray(summary.keywords)) coreKeywords = summary.keywords.join(" · ");
 
     function text(value, fallback) { return escapeHtml(String(value || fallback || "").trim()); }
     function prose(value, fallback) {
@@ -1534,6 +1584,12 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     function paragraph(label, value, fallback) {
       return '<div class="ty-premium-copy"><strong>' + text(label) + '</strong><p>' + prose(value, fallback) + '</p></div>';
     }
+    function field(value, fallback) {
+      if (value && typeof value === "object") {
+        return [value.reading, value.summary, value.advice, value.action].filter(Boolean).join(" ") || fallback || "";
+      }
+      return value || fallback || "";
+    }
 
     var guardianHtml = guardians.slice(0, 12).map(function (guardian, idx) {
       return '<span class="ty-guardian-chip" title="' + text(guardian.theme, "월별 수호 상징") + '">' + text(guardian.symbol || ZODIAC_EMOJI[idx]) + ' ' + text(guardian.animal || (idx + 1) + "월") + '</span>';
@@ -1541,24 +1597,30 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     top.innerHTML =
       '<section class="ty-premium-hero">' +
         '<div class="ty-premium-hero-mark"><img class="ty-premium-hero-card-img" alt="' + text(core.nameKo, "올해의 핵심 카드") + ' 카드 이미지" /></div>' +
-        '<div class="ty-premium-hero-meta"><span>' + text(reading.year, new Date().getFullYear()) + ' YEAR READING</span><span>' + text(theme.keyword, "한 해의 선택 기준") + '</span></div>' +
-        '<h3>' + text(theme.summary, reading.summary) + '</h3>' +
-        '<p>' + prose(annual.summary, reading.summary) + '</p>' +
+        '<div class="ty-premium-hero-meta"><span>' + text(reading.year, new Date().getFullYear()) + ' YEAR READING</span><span>' + text(summary.zodiacAnimal, "12지신") + '</span></div>' +
+        '<h3>' + text(summary.oneLineMessage, theme.summary || reading.summary) + '</h3>' +
+        '<p>' + prose(summary.summary || annual.summary, reading.summary) + '</p>' +
+        '<p class="ty-premium-keywords"><strong>핵심 키워드</strong> ' + text((summary.keywords || []).join(" · "), theme.keyword || "기준 · 실행 · 회복") + '</p>' +
+        '<p class="ty-premium-core-advice"><strong>가장 중요한 조언</strong> ' + prose(summary.coreAdvice, annual.stance) + '</p>' +
         '<div class="ty-guardian-row" aria-label="12개월 수호신">' + guardianHtml + '</div>' +
       '</section>' +
-      section("올해의 핵심 카드", '<div class="ty-core-card"><div class="ty-core-card-name"><span class="ty-core-card-orb">✦</span><div><strong>' + text(core.nameKo, "올해의 카드") + '</strong><small>' + text(core.orientation === "reversed" ? "역방향" : "정방향") + ' · ' + text(theme.keyword, "핵심 흐름") + '</small></div></div>' + paragraph("카드가 상징하는 주제", theme.summary) + paragraph("밝은 면", theme.light) + paragraph("그림자 면", theme.shadow) + paragraph("이 카드를 잘 쓰는 방법", theme.advice) + '</div>', "ty-premium-section--core") +
-      section("1년 총운", paragraph("올해의 흐름", annual.overallFlow || reading.summary) + paragraph("가장 강한 기운", annual.strongestEnergy) + paragraph("반복될 주제", annual.recurringTheme) + paragraph("조심해야 할 패턴", annual.cautionPattern) + paragraph("운이 열리는 방식", annual.openingPattern) + paragraph("당신에게 필요한 태도", annual.stance), "ty-premium-section--overview");
+      section("올해의 핵심 카드", '<div class="ty-core-card"><div class="ty-core-card-name"><span class="ty-core-card-orb">✦</span><div><strong>' + text(core.nameKo, "올해의 카드") + '</strong><small>' + text(core.orientation === "reversed" ? "역방향" : "정방향") + ' · ' + text(coreKeywords, theme.keyword || "핵심 흐름") + '</small></div></div>' + paragraph("기본 의미", core.basicMeaning || theme.summary) + paragraph("올해 나타나는 방식", core.yearAppearance || core.annualTheme) + paragraph("밝은 면", core.brightSide || core.light || theme.light) + paragraph("그림자 면", core.shadowSide || core.shadow || theme.shadow) + paragraph("금전", core.moneyMeaning || core.money) + paragraph("일·사업", core.careerMeaning || core.career) + paragraph("관계", core.relationshipMeaning || core.love) + paragraph("건강·컨디션", core.healthMeaning || core.health) + paragraph("이 카드를 잘 쓰는 방법", core.bestUse || core.advice || theme.advice) + paragraph("피해야 할 태도", core.avoidAttitude || core.avoid) + '</div>', "ty-premium-section--core") +
+      section("십이지신 × 타로 조합", paragraph("조합의 제목", core.combinationReading && core.combinationReading.title) + paragraph("조합 해석", core.combinationReading && core.combinationReading.summary) + paragraph("현실 조언", core.combinationReading && core.combinationReading.advice), "ty-premium-section--combination") +
+      section("1년 총운", paragraph("올해의 흐름", annual.overallFlow || reading.summary) + paragraph("전체 분위기", summary.overallMood || annual.strongestEnergy) + paragraph("반복될 주제", annual.recurringTheme) + paragraph("조심해야 할 패턴", annual.cautionPattern) + paragraph("운이 열리는 방식", annual.openingPattern) + paragraph("당신에게 필요한 태도", annual.stance), "ty-premium-section--overview") +
+      section("12지신 상징 해석", '<div class="ty-zodiac-profile-grid">' + profiles.slice(0, 12).map(function (profile) { return '<article class="ty-zodiac-profile"><h4>' + text(profile.animal) + ' · ' + text(profile.symbol) + '</h4><p>' + prose(profile.annualTheme) + '</p><p><strong>강점</strong> ' + prose(profile.strength) + '</p><p><strong>주의</strong> ' + prose(profile.caution) + '</p><p><strong>행동</strong> ' + prose(profile.luckyAction) + '</p></article>'; }).join("") + '</div>', "ty-premium-section--zodiac-profiles");
 
     var heroCardImage = top.querySelector(".ty-premium-hero-card-img");
     if (heroCardImage) applyTarotImageToCard(heroCardImage, null, core);
 
     var categoryConfig = [
-      ["money", "금전운", "₩"], ["career", "일·사업운", "↗"], ["love", "연애·관계운", "♡"],
-      ["health", "건강·컨디션", "◌"], ["family", "가족·인간관계", "⌂"], ["growth", "성장·공부", "✎"],
-      ["noblePerson", "귀인운", "✦"], ["caution", "피해야 할 선택", "!"],
+      ["money", "금전운", "₩"], ["career", "일·사업운", "↗"], ["love", "연애운", "♡"], ["relationship", "인간관계운", "◌"],
+      ["health", "건강·컨디션", "♧"], ["family", "가족·생활운", "⌂"], ["growth", "공부·성장운", "✎"],
+      ["noblePerson", "귀인운", "✦"], ["caution", "주의해야 할 선택", "!"], ["opportunity", "올해의 기회", "◇"],
+      ["turningPoint", "올해의 전환점", "↻"], ["luckyAction", "올해의 행운 행동", "☼"],
     ];
     var categoryHtml = categoryConfig.map(function (item) {
-      return '<article class="ty-category-card"><div class="ty-category-heading"><span>' + text(item[2]) + '</span><h4>' + text(item[1]) + '</h4></div><p>' + prose(categories[item[0]], "올해의 흐름을 작은 행동으로 확인해 보세요.") + '</p></article>';
+      var value = categories[item[0]] || {};
+      return '<article class="ty-category-card"><div class="ty-category-heading"><span>' + text(item[2]) + '</span><h4>' + text(value.title, item[1]) + '</h4></div><p class="ty-category-keyword">' + text(value.keyword) + '</p><p>' + prose(field(value.reading || value, "올해의 흐름을 작은 행동으로 확인해 보세요.")) + '</p>' + (value.caution ? '<p><strong>살필 점</strong> ' + prose(value.caution) + '</p>' : '') + (value.action ? '<p><strong>실천</strong> ' + prose(value.action) + '</p>' : '') + '</article>';
     }).join("");
     var turningHtml = turningPoints.map(function (point) {
       return '<article class="ty-turning-point"><strong>' + text(point.period) + '</strong><p>' + prose(point.meaning) + '</p><span>' + prose(point.advice) + '</span></article>';
@@ -1567,13 +1629,15 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
       return '<li><span>' + String(idx + 1) + '</span><p>' + prose(action) + '</p></li>';
     }).join("");
     bottom.innerHTML =
+      section("1년의 서사", '<div class="ty-year-narrative">' + (Array.isArray(reading.yearNarrative) ? reading.yearNarrative : []).map(function (line, idx) { return '<p><strong>' + (idx + 1) + '월</strong> ' + prose(line) + '</p>'; }).join("") + '</div>', "ty-premium-section--narrative") +
       section("분야별 상세 리딩", '<div class="ty-category-grid">' + categoryHtml + '</div>', "ty-premium-section--categories") +
       section("올해의 전환점", '<div class="ty-turning-list">' + turningHtml + '</div>', "ty-premium-section--turning") +
       section("행운을 여는 행동", '<ol class="ty-lucky-actions">' + actionsHtml + '</ol>', "ty-premium-section--actions") +
       section("12지신이 전하는 마지막 메시지", paragraph("올해의 한 문장", reading.finalMessage?.oneLine || reading.finalAdvice) + paragraph("당신에게 필요한 태도", reading.finalMessage?.attitude || annual.stance) + paragraph("붙잡아야 할 기회", reading.finalMessage?.opportunity) + paragraph("버려야 할 습관", reading.finalMessage?.release) + paragraph("천운의 메시지", reading.finalMessage?.zodiacMessage || reading.finalAdvice), "ty-premium-section--final");
   }
 
-  function renderTarotYearResult() {
+  
+function renderTarotYearResult() {
     var r = state.reading;
     if (!r) return;
     if (!state.hasAccess) {
