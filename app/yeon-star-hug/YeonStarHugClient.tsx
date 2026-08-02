@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import {
   BatteryLow,
@@ -25,6 +25,7 @@ import {
 import {
   fetchCurrentDestinyProfile,
   isDestinyProfileStorageKey,
+  readCurrentDestinyProfile,
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -829,6 +830,18 @@ function buildProfileSeed(profile: DestinyProfileCard, source: ProfileSeed["sour
     birthTimeInput: readProfileBirthTimeInput(profile),
     source,
   };
+}
+
+function profileSyncKey(profile: DestinyProfileCard | null | undefined) {
+  if (!profile) return "";
+  const birth = profile.birth || {};
+  return [
+    String(profile.id || profile.profileId || "").trim(),
+    String(profile.name || "").trim(),
+    readProfileBirthDateInput(profile),
+    readProfileBirthTimeInput(profile),
+    String(birth.calType || profile.calType || profile.calendarType || "").trim(),
+  ].join("|");
 }
 
 function getSignByMonthDay(month: number, day: number): ZodiacSign {
@@ -1687,6 +1700,7 @@ export default function YeonStarHugPage() {
   const [astroSignal, setAstroSignal] = useState<YeonAstroSignal | null>(null);
   const [astroLoading, setAstroLoading] = useState(false);
   const [astroError, setAstroError] = useState("");
+  const profileSyncVersionRef = useRef(0);
 
   const applyProfileAndAstro = async (profile: DestinyProfileCard, isCancelled: () => boolean) => {
     if (isCancelled()) return;
@@ -1741,29 +1755,45 @@ export default function YeonStarHugPage() {
     }
   };
 
+  const syncProfileFromSource = (eventProfile?: unknown) => {
+    const syncVersion = profileSyncVersionRef.current + 1;
+    profileSyncVersionRef.current = syncVersion;
+    const isCancelled = () => syncVersion !== profileSyncVersionRef.current;
+    const cachedProfile = readCurrentDestinyProfile(eventProfile, hasYeonProfileBirth);
+    const cachedKey = profileSyncKey(cachedProfile);
+
+    // 프로필 카드 화면에서 막 선택한 값은 이벤트 payload/로컬 캐시에 먼저 반영된다.
+    // 서버 조회가 잠시 늦거나 503이어도 화면이 "미연결"로 남지 않도록 즉시 적용한다.
+    if (cachedProfile) {
+      void applyProfileAndAstro(cachedProfile, isCancelled);
+    }
+
+    void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((serverProfile) => {
+      if (isCancelled() || !serverProfile || profileSyncKey(serverProfile) === cachedKey) return;
+      void applyProfileAndAstro(serverProfile, isCancelled);
+    }).catch(() => {
+      // 로컬 프로필 캐시가 이미 있으면 그것으로 화면을 유지한다.
+    });
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    let cancelled = false;
-    const applyProfileSeedFromApi = () => {
-      void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((profile) => {
-        if (cancelled || !profile) return;
-        void applyProfileAndAstro(profile, () => cancelled);
-      });
-    };
-
     const handleProfileStorage = (event: StorageEvent) => {
       if (event.key && !isDestinyProfileStorageKey(event.key) && event.key !== "fortune_auth_user") return;
-      applyProfileSeedFromApi();
+      syncProfileFromSource();
     };
-    const handleProfileChanged = () => applyProfileSeedFromApi();
+    const handleProfileChanged = (event: Event) => {
+      const eventProfile = event instanceof CustomEvent ? event.detail : undefined;
+      syncProfileFromSource(eventProfile);
+    };
 
-    applyProfileSeedFromApi();
+    syncProfileFromSource();
     window.addEventListener("destinyProfileChanged", handleProfileChanged);
     document.addEventListener("destinyProfileChanged", handleProfileChanged);
     window.addEventListener("storage", handleProfileStorage);
     return () => {
-      cancelled = true;
+      profileSyncVersionRef.current += 1;
       window.removeEventListener("destinyProfileChanged", handleProfileChanged);
       document.removeEventListener("destinyProfileChanged", handleProfileChanged);
       window.removeEventListener("storage", handleProfileStorage);
@@ -1771,10 +1801,7 @@ export default function YeonStarHugPage() {
   }, []);
 
   const syncSignFromProfile = () => {
-    void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((profile) => {
-      if (!profile) return;
-      void applyProfileAndAstro(profile, () => false);
-    });
+    syncProfileFromSource();
   };
 
   const handleBirthDateInputChange = (value: string) => {
@@ -1897,11 +1924,11 @@ export default function YeonStarHugPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-200 via-purple-100 to-yellow-100 px-4 py-8 text-slate-700 md:px-6 lg:px-8">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#fffaf7] px-4 py-8 text-[#3c1830] md:px-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -left-14 top-8 h-72 w-72 rounded-full bg-pink-300/35 blur-3xl" />
-        <div className="absolute right-[-4rem] top-[-2rem] h-72 w-72 rounded-full bg-purple-200/45 blur-3xl" />
-        <div className="absolute bottom-[-6rem] left-1/2 h-72 w-[30rem] -translate-x-1/2 rounded-full bg-yellow-100/75 blur-3xl" />
+        <div className="absolute -left-14 top-8 h-72 w-72 rounded-full bg-[#f4bed1]/35 blur-3xl" />
+        <div className="absolute right-[-4rem] top-[-2rem] h-72 w-72 rounded-full bg-[#f9dbe5]/45 blur-3xl" />
+        <div className="absolute bottom-[-6rem] left-1/2 h-72 w-[30rem] -translate-x-1/2 rounded-full bg-[#fff8dc]/80 blur-3xl" />
         {STAR_DOTS.map((dot, idx) => (
           <m.span
             key={idx}
@@ -1915,12 +1942,12 @@ export default function YeonStarHugPage() {
         ))}
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5">
+      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-6">
         <m.section
           initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="grid gap-5 rounded-3xl border border-white/45 bg-white/70 p-5 shadow-[0_14px_36px_rgba(236,72,153,0.22)] backdrop-blur-sm md:grid-cols-[1.1fr_0.9fr] md:p-7"
+          className="grid gap-5 rounded-3xl border border-[#f4d8e3] bg-white/85 p-5 shadow-[0_14px_36px_rgba(150,72,104,0.12)] backdrop-blur-sm md:grid-cols-[1.1fr_0.9fr] md:p-8"
         >
           <div className="space-y-4">
             <m.div
@@ -1932,8 +1959,8 @@ export default function YeonStarHugPage() {
               연이의 별빛 상담소
             </m.div>
 
-            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight md:text-5xl">
-              <span className="bg-gradient-to-r from-pink-500 to-orange-400 bg-clip-text text-transparent">연이의 마음 별자리</span>
+            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-[#b31955] md:text-5xl">
+              연이의 마음 별자리
             </h1>
             <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-slate-600 md:text-base">
               오늘의 감정과 고민을 별빛 흐름으로 다정하게 정리해줄게요.
@@ -1964,23 +1991,28 @@ export default function YeonStarHugPage() {
           </div>
         </m.section>
 
-        <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <section className="grid gap-6 lg:grid-cols-[minmax(300px,0.8fr)_minmax(0,1.8fr)] lg:items-start">
           <m.article
             initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="rounded-3xl border border-white/45 bg-white/78 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
+            className="rounded-3xl border border-[#f4d8e3] bg-white/88 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.12)] backdrop-blur-sm lg:sticky lg:top-6"
           >
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">입력 패널</p>
             <h2 className="text-xl font-black text-slate-700">감정 선택 → 별자리 → 고민 입력</h2>
             <p className="mb-4 mt-1 text-sm text-slate-500">오늘 마음을 편안하게 정리할 수 있도록 입력 동선을 간결하게 준비했어요.</p>
 
-            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50/75 p-3">
-              <p className="text-xs font-bold text-amber-700">프로필 카드 연동</p>
-              <p className="mt-1 text-xs text-amber-800/90">이름: {profileSeed.name || "미연결"} · 생년월일: {formatBirthDateInput(profileSeed.birthDateInput)}</p>
-              <p className="mt-1 text-xs text-amber-800/90">출생시간: {formatBirthTimeInput(profileSeed.birthTimeInput)} · 소스: {profileSeed.source === "profile" ? "프로필 카드" : profileSeed.source === "auth" ? "계정 정보" : "미연결"}</p>
-              <p className="mt-1 text-[11px] text-amber-700">{profileSyncNote}</p>
-              <p className="mt-1 text-[11px] text-amber-700">
+            <div className="mb-4 rounded-2xl border border-[#ead089]/80 bg-[#fff8dc]/70 p-4" aria-live="polite">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-bold text-[#70445c]">연결된 프로필 카드</p>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileSeed.source === "profile" ? "bg-[#f4bed1]/50 text-[#8f1647]" : "bg-white/80 text-[#70445c]"}`}>
+                  {profileSeed.source === "profile" ? "연결됨" : "미연결"}
+                </span>
+              </div>
+              <p className="mt-2 text-sm font-semibold text-[#3c1830]">{profileSeed.name || "프로필 카드를 선택해 주세요"}</p>
+              <p className="mt-1 text-xs leading-6 text-[#70445c]">생년월일 {formatBirthDateInput(profileSeed.birthDateInput)} · 출생시간 {formatBirthTimeInput(profileSeed.birthTimeInput)}</p>
+              <p className="mt-1 text-xs leading-6 text-[#70445c]">{profileSyncNote}</p>
+              <p className="mt-1 text-xs leading-6 text-[#70445c]">
                 {astroLoading
                   ? "연이가 정밀 별자리 차트를 읽고 있어요."
                   : astroSignal
@@ -1990,7 +2022,7 @@ export default function YeonStarHugPage() {
               <button
                 type="button"
                 onClick={syncSignFromProfile}
-                className="mt-2 inline-flex min-h-9 items-center justify-center rounded-full border border-amber-300 bg-white px-3 py-1 text-[11px] font-bold text-amber-700 transition hover:bg-amber-100"
+                className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full border border-[#ead089] bg-white px-3 py-1.5 text-xs font-bold text-[#70445c] transition hover:bg-[#fff3f8]"
               >
                 프로필 카드 기준으로 별자리 다시 맞추기
               </button>
@@ -2093,7 +2125,7 @@ export default function YeonStarHugPage() {
                     key={sample}
                     type="button"
                     onClick={() => setConcernText(sample)}
-                    className="min-h-9 rounded-full border border-rose-200 bg-white px-3 py-1 text-left text-[11px] font-medium leading-relaxed text-slate-700 transition hover:border-rose-300 hover:bg-rose-50"
+                    className="min-h-9 rounded-full border border-rose-200 bg-white px-3 py-1 text-left text-[11px] font-medium leading-relaxed text-[#3c1830] transition hover:border-rose-300 hover:bg-rose-50"
                     aria-label={`추천 샘플 문장 적용: ${sample}`}
                   >
                     {sample}
@@ -2114,13 +2146,13 @@ export default function YeonStarHugPage() {
             <p className="mt-2 text-xs text-slate-500">상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드</p>
           </m.article>
 
-          <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-5">
             {!consultation || !reading ? (
               <m.article
                 initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                 animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="rounded-3xl border border-white/45 bg-white/80 p-6 text-center shadow-[0_14px_34px_rgba(236,72,153,0.18)] backdrop-blur-sm"
+                className="rounded-3xl border border-[#f4d8e3] bg-white/85 p-8 text-center shadow-[0_14px_34px_rgba(150,72,104,0.1)] backdrop-blur-sm"
               >
                 <p className="text-sm font-semibold text-pink-500">감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.</p>
                 <p className="mt-2 text-xs text-slate-500">업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.</p>
@@ -2131,29 +2163,29 @@ export default function YeonStarHugPage() {
                   initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   transition={{ duration: 0.35 }}
-                  className="rounded-3xl border border-white/45 bg-white/80 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
+                  className="rounded-3xl border border-[#f4d8e3] bg-white/90 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.12)] backdrop-blur-sm sm:p-7"
                 >
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">분석 결과</p>
-                  <h2 className="text-xl font-black text-slate-700">오늘의 점성술 상담</h2>
+                  <p className="mb-2 text-xs font-bold tracking-[0.12em] text-[#b31955]">오늘의 마음 리딩</p>
+                  <h2 className="text-2xl font-black text-[#3c1830] sm:text-3xl">오늘의 점성술 상담</h2>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-slate-700">별자리: {consultation.sign}</span>
+                    <span className="rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-[#5b2544]">별자리: {consultation.sign}</span>
                     {profileSeed.birthDateInput ? (
                       <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">
                         프로필 기준 생일: {formatBirthDateInput(profileSeed.birthDateInput)}
                       </span>
                     ) : null}
-                    <span className="rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-slate-700">기간: {consultation.period}</span>
+                    <span className="rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-[#5b2544]">기간: {consultation.period}</span>
                     <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-500">태양: {consultation.todaySunSign}</span>
                     <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-500">달: {consultation.moon.label}</span>
                     <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-500">요일 행성: {consultation.dayRuler.label}</span>
                     <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-600">별자리 각도: {consultation.aspect.label}</span>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-4 text-slate-700">
+                  <div className="mt-5 rounded-2xl border border-[#f4d8e3] bg-white p-4 text-[#3c1830] sm:p-6">
                     <div className="rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3">
                       <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께,</p>
-                      <p className="mt-1 text-sm font-bold leading-relaxed text-slate-700 md:text-base">{reading.displayCard.oneLineMessage}</p>
+                      <p className="mt-1 text-sm font-bold leading-relaxed text-[#3c1830] md:text-base">{reading.displayCard.oneLineMessage}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {reading.displayCard.keywords.map((keyword) => (
                           <span key={keyword} className="rounded-full border border-pink-200 bg-pink-50 px-2.5 py-1 text-[11px] font-semibold text-pink-600">
@@ -2192,10 +2224,10 @@ export default function YeonStarHugPage() {
                               animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                               exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
                               transition={{ duration: 0.25 }}
-                              className="min-h-[140px] whitespace-pre-line rounded-xl border border-rose-100 bg-white/85 px-3 py-3 text-sm leading-relaxed text-slate-700"
+                              className="min-h-[160px] whitespace-pre-line rounded-xl border border-rose-100 bg-white/85 px-4 py-4 text-[15px] leading-7 text-[#3c1830] sm:px-5"
                             >
                               <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께 드리는 오늘의 편지</p>
-                              <p className="mt-1.5 text-sm font-semibold leading-relaxed text-slate-700">{displayWarmMessage}</p>
+                              <p className="mt-1.5 text-[15px] font-semibold leading-7 text-[#3c1830]">{displayWarmMessage}</p>
                             </m.div>
                           </AnimatePresence>
                         </div>
@@ -2205,23 +2237,23 @@ export default function YeonStarHugPage() {
                         <p className="text-[11px] font-extrabold tracking-[0.08em] text-amber-700">고민이 커진 이유 (점성술 분석)</p>
                         <div className="mt-2.5 grid gap-2">
                           {consultation.concernReasoning.map((line, idx) => (
-                            <div key={`reason-${idx}`} className="rounded-lg border border-amber-200 bg-white/90 px-2.5 py-2">
+                            <div key={`reason-${idx}`} className="rounded-xl border border-amber-200 bg-white/90 px-3 py-3">
                               <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-amber-600">근거 {idx + 1}</p>
-                              <p className="mt-1 text-[12px] leading-6 text-amber-900/90 sm:text-xs sm:leading-relaxed">{line}</p>
+                              <p className="mt-1 text-sm leading-7 text-amber-950">{line}</p>
                             </div>
                           ))}
                         </div>
-                        <p className="mt-2.5 rounded-lg border border-amber-300 bg-white/85 px-3 py-2.5 text-[12px] font-semibold leading-6 text-amber-800 sm:text-xs sm:leading-relaxed">
+                        <p className="mt-2.5 rounded-lg border border-amber-300 bg-white/85 px-3 py-3 text-sm font-semibold leading-7 text-amber-950">
                           {consultation.resilienceMessage}
                         </p>
                       </div>
 
                         <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2">
                           <p className="text-[11px] font-semibold text-purple-500">오늘의 별빛 상담 7가지</p>
-                          <div className="mt-2 grid gap-2">
+                          <div className="mt-3 grid gap-3 sm:grid-cols-2">
                             {reading.categories.map((section) => (
-                              <div key={section.id} className="rounded-lg border border-white/70 bg-white/80 px-2.5 py-2">
-                                <p className="text-xs font-bold text-slate-700">{section.icon} {section.label}</p>
+                              <div key={section.id} className="min-w-0 rounded-xl border border-white/70 bg-white/80 p-3">
+                                <p className="text-sm font-bold text-[#3c1830]">{section.icon} {section.label}</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
                                   {section.keywords.slice(0, 3).map((keyword) => (
                                     <span key={`${section.id}-${keyword}`} className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
@@ -2229,9 +2261,9 @@ export default function YeonStarHugPage() {
                                     </span>
                                   ))}
                                 </div>
-                                <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-700">{section.shortMessage}</p>
-                                <p className="mt-1 text-xs leading-relaxed text-slate-600">{section.healingReading}</p>
-                                <p className="mt-1 text-[11px] font-semibold text-pink-600">오늘의 작은 행동: {section.tinyAction}</p>
+                                <p className="mt-2 text-sm font-semibold leading-7 text-[#3c1830]">{section.shortMessage}</p>
+                                <p className="mt-1 text-sm leading-7 text-[#70445c]">{section.healingReading}</p>
+                                <p className="mt-2 text-sm font-semibold leading-7 text-[#b31955]">오늘의 작은 행동: {section.tinyAction}</p>
                               </div>
                             ))}
                           </div>

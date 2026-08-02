@@ -2,12 +2,13 @@ import YeonStarHugRouteClient from "./YeonStarHugRouteClient";
 
 export default function YeonStarHugPage() {
   return (
-    <main className="min-h-screen bg-rose-50 px-5 py-10 text-slate-700">
+    <div className="min-h-screen bg-[#fffaf7] py-10 text-[#3c1830]">
       <YeonStarHugRouteClient />
 
-      <section className="mx-auto mt-8 max-w-3xl rounded-3xl border border-white/70 bg-white/80 p-6 shadow-sm">
+      <section className="mx-auto mt-8 w-full max-w-[1440px] px-4 md:px-6 lg:px-8">
+        <div className="rounded-3xl border border-[#f4d8e3] bg-white/85 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.1)] sm:p-8">
         <details className="group">
-          <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl bg-gradient-to-r from-rose-100 via-fuchsia-50 to-amber-50 px-4 py-3 text-sm font-bold text-[#b31955] [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl bg-[#fff3f8] px-4 py-3 text-sm font-bold text-[#b31955] [&::-webkit-details-marker]:hidden">
             <span>연이의 마음 별자리, 이렇게 활용해보세요</span>
             <span className="ml-3 text-xs font-semibold text-[#70445c] transition-transform group-open:rotate-180">▾</span>
           </summary>
@@ -71,7 +72,8 @@ export default function YeonStarHugPage() {
             </p>
           </div>
         </details>
+        </div>
       </section>
-    </main>
+    </div>
   );
 }
