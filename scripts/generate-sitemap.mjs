@@ -26,6 +26,7 @@ const today = new Date().toISOString().slice(0, 10);
 // noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
 const excludedExactSitemapPaths = new Set([
   "/ifa-oracle.html",
+  "/account/delete/",
 ]);
 // public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
@@ -427,7 +428,7 @@ function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
   if (excludedExactSitemapPaths.has(normalized)) return false;
-  if (noindexPathPrefixes.some((prefix) => normalized.startsWith(`${prefix}/`))) return false;
+  if (noindexPathPrefixes.some((prefix) => normalized === `${prefix}/` || normalized.startsWith(`${prefix}/`))) return false;
   return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
 }
 
