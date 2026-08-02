@@ -6,6 +6,8 @@
 - 이 workflow는 `workflow_dispatch`로만 실행되고, `main` 기준 작업 트리 정책 확인과 `worker/wrangler.toml` dry-run을 통과한 뒤 `npm run deploy:cf:worker`를 실행한다.
 - `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 다른 workflow에 Worker 업로드 명령이 생기거나 PR에 `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
 - Cloudflare Workers Builds Git trigger는 운영 Worker의 중복 배포를 만들 수 있으므로 `code-destiny-web`에서는 제거한다. Worker 자체, route, custom domain, cron, R2 binding, runtime secret은 이 정리의 대상이 아니다.
+- `scripts/deploy-worker.mjs`는 배포 커밋 SHA를 비밀값이 아닌 Worker runtime variable `COMMIT_SHA`로 주입한다. 배포 후 `/api/version`의 `commit`으로 Worker 코드 기준점을 확인한다.
+- `app/_lib/billing-client.ts`, `js/core/access-store.js`, `worker/routes/access.js`, `worker/routes/billing.js`, `worker/routes/payments.js` 중 하나가 바뀐 Pages 배포는 `/api/version`의 Worker SHA가 `GITHUB_SHA`와 같은지 먼저 확인한다. 이 경우 Worker를 먼저 배포하고, parity check가 통과한 뒤 Pages workflow를 실행한다.
 
 ## Cloudflare Pages 구조
 

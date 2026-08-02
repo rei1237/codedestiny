@@ -161,37 +161,17 @@ test("keeps the single-service response contract for legacy callers", async () =
   ]);
 });
 
-test("backfill batches history/payment evidence and uses one idempotent entitlement bulk write", async () => {
+test("legacy backfill query flags remain read-only during an unlock snapshot", async () => {
   const backfillRequest = request("saju");
   const url = new URL(backfillRequest.url);
   url.searchParams.set("includeBackfill", "1");
-  const history = {
-    _id: "history-1",
-    featureKey: "section_daewun",
-    metadata: { profileId: TEST_PROFILE_ID, paymentId: "507f1f77bcf86cd799439012" },
-    createdAt: new Date("2026-08-01T00:00:00.000Z"),
-  };
-  pointHistoryFind.mockReturnValue(queryChain([history]));
-  paymentFind.mockReturnValue(queryChain([{
-    _id: "507f1f77bcf86cd799439012",
-    featureKey: "section_daewun",
-    status: "success",
-    pricingSnapshot: { profileId: TEST_PROFILE_ID },
-  }]));
-  entitlementFind.mockReturnValue(queryChain([{
-    serviceKey: "saju",
-    contentKey: "saju.daewunAnalysis",
-    source: "BACKFILL",
-    unlockedAt: new Date("2026-08-01T00:00:00.000Z"),
-    expiresAt: null,
-  }]));
 
   const response = await handleAccessRoutes(new Request(url, { method: "GET" }), {});
   const payload = await response.json();
 
   expect(response.status).toBe(200);
-  expect(pointHistoryFind).toHaveBeenCalledTimes(1);
-  expect(paymentFind).toHaveBeenCalledTimes(1);
-  expect(entitlementBulkWrite).toHaveBeenCalledTimes(1);
-  expect(payload.unlockedContentKeys).toContain("saju.daewunAnalysis");
+  expect(payload.ok).toBe(true);
+  expect(pointHistoryFind).not.toHaveBeenCalled();
+  expect(paymentFind).not.toHaveBeenCalled();
+  expect(entitlementBulkWrite).not.toHaveBeenCalled();
 });

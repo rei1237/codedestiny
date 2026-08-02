@@ -30,6 +30,11 @@ jobs:
       - name: Verify deployment is from merged main
         run: node scripts/verify-worktree-policy.mjs --mode=deploy
 
+      - name: Verify payment Worker and Pages commit parity
+        env:
+          CD_WORKER_VERSION_URL: https://code-destiny.com/api/version
+        run: npm run verify:pages-worker-parity
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

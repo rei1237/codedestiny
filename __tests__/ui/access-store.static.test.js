@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const storeSource = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
 
-function loadStore(fetchImpl) {
+function loadStore(fetchImpl, { setTimeoutImpl = () => 1 } = {}) {
   const listeners = new Map();
   const storage = new Map();
   const sandbox = {
@@ -25,7 +25,7 @@ function loadStore(fetchImpl) {
     encodeURIComponent,
     URLSearchParams,
     AbortController,
-    setTimeout: () => 1,
+    setTimeout: setTimeoutImpl,
     clearTimeout: () => undefined,
     fetch: fetchImpl,
     localStorage: {
@@ -98,6 +98,30 @@ test("AccessStore keeps cached unlocks when revalidation returns 503 and applies
   assert.equal(store.getSnapshot().status, "degraded");
 });
 
+test("AccessStore requests a read-only unlock snapshot with one bounded retry policy", async () => {
+  const requests = [];
+  const timers = [];
+  const store = loadStore(async (url) => {
+    requests.push(url);
+    return { ok: false, status: 503, json: async () => ({ ok: false, retryable: true }) };
+  }, {
+    setTimeoutImpl: (callback) => {
+      timers.push(callback);
+      return timers.length;
+    },
+  });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  timers.shift()();
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(requests.length, 2);
+  assert.equal(timers.length, 0);
+  assert.doesNotMatch(requests[0], /includeBackfill|backfill/);
+  assert.match(storeSource, /var RETRY_DELAYS = \[1000\];/);
+});
+
 test("AccessStore deduplicates payment access decisions separately from persistent unlock loads", async () => {
   let calls = 0;
   let release;
@@ -131,4 +155,10 @@ test("React and static shell reference the same AccessStore and no component hoo
   assert.match(provider, /useSyncExternalStore/);
   assert.match(hook, /useAccessStore/);
   assert.doesNotMatch(hook, /authFetch\(/);
+});
+
+test("billing eligibility keeps the one-request unlock-status fallback while AccessStore initializes", () => {
+  const billingClient = fs.readFileSync(path.join(root, "app/_lib/billing-client.ts"), "utf8");
+  assert.match(billingClient, /app:billing-client-access-store-fallback/);
+  assert.match(billingClient, /\/api\/billing\/unlock-status/);
 });
