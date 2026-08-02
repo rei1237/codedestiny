@@ -233,6 +233,9 @@
     "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
     "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
     "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check",
+    "verify:pages-single-deploy-guard": "node scripts/verify-pages-single-deploy-guard.mjs",
+    "verify:pages-pr-contract": "node scripts/verify-pages-pr-contract.mjs",
+    "verify:pages-pr-contract-test": "node scripts/verify-pages-pr-contract.mjs --self-test",
     "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs",
     "verify:payment-reconcile": "node scripts/verify-payment-reconcile.mjs"
   },

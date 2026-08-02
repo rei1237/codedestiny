@@ -1,0 +1,50 @@
+name: Pages Build Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pages-build:
+    name: Build Cloudflare Pages output
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Verify PR is based on current main
+        run: npm run verify:pages-pr-contract
+
+      - name: Verify PR contract implementation
+        run: npm run verify:pages-pr-contract-test
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Pages deployment guard
+        run: npm run verify:pages-single-deploy-guard
+
+      - name: Verify sitemap integrity
+        run: npm run verify:sitemap
+
+      - name: Build Pages output
+        run: npm run build:cf
