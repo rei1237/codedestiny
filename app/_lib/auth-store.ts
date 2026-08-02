@@ -97,6 +97,17 @@ type BillingBalancePayload = BillingBalanceData & {
   data?: BillingBalanceData;
 };
 
+type AccessStatePayload = {
+  ok?: boolean;
+  degraded?: boolean;
+  userId?: string;
+  hasActivePass?: boolean;
+  passType?: string;
+  activeUntil?: string;
+  maxProfileCount?: number;
+  data?: AccessStatePayload;
+};
+
 // "성공 후 응답 유실 → 재시도" 유령 오류를 피하기 위해 자동 재시도 없이 1회만 요청한다.
 const LOGIN_MAX_ATTEMPTS = 1;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
@@ -485,7 +496,39 @@ async function refreshEntitlements(expectedAuthMutationSeq = authMutationSeq) {
   await refreshBillingBalance(expectedAuthMutationSeq);
 }
 
+async function refreshAccessState(expectedAuthMutationSeq = authMutationSeq) {
+  const response = await authFetch("/api/me/access-state", {
+    method: "GET",
+    cache: "no-store",
+  }, { clientSource: "app:auth-store" }).catch(() => null);
+  if (expectedAuthMutationSeq !== authMutationSeq) return true;
+  if (!response) return true;
+  if (response.status === 404 || response.status === 405) return false;
+  if (!response.ok) return true;
+
+  const payload = await response.json().catch(() => null) as AccessStatePayload | null;
+  const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+  if (!data || data.degraded === true || !data.userId) return true;
+  if (expectedAuthMutationSeq !== authMutationSeq) return true;
+
+  const base = readSanitizedAuthUser() as AuthUser | null;
+  const merged = mergeAuthUsers(base, {
+    profileSubscription: {
+      tier: data.hasActivePass ? String(data.passType || "standard") : "free",
+      isActive: data.hasActivePass === true,
+      expiresAt: typeof data.activeUntil === "string" ? data.activeUntil : null,
+      profileLimit: Number.isFinite(Number(data.maxProfileCount)) ? Number(data.maxProfileCount) : undefined,
+    },
+  });
+  if (expectedAuthMutationSeq !== authMutationSeq) return true;
+  const safe = resolveSafeUser(merged);
+  if (safe) applyResolvedUser(safe);
+  return true;
+}
+
 export async function syncPostLoginData(expectedAuthMutationSeq = authMutationSeq) {
+  const accessStateSupported = await refreshAccessState(expectedAuthMutationSeq);
+  if (accessStateSupported) return;
   await Promise.allSettled([
     refreshProfileSubscriptionCache(expectedAuthMutationSeq),
     refreshEntitlements(expectedAuthMutationSeq),
@@ -716,7 +759,7 @@ async function loadMeFromServer() {
   const response = await authFetch("/api/auth/me", {
     method: "GET",
     cache: "no-store",
-  }, { retryOn401: true });
+  }, { retryOn401: true, clientSource: "app:auth-store" });
 
   if (requestAuthMutationSeq !== authMutationSeq) {
     return state.user;

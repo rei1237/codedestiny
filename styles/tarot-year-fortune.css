@@ -2006,4 +2006,10 @@
   .ty-result-card-zodiac { padding: 0 7px; font-size: 0.82rem; }
   .ty-premium-section { border-radius: 5px 16px 5px 16px; }
   .ty-month-detail-panel { border-radius: 5px 16px 5px 16px; }
+  .ty-zodiac-profile-grid { grid-template-columns: 1fr; gap: 9px; }
+  .ty-zodiac-profile { padding: 13px; }
+  .ty-premium-keywords,
+  .ty-premium-core-advice,
+  .ty-category-card p,
+  .ty-year-narrative p { font-size: 0.92rem; line-height: 1.8; }
 }

@@ -805,7 +805,7 @@ assertContains(
   "points moonlight-stone option stays enabled while the balance is unverified",
 );
 
-assertContains(fortuneSource, "normalizeHoneyPassEntitlement", "subscription status uses canonical pass entitlement");
+assertContains(fortuneSource, "resolveCanonicalEntitlement", "subscription status uses canonical pass entitlement");
 assertContains(fortuneSource, "subscription: 1", "subscription status reads legacy subscription field");
 assertContains(fortuneSource, "membership: 1", "subscription status reads legacy membership field");
 assertContains(fortuneSource, "pass: 1", "subscription status reads legacy pass field");

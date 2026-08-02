@@ -94,6 +94,9 @@ export async function runAccessCheckWithTransientRetry<T extends AccessCheckAtte
   let last = await attemptWithinBudget(0);
   for (let i = 1; i < maxAttempts; i += 1) {
     if (last?.data && (last.data as { ok?: unknown }).ok === true) return last;
+    // A budget timeout cannot cancel an arbitrary caller promise. Do not launch
+    // another attempt while the timed-out request may still be settling.
+    if (last?.data && (last.data as { reason?: unknown }).reason === PASS_CHECK_BUDGET_EXCEEDED_REASON) return last;
     // 일시적 실패가 아니면(확정 실패/성공) 재시도하지 않는다.
     if (!isRetriableResultPollFailure(readAttemptStatus(last), last?.data ?? null)) return last;
     const delayMs = Math.round(baseDelayMs * Math.pow(1.8, i - 1));

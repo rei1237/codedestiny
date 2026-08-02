@@ -18,6 +18,93 @@ let pendingPoolReset = false;
 // 미뤄 둔 리셋이 영영 실행되지 않는 데드락을 깨는 유일한 신호다 — 아래 withMongoRetry 주석 참고.
 let consecutiveConnectionFailures = 0;
 
+// A small Mongoose pool cannot safely absorb every simultaneous Worker
+// request. Bound operation admission before MongoDB checkout so a burst is
+// rejected/degraded quickly instead of creating a second wave of waiters.
+const mongoOperationAdmission = globalThis.__mongoOperationAdmission
+  || (globalThis.__mongoOperationAdmission = {
+    active: 0,
+    waiters: [],
+  });
+
+function createMongoOperationOverloadedError() {
+  const error = new Error("MongoDB operation capacity is temporarily saturated.");
+  error.name = "MongoOperationOverloadedError";
+  error.code = "MONGO_OPERATION_ADMISSION_TIMEOUT";
+  return error;
+}
+
+function drainMongoOperationWaiters() {
+  while (mongoOperationAdmission.waiters.length > 0) {
+    const waiter = mongoOperationAdmission.waiters[0];
+    if (mongoOperationAdmission.active >= waiter.limit) return;
+    mongoOperationAdmission.waiters.shift();
+    if (waiter.settled) continue;
+    waiter.settled = true;
+    clearTimeout(waiter.timer);
+    mongoOperationAdmission.active += 1;
+    waiter.resolve(() => releaseMongoOperationSlot());
+  }
+}
+
+function releaseMongoOperationSlot() {
+  mongoOperationAdmission.active = Math.max(0, mongoOperationAdmission.active - 1);
+  drainMongoOperationWaiters();
+}
+
+async function acquireMongoOperationSlot(env, options = {}) {
+  const limit = clampInt(
+    options.maxConcurrent != null
+      ? options.maxConcurrent
+      : getEnv(env, "MONGO_MAX_IN_FLIGHT_OPS", "3"),
+    3,
+    1,
+    8,
+  );
+  const waitTimeoutMS = clampTimeoutMs(
+    options.admissionTimeoutMS != null
+      ? options.admissionTimeoutMS
+      : getEnv(env, "MONGO_OP_ADMISSION_TIMEOUT_MS", "1500"),
+    1500,
+    100,
+    5000,
+  );
+
+  if (mongoOperationAdmission.active < limit) {
+    mongoOperationAdmission.active += 1;
+    return () => releaseMongoOperationSlot();
+  }
+
+  return new Promise((resolve, reject) => {
+    const waiter = {
+      limit,
+      settled: false,
+      timer: null,
+      resolve,
+      reject,
+    };
+    waiter.timer = setTimeout(() => {
+      if (waiter.settled) return;
+      waiter.settled = true;
+      const index = mongoOperationAdmission.waiters.indexOf(waiter);
+      if (index >= 0) mongoOperationAdmission.waiters.splice(index, 1);
+      try {
+        console.warn("[db-op-admission]", JSON.stringify({
+          limit,
+          waitTimeoutMS,
+          active: mongoOperationAdmission.active,
+          queued: mongoOperationAdmission.waiters.length,
+        }));
+      } catch (e) {
+        // Diagnostics must never change the failure path.
+      }
+      reject(createMongoOperationOverloadedError());
+    }, waitTimeoutMS);
+    mongoOperationAdmission.waiters.push(waiter);
+    drainMongoOperationWaiters();
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mongo 연산 계측 — op-타임아웃의 원인을 세 갈래로 가르기 위한 최소 카운터.
 //
@@ -382,6 +469,7 @@ export function isTransientMongoError(error) {
     || name === "MongoNetworkError"
     || name === "MongoNetworkTimeoutError"
     || name === "MongoServerSelectionError"
+    || name === "MongoOperationOverloadedError"
     // 🔴 waitQueueTimeoutMS 도입과 한 세트다. 풀이 붐벼 커넥션을 못 받은 것은 명백히 '일시적'인데,
     // 이 이름을 여기 넣지 않으면 하드 에러로 분류돼 유료·인증 라우트가 503(재시도) 대신 500을 낸다.
     // 메시지가 "Timed out while checking out a connection..." 이라 아래 정규식(connection .*timed out)에도
@@ -424,13 +512,21 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   // 안인데도 op-래퍼가 먼저 잘라 "MongoDB operation timed out"으로 무조건 실패한다(→ 전 라우트 503).
   // 서버선택창 + 쿼리 여유(3.5s)를 하한으로 강제해, env 설정과 무관하게 이 미스매치를 구조적으로 차단한다.
   const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
-  const attemptTimeoutFloorMS = serverSelectionTimeoutMS + 3500;
+  const attemptTimeoutFloorMS = options.respectServerSelectionFloor === false
+    ? 0
+    : serverSelectionTimeoutMS + 3500;
+  const attemptTimeoutMinimumMS = clampTimeoutMs(
+    options.minAttemptTimeoutMS != null ? options.minAttemptTimeoutMS : 1500,
+    1500,
+    250,
+    18000,
+  );
   const attemptTimeoutMS = Math.max(
     attemptTimeoutFloorMS,
     clampTimeoutMs(
       options.attemptTimeoutMS != null ? options.attemptTimeoutMS : getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS", "12000"),
       12000,
-      1500,
+      attemptTimeoutMinimumMS,
       18000,
     ),
   );
@@ -439,12 +535,31 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   const operationTimeoutMessage = "MongoDB operation timed out in Worker.";
 
   const poolResetCooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
+  const resetOnOperationTimeout = options.resetOnOperationTimeout != null
+    ? options.resetOnOperationTimeout !== false
+    : !isTruthyLike(getEnv(env, "MONGO_DISABLE_RESET_ON_OPERATION_TIMEOUT", "false"));
   // 연속 실패가 이 횟수를 넘으면 동시 요청이 있어도 리셋을 강행한다(아래 catch 참고).
   const forceResetAfter = clampInt(getEnv(env, "MONGO_POOL_FORCE_RESET_AFTER", "3"), 3, 1, 10);
   // 강행 리셋이 폭주하지 않도록 최소 간격만 남긴다(쿨다운 자체는 우회한다).
   const forcedResetMinIntervalMS = Math.min(poolResetCooldownMS, 1000);
 
   let lastError = null;
+  const releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
+  const pendingAttemptTasks = new Set();
+  let releaseRequested = false;
+  let operationFinalized = false;
+  const finalizeOperation = () => {
+    if (!releaseRequested || operationFinalized || pendingAttemptTasks.size > 0) return;
+    operationFinalized = true;
+    inFlightOps -= 1;
+    releaseMongoOpSlot();
+    if (inFlightOps <= 0 && pendingPoolReset) {
+      pendingPoolReset = false;
+      lastPoolResetAt = Date.now();
+      consecutiveConnectionFailures = 0;
+      void resetMongooseConnection();
+    }
+  };
   inFlightOps += 1;
   try {
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
@@ -453,12 +568,24 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
       const countersAtStart = snapshotMongoCounters();
       let connectFinishedAt = 0;
       try {
+        const attemptTask = (async () => {
+          await connectDb(env);
+          connectFinishedAt = Date.now();
+          return await operation();
+        })();
+        pendingAttemptTasks.add(attemptTask);
+        attemptTask.then(
+          () => {
+            pendingAttemptTasks.delete(attemptTask);
+            finalizeOperation();
+          },
+          () => {
+            pendingAttemptTasks.delete(attemptTask);
+            finalizeOperation();
+          },
+        );
         const result = await withTimeout(
-          (async () => {
-            await connectDb(env);
-            connectFinishedAt = Date.now();
-            return await operation();
-          })(),
+          attemptTask,
           attemptTimeoutMS,
           operationTimeoutMessage,
         );
@@ -475,8 +602,11 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // 잡히지 않아 과거엔 리셋 없이 throw됐고, 죽은 웜 커넥션이 stateless Worker 아이솔레이트에 잔존해
         // 그 아이솔레이트로 가는 모든 유료/인증 요청을 계속 11.5s hang→503/500으로 만들었다(지속성의 원인).
         const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
-        const isConnectionLevelFailure = isOperationTimeout || isTransientMongoError(error);
-        const willRetry = attempt < maxRetries && isTransientMongoError(error);
+        const isConnectionLevelFailure = (isOperationTimeout && resetOnOperationTimeout)
+          || isTransientMongoError(error);
+        const willRetry = attempt < maxRetries
+          && isTransientMongoError(error)
+          && error?.name !== "MongoOperationOverloadedError";
         if (isOperationTimeout) {
           // 이 한 줄이 세 후보를 가른다:
           //   connectMs 가 크다        → 연결 수립이 범인(현재 실측상 아님, 중앙값 1497ms)
@@ -545,15 +675,8 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     }
     throw lastError;
   } finally {
-    inFlightOps -= 1;
-    // 아이솔레이트가 조용해진 시점 = 이 disconnect가 아무 요청도 끊지 않는 유일한 순간.
-    // 버스트가 빠진 뒤 첫 실패는 inFlightOps===1이라 즉시 리셋되므로, 별도 타이머 없이 수렴한다.
-    if (inFlightOps <= 0 && pendingPoolReset) {
-      pendingPoolReset = false;
-      lastPoolResetAt = Date.now();
-      consecutiveConnectionFailures = 0;
-      await resetMongooseConnection();
-    }
+    releaseRequested = true;
+    finalizeOperation();
   }
 }
 

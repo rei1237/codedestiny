@@ -7,7 +7,7 @@ import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -603,10 +603,10 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
   const user = await withMongoRetry(env, () => loadBillingUser(userObjectId));
   if (likelyAccessType === "pass") {
-    const pass = normalizeHoneyPassEntitlement(user || {});
-    if (canUseByPass(pass, pricing.coinPrice)) {
+    const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+    if (featureAccess.allowed) {
       return {
-        accessType: "pass",
+        accessType: featureAccess.accessType || "pass",
         paymentId: ids[0] || "",
         source: "pass-entitlement",
         prepaid: false,
@@ -1275,8 +1275,8 @@ async function handleEnsureAccess(request, env) {
     return json({ ok: true, accessToken, accessType: "pass" });
   }
 
-  const pass = normalizeHoneyPassEntitlement(user || {});
-  if (canUseByPass(pass, pricing.coinPrice)) {
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) {
     const accessToken = await createAccessToken(env, {
       userId: String(auth.userId),
       idempotencyKey: requestId,

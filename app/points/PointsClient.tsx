@@ -15,7 +15,7 @@ import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { clearSubscriptionSnapshotForUser, readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
+import { clearSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import checkoutEntry from "@/js/core/checkout-entry.js";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
@@ -387,10 +387,11 @@ async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
     const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
       method: "GET",
       credentials: "include",
-    }, {
-      retryOn401: true,
-      apiBase,
-    });
+  }, {
+    retryOn401: true,
+    apiBase,
+    clientSource: "app:points",
+  });
     const parsed = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
     return { status: response.status, data: { ...parsed, ok: response.ok } };
   }, { maxAttempts: 3, baseDelayMs: 700 });
@@ -407,10 +408,11 @@ async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Pro
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify({ phone: phoneNumber }),
-  }, {
-    retryOn401: true,
-    apiBase,
-  });
+    }, {
+      retryOn401: true,
+      apiBase,
+      clientSource: "app:points",
+    });
   const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string; code?: string }>(response);
   if (!response.ok) throw new Error(describePaymentPhoneFailure(response.status, payload));
   return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || phoneNumber);
@@ -1589,6 +1591,9 @@ function SubscriptionSection({
           <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
             30일 이용권 상품과 원화 결제 조건을 확인하세요.
           </p>
+          <p className="mt-2 text-[12.5px] font-semibold text-[#ffe8a3]">
+            이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 허용된 월정석 정책만 사용할 수 있습니다.
+          </p>
         </div>
 
         {/* 핵심 혜택 callout */}
@@ -1626,7 +1631,7 @@ function SubscriptionSection({
           <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 3,000원/5,000원/10,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 서비스를 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 허용된 기능 접근 권한으로만 이용되며, 더 높은 상품의 결제 수단이 아닙니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
@@ -3107,11 +3112,12 @@ export default function PointsPage() {
         }, {
           retryOn401: true,
           apiBase,
+          clientSource: "app:points",
         });
         // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
         const parsed = await safeParseJson<MeResponse>(res);
         return { status: res.status, data: { ...parsed, ok: res.ok } };
-      }, { maxAttempts: 3, baseDelayMs: 700 });
+      }, { maxAttempts: 2, baseDelayMs: 700 });
 
       const response = { status: attempt.status, ok: attempt.data.ok === true, statusText: "" };
       if (response.status === 401 || response.status === 403) {
@@ -3276,22 +3282,10 @@ export default function PointsPage() {
       return;
     }
     const isAdminSession = authUser?.role === "admin" && isFlowerAdminSessionClient();
-    if (!isAdminSession) {
-      const cachedSnapshot = readSubscriptionSnapshotForUser();
-      if (cachedSnapshot) {
-        const snapshotSubscription = normalizeSubscriptionStatusFromPayload({
-          tier: cachedSnapshot.tier,
-          isActive: cachedSnapshot.state === "active",
-          expiresAt: cachedSnapshot.expiresAt,
-          status: cachedSnapshot.state === "active" ? "active" : "inactive",
-          source: cachedSnapshot.source,
-        });
-        if (snapshotSubscription) {
-          setSubscription((prev) => mergeSubscriptionState(prev, snapshotSubscription));
-        }
-        return;
-      }
-    }
+    // /api/payments/me already returns the canonical subscription snapshot and
+    // monthly credit state. Normal users must not issue a second status request
+    // during the same shop entry; keep the legacy status fallback for admin tools.
+    if (!isAdminSession) return;
     const flowerAdminToken = isAdminSession ? getFlowerAdminTokenClient() : "";
     const adminHeaders: Record<string, string> = flowerAdminToken ? {
       "x-admin-token": flowerAdminToken,
@@ -3305,6 +3299,7 @@ export default function PointsPage() {
     }, {
       retryOn401: true,
       apiBase,
+      clientSource: "app:points",
     })
       .then(async (r) => {
         const data = await safeParseJson<Record<string, unknown>>(r);

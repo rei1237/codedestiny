@@ -70,6 +70,8 @@ function buildBenefits(plan: PassPlan, coverageKRW: number | null): string[] {
 
 type PurchaseState = { tier: string; phase: "idle" | "purchasing" | "verifying" };
 
+const APP_PASS_PURCHASE_DISABLED = true;
+
 export default function AppPassStoreClient() {
   const [products, setProducts] = useState<Record<string, AppProductDetails>>({});
   const [coverage, setCoverage] = useState<Record<string, number | null>>({});
@@ -99,7 +101,7 @@ export default function AppPassStoreClient() {
     setCoverage(coverageByTier);
 
     // 브리지 설치 직후에는 아직 안 붙어 있을 수 있다.
-    if (!isNativeBillingReady()) {
+    if (APP_PASS_PURCHASE_DISABLED || !isNativeBillingReady()) {
       setNativeReady(false);
       setLoadingProducts(false);
       return;
@@ -118,6 +120,10 @@ export default function AppPassStoreClient() {
   }, [loadProducts]);
 
   const buy = useCallback(async (plan: PassPlan) => {
+    if (APP_PASS_PURCHASE_DISABLED) {
+      setMessage("이용권 신규 구매는 현재 웹 PG 결제 또는 허용된 월정석 정책으로만 진행할 수 있습니다.");
+      return;
+    }
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
     if (purchase.phase !== "idle") return;
     setMessage("");
@@ -200,8 +206,8 @@ export default function AppPassStoreClient() {
     <section className="grid gap-3 px-4 pb-6" aria-label="이용권 구매">
       {!nativeReady ? (
         <div className="cd-app-surface p-4">
-          <p className="cd-app-heading">앱 결제를 준비하지 못했습니다</p>
-          <p className="cd-app-body mt-2">Google Play 서비스 연결을 확인한 뒤 앱을 다시 시작해 주세요.</p>
+          <p className="cd-app-heading">Google Play 이용권 신규 구매는 중단되었습니다.</p>
+          <p className="cd-app-body mt-2">이용권 상품은 현재 웹 PG 결제 또는 허용된 월정석 정책으로만 구매할 수 있습니다.</p>
           <button
             type="button"
             onClick={() => void loadProducts()}
@@ -218,7 +224,7 @@ export default function AppPassStoreClient() {
         : PASS_PLANS.map((plan, index) => {
           const detail = products[plan.productId];
           const busy = purchase.tier === plan.passTier;
-          const disabled = purchase.phase !== "idle" || !detail;
+          const disabled = APP_PASS_PURCHASE_DISABLED || purchase.phase !== "idle" || !detail;
           return (
             <article
               key={plan.passTier}

@@ -49,7 +49,6 @@ import {
   upsertPaidContentUnlock,
 } from "../lib/content-unlocks.js";
 import {
-  canUseByPass,
   normalizePassTier,
   PASS_LIMITS,
   HONEY_PASS_POLICY,
@@ -64,6 +63,13 @@ import {
   PROFILE_CARD_MUTATION_ACTIONS,
 } from "../lib/profile-card-mutation-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
+import {
+  isPassLikeProductType,
+  resolveCanonicalEntitlement,
+  resolveFeatureAccessPolicy,
+  resolveServerProductType,
+} from "../lib/entitlement-policy.js";
+import "../lib/access-state.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
@@ -281,8 +287,10 @@ const BILLING_BALANCE_CACHE_MAX_ENTRIES = 2500;
 const billingBalanceCache = globalThis.__billingBalanceCache
   || (globalThis.__billingBalanceCache = {
     entries: new Map(),
+    inFlight: new Map(),
     lastPruneAt: 0,
   });
+billingBalanceCache.inFlight ||= new Map();
 
 function invalidateBillingBalanceCacheForUser(userId) {
   const uid = String(userId || "").trim();
@@ -295,6 +303,7 @@ function invalidateBillingBalanceCacheForUser(userId) {
       removed += 1;
     }
   }
+  try { globalThis.__accessStateCache?.invalidateForUser?.(uid); } catch {}
   return removed;
 }
 billingBalanceCache.invalidateForUser = invalidateBillingBalanceCacheForUser;
@@ -572,6 +581,9 @@ function resolveTierPassUsageSnapshot(profileSubscription = {}, entitlement = {}
 }
 
 function resolveActivePassPolicyWithProfileFallback(user = {}) {
+  // Compatibility name retained for callers; canonical entitlement policy is
+  // authoritative and legacy fields cannot elevate it.
+  return resolveCanonicalEntitlement(user || {});
   const entitlement = resolveActivePassPolicy(user || {});
   if (entitlement?.isActive === true) return entitlement;
 
@@ -869,13 +881,30 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   // featureKey별 예외 분기를 두지 말 것 — 과거 `&& !isProfileCardManage`로 제외를 되풀어, 프로필 카드가
   // premium/vvip에게 PASS_COVERED + 결제수단 전부 숨김으로 뜬 뒤 소비 단계에서 거부되는 막다른 길이 됐다.
   // 제외 여부의 정본은 isPassExcludedPricing(=PASS_EXCLUDED_FEATURE_KEYS)뿐이다.
-  const passExcluded = isPassExcludedPricing(pricing);
+  const targetProductType = resolveServerProductType({
+    pricing,
+    paymentType: pricing?.paymentType,
+    serverProductType: pricing?.productType,
+    productId: pricing?.productId || pricing?.featureKey,
+  });
+  const passExcluded = isPassExcludedPricing(pricing) || isPassLikeProductType(targetProductType);
   // Family 공정이용: 프리미엄 상담(300코인 이상)은 이용권 기간당 포함 횟수까지만 커버한다.
   // 소비 단계(consumeTierPassIfAvailable)와 반드시 같은 답을 내야 한다 — 여기서 커버라 해놓고
   // 소비가 거부하면 결제수단이 전부 숨겨진 막다른 길이 된다(바로 위 프로필 카드 사고와 같은 형태).
   const familyPremiumQuota = resolveFamilyPremiumQuota(profileSubscription, activeEntitlement, coinCost);
   const familyQuotaExhausted = familyPremiumQuota.applies && familyPremiumQuota.exhausted;
-  const passCovered = !passExcluded && !familyQuotaExhausted && canUseByPass(activeEntitlement, coinCost);
+  const featureAccess = resolveFeatureAccessPolicy({
+    user: {
+      profileSubscription: {
+        ...(profileSubscription || {}),
+        ...(activeEntitlement || {}),
+      },
+    },
+    pricing,
+    coinCost,
+    passExcluded,
+  });
+  const passCovered = featureAccess.allowed && !familyQuotaExhausted;
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
   // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다.
@@ -4899,11 +4928,34 @@ async function handleBillingSnapshotBalance(request, env) {
     }
   }
 
-  const snapshot = await readBillingSnapshot(request, env, {
-    seedLegacyCredit,
-    includeUnlocks,
-    allowCache: false, // /balance는 아래 자체 표시용 캐시(compact 세그먼트 포함)를 쓰므로 함수 내부 캐시는 끈다.
-  });
+  // Same-user bootstrap requests can arrive from the static shell, React
+  // cache and profile runtime at once. Share only the in-flight read; the
+  // healthy-result TTL cache below remains the source of truth for reuse.
+  // `fresh=1` intentionally has no cache key and therefore never joins this
+  // path.
+  const snapshotInFlightKey = cacheKey
+    ? `${cacheKey}|fresh:${isFresh ? "1" : "0"}`
+    : "";
+  let snapshotPromise = snapshotInFlightKey
+    ? billingBalanceCache.inFlight.get(snapshotInFlightKey)
+    : null;
+  if (!snapshotPromise) {
+    snapshotPromise = readBillingSnapshot(request, env, {
+      seedLegacyCredit,
+      includeUnlocks,
+      allowCache: false, // /balance는 아래 자체 표시용 캐시(compact 세그먼트 포함)를 쓰므로 함수 내부 캐시는 끈다.
+    });
+    if (snapshotInFlightKey) {
+      const joinedPromise = snapshotPromise.finally(() => {
+        if (billingBalanceCache.inFlight.get(snapshotInFlightKey) === joinedPromise) {
+          billingBalanceCache.inFlight.delete(snapshotInFlightKey);
+        }
+      });
+      billingBalanceCache.inFlight.set(snapshotInFlightKey, joinedPromise);
+      snapshotPromise = joinedPromise;
+    }
+  }
+  const snapshot = await snapshotPromise;
   if (snapshot?.degraded === true) {
     // 모달/재조회 경로(?moonlightStone=1)는 조회 실패를 '잔량 0'으로 오인하지 않도록 503으로 표면화한다
     // (클라가 '확인 필요 · 재조회'로 처리). 일반 /balance 호출은 기존처럼 200+degraded 폴백을 유지해
@@ -5655,7 +5707,10 @@ async function handleSajuAnalysisEntitlements(request, env) {
   }
 
   const subscriptionPass = buildMembershipPassFromBillingSnapshot(snapshot);
-  const passAvailable = Boolean(subscriptionPass && canUseByPass(subscriptionPass.entitlement || subscriptionPass, 50));
+  const passAvailable = Boolean(subscriptionPass && resolveFeatureAccessPolicy({
+    user: { profileSubscription: subscriptionPass.entitlement || subscriptionPass },
+    coinCost: 50,
+  }).allowed);
   const hasFullAccess = SAJU_ANALYSIS_CORE_CONTENT_IDS.every((contentId) => unlockedContentSet.has(contentId));
   const purchaseStatus = resolveSajuAnalysisPurchaseStatus(entitlementSnapshot.docs || [], passAvailable);
   const latestUnlockedAt = (entitlementSnapshot.docs || [])
@@ -6390,7 +6445,14 @@ async function handleCheckout(request, env) {
   // delegateToPayments 안에서 재면 통째로 빠진다 — 결제창 앞 실제 대기를 과소보고하게 된다.
   const checkoutStartedAt = Date.now();
   const body = await readJson(request);
-  const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
+  const serverProductType = resolveServerProductType({
+    body,
+    paymentType: body?.paymentType,
+    productId: body?.productId || body?.planId,
+  });
+  const isSubscription = isPassLikeProductType(serverProductType)
+    || Boolean(body?.subscriptionTier)
+    || String(body?.paymentType || "").toLowerCase() === "subscription";
   let delegatedBody = body;
   if (!isSubscription) {
     // 결제수단을 DIRECT_KRW 로 명시했더라도 이용권 커버 검사를 건너뛰지 않는다 — 여기가 카드 주문이
@@ -6452,7 +6514,14 @@ async function replaceConfirmAuthFailureMessage(response) {
 
 async function handleConfirm(request, env) {
   const body = await readJson(request);
-  const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
+  const serverProductType = resolveServerProductType({
+    body,
+    paymentType: body?.paymentType,
+    productId: body?.productId || body?.planId,
+  });
+  const isSubscription = isPassLikeProductType(serverProductType)
+    || Boolean(body?.subscriptionTier)
+    || String(body?.paymentType || "").toLowerCase() === "subscription";
   const hasPaymentVerificationPayload = Boolean(body?.impUid || body?.paymentId || body?.merchantUid || body?.merchant_uid);
   const pricingResult = !isSubscription ? resolvePricingFromBody(body) : null;
   let delegatedBody = body;

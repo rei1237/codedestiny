@@ -354,6 +354,21 @@ const AUTH_USER_IDENTITY_PROJECTION = {
   status: 1,
 };
 
+// Concurrent page bootstrap requests frequently verify the same access token
+// through different routes (/profile, /billing, /auth/me). Keep this strictly
+// in-flight: it reduces duplicate Mongo reads during a burst without caching
+// an authorization result beyond the lifetime of the current lookup.
+const activeUserAuthInFlight = globalThis.__activeUserAuthInFlight
+  || (globalThis.__activeUserAuthInFlight = new Map());
+
+function authProjectionKey(projection) {
+  if (!projection || typeof projection !== "object") return "identity";
+  return Object.keys(projection)
+    .sort()
+    .map((key) => `${key}:${String(projection[key])}`)
+    .join(",");
+}
+
 async function resolveActiveUserAuth(userId, env, userProjection = null) {
   // stateless Worker 풀 초기화 시 무방비 connectDb/findOne이 정착하지 않아 요청이 hang되는 것을
   // 막는다. withMongoRetry가 각 시도를 per-attempt 타임아웃으로 감싸고 일시적 오류를 재연결·재시도한다.
@@ -364,14 +379,29 @@ async function resolveActiveUserAuth(userId, env, userProjection = null) {
   const projection = userProjection
     ? { ...AUTH_USER_IDENTITY_PROJECTION, ...userProjection, _id: 1, status: 1 }
     : AUTH_USER_IDENTITY_PROJECTION;
-  const user = await withMongoRetry(env, () => User.collection.findOne(
-    { _id: new mongoose.Types.ObjectId(userId) },
-    { projection },
-  ));
-  if (!user || isWithdrawnUser(user)) return null;
-  const authResult = normalizeAuthResultFromUser(user);
-  if (userProjection) authResult.authUserDoc = user;
-  return authResult;
+  const lookupKey = `${String(userId || "")}|${authProjectionKey(projection)}`;
+  const existing = activeUserAuthInFlight.get(lookupKey);
+  if (existing) return existing;
+
+  const lookup = (async () => {
+    const user = await withMongoRetry(env, () => User.collection.findOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { projection },
+    ));
+    if (!user || isWithdrawnUser(user)) return null;
+    const authResult = normalizeAuthResultFromUser(user);
+    if (userProjection) authResult.authUserDoc = user;
+    return authResult;
+  })();
+
+  activeUserAuthInFlight.set(lookupKey, lookup);
+  try {
+    return await lookup;
+  } finally {
+    if (activeUserAuthInFlight.get(lookupKey) === lookup) {
+      activeUserAuthInFlight.delete(lookupKey);
+    }
+  }
 }
 
 async function verifyAccessTokenToAuth(token, env, options = {}) {

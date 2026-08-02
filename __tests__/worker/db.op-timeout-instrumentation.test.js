@@ -12,13 +12,13 @@
 
 import { jest } from "@jest/globals";
 
-const pendingTimers = [];
+const pendingResolvers = [];
 const HANG_FOREVER = () => new Promise((resolve) => {
-  pendingTimers.push(setTimeout(resolve, 60000));
+  pendingResolvers.push(resolve);
 });
 
 afterEach(() => {
-  while (pendingTimers.length) clearTimeout(pendingTimers.pop());
+  while (pendingResolvers.length) pendingResolvers.pop()();
 });
 
 // 시도 상한의 하한은 serverSelectionTimeoutMS + 3500 이라, 최소값으로 테스트를 짧게 유지한다.

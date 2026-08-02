@@ -16,12 +16,33 @@ import {
 } from "../lib/app-store-pricing.js";
 import { PASS_LIMITS } from "../lib/profile-limits.js";
 import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
+import { writeSecurityLog } from "../lib/security/index.js";
 
 const GOOGLE_ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 let cachedGoogleAccessToken = null;
 
 function cleanText(value) {
   return String(value || "").trim();
+}
+
+async function rejectGooglePlayPassPurchase(request, env, auth, product) {
+  await writeSecurityLog({
+    env,
+    request,
+    userId: auth?.userId,
+    endpoint: new URL(request.url).pathname,
+    reason: "PASS_PURCHASE_CHANNEL_DISABLED",
+    metadata: {
+      provider: "GOOGLE_PLAY",
+      productId: cleanText(product?.productId),
+      passTier: cleanText(product?.passTier || product?.subscriptionTier),
+    },
+  });
+  return json({
+    ok: false,
+    code: "PASS_PURCHASE_CHANNEL_DISABLED",
+    message: "이용권 신규 구매는 현재 웹 PG 결제 또는 허용된 월정석 정책으로만 진행할 수 있습니다.",
+  }, { status: 403 });
 }
 
 function base64UrlEncode(value) {
@@ -597,10 +618,13 @@ async function handleFreeGrant(request, env) {
 async function handleGoogleIntent(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
-  const isPassPurchase = Boolean(cleanText(body.passTier));
+  const knownPass = findAppStoreProductById(cleanText(body.productId));
+  const isPassPurchase = Boolean(cleanText(body.passTier)) || knownPass?.kind === "pass";
   const product = isPassPurchase
-    ? resolveAppPassPurchaseProduct(body)
+    ? resolveAppPassPurchaseProduct({ ...body, passTier: body.passTier || knownPass?.passTier })
     : resolveProduct(resolvePricing(body), env, body);
+
+  if (product.kind === "pass") return rejectGooglePlayPassPurchase(request, env, auth, product);
 
   if (product.freeInApp) {
     return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
@@ -790,14 +814,19 @@ async function applyEntitlementUpdate({ userId, product, googlePurchase, now }) 
 async function handleGoogleVerify(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
-  const isPassPurchase = Boolean(cleanText(body.passTier));
+  const knownPass = findAppStoreProductById(cleanText(body.productId));
+  const isPassPurchase = Boolean(cleanText(body.passTier)) || knownPass?.kind === "pass";
   const pricing = isPassPurchase
-    ? buildPassPricingShape(resolveAppPassProduct(cleanText(body.passTier)) || {})
+    ? buildPassPricingShape(resolveAppPassProduct(cleanText(body.passTier || knownPass?.passTier)) || {})
     : resolvePricing(body);
-  const product = isPassPurchase ? resolveAppPassPurchaseProduct(body) : resolveProduct(pricing, env, body);
+  const product = isPassPurchase
+    ? resolveAppPassPurchaseProduct({ ...body, passTier: body.passTier || knownPass?.passTier })
+    : resolveProduct(pricing, env, body);
   const requestedProductId = cleanText(body.productId);
   const purchaseToken = cleanText(body.purchaseToken);
   const packageName = cleanText(body.packageName || getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+
+  if (product.kind === "pass") return rejectGooglePlayPassPurchase(request, env, auth, product);
 
   // 앱에서 무료로 통과시키는 저가 콘텐츠는 Play 상품 자체가 없다.
   if (product.freeInApp) {
@@ -918,6 +947,12 @@ async function handleGoogleRestore(request, env) {
           productId,
           productType,
         }, auth);
+        if (product.kind === "pass") {
+          const error = new Error("Google Play pass restore is disabled for new entitlement grants.");
+          error.code = "PASS_PURCHASE_CHANNEL_DISABLED";
+          error.status = 403;
+          throw error;
+        }
         const googlePurchase = await verifyGooglePurchase(env, {
           packageName,
           productId: product.productId,
@@ -977,7 +1012,10 @@ async function handleGoogleRestore(request, env) {
   }).sort({ createdAt: -1 }).limit(200).lean();
   // 복원은 '영구 해금'만 되돌린다. 회당 결제(PER_USE)는 1회 소비로 끝난 거래라
   // 여기서 다시 unlockedFeatures에 넣으면 결제 없이 영구 무료가 되어버린다.
-  const restorableRows = rows.filter((row) => !isPerUsePaidFeatureKey(cleanText(row.featureKey)));
+  const restorableRows = rows.filter((row) => (
+    !isPerUsePaidFeatureKey(cleanText(row.featureKey))
+    && row.paymentType !== "membership_pass"
+  ));
   const featureKeys = Array.from(new Set(restorableRows.map((row) => cleanText(row.featureKey)).filter(Boolean)));
   if (featureKeys.length) {
     await User.findByIdAndUpdate(
@@ -1162,6 +1200,16 @@ async function handleGoogleRtdn(request, env) {
   const payment = await Payment.findOne({ impUid: `google:${tokenHash}` }).lean();
   if (!payment) {
     return json({ ok: true, data: { provider: "GOOGLE_PLAY", ignored: true, reason: "payment_not_found" } });
+  }
+  if (payment.paymentType === "membership_pass" && !notification.voided) {
+    return json({
+      ok: true,
+      data: {
+        provider: "GOOGLE_PLAY",
+        ignored: true,
+        reason: "PASS_PURCHASE_CHANNEL_DISABLED",
+      },
+    });
   }
 
   const packageName = notification.packageName
