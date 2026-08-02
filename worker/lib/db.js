@@ -558,19 +558,23 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   let lastError = null;
   const releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
   const pendingAttemptTasks = new Set();
-  let releaseRequested = false;
+  let admissionReleased = false;
   let operationFinalized = false;
   const finalizeOperation = () => {
-    if (!releaseRequested || operationFinalized || pendingAttemptTasks.size > 0) return;
+    if (operationFinalized || pendingAttemptTasks.size > 0) return;
     operationFinalized = true;
     inFlightOps -= 1;
-    releaseMongoOpSlot();
     if (inFlightOps <= 0 && pendingPoolReset) {
       pendingPoolReset = false;
       lastPoolResetAt = Date.now();
       consecutiveConnectionFailures = 0;
       void resetMongooseConnection();
     }
+  };
+  const releaseAdmission = () => {
+    if (admissionReleased) return;
+    admissionReleased = true;
+    releaseMongoOpSlot();
   };
   inFlightOps += 1;
   try {
@@ -690,7 +694,10 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     }
     throw lastError;
   } finally {
-    releaseRequested = true;
+    // A timed-out driver promise can settle after this request has already
+    // returned. Keep it counted for reset safety, but do not let it reserve an
+    // admission slot and turn every later read into an overload 503.
+    releaseAdmission();
     finalizeOperation();
   }
 }
