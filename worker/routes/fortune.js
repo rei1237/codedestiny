@@ -69,7 +69,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { isActiveStatus, isInactiveStatus } from "../lib/profile-limits.js";
+import { resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
@@ -1431,8 +1432,8 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     const passUser = await User.findById(userId)
       .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
       .lean();
-    const passEntitlement = normalizeHoneyPassEntitlement(passUser || {});
-    if (canUseByPass(passEntitlement, cost)) {
+    const featureAccess = resolveFeatureAccessPolicy({ user: passUser || {}, coinCost: cost });
+    if (featureAccess.allowed) {
       return {
         source: "pass_payload",
         record: {
@@ -1443,7 +1444,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
             requestId,
             accessMethod: "PASS",
             paymentMode: "MEMBERSHIP_PASS",
-            passTier: passEntitlement.passTier || passEntitlement.tier || "",
+            passTier: featureAccess.tier || "",
           },
         },
       };
@@ -5294,7 +5295,7 @@ async function handleSubscriptionStatus(request, env, auth) {
   let points = Number(user.points || 0);
   const plan = PROFILE_SUB_PLANS[tier];
   const now = new Date();
-  const legacyEntitlement = normalizeHoneyPassEntitlement(user || {});
+  const canonicalEntitlement = resolveCanonicalEntitlement(user || {});
 
   let effectiveTier = "free";
   let effectiveExpAt = expAt;
@@ -5356,11 +5357,11 @@ async function handleSubscriptionStatus(request, env, auth) {
     }
   }
 
-  if (legacyEntitlement.isActive) {
-    effectiveTier = legacyEntitlement.tier;
-    effectivePassTier = legacyEntitlement.passTier || legacyEntitlement.tier;
-    effectiveExpAt = toValidDate(legacyEntitlement.expiresAt) || effectiveExpAt;
-    effectiveSource = legacyEntitlement.source || effectiveSource;
+  if (canonicalEntitlement.isActive && canonicalEntitlement.source === "profileSubscription") {
+    effectiveTier = canonicalEntitlement.tier;
+    effectivePassTier = canonicalEntitlement.passTier || canonicalEntitlement.tier;
+    effectiveExpAt = toValidDate(canonicalEntitlement.expiresAt) || effectiveExpAt;
+    effectiveSource = canonicalEntitlement.source || effectiveSource;
   }
 
   const isActive = effectiveTier !== "free";
@@ -5368,7 +5369,7 @@ async function handleSubscriptionStatus(request, env, auth) {
   const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
   const policy = getPlanPolicy(isActive ? effectiveTier : null);
   const passLimit = isActive
-    ? Number(legacyEntitlement.maxCoveredCoin || policy.freeLimit || 0)
+    ? Number(canonicalEntitlement.maxCoveredCoin || policy.freeLimit || 0)
     : Number(policy.freeLimit || 0);
   const membershipCreditBalance = Math.max(0, Math.floor(Number(sub.membershipCreditBalance || 0)));
 

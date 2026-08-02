@@ -6,7 +6,7 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import { KarmaDestinyAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -891,9 +891,9 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     usageAlreadyApplied: billing.usageAlreadyApplied === true,
   };
 
-  const pass = normalizeHoneyPassEntitlement(user || {});
-  if (canUseByPass(pass, pricing.coinPrice)) {
-    return { ok: true, accessType: "pass", paymentId: "", usageAlreadyApplied: false };
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) {
+    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "", usageAlreadyApplied: false };
   }
 
   return { ok: false, reason: "PAYMENT_REQUIRED" };

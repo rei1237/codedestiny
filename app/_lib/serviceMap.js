@@ -1044,19 +1044,19 @@ export const SERVICE_MAP = {
   },
   "tarot/year": {
     component: FeatureLandingPage,
-    title: "십이지신 천운 타로 - 열두 달의 수호 리듬",
+    title: "십이지신 천운 타로 - 1년의 방향과 전환점",
     h1: "십이지신 천운 타로",
-    description: "열두 수호 기운과 12장의 카드를 엮어 한 해의 상승 구간, 속도 조절이 필요한 달, 월별 선택을 읽습니다.",
-    seoText: "십이지신 천운 타로는 월별 수호 리듬과 카드 상징을 연결해 한 해의 흐름과 조율 포인트를 정리합니다.",
+    description: "열두 수호 기운과 12장의 카드를 엮어 올해의 핵심 카드, 월별 흐름, 분야별 운세와 전환점을 읽습니다.",
+    seoText: "십이지신 천운 타로는 타로 카드와 동양적 수호 상징을 연결해 한 해의 선택 기준과 현실적인 행운 행동을 정리합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/12animals.webp",
-    landingPoints: ["열두 달의 수호 리듬", "상승과 속도 조절의 달", "월별 선택의 작은 의식"],
+    landingPoints: ["올해의 핵심 카드와 1년 총운", "1월부터 12월까지 월별 리딩", "금전·일·관계·건강·성장운", "전환점과 행운 행동"],
     localized: {
       en: {
-        title: "Twelve Zodiac Heavenly Luck Tarot - guardian rhythm for the year",
+        title: "Twelve Zodiac Heavenly Luck Tarot - your yearly direction",
         h1: "Twelve Zodiac Heavenly Luck Tarot",
-        description: "Twelve guardian energies and twelve cards reveal the rising months, the months that need pace control, and monthly choices for the year.",
-        seoText: "Twelve Zodiac Heavenly Luck Tarot connects monthly guardian rhythms with card symbols to organize the flow of the year and its adjustment points.",
-        landingPoints: ["Guardian rhythm of twelve months", "Months of rise and pace control", "Small monthly choice ritual"],
+        description: "Twelve guardian energies and cards reveal the year's core theme, monthly flow, category guidance, and turning points.",
+        seoText: "Twelve Zodiac Heavenly Luck Tarot connects eastern guardian symbols with tarot to turn the year's choices into a practical direction guide.",
+        landingPoints: ["Core card and yearly overview", "Twelve monthly readings", "Money, work, love, health, and growth", "Turning points and lucky actions"],
       },
     },
     keywords: [

@@ -208,6 +208,20 @@ const RUNTIME_KEY_MATRIX_CACHE = {
   value: null,
 };
 
+const CLIENT_API_TRACE_ALLOWED_SOURCES = new Set([
+  "static:index-session-cache",
+  "app:user-session-cache",
+  "app:auth-store",
+  "app:billing-client",
+  "app:points",
+  "app:points-history",
+  "app:me",
+  "legacy:destiny-profile",
+  "feature:coin-gate",
+]);
+const CLIENT_API_TRACE_STARTS = new WeakMap();
+const CLIENT_API_TRACE_LOGGED = new WeakSet();
+
 let runtimeKeyMatrixModulePromise = null;
 
 function isTruthyLike(value) {
@@ -226,6 +240,49 @@ function nowMs() {
 function shouldCollectRouteMetrics(env) {
   if (!env) return false;
   return isTruthyLike(getEnv(env, "WORKER_ROUTE_METRICS")) || isTruthyLike(getEnv(env, "WORKER_ROUTE_TRACE"));
+}
+
+function shouldCollectClientApiTrace(env) {
+  return isTruthyLike(getEnv(env, "WORKER_CLIENT_API_TRACE"));
+}
+
+function getClientApiTraceSource(request) {
+  const source = String(request?.headers?.get("x-code-destiny-client") || "").trim().toLowerCase();
+  return CLIENT_API_TRACE_ALLOWED_SOURCES.has(source) ? source : "";
+}
+
+function logClientApiTrace(request, response) {
+  if (!request || !response || CLIENT_API_TRACE_LOGGED.has(request)) return;
+  const startedAt = CLIENT_API_TRACE_STARTS.get(request);
+  const source = getClientApiTraceSource(request);
+  if (!Number.isFinite(startedAt) || !source) return;
+
+  CLIENT_API_TRACE_LOGGED.add(request);
+  let pathname = "";
+  try {
+    pathname = new URL(request.url).pathname;
+  } catch {
+    pathname = "unknown";
+  }
+
+  const status = Number(response.status) || 0;
+  const payload = {
+    event: "client-api-trace",
+    clientSource: source,
+    method: String(request.method || "GET").toUpperCase(),
+    path: pathname,
+    status,
+    requestId: String(request.headers.get("x-request-id") || request.headers.get("cf-ray") || "").slice(0, 120),
+    durationMs: Math.max(0, Math.round(nowMs() - startedAt)),
+    retryable: status === 0 || status === 429 || status === 503 || status === 504 || status >= 500,
+  };
+
+  try {
+    const logger = status >= 500 ? console.warn : console.log;
+    logger("[client-api-trace]", JSON.stringify(payload));
+  } catch {
+    // Observability must never change the response path.
+  }
 }
 
 function recordRouteMetrics(routeName, durationMs, statusCode = 200, errored = false) {
@@ -426,6 +483,7 @@ const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => im
 const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import("./routes/kasi.js"), "handleKasiRoutes");
 const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import("./routes/user.js"), "handleUserRoutes");
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
+const handleAccessStateRoutes = createLazyRouteHandler("./routes/access-state.js", () => import("./routes/access-state.js"), "handleAccessStateRoutes", "api/me/access-state");
 const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
 const handleAstrologyAiRoutes = createLazyRouteHandler("./routes/astrology-ai.js", () => import("./routes/astrology-ai.js"), "handleAstrologyAiRoutes");
 const handleNeoOperationRoomRoutes = createLazyRouteHandler("./routes/neo-operation-room.js", () => import("./routes/neo-operation-room.js"), "handleNeoOperationRoomRoutes", "api/neo-operation-room");
@@ -640,7 +698,7 @@ function getCorsHeaders(request, env) {
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": request.headers.get("Access-Control-Request-Headers")
-      || "Content-Type, Authorization, X-Admin-Token, X-Admin-Subscription-Tier",
+      || "Content-Type, Authorization, X-Admin-Token, X-Admin-Subscription-Tier, X-Code-Destiny-Client",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin",
   };
@@ -654,10 +712,12 @@ function jsonResponse(request, env, body, init = {}) {
     headers.set(key, value);
   }
 
-  return new Response(JSON.stringify(body), {
+  const response = new Response(JSON.stringify(body), {
     ...init,
     headers,
   });
+  logClientApiTrace(request, response);
+  return response;
 }
 
 function resolveHealthBool(env, keys = []) {
@@ -775,6 +835,7 @@ function withCorsHeaders(request, env, response) {
   }
   if (!response.headers.has("Cache-Control")) applyNoCacheHeaders(response.headers);
   if (!response.headers.has("Pragma")) response.headers.set("Pragma", "no-cache");
+  logClientApiTrace(request, response);
   return response;
 }
 
@@ -943,6 +1004,9 @@ const PAYMENT_RECONCILE_CRON = "*/10 * * * *";
 
 export default {
   async fetch(request, env, ctx) {
+    if (shouldCollectClientApiTrace(env) && getClientApiTraceSource(request)) {
+      CLIENT_API_TRACE_STARTS.set(request, nowMs());
+    }
     try {
       const url = new URL(request.url);
 
@@ -1542,6 +1606,10 @@ export default {
 
       if (url.pathname === "/api/profile" || url.pathname.startsWith("/api/profile/")) {
         return withCorsHeaders(request, env, await handleProfileRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/me/access-state") {
+        return withCorsHeaders(request, env, await handleAccessStateRoutes(request, env));
       }
 
       if (url.pathname === "/api/subscriptions" || url.pathname.startsWith("/api/subscriptions/")) {

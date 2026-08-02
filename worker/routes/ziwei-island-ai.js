@@ -11,7 +11,7 @@ import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation }
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -257,8 +257,8 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     if (storedHash && storedHash !== inputHash) return { ok: false, reason: "INVALID_INPUT", message: "같은 요청 키로 다른 상담 정보를 사용할 수 없습니다." };
     return { ok: true, accessType: "paid", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
   }
-  const pass = normalizeHoneyPassEntitlement(user || {});
-  if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", paymentId: "" };
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "" };
   if (hasMonthlyCredit(user, pricing.membershipCreditCost)) return { ok: true, accessType: "subscription", paymentId: "" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
@@ -270,8 +270,8 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
   if (!hasEvidencePayload) return null;
   if (/usage[-_]pass/.test(signal)) return null;
   if (signal.includes("pass") || signal.includes("membership_pass")) {
-    const pass = normalizeHoneyPassEntitlement(user || {});
-    if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", paymentId: tokens[0] || "", prepaid: true, evidenceType: "pass" };
+    const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+    if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: tokens[0] || "", prepaid: true, evidenceType: "pass" };
   }
   const paymentClauses = billingTokenClauses(tokens);
   if (paymentClauses.length) {

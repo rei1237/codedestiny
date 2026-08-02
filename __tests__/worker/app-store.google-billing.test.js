@@ -48,6 +48,10 @@ jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
   requireAuth: mockRequireAuth,
 }));
 
+jest.unstable_mockModule("../../worker/lib/security/index.js", () => ({
+  writeSecurityLog: jest.fn(async () => null),
+}));
+
 const mockPaymentFindOne = jest.fn();
 const mockPaymentCreate = jest.fn();
 const mockPaymentFind = jest.fn();
@@ -295,7 +299,11 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
       productId: "cd_pass_standard_30d",
       purchaseToken: "tok-pass-1",
     }));
-    expect(status).toBe(200);
+    expect(status).toBe(403);
+    expect(payload.code).toBe("PASS_PURCHASE_CHANNEL_DISABLED");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+    return;
 
     const doc = mockPaymentCreate.mock.calls[0][0];
     expect(doc.paymentAmount).toBe(13000);

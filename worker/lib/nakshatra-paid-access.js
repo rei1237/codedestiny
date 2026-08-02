@@ -19,7 +19,7 @@ import mongoose from "mongoose";
 import { connectDb, isTransientMongoError, withMongoRetry } from "./db.js";
 import { isAuthDbInfraError } from "./auth.js";
 import { User, Payment, PointHistory, MonthlyCreditLedger } from "./models.js";
-import { normalizeHoneyPassEntitlement, canUseByPass } from "./profile-limits.js";
+import { resolveFeatureAccessPolicy } from "./entitlement-policy.js";
 
 const ID_MAX = 180;
 
@@ -124,7 +124,8 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
     if (String(user.role || "").toLowerCase() === "admin") {
       return { proven: true, source: "admin", reason: "" };
     }
-    if (canUseByPass(normalizeHoneyPassEntitlement(user), Number(coinPrice) || 0)) {
+    const featureAccess = resolveFeatureAccessPolicy({ user, coinCost: Number(coinPrice) || 0 });
+    if (featureAccess.allowed) {
       return { proven: true, source: "pass", reason: "" };
     }
 

@@ -12,7 +12,7 @@ import {
 } from "../lib/models.js";
 import {
   findActivePaidContentUnlock,
-  getUnlockedContentKeys,
+  getUnlockedContentSnapshot,
   upsertContentUnlock,
 } from "../lib/content-unlocks.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
@@ -78,6 +78,16 @@ function normalizeServiceKey(value, contentKey = "") {
   return CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
 }
 
+function normalizeServiceKeys(value) {
+  const rawKeys = String(value || "")
+    .split(",")
+    .map((key) => sanitizeAccessKey(key, 80))
+    .filter(Boolean);
+  const knownKeys = rawKeys.filter((key) => Object.prototype.hasOwnProperty.call(KNOWN_CONTENT_KEYS_BY_SERVICE, key));
+  if (knownKeys.length) return Array.from(new Set(knownKeys));
+  return [rawKeys[0] || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU];
+}
+
 function normalizeUnlockSource(value) {
   const source = String(value || "").trim().toLowerCase();
   if (source === "coin") return CONTENT_ENTITLEMENT_SOURCES.COIN;
@@ -105,10 +115,13 @@ function toIsoString(value) {
   return date.toISOString();
 }
 
-function createLockedMap(serviceKey) {
+function createLockedMap(serviceKeys) {
   const unlocks = {};
-  for (const contentKey of KNOWN_CONTENT_KEYS_BY_SERVICE[serviceKey] || []) {
-    unlocks[contentKey] = { unlocked: false };
+  const keys = Array.isArray(serviceKeys) ? serviceKeys : [serviceKeys];
+  for (const serviceKey of keys) {
+    for (const contentKey of KNOWN_CONTENT_KEYS_BY_SERVICE[serviceKey] || []) {
+      unlocks[contentKey] = { unlocked: false };
+    }
   }
   return unlocks;
 }
@@ -375,10 +388,12 @@ async function handleUnlocks(request, env) {
   const auth = await requireUserFromRequest(request, env);
   const userId = String(auth.userId || "");
   const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
-  const serviceKey = sanitizeAccessKey(
+  const serviceKeyParam = sanitizeAccessKey(
     url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
     80,
   );
+  const serviceKeys = normalizeServiceKeys(serviceKeyParam);
+  const serviceKey = serviceKeys.join(",");
   const includeBackfill = url.searchParams.get("backfill") === "1"
     || url.searchParams.get("includeBackfill") === "1";
 
@@ -390,14 +405,25 @@ async function handleUnlocks(request, env) {
   // (verifyProfileOwnership의 404 등 비-일시적 에러는 재시도 없이 즉시 전파된다.)
   const activeDocs = await withMongoRetry(env, async () => {
     await verifyProfileOwnership({ userId, profileId });
-    const docs = await getUnlockedContentKeys({ userId, profileId, serviceKey });
-    const backfilledDocs = includeBackfill
-      ? await backfillMissingUnlocks({ userId, profileId, serviceKey, existingDocs: docs })
-      : [];
+    const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
+    const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+    const backfilledDocs = [];
+    if (includeBackfill) {
+      for (const currentServiceKey of serviceKeys) {
+        const serviceDocs = docs.filter((doc) => String(doc?.serviceKey || "") === currentServiceKey);
+        const created = await backfillMissingUnlocks({
+          userId,
+          profileId,
+          serviceKey: currentServiceKey,
+          existingDocs: serviceDocs,
+        });
+        backfilledDocs.push(...created);
+      }
+    }
     return docs.concat(backfilledDocs);
   });
 
-  const unlocks = createLockedMap(serviceKey);
+  const unlocks = createLockedMap(serviceKeys);
   const unlockedContentKeys = [];
 
   for (const doc of activeDocs) {
@@ -417,6 +443,7 @@ async function handleUnlocks(request, env) {
     ok: true,
     profileId,
     serviceKey,
+    serviceKeys,
     unlockedContentKeys: Array.from(new Set(unlockedContentKeys)),
     unlocks,
   });

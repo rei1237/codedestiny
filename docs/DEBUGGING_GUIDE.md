@@ -1,0 +1,111 @@
+# Debugging Guide
+
+작업 중 취약점, 보안 위험, 재현 가능한 버그를 발견하면 즉시 사용자에게 보고하고, 필요하면 다른 세션에서 분리 디버깅할 수 있도록 위험도와 짧은 제안도 함께 남긴다.
+
+## 간헐적 503 폭주
+
+- 증상: 로그인/결제/API 요청이 간헐적으로 503, timeout, temporarily unavailable을 반환한다.
+- 가능한 원인: MongoDB pool checkout 지연, server selection timeout, Worker isolate I/O 격리, 중첩 retry/timeout, route-level DB 선검사 증가.
+- 확인할 로그: Worker console, `worker/lib/db.js` Mongo op counter, `/api/health/route-metrics`, Cloudflare 5xx logs.
+- 확인할 파일: `worker/lib/db.js`, `worker/lib/auth.js`, `worker/routes/billing.js`, `worker/index.js`.
+- 안전한 재현 방법: 로컬 mock DB 또는 staging에서 동일 endpoint를 제한된 동시성으로 반복. 운영 부하 테스트 금지.
+- mock 테스트 방법: DB helper를 stub하고 timeout/error branch를 unit test로 재현.
+- 수정 전 주의사항: retry wrapper를 새로 감싸기 전에 기존 `withMongoRetry`, timeout, request memo를 확인한다.
+
+## 결제 성공 후 이용권 미반영
+
+- 증상: PortOne 결제는 성공했지만 이용권, 월정석, unlock, 결과 접근이 열리지 않는다.
+- 가능한 원인: webhook 미수신/검증 실패, confirm 실패, 금액/featureKey mismatch, orderState stuck, 월정석 lot 차감/복구 실패, entitlement upsert 누락.
+- 확인할 로그: `Payment`, `PaymentWebhookEvent`, `PaymentFailureLog`, `PointHistory`, `MonthlyCreditLedger`, `ContentEntitlement`, Worker payment logs.
+- 확인할 파일: `worker/routes/payments.js`, `worker/routes/billing.js`, `worker/lib/portone.js`, `worker/lib/payment-reconcile-task.js`, `worker/lib/content-unlocks.js`.
+- 안전한 재현 방법: sandbox/mock 결제로 `prepare -> complete/webhook -> access` 흐름만 검증.
+- mock 테스트 방법: PortOne fetch를 fake response로 주입하고 DB는 test DB 또는 mocked model 사용.
+- 수정 전 주의사항: 운영 결제 취소/환불은 승인 전 실행 금지. 사용자 손해 방지를 위해 권한 지급/환불 가능성을 함께 검토한다.
+
+## 로그인 만료 / 권한 확인 실패
+
+- 증상: 로그인 상태가 풀리거나 유료 기능에서 auth_required, 401, 403이 발생한다.
+- 가능한 원인: JWT 만료/refresh 실패, cookie SameSite/Secure 설정, OAuth callback mismatch, profile snapshot stale, Worker auth route와 legacy route 혼용.
+- 확인할 로그: `/api/auth/session`, `/api/session`, Worker auth logs, browser cookie/storage.
+- 확인할 파일: `worker/routes/auth.js`, `worker/lib/auth.js`, `worker/lib/jwt.js`, `app/_lib/auth-client.ts`, `app/_lib/auth-storage.ts`, `middleware.ts`.
+- 안전한 재현 방법: test user로 local auth flow, expired token mock, OAuth callback URL dry check.
+- mock 테스트 방법: signed fake token 또는 auth helper stub으로 권한 branch 확인.
+- 수정 전 주의사항: 운영 OAuth 설정이나 JWT secret 변경은 승인 없이는 금지.
+
+## 모바일에서 특정 페이지가 메인으로 튕김
+
+- 증상: 모바일 WebView 또는 브라우저에서 특정 기능 진입 시 `/` 또는 앱 store/main으로 돌아간다.
+- 가능한 원인: static route redirect, Capacitor pruned route, app payment guard, back handler, legacy static shell action mapping, `_redirects` canonical redirect.
+- 확인할 로그: browser console, route navigation logs, Network 301/308, Android WebView logs.
+- 확인할 파일: `public/_redirects`, `app/_lib/route-auth.ts`, `app/_lib/backHandler.ts`, `lib/navigation/backHandler.ts`, `app/app/**`, `scripts/app-payment-guard.js`, `js/core/checkout-entry.js`.
+- 안전한 재현 방법: local mobile viewport + no real payment; Capacitor runtime flag mock.
+- mock 테스트 방법: `NEXT_PUBLIC_RUNTIME_TARGET=mobile-app` 또는 runtime guard stub.
+- 수정 전 주의사항: `/points` 프로그램 이동은 앱에서 빈 화면 위험이 있다. 결제 모달 entry를 우선 확인한다.
+
+## LLM 상담 준비 중 문제
+
+- 증상: “상담 준비 중 문제가 생겼어요”, `LLM_ERROR`, `GENERATION_FAILED`, 503/409.
+- 가능한 원인: LLM key/binding 없음, provider timeout, schema parse 실패, fallbackMinChars 미달, idempotency collision, 결제/권한 선행 실패.
+- 확인할 로그: `[llm provider_call]`, `[llm token_usage]`, route-specific generation logs, 상담 collection status.
+- 확인할 파일: `lib/llm-client.ts`, `worker/lib/gemini.js`, `worker/lib/structured-consultation.js`, feature route under `worker/routes/*-ai.js`.
+- 안전한 재현 방법: 실제 LLM 호출 없이 fake provider response로 route branch 검증.
+- mock 테스트 방법: `fetchImpl`, fake `env.AI.run`, route test hook 사용.
+- 수정 전 주의사항: 실제 LLM 호출 금지. 유료 route면 실패 시 차감/권한 복구를 함께 확인한다.
+
+## PDF / 결과 생성 실패
+
+- 증상: 결제 후 PDF 버튼 미노출, PDF 렌더 실패, 다운로드 실패, archive 조회 실패.
+- 가능한 원인: 로컬 계산 JSON 누락, LLM 보강 실패, PDF runtime 오류, archive route alias mismatch, 권한 record 누락.
+- 확인할 로그: AI route generation logs, `/api/billing/pdf-archive/*`, browser console, PDF rendering errors.
+- 확인할 파일: `worker/lib/pdf-runtime.js`, `lib/pdf/export-result-pdf.ts`, `worker/lib/premium-chapter-json-contract.js`, feature result pages.
+- 안전한 재현 방법: fixture JSON과 mock LLM text로 PDF render만 검증.
+- mock 테스트 방법: 저장된 fixture/result object로 export function 실행.
+- 수정 전 주의사항: 인생의 책 PDF 순서(권한 확인 → 로컬 계산 JSON → LLM 보강 → PDF 렌더)를 바꾸지 않는다.
+
+## MongoDB 인덱스 문제
+
+- 증상: 조회 지연, duplicate key, TTL 미작동, 월정석 만료/LLM cache cleanup 실패.
+- 가능한 원인: migration 미실행, TTL drift, unique index mismatch, legacy model과 Worker model index 차이.
+- 확인할 로그: Mongo duplicate key error, slow query, migration output.
+- 확인할 파일: `worker/lib/models.js`, `server/models/**`, `app/_lib/models/**`, `scripts/migrations/**`.
+- 안전한 재현 방법: local/test DB에서 migration `--check` 또는 createIndexes dry run만 수행.
+- mock 테스트 방법: model schema index snapshot test 또는 migration script `--check`.
+- 수정 전 주의사항: 운영 DB migration/write는 승인 없이 실행 금지.
+
+## R2 에셋 경로 문제
+
+- 증상: 이미지/폰트/음악 404, CORS 오류, 느린 로딩, 모바일에서 이미지 미표시.
+- 가능한 원인: object key encoding, custom domain route, CORS Range header, cache metadata, manifest mismatch, public/local fallback 누락.
+- 확인할 로그: Network status/CORS, Cloudflare R2 metrics, browser console.
+- 확인할 파일: `lib/r2-public-url.ts`, `docs/r2-assets-cache-strategy.md`, `docs/music-player.md`, `app/music/_data/musicManifest.ts`, `scripts/generate-music-manifest.ts`, `_headers`.
+- 안전한 재현 방법: 공개 URL HEAD/GET 확인. secret credential 없이 public access만 확인.
+- mock 테스트 방법: manifest entry를 local fixture로 두고 URL builder unit test.
+- 수정 전 주의사항: R2 secret 값 기록 금지. 대량 preload 금지.
+
+## 대용량 이미지/오디오로 인한 모바일 성능 저하
+
+- 증상: LCP 악화, 첫 화면 지연, 스크롤 버벅임, 오디오 첫 재생 지연.
+- 가능한 원인: 숨겨진 탭 이미지 preload, R2 원본 이미지 직접 로딩, 음악 프록시 경유, IntersectionObserver와 `loading="lazy"` 중첩, service worker/cache stale.
+- 확인할 로그: DevTools Network/Performance, Lighthouse/PSI reports, `reports/**`.
+- 확인할 파일: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`, `app/music/**`, `lib/music-access-policy.js`, `_headers`.
+- 안전한 재현 방법: mobile viewport, throttled network, no production writes.
+- mock 테스트 방법: asset manifest fixture + canvas/image request count test.
+- 수정 전 주의사항: 공용 모바일 래퍼를 재디자인하지 말고 해당 기능 자산 로딩만 최소 수정한다.
+
+## Cloudflare 빌드 실패
+
+- 증상: Pages build fail, Worker dry-run fail, `_next/static` 404, dist missing version/header.
+- 가능한 원인: Node version mismatch, static export incompatibility, env 누락, double deployment, cache stale, Worker bundle limit, secret sync failure.
+- 확인할 로그: Cloudflare Pages build log, GitHub Actions, `dist/version.json`, `dist/_headers`.
+- 확인할 파일: `package.json`, `next.config.mjs`, `wrangler.toml`, `worker/wrangler.toml`, `scripts/build-cf-main.mjs`, `scripts/deploy-pages.mjs`, `docs/deploy-cache.md`.
+- 안전한 재현 방법: 로컬 `npm run build:cf`, `npm run build:worker` dry-run.
+- mock 테스트 방법: deploy scripts dry-run 또는 build artifact checks only.
+- 수정 전 주의사항: 운영 배포, secret sync, purge everything은 사용자 승인 후 진행한다.
+
+## 2026-08 Mongo pool burst 대응
+
+- `wrangler tail`에서 `/api/profile`, `/api/billing/balance`, `/api/billing/coin-gate`가 같은 짧은 구간에 중복 호출되는지 먼저 확인한다.
+- `[db-op-timeout]`의 `checkOutFailed`, `maxCheckoutWaitMs`, `inFlightOps`를 함께 본다. 저장 용량이 충분해도 connection pool checkout 포화로 503이 발생할 수 있다.
+- `Possible EventEmitter memory leak detected`가 반복되면 timeout으로 종료된 Mongo 작업이 실제로 취소되지 않고 남아 있는지 확인한다. `Promise.race` timeout은 underlying query를 자동 취소하지 않는다.
+- 동일 사용자 auth/snapshot 조회는 in-flight single-flight로 합치고, Mongo 작업 admission을 `MONGO_MAX_IN_FLIGHT_OPS`와 `MONGO_OP_ADMISSION_TIMEOUT_MS`로 제한한다.
+- 복구 검증은 결제/LLM 실호출 없이 mock 또는 dry-run으로 진행하고, 배포 후 tail에서 checkout 실패율·503율·중복 호출 수를 다시 비교한다.

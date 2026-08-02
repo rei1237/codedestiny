@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
@@ -537,6 +537,28 @@ export default function PointHistoryPage() {
   const [activeTab, setActiveTab] = useState<TabId>("all");
 
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+  const paymentsMeInFlightRef = useRef<Promise<Response> | null>(null);
+
+  const fetchPaymentsMe = useCallback(async () => {
+    if (!paymentsMeInFlightRef.current) {
+      const requestPromise = authFetch(`${apiBase}/api/payments/me`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      }, {
+        retryOn401: true,
+        apiBase,
+        clientSource: "app:points-history",
+      });
+      let trackedPromise: Promise<Response>;
+      trackedPromise = requestPromise.finally(() => {
+        if (paymentsMeInFlightRef.current === trackedPromise) paymentsMeInFlightRef.current = null;
+      });
+      paymentsMeInFlightRef.current = trackedPromise;
+    }
+    const response = await paymentsMeInFlightRef.current;
+    return response.clone();
+  }, [apiBase]);
 
   useEffect(() => {
     const refreshLocale = () => setLang(getCurrentLoadingLocale());
@@ -551,14 +573,7 @@ export default function PointHistoryPage() {
 
   const fetchPointsSection = useCallback(async () => {
     try {
-      const res = await authFetch(`${apiBase}/api/payments/me`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
+      const res = await fetchPaymentsMe();
       if (res.status === 401 || res.status === 403) {
         clearClientAuthState();
         router.replace("/login?next=%2Fpoints%2Fhistory");
@@ -587,18 +602,11 @@ export default function PointHistoryPage() {
     } catch (e: unknown) {
       setPointsError(friendlyErrorMessage(e, copy.pointLoadFailed));
     }
-  }, [apiBase, copy, router]);
+  }, [copy, fetchPaymentsMe, router]);
 
   const fetchPaymentsSection = useCallback(async () => {
     try {
-      const res = await authFetch(`${apiBase}/api/payments/me`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
+      const res = await fetchPaymentsMe();
       if (res.status === 401 || res.status === 403) {
         clearClientAuthState();
         router.replace("/login?next=%2Fpoints%2Fhistory");
@@ -632,7 +640,7 @@ export default function PointHistoryPage() {
     } catch (e: unknown) {
       setPaymentsError(friendlyErrorMessage(e, copy.paymentLoadFailed));
     }
-  }, [apiBase, copy, formatLocale, router]);
+  }, [copy, fetchPaymentsMe, formatLocale, router]);
 
   const fetchSubscriptionSection = useCallback(async () => {
     try {
@@ -643,6 +651,7 @@ export default function PointHistoryPage() {
       }, {
         retryOn401: true,
         apiBase,
+        clientSource: "app:points-history",
       });
       if (res.status === 401 || res.status === 403) {
         setSubscriptionSummary(copy.loginRequired);
@@ -683,10 +692,9 @@ export default function PointHistoryPage() {
     await Promise.allSettled([
       fetchPointsSection(),
       fetchPaymentsSection(),
-      fetchSubscriptionSection(),
     ]);
     setIsLoading(false);
-  }, [fetchPaymentsSection, fetchPointsSection, fetchSubscriptionSection]);
+  }, [fetchPaymentsSection, fetchPointsSection]);
 
   useEffect(() => {
     if (!router) return;

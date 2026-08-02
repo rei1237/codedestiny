@@ -131,6 +131,9 @@ async function runMockSuite() {
   check("프롬프트에 insightSeeds 포함", promptText.includes("insightSeeds"));
   check("responseMimeType=application/json", requestBody?.generationConfig?.responseMimeType === "application/json");
   check("모델 gemini-2.5-flash 사용", String(okFetch.calls[0]?.url || "").includes("gemini-2.5-flash"));
+  check("프롬프트에 말·행동·침묵·속도 분리 규칙", promptText.includes("말·행동·침묵·관계 거리·다가갈 속도"));
+  check("프롬프트에 보조 카드 역할 규칙", promptText.includes("보조 카드는 메인 카드의 반복이 아니라"));
+  check("프롬프트에 확정 표현 금지", promptText.includes("100%") && promptText.includes("운명이다"));
 
   console.log("\n[케이스 2] LLM HTTP 500 → 룰엔진 폴백");
   const errorFetch = mockFetch(() => jsonResponse({}, 500));
@@ -141,8 +144,19 @@ async function runMockSuite() {
   });
   check("source가 rule-engine", errorReading?.source === "rule-engine", `source=${errorReading?.source}`);
   check("llmFailReason 기록", errorReading?.validation?.llmFailReason === "gemini_http_500", `reason=${errorReading?.validation?.llmFailReason}`);
-  check("1회 재시도 수행(총 2회 호출)", errorFetch.calls.length === 2, `calls=${errorFetch.calls.length}`);
+  check("최대 2회 재시도 수행(총 3회 호출)", errorFetch.calls.length === 3, `calls=${errorFetch.calls.length}`);
   check("폴백 섹션 7개", Array.isArray(errorReading?.sections) && errorReading.sections.length === 7);
+  const fallbackText = (errorReading?.sections || []).map((section) => [
+    section.cardMeaning,
+    section.positionMeaning,
+    section.emotionalReading,
+    section.hiddenMessage,
+    section.caution,
+    section.advice,
+  ].join(" ")).join(" ");
+  check("폴백이 보조 카드 조합을 반영", fallbackText.includes("보조 카드"));
+  check("폴백 포지션별 조언이 구분됨", new Set((errorReading?.sections || []).map((section) => section.advice)).size > 1);
+  check("폴백 결정론 표현 완화", !/(100\s*%|무조건|반드시|운명이다)/.test(fallbackText));
 
   console.log("\n[케이스 3] LLM 깨진 JSON → 룰엔진 폴백");
   const brokenFetch = mockFetch(() => jsonResponse({

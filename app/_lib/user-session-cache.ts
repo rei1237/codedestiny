@@ -2,8 +2,22 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 import { fetchBillingBalance } from "@/app/_lib/billing-client";
+import { authFetch } from "@/app/_lib/auth-client";
 
-type CacheKind = "session" | "profile" | "entitlement" | "paymentAccess";
+type CacheKind = "session" | "profile" | "entitlement" | "paymentAccess" | "accessState";
+
+export type AccessStateData = {
+  userId: string;
+  hasActivePass: boolean;
+  passType?: string;
+  activeUntil?: string;
+  coinBalance: number;
+  profileCount: number;
+  maxProfileCount: number;
+  source: "db" | "cache" | "stale-cache";
+  checkedAt: string;
+  degraded?: boolean;
+};
 
 type CachedResponse = {
   body: string;
@@ -25,6 +39,7 @@ export type UserAccessSnapshot = {
   fetchedAt: number;
   isLoading: boolean;
   error: string | null;
+  accessState: AccessStateData | null;
 };
 
 type RuntimeWindow = Window & {
@@ -59,6 +74,7 @@ let snapshot: UserAccessSnapshot = {
   fetchedAt: 0,
   isLoading: false,
   error: null,
+  accessState: null,
 };
 
 function emit() {
@@ -160,6 +176,7 @@ function resolveUserKey() {
 }
 
 function resolveCacheKind(pathname: string): CacheKind | null {
+  if (pathname === "/api/me/access-state") return "accessState";
   if (pathname === "/api/auth/me") return "session";
   if (pathname === "/api/profile" || pathname === "/api/profile/current") return "profile";
   if (pathname === "/api/subscription/status" || pathname === "/api/subscription/me") return "entitlement";
@@ -209,6 +226,7 @@ function responseFromCached(entry: CachedResponse) {
 }
 
 function getCacheTtlMs(kind: CacheKind) {
+  if (kind === "accessState") return 5000;
   if (kind === "entitlement") return SUBSCRIPTION_STATUS_CACHE_TTL_MS;
   if (kind === "session") return 300_000;
   if (kind === "profile") return 120_000;
@@ -320,6 +338,7 @@ export function invalidateUserAccessCache(reason = "manual") {
     paymentAccessStatus: "idle",
     fetchedAt: 0,
     error: null,
+    accessState: null,
   });
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("cd:user-access-cache-invalidated", { detail: { reason, at: Date.now() } }));
@@ -360,10 +379,45 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
   ensureSessionCookie();
   if (!hasClientAuthHint()) return getUserAccessSnapshot();
   const headers = options.force ? { [CACHE_REFRESH_HEADER]: "1" } : undefined;
-  const init: RequestInit = { method: "GET", credentials: "include", cache: "no-store", headers };
+  const init: RequestInit = {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+    headers: {
+      ...(headers || {}),
+      "X-Code-Destiny-Client": "app:user-session-cache",
+    },
+  };
   const authResponse = await fetch("/api/auth/me", init).catch(() => null);
   const hasSession = await hasAuthenticatedSession(authResponse);
   if (!hasSession) return getUserAccessSnapshot();
+
+  const accessResponse = await authFetch("/api/me/access-state", init, {
+    clientSource: "app:user-session-cache",
+  }).catch(() => null);
+  const accessPayload = accessResponse
+    ? await accessResponse.clone().json().catch(() => null) as Record<string, unknown> | null
+    : null;
+  const accessData = accessPayload?.data && typeof accessPayload.data === "object"
+    ? accessPayload.data as Record<string, unknown>
+    : accessPayload;
+  const accessStatus = accessResponse?.status || 0;
+  const accessSupported = Boolean(accessResponse) && accessStatus !== 404 && accessStatus !== 405;
+  if (accessData && accessResponse?.ok && typeof accessData.userId === "string") {
+    setSnapshot({
+      accessState: accessData as unknown as AccessStateData,
+      profileStatus: "ready",
+      entitlementStatus: "ready",
+      paymentAccessStatus: "ready",
+      fetchedAt: Date.now(),
+      error: accessData.degraded === true ? "access_state_degraded" : null,
+    });
+  } else if (accessSupported) {
+    setSnapshot({ error: "access_state_unavailable" });
+  }
+
+  if (accessSupported) return getUserAccessSnapshot();
+
   const tasks: Promise<unknown>[] = [];
   // /api/profile 응답이 subscription(이용권)을 함께 반환하므로 별도
   // /api/subscription/status 호출(중복)을 제거하고, 프로필 로드 성공 시
@@ -379,7 +433,11 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
     );
   }
   if (options.includeBilling !== false) {
-    tasks.push(fetchBillingBalance({ force: options.force, emit: false }).catch((error) => error));
+    tasks.push(fetchBillingBalance({
+      force: options.force,
+      emit: false,
+      clientSource: "app:user-session-cache",
+    }).catch((error) => error));
   }
   await Promise.allSettled(tasks);
   return getUserAccessSnapshot();

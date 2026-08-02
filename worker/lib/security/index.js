@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { connectDb, mongoose } from "../db.js";
+import { connectDb, mongoose, withMongoRetry } from "../db.js";
 import { getOptionalUserFromRequest } from "../auth.js";
 import { getEnv } from "../env.js";
 import { getRequestMeta, json } from "../http.js";
@@ -115,10 +115,9 @@ export async function writeSecurityLog({
 } = {}) {
   if (getSecurityGuardMode(env) === "off") return null;
   try {
-    await connectDb(env);
     const meta = request ? getRequestMeta(request) : {};
     const ipHash = request ? getSecuritySubjectHash({ request, env, userId, endpoint: "ip" }) : "";
-    return await SecurityEvent.create({
+    return await withSecurityDbOperation(env, () => SecurityEvent.create({
       userId: objectIdOrNull(userId),
       ipHash,
       endpoint: cleanText(endpoint),
@@ -128,7 +127,7 @@ export async function writeSecurityLog({
       userAgent: cleanText(meta.userAgent, 300),
       metadata: safeObject(metadata),
       createdAt: new Date(),
-    });
+    }));
   } catch (_) {
     return null;
   }
@@ -215,7 +214,6 @@ export async function validateSensitiveRequest({
 export async function addAbuseScore({ env, request, userId = "", endpoint = "", reason, score } = {}) {
   if (getSecurityGuardMode(env) === "off") return { ok: true, score: 0 };
   try {
-    await connectDb(env);
     const increment = Number(score || ABUSE_POINTS[reason] || 1);
     const subjectHash = getSecuritySubjectHash({ request, env, userId, endpoint });
     const now = new Date();
@@ -234,16 +232,16 @@ export async function addAbuseScore({ env, request, userId = "", endpoint = "", 
       $push: { lastReasons: { $each: [cleanText(reason, 120)], $slice: -12 } },
     };
     if (blockedUntil) update.$set.blockedUntil = blockedUntil;
-    const doc = await AbuseScore.findOneAndUpdate(
+    const doc = await withSecurityDbOperation(env, () => AbuseScore.findOneAndUpdate(
       { subjectHash, endpoint: cleanText(endpoint), kind: "abuse" },
       update,
       { upsert: true, new: true, setDefaultsOnInsert: true },
-    ).lean();
+    ).lean());
     if (Number(doc?.score || 0) >= 20 && !doc?.blockedUntil) {
-      await AbuseScore.updateOne(
+      await withSecurityDbOperation(env, () => AbuseScore.updateOne(
         { _id: doc._id },
         { $set: { blockedUntil: new Date(now.getTime() + 60 * 60 * 1000), updatedAt: now } },
-      );
+      ));
     }
     if (Number(doc?.score || 0) >= 40) {
       await writeSecurityLog({ env, request, userId, endpoint, level: "error", reason: "ADMIN_REVIEW_REQUIRED", metadata: { score: doc.score } });
@@ -260,6 +258,18 @@ export async function addAbuseScore({ env, request, userId = "", endpoint = "", 
 // 이 가드는 원래 실패 시 fail-open 이므로(아래 catch), 짧은 시간 상한을 걸어도 정책이 바뀌지 않는다 —
 // 단지 "느린 DB 때문에 모든 결제 요청이 20초 느려지는" 것을 막는다.
 const SECURITY_DB_TIMEOUT_MS = 1000;
+
+const SECURITY_DB_OPERATION_OPTIONS = Object.freeze({
+  retries: 0,
+  attemptTimeoutMS: SECURITY_DB_TIMEOUT_MS,
+  minAttemptTimeoutMS: SECURITY_DB_TIMEOUT_MS,
+  respectServerSelectionFloor: false,
+  resetOnOperationTimeout: false,
+});
+
+function withSecurityDbOperation(env, operation) {
+  return withMongoRetry(env, operation, SECURITY_DB_OPERATION_OPTIONS);
+}
 
 function withSecurityDbTimeout(promise) {
   let timer = null;
@@ -297,12 +307,10 @@ function rememberSoftBlockNegative(cacheKey) {
 export async function checkSoftBlock({ env, request, userId = "", endpoint = "" } = {}) {
   if (!shouldEnforce(env)) return { ok: true };
   try {
-    const subjectHash = await withSecurityDbTimeout(
-      connectDb(env).then(() => getSecuritySubjectHash({ request, env, userId, endpoint })),
-    );
+    const subjectHash = getSecuritySubjectHash({ request, env, userId, endpoint });
     const cacheKey = `${subjectHash}|${cleanText(endpoint)}`;
     if (readSoftBlockNegativeCache(cacheKey)) return { ok: true, cached: true };
-    const doc = await withSecurityDbTimeout(AbuseScore.findOne({
+    const doc = await withSecurityDbOperation(env, () => AbuseScore.findOne({
       subjectHash,
       endpoint: cleanText(endpoint),
       kind: "abuse",
@@ -332,7 +340,6 @@ export async function enforceRateLimit({
 } = {}) {
   if (getSecurityGuardMode(env) === "off") return { ok: true };
   try {
-    await withSecurityDbTimeout(connectDb(env));
     const nowMs = Date.now();
     const windowMs = Math.max(1, Number(windowSeconds || 60)) * 1000;
     const windowStart = Math.floor(nowMs / windowMs) * windowMs;
@@ -340,7 +347,7 @@ export async function enforceRateLimit({
     const subjectHash = hashValue(["rate", endpoint, rateKey, windowStart].join("|"), getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
     const now = new Date(nowMs);
     const expiresAt = new Date(nowMs + windowMs * 2);
-    const doc = await withSecurityDbTimeout(AbuseScore.findOneAndUpdate(
+    const doc = await withSecurityDbOperation(env, () => AbuseScore.findOneAndUpdate(
       { subjectHash, endpoint: cleanText(endpoint), kind: "rate_limit" },
       {
         $inc: { score: 1 },

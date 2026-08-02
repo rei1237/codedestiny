@@ -2,12 +2,11 @@
  * @jest-environment node
  */
 
-let buildPremiumYearReading;
-let validatePremiumYearReading;
-
-beforeAll(async () => {
-  ({ buildPremiumYearReading, validatePremiumYearReading } = await import("../../lib/tarot/tarot-year-premium.mjs"));
-});
+import {
+  buildPremiumYearReading,
+  validatePremiumYearReading,
+  drawPremiumYearCards,
+} from "../../lib/tarot/tarot-year-premium.mjs";
 
 function mockMonths() {
   return Array.from({ length: 12 }, (_, index) => ({
@@ -36,7 +35,7 @@ function mockMonths() {
   }));
 }
 
-describe("십이지신 천운 타로 tarot-year-v2", () => {
+describe("십이지신 천운 타로 tarot-year-v3", () => {
   test("mock 12장으로 프리미엄 결과의 필수 섹션을 만든다", () => {
     const reading = buildPremiumYearReading({
       year: 2026,
@@ -56,8 +55,29 @@ describe("십이지신 천운 타로 tarot-year-v2", () => {
 
     const quality = validatePremiumYearReading(reading);
     expect(quality.ok).toBe(true);
-    expect(reading.schemaVersion).toBe("tarot-year-v2");
+    expect(reading.schemaVersion).toBe("tarot-year-v3");
     expect(reading.monthlyReadings).toHaveLength(12);
+    expect(reading.annualSummary).toEqual(expect.objectContaining({
+      zodiacAnimal: expect.any(String),
+      mainCard: expect.objectContaining({ nameKo: expect.any(String) }),
+      keywords: expect.any(Array),
+      oneLineMessage: expect.any(String),
+      coreAdvice: expect.any(String),
+    }));
+    expect(reading.mainCardReading).toEqual(expect.objectContaining({
+      basicMeaning: expect.any(String),
+      yearAppearance: expect.any(String),
+      brightSide: expect.any(String),
+      shadowSide: expect.any(String),
+      combinationReading: expect.objectContaining({ summary: expect.any(String) }),
+    }));
+    expect(reading.zodiacProfiles).toHaveLength(12);
+    expect(reading.yearNarrative).toHaveLength(12);
+    expect(reading.categoryReadings).toEqual(expect.objectContaining({
+      money: expect.objectContaining({ title: "금전운", reading: expect.any(String), caution: expect.any(String), action: expect.any(String) }),
+      opportunity: expect.objectContaining({ title: "올해의 기회" }),
+      luckyAction: expect.objectContaining({ title: "올해의 행운 행동" }),
+    }));
     expect(Object.keys(reading.categoryReading)).toEqual([
       "money", "career", "love", "health", "family", "growth", "noblePerson", "caution",
     ]);
@@ -66,11 +86,13 @@ describe("십이지신 천운 타로 tarot-year-v2", () => {
     expect(reading.luckyActions.length).toBeLessThanOrEqual(7);
     expect(reading.finalMessage.oneLine).toBeTruthy();
     expect(reading.monthlyReadings[0]).toEqual(expect.objectContaining({
-      keyword: "회복 · 기준",
+      keyword: expect.any(String),
       direction: "정방향",
       summary: expect.any(String),
       work: expect.any(String),
-      mind: expect.any(String),
+      health: expect.any(String),
+      cardReading: expect.objectContaining({ annualTheme: expect.any(String) }),
+      combinationReading: expect.objectContaining({ title: expect.any(String), advice: expect.any(String) }),
     }));
     expect(reading.monthlyReadings.map((month) => month.zodiacAnimal)).toEqual([
       "쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지",
@@ -81,5 +103,42 @@ describe("십이지신 천운 타로 tarot-year-v2", () => {
     const reading = buildPremiumYearReading({ reading: { monthlyReadings: mockMonths() }, year: 2026 });
     const serialized = JSON.stringify(reading);
     expect(serialized).not.toMatch(/무조건|반드시 망한다|100%|절대/);
+  });
+
+  test("같은 seed는 같은 메이저 카드와 방향을 만들고 같은 리딩 안에서 중복되지 않는다", () => {
+    const first = drawPremiumYearCards({ seed: "request-a", year: 2026 });
+    const second = drawPremiumYearCards({ seed: "request-a", year: 2026 });
+    const other = drawPremiumYearCards({ seed: "request-b", year: 2026 });
+    expect(second).toEqual(first);
+    expect(first).toHaveLength(12);
+    expect(new Set(first.map((card) => card.cardId)).size).toBe(12);
+    expect(first.every((card) => /^M(?:0[0-9]|1[0-9]|2[01])$/.test(card.cardId))).toBe(true);
+    expect(first.map((card) => `${card.cardId}:${card.orientation}`).join("|")).not.toBe(other.map((card) => `${card.cardId}:${card.orientation}`).join("|"));
+  });
+
+  test("기존 tarot-year-v2 저장 결과 계약을 계속 검증할 수 있다", () => {
+    const legacy = {
+      schemaVersion: "tarot-year-v2",
+      monthlyReadings: mockMonths().map((month) => ({ ...month, flow: "짧은 기존 흐름" })),
+      categoryReading: {
+        money: "금전 흐름",
+        career: "일의 흐름",
+        love: "연애 흐름",
+        health: "건강 흐름",
+        family: "가족 흐름",
+        growth: "성장 흐름",
+        noblePerson: "귀인 흐름",
+        caution: "주의할 흐름",
+      },
+      annualSummary: { mainCard: { nameKo: "별" }, summary: "기존 요약" },
+      annualOverview: { summary: "기존 총운" },
+      finalAdvice: "기존 마지막 조언",
+      turningPoints: [{ period: "상반기" }, { period: "중반" }, { period: "하반기" }],
+    };
+    expect(validatePremiumYearReading(legacy).ok).toBe(true);
+    const upgraded = buildPremiumYearReading({ reading: legacy, year: 2026 });
+    expect(upgraded.schemaVersion).toBe("tarot-year-v3");
+    expect(upgraded.categoryReading.money).toEqual(expect.any(String));
+    expect(upgraded.monthlyReadings).toHaveLength(12);
   });
 });

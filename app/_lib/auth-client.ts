@@ -36,7 +36,7 @@ const AUTH_REFRESH_TIMEOUT_MS = 20000;
 type RefreshSessionState = "success" | "invalid" | "transient";
 
 let refreshInFlight: Promise<RefreshSessionState> | null = null;
-let meRequestInFlight: Promise<Response> | null = null;
+const authGetInFlight = new Map<string, Promise<Response>>();
 let logoutInFlight: Promise<void> | null = null;
 
 const AUTH_CLIENT_TEXT_TRANSLATIONS = {
@@ -269,8 +269,12 @@ function isAuthoritativeAuthPath(url: string) {
   }
 }
 
-function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
+function buildAuthRequest(targetUrl: string, init: RequestInit = {}, clientSource?: string) {
   const headers = new Headers(init.headers || {});
+  const normalizedClientSource = String(clientSource || "").trim().toLowerCase();
+  if (normalizedClientSource && !headers.has("X-Code-Destiny-Client")) {
+    headers.set("X-Code-Destiny-Client", normalizedClientSource);
+  }
   const accessToken = readMobileAppAccessToken();
   if (accessToken && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${accessToken}`);
@@ -353,7 +357,7 @@ function dispatchSessionInvalidated(source: string) {
 export function clearClientAuthState() {
   if (typeof window === "undefined") return;
   refreshInFlight = null;
-  meRequestInFlight = null;
+  authGetInFlight.clear();
   try {
     AUTH_LOCAL_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch (e) {
@@ -378,27 +382,30 @@ export function clearClientAuthState() {
   });
 }
 
-async function requestTokenRefresh(apiBase: string) {
+async function requestTokenRefresh(apiBase: string, clientSource?: string) {
+  const headers = new Headers({ [CACHE_REFRESH_HEADER]: "1", ...mobileAppAuthHeaders() });
+  const normalizedClientSource = String(clientSource || "").trim().toLowerCase();
+  if (normalizedClientSource) headers.set("X-Code-Destiny-Client", normalizedClientSource);
   return fetchWithTimeout(toAbsoluteApiUrl("/api/auth/refresh", apiBase), {
     method: "POST",
     credentials: "include",
     cache: "no-store",
-    headers: { [CACHE_REFRESH_HEADER]: "1", ...mobileAppAuthHeaders() },
+    headers,
   }, AUTH_REFRESH_TIMEOUT_MS);
 }
 
-async function refreshSession(apiBase: string) {
+async function refreshSession(apiBase: string, clientSource?: string) {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
-        let response = await requestTokenRefresh(apiBase);
+        let response = await requestTokenRefresh(apiBase, clientSource);
 
         if (response.status === 401 || response.status === 403) {
           // The refresh cookie is shared across tabs — a sibling tab may have just rotated
           // it (server-side reuse-detection grace window). Retry once after a short delay
           // before treating this as a genuinely invalid session and logging every tab out.
           await sleep(400);
-          response = await requestTokenRefresh(apiBase);
+          response = await requestTokenRefresh(apiBase, clientSource);
         }
 
         if (!response.ok) {
@@ -440,14 +447,26 @@ async function refreshSession(apiBase: string) {
   return refreshInFlight;
 }
 
-function isMeRequest(url: string, init: RequestInit = {}) {
+function authGetDedupeKey(url: string, init: RequestInit = {}) {
   const method = String(init.method || "GET").trim().toUpperCase();
-  if (method !== "GET") return false;
+  if (method !== "GET" || init.signal) return "";
   try {
     const parsed = new URL(url, "http://localhost");
-    return parsed.pathname === "/api/auth/me";
+    const safePaths = [
+      "/api/auth/me",
+      "/api/profile",
+      "/api/profile/current",
+      "/api/billing/balance",
+      "/api/payments/me",
+      "/api/me/access-state",
+      "/api/subscription/status",
+      "/api/fortune/pig-coin/profile-subscription/status",
+    ];
+    if (!safePaths.includes(parsed.pathname)) return "";
+    const headers = new Headers(init.headers || {});
+    return `${url}|refresh:${headers.get(CACHE_REFRESH_HEADER) || "0"}`;
   } catch (e) {
-    return false;
+    return "";
   }
 }
 
@@ -472,18 +491,18 @@ async function fetchAuthRequest(request: Request, callerControlsAbort: boolean) 
   }
 }
 
-async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string) {
+async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string, clientSource?: string) {
   const callerControlsAbort = Boolean(init.signal);
-  let request = buildAuthRequest(targetUrl, init);
+  let request = buildAuthRequest(targetUrl, init, clientSource);
   let response = await fetchAuthRequest(request.clone(), callerControlsAbort);
   if (
     response.status === 401
     && retryOn401
     && shouldTryRefresh(targetUrl)
   ) {
-    const refreshState = await refreshSession(apiBase);
+    const refreshState = await refreshSession(apiBase, clientSource);
     if (refreshState === "success") {
-      request = buildAuthRequest(targetUrl, init);
+      request = buildAuthRequest(targetUrl, init, clientSource);
       response = await fetchAuthRequest(request.clone(), callerControlsAbort);
     } else if (refreshState === "transient") {
       return buildRefreshTransientResponse(response.status);
@@ -493,23 +512,28 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
   return response;
 }
 
-export async function authFetch(input: string, init: RequestInit = {}, options: { retryOn401?: boolean; apiBase?: string } = {}) {
+export async function authFetch(
+  input: string,
+  init: RequestInit = {},
+  options: { retryOn401?: boolean; apiBase?: string; clientSource?: string } = {},
+) {
   const apiBase = String(options.apiBase || getApiBaseUrl() || "").trim();
   const targetUrl = toAbsoluteApiUrl(input, apiBase);
   const retryOn401 = options.retryOn401 !== false;
+  const clientSource = String(options.clientSource || "").trim().toLowerCase();
 
-  if (isMeRequest(targetUrl, init)) {
-    if (!meRequestInFlight) {
-      meRequestInFlight = performAuthFetch(targetUrl, init, retryOn401, apiBase)
-        .finally(() => {
-          meRequestInFlight = null;
-        });
-    }
-    const sharedResponse = await meRequestInFlight;
-    return sharedResponse.clone();
+  const dedupeKey = authGetDedupeKey(targetUrl, init);
+  if (!dedupeKey) return performAuthFetch(targetUrl, init, retryOn401, apiBase, clientSource);
+
+  let pending = authGetInFlight.get(dedupeKey);
+  if (!pending) {
+    pending = performAuthFetch(targetUrl, init, retryOn401, apiBase, clientSource)
+      .finally(() => {
+        if (authGetInFlight.get(dedupeKey) === pending) authGetInFlight.delete(dedupeKey);
+      });
+    authGetInFlight.set(dedupeKey, pending);
   }
-
-  return performAuthFetch(targetUrl, init, retryOn401, apiBase);
+  return (await pending).clone();
 }
 
 export async function logoutWithServer(apiBase?: string) {

@@ -281,6 +281,7 @@ async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
   }, {
     retryOn401: true,
     apiBase,
+    clientSource: "app:me",
   });
   const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
   if (!response.ok) throw new Error(payload.message || "결제용 휴대폰 번호를 확인하지 못했습니다.");
@@ -296,6 +297,7 @@ async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Pro
   }, {
     retryOn401: true,
     apiBase,
+    clientSource: "app:me",
   });
   const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string; code?: string }>(response);
   if (!response.ok) throw new Error(describePaymentPhoneFailure(response.status, payload));
@@ -575,6 +577,7 @@ export default function MePage() {
       }, {
         retryOn401: true,
         apiBase,
+        clientSource: "app:me",
       });
       const payload = await safeParseJson<{
         data?: {
@@ -631,6 +634,7 @@ export default function MePage() {
     }, {
       retryOn401: true,
       apiBase,
+      clientSource: "app:me",
     });
 
     const payload = await safeParseJson<ProfileStatePayload>(response);
@@ -741,6 +745,7 @@ export default function MePage() {
     }, {
       retryOn401: true,
       apiBase,
+      clientSource: "app:me",
     });
     const payload = await safeParseJson<PortOnePaymentConfig>(response);
     if (!response.ok || !payload.storeId || !payload.channelKey) {
@@ -929,6 +934,7 @@ export default function MePage() {
       }, {
         retryOn401: true,
         apiBase,
+        clientSource: "app:me",
       });
       const payload = await safeParseJson<{ profile?: DestinyProfile; code?: string }>(response);
       if (!response.ok || !payload?.profile) {
@@ -956,6 +962,7 @@ export default function MePage() {
       }, {
         retryOn401: true,
         apiBase,
+        clientSource: "app:me",
       });
       const payload = await safeParseJson<{ ok?: boolean; currentId?: string; message?: string }>(response);
       if (!response.ok || !payload?.ok) {

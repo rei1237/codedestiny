@@ -1,5 +1,6 @@
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../../lib/tarot/tarot-cards.mjs";
 import { expectedCardCount, normalizeSpreadType } from "../../../lib/tarot/spreads.mjs";
+import { buildPremiumYearReading, drawPremiumYearCards } from "../../../lib/tarot/tarot-year-premium.mjs";
 import {
   buildConsultingHighlights,
   buildLegacyReadingPayload,
@@ -44,7 +45,10 @@ export async function getTarotEngine() {
   if (cachedEngine) return cachedEngine;
   cachedEngine = {
     normalizeSpreadType,
-    drawCards(spreadType) {
+    drawCards(spreadType, options = {}) {
+      if (spreadType === "yearly_twelve_card" && asText(options.seed)) {
+        return drawPremiumYearCards({ seed: asText(options.seed), year: options.year });
+      }
       return drawTarotCardsForSpread(spreadType);
     },
   };
@@ -65,7 +69,7 @@ export function validateSpreadCardCount(spreadType, cards) {
   return { ok: true };
 }
 
-export function buildReadingResponse(_engine, category, spreadType, drawnCards) {
+export function buildReadingResponse(_engine, category, spreadType, drawnCards, options = {}) {
   const normalizedSpreadType = normalizeSpreadType(spreadType || "one_card");
   const normalizedDrawnCards = normalizeDrawnCardsForSpread(normalizedSpreadType, drawnCards || []);
   const questionType = inferQuestionType({ category, spreadId: normalizedSpreadType, serviceKey: "next-api-tarot" });
@@ -77,11 +81,15 @@ export function buildReadingResponse(_engine, category, spreadType, drawnCards) 
     drawnCards: normalizedDrawnCards,
   });
 
-  const reading = buildLegacyReadingPayload(interpreted, {
+  let reading = buildLegacyReadingPayload(interpreted, {
     spreadId: normalizedSpreadType,
     questionType,
     drawnCards: normalizedDrawnCards,
   });
+
+  if (normalizedSpreadType === "yearly_twelve_card") {
+    reading = buildPremiumYearReading({ reading, year: options.year });
+  }
 
   const cards = normalizedDrawnCards.map((drawn, idx) => toUiCard(drawn, normalizedSpreadType, idx));
 

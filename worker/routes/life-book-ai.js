@@ -7,7 +7,7 @@ import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payme
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -580,8 +580,8 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     return { ok: true, accessType: "paid", accessSource: "single_purchase", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160), featureKey: clean(paidPayment.featureKey, 80) || featureKey };
   }
 
-  const pass = normalizeHoneyPassEntitlement(user || {});
-  if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", accessSource: "license_pass", paymentId: "", featureKey };
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) return { ok: true, accessType: featureAccess.accessType || "pass", accessSource: "license_pass", paymentId: "", featureKey };
 
   // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
   const decision = await canAccessPaidFeature(auth.userId, featureKey, { env: pricing.env, reason: orderName, userDoc: auth.authUserDoc });

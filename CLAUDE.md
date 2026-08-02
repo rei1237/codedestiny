@@ -27,7 +27,7 @@ npm run deploy:cf:opennext # OpenNext 경유 배포
 2. **단순성 우선**: 요청한 것만 구현. 1회성 코드에 추상화 금지. 요청받지 않은 유연성/설정가능성 추가 금지. 발생 불가능한 시나리오의 에러 처리 금지. 200줄이 50줄로 줄어들 수 있다면 다시 쓸 것.
 3. **수술적 변경**: 필요한 부분만 수정. 인접 코드/주석/포맷팅을 "개선"하지 않는다. 깨지지 않은 것을 리팩토링하지 않는다. 기존 스타일을 그대로 따른다(자신의 취향과 달라도). 무관한 데드코드를 발견하면 언급만 하고 삭제하지 않는다. 단, 자신의 변경으로 생긴 미사용 import/변수/함수는 제거한다.
 4. **목표 지향 실행**: 작업을 검증 가능한 목표로 변환한다 (예: "버그 수정" → "재현 테스트 작성 후 통과시키기"). 다단계 작업은 `단계 → 검증 방법` 형태로 간단히 계획을 밝힌다.
-5. **사용자 대상 안내는 한국어로**: 선택지 제시·제안뿐 아니라, 문제 원인 설명·작업 결과 요약·진행 상황 안내 등 사용자에게 전달하는 모든 텍스트는 기본적으로 한국어로 작성한다(코드/커밋 메시지/파일 내 식별자 제외).
+5. **사용자 대상 안내는 한국어로 + 추천안은 반드시 명시**: 선택지 제시·제안뿐 아니라, 문제 원인 설명·작업 결과 요약·진행 상황 안내 등 사용자에게 전달하는 모든 텍스트는 기본적으로 한국어로 작성한다(코드/커밋 메시지/파일 내 식별자 제외). 특히 선택지를 제시할 때는 **항상 가장 추천하는 안을 먼저, 분명하게 `추천`이라고 표시해 안내**하고, 왜 그 안을 권하는지 한두 문장으로 바로 설명한다. 사용자가 중립 비교를 명시적으로 요청한 경우를 제외하면, 옵션을 우열 없이 나열만 하고 끝내지 않는다.
 6. 🔴 **중첩 사전검사 (수정 전 필수)**: 방어 장치나 UI 계층을 **추가하기 전에, 안쪽·바깥쪽에 이미 같은 장치가 있는지 먼저 확인한다.** 이미 있으면 감싸지 말고 **그 지점을 고친다.** 이중으로 걸면 대개 효과는 그대로면서 비용만 배가되거나, 서로를 무력화한다.
    - **대상**: 재시도(`withMongoRetry`)·타임아웃·캐시(TTL/in-flight dedup)·락/단일비행·트랜잭션·에러 폴백 / 모달·오버레이·스크롤락·결제 게이트·`z-index`·이벤트 델리게이션·지연로딩(`IntersectionObserver`+`loading="lazy"`)
    - **확인 방법**: 이름 grep만으로 판단하지 말 것 — 함수 본문을 **중괄호 균형으로 잘라 내부를 실제로 열어본다**. 이번 감사에서 이름 기반 스캔이 9곳을 오탐했다. 검사 도구: `npm run verify:no-nested-retry`
@@ -136,7 +136,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
   - 어떤 화면에 어떤 연이 자산이 맞는지 확실치 않으면 추측해서 교체하지 말고 반드시 먼저 사용자에게 확인한다(코딩 원칙 1번 참고)
 - **음악**: `app/music/` 라우트, 실제 음원은 외부 CDN(`music.code-destiny.com`)에서 서빙 (레포에는 커버아트만 `public/music-covers/`)
 - **웹소설/비주얼 노벨(브랜드 정체성)**: 텍스트 리더 `app/stories/`(원문 `lib/stories/chapters/*` + `data.ts`; `models/Story.ts`는 미사용 데드코드). 비주얼 노벨(VN) = 단일 자립형 `public/codedestiny-novel.html`(EP1~5, `/stories`에서 CTA 진입). **전체 스토리 흐름은 만화 이누야샤 구조 참조**(고유명사·설정 차용 없이 구조만) — 가이드: [docs/webnovel_review/webnovel_story_guideline.md](docs/webnovel_review/webnovel_story_guideline.md), 결말 아크 상세: [docs/webnovel_review/webnovel_ending_arc_outline.md](docs/webnovel_review/webnovel_ending_arc_outline.md)
-- **PDF 리포트**: 인생의 책은 `/life-book-ai`(구 `app/pdf/life-book`은 리다이렉트), PDF는 클라이언트에서 `html2canvas`+`jspdf`로 생성 (`worker/lib/pdf-v2/`는 존재하지 않음)
+- **PDF 리포트**: 인생의 책은 `/life-book-ai`(구 `app/pdf/life-book`은 리다이렉트), PDF는 클라이언트에서 `html2canvas`+`jspdf`로 생성하며 현재 Worker 쪽 PDF 보조 로직은 `worker/lib/pdf-runtime.js`를 기준으로 본다.
 - 이미지는 Next.js `<Image>` 컴포넌트 사용 (`img` 태그 금지) — 단, `next.config.mjs`에 `images.unoptimized: true` 설정됨
 - **관상(동물상/얼굴 분석)**: React가 아니라 **루트의 바닐라 JS 규칙 엔진**(`AnalysisEngine.js`=얼굴 랜드마크→하드코딩 점수/템플릿, `PhysiognomyUI.js`=DOM 렌더/결제 게이트)이며 `index.html?action=openPhysiognomyApp` 모달로 구동. **LLM 미사용**. `app/physiognomy`·`app/animal/physio`는 SEO 랜딩 껍데기. ⚠️ **두 파일은 루트와 `public/`에 별도 사본으로 존재(심링크 아님) — 수정 시 반드시 `cp`로 동기화**. 리포트 섹션은 `expertReportHtml`(엔진)을 `PhysiognomyUI.js`의 `createExpertReportSections` 파서가 헤딩 키워드로 쪼개 카드로 렌더하므로, 섹션 HTML의 헤딩 문구와 파서 `headingKeywords`를 함께 맞춰야 한다. 오관·점 정밀 분석은 프리미엄(회당 5,000원, `physiognomy-ogwan-mole-deep`). 검증: `npm run verify:physiognomy-report`(jsdom 필요 — devDependency) + `verify:physiognomy-scoring`
 
@@ -159,7 +159,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 - `.wrangler/`, `worker/wrangler.toml`
 - `package-lock.json`
-- `.env*` 패턴의 모든 환경변수 파일 (절대로 깃허브에 업로드 금지 — `.env.local`, `.env`, `server/.env` 등)
+- `.env*` 패턴의 모든 환경변수 파일 (절대로 깃허브에 업로드 금지 — `.env.local`, `.env`, 서버 전용 env 파일 등)
 - `dist/`, `out/` (빌드 산출물)
 - 마이그레이션 스크립트 실행 결과물 (`scripts/migrate-*` 자체는 리뷰 후 신중히 수정)
 
@@ -179,7 +179,7 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 - 🔴 **모바일 최적화 = 인체공학만 (UI 재디자인 금지)**: 모바일 전용 공용 래퍼(`MobileFeatureDetail` / `styles/mobile-lite.css`)는 **탭 타깃(44px)·입력 폰트(16px, iOS 확대 방지)·가로 오버플로 방지·세이프에어리어**까지만 다룬다. 기능이 소유한 요소의 색·타이포·배경·테두리·위치(`sticky`/`fixed`)를 덮거나, 마크업에 없는 배지를 `content: attr()` 로 주입하지 않는다. **기능 화면은 모바일에서도 데스크탑과 같은 자기 디자인으로 보여야 한다.** 특정 기능의 모바일 문제는 공용 래퍼가 아니라 **그 기능의 CSS 에서** 고친다(래퍼로 덮으면 나머지 17개 기능이 함께 망가진다 — 2026-07 sticky 이름판·팔레트 재도색 사고). 가드: `npm run verify:mobile-detail-nonintrusive`(CI 차단) + `npm run verify:mobile-detail-render`(실렌더). 계약: [MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md](MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md)
 - 🔴 **몰입형 기본(신규 기능 전면 적용)**: 앞으로 추가하는 모든 신규 기능/페이지/화면은 **전역 헤더·푸터 없이 몰입형(immersive)으로 제작한다.** 공용 사이트 헤더(네비게이션 바)와 푸터를 붙이지 말고, 해당 기능 자체의 몰입 경험(풀블리드 배경·자체 상단바/뒤로가기·자체 CTA)으로 화면을 채운다. 기존 헤더/푸터가 이미 붙은 화면을 수정할 때만 그 구조를 존중하고, 신규 화면에는 새로 도입하지 않는다 — 특정 기능에 헤더/푸터가 꼭 필요해 보이면 추측하지 말고 먼저 사용자에게 확인한다.
-- 🔴 **생년 정보 자동 입력(프로필 카드) — 필수, 신규·기존 공통**: 생년월일·태어난 시각·성별·양/음력 등 생년 정보를 입력받는 **모든 기능**은 공용 훅 `app/hooks/useAiProfileSeed()`(변환 `seedFromDestinyProfile`, 저장 `app/_lib/profile-card-storage.ts`)로 **현재 선택된 프로필 카드에서 자동 프리필**한다. 사용자가 이미 입력·편집한 값은 덮어쓰지 않는다(빈 값만 채움). 비로그인·프로필 없음이면 수동 입력으로 폴백하고, 프로필 전환(`destinyProfileChanged` 이벤트)은 자동 반영한다. **프로필 조회/시드 로직을 새로 만들지 말고 이 훅을 재사용**한다(중복 구현 금지). 참조: `app/astrology-ai/AstrologyAiClient.tsx`, `app/destiny-compass/_components/CompassApp.tsx`(BirthGate).
+- 🔴 **생년 정보 자동 입력(프로필 카드) — 필수, 신규·기존 공통**: 생년월일·태어난 시각·성별·양/음력 등 생년 정보를 입력받는 **모든 기능**은 공용 훅 `app/hooks/useAiProfileSeed.ts`(변환 `seedFromDestinyProfile`, 저장 `app/_lib/profile-card-storage.ts`)로 **현재 선택된 프로필 카드에서 자동 프리필**한다. 사용자가 이미 입력·편집한 값은 덮어쓰지 않는다(빈 값만 채움). 비로그인·프로필 없음이면 수동 입력으로 폴백하고, 프로필 전환(`destinyProfileChanged` 이벤트)은 자동 반영한다. **프로필 조회/시드 로직을 새로 만들지 말고 이 훅을 재사용**한다(중복 구현 금지). 참조: `app/astrology-ai/AstrologyAiClient.tsx`, `app/destiny-compass/_components/CompassApp.tsx`(BirthGate).
 - 애니메이션은 Tailwind `transition-*`/`animate-*` 클래스만 (외부 라이브러리 신규 도입 지양 — 단 `framer-motion`은 기존 의존성으로 이미 사용 중)
 - 모바일 퍼스트: `sm:` → `md:` → `lg:` 순서로 작성
 - 다크모드 `dark:` 병행 필수
@@ -215,6 +215,7 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 - **워커 변경 자동 배포 규칙**: `worker/` 코드를 수정해 커밋/푸시하는 경우, 아래 "문제없음" 조건을 모두 만족하면 **사용자에게 매번 묻지 말고 `npm run deploy:cf:worker`까지 이어서 진행**한다(Pages/정적은 GitHub Actions가 처리하므로 워커만 수동 배포하면 됨). 배포 후 Version ID·라우트·크론 스케줄 등 결과를 보고한다.
   - **문제없음(자동 배포 진행) 조건**: `typecheck`·관련 `verify:*`·해당 테스트가 모두 통과 + 변경이 수술적이고 회귀 위험이 낮음 + 배포 자체가 표준 절차(강제/롤백/시크릿 변경 없음).
   - **문제 가능성 있음(자동 배포 보류 + 먼저 안내)**: 신뢰성/우선순위/기본값 등 동작 모델을 바꾸는 변경, 공유 모듈·여러 라우트가 참조하는 함수 수정, 크론/`wrangler.toml`(수정 금지)·바인딩·시크릿에 영향, 검증이 변경을 충분히 커버하지 못함, 또는 결제·인증 등 장애 시 파급이 큰 영역. 이때는 위험·시나리오·확인 필요 여부를 먼저 안내하고 사용자 판단을 받은 뒤 배포한다.
+  - 작업 중 취약점, 보안 위험, 재현 가능한 버그를 발견하면 즉시 사용자에게 보고하고, 필요하면 다른 세션에서 분리 디버깅할 수 있도록 위험도와 짧은 제안도 함께 남긴다.
   - 판단이 애매하면 자동 배포하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
 - 🔴 **워커 배포는 커밋이 아니라 워킹트리를 민다 — 낡은 베이스면 남의 워커 커밋이 사라진다**: `wrangler deploy` 는 PR·CI 를 안 거치고 현재 트리를 그대로 프로덕션에 올린다. 그래서 베이스가 낡았으면 그 사이 main 에 머지된 `worker/`·`lib/` 변경이 **즉시 조용히 증발**한다(2026-08-01 하루에 서로 다른 세션에서 3회 발생 — #222·#223·#224·#226 이 각각 사라졌다). `git status` 가 깨끗한 것과 베이스가 최신인 것은 **별개 문제**라 눈으로는 안 잡힌다.
   - 이제 `scripts/lib/worker-deploy-base-guard.mjs` 가 배포 직전 자동으로 막는다 — "내 HEAD 에 없는데 origin/main 에는 있는 `worker/`·`lib/` 커밋"이 하나라도 있으면 사라질 커밋 목록과 함께 exit 1. 내 변경은 안 잡히고(오탐 없음), `scripts/`·`.github/` 만 바뀐 커밋도 안 잡힌다. 막히면 `git rebase origin/main` → verify 재실행 → 재배포. 의도한 롤백이면 `-- --allow-stale`.
@@ -227,3 +228,20 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **코딩 작업**(버그 수정, 기능 구현, 리팩토링 등): `claude-opus-4.8` + reasoning effort `high` 이상 고정 — 복잡한 로직·회귀 분석·설계 결정에 강화된 능력 필요
   - **파일 검색·스캔**(Glob, Grep, 코드베이스 탐색): `claude-haiku-4-5-20251001` 고정 — 검색은 정확도·속도 충분, 사용자 요청 여부 무관 반드시 Haiku 사용 및 안내 필수
   - **커밋 메시지·코드 리뷰·일상 대화**: `claude-haiku-4-5-20251001` 고정 — 토큰 효율성과 빠른 응답 속도 우선
+
+## Codex Override: PR-First Deployment
+
+- This section overrides any older Worker auto-deploy rule in this file.
+- Do not deploy directly to production during normal coding work.
+- Put deployable changes into a PR first.
+- The PR must record validation commands, mock/sandbox validation results, regression risks, confirmed no-regression scope, and rollback method.
+- Do not run real LLM API calls, real payments, production DB writes, production Pages/Worker deploys, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
+- Use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.
+- Deploy only after PR review, regression validation, and explicit user approval for production deployment.
+
+## Doc Precedence
+
+- For Codex work, `AGENTS.md` is the active execution contract.
+- `docs/CURRENT_DEV_BASELINE.md` is the latest working summary for current service development focus.
+- `CLAUDE.md` is project context and reference material.
+- If these docs disagree, do not merge the rules silently. Reconcile the mismatch in `docs/CONTEXT_AUDIT.md` before coding.

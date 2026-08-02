@@ -1632,16 +1632,21 @@ function isAuthRequiredBillingCode(status: number, code?: unknown) {
     || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
 }
 
-async function authFetchBilling(path: string, init: RequestInit, options: { timeoutMs?: number } = {}): Promise<Response> {
+async function authFetchBilling(
+  path: string,
+  init: RequestInit,
+  options: { timeoutMs?: number; clientSource?: string } = {},
+): Promise<Response> {
+  const clientSource = String(options.clientSource || "app:billing-client").trim().toLowerCase();
   return withSuppressedRuntimePaymentFetchOverlay(async () => {
-    const primary = await authFetchBillingOnce(path, init, { timeoutMs: options.timeoutMs });
+    const primary = await authFetchBillingOnce(path, init, { timeoutMs: options.timeoutMs, clientSource });
     if (primary.ok || primary.status !== 404) return primary;
 
     const fallbackBases = collectBillingFallbackBases();
     if (!fallbackBases.length) return primary;
 
     for (const apiBase of fallbackBases) {
-      const retried = await authFetchBillingOnce(path, init, { apiBase, timeoutMs: options.timeoutMs });
+      const retried = await authFetchBillingOnce(path, init, { apiBase, timeoutMs: options.timeoutMs, clientSource });
       if (retried.ok || retried.status !== 404) return retried;
     }
 
@@ -1682,12 +1687,16 @@ function buildBillingFetchFailureResponse(code: string, message: string, status 
   });
 }
 
-async function authFetchBillingOnce(path: string, init: RequestInit, options: { apiBase?: string; timeoutMs?: number } = {}): Promise<Response> {
+async function authFetchBillingOnce(
+  path: string,
+  init: RequestInit,
+  options: { apiBase?: string; timeoutMs?: number; clientSource?: string } = {},
+): Promise<Response> {
   // 게이팅/결제 엔드포인트는 401을 리프레시로 흡수해 합성 503(AUTH_REFRESH_TEMPORARY_FAILURE)으로
   // 바꾸지 않는다 — 그러면 서버의 paymentRequired/402 신호가 마스킹돼 결제 폴백 시트가 안 뜬다.
   // 세션 예열은 runBillingCoinGate 진입부에서 이미 수행하므로 여기서의 retryOn401은 중복이다.
-  const { timeoutMs: requestedTimeoutMs, ...authFetchOptions } = options;
-  const billingOptions = { ...authFetchOptions, retryOn401: false };
+  const { timeoutMs: requestedTimeoutMs, clientSource, ...authFetchOptions } = options;
+  const billingOptions = { ...authFetchOptions, retryOn401: false, clientSource };
   if (typeof AbortController === "undefined" || init.signal) {
     return authFetch(path, init, billingOptions);
   }
@@ -1874,7 +1883,9 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
 }
 
 // 코인게이트 transient 재시도 상한/백오프. 최초 1회 + 재시도 2회 = 최대 3회, 지수 백오프(0.8s→1.44s).
-const COIN_GATE_TRANSIENT_MAX_RETRIES = 2;
+// Initial request + one backoff retry. More attempts amplified Mongo pool pressure
+// during the 503 incident and did not improve the user's chance of a timely result.
+const COIN_GATE_TRANSIENT_MAX_RETRIES = 1;
 // 정적 셸 선검사 백오프(250 → 450ms)와 같은 값. 기존 800ms → 1.44s 는 선검사 예산(6초)을 재시도 대기만으로 소진했다.
 const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 250;
 // 과금 없는 pass 확인 구간(첫 요청 + 재시도)의 벽시계 상한. 초과하면 붙잡지 않고 아래 결제 폴백으로 넘긴다.
@@ -4259,7 +4270,7 @@ export async function purchaseFeature(input: {
   return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
 }
 
-export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean; fresh?: boolean } = {}): Promise<BillingResult<{
+export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean; fresh?: boolean; clientSource?: string } = {}): Promise<BillingResult<{
   authenticated: boolean;
   degraded?: boolean;
   balance: number;
@@ -4285,7 +4296,9 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
   const inFlightPromise = (async () => {
     // fresh=1은 서버의 표시용 잔량 캐시를 우회한다(수동 "재조회"에서만 사용). 자동 조회는 캐시를 허용해 빠르게 응답.
     const balanceUrl = options.fresh === true ? "/api/billing/balance?fresh=1" : "/api/billing/balance";
-    const response = await authFetchBilling(balanceUrl, { method: "GET" });
+    const response = await authFetchBilling(balanceUrl, { method: "GET" }, {
+      clientSource: options.clientSource || "app:billing-client",
+    });
     const parsed = await parseBillingResponse<BillingBalanceData>(response);
 
     if (parsed.ok && parsed.data) {

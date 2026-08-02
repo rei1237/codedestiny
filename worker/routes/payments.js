@@ -31,6 +31,10 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
 import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
+import {
+  validatePurchasePolicy,
+  resolveServerProductType,
+} from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { resolvePaidContentUnlockTarget, USER_SCOPE_PROFILE_ID } from "../lib/content-unlocks.js";
 // 환불 코어는 관리자 라우트(/api/admin/orders)와 공유한다 — 두 벌이 되면 한쪽만 고쳐지는 사고가 난다.
@@ -43,7 +47,7 @@ import {
 
 // 부분취소 판정도 환불 코어와 같은 함수를 쓴다(사본 금지). 기존 호출부 이름을 그대로 유지한다.
 const isPartialSingleCancel = isPartialCancel;
-import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
+import { enforceSensitiveEndpointSecurity, writeSecurityLog } from "../lib/security/index.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
@@ -82,6 +86,38 @@ function toDateFromUnixSeconds(value) {
 function normalizePaymentMethod(value) {
   const method = String(value || "unknown").trim();
   return method ? method.slice(0, 32) : "unknown";
+}
+
+async function rejectPurchasePolicy(request, env, auth, decision, context = {}) {
+  if (decision?.allowed) return null;
+  await writeSecurityLog({
+    env,
+    request,
+    level: "warn",
+    reason: decision?.auditCode || decision?.denialReason || "PURCHASE_POLICY_DENIED",
+    userId: auth?.userId,
+    endpoint: new URL(request.url).pathname,
+    metadata: {
+      policyVersion: decision?.policyVersion || "",
+      productType: decision?.normalizedProductType || "",
+      sku: decision?.sku || "",
+      requestedPaymentMethod: context.requestedPaymentMethod || "",
+      route: context.route || "",
+    },
+  });
+  return json({
+    ok: false,
+    success: false,
+    code: decision?.denialReason || "PURCHASE_POLICY_DENIED",
+    reason: decision?.denialReason || "PURCHASE_POLICY_DENIED",
+    message: decision?.denialReason === "CANNOT_BUY_PASS_WITH_PASS"
+      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 허용된 월정석 정책을 이용해 주세요."
+      : decision?.denialReason === "FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS"
+        ? "패밀리 이용권은 기능 이용 권한이며, 더 높은 가격의 이용권 구매 수단으로 사용할 수 없습니다."
+        : "현재 상품은 PG 결제 또는 허용된 월정석 정책으로만 구매할 수 있습니다.",
+    policyVersion: decision?.policyVersion || "",
+    auditCode: decision?.auditCode || "PURCHASE_POLICY_DENIED",
+  }, { status: 403 });
 }
 
 function normalizePortOneCurrency(value) {
@@ -3619,6 +3655,32 @@ async function handleSubscriptionPrepare(request, env, auth) {
   if (!currentUser) {
     return json({ message: "User not found." }, { status: 404 });
   }
+  const preparePolicy = validatePurchasePolicy({
+    userId: auth.userId,
+    sku: plan.planId,
+    productId: plan.planId,
+    productType: resolveServerProductType({
+      body,
+      paymentType: "membership_pass",
+      serverProductType: plan.productType,
+      productId: plan.planId,
+    }),
+    price: plan.wonPrice,
+    requestedPaymentMethod: paymentMethod,
+    currentSubscription: currentUser.profileSubscription,
+    familyPlanInfo: currentUser.profileSubscription,
+    orderContext: {
+      route: "subscription_prepare",
+      coveredByPass: body?.coveredByPass === true,
+      userEntitlement: body?.userEntitlement,
+    },
+  });
+  const preparePolicyResponse = await rejectPurchasePolicy(request, env, auth, preparePolicy, {
+    sku: plan.planId,
+    requestedPaymentMethod: paymentMethod,
+    route: "subscription_prepare",
+  });
+  if (preparePolicyResponse) return preparePolicyResponse;
   // 🔴 이용권 주문 응답에도 customer 를 실어 보낸다. 예전에는 이 라우트만 customer 가 없어서(단건
   // 디지털콘텐츠 응답에는 있었다) 이용권 결제는 저장된 번호가 있어도 결제 직전에 항상
   // GET /api/me/payment-phone 을 한 번 더 타야 했고, 그 조회가 실패하면 번호 입력창이 다시 떴다.
@@ -4213,6 +4275,32 @@ async function handleSubscriptionConfirm(request, env, auth) {
   if ((requestedAmount !== null && requestedAmount !== plan.wonPrice) || !["KRW", "CURRENCY_KRW"].includes(requestedCurrency)) {
     return json({ message: "Subscription amount or currency mismatch.", code: "SUBSCRIPTION_PRICE_MISMATCH" }, { status: 400 });
   }
+  const confirmPolicy = validatePurchasePolicy({
+    userId: auth.userId,
+    sku: plan.planId,
+    productId: plan.planId,
+    productType: resolveServerProductType({
+      body,
+      paymentType: "membership_pass",
+      serverProductType: plan.productType,
+      productId: plan.planId,
+    }),
+    price: plan.wonPrice,
+    requestedPaymentMethod: paymentMethodHint,
+    currentSubscription: auth.authUserDoc?.profileSubscription || null,
+    familyPlanInfo: auth.authUserDoc?.profileSubscription || null,
+    orderContext: {
+      route: "subscription_confirm",
+      coveredByPass: body?.coveredByPass === true,
+      userEntitlement: body?.userEntitlement,
+    },
+  });
+  const confirmPolicyResponse = await rejectPurchasePolicy(request, env, auth, confirmPolicy, {
+    sku: plan.planId,
+    requestedPaymentMethod: paymentMethodHint,
+    route: "subscription_confirm",
+  });
+  if (confirmPolicyResponse) return confirmPolicyResponse;
   if (paymentMethodHint === "monthly_credit" || paymentMethodHint === "monthly") {
     return await handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint });
   }

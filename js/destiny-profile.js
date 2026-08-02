@@ -1121,6 +1121,12 @@
     delete _dpApiCooldownUntil[key];
   }
 
+  function _dpClientSource(pathname) {
+    return String(pathname || '').indexOf('/api/billing/coin-gate') === 0
+      ? 'feature:coin-gate'
+      : 'legacy:destiny-profile';
+  }
+
   function _dpFetchJsonWithFallback(pathname, init, options) {
     var opts = options || {};
     var method = String(((init && init.method) || 'GET')).toUpperCase();
@@ -1128,6 +1134,9 @@
     requestInit.method = method;
     requestInit.credentials = 'include';
     if (!requestInit.cache) requestInit.cache = 'no-store';
+    var traceHeaders = new Headers(requestInit.headers || {});
+    if (!traceHeaders.has('X-Code-Destiny-Client')) traceHeaders.set('X-Code-Destiny-Client', _dpClientSource(pathname));
+    requestInit.headers = traceHeaders;
 
     var cooldownEnabled = _dpShouldApplyCooldown(pathname, method);
     if (cooldownEnabled) {

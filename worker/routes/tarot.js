@@ -13,7 +13,11 @@ import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mj
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
-import { buildPremiumYearReading, validatePremiumYearReading } from "../../lib/tarot/tarot-year-premium.mjs";
+import {
+  buildPremiumYearReading,
+  drawPremiumYearCards,
+  validatePremiumYearReading,
+} from "../../lib/tarot/tarot-year-premium.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
   buildFallbackInterpretation,
@@ -1543,7 +1547,10 @@ export async function handleTarotRoutes(request, env = {}) {
 
     if (path === "/draw") {
       const spreadType = normalizeSpreadType(body?.spreadType || "one_card");
-      const drawnCards = drawTarotCardsForSpread(spreadType);
+      const year = resolveYearValue(body?.year);
+      const drawnCards = spreadType === "yearly_twelve_card" && asText(body?.seed)
+        ? drawPremiumYearCards({ seed: asText(body.seed), year })
+        : drawTarotCardsForSpread(spreadType);
       return json({ ok: true, spreadType, cards: drawnCards });
     }
 

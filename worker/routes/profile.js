@@ -20,6 +20,7 @@ import {
   resolveProfileCardActionAccess,
 } from "../lib/profile-card-mutation-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
+import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
@@ -1553,13 +1554,14 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
 export async function handleProfileRoutes(request, env) {
   // 503 진단용: 실패가 인증 왕복(auth)인지, DB 연결(connect)인지, 핸들러 READ인지
   // 구분하려고 단계마다 플래그를 갱신한다(handleRouteError가 이 필드를 로그에 남김).
-  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false };
+  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false, userId: "" };
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/profile");
     // 인증 조회를 확장해 authUserDoc 를 받아 온다 — 읽기 GET 핸들러들이 같은 User 를 재조회하던
     // 두 번째 왕복을 없앤다(쓰기 핸들러는 자기 write 이후 상태가 필요해 종전대로 직접 조회한다).
     const auth = await requireUserFromRequest(request, env, { userProjection: PROFILE_ROUTE_USER_PROJECTION });
+    trace.userId = String(auth?.userId || "");
     trace.authPresent = true;
     trace.authVerified = true;
     const security = await enforceProfileRouteSecurity(request, env, auth, method, path);
@@ -1610,5 +1612,9 @@ export async function handleProfileRoutes(request, env) {
       request,
       trace,
     });
+  } finally {
+    if (!["GET", "HEAD"].includes(String(request.method || "").toUpperCase()) && trace.userId) {
+      invalidateAccessStateCacheForUser(trace.userId);
+    }
   }
 }

@@ -9,7 +9,7 @@ import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation }
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -669,11 +669,11 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
   if (/usage[-_]pass/.test(signal)) return null;
 
   if (signal.includes("pass") || signal.includes("membership_pass")) {
-    const pass = normalizeHoneyPassEntitlement(user || {});
-    if (canUseByPass(pass, pricing.coinPrice)) {
+    const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+    if (featureAccess.allowed) {
       return {
         ok: true,
-        accessType: "pass",
+        accessType: featureAccess.accessType || "pass",
         paymentId: tokens[0] || "",
         prepaid: true,
         evidenceType: "pass",
@@ -767,9 +767,9 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     return { ok: true, accessType: "paid", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
   }
 
-  const pass = normalizeHoneyPassEntitlement(user || {});
-  if (canUseByPass(pass, pricing.coinPrice)) {
-    return { ok: true, accessType: "pass", paymentId: "" };
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) {
+    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "" };
   }
 
   if (hasMonthlyCredit(user, pricing.membershipCreditCost)) {
