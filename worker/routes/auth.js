@@ -20,6 +20,7 @@ import {
 } from "../lib/auth.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
+import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge, validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
@@ -2028,6 +2029,7 @@ function normalizeAuthUserResponse(user) {
   const phoneNumber = normalizeKoreanPhoneNumber(user?.phoneNumber || user?.phone);
   return {
     ...normalized,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "auth_me" }),
     ...(phoneNumber ? { phoneNumber } : {}),
   };
 }

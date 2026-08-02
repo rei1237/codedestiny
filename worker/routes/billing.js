@@ -6555,11 +6555,14 @@ export async function handleBillingRoutes(request, env) {
     route: "billing",
     requestPath: new URL(request.url).pathname,
     method,
+    stage: "security",
   };
 
   try {
     const security = await enforceBillingRouteSecurity(request, env, path, method);
     if (!security.ok) return security.response;
+
+    trace.stage = "dispatch";
 
     if (method === "GET" && path === "/features") return await handleFeatures(request);
     if (method === "GET" && path === "/balance") return await handleBillingSnapshotBalance(request, env);
@@ -6569,7 +6572,10 @@ export async function handleBillingRoutes(request, env) {
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
     if (method === "POST" && path === "/funnel-event") return await handleCheckoutFunnelEvent(request, env);
 
-    if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
+    if (method === "POST" && path === "/coin-gate") {
+      trace.stage = "coin_gate";
+      return await handleCoinGate(request, env);
+    }
     if (method === "POST" && path === "/coin-gate/deferred/register") return await handleDeferredUsageRegister(request, env);
     if (method === "POST" && path === "/coin-gate/deferred/apply") return await handleDeferredUsageApply(request, env);
     if (method === "POST" && path === "/coin-gate/deferred/cancel") return await handleDeferredUsageCancel(request, env);
