@@ -121,3 +121,4 @@ export function buildReadingResponse(_engine, category, spreadType, drawnCards, 
 
   return payload;
 }
+

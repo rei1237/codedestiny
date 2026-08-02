@@ -832,7 +832,8 @@
     showTarotYearFinalReading();
   }
 
-  function renderTarotYearDrawCards() {
+  
+function renderTarotYearDrawCards() {
     var grid = byId("tarotYearDrawCardGrid");
     if (!grid || !state.cards.length) return;
     grid.innerHTML = "";
@@ -1099,6 +1100,7 @@ function getMonthlySectionText(monthly, key, fallback) {
   return fallback || "";
 }
 
+
 function buildMonthNarrativeItem(title, bodyHtml, extraClass) {
   return '<article class="ty-month-item ty-month-item--open ' + (extraClass || "") + '">' +
     '<button type="button" class="ty-month-header" aria-expanded="true">' + escapeHtml(title) + '</button>' +
@@ -1173,6 +1175,7 @@ function buildMonthDetailHtml(monthly, spreadCards, triadReading, cat) {
 
   return sections.join("");
 }
+
 
 function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
   var monthly = getMonthlyReadingByMonth(state.reading, monthNum);
@@ -1633,7 +1636,8 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
       section("12지신이 전하는 마지막 메시지", paragraph("올해의 한 문장", reading.finalMessage?.oneLine || reading.finalAdvice) + paragraph("당신에게 필요한 태도", reading.finalMessage?.attitude || annual.stance) + paragraph("붙잡아야 할 기회", reading.finalMessage?.opportunity) + paragraph("버려야 할 습관", reading.finalMessage?.release) + paragraph("천운의 메시지", reading.finalMessage?.zodiacMessage || reading.finalAdvice), "ty-premium-section--final");
   }
 
-  function renderTarotYearResult() {
+  
+function renderTarotYearResult() {
     var r = state.reading;
     if (!r) return;
     if (!state.hasAccess) {
