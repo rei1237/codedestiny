@@ -150,7 +150,7 @@ beforeAll(async () => {
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   ENV = {
     GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: JSON.stringify({
-      client_email: "svc@test.iam.gserviceaccount.com",
+      client_email: "test-service-account",
       private_key: privateKey.export({ type: "pkcs8", format: "pem" }),
     }),
     GOOGLE_PLAY_PACKAGE_NAME: "com.codedestiny.app",
