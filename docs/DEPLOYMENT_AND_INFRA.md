@@ -12,6 +12,15 @@
 
 운영 Pages 배포는 사용자 명시 승인 후에만 진행한다.
 
+## Worktree and PR delivery boundary
+
+- Normal development never edits, commits, pushes, or deploys from the primary repository worktree. Use `scripts/create-safe-worktree.ps1` to create a registered secondary worktree from the latest `origin/main`.
+- `npm run verify:worktree-policy -- --mode=edit` blocks primary-worktree, protected-branch, detached-HEAD, and unregistered-path edits. `--mode=pr` blocks stale feature branches before PR creation.
+- Pages and Worker production workflows run only from `main` after merge. Local deployment scripts fail unless they are running in the CI `main` context, and production deployment still requires explicit user approval.
+- PR descriptions must include validation results, risk, confirmed no-regression scope, and rollback method. Merge requires required checks, review approval, no unresolved blockers, final-diff scope confirmation, and explicit user merge approval.
+
+Repository administrators must configure the `main` ruleset to require pull requests, require the worktree policy check and existing required checks, reject force pushes and branch deletion, require an up-to-date base, and disallow direct pushes. The ruleset is verified read-only after configuration.
+
 ## Cloudflare Workers 구조
 
 - Worker config: `worker/wrangler.toml`

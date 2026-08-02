@@ -24,6 +24,11 @@ Thumbs.db
 .vscode/
 .cursor/
 
+# Local worktree/session coordination (never part of feature PRs)
+.codex-worktrees/
+.work-locks/
+WORKING_ON.md
+
 # Environment (secrets - never commit)
 .env
 .env.local

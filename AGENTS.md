@@ -25,7 +25,7 @@
 - Do not deploy to production without explicit user approval.
 - Do not make real LLM API calls, run real payments, write to production DB, or deploy to production during ordinary coding work. Use mock/fake/stub, sandbox, local DB, or test DB validation only unless the user explicitly approves the exact live action.
 - Production release work must go through a PR first. Before any production deploy, document regression risks, run the relevant no-regression checks, and confirm there is no known regression in the PR notes.
-- When the user requests the full publish flow, Codex may merge the PR after required CI checks are green, required approvals are present, there are no unresolved blocking reviews or conflicts, and the final diff still matches the approved scope. Never bypass required checks, force-merge, or merge a PR whose scope changed after approval. If GitHub authentication is unavailable, stop and ask the user to re-authenticate.
+- Codex may merge a PR only after the user explicitly approves the merge in the current task, required CI checks are green, required approvals are present, there are no unresolved blocking reviews or conflicts, and the final diff still matches the approved scope. Never bypass required checks, force-merge, or merge a PR whose scope changed after approval. If GitHub authentication is unavailable, stop and ask the user to re-authenticate.
 - After a permitted merge, Codex may continue to the explicitly approved deployment workflow, verify the deployed commit/version, and run the post-deploy latency runbook. A merge alone never authorizes production deployment, payment, LLM, or production DB actions.
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
 - Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the GitHub PR/deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
@@ -37,6 +37,19 @@
 - Static shell and React routes are not interchangeable. The live home source is root `index.html`.
 - Mirror files under `public/**/index.html` are generated mirrors. Do not patch them directly unless explicitly requested.
 - Mobile UI regressions are high risk. Preserve route behavior, safe areas, touch targets, and app payment routing.
+
+## Worktree-Only Development and PR Delivery
+
+The primary repository worktree is protected. All repository edits, commits, pushes, and local production deployment attempts must happen in a registered secondary worktree.
+
+- Never edit or commit from the primary worktree, `main`, `master`, or a detached HEAD.
+- Before editing, create a sibling worktree from the latest `origin/main` with `scripts/create-safe-worktree.ps1`.
+- Run `npm run verify:worktree-policy -- --mode=edit` before the first edit. The PreToolUse hooks and this guard are fail-closed when the current worktree cannot be identified safely.
+- Keep each worktree's feature scope and `.work-locks/<session-id>.md` registration explicit. If another `IN_PROGRESS` lock overlaps the target files or feature, stop and report `LOCK DETECTED`.
+- Before opening a PR, fetch `origin/main`, confirm the feature branch contains the latest base, run the relevant checks, and use `npm run verify:worktree-policy -- --mode=pr`.
+- Push only the feature branch and create or update a PR targeting `main`. Direct pushes to `main`, force pushes, and PR-less production changes are prohibited.
+- A PR must contain `## Validation`, `## Risk`, `## No-regression Scope`, and `## Rollback` sections. Merge requires green required checks, required review approval, no blocking conflict/review, final-diff scope confirmation, and the user's explicit merge approval for that task.
+- Production Pages/Worker deployment is CI-only from `main` after merge and still requires explicit user approval for that exact deployment. Local `npm run deploy:*` commands are blocked by the worktree policy guard.
 
 ## Development Workflow
 

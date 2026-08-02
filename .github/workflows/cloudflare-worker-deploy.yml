@@ -27,6 +27,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify deployment is from merged main
+        run: node scripts/verify-worktree-policy.mjs --mode=deploy
+
       - name: Load local fallback env (optional)
         id: load-gemini-fallback
         run: |
