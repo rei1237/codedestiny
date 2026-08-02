@@ -1,76 +1,159 @@
 "use client";
 /**
- * 운명 여정 허브 — 여정의 정문(front door).
- * 연이(꽃돼지)가 맞이하고, 리텐션 스냅샷(레벨·연속출석)을 보여준 뒤 '오늘의 나침반'으로 안내한다.
- * 마운트 시 출석(checkin)을 리텐션 엔진에 기록한다(멱등: 하루 1회).
- * 스냅샷은 정적셸의 window.CDLevel이 있을 때만 표시(없으면 인사만 — 그레이스풀 폴백).
- *
- * 디자인: '따뜻한 밤하늘 스토리북'. 상단 일러스트 나침반(인라인 SVG) + 연이 메달리온이 맞이하는 코지 카드.
- * 공유 .birth* 클래스(BirthGate와 공유) 대신 허브 전용 JourneyHub.module.css로 격리한다.
+ * 운명의 나침반 첫 화면.
+ * 사용자가 먼저 방향을 만져 본 뒤, 실제 계산 입력으로 자연스럽게 들어가도록 만든다.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { Starfield } from "./Starfield";
-import { PigFace } from "./PigFace";
-import { compassAssets } from "../data/assets";
+import { ConstellationMark } from "./ConstellationMark";
+import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import type { DirectionKey } from "../_engine/types";
+import { COMPASS_ORDER } from "../_stage/expressionMap";
 import { checkInToday, readCollectibles, readRpgSnapshot, type RpgSnapshot } from "../_lib/rpg-bridge";
 import hub from "./JourneyHub.module.css";
 
-/** 상단 각인 나침반 — 골드 로즈 + 로즈 바늘. 순수 SVG, 느린 idle 흔들림(reduced-motion 시 정지). */
-function CompassRose() {
+const STEP_DEG = 360 / COMPASS_ORDER.length;
+
+function normalizeAngle(value: number): number {
+  return ((value % 360) + 360) % 360;
+}
+
+function keyFromAngle(angle: number): DirectionKey {
+  const index = Math.round(normalizeAngle(angle) / STEP_DEG) % COMPASS_ORDER.length;
+  return COMPASS_ORDER[index];
+}
+
+function bearingForIndex(index: number): number {
+  return index * STEP_DEG;
+}
+
+function shortLabel(key: DirectionKey): string {
+  return DIRECTION_LABEL_KO[key].split("·")[0];
+}
+
+function CompassNeedleIcon() {
   return (
-    <svg className={hub.compass} viewBox="0 0 100 100" role="img" aria-label="운명의 나침반">
-      <defs>
-        <radialGradient id="hubGem" cx="50%" cy="40%" r="62%">
-          <stop offset="0%" stopColor="#fff6dd" />
-          <stop offset="46%" stopColor="#e8d5a3" />
-          <stop offset="100%" stopColor="#7c5ad2" />
-        </radialGradient>
-        <linearGradient id="hubStar" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fff6dd" />
-          <stop offset="100%" stopColor="#c9a54e" />
-        </linearGradient>
-      </defs>
-      {/* 외곽 링 + 틱 링(점선) */}
-      <circle cx="50" cy="50" r="46.5" fill="none" stroke="rgba(232,213,163,.55)" strokeWidth="1.3" />
-      <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(232,213,163,.26)" strokeWidth="1" />
-      <circle cx="50" cy="50" r="37" fill="none" stroke="rgba(232,213,163,.45)" strokeWidth="1.4" strokeDasharray="0.6 5.2" strokeLinecap="round" />
-      {/* 보조(대각) 별점 — 짧게 */}
-      <path
-        d="M50 24 L54 46 L76 50 L54 54 L50 76 L46 54 L24 50 L46 46 Z"
-        transform="rotate(45 50 50)"
-        fill="rgba(232,213,163,.5)"
-      />
-      {/* 주(십자) 별점 — 길게 */}
-      <path
-        d="M50 8 L56 44 L92 50 L56 56 L50 92 L44 56 L8 50 L44 44 Z"
-        fill="url(#hubStar)"
-        stroke="rgba(255,246,221,.55)"
-        strokeWidth="0.6"
-        strokeLinejoin="round"
-      />
-      {/* 나침반 바늘(움직이는 부분) */}
-      <g className={hub.needle}>
-        <path d="M50 19 L54.5 50 L45.5 50 Z" fill="#b31955" />
-        <path d="M50 81 L54.5 50 L45.5 50 Z" fill="rgba(255,241,247,.94)" />
-      </g>
-      {/* 중심 보석 캡 */}
-      <circle cx="50" cy="50" r="6.6" fill="url(#hubGem)" stroke="rgba(255,244,210,.85)" strokeWidth="1" />
+    <svg className={hub.ctaIcon} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.4" opacity="0.45" />
+      <path d="M12 2.7l3 9.3-3 9.3-3-9.3z" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.7" fill="#0b0f1d" />
     </svg>
+  );
+}
+
+function InteractiveCompass({
+  selected,
+  angle,
+  settling,
+  onSelect,
+}: {
+  selected: DirectionKey;
+  angle: number;
+  settling: boolean;
+  onSelect: (key: DirectionKey, angle: number) => void;
+}) {
+  const dialRef = useRef<HTMLDivElement>(null);
+  const directions = useMemo(
+    () => COMPASS_ORDER.map((key, index) => ({ key, label: shortLabel(key), angle: bearingForIndex(index) })),
+    [],
+  );
+
+  const selectFromPoint = (event: PointerEvent<HTMLDivElement>) => {
+    const rect = dialRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const nextAngle = normalizeAngle((Math.atan2(event.clientX - cx, cy - event.clientY) * 180) / Math.PI);
+    const nextKey = keyFromAngle(nextAngle);
+    onSelect(nextKey, nextAngle);
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    selectFromPoint(event);
+  };
+
+  return (
+    <div
+      ref={dialRef}
+      className={hub.dial}
+      data-settling={settling || undefined}
+      style={{ "--bearing": `${angle}deg` } as CSSProperties}
+      onPointerDown={handlePointerDown}
+      onPointerMove={(event) => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) selectFromPoint(event);
+      }}
+      role="group"
+      aria-label={`선택된 나침반 방향: ${DIRECTION_LABEL_KO[selected]}`}
+    >
+      <div className={hub.dialHalo} aria-hidden="true" />
+      <svg className={hub.rose} viewBox="0 0 240 240" aria-hidden="true">
+        <defs>
+          <radialGradient id="entryCompassFace" cx="50%" cy="42%" r="65%">
+            <stop offset="0%" stopColor="#202849" />
+            <stop offset="58%" stopColor="#11182f" />
+            <stop offset="100%" stopColor="#080c19" />
+          </radialGradient>
+          <linearGradient id="entryCompassGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#fff3c6" />
+            <stop offset="48%" stopColor="#e8d5a3" />
+            <stop offset="100%" stopColor="#a47f35" />
+          </linearGradient>
+        </defs>
+        <circle cx="120" cy="120" r="111" fill="rgba(6,10,22,.82)" stroke="url(#entryCompassGold)" strokeWidth="2.5" />
+        <circle cx="120" cy="120" r="94" fill="url(#entryCompassFace)" stroke="rgba(232,213,163,.35)" strokeWidth="1.2" />
+        <circle cx="120" cy="120" r="75" fill="none" stroke="rgba(196,181,253,.18)" strokeWidth="1" strokeDasharray="2 8" />
+        <path
+          d="M120 20l9 74 74 26-74 26-9 74-9-74-74-26 74-26z"
+          fill="rgba(232,213,163,.26)"
+          stroke="rgba(232,213,163,.46)"
+          strokeWidth="1"
+        />
+        <path
+          className={hub.needleShape}
+          d="M120 31l10 89-10 89-10-89z"
+          fill="url(#entryCompassGold)"
+          stroke="rgba(255,248,225,.55)"
+          strokeWidth="1"
+        />
+        <circle cx="120" cy="120" r="10" fill="#080c19" stroke="url(#entryCompassGold)" strokeWidth="3" />
+      </svg>
+
+      {directions.map((direction) => (
+        <button
+          key={direction.key}
+          type="button"
+          className={hub.direction}
+          data-active={direction.key === selected || undefined}
+          style={{ "--point": `${direction.angle}deg` } as CSSProperties}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect(direction.key, direction.angle);
+          }}
+          aria-pressed={direction.key === selected}
+        >
+          {direction.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
 export function JourneyHub({ onStart }: { onStart: () => void }) {
   const [snap, setSnap] = useState<RpgSnapshot | null>(null);
   const [dexCount, setDexCount] = useState(0);
+  const [selected, setSelected] = useState<DirectionKey>("venture");
+  const [angle, setAngle] = useState(bearingForIndex(COMPASS_ORDER.indexOf("venture")));
+  const [pulse, setPulse] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
-    checkInToday(); // 오늘 첫 진입 = 출석(멱등)
-    // checkin이 로컬 스토어를 갱신한 직후를 읽도록 다음 틱에 스냅샷
+    checkInToday();
     const id = window.setTimeout(() => setSnap(readRpgSnapshot()), 0);
     return () => window.clearTimeout(id);
   }, []);
 
-  // 운명 도감 수집 수(로그인 시). 실패·비로그인은 0으로 조용히 폴백.
   useEffect(() => {
     let alive = true;
     readCollectibles().then((items) => {
@@ -81,91 +164,68 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
     };
   }, []);
 
-  // 달빛 BGM(플래그십 앰비언트) — 네오 작전실 패턴 재사용. 자동재생은 브라우저 정책상 제스처 필요.
-  const bgmRef = useRef<HTMLAudioElement | null>(null);
-  const [bgmOn, setBgmOn] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("cd-journey-bgm-v1") === "1") setBgmOn(true);
-    } catch {
-      /* noop */
-    }
-  }, []);
-
-  useEffect(() => {
-    const el = bgmRef.current;
-    if (!el) return;
-    if (bgmOn) {
-      el.volume = 0.26;
-      void el.play().catch(() => {}); // 자동재생 차단 시 조용히 무시 — 사용자가 토글로 재시도
-    } else {
-      el.pause();
-    }
-  }, [bgmOn]);
-
-  const toggleBgm = () => {
-    setBgmOn((v) => {
-      const next = !v;
-      try {
-        localStorage.setItem("cd-journey-bgm-v1", next ? "1" : "0");
-      } catch {
-        /* noop */
+  const selectDirection = (key: DirectionKey, nextAngle: number) => {
+    setSelected((prev) => {
+      if (prev !== key) {
+        setPulse(false);
+        window.setTimeout(() => setPulse(true), 0);
+        navigator.vibrate?.(12);
       }
-      return next;
+      return key;
     });
+    setAngle(nextAngle);
+  };
+
+  const begin = () => {
+    if (starting) return;
+    setStarting(true);
+    navigator.vibrate?.(18);
+    window.setTimeout(onStart, 520);
   };
 
   const greeting = useMemo(() => {
     const streak = snap?.streakDays ?? 0;
-    if (streak >= 7) return `이 여정, 벌써 ${streak}일째예요. 오늘도 한 걸음 함께해요.`;
-    if (streak >= 2) return `${streak}일 연속이에요. 오늘의 방향도 같이 찾아봐요.`;
-    return "오늘도 왔네요. 여기서 오늘의 방향과 한 걸음을 찾아요.";
+    if (streak >= 7) return `${streak}일째 이어진 흐름이 있어요. 오늘은 방향을 조금 더 선명하게 잡아볼게요.`;
+    if (streak >= 2) return `${streak}일 연속으로 나침반을 열었어요. 오늘의 바늘도 함께 맞춰봐요.`;
+    return "지금 당신의 방향은 어디를 향하고 있을까요?";
   }, [snap]);
 
-  const showBadge = !!snap && (snap.loggedIn || snap.currentLevel > 1 || snap.streakDays > 0);
-
   return (
-    <div className={hub.stage}>
+    <main className={hub.stage}>
       <Starfield />
-      <audio ref={bgmRef} src={compassAssets.bgm.warroom} loop preload="none" className={hub.bgmAudio} />
-      <button
-        type="button"
-        className={hub.bgmToggle}
-        onClick={toggleBgm}
-        aria-label={bgmOn ? "달빛 BGM 끄기" : "달빛 BGM 켜기"}
-        aria-pressed={bgmOn}
-      >
-        {bgmOn ? "⏸ 달빛 BGM" : "▶ 달빛 BGM"}
-      </button>
-
-      <div className={hub.panel}>
-        <CompassRose />
-        <span className={hub.kicker}>The Journey</span>
-        <h1 className={hub.title}>운명 여정</h1>
-
-        <div className={hub.mascot}>
-          <PigFace expression="happy" height={92} className={hub.mascotFace} />
+      <section className={hub.hero} aria-labelledby="destiny-compass-title">
+        <div className={hub.copy}>
+          <span className={hub.kicker}>Destiny Compass</span>
+          <h1 id="destiny-compass-title" className={hub.title}>운명의 나침반</h1>
+          <p className={hub.sub}>{greeting}</p>
+          <p className={hub.microcopy}>
+            바늘을 움직여 마음이 먼저 향하는 쪽을 골라보세요. 실제 결과는 생년 정보와 오늘의 질문을 함께 읽어 다시 계산합니다.
+          </p>
         </div>
 
-        {showBadge && (
-          <div className={hub.badge}>
-            <span aria-hidden="true">✦</span> Lv.{snap!.currentLevel}
-            {snap!.streakDays > 0 ? ` · 🔥 ${snap!.streakDays}일 연속` : ""}
+        <InteractiveCompass selected={selected} angle={angle} settling={starting} onSelect={selectDirection} />
+
+        <div className={hub.reading} data-pulse={pulse || undefined} aria-live="polite">
+          <span className={hub.readingMark} aria-hidden="true">
+            <ConstellationMark variant={2} size={18} />
+          </span>
+          <span className={hub.readingLabel}>지금 바늘</span>
+          <strong>{DIRECTION_LABEL_KO[selected]}</strong>
+        </div>
+
+        {(snap || dexCount > 0) && (
+          <div className={hub.statusLine} aria-label="운명 여정 상태">
+            {snap && <span>Lv.{snap.currentLevel}</span>}
+            {snap?.streakDays ? <span>{snap.streakDays}일 연속</span> : null}
+            {dexCount > 0 && <span>도감 {dexCount}장</span>}
           </div>
         )}
 
-        <p className={hub.sub}>{greeting}</p>
-        {dexCount > 0 && (
-          <p className={hub.dex}>
-            <span aria-hidden="true">✦</span> 운명 도감에 카드 {dexCount}장을 모았어요.
-          </p>
-        )}
-
-        <button type="button" className={hub.cta} onClick={onStart}>
-          오늘의 나침반 <span className={hub.arrow} aria-hidden="true">→</span>
+        <button type="button" className={hub.cta} onClick={begin} disabled={starting}>
+          <CompassNeedleIcon />
+          <span>{starting ? "운명을 읽는 중..." : "운명 탐색 시작"}</span>
         </button>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 /**
- * 운명의 지도 — RPG 맵 허브. 은하수 배경 + 다층 SVG 대륙 + 6지역 랜드마크 + 캐릭터.
+ * 운명의 나침반 선택 무대. 은하수 배경 + 다층 SVG 대륙 + 6지역 랜드마크 + 캐릭터.
  * 대기 원근(Z0 딥스페이스 → Z1 대륙 → Z2 노드 → Z3 대기베일 → Z4 캐릭터 → Z5 UI).
  * 노드는 자체 SVG(NodeIcon), 이모지 미사용. children = 하단 UI 슬롯(고민 입력/처리).
  */
@@ -64,8 +64,8 @@ interface DestinyMapProps {
 }
 
 export function DestinyMap({
-  title = "운명의 지도",
-  kicker = "The Destiny Map",
+  title = "운명의 나침반",
+  kicker = "Destiny Compass",
   showFog = false,
   pathTo,
   highlightRegion,
@@ -129,7 +129,7 @@ export function DestinyMap({
           <div className={styles.islandArt}>
             <Image
               src={compassPaintings.mapBackground}
-              alt="운명의 지도 배경"
+              alt="운명의 나침반 배경"
               fill
               sizes="(max-width: 640px) 92vw, min(70vw, 1120px)"
               unoptimized
