@@ -9,6 +9,7 @@
 
   var MONTH_LABELS_CJK = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
   var ZODIAC_EMOJI = ["🐭", "🐮", "🐅", "🐇", "🐉", "🐍", "🐴", "🐐", "🐒", "🐓", "🐕", "🐷"];
+  var ZODIAC_NAMES = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"];
 
   var state = {
     cards: [],
@@ -22,15 +23,30 @@
     monthSpreadCache: {},
     monthCategoryCache: {},
     monthNarrativeCache: {},
-    monthRequestToken: 0
+    monthRequestToken: 0,
+    year: new Date().getFullYear(),
+    requestId: "",
+    resultId: ""
   };
-  var YEAR_COIN_COST = 30;
+  var YEAR_COIN_COST = 100;
   var YEAR_REASON = "십이지신 천운 타로";
   var YEAR_FEATURE_KEY = "tarot-year-fortune";
   var TAROT_API_TIMEOUT_MS = 9000;
 
   function byId(id) {
     return document.getElementById(id);
+  }
+
+  // Local-only UI fixture: lets the Family test account inspect the premium
+  // result shell without contacting a payment, LLM, or production API.
+  function isLocalFamilyUiTest() {
+    try {
+      var host = String(location.hostname || "").toLowerCase();
+      var familyTest = new URLSearchParams(location.search || "").get("familyTest");
+      return (host === "localhost" || host === "127.0.0.1" || host === "::1") && String(familyTest || "").toLowerCase() === "family";
+    } catch (e) {
+      return false;
+    }
   }
 
   function normalizeApiBase(raw) {
@@ -282,12 +298,68 @@
     });
   }
 
+  function callTarotYearResult(year, resultId) {
+    var bases = buildTarotApiBaseCandidates();
+    var index = 0;
+    var query = resultId
+      ? "?resultId=" + encodeURIComponent(String(resultId))
+      : "?year=" + encodeURIComponent(String(year || new Date().getFullYear()));
+
+    function tryNext() {
+      if (index >= bases.length) return Promise.reject(new Error("저장된 연간 결과를 확인하지 못했습니다."));
+      var base = bases[index++];
+      var url = (base ? base + "/api/tarot/year/result" : "/api/tarot/year/result") + query;
+      var headers = { "Accept": "application/json" };
+      var token = getAuthToken();
+      if (token) headers.Authorization = "Bearer " + token;
+      return fetch(url, {
+        method: "GET",
+        headers: headers,
+        credentials: "include",
+        cache: "no-store",
+      }).then(function (res) {
+        if (res.status === 404) return null;
+        if (!res.ok) {
+          var error = new Error("Stored tarot year result request failed: " + res.status);
+          error.status = res.status;
+          throw error;
+        }
+        return res.json();
+      }).catch(function (error) {
+        if (Number(error && error.status) >= 500 || !error.status) return tryNext();
+        throw error;
+      });
+    }
+    return tryNext();
+  }
+
   function getAuthToken() {
     try {
       return localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken") || "";
     } catch (e) {
       return "";
     }
+  }
+
+  function getYearStorageKey(year) {
+    return "cd:tarot-year:request:" + String(year || state.year || new Date().getFullYear());
+  }
+
+  function getOrCreateYearRequestId(year) {
+    var key = getYearStorageKey(year);
+    try {
+      var existing = String(sessionStorage.getItem(key) || "").trim();
+      if (existing) return existing;
+      var created = "tarot-year:" + String(year) + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+      sessionStorage.setItem(key, created);
+      return created;
+    } catch (e) {
+      return "tarot-year:" + String(year) + ":" + Date.now().toString(36);
+    }
+  }
+
+  function clearYearRequestId(year) {
+    try { sessionStorage.removeItem(getYearStorageKey(year)); } catch (e) {}
   }
 
   function isYearAdminLikeUser() {
@@ -313,7 +385,7 @@
 
   function consumeCoinDirect(cost, reason, featureKey) {
     if (isYearAdminLikeUser()) return Promise.resolve(true);
-    var requestId = "tarot-year:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    var requestId = state.requestId || getOrCreateYearRequestId(state.year);
     if (typeof window._cdOpenPaidServiceGate === "function") {
       return Promise.resolve(window._cdOpenPaidServiceGate({
         title: reason,
@@ -374,6 +446,8 @@
     }
     if (state.hasAccess) return Promise.resolve(true);
     if (state.paymentInFlight) return Promise.resolve(false);
+    state.year = new Date().getFullYear();
+    state.requestId = getOrCreateYearRequestId(state.year);
     state.paymentInFlight = true;
 
     return new Promise(function (resolve) {
@@ -580,6 +654,7 @@
       else document.body.style.overflow = "hidden";
       resetTarotYearFortuneFlow();
       bindTarotYearStaticActions();
+      restoreStoredYearResult();
     } catch (err) {
       console.error("[Tarot Year Fortune] openTarotYearFortuneModal error:", err);
       try {
@@ -607,6 +682,7 @@
   }
 
   function resetTarotYearFortuneFlow() {
+    clearYearRequestId(state.year || new Date().getFullYear());
     state.cards = [];
     state.reading = null;
     state.consultingHighlights = [];
@@ -617,7 +693,11 @@
     state.activeCategory = "general";
     state.monthSpreadCache = {};
     state.monthCategoryCache = {};
+    state.monthNarrativeCache = {};
     state.monthRequestToken = 0;
+    state.year = new Date().getFullYear();
+    state.requestId = "";
+    state.resultId = "";
     var intro = byId("tarotYearFortuneIntroStage");
     var draw = byId("tarotYearFortuneDrawStage");
     var result = byId("tarotYearFortuneResultStage");
@@ -637,6 +717,58 @@
     requireYearAccess().then(function (ok) {
       if (!ok) return;
       _runTarotYearFortuneReading();
+    });
+  }
+
+  function applyYearResultData(data) {
+    var normalized = normalizeYearlyReadingPayload(data);
+    if (!normalized) return false;
+    state.reading = normalized;
+    state.cards = Array.isArray(data && data.cards) && data.cards.length
+      ? data.cards
+      : (Array.isArray(normalized.monthlyReadings) ? normalized.monthlyReadings.map(function (month) {
+          var card = month.mainCard || {};
+          return {
+            cardId: card.cardId || month.cardId,
+            nameKr: card.nameKo || month.nameKr,
+            name: card.nameEn || month.name,
+            orientation: card.orientation || month.orientation,
+            position: "month_" + month.month,
+            imageUrl: card.imageUrl || month.imageUrl,
+            imageCandidates: card.imageCandidates || month.imageCandidates,
+            localImageUrl: card.localImageUrl || month.localImageUrl,
+          };
+        }) : []);
+    state.year = Number(normalized.year) || state.year || new Date().getFullYear();
+    state.resultId = String(data && data.resultId || normalized.resultId || "").trim();
+    state.hasAccess = true;
+    state.consultingHighlights = Array.isArray(data && data.consultingHighlights)
+      ? data.consultingHighlights.map(function (line) { return String(line || "").trim(); }).filter(Boolean).slice(0, 4)
+      : [];
+    state.engineMeta = data && typeof data.engineMeta === "object" ? data.engineMeta : null;
+    state.monthNarrativeCache = {};
+    state.monthCategoryCache = {};
+    var intro = byId("tarotYearFortuneIntroStage");
+    var draw = byId("tarotYearFortuneDrawStage");
+    var result = byId("tarotYearFortuneResultStage");
+    if (intro) intro.classList.remove("is-active");
+    if (draw) draw.classList.remove("is-active");
+    if (result) result.classList.add("is-active");
+    renderTarotYearResult();
+    return true;
+  }
+
+  function restoreStoredYearResult() {
+    var year = new Date().getFullYear();
+    state.year = year;
+    return callTarotYearResult(year, "").then(function (data) {
+      if (!data) return false;
+      return applyYearResultData(data);
+    }).catch(function (error) {
+      if (Number(error && error.status) !== 401 && Number(error && error.status) !== 403) {
+        console.info("[Tarot Year Fortune] stored result unavailable", error);
+      }
+      return false;
     });
   }
 
@@ -901,12 +1033,12 @@ function typewriterText(el, text, speedMs) {
   }, speedMs || 26);
 }
 
-function updateMonthCategoryPanel(text, cat) {
+  function updateMonthCategoryPanel(text, cat) {
   var titleEl = byId("tarotYearMonthCategoryTitle");
   var textEl = byId("tarotYearMonthCategoryText");
   if (titleEl) titleEl.textContent = getCategoryTitle(cat);
   if (textEl) {
-    typewriterText(textEl, text, 22);
+    textEl.textContent = String(text || "").trim();
   }
 }
 
@@ -1188,40 +1320,55 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
       return { cardId: c.cardId, position: c.position, orientation: c.orientation };
     });
 
-    function showResultStage(data) {
-      var intro = byId("tarotYearFortuneIntroStage");
-      var draw = byId("tarotYearFortuneDrawStage");
-      var result = byId("tarotYearFortuneResultStage");
-      var normalized = normalizeYearlyReadingPayload(data);
-      if (!normalized) return;
-      state.reading = normalized;
-      state.consultingHighlights = Array.isArray(data && data.consultingHighlights)
-        ? data.consultingHighlights
-            .map(function (line) { return String(line || "").trim(); })
-            .filter(Boolean)
-            .slice(0, 4)
-        : [];
-      state.engineMeta = data && typeof data.engineMeta === "object" ? data.engineMeta : null;
-      state.monthNarrativeCache = {};
-      state.monthCategoryCache = {};
-      if (intro) intro.classList.remove("is-active");
-      if (draw) draw.classList.remove("is-active");
-      if (result) result.classList.add("is-active");
-      renderTarotYearResult();
-    }
-
     callTarotApi("reading", {
       category: "general",
       spreadType: "yearly_twelve_card",
       cards: drawnForApi,
+      year: state.year,
+      requestId: state.requestId || getOrCreateYearRequestId(state.year),
     })
       .then(function (data) {
+        if (data && data.status === "generating") {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              callTarotYearResult(state.year, data.resultId || "").then(resolve).catch(function () { resolve(null); });
+            }, 900);
+          }).then(function (stored) {
+            if (!stored) throw new Error("Stored tarot year result is not ready");
+            if (!applyYearResultData(stored)) throw new Error("No stored tarot year result");
+            return stored;
+          });
+        }
         var normalized = normalizeYearlyReadingPayload(data);
         if (!normalized) throw new Error("No reading data");
-        showResultStage(data);
+        applyYearResultData(data);
+        return data;
       })
       .catch(function (err) {
         console.error("Tarot Year reading error:", err);
+        if (/stored tarot year result is not ready|no stored tarot year result/i.test(String(err && err.message || ""))) {
+          state.hasAccess = true;
+          window.alert("결제 확인은 완료되었습니다. 결과를 정리하고 있어요. 잠시 후 결과 다시 보기를 눌러 주세요.");
+          return;
+        }
+        if (isLocalFamilyUiTest()) {
+          state.hasAccess = true;
+          buildClientSideReading();
+          state.reading.zodiacGuardians = state.reading.monthlyReadings.map(function (month, idx) {
+            return {
+              animal: month.zodiacAnimal,
+              symbol: month.zodiacSymbol || ZODIAC_EMOJI[idx],
+              theme: month.zodiacTheme,
+            };
+          });
+          applyYearResultData({
+            reading: state.reading,
+            cards: state.cards,
+            year: state.year,
+            engineMeta: { mode: "local-family-ui-mock" },
+          });
+          return;
+        }
         rollbackCoinBestEffort(YEAR_COIN_COST, YEAR_REASON, YEAR_FEATURE_KEY).then(function (rolledBack) {
           state.hasAccess = false;
           if (rolledBack) {
@@ -1274,6 +1421,8 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     var defExam = "집중력은 한 번에 끌어올리기보다 짧은 반복 루틴과 마지막 점검의 질로 안정됩니다.";
 
     state.reading = {
+      schemaVersion: "tarot-year-v2",
+      year: state.year || new Date().getFullYear(),
       summary: "천상의 열두 수호신이 한 해의 문을 열었습니다. 1월부터 12월까지 월별 카드를 눌러 전체 기조, 재물, 관계, 일, 평가의 흐름을 확인하세요. 카드와 월운의 세 갈래 흐름이 당신의 한 해를 차분히 비춥니다.",
       finalAdvice: "올해는 매월의 신호를 곁에 두고 작은 결심을 현실로 옮길수록 선택 기준이 선명해집니다. 급하지 않게, 그러나 꾸준히 나아가면 재물, 인연, 성취의 기운이 차분히 쌓입니다.",
       monthlyReadings: state.cards.map(function (card, idx) {
@@ -1313,6 +1462,115 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
         };
       }),
     };
+    var firstMonth = state.reading.monthlyReadings[0] || {};
+    var midMonth = state.reading.monthlyReadings[5] || firstMonth;
+    var lastMonth = state.reading.monthlyReadings[11] || firstMonth;
+    state.reading.yearTheme = {
+      mainCard: { cardId: firstMonth.mainCard.cardId, nameKo: firstMonth.mainCard.nameKo, orientation: firstMonth.mainCard.orientation },
+      keyword: "기준을 세우고 흐름을 이어가기",
+      summary: "올해의 운은 한 번에 폭발하기보다 매달의 작은 징조를 통해 서서히 방향을 보여줍니다.",
+      light: "열두 수호신의 강점은 이미 가진 감각을 생활의 선택 기준으로 바꿀 때 살아납니다.",
+      shadow: "조급함 때문에 여러 가능성을 동시에 좇으면 정작 중요한 흐름을 놓칠 수 있습니다.",
+      advice: "이번 달 안에 실행할 일 하나와 미룰 일 하나를 나누어 적으세요.",
+    };
+    state.reading.annualOverview = {
+      summary: state.reading.summary,
+      overallFlow: "상반기에는 기준을 세우고, 중반에는 방향을 조정하며, 하반기에는 선택을 현실에 남기는 흐름입니다.",
+      strongestEnergy: "작은 실행을 반복해 현실 기반을 만드는 힘이 강합니다.",
+      recurringTheme: "기회가 보일 때마다 방향을 다시 확인하고, 하나의 기준을 끝까지 지키는 일이 반복됩니다.",
+      cautionPattern: "속도가 방향보다 앞설 때 판단 피로가 커질 수 있습니다.",
+      openingPattern: (midMonth.monthLabel || "중반") + "에 작은 실험을 시작하면 다음 선택의 근거가 생깁니다.",
+      stance: "속도를 늦추기보다 방향을 잃지 않는 태도로 매달의 선택을 점검하세요.",
+    };
+    state.reading.categoryReading = {
+      money: defMoney,
+      career: "일과 사업에서는 잘하는 일을 반복 가능한 방식으로 정리할수록 성과가 선명해집니다. 기준과 마감일을 먼저 정하세요.",
+      love: defLove,
+      health: defHealth,
+      family: defRelation,
+      growth: defExam,
+      noblePerson: "귀인은 정답을 대신 주는 사람보다 다음 행동을 선명하게 해 주는 사람의 모습으로 들어옵니다.",
+      caution: "불안 때문에 한 번에 크게 뒤집는 선택은 피하고, 비용·일정·역할처럼 확인 가능한 조건부터 점검하세요.",
+    };
+    state.reading.turningPoints = [
+      { period: "상반기 · 1~3월", meaning: firstMonth.flow || "초반에는 올해의 기준을 세우는 흐름이 강합니다.", advice: firstMonth.advice },
+      { period: "방향 전환 · 6월", meaning: midMonth.flow || "중반에는 익숙한 방식과 새로운 선택을 비교하게 됩니다.", advice: midMonth.advice },
+      { period: "하반기 현실화 · 10~12월", meaning: lastMonth.flow || "후반에는 앞서 세운 기준이 현실의 결과로 남습니다.", advice: lastMonth.advice },
+    ];
+    state.reading.luckyActions = [
+      "이번 달의 선택 기준을 한 문장으로 적고 다음 달 첫 주에 다시 확인하세요.",
+      "중요한 약속과 비용은 말보다 기록으로 남겨 현실의 기준을 고정하세요.",
+      "한 달에 한 가지 결과를 완성해 다음 선택의 근거로 삼으세요.",
+    ];
+    state.reading.finalMessage = {
+      oneLine: "작은 신호를 놓치지 않고 현실의 한 걸음으로 옮길 때 천운의 문이 열립니다.",
+      attitude: state.reading.annualOverview.stance,
+      opportunity: midMonth.advice,
+      release: state.reading.annualOverview.cautionPattern,
+      zodiacMessage: "열두 수호신은 올해의 방향이 매달의 선택을 이어 만든다는 메시지를 전합니다.",
+      text: state.reading.finalAdvice,
+    };
+  }
+
+  function renderPremiumYearSections(reading) {
+    var top = byId("tarotYearPremiumTop");
+    var bottom = byId("tarotYearPremiumBottom");
+    if (!top || !bottom || !reading) return;
+    var theme = reading.yearTheme || {};
+    var annual = reading.annualOverview || reading.annualSummary || {};
+    var core = theme.mainCard || {};
+    var guardians = Array.isArray(reading.zodiacGuardians) ? reading.zodiacGuardians : [];
+    var categories = reading.categoryReading || {};
+    var turningPoints = Array.isArray(reading.turningPoints) ? reading.turningPoints : [];
+    var luckyActions = Array.isArray(reading.luckyActions) ? reading.luckyActions : [];
+
+    function text(value, fallback) { return escapeHtml(String(value || fallback || "").trim()); }
+    function prose(value, fallback) {
+      return text(value, fallback).replace(/\n+/g, "<br>");
+    }
+    function section(title, body, className) {
+      return '<section class="ty-premium-section ' + (className || "") + '"><h3 class="ty-premium-section-title">' + text(title) + '</h3>' + body + '</section>';
+    }
+    function paragraph(label, value, fallback) {
+      return '<div class="ty-premium-copy"><strong>' + text(label) + '</strong><p>' + prose(value, fallback) + '</p></div>';
+    }
+
+    var guardianHtml = guardians.slice(0, 12).map(function (guardian, idx) {
+      return '<span class="ty-guardian-chip" title="' + text(guardian.theme, "월별 수호 상징") + '">' + text(guardian.symbol || ZODIAC_EMOJI[idx]) + ' ' + text(guardian.animal || (idx + 1) + "월") + '</span>';
+    }).join("");
+    top.innerHTML =
+      '<section class="ty-premium-hero">' +
+        '<div class="ty-premium-hero-mark"><img class="ty-premium-hero-card-img" alt="' + text(core.nameKo, "올해의 핵심 카드") + ' 카드 이미지" /></div>' +
+        '<div class="ty-premium-hero-meta"><span>' + text(reading.year, new Date().getFullYear()) + ' YEAR READING</span><span>' + text(theme.keyword, "한 해의 선택 기준") + '</span></div>' +
+        '<h3>' + text(theme.summary, reading.summary) + '</h3>' +
+        '<p>' + prose(annual.summary, reading.summary) + '</p>' +
+        '<div class="ty-guardian-row" aria-label="12개월 수호신">' + guardianHtml + '</div>' +
+      '</section>' +
+      section("올해의 핵심 카드", '<div class="ty-core-card"><div class="ty-core-card-name"><span class="ty-core-card-orb">✦</span><div><strong>' + text(core.nameKo, "올해의 카드") + '</strong><small>' + text(core.orientation === "reversed" ? "역방향" : "정방향") + ' · ' + text(theme.keyword, "핵심 흐름") + '</small></div></div>' + paragraph("카드가 상징하는 주제", theme.summary) + paragraph("밝은 면", theme.light) + paragraph("그림자 면", theme.shadow) + paragraph("이 카드를 잘 쓰는 방법", theme.advice) + '</div>', "ty-premium-section--core") +
+      section("1년 총운", paragraph("올해의 흐름", annual.overallFlow || reading.summary) + paragraph("가장 강한 기운", annual.strongestEnergy) + paragraph("반복될 주제", annual.recurringTheme) + paragraph("조심해야 할 패턴", annual.cautionPattern) + paragraph("운이 열리는 방식", annual.openingPattern) + paragraph("당신에게 필요한 태도", annual.stance), "ty-premium-section--overview");
+
+    var heroCardImage = top.querySelector(".ty-premium-hero-card-img");
+    if (heroCardImage) applyTarotImageToCard(heroCardImage, null, core);
+
+    var categoryConfig = [
+      ["money", "금전운", "₩"], ["career", "일·사업운", "↗"], ["love", "연애·관계운", "♡"],
+      ["health", "건강·컨디션", "◌"], ["family", "가족·인간관계", "⌂"], ["growth", "성장·공부", "✎"],
+      ["noblePerson", "귀인운", "✦"], ["caution", "피해야 할 선택", "!"],
+    ];
+    var categoryHtml = categoryConfig.map(function (item) {
+      return '<article class="ty-category-card"><div class="ty-category-heading"><span>' + text(item[2]) + '</span><h4>' + text(item[1]) + '</h4></div><p>' + prose(categories[item[0]], "올해의 흐름을 작은 행동으로 확인해 보세요.") + '</p></article>';
+    }).join("");
+    var turningHtml = turningPoints.map(function (point) {
+      return '<article class="ty-turning-point"><strong>' + text(point.period) + '</strong><p>' + prose(point.meaning) + '</p><span>' + prose(point.advice) + '</span></article>';
+    }).join("");
+    var actionsHtml = luckyActions.map(function (action, idx) {
+      return '<li><span>' + String(idx + 1) + '</span><p>' + prose(action) + '</p></li>';
+    }).join("");
+    bottom.innerHTML =
+      section("분야별 상세 리딩", '<div class="ty-category-grid">' + categoryHtml + '</div>', "ty-premium-section--categories") +
+      section("올해의 전환점", '<div class="ty-turning-list">' + turningHtml + '</div>', "ty-premium-section--turning") +
+      section("행운을 여는 행동", '<ol class="ty-lucky-actions">' + actionsHtml + '</ol>', "ty-premium-section--actions") +
+      section("12지신이 전하는 마지막 메시지", paragraph("올해의 한 문장", reading.finalMessage?.oneLine || reading.finalAdvice) + paragraph("당신에게 필요한 태도", reading.finalMessage?.attitude || annual.stance) + paragraph("붙잡아야 할 기회", reading.finalMessage?.opportunity) + paragraph("버려야 할 습관", reading.finalMessage?.release) + paragraph("천운의 메시지", reading.finalMessage?.zodiacMessage || reading.finalAdvice), "ty-premium-section--final");
   }
 
   function renderTarotYearResult() {
@@ -1324,6 +1582,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     }
 
     var annual = r.annualSummary || {};
+    renderPremiumYearSections(r);
 
     var summaryEl = byId("tarotYearSummary");
     if (summaryEl) {
@@ -1341,7 +1600,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
       if (annual.bestMonth) summaryLines.push("기회가 또렷한 달: " + (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")));
       if (annual.cautionMonth) summaryLines.push("조심스럽게 건너갈 달: " + (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")));
       summaryEl.style.display = "block";
-      typewriterText(summaryEl, summaryLines.join("\n\n"), 24);
+      summaryEl.textContent = summaryLines.join("\n\n");
     }
 
     var cardsEl = byId("tarotYearResultCards");
@@ -1353,8 +1612,12 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
         var wrap = document.createElement("div");
         wrap.className = "ty-result-card-wrap ty-result-card-wrap--month";
         wrap.setAttribute("data-month", idx + 1);
+        if (idx + 1 === new Date().getMonth() + 1) wrap.setAttribute("data-current", "1");
         wrap.setAttribute("role", "button");
         wrap.setAttribute("tabindex", "0");
+        var monthly = getMonthlyReadingByMonth(r, idx + 1) || {};
+        var zodiacName = monthly.zodiacAnimal || ZODIAC_NAMES[idx];
+        wrap.setAttribute("aria-label", (idx + 1) + "월 " + zodiacName + " 월별 리딩 보기");
         wrap.onclick = (function (m) { return function () { selectMonthDetail(m); }; })(idx + 1);
         wrap.onkeydown = (function (m) {
           return function (ev) {
@@ -1375,16 +1638,12 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
         front.className = "ty-result-card-front";
         var monthLabel = document.createElement("span");
         monthLabel.className = "ty-result-card-month";
-        monthLabel.textContent = MONTH_LABELS_CJK[idx];
+        monthLabel.textContent = (idx + 1) + "월";
         front.appendChild(monthLabel);
         var zodiac = document.createElement("span");
         zodiac.className = "ty-result-card-zodiac";
-        zodiac.textContent = ZODIAC_EMOJI[idx];
+        zodiac.textContent = ZODIAC_EMOJI[idx] + " " + zodiacName;
         front.appendChild(zodiac);
-        var guide = document.createElement("span");
-        guide.className = "ty-result-card-guide";
-        guide.textContent = "월운 펼치기";
-        front.appendChild(guide);
         inner.appendChild(back);
         inner.appendChild(front);
         wrap.appendChild(inner);
@@ -1410,11 +1669,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     if (annual.repeatedCourts && annual.repeatedCourts.length) {
       adviceText += "\n반복되는 인물 카드: " + annual.repeatedCourts.join(", ");
     }
-    typewriterText(
-      adviceEl,
-      adviceText,
-      26
-    );
+    adviceEl.textContent = adviceText;
   }
 
     var panel = byId("tarotYearMonthDetailPanel");
@@ -1461,8 +1716,12 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
   window.startTarotYearFortuneReading = startTarotYearFortuneReading;
   window.shareTarotYearFortuneResult = shareTarotYearFortuneResult;
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindTarotYearStaticActions);
+    document.addEventListener("DOMContentLoaded", function () {
+      bindTarotYearStaticActions();
+      restoreStoredYearResult();
+    });
   } else {
     bindTarotYearStaticActions();
+    restoreStoredYearResult();
   }
 })();

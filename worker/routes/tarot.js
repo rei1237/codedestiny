@@ -1,7 +1,7 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
-import { connectDb, mongoose } from "../lib/db.js";
-import { Payment, PointHistory } from "../lib/models.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
@@ -13,6 +13,7 @@ import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mj
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
+import { buildPremiumYearReading, validatePremiumYearReading } from "../../lib/tarot/tarot-year-premium.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
   buildFallbackInterpretation,
@@ -37,6 +38,9 @@ function asText(value) {
 
 const NUMEROLOGY_TAROT_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
+const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
+const YEAR_TAROT_PROFILE_PREFIX = "year:";
+const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
 const PAID_EVIDENCE_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 
 function safeRecord(value) {
@@ -45,6 +49,149 @@ function safeRecord(value) {
 
 function uniqueTextValues(values = []) {
   return Array.from(new Set(values.map((value) => asText(value)).filter(Boolean)));
+}
+
+function resolveYearValue(value) {
+  const parsed = Number(value);
+  if (Number.isInteger(parsed) && parsed >= 1900 && parsed <= 2100) return parsed;
+  return new Date().getFullYear();
+}
+
+function resolveYearRequestId(body = {}, year, cards = []) {
+  const explicit = uniqueTextValues([
+    body?.requestId,
+    body?.idempotencyKey,
+    body?.payment?.requestId,
+    body?._paymentContext?.requestId,
+  ])[0];
+  if (explicit) return explicit.slice(0, 180);
+  const cardKey = cards.map((card) => `${asText(card?.cardId || card?.id)}:${asText(card?.orientation)}`).join("|");
+  return `${YEAR_TAROT_FEATURE_KEY}:${year}:${cardKey}`.slice(0, 180);
+}
+
+function yearExecutionId(userId, requestId) {
+  return `${YEAR_TAROT_RESULT_PREFIX}${asText(userId)}:${asText(requestId)}`.slice(0, 160);
+}
+
+function yearProfileId(year) {
+  return `${YEAR_TAROT_PROFILE_PREFIX}${resolveYearValue(year)}`;
+}
+
+function yearAccessMethod(decision = {}) {
+  const type = asText(decision.licenseType).toLowerCase();
+  if (type.includes("month")) return "monthly";
+  if (type.includes("pass") || type.includes("license")) return "pass";
+  return "single";
+}
+
+function publicYearResult(record) {
+  const stored = record?.result && typeof record.result === "object" ? record.result : {};
+  return {
+    ok: true,
+    stored: true,
+    resultId: asText(record?.resultId),
+    year: resolveYearValue(record?.profileId?.replace(YEAR_TAROT_PROFILE_PREFIX, "")),
+    cards: Array.isArray(stored.cards) ? stored.cards : [],
+    reading: stored.reading || null,
+    consultingHighlights: Array.isArray(stored.consultingHighlights) ? stored.consultingHighlights : [],
+    engineMeta: stored.engineMeta || null,
+    savedAt: record?.completedAt || record?.updatedAt || record?.createdAt || null,
+  };
+}
+
+async function findYearResult({ env, userId, year, resultId = "" }) {
+  await connectDb(env);
+  const query = {
+    userId: asText(userId),
+    featureId: YEAR_TAROT_FEATURE_KEY,
+    status: "completed",
+  };
+  if (resultId) query.resultId = asText(resultId);
+  else query.profileId = yearProfileId(year);
+  return withMongoRetry(env, () => PaidExecutionRecord.findOne(query)
+    .sort({ completedAt: -1, updatedAt: -1, createdAt: -1 })
+    .lean());
+}
+
+async function requireYearTarotAccess(request, env) {
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  const decision = await canAccessPaidFeature(auth.userId, YEAR_TAROT_FEATURE_KEY, {
+    env,
+    userDoc: auth.authUserDoc,
+    reason: "십이지신 천운 타로",
+  });
+  if (!decision?.allowed) {
+    return {
+      ok: false,
+      response: json({
+        ok: false,
+        code: "TAROT_YEAR_PAYMENT_REQUIRED",
+        message: "십이지신 천운 타로 이용권 또는 단건 결제를 확인할 수 없습니다.",
+      }, { status: 402 }),
+    };
+  }
+  return { ok: true, auth, decision };
+}
+
+async function saveYearTarotResult({ env, auth, decision, payload, year, requestId }) {
+  await connectDb(env);
+  const executionId = yearExecutionId(auth.userId, requestId);
+  const resultId = `${YEAR_TAROT_RESULT_PREFIX}${year}:${requestId}`.slice(0, 160);
+  const existing = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
+    userId: asText(auth.userId),
+    featureId: YEAR_TAROT_FEATURE_KEY,
+    requestId,
+  }).lean());
+
+  if (existing?.status === "completed") return { status: "completed", payload: publicYearResult(existing) };
+  if (existing?.status === "generating") return { status: "generating", record: existing };
+
+  const initialResult = {
+    cards: payload.cards,
+    reading: payload.reading,
+    consultingHighlights: payload.consultingHighlights,
+    engineMeta: payload.engineMeta,
+  };
+  await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+    { executionId },
+    {
+      $setOnInsert: {
+        executionId,
+        requestId,
+        userId: asText(auth.userId),
+        featureId: YEAR_TAROT_FEATURE_KEY,
+        profileId: yearProfileId(year),
+        accessMode: "per_use",
+        idempotencyKey: requestId,
+      },
+      $set: {
+        status: "generating",
+        accessMethod: yearAccessMethod(decision),
+        amountCoins: 100,
+        amountKRW: 10000,
+        consumedAt: new Date(),
+        resultId,
+        result: initialResult,
+        error: null,
+      },
+    },
+    { upsert: true, returnDocument: "after" },
+  ).lean());
+
+  const completed = await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+    { executionId },
+    {
+      $set: {
+        status: "completed",
+        completedAt: new Date(),
+        resultId,
+        result: initialResult,
+        error: null,
+      },
+    },
+    { returnDocument: "after" },
+  ).lean());
+  return { status: "completed", payload: publicYearResult(completed) };
 }
 
 function numerologyFeatureCandidates() {
@@ -1198,7 +1345,7 @@ function toUiCard(drawn, spreadType, idx) {
   };
 }
 
-function buildReadingPayload({ spreadType, category, cards, serviceKey, userQuestion, userContext }) {
+function buildReadingPayload({ spreadType, category, cards, serviceKey, userQuestion, userContext, year }) {
   ensureCardCountOrThrow(spreadType, cards);
 
   const normalizedDrawnCards = normalizeDrawnCardsForSpread(spreadType, cards);
@@ -1214,11 +1361,15 @@ function buildReadingPayload({ spreadType, category, cards, serviceKey, userQues
     userContext,
   });
 
-  const reading = buildLegacyReadingPayload(interpreted, {
+  let reading = buildLegacyReadingPayload(interpreted, {
     spreadId: spreadType,
     questionType,
     drawnCards: normalizedDrawnCards,
   });
+
+  if (spreadType === "yearly_twelve_card" || spreadType === "yearly_three_card") {
+    reading = buildPremiumYearReading({ reading, year });
+  }
 
   return {
     ok: true,
@@ -1234,7 +1385,10 @@ function buildReadingPayload({ spreadType, category, cards, serviceKey, userQues
       cardCount: uiCards.length,
       cardDbCount: TAROT_CARDS.length,
       deterministic: true,
-      qualityEnhanced: spreadType === "reunion_lighthouse_five_card",
+      qualityEnhanced: spreadType === "reunion_lighthouse_five_card"
+        || spreadType === "yearly_twelve_card"
+        || spreadType === "yearly_three_card",
+      premiumYearQuality: spreadType === "yearly_twelve_card" ? validatePremiumYearReading(reading) : undefined,
     },
   };
 }
@@ -1323,6 +1477,22 @@ export async function handleTarotRoutes(request, env = {}) {
       });
     }
 
+    if (method === "GET" && path === "/year/result") {
+      const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+      const url = new URL(request.url);
+      const year = resolveYearValue(url.searchParams.get("year"));
+      const resultId = asText(url.searchParams.get("resultId"));
+      const record = await findYearResult({ env, userId: auth.userId, year, resultId });
+      if (!record) {
+        return json({
+          ok: false,
+          code: "TAROT_YEAR_RESULT_NOT_FOUND",
+          message: "저장된 십이지신 천운 타로 결과를 찾지 못했습니다.",
+        }, { status: 404 });
+      }
+      return json(publicYearResult(record));
+    }
+
     if (method !== "POST") {
       if (["GET", "POST"].includes(method)) return notFound();
       return methodNotAllowed();
@@ -1381,6 +1551,33 @@ export async function handleTarotRoutes(request, env = {}) {
       const spreadType = normalizeSpreadType(body?.spreadType || "one_card");
       const category = asText(body?.category) || "general";
       const cards = Array.isArray(body?.cards) ? body.cards : [];
+      const isYearReading = spreadType === "yearly_twelve_card";
+      let yearAccess = null;
+      let year = null;
+      let requestId = "";
+
+      if (isYearReading) {
+        yearAccess = await requireYearTarotAccess(request, env);
+        if (!yearAccess.ok) return yearAccess.response;
+        year = resolveYearValue(body?.year);
+        requestId = resolveYearRequestId(body, year, cards);
+        const existing = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
+          userId: asText(yearAccess.auth.userId),
+          featureId: YEAR_TAROT_FEATURE_KEY,
+          requestId,
+        }).lean());
+        if (existing?.status === "completed") return json(publicYearResult(existing));
+        if (existing?.status === "generating") {
+          return json({
+            ok: true,
+            status: "generating",
+            resultId: asText(existing.resultId),
+            year,
+            message: "이미 연간 리딩을 정리하고 있습니다. 잠시 후 저장된 결과를 확인해 주세요.",
+          }, { status: 202 });
+        }
+      }
+
       const payload = buildReadingPayload({
         spreadType,
         category,
@@ -1388,7 +1585,51 @@ export async function handleTarotRoutes(request, env = {}) {
         serviceKey: asText(body?.serviceKey) || "tarot-reading",
         userQuestion: asText(body?.userQuestion),
         userContext: body?.userContext,
+        year: isYearReading ? year : body?.year,
       });
+
+      if (isYearReading) {
+        try {
+          const stored = await saveYearTarotResult({
+            env,
+            auth: yearAccess.auth,
+            decision: yearAccess.decision,
+            payload,
+            year,
+            requestId,
+          });
+          if (stored.status === "generating") {
+            return json({
+              ok: true,
+              status: "generating",
+              resultId: asText(stored.record?.resultId),
+              year,
+              message: "이미 연간 리딩을 정리하고 있습니다. 잠시 후 저장된 결과를 확인해 주세요.",
+            }, { status: 202 });
+          }
+          return json(stored.payload);
+        } catch (error) {
+          await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
+            {
+              userId: asText(yearAccess.auth.userId),
+              featureId: YEAR_TAROT_FEATURE_KEY,
+              requestId,
+            },
+            {
+              $set: {
+                status: "generation_failed",
+                error: {
+                  code: "TAROT_YEAR_RESULT_SAVE_FAILED",
+                  message: asText(error?.message || error).slice(0, 300),
+                  retryEligible: true,
+                },
+              },
+            },
+          ));
+          throw error;
+        }
+      }
+
       return json(payload);
     }
 
