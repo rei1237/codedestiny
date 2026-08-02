@@ -21,4 +21,13 @@ test("마인드 스캔 페이지의 기존 route client 진입점을 유지한�
   const page = read("app/tarot/mindscan/page.tsx");
 
   assert.ok(page.includes("MindScanTarotRouteClient"));
+  assert.ok(page.includes('data-mindscan-route="true"'));
+});
+
+test("정적 export 초기 HTML에서도 공통 header/footer를 숨기는 marker CSS를 유지한다", () => {
+  const css = read("styles/globals.css");
+
+  assert.ok(css.includes('body:has([data-mindscan-route="true"]) > header'));
+  assert.ok(css.includes('body:has([data-mindscan-route="true"]) > footer'));
+  assert.ok(css.includes("display: none !important"));
 });
