@@ -3306,8 +3306,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     || requestedPaymentMode === "coin_credit"
     || requestedPaymentMode === "coin_payment"
     || requestedPaymentMode === "pig_coin"
-    || requestedPaymentMode === "pig-coin"
-    || (!requestedPaymentMode && !directPaymentRequested);
+    || requestedPaymentMode === "pig-coin";
   const deferUsage = isDeferredUsageRequested(body);
   const knownPaymentMode = !requestedPaymentMode
     || requestedPaymentMode === "single_purchase"

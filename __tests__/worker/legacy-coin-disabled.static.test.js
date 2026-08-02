@@ -33,6 +33,27 @@ describe("legacy COIN removal regression guards", () => {
     expect(source).toMatch(/ContentEntitlement|daehan_purchases/);
   });
 
+  test("billing treats only an explicit legacy payment mode as COIN", () => {
+    const source = read("worker/routes/billing.js");
+    const start = source.indexOf("const coinPaymentRequested =");
+    const end = source.indexOf("const deferUsage =", start);
+    const paymentModeBlock = source.slice(start, end);
+
+    expect(paymentModeBlock).toMatch(/requestedPaymentMode === "coin"/);
+    expect(paymentModeBlock).toMatch(/requestedPaymentMode === "pig-coin"/);
+    expect(paymentModeBlock).not.toMatch(/!requestedPaymentMode\s*&&\s*!directPaymentRequested/);
+    expect(source).toMatch(/const knownPaymentMode = !requestedPaymentMode/);
+  });
+
+  test("existing unlock and pass decisions run before legacy COIN blocking", () => {
+    const source = read("worker/routes/billing.js");
+    const existingAccess = source.indexOf('accessDecision.reason === "already_unlocked" || accessDecision.reason === "pass_covered"');
+    const legacyBlock = source.indexOf('logPaidAccessStage("LEGACY_COIN_BLOCKED"');
+
+    expect(existingAccess).toBeGreaterThanOrEqual(0);
+    expect(legacyBlock).toBeGreaterThan(existingAccess);
+  });
+
   test("client surfaces do not activate legacy COIN flags or endpoints", () => {
     const files = [
       "app",
