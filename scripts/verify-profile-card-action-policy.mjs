@@ -91,6 +91,33 @@ const cases = [
     ],
   },
   {
+    name: "profile update uses the same Family bypass and 5,000 won payment policy",
+    includes: [
+      ["policy", "UPDATE: \"update\""],
+      ["policy", "PROFILE_CARD_UPDATE_PAYMENT_REQUIRED"],
+      ["policy", "normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.UPDATE"],
+      ["profileRoute", "action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE"],
+      ["profileRoute", "actionType: \"profile_card_update\""],
+      ["billingRoute", "profile_card_update"],
+      ["mePage", "profile_card_update_50c"],
+      ["mePage", "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다."],
+      ["destinyProfile", "method: isUpdate ? 'PATCH' : 'POST'"],
+      ["destinyProfile", "window.dpEditProfile"],
+    ],
+  },
+  {
+    name: "profile delete modal opens before auth or payment network work",
+    includes: [
+      ["destinyProfile", "삭제창은 로컬 카드만으로 먼저 열어 체감 지연을 없앤다."],
+      ["destinyProfile", "_dpRunProfileDeleteGate(profile, profileId, requestId)"],
+      ["destinyProfile", "var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family'"],
+      ["destinyProfile", "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다."],
+    ],
+    excludes: [
+      ["destinyProfile", "_dpVerifyLoginSession(true).then(function(ok) {\n      if (!ok) throw new Error('AUTH_REQUIRED');\n      _dpSetPaymentPending(false);\n      return _dpRunProfileDeleteGate"],
+    ],
+  },
+  {
     name: "profile create follows family bypass and paid fallback policy",
     includes: [
       ["policy", "resolveProfileCardActionAccess"],

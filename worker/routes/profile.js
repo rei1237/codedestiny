@@ -411,11 +411,13 @@ function profilePaymentRequiredResponse(action, requestId) {
 }
 
 function resolveProfileMutationActionType(action) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.UPDATE) return "profile_card_update";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "profile_card_delete";
   return "profile_card_add_extra";
 }
 
 function resolveProfileMutationReason(action) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.UPDATE) return "프로필 카드 수정";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "프로필 카드 삭제";
   return "프로필 카드 추가";
 }
@@ -727,7 +729,7 @@ function policyFailureStatus(reason) {
   return 403;
 }
 
-async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) {
+async function ensureProfileMutationAuthorized(auth, { action, profileId, body }) {
   const requestId = readProfileMutationRequestId(body, action, profileId);
   const paymentMethod = resolveProfileMutationPaymentMethod(body);
   const policy = await getProfileCardMutationPolicy(auth.userId, profileId, action);
@@ -797,6 +799,9 @@ async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) 
   return { ok: true, requestId, policy: paidPolicy, evidence };
 }
 
+// 하위 검증 스크립트와 레거시 호출 흔적의 의미를 유지하되, 실제 정책은 모든 변경 작업이 공유한다.
+const ensureProfileDeleteAuthorized = ensureProfileMutationAuthorized;
+
 async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
   const action = "create";
   const requestId = readProfileMutationRequestId(body, action, profileId);
@@ -834,6 +839,27 @@ async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
 
   const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
   if (!claim.ok) return claim;
+
+  const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
+  if (!paidPolicy.allowed) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action,
+      profileId,
+      requestId,
+      evidence,
+      reason: "프로필 카드 생성 한도 초과 환불",
+    });
+    return {
+      ok: false,
+      response: json({
+        ok: false,
+        success: false,
+        code: paidPolicy.reason,
+        message: paidPolicy.reason,
+        policy: paidPolicy,
+      }, { status: policyFailureStatus(paidPolicy.reason) }),
+    };
+  }
   return { ok: true, requestId, evidence };
 }
 
@@ -1437,20 +1463,64 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
   normalized.profileId = profileId;
   normalized.birth = birthValidation.birth;
 
-  const updated = await ProfileCard.findOneAndUpdate(
-    { userId: auth.userId, profileId },
-    {
-      $set: {
-        name: normalized.name,
-        gender: normalized.gender,
-        birth: normalized.birth,
-        location: normalized.location,
-      },
-    },
-    { returnDocument: "after" },
-  ).lean();
+  const authorization = await ensureProfileMutationAuthorized(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    profileId,
+    body,
+  });
+  if (!authorization.ok) return authorization.response;
 
-  if (!updated) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  const claim = await claimProfileMutationEvidence(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    profileId,
+    requestId: authorization.requestId,
+    evidence: authorization.evidence,
+  });
+  if (!claim.ok) return claim.response;
+
+  let updated;
+  try {
+    updated = await ProfileCard.findOneAndUpdate(
+      { userId: auth.userId, profileId },
+      {
+        $set: {
+          name: normalized.name,
+          gender: normalized.gender,
+          birth: normalized.birth,
+          location: normalized.location,
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+  } catch (error) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+      profileId,
+      requestId: authorization.requestId,
+      evidence: authorization.evidence,
+      reason: "프로필 카드 수정 실패 환불",
+    });
+    throw error;
+  }
+
+  if (!updated) {
+    await refundProfileMutationCreditIfNeeded(auth, {
+      action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+      profileId,
+      requestId: authorization.requestId,
+      evidence: authorization.evidence,
+      reason: "프로필 카드 수정 실패 환불",
+    });
+    return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  await recordProfileMutationCompleted(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
+    profileId,
+    requestId: authorization.requestId,
+    policy: authorization.policy,
+    evidence: authorization.evidence,
+  });
 
   const user = await User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
@@ -1474,6 +1544,10 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
     currentId: nextCurrentId,
     subscription,
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    chargedCoins: Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0))),
+    freeByMembership: Number(authorization.policy?.costCoins || 0) === 0,
+    actionType: "profile_card_update",
+    policy: authorization.policy,
   });
 }
 

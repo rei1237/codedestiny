@@ -10,16 +10,19 @@ export const FREE_INITIAL_PROFILE_CARD_COUNT = 1;
 
 export const PROFILE_CARD_MUTATION_ACTIONS = Object.freeze({
   CREATE: "create",
+  UPDATE: "update",
   DELETE: "delete",
 });
 
 export const PROFILE_CARD_PAID_ACTIONS = Object.freeze({
+  UPDATE: "profile_card_update",
   DELETE: "profile_card_delete",
   ADD_EXTRA: "profile_card_add_extra",
 });
 
 const VALID_PROFILE_CARD_MUTATION_ACTIONS = new Set([
   PROFILE_CARD_MUTATION_ACTIONS.CREATE,
+  PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
   PROFILE_CARD_MUTATION_ACTIONS.DELETE,
 ]);
 
@@ -27,6 +30,9 @@ const USER_PROFILE_POLICY_SELECT = "profileSubscription subscription membership 
 
 function normalizeProfileCardMutationAction(actionType) {
   const text = String(actionType || "").trim().toLowerCase();
+  if (text === PROFILE_CARD_PAID_ACTIONS.UPDATE || text === "profile_card_edit" || text === "edit" || text === "update") {
+    return PROFILE_CARD_MUTATION_ACTIONS.UPDATE;
+  }
   if (text === PROFILE_CARD_PAID_ACTIONS.DELETE) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
   if (text === PROFILE_CARD_PAID_ACTIONS.ADD_EXTRA) return PROFILE_CARD_MUTATION_ACTIONS.CREATE;
   return text;
@@ -178,6 +184,14 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     });
   }
 
+  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.UPDATE && !profileCard) {
+    return buildProfileCardMutationPolicyResult({
+      requiresPayment: false,
+      reason: "PROFILE_CARD_NOT_FOUND_OR_NOT_OWNED",
+      currentProfileCardCount,
+    });
+  }
+
   const entitlement = normalizeHoneyPassEntitlement(user);
   const slotLimit = resolveProfileCardSlotLimit(entitlement);
 
@@ -190,6 +204,7 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
 
   if (isFamilyOrAbove(user) && (
     normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE
+    || normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.UPDATE
     || (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE)
   )) {
     return buildFamilyProfileCardBypassPolicy(entitlement, currentProfileCardCount);
@@ -205,6 +220,19 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
         costKrw: PROFILE_CARD_DELETE_COST_KRW,
         monthlyStones: PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
         reason: "PROFILE_CARD_CREATE_PAYMENT_REQUIRED",
+        passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
+        limit: slot.limit,
+        currentProfileCardCount,
+      });
+    }
+  }
+
+  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE && paymentSettled) {
+    const slot = canAddProfile(user, currentProfileCardCount);
+    if (!slot.allowed) {
+      return buildProfileCardMutationPolicyResult({
+        requiresPayment: false,
+        reason: slot.reason,
         passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
         limit: slot.limit,
         currentProfileCardCount,
@@ -228,7 +256,9 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     requiresPayment: true,
     reason: normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE
       ? "PROFILE_CARD_CREATE_PAYMENT_REQUIRED"
-      : "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
+      : normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.UPDATE
+        ? "PROFILE_CARD_UPDATE_PAYMENT_REQUIRED"
+        : "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
     passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
     limit: slotLimit,
     currentProfileCardCount,
@@ -277,7 +307,10 @@ export async function resolveProfileCardActionAccess({
 
   const entitlement = normalizeHoneyPassEntitlement(user);
 
-  if (normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
+  if (
+    normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.DELETE
+    || normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.UPDATE
+  ) {
     if (!normalizedTargetProfileId) {
       return buildProfileCardMutationPolicyResult({
         requiresPayment: false,
@@ -286,14 +319,19 @@ export async function resolveProfileCardActionAccess({
       });
     }
 
-    if (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(user)) {
+    if (isFamilyOrAbove(user) && (
+      normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.UPDATE
+      || FAMILY_OR_ABOVE_FREE_PROFILE_DELETE
+    )) {
       return buildFamilyProfileCardBypassPolicy(entitlement, count);
     }
 
     return buildProfileCardMutationPolicyResult({
       allowed: false,
       requiresPayment: true,
-      reason: "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
+      reason: normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.UPDATE
+        ? "PROFILE_CARD_UPDATE_PAYMENT_REQUIRED"
+        : "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
       passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
       limit: resolveProfileCardSlotLimit(entitlement),
       currentProfileCardCount: count,

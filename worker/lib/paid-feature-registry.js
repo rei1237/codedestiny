@@ -295,7 +295,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "destiny-bias-theme-premium": { cost: 120, reason: "최애운명 프리미엄 테마 해금" },
   "destiny-bias-collection-save": { cost: 150, reason: "최애운명 컬렉션 저장 확장" },
   "destiny-bias-deep-profile": { cost: 90, reason: "최애운명 심층 프로필 확장" },
-  "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/삭제", forceDeduct: true },
+  "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제", forceDeduct: true },
   rpt_specialCharmCard: { cost: 30, reason: "나의 매력 클래스 영구 해금" },
   rpt_quantumCard: { cost: 100, reason: "퀀텀 명리 엔진 영구 해금" },
   rpt_healthReportCard: { cost: 100, reason: "명리 헬스 리포트 영구 해금" },
