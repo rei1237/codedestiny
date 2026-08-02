@@ -1194,6 +1194,47 @@
     delete _dpApiCooldownUntil[key];
   }
 
+  function _dpIsTransientResult(result) {
+    var status = Number(result && result.status || 0);
+    return status === 0 || status === 503 || status === 504;
+  }
+
+  function _dpRunTransientRetry(operation, options, normalize) {
+    var opts = options || {};
+    var maxRetries = Math.max(0, Math.min(2, Number(opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries)));
+    var retryCount = 0;
+    var delayMs = Math.max(150, Number(opts.transientRetryDelayMs || 700));
+
+    function run() {
+      return Promise.resolve().then(operation).then(function(raw) {
+        return typeof normalize === 'function' ? normalize(raw) : raw;
+      }, function(error) {
+        return {
+          ok: false,
+          status: 0,
+          data: {
+            code: 'NETWORK_ERROR',
+            message: _dpText('networkError'),
+            error: String((error && error.message) || error || 'network_error'),
+          },
+          payload: {
+            code: 'NETWORK_ERROR',
+            message: _dpText('networkError'),
+          },
+          error: error,
+        };
+      }).then(function(result) {
+        if (!opts.retryTransient || !_dpIsTransientResult(result) || retryCount >= maxRetries) return result;
+        retryCount += 1;
+        return new Promise(function(resolve) {
+          setTimeout(resolve, delayMs * retryCount);
+        }).then(run);
+      });
+    }
+
+    return run();
+  }
+
   function _dpFetchJsonWithFallback(pathname, init, options) {
     var opts = options || {};
     var method = String(((init && init.method) || 'GET')).toUpperCase();
@@ -1362,7 +1403,9 @@
         });
     }
 
-    var requestPromise = attempt(0);
+    var requestPromise = _dpRunTransientRetry(function() {
+      return attempt(0);
+    }, opts);
     if (dedupeKey) {
       _dpApiInFlightGet[dedupeKey] = requestPromise.finally(function() {
         delete _dpApiInFlightGet[dedupeKey];
@@ -1468,8 +1511,12 @@
     _dpSessionVerify.signature = _dpGetSessionHintSignature();
   }
 
-  function _dpVerifyLoginSession(forceRefresh) {
+  function _dpVerifyLoginSession(forceRefresh, options) {
     var force = !!forceRefresh;
+    var allowIndeterminate = !!(options && options.allowIndeterminate);
+    function sessionResult() {
+      return !!_dpSessionVerify.ok || (allowIndeterminate && _dpSessionVerify.indeterminate === true && _dpHasSessionHint());
+    }
     var now = Date.now();
     var signature = _dpGetSessionHintSignature();
     var ttlMs = _dpGetSessionVerifyTtlMs(_dpSessionVerify);
@@ -1477,9 +1524,9 @@
       && _dpSessionVerify.checkedAt
       && _dpSessionVerify.signature === signature
       && (now - _dpSessionVerify.checkedAt < ttlMs)) {
-      return Promise.resolve(!!_dpSessionVerify.ok);
+      return Promise.resolve(sessionResult());
     }
-    if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
+    if (_dpSessionVerify.pending) return _dpSessionVerify.pending.then(function() { return sessionResult(); });
     if (!_dpHasSessionHint() && !force) {
       _dpMarkSessionVerify(false, '');
       return Promise.resolve(false);
@@ -1510,7 +1557,7 @@
         // 직전 판정을 보존한다(ok/userId 유지) — 인프라 실패로 로그인 상태를 잃으면 안 된다.
         // checkedAt·indeterminate 만 갱신해 재발사 간격을 늘린다.
         _dpMarkSessionVerifyIndeterminate();
-        return !!_dpSessionVerify.ok;
+        return sessionResult();
       }
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
@@ -1529,7 +1576,7 @@
     }).catch(function() {
       // 네트워크 오류·타임아웃은 확정 미인증이 아니다 — 직전 판정을 유지한다.
       _dpMarkSessionVerifyIndeterminate();
-      return !!_dpSessionVerify.ok;
+      return sessionResult();
     }).finally(function() {
       _dpSessionVerify.pending = null;
     });
@@ -2634,13 +2681,21 @@
   }
 
   function _dpPaymentFetchJson(pathname, init, options) {
+    var opts = options || {};
     var requestInit = Object.assign({}, init || {});
     requestInit.headers = _dpBuildAuthHeaders(Object.assign(
       { 'Content-Type': 'application/json' },
       requestInit.headers || {}
     ));
+    var isCoinGate = /\/api\/billing\/coin-gate$/.test(String(pathname || ''));
+    var retryOptions = Object.assign({}, opts, {
+      retryTransient: opts.retryTransient === true || isCoinGate,
+      maxTransientRetries: opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries,
+    });
     if (typeof window.fetchJsonWithAuth === 'function') {
-      return window.fetchJsonWithAuth(pathname, requestInit).then(_dpNormalizeBillingFetchResult);
+      return _dpRunTransientRetry(function() {
+        return window.fetchJsonWithAuth(pathname, requestInit);
+      }, retryOptions, _dpNormalizeBillingFetchResult);
     }
     return _dpFetchJsonWithFallback(pathname, requestInit, Object.assign({
       retryOn401: true,
@@ -2649,7 +2704,7 @@
       // 클라가 먼저 끊으면 status 0 → "네트워크 오류" 로 PG창이 안 열리고, confirm 이 끊기면
       // 승인은 됐는데 지급이 안 된다. 이 헬퍼의 호출부는 전부 결제 경로이므로 상한을 맞춘다.
       timeoutMs: 25000,
-    }, options || {})).then(_dpNormalizeBillingFetchResult);
+    }, retryOptions)).then(_dpNormalizeBillingFetchResult);
   }
 
   function _dpExtractBillingData(payload) {
@@ -7690,7 +7745,7 @@
       return;
     }
 
-    _dpVerifyLoginSession(false).then(function(ok) {
+    _dpVerifyLoginSession(false, { allowIndeterminate: true }).then(function(ok) {
       if (!ok) {
         throw new Error('AUTH_REQUIRED');
       }
@@ -7711,6 +7766,11 @@
             profileId: createProfileId,
             selectedProfileId: createProfileId
           }, paymentContext || {}))
+        }, {
+          retryOn401: true,
+          retryTransient: true,
+          maxTransientRetries: 2,
+          timeoutMs: _DP_FETCH_TIMEOUT_MS,
         });
       }
       return postProfile().then(function(result) {
@@ -7733,6 +7793,12 @@
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         var msg = String((payload && payload.message) || '').trim();
+        if (result && (result.status === 401 || result.status === 403)) {
+          throw new Error('AUTH_REQUIRED');
+        }
+        if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
+          throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
+        }
         if (result && (result.status === 409 || result.status === 403) && (code === 'PROFILE_LIMIT_RECONCILE_REQUIRED' || code === 'PROFILE_LIMIT_EXCEEDED')) {
           if (payload && payload.profilePolicySnapshot) _dpApplyProfilePolicySnapshot(payload.profilePolicySnapshot, 'profile_reconcile');
           var sub = payload && payload.subscription ? payload.subscription : null;
@@ -7814,6 +7880,9 @@
           return;
         }
         msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+      }
+      if (msg === 'PROFILE_MUTATION_TRANSIENT_UNAVAILABLE') {
+        msg = '서버 연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요.';
       }
       window.alert(msg);
     }).finally(function() {
@@ -8083,11 +8152,13 @@
         }, paymentContext || {}))
       }, {
         retryOn401: true,
+        retryTransient: true,
+        maxTransientRetries: 2,
         timeoutMs: _DP_FETCH_TIMEOUT_MS
       });
     }
 
-    _dpVerifyLoginSession(false).then(function(ok) {
+    _dpVerifyLoginSession(false, { allowIndeterminate: true }).then(function(ok) {
       if (!ok) throw new Error('AUTH_REQUIRED');
       _dpSetPaymentPending(false);
       return _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
@@ -8099,6 +8170,10 @@
       _dpSetPaymentPending(false);
       if (!result) return;
       if (!result.ok || !result.data || result.data.ok === false) {
+        if (result && (result.status === 401 || result.status === 403)) throw new Error('AUTH_REQUIRED');
+        if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
+          throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
+        }
         throw new Error((result.data && result.data.message) || '프로필 카드 삭제에 실패했습니다.');
       }
       var payload = result.data || {};
@@ -8139,6 +8214,9 @@
     }).catch(function(error) {
       _dpSetPaymentPending(false);
       rollbackOptimisticDelete();
+      if (String(error && error.message || '') === 'PROFILE_MUTATION_TRANSIENT_UNAVAILABLE') {
+        error = new Error('서버 연결이 잠시 불안정해요. 결제 상태는 보존되며, 잠시 후 다시 시도해 주세요.');
+      }
       var msg = String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.');
       if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
       alert(msg);

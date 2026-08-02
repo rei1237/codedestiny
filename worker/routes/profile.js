@@ -749,6 +749,24 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
   return { ok: true, evidence };
 }
 
+async function findCompletedProfileMutationReplay(auth, { action, profileId, requestId, body }) {
+  if (!requestId) return null;
+  const clauses = buildProfileMutationEvidenceClauses({ requestId, body, profileId });
+  const evidence = await PointHistory.findOne({
+    userId: auth.userId,
+    kind: "deduct",
+    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    $and: [
+      { $or: clauses },
+      { "metadata.profileMutationCompleted": true },
+    ],
+  }).sort({ createdAt: -1 }).lean();
+  if (!evidence) return null;
+  if (!evidenceProfileMatches(evidence, profileId)) return null;
+  if (!evidenceActionMatches(evidence, action)) return null;
+  return evidence;
+}
+
 function policyFailureStatus(reason) {
   if (reason === "AUTH_REQUIRED") return 401;
   if (reason === "INVALID_ACTION_TYPE" || reason === "PROFILE_CARD_ID_REQUIRED") return 400;
@@ -1515,16 +1533,66 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
   });
 }
 
-async function handleDeleteProfile(request, auth, profileIdRaw) {
+async function buildProfileDeleteResponse(auth, profileId, { policy = null, evidence = null, replayed = false } = {}) {
+  const profiles = await listUserProfiles(auth.userId);
+  const user = await User.findById(auth.userId)
+    .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
+  const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+  const subscription = resolveSubscriptionPolicy(user || {});
+  if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {
+    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+  }
+  const metadata = evidence?.metadata || {};
+  const chargedCoins = Math.max(0, Math.floor(Number(
+    policy
+      ? (policy.costCoins || 0)
+      : (metadata.coinPrice || Math.abs(Number(evidence?.delta || 0)) || 0),
+  )));
+  const freeByMembership = chargedCoins === 0;
+  return json({
+    ok: true,
+    success: true,
+    deletedId: profileId,
+    deletedProfileId: profileId,
+    chargedCoins,
+    freeByMembership,
+    remainingCoins: getRemainingProfileActionCoins(user),
+    profiles: markCurrentProfile(profiles, nextCurrentId),
+    currentId: nextCurrentId,
+    currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
+    subscription,
+    profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_delete" }),
+    serverSyncedAt: new Date().toISOString(),
+    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    actionType: "profile_card_delete",
+    policy: policy || { allowed: true, reason: "IDEMPOTENT_REPLAY" },
+    replayed,
+  });
+}
+
+async function handleDeleteProfile(request, auth, profileIdRaw, trace) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
 
-  const [existingProfile, body] = await Promise.all([
-    ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
-    readJson(request).catch(() => ({})),
-  ]);
+  const body = await readJson(request).catch(() => ({}));
+  const requestId = readProfileMutationRequestId(body, PROFILE_CARD_MUTATION_ACTIONS.DELETE, profileId);
+  const replay = await findCompletedProfileMutationReplay(auth, {
+    action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+    profileId,
+    requestId,
+    body,
+  });
+  if (replay) {
+    if (trace) trace.stage = "delete_replay";
+    return buildProfileDeleteResponse(auth, profileId, { evidence: replay, replayed: true });
+  }
+
+  if (trace) trace.stage = "delete_read";
+  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
   if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
+  if (trace) trace.stage = "delete_policy";
   const authorization = await ensureProfileDeleteAuthorized(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
@@ -1532,6 +1600,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   });
   if (!authorization.ok) return authorization.response;
 
+  if (trace) trace.stage = "delete_claim";
   const claim = await claimProfileMutationEvidence(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
@@ -1540,6 +1609,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   });
   if (!claim.ok) return claim.response;
 
+  if (trace) trace.stage = "delete_mutation";
   const deleted = await ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean();
   if (!deleted) {
     await refundProfileMutationCreditIfNeeded(auth, {
@@ -1560,41 +1630,14 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
     evidence: authorization.evidence,
   });
 
-  const profiles = await listUserProfiles(auth.userId);
-  const user = await User.findById(auth.userId)
-    .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
-  const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
-  const subscription = resolveSubscriptionPolicy(user || {});
-
-  await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
-  const chargedCoins = Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0)));
-  const freeByMembership = chargedCoins === 0;
-
-  return json({
-    ok: true,
-    success: true,
-    deletedId: profileId,
-    deletedProfileId: profileId,
-    chargedCoins,
-    freeByMembership,
-    remainingCoins: getRemainingProfileActionCoins(user),
-    profiles: markCurrentProfile(profiles, nextCurrentId),
-    currentId: nextCurrentId,
-    currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
-    subscription,
-    profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_delete" }),
-    serverSyncedAt: new Date().toISOString(),
-    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
-    actionType: "profile_card_delete",
-    policy: authorization.policy,
-  });
+  if (trace) trace.stage = "delete_finalize";
+  return buildProfileDeleteResponse(auth, profileId, { policy: authorization.policy });
 }
 
 export async function handleProfileRoutes(request, env) {
   // 503 진단용: 실패가 인증 왕복(auth)인지, DB 연결(connect)인지, 핸들러 READ인지
   // 구분하려고 단계마다 플래그를 갱신한다(handleRouteError가 이 필드를 로그에 남김).
-  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false };
+  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false, stage: "auth" };
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/profile");
@@ -1603,11 +1646,14 @@ export async function handleProfileRoutes(request, env) {
     const auth = await requireUserFromRequest(request, env, { userProjection: PROFILE_ROUTE_USER_PROJECTION });
     trace.authPresent = true;
     trace.authVerified = true;
+    trace.stage = "security";
     const security = await enforceProfileRouteSecurity(request, env, auth, method, path);
     if (!security.ok) return security.response;
 
+    trace.stage = "connect";
     await connectDb(env);
     trace.dbConnected = true;
+    trace.stage = "dispatch";
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
@@ -1622,7 +1668,7 @@ export async function handleProfileRoutes(request, env) {
       return await handleUpdateProfile(request, auth, profileMatch[1]);
     }
     if (profileMatch && method === "DELETE") {
-      return await handleDeleteProfile(request, auth, profileMatch[1]);
+      return await handleDeleteProfile(request, auth, profileMatch[1], trace);
     }
 
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();

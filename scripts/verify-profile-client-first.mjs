@@ -41,6 +41,9 @@ expect("profileRoute", "profilePolicySnapshot: buildProfilePolicySnapshot", "pro
 expect("profileRoute", "serverSyncedAt", "profile APIs expose sync timestamp");
 expect("profileRoute", "PROFILE_LIMIT_RECONCILE_REQUIRED", "server hard validation asks client to reconcile");
 expect("profileRoute", "countDocuments({ userId: auth.userId })", "server final create validation counts once");
+expect("profileRoute", "findCompletedProfileMutationReplay", "delete replay lookup is present");
+expect("profileRoute", "delete_replay", "delete replay returns a completed mutation state");
+expect("profileRoute", "trace.stage = \"delete_mutation\"", "profile mutation trace records delete stage");
 expectAbsent("profileRoute", "const createPolicy = await resolveProfileCardActionAccess", "create no longer performs server-first policy preflight");
 expectAbsent("profileRoute", "source.requestId", "request id is not treated as payment evidence");
 
@@ -53,8 +56,15 @@ expect("client", "rollbackOptimisticCreate", "client rolls back failed create");
 expect("client", "applyOptimisticDelete", "client applies optimistic delete after payment gate");
 expect("client", "rollbackOptimisticDelete", "client rolls back failed delete");
 expect("client", "PROFILE_LIMIT_RECONCILE_REQUIRED", "client handles hard validation reconcile");
-expect("client", "_dpVerifyLoginSession(false)", "client avoids forced auth preflight before mutation");
+expect("client", "_dpVerifyLoginSession(false, { allowIndeterminate: true })", "client preserves a hinted session during transient auth failure");
+expect("client", "_dpRunTransientRetry", "client retries bounded transient mutations");
+expect("client", "maxTransientRetries: 2", "client caps transient retries at two");
+expect("client", "retryTransient: true", "profile mutations opt into transient retry");
+expect("client", "PROFILE_MUTATION_TRANSIENT_UNAVAILABLE", "client shows a degraded mutation fallback");
+expect("client", "status === 503 || status === 504", "client retries only server transient statuses");
 expect("packageJson", "verify:profile-client-first", "package exposes client-first verifier");
+expect("profileRoute", "trace.stage", "profile 503 logs include mutation stage");
+expect("authRoute", "profilePolicySnapshot", "auth response carries profile policy");
 
 if (targets.publicClient && targets.publicClient !== targets.client) {
   failures.push("public/js/destiny-profile.js differs from js/destiny-profile.js; run npm run sync:public");
