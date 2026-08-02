@@ -1,5 +1,12 @@
 # Deployment and Infra
 
+## Worker 단일 배포 경로
+
+- 운영 Worker 배포의 정본은 `.github/workflows/cloudflare-worker-deploy.yml` 하나다.
+- 이 workflow는 `workflow_dispatch`로만 실행되고, `main` 기준 작업 트리 정책 확인과 `worker/wrangler.toml` dry-run을 통과한 뒤 `npm run deploy:cf:worker`를 실행한다.
+- `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 다른 workflow에 Worker 업로드 명령이 생기거나 PR에 `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
+- Cloudflare Workers Builds Git trigger는 운영 Worker의 중복 배포를 만들 수 있으므로 `code-destiny-web`에서는 제거한다. Worker 자체, route, custom domain, cron, R2 binding, runtime secret은 이 정리의 대상이 아니다.
+
 ## Cloudflare Pages 구조
 
 - Pages config: `wrangler.toml`

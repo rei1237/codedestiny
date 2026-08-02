@@ -104,6 +104,7 @@
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",
     "verify:worktree-policy": "node scripts/verify-worktree-policy.mjs",
+    "verify:worker-single-deploy": "node scripts/verify-worker-single-deploy-guard.mjs",
     "verify:llm-token-usage": "node --experimental-strip-types --no-warnings scripts/verify-llm-token-usage.mjs",
     "verify:astrology-sectioned": "node --experimental-strip-types --no-warnings scripts/verify-astrology-sectioned-generation.mjs",
     "verify:payment-policy-md": "node scripts/verify-payment-policy-md.mjs",
