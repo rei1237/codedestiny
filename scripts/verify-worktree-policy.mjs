@@ -77,7 +77,12 @@ function getPolicyContext(cwd = process.cwd()) {
   const baseSha = process.env.GITHUB_BASE_SHA || pullRequest.base?.sha || "";
   const eventName = process.env.GITHUB_EVENT_NAME || "";
   const githubRef = process.env.GITHUB_REF || "";
-  const checkedSha = process.env.GITHUB_SHA || headSha;
+  // For pull_request events, GITHUB_SHA is GitHub's synthetic merge commit.
+  // The workflow intentionally checks out the exact PR head, so compare it
+  // with the event's head SHA. Push/deploy events continue using GITHUB_SHA.
+  const checkedSha = eventName === "pull_request"
+    ? pullRequest.head?.sha || headSha
+    : process.env.GITHUB_SHA || headSha;
   const prBody = process.env.GITHUB_PR_BODY || pullRequest.body || "";
 
   return {
