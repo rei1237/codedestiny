@@ -1610,3 +1610,11 @@ body:has(main.moon-shop) [role="note"] {
 		transition: none;
 	}
 }
+
+/* 정적 export 초기 HTML에서도 마인드 스캔 상담 화면의 공통 chrome을 숨긴다. */
+@layer components {
+  body:has([data-mindscan-route="true"]) > header,
+  body:has([data-mindscan-route="true"]) > footer {
+    display: none !important;
+  }
+}

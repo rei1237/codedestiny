@@ -19,7 +19,7 @@ export default function MindScanTarotPage() {
   }));
 
   return (
-    <>
+    <div data-mindscan-route="true">
       <MindScanTarotRouteClient />
       <section className="mx-auto max-w-4xl px-4 py-10 text-slate-100">
         <h2 className="text-2xl font-semibold">관계 마음 해석에서 살피는 것</h2>
@@ -43,6 +43,6 @@ export default function MindScanTarotPage() {
           ))}
         </nav>
       </section>
-    </>
+    </div>
   );
 }
