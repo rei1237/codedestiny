@@ -52,6 +52,10 @@ export default function MindScanTarotPage() {
           </p>
         </div>
 
+        <p className="mt-5 leading-8 text-slate-300">
+          리딩을 마친 뒤에는 인상 깊었던 카드 한 장보다 실제 대화에서 확인할 수 있는 변화와 나의 감정을 함께 기록해 보세요. 기록은 결과를 반복해서 확인하는 대신 관계의 패턴과 내가 지키고 싶은 기준을 발견하는 데 도움이 됩니다. 오늘 바로 할 수 있는 작은 행동과 잠시 멈출 행동을 나누어 적으면 해석을 현실적인 선택으로 옮기기 쉽습니다.
+        </p>
+
         <h2 className="mt-10 text-xl font-semibold">이 리딩에서 확인하는 흐름</h2>
         <ul className="mt-4 grid gap-3 md:grid-cols-3">
           {landing.resultItems.map((item) => (
