@@ -104,6 +104,7 @@
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",
     "verify:worktree-policy": "node scripts/verify-worktree-policy.mjs",
+    "verify:worker-single-deploy": "node scripts/verify-worker-single-deploy-guard.mjs",
     "verify:llm-token-usage": "node --experimental-strip-types --no-warnings scripts/verify-llm-token-usage.mjs",
     "verify:astrology-sectioned": "node --experimental-strip-types --no-warnings scripts/verify-astrology-sectioned-generation.mjs",
     "verify:payment-policy-md": "node scripts/verify-payment-policy-md.mjs",
@@ -233,6 +234,9 @@
     "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
     "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
     "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check",
+    "verify:pages-single-deploy-guard": "node scripts/verify-pages-single-deploy-guard.mjs",
+    "verify:pages-pr-contract": "node scripts/verify-pages-pr-contract.mjs",
+    "verify:pages-pr-contract-test": "node scripts/verify-pages-pr-contract.mjs --self-test",
     "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs",
     "verify:payment-reconcile": "node scripts/verify-payment-reconcile.mjs"
   },

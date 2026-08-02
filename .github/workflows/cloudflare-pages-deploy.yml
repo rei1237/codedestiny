@@ -74,6 +74,9 @@ jobs:
       - name: Sync public static artifacts
         run: npm run sync:public
 
+      - name: Verify sitemap integrity
+        run: npm run verify:sitemap
+
       - name: Verify ads.txt present (AdSense)
         run: npm run verify:ads-txt
 
@@ -114,11 +117,9 @@ jobs:
           NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH: ${{ vars.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || secrets.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH }}
         run: npm run secrets:cf:pages -- --skip-empty
 
-      # Pages 의 GitHub 연동이 프로덕션 자동빌드까지 켜면 같은 커밋을 CF 가 한 번 더 빌드해
-      # 커밋당 프로덕션 배포가 2개가 된다. 두 빌드는 청크 해시가 달라 _next/static 404 를 만들고,
-      # 그 404 는 엣지에 2일간 캐시된다. 2026-07-06 껐는데 07-22 스스로 켜져 재발한 이력이 있어
-      # 매 배포마다 확인하고 켜져 있으면 도로 끈다(프리뷰 빌드는 유지).
-      - name: Ensure single production deploy
+      # GitHub Actions의 명시적 배포만 허용한다. legacy/production/preview Git 자동 배포가
+      # 켜지면 같은 PR/커밋에 Pages deployment가 중복 생성되고 외부 check가 pending으로 남을 수 있다.
+      - name: Ensure single Pages deployment configuration
         run: npm run ensure:pages-single-deploy
 
       - name: Deploy Cloudflare Pages

@@ -1,5 +1,12 @@
 # Deployment and Infra
 
+## Worker 단일 배포 경로
+
+- 운영 Worker 배포의 정본은 `.github/workflows/cloudflare-worker-deploy.yml` 하나다.
+- 이 workflow는 `workflow_dispatch`로만 실행되고, `main` 기준 작업 트리 정책 확인과 `worker/wrangler.toml` dry-run을 통과한 뒤 `npm run deploy:cf:worker`를 실행한다.
+- `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 다른 workflow에 Worker 업로드 명령이 생기거나 PR에 `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
+- Cloudflare Workers Builds Git trigger는 운영 Worker의 중복 배포를 만들 수 있으므로 `code-destiny-web`에서는 제거한다. Worker 자체, route, custom domain, cron, R2 binding, runtime secret은 이 정리의 대상이 아니다.
+
 ## Cloudflare Pages 구조
 
 - Pages config: `wrangler.toml`
@@ -11,6 +18,27 @@
 - Static mirrors: `public/index.html`, `public/static/index.html`, `public/{en,ja,zh}/index.html`
 
 운영 Pages 배포는 사용자 명시 승인 후에만 진행한다.
+
+### Pages 자동 배포 단일화
+
+- Cloudflare 대시보드의 `Deployments paused`는 이 저장소에서는 정상 운영 상태다. Pages Git 자동/프리뷰 배포를 끄고 GitHub Actions의 명시적 배포만 정본으로 쓴다.
+- PR마다 Cloudflare Pages Git preview 배포를 만들지 않는다. PR 검증은 `.github/workflows/pages-build-gate.yml`의 `npm ci`와 `npm run build:cf`로 수행한다.
+- Pages 프로젝트의 Git source config는 다음 세 값을 명시적으로 비활성화한다.
+  - `deployments_enabled=false` (legacy 호환 필드)
+  - `production_deployments_enabled=false`
+  - `preview_deployment_setting="none"`
+- `scripts/ensure-pages-single-deploy.mjs`가 세 값을 함께 검사하고, 자동 수정 시 전체 `source.config`를 보존 병합한 뒤 GET으로 재검증한다.
+- `--check`와 CI에서는 Cloudflare 인증 누락 또는 API 조회 실패를 성공으로 처리하지 않는다. 로컬에서 토큰이 없을 때만 안내 후 건너뛴다.
+- 기존에 취소되거나 pending으로 남은 배포는 자동 삭제하지 않는다. 삭제하려면 Pages Write 권한과 별도 승인이 필요하다.
+- Pages external check를 branch protection의 required check로 유지하지 말고, `Pages Build Gate` workflow가 생성하는 `Build Cloudflare Pages output` check를 required check로 지정한다. branch protection 변경은 저장소 관리자 권한으로 수행한다.
+
+재발 방지 계층:
+
+1. `pages-build-gate.yml`: PR head가 최신 `main`을 포함하는지 먼저 확인한 뒤 Pages guard mock, sitemap integrity, `npm run build:cf`를 실행한다.
+2. `pages-config-guard.yml`: Cloudflare secret을 PR에 노출하지 않고, `main` push·매일 schedule·수동 실행에서 Pages 설정 drift를 read-only로 감시한다.
+3. `cloudflare-pages-deploy.yml`: 실제 main 배포 직전에 동일한 Pages 설정 guard를 다시 실행한다.
+4. `Cloudflare Pages` external check는 배포 성공의 기준으로 사용하지 않는다. 취소된 deployment가 GitHub check를 pending으로 남길 수 있으므로, build 결과는 GitHub Actions gate로 판단한다.
+5. PR이 stale base이면 Pages build를 시작하지 않고 rebase를 요구한다. 이는 최신 main의 Pages 보강이 빠진 상태에서 build가 실패하는 낭비와 원인 혼동을 줄인다.
 
 ## Worktree and PR delivery boundary
 
@@ -29,6 +57,9 @@ Repository administrators must configure the `main` ruleset to require pull requ
 - Shared Worker libs: `worker/lib/**`
 - Worker name/custom routes는 `worker/wrangler.toml`에서 확인한다.
 - AI binding, R2 bucket binding, cron triggers가 Worker config에 있다.
+- 운영 API Worker는 `code-destiny-web` 하나다. 임시 디버그 Worker는 custom domain, routes, cron, R2, payment/LLM secret이 없는지 확인한 뒤 운영 트래픽이 없으면 Cloudflare에서 삭제한다.
+- 임시 디버그 Worker 설정 파일은 기본적으로 레포에 추적하지 않는다. 재사용이 필요하면 파일명과 주석에 임시 목적, 만료일, 실서비스 라우트 금지, `LLM_DRY_RUN=true`, `WORKERS_AI_ENABLED=false`를 명시한다.
+- `Workers Builds: code-destiny-web` GitHub check가 PR에 생기면 Cloudflare Worker Git integration이 연결된 상태다. 이 프로젝트는 GitHub Actions/manual Worker deploy만 허용하므로 Cloudflare dashboard의 Worker `Settings > Builds > Disconnect`로 Workers Builds를 끈다. 이 조치는 Cloudflare 운영 설정 변경이므로 사용자 승인 후 수행한다.
 
 `worker/wrangler.toml`은 기존 규칙상 수정 금지 영역이다. 변경이 필요하면 사전 계획과 사용자 승인이 필요하다.
 
