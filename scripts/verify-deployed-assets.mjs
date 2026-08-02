@@ -44,17 +44,39 @@ const ROUTES = ["/", "/points/", "/me/", "/login/", "/music/", "/stories/"];
 // 워크플로의 선행 sleep 45초까지 더하면 약 3분까지 버틴다.
 const MAX_ROUNDS = 5;
 const ROUND_DELAY_MS = 25_000;
+const REQUEST_TIMEOUT_MS = 15_000;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function fetchText(url) {
-  const res = await fetch(url, { headers: { "cache-control": "no-cache" }, redirect: "follow" });
-  return { status: res.status, body: res.ok ? await res.text() : "" };
+  const res = await fetch(url, {
+    headers: { "cache-control": "no-cache" },
+    redirect: "follow",
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    try {
+      await res.body?.cancel();
+    } catch {
+      // Best effort: release the socket before the next route check.
+    }
+    return { status: res.status, body: "" };
+  }
+  return { status: res.status, body: await res.text() };
 }
 
 async function statusOf(url) {
   try {
-    const res = await fetch(url, { method: "GET", redirect: "manual" });
+    const res = await fetch(url, {
+      method: "GET",
+      redirect: "manual",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    try {
+      await res.body?.cancel();
+    } catch {
+      // Best effort: these checks only need the status code.
+    }
     return res.status;
   } catch (error) {
     return `ERR:${error?.message || "unknown"}`;
@@ -169,7 +191,18 @@ async function main() {
     }
 
     await sleep(ROUND_DELAY_MS);
-    dead = await checkAssets(assets);
+    const refreshed = await collectAssetUrls();
+    if (refreshed.routeFailures.length) {
+      console.log("[verify-deployed-assets] refreshed route response anomalies:");
+      report(refreshed.routeFailures.map((l) => `  - ${l}`));
+    }
+    const nextAssets = refreshed.assets.length ? refreshed.assets : assets;
+    if (refreshed.assets.length && refreshed.assets.join("\n") !== assets.join("\n")) {
+      console.log(
+        `[verify-deployed-assets] refreshed asset manifest during deploy cutover: ${assets.length} -> ${refreshed.assets.length}`,
+      );
+    }
+    dead = await checkAssets(nextAssets);
   }
 
   if (!dead.length) {
