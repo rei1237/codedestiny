@@ -60,7 +60,6 @@
   var PROFILE_CARD_MANAGE_COST = 50;
   var PROFILE_CARD_MANAGE_MONTHLY_COST = PROFILE_CARD_MANAGE_COST * 10;
   var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260618-monthly';
-  var DP_PROFILE_DELETE_GATE_SPRITE_URL = '/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp';
   var ACTIVE_PROFILE_CACHE_KEY = 'code-destiny.activeProfileCache.v1';
   var ACTIVE_PROFILE_ID_KEY = 'code-destiny.activeProfileId';
   var GUEST_PROFILE_KEY = 'codeDestiny:guestProfile';
@@ -1194,6 +1193,47 @@
     delete _dpApiCooldownUntil[key];
   }
 
+  function _dpIsTransientResult(result) {
+    var status = Number(result && result.status || 0);
+    return status === 0 || status === 503 || status === 504;
+  }
+
+  function _dpRunTransientRetry(operation, options, normalize) {
+    var opts = options || {};
+    var maxRetries = Math.max(0, Math.min(2, Number(opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries)));
+    var retryCount = 0;
+    var delayMs = Math.max(150, Number(opts.transientRetryDelayMs || 700));
+
+    function run() {
+      return Promise.resolve().then(operation).then(function(raw) {
+        return typeof normalize === 'function' ? normalize(raw) : raw;
+      }, function(error) {
+        return {
+          ok: false,
+          status: 0,
+          data: {
+            code: 'NETWORK_ERROR',
+            message: _dpText('networkError'),
+            error: String((error && error.message) || error || 'network_error'),
+          },
+          payload: {
+            code: 'NETWORK_ERROR',
+            message: _dpText('networkError'),
+          },
+          error: error,
+        };
+      }).then(function(result) {
+        if (!opts.retryTransient || !_dpIsTransientResult(result) || retryCount >= maxRetries) return result;
+        retryCount += 1;
+        return new Promise(function(resolve) {
+          setTimeout(resolve, delayMs * retryCount);
+        }).then(run);
+      });
+    }
+
+    return run();
+  }
+
   function _dpFetchJsonWithFallback(pathname, init, options) {
     var opts = options || {};
     var method = String(((init && init.method) || 'GET')).toUpperCase();
@@ -1362,7 +1402,9 @@
         });
     }
 
-    var requestPromise = attempt(0);
+    var requestPromise = _dpRunTransientRetry(function() {
+      return attempt(0);
+    }, opts);
     if (dedupeKey) {
       _dpApiInFlightGet[dedupeKey] = requestPromise.finally(function() {
         delete _dpApiInFlightGet[dedupeKey];
@@ -1468,8 +1510,12 @@
     _dpSessionVerify.signature = _dpGetSessionHintSignature();
   }
 
-  function _dpVerifyLoginSession(forceRefresh) {
+  function _dpVerifyLoginSession(forceRefresh, options) {
     var force = !!forceRefresh;
+    var allowIndeterminate = !!(options && options.allowIndeterminate);
+    function sessionResult() {
+      return !!_dpSessionVerify.ok || (allowIndeterminate && _dpSessionVerify.indeterminate === true && _dpHasSessionHint());
+    }
     var now = Date.now();
     var signature = _dpGetSessionHintSignature();
     var ttlMs = _dpGetSessionVerifyTtlMs(_dpSessionVerify);
@@ -1477,9 +1523,9 @@
       && _dpSessionVerify.checkedAt
       && _dpSessionVerify.signature === signature
       && (now - _dpSessionVerify.checkedAt < ttlMs)) {
-      return Promise.resolve(!!_dpSessionVerify.ok);
+      return Promise.resolve(sessionResult());
     }
-    if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
+    if (_dpSessionVerify.pending) return _dpSessionVerify.pending.then(function() { return sessionResult(); });
     if (!_dpHasSessionHint() && !force) {
       _dpMarkSessionVerify(false, '');
       return Promise.resolve(false);
@@ -1510,7 +1556,7 @@
         // 직전 판정을 보존한다(ok/userId 유지) — 인프라 실패로 로그인 상태를 잃으면 안 된다.
         // checkedAt·indeterminate 만 갱신해 재발사 간격을 늘린다.
         _dpMarkSessionVerifyIndeterminate();
-        return !!_dpSessionVerify.ok;
+        return sessionResult();
       }
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
@@ -1529,7 +1575,7 @@
     }).catch(function() {
       // 네트워크 오류·타임아웃은 확정 미인증이 아니다 — 직전 판정을 유지한다.
       _dpMarkSessionVerifyIndeterminate();
-      return !!_dpSessionVerify.ok;
+      return sessionResult();
     }).finally(function() {
       _dpSessionVerify.pending = null;
     });
@@ -2634,13 +2680,21 @@
   }
 
   function _dpPaymentFetchJson(pathname, init, options) {
+    var opts = options || {};
     var requestInit = Object.assign({}, init || {});
     requestInit.headers = _dpBuildAuthHeaders(Object.assign(
       { 'Content-Type': 'application/json' },
       requestInit.headers || {}
     ));
+    var isCoinGate = /\/api\/billing\/coin-gate$/.test(String(pathname || ''));
+    var retryOptions = Object.assign({}, opts, {
+      retryTransient: opts.retryTransient === true || isCoinGate,
+      maxTransientRetries: opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries,
+    });
     if (typeof window.fetchJsonWithAuth === 'function') {
-      return window.fetchJsonWithAuth(pathname, requestInit).then(_dpNormalizeBillingFetchResult);
+      return _dpRunTransientRetry(function() {
+        return window.fetchJsonWithAuth(pathname, requestInit);
+      }, retryOptions, _dpNormalizeBillingFetchResult);
     }
     return _dpFetchJsonWithFallback(pathname, requestInit, Object.assign({
       retryOn401: true,
@@ -2649,7 +2703,7 @@
       // 클라가 먼저 끊으면 status 0 → "네트워크 오류" 로 PG창이 안 열리고, confirm 이 끊기면
       // 승인은 됐는데 지급이 안 된다. 이 헬퍼의 호출부는 전부 결제 경로이므로 상한을 맞춘다.
       timeoutMs: 25000,
-    }, options || {})).then(_dpNormalizeBillingFetchResult);
+    }, retryOptions)).then(_dpNormalizeBillingFetchResult);
   }
 
   function _dpExtractBillingData(payload) {
@@ -5420,14 +5474,14 @@
     style.textContent = ''
       + '.dp-delete-gate{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
       + '.dp-delete-gate__panel{width:min(520px,calc(100vw - 28px));border-radius:8px;border:1px solid rgba(255,215,0,.42);background:linear-gradient(145deg,rgba(10,15,32,.98),rgba(37,29,78,.97) 52%,rgba(20,26,45,.98));box-shadow:0 28px 80px rgba(0,0,0,.58),0 0 28px rgba(255,215,0,.14);color:#fff7d6;overflow:hidden;}'
-      + '.dp-delete-gate__head{display:grid;grid-template-columns:82px 1fr;gap:14px;align-items:center;padding:18px 18px 12px;border-bottom:1px solid rgba(255,215,0,.18);}'
-      + '.dp-delete-gate__sprite-wrap{width:82px;height:82px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.08);box-shadow:inset 0 0 18px rgba(255,255,255,.10);}'
-      + '.dp-delete-gate__sprite{width:100%;height:100%;background-image:url("' + DP_PROFILE_DELETE_GATE_SPRITE_URL + '");background-repeat:no-repeat;background-size:400% 300%;background-position:0% 0%;image-rendering:auto;}'
+      + '.dp-delete-gate__head{display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:center;padding:20px 18px 14px;border-bottom:1px solid rgba(255,215,0,.18);}'
+      + '.dp-delete-gate__icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,150,120,.58);background:rgba(180,65,50,.18);color:#ffd6c8;font-size:24px;font-weight:900;line-height:1;}'
       + '.dp-delete-gate__eyebrow{margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:0;color:#ffd700;}'
       + '.dp-delete-gate__title{margin:0;font-size:20px;line-height:1.26;font-weight:900;letter-spacing:0;color:#fff8dc;}'
       + '.dp-delete-gate__name{margin:6px 0 0;font-size:13px;line-height:1.45;color:rgba(255,248,220,.78);word-break:break-word;}'
       + '.dp-delete-gate__body{padding:14px 18px 18px;}'
       + '.dp-delete-gate__copy{margin:0 0 12px;font-size:13px;line-height:1.58;color:rgba(255,248,220,.86);}'
+      + '.dp-delete-gate__warning{display:flex;gap:8px;align-items:flex-start;margin:0 0 14px;padding:10px 11px;border-left:3px solid rgba(255,150,120,.72);background:rgba(180,65,50,.12);color:#ffd9cf;font-size:12px;line-height:1.5;}'
       + '.dp-delete-gate__options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 10px;}'
       + '.dp-delete-gate__option{min-height:68px;border-radius:8px;border:1px solid rgba(255,215,0,.24);background:rgba(255,255,255,.07);color:#fff8dc;text-align:left;padding:11px 12px;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease;}'
       + '.dp-delete-gate__option:hover{transform:translateY(-1px);border-color:rgba(255,215,0,.58);background:rgba(255,215,0,.10);}'
@@ -5438,7 +5492,7 @@
       + '.dp-delete-gate__status{min-height:20px;font-size:12px;line-height:1.35;color:rgba(255,248,220,.72);}'
       + '.dp-delete-gate__cancel{min-height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e5e7eb;padding:0 14px;cursor:pointer;}'
       + '.dp-delete-gate__cancel:hover{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.10);}'
-      + '@media(max-width:520px){.dp-delete-gate{align-items:flex-end;padding:12px}.dp-delete-gate__panel{width:100%;}.dp-delete-gate__head{grid-template-columns:70px 1fr;padding:16px 14px 12px}.dp-delete-gate__sprite-wrap{width:70px;height:70px}.dp-delete-gate__title{font-size:18px}.dp-delete-gate__body{padding:13px 14px 16px}.dp-delete-gate__options{grid-template-columns:1fr}.dp-delete-gate__foot{align-items:stretch;flex-direction:column}.dp-delete-gate__cancel{width:100%;}}';
+      + '@media(max-width:520px){.dp-delete-gate{align-items:flex-end;padding:12px}.dp-delete-gate__panel{width:100%;}.dp-delete-gate__head{grid-template-columns:44px 1fr;padding:18px 14px 13px}.dp-delete-gate__icon{width:42px;height:42px;font-size:21px}.dp-delete-gate__title{font-size:18px}.dp-delete-gate__body{padding:13px 14px 16px}.dp-delete-gate__options{grid-template-columns:1fr}.dp-delete-gate__foot{align-items:stretch;flex-direction:column}.dp-delete-gate__cancel{width:100%;}}';
     document.head.appendChild(style);
   }
 
@@ -5459,12 +5513,10 @@
       panel.className = 'dp-delete-gate__panel';
       var head = document.createElement('div');
       head.className = 'dp-delete-gate__head';
-      var spriteWrap = document.createElement('div');
-      spriteWrap.className = 'dp-delete-gate__sprite-wrap';
-      spriteWrap.setAttribute('aria-hidden', 'true');
-      var sprite = document.createElement('div');
-      sprite.className = 'dp-delete-gate__sprite';
-      spriteWrap.appendChild(sprite);
+      var icon = document.createElement('div');
+      icon.className = 'dp-delete-gate__icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = '!';
       var titleWrap = document.createElement('div');
       var eyebrow = document.createElement('p');
       eyebrow.className = 'dp-delete-gate__eyebrow';
@@ -5479,14 +5531,17 @@
       titleWrap.appendChild(eyebrow);
       titleWrap.appendChild(title);
       titleWrap.appendChild(name);
-      head.appendChild(spriteWrap);
+      head.appendChild(icon);
       head.appendChild(titleWrap);
 
       var body = document.createElement('div');
       body.className = 'dp-delete-gate__body';
       var copy = document.createElement('p');
       copy.className = 'dp-delete-gate__copy';
-      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uB2E8\uAC74\uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C\uB97C \uC9C4\uD589\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
+      copy.textContent = '\uC774 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uBA74 \uC800\uC7A5\uB41C \uC0DD\uB144\uC6D4\uC77C\uACFC \uC785\uB825 \uC815\uBCF4\uAC00 \uD568\uAED8 \uC0AD\uC81C\uB429\uB2C8\uB2E4.';
+      var warning = document.createElement('div');
+      warning.className = 'dp-delete-gate__warning';
+      warning.textContent = '\uC0AD\uC81C \uD6C4\uC5D0\uB294 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694. \uC0AD\uC81C\uD560 \uD504\uB85C\uD544\uC774 \uB9DE\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694.';
       var options = document.createElement('div');
       options.className = 'dp-delete-gate__options';
 
@@ -5504,9 +5559,9 @@
         return btn;
       }
 
-      var directBtn = buildOption('direct', '\uB2E8\uAC74\uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
+      var directBtn = buildOption('direct', '\uB2E8\uAC74 \uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
       options.appendChild(directBtn);
-      var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D \uC0AC\uC6A9', '\uBCF4\uC720 \uC6D4\uC815\uC11D ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9 \uC0AC\uC6A9');
+      var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C', '\uBCF4\uC720 \uC6D4\uC815\uC11D\uC5D0\uC11C ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9\uC744 \uC0AC\uC6A9');
       options.appendChild(monthlyBtn);
 
       var foot = document.createElement('div');
@@ -5521,28 +5576,17 @@
       foot.appendChild(status);
       foot.appendChild(cancel);
       body.appendChild(copy);
+      body.appendChild(warning);
       body.appendChild(options);
       body.appendChild(foot);
       panel.appendChild(head);
       panel.appendChild(body);
       overlay.appendChild(panel);
 
-      var frame = 0;
-      var frames = [0, 1, 2, 3, 7, 6, 5, 4];
-      function applyFrame() {
-        var safe = frames[frame % frames.length];
-        var col = safe % 4;
-        var row = Math.floor(safe / 4);
-        sprite.style.backgroundPosition = (col * 100 / 3) + '% ' + (row * 100 / 2) + '%';
-        frame += 1;
-      }
-      applyFrame();
-      var timer = setInterval(applyFrame, 140);
       var settled = false;
       function done(value) {
         if (settled) return;
         settled = true;
-        clearInterval(timer);
         document.removeEventListener('keydown', onKey);
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         resolve(value || null);
@@ -7487,7 +7531,7 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
-              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C, \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D \uC804\uC6A9" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
+              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C" title="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C</button>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
@@ -7690,7 +7734,7 @@
       return;
     }
 
-    _dpVerifyLoginSession(false).then(function(ok) {
+    _dpVerifyLoginSession(false, { allowIndeterminate: true }).then(function(ok) {
       if (!ok) {
         throw new Error('AUTH_REQUIRED');
       }
@@ -7711,6 +7755,11 @@
             profileId: createProfileId,
             selectedProfileId: createProfileId
           }, paymentContext || {}))
+        }, {
+          retryOn401: true,
+          retryTransient: true,
+          maxTransientRetries: 2,
+          timeoutMs: _DP_FETCH_TIMEOUT_MS,
         });
       }
       return postProfile().then(function(result) {
@@ -7733,6 +7782,12 @@
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         var msg = String((payload && payload.message) || '').trim();
+        if (result && (result.status === 401 || result.status === 403)) {
+          throw new Error('AUTH_REQUIRED');
+        }
+        if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
+          throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
+        }
         if (result && (result.status === 409 || result.status === 403) && (code === 'PROFILE_LIMIT_RECONCILE_REQUIRED' || code === 'PROFILE_LIMIT_EXCEEDED')) {
           if (payload && payload.profilePolicySnapshot) _dpApplyProfilePolicySnapshot(payload.profilePolicySnapshot, 'profile_reconcile');
           var sub = payload && payload.subscription ? payload.subscription : null;
@@ -7814,6 +7869,9 @@
           return;
         }
         msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+      }
+      if (msg === 'PROFILE_MUTATION_TRANSIENT_UNAVAILABLE') {
+        msg = '서버 연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요.';
       }
       window.alert(msg);
     }).finally(function() {
@@ -8083,11 +8141,13 @@
         }, paymentContext || {}))
       }, {
         retryOn401: true,
+        retryTransient: true,
+        maxTransientRetries: 2,
         timeoutMs: _DP_FETCH_TIMEOUT_MS
       });
     }
 
-    _dpVerifyLoginSession(false).then(function(ok) {
+    _dpVerifyLoginSession(false, { allowIndeterminate: true }).then(function(ok) {
       if (!ok) throw new Error('AUTH_REQUIRED');
       _dpSetPaymentPending(false);
       return _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
@@ -8099,6 +8159,10 @@
       _dpSetPaymentPending(false);
       if (!result) return;
       if (!result.ok || !result.data || result.data.ok === false) {
+        if (result && (result.status === 401 || result.status === 403)) throw new Error('AUTH_REQUIRED');
+        if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
+          throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
+        }
         throw new Error((result.data && result.data.message) || '프로필 카드 삭제에 실패했습니다.');
       }
       var payload = result.data || {};
@@ -8122,8 +8186,7 @@
       renderProfileList();
       broadcastProfileChange(current || null);
       _dpUpdateSaveBtn();
-      spawnStardust(document.getElementById('dpMasterCard'));
-      _toast('프로필 카드가 삭제되었습니다.', 'success');
+      _toast('프로필 카드 "' + String((profile && profile.name) || '선택한 프로필') + '"를 삭제했습니다.', 'success');
       _dpLoadFromServer(function(loaded) {
         if (!loaded) return;
         var refreshed = DPStorage.current();
@@ -8139,6 +8202,9 @@
     }).catch(function(error) {
       _dpSetPaymentPending(false);
       rollbackOptimisticDelete();
+      if (String(error && error.message || '') === 'PROFILE_MUTATION_TRANSIENT_UNAVAILABLE') {
+        error = new Error('서버 연결이 잠시 불안정해요. 결제 상태는 보존되며, 잠시 후 다시 시도해 주세요.');
+      }
       var msg = String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.');
       if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
       alert(msg);
