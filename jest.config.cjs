@@ -7,6 +7,7 @@
 // 거쳐 이 파일을 임포트하는 테스트가 모두 파싱 단계에서 깨지므로, 실제 LLM 호출이 필요 없는
 // 테스트 환경에서는 스텁으로 대체한다.
 module.exports = {
+  roots: ["<rootDir>/__tests__"],
   moduleNameMapper: {
     "^astronomy-engine$": "<rootDir>/node_modules/astronomy-engine/astronomy.js",
     "^\\.\\./\\.\\./lib/llm-client\\.ts$": "<rootDir>/__tests__/__mocks__/llm-client.js",
@@ -21,9 +22,11 @@ module.exports = {
   testPathIgnorePatterns: [
     "/node_modules/",
     // 목 모듈 — 테스트가 아니라 moduleNameMapper 의 대체 구현이다.
-    "<rootDir>/__tests__/__mocks__/",
+    "[\\\\/]__tests__[\\\\/]__mocks__[\\\\/]",
+    "[\\\\/]__tests__[\\\\/]fixtures[\\\\/]",
+    "[\\\\/]__tests__[\\\\/]guardian-fortune[\\\\/]contract\\.test\\.js$",
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
-    "<rootDir>/__tests__/ui/",
-    "<rootDir>/__tests__/fortune/maya-calendar\\.test\\.js$",
+    "[\\\\/]__tests__[\\\\/]ui[\\\\/]",
+    "[\\\\/]__tests__[\\\\/]fortune[\\\\/]maya-calendar\\.test\\.js$",
   ],
 };
