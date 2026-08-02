@@ -1,16 +1,25 @@
 param(
   [string]$Slug = 'change',
   [string]$Base = 'origin/main',
-  [string]$WorktreeRoot = ''
+  [string]$WorktreeRoot = '',
+  [string[]]$DependencyDirectories = @('node_modules'),
+  [switch]$SkipDependencyCopy
 )
 
 $ErrorActionPreference = 'Stop'
 
 function Invoke-Git {
-  param([string[]]$Args)
-  $output = & git @Args
-  if ($LASTEXITCODE -ne 0) {
-    throw "Git command failed: git $($Args -join ' ')"
+  param([string[]]$GitArgs)
+  $previousErrorAction = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $output = & git @GitArgs 2>$null
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorAction
+  }
+  if ($exitCode -ne 0) {
+    throw "Git command failed: git $($GitArgs -join ' ')"
   }
   return ($output -join [Environment]::NewLine).Trim()
 }
@@ -42,8 +51,34 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Invoke-Git @('worktree', 'add', '-b', $branch, $target, $Base) | Write-Host
+
+if (-not $SkipDependencyCopy) {
+  foreach ($dependencyDirectory in $DependencyDirectories) {
+    if ([string]::IsNullOrWhiteSpace($dependencyDirectory)) { continue }
+
+    $dependencySource = Join-Path $repoRoot $dependencyDirectory
+    $dependencyTarget = Join-Path $target $dependencyDirectory
+    if (-not (Test-Path -LiteralPath $dependencySource -PathType Container)) {
+      Write-Warning "Dependency directory was not found and was skipped: $dependencySource"
+      continue
+    }
+    if (Test-Path -LiteralPath $dependencyTarget) {
+      throw "Refusing to overwrite dependency directory: $dependencyTarget"
+    }
+
+    Write-Host "Copying dependency directory: $dependencySource -> $dependencyTarget"
+    Copy-Item -LiteralPath $dependencySource -Destination $dependencyTarget -Recurse -Force
+    Write-Host "DEPENDENCY=$dependencyTarget"
+  }
+}
+
 Write-Host "WORKTREE=$target"
 Write-Host "BRANCH=$branch"
 Write-Host "BASE=$baseSha"
+if ($SkipDependencyCopy) {
+  Write-Host "DEPENDENCY_COPY=skipped"
+} else {
+  Write-Host "DEPENDENCY_COPY=enabled"
+}
 Write-Host "Next: Set-Location -LiteralPath '$target'"
 Write-Host "Then: npm run verify:worktree-policy -- --mode=edit"
