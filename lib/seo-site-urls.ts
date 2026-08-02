@@ -2,6 +2,7 @@
 
 import { PSYCHOTESTS } from "./psychotest-catalog";
 import { categoryToSlug, publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
+import { isNoindexPath } from "./seo/siteSeo";
 
 export const BASE_URL = "https://code-destiny.com";
 
@@ -55,7 +56,7 @@ const FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES: SitemapRouteEntry[] = [
   })),
 ];
 
-export const ROUTES: SitemapRouteEntry[] = [
+const ROUTE_CANDIDATES: SitemapRouteEntry[] = [
   // ── 홈 (최우선) ──────────────────────────────────────────────
   { path: "/", changeFrequency: "daily", priority: 1.0 },
 
@@ -161,6 +162,10 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/advertising-policy", changeFrequency: "yearly", priority: 0.54 },
   { path: "/editorial-policy", changeFrequency: "yearly", priority: 0.54 },
 ];
+
+export const ROUTES: SitemapRouteEntry[] = ROUTE_CANDIDATES.filter(
+  (route) => route.path !== "/account/delete" && !isNoindexPath(route.path),
+);
 
 export function getAllSitemapUrls(): string[] {
   const urls: string[] = [];
