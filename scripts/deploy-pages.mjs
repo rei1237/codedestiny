@@ -42,6 +42,8 @@ const branch =
   process.env.CF_PAGES_BRANCH ||
   "main";
 
+const isCloudflarePagesBuild = [process.env.CF_PAGES, process.env.CLOUDFLARE_PAGES]
+  .some((value) => /^(1|true)$/i.test(String(value || "")));
 const forceDirectDeploy = true;
 const isGitHubActions = String(process.env.GITHUB_ACTIONS || "").toLowerCase() === "true";
 
@@ -145,13 +147,18 @@ function runBuildFresh() {
   return verified;
 }
 
-if (!process.env.CLOUDFLARE_API_TOKEN) {
-  console.error("[deploy-pages] CLOUDFLARE_API_TOKEN is required in GitHub Actions.");
+if (!runBuildFresh()) {
+  console.error("[deploy-pages] Fresh build verification failed. Cannot continue.");
   process.exit(1);
 }
 
-if (!runBuildFresh()) {
-  console.error("[deploy-pages] Fresh build verification failed. Cannot continue.");
+if (isCloudflarePagesBuild) {
+  console.log("[deploy-pages] Cloudflare Pages build detected; skipping nested wrangler pages deploy.");
+  process.exit(0);
+}
+
+if (!process.env.CLOUDFLARE_API_TOKEN) {
+  console.error("[deploy-pages] CLOUDFLARE_API_TOKEN is required for direct Pages deploy.");
   process.exit(1);
 }
 
