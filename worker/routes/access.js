@@ -115,6 +115,52 @@ function toIsoString(value) {
   return date.toISOString();
 }
 
+function readAccessHeader(request, name) {
+  try {
+    return String(request.headers.get(name) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function createAccessRequestId(request) {
+  const incoming = readAccessHeader(request, "x-request-id") || readAccessHeader(request, "x-correlation-id");
+  if (incoming) return incoming.slice(0, 120);
+  const cfRay = readAccessHeader(request, "cf-ray");
+  if (cfRay) return `cf-${cfRay.slice(0, 80)}`;
+  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") return globalThis.crypto.randomUUID();
+  return `access-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function hashAccessLogValue(value) {
+  const input = String(value || "");
+  if (!input) return "";
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `h${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+function getAccessDeploySha(env) {
+  return String(env?.CF_PAGES_COMMIT_SHA || env?.COMMIT_SHA || env?.DEPLOY_COMMIT_SHA || "").slice(0, 80);
+}
+
+function getAccessErrorCode(error) {
+  return String(error?.code || error?.errorCode || error?.name || "UNEXPECTED_ACCESS_ERROR").slice(0, 120);
+}
+
+function logAccessUnlocksTrace(level, fields) {
+  const line = { event: "access.unlocks.lookup", ...fields };
+  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
+  try {
+    writer(JSON.stringify(line));
+  } catch {
+    writer(line);
+  }
+}
+
 function createLockedMap(serviceKeys) {
   const unlocks = {};
   const keys = Array.isArray(serviceKeys) ? serviceKeys : [serviceKeys];
@@ -384,71 +430,109 @@ async function handleConfirm(request, env) {
 async function handleUnlocks(request, env) {
   if (request.method !== "GET") return methodNotAllowed();
 
-  const url = new URL(request.url);
-  const auth = await requireUserFromRequest(request, env);
-  const userId = String(auth.userId || "");
-  const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
-  const serviceKeyParam = sanitizeAccessKey(
-    url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
-    80,
-  );
-  const serviceKeys = normalizeServiceKeys(serviceKeyParam);
-  const serviceKey = serviceKeys.join(",");
-  const includeBackfill = url.searchParams.get("backfill") === "1"
-    || url.searchParams.get("includeBackfill") === "1";
+  const startedAt = Date.now();
+  const requestId = createAccessRequestId(request);
+  const metrics = {
+    requestId,
+    route: "/api/access/unlocks",
+    method: "GET",
+    userHash: "",
+    profileId: "",
+    serviceKey: "",
+    serviceKeys: [],
+    includeBackfill: false,
+    dbQueryCount: 0,
+    internalFetchCount: 0,
+    cache: "none",
+    commitSha: getAccessDeploySha(env),
+  };
 
-  if (!profileId) {
-    throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
-  }
+  try {
+    const url = new URL(request.url);
+    const auth = await requireUserFromRequest(request, env);
+    const userId = String(auth.userId || "");
+    const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
+    const serviceKeyParam = sanitizeAccessKey(
+      url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      80,
+    );
+    const serviceKeys = normalizeServiceKeys(serviceKeyParam);
+    const serviceKey = serviceKeys.join(",");
+    const includeBackfill = url.searchParams.get("backfill") === "1"
+      || url.searchParams.get("includeBackfill") === "1";
 
-  // 일시적 풀 초기화에도 해금 상태를 정확히 반환하도록 조회를 재시도로 감싼다.
-  // (verifyProfileOwnership의 404 등 비-일시적 에러는 재시도 없이 즉시 전파된다.)
-  const activeDocs = await withMongoRetry(env, async () => {
-    await verifyProfileOwnership({ userId, profileId });
-    const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
-    const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-    const backfilledDocs = [];
-    if (includeBackfill) {
-      for (const currentServiceKey of serviceKeys) {
-        const serviceDocs = docs.filter((doc) => String(doc?.serviceKey || "") === currentServiceKey);
-        const created = await backfillMissingUnlocks({
-          userId,
-          profileId,
-          serviceKey: currentServiceKey,
-          existingDocs: serviceDocs,
-        });
-        backfilledDocs.push(...created);
-      }
+    Object.assign(metrics, {
+      userHash: hashAccessLogValue(userId),
+      profileId,
+      serviceKey,
+      serviceKeys,
+      includeBackfill,
+    });
+
+    if (!profileId) {
+      throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
     }
-    return docs.concat(backfilledDocs);
-  });
 
-  const unlocks = createLockedMap(serviceKeys);
-  const unlockedContentKeys = [];
+    const activeDocs = await withMongoRetry(env, async () => {
+      const profileStartedAt = Date.now();
+      metrics.dbQueryCount += 1;
+      await verifyProfileOwnership({ userId, profileId });
+      metrics.profileLookupMs = Date.now() - profileStartedAt;
 
-  for (const doc of activeDocs) {
-    const contentKey = sanitizeAccessKey(doc?.contentKey, 160);
-    if (!contentKey) continue;
+      const snapshotStartedAt = Date.now();
+      metrics.dbQueryCount += 1;
+      const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
+      metrics.snapshotLookupMs = Date.now() - snapshotStartedAt;
+      return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+    });
 
-    unlocks[contentKey] = {
-      unlocked: true,
-      source: doc.source,
-      unlockedAt: toIsoString(doc.unlockedAt),
-      expiresAt: toIsoString(doc.expiresAt),
-    };
-    unlockedContentKeys.push(contentKey);
+    const unlocks = createLockedMap(serviceKeys);
+    const unlockedContentKeys = [];
+
+    for (const doc of activeDocs) {
+      const contentKey = sanitizeAccessKey(doc?.contentKey, 160);
+      if (!contentKey) continue;
+
+      unlocks[contentKey] = {
+        unlocked: true,
+        source: doc.source,
+        unlockedAt: toIsoString(doc.unlockedAt),
+        expiresAt: toIsoString(doc.expiresAt),
+      };
+      unlockedContentKeys.push(contentKey);
+    }
+
+    const uniqueContentKeys = Array.from(new Set(unlockedContentKeys));
+    logAccessUnlocksTrace("info", {
+      ...metrics,
+      status: 200,
+      durationMs: Date.now() - startedAt,
+      entitlementCount: uniqueContentKeys.length,
+      accessResult: uniqueContentKeys.length ? "unlocked" : "locked",
+    });
+
+    return json({
+      ok: true,
+      requestId,
+      profileId,
+      serviceKey,
+      serviceKeys,
+      unlockedContentKeys: uniqueContentKeys,
+      unlocks,
+    });
+  } catch (error) {
+    error.accessUnlocksRequestId = error.accessUnlocksRequestId || requestId;
+    logAccessUnlocksTrace("warn", {
+      ...metrics,
+      status: Number(error?.status || error?.statusCode || 503),
+      durationMs: Date.now() - startedAt,
+      errorCode: getAccessErrorCode(error),
+      originalErrorName: String(error?.name || "Error").slice(0, 120),
+      stack: String(error?.stack || "").slice(0, 2000),
+    });
+    throw error;
   }
-
-  return json({
-    ok: true,
-    profileId,
-    serviceKey,
-    serviceKeys,
-    unlockedContentKeys: Array.from(new Set(unlockedContentKeys)),
-    unlocks,
-  });
 }
-
 export async function handleAccessRoutes(request, env) {
   const routePath = getRoutePath(request, "/api/access");
   const trace = { route: "access", method: request.method, requestPath: new URL(request.url).pathname };
@@ -466,8 +550,9 @@ export async function handleAccessRoutes(request, env) {
         ok: false,
         retryable: true,
         reason: "DB_DEGRADED",
-        code: "SERVICE_UNAVAILABLE",
-        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+        code: "ACCESS_LOOKUP_TEMPORARILY_UNAVAILABLE",
+        requestId: error?.accessUnlocksRequestId || createAccessRequestId(request),
+        message: "Access lookup is temporarily unavailable. Please retry shortly.",
       }, { status: 503 });
     }
     return handleRouteError(error, { request, env, trace });
