@@ -96,23 +96,23 @@ const PIG_COIN_PACKAGES = {
 };
 
 const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "대운 섹션 해금", forceDeduct: true },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "요약 섹션 해금", forceDeduct: true },
-  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "궁합 섹션 해금", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "운명의 꽃 아틀리에 전체 해금", forceDeduct: true },
-  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "올림푸스 신탁 해금", forceDeduct: true },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "사주 풀패키지 해금", forceDeduct: true },
-  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG 캐릭터 해금", forceDeduct: true },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 100, reason: "여행 운세 해금", forceDeduct: true },
-  "unlock.health_report": { featureKey: "healthReport", cost: 100, reason: "건강 리포트 해금", forceDeduct: true },
-  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 200, reason: "사주 일기 해금", forceDeduct: true },
-  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 100, reason: "시크릿 하우스 해금", forceDeduct: true },
-  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "프리미엄 점술팩 해금", forceDeduct: true },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 500, reason: "자미두수 프리미엄 해금", forceDeduct: true },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "점성술 프리미엄 해금", forceDeduct: true },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "숙요점 프리미엄 해금", forceDeduct: true },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "베다 프리미엄 해금", forceDeduct: true },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "작명 프리미엄 해금", forceDeduct: true },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "대운 섹션 해금" },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "요약 섹션 해금" },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "궁합 섹션 해금" },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "운명의 꽃 아틀리에 전체 해금" },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "올림푸스 신탁 해금" },
+  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "사주 풀패키지 해금" },
+  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 50, reason: "RPG 캐릭터 해금" },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 100, reason: "여행 운세 해금" },
+  "unlock.health_report": { featureKey: "healthReport", cost: 100, reason: "건강 리포트 해금" },
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 200, reason: "사주 일기 해금" },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 100, reason: "시크릿 하우스 해금" },
+  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "프리미엄 점술팩 해금" },
+  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 500, reason: "자미두수 프리미엄 해금" },
+  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "점성술 프리미엄 해금" },
+  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "숙요점 프리미엄 해금" },
+  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "베다 프리미엄 해금" },
+  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "작명 프리미엄 해금" },
 });
 
 function resolveUnlockProductSpec(productId) {
@@ -591,6 +591,12 @@ router.get("/pig-coin/balance", async (req, res, next) => {
 
 router.post("/pig-coin/charge-simulate", async (req, res, next) => {
   try {
+    return res.status(410).json({
+      message: "기존 코인 충전은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 이용해 주세요.",
+      code: "POINT_CHARGE_DISABLED",
+      legacyCoinDisabled: true,
+    });
+
     if (process.env.PIG_COIN_PAYMENT_API_READY !== "true") {
       return res.status(503).json({
         message: "실제 결제 API 준비 중입니다. 현재는 꽃돼지 코인 충전이 비활성화되어 있습니다.",
@@ -723,6 +729,50 @@ async function handlePigCoinConsumeRoute(req, res, next) {
     const reason = String(pricing.reason || requestReason || "유료 섹션 잠금 해제")
       .trim()
       .slice(0, 120);
+    const legacyAccessUser = await User.findById(req.auth.userId)
+      .select("profileSubscription unlockedFeatures")
+      .lean();
+    if (!legacyAccessUser) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다.", code: "USER_NOT_FOUND" });
+    }
+    const legacyUnlocks = await resolvePersistedUnlockFeatures(req.auth.userId, legacyAccessUser.unlockedFeatures);
+    const effectiveLegacyTier = resolveEffectiveActiveTier(legacyAccessUser);
+    const legacyPassCovers = Boolean(
+      effectiveLegacyTier
+      && cost <= Number(getPlanPolicy(effectiveLegacyTier).freeLimit || 0)
+      && !isPersistentUnlockFeatureKey(featureKey),
+    );
+    if (legacyUnlocks.includes(featureKey) || legacyPassCovers) {
+      return res.status(200).json({
+        ok: true,
+        code: legacyUnlocks.includes(featureKey) ? "ALREADY_UNLOCKED" : "SUBSCRIPTION_INCLUDED",
+        featureKey,
+        accessType: legacyUnlocks.includes(featureKey) ? "existing_entitlement" : "membership_pass",
+        paymentMode: legacyUnlocks.includes(featureKey) ? "NONE" : "MEMBERSHIP_PASS",
+        legacyReadOnly: true,
+        unlockedFeatures: legacyUnlocks,
+        unlockMap: toUnlockMap(legacyUnlocks),
+      });
+    }
+    return res.status(402).json({
+      ok: false,
+      message: "기존 코인 결제는 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.",
+      code: "PAYMENT_REQUIRED",
+      status: "payment_required",
+      reason: "LEGACY_COIN_DISABLED",
+      legacyCoinDisabled: true,
+      blockedPaymentMode: "COIN",
+      featureKey,
+      paymentOptions: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
+      pricing: {
+        featureKey,
+        reason,
+        coinPrice: cost,
+        membershipCreditCost: Math.max(0, cost * 10),
+        krwEquivalent: cost * 100,
+      },
+    });
+
     const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
     const requestId = String(req.body?.requestId || "")
       .trim()
@@ -1104,7 +1154,7 @@ router.post("/pig-coin/refund", async (req, res, next) => {
 router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
   try {
     const user = await User.findById(req.auth.userId)
-      .select("points profileSubscription has_started_paid_service first_service_access_date")
+      .select("profileSubscription has_started_paid_service first_service_access_date")
       .lean();
     if (!user) return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
 
@@ -1114,7 +1164,8 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
     const expAt  = toValidDate(sub.expiresAt);
     const cancelAtPeriodEnd = !!sub.cancelAtPeriodEnd;
     const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
-    let points = Number(user.points || 0);
+    // Legacy subscription status is read-only; it never inspects or renews from User.points.
+    let points = null;
 
     const plan = PROFILE_SUB_PLANS[tier];
     const now  = new Date();
@@ -1162,7 +1213,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
 
     const isActive = effectiveTier !== "free";
     const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
-    const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
+    const lowBalanceWarning = false;
 
     const adminTestTier = req.auth?.role === "admin"
       ? normalizeSubscriptionTier(req.headers["x-admin-subscription-tier"])
@@ -1176,7 +1227,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
         expiresAt:         toIsoOrNull(effectiveExpAt),
         profileLimit:      simulatedPolicy.profileLimit,
         points,
-        lowBalanceWarning: points <= simulatedPolicy.freeLimit,
+        lowBalanceWarning: false,
         autoRenewed:       false,
         cancelAtPeriodEnd: false,
         cancelRequestedAt: null,
@@ -1302,6 +1353,12 @@ const SHARE_REWARD_DAILY_LIMIT = 3;
 
 router.post("/pig-coin/share-reward", async (req, res, next) => {
   try {
+    return res.status(410).json({
+      message: "기존 코인 공유 보상은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 이용해 주세요.",
+      code: "POINT_REWARD_DISABLED",
+      legacyCoinDisabled: true,
+    });
+
     const contentId = String(req.body?.contentId || "default")
       .trim()
       .replace(/[^a-zA-Z0-9_\-]/g, "")

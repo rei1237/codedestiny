@@ -1026,7 +1026,6 @@ export default function CrystalSoulTarotClient() {
         featureKey: "tarot-crystal-soul-reading",
         cost: lookupServerCoinPrice("tarot-crystal-soul-reading"),
         reason: copy.paymentReason,
-        forceDeduct: true,
         requestId: `tarot-crystal-soul-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: requestReading,
       });

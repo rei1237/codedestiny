@@ -1,14 +1,22 @@
 import { normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
-function normalizeRegistryPricingEntry(entry = {}) {
-  return Object.freeze(normalizePaidFeaturePricingShape(entry));
+function normalizeRegistryPricingEntry(entry = {}, fallbackAccessModel = "per_use") {
+  const normalized = normalizePaidFeaturePricingShape(entry);
+  const { forceDeduct: _legacyForceDeduct, ...policy } = normalized;
+  return Object.freeze({
+    ...policy,
+    accessModel: String(policy.accessModel || fallbackAccessModel).trim() || fallbackAccessModel,
+  });
 }
 
 function normalizeRegistryPricingTable(table = {}) {
   return Object.freeze(
     Object.fromEntries(
-      Object.entries(table).map(([key, entry]) => [key, normalizeRegistryPricingEntry(entry)]),
+      Object.entries(table).map(([key, entry]) => [
+        key,
+        normalizeRegistryPricingEntry(entry, String(key).startsWith("unlock.") ? "unlock" : "per_use"),
+      ]),
     ),
   );
 }
@@ -295,7 +303,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "destiny-bias-theme-premium": { cost: 120, reason: "최애운명 프리미엄 테마 해금" },
   "destiny-bias-collection-save": { cost: 150, reason: "최애운명 컬렉션 저장 확장" },
   "destiny-bias-deep-profile": { cost: 90, reason: "최애운명 심층 프로필 확장" },
-  "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제", forceDeduct: true },
+  "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제" },
   rpt_specialCharmCard: { cost: 30, reason: "나의 매력 클래스 영구 해금" },
   rpt_quantumCard: { cost: 100, reason: "퀀텀 명리 엔진 영구 해금" },
   rpt_healthReportCard: { cost: 100, reason: "명리 헬스 리포트 영구 해금" },
@@ -310,57 +318,57 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
 export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE_KEY_PRICE_TABLE);
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
-  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock", forceDeduct: true },
-  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
-  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock", forceDeduct: true },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock", forceDeduct: true },
-  "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock", forceDeduct: true },
-  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock", forceDeduct: true },
-  "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 100, reason: "사주 가디언 소환진 해금", forceDeduct: true },
-  "unlock.tetogen_deep_report": { featureKey: "tetogen_deep_report", cost: 100, reason: "테토 에겐 상세 리포트 해금", forceDeduct: true },
-  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock", forceDeduct: true },
-  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock", forceDeduct: true },
-  "unlock.ziwei_decade_luck": { featureKey: "ziwei_decade_luck", cost: 100, reason: "자미두수 대한 흐름 해금", forceDeduct: true },
-  "unlock.ziwei_love_deep": { featureKey: "ziwei_love_deep", cost: 150, reason: "자미두수 부부궁 심화 상담 해금", forceDeduct: true },
-  "unlock.ziwei_twelve_palaces": { featureKey: "ziwei_twelve_palaces", cost: 100, reason: "자미두수 12궁 정밀 해설 해금", forceDeduct: true },
-  "unlock.ziwei_symbolic_layer": { featureKey: "ziwei_symbolic_layer", cost: 100, reason: "자미두수 상징 보조층 해금", forceDeduct: true },
-  "unlock.ziwei_life_yearly_flow": { featureKey: "ziwei_life_yearly_flow", cost: 100, reason: "자미두수 생애 총론과 연간 흐름 해금", forceDeduct: true },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock", forceDeduct: true },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
-  "unlock.destiny_bias_theme_premium": { featureKey: "destiny-bias-theme-premium", cost: 120, reason: "Destiny bias premium theme unlock", forceDeduct: true },
-  "unlock.destiny_bias_collection_save": { featureKey: "destiny-bias-collection-save", cost: 150, reason: "Destiny bias collection save unlock", forceDeduct: true },
-  "unlock.destiny_bias_deep_profile": { featureKey: "destiny-bias-deep-profile", cost: 90, reason: "Destiny bias deep profile unlock", forceDeduct: true },
-  "unlock.nakshatra_lord_report": { featureKey: "nakshatra-lord-report", cost: 100, reason: "나크샤트라 지배성 심화 리포트 해금", forceDeduct: true },
-  "unlock.nakshatra_dasha_map": { featureKey: "nakshatra-dasha-map", cost: 150, reason: "나크샤트라 다샤 인생지도 해금", forceDeduct: true },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock" },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock" },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock" },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock" },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock" },
+  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock" },
+  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock" },
+  "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock" },
+  "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 100, reason: "사주 가디언 소환진 해금" },
+  "unlock.tetogen_deep_report": { featureKey: "tetogen_deep_report", cost: 100, reason: "테토 에겐 상세 리포트 해금" },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
+  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
+  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock" },
+  "unlock.ziwei_decade_luck": { featureKey: "ziwei_decade_luck", cost: 100, reason: "자미두수 대한 흐름 해금" },
+  "unlock.ziwei_love_deep": { featureKey: "ziwei_love_deep", cost: 150, reason: "자미두수 부부궁 심화 상담 해금" },
+  "unlock.ziwei_twelve_palaces": { featureKey: "ziwei_twelve_palaces", cost: 100, reason: "자미두수 12궁 정밀 해설 해금" },
+  "unlock.ziwei_symbolic_layer": { featureKey: "ziwei_symbolic_layer", cost: 100, reason: "자미두수 상징 보조층 해금" },
+  "unlock.ziwei_life_yearly_flow": { featureKey: "ziwei_life_yearly_flow", cost: 100, reason: "자미두수 생애 총론과 연간 흐름 해금" },
+  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock" },
+  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock" },
+  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock" },
+  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock" },
+  "unlock.destiny_bias_theme_premium": { featureKey: "destiny-bias-theme-premium", cost: 120, reason: "Destiny bias theme premium unlock" },
+  "unlock.destiny_bias_collection_save": { featureKey: "destiny-bias-collection-save", cost: 150, reason: "Destiny bias collection save unlock" },
+  "unlock.destiny_bias_deep_profile": { featureKey: "destiny-bias-deep-profile", cost: 90, reason: "Destiny bias deep profile unlock" },
+  "unlock.nakshatra_lord_report": { featureKey: "nakshatra-lord-report", cost: 100, reason: "나크샤트라 지배성 심화 리포트 해금" },
+  "unlock.nakshatra_dasha_map": { featureKey: "nakshatra-dasha-map", cost: 150, reason: "나크샤트라 다샤 인생지도 해금" },
 });
 
 export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_COIN_UNLOCK_PRODUCTS);
 
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
-  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock", forceDeduct: true },
-  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
-  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock", forceDeduct: true },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock", forceDeduct: true },
-  "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock", forceDeduct: true },
-  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock", forceDeduct: true },
-  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock", forceDeduct: true },
-  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock", forceDeduct: true },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock", forceDeduct: true },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock" },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock" },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock" },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock" },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock" },
+  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock" },
+  "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock" },
+  "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock" },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
+  "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
+  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock" },
+  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock" },
+  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock" },
+  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock" },
+  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock" },
 });
 
 export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
@@ -672,8 +680,6 @@ export function listLegacyUnlockBaselineMismatches() {
 
       const expectedCost = Number(expected.cost);
       const actualCost = Number(actual.cost);
-      const expectedForceDeduct = Boolean(expected.forceDeduct);
-      const actualForceDeduct = Boolean(actual.forceDeduct);
       const expectedFeatureKey = String(expected.featureKey || "").trim();
       const actualFeatureKey = String(actual.featureKey || "").trim();
       const expectedReason = String(expected.reason || "").trim();
@@ -681,7 +687,6 @@ export function listLegacyUnlockBaselineMismatches() {
 
       const isDifferent = (
         expectedCost !== actualCost
-        || expectedForceDeduct !== actualForceDeduct
         || expectedFeatureKey !== actualFeatureKey
         || expectedReason !== actualReason
       );
@@ -696,7 +701,7 @@ export function listLegacyUnlockBaselineMismatches() {
           featureKey: actualFeatureKey,
           cost: actualCost,
           reason: actualReason,
-          forceDeduct: actualForceDeduct,
+          accessModel: String(actual.accessModel || "per_use"),
         },
       };
     })

@@ -89,6 +89,7 @@ Entry: `worker/index.js`
 - Admin/content: `/api/admin/*`, `/api/cms/*`, `/api/content/*`, `/api/content-feed/*`, `/api/insights/*`
 - Reviews/feedback: `/api/reviews/*`, `/api/feedback/*`
 - Payments/access: `/api/payments/*`, `/api/payment/*`, `/api/checkout/*`, `/api/billing/*`, `/api/access/*`, `/api/unlocks/*`, `/api/points/me`, `/api/points/balance`
+- Legacy COIN compatibility: `/api/billing/coin-gate` (route name retained; new COIN debit is disabled), `/api/fortune/pig-coin/*` (read-only historical compatibility or `PAYMENT_REQUIRED`)
 - App store: `/api/app-store/*`
 - User/profile/subscription: `/api/user/*`, `/api/profile/*`, `/api/profiles/*`, `/api/subscriptions/*`, `/api/subscription/status`, `/api/subscription/me`, `GET /api/me/access-state` (feature-flagged bootstrap snapshot)
 - Fortune core: `/api/fortune/*`, `/api/tarot/*`, `/api/fpti/*`, `/api/celestial-harmony/*`, `/api/dream/*`, `/api/oracle/*`, `/api/kasi/*`, `/api/palm/*`, `/api/destiny-bias/*`

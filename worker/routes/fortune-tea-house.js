@@ -1305,7 +1305,6 @@ function buildFortuneTeaPaymentPayload({ featureKey, pricing = {}, consultReques
     requestId: idempotencyKey,
     idempotencyKey,
     deferUsage: true,
-    forceDeduct: true,
   };
   return {
     billingMode: "coin-gate",

@@ -195,7 +195,6 @@ function buildBillingGateInput(
     //     선제 오픈 · 402 후 폴백 오픈) 이용권 미보유 사용자는 결제창을 **한 번도 못 보고**
     //    PAYMENT_VERIFY_FAILED 만 받는다 = 상품을 살 방법이 없다.
     //    이용권이 커버하면 게이트가 스스로 forceDeduct 를 false 로 낮춰 차감하지 않는다.
-    forceDeduct: true,
     requestId: idempotencyKey,
     idempotencyKey,
     cost,

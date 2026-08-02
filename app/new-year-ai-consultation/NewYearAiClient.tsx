@@ -691,7 +691,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     productId: toText(runtimeGate.productId || paymentPayload.productId) || "new-year-ai",
     productType: toText(runtimeGate.productType || paymentPayload.productType) || "new-year-ai",
     serviceType: toText(runtimeGate.serviceType || paymentPayload.serviceType) || FEATURE_KEY,
-    forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
     requestId: idempotencyKey,

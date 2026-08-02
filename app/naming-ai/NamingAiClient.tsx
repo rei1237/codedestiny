@@ -632,7 +632,6 @@ export default function NamingAiClient() {
         reason: REASON,
         requestId,
         idempotencyKey: requestId,
-        forceDeduct: true,
         cost: COIN_PRICE,
         coinPrice: COIN_PRICE,
         amountKRW: AMOUNT_KRW,

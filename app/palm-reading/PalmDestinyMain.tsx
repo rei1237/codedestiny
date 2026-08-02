@@ -2332,7 +2332,6 @@ export default function PalmDestinyMain() {
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
         payloadHash: `${requestSignature}:charge`,
-        forceDeduct: true,
       });
 
       if (!coinGateResult.ok) {

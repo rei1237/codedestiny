@@ -37,7 +37,14 @@
       ├─ [단건 결제]       → 서버가 이용권 재확인(안전망) → 커버면 무료, 아니면 PortOne
       └─ [월정석]          → 월정석 차감 (코인은 내부 단위, 최종 청구는 원화)
 ```
-이용권 보유자는 진입 워밍(`warmSubscriptionSnapshotOnEntry`)이 스냅샷을 채우므로 평상시 결제창 자체를 보지 않는다.
+이용권 보유자는 결제 선택창에서만 서버 상태를 확인하며, 메인 진입 시에는 월정석·레거시 잔액을 예열하지 않는다.
+
+### Legacy COIN 요청 처리
+
+- 구형 클라이언트가 `paymentMode=COIN`, `forceDeduct=true`, 또는 결제 방식 없는 요청을 보내도 서버는 `User.points`를 읽거나 차감하지 않고 `PAYMENT_REQUIRED`와 `legacyCoinDisabled: true`를 반환한다.
+- 이미 존재하는 entitlement·이용권·검증된 과거 결제 증거는 결제 요구 전에 계속 승인한다. 새 결제는 이용권 → 월정석/단건 결제 선택 흐름으로만 진행한다.
+- `ContentEntitlement`, `User.unlockedFeatures`, `PointHistory`, `daehan_purchases`는 삭제하지 않으며, 과거 거래 복구만 레거시 원장을 사용한다.
+- 메인 진입과 잠금 상태 표시에서는 잔액 API를 예열하지 않는다. 잔액과 월정석 잔액은 결제 선택창을 열었을 때만 조회한다.
 
 ## 변경 이력
 

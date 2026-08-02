@@ -46,7 +46,6 @@ export function FutureSim({ field, onBack }: { field: DirectionField; onBack: ()
       coinPrice: 100,
       amountKRW: 10000,
       reason: "미래 시뮬레이션 안내",
-      forceDeduct: true,
       requestId: makeGateRequestId("destiny-compass-future-sim"),
     });
     if (!r.ok) {

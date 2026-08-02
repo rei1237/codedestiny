@@ -179,7 +179,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || FEATURE_KEY,
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || FEATURE_KEY,
     serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
-    forceDeduct: true,
     requestId: idempotencyKey,
     idempotencyKey,
     cost,

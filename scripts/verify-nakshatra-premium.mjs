@@ -403,8 +403,10 @@ console.log("\n[8] 레지스트리 정합 — 가격·과금유형");
   for (const [key, coin, krw] of [["nakshatra-lord-report", 100, 10000], ["nakshatra-dasha-map", 150, 15000]]) {
     check(`${key} 가 UNLOCK(영구해금) 유형으로 등록돼 있다`, isUnlockPaidFeatureKey(key));
     const product = UNLOCK_PRODUCT_BY_FEATURE_KEY[key];
-    check(`${key} 레지스트리 코인가 ${coin} (forceDeduct)`,
-      Number(product?.cost) === coin && product?.forceDeduct === true,
+    check(`${key} 레지스트리 코인가 ${coin} (unlock accessModel, no forceDeduct)`,
+      Number(product?.cost) === coin
+      && product?.accessModel === "unlock"
+      && !Object.prototype.hasOwnProperty.call(product || {}, "forceDeduct"),
       JSON.stringify(product || null));
     check(`${key} 라우트 가격이 ${coin}코인 / ${krw.toLocaleString()}원`,
       new RegExp(`featureKey:\\s*"${key}",\\s*\\n\\s*coinPrice:\\s*${coin},\\s*\\n\\s*amountKRW:\\s*${krw},`).test(routeSource));
@@ -419,7 +421,7 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   const hook = readFileSync(path.join(repoRoot, hookPath), "utf8");
   const hookCode = stripComments(hook);
   check(`${hookPath}: 공용 게이트(useCoinGate) 사용`, /useCoinGate/.test(hookCode));
-  check(`${hookPath}: 영구해금이므로 forceDeduct: true`, /forceDeduct:\s*true/.test(hookCode));
+  check(`${hookPath}: 영구해금도 deprecated forceDeduct 를 보내지 않는다`, !/forceDeduct/.test(hookCode));
   check(`${hookPath}: 🔴 확인 실패를 미구매로 취급하지 않는다(status === "ready" 일 때만 잠금)`,
     /unlockStatus\s*===\s*"ready"\s*&&\s*!isUnlocked/.test(hookCode));
   check(`${hookPath}: 낙관적 해금 표시 + 원장 기록`,

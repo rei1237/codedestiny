@@ -451,7 +451,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, requestI
     productId: toText(paymentPayload.productId) || FEATURE_KEY,
     serviceType: FEATURE_KEY,
     reason: toText(paymentPayload.reason) || REASON,
-    forceDeduct: true,
     requestId,
     idempotencyKey: requestId,
     cost: toNumber(paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST),

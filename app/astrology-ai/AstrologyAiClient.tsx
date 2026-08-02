@@ -538,7 +538,6 @@ export default function AstrologyAiClient() {
         cost: Number(runtimeGate.cost || FEATURE_COST),
         coinPrice: Number(runtimeGate.coinPrice || FEATURE_COST),
         amountKRW: Number(runtimeGate.amountKRW || FEATURE_AMOUNT_KRW),
-        forceDeduct: true,
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();

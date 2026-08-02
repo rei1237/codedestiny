@@ -267,7 +267,6 @@ function profilePaymentRequiredResponse(requestId) {
       coinPrice: PROFILE_CARD_MANAGE_COST,
       membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
       amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-      forceDeduct: true,
     },
     checkout: {
       endpoint: "/api/billing/checkout",

@@ -738,7 +738,8 @@ assertContains(indexSource, "월정석 이벤트 재화로 열람되었습니다
 assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.", "monthly event currency disclaimer copy");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pass reuses honey pig asset");
-assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
+assertNotContains(indexSource, "forceDeduct: false", "static membership pass probe no longer sends the deprecated coin flag");
+assertNotContains(indexSource, "forceDeduct: true", "static paid flows never enable the deprecated coin flag");
 assertContains(indexSource, "opts.__cdPaymentGateAuthorized !== true", "static paid service gate checks pass before payment choice");
 assertContains(indexSource, "forceRefreshMembershipCoverage: true", "static payment choice pass probe refreshes pass coverage");
 assertContains(indexSource, "requireServerPassCheck: true", "static paid services verify pass coverage with server before payment choice");

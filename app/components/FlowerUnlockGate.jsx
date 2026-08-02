@@ -111,7 +111,6 @@ export default function FlowerUnlockGate({
         cost: Number(requiredCoins || 200),
         featureKey: String(featureKey || "flower-fc"),
         reason: copy.reason,
-        forceDeduct: true,
         requestId:
           "flower-unlock:" +
           String(featureKey || "flower-fc") +

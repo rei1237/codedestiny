@@ -2018,8 +2018,8 @@ async function resolvePigCoinConsumeAuth(request, env) {
 function userPayload(auth, points, unlockedFeatures) {
   const payload = {
     id: auth?.userId ? String(auth.userId) : "",
-    points: Number(points || 0),
   };
+  if (points !== undefined && points !== null) payload.points = Number(points || 0);
   const normalizedUnlocks = normalizePersistentUnlockKeys(unlockedFeatures);
   if (normalizedUnlocks.length) payload.unlockedFeatures = normalizedUnlocks;
   return payload;
@@ -2159,14 +2159,11 @@ async function handleCheck() {
 }
 
 async function handleConsume(auth) {
-  const user = await User.findById(auth.userId).select("points").lean();
-  if (!user) return json({ message: "User not found." }, { status: 404 });
-
   return json({
     message: "Fortune reading is currently free. No coins were deducted.",
     requiredPoints: 0,
     isFree: true,
-    user: userPayload(auth, user.points),
+    user: userPayload(auth),
   });
 }
 
@@ -2398,7 +2395,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const requireExistingPaidAccess = body?.requireExistingPaidAccess === true
     || String(body?.requireExistingPaidAccess || "").trim().toLowerCase() === "true";
   const subscriptionUser = await User.findById(auth.userId)
-    .select("points profileSubscription unlockedFeatures")
+    .select("profileSubscription unlockedFeatures")
     .lean();
   if (!subscriptionUser) {
     return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
@@ -2470,11 +2467,32 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       profileLimit: activePolicyForPass.profileLimit,
       recommendedCoins: activePolicyForPass.recommendedCoins,
       premiumAccessToken: premiumAccessToken || "",
-      user: userPayload(auth, Number(subscriptionUser.points || 0), unlockedFeatures),
+      user: userPayload(auth, undefined, unlockedFeatures),
       unlockedFeatures,
       unlockMap: toUnlockMap(unlockedFeatures),
     }, {}, premiumAccessToken, env);
   }
+
+  return json({
+    ok: false,
+    message: "기존 코인 결제는 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.",
+    code: "PAYMENT_REQUIRED",
+    status: "payment_required",
+    reason: "LEGACY_COIN_DISABLED",
+    legacyCoinDisabled: true,
+    blockedPaymentMode: "COIN",
+    featureKey,
+    reasonKey: reason,
+    pricing: {
+      featureKey,
+      reason,
+      coinPrice: cost,
+      membershipCreditCost: Math.max(0, cost * 10),
+      krwEquivalent: cost * 100,
+      displayUnit: "content_value",
+    },
+    paymentOptions: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
+  }, { status: 402 });
 
   if (!forceDeduct) {
     const krwEquivalent = cost * 100;
@@ -3171,7 +3189,6 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       body: JSON.stringify({
         featureKey: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
         reason: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
-        forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         categoryKey: "vedic",
@@ -3770,7 +3787,6 @@ async function handleAstrologyAIPrompt(request, auth, env) {
       body: JSON.stringify({
         featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
         reason: "점성술 AI 질문 프롬프트 생성",
-        forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         categoryKey: "astrology",
@@ -3933,7 +3949,6 @@ async function handleVedicAIPrompt(request, auth, env) {
       body: JSON.stringify({
         featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
         reason: "베다 점성술 AI 질문 프롬프트 생성",
-        forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         categoryKey: "vedic",
@@ -4151,7 +4166,6 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       body: JSON.stringify({
         featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
         reason: "사주 전문가 상담 결과 생성",
-        forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         categoryKey: "saju",
@@ -4836,7 +4850,6 @@ async function handleZiweiAIPrompt(request, auth, env) {
       body: JSON.stringify({
         featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
         reason: "자미두수 AI 질문 프롬프트 생성",
-        forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         categoryKey: "ziweidoushu",
@@ -5071,7 +5084,6 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       body: JSON.stringify({
         featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
         reason: "숙요점 AI 질문 프롬프트 생성",
-        forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         categoryKey: "sukuyo",
@@ -5218,7 +5230,6 @@ function writeSubscriptionStatusToCache(userId, payload) {
 // 구독 상태 판정에 필요한 User 필드. 라우트가 인증 단계에서 이 projection 으로 문서를 한 번에
 // 받아오면(authUserDoc) 아래 재조회를 건너뛸 수 있다 — 같은 문서를 두 번 읽던 왕복을 없앤다.
 const SUBSCRIPTION_STATUS_USER_PROJECTION = {
-  points: 1,
   profileSubscription: 1,
   subscription: 1,
   membership: 1,
@@ -5292,7 +5303,8 @@ async function handleSubscriptionStatus(request, env, auth) {
   const statusIndicatesInactive = isInactiveStatus(rawSubscriptionStatus);
   const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
   const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
-  let points = Number(user.points || 0);
+  // Subscription status must not read or auto-renew from the legacy coin balance.
+  let points = null;
   const plan = PROFILE_SUB_PLANS[tier];
   const now = new Date();
   const canonicalEntitlement = resolveCanonicalEntitlement(user || {});
@@ -5366,7 +5378,7 @@ async function handleSubscriptionStatus(request, env, auth) {
 
   const isActive = effectiveTier !== "free";
   const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
-  const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
+  const lowBalanceWarning = false;
   const policy = getPlanPolicy(isActive ? effectiveTier : null);
   const passLimit = isActive
     ? Number(canonicalEntitlement.maxCoveredCoin || policy.freeLimit || 0)
@@ -5574,6 +5586,13 @@ async function handleStartService(request, auth) {
 }
 
 async function handleShareReward(request, auth) {
+  return json({
+    ok: false,
+    message: "기존 코인 공유 보상은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 이용해 주세요.",
+    code: "POINT_REWARD_DISABLED",
+    legacyCoinDisabled: true,
+  }, { status: 410 });
+
   const body = await readJson(request);
   const contentId = String(body?.contentId || "default")
     .trim()

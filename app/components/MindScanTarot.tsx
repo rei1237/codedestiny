@@ -1593,7 +1593,6 @@ export default function MindScanTarot() {
         featureKey: "tarot-mindscan",
         cost: lookupServerCoinPrice("tarot-mindscan"),
         reason: "말과 행동 사이 타로 리딩",
-        forceDeduct: true,
         requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {

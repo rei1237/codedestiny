@@ -39,7 +39,6 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
       coinPrice: 100,
       amountKRW: 10000,
       reason: "삶의 항로 안내",
-      forceDeduct: true,
       requestId: makeGateRequestId("destiny-compass-life-voyage"),
     });
     if (!r.ok) {

@@ -36,9 +36,11 @@ describe("Paid feature registry legacy baseline (65de451)", () => {
 
     baselineEntries.forEach(([productId, expectedSpec]) => {
       const actualSpec = registry.PIG_COIN_UNLOCK_PRODUCTS[productId];
+      const { forceDeduct: _legacyForceDeduct, ...expectedPolicy } = expectedSpec;
 
       expect(actualSpec).toBeDefined();
-      expect(actualSpec).toMatchObject(expectedSpec);
+      expect(actualSpec).toMatchObject({ ...expectedPolicy, accessModel: "unlock" });
+      expect(actualSpec.forceDeduct).toBeUndefined();
     });
   });
 

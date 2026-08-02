@@ -306,7 +306,6 @@ export default function NakshatraAiClient() {
         productId: SERVICE_ID,
         productType: SERVICE_ID,
         serviceType: FEATURE_KEY,
-        forceDeduct: true,
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code).toUpperCase();

@@ -377,7 +377,6 @@
           subFeatureKey: String(payload.subFeatureKey || '').trim() || undefined,
           reason: String(payload.reason || '').trim(),
           requestId: String(payload.requestId || '').trim() || undefined,
-          forceDeduct: payload.forceDeduct !== false,
           mode: String(payload.mode || 'solo').trim(),
           reportId: reportId || undefined,
           sessionId: sessionId || undefined,

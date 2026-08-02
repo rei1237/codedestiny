@@ -481,7 +481,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || FEATURE_KEY,
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || FEATURE_KEY,
     serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || "sukyo-ai-consultation",
-    forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
     executionKey: `${FEATURE_KEY}:${idempotencyKey}`,

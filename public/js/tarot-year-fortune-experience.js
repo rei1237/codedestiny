@@ -396,7 +396,6 @@
         amountKRW: Math.max(0, Number(cost || 0)) * 100,
         featureKey: featureKey,
         requestId: requestId,
-        forceDeduct: true,
       })).then(function(result) {
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
       }).catch(function(error) {
@@ -416,26 +415,9 @@
   }
 
   function rollbackCoinBestEffort(cost, reason, featureKey) {
-    var token = getAuthToken();
-    var rollbackHeaders = {
-      "Content-Type": "application/json",
-    };
-    if (token) rollbackHeaders.Authorization = "Bearer " + token;
-    return fetch("/api/fortune/pig-coin/earn", {
-      method: "POST",
-      headers: rollbackHeaders,
-      credentials: "include",
-      cache: "no-store",
-      body: JSON.stringify({
-        amount: cost,
-        reason: "자동 복구: " + reason,
-        featureKey: featureKey + "-rollback",
-      }),
-    }).then(function (res) {
-      return !!res && res.ok;
-    }).catch(function () {
-      return false;
-    });
+    // 신규 결제 실패를 레거시 포인트 지급으로 보상하지 않는다. 실제 결제 복구는
+    // 서버의 멱등성·환불/월정석 보상 원장을 통해서만 처리한다.
+    return Promise.resolve(false);
   }
 
   function requireYearAccess() {

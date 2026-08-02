@@ -246,7 +246,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || "life-book-ai",
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || "life-book-ai",
     serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || modeFeatureKey,
-    forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
     executionKey: `life-book-ai:${idempotencyKey}`,
