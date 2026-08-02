@@ -75,6 +75,22 @@ test("returns the authoritative access state without calling payment providers",
   });
 });
 
+test("keeps the production access-state route disabled unless explicitly enabled", async () => {
+  const response = await handleAccessStateRoutes(request(), { NODE_ENV: "production" });
+
+  expect(response.status).toBe(404);
+  expect(requireUserFromRequest).not.toHaveBeenCalled();
+});
+
+test("allows the production access-state route when explicitly enabled", async () => {
+  const response = await handleAccessStateRoutes(request(), {
+    NODE_ENV: "production",
+    ACCESS_STATE_ENABLED: "true",
+  });
+
+  expect(response.status).toBe(200);
+});
+
 test("joins concurrent access-state requests into one profile count query", async () => {
   let release;
   countDocuments.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));

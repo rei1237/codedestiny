@@ -198,6 +198,14 @@ export function getPaidAttemptIdFromUrl(): string {
   }
 }
 
+function hasStoredPaidAttemptRestoreSignal() {
+  if (typeof window === "undefined") return false;
+  return Boolean(
+    readStorage(window.sessionStorage).trim()
+      || readStorage(window.localStorage).trim(),
+  );
+}
+
 function setAttemptIdOnUrl(attemptId: string) {
   if (typeof window === "undefined" || !attemptId) return;
   try {
@@ -211,9 +219,12 @@ function setAttemptIdOnUrl(attemptId: string) {
 }
 
 export function restorePaidAttemptFromUrlOrStorage() {
+  const restoreSignaled = Boolean(getPaidAttemptIdFromUrl() || hasStoredPaidAttemptRestoreSignal());
   const active = getActivePaidAttemptSession();
   if (!active) {
-    logPaidAttemptEvent("PaidAttempt.RestoreFailed", { reason: "missing_active_attempt" });
+    if (restoreSignaled) {
+      logPaidAttemptEvent("PaidAttempt.RestoreFailed", { reason: "missing_active_attempt" });
+    }
     return null;
   }
   logPaidAttemptEvent("PaidAttempt.RestoreAttempted", {

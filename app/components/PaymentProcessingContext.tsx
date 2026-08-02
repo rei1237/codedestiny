@@ -1052,8 +1052,6 @@ export function PaymentProcessingProvider({
     if (typeof idleWindow.requestIdleCallback === "function") {
       idleHandle = idleWindow.requestIdleCallback(warmOnIntent, { timeout: 4000 });
     }
-    window.addEventListener("pointerdown", warmOnIntent, { passive: true });
-    document.addEventListener("visibilitychange", warmOnIntent);
 
     return () => {
       cancelled = true;
@@ -1061,8 +1059,6 @@ export function PaymentProcessingProvider({
       if (idleHandle !== null && typeof idleWindow.cancelIdleCallback === "function") {
         idleWindow.cancelIdleCallback(idleHandle);
       }
-      window.removeEventListener("pointerdown", warmOnIntent);
-      document.removeEventListener("visibilitychange", warmOnIntent);
     };
   }, []);
 
