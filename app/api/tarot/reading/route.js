@@ -36,7 +36,7 @@ export async function POST(req) {
       );
     }
 
-    const payload = buildReadingResponse(engine, category, spreadType, cards);
+    const payload = buildReadingResponse(engine, category, spreadType, cards, { year: body?.year });
     return NextResponse.json(payload);
   } catch (error) {
     const message = error instanceof Error ? error.message : TAROT_READING_ROUTE_TEXT_TRANSLATIONS.en.failed;
@@ -44,3 +44,4 @@ export async function POST(req) {
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }
 }
+
