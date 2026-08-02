@@ -50,6 +50,8 @@
   var KEY_LIST_PREFIX = NS + '.list::';
   var KEY_CURR_PREFIX = NS + '.current::';
   var KEY_META_PREFIX = NS + '.meta::';
+  var KEY_POLICY_PREFIX = NS + '.policy::';
+  var PROFILE_POLICY_TTL_MS = 10 * 60 * 1000;
   var _dpScopedStorageReadyScope = '';
   var _dpProfileMemoryScope = '';
   var _dpProfiles = [];
@@ -58,7 +60,6 @@
   var PROFILE_CARD_MANAGE_COST = 50;
   var PROFILE_CARD_MANAGE_MONTHLY_COST = PROFILE_CARD_MANAGE_COST * 10;
   var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260618-monthly';
-  var DP_PROFILE_DELETE_GATE_SPRITE_URL = '/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp';
   var ACTIVE_PROFILE_CACHE_KEY = 'code-destiny.activeProfileCache.v1';
   var ACTIVE_PROFILE_ID_KEY = 'code-destiny.activeProfileId';
   var GUEST_PROFILE_KEY = 'codeDestiny:guestProfile';
@@ -269,6 +270,10 @@
       if (user.profileSubscription.productId) safe.profileSubscription.productId = String(user.profileSubscription.productId);
       if (user.profileSubscription.status) safe.profileSubscription.status = String(user.profileSubscription.status);
     }
+    if (user.profilePolicySnapshot && typeof user.profilePolicySnapshot === 'object') {
+      var policySnapshot = _dpNormalizeProfilePolicySnapshot(user.profilePolicySnapshot, 'auth_user');
+      if (policySnapshot) safe.profilePolicySnapshot = policySnapshot;
+    }
     return Object.keys(safe).length ? safe : null;
   }
 
@@ -308,6 +313,73 @@
 
   function _dpGetScopedMetaKey(scope) {
     return KEY_META_PREFIX + String(scope || 'guest');
+  }
+
+  function _dpGetScopedPolicyKey(scope) {
+    return KEY_POLICY_PREFIX + String(scope || 'guest');
+  }
+
+  function _dpNormalizeProfilePolicySnapshot(snapshot, source) {
+    if (!snapshot || typeof snapshot !== 'object') return null;
+    var tier = _dpNormalizeTier(snapshot.tier || snapshot.passTier || snapshot.plan || 'free');
+    var active = !!snapshot.isActive && tier !== 'free';
+    var rawLimit = snapshot.maxProfileCount;
+    if (rawLimit == null) rawLimit = snapshot.profileLimit;
+    if (rawLimit == null) rawLimit = snapshot.maxProfiles;
+    var resolvedLimit = _dpResolveProfileLimit(tier, rawLimit);
+    if (!active) resolvedLimit = 1;
+    var fetchedAt = Number(snapshot.fetchedAt);
+    if (!isFinite(fetchedAt) || fetchedAt <= 0) fetchedAt = Date.now();
+    var ttlMs = Number(snapshot.ttlMs);
+    if (!isFinite(ttlMs) || ttlMs <= 0) ttlMs = PROFILE_POLICY_TTL_MS;
+    return {
+      tier: tier,
+      isActive: active,
+      profileLimit: resolvedLimit,
+      maxProfileCount: resolvedLimit,
+      unlimited: _dpIsUnlimitedProfileLimit(resolvedLimit),
+      expiresAt: snapshot.expiresAt || null,
+      fetchedAt: Math.floor(fetchedAt),
+      ttlMs: Math.floor(ttlMs),
+      source: String(snapshot.source || source || 'client')
+    };
+  }
+
+  function _dpWriteProfilePolicySnapshot(scope, snapshot) {
+    var normalized = _dpNormalizeProfilePolicySnapshot(snapshot, 'client');
+    if (!normalized) return null;
+    try {
+      localStorage.setItem(_dpGetScopedPolicyKey(scope || _dpGetProfileScope()), JSON.stringify(normalized));
+    } catch (e) {}
+    return normalized;
+  }
+
+  function _dpReadProfilePolicySnapshot(scope) {
+    var safeScope = String(scope || _dpGetProfileScope() || 'guest');
+    try {
+      var raw = localStorage.getItem(_dpGetScopedPolicyKey(safeScope)) || '';
+      if (!raw) return null;
+      var snapshot = _dpNormalizeProfilePolicySnapshot(JSON.parse(raw), 'cache');
+      if (!snapshot) return null;
+      if (Date.now() - snapshot.fetchedAt > snapshot.ttlMs) snapshot.stale = true;
+      return snapshot;
+    } catch (e) {
+      try { localStorage.removeItem(_dpGetScopedPolicyKey(safeScope)); } catch (_) {}
+      return null;
+    }
+  }
+
+  function _dpApplyProfilePolicySnapshot(snapshot, source) {
+    var normalized = _dpNormalizeProfilePolicySnapshot(snapshot, source);
+    if (!normalized) return false;
+    var scope = _dpGetProfileScope();
+    _dpWriteProfilePolicySnapshot(scope, normalized);
+    _dpSubTier = normalized.tier;
+    _dpSubIsActive = normalized.isActive;
+    _dpSubProfileLimit = normalized.maxProfileCount;
+    _dpSubScope = scope;
+    _dpWriteSubCache(normalized.tier, normalized.isActive, normalized.maxProfileCount, normalized.expiresAt);
+    return true;
   }
 
   function _dpIsLoggedInScope(scope) {
@@ -1121,6 +1193,47 @@
     delete _dpApiCooldownUntil[key];
   }
 
+  function _dpIsTransientResult(result) {
+    var status = Number(result && result.status || 0);
+    return status === 0 || status === 503 || status === 504;
+  }
+
+  function _dpRunTransientRetry(operation, options, normalize) {
+    var opts = options || {};
+    var maxRetries = Math.max(0, Math.min(2, Number(opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries)));
+    var retryCount = 0;
+    var delayMs = Math.max(150, Number(opts.transientRetryDelayMs || 700));
+
+    function run() {
+      return Promise.resolve().then(operation).then(function(raw) {
+        return typeof normalize === 'function' ? normalize(raw) : raw;
+      }, function(error) {
+        return {
+          ok: false,
+          status: 0,
+          data: {
+            code: 'NETWORK_ERROR',
+            message: _dpText('networkError'),
+            error: String((error && error.message) || error || 'network_error'),
+          },
+          payload: {
+            code: 'NETWORK_ERROR',
+            message: _dpText('networkError'),
+          },
+          error: error,
+        };
+      }).then(function(result) {
+        if (!opts.retryTransient || !_dpIsTransientResult(result) || retryCount >= maxRetries) return result;
+        retryCount += 1;
+        return new Promise(function(resolve) {
+          setTimeout(resolve, delayMs * retryCount);
+        }).then(run);
+      });
+    }
+
+    return run();
+  }
+
   function _dpClientSource(pathname) {
     return String(pathname || '').indexOf('/api/billing/coin-gate') === 0
       ? 'feature:coin-gate'
@@ -1298,7 +1411,9 @@
         });
     }
 
-    var requestPromise = attempt(0);
+    var requestPromise = _dpRunTransientRetry(function() {
+      return attempt(0);
+    }, opts);
     if (dedupeKey) {
       _dpApiInFlightGet[dedupeKey] = requestPromise.finally(function() {
         delete _dpApiInFlightGet[dedupeKey];
@@ -1404,8 +1519,12 @@
     _dpSessionVerify.signature = _dpGetSessionHintSignature();
   }
 
-  function _dpVerifyLoginSession(forceRefresh) {
+  function _dpVerifyLoginSession(forceRefresh, options) {
     var force = !!forceRefresh;
+    var allowIndeterminate = !!(options && options.allowIndeterminate);
+    function sessionResult() {
+      return !!_dpSessionVerify.ok || (allowIndeterminate && _dpSessionVerify.indeterminate === true && _dpHasSessionHint());
+    }
     var now = Date.now();
     var signature = _dpGetSessionHintSignature();
     var ttlMs = _dpGetSessionVerifyTtlMs(_dpSessionVerify);
@@ -1413,9 +1532,9 @@
       && _dpSessionVerify.checkedAt
       && _dpSessionVerify.signature === signature
       && (now - _dpSessionVerify.checkedAt < ttlMs)) {
-      return Promise.resolve(!!_dpSessionVerify.ok);
+      return Promise.resolve(sessionResult());
     }
-    if (_dpSessionVerify.pending) return _dpSessionVerify.pending;
+    if (_dpSessionVerify.pending) return _dpSessionVerify.pending.then(function() { return sessionResult(); });
     if (!_dpHasSessionHint() && !force) {
       _dpMarkSessionVerify(false, '');
       return Promise.resolve(false);
@@ -1446,7 +1565,7 @@
         // 직전 판정을 보존한다(ok/userId 유지) — 인프라 실패로 로그인 상태를 잃으면 안 된다.
         // checkedAt·indeterminate 만 갱신해 재발사 간격을 늘린다.
         _dpMarkSessionVerifyIndeterminate();
-        return !!_dpSessionVerify.ok;
+        return sessionResult();
       }
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
@@ -1465,7 +1584,7 @@
     }).catch(function() {
       // 네트워크 오류·타임아웃은 확정 미인증이 아니다 — 직전 판정을 유지한다.
       _dpMarkSessionVerifyIndeterminate();
-      return !!_dpSessionVerify.ok;
+      return sessionResult();
     }).finally(function() {
       _dpSessionVerify.pending = null;
     });
@@ -1671,6 +1790,9 @@
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
           _toast('이용권 혜택이 종료되어 사용할 프로필 카드 1개를 선택해야 합니다.', 'warn');
+        }
+        if (data.profilePolicySnapshot && typeof data.profilePolicySnapshot === 'object') {
+          _dpApplyProfilePolicySnapshot(data.profilePolicySnapshot, 'profile_get');
         }
         if (data.subscription && typeof data.subscription === 'object') {
           var s = data.subscription;
@@ -2567,13 +2689,21 @@
   }
 
   function _dpPaymentFetchJson(pathname, init, options) {
+    var opts = options || {};
     var requestInit = Object.assign({}, init || {});
     requestInit.headers = _dpBuildAuthHeaders(Object.assign(
       { 'Content-Type': 'application/json' },
       requestInit.headers || {}
     ));
+    var isCoinGate = /\/api\/billing\/coin-gate$/.test(String(pathname || ''));
+    var retryOptions = Object.assign({}, opts, {
+      retryTransient: opts.retryTransient === true || isCoinGate,
+      maxTransientRetries: opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries,
+    });
     if (typeof window.fetchJsonWithAuth === 'function') {
-      return window.fetchJsonWithAuth(pathname, requestInit).then(_dpNormalizeBillingFetchResult);
+      return _dpRunTransientRetry(function() {
+        return window.fetchJsonWithAuth(pathname, requestInit);
+      }, retryOptions, _dpNormalizeBillingFetchResult);
     }
     return _dpFetchJsonWithFallback(pathname, requestInit, Object.assign({
       retryOn401: true,
@@ -2582,7 +2712,7 @@
       // 클라가 먼저 끊으면 status 0 → "네트워크 오류" 로 PG창이 안 열리고, confirm 이 끊기면
       // 승인은 됐는데 지급이 안 된다. 이 헬퍼의 호출부는 전부 결제 경로이므로 상한을 맞춘다.
       timeoutMs: 25000,
-    }, options || {})).then(_dpNormalizeBillingFetchResult);
+    }, retryOptions)).then(_dpNormalizeBillingFetchResult);
   }
 
   function _dpExtractBillingData(payload) {
@@ -4591,7 +4721,29 @@
   }
 
   function _dpReadAuthSubscriptionSnapshot() {
+    var scope = _dpGetProfileScope();
+    var policySnapshot = _dpReadProfilePolicySnapshot(scope);
+    if (policySnapshot && !policySnapshot.stale) {
+      return {
+        tier: policySnapshot.tier,
+        isActive: policySnapshot.isActive,
+        profileLimit: policySnapshot.maxProfileCount,
+        expiresAt: policySnapshot.expiresAt || null
+      };
+    }
     var user = _dpReadAuthUser();
+    if (user && user.profilePolicySnapshot && typeof user.profilePolicySnapshot === 'object') {
+      var authPolicy = _dpNormalizeProfilePolicySnapshot(user.profilePolicySnapshot, 'auth_user');
+      if (authPolicy) {
+        _dpWriteProfilePolicySnapshot(scope, authPolicy);
+        return {
+          tier: authPolicy.tier,
+          isActive: authPolicy.isActive,
+          profileLimit: authPolicy.maxProfileCount,
+          expiresAt: authPolicy.expiresAt || null
+        };
+      }
+    }
     var sub = user && user.profileSubscription && typeof user.profileSubscription === 'object' ? user.profileSubscription : null;
     if (!sub) return null;
     var tier = _dpNormalizeTier(sub.tier || sub.passTier || sub.plan || sub.planId || sub.productId || user.plan);
@@ -4817,6 +4969,14 @@
     }
 
     btn.disabled = false;
+    if (hasProfiles) {
+      var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
+      setSaveButtonContent('프로필 카드 수정', isFamilyPlan ? '무료' : '5,000원');
+      btn.title = isFamilyPlan
+        ? 'Code Destiny Family 이용권으로 프로필 정보를 무료로 수정합니다.'
+        : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
+      return;
+    }
     if (!hasProfiles && canCreateWithoutPayment) {
       setSaveButtonContent('이 정보를 나의 운명 카드에 저장', slotLabel);
     } else if (canCreateWithoutPayment) {
@@ -5331,14 +5491,14 @@
     style.textContent = ''
       + '.dp-delete-gate{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
       + '.dp-delete-gate__panel{width:min(520px,calc(100vw - 28px));border-radius:8px;border:1px solid rgba(255,215,0,.42);background:linear-gradient(145deg,rgba(10,15,32,.98),rgba(37,29,78,.97) 52%,rgba(20,26,45,.98));box-shadow:0 28px 80px rgba(0,0,0,.58),0 0 28px rgba(255,215,0,.14);color:#fff7d6;overflow:hidden;}'
-      + '.dp-delete-gate__head{display:grid;grid-template-columns:82px 1fr;gap:14px;align-items:center;padding:18px 18px 12px;border-bottom:1px solid rgba(255,215,0,.18);}'
-      + '.dp-delete-gate__sprite-wrap{width:82px;height:82px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.08);box-shadow:inset 0 0 18px rgba(255,255,255,.10);}'
-      + '.dp-delete-gate__sprite{width:100%;height:100%;background-image:url("' + DP_PROFILE_DELETE_GATE_SPRITE_URL + '");background-repeat:no-repeat;background-size:400% 300%;background-position:0% 0%;image-rendering:auto;}'
+      + '.dp-delete-gate__head{display:grid;grid-template-columns:52px 1fr;gap:14px;align-items:center;padding:20px 18px 14px;border-bottom:1px solid rgba(255,215,0,.18);}'
+      + '.dp-delete-gate__icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,150,120,.58);background:rgba(180,65,50,.18);color:#ffd6c8;font-size:24px;font-weight:900;line-height:1;}'
       + '.dp-delete-gate__eyebrow{margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:0;color:#ffd700;}'
       + '.dp-delete-gate__title{margin:0;font-size:20px;line-height:1.26;font-weight:900;letter-spacing:0;color:#fff8dc;}'
       + '.dp-delete-gate__name{margin:6px 0 0;font-size:13px;line-height:1.45;color:rgba(255,248,220,.78);word-break:break-word;}'
       + '.dp-delete-gate__body{padding:14px 18px 18px;}'
       + '.dp-delete-gate__copy{margin:0 0 12px;font-size:13px;line-height:1.58;color:rgba(255,248,220,.86);}'
+      + '.dp-delete-gate__warning{display:flex;gap:8px;align-items:flex-start;margin:0 0 14px;padding:10px 11px;border-left:3px solid rgba(255,150,120,.72);background:rgba(180,65,50,.12);color:#ffd9cf;font-size:12px;line-height:1.5;}'
       + '.dp-delete-gate__options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 10px;}'
       + '.dp-delete-gate__option{min-height:68px;border-radius:8px;border:1px solid rgba(255,215,0,.24);background:rgba(255,255,255,.07);color:#fff8dc;text-align:left;padding:11px 12px;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease;}'
       + '.dp-delete-gate__option:hover{transform:translateY(-1px);border-color:rgba(255,215,0,.58);background:rgba(255,215,0,.10);}'
@@ -5349,12 +5509,13 @@
       + '.dp-delete-gate__status{min-height:20px;font-size:12px;line-height:1.35;color:rgba(255,248,220,.72);}'
       + '.dp-delete-gate__cancel{min-height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e5e7eb;padding:0 14px;cursor:pointer;}'
       + '.dp-delete-gate__cancel:hover{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.10);}'
-      + '@media(max-width:520px){.dp-delete-gate{align-items:flex-end;padding:12px}.dp-delete-gate__panel{width:100%;}.dp-delete-gate__head{grid-template-columns:70px 1fr;padding:16px 14px 12px}.dp-delete-gate__sprite-wrap{width:70px;height:70px}.dp-delete-gate__title{font-size:18px}.dp-delete-gate__body{padding:13px 14px 16px}.dp-delete-gate__options{grid-template-columns:1fr}.dp-delete-gate__foot{align-items:stretch;flex-direction:column}.dp-delete-gate__cancel{width:100%;}}';
+      + '@media(max-width:520px){.dp-delete-gate{align-items:flex-end;padding:12px}.dp-delete-gate__panel{width:100%;}.dp-delete-gate__head{grid-template-columns:44px 1fr;padding:18px 14px 13px}.dp-delete-gate__icon{width:42px;height:42px;font-size:21px}.dp-delete-gate__title{font-size:18px}.dp-delete-gate__body{padding:13px 14px 16px}.dp-delete-gate__options{grid-template-columns:1fr}.dp-delete-gate__foot{align-items:stretch;flex-direction:column}.dp-delete-gate__cancel{width:100%;}}';
     document.head.appendChild(style);
   }
 
   function _dpOpenProfileDeleteGate(profile, profileId, requestId) {
     return new Promise(function(resolve) {
+      var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
       _dpEnsureProfileDeleteGateStyles();
       var previous = document.getElementById('dpProfileDeleteGate');
       if (previous && typeof previous.__dpClose === 'function') previous.__dpClose(null);
@@ -5370,12 +5531,10 @@
       panel.className = 'dp-delete-gate__panel';
       var head = document.createElement('div');
       head.className = 'dp-delete-gate__head';
-      var spriteWrap = document.createElement('div');
-      spriteWrap.className = 'dp-delete-gate__sprite-wrap';
-      spriteWrap.setAttribute('aria-hidden', 'true');
-      var sprite = document.createElement('div');
-      sprite.className = 'dp-delete-gate__sprite';
-      spriteWrap.appendChild(sprite);
+      var icon = document.createElement('div');
+      icon.className = 'dp-delete-gate__icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = '!';
       var titleWrap = document.createElement('div');
       var eyebrow = document.createElement('p');
       eyebrow.className = 'dp-delete-gate__eyebrow';
@@ -5390,14 +5549,19 @@
       titleWrap.appendChild(eyebrow);
       titleWrap.appendChild(title);
       titleWrap.appendChild(name);
-      head.appendChild(spriteWrap);
+      head.appendChild(icon);
       head.appendChild(titleWrap);
 
       var body = document.createElement('div');
       body.className = 'dp-delete-gate__body';
       var copy = document.createElement('p');
       copy.className = 'dp-delete-gate__copy';
-      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uB2E8\uAC74\uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C\uB97C \uC9C4\uD589\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
+      copy.textContent = isFamilyPlan
+        ? 'Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다.'
+        : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
+      var warning = document.createElement('div');
+      warning.className = 'dp-delete-gate__warning';
+      warning.textContent = '\uC0AD\uC81C \uD6C4\uC5D0\uB294 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694. \uC0AD\uC81C\uD560 \uD504\uB85C\uD544\uC774 \uB9DE\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694.';
       var options = document.createElement('div');
       options.className = 'dp-delete-gate__options';
 
@@ -5415,16 +5579,23 @@
         return btn;
       }
 
-      var directBtn = buildOption('direct', '\uB2E8\uAC74\uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
+      var directBtn = buildOption('direct', '\uB2E8\uAC74 \uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
       options.appendChild(directBtn);
-      var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D \uC0AC\uC6A9', '\uBCF4\uC720 \uC6D4\uC815\uC11D ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9 \uC0AC\uC6A9');
+      var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C', '\uBCF4\uC720 \uC6D4\uC815\uC11D\uC5D0\uC11C ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9\uC744 \uC0AC\uC6A9');
       options.appendChild(monthlyBtn);
+      var familyBtn = null;
+      if (isFamilyPlan) {
+        directBtn.hidden = true;
+        monthlyBtn.hidden = true;
+        familyBtn = buildOption('family', '프로필 삭제', 'Family 이용권으로 무료 진행');
+        options.appendChild(familyBtn);
+      }
 
       var foot = document.createElement('div');
       foot.className = 'dp-delete-gate__foot';
       var status = document.createElement('div');
       status.className = 'dp-delete-gate__status';
-      status.textContent = '\uC0AD\uC81C\uD560 \uACB0\uC81C \uBC29\uC2DD\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';
+      status.textContent = isFamilyPlan ? 'Family 이용권을 적용해 삭제합니다.' : '\uC0AD\uC81C\uD560 \uACB0\uC81C \uBC29\uC2DD\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';
       var cancel = document.createElement('button');
       cancel.type = 'button';
       cancel.className = 'dp-delete-gate__cancel';
@@ -5432,28 +5603,17 @@
       foot.appendChild(status);
       foot.appendChild(cancel);
       body.appendChild(copy);
+      body.appendChild(warning);
       body.appendChild(options);
       body.appendChild(foot);
       panel.appendChild(head);
       panel.appendChild(body);
       overlay.appendChild(panel);
 
-      var frame = 0;
-      var frames = [0, 1, 2, 3, 7, 6, 5, 4];
-      function applyFrame() {
-        var safe = frames[frame % frames.length];
-        var col = safe % 4;
-        var row = Math.floor(safe / 4);
-        sprite.style.backgroundPosition = (col * 100 / 3) + '% ' + (row * 100 / 2) + '%';
-        frame += 1;
-      }
-      applyFrame();
-      var timer = setInterval(applyFrame, 140);
       var settled = false;
       function done(value) {
         if (settled) return;
         settled = true;
-        clearInterval(timer);
         document.removeEventListener('keydown', onKey);
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         resolve(value || null);
@@ -5465,6 +5625,7 @@
         status.textContent = '\uACB0\uC81C \uC120\uD0DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.';
         directBtn.disabled = true;
         monthlyBtn.disabled = true;
+        if (familyBtn) familyBtn.disabled = true;
         cancel.disabled = true;
         done(mode);
       }
@@ -5474,16 +5635,18 @@
       });
       directBtn.addEventListener('click', function() { pick('direct'); });
       monthlyBtn.addEventListener('click', function() { pick('monthly'); });
+      if (familyBtn) familyBtn.addEventListener('click', function() { pick('family'); });
       cancel.addEventListener('click', function() { done(null); });
       document.addEventListener('keydown', onKey);
       document.body.appendChild(overlay);
-      directBtn.focus({ preventScroll: true });
+      (familyBtn || directBtn || cancel).focus({ preventScroll: true });
     });
   }
 
   async function _dpRunProfileDeleteGate(profile, profileId, requestId) {
     var choice = await _dpOpenProfileDeleteGate(profile, profileId, requestId);
     if (!choice) return null;
+    if (choice === 'family') return {};
     var base = _dpBuildProfileDeletePaymentBase(profileId, requestId);
     if (choice === 'monthly') {
       _dpSetPaymentPending(true, '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
@@ -5522,9 +5685,9 @@
         reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
         return;
       }
-      var normalizedAction = action === 'delete' ? 'delete' : 'create';
-      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : 'profile_card_create';
-      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00';
+      var normalizedAction = action === 'delete' ? 'delete' : (action === 'update' ? 'update' : 'create');
+      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : (normalizedAction === 'update' ? 'profile_card_update' : 'profile_card_create');
+      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : (normalizedAction === 'update' ? '프로필 카드 수정' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00');
       var isDeleteAction = normalizedAction === 'delete';
       window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
         var data = (payload && typeof payload === 'object') ? payload : {};
@@ -7332,7 +7495,8 @@
     // Render placeholder first to prevent blank modal during slower mobile paints.
     container.innerHTML = '<div class="dp-list-empty">프로필 목록을 불러오는 중...</div>';
 
-    requestAnimationFrame(function() {
+    var _dpRenderProfileListFrame = function(callback) { callback(); };
+    _dpRenderProfileListFrame(function() {
       try {
         var listMaxProfiles = _dpGetMaxProfiles();
         var isFreeUser = !_dpIsUnlimitedProfileLimit(listMaxProfiles) && _dpGetPositiveProfileLimit(listMaxProfiles) <= 1;
@@ -7342,7 +7506,7 @@
         var lockedNotice = selectionRequired
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
           : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 카드 추가 생성/삭제는 서버 확인 후 5,000원으로 처리됩니다.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.</div>'
           : '');
 
     container.innerHTML = list.map(function(p, idx) {
@@ -7398,8 +7562,9 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
-              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C, \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D \uC804\uC6A9" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
+              + '<button type="button" class="dp-li-del" aria-label="프로필 수정·삭제 정책 확인" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
             + '</div>'
+            + '<button type="button" class="dp-li-edit" aria-label="프로필 카드 수정" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원') + '</button>'
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
@@ -7530,39 +7695,94 @@
     var maxProfiles = _dpGetMaxProfiles();
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
-    var createRequiresPayment = !canUsePlanSlot;
-    var createProfileId = String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
+    var currentProfile = DPStorage.current();
+    var isUpdate = !!(currentProfile && (currentProfile.id || currentProfile.profileId));
+    var mutationAction = isUpdate ? 'update' : 'create';
+    var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
+    var createRequiresPayment = isUpdate ? !isFamilyPlan : !canUsePlanSlot;
+    var createProfileId = isUpdate
+      ? String(currentProfile.id || currentProfile.profileId)
+      : String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
     data.profileId = createProfileId;
     data.id = createProfileId;
-    var createRequestId = _dpBuildProfileManageRequestId('create', createProfileId);
+    var createRequestId = _dpBuildProfileManageRequestId(mutationAction, createProfileId);
     var createScope = '';
+    if (createRequiresPayment) {
+      var limitLabel = _dpFormatLimitLabel(maxProfiles);
+      window.alert('현재 이용권에서는 프로필 카드를 ' + limitLabel + '까지 저장할 수 있어요. 기존 카드를 정리하거나 이용권을 확인해 주세요.');
+      return;
+    }
     var createConfirm = createRequiresPayment
       ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
-    if ((createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
+    if (isUpdate) {
+      createConfirm = '프로필 정보를 수정할까요?\n수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
+    }
+    if ((isUpdate || createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
-      if (!savingCardVisible) return;
+      rollbackOptimisticCreate();
+      if (!savingCardVisible) {
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+        _dpUpdateSaveBtn();
+        return;
+      }
       savingCardVisible = false;
       renderMasterCard(DPStorage.current());
+    }
+    var optimisticState = null;
+    function applyOptimisticCreate() {
+      var scope = _dpGetProfileScope();
+      var before = DPStorage.list();
+      optimisticState = { scope: scope, profiles: before, currentId: _dpCurrentId };
+      var optimisticProfile = _dpNormalizeProfile(Object.assign({}, data, {
+        id: createProfileId,
+        profileId: createProfileId,
+        createdAt: new Date().toISOString(),
+        ownerScope: scope,
+        syncStatus: 'pending'
+      }));
+      if (!optimisticProfile) return null;
+      var next = before.filter(function(item) { return _dpGetProfileId(item) !== createProfileId; });
+      next.push(optimisticProfile);
+      _dpSetProfileState(scope, next, createProfileId);
+      renderMasterCard(optimisticProfile);
+      renderProfileList();
+      broadcastProfileChange(optimisticProfile);
+      _dpUpdateSaveBtn();
+      return optimisticProfile;
+    }
+    function rollbackOptimisticCreate() {
+      if (!optimisticState) return;
+      _dpSetProfileState(optimisticState.scope, optimisticState.profiles, optimisticState.currentId);
+      optimisticState = null;
     }
     if (btn) {
       btn.disabled = true;
       btn.style.opacity = '0.65';
       btn.style.cursor = 'not-allowed';
     }
-    renderProfileSavingCard(data);
-    savingCardVisible = true;
+    if (!applyOptimisticCreate()) {
+      restoreCardAfterSaveAttempt();
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+      }
+      window.alert('프로필 카드 정보를 정리하지 못했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.');
+      return;
+    }
 
-    _dpVerifyLoginSession(true).then(function(ok) {
+    _dpVerifyLoginSession(false, { allowIndeterminate: true }).then(function(ok) {
       if (!ok) {
         throw new Error('AUTH_REQUIRED');
       }
       createScope = _dpGetProfileScope();
       function postProfile(paymentContext) {
-        return _dpFetchJsonWithFallback('/api/profile', {
-          method: 'POST',
+        return _dpFetchJsonWithFallback(isUpdate ? '/api/profile/' + encodeURIComponent(createProfileId) : '/api/profile', {
+          method: isUpdate ? 'PATCH' : 'POST',
           credentials: 'include',
           cache: 'no-store',
           headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -7570,19 +7790,24 @@
             profile: data,
             requestId: createRequestId,
             featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-            actionType: 'create',
-            profileAction: 'create',
-            action: 'create',
+            actionType: isUpdate ? 'profile_card_update' : 'create',
+            profileAction: mutationAction,
+            action: mutationAction,
             profileId: createProfileId,
             selectedProfileId: createProfileId
           }, paymentContext || {}))
+        }, {
+          retryOn401: true,
+          retryTransient: true,
+          maxTransientRetries: 2,
+          timeoutMs: _DP_FETCH_TIMEOUT_MS,
         });
       }
       return postProfile().then(function(result) {
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-          return _dpRunProfileManageGate('create', createProfileId, createRequestId).then(function(paymentContext) {
+          return _dpRunProfileManageGate(mutationAction, createProfileId, createRequestId).then(function(paymentContext) {
             if (!paymentContext) {
               restoreCardAfterSaveAttempt();
               return null;
@@ -7598,7 +7823,14 @@
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         var msg = String((payload && payload.message) || '').trim();
-        if (result && result.status === 403 && code === 'PROFILE_LIMIT_EXCEEDED') {
+        if (result && (result.status === 401 || result.status === 403)) {
+          throw new Error('AUTH_REQUIRED');
+        }
+        if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
+          throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
+        }
+        if (result && (result.status === 409 || result.status === 403) && (code === 'PROFILE_LIMIT_RECONCILE_REQUIRED' || code === 'PROFILE_LIMIT_EXCEEDED')) {
+          if (payload && payload.profilePolicySnapshot) _dpApplyProfilePolicySnapshot(payload.profilePolicySnapshot, 'profile_reconcile');
           var sub = payload && payload.subscription ? payload.subscription : null;
           var tier = _dpNormalizeTier(sub && sub.tier);
           var limit = Number(sub && sub.profileLimit);
@@ -7645,6 +7877,7 @@
         if (!replaced) list.push(created);
         _dpSetProfileState(scope, list, currentId);
       }
+      optimisticState = null;
 
       // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
       var curr = DPStorage.current();
@@ -7677,6 +7910,9 @@
           return;
         }
         msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+      }
+      if (msg === 'PROFILE_MUTATION_TRANSIENT_UNAVAILABLE') {
+        msg = '서버 연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요.';
       }
       window.alert(msg);
     }).finally(function() {
@@ -7765,6 +8001,22 @@
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
+  };
+
+  window.dpEditProfile = function(id) {
+    var profileId = String(id || '').trim();
+    var profile = _dpFindProfileById(DPStorage.list(), profileId);
+    if (!profile) {
+      alert('수정할 프로필 카드를 찾을 수 없습니다.');
+      return;
+    }
+    DPStorage.setCurrent(profileId);
+    _dpSyncProfileFormToCurrent(profile);
+    renderMasterCard(profile);
+    renderProfileList();
+    _dpUpdateSaveBtn();
+    dpCloseList();
+    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
   };
 
   window.dpSelectProfile = function(id) {
@@ -7890,6 +8142,43 @@
     }
     var requestId = _dpBuildProfileManageRequestId('delete', profileId);
     _dpSetProfileDeleteLock(profileId);
+    var deleteOptimisticState = null;
+
+    function applyOptimisticDelete() {
+      var scope = _dpGetProfileScope();
+      var before = DPStorage.list();
+      deleteOptimisticState = { scope: scope, profiles: before, currentId: _dpCurrentId };
+      var nextProfiles = before.filter(function(item) {
+        return _dpGetProfileId(item) !== profileId;
+      });
+      var nextCurrentId = wasCurrentProfile
+        ? (_dpGetProfileId(nextProfiles[0]) || '')
+        : String(_dpCurrentId || '');
+      _dpClearPendingCurrentProfile(profileId);
+      _dpSetProfileState(scope, nextProfiles, nextCurrentId);
+      var current = DPStorage.current();
+      if (wasCurrentProfile || wasLoadedFormProfile) {
+        _dpSyncProfileFormToCurrent(current);
+      }
+      renderMasterCard(current);
+      renderProfileList();
+      broadcastProfileChange(current || null);
+      _dpUpdateSaveBtn();
+    }
+
+    function rollbackOptimisticDelete() {
+      if (!deleteOptimisticState) return;
+      _dpSetProfileState(deleteOptimisticState.scope, deleteOptimisticState.profiles, deleteOptimisticState.currentId);
+      deleteOptimisticState = null;
+      var current = DPStorage.current();
+      if (wasCurrentProfile || wasLoadedFormProfile) {
+        _dpSyncProfileFormToCurrent(current);
+      }
+      renderMasterCard(current);
+      renderProfileList();
+      broadcastProfileChange(current || null);
+      _dpUpdateSaveBtn();
+    }
 
     function requestDelete(paymentContext) {
       _dpSetPaymentPending(true, '\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'confirm');
@@ -7909,24 +8198,33 @@
         }, paymentContext || {}))
       }, {
         retryOn401: true,
+        retryTransient: true,
+        maxTransientRetries: 2,
         timeoutMs: _DP_FETCH_TIMEOUT_MS
       });
     }
 
-    _dpVerifyLoginSession(true).then(function(ok) {
-      if (!ok) throw new Error('AUTH_REQUIRED');
-      _dpSetPaymentPending(false);
-      return _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
-        if (!paymentContext) return null;
+    // 삭제창은 로컬 카드만으로 먼저 열어 체감 지연을 없앤다. 인증과 결제 검증은
+    // 사용자가 삭제/결제 방식을 확정한 뒤 서버 요청 직전에 수행한다.
+    _dpSetPaymentPending(false);
+    _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
+      if (!paymentContext) return null;
+      return _dpVerifyLoginSession(true).then(function(ok) {
+        if (!ok) throw new Error('AUTH_REQUIRED');
         return requestDelete(paymentContext);
       });
     }).then(function(result) {
       _dpSetPaymentPending(false);
       if (!result) return;
       if (!result.ok || !result.data || result.data.ok === false) {
+        if (result && (result.status === 401 || result.status === 403)) throw new Error('AUTH_REQUIRED');
+        if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
+          throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
+        }
         throw new Error((result.data && result.data.message) || '프로필 카드 삭제에 실패했습니다.');
       }
       var payload = result.data || {};
+      if (payload.profilePolicySnapshot) _dpApplyProfilePolicySnapshot(payload.profilePolicySnapshot, 'profile_delete');
       _dpClearPendingCurrentProfile(profileId);
       if (Array.isArray(payload.profiles)) {
         var nextProfiles = payload.profiles.filter(function(item) {
@@ -7937,6 +8235,7 @@
       } else {
         DPStorage.remove(profileId);
       }
+      deleteOptimisticState = null;
       var current = DPStorage.current();
       if (wasCurrentProfile || wasLoadedFormProfile) {
         _dpSyncProfileFormToCurrent(current);
@@ -7945,8 +8244,7 @@
       renderProfileList();
       broadcastProfileChange(current || null);
       _dpUpdateSaveBtn();
-      spawnStardust(document.getElementById('dpMasterCard'));
-      _toast('프로필 카드가 삭제되었습니다.', 'success');
+      _toast('프로필 카드 "' + String((profile && profile.name) || '선택한 프로필') + '"를 삭제했습니다.', 'success');
       _dpLoadFromServer(function(loaded) {
         if (!loaded) return;
         var refreshed = DPStorage.current();
@@ -7961,9 +8259,24 @@
       return null;
     }).catch(function(error) {
       _dpSetPaymentPending(false);
+      rollbackOptimisticDelete();
+      if (String(error && error.message || '') === 'PROFILE_MUTATION_TRANSIENT_UNAVAILABLE') {
+        error = new Error('서버 연결이 잠시 불안정해요. 결제 상태는 보존되며, 잠시 후 다시 시도해 주세요.');
+      }
       var msg = String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.');
       if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
       alert(msg);
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        var refreshed = DPStorage.current();
+        if (wasCurrentProfile || wasLoadedFormProfile) {
+          _dpSyncProfileFormToCurrent(refreshed);
+        }
+        renderMasterCard(refreshed);
+        renderProfileList();
+        broadcastProfileChange(refreshed || null);
+        _dpUpdateSaveBtn();
+      });
     }).then(function() {
       _dpClearProfileDeleteLock(profileId);
     });
@@ -9036,15 +9349,17 @@
           return;
         }
         var delBtn = targetEl.closest('.dp-li-del');
+        var editBtn = targetEl.closest('.dp-li-edit');
         var actionItem = targetEl.closest('[data-profile-id]');
         var actionPid = actionItem ? actionItem.getAttribute('data-profile-id') : '';
         if (!actionPid) return;
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         listTouchState.lastHandledAt = Date.now();
-        listTouchState.lastHandledAction = delBtn ? 'delete' : 'select';
+        listTouchState.lastHandledAction = editBtn ? 'update' : (delBtn ? 'delete' : 'select');
         listTouchState.lastHandledProfileId = actionPid;
-        if (delBtn) dpDeleteProfile(actionPid);
+        if (editBtn) dpEditProfile(actionPid);
+        else if (delBtn) dpDeleteProfile(actionPid);
         else dpSelectProfile(actionPid);
       }, true);
       listInner.addEventListener('touchend', function(e) {
@@ -9053,6 +9368,20 @@
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
         var delBtn = targetEl.closest('.dp-li-del');
+        var editBtn = targetEl.closest('.dp-li-edit');
+        if (editBtn) {
+          var editItem = targetEl.closest('[data-profile-id]');
+          var editPid = editItem ? editItem.getAttribute('data-profile-id') : '';
+          if (editPid) {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            listTouchState.lastHandledAt = Date.now();
+            listTouchState.lastHandledAction = 'update';
+            listTouchState.lastHandledProfileId = editPid;
+            dpEditProfile(editPid);
+          }
+          return;
+        }
         if (delBtn) {
           var delItem = targetEl.closest('[data-profile-id]');
           var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
