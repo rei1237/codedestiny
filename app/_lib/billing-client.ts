@@ -215,6 +215,16 @@ type PaymentChoiceFunction = ((options: Record<string, unknown>) => Promise<Paym
 };
 
 type RuntimeApiWindow = Window & {
+  CodeDestinyAccessStore?: {
+    getAccessDecision?: (options?: Record<string, unknown>) => Promise<{
+      ok: boolean;
+      status?: number;
+      payload?: Record<string, unknown> | null;
+      code?: string;
+      aborted?: boolean;
+    }>;
+    invalidateAccessDecision?: () => void;
+  };
   CODE_DESTINY_API_BASE_URL?: string;
   __CODE_DESTINY_RUNTIME_TARGET?: string;
   Capacitor?: {
@@ -422,6 +432,9 @@ export function invalidateBillingBalanceCache() {
   billingBalanceInFlightByUser.clear();
   paymentEligibilityInFlight.clear();
   paymentEligibilityRecent.clear();
+  if (typeof window !== "undefined") {
+    (window as RuntimeApiWindow).CodeDestinyAccessStore?.invalidateAccessDecision?.();
+  }
 }
 
 type BillingClientRuntimeWindow = Window & { __cdBillingBalanceAuthListenerInstalled?: boolean };
@@ -3181,23 +3194,44 @@ async function fetchPaymentEligibilityUncached(input: {
     }
     return buildSnapshotPaymentEligibility(input, snapshot, phase);
   }
-  const query = toQuery({
-    productId: input.productId,
-    serviceType: input.serviceType,
-    categoryKey: input.categoryKey,
-    subFeatureKey: input.subFeatureKey,
-    featureKey: input.featureKey,
-    reason: input.reason,
-    scope: phase === "pass" ? "pass" : undefined,
-  });
   // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(BILLING_PASS_PROBE_TIMEOUT_MS)으로 끊는다.
   // 결제창을 막고 기다리는 호출부는 더 짧은 예산을 넘긴다(GATE_PASS_PROBE_TIMEOUT_MS).
-  const response = await authFetchBilling(
-    query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status",
-    { method: "GET", cache: "no-store" },
-    { timeoutMs: Math.max(1000, Math.floor(Number(fetchOptions.timeoutMs) || BILLING_PASS_PROBE_TIMEOUT_MS)) },
-  );
-  const parsed = await parseBillingResponse<Record<string, unknown>>(response);
+  const accessStore = typeof window !== "undefined"
+    ? (window as RuntimeApiWindow).CodeDestinyAccessStore
+    : undefined;
+  if (!accessStore?.getAccessDecision) {
+    return {
+      ok: false,
+      status: 503,
+      data: null,
+      message: billingClientText("billingClient.message.008"),
+      error: { code: "ACCESS_STORE_UNAVAILABLE", message: billingClientText("billingClient.message.008") },
+      raw: {},
+    };
+  }
+  const decisionResult = await accessStore.getAccessDecision({
+    ...input,
+    scope: phase === "pass" ? "pass" : undefined,
+    force: fetchOptions.force,
+    revalidate: fetchOptions.revalidate,
+    timeoutMs: Math.max(1000, Math.floor(Number(fetchOptions.timeoutMs) || BILLING_PASS_PROBE_TIMEOUT_MS)),
+  });
+  const payload = decisionResult.payload && typeof decisionResult.payload === "object" ? decisionResult.payload : {};
+  const parsed: BillingResult<Record<string, unknown>> = {
+    ok: decisionResult.ok === true && payload.ok === true,
+    status: Number(decisionResult.status || 0),
+    data: decisionResult.ok === true && payload.data && typeof payload.data === "object"
+      ? payload.data as Record<string, unknown>
+      : null,
+    message: toText(payload.message) || (decisionResult.ok ? "요청이 성공했습니다." : billingClientText("billingClient.message.008")),
+    error: decisionResult.ok === true
+      ? null
+      : {
+        code: toText(decisionResult.code || (asRecord(payload.error)?.code) || payload.code || "SERVER_ERROR") || "SERVER_ERROR",
+        message: toText(asRecord(payload.error)?.message || payload.message || billingClientText("billingClient.message.008")) || billingClientText("billingClient.message.008"),
+      },
+    raw: payload,
+  };
 
   if (!parsed.ok || !parsed.data) {
     const failureCode = toText(parsed.error?.code || (asRecord(parsed.raw)?.code));

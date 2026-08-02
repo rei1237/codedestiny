@@ -4,8 +4,10 @@ import "../styles/mobile-bottom-nav.css";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import { Suspense } from "react";
+import Script from "next/script";
 import NavigationProvider from "./providers/NavigationProvider";
 import UserSessionProvider from "./providers/UserSessionProvider";
+import UnlockProvider from "./providers/UnlockProvider";
 import AppChrome from "./components/AppChrome";
 import RuntimeClientGuards from "./components/RuntimeClientGuards";
 import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
@@ -186,6 +188,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
+        <Script src="/js/core/access-store.js?v=20260802" strategy="beforeInteractive" />
         <link rel="preload" as="font" href="https://assets.code-destiny.com/Mulmaru.woff2" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" as="image" href="https://assets.code-destiny.com/%EB%A7%88%EC%95%BC%EC%A0%90.webp" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
@@ -253,16 +256,18 @@ export default function RootLayout({ children }) {
       </head>
       <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>
-          <Suspense>
-            <UserSessionProvider>
-              <NavigationProvider>
-                <RuntimeClientGuards />
-                <ShellHomeHardNavGuard />
-                <ToastProvider />
-                <AppChrome>{children}</AppChrome>
-              </NavigationProvider>
-            </UserSessionProvider>
-          </Suspense>
+          <UnlockProvider>
+            <Suspense>
+              <UserSessionProvider>
+                <NavigationProvider>
+                  <RuntimeClientGuards />
+                  <ShellHomeHardNavGuard />
+                  <ToastProvider />
+                  <AppChrome>{children}</AppChrome>
+                </NavigationProvider>
+              </UserSessionProvider>
+            </Suspense>
+          </UnlockProvider>
         </PaymentProcessingProvider>
       </body>
     </html>

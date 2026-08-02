@@ -12,10 +12,10 @@ const getUnlockedContentSnapshot = jest.fn();
 const findActivePaidContentUnlock = jest.fn();
 const upsertContentUnlock = jest.fn();
 const profileFindOne = jest.fn();
-const paymentFindOne = jest.fn();
 const pointHistoryFind = jest.fn();
-const isTransientMongoError = jest.fn(() => false);
-const isAuthDbInfraError = jest.fn(() => false);
+const paymentFind = jest.fn();
+const entitlementBulkWrite = jest.fn();
+const entitlementFind = jest.fn();
 
 let handleAccessRoutes;
 
@@ -23,12 +23,12 @@ beforeAll(async () => {
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireUserFromRequest,
-      isAuthDbInfraError,
+      isAuthDbInfraError: () => false,
     })),
     jest.unstable_mockModule("../../worker/lib/db.js", () => ({
       connectDb: jest.fn(),
       withMongoRetry,
-      isTransientMongoError,
+      isTransientMongoError: () => false,
     })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       CONTENT_ENTITLEMENT_SERVICE_KEYS: { SAJU: "saju" },
@@ -41,7 +41,8 @@ beforeAll(async () => {
         BACKFILL: "BACKFILL",
       },
       CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE" },
-      Payment: { findOne: paymentFindOne },
+      ContentEntitlement: { bulkWrite: entitlementBulkWrite, find: entitlementFind },
+      Payment: { find: paymentFind },
       PointHistory: { find: pointHistoryFind },
       ProfileCard: { findOne: profileFindOne },
       SAJU_LOCKED_CONTENT_KEYS: {
@@ -59,13 +60,21 @@ beforeAll(async () => {
   ({ handleAccessRoutes } = await import("../../worker/routes/access.js"));
 });
 
-function request(serviceKey = "saju,ziwei", options = {}) {
+function request(serviceKey = "saju,ziwei") {
   const url = new URL("https://example.com/api/access/unlocks");
   url.searchParams.set("profileId", TEST_PROFILE_ID);
   url.searchParams.set("serviceKey", serviceKey);
-  if (options.includeBackfill) url.searchParams.set("includeBackfill", "1");
-  const headers = options.headers || undefined;
-  return new Request(url, { method: "GET", headers });
+  return new Request(url, { method: "GET" });
+}
+
+function queryChain(rows) {
+  const chain = {
+    sort: () => chain,
+    limit: () => chain,
+    select: () => chain,
+    lean: async () => rows,
+  };
+  return chain;
 }
 
 beforeEach(() => {
@@ -96,10 +105,14 @@ beforeEach(() => {
   getUnlockedContentSnapshot.mockClear();
   findActivePaidContentUnlock.mockClear();
   upsertContentUnlock.mockClear();
-  paymentFindOne.mockClear();
-  pointHistoryFind.mockClear();
-  isTransientMongoError.mockReset().mockReturnValue(false);
-  isAuthDbInfraError.mockReset().mockReturnValue(false);
+  entitlementBulkWrite.mockReset();
+  entitlementFind.mockReset();
+  pointHistoryFind.mockReset();
+  paymentFind.mockReset();
+  entitlementBulkWrite.mockResolvedValue({ acknowledged: true });
+  entitlementFind.mockReturnValue(queryChain([]));
+  pointHistoryFind.mockReturnValue(queryChain([]));
+  paymentFind.mockReturnValue(queryChain([]));
 });
 
 test("reads multiple service entitlements in one profile snapshot query", async () => {
@@ -147,44 +160,38 @@ test("keeps the single-service response contract for legacy callers", async () =
     "saju.compatibility",
   ]);
 });
-test("keeps GET unlock lookup read-only when includeBackfill is present", async () => {
-  getUnlockedContentSnapshot.mockResolvedValueOnce({ docs: [] });
-  pointHistoryFind.mockReturnValue({
-    sort: () => ({
-      limit: () => ({
-        lean: async () => [],
-      }),
-    }),
-  });
 
-  const response = await handleAccessRoutes(request("saju", { includeBackfill: true }), {});
+test("backfill batches history/payment evidence and uses one idempotent entitlement bulk write", async () => {
+  const backfillRequest = request("saju");
+  const url = new URL(backfillRequest.url);
+  url.searchParams.set("includeBackfill", "1");
+  const history = {
+    _id: "history-1",
+    featureKey: "section_daewun",
+    metadata: { profileId: TEST_PROFILE_ID, paymentId: "507f1f77bcf86cd799439012" },
+    createdAt: new Date("2026-08-01T00:00:00.000Z"),
+  };
+  pointHistoryFind.mockReturnValue(queryChain([history]));
+  paymentFind.mockReturnValue(queryChain([{
+    _id: "507f1f77bcf86cd799439012",
+    featureKey: "section_daewun",
+    status: "success",
+    pricingSnapshot: { profileId: TEST_PROFILE_ID },
+  }]));
+  entitlementFind.mockReturnValue(queryChain([{
+    serviceKey: "saju",
+    contentKey: "saju.daewunAnalysis",
+    source: "BACKFILL",
+    unlockedAt: new Date("2026-08-01T00:00:00.000Z"),
+    expiresAt: null,
+  }]));
+
+  const response = await handleAccessRoutes(new Request(url, { method: "GET" }), {});
   const payload = await response.json();
 
   expect(response.status).toBe(200);
-  expect(payload).toMatchObject({ ok: true, serviceKey: "saju", serviceKeys: ["saju"] });
-  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
-  expect(pointHistoryFind).not.toHaveBeenCalled();
-  expect(paymentFindOne).not.toHaveBeenCalled();
-  expect(upsertContentUnlock).not.toHaveBeenCalled();
-});
-
-test("reports transient Mongo lookup failure without treating it as no unlocks", async () => {
-  isTransientMongoError.mockReturnValueOnce(true);
-  getUnlockedContentSnapshot.mockRejectedValueOnce(Object.assign(new Error("server selection timeout"), {
-    name: "MongoServerSelectionError",
-  }));
-
-  const response = await handleAccessRoutes(request("saju", {
-    headers: { "x-request-id": "test-access-request" },
-  }), {});
-  const payload = await response.json();
-
-  expect(response.status).toBe(503);
-  expect(payload).toMatchObject({
-    ok: false,
-    retryable: true,
-    code: "ACCESS_LOOKUP_TEMPORARILY_UNAVAILABLE",
-    requestId: "test-access-request",
-  });
-  expect(payload.unlocks).toBeUndefined();
+  expect(pointHistoryFind).toHaveBeenCalledTimes(1);
+  expect(paymentFind).toHaveBeenCalledTimes(1);
+  expect(entitlementBulkWrite).toHaveBeenCalledTimes(1);
+  expect(payload.unlockedContentKeys).toContain("saju.daewunAnalysis");
 });

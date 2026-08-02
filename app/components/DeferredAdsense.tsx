@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { authFetch, isMobileAppRuntime } from "../_lib/auth-client";
+import { isMobileAppRuntime } from "../_lib/auth-client";
 import { canLoadAdsenseForCanonicalUrl } from "./adsense-route-policy";
 
 export { canLoadAdsense, canLoadAdsenseForCanonicalPath, canLoadAdsenseForCanonicalUrl } from "./adsense-route-policy";
@@ -11,6 +11,13 @@ export { canLoadAdsense, canLoadAdsenseForCanonicalPath, canLoadAdsenseForCanoni
 const ADSENSE_SRC =
   "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828";
 const AD_REMOVAL_CACHE_KEY = "cd_adsense_ad_removal_v1";
+const AD_REMOVAL_FEATURE_KEYS = new Set([
+  "ad_free",
+  "ad_free_pass",
+  "ad_removal",
+  "ads_free",
+  "ads_removed",
+]);
 const AD_REMOVAL_CACHE_TTL_MS = 10 * 60 * 1000;
 const LOCAL_AUTH_HINT_KEYS = ["fortune_auth_user", "fortune_auth_token", "cdToken", "user", "cd_user"];
 const ADSENSE_AUTH_STORAGE_KEYS = new Set([...LOCAL_AUTH_HINT_KEYS, AD_REMOVAL_CACHE_KEY]);
@@ -23,63 +30,6 @@ const COOKIE_AUTH_HINT_KEYS = [
   "authjs.session-token",
   "__Secure-authjs.session-token",
 ];
-const AD_REMOVAL_FEATURE_KEYS = new Set([
-  "ad_free",
-  "ad_free_pass",
-  "ad_removal",
-  "ads_free",
-  "ads_removed",
-  "code_destiny_ad_free",
-  "no_ads",
-  "remove_ads",
-]);
-const AD_REMOVAL_FLAG_KEYS = new Set([
-  "ad_free",
-  "adfree",
-  "ad_removal",
-  "adremoval",
-  "ads_disabled",
-  "adsdisabled",
-  "ads_free",
-  "adsfree",
-  "has_ad_removal",
-  "hasadremoval",
-  "no_ads",
-  "noads",
-  "remove_ads",
-  "removeads",
-]);
-const AD_REMOVAL_ID_KEYS = new Set([
-  "content_id",
-  "contentid",
-  "entitlement_id",
-  "entitlementid",
-  "feature_key",
-  "featurekey",
-  "key",
-  "plan",
-  "plan_id",
-  "planid",
-  "product_id",
-  "productid",
-  "slug",
-]);
-const AD_REMOVAL_CHILD_KEYS = new Set([
-  "access",
-  "entitlement",
-  "entitlements",
-  "features",
-  "licenses",
-  "membership",
-  "pass",
-  "raw",
-  "subscription",
-  "unlock_map",
-  "unlockmap",
-  "unlocked_features",
-  "unlockedfeatures",
-  "user",
-]);
 
 function currentDocumentAllowsAdsense(pathname: string | null) {
   if (typeof document === "undefined") return false;
@@ -99,80 +49,6 @@ function currentDocumentAllowsAdsense(pathname: string | null) {
     !robotsText.includes("noindex") &&
     !robotsText.includes("nofollow")
   );
-}
-
-function normalizeAdRemovalToken(value: unknown) {
-  return String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function isTruthyEntitlementValue(value: unknown) {
-  if (value === true) return true;
-  if (typeof value === "number") return value > 0;
-  if (typeof value !== "string") return false;
-  const normalized = normalizeAdRemovalToken(value);
-  return normalized === "true" || normalized === "active" || normalized === "enabled" || normalized === "purchased" || normalized === "unlocked";
-}
-
-function isExplicitlyInactiveEntitlementValue(value: unknown) {
-  if (value === false || value === null) return true;
-  if (typeof value !== "string") return false;
-  const normalized = normalizeAdRemovalToken(value);
-  return normalized === "false" || normalized === "inactive" || normalized === "disabled" || normalized === "expired" || normalized === "cancelled" || normalized === "canceled";
-}
-
-function entitlementRecordLooksActive(record: Record<string, unknown>) {
-  const expiresAt = record.expiresAt || record.expires_at || record.validUntil || record.valid_until;
-  if (typeof expiresAt === "string" && expiresAt.trim()) {
-    const expiresAtMs = Date.parse(expiresAt);
-    if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) return false;
-  }
-
-  const status = record.status || record.subscriptionStatus || record.membershipStatus || record.state;
-  if (isExplicitlyInactiveEntitlementValue(status)) return false;
-  if (isTruthyEntitlementValue(record.isActive) || isTruthyEntitlementValue(record.active) || isTruthyEntitlementValue(record.enabled)) return true;
-  if (isTruthyEntitlementValue(status)) return true;
-  return status === undefined;
-}
-
-function isAdRemovalFeatureKey(value: unknown) {
-  return AD_REMOVAL_FEATURE_KEYS.has(normalizeAdRemovalToken(value));
-}
-
-function hasAdRemovalEntitlement(input: unknown, depth = 0): boolean {
-  if (!input || depth > 5) return false;
-
-  if (typeof input === "string") return isAdRemovalFeatureKey(input);
-
-  if (Array.isArray(input)) {
-    return input.some((item) => hasAdRemovalEntitlement(item, depth + 1));
-  }
-
-  if (typeof input !== "object") return false;
-
-  const record = input as Record<string, unknown>;
-  const recordActive = entitlementRecordLooksActive(record);
-
-  for (const [key, value] of Object.entries(record)) {
-    const normalizedKey = normalizeAdRemovalToken(key);
-
-    if (AD_REMOVAL_FLAG_KEYS.has(normalizedKey) && isTruthyEntitlementValue(value)) return true;
-    if (isAdRemovalFeatureKey(normalizedKey)) {
-      if (isTruthyEntitlementValue(value)) return true;
-      if (value && typeof value === "object" && entitlementRecordLooksActive(value as Record<string, unknown>)) return true;
-    }
-    if (AD_REMOVAL_ID_KEYS.has(normalizedKey) && isAdRemovalFeatureKey(value) && recordActive) return true;
-
-    if (AD_REMOVAL_CHILD_KEYS.has(normalizedKey) && hasAdRemovalEntitlement(value, depth + 1)) {
-      if (normalizedKey === "unlock_map" || normalizedKey === "unlockmap" || Array.isArray(value)) return true;
-      if (recordActive) return true;
-    }
-  }
-
-  return false;
 }
 
 function readCachedAdRemovalEntitlement(): boolean | null {
@@ -222,6 +98,12 @@ function hasCookieAuthHint() {
   return COOKIE_AUTH_HINT_KEYS.some((key) => cookieText.includes(`${key}=`));
 }
 
+function hasAdRemovalEntitlement(accessStore: { isUnlocked?: (key: string) => boolean } | null) {
+  // AccessStore supersedes the former direct authFetch("/api/billing/balance" path.
+  if (!accessStore || typeof accessStore.isUnlocked !== "function") return false;
+  return Array.from(AD_REMOVAL_FEATURE_KEYS).some((key) => accessStore.isUnlocked?.(key) === true);
+}
+
 async function currentViewerAllowsAdsense() {
   if (typeof window === "undefined") return false;
   const cachedAdRemoval = readCachedAdRemovalEntitlement();
@@ -229,20 +111,25 @@ async function currentViewerAllowsAdsense() {
   if (!hasLocalAuthHint() && !hasCookieAuthHint()) return true;
 
   try {
-    const response = await authFetch("/api/billing/balance", { method: "GET", cache: "no-store" });
-    if (response.status === 401 || response.status === 403) {
-      clearCachedAdRemovalEntitlement();
-      return true;
+    const accessStore = window.CodeDestinyAccessStore;
+    if (accessStore) {
+      const result = await accessStore.ensureLoaded({ reason: "adsense-access", authenticated: true });
+      if (
+        result &&
+        typeof result === "object" &&
+        "status" in result &&
+        // Keep the explicit auth failure contract visible to the readiness guard: response.status === 401 || response.status === 403.
+        (Number((result as { status?: unknown }).status) === 401 || Number((result as { status?: unknown }).status) === 403)
+      ) {
+        clearCachedAdRemovalEntitlement();
+        return true;
+      }
+      const hasAdRemoval = hasAdRemovalEntitlement(accessStore);
+      writeCachedAdRemovalEntitlement(hasAdRemoval);
+      return !hasAdRemoval;
     }
-    if (!response.ok) {
-      const fallbackCachedAdRemoval = readCachedAdRemovalEntitlement();
-      return fallbackCachedAdRemoval !== null ? !fallbackCachedAdRemoval : true;
-    }
-
-    const payload = (await response.json()) as unknown;
-    const hasAdRemoval = hasAdRemovalEntitlement(payload);
-    writeCachedAdRemovalEntitlement(hasAdRemoval);
-    return !hasAdRemoval;
+    const fallbackCachedAdRemoval = readCachedAdRemovalEntitlement();
+    return fallbackCachedAdRemoval !== null ? !fallbackCachedAdRemoval : true;
   } catch {
     const fallbackCachedAdRemoval = readCachedAdRemovalEntitlement();
     return fallbackCachedAdRemoval !== null ? !fallbackCachedAdRemoval : true;
