@@ -56,9 +56,11 @@ $body = @'
 - Enforce secondary-worktree-only edits and PR-first delivery.
 
 ## Validation
-- npm run verify:worktree-policy -- --self-test
-- npm run verify:pages-pr-contract-test
-- npm run verify:deploy-base-guard
+- npm.cmd run verify:worktree-policy -- --mode=edit
+- npm.cmd run verify:worktree-policy -- --mode=pr
+- npm.cmd run verify:worktree-policy -- --self-test
+- npm.cmd run verify:deploy-base-guard
+- git diff --check
 
 ## Risk
 - This changes local editing, PR, and deployment guardrails only.
