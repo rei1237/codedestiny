@@ -278,6 +278,36 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
     expectEveryCardExplained(payload.result, 5);
   });
 
+  test("반복된 장문 타로 상세는 전달 전에 다시 작성된다", async () => {
+    const repeatedPayload = buildLlmPayload("three");
+    const repairedPayload = buildLlmPayload("three");
+    const repeatedPassage = "Ten of Pentacles appears in this reading with a stable financial pattern, so the same decision should be reviewed calmly before making a large commitment today.";
+    repeatedPayload.tarotCardReadings[0].coreMeaning = repeatedPassage;
+    repeatedPayload.tarotCardReadings[0].currentSituation = repeatedPassage;
+
+    callGeminiTextMock
+      .mockResolvedValueOnce({
+        ok: true,
+        provider: "gemini",
+        model: "gemini-2.5-flash",
+        text: JSON.stringify(repeatedPayload),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        provider: "gemini",
+        model: "gemini-2.5-flash",
+        text: JSON.stringify(repairedPayload),
+      });
+
+    const { status, payload } = await postConsult(consultBody({ spread: "three", attemptId: "cardwise-repetition-repair" }));
+
+    expect(status).toBe(200);
+    expect(payload.generationMeta.mode).toBe("gemini");
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(callGeminiTextMock.mock.calls[1][1]).qualityRecovery).toContain("같은 문단");
+    expect(payload.result.tarotSpreadCards[0].detail.coreMeaning).not.toBe(payload.result.tarotSpreadCards[0].detail.currentSituation);
+  });
+
   test("카드 조합과 마음의 향이 실제 뽑힌 카드와 연결된다", async () => {
     callGeminiTextMock.mockImplementation(async () => ({
       ok: true,

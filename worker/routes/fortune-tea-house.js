@@ -131,6 +131,14 @@ const tarotSafetyRules = [
   "결과는 빈약하지 않게 작성하되, 같은 문장 패턴을 반복하지 않는다.",
   "카드 오픈 멘트, 뽑힌 카드 요약, 카드별 해석, 전체 흐름 리딩, 현실 조언, 연이의 마지막 메시지가 자연스럽게 남아야 한다.",
 ];
+const tarotNarrativeOwnershipRules = [
+  "각 타로 카드 상세는 역할을 나눠 쓴다. coreMeaning은 카드 상징과 정·역방향 근거, currentSituation은 그 카드가 놓인 자리의 현재 장면, questionLink는 손님의 질문에만 답한다.",
+  "tarotCardReadings[].advice와 caution은 카드 고유의 한 가지 방향 또는 경계만 짧게 쓴다. 전역 행동 목록, 7일 플랜, 같은 금지 문구는 actionPrescription과 choiceSimulation에만 둔다.",
+  "tarot.reading은 카드별 상세를 다시 나열하지 않는 스프레드의 첫 장면이고, cardInteractions는 두 카드가 만날 때만 생기는 새 의미만 쓴다.",
+  "synthesis와 yeoniReading.main은 spreadDigest의 배열·수트·원소 흐름을 읽는다. 개별 카드 설명과 손님의 행동 처방을 다시 쓰지 않는다.",
+  "yeoniReading.intro는 환영 인사 한 번만, actionPrescription은 오늘의 구체 행동과 피할 행동만, closingLine은 새로운 여운만 맡는다.",
+  "서로 다른 필드에 80자 이상의 같은 문장 또는 같은 장문 구절을 재사용하지 않는다. 분량은 새 근거와 새 관점으로 채운다.",
+];
 const baseSukuyoSystemPrompt = [
   "너는 운명 찻집의 숙요점 상담사 연이다.",
   "연이는 두 사람의 숙과 관계성을 통해 인연의 결, 끌림, 거리감, 상처가 생기는 지점, 오래 가기 위한 방식을 읽어준다.",
@@ -2831,6 +2839,49 @@ function hasRepeatedLongBlock(text) {
   return false;
 }
 
+function normalizedNarrativeSentences(value) {
+  return cleanMultiline(value, 4000)
+    .split(/[.!?。！？\n]+/)
+    .map((sentence) => sentence
+      .replace(/\s+/g, " ")
+      .replace(/[“”'"`·,:;()[\]{}]/g, "")
+      .trim())
+    .filter((sentence) => sentence.replace(/\s/g, "").length >= 70);
+}
+
+function assertTarotNarrativeOwnership(result) {
+  const segments = [
+    ["tarot.reading", result.tarot?.reading],
+    ["synthesis.summary", result.synthesis?.summary],
+    ["synthesis.sajuTarotBridge", result.synthesis?.sajuTarotBridge],
+    ["yeoniReading.intro", result.yeoniReading?.intro],
+    ["yeoniReading.main", result.yeoniReading?.main],
+    ["yeoniReading.advice", result.yeoniReading?.advice],
+    ["yeoniReading.caution", result.yeoniReading?.caution],
+    ["actionPrescription", result.actionPrescription],
+    ["closingLine", result.closingLine],
+    ...(result.choiceSimulation || []).flatMap((choice, index) => [
+      [`choiceSimulation.${index}.result`, choice?.result],
+      [`choiceSimulation.${index}.caution`, choice?.caution],
+    ]),
+    ...(result.tarotSpreadCards || []).flatMap((card, cardIndex) => TAROT_CARD_DETAIL_FIELDS.map((field) => [
+      `tarotCardReadings.${cardIndex}.${field}`,
+      card?.detail?.[field],
+    ])),
+    ...(result.cardInteractions || []).map((interaction, index) => [`cardInteractions.${index}.insight`, interaction?.insight]),
+  ];
+  const seen = new Map();
+  for (const [owner, value] of segments) {
+    for (const sentence of normalizedNarrativeSentences(value)) {
+      const previousOwner = seen.get(sentence);
+      if (previousOwner && previousOwner !== owner) {
+        throw new Error(`fortune tea house quality failed: repeated narrative passage ${previousOwner} -> ${owner}`);
+      }
+      seen.set(sentence, owner);
+    }
+  }
+}
+
 function assertSajuDeepQuality(result, fallback) {
   const rule = resolveSajuCategoryRule(fallback || result);
   const requiredSectionTitles = getSajuRequiredSectionTitles(fallback || result);
@@ -2951,6 +3002,7 @@ function assertTarotDeepQuality(result, fallback) {
   if (hasRepeatedLongBlock(joined)) {
     throw new Error("fortune tea house quality failed: tarot repeated block");
   }
+  assertTarotNarrativeOwnership(result);
   if (cleanMultiline(result.tarot?.reading, 4000).length < 120) {
     throw new Error("fortune tea house quality failed: tarot reading too short");
   }
@@ -3218,6 +3270,7 @@ function buildSystemPrompt(consultationMode = "tarot") {
     "이번 상담은 타로 상담이다. 사주, 점성술, 숙요점, 자미두수는 언급하지도 근거로 쓰지도 않는다.",
     ...baseTarotSystemPrompt,
     ...tarotSafetyRules,
+    ...tarotNarrativeOwnershipRules,
     "전달받은 타로 cardId, nameKo, nameEn, orientation, keywords, meaning은 절대 바꾸지 않는다.",
     "타로 상담은 전달받은 카드의 전통 의미와 정방향/역방향 의미를 중심 근거로 삼고, 카드 이미지의 상징을 사용자가 이해할 수 있는 현실 언어로 번역한다.",
     "타로 상담에서는 질문을 먼저 연애, 재회, 상대방 마음, 연락운, 관계 지속 가능성, 짝사랑, 이별 후 정리, 일·직장, 돈·재물, 진로, 인간관계, 오늘의 운세, 선택 고민, 마음 정리 중 하나로 분류하고 그 관점으로 쓴다.",
@@ -3642,7 +3695,10 @@ async function generateConsultResult(request, fallback, env) {
       lastError = error;
       // 소프트 미스(이번 시도가 렌더 가능한 후보를 냈으나 품질게이트만 불통과, 잘림 아님)는
       // 다음 시도도 같은 결정론적 이유로 실패할 확률이 높다 — 풀 재생성 낭비 대신 즉시 degrade로 배출한다.
-      if (reachedQualityGate && !attemptTruncated && hasRenderableLlmText(lastCandidate)) break;
+      const shouldRewriteRepeatedNarrative = /repeated/i.test(
+        error instanceof Error ? error.message : String(error || ""),
+      );
+      if (reachedQualityGate && !attemptTruncated && hasRenderableLlmText(lastCandidate) && !shouldRewriteRepeatedNarrative) break;
       if (attempt + 1 < maxAttempts) continue;
     }
   }

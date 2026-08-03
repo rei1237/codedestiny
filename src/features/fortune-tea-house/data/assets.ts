@@ -16,6 +16,8 @@ export const fortuneTeaHouseAssets = {
   premium: {
     landingDesktop: "/images/fortune-tea-house/premium-tea-house-desktop.webp",
     landingMobile: "/images/fortune-tea-house/premium-tea-house-mobile.webp",
+    resultReadingDesktop: "/images/fortune-tea-house/result-moonlit-reading-desktop.webp",
+    resultReadingMobile: "/images/fortune-tea-house/result-moonlit-reading-mobile.webp",
     tarotAlbumCover: "/images/fortune-tea-house/moonlight-tarot-album-cover.webp",
     tarotCardBack: "/images/fortune-tea-house/moonlight-tarot-card-back.webp",
   },
