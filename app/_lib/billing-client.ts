@@ -2672,7 +2672,7 @@ function buildLicensePassOverlayMessage(data: BillingCoinGateData & Record<strin
     return [
       "FAMILY 이용권이 적용되었습니다.",
       "이 콘텐츠는 FAMILY 이용권으로 무료 이용됩니다.",
-      "추가 결제 없이 모든 유료 서비스를 이용할 수 있어요.",
+      "이 기능은 추가 결제 없이 이용할 수 있어요.",
     ].join("\n");
   }
   if (gate.licenseTier === "VVIP") {
