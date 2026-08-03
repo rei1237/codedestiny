@@ -3077,7 +3077,6 @@ var __cdStaticCanonicalPathActions = {
   '/tarot/reunion': 'openTarotReunionModal',
   '/tarot/self-esteem': 'openTarotSelfEsteemModal',
   '/tarot/year': 'openTarotYearFortuneModal',
-  '/ziwei/chart': 'openZiweiModal',
   '/astrology/cosmic': 'openAstroModal',
   '/oracle/hwatu': 'openHwatuModal',
   '/oracle/juyuk': 'openJuyukModal',
