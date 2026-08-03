@@ -40,8 +40,6 @@ interface DestinyMapProps {
   spotlightRegion?: string | null;
   /** 현재 위치 꽃돼지 표정(입력 상태머신과 동기화). */
   pigExpr?: "neutral" | "happy" | "talk" | "think" | "surprise";
-  /** 꽃돼지 대사 — 지도 위 꽃돼지 말풍선에 표시(화자 앵커 고정). 미지정 시 말풍선 숨김. */
-  heroLine?: string;
   /** 무입력 대기 시 사자가 고개를 살짝 기울임. */
   guideTilt?: boolean;
   /** 처리(수정구) 단계 등에서 현재 위치 꽃돼지를 숨긴다(수정구 crystalPig와 중복 방지). */
@@ -70,7 +68,6 @@ export function DestinyMap({
   highlightRegion,
   spotlightRegion,
   pigExpr = "happy",
-  heroLine,
   guideTilt = false,
   hideHero = false,
   islandArt = false,
@@ -268,11 +265,6 @@ export function DestinyMap({
         </div>
         {!hideHero && (
           <div className={styles.hero} style={{ left: `${HERE.x}%`, top: `${HERE.y}%` }}>
-            {heroLine && (
-              <div className={styles.heroBubble} aria-live="polite">
-                <span key={heroLine} className={styles.bubbleLine}>{heroLine}</span>
-              </div>
-            )}
             <span className={styles.heroGround} aria-hidden="true" />
             <PigFace expression={pigExpr} height={92} className={styles.heroPig} />
           </div>

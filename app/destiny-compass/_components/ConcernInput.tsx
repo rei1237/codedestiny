@@ -27,15 +27,13 @@ interface ConcernInputProps {
   onWaitingChange?: (waiting: boolean) => void;
   /** 꽃돼지 표정 동기화 */
   onPigExpr?: (expr: PigExpr) => void;
-  /** 꽃돼지 현재 대사 — 지도 위 꽃돼지 말풍선에 앵커(화자=꽃돼지 고정) */
-  onLine?: (text: string) => void;
 }
 
 const IDLE_MS = 8000;
 // 프레임 성좌 데코(장식) — 유니코드 룬 대신 자체 SVG 별자리.
 const RUNE_VARIANTS: ConstellationVariant[] = [0, 2, 4, 1, 3, 5];
 
-export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr, onLine }: ConcernInputProps) {
+export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr }: ConcernInputProps) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -67,10 +65,6 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
     onPigExpr?.(line.expr);
   }, [line.expr, onPigExpr]);
 
-  useEffect(() => {
-    onLine?.(line.text);
-  }, [line.text, onLine]);
-
   const submit = (v: string) => {
     const t = v.trim();
     if (t) onSubmit(t);
@@ -78,7 +72,10 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
 
   return (
     <div className={styles.concern}>
-      {/* 말풍선은 지도 위 꽃돼지에 앵커(DestinyMap.heroLine) — 화자와 분리 방지 */}
+      <div className={styles.concernIntro} aria-live="polite">
+        <span>오늘의 질문</span>
+        <p>{line.text}</p>
+      </div>
 
       {/* 고대의 나침반 — 질문을 새기는 오브젝트 */}
       <form
