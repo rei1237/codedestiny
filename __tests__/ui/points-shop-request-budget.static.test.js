@@ -42,6 +42,15 @@ test("points shop keeps a last confirmed monthly-stone snapshot display-only unt
   assert.match(pointsSource, /shop summary unavailable; keeping verified snapshot/);
 });
 
+test("points shop keeps monthly-credit purchase available when the shop summary fails", () => {
+  const initialFailureBlock = between(pointsSource, "fetchMyPointState().then(() =>", "}, [fetchMyPointState, isBooting]);");
+  const retryFailureBlock = between(pointsSource, "const retryPointState = () =>", "/* ── 메인 렌더");
+
+  assert.match(initialFailureBlock, /setMonthlyStoneUnverified\(true\);\s*setPointStateStatus\("error"\)/);
+  assert.match(retryFailureBlock, /setMonthlyStoneUnverified\(true\);\s*setPointStateStatus\("error"\)/);
+  assert.match(pointsSource, /monthlyStoneUnverified \? "잔액 확인 중 · 서버에서 최종 확인"/);
+});
+
 test("subscription prepare does not auto retry with a new idempotency key", () => {
   const prepareBlock = between(pointsSource, "const requestSubscriptionPrepare = useCallback", "const startSubscriptionPrepare = useCallback");
   const subscribeBlock = between(pointsSource, "const handleSubscribe = async", "const handleSubscribeWithMonthlyCredit");

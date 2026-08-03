@@ -3574,6 +3574,9 @@ export default function PointsPage() {
         console.warn("[points-page] shop summary unavailable; keeping verified snapshot", error);
         return;
       }
+      // 조회 실패는 잔액 부족이 아니라 미확정 상태다. 월정석 결제 선택은 열어 두고
+      // 최종 잔액·차감 가능 여부는 서버 confirm이 판정한다.
+      setMonthlyStoneUnverified(true);
       setPointStateStatus("error");
       setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
       console.warn("[points-page] shop summary unavailable", error);
@@ -4602,6 +4605,8 @@ export default function PointsPage() {
     fetchMyPointState().then(() => {
       setPointStateStatus("ready");
     }).catch((error) => {
+      // 재조회 실패도 잔액 0으로 간주하지 않는다. 서버 confirm이 최종 판정한다.
+      setMonthlyStoneUnverified(true);
       setPointStateStatus("error");
       setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
       console.warn("[points-page] shop summary retry failed", error);
@@ -4661,7 +4666,7 @@ export default function PointsPage() {
               {copy.planTitles[pendingSubscriptionPaymentPlan.tier]} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan, copy, formatLocale)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice, copy, formatLocale)}
             </p>
             <p className="mt-1 text-[12px] font-bold text-[#f3dd9a]">
-              {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)} · {formatMonthlyCreditValue(monthlyStoneBalance, copy, formatLocale)}
+              {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)} · {monthlyStoneUnverified ? "잔액 확인 중 · 서버에서 최종 확인" : formatMonthlyCreditValue(monthlyStoneBalance, copy, formatLocale)}
             </p>
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
               <p className="font-black text-white">30일 이용권 조건</p>
@@ -4710,9 +4715,9 @@ export default function PointsPage() {
               >
                 <span className="block text-sm font-black">보너스 월정석 사용</span>
                 <span className="mt-1 block text-[12px] font-semibold">
-                  {canUseMonthlyCreditForPendingSubscription
-                    ? `${formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)}`
-                    : `${formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)}`}
+                  {monthlyStoneUnverified
+                    ? "잔액은 서버에서 최종 확인해요."
+                    : formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)}
                 </span>
               </button>
             </div>
