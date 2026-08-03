@@ -174,7 +174,8 @@ for (const fn of ["resolveEnsureAccess", "resolveStartAccess", "applyUsageOnce",
 }
 ok(routeSrc.includes("canAccessPaidFeature"), "pass-first: canAccessPaidFeature 선검사");
 ok(/allowedPaymentModes:\s*\["direct",\s*"monthly",\s*"pass"\]/.test(routeSrc), "결제창 단건·월정석·이용권 동등 노출(allowedPaymentModes)");
-ok(routeSrc.includes("consumeMonthlyCreditLots"), "월정석 lot FIFO 차감 경유");
+ok(routeSrc.includes("billingContextFromBody") && routeSrc.includes("accessGrant"), "Payment Service access grant 소비");
+ok(!routeSrc.includes("consumeMonthlyCreditLots"), "기능 라우트의 직접 월정석 차감 제거");
 ok(routeSrc.includes("runGenerationBatch") && routeSrc.includes("computeNatalFacts"), "생성/계산 함수 존재");
 
 // 🔴 배치 생성 계약 — 21섹션을 한 요청에 전부 구우면 엣지 100초 컷을 넘는다.
