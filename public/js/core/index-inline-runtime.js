@@ -8086,10 +8086,9 @@ function navigateToZiweiChart() {
       localStorage.setItem('premium:ziwei:session:v1', JSON.stringify(preSession));
     } catch (e) {}
   }
-  // 셸에서 여는 경로로 통일한다. '/ziwei/chart' 로 직접 나가면 앱에서는 확장자 없는 경로라
-  // 플러그인이 /index.html 을 덧붙여 재로드하는 왕복이 생기고, 그 사이 자동 오픈이 어긋난다.
-  // vedic/jyotish/index.html 이 이미 쓰고 있는 검증된 형태다.
-  window.location.href = '/index.html?action=openZiweiModal';
+  // 자미두수 심화 본체는 /ziwei/chart 다. 기본 자미두수 셸 모달(/index.html?action=openZiweiModal)
+  // 로 보내면 심화 카드가 기본 명반 화면으로 잘못 연결된다.
+  window.location.href = '/ziwei/chart';
 }
 
 function openGeomancyOracle() {
