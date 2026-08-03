@@ -16,6 +16,9 @@ const SEO = {
 const BRAND_ALIAS_SENTENCE =
   "CODE DESTINY는 CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY로도 표기되는 같은 공식 서비스입니다.";
 
+const FUSION_FORTUNE_SUMMARY =
+  "초융합 운세는 사주, 자미두수, 숙요점, 베다 점성술(Jyotish), 서양 점성술, 타로처럼 서로 다른 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리하는 CODE DESTINY의 대표 해석 방법론입니다.";
+
 const SERVICES = [
   {
     href: "/manse",
@@ -84,6 +87,20 @@ const FAQS = [
     question: "CodeDestiny와 CODE DESTINY는 어떤 관계인가요?",
     answer: BRAND_ALIAS_SENTENCE,
   },
+  {
+    question: "초융합 운세란 무엇인가요?",
+    answer: FUSION_FORTUNE_SUMMARY,
+  },
+  {
+    question: "사주와 자미두수를 함께 보는 AI 운세는 어떻게 활용하나요?",
+    answer:
+      "한 체계의 결과를 정답으로 단정하지 않고, 사주의 기질과 자미두수의 삶의 영역처럼 서로 다른 관점에서 반복되는 신호를 비교해 현재의 선택과 관계를 정리하는 참고 정보로 활용합니다.",
+  },
+  {
+    question: "초융합 운세에는 어떤 해석 체계가 연결되나요?",
+    answer:
+      "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 중심으로 질문의 성격에 맞는 해석 관점을 연결합니다. 체계마다 보는 기준이 다르므로 같은 말로 섞어 설명하지 않습니다.",
+  },
 ];
 
 const faqJsonLd = {
@@ -116,6 +133,24 @@ const webPageJsonLd = {
   about: {
     "@id": "https://code-destiny.com/#organization",
   },
+  mainEntity: {
+    "@id": `${PAGE_URL}#fusion-fortune-service`,
+  },
+};
+
+const fusionFortuneServiceJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${PAGE_URL}#fusion-fortune-service`,
+  name: "CODE DESTINY 초융합 운세",
+  alternateName: ["AI 초융합 운세", "통합 운세", "AI 운세"],
+  description: FUSION_FORTUNE_SUMMARY,
+  serviceType: "AI 운세 통합 해석",
+  provider: {
+    "@id": "https://code-destiny.com/#organization",
+  },
+  url: PAGE_URL,
+  inLanguage: "ko-KR",
 };
 
 export const metadata = {
@@ -129,6 +164,9 @@ export const metadata = {
     "꿀꿀 만세력",
     "꽃돼지 운세",
     "꽃돼지 운세 사이트",
+    "초융합 운세",
+    "AI 초융합 운세",
+    "통합 운세",
     "CODE DESTINY",
     "CodeDestiny",
     "code-destiny",
@@ -237,6 +275,19 @@ export default function KkulKkulUnsePage() {
         </div>
       </section>
 
+      <section className={styles.sectionBand} aria-labelledby="fusionFortuneHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Fusion Fortune</p>
+          <h2 id="fusionFortuneHeading" className={styles.sectionTitle}>CODE DESTINY의 초융합 운세</h2>
+          <p className={styles.sectionLead}>{FUSION_FORTUNE_SUMMARY}</p>
+          <p className={styles.sectionLead}>
+            사주와 자미두수를 함께 보는 운세, 사주와 숙요점을 같이 보는 AI, 베다점과 점성술을 동시에 보는 운세처럼
+            질문에 맞는 해석 축을 비교합니다. 결과는 미래를 확정하는 답이 아니라, 반복되는 패턴과 다음 선택을 더 명확히
+            살피기 위한 운세 통합 분석으로 제공합니다.
+          </p>
+        </div>
+      </section>
+
       <section className={`${styles.sectionBand} ${styles.refundSection}`} aria-labelledby="faqHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>FAQ</p>
@@ -253,6 +304,7 @@ export default function KkulKkulUnsePage() {
       </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fusionFortuneServiceJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
     </main>
   );

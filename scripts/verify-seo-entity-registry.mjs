@@ -75,12 +75,13 @@ for (const [routePath, profile] of Object.entries(SEO_ROUTE_PROFILES)) {
 }
 
 assert(
-  FUSION_FORTUNE_PENDING_PROFILE.publicationState === "pending-feature-merge",
-  "Fusion Fortune must remain pending until the feature route is merged",
+  FUSION_FORTUNE_PENDING_PROFILE.publicationState === "prelaunch-entity",
+  "Fusion Fortune must remain a prelaunch entity until the feature route is merged",
 );
 
 const structuredDataSource = readProjectFile("lib/structured-data.ts");
 const layoutSource = readProjectFile("app/layout.js");
+const brandLandingSource = readProjectFile("app/kkul-kkul-unse/page.js");
 const jsonLdComponentSource = readProjectFile("app/components/SeoJsonLd.jsx");
 const metadataSource = readProjectFile("lib/generate-page-metadata.ts");
 const seoSource = readProjectFile("lib/seo.ts");
@@ -94,6 +95,9 @@ assert(!jsonLdComponentSource.includes("isAccessibleForFree: true"), "SoftwareAp
 assert(!metadataSource.includes("isAccessibleForFree: true"), "Metadata helper defaults to free access");
 assert(seoSource.includes("getSeoProfileKeywords(path)"), "Primary metadata helper does not use the registry");
 assert(i18nMetadataSource.includes("getSeoProfileKeywords(routeByLocale.ko)"), "Korean i18n metadata does not use the registry");
+assert(structuredDataSource.includes("knowsAbout"), "Organization JSON-LD does not describe Fusion Fortune");
+assert(brandLandingSource.includes("FUSION_FORTUNE_SUMMARY"), "Brand landing page is missing visible Fusion Fortune content");
+assert(brandLandingSource.includes("fusionFortuneServiceJsonLd"), "Brand landing page is missing Fusion Fortune Service JSON-LD");
 
 if (shouldVerifyBuild) {
   for (const profile of Object.values(SEO_ROUTE_PROFILES)) {
@@ -115,6 +119,13 @@ if (shouldVerifyBuild) {
     for (const error of getJsonLdParseErrors(html)) {
       failures.push(`${profile.path}: ${error}`);
     }
+  }
+
+  const brandOutputPath = getOutputHtmlPath("/kkul-kkul-unse");
+  if (fs.existsSync(brandOutputPath)) {
+    const brandHtml = fs.readFileSync(brandOutputPath, "utf8");
+    assert(brandHtml.includes("초융합 운세"), "Fusion Fortune is missing from built brand landing page");
+    assert(brandHtml.includes("CODE DESTINY 초융합 운세"), "Fusion Fortune Service JSON-LD is missing from built brand landing page");
   }
 }
 
