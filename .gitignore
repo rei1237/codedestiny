@@ -9,6 +9,7 @@ playwright-report/
 test-results/
 .wrangler/
 build-cache/
+.deploy-state/
 
 *.log
 *.tsbuildinfo
