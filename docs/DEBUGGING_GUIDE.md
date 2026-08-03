@@ -129,6 +129,13 @@
 - 안전한 해소: 배포 게이트는 ESLint `--quiet`으로 실제 오류만 차단한다. 타입 검사, mock 결제·인증 게이트, 전체 회귀 테스트, Worker dry-run과 preview smoke는 그대로 유지한다.
 - 검증: `npm run verify:deploy-safe`, `npm run deploy:critical`, `npm test`, PR 필수 CI를 통과시킨 뒤 새 `main` SHA의 `Cloudflare Safe Auto Release`만 사용한다. 실패한 배포를 수동 Worker/Pages 명령으로 우회하지 않는다.
 
+## Pages preview 업로드 후 배포 목록 조회가 400으로 중단됨
+
+- 증상: Pages preview 파일 업로드와 alias 생성은 성공하지만 직후 `Invalid list options provided. Review the page or per_page parameter.`로 종료된다.
+- 원인: Pages 배포 목록 API에 지원 범위를 확인하지 않은 `per_page` 값을 하드코딩했다.
+- 안전한 해소: `env=preview|production` 필터만 전달하고 Cloudflare 기본 페이지를 사용한다. 방금 업로드한 commit SHA와 branch는 최신 기본 페이지에서 확인한다.
+- 검증: URL 자체 테스트에서 `page`와 `per_page`가 없음을 고정하고, preview 조회·Worker preview·읽기 전용 smoke가 모두 성공한 뒤에만 운영 승격한다.
+
 ## 2026-08 Mongo pool burst 대응
 
 - `wrangler tail`에서 `/api/profile`, `/api/billing/balance`, `/api/billing/coin-gate`가 같은 짧은 구간에 중복 호출되는지 먼저 확인한다.

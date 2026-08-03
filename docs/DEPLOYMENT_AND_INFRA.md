@@ -247,6 +247,12 @@ IDs, preview smoke status, and rollback targets. Secrets are never written.
 default remains a committed tree. `.deploy-state/active.lock` prevents
 concurrent local releases.
 
+Pages deployment discovery filters by `env` and uses Cloudflare's default
+pagination. Do not hardcode an assumed `per_page` maximum: the live API may
+reject unsupported list options after an otherwise successful preview upload.
+The newest default page is sufficient for matching the just-uploaded commit
+SHA and branch.
+
 Risk routing:
 
 - low: changed-file lint errors, typecheck, production build, preview smoke;

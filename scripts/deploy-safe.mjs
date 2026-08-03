@@ -300,8 +300,11 @@ function lock() {
 }
 function unlock() { try { fs.rmSync(lockFile, { force: true }); } catch {} }
 
+function pageDeploymentsUrl(cf, env = "production") {
+  return apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/pages/projects/" + encodeURIComponent(cf.project) + "/deployments?env=" + encodeURIComponent(env);
+}
 async function pageDeployments(cf, env = "production") {
-  const result = await cfFetch(apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/pages/projects/" + encodeURIComponent(cf.project) + "/deployments?env=" + env + "&per_page=50");
+  const result = await cfFetch(pageDeploymentsUrl(cf, env));
   return Array.isArray(result) ? result : [];
 }
 async function workerActive(cf) {
@@ -482,6 +485,8 @@ async function selfTest() {
   for (const item of cases) if (item[1] !== item[2]) throw new Error(item[0] + " classification failed.");
   const lint = eslintArgs(["fixture.js"]);
   if (!lint.includes("--quiet") || lint.includes("--max-warnings=0")) throw new Error("release lint must block errors without promoting warnings.");
+  const pagesListUrl = pageDeploymentsUrl({ project: "project name" }, "preview");
+  if (!pagesListUrl.includes("/project%20name/deployments?env=preview") || /[?&](?:page|per_page)=/.test(pagesListUrl)) throw new Error("Pages deployment lookup must use Cloudflare default pagination.");
   if (parseUrls("https://a.pages.dev https://b.workers.dev").length !== 2) throw new Error("URL parser failed.");
   console.log("[deploy-safe] self-test passed.");
 }
