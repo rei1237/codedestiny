@@ -167,13 +167,13 @@ test('guardian fortune mock controller switches on safely and renders a mock res
       <form data-guardian-form>
         <input data-guardian-input="birthDate" type="date">
         <input data-guardian-calendar type="radio" value="solar" checked>
-        <input data-guardian-input="birthTime" type="time" disabled>
-        <input data-guardian-input="birthTimeUnknown" type="checkbox" checked>
+        <input data-guardian-input="birthTime" type="time">
         <select data-guardian-input="gender"><option value="unknown" selected>unknown</option></select>
         <input data-guardian-input="nickname"><textarea data-guardian-input="concern"></textarea>
         <button data-guardian-generate type="submit"></button>
       </form>
       <button data-guardian-topic="daily"></button>
+      <button data-guardian-category="saju"></button>
       <p data-guardian-topic-description></p><p data-guardian-error></p><p data-guardian-live></p>
       <section data-guardian-result hidden>
         <img data-result-mode-image="yeoni"><img data-result-mode-image="neo" hidden>
@@ -213,6 +213,8 @@ test('guardian fortune mock controller switches on safely and renders a mock res
   assert.match(root.querySelector('[data-guardian-dialogue="yeoni"]').textContent, /연애 흐름/);
 
   root.querySelector('[data-guardian-input="birthDate"]').value = '1990-01-01';
+  root.querySelector('[data-guardian-input="birthTime"]').value = '08:30';
+  root.querySelector('[data-guardian-category="saju"]').click();
   root.querySelector('[data-guardian-form]').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
   assert.equal(root.querySelector('[data-guardian-generate]').disabled, true);
   await new Promise((resolve) => setTimeout(resolve, 720));

@@ -10,14 +10,14 @@ import {
 import { makeGuardianFortuneContext, guardianFortuneLlmInput } from "../fixtures/guardian-fortune-llm-fixtures.mjs";
 
 describe("Guardian Fortune high-quality fallback", () => {
-  it("combines repeated context evidence into a complete share-safe result", () => {
+  it("uses only the selected category evidence in a complete share-safe result", () => {
     const result = buildFallbackGuardianFortuneResult({ input: guardianFortuneLlmInput, context: makeGuardianFortuneContext(), reason: "provider_timeout" });
     expect(countGuardianFortuneVisibleTextLength(result)).toBeGreaterThanOrEqual(800);
     expect(countGuardianFortuneVisibleTextLength(result)).toBeLessThanOrEqual(1500);
     expect(result.openingLine).toContain("상대의 말보다");
     expect(result.coreReading).toContain("사주의 성향과 행동 패턴");
-    expect(result.coreReading).toContain("숙요점의 관계의 거리감");
-    expect(result.coreReading).toContain("서로 다른 체계");
+    expect(result.coreReading).not.toContain("숙요점");
+    expect(result.coreReading).not.toContain("서로 다른 체계");
     expect(result.premiumCta.targetPath).toMatch(/^\//);
     expect(result.shareText).not.toContain(guardianFortuneLlmInput.concern);
     expect(() => assertGuardianFortuneNoSensitiveLeak({ result, input: guardianFortuneLlmInput })).not.toThrow();

@@ -1373,6 +1373,49 @@ const guardianFortuneSharedSnapshotSchema = new mongoose.Schema({
 guardianFortuneSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 guardianFortuneSharedSnapshotSchema.index({ status: 1, createdAt: -1 });
 
+// Fusion Fortune is intentionally isolated from passes, entitlements, monthly
+// credits, and Guardian conversation credits. Operations must provision these
+// indexes through the normal migration process; autoIndex is disabled in Worker.
+const fusionFortuneTicketBalanceSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true },
+  totalRemaining: { type: Number, default: 0, min: 0 },
+  purchasedTotal: { type: Number, default: 0, min: 0 },
+  usedTotal: { type: Number, default: 0, min: 0 },
+  refundedTotal: { type: Number, default: 0, min: 0 },
+  reserved: { type: Number, default: 0, min: 0 },
+}, { timestamps: true, collection: "fusionFortuneTicketBalances" });
+
+const fusionFortuneTicketTransactionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  type: { type: String, enum: ["purchase", "use", "refund", "rollback", "adjustment"], required: true, index: true },
+  amount: { type: Number, required: true },
+  balanceAfter: { type: Number, required: true, min: 0 },
+  productId: { type: String, default: "", trim: true, maxlength: 120 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
+  fusionRequestId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  reason: { type: String, default: "", trim: true, maxlength: 200 },
+}, { timestamps: { createdAt: true, updatedAt: false }, collection: "fusionFortuneTicketTransactions" });
+fusionFortuneTicketTransactionSchema.index({ paymentId: 1, type: 1 }, { unique: true, partialFilterExpression: { paymentId: { $type: "string", $gt: "" } } });
+fusionFortuneTicketTransactionSchema.index({ userId: 1, fusionRequestId: 1, type: 1 }, { unique: true, partialFilterExpression: { fusionRequestId: { $type: "string", $gt: "" } } });
+
+const fusionFortuneDailyLimitSchema = new mongoose.Schema({
+  dateKey: { type: String, required: true, unique: true, trim: true, maxlength: 10, index: true },
+  timezone: { type: String, enum: ["Asia/Seoul"], default: "Asia/Seoul", required: true },
+  limit: { type: Number, default: 100, min: 1, max: 100 },
+  successCount: { type: Number, default: 0, min: 0, max: 100 },
+  reserved: { type: Number, default: 0, min: 0, max: 100 },
+}, { timestamps: true, collection: "fusionFortuneDailyLimits" });
+
+const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
+  requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  dateKey: { type: String, required: true, trim: true, maxlength: 10, index: true },
+  status: { type: String, enum: ["reserved", "completed", "released", "blocked"], default: "reserved", index: true },
+  errorCode: { type: String, default: "", trim: true, maxlength: 100 },
+  expiresAt: { type: Date, required: true, index: true },
+}, { timestamps: true, collection: "fusionFortuneGenerationAttempts" });
+fusionFortuneGenerationAttemptSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 // socialAccounts.<provider>.id defaults to "" (not absent), so a plain sparse index wouldn't
 // exclude non-social users — a partial filter on non-empty values keeps these lean the same
 // way pointHistorySchema's dedupeKey index does. findOrCreateSocialUser (worker/routes/auth.js)
@@ -1455,6 +1498,14 @@ export const GuardianFortuneGenerationAttempt = mongoose.models.GuardianFortuneG
   || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema);
 export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneSharedSnapshot
   || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
+export const FusionFortuneTicketBalance = mongoose.models.FusionFortuneTicketBalance
+  || mongoose.model("FusionFortuneTicketBalance", fusionFortuneTicketBalanceSchema);
+export const FusionFortuneTicketTransaction = mongoose.models.FusionFortuneTicketTransaction
+  || mongoose.model("FusionFortuneTicketTransaction", fusionFortuneTicketTransactionSchema);
+export const FusionFortuneDailyLimit = mongoose.models.FusionFortuneDailyLimit
+  || mongoose.model("FusionFortuneDailyLimit", fusionFortuneDailyLimitSchema);
+export const FusionFortuneGenerationAttempt = mongoose.models.FusionFortuneGenerationAttempt
+  || mongoose.model("FusionFortuneGenerationAttempt", fusionFortuneGenerationAttemptSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },

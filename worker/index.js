@@ -444,6 +444,7 @@ const handleAuthRoutes = createLazyRouteHandler("./routes/auth.js", () => import
 const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () => import("./routes/app-store.js"), "handleAppStoreRoutes", "api/app-store");
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
+const handleFusionFortuneRoutes = createLazyRouteHandler("./routes/fusion-fortune.js", () => import("./routes/fusion-fortune.js"), "handleFusionFortuneRoutes", "api/fusion-fortune");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
 const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-harmony.js", () => import("./routes/celestial-harmony.js"), "handleCelestialHarmonyRoutes");
 const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
@@ -1304,6 +1305,10 @@ export default {
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
         // ctx: 사주 전문가 상담 생성을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달.
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env, ctx));
+      }
+
+      if (url.pathname === "/api/fusion-fortune" || url.pathname.startsWith("/api/fusion-fortune/")) {
+        return withCorsHeaders(request, env, await handleFusionFortuneRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {

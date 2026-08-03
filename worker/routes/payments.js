@@ -53,6 +53,14 @@ import {
   listGuardianFortuneCreditProducts,
   settleGuardianFortunePayment,
 } from "../lib/guardian-fortune-purchase.js";
+import {
+  createFusionFortuneTicketOrder,
+  getFusionFortuneTicketBalance,
+  getFusionFortuneTicketCatalog,
+  isFusionFortuneTicketPaymentRecord,
+  isFusionFortuneTicketSalesEnabled,
+  settleFusionFortuneTicketPayment,
+} from "../lib/fusion-fortune-purchase.js";
 
 // 부분취소 판정도 환불 코어와 같은 함수를 쓴다(사본 금지). 기존 호출부 이름을 그대로 유지한다.
 const isPartialSingleCancel = isPartialCancel;
@@ -1275,6 +1283,13 @@ async function handleSinglePaymentCancel(request, env, auth) {
       code: "GUARDIAN_FORTUNE_REFUND_REVIEW_REQUIRED",
     }, { status: 409 });
   }
+  if (isFusionFortuneTicketPaymentRecord(paymentRecord)) {
+    return json({
+      ok: false,
+      message: "초융합 운세 상담권 환불은 사용 여부를 확인한 뒤 별도 검토가 필요합니다.",
+      code: "FUSION_FORTUNE_REFUND_REVIEW_REQUIRED",
+    }, { status: 409 });
+  }
 
   const result = await refundPaymentAsOperator({
     env,
@@ -1644,6 +1659,21 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
         code: String(error?.code || "GUARDIAN_FORTUNE_PAYMENT_FAILED"),
         message: String(error?.message || "대화권 결제 확인에 실패했습니다."),
       }, { status: Number(error?.status) || 400 });
+    }
+  }
+
+  if (isFusionFortuneTicketPaymentRecord(order)) {
+    try {
+      const result = await settleFusionFortuneTicketPayment({
+        env,
+        paymentId,
+        providerPaymentId: body?.impUid || body?.paymentId || paymentId,
+        userId: auth.userId,
+      });
+      const balance = await getFusionFortuneTicketBalance(auth.userId);
+      return json({ ok: true, idempotent: Boolean(result.idempotent), message: "초융합 운세 상담권이 충전되었어요.", product: result.product, balance, payment: formatPaymentResponse(result.payment) });
+    } catch (error) {
+      return json({ ok: false, code: String(error?.code || "FUSION_FORTUNE_PAYMENT_FAILED"), message: String(error?.message || "초융합 운세 상담권 결제 확인에 실패했습니다.") }, { status: Number(error?.status) || 400 });
     }
   }
 
@@ -2019,6 +2049,16 @@ async function runSinglePaymentCompleteFromWebhook(request, env, paymentId, body
     }
   }
 
+
+  if (isFusionFortuneTicketPaymentRecord(order)) {
+    try {
+      const result = await settleFusionFortuneTicketPayment({ env, paymentId, userId: order.userId });
+      return json({ ok: true, idempotent: Boolean(result.idempotent), paymentId, productId: result.product.productId, balanceAfter: result.balanceAfter });
+    } catch (error) {
+      return json({ ok: false, code: String(error?.code || "FUSION_FORTUNE_WEBHOOK_SETTLEMENT_FAILED"), message: String(error?.message || "초융합 운세 상담권 결제 적립에 실패했습니다.") }, { status: Number(error?.status) || 400 });
+    }
+  }
+
   const completeRequest = new Request(request.url, {
     method: "POST",
     headers: request.headers,
@@ -2138,6 +2178,24 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
       unlockRevoked: false,
       adminReviewRequired: true,
     });
+  }
+
+  if (isFusionFortuneTicketPaymentRecord(current)) {
+    await Payment.findByIdAndUpdate(current._id, {
+      $set: {
+        status: partial ? "refunded" : "cancelled",
+        orderState: partial ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED : SINGLE_PAYMENT_ORDER_STATES.CANCELLED,
+        source: "webhook",
+        failureCode: "fusion_fortune_refund_review_required",
+        failureMessage: "Fusion Fortune ticket refund requires usage review.",
+        failureStage: "webhook_fusion_fortune_refund_review",
+        "metadata.fusionFortuneRefundReviewRequired": true,
+        "metadata.fusionFortuneTicketRevoked": false,
+        lastErrorAt: new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    }).catch(() => {});
+    return json({ ok: true, idempotent: false, status: "FUSION_FORTUNE_REFUND_REVIEW_REQUIRED", paymentId, unlockRevoked: false, adminReviewRequired: true });
   }
 
   const completed = current.status === "success" || current.status === "fulfilled";
@@ -6246,7 +6304,7 @@ const PAYMENT_ROUTE_USER_PROJECTION = {
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
 // 가능해(민법 제5조) 결제창이 뜨기 전 단계에서 막는다. 이미 승인된 결제의 완료(/confirm,
 // /single/complete)는 막지 않는다 — 돈만 빠져나가고 지급이 안 되는 상태가 더 나쁘다.
-const MINOR_BLOCKED_PAYMENT_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare", "/guardian-fortune/prepare"]);
+const MINOR_BLOCKED_PAYMENT_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare", "/guardian-fortune/prepare", "/fusion-fortune/prepare"]);
 
 async function enforceMinorPaymentRestriction(env, auth, method, path) {
   if (method !== "POST" || !MINOR_BLOCKED_PAYMENT_PATHS.has(path)) return null;
@@ -6355,6 +6413,37 @@ async function handleGuardianFortuneCreditConfirm(request, env, auth) {
   }
 }
 
+async function handleFusionFortuneTicketCatalog(env) {
+  if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
+  return json({ ok: true, enabled: true, products: getFusionFortuneTicketCatalog() });
+}
+
+async function handleFusionFortuneTicketBalance(auth, env) {
+  if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
+  return json({ ok: true, balance: await getFusionFortuneTicketBalance(auth.userId) });
+}
+
+async function handleFusionFortuneTicketPrepare(request, env, auth) {
+  if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
+  try {
+    const result = await createFusionFortuneTicketOrder({ env, userId: auth.userId, body: await readJson(request), requestUrl: request.url });
+    return json(result, { status: result.idempotent ? 200 : 201 });
+  } catch (error) {
+    return json({ ok: false, code: error?.code || "FUSION_FORTUNE_TICKET_PREPARE_FAILED", message: error?.message || "이용권 결제를 준비하지 못했습니다." }, { status: Number(error?.status || 400) });
+  }
+}
+
+async function handleFusionFortuneTicketConfirm(request, env, auth) {
+  if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
+  try {
+    const body = await readJson(request); const paymentId = String(body?.merchantUid || body?.paymentId || "").trim();
+    const result = await settleFusionFortuneTicketPayment({ env, paymentId, providerPaymentId: String(body?.paymentId || paymentId), userId: auth.userId });
+    return json({ ok: true, idempotent: Boolean(result.idempotent), product: result.product, balance: await getFusionFortuneTicketBalance(auth.userId), payment: formatPaymentResponse(result.payment) });
+  } catch (error) {
+    return json({ ok: false, code: error?.code || "FUSION_FORTUNE_TICKET_CONFIRM_FAILED", message: error?.message || "결제 확인에 실패했습니다." }, { status: Number(error?.status || 400) });
+  }
+}
+
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/payments");
@@ -6422,6 +6511,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
     if (method === "GET" && path === "/guardian-fortune/catalog") return await handleGuardianFortuneCreditCatalog(env);
+    if (method === "GET" && path === "/fusion-fortune/catalog") return await handleFusionFortuneTicketCatalog(env);
 
     await connectDb(env);
     trace.dbConnected = true;
@@ -6433,6 +6523,9 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (method === "GET" && path === "/guardian-fortune/balance") return await handleGuardianFortuneCreditBalance(auth, env);
     if (method === "POST" && path === "/guardian-fortune/prepare") return await handleGuardianFortuneCreditPrepare(request, env, auth);
     if (method === "POST" && path === "/guardian-fortune/confirm") return await handleGuardianFortuneCreditConfirm(request, env, auth);
+    if (method === "GET" && path === "/fusion-fortune/balance") return await handleFusionFortuneTicketBalance(auth, env);
+    if (method === "POST" && path === "/fusion-fortune/prepare") return await handleFusionFortuneTicketPrepare(request, env, auth);
+    if (method === "POST" && path === "/fusion-fortune/confirm") return await handleFusionFortuneTicketConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, env, auth);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
@@ -6459,6 +6552,10 @@ export const __paymentsTestUtils = {
   handleGuardianFortuneCreditBalance,
   handleGuardianFortuneCreditPrepare,
   handleGuardianFortuneCreditConfirm,
+  handleFusionFortuneTicketCatalog,
+  handleFusionFortuneTicketBalance,
+  handleFusionFortuneTicketPrepare,
+  handleFusionFortuneTicketConfirm,
   handleWebhook,
   markPaymentCancellationForAdminReview,
   handleSubscriptionPrepare,

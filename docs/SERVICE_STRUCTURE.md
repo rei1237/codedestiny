@@ -1,5 +1,18 @@
 # Service Structure
 
+## 초융합 운세 경계
+
+- 초융합 운세는 여섯 어댑터를 명시적으로 각각 한 번 실행하는 내부 전용 builder와 별도 ticket balance/transaction, KST 일일 성공 한도를 사용한다.
+- 일반 이용권, family 이용권, 대화권, entitlement, 월정석 보유 권한, price coverage는 이 기능의 구매 또는 생성 권한이 아니다.
+- route는 10,000~15,000자와 여섯 섹션, 통합 해석, 행동 조언을 모두 통과한 뒤 하나의 Mongo transaction에서 ticket과 daily limit을 commit한다. 테스트는 mock을 사용하며 운영 Gemini 실패 시에도 실제 계산 컨텍스트를 사용한 체계별 장문 fallback만 제공한다.
+- 프론트는 신규 `fusion-guardian-celestial-hero.webp`를 우선 로드하고, 연결 오브·입자·진행률·카드 테두리는 CSS/SVG로 렌더링한다. 긴 결과 섹션은 `content-visibility`와 접힘 UI로 모바일 렌더 비용을 줄인다.
+
+## 오늘의 귀인 단일 카테고리 경계
+
+- 오늘의 귀인은 `saju | ziwei | vedic | sukuyo | astrology | tarot` 중 정확히 하나를 선택해야 하며 `fusion` 카테고리가 없다.
+- 카테고리는 계산 체계를, 관심 주제는 상담 초점을 정한다. 선택한 어댑터 외의 다섯 어댑터는 실행하지 않고 결과 validator도 다른 체계의 전문용어를 거부한다.
+- 무료 상담은 로그인 상태와 사용량에 따른 `하루 최대 3회`이며, 이후 대화권 1회는 단일 카테고리 상담 한 번에만 사용한다. 초융합 상담권과 서로 대체할 수 없다.
+
 ## 서비스 한 줄 정의
 
 Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, 타로, AI 상담, 음악실, PDF 리포트, 결제/이용권을 함께 제공하는 운세/상담 웹서비스다.

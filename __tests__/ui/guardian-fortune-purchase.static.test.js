@@ -33,7 +33,7 @@ test('guardian fortune shop reads server catalog and does not send client price 
   assert.match(client, /product\.creditAmount/);
   assert.match(client, /paymentMethod: "pg"/);
   assert.match(client, /단건 결제로 구매하기/);
-  assert.match(client, /보유 이용권이나 family 이용권으로는 구매할 수 없습니다/);
+  assert.match(client, /보유 이용권이나 family 이용권으로는 구매할 수 없고, 초융합 운세에는 사용할 수 없습니다/);
   assert.doesNotMatch(client, /membershipCreditCost: product\.priceKrw/);
 });
 
