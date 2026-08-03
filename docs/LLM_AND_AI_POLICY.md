@@ -113,3 +113,30 @@
 - `lib/llm-client.ts`
 - `worker/lib/gemini.js`
 - `worker/lib/structured-consultation.js`
+
+## Guardian Fortune Stage 13: guarded real LLM path
+
+오늘의 귀인 운세는 기본적으로 mock LLM 경로를 사용한다. 운영 LLM 경로는 다음 조건을 모두 만족하는 staging allowlist 사용자에게만 선택된다.
+
+- `ENABLE_GUARDIAN_FORTUNE_REAL_LLM=true`
+- `ALLOW_REAL_GUARDIAN_FORTUNE_LLM=true`
+- `ENABLE_GUARDIAN_FORTUNE_API=true`
+- `APP_ENV`/`DEPLOY_ENV`/`ENVIRONMENT` 중 하나가 `staging`
+- 로그인 사용자 ID가 `GUARDIAN_FORTUNE_REAL_LLM_ALLOWLIST`에 포함
+- `NODE_ENV !== "test"`
+- provider가 명시적으로 `gemini`
+
+조건이 하나라도 빠지면 fail-closed로 mock 경로를 사용한다. provider adapter는 `worker/lib/gemini.js`를 서버에서만 사용하며 `fallbackToWorkersAI: false`, timeout 25초, retry 기본 0회(하드캡 1회), JSON response format을 적용한다. 테스트에서는 provider 함수를 주입하고 실제 fetch·API key·네트워크를 호출하지 않는다.
+
+Provider 응답은 parser → validator → sanitize → length normalization을 통과해야 한다. provider 실패나 malformed/unsafe 결과가 발생해도 계산된 `GuardianFortuneContext`가 있으면 `worker/lib/guardian-fortune-fallback.js`가 topic·mode·상위 adapter 근거·integrated insight를 조합해 800~1500자의 share-safe 결과를 만든다. 이 fallback이 실제 사용자에게 전달된 경우에만 사용량을 커밋하고, 결과를 전달하지 못한 완전 실패는 release/rollback한다.
+
+허용 metric은 `requestId`, provider/model, latency, token usage, 추정 비용, topic/mode, generationSource, success, fallbackUsed, errorCode뿐이다. raw prompt, raw response, raw context, 생년월일·생시·출생지·성별·닉네임·concern은 로그와 DB에 저장하지 않는다. 비용 단가는 서버 rate 설정이 있을 때만 계산한다.
+
+즉시 mock으로 되돌려야 할 때는 `ENABLE_GUARDIAN_FORTUNE_REAL_LLM` 또는 `ALLOW_REAL_GUARDIAN_FORTUNE_LLM`을 끄고, API/UI flag를 끄면 기능 전체를 안전하게 차단할 수 있다. Stage 13 검증에서는 실제 운영 호출을 실행하지 않는다.
+
+Stage 14 최종 품질 튜닝에서는 prompt와 fallback이 다음 원칙을 추가로 지킨다.
+
+- LLM은 사주·자미두수·베다점·숙요점·점성술·타로를 직접 계산하지 않고, 서버가 계산한 `GuardianFortuneContext`만 상담 문장으로 번역한다.
+- 사주는 일간·십성·오행·현재 흐름을 행동/심리 언어로, 자미두수는 명궁·주제별 궁·주요 별을 역할 구조로, 베다점은 문사인·나크샤트라·라그나를 감정 리듬으로, 숙요점은 관계 거리감으로, 점성술은 태양·달·상승궁을 내면/표현 방식으로, 타로는 서버 카드명·정역방향·position/spread를 오늘의 상징으로만 사용한다.
+- 생시나 출생지가 없으면 시주·라그나·상승궁·하우스·신궁을 확정하지 않고, 계산되지 않은 영역은 낮은 확신 또는 제외로 처리한다.
+- validator는 상대 마음 확정, 투자/의료/법률 단정, 공포 마케팅, 결제 압박 표현을 완화하고, 보정 불가 결과는 context-driven fallback 또는 안전 실패로 수렴한다.

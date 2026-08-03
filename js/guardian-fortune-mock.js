@@ -31,8 +31,8 @@
   var modes = {
     yeoni: {
       label: '연이',
-      title: '다정하게 안아주는 연이',
-      description: '마음을 먼저 어루만지고, 오늘의 흐름을 부드럽게 알려줘요.',
+      title: '꽃돼지 연이가 다정하게 안아줘요',
+      description: '마음을 먼저 포근하게 어루만지고, 오늘의 흐름을 부드럽게 알려줘요.',
       loading: '연이가 달빛 조각을 모으는 중이에요…',
       button: '연이에게 오늘의 흐름 물어보기',
       image: '/images/fortune-tea-house/flower-pig-honey-hug.webp',
@@ -40,12 +40,12 @@
     },
     neo: {
       label: '네오',
-      title: '시크하게 짚어주는 네오',
+      title: '팩폭 전략실 네오가 시크하게 짚어줘요',
       description: '괜히 돌려 말하지 않고, 지금 필요한 포인트를 차분하게 알려줘요.',
       loading: '네오가 별의 흐름을 정리하는 중…',
       button: '네오에게 오늘의 핵심 물어보기',
       image: '/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp',
-      alt: '네오 모드의 백사자 캐릭터'
+      alt: '네오 모드의 팩폭 전략실 인간형 캐릭터'
     }
   };
 
@@ -87,6 +87,7 @@
   };
 
   var usageStates = {
+    'mock-error': { label: 'Mock error', copy: 'Mock 상담 결과를 준비하는 중 문제가 생기는 상태입니다.', canGenerate: true, kind: 'mock-error' },
     'guest-available': { label: '비로그인 첫 상담 가능', copy: '첫 1회는 로그인 없이 무료로 볼 수 있어요.', canGenerate: true, kind: 'guest' },
     'guest-used': { label: '비로그인 무료 사용 완료', copy: '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.', canGenerate: false, kind: 'guest' },
     'auth-3': { label: '로그인 무료 3회', copy: '오늘 남은 무료 상담 3회', canGenerate: true, kind: 'auth', freeRemaining: 3 },
@@ -98,11 +99,97 @@
     'auth-exhausted': { label: '무료·대화권 소진', copy: '오늘의 무료 상담 3회를 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.', canGenerate: false, kind: 'exhausted' }
   };
 
+  /*
+   * Browser projection of src/features/guardian-fortune/{types,constants,mocks,policy}.ts.
+   * The static home cannot import TypeScript directly, so this projection is kept
+   * serializable and is consumed by guardian-fortune-home.js during the mock stage.
+   * It contains no API, LLM, payment, or snapshot implementation.
+   */
+  var contract = {
+    version: 'guardian-fortune.v1',
+    featureKey: 'guardian_fortune',
+    featureFlags: {
+      ui: 'ENABLE_GUARDIAN_FORTUNE_UI',
+      mainUi: 'ENABLE_MAIN_GUARDIAN_FORTUNE',
+      mockFlow: 'ENABLE_GUARDIAN_FORTUNE_MOCK_FLOW',
+      api: 'ENABLE_GUARDIAN_FORTUNE_API',
+      share: 'ENABLE_GUARDIAN_FORTUNE_SHARE'
+    },
+    copy: {
+      limitButton: '오늘은 더 물어보려면 대화권이 필요해요',
+      validationMissingBirthDate: '생년월일을 알려주면 오늘의 흐름을 더 구체적으로 볼 수 있어요.',
+      validationBirthDateFormat: '생년월일 형식을 한 번만 확인해 주세요.',
+      validationConcernLength: '고민 한 줄은 120자 안에서 적어주세요.',
+      limitError: '오늘 사용할 수 있는 상담을 모두 사용했어요. 아래 안내에서 다음 방법을 확인해 주세요.',
+      mockError: 'Mock 상담 결과를 준비하는 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.',
+      mockErrorAnnouncement: 'Mock 상담 결과를 준비하지 못했어요.',
+      mockSuccessAnnouncement: 'mock 상담 결과가 준비되었어요.',
+      shareToast: '공유 기능은 다음 단계에서 연결될 예정이에요.',
+      shareAnnouncement: '공유 기능은 아직 mock 상태예요.',
+      ctaMockToast: '이 안내 버튼은 미리보기 상태예요. 실제 이동은 준비된 경로에서만 진행됩니다.',
+      guestCta: {
+        title: '내 흐름을 더 이어서 보고 싶다면',
+        description: '로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.',
+        primary: '무료로 가입하고 3회 받기',
+        secondary: '로그인하고 이어서 보기'
+      },
+      exhaustedCta: {
+        title: '오늘의 상담을 더 깊게 이어가려면',
+        description: '대화권을 구매하면 연이와 네오에게 다른 분야도 더 물어볼 수 있어요.',
+        primary: '3회 대화권 보기',
+        secondary: '10회 대화권 보기',
+        tertiary: '프리미엄 상담 보러가기'
+      },
+      resultOpening: {
+        yeoni: '연이가 보기엔, 오늘 너는 괜찮은 척하면서도 마음속으로는 이미 중요한 답을 거의 정해둔 상태에 가까워 보여.',
+        neo: '네오가 보기엔, 지금 문제는 운이 없는 게 아니라 이미 알고 있는 답을 확인받고 싶어 한다는 점이야.'
+      },
+      resultModeSuffix: '의 mock 상담 결과',
+      resultTitleSuffix: '을 읽어봤어요'
+    },
+    products: [
+      {
+        productId: 'guardian_fortune_chat_3',
+        productName: '달빛 귀인 대화권 3회',
+        productType: 'guardian_fortune_conversation_credit',
+        priceKrw: 10000,
+        creditAmount: 3,
+        badge: '가볍게 더 보기',
+        allowedPurchaseChannels: ['pg'],
+        blockedPurchaseChannels: ['monthly_membership_payment', 'pass', 'family_pass', 'free_pass', 'event_pass', 'credit', 'conversation_credit', 'entitlement', 'price_coverage']
+      },
+      {
+        productId: 'guardian_fortune_chat_10',
+        productName: '달빛 귀인 대화권 10회',
+        productType: 'guardian_fortune_conversation_credit',
+        priceKrw: 30000,
+        creditAmount: 10,
+        badge: '가장 합리적',
+        allowedPurchaseChannels: ['pg'],
+        blockedPurchaseChannels: ['monthly_membership_payment', 'pass', 'family_pass', 'free_pass', 'event_pass', 'credit', 'conversation_credit', 'entitlement', 'price_coverage']
+      }
+    ],
+    purchasePolicy: {
+      v1OnlyPg: true,
+      blockPassBasedPurchase: true,
+      blockFamilyPassPurchase: true,
+      blockPriceCoveragePurchase: true,
+      blockCreditToCreditPurchase: true
+    }
+  };
+
   window.CDGuardianFortuneMock = {
+    contractVersion: contract.version,
+    featureKey: contract.featureKey,
+    featureFlags: contract.featureFlags,
+    copy: contract.copy,
+    products: contract.products,
+    purchasePolicy: contract.purchasePolicy,
     modes: modes,
     topics: topics,
     results: results,
     sharedCore: sharedCore,
     usageStates: usageStates
   };
+  window.CDGuardianFortuneContract = window.CDGuardianFortuneMock;
 })(window);

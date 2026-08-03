@@ -1592,7 +1592,7 @@ function SubscriptionSection({
             30일 이용권 상품과 원화 결제 조건을 확인하세요.
           </p>
           <p className="mt-2 text-[12.5px] font-semibold text-[#ffe8a3]">
-            이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 허용된 월정석 정책만 사용할 수 있습니다.
+            이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 명확히 허용된 월정석 결제 플로우만 사용할 수 있습니다.
           </p>
         </div>
 
@@ -2557,6 +2557,308 @@ function MoonlightShopPlans({
           );
         })}
       </div>
+    </section>
+  );
+}
+
+type GuardianFortuneCreditProductClient = {
+  productId: string;
+  productName: string;
+  productType: string;
+  priceKrw: number;
+  creditAmount: number;
+  badge?: string;
+  description?: string;
+  allowedPurchaseChannels?: string[];
+};
+
+type GuardianFortuneCreditBalanceClient = {
+  remaining: number;
+  purchasedTotal: number;
+  usedTotal: number;
+  refundedTotal: number;
+};
+
+type GuardianFortuneCreditOrderClient = {
+  merchantUid: string;
+  paymentId?: string;
+  paymentAmount: number;
+  productId: string;
+  productName: string;
+  productType: string;
+  creditAmount: number;
+  redirectUrl?: string;
+  customer?: PortOneCustomer;
+};
+
+const GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE_CLIENT = "guardian_fortune_conversation_credit";
+const GUARDIAN_FORTUNE_PENDING_PAYMENT_KEY = "guardian_fortune_pending_payment";
+
+function readGuardianFortuneCreditPendingPayment() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(GUARDIAN_FORTUNE_PENDING_PAYMENT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as { merchantUid?: string; productId?: string; productType?: string };
+  } catch {
+    return null;
+  }
+}
+
+function saveGuardianFortuneCreditPendingPayment(order: GuardianFortuneCreditOrderClient) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(GUARDIAN_FORTUNE_PENDING_PAYMENT_KEY, JSON.stringify({
+    merchantUid: order.merchantUid,
+    productId: order.productId,
+    productType: order.productType,
+  }));
+}
+
+function clearGuardianFortuneCreditPendingPayment() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(GUARDIAN_FORTUNE_PENDING_PAYMENT_KEY);
+}
+
+function GuardianFortuneCreditShop({
+  apiBase,
+  authUser,
+  formatLocale,
+  onToast,
+}: {
+  apiBase: string;
+  authUser: AuthUser | null;
+  formatLocale: string;
+  onToast: (type: ToastItem["type"], text: string) => void;
+}) {
+  const [products, setProducts] = useState<GuardianFortuneCreditProductClient[]>([]);
+  const [balance, setBalance] = useState<GuardianFortuneCreditBalanceClient | null>(null);
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [busyProductId, setBusyProductId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const redirectHandledRef = useRef(false);
+
+  const loadCatalogAndBalance = useCallback(async () => {
+    if (!authUser) {
+      setIsEnabled(false);
+      setProducts([]);
+      setBalance(null);
+      return;
+    }
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const [catalogResponse, balanceResponse] = await Promise.all([
+        authFetch(`${apiBase}/api/payments/guardian-fortune/catalog`, {
+          method: "GET",
+          credentials: "include",
+        }, { retryOn401: true, apiBase }),
+        authFetch(`${apiBase}/api/payments/guardian-fortune/balance`, {
+          method: "GET",
+          credentials: "include",
+        }, { retryOn401: true, apiBase }),
+      ]);
+      const catalogPayload = await safeParseJson<{
+        enabled?: boolean;
+        products?: GuardianFortuneCreditProductClient[];
+        message?: string;
+      }>(catalogResponse);
+      const balancePayload = await safeParseJson<{
+        balance?: GuardianFortuneCreditBalanceClient;
+        message?: string;
+      }>(balanceResponse);
+      if (catalogResponse.status === 404 || catalogPayload.enabled === false) {
+        setIsEnabled(false);
+        setProducts([]);
+        setBalance(null);
+        return;
+      }
+      if (!catalogResponse.ok) throw new Error(catalogPayload.message || "대화권 상품을 확인하지 못했습니다.");
+      if (!balanceResponse.ok) throw new Error(balancePayload.message || "보유 대화권을 확인하지 못했습니다.");
+      setIsEnabled(true);
+      setProducts(Array.isArray(catalogPayload.products) ? catalogPayload.products : []);
+      setBalance(balancePayload.balance || null);
+    } catch (error) {
+      setIsEnabled(true);
+      setErrorMessage(error instanceof Error ? error.message : "대화권 정보를 불러오지 못했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [apiBase, authUser]);
+
+  useEffect(() => {
+    void loadCatalogAndBalance();
+  }, [loadCatalogAndBalance]);
+
+  const confirmPayment = useCallback(async (merchantUid: string, providerPaymentId = merchantUid, fallbackProduct?: GuardianFortuneCreditProductClient) => {
+    const response = await authFetch(`${apiBase}/api/payments/guardian-fortune/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ merchantUid, paymentId: providerPaymentId }),
+    }, { retryOn401: true, apiBase });
+    const payload = await safeParseJson<{
+      ok?: boolean;
+      message?: string;
+      product?: GuardianFortuneCreditProductClient;
+      balance?: GuardianFortuneCreditBalanceClient;
+    }>(response);
+    if (!response.ok || payload.ok === false) {
+      throw new Error(payload.message || "대화권 결제 확인에 실패했습니다.");
+    }
+    clearGuardianFortuneCreditPendingPayment();
+    if (payload.balance) setBalance(payload.balance);
+    const product = payload.product || fallbackProduct;
+    onToast("success", product
+      ? `${product.productName}가 충전되었어요. 이제 오늘의 귀인 운세에서 ${product.creditAmount.toLocaleString(formatLocale)}번 더 물어볼 수 있어요.`
+      : (payload.message || "대화권이 충전되었어요."));
+  }, [apiBase, formatLocale, onToast]);
+
+  useEffect(() => {
+    if (!authUser || redirectHandledRef.current || typeof window === "undefined") return;
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("guardian_fortune_payment") !== "1") return;
+    const merchantUid = String(query.get("merchantUid") || "").trim();
+    const pending = readGuardianFortuneCreditPendingPayment();
+    if (!merchantUid || !pending?.merchantUid || pending.merchantUid !== merchantUid) return;
+    redirectHandledRef.current = true;
+    setBusyProductId(pending.productId || "guardian-fortune");
+    void confirmPayment(merchantUid, merchantUid, products.find((item) => item.productId === pending.productId))
+      .catch((error) => {
+        onToast("error", error instanceof Error ? error.message : "대화권 결제 확인에 실패했습니다.");
+      })
+      .finally(() => {
+        setBusyProductId(null);
+        window.history.replaceState({}, "", window.location.pathname);
+      });
+  }, [authUser, confirmPayment, onToast, products]);
+
+  const startPurchase = useCallback(async (product: GuardianFortuneCreditProductClient) => {
+    if (!authUser || busyProductId) return;
+    setBusyProductId(product.productId);
+    setErrorMessage("");
+    try {
+      const idempotencyKey = window.crypto?.randomUUID?.() || `gf-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const prepareResponse = await authFetch(`${apiBase}/api/payments/guardian-fortune/prepare`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          productId: product.productId,
+          productType: product.productType,
+          paymentMethod: "pg",
+          idempotencyKey,
+        }),
+      }, { retryOn401: true, apiBase });
+      const preparePayload = await safeParseJson<{
+        order?: GuardianFortuneCreditOrderClient;
+        message?: string;
+      }>(prepareResponse);
+      if (!prepareResponse.ok || !preparePayload.order) {
+        throw new Error(preparePayload.message || "대화권 결제 준비에 실패했습니다.");
+      }
+      const order = preparePayload.order;
+      saveGuardianFortuneCreditPendingPayment(order);
+      const [, paymentConfig] = await Promise.all([
+        ensurePortoneSdk(),
+        fetchPortOnePaymentConfigCached(apiBase),
+      ]);
+      if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
+      const phoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
+      const customer = buildPortOneCustomer(authUser, order.merchantUid, phoneNumber || order.customer?.phoneNumber);
+      const requestData: PortOnePaymentRequest = {
+        storeId: paymentConfig.storeId,
+        channelKey: paymentConfig.channelKey,
+        paymentId: order.merchantUid,
+        orderName: order.productName,
+        totalAmount: order.paymentAmount,
+        currency: paymentConfig.currency || "CURRENCY_KRW",
+        payMethod: paymentConfig.payMethod || "CARD",
+        redirectUrl: order.redirectUrl || `${window.location.origin}/points?guardian_fortune_payment=1&merchantUid=${encodeURIComponent(order.merchantUid)}`,
+        customer,
+        customData: {
+          productId: order.productId,
+          productType: order.productType,
+        },
+      };
+      if (paymentConfig.noticeUrl) requestData.noticeUrls = [paymentConfig.noticeUrl];
+      const paymentResponse = await window.PortOne.requestPayment(requestData);
+      const paymentId = String(paymentResponse?.paymentId || order.merchantUid).trim();
+      if (!paymentResponse || paymentResponse.code || !paymentId) {
+        clearGuardianFortuneCreditPendingPayment();
+        throw new Error(paymentResponse?.message || "결제가 취소되었습니다.");
+      }
+      await confirmPayment(order.merchantUid, paymentId, product);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "대화권 결제를 진행하지 못했습니다.");
+      onToast("error", error instanceof Error ? error.message : "대화권 결제를 진행하지 못했습니다.");
+    } finally {
+      setBusyProductId(null);
+    }
+  }, [apiBase, authUser, busyProductId, confirmPayment, onToast]);
+
+  if (!authUser || isEnabled === false) return null;
+
+  return (
+    <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-labelledby="guardian-fortune-credit-heading" data-testid="guardian-fortune-credit-shop">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">오늘의 귀인 운세</p>
+          <h2 id="guardian-fortune-credit-heading" className="mt-2 text-2xl font-black text-white">오늘의 귀인 운세 대화권</h2>
+          <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-[color:var(--moon-mist)]">
+            무료 상담 3회를 모두 사용했다면, 대화권으로 연이와 네오에게 더 물어볼 수 있어요.
+          </p>
+        </div>
+        <p className="rounded-full border border-[color:var(--moon-rim)] px-3 py-2 text-sm font-black text-[color:var(--moon-gold)]">
+          보유 대화권: {Math.max(0, Math.floor(Number(balance?.remaining || 0))).toLocaleString(formatLocale)}회
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="rounded-[18px] border border-[color:var(--moon-rim)] bg-white/5 px-4 py-6 text-center text-sm font-bold text-[color:var(--moon-mist)]" aria-live="polite">
+          대화권 상품을 확인하고 있어요.
+        </div>
+      ) : errorMessage ? (
+        <div className="rounded-[18px] border border-rose-200/30 bg-rose-200/10 px-4 py-4 text-sm font-bold text-rose-100" role="alert">
+          <p>{errorMessage}</p>
+          <button type="button" onClick={() => void loadCatalogAndBalance()} className="mt-3 rounded-xl border border-rose-200/40 px-3 py-2 text-xs font-black text-white">
+            다시 확인하기
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {products
+              .filter((product) => product.productType === GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE_CLIENT && product.allowedPurchaseChannels?.includes("pg"))
+              .map((product) => (
+                <article key={product.productId} className="rounded-[22px] border border-[color:var(--moon-rim)] bg-[rgba(8,9,26,0.42)] p-4 shadow-[0_12px_30px_rgba(7,10,28,0.24)]">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-black text-white">{product.productName}</h3>
+                    {product.badge ? <span className="shrink-0 rounded-full bg-[rgba(243,221,154,0.14)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-gold)]">{product.badge}</span> : null}
+                  </div>
+                  <p className="mt-2 text-sm font-bold leading-6 text-[color:var(--moon-mist)]">{product.description}</p>
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-2xl font-black text-[color:var(--moon-gold)]">{product.priceKrw.toLocaleString(formatLocale)}원</p>
+                      <p className="mt-1 text-xs font-black text-[color:var(--moon-silver)]">오늘의 귀인 운세 {product.creditAmount.toLocaleString(formatLocale)}회</p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={Boolean(busyProductId)}
+                      onClick={() => void startPurchase(product)}
+                      className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {busyProductId === product.productId ? "결제 준비 중…" : "단건 결제로 구매하기"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+          </div>
+          <p className="mt-4 text-xs font-bold leading-5 text-[color:var(--moon-mist)]">
+            대화권은 PG사 단건 결제로만 구매할 수 있어요. 보유 이용권이나 family 이용권으로는 구매할 수 없습니다.
+          </p>
+        </>
+      )}
     </section>
   );
 }
@@ -4409,6 +4711,12 @@ export default function PointsPage() {
           highlightedPlan={landingPlanPreset}
           copy={copy}
           formatLocale={formatLocale}
+        />
+        <GuardianFortuneCreditShop
+          apiBase={apiBase}
+          authUser={authUser}
+          formatLocale={formatLocale}
+          onToast={pushToast}
         />
         <MoonlightPaymentNotice />
         <MoonlightOrderHistory

@@ -1,0 +1,457 @@
+import {
+  GUARDIAN_FORTUNE_FORBIDDEN_RESULT_PATTERNS,
+  GUARDIAN_FORTUNE_MODE_SHARE_HINTS,
+  GUARDIAN_FORTUNE_RESULT_LENGTH,
+  GUARDIAN_FORTUNE_SAFE_RESULT_DEFAULTS,
+  getDefaultCta,
+  getTopicContract,
+  getTopicCtas,
+} from "./guardian-fortune-runtime-contract.js";
+import { GUARDIAN_TOPIC_ADAPTER_PRIORITY } from "./guardian-fortune-adapter-utils.js";
+import { buildContextDrivenGuardianFallback } from "./guardian-fortune-fallback.js";
+
+const VISIBLE_RESULT_FIELDS = Object.freeze([
+  "openingLine",
+  "innerState",
+  "coreReading",
+  "topicAdvice",
+  "cautionPattern",
+  "luckyAction",
+]);
+
+const ALL_RESULT_TEXT_FIELDS = Object.freeze([
+  "title",
+  ...VISIBLE_RESULT_FIELDS,
+  "shareText",
+]);
+
+const PARSE_ERROR = "GUARDIAN_LLM_PARSE_FAILED";
+
+function safeText(value, max = 1200) {
+  if (typeof value !== "string" && typeof value !== "number") return "";
+  return String(value).replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
+}
+
+function cloneObject(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value;
+}
+
+function tryParseJson(value) {
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function stripCodeFence(value) {
+  return value
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+}
+
+function escapeRawControlCharsInJsonStrings(value) {
+  let output = "";
+  let inString = false;
+  let escaped = false;
+  for (const char of value) {
+    if (escaped) {
+      output += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\" && inString) {
+      output += char;
+      escaped = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      output += char;
+      continue;
+    }
+    if (inString && char.charCodeAt(0) < 32) {
+      if (char === "\n") output += "\\n";
+      else if (char === "\r") output += "\\r";
+      else if (char === "\t") output += "\\t";
+      else output += `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
+      continue;
+    }
+    output += char;
+  }
+  return output;
+}
+
+function removeTrailingCommas(value) {
+  return value.replace(/,\s*([}\]])/g, "$1");
+}
+
+/** Parses common LLM JSON formatting mistakes without logging the raw response. */
+export function parseGuardianFortuneLLMResponse(rawResponse) {
+  if (typeof rawResponse !== "string" || rawResponse.length === 0 || rawResponse.length > 30000) {
+    return { ok: false, errorCode: PARSE_ERROR, message: "LLM 결과 형식을 읽을 수 없습니다." };
+  }
+
+  const source = stripCodeFence(rawResponse.trim());
+  const candidates = [source];
+  const firstObject = source.indexOf("{");
+  const lastObject = source.lastIndexOf("}");
+  if (firstObject >= 0 && lastObject > firstObject) candidates.push(source.slice(firstObject, lastObject + 1));
+
+  for (const candidate of candidates) {
+    const attempts = [candidate, removeTrailingCommas(candidate)];
+    for (const attempt of attempts) {
+      const parsed = tryParseJson(attempt) || tryParseJson(escapeRawControlCharsInJsonStrings(attempt));
+      if (parsed) return { ok: true, value: parsed };
+    }
+  }
+
+  return { ok: false, errorCode: PARSE_ERROR, message: "LLM 결과가 JSON 형식이 아닙니다." };
+}
+
+export function countGuardianFortuneVisibleTextLength(result = {}) {
+  const bodyLength = VISIBLE_RESULT_FIELDS.reduce((total, field) => total + safeText(result[field]).length, 0);
+  const ctaReasonLength = safeText(result?.premiumCta?.reason).length;
+  return bodyLength + ctaReasonLength;
+}
+
+function applyForbiddenReplacements(value) {
+  let result = safeText(value);
+  for (const rule of GUARDIAN_FORTUNE_FORBIDDEN_RESULT_PATTERNS) {
+    rule.pattern.lastIndex = 0;
+    result = result.replace(rule.pattern, rule.replacement);
+  }
+  return result;
+}
+
+function applyUnsupportedClaimSafety(value, context = {}) {
+  let result = safeText(value, 2200);
+  const hasBirthTime = Boolean(context?.inputSummary?.hasBirthTime);
+  const hasBirthPlace = Boolean(context?.inputSummary?.hasBirthPlace);
+
+  if (!hasBirthTime) {
+    result = result
+      .replace(/시주(?:가|는|에서|상)?\s*(?:확실히|분명히|뚜렷하게|강하게)?/g, "생시가 없어 시주 해석은 낮은 확신으로만")
+      .replace(/신궁(?:이|은|에서|상)?\s*(?:확실히|분명히|뚜렷하게|강하게)?/g, "신궁은 생시가 있을 때 더 정확하므로")
+      .replace(/라그나(?:가|는|에서|상)?\s*(?:확실히|분명히|뚜렷하게|강하게)?/g, "라그나는 생시가 있을 때 더 정확하므로");
+  }
+
+  if (!hasBirthTime || !hasBirthPlace) {
+    result = result
+      .replace(/상승궁(?:이|은|에서|상)?\s*(?:확실히|분명히|뚜렷하게|강하게)?/g, "상승궁은 생시와 출생지가 있을 때 더 정확하므로")
+      .replace(/하우스(?:가|는|에서|상)?\s*(?:확실히|분명히|뚜렷하게|강하게)?/g, "하우스 해석은 생시와 출생지가 있을 때 더 정확하므로");
+  }
+
+  return result.replace(/\s+/g, " ").trim();
+}
+
+function applyContextualClaimSafety(result = {}, context = {}) {
+  const source = cloneObject(result);
+  const safe = { ...source };
+  for (const field of ALL_RESULT_TEXT_FIELDS) {
+    safe[field] = applyUnsupportedClaimSafety(source[field], context);
+  }
+  const cta = cloneObject(source.premiumCta);
+  safe.premiumCta = {
+    ...cta,
+    label: applyUnsupportedClaimSafety(cta.label, context),
+    reason: applyUnsupportedClaimSafety(cta.reason, context),
+  };
+  return safe;
+}
+
+function hasForbiddenExpression(value) {
+  const source = safeText(value, 2000);
+  return GUARDIAN_FORTUNE_FORBIDDEN_RESULT_PATTERNS.some((rule) => {
+    const flags = rule.pattern.flags.replace("g", "");
+    return new RegExp(rule.pattern.source, flags).test(source);
+  });
+}
+
+function collectSensitiveValues(input = {}) {
+  const values = [
+    input.birthDate,
+    input.birthTime,
+    input.nickname,
+    input.concern,
+    input.birthPlace?.city,
+    input.birthPlace?.country,
+    input.birthPlace?.timezone,
+    input.birthPlace?.latitude,
+    input.birthPlace?.longitude,
+  ];
+  return values
+    .filter((value) => value !== undefined && value !== null)
+    .map((value) => String(value).trim())
+    .filter((value) => value.length >= 3);
+}
+
+export function assertGuardianFortuneNoSensitiveLeak({ result, input = {} } = {}) {
+  const values = collectSensitiveValues(input);
+  const textValues = ALL_RESULT_TEXT_FIELDS.map((field) => safeText(result?.[field], 4000));
+  textValues.push(safeText(result?.premiumCta?.label, 4000));
+  textValues.push(safeText(result?.premiumCta?.reason, 4000));
+  const combined = textValues.join(" ");
+  if (values.some((value) => combined.includes(value))) {
+    const error = new Error("운세 결과에 민감한 입력이 포함되었습니다.");
+    error.code = "GUARDIAN_RESULT_SENSITIVE_LEAK";
+    throw error;
+  }
+  return true;
+}
+
+export function sanitizeGuardianFortuneResult(result = {}) {
+  const source = cloneObject(result);
+  const sanitized = {};
+  for (const field of ALL_RESULT_TEXT_FIELDS) sanitized[field] = applyForbiddenReplacements(source[field]);
+
+  const cta = cloneObject(source.premiumCta);
+  sanitized.premiumCta = {
+    ctaKey: safeText(cta.ctaKey, 100),
+    label: applyForbiddenReplacements(cta.label),
+    targetPath: safeText(cta.targetPath, 200),
+    reason: applyForbiddenReplacements(cta.reason),
+  };
+  return sanitized;
+}
+
+function adapterEvidence(context = {}, topic) {
+  const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  for (const adapter of priority) {
+    const data = context?.[adapter];
+    if (!data || typeof data !== "object") continue;
+    const candidate = data.personalityHook
+      || data.relationshipPattern
+      || data.innerRhythm
+      || data.currentMoodSummary
+      || data.topicPalaceSummary
+      || data.symbolicMessage
+      || data.currentFlowSummary
+      || data.nakshatraSummary;
+    if (safeText(candidate)) return safeText(candidate, 280);
+  }
+  return "계산된 흐름은 감정과 현실의 순서를 함께 살필 때 더 선명해집니다.";
+}
+
+function contextInsight(context = {}) {
+  return context?.integratedInsight || {};
+}
+
+function getTopicAndMode(input = {}, context = {}) {
+  const topic = getTopicContract(context?.inputSummary?.topic || input.topic) ? (context?.inputSummary?.topic || input.topic) : "daily";
+  const mode = (context?.inputSummary?.mode || input.mode) === "neo" ? "neo" : "yeoni";
+  return { topic: GUARDIAN_FORTUNE_TOPICS_SAFE(topic), mode };
+}
+
+function GUARDIAN_FORTUNE_TOPICS_SAFE(topic) {
+  return ["daily", "love", "money_work", "relationship", "mind", "decision"].includes(topic) ? topic : "daily";
+}
+
+function defaultReason(context, topic) {
+  return safeText(contextInsight(context).premiumBridge, 360)
+    || `${getTopicContract(topic).label}의 흐름을 더 깊게 살펴보고 싶다면 다음 상담에서 이어갈 수 있어요.`;
+}
+
+function buildLegacyFallback({ input = {}, context = {}, reason = "" } = {}) {
+  const { topic, mode } = getTopicAndMode(input, context);
+  const insight = contextInsight(context);
+  const topicContract = getTopicContract(topic);
+  const cta = getDefaultCta(topic);
+  const openingDefault = mode === "neo"
+    ? GUARDIAN_FORTUNE_SAFE_RESULT_DEFAULTS.neoOpening
+    : GUARDIAN_FORTUNE_SAFE_RESULT_DEFAULTS.yeoniOpening;
+  const openingHook = safeText(insight.openingHook, 360) || openingDefault;
+  const currentTheme = safeText(insight.currentTheme, 360) || `${topicContract.label}은 오늘의 속도와 순서를 정리할 때 방향이 보입니다.`;
+  const likelyConcern = safeText(insight.likelyConcern, 300) || `${topicContract.label}에서 무엇부터 확인할지 고민하는 흐름`;
+  const advice = safeText(insight.adviceDirection, 220) || "확신보다 확인 가능한 다음 행동을 고르기";
+  const caution = safeText(insight.cautionPattern, 280) || "작은 신호 하나를 전체 결론처럼 해석하는 것";
+  const action = safeText(insight.luckyActionHint, 300) || "오늘 확인할 수 있는 조건 하나를 적고 작은 행동부터 시작해보세요.";
+  const evidence = adapterEvidence(context, topic);
+
+  return {
+    title: GUARDIAN_FORTUNE_SAFE_RESULT_DEFAULTS.title,
+    openingLine: `${openingDefault} ${openingHook}`,
+    innerState: `지금 마음에는 ${likelyConcern}이(가) 함께 놓여 있어 보여요. ${openingHook} 그래서 감정을 억지로 밀어내기보다, 내가 실제로 확인할 수 있는 부분과 아직 기다려야 하는 부분을 나눠보는 것이 좋아요.`,
+    coreReading: `${currentTheme} 계산된 흐름에서는 ${evidence}라는 단서가 보입니다. 이 신호는 결과를 미리 확정한다는 뜻보다, 오늘 어떤 순서로 움직이면 마음과 현실의 부담을 줄일 수 있는지 알려주는 재료에 가까워요. 여러 가능성을 한 번에 해결하려 하기보다 지금 손댈 수 있는 한 가지를 고르면 흐름이 훨씬 선명해집니다.`,
+    topicAdvice: `${topicContract.label}에서 오늘의 방향은 ${advice}입니다. 먼저 사실과 감정을 분리해 적어보고, 상대나 환경의 반응을 기다리는 일과 내가 바로 할 수 있는 일을 구분해보세요. 작은 확인을 거치면 큰 결정을 서두르지 않아도 다음 장면이 자연스럽게 보일 수 있어요.`,
+    cautionPattern: `오늘 조심할 패턴은 ${caution}입니다. 마음이 급해질수록 한 번 멈추고, 지금 가진 정보가 충분한지 확인해보세요. 불안한 상태에서 내린 결론은 실제 상황보다 더 크게 느껴질 수 있어요.`,
+    luckyAction: action,
+    premiumCta: {
+      ctaKey: cta.ctaKey,
+      label: cta.label,
+      targetPath: cta.targetPath,
+      reason: defaultReason(context, topic),
+    },
+    shareText: `${GUARDIAN_FORTUNE_MODE_SHARE_HINTS[mode]} ${topicContract.shareHint}`,
+    _reason: reason,
+  };
+}
+
+function buildBaseFallback(args = {}) {
+  try {
+    return buildContextDrivenGuardianFallback(args);
+  } catch {
+    return buildLegacyFallback(args);
+  }
+}
+
+function appendUnique(result, field, value) {
+  const addition = safeText(value, 480);
+  if (!addition) return;
+  const current = safeText(result[field], 4000);
+  if (!current.includes(addition)) result[field] = `${current} ${addition}`.trim();
+}
+
+export function enrichShortGuardianFortuneResult(result = {}, { context = {}, input = {} } = {}) {
+  const next = sanitizeGuardianFortuneResult(result);
+  const { topic } = getTopicAndMode(input, context);
+  const insight = contextInsight(context);
+  const additions = [
+    insight.currentTheme,
+    insight.adviceDirection ? `오늘의 기준은 ${insight.adviceDirection}입니다.` : "오늘의 기준은 확인 가능한 작은 행동입니다.",
+    insight.cautionPattern ? `특히 ${insight.cautionPattern}을(를) 살펴보세요.` : "작은 신호를 전체 결론처럼 키우지 않는 것이 좋아요.",
+    insight.luckyActionHint,
+    `${getTopicContract(topic).label}의 흐름은 한 번에 결론을 내리기보다 한 단계씩 확인할 때 더 안정적으로 읽힙니다.`,
+    "오늘의 메시지는 정해진 미래가 아니라, 지금 선택할 수 있는 방향을 살펴보는 참고 자료로 받아들여 주세요.",
+    `계산 결과가 보여주는 ${getTopicContract(topic).label}의 단서는 한 문장으로 결론 내리는 답이 아니라, 현재의 선택을 조금 더 잘 관찰하도록 돕는 기준입니다. 오늘은 주변의 반응을 억지로 바꾸려 하기보다 내가 조절할 수 있는 속도와 순서를 먼저 정리해보세요.`,
+    "마음이 다시 복잡해지면 처음부터 모든 것을 해결하려 하지 말고, 지금 확인할 수 있는 사실 하나와 잠시 내려놓을 생각 하나를 나누어 적어보세요. 그 구분만으로도 다음 행동을 고르는 부담이 줄어들 수 있어요.",
+    "오늘의 귀인 행동은 거창한 결심보다 작은 확인에 있습니다. 답장을 보내기 전 문장을 한 번 줄이고, 결제를 결정하기 전 조건을 다시 읽고, 해야 할 일을 세 가지 안으로 좁혀보세요. 이처럼 되돌릴 수 있는 행동부터 시작하면 흐름을 안전하게 시험할 수 있어요.",
+  ].map((value) => safeText(value, 420)).filter(Boolean);
+
+  let index = 0;
+  while (countGuardianFortuneVisibleTextLength(next) < GUARDIAN_FORTUNE_RESULT_LENGTH.min && index < additions.length * 3) {
+    appendUnique(next, index % 2 === 0 ? "coreReading" : "topicAdvice", additions[index % additions.length]);
+    index += 1;
+  }
+  return next;
+}
+
+function splitSentences(value) {
+  const normalized = safeText(value, 5000);
+  if (!normalized) return [];
+  return normalized.match(/[^.!?。！？]+[.!?。！？]?/g)?.map((item) => item.trim()).filter(Boolean) || [normalized];
+}
+
+function removeLastSentence(result, field) {
+  const sentences = splitSentences(result[field]);
+  if (sentences.length <= 1) return false;
+  sentences.pop();
+  result[field] = sentences.join(" ").trim();
+  return true;
+}
+
+export function trimLongGuardianFortuneResult(result = {}) {
+  const next = sanitizeGuardianFortuneResult(result);
+  const removableFields = ["coreReading", "topicAdvice", "innerState", "cautionPattern"];
+  let index = 0;
+  while (countGuardianFortuneVisibleTextLength(next) > GUARDIAN_FORTUNE_RESULT_LENGTH.max && index < 100) {
+    const field = removableFields[index % removableFields.length];
+    if (!removeLastSentence(next, field)) {
+      const fallbackField = removableFields.find((candidate) => splitSentences(next[candidate]).length > 1);
+      if (fallbackField) removeLastSentence(next, fallbackField);
+      else break;
+    }
+    index += 1;
+  }
+  if (countGuardianFortuneVisibleTextLength(next) > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
+    const field = "coreReading";
+    next[field] = safeText(next[field], Math.max(80, GUARDIAN_FORTUNE_RESULT_LENGTH.max - 500));
+  }
+  return next;
+}
+
+export function normalizeGuardianFortuneShareText({ candidate, input = {}, context = {} } = {}) {
+  const { topic, mode } = getTopicAndMode(input, context);
+  const normalized = applyForbiddenReplacements(candidate);
+  const fallback = `${GUARDIAN_FORTUNE_MODE_SHARE_HINTS[mode]} ${getTopicContract(topic).shareHint}`;
+  const chosen = normalized && normalized.length <= 180 ? normalized : fallback;
+  const result = { title: "", openingLine: "", shareText: chosen };
+  try {
+    assertGuardianFortuneNoSensitiveLeak({ result, input });
+    return chosen;
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeCta(rawCta, topic, fallbackReason) {
+  const ctaCandidates = getTopicCtas(topic);
+  const candidate = ctaCandidates.find((item) => item.ctaKey === safeText(rawCta?.ctaKey, 100)) || getDefaultCta(topic);
+  const reason = applyForbiddenReplacements(rawCta?.reason) || fallbackReason;
+  return {
+    ctaKey: candidate.ctaKey,
+    label: candidate.label,
+    targetPath: candidate.targetPath,
+    reason: safeText(reason, 420),
+  };
+}
+
+export function buildFallbackGuardianFortuneResult({ input = {}, context = {}, reason = "" } = {}) {
+  let fallback = buildBaseFallback({ input, context, reason });
+  delete fallback._reason;
+  fallback = enrichShortGuardianFortuneResult(fallback, { input, context });
+  fallback = trimLongGuardianFortuneResult(fallback);
+  fallback.shareText = normalizeGuardianFortuneShareText({ candidate: fallback.shareText, input, context });
+  return fallback;
+}
+
+export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, context = {} } = {}) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_MISSING_FIELDS", issues: ["result_object"] };
+  }
+
+  const { topic } = getTopicAndMode(input, context);
+  const fallback = buildFallbackGuardianFortuneResult({ input, context, reason: "validation_fallback" });
+  let candidate = sanitizeGuardianFortuneResult({ ...fallback, ...parsed });
+  const issues = [];
+  for (const field of ALL_RESULT_TEXT_FIELDS) {
+    if (!safeText(parsed[field])) issues.push(`fallback_${field}`);
+    if (!safeText(candidate[field])) candidate[field] = fallback[field];
+  }
+
+  candidate.premiumCta = normalizeCta(parsed.premiumCta, topic, fallback.premiumCta.reason);
+  candidate.shareText = normalizeGuardianFortuneShareText({ candidate: parsed.shareText, input, context });
+  candidate = applyContextualClaimSafety(candidate, context);
+
+  try {
+    assertGuardianFortuneNoSensitiveLeak({ result: candidate, input });
+  } catch {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_SENSITIVE_LEAK", issues: [...issues, "sensitive_leak"] };
+  }
+
+  let normalized = candidate;
+  if (countGuardianFortuneVisibleTextLength(normalized) < GUARDIAN_FORTUNE_RESULT_LENGTH.min) {
+    normalized = enrichShortGuardianFortuneResult(normalized, { input, context });
+    issues.push("enriched_short_result");
+  }
+  if (countGuardianFortuneVisibleTextLength(normalized) > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
+    normalized = trimLongGuardianFortuneResult(normalized);
+    issues.push("trimmed_long_result");
+  }
+
+  normalized = sanitizeGuardianFortuneResult(normalized);
+  normalized.premiumCta = normalizeCta(normalized.premiumCta, topic, fallback.premiumCta.reason);
+  normalized.shareText = normalizeGuardianFortuneShareText({ candidate: normalized.shareText, input, context });
+  normalized = applyContextualClaimSafety(normalized, context);
+  const hasMissingRequired = VISIBLE_RESULT_FIELDS.some((field) => !safeText(normalized[field])) || !safeText(normalized.title);
+  const hasForbidden = ALL_RESULT_TEXT_FIELDS.some((field) => hasForbiddenExpression(normalized[field]))
+    || hasForbiddenExpression(normalized.premiumCta.reason);
+  const length = countGuardianFortuneVisibleTextLength(normalized);
+  if (hasMissingRequired || hasForbidden || length < GUARDIAN_FORTUNE_RESULT_LENGTH.min || length > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
+    return {
+      ok: false,
+      errorCode: hasForbidden ? "GUARDIAN_RESULT_UNSAFE_CONTENT" : "GUARDIAN_RESULT_QUALITY_FAILED",
+      issues: [...issues, hasMissingRequired ? "required_field" : "", hasForbidden ? "forbidden_expression" : "", `length_${length}`].filter(Boolean),
+    };
+  }
+  return { ok: true, value: normalized, issues, length };
+}
+
+export {
+  ALL_RESULT_TEXT_FIELDS,
+  VISIBLE_RESULT_FIELDS,
+  applyForbiddenReplacements,
+};

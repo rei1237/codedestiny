@@ -72,6 +72,20 @@
 - 결제/권한: 모든 유료 AI는 LLM 호출 전 결제/접근 확인이 선행되어야 한다.
 - 주의점: 실제 LLM 호출 금지. mock/fake/stub으로만 테스트한다.
 
+## 오늘의 귀인 운세
+
+- 단계: Stage 14 최종 품질 튜닝 및 배포 전 mock 기준 QA
+- 주요 Worker 라우트: `/api/fortune/guardian/usage`, `/api/fortune/guardian/generate`, `/api/fortune/guardian/share`
+- 주요 lib: `worker/lib/guardian-fortune-context.js`, `worker/lib/guardian-fortune-prompt.js`, `worker/lib/guardian-fortune-result.js`, `worker/lib/guardian-fortune-fallback.js`, `worker/lib/guardian-fortune-llm-policy.js`, `worker/lib/guardian-fortune-llm.js`
+- 결과 흐름: 기존 운세 adapter → `GuardianFortuneContext` → allowlist prompt → mock 또는 guarded Gemini → parser/validator → context-driven fallback → usage commit
+- 기본 상태: mock LLM. 실제 provider는 staging + 로그인 allowlist + 두 개의 명시적 real flag가 모두 켜진 경우에만 선택된다. test와 production은 fail-closed mock이다.
+- prompt 품질: 사주·자미두수·베다점·숙요점·점성술·타로의 역할을 구분하고, 서버 `GuardianFortuneContext`에 없는 계산·카드·상대 마음·생시 의존 영역을 지어내지 않는다. topic별 우선 근거와 `integratedInsight.openingHook`을 첫 문장과 핵심 해석에 반영한다.
+- fallback: provider 실패·malformed JSON·unsafe/품질 미달 결과에서 계산된 insight와 topic 우선순위 adapter 근거를 조합해 800~1500자 결과를 만든다. 계산되지 않은 영역은 주장하지 않으며, 사주/숙요/타로 등 체계명을 병렬 나열하기보다 반복 패턴을 하나의 상담 흐름으로 통합한다.
+- validator: 생시·출생지가 없을 때 시주·라그나·상승궁·하우스·신궁을 단정하지 않도록 보정하고, 상대 마음 확정·의료/법률/투자 단정·공포/결제 압박 표현을 완화한다.
+- 개인정보: raw input, raw prompt/response/context, user/guest/payment/usage 정보는 prompt·metric·share snapshot에 포함하지 않는다.
+- 검증: `__tests__/worker/guardian-fortune-llm.test.js`, `__tests__/worker/guardian-fortune-fallback.test.js`는 provider injection만 사용하며 실제 네트워크를 호출하지 않는다.
+- 결제/대화권: 3회권 10,000원, 10회권 30,000원 정책과 PG 단건 결제 중심 구매 guard를 유지한다. 일반 이용권, family 이용권, credit, conversation credit, entitlement, price coverage로 대화권을 구매할 수 없다.
+
 ## 운명의 찻집
 
 - 주요 라우트: `/fortune-tea-house`, debug routes under `/fortune-tea-house/*-debug`
