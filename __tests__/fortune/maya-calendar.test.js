@@ -70,13 +70,14 @@ test("leap day is accepted and invalid dates are blocked", () => {
 
 test("generated prompt keeps calculated Maya values unchanged", () => {
   const result = maya.calculateMayaCalendar(2026, 6, 21);
+  const userQuestion = "6월에 이직하면 지금보다 나을까요? 팀 분위기도 함께 봐주세요.";
   const prompt = promptGenerator.generateMayaReadingPrompt({
     name: "테스트",
     birthDate: "1990-01-01",
     targetDate: "2026년 6월 21일",
     weekdayKo: "일",
     topic: "오늘의 운세",
-    concern: "오늘의 방향을 알고 싶습니다.",
+    question: userQuestion,
     longCount: result.longCount.label,
     tzolkinNumber: result.tzolkin.number,
     tzolkinSign: result.tzolkin.sign,
@@ -91,5 +92,12 @@ test("generated prompt keeps calculated Maya values unchanged", () => {
   assert.match(prompt, /Long Count: 13\.0\.13\.12\.10/);
   assert.match(prompt, /Tzolk'in: 7 Ok/);
   assert.match(prompt, /Haab: 3 Sek/);
+  assert(prompt.includes(userQuestion), "user question must be preserved verbatim in the generated prompt");
+  assert(prompt.includes("[사용자 질문 — 최우선 입력]"), "prompt must mark the user question as the primary input");
+  assert(prompt.includes("주제별 참고 질문 — 사용자 질문을 대체하지 않음"), "topic questions must be secondary guidance");
+  assert(
+    prompt.indexOf("1. 질문에 대한 핵심 답변") < prompt.indexOf("3. 오늘의 마야 코드 요약"),
+    "the direct answer to the user question must precede generic Maya sections",
+  );
   assert.doesNotMatch(prompt, /generateWithGemini|generateWithOpenAI|callLLM|streamText/);
 });
