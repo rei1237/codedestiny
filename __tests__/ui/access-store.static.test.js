@@ -207,7 +207,7 @@ test("a final 401 is classified as authentication failure without erasing the la
   assert.equal(store.getSnapshot().status, "degraded");
 });
 
-test("authoritative full snapshots replace revoked grants and expose a stable React snapshot reference", () => {
+test("confirmed grants survive stale snapshots and require an explicit versioned revoke", () => {
   const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }));
   store.applyAccessStateSnapshot({
     userId: "user-1",
@@ -226,9 +226,57 @@ test("authoritative full snapshots replace revoked grants and expose a stable Re
     completeness: "full",
     authority: "server",
   }, { userId: "user-1", profileId: "profile-1" });
-  assert.equal(store.isUnlocked("section_summary"), false);
+  assert.equal(store.isUnlocked("section_summary"), true);
   assert.equal(store.isUnlocked("section_compat"), true);
   assert.notEqual(first, store.getSnapshot());
+
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["section_compat"],
+    revokedFeatureIds: ["section_summary"],
+    version: "v2",
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  assert.equal(store.isUnlocked("section_summary"), false);
+});
+
+test("verified payment grants persist without TTL and survive logout and reload", async () => {
+  const sharedStorage = new Map();
+  const noFetch = async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) });
+  const first = loadStore(noFetch, { storageMap: sharedStorage, authUser: { id: "user-1" } });
+  first.applyAccessStateSnapshot({
+    userId: "user-1",
+    profileId: "profile-1",
+    unlockedFeatureIds: [],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  first.applyPaymentPayload({
+    unlockGrant: {
+      id: "grant-1",
+      featureKey: "section_summary",
+      profileId: "profile-1",
+      scope: "PROFILE",
+      grantType: "permanent_unlock",
+      status: "active",
+      grantedAt: "2026-01-01T00:00:00.000Z",
+      version: 1,
+    },
+  }, { profileId: "profile-1" });
+  assert.equal(first.getSnapshot().confirmedUnlocks.section_summary, true);
+  first.__testListeners.get("cd:auth-changed")({ detail: { type: "logout", loggedIn: false } });
+
+  const cacheKey = Array.from(sharedStorage.keys()).find((key) => key.includes("cd_access_store_v4::user-1::profile-1"));
+  const cached = JSON.parse(sharedStorage.get(cacheKey));
+  cached.savedAt = 1;
+  sharedStorage.set(cacheKey, JSON.stringify(cached));
+
+  const second = loadStore(noFetch, { storageMap: sharedStorage, authUser: { id: "user-1" } });
+  await second.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(second.isUnlocked("section_summary"), true);
+  assert.equal(second.getSnapshot().confirmedUnlocks.section_summary, true);
 });
 
 test("a real destinyProfileChanged event switches context and loads one complete snapshot", async () => {

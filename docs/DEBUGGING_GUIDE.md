@@ -46,7 +46,8 @@
 ## 결제 성공 뒤 다시 잠기거나 로그인을 요구하는 경우
 
 - 먼저 `GET /api/me/access-state?profileId=...` 응답의 `userId`, `currentProfileId`, `completeness`, `authority`, `unlockedFeatureIds`, `profileScopedAuthoritative`를 함께 확인한다.
-- `completeness=full`, `authority=server`인데 기존 구매가 없다면 `User.unlockedFeatures`, `User.paidFeatures`, 현재 프로필의 `ContentEntitlement`, 프로필 ID가 기록된 `PointHistory`를 대조한다.
+- `completeness=full`, `authority=server`인데 기존 구매가 없다면 현재 프로필의 `ContentEntitlement.featureKey/scope/status/grantType`를 먼저 확인하고, `User.unlockedFeatures`와 `User.paidFeatures`는 레거시 호환 증거로만 대조한다. 일반 access-state 조회에서 `PointHistory`나 Payment 스캔이 발생하면 회귀다.
+- Mongo 장애 때 `200 + degraded:true + authority:none`은 표시용 저하 응답이다. 클라이언트가 이를 401로 바꾸거나 마지막 정상 해금 Snapshot을 빈 값으로 덮어쓰면 안 된다.
 - AccessStore가 `/api/access/unlocks`를 카드별로 반복 호출하거나 raw `fetch`로 인증 갱신을 우회하면 회귀다. React에서는 등록된 `authFetch` adapter, 정적 UI에서는 `fetchJsonWithAuth`를 사용해야 한다.
 - `403 MISSING_PROFILE_ID`, `PROFILE_REQUIRED`, `CONTENT_LOCKED`는 로그아웃 근거가 아니다. 세션과 마지막 정상 스냅샷을 유지하고 권한·프로필 오류로 표시한다. 최종 `401`만 로그인 필요로 분류한다.
 - 결제 직후 현재 탭은 optimistic grant, 다른 탭은 `code-destiny-access-sync`, 서버는 사용자 단위 access cache invalidation으로 반영된다. 이후 한 번의 complete snapshot 재검증으로 확정한다.

@@ -47,7 +47,7 @@
 
 ## 결제 성공 후 권한 반영 흐름
 
-- 단건 unlock: `ContentEntitlement` 또는 `User.unlockedFeatures`에 영구 해금 기록
+- 영구 unlock: 결제 수단과 무관하게 `ContentEntitlement`의 `grantType:"permanent_unlock"` 한 곳에 기록. `User.unlockedFeatures`/`paidFeatures`는 기존 데이터 읽기 호환 전용
 - 회당 결제: `PaidExecutionRecord`, 상담별 collection, `Payment` 상태 갱신
 - 월정석: `MonthlyCreditLedger`, `profileSubscription.membershipCreditLots[]` FIFO 차감
 - 이용권: `profileSubscription`의 tier/expiry/limit/policy를 기준으로 무료 커버
@@ -55,7 +55,7 @@
 
 ## 이용권/상품별 접근 권한
 
-- A. 잠금 콘텐츠: 1회 해금 후 재열람 가능. 예: 사주 대운/총평 일부, 자미 심화, 숙요 1년운 일부
+- A. 잠금 콘텐츠: registry의 `accessModel:"unlock"` 대상은 단건 결제·월정석·이용권 중 어떤 방식으로 처음 열어도 영구 해금되어 재열람 가능
 - B. 회당 결제: 매번 새로 생성/분석되는 상담. 예: AI 상담, 타로 premium, 궁합 AI
 - C. 무료: registry에 등록되지 않은 기본 기능
 - 십이지신 천운 타로(`tarot-year-fortune`): 신규 단건 결제 기준 100 내부 단위 / 10,000원. 완료된 연간 결과는 `PaidExecutionRecord`에 저장되어 같은 연도 재조회가 가능하며, 기존 구매 기록은 변경하지 않는다.
@@ -154,7 +154,7 @@
 ## Unlock state and shop read separation
 
 - Lock UI hydration uses one complete `GET /api/me/access-state?profileId=...` snapshot after login and after an explicit profile change. React, the main static shell, and standalone static consumers read the same `CodeDestinyAccessStore` projection.
-- The complete snapshot unions account-scoped `User.unlockedFeatures` and `User.paidFeatures`, current-profile `ContentEntitlement`, and profile-bound legacy `PointHistory` evidence. Profile-scoped feature keys from account arrays are excluded so one profile cannot unlock another profile.
+- The complete snapshot reads the authenticated user document once and `ContentEntitlement` once. Registry-confirmed account unlock keys in legacy `User.unlockedFeatures`/`paidFeatures` remain read-compatible; hot-path `PointHistory.distinct` and Payment scans are not used. Requested `profileId` takes precedence over a previously stored profile id.
 - `/api/access/unlocks` remains a read-only compatibility/status route. It is not the normal display hydration source and must not be called per card or per render.
 - `GET /api/access/unlocks` is read-only. Legacy `includeBackfill=1` and `backfill=1` are accepted as compatibility inputs only and must not run `PointHistory`/`Payment` scans or write `ContentEntitlement` records during a normal lookup.
 - Legacy entitlement repair must run through an explicit backfill/reconcile path, not through page-entry GET requests.
@@ -167,7 +167,8 @@
 ## Verified pass snapshot and checkout recovery
 
 - A recent successful `/api/me/access-state` bootstrap hydrates the shared pass, monthly-credit, account unlock, and current-profile unlock snapshot for `standard`, `premium`, `vvip`, and `family`. Unverified or expired local auth data must not grant access.
-- A last-known-good pass or unlock snapshot survives transient 503 responses. A verified payment payload is applied optimistically, shared with other tabs, and followed by one background snapshot reconciliation.
+- A last-known-good pass or unlock snapshot survives transient Mongo failures. An authenticated display read may return `200 + degraded:true + authority:"none"`; this must not be interpreted as logout or an empty authoritative snapshot.
+- A verified payment response carries `unlockGrant`. `CodeDestinyAccessStore` v4 applies it in the same frame, stores confirmed grants without TTL by user/profile, shares them with other tabs, and performs one background reconciliation. Only an explicit versioned `revokedFeatureIds` response may remove a confirmed grant.
 - `401` is an authentication result only after the auth client has attempted its refresh flow. `403` and `404` are permission/profile results and must not clear the login session or last-known-good unlock snapshot.
 - Snapshot coverage is an optimistic read path only. Family premium-quota decisions, monthly-credit deduction, PortOne order creation, payment confirmation, and entitlement writes remain server-authoritative.
 - An explicit `DIRECT_KRW` choice must create exactly one PortOne order after the click and must never be converted to pass access. Only an already persisted permanent unlock may stop a duplicate purchase.
@@ -190,4 +191,5 @@
 - 호환성을 위해 `/api/billing/coin-gate`와 레거시 fortune/daehan 경로 이름은 유지하지만, `paymentMode=COIN`, `forceDeduct`, 결제 방식이 없는 구형 요청은 `PAYMENT_REQUIRED`로 fail-closed 처리한다.
 - 차단 응답에는 `legacyCoinDisabled: true`, `blockedPaymentMode: "COIN"`, 현재 결제 선택 정보가 포함되며, 차단 경로에서 포인트 조회·차감·신규 `PointHistory` 생성은 하지 않는다.
 - 기존 `ContentEntitlement`, `User.unlockedFeatures`, `PointHistory`, `daehan_purchases` 및 과거 결제 기록은 삭제하지 않는다. backfill·환불·보상 복구는 과거 거래 증거가 있을 때만 읽기 호환으로 유지한다.
+- 신규 영구 해금 인덱스는 `scripts/migrations/20260804-add-permanent-unlock-index.mjs`로 별도 적용한다. 기존 문서를 backfill하거나 삭제하지 않으며 운영 실행은 별도 승인이 필요하다.
 - 메인 셸과 일반 잠금 상태 조회는 `/api/access/unlocks` 또는 entitlement 전용 조회를 사용한다. 월정석/레거시 잔액 조회는 결제 선택창과 명시적 결제 갱신에서만 수행한다.

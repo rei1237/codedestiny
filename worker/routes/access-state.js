@@ -25,6 +25,7 @@ function responseHeaders(state) {
 
 function responseFor(state, degraded = false, request = null) {
   const headers = responseHeaders(state);
+  if (degraded) headers["Cache-Control"] = "private, no-store";
   if (!degraded && request?.headers?.get("If-None-Match") === headers.ETag) {
     return new Response(null, { status: 304, headers });
   }
@@ -55,6 +56,29 @@ function degradedHeaders(request, stage) {
   };
 }
 
+function buildDegradedAccessState(userId, profileId, code) {
+  const checkedAt = new Date().toISOString();
+  return {
+    userId: String(userId || "").trim(),
+    profileId: String(profileId || "").trim(),
+    currentProfileId: String(profileId || "").trim(),
+    version: "degraded",
+    completeness: "degraded",
+    completenessDetails: {
+      account: "unavailable",
+      profile: "unavailable",
+      pass: "unavailable",
+      monthlyCredits: "unavailable",
+    },
+    authority: "none",
+    source: "degraded",
+    checkedAt,
+    fetchedAt: checkedAt,
+    degraded: true,
+    code,
+  };
+}
+
 export async function handleAccessStateRoutes(request, env) {
   const trace = { route: "me/access-state", method: request.method, authVerified: false, dbConnected: false };
   let userId = "";
@@ -66,6 +90,8 @@ export async function handleAccessStateRoutes(request, env) {
     if (path !== "/") return notFound();
     if (!isAccessStateEnabled(env)) return notFound();
 
+    const requestedProfileId = String(new URL(request.url).searchParams.get("profileId") || "").trim();
+    profileId = requestedProfileId;
     userId = await peekAccessTokenUserId(request, env);
     const auth = await requireUserFromRequest(request, env, {
       surfaceDbInfraError: true,
@@ -74,9 +100,8 @@ export async function handleAccessStateRoutes(request, env) {
     trace.authPresent = true;
     trace.authVerified = true;
     userId = String(auth.userId || "").trim();
-    const requestedProfileId = String(new URL(request.url).searchParams.get("profileId") || "").trim();
     const storedProfileId = String(auth.authUserDoc?.destinyProfilesCurrentId || "").trim();
-    profileId = storedProfileId || requestedProfileId;
+    profileId = requestedProfileId || storedProfileId;
 
     const cached = readAccessStateCache(userId, { profileId });
     if (cached) return responseFor(cached, false, request);
@@ -105,6 +130,9 @@ export async function handleAccessStateRoutes(request, env) {
     const stale = userId ? readAccessStateCache(userId, { profileId, allowStale: true }) : null;
     if (stale) return responseFor(stale, true, request);
     if (/timeout|timed out/i.test(String(error?.message || error || ""))) {
+      if (userId) {
+        return responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_TIMEOUT"), true, request);
+      }
       return json({
         ok: false,
         code: "ACCESS_STATE_TIMEOUT",
@@ -114,6 +142,9 @@ export async function handleAccessStateRoutes(request, env) {
       }, { status: 504, headers: degradedHeaders(request, "db-op-timeout") });
     }
     if (isAuthDbInfraError(error) || isDbUnavailableError(error)) {
+      if (userId) {
+        return responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_UNAVAILABLE"), true, request);
+      }
       return json({
         ok: false,
         code: "ACCESS_STATE_UNAVAILABLE",
