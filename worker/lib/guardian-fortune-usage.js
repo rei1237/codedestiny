@@ -93,14 +93,21 @@ function resolveGuestSecret(env = {}, options = {}) {
   return String(options.guestSecret || env.GUARDIAN_FORTUNE_GUEST_SECRET || "").trim();
 }
 
+function bytesToHex(buffer) {
+  return Array.from(new Uint8Array(buffer)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export async function hashGuardianFortuneGuestId(guestId, options = {}) {
   const normalized = String(guestId || "").trim();
   const secret = resolveGuestSecret(options.env || {}, options);
   if (!isValidGuardianFortuneGuestId(normalized)) throw new Error("GUARDIAN_FORTUNE_GUEST_ID_INVALID");
-  if (!secret) throw new Error("GUARDIAN_FORTUNE_GUEST_SECRET_MISSING");
   if (!globalThis.crypto?.subtle) throw new Error("GUARDIAN_FORTUNE_CRYPTO_UNAVAILABLE");
 
   const encoder = new TextEncoder();
+  if (!secret) {
+    const digest = await crypto.subtle.digest("SHA-256", encoder.encode(`guardian-fortune:${normalized}`));
+    return bytesToHex(digest);
+  }
   const key = await crypto.subtle.importKey(
     "raw",
     encoder.encode(secret),
@@ -109,8 +116,9 @@ export async function hashGuardianFortuneGuestId(guestId, options = {}) {
     ["sign"],
   );
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(normalized));
-  return Array.from(new Uint8Array(signature)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return bytesToHex(signature);
 }
+
 
 export function buildGuardianFortuneGuestCookie(guestId, { secure = false, maxAgeSeconds = 60 * 60 * 24 * 365 } = {}) {
   const encoded = encodeURIComponent(String(guestId || ""));

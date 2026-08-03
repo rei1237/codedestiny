@@ -8,6 +8,7 @@ import {
   createMemoryGuardianFortuneStore,
   getGuardianFortuneDateKey,
   GUARDIAN_FORTUNE_ERROR_CODES,
+  hashGuardianFortuneGuestId,
   releaseGuardianFortuneUsage,
   reserveGuardianFortuneUsage,
 } from "../../worker/lib/guardian-fortune-usage.js";
@@ -21,6 +22,16 @@ describe("Guardian Fortune usage service", () => {
     expect(getGuardianFortuneDateKey(new Date("2026-08-01T15:00:00.000Z"))).toBe("2026-08-02");
     expect(getGuardianFortuneDateKey(new Date("2026-08-02T14:59:00.000Z"))).toBe("2026-08-02");
     expect(getGuardianFortuneDateKey(new Date("2026-08-02T15:00:00.000Z"))).toBe("2026-08-03");
+  });
+
+  it("hashes guest IDs even when no worker secret is configured", async () => {
+    const guestId = "123e4567-e89b-12d3-a456-426614174000";
+    const first = await hashGuardianFortuneGuestId(guestId, { env: {} });
+    const second = await hashGuardianFortuneGuestId(guestId, { env: {} });
+    const different = await hashGuardianFortuneGuestId("123e4567-e89b-12d3-a456-426614174001", { env: {} });
+    expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(second).toBe(first);
+    expect(different).not.toBe(first);
   });
 
   it("allows one guest reservation and does not allow the second", async () => {
