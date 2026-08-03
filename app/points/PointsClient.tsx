@@ -3149,7 +3149,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 모든 유료 서비스를 이용할 수 있고, 월정석으로도 이용권 구매가 가능합니다.
+      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 월정석으로 30일 이용권을 구매할 수 있습니다.
     </section>
   );
 }
@@ -5025,7 +5025,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 모든 유료 서비스를 이용할 수 있고, 월정석으로도 이용권 구매가 가능합니다.
+          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 월정석으로 30일 이용권을 구매할 수 있습니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">

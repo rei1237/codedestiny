@@ -53,8 +53,10 @@ test("family shop copy explicitly excludes the dedicated fusion ticket", () => {
   const html = read("index.html");
   assert.match(points, /초융합 제외 · 3만원 미만 무제한/);
   assert.match(points, /초융합 운세는 별도 상담권 필요/);
-  assert.doesNotMatch(points, /모든 유료 서비스 이용 가능/);
+  assert.match(points, /Family도 초융합 운세는 별도 상담권이 필요/);
+  assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
   assert.match(html, /초융합 제외 3만원 미만 기능 무제한/);
+  assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
 });
 
 test("guardian free copy describes a maximum rather than a guaranteed grant", () => {
