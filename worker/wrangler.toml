@@ -38,6 +38,12 @@ bucket_name = "codedestinyassets"
 [vars]
 NODE_ENV = "production"
 ACCESS_STATE_ENABLED = "true"
+# Guardian Fortune uses the API-backed production flow with mock LLM only.
+ENABLE_GUARDIAN_FORTUNE_API = "true"
+ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
+ENABLE_GUARDIAN_FORTUNE_CREDITS = "false"
+ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "false"
+ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "false"
 AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"
 SITE_BASE_URL = "https://code-destiny.com"
 AUTH_API_BASE_URL = "https://code-destiny.com"

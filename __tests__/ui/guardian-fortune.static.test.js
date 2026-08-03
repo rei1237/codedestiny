@@ -15,11 +15,25 @@ test('guardian fortune prototype is feature-flagged and preserves the legacy hub
   assert.match(html, /guardian-fortune\.css/);
   assert.match(html, /guardian-fortune-mock\.js/);
   assert.match(html, /guardian-fortune-home\.js/);
+  assert.match(html, /id="cd-guardian-fortune-feature-flags"/);
+  assert.match(html, /ENABLE_MAIN_GUARDIAN_FORTUNE:\s*true/);
+  assert.match(html, /ENABLE_GUARDIAN_FORTUNE_API:\s*true/);
+  assert.match(html, /ENABLE_GUARDIAN_FORTUNE_SHARE:\s*true/);
+  assert.match(html, /ENABLE_GUARDIAN_FORTUNE_CREDITS:\s*false/);
   assert.match(html, /daily-fortune-core\.js/);
   assert.match(html, /data-guardian-duo-chat/);
   assert.match(html, /data-guardian-dialogue="yeoni"/);
   assert.match(html, /data-guardian-dialogue="neo"/);
   assert.match(html, /data-guardian-room-label/);
+});
+
+test('guardian fortune production activation keeps real LLM and credit sales disabled', () => {
+  const wrangler = read('worker/wrangler.toml');
+  assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_API\s*=\s*"true"/);
+  assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_SHARE\s*=\s*"true"/);
+  assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_CREDITS\s*=\s*"false"/);
+  assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_REAL_LLM\s*=\s*"false"/);
+  assert.match(wrangler, /ALLOW_REAL_GUARDIAN_FORTUNE_LLM\s*=\s*"false"/);
 });
 
 test('guardian fortune prototype exposes all six topics and verified local webp assets', () => {

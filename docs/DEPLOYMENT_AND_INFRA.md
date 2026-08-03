@@ -11,6 +11,22 @@
 
 ## Cloudflare Pages 구조
 
+### Guardian Fortune production-safe activation
+
+The static home enables the Guardian Fortune UI and API-backed flow through
+`window.__CD_FEATURE_FLAGS__`. Worker production vars enable the usage,
+generate, and share endpoints with `ENABLE_GUARDIAN_FORTUNE_API=true` and
+`ENABLE_GUARDIAN_FORTUNE_SHARE=true`.
+
+`ENABLE_GUARDIAN_FORTUNE_REAL_LLM` and
+`ALLOW_REAL_GUARDIAN_FORTUNE_LLM` remain explicitly `false`, so production
+continues to use the mock generator. Credits sales remain disabled with
+`ENABLE_GUARDIAN_FORTUNE_CREDITS=false`.
+
+Rollback: remove the static UI/API flags or set the Worker API/share vars to
+`false`, then redeploy through the same CI paths. No provider key, payment, or
+database write is required for this activation.
+
 - Pages config: `wrangler.toml`
 - Build output: `dist`
 - Build scripts: `npm run build`, `npm run build:cf`
