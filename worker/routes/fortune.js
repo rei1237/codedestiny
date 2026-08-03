@@ -1,9 +1,30 @@
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
-import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP } from "../lib/models.js";
+import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
-import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { cookieValue, createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { incrementRateLimit } from "../lib/rate-limit.js";
+import { generateGuardianFortuneRequest } from "../lib/guardian-fortune-generate.js";
+import {
+  buildGuardianFortuneDisabledUsageStatus,
+  buildGuardianFortuneGuestCookie,
+  buildGuardianFortuneUsageStatus,
+  createGuardianFortuneGuestId,
+  createGuardianFortuneRequestId,
+  createMongoGuardianFortuneStore,
+  getGuardianFortuneDateKey,
+  GUARDIAN_FORTUNE_ERROR_CODES,
+  hashGuardianFortuneGuestId,
+  isGuardianFortuneApiEnabled,
+  isValidGuardianFortuneGuestId,
+} from "../lib/guardian-fortune-usage.js";
+import {
+  createGuardianFortuneShareSnapshot,
+  findPublicGuardianFortuneSnapshot,
+  isGuardianFortuneShareEnabled,
+  verifyGuardianFortuneShareDraftToken,
+} from "../lib/guardian-fortune-share.js";
 import {
   getForcePaidTestAccountEmails as getForcePaidTestAccountEmailsFromGuard,
   isAdminPigCoinBypassEnabled as isAdminPigCoinBypassEnabledFromGuard,
@@ -5734,6 +5755,227 @@ async function handleSubscriptionCancel(request, auth) {
   });
 }
 
+const GUARDIAN_FORTUNE_RATE_LIMIT_MAX = 12;
+const GUARDIAN_FORTUNE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const GUARDIAN_FORTUNE_SHARE_RATE_LIMIT_MAX = 20;
+
+function guardianFortuneRouteResponse(result, { cookie = "" } = {}) {
+  const { status = 200, ...payload } = result || {};
+  const headers = cookie ? { "Set-Cookie": cookie } : undefined;
+  return json(payload, { status, ...(headers ? { headers } : {}) });
+}
+
+function guardianFortuneGuestIdFromRequest(request) {
+  const headerValue = String(request.headers.get("x-guardian-fortune-guest-id") || "").trim();
+  if (isValidGuardianFortuneGuestId(headerValue)) return { value: headerValue, issued: false };
+  const cookieValueFromRequest = cookieValue(request, "guardian_fortune_guest_id");
+  if (isValidGuardianFortuneGuestId(cookieValueFromRequest)) return { value: cookieValueFromRequest, issued: false };
+  return { value: createGuardianFortuneGuestId(), issued: true };
+}
+
+async function resolveGuardianFortuneOptionalAuth(request, env) {
+  try {
+    return await getOptionalUserFromRequest(request, env, {
+      allowDbFallback: true,
+      surfaceDbInfraError: true,
+    });
+  } catch (error) {
+    if (isAuthDbInfraError(error)) {
+      throw createHttpError(503, "인증 상태를 잠시 확인할 수 없어요.", {
+        error: "GUARDIAN_FORTUNE_AUTH_STATUS_UNAVAILABLE",
+      });
+    }
+    throw error;
+  }
+}
+
+async function resolveGuardianFortuneIdentity(request, env, auth) {
+  if (auth?.userId) {
+    return {
+      userId: String(auth.userId),
+      guestIdHash: "",
+      cookie: "",
+      isLoggedIn: true,
+    };
+  }
+  const guest = guardianFortuneGuestIdFromRequest(request);
+  let guestIdHash;
+  try {
+    guestIdHash = await hashGuardianFortuneGuestId(guest.value, { env });
+  } catch (error) {
+    throw createHttpError(503, "비로그인 상담을 준비하는 중 문제가 생겼어요.", {
+      error: error?.message === "GUARDIAN_FORTUNE_GUEST_SECRET_MISSING"
+        ? "GUARDIAN_FORTUNE_GUEST_ID_UNAVAILABLE"
+        : "GUARDIAN_FORTUNE_GUEST_ID_INVALID",
+    });
+  }
+  const secure = new URL(request.url).protocol === "https:";
+  return {
+    userId: "",
+    guestIdHash,
+    cookie: guest.issued ? buildGuardianFortuneGuestCookie(guest.value, { secure }) : "",
+    isLoggedIn: false,
+  };
+}
+
+async function enforceGuardianFortuneRateLimit({ request, env, identity }) {
+  if (String(env.GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED || "").toLowerCase() !== "true") return null;
+  const subject = identity.isLoggedIn ? `user:${identity.userId}` : `guest:${identity.guestIdHash}`;
+  const subjectHash = await sha256Hex(`guardian-fortune:${subject}`);
+  const result = await incrementRateLimit({
+    subjectHash,
+    endpoint: "guardian_fortune_generate",
+    windowMs: GUARDIAN_FORTUNE_RATE_LIMIT_WINDOW_MS,
+    env,
+  });
+  if (result.count <= GUARDIAN_FORTUNE_RATE_LIMIT_MAX) return null;
+  return {
+    ok: false,
+    status: 429,
+    error: "GUARDIAN_FORTUNE_RATE_LIMITED",
+    message: "요청이 잠시 많아요. 잠시 후 다시 시도해 주세요.",
+    retryAfterSeconds: Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000)),
+  };
+}
+
+async function enforceGuardianFortuneShareRateLimit({ env, identity }) {
+  if (String(env.GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED || "").toLowerCase() !== "true") return null;
+  const subject = identity.isLoggedIn ? `user:${identity.userId}` : `guest:${identity.guestIdHash}`;
+  const subjectHash = await sha256Hex(`guardian-fortune:${subject}`);
+  const result = await incrementRateLimit({
+    subjectHash,
+    endpoint: "guardian_fortune_share_create",
+    windowMs: GUARDIAN_FORTUNE_RATE_LIMIT_WINDOW_MS,
+    env,
+  });
+  if (result.count <= GUARDIAN_FORTUNE_SHARE_RATE_LIMIT_MAX) return null;
+  return {
+    ok: false,
+    status: 429,
+    error: "GUARDIAN_FORTUNE_SHARE_RATE_LIMITED",
+    message: "공유 요청이 잠시 많아요. 잠시 후 다시 시도해 주세요.",
+    retryAfterSeconds: Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000)),
+  };
+}
+
+async function handleGuardianFortuneUsageRoute(request, env, trace) {
+  if (!isGuardianFortuneApiEnabled(env)) {
+    return guardianFortuneRouteResponse({ ok: true, ...buildGuardianFortuneDisabledUsageStatus() });
+  }
+
+  const auth = await resolveGuardianFortuneOptionalAuth(request, env);
+  trace.authVerified = Boolean(auth);
+  const identity = await resolveGuardianFortuneIdentity(request, env, auth);
+  await connectDb(env);
+  trace.dbConnected = true;
+  const store = createMongoGuardianFortuneStore({ env });
+  const status = await buildGuardianFortuneUsageStatus({
+    userId: identity.userId,
+    guestIdHash: identity.guestIdHash,
+    dateKey: getGuardianFortuneDateKey(new Date()),
+    store,
+  });
+  return guardianFortuneRouteResponse({ ok: true, ...status }, { cookie: identity.cookie });
+}
+
+async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
+  if (!isGuardianFortuneApiEnabled(env)) {
+    return guardianFortuneRouteResponse({
+      ok: false,
+      status: 403,
+      error: GUARDIAN_FORTUNE_ERROR_CODES.FEATURE_DISABLED,
+      message: "오늘의 귀인 운세는 준비 중이에요.",
+      usage: buildGuardianFortuneDisabledUsageStatus(),
+    });
+  }
+
+  const body = await readJson(request);
+  const auth = await resolveGuardianFortuneOptionalAuth(request, env);
+  trace.authVerified = Boolean(auth);
+  const identity = await resolveGuardianFortuneIdentity(request, env, auth);
+  const requestId = String(
+    body?.requestId
+      || request.headers.get("idempotency-key")
+      || request.headers.get("x-idempotency-key")
+      || createGuardianFortuneRequestId(),
+  ).trim().slice(0, 120);
+  const rateLimitResponse = await enforceGuardianFortuneRateLimit({ request, env, identity });
+  if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
+
+  await connectDb(env);
+  trace.dbConnected = true;
+  const store = createMongoGuardianFortuneStore({ env });
+  const result = await generateGuardianFortuneRequest({
+    input: body,
+    userId: identity.userId,
+    guestIdHash: identity.guestIdHash,
+    requestId,
+    dateKey: getGuardianFortuneDateKey(new Date()),
+    store,
+    contextOptions: { env, requestUrl: request.url, ctx },
+    // Scenario switches are test-only. Production clients cannot select a failure mode.
+    scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
+  });
+  return guardianFortuneRouteResponse(result, { cookie: identity.cookie });
+}
+
+async function handleGuardianFortuneShareCreateRoute(request, env, trace) {
+  if (!isGuardianFortuneApiEnabled(env) || !isGuardianFortuneShareEnabled(env)) {
+    return guardianFortuneRouteResponse({
+      ok: false,
+      status: 404,
+      error: "GUARDIAN_FORTUNE_SHARE_DISABLED",
+      message: "공유 기능을 찾을 수 없습니다.",
+    });
+  }
+
+  const body = await readJson(request);
+  const tokenResult = await verifyGuardianFortuneShareDraftToken(body?.shareDraftToken, { env });
+  if (!tokenResult.ok) {
+    return guardianFortuneRouteResponse({
+      ok: false,
+      status: 400,
+      error: tokenResult.errorCode,
+      message: "공유 준비가 만료되었어요. 결과를 다시 생성해 주세요.",
+    });
+  }
+
+  const auth = await resolveGuardianFortuneOptionalAuth(request, env);
+  trace.authVerified = Boolean(auth);
+  const identity = await resolveGuardianFortuneIdentity(request, env, auth);
+  const rateLimitResponse = await enforceGuardianFortuneShareRateLimit({ env, identity });
+  if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
+
+  await connectDb(env);
+  trace.dbConnected = true;
+  const created = await createGuardianFortuneShareSnapshot({
+    draft: tokenResult.payload,
+    requestUrl: request.url,
+    env,
+    model: GuardianFortuneSharedSnapshot,
+  });
+  return guardianFortuneRouteResponse({
+    ok: true,
+    status: 201,
+    shareId: created.snapshot.shareId,
+    shareUrl: created.shareUrl,
+    shareText: created.snapshot.shareText,
+    title: created.snapshot.title,
+    reused: created.reused,
+  }, { cookie: identity.cookie });
+}
+
+async function handleGuardianFortuneShareReadRoute(request, env, trace, shareId) {
+  if (!isGuardianFortuneApiEnabled(env) || !isGuardianFortuneShareEnabled(env)) return notFound();
+  const snapshotId = String(shareId || "").trim();
+  if (!snapshotId) return notFound();
+  await connectDb(env);
+  trace.dbConnected = true;
+  const snapshot = await findPublicGuardianFortuneSnapshot({ shareId: snapshotId, model: GuardianFortuneSharedSnapshot });
+  if (!snapshot) return notFound();
+  return json(snapshot, { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } });
+}
+
 export async function handleFortuneRoutes(request, env, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/fortune");
@@ -5750,6 +5992,22 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
 
   try {
     if (method === "GET" && path === "/check") return await handleCheck();
+
+    if (method === "GET" && path === "/guardian/usage") {
+      return await handleGuardianFortuneUsageRoute(request, env, trace);
+    }
+
+    if (method === "POST" && path === "/guardian/generate") {
+      return await handleGuardianFortuneGenerateRoute(request, env, ctx, trace);
+    }
+
+    if (method === "POST" && path === "/guardian/share") {
+      return await handleGuardianFortuneShareCreateRoute(request, env, trace);
+    }
+
+    if (method === "GET" && path.startsWith("/guardian/share/")) {
+      return await handleGuardianFortuneShareReadRoute(request, env, trace, path.slice("/guardian/share/".length));
+    }
 
     if (method === "GET" && path === "/pig-coin/prices") return handlePigCoinPrices();
     if (method === "GET" && path === "/pig-coin/profile-subscription/plans") return handleProfileSubscriptionPlans();

@@ -15,6 +15,7 @@
 - Payment: PortOne V2 with KG Inicis channel.
 - LLM: Gemini REST primary, Cloudflare Workers AI fallback.
 - Assets: `public/**`, root static HTML, R2 public assets, music R2 custom domain.
+- UI/UX적으로 중요한 신규 이미지 에셋은 직접 제작하거나 기존 승인 에셋에서 파생해 repo-local WebP로 최적화한다. 외부 핫링크나 임시 생성 경로를 production UI에 직접 참조하지 않는다.
 - Mobile: Capacitor Android wrapper under `apps/mobile/**`.
 
 ## Non-Negotiable Rules
@@ -175,6 +176,7 @@ For main static shell changes:
 - Astrology, Vedic, and Sukuyo systems must not be mixed.
 - Yeon / 운명의 찻집: warm, gentle, letter-like tone.
 - Neo / 팩폭 전략실: direct strategist tone, never insulting.
+- For UI/UX moments where existing visuals do not support the desired emotion, character identity, or consultation immersion, create the needed original asset and ship it as optimized WebP. Reuse verified existing assets first, but do not leave important UX moments visually underpowered merely because an asset is missing.
 
 ## Source Of Truth
 

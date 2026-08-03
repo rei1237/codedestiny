@@ -1280,6 +1280,99 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
 nakshatraAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 nakshatraAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// Guardian Fortune usage is deliberately isolated from membership, monthly credit,
+// points, and pass entitlements. These schemas are declarations only; index creation
+// still follows the project's normal migration/operations process.
+const guardianFortuneGuestUsageSchema = new mongoose.Schema({
+  guestIdHash: { type: String, required: true, unique: true, trim: true, maxlength: 128, index: true },
+  totalUsed: { type: Number, default: 0, min: 0 },
+  reserved: { type: Number, default: 0, min: 0 },
+  firstUsedAt: { type: Date, default: null },
+  lastUsedAt: { type: Date, default: null },
+  reservationUpdatedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "guardianFortuneGuestUsages" });
+
+const guardianFortuneDailyUsageSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  dateKey: { type: String, required: true, trim: true, maxlength: 10, index: true },
+  freeLimit: { type: Number, default: 3, min: 0, max: 3 },
+  freeUsed: { type: Number, default: 0, min: 0, max: 3 },
+  reserved: { type: Number, default: 0, min: 0, max: 3 },
+  reservationUpdatedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "guardianFortuneDailyUsages" });
+guardianFortuneDailyUsageSchema.index({ userId: 1, dateKey: 1 }, { unique: true });
+
+const guardianFortuneChatCreditBalanceSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true },
+  remaining: { type: Number, default: 0, min: 0 },
+  reserved: { type: Number, default: 0, min: 0 },
+  purchasedTotal: { type: Number, default: 0, min: 0 },
+  usedTotal: { type: Number, default: 0, min: 0 },
+  refundedTotal: { type: Number, default: 0, min: 0 },
+  reservationUpdatedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "guardianFortuneChatCreditBalances" });
+
+const guardianFortuneChatCreditTransactionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  type: { type: String, enum: ["purchase", "use", "refund", "adjustment", "rollback"], required: true, index: true },
+  amount: { type: Number, required: true },
+  balanceAfter: { type: Number, required: true, min: 0 },
+  beforeBalance: { type: Number, required: true, min: 0 },
+  afterBalance: { type: Number, required: true, min: 0 },
+  productId: { type: String, default: "", trim: true, maxlength: 120 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
+  fortuneRequestId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  reason: { type: String, default: "", trim: true, maxlength: 200 },
+}, { timestamps: { createdAt: true, updatedAt: false }, collection: "guardianFortuneChatCreditTransactions" });
+guardianFortuneChatCreditTransactionSchema.index(
+  { userId: 1, fortuneRequestId: 1, type: 1 },
+  { unique: true, partialFilterExpression: { fortuneRequestId: { $type: "string", $gt: "" } } },
+);
+guardianFortuneChatCreditTransactionSchema.index(
+  { paymentId: 1, type: 1 },
+  { unique: true, partialFilterExpression: { paymentId: { $type: "string", $gt: "" } } },
+);
+
+const guardianFortuneGenerationAttemptSchema = new mongoose.Schema({
+  requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, default: null, index: true },
+  guestIdHash: { type: String, default: "", trim: true, maxlength: 128, index: true },
+  source: { type: String, enum: ["guest_free", "daily_free", "paid_credit", "blocked"], default: "blocked" },
+  dateKey: { type: String, required: true, trim: true, maxlength: 10, index: true },
+  status: { type: String, enum: ["reserved", "completed", "released", "blocked"], default: "reserved", index: true },
+  errorCode: { type: String, default: "", trim: true, maxlength: 100 },
+  expiresAt: { type: Date, required: true, index: true },
+}, { timestamps: true, collection: "guardianFortuneGenerationAttempts" });
+
+guardianFortuneGenerationAttemptSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+const guardianFortuneSharedSnapshotSchema = new mongoose.Schema({
+  shareId: { type: String, required: true, unique: true, trim: true, maxlength: 96, index: true },
+  mode: { type: String, enum: ["yeoni", "neo"], required: true },
+  topic: { type: String, enum: ["daily", "love", "money_work", "relationship", "mind", "decision"], required: true },
+  title: { type: String, required: true, trim: true, maxlength: 160 },
+  openingLine: { type: String, required: true, maxlength: 1200 },
+  innerState: { type: String, required: true, maxlength: 2400 },
+  coreReading: { type: String, required: true, maxlength: 3200 },
+  topicAdvice: { type: String, required: true, maxlength: 3200 },
+  cautionPattern: { type: String, required: true, maxlength: 1800 },
+  luckyAction: { type: String, required: true, maxlength: 1400 },
+  premiumCta: {
+    ctaKey: { type: String, trim: true, maxlength: 120 },
+    label: { type: String, trim: true, maxlength: 120 },
+    targetPath: { type: String, trim: true, maxlength: 200 },
+    reason: { type: String, trim: true, maxlength: 1000 },
+  },
+  shareText: { type: String, required: true, trim: true, maxlength: 320 },
+  locale: { type: String, required: true, trim: true, maxlength: 20, default: "ko-KR" },
+  status: { type: String, enum: ["active", "deleted", "expired"], default: "active", index: true },
+  sourceRequestId: { type: String, trim: true, maxlength: 120, sparse: true, unique: true },
+  createdAt: { type: Date, required: true, default: Date.now, index: true },
+  expiresAt: { type: Date, required: true, index: true },
+}, { collection: "guardianFortuneSharedSnapshots" });
+guardianFortuneSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+guardianFortuneSharedSnapshotSchema.index({ status: 1, createdAt: -1 });
+
 // socialAccounts.<provider>.id defaults to "" (not absent), so a plain sparse index wouldn't
 // exclude non-social users — a partial filter on non-empty values keeps these lean the same
 // way pointHistorySchema's dedupeKey index does. findOrCreateSocialUser (worker/routes/auth.js)
@@ -1350,6 +1443,18 @@ export const NeoOperationRoomConsultation = mongoose.models.NeoOperationRoomCons
   || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema);
 export const NakshatraAiConsultation = mongoose.models.NakshatraAiConsultation
   || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema);
+export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsage
+  || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
+export const GuardianFortuneDailyUsage = mongoose.models.GuardianFortuneDailyUsage
+  || mongoose.model("GuardianFortuneDailyUsage", guardianFortuneDailyUsageSchema);
+export const GuardianFortuneChatCreditBalance = mongoose.models.GuardianFortuneChatCreditBalance
+  || mongoose.model("GuardianFortuneChatCreditBalance", guardianFortuneChatCreditBalanceSchema);
+export const GuardianFortuneChatCreditTransaction = mongoose.models.GuardianFortuneChatCreditTransaction
+  || mongoose.model("GuardianFortuneChatCreditTransaction", guardianFortuneChatCreditTransactionSchema);
+export const GuardianFortuneGenerationAttempt = mongoose.models.GuardianFortuneGenerationAttempt
+  || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema);
+export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneSharedSnapshot
+  || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },

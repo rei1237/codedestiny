@@ -44,6 +44,16 @@ import {
   refundPaymentAsOperator,
   revokeSinglePaymentContentAccess,
 } from "../lib/payment-refund.js";
+import {
+  GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE,
+  buildGuardianFortunePurchasePolicySummary,
+  createGuardianFortuneCreditOrder,
+  getGuardianFortuneCreditBalance,
+  isGuardianFortuneCreditPaymentRecord,
+  isGuardianFortuneCreditSalesEnabled,
+  listGuardianFortuneCreditProducts,
+  settleGuardianFortunePayment,
+} from "../lib/guardian-fortune-purchase.js";
 
 // 부분취소 판정도 환불 코어와 같은 함수를 쓴다(사본 금지). 기존 호출부 이름을 그대로 유지한다.
 const isPartialSingleCancel = isPartialCancel;
@@ -111,7 +121,7 @@ async function rejectPurchasePolicy(request, env, auth, decision, context = {}) 
     code: decision?.denialReason || "PURCHASE_POLICY_DENIED",
     reason: decision?.denialReason || "PURCHASE_POLICY_DENIED",
     message: decision?.denialReason === "CANNOT_BUY_PASS_WITH_PASS"
-      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 허용된 월정석 정책을 이용해 주세요."
+      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 명확히 허용된 월정석 결제 플로우를 이용해 주세요."
       : decision?.denialReason === "FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS"
         ? "패밀리 이용권은 기능 이용 권한이며, 더 높은 가격의 이용권 구매 수단으로 사용할 수 없습니다."
         : "현재 상품은 PG 결제 또는 허용된 월정석 정책으로만 구매할 수 있습니다.",
@@ -1259,6 +1269,14 @@ async function handleSinglePaymentCancel(request, env, auth) {
     return json({ ok: false, message: "Single payment order was not found.", code: "ORDER_NOT_FOUND" }, { status: 404 });
   }
 
+  if (isGuardianFortuneCreditPaymentRecord(paymentRecord)) {
+    return json({
+      ok: false,
+      message: "대화권 환불은 사용 여부를 확인한 뒤 별도 검토가 필요합니다.",
+      code: "GUARDIAN_FORTUNE_REFUND_REVIEW_REQUIRED",
+    }, { status: 409 });
+  }
+
   const result = await refundPaymentAsOperator({
     env,
     payment: paymentRecord,
@@ -1572,7 +1590,8 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     }, { status: refund.refunded ? 502 : 500 });
   };
   const body = await readJson(request);
-  const paymentId = normalizeSingleCompletePaymentId(body?.paymentId || body?.merchantUid || body?.merchant_uid);
+  const merchantUidHint = body?.merchantUid || body?.merchant_uid || body?.paymentId;
+  const paymentId = normalizeSingleCompletePaymentId(merchantUidHint);
   if (!paymentId) {
     return json({ message: "paymentId is required.", code: "PAYMENT_ID_REQUIRED" }, { status: 400 });
   }
@@ -1600,6 +1619,33 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
 
   if (String(order.userId) !== String(auth.userId)) {
     return json({ ok: false, message: "Only your own payment can be completed.", code: "FORBIDDEN_PAYMENT_OWNER" }, { status: 403 });
+  }
+
+  if (isGuardianFortuneCreditPaymentRecord(order)) {
+    try {
+      const result = await settleGuardianFortunePayment({
+        env,
+        paymentId,
+        providerPaymentId: body?.impUid || body?.paymentId || paymentId,
+        userId: auth.userId,
+        source: "confirm",
+      });
+      const balance = await getGuardianFortuneCreditBalance(auth.userId);
+      return json({
+        ok: true,
+        idempotent: Boolean(result.idempotent),
+        message: "달빛 귀인 대화권이 충전되었어요.",
+        product: result.product,
+        balance,
+        payment: formatPaymentResponse(result.payment),
+      });
+    } catch (error) {
+      return json({
+        ok: false,
+        code: String(error?.code || "GUARDIAN_FORTUNE_PAYMENT_FAILED"),
+        message: String(error?.message || "대화권 결제 확인에 실패했습니다."),
+      }, { status: Number(error?.status) || 400 });
+    }
   }
 
   if (order.status === "success" || order.status === "fulfilled") {
@@ -1933,7 +1979,7 @@ async function runSinglePaymentCompleteFromWebhook(request, env, paymentId, body
     merchantUid: paymentId,
     paymentType: "digital_content",
     accessType: "single_purchase",
-  }).select("userId merchantUid status paymentType accessType").lean();
+  }).select("userId merchantUid status paymentType accessType productId paymentAmount metadata").lean();
 
   if (!order) {
     await writeFailureLog({
@@ -1950,6 +1996,30 @@ async function runSinglePaymentCompleteFromWebhook(request, env, paymentId, body
   }
 
   // Transaction.Paid 웹훅은 body 자체를 신뢰하지 않고 Phase 5 complete 경로를 재사용해 포트원 단건 조회로 다시 검증한다.
+  if (isGuardianFortuneCreditPaymentRecord(order)) {
+    try {
+      const result = await settleGuardianFortunePayment({
+        env,
+        paymentId,
+        userId: order.userId,
+        source: "webhook",
+      });
+      return json({
+        ok: true,
+        idempotent: Boolean(result.idempotent),
+        paymentId,
+        productId: result.product.productId,
+        balanceAfter: result.balanceAfter,
+      });
+    } catch (error) {
+      return json({
+        ok: false,
+        code: String(error?.code || "GUARDIAN_FORTUNE_WEBHOOK_SETTLEMENT_FAILED"),
+        message: String(error?.message || "대화권 결제 적립에 실패했습니다."),
+      }, { status: Number(error?.status) || 400 });
+    }
+  }
+
   const completeRequest = new Request(request.url, {
     method: "POST",
     headers: request.headers,
@@ -2044,6 +2114,31 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
       payload: { paymentId, type: extractPortOneWebhookType(body) },
     });
     return json({ ok: true, ignored: true, reason: "ORDER_NOT_FOUND", paymentId });
+  }
+
+  if (isGuardianFortuneCreditPaymentRecord(current)) {
+    await Payment.findByIdAndUpdate(current._id, {
+      $set: {
+        status: partial ? "refunded" : "cancelled",
+        orderState: partial ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED : SINGLE_PAYMENT_ORDER_STATES.CANCELLED,
+        source: "webhook",
+        failureCode: "guardian_fortune_refund_review_required",
+        failureMessage: "Guardian Fortune credit refund requires usage review.",
+        failureStage: "webhook_guardian_fortune_refund_review",
+        "metadata.guardianFortuneRefundReviewRequired": true,
+        "metadata.guardianFortuneCreditRevoked": false,
+        lastErrorAt: new Date(),
+      },
+      $inc: { confirmAttempts: 1 },
+    }).catch(() => {});
+    return json({
+      ok: true,
+      idempotent: false,
+      status: "GUARDIAN_FORTUNE_REFUND_REVIEW_REQUIRED",
+      paymentId,
+      unlockRevoked: false,
+      adminReviewRequired: true,
+    });
   }
 
   const completed = current.status === "success" || current.status === "fulfilled";
@@ -3690,6 +3785,16 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
 async function handlePrepare(request, env, auth) {
   const body = await readJson(request);
 
+  if (
+    String(body?.productType || "").trim().toLowerCase() === GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE
+    || /^guardian_fortune_chat_(?:3|10)$/.test(String(body?.productId || "").trim().toLowerCase())
+  ) {
+    return json({
+      message: "오늘의 귀인 운세 대화권은 전용 PG 결제 경로를 이용해 주세요.",
+      code: "GUARDIAN_FORTUNE_USE_DEDICATED_PURCHASE_ROUTE",
+    }, { status: 409 });
+  }
+
   if (isDigitalContentPaymentRequest(body)) {
     return handleDigitalContentPrepare(request, env, auth, body);
   }
@@ -4778,6 +4883,15 @@ async function handleSubscriptionConfirm(request, env, auth) {
 
 async function handleConfirm(request, env, auth) {
   const body = await readJson(request);
+  if (
+    String(body?.productType || "").trim().toLowerCase() === GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE
+    || /^guardian_fortune_chat_(?:3|10)$/.test(String(body?.productId || "").trim().toLowerCase())
+  ) {
+    return json({
+      message: "오늘의 귀인 운세 대화권은 전용 PG 결제 확인 경로를 이용해 주세요.",
+      code: "GUARDIAN_FORTUNE_USE_DEDICATED_CONFIRM_ROUTE",
+    }, { status: 409 });
+  }
   const hasMinimalRedirectPayload = Boolean(
     (body?.impUid || body?.paymentId)
       && (body?.merchantUid || body?.merchant_uid)
@@ -6134,7 +6248,7 @@ const PAYMENT_ROUTE_USER_PROJECTION = {
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
 // 가능해(민법 제5조) 결제창이 뜨기 전 단계에서 막는다. 이미 승인된 결제의 완료(/confirm,
 // /single/complete)는 막지 않는다 — 돈만 빠져나가고 지급이 안 되는 상태가 더 나쁘다.
-const MINOR_BLOCKED_PAYMENT_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare"]);
+const MINOR_BLOCKED_PAYMENT_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare", "/guardian-fortune/prepare"]);
 
 async function enforceMinorPaymentRestriction(env, auth, method, path) {
   if (method !== "POST" || !MINOR_BLOCKED_PAYMENT_PATHS.has(path)) return null;
@@ -6166,6 +6280,82 @@ async function enforceMinorPaymentRestriction(env, auth, method, path) {
 // 연속 카운트로도 구분이 안 됐고(재조정 크론이 그 오탐으로 매 틱 중단됐다), 이 게이트의 오탐은
 // '전 사용자 결제 차단' 이라 막으려던 사고보다 피해가 크다. 신뢰할 수 없는 차단기는 두지 않는다.
 // 자격증명 장애 감지는 재조정 태스크의 credentialSuspect 로그와 PaymentFailureLog 로 한다.
+
+function guardianFortunePurchaseErrorResponse(error) {
+  return json({
+    ok: false,
+    success: false,
+    code: String(error?.code || "GUARDIAN_FORTUNE_PURCHASE_FAILED"),
+    message: String(error?.message || "대화권 결제를 처리하지 못했습니다."),
+  }, { status: Number(error?.status) || 400 });
+}
+
+async function handleGuardianFortuneCreditCatalog(env) {
+  if (!isGuardianFortuneCreditSalesEnabled(env)) {
+    return json({ ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" }, { status: 404 });
+  }
+  return json({
+    ok: true,
+    enabled: true,
+    products: listGuardianFortuneCreditProducts(),
+    policy: buildGuardianFortunePurchasePolicySummary(),
+  });
+}
+
+async function handleGuardianFortuneCreditBalance(auth, env) {
+  if (!isGuardianFortuneCreditSalesEnabled(env)) {
+    return json({ ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" }, { status: 404 });
+  }
+  const balance = await getGuardianFortuneCreditBalance(auth.userId);
+  return json({ ok: true, enabled: true, balance });
+}
+
+async function handleGuardianFortuneCreditPrepare(request, env, auth) {
+  if (!isGuardianFortuneCreditSalesEnabled(env)) {
+    return json({ ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" }, { status: 404 });
+  }
+  try {
+    const body = await readJson(request);
+    const result = await createGuardianFortuneCreditOrder({
+      env,
+      userId: auth.userId,
+      body,
+      requestUrl: request.url,
+    });
+    return json(result, { status: result.idempotent ? 200 : 201 });
+  } catch (error) {
+    return guardianFortunePurchaseErrorResponse(error);
+  }
+}
+
+async function handleGuardianFortuneCreditConfirm(request, env, auth) {
+  if (!isGuardianFortuneCreditSalesEnabled(env)) {
+    return json({ ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" }, { status: 404 });
+  }
+  try {
+    const body = await readJson(request);
+    const paymentId = String(body?.merchantUid || body?.paymentId || "").trim();
+    const providerPaymentId = String(body?.paymentId || paymentId).trim();
+    const result = await settleGuardianFortunePayment({
+      env,
+      paymentId,
+      providerPaymentId,
+      userId: auth.userId,
+      source: "confirm",
+    });
+    const balance = await getGuardianFortuneCreditBalance(auth.userId);
+    return json({
+      ok: true,
+      idempotent: Boolean(result.idempotent),
+      message: `${result.product.productName}가 충전되었어요.`,
+      product: result.product,
+      balance,
+      payment: formatPaymentResponse(result.payment),
+    });
+  } catch (error) {
+    return guardianFortunePurchaseErrorResponse(error);
+  }
+}
 
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
@@ -6233,6 +6423,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
+    if (method === "GET" && path === "/guardian-fortune/catalog") return await handleGuardianFortuneCreditCatalog(env);
 
     await connectDb(env);
     trace.dbConnected = true;
@@ -6241,6 +6432,9 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (method === "POST" && path === "/single/complete") return await handleSinglePaymentComplete(request, env, auth);
     if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
+    if (method === "GET" && path === "/guardian-fortune/balance") return await handleGuardianFortuneCreditBalance(auth, env);
+    if (method === "POST" && path === "/guardian-fortune/prepare") return await handleGuardianFortuneCreditPrepare(request, env, auth);
+    if (method === "POST" && path === "/guardian-fortune/confirm") return await handleGuardianFortuneCreditConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, env, auth);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
@@ -6263,6 +6457,10 @@ export const __paymentsTestUtils = {
   handlePrepare,
   handleSinglePaymentStart,
   handleSinglePaymentComplete,
+  handleGuardianFortuneCreditCatalog,
+  handleGuardianFortuneCreditBalance,
+  handleGuardianFortuneCreditPrepare,
+  handleGuardianFortuneCreditConfirm,
   handleWebhook,
   markPaymentCancellationForAdminReview,
   handleSubscriptionPrepare,
