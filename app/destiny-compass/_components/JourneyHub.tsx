@@ -1,8 +1,5 @@
 "use client";
-/**
- * 운명의 나침반 첫 화면.
- * 사용자가 먼저 방향을 만져 본 뒤, 실제 계산 입력으로 자연스럽게 들어가도록 만든다.
- */
+
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { Starfield } from "./Starfield";
 import { ConstellationMark } from "./ConstellationMark";
@@ -10,6 +7,7 @@ import { DIRECTION_LABEL_KO } from "../_engine/constants";
 import type { DirectionKey } from "../_engine/types";
 import { COMPASS_ORDER } from "../_stage/expressionMap";
 import { checkInToday, readCollectibles, readRpgSnapshot, type RpgSnapshot } from "../_lib/rpg-bridge";
+import { compassPaintings } from "../data/assets";
 import hub from "./JourneyHub.module.css";
 
 const STEP_DEG = 360 / COMPASS_ORDER.length;
@@ -84,7 +82,7 @@ function InteractiveCompass({
         if (event.currentTarget.hasPointerCapture(event.pointerId)) selectFromPoint(event);
       }}
       role="group"
-      aria-label={`선택된 나침반 방향: ${DIRECTION_LABEL_KO[selected]}`}
+      aria-label={`선택한 운명의 나침반 방향: ${DIRECTION_LABEL_KO[selected]}`}
     >
       <div className={hub.dialHalo} aria-hidden="true" />
       <svg className={hub.rose} viewBox="0 0 240 240" aria-hidden="true">
@@ -185,13 +183,21 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
 
   const greeting = useMemo(() => {
     const streak = snap?.streakDays ?? 0;
-    if (streak >= 7) return `${streak}일째 이어진 흐름이 있어요. 오늘은 방향을 조금 더 선명하게 잡아볼게요.`;
-    if (streak >= 2) return `${streak}일 연속으로 나침반을 열었어요. 오늘의 바늘도 함께 맞춰봐요.`;
-    return "지금 당신의 방향은 어디를 향하고 있을까요?";
+    if (streak >= 7) return `${streak}일째 이어진 운명의 기록이 있어요. 오늘은 방향이 조금 더 선명하게 잡힙니다.`;
+    if (streak >= 2) return `${streak}일 연속으로 나침반을 열었어요. 오늘의 바늘도 차분히 맞춰볼게요.`;
+    return "지금 당신의 마음은 어느 방향을 향하고 있을까요?";
   }, [snap]);
 
   return (
-    <main className={hub.stage}>
+    <main
+      className={hub.stage}
+      style={
+        {
+          "--hub-island-art": `url("${compassPaintings.premiumIslandDesktop}")`,
+          "--hub-compass-ornament": `url("${compassPaintings.premiumCompassOrnament}")`,
+        } as CSSProperties
+      }
+    >
       <Starfield />
       <section className={hub.hero} aria-labelledby="destiny-compass-title">
         <div className={hub.copy}>
@@ -199,7 +205,7 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
           <h1 id="destiny-compass-title" className={hub.title}>운명의 나침반</h1>
           <p className={hub.sub}>{greeting}</p>
           <p className={hub.microcopy}>
-            바늘을 움직여 마음이 먼저 향하는 쪽을 골라보세요. 실제 결과는 생년 정보와 오늘의 질문을 함께 읽어 다시 계산합니다.
+            나침반을 움직여 지금 마음이 먼저 향하는 쪽을 골라보세요. 실제 결과는 생년 정보와 오늘의 질문을 함께 읽어 다시 계산합니다.
           </p>
         </div>
 
@@ -217,7 +223,7 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
           <div className={hub.statusLine} aria-label="운명 여정 상태">
             {snap && <span>Lv.{snap.currentLevel}</span>}
             {snap?.streakDays ? <span>{snap.streakDays}일 연속</span> : null}
-            {dexCount > 0 && <span>도감 {dexCount}장</span>}
+            {dexCount > 0 && <span>도감 {dexCount}개</span>}
           </div>
         )}
 

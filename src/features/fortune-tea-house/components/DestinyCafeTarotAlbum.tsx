@@ -195,10 +195,11 @@ export default function DestinyCafeTarotAlbum({
   const isHoneyDisabled = Boolean(honeyDrops?.disabled);
   const isAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
   const canUnlock = !isHoneyLoading && !isHoneyDisabled && !isAlbumUnlocked && currentHoneyDrops >= TAROT_ALBUM_UNLOCK_COST;
-  const cardBackUrl = fortuneTeaHouseAssets.yeoni.transparent.tarotCardBackR2;
+  const cardBackUrl = fortuneTeaHouseAssets.premium.tarotCardBack;
+  const albumCoverUrl = fortuneTeaHouseAssets.premium.tarotAlbumCover;
   const honeyDropUrl = fortuneTeaHouseAssets.rewards.honeyDropCounter;
-  const backgroundDesktopUrl = fortuneTeaHouseAssets.backgrounds.mainDesktop;
-  const backgroundMobileUrl = fortuneTeaHouseAssets.backgrounds.mainMobile;
+  const backgroundDesktopUrl = fortuneTeaHouseAssets.premium.landingDesktop;
+  const backgroundMobileUrl = fortuneTeaHouseAssets.premium.landingMobile;
   const yeoniCutoutUrl = fortuneTeaHouseAssets.yeoni.transparent.bust;
   const yeoniPoseFrames = fortuneTeaHouseAssets.yeoni.transparent.tarotPoseFrames;
   const previewCards = useMemo(
@@ -434,6 +435,7 @@ export default function DestinyCafeTarotAlbum({
               totalCards={albumCards.length}
               selectedCount={selectedCount}
               cardBackUrl={cardBackUrl}
+              albumCoverUrl={albumCoverUrl}
               yeoniPoseFrames={yeoniPoseFrames}
               pdfBusy={isPdfBusy}
               onDownloadAll={() => handleDownloadPdf("all")}
@@ -581,6 +583,7 @@ function TarotAlbumHero({
   totalCards,
   selectedCount,
   cardBackUrl,
+  albumCoverUrl,
   yeoniPoseFrames,
   pdfBusy,
   onDownloadAll,
@@ -590,15 +593,23 @@ function TarotAlbumHero({
   totalCards: number;
   selectedCount: number;
   cardBackUrl: string;
+  albumCoverUrl: string;
   yeoniPoseFrames: readonly string[];
   pdfBusy: boolean;
   onDownloadAll: () => void;
   onDownloadSelected: () => void;
 }) {
   return (
-    <header className="relative overflow-hidden rounded-[2rem] border border-champagne-gold/20 bg-midnight-ink/45 px-5 py-6 shadow-[0_0_60px_rgba(216,179,108,0.12)] backdrop-blur-xl sm:px-6 sm:py-8 md:px-10 md:py-12">
+    <header className="relative overflow-hidden rounded-[1.25rem] border border-champagne-gold/24 bg-midnight-ink/52 px-5 py-6 shadow-[0_0_70px_rgba(216,179,108,0.16)] backdrop-blur-xl sm:px-6 sm:py-8 md:px-10 md:py-12">
       <span className="pointer-events-none absolute left-10 top-6 h-28 w-28 rounded-full bg-champagne-gold/10 blur-2xl" aria-hidden />
       <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(237,239,245,.10),transparent_34%),linear-gradient(120deg,rgba(255,255,255,.05),transparent_45%)]" aria-hidden />
+      <span
+        className="pointer-events-none absolute -right-10 bottom-0 hidden h-[112%] w-[420px] bg-cover bg-center opacity-[0.28] mix-blend-screen blur-[0.2px] sm:block"
+        style={{
+          backgroundImage: `linear-gradient(90deg, rgba(10,14,26,0.9), rgba(10,14,26,0.24)), url("${albumCoverUrl}")`,
+        }}
+        aria-hidden
+      />
       <MoonlitPetalField density="normal" />
       <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] lg:items-center">
         <div className="max-w-3xl">

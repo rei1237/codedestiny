@@ -13,6 +13,12 @@ const teaHouseNoBackgroundAsset = (fileName: string) => teaHouseAsset(`nobackgro
 const tenGodSheetAsset = "/images/fortune-tea-house/ten-gods-photoroom.webp";
 
 export const fortuneTeaHouseAssets = {
+  premium: {
+    landingDesktop: "/images/fortune-tea-house/premium-tea-house-desktop.webp",
+    landingMobile: "/images/fortune-tea-house/premium-tea-house-mobile.webp",
+    tarotAlbumCover: "/images/fortune-tea-house/moonlight-tarot-album-cover.webp",
+    tarotCardBack: "/images/fortune-tea-house/moonlight-tarot-card-back.webp",
+  },
   cutout: {
     flowerPig: teaHouseNoBackgroundAsset("flower-pig-cutout.webp"),
     talkingPig1: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni1-cutout.webp"),

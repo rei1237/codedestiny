@@ -18,25 +18,22 @@ type FortuneTeaHouseLandingProps = {
 const talkingPigFrames = [
   {
     ...talkingPigYeoniFrameCrops.welcome,
-    speech: "꿀… 문 앞에서 기다리고 있었어.",
+    speech: "어서 오세요. 오늘의 마음은 제가 먼저 따뜻하게 데워둘게요.",
   },
   {
     ...talkingPigYeoniFrameCrops.thinking,
-    speech: "달빛 찻잔이 네 마음을 알아볼 거야.",
+    speech: "질문은 천천히 꺼내도 괜찮아요. 찻잎은 마음의 속도를 기다릴 줄 알아요.",
   },
   {
     ...talkingPigYeoniFrameCrops.surprised,
-    speech: "조금만 더 가까이 와 봐.",
+    speech: "달빛이 조금 더 가까워졌어요. 지금의 흐름을 함께 살펴볼까요?",
   },
 ] as const;
 
 const landingPetals = Array.from({ length: 16 }, (_, index) => index);
-const landingSceneUi =
-  "relative isolate min-h-[100dvh] overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
-const landingHeroUi =
-  "relative isolate min-h-[100dvh] overflow-hidden";
-const landingCopyUi =
-  "relative z-10 mx-auto max-w-[620px] [text-wrap:balance] lg:mx-0";
+const landingSceneUi = "relative isolate min-h-[100dvh] overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
+const landingHeroUi = "relative isolate min-h-[100dvh] overflow-hidden";
+const landingCopyUi = "relative z-10 mx-auto max-w-[620px] [text-wrap:balance] lg:mx-0";
 const landingBadgeUi =
   "inline-flex items-center justify-center !rounded-full !border !border-[#f6dfb7]/25 !bg-[#12091f]/40 px-4 py-2 !font-[var(--tea-font-premium)] !text-[0.78rem] !font-semibold !tracking-[0] !text-[#ffe8a6] !shadow-[0_12px_28px_rgba(4,2,12,0.2),0_0_22px_rgba(246,223,183,0.12)] ring-1 ring-white/10 backdrop-blur-md";
 const landingTitleUi =
@@ -45,14 +42,11 @@ const landingLeadUi =
   "max-w-[540px] !font-[var(--tea-font-premium)] !text-[#fffaf1]/90 drop-shadow-[0_10px_24px_rgba(4,2,12,0.45)]";
 const landingIntroUi =
   "max-w-[560px] !font-[var(--tea-font-body)] !leading-[1.78] !text-[#fff7e8]/80 drop-shadow-[0_8px_22px_rgba(4,2,12,0.38)]";
-const landingActionsUi =
-  "w-full max-w-[460px]";
+const landingActionsUi = "w-full max-w-[460px]";
 const landingHistoryUi =
   "mt-3 flex min-h-11 w-full max-w-[460px] items-center justify-center gap-2 !rounded-[0.85rem] !border !border-[#f6dfb7]/20 !bg-[#12091f]/35 px-4 py-2.5 !font-[var(--tea-font-premium)] !text-[0.92rem] !font-semibold !text-[#fffaf1]/90 !shadow-[0_12px_28px_rgba(4,2,12,0.2),inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/5 backdrop-blur-md transition duration-200 hover:-translate-y-0.5 hover:!border-[#ffe8a6]/45 hover:!text-[#fffaf1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/75";
-// UI/UX 개선: 하단 안내 카드는 화면에서 숨기되, SEO(AdSense 콘텐츠 게이트)용 텍스트는 DOM에 유지하기 위해 sr-only 처리.
 const landingGuideUi = "sr-only";
-const landingGuideCardUi =
-  "grid min-w-0 content-start gap-2.5 rounded-[8px] border border-[#f6dfb7]/20 p-4 sm:p-5 md:gap-3 md:p-6";
+const landingGuideCardUi = "grid min-w-0 content-start gap-2.5 rounded-[8px] border border-[#f6dfb7]/20 p-4 sm:p-5 md:gap-3 md:p-6";
 const landingGuideBadgeUi =
   "w-fit rounded-full border border-[#f6dfb7]/30 bg-[#12091f]/45 px-2.5 py-1 !font-[var(--tea-font-premium)] !text-[0.72rem] !font-extrabold !leading-none !tracking-[0] !text-[#ffe8a6]";
 const landingGuideTitleUi =
@@ -100,8 +94,8 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
         className={`${styles.landingHero} ${landingHeroUi}`}
         style={
           {
-            "--landing-bg-desktop": `url("${fortuneTeaHouseAssets.backgrounds.landingDesktop}")`,
-            "--landing-bg-mobile": `url("${fortuneTeaHouseAssets.backgrounds.landingMobile}")`,
+            "--landing-bg-desktop": `url("${fortuneTeaHouseAssets.premium.landingDesktop}")`,
+            "--landing-bg-mobile": `url("${fortuneTeaHouseAssets.premium.landingMobile}")`,
             "--landing-overlay": `url("${fortuneTeaHouseAssets.ui.overlay}")`,
             "--landing-overlay-2": `url("${fortuneTeaHouseAssets.ui.overlay2}")`,
             "--landing-bubble-overlay": `url("${fortuneTeaHouseAssets.ui.overlayCutout}")`,
@@ -124,11 +118,10 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
             <p className={`${styles.landingLead} ${landingLeadUi}`}>
               달빛 골목 끝에서 문이 열립니다.
               <br />
-              연이가 당신의 질문을 먼저 따뜻하게 맞이합니다.
+              연이가 당신의 질문을 먼저 부드럽게 맞이합니다.
             </p>
             <p className={`${styles.landingIntro} ${landingIntroUi}`}>
-              말로 꺼내기 어려웠던 마음을 찻잔 위에 올려두면,
-              달빛과 카드의 상징이 지금 붙잡아야 할 방향을 조용히 비춥니다.
+              말로 꺼내기 어려웠던 마음을 찻잔 앞에 내려놓으면, 찻잎과 카드의 상징이 지금 붙잡아야 할 방향을 조용히 비춥니다.
             </p>
             <div className={`${styles.landingActions} ${landingActionsUi}`}>
               <TeaHouseButton
@@ -194,62 +187,32 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
           </div>
         </div>
       </div>
-      <div className={landingGuideUi} aria-label="운명의 찻집에서 머무는 법">
+      <div className={landingGuideUi} aria-label="운명의 찻집 이용 안내">
         <article className={landingGuideCardUi} style={landingGuideCardStyle}>
           <span className={landingGuideBadgeUi}>Tea Reading</span>
-          <h2 className={landingGuideTitleUi}>찻잔 위에 남은 마음부터 천천히 읽습니다</h2>
+          <h2 className={landingGuideTitleUi}>찻잔 앞에 잠시 멈추면 마음의 질문이 선명해집니다</h2>
           <p className={landingGuideBodyUi}>
-            운명의 찻집에 들어오면 연이는 먼저 질문의 온도를 살핍니다. 사랑을 묻는 마음인지,
-            다시 만나고 싶은 인연인지, 지금의 선택 앞에서 오래 멈춘 마음인지에 따라 찻잔의 빛은
-            다르게 기울어집니다. 타로를 고르면 카드의 장면이 마음속에서 반복되는 상징을 비추고,
-            사주를 고르면 태어난 계절과 오행의 흐름이 지금의 선택을 어떻게 흔드는지 드러납니다.
-            숙요점 궁합을 고르면 두 사람 사이에 남은 거리, 당겨지는 힘, 조심해야 할 말의 결이
-            잔잔하게 떠오릅니다.
+            운명의 찻집은 연이가 질문의 온도를 먼저 살피고, 찻잎과 카드의 상징을 따라 지금의 감정과 선택지를 부드럽게 정리하는 상담 공간입니다.
           </p>
           <p className={landingGuideBodyUi}>
-            연이는 빠른 결론보다 마음이 왜 그 질문에 머무는지를 먼저 봅니다. 그래서 이곳의 상담은
-            좋다거나 나쁘다는 한마디로 닫히지 않습니다. 이미 알고 있었지만 말하지 못한 마음,
-            반복해서 같은 자리로 돌아가게 만든 불안, 지금은 놓아야 하는 기대와 아직 지켜도 되는
-            소망을 조용히 나누어 봅니다. 대답은 부드럽게 오지만, 흐릿한 마음을 그대로 두지는 않습니다.
+            빠른 결론보다 마음이 왜 그 질문에 머무는지를 먼저 봅니다. 불안을 키우는 단정 대신, 지금 붙잡아도 되는 것과 내려놓아야 하는 것을 차분히 나눕니다.
           </p>
         </article>
         <article className={landingGuideCardUi} style={landingGuideCardStyle}>
           <span className={landingGuideBadgeUi}>Moonlit Flow</span>
-          <h2 className={landingGuideTitleUi}>질문은 작아도 괜찮고, 마음은 솔직할수록 선명합니다</h2>
+          <h2 className={landingGuideTitleUi}>질문은 작아도 마음의 결은 충분히 깊게 읽습니다</h2>
           <p className={landingGuideBodyUi}>
-            이름과 생년월일, 필요한 출생 정보가 들어오면 찻집의 문은 조금 더 깊게 열립니다.
-            출생시간을 모르는 날에도 가능한 범위에서 흐름을 읽고, 질문이 짧게 맴도는 날에는
-            연이가 먼저 감정의 가장자리를 정리합니다. 중요한 것은 멋진 문장이 아니라 지금 정말
-            궁금한 한 줄입니다. 왜 답장을 기다리는지, 왜 이직 앞에서 마음이 굳는지, 왜 같은 사람에게
-            다시 흔들리는지처럼 마음이 오래 붙잡은 자리일수록 찻잔은 또렷하게 반응합니다.
+            이름, 생년월일, 필요하면 출생 정보와 질문을 바탕으로 연애, 관계, 선택, 흐름을 각각 다른 언어로 비춥니다.
           </p>
           <p className={landingGuideBodyUi}>
-            상담이 열린 뒤에는 카드와 명식, 인연의 흐름이 서로 다른 언어로 같은 마음을 비춥니다.
-            타로는 지금 눈앞의 장면을, 사주는 오래 이어진 기질과 선택 습관을, 숙요점은 관계 안에서
-            서로를 당기고 밀어내는 리듬을 살핍니다. 연이는 그 흐름을 한 사람의 밤에 맞는 말로
-            풀어내며, 오늘 붙잡아도 되는 마음과 오늘은 내려놓아야 하는 마음을 차분히 가리킵니다.
+            타로는 감정의 장면을, 사주는 오래 이어진 패턴을, 숙요는 관계의 거리와 호흡을 살펴보며 사용자가 오늘 할 수 있는 행동으로 연결합니다.
           </p>
         </article>
         <article className={landingGuideCardUi} style={landingGuideCardStyle}>
           <span className={landingGuideBadgeUi}>Yeoni&apos;s Promise</span>
-          <h2 className={landingGuideTitleUi}>상처를 크게 만들지 않고, 필요한 말은 흐리지 않습니다</h2>
+          <h2 className={landingGuideTitleUi}>상처를 크게 만들지 않고, 필요한 말만 부드럽게 건넵니다</h2>
           <p className={landingGuideBodyUi}>
-            운명의 찻집은 마음을 재촉하지 않습니다. 다만 같은 걱정을 오래 품고 있었다면, 그 걱정이
-            어디에서 시작됐는지 함께 바라봅니다. 연애와 재회에서는 상대의 마음만 좇지 않고 당신이
-            반복해서 기대는 감정의 습관을 봅니다. 일과 돈에서는 불안이 판단을 흐리는 지점과 현실적으로
-            먼저 정리할 기준을 나눕니다. 인간관계에서는 지키고 싶은 마음과 인정받고 싶은 마음이 어디서
-            뒤섞였는지 조용히 분리합니다.
-          </p>
-          <p className={landingGuideBodyUi}>
-            찻잔의 빛은 단정하지 않고, 필요한 방향을 남깁니다. 지금은 기다려도 되는 때인지,
-            먼저 말을 꺼내야 하는 때인지, 더 이상 마음을 소모하지 말아야 하는 때인지가 상담의 끝에서
-            자연스럽게 드러납니다. 연이는 그 답을 당신 대신 살아 주지는 않지만, 오늘 밤 어떤 마음을
-            품고 잠들어야 덜 흔들리는지는 분명히 비춥니다.
-          </p>
-          <p className={landingGuideBodyUi}>
-            다시 찾아오는 마음도 이곳에서는 서두르지 않습니다. 같은 질문을 다른 날에 꺼내면,
-            찻잔은 그날의 온도와 지난 선택의 흔적을 함께 비춥니다. 그래서 오늘의 대답은 끝이 아니라,
-            당신이 스스로에게 덜 거칠어지는 작은 약속으로 남습니다.
+            운명의 찻집은 사용자의 마음을 겁주지 않습니다. 가능성과 흐름을 중심으로 읽고, 선택을 대신하기보다 생각을 정리할 수 있는 문장을 건넵니다.
           </p>
         </article>
       </div>

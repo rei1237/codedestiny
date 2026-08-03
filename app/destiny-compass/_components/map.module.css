@@ -250,6 +250,16 @@
   .mapHeader { padding-top: 40px; }
 }
 
+@media (max-width: 640px) {
+  .islandArt {
+    background-image:
+      radial-gradient(68% 56% at 56% 42%, rgba(232, 213, 163, 0.16), transparent 70%),
+      linear-gradient(180deg, rgba(5, 8, 20, 0.18), rgba(3, 6, 16, 0.48)),
+      var(--island-art-mobile);
+    background-position: center;
+  }
+}
+
 /* ── 맵 무대 ─────────────────────────────── */
 .mapField {
   position: relative;
@@ -280,9 +290,18 @@
 .islandArt {
   position: absolute;
   inset: 0;
-  border-radius: 26px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 20px 48px rgba(80, 130, 90, 0.32), inset 0 0 0 2px rgba(255, 255, 255, 0.45);
+  background-image:
+    radial-gradient(60% 52% at 60% 46%, rgba(232, 213, 163, 0.14), transparent 68%),
+    linear-gradient(180deg, rgba(5, 8, 20, 0.14), rgba(3, 6, 16, 0.38)),
+    var(--island-art-desktop);
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    0 24px 58px rgba(3, 8, 22, 0.46),
+    0 0 0 1px rgba(232, 213, 163, 0.24),
+    inset 0 0 0 1px rgba(255, 248, 236, 0.16);
   animation: islandBreathe var(--cd-map-breathe, 10s) ease-in-out infinite;
 }
 .islandArtImg {
@@ -295,7 +314,9 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(120% 92% at 50% 44%, rgba(255, 255, 255, 0.1), transparent 66%);
+  background:
+    radial-gradient(120% 92% at 50% 44%, rgba(255, 255, 255, 0.08), transparent 66%),
+    linear-gradient(180deg, rgba(3, 6, 16, 0.04), rgba(3, 6, 16, 0.32));
 }
 /* 제출 → 처리 전환: 지도로 카메라 줌인(여정으로 전환) */
 .mapFieldZoom {
