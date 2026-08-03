@@ -1,9 +1,6 @@
-name: Cloudflare Safe Auto Release
+name: Cloudflare Safe Preview Preparation
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -15,7 +12,7 @@ permissions:
 
 jobs:
   safe-release:
-    name: Decide, preview, smoke, promote
+    name: Prepare and verify preview only
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -23,7 +20,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
       CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
-      CD_DEPLOY_BASE_SHA: ${{ github.event.before }}
+      CD_DEPLOY_BASE_SHA: ${{ github.event.before || github.sha }}
       CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
@@ -67,5 +64,5 @@ jobs:
           NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH: ${{ vars.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || secrets.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH }}
         run: npm run secrets:cf:pages -- --skip-empty
 
-      - name: Run automatic safe release
-        run: npm run deploy:safe -- --ci --yes
+      - name: Run preview-only safe release
+        run: npm run deploy:safe -- --ci --preview-only
