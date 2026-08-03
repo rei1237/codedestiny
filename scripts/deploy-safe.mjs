@@ -46,7 +46,7 @@ function parseArgs(argv) {
   const values = new Map();
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci"].includes(arg)) flags.add(arg);
+    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only"].includes(arg)) flags.add(arg);
     else if (arg.startsWith("--") && arg.includes("=")) {
       const separator = arg.indexOf("=");
       values.set(arg.slice(2, separator), arg.slice(separator + 1));
@@ -61,8 +61,9 @@ const cli = parseArgs(process.argv.slice(2));
 const stage = cli.values.get("stage") || "";
 const allowDirty = cli.flags.has("--allow-dirty");
 const ciMode = cli.flags.has("--ci");
-const autoYes = cli.flags.has("--yes") || ciMode;
+const autoYes = cli.flags.has("--yes");
 const allowNoWorkerPreview = cli.flags.has("--allow-no-worker-preview");
+const previewOnly = cli.flags.has("--preview-only");
 
 function envForChecks() {
   return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true" };
@@ -449,6 +450,10 @@ async function safeStage() {
     const state = { ...preview.state, preview: { ...preview.state.preview, smokePassed: true, smokedAt: new Date().toISOString() } };
     writeState(state);
     console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
+    if (previewOnly) {
+      console.log("[deploy-safe] Preview-only mode; production was not attempted.");
+      return;
+    }
     await promote(preview.value, state, autoYes || await confirmProduction());
   } finally { unlock(); }
 }
