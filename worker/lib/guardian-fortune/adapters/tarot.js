@@ -49,8 +49,13 @@ export function buildTarotAdapter(input, options = {}) {
     throw error;
   }
 
-  const spreadId = spreadForTopic(input.topic);
-  const spread = getSpreadDefinition(spreadId);
+  const fusionPositions = options.fusionTarot === true
+    ? ["core", "saju_bridge", "ziwei_bridge", "vedic_bridge", "relationship_bridge", "action_bridge"].map((key) => ({ key }))
+    : null;
+  const spreadId = fusionPositions ? "fusion_six_system_bridge" : spreadForTopic(input.topic);
+  const spread = fusionPositions
+    ? { positions: fusionPositions, questionType: "fusion_fortune" }
+    : getSpreadDefinition(spreadId);
   if (!spread || !Array.isArray(spread.positions) || !spread.positions.length) {
     const error = new Error("TAROT_SPREAD_UNAVAILABLE");
     error.code = "SPREAD_UNAVAILABLE";
@@ -108,7 +113,7 @@ export function buildTarotAdapter(input, options = {}) {
   ) || `오늘은 ${outputCards.map((card) => card.name).join(", ")} 카드가 보여주는 상징을 행동의 기준으로 삼아보세요.`;
 
   return {
-    spreadType: outputCards.length === 1 ? "one_card" : "three_card",
+    spreadType: fusionPositions ? "fusion_six_system_bridge" : outputCards.length === 1 ? "one_card" : "three_card",
     spreadId,
     questionType: spread.questionType,
     cards: outputCards,

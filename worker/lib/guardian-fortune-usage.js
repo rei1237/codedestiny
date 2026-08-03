@@ -146,12 +146,12 @@ export function maskGuardianFortuneUsageIdentity({ userId, guestIdHash } = {}) {
 function usageMessage({ isLoggedIn, guestUsed, dailyRemaining, paidRemaining }) {
   if (!isLoggedIn) {
     return guestUsed > 0
-      ? "첫 무료 상담을 이미 사용했어요. 로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요."
+      ? "첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요."
       : "첫 1회는 로그인 없이 무료로 볼 수 있어요.";
   }
   if (dailyRemaining > 0) return `오늘 남은 무료 상담 ${dailyRemaining}회`;
   if (paidRemaining > 0) return `오늘의 무료 상담은 모두 사용했어요. 보유 대화권 ${paidRemaining}회 중 1회를 사용할 수 있어요.`;
-  return "오늘의 무료 상담 3회를 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.";
+  return "오늘 이용 가능한 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.";
 }
 
 export function buildGuardianFortuneDisabledUsageStatus({ isLoggedIn = false } = {}) {
@@ -662,7 +662,7 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
 
 export function buildGuardianFortuneLimitCta(errorCode, isLoggedIn) {
   if (!isLoggedIn || errorCode === GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED) {
-    return { label: "로그인하고 하루 3회 받기", targetPath: "/auth/login", reason: "로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요." };
+    return { label: "로그인하고 하루 최대 3회 보기", targetPath: "/auth/login", reason: "로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요." };
   }
   return { label: "대화권 보기", targetPath: "/points", reason: "무료 상담을 모두 사용한 뒤 보유 대화권으로 더 물어볼 수 있어요." };
 }

@@ -28,6 +28,36 @@
     }
   };
 
+  var categories = {
+    saju: { label: '사주', description: '기질, 오행, 일과 돈의 선택 패턴을 중심으로 읽어요.' },
+    ziwei: { label: '자미두수', description: '명궁과 삶의 역할, 일·관계의 배치를 중심으로 읽어요.' },
+    vedic: { label: '베다점', description: '달의 리듬과 나크샤트라가 보여주는 내면의 흐름을 읽어요.' },
+    sukuyo: { label: '숙요점', description: '관계 거리감과 감정 반응의 패턴을 중심으로 읽어요.' },
+    astrology: { label: '점성술', description: '태양·달·행성의 상징에서 감정과 표현 방식을 읽어요.' },
+    tarot: { label: '타로', description: '서버가 뽑은 카드의 배열로 지금의 선택을 정리해요.' }
+  };
+
+  var categoryResults = {
+    saju: {
+      coreReading: '사주는 태어난 계절과 오행, 일간과 십성의 균형을 바탕으로 지금 반복되는 선택 습관을 살펴봐요. 오늘은 한꺼번에 많은 일을 벌이기보다 이미 가진 힘을 어디에 모을지 정할수록 흐름이 또렷해집니다. 강한 기운은 추진력이 되지만 과해지면 서두름으로 나타날 수 있으니, 가장 중요한 한 가지를 먼저 끝내는 편이 좋아요.'
+    },
+    ziwei: {
+      coreReading: '자미두수는 명궁과 주요 궁의 배치를 중심으로 삶에서 자주 맡게 되는 역할과 관계의 패턴을 읽어요. 생시가 확인된 경우에는 명반의 근거를 따라 현재의 강점과 주의점을 구체적으로 연결하고, 생시를 모르는 경우에는 정밀 명반을 단정하지 않은 채 확인 가능한 범위만 안내해요.'
+    },
+    vedic: {
+      coreReading: '베다점은 행성과 달의 리듬을 통해 익숙한 반응과 성장 과제를 살펴봐요. 생시와 출생지가 확인되면 라그나와 나크샤트라 등 계산된 근거를 중심으로 해석하고, 정보가 부족한 경우에는 계산할 수 없는 항목을 만들어내지 않아요. 오늘은 반복되는 감정의 속도를 알아차리는 일이 현실적인 출발점이에요.'
+    },
+    sukuyo: {
+      coreReading: '숙요점은 본명숙과 관계의 거리감을 중심으로 사람 사이에서 가까워지고 물러나는 리듬을 읽어요. 상대의 마음을 대신 확정하기보다 내가 어떤 상황에서 먼저 다가가고, 언제 지나치게 참는지를 살펴봅니다. 오늘은 관계를 지키기 위해 필요한 간격을 솔직하게 정하는 것이 중요해요.'
+    },
+    astrology: {
+      coreReading: '서양 점성술은 태양과 달, 행성의 배치를 바탕으로 감정과 표현, 선택의 패턴을 읽어요. 생시와 출생지가 확인되면 상승궁과 하우스를 계산해 더 구체적으로 살피고, 모르는 경우에는 해당 항목을 단정하지 않아요. 오늘은 마음의 속도와 행동의 속도를 맞추는 데 초점을 두면 좋아요.'
+    },
+    tarot: {
+      coreReading: '타로는 서버에서 실제로 선택한 카드와 배열만 사용해 지금의 상황과 선택지를 이야기처럼 연결해요. 카드 한 장의 뜻을 단정적으로 붙이기보다, 카드 사이의 흐름이 보여주는 감정과 행동의 순서를 살펴봅니다. 미래를 확정하기보다 지금 바꿀 수 있는 작은 선택을 찾는 데 집중해요.'
+    }
+  };
+
   var modes = {
     yeoni: {
       label: '연이',
@@ -54,7 +84,7 @@
     cautionPattern: '상대의 반응이나 아직 오지 않은 결과를 여러 번 상상하면서, 지금 할 수 있는 작은 행동까지 미루지 않도록 해요. 확인할 수 없는 신호를 결론처럼 받아들이면 마음의 속도만 빨라질 수 있어요.',
     luckyAction: '오늘 안에 미뤄둔 일 하나를 15분만 시작하고, 끝난 뒤의 기분을 기록해보세요.',
     cta: {
-      label: '더 깊게 이어서 보기',
+      label: '다른 상담 체계로 보기',
       reason: '오늘의 흐름을 장기적인 패턴과 연결해 보고 싶다면, 다음 상담에서 더 세밀하게 살펴볼 수 있어요.'
     }
   };
@@ -89,14 +119,14 @@
   var usageStates = {
     'mock-error': { label: 'Mock error', copy: 'Mock 상담 결과를 준비하는 중 문제가 생기는 상태입니다.', canGenerate: true, kind: 'mock-error' },
     'guest-available': { label: '비로그인 첫 상담 가능', copy: '첫 1회는 로그인 없이 무료로 볼 수 있어요.', canGenerate: true, kind: 'guest' },
-    'guest-used': { label: '비로그인 무료 사용 완료', copy: '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.', canGenerate: false, kind: 'guest' },
-    'auth-3': { label: '로그인 무료 3회', copy: '오늘 남은 무료 상담 3회', canGenerate: true, kind: 'auth', freeRemaining: 3 },
+    'guest-used': { label: '비로그인 무료 사용 완료', copy: '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.', canGenerate: false, kind: 'guest' },
+    'auth-3': { label: '로그인 무료 최대 3회', copy: '오늘 남은 무료 상담 3회', canGenerate: true, kind: 'auth', freeRemaining: 3 },
     'auth-2': { label: '로그인 무료 2회', copy: '오늘 남은 무료 상담 2회', canGenerate: true, kind: 'auth', freeRemaining: 2 },
     'auth-1': { label: '로그인 무료 1회', copy: '오늘 남은 무료 상담 1회', canGenerate: true, kind: 'auth', freeRemaining: 1 },
     'auth-credit-5': { label: '무료 소진 + 대화권 5회', copy: '오늘의 무료 상담은 모두 사용했어요. 보유 대화권 5회 중 1회를 사용할 수 있어요.', canGenerate: true, kind: 'credit', creditRemaining: 5 },
     'auth-credit-3': { label: '대화권 3회', copy: '무료 상담을 모두 사용했어요. 보유 대화권 3회로 계속 물어볼 수 있어요.', canGenerate: true, kind: 'credit', creditRemaining: 3 },
     'auth-credit-10': { label: '대화권 10회', copy: '무료 상담을 모두 사용했어요. 보유 대화권 10회로 계속 물어볼 수 있어요.', canGenerate: true, kind: 'credit', creditRemaining: 10 },
-    'auth-exhausted': { label: '무료·대화권 소진', copy: '오늘의 무료 상담 3회를 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.', canGenerate: false, kind: 'exhausted' }
+    'auth-exhausted': { label: '무료·대화권 소진', copy: '오늘 이용 가능한 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.', canGenerate: false, kind: 'exhausted' }
   };
 
   /*
@@ -129,12 +159,12 @@
       ctaMockToast: '이 안내 버튼은 미리보기 상태예요. 실제 이동은 준비된 경로에서만 진행됩니다.',
       guestCta: {
         title: '내 흐름을 더 이어서 보고 싶다면',
-        description: '로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.',
-        primary: '무료로 가입하고 3회 받기',
+        description: '로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.',
+        primary: '가입하고 하루 최대 3회 보기',
         secondary: '로그인하고 이어서 보기'
       },
       exhaustedCta: {
-        title: '오늘의 상담을 더 깊게 이어가려면',
+        title: '다른 상담 체계로 이어서 보기',
         description: '대화권을 구매하면 연이와 네오에게 다른 분야도 더 물어볼 수 있어요.',
         primary: '3회 대화권 보기',
         secondary: '10회 대화권 보기',
@@ -187,6 +217,8 @@
     purchasePolicy: contract.purchasePolicy,
     modes: modes,
     topics: topics,
+    categories: categories,
+    categoryResults: categoryResults,
     results: results,
     sharedCore: sharedCore,
     usageStates: usageStates

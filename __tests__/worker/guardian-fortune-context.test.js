@@ -87,13 +87,13 @@ describe("buildGuardianFortuneContext", () => {
     expect(contextModule.maskGuardianFortuneInputForLog(fixtures.concernInput)).not.toHaveProperty("concern");
   });
 
-  it("builds a context when all injected adapters succeed", async () => {
+  it("builds a context with only the explicitly selected adapter", async () => {
     const result = await contextModule.buildGuardianFortuneContext(fixtures.baseInput, {
       adapters: fakeAdapters(),
     });
 
     expect(result.ok).toBe(true);
-    expect(result.context.availableSystems).toEqual(["saju", "ziwei", "sukuyo", "tarot"]);
+    expect(result.context.availableSystems).toEqual(["saju"]);
     expect(result.context.inputSummary.hasBirthPlace).toBe(false);
     expect(result.context.integratedInsight.openingHook).toBeTruthy();
     expect(result.context.safetyConstraints).toEqual(expect.arrayContaining([
@@ -101,8 +101,8 @@ describe("buildGuardianFortuneContext", () => {
     ]));
   });
 
-  it("keeps building when an adapter fails and records a non-sensitive warning", async () => {
-    const result = await contextModule.buildGuardianFortuneContext(fixtures.baseInput, {
+  it("fails safely when the selected adapter fails", async () => {
+    const result = await contextModule.buildGuardianFortuneContext({ ...fixtures.baseInput, category: "ziwei" }, {
       adapters: fakeAdapters({
         ziwei: async () => {
           const error = new Error("synthetic failure");
@@ -112,24 +112,21 @@ describe("buildGuardianFortuneContext", () => {
       }),
     });
 
-    expect(result.ok).toBe(true);
-    expect(result.context.availableSystems).not.toContain("ziwei");
-    expect(result.context.unavailableClaims).toContain("ziwei.SYNTHETIC_ZIWEI_FAILURE");
+    expect(result.ok).toBe(false);
+    expect(result.errorCode).toBe("GUARDIAN_CONTEXT_ALL_ADAPTERS_FAILED");
     expect(JSON.stringify(result.warnings)).not.toContain(fixtures.baseInput.birthDate);
   });
 
   it("skips time and location dependent claims when inputs are missing", async () => {
-    const result = await contextModule.buildGuardianFortuneContext(fixtures.birthTimeUnknownInput, {
+    const result = await contextModule.buildGuardianFortuneContext({ ...fixtures.birthTimeUnknownInput, category: "ziwei" }, {
       adapters: fakeAdapters(),
     });
 
     expect(result.ok).toBe(true);
     expect(result.context.inputSummary.hasBirthTime).toBe(false);
-    expect(result.context.availableSystems).toEqual(["saju", "sukuyo", "tarot"]);
+    expect(result.context.availableSystems).toEqual(["ziwei"]);
     expect(result.context.unavailableClaims).toEqual(expect.arrayContaining([
       "ziwei.birth_time_required",
-      "vedic.birth_place_required",
-      "astrology.birth_place_required",
     ]));
   });
 
@@ -159,16 +156,41 @@ describe("buildGuardianFortuneContext", () => {
     expect(serialized).not.toContain(fixtures.birthPlace.latitude.toString());
   });
 
-  it("uses the topic priority order when creating evidence keys", async () => {
+  it("uses only selected-system evidence keys", async () => {
     const result = await contextModule.buildGuardianFortuneContext({ ...fixtures.baseInput, topic: "love" }, {
       adapters: fakeAdapters(),
     });
 
     expect(result.ok).toBe(true);
-    expect(result.context.integratedInsight.evidenceKeys.slice(0, 2)).toEqual([
-      "sukuyo.birthMansion",
-      "saju.dayMaster",
-    ]);
+    expect(result.context.integratedInsight.evidenceKeys).toEqual(expect.arrayContaining(["saju.dayMaster"]));
+    expect(result.context.integratedInsight.evidenceKeys.join(" ")).not.toMatch(/ziwei|vedic|sukuyo|astrology|tarot/);
+  });
+
+  it.each(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"])(
+    "runs exactly the selected %s adapter once",
+    async (category) => {
+      const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+      const adapters = Object.fromEntries(Object.entries(fakeAdapters()).map(([name, adapter]) => [name, async (...args) => {
+        calls[name] += 1;
+        return adapter(...args);
+      }]));
+      const result = await contextModule.buildGuardianFortuneContext({
+        ...fixtures.baseInput,
+        category,
+        birthPlace: fixtures.birthPlace,
+      }, { adapters });
+
+      expect(result.ok).toBe(true);
+      expect(result.context.availableSystems).toEqual([category]);
+      expect(calls[category]).toBe(1);
+      expect(Object.entries(calls).filter(([name]) => name !== category).every(([, count]) => count === 0)).toBe(true);
+    },
+  );
+
+  it.each([undefined, "", "fusion", "unknown"])("rejects missing or invalid category %s", (category) => {
+    expect(() => contextModule.normalizeGuardianFortuneInput({ ...fixtures.baseInput, category })).toThrow(
+      expect.objectContaining({ code: "GUARDIAN_CONTEXT_INVALID_INPUT" }),
+    );
   });
 });
 

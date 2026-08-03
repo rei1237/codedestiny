@@ -27,6 +27,30 @@ const ALL_RESULT_TEXT_FIELDS = Object.freeze([
 
 const PARSE_ERROR = "GUARDIAN_LLM_PARSE_FAILED";
 
+const CATEGORY_SYSTEM_MARKERS = Object.freeze({
+  saju: ["사주", "일간", "십성", "오행", "월지", "시주"],
+  ziwei: ["자미두수", "명궁", "신궁", "관록궁", "재백궁", "부처궁", "복덕궁"],
+  vedic: ["베다점", "베다 점성술", "라그나", "나크샤트라", "다샤", "문사인"],
+  sukuyo: ["숙요점", "숙요", "본명숙"],
+  astrology: ["서양 점성술", "상승궁", "어센던트", "하우스"],
+  tarot: ["타로", "스프레드", "정방향", "역방향"],
+});
+
+function findForeignSystemMarker(result, category) {
+  if (!CATEGORY_SYSTEM_MARKERS[category]) return "invalid_category";
+  const visibleText = [
+    ...ALL_RESULT_TEXT_FIELDS.map((field) => safeText(result?.[field], 4000)),
+    safeText(result?.premiumCta?.label, 1000),
+    safeText(result?.premiumCta?.reason, 2000),
+  ].join(" ");
+  for (const [system, markers] of Object.entries(CATEGORY_SYSTEM_MARKERS)) {
+    if (system === category) continue;
+    const marker = markers.find((candidate) => visibleText.includes(candidate));
+    if (marker) return `${system}:${marker}`;
+  }
+  return "";
+}
+
 function safeText(value, max = 1200) {
   if (typeof value !== "string" && typeof value !== "number") return "";
   return String(value).replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
@@ -401,6 +425,16 @@ export function buildFallbackGuardianFortuneResult({ input = {}, context = {}, r
 export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, context = {} } = {}) {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { ok: false, errorCode: "GUARDIAN_RESULT_MISSING_FIELDS", issues: ["result_object"] };
+  }
+
+  const category = context?.inputSummary?.category || input?.category || "";
+  const availableSystems = Array.isArray(context?.availableSystems) ? context.availableSystems : [];
+  if (!CATEGORY_SYSTEM_MARKERS[category] || availableSystems.length !== 1 || availableSystems[0] !== category) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_CATEGORY_BOUNDARY_FAILED", issues: ["category_context_mismatch"] };
+  }
+  const foreignSystemMarker = findForeignSystemMarker(parsed, category);
+  if (foreignSystemMarker) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_CATEGORY_BOUNDARY_FAILED", issues: [`foreign_system_${foreignSystemMarker}`] };
   }
 
   const { topic } = getTopicAndMode(input, context);

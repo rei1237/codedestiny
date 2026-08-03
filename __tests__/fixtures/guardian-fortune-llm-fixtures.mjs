@@ -4,12 +4,13 @@ export const guardianFortuneLlmInput = Object.freeze({
   calendarType: "solar",
   gender: "unknown",
   topic: "love",
+  category: "saju",
   mode: "yeoni",
   locale: "ko-KR",
   concern: "synthetic concern fixture",
 });
 
-export function makeGuardianFortuneContext({ topic = "love", mode = "yeoni", systems = ["saju", "sukuyo", "tarot"] } = {}) {
+export function makeGuardianFortuneContext({ topic = "love", mode = "yeoni", systems = ["saju"], category = "saju" } = {}) {
   return {
     version: "guardian-fortune.v1",
     inputSummary: {
@@ -17,6 +18,7 @@ export function makeGuardianFortuneContext({ topic = "love", mode = "yeoni", sys
       hasBirthPlace: false,
       calendarType: "solar",
       topic,
+      category,
       mode,
       targetDate: "2026-08-02",
       locale: "ko-KR",
@@ -47,7 +49,7 @@ export function makeGuardianFortuneContext({ topic = "love", mode = "yeoni", sys
       cautionPattern: "상대 반응을 보기 전에 혼자 결론을 내리는 것",
       luckyActionHint: "연락하기 전 하고 싶은 말을 한 문장으로 줄여보기",
       premiumBridge: "관계에서 반복되는 거리감과 표현 패턴은 더 깊은 상담에서 이어갈 수 있어요.",
-      evidenceKeys: ["saju.personalityHook", "sukuyo.relationshipPattern", "tarot.symbolicMessage"],
+      evidenceKeys: ["saju.personalityHook"],
     },
     safetyConstraints: [],
   };

@@ -36,17 +36,32 @@ describe("Guardian Fortune prompt builder", () => {
       const context = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, topic } };
       const prompt = promptModule.buildGuardianFortunePrompt({ input: fixtures.topicInputs[topic], context });
       expect(prompt.userPrompt).toContain(topic);
-      expect(prompt.userPrompt).toContain("운세 체계별 역할");
+      expect(prompt.userPrompt).toContain("선택 체계 전문가 지침");
       expect(prompt.userPrompt).toContain("주제별 우선 근거");
       expect(prompt.userPrompt).toContain("전문가 해석 지침");
       expect(prompt.userPrompt).toContain("JSON schema hint");
     }
   });
 
+  it("uses the selected category for expert guidance and prompt-safe adapter order", () => {
+    for (const category of ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]) {
+      const context = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, category }, availableSystems: [category] };
+      const prompt = promptModule.buildGuardianFortunePrompt({ input: { ...fixtures.baseInput, category }, context });
+      const formatted = promptModule.formatGuardianFortuneContextForPrompt(context);
+      expect(prompt.category).toBe(category);
+      expect(prompt.userPrompt).toContain(`상담 체계: ${category}`);
+      expect(formatted).toContain(`"category": "${category}"`);
+    }
+    const tarotContext = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, category: "tarot" }, availableSystems: ["tarot"] };
+    const tarotFormatted = promptModule.formatGuardianFortuneContextForPrompt(tarotContext);
+    expect(tarotFormatted).toContain('"category": "tarot"');
+    expect(tarotFormatted).not.toContain('"saju"');
+  });
+
   it("formats only allowlisted context and never includes raw birth input or concern", () => {
     const prompt = promptModule.buildGuardianFortunePrompt({ input: fixtures.baseInput, context: fixtures.mockContext });
     expect(prompt.userPrompt).toContain("합성 일간");
-    expect(prompt.userPrompt).toContain("today_symbol");
+    expect(prompt.userPrompt).not.toContain("today_symbol");
     expect(prompt.userPrompt).toContain("타로는 서버 projection");
     expect(prompt.userPrompt).toContain("hasBirthTime");
     expect(prompt.userPrompt).not.toContain("1988-08-08");
@@ -100,13 +115,13 @@ describe("Guardian Fortune result parser and validator", () => {
     };
     const parsed = {
       title: "오늘의 귀인 운세",
-      openingLine: "상승궁은 확실히 관계를 밀어붙이라고 말합니다.",
+      openingLine: "오늘은 관계를 서두르지 말고 확인해 보세요.",
       innerState: "시주가 분명히 결정의 답을 보여줍니다.",
-      coreReading: "라그나가 강하게 돈의 방향을 확정합니다.",
-      topicAdvice: "하우스에서 확실히 오늘 승부수를 말합니다.",
-      cautionPattern: "신궁은 확실히 관계 단절을 말합니다.",
+      coreReading: "생시를 모르는 상태에서는 시간 기반 결론을 낮은 확신으로 다룹니다.",
+      topicAdvice: "오늘 확인 가능한 한 가지 조건부터 적어봅니다.",
+      cautionPattern: "확인하지 않은 내용을 결론으로 키우지 않습니다.",
       luckyAction: "오늘 확인할 조건 하나만 적어보세요.",
-      premiumCta: { ctaKey: "life_compass", label: "더 보기", reason: "상승궁은 확실히 더 봐야 합니다." },
+      premiumCta: { ctaKey: "life_compass", label: "더 보기", reason: "장기 흐름은 다음 상담에서 살펴볼 수 있습니다." },
       shareText: "네오가 오늘의 핵심만 조용히 짚어줬어.",
     };
     const validated = resultModule.validateAndNormalizeGuardianFortuneResult({
@@ -118,10 +133,7 @@ describe("Guardian Fortune result parser and validator", () => {
     expect(validated.ok).toBe(true);
     const text = JSON.stringify(validated.value);
     expect(text).toContain("생시가");
-    expect(text).toContain("출생지");
-    expect(text).not.toContain("상승궁은 확실히");
     expect(text).not.toContain("시주가 분명히");
-    expect(text).not.toContain("라그나가 강하게");
   });
 
   it("softens forbidden expressions instead of exposing them", async () => {
@@ -132,6 +144,24 @@ describe("Guardian Fortune result parser and validator", () => {
     expect(validated.ok).toBe(true);
     expect(JSON.stringify(validated.value)).not.toContain("무조건");
     expect(JSON.stringify(validated.value)).not.toContain("반드시");
+  });
+
+  it("rejects terminology from an unselected fortune system", async () => {
+    const context = {
+      ...fixtures.mockContext,
+      inputSummary: { ...fixtures.mockContext.inputSummary, category: "saju" },
+      availableSystems: ["saju"],
+    };
+    const generated = await mockModule.mockGuardianFortuneLLM({ input: { ...fixtures.baseInput, category: "saju" }, context, scenario: "normal" });
+    const parsed = resultModule.parseGuardianFortuneLLMResponse(generated);
+    const validated = resultModule.validateAndNormalizeGuardianFortuneResult({
+      parsed: { ...parsed.value, coreReading: `${parsed.value.coreReading} 자미두수 명궁의 배치도 함께 확인했습니다.` },
+      input: { ...fixtures.baseInput, category: "saju" },
+      context,
+    });
+
+    expect(validated).toMatchObject({ ok: false, errorCode: "GUARDIAN_RESULT_CATEGORY_BOUNDARY_FAILED" });
+    expect(validated.issues).toEqual(expect.arrayContaining([expect.stringMatching(/^foreign_system_ziwei:/)]));
   });
 
   it("enriches short results and trims long results within the visible budget", async () => {

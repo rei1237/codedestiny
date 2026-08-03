@@ -1,5 +1,15 @@
 # Feature Map
 
+## 초융합 운세
+
+- 주요 라우트: `/fusion-fortune`
+- 주요 API: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`
+- 주요 lib: `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-prompt.js`, `worker/lib/fusion-fortune-purchase.js`, `worker/routes/fusion-fortune.js`
+- 데이터: `FusionFortuneTicketBalance`, `FusionFortuneTicketTransaction`, `FusionFortuneDailyLimit`, `FusionFortuneGenerationAttempt`
+- 권한: 별도 초융합 상담권 1회만 가능하며 일반 이용권, family 이용권, 오늘의 귀인 대화권, entitlement, price coverage와 분리한다.
+- 접수: Asia/Seoul 기준 성공 결과 완성 순서로 선착순 하루 100자리만 확정한다. 실패·검증 실패·결제 미완료는 자리를 소진하지 않는다.
+- UI: 오늘의 귀인에서 이어지는 프리미엄 화면으로, repo-local WebP 히어로와 CSS/SVG 오브를 사용하고 390px 이하까지 반응형으로 제공한다.
+
 ## 사주
 
 - 주요 라우트: `/saju`, `/saju/basic`, `/saju/basic/play`, `/manse`, `/daily-fortune`, `/saju/compatibility`, `/saju/five-elements`, `/saju/ten-gods`, `/saju/sibyl`
@@ -74,12 +84,14 @@
 
 ## 오늘의 귀인 운세
 
-- 단계: Stage 14 최종 품질 튜닝 및 배포 전 mock 기준 QA
+- 결과 범위: `saju | ziwei | vedic | sukuyo | astrology | tarot` 중 사용자가 명시적으로 고른 카테고리 정확히 하나만 계산하고 상담한다. `fusion`과 카테고리 누락 요청은 사용 횟수 예약 전에 거부한다.
+- 로그인 무료 상담은 하루에 3회를 보장 지급하는 문구가 아니라, 이용 상태에 따라 **하루 최대 3회**로 표시한다.
+- 모든 상담에서 생시를 요청하되 `생시를 모름`을 허용한다. 베다점·점성술은 기존 출생지 데이터 소스를 조건부로 표시하며, 생시·출생지 미상일 때 자미 명반·라그나·상승궁·하우스를 단정하지 않는다.
 - 주요 Worker 라우트: `/api/fortune/guardian/usage`, `/api/fortune/guardian/generate`, `/api/fortune/guardian/share`
 - 주요 lib: `worker/lib/guardian-fortune-context.js`, `worker/lib/guardian-fortune-prompt.js`, `worker/lib/guardian-fortune-result.js`, `worker/lib/guardian-fortune-fallback.js`, `worker/lib/guardian-fortune-llm-policy.js`, `worker/lib/guardian-fortune-llm.js`
-- 결과 흐름: 기존 운세 adapter → `GuardianFortuneContext` → allowlist prompt → mock 또는 guarded Gemini → parser/validator → context-driven fallback → usage commit
+- 결과 흐름: 선택한 운세 adapter 하나 → 단일 `GuardianFortuneContext` → 해당 체계만 포함한 allowlist prompt → mock 또는 guarded Gemini → 교차 체계 validator → context-driven fallback → usage commit
 - 기본 상태: mock LLM. 실제 provider는 staging + 로그인 allowlist + 두 개의 명시적 real flag가 모두 켜진 경우에만 선택된다. test와 production은 fail-closed mock이다.
-- prompt 품질: 사주·자미두수·베다점·숙요점·점성술·타로의 역할을 구분하고, 서버 `GuardianFortuneContext`에 없는 계산·카드·상대 마음·생시 의존 영역을 지어내지 않는다. topic별 우선 근거와 `integratedInsight.openingHook`을 첫 문장과 핵심 해석에 반영한다.
+- prompt 품질: 카테고리는 사용할 운세 체계를, 관심 주제는 상담 초점을 결정한다. 서버 `GuardianFortuneContext`에 없는 계산·카드·상대 마음·생시 의존 영역을 지어내지 않으며 선택하지 않은 다섯 체계의 전문용어와 근거가 섞이면 결과를 거부한다.
 - fallback: provider 실패·malformed JSON·unsafe/품질 미달 결과에서 계산된 insight와 topic 우선순위 adapter 근거를 조합해 800~1500자 결과를 만든다. 계산되지 않은 영역은 주장하지 않으며, 사주/숙요/타로 등 체계명을 병렬 나열하기보다 반복 패턴을 하나의 상담 흐름으로 통합한다.
 - validator: 생시·출생지가 없을 때 시주·라그나·상승궁·하우스·신궁을 단정하지 않도록 보정하고, 상대 마음 확정·의료/법률/투자 단정·공포/결제 압박 표현을 완화한다.
 - 개인정보: raw input, raw prompt/response/context, user/guest/payment/usage 정보는 prompt·metric·share snapshot에 포함하지 않는다.

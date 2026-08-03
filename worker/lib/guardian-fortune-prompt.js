@@ -3,7 +3,7 @@ import {
   GUARDIAN_FORTUNE_TOPICS,
   getTopicContract,
 } from "./guardian-fortune-runtime-contract.js";
-import { GUARDIAN_TOPIC_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
+import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -105,7 +105,10 @@ function projectInsight(insight = {}) {
 export function formatGuardianFortuneContextForPrompt(context = {}) {
   const inputSummary = context?.inputSummary || {};
   const topic = GUARDIAN_FORTUNE_TOPICS[inputSummary.topic] ? inputSummary.topic : "daily";
-  const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  const category = Object.prototype.hasOwnProperty.call(GUARDIAN_CATEGORY_ADAPTER_PRIORITY, inputSummary.category)
+    ? inputSummary.category
+    : "";
+  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[category] || [];
   const systems = Array.isArray(context?.availableSystems) ? context.availableSystems : [];
   const adapters = {};
 
@@ -119,6 +122,7 @@ export function formatGuardianFortuneContextForPrompt(context = {}) {
     inputSummary: {
       mode: inputSummary.mode === "neo" ? "neo" : "yeoni",
       topic,
+      category,
       locale: safeText(inputSummary.locale, 20) || "ko-KR",
       targetDate: safeText(inputSummary.targetDate, 20),
       hasBirthTime: Boolean(inputSummary.hasBirthTime),
@@ -142,11 +146,11 @@ function buildSchemaHint() {
 }
 
 const EXPERT_SYSTEM_GUIDANCE = [
-  "너는 사주, 자미두수, 베다점, 숙요점, 점성술, 타로를 직접 계산하는 존재가 아니다.",
+  "너는 사용자가 고른 운세 체계를 직접 계산하는 존재가 아니다.",
   "너는 서버에서 계산된 GuardianFortuneContext를 바탕으로 상담 문장을 작성한다.",
   "Context에 없는 일간, 궁, 라그나, 상승궁, 하우스, 신궁, 행성, 카드, 상대 마음을 확정적으로 지어내지 않는다.",
   "생시나 출생지가 없어 정밀도가 제한되는 영역은 단정하지 않고, 사용 가능한 근거만 낮은 확신으로 통합한다.",
-  "각 운세 체계의 역할은 구분하되 최종 결과는 병렬 나열이 아니라 하나의 자연스러운 상담처럼 읽혀야 한다.",
+  "사용자가 선택한 운세 체계 하나만 해석하고, 선택하지 않은 체계의 계산 근거와 전문용어를 섞지 않는다.",
   "전문용어는 사용자의 행동, 감정, 관계 거리감, 선택 습관으로 바로 번역한다.",
 ].join(" ");
 
@@ -159,15 +163,6 @@ const DOMAIN_EXPERT_QUALITY_GATES = Object.freeze([
   "타로는 서버가 뽑은 카드명·정역방향·spread·position만 해석하고 임의 카드 창작을 금지해. 카드는 오늘의 상징과 행동 기준으로 연결해.",
 ]);
 
-const EXPERT_SYSTEM_ROLE_GUIDE = [
-  "사주=일간·십성·오행·현재 흐름을 성향과 행동 패턴으로 번역",
-  "자미두수=명궁·주제별 궁·주요 별을 삶의 방향과 역할 구조로 번역",
-  "베다점=문사인·나크샤트라·라그나·다샤를 무의식 리듬과 감정 습관으로 번역",
-  "숙요점=본명숙·거리감·감정 반응을 관계의 반복 패턴으로 번역",
-  "점성술=태양·달·상승궁·행성 요소를 내면/표현/시작 방식으로 번역",
-  "타로=서버가 뽑은 카드명·정역방향·position/spread만 오늘의 상징 조언으로 번역",
-].join("; ");
-
 const TOPIC_EXPERT_INSTRUCTIONS = Object.freeze({
   daily: "오늘 가장 강한 기운, 감정과 행동의 균형, 하루 안에서 조심할 패턴을 우선한다.",
   love: "표현 방식, 연락/기다림/거리감, 상대 마음 단정이 아닌 관계의 속도와 내가 취할 태도를 우선한다.",
@@ -177,6 +172,35 @@ const TOPIC_EXPERT_INSTRUCTIONS = Object.freeze({
   decision: "관성·인성·비겁적 판단 기준, 망설임의 원인, 되돌릴 수 있는 작은 선택을 우선한다.",
 });
 
+const CATEGORY_EXPERT_INSTRUCTIONS = Object.freeze({
+  saju: "사주의 일간·오행·십성 근거만 사용해 생활 패턴을 풀어.",
+  ziwei: "자미두수의 궁위와 별의 역할을 중심으로, 생시 기반 명반의 범위를 벗어나 단정하지 마.",
+  vedic: "베다점의 달·나크샤트라·리듬을 중심으로, 서양 점성술과 체계를 섞지 말고 보조 근거로만 연결해.",
+  sukuyo: "숙요점의 관계 거리감과 감정 반응을 중심으로, 상대의 속마음을 확정하지 마.",
+  astrology: "점성술의 태양·달·상승·행성 상징을 중심으로, 출생지와 생시가 필요한 해석 범위를 구분해.",
+  tarot: "서버가 선택한 카드와 스프레드만 사용하고, 카드 이름이나 상징을 새로 만들지 마.",
+});
+
+const CATEGORY_QUALITY_INDEX = Object.freeze({
+  saju: 0,
+  ziwei: 1,
+  vedic: 2,
+  sukuyo: 3,
+  astrology: 4,
+  tarot: 5,
+});
+
+// 카테고리 선택은 '더 깊게 보기'가 아니라 상담의 해석 중심을 정하는 입력이다.
+// 기존 파일의 레거시 다국어 문자열과 분리해, 신규 프롬프트 문구는 UTF-8 한국어로 유지한다.
+const GUARDIAN_CATEGORY_INSTRUCTIONS_KO = Object.freeze({
+  saju: "사주의 일간·오행·십성과 선택 습관만 읽고, 다른 운세 체계의 근거는 사용하지 않습니다.",
+  ziwei: "자미두수의 궁위와 주요 별의 역할을 중심으로 읽되, 생시 기반 명반의 범위를 넘어서 단정하지 않습니다.",
+  vedic: "베다점의 라그나·문사인·나크샤트라·리듬을 중심으로 읽고 서양 점성술과 체계를 혼동하지 않습니다.",
+  sukuyo: "숙요점의 관계 거리감과 감정 반응을 중심으로 읽고, 상대의 마음을 확정하지 않습니다.",
+  astrology: "서양 점성술의 태양·달·상승궁·행성 패턴을 중심으로 읽되, 출생지 또는 생시가 필요한 범위를 구분합니다.",
+  tarot: "서버가 선택한 카드와 스프레드만 사용하고 카드 이름이나 의미를 임의로 만들지 않습니다.",
+});
+
 export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
   const inputSummary = context?.inputSummary || {};
   const mode = inputSummary.mode === "neo" || input?.mode === "neo" ? "neo" : "yeoni";
@@ -184,7 +208,15 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     ? inputSummary.topic
     : (GUARDIAN_FORTUNE_TOPICS[input?.topic] ? input.topic : "daily");
   const topicContract = getTopicContract(topic);
-  const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  const category = Object.prototype.hasOwnProperty.call(GUARDIAN_CATEGORY_INSTRUCTIONS_KO, inputSummary.category)
+    ? inputSummary.category
+    : "";
+  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[category] || [];
+  if (!category || priority.length !== 1) {
+    const error = new Error("상담 체계를 하나 선택해 주세요.");
+    error.code = "GUARDIAN_PROMPT_INVALID_CATEGORY";
+    throw error;
+  }
   const systemPrompt = [
     MODE_SYSTEM_PROMPTS[mode],
     EXPERT_SYSTEM_GUIDANCE,
@@ -194,14 +226,15 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
   ].join(" ");
 
   const userPrompt = [
+    `상담 체계: ${category}. ${GUARDIAN_CATEGORY_INSTRUCTIONS_KO[category]}`,
     `관심 분야: ${topicContract.label} (${topic})`,
     `상담 지침: ${topicContract.instruction}`,
-    `운세 체계별 역할: ${EXPERT_SYSTEM_ROLE_GUIDE}`,
-    `전문가 품질 기준: ${DOMAIN_EXPERT_QUALITY_GATES.join(" ")}`,
+    `선택 체계 전문가 지침: ${CATEGORY_EXPERT_INSTRUCTIONS[category]}`,
+    `선택 체계 품질 기준: ${DOMAIN_EXPERT_QUALITY_GATES[CATEGORY_QUALITY_INDEX[category]]}`,
     `주제별 우선 근거: ${priority.join(" > ")}`,
     `전문가 해석 지침: ${TOPIC_EXPERT_INSTRUCTIONS[topic] || TOPIC_EXPERT_INSTRUCTIONS.daily}`,
     `사용자 입력 요약과 계산 근거:\n${formatGuardianFortuneContextForPrompt(context)}`,
-    "첫 문장은 integratedInsight.openingHook을 자연스럽게 반영하고, 최소 두 개 이상의 사용 가능한 체계가 같은 방향을 가리키면 그 반복 패턴을 핵심 해석으로 삼아.",
+    "첫 문장은 integratedInsight.openingHook을 자연스럽게 반영하고, 선택한 단일 체계의 실제 계산 근거를 핵심 해석으로 삼아.",
     "타로는 서버 projection의 카드명, 정/역방향, positionKey, spreadType만 사용하고 새 카드를 만들지 마.",
     "생시가 없으면 시주·라그나·상승궁·하우스·신궁을 확정하지 말고, 출생지가 없으면 하우스/상승궁 기반 단정을 피해서 말해.",
     "결과는 800자 이상 1500자 이하의 읽기 쉬운 한국어 상담문으로 작성해.",
@@ -217,6 +250,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     responseSchemaHint: buildSchemaHint(),
     mode,
     topic,
+    category,
   };
 }
 
