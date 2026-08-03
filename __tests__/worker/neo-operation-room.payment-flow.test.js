@@ -89,6 +89,19 @@ beforeAll(async () => {
     isTransientMongoError: jest.fn(() => false),
   }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    CONTENT_ENTITLEMENT_SCOPES: Object.freeze({ PROFILE: "PROFILE", USER: "USER" }),
+    CONTENT_ENTITLEMENT_SOURCES: Object.freeze({ PURCHASE: "PURCHASE" }),
+    CONTENT_ENTITLEMENT_STATUSES: Object.freeze({ ACTIVE: "ACTIVE", REVOKED: "REVOKED" }),
+    SAJU_LOCKED_CONTENT_KEYS: Object.freeze({
+      DAEUN_ANALYSIS: "saju.daeunAnalysis",
+      FULL_READING: "saju.fullReading",
+      COMPATIBILITY: "saju.compatibility",
+    }),
+    ContentEntitlement: {
+      find: jest.fn(() => chainLean([])),
+      findOne: jest.fn(() => chainLean(null)),
+      findOneAndUpdate: jest.fn(() => chainLean(null)),
+    },
     User: {
       findById: jest.fn(() => chainLean(userDoc)),
       updateOne: jest.fn(async () => ({ modifiedCount: 0 })),
