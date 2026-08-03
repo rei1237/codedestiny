@@ -37,6 +37,7 @@ bucket_name = "codedestinyassets"
 # `wrangler secret put TURNSTILE_SECRET_KEY`
 [vars]
 NODE_ENV = "production"
+ACCESS_STATE_ENABLED = "true"
 AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"
 SITE_BASE_URL = "https://code-destiny.com"
 AUTH_API_BASE_URL = "https://code-destiny.com"
