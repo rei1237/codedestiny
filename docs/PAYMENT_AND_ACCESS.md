@@ -24,18 +24,19 @@
 
 - 상품은 `fusion_fortune_ticket_1` / `fusion_fortune_ticket`, 상담권 1회 10,000원, 결과 1회용이다.
 - 구매는 PG만 허용하며, 일반 이용권·family 이용권·무료/이벤트권·대화권·credit·price coverage·monthly entitlement는 구매 또는 이용 수단이 될 수 없다.
-- `GET|POST /api/payments/fusion-fortune/{catalog,balance,prepare,confirm}`는 전용 balance/transaction만 사용한다. 일반 entitlement 또는 price coverage는 초융합 생성 가능 여부에 조회하지 않는다.
+- `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`는 전용 balance/transaction만 사용한다. 일반 entitlement 또는 price coverage는 초융합 생성 가능 여부에 조회하지 않는다.
 - PG 확인 성공 후에만 purchase transaction을 적립하며 동일 `paymentId`는 unique transaction으로 중복 적립을 막는다.
 - `/fusion-fortune#ticket`의 전용 구매 UI는 서버 catalog 가격을 표시하고 `prepare → PortOne V2 → confirm` 순서만 사용한다. 클라이언트 금액은 지급 판단에 사용하지 않으며 redirect 복귀도 같은 전용 confirm 경로에서 검증한다.
 - 오늘의 귀인 대화권은 기존 `3회 10,000원`, `10회 30,000원`이며 선택한 단일 카테고리 상담에만 사용한다. 초융합 상담권과 양방향 교차 사용하지 않는다.
+- 이용권 상점의 귀인·초융합 상담권 카드는 진입 시 catalog/balance를 자동 조회하지 않는다. 사용자가 `조회하기`를 누를 때만 인증 전용 `GET /api/payments/guardian-fortune/shop-preview` 또는 `GET /api/payments/fusion-fortune/shop-preview`를 1회 호출해 서버 상품·PG 채널·가격·보유량을 함께 확인한다. 503 등 조회 실패는 미확인 상태로 남기며 자동 재시도하지 않는다.
 - 결제 취소 webhook이 들어와도 초융합 상담권은 사용 여부를 자동 판단해 회수하지 않고 관리자 검토 상태로 보낸다. 실제 환불은 별도 승인 범위다.
 - 운영 PG E2E는 배포 SHA와 인덱스 준비 상태를 확인한 뒤 사용자가 결제창에서 직접 승인하는 한 건만 수행한다.
 
 1. 프론트가 결제 가능한 featureKey와 사용 의도를 Worker에 보낸다.
-2. `worker/lib/payment-service.js`가 명시적 결제 방식별 정책을 판단하고, `worker/routes/billing.js`는 HTTP 어댑터로 요청을 전달한다.
+2. `worker/routes/billing.js`가 feature pricing, 이용권, 월정석 가능 여부를 판단한다.
 3. 결제창은 `이용권으로 구매`, `단건 결제`, `월정석`을 함께 보여야 한다.
 4. 사용자가 `단건 결제`를 선택하면 `worker/routes/payments.js`가 PortOne 주문을 준비한다.
-5. `단건 결제`와 `월정석` 경로는 이용권 DB를 조회하거나 이용권 방식으로 자동 전환하지 않는다.
+5. 주문 생성 직전에도 Worker가 이용권 커버를 다시 확인한다.
 
 ## 결제 검증 흐름
 
@@ -47,12 +48,9 @@
 
 ## 결제 성공 후 권한 반영 흐름
 
-- 브라우저 정본은 `js/core/payment-service.js`다. React `app/_lib/billing-client.ts`, 정적 홈, 독립 외부 페이지는 이 facade를 통해 결제 명령과 하나의 결제창을 사용한다.
-- 모든 성공 방식은 `PaymentSuccessEvent` 하나로 수렴한다. 필드는 `operationId`, `requestId`, `productId`, `featureKey`, `profileId`, `method`, `accessGrant`, `unlockMap`, `monthlyBalance`, `snapshotPatch`, `completedAt`으로 고정한다.
-- 성공 응답은 AccessStore, 인증 store, Snapshot, 잠금 맵과 월정석 잔량에 동기 반영한다. 성공 직후 entitlement GET은 호출하지 않으며, idle 시점의 사용자별 single-flight Snapshot 동기화만 허용한다.
 - 영구 unlock: 결제 수단과 무관하게 `ContentEntitlement`의 `grantType:"permanent_unlock"` 한 곳에 기록. `User.unlockedFeatures`/`paidFeatures`는 기존 데이터 읽기 호환 전용
 - 회당 결제: `PaidExecutionRecord`, 상담별 collection, `Payment` 상태 갱신
-- 월정석: 이벤트 재화이지만 정식 결제 수단이다. `worker/lib/payment-service.js`가 `profileSubscription.membershipCreditLots[]` FIFO 차감, `PointHistory`, `MonthlyCreditLedger`, `ContentEntitlement`, 멱등 기록을 하나의 Mongo 트랜잭션으로 커밋한다. 트랜잭션을 사용할 수 없으면 차감 전에 `MONTHLY_ATOMIC_UNAVAILABLE`로 실패한다.
+- 월정석: `MonthlyCreditLedger`, `profileSubscription.membershipCreditLots[]` FIFO 차감
 - 이용권: `profileSubscription`의 tier/expiry/limit/policy를 기준으로 무료 커버
 - PDF/AI 상담: 결제 또는 access grant 후 실제 생성 수행
 
@@ -62,7 +60,7 @@
 - B. 회당 결제: 매번 새로 생성/분석되는 상담. 예: AI 상담, 타로 premium, 궁합 AI
 - C. 무료: registry에 등록되지 않은 기본 기능
 - 십이지신 천운 타로(`tarot-year-fortune`): 신규 단건 결제 기준 100 내부 단위 / 10,000원. 완료된 연간 결과는 `PaidExecutionRecord`에 저장되어 같은 연도 재조회가 가능하며, 기존 구매 기록은 변경하지 않는다.
-- D. 프로필 카드 추가/수정/삭제: 이용권 결제 불가. React와 정적 화면 모두 브라우저 Payment Service를 통해 `DIRECT_KRW` 또는 `MOONLIGHT_STONE` 명령을 먼저 완료하고, 프로필 route는 해당 결제 증거만 소비한다. family 무료는 결제가 아니라 정책 layer 0원 처리
+- D. 프로필 카드 추가/삭제: 이용권 결제 불가. 단건 결제 또는 월정석만 가능. family 무료는 결제가 아니라 정책 layer 0원 처리
 - E. 음악 다운로드: 재생은 무료, 다운로드는 구매 UX gate
 
 정본은 `docs/payment-policy-content-access.md`와 `worker/lib/paid-feature-registry.js`다.
@@ -180,37 +178,6 @@
 - Billing-to-payments delegation may reuse authentication verified from the same original request. Payment route security, minor restrictions, server pricing, provider verification, and idempotency checks must still run.
 - `GET /api/payments/me?view=shop` may use a cryptographically verified access-token identity when the canonical user read is temporarily unavailable. This fallback is read-only and cannot create an order, deduct monthly credits, grant an entitlement, or revive a withdrawn account once Mongo is available again.
 - Mongo operation admission may shed excess display reads, but a lone timed-out driver operation must reset its dead pool. Deferring reset until an already-hung promise settles can pin an isolate in a permanent 503 loop; concurrent healthy operations remain protected and repeated failures retain the forced-reset escape hatch.
-
-## Server payment command boundary
-
-- `worker/lib/payment-service.js` is the server payment domain entry point. Its command contract is `executePayment({ method, productId, featureKey, profileId, requestId, priceQuoteToken })`; HTTP routes and PortOne code are adapters around that boundary.
-- Payment method is selected before any pass lookup. Only an explicit `MEMBERSHIP_PASS` command may synchronously query and validate membership-pass coverage. `MONTHLY` and `DIRECT_KRW` perform zero membership-pass reads.
-- A verified snapshot may grant optimistic UI access immediately, but it cannot authorize monthly-credit deduction, a PortOne order, payment confirmation, or an entitlement write. Background reconciliation must not block the user flow.
-- A new monthly payment commits the FIFO lot deduction, `PointHistory`, `MonthlyCreditLedger`, idempotency evidence, and `ContentEntitlement` in one Mongo transaction. If transactions are unavailable, the route returns `503 MONTHLY_ATOMIC_UNAVAILABLE` before committing any write. If the entitlement write fails, the transaction aborts and returns `503 MONTHLY_ATOMIC_WRITE_FAILED`.
-- The former deduct-then-restore compensation path is not a valid payment-write fallback. Restore remains available only for explicit refund/recovery workflows backed by existing evidence.
-- An explicit `DIRECT_KRW` command does not re-check membership-pass coverage. Any PDF pass discount must arrive as a short-lived server-signed `priceQuoteToken` issued by the explicit pass-validation command.
-- A card-confirm transport or provider 5xx after approval is preserved as `503 PENDING_CONFIRMATION` with the same order identity. Clients must not automatically POST confirm again or encourage a second payment; recovery/reconciliation reuses the existing order evidence.
-
-## Browser payment command boundary
-
-- `js/core/payment-service.js` owns browser command single-flight, optimistic Snapshot pass, the single payment-window renderer, and the success reducer. UI components may render labels and collect choices but may not own payment policy or POST retry loops.
-- The in-flight key includes the stable request identity. React Strict Mode, hydration, duplicate provider mounts, and modal re-clicks therefore share the same promise instead of issuing duplicate commands.
-- A Snapshot-confirmed pass returns a synthetic grant immediately. The same request may schedule one non-blocking verification; a 503 from that background read does not revoke the already verified last-known-good Snapshot.
-- Balance fields are emitted only when the success payload contains an authoritative finite balance. Pass and card success without a balance must not reset the AuthStore monthly balance to zero.
-
-## Unified access-state Snapshot
-
-- `GET /api/me/access-state` is enabled by default in every runtime; `ACCESS_STATE_ENABLED=false` is an emergency disable only. Login/bootstrap consumers use its existing user-scoped single-flight instead of mounting separate pass, monthly-balance, entitlement, and profile probes.
-- The response includes the active pass, canonical unexpired monthly lots/balance, current profile, `ContentEntitlement` grouped by profile, product ownership, `unlockMap`, `lockMap`, and `entitlementVersion`.
-- Only the current profile plus user-scoped entitlements are projected into the active `unlockMap`. Entitlements for other profiles remain in `profileEntitlements` and never unlock the current profile by accident.
-- `CodeDestinyAccessStore` may read this Snapshot first, preserve a verified stale read during a transient failure, and apply optimistic success patches. It cannot deduct monthly credits, create orders, or grant server authority.
-
-## Feature route boundary
-
-- AI and profile feature routes consume the access grant produced by the billing Payment Service. They do not import `consumeMonthlyCreditLots` or create a `MONTHLY_CREDIT_SPEND` ledger.
-- A legacy monthly request without a billing grant fails closed with `PAYMENT_ACCESS_GRANT_REQUIRED` or the existing payment-required response. It must not inspect a balance and deduct locally.
-- Refund and recovery paths may read spend evidence and create an idempotent restore/grant ledger, but those operations are not new payment execution and remain evidence-bound.
-- `npm run verify:payment-service-boundary` fails when a UI screen calls coin-gate outside the compatibility adapters, or when a feature route reintroduces a direct monthly lot deduction/spend-ledger write.
 
 ## Mobile fortune entry read policy
 
