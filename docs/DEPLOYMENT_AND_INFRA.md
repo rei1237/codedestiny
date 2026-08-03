@@ -197,6 +197,75 @@ Server/Worker secrets or vars:
 - OpenNext: `npm run deploy:cf:opennext`
 - Worker versions upload: `npm run deploy:cf:versions`
 
+### PR-optional local safe deployment
+
+Cloudflare read-only API inspection on 2026-08-04 confirmed the live Pages
+project settings: project `codedestiny`, GitHub source, production branch
+`main`, automatic production and preview deployments disabled, build command
+`npm run build:cf`, and output directory `dist`. The Pages Function is the
+tracked `public/_worker.js` plus `public/_routes.json`; it proxies `/api/*` to
+the `code-destiny-web` Worker. The Worker config is `worker/wrangler.toml`,
+with AI, R2, routes, and cron bindings. Worker Versions/Deployments API is
+available and the current deployment can be identified by its 100% version ID.
+
+The local safe pipeline keeps PR creation optional while retaining release
+gates:
+
+1. `deploy:check` requires a registered secondary worktree, a feature branch,
+   `origin/main`, Cloudflare project discovery, a clean committed tree by
+   default, and prints the changed-file risk classification.
+2. `deploy:preview` runs the risk-based mock checks, builds Pages once, records
+   a SHA-256 artifact fingerprint, uploads the same `dist` to a Pages preview,
+   and uploads a Worker Version with a preview alias when Worker parity is
+   required.
+3. `deploy:smoke` runs browser, asset, API, mobile-route, access-boundary, and
+   payment-dialog-open smoke checks. The payment check never selects a method
+   or creates an order.
+4. `deploy:production` only accepts the exact fingerprinted artifact after a
+   passed preview smoke. Worker Version promotion happens before Pages
+   production upload, preserving the existing Worker-first parity rule.
+5. `deploy:safe` connects all steps and asks for confirmation immediately
+   before production. `--yes` is the explicit non-interactive approval.
+
+```text
+npm run deploy:check
+npm run deploy:safe
+npm run deploy:safe -- --yes
+npm run deploy:rollback -- --yes
+```
+
+GitHub Actions also runs the same decision path automatically after a push to
+`main`; it uses `--ci --yes` only inside the protected workflow, after the
+same preview smoke and artifact checks. The local command remains useful for
+previewing a release before pushing. A failed smoke or missing Cloudflare
+setting blocks production automatically.
+
+Local release identifiers are stored in ignored `.deploy-state/state.json`:
+commit SHA, risk, artifact hash, Pages deployment IDs/URLs, Worker version
+IDs, preview smoke status, and rollback targets. Secrets are never written.
+`--allow-dirty` is an explicit exception and marks the release dirty; the
+default remains a committed tree. `.deploy-state/active.lock` prevents
+concurrent local releases.
+
+Risk routing:
+
+- low: changed-file lint, typecheck, production build, preview smoke;
+- medium: low-risk checks plus `smoke:core` and Node regression tests;
+- high: mock payment/access/auth gates, typecheck, Worker dry-run, core and
+  Node regression tests, production build, preview smoke, and Worker Version
+  validation. No real PG, LLM, or production DB call is made.
+
+Pages rollback uses the Cloudflare Pages deployment rollback API and Worker
+rollback uses the recorded Version ID at 100%. A production failure attempts
+automatic Worker rollback; Pages rollback is executed only with the recorded
+target and explicit `deploy:rollback -- --yes`. KV/R2/D1/Durable Objects state
+is not versioned by Workers, so schema/data changes remain separate expand-
+and-contract migrations and are never bundled into `deploy:safe`.
+
+The old commands remain available for CI and the existing guarded workflows.
+The new local path deliberately does not weaken `verify-worktree-policy`
+for the canonical CI production workflow.
+
 Codex deployment rule:
 
 - Do not deploy directly to production during normal coding work.
