@@ -122,6 +122,13 @@
 - mock 테스트 방법: deploy scripts dry-run 또는 build artifact checks only.
 - 수정 전 주의사항: 운영 배포, secret sync, purge everything은 사용자 승인 후 진행한다.
 
+## Safe Auto Release가 preview 전에 lint warning으로 중단됨
+
+- 증상: Cloudflare 자격 증명과 배포 정책 검사는 통과하지만 `changed-file lint`에서 `ESLint found too many warnings (maximum: 0)`으로 종료되고 preview URL이 생성되지 않는다.
+- 원인: 린트 경고를 배포 오류로 승격하는 `--max-warnings=0`이 기존 CommonJS 또는 레거시 정적 JS 경고까지 운영 차단으로 처리한다.
+- 안전한 해소: 배포 게이트는 ESLint `--quiet`으로 실제 오류만 차단한다. 타입 검사, mock 결제·인증 게이트, 전체 회귀 테스트, Worker dry-run과 preview smoke는 그대로 유지한다.
+- 검증: `npm run verify:deploy-safe`, `npm run deploy:critical`, `npm test`, PR 필수 CI를 통과시킨 뒤 새 `main` SHA의 `Cloudflare Safe Auto Release`만 사용한다. 실패한 배포를 수동 Worker/Pages 명령으로 우회하지 않는다.
+
 ## 2026-08 Mongo pool burst 대응
 
 - `wrangler tail`에서 `/api/profile`, `/api/billing/balance`, `/api/billing/coin-gate`가 같은 짧은 구간에 중복 호출되는지 먼저 확인한다.

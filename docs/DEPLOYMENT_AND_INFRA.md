@@ -249,11 +249,17 @@ concurrent local releases.
 
 Risk routing:
 
-- low: changed-file lint, typecheck, production build, preview smoke;
+- low: changed-file lint errors, typecheck, production build, preview smoke;
 - medium: low-risk checks plus `smoke:core` and Node regression tests;
 - high: mock payment/access/auth gates, typecheck, Worker dry-run, core and
   Node regression tests, production build, preview smoke, and Worker Version
   validation. No real PG, LLM, or production DB call is made.
+
+The release changed-file lint runs ESLint with `--quiet`: lint errors block the
+release, while existing warning debt does not become a production outage.
+Warnings remain subject to the normal lint and audit workflows. Typecheck,
+mock gates, regression tests, Worker dry-run, preview smoke, and artifact
+fingerprint checks remain mandatory for their risk tier.
 
 Pages rollback uses the Cloudflare Pages deployment rollback API and Worker
 rollback uses the recorded Version ID at 100%. A production failure attempts
