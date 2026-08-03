@@ -59,6 +59,65 @@ const BACKFILL_SUCCESS_PAYMENT_STATUSES = ["success", "paid", "fulfilled"];
 const BACKFILL_BLOCKED_PAYMENT_STATUSES = ["failed", "cancelled", "refunded", "pending", "expired"];
 const BACKFILL_PASS_ACCESS_TYPES = ["membership_pass", "membership_credit"];
 const BACKFILL_PASS_ACCESS_METHODS = ["PASS", "MONTHLY"];
+const ACCESS_UNLOCKS_CACHE_TTL_MS = 15000;
+const ACCESS_UNLOCKS_STALE_TTL_MS = 10 * 60 * 1000;
+const ACCESS_UNLOCKS_CACHE_MAX_ENTRIES = 2500;
+const accessUnlocksCache = globalThis.__codeDestinyAccessUnlocksCache
+  || (globalThis.__codeDestinyAccessUnlocksCache = {
+    entries: new Map(),
+    inFlight: new Map(),
+    lastPruneAt: 0,
+  });
+
+function pruneAccessUnlocksCache(now = Date.now()) {
+  if (accessUnlocksCache.lastPruneAt + 5000 > now) return;
+  accessUnlocksCache.lastPruneAt = now;
+  for (const [key, entry] of accessUnlocksCache.entries.entries()) {
+    if (!entry || entry.staleUntil <= now) accessUnlocksCache.entries.delete(key);
+  }
+  while (accessUnlocksCache.entries.size > ACCESS_UNLOCKS_CACHE_MAX_ENTRIES) {
+    const oldest = accessUnlocksCache.entries.keys().next().value;
+    if (!oldest) break;
+    accessUnlocksCache.entries.delete(oldest);
+  }
+}
+
+function makeAccessUnlocksCacheKey({ userId, profileId, serviceKeys }) {
+  return [
+    String(userId || "").trim(),
+    String(profileId || "").trim(),
+    (serviceKeys || []).map((key) => String(key || "").trim()).filter(Boolean).sort().join(","),
+  ].join("::");
+}
+
+function readAccessUnlocksCache(key, { allowStale = false } = {}) {
+  const entry = accessUnlocksCache.entries.get(key);
+  if (!entry) return null;
+  const now = Date.now();
+  if (entry.expiresAt > now) return { ...entry.payload, source: "cache" };
+  if (allowStale && entry.staleUntil > now) return { ...entry.payload, source: "stale-cache", degraded: true, stale: true };
+  if (entry.staleUntil <= now) accessUnlocksCache.entries.delete(key);
+  return null;
+}
+
+function writeAccessUnlocksCache(key, payload) {
+  if (!key || !payload || payload.ok !== true) return payload;
+  const now = Date.now();
+  pruneAccessUnlocksCache(now);
+  accessUnlocksCache.entries.set(key, {
+    payload: { ...payload, source: "db" },
+    expiresAt: now + ACCESS_UNLOCKS_CACHE_TTL_MS,
+    staleUntil: now + ACCESS_UNLOCKS_STALE_TTL_MS,
+  });
+  return payload;
+}
+
+function privateAccessHeaders(source = "db") {
+  return {
+    "Cache-Control": "private, max-age=15, stale-while-revalidate=300",
+    "X-Access-Unlocks-Source": String(source || "db"),
+  };
+}
 
 function sanitizeAccessKey(value, maxLen = 120) {
   return String(value || "").trim().slice(0, maxLen);
@@ -468,7 +527,7 @@ async function handleStatus(request, env) {
   if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
 
   await connectDb(env);
-  // 일시적 풀 초기화에도 해금 상태를 정확히 반환하도록 조회를 재시도로 감싼다(handleUnlocks와 동일 패턴).
+  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??handleUnlocks?� ?�일 ?�턴).
   const doc = await withMongoRetry(env, async () => {
     await verifyProfileOwnership({ userId, profileId });
     return findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
@@ -537,34 +596,7 @@ async function handleConfirm(request, env) {
   return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc }));
 }
 
-async function handleUnlocks(request, env) {
-  if (request.method !== "GET") return methodNotAllowed();
-
-  const url = new URL(request.url);
-  const auth = await requireUserFromRequest(request, env);
-  const userId = String(auth.userId || "");
-  const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
-  const serviceKeyParam = sanitizeAccessKey(
-    url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
-    80,
-  );
-  const serviceKeys = normalizeServiceKeys(serviceKeyParam);
-  const serviceKey = serviceKeys.join(",");
-
-  if (!profileId) {
-    throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
-  }
-
-  // 일시적 풀 초기화에도 해금 상태를 정확히 반환하도록 조회를 재시도로 감싼다.
-  // (verifyProfileOwnership의 404 등 비-일시적 에러는 재시도 없이 즉시 전파된다.)
-  const activeDocs = await withMongoRetry(env, async () => {
-    await verifyProfileOwnership({ userId, profileId });
-    const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
-    // GET is an entitlement snapshot only. Legacy backfill remains an explicit
-    // repair concern; page entry must never scan payment history or write rows.
-    return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-  });
-
+function buildUnlocksPayload({ profileId, serviceKey, serviceKeys, activeDocs }) {
   const unlocks = createLockedMap(serviceKeys);
   const unlockedContentKeys = [];
 
@@ -581,14 +613,82 @@ async function handleUnlocks(request, env) {
     unlockedContentKeys.push(contentKey);
   }
 
-  return json({
+  return {
     ok: true,
     profileId,
     serviceKey,
     serviceKeys,
     unlockedContentKeys: Array.from(new Set(unlockedContentKeys)),
     unlocks,
+  };
+}
+
+async function handleUnlocks(request, env) {
+  if (request.method !== "GET") return methodNotAllowed();
+
+  const url = new URL(request.url);
+  const auth = await requireUserFromRequest(request, env);
+  const userId = String(auth.userId || "");
+  const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
+  const serviceKeyParam = sanitizeAccessKey(
+    url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+    80,
+  );
+  const serviceKeys = normalizeServiceKeys(serviceKeyParam);
+  const serviceKey = serviceKeys.join(",");
+  const includeBackfill = false;
+
+  if (!profileId) {
+    throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
+  }
+
+  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??
+  // (verifyProfileOwnership??404 ??�??�시???�러???�시???�이 즉시 ?�파?�다.)
+  const cacheKey = makeAccessUnlocksCacheKey({ userId, profileId, serviceKeys });
+  if (!includeBackfill) {
+    const cached = readAccessUnlocksCache(cacheKey);
+    if (cached) return json(cached, { headers: privateAccessHeaders(cached.source) });
+    const pending = accessUnlocksCache.inFlight.get(cacheKey);
+    if (pending) {
+      const payload = await pending;
+      return json(payload, { headers: privateAccessHeaders(payload.source) });
+    }
+  }
+
+  const promise = withMongoRetry(env, async () => {
+    await verifyProfileOwnership({ userId, profileId });
+    const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
+    const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+    const backfilledDocs = [];
+    if (includeBackfill) {
+      const created = await backfillMissingUnlocksForServices({
+        userId,
+        profileId,
+        serviceKeys,
+        existingDocs: docs,
+      });
+      backfilledDocs.push(...created);
+    }
+    return buildUnlocksPayload({ profileId, serviceKey, serviceKeys, activeDocs: docs.concat(backfilledDocs) });
   });
+
+  if (!includeBackfill) {
+    accessUnlocksCache.inFlight.set(cacheKey, promise);
+  }
+
+  try {
+    const payload = await promise;
+    if (!includeBackfill) writeAccessUnlocksCache(cacheKey, payload);
+    return json(payload, { headers: privateAccessHeaders(payload.source) });
+  } catch (error) {
+    const stale = !includeBackfill ? readAccessUnlocksCache(cacheKey, { allowStale: true }) : null;
+    if (stale) return json(stale, { headers: privateAccessHeaders(stale.source) });
+    throw error;
+  } finally {
+    if (!includeBackfill && accessUnlocksCache.inFlight.get(cacheKey) === promise) {
+      accessUnlocksCache.inFlight.delete(cacheKey);
+    }
+  }
 }
 
 export async function handleAccessRoutes(request, env) {
@@ -601,15 +701,15 @@ export async function handleAccessRoutes(request, env) {
     if (routePath === "/unlocks") return await handleUnlocks(request, env);
     return notFound();
   } catch (error) {
-    // 접근 판정 읽기(GET)는 일시적 Mongo 블립을 하드 503으로 죽이지 말고, 클라가 재시도할 수 있게
-    // 표준 소프트-503(retryable/DB_DEGRADED)로 내린다. 쓰기(/confirm POST)는 이중제출 방지 위해 제외.
+    // ?�근 ?�정 ?�기(GET)???�시??Mongo 블립???�드 503?�로 죽이지 말고, ?�라가 ?�시?�할 ???�게
+    // ?��? ?�프??503(retryable/DB_DEGRADED)�??�린?? ?�기(/confirm POST)???�중?�출 방�? ?�해 ?�외.
     if (request.method === "GET" && (isTransientMongoError(error) || isAuthDbInfraError(error))) {
       return json({
         ok: false,
         retryable: true,
         reason: "DB_DEGRADED",
         code: "SERVICE_UNAVAILABLE",
-        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+        message: "?�시?�인 ?�결 문제가 ?�어?? ?�시 ???�시 ?�도??주세??",
       }, { status: 503 });
     }
     return handleRouteError(error, { request, env, trace });

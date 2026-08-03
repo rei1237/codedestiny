@@ -19,7 +19,13 @@ function responseFor(state, degraded = false) {
     data: { ...state, degraded },
     ...state,
     degraded,
-  }, { status: 200, headers: { "X-Access-State-Source": String(state?.source || "db") } });
+  }, {
+    status: 200,
+    headers: {
+      "Cache-Control": "private, max-age=60, stale-while-revalidate=1800",
+      "X-Access-State-Source": String(state?.source || "db"),
+    },
+  });
 }
 
 function isAccessStateEnabled(env = {}) {

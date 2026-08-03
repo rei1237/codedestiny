@@ -98,7 +98,16 @@ function hasCookieAuthHint() {
   return COOKIE_AUTH_HINT_KEYS.some((key) => cookieText.includes(`${key}=`));
 }
 
-function hasAdRemovalEntitlement(accessStore: { isUnlocked?: (key: string) => boolean } | null) {
+type AdsenseAccessStore = {
+  ensureLoaded: (options?: { reason?: string; authenticated?: boolean }) => Promise<unknown> | unknown;
+  isUnlocked?: (key: string) => boolean;
+};
+
+type AdsenseWindow = Window & typeof globalThis & {
+  CodeDestinyAccessStore?: AdsenseAccessStore;
+};
+
+function hasAdRemovalEntitlement(accessStore: AdsenseAccessStore | null) {
   // AccessStore supersedes the former direct authFetch("/api/billing/balance" path.
   if (!accessStore || typeof accessStore.isUnlocked !== "function") return false;
   return Array.from(AD_REMOVAL_FEATURE_KEYS).some((key) => accessStore.isUnlocked?.(key) === true);
@@ -111,7 +120,7 @@ async function currentViewerAllowsAdsense() {
   if (!hasLocalAuthHint() && !hasCookieAuthHint()) return true;
 
   try {
-    const accessStore = window.CodeDestinyAccessStore;
+    const accessStore = (window as AdsenseWindow).CodeDestinyAccessStore;
     if (accessStore) {
       const result = await accessStore.ensureLoaded({ reason: "adsense-access", authenticated: true });
       if (

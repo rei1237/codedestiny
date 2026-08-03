@@ -12,8 +12,23 @@ export type AccessStateData = {
   passType?: string;
   activeUntil?: string;
   coinBalance: number;
+  monthlyStoneBalance?: number;
+  membershipCreditBalance?: number;
   profileCount: number;
   maxProfileCount: number;
+  currentProfileId?: string;
+  unlockedFeatureIds?: string[];
+  unlockedFeatures?: string[];
+  unlockMap?: Record<string, boolean>;
+  monthlyBalance?: { remaining: number; resetAt?: string };
+  monthlyBalanceSummary?: { remaining: number; resetAt?: string };
+  entitlementSnapshot?: Record<string, unknown>;
+  featureAccessSummary?: Record<string, unknown>;
+  serverTime?: string;
+  versions?: Record<string, string>;
+  fetchedAt?: string;
+  expiresAt?: string;
+  staleUntil?: string;
   source: "db" | "cache" | "stale-cache";
   checkedAt: string;
   degraded?: boolean;
@@ -52,6 +67,10 @@ type RuntimeWindow = Window & {
     refreshUserAccessAfterPayment: typeof refreshUserAccessAfterPayment;
     refreshUserProfileAfterUpdate: typeof refreshUserProfileAfterUpdate;
   };
+  CodeDestinyAccessStore?: {
+    applyAccessStateSnapshot?: (payload: unknown, options?: Record<string, unknown>) => boolean;
+    getSnapshot?: () => { profileId?: string };
+  };
 };
 
 const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
@@ -60,6 +79,7 @@ const REQUEST_GUARD_MARKER = "request-traffic-guard-v20260704";
 const SUBSCRIPTION_STATUS_CACHE_TTL_MS = 180_000;
 const cache = new Map<string, CachedResponse>();
 const inFlight = new Map<string, Promise<Response>>();
+const ensureLoadInFlight = new Map<string, Promise<UserAccessSnapshot>>();
 const subscribers = new Set<() => void>();
 // invalidateMatching()이 캐시 맵을 비워도 이미 날아간 in-flight 요청은 취소되지 않는다.
 // 결제 직후 무효화가 발생한 뒤 결제 전에 시작된 오래된 GET이 나중에 응답하면, 이 카운터가
@@ -315,11 +335,27 @@ function rememberResponse(key: string, response: Response, url: string, kind: Ca
   });
 }
 
+function applyAccessStateToGlobalStore(accessData: Record<string, unknown>) {
+  if (typeof window === "undefined" || !accessData || typeof accessData !== "object") return;
+  const runtimeWindow = window as RuntimeWindow;
+  const store = runtimeWindow.CodeDestinyAccessStore;
+  if (!store || typeof store.applyAccessStateSnapshot !== "function") return;
+  const storeSnapshot = typeof store.getSnapshot === "function" ? store.getSnapshot() : null;
+  const profileId = String(
+    accessData.currentProfileId
+      || accessData.profileId
+      || storeSnapshot?.profileId
+      || "",
+  );
+  store.applyAccessStateSnapshot(accessData, { profileId, reason: "user-session-bootstrap" });
+}
+
 function invalidateMatching(predicate: (entry: CachedResponse) => boolean) {
   Array.from(cache.entries()).forEach(([key, entry]) => {
     if (predicate(entry)) cache.delete(key);
   });
   inFlight.clear();
+  ensureLoadInFlight.clear();
   cacheGeneration += 1;
 }
 
@@ -330,6 +366,7 @@ export function getUserAccessSnapshot(): UserAccessSnapshot {
 export function invalidateUserAccessCache(reason = "manual") {
   cache.clear();
   inFlight.clear();
+  ensureLoadInFlight.clear();
   cacheGeneration += 1;
   setSnapshot({
     userKey: resolveUserKey(),
@@ -373,7 +410,7 @@ export function invalidateProfileCache(reason = "manual") {
   }
 }
 
-export async function ensureUserAccessLoaded(options: { force?: boolean; includeProfile?: boolean; includeBilling?: boolean; reason?: string } = {}) {
+async function ensureUserAccessLoadedUncached(options: { force?: boolean; includeProfile?: boolean; includeBilling?: boolean; reason?: string } = {}) {
   if (typeof window === "undefined") return getUserAccessSnapshot();
   installUserAccessFetchCache();
   ensureSessionCookie();
@@ -404,6 +441,7 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
   const accessStatus = accessResponse?.status || 0;
   const accessSupported = Boolean(accessResponse) && accessStatus !== 404 && accessStatus !== 405;
   if (accessData && accessResponse?.ok && typeof accessData.userId === "string") {
+    applyAccessStateToGlobalStore(accessData);
     setSnapshot({
       accessState: accessData as unknown as AccessStateData,
       profileStatus: "ready",
@@ -441,6 +479,24 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
   }
   await Promise.allSettled(tasks);
   return getUserAccessSnapshot();
+}
+
+export async function ensureUserAccessLoaded(options: { force?: boolean; includeProfile?: boolean; includeBilling?: boolean; reason?: string } = {}) {
+  if (typeof window === "undefined") return getUserAccessSnapshot();
+  const inFlightKey = [
+    resolveUserKey(),
+    options.force === true ? "force" : "cached",
+    options.includeProfile !== false ? "profile" : "no-profile",
+    options.includeBilling !== false ? "billing" : "no-billing",
+  ].join("|");
+  const pending = ensureLoadInFlight.get(inFlightKey);
+  if (pending) return pending;
+  let promise: Promise<UserAccessSnapshot>;
+  promise = ensureUserAccessLoadedUncached(options).finally(() => {
+    if (ensureLoadInFlight.get(inFlightKey) === promise) ensureLoadInFlight.delete(inFlightKey);
+  });
+  ensureLoadInFlight.set(inFlightKey, promise);
+  return promise;
 }
 
 export async function refreshUserAccessAfterPayment() {
