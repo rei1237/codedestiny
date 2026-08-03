@@ -1,18 +1,35 @@
 import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
+import { PointHistory } from "./models.js";
+import {
+  getUnlockedContentSnapshot,
+  isProfileScopedContentUnlockFeatureKey,
+} from "./content-unlocks.js";
 
 const ACCESS_STATE_TTL_MS = 60000;
 const ACCESS_STATE_STALE_TTL_MS = 30 * 60 * 1000;
 const ACCESS_STATE_GRACE_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCESS_STATE_MAX_ENTRIES = 2500;
-const ACCESS_STATE_POLICY_VERSION = "access-state-snapshot-v1";
+const ACCESS_STATE_POLICY_VERSION = "access-state-snapshot-v2";
 
 const cache = globalThis.__codeDestinyAccessStateCache || (globalThis.__codeDestinyAccessStateCache = {
   entries: new Map(),
   inFlight: new Map(),
+  currentProfileByUser: new Map(),
 });
+if (!cache.currentProfileByUser) cache.currentProfileByUser = new Map();
 
 function normalizeUserId(userId) {
   return String(userId || "").trim();
+}
+
+function normalizeProfileId(profileId) {
+  return String(profileId || "").trim().slice(0, 100);
+}
+
+function accessStateCacheKey(userId, profileId = "") {
+  const normalizedUserId = normalizeUserId(userId);
+  const normalizedProfileId = normalizeProfileId(profileId);
+  return normalizedProfileId ? `${normalizedUserId}::${normalizedProfileId}` : normalizedUserId;
 }
 
 function normalizeIsoDate(value) {
@@ -50,7 +67,27 @@ function prune(now = Date.now()) {
   }
 }
 
-export function buildAccessState({ userId, user, profileCount = null, source = "db", checkedAt = new Date().toISOString() }) {
+function snapshotFingerprint(values = []) {
+  const text = values.map((value) => String(value || "")).sort().join("|");
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+export function buildAccessState({
+  userId,
+  user,
+  profileId = "",
+  unlockedFeatureIds: resolvedUnlockedFeatureIds = null,
+  unlockedContentKeys = [],
+  profileScopedAuthoritative = false,
+  profileCount = null,
+  source = "db",
+  checkedAt = new Date().toISOString(),
+}) {
   const entitlement = user?.profileSubscription && typeof user.profileSubscription === "object"
     ? user.profileSubscription
     : {};
@@ -73,8 +110,24 @@ export function buildAccessState({ userId, user, profileCount = null, source = "
     ? Math.min(graceLimitMs, activeUntilMs)
     : graceLimitMs;
   const graceUntil = new Date(graceUntilMs).toISOString();
-  const unlockedFeatureIds = normalizeStringArray(user?.unlockedFeatures);
+  const currentProfileId = normalizeProfileId(profileId || user?.destinyProfilesCurrentId);
+  const unlockedFeatureIds = normalizeStringArray(
+    resolvedUnlockedFeatureIds === null
+      ? [...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []), ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : [])]
+      : resolvedUnlockedFeatureIds,
+  );
+  const normalizedContentKeys = normalizeStringArray(unlockedContentKeys);
   const monthlyBalance = buildMonthlyBalance(entitlement, fetchedMs);
+  const entitlementVersion = [
+    entitlement?.entitlementVersion
+      || entitlement?.version
+      || entitlement?.policyVersion
+      || entitlement?.updatedAt
+      || user?.updatedAt
+      || checkedAt,
+    currentProfileId || "no-profile",
+    snapshotFingerprint([...unlockedFeatureIds, ...normalizedContentKeys]),
+  ].join(":");
   const activePasses = hasActivePass ? [{
     id: String(active?._id || active?.id || active?.passId || tier),
     type: tier,
@@ -89,19 +142,18 @@ export function buildAccessState({ userId, user, profileCount = null, source = "
     unlockedFeatureIds,
     monthlyBalance,
     purchasePolicyVersion: ACCESS_STATE_POLICY_VERSION,
-    entitlementVersion: String(
-      entitlement?.entitlementVersion
-      || entitlement?.version
-      || entitlement?.policyVersion
-      || entitlement?.updatedAt
-      || user?.updatedAt
-      || checkedAt,
-    ),
+    entitlementVersion: String(entitlementVersion),
     fetchedAt: checkedAt,
     expiresAt,
     staleUntil,
     graceUntil,
     completeness: "full",
+    completenessDetails: {
+      account: "full",
+      profile: currentProfileId ? "full" : "not_requested",
+      pass: "full",
+      monthlyCredits: "full",
+    },
     authority: "server",
     source,
   };
@@ -119,13 +171,19 @@ export function buildAccessState({ userId, user, profileCount = null, source = "
       : Math.max(0, Math.floor(Number(profileCount || 0))),
     profileCountDeferred: profileCount === null || profileCount === undefined,
     maxProfileCount,
-    currentProfileId: String(user?.destinyProfilesCurrentId || ""),
+    currentProfileId,
+    profileId: currentProfileId,
     unlockedFeatureIds,
     unlockedFeatures: unlockedFeatureIds,
     unlockMap: Object.fromEntries(unlockedFeatureIds.map((key) => [key, true])),
+    permissions: {
+      unlockedFeatures: Object.fromEntries(unlockedFeatureIds.map((key) => [key, true])),
+    },
     monthlyBalance,
     entitlementSnapshot,
     featureAccessSummary: { unlockedFeatureIds },
+    unlockedContentKeys: normalizedContentKeys,
+    profileScopedAuthoritative: profileScopedAuthoritative === true,
     monthlyBalanceSummary: monthlyBalance,
     serverTime: checkedAt,
     versions: {
@@ -139,13 +197,69 @@ export function buildAccessState({ userId, user, profileCount = null, source = "
     staleUntil,
     graceUntil,
     completeness: "full",
+    completenessDetails: entitlementSnapshot.completenessDetails,
     authority: "server",
     adminStaleGraceAllowed: false,
   };
 }
 
-export function readAccessStateCache(userId, { allowStale = false } = {}) {
-  const key = normalizeUserId(userId);
+export async function resolveCompleteAccessState({
+  userId,
+  user,
+  profileId = "",
+  profileCount = null,
+  source = "db",
+  checkedAt = new Date().toISOString(),
+} = {}) {
+  const normalizedUserId = normalizeUserId(userId);
+  const currentProfileId = normalizeProfileId(profileId || user?.destinyProfilesCurrentId);
+  const accountFeatureIds = normalizeStringArray([
+    ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
+    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
+  ]).filter((key) => !isProfileScopedContentUnlockFeatureKey(key));
+
+  const [legacyProfileFeatureIds, contentSnapshot] = await Promise.all([
+    currentProfileId
+      ? PointHistory.distinct("featureKey", {
+        userId: normalizedUserId,
+        kind: "deduct",
+        featureKey: { $ne: "" },
+        $or: [
+          { "metadata.profileId": currentProfileId },
+          { "metadata.selectedProfileId": currentProfileId },
+        ],
+      })
+      : Promise.resolve([]),
+    getUnlockedContentSnapshot({ userId: normalizedUserId, profileId: currentProfileId }),
+  ]);
+
+  const profileFeatureIds = normalizeStringArray(legacyProfileFeatureIds)
+    .filter(isProfileScopedContentUnlockFeatureKey);
+  const unlockedFeatureIds = normalizeStringArray([
+    ...accountFeatureIds,
+    ...profileFeatureIds,
+    ...(Array.isArray(contentSnapshot?.featureKeys) ? contentSnapshot.featureKeys : []),
+  ]);
+
+  return buildAccessState({
+    userId: normalizedUserId,
+    user,
+    profileId: currentProfileId,
+    unlockedFeatureIds,
+    unlockedContentKeys: contentSnapshot?.contentKeys || [],
+    profileScopedAuthoritative: currentProfileId
+      ? contentSnapshot?.profileScopedAuthoritative === true
+      : false,
+    profileCount,
+    source,
+    checkedAt,
+  });
+}
+
+export function readAccessStateCache(userId, { profileId = "", allowStale = false } = {}) {
+  const normalizedUserId = normalizeUserId(userId);
+  const fallbackProfileId = profileId || cache.currentProfileByUser.get(normalizedUserId) || "";
+  const key = accessStateCacheKey(normalizedUserId, fallbackProfileId);
   if (!key) return null;
   const entry = cache.entries.get(key);
   if (!entry) return null;
@@ -156,8 +270,10 @@ export function readAccessStateCache(userId, { allowStale = false } = {}) {
   return null;
 }
 
-export function writeAccessStateCache(userId, value) {
-  const key = normalizeUserId(userId);
+export function writeAccessStateCache(userId, value, { profileId = "" } = {}) {
+  const normalizedUserId = normalizeUserId(userId);
+  const normalizedProfileId = normalizeProfileId(profileId || value?.currentProfileId || value?.profileId);
+  const key = accessStateCacheKey(normalizedUserId, normalizedProfileId);
   if (!key || !value) return value;
   const now = Date.now();
   prune(now);
@@ -166,29 +282,48 @@ export function writeAccessStateCache(userId, value) {
     expiresAt: now + ACCESS_STATE_TTL_MS,
     staleUntil: now + ACCESS_STATE_STALE_TTL_MS,
   });
+  if (normalizedProfileId) cache.currentProfileByUser.set(normalizedUserId, normalizedProfileId);
   return value;
 }
 
-export function readAccessStateInFlight(userId) {
-  return cache.inFlight.get(normalizeUserId(userId)) || null;
+export function readAccessStateInFlight(userId, { profileId = "" } = {}) {
+  return cache.inFlight.get(accessStateCacheKey(userId, profileId)) || null;
 }
 
-export function writeAccessStateInFlight(userId, promise) {
-  const key = normalizeUserId(userId);
+export function writeAccessStateInFlight(userId, promise, { profileId = "" } = {}) {
+  const key = accessStateCacheKey(userId, profileId);
   if (!key || !promise) return promise;
   cache.inFlight.set(key, promise);
   return promise;
 }
 
-export function clearAccessStateInFlight(userId, promise) {
-  const key = normalizeUserId(userId);
+export function clearAccessStateInFlight(userId, promise, { profileId = "" } = {}) {
+  const key = accessStateCacheKey(userId, profileId);
   if (cache.inFlight.get(key) === promise) cache.inFlight.delete(key);
 }
 
 export function invalidateAccessStateCacheForUser(userId) {
-  const key = normalizeUserId(userId);
-  if (!key) return false;
-  return cache.entries.delete(key);
+  const normalizedUserId = normalizeUserId(userId);
+  if (!normalizedUserId) return false;
+  let deleted = false;
+  for (const key of cache.entries.keys()) {
+    if (key === normalizedUserId || key.startsWith(`${normalizedUserId}::`)) {
+      deleted = cache.entries.delete(key) || deleted;
+    }
+  }
+  for (const key of cache.inFlight.keys()) {
+    if (key === normalizedUserId || key.startsWith(`${normalizedUserId}::`)) cache.inFlight.delete(key);
+  }
+  cache.currentProfileByUser.delete(normalizedUserId);
+  const legacyUnlockCache = globalThis.__codeDestinyAccessUnlocksCache;
+  const legacyPrefix = `${normalizedUserId}::`;
+  for (const key of legacyUnlockCache?.entries?.keys?.() || []) {
+    if (key.startsWith(legacyPrefix)) legacyUnlockCache.entries.delete(key);
+  }
+  for (const key of legacyUnlockCache?.inFlight?.keys?.() || []) {
+    if (key.startsWith(legacyPrefix)) legacyUnlockCache.inFlight.delete(key);
+  }
+  return deleted;
 }
 
 globalThis.__accessStateCache = {

@@ -177,6 +177,17 @@
     }
   }
 
+  function _dpIsAuthRequiredResult(result) {
+    var data = result && result.data && typeof result.data === 'object' ? result.data : {};
+    var error = data.error && typeof data.error === 'object' ? data.error : {};
+    var code = String(data.code || error.code || result && result.code || '').trim().toUpperCase();
+    return Number(result && result.status || 0) === 401
+      || code === 'AUTH_REQUIRED'
+      || code === 'LOGIN_REQUIRED'
+      || code === 'NOT_LOGGED_IN'
+      || code === 'TOKEN_EXPIRED';
+  }
+
   function _dpResolveIdScope(user) {
     var scopeRaw = user && (user.id || user.userId || user._id || user.uid);
     return String(scopeRaw || '').trim().toLowerCase();
@@ -1551,7 +1562,7 @@
       timeoutMs: _DP_FETCH_TIMEOUT_MS,
     }).then(function(result) {
       if (!result.ok) {
-        if ((result.status === 401 || result.status === 403) && _dpIsSameOriginBase(result.base)) {
+        if (_dpIsAuthRequiredResult(result) && _dpIsSameOriginBase(result.base)) {
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
           try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
           return null;
@@ -1763,7 +1774,7 @@
         headers: _dpBuildAuthHeaders()
       })
       .then(function(result) {
-        if (result.status === 401 || result.status === 403) return null;
+        if (_dpIsAuthRequiredResult(result)) return null;
         return result.ok ? result.data : null;
       })
       .catch(function() { return null; });
@@ -4260,7 +4271,7 @@
       window._cdCoinGatePerUseInFlight = false;
       window.__cdCoinGatePerUseLockAt = 0;
       _dpSetPaymentPending(false);
-      if (res.status === 401 || res.status === 403) {
+      if (_dpIsAuthRequiredResult(res)) {
         if (typeof window.__cdOpenLoginRequiredModal === 'function') {
           window.__cdOpenLoginRequiredModal({
             reason: '로그인 후 이용할 수 있는 기능입니다.',
@@ -4563,7 +4574,7 @@
       .then(function (res) {
         inFlight = false;
         _dpSetPaymentPending(false);
-        if (res.status === 401 || res.status === 403) {
+        if (_dpIsAuthRequiredResult(res)) {
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({
               reason: '로그인 후 이용할 수 있는 기능입니다.',
@@ -4767,7 +4778,7 @@
         headers: _dpBuildAuthHeaders()
       })
       .then(function(res) {
-        if (res.status === 401 || res.status === 403) return null;
+        if (_dpIsAuthRequiredResult(res)) return null;
         return res.ok ? res.data : null;
       })
       .then(function(d) {
@@ -7748,7 +7759,7 @@
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         var msg = String((payload && payload.message) || '').trim();
-        if (result && (result.status === 401 || result.status === 403)) {
+        if (_dpIsAuthRequiredResult(result)) {
           throw new Error('AUTH_REQUIRED');
         }
         if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
@@ -8182,7 +8193,7 @@
       _dpSetPaymentPending(false);
       if (!result) return;
       if (!result.ok || !result.data || result.data.ok === false) {
-        if (result && (result.status === 401 || result.status === 403)) throw new Error('AUTH_REQUIRED');
+        if (_dpIsAuthRequiredResult(result)) throw new Error('AUTH_REQUIRED');
         if (result && (result.status === 503 || result.status === 504 || result.status === 0)) {
           throw new Error('PROFILE_MUTATION_TRANSIENT_UNAVAILABLE');
         }
@@ -9450,7 +9461,7 @@
       timeoutMs: _DP_FETCH_TIMEOUT_MS
     }).then(function(result) {
       if (!result || !result.ok) {
-        var signedOut = !!(result && (result.status === 401 || result.status === 403));
+        var signedOut = _dpIsAuthRequiredResult(result);
         return { ok: false, degraded: !signedOut, signedOut: signedOut, balance: 0 };
       }
       var data = (result.data && typeof result.data === 'object') ? result.data : {};
@@ -10039,7 +10050,7 @@
         window._cdCoinGatePerUseInFlight = false;
         window.__cdCoinGatePerUseLockAt = 0;
         _dpSetPaymentPending(false);
-        if (res.status === 401 || res.status === 403) {
+        if (_dpIsAuthRequiredResult(res)) {
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({
               reason: '로그인이 필요한 기능입니다.',

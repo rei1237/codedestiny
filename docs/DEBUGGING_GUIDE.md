@@ -43,6 +43,15 @@
 - mock 테스트 방법: signed fake token 또는 auth helper stub으로 권한 branch 확인.
 - 수정 전 주의사항: 운영 OAuth 설정이나 JWT secret 변경은 승인 없이는 금지.
 
+## 결제 성공 뒤 다시 잠기거나 로그인을 요구하는 경우
+
+- 먼저 `GET /api/me/access-state?profileId=...` 응답의 `userId`, `currentProfileId`, `completeness`, `authority`, `unlockedFeatureIds`, `profileScopedAuthoritative`를 함께 확인한다.
+- `completeness=full`, `authority=server`인데 기존 구매가 없다면 `User.unlockedFeatures`, `User.paidFeatures`, 현재 프로필의 `ContentEntitlement`, 프로필 ID가 기록된 `PointHistory`를 대조한다.
+- AccessStore가 `/api/access/unlocks`를 카드별로 반복 호출하거나 raw `fetch`로 인증 갱신을 우회하면 회귀다. React에서는 등록된 `authFetch` adapter, 정적 UI에서는 `fetchJsonWithAuth`를 사용해야 한다.
+- `403 MISSING_PROFILE_ID`, `PROFILE_REQUIRED`, `CONTENT_LOCKED`는 로그아웃 근거가 아니다. 세션과 마지막 정상 스냅샷을 유지하고 권한·프로필 오류로 표시한다. 최종 `401`만 로그인 필요로 분류한다.
+- 결제 직후 현재 탭은 optimistic grant, 다른 탭은 `code-destiny-access-sync`, 서버는 사용자 단위 access cache invalidation으로 반영된다. 이후 한 번의 complete snapshot 재검증으로 확정한다.
+- 회귀 테스트: 기존 구매 bootstrap, 프로필 격리, 401/403 분리, 503 stale 복구, 결제 직후 optimistic grant, BroadcastChannel 다중 탭, 새로고침·로그아웃/재로그인 순서로 확인한다.
+
 ## 모바일에서 특정 페이지가 메인으로 튕김
 
 - 증상: 모바일 WebView 또는 브라우저에서 특정 기능 진입 시 `/` 또는 앱 store/main으로 돌아간다.

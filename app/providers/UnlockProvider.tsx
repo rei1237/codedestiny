@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
+import { authFetch } from "@/app/_lib/auth-client";
 
 type AccessStoreSnapshot = {
   cacheKey: string;
@@ -45,6 +46,7 @@ type AccessStore = {
   applyOptimisticUpdate?: (update: unknown) => string[];
   rollbackOptimisticUpdate?: (reason?: string) => boolean;
   markOptimisticallyUnlocked: (featureKey: string, profileId?: string, metadata?: Record<string, unknown>) => boolean;
+  setRequestAdapter?: (adapter: ((url: string, init?: RequestInit) => Promise<Response>) | null) => boolean;
 };
 
 type AccessStoreWindow = Window & {
@@ -70,9 +72,15 @@ const EMPTY_SNAPSHOT: AccessStoreSnapshot = {
 
 const AccessStoreContext = createContext<AccessStore | null>(null);
 
+function accessStoreAuthFetch(url: string, init?: RequestInit) {
+  return authFetch(url, init, { clientSource: "app:access-store" });
+}
+
 function getStore(): AccessStore | null {
   if (typeof window === "undefined") return null;
-  return (window as AccessStoreWindow).CodeDestinyAccessStore || null;
+  const store = (window as AccessStoreWindow).CodeDestinyAccessStore || null;
+  store?.setRequestAdapter?.(accessStoreAuthFetch);
+  return store;
 }
 
 export function useAccessStore(): AccessStore | null {

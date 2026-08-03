@@ -577,8 +577,12 @@ assert.ok(
 );
 const accessStoreSource = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
 assert.ok(
-  accessStoreSource.includes("/api/access/unlocks?profileId="),
-  "AccessStore remains the single owner of unlock snapshot requests",
+  accessStoreSource.includes("/api/me/access-state?profileId="),
+  "AccessStore remains the single owner of complete unlock snapshot requests",
+);
+assert.ok(
+  !accessStoreSource.includes("/api/access/unlocks?profileId="),
+  "AccessStore must not issue profile unlock reads per surface",
 );
 assert.ok(!indexHtml.includes("이용권으로 사용"), "payment selector must not offer pass usage inside modal");
 

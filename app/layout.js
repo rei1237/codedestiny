@@ -188,7 +188,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
-        <Script src="/js/core/access-store.js?v=20260802" strategy="beforeInteractive" />
+        <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
         <link rel="alternate" hrefLang="ja" href="https://code-destiny.com/ja/" />

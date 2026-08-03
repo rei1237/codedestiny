@@ -3,8 +3,9 @@
 
   if (!global || global.CodeDestinyAccessStore) return;
 
-  var STORAGE_VERSION = 2;
-  var STORAGE_PREFIX = 'cd_access_store_v2::';
+  var STORAGE_VERSION = 3;
+  var STORAGE_PREFIX = 'cd_access_store_v3::';
+  var ACCESS_SYNC_CHANNEL = 'code-destiny-access-sync';
   var LEGACY_LEDGER_KEY = 'cd_verified_unlock_grants_v1';
   // Access reads are display probes. A 503 keeps the last usable snapshot and waits
   // for an explicit user/session action instead of adding another request to the burst.
@@ -34,6 +35,9 @@
   var bootEpoch = 0;
   var contextKey = '';
   var abortController = null;
+  var requestAdapter = null;
+  var syncChannel = null;
+  var snapshotCache = null;
   var state = createState('');
 
   function createState(key) {
@@ -167,8 +171,8 @@
     return keys.length ? keys.filter(function (key, index) { return keys.indexOf(key) === index; }) : DEFAULT_SERVICE_KEYS.slice();
   }
 
-  function makeCacheKey(userId, profileId, serviceKeys) {
-    return userId + '::' + (profileId || 'default') + '::' + serviceKeys.join(',');
+  function makeCacheKey(userId, profileId) {
+    return userId + '::' + (profileId || 'default');
   }
 
   function storageKey(key) {
@@ -196,6 +200,7 @@
   }
 
   function notify() {
+    snapshotCache = null;
     var snapshot = getSnapshot();
     listeners.slice().forEach(function (listener) {
       try {
@@ -222,6 +227,49 @@
     }
   }
 
+  function normalizeRequestResult(result) {
+    if (result && typeof result.json === 'function') {
+      return result.json().catch(function () { return {}; }).then(function (payload) {
+        return { ok: Boolean(result.ok), status: Number(result.status || 0), payload: payload || {} };
+      });
+    }
+    if (result && typeof result === 'object' && ('payload' in result || 'status' in result)) {
+      return Promise.resolve({
+        ok: Boolean(result.ok),
+        status: Number(result.status || 0),
+        payload: result.payload && typeof result.payload === 'object' ? result.payload : {}
+      });
+    }
+    return Promise.resolve({ ok: false, status: 0, payload: {} });
+  }
+
+  function requestJson(url, init) {
+    var requester = requestAdapter;
+    if (!requester && typeof global.fetchJsonWithAuth === 'function') {
+      requester = function (target, options) { return global.fetchJsonWithAuth(target, options); };
+    }
+    if (!requester && typeof global.fetch === 'function') requester = global.fetch.bind(global);
+    if (!requester) return Promise.resolve({ ok: false, status: 0, payload: { code: 'FETCH_UNAVAILABLE' } });
+    return Promise.resolve(requester(url, init || {})).then(normalizeRequestResult);
+  }
+
+  function publishAccessSync(reason, savedAt) {
+    if (!syncChannel || !state.cacheKey || state.userId === 'anonymous') return;
+    try {
+      syncChannel.postMessage({
+        type: 'snapshot-changed',
+        cacheKey: state.cacheKey,
+        userId: state.userId,
+        profileId: state.profileId,
+        checkedAt: state.checkedAt,
+        savedAt: Number(savedAt || Date.now()),
+        reason: String(reason || state.source || 'updated')
+      });
+    } catch (_) {
+      // Cross-tab synchronization is an optional acceleration layer.
+    }
+  }
+
   function syncLegacyFeatureMap() {
     var next = Object.create(null);
     Object.keys(state.persistentUnlocks).forEach(function (key) {
@@ -237,6 +285,7 @@
     var storage = getStorage();
     if (!storage || !state.cacheKey || state.userId === 'anonymous') return;
     try {
+      var savedAt = Date.now();
       storage.setItem(
         storageKey(state.cacheKey),
         JSON.stringify({
@@ -249,9 +298,10 @@
           membership: state.membership,
           entitlementSnapshot: state.entitlementSnapshot,
           monthlyBalance: state.monthlyBalance,
-          savedAt: Date.now()
+          savedAt: savedAt
         })
       );
+      publishAccessSync(state.source, savedAt);
     } catch (_) {
       // localStorage is an optional acceleration layer.
     }
@@ -320,7 +370,7 @@
     state = createState(key);
     state.profileId = profileId;
     state.userId = userId;
-    state.serviceKeys = normalizeServiceKeys({ serviceKeys: key.split('::').slice(2).join('::').split(',') });
+    state.serviceKeys = DEFAULT_SERVICE_KEYS.slice();
     if (restored) {
       state.persistentUnlocks = copyMap(restored.persistentUnlocks);
       state.optimistic = restored.optimistic && typeof restored.optimistic === 'object' ? restored.optimistic : Object.create(null);
@@ -346,7 +396,7 @@
     var userId = getUserId(options || {});
     var profileId = getProfileId(options || {});
     var serviceKeys = normalizeServiceKeys(options || {});
-    var key = makeCacheKey(userId, profileId, serviceKeys);
+    var key = makeCacheKey(userId, profileId);
     if (key !== contextKey) {
       abortCurrent('context-changed');
       contextKey = key;
@@ -452,9 +502,9 @@
     var requestedUserId = getUserId(options || {});
     if (requestedUserId !== 'anonymous' && sourceUserId !== requestedUserId) return false;
     var profileId = String(
-      (options && options.profileId) ||
       source.currentProfileId ||
       source.profileId ||
+      (options && options.profileId) ||
       state.profileId ||
       ''
     );
@@ -465,18 +515,18 @@
       authenticated: true
     });
     var unlocks = extractUnlockMap(source);
-    var merged = copyMap(state.persistentUnlocks);
-    Object.keys(unlocks).forEach(function (key) { merged[key] = true; });
-    Object.keys(state.optimistic).forEach(function (key) {
-      if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
-    });
-    state.persistentUnlocks = copyMap(merged);
     state.profileId = profileId;
     state.userId = sourceUserId;
     state.serviceKeys = context.serviceKeys.slice();
     var completeness = String(source.completeness || source.entitlementSnapshot && source.entitlementSnapshot.completeness || '').toLowerCase();
     var authority = String(source.authority || source.entitlementSnapshot && source.entitlementSnapshot.authority || '').toLowerCase();
     var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server';
+    var merged = authoritativeFull ? copyMap(unlocks) : copyMap(state.persistentUnlocks);
+    Object.keys(unlocks).forEach(function (key) { merged[key] = true; });
+    Object.keys(state.optimistic).forEach(function (key) {
+      if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
+    });
+    state.persistentUnlocks = authoritativeFull ? copyMap(unlocks) : copyMap(merged);
     var incomingEntitlement = copyObject(source.entitlementSnapshot);
     var currentTier = String(state.entitlementSnapshot && state.entitlementSnapshot.tier || '').toLowerCase();
     var incomingTier = String(incomingEntitlement && incomingEntitlement.tier || '').toLowerCase();
@@ -532,7 +582,25 @@
   function getAccessDecision(options) {
     var opts = options || {};
     var context = ensureContext(opts);
-    if (typeof global.fetch !== 'function') {
+    var snapshotFeatureKey = String(opts.featureKey || opts.subFeatureKey || '').trim();
+    if (snapshotFeatureKey && isUnlocked(snapshotFeatureKey)) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        code: '',
+        source: 'access-snapshot',
+        payload: {
+          ok: true,
+          data: {
+            unlocked: true,
+            alreadyUnlocked: true,
+            canAccess: true,
+            accessDecision: { accessGranted: true, reason: 'already_unlocked', source: 'access-snapshot' }
+          }
+        }
+      });
+    }
+    if (!requestAdapter && typeof global.fetchJsonWithAuth !== 'function' && typeof global.fetch !== 'function') {
       return Promise.resolve({ ok: false, status: 0, payload: null, code: 'FETCH_UNAVAILABLE' });
     }
     var params = accessDecisionQuery(opts);
@@ -557,13 +625,13 @@
       timeoutId = global.setTimeout(function () { controller.abort(); }, timeoutMs);
     }
     var query = params.toString();
-    var request = global.fetch('/api/billing/unlock-status' + (query ? '?' + query : ''), {
+    var request = requestJson('/api/billing/unlock-status' + (query ? '?' + query : ''), {
       credentials: 'include',
       cache: 'no-store',
       headers: { Accept: 'application/json' },
       signal: controller ? controller.signal : undefined
     }).then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (payload) {
+        var payload = response.payload || {};
         var result = {
           ok: Boolean(response.ok && payload && payload.ok === true),
           status: Number(response.status || 0),
@@ -593,7 +661,6 @@
           debug('access decision failed', { key: key, status: result.status });
         }
         return result;
-      });
     }).catch(function (error) {
       if (error && error.name === 'AbortError') {
         debug('access decision aborted', { key: key });
@@ -633,21 +700,20 @@
     abortController = typeof global.AbortController === 'function' ? new global.AbortController() : null;
     lastRefreshAttemptAt[context.key] = Date.now();
     var controller = abortController;
-    var query = '/api/access/unlocks?profileId=' + encodeURIComponent(context.profileId) +
-      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(','));
+    var query = '/api/me/access-state?profileId=' + encodeURIComponent(context.profileId);
     traceEvent('access:start', {
       request: 'unlocks',
       serviceKeys: context.serviceKeys.slice(),
       attempt: Number(attempt || 0),
     });
     var epoch = bootEpoch;
-    var request = global.fetch(query, {
+    var request = requestJson(query, {
       credentials: 'include',
       cache: 'no-store',
       headers: { Accept: 'application/json' },
       signal: controller ? controller.signal : undefined
     }).then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (payload) {
+        var payload = response.payload || {};
         if (!response.ok || payload && payload.ok === false) {
           var error = new Error('Unlock request failed: ' + response.status);
           error.status = response.status;
@@ -660,26 +726,38 @@
           ok: Boolean(response.ok && payload && payload.ok === true),
         });
         return payload;
-      });
     }).then(function (payload) {
       if (epoch !== bootEpoch || context.key !== contextKey) {
         debug('ignored stale response', { cacheKey: context.key });
         return { ok: false, stale: true };
       }
-      applyServerPayload(payload, context);
+      if (!applyAccessStateSnapshot(payload, {
+        userId: context.userId,
+        profileId: context.profileId,
+        authenticated: true,
+        serviceKeys: context.serviceKeys
+      })) {
+        applyServerPayload(payload, context);
+      }
       return { ok: true, payload: payload };
     }).catch(function (error) {
       if (error && error.name === 'AbortError') {
         debug('fetch aborted', { cacheKey: context.key });
         return { ok: false, aborted: true };
       }
-      if (error && (error.status === 401 || error.status === 403)) {
-        reset({ clearCache: true });
-        contextKey = '';
-        state.status = 'error';
-        state.error = { status: error.status, code: 'AUTH_REQUIRED' };
+      if (error && error.status === 401) {
+        state.status = hasUsableCache() ? 'degraded' : 'error';
+        state.error = { status: 401, code: 'AUTH_REQUIRED' };
         notify();
-        return { ok: false, status: error.status };
+        return { ok: false, status: 401, code: 'AUTH_REQUIRED', stale: hasUsableCache() };
+      }
+      if (error && (error.status === 403 || error.status === 404)) {
+        var payloadCode = String(error.payload && (error.payload.code || error.payload.error && error.payload.error.code) || '');
+        var profileError = /PROFILE|MISSING_PROFILE/.test(payloadCode);
+        state.status = hasUsableCache() ? 'degraded' : 'error';
+        state.error = { status: error.status, code: profileError ? 'PROFILE_REQUIRED' : 'PERMISSION_DENIED' };
+        notify();
+        return { ok: false, status: error.status, code: state.error.code, stale: hasUsableCache() };
       }
       state.status = hasUsableCache() ? 'degraded' : 'error';
       state.error = { status: error && error.status || 0, code: 'UNLOCK_FETCH_FAILED' };
@@ -717,7 +795,8 @@
   }
 
   function getSnapshot() {
-    return {
+    if (snapshotCache) return snapshotCache;
+    snapshotCache = {
       cacheKey: state.cacheKey,
       profileId: state.profileId,
       userId: state.userId,
@@ -733,6 +812,7 @@
       source: state.source,
       lastPayload: copyObject(state.lastPayload)
     };
+    return snapshotCache;
   }
 
   function isUnlocked(featureKey) {
@@ -886,6 +966,10 @@
       return Promise.resolve({ ok: true, invalidated: true, snapshot: getSnapshot() });
     },
     applyAccessStateSnapshot: applyAccessStateSnapshot,
+    setRequestAdapter: function (adapter) {
+      requestAdapter = typeof adapter === 'function' ? adapter : null;
+      return true;
+    },
     applyPaymentPayload: applyPaymentPayload,
     markOptimisticallyUnlocked: markOptimisticallyUnlocked,
     applyOptimisticUpdate: function (update) {
@@ -921,16 +1005,43 @@
     if (authEvent === 'subscription' || authSource === 'membership-cache') return;
     store.invalidateEntitlements('auth-changed');
   });
-  global.addEventListener && global.addEventListener('cd:profile-changed', function (event) {
+  function handleProfileChanged(event) {
+    var detail = event && event.detail || {};
+    var profile = detail.profile && typeof detail.profile === 'object' ? detail.profile : detail;
+    var profileId = String(profile && (profile.id || profile.profileId || profile._id) || detail.profileId || '').trim();
     store.invalidateEntitlements('profile-changed');
-  });
+    if (!profileId || !hasSessionHint({})) return;
+    try { global.__cdCurrentProfileId = profileId; } catch (_) {}
+    store.ensureLoaded({ profileId: profileId, authenticated: true, force: true, reason: 'profile-changed' });
+  }
+  global.addEventListener && global.addEventListener('cd:profile-changed', handleProfileChanged);
+  global.addEventListener && global.addEventListener('destinyProfileChanged', handleProfileChanged);
   global.addEventListener && global.addEventListener('cd:billing-balance-updated', function (event) {
     var detail = event && event.detail || {};
     clearAccessDecisionCache();
     if (detail.unlocks || detail.unlockedFeatures || detail.unlockedFeatureMap || detail.payload) {
       applyPaymentPayload(detail.payload || detail, { profileId: detail.profileId });
+      store.revalidate({ profileId: detail.profileId || state.profileId, authenticated: true, reason: 'payment' });
     }
   });
+
+  global.addEventListener && global.addEventListener('storage', function (event) {
+    if (!event || event.key !== storageKey(contextKey) || !contextKey || !state.userId) return;
+    restoreCache(contextKey, state.userId, state.profileId);
+  });
+  if (typeof global.BroadcastChannel === 'function') {
+    try {
+      syncChannel = new global.BroadcastChannel(ACCESS_SYNC_CHANNEL);
+      syncChannel.onmessage = function (event) {
+        var detail = event && event.data || {};
+        if (detail.type !== 'snapshot-changed' || detail.cacheKey !== contextKey) return;
+        if (Number(detail.savedAt || detail.checkedAt || 0) <= Number(state.checkedAt || 0)) return;
+        restoreCache(contextKey, state.userId, state.profileId);
+      };
+    } catch (_) {
+      syncChannel = null;
+    }
+  }
 
   debug('provider mounted', { version: STORAGE_VERSION });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

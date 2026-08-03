@@ -105,6 +105,8 @@ type AccessStatePayload = {
   passType?: string;
   activeUntil?: string;
   maxProfileCount?: number;
+  currentProfileId?: string;
+  unlockedFeatureIds?: string[];
   data?: AccessStatePayload;
 };
 
@@ -510,6 +512,19 @@ async function refreshAccessState(expectedAuthMutationSeq = authMutationSeq) {
   const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
   if (!data || data.degraded === true || !data.userId) return true;
   if (expectedAuthMutationSeq !== authMutationSeq) return true;
+
+  if (typeof window !== "undefined") {
+    const accessStore = (window as Window & {
+      CodeDestinyAccessStore?: {
+        applyAccessStateSnapshot?: (payload: unknown, options?: Record<string, unknown>) => boolean;
+      };
+    }).CodeDestinyAccessStore;
+    accessStore?.applyAccessStateSnapshot?.(data, {
+      profileId: String(data.currentProfileId || ""),
+      authenticated: true,
+      reason: "post-login-bootstrap",
+    });
+  }
 
   const base = readSanitizedAuthUser() as AuthUser | null;
   const merged = mergeAuthUsers(base, {

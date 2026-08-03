@@ -252,6 +252,8 @@ function invalidatePaidAccessDecisionCacheForUser(userId) {
   }
   // 결제/환불/해금으로 접근결정이 바뀌면 이용권 캐시도 함께 무효화한다(구독 상태 변화 즉시 반영).
   try { globalThis.__membershipPassCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__accessStateCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__codeDestinyAccessUnlocksCache?.invalidateForUser?.(uid); } catch {}
   return removed;
 }
 paidAccessDecisionCache.invalidateForUser = invalidatePaidAccessDecisionCacheForUser;

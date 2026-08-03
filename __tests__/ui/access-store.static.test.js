@@ -7,9 +7,9 @@ const vm = require("node:vm");
 const root = path.resolve(__dirname, "../..");
 const storeSource = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
 
-function loadStore(fetchImpl, { setTimeoutImpl = () => 1 } = {}) {
+function loadStore(fetchImpl, { setTimeoutImpl = () => 1, authUser = null, BroadcastChannelImpl, storageMap } = {}) {
   const listeners = new Map();
-  const storage = new Map();
+  const storage = storageMap || new Map();
   const sandbox = {
     console,
     Date,
@@ -28,6 +28,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1 } = {}) {
     setTimeout: setTimeoutImpl,
     clearTimeout: () => undefined,
     fetch: fetchImpl,
+    __cdAuthUser: authUser,
     localStorage: {
       getItem: (key) => storage.get(key) || null,
       setItem: (key, value) => storage.set(key, value),
@@ -44,6 +45,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1 } = {}) {
       this.detail = init && init.detail;
     },
   };
+  if (BroadcastChannelImpl) sandbox.BroadcastChannel = BroadcastChannelImpl;
   sandbox.globalThis = sandbox;
   sandbox.window = sandbox;
   vm.runInNewContext(storeSource, sandbox, { filename: "access-store.js" });
@@ -107,6 +109,192 @@ test("AccessStore accepts auth bootstrap entitlement snapshots without fetching 
   assert.equal(store.getEffectiveTier(), "premium");
   assert.equal(store.getMonthlyBalance().remaining, 120);
   assert.equal(store.canPurchaseProduct("pass-premium").requiresServerVerification, true);
+});
+
+test("AccessStore uses the auth-aware adapter and the complete access-state endpoint", async () => {
+  let rawFetchCalls = 0;
+  const adapterUrls = [];
+  const store = loadStore(async () => {
+    rawFetchCalls += 1;
+    throw new Error("raw fetch must not be used");
+  });
+  store.setRequestAdapter(async (url) => {
+    adapterUrls.push(String(url));
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: {
+          userId: "user-1",
+          currentProfileId: "profile-1",
+          unlockedFeatureIds: ["section_summary"],
+          completeness: "full",
+          authority: "server",
+        },
+      }),
+    };
+  });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(rawFetchCalls, 0);
+  assert.deepEqual(adapterUrls, ["/api/me/access-state?profileId=profile-1"]);
+  assert.equal(store.isUnlocked("section_summary"), true);
+});
+
+test("permission and profile failures preserve login state and the last good unlock snapshot", async () => {
+  let calls = 0;
+  const store = loadStore(async () => {
+    calls += 1;
+    if (calls === 1) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          ok: true,
+          data: {
+            userId: "user-1",
+            currentProfileId: "profile-1",
+            unlockedFeatureIds: ["section_summary"],
+            completeness: "full",
+            authority: "server",
+          },
+        }),
+      };
+    }
+    return {
+      ok: false,
+      status: 403,
+      json: async () => ({ ok: false, code: "MISSING_PROFILE_ID" }),
+    };
+  });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  const failed = await store.revalidate({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(failed.code, "PROFILE_REQUIRED");
+  assert.equal(store.isUnlocked("section_summary"), true);
+  assert.equal(store.getSnapshot().userId, "user-1");
+  assert.equal(store.getSnapshot().status, "degraded");
+});
+
+test("a final 401 is classified as authentication failure without erasing the last good snapshot", async () => {
+  let calls = 0;
+  const store = loadStore(async () => {
+    calls += 1;
+    if (calls === 1) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          ok: true,
+          data: {
+            userId: "user-1",
+            currentProfileId: "profile-1",
+            unlockedFeatureIds: ["section_summary"],
+            completeness: "full",
+            authority: "server",
+          },
+        }),
+      };
+    }
+    return { ok: false, status: 401, json: async () => ({ ok: false, code: "AUTH_REQUIRED" }) };
+  });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  const failed = await store.revalidate({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(failed.code, "AUTH_REQUIRED");
+  assert.equal(store.isUnlocked("section_summary"), true);
+  assert.equal(store.getSnapshot().status, "degraded");
+});
+
+test("authoritative full snapshots replace revoked grants and expose a stable React snapshot reference", () => {
+  const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }));
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["section_summary"],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  const first = store.getSnapshot();
+  assert.equal(first, store.getSnapshot());
+
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["section_compat"],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  assert.equal(store.isUnlocked("section_summary"), false);
+  assert.equal(store.isUnlocked("section_compat"), true);
+  assert.notEqual(first, store.getSnapshot());
+});
+
+test("a real destinyProfileChanged event switches context and loads one complete snapshot", async () => {
+  const urls = [];
+  const store = loadStore(async (url) => {
+    urls.push(String(url));
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: {
+          userId: "user-1",
+          currentProfileId: "profile-2",
+          unlockedFeatureIds: ["section_compat"],
+          completeness: "full",
+          authority: "server",
+        },
+      }),
+    };
+  }, { authUser: { id: "user-1" } });
+
+  store.__testListeners.get("destinyProfileChanged")({ detail: { id: "profile-2" } });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(urls, ["/api/me/access-state?profileId=profile-2"]);
+  assert.equal(store.getSnapshot().profileId, "profile-2");
+  assert.equal(store.isUnlocked("section_compat"), true);
+});
+
+test("BroadcastChannel propagates an optimistic payment unlock to another tab", async () => {
+  const channels = [];
+  class FakeBroadcastChannel {
+    constructor() {
+      this.onmessage = null;
+      channels.push(this);
+    }
+    postMessage(data) {
+      channels.forEach((channel) => {
+        if (channel !== this && typeof channel.onmessage === "function") channel.onmessage({ data });
+      });
+    }
+  }
+  const sharedStorage = new Map();
+  const noFetch = async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) });
+  const firstTab = loadStore(noFetch, { BroadcastChannelImpl: FakeBroadcastChannel, storageMap: sharedStorage });
+  const secondTab = loadStore(noFetch, { BroadcastChannelImpl: FakeBroadcastChannel, storageMap: sharedStorage });
+
+  secondTab.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: [],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  firstTab.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: [],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  firstTab.markOptimisticallyUnlocked("section_summary", "profile-1", { source: "payment" });
+
+  assert.equal(secondTab.isUnlocked("section_summary"), true);
 });
 
 test("AccessStore keeps cached unlocks when revalidation returns 503 and applies optimistic unlocks", async () => {
@@ -222,6 +410,31 @@ test("AccessStore deduplicates payment access decisions separately from persiste
   const [firstResult, secondResult] = await Promise.all([first, second]);
   assert.equal(firstResult.ok, true);
   assert.equal(secondResult.ok, true);
+});
+
+test("an already purchased feature uses the complete snapshot without an unlock-status request", async () => {
+  let calls = 0;
+  const store = loadStore(async () => {
+    calls += 1;
+    return { ok: false, status: 500, json: async () => ({ ok: false }) };
+  });
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["sibyl-premium"],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+
+  const result = await store.getAccessDecision({
+    userId: "user-1",
+    profileId: "profile-1",
+    featureKey: "sibyl-premium",
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.source, "access-snapshot");
+  assert.equal(result.payload.data.accessDecision.accessGranted, true);
+  assert.equal(calls, 0);
 });
 
 test("React and static shell reference the same AccessStore and no component hook owns unlock fetches", () => {

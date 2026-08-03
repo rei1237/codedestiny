@@ -3,10 +3,10 @@ import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAl
 import { resolveActivePassPolicy } from "../lib/profile-limits.js";
 import {
   ACCESS_STATE_USER_PROJECTION,
-  buildAccessState,
   clearAccessStateInFlight,
   readAccessStateCache,
   readAccessStateInFlight,
+  resolveCompleteAccessState,
   writeAccessStateCache,
   writeAccessStateInFlight,
 } from "../lib/access-state.js";
@@ -58,6 +58,7 @@ function degradedHeaders(request, stage) {
 export async function handleAccessStateRoutes(request, env) {
   const trace = { route: "me/access-state", method: request.method, authVerified: false, dbConnected: false };
   let userId = "";
+  let profileId = "";
   try {
     const method = String(request.method || "GET").toUpperCase();
     const path = getRoutePath(request, "/api/me/access-state");
@@ -73,31 +74,35 @@ export async function handleAccessStateRoutes(request, env) {
     trace.authPresent = true;
     trace.authVerified = true;
     userId = String(auth.userId || "").trim();
+    const requestedProfileId = String(new URL(request.url).searchParams.get("profileId") || "").trim();
+    const storedProfileId = String(auth.authUserDoc?.destinyProfilesCurrentId || "").trim();
+    profileId = storedProfileId || requestedProfileId;
 
-    const cached = readAccessStateCache(userId);
+    const cached = readAccessStateCache(userId, { profileId });
     if (cached) return responseFor(cached, false, request);
 
-    const pending = readAccessStateInFlight(userId);
+    const pending = readAccessStateInFlight(userId, { profileId });
     if (pending) return responseFor(await pending, false, request);
 
     const promise = (async () => {
       const user = auth.authUserDoc || {};
       const entitlement = resolveActivePassPolicy(user || {});
-      const state = buildAccessState({
+      const state = await resolveCompleteAccessState({
         userId,
         user: { ...user, activeEntitlement: entitlement },
+        profileId,
         source: "db",
       });
-      return writeAccessStateCache(userId, state);
+      return writeAccessStateCache(userId, state, { profileId });
     })();
-    writeAccessStateInFlight(userId, promise);
+    writeAccessStateInFlight(userId, promise, { profileId });
     try {
       return responseFor(await promise, false, request);
     } finally {
-      clearAccessStateInFlight(userId, promise);
+      clearAccessStateInFlight(userId, promise, { profileId });
     }
   } catch (error) {
-    const stale = userId ? readAccessStateCache(userId, { allowStale: true }) : null;
+    const stale = userId ? readAccessStateCache(userId, { profileId, allowStale: true }) : null;
     if (stale) return responseFor(stale, true, request);
     if (/timeout|timed out/i.test(String(error?.message || error || ""))) {
       return json({

@@ -50,6 +50,13 @@ function uniqueKeys(values = []) {
   return Array.from(new Set(values.map((value) => cleanKey(value)).filter(Boolean)));
 }
 
+function invalidateAccessReadCaches(userId) {
+  const normalizedUserId = cleanKey(userId, 120);
+  if (!normalizedUserId) return;
+  try { globalThis.__accessStateCache?.invalidateForUser?.(normalizedUserId); } catch {}
+  try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(normalizedUserId); } catch {}
+}
+
 function featureKeyVariants(value) {
   const raw = cleanKey(value);
   const normalized = normalizePaidFeatureKey(raw) || raw;
@@ -113,6 +120,12 @@ export function resolveUnlockedFeatureKeyFromContentKey(value) {
     return SUKYO_YEARLY_FORTUNE_PRODUCT_KEY;
   }
   return PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[key] || key;
+}
+
+export function isProfileScopedContentUnlockFeatureKey(value) {
+  const key = cleanKey(value);
+  if (!key) return false;
+  return Boolean(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key]);
 }
 
 function resolveContentKeyAliases(value) {
@@ -341,6 +354,7 @@ export async function revokePaymentContentAccess({
   const entitlementModifiedCount = Number(entitlementResult?.modifiedCount || 0);
   const entitlementMatchedCount = Number(entitlementResult?.matchedCount || entitlementResult?.n || 0);
   const userModifiedCount = Number(userResult?.modifiedCount || userResult?.nModified || 0);
+  if (entitlementModifiedCount > 0 || userModifiedCount > 0) invalidateAccessReadCaches(userId);
   return {
     ok: true,
     unlockRevoked: entitlementModifiedCount > 0 || userModifiedCount > 0,
@@ -412,7 +426,7 @@ export async function upsertContentUnlock({
   const effectiveUnlockedAt = normalizeDateOrNull(unlockedAt) || now;
   const effectiveExpiresAt = normalizeDateOrNull(expiresAt);
 
-  return ContentEntitlement.findOneAndUpdate(
+  const document = await ContentEntitlement.findOneAndUpdate(
     {
       userId: normalized.userId,
       profileId: normalized.profileId,
@@ -443,6 +457,8 @@ export async function upsertContentUnlock({
     },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   ).lean();
+  invalidateAccessReadCaches(normalized.userId);
+  return document;
 }
 
 export async function getUnlockedContentKeys({ userId, profileId, serviceKey }) {
