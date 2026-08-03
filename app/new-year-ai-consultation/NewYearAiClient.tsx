@@ -1350,6 +1350,66 @@ const NYAI_SEASON_CSS = `
 }
 `;
 
+const NYAI_READING_ROOM_CSS = `
+.nyai-page .nyai-intro {
+  position: relative;
+  isolation: isolate;
+  min-height: 318px;
+  overflow: hidden;
+  border-color: rgba(227, 196, 106, .34);
+  background: #15080c;
+  box-shadow: 0 22px 56px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 240, 202, .1);
+}
+
+.nyai-page .nyai-intro-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(21, 8, 12, .98) 0%, rgba(21, 8, 12, .84) 46%, rgba(21, 8, 12, .16) 100%),
+    url('/fuctionassets/new-year-almanac-v1.webp') center / cover no-repeat;
+}
+
+.nyai-page .nyai-intro > :not(.nyai-intro-art) { position: relative; z-index: 1; }
+.nyai-page .nyai-intro-copy { max-width: 56ch; align-self: center; }
+.nyai-page .nyai-intro .nyai-eyebrow { color: #e9c983; letter-spacing: .14em; }
+.nyai-page .nyai-intro h1 { color: #fff3db; font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -.02em; }
+.nyai-page .nyai-intro .nyai-consult-card {
+  align-self: stretch;
+  background: rgba(17, 8, 12, .76);
+  border-color: rgba(227, 196, 106, .25);
+  backdrop-filter: blur(10px);
+}
+.nyai-page .nyai-workspace { align-items: start; }
+.nyai-page :is(.nyai-form, .nyai-chat) {
+  border-color: rgba(227, 196, 106, .24);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 240, 202, .08);
+}
+.nyai-page .nyai-primary {
+  min-height: 52px;
+  border-radius: 14px;
+  background: #e4c274;
+  color: #24120e;
+  box-shadow: 0 12px 28px rgba(201, 162, 39, .18);
+}
+.nyai-page .nyai-primary:hover { background: #f2d68e; transform: translateY(-1px); }
+.nyai-page .nyai-category-chip.is-active,
+.nyai-page .nyai-year-chip.is-active { border-color: rgba(242, 214, 142, .72); background: rgba(227, 196, 106, .14); }
+.nyai-page .nyai-message,
+.nyai-page .nyai-month-calendar,
+.nyai-page .nyai-report-details { border-color: rgba(227, 196, 106, .22); background-color: rgba(17, 8, 12, .68); }
+@media (max-width: 720px) {
+  .nyai-page .nyai-intro { min-height: 0; }
+  .nyai-page .nyai-intro-art { background-position: 68% center; }
+  .nyai-page .nyai-intro-copy { padding-top: 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nyai-page .nyai-primary { transition: none; }
+  .nyai-page .nyai-primary:hover { transform: none; }
+}
+`;
+
 export default function NewYearAiConsultationPage() {
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
@@ -1738,6 +1798,7 @@ export default function NewYearAiConsultationPage() {
   return (
     <main className="nyai-page" style={themeVars} data-season-element={seasonTheme.name}>
       <section className="nyai-panel nyai-intro" aria-label="신년운세 전문가 상담">
+        <div className="nyai-intro-art" aria-hidden="true" />
         <div className="nyai-orbit" aria-hidden="true" />
         <div className="nyai-consult-card" aria-label="상담 준비 요약">
           <span className="nyai-eyebrow">상담 대상자 요약</span>
@@ -2014,6 +2075,7 @@ export default function NewYearAiConsultationPage() {
       </section>
 
       <style>{NYAI_SEASON_CSS}</style>
+      <style>{NYAI_READING_ROOM_CSS}</style>
       <style>{`
         .nyai-page {
           /* 오리엔탈 하이엔드 팔레트 — 칠흑·딥 버건디 베이스에 앤틱 골드와 옥색.

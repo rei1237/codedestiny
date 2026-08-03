@@ -976,8 +976,14 @@ export default function LoveSecretAiPage() {
 function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean }) {
   return (
     <header className="relative overflow-hidden rounded-[32px] border border-[var(--ls-line)] bg-[var(--ls-surface)] px-5 py-9 text-center shadow-[var(--ls-glow)] sm:px-8 sm:py-12">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-cover bg-right opacity-45"
+        style={{ backgroundImage: "url('/fuctionassets/love-secret-reading-room-v1.webp')" }}
+      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(38,16,28,.98)_0%,rgba(38,16,28,.82)_48%,rgba(38,16,28,.16)_100%)]" />
       <div className={`pointer-events-none absolute inset-0 ${styles.petalTexture}`} aria-hidden="true" />
-      <div className="relative mx-auto flex max-w-2xl flex-col items-center">
+      <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-start text-left">
         <span className={`${styles.heroRing} relative grid h-16 w-16 place-items-center rounded-full bg-[var(--ls-surface-sunken)]`}>
           <Heart className={`${styles.heroHeart} h-8 w-8 fill-[var(--ls-accent)] text-[var(--ls-accent)]`} aria-hidden="true" />
         </span>
