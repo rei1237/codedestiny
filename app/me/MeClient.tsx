@@ -647,7 +647,6 @@ export default function MePage() {
       allowedPaymentModes: ["direct"],
       disablePassFirst: true,
       disablePassChoice: true,
-      forceDeduct: true,
     });
 
     if (!result.ok || !result.data) {
@@ -717,7 +716,6 @@ export default function MePage() {
       allowedPaymentModes: ["monthly"],
       disablePassFirst: true,
       disablePassChoice: true,
-      forceDeduct: true,
     });
 
     if (!result.ok || !result.data) {
