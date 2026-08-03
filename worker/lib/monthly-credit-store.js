@@ -4,6 +4,16 @@ import { applyGrantLot, deductLotsFIFO, ensureLotsForBalance } from "./monthly-c
 
 const MAX_ATTEMPTS = 5;
 
+function buildLotsVersionFilter(version) {
+  if (version !== 0) return { "profileSubscription.membershipCreditLotsVersion": version };
+  return {
+    $or: [
+      { "profileSubscription.membershipCreditLotsVersion": 0 },
+      { "profileSubscription.membershipCreditLotsVersion": { $exists: false } },
+    ],
+  };
+}
+
 // 월정석 지급분별(lot) FIFO 차감: 만료분은 제외하고 오래된 지급분부터 소진한다.
 // 여러 라우트에 흩어진 인라인 차감(구독형 접근)을 이 헬퍼로 통일해 lot/스칼라 정합을 보장한다.
 // 반환: { ok, balance(차감 후 유효잔액|부족 시 현재 유효잔액), user(갱신본|null), reason }
@@ -87,7 +97,7 @@ export async function restoreMonthlyCreditLot({
     });
     const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
     const updated = await User.findOneAndUpdate(
-      { _id: userId, "profileSubscription.membershipCreditLotsVersion": version },
+      { _id: userId, ...buildLotsVersionFilter(version) },
       {
         $set: {
           "profileSubscription.membershipCreditLots": granted.lots,
