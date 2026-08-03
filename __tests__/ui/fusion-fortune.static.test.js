@@ -34,6 +34,20 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(css, /content-visibility:\s*auto/);
 });
 
+test("fusion fortune production switches stay explicit and fail-closed before activation", () => {
+  const wrangler = read("worker/wrangler.toml");
+  for (const flag of [
+    "ENABLE_FUSION_FORTUNE_UI",
+    "ENABLE_FUSION_FORTUNE_API",
+    "ENABLE_FUSION_FORTUNE_MOCK_FLOW",
+    "ENABLE_FUSION_FORTUNE_TICKET_SALES",
+    "ENABLE_FUSION_FORTUNE_REAL_LLM",
+    "ALLOW_FUSION_FORTUNE_REAL_LLM",
+  ]) {
+    assert.match(wrangler, new RegExp(`${flag}\\s*=\\s*"false"`));
+  }
+});
+
 test("guardian free copy describes a maximum rather than a guaranteed grant", () => {
   const html = read("index.html");
   const home = read("js/guardian-fortune-home.js");
