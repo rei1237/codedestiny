@@ -111,7 +111,7 @@ export default function AnimalDestinyPage() {
   });
 
   return (
-    <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(250,224,177,0.45),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(234,193,133,0.24),transparent_31%),radial-gradient(circle_at_48%_90%,rgba(215,165,102,0.2),transparent_33%),linear-gradient(180deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] text-[#4d311a]">
+    <main className="relative min-h-[100dvh] w-full min-w-0 overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(250,224,177,0.45),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(234,193,133,0.24),transparent_31%),radial-gradient(circle_at_48%_90%,rgba(215,165,102,0.2),transparent_33%),linear-gradient(180deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] text-[#4d311a]">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(128deg,transparent_0%,rgba(255,255,255,0.42)_38%,transparent_66%)]" />
 
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d7b792]/60 bg-[#fff7e7]/88 px-4 py-4 backdrop-blur-xl sm:px-6">
@@ -140,10 +140,10 @@ export default function AnimalDestinyPage() {
         </a>
       </header>
 
-      <div className="relative z-10 mx-auto max-w-5xl pb-16">
+      <div className="relative z-10 mx-auto w-full min-w-0 max-w-5xl pb-16">
         <TwelveAnimalHero onStart={handleStartJourney} onReview={handleReviewJourney} />
 
-        <div ref={formSectionRef} className="space-y-8 px-5 sm:px-6">
+        <div ref={formSectionRef} className="min-w-0 space-y-8 px-5 sm:px-6">
           {(status === "idle" || status === "input" || status === "error") ? (
             <m.div
               initial={{ opacity: 0, y: 20 }}
@@ -163,7 +163,7 @@ export default function AnimalDestinyPage() {
           {status === "calculating" ? <TwelveAnimalLoading mode="calculating" /> : null}
           {status === "revealing" ? <TwelveAnimalLoading mode="revealing" /> : null}
 
-          <div ref={resultSectionRef}>
+          <div ref={resultSectionRef} className="min-w-0">
             {status === "result" && animalData ? (
               <AnimalResultScreen
                 animal={animalData}

@@ -161,6 +161,13 @@
 - `GET /api/payments/me?view=shop` may use a cryptographically verified access-token identity when the canonical user read is temporarily unavailable. This fallback is read-only and cannot create an order, deduct monthly credits, grant an entitlement, or revive a withdrawn account once Mongo is available again.
 - Mongo operation admission may shed excess display reads, but a lone timed-out driver operation must reset its dead pool. Deferring reset until an already-hung promise settles can pin an isolate in a permanent 503 loop; concurrent healthy operations remain protected and repeated failures retain the forced-reset escape hatch.
 
+## Mobile fortune entry read policy
+
+- The mobile “모든 운세” overview does not mount the feature preview dialog until the user opens a card. Closing the dialog removes it after the exit animation, and the original trigger remains the focus return target.
+- On mobile, closed fortune collections keep metadata and viewport placeholders only. A real card is mounted when its placeholder intersects the viewport or when the user explicitly opens it from a favorite/recent entry. Feature components outside the viewport must not start effects or data requests.
+- The overview loads the Worker-backed bulk pricing catalog only when the overview is explicitly opened. Cards, the preview sheet, and payment UI consume the same canonical `featureKey` snapshot; a missing price disables the paid CTA instead of displaying a client fallback.
+- Unlock reads use the profile-context single-flight path. Page/provider mount, sheet close, and an ordinary card render do not trigger `/api/access/unlocks`; retry is explicit after a degraded response or an auth/payment/profile state change.
+
 ## Legacy COIN 차감 제거와 호환성 경계
 
 - 신규 콘텐츠 해금과 신규 결제에서는 `User.points`를 차감하지 않는다. 이용 가능한 결제 방식은 `이용권`, `월정석`, `단건 결제`다.

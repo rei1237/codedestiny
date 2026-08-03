@@ -15,15 +15,17 @@
     });
   </script>
 <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
-  <script src="/js/inline/canonical-redirect.js?v=build-822b39b5b552"></script>
+  <script src="/js/inline/canonical-redirect.js?v=build-ae54e608a380"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
       <script src="/js/inline/global-error-guard.js"></script>
 <!-- 이용권 판정 정본(js/core/pass-verdict.js). 셸 인라인 블록이 파싱 시점에 window.__cdPassVerdict 를
      필요로 하므로 defer 를 붙이지 않는다. 순수 로직 파일이라 렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/core/pass-verdict.js?v=build-822b39b5b552"></script>
-      <script src="/js/core/access-store.js?v=build-822b39b5b552"></script>
-      <script src="/js/core/checkout-entry.js?v=build-822b39b5b552"></script>
-      <script src="/js/kill-switch.js?v=build-822b39b5b552" defer></script>
+      <script src="/js/core/pass-verdict.js?v=build-ae54e608a380"></script>
+      <script src="/js/core/access-store.js?v=build-ae54e608a380"></script>
+      <script src="/js/mobile-fortune-entry-trace.js?v=build-ae54e608a380"></script>
+      <script src="/js/core/feature-pricing-store.js?v=build-ae54e608a380"></script>
+      <script src="/js/core/checkout-entry.js?v=build-ae54e608a380"></script>
+      <script src="/js/kill-switch.js?v=build-ae54e608a380" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -413,7 +415,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#FFF8F0" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
-<link rel="manifest" href="/manifest.ja.json?v=build-822b39b5b552">
+<link rel="manifest" href="/manifest.ja.json?v=build-ae54e608a380">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="96x96" href="/icons/app-logo-96.png">
 <link rel="apple-touch-icon" href="/icons/app-logo-180.png">
@@ -496,14 +498,14 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <script>(function(){try{var d=document.documentElement,mm=window.matchMedia;var isTouch=(mm&&mm('(max-width: 900px), (hover: none) and (pointer: coarse)').matches);if(!isTouch)return;if(!/[?&]action=[^&]/.test(String(location.search||'')))return;d.classList.add('cd-deeplink-boot');/* 런타임 스크립트가 실패해도 화면이 가려진 채 남지 않도록 하드 상한을 둔다 */setTimeout(function(){try{d.classList.remove('cd-deeplink-boot');}catch(e){}},5000);}catch(e){}})();</script>
 <!-- 부팅 게이트 로고: 첫 프레임에 준비돼 있어야 로고 없는 빈 게이트가 잠깐 보이지 않는다 -->
 <link rel="preload" as="image" href="/icons/app-logo-512.webp" fetchpriority="high">
-<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-822b39b5b552">
-<link rel="stylesheet" href="/styles/core-ui.css?v=build-822b39b5b552">
- <link rel="stylesheet" href="/styles/fortune-ui.css?v=build-822b39b5b552">
- <link rel="stylesheet" href="/styles/guardian-fortune.css?v=build-822b39b5b552">
-<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-822b39b5b552" media="all" data-cd-mobile-runtime-css="1">
+<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-ae54e608a380">
+<link rel="stylesheet" href="/styles/core-ui.css?v=build-ae54e608a380">
+ <link rel="stylesheet" href="/styles/fortune-ui.css?v=build-ae54e608a380">
+ <link rel="stylesheet" href="/styles/guardian-fortune.css?v=build-ae54e608a380">
+<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-ae54e608a380" media="all" data-cd-mobile-runtime-css="1">
 <!-- 브랜드 세리프 @font-face(R2 미러 청크). font-display:swap 이라 렌더를 막지 않는다. -->
-<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-822b39b5b552">
-<link rel="preload" href="/styles/cosmic-main.css?v=build-822b39b5b552" as="style">
+<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-ae54e608a380">
+<link rel="preload" href="/styles/cosmic-main.css?v=build-ae54e608a380" as="style">
 
 <title data-cd-trans="shell.CODEDESTINY">CODE DESTINY | 無料 四柱推命・タロット・紫微斗数・相性 — 占い</title>
 <link rel="preload" as="image" href="https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp" imagesrcset="https://assets.code-destiny.com/cdn-cgi/image/width=480,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 480w, https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w" imagesizes="100vw" fetchpriority="high">
@@ -546,7 +548,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <meta property="og:description" content="生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。">
 <meta property="og:url" content="https://code-destiny.com/ja/">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-822b39b5b552">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ae54e608a380">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -555,7 +557,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY">
 <meta name="twitter:description" content="生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-822b39b5b552">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ae54e608a380">
 <meta name="twitter:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1617,46 +1619,46 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <script src="/js/inline/api-base-init.js?v=build-822b39b5b552" defer></script>
+  <script src="/js/inline/api-base-init.js?v=build-ae54e608a380" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-822b39b5b552">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-ae54e608a380">
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-ae54e608a380"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-ae54e608a380"></noscript>
 
   <!-- 이 시트는 모달용이 아니라 홈 본문(#inputPage)을 직접 칠한다(.fc-closed-peek 숨김, .fc-toggle-hint 글자크기).
        지연 목록에 있으면 첫 터치에 시트가 붙으면서 접힘 표시가 사라지고 글자·높이가 튄다 —
        측정으로 확인된 잔여 깜빡임의 유일한 원인이었다. rel 을 미리 박아 첫 페인트부터 적용시킨다.
        <link> 위치는 그대로라 승격됐을 때와 캐스케이드 순서가 동일하다. (cd-totem-fix-blocking-v20260721) -->
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-822b39b5b552">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-ae54e608a380">
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-ae54e608a380"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-ae54e608a380"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-ae54e608a380"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-ae54e608a380"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-ae54e608a380"></noscript>
 
   <!-- cd-premium-pdf-cosmic-chapter-ui-v20260519 -->
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-822b39b5b552"></noscript>
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-ae54e608a380"></noscript>
+  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-ae54e608a380"></noscript>
   <style id="cd-sibyl-modal-critical">
   /* 시빌라 모달 임계 CSS — 지연 로드되는 styles/sibyl-system.css가 승격되기 전에도
      모달이 정상적으로 열리도록 하는 구조 폴백. 색/테두리/애니 세부는 지연 시트 담당.
@@ -1668,8 +1670,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   #sibylModal.sb-open .sb-panel{transform:translateY(0)}
   #sibylModal .sb-hidden{display:none}
   </style>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-822b39b5b552" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-822b39b5b552"></noscript>
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-ae54e608a380" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-ae54e608a380"></noscript>
 
   <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -2608,7 +2610,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
       linear-gradient(135deg, rgba(255,245,211,0.12), transparent 31%),
       linear-gradient(28deg, rgba(106,28,38,0.36), transparent 48%),
       repeating-linear-gradient(90deg, rgba(241,205,124,0.13) 0 1px, transparent 1px 44px),
-      url('/fuctionassets/신년운세.webp?v=build-822b39b5b552') center 34% / cover no-repeat,
+      url('/fuctionassets/신년운세.webp?v=build-ae54e608a380') center 34% / cover no-repeat,
       linear-gradient(145deg, #130d0b 0%, #321014 52%, #071018 100%) !important;
     box-shadow:
       0 18px 54px rgba(22, 9, 8, 0.62),
@@ -11181,8 +11183,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
                 id="honeypigLogo"
                 data-lcp-candidate="1"
                 class="honeypig-logo-icon"
-                src="/icons/app-logo-512.webp?v=build-822b39b5b552"
-                srcset="/icons/app-logo-512.webp?v=build-822b39b5b552 96w, /icons/app-logo-512.webp?v=build-822b39b5b552 130w, /icons/app-logo-512.webp?v=build-822b39b5b552 512w"
+                src="/icons/app-logo-512.webp?v=build-ae54e608a380"
+                srcset="/icons/app-logo-512.webp?v=build-ae54e608a380 96w, /icons/app-logo-512.webp?v=build-ae54e608a380 130w, /icons/app-logo-512.webp?v=build-ae54e608a380 512w"
                 sizes="(max-width: 360px) 78px, (max-width: 768px) 88px, 130px"
                 width="130"
                 height="130"
@@ -11263,7 +11265,7 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           <span class="moon-hero__spark moon-hero__spark--2" aria-hidden="true"></span>
           <span class="moon-hero__spark moon-hero__spark--3" aria-hidden="true"></span>
           <div class="moon-hero__picture moon-hero__picture--mascot" data-transparent-hero-asset="sleeping-yeon-v20260611">
-            <img src="/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-822b39b5b552" alt="" width="142" height="142" loading="lazy" fetchpriority="low" decoding="async" onerror="if((this.src||'').indexOf('/fuctionassets/')!==-1){this.onerror=null;this.src='/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png?v=build-822b39b5b552'}">
+            <img src="/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-ae54e608a380" alt="" width="142" height="142" loading="lazy" fetchpriority="low" decoding="async" onerror="if((this.src||'').indexOf('/fuctionassets/')!==-1){this.onerror=null;this.src='/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png?v=build-ae54e608a380'}">
             <span class="moon-hero__zzz" aria-hidden="true">zzz</span>
           </div>
           <div class="moon-hero__card-stack" data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612" aria-hidden="true">
@@ -13126,8 +13128,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       </script>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-822b39b5b552"
-            srcset="/icons/neo-96.webp?v=build-822b39b5b552 96w, /icons/neo-130.webp?v=build-822b39b5b552 130w, /icons/neo.webp?v=build-822b39b5b552 512w" sizes="(max-width: 768px) 88px, 130px"
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-ae54e608a380"
+            srcset="/icons/neo-96.webp?v=build-ae54e608a380 96w, /icons/neo-130.webp?v=build-ae54e608a380 130w, /icons/neo.webp?v=build-ae54e608a380 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="네오 모드 로고" data-cd-trans-attr="alt:auth.neoLogoAlt" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:var(--font-display);color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;" data-cd-trans="auth.neoTagline">네오의 팩폭 운세 플랫폼</p>
@@ -14534,14 +14536,29 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         else if (kind === 'h:') selector = '.tarot-tile[href="' + CSS.escape(value) + '"]';
         else if (kind === 'a:') selector = '.tarot-tile[data-action="' + CSS.escape(value) + '"]';
         if (!selector) return null;
-        try { return document.querySelector(selector); } catch (_) { return null; }
+        try {
+          var live = document.querySelector(selector);
+          if (live) return live;
+        } catch (_) {}
+        var collections = document.querySelectorAll('#inputPage .feat-collection[id],#inputPage .tarot-collection[id]');
+        for (var i = 0; i < collections.length; i += 1) {
+          var cards = collections[i].__cdLazyCards || [];
+          for (var j = 0; j < cards.length; j += 1) {
+            var card = cards[j];
+            if (!card) continue;
+            if ((kind === 'k:' && card.getAttribute('data-feature-key') === value)
+              || (kind === 'h:' && card.getAttribute('href') === value)
+              || (kind === 'a:' && card.getAttribute('data-action') === value)) return card;
+          }
+        }
+        return null;
       }
       function tileTitle(tile){
         var node = tile && tile.querySelector ? tile.querySelector('.tarot-tile__title,.feature-card__title') : null;
         return node ? String(node.textContent || '').trim() : '';
       }
       function tileCollectionName(tile){
-        var host = tile && tile.closest ? tile.closest('[id]') : null;
+        var host = tile && tile.__cdCollection ? tile.__cdCollection : (tile && tile.closest ? tile.closest('[id]') : null);
         while (host) {
           if (collectionMap[host.id]) return collectionMap[host.id];
           host = host.parentElement && host.parentElement.closest ? host.parentElement.closest('[id]') : null;
@@ -14642,7 +14659,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           name: collectionMap[collId] || '',
           icon: overviewIconMap[collId] || '✦',
           subtitle: subEl ? String(subEl.textContent || '').trim() : '',
-          count: coll.querySelectorAll('.tarot-tile').length
+          count: Number(coll.__cdCardCount || coll.querySelectorAll('.tarot-tile').length)
         };
       }
 
@@ -14669,7 +14686,17 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           e.preventDefault();
           e.stopPropagation();
           var live = findTileById(id);
-          if (live) live.click();
+          if (!live) return;
+          if (live.parentNode) { live.click(); return; }
+          var collection = live.__cdCollection;
+          if (!collection) return;
+          switchCollection(collection.id);
+          window.setTimeout(function(){
+            var mounted = typeof window.__cdMountMobileCardForIntent === 'function'
+              ? window.__cdMountMobileCardForIntent(live)
+              : live;
+            if (mounted && mounted.parentNode) mounted.click();
+          }, 60);
         });
 
         var star = document.createElement('button');
@@ -14780,6 +14807,12 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       }
 
       function showOverview(){
+        if (window.__cdMobileFortuneTrace) window.__cdMobileFortuneTrace.record('overview:open', { component: 'MobileFortuneOverview' });
+        // Matching card metadata is sufficient for display. A catalog request
+        // is reserved for an explicit feature whose markup has no price.
+        if (window.CodeDestinyFeaturePricingStore && typeof window.CodeDestinyFeaturePricingStore.seedFromMarkup === 'function') {
+          window.CodeDestinyFeaturePricingStore.seedFromMarkup(document);
+        }
         createOverviewPanel();
         if (currentCollectionId) {
           var coll = document.getElementById(currentCollectionId);
@@ -14800,6 +14833,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       function hideOverview(){
         var panel = document.getElementById('cdMobileFortuneOverview');
         if (panel) panel.classList.remove('is-open');
+        if (window.__cdMobileFortuneTrace) window.__cdMobileFortuneTrace.record('overview:close', { component: 'MobileFortuneOverview' });
       }
 
       // 크롬바 높이를 CSS 변수로 넘겨 전체화면 컬렉션의 상단 오프셋이 따라오게 한다.
@@ -15341,22 +15375,24 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       <button type="button" class="dp-mc-load-btn dp-mc-retry-btn" onclick="dpRetryProfileSync()" data-cd-trans="home.input.syncErrorRetry">다시 시도</button>
     </template>
 
-    <!-- Profile Constellation List — Bottom Sheet -->
-    <div id="dpListOverlay" class="dp-sheet-overlay"></div>
-    <div id="dpListSheet" class="dp-sheet" role="dialog" aria-modal="true" aria-label="프로필 목록" data-cd-trans-attr="aria-label:home.input.profileListAria">
-      <div class="dp-sheet-handle-wrap"><div class="dp-sheet-handle"></div></div>
-      <div class="dp-sheet-head">
-        <div class="dp-sheet-title" data-cd-trans="home.input.profileSheetTitle">✦ 나의 운명 별자리</div>
-        <button type="button" class="dp-sheet-close" data-action="dpCloseList" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
+    <!-- Profile Constellation List — Bottom Sheet. Lazy-cloned on dpOpenList. -->
+    <template id="dpListSheetTemplate">
+      <div id="dpListOverlay" class="dp-sheet-overlay"></div>
+      <div id="dpListSheet" class="dp-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-label="프로필 목록" data-cd-trans-attr="aria-label:home.input.profileListAria">
+        <div class="dp-sheet-handle-wrap"><div class="dp-sheet-handle"></div></div>
+        <div class="dp-sheet-head">
+          <div class="dp-sheet-title" data-cd-trans="home.input.profileSheetTitle">✦ 나의 운명 별자리</div>
+          <button type="button" class="dp-sheet-close" data-action="dpCloseList" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
+        </div>
+        <div class="dp-list-scroll">
+          <div id="dpListInner"></div>
+        </div>
+        <!-- 셸에서는 마이 탭이 이 시트를 연다. /me(이용권·결제 내역)로 가는 유일한 경로이므로 지우지 말 것. -->
+        <div class="dp-sheet-foot">
+          <a class="dp-sheet-foot__link" href="/me">마이페이지 전체보기 · 이용권 · 결제 내역</a>
+        </div>
       </div>
-      <div class="dp-list-scroll">
-        <div id="dpListInner"></div>
-      </div>
-      <!-- 셸에서는 마이 탭이 이 시트를 연다. /me(이용권·결제 내역)로 가는 유일한 경로이므로 지우지 말 것. -->
-      <div class="dp-sheet-foot">
-        <a class="dp-sheet-foot__link" href="/me">마이페이지 전체보기 · 이용권 · 결제 내역</a>
-      </div>
-    </div>
+    </template>
 
     <!-- ═══ ② AI 특징 3카드 (cd-home-renaissance-v20260723) ═══ -->
     <section class="cd-ai-feats" id="cdAiFeatures" aria-labelledby="cdAiFeaturesTitle">
@@ -16499,6 +16535,10 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           if (!node || !name) return;
           if (!node.classList.contains(name)) node.classList.add(name);
           if (!node.getAttribute('data-component')) node.setAttribute('data-component', name);
+          if (!node.__cdTraceMounted && window.__cdMobileFortuneTrace) {
+            node.__cdTraceMounted = true;
+            window.__cdMobileFortuneTrace.record('component:mount', { component: name });
+          }
         }
         function markMediaLazy(card){
           if (!card || !card.querySelectorAll) return;
@@ -16509,16 +16549,127 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           });
         }
         function classifyDynamicSheets(){
-          document.querySelectorAll('#tilePvwOverlay,#sajuLoaderOverlay,#cdPaidFeatureGate,.cd-direct-payment-modal').forEach(function(node){
+          document.querySelectorAll('#tilePvwOverlay,.cd-direct-payment-modal').forEach(function(node){
             setComponent(node, 'MobileFeatureBottomSheet');
             node.setAttribute('data-mobile-card-kind', 'bottom-sheet');
           });
+          document.querySelectorAll('#sajuLoaderOverlay').forEach(function(node){
+            setComponent(node, 'MobileGlobalLoader');
+            node.setAttribute('data-mobile-card-kind', 'global-loader');
+          });
+          document.querySelectorAll('#cdPaidFeatureGate').forEach(function(node){
+            setComponent(node, 'MobilePaymentGate');
+            node.setAttribute('data-mobile-card-kind', 'payment-gate');
+          });
         }
         var MOBILE_COLLECTION_LIMIT = 4;
+        var MOBILE_CARD_PLACEHOLDER_HEIGHT = 220;
         function collectionCards(grid){
           if (!grid || !grid.children) return [];
           return Array.prototype.filter.call(grid.children, function(node){
             return node && node.matches && node.matches('.tarot-tile,.prem-card,.lifebook-tile,.lovebible-tile,.lovesim-tile,.sibyl-entry-tile');
+          });
+        }
+        function allCollectionCards(collection, grid){
+          if (collection && Array.isArray(collection.__cdLazyCards)) return collection.__cdLazyCards;
+          return collectionCards(grid);
+        }
+        function collectionGrid(collection){
+          return collection && (collection.querySelector(':scope > .feat-collection__grid,:scope > .tarot-collection__grid') || collection.querySelector('.feat-collection__grid,.tarot-collection__grid'));
+        }
+        function clearCollectionPlaceholders(collection){
+          var grid = collectionGrid(collection);
+          if (!grid) return;
+          grid.querySelectorAll('.cd-mobile-card-placeholder').forEach(function(node){ node.remove(); });
+        }
+        function unmountCollectionCards(collection){
+          var grid = collectionGrid(collection);
+          if (!grid || !Array.isArray(collection.__cdLazyCards)) return;
+          if (collection.__cdVisibleObserver) {
+            collection.__cdVisibleObserver.disconnect();
+            collection.__cdVisibleObserver = null;
+          }
+          clearCollectionPlaceholders(collection);
+          collectionCards(grid).forEach(function(card){
+            if (card.parentNode === grid) grid.removeChild(card);
+          });
+          collection.__cdPlaceholderTargetCount = 0;
+        }
+        function mountVisibleCollectionCards(collection){
+          if (!collection || !isMobileView() || String(collection.getAttribute('data-collection-open')) !== 'true') return;
+          var grid = collectionGrid(collection);
+          var cards = allCollectionCards(collection, grid);
+          if (!grid || !cards.length) return;
+          var expanded = collection.getAttribute('data-mobile-show-all') === 'true';
+          var targetCount = expanded ? cards.length : Math.min(MOBILE_COLLECTION_LIMIT, cards.length);
+          var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+          grid.querySelectorAll('.cd-mobile-card-placeholder').forEach(function(placeholder){
+            var index = Number(placeholder.getAttribute('data-cd-card-index'));
+            if (!Number.isFinite(index) || index >= targetCount) return;
+            var rect = placeholder.getBoundingClientRect();
+            if (rect.bottom <= 0 || rect.top >= viewportHeight) return;
+            var card = cards[index];
+            if (card && card.parentNode !== grid) {
+              placeholder.replaceWith(card);
+              card.removeAttribute('hidden');
+              card.removeAttribute('data-mobile-collapsed-card');
+              if (window.__cdMobileFortuneTrace) window.__cdMobileFortuneTrace.record('card:mount', { collection: collection.id || '', index: index });
+            }
+          });
+        }
+        function mountCollectionPlaceholders(collection){
+          if (!collection || !isMobileView() || String(collection.getAttribute('data-collection-open')) !== 'true') return;
+          var grid = collectionGrid(collection);
+          var cards = allCollectionCards(collection, grid);
+          if (!grid || !cards.length) return;
+          var expanded = collection.getAttribute('data-mobile-show-all') === 'true';
+          var targetCount = expanded ? cards.length : Math.min(MOBILE_COLLECTION_LIMIT, cards.length);
+          if (collection.__cdPlaceholderTargetCount === targetCount) {
+            mountVisibleCollectionCards(collection);
+            return;
+          }
+          if (collection.__cdVisibleObserver) {
+            collection.__cdVisibleObserver.disconnect();
+            collection.__cdVisibleObserver = null;
+          }
+          clearCollectionPlaceholders(collection);
+          collectionCards(grid).forEach(function(card){ if (card.parentNode === grid) grid.removeChild(card); });
+          for (var i = 0; i < targetCount; i += 1) {
+            var placeholder = document.createElement('span');
+            placeholder.className = 'cd-mobile-card-placeholder';
+            placeholder.setAttribute('data-cd-card-index', String(i));
+            placeholder.setAttribute('aria-hidden', 'true');
+            placeholder.style.minHeight = MOBILE_CARD_PLACEHOLDER_HEIGHT + 'px';
+            grid.appendChild(placeholder);
+          }
+          collection.__cdPlaceholderTargetCount = targetCount;
+          mountVisibleCollectionCards(collection);
+          if (!collection.__cdVisibleObserver && window.IntersectionObserver) {
+            collection.__cdVisibleObserver = new IntersectionObserver(function(){ mountVisibleCollectionCards(collection); classifyCards(); }, { root: null, rootMargin: '0px', threshold: 0.01 });
+            grid.querySelectorAll('.cd-mobile-card-placeholder').forEach(function(node){ collection.__cdVisibleObserver.observe(node); });
+          }
+        }
+        function prepareCollectionLazyMounts(){
+          document.querySelectorAll('#inputPage .feat-collection[id],#inputPage .tarot-collection[id]').forEach(function(collection){
+            var grid = collectionGrid(collection);
+            if (!grid) return;
+            var mobile = isMobileView();
+            if (collection.__cdLazyPrepared && collection.__cdLazyMobileMode === mobile) return;
+            if (!Array.isArray(collection.__cdLazyCards)) collection.__cdLazyCards = collectionCards(grid);
+            collection.__cdCardCount = collection.__cdLazyCards.length;
+            collection.__cdLazyCards.forEach(function(card, index){
+              card.__cdCollection = collection;
+              card.__cdLazyIndex = index;
+            });
+            collection.__cdLazyPrepared = true;
+            collection.__cdLazyMobileMode = mobile;
+            if (mobile) {
+              unmountCollectionCards(collection);
+              if (String(collection.getAttribute('data-collection-open')) === 'true') mountCollectionPlaceholders(collection);
+            } else {
+              clearCollectionPlaceholders(collection);
+              collection.__cdLazyCards.forEach(function(card){ if (card.parentNode !== grid) grid.appendChild(card); card.hidden = false; });
+            }
           });
         }
         function updateCollectionMoreButton(collection, cards, expanded){
@@ -16541,8 +16692,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               applyMobileCollectionLimit(collection);
               if (willExpand) {
                 requestAnimationFrame(function(){
-                  var grid = collection.querySelector(':scope > .feat-collection__grid,:scope > .tarot-collection__grid') || collection.querySelector('.feat-collection__grid,.tarot-collection__grid');
-                  var revealed = collectionCards(grid)[MOBILE_COLLECTION_LIMIT];
+                  var grid = collectionGrid(collection);
+                  var revealed = allCollectionCards(collection, grid)[MOBILE_COLLECTION_LIMIT];
                   if (revealed && typeof revealed.scrollIntoView === 'function') {
                     revealed.scrollIntoView({ block: 'center', inline: 'nearest' });
                   }
@@ -16558,28 +16709,39 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         }
         function applyMobileCollectionLimit(collection){
           if (!collection) return;
-          var grid = collection.querySelector(':scope > .feat-collection__grid,:scope > .tarot-collection__grid') || collection.querySelector('.feat-collection__grid,.tarot-collection__grid');
-          var cards = collectionCards(grid);
+          var grid = collectionGrid(collection);
+          var cards = allCollectionCards(collection, grid);
           var expanded = collection.getAttribute('data-mobile-show-all') === 'true';
-          cards.forEach(function(card, index){
-            if (isMobileView() && String(collection.getAttribute('data-collection-open')) === 'true' && !expanded && index >= MOBILE_COLLECTION_LIMIT) {
-              card.setAttribute('data-mobile-collapsed-card', 'true');
-              card.hidden = true;
-            } else {
-              card.removeAttribute('data-mobile-collapsed-card');
-              card.hidden = false;
-            }
-          });
+          if (isMobileView()) {
+            if (String(collection.getAttribute('data-collection-open')) === 'true') mountCollectionPlaceholders(collection);
+            else unmountCollectionCards(collection);
+          } else {
+            clearCollectionPlaceholders(collection);
+            cards.forEach(function(card){ if (card.parentNode !== grid) grid.appendChild(card); card.hidden = false; });
+          }
           updateCollectionMoreButton(collection, cards, expanded);
         }
         function applyMobileCollectionLimits(){
           document.querySelectorAll('#inputPage .feat-collection[id],#inputPage .tarot-collection[id]').forEach(applyMobileCollectionLimit);
         }
+        window.__cdMountMobileCardForIntent = function(card){
+          var collection = card && card.__cdCollection;
+          if (!collection || !isMobileView()) return card || null;
+          collection.setAttribute('data-collection-open', 'true');
+          collection.setAttribute('data-mobile-show-all', 'true');
+          applyMobileCollectionLimit(collection);
+          var grid = collectionGrid(collection);
+          var index = Number(card.__cdLazyIndex);
+          var placeholder = grid && grid.querySelector('.cd-mobile-card-placeholder[data-cd-card-index="' + index + '"]');
+          if (placeholder) placeholder.replaceWith(card);
+          classifyCards();
+          return card;
+        };
         function keepOpenCollectionAboveBottomNav(collection){
           if (!collection || !isMobileView() || String(collection.getAttribute('data-collection-open')) !== 'true') return;
           var nav = document.getElementById('cdMobileBottomNav');
           var navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight;
-          var grid = collection.querySelector(':scope > .feat-collection__grid,:scope > .tarot-collection__grid') || collection.querySelector('.feat-collection__grid,.tarot-collection__grid');
+          var grid = collectionGrid(collection);
           var cards = collectionCards(grid).filter(function(card){
             if (!card || card.hidden) return false;
             var style = window.getComputedStyle ? window.getComputedStyle(card) : null;
@@ -16613,6 +16775,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           });
         }
         function classifyCards(){
+          prepareCollectionLazyMounts();
           hydrateRegistryLinks();
           var mobile = isMobileView();
           document.querySelectorAll('#cdMobileDestinyHub .cd-mobile-hub__mini').forEach(function(node){ setComponent(node, 'MobileQuickAction'); });
@@ -16657,6 +16820,12 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', classifyCards, { once: true });
         else classifyCards();
         if (mq && typeof mq.addEventListener === 'function') mq.addEventListener('change', classifyCards);
+        window.addEventListener('scroll', function(){
+          if (!isMobileView()) return;
+          window.requestAnimationFrame(function(){
+            document.querySelectorAll('#inputPage .feat-collection[data-collection-open="true"],#inputPage .tarot-collection[data-collection-open="true"]').forEach(mountVisibleCollectionCards);
+          });
+        }, { passive: true });
         document.addEventListener('cd:collection-toggle', function(event){
           classifyCards();
           var id = event && event.detail ? event.detail.targetId : '';
@@ -17181,9 +17350,14 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             </a>
 
             <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
+               data-action="startIjikTarot"
+               data-feature-key="tarot-ijik"
+               data-coin-cost="50"
+               data-price-krw="5000"
+               data-fallback-href="/tarot-ijik.html"
                aria-label="일의 문턱을 읽는 7카드 커리어 전환 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCareerMoveAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-822b39b5b552" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-822b39b5b552" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-ae54e608a380" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-ae54e608a380" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -17196,8 +17370,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             <!-- [기능 연결부] 말과 행동 사이 타로 → /tarot/mindscan -->
             <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
                aria-label="말과 행동 사이의 온도를 읽는 10카드 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotMindscanAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-822b39b5b552" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-822b39b5b552" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-ae54e608a380" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-ae54e608a380" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -17210,8 +17384,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
             <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
                aria-label="원석 소울 타로 리딩 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCrystalSoulAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-822b39b5b552" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-822b39b5b552" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-ae54e608a380" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-ae54e608a380" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -17333,7 +17507,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ifafortune.webp" data-img-alt="IFA 오라클 - 요루바 256 오두 신탁" data-cd-trans-attr="data-img-alt:home.tiles.ifaOracleAlt">
                     <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/ifafortune.webp" alt="IFA 오라클 - 요루바 256 오두 신탁" onerror="this.onerror=null;this.src='/fuctionassets/egypt.webp';" data-cd-trans-attr="alt:home.tiles.ifaOracleImgAlt">
                     <span class="tarot-tile__badge tarot-tile__badge--new">IFA</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ifaOracleTitle">🪬 IFÀ 오라클</span>
@@ -17410,7 +17584,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-822b39b5b552" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-ae54e608a380" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
@@ -17424,14 +17598,14 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 <!-- 영국 홍차점 -->
                  <a class="tarot-tile tarot-tile--royal-tea" href="/royal-tea-oracle.html"
                    data-action="openRoyalTeaOracle"
-                   data-coin-cost="30"
+                   data-coin-cost="50"
                    data-feature-key="royal-tea-oracle"
                    data-fallback-href="/royal-tea-oracle.html"
                    aria-label="영국 홍차점 시작" data-cd-trans-attr="aria-label:home.tiles.royalTeaAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/london.webp" data-img-alt="영국 홍차점 — 찻잎 문양으로 읽는 타세오그래피" data-cd-trans-attr="data-img-alt:home.tiles.royalTeaAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">紫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.royalTeaTitle">🫖 영국 홍차점</span>
@@ -18047,7 +18221,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               </div>
             </div>
             <a class="membership-recap-cta__mascot" href="/points?source=main-membership" aria-label="문라이트 패스 혜택 보기 · 달빛 이용권 상점" data-cd-trans-attr="aria-label:home.passFooter.mascotAria">
-              <img class="membership-recap-cta__mascot-img" src="/icons/code-destiny-moonlight-pass.webp?v=build-822b39b5b552" alt="문라이트 패스 혜택 이미지" data-cd-trans-attr="alt:home.passFooter.mascotAlt" data-retired-asset="membership-honey-kkulkkul.webp" width="1456" height="1024" loading="lazy" decoding="async">
+              <img class="membership-recap-cta__mascot-img" src="/icons/code-destiny-moonlight-pass.webp?v=build-ae54e608a380" alt="문라이트 패스 혜택 이미지" data-cd-trans-attr="alt:home.passFooter.mascotAlt" data-retired-asset="membership-honey-kkulkkul.webp" width="1456" height="1024" loading="lazy" decoding="async">
               <span class="membership-recap-cta__mascot-copy">
                 <span class="membership-recap-cta__mascot-kicker" data-cd-trans data-key="home.passFooter.mascotKicker">Moonlight Pass Guide</span>
                 <span class="membership-recap-cta__mascot-text" data-cd-trans data-key="home.passFooter.mascotText">문라이트 패스가 자주 찾는 운세 루틴을 한결 편안한 달빛 흐름으로 이어줍니다.</span>
@@ -18111,7 +18285,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
 
                 <!-- 달빛 지도(루나 인덱스)는 무료·즉시 열리는 기능만 싣도록 정리했다.
                      거기서 내린 사주 계열 세 가지는 갈 곳이 없어지면 안 되므로 여기로 옮긴다. -->
-                <a class="tarot-tile tarot-tile--love-code" href="/saju/love-simulation" data-fallback-href="/saju/love-simulation" aria-label="LOVE CODE 사주 연애 시뮬레이션 시작" data-cd-trans-attr="aria-label:shell.miscCollection.featCollectionGrid.LOVECODE.ariaLabel">
+                <a class="tarot-tile tarot-tile--love-code" href="/saju/love-simulation" data-action="openLoveSimulation" data-feature-key="loveSimulation" data-coin-cost="100" data-price-krw="10000" data-fallback-href="/saju/love-simulation" aria-label="LOVE CODE 사주 연애 시뮬레이션 시작" data-cd-trans-attr="aria-label:shell.miscCollection.featCollectionGrid.LOVECODE.ariaLabel">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/love%20code.webp" data-img-alt="LOVE CODE 사주 연애 시뮬레이션 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
                   </div>
@@ -18121,7 +18295,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                   </div>
                 </a>
 
-                <a class="tarot-tile tarot-tile--animal-cycle" href="/saju/animal-destiny" data-fallback-href="/saju/animal-destiny" aria-label="십이운성 동물점 시작" data-cd-trans-attr="aria-label:shell.miscCollection.featCollectionGrid.k1u4tnr8.ariaLabel">
+                <a class="tarot-tile tarot-tile--animal-cycle" href="/saju/animal-destiny" data-action="openAnimalDestinyRoute" data-feature-key="animal-destiny-unlock" data-tile-lock-key="animal-destiny-unlock" data-tile-lock-cost="100" data-coin-cost="100" data-price-krw="10000" data-fallback-href="/saju/animal-destiny" aria-label="십이운성 동물점 시작" data-cd-trans-attr="aria-label:shell.miscCollection.featCollectionGrid.k1u4tnr8.ariaLabel">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp" data-img-alt="십이운성 동물점 대표 이미지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">獸</span></div>
                   </div>
@@ -18242,7 +18416,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         </button>
         <button type="button" class="honey-membership-mini__hero" data-membership-cta="benefits" aria-label="달빛 흐름으로 무료 이용 가능 서비스 확인" data-cd-trans-attr="aria-label:home.passMini.heroAria">
           <span class="honey-membership-mini__pass-icon" aria-hidden="true">
-            <img class="honey-membership-mini__pass-img" src="/icons/app-logo-512.webp?v=build-822b39b5b552" alt="" width="86" height="86" loading="lazy" decoding="async">
+            <img class="honey-membership-mini__pass-img" src="/icons/app-logo-512.webp?v=build-ae54e608a380" alt="" width="86" height="86" loading="lazy" decoding="async">
           </span>
           <span class="honey-membership-mini__hero-copy">
             <strong class="honey-membership-mini__hero-title" data-cd-trans data-key="home.passMini.heroTitle">문라이트 패스 범위 보기</strong>
@@ -19104,20 +19278,22 @@ return you.name.restore();</span>
         </div>
       </div><!-- /#ziweiModalOverlay -->
 
-      <!-- 프로필 전환 확인 다이얼로그 -->
-      <div id="dpSwitchConfirmOverlay" class="dp-switch-overlay" data-action="dpSwitchConfirmNo" data-action-self-only="1" style="display:none;" role="dialog" aria-modal="true" aria-label="운명 데이터 전환 확인" data-cd-trans-attr="aria-label:home.destinySwitch.dialogAria">
-        <div class="dp-switch-modal">
-          <span class="dp-switch-icon" id="dpSwIcon">🔮</span>
-          <div class="dp-switch-q" data-cd-trans data-key="home.destinySwitch.question">이 운명 데이터로 운세를 보겠습니까?</div>
-          <div class="dp-switch-name" id="dpSwName"></div>
-          <div class="dp-switch-detail" id="dpSwDetail"></div>
-          <div class="dp-switch-loc" id="dpSwLoc"></div>
-          <div class="dp-switch-btns">
-            <button class="dp-switch-no" data-action="dpSwitchConfirmNo" data-cd-trans data-key="common.no">아니오</button>
-            <button class="dp-switch-yes" data-action="dpSwitchConfirmYes" data-cd-trans data-key="common.yes">예</button>
+      <!-- 프로필 전환 확인 다이얼로그. Lazy-cloned on demand to keep closed dialogs out of the mobile DOM. -->
+      <template id="dpSwitchConfirmOverlayTemplate">
+        <div id="dpSwitchConfirmOverlay" class="dp-switch-overlay" data-action="dpSwitchConfirmNo" data-action-self-only="1" style="display:none;" role="dialog" aria-modal="true" aria-hidden="true" aria-label="운명 데이터 전환 확인" data-cd-trans-attr="aria-label:home.destinySwitch.dialogAria">
+          <div class="dp-switch-modal">
+            <span class="dp-switch-icon" id="dpSwIcon">🔮</span>
+            <div class="dp-switch-q" data-cd-trans data-key="home.destinySwitch.question">이 운명 데이터로 운세를 보겠습니까?</div>
+            <div class="dp-switch-name" id="dpSwName"></div>
+            <div class="dp-switch-detail" id="dpSwDetail"></div>
+            <div class="dp-switch-loc" id="dpSwLoc"></div>
+            <div class="dp-switch-btns">
+              <button class="dp-switch-no" data-action="dpSwitchConfirmNo" data-cd-trans data-key="common.no">아니오</button>
+              <button class="dp-switch-yes" data-action="dpSwitchConfirmYes" data-cd-trans data-key="common.yes">예</button>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
 
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
@@ -19158,7 +19334,7 @@ return you.name.restore();</span>
               <div class="oracle-card-m" id="tarotCardEl" data-action="startTarotReading">
                 <div class="oracle-face-m oracle-back-m" id="tarotCardBack"></div>
                 <div class="oracle-face-m oracle-front-m" id="tarotCardFront">
-                  <img id="tarotCardFrontImg" class="tarot-face-img" src="/fuctionassets/tarolove.webp?v=build-822b39b5b552" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-822b39b5b552';" alt="Tarot card" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt" loading="lazy" decoding="async" width="200" height="300">
+                  <img id="tarotCardFrontImg" class="tarot-face-img" src="/fuctionassets/tarolove.webp?v=build-ae54e608a380" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-ae54e608a380';" alt="Tarot card" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt" loading="lazy" decoding="async" width="200" height="300">
                 </div>
               </div>
             </div>
@@ -19172,7 +19348,7 @@ return you.name.restore();</span>
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="0">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="0">
-                      <img class="tarot-face-img" data-card-img="0" src="/fuctionassets/tarolove.webp?v=build-822b39b5b552" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-822b39b5b552';" alt="Tarot card 1" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt1" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
+                      <img class="tarot-face-img" data-card-img="0" src="/fuctionassets/tarolove.webp?v=build-ae54e608a380" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-ae54e608a380';" alt="Tarot card 1" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt1" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -19181,7 +19357,7 @@ return you.name.restore();</span>
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="1">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="1">
-                      <img class="tarot-face-img" data-card-img="1" src="/fuctionassets/tarolove.webp?v=build-822b39b5b552" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-822b39b5b552';" alt="Tarot card 2" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt2" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
+                      <img class="tarot-face-img" data-card-img="1" src="/fuctionassets/tarolove.webp?v=build-ae54e608a380" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-ae54e608a380';" alt="Tarot card 2" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt2" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -19190,7 +19366,7 @@ return you.name.restore();</span>
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="2">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="2">
-                      <img class="tarot-face-img" data-card-img="2" src="/fuctionassets/tarolove.webp?v=build-822b39b5b552" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-822b39b5b552';" alt="Tarot card 3" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt3" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
+                      <img class="tarot-face-img" data-card-img="2" src="/fuctionassets/tarolove.webp?v=build-ae54e608a380" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-ae54e608a380';" alt="Tarot card 3" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt3" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -21006,19 +21182,19 @@ return you.name.restore();</span>
   })();
 </script>
 
-<script defer fetchpriority="high" src="/js/destiny-profile.js?v=build-822b39b5b552" data-marker="profile-card-date-input-v20260624"></script>
+<script defer fetchpriority="high" src="/js/destiny-profile.js?v=build-ae54e608a380" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
-<script defer src="/js/daily-fortune-core.js?v=build-822b39b5b552" data-marker="cd-today-hub-v20260802"></script>
-<script defer src="/js/guardian-fortune-mock.js?v=build-822b39b5b552" data-marker="guardian-fortune-mock-v1"></script>
-<script defer src="/js/guardian-fortune-api.js?v=build-822b39b5b552" data-marker="guardian-fortune-api-v1"></script>
-<script defer src="/js/guardian-fortune-share.js?v=build-822b39b5b552" data-marker="guardian-fortune-share-v1"></script>
-<script defer src="/js/guardian-fortune-home.js?v=build-822b39b5b552" data-marker="guardian-fortune-home-v1"></script>
+<script defer src="/js/daily-fortune-core.js?v=build-ae54e608a380" data-marker="cd-today-hub-v20260802"></script>
+<script defer src="/js/guardian-fortune-mock.js?v=build-ae54e608a380" data-marker="guardian-fortune-mock-v1"></script>
+<script defer src="/js/guardian-fortune-api.js?v=build-ae54e608a380" data-marker="guardian-fortune-api-v1"></script>
+<script defer src="/js/guardian-fortune-share.js?v=build-ae54e608a380" data-marker="guardian-fortune-share-v1"></script>
+<script defer src="/js/guardian-fortune-home.js?v=build-ae54e608a380" data-marker="guardian-fortune-home-v1"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-e1cddf44c1f5" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-822b39b5b552" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-822b39b5b552" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ae54e608a380" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-ae54e608a380" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -21137,7 +21313,7 @@ return you.name.restore();</span>
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-822b39b5b552',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ae54e608a380',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -21201,8 +21377,8 @@ return you.name.restore();</span>
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/share-reward.js?v=build-822b39b5b552"></script>
-<script data-cd-noncritical-src="/js/share.js?v=build-822b39b5b552"></script>
+<script data-cd-noncritical-src="/js/share-reward.js?v=build-ae54e608a380"></script>
+<script data-cd-noncritical-src="/js/share.js?v=build-ae54e608a380"></script>
 <script>
 (function(){
   var shouldRunVersionProbe = function () {
@@ -21255,7 +21431,7 @@ return you.name.restore();</span>
 
 <script data-cd-noncritical-src="/js/iching-engine.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=build-822b39b5b552" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=build-ae54e608a380" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <!-- native language override disabled: core runtime handler provides immediate GT switching -->
@@ -21269,7 +21445,7 @@ return you.name.restore();</span>
   </div>
 </div>
 
-<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-822b39b5b552" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-ae54e608a380" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
@@ -32260,23 +32436,24 @@ function updateBadge() {
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-822b39b5b552" data-cd-mobile-delay="1"></script>
-<script src="/js/io-image-lazy-loader.js?v=build-822b39b5b552" defer></script>
-<script src="/js/noncritical-defer-loader.js?v=build-822b39b5b552" defer></script>
-<script src="/js/cd-lang-native.js?v=build-822b39b5b552" defer></script>
+<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-ae54e608a380" data-cd-mobile-delay="1"></script>
+<script src="/js/io-image-lazy-loader.js?v=build-ae54e608a380" defer></script>
+<script src="/js/noncritical-defer-loader.js?v=build-ae54e608a380" defer></script>
+<script src="/js/cd-lang-native.js?v=build-ae54e608a380" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-822b39b5b552" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-ae54e608a380" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
-<script data-cd-lazy-src="/js/dream-ledger.js?v=build-822b39b5b552" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
-<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-822b39b5b552" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/dream-ledger.js?v=build-ae54e608a380" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-ae54e608a380" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-822b39b5b552" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-ae54e608a380" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-822b39b5b552"></script>
+<script type="module" src="/js/app.js?v=build-ae54e608a380"></script>
 <!-- Feature Preview Panel v2 -->
+<template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay MobileFeatureBottomSheet" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
   <div class="tile-pvw-sheet" id="tilePvwSheet">
@@ -32387,6 +32564,7 @@ function updateBadge() {
     </div>
   </div>
 </div>
+</template>
 <script>
 /* VVIP 컬렉션 헤더 별빛 버스트 */
 (function(){
@@ -32672,7 +32850,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-822b39b5b552',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-ae54e608a380',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -32716,7 +32894,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-822b39b5b552'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-ae54e608a380'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -32825,60 +33003,16 @@ function updateBadge() {
   };
 
   var LIFE_BOOK_AI_FEATURE_KEY='life-book-ai-consultation';
-  var _featurePricingCache=window.__cdFeaturePricingCache||{};
-  var _featurePricingPromises={};
-  window.__cdFeaturePricingCache=_featurePricingCache;
-
-  function _formatFeatureWon(amount){
-    amount=Number(amount||0);
-    if(!(amount>0))return '';
-    if(typeof window.formatWon==='function')return window.formatWon(amount);
-    return amount.toLocaleString('ko-KR')+'원';
-  }
-
-  function _normalizeFeaturePricingPayload(payload){
-    var data=payload&&payload.data?payload.data:payload;
-    var pricing=data&&data.pricing?data.pricing:data;
-    if(!pricing)return null;
-    var amountKRW=Number(pricing.amountKRW||pricing.amountKrw||pricing.paymentAmount||pricing.cashPrice||0);
-    var coinPrice=Number(pricing.coinPrice||pricing.cost||0);
-    if(!Number.isFinite(amountKRW)||amountKRW<=0||!Number.isFinite(coinPrice)||coinPrice<=0)return null;
-    var displayPrice=String(pricing.displayPrice||'').trim()||_formatFeatureWon(amountKRW);
-    if(!displayPrice)return null;
-    return {
-      featureKey:String(data.featureKey||pricing.featureKey||LIFE_BOOK_AI_FEATURE_KEY),
-      coinPrice:Math.floor(coinPrice),
-      amountKRW:Math.floor(amountKRW),
-      displayPrice:displayPrice
-    };
-  }
-
-  function _featurePricingUrl(featureKey){
-    return '/api/billing/features?featureKey='+encodeURIComponent(featureKey);
-  }
-
   function _ensureFeaturePricing(featureKey){
     featureKey=String(featureKey||'').trim();
-    if(!featureKey)return Promise.reject(new Error('feature key missing'));
-    if(_featurePricingCache[featureKey])return Promise.resolve(_featurePricingCache[featureKey]);
-    if(_featurePricingPromises[featureKey])return _featurePricingPromises[featureKey];
-    _featurePricingPromises[featureKey]=fetch(_featurePricingUrl(featureKey),{method:'GET',credentials:'include',cache:'no-store'})
-      .then(function(res){
-        if(!res.ok)throw new Error('feature pricing failed');
-        return res.json();
-      })
-      .then(function(payload){
-        var pricing=_normalizeFeaturePricingPayload(payload);
-        if(!pricing)throw new Error('feature pricing missing');
-        _featurePricingCache[featureKey]=pricing;
-        return pricing;
-      })
-      .finally(function(){delete _featurePricingPromises[featureKey];});
-    return _featurePricingPromises[featureKey];
+    var store=window.CodeDestinyFeaturePricingStore;
+    if(!featureKey||!store)return Promise.reject(new Error('feature pricing store unavailable'));
+    return store.getOrLoad(featureKey);
   }
 
   function _getFeaturePricing(featureKey){
-    return _featurePricingCache[String(featureKey||'').trim()]||null;
+    var store=window.CodeDestinyFeaturePricingStore;
+    return store ? store.get(featureKey) : null;
   }
 
   function _applyLifeBookAiPrice(pricing){
@@ -32893,17 +33027,27 @@ function updateBadge() {
     });
   }
 
-  function _hydrateLifeBookAiPricing(){
-    _ensureFeaturePricing(LIFE_BOOK_AI_FEATURE_KEY)
-      .then(_applyLifeBookAiPrice)
-      .catch(function(){});
+  function _applyRegistryPricingToTiles(){
+    var store=window.CodeDestinyFeaturePricingStore;
+    if(!store)return;
+    document.querySelectorAll('.tarot-tile[data-feature-key],.lifebook-tile[data-feature-key],.lovebible-tile[data-feature-key]').forEach(function(tile){
+      var key=String(tile.getAttribute('data-feature-key')||'').trim();
+      var pricing=store.get(key);
+      var badge=tile.querySelector('.tarot-tile__coin-badge,.lifebook-tile__coin-badge,.lovebible-tile__coin-badge');
+      if(pricing&&pricing.displayPrice){
+        tile.setAttribute('data-coin-cost',String(pricing.coinPrice||pricing.cost||0));
+        tile.setAttribute('data-price-krw',String(pricing.amountKRW||0));
+        tile.setAttribute('data-payment-amount-krw',String(pricing.amountKRW||0));
+        tile.setAttribute('data-cd-price-source','billing-features');
+        if(badge&&!badge.classList.contains('tarot-tile__coin-badge--free'))badge.textContent=pricing.displayPrice;
+      }else if(_hasPaidPreviewSignal(tile)){
+        tile.setAttribute('data-cd-pricing-state','missing');
+        if(badge&&!badge.classList.contains('tarot-tile__coin-badge--free'))badge.textContent='가격 확인 필요';
+      }
+    });
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',_hydrateLifeBookAiPricing,{once:true});
-  }else{
-    _hydrateLifeBookAiPricing();
-  }
+  document.addEventListener('cd:feature-pricing-loaded',_applyRegistryPricingToTiles);
 
   var FEATURE_MARKETING_TEMPLATES={
     saju:{category:'사주',badge:'심화 해석',headline:'내 사주가 반복해서 보내는 신호를 조금 더 깊게 읽어보세요.',subheadline:'타고난 기질과 지금 흐름이 만나는 지점을 정리해주는 해석입니다.',painPoints:['같은 고민이 계속 반복될 때','내 장점과 약점이 헷갈릴 때','지금 운의 압박이 어디서 오는지 알고 싶을 때'],unlockBenefits:['기질의 핵심 흐름','현재 시기에 강하게 작용하는 포인트','조심해야 할 선택 패턴','현실적인 행동 기준'],previewText:'사주 심화 해석은 길흉을 겁주듯 말하지 않고, 지금의 흐름과 선택 기준을 차분히 드러냅니다.',recommendedFor:["타고난 기질과 지금 흐름을 함께 보고 싶은 분","같은 고민이 반복되는 이유를 알고 싶은 분","선택을 앞두고 판단 기준이 필요한 분"],answersQuestions:['지금 하는 일을 계속 밀어붙여도 될까요?','같은 문제가 자꾸 반복되는 이유가 뭘까요?','올해 안에 결정을 내려도 괜찮을까요?'],analysisSteps:[{label:'명식 계산',detail:'생년월일시로 사주 원국과 대운·세운을 계산합니다.'},{label:'기질 정리',detail:'오행의 강약과 십성 배치에서 타고난 성향을 뽑아냅니다.'},{label:'흐름 대조',detail:'지금 지나는 운이 그 기질을 어디서 밀고 당기는지 맞춰봅니다.'},{label:'해석 작성',detail:'읽을 수 있는 문장으로 정리해 결과 화면에 담습니다.'}],valueCompare:{rows:[{axis:'분석 범위',free:'기본 명식과 성향 요약',premium:'원국·대운·세운을 함께 엮은 해석'},{axis:'질문 반영',free:'없음',premium:'입력한 고민을 중심으로 다시 구성'},{axis:'조언 형태',free:'일반적인 성향 설명',premium:'지금 무엇을 하고 무엇을 미룰지'}]},faq:[{q:'무료 결과와 무엇이 다른가요?',a:'무료는 명식과 성향 요약까지입니다. 유료는 지금 지나는 운까지 함께 놓고, 입력한 고민에 맞춰 해석을 다시 씁니다.'},{q:'태어난 시간을 모르면 못 보나요?',a:'시주를 뺀 상태로 계산합니다. 일주 중심 해석은 그대로 나오지만, 시간을 아는 쪽이 더 정확합니다.'},{q:'결과는 저장되나요?',a:'재열람 가능 여부는 기능마다 다릅니다. 결제 화면의 안내를 확인해 주세요.'}],sampleReport:{sections:[{heading:'타고난 성향',body:'일간을 중심으로 보면 당신은 먼저 재고 나중에 움직이는 쪽입니다. 결정이 느린 게 아니라 확인이 끝나야 손이 나가는 구조입니다.'},{heading:'지금의 흐름',body:'지금 지나는 운은 벌리는 힘보다 정리하는 힘이 강합니다. 새로 시작한 일이 유독 더디게 느껴지는 이유가 여기 있습니다.'},{heading:'선택 기준',body:'두 가지를 동시에 붙들면 둘 다 늦어집니다. 먼저 끝낼 하나를 정하고 나머지는 시기를 미루세요.'}],caption:'실제 사주 해석 결과의 도입부를 그대로 옮긴 샘플입니다. 본인 명식에 따라 문장과 결론은 달라집니다.'}},
@@ -32923,8 +33067,11 @@ function updateBadge() {
   var _sampleEl,_sampleDocEl,_sampleMarkEl,_sampleContEl,_sampleCapEl;
   var _scaleSecEl,_scaleEl,_questSecEl,_questEl,_questTitleEl,_stepsSecEl,_stepsEl;
   var _reqSecEl,_audSecEl,_trustSecEl,_cmpSecEl,_cmpEl,_faqSecEl,_faqEl,_ctaNoteEl;
-  var _pendingTile=null,_pendingHref=null;
+  var _pendingTile=null,_pendingHref=null,_lastTrigger=null,_lastFocusFallback=null;
   var _ctaLoading=false;
+  var _globalHandlersBound=false;
+  var _closeTimer=0;
+  var _inertRoots=[];
 
   function _pvwTr(key, fallback, vars){
     try {
@@ -33281,20 +33428,20 @@ function updateBadge() {
       merged.resultPreview=(template&&template.resultPreview)||null;
     }
     merged.fallbackCta=merged.ctaLabel||merged.fallbackCta;
-    var pricingFeatureKey=merged.featureId||(tile&&tile.getAttribute('data-feature-key'))||'';
+    var pricingFeatureKey=(tile&&tile.getAttribute('data-feature-key'))||merged.featureId||'';
+    var pricingLockKey=(tile&&tile.getAttribute('data-tile-lock-key'))||'';
     var featurePricing=_getFeaturePricing(pricingFeatureKey);
+    var alreadyUnlockedPricingTile=!!(pricingLockKey&&_pvwIsUnlocked(pricingLockKey));
     if(featurePricing){
       merged.cost=featurePricing.displayPrice+' · 전문가 상담';
       merged.ct='paid';
-    }else if(pricingFeatureKey===LIFE_BOOK_AI_FEATURE_KEY){
-      merged.cost='입력 후 이용권/결제 확인';
+    }else if((_hasPaidPreviewSignal(tile)||merged.ct==='paid')&&!alreadyUnlockedPricingTile){
+      merged.cost='가격 확인 중';
       merged.ct='paid';
-      _ensureFeaturePricing(pricingFeatureKey).then(_applyLifeBookAiPrice).catch(function(){});
+      merged.pricingPending=true;
     }
     if(!merged.cost){
-      var coinCost=Number(tile&&tile.getAttribute('data-coin-cost')||0);
-      var lockCost=Number(tile&&tile.getAttribute('data-tile-lock-cost')||0);
-      merged.cost=coinCost>0?formatCoinValueWon(coinCost):(lockCost>0?'해금 '+formatCoinValueWon(lockCost):'상세 확인');
+      merged.cost='상세 확인';
     }
     if(!merged.ct)merged.ct=_hasPaidPreviewSignal(tile)?'paid':'free';
     return merged;
@@ -33315,9 +33462,44 @@ function updateBadge() {
     if(_ctaMetaEl)_ctaMetaEl.textContent=msg||'';
   }
 
+  function _setBackgroundInert(isInert){
+    if(!document.body)return;
+    if(isInert){
+      _inertRoots=[];
+      Array.prototype.slice.call(document.body.children).forEach(function(node){
+        if(node===_ov||node.id==='tilePvwOverlayTemplate')return;
+        _inertRoots.push({node:node,value:!!node.inert});
+        node.inert=true;
+      });
+      return;
+    }
+    _inertRoots.forEach(function(item){if(item&&item.node)item.node.inert=item.value;});
+    _inertRoots=[];
+  }
+
+  function _focusables(){
+    if(!_ov)return [];
+    return Array.prototype.slice.call(_ov.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+      .filter(function(node){return !node.hidden && node.getClientRects().length;});
+  }
+
+  function _ensureMounted(){
+    if(_ov&&document.documentElement.contains(_ov))return true;
+    var template=document.getElementById('tilePvwOverlayTemplate');
+    if(!template||!template.content||!document.body)return false;
+    if(_closeTimer){window.clearTimeout(_closeTimer);_closeTimer=0;}
+    document.body.appendChild(template.content.cloneNode(true));
+    _ov=null;
+    _init();
+    if(window.__cdMobileFortuneTrace)window.__cdMobileFortuneTrace.record('modal:mount',{component:'MobileFeatureBottomSheet'});
+    return !!_ov;
+  }
+
   function _init(){
     _ov=document.getElementById('tilePvwOverlay');
     if(!_ov)return;
+    if(_ov.__cdTilePreviewBound)return;
+    _ov.__cdTilePreviewBound=true;
     _sheet=document.getElementById('tilePvwSheet');
     _titleEl=document.getElementById('tilePvwTitle');
     _taglineEl=document.getElementById('tilePvwTagline');
@@ -33364,11 +33546,26 @@ function updateBadge() {
     _faqEl=document.getElementById('tilePvwFaq');
     _ctaNoteEl=document.getElementById('tilePvwCtaNote');
     document.getElementById('tilePvwBd').addEventListener('click',_close);
-    document.getElementById('tilePvwClose').addEventListener('click',_close);
+    var closeBtn=document.getElementById('tilePvwClose');
+    closeBtn.addEventListener('click',_close);
+    closeBtn.addEventListener('pointerup',function(e){if(e&&e.cancelable)e.preventDefault();_close();});
+    closeBtn.addEventListener('touchend',function(e){if(e&&e.cancelable)e.preventDefault();_close();},{passive:false});
     _ctaBtn.addEventListener('click',_onCta);
-    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&_ov.classList.contains('pvw-open'))_close();});
-    // bfcache 복원 시 pvw-open 상태 강제 해제 (overlay가 모든 이벤트를 막는 문제 방지)
-    window.addEventListener('pageshow',function(e){if(e.persisted&&_ov&&_ov.classList.contains('pvw-open'))_close();});
+    if(!_globalHandlersBound){
+      _globalHandlersBound=true;
+      document.addEventListener('keydown',function(e){
+        if(!_ov||!_ov.classList.contains('pvw-open'))return;
+        if(e.key==='Escape'){_close();return;}
+        if(e.key!=='Tab')return;
+        var nodes=_focusables();
+        if(!nodes.length){e.preventDefault();_ov.focus();return;}
+        var first=nodes[0],last=nodes[nodes.length-1];
+        if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+        else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+      });
+      // bfcache 복원 시 pvw-open 상태 강제 해제 (overlay가 모든イベントを막는 문제 방지)
+      window.addEventListener('pageshow',function(e){if(e.persisted&&_ov&&_ov.classList.contains('pvw-open'))_close();});
+    }
     var sy=0;
     _sheet.addEventListener('touchstart',function(e){sy=e.touches[0].clientY;},{passive:true});
     // 최상단에서만 + 임계값 150px 이상 아래로 스와이프할 때 닫기 (스크롤 중 오작동 방지).
@@ -33379,10 +33576,15 @@ function updateBadge() {
   }
 
   function _open(tile,href,d){
-    if(!_ov)return;
+    if(!_ensureMounted())return;
     d=_resolvePreviewData(tile,href)||d||{};
     _pendingTile=tile;
     _pendingHref=href||null;
+    _lastTrigger=(tile&&typeof tile.focus==='function')?tile:null;
+    _lastFocusFallback=(tile&&tile.closest)?(tile.closest('.feat-collection,.tarot-collection')||tile.parentElement):null;
+    _setBackgroundInert(true);
+    _ov.setAttribute('aria-hidden','false');
+    _ov.setAttribute('aria-modal','true');
     _ov.classList.toggle('pvw-prem',!!tile.classList.contains('prem-card'));
     var action=tile.getAttribute('data-action')||'';
 
@@ -33490,14 +33692,14 @@ function updateBadge() {
           _setCtaLabel(openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY ? (d.fallbackCta||'상담 정보 입력하기') : (d.fallbackCta ? _pvwTr('featurePreview.cta.passPrefix', '✅ {label}', { label: _pvwCta(action, _pendingHref, d.fallbackCta) }) : _pvwTr('featurePreview.cta.passStart', '✅ 이용권으로 바로 시작하기')));
         } else {
           if(_paywallIcon)_paywallIcon.textContent='✅';
-          if(_paywallTitle)_paywallTitle.textContent=openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY ? '상담 정보 입력 후 이용권/결제 확인' : _pvwTr('featurePreview.paywall.singleTitle', '1회 {amount} · 지금 바로 결과 확인', { amount: openFeaturePriceLabel||formatCoinValueWon(coinCost) });
+          if(_paywallTitle)_paywallTitle.textContent=openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY ? '상담 정보 입력 후 이용권/결제 확인' : _pvwTr('featurePreview.paywall.singleTitle', '1회 {amount} · 지금 바로 결과 확인', { amount: openFeaturePriceLabel||'가격 확인 중' });
           var _premDesc=_pvwTr('featurePreview.paywall.singleDesc', '이용할 때마다 원화 단건 결제가 필요합니다. 결제 전에는 결제 관리 페이지에서 확인해 주세요.');
           if(action==='gotoZiweiPremium')_premDesc=_pvwTr('featurePreview.paywall.ziweiConsultDesc', '입력은 무료입니다. 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다.');
           if(_pvwAstroConsult)_premDesc='입력은 무료입니다. 상담 화면에서 별빛 상담 시작 버튼을 누를 때 이용권·월정석·단건 결제 순서로 확인이 진행됩니다.';
           if(openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY)_premDesc='생년월일시를 먼저 입력한 뒤 이용권, 월정석, 단건결제 순서로 확인합니다. 최종 결제는 서버 권한 확인 뒤에만 진행됩니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
-          var _singlePaymentLabel=openFeaturePriceLabel||formatCoinValueWon(coinCost);
+          var _singlePaymentLabel=openFeaturePriceLabel||'가격 확인 중';
           var _ctaBtnLabel=openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY
             ? (d.fallbackCta||'상담 정보 입력하기')
             : _pvwTr('featurePreview.cta.payAndStart', '{amount}로 시작하기', { amount: _singlePaymentLabel });
@@ -33553,11 +33755,33 @@ function updateBadge() {
     _ov.setAttribute('aria-hidden','false');
     if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll('tile-preview');
     else document.body.style.overflow='hidden';
-    requestAnimationFrame(function(){_ov.classList.add('pvw-open');});
+    if(d.pricingPending){
+      _setCtaLabel('가격 확인 중');
+      _setCtaLoading(true,openFeatureKey?'가격 정보를 확인하고 있어요.':'가격 정보가 등록되지 않은 기능입니다.');
+      if(openFeatureKey){
+        _ensureFeaturePricing(openFeatureKey).then(function(pricing){
+          if(pricing&&_pendingTile===tile&&_ov&&_ov.classList.contains('pvw-open'))_open(tile,href,_resolvePreviewData(tile,href));
+          else if(!pricing&&_pendingTile===tile)_setCtaLoading(true,'가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        }).catch(function(){
+          if(_pendingTile===tile&&_ctaMetaEl){_setCtaLoading(true,'가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');}
+        });
+      }
+    } else {
+      _setCtaLoading(false,'');
+    }
+    requestAnimationFrame(function(){
+      _ov.classList.add('pvw-open');
+      var nodes=_focusables();
+      if(nodes.length)nodes[0].focus();
+    });
+    if(window.__cdMobileFortuneTrace)window.__cdMobileFortuneTrace.record('modal:open',{component:'MobileFeatureBottomSheet',featureKey:openFeatureKey||''});
   }
 
   function _close(){
+    var closingOverlay=_ov;
+    var returnTarget=_lastTrigger;
     if(_ov){_ov.classList.remove('pvw-open');_ov.classList.remove('pvw-prem');_ov.setAttribute('aria-hidden','true');}
+    _setBackgroundInert(false);
     try {
       if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll('tile-preview');
       else document.body.style.overflow='';
@@ -33565,6 +33789,23 @@ function updateBadge() {
     } catch(_) {}
     _setCtaLoading(false,'');
     _pendingTile=null;_pendingHref=null;
+    _lastTrigger=null;
+    var focusTarget=returnTarget&&document.documentElement.contains(returnTarget)?returnTarget:null;
+    if(!focusTarget&&_lastFocusFallback&&document.documentElement.contains(_lastFocusFallback)){
+      focusTarget=_lastFocusFallback.querySelector('.fc-toggle-btn,.tarot-collection__header,[data-action="toggleCollection"]');
+    }
+    if(!focusTarget)focusTarget=document.querySelector('#cdMobileFortuneOverview .cd-fov__cat, #cdMobileBottomNav [data-nav-key="fortunes"], #cdMobileBottomNav a');
+    _lastFocusFallback=null;
+    if(focusTarget&&typeof focusTarget.focus==='function')focusTarget.focus();
+    if(window.__cdMobileFortuneTrace)window.__cdMobileFortuneTrace.record('modal:close',{component:'MobileFeatureBottomSheet'});
+    if(_closeTimer)window.clearTimeout(_closeTimer);
+    _closeTimer=window.setTimeout(function(){
+      if(closingOverlay&&closingOverlay.parentNode&&!closingOverlay.classList.contains('pvw-open')){
+        closingOverlay.parentNode.removeChild(closingOverlay);
+        if(_ov===closingOverlay)_ov=null;
+      }
+      _closeTimer=0;
+    },260);
   }
 
   function _onCta(){
@@ -33631,7 +33872,6 @@ function updateBadge() {
     if(!d)return;
     e.stopImmediatePropagation();
     e.preventDefault();
-    if(!_ov)_init();
     _open(tile,href,d);
   },true);
 
@@ -33647,7 +33887,7 @@ function updateBadge() {
     var d = _resolvePreviewData(tile, href);
     if (!d) return false;
     try {
-      if (!_ov) _init();
+      if (!_ensureMounted()) return false;
       if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
       _open(tile, href, d);
       return true;
@@ -33657,17 +33897,12 @@ function updateBadge() {
     }
   };
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',_init);
-  }else{
-    _init();
-  }
 })();
 </script>
 
 <!-- ═══ 유명인 사주 분석 패널 스크립트 ═══ -->
 
-<script src="/js/inline/saju-core-bootstrap.js?v=build-822b39b5b552"></script>
+<script src="/js/inline/saju-core-bootstrap.js?v=build-ae54e608a380"></script>
 <!-- ═══ 유명인 사주 분석 패널 스크립트 끝 ═══ -->
 
 <script>
@@ -33731,11 +33966,11 @@ function updateBadge() {
   var heroPictureMascot = document.querySelector('.moon-hero .moon-hero__picture--mascot img');
   var switchRoot = document.querySelector('.cd-mobile-appbar .theme-switch-wrapper') || document.querySelector('.theme-switch-wrapper');
   var switchRootDesktop = document.querySelector('.theme-switch-wrapper--desktop');
-  var pigLogoSrc = '/icons/app-logo-512.webp?v=build-822b39b5b552';
+  var pigLogoSrc = '/icons/app-logo-512.webp?v=build-ae54e608a380';
   var pigLogoSrcset = pigLogoSrc + ' 96w, ' + pigLogoSrc + ' 130w, ' + pigLogoSrc + ' 512w';
   /* 네오 히어로 캐릭터: R2 전략실 네오 이미지(브랜드 로고 슬롯·자는 연이 마스코트 공통 교체) */
   var neoLogoSrc = 'https://assets.code-destiny.com/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp';
-  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-822b39b5b552';
+  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-ae54e608a380';
   var neoBtn = switchRoot ? switchRoot.querySelector('.tsp-lion') : null;
   var pigBtn = switchRoot ? switchRoot.querySelector('.tsp-pig') : null;
   var neoBtnDesktop = switchRootDesktop ? switchRootDesktop.querySelector('.tsp-lion') : null;

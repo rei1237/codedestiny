@@ -1072,7 +1072,7 @@ export default function ZiweiAiPage() {
           </label>
 
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="ziwei-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+            <PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />
           </div>
           <button className="primaryBtn" type="submit" disabled={busy}>
             {busy ? <Loader2 className="spin" size={18} /> : <WalletCards size={18} />}

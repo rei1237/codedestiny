@@ -711,7 +711,7 @@ export default function NamingAiClient() {
             ))}
           </ul>
           <div className="mt-4">
-            <PriceBadge featureKey={FEATURE_KEY} fallbackLabel="30,000원" fallbackCoins={COIN_PRICE} />
+            <PriceBadge featureKey={FEATURE_KEY} />
           </div>
         </header>
 

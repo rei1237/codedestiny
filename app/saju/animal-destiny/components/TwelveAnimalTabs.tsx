@@ -58,7 +58,7 @@ export default function TwelveAnimalTabs({ result }: Props) {
   const hint = SECTION_HINT[current.key] || SECTION_HINT.core;
 
   return (
-    <section className="rounded-[1.9rem] border border-[#bad6ed] bg-white/88 p-4 shadow-[0_14px_34px_rgba(56,108,153,0.13)] sm:p-6">
+    <section className="min-w-0 rounded-[1.9rem] border border-[#bad6ed] bg-white/88 p-4 shadow-[0_14px_34px_rgba(56,108,153,0.13)] sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="text-lg font-black text-[#27537a]">상세 결과</h3>

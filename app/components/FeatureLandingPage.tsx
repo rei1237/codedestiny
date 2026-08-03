@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
 
@@ -287,18 +288,19 @@ const ACTION_MAP: Record<string, string> = {
   "/yoga-guru":"openYogaGuru",
 };
 
-// coins 라벨은 서버 가격 조회 실패 시의 fallback — 정본은 featureKey로 조회하는 서버 가격
-const PAID_SLUG_META: Record<string, { coins: string; featureKey: string }> = {
-  "/flower/destiny":   { coins: "5,000원", featureKey: "flower-studio-per-use" },
-  "/flower/astrology": { coins: "5,000원", featureKey: "flower-studio-per-use" },
-  "/flower/jamidusu":  { coins: "5,000원", featureKey: "flower-studio-per-use" },
-  "/flower/sukuyo":    { coins: "5,000원", featureKey: "flower-studio-per-use" },
-  "/dream/psycho":     { coins: "3,000원", featureKey: "dream-psycho-analysis" },
-  "/tarot/love": { coins: "5,000원", featureKey: "tarot-love-relationship" },
-  "/tarot/reunion": { coins: "5,000원", featureKey: "tarot-reunion-reading" },
-  "/tarot/year": { coins: "10,000원", featureKey: "tarot-year-fortune" },
-  "/oracle/royal-tea": { coins: "3,000원", featureKey: "royal-tea-oracle" },
-  "/yoga-guru": { coins: "3,000원", featureKey: "yoga-guru-per-use" },
+// Price text is derived from the Worker registry through useServerPrice.
+// Keep this table limited to route -> canonical featureKey mapping.
+const PAID_SLUG_META: Record<string, { featureKey: string }> = {
+  "/flower/destiny":   { featureKey: "flower-studio-per-use" },
+  "/flower/astrology": { featureKey: "flower-studio-per-use" },
+  "/flower/jamidusu":  { featureKey: "flower-studio-per-use" },
+  "/flower/sukuyo":    { featureKey: "flower-studio-per-use" },
+  "/dream/psycho":     { featureKey: "dream-psycho-analysis" },
+  "/tarot/love": { featureKey: "tarot-love-relationship" },
+  "/tarot/reunion": { featureKey: "tarot-reunion-reading" },
+  "/tarot/year": { featureKey: "tarot-year-fortune" },
+  "/oracle/royal-tea": { featureKey: "royal-tea-oracle" },
+  "/yoga-guru": { featureKey: "yoga-guru-per-use" },
 };
 
 type FeatureLandingCopy = {
@@ -498,36 +500,6 @@ const PARTICLE_POS = [
   { top:"62%", right:"3%"  },
   { top:"82%", left:"6%"   },
 ];
-const FEATURE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
-  ko: "ko-KR",
-  en: "en-US",
-  ja: "ja-JP",
-  "zh-CN": "zh-CN",
-  "zh-TW": "zh-TW",
-  vi: "vi-VN",
-  hi: "hi-IN",
-  es: "es-ES",
-  fr: "fr-FR",
-  de: "de-DE",
-  nl: "nl-NL",
-  ms: "ms-MY",
-};
-
-const FEATURE_PRICE_SUFFIX: Record<LoadingLocale, string> = {
-  ko: "원",
-  en: " KRW",
-  ja: "ウォン",
-  "zh-CN": "韩元",
-  "zh-TW": "韓元",
-  vi: " KRW",
-  hi: " KRW",
-  es: " KRW",
-  fr: " KRW",
-  de: " KRW",
-  nl: " KRW",
-  ms: " KRW",
-};
-
 function resolveFeatureLocaleFromPath(pathname: string): LoadingLocale {
   const localeSegment = String(pathname || "").split("/").filter(Boolean)[0];
   if (!localeSegment) return "ko";
@@ -571,14 +543,6 @@ function resolveLocalizedService(service: ServiceLike | undefined, locale: Loadi
   return localized ? { ...service, ...localized } : service;
 }
 
-function formatFeaturePrice(value: string, locale: LoadingLocale) {
-  const amount = Number(String(value || "").replace(/[^\d]/g, ""));
-  if (!Number.isFinite(amount) || amount <= 0) return value;
-  const numberLocale = FEATURE_NUMBER_LOCALE[locale] || FEATURE_NUMBER_LOCALE.ko;
-  const suffix = FEATURE_PRICE_SUFFIX[locale] || FEATURE_PRICE_SUFFIX.ko;
-  return `${new Intl.NumberFormat(numberLocale).format(amount)}${suffix}`;
-}
-
 function resolveFeatureTag(
   basePath: string,
   category: string,
@@ -595,6 +559,7 @@ function resolveFeatureTag(
    Component
 ═══════════════════════════════════════════ */
 export default function FeatureLandingPage({ service }: { service?: ServiceLike }) {
+  useMobileFortuneRenderTrace("FeatureLandingPage");
   const pathname = usePathname() || "/";
   const basePath = resolveFeatureBasePath(pathname);
   const [locale, setLocale] = useState<LoadingLocale>(() => resolveFeatureLocaleFromPath(pathname));
@@ -651,10 +616,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     : "/index.html";
   const paidMeta = PAID_SLUG_META[basePath];
   const isPaidFeature = !!paidMeta;
-  // 서버 가격 정본 조회 (ko 외 로케일은 접미사 현지화를 위해 fallback 라벨 유지)
+  // 서버 가격 정본 조회. 유료 기능은 UI fallback 가격을 사용하지 않는다.
   const paidPrice = useServerPrice({
-    featureKey: locale === "ko" ? paidMeta?.featureKey : undefined,
-    fallbackLabel: paidMeta ? formatFeaturePrice(paidMeta.coins, locale) : "",
+    featureKey: paidMeta?.featureKey,
   });
 
   const category = basePath.split("/")[1] ?? "tarot";
@@ -1068,7 +1032,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               fontSize:16,
               lineHeight:1,
             }}>{cfg.icon}</span>
-            <span>{isPaidFeature ? copy.paidCta(paidPrice.label || formatFeaturePrice(paidMeta.coins, locale)) : copy.freeCta}</span>
+            <span>{isPaidFeature
+              ? copy.paidCta(paidPrice.label || (paidPrice.loading ? "가격 확인 중" : "가격 확인 필요"))
+              : copy.freeCta}</span>
           </a>
           <a href="/insights" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",

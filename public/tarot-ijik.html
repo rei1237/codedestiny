@@ -505,8 +505,9 @@ body {
 }
 
 .card-wrap {
-  width: 96px;
-  height: 144px;
+  width: 92px;
+  aspect-ratio: 4 / 7;
+  height: auto;
   perspective: 1000px;
   cursor: pointer;
   flex-shrink: 0;
@@ -607,7 +608,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 6px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 0 20px rgba(212,160,23,0.1);
 }
 
@@ -616,19 +617,28 @@ body {
   height: 100%;
   border: 1px solid rgba(180,140,50,0.35);
   border-radius: 6px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   background: linear-gradient(160deg, rgba(255,252,235,0.95) 0%, rgba(255,244,196,0.95) 100%);
-  padding: 6px 4px;
+  padding: 5px 4px;
+  overflow: hidden;
 }
 
 .card-face-image {
-  width: 100%;
-  height: 72px;
-  object-fit: cover;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  aspect-ratio: 15 / 26;
+  align-self: center;
+  justify-self: center;
+  display: block;
+  object-fit: contain;
+  object-position: center;
   border-radius: 4px;
   border: 1px solid rgba(120, 85, 30, 0.2);
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
@@ -984,8 +994,7 @@ body {
     width: 100%;
     text-align: center;
   }
-  .card-wrap { width: 86px; height: 130px; }
-  .card-face-image { height: 62px; }
+  .card-wrap { width: 78px; aspect-ratio: 4 / 7; }
   .card-face-name { font-size: 9.5px; }
   .card-face-en { display: none; }
   .card-label-below { max-width: 94px; font-size: 10px; }
@@ -1142,7 +1151,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
       <div class="stage1-cards">
         <div class="card-slot">
-          <div class="card-wrap" id="card1" onclick="flipCard(1)">
+          <div class="card-wrap" id="card1" role="button" tabindex="0" aria-pressed="false" aria-label="1번 타로 카드 뒤집기" onclick="flipCard(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(1)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">✦</div>
@@ -1155,7 +1164,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         </div>
 
         <div class="card-slot">
-          <div class="card-wrap" id="card2" onclick="flipCard(2)">
+          <div class="card-wrap" id="card2" role="button" tabindex="0" aria-pressed="false" aria-label="2번 타로 카드 뒤집기" onclick="flipCard(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(2)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">✦</div>
@@ -1168,7 +1177,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         </div>
 
         <div class="card-slot">
-          <div class="card-wrap" id="card3" onclick="flipCard(3)">
+          <div class="card-wrap" id="card3" role="button" tabindex="0" aria-pressed="false" aria-label="3번 타로 카드 뒤집기" onclick="flipCard(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(3)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">✦</div>
@@ -1202,7 +1211,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
       <div class="stage-cards-pair">
         <div class="card-slot">
-          <div class="card-wrap" id="card4" onclick="flipCard(4)">
+          <div class="card-wrap" id="card4" role="button" tabindex="0" aria-pressed="false" aria-label="4번 타로 카드 뒤집기" onclick="flipCard(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(4)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">☽</div>
@@ -1215,7 +1224,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         </div>
 
         <div class="card-slot">
-          <div class="card-wrap" id="card5" onclick="flipCard(5)">
+          <div class="card-wrap" id="card5" role="button" tabindex="0" aria-pressed="false" aria-label="5번 타로 카드 뒤집기" onclick="flipCard(5)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(5)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">☽</div>
@@ -1255,7 +1264,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
       <div class="stage-cards-pair">
         <div class="card-slot">
-          <div class="card-wrap" id="card6" onclick="flipCard(6)">
+          <div class="card-wrap" id="card6" role="button" tabindex="0" aria-pressed="false" aria-label="6번 타로 카드 뒤집기" onclick="flipCard(6)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(6)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">⊕</div>
@@ -1268,7 +1277,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         </div>
 
         <div class="card-slot">
-          <div class="card-wrap" id="card7" onclick="flipCard(7)">
+          <div class="card-wrap" id="card7" role="button" tabindex="0" aria-pressed="false" aria-label="7번 타로 카드 뒤집기" onclick="flipCard(7)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard(7)}">
             <div class="card-inner">
               <div class="card-back-face">
                 <div class="card-back-symbol">⊕</div>
@@ -1992,6 +2001,8 @@ function flipCard(n) {
   `;
   if (isReversed) fi.style.transform = 'rotate(180deg)';
   wrap.classList.add('flipped');
+  wrap.setAttribute('aria-pressed', 'true');
+  wrap.setAttribute('aria-label', `${n}번 타로 카드 ${nameKr} 결과`);
   flippedCount++;
   document.getElementById('lbl' + n).textContent = nameKr + (isReversed ? ' (역)' : '');
   updateUI();
@@ -2018,6 +2029,8 @@ async function resetSpread() {
   for (let i = 1; i <= 7; i++) {
     const w = document.getElementById('card' + i);
     w.classList.remove('flipped');
+    w.setAttribute('aria-pressed', 'false');
+    w.setAttribute('aria-label', `${i}번 타로 카드 뒤집기`);
     const fi = document.getElementById('front' + i);
     fi.innerHTML = '';
     fi.style.transform = '';

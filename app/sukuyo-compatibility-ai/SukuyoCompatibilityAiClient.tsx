@@ -1686,7 +1686,7 @@ export default function SukuyoCompatibilityAiClient() {
               </m.div>
 
               <div className={styles.actions}>
-                <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
+                <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
                 <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
                   {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
                   달빛 궁합 열기
@@ -1696,7 +1696,7 @@ export default function SukuyoCompatibilityAiClient() {
               {/* 모바일 전용 하단 고정 CTA. 이 화면은 전역 하단 네비를 숨기므로(.fullscreenBody) 겹칠 상대가 없다.
                   가격은 반드시 PriceBadge(서버 조회)로만 — 숫자를 직접 렌더하지 않는다. */}
               <div className={styles.mobileCta}>
-                <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="" className={styles.mobileCtaPrice} />
+                <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="" className={styles.mobileCtaPrice} />
                 <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete}>
                   {busy ? <Loader2 size={16} className={styles.spin} /> : <Sparkles size={16} />}
                   달빛 궁합 열기

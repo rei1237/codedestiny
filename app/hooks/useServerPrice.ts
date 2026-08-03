@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchBillingFeaturePricing } from "@/app/_lib/billing-client";
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "@/worker/lib/paid-feature-registry.js";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
@@ -9,21 +9,19 @@ export type ServerPriceInput = {
   featureKey?: string;
   subFeatureKey?: string;
   categoryKey?: string;
-  /** 서버 조회 실패 시 표시할 라벨 (기존 하드코딩 라벨을 fallback으로 강등) */
+  /** Used only for non-feature legacy displays without a registry key. */
   fallbackLabel?: string;
-  /** 서버 조회 실패 시 환산 표시할 코인 값 */
+  /** Used only for non-feature legacy displays without a registry key. */
   fallbackCoins?: number;
 };
 
 export type ServerPriceState = {
   label: string;
   loading: boolean;
-  source: "server" | "fallback";
+  source: "registry" | "fallback";
 };
 
-// 세션 내 기능별 1회 조회 캐시 (가격은 세션 중 바뀌지 않음)
 const priceLabelCache = new Map<string, string>();
-const priceInflight = new Map<string, Promise<string | null>>();
 
 function priceCacheKey(input: ServerPriceInput): string {
   return [input.featureKey || "", input.subFeatureKey || "", input.categoryKey || ""].join("|");
@@ -37,78 +35,74 @@ function resolveFallbackLabel(input: ServerPriceInput): string {
   return "";
 }
 
-async function fetchServerPriceLabel(input: ServerPriceInput): Promise<string | null> {
+function formatRegistryAmount(amountKRW: number, locale: string): string {
+  if (!Number.isFinite(amountKRW) || amountKRW <= 0) return "";
+  if (String(locale).toLowerCase().startsWith("ko")) {
+    return `${Math.floor(amountKRW).toLocaleString("ko-KR")}원`;
+  }
+  return `KRW ${Math.floor(amountKRW).toLocaleString("en-US")}`;
+}
+
+type RegistryPricing = {
+  amountKRW?: number;
+  displayPrice?: string;
+  cashPrice?: number;
+  cost?: number;
+  coinPrice?: number;
+};
+
+function resolveRegistryPriceLabel(input: ServerPriceInput): string | null {
+  const requestedKey = String(input.featureKey || "").trim();
+  if (!requestedKey) return null;
+
+  const normalizedKey = normalizePaidFeatureKey(requestedKey);
+  const table = FEATURE_KEY_PRICE_TABLE as Record<string, RegistryPricing>;
+  const pricing = table[normalizedKey] || table[requestedKey];
+  if (!pricing) return null;
+
+  const displayPrice = String(pricing.displayPrice || "").trim();
+  if (displayPrice) return displayPrice;
+
+  const amountKRW = Number(pricing.amountKRW || pricing.cashPrice || 0)
+    || Number(pricing.cost || pricing.coinPrice || 0) * 100;
+  return formatRegistryAmount(amountKRW, getCurrentLoadingLocale()) || null;
+}
+
+function resolveCachedRegistryPrice(input: ServerPriceInput): string | null {
   const key = priceCacheKey(input);
   const cached = priceLabelCache.get(key);
   if (cached) return cached;
-
-  let inflight = priceInflight.get(key);
-  if (!inflight) {
-    inflight = (async () => {
-      try {
-        const result = await fetchBillingFeaturePricing({
-          featureKey: input.featureKey,
-          subFeatureKey: input.subFeatureKey,
-          categoryKey: input.categoryKey,
-          reason: "price-display",
-          silent: true,
-        });
-        const pricing = result.ok ? result.data?.pricing : null;
-        if (!pricing) return null;
-        const displayPrice = String(pricing.displayPrice || "").trim();
-        const label = displayPrice || (pricing.cost > 0 ? formatKrwFromCoins(pricing.cost, getCurrentLoadingLocale()) : "");
-        if (!label) return null;
-        priceLabelCache.set(key, label);
-        return label;
-      } catch {
-        return null;
-      } finally {
-        priceInflight.delete(key);
-      }
-    })();
-    priceInflight.set(key, inflight);
-  }
-  return inflight;
+  const label = resolveRegistryPriceLabel(input);
+  if (label) priceLabelCache.set(key, label);
+  return label;
 }
 
 /**
- * 서버 billing-features 가격 단일 정본 조회 훅 (표시 전용 — 결제 동작 없음).
- * 서버 가격 → fallbackLabel → formatKrwFromCoins(fallbackCoins) → "" 순으로 강등.
+ * Price display is intentionally local and synchronous. The Worker pricing
+ * registry is imported as the canonical build-time source, so cards do not
+ * request /api/billing/features just to render a matching price. Server-side
+ * billing remains authoritative when an order or access decision is made.
  */
 export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const key = priceCacheKey(input);
-  const fallback = resolveFallbackLabel(input);
   const hasQuery = Boolean(input.featureKey || input.subFeatureKey || input.categoryKey);
-  const cached = hasQuery ? priceLabelCache.get(key) : undefined;
+  const cached = hasQuery ? resolveCachedRegistryPrice(input) : undefined;
+  const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
-  const [state, setState] = useState<ServerPriceState>(() => (
-    cached
-      ? { label: cached, loading: false, source: "server" }
-      : { label: fallback, loading: hasQuery, source: "fallback" }
-  ));
+  const [state, setState] = useState<ServerPriceState>(() => cached
+    ? { label: cached, loading: false, source: "registry" }
+    : { label: fallback, loading: false, source: "fallback" });
 
   useEffect(() => {
     if (!hasQuery) {
       setState({ label: fallback, loading: false, source: "fallback" });
       return;
     }
-    let cancelled = false;
-    void fetchServerPriceLabel({
-      featureKey: input.featureKey,
-      subFeatureKey: input.subFeatureKey,
-      categoryKey: input.categoryKey,
-    }).then((label) => {
-      if (cancelled) return;
-      if (label) {
-        setState({ label, loading: false, source: "server" });
-      } else {
-        setState({ label: fallback, loading: false, source: "fallback" });
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-    // key가 조회 파라미터 3종을 대표, fallback은 문자열 비교로 충분
+    const label = resolveCachedRegistryPrice(input);
+    setState(label
+      ? { label, loading: false, source: "registry" }
+      : { label: "", loading: false, source: "registry" });
+    // The registry key is the complete dependency for this display lookup.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, fallback]);
 

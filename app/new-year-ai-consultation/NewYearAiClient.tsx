@@ -1911,7 +1911,7 @@ export default function NewYearAiConsultationPage() {
           {notice && <p className="nyai-notice">{notice}</p>}
           {error && <p className="nyai-error">{error}</p>}
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="new-year-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+            <PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />
           </div>
           <button className="nyai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="nyai-spin" /> : <WalletCards size={18} />}

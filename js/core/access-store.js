@@ -29,8 +29,6 @@
   var accessDecisionInFlight = Object.create(null);
   var accessDecisionCache = Object.create(null);
   var accessDecisionControllers = Object.create(null);
-  var retryTimers = Object.create(null);
-  var retryAttempts = Object.create(null);
   var loadedEpoch = Object.create(null);
   var lastRefreshAttemptAt = Object.create(null);
   var bootEpoch = 0;
@@ -185,6 +183,15 @@
       }
     } catch (_) {
       // Debug logging must never affect access decisions.
+    }
+  }
+
+  function traceEvent(type, detail) {
+    try {
+      var trace = global.__cdMobileFortuneTrace;
+      if (trace && typeof trace.record === 'function') trace.record(type, detail || {});
+    } catch (_) {
+      // Development-only tracing must never affect access decisions.
     }
   }
 
@@ -615,14 +622,6 @@
     return Object.keys(state.persistentUnlocks).length > 0 || Object.keys(state.optimistic).length > 0 || Boolean(state.membership);
   }
 
-  function clearRetry(key) {
-    if (retryTimers[key]) {
-      global.clearTimeout(retryTimers[key]);
-      delete retryTimers[key];
-    }
-    delete retryAttempts[key];
-  }
-
   function startFetch(context, attempt) {
     if (inFlight[context.key]) {
       debug('reused', { cacheKey: context.key });
@@ -636,6 +635,11 @@
     var controller = abortController;
     var query = '/api/access/unlocks?profileId=' + encodeURIComponent(context.profileId) +
       '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(','));
+    traceEvent('access:start', {
+      request: 'unlocks',
+      serviceKeys: context.serviceKeys.slice(),
+      attempt: Number(attempt || 0),
+    });
     var epoch = bootEpoch;
     var request = global.fetch(query, {
       credentials: 'include',
@@ -650,6 +654,11 @@
           error.payload = payload;
           throw error;
         }
+        traceEvent('access:response', {
+          request: 'unlocks',
+          status: Number(response.status || 0),
+          ok: Boolean(response.ok && payload && payload.ok === true),
+        });
         return payload;
       });
     }).then(function (payload) {
@@ -658,7 +667,6 @@
         return { ok: false, stale: true };
       }
       applyServerPayload(payload, context);
-      clearRetry(context.key);
       return { ok: true, payload: payload };
     }).catch(function (error) {
       if (error && error.name === 'AbortError') {
@@ -676,28 +684,23 @@
       state.status = hasUsableCache() ? 'degraded' : 'error';
       state.error = { status: error && error.status || 0, code: 'UNLOCK_FETCH_FAILED' };
       notify();
+      traceEvent('access:error', {
+        request: 'unlocks',
+        status: Number(error && error.status || 0),
+        code: 'UNLOCK_FETCH_FAILED',
+        degraded: hasUsableCache(),
+        retryScheduled: false,
+      });
       debug('fetch failed', { cacheKey: context.key, status: error && error.status, attempt: attempt || 0 });
       return { ok: false, status: state.status, stale: hasUsableCache() };
     }).finally(function () {
       if (inFlight[context.key] && inFlight[context.key].promise === request) delete inFlight[context.key];
       if (abortController === controller) abortController = null;
+      traceEvent('access:finish', { request: 'unlocks' });
     });
     inFlight[context.key] = { promise: request, controller: controller, epoch: epoch };
     debug('fetch started', { cacheKey: context.key, attempt: attempt || 0 });
     return request;
-  }
-
-  function scheduleRetry(context) {
-    if (retryTimers[context.key]) return;
-    var attempt = Number(retryAttempts[context.key] || 0);
-    if (attempt >= RETRY_DELAYS.length) return;
-    retryAttempts[context.key] = attempt + 1;
-    var jitter = Math.floor(Math.random() * Math.max(100, RETRY_DELAYS[attempt] * 0.25));
-    retryTimers[context.key] = global.setTimeout(function () {
-      delete retryTimers[context.key];
-      if (context.key !== contextKey) return;
-      startFetch(context, attempt + 1);
-    }, RETRY_DELAYS[attempt] + jitter);
   }
 
   function abortCurrent(reason) {
@@ -804,14 +807,14 @@
     }
     if (inFlight[context.key]) {
       debug('reused', { cacheKey: context.key });
+      traceEvent('access:dedupe', { request: 'unlocks', reason: options && options.reason || 'unknown' });
       return inFlight[context.key].promise;
-    }
-    var opts = options || {};
+    }    var opts = options || {};
     var ageMs = state.checkedAt ? Date.now() - state.checkedAt : Number.POSITIVE_INFINITY;
     var tier = getEffectiveTier();
     var adminSnapshot = tier === 'admin';
     if (!opts.force && ageMs <= FRESH_TTL_MS) {
-      return Promise.resolve({ ok: true, cached: true, snapshot: getSnapshot() });
+      traceEvent('access:cache-hit', { request: 'unlocks', reason: options && options.reason || 'cached' });      return Promise.resolve({ ok: true, cached: true, snapshot: getSnapshot() });
     }
     var canUseStale = hasUsableCache() && ageMs <= STALE_TTL_MS;
     var canUseGrace = hasUsableCache() && !adminSnapshot && ageMs <= GRACE_TTL_MS;
@@ -844,7 +847,6 @@
       loadedEpoch = Object.create(null);
       lastRefreshAttemptAt = Object.create(null);
       accessDecisionCache = Object.create(null);
-      Object.keys(retryTimers).forEach(function (key) { clearRetry(key); });
       state = createState(contextKey);
       syncLegacyFeatureMap();
       notify();

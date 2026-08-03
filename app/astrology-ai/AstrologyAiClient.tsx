@@ -779,7 +779,7 @@ export default function AstrologyAiClient() {
               </section>
 
               <div className="flex items-center justify-end">
-                <PriceBadge featureKey="astrology-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+                <PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />
               </div>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button type="submit" disabled={busy} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">

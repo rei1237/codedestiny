@@ -19,13 +19,13 @@ export function PriceBadge({
   const { label, loading } = useServerPrice(priceInput);
 
   if (!label) {
-    if (!loading) return null;
+    if (!loading && !priceInput.featureKey && !priceInput.subFeatureKey && !priceInput.categoryKey) return null;
     return (
       <span
         className={className || "inline-flex items-center rounded-full border border-amber-200/25 bg-amber-100/10 px-3 py-1 text-xs font-bold text-amber-100/60"}
-        aria-hidden="true"
+        aria-live="polite"
       >
-        가격 확인 중…
+        {loading ? "가격 확인 중" : "가격 확인 필요"}
       </span>
     );
   }

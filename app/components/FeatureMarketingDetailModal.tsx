@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
-import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
+import { useServerPrice } from "@/app/hooks/useServerPrice";
 
 type FeatureMarketingBadge = {
   text?: string;
@@ -398,12 +398,10 @@ export function resolveFeatureMarketingCopy(target: FeatureMarketingTarget): Fea
   };
 }
 
-function priceText(target: FeatureMarketingTarget) {
-  if (target.priceLabel) return target.priceLabel;
-  const badgePrice = (target.badges || []).map((badge) => badge.text || "").find((text) => /(원|코인|해금|결제)/.test(text));
-  if (badgePrice) return badgePrice;
-  if ((target.coinPrice || 0) > 0) return formatKrwFromCoins(target.coinPrice);
-  return "기존 결제 정책 확인";
+function priceText(target: FeatureMarketingTarget, price: { label: string; loading: boolean }) {
+  if (target.accessType === "free") return "무료";
+  if (price.loading) return "가격 확인 중";
+  return price.label || "가격 확인 필요";
 }
 
 const modalSheetScrollStyle: CSSProperties = {
@@ -446,6 +444,9 @@ export function FeatureMarketingDetailModal({
   const pathname = usePathname() || "/";
   const [navPending, setNavPending] = useState(false);
   const copy = useMemo(() => resolveFeatureMarketingCopy(target), [target]);
+  const canonicalPrice = useServerPrice({ featureKey: target.featureKey });
+  const isPaidTarget = isPaidMarketingTarget(target);
+  const priceReady = !isPaidTarget || Boolean(canonicalPrice.label);
   useBodyScrollLock(open);
 
   // 오픈 시각은 `open` 이 바뀔 때만 갱신한다 — onClose 처럼 매 렌더 새로 만들어지는 값에
@@ -483,6 +484,7 @@ export function FeatureMarketingDetailModal({
     // 새 탭·수정키 클릭은 브라우저 기본 동작에 맡긴다.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
+    if (isPaidTarget && !canonicalPrice.label) return;
     if (navPending) return;
 
     if (!isRouterNavigable(target.href)) {
@@ -502,7 +504,7 @@ export function FeatureMarketingDetailModal({
     // 이동이 완료되면 이 트리가 언마운트되므로 별도 닫기 처리가 필요 없다.
     setNavPending(true);
     router.push(target.href);
-  }, [navPending, onClose, pathname, router, target.href]);
+  }, [canonicalPrice.label, isPaidTarget, navPending, onClose, pathname, router, target.href]);
 
   if (!open) return null;
 
@@ -668,14 +670,16 @@ export function FeatureMarketingDetailModal({
 
         <div className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
           <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-300">
-            <span>{priceText(target)}</span>
+            <span aria-live="polite">{priceText(target, canonicalPrice)}</span>
             <span>{target.accessType === "free" ? "무료 기능" : "결제 후 기존 화면으로 이동"}</span>
           </div>
           <Link
             href={target.href}
             onClick={handleCtaClick}
             aria-busy={navPending}
-            className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#f3d680] px-4 text-sm font-black text-[#111827] no-underline transition-opacity ${navPending ? "opacity-75" : ""}`}
+            aria-disabled={!priceReady}
+            tabIndex={priceReady ? undefined : -1}
+            className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#f3d680] px-4 text-sm font-black text-[#111827] no-underline transition-opacity ${navPending || !priceReady ? "pointer-events-none opacity-55" : ""}`}
           >
             {navPending ? (
               <>
@@ -734,7 +738,7 @@ export function FeatureMarketingLink({ target, href, className, children, onClic
       >
         {children}
       </Link>
-      <FeatureMarketingDetailModal open={open} target={finalTarget} onClose={handleClose} />
+      {open ? <FeatureMarketingDetailModal open target={finalTarget} onClose={handleClose} /> : null}
     </>
   );
 }

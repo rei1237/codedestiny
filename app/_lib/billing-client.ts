@@ -122,6 +122,60 @@ type BillingFeaturePricing = {
   coinDisplayOnly?: boolean;
 };
 
+export type BillingFeatureCatalog = {
+  categories?: Array<{
+    categoryKey?: string;
+    subFeatures?: Array<BillingFeaturePricing>;
+  }>;
+  legacyFeatureTable?: Array<BillingFeaturePricing>;
+};
+
+const BILLING_FEATURE_CATALOG_TTL_MS = 60_000;
+let billingFeatureCatalogCache: { data: BillingFeatureCatalog; expiresAt: number } | null = null;
+let billingFeatureCatalogInFlight: Promise<BillingResult<BillingFeatureCatalog>> | null = null;
+
+function catalogEntries(catalog: BillingFeatureCatalog | null | undefined): BillingFeaturePricing[] {
+  if (!catalog) return [];
+  const categories = Array.isArray(catalog.categories) ? catalog.categories : [];
+  const categoryEntries = categories.flatMap((category) => Array.isArray(category.subFeatures) ? category.subFeatures : []);
+  const legacyEntries = Array.isArray(catalog.legacyFeatureTable) ? catalog.legacyFeatureTable : [];
+  return [...categoryEntries, ...legacyEntries].filter((entry) => Boolean(entry && String(entry.featureKey || "").trim()));
+}
+
+export function findBillingFeaturePricing(
+  catalog: BillingFeatureCatalog | null | undefined,
+  input: { featureKey?: string; subFeatureKey?: string; categoryKey?: string },
+): BillingFeaturePricing | null {
+  const featureKey = String(input.featureKey || "").trim();
+  const subFeatureKey = String(input.subFeatureKey || "").trim();
+  const categoryKey = String(input.categoryKey || "").trim();
+  return catalogEntries(catalog).find((entry) => (
+    (featureKey && String(entry.featureKey || "").trim() === featureKey)
+    || (!featureKey && subFeatureKey && String(entry.subFeatureKey || "").trim() === subFeatureKey
+      && (!categoryKey || String(entry.categoryKey || "").trim() === categoryKey))
+  )) || null;
+}
+
+export async function fetchBillingFeatureCatalog(options: { force?: boolean } = {}): Promise<BillingResult<BillingFeatureCatalog>> {
+  const now = Date.now();
+  if (!options.force && billingFeatureCatalogCache && billingFeatureCatalogCache.expiresAt > now) {
+    return { ok: true, status: 200, data: billingFeatureCatalogCache.data, message: "cached", error: null, raw: {} };
+  }
+  if (billingFeatureCatalogInFlight) return billingFeatureCatalogInFlight;
+
+  billingFeatureCatalogInFlight = (async () => {
+    const response = await authFetchBilling("/api/billing/features", { method: "GET" });
+    const parsed = await parseBillingResponse<BillingFeatureCatalog>(response);
+    if (parsed.ok && parsed.data) {
+      billingFeatureCatalogCache = { data: parsed.data, expiresAt: Date.now() + BILLING_FEATURE_CATALOG_TTL_MS };
+    }
+    return parsed;
+  })().finally(() => {
+    billingFeatureCatalogInFlight = null;
+  });
+  return billingFeatureCatalogInFlight;
+}
+
 export type PaymentEligibility = {
   loading?: boolean;
   coinCost: number;
