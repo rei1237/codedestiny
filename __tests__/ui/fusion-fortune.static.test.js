@@ -24,6 +24,24 @@ test("fusion fortune keeps ticket purchase PG-only in the client flow", () => {
   assert.doesNotMatch(client, /paymentMethod:\s*"(?:pass|credit|family_pass)"/);
 });
 
+test("points shop fusion ticket waits for an explicit preview and never falls back to a client price", () => {
+  const points = read("app/points/PointsClient.tsx");
+  const start = points.indexOf("function FusionFortuneTicketShop");
+  const end = points.indexOf("function MoonlightOrderHistory");
+  const shop = points.slice(start, end);
+  assert.match(shop, /api\/payments\/fusion-fortune\/shop-preview/);
+  assert.doesNotMatch(shop, /api\/payments\/fusion-fortune\/(?:catalog|balance)/);
+  assert.match(shop, /상담권 조회하기/);
+  assert.doesNotMatch(shop, /useEffect\(\(\) => \{\s*void load\(\);/);
+  assert.doesNotMatch(shop, /priceKRW\s*\|\|\s*10000/);
+  assert.match(shop, /isFusionFortuneTicketProduct/);
+  assert.match(shop, /tryAcquireShopTicketPreview\("fusion"\)/);
+  assert.match(shop, /activeScopeRef\.current = authScope/);
+  assert.match(shop, /activeScopeRef\.current !== requestScope/);
+  assert.match(shop, /setIsEnabled\(null\);[\s\S]*setHasLoaded\(false\);[\s\S]*setRemaining\(null\);/);
+  assert.match(shop, /isFusionFortuneTicketProduct\(payload\.product\)[\s\S]*setProduct\(payload\.product\)[\s\S]*setRemaining\(payload\.balance\.remaining\)/);
+});
+
 test("fusion fortune mobile UI covers compact widths and reduced motion", () => {
   const css = read("app/fusion-fortune/fusion-fortune.module.css");
   assert.match(css, /max-width:\s*760px/);

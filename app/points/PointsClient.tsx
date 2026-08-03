@@ -2595,6 +2595,42 @@ type GuardianFortuneCreditOrderClient = {
 
 const GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE_CLIENT = "guardian_fortune_conversation_credit";
 const GUARDIAN_FORTUNE_PENDING_PAYMENT_KEY = "guardian_fortune_pending_payment";
+type ShopTicketPreviewOwner = "guardian" | "fusion";
+
+let activeShopTicketPreview: ShopTicketPreviewOwner | null = null;
+
+function tryAcquireShopTicketPreview(owner: ShopTicketPreviewOwner): boolean {
+  if (activeShopTicketPreview) return false;
+  activeShopTicketPreview = owner;
+  return true;
+}
+
+function releaseShopTicketPreview(owner: ShopTicketPreviewOwner) {
+  if (activeShopTicketPreview === owner) activeShopTicketPreview = null;
+}
+
+function isNonNegativeWholeNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isGuardianFortuneCreditProduct(value: unknown): value is GuardianFortuneCreditProductClient {
+  if (!isRecord(value)) return false;
+  return /^guardian_fortune_chat_(?:3|10)$/.test(String(value.productId || ""))
+    && value.productType === GUARDIAN_FORTUNE_CREDIT_PRODUCT_TYPE_CLIENT
+    && typeof value.productName === "string" && value.productName.trim().length > 0
+    && typeof value.priceKrw === "number" && Number.isSafeInteger(value.priceKrw) && value.priceKrw > 0
+    && typeof value.creditAmount === "number" && Number.isSafeInteger(value.creditAmount) && value.creditAmount > 0
+    && Array.isArray(value.allowedPurchaseChannels) && value.allowedPurchaseChannels.includes("pg");
+}
+
+function isGuardianFortuneCreditBalance(value: unknown): value is GuardianFortuneCreditBalanceClient {
+  if (!isRecord(value)) return false;
+  return [value.remaining, value.purchasedTotal, value.usedTotal, value.refundedTotal].every(isNonNegativeWholeNumber);
+}
+
+function getShopTicketAuthScope(user: AuthUser | null): string {
+  return String(user?.id || user?.userId || user?._id || user?.uid || "guest");
+}
 
 function readGuardianFortuneCreditPendingPayment() {
   if (typeof window === "undefined") return null;
@@ -2635,10 +2671,24 @@ function GuardianFortuneCreditShop({
   const [products, setProducts] = useState<GuardianFortuneCreditProductClient[]>([]);
   const [balance, setBalance] = useState<GuardianFortuneCreditBalanceClient | null>(null);
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [busyProductId, setBusyProductId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const redirectHandledRef = useRef(false);
+  const previewInFlightRef = useRef<Promise<void> | null>(null);
+  const authScope = getShopTicketAuthScope(authUser);
+  const activeScopeRef = useRef(authScope);
+  activeScopeRef.current = authScope;
+
+  useEffect(() => {
+    activeScopeRef.current = authScope;
+    setHasLoaded(false);
+    setIsEnabled(null);
+    setProducts([]);
+    setBalance(null);
+    setErrorMessage("");
+  }, [authScope]);
 
   const loadCatalogAndBalance = useCallback(async () => {
     if (!authUser) {
@@ -2647,52 +2697,72 @@ function GuardianFortuneCreditShop({
       setBalance(null);
       return;
     }
-    setIsLoading(true);
-    setErrorMessage("");
-    try {
-      const [catalogResponse, balanceResponse] = await Promise.all([
-        authFetch(`${apiBase}/api/payments/guardian-fortune/catalog`, {
-          method: "GET",
-          credentials: "include",
-        }, { retryOn401: true, apiBase }),
-        authFetch(`${apiBase}/api/payments/guardian-fortune/balance`, {
-          method: "GET",
-          credentials: "include",
-        }, { retryOn401: true, apiBase }),
-      ]);
-      const catalogPayload = await safeParseJson<{
-        enabled?: boolean;
-        products?: GuardianFortuneCreditProductClient[];
-        message?: string;
-      }>(catalogResponse);
-      const balancePayload = await safeParseJson<{
-        balance?: GuardianFortuneCreditBalanceClient;
-        message?: string;
-      }>(balanceResponse);
-      if (catalogResponse.status === 404 || catalogPayload.enabled === false) {
-        setIsEnabled(false);
-        setProducts([]);
-        setBalance(null);
-        return;
-      }
-      if (!catalogResponse.ok) throw new Error(catalogPayload.message || "대화권 상품을 확인하지 못했습니다.");
-      if (!balanceResponse.ok) throw new Error(balancePayload.message || "보유 대화권을 확인하지 못했습니다.");
-      setIsEnabled(true);
-      setProducts(Array.isArray(catalogPayload.products) ? catalogPayload.products : []);
-      setBalance(balancePayload.balance || null);
-    } catch (error) {
-      setIsEnabled(true);
-      setErrorMessage(error instanceof Error ? error.message : "대화권 정보를 불러오지 못했습니다.");
-    } finally {
-      setIsLoading(false);
+    if (previewInFlightRef.current) return previewInFlightRef.current;
+    if (!tryAcquireShopTicketPreview("guardian")) {
+      setErrorMessage("상담권 정보를 확인하고 있어요. 잠시 후 다시 시도해 주세요.");
+      return;
     }
-  }, [apiBase, authUser]);
+    const requestScope = authScope;
+    const requestPromise = (async () => {
+      setHasLoaded(false);
+      setIsLoading(true);
+      setErrorMessage("");
+      setProducts([]);
+      setBalance(null);
+      try {
+        const response = await authFetch(`${apiBase}/api/payments/guardian-fortune/shop-preview`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        }, { retryOn401: true, apiBase, clientSource: "app:points" });
+        const payload = await safeParseJson<{
+          ok?: boolean;
+          enabled?: boolean;
+          products?: unknown;
+          balance?: unknown;
+          message?: string;
+        }>(response);
+        if (activeScopeRef.current !== requestScope) return;
+        if (response.status === 404 || payload.enabled === false) {
+          setIsEnabled(false);
+          setHasLoaded(true);
+          setProducts([]);
+          setBalance(null);
+          return;
+        }
+        if (!response.ok) throw new Error(payload.message || "대화권 정보를 확인하지 못했습니다.");
+        const nextProducts = Array.isArray(payload.products)
+          ? payload.products.filter(isGuardianFortuneCreditProduct)
+          : [];
+        if (payload.ok !== true || payload.enabled !== true || nextProducts.length === 0 || !isGuardianFortuneCreditBalance(payload.balance)) {
+          throw new Error("대화권 응답 형식을 확인하지 못했습니다.");
+        }
+        setIsEnabled(true);
+        setHasLoaded(true);
+        setProducts(nextProducts);
+        setBalance(payload.balance);
+      } catch (error) {
+        if (activeScopeRef.current === requestScope) {
+          setIsEnabled(null);
+          setHasLoaded(false);
+          setProducts([]);
+          setBalance(null);
+          setErrorMessage(error instanceof Error ? error.message : "대화권 정보를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (activeScopeRef.current === requestScope) setIsLoading(false);
+      }
+    })();
+    previewInFlightRef.current = requestPromise;
+    try {
+      await requestPromise;
+    } finally {
+      if (previewInFlightRef.current === requestPromise) previewInFlightRef.current = null;
+      releaseShopTicketPreview("guardian");
+    }
+  }, [apiBase, authScope, authUser]);
 
-  useEffect(() => {
-    void loadCatalogAndBalance();
-  }, [loadCatalogAndBalance]);
-
-  const confirmPayment = useCallback(async (merchantUid: string, providerPaymentId = merchantUid, fallbackProduct?: GuardianFortuneCreditProductClient) => {
+  const confirmPayment = useCallback(async (merchantUid: string, providerPaymentId = merchantUid) => {
     const response = await authFetch(`${apiBase}/api/payments/guardian-fortune/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2708,12 +2778,17 @@ function GuardianFortuneCreditShop({
     if (!response.ok || payload.ok === false) {
       throw new Error(payload.message || "대화권 결제 확인에 실패했습니다.");
     }
+    if (!isGuardianFortuneCreditProduct(payload.product) || !isGuardianFortuneCreditBalance(payload.balance)) {
+      throw new Error("대화권 결제 완료 응답을 확인하지 못했습니다.");
+    }
+    const confirmedProduct = payload.product;
+    const confirmedBalance = payload.balance;
     clearGuardianFortuneCreditPendingPayment();
-    if (payload.balance) setBalance(payload.balance);
-    const product = payload.product || fallbackProduct;
-    onToast("success", product
-      ? `${product.productName}가 충전되었어요. 이제 오늘의 귀인 운세에서 ${product.creditAmount.toLocaleString(formatLocale)}번 더 물어볼 수 있어요.`
-      : (payload.message || "대화권이 충전되었어요."));
+    setIsEnabled(true);
+    setHasLoaded(true);
+    setProducts((previous) => previous.length > 0 ? previous : [confirmedProduct]);
+    setBalance(confirmedBalance);
+    onToast("success", `${confirmedProduct.productName}가 충전되었어요. 이제 오늘의 귀인 운세에서 ${confirmedProduct.creditAmount.toLocaleString(formatLocale)}번 더 물어볼 수 있어요.`);
   }, [apiBase, formatLocale, onToast]);
 
   useEffect(() => {
@@ -2725,7 +2800,7 @@ function GuardianFortuneCreditShop({
     if (!merchantUid || !pending?.merchantUid || pending.merchantUid !== merchantUid) return;
     redirectHandledRef.current = true;
     setBusyProductId(pending.productId || "guardian-fortune");
-    void confirmPayment(merchantUid, merchantUid, products.find((item) => item.productId === pending.productId))
+    void confirmPayment(merchantUid, merchantUid)
       .catch((error) => {
         onToast("error", error instanceof Error ? error.message : "대화권 결제 확인에 실패했습니다.");
       })
@@ -2733,7 +2808,7 @@ function GuardianFortuneCreditShop({
         setBusyProductId(null);
         window.history.replaceState({}, "", window.location.pathname);
       });
-  }, [authUser, confirmPayment, onToast, products]);
+  }, [authUser, confirmPayment, onToast]);
 
   const startPurchase = useCallback(async (product: GuardianFortuneCreditProductClient) => {
     if (!authUser || busyProductId) return;
@@ -2790,7 +2865,7 @@ function GuardianFortuneCreditShop({
         clearGuardianFortuneCreditPendingPayment();
         throw new Error(paymentResponse?.message || "결제가 취소되었습니다.");
       }
-      await confirmPayment(order.merchantUid, paymentId, product);
+      await confirmPayment(order.merchantUid, paymentId);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "대화권 결제를 진행하지 못했습니다.");
       onToast("error", error instanceof Error ? error.message : "대화권 결제를 진행하지 못했습니다.");
@@ -2812,7 +2887,7 @@ function GuardianFortuneCreditShop({
           </p>
         </div>
         <p className="rounded-full border border-[color:var(--moon-rim)] px-3 py-2 text-sm font-black text-[color:var(--moon-gold)]">
-          보유 대화권: {Math.max(0, Math.floor(Number(balance?.remaining || 0))).toLocaleString(formatLocale)}회
+          보유 대화권: {balance ? `${balance.remaining.toLocaleString(formatLocale)}회` : "조회 전"}
         </p>
       </div>
 
@@ -2825,6 +2900,13 @@ function GuardianFortuneCreditShop({
           <p>{errorMessage}</p>
           <button type="button" onClick={() => void loadCatalogAndBalance()} className="mt-3 rounded-xl border border-rose-200/40 px-3 py-2 text-xs font-black text-white">
             다시 확인하기
+          </button>
+        </div>
+      ) : !hasLoaded ? (
+        <div className="rounded-[18px] border border-[color:var(--moon-rim)] bg-white/5 px-4 py-6 text-center">
+          <p className="text-sm font-bold text-[color:var(--moon-mist)]">상품과 보유 대화권은 요청할 때만 확인해요.</p>
+          <button type="button" onClick={() => void loadCatalogAndBalance()} className="btn-moonlight mt-4 inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
+            대화권 조회하기
           </button>
         </div>
       ) : (
@@ -2884,6 +2966,21 @@ type FusionFortuneTicketOrderClient = {
 
 const FUSION_FORTUNE_PENDING_PAYMENT_KEY = "fusion_fortune_shop_pending_payment";
 
+function isFusionFortuneTicketProduct(value: unknown): value is FusionFortuneTicketProductClient {
+  if (!isRecord(value)) return false;
+  return value.productId === "fusion_fortune_ticket_1"
+    && value.productType === "fusion_fortune_ticket"
+    && typeof value.name === "string" && value.name.trim().length > 0
+    && typeof value.priceKRW === "number" && Number.isSafeInteger(value.priceKRW) && value.priceKRW > 0
+    && value.ticketAmount === 1
+    && typeof value.description === "string"
+    && Array.isArray(value.allowedPurchaseChannels) && value.allowedPurchaseChannels.includes("pg");
+}
+
+function isFusionFortuneTicketBalance(value: unknown): value is { remaining: number } {
+  return isRecord(value) && isNonNegativeWholeNumber(value.remaining);
+}
+
 function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
   apiBase: string;
   authUser: AuthUser | null;
@@ -2891,45 +2988,108 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
   onToast: (type: ToastItem["type"], text: string) => void;
 }) {
   const [product, setProduct] = useState<FusionFortuneTicketProductClient | null>(null);
-  const [remaining, setRemaining] = useState(0);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const redirectHandledRef = useRef(false);
+  const previewInFlightRef = useRef<Promise<void> | null>(null);
+  const authScope = getShopTicketAuthScope(authUser);
+  const activeScopeRef = useRef(authScope);
+  activeScopeRef.current = authScope;
+
+  useEffect(() => {
+    activeScopeRef.current = authScope;
+    setHasLoaded(false);
+    setIsEnabled(null);
+    setProduct(null);
+    setRemaining(null);
+    setErrorMessage("");
+  }, [authScope]);
 
   const load = useCallback(async () => {
     if (!authUser) { setIsEnabled(false); return; }
-    setIsLoading(true); setErrorMessage("");
+    if (previewInFlightRef.current) return previewInFlightRef.current;
+    if (!tryAcquireShopTicketPreview("fusion")) {
+      setErrorMessage("상담권 정보를 확인하고 있어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    const requestScope = authScope;
+    const requestPromise = (async () => {
+      setHasLoaded(false);
+      setIsLoading(true);
+      setErrorMessage("");
+      setProduct(null);
+      setRemaining(null);
+      try {
+        const response = await authFetch(`${apiBase}/api/payments/fusion-fortune/shop-preview`, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        }, { retryOn401: true, apiBase, clientSource: "app:points" });
+        const payload = await safeParseJson<{
+          ok?: boolean;
+          enabled?: boolean;
+          products?: unknown;
+          balance?: unknown;
+          message?: string;
+        }>(response);
+        if (activeScopeRef.current !== requestScope) return;
+        if (response.status === 404 || payload.enabled === false) {
+          setIsEnabled(false);
+          setHasLoaded(true);
+          setProduct(null);
+          setRemaining(null);
+          return;
+        }
+        if (!response.ok) throw new Error(payload.message || "초융합 운세 상담권을 확인하지 못했습니다.");
+        const nextProduct = Array.isArray(payload.products)
+          ? payload.products.find(isFusionFortuneTicketProduct) || null
+          : null;
+        if (payload.ok !== true || payload.enabled !== true || !nextProduct || !isFusionFortuneTicketBalance(payload.balance)) {
+          throw new Error("초융합 운세 상담권 응답 형식을 확인하지 못했습니다.");
+        }
+        setIsEnabled(true);
+        setHasLoaded(true);
+        setProduct(nextProduct);
+        setRemaining(payload.balance.remaining);
+      } catch (error) {
+        if (activeScopeRef.current === requestScope) {
+          setIsEnabled(null);
+          setHasLoaded(false);
+          setProduct(null);
+          setRemaining(null);
+          setErrorMessage(error instanceof Error ? error.message : "초융합 운세 상담권을 확인하지 못했습니다.");
+        }
+      } finally {
+        if (activeScopeRef.current === requestScope) setIsLoading(false);
+      }
+    })();
+    previewInFlightRef.current = requestPromise;
     try {
-      const [catalogResponse, balanceResponse] = await Promise.all([
-        authFetch(`${apiBase}/api/payments/fusion-fortune/catalog`, { credentials: "include" }, { retryOn401: true, apiBase }),
-        authFetch(`${apiBase}/api/payments/fusion-fortune/balance`, { credentials: "include" }, { retryOn401: true, apiBase }),
-      ]);
-      const catalog = await safeParseJson<{ enabled?: boolean; products?: FusionFortuneTicketProductClient[]; message?: string }>(catalogResponse);
-      const balance = await safeParseJson<{ balance?: { remaining?: number }; message?: string }>(balanceResponse);
-      if (catalogResponse.status === 404 || catalog.enabled === false) { setIsEnabled(false); return; }
-      if (!catalogResponse.ok) throw new Error(catalog.message || "초융합 운세 상담권 상품을 확인하지 못했습니다.");
-      if (!balanceResponse.ok) throw new Error(balance.message || "초융합 운세 상담권 잔액을 확인하지 못했습니다.");
-      setIsEnabled(true);
-      setProduct(catalog.products?.find((item) => item.productId === "fusion_fortune_ticket_1" && item.allowedPurchaseChannels?.includes("pg")) || null);
-      setRemaining(Math.max(0, Math.floor(Number(balance.balance?.remaining || 0))));
-    } catch (error) {
-      setIsEnabled(true);
-      setErrorMessage(error instanceof Error ? error.message : "초융합 운세 상담권을 확인하지 못했습니다.");
-    } finally { setIsLoading(false); }
-  }, [apiBase, authUser]);
-
-  useEffect(() => { void load(); }, [load]);
+      await requestPromise;
+    } finally {
+      if (previewInFlightRef.current === requestPromise) previewInFlightRef.current = null;
+      releaseShopTicketPreview("fusion");
+    }
+  }, [apiBase, authScope, authUser]);
 
   const confirm = useCallback(async (merchantUid: string, providerPaymentId = merchantUid) => {
     const response = await authFetch(`${apiBase}/api/payments/fusion-fortune/confirm`, {
       method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ merchantUid, paymentId: providerPaymentId }),
     }, { retryOn401: true, apiBase });
-    const payload = await safeParseJson<{ ok?: boolean; message?: string; balance?: { remaining?: number } }>(response);
+    const payload = await safeParseJson<{ ok?: boolean; message?: string; product?: unknown; balance?: unknown }>(response);
     if (!response.ok || payload.ok === false) throw new Error(payload.message || "초융합 운세 상담권 결제 확인에 실패했습니다.");
+    if (!isFusionFortuneTicketProduct(payload.product) || !isFusionFortuneTicketBalance(payload.balance)) {
+      throw new Error("초융합 운세 상담권 결제 완료 응답을 확인하지 못했습니다.");
+    }
     sessionStorage.removeItem(FUSION_FORTUNE_PENDING_PAYMENT_KEY);
-    setRemaining(Math.max(0, Math.floor(Number(payload.balance?.remaining || 0))));
+    setIsEnabled(true);
+    setHasLoaded(true);
+    setProduct(payload.product);
+    setRemaining(payload.balance.remaining);
     onToast("success", "초융합 운세 상담권 1회가 충전되었어요.");
   }, [apiBase, onToast]);
 
@@ -2994,9 +3154,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
         </div>
         <div className="rounded-[20px] border border-[#f3dd9a]/35 bg-[rgba(8,9,26,.48)] p-4">
           {isLoading ? <p className="text-sm font-bold text-[color:var(--moon-mist)]">상품을 확인하고 있어요.</p> : errorMessage ? <><p className="text-sm font-bold text-rose-100">{errorMessage}</p><button type="button" className="mt-3 rounded-xl border border-white/20 px-3 py-2 text-xs font-black text-white" onClick={() => void load()}>다시 확인하기</button></> : <>
-            <p className="text-sm font-black text-[color:var(--moon-mist)]">보유 상담권 {remaining.toLocaleString(formatLocale)}회</p>
-            <p className="mt-2 text-3xl font-black text-[color:var(--moon-gold)]">{(product?.priceKRW || 10000).toLocaleString(formatLocale)}원</p>
-            <button type="button" disabled={isBusy || !product} onClick={() => void startPurchase()} className="btn-moonlight mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:opacity-50">{isBusy ? "결제 준비 중…" : "단건 결제로 1회 구매"}</button>
+            {!hasLoaded ? <><p className="text-sm font-bold text-[color:var(--moon-mist)]">상품과 보유 상담권은 요청할 때만 확인해요.</p><button type="button" onClick={() => void load()} className="btn-moonlight mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black">상담권 조회하기</button></> : <><p className="text-sm font-black text-[color:var(--moon-mist)]">보유 상담권 {remaining?.toLocaleString(formatLocale)}회</p><p className="mt-2 text-3xl font-black text-[color:var(--moon-gold)]">{product?.priceKRW.toLocaleString(formatLocale)}원</p><button type="button" disabled={isBusy || !product} onClick={() => void startPurchase()} className="btn-moonlight mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:opacity-50">{isBusy ? "결제 준비 중…" : "단건 결제로 1회 구매"}</button></>}
             <Link href="/fusion-fortune" className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-black text-white">초융합 운세 자세히 보기</Link>
           </>}
         </div>

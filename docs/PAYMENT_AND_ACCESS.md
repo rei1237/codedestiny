@@ -24,10 +24,11 @@
 
 - 상품은 `fusion_fortune_ticket_1` / `fusion_fortune_ticket`, 상담권 1회 10,000원, 결과 1회용이다.
 - 구매는 PG만 허용하며, 일반 이용권·family 이용권·무료/이벤트권·대화권·credit·price coverage·monthly entitlement는 구매 또는 이용 수단이 될 수 없다.
-- `GET|POST /api/payments/fusion-fortune/{catalog,balance,prepare,confirm}`는 전용 balance/transaction만 사용한다. 일반 entitlement 또는 price coverage는 초융합 생성 가능 여부에 조회하지 않는다.
+- `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`는 전용 balance/transaction만 사용한다. 일반 entitlement 또는 price coverage는 초융합 생성 가능 여부에 조회하지 않는다.
 - PG 확인 성공 후에만 purchase transaction을 적립하며 동일 `paymentId`는 unique transaction으로 중복 적립을 막는다.
 - `/fusion-fortune#ticket`의 전용 구매 UI는 서버 catalog 가격을 표시하고 `prepare → PortOne V2 → confirm` 순서만 사용한다. 클라이언트 금액은 지급 판단에 사용하지 않으며 redirect 복귀도 같은 전용 confirm 경로에서 검증한다.
 - 오늘의 귀인 대화권은 기존 `3회 10,000원`, `10회 30,000원`이며 선택한 단일 카테고리 상담에만 사용한다. 초융합 상담권과 양방향 교차 사용하지 않는다.
+- 이용권 상점의 귀인·초융합 상담권 카드는 진입 시 catalog/balance를 자동 조회하지 않는다. 사용자가 `조회하기`를 누를 때만 인증 전용 `GET /api/payments/guardian-fortune/shop-preview` 또는 `GET /api/payments/fusion-fortune/shop-preview`를 1회 호출해 서버 상품·PG 채널·가격·보유량을 함께 확인한다. 503 등 조회 실패는 미확인 상태로 남기며 자동 재시도하지 않는다.
 - 결제 취소 webhook이 들어와도 초융합 상담권은 사용 여부를 자동 판단해 회수하지 않고 관리자 검토 상태로 보낸다. 실제 환불은 별도 승인 범위다.
 - 운영 PG E2E는 배포 SHA와 인덱스 준비 상태를 확인한 뒤 사용자가 결제창에서 직접 승인하는 한 건만 수행한다.
 

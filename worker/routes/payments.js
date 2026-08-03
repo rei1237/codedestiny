@@ -6390,6 +6390,20 @@ async function handleGuardianFortuneCreditBalance(auth, env) {
   return json({ ok: true, enabled: true, balance });
 }
 
+async function handleGuardianFortuneCreditShopPreview(auth, env) {
+  if (!isGuardianFortuneCreditSalesEnabled(env)) {
+    return json({ ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" }, { status: 404 });
+  }
+  const balance = await getGuardianFortuneCreditBalance(auth.userId);
+  return json({
+    ok: true,
+    enabled: true,
+    products: listGuardianFortuneCreditProducts(),
+    balance,
+    policy: buildGuardianFortunePurchasePolicySummary(),
+  });
+}
+
 async function handleGuardianFortuneCreditPrepare(request, env, auth) {
   if (!isGuardianFortuneCreditSalesEnabled(env)) {
     return json({ ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" }, { status: 404 });
@@ -6445,6 +6459,16 @@ async function handleFusionFortuneTicketCatalog(env) {
 async function handleFusionFortuneTicketBalance(auth, env) {
   if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
   return json({ ok: true, balance: await getFusionFortuneTicketBalance(auth.userId) });
+}
+
+async function handleFusionFortuneTicketShopPreview(auth, env) {
+  if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
+  return json({
+    ok: true,
+    enabled: true,
+    products: getFusionFortuneTicketCatalog(),
+    balance: await getFusionFortuneTicketBalance(auth.userId),
+  });
 }
 
 async function handleFusionFortuneTicketPrepare(request, env, auth) {
@@ -6545,9 +6569,11 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
     if (method === "GET" && path === "/guardian-fortune/balance") return await handleGuardianFortuneCreditBalance(auth, env);
+    if (method === "GET" && path === "/guardian-fortune/shop-preview") return await handleGuardianFortuneCreditShopPreview(auth, env);
     if (method === "POST" && path === "/guardian-fortune/prepare") return await handleGuardianFortuneCreditPrepare(request, env, auth);
     if (method === "POST" && path === "/guardian-fortune/confirm") return await handleGuardianFortuneCreditConfirm(request, env, auth);
     if (method === "GET" && path === "/fusion-fortune/balance") return await handleFusionFortuneTicketBalance(auth, env);
+    if (method === "GET" && path === "/fusion-fortune/shop-preview") return await handleFusionFortuneTicketShopPreview(auth, env);
     if (method === "POST" && path === "/fusion-fortune/prepare") return await handleFusionFortuneTicketPrepare(request, env, auth);
     if (method === "POST" && path === "/fusion-fortune/confirm") return await handleFusionFortuneTicketConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, env, auth);
@@ -6574,10 +6600,12 @@ export const __paymentsTestUtils = {
   handleSinglePaymentComplete,
   handleGuardianFortuneCreditCatalog,
   handleGuardianFortuneCreditBalance,
+  handleGuardianFortuneCreditShopPreview,
   handleGuardianFortuneCreditPrepare,
   handleGuardianFortuneCreditConfirm,
   handleFusionFortuneTicketCatalog,
   handleFusionFortuneTicketBalance,
+  handleFusionFortuneTicketShopPreview,
   handleFusionFortuneTicketPrepare,
   handleFusionFortuneTicketConfirm,
   handleWebhook,
