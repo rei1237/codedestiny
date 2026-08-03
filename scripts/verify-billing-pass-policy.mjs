@@ -783,10 +783,11 @@ assertNotContains(indexSource, "membershipButtonHtml", "payment modal avoids leg
 assertNotContains(indexSource, "_cdResolvePaymentEligibilityForOptions", "payment modal avoids server eligibility helper");
 assertContains(indexSource, 'data-mode="cancel"', "cancel button");
 assertContains(indexSource, "PortOne V2", "card provider badge");
-assertContains(indexSource, "getSubscriptionMonthlyCreditCost", "main pass shop monthly credit cost");
-assertContains(indexSource, "buildMembershipMonthlyCreditRequestId", "main pass shop monthly credit request id");
-assertContains(indexSource, "/api/payments/subscription/confirm", "main pass shop monthly credit purchase API");
-assertContains(indexSource, "paymentMethod: 'monthly_credit'", "main pass shop monthly credit payment method");
+assertNotContains(indexSource, "getSubscriptionMonthlyCreditCost", "main pass shop does not calculate a monthly-credit pass price");
+assertNotContains(indexSource, "buildMembershipMonthlyCreditRequestId", "main pass shop does not build a monthly-credit pass request");
+assertNotContains(indexSource, "applyMembershipMonthlyCredit", "main pass shop does not apply a pass from monthly credits");
+assertNotContains(indexSource, "confirmGoldenMonthlyCredit", "main pass shop does not render a monthly-credit pass action");
+assertNotContains(indexSource, "paymentMethod: 'monthly_credit'", "main pass shop does not submit a monthly-credit pass payment");
 // 이용권 구매는 이용권 선검사 대상이 아니므로 상점 모달에 단건결제와 월정석이 항상 함께 떠야 한다.
 // 2026-06-16 대량 UI 싱크 커밋이 월정석 버튼 렌더 줄만 지워, 핸들러가 살아있는 채로 도달 불가가 된 적이 있다.
 for (const shellPath of [
@@ -803,10 +804,10 @@ for (const shellPath of [
     'data-action="confirmGoldenCharge"',
     `${shellPath}: pass shop renders the direct KRW purchase button`,
   );
-  assertContains(
+  assertNotContains(
     shellSource,
     'data-action="confirmGoldenMonthlyCredit"',
-    `${shellPath}: pass shop renders the moonlight-stone purchase button`,
+    `${shellPath}: pass shop does not render the moonlight-stone purchase button`,
   );
 }
 // 이용권 결제 진입 경로(/points)의 회귀 3종.
