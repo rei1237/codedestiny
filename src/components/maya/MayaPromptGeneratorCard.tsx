@@ -23,7 +23,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [topic, setTopic] = useState<string>(MAYA_PROMPT_TOPICS[0]);
-  const [concern, setConcern] = useState("");
+  const [question, setQuestion] = useState("");
   const [prompt, setPrompt] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,7 +56,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
       targetDate: result.gregorian.labelKo.replace(` ${result.gregorian.weekdayKo}`, ""),
       weekdayKo: result.gregorian.weekdayKo,
       topic,
-      concern,
+      question,
       longCount: result.longCount.label,
       tzolkinNumber: result.tzolkin.number,
       tzolkinSign: result.tzolkin.sign,
@@ -194,10 +194,10 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
           </select>
         </label>
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb] md:col-span-2">
-          현재 고민 또는 질문
+          상담 질문
           <textarea
-            value={concern}
-            onChange={(event) => setConcern(event.target.value)}
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
             rows={4}
             className="mt-2 w-full resize-none rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm leading-6 text-[#f8efd2] outline-none transition placeholder:text-[#e6dcc1]/38 focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70"
             placeholder="선택 입력입니다. 서버로 전송되지 않고 브라우저에서 프롬프트에만 반영됩니다."
