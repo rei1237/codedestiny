@@ -7,6 +7,7 @@ import {
   buildServiceJsonLd,
   buildWebPageJsonLd,
 } from "../../lib/structured-data";
+import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 
 const DEFAULT_FAQS = [
   {
@@ -89,22 +90,28 @@ function mergeFaqs(pageFaqs) {
     .slice(0, 5);
 }
 
-function buildRelatedServices(page) {
+function buildRelatedServices(page, topicClusterLinks) {
   const related = Array.isArray(page?.relatedServices) ? page.relatedServices : [];
   const fallback = ["/manse", "/tarot", "/today", "/high-value"];
-  return (related.length ? related : fallback)
+  const source = topicClusterLinks.length ? topicClusterLinks : (related.length ? related : fallback);
+
+  return source
     .filter((href) => href && href !== page.path)
     .slice(0, 6)
-    .map((href) => ({
-      href,
-      label: DEFAULT_RELATED_LABELS[href] || "관련 운세 서비스",
-    }));
+    .map((item) => {
+      const href = typeof item === "string" ? item : item.href;
+      return {
+        href,
+        label: typeof item === "string" ? (DEFAULT_RELATED_LABELS[href] || "관련 운세 서비스") : item.label,
+      };
+    });
 }
 
 export default function SeoLandingTemplate({ page }) {
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
   const faqs = mergeFaqs(page?.faqs);
-  const relatedServices = buildRelatedServices(page);
+  const topicProfile = getSeoRouteProfile(page?.path);
+  const relatedServices = buildRelatedServices(page, getTopicClusterLinks(page?.path));
   const guideHref = page?.guideHref || (page?.path === "/saju" ? "/high-value/complete-guide-to-saju" : "/high-value");
   const guideLabel = page?.guideLabel || (page?.path === "/saju" ? copy.guideSaju : copy.guideDefault);
   const steps = Array.isArray(page?.steps) && page.steps.length > 0
@@ -235,6 +242,11 @@ export default function SeoLandingTemplate({ page }) {
             <div>
               <p className="text-xs font-semibold tracking-[0.18em] text-emerald-100/80">{copy.relatedFlow}</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-50">{copy.relatedFeatures}</h2>
+              {topicProfile?.topicSummary ? (
+                <p className="mt-3 max-w-3xl break-keep text-sm leading-7 text-slate-300">
+                  {topicProfile.topicSummary}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

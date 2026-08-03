@@ -32,7 +32,18 @@ function siteSeoText(key: keyof typeof SITE_SEO_TEXT_TRANSLATIONS.ko) {
 }
 export const siteSeo = {
   siteName: "Code Destiny",
-  alternateName: ["코드 데스티니", "꿀꿀 만세력", "꿀꿀 운세"],
+  alternateName: [
+    "CODE DESTINY",
+    "CodeDestiny",
+    "code-destiny",
+    "코드데스티니",
+    "코드 데스티니",
+    "CODEDESTINY",
+    "꿀꿀운세",
+    "꿀꿀 운세",
+    "꿀꿀만세력",
+    "꿀꿀 만세력",
+  ],
   siteUrl: "https://code-destiny.com",
   defaultLocale: "ko",
   supportedLocales: ["ko"],

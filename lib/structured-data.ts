@@ -53,11 +53,6 @@ export function buildWebsiteJsonLd(locale?: string) {
     alternateName: siteSeo.alternateName,
     inLanguage: toInLanguage(locale),
     publisher: { "@id": `${siteSeo.siteUrl}/#organization` },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${siteSeo.siteUrl}/insights?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
   };
 }
 

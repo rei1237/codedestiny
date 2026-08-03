@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SEO_CORE_KEYWORDS, mergeKeywords } from "../seo-metadata";
+import { getSeoProfileKeywords } from "./entity-registry.mjs";
 import { LOCALE_CONFIG, Locale, SEO_INDEXABLE_LOCALES } from "../i18n/locales";
 import { siteSeo } from "./siteSeo";
 import { createCanonicalFromLocaleRoutes, createHreflangFromRoutes } from "./createHreflang";
@@ -33,7 +34,11 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
   const canonical = createCanonicalFromLocaleRoutes(locale, routeByLocale);
   const languages = localeIsIndexable ? createHreflangFromRoutes(routeByLocale) : undefined;
   const imageUrl = image.startsWith("http") ? image : new URL(image, siteSeo.siteUrl).toString();
-  const mergedKeywords = mergeKeywords(SEO_CORE_KEYWORDS, keywords);
+  const mergedKeywords = mergeKeywords(
+    SEO_CORE_KEYWORDS,
+    locale === "ko" ? getSeoProfileKeywords(routeByLocale.ko) : [],
+    keywords,
+  );
 
   return {
     metadataBase: new URL(siteSeo.siteUrl),

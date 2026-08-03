@@ -18,6 +18,7 @@
     "cron:daily-content": "node server/jobs/daily-content-cron.js",
     "seo:check": "node scripts/check-seo-health.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
+    "verify:seo-entity-registry": "node scripts/verify-seo-entity-registry.mjs",
     "adsense:audit": "node scripts/adsense-crawl-audit.mjs https://code-destiny.com 250",
     "adsense:route-audit": "node scripts/generate-adsense-route-audit.mjs",
     "verify:adsense-route-policy": "node scripts/verify-adsense-route-policy.mjs",

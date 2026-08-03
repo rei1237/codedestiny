@@ -13,6 +13,9 @@ const SEO = {
     "꿀꿀 운세는 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 살피는 코드 데스티니 공식 브랜드입니다.",
 };
 
+const BRAND_ALIAS_SENTENCE =
+  "CODE DESTINY는 CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY로도 표기되는 같은 공식 서비스입니다.";
+
 const SERVICES = [
   {
     href: "/manse",
@@ -72,6 +75,15 @@ const FAQS = [
     answer:
       "같은 곳입니다. 코드 데스티니(Code Destiny)가 플랫폼 이름이고 꿀꿀 운세는 그 한국어 서비스명입니다. 주소는 code-destiny.com 하나입니다.",
   },
+  {
+    question: "꽃돼지 운세 또는 꿀꿀만세력으로 찾은 서비스도 같은 곳인가요?",
+    answer:
+      "네. 꽃돼지 캐릭터로 기억하는 꽃돼지 운세와 꿀꿀운세, 꿀꿀만세력은 Code Destiny 안에서 이어지는 브랜드 표현입니다. 찾는 서비스에 맞는 사주, 만세력, 자미두수, 숙요점, 베다점, 점성술 페이지로 이동해 보세요.",
+  },
+  {
+    question: "CodeDestiny와 CODE DESTINY는 어떤 관계인가요?",
+    answer: BRAND_ALIAS_SENTENCE,
+  },
 ];
 
 const faqJsonLd = {
@@ -97,8 +109,12 @@ const webPageJsonLd = {
   inLanguage: "ko-KR",
   isPartOf: {
     "@type": "WebSite",
+    "@id": "https://code-destiny.com/#website",
     name: "꿀꿀 운세 — Code Destiny",
     url: "https://code-destiny.com",
+  },
+  about: {
+    "@id": "https://code-destiny.com/#organization",
   },
 };
 
@@ -109,19 +125,16 @@ export const metadata = {
   keywords: [
     "꿀꿀 운세",
     "꿀꿀운세",
+    "꿀꿀만세력",
+    "꿀꿀 만세력",
+    "꽃돼지 운세",
+    "꽃돼지 운세 사이트",
+    "CODE DESTINY",
+    "CodeDestiny",
+    "code-destiny",
+    "CODEDESTINY",
     "코드 데스티니",
     "코드데스티니",
-    "code destiny",
-    "꿀꿀 만세력",
-    "꿀꿀 운세 사주",
-    "꿀꿀 운세 타로",
-    "꿀꿀 운세 궁합",
-    "꿀꿀 운세 자미두수",
-    "꿀꿀 운세 숙요점",
-    "꿀꿀 운세 점성술",
-    "무료 사주",
-    "무료 타로",
-    "무료 궁합",
   ],
   alternates: {
     canonical: PAGE_URL,
@@ -204,6 +217,22 @@ export default function KkulKkulUnsePage() {
           <p className={styles.sectionLead}>
             처음에는 사주와 만세력의 기본 흐름을 쉽게 펼치는 이름으로 시작했습니다.
             이제는 타로, 궁합, 자미두수, 숙요점까지 이어지며 한 사람의 하루와 관계, 선택의 기운을 함께 비춥니다.
+          </p>
+        </div>
+      </section>
+
+      <section className={styles.sectionBand} aria-labelledby="characterBrandHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Brand Identity</p>
+          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지로 기억하는 꿀꿀 운세</h2>
+          <p className={styles.sectionLead}>
+            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀 운세가 맞습니다. 꽃돼지 사주와 꽃돼지 만세력,
+            꽃돼지 자미두수, 꽃돼지 숙요점, 꽃돼지 베다점, 꽃돼지 점성술, 꽃돼지 AI는 서로 다른 질문을 살피는
+            서비스와 AI 상담을 꽃돼지 캐릭터 브랜드로 기억하는 표현입니다.
+          </p>
+          <p className={styles.sectionLead}>
+            꿀꿀 사주, 꿀꿀 자미두수, 꿀꿀 숙요점, 꿀꿀 베다점, 꿀꿀 점성술을 찾는 경우에도 같은 공식 서비스 안에서
+            해당 해석 페이지를 선택할 수 있습니다. {BRAND_ALIAS_SENTENCE}
           </p>
         </div>
       </section>

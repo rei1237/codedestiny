@@ -145,6 +145,8 @@ export function SoftwareApplicationJsonLd({
   featureList = [],
   applicationCategory = "LifestyleApplication",
   inLanguage = "ko-KR",
+  isAccessibleForFree,
+  offer,
 }) {
   if (!name || !description || !url) return null;
 
@@ -158,7 +160,6 @@ export function SoftwareApplicationJsonLd({
     applicationCategory,
     operatingSystem: "Web",
     inLanguage,
-    isAccessibleForFree: true,
     author: {
       "@id": `${BRAND_URL}/#organization`,
     },
@@ -168,17 +169,12 @@ export function SoftwareApplicationJsonLd({
     provider: {
       "@id": `${BRAND_URL}/#organization`,
     },
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "KRW",
-      availability: "https://schema.org/InStock",
-      url,
-    },
     image: {
       "@type": "ImageObject",
       url: image || DEFAULT_IMAGE,
     },
+    ...(typeof isAccessibleForFree === "boolean" ? { isAccessibleForFree } : {}),
+    ...(offer && typeof offer === "object" ? { offers: offer } : {}),
     ...(Array.isArray(featureList) && featureList.length > 0
       ? { featureList: featureList.map((item) => String(item).trim()).filter(Boolean) }
       : {}),
