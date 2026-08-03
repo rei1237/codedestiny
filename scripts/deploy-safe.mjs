@@ -313,11 +313,12 @@ async function workerActive(cf) {
 function metadata(deployment) { return deployment?.deployment_trigger?.metadata || {}; }
 function parseUrls(text) { return [...new Set((String(text).match(/https?:\/\/[^\s<>)]+/g) || []).map((v) => v.replace(/[),.;]+$/, "")))]; }
 function lastUuid(text) { const matches = String(text).match(UUID_RE) || []; return matches[matches.length - 1] || ""; }
+function eslintArgs(sourceFiles) { return ["exec", "--", "eslint", "--quiet", ...sourceFiles]; }
 
 async function checks(value) {
   const env = envForChecks();
   const sourceFiles = value.files.filter((file) => /\.(c|m)?js$|\.(c|m)?tsx?$/.test(file));
-  if (sourceFiles.length) run("changed-file lint", npmCommand(), ["exec", "--", "eslint", "--max-warnings=0", ...sourceFiles], { env });
+  if (sourceFiles.length) run("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
   run("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
   if (value.risk.level !== "low") run("core mock smoke tests", npmCommand(), ["run", "smoke:core"], { env });
   if (value.risk.level === "medium") run("Node regression tests", npmCommand(), ["run", "test:node"], { env });
@@ -479,6 +480,8 @@ async function selfTest() {
     ["wrangler", classifyFile("wrangler.toml").level, "high"],
   ];
   for (const item of cases) if (item[1] !== item[2]) throw new Error(item[0] + " classification failed.");
+  const lint = eslintArgs(["fixture.js"]);
+  if (!lint.includes("--quiet") || lint.includes("--max-warnings=0")) throw new Error("release lint must block errors without promoting warnings.");
   if (parseUrls("https://a.pages.dev https://b.workers.dev").length !== 2) throw new Error("URL parser failed.");
   console.log("[deploy-safe] self-test passed.");
 }
