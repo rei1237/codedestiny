@@ -43,9 +43,9 @@ type HoneyLetterApiResponse = {
   current?: number;
 };
 const resultSceneUi =
-  "min-h-svh bg-[#080511] bg-[radial-gradient(circle_at_50%_-10%,rgba(255,250,244,0.18),transparent_34rem),radial-gradient(circle_at_12%_10%,rgba(206,196,255,0.16),transparent_30rem),radial-gradient(circle_at_90%_16%,rgba(246,223,183,0.12),transparent_28rem)] text-[#fff8df] antialiased";
+  "min-h-svh bg-[#210916] bg-[radial-gradient(circle_at_50%_-10%,rgba(255,236,244,0.2),transparent_34rem),radial-gradient(circle_at_12%_10%,rgba(179,25,85,0.18),transparent_30rem),radial-gradient(circle_at_90%_16%,rgba(234,208,137,0.14),transparent_28rem)] text-[#fff1f7] antialiased";
 const resultSheetUi =
-  "relative isolate overflow-hidden rounded-[26px] border border-[#f6dfb7]/20 bg-gradient-to-br from-[#241337]/90 via-[#12091f]/90 to-[#080511]/95 shadow-[0_42px_124px_rgba(3,2,12,0.58),0_0_74px_rgba(206,196,255,0.13),inset_0_1px_0_rgba(255,255,255,0.17)] ring-1 ring-white/10 backdrop-blur-2xl";
+  "relative isolate overflow-hidden rounded-[26px] border border-[#f4bed1]/30 bg-[#24081a]/95 shadow-[0_42px_124px_rgba(31,3,18,0.58),0_0_74px_rgba(179,25,85,0.16),inset_0_1px_0_rgba(255,255,255,0.17)] ring-1 ring-white/10 backdrop-blur-2xl";
 const resultHeaderUi =
   "rounded-[22px] border border-[#f6dfb7]/20 bg-white/[0.065] shadow-[0_22px_64px_rgba(4,2,12,0.22),inset_0_1px_0_rgba(255,255,255,0.14)] ring-1 ring-white/5 backdrop-blur-xl";
 const resultGlassCardUi =
@@ -65,6 +65,8 @@ const tarotCardDetailFields = [
   { key: "advice", label: "조언" },
   { key: "caution", label: "주의할 점" },
 ] as const;
+const tarotCardPrimaryFields = tarotCardDetailFields.slice(0, 3);
+const tarotCardActionFields = tarotCardDetailFields.slice(3);
 
 const tarotChoiceTitleByCupId: Record<string, string> = {
   "lotus-moon": "7일 행동 플랜",
@@ -213,6 +215,7 @@ export default function TeaHouseResultSheet({
   const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
   const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+  const [activeTarotCardIndex, setActiveTarotCardIndex] = useState(0);
   const resultYeoniGate = useSpritePlaybackGate<HTMLSpanElement>();
   const resultPigGate = useSpritePlaybackGate<HTMLSpanElement>();
   const resultYeoniSprite = resultYeoniGate.isMobile
@@ -248,6 +251,7 @@ export default function TeaHouseResultSheet({
           reading: result.tarot.reading,
         },
       ];
+  const visibleTarotCardIndex = Math.min(activeTarotCardIndex, tarotSpreadCards.length - 1);
   const cardInteractions = isTarotMode ? result.cardInteractions || [] : [];
   const heartScent = isTarotMode ? result.heartScent : undefined;
   const selectedCup = getTeaHouseCupById(result.teaCup.id);
@@ -429,22 +433,21 @@ export default function TeaHouseResultSheet({
         data-mode={consultationMode}
       >
         <header className={`${styles.resultHeader} ${resultHeaderUi}`}>
+          <picture className={styles.resultHeroArtwork} aria-hidden="true">
+            <source media="(max-width: 640px)" srcSet={fortuneTeaHouseAssets.premium.resultReadingMobile} />
+            <img src={fortuneTeaHouseAssets.premium.resultReadingDesktop} alt="" loading="eager" decoding="async" />
+          </picture>
           {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.resultHeaderCup} /> : null}
           <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || "인간 상담사 연이가 읽어 준 오늘의 찻잔"}</p>
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
           {result.questionSummary ? <p>{result.questionSummary}</p> : null}
           <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>
-        </header>
-
-        {/* 연이의 환영 인사(yeoniReading.intro)를 결과의 첫마디로 승격 — 아래 리딩 섹션에서는 중복 렌더하지 않는다. */}
-        {result.yeoniReading.intro ? (
-          <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="yeoniGreetingTitle">
-            <h3 id="yeoniGreetingTitle">연이의 첫 인사</h3>
-            <div className={styles.yeoniReadingItem}>
+          {result.yeoniReading.intro ? (
+            <div className={styles.resultHeroGreeting}>
               <LlmParagraphs text={result.yeoniReading.intro} />
             </div>
-          </section>
-        ) : null}
+          ) : null}
+        </header>
 
         <div className={styles.resultSummaryGrid}>
           <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
@@ -520,10 +523,21 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.resultBlock} ${styles.resultTarotShowcase} ${resultGlassCardUi}`} aria-labelledby="tarotResultTitle">
           <h3 id="tarotResultTitle">타로가 보여준 지금의 장면</h3>
           <div className={styles.resultTarotGallery} aria-label="결과에 놓인 타로 카드">
-            {tarotSpreadCards.map((card) => (
+            {tarotSpreadCards.map((card, index) => (
               <article
                 className={`${styles.resultTarotGalleryCard} ${resultLiftCardUi}`}
                 key={`${card.positionId}-${card.cardId}`}
+                data-active={index === visibleTarotCardIndex}
+                role="button"
+                aria-pressed={index === visibleTarotCardIndex}
+                tabIndex={0}
+                onClick={() => setActiveTarotCardIndex(index)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setActiveTarotCardIndex(index);
+                  }
+                }}
                 aria-label={`${card.positionLabel} ${card.nameKo} ${card.orientation === "upright" ? "정방향" : "역방향"}`}
               >
                 <TarotAssetCard
@@ -543,20 +557,37 @@ export default function TeaHouseResultSheet({
           </div>
           <div className={styles.resultTarotReadingFlow}>
             {tarotSpreadCards.map((card, index) => (
-              <article className={`${styles.resultTarotReadingCard} ${resultReadingCardUi}`} key={`${card.positionId}-${card.cardId}-reading`}>
+              <article
+                className={`${styles.resultTarotReadingCard} ${resultReadingCardUi}`}
+                data-active={index === visibleTarotCardIndex}
+                key={`${card.positionId}-${card.cardId}-reading`}
+              >
                 <span>{index + 1}번째 카드 · {card.positionLabel}</span>
                 <strong>{card.nameKo} · {card.orientation === "upright" ? "정방향" : "역방향"}</strong>
                 <p>{card.positionMeaning || "이 자리는 지금 질문에서 가장 먼저 살필 장면을 가리킵니다."}</p>
                 {card.detail ? (
                   <dl className={styles.resultTarotDetailList}>
-                    {tarotCardDetailFields.map((field) =>
+                    {tarotCardPrimaryFields.map((field) =>
                       card.detail?.[field.key] ? (
-                        <div className={styles.resultTarotDetailItem} key={field.key}>
+                        <div className={styles.resultTarotDetailItem} data-field={field.key} key={field.key}>
                           <dt>{field.label}</dt>
                           <dd><LlmParagraphs text={card.detail[field.key]} /></dd>
                         </div>
                       ) : null,
                     )}
+                    {tarotCardActionFields.some((field) => card.detail?.[field.key]) ? (
+                      <details className={styles.resultTarotDetailDisclosure}>
+                        <summary>이 카드의 조언과 주의점 더 보기</summary>
+                        {tarotCardActionFields.map((field) =>
+                          card.detail?.[field.key] ? (
+                            <div className={styles.resultTarotDetailItem} data-field={field.key} key={field.key}>
+                              <dt>{field.label}</dt>
+                              <dd><LlmParagraphs text={card.detail[field.key]} /></dd>
+                            </div>
+                          ) : null,
+                        )}
+                      </details>
+                    ) : null}
                   </dl>
                 ) : (
                   // 카드별 상세 해석이 도입되기 전에 저장된 결과의 폴백.

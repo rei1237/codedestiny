@@ -108,6 +108,7 @@
 - `worker/routes/astrology-ai.js`
 - `worker/routes/master-love-codex.js`
 - `worker/routes/fortune-tea-house.js`
+- 운명의 찻집 타로는 카드 상세·카드 간 연결·스프레드 요약·행동 처방의 서술 책임을 분리하고, 70자 이상 문장 재사용을 품질 게이트에서 감지하면 모의/실제 공급자 모두 재작성 프롬프트를 한 번 더 실행한다. 실제 호출 검증은 금지하며, 이 흐름은 모의 응답 테스트로만 확인한다.
 - `worker/routes/neo-operation-room.js`
 - `worker/routes/naming-prompt.js`
 - `lib/llm-client.ts`
