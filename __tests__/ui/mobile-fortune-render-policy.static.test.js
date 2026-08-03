@@ -20,7 +20,7 @@ test("mobile fortune cards use detach plus viewport lazy rendering", () => {
 
 test("mobile tarot cards preserve physical ratio and keyboard access", () => {
   const tarot = fs.readFileSync(path.join(root, "tarot-ijik.html"), "utf8");
-  assert.match(tarot, /\.card-wrap\s*\{[\s\S]*?aspect-ratio:\s*4\s*\/\s*7/);
+  assert.match(tarot, /\.card-wrap\s*\{[\s\S]*?aspect-ratio:\s*15\s*\/\s*26/);
   assert.match(tarot, /\.card-face-image\s*\{[\s\S]*?object-fit:\s*contain/);
   assert.match(tarot, /role="button"\s+tabindex="0"\s+aria-pressed="false"/);
   assert.match(tarot, /onkeydown="if\(event\.key==='Enter'\|\|event\.key===' '\)/);
