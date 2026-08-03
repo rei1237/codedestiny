@@ -24,9 +24,22 @@ test("points shop initial summary has a single in-flight payments/me request and
 
   assert.match(fetchStateBlock, /fetchMyPointStateInFlightRef\.current/);
   assert.match(fetchStateBlock, /\/api\/payments\/me/);
+  assert.match(fetchStateBlock, /\/api\/payments\/me\?view=shop/);
   assert.match(fetchStateBlock, /maxAttempts:\s*1/);
   assert.doesNotMatch(fetchStateBlock, /\/api\/billing\/balance/);
   assert.doesNotMatch(fetchStateBlock, /\/api\/subscription\/status/);
+});
+
+test("points shop keeps a last confirmed monthly-stone snapshot display-only until the server confirms it", () => {
+  const bootBlock = between(pointsSource, "const parsedUser = readSanitizedAuthUser()", "setIsBooting(false)");
+  const fetchStateBlock = between(pointsSource, "const fetchMyPointState = useCallback", "const syncSubscriptionAppliedStage");
+
+  assert.match(bootBlock, /resolveMonthlyStoneBalance\(parsedUser, parsedUser\.profileSubscription\)/);
+  assert.match(bootBlock, /setMonthlyStoneUnverified\(true\)/);
+  assert.match(fetchStateBlock, /persistSanitizedAuthUser/);
+  assert.match(fetchStateBlock, /membershipCreditBalance: normalized\.monthlyStoneBalance/);
+  assert.match(pointsSource, /isAuthUserCacheVerified\(parsedUser\)/);
+  assert.match(pointsSource, /shop summary unavailable; keeping verified snapshot/);
 });
 
 test("subscription prepare does not auto retry with a new idempotency key", () => {

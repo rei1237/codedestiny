@@ -17,7 +17,7 @@ import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import checkoutEntry from "@/js/core/checkout-entry.js";
-import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
+import { isAuthUserCacheVerified, persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
 import { runAccessCheckWithTransientRetry } from "../_lib/consultationResultPolling";
@@ -247,6 +247,7 @@ type MeResponse = {
     monthlyCredits?: number;
     membershipCreditBalance?: number;
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
+    historyDeferred?: boolean;
     subscription?: Record<string, unknown> | null;
     subscriptions?: Record<string, unknown>[];
   };
@@ -1291,6 +1292,7 @@ function normalizeMePayload(payload: MeResponse) {
     payments,
     transactions,
     monthlyCreditLedgers,
+    historyDeferred: node.historyDeferred === true,
     subscription,
   };
 }
@@ -2871,6 +2873,7 @@ function MoonlightOrderHistory({
   formatLocale,
   isLoading,
   hasError,
+  historyDeferred,
   onRetry,
 }: {
   payments: PaymentHistoryItem[];
@@ -2880,6 +2883,7 @@ function MoonlightOrderHistory({
   formatLocale: string;
   isLoading: boolean;
   hasError: boolean;
+  historyDeferred: boolean;
   onRetry: () => void;
 }) {
   if (isLoading) {
@@ -2920,7 +2924,12 @@ function MoonlightOrderHistory({
         <h2 className="text-xl font-black text-white">최근 주문 내역</h2>
         <span className="text-xs font-bold text-[color:var(--moon-mist)]">주문시각 / 결제시각 / 승인번호 / 영수증</span>
       </div>
-      {payments.length === 0 ? (
+      {historyDeferred ? (
+        <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
+          <p className="text-base font-black text-white">주문 내역은 별도 화면에서 확인할 수 있어요.</p>
+          <Link href="/points/history" className="mt-3 text-sm font-bold text-[#f3dd9a] hover:text-[#ffe8a3]">이용권 주문 내역</Link>
+        </div>
+      ) : payments.length === 0 ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
           <ShopPigImage className="h-[72px] w-[72px] object-contain drop-shadow-[0_6px_14px_rgba(3,4,18,0.5)]" />
           <p className="mt-3 text-base font-black text-white">첫 번째 달빛 이용권을 구매해보세요</p>
@@ -3085,6 +3094,7 @@ export default function PointsPage() {
   const confirmSubscriptionInFlightRef = useRef(new Map<string, Promise<ConfirmSubscriptionResponse>>());
   const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   const fetchSubscriptionStatusInFlightRef = useRef<Promise<void> | null>(null);
+  const hasVerifiedShopSnapshotRef = useRef(false);
   /** Toast ID 증가용 카운터 */
   const toastCounter = useRef(0);
 
@@ -3112,6 +3122,7 @@ export default function PointsPage() {
   } = usePaymentProcessing();
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
+  const [paymentHistoryDeferred, setPaymentHistoryDeferred] = useState(false);
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
   // 서버가 잔량을 확인해주지 못한 상태. 이때는 "부족"이 아니라 "미확정"이므로 결제 수단을 잠그지 않는다.
   const [monthlyStoneUnverified, setMonthlyStoneUnverified] = useState(false);
@@ -3399,7 +3410,7 @@ export default function PointsPage() {
       // 일시적 DB 장애(503)는 상점 요약을 하드 실패시키지 말고 공용 완충으로 흡수한다.
       // 완충이 없던 탓에 DB 블립 한 번이 "결제 및 이용권 정보를 불러오지 못했습니다"로 굳었다.
       const attempt = await runAccessCheckWithTransientRetry(async () => {
-        const res = await authFetch(`${apiBase}/api/payments/me`, {
+        const res = await authFetch(`${apiBase}/api/payments/me?view=shop`, {
           method: "GET",
           credentials: "include",
           cache: "no-store",
@@ -3466,8 +3477,24 @@ export default function PointsPage() {
           (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
         ),
       );
+      setPaymentHistoryDeferred(normalized.historyDeferred);
       // null = 서버가 잔량을 확인하지 못한 경우(침묵-0). 0 으로 덮어써 결제 수단을 잠그지 않는다.
       if (normalized.monthlyStoneBalance !== null) setMonthlyStoneBalance(normalized.monthlyStoneBalance);
+      if (normalized.monthlyStoneBalance !== null) {
+        const cachedUser = readSanitizedAuthUser();
+        if (cachedUser) {
+          persistSanitizedAuthUser({
+            ...cachedUser,
+            monthlyStoneBalance: normalized.monthlyStoneBalance,
+            monthlyCredits: normalized.monthlyStoneBalance,
+            profileSubscription: {
+              ...(cachedUser.profileSubscription || {}),
+              monthlyStoneBalance: normalized.monthlyStoneBalance,
+              membershipCreditBalance: normalized.monthlyStoneBalance,
+            },
+          });
+        }
+      }
       setMonthlyStoneUnverified(normalized.monthlyStoneBalance === null);
       setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
       setMonthlyCreditLedgers(
@@ -3512,10 +3539,19 @@ export default function PointsPage() {
 
     if (parsedUser) {
       setAuthUser(parsedUser);
+      const verifiedSnapshot = isAuthUserCacheVerified(parsedUser);
       const cachedSubscription = normalizeSubscriptionStatusFromPayload(parsedUser.profileSubscription);
       if (cachedSubscription?.isActive) {
         setSubscription((prev) => mergeSubscriptionState(prev, cachedSubscription));
       }
+      const cachedMonthlyBalance = resolveMonthlyStoneBalance(parsedUser, parsedUser.profileSubscription);
+      if (cachedMonthlyBalance !== null) {
+        setMonthlyStoneBalance(cachedMonthlyBalance);
+        // This is display-only until the single shop summary request confirms it.
+        setMonthlyStoneUnverified(true);
+      }
+      hasVerifiedShopSnapshotRef.current = verifiedSnapshot
+        && (cachedSubscription?.isActive === true || cachedMonthlyBalance !== null);
     }
 
     setIsBooting(false);
@@ -3530,6 +3566,14 @@ export default function PointsPage() {
     fetchMyPointState().then(() => {
       setPointStateStatus("ready");
     }).catch((error) => {
+      if (hasVerifiedShopSnapshotRef.current) {
+        setMonthlyStoneUnverified(true);
+        setPaymentHistoryDeferred(true);
+        setPointStateStatus("ready");
+        setPointStateError(null);
+        console.warn("[points-page] shop summary unavailable; keeping verified snapshot", error);
+        return;
+      }
       setPointStateStatus("error");
       setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
       console.warn("[points-page] shop summary unavailable", error);
@@ -4727,6 +4771,7 @@ export default function PointsPage() {
           formatLocale={formatLocale}
           isLoading={pointStateIsLoading}
           hasError={pointStateHasError}
+          historyDeferred={paymentHistoryDeferred}
           onRetry={retryPointState}
         />
 

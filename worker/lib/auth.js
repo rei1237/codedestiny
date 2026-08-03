@@ -618,6 +618,7 @@ export async function requireUserFromRequest(request, env, options = {}) {
   // 재시도는 실제 DB 작업이 일어나는 한 지점에서만 건다. (verify:no-nested-retry 가 감시)
   const auth = await getOptionalUserFromRequest(request, env, {
     surfaceDbInfraError: true,
+    allowDbFallback: options.allowDbFallback === true,
     userProjection: options.userProjection || null,
   });
   if (auth) return auth;

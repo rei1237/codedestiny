@@ -78,6 +78,8 @@ function queryChain(rows) {
 }
 
 beforeEach(() => {
+  globalThis.__codeDestinyAccessUnlocksCache?.entries?.clear?.();
+  globalThis.__codeDestinyAccessUnlocksCache?.inFlight?.clear?.();
   requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID });
   profileFindOne.mockReturnValue({
     select: () => ({
@@ -115,11 +117,44 @@ beforeEach(() => {
   paymentFind.mockReturnValue(queryChain([]));
 });
 
+test("deduplicates concurrent unlock snapshot reads for the same user and profile", async () => {
+  let release;
+  getUnlockedContentSnapshot.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));
+
+  const first = handleAccessRoutes(request(), {});
+  const second = handleAccessRoutes(request(), {});
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  release({ docs: [] });
+  await Promise.all([first, second]);
+
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
+});
+
+test("returns stale unlock snapshot instead of empty locks when DB lookup degrades", async () => {
+  const first = await handleAccessRoutes(request(), {});
+  expect(first.status).toBe(200);
+
+  const cacheKey = `${TEST_USER_ID}::${TEST_PROFILE_ID}::saju,ziwei`;
+  const entry = globalThis.__codeDestinyAccessUnlocksCache.entries.get(cacheKey);
+  entry.expiresAt = 0;
+  entry.staleUntil = Date.now() + 60_000;
+  getUnlockedContentSnapshot.mockRejectedValueOnce(new Error("MongoPoolClearedError"));
+
+  const second = await handleAccessRoutes(request(), {});
+  const payload = await second.json();
+
+  expect(second.status).toBe(200);
+  expect(payload.degraded).toBe(true);
+  expect(payload.unlockedContentKeys).toContain("saju.fullReading");
+});
+
 test("reads multiple service entitlements in one profile snapshot query", async () => {
   const response = await handleAccessRoutes(request(), {});
   const payload = await response.json();
 
   expect(response.status).toBe(200);
+  expect(response.headers.get("Cache-Control")).toContain("private");
+  expect(response.headers.get("Cache-Control")).not.toContain("public");
   expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
   expect(getUnlockedContentSnapshot).toHaveBeenCalledWith({
     userId: TEST_USER_ID,
@@ -161,37 +196,17 @@ test("keeps the single-service response contract for legacy callers", async () =
   ]);
 });
 
-test("backfill batches history/payment evidence and uses one idempotent entitlement bulk write", async () => {
+test("legacy backfill query flags remain read-only during an unlock snapshot", async () => {
   const backfillRequest = request("saju");
   const url = new URL(backfillRequest.url);
   url.searchParams.set("includeBackfill", "1");
-  const history = {
-    _id: "history-1",
-    featureKey: "section_daewun",
-    metadata: { profileId: TEST_PROFILE_ID, paymentId: "507f1f77bcf86cd799439012" },
-    createdAt: new Date("2026-08-01T00:00:00.000Z"),
-  };
-  pointHistoryFind.mockReturnValue(queryChain([history]));
-  paymentFind.mockReturnValue(queryChain([{
-    _id: "507f1f77bcf86cd799439012",
-    featureKey: "section_daewun",
-    status: "success",
-    pricingSnapshot: { profileId: TEST_PROFILE_ID },
-  }]));
-  entitlementFind.mockReturnValue(queryChain([{
-    serviceKey: "saju",
-    contentKey: "saju.daewunAnalysis",
-    source: "BACKFILL",
-    unlockedAt: new Date("2026-08-01T00:00:00.000Z"),
-    expiresAt: null,
-  }]));
 
   const response = await handleAccessRoutes(new Request(url, { method: "GET" }), {});
   const payload = await response.json();
 
   expect(response.status).toBe(200);
-  expect(pointHistoryFind).toHaveBeenCalledTimes(1);
-  expect(paymentFind).toHaveBeenCalledTimes(1);
-  expect(entitlementBulkWrite).toHaveBeenCalledTimes(1);
-  expect(payload.unlockedContentKeys).toContain("saju.daewunAnalysis");
+  expect(payload.ok).toBe(true);
+  expect(pointHistoryFind).not.toHaveBeenCalled();
+  expect(paymentFind).not.toHaveBeenCalled();
+  expect(entitlementBulkWrite).not.toHaveBeenCalled();
 });

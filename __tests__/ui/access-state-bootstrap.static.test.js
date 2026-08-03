@@ -11,6 +11,8 @@ const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
 test("React bootstrap requests access-state before legacy fallback endpoints", () => {
   assert.match(sessionSource, /authFetch\("\/api\/me\/access-state"/);
   assert.match(sessionSource, /accessStatus !== 404 && accessStatus !== 405/);
+  assert.match(sessionSource, /applyAccessStateToGlobalStore\(accessData\)/);
+  assert.match(sessionSource, /const ensureLoadInFlight = new Map<string, Promise<UserAccessSnapshot>>\(\);/);
   assert.match(sessionSource, /if \(accessSupported\) return getUserAccessSnapshot\(\);/);
 });
 

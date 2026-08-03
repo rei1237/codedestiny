@@ -41,10 +41,10 @@ export function ReportActions({ targetRef, coordinate, question, reportId }: Rep
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await exportResultPdf({
         captureTargets: ["[data-pdf-section]"],
-        fileName: "운명의지도_리포트.pdf",
+        fileName: "운명의나침반_리포트.pdf",
         backgroundColor: "#12102c",
-        cover: { title: "운명의 지도", subtitle: coordinate, date: new Date().toLocaleDateString("ko-KR") },
-        watermarkText: "Code Destiny · 운명의 지도",
+        cover: { title: "운명의 나침반", subtitle: coordinate, date: new Date().toLocaleDateString("ko-KR") },
+        watermarkText: "Code Destiny · 운명의 나침반",
       });
       say("PDF로 저장했어요.");
     } catch {
@@ -62,7 +62,7 @@ export function ReportActions({ targetRef, coordinate, question, reportId }: Rep
       </button>
       <div className={styles.reportShare}>
         <DeferredShareWidget
-          title={`운명의 지도 — ${coordinate}`}
+          title={`운명의 나침반 — ${coordinate}`}
           description={question ? `"${question}" 에 대한 다섯 체계의 읽기` : "사주·자미두수·숙요·타로·베다가 함께 읽은 오늘의 방향"}
           path="/destiny-compass"
           contentType="result"

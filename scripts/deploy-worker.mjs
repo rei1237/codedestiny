@@ -116,10 +116,21 @@ if (workerName.trim()) {
 
 // 배포에 커밋을 새겨 `wrangler deployments list` 에서 "지금 뜬 게 어느 코드인지" 보이게 한다.
 const deployMessage = buildDeployMessage(rootDir);
+const deployCommit = String(
+  process.env.GITHUB_SHA
+  || spawnSync("git", ["rev-parse", "HEAD"], { cwd: rootDir, encoding: "utf8" }).stdout
+  || "",
+).trim();
+if (!/^[0-9a-f]{7,64}$/i.test(deployCommit)) {
+  console.error("[deploy-worker] Could not resolve the deploy commit SHA.");
+  process.exit(1);
+}
 args.push("--message", deployMessage);
+args.push("--var", `COMMIT_SHA:${deployCommit}`);
 
 console.log("[deploy-worker] Deploying Cloudflare backend Worker using --config worker/wrangler.toml.");
 console.log(`[deploy-worker] Deploy message: ${deployMessage}`);
+console.log(`[deploy-worker] Runtime commit: ${deployCommit.slice(0, 12)}`);
 
 const result = process.platform === "win32"
   ? spawnSync("npx", args, {

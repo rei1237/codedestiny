@@ -237,6 +237,8 @@
     "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
     "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check",
     "verify:pages-single-deploy-guard": "node scripts/verify-pages-single-deploy-guard.mjs",
+    "verify:pages-worker-parity": "node scripts/verify-pages-worker-parity.mjs",
+    "verify:pages-worker-parity-test": "node scripts/verify-pages-worker-parity.mjs --self-test",
     "verify:pages-pr-contract": "node scripts/verify-pages-pr-contract.mjs",
     "verify:pages-pr-contract-test": "node scripts/verify-pages-pr-contract.mjs --self-test",
     "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs",

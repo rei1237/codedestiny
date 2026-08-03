@@ -538,21 +538,32 @@ assertContains(billingSource, "accessSource: resolvedAccessSource", "billing res
 assertContains(billingSource, 'resolvedAccessSource === "single_payment" ? "single_payment"', "single payment response intent remains explicit");
 assertContains(billingSource, 'resolvedAccessSource === "monthly_subscription" ? "monthly_subscription"', "monthly response intent remains explicit");
 assertContains(billingSource, 'paymentType: resolvedPaymentIntentType', "payment verify response includes explicit payment type");
+const checkoutSource = billingSource.slice(
+  billingSource.indexOf("async function handleCheckout("),
+  billingSource.indexOf("function logCheckoutElapsed("),
+);
+const confirmSource = billingSource.slice(
+  billingSource.indexOf("async function handleConfirm("),
+  billingSource.indexOf("async function runServiceExecutionAction("),
+);
 assertBefore(
-  billingSource,
-  "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);",
+  checkoutSource,
+  "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(",
   'const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";',
   "PASS is checked before card checkout prepare",
 );
 assertBefore(
-  billingSource,
-  "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);",
+  confirmSource,
+  "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(",
   'const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";',
   "PASS is checked before card confirm",
 );
 assertContains(billingSource, 'if (passAccess) return passAccess;', "card request stops when PASS is available");
 assertContains(billingSource, '"/api/payments/prepare"', "single card prepare path remains");
 assertContains(billingSource, '"/api/payments/confirm"', "single card confirm path remains");
+assertContains(checkoutSource, "preverifiedAuth: checkoutAuthCheck.auth", "checkout delegates its verified auth without a second User lookup");
+assertContains(confirmSource, "preverifiedAuth: confirmAuthCheck.auth", "confirm delegates its verified auth without a second User lookup");
+assertContains(paymentsSource, "const auth = delegatedAuth?.userId", "payments accepts only an internally delegated verified auth object");
 
 // 🔴 이용권 보유자 과금 방지 — 결제수단을 DIRECT_KRW 로 명시해도 이용권 커버가 이긴다.
 //
@@ -700,6 +711,9 @@ assertNotContains(billingClientSource, 'status: "readyToPay"', "uncovered pass c
 assertContains(billingClientSource, 'emitPaidFeatureGate("close", {', "gate must be closed right before the payment-choice modal opens");
 assertContains(billingClientSource, 'const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";', "covered pass check must still report the free pass-through");
 assertContains(indexSource, "if (status === 'checkingEntitlement')", "pass pre-check keeps its own dedicated wait copy");
+assertContains(billingClientSource, '_cdRunDirectKrwCheckout?: PaidServiceRuntimeGate;', "React explicit DIRECT_KRW must reach the direct checkout runtime");
+assertContains(billingClientSource, 'let parsed: BillingResult<BillingCoinGateData> = explicitDirectMode', "React explicit DIRECT_KRW must skip the redundant coin-gate probe");
+assertContains(billingClientSource, '(!explicitPaymentMode || explicitDirectMode)', "explicit DIRECT_KRW must be allowed through the payment runtime fallback");
 
 assertContains(indexSource, "__cdSuppressPaymentOverlay: true", "direct checkout prefetch must be silent");
 assertContains(indexSource, "prefetch.settled === true", "direct checkout must reuse the prefetch only when it already settled (never await a pending one)");

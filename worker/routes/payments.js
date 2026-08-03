@@ -464,6 +464,14 @@ function classifyPaymentDbError(error) {
   return "DATABASE_TEMPORARILY_UNAVAILABLE";
 }
 
+function isPaymentShopSummaryRequest(request) {
+  try {
+    return new URL(request.url).searchParams.get("view") === "shop";
+  } catch {
+    return false;
+  }
+}
+
 function getPaymentDeploySha(env) {
   return String(env?.CF_PAGES_COMMIT_SHA || env?.COMMIT_SHA || env?.DEPLOY_COMMIT_SHA || "").slice(0, 80);
 }
@@ -5936,9 +5944,34 @@ function buildTokenFallbackPaymentsMe(auth, message) {
   };
 }
 
+function buildDegradedPaymentsMeResponse(auth, {
+  message,
+  requestId,
+  dbErrorCode = "DATABASE_TEMPORARILY_UNAVAILABLE",
+  dbQueryCount = 0,
+} = {}) {
+  const body = buildTokenFallbackPaymentsMe(auth, message);
+  body.requestId = requestId;
+  body.degraded = true;
+  body.retryable = true;
+  body.reason = "DB_DEGRADED";
+  body.code = "PAYMENTS_ME_DEGRADED";
+  body.dbErrorCode = dbErrorCode;
+  body.data.degradedPayments = true;
+  body.data.degradedTransactions = true;
+  body.data.degradedMonthlyCredits = true;
+  body.data.historyDeferred = true;
+  body.data.queryBudget = {
+    dbQueryCount,
+    maxConcurrentDbOps: 1,
+  };
+  return body;
+}
+
 async function handleMe(auth, env, request) {
   const startedAt = Date.now();
   const requestId = createPaymentRequestId(request);
+  const shopSummary = isPaymentShopSummaryRequest(request);
   const metrics = {
     env,
     requestId,
@@ -5950,8 +5983,26 @@ async function handleMe(auth, env, request) {
     cache: auth?.authUserDoc ? "authUserDoc" : "miss",
     stageMs: {},
     errors: [],
+    view: shopSummary ? "shop" : "full",
     commitSha: getPaymentDeploySha(env),
   };
+
+  if (auth?.authDbFallback === true) {
+    metrics.cache = "verifiedToken";
+    logPaymentsMeTrace("warn", {
+      ...metrics,
+      env: undefined,
+      status: 200,
+      durationMs: Date.now() - startedAt,
+      result: "degraded_token_snapshot",
+    });
+    return json(buildDegradedPaymentsMeResponse(auth, {
+      message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
+      requestId,
+      dbErrorCode: "AUTH_DB_DEGRADED",
+      dbQueryCount: 0,
+    }));
+  }
 
   try {
     let user = auth.authUserDoc || null;
@@ -5986,9 +6037,15 @@ async function handleMe(auth, env, request) {
       }, { status: 404 });
     }
 
-    const recentPaymentsResult = await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
-    const pointHistoriesResult = await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
-    const monthlyCreditLedgersResult = await runPaymentsMeOptionalQuery(metrics, "monthlyCreditLedgers", () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
+    const recentPaymentsResult = shopSummary
+      ? { ok: true, value: [] }
+      : await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
+    const pointHistoriesResult = shopSummary
+      ? { ok: true, value: [] }
+      : await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
+    const monthlyCreditLedgersResult = shopSummary
+      ? { ok: true, value: [] }
+      : await runPaymentsMeOptionalQuery(metrics, "monthlyCreditLedgers", () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
 
     const recentPayments = recentPaymentsResult.ok ? recentPaymentsResult.value : [];
     const pointHistories = pointHistoriesResult.ok ? pointHistoriesResult.value : [];
@@ -5999,6 +6056,7 @@ async function handleMe(auth, env, request) {
     body.data.degradedPayments = !recentPaymentsResult.ok;
     body.data.degradedTransactions = !pointHistoriesResult.ok;
     body.data.degradedMonthlyCredits = !monthlyCreditLedgersResult.ok;
+    body.data.historyDeferred = shopSummary;
     body.data.queryBudget = {
       dbQueryCount: metrics.dbQueryCount,
       maxConcurrentDbOps: 1,
@@ -6021,23 +6079,19 @@ async function handleMe(auth, env, request) {
     logPaymentsMeTrace("warn", {
       ...metrics,
       env: undefined,
-      status: 503,
+      status: 200,
       durationMs: Date.now() - startedAt,
-      result: "failed",
+      result: "degraded_token_snapshot",
       errorCode: code,
       originalErrorName: String(error?.name || "Error").slice(0, 120),
       stack: String(error?.stack || "").slice(0, 2000),
     });
-    return json({
-      success: false,
-      ok: false,
-      retryable: true,
-      reason: "DB_DEGRADED",
-      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
-      dbErrorCode: code,
+    return json(buildDegradedPaymentsMeResponse(auth, {
+      message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
       requestId,
-      message: "Database is temporarily unavailable.",
-    }, { status: 503 });
+      dbErrorCode: code,
+      dbQueryCount: metrics.dbQueryCount,
+    }));
   }
 }
 async function handlePointsMe(auth, env) {
@@ -6348,7 +6402,17 @@ export async function handlePaymentRoutes(request, env, ctx) {
     // 왕복 하나를 줄이는 것이 지연과 503을 동시에 줄인다. (/api/auth/me 에서 검증된 패턴)
     // access-token 경로에서만 authUserDoc가 붙고, refresh/admin 폴백 경로에서는 없으므로
     // 각 핸들러는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
-    const auth = await requireUserFromRequest(request, env, { userProjection: PAYMENT_ROUTE_USER_PROJECTION });
+    // /api/billing/checkout|confirm already authenticated the same original request.
+    // Reuse only that internal auth object so delegation does not issue a second User read.
+    const delegatedAuth = ctx && typeof ctx === "object" && ctx.preverifiedAuth && typeof ctx.preverifiedAuth === "object"
+      ? ctx.preverifiedAuth
+      : null;
+    const auth = delegatedAuth?.userId
+      ? delegatedAuth
+      : await requireUserFromRequest(request, env, {
+        userProjection: PAYMENT_ROUTE_USER_PROJECTION,
+        allowDbFallback: method === "GET" && path === "/me",
+      });
     trace.authVerified = true;
 
     const security = await enforcePaymentRouteSecurity(request, env, auth, path);

@@ -5,11 +5,13 @@
 let testUtils;
 let Payment;
 let User;
+let mongoose;
 
 let originalPaymentFindOne;
 let originalPaymentCreate;
 let originalUserFindById;
 let originalUserCollectionFindOne;
+let originalConnectionCollection;
 
 function mockPaymentFindOne(result) {
   const lean = jest.fn().mockResolvedValue(result);
@@ -43,11 +45,13 @@ beforeAll(async () => {
   testUtils = paymentsMod.__paymentsTestUtils;
   Payment = modelsMod.Payment;
   User = modelsMod.User;
+  mongoose = dbMod.mongoose;
 
   originalPaymentFindOne = Payment.findOne;
   originalPaymentCreate = Payment.create;
   originalUserFindById = User.findById;
   originalUserCollectionFindOne = User.collection.findOne;
+  originalConnectionCollection = mongoose.connection.collection;
 });
 
 afterEach(() => {
@@ -55,11 +59,12 @@ afterEach(() => {
   Payment.create = originalPaymentCreate;
   User.findById = originalUserFindById;
   User.collection.findOne = originalUserCollectionFindOne;
+  mongoose.connection.collection = originalConnectionCollection;
 });
 
 describe("Payments prepare idempotency", () => {
   const auth = { userId: "64f0a1b2c3d4e5f678901234" };
-  test("payments/me: canonical user DB failure returns 503 instead of a token fallback balance", async () => {
+  test("payments/me: canonical user DB failure returns a degraded snapshot without inventing a balance", async () => {
     User.collection.findOne = jest.fn().mockRejectedValue(Object.assign(new Error("server selection timeout"), {
       name: "MongoServerSelectionError",
     }));
@@ -71,15 +76,69 @@ describe("Payments prepare idempotency", () => {
     );
     const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(503);
+    expect(status).toBe(200);
     expect(payload).toMatchObject({
-      ok: false,
+      ok: true,
+      degraded: true,
       retryable: true,
-      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      code: "PAYMENTS_ME_DEGRADED",
       dbErrorCode: "MONGO_SERVER_SELECTION_TIMEOUT",
       requestId: "payments-me-test",
+      source: "token",
+      userFound: false,
     });
-    expect(payload.data).toBeUndefined();
+    expect(payload.data.degradedMonthlyCredits).toBe(true);
+    expect(payload.data.monthlyCredits).toBe(0);
+    expect(payload.data.historyDeferred).toBe(true);
+  });
+
+  test("payments/me: verified token fallback does not issue another Mongo query", async () => {
+    User.collection.findOne = jest.fn();
+
+    const response = await testUtils.handleMe(
+      { userId: auth.userId, authDbFallback: true },
+      { MONGO_OP_RETRIES: "0" },
+      new Request("https://example.com/api/payments/me?view=shop"),
+    );
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, degraded: true, source: "token" });
+    expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
+    expect(User.collection.findOne).not.toHaveBeenCalled();
+  });
+
+  test("payments/me shop summary reuses the authenticated user snapshot without history reads", async () => {
+    const collection = jest.fn();
+    mongoose.connection.collection = collection;
+
+    const response = await testUtils.handleMe(
+      {
+        userId: auth.userId,
+        authUserDoc: {
+          _id: auth.userId,
+          name: "Shop user",
+          email: "shop@example.com",
+          points: 0,
+          unlockedFeatures: [],
+          profileSubscription: {
+            tier: "family",
+            isActive: true,
+            expiresAt: "2099-01-01T00:00:00.000Z",
+            membershipCreditBalance: 80,
+          },
+        },
+      },
+      { MONGO_OP_RETRIES: "0" },
+      new Request("https://example.com/api/payments/me?view=shop"),
+    );
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(200);
+    expect(payload.data.historyDeferred).toBe(true);
+    expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
+    expect(payload.data.monthlyCredits).toBe(80);
+    expect(collection).not.toHaveBeenCalled();
   });
 
   test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {

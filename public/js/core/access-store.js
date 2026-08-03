@@ -6,7 +6,9 @@
   var STORAGE_VERSION = 2;
   var STORAGE_PREFIX = 'cd_access_store_v2::';
   var LEGACY_LEDGER_KEY = 'cd_verified_unlock_grants_v1';
-  var RETRY_DELAYS = [1000, 3000, 10000];
+  // Access reads are display probes. A 503 keeps the last usable snapshot and waits
+  // for an explicit user/session action instead of adding another request to the burst.
+  var RETRY_DELAYS = [];
   var DEFAULT_SERVICE_KEYS = ['saju', 'ziwei', 'ad_free'];
   var CONTENT_KEY_TO_FEATURE_KEY = {
     'saju.daewunAnalysis': 'section_daewun',
@@ -40,6 +42,8 @@
       persistentUnlocks: Object.create(null),
       optimistic: Object.create(null),
       membership: null,
+      entitlementSnapshot: null,
+      monthlyBalance: null,
       accessDecision: Object.create(null),
       status: 'loading',
       error: null,
@@ -231,6 +235,8 @@
           persistentUnlocks: state.persistentUnlocks,
           optimistic: state.optimistic,
           membership: state.membership,
+          entitlementSnapshot: state.entitlementSnapshot,
+          monthlyBalance: state.monthlyBalance,
           savedAt: Date.now()
         })
       );
@@ -306,6 +312,8 @@
       state.persistentUnlocks = copyMap(restored.persistentUnlocks);
       state.optimistic = restored.optimistic && typeof restored.optimistic === 'object' ? restored.optimistic : Object.create(null);
       state.membership = copyObject(restored.membership) || readMembershipSnapshot(userId);
+      state.entitlementSnapshot = copyObject(restored.entitlementSnapshot);
+      state.monthlyBalance = copyObject(restored.monthlyBalance);
       state.checkedAt = Number(restored.savedAt || 0);
       state.source = 'localStorage';
       state.status = 'ready';
@@ -347,6 +355,8 @@
     var arrays = [
       payload && payload.unlockedContentKeys,
       payload && payload.unlockedFeatures,
+      payload && payload.unlockedFeatureIds,
+      payload && payload.entitlementSnapshot && payload.entitlementSnapshot.unlockedFeatureIds,
       payload && payload.unlockedFeatureMap
     ];
     arrays.forEach(function (source) {
@@ -394,6 +404,12 @@
     state.profileId = context.profileId;
     state.userId = context.userId;
     state.serviceKeys = context.serviceKeys.slice();
+    state.entitlementSnapshot = copyObject(payload && payload.entitlementSnapshot);
+    state.monthlyBalance = copyObject(payload && (payload.monthlyBalance || payload.monthlyBalanceSummary
+      || payload.entitlementSnapshot && payload.entitlementSnapshot.monthlyBalance));
+    if (payload && payload.entitlementSnapshot) {
+      state.membership = copyObject(payload.entitlementSnapshot);
+    }
     state.status = 'ready';
     state.error = null;
     state.checkedAt = Date.now();
@@ -404,6 +420,54 @@
     notify();
     dispatch('cd:unlocks-changed', { source: 'access-store', unlockedFeatureMap: merged });
     debug('fetch finished', { cacheKey: context.key, count: Object.keys(merged).length });
+  }
+
+  function resolveSnapshotPayload(payload) {
+    var source = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+    return source && typeof source === 'object' ? source : null;
+  }
+
+  function applyAccessStateSnapshot(payload, options) {
+    var source = resolveSnapshotPayload(payload);
+    if (!source || !source.userId) return false;
+    var profileId = String(
+      (options && options.profileId) ||
+      source.currentProfileId ||
+      source.profileId ||
+      state.profileId ||
+      ''
+    );
+    var context = ensureContext({
+      userId: source.userId,
+      profileId: profileId,
+      serviceKeys: options && options.serviceKeys,
+      authenticated: true
+    });
+    var unlocks = extractUnlockMap(source);
+    var merged = copyMap(state.persistentUnlocks);
+    Object.keys(unlocks).forEach(function (key) { merged[key] = true; });
+    Object.keys(state.optimistic).forEach(function (key) {
+      if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
+    });
+    state.persistentUnlocks = copyMap(merged);
+    state.profileId = profileId;
+    state.userId = String(source.userId || '');
+    state.serviceKeys = context.serviceKeys.slice();
+    state.entitlementSnapshot = copyObject(source.entitlementSnapshot);
+    state.monthlyBalance = copyObject(source.monthlyBalance || source.monthlyBalanceSummary
+      || source.entitlementSnapshot && source.entitlementSnapshot.monthlyBalance);
+    state.membership = copyObject(source.entitlementSnapshot) || state.membership;
+    state.status = source.degraded === true ? 'degraded' : 'ready';
+    state.error = source.degraded === true ? { code: 'ACCESS_STATE_DEGRADED' } : null;
+    state.checkedAt = Date.parse(String(source.fetchedAt || source.checkedAt || '')) || Date.now();
+    state.source = source.source === 'stale-cache' ? 'stale-cache' : 'access-state';
+    state.lastPayload = copyObject(source);
+    loadedEpoch[context.key] = bootEpoch;
+    syncLegacyFeatureMap();
+    saveCache();
+    notify();
+    dispatch('cd:unlocks-changed', { source: 'access-state', unlockedFeatureMap: merged });
+    return true;
   }
 
   function accessDecisionQuery(options) {
@@ -542,7 +606,7 @@
     abortController = typeof global.AbortController === 'function' ? new global.AbortController() : null;
     var controller = abortController;
     var query = '/api/access/unlocks?profileId=' + encodeURIComponent(context.profileId) +
-      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(',')) + '&includeBackfill=1';
+      '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(','));
     var epoch = bootEpoch;
     var request = global.fetch(query, {
       credentials: 'include',
@@ -583,7 +647,6 @@
       state.status = hasUsableCache() ? 'degraded' : 'error';
       state.error = { status: error && error.status || 0, code: 'UNLOCK_FETCH_FAILED' };
       notify();
-      scheduleRetry(context);
       debug('fetch failed', { cacheKey: context.key, status: error && error.status, attempt: attempt || 0 });
       return { ok: false, status: state.status, stale: hasUsableCache() };
     }).finally(function () {
@@ -600,11 +663,12 @@
     var attempt = Number(retryAttempts[context.key] || 0);
     if (attempt >= RETRY_DELAYS.length) return;
     retryAttempts[context.key] = attempt + 1;
+    var jitter = Math.floor(Math.random() * Math.max(100, RETRY_DELAYS[attempt] * 0.25));
     retryTimers[context.key] = global.setTimeout(function () {
       delete retryTimers[context.key];
       if (context.key !== contextKey) return;
       startFetch(context, attempt + 1);
-    }, RETRY_DELAYS[attempt]);
+    }, RETRY_DELAYS[attempt] + jitter);
   }
 
   function abortCurrent(reason) {
@@ -628,6 +692,8 @@
       persistentUnlocks: copyMap(state.persistentUnlocks),
       optimistic: copyObject(state.optimistic) || {},
       membership: copyObject(state.membership),
+      entitlementSnapshot: copyObject(state.entitlementSnapshot),
+      monthlyBalance: copyObject(state.monthlyBalance),
       accessDecision: copyObject(state.accessDecision) || {},
       status: state.status,
       error: copyObject(state.error),
@@ -640,6 +706,33 @@
   function isUnlocked(featureKey) {
     var key = String(featureKey || '');
     return Boolean(state.persistentUnlocks[key] || state.optimistic[key] && state.optimistic[key].expiresAt > Date.now());
+  }
+
+  function getEffectiveTier() {
+    var snapshot = state.entitlementSnapshot && typeof state.entitlementSnapshot === 'object' ? state.entitlementSnapshot : null;
+    var tier = snapshot && snapshot.tier || state.membership && (state.membership.tier || state.membership.passType || state.membership.passTier);
+    return String(tier || 'free').trim().toLowerCase() || 'free';
+  }
+
+  function getMonthlyBalance() {
+    var balance = state.monthlyBalance && typeof state.monthlyBalance === 'object'
+      ? state.monthlyBalance
+      : state.entitlementSnapshot && state.entitlementSnapshot.monthlyBalance;
+    if (!balance || typeof balance !== 'object') return null;
+    return copyObject(balance);
+  }
+
+  function canAccessFeature(featureId) {
+    return isUnlocked(featureId);
+  }
+
+  function canPurchaseProduct(productId) {
+    return {
+      productId: String(productId || ''),
+      canPurchase: null,
+      requiresServerVerification: true,
+      source: state.source || 'client-snapshot'
+    };
   }
 
   function markOptimisticallyUnlocked(featureKey, profileId, metadata) {
@@ -664,12 +757,6 @@
     Object.keys(unlockMap).forEach(function (key) {
       markOptimisticallyUnlocked(key, profileId, { source: 'payment-payload' });
     });
-    if (Object.keys(unlockMap).length && state.profileId) {
-      var context = { key: contextKey, userId: state.userId, profileId: state.profileId, serviceKeys: state.serviceKeys.slice() };
-      global.setTimeout(function () {
-        if (context.key === contextKey) startFetch(context, 0);
-      }, 0);
-    }
     return Object.keys(unlockMap);
   }
 
@@ -725,16 +812,38 @@
       };
     },
     getSnapshot: getSnapshot,
+    getEffectiveTier: getEffectiveTier,
+    canAccessFeature: canAccessFeature,
+    canPurchaseProduct: canPurchaseProduct,
+    getMonthlyBalance: getMonthlyBalance,
     getFeatureState: function (featureKey) {
       return { unlocked: isUnlocked(featureKey), status: state.status, error: state.error };
     },
     isUnlocked: isUnlocked,
     ensureLoaded: ensureLoaded,
     revalidate: revalidate,
+    refreshEntitlements: revalidate,
     getAccessDecision: getAccessDecision,
     invalidateAccessDecision: clearAccessDecisionCache,
+    invalidateEntitlements: function (reason) {
+      clearAccessDecisionCache();
+      return revalidate({ reason: reason || 'entitlement-invalidated' });
+    },
+    applyAccessStateSnapshot: applyAccessStateSnapshot,
     applyPaymentPayload: applyPaymentPayload,
     markOptimisticallyUnlocked: markOptimisticallyUnlocked,
+    applyOptimisticUpdate: function (update) {
+      var payload = update && update.payload || update || {};
+      return applyPaymentPayload(payload, update || {});
+    },
+    rollbackOptimisticUpdate: function (reason) {
+      state.optimistic = Object.create(null);
+      syncLegacyFeatureMap();
+      saveCache();
+      notify();
+      dispatch('cd:unlocks-changed', { source: 'access-store-rollback', reason: reason || 'rollback' });
+      return true;
+    },
     setAccessDecision: function (featureKey, decision) {
       state.accessDecision[String(featureKey || '')] = decision;
       notify();
@@ -751,6 +860,9 @@
       contextKey = '';
       return;
     }
+    var authEvent = String(detail.event || detail.type || '').toLowerCase();
+    var authSource = String(detail.source || '').toLowerCase();
+    if (authEvent === 'subscription' || authSource === 'membership-cache') return;
     revalidate({ userId: detail.userId, profileId: detail.profileId, authenticated: true });
   });
   global.addEventListener && global.addEventListener('cd:profile-changed', function (event) {

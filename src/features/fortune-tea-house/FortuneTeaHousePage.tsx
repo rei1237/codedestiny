@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
 import FortuneTeaHouseImmersiveShell from "./components/FortuneTeaHouseImmersiveShell";
 import FortuneTeaHouseLanding from "./components/FortuneTeaHouseLanding";
 import AssetImage from "./components/AssetImage";
@@ -1178,7 +1179,7 @@ export default function FortuneTeaHousePage() {
         aria-pressed={bgmEnabled}
         onClick={toggleBgm}
       >
-        <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? "♪" : "月"}</span>
+        <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
         <strong>BGM</strong>
         <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
       </button>

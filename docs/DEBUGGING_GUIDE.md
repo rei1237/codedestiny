@@ -12,6 +12,13 @@
 - mock 테스트 방법: DB helper를 stub하고 timeout/error branch를 unit test로 재현.
 - 수정 전 주의사항: retry wrapper를 새로 감싸기 전에 기존 `withMongoRetry`, timeout, request memo를 확인한다.
 
+## 결제·권한 복구 PR이 병합 불가로 남는 경우
+
+- 증상: 최신 CI 실행은 통과했는데도 PR의 merge status에 이전 `Worktree / PR Policy` 실패가 남는다.
+- 가능한 원인: PR 본문 필수 섹션(`Scope`, `Validation`, `No-regression Scope`, `Risk`, `Rollback`) 누락으로 같은 head SHA에 실패 check run이 기록된 뒤, 본문만 수정해 성공 run을 추가한 경우다.
+- 안전한 해소: 누락 섹션을 보완한 뒤 새 커밋 SHA에서 정책 검사를 다시 실행한다. 이전 실패 check run을 우회하거나 보호 브랜치 규칙을 완화하지 않는다.
+- 배포 전 확인: 새 head SHA의 `Worktree / PR Policy`, `paid-flow-gates`, Pages build, secret scan이 통과하고, Worker와 Pages가 같은 SHA로 배포될 준비가 되었는지 확인한다.
+
 ## 결제 성공 후 이용권 미반영
 
 - 증상: PortOne 결제는 성공했지만 이용권, 월정석, unlock, 결과 접근이 열리지 않는다.

@@ -116,7 +116,7 @@ export function TodayQuest({
             </button>
           )}
           <button type="button" className={styles.resultCtaText} onClick={onReset}>
-            지도로 돌아가기
+            나침반으로 돌아가기
           </button>
         </div>
       </div>

@@ -2566,6 +2566,27 @@
     try { return _dpResolveIdScope(_dpReadAuthUser()); } catch (_) { return ''; }
   }
 
+  function _dpHasVerifiedAuthCacheForUser(user) {
+    try {
+      if (typeof window.__cdHasVerifiedAuthCache === 'function') {
+        return window.__cdHasVerifiedAuthCache(user) === true;
+      }
+      var raw = localStorage.getItem('fortune_auth_cache_verified_v1') || '';
+      if (!raw) return false;
+      var parsed = JSON.parse(raw);
+      var verifiedAt = Number(parsed && parsed.verifiedAt || 0);
+      var verifiedScope = String(parsed && parsed.scope || '').trim().toLowerCase();
+      var userScope = _dpResolveIdScope(user);
+      return !!userScope
+        && verifiedScope === userScope
+        && Number.isFinite(verifiedAt)
+        && verifiedAt > 0
+        && Date.now() - verifiedAt <= 10 * 60 * 1000;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function _dpRemoveSubscriptionSnapshot(userId) {
     var api = _dpPassVerdict();
     if (api) api.removeSnapshot(userId);
@@ -2623,49 +2644,22 @@
   }
 
   function _dpReadActiveMembershipCoverage(cost) {
-    // 1순위는 서버가 채운 구독 스냅샷이다 — 셸·React 와 같은 근거를 써야 판정이 갈리지 않는다.
-    // (아래 auth-cache 폴백은 family 등급을 인식하지 못해 family 사용자가 낙관 통과에서 빠져 있었다.)
     try {
       var api = _dpPassVerdict();
-      if (api) {
-        var snapshot = _dpReadSubscriptionSnapshot();
-        if (snapshot) {
-          if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
-          var verdict = api.resolveVerdict(snapshot, cost);
-          if (verdict.coversNow) return { tier: verdict.tier, freeLimit: verdict.passLimit };
-          if (verdict.cannotCover) return null;
+      if (!api) return null;
+      var snapshot = _dpReadSubscriptionSnapshot();
+      if (!snapshot) {
+        var user = _dpReadAuthUser();
+        var sub = user && user.profileSubscription;
+        if (sub && typeof sub === 'object' && _dpHasVerifiedAuthCacheForUser(user)) {
+          snapshot = api.storeStatus(_dpResolveIdScope(user), sub, 'verified-auth-cache');
         }
       }
-    } catch (_) {}
-    try {
-      var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
-      var sub = user && user.profileSubscription;
-      if (!sub || typeof sub !== 'object') return null;
-      var tier = String(sub.tier || sub.passTier || sub.plan || sub.planId || sub.productId || '').trim().toLowerCase();
-      if (tier.indexOf('vvip') >= 0) tier = 'vvip';
-      else if (tier.indexOf('premium') >= 0 || tier.indexOf('프리미엄') >= 0) tier = 'premium';
-      else if (tier.indexOf('standard') >= 0 || tier.indexOf('스탠다드') >= 0) tier = 'standard';
-      else return null;
-      var active = sub.isActive === true
-        || sub.isSubscribed === true
-        || sub.active === true
-        || sub.enabled === true
-        || sub.valid === true
-        || sub.registered === true
-        || _dpIsActiveMembershipStatusValue(sub.status)
-        || _dpIsActiveMembershipStatusValue(sub.subscriptionStatus)
-        || _dpIsActiveMembershipStatusValue(sub.membershipStatus)
-        || _dpIsActiveMembershipStatusValue(sub.lastBillingStatus)
-        || _dpHasFutureMembershipExpiry(sub.expiresAt);
-      if (!active) return null;
-      if (sub.expiresAt) {
-        var expiresAt = new Date(sub.expiresAt);
-        if (!isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) return null;
-      }
-      var freeLimit = tier === 'vvip' ? 100 : (tier === 'premium' ? 50 : 30);
-      var requiredCoins = Number(cost || 0);
-      if (!(requiredCoins > 0) || requiredCoins > freeLimit) return null;
-      return { tier: tier, freeLimit: freeLimit };
+      if (!snapshot) return null;
+      if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
+      var verdict = api.resolveVerdict(snapshot, cost);
+      if (verdict.coversNow) return { tier: verdict.tier, freeLimit: verdict.passLimit };
+      return null;
     } catch (_) {
       return null;
     }
@@ -2698,7 +2692,7 @@
     var isCoinGate = /\/api\/billing\/coin-gate$/.test(String(pathname || ''));
     var retryOptions = Object.assign({}, opts, {
       retryTransient: opts.retryTransient === true || isCoinGate,
-      maxTransientRetries: opts.maxTransientRetries == null ? 2 : opts.maxTransientRetries,
+      maxTransientRetries: opts.maxTransientRetries == null ? 1 : opts.maxTransientRetries,
     });
     if (typeof window.fetchJsonWithAuth === 'function') {
       return _dpRunTransientRetry(function() {
