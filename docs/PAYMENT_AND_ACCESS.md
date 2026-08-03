@@ -59,6 +59,7 @@
 - 관리자 주문/환불 API: `worker/routes/admin-orders.js`, `worker/routes/admin.js` 확인 필요
 - 결제 route cancel/webhook: `worker/routes/payments.js`
 - 월정석 lot 복구: `worker/lib/monthly-credit-store.js`
+- 관리자 마케팅 지급: `POST /api/admin/monthly-credits/grant` — 관리자 인증과 `ADMIN_MONTHLY_CREDIT_GRANT_ENABLED` 플래그가 모두 필요하며, 기존 잔액에 신규 30일 lot을 누적하고 `MonthlyCreditLedger`에 `MONTHLY_CREDIT_GRANT` 원장을 남긴다.
 - 권한 revoke: `revokeSinglePaymentContentAccess` in `worker/lib/payment-refund.js`
 - 실패 reconcile: `worker/lib/payment-reconcile-task.js`, `npm run verify:payment-reconcile`
 
@@ -67,6 +68,7 @@
 - LLM 생성 실패: 각 AI route에서 차감분 또는 권한 복구 여부를 확인한다.
 - 결제 성공/권한 미반영: `Payment.orderState`, `Payment.status`, `PaymentWebhookEvent`, `PaidExecutionRecord`, `ContentEntitlement`를 함께 본다.
 - 월정석 실패: lot deduction/restore 기록과 `MonthlyCreditLedger`를 확인한다.
+- 관리자 마케팅 지급은 결제가 아니며 이용권·단건 결제 정책을 우회하지 않는다. 동일 `idempotencyKey`는 계정별로 한 번만 지급되고, 지급분은 지급일 기준 30일 후 만료된다.
 - PortOne webhook 실패: signature, event id unique index, webhook event 저장 여부 확인.
 - pending 주문: reconcile cron 또는 `payment-reconcile-task` 경로 확인.
 

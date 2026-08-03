@@ -67,7 +67,9 @@ export async function restoreMonthlyCreditLot({
   lotId,
   amount,
   decrementUsed = true,
+  incrementGranted = false,
   pullRequestId = "",
+  returnDetails = false,
 } = {}) {
   const restoreAmount = Math.max(0, Math.floor(Number(amount || 0)));
   if (!userId || restoreAmount <= 0) return null;
@@ -94,6 +96,7 @@ export async function restoreMonthlyCreditLot({
         $inc: {
           "profileSubscription.membershipCreditLotsVersion": 1,
           ...(decrementUsed ? { "profileSubscription.membershipCreditUsed": -restoreAmount } : {}),
+          ...(incrementGranted && granted.added ? { "profileSubscription.membershipCreditGranted": restoreAmount } : {}),
         },
         ...(pullRequestId ? { $pull: { recentConsumeRequestIds: pullRequestId } } : {}),
       },
@@ -101,6 +104,15 @@ export async function restoreMonthlyCreditLot({
     ).lean();
     if (updated) {
       try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
+      if (returnDetails) {
+        return {
+          user: updated,
+          added: granted.added,
+          lot: granted.lot,
+          beforeBalance: ensured.balance,
+          afterBalance: granted.balance,
+        };
+      }
       return updated;
     }
     // 버전 충돌 → 재조회 후 재시도.
@@ -113,4 +125,17 @@ export async function restoreMonthlyCreditLot({
 // lotId 로 멱등하므로 같은 보상이 두 번 들어오지 않는다.
 export async function grantMonthlyCreditLot({ userId, lotId, amount } = {}) {
   return restoreMonthlyCreditLot({ userId, lotId, amount, decrementUsed: false });
+}
+
+// 관리자·마케팅처럼 누적 지급량도 별도로 추적해야 하는 신규 지급 경로.
+// 기존 보상 호출자는 grantMonthlyCreditLot()의 호환 동작을 유지한다.
+export async function grantMonthlyCreditLotDetailed({ userId, lotId, amount } = {}) {
+  return restoreMonthlyCreditLot({
+    userId,
+    lotId,
+    amount,
+    decrementUsed: false,
+    incrementGranted: true,
+    returnDetails: true,
+  });
 }
