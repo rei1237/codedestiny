@@ -7,6 +7,7 @@ import {
   buildServiceJsonLd,
   buildWebPageJsonLd,
 } from "../../lib/structured-data";
+import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 
 const DEFAULT_FAQS = [
   {
@@ -44,6 +45,7 @@ const DEFAULT_RELATED_LABELS = {
   "/sukuyo": "숙요점 27숙 궁합",
   "/vedic": "베다 점성술",
   "/dream": "무료 꿈해몽",
+  "/fusion-fortune": "초융합 운세 — 여섯 체계 통합 해석",
   "/premium-reports": "프리미엄 운세 리포트",
   "/high-value": "운세 인사이트 가이드",
   "/insights": "운세 인사이트 아카이브",
@@ -89,22 +91,33 @@ function mergeFaqs(pageFaqs) {
     .slice(0, 5);
 }
 
-function buildRelatedServices(page) {
+function buildRelatedServices(page, topicClusterLinks) {
   const related = Array.isArray(page?.relatedServices) ? page.relatedServices : [];
   const fallback = ["/manse", "/tarot", "/today", "/high-value"];
-  return (related.length ? related : fallback)
-    .filter((href) => href && href !== page.path)
+  const fusionLink = topicClusterLinks.find((item) => item?.href === "/fusion-fortune");
+  const source = [
+    ...(fusionLink ? [fusionLink] : []),
+    ...related,
+    ...topicClusterLinks.filter((item) => item?.href !== "/fusion-fortune"),
+    ...fallback,
+  ];
+  const seen = new Set();
+
+  return source
+    .map((item) => (typeof item === "string" ? { href: item } : item))
+    .filter((item) => item?.href && item.href !== page.path && !seen.has(item.href) && seen.add(item.href))
     .slice(0, 6)
-    .map((href) => ({
-      href,
-      label: DEFAULT_RELATED_LABELS[href] || "관련 운세 서비스",
+    .map((item) => ({
+      href: item.href,
+      label: item.label || DEFAULT_RELATED_LABELS[item.href] || "관련 운세 서비스",
     }));
 }
 
 export default function SeoLandingTemplate({ page }) {
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
   const faqs = mergeFaqs(page?.faqs);
-  const relatedServices = buildRelatedServices(page);
+  const topicProfile = getSeoRouteProfile(page?.path);
+  const relatedServices = buildRelatedServices(page, getTopicClusterLinks(page?.path));
   const guideHref = page?.guideHref || (page?.path === "/saju" ? "/high-value/complete-guide-to-saju" : "/high-value");
   const guideLabel = page?.guideLabel || (page?.path === "/saju" ? copy.guideSaju : copy.guideDefault);
   const steps = Array.isArray(page?.steps) && page.steps.length > 0
@@ -235,6 +248,11 @@ export default function SeoLandingTemplate({ page }) {
             <div>
               <p className="text-xs font-semibold tracking-[0.18em] text-emerald-100/80">{copy.relatedFlow}</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-50">{copy.relatedFeatures}</h2>
+              {topicProfile?.topicSummary ? (
+                <p className="mt-3 max-w-3xl break-keep text-sm leading-7 text-slate-300">
+                  {topicProfile.topicSummary}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

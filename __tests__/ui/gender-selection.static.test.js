@@ -65,3 +65,12 @@ test('index runtime lazy-loads setGender before saju core ready', () => {
     'setGender 스텁이 설치되지 않는다 — 코어 로드 전 첫 탭이 버려진다',
   );
 });
+
+test('home bootstrap defers the full saju engine until visitor intent', () => {
+  const runtime = read('public/js/core/index-inline-runtime.js');
+  const bootstrap = runtime.match(/function __cdBootstrapSajuInputsOnLoad\(\) \{[\s\S]*?\n\}/)?.[0] || '';
+
+  assert.ok(bootstrap.includes('__cdRepairSajuInputsFallback();'), '첫 화면 입력값의 정적 fallback이 없다');
+  assert.ok(!bootstrap.includes('__cdEnsureSajuCoreLoaded().then'), '첫 화면에서 대형 사주 엔진을 즉시 로드한다');
+  assert.ok(runtime.includes('__cdBindSajuIntentPrefetch();'), '실제 입력 의도에서 사주 엔진을 불러오는 경로가 없다');
+});

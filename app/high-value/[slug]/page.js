@@ -75,7 +75,7 @@ export function generateMetadata({ params }) {
     title: `${page.title} | Code Destiny`,
     description: page.summary,
     ogImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
-    keywords: [page.title, page.category, highValueDetailText("insightKeyword"), highValueDetailText("sajuKeyword"), highValueDetailText("tarotKeyword")],
+    keywords: page.keywords || [page.title, page.category, highValueDetailText("insightKeyword")],
   });
 }
 
@@ -83,7 +83,10 @@ export default function HighValueDetailPage({ params }) {
   const page = getHighValuePageBySlug(params?.slug);
   if (!page) notFound();
 
-  const relatedPages = HIGH_VALUE_PAGES.filter((item) => item.slug !== page.slug).slice(0, 3);
+  const relatedPages = [
+    ...HIGH_VALUE_PAGES.filter((item) => item.slug !== page.slug && item.categorySlug === page.categorySlug),
+    ...HIGH_VALUE_PAGES.filter((item) => item.slug !== page.slug && item.categorySlug !== page.categorySlug),
+  ].slice(0, 3);
   const path = `/high-value/${page.slug}`;
   const sectionAnchors = page.sections.map((section, index) => ({
     id: `guide-section-${index + 1}`,
@@ -103,7 +106,7 @@ export default function HighValueDetailPage({ params }) {
         path,
         author: page.author,
         category: page.category,
-        keywords: [page.category, page.title, highValueDetailText("guideKeyword")],
+        keywords: page.keywords || [page.category, page.title, highValueDetailText("guideKeyword")],
         datePublished: page.publishedAt,
         dateModified: page.updatedAt,
       }),

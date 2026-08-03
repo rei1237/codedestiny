@@ -2,33 +2,30 @@
 const BASE = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 
 const targets = [
-  // Root must redirect to /static/ (single canonical URL).
-  { path: "/", allowRedirect: true },
-  // Canonical entry should resolve directly.
-  { path: "/static/", allowRedirect: false },
-  // Legacy static index should normalize to /static/.
-  { path: "/static/index.html", allowRedirect: true },
+  // Public canonical URLs must resolve directly. Keep this list aligned with the sitemap and entity registry.
+  { path: "/", allowRedirect: false },
   { path: "/sitemap.xml", allowRedirect: false },
   { path: "/robots.txt", allowRedirect: false },
-  { path: "/today", allowRedirect: true },
-  { path: "/ziwei", allowRedirect: true },
-  { path: "/sukuyo", allowRedirect: true },
-  { path: "/en", allowRedirect: true },
-  { path: "/ja", allowRedirect: true },
-  { path: "/zh", allowRedirect: true },
-  { path: "/en/today", allowRedirect: true },
-  { path: "/ja/today", allowRedirect: true },
-  { path: "/zh/today", allowRedirect: true },
-  { path: "/en/ziwei", allowRedirect: true },
-  { path: "/ja/ziwei", allowRedirect: true },
-  { path: "/zh/ziwei", allowRedirect: true },
-  { path: "/en/sukuyo", allowRedirect: true },
-  { path: "/ja/sukuyo", allowRedirect: true },
-  { path: "/zh/sukuyo", allowRedirect: true },
-  { path: "/insights/ziwei-basics", allowRedirect: true },
-  { path: "/en/insights/ziwei-basics-en", allowRedirect: true },
-  { path: "/ja/insights/ziwei-basics-jp", allowRedirect: true },
-  { path: "/zh/insights/ziwei-basics-zh", allowRedirect: true },
+  { path: "/fusion-fortune/", allowRedirect: false },
+  { path: "/kkul-kkul-unse/", allowRedirect: false },
+  { path: "/saju/", allowRedirect: false },
+  { path: "/manse/", allowRedirect: false },
+  { path: "/ziwei/", allowRedirect: false },
+  { path: "/sukuyo/", allowRedirect: false },
+  { path: "/vedic/", allowRedirect: false },
+  { path: "/astrology/", allowRedirect: false },
+  { path: "/tarot/", allowRedirect: false },
+  { path: "/compatibility/", allowRedirect: false },
+  { path: "/today/", allowRedirect: false },
+  { path: "/dream/", allowRedirect: false },
+  { path: "/insights/", allowRedirect: false },
+  { path: "/high-value/", allowRedirect: false },
+  { path: "/high-value/how-fusion-fortune-works/", allowRedirect: false },
+  { path: "/high-value/saju-and-ziwei-reading/", allowRedirect: false },
+  { path: "/high-value/saju-and-sukuyo-compatibility/", allowRedirect: false },
+  { path: "/high-value/vedic-and-western-astrology/", allowRedirect: false },
+  { path: "/high-value/how-to-read-manse/", allowRedirect: false },
+  { path: "/high-value/ai-fortune-reading-guide/", allowRedirect: false },
 ];
 
 async function check(url) {

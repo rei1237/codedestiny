@@ -22,6 +22,7 @@
 
 import { siteSeo } from "./seo/siteSeo";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "./seo-metadata";
+import { getSeoProfileKeywords } from "./seo/entity-registry.mjs";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 
 const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
@@ -97,6 +98,10 @@ export interface FortunePageMeta {
   featureList?: ReadonlyArray<string> | string[];
   /** 서비스 카테고리. 기본값: "LifestyleApplication" */
   applicationCategory?: string;
+  /** 무료 접근 여부가 실제 기능 정책으로 확인된 경우에만 명시한다. */
+  isAccessibleForFree?: boolean;
+  /** 실제 가격·접근 조건이 확인된 경우에만 명시하는 Offer 데이터. */
+  offer?: Record<string, unknown>;
   /** 게시일 (ISO Date string). 기본값: undefined */
   publishedAt?: string;
   /** 수정일 (ISO Date string). 없으면 current date */
@@ -147,7 +152,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
   return {
     title: uniqueTitle,
     description: uniqueDescription,
-    keywords: mergeKeywords([...(keywords ?? [])], SEO_CORE_KEYWORDS),
+    keywords: mergeKeywords(getSeoProfileKeywords(canonicalPath), [...(keywords ?? [])], SEO_CORE_KEYWORDS),
     alternates: {
       canonical: canonicalUrl,
       ...(hasLanguages ? { languages: languagesMap } : {}),
@@ -194,6 +199,8 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
     featureList = [],
     applicationCategory = "LifestyleApplication",
     inLanguage = "ko-KR",
+    isAccessibleForFree,
+    offer,
     publishedAt,
     updatedAt,
     variantKey,
@@ -219,17 +226,11 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
         applicationCategory,
         operatingSystem: "Web",
         inLanguage,
-        isAccessibleForFree: true,
-        offers: {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "KRW",
-          availability: "https://schema.org/InStock",
-          url,
-        },
         author: { "@id": `${SITE_ORIGIN}/#organization` },
         publisher: { "@id": `${SITE_ORIGIN}/#organization` },
         image: { "@type": "ImageObject", url: ogImage },
+        ...(typeof isAccessibleForFree === "boolean" ? { isAccessibleForFree } : {}),
+        ...(offer && typeof offer === "object" ? { offers: offer } : {}),
         ...(featureList.length > 0 ? { featureList } : {}),
         ...(keywords.length > 0 ? { keywords: keywords.join(", ") } : {}),
         ...(publishedAt ? { datePublished: new Date(publishedAt).toISOString() } : {}),

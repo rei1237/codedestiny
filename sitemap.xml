@@ -358,7 +358,7 @@
     <loc>https://code-destiny.com/fusion-fortune/</loc>
     <lastmod>2026-08-03</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.84</priority>
+    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/health-report/guide/</loc>
@@ -371,6 +371,12 @@
     <lastmod>2026-08-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/high-value/ai-fortune-reading-guide/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/high-value/category/astrology-ziwei/</loc>
@@ -421,8 +427,32 @@
     <priority>0.82</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/high-value/how-fusion-fortune-works/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/high-value/how-tarot-actually-works/</loc>
     <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/high-value/how-to-read-manse/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/high-value/saju-and-sukuyo-compatibility/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/high-value/saju-and-ziwei-reading/</loc>
+    <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.72</priority>
   </url>
@@ -435,6 +465,12 @@
   <url>
     <loc>https://code-destiny.com/high-value/understanding-your-destiny/</loc>
     <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.72</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/high-value/vedic-and-western-astrology/</loc>
+    <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.72</priority>
   </url>

@@ -5,13 +5,19 @@ const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
 const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba";
 
 const SEO = {
-  title: "꿀꿀 운세 | 무료 사주·타로·궁합 통합 플랫폼 — Code Destiny",
+  title: "꿀꿀운세·꽃돼지 운세 | Code Destiny 브랜드 소개",
   description:
-    "꿀꿀 운세는 꿀꿀 만세력에서 시작해 코드 데스티니로 이어진 무료 운세 플랫폼입니다. 사주팔자, 타로, 궁합, 자미두수, 신년운세를 한곳에서 봅니다.",
-  ogTitle: "꿀꿀 운세 | 무료 사주·타로·궁합 — Code Destiny",
+    "꿀꿀운세와 꽃돼지 운세로 기억하는 Code Destiny를 소개합니다. 사주, 만세력, 자미두수, 숙요점, 베다 점성술, 타로와 AI 상담을 질문에 맞게 연결합니다.",
+  ogTitle: "꿀꿀운세·꽃돼지 운세 | Code Destiny",
   ogDescription:
-    "꿀꿀 운세는 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 살피는 코드 데스티니 공식 브랜드입니다.",
+    "꿀꿀운세와 꽃돼지 캐릭터로 기억하는 Code Destiny의 사주·만세력·점성술·AI 상담 서비스를 소개합니다.",
 };
+
+const BRAND_ALIAS_SENTENCE =
+  "CODE DESTINY는 CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY로도 표기되는 같은 공식 서비스입니다.";
+
+const FUSION_FORTUNE_SUMMARY =
+  "초융합 운세는 사주, 자미두수, 숙요점, 베다 점성술(Jyotish), 서양 점성술, 타로처럼 서로 다른 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리하는 CODE DESTINY의 대표 해석 방법론입니다.";
 
 const SERVICES = [
   {
@@ -49,6 +55,11 @@ const SERVICES = [
     title: "베다 점성술",
     description: "인도 조티쉬의 라그나와 다샤 흐름으로 지금 지나는 시기의 주제를 봅니다.",
   },
+  {
+    href: "/fusion-fortune",
+    title: "초융합 운세",
+    description: "여섯 운세 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리합니다.",
+  },
 ];
 
 const FAQS = [
@@ -71,6 +82,29 @@ const FAQS = [
     question: "코드 데스티니와 꿀꿀 운세는 같은 곳인가요?",
     answer:
       "같은 곳입니다. 코드 데스티니(Code Destiny)가 플랫폼 이름이고 꿀꿀 운세는 그 한국어 서비스명입니다. 주소는 code-destiny.com 하나입니다.",
+  },
+  {
+    question: "꽃돼지 운세 또는 꿀꿀만세력으로 찾은 서비스도 같은 곳인가요?",
+    answer:
+      "네. 꽃돼지 캐릭터로 기억하는 꽃돼지 운세와 꿀꿀운세, 꿀꿀만세력은 Code Destiny 안에서 이어지는 브랜드 표현입니다. 찾는 서비스에 맞는 사주, 만세력, 자미두수, 숙요점, 베다점, 점성술 페이지로 이동해 보세요.",
+  },
+  {
+    question: "CodeDestiny와 CODE DESTINY는 어떤 관계인가요?",
+    answer: BRAND_ALIAS_SENTENCE,
+  },
+  {
+    question: "초융합 운세란 무엇인가요?",
+    answer: FUSION_FORTUNE_SUMMARY,
+  },
+  {
+    question: "사주와 자미두수를 함께 보는 AI 운세는 어떻게 활용하나요?",
+    answer:
+      "한 체계의 결과를 정답으로 단정하지 않고, 사주의 기질과 자미두수의 삶의 영역처럼 서로 다른 관점에서 반복되는 신호를 비교해 현재의 선택과 관계를 정리하는 참고 정보로 활용합니다.",
+  },
+  {
+    question: "초융합 운세에는 어떤 해석 체계가 연결되나요?",
+    answer:
+      "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 중심으로 질문의 성격에 맞는 해석 관점을 연결합니다. 체계마다 보는 기준이 다르므로 같은 말로 섞어 설명하지 않습니다.",
   },
 ];
 
@@ -97,8 +131,12 @@ const webPageJsonLd = {
   inLanguage: "ko-KR",
   isPartOf: {
     "@type": "WebSite",
+    "@id": "https://code-destiny.com/#website",
     name: "꿀꿀 운세 — Code Destiny",
     url: "https://code-destiny.com",
+  },
+  about: {
+    "@id": "https://code-destiny.com/#organization",
   },
 };
 
@@ -107,21 +145,10 @@ export const metadata = {
   title: { absolute: SEO.title },
   description: SEO.description,
   keywords: [
-    "꿀꿀 운세",
     "꿀꿀운세",
-    "코드 데스티니",
-    "코드데스티니",
-    "code destiny",
     "꿀꿀 만세력",
-    "꿀꿀 운세 사주",
-    "꿀꿀 운세 타로",
-    "꿀꿀 운세 궁합",
-    "꿀꿀 운세 자미두수",
-    "꿀꿀 운세 숙요점",
-    "꿀꿀 운세 점성술",
-    "무료 사주",
-    "무료 타로",
-    "무료 궁합",
+    "꽃돼지 운세",
+    "코드데스티니",
   ],
   alternates: {
     canonical: PAGE_URL,
@@ -205,6 +232,34 @@ export default function KkulKkulUnsePage() {
             처음에는 사주와 만세력의 기본 흐름을 쉽게 펼치는 이름으로 시작했습니다.
             이제는 타로, 궁합, 자미두수, 숙요점까지 이어지며 한 사람의 하루와 관계, 선택의 기운을 함께 비춥니다.
           </p>
+        </div>
+      </section>
+
+      <section className={styles.sectionBand} aria-labelledby="characterBrandHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Brand Identity</p>
+          <h2 id="characterBrandHeading" className={styles.sectionTitle}>꽃돼지로 기억하는 꿀꿀 운세</h2>
+          <p className={styles.sectionLead}>
+            꽃돼지 운세 사이트를 찾았다면 Code Destiny의 꿀꿀운세가 맞습니다. 꽃돼지라는 캐릭터로 기억하는 분들을 위해
+            사주, 만세력, 자미두수, 숙요점, 베다 점성술, 점성술과 AI 상담을 하나의 브랜드 안에서 이어 두었습니다.
+          </p>
+          <p className={styles.sectionLead}>
+            꿀꿀 사주나 꿀꿀만세력으로 찾은 경우에도 질문에 맞는 해석 페이지를 선택할 수 있습니다. {BRAND_ALIAS_SENTENCE}
+          </p>
+        </div>
+      </section>
+
+      <section className={styles.sectionBand} aria-labelledby="fusionFortuneHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Fusion Fortune</p>
+          <h2 id="fusionFortuneHeading" className={styles.sectionTitle}>CODE DESTINY의 초융합 운세</h2>
+          <p className={styles.sectionLead}>{FUSION_FORTUNE_SUMMARY}</p>
+          <p className={styles.sectionLead}>
+            사주와 자미두수를 함께 보는 운세, 사주와 숙요점을 같이 보는 AI, 베다점과 점성술을 동시에 보는 운세처럼
+            질문에 맞는 해석 축을 비교합니다. 결과는 미래를 확정하는 답이 아니라, 반복되는 패턴과 다음 선택을 더 명확히
+            살피기 위한 운세 통합 분석으로 제공합니다.
+          </p>
+          <Link href="/fusion-fortune" className={`${styles.ctaButton} ${styles.ctaPrimary}`}>초융합 운세 자세히 보기</Link>
         </div>
       </section>
 

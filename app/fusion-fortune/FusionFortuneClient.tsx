@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import styles from "./fusion-fortune.module.css";
@@ -92,7 +92,7 @@ async function parseJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function FusionFortuneClient() {
+export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) {
   const apiBase = getApiBaseUrl();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
@@ -301,5 +301,6 @@ export function FusionFortuneClient() {
     </section>}
 
     {result && <section className={styles.result}><header><p className={styles.kicker}>나의 초융합 리딩</p><h2>{result.title}</h2><p>{result.openingMessage}</p></header><article className={styles.summary}>{result.executiveSummary}</article>{SECTION_KEYS.map((key, index) => <details key={key} open={index === 0}><summary><span>{SECTION_ICONS[index]}</span>{result[key].title}</summary><p>{result[key].content}</p><ul>{result[key].keyPoints.map((point) => <li key={point}>{point}</li>)}</ul></details>)}<details open><summary><span>→</span>{result.timingAndAction.title}</summary><p>{result.timingAndAction.content}</p><h3>이번 흐름에서 해볼 일</h3><ul>{result.timingAndAction.luckyActions.map((item) => <li key={item}>{item}</li>)}</ul><h3>주의해서 볼 반복 패턴</h3><ul>{result.timingAndAction.cautionPatterns.map((item) => <li key={item}>{item}</li>)}</ul></details><p className={styles.closing}>{result.closingMessage}</p><div className={styles.resultActions}><button className={styles.share} onClick={() => void share()}>개인정보 제외 요약 공유</button><Link href="/#guardian-fortune">오늘의 귀인에게 이어서 묻기</Link></div></section>}
+    {seoContent}
   </main>;
 }
