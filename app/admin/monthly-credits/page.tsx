@@ -51,7 +51,7 @@ function formatDate(value: string | null) {
 
 export default function AdminMonthlyCreditsPage() {
   const [email, setEmail] = useState("");
-  const [amount, setAmount] = useState(String(MAX_GRANT_AMOUNT));
+  const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("마케팅 캠페인 예외 지급");
   const [campaignId, setCampaignId] = useState("");
   const [idempotencyKey, setIdempotencyKey] = useState("");
@@ -172,6 +172,7 @@ export default function AdminMonthlyCreditsPage() {
                       step={1}
                       inputMode="numeric"
                       value={amount}
+                      placeholder="원하는 수량 입력"
                       onChange={(event) => { setAmount(event.target.value); setIdempotencyKey(""); }}
                       className={`${inputClass} pr-10`}
                     />
