@@ -142,7 +142,9 @@
 
 ## Unlock state and shop read separation
 
-- Lock UI hydration uses `GET /api/access/unlocks?profileId=...&serviceKey=saju,ziwei` only after the relevant lock surface is visible or the user explicitly retries. Global auth/profile events invalidate the snapshot without issuing this request.
+- Lock UI hydration uses one complete `GET /api/me/access-state?profileId=...` snapshot after login and after an explicit profile change. React, the main static shell, and standalone static consumers read the same `CodeDestinyAccessStore` projection.
+- The complete snapshot unions account-scoped `User.unlockedFeatures` and `User.paidFeatures`, current-profile `ContentEntitlement`, and profile-bound legacy `PointHistory` evidence. Profile-scoped feature keys from account arrays are excluded so one profile cannot unlock another profile.
+- `/api/access/unlocks` remains a read-only compatibility/status route. It is not the normal display hydration source and must not be called per card or per render.
 - `GET /api/access/unlocks` is read-only. Legacy `includeBackfill=1` and `backfill=1` are accepted as compatibility inputs only and must not run `PointHistory`/`Payment` scans or write `ContentEntitlement` records during a normal lookup.
 - Legacy entitlement repair must run through an explicit backfill/reconcile path, not through page-entry GET requests.
 - The points shop initial summary uses one in-flight `GET /api/payments/me?view=shop` request per page entry. It reuses the auth-loaded user snapshot for pass and monthly-credit state and defers payment, point-history, and monthly-credit-ledger reads to the dedicated history surface.
@@ -153,8 +155,9 @@
 
 ## Verified pass snapshot and checkout recovery
 
-- A recent successful `/api/me/access-state` bootstrap may hydrate the shared pass snapshot for `standard`, `premium`, `vvip`, and `family`. Unverified or expired local auth data must not grant access.
-- A last-known-good pass or unlock snapshot survives transient 503 responses. AccessStore must not persist `unlocked: false`, automatically refetch after a verified payment payload, or retry a display probe without an explicit user or session action.
+- A recent successful `/api/me/access-state` bootstrap hydrates the shared pass, monthly-credit, account unlock, and current-profile unlock snapshot for `standard`, `premium`, `vvip`, and `family`. Unverified or expired local auth data must not grant access.
+- A last-known-good pass or unlock snapshot survives transient 503 responses. A verified payment payload is applied optimistically, shared with other tabs, and followed by one background snapshot reconciliation.
+- `401` is an authentication result only after the auth client has attempted its refresh flow. `403` and `404` are permission/profile results and must not clear the login session or last-known-good unlock snapshot.
 - Snapshot coverage is an optimistic read path only. Family premium-quota decisions, monthly-credit deduction, PortOne order creation, payment confirmation, and entitlement writes remain server-authoritative.
 - An explicit `DIRECT_KRW` choice must create exactly one PortOne order after the click and must never be converted to pass access. Only an already persisted permanent unlock may stop a duplicate purchase.
 - Only explicit `MEMBERSHIP_PASS` requests apply pass coverage. `standard`, `premium`, and `vvip` reads do not synchronously update `User` or create `PointHistory`; metered `family` quota and permanent unlock persistence remain synchronous and server-authoritative.
@@ -168,7 +171,7 @@
 - The mobile “모든 운세” overview does not mount the feature preview dialog until the user opens a card. Closing the dialog removes it after the exit animation, and the original trigger remains the focus return target.
 - On mobile, closed fortune collections keep metadata and viewport placeholders only. A real card is mounted when its placeholder intersects the viewport or when the user explicitly opens it from a favorite/recent entry. Feature components outside the viewport must not start effects or data requests.
 - The overview loads the Worker-backed bulk pricing catalog only when the overview is explicitly opened. Cards, the preview sheet, and payment UI consume the same canonical `featureKey` snapshot; a missing price disables the paid CTA instead of displaying a client fallback.
-- Unlock reads use the profile-context single-flight path. Page/provider mount, sheet close, and an ordinary card render do not trigger `/api/access/unlocks`; retry is explicit after a degraded response or an auth/payment/profile state change.
+- Unlock reads use a user-and-profile single-flight cache key. Page/provider mount, sheet close, and an ordinary card render do not trigger `/api/access/unlocks`; login bootstrap, profile change, and verified payment reconciliation use the complete access-state endpoint.
 
 ## Legacy COIN 차감 제거와 호환성 경계
 

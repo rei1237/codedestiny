@@ -6,6 +6,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const sessionSource = fs.readFileSync(path.join(root, "app/_lib/user-session-cache.ts"), "utf8");
 const authSource = fs.readFileSync(path.join(root, "app/_lib/auth-client.ts"), "utf8");
+const authStoreSource = fs.readFileSync(path.join(root, "app/_lib/auth-store.ts"), "utf8");
 const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 test("React bootstrap requests access-state before legacy fallback endpoints", () => {
@@ -27,6 +28,12 @@ test("auth client deduplicates safe access GET endpoints but does not generalize
   assert.match(authSource, /if \(method !== "GET" \|\| init\.signal\) return "";/);
 });
 
+test("post-login bootstrap hydrates the shared AccessStore instead of creating another entitlement owner", () => {
+  assert.match(authStoreSource, /CodeDestinyAccessStore/);
+  assert.match(authStoreSource, /applyAccessStateSnapshot\?\.\(data/);
+  assert.match(authStoreSource, /reason: "post-login-bootstrap"/);
+});
+
 test("static shell bootstrap uses access-state and keeps legacy calls as compatibility fallback", () => {
   assert.match(shellSource, /fetch\('\/api\/me\/access-state', init\)/);
   assert.match(shellSource, /accessResponse.status !== 404 && accessResponse.status !== 405/);
@@ -35,4 +42,6 @@ test("static shell bootstrap uses access-state and keeps legacy calls as compati
     shellSource.indexOf("window.fetch = fetchWithCache"),
   );
   assert.doesNotMatch(bootstrapSource, /fetch\('\/api\/auth\/me'/);
+  assert.match(shellSource, /_cdIsAuthRequiredBillingError\(primary\.status, primary\.payload\)/);
+  assert.match(shellSource, /String\(lastPayload\.completeness \|\| ''\)\.toLowerCase\(\) === 'full'/);
 });

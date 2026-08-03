@@ -33,6 +33,8 @@ export function invalidatePaidAccessDecisionCacheForUser(userId) {
   try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(uid); } catch {}
   try { globalThis.__billingBalanceCache?.invalidateForUser?.(uid); } catch {}
   try { globalThis.__membershipPassCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__accessStateCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__codeDestinyAccessUnlocksCache?.invalidateForUser?.(uid); } catch {}
 }
 
 export async function revokeSinglePaymentContentAccess(payment, { status = CONTENT_ENTITLEMENT_STATUSES.REFUNDED, reason = "", session = null } = {}) {

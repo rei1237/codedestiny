@@ -7,6 +7,8 @@ import { jest } from "@jest/globals";
 const TEST_USER_ID = "507f1f77bcf86cd799439011";
 const requireUserFromRequest = jest.fn();
 const peekAccessTokenUserId = jest.fn();
+const pointHistoryDistinct = jest.fn();
+const getUnlockedContentSnapshot = jest.fn();
 const resolveActivePassPolicy = jest.fn(() => ({
   isActive: true,
   tier: "premium",
@@ -28,6 +30,13 @@ beforeAll(async () => {
     jest.unstable_mockModule("../../worker/lib/profile-limits.js", () => ({
       resolveActivePassPolicy,
     })),
+    jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+      PointHistory: { distinct: pointHistoryDistinct },
+    })),
+    jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
+      getUnlockedContentSnapshot,
+      isProfileScopedContentUnlockFeatureKey: (key) => ["section_daewun", "section_summary", "section_compat"].includes(String(key || "")),
+    })),
   ]);
   ({ handleAccessStateRoutes } = await import("../../worker/routes/access-state.js"));
   ({ invalidateAccessStateCacheForUser } = await import("../../worker/lib/access-state.js"));
@@ -41,12 +50,22 @@ beforeEach(() => {
   requireUserFromRequest.mockClear();
   peekAccessTokenUserId.mockClear();
   peekAccessTokenUserId.mockResolvedValue(TEST_USER_ID);
+  pointHistoryDistinct.mockReset();
+  pointHistoryDistinct.mockResolvedValue(["section_summary"]);
+  getUnlockedContentSnapshot.mockReset();
+  getUnlockedContentSnapshot.mockResolvedValue({
+    featureKeys: ["section_compat"],
+    contentKeys: ["saju.compatibility"],
+    unlockMap: { section_compat: true },
+    profileScopedAuthoritative: true,
+  });
   requireUserFromRequest.mockResolvedValue({
     userId: TEST_USER_ID,
     authUserDoc: {
       _id: TEST_USER_ID,
       points: 42,
       unlockedFeatures: ["fpti-premium-report"],
+      paidFeatures: ["account-purchase", "section_daewun"],
       destinyProfilesCurrentId: "profile-main",
       profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
     },
@@ -77,9 +96,9 @@ test("returns the authoritative access state without calling payment providers",
   expect(payload.data.entitlementSnapshot).toMatchObject({
     userId: TEST_USER_ID,
     tier: "premium",
-    unlockedFeatureIds: ["fpti-premium-report"],
+    unlockedFeatureIds: ["fpti-premium-report", "account-purchase", "section_summary", "section_compat"],
     monthlyBalance: { remaining: 250 },
-    purchasePolicyVersion: "access-state-snapshot-v1",
+    purchasePolicyVersion: "access-state-snapshot-v2",
     completeness: "full",
     authority: "server",
     source: "db",
@@ -88,6 +107,9 @@ test("returns the authoritative access state without calling payment providers",
   expect(payload.data.staleUntil).toBeTruthy();
   expect(payload.data.graceUntil).toBeTruthy();
   expect(response.headers.get("ETag")).toBeTruthy();
+  expect(payload.data.profileScopedAuthoritative).toBe(true);
+  expect(payload.data.unlockedContentKeys).toEqual(["saju.compatibility"]);
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledWith({ userId: TEST_USER_ID, profileId: "profile-main" });
 });
 
 test("keeps the production access-state route disabled unless explicitly enabled", async () => {
@@ -113,6 +135,35 @@ test("serves repeated access-state requests without a separate profile count que
   expect(requireUserFromRequest).toHaveBeenCalledTimes(2);
 });
 
+test("isolates complete access snapshots by selected profile", async () => {
+  const first = await handleAccessStateRoutes(request(), {});
+  expect((await first.json()).data.unlockedFeatureIds).toContain("section_compat");
+
+  requireUserFromRequest.mockResolvedValue({
+    userId: TEST_USER_ID,
+    authUserDoc: {
+      _id: TEST_USER_ID,
+      unlockedFeatures: ["fpti-premium-report"],
+      destinyProfilesCurrentId: "profile-other",
+      profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
+    },
+  });
+  pointHistoryDistinct.mockResolvedValueOnce([]);
+  getUnlockedContentSnapshot.mockResolvedValueOnce({
+    featureKeys: ["section_daewun"],
+    contentKeys: ["saju.daeunAnalysis"],
+    unlockMap: { section_daewun: true },
+    profileScopedAuthoritative: true,
+  });
+
+  const second = await handleAccessStateRoutes(request(), {});
+  const secondPayload = await second.json();
+  expect(secondPayload.data.currentProfileId).toBe("profile-other");
+  expect(secondPayload.data.unlockedFeatureIds).toContain("section_daewun");
+  expect(secondPayload.data.unlockedFeatureIds).not.toContain("section_compat");
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(2);
+});
+
 test("returns 504 for an access-state database timeout", async () => {
   requireUserFromRequest.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
 
@@ -129,7 +180,7 @@ test("keeps stale access-state snapshot when refresh hits a transient 503", asyn
   const first = await handleAccessStateRoutes(request(), {});
   expect(first.status).toBe(200);
 
-  const entry = globalThis.__codeDestinyAccessStateCache.entries.get(TEST_USER_ID);
+  const entry = globalThis.__codeDestinyAccessStateCache.entries.get(`${TEST_USER_ID}::profile-main`);
   entry.expiresAt = 0;
   entry.staleUntil = Date.now() + 60_000;
   requireUserFromRequest.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));

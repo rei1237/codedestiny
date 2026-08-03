@@ -94,7 +94,7 @@ Entry: `worker/index.js`
 - Payments/access: `/api/payments/*`, `/api/payment/*`, `/api/checkout/*`, `/api/billing/*`, `/api/access/*`, `/api/unlocks/*`, `/api/points/me`, `/api/points/balance`
 - Legacy COIN compatibility: `/api/billing/coin-gate` (route name retained; new COIN debit is disabled), `/api/fortune/pig-coin/*` (read-only historical compatibility or `PAYMENT_REQUIRED`)
 - App store: `/api/app-store/*`
-- User/profile/subscription: `/api/user/*`, `/api/profile/*`, `/api/profiles/*`, `/api/subscriptions/*`, `/api/subscription/status`, `/api/subscription/me`, `GET /api/me/access-state` (feature-flagged bootstrap snapshot)
+- User/profile/subscription: `/api/user/*`, `/api/profile/*`, `/api/profiles/*`, `/api/subscriptions/*`, `/api/subscription/status`, `/api/subscription/me`, `GET /api/me/access-state?profileId=...` (complete account/current-profile access bootstrap snapshot)
 - Fortune core: `/api/fortune/*`, `/api/tarot/*`, `/api/fpti/*`, `/api/celestial-harmony/*`, `/api/dream/*`, `/api/oracle/*`, `/api/kasi/*`, `/api/palm/*`, `/api/destiny-bias/*`
 - Saju AI: `/api/life-book-ai/*`, `/api/love-secret-ai/*`, `/api/saju-new-year/*`, `/api/new-year-ai/*`, `/api/karma-destiny-ai/*`, `/api/guardian/*`, `/api/naming-prompt/*`
 - Ziwei: `/api/ziwei-ai/*`, `/api/ziwei-deep-report/*`, `/api/ziwei/daehan/*`, `/api/ziwei-island-ai/*`, `/api/ziwei-island-report/*`, `/api/ziwei-island/*`

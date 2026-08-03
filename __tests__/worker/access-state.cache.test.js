@@ -52,3 +52,27 @@ test("access-state preserves zero balance and inactive entitlement", () => {
   expect(state.hasActivePass).toBe(false);
   expect(state.maxProfileCount).toBe(1);
 });
+
+test("cache invalidation clears every profile snapshot and the legacy unlock read cache for one user", () => {
+  const userId = "507f1f77bcf86cd799439014";
+  const otherUserId = "507f1f77bcf86cd799439015";
+  const stateA = buildAccessState({ userId, profileId: "profile-a", user: { unlockedFeatures: ["feature-a"] } });
+  const stateB = buildAccessState({ userId, profileId: "profile-b", user: { unlockedFeatures: ["feature-b"] } });
+  writeAccessStateCache(userId, stateA, { profileId: "profile-a" });
+  writeAccessStateCache(userId, stateB, { profileId: "profile-b" });
+  globalThis.__codeDestinyAccessUnlocksCache = {
+    entries: new Map([
+      [`${userId}::profile-a::saju`, { payload: {} }],
+      [`${otherUserId}::profile-a::saju`, { payload: {} }],
+    ]),
+    inFlight: new Map([[`${userId}::profile-b::saju`, Promise.resolve()]]),
+  };
+
+  invalidateAccessStateCacheForUser(userId);
+
+  expect(readAccessStateCache(userId, { profileId: "profile-a" })).toBeNull();
+  expect(readAccessStateCache(userId, { profileId: "profile-b" })).toBeNull();
+  expect(globalThis.__codeDestinyAccessUnlocksCache.entries.has(`${userId}::profile-a::saju`)).toBe(false);
+  expect(globalThis.__codeDestinyAccessUnlocksCache.inFlight.has(`${userId}::profile-b::saju`)).toBe(false);
+  expect(globalThis.__codeDestinyAccessUnlocksCache.entries.has(`${otherUserId}::profile-a::saju`)).toBe(true);
+});
