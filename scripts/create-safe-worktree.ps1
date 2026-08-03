@@ -28,7 +28,7 @@ if (-not (Test-Path -LiteralPath $WorktreeRoot)) {
   New-Item -ItemType Directory -Path $WorktreeRoot | Out-Null
 }
 
-Invoke-Git @('fetch', 'origin', 'main') | Out-Null
+Invoke-Git @('fetch', 'origin', 'refs/heads/main:refs/remotes/origin/main', '--no-tags') | Out-Null
 $baseSha = Invoke-Git @('rev-parse', '--verify', $Base)
 if (-not $baseSha) { throw "Base ref is unavailable: $Base" }
 
