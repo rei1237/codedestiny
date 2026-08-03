@@ -12,10 +12,10 @@
     radial-gradient(70% 46% at 50% 2%, rgba(255, 255, 255, 0.85), transparent 56%),
     radial-gradient(100% 60% at 50% 108%, rgba(255, 244, 210, 0.5), transparent 60%),
     linear-gradient(180deg, var(--cd-map-space-0) 0%, var(--cd-map-space-2) 52%, var(--cd-map-space-4) 100%);
-  padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: calc(14px + env(safe-area-inset-top, 0px)) clamp(10px, 1.6vw, 22px) calc(16px + env(safe-area-inset-bottom, 0px));
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 8px;
+  gap: clamp(4px, 0.8vw, 10px);
 }
 /* 하단 소프트 랜드 — UI가 얹힐 은은한 잔디/모래 바닥(주간) */
 .stage::after {
@@ -212,7 +212,7 @@
   position: relative;
   z-index: 3;
   text-align: center;
-  padding-top: 4px;
+  padding-top: 0;
 }
 .mapKicker {
   font-family: var(--font-serif);
@@ -247,7 +247,7 @@
 /* 모바일: 전역 몰입 내비(뒤로/홈, AppChrome 고정)가 중앙 키커를 가리지 않게 헤더를 내려준다.
    데스크톱은 내비가 좌측 코너·헤더는 중앙이라 겹치지 않으므로 그대로 둔다. */
 @media (max-width: 640px) {
-  .mapHeader { padding-top: 40px; }
+  .mapHeader { padding-top: 34px; }
 }
 
 @media (max-width: 640px) {
@@ -264,19 +264,26 @@
 .mapField {
   position: relative;
   z-index: 1;
-  width: min(90vw, 82vh, 800px);
+  width: min(calc(100% + 20px), 92dvh, 1120px);
   aspect-ratio: 4 / 3;
   margin: 0 auto;
   align-self: center;
 }
+@media (max-width: 640px) {
+  .mapField {
+    width: min(100vw, 92dvh, 640px);
+    margin-left: calc(-1 * clamp(10px, 1.6vw, 22px));
+    margin-right: calc(-1 * clamp(10px, 1.6vw, 22px));
+  }
+}
 /* 와이드 데스크톱: 지도를 크게(중앙 640px 갇힘 해소), 좌우 여백은 성운·은하수가 채운다(의도된 여백). */
 @media (min-width: 1200px) {
-  .mapField { width: min(70vw, 84vh, 1120px); }
+  .mapField { width: min(calc(100vw - 2px), 92dvh, 1360px); }
   .guideStage { width: clamp(150px, 15vw, 240px); }
   .concern { max-width: 720px; }
 }
 @media (min-width: 1600px) {
-  .mapField { width: min(64vw, 86vh, 1280px); }
+  .mapField { width: min(calc(100vw - 2px), 94dvh, 1500px); }
 }
 .islandSvg {
   position: absolute;
@@ -290,7 +297,7 @@
 .islandArt {
   position: absolute;
   inset: 0;
-  border-radius: 18px;
+  border-radius: clamp(18px, 2vw, 30px);
   overflow: hidden;
   background-image:
     radial-gradient(60% 52% at 60% 46%, rgba(232, 213, 163, 0.14), transparent 68%),
@@ -524,7 +531,7 @@
   z-index: 6;
   width: 100%;
   max-width: 640px;
-  margin: 0 auto;
+  margin: max(-20px, -2vh) auto 0;
   display: grid;
   gap: 12px;
   justify-items: center;
@@ -1341,39 +1348,61 @@
   position: relative;
   z-index: 6;
   width: 100%;
-  max-width: 560px;
+  max-width: min(680px, calc(100vw - 28px));
   margin: 0 auto;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   justify-items: center;
   text-align: center;
 }
 .revealText {
-  font-size: 1.04rem;
-  font-weight: 600;
-  color: var(--cd-map-ink);
-  line-height: 1.6;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(224, 169, 58, 0.3);
-  border-radius: 16px;
-  padding: 14px 20px;
-  box-shadow: 0 8px 22px rgba(90, 130, 90, 0.16);
+  width: 100%;
+  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+  font-weight: 700;
+  color: #fff8e8;
+  line-height: 1.65;
+  background:
+    linear-gradient(180deg, rgba(24, 17, 46, 0.9), rgba(12, 8, 28, 0.82)),
+    radial-gradient(90% 140% at 50% 0%, rgba(247, 221, 151, 0.16), transparent 58%);
+  border: 1px solid rgba(239, 213, 153, 0.46);
+  border-radius: 22px;
+  padding: 16px 22px;
+  box-shadow:
+    0 18px 42px rgba(6, 4, 18, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
 }
 .revealText b {
-  color: var(--cd-map-gold-deep);
+  color: #f8df9a;
+  text-shadow: 0 0 18px rgba(248, 223, 154, 0.32);
 }
 .revealCta {
-  min-height: 52px;
-  padding: 0 30px;
+  min-height: 56px;
+  padding: 0 34px;
   border: 0;
   border-radius: 999px;
   font: inherit;
-  font-weight: 800;
+  font-weight: 900;
   color: #12061f;
   cursor: pointer;
   background: linear-gradient(135deg, #fff2c6, #e8d5a3 52%, #c4b5fd);
-  box-shadow: 0 0 26px rgba(232, 213, 163, 0.45);
+  box-shadow:
+    0 16px 34px rgba(11, 7, 31, 0.24),
+    0 0 30px rgba(232, 213, 163, 0.48);
   animation: ctaPulse 2.6s ease-in-out infinite;
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+.revealCta:hover,
+.revealCta:focus-visible {
+  transform: translateY(-1px);
+  filter: saturate(1.06) brightness(1.03);
+  box-shadow:
+    0 20px 42px rgba(11, 7, 31, 0.28),
+    0 0 42px rgba(232, 213, 163, 0.68);
+}
+.revealCta:focus-visible {
+  outline: 3px solid rgba(255, 248, 219, 0.86);
+  outline-offset: 4px;
 }
 @keyframes ctaPulse {
   0%, 100% { box-shadow: 0 0 26px rgba(232, 213, 163, 0.45); }
