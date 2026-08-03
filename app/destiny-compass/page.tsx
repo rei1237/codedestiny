@@ -22,8 +22,8 @@ export default function DestinyCompassPage() {
         인터랙티브 화면 아래에 서버 렌더 해설을 두어 무엇을 계산하고 어디까지
         참고하면 되는지 밝힌다. 숨김 처리(sr-only)하지 않고 실제로 보이게 둔다.
       */}
-      <section className="mx-auto w-full max-w-3xl px-4 pb-14 pt-4 text-slate-100 md:px-6">
-        <div className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 md:px-8 md:py-8">
+      <section className="mx-auto w-full max-w-3xl px-4 pb-10 pt-2 text-slate-100/45 opacity-35 transition-opacity duration-200 hover:opacity-70 focus-within:opacity-80 md:px-6">
+        <div className="rounded-2xl border border-white/[0.04] bg-[#080d1a]/25 px-5 py-5 md:px-8 md:py-6">
           <h2 className="text-xl font-semibold text-amber-100 md:text-2xl">운명의 나침반은 무엇을 보는가</h2>
           <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
             운명의 나침반은 사주 명식과 자미두수 명반을 함께 세워, 지금 어느 쪽으로 한 걸음
