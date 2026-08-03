@@ -276,6 +276,8 @@ function runInstantPgLatencyTests() {
   assertContains(verdictBody, "allowStaleNone: true", "verdict must accept a stale 'none' snapshot (SWR) instead of blocking on the server");
   // ①-c 커버 확답이면 낙관 통과(서버 기록은 백그라운드). 이 분기가 이용권 보유자의 무료 즉시 실행이다.
   assertContains(verdictBody, "_cdRecordMembershipPassInBackground(item, coinCost, requestId);", "covered snapshot must grant optimistically and record in the background");
+  assertContains(indexSource, "return status === 'payment_required' || status === 'already_unlocked' || status === 'pass_applied';", "pass-applied snapshot prechecks must be cached during the short precheck window");
+  assertContains(indexSource, "if (cachedStatus === 'pass_applied') return false;", "cached pass-applied prechecks must not be force-refreshed into intermittent 503 failures");
 
   // ② 진입 경로에는 서버 왕복이 없다 — 두 진입점 모두 snapshotVerdictOnly 로 스냅샷 판정만 쓴다.
   //    (메인 게이트 _cdOpenPaidServiceGate, 결제창 직행 경로 _cdResolvePassBeforePaymentChoice)
@@ -293,6 +295,8 @@ function runInstantPgLatencyTests() {
   assertContains(indexSource, "suppressWaitUi: true", "entry gate must not raise a pass-checking wait screen");
   assertContains(indexSource, "if (opts.suppressWaitUi !== true) {", "paid-feature gate must honour suppressWaitUi");
   assertContains(indexSource, "_cdBeginPaidFeatureInFlight(paidGateAction, featureKey, {", "duplicate-click guard must stay in place");
+  assertContains(indexSource, "var allowDirectCheckoutAccessBypass = opts.allowServerAccessBypass === true && opts.forceDirectPayment !== true;", "direct single-payment checkout must reject access bypass by default");
+  assertContains(indexSource, "if (!order.merchantUid && allowDirectCheckoutAccessBypass && _cdIsCheckoutAccessBypass", "direct single-payment checkout must not complete from a pass snapshot without a PG order");
   // ④ 되살아나면 안 되는 것: 선검사 예산·느림 안내·재시도. 전부 서버 왕복이 있을 때만 의미가 있었다.
   assertNotContains(indexSource, "CD_PASS_FIRST_BUDGET_MS", "entry pass check must not reintroduce a server-round-trip budget");
   assertNotContains(indexSource, "CD_PASS_SLOW_NOTE", "entry pass check must not reintroduce the slow-server notice");
@@ -943,7 +947,7 @@ function runClientStaticTests() {
   assertContains(indexSource, "redirectUrl.searchParams.set('portone_redirect', '1')", "mobile redirect marker");
   assertContains(paymentsRouteSource, 'redirectUrl.searchParams.set("payment_id", paymentId)', "redirectUrl carries paymentId");
   assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "server complete failure must block unlock success");
-  assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdPortOneV2SdkPromise()", "already unlocked/pass branch should not open payment modal");
+  assertBefore(indexSource, "if (!order.merchantUid && allowDirectCheckoutAccessBypass && _cdIsCheckoutAccessBypass", "await _cdPortOneV2SdkPromise()", "explicitly allowed access-bypass branch should not open payment modal");
   assertContains(indexSource, "alreadyUnlocked", "already unlocked branch");
   assertContains(pagesHeadersSource, "connect-src 'self'", "Cloudflare Pages CSP connect-src");
   assertContains(pagesHeadersSource, "connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co", "PortOne checkout prepare API must be allowed by connect-src");
