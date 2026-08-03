@@ -14,6 +14,7 @@ const chromePath = findChrome();
 const server = await startStaticServer();
 const tempProfilePrefix = path.join(os.tmpdir(), "code-destiny-mobile-cdp-profile-");
 const debugCdp = process.env.MOBILE_CDP_DEBUG === "1";
+const focusAllFortunes = process.env.MOBILE_CDP_FOCUS === "all-fortunes";
 
 const failures = [];
 let chrome;
@@ -39,19 +40,22 @@ try {
 
   const initial = await evaluate(cdp, mobileStateExpression(), "initial mobile state");
   assert(initial.viewportWidth === 390, "viewport width is 390", initial);
-  assert(initial.mobileHubVisible, "mobile hub is visible", initial);
-  assert(initial.primaryCtaInFirstView, "primary CTA is in first view", initial);
   assert(initial.bottomNavVisible, "bottom nav is visible", initial);
   assert(initial.bottomNavMainCount === 5, "bottom nav has five main items", initial);
   assert(initial.bottomNavQuickHidden, "bottom nav quick rail is hidden", initial);
   assert(initial.languageDropdownClosed, "language dropdown is closed without hit boxes", initial);
   // 2026-07 모바일 홈 리디자인부터 추천 카드가 첫 화면에 일부 노출된다(프로덕션 실측 top≈502).
   // 리디자인에도 살아남는 불변식은 "카드가 주 CTA 를 덮고 올라오지 않는다"이다.
-  assert(initial.recommendedBelowPrimaryCta, "recommended cards begin below the primary CTA", initial);
+  if (!focusAllFortunes) {
+    assert(initial.mobileHubVisible, "mobile hub is visible", initial);
+    assert(initial.primaryCtaInFirstView, "primary CTA is in first view", initial);
+    assert(initial.recommendedBelowPrimaryCta, "recommended cards begin below the primary CTA", initial);
+  }
   assert(initial.noHorizontalOverflow, "no horizontal overflow", initial);
   assert(initial.audioVideoCount === 0, "home has no initial audio/video elements", initial);
   assert(initial.hiddenOverlaysPointerSafe, "hidden overlays do not block touch", initial);
 
+  if (!focusAllFortunes) {
   await tapSelector(cdp, "#cdMobileDestinyHub .cd-mobile-hub__primary a");
   // 같은 문서 스크롤(위임 바인딩 후) / 실제 /saju/basic 이동(바인딩 전 기본 동작) 둘 다 정상이고,
   // 둘 다 250ms 안에 끝난다는 보장이 없다 — 고정 대기 1회는 플레이크였다. 짧게 폴링한다.
@@ -75,11 +79,14 @@ try {
     return Object.assign({ pathname: location.pathname }, modal);
   })()`, "after tarot tap");
   assert(afterTarotTap.pathname.indexOf("/tarot/mingri") === 0 || afterTarotTap.tilePreviewOpen || afterTarotTap.tarotModalVisible, "tarot touch opens route, sheet, or modal", afterTarotTap);
+  }
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   // 모든 운세 탭은 이동하지 않고 풀스크린 오버레이를 전체 개요 모드로 연다.
   await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
-  await delay(350);
+  // Visual exit completes at 280ms; allow scheduler margin before checking the
+  // follow-up display:none cleanup under CDP's mobile emulation load.
+  await delay(800);
   const afterFortunesNav = await evaluate(cdp, `(() => {
     const panel = document.getElementById('cdMobileFortuneOverview');
     const api = window.cdMobileCollectionFullscreen;
@@ -102,7 +109,24 @@ try {
   assert(afterFortunesNav.navDisplay === "none" && afterFortunesNav.navPointerEvents === "none" && afterFortunesNav.navAriaHidden === "true", "immersive all-fortunes removes the bottom-nav layout and touch target", afterFortunesNav);
   assert(afterFortunesNav.panelBottom >= afterFortunesNav.viewportHeight - 1, "all-fortunes content extends through the released bottom safe area", afterFortunesNav);
 
-  await evaluate(cdp, "(() => { const panel = document.getElementById('cdMobileFortuneOverview'); panel.scrollTop = 160; panel.dispatchEvent(new Event('scroll')); })()", "set all-fortunes overview scroll position");
+  await tapSelector(cdp, '.cd-fov__cat[data-collection-id="tarotCollection"]');
+  await delay(120);
+  await tapSelector(cdp, '.cd-mobile-collection-tab[data-collection-id="oracleCollection"]');
+  await delay(120);
+  const afterRapidCollectionSwitch = await evaluate(cdp, `(() => {
+    const api = window.cdMobileCollectionFullscreen;
+    const chrome = document.getElementById('cdMobileCollectionChromeBar');
+    const activeTab = chrome?.querySelector('.cd-mobile-collection-tab[aria-current="page"]');
+    return {
+      overlayOpen: !!api?.isOpen?.(),
+      currentCollection: api?.getCurrent?.() || null,
+      activeCollection: activeTab?.getAttribute('data-collection-id') || null,
+      chromePointerEvents: chrome ? getComputedStyle(chrome).pointerEvents : null
+    };
+  })()`, "after rapid tarot-to-oracle touch switch");
+  assert(afterRapidCollectionSwitch.overlayOpen && afterRapidCollectionSwitch.currentCollection === "oracleCollection" && afterRapidCollectionSwitch.activeCollection === "oracleCollection" && afterRapidCollectionSwitch.chromePointerEvents === "auto", "rapid tarot-to-oracle touch switch remains interactive", afterRapidCollectionSwitch);
+  await tapSelector(cdp, '.cd-mobile-collection-tab[data-collection-id="miscCollection"]');
+  await delay(120);
   await tapSelector(cdp, ".cd-mobile-collection-close");
   await delay(350);
   const afterFortunesClose = await evaluate(cdp, `(() => {
@@ -113,10 +137,11 @@ try {
   assert(!afterFortunesClose.overlayOpen && afterFortunesClose.navDisplay !== "none" && afterFortunesClose.navPointerEvents !== "none" && afterFortunesClose.navAriaHidden !== "true", "closing all-fortunes restores a usable bottom nav", afterFortunesClose);
 
   await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
-  await delay(350);
-  const restoredFortunesState = await evaluate(cdp, "({ scrollTop: Math.round(document.getElementById('cdMobileFortuneOverview').scrollTop || 0), overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
-  assert(restoredFortunesState.overlayOpen && restoredFortunesState.scrollTop >= 150, "reopening all-fortunes preserves its scroll position", restoredFortunesState);
+  await delay(450);
+  const restoredFortunesState = await evaluate(cdp, "({ currentCollection: window.cdMobileCollectionFullscreen?.getCurrent?.() || null, overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
+  assert(restoredFortunesState.overlayOpen && restoredFortunesState.currentCollection === "miscCollection", "reopening all-fortunes preserves its selected collection", restoredFortunesState);
 
+  if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   const paymentButtonState = await evaluate(cdp, `(() => {
@@ -181,6 +206,7 @@ try {
       paymentModalState,
     );
   }
+  }
 
   if (failures.length) {
     console.error("Mobile CDP smoke failed.");
@@ -191,12 +217,15 @@ try {
   } else {
     console.log("Mobile CDP smoke OK");
     console.log("- Viewport: 390x844");
-    console.log("- Primary CTA touch: OK");
-    console.log("- Tarot touch: OK");
-    console.log("- Bottom nav 5-tab tarot touch: OK");
-    console.log("- Payment pass button wiring: OK");
-    console.log(appFlavoredDist ? "- Payment tap routes to /app/store (app flavor): OK" : "- Payment modal touch: OK");
+    if (!focusAllFortunes) {
+      console.log("- Primary CTA touch: OK");
+      console.log("- Tarot touch: OK");
+      console.log("- Bottom nav 5-tab tarot touch: OK");
+      console.log("- Payment pass button wiring: OK");
+      console.log(appFlavoredDist ? "- Payment tap routes to /app/store (app flavor): OK" : "- Payment modal touch: OK");
+    }
     console.log("- Initial audio/video elements: 0");
+    if (focusAllFortunes) console.log("- Focused all-fortunes touch flow: OK");
   }
 } finally {
   if (cdp) {
