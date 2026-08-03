@@ -94,8 +94,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "자미두수 명반 | 코드 데스티니",
     description: "명궁과 신궁, 12궁, 일과 돈과 관계의 축을 중심으로 자미두수 명반의 별 흐름과 현실 선택의 방향을 살핍니다.",
-    source: "static-shell",
-    action: "openZiweiModal",
+    source: "app",
   },
   {
     canonical: "/astrology/cosmic",
