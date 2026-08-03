@@ -3716,7 +3716,8 @@
           checkoutPayload.requestId ||
           '',
         ).trim();
-        if (accessGrant || consume || _dpIsCheckoutAccessBypass(checkoutData, checkoutPayload.featureKey || opts.featureKey || '')) {
+        var allowDirectCheckoutAccessBypass = opts.allowServerAccessBypass === true && opts.forceDirectPayment !== true;
+        if (allowDirectCheckoutAccessBypass && (accessGrant || consume || _dpIsCheckoutAccessBypass(checkoutData, checkoutPayload.featureKey || opts.featureKey || ''))) {
           var freePaymentPayload = Object.assign({}, checkoutData, {
             transactionId: freeTxHint,
             paymentId: freeTxHint || checkoutPayload.requestId || undefined,

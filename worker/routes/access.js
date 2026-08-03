@@ -627,8 +627,6 @@ async function handleUnlocks(request, env) {
   if (request.method !== "GET") return methodNotAllowed();
 
   const url = new URL(request.url);
-  const auth = await requireUserFromRequest(request, env);
-  const userId = String(auth.userId || "");
   const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
   const serviceKeyParam = sanitizeAccessKey(
     url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
@@ -641,6 +639,9 @@ async function handleUnlocks(request, env) {
   if (!profileId) {
     throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
   }
+
+  const auth = await requireUserFromRequest(request, env);
+  const userId = String(auth.userId || "");
 
   // ?¼ì‹œ???€ ì´ˆê¸°?”ì—???´ê¸ˆ ?íƒœë¥??•í™•??ë°˜í™˜?˜ë„ë¡?ì¡°íšŒë¥??¬ì‹œ?„ë¡œ ê°ì‹¼??
   // (verifyProfileOwnership??404 ??ë¹??¼ì‹œ???ëŸ¬???¬ì‹œ???†ì´ ì¦‰ì‹œ ?„íŒŒ?œë‹¤.)

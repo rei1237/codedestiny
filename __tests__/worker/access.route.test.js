@@ -81,6 +81,8 @@ beforeEach(() => {
   globalThis.__codeDestinyAccessUnlocksCache?.entries?.clear?.();
   globalThis.__codeDestinyAccessUnlocksCache?.inFlight?.clear?.();
   requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID });
+  requireUserFromRequest.mockClear();
+  withMongoRetry.mockClear();
   profileFindOne.mockReturnValue({
     select: () => ({
       lean: async () => ({ _id: "profile-doc", profileId: TEST_PROFILE_ID }),
@@ -115,6 +117,19 @@ beforeEach(() => {
   entitlementFind.mockReturnValue(queryChain([]));
   pointHistoryFind.mockReturnValue(queryChain([]));
   paymentFind.mockReturnValue(queryChain([]));
+});
+
+test("rejects legacy unlock reads without profileId before auth or DB lookup", async () => {
+  const url = new URL("https://example.com/api/access/unlocks");
+  url.searchParams.set("serviceKey", "ziwei,ad_free");
+  url.searchParams.set("load_free", "1");
+
+  const response = await handleAccessRoutes(new Request(url, { method: "GET" }), {});
+
+  expect(response.status).toBe(403);
+  expect(requireUserFromRequest).not.toHaveBeenCalled();
+  expect(withMongoRetry).not.toHaveBeenCalled();
+  expect(getUnlockedContentSnapshot).not.toHaveBeenCalled();
 });
 
 test("deduplicates concurrent unlock snapshot reads for the same user and profile", async () => {
