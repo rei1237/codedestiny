@@ -34,18 +34,27 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(css, /content-visibility:\s*auto/);
 });
 
-test("fusion fortune production switches stay explicit and fail-closed before activation", () => {
+test("fusion fortune production switches enable the approved live flow and keep mock off", () => {
   const wrangler = read("worker/wrangler.toml");
   for (const flag of [
     "ENABLE_FUSION_FORTUNE_UI",
     "ENABLE_FUSION_FORTUNE_API",
-    "ENABLE_FUSION_FORTUNE_MOCK_FLOW",
     "ENABLE_FUSION_FORTUNE_TICKET_SALES",
     "ENABLE_FUSION_FORTUNE_REAL_LLM",
     "ALLOW_FUSION_FORTUNE_REAL_LLM",
   ]) {
-    assert.match(wrangler, new RegExp(`${flag}\\s*=\\s*"false"`));
+    assert.match(wrangler, new RegExp(`${flag}\\s*=\\s*"true"`));
   }
+  assert.match(wrangler, /ENABLE_FUSION_FORTUNE_MOCK_FLOW\s*=\s*"false"/);
+});
+
+test("family shop copy explicitly excludes the dedicated fusion ticket", () => {
+  const points = read("app/points/PointsClient.tsx");
+  const html = read("index.html");
+  assert.match(points, /초융합 제외 · 3만원 미만 무제한/);
+  assert.match(points, /초융합 운세는 별도 상담권 필요/);
+  assert.doesNotMatch(points, /모든 유료 서비스 이용 가능/);
+  assert.match(html, /초융합 제외 3만원 미만 기능 무제한/);
 });
 
 test("guardian free copy describes a maximum rather than a guaranteed grant", () => {
