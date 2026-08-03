@@ -8,6 +8,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const shellSource = fs.readFileSync(path.resolve(__dirname, "../..", "index.html"), "utf8");
+const accessStoreSource = fs.readFileSync(path.resolve(__dirname, "../..", "js/core/access-store.js"), "utf8");
 
 function between(source, start, end) {
   const startIndex = source.indexOf(start);
@@ -26,26 +27,21 @@ test("main unlock sync uses the entitlement-only endpoint", () => {
   assert.doesNotMatch(syncBlock, /syncBalanceFromServer/);
 });
 
-test("main unlock bootstrap requests both profile services in one access request", () => {
-  const accessFetchBlock = between(shellSource, "async function _cdFetchSajuAccessUnlocks", "function _cdClearKnownUnlocks");
+test("central access store requests profile services in one access request", () => {
   const initialBootstrapBlock = between(shellSource, "function scheduleInitialUnlockSync", "loadBalance();");
 
-  assert.match(accessFetchBlock, /params\.set\('serviceKey', serviceKeys\.join\(','\)\)/);
-  assert.doesNotMatch(accessFetchBlock, /includeBackfill/);
+  assert.match(accessStoreSource, /var DEFAULT_SERVICE_KEYS = \['saju', 'ziwei', 'ad_free'\]/);
+  assert.match(accessStoreSource, /'&serviceKey=' \+ encodeURIComponent\(context\.serviceKeys\.join\(','\)\)/);
+  assert.doesNotMatch(accessStoreSource, /includeBackfill/);
+  assert.doesNotMatch(shellSource, /\/api\/access\/unlocks\?/);
   assert.doesNotMatch(initialBootstrapBlock, /syncGoldenMonthlyCreditsFromPaymentsMe/);
   assert.doesNotMatch(initialBootstrapBlock, /syncBalanceFromServer/);
 });
-test("main unlock GET is deduped and cooled down by the shared API guard", () => {
-  const dedupeBlock = between(shellSource, "function shouldDedupeApiGet", "function getApiCooldownKey");
-  const cooldownBlock = between(shellSource, "function shouldApplyApiCooldown", "function readApiCooldown");
-  const cacheBlock = between(shellSource, "function getApiResultCacheTtl", "function cloneApiResult");
-  const retryBlock = between(shellSource, "async function _cdFetchAccessUnlocksWithRetry", "var serviceKeys = _cdCollectSajuAccessServiceKeys");
-
-  assert.match(dedupeBlock, /\/api\/access\/unlocks/);
-  assert.match(cooldownBlock, /\/api\/access\/unlocks/);
-  assert.match(cacheBlock, /\/api\/access\/unlocks/);
-  assert.doesNotMatch(retryBlock, /SAJU_UNLOCK_CONFIRM_DELAYS_MS/);
-  assert.doesNotMatch(retryBlock, /1500|3000/);
+test("central unlock GET is single-flight, throttled, and has no automatic retry", () => {
+  assert.match(accessStoreSource, /if \(inFlight\[context\.key\]\)/);
+  assert.match(accessStoreSource, /return inFlight\[context\.key\]\.promise/);
+  assert.match(accessStoreSource, /var REFRESH_THROTTLE_MS = 15 \* 1000/);
+  assert.match(accessStoreSource, /var RETRY_DELAYS = \[\]/);
 });
 
 test("main unlock bootstrap does not fetch unlocks until a visible paid gate exists", () => {
