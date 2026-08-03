@@ -15,15 +15,15 @@
     });
   </script>
 <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
-  <script src="/js/inline/canonical-redirect.js?v=build-90162a82a088"></script>
+  <script src="/js/inline/canonical-redirect.js?v=build-431f9580caef"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
       <script src="/js/inline/global-error-guard.js"></script>
 <!-- 이용권 판정 정본(js/core/pass-verdict.js). 셸 인라인 블록이 파싱 시점에 window.__cdPassVerdict 를
      필요로 하므로 defer 를 붙이지 않는다. 순수 로직 파일이라 렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/core/pass-verdict.js?v=build-90162a82a088"></script>
-      <script src="/js/core/access-store.js?v=build-90162a82a088"></script>
-      <script src="/js/core/checkout-entry.js?v=build-90162a82a088"></script>
-      <script src="/js/kill-switch.js?v=build-90162a82a088" defer></script>
+      <script src="/js/core/pass-verdict.js?v=build-431f9580caef"></script>
+      <script src="/js/core/access-store.js?v=build-431f9580caef"></script>
+      <script src="/js/core/checkout-entry.js?v=build-431f9580caef"></script>
+      <script src="/js/kill-switch.js?v=build-431f9580caef" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -244,7 +244,7 @@
             // 인라인/React 레이어 TTL 불일치로 인한 캐시 신선도 혼선/중복 조회를 제거한다.
             if (cacheKind === 'systemStatus') return 300000;
             if (cacheKind === 'session') return 300000;
-            if (cacheKind === 'accessState') return 5000;
+            if (cacheKind === 'accessState') return 60000;
             if (cacheKind === 'profile') return 120000;
             if (cacheKind === 'entitlement') return 180000;
             return 120000; // paymentAccess 및 기타
@@ -342,17 +342,6 @@
             inFlight[key] = request;
             return request;
           }
-          function hasSession(response) {
-            if (!response || !response.ok) return Promise.resolve(false);
-            return response.clone().json().then(function (payload) {
-              var nested = payload && payload.data && typeof payload.data === 'object' ? payload.data : null;
-              if (payload && (payload.authenticated === false || payload.loggedIn === false || (nested && nested.authenticated === false))) return false;
-              if (payload && (payload.authenticated === true || payload.loggedIn === true || (nested && nested.authenticated === true))) return true;
-              return !!(payload && (payload.user || payload.account || (nested && (nested.user || nested.account)))) || userKey() !== 'guest';
-            }).catch(function () {
-              return userKey() !== 'guest';
-            });
-          }
           function ensureLoaded(options) {
             var opts = options || {};
             var headers;
@@ -363,11 +352,16 @@
             headers = headers || {};
             headers['X-Code-Destiny-Client'] = 'static:index-session-cache';
             var init = { method: 'GET', credentials: 'include', cache: 'no-store', headers: headers };
-            return fetch('/api/auth/me', init).catch(function () { return null; }).then(function (response) {
-              return hasSession(response);
-            }).then(function (ready) {
-              if (!ready) return snapshot;
-              return fetch('/api/me/access-state', init).then(function (accessResponse) {
+            return fetch('/api/me/access-state', init).then(function (accessResponse) {
+                if (accessResponse && accessResponse.ok) {
+                  accessResponse.clone().json().then(function (payload) {
+                    var accessData = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+                    var store = window.CodeDestinyAccessStore;
+                    if (accessData && store && typeof store.applyAccessStateSnapshot === 'function') {
+                      store.applyAccessStateSnapshot(accessData, { reason: 'static-session-bootstrap' });
+                    }
+                  }).catch(function () {});
+                }
                 if (accessResponse && accessResponse.status !== 404 && accessResponse.status !== 405) return snapshot;
                 var tasks = [];
                 if (opts.includeProfile !== false) tasks.push(fetch('/api/profile', init).catch(function () { return null; }));
@@ -377,7 +371,6 @@
                 }
                 return Promise.allSettled(tasks).then(function () { return snapshot; });
               }).catch(function () { return snapshot; });
-            });
           }
           window.fetch = fetchWithCache;
           window.__cdUserAccessSessionCacheInstalled = true;
@@ -420,7 +413,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#FFF8F0" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
-<link rel="manifest" href="/manifest.ja.json?v=build-90162a82a088">
+<link rel="manifest" href="/manifest.ja.json?v=build-431f9580caef">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="96x96" href="/icons/app-logo-96.png">
 <link rel="apple-touch-icon" href="/icons/app-logo-180.png">
@@ -503,14 +496,14 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <script>(function(){try{var d=document.documentElement,mm=window.matchMedia;var isTouch=(mm&&mm('(max-width: 900px), (hover: none) and (pointer: coarse)').matches);if(!isTouch)return;if(!/[?&]action=[^&]/.test(String(location.search||'')))return;d.classList.add('cd-deeplink-boot');/* 런타임 스크립트가 실패해도 화면이 가려진 채 남지 않도록 하드 상한을 둔다 */setTimeout(function(){try{d.classList.remove('cd-deeplink-boot');}catch(e){}},5000);}catch(e){}})();</script>
 <!-- 부팅 게이트 로고: 첫 프레임에 준비돼 있어야 로고 없는 빈 게이트가 잠깐 보이지 않는다 -->
 <link rel="preload" as="image" href="/icons/app-logo-512.webp" fetchpriority="high">
-<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-90162a82a088">
-<link rel="stylesheet" href="/styles/core-ui.css?v=build-90162a82a088">
- <link rel="stylesheet" href="/styles/fortune-ui.css?v=build-90162a82a088">
- <link rel="stylesheet" href="/styles/guardian-fortune.css?v=build-90162a82a088">
-<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-90162a82a088" media="all" data-cd-mobile-runtime-css="1">
+<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-431f9580caef">
+<link rel="stylesheet" href="/styles/core-ui.css?v=build-431f9580caef">
+ <link rel="stylesheet" href="/styles/fortune-ui.css?v=build-431f9580caef">
+ <link rel="stylesheet" href="/styles/guardian-fortune.css?v=build-431f9580caef">
+<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-431f9580caef" media="all" data-cd-mobile-runtime-css="1">
 <!-- 브랜드 세리프 @font-face(R2 미러 청크). font-display:swap 이라 렌더를 막지 않는다. -->
-<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-90162a82a088">
-<link rel="preload" href="/styles/cosmic-main.css?v=build-90162a82a088" as="style">
+<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-431f9580caef">
+<link rel="preload" href="/styles/cosmic-main.css?v=build-431f9580caef" as="style">
 
 <title data-cd-trans="shell.CODEDESTINY">CODE DESTINY | 無料 四柱推命・タロット・紫微斗数・相性 — 占い</title>
 <link rel="preload" as="image" href="https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp" imagesrcset="https://assets.code-destiny.com/cdn-cgi/image/width=480,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 480w, https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w" imagesizes="100vw" fetchpriority="high">
@@ -553,7 +546,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <meta property="og:description" content="生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。">
 <meta property="og:url" content="https://code-destiny.com/ja/">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-90162a82a088">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-431f9580caef">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -562,7 +555,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY">
 <meta name="twitter:description" content="生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-90162a82a088">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-431f9580caef">
 <meta name="twitter:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1624,46 +1617,46 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <script src="/js/inline/api-base-init.js?v=build-90162a82a088" defer></script>
+  <script src="/js/inline/api-base-init.js?v=build-431f9580caef" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-90162a82a088">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-431f9580caef">
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-431f9580caef"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-431f9580caef"></noscript>
 
   <!-- 이 시트는 모달용이 아니라 홈 본문(#inputPage)을 직접 칠한다(.fc-closed-peek 숨김, .fc-toggle-hint 글자크기).
        지연 목록에 있으면 첫 터치에 시트가 붙으면서 접힘 표시가 사라지고 글자·높이가 튄다 —
        측정으로 확인된 잔여 깜빡임의 유일한 원인이었다. rel 을 미리 박아 첫 페인트부터 적용시킨다.
        <link> 위치는 그대로라 승격됐을 때와 캐스케이드 순서가 동일하다. (cd-totem-fix-blocking-v20260721) -->
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-90162a82a088">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-431f9580caef">
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-431f9580caef"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-431f9580caef"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-431f9580caef"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-431f9580caef"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-431f9580caef"></noscript>
 
   <!-- cd-premium-pdf-cosmic-chapter-ui-v20260519 -->
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-90162a82a088"></noscript>
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-431f9580caef"></noscript>
+  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-431f9580caef"></noscript>
   <style id="cd-sibyl-modal-critical">
   /* 시빌라 모달 임계 CSS — 지연 로드되는 styles/sibyl-system.css가 승격되기 전에도
      모달이 정상적으로 열리도록 하는 구조 폴백. 색/테두리/애니 세부는 지연 시트 담당.
@@ -1675,8 +1668,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   #sibylModal.sb-open .sb-panel{transform:translateY(0)}
   #sibylModal .sb-hidden{display:none}
   </style>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-90162a82a088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-90162a82a088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-431f9580caef" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-431f9580caef"></noscript>
 
   <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -2615,7 +2608,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
       linear-gradient(135deg, rgba(255,245,211,0.12), transparent 31%),
       linear-gradient(28deg, rgba(106,28,38,0.36), transparent 48%),
       repeating-linear-gradient(90deg, rgba(241,205,124,0.13) 0 1px, transparent 1px 44px),
-      url('/fuctionassets/신년운세.webp?v=build-90162a82a088') center 34% / cover no-repeat,
+      url('/fuctionassets/신년운세.webp?v=build-431f9580caef') center 34% / cover no-repeat,
       linear-gradient(145deg, #130d0b 0%, #321014 52%, #071018 100%) !important;
     box-shadow:
       0 18px 54px rgba(22, 9, 8, 0.62),
@@ -11188,8 +11181,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
                 id="honeypigLogo"
                 data-lcp-candidate="1"
                 class="honeypig-logo-icon"
-                src="/icons/app-logo-512.webp?v=build-90162a82a088"
-                srcset="/icons/app-logo-512.webp?v=build-90162a82a088 96w, /icons/app-logo-512.webp?v=build-90162a82a088 130w, /icons/app-logo-512.webp?v=build-90162a82a088 512w"
+                src="/icons/app-logo-512.webp?v=build-431f9580caef"
+                srcset="/icons/app-logo-512.webp?v=build-431f9580caef 96w, /icons/app-logo-512.webp?v=build-431f9580caef 130w, /icons/app-logo-512.webp?v=build-431f9580caef 512w"
                 sizes="(max-width: 360px) 78px, (max-width: 768px) 88px, 130px"
                 width="130"
                 height="130"
@@ -11270,7 +11263,7 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           <span class="moon-hero__spark moon-hero__spark--2" aria-hidden="true"></span>
           <span class="moon-hero__spark moon-hero__spark--3" aria-hidden="true"></span>
           <div class="moon-hero__picture moon-hero__picture--mascot" data-transparent-hero-asset="sleeping-yeon-v20260611">
-            <img src="/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-90162a82a088" alt="" width="142" height="142" loading="lazy" fetchpriority="low" decoding="async" onerror="if((this.src||'').indexOf('/fuctionassets/')!==-1){this.onerror=null;this.src='/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png?v=build-90162a82a088'}">
+            <img src="/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-431f9580caef" alt="" width="142" height="142" loading="lazy" fetchpriority="low" decoding="async" onerror="if((this.src||'').indexOf('/fuctionassets/')!==-1){this.onerror=null;this.src='/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png?v=build-431f9580caef'}">
             <span class="moon-hero__zzz" aria-hidden="true">zzz</span>
           </div>
           <div class="moon-hero__card-stack" data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612" aria-hidden="true">
@@ -13133,8 +13126,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       </script>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-90162a82a088"
-            srcset="/icons/neo-96.webp?v=build-90162a82a088 96w, /icons/neo-130.webp?v=build-90162a82a088 130w, /icons/neo.webp?v=build-90162a82a088 512w" sizes="(max-width: 768px) 88px, 130px"
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-431f9580caef"
+            srcset="/icons/neo-96.webp?v=build-431f9580caef 96w, /icons/neo-130.webp?v=build-431f9580caef 130w, /icons/neo.webp?v=build-431f9580caef 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="네오 모드 로고" data-cd-trans-attr="alt:auth.neoLogoAlt" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:var(--font-display);color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;" data-cd-trans="auth.neoTagline">네오의 팩폭 운세 플랫폼</p>
@@ -17189,8 +17182,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
 
             <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
                aria-label="일의 문턱을 읽는 7카드 커리어 전환 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCareerMoveAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-90162a82a088" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-90162a82a088" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-431f9580caef" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-431f9580caef" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -17203,8 +17196,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             <!-- [기능 연결부] 말과 행동 사이 타로 → /tarot/mindscan -->
             <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
                aria-label="말과 행동 사이의 온도를 읽는 10카드 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotMindscanAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-90162a82a088" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-90162a82a088" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-431f9580caef" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-431f9580caef" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -17217,8 +17210,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
             <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
                aria-label="원석 소울 타로 리딩 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCrystalSoulAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-90162a82a088" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-90162a82a088" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-431f9580caef" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-431f9580caef" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -17417,7 +17410,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-90162a82a088" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-431f9580caef" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
@@ -18054,7 +18047,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               </div>
             </div>
             <a class="membership-recap-cta__mascot" href="/points?source=main-membership" aria-label="문라이트 패스 혜택 보기 · 달빛 이용권 상점" data-cd-trans-attr="aria-label:home.passFooter.mascotAria">
-              <img class="membership-recap-cta__mascot-img" src="/icons/code-destiny-moonlight-pass.webp?v=build-90162a82a088" alt="문라이트 패스 혜택 이미지" data-cd-trans-attr="alt:home.passFooter.mascotAlt" data-retired-asset="membership-honey-kkulkkul.webp" width="1456" height="1024" loading="lazy" decoding="async">
+              <img class="membership-recap-cta__mascot-img" src="/icons/code-destiny-moonlight-pass.webp?v=build-431f9580caef" alt="문라이트 패스 혜택 이미지" data-cd-trans-attr="alt:home.passFooter.mascotAlt" data-retired-asset="membership-honey-kkulkkul.webp" width="1456" height="1024" loading="lazy" decoding="async">
               <span class="membership-recap-cta__mascot-copy">
                 <span class="membership-recap-cta__mascot-kicker" data-cd-trans data-key="home.passFooter.mascotKicker">Moonlight Pass Guide</span>
                 <span class="membership-recap-cta__mascot-text" data-cd-trans data-key="home.passFooter.mascotText">문라이트 패스가 자주 찾는 운세 루틴을 한결 편안한 달빛 흐름으로 이어줍니다.</span>
@@ -18249,7 +18242,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         </button>
         <button type="button" class="honey-membership-mini__hero" data-membership-cta="benefits" aria-label="달빛 흐름으로 무료 이용 가능 서비스 확인" data-cd-trans-attr="aria-label:home.passMini.heroAria">
           <span class="honey-membership-mini__pass-icon" aria-hidden="true">
-            <img class="honey-membership-mini__pass-img" src="/icons/app-logo-512.webp?v=build-90162a82a088" alt="" width="86" height="86" loading="lazy" decoding="async">
+            <img class="honey-membership-mini__pass-img" src="/icons/app-logo-512.webp?v=build-431f9580caef" alt="" width="86" height="86" loading="lazy" decoding="async">
           </span>
           <span class="honey-membership-mini__hero-copy">
             <strong class="honey-membership-mini__hero-title" data-cd-trans data-key="home.passMini.heroTitle">문라이트 패스 범위 보기</strong>
@@ -19165,7 +19158,7 @@ return you.name.restore();</span>
               <div class="oracle-card-m" id="tarotCardEl" data-action="startTarotReading">
                 <div class="oracle-face-m oracle-back-m" id="tarotCardBack"></div>
                 <div class="oracle-face-m oracle-front-m" id="tarotCardFront">
-                  <img id="tarotCardFrontImg" class="tarot-face-img" src="/fuctionassets/tarolove.webp?v=build-90162a82a088" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-90162a82a088';" alt="Tarot card" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt" loading="lazy" decoding="async" width="200" height="300">
+                  <img id="tarotCardFrontImg" class="tarot-face-img" src="/fuctionassets/tarolove.webp?v=build-431f9580caef" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-431f9580caef';" alt="Tarot card" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt" loading="lazy" decoding="async" width="200" height="300">
                 </div>
               </div>
             </div>
@@ -19179,7 +19172,7 @@ return you.name.restore();</span>
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="0">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="0">
-                      <img class="tarot-face-img" data-card-img="0" src="/fuctionassets/tarolove.webp?v=build-90162a82a088" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-90162a82a088';" alt="Tarot card 1" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt1" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
+                      <img class="tarot-face-img" data-card-img="0" src="/fuctionassets/tarolove.webp?v=build-431f9580caef" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-431f9580caef';" alt="Tarot card 1" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt1" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -19188,7 +19181,7 @@ return you.name.restore();</span>
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="1">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="1">
-                      <img class="tarot-face-img" data-card-img="1" src="/fuctionassets/tarolove.webp?v=build-90162a82a088" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-90162a82a088';" alt="Tarot card 2" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt2" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
+                      <img class="tarot-face-img" data-card-img="1" src="/fuctionassets/tarolove.webp?v=build-431f9580caef" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-431f9580caef';" alt="Tarot card 2" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt2" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -19197,7 +19190,7 @@ return you.name.restore();</span>
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="2">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="2">
-                      <img class="tarot-face-img" data-card-img="2" src="/fuctionassets/tarolove.webp?v=build-90162a82a088" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-90162a82a088';" alt="Tarot card 3" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt3" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
+                      <img class="tarot-face-img" data-card-img="2" src="/fuctionassets/tarolove.webp?v=build-431f9580caef" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp?v=build-431f9580caef';" alt="Tarot card 3" data-cd-trans-attr="alt:home.myeongriTarot.cardAlt3" loading="lazy" decoding="async" fetchpriority="low" width="200" height="300">
                     </div>
                   </div>
                 </div>
@@ -21013,19 +21006,19 @@ return you.name.restore();</span>
   })();
 </script>
 
-<script defer fetchpriority="high" src="/js/destiny-profile.js?v=build-90162a82a088" data-marker="profile-card-date-input-v20260624"></script>
+<script defer fetchpriority="high" src="/js/destiny-profile.js?v=build-431f9580caef" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
-<script defer src="/js/daily-fortune-core.js?v=build-90162a82a088" data-marker="cd-today-hub-v20260802"></script>
-<script defer src="/js/guardian-fortune-mock.js?v=build-90162a82a088" data-marker="guardian-fortune-mock-v1"></script>
-<script defer src="/js/guardian-fortune-api.js?v=build-90162a82a088" data-marker="guardian-fortune-api-v1"></script>
-<script defer src="/js/guardian-fortune-share.js?v=build-90162a82a088" data-marker="guardian-fortune-share-v1"></script>
-<script defer src="/js/guardian-fortune-home.js?v=build-90162a82a088" data-marker="guardian-fortune-home-v1"></script>
+<script defer src="/js/daily-fortune-core.js?v=build-431f9580caef" data-marker="cd-today-hub-v20260802"></script>
+<script defer src="/js/guardian-fortune-mock.js?v=build-431f9580caef" data-marker="guardian-fortune-mock-v1"></script>
+<script defer src="/js/guardian-fortune-api.js?v=build-431f9580caef" data-marker="guardian-fortune-api-v1"></script>
+<script defer src="/js/guardian-fortune-share.js?v=build-431f9580caef" data-marker="guardian-fortune-share-v1"></script>
+<script defer src="/js/guardian-fortune-home.js?v=build-431f9580caef" data-marker="guardian-fortune-home-v1"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-e1cddf44c1f5" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-90162a82a088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-90162a82a088" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-431f9580caef" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-431f9580caef" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -21144,7 +21137,7 @@ return you.name.restore();</span>
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-90162a82a088',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-431f9580caef',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -21208,8 +21201,8 @@ return you.name.restore();</span>
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/share-reward.js?v=build-90162a82a088"></script>
-<script data-cd-noncritical-src="/js/share.js?v=build-90162a82a088"></script>
+<script data-cd-noncritical-src="/js/share-reward.js?v=build-431f9580caef"></script>
+<script data-cd-noncritical-src="/js/share.js?v=build-431f9580caef"></script>
 <script>
 (function(){
   var shouldRunVersionProbe = function () {
@@ -21262,7 +21255,7 @@ return you.name.restore();</span>
 
 <script data-cd-noncritical-src="/js/iching-engine.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=build-90162a82a088" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=build-431f9580caef" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <!-- native language override disabled: core runtime handler provides immediate GT switching -->
@@ -21276,7 +21269,7 @@ return you.name.restore();</span>
   </div>
 </div>
 
-<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-90162a82a088" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-431f9580caef" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
@@ -22218,9 +22211,6 @@ return you.name.restore();</span>
         if (window.__cdDirectPaymentChoiceActive && window.__cdDirectPaymentChoiceActive.modal === modal) {
           window.__cdDirectPaymentChoiceActive = null;
         }
-        // 단건이 아닌 결말(월정석·이용권·취소)이면 사전발급된 주문은 쓰이지 않으니 즉시 버린다.
-        // 단건이면 _cdRunDirectKrwCheckout 이 꺼내 쓰면서 스스로 비운다.
-        if (mode !== 'direct') _cdResetDirectCheckoutPrefetch();
         // 이탈 계측 — 아무 것도 고르지 않고 닫은 경우만. dwellMs 로 '읽다가 포기'와 '즉시 닫음'을 가른다.
         if (mode === 'cancel' || !mode) {
           _cdTrackCheckoutEvent('checkout_dismissed', {
@@ -22330,22 +22320,8 @@ return you.name.restore();</span>
         coinPrice: coinPrice,
         hasPassHint: hasActivePassTier ? 'active' : 'unknown'
       });
-      // 🔴 단건 주문 사전발급 — 사용자가 결제수단을 읽는 동안 서버 왕복을 끝내 두고, '단건결제'를 누르면
-      // 왕복 0으로 즉시 PG 결제창을 연다. 이용권을 고르면 그 자리에서 이용권을 검사하므로 이 사전발급은
-      // 쓰이지 않고 close() 에서 즉시 폐기된다. 단건/월정석 동등 노출도 그대로다. PG 에는 아무것도 보내지 않는다.
-      // requestId(=Idempotency-Key)가 없는 진입로에서는 발사하지 않는다 — 키 없는 주문은 멱등 병합이
-      // 안 되어 고아 주문을 만들고, 클릭 시 본문이 어긋나 409 가 날 수 있다.
-      if (String(opts.requestId || '').trim() && allowDirectChoice !== false) {
-        try {
-          _cdStartDirectCheckoutPrefetch(_cdBuildDirectCheckoutPayload(opts).checkoutPayload);
-        } catch (_directPrefetchError) {}
-      }
       document.body.appendChild(modal);
-      // 🔴 구간 차단은 결제창이 **DOM 에 붙은 뒤에** 끝난다. 예전에는 위 사전발급보다 앞에서 끝냈는데,
-      // 그 사이(사전발급 → appendChild)는 억제 창 ①도 끝났고 '.cd-direct-payment-modal' 검사 ②도
-      // 아직 시작 전이라 무방비였고, 사전발급의 /api/billing/checkout 이 전역 fetch 래퍼를 깨워
-      // 'PAYMENT CHECK · 결제 상태 확인 중' 화면이 결제창을 덮었다. 새 억제 창을 만들지 않고
-      // 기존 하나(__cdSuppressPreCheckoutWaitUi)의 종료 지점만 옮겨 ①과 ②를 끊김 없이 잇는다.
+      // 선택 모달이 DOM에 붙은 뒤 전환 억제를 해제한다.
       _cdEndPreCheckoutWaitUiSuppression();
       // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 카드). 하드코딩된 direct 포커스 대체.
       var first = modal.querySelector('.cd-direct-payment-option:not([disabled])') || modal.querySelector('[data-mode="direct"]');
@@ -22787,92 +22763,14 @@ return you.name.restore();</span>
     return Date.now() - Number(active.startedAt || 0) < ttlMs;
   }
 
-  // 🔴 단건 checkout 사전발급 — 결제수단 모달이 열릴 때 주문을 미리 만들어 두고, 사용자가 '단건결제'를
-  // 누르는 순간에는 서버 왕복 없이 곧바로 PG 결제창을 연다(Atlas 무료 티어에서 왕복 1회가 체감 지연의
-  // 대부분이었다). PG 에는 아무것도 보내지 않는다 — pending 주문을 만들어 paymentId 만 확보한다.
-  //
-  // 정책: 결제수단 모달은 '이용권 선검사가 미커버로 결론난 뒤'에만 열린다. 따라서 이 사전발급은
-  // 선검사를 건너뛰지 않으며(선검사 이후 시점), 모달의 단건/월정석 동등 노출도 그대로다.
-  // 사용자가 월정석/취소를 고르면 발급된 주문은 그냥 버려진다(구독 prepare 가 이미 쓰는 트레이드오프).
-  //
-  // 폐기는 새 지점을 만들지 않고 결제수단 모달의 close() 한 곳에 얹는다(중복 수명주기 금지).
-  function _cdResetDirectCheckoutPrefetch() {
-    window.__cdDirectCheckoutPrefetch = null;
-  }
-
-  function _cdStartDirectCheckoutPrefetch(checkoutPayload) {
-    try {
-      var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
-      if (!key) return;
-      var existing = window.__cdDirectCheckoutPrefetch;
-      if (existing && existing.key === key) return;
-      // 🔴 서버가 503 을 뱉는 중이면 사전발급을 발사하지 않는다 — 장애 중에 부하를 더하면 안 된다.
-      // 클릭 시점에는 폴백 경로가 정상적으로 요청하고, 쿨다운이면 사용자에게 남은 시간을 안내한다.
-      try {
-        if (typeof readApiCooldown === 'function' && readApiCooldown('/api/billing/checkout') > Date.now()) return;
-      } catch (_cooldownProbeError) {}
-      // 🔴 slot.settled 를 심는 이유: 클릭 시 '완료됐는지'를 await 로 확인하면 그 확인 자체가 대기가
-      // 되어 느린 사전발급이 클릭을 더 느리게 만든다(그게 '너무 느리다'+'네트워크 오류'의 원인이었다).
-      // 동기적으로 읽을 수 있는 플래그로 두고, 완료된 경우에만 재사용한다.
-      var slot = { key: key, settled: false, value: null, promise: null };
-      window.__cdDirectCheckoutPrefetch = slot;
-      slot.promise = fetchJsonWithAuth('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Idempotency-Key': key },
-        body: JSON.stringify(checkoutPayload),
-        // 사전발급은 사용자가 결제수단을 읽는 동안 조용히 끝나야 한다 — 전역 fetch 래퍼의
-        // 자동 결제 오버레이가 결제수단 모달을 덮지 않도록 이 요청만 무음으로 만든다.
-        __cdSuppressPaymentOverlay: true
-      }).then(function(res) {
-          slot.settled = true;
-          slot.value = { ok: true, res: res };
-          return slot.value;
-        }, function(error) {
-          slot.settled = true;
-          slot.value = { ok: false, error: error };
-          try { if (window.console) console.warn('[direct-checkout] prefetch failed (무시하고 클릭 시 재요청)', error && error.message); } catch (_) {}
-          return slot.value;
-        });
-    } catch (_prefetchError) {
-      _cdResetDirectCheckoutPrefetch();
-    }
-  }
-
-  // 🔴 비차단 규칙: 사전발급이 **이미 성공적으로 끝난** 경우에만 그대로 재사용한다. 아직 진행 중이면
-  // 그것을 await 하지 않고 새 요청을 즉시 보내되(느린 사전발급이 클릭을 더 느리게 만들지 않도록),
-  // 진행 중인 사전발급을 **버리지는 않고 경합**시켜 먼저 도착한 응답을 쓴다 — 예전에는 폐기해서
-  // '먼저 출발한 응답을 버리고 늦게 출발한 응답을 기다리는' 손해가 그대로 체감 지연이 됐다.
-  // 같은 Idempotency-Key 라 서버가 멱등 처리하므로(findOneAndUpdate upsert + E11000 복구)
-  // 두 요청이 겹쳐도 주문은 하나다.
-  // 🔴 value.ok 는 "promise 가 reject 되지 않았다"일 뿐 HTTP 성공이 아니다. fetchJsonWithAuth 는
-  // 401/402/503/타임아웃도 reject 하지 않고 { ok:false } 로 resolve 하므로, value.ok 로 판정하면
-  // **실패한 사전발급이 정답으로 재사용**되어 단건을 고르는 순간 '결제 준비에 실패했습니다'로 터진다
-  // (= PG창이 영영 안 뜬다). 판정은 반드시 안쪽 응답의 HTTP 성공(value.res.ok)으로 한다.
-  function _cdIsUsableCheckoutPrefetch(value) {
-    return Boolean(value && value.res && value.res.ok === true);
-  }
-
+  // 결제 POST는 사전발급하거나 자동 재시도하지 않는다. 명시적인 단건 선택 뒤 한 번만 발급한다.
   function _cdTakeDirectCheckoutResponse(checkoutPayload) {
     var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
-    var prefetch = window.__cdDirectCheckoutPrefetch;
-    _cdResetDirectCheckoutPrefetch();
-    var reusable = key && prefetch && prefetch.key === key;
-    if (reusable && prefetch.settled === true && _cdIsUsableCheckoutPrefetch(prefetch.value)) {
-      return Promise.resolve(prefetch.value.res);
-    }
-    var fresh = fetchJsonWithAuth('/api/billing/checkout', {
+    return fetchJsonWithAuth('/api/billing/checkout', {
       method: 'POST',
       headers: key ? { 'Idempotency-Key': key } : undefined,
       body: JSON.stringify(checkoutPayload)
     });
-    if (!reusable || prefetch.settled === true || !prefetch.promise || typeof prefetch.promise.then !== 'function') return fresh;
-    // 사전발급 promise 는 실패해도 reject 하지 않고 { ok:false } 로 resolve 한다 — 실패면 fresh 로 넘긴다.
-    return Promise.race([
-      prefetch.promise.then(function(value) {
-        return _cdIsUsableCheckoutPrefetch(value) ? value.res : fresh;
-      }, function() { return fresh; }),
-      fresh
-    ]);
   }
 
   function _cdStartDirectCheckoutPreflight() {
@@ -22943,9 +22841,7 @@ return you.name.restore();</span>
     return coins > 0 ? coins * 100 : 0;
   }
 
-  // 단건 checkout 요청 본문의 단일 정본. 사전발급(모달 오픈 시)과 실제 결제(클릭 시)가 반드시
-  // 같은 본문·같은 Idempotency-Key 를 보내야 서버가 멱등 처리한다 — 금액이 다르면 409 로 결제가 죽는다.
-  // 그래서 두 경로가 이 함수 하나만 쓰게 한다(본문 구성을 두 벌 두지 않는다).
+  // 단건 checkout 요청 본문의 단일 정본. 클릭과 주문의 멱등키를 한 곳에서 구성한다.
   function _cdBuildDirectCheckoutPayload(options) {
     var opts = options || {};
     var coinPrice = _cdResolvePaidGateCoinPrice(opts);
@@ -23019,7 +22915,7 @@ return you.name.restore();</span>
     // 🔴 여기서 대기 오버레이를 켜지 않는다 — 단건결제 클릭부터 PG창까지는 어떤 대기 UI도 없다.
 
     var checkoutPreflight = _cdStartDirectCheckoutPreflight();
-    // 모달 오픈 시 사전발급된 주문이 있으면 왕복 0으로 재사용한다(없으면 여기서 요청).
+    // 명시적인 단건 선택 뒤 주문을 한 번만 발급한다.
     // 🔴 주문 요청을 **먼저 발사**하고 그 다음에 대기 오버레이를 켠다. 오버레이 점등은 강제 리플로우
     // (void offsetWidth) + 바디 스크롤락을 동반해 메인스레드를 붙잡으므로, 앞에 두면 그만큼
     // checkout 요청 시작이 밀린다 — 대기 UI 때문에 PG창이 늦어지지 않게 하는 것이 이 순서의 목적이다.
@@ -23027,7 +22923,7 @@ return you.name.restore();</span>
     // 클릭~PG창 구간을 꽃돼지 '단건 결제창 준비 중' 오버레이로 채운다(빈 화면 = 이탈).
     _cdShowDirectPgWaitOverlay();
     // 단계별 소요 계측. "결제창이 느리다"는 신고가 올 때 checkout(서버)·sdk(CDN)·config·번호확인 중
-    // 어디가 범인인지 추측하지 않고 바로 읽으려는 것이다 — 사전발급이 먹혔는지도 여기서 드러난다.
+    // 어디가 범인인지 추측하지 않고 단계별로 확인하기 위한 계측이다.
     var _cdPgStepAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     var _cdPgStepBase = _cdPgStepAt;
     var _cdPgSteps = [];
@@ -23685,9 +23581,8 @@ return you.name.restore();</span>
           // 확답하지 못하면 기다리지 않고 곧바로 payment_required 로 떨어져 결제창이 열린다.
           // 예전에는 여기서 coin-gate 를 6초 예산 + 재시도 2회로 두드렸고, 그 대기가 곧 사용자가
           // 결제창을 만나기까지의 지연이었다(느림 안내 문구까지 따로 있었다).
-          // 안전성: ① 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 서버로 수행하고
-          //         ② 카드 주문 직전 서버가 grantPassFreeAccessBeforeCardIfAvailable 로 한 번 더 검사하므로
-          //         스냅샷이 없는 이용권 보유자도 결제되지 않는다.
+          // 이용권 확인은 결제창의 '이용권으로 구매' 카드가 서버에서 수행한다.
+          // 단건 결제 선택은 이용권으로 자동 전환하지 않는다.
           snapshotVerdictOnly: true,
           fastPassOnly: false
         };
@@ -28687,72 +28582,6 @@ return you.name.restore();</span>
       return { ok: true, profileId: profileId, payload: normalizedStorePayload, changed: storeChanged };
     }
     return { ok: false, profileId: profileId, code: 'ACCESS_STORE_UNAVAILABLE' };
-    /*
-    if (!opts.force && sajuEntitlementRefreshInFlight && sajuEntitlementRefreshInFlightProfileId === profileId) {
-      return sajuEntitlementRefreshInFlight;
-    }
-    sajuEntitlementRefreshInFlightProfileId = profileId;
-    sajuEntitlementRefreshInFlight = (async function() {
-      var startedAt = Date.now();
-      var beforeCount = _cdCountSajuUnlockedFeatures();
-      sajuAccessUnlockState = 'loading';
-      sajuAccessUnlockLastProfileId = profileId;
-      if (typeof applySectionGates === 'function') applySectionGates();
-      try {
-        var params = new URLSearchParams();
-        params.set('attemptId', String(opts.attemptId || profileId));
-        params.set('profileId', profileId);
-        params.set('_', String(Date.now()));
-        var response = await fetchJsonWithAuth('/api/billing/saju-analysis/entitlements?' + params.toString(), {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            Pragma: 'no-cache'
-          }
-        });
-        if (!response || !response.ok) {
-          return { ok: false, status: response && response.status, payload: response && response.payload, code: 'SAJU_ENTITLEMENTS_FAILED' };
-        }
-        var payload = response.payload || {};
-        var changed = _cdReconcileUnlocksWithServer(payload);
-        persistServerUnlockSnapshot(payload);
-        if (changed) {
-          saveTileLocks();
-          if (typeof applyTileLockVisuals === 'function') applyTileLockVisuals();
-          if (typeof refreshUnlockButtons === 'function') refreshUnlockButtons();
-        }
-        if (typeof applySectionGates === 'function') applySectionGates();
-        var afterCount = _cdCountSajuUnlockedFeatures();
-        _cdLogSajuUnlockUiRefresh({
-          attemptId: profileId,
-          beforeUnlockedCount: beforeCount,
-          afterUnlockedCount: afterCount,
-          source: opts.source || 'snapshot',
-          elapsedMs: Date.now() - startedAt
-        });
-        return { ok: true, profileId: profileId, payload: payload, changed: changed };
-      } catch (error) {
-        return {
-          ok: false,
-          status: 0,
-          payload: null,
-          code: 'SAJU_ENTITLEMENTS_FAILED',
-          message: String((error && error.message) || error || '')
-        };
-      } finally {
-        _cdSetSajuAccessReadyIfChecking();
-      }
-    })();
-    try {
-      return await sajuEntitlementRefreshInFlight;
-    } finally {
-      if (sajuEntitlementRefreshInFlightProfileId === profileId) {
-        sajuEntitlementRefreshInFlight = null;
-        sajuEntitlementRefreshInFlightProfileId = '';
-      }
-    }
-    */
   }
 
   window.refreshSajuEntitlements = _cdFetchSajuAnalysisEntitlements;
@@ -29211,94 +29040,6 @@ return you.name.restore();</span>
       };
     }
     return { ok: false, profileId: profileId, code: 'ACCESS_STORE_UNAVAILABLE' };
-    /*
-    if (sajuAccessUnlockInFlight && sajuAccessUnlockInFlightProfileId === profileId) {
-      return sajuAccessUnlockInFlight;
-    }
-    sajuAccessUnlockInFlightProfileId = profileId;
-    sajuAccessUnlockInFlight = (async function() {
-      sajuAccessUnlockState = 'loading';
-      sajuAccessUnlockLastProfileId = profileId;
-      if (typeof applySectionGates === 'function') applySectionGates();
-      try {
-        if (fetchOpts.skipEntitlementSnapshot !== true) {
-          var entitlementResult = await _cdFetchSajuAnalysisEntitlements({ profileId: profileId, source: 'access-sync' });
-          if (entitlementResult && entitlementResult.ok) {
-            return {
-              ok: true,
-              profileId: profileId,
-              payload: entitlementResult.payload,
-              serviceResults: {
-                entitlementSnapshot: { ok: true, status: 200, code: '' }
-              }
-            };
-          }
-        }
-        // 접근 판정 읽기는 결정적이라, 일시적 DB 블립(서버가 retryable/DB_DEGRADED 503로 내림)에
-        // 바운드 백오프로 재시도해 이미 결제한 콘텐츠가 잠긴 채 남지 않게 한다. 이 경로는
-        // 쿨다운(shouldApplyApiCooldown) 대상이 아니라 재시도가 실제로 서버에 도달한다.
-        var _cdAccessUnlockRetryDelays = (typeof SAJU_UNLOCK_CONFIRM_DELAYS_MS !== 'undefined' && SAJU_UNLOCK_CONFIRM_DELAYS_MS)
-          ? SAJU_UNLOCK_CONFIRM_DELAYS_MS
-          : [500, 1500, 3000];
-        async function _cdFetchAccessUnlocksWithRetry(url) {
-          var response = null;
-          for (var attempt = 0; attempt <= _cdAccessUnlockRetryDelays.length; attempt += 1) {
-            response = await fetchJsonWithAuth(url, { method: 'GET' });
-            if (response && response.ok) return response;
-            if (!response || Number(response.status) !== 503 || attempt >= _cdAccessUnlockRetryDelays.length) return response;
-            await new Promise(function(resolve) { setTimeout(resolve, _cdAccessUnlockRetryDelays[attempt]); });
-          }
-          return response;
-        }
-        var serviceKeys = _cdCollectSajuAccessServiceKeys();
-        var params = new URLSearchParams();
-        params.set('profileId', profileId);
-        params.set('serviceKey', serviceKeys.join(','));
-        // Legacy backfill request intentionally disabled; AccessStore owns this fetch.
-        var response = await _cdFetchAccessUnlocksWithRetry('/api/access/unlocks?' + params.toString());
-        var serviceKeyLabel = serviceKeys.join(',');
-        var serviceResults = Object.create(null);
-        serviceResults[serviceKeyLabel] = {
-          ok: !!(response && response.ok),
-          status: response && response.status,
-          code: response && response.ok ? '' : 'ACCESS_UNLOCKS_FAILED'
-        };
-        if (!response || !response.ok) {
-          return {
-            ok: false,
-            status: response && response.status,
-            payload: response && response.payload,
-            code: 'ACCESS_UNLOCKS_FAILED',
-            serviceResults: serviceResults
-          };
-        }
-        return {
-          ok: true,
-          profileId: profileId,
-          payload: response.payload,
-          serviceResults: serviceResults
-        };
-      } catch (error) {
-        return {
-          ok: false,
-          status: 0,
-          payload: null,
-          code: 'ACCESS_UNLOCKS_FAILED',
-          message: String((error && error.message) || error || '')
-        };
-      } finally {
-        _cdSetSajuAccessReadyIfChecking();
-      }
-    })();
-    try {
-      return await sajuAccessUnlockInFlight;
-    } finally {
-      if (sajuAccessUnlockInFlightProfileId === profileId) {
-        sajuAccessUnlockInFlight = null;
-        sajuAccessUnlockInFlightProfileId = '';
-      }
-    }
-    */
   }
 
   function _cdClearKnownUnlocks() {
@@ -29886,11 +29627,12 @@ return you.name.restore();</span>
     function shouldSingleRetry(pathname, status, method) {
       var code = Number(status || 0);
       var normalizedPath = String(pathname || '');
+      var normalizedMethod = String(method || 'GET').toUpperCase();
+      if (normalizedMethod !== 'GET' && normalizedMethod !== 'HEAD') return false;
       // 워커가 일시적 DB 장애를 503으로 표면화하는 것은 의도된 degrade다(로그아웃 방지).
       // 그런데 조회 GET 은 재시도하면 대개 성공한다 — db.js 가 실패 시 웜 커넥션을 무효화해
       // 다음 시도가 깨끗한 연결로 가기 때문. 조회만, 화이트리스트만 재시도한다.
       if (code === 503) {
-        if (String(method || 'GET').toUpperCase() !== 'GET') return false;
         return TRANSIENT_503_RETRY_GET_PATHS.some(function(prefix) {
           return normalizedPath.indexOf(prefix) === 0;
         });
@@ -30034,11 +29776,12 @@ return you.name.restore();</span>
               payload: { message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' }
             };
             if (cooldownEnabled) markApiCooldown(path, 0, false);
+            if (normalizedMethod !== 'GET' && normalizedMethod !== 'HEAD') return lastResult;
             continue;
           }
         }
 
-        if (response.status === 401) {
+        if (response.status === 401 && (normalizedMethod === 'GET' || normalizedMethod === 'HEAD')) {
           var refreshed = await refreshAuthSessionForCoinApi(candidateBase);
           if (refreshed) {
             var retryInit = Object.assign({}, requestInit);
@@ -30100,7 +29843,7 @@ return you.name.restore();</span>
         }
 
         if (cooldownEnabled) markApiCooldown(path, response.status, looksHtml);
-        var hasNext = i < candidates.length - 1;
+        var hasNext = (normalizedMethod === 'GET' || normalizedMethod === 'HEAD') && i < candidates.length - 1;
         if (hasNext && shouldTryNextCandidate(response.status, looksHtml)) continue;
         return result;
       }
@@ -30601,10 +30344,7 @@ function updateBadge() {
         featureKey: featureKey,
         contentKey: contentKey || undefined,
         serviceKey: serviceKey || undefined,
-        // 🔴 사전발급이 걸리도록 requestId 를, 그리고 아래 단건 호출과 **본문이 같아지도록** productId 를
-        // 함께 넘긴다. requestId 가 없으면 사전발급이 아예 발사되지 않아(키 없는 주문 금지) 클릭이
-        // 서버 왕복을 기다리게 되고, 모바일에서는 그 await 가 user-gesture 를 소멸시켜 PG창이 막힌다.
-        // productId 가 빠지면 사전발급 주문에 콘텐츠 식별자가 없는 채로 멱등 재사용된다.
+        // 클릭 시 발급되는 주문의 멱등키와 콘텐츠 식별자를 명시한다.
         requestId: requestId,
         productId: productId,
         skipPassProbe: true,
@@ -30651,7 +30391,7 @@ function updateBadge() {
         // Wait UI belongs to the approval-confirm stage only (paymentProcessing).
         _unlockOverlayOpened = true;
         var directPayload = await (window._cdRunDirectKrwCheckout || _cdRunDirectKrwCheckout)({
-          // 사전발급(위 결제수단 모달)과 title 이 달라지면 reason 이 달라져 본문이 어긋난다 — 같은 식을 쓴다.
+          // 주문과 승인 단계가 같은 결제 사유를 사용한다.
           title: _origBtnText || button.textContent || '유료 서비스',
           featureKey: featureKey,
           contentKey: contentKey || undefined,
@@ -31412,7 +31152,7 @@ function updateBadge() {
           subFeatureKey: perUseFeatureKey,
           featureKey: perUseFeatureKey,
           reason: fname + ' 이용',
-          // 사전발급이 걸리도록 아래 단건 호출과 같은 requestId 를 넘긴다(본문 나머지는 이미 동일).
+          // 클릭 시 주문 발급에 사용할 requestId를 전달한다.
           requestId: perUseRequestId,
           skipPassProbe: true,
           onPassApplied: async function(passAccess) {
@@ -32055,8 +31795,7 @@ function updateBadge() {
             amountKrw: tileLockCost * 100,
             membershipCoverage: tileMembershipCoverage,
             featureKey: tileLockKey,
-            // 🔴 아래 단건 호출과 reason·requestId 를 **정확히 일치**시킨다. reason 이 다르면 사전발급
-            // 주문의 orderName 이 달라지고, requestId 가 없으면 사전발급이 아예 발사되지 않는다.
+            // 단건 주문과 승인 단계가 같은 reason·requestId를 사용한다.
             reason: fname + ' 영구 해금',
             requestId: tileRequestId,
             skipPassProbe: true,
@@ -32524,22 +32263,22 @@ function updateBadge() {
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-90162a82a088" data-cd-mobile-delay="1"></script>
-<script src="/js/io-image-lazy-loader.js?v=build-90162a82a088" defer></script>
-<script src="/js/noncritical-defer-loader.js?v=build-90162a82a088" defer></script>
-<script src="/js/cd-lang-native.js?v=build-90162a82a088" defer></script>
+<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-431f9580caef" data-cd-mobile-delay="1"></script>
+<script src="/js/io-image-lazy-loader.js?v=build-431f9580caef" defer></script>
+<script src="/js/noncritical-defer-loader.js?v=build-431f9580caef" defer></script>
+<script src="/js/cd-lang-native.js?v=build-431f9580caef" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-90162a82a088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-431f9580caef" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
-<script data-cd-lazy-src="/js/dream-ledger.js?v=build-90162a82a088" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
-<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-90162a82a088" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/dream-ledger.js?v=build-431f9580caef" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-431f9580caef" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-90162a82a088" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-431f9580caef" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-90162a82a088"></script>
+<script type="module" src="/js/app.js?v=build-431f9580caef"></script>
 <!-- Feature Preview Panel v2 -->
 <div id="tilePvwOverlay" class="tile-pvw-overlay MobileFeatureBottomSheet" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
@@ -32936,7 +32675,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-90162a82a088',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-431f9580caef',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -32980,7 +32719,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-90162a82a088'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-431f9580caef'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -33931,7 +33670,7 @@ function updateBadge() {
 
 <!-- ═══ 유명인 사주 분석 패널 스크립트 ═══ -->
 
-<script src="/js/inline/saju-core-bootstrap.js?v=build-90162a82a088"></script>
+<script src="/js/inline/saju-core-bootstrap.js?v=build-431f9580caef"></script>
 <!-- ═══ 유명인 사주 분석 패널 스크립트 끝 ═══ -->
 
 <script>
@@ -33995,11 +33734,11 @@ function updateBadge() {
   var heroPictureMascot = document.querySelector('.moon-hero .moon-hero__picture--mascot img');
   var switchRoot = document.querySelector('.cd-mobile-appbar .theme-switch-wrapper') || document.querySelector('.theme-switch-wrapper');
   var switchRootDesktop = document.querySelector('.theme-switch-wrapper--desktop');
-  var pigLogoSrc = '/icons/app-logo-512.webp?v=build-90162a82a088';
+  var pigLogoSrc = '/icons/app-logo-512.webp?v=build-431f9580caef';
   var pigLogoSrcset = pigLogoSrc + ' 96w, ' + pigLogoSrc + ' 130w, ' + pigLogoSrc + ' 512w';
   /* 네오 히어로 캐릭터: R2 전략실 네오 이미지(브랜드 로고 슬롯·자는 연이 마스코트 공통 교체) */
   var neoLogoSrc = 'https://assets.code-destiny.com/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp';
-  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-90162a82a088';
+  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-431f9580caef';
   var neoBtn = switchRoot ? switchRoot.querySelector('.tsp-lion') : null;
   var pigBtn = switchRoot ? switchRoot.querySelector('.tsp-pig') : null;
   var neoBtnDesktop = switchRootDesktop ? switchRootDesktop.querySelector('.tsp-lion') : null;

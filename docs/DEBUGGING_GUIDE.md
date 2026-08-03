@@ -11,6 +11,10 @@
 - 안전한 재현 방법: 로컬 mock DB 또는 staging에서 동일 endpoint를 제한된 동시성으로 반복. 운영 부하 테스트 금지.
 - mock 테스트 방법: DB helper를 stub하고 timeout/error branch를 unit test로 재현.
 - 수정 전 주의사항: retry wrapper를 새로 감싸기 전에 기존 `withMongoRetry`, timeout, request memo를 확인한다.
+- 503/504 응답에서 `X-Request-ID`, `X-CD-Error-Stage`, `Server-Timing`, `Retry-After`를 함께 기록한다. `X-CD-Error-Stage`는 `auth`, `db-op-admission`, `db-op-timeout`, `db`, `payment-provider`, `route` 중 하나다.
+- 홈에서 `/api/access/unlocks`, `/api/sukuyo/yearly-fortune`, `/api/billing/checkout`가 보이면 잘못된 자동 호출이다. 각각 잠금 화면 진입, 숙요 1년운 보기, 단건 결제 클릭 전에는 0회여야 한다.
+- `MONGO_SOCKET_TIMEOUT_MS`는 Worker 작업 제한보다 짧아야 한다. 현재 기준은 socket 11초, auth/operation 12초이며 풀 크기나 재시도 횟수를 장애 대응으로 늘리지 않는다.
+- 운영 인덱스 점검은 `npm run verify:access-unlock-indexes`의 `--check` 성격으로 먼저 수행하고, 생성은 별도 운영 DB 쓰기 승인 뒤 실행한다.
 
 ## 결제·권한 복구 PR이 병합 불가로 남는 경우
 

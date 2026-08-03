@@ -14,6 +14,11 @@ test("React bootstrap requests access-state before legacy fallback endpoints", (
   assert.match(sessionSource, /applyAccessStateToGlobalStore\(accessData\)/);
   assert.match(sessionSource, /const ensureLoadInFlight = new Map<string, Promise<UserAccessSnapshot>>\(\);/);
   assert.match(sessionSource, /if \(accessSupported\) return getUserAccessSnapshot\(\);/);
+  const bootstrapSource = sessionSource.slice(
+    sessionSource.indexOf("async function ensureUserAccessLoadedUncached"),
+    sessionSource.indexOf("export async function ensureUserAccessLoaded"),
+  );
+  assert.doesNotMatch(bootstrapSource, /fetch\("\/api\/auth\/me"/);
 });
 
 test("auth client deduplicates safe access GET endpoints but does not generalize POST retries", () => {
@@ -25,4 +30,9 @@ test("auth client deduplicates safe access GET endpoints but does not generalize
 test("static shell bootstrap uses access-state and keeps legacy calls as compatibility fallback", () => {
   assert.match(shellSource, /fetch\('\/api\/me\/access-state', init\)/);
   assert.match(shellSource, /accessResponse.status !== 404 && accessResponse.status !== 405/);
+  const bootstrapSource = shellSource.slice(
+    shellSource.indexOf("function ensureLoaded(options)"),
+    shellSource.indexOf("window.fetch = fetchWithCache"),
+  );
+  assert.doesNotMatch(bootstrapSource, /fetch\('\/api\/auth\/me'/);
 });

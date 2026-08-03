@@ -14,7 +14,7 @@ import {
   ServiceExecutionTransaction,
   User,
 } from "../lib/models.js";
-import { findActivePaidContentUnlock, upsertPaidContentUnlock } from "../lib/content-unlocks.js";
+import { findActivePaidContentUnlockByServiceKeys, upsertPaidContentUnlock } from "../lib/content-unlocks.js";
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKUYO_EXECUTION_STALE_MS = 25 * 60 * 1000;
 const SUKYO_COMPAT_TOKEN_MIN_COINS = 300;
@@ -1955,59 +1955,12 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
 
 async function findSukuyoYearlyUnlock({ userId, profileId, targetYear, env = {} }) {
   const contentKey = sukuyoYearlyContentKey(targetYear);
-
-  /* 조회 3건(정규 1 + 레거시 2)을 withMongoRetry 하나로 묶는다. 미해금 사용자는 매 요청 3건을 모두
-     타는데, 종전엔 각각을 따로 감싸 왕복마다 op-타임아웃(설계상 비재시도) 위험을 독립적으로 졌고
-     최악 지연이 11.5s×3 까지 누적됐다. findActivePaidContentUnlock 은 내부 재시도가 없는 raw read 라
-     여기서 감싸는 것은 중첩이 아니다(verify:no-nested-retry 기준). */
-  const found = await withMongoRetry(env, async () => {
-    const primary = await findActivePaidContentUnlock({
-      userId,
-      profileId,
-      serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
-      contentKey,
-    });
-    if (primary?._id) return { unlock: primary, legacyServiceKey: "" };
-
-    for (const serviceKey of ["ziwei", "saju"]) {
-      const legacy = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey });
-      if (legacy?._id) return { unlock: legacy, legacyServiceKey: serviceKey };
-    }
-    return null;
-  });
-
-  if (!found) return null;
-  if (!found.legacyServiceKey) return found.unlock;
-
-  // 백필은 write 다 — 재시도 콜백 밖에 둔다(withMongoRetry 는 READ 전용, 중복 write 방지).
-  const legacy = found.unlock;
-  try {
-    const source = Object.values(CONTENT_ENTITLEMENT_SOURCES).includes(legacy.source)
-      ? legacy.source
-      : CONTENT_ENTITLEMENT_SOURCES.BACKFILL;
-    return await upsertPaidContentUnlock({
-      userId,
-      profileId,
-      featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
-      serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
-      contentKey,
-      source,
-      orderId: legacy.orderId || "",
-      paymentId: legacy.paymentId || "",
-      passId: legacy.passId || "",
-      coinAmount: Number(legacy.coinAmount || 0),
-      unlockedAt: legacy.unlockedAt || null,
-    });
-  } catch (error) {
-    console.warn("[SukuyoYearly][LegacyUnlockBackfillFailed]", {
-      userId: clean(userId),
-      profileId: clean(profileId),
-      targetYear,
-      serviceKey: found.legacyServiceKey,
-      reason: clean(error?.message || error),
-    });
-    return legacy;
-  }
+  return withMongoRetry(env, () => findActivePaidContentUnlockByServiceKeys({
+    userId,
+    profileId,
+    serviceKeys: [SUKUYO_YEARLY_FORTUNE_SERVICE_KEY, "ziwei", "saju"],
+    contentKey,
+  }));
 }
 
 async function handleSukuyoYearlyFortune(request, env) {

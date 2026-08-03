@@ -479,9 +479,8 @@ for (const source of [indexSource, staticIndexSource]) {
 }
 
 // ── 🔴 대기 화면 정책: '진행 중' 전체화면은 이용권 확인에서만 ──────────────────────────────
-// 2026-08 재발 사고: 결제수단 선택창이 열릴 때 미리 발사하는 주문 사전발급(/api/billing/checkout)을
-// 전역 fetch 래퍼가 '결제 진행 중'으로 잡아 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를
-// 준비 중이에요' 전체화면이 결제창을 덮었다. 두 성질을 실제 평가로 고정한다.
+// 주문 발급(/api/billing/checkout)을 전역 fetch 래퍼가 '결제 진행 중'으로 잡아 결제창을
+// 덮지 않도록 두 성질을 실제 평가로 고정한다.
 //   ⓐ 래퍼는 checkout/prepare 를 추적하지 않는다(문자열 핀이 아니라 함수를 실행해 확인).
 //   ⓑ 대기/결과 오버레이 허용목록에서 진행 중 모드는 'pass' 하나뿐이다.
 const indexRuntimeSource = readFileSync(resolve(root, "js/core/index-inline-runtime.js"), "utf8");
@@ -522,11 +521,8 @@ for (const entry of waitUiAllowLists) {
 // 실패는 성공(payment-complete)과 다른 모드로 갈라야 한다 — 같은 모드면 '결제 완료' 제목 아래 실패가 뜬다.
 assertContains(indexSource, "mode: 'payment-failed'", "failure overlay mode split");
 assertNotContains(indexSource, "'결제 또는 이용권 확인에 실패했습니다.'), mode: 'confirm' }", "failure no longer shares confirm mode");
-// 구간 차단은 결제창이 DOM 에 붙은 뒤에 끝나야 한다(사전발급이 무방비로 나가던 구멍).
-assertBefore(
-  indexSource,
-  "document.body.appendChild(modal);\n      // 🔴 구간 차단은 결제창이",
-  "_cdEndPreCheckoutWaitUiSuppression();\n      // 첫 번째 실제 결제 옵션에 포커스",
+assert.ok(
+  /document\.body\.appendChild\(modal\);[\s\S]{0,300}?_cdEndPreCheckoutWaitUiSuppression\(\);/.test(indexSource),
   "pre-checkout suppression ends after the modal is mounted",
 );
 

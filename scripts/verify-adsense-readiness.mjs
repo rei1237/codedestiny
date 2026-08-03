@@ -719,13 +719,15 @@ function verifyAdsenseScriptOwnership() {
     "currentDocumentAllowsAdsense",
     "currentViewerAllowsAdsense",
     "hasAdRemovalEntitlement",
-    'authFetch("/api/billing/balance"',
+    "CodeDestinyAccessStore",
+    "accessStore.getSnapshot",
+    "accessStore?.subscribe",
     "readCachedAdRemovalEntitlement()",
     "writeCachedAdRemovalEntitlement(hasAdRemoval)",
     "clearCachedAdRemovalEntitlement()",
     'window.addEventListener("cd:auth-changed"',
     'window.addEventListener("storage"',
-    "response.status === 401 || response.status === 403",
+    'snapshot.status === "loading"',
     "!documentAllowsAdsense || !viewerAllowsAdsense",
   ];
 
@@ -735,6 +737,14 @@ function verifyAdsenseScriptOwnership() {
       `${deferredAdsensePath}: missing conditional AdSense rendering marker ${marker}`,
     );
   }
+  assert(
+    !deferredAdsenseSource.includes("ensureLoaded("),
+    `${deferredAdsensePath}: global AdSense rendering must not trigger an unlock request`,
+  );
+  assert(
+    !deferredAdsenseSource.includes('authFetch("/api/billing/balance"'),
+    `${deferredAdsensePath}: global AdSense rendering must not own a billing request`,
+  );
 }
 
 function verifyPrivacyPolicyEmbedSource() {

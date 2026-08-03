@@ -300,3 +300,48 @@ describe("coverageFromSnapshot — 기존 런타임이 쓰던 모양 유지", ()
     expect(coverage.passTier).toBe("vvip");
   });
 });
+
+describe("snapshot authority downgrade protection", () => {
+  it("keeps an active pass when a degraded partial response says free", () => {
+    const expiresAt = new Date(Date.now() + DAY).toISOString();
+    passVerdict.storeStatus(USER_ID, {
+      tier: "premium",
+      isActive: true,
+      expiresAt,
+      completeness: "full",
+      authority: "server",
+    }, "access-state");
+
+    const stored = passVerdict.storeStatus(USER_ID, {
+      tier: "free",
+      isActive: false,
+      completeness: "partial",
+      authority: "cache",
+      degraded: true,
+    }, "access-state-stale");
+
+    expect(stored.state).toBe("active");
+    expect(stored.tier).toBe("premium");
+    expect(stored.expiresAt).toBe(expiresAt);
+  });
+
+  it("allows a full authoritative server response to revoke a pass", () => {
+    passVerdict.storeStatus(USER_ID, {
+      tier: "premium",
+      isActive: true,
+      expiresAt: new Date(Date.now() + DAY).toISOString(),
+      completeness: "full",
+      authority: "server",
+    }, "access-state");
+
+    const stored = passVerdict.storeStatus(USER_ID, {
+      tier: "free",
+      isActive: false,
+      completeness: "full",
+      authority: "server",
+    }, "access-state");
+
+    expect(stored.state).toBe("none");
+    expect(stored.tier).toBe("free");
+  });
+});

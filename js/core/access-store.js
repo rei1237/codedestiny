@@ -9,6 +9,10 @@
   // Access reads are display probes. A 503 keeps the last usable snapshot and waits
   // for an explicit user/session action instead of adding another request to the burst.
   var RETRY_DELAYS = [];
+  var FRESH_TTL_MS = 60 * 1000;
+  var STALE_TTL_MS = 30 * 60 * 1000;
+  var GRACE_TTL_MS = 24 * 60 * 60 * 1000;
+  var REFRESH_THROTTLE_MS = 15 * 1000;
   var DEFAULT_SERVICE_KEYS = ['saju', 'ziwei', 'ad_free'];
   var CONTENT_KEY_TO_FEATURE_KEY = {
     'saju.daewunAnalysis': 'section_daewun',
@@ -28,6 +32,7 @@
   var retryTimers = Object.create(null);
   var retryAttempts = Object.create(null);
   var loadedEpoch = Object.create(null);
+  var lastRefreshAttemptAt = Object.create(null);
   var bootEpoch = 0;
   var contextKey = '';
   var abortController = null;
@@ -300,7 +305,8 @@
         restored = null;
       }
     }
-    if (!restored || restored.version !== STORAGE_VERSION || restored.userId !== userId) {
+    if (!restored || restored.version !== STORAGE_VERSION || restored.userId !== userId
+      || Date.now() - Number(restored.savedAt || 0) > GRACE_TTL_MS) {
       restored = null;
     }
 
@@ -316,7 +322,7 @@
       state.monthlyBalance = copyObject(restored.monthlyBalance);
       state.checkedAt = Number(restored.savedAt || 0);
       state.source = 'localStorage';
-      state.status = 'ready';
+      state.status = Date.now() - state.checkedAt > FRESH_TTL_MS ? 'degraded' : 'ready';
       debug('cache hit', { cacheKey: key, ageMs: Date.now() - state.checkedAt });
     } else {
       state.persistentUnlocks = readLegacyLedger(profileId);
@@ -404,9 +410,14 @@
     state.profileId = context.profileId;
     state.userId = context.userId;
     state.serviceKeys = context.serviceKeys.slice();
-    state.entitlementSnapshot = copyObject(payload && payload.entitlementSnapshot);
-    state.monthlyBalance = copyObject(payload && (payload.monthlyBalance || payload.monthlyBalanceSummary
-      || payload.entitlementSnapshot && payload.entitlementSnapshot.monthlyBalance));
+    if (payload && payload.entitlementSnapshot && typeof payload.entitlementSnapshot === 'object') {
+      state.entitlementSnapshot = copyObject(payload.entitlementSnapshot);
+    }
+    var nextMonthlyBalance = payload && (payload.monthlyBalance || payload.monthlyBalanceSummary
+      || payload.entitlementSnapshot && payload.entitlementSnapshot.monthlyBalance);
+    if (nextMonthlyBalance && typeof nextMonthlyBalance === 'object') {
+      state.monthlyBalance = copyObject(nextMonthlyBalance);
+    }
     if (payload && payload.entitlementSnapshot) {
       state.membership = copyObject(payload.entitlementSnapshot);
     }
@@ -430,6 +441,9 @@
   function applyAccessStateSnapshot(payload, options) {
     var source = resolveSnapshotPayload(payload);
     if (!source || !source.userId) return false;
+    var sourceUserId = String(source.userId || '');
+    var requestedUserId = getUserId(options || {});
+    if (requestedUserId !== 'anonymous' && sourceUserId !== requestedUserId) return false;
     var profileId = String(
       (options && options.profileId) ||
       source.currentProfileId ||
@@ -438,7 +452,7 @@
       ''
     );
     var context = ensureContext({
-      userId: source.userId,
+      userId: sourceUserId,
       profileId: profileId,
       serviceKeys: options && options.serviceKeys,
       authenticated: true
@@ -451,13 +465,27 @@
     });
     state.persistentUnlocks = copyMap(merged);
     state.profileId = profileId;
-    state.userId = String(source.userId || '');
+    state.userId = sourceUserId;
     state.serviceKeys = context.serviceKeys.slice();
-    state.entitlementSnapshot = copyObject(source.entitlementSnapshot);
-    state.monthlyBalance = copyObject(source.monthlyBalance || source.monthlyBalanceSummary
-      || source.entitlementSnapshot && source.entitlementSnapshot.monthlyBalance);
-    state.membership = copyObject(source.entitlementSnapshot) || state.membership;
-    state.status = source.degraded === true ? 'degraded' : 'ready';
+    var completeness = String(source.completeness || source.entitlementSnapshot && source.entitlementSnapshot.completeness || '').toLowerCase();
+    var authority = String(source.authority || source.entitlementSnapshot && source.entitlementSnapshot.authority || '').toLowerCase();
+    var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server';
+    var incomingEntitlement = copyObject(source.entitlementSnapshot);
+    var currentTier = String(state.entitlementSnapshot && state.entitlementSnapshot.tier || '').toLowerCase();
+    var incomingTier = String(incomingEntitlement && incomingEntitlement.tier || '').toLowerCase();
+    var currentActive = currentTier && currentTier !== 'free' && currentTier !== 'none';
+    var incomingInactive = !incomingTier || incomingTier === 'free' || incomingTier === 'none';
+    if (incomingEntitlement && (!currentActive || !incomingInactive || authoritativeFull)) {
+      state.entitlementSnapshot = incomingEntitlement;
+      state.membership = copyObject(incomingEntitlement) || state.membership;
+    }
+    var incomingMonthlyBalance = source.monthlyBalance || source.monthlyBalanceSummary
+      || incomingEntitlement && incomingEntitlement.monthlyBalance;
+    if (incomingMonthlyBalance && typeof incomingMonthlyBalance === 'object'
+      && (authoritativeFull || !state.monthlyBalance)) {
+      state.monthlyBalance = copyObject(incomingMonthlyBalance);
+    }
+    state.status = source.degraded === true || !authoritativeFull ? 'degraded' : 'ready';
     state.error = source.degraded === true ? { code: 'ACCESS_STATE_DEGRADED' } : null;
     state.checkedAt = Date.parse(String(source.fetchedAt || source.checkedAt || '')) || Date.now();
     state.source = source.source === 'stale-cache' ? 'stale-cache' : 'access-state';
@@ -604,6 +632,7 @@
       return Promise.resolve({ ok: false, status: state.status, reason: 'FETCH_UNAVAILABLE' });
     }
     abortController = typeof global.AbortController === 'function' ? new global.AbortController() : null;
+    lastRefreshAttemptAt[context.key] = Date.now();
     var controller = abortController;
     var query = '/api/access/unlocks?profileId=' + encodeURIComponent(context.profileId) +
       '&serviceKey=' + encodeURIComponent(context.serviceKeys.join(','));
@@ -711,6 +740,12 @@
   function getEffectiveTier() {
     var snapshot = state.entitlementSnapshot && typeof state.entitlementSnapshot === 'object' ? state.entitlementSnapshot : null;
     var tier = snapshot && snapshot.tier || state.membership && (state.membership.tier || state.membership.passType || state.membership.passTier);
+    var passExpiry = snapshot && Array.isArray(snapshot.activePasses) && snapshot.activePasses[0] && snapshot.activePasses[0].expiresAt
+      || state.membership && (state.membership.activeUntil || state.membership.passExpiresAt);
+    if (passExpiry) {
+      var passExpiryMs = Date.parse(String(passExpiry));
+      if (!Number.isFinite(passExpiryMs) || passExpiryMs <= Date.now()) return 'free';
+    }
     return String(tier || 'free').trim().toLowerCase() || 'free';
   }
 
@@ -771,8 +806,22 @@
       debug('reused', { cacheKey: context.key });
       return inFlight[context.key].promise;
     }
-    if (!options || !options.force && loadedEpoch[context.key] === bootEpoch) {
+    var opts = options || {};
+    var ageMs = state.checkedAt ? Date.now() - state.checkedAt : Number.POSITIVE_INFINITY;
+    var tier = getEffectiveTier();
+    var adminSnapshot = tier === 'admin';
+    if (!opts.force && ageMs <= FRESH_TTL_MS) {
       return Promise.resolve({ ok: true, cached: true, snapshot: getSnapshot() });
+    }
+    var canUseStale = hasUsableCache() && ageMs <= STALE_TTL_MS;
+    var canUseGrace = hasUsableCache() && !adminSnapshot && ageMs <= GRACE_TTL_MS;
+    if (!opts.force && (canUseStale || canUseGrace)) {
+      state.status = 'degraded';
+      notify();
+      if (Date.now() - Number(lastRefreshAttemptAt[context.key] || 0) >= REFRESH_THROTTLE_MS) {
+        startFetch(context, 0);
+      }
+      return Promise.resolve({ ok: true, cached: true, stale: true, snapshot: getSnapshot() });
     }
     loadedEpoch[context.key] = bootEpoch;
     return startFetch(context, 0);
@@ -793,6 +842,7 @@
       abortCurrent('reset');
       bootEpoch += 1;
       loadedEpoch = Object.create(null);
+      lastRefreshAttemptAt = Object.create(null);
       accessDecisionCache = Object.create(null);
       Object.keys(retryTimers).forEach(function (key) { clearRetry(key); });
       state = createState(contextKey);
@@ -827,7 +877,11 @@
     invalidateAccessDecision: clearAccessDecisionCache,
     invalidateEntitlements: function (reason) {
       clearAccessDecisionCache();
-      return revalidate({ reason: reason || 'entitlement-invalidated' });
+      if (contextKey) delete loadedEpoch[contextKey];
+      if (contextKey) delete lastRefreshAttemptAt[contextKey];
+      state.error = null;
+      debug('invalidated', { cacheKey: contextKey, reason: reason || 'entitlement-invalidated' });
+      return Promise.resolve({ ok: true, invalidated: true, snapshot: getSnapshot() });
     },
     applyAccessStateSnapshot: applyAccessStateSnapshot,
     applyPaymentPayload: applyPaymentPayload,
@@ -863,11 +917,10 @@
     var authEvent = String(detail.event || detail.type || '').toLowerCase();
     var authSource = String(detail.source || '').toLowerCase();
     if (authEvent === 'subscription' || authSource === 'membership-cache') return;
-    revalidate({ userId: detail.userId, profileId: detail.profileId, authenticated: true });
+    store.invalidateEntitlements('auth-changed');
   });
   global.addEventListener && global.addEventListener('cd:profile-changed', function (event) {
-    var detail = event && event.detail || {};
-    revalidate({ profileId: detail.profileId, userId: detail.userId, authenticated: true });
+    store.invalidateEntitlements('profile-changed');
   });
   global.addEventListener && global.addEventListener('cd:billing-balance-updated', function (event) {
     var detail = event && event.detail || {};

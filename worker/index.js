@@ -699,6 +699,7 @@ function getCorsHeaders(request, env) {
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": request.headers.get("Access-Control-Request-Headers")
       || "Content-Type, Authorization, X-Admin-Token, X-Admin-Subscription-Tier, X-Code-Destiny-Client",
+    "Access-Control-Expose-Headers": "X-Request-ID, X-CD-Error-Stage, Server-Timing, Retry-After, ETag, Last-Modified",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin",
   };
@@ -835,6 +836,15 @@ function withCorsHeaders(request, env, response) {
   }
   if (!response.headers.has("Cache-Control")) applyNoCacheHeaders(response.headers);
   if (!response.headers.has("Pragma")) response.headers.set("Pragma", "no-cache");
+  if (response.status === 503 || response.status === 504) {
+    const stage = String(response.headers.get("X-CD-Error-Stage") || (response.status === 504 ? "timeout" : "route"));
+    if (!response.headers.has("X-Request-ID")) {
+      response.headers.set("X-Request-ID", String(request.headers.get("x-request-id") || request.headers.get("cf-ray") || "unknown").slice(0, 120));
+    }
+    if (!response.headers.has("X-CD-Error-Stage")) response.headers.set("X-CD-Error-Stage", stage);
+    if (!response.headers.has("Server-Timing")) response.headers.set("Server-Timing", `cd-error;desc=\"${stage}\"`);
+    if (!response.headers.has("Retry-After")) response.headers.set("Retry-After", "2");
+  }
   logClientApiTrace(request, response);
   return response;
 }

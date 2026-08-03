@@ -47,6 +47,7 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1 } = {}) {
   sandbox.globalThis = sandbox;
   sandbox.window = sandbox;
   vm.runInNewContext(storeSource, sandbox, { filename: "access-store.js" });
+  sandbox.CodeDestinyAccessStore.__testListeners = listeners;
   return sandbox.CodeDestinyAccessStore;
 }
 
@@ -151,6 +152,56 @@ test("AccessStore requests one read-only unlock snapshot without an automatic 50
   assert.match(storeSource, /var RETRY_DELAYS = \[\];/);
 });
 
+test("auth and profile events invalidate without fetching until an explicit load", async () => {
+  let calls = 0;
+  const store = loadStore(async () => {
+    calls += 1;
+    return { ok: true, status: 200, json: async () => ({ ok: true, unlockedFeatures: [] }) };
+  });
+
+  store.__testListeners.get("cd:auth-changed")({ detail: { type: "login", userId: "user-1", profileId: "profile-1" } });
+  store.__testListeners.get("cd:profile-changed")({ detail: { userId: "user-1", profileId: "profile-1" } });
+  assert.equal(calls, 0);
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true });
+  assert.equal(calls, 1);
+});
+
+test("partial or degraded snapshots cannot downgrade an active pass", () => {
+  const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }));
+  const active = store.applyAccessStateSnapshot({
+    userId: "user-1",
+    completeness: "full",
+    authority: "server",
+    entitlementSnapshot: { userId: "user-1", tier: "premium", completeness: "full", authority: "server" },
+  }, { userId: "user-1", profileId: "profile-1" });
+  const degraded = store.applyAccessStateSnapshot({
+    userId: "user-1",
+    degraded: true,
+    completeness: "partial",
+    authority: "cache",
+    entitlementSnapshot: { userId: "user-1", tier: "free", completeness: "partial", authority: "cache" },
+  }, { userId: "user-1", profileId: "profile-1" });
+
+  assert.equal(active, true);
+  assert.equal(degraded, true);
+  assert.equal(store.getEffectiveTier(), "premium");
+  assert.equal(store.getSnapshot().status, "degraded");
+});
+
+test("a snapshot for another user is rejected", () => {
+  const store = loadStore(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  const applied = store.applyAccessStateSnapshot({
+    userId: "user-2",
+    completeness: "full",
+    authority: "server",
+    entitlementSnapshot: { userId: "user-2", tier: "premium" },
+  }, { userId: "user-1", profileId: "profile-1" });
+
+  assert.equal(applied, false);
+  assert.equal(store.getSnapshot().userId, "");
+});
+
 test("AccessStore deduplicates payment access decisions separately from persistent unlock loads", async () => {
   let calls = 0;
   let release;
@@ -190,4 +241,18 @@ test("billing eligibility keeps the one-request unlock-status fallback while Acc
   const billingClient = fs.readFileSync(path.join(root, "app/_lib/billing-client.ts"), "utf8");
   assert.match(billingClient, /app:billing-client-access-store-fallback/);
   assert.match(billingClient, /\/api\/billing\/unlock-status/);
+});
+
+test("global tile-lock and Adsense consumers never trigger unlock network reads", () => {
+  const runtime = fs.readFileSync(path.join(root, "js/core/index-inline-runtime.js"), "utf8");
+  const adsense = fs.readFileSync(path.join(root, "app/components/DeferredAdsense.tsx"), "utf8");
+  const tileSyncStart = runtime.indexOf("function __cdSyncTileLocksFromServer()");
+  const tileSyncEnd = runtime.indexOf("function __cdScheduleTileLockServerSync()", tileSyncStart);
+  const tileSync = runtime.slice(tileSyncStart, tileSyncEnd);
+
+  assert.match(tileSync, /accessStore\.getSnapshot\(\)/);
+  assert.doesNotMatch(tileSync, /ensureLoaded\(/);
+  assert.doesNotMatch(adsense, /ensureLoaded\(/);
+  assert.match(adsense, /accessStore\.getSnapshot/);
+  assert.match(adsense, /accessStore\?\.subscribe/);
 });

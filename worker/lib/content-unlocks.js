@@ -206,6 +206,27 @@ export async function findActivePaidContentUnlock(input = {}) {
   }).lean();
 }
 
+export async function findActivePaidContentUnlockByServiceKeys(input = {}) {
+  const serviceKeys = uniqueKeys(input.serviceKeys || []);
+  const target = resolvePaidContentUnlockTarget({ ...input, serviceKey: serviceKeys[0] || input.serviceKey });
+  if (!target.userId || !serviceKeys.length || !target.contentKey) return null;
+  if (target.requiresProfile && !target.profileId) return null;
+
+  const profileScopeClause = target.profileId
+    ? buildProfileScopeClause(target.profileId)
+    : { scope: CONTENT_ENTITLEMENT_SCOPES.USER };
+  return ContentEntitlement.findOne({
+    userId: target.userId,
+    serviceKey: { $in: serviceKeys },
+    ...buildContentKeyClause(target.contentKey),
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $and: [
+      activeExpiryClause(),
+      profileScopeClause,
+    ],
+  }).lean();
+}
+
 export async function upsertPaidContentUnlock(input = {}) {
   const target = resolvePaidContentUnlockTarget(input);
   if (!target.userId || !target.serviceKey || !target.contentKey) {

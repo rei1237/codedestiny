@@ -11,6 +11,8 @@ export type PassVerdictSnapshot = {
   checkedAt: number;
   purchaseVersion: string;
   source: string;
+  completeness?: string;
+  authority?: string;
   /**
    * TTL 을 넘겼지만 아직 유효한 스냅샷. 'none' 은 24시간까지, 'active' 는 이용권 만료일까지.
    * 이번 판정은 그대로 쓰고 백그라운드 갱신을 예약하라는 신호다.

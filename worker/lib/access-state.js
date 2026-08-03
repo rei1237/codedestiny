@@ -2,6 +2,7 @@ import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.j
 
 const ACCESS_STATE_TTL_MS = 60000;
 const ACCESS_STATE_STALE_TTL_MS = 30 * 60 * 1000;
+const ACCESS_STATE_GRACE_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCESS_STATE_MAX_ENTRIES = 2500;
 const ACCESS_STATE_POLICY_VERSION = "access-state-snapshot-v1";
 
@@ -49,7 +50,7 @@ function prune(now = Date.now()) {
   }
 }
 
-export function buildAccessState({ userId, user, profileCount = 0, source = "db", checkedAt = new Date().toISOString() }) {
+export function buildAccessState({ userId, user, profileCount = null, source = "db", checkedAt = new Date().toISOString() }) {
   const entitlement = user?.profileSubscription && typeof user.profileSubscription === "object"
     ? user.profileSubscription
     : {};
@@ -66,6 +67,12 @@ export function buildAccessState({ userId, user, profileCount = 0, source = "db"
   const fetchedMs = Number.isFinite(checkedMs) ? checkedMs : Date.now();
   const expiresAt = new Date(fetchedMs + ACCESS_STATE_TTL_MS).toISOString();
   const staleUntil = new Date(fetchedMs + ACCESS_STATE_STALE_TTL_MS).toISOString();
+  const activeUntilMs = Date.parse(String(activeUntil || ""));
+  const graceLimitMs = fetchedMs + ACCESS_STATE_GRACE_TTL_MS;
+  const graceUntilMs = hasActivePass && Number.isFinite(activeUntilMs)
+    ? Math.min(graceLimitMs, activeUntilMs)
+    : graceLimitMs;
+  const graceUntil = new Date(graceUntilMs).toISOString();
   const unlockedFeatureIds = normalizeStringArray(user?.unlockedFeatures);
   const monthlyBalance = buildMonthlyBalance(entitlement, fetchedMs);
   const activePasses = hasActivePass ? [{
@@ -82,10 +89,20 @@ export function buildAccessState({ userId, user, profileCount = 0, source = "db"
     unlockedFeatureIds,
     monthlyBalance,
     purchasePolicyVersion: ACCESS_STATE_POLICY_VERSION,
-    entitlementVersion: String(entitlement?.version || entitlement?.policyVersion || user?.updatedAt || checkedAt),
+    entitlementVersion: String(
+      entitlement?.entitlementVersion
+      || entitlement?.version
+      || entitlement?.policyVersion
+      || entitlement?.updatedAt
+      || user?.updatedAt
+      || checkedAt,
+    ),
     fetchedAt: checkedAt,
     expiresAt,
     staleUntil,
+    graceUntil,
+    completeness: "full",
+    authority: "server",
     source,
   };
 
@@ -97,7 +114,10 @@ export function buildAccessState({ userId, user, profileCount = 0, source = "db"
     coinBalance: Math.max(0, Math.floor(Number(user?.points || 0))),
     monthlyStoneBalance: monthlyBalance.remaining,
     membershipCreditBalance: monthlyBalance.remaining,
-    profileCount: Math.max(0, Math.floor(Number(profileCount || 0))),
+    profileCount: profileCount === null || profileCount === undefined
+      ? null
+      : Math.max(0, Math.floor(Number(profileCount || 0))),
+    profileCountDeferred: profileCount === null || profileCount === undefined,
     maxProfileCount,
     currentProfileId: String(user?.destinyProfilesCurrentId || ""),
     unlockedFeatureIds,
@@ -117,6 +137,10 @@ export function buildAccessState({ userId, user, profileCount = 0, source = "db"
     fetchedAt: checkedAt,
     expiresAt,
     staleUntil,
+    graceUntil,
+    completeness: "full",
+    authority: "server",
+    adminStaleGraceAllowed: false,
   };
 }
 
@@ -172,6 +196,7 @@ globalThis.__accessStateCache = {
 };
 
 export const ACCESS_STATE_USER_PROJECTION = Object.freeze({
+  updatedAt: 1,
   points: 1,
   unlockedFeatures: 1,
   paidFeatures: 1,

@@ -109,7 +109,7 @@
 - 운영 DB 직접 쓰기/마이그레이션
 - `worker/wrangler.toml` binding/route/secret 정책 변경
 - 이용권/월정석/단건 결제 우선순위 변경
-- `grantPassFreeAccessBeforeCardIfAvailable` 안전망 약화
+- 명시적인 `MEMBERSHIP_PASS` 선택에 대한 서버 이용권 검증 제거
 - `paymentMode:"DIRECT_KRW"` 하드코딩으로 월정석/이용권 옵션 제거
 - 프로필 카드 관리 수수료의 passExcluded 정책 우회
 
@@ -140,7 +140,7 @@
 
 ## Unlock state and shop read separation
 
-- Main-shell unlock hydration uses `GET /api/access/unlocks?profileId=...&serviceKey=saju,ziwei`.
+- Lock UI hydration uses `GET /api/access/unlocks?profileId=...&serviceKey=saju,ziwei` only after the relevant lock surface is visible or the user explicitly retries. Global auth/profile events invalidate the snapshot without issuing this request.
 - `GET /api/access/unlocks` is read-only. Legacy `includeBackfill=1` and `backfill=1` are accepted as compatibility inputs only and must not run `PointHistory`/`Payment` scans or write `ContentEntitlement` records during a normal lookup.
 - Legacy entitlement repair must run through an explicit backfill/reconcile path, not through page-entry GET requests.
 - The points shop initial summary uses one in-flight `GET /api/payments/me?view=shop` request per page entry. It reuses the auth-loaded user snapshot for pass and monthly-credit state and defers payment, point-history, and monthly-credit-ledger reads to the dedicated history surface.
@@ -151,10 +151,12 @@
 
 ## Verified pass snapshot and checkout recovery
 
-- A recent successful `/api/auth/me` result may hydrate the shared pass snapshot for `standard`, `premium`, `vvip`, and `family`. Unverified or expired local auth data must not grant access.
+- A recent successful `/api/me/access-state` bootstrap may hydrate the shared pass snapshot for `standard`, `premium`, `vvip`, and `family`. Unverified or expired local auth data must not grant access.
 - A last-known-good pass or unlock snapshot survives transient 503 responses. AccessStore must not persist `unlocked: false`, automatically refetch after a verified payment payload, or retry a display probe without an explicit user or session action.
 - Snapshot coverage is an optimistic read path only. Family premium-quota decisions, monthly-credit deduction, PortOne order creation, payment confirmation, and entitlement writes remain server-authoritative.
-- An explicit `DIRECT_KRW` client choice may skip the redundant coin-gate probe, but `/api/billing/checkout` must still recheck pass coverage before creating a PortOne order.
+- An explicit `DIRECT_KRW` choice must create exactly one PortOne order after the click and must never be converted to pass access. Only an already persisted permanent unlock may stop a duplicate purchase.
+- Only explicit `MEMBERSHIP_PASS` requests apply pass coverage. `standard`, `premium`, and `vvip` reads do not synchronously update `User` or create `PointHistory`; metered `family` quota and permanent unlock persistence remain synchronous and server-authoritative.
+- Opening the payment-choice modal may preload the PortOne SDK and `/api/payments/config` GET, but it must not POST `/api/billing/checkout`. Payment POST requests are not automatically retried after network, 503, or token-refresh failures.
 - Billing-to-payments delegation may reuse authentication verified from the same original request. Payment route security, minor restrictions, server pricing, provider verification, and idempotency checks must still run.
 - `GET /api/payments/me?view=shop` may use a cryptographically verified access-token identity when the canonical user read is temporarily unavailable. This fallback is read-only and cannot create an order, deduct monthly credits, grant an entitlement, or revive a withdrawn account once Mongo is available again.
 - Mongo operation admission may shed excess display reads, but a lone timed-out driver operation must reset its dead pool. Deferring reset until an already-hung promise settles can pin an isolate in a permanent 503 loop; concurrent healthy operations remain protected and repeated failures retain the forced-reset escape hatch.
