@@ -16857,3 +16857,124 @@
   font-weight: 900;
   text-align: center;
 }
+
+/* Open one card at a time so a mobile reading starts with a clear scene instead
+   of five long explanations repeated for every card. */
+.resultScene {
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255, 230, 241, 0.18), transparent 32rem),
+    radial-gradient(circle at 12% 12%, rgba(179, 25, 85, 0.18), transparent 28rem),
+    radial-gradient(circle at 88% 18%, rgba(234, 208, 137, 0.12), transparent 24rem),
+    linear-gradient(180deg, #3a0e28 0%, #24081a 100%);
+}
+
+.resultHeroArtwork {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.resultHeroArtwork::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(36, 8, 26, 0.2), rgba(36, 8, 26, 0.86));
+}
+
+.resultHeroArtwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.resultHeader > :not(.resultHeroArtwork) {
+  position: relative;
+  z-index: 1;
+}
+
+.resultHeroGreeting {
+  width: min(100%, 700px);
+  margin: 4px auto 0;
+  color: rgba(255, 241, 247, 0.9);
+  font-family: var(--tea-font-premium, var(--font-premium, var(--font-body)));
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.resultTarotGalleryCard {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.resultTarotGalleryCard[data-active="true"] {
+  transform: translateY(-4px);
+  filter:
+    drop-shadow(0 28px 44px rgba(6, 3, 16, 0.42))
+    drop-shadow(0 0 34px rgba(244, 190, 209, 0.42));
+}
+
+.resultTarotGalleryCard:focus-visible {
+  outline: 3px solid rgba(234, 208, 137, 0.94);
+  outline-offset: 5px;
+}
+
+.resultTarotReadingCard[data-active="false"] {
+  display: none;
+}
+
+.resultTarotDetailDisclosure {
+  margin-top: 2px;
+  border: 1px solid rgba(244, 190, 209, 0.24);
+  border-radius: 10px;
+  background: rgba(89, 17, 53, 0.24);
+}
+
+.resultTarotDetailDisclosure summary {
+  padding: 11px 13px;
+  color: rgba(255, 233, 177, 0.96);
+  font-family: var(--tea-font-premium, var(--font-premium, var(--font-body)));
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.resultTarotDetailDisclosure[open] summary {
+  border-bottom: 1px solid rgba(244, 190, 209, 0.18);
+}
+
+.resultTarotDetailDisclosure .resultTarotDetailItem {
+  margin: 11px;
+}
+
+@media (max-width: 640px) {
+  .resultHeroArtwork img {
+    object-position: center top;
+    opacity: 0.48;
+  }
+
+  .resultHeroGreeting {
+    text-align: left;
+  }
+
+  .resultTarotGallery {
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+    gap: 10px;
+  }
+
+  .resultTarotGalleryCard {
+    width: min(100%, 112px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resultTarotGalleryCard,
+  .resultTarotGalleryCard[data-active="true"] {
+    transform: none;
+    transition: none;
+  }
+}
