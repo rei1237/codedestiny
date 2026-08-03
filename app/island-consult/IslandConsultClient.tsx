@@ -49,25 +49,45 @@ type SeedLike = { name?: string; gender?: string; birthDate?: string; birthTime?
 function calLabel(f: { calendarType: CalendarType; isLeapMonth: boolean }) { return f.calendarType === "lunar" ? (f.isLeapMonth ? "윤달" : "음력") : "양력"; }
 
 interface Palace {
-  name: string; title: string; icon: string; theme: string;
+  name: string; title: string; icon: string; theme: string; artIndex: number;
 }
 const PALACES: Palace[] = [
-  { name: "명궁", title: "운명의 성", icon: "🏰", theme: "본질·성향·삶의 방향" },
-  { name: "재백궁", title: "황금 광산", icon: "⛏️", theme: "재물·수입·돈의 흐름" },
-  { name: "관록궁", title: "전략실", icon: "📐", theme: "직업·성취·진로 전환" },
-  { name: "부부궁", title: "연인의 정원", icon: "💗", theme: "배우자·연애·인연" },
-  { name: "천이궁", title: "항구", icon: "⛵", theme: "이동·변화·해외" },
-  { name: "복덕궁", title: "신비한 도서관", icon: "📚", theme: "내면·정신·취향" },
-  { name: "질액궁", title: "치유의 성소", icon: "💧", theme: "건강·체질·컨디션" },
-  { name: "부모궁", title: "고대 신전", icon: "⛩️", theme: "부모·윗사람·뿌리" },
-  { name: "형제궁", title: "형제의 숲", icon: "🌲", theme: "형제·동년배·협력" },
-  { name: "노복궁", title: "동료의 광장", icon: "🤝", theme: "동료·인맥·아랫사람" },
-  { name: "자녀궁", title: "빛의 놀이터", icon: "🎈", theme: "자녀·창작·돌봄" },
-  { name: "전택궁", title: "고향의 집", icon: "🏡", theme: "거처·부동산·터전" },
+  { name: "명궁", title: "운명의 성", icon: "🏰", theme: "본질·성향·삶의 방향", artIndex: 0 },
+  { name: "재백궁", title: "황금 광산", icon: "⛏️", theme: "재물·수입·돈의 흐름", artIndex: 1 },
+  { name: "관록궁", title: "전략실", icon: "📐", theme: "직업·성취·진로 전환", artIndex: 2 },
+  { name: "부부궁", title: "연인의 정원", icon: "💗", theme: "배우자·연애·인연", artIndex: 3 },
+  { name: "천이궁", title: "항구", icon: "⛵", theme: "이동·변화·해외", artIndex: 4 },
+  { name: "복덕궁", title: "신비한 도서관", icon: "📚", theme: "내면·정신·취향", artIndex: 5 },
+  { name: "질액궁", title: "치유의 성소", icon: "💧", theme: "건강·체질·컨디션", artIndex: 6 },
+  { name: "부모궁", title: "고대 신전", icon: "⛩️", theme: "부모·윗사람·뿌리", artIndex: 7 },
+  { name: "형제궁", title: "형제의 숲", icon: "🌲", theme: "형제·동년배·협력", artIndex: 8 },
+  { name: "노복궁", title: "동료의 광장", icon: "🤝", theme: "동료·인맥·아랫사람", artIndex: 9 },
+  { name: "자녀궁", title: "빛의 놀이터", icon: "🎈", theme: "자녀·창작·돌봄", artIndex: 10 },
+  { name: "전택궁", title: "고향의 집", icon: "🏡", theme: "거처·부동산·터전", artIndex: 11 },
 ];
 
-const YEON_AV = "/fuctionassets/" + encodeURIComponent("연이.webp");
-const NEO_AV = "https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/" + encodeURIComponent("전략실 네오 메인-Photoroom.webp");
+const ISLAND_ASSET_ROOT = "/images/destiny-island";
+const CONSULT_HERO = `${ISLAND_ASSET_ROOT}/consult-hero.webp`;
+const CONSULT_READING = `${ISLAND_ASSET_ROOT}/consult-reading.webp`;
+const CONSULT_REPORT_COVER = `${ISLAND_ASSET_ROOT}/consult-report-cover.webp`;
+const PALACE_BADGES = `${ISLAND_ASSET_ROOT}/palace-badges.webp`;
+  const YEON_AV = "/images/fortune-tea-house/flower-pig-single-a.webp";
+  const NEO_AV = "https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/" + encodeURIComponent("전략실 네오 메인-Photoroom.webp");
+const PALACE_BADGE_POSITIONS = [
+  "0% 0%", "33.333% 0%", "66.667% 0%", "100% 0%",
+  "0% 50%", "33.333% 50%", "66.667% 50%", "100% 50%",
+  "0% 100%", "33.333% 100%", "66.667% 100%", "100% 100%",
+];
+
+function PalaceBadge({ palace, size = "card" }: { palace: Palace; size?: "card" | "small" | "result" }) {
+  return (
+    <span
+      className={`ic-palace-art ic-palace-art--${size}`}
+      style={{ backgroundImage: `url(${PALACE_BADGES})`, backgroundPosition: PALACE_BADGE_POSITIONS[palace.artIndex] }}
+      aria-hidden="true"
+    />
+  );
+}
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -409,7 +429,7 @@ export default function IslandConsultClient() {
         label: intro.title,
         content: (
           <div className="ic-rpt-page">
-            <h3 className="ic-rpt-page__title"><span aria-hidden="true">📖</span> {intro.title}</h3>
+            <h3 className="ic-rpt-page__title"><span className="ic-rpt-page__mark" aria-hidden="true">✦</span> {intro.title}</h3>
             <p className="ic-rpt-page__meta">{intro.focus}</p>
             {intro.sections.map((sec) => (
               <section key={sec.key} className="ic-rpt-sec">
@@ -432,7 +452,7 @@ export default function IslandConsultClient() {
         label: `${name} · ${entry.title}`,
         content: (
           <div className="ic-rpt-page">
-            <h3 className="ic-rpt-page__title"><span aria-hidden="true">{meta?.icon}</span> {name} · {entry.title}</h3>
+            <h3 className="ic-rpt-page__title">{meta ? <PalaceBadge palace={meta} size="small" /> : <span className="ic-rpt-page__mark" aria-hidden="true">✦</span>} {name} · {entry.title}</h3>
             <p className="ic-rpt-page__meta">{entry.tierLabel} · {entry.focus}</p>
             {entry.sections.map((sec) => (
               <section key={sec.key} className="ic-rpt-sec">
@@ -450,6 +470,7 @@ export default function IslandConsultClient() {
     if (reportUnlocked && report) {
       return (
         <section className="ic-report ic-report--open" ref={reportRef} aria-label="12궁 전체 심층 리포트">
+          <div className="ic-report__visual"><Image src={CONSULT_REPORT_COVER} alt="운명의 섬 별자리 리포트 표지" width={720} height={960} loading="lazy" /></div>
           <div className="ic-report__head">
             <span className="ic-report__tag">열람 중</span>
             <h2 className="ic-report__title">12궁 전체 심층 리포트</h2>
@@ -467,6 +488,7 @@ export default function IslandConsultClient() {
 
     return (
       <section className="ic-report" ref={reportRef} aria-label="12궁 전체 심층 리포트 안내">
+        <div className="ic-report__visual"><Image src={CONSULT_REPORT_COVER} alt="운명의 섬 별자리 리포트 표지" width={720} height={960} loading="lazy" /></div>
         <div className="ic-report__head">
           <span className="ic-report__tag">1회 해금</span>
           <h2 className="ic-report__title">12궁 전체 심층 리포트</h2>
@@ -497,13 +519,15 @@ export default function IslandConsultClient() {
       <style>{CSS}</style>
       <div className="ic-topbar"><a className="ic-topbar__back" href="/destiny-island" aria-label="운명의 섬 지도로 돌아가기">← 운명의 섬</a></div>
       <header className="ic-head">
-        <div className="ic-avatars" aria-hidden="true">
-          <span className="ic-av ic-av--yeon"><Image src={YEON_AV} alt="" width={72} height={72} unoptimized /></span>
-          <span className="ic-av ic-av--neo"><Image src={NEO_AV} alt="" width={72} height={72} unoptimized /></span>
+        <div className="ic-hero-art" aria-hidden="true">
+          <Image src={CONSULT_HERO} alt="" fill priority sizes="(max-width: 720px) 100vw, 1040px" />
         </div>
-        <p className="ic-eyebrow">紫微斗數 · 운명의 섬</p>
-        <h1 className="ic-title">12궁 심층 상담</h1>
-        <p className="ic-sub">궁의 문을 열면, 연이와 네오가 그 자리의 별과 사화·대운을 지금 고민에 맞춰 깊이 읽어드려요.</p>
+        <div className="ic-head__content">
+          <p className="ic-eyebrow">紫微斗數 · 운명의 섬</p>
+          <h1 className="ic-title">12궁 심층 상담</h1>
+          <p className="ic-sub">궁의 문을 열면, 연이와 네오가 그 자리의 별과 사화·대운을 지금 고민에 맞춰 깊이 읽어드려요.</p>
+          <div className="ic-guides" aria-label="상담 안내자"><span><span className="ic-guide__avatar"><Image src={YEON_AV} alt="" width={30} height={30} unoptimized /></span><b>연이</b> 마음의 결을 살펴요</span><span><span className="ic-guide__avatar ic-guide__avatar--neo"><Image src={NEO_AV} alt="" width={30} height={30} unoptimized /></span><b>네오</b> 다음 수를 짚어요</span></div>
+        </div>
       </header>
 
       {phase === "hub" && (
@@ -511,7 +535,7 @@ export default function IslandConsultClient() {
           {PALACES.map((p) => (
             <li key={p.name}>
               <button type="button" className="ic-card" onClick={() => pickPalace(p)} aria-label={`${p.name} ${p.title} 상담 선택`}>
-                <span className="ic-card__icon" aria-hidden="true">{p.icon}</span>
+                <PalaceBadge palace={p} />
                 <span className="ic-card__name">{p.name}</span>
                 <span className="ic-card__title">{p.title}</span>
                 <span className="ic-card__theme">{p.theme}</span>
@@ -524,7 +548,7 @@ export default function IslandConsultClient() {
 
       {phase === "form" && palace && (
         <div className="ic-stack">
-          <div className="ic-picked"><span aria-hidden="true">{palace.icon}</span> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
+          <div className="ic-picked"><PalaceBadge palace={palace} size="small" /> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
 
           {renderReportSection(palace)}
 
@@ -577,6 +601,7 @@ export default function IslandConsultClient() {
 
       {(phase === "checking" || phase === "payment" || phase === "reading") && (
         <div className="ic-loading">
+          <div className="ic-loading__art"><Image src={CONSULT_READING} alt="별자리 지도를 읽는 중" width={720} height={720} loading="lazy" /></div>
           <div className="ic-orb" aria-hidden="true" />
           <p>{notice || "준비하고 있어요…"}</p>
         </div>
@@ -584,7 +609,8 @@ export default function IslandConsultClient() {
 
       {phase === "ready" && result && (
         <article className="ic-result">
-          <h2 className="ic-result__title"><span aria-hidden="true">{PALACES.find((p) => p.name === result.palaceKey)?.icon}</span> {result.palaceKey} · {result.palaceTitle}</h2>
+          <div className="ic-result__hero"><Image src={CONSULT_READING} alt="운명의 섬 별자리 지도와 관측 도구" width={720} height={720} loading="lazy" /></div>
+          <div className="ic-result__heading"><PalaceBadge palace={PALACES.find((p) => p.name === result.palaceKey) || PALACES[0]} size="result" /><div><p className="ic-result__eyebrow">당신의 궁이 보내온 편지</p><h2 className="ic-result__title">{result.palaceKey} · {result.palaceTitle}</h2></div></div>
           {result.result?.meta?.daeun ? <p className="ic-result__meta">{toText(result.result.meta.daeun)}</p> : null}
           {(result.sectionKeys || []).map((key) => {
             const sec = result.result?.sections?.[key];
@@ -712,5 +738,51 @@ const CSS = `
 .ic-confirm__dl dd{color:#2a1f5e;font-weight:800;margin:0;text-align:right}
 .ic-confirm__note{font-size:.78rem;color:#6a4fb0;margin-top:12px;line-height:1.6}
 .ic-change--done{margin:2px 0 12px;width:100%;min-height:44px}
+/* ── 별자리 동화책 리디자인 ── */
+.ic-root{color:#f6f0ff;background:radial-gradient(120% 70% at 50% -10%,#5b4f91 0%,#2d265e 46%,#14112f 100%);}
+.ic-topbar__back{color:#f8edc9;background:rgba(25,19,56,.78);border-color:rgba(232,213,163,.38);box-shadow:0 8px 24px rgba(5,3,18,.32)}
+.ic-topbar__back:hover{background:rgba(46,35,86,.92)}
+.ic-head{position:relative;isolation:isolate;max-width:1040px;min-height:350px;margin:0 auto 24px;overflow:hidden;text-align:left;border:1px solid rgba(232,213,163,.35);border-radius:30px;background:#211a47;box-shadow:0 24px 70px rgba(5,3,18,.38),0 1px 0 rgba(255,255,255,.12) inset}
+.ic-head::after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(20,15,46,.98) 0%,rgba(20,15,46,.88) 34%,rgba(20,15,46,.18) 68%,rgba(20,15,46,.05) 100%);pointer-events:none}
+.ic-hero-art{position:absolute;inset:0;z-index:-1}
+.ic-hero-art img{object-fit:cover;object-position:center;opacity:.96}
+.ic-head__content{position:relative;z-index:1;width:min(54%,480px);padding:64px 34px 54px 48px}
+.ic-eyebrow{color:#f2d994;font-size:.76rem;letter-spacing:.13em}
+.ic-title{color:#fff7e1;font-size:clamp(2rem,5vw,3.15rem);line-height:1.18;text-shadow:0 4px 20px rgba(0,0,0,.35)}
+.ic-sub{color:#e0d4fa;max-width:38ch;font-size:1rem;line-height:1.8}
+.ic-guides{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}
+.ic-guides span{padding:6px 10px;border-radius:999px;border:1px solid rgba(232,213,163,.27);background:rgba(232,213,163,.08);color:#d9cdf1;font-size:.76rem}
+.ic-guides .ic-guide__avatar{display:inline-flex;width:30px;height:30px;padding:0;margin:-3px 5px -3px -5px;overflow:hidden;vertical-align:middle;border:1px solid rgba(244,190,209,.48);border-radius:50%;background:rgba(255,255,255,.08)}
+.ic-guides .ic-guide__avatar img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}.ic-guides .ic-guide__avatar--neo{border-color:rgba(232,213,163,.52)}
+.ic-guides b{color:#f8d9e4;margin-right:4px}.ic-guides span+span b{color:#f3dd9e}
+.ic-grid{max-width:1040px;gap:14px}
+.ic-card{min-height:190px;padding:18px 12px 15px;border-color:rgba(232,213,163,.24);background:linear-gradient(160deg,rgba(45,35,88,.94),rgba(26,20,56,.96));box-shadow:0 14px 32px rgba(5,3,18,.28),0 1px 0 rgba(255,255,255,.08) inset}
+.ic-card:hover,.ic-card:focus-visible{border-color:rgba(232,213,163,.75);box-shadow:0 20px 44px rgba(5,3,18,.42),0 0 0 3px rgba(232,213,163,.16);transform:translateY(-5px)}
+.ic-palace-art{display:inline-block;flex:none;width:94px;height:70px;background-repeat:no-repeat;background-size:400% 300%;border-radius:18px;filter:drop-shadow(0 7px 8px rgba(4,2,16,.38))}
+.ic-palace-art--small{width:30px;height:23px;border-radius:7px;vertical-align:-6px}
+.ic-palace-art--result{width:58px;height:44px;border-radius:12px}
+.ic-card__name{color:#fff7e1;font-size:1.08rem;margin-top:8px}
+.ic-card__title{color:#f1d99a}.ic-card__theme{color:#c9bae9}.ic-card__cta{color:#f2d994}
+.ic-picked{color:#fff4d9}.ic-picked .ic-palace-art--small{margin-right:2px}
+.ic-change{color:#e6d59b;border-color:rgba(232,213,163,.4);background:rgba(232,213,163,.06)}
+.ic-form,.ic-report,.ic-result{color:#f3edff;background:linear-gradient(165deg,rgba(42,32,82,.96),rgba(24,18,51,.98));border-color:rgba(232,213,163,.3);box-shadow:0 20px 54px rgba(5,3,18,.34),0 1px 0 rgba(255,255,255,.08) inset}
+.ic-lead__tag,.ic-report__tag,.ic-confirm__badge{color:#f2d994;background:rgba(232,213,163,.1)}
+.ic-lead__desc,.ic-report__lead,.ic-report__list li,.ic-report__hint,.ic-note,.ic-confirm__note{color:#cbbde8}.ic-lead__desc strong,.ic-report__lead strong{color:#fff4d9}
+.ic-field>span,.ic-check,.ic-confirm__dl dt{color:#c8b9e6}
+.ic-field input,.ic-field textarea{border-color:rgba(210,196,255,.28);background:rgba(11,8,28,.58);color:#f6f0ff}
+.ic-field input:focus,.ic-field textarea:focus{outline-color:#f2d994}
+.ic-seg button{border-color:rgba(210,196,255,.26);background:rgba(11,8,28,.42);color:#c8b9e6}.ic-seg button.on{background:rgba(167,139,250,.24);border-color:#bca5ff;color:#fff4d9}
+.ic-confirm{border-color:rgba(232,213,163,.25);background:rgba(255,255,255,.045);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.ic-confirm__dl dd{color:#fff4d9}.ic-primary{box-shadow:0 12px 30px rgba(180,150,80,.28),0 1px 0 rgba(255,255,255,.45) inset}
+.ic-report__visual{height:132px;margin:-5px -5px 16px;overflow:hidden;border-radius:16px;border:1px solid rgba(232,213,163,.24);background:#171131}
+.ic-report__visual img{width:100%;height:100%;object-fit:cover;object-position:center 42%;opacity:.9}
+.ic-report__title{color:#fff4d9}.ic-report__list li{color:#d9cdef}.ic-report__list li::before{background:#f2d994}
+.ic-report--open{color:#efe7ff}.ic-rpt-page__title{display:flex;align-items:center;gap:7px;color:#fff4d9}.ic-rpt-page__mark{color:#f2d994}.ic-rpt-page__meta{color:#cbbde8}.ic-rpt-sec h4{color:#f2d994}.ic-rpt-sec p{color:#e0d5f5}
+.ic-loading{color:#e4d8f5}.ic-loading__art{width:min(224px,54vw);aspect-ratio:1;margin:0 auto -22px;overflow:hidden;border-radius:50%;border:1px solid rgba(232,213,163,.4);box-shadow:0 18px 48px rgba(5,3,18,.4),0 0 42px rgba(167,139,250,.2)}
+.ic-loading__art img{width:100%;height:100%;object-fit:cover}.ic-orb{position:relative;z-index:1;width:52px;height:52px;margin:0 auto 13px}
+.ic-result{max-width:760px;padding:18px}.ic-result__hero{height:190px;margin:-2px -2px 18px;overflow:hidden;border-radius:18px;border:1px solid rgba(232,213,163,.28);background:#171131}.ic-result__hero img{width:100%;height:100%;object-fit:cover;object-position:center 48%;opacity:.9}.ic-result__heading{display:flex;align-items:center;gap:12px;margin:0 4px 5px}.ic-result__eyebrow{margin:0 0 2px;color:#f2d994;font-size:.76rem;font-weight:800;letter-spacing:.08em}.ic-result__title{color:#fff4d9;margin:0}.ic-result__meta{color:#cbbde8}.ic-sec{padding:14px 0 2px;border-top:1px dashed rgba(210,196,255,.2)}.ic-sec h3{color:#f2d994}.ic-sec p{color:#e1d6f6}
+.ic-back-btn,.ic-back{color:#f2d994;border-color:rgba(232,213,163,.4);background:rgba(232,213,163,.08)}
+.ic-foot{color:#cbbde8}
+@media (max-width:720px){.ic-head{min-height:510px;border-radius:24px}.ic-head::after{background:linear-gradient(180deg,rgba(20,15,46,.9) 0%,rgba(20,15,46,.74) 34%,rgba(20,15,46,.08) 75%,rgba(20,15,46,.4) 100%)}.ic-hero-art img{object-position:62% center}.ic-head__content{width:100%;padding:38px 22px 26px}.ic-sub{max-width:32ch}.ic-guides{margin-top:16px}.ic-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ic-card{min-height:176px;padding:14px 8px 12px}.ic-palace-art{width:82px;height:62px}.ic-result__hero{height:148px}.ic-report__visual{height:112px}}
 @media (prefers-reduced-motion:reduce){.ic-card,.ic-primary,.ic-topbar__back{transition:none}.ic-orb{animation:none}}
 `;

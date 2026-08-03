@@ -67,7 +67,18 @@ img{max-width:100%;display:block}
 .gate-card{position:relative;z-index:2;width:min(520px,92vw);text-align:center;padding:28px 22px calc(24px + env(safe-area-inset-bottom))}
 .gate-hero{width:min(430px,86vw);margin:0 auto 20px;border-radius:18px;overflow:hidden;
   border:1px solid var(--panel-line);box-shadow:0 18px 60px rgba(0,0,0,.55),var(--glow-violet)}
-.gate-hero img{width:100%;height:auto}
+.gate-hero picture,.gate-hero img{display:block;width:100%;height:auto}
+.gate-hero{position:relative;isolation:isolate;background:#171335;border-color:rgba(232,213,163,.4);box-shadow:0 24px 80px rgba(0,0,0,.58),0 0 0 6px rgba(255,255,255,.025),var(--glow-violet)}
+.gate-hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(8,5,24,.02),transparent 55%,rgba(8,5,24,.28));mix-blend-mode:multiply}
+.gate-companions{display:flex;justify-content:center;gap:8px;margin:-4px auto 18px;position:relative;z-index:1}
+  .guide-chip{display:flex;align-items:center;gap:7px;padding:5px 10px 5px 5px;border:1px solid var(--panel-line);border-radius:999px;background:rgba(18,13,42,.82);box-shadow:0 8px 22px rgba(0,0,0,.3)}
+  .guide-chip__avatar{display:flex;align-items:flex-end;justify-content:center;width:30px;height:30px;border-radius:50%;overflow:hidden;background:rgba(232,213,163,.1);border:1px solid rgba(244,190,209,.48);flex:none}
+  .guide-chip__avatar img{width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block}
+  .guide-chip--neo .guide-chip__avatar{border-color:rgba(232,213,163,.55);background:rgba(232,213,163,.09)}
+.guide-chip b{display:block;font-size:.78rem;line-height:1.15;color:var(--text)}
+.guide-chip small{display:block;color:var(--text-muted);font-size:.66rem;line-height:1.25;white-space:nowrap}
+.guide-chip--yeon{border-color:rgba(244,190,209,.45)}
+.guide-chip--neo{border-color:rgba(232,213,163,.42)}
 .gate-eyebrow{font-size:.85rem;color:var(--gold);letter-spacing:.14em;font-weight:700}
 .gate-title{font-family:var(--font-serif);font-size:clamp(1.9rem,6vw,2.6rem);font-weight:800;color:var(--text);
   margin:6px 0 8px;text-wrap:balance;text-shadow:0 0 24px rgba(167,139,250,.35)}
@@ -124,6 +135,8 @@ img{max-width:100%;display:block}
 
 /* ── 로딩 ── */
 .loading-wrap{position:relative;z-index:2;text-align:center}
+.loading-art{width:min(210px,52vw);aspect-ratio:1;margin:0 auto -24px;border-radius:50%;overflow:hidden;opacity:.95;filter:drop-shadow(0 12px 28px rgba(0,0,0,.4));mask-image:radial-gradient(circle,#000 56%,transparent 74%)}
+.loading-art img{width:100%;height:100%;object-fit:cover}
 .loading-orb{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;
   background:radial-gradient(circle at 34% 30%,#fff 0%,var(--violet) 30%,var(--violet-deep) 62%,transparent 74%);
   box-shadow:0 0 40px rgba(167,139,250,.75),0 0 90px rgba(167,139,250,.3);animation:orb 2.2s ease-in-out infinite}
@@ -153,6 +166,7 @@ img{max-width:100%;display:block}
   background:radial-gradient(circle at 50% 44%,rgba(232,213,163,.55),rgba(167,139,250,.3) 42%,rgba(10,8,24,0) 72%)}
 .intro-island :where(img){width:min(96vw,150vh);max-height:76vh;object-fit:contain;border-radius:14px;
   box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 60px rgba(167,139,250,.25)}
+.intro-island :where(img){position:relative;z-index:1;border:1px solid rgba(232,213,163,.25);box-shadow:0 30px 90px rgba(0,0,0,.62),0 0 70px rgba(167,139,250,.28)}
 .intro-caption{position:absolute;left:50%;bottom:calc(12vh + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(560px,90vw);
   text-align:center;font-size:clamp(1rem,2.6vw,1.2rem);color:var(--text);text-shadow:0 2px 14px rgba(0,0,0,.8);
   font-family:var(--font-serif);line-height:1.9;min-height:3.6em}
@@ -430,8 +444,48 @@ body.ph-night .fireflies{opacity:1}
 .pdesc-marker.mk-year{color:var(--rose);border-color:rgba(244,190,209,.4)}
 .pdesc-reso{font-size:.84rem;color:var(--text-muted);line-height:1.7;margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(196,181,253,.06)}
 
+/* ── 그림책 UI 레이어: 장면마다 같은 종이·금박·별빛 언어를 공유 ── */
+:where(button,a,input):focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.gate-card{padding-top:clamp(20px,4vh,36px)}
+.gate-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 11px;border:1px solid rgba(232,213,163,.34);border-radius:999px;background:rgba(232,213,163,.07);font-size:.72rem;letter-spacing:.12em}
+.gate-eyebrow::before,.gate-eyebrow::after{content:"✦";font-size:.65rem;color:var(--gold);letter-spacing:0}
+.gate-sub{line-height:1.75}
+.gate-actions .btn-primary{min-width:min(300px,82vw)}
+.form-card{background:linear-gradient(165deg,rgba(33,25,69,.92),rgba(18,14,39,.95));box-shadow:0 26px 90px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.025) inset}
+.form-card h2{font-size:clamp(1.35rem,4vw,1.65rem);text-wrap:balance}
+.form-card .hint{line-height:1.65;word-break:keep-all}
+.loading-wrap{width:min(440px,92vw);padding:22px 20px 25px;border:1px solid rgba(232,213,163,.24);border-radius:24px;background:rgba(18,14,40,.44);box-shadow:0 22px 80px rgba(0,0,0,.42)}
+.loading-line{font-family:var(--font-serif);line-height:1.7}
+.intro-stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 36%,rgba(5,3,16,.42) 100%)}
+.intro-caption{z-index:2}
+.intro-skip{z-index:3}
+.map-canvas{background:radial-gradient(ellipse at 50% 34%,rgba(107,89,174,.5),transparent 46%),linear-gradient(160deg,#30265e 0%,#211b46 58%,#15112e 100%)}
+.hud-id,.chip{background:rgba(17,13,39,.8);border-color:rgba(232,213,163,.28)}
+.hud-id{border-radius:13px;padding:8px 13px;box-shadow:0 12px 32px rgba(5,3,17,.38),0 1px 0 rgba(255,255,255,.08) inset}
+.hud-id .imeta{color:#cdbaf0}
+.narrator .nav-av{border-color:rgba(232,213,163,.5);background:rgba(18,13,42,.9)}
+.narrator .nav-bubble{background:rgba(18,13,42,.9);border-color:rgba(232,213,163,.3);box-shadow:0 12px 32px rgba(5,3,17,.5)}
+.dlg-box{background:linear-gradient(165deg,rgba(33,25,69,.96),rgba(16,12,36,.97));border-color:rgba(232,213,163,.34);box-shadow:0 22px 80px rgba(0,0,0,.68),0 1px 0 rgba(255,255,255,.08) inset}
+.dlg-name{padding:3px 9px;border-radius:999px;background:rgba(232,213,163,.08);border:1px solid rgba(232,213,163,.24)}
+.dlg-text{line-height:1.8;word-break:keep-all}
+.sheet{background:linear-gradient(165deg,rgba(33,25,69,.98),rgba(16,12,36,.99));border-color:rgba(232,213,163,.32)}
+.sheet h2{font-size:1.3rem}
+.quest{background:rgba(255,255,255,.025);border-color:rgba(210,196,255,.22)}
+.growth{background:linear-gradient(90deg,rgba(232,213,163,.1),rgba(167,139,250,.09));border-color:rgba(232,213,163,.24)}
+.pdesc-header{position:relative}
+.pdesc-header .pdesc-icon{font-size:1.65rem;filter:saturate(.8)}
+
 @media (max-width:640px){
-  .gate-hero{width:min(360px,86vw)}
+  .gate-card{width:min(520px,94vw);padding-left:16px;padding-right:16px}
+  .gate-hero{width:min(360px,88vw);border-radius:22px}
+  .gate-companions{gap:5px;margin-bottom:14px}
+  .guide-chip{padding-right:8px}
+  .guide-chip small{font-size:.6rem}
+  .form-card{width:min(440px,94vw);padding:20px 17px}
+  .loading-wrap{padding-left:14px;padding-right:14px}
+  .loading-art{width:min(184px,52vw)}
+  .intro-island :where(img){width:112vw;max-height:60vh}
+  .intro-caption{bottom:calc(13vh + env(safe-area-inset-bottom));line-height:1.65}
   .dlg-actor{width:min(30vh,190px);bottom:calc(170px + env(safe-area-inset-bottom))}
   .hud-id .iname{font-size:.92rem}
   /* 내레이터: 좌측 세로 스택으로 우측 상태칩과 겹치지 않게 */
@@ -454,7 +508,16 @@ body.ph-night .fireflies{opacity:1}
 <section class="screen on" id="scrGate" aria-label="운명의 섬 입장">
   <div class="starfield" aria-hidden="true" data-stars="70"></div>
   <div class="gate-card">
-    <div class="gate-hero"><img id="gateHeroImg" alt="자미두수 운명의 섬 — 12궁 건물이 세워진 밤하늘의 섬 일러스트" /></div>
+    <div class="gate-hero">
+      <picture>
+        <source media="(max-width: 640px)" srcset="/images/destiny-island/gate-hero-mobile.webp" />
+        <img id="gateHeroImg" src="/images/destiny-island/gate-hero-desktop.webp" srcset="/images/destiny-island/gate-hero-desktop.webp 1x" alt="별자리 궁전이 펼쳐진 운명의 섬 미니어처 지도" fetchpriority="high" />
+      </picture>
+    </div>
+      <div class="gate-companions" aria-label="운명의 섬 안내자">
+        <div class="guide-chip guide-chip--yeon"><span class="guide-chip__avatar" aria-hidden="true"><img src="/images/fortune-tea-house/flower-pig-single-a.webp" alt="" /></span><span><b>연이</b><small>별빛을 모아 섬을 피워요</small></span></div>
+        <div class="guide-chip guide-chip--neo"><span class="guide-chip__avatar" aria-hidden="true"><img src="https://assets.code-destiny.com/cdn-cgi/image/width=180,quality=80,format=auto/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp" alt="" /></span><span><b>네오</b><small>궁의 판세를 읽어드리죠</small></span></div>
+    </div>
     <p class="gate-eyebrow">紫微斗數 · DESTINY ISLAND</p>
     <h1 class="gate-title">운명의 섬</h1>
     <p class="gate-sub">태어난 순간의 별 배치가 하나의 섬이 됩니다. 12궁의 건물을 돌아보며 오늘의 흐름을 만나보세요.</p>
@@ -501,6 +564,7 @@ body.ph-night .fireflies{opacity:1}
 <section class="screen" id="scrLoading" aria-label="섬을 그리는 중">
   <div class="starfield" aria-hidden="true" data-stars="50"></div>
   <div class="loading-wrap">
+    <div class="loading-art" aria-hidden="true"><img src="/images/destiny-island/consult-reading.webp" alt="" /></div>
     <div class="loading-orb" aria-hidden="true"></div>
     <p class="loading-line" id="loadingLine">…당신의 별을 찾고 있어요.</p>
   </div>
@@ -512,7 +576,7 @@ body.ph-night .fireflies{opacity:1}
     <div class="starfield" aria-hidden="true" data-stars="90"></div>
     <div class="intro-dot" id="inDot" aria-hidden="true"></div>
     <div class="intro-ring" id="inRing" aria-hidden="true"><svg id="inLines"></svg></div>
-    <div class="intro-island" id="inIsland" aria-hidden="true"><div class="intro-island-orb"></div></div>
+    <div class="intro-island" id="inIsland" aria-hidden="true"><div class="intro-island-orb"></div><img src="/images/destiny-island/gate-hero-desktop.webp" alt="" /></div>
     <p class="intro-caption" id="inCap" aria-live="polite"></p>
     <button class="intro-skip" id="inSkip" type="button">건너뛰기 ›</button>
     <div class="intro-name" id="inName" role="dialog" aria-modal="true" aria-labelledby="inNameTitle">
@@ -625,12 +689,12 @@ var MUSIC=(PROD||REMOTE_SHELL)?"https://music.code-destiny.com/DestinyWar/":"/co
 var MED  =(PROD||REMOTE_SHELL)?"https://music.code-destiny.com/Meditation/":"/codedestinyassets/music/Meditation/";
 var LUNAM=(PROD||REMOTE_SHELL)?"https://music.code-destiny.com/lunabloom/":"/codedestinyassets/music/lunabloom/";
 function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
-var ISLAND_ART=ASSETS+enc("DestinyAssets/자미두수 운명의 섬.webp");
+var ISLAND_ART="/images/destiny-island/gate-hero-desktop.webp";
 
 /* 캐릭터 스프라이트 — 노벨과 동일 자산·좌표 (신규 업로드 없음) */
-var NEO_SHEET=WAR+enc("전략실 네오-Photoroom.png");            /* 사자 네오 4×4 (실측 좌표) */
-var NEOH_SHEET=WAR+enc("네오 스프라이트 배경없음4-Photoroom.png"); /* 인간 네오 4×2 */
-var PIGSHEET="/images/novel/pig-expressions.webp";               /* 꽃돼지 연이 표정 4×4 */
+var NEO_SHEET=WAR+enc("전략실 네오-Photoroom.png"); /* 기존 사자 네오 4×4 */
+var NEOH_SHEET=WAR+enc("네오 스프라이트 배경없음4-Photoroom.png"); /* 기존 전략실 네오 */
+var PIGSHEET="/images/novel/pig-expressions.webp"; /* 기존 꽃돼지 연이 표정 4×4 */
 var RAB_SHEET="/images/novel/rab-sheet.webp";                    /* 청토끼 4×2 */
 var LNS_SHEET="/images/novel/lunas-sheet.webp";                  /* 루나 언니 3×2 */
 var LN_SHEET=NOVEL+enc("루나-Photoroom.webp");                   /* 루나 3×2 */
@@ -1608,7 +1672,7 @@ var NEO_AV=(PROD||REMOTE_SHELL)
   : WAR+enc("전략실 네오 메인-Photoroom.png");
 /* 연이 아바타 = 인맵 NPC와 동일한 표정 시트의 활짝 웃는 프레임(밋밋한 정지 마스코트 대신 표정 크롭 → 더 귀엽게) */
 var AV={yeon:{sheet:PIGSHEET,size:"400% 400%",pos:PIG_CELL.talk,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
-try{[PIGSHEET,NEO_AV].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
+try{[PIGSHEET,NEO_AV,ISLAND_ART].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
 var STAR_TRAIT={"자미":"중심과 품격","천기":"지혜와 기획","태양":"공명과 리더십","무곡":"재물과 결단","천동":"복록과 온화","염정":"변혁과 집중","천부":"곳간과 안정","태음":"감성과 자산","탐랑":"다재와 열망","거문":"언변과 탐구","천상":"조력과 중재","천량":"보호와 관록","칠살":"개척과 돌파","파군":"파괴와 재건"};
 var _story=null,_storyIdx=0,_navTimer=null,_navAuto=null;
 function islandFacts(){
