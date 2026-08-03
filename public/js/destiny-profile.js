@@ -3111,8 +3111,13 @@
     if (opts.sessionId) checkoutPayload.sessionId = opts.sessionId;
     if (opts.reportSessionId || opts.sessionId) checkoutPayload.reportSessionId = opts.reportSessionId || opts.sessionId;
     if (opts.purchaseId) checkoutPayload.purchaseId = opts.purchaseId;
+    if (opts.orderId) checkoutPayload.orderId = opts.orderId;
+    if (opts.actionType) checkoutPayload.actionType = opts.actionType;
+    if (opts.profileAction) checkoutPayload.profileAction = opts.profileAction;
+    if (opts.action) checkoutPayload.action = opts.action;
     if (opts.profileId) checkoutPayload.profileId = opts.profileId;
     if (opts.selectedProfileId || opts.profileId) checkoutPayload.selectedProfileId = opts.selectedProfileId || opts.profileId;
+    if (opts.profileCardId || opts.profileId) checkoutPayload.profileCardId = opts.profileCardId || opts.profileId;
     if (opts.contentKey) checkoutPayload.contentKey = opts.contentKey;
     if (opts.contentId || opts.contentKey) checkoutPayload.contentId = opts.contentId || opts.contentKey;
     if (opts.targetYear !== undefined && opts.targetYear !== null) checkoutPayload.targetYear = opts.targetYear;
@@ -3231,10 +3236,6 @@
         paymentId: paymentId,
       }));
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
-      if (!confirmRes.ok && Number(confirmRes.status) >= 500) {
-        await new Promise(function (resolveRetryDelay) { setTimeout(resolveRetryDelay, 1500); });
-        confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
-      }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
         window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
@@ -3855,17 +3856,13 @@
 
       // 🔴 복귀 티켓은 confirm 이 성공한 뒤에 지운다. 예전에는 requestPayment 반환 직후 지워서,
       // 카드 승인은 났는데 confirm 이 5xx 로 죽으면 복구 수단이 통째로 사라졌다(돈은 나가고 지급은 안 됨).
-      // 5xx 는 서버측 일시 오류이므로 한 번만 더 시도한다. 중복 confirm 은 서버 settlePaymentByImpUid 의
-      // 기존 CAS 멱등이 이미 막으므로 여기에 새 락·새 dedup 을 만들지 않는다.
+      // confirm 5xx/네트워크 장애는 자동 POST 재시도하지 않는다. 복귀 티켓을 유지해
+      // 동일 주문의 명시적 복구만 허용하고 새 결제를 유도하지 않는다.
       var dpConfirmBody = JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
         impUid: paymentId,
         paymentId: paymentId,
       }));
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
-      if (!confirmRes.ok && Number(confirmRes.status) >= 500) {
-        await new Promise(function (resolveRetryDelay) { setTimeout(resolveRetryDelay, 1500); });
-        confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
-      }
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
       // 확정됐으니 이제 복귀 티켓을 회수한다.
       _dpClearDirectResumeTicket();
@@ -3908,15 +3905,52 @@
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (coinPrice * 100))));
       var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
-      if (_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight', key, 45000)) {
-        return Promise.resolve({ status: 'cancelled', reason: 'payment_already_open' });
+      var service = window.CodeDestinyPaymentService;
+      if (service && typeof service.executePayment === 'function') {
+        return service.executePayment({
+          method: String(opts.paymentMode || 'PAYMENT_GATE'),
+          requestId: String(opts.requestId || key),
+          productId: String(opts.productId || ''),
+          featureKey: String(opts.featureKey || opts.subFeatureKey || opts.categoryKey || ''),
+          profileId: String(opts.profileId || opts.selectedProfileId || '')
+        }, function() {
+          return _dpOpenPaidServiceGateCore(opts);
+        });
       }
       return _dpJoinPaidServiceSingleFlight('__cdPaidServiceGateInFlight', key, 45000, function() {
         return _dpOpenPaidServiceGateCore(opts);
       });
     };
     _dpOpenPaidServiceGateGuarded.__cdSinglePaymentGuard = true;
+    _dpOpenPaidServiceGateGuarded.__cdPaymentServiceBoundary = true;
     window._cdOpenPaidServiceGate = _dpOpenPaidServiceGateGuarded;
+  }
+
+  function _dpEmitPaymentSuccess(transactionId, payload, options, featureKey, requestId) {
+    var service = window.CodeDestinyPaymentService;
+    if (!service || typeof service.reducePaymentSuccess !== 'function') return;
+    var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : (payload || {});
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var operationId = String(accessGrant.operationId || accessGrant.evidenceId || transactionId || consume.transactionId || data.transactionId || data.paymentId || '').trim();
+    var normalizedRequestId = String(accessGrant.requestId || consume.requestId || data.requestId || requestId || operationId).trim();
+    if (!operationId || !normalizedRequestId) return;
+    var normalizedFeatureKey = String(featureKey || accessGrant.featureKey || data.featureKey || '').trim();
+    var unlockMap = data.unlockMap && typeof data.unlockMap === 'object' ? data.unlockMap : {};
+    if (normalizedFeatureKey && !Object.keys(unlockMap).length) unlockMap[normalizedFeatureKey] = true;
+    service.reducePaymentSuccess({
+      operationId: operationId,
+      requestId: normalizedRequestId,
+      productId: String(options && options.productId || data.productId || ''),
+      featureKey: normalizedFeatureKey,
+      profileId: String(options && (options.profileId || options.selectedProfileId) || accessGrant.profileId || data.profileId || ''),
+      method: String(accessGrant.accessMethod || consume.accessMethod || data.paymentMode || data.paymentMethod || ''),
+      accessGrant: accessGrant,
+      unlockMap: unlockMap,
+      monthlyBalance: data.monthlyStoneBalance != null ? data.monthlyStoneBalance : data.membershipCreditBalance,
+      snapshotPatch: data.snapshotPatch && typeof data.snapshotPatch === 'object' ? data.snapshotPatch : {},
+      completedAt: String(data.completedAt || data.paidAt || '')
+    });
   }
 
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
@@ -3961,9 +3995,9 @@
 
     var gateGrantedDelivered = false;
     function deliverGateGrant(transactionId, payload) {
-      if (typeof cb !== 'function') return;
       gateGrantedDelivered = true;
-      cb(String(transactionId || requestId), payload || {});
+      _dpEmitPaymentSuccess(transactionId, payload, optionBag, normalizedFeatureKey, requestId);
+      if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
     }
 
     if (typeof window._cdOpenPaidServiceGate === 'function') {
@@ -9889,7 +9923,16 @@
       return _dpRenderStandalonePaymentChoice(options || {});
     };
     _dpCanonicalPaymentChoice.__cdSupportsPassChoice = true;
-    window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;
+    if (window.CodeDestinyPaymentService && typeof window.CodeDestinyPaymentService.registerPaymentWindow === 'function') {
+      window.CodeDestinyPaymentService.registerPaymentWindow(_dpCanonicalPaymentChoice, 'standalone');
+      var _dpPaymentServiceChoice = function(options) {
+        return window.CodeDestinyPaymentService.openPaymentWindow(options || {});
+      };
+      _dpPaymentServiceChoice.__cdSupportsPassChoice = true;
+      window._cdChooseServicePaymentMode = _dpPaymentServiceChoice;
+    } else {
+      window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;
+    }
   }
 
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
@@ -9939,9 +9982,9 @@
 
     var gateGrantedDelivered = false;
     function deliverGateGrant(transactionId, payload) {
-      if (typeof cb !== 'function') return;
       gateGrantedDelivered = true;
-      cb(String(transactionId || requestId), payload || {});
+      _dpEmitPaymentSuccess(transactionId, payload, optionBag, normalizedFeatureKey, requestId);
+      if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
     }
 
     if (typeof window._cdOpenPaidServiceGate === 'function') {

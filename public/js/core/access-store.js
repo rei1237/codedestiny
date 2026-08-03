@@ -3,8 +3,9 @@
 
   if (!global || global.CodeDestinyAccessStore) return;
 
-  var STORAGE_VERSION = 3;
-  var STORAGE_PREFIX = 'cd_access_store_v3::';
+  var STORAGE_VERSION = 4;
+  var STORAGE_PREFIX = 'cd_access_store_v4::';
+  var LEGACY_STORAGE_PREFIX = 'cd_access_store_v3::';
   var ACCESS_SYNC_CHANNEL = 'code-destiny-access-sync';
   var LEGACY_LEDGER_KEY = 'cd_verified_unlock_grants_v1';
   // Access reads are display probes. A 503 keeps the last usable snapshot and waits
@@ -47,6 +48,7 @@
       userId: '',
       serviceKeys: DEFAULT_SERVICE_KEYS.slice(),
       persistentUnlocks: Object.create(null),
+      confirmedUnlocks: Object.create(null),
       optimistic: Object.create(null),
       membership: null,
       entitlementSnapshot: null,
@@ -275,6 +277,9 @@
     Object.keys(state.persistentUnlocks).forEach(function (key) {
       next[CONTENT_KEY_TO_FEATURE_KEY[key] || key] = true;
     });
+    Object.keys(state.confirmedUnlocks).forEach(function (key) {
+      next[CONTENT_KEY_TO_FEATURE_KEY[key] || key] = true;
+    });
     Object.keys(state.optimistic).forEach(function (key) {
       if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) next[key] = true;
     });
@@ -294,6 +299,7 @@
           profileId: state.profileId,
           userId: state.userId,
           persistentUnlocks: state.persistentUnlocks,
+          confirmedUnlocks: state.confirmedUnlocks,
           optimistic: state.optimistic,
           membership: state.membership,
           entitlementSnapshot: state.entitlementSnapshot,
@@ -332,7 +338,7 @@
     }
   }
 
-  function readLegacyLedger(profileId) {
+  function readLegacyLedger(profileId, confirmedOnly) {
     var storage = getStorage();
     if (!storage) return Object.create(null);
     try {
@@ -342,6 +348,7 @@
       Object.keys(grants || {}).forEach(function (key) {
         var grant = grants[key];
         if (!grant || grant.profileId && profileId && String(grant.profileId) !== String(profileId)) return;
+        if (confirmedOnly && String(grant.mode || '') !== 'confirmed') return;
         var expiresAt = Number(grant.expiresAt || grant.expiry || 0);
         if (expiresAt && expiresAt < Date.now()) return;
         result[key.split('::')[0]] = true;
@@ -357,13 +364,22 @@
     var restored = null;
     if (storage) {
       try {
-        restored = JSON.parse(storage.getItem(storageKey(key)) || 'null');
+        restored = JSON.parse(
+          storage.getItem(storageKey(key))
+          || storage.getItem(LEGACY_STORAGE_PREFIX + key)
+          || 'null'
+        );
       } catch (_) {
         restored = null;
       }
     }
-    if (!restored || restored.version !== STORAGE_VERSION || restored.userId !== userId
-      || Date.now() - Number(restored.savedAt || 0) > GRACE_TTL_MS) {
+    var compatibleVersion = restored && (restored.version === STORAGE_VERSION || restored.version === 3);
+    var restoredConfirmed = restored && restored.version === STORAGE_VERSION
+      ? copyMap(restored.confirmedUnlocks)
+      : Object.create(null);
+    var cacheExpired = restored && Date.now() - Number(restored.savedAt || 0) > GRACE_TTL_MS;
+    if (!restored || !compatibleVersion || restored.userId !== userId
+      || cacheExpired && Object.keys(restoredConfirmed).length === 0) {
       restored = null;
     }
 
@@ -372,17 +388,19 @@
     state.userId = userId;
     state.serviceKeys = DEFAULT_SERVICE_KEYS.slice();
     if (restored) {
-      state.persistentUnlocks = copyMap(restored.persistentUnlocks);
-      state.optimistic = restored.optimistic && typeof restored.optimistic === 'object' ? restored.optimistic : Object.create(null);
-      state.membership = copyObject(restored.membership) || readMembershipSnapshot(userId);
-      state.entitlementSnapshot = copyObject(restored.entitlementSnapshot);
-      state.monthlyBalance = copyObject(restored.monthlyBalance);
+      state.persistentUnlocks = cacheExpired ? Object.create(null) : copyMap(restored.persistentUnlocks);
+      state.confirmedUnlocks = restoredConfirmed;
+      state.optimistic = !cacheExpired && restored.optimistic && typeof restored.optimistic === 'object' ? restored.optimistic : Object.create(null);
+      state.membership = cacheExpired ? readMembershipSnapshot(userId) : copyObject(restored.membership) || readMembershipSnapshot(userId);
+      state.entitlementSnapshot = cacheExpired ? null : copyObject(restored.entitlementSnapshot);
+      state.monthlyBalance = cacheExpired ? null : copyObject(restored.monthlyBalance);
       state.checkedAt = Number(restored.savedAt || 0);
       state.source = 'localStorage';
-      state.status = Date.now() - state.checkedAt > FRESH_TTL_MS ? 'degraded' : 'ready';
+      state.status = cacheExpired || Date.now() - state.checkedAt > FRESH_TTL_MS ? 'degraded' : 'ready';
       debug('cache hit', { cacheKey: key, ageMs: Date.now() - state.checkedAt });
     } else {
       state.persistentUnlocks = readLegacyLedger(profileId);
+      state.confirmedUnlocks = readLegacyLedger(profileId, true);
       state.membership = readMembershipSnapshot(userId);
       state.source = Object.keys(state.persistentUnlocks).length ? 'legacy-ledger' : 'empty';
       state.status = Object.keys(state.persistentUnlocks).length ? 'ready' : 'loading';
@@ -455,7 +473,9 @@
 
   function applyServerPayload(payload, context) {
     var serverUnlocks = extractUnlockMap(payload);
+    Object.keys(serverUnlocks).forEach(function (key) { state.confirmedUnlocks[key] = true; });
     var merged = copyMap(serverUnlocks);
+    Object.keys(state.confirmedUnlocks).forEach(function (key) { merged[key] = true; });
     Object.keys(state.optimistic).forEach(function (key) {
       if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
     });
@@ -502,9 +522,9 @@
     var requestedUserId = getUserId(options || {});
     if (requestedUserId !== 'anonymous' && sourceUserId !== requestedUserId) return false;
     var profileId = String(
-      source.currentProfileId ||
-      source.profileId ||
       (options && options.profileId) ||
+      source.profileId ||
+      source.currentProfileId ||
       state.profileId ||
       ''
     );
@@ -521,8 +541,20 @@
     var completeness = String(source.completeness || source.entitlementSnapshot && source.entitlementSnapshot.completeness || '').toLowerCase();
     var authority = String(source.authority || source.entitlementSnapshot && source.entitlementSnapshot.authority || '').toLowerCase();
     var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server';
+    if (authoritativeFull) {
+      Object.keys(unlocks).forEach(function (key) { state.confirmedUnlocks[key] = true; });
+    }
     var merged = authoritativeFull ? copyMap(unlocks) : copyMap(state.persistentUnlocks);
     Object.keys(unlocks).forEach(function (key) { merged[key] = true; });
+    Object.keys(state.confirmedUnlocks).forEach(function (key) { merged[key] = true; });
+    if (authoritativeFull && source.version && Array.isArray(source.revokedFeatureIds)) {
+      source.revokedFeatureIds.forEach(function (rawKey) {
+        var revokedKey = String(rawKey || '').trim();
+        if (!revokedKey) return;
+        delete state.confirmedUnlocks[revokedKey];
+        delete merged[revokedKey];
+      });
+    }
     Object.keys(state.optimistic).forEach(function (key) {
       if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
     });
@@ -686,7 +718,8 @@
   }
 
   function hasUsableCache() {
-    return Object.keys(state.persistentUnlocks).length > 0 || Object.keys(state.optimistic).length > 0 || Boolean(state.membership);
+    return Object.keys(state.persistentUnlocks).length > 0 || Object.keys(state.confirmedUnlocks).length > 0
+      || Object.keys(state.optimistic).length > 0 || Boolean(state.membership);
   }
 
   function startFetch(context, attempt) {
@@ -801,6 +834,7 @@
       profileId: state.profileId,
       userId: state.userId,
       persistentUnlocks: copyMap(state.persistentUnlocks),
+      confirmedUnlocks: copyMap(state.confirmedUnlocks),
       optimistic: copyObject(state.optimistic) || {},
       membership: copyObject(state.membership),
       entitlementSnapshot: copyObject(state.entitlementSnapshot),
@@ -817,7 +851,8 @@
 
   function isUnlocked(featureKey) {
     var key = String(featureKey || '');
-    return Boolean(state.persistentUnlocks[key] || state.optimistic[key] && state.optimistic[key].expiresAt > Date.now());
+    return Boolean(state.confirmedUnlocks[key] || state.persistentUnlocks[key]
+      || state.optimistic[key] && state.optimistic[key].expiresAt > Date.now());
   }
 
   function getEffectiveTier() {
@@ -869,13 +904,55 @@
     return true;
   }
 
+  function markConfirmedUnlocked(featureKey, profileId, metadata) {
+    var key = String(featureKey || '').trim();
+    if (!key) return false;
+    state.confirmedUnlocks[key] = true;
+    delete state.optimistic[key];
+    syncLegacyFeatureMap();
+    saveCache();
+    notify();
+    dispatch('cd:unlocks-changed', {
+      source: 'access-store-confirmed',
+      featureKey: key,
+      profileId: String(profileId || state.profileId || ''),
+      grant: copyObject(metadata)
+    });
+    return true;
+  }
+
+  function extractConfirmedUnlockMap(payload) {
+    var result = Object.create(null);
+    function visit(value, depth) {
+      if (!value || typeof value !== 'object' || depth > 3) return;
+      var candidates = [value.unlockGrant, value.accessGrant && value.accessGrant.unlockGrant];
+      candidates.forEach(function (grant) {
+        if (!grant || typeof grant !== 'object') return;
+        var grantType = String(grant.grantType || '').trim().toLowerCase();
+        var status = String(grant.status || '').trim().toLowerCase();
+        var key = String(grant.featureKey || '').trim();
+        if (key && grantType === 'permanent_unlock' && status === 'active') result[key] = grant;
+      });
+      if (value.data && typeof value.data === 'object') visit(value.data, depth + 1);
+      if (value.payload && typeof value.payload === 'object') visit(value.payload, depth + 1);
+    }
+    visit(payload, 0);
+    return result;
+  }
+
   function applyPaymentPayload(payload, options) {
+    ensureContext(Object.assign({}, options || {}, { authenticated: true }));
     var unlockMap = extractUnlockMap(payload);
+    var confirmed = extractConfirmedUnlockMap(payload);
     var profileId = getProfileId(options || {}) || state.profileId;
+    Object.keys(confirmed).forEach(function (key) {
+      markConfirmedUnlocked(key, profileId, confirmed[key]);
+    });
     Object.keys(unlockMap).forEach(function (key) {
+      if (confirmed[key] || state.confirmedUnlocks[key]) return;
       markOptimisticallyUnlocked(key, profileId, { source: 'payment-payload' });
     });
-    return Object.keys(unlockMap);
+    return Array.from(new Set(Object.keys(confirmed).concat(Object.keys(unlockMap))));
   }
 
   function ensureLoaded(options) {
@@ -971,6 +1048,7 @@
       return true;
     },
     applyPaymentPayload: applyPaymentPayload,
+    markConfirmedUnlocked: markConfirmedUnlocked,
     markOptimisticallyUnlocked: markOptimisticallyUnlocked,
     applyOptimisticUpdate: function (update) {
       var payload = update && update.payload || update || {};
@@ -996,7 +1074,7 @@
   global.addEventListener && global.addEventListener('cd:auth-changed', function (event) {
     var detail = event && event.detail || {};
     if (detail.type === 'logout' || detail.loggedIn === false || detail.user === null) {
-      reset({ clearCache: true });
+      reset({ clearCache: false });
       contextKey = '';
       return;
     }

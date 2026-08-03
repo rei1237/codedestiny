@@ -87,7 +87,8 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 2. 그 외에는 결제창을 열고 `이용권으로 구매`, `단건 결제`, `월정석`을 함께 제시한다.
 3. `이용권으로 구매`를 선택한 요청만 Worker가 이용권 커버를 최종 확인한다. `단건 결제`는 클릭 후 PortOne 주문·결제·confirm을 각각 한 번 거친다.
 4. PortOne 결제 완료/웹훅/검증 후 `Payment`, `PointHistory`, `ContentEntitlement`, `PaidExecutionRecord` 등 관련 기록을 갱신한다.
-5. 실패하면 복구/환불/월정석 복구 경로를 확인한다.
+5. 성공 결과는 `js/core/payment-service.js`의 단일 `PaymentSuccessEvent`로 React·정적·독립 페이지의 권한/Snapshot/UI에 즉시 반영한다.
+6. 카드 승인 후 confirm 장애는 동일 주문의 `PENDING_CONFIRMATION`으로 보존하고, 신규 결제 대신 복구/정산 경로를 사용한다.
 
 ## LLM 상담 흐름
 
@@ -106,12 +107,15 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 
 - 인증 중심: `worker/routes/auth.js`, `worker/lib/auth.js`, `worker/lib/jwt.js`
 - 세션: custom JWT access/refresh token 기반으로 보이며 NextAuth 정본이 아니다.
-- 로그인·세션 복원 bootstrap: `GET /api/me/access-state?profileId=...` 한 번으로 이용권, 월정석, 계정 공통 해금, 현재 프로필 해금을 `CodeDestinyAccessStore`에 적재한다.
+- 로그인·세션 복원 bootstrap: `GET /api/me/access-state?profileId=...` 한 번으로 사용자 식별자, 이용권, 월정석 lot 정본, 계정 공통 해금, 현재 프로필과 프로필별 `ContentEntitlement`, 상품 보유, 잠금/해금 맵, `entitlementVersion`을 중앙 snapshot에 적재한다.
 - 잠금 표시: React Context는 Store 구독과 selector만 제공하고, 정적 UI의 `unlockedFeatureMap`은 Store의 호환 projection으로만 동작한다. 카드 렌더마다 `/api/access/unlocks`를 호출하지 않는다.
+- 프로필별 잠금 재조회: 실제 잠금 화면 진입 또는 명시적 재시도에서만 `CodeDestinyAccessStore.ensureLoaded()`가 `/api/access/unlocks`를 호출한다. 전역 이벤트와 광고/타일 소비자는 snapshot만 읽는다.
 - 인증과 권한은 분리한다. 최종 `401`만 로그인 필요이며, `403`/`404` 프로필·권한 오류와 `503`/`504` 일시 장애는 마지막 정상 스냅샷을 삭제하지 않는다.
 - OAuth: Google, Naver, Kakao callback 경로가 Worker config와 auth route에 있다.
 - 프로필: `User.destinyProfiles`, `ProfileCard`, `/api/profile/*`, `/api/user/destiny-profiles`
-- 권한: `worker/lib/permission-service.js`가 paid feature registry의 access model과 로그인 access snapshot을 판정한다. 영구 해금 정본은 `ContentEntitlement`, 회당 실행 정본은 `PaidExecutionRecord`, 이용권·월정석 쓰기는 기존 서버 정책을 유지한다.
+- 권한: `worker/lib/permission-service.js`가 paid feature registry의 access model과 로그인 access snapshot을 판정한다. 영구 해금 정본은 `ContentEntitlement`, 회당 실행 정본은 `PaidExecutionRecord`다.
+- 결제 쓰기 정본은 `worker/lib/payment-service.js`다. 이용권 검증, 월정석 lot 차감, 결제 원장과 access grant 발급을 담당한다.
+- 기능 라우트는 결제 Payment Service가 발급한 access grant만 소비하며 월정석 저장소를 직접 차감하지 않는다. 직접 차감 재도입은 `verify:payment-service-boundary`가 차단한다.
 
 ## 에셋/R2 구조
 

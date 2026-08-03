@@ -26,6 +26,7 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
 import checkoutEntry from "@/js/core/checkout-entry.js";
+import paymentService from "@/js/core/payment-service.js";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -418,6 +419,10 @@ export type BillingCoinGateInput = {
   purchaseId?: string;
   idempotencyKey?: string;
   orderId?: string;
+  actionType?: string;
+  profileAction?: string;
+  action?: string;
+  profileCardId?: string;
 };
 
 type PaymentEligibilityPhase = "pass" | "full";
@@ -1468,14 +1473,21 @@ function installReactPaymentChoiceBridge() {
   if (typeof window === "undefined" || typeof document === "undefined") return;
   const runtimeWindow = window as RuntimeApiWindow;
   const canonical = runtimeWindow.__cdChooseServicePaymentModeCanonical;
-  if (typeof canonical === "function" && canonical.__cdSupportsPassChoice === true && canonical.__cdReactFallback !== true) return;
+  if (typeof canonical === "function" && canonical.__cdSupportsPassChoice === true && canonical.__cdReactFallback !== true) {
+    paymentService.registerPaymentWindow(canonical, "canonical-shell");
+    return;
+  }
   if (runtimeWindow._cdChooseServicePaymentMode?.__cdReactFallback === true) return;
 
   const choiceBridge: PaymentChoiceFunction = (options) => openReactPaymentChoiceModal(options || {});
   choiceBridge.__cdSupportsPassChoice = true;
   choiceBridge.__cdReactFallback = true;
-  runtimeWindow.__cdChooseServicePaymentModeCanonical = choiceBridge;
-  runtimeWindow._cdChooseServicePaymentMode = choiceBridge;
+  paymentService.registerPaymentWindow(choiceBridge, "react");
+  const serviceBridge: PaymentChoiceFunction = (options) => paymentService.openPaymentWindow(options || {}) as Promise<PaymentChoiceMode>;
+  serviceBridge.__cdSupportsPassChoice = true;
+  serviceBridge.__cdReactFallback = true;
+  runtimeWindow.__cdChooseServicePaymentModeCanonical = serviceBridge;
+  runtimeWindow._cdChooseServicePaymentMode = serviceBridge;
 }
 
 function isMembershipPassAccessType(value: unknown): boolean {
@@ -1966,11 +1978,8 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
 // 코인게이트 transient 재시도 상한/백오프. 최초 1회 + 재시도 2회 = 최대 3회, 지수 백오프(0.8s→1.44s).
 // Initial request + one backoff retry. More attempts amplified Mongo pool pressure
 // during the 503 incident and did not improve the user's chance of a timely result.
-const COIN_GATE_TRANSIENT_MAX_RETRIES = 1;
 // 정적 셸 선검사 백오프(250 → 450ms)와 같은 값. 기존 800ms → 1.44s 는 선검사 예산(6초)을 재시도 대기만으로 소진했다.
-const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 250;
 // 과금 없는 pass 확인 구간(첫 요청 + 재시도)의 벽시계 상한. 초과하면 붙잡지 않고 아래 결제 폴백으로 넘긴다.
-const COIN_GATE_PASS_PROBE_BUDGET_MS = 15000;
 
 // 코인게이트가 워커-DB 일시 장애로 돌려주는 degraded-503만 재시도 대상으로 본다.
 // 확정 실패(402/401/PAYMENT_REQUIRED 등)나 성공은 재시도하지 않는다. 이용권 커버 판정은
@@ -2228,6 +2237,15 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       reportId: input.reportId,
       sessionId: input.sessionId,
       reportSessionId: input.reportSessionId || input.sessionId,
+      profileId: input.profileId,
+      selectedProfileId: input.selectedProfileId || input.profileId,
+      profileCardId: input.profileCardId || input.profileId,
+      actionType: input.actionType,
+      profileAction: input.profileAction,
+      action: input.action,
+      purchaseId: input.purchaseId,
+      idempotencyKey: input.idempotencyKey || context.requestId,
+      orderId: input.orderId || context.requestId,
       membershipCoverage: membershipCoverage || undefined,
       monthlyBalance: context.eligibility?.monthly.balance,
       membershipCreditBalance: context.eligibility?.monthly.balance,
@@ -3679,7 +3697,48 @@ function buildOptimisticPassGrant(coinCost: number, featureKey: string, tier: st
   } as BillingResult<BillingCoinGateData>;
 }
 
-export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
+function emitUnifiedPaymentSuccess(
+  input: BillingCoinGateInput,
+  result: BillingResult<BillingCoinGateData>,
+  requestId: string,
+) {
+  if (!result.ok || !result.data || !hasVerifiedBillingAccess(result.data, input.featureKey || input.subFeatureKey)) return;
+  const data = result.data as BillingCoinGateData & Record<string, unknown>;
+  const consume = asRecord(data.consume);
+  const accessGrant = asRecord(data.accessGrant) || {};
+  const featureKey = toText(data.pricing?.featureKey || input.featureKey || input.subFeatureKey || input.categoryKey);
+  const operationId = toText(
+    accessGrant.operationId
+    || accessGrant.evidenceId
+    || accessGrant.transactionId
+    || consume?.transactionId
+    || data.transactionId
+    || data.paymentId
+    || data.purchaseId
+    || requestId,
+  );
+  const applied = resolveAppliedBillingPayment(data, toText(input.paymentMode), false);
+  const unlockMap = asRecord(data.unlockMap) || (featureKey ? { [featureKey]: true } : {});
+  paymentService.reducePaymentSuccess({
+    operationId,
+    requestId,
+    productId: toText(input.productId),
+    featureKey,
+    profileId: toText(input.profileId || input.selectedProfileId),
+    method: applied.paymentMode,
+    accessGrant,
+    unlockMap: unlockMap as Record<string, boolean>,
+    monthlyBalance: toNumber(data.monthlyStoneBalance ?? data.membershipCreditBalance ?? data.monthlyCredits, Number.NaN),
+    snapshotPatch: {
+      entitlementVersion: data.entitlementVersion,
+      membershipPass: data.membershipPass,
+      user: data.user,
+    },
+    completedAt: new Date().toISOString(),
+  });
+}
+
+async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
   const inFlightKey = resolvePaidFeatureInFlightKey(input);
   const now = Date.now();
@@ -3713,13 +3772,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   try {
     const { getAuthState, refreshAuth } = await import("./auth-store");
     if (!getAuthState().isAuthenticated) {
-      // refreshAuth가 느린 /만료 세션에서 무한 대기하면 게이트가 첫 상태 emit 전
-      // '이용권 확인 중'에서 영구 고착한다. 상한(4s)을 걸어 예열이 늦어도 진행시키고,
-      // 최종 접근 판정은 서버가 한다(아래 catch 정책과 동일).
-      await Promise.race([
-        refreshAuth({ force: true, silent: true }),
-        new Promise<void>((resolve) => globalThis.setTimeout(resolve, 4000)),
-      ]);
+      // auth-store의 사용자별 single-flight를 그대로 기다린다. Promise.race로 요청을
+      // 백그라운드에 남기면 뒤늦은 인증 응답이 결제 상태를 덮어쓰는 경쟁이 생긴다.
+      await refreshAuth({ force: true, silent: true });
     }
   } catch {
     // 인증 예열 실패는 삼킨다 — 최종 접근 판정은 서버가 한다.
@@ -4124,10 +4179,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // 성공 분기로 무료 통과하고, 확정 응답(402/401 등)이면 즉시 중단해 기존 분기가 처리한다. 소진 후에도
     // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
     // 과금 없는 pass 확인은 재시도까지 합쳐 6초를 넘기지 않는다. 확인이 더 늦어지면 붙잡는 대신 결제창을 연다.
-    const coinGatePassProbeDeadline = coinGateMayDeduct ? Number.POSITIVE_INFINITY : Date.now() + COIN_GATE_PASS_PROBE_BUDGET_MS;
     // DIRECT_KRW를 이미 고른 뒤에는 coin-gate 402를 한 번 더 받을 이유가 없다.
     // 선택한 단건 결제의 checkout 경로로 곧바로 넘긴다.
-    let parsed: BillingResult<BillingCoinGateData> = explicitDirectMode
+    const parsed: BillingResult<BillingCoinGateData> = explicitDirectMode
       ? {
           ok: false,
           status: 402,
@@ -4137,13 +4191,6 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           raw: {},
         }
       : await runCoinGateRequest();
-    for (let retryIndex = 1; retryIndex <= COIN_GATE_TRANSIENT_MAX_RETRIES; retryIndex += 1) {
-      if (!isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)) break;
-      const backoffMs = Math.round(COIN_GATE_TRANSIENT_BASE_DELAY_MS * Math.pow(1.8, retryIndex - 1));
-      if (Date.now() + backoffMs >= coinGatePassProbeDeadline) break;
-      await new Promise((resolve) => setTimeout(resolve, backoffMs));
-      parsed = await runCoinGateRequest();
-    }
 
     if (parsed.ok && parsed.data) {
       if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {
@@ -4401,6 +4448,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     return parsed;
   })()
     .then((result) => {
+      emitUnifiedPaymentSuccess(input, result, gateRequestId);
       if (shouldCacheBillingCoinGateResult(result)) {
         billingCoinGateRecent.set(inFlightKey, {
           requestId: gateRequestId,
@@ -4426,6 +4474,18 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
 
   billingCoinGateInFlight.set(inFlightKey, { requestId: gateRequestId, promise: requestPromise });
   return requestPromise;
+}
+
+export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
+  const requestId = toText(input.requestId || resolvePaidFeatureInFlightKey(input));
+  const method = normalizePaymentMode(input.paymentMode) || "PAYMENT_GATE";
+  return paymentService.executePayment({
+    method,
+    requestId,
+    productId: toText(input.productId),
+    featureKey: toText(input.featureKey || input.subFeatureKey || input.categoryKey),
+    profileId: toText(input.profileId || input.selectedProfileId),
+  }, () => runBillingCoinGateInternal({ ...input, requestId })) as Promise<BillingResult<BillingCoinGateData>>;
 }
 
 /** Neutral paid-access API. The legacy name remains for source compatibility. */

@@ -119,7 +119,7 @@ For main static shell changes:
   - `worker/lib/payment-refund.js`
 - All paid flows must preserve the current access options: 이용권, 단건 결제, 월정석.
 - The client must not hardcode final billing decisions. Server registry/policy decides.
-- The server must re-check pass coverage before direct PortOne order creation.
+- The server checks pass coverage only for an explicit `MEMBERSHIP_PASS` command. `DIRECT_KRW` and `MONTHLY` must not query pass state; their server-authoritative pricing, balance, payment, and entitlement checks still apply.
 - If a user paid but service was not delivered, consider entitlement repair, monthly credit restore, or refund path.
 - Never perform live cancel/refund/reconcile against production without explicit approval.
 

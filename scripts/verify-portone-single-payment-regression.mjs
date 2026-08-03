@@ -10,6 +10,7 @@ const portoneSource = readFileSync(resolve(root, "worker/lib/portone.js"), "utf8
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
+const paymentServiceSource = readFileSync(resolve(root, "js/core/payment-service.js"), "utf8");
 const pointsPageSourcePath = existsSync(resolve(root, "app/points/PointsClient.tsx"))
   ? "app/points/PointsClient.tsx"
   : "app/points/page.tsx";
@@ -53,15 +54,20 @@ const {
 } = modelsMod;
 
 const AUTH = { userId: "64f0a1b2c3d4e5f678901234", role: "user" };
+function makeNonCredentialFixture(label, length) {
+  const seed = "fixture-only-" + label + "-not-real-";
+  return seed.repeat(Math.ceil(length / seed.length)).slice(0, length);
+}
+
 const ENV = {
-  PORTONE_API_SECRET: "sk_test_secret_should_never_leave_server",
-  PORTONE_WEBHOOK_SECRET: "whsec_d2ViaG9vay11bml0LXNlY3JldA==",
-  PORTONE_CHANNEL_KEY: "channel_test_123",
-  PORTONE_STORE_ID: "store_test_123",
-  MID: "INIpayTest",
-  INIsignkey: "signkey_test_should_never_leave_server",
-  INIAPIKEY: "inicis_api_key_should_never_leave_server",
-  INIAPI_IV: "inicis_api_iv_should_never_leave_server",
+  PORTONE_API_SECRET: makeNonCredentialFixture("portone-api", 40),
+  PORTONE_WEBHOOK_SECRET: makeNonCredentialFixture("portone-webhook", 34),
+  PORTONE_CHANNEL_KEY: makeNonCredentialFixture("portone-channel", 16),
+  PORTONE_STORE_ID: makeNonCredentialFixture("portone-store", 14),
+  MID: makeNonCredentialFixture("inicis-mid", 10),
+  INIsignkey: makeNonCredentialFixture("inicis-sign", 38),
+  INIAPIKEY: makeNonCredentialFixture("inicis-api", 40),
+  INIAPI_IV: makeNonCredentialFixture("inicis-iv", 39),
   SITE_BASE_URL: "https://code-destiny.test",
 };
 const ENV_CORE = {
@@ -914,9 +920,11 @@ function runClientStaticTests() {
   assertContains(indexSource, "__cdDirectKrwCheckoutInFlight", "main shell direct checkout single-flight guard");
   assertContains(indexSource, "__cdPaidServiceGateInFlight", "main shell paid service gate single-flight guard");
   assertContains(indexSource, "window.__cdDirectPaymentChoiceActive", "main shell payment choice modal lock");
-  assertContains(indexSource, "_cdHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "main shell global paid gate duplicate lock");
+  assertContains(indexSource, "service.executePayment({", "main shell delegates paid gate duplicate locking to Payment Service");
   assertContains(destinyProfileSource, "__cdDirectKrwCheckoutInFlight", "runtime direct checkout single-flight guard");
-  assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "runtime global paid gate duplicate lock");
+  assertContains(destinyProfileSource, "service.executePayment({", "runtime delegates paid gate duplicate locking to Payment Service");
+  assertContains(paymentServiceSource, "commandInFlight[key]", "Payment Service owns the shared command in-flight map");
+  assertContains(paymentServiceSource, "DUPLICATE_CLIENT_COMMAND", "Payment Service records duplicate client commands");
   assertContains(destinyProfileSource, "__cdSinglePaymentGuard", "runtime payment guard marker");
   assertContains(clientPaymentSource, "window.PortOne.requestPayment(requestData)", "PortOne payment window call");
   assertContains(indexSource, "function _cdNormalizeKoreanPhoneNumber", "Inicis checkout phone normalizer");
@@ -931,8 +939,11 @@ function runClientStaticTests() {
   // 예전에는 포인트 패키지 경로만 프리페치 없이 호출해 클릭 후 번호 조회 왕복이 한 번 더 있었다.
   assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current)", "points page reuses the prefetched payment phone lookup");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
-  assertContains(mePageSource, "ensurePaymentPhoneNumber(apiBase, user)", "profile action phone fallback");
-  assertContains(mePageSource, "phoneNumber: normalizePaymentPhoneNumber", "profile action PortOne phoneNumber");
+  assertContains(mePageSource, "const result = await runBillingCoinGate({", "profile actions delegate checkout to the shared Payment Service");
+  assertContains(mePageSource, "paymentMode: \"DIRECT_KRW\"", "profile action card checkout uses the shared direct-KRW command");
+  assertContains(mePageSource, "paymentMode: \"MOONLIGHT_STONE\"", "profile action monthly checkout uses the shared monthly command");
+  assertNotContains(mePageSource, "window.PortOne", "profile actions must not own a second PortOne orchestrator");
+  assertNotContains(mePageSource, "/api/payments/prepare", "profile actions must not prepare orders outside the shared checkout");
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");

@@ -1,8 +1,7 @@
 ﻿import { connectDb, withMongoRetry } from "../lib/db.js";
 import { isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
-import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
-import { applyGrantLot, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   buildProfilePolicySnapshot,
@@ -810,21 +809,7 @@ async function ensureProfileMutationAuthorized(auth, { action, profileId, body }
     };
   }
   if (!evidence) {
-    if (paymentMethod === "single_purchase") {
-      return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy) };
-    }
-    const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
-    if (!payment.ok) return payment;
-    evidence = payment.evidence || null;
-    if (evidence && !evidencePaymentMethodMatches(evidence, "membership_credit")) {
-      return {
-        ok: false,
-        response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
-          actionType: resolveProfileMutationActionType(action),
-          requestId,
-        }),
-      };
-    }
+    return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy) };
   }
 
   const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
@@ -865,21 +850,7 @@ async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
     };
   }
   if (!evidence) {
-    if (paymentMethod === "single_purchase") {
-      return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId) };
-    }
-    const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
-    if (!payment.ok) return payment;
-    evidence = payment.evidence || null;
-    if (evidence && !evidencePaymentMethodMatches(evidence, "membership_credit")) {
-      return {
-        ok: false,
-        response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
-          actionType: resolveProfileMutationActionType(action),
-          requestId,
-        }),
-      };
-    }
+    return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId) };
   }
 
   const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
@@ -1058,98 +1029,6 @@ async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, re
       },
     },
   ).catch(() => {});
-}
-
-async function seedProfileLegacyCreditIfNeeded(authUserId) {
-  const user = await User.findById(authUserId)
-    .select("points profileSubscription")
-    .lean();
-  const legacyPoints = Math.floor(Number(user?.points || 0));
-  const sub = user?.profileSubscription || {};
-  if (!user?._id || sub?.legacyCoinCreditSeeded || legacyPoints <= 0) return user;
-
-  const legacyCredit = calculateMembershipCreditCost(legacyPoints);
-  // 레거시 전환분도 지급일+30일 소멸 lot으로 적립(+기존 미lot 잔액 백필)해 유실을 막는다.
-  const seededAt = new Date();
-  const ensuredSeed = ensureLotsForBalance(sub, seededAt.getTime());
-  const seededLots = applyGrantLot(ensuredSeed.lots, {
-    lotId: "legacy-seed",
-    amount: legacyCredit,
-    grantedAt: seededAt,
-    now: seededAt.getTime(),
-  });
-  return User.findOneAndUpdate(
-    { _id: authUserId, "profileSubscription.legacyCoinCreditSeeded": { $ne: true } },
-    {
-      $set: {
-        "profileSubscription.membershipCreditBalance": seededLots.balance,
-        "profileSubscription.membershipCreditLots": seededLots.lots,
-        "profileSubscription.legacyCoinCreditSeeded": true,
-        "profileSubscription.legacyCoinCreditSeededAt": seededAt,
-        "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
-      },
-      $inc: {
-        "profileSubscription.membershipCreditGranted": legacyCredit,
-        "profileSubscription.membershipCreditLotsVersion": 1,
-      },
-    },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
-}
-
-async function ensureProfileMutationPayment(auth, { action, profileId, requestId }) {
-  const paymentRequestId = sanitizeString(requestId, 120) || buildProfilePaymentRequestId(action, profileId);
-  const reason = action === "delete" ? "프로필 카드 삭제" : "프로필 카드 추가";
-
-  const existing = await PointHistory.findOne({
-    userId: auth.userId,
-    kind: "deduct",
-    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-    "metadata.accessType": "membership_credit",
-    $or: [
-      { "metadata.requestId": paymentRequestId },
-      { "metadata.profilePaymentKey": paymentRequestId },
-    ],
-  }).lean();
-  if (existing) return { ok: true, requestId: paymentRequestId, idempotent: true, evidence: existing };
-
-  await seedProfileLegacyCreditIfNeeded(auth.userId);
-
-  // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
-  const consume = await consumeMonthlyCreditLots({ userId: auth.userId, amount: PROFILE_CARD_MANAGE_MEMBERSHIP_COST });
-  if (!consume.ok) {
-    return { ok: false, response: profileCardActionPaymentRequiredResponse(action, paymentRequestId, profileId) };
-  }
-  const updatedUser = consume.user;
-
-  const history = await PointHistory.create({
-    userId: auth.userId,
-    kind: "deduct",
-    delta: -PROFILE_CARD_MANAGE_COST,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason,
-    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-    metadata: {
-      accessType: "membership_credit",
-      accessMethod: "MONTHLY",
-      paymentMethod: "MONTHLY",
-      paymentMode: "membership_credit",
-      purpose: "profile_card_manage",
-      requestId: paymentRequestId,
-      profilePaymentKey: paymentRequestId,
-      actionType: resolveProfileMutationActionType(action),
-      profileAction: action,
-      profileId,
-      selectedProfileId: profileId,
-      profileCardId: profileId,
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
-      paidAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-    },
-  });
-
-  return { ok: true, requestId: paymentRequestId, idempotent: false, evidence: history };
 }
 
 async function handleGetProfiles(auth, env) {

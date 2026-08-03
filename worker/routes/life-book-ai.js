@@ -4,7 +4,7 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
-import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -1792,36 +1792,9 @@ async function applyUsageOnce({ request, env, userId, sessionId, access, idempot
   if (access.accessSource === "billing_gate_deferred") {
     await finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, orderName });
   } else if (access.accessSource !== "billing_gate" && access.accessType === "subscription") {
-    const sourceId = `${SERVICE_KEY}:${sessionId}`;
-    const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
-    if (!ledger) {
-      // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
-      // 🔴 결제창이 안내한 금액(seed 의 pricingSnapshot)을 우선한다 — 안내와 다른 금액을 차감하지 않기 위해.
-      const chargedCredit = Math.max(0, Math.floor(Number(
-        existing?.llmMeta?.pricingSnapshot?.membershipCreditCost ?? pricing.membershipCreditCost,
-      ) || 0)) || pricing.membershipCreditCost;
-      const consume = await consumeMonthlyCreditLots({ userId, amount: chargedCredit });
-      if (!consume.ok) {
-        const error = new Error("membership credit balance is insufficient");
-        error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
-        throw error;
-      }
-      const afterBalance = Math.max(0, Math.floor(Number(consume.balance || 0)));
-      const beforeBalance = afterBalance + Math.max(0, Math.floor(Number(chargedCredit || 0)));
-      await MonthlyCreditLedger.create({
-        userId,
-        type: "MONTHLY_CREDIT_SPEND",
-        amount: chargedCredit,
-        beforeBalance,
-        afterBalance,
-        reason: orderName,
-        sourceId,
-        serviceKey: billingFeatureKeyOf(access),
-        metadata: { featureKey: billingFeatureKeyOf(access), sessionId, requestId: idempotencyKey, orderName },
-      }).catch((error) => {
-        if (error?.code !== 11000) throw error;
-      });
-    }
+    const error = new Error("A Payment Service access grant is required for monthly usage.");
+    error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
+    throw error;
   } else if (access.accessType === "paid" && access.paymentId) {
     await Payment.updateOne(
       { userId, featureKey: billingFeatureKeyOf(access), merchantUid: access.paymentId },

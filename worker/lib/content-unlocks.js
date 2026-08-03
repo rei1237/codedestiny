@@ -540,7 +540,13 @@ export async function getUnlockedContentKeys({ userId, profileId, serviceKey }) 
   }));
 }
 
-export async function getUnlockedContentSnapshot({ userId, profileId = "", serviceKey = "", serviceKeys = [] } = {}) {
+export async function getUnlockedContentSnapshot({
+  userId,
+  profileId = "",
+  serviceKey = "",
+  serviceKeys = [],
+  includeAllProfiles = false,
+} = {}) {
   const normalizedUserId = cleanKey(userId, 120);
   if (!normalizedUserId) {
     return {
@@ -559,10 +565,9 @@ export async function getUnlockedContentSnapshot({ userId, profileId = "", servi
   const query = {
     userId: normalizedUserId,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
-    $and: [
-      activeExpiryClause(),
-      buildAccountSnapshotScopeClause(profileId),
-    ],
+    $and: includeAllProfiles
+      ? [activeExpiryClause()]
+      : [activeExpiryClause(), buildAccountSnapshotScopeClause(profileId)],
   };
   if (normalizedServiceKeys.length === 1) {
     query.serviceKey = normalizedServiceKeys[0];
@@ -571,13 +576,19 @@ export async function getUnlockedContentSnapshot({ userId, profileId = "", servi
   }
 
   const docs = await ContentEntitlement.find(query)
-    .select("featureKey contentKey contentId serviceKey scope profileId source grantType grantedAt unlockedAt expiresAt")
+    .select("featureKey contentKey contentId serviceKey scope profileId source grantType grantedAt unlockedAt expiresAt updatedAt")
     .lean();
+  const normalizedProfileId = cleanKey(profileId, 100);
+  const applicableDocs = includeAllProfiles
+    ? docs.filter((doc) => doc?.scope === CONTENT_ENTITLEMENT_SCOPES.USER
+      || cleanKey(doc?.profileId, 100) === USER_SCOPE_PROFILE_ID
+      || (normalizedProfileId && cleanKey(doc?.profileId, 100) === normalizedProfileId))
+    : docs;
   const contentKeys = [];
   const featureKeys = [];
   const unlockMap = Object.create(null);
 
-  for (const doc of docs) {
+  for (const doc of applicableDocs) {
     const contentKey = canonicalizeContentKey(doc?.contentKey || doc?.contentId);
     const featureKey = cleanKey(doc?.featureKey, 160) || resolveUnlockedFeatureKeyFromContentKey(contentKey);
     if (!isUnlockPaidFeatureKey(featureKey)) continue;
@@ -596,6 +607,20 @@ export async function getUnlockedContentSnapshot({ userId, profileId = "", servi
     contentKeys: Array.from(new Set(contentKeys)),
     featureKeys: Array.from(new Set(featureKeys)),
     unlockMap,
+    entitlementsByProfile: docs.reduce((result, doc) => {
+      const key = doc?.scope === CONTENT_ENTITLEMENT_SCOPES.USER || cleanKey(doc?.profileId, 100) === USER_SCOPE_PROFILE_ID
+        ? USER_SCOPE_PROFILE_ID
+        : cleanKey(doc?.profileId, 100) || "unknown";
+      if (!result[key]) result[key] = [];
+      result[key].push({
+        contentKey: canonicalizeContentKey(doc?.contentKey || doc?.contentId),
+        featureKey: resolveUnlockedFeatureKeyFromContentKey(doc?.contentKey || doc?.contentId),
+        serviceKey: cleanKey(doc?.serviceKey, 80),
+        source: cleanKey(doc?.source, 40),
+        expiresAt: normalizeDateOrNull(doc?.expiresAt)?.toISOString() || null,
+      });
+      return result;
+    }, Object.create(null)),
     profileScopedAuthoritative: Boolean(cleanKey(profileId, 100)),
   };
 }

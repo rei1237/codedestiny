@@ -120,7 +120,7 @@ assertContains(indexSource, "window.__cdRestoreCanonicalPaymentMode", "canonical
 assertContains(indexSource, "window._cdRunDirectKrwCheckout = _cdRunDirectKrwCheckout", "direct checkout exported");
 assertContains(indexSource, "window._cdHasVerifiedServerAccess = _cdHasVerifiedServerAccess", "server access guard exported");
 assertContains(indexSource, "window.__cdDirectPaymentChoiceActive", "direct payment choice active modal lock");
-assertContains(indexSource, "_cdHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "global paid gate duplicate lock");
+assertContains(indexSource, "service.executePayment({", "global paid gate uses shared command single-flight");
 assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "payment modal immediate cache fallback");
 const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", "window.__cdRunPerUseCoinGateFromTile", "per-use gate");
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
@@ -215,8 +215,7 @@ assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_STATUS_TEMP
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"', "React payment fallback opens on degraded balance snapshot 503");
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILABLE"', "React payment fallback opens on degraded auth-db 503");
 // degraded-503은 결제창을 열기 전에 먼저 재시도해 이용권 보유자의 무료 통과를 살린다(재시도-우선).
-assertContains(billingClientSource, "function isRetryableBillingInfraDegraded(", "React coin-gate has transient-degraded retry predicate");
-assertContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React coin-gate retries the request on transient degraded 503");
+assertNotContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React payment POST is not automatically retried");
 
 // 🔴 잔량 '조회 실패'를 '잔량 부족'과 같이 묶어 월정석 버튼을 비활성하면, 재조회가 계속 실패할 때
 // 월정석이 영구 회색이 돼 결제 자체가 불가능해진다(2026-08 /naming-ai 사고: 회당결제는 eligibility
@@ -287,8 +286,11 @@ const reactAuthPrewarmSource = section(
   "const activeAttempt = beginPaidAttempt(",
   "React billing auth pre-warm",
 );
-assertContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm is time-bounded");
+assertNotContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm leaves no competing request");
 assertContains(reactAuthPrewarmSource, "refreshAuth({ force: true, silent: true })", "React billing auth pre-warm still refreshes");
+assertContains(billingClientSource, "paymentService.executePayment", "React paid commands use the shared Payment Service");
+assertContains(indexSource, "CodeDestinyPaymentService", "static shell paid commands use the shared Payment Service");
+assertContains(destinyProfileSource, "CodeDestinyPaymentService", "standalone paid commands use the shared Payment Service");
 
 // openPaidFeatureGate + runBillingCoinGate 패턴 기능도 공통 게이트를 거쳐야 한다(직접 PortOne/points 직행 금지).
 const gateRunBillingFeatureSources = [
@@ -345,7 +347,7 @@ assertContains(reactOverlayApplySource, "closeProcessingNow();", "React provider
 assertContains(billingRouteSource, "consumeTierPassIfAvailable", "tier pass consume path");
 assertNotContains(billingRouteSource, ["consume", "Usage", "Pass", "If", "Available"].join(""), "removed usage pass consume path");
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");
-assertContains(billingRouteSource, 'requestedPaymentMode === "monthly_credit"', "monthly mode stays separate");
+assertContains(billingRouteSource, "paymentCommand.method === PAYMENT_METHODS.MONTHLY", "monthly mode stays separate");
 assertContains(indexSource, "paymentMode: 'DIRECT_KRW'", "direct mode stays separate");
 assertContains(indexSource, "paymentMode: 'MOONLIGHT_STONE'", "post-modal monthly route remains explicit");
 assertNotContains(indexSource, "perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal per-use route cannot fall back to membership pass");
@@ -353,8 +355,12 @@ assertNotContains(indexSource, "paymentChoice === 'membership' ? 'MEMBERSHIP_PAS
 assertNotContains(indexSource, "tilePaymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal tile route cannot fall back to membership pass");
 assertContains(billingRouteSource, '"/api/payments/prepare"', "direct payment prepare path");
 assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment confirm path");
-assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/prepare"', "pass checked before card prepare");
-assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/confirm"', "pass checked before card confirm");
+const directCheckoutSource = section(billingRouteSource, "async function handleCheckout(", "function logCheckoutElapsed(", "direct checkout adapter");
+const directConfirmSource = section(billingRouteSource, "async function handleConfirm(", "async function runServiceExecutionAction(", "direct confirm adapter");
+assertNotContains(directCheckoutSource, "getMembershipPassForBillingRequest", "card prepare performs zero pass lookups");
+assertNotContains(directCheckoutSource, "grantPassFreeAccessBeforeCardIfAvailable", "card prepare cannot convert to pass access");
+assertNotContains(directConfirmSource, "getMembershipPassForBillingRequest", "card confirm performs zero pass lookups");
+assertNotContains(directConfirmSource, "grantPassFreeAccessBeforeCardIfAvailable", "card confirm cannot convert to pass access");
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "pass option is available by default unless explicitly disabled");
@@ -390,7 +396,7 @@ assertContains(destinyProfileSource, 'data-mode="direct"', "standalone chooser k
 assertContains(destinyProfileSource, 'data-mode="monthly" data-monthly-option', "standalone chooser keeps monthly option");
 assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy destiny payment selector renderer removed");
 assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
-assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "destiny fallback global paid gate duplicate lock");
+assertContains(destinyProfileSource, "service.executePayment({", "destiny fallback uses shared command single-flight");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
 assertContains(destinyProfileSource, "_dpSetPaymentPending(false);\n      var rsp = await window.PortOne.requestPayment(requestData);", "destiny runtime hides payment overlay immediately before PG window");
 // 정적 폴백 오버레이가 결제수단별 안내를 렌더하는지(월정석·단건·완료 제목 전환 + 완료 프레임) 회귀 방지.

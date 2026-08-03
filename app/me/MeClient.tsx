@@ -8,8 +8,7 @@ import { getApiBaseUrl } from "../_lib/api-config";
 import { getAuthState, logout, refreshAuth } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
-import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
-import { isMobileAppRuntime } from "../_lib/billing-client";
+import { isMobileAppRuntime, runBillingCoinGate } from "../_lib/billing-client";
 import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
@@ -108,43 +107,6 @@ type ProfileCreateDraft = ProfileActionDraft & {
   timezone: string;
 };
 
-type PortOnePaymentResponse = {
-  paymentId?: string;
-  transactionType?: string;
-  code?: string;
-  message?: string;
-  error_msg?: string;
-  errorMsg?: string;
-};
-
-type PortOnePaymentConfig = {
-  storeId: string;
-  channelKey: string;
-  noticeUrl?: string;
-  currency?: string;
-  payMethod?: string;
-  message?: string;
-};
-
-type PortOnePaymentRequest = {
-  storeId: string;
-  channelKey: string;
-  paymentId: string;
-  orderName: string;
-  totalAmount: number;
-  currency: string;
-  payMethod: string;
-  redirectUrl: string;
-  customer: {
-    customerId: string;
-    fullName: string;
-    phoneNumber?: string;
-    email: string;
-  };
-  customData: Record<string, unknown>;
-  noticeUrls?: string[];
-};
-
 const ME_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     "mePage.001": "서버 JSON 응답을 해석하지 못했습니다. 잠시 후 다시 시도해 주세요.",
@@ -165,15 +127,6 @@ const ME_PAGE_TEXT_TRANSLATIONS = {
 function mePageText(key: keyof typeof ME_PAGE_TEXT_TRANSLATIONS.ko): string {
   return ME_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
-declare global {
-  interface Window {
-    PortOne?: {
-      requestPayment: (request: PortOnePaymentRequest) => Promise<PortOnePaymentResponse>;
-    };
-    _cdSetCoinGateOverlay?: (isOpen: boolean, message?: string, mode?: string) => void;
-  }
-}
-
 const PROFILE_CARD_ACTION_COST_COINS = 50;
 const PROFILE_CARD_ACTION_COST_KRW = 5000;
 const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COINS * 10;
@@ -301,90 +254,6 @@ function buildProfileEditDraft(profile: DestinyProfile): ProfileCreateDraft {
     latitude: String(Number.isFinite(Number(profile.location?.lat)) ? profile.location?.lat : 37.5),
     timezone: String(profile.location?.tz || "Asia/Seoul"),
   };
-}
-
-function normalizePaymentPhoneNumber(value: string): string {
-  const digits = String(value || "").replace(/\D+/g, "");
-  const normalized = digits.startsWith("82") && digits.length >= 11 ? `0${digits.slice(2)}` : digits;
-  return /^01\d{8,9}$/.test(normalized) ? normalized : "";
-}
-
-async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
-  const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
-    method: "GET",
-    credentials: "include",
-  }, {
-    retryOn401: true,
-    apiBase,
-    clientSource: "app:me",
-  });
-  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
-  if (!response.ok) throw new Error(payload.message || "결제용 휴대폰 번호를 확인하지 못했습니다.");
-  return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || "");
-}
-
-async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Promise<string> {
-  const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ phone: phoneNumber }),
-  }, {
-    retryOn401: true,
-    apiBase,
-    clientSource: "app:me",
-  });
-  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string; code?: string }>(response);
-  if (!response.ok) throw new Error(describePaymentPhoneFailure(response.status, payload));
-  return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || phoneNumber);
-}
-
-async function ensurePaymentPhoneNumber(apiBase: string, user: AuthUser | null): Promise<string> {
-  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
-  const current = normalizePaymentPhoneNumber(user?.phoneNumber || user?.phone || cachedUser?.phoneNumber || cachedUser?.phone || "");
-  if (current) return current;
-  const saved = await getSavedPaymentPhoneNumber(apiBase).catch(() => "");
-  if (saved) return saved;
-  // 모달이 저장까지 끝낸 번호를 돌려준다(인앱 웹뷰에서 억제되는 window.prompt 대체).
-  const nextPhone = await promptPaymentPhoneNumber({
-    normalize: normalizePaymentPhoneNumber,
-    onSave: (phone) => savePaymentPhoneNumber(apiBase, phone),
-  });
-  if (!nextPhone) throw new Error("단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
-  const latestUser = readSanitizedAuthUser() as AuthUser | null;
-  if (latestUser) persistSanitizedAuthUser({ ...latestUser, phoneNumber: nextPhone, phone: latestUser.phone || nextPhone });
-  return nextPhone;
-}
-
-function buildPortOneCustomer(user: AuthUser | null, paymentId: string, phoneNumber = "") {
-  const merged = { ...((readSanitizedAuthUser() as AuthUser | null) || {}), ...(user || {}) } as AuthUser;
-  const email = String(merged.email || "").trim();
-  if (!/^[^@\s]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error("결제 진행에 필요한 이메일 정보를 확인해 주세요.");
-  }
-  return {
-    customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
-    fullName: String(merged.name || "\uACE0\uAC1D").trim(),
-    email,
-    phoneNumber: normalizePaymentPhoneNumber(phoneNumber || merged.phoneNumber || merged.phone || ""),
-  };
-}
-
-async function closeSharedPaymentOverlayBeforeExternalCheckout() {
-  if (typeof window === "undefined") return;
-  window._cdSetCoinGateOverlay?.(false);
-  await new Promise<void>((resolve) => {
-    if (typeof window.requestAnimationFrame !== "function") {
-      resolve();
-      return;
-    }
-    window.requestAnimationFrame(() => resolve());
-  });
-}
-
-function mapPaymentErrorMessage(message?: string) {
-  const text = String(message || "").trim();
-  return text || "결제가 취소되었거나 완료되지 않았습니다.";
 }
 
 function readCachedUser(): AuthUser | null {
@@ -744,222 +613,148 @@ export default function MePage() {
     };
   }, [apiBase, clearProfileState, loadProfileState, refreshProfileActionBalance, router, reloadKey]);
 
-  const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
-    if (typeof window === "undefined") {
-      reject(new Error("브라우저 환경에서만 결제를 진행할 수 있습니다."));
-      return;
-    }
-    if (window.PortOne?.requestPayment) {
-      resolve();
-      return;
-    }
-    const scriptId = "portone-v2-sdk";
-    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
-    if (existingScript) {
-      existingScript.addEventListener("load", () => {
-        if (window.PortOne?.requestPayment) resolve();
-        else reject(new Error("PortOne V2 SDK를 불러오지 못했습니다."));
-      }, { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("결제 SDK를 불러오지 못했습니다.")), { once: true });
-      return;
-    }
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.src = "https://cdn.portone.io/v2/browser-sdk.js";
-    script.async = true;
-    script.onload = () => {
-      if (window.PortOne?.requestPayment) resolve();
-      else reject(new Error("PortOne V2 SDK를 불러오지 못했습니다."));
-    };
-    script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
-    document.body.appendChild(script);
-  }), []);
-
-  const fetchPortOnePaymentConfig = useCallback(async (): Promise<PortOnePaymentConfig> => {
-    const response = await authFetch(`${apiBase}/api/payments/config`, {
-      method: "GET",
-      credentials: "include",
-    }, {
-      retryOn401: true,
-      apiBase,
-      clientSource: "app:me",
-    });
-    const payload = await safeParseJson<PortOnePaymentConfig>(response);
-    if (!response.ok || !payload.storeId || !payload.channelKey) {
-      throw new Error(payload.message || "PortOne V2 결제 설정을 확인할 수 없습니다.");
-    }
-    return {
-      storeId: String(payload.storeId || "").trim(),
-      channelKey: String(payload.channelKey || "").trim(),
-      noticeUrl: payload.noticeUrl,
-      currency: payload.currency || "CURRENCY_KRW",
-      payMethod: payload.payMethod || "CARD",
-    };
-  }, [apiBase]);
-
-  const runProfileActionCardPayment = useCallback(async (action: ProfileActionType, profile: DestinyProfile, requestId: string) => {
+  const runProfileActionCardPayment = useCallback(async (
+    action: ProfileActionType,
+    profile: DestinyProfile,
+    requestId: string,
+  ) => {
     const product = PROFILE_CARD_ACTION_PRODUCTS[action];
-    const productName = product.orderName;
-    const productId = product.productId;
-
-    // 앱에서는 외부 PG(PortOne)를 열 수 없다 — Google Play 결제 정책이 앱 내 디지털 상품을
-    // Play Billing 으로만 팔도록 요구하고, "다른 결제수단으로 유도하는 것"까지 금지한다.
-    // 아래 웹 경로(prepare → PortOne.requestPayment → confirm)를 앱에서 그대로 타면 정책 위반이고,
-    // 실제로는 가드가 window.PortOne 을 봉인해 둬서 그냥 실패한다(카드 추가·삭제가 먹통이 된다).
-    // 앱 가드가 고정해 둔 Play Billing 체크아웃으로 보낸다 — 서버 검증·지급까지 동일하게 이어진다.
-    const nativeCheckout = (window as unknown as {
-      _cdRunDirectKrwCheckout?: (options: Record<string, unknown>) => Promise<{
-        data?: {
-          accessGrant?: Record<string, unknown>;
-          payment?: Record<string, unknown>;
-          consume?: { transactionId?: string; purchaseId?: string };
-        };
-      }>;
-    })._cdRunDirectKrwCheckout;
-    if (isMobileAppRuntime() && typeof nativeCheckout === "function") {
-      const payload = await nativeCheckout({
-        featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
-        requestId,
-        idempotencyKey: requestId,
-        title: productName,
-        productId,
-        profileId: profile.id,
-      });
-      const consume = payload?.data?.consume;
-      const settledId = String(consume?.transactionId || consume?.purchaseId || requestId);
-      return {
-        accessGrant: payload?.data?.accessGrant || null,
-        payment: payload?.data?.payment || null,
-        merchantUid: settledId,
-        paymentId: settledId,
-      };
-    }
-
-    const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        paymentType: "digital_content",
-        productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
-        serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
-        productId,
-        featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
-        reason: productName,
-        productName,
-        paymentAmount: PROFILE_CARD_ACTION_COST_KRW,
-        coinPrice: PROFILE_CARD_ACTION_COST_COINS,
-        membershipCreditCost: PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST,
-        actionType: product.actionType,
-        profileAction: action,
-        action,
-        profileCardId: profile.id,
-        profileId: profile.id,
-        selectedProfileId: profile.id,
-        userId: user?.id || user?.userId || user?._id || user?.uid,
-        requestId,
-        idempotencyKey: requestId,
-        orderId: requestId,
-        paymentMethod: "card",
-      }),
-    }, {
-      retryOn401: true,
-      apiBase,
+    const result = await runBillingCoinGate({
+      categoryKey: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      subFeatureKey: product.actionType,
+      featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
+      reason: product.orderName,
+      requestId,
+      idempotencyKey: requestId,
+      purchaseId: requestId,
+      orderId: requestId,
+      productId: product.productId,
+      productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      profileId: profile.id,
+      selectedProfileId: profile.id,
+      profileCardId: profile.id,
+      actionType: product.actionType,
+      profileAction: action,
+      action,
+      cost: PROFILE_CARD_ACTION_COST_COINS,
+      coinPrice: PROFILE_CARD_ACTION_COST_COINS,
+      priceKRW: PROFILE_CARD_ACTION_COST_KRW,
+      amountKRW: PROFILE_CARD_ACTION_COST_KRW,
+      paymentAmount: PROFILE_CARD_ACTION_COST_KRW,
+      membershipCreditCost: PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST,
+      paymentMode: "DIRECT_KRW",
+      allowedPaymentModes: ["direct"],
+      disablePassFirst: true,
+      disablePassChoice: true,
     });
 
-    const preparePayload = await safeParseJson<{
-      order?: {
-        merchantUid: string;
-        paymentAmount: number;
-        coinPrice?: number;
-        productName?: string;
-      };
-    }>(prepareResponse);
-    const order = preparePayload.order;
-    if (!prepareResponse.ok || !order?.merchantUid) {
-      throw new Error(preparePayload.message || "결제 요청을 준비하지 못했습니다.");
+    if (!result.ok || !result.data) {
+      const code = String(result.error?.code || "").trim().toUpperCase();
+      if (code === "PENDING_CONFIRMATION") {
+        throw new Error("카드 승인은 접수되었으며 결제 확인을 복구 중입니다. 같은 결제를 다시 시도하지 말고 잠시 후 결제 내역을 확인해 주세요.");
+      }
+      throw new Error(result.error?.message || result.message || "단건 결제를 완료하지 못했습니다.");
     }
 
-    // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬).
-    const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfig()]);
-    if (!window.PortOne?.requestPayment) throw new Error("PortOne V2 결제 SDK를 사용할 수 없습니다.");
-    const redirectUrl = new URL("/me", window.location.origin);
-    redirectUrl.searchParams.set("portone_redirect", "1");
-    const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, user);
-    setUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
+    const data = result.data as unknown as Record<string, unknown>;
+    const consume = data.consume && typeof data.consume === "object"
+      ? data.consume as Record<string, unknown>
+      : {};
+    const accessGrant = data.accessGrant && typeof data.accessGrant === "object"
+      ? data.accessGrant as Record<string, unknown>
+      : null;
+    const payment = data.payment && typeof data.payment === "object"
+      ? data.payment as Record<string, unknown>
+      : null;
+    const paymentId = String(
+      consume.transactionId
+      || consume.purchaseId
+      || data.transactionId
+      || data.paymentId
+      || requestId,
+    ).trim();
 
-    const paymentRequest: PortOnePaymentRequest = {
-      storeId: paymentConfig.storeId,
-      channelKey: paymentConfig.channelKey,
-      paymentId: order.merchantUid,
-      orderName: order.productName || productName,
-      totalAmount: Number(order.paymentAmount || PROFILE_CARD_ACTION_COST_KRW),
-      currency: paymentConfig.currency || "CURRENCY_KRW",
-      payMethod: paymentConfig.payMethod || "CARD",
-      redirectUrl: redirectUrl.toString(),
-      customer: buildPortOneCustomer(user, order.merchantUid, customerPhoneNumber),
-      customData: {
-        productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
-        serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
-        actionType: product.actionType,
-        profileAction: action,
-        profileCardId: profile.id,
-        profileId: profile.id,
-        costCoins: PROFILE_CARD_ACTION_COST_COINS,
-        amountKrw: PROFILE_CARD_ACTION_COST_KRW,
-        requestId,
-        idempotencyKey: requestId,
-        userId: user?.id || user?.userId || user?._id || user?.uid,
-      },
-    };
-    if (paymentConfig.noticeUrl) paymentRequest.noticeUrls = [paymentConfig.noticeUrl];
-
-    await closeSharedPaymentOverlayBeforeExternalCheckout();
-    const rsp = await window.PortOne.requestPayment(paymentRequest);
-    const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
-    if (!rsp || rsp.code || !paymentId) {
-      throw new Error(mapPaymentErrorMessage(rsp?.message || rsp?.error_msg || rsp?.errorMsg));
-    }
-
-    const confirmResponse = await authFetch(`${apiBase}/api/payments/confirm`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        impUid: paymentId,
-        merchantUid: order.merchantUid,
-        paymentAmount: Number(order.paymentAmount || PROFILE_CARD_ACTION_COST_KRW),
-        chargePoints: Number(order.coinPrice || PROFILE_CARD_ACTION_COST_COINS),
-        paymentType: "digital_content",
-        productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
-        serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
-        productId,
-        featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
-        productName,
-        actionType: product.actionType,
-        profileAction: action,
-        action,
-        profileCardId: profile.id,
-        profileId: profile.id,
-        selectedProfileId: profile.id,
-        requestId,
-        idempotencyKey: requestId,
-        orderId: requestId,
-        paymentMethod: "card",
-      }),
-    }, {
-      retryOn401: true,
-      apiBase,
-    });
-    const confirmPayload = await safeParseJson<{ accessGrant?: Record<string, unknown>; payment?: Record<string, unknown> }>(confirmResponse);
-    if (!confirmResponse.ok) throw new Error(confirmPayload.message || "결제 승인 확인에 실패했습니다.");
     return {
-      accessGrant: confirmPayload.accessGrant || null,
-      payment: confirmPayload.payment || null,
-      merchantUid: order.merchantUid,
+      accessGrant,
+      payment,
+      merchantUid: String(data.merchantUid || data.orderId || paymentId).trim(),
       paymentId,
     };
-  }, [apiBase, ensurePortoneSdk, fetchPortOnePaymentConfig, user]);
+  }, []);
+  const runProfileActionMonthlyPayment = useCallback(async (
+    action: ProfileActionType,
+    profile: DestinyProfile,
+    requestId: string,
+  ): Promise<Record<string, unknown>> => {
+    const product = PROFILE_CARD_ACTION_PRODUCTS[action];
+    const result = await runBillingCoinGate({
+      categoryKey: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      subFeatureKey: product.actionType,
+      featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
+      reason: product.orderName,
+      requestId,
+      idempotencyKey: requestId,
+      purchaseId: requestId,
+      orderId: requestId,
+      productId: product.productId,
+      productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,
+      profileId: profile.id,
+      selectedProfileId: profile.id,
+      profileCardId: profile.id,
+      actionType: product.actionType,
+      profileAction: action,
+      action,
+      cost: PROFILE_CARD_ACTION_COST_COINS,
+      coinPrice: PROFILE_CARD_ACTION_COST_COINS,
+      priceKRW: PROFILE_CARD_ACTION_COST_KRW,
+      amountKRW: PROFILE_CARD_ACTION_COST_KRW,
+      paymentAmount: PROFILE_CARD_ACTION_COST_KRW,
+      membershipCreditCost: PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST,
+      paymentMode: "MOONLIGHT_STONE",
+      allowedPaymentModes: ["monthly"],
+      disablePassFirst: true,
+      disablePassChoice: true,
+    });
+
+    if (!result.ok || !result.data) {
+      const code = String(result.error?.code || "").trim().toUpperCase();
+      if (code === "MONTHLY_ATOMIC_UNAVAILABLE") {
+        throw new Error("월정석 결제를 안전하게 처리할 수 없어 차감하지 않았습니다. 잠시 후 다시 시도해 주세요.");
+      }
+      throw new Error(result.error?.message || result.message || "월정석 결제를 완료하지 못했습니다.");
+    }
+
+    const data = result.data as unknown as Record<string, unknown>;
+    const consume = data.consume && typeof data.consume === "object"
+      ? data.consume as Record<string, unknown>
+      : {};
+    const accessGrant = data.accessGrant && typeof data.accessGrant === "object"
+      ? data.accessGrant as Record<string, unknown>
+      : null;
+    const transactionId = String(
+      consume.transactionId
+      || consume.purchaseId
+      || data.transactionId
+      || requestId,
+    ).trim();
+
+    return {
+      accessGrant: accessGrant || undefined,
+      billingGate: data,
+      consume,
+      transactionId,
+      paymentId: transactionId,
+      payment: {
+        paymentId: transactionId,
+        requestId,
+      },
+      paymentMethod: "membership_credit",
+      paymentMode: "membership_credit",
+      accessMethod: "MONTHLY",
+    };
+  }, []);
 
   const viewProfile = async (profile: DestinyProfile) => {
     setActiveProfileMenuId("");
@@ -1170,11 +965,7 @@ export default function MePage() {
         };
       } else if (requiresPayment) {
         setProfileActionStage("coin");
-        paymentContext = {
-          paymentMethod: "membership_credit",
-          paymentMode: "membership_credit",
-          accessMethod: "membership_credit",
-        };
+        paymentContext = await runProfileActionMonthlyPayment(action, profile, requestId);
       }
       setProfileActionStage(action === "delete" ? "deleting" : "saving");
       await executeProfileAction(action, profile, requestId, paymentContext, draft);
@@ -1190,7 +981,7 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, deleteRequiresProfileActionPayment, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment, updateRequiresProfileActionPayment]);
+  }, [busyAction, deleteRequiresProfileActionPayment, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment, runProfileActionMonthlyPayment, updateRequiresProfileActionPayment]);
 
   const openCreateProfile = () => {
     setActiveProfileMenuId("");
@@ -1256,11 +1047,7 @@ export default function MePage() {
         };
       } else if (requiresPayment) {
         setProfileActionStage("coin");
-        paymentContext = {
-          paymentMethod: "membership_credit",
-          paymentMode: "membership_credit",
-          accessMethod: "membership_credit",
-        };
+        paymentContext = await runProfileActionMonthlyPayment("create", actionProfile, requestId);
       }
 
       setProfileActionStage("saving");
@@ -1273,7 +1060,7 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, createDraft, createRequiresProfileActionPayment, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment]);
+  }, [busyAction, createDraft, createRequiresProfileActionPayment, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment, runProfileActionMonthlyPayment]);
   const deleteProfile = async (profileId: string) => {
     setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);

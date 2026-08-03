@@ -54,9 +54,13 @@ beforeEach(() => {
   pointHistoryDistinct.mockResolvedValue(["section_summary"]);
   getUnlockedContentSnapshot.mockReset();
   getUnlockedContentSnapshot.mockResolvedValue({
+    docs: [{ contentKey: "saju.compatibility", profileId: "profile-main", updatedAt: "2029-01-01T00:00:00.000Z" }],
     featureKeys: ["section_compat"],
     contentKeys: ["saju.compatibility"],
     unlockMap: { section_compat: true },
+    entitlementsByProfile: {
+      "profile-main": [{ contentKey: "saju.compatibility", featureKey: "section_compat", serviceKey: "saju", source: "PAYMENT", expiresAt: null }],
+    },
     profileScopedAuthoritative: true,
   });
   requireUserFromRequest.mockResolvedValue({
@@ -91,6 +95,12 @@ test("returns the authoritative access state without calling payment providers",
     profileCountDeferred: true,
     maxProfileCount: 7,
     currentProfileId: "profile-main",
+    unlockedFeatureIds: ["premium-sibyl-dominator", "section_compat"],
+    ownedProductIds: ["account-purchase", "section_daewun", "section_compat"],
+    lockMap: {
+      "premium-sibyl-dominator": false,
+      section_compat: false,
+    },
     source: "db",
   });
   expect(payload.data.entitlementSnapshot).toMatchObject({
@@ -103,29 +113,39 @@ test("returns the authoritative access state without calling payment providers",
     authority: "server",
     source: "db",
   });
+  expect(payload.data.entitlementSnapshot.unlockedFeatureIds).toEqual([
+    "premium-sibyl-dominator",
+    "section_compat",
+  ]);
+  expect(payload.data.profileEntitlements["profile-main"][0]).toMatchObject({ featureKey: "section_compat" });
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledWith({
+    userId: TEST_USER_ID,
+    profileId: "profile-main",
+  });
   expect(payload.data.expiresAt).toBeTruthy();
   expect(payload.data.staleUntil).toBeTruthy();
   expect(payload.data.graceUntil).toBeTruthy();
   expect(response.headers.get("ETag")).toBeTruthy();
   expect(payload.data.profileScopedAuthoritative).toBe(true);
   expect(payload.data.unlockedContentKeys).toEqual(["saju.compatibility"]);
-  expect(getUnlockedContentSnapshot).toHaveBeenCalledWith({ userId: TEST_USER_ID, profileId: "profile-main" });
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
+  expect(pointHistoryDistinct).not.toHaveBeenCalled();
 });
 
-test("keeps the production access-state route disabled unless explicitly enabled", async () => {
+test("keeps the production access-state route enabled by default", async () => {
   const response = await handleAccessStateRoutes(request(), { NODE_ENV: "production" });
 
-  expect(response.status).toBe(404);
-  expect(requireUserFromRequest).not.toHaveBeenCalled();
+  expect(response.status).toBe(200);
+  expect(requireUserFromRequest).toHaveBeenCalledTimes(1);
 });
 
-test("allows the production access-state route when explicitly enabled", async () => {
+test("allows an explicit emergency disable for the access-state route", async () => {
   const response = await handleAccessStateRoutes(request(), {
     NODE_ENV: "production",
-    ACCESS_STATE_ENABLED: "true",
+    ACCESS_STATE_ENABLED: "false",
   });
 
-  expect(response.status).toBe(200);
+  expect(response.status).toBe(404);
 });
 
 test("serves repeated access-state requests without a separate profile count query", async () => {

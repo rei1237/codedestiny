@@ -289,7 +289,7 @@ function isRemovedCountPassProductId(value) {
   return /^(?:saju_unlock_(?:3|5)|fortune_(?:30|50)_(?:3|10|30)|compat_(?:3|10|30))$/.test(productId);
 }
 
-function resolveDigitalContentPricing(body = {}, entitlement = {}) {
+function resolveDigitalContentPricing(body = {}) {
   if (isRemovedCountPassProductId(body?.productId)) {
     return {
       ok: false,
@@ -317,7 +317,7 @@ function resolveDigitalContentPricing(body = {}, entitlement = {}) {
     };
   }
 
-  const pricing = applyPdfPassDiscountToPricing(resolved.pricing, entitlement);
+  const pricing = resolved.pricing;
   const paymentAmount = Number(pricing.amountKRW || pricing.cashPrice || 0);
   const coinPrice = Number(pricing.coinPrice || pricing.cost || 0);
   if (!Number.isInteger(paymentAmount) || paymentAmount <= 0 || !Number.isInteger(coinPrice) || coinPrice <= 0) {
@@ -3660,15 +3660,14 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
 
   // 인증 단계에서 이미 같은 필드를 읽어 두었다(PAYMENT_ROUTE_USER_PROJECTION). 그걸 재사용해
   // 왕복 1회를 없앤다. authUserDoc 은 access-token 경로에만 붙으므로 부재 시 종전 조회로 폴백한다.
-  const passUser = auth.authUserDoc || await User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt phoneNumber phone name email fullName displayName username destinyProfilesCurrentId")
+  const paymentUser = auth.authUserDoc || await User.findById(auth.userId)
+    .select("phoneNumber phone name email fullName displayName username destinyProfilesCurrentId")
     .lean();
-  const entitlement = normalizeHoneyPassEntitlement(passUser || {});
   // 주문 응답에 customer 를 실어 보낸다. 예전에는 이 필드가 없어서 클라의 order.customer 가 항상
   // 비어 있었고, 결제마다 GET /api/me/payment-phone 을 한 번 더 타야 했다. 여기서 실어 보내면
   // 저장된 번호가 있는 사용자는 그 왕복이 통째로 사라진다(추가 조회 없음 — 위 문서를 그대로 쓴다).
-  const orderCustomer = buildSinglePaymentCustomer(passUser || {}, auth.userId);
-  const resolved = resolveDigitalContentPricing(body, entitlement);
+  const orderCustomer = buildSinglePaymentCustomer(paymentUser || {}, auth.userId);
+  const resolved = resolveDigitalContentPricing(body);
   if (!resolved.ok) {
     await writeFailureLog({
       request,
@@ -3706,8 +3705,8 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
   // 않는다. 그러면 프로필 스코프 상품(사주 3·자미두수 5·숙요 연간·FPTI)이 프로필 결손인 채로 결제돼
   // 정산이 관리자 검토로 빠진다. 서버가 마지막으로 기억하는 카드로 폴백해 그 격차를 메운다.
   // 계정 스코프 상품은 upsertSinglePaymentUnlockRecord 가 profileId 를 무시하므로 영향이 없다.
-  // (passUser 는 위에서 이미 읽은 문서다 — 추가 왕복 없음)
-  const profileId = String(body?.profileId || body?.selectedProfileId || passUser?.destinyProfilesCurrentId || "").trim().slice(0, 80).replace(/\s+/g, "_");
+  // (paymentUser는 위에서 이미 읽은 문서다 — 추가 왕복 없음)
+  const profileId = String(body?.profileId || body?.selectedProfileId || paymentUser?.destinyProfilesCurrentId || "").trim().slice(0, 80).replace(/\s+/g, "_");
   const productType = String(body?.productType || body?.serviceType || "").trim().slice(0, 80);
   const serviceType = String(body?.serviceType || body?.productType || "").trim().slice(0, 80);
   const actionType = String(body?.actionType || "").trim().slice(0, 80);

@@ -38,7 +38,6 @@ import {
 } from "../lib/models.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
 import { MONTHLY_CREDIT_TTL_MS, applyGrantLot, deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
-import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import {
   applyPdfPassDiscountToPricing,
   isPdfFeaturePricing,
@@ -70,6 +69,13 @@ import {
   resolveFeatureAccessPolicy,
   resolveServerProductType,
 } from "../lib/entitlement-policy.js";
+import {
+  PAYMENT_METHODS,
+  createInactiveMembershipPass,
+  resolvePaymentCommand,
+  runAtomicMonthlyPayment,
+  shouldVerifyMembershipPass,
+} from "../lib/payment-service.js";
 import "../lib/access-state.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
@@ -458,6 +464,7 @@ async function upsertSajuProfileUnlockEntitlement(env, {
   passId = "",
   coinAmount = 0,
   unlockedAt = null,
+  session = null,
 }) {
   if (!userId) {
     const error = new Error("User id is required for profile-scoped unlock entitlement.");
@@ -483,6 +490,7 @@ async function upsertSajuProfileUnlockEntitlement(env, {
     passId,
     coinAmount,
     unlockedAt,
+    session,
   }).catch((error) => {
     throw createUnlockEntitlementSaveError(error);
   });
@@ -1456,13 +1464,6 @@ async function getMembershipPassForBillingRequest(request, env, authUserId, auth
   return buildMembershipPassFromStatusSnapshot(snapshot) || directPass;
 }
 
-async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
-  const user = await User.findById(authUserId)
-    .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
-  return seedMembershipCreditFromUserDoc(authUserId, user);
-}
-
 // 이미 조회한 user 문서로 legacy seed 필요 여부만 판단하고, 필요할 때만 원자적 write.
 // readBillingSnapshot처럼 User를 이미 읽은 경로에서 중복 findById를 피하기 위해 사용.
 async function seedMembershipCreditFromUserDoc(authUserId, user) {
@@ -1510,13 +1511,6 @@ async function seedMembershipCreditFromUserDoc(authUserId, user) {
   ).lean();
 }
 
-// Mirrors payments.js: MongoDB multi-doc transactions require a replica set. When the
-// deployment can't run them, callers fall back to a best-effort saga (manual compensation).
-function isTransactionUnsupported(error) {
-  return /Transaction numbers are only allowed|replica set|Transaction .* not supported/i
-    .test(String(error?.message || ""));
-}
-
 // 환불된 SPEND 원장의 sourceId를 무효화 표식으로 바꿔 유니크 키({userId,type,sourceId})를 비운다.
 // 이게 없으면 환불 뒤 같은 purchaseId로 재구매할 때 원장 create가 영구히 E11000 → 500이 되어
 // 사용자가 결과를 영영 못 받는다(행은 삭제하지 않는다 — 감사 추적 보존, 원본은 metadata.purchaseId에 있음).
@@ -1526,21 +1520,20 @@ function buildRefundedSpendSourceId(sourceId, ledgerId) {
   return `refunded:${String(ledgerId || "")}:${String(sourceId || "")}`.slice(0, 180);
 }
 
-async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}, knownProfileSubscription = null) {
+async function consumeMembershipCreditIfAvailable(
+  env,
+  authUserId,
+  pricing,
+  requestId,
+  body = {},
+  { atomicUnlock = null } = {},
+) {
   const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const requiredCredit = resolveMonthlyCreditCostForBilling(pricing, body);
   if (!Number.isInteger(requiredCredit) || requiredCredit <= 0) return null;
   const profileMutationMetadata = buildProfileCardMutationMetadata(body);
 
   await connectDb(env);
-  // legacy 포인트→월정석 seed는 이미 seed된 유저(대다수)에겐 확정 no-op이다. step2 pass 조회가 이미 가져온
-  // profileSubscription으로 seed 완료(legacyCoinCreditSeeded===true)가 확인되면 전용 findById를 생략한다
-  // (핫패스 왕복 절감). 시딩은 단조(true→false 불가)라 시간차도 안전. 플래그 확인 불가/미시드면 기존대로 seed해
-  // 회귀를 막는다. 실제 차감·백필은 applyLotDeduction의 트랜잭션 read가 담당(격리성 그대로 유지).
-  if (knownProfileSubscription?.legacyCoinCreditSeeded !== true) {
-    await seedMembershipCreditForExistingPassIfNeeded(authUserId);
-  }
-
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
   const purchaseId = String(
@@ -1676,7 +1669,6 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
   // 단일 $inc로는 FIFO 배열 갱신이 불가하므로, 버전 가드 기반 낙관적 read-modify-write + 재시도로
   // 동시 차감/지급과의 경합을 안전하게 처리한다.
   const LOT_DEDUCT_MAX_ATTEMPTS = 5;
-  let deductPreImage = null;
   const applyLotDeduction = async (session = null) => {
     for (let attempt = 0; attempt < LOT_DEDUCT_MAX_ATTEMPTS; attempt += 1) {
       const query = User.findById(authUserId).select("points profileSubscription recentConsumeRequestIds");
@@ -1723,28 +1715,12 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       if (session) writeOpts.session = session;
       const updated = await User.findOneAndUpdate(writeFilter, writeUpdate, writeOpts).lean();
       if (updated) {
-        // 보상(saga)용 pre-image: 실패 시 차감 전 lot/잔액을 정확히 되돌린다.
-        deductPreImage = { lots: ensured.lots, balance: ensured.balance };
         return { ok: true, user: updated };
       }
       // 버전 충돌(동시 차감/지급) → 재조회 후 재시도.
     }
     // 5회 모두 write 실패 = 미차감. 잔량 부족이 아니므로 402가 아니라 일시 오류로 표면화해야 한다.
     return { ok: false, reason: "CONTENDED" };
-  };
-  const compensateDeduct = async () => {
-    if (!deductPreImage) return;
-    await User.findByIdAndUpdate(authUserId, {
-      $set: {
-        "profileSubscription.membershipCreditLots": deductPreImage.lots,
-        "profileSubscription.membershipCreditBalance": deductPreImage.balance,
-      },
-      $inc: {
-        "profileSubscription.membershipCreditUsed": -requiredCredit,
-        "profileSubscription.membershipCreditLotsVersion": 1,
-      },
-      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
-    }).catch(() => {});
   };
   const buildHistoryPayload = (pointsAfter, monthlyCredits) => ({
     userId: authUserId,
@@ -1804,73 +1780,30 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
 
   // Atomic path: monthly-stone deduction + point-history + spend-ledger commit together, so an
   // isolate kill can never leave the balance debited without its ledger/history rows.
-  const runSpendWithTransaction = async () => {
-    const session = await mongoose.startSession();
-    let outcome = null;
-    try {
-      await session.withTransaction(async () => {
-        // withTransaction은 일시적 오류 시 콜백을 재실행한다 — 이전 시도의 결과가 남지 않게 매 진입마다 리셋.
-        outcome = null;
-        const deducted = await applyLotDeduction(session);
-        if (!deducted?.ok) { outcome = { ok: false, reason: deducted?.reason || "CONTENDED", balance: deducted?.balance }; return; }
-        const updatedUser = deducted.user;
-        const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-        const [history] = await PointHistory.create([buildHistoryPayload(updatedUser?.points, monthlyCredits)], { session });
-        const [ledger] = await MonthlyCreditLedger.create([buildLedgerPayload(history?._id, monthlyCredits)], { session });
-        outcome = { ok: true, updatedUser, monthlyCredits, history, ledger };
-      });
-      return outcome;
-    } finally {
-      await session.endSession();
-    }
-  };
-
-  // Fallback when transactions are unavailable: best-effort with manual compensation (saga),
-  // preserving the pre-transaction behavior.
-  const runSpendWithCompensation = async () => {
-    const deducted = await applyLotDeduction(null);
-    if (!deducted?.ok) return { ok: false, reason: deducted?.reason || "CONTENDED", balance: deducted?.balance };
-    const updatedUser = deducted.user;
-    const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-    const history = await PointHistory.create(buildHistoryPayload(updatedUser?.points, monthlyCredits)).catch(async (error) => {
-      await compensateDeduct();
-      throw error;
-    });
-    const ledger = await MonthlyCreditLedger.create(buildLedgerPayload(history?._id, monthlyCredits)).catch(async (error) => {
-      await compensateDeduct();
-      await PointHistory.updateOne(
-        { _id: history?._id, userId: authUserId },
-        {
-          $set: {
-            "metadata.monthlyCreditLedgerFailed": true,
-            "metadata.monthlyCreditLedgerFailedAt": new Date(),
-            "metadata.monthlyCreditLedgerFailureMessage": String(error?.message || "").slice(0, 500),
-            "metadata.monthlyCreditRefundedForLedgerFailure": true,
-          },
-        },
-      ).catch(() => {});
-      throw error;
-    });
-    return { ok: true, updatedUser, monthlyCredits, history, ledger };
-  };
-
-  // 기존 txn→saga 폴백(동작 불변). 아래 E11000 복구가 이 단위를 1회 재실행할 수 있어 함수로 감쌌다.
-  const runSpend = async () => {
-    try {
-      return await runSpendWithTransaction();
-    } catch (error) {
-      if (!isTransactionUnsupported(error)) throw error;
-      return await runSpendWithCompensation();
-    }
-  };
+  const runSpend = () => runAtomicMonthlyPayment({
+    mongoose,
+    operation: async (session) => {
+      const deducted = await applyLotDeduction(session);
+      if (!deducted?.ok) {
+        return { ok: false, reason: deducted?.reason || "CONTENDED", balance: deducted?.balance };
+      }
+      const updatedUser = deducted.user;
+      const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+      const [history] = await PointHistory.create([buildHistoryPayload(updatedUser?.points, monthlyCredits)], { session });
+      const [ledger] = await MonthlyCreditLedger.create([buildLedgerPayload(history?._id, monthlyCredits)], { session });
+      const unlockEntitlement = typeof atomicUnlock === "function"
+        ? await atomicUnlock({ session, updatedUser, monthlyCredits, history, ledger, purchaseId })
+        : null;
+      return { ok: true, updatedUser, monthlyCredits, history, ledger, unlockEntitlement };
+    },
+  });
 
   let spendOutcome;
   try {
     spendOutcome = await runSpend();
   } catch (error) {
     if (Number(error?.code) !== 11000) throw error;
-    // 원장 유니크 키 충돌. 여기 닿는 시점엔 두 경로 모두 차감이 이미 롤백돼 있다
-    // (txn은 abort가, saga는 compensateDeduct가) → 돈이 안 움직였으므로 안전하게 판별·재시도할 수 있다.
+    // 원장 유니크 키 충돌 시 트랜잭션이 전체 abort되어 돈이 움직이지 않았으므로 안전하게 판별·재시도할 수 있다.
     // (payments.js의 11000 처리와 취지는 같으나 상황이 다르다: 거기선 차감이 이미 커밋돼 '롤백할까'가
     //  질문이지만, 여기선 롤백이 끝나 있어 원장-잔액 불일치가 구조적으로 불가능하다.)
     const replayed = await readIdempotentSpendResult();
@@ -1893,7 +1826,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     }
     return { ok: false, reason: failureReason, balance: spendOutcome?.balance };
   }
-  const { updatedUser, monthlyCredits, history, ledger } = spendOutcome;
+  const { updatedUser, monthlyCredits, history, ledger, unlockEntitlement } = spendOutcome;
   // 잔량/접근 결정이 바뀌었으니 표시용 캐시를 즉시 무효화한다. 이게 없으면 결제 직후 /balance가 5초간
   // 차감 전 잔량을, ensure-access가 미해금 판정을 돌려줘 클라가 "결제 안 됐다"고 오인한다.
   // (payments.js:1419-1422가 원화 결제에서 지키는 계약과 동일 — 월정석 인라인 차감만 빠져 있었다.)
@@ -1904,6 +1837,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     ok: true,
     transactionId: String(history?._id || ""),
     ledgerId: String(ledger?._id || ""),
+    unlockEntitlement,
     requestId: String(requestId || ""),
     purchaseId,
     transactionType: "membership_credit",
@@ -3350,15 +3284,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const pricingFeatureKey = String(pricing?.featureKey || "").trim();
   // featureKey별 예외 분기 금지 — 제외 여부의 정본은 isPassExcludedPricing 하나뿐이다(buildPassPaymentDecision 주석 참고).
   const passExcludedForPricing = isPassExcludedPricing(pricing);
-  const membershipPassRequested = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
-  const membershipPassOnly = membershipPassRequested && !passExcludedForPricing;
-  const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
-    || requestedPaymentMode === "monthly"
-    || requestedPaymentMode === "membership_credit"
-    || requestedPaymentMode === "moonlight_stone"
-    || requestedPaymentMode === "moonlight stone"
-    || requestedPaymentMode === "moonlightstone";
   const directPaymentRequested = shouldCreateDirectPortOneOrder(body);
+  const paymentCommand = resolvePaymentCommand({
+    paymentMode: requestedPaymentMode,
+    directPaymentRequested,
+  });
+  const membershipPassRequested = paymentCommand.method === PAYMENT_METHODS.MEMBERSHIP_PASS;
+  const membershipPassOnly = membershipPassRequested && !passExcludedForPricing;
+  const monthlyBalanceRequested = paymentCommand.method === PAYMENT_METHODS.MONTHLY;
   const coinPaymentRequested = isExplicitLegacyCoinPaymentMode(requestedPaymentMode);
   const deferUsage = isDeferredUsageRequested(body);
   const knownPaymentMode = !requestedPaymentMode
@@ -3408,10 +3341,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     featureKey: pricing?.featureKey,
     paymentMode: requestedPaymentMode,
   });
-  const shouldAutoUnlockWithPass = !passExcludedForPricing
-    && !monthlyBalanceRequested
-    && !directPaymentRequested
-    && !coinPaymentRequested;
+  const shouldLoadMembershipPass = shouldVerifyMembershipPass(paymentCommand.method);
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId)).trim();
@@ -3429,7 +3359,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
     return createPassLookupUnavailableMarker("profile_lookup", error);
   });
-  const subscriptionPassPromise = authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
+  const subscriptionPassPromise = shouldLoadMembershipPass && authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
     getMembershipPassForBillingRequest(
       request,
       env,
@@ -3488,8 +3418,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     });
   }
   const profileId = profileLookupResult;
-  const subscriptionPassForDecision = subscriptionPassLookupResult;
-  pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
+  const subscriptionPassForDecision = subscriptionPassLookupResult || createInactiveMembershipPass();
+  if (shouldLoadMembershipPass) {
+    pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision.entitlement || {});
+  }
   const featurePolicyDecision = buildPassPaymentDecision(
     subscriptionPassForDecision?.entitlement,
     pricing,
@@ -4061,12 +3993,40 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           source: "pre_usage",
         });
       }
+      if (persistProfileUnlockEntitlement) {
+        logPaidAccessStage("UNLOCK_SAVE_START", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "monthly",
+          paymentMethod: "MONTHLY",
+          amountCoins: resolvePricingCoinCost(pricing),
+          monthlyRequiredAmount: resolveMonthlyCreditCostForBilling(pricing, scopedBody),
+          idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+          scope: "monthly_atomic_transaction",
+        });
+      }
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
         sessionId: reportSessionId,
         reportSessionId,
-      }, subscriptionPass?.profileSubscription || null);
+      }, {
+        atomicUnlock: persistProfileUnlockEntitlement
+          ? async ({ session, history, ledger, purchaseId }) => upsertSajuProfileUnlockEntitlement(env, {
+            userId: authCheck.auth.userId,
+            profileId,
+            featureKey: pricing.featureKey,
+            contentKey: scopedBody?.contentKey,
+            source: CONTENT_ENTITLEMENT_SOURCES.MONTHLY,
+            orderId: purchaseId || requestId,
+            paymentId: String(history?._id || ledger?._id || requestId),
+            coinAmount: resolvePricingCoinCost(pricing),
+            session,
+          })
+          : null,
+      });
       if (membershipConsume?.ok) {
         logPaidAccessStage("MONTHLY_DEDUCT_SUCCESS", {
           requestId,
@@ -4083,22 +4043,11 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           orderId: membershipConsume.purchaseId || requestId,
           idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
         });
-        let unlockEntitlement = null;
-        if (persistProfileUnlockEntitlement) {
+        let unlockEntitlement = membershipConsume.unlockEntitlement || null;
+        if (persistProfileUnlockEntitlement && !unlockEntitlement && membershipConsume.idempotent) {
           try {
-            logPaidAccessStage("UNLOCK_SAVE_START", {
-              requestId,
-              userId: authCheck.auth.userId,
-              featureKey: pricing?.featureKey,
-              profileId,
-              accessMethod: "monthly",
-              paymentMethod: "MONTHLY",
-              amountCoins: Number(membershipConsume.coinPrice || 0),
-              monthlyRequiredAmount: Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0),
-              paymentId: membershipConsume.transactionId || "",
-              orderId: membershipConsume.purchaseId || requestId,
-              idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
-            });
+            // 과거 버전에서 차감만 커밋된 멱등 요청은 기존 원장을 근거로 해금만 복구한다.
+            // 신규 요청은 위 트랜잭션 안에서 저장되므로 이 경로로 오지 않는다.
             unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
               userId: authCheck.auth.userId,
               profileId,
@@ -4109,68 +4058,11 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               paymentId: membershipConsume.transactionId || requestId,
               coinAmount: Number(membershipConsume.coinPrice || 0),
             });
-            // 해금 저장 직후 재무효화: 차감~저장 사이에 다른 요청이 '미해금' 결정을 캐시에 재적재할 수 있다.
-            try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
-            logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
-              requestId,
-              userId: authCheck.auth.userId,
-              featureKey: pricing?.featureKey,
-              profileId,
-              accessMethod: "monthly",
-              paymentMethod: "MONTHLY",
-              amountCoins: Number(membershipConsume.coinPrice || 0),
-              monthlyRequiredAmount: Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0),
-              paymentId: membershipConsume.transactionId || "",
-              orderId: membershipConsume.purchaseId || requestId,
-              idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
-            });
           } catch (error) {
-            if (!membershipConsume.idempotent) {
-              const refundCredit = Math.max(0, Math.floor(Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0)));
-              const refundPurchaseId = String(membershipConsume.purchaseId || requestId || "").trim();
-              if (refundCredit > 0) {
-                // 복원분은 신규 30일 lot으로 재적립(lotId로 멱등). recentConsumeRequestIds도 정리.
-                await restoreMonthlyCreditLot({
-                  userId: authCheck.auth.userId,
-                  lotId: `unlock-refund:${String(membershipConsume.ledgerId || membershipConsume.transactionId || refundPurchaseId)}`,
-                  amount: refundCredit,
-                  pullRequestId: refundPurchaseId || "",
-                }).catch(() => {});
-                await PointHistory.updateOne(
-                  { _id: membershipConsume.transactionId, userId: authCheck.auth.userId },
-                  {
-                    $set: {
-                      "metadata.monthlyCreditRefundedForUnlockFailure": true,
-                      "metadata.monthlyCreditRefundedAt": new Date(),
-                      "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
-                    },
-                  },
-                ).catch(() => {});
-                if (membershipConsume.ledgerId) {
-                  await MonthlyCreditLedger.updateOne(
-                    { _id: membershipConsume.ledgerId, userId: authCheck.auth.userId },
-                    {
-                      $set: {
-                        // 유니크 키({userId,type,sourceId})를 비운다 — 플래그만 찍고 키를 점유한 채 두면
-                        // 같은 purchaseId 재구매가 원장 create에서 영구히 E11000 → 500이 되어
-                        // 사용자가 결과를 영영 못 받는다. 원본 purchaseId는 metadata.purchaseId에 남는다.
-                        sourceId: buildRefundedSpendSourceId(refundPurchaseId, membershipConsume.ledgerId),
-                        "metadata.refundedForUnlockFailure": true,
-                        "metadata.refundedAt": new Date(),
-                        "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
-                      },
-                    },
-                  ).catch(() => {});
-                }
-                // 환불로 잔량/접근 결정이 되돌아갔다 — restoreMonthlyCreditLot은 잔량 캐시만 무효화하므로
-                // 접근 결정 캐시는 여기서 직접 무효화한다(해금 실패분이 '해금됨'으로 남지 않게).
-                try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
-              }
-            }
             return failure(
-              error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
-              "UNLOCK_ENTITLEMENT_SAVE_FAILED",
-              "Unlock entitlement could not be saved after monthly credit consumption.",
+              error?.code === "MISSING_PROFILE_ID" ? 403 : 503,
+              "UNLOCK_ENTITLEMENT_REPAIR_FAILED",
+              "기존 월정석 결제의 이용 권한을 복구하지 못했습니다. 다시 결제하지 말고 잠시 후 확인해 주세요.",
               String(error?.message || ""),
               {
                 pricing,
@@ -4184,6 +4076,23 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               },
             );
           }
+        }
+        if (persistProfileUnlockEntitlement) {
+          try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
+          logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
+            requestId,
+            userId: authCheck.auth.userId,
+            featureKey: pricing?.featureKey,
+            profileId,
+            accessMethod: "monthly",
+            paymentMethod: "MONTHLY",
+            amountCoins: Number(membershipConsume.coinPrice || 0),
+            monthlyRequiredAmount: Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0),
+            paymentId: membershipConsume.transactionId || "",
+            orderId: membershipConsume.purchaseId || requestId,
+            idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
+            scope: membershipConsume.idempotent ? "monthly_idempotent_repair" : "monthly_atomic_transaction",
+          });
         }
         const updatedPaymentDecision = buildPassPaymentDecision(
           subscriptionPass.entitlement,
@@ -4273,6 +4182,23 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         featureKey: String(pricing?.featureKey || ""),
         requestId,
       });
+      const atomicUnavailable = String(error?.code || "") === "MONTHLY_ATOMIC_UNAVAILABLE";
+      const atomicWriteFailed = String(error?.code || "") === "UNLOCK_ENTITLEMENT_SAVE_FAILED";
+      if (atomicUnavailable || atomicWriteFailed) {
+        return failure(
+          503,
+          atomicUnavailable ? "MONTHLY_ATOMIC_UNAVAILABLE" : "MONTHLY_ATOMIC_WRITE_FAILED",
+          atomicUnavailable
+            ? "월정석 결제를 안전하게 처리할 수 없어 차감하지 않았습니다. 잠시 후 다시 시도해 주세요."
+            : "월정석 권한을 안전하게 저장하지 못해 차감하지 않았습니다. 잠시 후 다시 시도해 주세요.",
+          String(error?.message || ""),
+          {
+            pricing,
+            retryable: true,
+            canUseByCard: false,
+          },
+        );
+      }
       return failure(
         500,
         "MEMBERSHIP_CREDIT_CONSUME_FAILED",
@@ -6646,10 +6572,8 @@ async function buildDiscountedPdfPaymentDelegation(request, env, body = {}, pric
 }
 
 async function handleCheckout(request, env) {
-  // 🔴 계측 기준점은 여기다. 예전에는 totalMs 로그가 delegateToPayments 안에만, 그것도 /confirm 에만
-  // 붙어 있어서 /checkout 은 총 소요가 아예 남지 않았다. 게다가 위임 전에 도는
-  // grantPassFreeAccessBeforeCardIfAvailable / buildDiscountedPdfPaymentDelegation 의 Mongo 왕복은
-  // delegateToPayments 안에서 재면 통째로 빠진다 — 결제창 앞 실제 대기를 과소보고하게 된다.
+  // DIRECT_KRW는 인증과 서버 가격 확인 후 곧바로 payments 어댑터로 위임한다.
+  // 이용권 검증은 명시적인 MEMBERSHIP_PASS 명령에서만 수행한다.
   const checkoutStartedAt = Date.now();
   const body = await readJson(request);
   const serverProductType = resolveServerProductType({
@@ -6670,36 +6594,8 @@ async function handleCheckout(request, env) {
     logCheckoutElapsed(body, checkoutStartedAt, checkoutAuthCheck.response?.status, "auth");
     return checkoutAuthCheck.response;
   }
-  let delegatedBody = body;
-  if (!isSubscription) {
-    {
-      const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(
-        request,
-        env,
-        body,
-        checkoutAuthCheck,
-        checkoutPricingResult,
-      );
-      if (passAccess) {
-        logCheckoutElapsed(body, checkoutStartedAt, passAccess.status, "pass_free_access");
-        return passAccess;
-      }
-    }
-    const discounted = await buildDiscountedPdfPaymentDelegation(
-      request,
-      env,
-      body,
-      checkoutPricingResult,
-      checkoutAuthCheck,
-    );
-    if (discounted.response) {
-      logCheckoutElapsed(body, checkoutStartedAt, discounted.response.status, "pdf_discount");
-      return discounted.response;
-    }
-    delegatedBody = discounted.body;
-  }
   const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";
-  const response = await delegateToPayments(request, env, targetPath, delegatedBody, {
+  const response = await delegateToPayments(request, env, targetPath, body, {
     preverifiedAuth: checkoutAuthCheck.auth,
   });
   logCheckoutElapsed(body, checkoutStartedAt, response?.status, isSubscription ? "subscription" : "direct");
@@ -6759,32 +6655,7 @@ async function handleConfirm(request, env) {
     pricingResult?.ok ? pricingResult.pricing : { cost: 1 },
   );
   if (!confirmAuthCheck.ok) return replaceConfirmAuthFailureMessage(confirmAuthCheck.response);
-  let delegatedBody = body;
-  let delegatedPricing = pricingResult?.pricing || null;
-  // A confirm request without provider evidence may only apply an explicitly chosen pass.
-  // DIRECT_KRW always continues to provider verification and can never become PASS_FREE here.
-  if (!isSubscription && !hasPaymentVerificationPayload) {
-    const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(
-      request,
-      env,
-      body,
-      confirmAuthCheck,
-      pricingResult,
-    );
-    if (passAccess) return passAccess;
-  }
-  if (!isSubscription && pricingResult?.ok) {
-    const discounted = await buildDiscountedPdfPaymentDelegation(
-      request,
-      env,
-      body,
-      pricingResult,
-      confirmAuthCheck,
-    );
-    if (discounted.response) return discounted.response;
-    delegatedBody = discounted.body;
-    delegatedPricing = discounted.pricing || delegatedPricing;
-  }
+  const delegatedPricing = pricingResult?.pricing || null;
   let premiumAccessOptions = null;
   if (!isSubscription && hasPaymentVerificationPayload && pricingResult?.ok) {
     const delegatedFeatureKey = String(delegatedPricing?.featureKey || "").trim();
@@ -6798,10 +6669,33 @@ async function handleConfirm(request, env) {
     }
   }
   const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";
-  return delegateToPayments(request, env, targetPath, delegatedBody, {
+  const response = await delegateToPayments(request, env, targetPath, body, {
     ...(premiumAccessOptions || {}),
     preverifiedAuth: confirmAuthCheck.auth,
   });
+  if (!isSubscription && hasPaymentVerificationPayload && Number(response?.status || 0) >= 500) {
+    logPaidAccessStage("CARD_CONFIRM_PENDING", {
+      requestId: String(body?.requestId || ""),
+      featureKey: String(pricingResult?.pricing?.featureKey || body?.featureKey || ""),
+      profileId: String(body?.profileId || body?.selectedProfileId || ""),
+      accessMethod: "card",
+      paymentMethod: "DIRECT_KRW",
+      httpStatus: Number(response?.status || 0),
+      idempotencyKey: String(body?.idempotencyKey || body?.orderId || body?.merchantUid || ""),
+      recovery: true,
+    });
+    return json({
+      ok: false,
+      status: "pending_confirmation",
+      code: "PENDING_CONFIRMATION",
+      message: "카드 승인은 접수되었지만 권한 확인이 지연되고 있습니다. 다시 결제하지 말고 결제 내역에서 복구해 주세요.",
+      requestId: String(body?.requestId || ""),
+      orderId: String(body?.orderId || body?.merchantUid || body?.merchant_uid || ""),
+      recoveryRequired: true,
+      retryable: false,
+    }, { status: 503 });
+  }
+  return response;
 }
 
 async function runServiceExecutionAction(request, env, action) {
