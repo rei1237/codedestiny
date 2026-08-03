@@ -27,11 +27,13 @@ test("main unlock sync uses the entitlement-only endpoint", () => {
   assert.doesNotMatch(syncBlock, /syncBalanceFromServer/);
 });
 
-test("central access store requests profile services in one access request", () => {
+test("central access store requests one complete profile access snapshot", () => {
   const initialBootstrapBlock = between(shellSource, "function scheduleInitialUnlockSync", "loadBalance();");
 
   assert.match(accessStoreSource, /var DEFAULT_SERVICE_KEYS = \['saju', 'ziwei', 'ad_free'\]/);
-  assert.match(accessStoreSource, /'&serviceKey=' \+ encodeURIComponent\(context\.serviceKeys\.join\(','\)\)/);
+  assert.match(accessStoreSource, /'\/api\/me\/access-state\?profileId=' \+ encodeURIComponent\(context\.profileId\)/);
+  assert.doesNotMatch(accessStoreSource, /'&serviceKey='/);
+  assert.doesNotMatch(accessStoreSource, /\/api\/access\/unlocks/);
   assert.doesNotMatch(accessStoreSource, /includeBackfill/);
   assert.doesNotMatch(shellSource, /\/api\/access\/unlocks\?/);
   assert.doesNotMatch(initialBootstrapBlock, /syncGoldenMonthlyCreditsFromPaymentsMe/);
