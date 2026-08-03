@@ -1086,6 +1086,23 @@ body {
 	filter: saturate(1.05) contrast(1.02);
 	transition: transform 0.28s ease, filter 0.28s ease;
 }
+.tarot-tile--animal-cycle {
+	align-items: stretch;
+	text-align: left;
+}
+.tarot-tile--animal-cycle .tarot-tile__img-wrap,
+.tarot-tile--animal-cycle .tarot-tile__body {
+	width: 100%;
+	margin-inline: 0;
+	text-align: left;
+}
+.tarot-tile--animal-cycle .tarot-tile__img-wrap {
+	display: block;
+	flex: 0 0 auto;
+}
+.tarot-tile--animal-cycle .tarot-tile__body {
+	align-items: flex-start;
+}
 .tarot-tile--ijik:hover .tarot-tile__img {
 	transform: scale(1.04);
 	filter: saturate(1.12) contrast(1.05);

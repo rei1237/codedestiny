@@ -1093,7 +1093,7 @@ export default function KarmaDestinyAiPage() {
             noteClassName="kdai-deliverable__note"
           />
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="karma-destiny-ai-consultation" fallbackCoins={500} prefix="상담 이용 가격 " />
+            <PriceBadge featureKey="karma-destiny-ai-consultation" prefix="상담 이용 가격 " />
           </div>
           <button className="kdai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="kdai-spin" /> : <WalletCards size={18} />}

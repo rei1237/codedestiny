@@ -728,7 +728,7 @@ export default function LifeBookAiClient() {
               </div>
 
               <div className="mt-4 flex items-center justify-end">
-                <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} fallbackCoins={MODE_FALLBACK_PRICE[form.mode || "lifeBook"].coinPrice} prefix="상담 이용 가격 " />
+                <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />
               </div>
               <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-black text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}

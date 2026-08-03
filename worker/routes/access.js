@@ -623,10 +623,11 @@ function buildUnlocksPayload({ profileId, serviceKey, serviceKeys, activeDocs })
   };
 }
 
-async function handleUnlocks(request, env) {
+async function handleUnlocks(request, env, trace) {
   if (request.method !== "GET") return methodNotAllowed();
 
   const url = new URL(request.url);
+  if (trace) trace.stage = "auth";
   const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
   const serviceKeyParam = sanitizeAccessKey(
     url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
@@ -657,7 +658,9 @@ async function handleUnlocks(request, env) {
   }
 
   const promise = withMongoRetry(env, async () => {
+    if (trace) trace.stage = "profile-ownership";
     await verifyProfileOwnership({ userId, profileId });
+    if (trace) trace.stage = "unlock-snapshot";
     const snapshot = await getUnlockedContentSnapshot({ userId, profileId, serviceKeys });
     const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
     const backfilledDocs = [];
@@ -694,17 +697,36 @@ async function handleUnlocks(request, env) {
 
 export async function handleAccessRoutes(request, env) {
   const routePath = getRoutePath(request, "/api/access");
-  const trace = { route: "access", method: request.method, requestPath: new URL(request.url).pathname };
+  const trace = {
+    route: "access",
+    method: request.method,
+    requestPath: new URL(request.url).pathname,
+    requestId: globalThis.crypto?.randomUUID?.() || `access:${Date.now().toString(36)}`,
+    stage: "route",
+  };
 
   try {
     if (routePath === "/status") return await handleStatus(request, env);
     if (routePath === "/confirm") return await handleConfirm(request, env);
-    if (routePath === "/unlocks") return await handleUnlocks(request, env);
+    if (routePath === "/unlocks") return await handleUnlocks(request, env, trace);
     return notFound();
   } catch (error) {
     // ?ëÍ∑º ?êÏ†ï ?ΩÍ∏∞(GET)???ºÏãú??Mongo Î∏îÎ¶Ω???òÎìú 503?ºÎ°ú Ï£ΩÏù¥ÏßÄ ÎßêÍ≥†, ?¥ÎùºÍ∞Ä ?¨Ïãú?ÑÌï† ???àÍ≤å
     // ?úÏ? ?åÌîÑ??503(retryable/DB_DEGRADED)Î°??¥Î¶∞?? ?∞Í∏∞(/confirm POST)???¥Ï§ë?úÏ∂ú Î∞©Ï? ?ÑÌï¥ ?úÏô∏.
     if (request.method === "GET" && (isTransientMongoError(error) || isAuthDbInfraError(error))) {
+      try {
+        console.warn("[access-503]", JSON.stringify({
+          requestId: trace.requestId,
+          route: trace.requestPath,
+          stage: trace.stage,
+          errorName: String(error?.name || ""),
+          errorCode: String(error?.code || ""),
+          transientMongo: isTransientMongoError(error),
+          authDbInfra: isAuthDbInfraError(error),
+        }));
+      } catch (_) {
+        // Diagnostics must never change the retryable access response.
+      }
       return json({
         ok: false,
         retryable: true,

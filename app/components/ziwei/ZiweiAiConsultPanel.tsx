@@ -408,7 +408,7 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 {phase === "checking" ? "이용권 확인 중..." : phase === "payment" ? "결제 진행 중..." : phase === "reading" ? "상담문 생성 중..." : "별궁 전문가 상담 받기 (30,000원)"}
               </button>
-              <PriceBadge featureKey={FEATURE_KEY} fallbackCoins={FEATURE_COST} prefix="상담 이용 가격 " />
+              <PriceBadge featureKey={FEATURE_KEY} prefix="상담 이용 가격 " />
             </div>
             <p className="text-xs text-slate-300/70">회당 결제 · 이용권/월정석 보유 시 무차감 진행</p>
           </div>

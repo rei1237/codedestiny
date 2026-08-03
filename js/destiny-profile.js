@@ -7850,10 +7850,47 @@
   };
 
   var _dpListOpenedAt = 0;
-
-  window.dpOpenList = function() {
+  function _dpEnsureListSheetMounted() {
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
+    if (sheet && overlay) return { sheet: sheet, overlay: overlay };
+    var template = document.getElementById('dpListSheetTemplate');
+    if (!template || !template.content) return null;
+    var fragment = template.content.cloneNode(true);
+    document.body.appendChild(fragment);
+    sheet = document.getElementById('dpListSheet');
+    overlay = document.getElementById('dpListOverlay');
+    if (!sheet || !overlay) return null;
+    if (!sheet.__dpLazyBound) {
+      sheet.__dpLazyBound = true;
+      var closeBtn = sheet.querySelector('.dp-sheet-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          dpCloseList();
+        });
+      }
+      overlay.addEventListener('click', function(e) {
+        e.preventDefault();
+        dpCloseList();
+      });
+    }
+    return { sheet: sheet, overlay: overlay };
+  }
+
+  function _dpUnmountListSheetAfterClose(sheet, overlay) {
+    window.setTimeout(function() {
+      var currentSheet = document.getElementById('dpListSheet');
+      if (currentSheet && !currentSheet.classList.contains('dp-sheet--open')) currentSheet.remove();
+      var currentOverlay = document.getElementById('dpListOverlay');
+      if (currentOverlay && (!currentSheet || !currentSheet.classList.contains('dp-sheet--open'))) currentOverlay.remove();
+    }, 260);
+  }
+
+  window.dpOpenList = function() {
+    var mounted = _dpEnsureListSheetMounted();
+    var sheet = mounted && mounted.sheet;
+    var overlay = mounted && mounted.overlay;
     var scroller = sheet ? sheet.querySelector('.dp-list-scroll') : null;
     var container = document.getElementById('dpListInner');
     if (!sheet || !overlay) {
@@ -7863,6 +7900,7 @@
 
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
+    sheet.setAttribute('aria-hidden', 'false');
     _dpListOpenedAt = Date.now();
 
     function renderOpenList() {
@@ -7914,7 +7952,9 @@
     var overlay = document.getElementById('dpListOverlay');
     if (sheet) {
       sheet.classList.remove('dp-sheet--open');
+      sheet.setAttribute('aria-hidden', 'true');
       if (overlay) overlay.classList.remove('dp-sheet--open');
+      _dpUnmountListSheetAfterClose(sheet, overlay);
     }
     if (_bodyLocked) {
       _bodyLocked = false;

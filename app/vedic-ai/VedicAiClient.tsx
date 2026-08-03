@@ -1484,7 +1484,7 @@ export default function VedicAiClient() {
           )}
 
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="vedic-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+            <PriceBadge featureKey="vedic-ai-consultation" prefix="상담 이용 가격 " />
           </div>
           <button type="submit" className={styles.primaryButton} disabled={busy} aria-busy={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}

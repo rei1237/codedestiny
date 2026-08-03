@@ -941,7 +941,6 @@ export default function LoveSecretAiPage() {
                 <div className="mt-3 flex items-center justify-end border-t border-[var(--ls-line)] pt-3">
                   <PriceBadge
                     featureKey="love-secret-ai-consultation"
-                    fallbackCoins={300}
                     prefix="상담 이용 가격 "
                     className="text-sm font-bold text-[var(--ls-text-muted)]"
                   />

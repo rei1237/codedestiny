@@ -99,12 +99,12 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
       <div className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-[#d7ecff]/70 blur-2xl" />
       <div className="pointer-events-none absolute -left-14 bottom-2 h-40 w-40 rounded-full bg-[#ffe8be]/60 blur-2xl" />
 
-      <div className="relative z-10 grid gap-5 lg:grid-cols-[180px_1fr] lg:items-center">
+      <div className="relative z-10 grid min-w-0 gap-5 lg:grid-cols-[180px_minmax(0,1fr)] lg:items-center">
         <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-[2rem] border border-[#c8dff2] bg-white/88 text-7xl shadow-[0_10px_24px_rgba(60,110,154,0.18)]">
           {ANIMAL_EMOJI[representativeStage] || "🐾"}
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-[#9fc5e7] bg-white px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[#376790]">
               운명 도감 대표 카드

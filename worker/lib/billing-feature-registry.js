@@ -408,23 +408,44 @@ function toCategoryResponse(category) {
 
 export function listBillingFeatures() {
   const categories = Object.values(BILLING_FEATURE_CATEGORIES).map((category) => toCategoryResponse(category));
-  const legacyFeatureTable = Object.entries(FEATURE_KEY_PRICE_TABLE)
-    .map(([featureKey, featureSpec]) => {
-      const pricing = normalizePaidFeaturePricingShape(featureSpec || {});
-      return {
-        featureKey,
-        cost: pricing.cost,
-        coinPrice: pricing.coinPrice,
-        amountKRW: pricing.amountKRW,
-        cashPrice: pricing.amountKRW,
-        krwAmount: pricing.amountKRW,
-        paymentAmount: pricing.amountKRW,
-        reason: String(featureSpec?.reason || "Paid feature unlock"),
-        currency: "KRW",
-        pricingBasis: "KRW",
-      };
-    })
+  const legacyEntries = Object.entries(FEATURE_KEY_PRICE_TABLE).map(([featureKey, featureSpec]) => {
+    const pricing = normalizePaidFeaturePricingShape(featureSpec || {});
+    return {
+      featureKey,
+      cost: pricing.cost,
+      coinPrice: pricing.coinPrice,
+      amountKRW: pricing.amountKRW,
+      cashPrice: pricing.amountKRW,
+      krwAmount: pricing.amountKRW,
+      paymentAmount: pricing.amountKRW,
+      reason: String(featureSpec?.reason || "Paid feature unlock"),
+      currency: "KRW",
+      pricingBasis: "KRW",
+    };
+  });
+  const unlockEntries = Object.values(UNLOCK_PRODUCT_BY_FEATURE_KEY).map((featureSpec) => {
+    const pricing = normalizePaidFeaturePricingShape(featureSpec || {});
+    return {
+      featureKey: String(featureSpec?.featureKey || "").trim(),
+      cost: pricing.cost,
+      coinPrice: pricing.coinPrice,
+      amountKRW: pricing.amountKRW,
+      cashPrice: pricing.amountKRW,
+      krwAmount: pricing.amountKRW,
+      paymentAmount: pricing.amountKRW,
+      reason: String(featureSpec?.reason || "Paid feature unlock"),
+      currency: "KRW",
+      pricingBasis: "KRW",
+    };
+  });
+  const seenFeatureKeys = new Set();
+  const legacyFeatureTable = [...legacyEntries, ...unlockEntries]
     .filter((entry) => Number.isFinite(entry.cost) && entry.cost > 0)
+    .filter((entry) => {
+      if (!entry.featureKey || seenFeatureKeys.has(entry.featureKey)) return false;
+      seenFeatureKeys.add(entry.featureKey);
+      return true;
+    })
     .sort((a, b) => a.featureKey.localeCompare(b.featureKey));
 
   return {

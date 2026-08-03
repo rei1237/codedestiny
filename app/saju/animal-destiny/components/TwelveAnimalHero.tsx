@@ -19,8 +19,8 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
         <div className="pointer-events-none absolute -left-16 top-12 h-40 w-40 rounded-full bg-[#d9ecff]/60 blur-2xl" />
         <div className="pointer-events-none absolute -right-14 bottom-8 h-40 w-40 rounded-full bg-[#ffe7b8]/55 blur-2xl" />
 
-        <div className="relative z-10 grid items-center gap-7 lg:grid-cols-[1fr_260px]">
-          <div className="space-y-4">
+        <div className="relative z-10 grid min-w-0 items-center gap-7 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="min-w-0 space-y-4">
             <m.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -53,7 +53,7 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.18 }}
-              className="flex gap-2 overflow-x-auto pb-1"
+              className="flex min-w-0 gap-2 overflow-x-auto pb-1"
             >
               {FLOATING_CARDS.map((animal, index) => (
                 <span
@@ -92,7 +92,7 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="mx-auto w-full max-w-[240px]"
+            className="mx-auto w-full max-w-[240px] lg:ml-auto lg:mr-0"
           >
             <div className="rounded-[1.6rem] border border-[#b8d5ef] bg-white/82 p-5 shadow-[0_14px_34px_rgba(58,111,160,0.2)] backdrop-blur-sm">
               <p className="text-xs font-black tracking-[0.12em] text-[#41698f]">12단계 성장 여정</p>
