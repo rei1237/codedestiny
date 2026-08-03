@@ -23,7 +23,7 @@
 | 음악 감상 모드 | Moon Music CTA | `/music` | 무료/콘텐츠 | 홈에서 설명이 길어짐 | `/music` route에서 audio 로딩 가능 | 홈에서는 audio 미로드 유지 |
 | Moon Library | 운명의 서재 카드 | `/stories` | 무료/콘텐츠 | 홈 초반 카드가 길어짐 | story 이미지/리스트 route 로딩 | 모바일은 compact link |
 | 운명의 서재 | 운명의 서재 카드 | `/stories` | 무료/콘텐츠 | 음악 카드와 함께 초반 피로 | route 진입 전 이미지 최소화 필요 | 모바일 허브 보조 링크 |
-| 웹소설 | 서재 상세 | `/stories`, `/stories/[storyId]`, `/stories/[storyId]/[chapterId]` | 무료/콘텐츠 | 홈에서 직접 구조 파악 어려움 | dynamic route 별 콘텐츠 로딩 | 홈에는 대표 링크만 |
+| 웹소설 | 서재 상세 | `/stories`, `/stories/[episode]` | 무료/콘텐츠 | 홈에서 직접 구조 파악 어려움 | episode dynamic route 콘텐츠 로딩 | 홈에는 대표 링크만 |
 | Moonlight Pass | 홈 이용권 미니 섹션, `/points` | 인페이지 + `/points` | 유료 이용권 | 플랜 설명이 길어 첫 흐름을 밀어냄 | 결제/잔량 상태 API | 모바일 허브의 이용권 링크로 직접 이동 |
 | 스탠다드 꿀 30일 | Moonlight Pass 카드 | `/points?plan=standard`, 인페이지 CTA | 30일 9,900원, 3,000원 이하 | 플랜 비교가 세로로 길어짐 | 결제 상태/월정석 잔량 조회 | 접힌 플랜 카드, 선택 시 상세 |
 | 프리미엄 꿀 30일 | Moonlight Pass 카드 | `/points?plan=premium`, 인페이지 CTA | 30일 29,900원, 5,000원 이하 | 추천 카드가 화면을 차지 | 결제 상태/월정석 잔량 조회 | 모바일 기본 추천 카드만 강조 |
@@ -48,7 +48,7 @@
 | Divya Yoga 맞춤 명상 | 명상 컬렉션 | `/yoga-guru.html` | 1회 3,000원 | 설명이 길어질 수 있음 | static HTML | 명상 컬렉션 접힘 유지 |
 | 코스믹 소울 명상 | 명상 컬렉션 | `/cosmic-soul-meditation.html` | 30분 10,000원, 60분 20,000원 | 고가 옵션 설명이 길어짐 | static HTML/audio 가능 | 별도 route로 이동 |
 | R=VD 현실 렌더링 | 명상 컬렉션의 코스믹 소울 명상 카드 | `/cosmic-soul-meditation.html` | 30분 10,000원, 60분 20,000원 | 명상/현실화 맥락을 함께 봐야 이해됨 | `r=vd.webp`와 정적 명상 페이지 | 모바일은 코스믹 소울 명상 상세로 딥링크 |
-| 명상 | 모바일 빠른 탐색, 명상 컬렉션 | `#cdMobileDestinyHub`, 명상 컬렉션 | 무료/유료 혼합 | 타로/신탁 카드 사이에 묻힘 | 정적 HTML, audio 가능 route 혼합 | 카테고리 탭에서 접힌 rail로 진입 |
+| 명상 | 모바일 빠른 탐색, 명상 컬렉션 | `#cdMobileBottomNav`, 명상 컬렉션 | 무료/유료 혼합 | 타로/신탁 카드 사이에 묻힘 | 정적 HTML, audio 가능 route 혼합 | 카테고리 탭에서 접힌 rail로 진입 |
 | 타로 | 모바일 빠른 탐색, 타로 컬렉션 | `tarotCollection`, `openTarotModal` | 무료/유료 혼합 | 카드 수가 많아 세로 피로가 큼 | 모달/route/정적 HTML 혼합 | 대표 무료 카드와 더보기 구조 |
 | 우리는 무슨 사이? | 타로 컬렉션 | `openTarotLoveModal`, `/tarot/love` | 1회 5,000원 | 모바일에서 타로 카드가 많음 | hidden modal + lazy script | 타로 chip 후 노출 |
 | 따뜻한 태양 회복 타로 | 타로 컬렉션 | `/tarot/healing`, `openTarotHealingModal` | 무료 | 무료 타로가 유료 카드 사이에 묻힘 | route bundle | 타로 상단 무료 카드로 유지 |

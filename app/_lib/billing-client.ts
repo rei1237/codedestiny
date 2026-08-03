@@ -24,8 +24,7 @@ import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-typ
 import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
-import passVerdict from "@/js/core/pass-verdict.js";
-import checkoutEntry from "@/js/core/checkout-entry.js";
+import { checkoutEntryRuntime as checkoutEntry, passVerdictRuntime as passVerdict } from "@/app/_lib/legacy-core-runtime";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
