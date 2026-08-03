@@ -505,12 +505,14 @@ body {
 }
 
 .card-wrap {
-  width: 92px;
-  aspect-ratio: 4 / 7;
+  width: clamp(86px, 12vw, 112px);
+  aspect-ratio: 15 / 26;
   height: auto;
   perspective: 1000px;
   cursor: pointer;
   flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .card-inner {
@@ -529,6 +531,13 @@ body {
   backface-visibility: hidden;
   border-radius: 10px;
   border: 1px solid rgba(212,160,23,0.4);
+  overflow: hidden;
+}
+
+.card-wrap:focus-visible {
+  outline: 2px solid #e8c44a;
+  outline-offset: 5px;
+  border-radius: 12px;
 }
 
 /* card back */
@@ -538,16 +547,18 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  overflow: hidden;
+  gap: 7px;
   animation: card-glow 2.5s ease-in-out infinite alternate;
-  position: relative;
+  position: absolute;
+  isolation: isolate;
 }
 
 .card-back-face::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 7px;
+  border: 1px solid rgba(232,196,74,0.28);
+  border-radius: 7px;
   background-image: 
     repeating-linear-gradient(
       60deg,
@@ -563,23 +574,27 @@ body {
       rgba(124,58,237,0.025) 8px,
       rgba(124,58,237,0.025) 9px
     );
+  box-shadow: inset 0 0 0 1px rgba(124,58,237,0.16);
   pointer-events: none;
 }
 
 .card-back-face::after {
   content: '';
   position: absolute;
-  width: 60px;
-  height: 60px;
+  width: 48%;
+  aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%);
+  border: 1px solid rgba(232,196,74,0.24);
+  background: radial-gradient(circle, rgba(124,58,237,0.28) 0%, rgba(124,58,237,0.08) 42%, transparent 72%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 6px rgba(124,58,237,0.05), 0 0 24px rgba(124,58,237,0.18);
+  pointer-events: none;
 }
 
 .card-back-symbol {
-  font-size: 26px;
+  font-size: clamp(22px, 3vw, 28px);
   position: relative;
   z-index: 1;
   opacity: 0.6;
@@ -588,9 +603,14 @@ body {
 
 .card-back-num {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: rgba(212,160,23,0.55);
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border: 1px solid rgba(212,160,23,0.22);
+  border-radius: 999px;
+  background: rgba(3,1,15,0.18);
   position: relative;
   z-index: 1;
 }
@@ -679,7 +699,7 @@ body {
   font-size: 10.5px;
   color: rgba(212,160,23,0.65);
   text-align: center;
-  max-width: 104px;
+  max-width: 124px;
   line-height: 1.4;
   min-height: 28px;
   word-break: keep-all;
@@ -692,6 +712,7 @@ body {
 .card-wrap:not(.flipped):nth-child(2) { animation-delay: 0.4s; }
 .card-wrap:not(.flipped):nth-child(3) { animation-delay: 0.8s; }
 .card-wrap.flipped { animation: none; }
+.card-wrap.flipped + .card-label-below { color: rgba(232,220,200,0.78); }
 
 /* ── DIVIDER ── */
 .gold-divider {
@@ -994,10 +1015,10 @@ body {
     width: 100%;
     text-align: center;
   }
-  .card-wrap { width: 78px; aspect-ratio: 4 / 7; }
+  .card-wrap { width: 86px; aspect-ratio: 15 / 26; }
   .card-face-name { font-size: 9.5px; }
   .card-face-en { display: none; }
-  .card-label-below { max-width: 94px; font-size: 10px; }
+  .card-label-below { max-width: 102px; font-size: 10px; }
   .reading-body { padding: 20px; }
   .reading-text { font-size: 14px; line-height: 1.85; }
   .ijik-ai-prompt-textarea { min-height: 190px; max-height: 38dvh; font-size: 12px; }
@@ -1005,6 +1026,13 @@ body {
   .ijik-ai-prompt-status { width: 100%; text-align: center; }
   .oracle-ring { width: 140px; height: 140px; }
   .oracle-symbol { font-size: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-back-face,
+  .card-wrap:not(.flipped),
+  .card-inner,
+  .progress-bar { animation: none; transition-duration: 0.01ms; }
 }
 </style>
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
@@ -1125,7 +1153,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
   <!-- Progress -->
   <div class="progress-wrap">
-    <div class="progress-track">
+    <div class="progress-track" role="progressbar" aria-label="카드 열기 진행도" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0">
       <div class="progress-bar" id="progressBar" style="width:0%"></div>
     </div>
     <div class="progress-text" id="progressText">0 / 7 열림</div>
@@ -1300,7 +1328,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
   <!-- Action -->
   <div class="action-area">
-    <div class="status-msg" id="statusMsg">카드를 한 장씩 열어 일의 기준을 확인하세요 ✦</div>
+    <div class="status-msg" id="statusMsg" role="status" aria-live="polite">카드를 한 장씩 열어 일의 기준을 확인하세요 ✦</div>
     <button class="btn-read" id="readBtn" onclick="getReading()" disabled>
       <div>✦ &nbsp; 5,000원으로 커리어 리딩 열기 &nbsp; ✦</div>
       <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">리딩이 열리지 않으면 자동 환불</div>
@@ -2012,6 +2040,7 @@ function updateUI() {
   const pct = (flippedCount / 7 * 100).toFixed(0);
   document.getElementById('progressBar').style.width = pct + '%';
   document.getElementById('progressText').textContent = `${flippedCount} / 7 열림`;
+  document.querySelector('.progress-track')?.setAttribute('aria-valuenow', String(flippedCount));
   const msg = document.getElementById('statusMsg');
   const btn = document.getElementById('readBtn');
   if (flippedCount === 7) {
@@ -2038,6 +2067,7 @@ async function resetSpread() {
   }
   document.getElementById('progressBar').style.width = '0%';
   document.getElementById('progressText').textContent = '0 / 7 열림';
+  document.querySelector('.progress-track')?.setAttribute('aria-valuenow', '0');
   document.getElementById('statusMsg').textContent = '카드를 한 장씩 열어 일의 기준을 확인하세요 ✦';
   document.getElementById('statusMsg').classList.remove('ready');
   document.getElementById('readBtn').disabled = true;
