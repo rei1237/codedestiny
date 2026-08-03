@@ -541,7 +541,8 @@ const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 for (const marker of [
   "SAJU_ACCESS_CONTENT_KEY_BY_FEATURE_KEY",
   "잠금 해제 상태 확인 중",
-  "SAJU_UNLOCK_CONFIRM_DELAYS_MS = [500, 1500, 3000]",
+  "결제 응답 자체가 권한 증거다.",
+  "Payment Service가 사용자 흐름 밖 idle 시점에 사용자별 single-flight 동기화를 수행한다.",
   "SAJU_VERIFIED_UNLOCK_HOLD_TTL_MS = 15000",
   "sajuVerifiedUnlockHoldMap",
   "_cdBeginVerifiedSajuUnlockHold",
@@ -567,6 +568,10 @@ for (const marker of [
 ]) {
   assert.ok(indexHtml.includes(marker), `UI/access marker exists: ${marker}`);
 }
+assert.ok(
+  !indexHtml.includes("SAJU_UNLOCK_CONFIRM_DELAYS_MS"),
+  "payment success must not schedule blocking entitlement GET retries",
+);
 assert.ok(
   !indexHtml.includes("/api/billing/saju-analysis/entitlements?"),
   "static shell must not call the legacy Saju entitlement endpoint directly",
