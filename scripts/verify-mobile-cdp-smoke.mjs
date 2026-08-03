@@ -88,12 +88,34 @@ try {
       overlayOpen: !!(api && api.isOpen()),
       overviewShown: !!panel && panel.classList.contains('is-open'),
       categoryCount: panel ? panel.querySelectorAll('.cd-fov__cat').length : 0,
-      activeKey: document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__main [aria-current="page"]')?.getAttribute('data-nav-key') || null
+      activeKey: document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__main [aria-current="page"]')?.getAttribute('data-nav-key') || null,
+      navDisplay: getComputedStyle(document.getElementById('cdMobileBottomNav')).display,
+      navPointerEvents: getComputedStyle(document.getElementById('cdMobileBottomNav')).pointerEvents,
+      navAriaHidden: document.getElementById('cdMobileBottomNav')?.getAttribute('aria-hidden'),
+      panelBottom: panel ? Math.round(panel.getBoundingClientRect().bottom) : 0,
+      viewportHeight: innerHeight
     };
   })()`, "after bottom nav all-fortunes tap");
   assert(afterFortunesNav.overlayOpen && afterFortunesNav.overviewShown, "bottom nav all-fortunes opens the overview overlay", afterFortunesNav);
   assert(afterFortunesNav.categoryCount > 0, "all-fortunes overview lists categories", afterFortunesNav);
   assert(afterFortunesNav.activeKey === "fortunes", "all-fortunes tab marks itself active", afterFortunesNav);
+  assert(afterFortunesNav.navDisplay === "none" && afterFortunesNav.navPointerEvents === "none" && afterFortunesNav.navAriaHidden === "true", "immersive all-fortunes removes the bottom-nav layout and touch target", afterFortunesNav);
+  assert(afterFortunesNav.panelBottom >= afterFortunesNav.viewportHeight - 1, "all-fortunes content extends through the released bottom safe area", afterFortunesNav);
+
+  await evaluate(cdp, "(() => { const panel = document.getElementById('cdMobileFortuneOverview'); panel.scrollTop = 160; panel.dispatchEvent(new Event('scroll')); })()", "set all-fortunes overview scroll position");
+  await tapSelector(cdp, ".cd-mobile-collection-close");
+  await delay(350);
+  const afterFortunesClose = await evaluate(cdp, `(() => {
+    const nav = document.getElementById('cdMobileBottomNav');
+    const api = window.cdMobileCollectionFullscreen;
+    return { overlayOpen: !!(api && api.isOpen()), navDisplay: getComputedStyle(nav).display, navPointerEvents: getComputedStyle(nav).pointerEvents, navAriaHidden: nav.getAttribute('aria-hidden') };
+  })()`, "after all-fortunes close");
+  assert(!afterFortunesClose.overlayOpen && afterFortunesClose.navDisplay !== "none" && afterFortunesClose.navPointerEvents !== "none" && afterFortunesClose.navAriaHidden !== "true", "closing all-fortunes restores a usable bottom nav", afterFortunesClose);
+
+  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
+  await delay(350);
+  const restoredFortunesState = await evaluate(cdp, "({ scrollTop: Math.round(document.getElementById('cdMobileFortuneOverview').scrollTop || 0), overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
+  assert(restoredFortunesState.overlayOpen && restoredFortunesState.scrollTop >= 150, "reopening all-fortunes preserves its scroll position", restoredFortunesState);
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
