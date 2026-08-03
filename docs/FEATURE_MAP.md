@@ -135,7 +135,7 @@
 
 ## 관리자 / 리뷰 / 버그 제보
 
-- 주요 라우트: `/admin`, `/admin/orders`, `/admin/reviews`, `/admin/cms`, `/admin/insights`, `/feedback`, `/reviews`
+- 주요 라우트: `/admin`, `/admin/orders`, `/admin/reviews`, `/admin/cms`, `/admin/insights`, `/admin/monthly-credits`, `/feedback`, `/reviews`
 - 주요 API: `/api/admin/*`, `/api/reviews/*`, `/api/feedback/*`, `/api/cms/*`, `/api/content/*`
 - 주요 lib: `worker/routes/admin.js`, `worker/routes/reviews.js`, `worker/routes/feedback.js`, `worker/lib/review-*.js`, `worker/lib/feedback-*.js`
 - 데이터: `Insight`, `CmsEntry`, `CmsRevision`, review/feedback models, `SecurityEvent`, `AdminAuditLog`

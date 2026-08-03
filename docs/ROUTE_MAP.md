@@ -50,6 +50,7 @@
 - `/admin/cms`
 - `/admin/content`
 - `/admin/insights`
+- `/admin/monthly-credits` — 마케팅 월정석 지급 UI
 - `/admin/site-content`
 - `/admin/cache-status`
 
