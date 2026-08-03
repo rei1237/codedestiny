@@ -1,7 +1,9 @@
 import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
-import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { Payment, User } from "./models.js";
+import { getUnlockedContentSnapshot } from "./content-unlocks.js";
+import { PermissionService } from "./permission-service.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 import { resolveFeatureAccessPolicy } from "./entitlement-policy.js";
 
@@ -307,6 +309,7 @@ export const PAID_FEATURE_ACCESS_USER_FIELDS = [
   "subscription", "membership", "membershipPass", "pass", "entitlement", "licensePass",
   "accessGateResult", "plan", "planId", "productId", "subscriptionTier", "membershipTier",
   "passTier", "status", "subscriptionStatus", "membershipStatus", "isActive", "isSubscribed", "expiresAt",
+  "destinyProfilesCurrentId",
 ];
 
 export const PAID_FEATURE_ACCESS_USER_PROJECTION = PAID_FEATURE_ACCESS_USER_FIELDS
@@ -399,7 +402,19 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
     ...(Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : []),
   ].map((key) => cleanText(key)).filter(Boolean));
 
-  // User 문서의 해금 목록에 이미 있는 키는 Payment 조회 대상에서 뺀다.
+  const needsUnlockSnapshot = pendingSpecs.some((spec) => isUnlockPaidFeatureKey(spec.effectiveFeatureKey)
+    && !spec.featureCandidates.some((key) => grantedKeySet.has(key)));
+  if (needsUnlockSnapshot) {
+    const unlockSnapshot = await getUnlockedContentSnapshot({
+      userId: normalizedUserId,
+      profileId: cleanText(options.profileId || user.destinyProfilesCurrentId),
+    });
+    for (const key of Array.isArray(unlockSnapshot?.featureKeys) ? unlockSnapshot.featureKeys : []) {
+      if (key) grantedKeySet.add(cleanText(key));
+    }
+  }
+
+  // 기존 Payment 기록은 ContentEntitlement와 User 호환 기록에 없는 경우만 읽는다.
   const lookupCandidates = new Set();
   for (const spec of pendingSpecs) {
     if (spec.featureCandidates.some((key) => grantedKeySet.has(key))) continue;
@@ -422,7 +437,11 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
   }
 
   for (const spec of pendingSpecs) {
-    const hasPurchase = spec.featureCandidates.some((key) => grantedKeySet.has(key));
+    const permission = PermissionService.canUse(spec.effectiveFeatureKey, {
+      unlockMap: Object.fromEntries(Array.from(grantedKeySet).map((key) => [key, true])),
+    });
+    const hasPurchase = permission.reason === "permanent_unlock"
+      || spec.featureCandidates.some((key) => grantedKeySet.has(key));
     const decision = resolveDecisionFromUserDoc(normalizedUserId, user, spec, hasPurchase);
     logPaidAccessDecision(env, decision);
     writeFeatureAccessDecisionToCache(spec.cacheKey, decision);

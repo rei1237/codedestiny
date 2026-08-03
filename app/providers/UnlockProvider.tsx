@@ -9,6 +9,7 @@ type AccessStoreSnapshot = {
   profileId: string;
   userId: string;
   persistentUnlocks: Record<string, boolean>;
+  confirmedUnlocks: Record<string, boolean>;
   optimistic: Record<string, unknown>;
   membership: unknown;
   entitlementSnapshot?: unknown;
@@ -46,6 +47,7 @@ type AccessStore = {
   applyOptimisticUpdate?: (update: unknown) => string[];
   rollbackOptimisticUpdate?: (reason?: string) => boolean;
   markOptimisticallyUnlocked: (featureKey: string, profileId?: string, metadata?: Record<string, unknown>) => boolean;
+  markConfirmedUnlocked?: (featureKey: string, profileId?: string, metadata?: Record<string, unknown>) => boolean;
   setRequestAdapter?: (adapter: ((url: string, init?: RequestInit) => Promise<Response>) | null) => boolean;
 };
 
@@ -58,6 +60,7 @@ const EMPTY_SNAPSHOT: AccessStoreSnapshot = {
   profileId: "",
   userId: "anonymous",
   persistentUnlocks: {},
+  confirmedUnlocks: {},
   optimistic: {},
   membership: null,
   entitlementSnapshot: null,

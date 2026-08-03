@@ -43,7 +43,8 @@ export function useContentUnlock(keys: string[], options: { auto?: boolean } = {
     const ledger = readLedgerUnlockedMap(keys);
     const next: Record<string, boolean> = {};
     for (const key of keys) {
-      next[key] = snapshot.persistentUnlocks[key] === true ||
+      next[key] = snapshot.confirmedUnlocks[key] === true ||
+        snapshot.persistentUnlocks[key] === true ||
         Boolean(snapshot.optimistic[key]) ||
         ledger[key] === true;
     }

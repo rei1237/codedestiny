@@ -1,9 +1,9 @@
 import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
-import { PointHistory } from "./models.js";
 import {
   getUnlockedContentSnapshot,
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
+import { isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
 
 const ACCESS_STATE_TTL_MS = 60000;
 const ACCESS_STATE_STALE_TTL_MS = 30 * 60 * 1000;
@@ -190,6 +190,7 @@ export function buildAccessState({
       entitlementVersion: entitlementSnapshot.entitlementVersion,
       policyVersion: ACCESS_STATE_POLICY_VERSION,
     },
+    version: entitlementSnapshot.entitlementVersion,
     source,
     checkedAt,
     fetchedAt: checkedAt,
@@ -216,28 +217,14 @@ export async function resolveCompleteAccessState({
   const accountFeatureIds = normalizeStringArray([
     ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
     ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
-  ]).filter((key) => !isProfileScopedContentUnlockFeatureKey(key));
+  ]).filter((key) => isUnlockPaidFeatureKey(key) && !isProfileScopedContentUnlockFeatureKey(key));
 
-  const [legacyProfileFeatureIds, contentSnapshot] = await Promise.all([
-    currentProfileId
-      ? PointHistory.distinct("featureKey", {
-        userId: normalizedUserId,
-        kind: "deduct",
-        featureKey: { $ne: "" },
-        $or: [
-          { "metadata.profileId": currentProfileId },
-          { "metadata.selectedProfileId": currentProfileId },
-        ],
-      })
-      : Promise.resolve([]),
-    getUnlockedContentSnapshot({ userId: normalizedUserId, profileId: currentProfileId }),
-  ]);
-
-  const profileFeatureIds = normalizeStringArray(legacyProfileFeatureIds)
-    .filter(isProfileScopedContentUnlockFeatureKey);
+  const contentSnapshot = await getUnlockedContentSnapshot({
+    userId: normalizedUserId,
+    profileId: currentProfileId,
+  });
   const unlockedFeatureIds = normalizeStringArray([
     ...accountFeatureIds,
-    ...profileFeatureIds,
     ...(Array.isArray(contentSnapshot?.featureKeys) ? contentSnapshot.featureKeys : []),
   ]);
 
