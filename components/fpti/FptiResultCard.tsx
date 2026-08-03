@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { m } from "framer-motion";
-import { fetchBillingBalance, purchaseFeature } from "@/app/_lib/billing-client";
+import { purchaseFeature } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
+import { useAccessStoreSnapshot } from "@/app/providers/UnlockProvider";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
 import {
   buildFptiDeepReport,
@@ -479,6 +480,21 @@ function hasFptiPremiumUnlock(payload: Record<string, unknown>): boolean {
   const merged: unknown[] = [];
   const unlockedTop = payload.unlockedFeatures;
   if (Array.isArray(unlockedTop)) merged.push(...unlockedTop);
+  const unlockedIds = payload.unlockedFeatureIds;
+  if (Array.isArray(unlockedIds)) merged.push(...unlockedIds);
+
+  const persistentUnlocks = payload.persistentUnlocks;
+  if (persistentUnlocks && typeof persistentUnlocks === "object") {
+    for (const key of Object.keys(persistentUnlocks as Record<string, unknown>)) {
+      if ((persistentUnlocks as Record<string, unknown>)[key] && keySet.has(normalizeUnlockKey(key))) return true;
+    }
+  }
+
+  const entitlementSnapshot = payload.entitlementSnapshot && typeof payload.entitlementSnapshot === "object"
+    ? payload.entitlementSnapshot as Record<string, unknown>
+    : null;
+  const entitlementUnlocks = entitlementSnapshot?.unlockedFeatureIds;
+  if (Array.isArray(entitlementUnlocks)) merged.push(...entitlementUnlocks);
 
   const user = payload.user && typeof payload.user === "object" ? (payload.user as Record<string, unknown>) : null;
   const unlockedUser = user?.unlockedFeatures;
@@ -542,6 +558,11 @@ export default function FptiResultCard({ result }: Props) {
   const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
   const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
   const unlockingRef = useRef(false);
+  const accessSnapshot = useAccessStoreSnapshot();
+  const fptiSnapshotUnlocked = useMemo(
+    () => hasFptiPremiumUnlock(accessSnapshot as unknown as Record<string, unknown>),
+    [accessSnapshot],
+  );
 
   const freeSummaryItems = useMemo(
     () => [
@@ -573,14 +594,7 @@ export default function FptiResultCard({ result }: Props) {
 
     const syncFromDb = async () => {
       try {
-        const balance = await fetchBillingBalance();
-        if (cancelled) return;
-
-        if (!balance.ok || !balance.data) {
-          return;
-        }
-
-        const dbUnlocked = hasFptiPremiumUnlock(balance.data as unknown as Record<string, unknown>);
+        const dbUnlocked = fptiSnapshotUnlocked;
         // FPTI 프리미엄은 생년월일 시그니처 스코프 잠금이라 계정 전역 unlockMap엔 잡히지 않는다.
         // 서버 심층 리포트 조회가 성공하면(이미 해금 상태) 그 자체가 이 시그니처 보유 증거이므로,
         // 계정 전역 미보유여도 시그니처 스코프 해금을 복원한다(크로스 디바이스·캐시 삭제 대비).
@@ -627,7 +641,7 @@ export default function FptiResultCard({ result }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [result, signature]);
+  }, [fptiSnapshotUnlocked, result, signature]);
 
   const handleUnlockDeepReport = async () => {
     if (deepLoading || accessChecking || unlockingRef.current) return;

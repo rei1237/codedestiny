@@ -1,6 +1,9 @@
-const ACCESS_STATE_TTL_MS = 5000;
-const ACCESS_STATE_STALE_TTL_MS = 60000;
+import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
+
+const ACCESS_STATE_TTL_MS = 60000;
+const ACCESS_STATE_STALE_TTL_MS = 30 * 60 * 1000;
 const ACCESS_STATE_MAX_ENTRIES = 2500;
+const ACCESS_STATE_POLICY_VERSION = "access-state-snapshot-v1";
 
 const cache = globalThis.__codeDestinyAccessStateCache || (globalThis.__codeDestinyAccessStateCache = {
   entries: new Map(),
@@ -15,6 +18,24 @@ function normalizeIsoDate(value) {
   if (!value) return undefined;
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? date.toISOString() : undefined;
+}
+
+function toNonNegativeInteger(value) {
+  const number = Math.floor(Number(value));
+  return Number.isFinite(number) && number >= 0 ? number : 0;
+}
+
+function normalizeStringArray(value) {
+  const array = Array.isArray(value) ? value : [];
+  return Array.from(new Set(array.map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function buildMonthlyBalance(profileSubscription = {}, nowMs = Date.now()) {
+  const lotsState = ensureLotsForBalance(profileSubscription || {}, nowMs);
+  return {
+    remaining: toNonNegativeInteger(lotsState?.balance),
+    resetAt: resolveNextExpiry(lotsState?.lots || profileSubscription?.membershipCreditLots || [], nowMs) || undefined,
+  };
 }
 
 function prune(now = Date.now()) {
@@ -41,6 +62,32 @@ export function buildAccessState({ userId, user, profileCount = 0, source = "db"
   const maxProfileCount = Number.isFinite(Number(active?.profileLimit))
     ? Math.max(0, Math.floor(Number(active.profileLimit)))
     : 1;
+  const checkedMs = Date.parse(checkedAt);
+  const fetchedMs = Number.isFinite(checkedMs) ? checkedMs : Date.now();
+  const expiresAt = new Date(fetchedMs + ACCESS_STATE_TTL_MS).toISOString();
+  const staleUntil = new Date(fetchedMs + ACCESS_STATE_STALE_TTL_MS).toISOString();
+  const unlockedFeatureIds = normalizeStringArray(user?.unlockedFeatures);
+  const monthlyBalance = buildMonthlyBalance(entitlement, fetchedMs);
+  const activePasses = hasActivePass ? [{
+    id: String(active?._id || active?.id || active?.passId || tier),
+    type: tier,
+    productScope: Array.isArray(active?.productScope) ? normalizeStringArray(active.productScope) : undefined,
+    expiresAt: normalizeIsoDate(activeUntil),
+    remainingUses: active?.remainingUses !== undefined ? toNonNegativeInteger(active.remainingUses) : undefined,
+  }] : [];
+  const entitlementSnapshot = {
+    userId: normalizeUserId(userId),
+    tier: hasActivePass ? tier : "free",
+    activePasses,
+    unlockedFeatureIds,
+    monthlyBalance,
+    purchasePolicyVersion: ACCESS_STATE_POLICY_VERSION,
+    entitlementVersion: String(entitlement?.version || entitlement?.policyVersion || user?.updatedAt || checkedAt),
+    fetchedAt: checkedAt,
+    expiresAt,
+    staleUntil,
+    source,
+  };
 
   return {
     userId: normalizeUserId(userId),
@@ -48,10 +95,28 @@ export function buildAccessState({ userId, user, profileCount = 0, source = "db"
     passType: hasActivePass ? tier : undefined,
     activeUntil: normalizeIsoDate(activeUntil),
     coinBalance: Math.max(0, Math.floor(Number(user?.points || 0))),
+    monthlyStoneBalance: monthlyBalance.remaining,
+    membershipCreditBalance: monthlyBalance.remaining,
     profileCount: Math.max(0, Math.floor(Number(profileCount || 0))),
     maxProfileCount,
+    currentProfileId: String(user?.destinyProfilesCurrentId || ""),
+    unlockedFeatureIds,
+    unlockedFeatures: unlockedFeatureIds,
+    unlockMap: Object.fromEntries(unlockedFeatureIds.map((key) => [key, true])),
+    monthlyBalance,
+    entitlementSnapshot,
+    featureAccessSummary: { unlockedFeatureIds },
+    monthlyBalanceSummary: monthlyBalance,
+    serverTime: checkedAt,
+    versions: {
+      entitlementVersion: entitlementSnapshot.entitlementVersion,
+      policyVersion: ACCESS_STATE_POLICY_VERSION,
+    },
     source,
     checkedAt,
+    fetchedAt: checkedAt,
+    expiresAt,
+    staleUntil,
   };
 }
 
@@ -63,7 +128,7 @@ export function readAccessStateCache(userId, { allowStale = false } = {}) {
   const now = Date.now();
   if (entry.expiresAt > now) return { ...entry.value, source: "cache" };
   if (allowStale && entry.staleUntil > now) return { ...entry.value, source: "stale-cache" };
-  cache.entries.delete(key);
+  if (entry.staleUntil <= now) cache.entries.delete(key);
   return null;
 }
 
@@ -108,6 +173,9 @@ globalThis.__accessStateCache = {
 
 export const ACCESS_STATE_USER_PROJECTION = Object.freeze({
   points: 1,
+  unlockedFeatures: 1,
+  paidFeatures: 1,
+  destinyProfilesCurrentId: 1,
   profileSubscription: 1,
   subscription: 1,
   membership: 1,

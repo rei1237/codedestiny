@@ -51,7 +51,9 @@ beforeEach(() => {
     authUserDoc: {
       _id: TEST_USER_ID,
       points: 42,
-      profileSubscription: { tier: "premium", profileLimit: 7 },
+      unlockedFeatures: ["fpti-premium-report"],
+      destinyProfilesCurrentId: "profile-main",
+      profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
     },
   });
   countDocuments.mockResolvedValue(2);
@@ -63,16 +65,30 @@ test("returns the authoritative access state without calling payment providers",
   const payload = await response.json();
 
   expect(response.status).toBe(200);
+  expect(response.headers.get("Cache-Control")).toContain("private");
+  expect(response.headers.get("Cache-Control")).not.toContain("public");
   expect(payload.ok).toBe(true);
   expect(payload.data).toMatchObject({
     userId: TEST_USER_ID,
     hasActivePass: true,
     passType: "premium",
     coinBalance: 42,
+    monthlyStoneBalance: 250,
     profileCount: 2,
     maxProfileCount: 7,
+    currentProfileId: "profile-main",
     source: "db",
   });
+  expect(payload.data.entitlementSnapshot).toMatchObject({
+    userId: TEST_USER_ID,
+    tier: "premium",
+    unlockedFeatureIds: ["fpti-premium-report"],
+    monthlyBalance: { remaining: 250 },
+    purchasePolicyVersion: "access-state-snapshot-v1",
+    source: "db",
+  });
+  expect(payload.data.expiresAt).toBeTruthy();
+  expect(payload.data.staleUntil).toBeTruthy();
 });
 
 test("keeps the production access-state route disabled unless explicitly enabled", async () => {
@@ -113,4 +129,21 @@ test("returns 504 for an access-state database timeout", async () => {
   expect(response.status).toBe(504);
   expect(payload.code).toBe("ACCESS_STATE_TIMEOUT");
   expect(payload.retryable).toBe(true);
+});
+
+test("keeps stale access-state snapshot when refresh hits a transient 503", async () => {
+  const first = await handleAccessStateRoutes(request(), {});
+  expect(first.status).toBe(200);
+
+  const entry = globalThis.__codeDestinyAccessStateCache.entries.get(TEST_USER_ID);
+  entry.expiresAt = 0;
+  entry.staleUntil = Date.now() + 60_000;
+  countDocuments.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
+
+  const second = await handleAccessStateRoutes(request(), {});
+  const payload = await second.json();
+
+  expect(second.status).toBe(200);
+  expect(payload.degraded).toBe(true);
+  expect(payload.data.entitlementSnapshot.tier).toBe("premium");
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
+import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
 
 type AccessStoreSnapshot = {
   cacheKey: string;
@@ -10,6 +10,8 @@ type AccessStoreSnapshot = {
   persistentUnlocks: Record<string, boolean>;
   optimistic: Record<string, unknown>;
   membership: unknown;
+  entitlementSnapshot?: unknown;
+  monthlyBalance?: unknown;
   accessDecision: Record<string, unknown>;
   status: "loading" | "ready" | "degraded" | "error" | string;
   error: unknown;
@@ -23,6 +25,12 @@ type AccessStore = {
   getSnapshot: () => AccessStoreSnapshot;
   ensureLoaded: (options?: Record<string, unknown>) => Promise<unknown>;
   revalidate: (options?: Record<string, unknown>) => Promise<unknown>;
+  refreshEntitlements?: (options?: Record<string, unknown>) => Promise<unknown>;
+  applyAccessStateSnapshot?: (payload: unknown, options?: Record<string, unknown>) => boolean;
+  getEffectiveTier?: () => string;
+  canAccessFeature?: (featureId: string) => boolean;
+  canPurchaseProduct?: (productId: string) => { canPurchase: boolean | null; requiresServerVerification: true; source?: string };
+  getMonthlyBalance?: () => unknown;
   getAccessDecision: (options?: Record<string, unknown>) => Promise<{
     ok: boolean;
     status?: number;
@@ -31,16 +39,17 @@ type AccessStore = {
     aborted?: boolean;
   }>;
   invalidateAccessDecision: () => void;
+  invalidateEntitlements?: (reason?: string) => Promise<unknown>;
   isUnlocked: (featureKey: string) => boolean;
   applyPaymentPayload: (payload: unknown, options?: Record<string, unknown>) => string[];
+  applyOptimisticUpdate?: (update: unknown) => string[];
+  rollbackOptimisticUpdate?: (reason?: string) => boolean;
   markOptimisticallyUnlocked: (featureKey: string, profileId?: string, metadata?: Record<string, unknown>) => boolean;
 };
 
-declare global {
-  interface Window {
-    CodeDestinyAccessStore?: AccessStore;
-  }
-}
+type AccessStoreWindow = Window & {
+  CodeDestinyAccessStore?: AccessStore;
+};
 
 const EMPTY_SNAPSHOT: AccessStoreSnapshot = {
   cacheKey: "",
@@ -49,6 +58,8 @@ const EMPTY_SNAPSHOT: AccessStoreSnapshot = {
   persistentUnlocks: {},
   optimistic: {},
   membership: null,
+  entitlementSnapshot: null,
+  monthlyBalance: null,
   accessDecision: {},
   status: "loading",
   error: null,
@@ -61,7 +72,7 @@ const AccessStoreContext = createContext<AccessStore | null>(null);
 
 function getStore(): AccessStore | null {
   if (typeof window === "undefined") return null;
-  return window.CodeDestinyAccessStore || null;
+  return (window as AccessStoreWindow).CodeDestinyAccessStore || null;
 }
 
 export function useAccessStore(): AccessStore | null {
@@ -80,11 +91,6 @@ export function useAccessStoreSnapshot(): AccessStoreSnapshot {
 export default function UnlockProvider({ children }: { children: ReactNode }) {
   const store = getStore();
   const contextValue = useMemo(() => store, [store]);
-
-  useEffect(() => {
-    if (!store) return;
-    void store.ensureLoaded({ reason: "provider-mount", authenticated: true });
-  }, [store]);
 
   return <AccessStoreContext.Provider value={contextValue}>{children}</AccessStoreContext.Provider>;
 }

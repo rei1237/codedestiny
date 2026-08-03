@@ -52,10 +52,12 @@ function loadStore(fetchImpl, { setTimeoutImpl = () => 1 } = {}) {
 
 test("AccessStore deduplicates concurrent loads and exposes one shared snapshot", async () => {
   let calls = 0;
+  const urls = [];
   let release;
   const gate = new Promise((resolve) => { release = resolve; });
-  const store = loadStore(async () => {
+  const store = loadStore(async (url) => {
     calls += 1;
+    urls.push(String(url));
     await gate;
     return {
       ok: true,
@@ -72,8 +74,38 @@ test("AccessStore deduplicates concurrent loads and exposes one shared snapshot"
   assert.equal(calls, 1);
   release();
   await Promise.all([first, second]);
+  assert.equal(urls[0].includes("includeBackfill=1"), false);
   assert.equal(store.isUnlocked("section_summary"), true);
   assert.equal(store.getSnapshot().status, "ready");
+});
+
+test("AccessStore accepts auth bootstrap entitlement snapshots without fetching unlocks", () => {
+  let calls = 0;
+  const store = loadStore(async () => {
+    calls += 1;
+    return { ok: false, status: 503, json: async () => ({ ok: false }) };
+  });
+
+  const applied = store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["fpti-premium-report"],
+    monthlyBalance: { remaining: 120, resetAt: "2030-01-01T00:00:00.000Z" },
+    entitlementSnapshot: {
+      userId: "user-1",
+      tier: "premium",
+      unlockedFeatureIds: ["fpti-premium-report"],
+      monthlyBalance: { remaining: 120 },
+      source: "server",
+    },
+  }, { profileId: "profile-1" });
+
+  assert.equal(applied, true);
+  assert.equal(calls, 0);
+  assert.equal(store.canAccessFeature("fpti-premium-report"), true);
+  assert.equal(store.getEffectiveTier(), "premium");
+  assert.equal(store.getMonthlyBalance().remaining, 120);
+  assert.equal(store.canPurchaseProduct("pass-premium").requiresServerVerification, true);
 });
 
 test("AccessStore keeps cached unlocks when revalidation returns 503 and applies optimistic unlocks", async () => {
