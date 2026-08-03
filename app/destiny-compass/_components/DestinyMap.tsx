@@ -4,12 +4,11 @@
  * 대기 원근(Z0 딥스페이스 → Z1 대륙 → Z2 노드 → Z3 대기베일 → Z4 캐릭터 → Z5 UI).
  * 노드는 자체 SVG(NodeIcon), 이모지 미사용. children = 하단 UI 슬롯(고민 입력/처리).
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { SpriteImage } from "./SpriteImage";
 import { NodeIcon, type NodeKind } from "./NodeIcon";
-import Image from "next/image";
 import { compassAssets, compassPaintings } from "../data/assets";
 import { REGIONS, HERE, regionByKey } from "./mapRegions";
 import { useFxTier } from "../_hooks/useFxTier";
@@ -126,17 +125,17 @@ export function DestinyMap({
       <div className={`${styles.mapField} ${showFog ? styles.mapFieldZoom : ""}`}>
         {/* Z1 — 선택 화면: 밝은 '운명의 섬' 포스터를 지도 배경으로 */}
         {islandArt && (
-          <div className={styles.islandArt}>
-            <Image
-              src={compassPaintings.mapBackground}
-              alt="운명의 나침반 배경"
-              fill
-              sizes="(max-width: 640px) 92vw, min(70vw, 1120px)"
-              unoptimized
-              referrerPolicy="no-referrer"
-              className={styles.islandArtImg}
-            />
-          </div>
+          <div
+            className={styles.islandArt}
+            role="img"
+            aria-label="자미두수 운명의 섬 지도"
+            style={
+              {
+                "--island-art-desktop": `url("${compassPaintings.premiumIslandDesktop}")`,
+                "--island-art-mobile": `url("${compassPaintings.premiumIslandMobile}")`,
+              } as CSSProperties
+            }
+          />
         )}
         {/* Z1 — 대륙(다층 텍스처 + 해안 + 부양 그림자 + 숨쉬기) */}
         {!islandArt && (

@@ -16256,7 +16256,7 @@
 .page[data-stage="landing"] .landingHero {
   min-height: 100dvh;
   background-image:
-    linear-gradient(90deg, rgba(7, 3, 16, 0.78) 0%, rgba(7, 3, 16, 0.44) 45%, rgba(7, 3, 16, 0.2) 100%),
+    linear-gradient(90deg, rgba(7, 3, 16, 0.82) 0%, rgba(7, 3, 16, 0.48) 42%, rgba(7, 3, 16, 0.16) 74%, rgba(7, 3, 16, 0.4) 100%),
     var(--landing-bg-desktop);
   background-position: center;
   background-size: cover;
@@ -16264,8 +16264,9 @@
 
 .page[data-stage="landing"] .landingHero::before {
   background:
-    radial-gradient(circle at 18% 26%, rgba(255, 232, 166, 0.22), transparent 28%),
-    linear-gradient(90deg, rgba(7, 3, 16, 0.5), transparent 62%);
+    radial-gradient(circle at 18% 26%, rgba(255, 232, 166, 0.2), transparent 28%),
+    radial-gradient(circle at 78% 18%, rgba(247, 168, 200, 0.12), transparent 34%),
+    linear-gradient(90deg, rgba(7, 3, 16, 0.42), transparent 64%);
   opacity: 1;
 }
 
@@ -16431,8 +16432,9 @@
   .page[data-stage="landing"] .landingHero {
     min-height: 100dvh;
     background-image:
-      linear-gradient(180deg, rgba(7, 3, 16, 0.8) 0%, rgba(7, 3, 16, 0.52) 48%, rgba(7, 3, 16, 0.34) 100%),
+      linear-gradient(180deg, rgba(7, 3, 16, 0.84) 0%, rgba(7, 3, 16, 0.54) 46%, rgba(7, 3, 16, 0.7) 100%),
       var(--landing-bg-mobile);
+    background-position: center top;
   }
 
   .page[data-stage="landing"] .landingHeroContent {
@@ -16442,7 +16444,7 @@
     align-content: stretch;
     justify-items: center;
     gap: 14px;
-    padding: max(52px, calc(env(safe-area-inset-top, 0px) + 48px)) 18px max(18px, env(safe-area-inset-bottom, 0px));
+    padding: max(78px, calc(env(safe-area-inset-top, 0px) + 64px)) 18px max(18px, env(safe-area-inset-bottom, 0px));
   }
 
   .page[data-stage="landing"] .landingCopy {
@@ -16506,7 +16508,7 @@
 @media (max-width: 640px) {
   .page[data-stage="landing"] .landingHeroContent {
     gap: 12px;
-    padding: max(48px, calc(env(safe-area-inset-top, 0px) + 44px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+    padding: max(82px, calc(env(safe-area-inset-top, 0px) + 68px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
   }
 
   .page[data-stage="landing"] .landingBadge {
@@ -16567,7 +16569,7 @@
 
 @media (max-width: 390px) {
   .page[data-stage="landing"] .landingHeroContent {
-    padding-top: max(44px, calc(env(safe-area-inset-top, 0px) + 40px));
+    padding-top: max(78px, calc(env(safe-area-inset-top, 0px) + 64px));
   }
 
   .page[data-stage="landing"] .landingCopy h1 {
