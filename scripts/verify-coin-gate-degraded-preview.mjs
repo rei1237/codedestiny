@@ -26,12 +26,6 @@ function sliceBetween(src, startMarker, endMarker) {
   assert.ok(end > start, `source drift: '${endMarker}' 를 billing-client.ts 에서 찾지 못함`);
   return src.slice(start, end);
 }
-const RETRY_CODES = [
-  "AUTH_STATUS_TEMPORARILY_UNAVAILABLE",
-  "PASS_STATUS_TEMPORARILY_UNAVAILABLE",
-  "BALANCE_SNAPSHOT_UNAVAILABLE",
-  "AUTH_DB_UNAVAILABLE",
-];
 const FALLBACK_DEGRADED_CODES = [
   "PASS_STATUS_TEMPORARILY_UNAVAILABLE",
   "AUTH_STATUS_TEMPORARILY_UNAVAILABLE",
@@ -39,21 +33,13 @@ const FALLBACK_DEGRADED_CODES = [
   "AUTH_DB_UNAVAILABLE",
   "BILLING_REQUEST_TIMEOUT",
 ];
-const retrySource = sliceBetween(billingClientSource, "function isRetryableBillingInfraDegraded(", "// useCoinGate의 resolveLoginRequired와 동일 판정.");
-for (const code of RETRY_CODES) {
-  assert.ok(retrySource.includes(`"${code}"`), `source drift: 재시도 predicate에 ${code} 누락`);
-}
-const fallbackSource = sliceBetween(billingClientSource, "function shouldOpenRuntimePaymentFallback(", "const COIN_GATE_TRANSIENT_MAX_RETRIES");
+assert.ok(!billingClientSource.includes("COIN_GATE_TRANSIENT_MAX_RETRIES"), "payment POST auto retry must stay removed");
+const fallbackSource = sliceBetween(billingClientSource, "function shouldOpenRuntimePaymentFallback(", "function isDefinitiveBillingAnswer(");
 for (const code of FALLBACK_DEGRADED_CODES) {
   assert.ok(fallbackSource.includes(`"${code}"`), `source drift: 결제 폴백에 ${code} 누락`);
 }
 
 // ── billing-client.ts 판정 미러 (원본과 동기 — 위 가드가 보장) ─────────
-const COIN_GATE_TRANSIENT_MAX_RETRIES = 2; // 최초 1회 + 재시도 2회 = 최대 3회
-function isRetryableBillingInfraDegraded(status, code) {
-  if (status !== 503) return false;
-  return RETRY_CODES.includes(String(code || "").toUpperCase());
-}
 function shouldOpenRuntimePaymentFallback(status, code) {
   const c = String(code || "").toUpperCase();
   return status === 402
@@ -71,11 +57,6 @@ function decideCoinGateOutcome(fixtures) {
   const take = (i) => fixtures[Math.min(i, fixtures.length - 1)];
   let attempt = 0;
   let parsed = take(attempt);
-  for (let retryIndex = 1; retryIndex <= COIN_GATE_TRANSIENT_MAX_RETRIES; retryIndex += 1) {
-    if (!isRetryableBillingInfraDegraded(parsed.status, parsed.code)) break;
-    attempt += 1;
-    parsed = take(attempt);
-  }
   const retries = attempt;
   // 성공 + 서버가 접근 부여(pass covered / 무료) → 무료 통과 (hasEntitlement)
   if (parsed.ok === true && parsed.covered === true) {
@@ -102,18 +83,18 @@ const cases = [
     expect: { outcome: "무료 통과 (결제창 없음)", retries: 0 },
   },
   {
-    name: "② 이용권 보유 + 일시 blip 후 회복",
+    name: "② 이용권 확인 일시 장애 (자동 재시도 없음)",
     fixtures: [
       { status: 503, ok: false, code: "AUTH_STATUS_TEMPORARILY_UNAVAILABLE", paymentOptions: degradedOptions },
       { status: 503, ok: false, code: "AUTH_STATUS_TEMPORARILY_UNAVAILABLE", paymentOptions: degradedOptions },
       { status: 200, ok: true, covered: true },
     ],
-    expect: { outcome: "무료 통과 (결제창 없음)", retries: 2 },
+    expect: { outcome: "결제창 노출", retries: 0, methods: ["DIRECT_KRW", "MOONLIGHT_STONE"] },
   },
   {
-    name: "③ 이용권 보유 + DB 장애 지속 (재시도 소진)",
+    name: "③ 이용권 확인 DB 장애 지속",
     fixtures: [{ status: 503, ok: false, code: "AUTH_STATUS_TEMPORARILY_UNAVAILABLE", paymentOptions: degradedOptions }],
-    expect: { outcome: "결제창 노출", retries: 2, methods: ["DIRECT_KRW", "MOONLIGHT_STONE"] },
+    expect: { outcome: "결제창 노출", retries: 0, methods: ["DIRECT_KRW", "MOONLIGHT_STONE"] },
   },
   {
     name: "④ 이용권 미보유 (payment_required)",
@@ -157,4 +138,4 @@ if (failed > 0) {
   console.error(`\n❌ ${failed}개 케이스 실패 — 기대 동작과 불일치.`);
   process.exit(1);
 }
-console.log("\n✅ 전 케이스 통과: 이용권 보유→(재시도 후) 무료통과, 미보유/미커버/지속장애→결제창(단건+월정석), 미로그인→로그인 유도. dead-end 없음.");
+console.log("\n✅ 전 케이스 통과: 이용권 정상 응답만 무료 통과하며 자동 POST 재시도 없이, 미보유/미커버/장애는 명시적 선택 화면, 미로그인은 로그인 안내로 유지됩니다.");

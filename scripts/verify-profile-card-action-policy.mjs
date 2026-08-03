@@ -12,6 +12,7 @@ const files = {
   billingRoute: "worker/routes/billing.js",
   paymentsRoute: "worker/routes/payments.js",
   mePage: "app/me/MeClient.tsx",
+  billingClient: "app/_lib/billing-client.ts",
   profileStorage: "app/_lib/profile-card-storage.ts",
   yeonSeed: "lib/yeon/profileSeed.ts",
   fptiExperience: "components/fpti/FptiExperience.tsx",
@@ -81,7 +82,7 @@ const cases = [
       ["policy", "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"],
       ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
       ["profileRoute", "ensureProfileDeleteAuthorized(auth, {"],
-      ["profileRoute", "ensureProfileMutationPayment(auth, { action, profileId, requestId })"],
+      ["profileRoute", "findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body })"],
       ["profileLimits", "if (profiles.length <= 1)"],
     ],
     excludes: [
@@ -190,20 +191,39 @@ const cases = [
       ["mePage", "profile_card_add_extra_50c"],
       ["mePage", "profile_card_delete"],
       ["mePage", "profile_card_add_extra"],
+      ["mePage", "const runProfileActionCardPayment = useCallback"],
+      ["mePage", "paymentMode: \"DIRECT_KRW\""],
+      ["billingClient", "actionType: input.actionType"],
+      ["billingClient", "profileCardId: input.profileCardId || input.profileId"],
+      ["destinyProfile", "if (opts.actionType) checkoutPayload.actionType = opts.actionType"],
+      ["destinyProfile", "checkoutPayload.profileCardId = opts.profileCardId || opts.profileId"],
       ["paymentsRoute", "createDigitalContentAccessEvidence"],
       ["paymentsRoute", "fetchPortOnePayment(env, impUid)"],
     ],
+    excludes: [
+      ["mePage", "/api/payments/prepare"],
+      ["mePage", "/api/payments/confirm"],
+      ["mePage", "window.PortOne"],
+    ],
   },
   {
-    name: "membership benefit cost is fixed at 50 and recorded atomically",
+    name: "membership benefit cost is fixed at 50 and requires atomic Payment Service evidence",
     includes: [
       ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = PROFILE_CARD_DELETE_COST_COINS * 10"],
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      // 28bbcd53 에서 지급분별(lot) 차감으로 옮겨갔다. 원자성은 monthly-credit-store 의
-      // 버전 가드 findOneAndUpdate 가 책임지므로 그 진입점을 단언한다.
-      ["profileRoute", "consumeMonthlyCreditLots({ userId: auth.userId, amount: PROFILE_CARD_MANAGE_MEMBERSHIP_COST })"],
-      ["profileRoute", "paymentMode: \"membership_credit\""],
+      ["profileRoute", "evidencePaymentMethodMatches"],
+      ["profileRoute", "profileCardActionPaymentRequiredResponse"],
+      ["mePage", "const runProfileActionMonthlyPayment = useCallback"],
+      ["mePage", "const result = await runBillingCoinGate({"],
+      ["mePage", "paymentMode: \"MOONLIGHT_STONE\""],
+      ["mePage", "paymentContext = await runProfileActionMonthlyPayment(action, profile, requestId)"],
+      ["mePage", "paymentContext = await runProfileActionMonthlyPayment(\"create\", actionProfile, requestId)"],
+      ["billingClient", "actionType?: string"],
+      ["billingClient", "profileAction?: string"],
       ["mePage", "월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용"],
+    ],
+    excludes: [
+      ["profileRoute", "consumeMonthlyCreditLots"],
     ],
   },
   {
@@ -235,7 +255,7 @@ const cases = [
     name: "profile card birth date rehydrates into date input",
     includes: [
       ["destinyProfile", "bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);"],
-      ["profileRoute", "ensureProfileMutationPayment(auth, { action, profileId, requestId })"],
+      ["profileRoute", "findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body })"],
     ],
     excludes: [
       ["destinyProfile", "bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');"],

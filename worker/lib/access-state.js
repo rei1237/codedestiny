@@ -85,6 +85,7 @@ export function buildAccessState({
   unlockedContentKeys = [],
   profileScopedAuthoritative = false,
   profileCount = null,
+  contentSnapshot = null,
   source = "db",
   checkedAt = new Date().toISOString(),
 }) {
@@ -110,13 +111,33 @@ export function buildAccessState({
     ? Math.min(graceLimitMs, activeUntilMs)
     : graceLimitMs;
   const graceUntil = new Date(graceUntilMs).toISOString();
+  const contentState = contentSnapshot && typeof contentSnapshot === "object" ? contentSnapshot : {};
   const currentProfileId = normalizeProfileId(profileId || user?.destinyProfilesCurrentId);
   const unlockedFeatureIds = normalizeStringArray(
     resolvedUnlockedFeatureIds === null
-      ? [...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []), ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : [])]
+      ? [
+        ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
+        ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
+        ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
+      ]
       : resolvedUnlockedFeatureIds,
   );
-  const normalizedContentKeys = normalizeStringArray(unlockedContentKeys);
+  const normalizedContentKeys = normalizeStringArray([
+    ...unlockedContentKeys,
+    ...(Array.isArray(contentState?.contentKeys) ? contentState.contentKeys : []),
+  ]);
+  const ownedProductIds = normalizeStringArray([
+    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
+    ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
+  ]);
+  const profileEntitlements = contentState?.entitlementsByProfile && typeof contentState.entitlementsByProfile === "object"
+    ? contentState.entitlementsByProfile
+    : {};
+  const unlockMap = {
+    ...Object.fromEntries(unlockedFeatureIds.map((key) => [key, true])),
+    ...(contentState?.unlockMap && typeof contentState.unlockMap === "object" ? contentState.unlockMap : {}),
+  };
+  const lockMap = Object.fromEntries(unlockedFeatureIds.map((key) => [key, false]));
   const monthlyBalance = buildMonthlyBalance(entitlement, fetchedMs);
   const entitlementVersion = [
     entitlement?.entitlementVersion
@@ -126,7 +147,14 @@ export function buildAccessState({
       || user?.updatedAt
       || checkedAt,
     currentProfileId || "no-profile",
-    snapshotFingerprint([...unlockedFeatureIds, ...normalizedContentKeys]),
+    snapshotFingerprint([
+      ...unlockedFeatureIds,
+      ...normalizedContentKeys,
+      contentState?.entitlementVersion,
+      ...(Array.isArray(contentState?.docs)
+        ? contentState.docs.map((doc) => doc?.updatedAt || doc?.unlockedAt || doc?.expiresAt)
+        : []),
+    ]),
   ].join(":");
   const activePasses = hasActivePass ? [{
     id: String(active?._id || active?.id || active?.passId || tier),
@@ -141,6 +169,10 @@ export function buildAccessState({
     activePasses,
     unlockedFeatureIds,
     monthlyBalance,
+    profileEntitlements,
+    ownedProductIds,
+    unlockMap,
+    lockMap,
     purchasePolicyVersion: ACCESS_STATE_POLICY_VERSION,
     entitlementVersion: String(entitlementVersion),
     fetchedAt: checkedAt,
@@ -175,13 +207,17 @@ export function buildAccessState({
     profileId: currentProfileId,
     unlockedFeatureIds,
     unlockedFeatures: unlockedFeatureIds,
-    unlockMap: Object.fromEntries(unlockedFeatureIds.map((key) => [key, true])),
-    permissions: {
-      unlockedFeatures: Object.fromEntries(unlockedFeatureIds.map((key) => [key, true])),
-    },
+    unlockMap,
+    lockMap,
+    profileEntitlements,
+    ownedProductIds,
+    productOwnership: { ownedProductIds, source: "server" },
     monthlyBalance,
     entitlementSnapshot,
-    featureAccessSummary: { unlockedFeatureIds },
+    featureAccessSummary: { unlockedFeatureIds, unlockMap, lockMap, profileEntitlements },
+    permissions: {
+      unlockedFeatures: unlockMap,
+    },
     unlockedContentKeys: normalizedContentKeys,
     profileScopedAuthoritative: profileScopedAuthoritative === true,
     monthlyBalanceSummary: monthlyBalance,
@@ -230,7 +266,11 @@ export async function resolveCompleteAccessState({
         ],
       })
       : Promise.resolve([]),
-    getUnlockedContentSnapshot({ userId: normalizedUserId, profileId: currentProfileId }),
+    getUnlockedContentSnapshot({
+      userId: normalizedUserId,
+      profileId: currentProfileId,
+      includeAllProfiles: true,
+    }),
   ]);
 
   const profileFeatureIds = normalizeStringArray(legacyProfileFeatureIds)
@@ -247,6 +287,7 @@ export async function resolveCompleteAccessState({
     profileId: currentProfileId,
     unlockedFeatureIds,
     unlockedContentKeys: contentSnapshot?.contentKeys || [],
+    contentSnapshot,
     profileScopedAuthoritative: currentProfileId
       ? contentSnapshot?.profileScopedAuthoritative === true
       : false,

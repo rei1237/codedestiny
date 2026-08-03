@@ -181,36 +181,25 @@
     }, typeof delayMs === 'number' ? delayMs : 80);
   }
 
-  function isDesktopNoTouch() {
+  function shouldEnableMobileInteractionBridge() {
     try {
       var hasMatchMedia = typeof window.matchMedia === 'function';
-      if (hasMatchMedia && window.matchMedia('(max-width: 768px)').matches) return false;
-      var finePointer = hasMatchMedia && (
-        window.matchMedia('(pointer:fine)').matches ||
-        window.matchMedia('(any-pointer:fine)').matches ||
-        window.matchMedia('(hover:hover)').matches
-      );
-      var coarsePointer = hasMatchMedia && (
-        window.matchMedia('(pointer:coarse)').matches ||
-        window.matchMedia('(any-pointer:coarse)').matches
-      );
-      var maxTouchPoints = (navigator && typeof navigator.maxTouchPoints === 'number')
-        ? navigator.maxTouchPoints
-        : 0;
-      var hasTouchCapability = coarsePointer || maxTouchPoints > 0;
-      return !!(finePointer && !hasTouchCapability);
+      var mobileViewport = hasMatchMedia && window.matchMedia('(max-width: 768px)').matches;
+      var primaryCoarse = hasMatchMedia && window.matchMedia('(pointer: coarse)').matches;
+      var primaryNoHover = hasMatchMedia && window.matchMedia('(hover: none)').matches;
+      var mobileUserAgent = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+
+      // A touch-capable desktop is still a desktop when its primary input is a
+      // mouse/trackpad. maxTouchPoints intentionally does not participate here:
+      // hybrid laptops expose it even while their desktop click path is active.
+      return !!(mobileViewport || mobileUserAgent || (primaryCoarse && primaryNoHover));
     } catch (_) {
       return false;
     }
   }
 
   function isMobileRuntime() {
-    try {
-      if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches) return true;
-      return /android|iphone|ipad|ipod/i.test(navigator.userAgent || '') || Number(navigator.maxTouchPoints || 0) > 0;
-    } catch (_) {
-      return false;
-    }
+    return shouldEnableMobileInteractionBridge();
   }
 
   function applyMobileMediaPerformance(root) {
@@ -1047,7 +1036,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-348ba9cac021').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-09df535a008a').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1134,24 +1123,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-348ba9cac021'
+      'js/animal-totem-experience.js?v=build-09df535a008a'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-348ba9cac021'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-348ba9cac021'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-348ba9cac021'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-09df535a008a'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-09df535a008a'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-09df535a008a'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-348ba9cac021'],
-    openDreamModal: ['js/dream-ledger.js?v=build-348ba9cac021'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-348ba9cac021'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-09df535a008a'],
+    openDreamModal: ['js/dream-ledger.js?v=build-09df535a008a'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-09df535a008a'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-348ba9cac021']
+    openSibylModal: ['js/sibyl-system.js?v=build-09df535a008a']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1684,6 +1673,7 @@
     if (!root || root.__cdMobileDataActionFallbackBound) return;
     root.__cdMobileDataActionFallbackBound = true;
     root.addEventListener('click', function (event) {
+      if (!shouldEnableMobileInteractionBridge()) return;
       if (!event || event.__cdMobileBridgeHandled || !event.target || !event.target.closest) return;
       var actionEl = findDataActionElement(event.target);
       if (!actionEl) return;
@@ -1747,6 +1737,7 @@
         event.stopPropagation();
       }, { passive: false });
       node.addEventListener('click', function(event) {
+        if (!shouldEnableMobileInteractionBridge()) return;
         if (!event || event.__cdMobileBridgeHandled) return;
         if (!invokeDataActionFallback(node, event)) return;
         event.__cdMobileBridgeHandled = true;
@@ -2146,6 +2137,7 @@
     }, { passive: true, capture: true });
 
     root.addEventListener('click', function (event) {
+      if (!shouldEnableMobileInteractionBridge()) return;
       if (!event || !event.target || !event.target.closest) return;
       if (handleCollectionToggleTap(event, { x: event.clientX, y: event.clientY }, 'click')) {
         event.__cdMobileBridgeHandled = true;
@@ -2179,8 +2171,9 @@
   }
 
   function init() {
-    // This file is for mobile interaction safety; skip heavy observers/listeners on desktop no-touch.
-    if (isDesktopNoTouch()) return;
+    // This file is for mobile interaction safety; never install its global
+    // observers or capture handlers for desktop and hybrid desktop input.
+    if (!shouldEnableMobileInteractionBridge()) return;
 
     (function syncViewportHeight() {
       var root = document.documentElement;

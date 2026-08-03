@@ -291,11 +291,11 @@ assert.notEqual(
   "180자 절단이 유일성을 깨면 안 된다(ledgerId를 앞에 두는 이유)",
 );
 
-// 6c-1. 환불은 유니크 키를 비워야 한다(플래그만 찍고 키를 점유한 채 두면 재구매가 영구 500).
+// 6c-1. 월정석 차감·이력·원장·권한은 하나의 트랜잭션에서 함께 커밋되어야 한다.
 assert.match(
   billingSource,
-  /\$set: \{[\s\S]{0,400}?sourceId: buildRefundedSpendSourceId\([\s\S]{0,200}?"metadata\.refundedForUnlockFailure": true/,
-  "환불 시 원장 sourceId를 표식으로 재기입해 유니크 키를 해제해야 한다",
+  /runAtomicMonthlyPayment\(\{[\s\S]{0,1200}?PointHistory\.create\([\s\S]{0,400}?MonthlyCreditLedger\.create\([\s\S]{0,400}?atomicUnlock\(\{ session/,
+  "월정석 차감, 이력, 원장, 권한 부여는 하나의 트랜잭션에서 처리해야 한다",
 );
 // 6c-2. 중복 원장(11000)은 롤백 없이 기존 원장 재사용 (payments 6a와 대칭).
 assert.match(

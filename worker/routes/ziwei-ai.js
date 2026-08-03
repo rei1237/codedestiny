@@ -6,7 +6,7 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
-import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -1966,32 +1966,9 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
   }
 
   if (accessType === "subscription") {
-    const sourceId = `${SERVICE_KEY}:${sessionId}`;
-    const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
-    if (!ledger) {
-      // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
-      const consume = await consumeMonthlyCreditLots({ userId, amount: pricing.membershipCreditCost });
-      if (!consume.ok) {
-        const error = new Error("membership credit balance is insufficient");
-        error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
-        throw error;
-      }
-      const afterBalance = Math.max(0, Math.floor(Number(consume.balance || 0)));
-      const beforeBalance = afterBalance + Math.max(0, Math.floor(Number(pricing.membershipCreditCost || 0)));
-      await MonthlyCreditLedger.create({
-        userId,
-        type: "MONTHLY_CREDIT_SPEND",
-        amount: pricing.membershipCreditCost,
-        beforeBalance,
-        afterBalance,
-        reason: ORDER_NAME,
-        sourceId,
-        serviceKey: SERVICE_KEY,
-        metadata: { featureKey: FEATURE_KEY, sessionId },
-      }).catch((error) => {
-        if (error?.code !== 11000) throw error;
-      });
-    }
+    const error = new Error("A Payment Service access grant is required for monthly usage.");
+    error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
+    throw error;
   }
 
   if (accessType === "paid" && paymentId) {

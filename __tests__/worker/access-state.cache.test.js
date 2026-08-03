@@ -53,6 +53,39 @@ test("access-state preserves zero balance and inactive entitlement", () => {
   expect(state.maxProfileCount).toBe(1);
 });
 
+test("access-state merges profile entitlements and product ownership into one snapshot", () => {
+  const state = buildAccessState({
+    userId: "507f1f77bcf86cd799439014",
+    user: {
+      paidFeatures: ["owned-product"],
+      unlockedFeatures: ["legacy-unlock"],
+      destinyProfilesCurrentId: "profile-main",
+      activeEntitlement: { isActive: false, tier: "free" },
+    },
+    contentSnapshot: {
+      featureKeys: ["section_summary"],
+      entitlementVersion: "2029-01-01T00:00:00.000Z",
+      entitlementsByProfile: {
+        "profile-main": [{ featureKey: "section_summary", contentKey: "saju.fullReading" }],
+      },
+    },
+  });
+
+  expect(state.unlockMap).toEqual({
+    "legacy-unlock": true,
+    "owned-product": true,
+    section_summary: true,
+  });
+  expect(state.lockMap).toEqual({
+    "legacy-unlock": false,
+    "owned-product": false,
+    section_summary: false,
+  });
+  expect(state.ownedProductIds).toEqual(["owned-product", "section_summary"]);
+  expect(state.profileEntitlements["profile-main"]).toHaveLength(1);
+  expect(state.versions.entitlementVersion).toContain("profile-main");
+});
+
 test("cache invalidation clears every profile snapshot and the legacy unlock read cache for one user", () => {
   const userId = "507f1f77bcf86cd799439014";
   const otherUserId = "507f1f77bcf86cd799439015";

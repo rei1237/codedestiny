@@ -1,7 +1,5 @@
 import { connectDb } from "../lib/db.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
-import { consumeMonthlyCreditLots } from "../lib/monthly-credit-store.js";
-import { applyGrantLot, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -295,72 +293,7 @@ async function ensureSyncProfileMutationPayment(auth, requestId) {
     ],
   }).lean();
   if (existing) return { ok: true };
-
-  const seedUser = await User.findById(auth.userId)
-    .select("points profileSubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
-  const entitlement = normalizeHoneyPassEntitlement(seedUser || {});
-  if (entitlement.isActive && entitlement.tier === "family") {
-    return { ok: true, freeBySubscription: true };
-  }
-  const legacyPoints = Math.floor(Number(seedUser?.points || 0));
-  if (seedUser?._id && !seedUser?.profileSubscription?.legacyCoinCreditSeeded && legacyPoints > 0) {
-    const legacyCredit = calculateMembershipCreditCost(legacyPoints);
-    // 레거시 전환분도 지급일+30일 소멸 lot으로 적립(+기존 미lot 잔액 백필)해 유실을 막는다.
-    const seededAt = new Date();
-    const ensuredSeed = ensureLotsForBalance(seedUser.profileSubscription, seededAt.getTime());
-    const seededLots = applyGrantLot(ensuredSeed.lots, {
-      lotId: "legacy-seed",
-      amount: legacyCredit,
-      grantedAt: seededAt,
-      now: seededAt.getTime(),
-    });
-    await User.updateOne(
-      { _id: auth.userId, "profileSubscription.legacyCoinCreditSeeded": { $ne: true } },
-      {
-        $set: {
-          "profileSubscription.membershipCreditBalance": seededLots.balance,
-          "profileSubscription.membershipCreditLots": seededLots.lots,
-          "profileSubscription.legacyCoinCreditSeeded": true,
-          "profileSubscription.legacyCoinCreditSeededAt": seededAt,
-          "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
-        },
-        $inc: {
-          "profileSubscription.membershipCreditGranted": legacyCredit,
-          "profileSubscription.membershipCreditLotsVersion": 1,
-        },
-      },
-    );
-  }
-
-  // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
-  const consume = await consumeMonthlyCreditLots({ userId: auth.userId, amount: PROFILE_CARD_MANAGE_MEMBERSHIP_COST });
-  if (!consume.ok) return { ok: false, response: profilePaymentRequiredResponse(paymentRequestId) };
-  const updatedUser = consume.user;
-
-  await PointHistory.create({
-    userId: auth.userId,
-    kind: "deduct",
-    delta: -PROFILE_CARD_MANAGE_COST,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason: "프로필 카드 추가/삭제",
-    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-    metadata: {
-      accessType: "membership_credit",
-      accessMethod: "MONTHLY",
-      paymentMethod: "MONTHLY",
-      purpose: "profile_card_manage",
-      requestId: paymentRequestId,
-      profilePaymentKey: paymentRequestId,
-      profileAction: "sync",
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
-      paidAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-    },
-  });
-
-  return { ok: true };
+  return { ok: false, response: profilePaymentRequiredResponse(paymentRequestId) };
 }
 
 /* 인증 조회(resolveActiveUserAuth)를 이 필드까지 확장해 auth.authUserDoc 로 받는다 —

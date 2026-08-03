@@ -21,6 +21,10 @@ export type AccessStateData = {
   unlockedFeatureIds?: string[];
   unlockedFeatures?: string[];
   unlockMap?: Record<string, boolean>;
+  lockMap?: Record<string, boolean>;
+  profileEntitlements?: Record<string, Array<Record<string, unknown>>>;
+  ownedProductIds?: string[];
+  productOwnership?: { ownedProductIds?: string[]; source?: string };
   monthlyBalance?: { remaining: number; resetAt?: string };
   monthlyBalanceSummary?: { remaining: number; resetAt?: string };
   entitlementSnapshot?: Record<string, unknown>;

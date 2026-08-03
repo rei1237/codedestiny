@@ -41,9 +41,8 @@ function responseFor(state, degraded = false, request = null) {
 
 function isAccessStateEnabled(env = {}) {
   const configured = String(env.ACCESS_STATE_ENABLED || "").trim().toLowerCase();
-  if (configured) return ["1", "true", "yes", "on"].includes(configured);
-  const nodeEnv = String(env.NODE_ENV || env.ENV || "").trim().toLowerCase();
-  return nodeEnv !== "production";
+  if (!configured) return true;
+  return !["0", "false", "no", "off"].includes(configured);
 }
 
 function degradedHeaders(request, stage) {

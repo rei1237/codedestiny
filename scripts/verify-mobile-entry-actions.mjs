@@ -35,9 +35,9 @@ for (const row of rows) {
 }
 
 const mobileActionButtons = [
-  ["mobile tarot CTA", "#cdMobileDestinyHub", "openTarotModal"],
-  ["mobile payment pass CTA", "#cdMobileDestinyHub", "openGoldenGrainCharge"],
-  ["bottom nav collection CTA", "#cdMobileBottomNav", "data-cd-mobile-open-collection"],
+  ["mobile tarot preview CTA", ".moon-preview-card", 'href="/tarot/mingri"'],
+  ["mobile membership guide CTA", "#honeyMembershipMini", 'data-membership-cta="benefits"'],
+  ["bottom nav all-fortunes CTA", "#cdMobileBottomNav", "cdOpenAllFortunes"],
 ];
 
 const mobileFailures = mobileActionButtons

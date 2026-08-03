@@ -27,7 +27,8 @@ test("client API trace sources remain wired without external calls", () => {
   assert.match(read("index.html"), /headersFrom\(netInput, netInit\)/);
   assert.match(read("index.html"), /static:index-session-cache/);
   assert.match(read("app/_lib/auth-client.ts"), /response\.status === 401/);
-  assert.match(read("app/_lib/billing-client.ts"), /COIN_GATE_TRANSIENT_MAX_RETRIES = 1/);
+  assert.doesNotMatch(read("app/_lib/billing-client.ts"), /COIN_GATE_TRANSIENT_MAX_RETRIES/);
+  assert.match(read("app/_lib/billing-client.ts"), /paymentService\.executePayment/);
   assert.match(read("app/points/history/PointHistoryClient.tsx"), /paymentsMeInFlightRef/);
   assert.match(read("js/destiny-profile.js"), /legacy:destiny-profile/);
 });

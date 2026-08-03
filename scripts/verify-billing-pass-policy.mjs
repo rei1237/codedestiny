@@ -546,19 +546,10 @@ const confirmSource = billingSource.slice(
   billingSource.indexOf("async function handleConfirm("),
   billingSource.indexOf("async function runServiceExecutionAction("),
 );
-assertBefore(
-  checkoutSource,
-  "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(",
-  'const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";',
-  "the explicit pass helper runs before checkout delegation",
-);
-assertBefore(
-  confirmSource,
-  "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(",
-  'const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";',
-  "the explicit pass helper runs before confirm delegation",
-);
-assertContains(billingSource, 'if (passAccess) return passAccess;', "an explicit pass response stops payment delegation");
+assertNotContains(checkoutSource, "grantPassFreeAccessBeforeCardIfAvailable", "DIRECT_KRW prepare performs zero pass lookups");
+assertNotContains(checkoutSource, "buildDiscountedPdfPaymentDelegation", "DIRECT_KRW prepare does not query a pass for PDF pricing");
+assertNotContains(confirmSource, "grantPassFreeAccessBeforeCardIfAvailable", "DIRECT_KRW confirm performs zero pass lookups");
+assertNotContains(confirmSource, "buildDiscountedPdfPaymentDelegation", "DIRECT_KRW confirm does not query a pass for PDF pricing");
 assertContains(billingSource, '"/api/payments/prepare"', "single card prepare path remains");
 assertContains(billingSource, '"/api/payments/confirm"', "single card confirm path remains");
 assertContains(checkoutSource, "preverifiedAuth: checkoutAuthCheck.auth", "checkout delegates its verified auth without a second User lookup");
@@ -568,20 +559,11 @@ assertContains(paymentsSource, "const auth = delegatedAuth?.userId", "payments a
 // 결제수단 선택은 명시적이다. DIRECT_KRW는 PortOne으로, MEMBERSHIP_PASS만 이용권 적용으로 간다.
 assertContains(
   billingSource,
-  "if (shouldCreateDirectPortOneOrder(body)) return false;",
-  "DIRECT_KRW must never be converted to membership-pass access",
-);
-assertContains(
-  billingSource,
   "if (!shouldApplyMembershipPassBeforeCard(body)) return null;",
   "only an explicit membership-pass choice may apply a pass before card checkout",
 );
 // 이미 PG 결제가 끝나 검증 페이로드가 실린 confirm 요청은 그대로 검증·기록한다.
-assertContains(
-  billingSource,
-  "if (!isSubscription && !hasPaymentVerificationPayload) {",
-  "confirm still skips the PASS conversion once a real payment has been made",
-);
+assertContains(billingSource, "const shouldLoadMembershipPass = shouldVerifyMembershipPass(paymentCommand.method);", "payment method is resolved before pass lookup");
 assertContains(paymentsSource, "fetchPortOnePayment", "PortOne verification remains");
 assertContains(paymentsSource, "PortOne V2 KG Inicis", "KG Inicis public config remains");
 assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remains");
@@ -704,7 +686,7 @@ assertContains(billingClientSource, 'emitPaidFeatureGate("close", {', "gate must
 assertContains(billingClientSource, 'const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";', "covered pass check must still report the free pass-through");
 assertContains(indexSource, "if (status === 'checkingEntitlement')", "pass pre-check keeps its own dedicated wait copy");
 assertContains(billingClientSource, '_cdRunDirectKrwCheckout?: PaidServiceRuntimeGate;', "React explicit DIRECT_KRW must reach the direct checkout runtime");
-assertContains(billingClientSource, 'let parsed: BillingResult<BillingCoinGateData> = explicitDirectMode', "React explicit DIRECT_KRW must skip the redundant coin-gate probe");
+assertContains(billingClientSource, 'const parsed: BillingResult<BillingCoinGateData> = explicitDirectMode', "React explicit DIRECT_KRW must skip the redundant coin-gate probe");
 assertContains(billingClientSource, '(!explicitPaymentMode || explicitDirectMode)', "explicit DIRECT_KRW must be allowed through the payment runtime fallback");
 
 assertNotContains(indexSource, "_cdStartDirectCheckoutPrefetch", "the payment-choice modal must not pre-issue a checkout order");

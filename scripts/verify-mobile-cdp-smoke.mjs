@@ -8,13 +8,13 @@ import WebSocket from "ws";
 const root = process.cwd();
 const staticRoot = fs.existsSync(path.join(root, "dist", "index.html")) ? path.join(root, "dist") : root;
 // dist 는 웹 배포본일 수도, 앱(Android) 빌드본일 수도 있다. 앱 빌드는 build-mobile-app.mjs 가
-// 결제 가드를 주입해 충전 모달 대신 /app/store/ 로 보내므로, 결제 단언을 플레이버에 맞춰 가른다.
-const appFlavoredDist = fs.existsSync(path.join(staticRoot, "js", "app-payment-guard.js"));
 const chromePath = findChrome();
 const server = await startStaticServer();
 const tempProfilePrefix = path.join(os.tmpdir(), "code-destiny-mobile-cdp-profile-");
 const debugCdp = process.env.MOBILE_CDP_DEBUG === "1";
 const focusAllFortunes = process.env.MOBILE_CDP_FOCUS === "all-fortunes";
+const hybridDesktopProfile = process.argv.includes("--hybrid-desktop");
+const desktopProfile = hybridDesktopProfile || process.argv.includes("--desktop");
 
 const failures = [];
 let chrome;
@@ -29,17 +29,81 @@ try {
 
   await send(cdp, "Runtime.enable");
   await send(cdp, "Network.enable");
-  await send(cdp, "Emulation.setDeviceMetricsOverride", {
+  if (hybridDesktopProfile) {
+    await send(cdp, "Page.addScriptToEvaluateOnNewDocument", {
+      source: `Object.defineProperty(Navigator.prototype, "maxTouchPoints", {
+        configurable: true,
+        get: () => 10
+      });`,
+    });
+  }
+  await send(cdp, "Emulation.setDeviceMetricsOverride", desktopProfile ? {
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false,
+  } : {
     width: 390,
     height: 844,
     deviceScaleFactor: 3,
     mobile: true,
   });
-  await send(cdp, "Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await send(cdp, "Emulation.setTouchEmulationEnabled", desktopProfile ? { enabled: false } : { enabled: true, maxTouchPoints: 5 });
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
 
+  if (desktopProfile) {
+    const desktopState = await evaluate(cdp, `(() => ({
+      viewport: { width: innerWidth, height: innerHeight },
+      maxTouchPoints: navigator.maxTouchPoints,
+      bridgeReady: window.__cdMobileTouchBridgeReady === true,
+      touchBridgeBound: document.__cdTouchBridgeBound === true,
+      fallbackBound: document.__cdMobileDataActionFallbackBound === true,
+      touchStyleInjected: !!document.getElementById('cd-mobile-touch-bridge-style'),
+      bottomNavDisplay: getComputedStyle(document.getElementById('cdMobileBottomNav')).display
+    }))()`, "desktop bridge state");
+    assert(desktopState.viewport.width === 1440 && desktopState.viewport.height === 900, "desktop viewport is 1440x900", desktopState);
+    assert(!desktopState.bridgeReady && !desktopState.touchBridgeBound && !desktopState.fallbackBound && !desktopState.touchStyleInjected, "desktop does not initialize the mobile touch bridge or its global capture handlers", desktopState);
+    assert(desktopState.bottomNavDisplay === "none", "desktop keeps the mobile bottom nav out of layout", desktopState);
+
+    const selector = '.fc-toggle-btn[data-target="tarotCollection"]';
+    const probeReady = await evaluate(cdp, `(() => {
+      const target = document.querySelector(${JSON.stringify(selector)});
+      if (!target) return false;
+      target.scrollIntoView({ block: 'center', behavior: 'instant' });
+      sessionStorage.setItem('__cdDesktopClickProbe', '[]');
+      window.addEventListener('click', function desktopClickProbe(event) {
+        if (!event.target || !event.target.closest(${JSON.stringify(selector)})) return;
+        window.setTimeout(function () {
+          const clicks = JSON.parse(sessionStorage.getItem('__cdDesktopClickProbe') || '[]');
+          clicks.push({
+            defaultPrevented: event.defaultPrevented,
+            expanded: target.getAttribute('aria-expanded')
+          });
+          sessionStorage.setItem('__cdDesktopClickProbe', JSON.stringify(clicks));
+        }, 0);
+      }, true);
+      return true;
+    })()`, "desktop click probe setup");
+    assert(probeReady, "desktop tarot collection control exists", { selector });
+    await clickSelector(cdp, selector);
+    await delay(100);
+    await clickSelector(cdp, selector);
+    await delay(100);
+    const clickState = await evaluate(cdp, `(() => ({
+      clicks: JSON.parse(sessionStorage.getItem('__cdDesktopClickProbe') || '[]'),
+      bridgeReady: window.__cdMobileTouchBridgeReady === true,
+      touchBridgeBound: document.__cdTouchBridgeBound === true
+    }))()`, "desktop click probe result");
+    assert(clickState.clicks.length === 2, "desktop collection control receives consecutive native clicks", clickState);
+    assert(clickState.clicks[0]?.expanded === "true" && clickState.clicks[1]?.expanded === "false", "desktop collection remains usable after its first interaction", clickState);
+    assert(!clickState.bridgeReady && !clickState.touchBridgeBound, "desktop click flow never activates the mobile bridge", clickState);
+  } else {
   const initial = await evaluate(cdp, mobileStateExpression(), "initial mobile state");
   assert(initial.viewportWidth === 390, "viewport width is 390", initial);
+  if (!focusAllFortunes) {
+    assert(initial.responsiveHomeVisible, "responsive mobile home is visible", initial);
+    assert(initial.primaryCtaInFirstView, "primary CTA is in first view", initial);
+  }
   assert(initial.bottomNavVisible, "bottom nav is visible", initial);
   assert(initial.bottomNavMainCount === 5, "bottom nav has five main items", initial);
   assert(initial.bottomNavQuickHidden, "bottom nav quick rail is hidden", initial);
@@ -47,32 +111,29 @@ try {
   // 2026-07 모바일 홈 리디자인부터 추천 카드가 첫 화면에 일부 노출된다(프로덕션 실측 top≈502).
   // 리디자인에도 살아남는 불변식은 "카드가 주 CTA 를 덮고 올라오지 않는다"이다.
   if (!focusAllFortunes) {
-    assert(initial.mobileHubVisible, "mobile hub is visible", initial);
-    assert(initial.primaryCtaInFirstView, "primary CTA is in first view", initial);
-    assert(initial.recommendedBelowPrimaryCta, "recommended cards begin below the primary CTA", initial);
+    assert(initial.membershipBelowPrimaryCta, "membership guidance begins below the primary CTA", initial);
   }
   assert(initial.noHorizontalOverflow, "no horizontal overflow", initial);
   assert(initial.audioVideoCount === 0, "home has no initial audio/video elements", initial);
   assert(initial.hiddenOverlaysPointerSafe, "hidden overlays do not block touch", initial);
 
   if (!focusAllFortunes) {
-  await tapSelector(cdp, "#cdMobileDestinyHub .cd-mobile-hub__primary a");
-  // 같은 문서 스크롤(위임 바인딩 후) / 실제 /saju/basic 이동(바인딩 전 기본 동작) 둘 다 정상이고,
-  // 둘 다 250ms 안에 끝난다는 보장이 없다 — 고정 대기 1회는 플레이크였다. 짧게 폴링한다.
-  let afterPrimaryTap = { hash: "", scrollY: 0, pathname: "" };
+  await tapSelector(cdp, ".moon-hero__cta--primary[href=\"/codedestiny-novel.html\"]");
+  // 단일 반응형 홈의 주 CTA는 운명 여정으로 이동한다. 정적 셸의 문서 전환은 고정 대기보다 짧은 폴링이 안정적이다.
+  let afterPrimaryTap = { pathname: "" };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
-    afterPrimaryTap = await evaluate(cdp, "({ hash: location.hash, scrollY: Math.round(scrollY), pathname: location.pathname })", "after primary CTA tap");
-    if (afterPrimaryTap.hash === "#destinyCardForm" || afterPrimaryTap.scrollY > 120 || afterPrimaryTap.pathname.indexOf("/saju/basic") === 0) break;
+    afterPrimaryTap = await evaluate(cdp, "({ pathname: location.pathname })", "after primary CTA tap");
+    if (afterPrimaryTap.pathname.indexOf("/codedestiny-novel.html") === 0) break;
   }
   assert(
-    afterPrimaryTap.hash === "#destinyCardForm" || afterPrimaryTap.scrollY > 120 || afterPrimaryTap.pathname.indexOf("/saju/basic") === 0,
-    "primary CTA scrolls to saju form or routes to it",
+    afterPrimaryTap.pathname.indexOf("/codedestiny-novel.html") === 0,
+    "primary CTA opens the destiny journey",
     afterPrimaryTap,
   );
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  await tapSelector(cdp, "#cdMobileDestinyHub .cd-mobile-hub__quick a[href=\"/tarot/mingri\"]");
+  await tapSelector(cdp, ".moon-preview-card[href=\"/tarot/mingri\"]");
   await delay(450);
   const afterTarotTap = await evaluate(cdp, `(() => {
     const modal = ${modalStateExpression()};
@@ -144,88 +205,64 @@ try {
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  const paymentButtonState = await evaluate(cdp, `(() => {
-    const node = document.querySelector('#cdMobileDestinyHub .cd-mobile-hub__pass-actions button[data-action="openGoldenGrainCharge"]');
+  const membershipButtonState = await evaluate(cdp, `(() => {
+    const node = document.querySelector('#honeyMembershipMini [data-membership-cta="benefits"]');
     if (!node) return { exists: false, visible: false, action: null };
     const r = node.getBoundingClientRect();
     const style = getComputedStyle(node);
     return {
       exists: true,
       visible: r.width > 0 && r.height > 0 && style.display !== 'none' && style.visibility !== 'hidden',
-      action: node.getAttribute('data-action'),
+      action: node.getAttribute('data-membership-cta'),
       width: Math.round(r.width),
       height: Math.round(r.height)
     };
-  })()`, "payment pass button state");
-  assert(paymentButtonState.exists && paymentButtonState.visible && paymentButtonState.action === "openGoldenGrainCharge", "mobile payment pass button is visible and action-wired", paymentButtonState);
+  })()`, "membership benefits button state");
+  assert(membershipButtonState.exists && membershipButtonState.visible && membershipButtonState.action === "benefits", "mobile membership benefits button is visible and action-wired", membershipButtonState);
 
-  await tapSelector(cdp, '#cdMobileDestinyHub .cd-mobile-hub__pass-actions button[data-action="openGoldenGrainCharge"]');
-  await delay(250);
-  if (appFlavoredDist) {
-    // 앱 빌드: 결제 가드가 __cdOpenChargeModal 을 openAppStore 로 고정하므로 웹 충전 모달이
-    // 아니라 /app/store/ 로 이동해야 정상이다. location.assign 완료를 짧게 폴링한다.
-    let appStoreState = { pathname: "" };
-    for (let i = 0; i < 12; i += 1) {
-      appStoreState = await evaluate(cdp, "({ pathname: location.pathname })", "after pass button tap (app flavor)");
-      if (appStoreState.pathname.indexOf("/app/store") === 0) break;
-      await delay(250);
-    }
-    assert(
-      appStoreState.pathname.indexOf("/app/store") === 0,
-      "app flavor: pass button routes to the app store instead of the web charge modal",
-      appStoreState,
-    );
-  } else {
-    const paymentModalState = await evaluate(cdp, `(() => {
-      const modal = document.getElementById('goldenGrainChargeModal');
-      const root = document.getElementById('goldenGrainChargeModalRoot');
-      if (!modal) return { exists: false, open: false, visible: false };
-      const rect = modal.getBoundingClientRect();
-      const style = getComputedStyle(modal);
-      return {
-        exists: true,
-        open: modal.classList.contains('golden-grain-modal--open'),
-        visible: rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden',
-        role: modal.getAttribute('role'),
-        ariaModal: modal.getAttribute('aria-modal'),
-        rootAriaHidden: root?.getAttribute('aria-hidden') || null,
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-        viewportHeight: innerHeight,
-        pointerEvents: style.pointerEvents
-      };
-    })()`, "payment modal after mobile tap");
-    assert(
-      paymentModalState.exists
-        && paymentModalState.open
-        && paymentModalState.visible
-        && paymentModalState.role === "dialog"
-        && paymentModalState.ariaModal === "true"
-        && paymentModalState.height <= paymentModalState.viewportHeight + 1,
-      "mobile payment pass button opens a viewport-safe dialog immediately",
-      paymentModalState,
-    );
+  await tapSelector(cdp, '#honeyMembershipMini [data-membership-cta="benefits"]');
+  let membershipBenefitsDestination = { pathname: "", search: "" };
+  for (let i = 0; i < 12; i += 1) {
+    await delay(250);
+    membershipBenefitsDestination = await evaluate(cdp, "({ pathname: location.pathname, search: location.search })", "membership benefits destination");
+    if (membershipBenefitsDestination.pathname.indexOf("/points") === 0 || membershipBenefitsDestination.pathname.indexOf("/login") === 0) break;
   }
+  assert(
+    membershipBenefitsDestination.pathname.indexOf("/points") === 0 || (
+      membershipBenefitsDestination.pathname.indexOf("/login") === 0 &&
+      membershipBenefitsDestination.search.indexOf("/points") >= 0
+    ),
+    "mobile membership benefits routes to the pass guide without entering a payment flow",
+    membershipBenefitsDestination,
+  );
+  }
+
   }
 
   if (failures.length) {
-    console.error("Mobile CDP smoke failed.");
+    console.error(desktopProfile ? "Desktop CDP smoke failed." : "Mobile CDP smoke failed.");
     for (const failure of failures) {
       console.error(`- ${failure.name}: ${JSON.stringify(failure.details)}`);
     }
     process.exitCode = 1;
   } else {
-    console.log("Mobile CDP smoke OK");
-    console.log("- Viewport: 390x844");
-    if (!focusAllFortunes) {
-      console.log("- Primary CTA touch: OK");
-      console.log("- Tarot touch: OK");
-      console.log("- Bottom nav 5-tab tarot touch: OK");
-      console.log("- Payment pass button wiring: OK");
-      console.log(appFlavoredDist ? "- Payment tap routes to /app/store (app flavor): OK" : "- Payment modal touch: OK");
+    if (desktopProfile) {
+      console.log("Desktop CDP smoke OK");
+      console.log(`- Profile: ${hybridDesktopProfile ? "1440x900 hybrid touch desktop" : "1440x900 mouse desktop"}`);
+      console.log("- Mobile bridge initialization: skipped");
+      console.log("- Consecutive tarot collection clicks: OK");
+    } else {
+      console.log("Mobile CDP smoke OK");
+      console.log("- Viewport: 390x844");
+      if (!focusAllFortunes) {
+        console.log("- Primary CTA opens the destiny journey: OK");
+        console.log("- Tarot touch: OK");
+        console.log("- Bottom nav 5-tab tarot touch: OK");
+        console.log("- Membership benefits CTA routes to the pass guide: OK");
+      }
+      console.log("- Initial audio/video elements: 0");
+      if (focusAllFortunes) console.log("- Focused all-fortunes touch flow: OK");
     }
-    console.log("- Initial audio/video elements: 0");
-    if (focusAllFortunes) console.log("- Focused all-fortunes touch flow: OK");
   }
 } finally {
   if (cdp) {
@@ -717,6 +754,41 @@ async function tapSelector(cdp, selector) {
   });
 }
 
+async function clickSelector(cdp, selector) {
+  let box = await evaluate(cdp, selectorBoxExpression(selector));
+  if (!box.exists || !box.visible) {
+    throw new Error(`Cannot click hidden selector: ${selector} ${JSON.stringify(box)}`);
+  }
+  if (!box.inViewport) {
+    await evaluate(cdp, scrollSelectorIntoViewExpression(selector), `scroll ${selector} into view`);
+    await delay(120);
+    box = await evaluate(cdp, selectorBoxExpression(selector));
+  }
+  if (!box.inViewport) {
+    throw new Error(`Cannot click selector outside viewport: ${selector} ${JSON.stringify(box)}`);
+  }
+  let hit = null;
+  const occlusionDeadline = Date.now() + 8000;
+  for (;;) {
+    hit = await evaluate(cdp, tapPointHitExpression(selector, box.centerX, box.centerY), `hit-test ${selector}`);
+    if (hit.hits) break;
+    if (Date.now() > occlusionDeadline) {
+      throw new Error(`Click point occluded for ${selector}: top element is ${hit.top || "(none)"}`);
+    }
+    await delay(120);
+    box = await evaluate(cdp, selectorBoxExpression(selector));
+    if (!box.exists || !box.visible || !box.inViewport) {
+      throw new Error(`Selector became unclickable while waiting: ${selector} ${JSON.stringify(box)}`);
+    }
+  }
+  await evaluate(cdp, `(() => {
+    const node = document.querySelector(${JSON.stringify(selector)});
+    if (!node) return false;
+    node.click();
+    return true;
+  })()`, `click ${selector}`);
+}
+
 function tapPointHitExpression(selector, x, y) {
   return `(() => {
     const el = document.elementFromPoint(${Number(x)}, ${Number(y)});
@@ -763,18 +835,18 @@ function selectorBoxExpression(selector) {
 
 function mobileStateExpression() {
   return `(() => {
-    const hub = document.querySelector('#cdMobileDestinyHub');
+    const home = document.querySelector('#inputPage');
     const nav = document.querySelector('#cdMobileBottomNav');
-    const cta = document.querySelector('#cdMobileDestinyHub .cd-mobile-hub__primary a');
+    const cta = document.querySelector('.moon-hero__cta--primary[href="/codedestiny-novel.html"]');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');
     const langButtons = Array.from(document.querySelectorAll('#langDropdown [data-action="changeLanguage"]'));
-    const recommended = document.querySelector('#mobileRecommendedCards');
+    const membership = document.querySelector('#honeyMembershipMini');
     const overlays = ['#tilePvwOverlay', '#privacy-modal-overlay', '#goldenGrainChargeModalRoot'];
     const ctaRect = cta?.getBoundingClientRect();
     const navRect = nav?.getBoundingClientRect();
-    const recommendedRect = recommended?.getBoundingClientRect();
+    const membershipRect = membership?.getBoundingClientRect();
     const quickStyle = quickRail ? getComputedStyle(quickRail) : null;
     const langStyle = langDropdown ? getComputedStyle(langDropdown) : null;
     const visibleLangButtons = langButtons.filter((node) => {
@@ -786,15 +858,15 @@ function mobileStateExpression() {
       viewportWidth: innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
       noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 1,
-      mobileHubVisible: !!hub && getComputedStyle(hub).display !== 'none',
+      responsiveHomeVisible: !!home && getComputedStyle(home).display !== 'none',
       primaryCtaInFirstView: !!ctaRect && ctaRect.top >= 0 && ctaRect.bottom <= innerHeight,
       bottomNavVisible: !!navRect && navRect.bottom <= innerHeight + 2 && navRect.top < innerHeight,
       bottomNavMainCount: mainNavItems.length,
       bottomNavMainKeys: mainNavItems.map((node) => node.getAttribute('data-nav-key')),
       bottomNavQuickHidden: !!quickRail && (quickRail.hidden || quickStyle.display === 'none' || quickStyle.visibility === 'hidden'),
       languageDropdownClosed: !!langDropdown && langDropdown.getAttribute('aria-hidden') === 'true' && langStyle.display === 'none' && visibleLangButtons.length === 0,
-      recommendedBelowPrimaryCta: !!recommendedRect && !!ctaRect && recommendedRect.top >= ctaRect.bottom,
-      recommendedRect: recommendedRect ? { top: Math.round(recommendedRect.top), bottom: Math.round(recommendedRect.bottom) } : null,
+      membershipBelowPrimaryCta: !!membershipRect && !!ctaRect && membershipRect.top >= ctaRect.bottom,
+      membershipRect: membershipRect ? { top: Math.round(membershipRect.top), bottom: Math.round(membershipRect.bottom) } : null,
       audioVideoCount: document.querySelectorAll('audio,video').length,
       bodyClass: document.body.className,
       navRect: navRect ? { top: Math.round(navRect.top), bottom: Math.round(navRect.bottom), height: Math.round(navRect.height) } : null,
