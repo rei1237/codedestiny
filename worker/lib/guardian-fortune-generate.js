@@ -19,9 +19,9 @@ function safeErrorMessage(code) {
     case GUARDIAN_FORTUNE_ERROR_CODES.INVALID_INPUT:
       return "입력 내용을 한 번 확인해 주세요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED:
-      return "첫 무료 상담을 이미 사용했어요. 로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.";
+      return "첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS:
-      return "오늘의 무료 상담 3회를 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.";
+      return "오늘 이용 가능한 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED:
     case GUARDIAN_FORTUNE_ERROR_CODES.GENERATION_FAILED:
     case GUARDIAN_FORTUNE_ERROR_CODES.RESULT_INVALID:

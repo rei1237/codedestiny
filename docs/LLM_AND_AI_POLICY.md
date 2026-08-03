@@ -9,6 +9,15 @@
 
 ## LLM provider 구조
 
+## 초융합 운세
+
+- `/fusion-fortune`와 `POST /api/fusion-fortune/generate`는 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_MOCK_FLOW`을 분리해 제어한다.
+- 기본 생성기는 mock이며 실제 외부 LLM을 호출하지 않는다. 운영 제공자 연결은 `ENABLE_FUSION_FORTUNE_REAL_LLM=true`, `ALLOW_FUSION_FORTUNE_REAL_LLM=true`, 서버 전용 API key, `NODE_ENV !== test`가 모두 충족되는 별도 승인 경로에서만 추가할 수 있다.
+- 결과는 서버 컨텍스트와 서버 선택 타로 spread만 근거로 삼고 raw prompt·raw response·birthDate·birthTime·고민 원문·결제/이용권 정보는 결과 또는 공유 텍스트에 포함하지 않는다.
+- validator가 10,000~15,000자, 8개 결과 영역, 안전 표현, 개인정보 노출을 모두 확인한 성공 결과만 이용권과 하루 한도를 commit한다.
+- `worker/lib/fusion-fortune-prompt.js`는 여섯 체계의 전문가 계약, 교차 검증 규칙, 생시 미확인 단정 금지, 섹션별 최소 깊이와 JSON schema를 서버에서 고정한다. mock도 동일 validator를 통과해야 하며 실제 제공자 호출은 하지 않는다.
+- 오늘의 귀인은 선택한 상담 카테고리를 prompt-safe context의 어댑터 우선순위에도 적용한다. 통합 상담은 공통 패턴을 우선하고, 단일 체계 카테고리는 해당 체계의 전문 용어와 해석 범위를 우선한다.
+
 - 공통 클라이언트: `lib/llm-client.ts`
 - Gemini wrapper: `worker/lib/gemini.js`, `worker/lib/gemini-client.js`
 - JSON 구조화 helper: `worker/lib/structured-consultation.js`

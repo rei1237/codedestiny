@@ -7,9 +7,11 @@ import { buildZiweiAdapter } from "./guardian-fortune/adapters/ziwei.js";
 import {
   ADAPTER_NAMES,
   DEFAULT_TIMEZONE,
+  GUARDIAN_CATEGORY_ADAPTER_PRIORITY,
   GUARDIAN_TOPIC_ADAPTER_PRIORITY,
   MAX_CONCERN_LENGTH,
   VALID_CALENDAR_TYPES,
+  VALID_CATEGORIES,
   VALID_GENDERS,
   VALID_MODES,
   VALID_TOPICS,
@@ -62,10 +64,12 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
   const gender = input.gender === undefined ? "unknown" : input.gender;
   const mode = input.mode === undefined ? "yeoni" : input.mode;
   const topic = input.topic === undefined ? "daily" : input.topic;
+  const category = input.category === undefined ? "fusion" : input.category;
   const locale = input.locale === undefined ? DEFAULT_LOCALE : String(input.locale).trim();
   const targetDate = input.targetDate ? String(input.targetDate).trim() : kstDateKey(now);
   const concern = input.concern ? String(input.concern).trim() : undefined;
   const birthPlace = normalizeBirthPlace(input.birthPlace);
+  if (options.requireBirthTime === true && !birthTime) throw invalidInput("생시를 입력해 주세요. 생시를 기준으로 상담 체계별 해석을 정교하게 맞춥니다.");
 
   if (!isValidDate(birthDate)) throw invalidInput("생년월일을 확인해 주세요.");
   if (birthDate > kstDateKey(now)) throw invalidInput("미래의 생년월일은 입력할 수 없어요.");
@@ -74,6 +78,7 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
   if (!VALID_GENDERS.has(gender)) throw invalidInput("성별 선택값을 확인해 주세요.");
   if (!VALID_MODES.has(mode)) throw invalidInput("상담 모드를 확인해 주세요.");
   if (!VALID_TOPICS.has(topic)) throw invalidInput("관심 분야를 선택해 주세요.");
+  if (!VALID_CATEGORIES.has(category)) throw invalidInput("상담 체계를 선택해 주세요.");
   if (!isValidDate(targetDate)) throw invalidInput("기준 날짜를 확인해 주세요.");
   if (typeof locale !== "string" || locale.length < 2 || locale.length > 20) throw invalidInput("언어 설정을 확인해 주세요.");
   if (concern && concern.length > MAX_CONCERN_LENGTH) throw invalidInput("고민을 120자 이내로 적어 주세요.");
@@ -88,6 +93,7 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
     birthPlace,
     hasBirthPlace: Boolean(birthPlace),
     topic,
+    category,
     mode,
     locale,
     targetDate,
@@ -206,7 +212,9 @@ export async function buildGuardianFortuneContext(input, options = {}) {
   const results = {};
   const unavailableClaims = [];
   const adapters = options.adapters || DEFAULT_ADAPTERS;
-  const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[normalized.topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[normalized.category]
+    || GUARDIAN_TOPIC_ADAPTER_PRIORITY[normalized.topic]
+    || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
   const adapterOptions = {
     ...options,
     now: options.now instanceof Date ? options.now : new Date(),
@@ -277,6 +285,7 @@ export async function buildGuardianFortuneContext(input, options = {}) {
       hasBirthPlace: normalized.hasBirthPlace,
       calendarType: normalized.calendarType,
       topic: normalized.topic,
+      category: normalized.category,
       mode: normalized.mode,
       targetDate: normalized.targetDate,
       locale: normalized.locale,

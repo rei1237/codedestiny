@@ -1,5 +1,12 @@
 # Service Structure
 
+## 초융합 운세 경계
+
+- 초융합 운세는 전용 ticket balance/transaction과 KST 일일 성공 한도를 사용한다.
+- 일반 이용권, family 이용권, 대화권, entitlement, 월정석 보유 권한, price coverage는 이 기능의 구매 또는 생성 권한이 아니다.
+- route는 결과 validator 성공 뒤에만 ticket과 daily limit을 commit한다. mock 기본 경로는 외부 LLM 또는 PG 호출을 수행하지 않는다.
+- 프론트는 신규 `fusion-guardian-celestial-hero.webp`를 우선 로드하고, 연결 오브·입자·진행률·카드 테두리는 CSS/SVG로 렌더링한다. 긴 결과 섹션은 `content-visibility`와 접힘 UI로 모바일 렌더 비용을 줄인다.
+
 ## 서비스 한 줄 정의
 
 Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, 타로, AI 상담, 음악실, PDF 리포트, 결제/이용권을 함께 제공하는 운세/상담 웹서비스다.

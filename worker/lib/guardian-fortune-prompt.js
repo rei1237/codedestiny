@@ -3,7 +3,7 @@ import {
   GUARDIAN_FORTUNE_TOPICS,
   getTopicContract,
 } from "./guardian-fortune-runtime-contract.js";
-import { GUARDIAN_TOPIC_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
+import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, GUARDIAN_TOPIC_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -105,7 +105,12 @@ function projectInsight(insight = {}) {
 export function formatGuardianFortuneContextForPrompt(context = {}) {
   const inputSummary = context?.inputSummary || {};
   const topic = GUARDIAN_FORTUNE_TOPICS[inputSummary.topic] ? inputSummary.topic : "daily";
-  const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  const category = Object.prototype.hasOwnProperty.call(GUARDIAN_CATEGORY_ADAPTER_PRIORITY, inputSummary.category)
+    ? inputSummary.category
+    : "fusion";
+  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[category]
+    || GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic]
+    || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
   const systems = Array.isArray(context?.availableSystems) ? context.availableSystems : [];
   const adapters = {};
 
@@ -119,6 +124,7 @@ export function formatGuardianFortuneContextForPrompt(context = {}) {
     inputSummary: {
       mode: inputSummary.mode === "neo" ? "neo" : "yeoni",
       topic,
+      category,
       locale: safeText(inputSummary.locale, 20) || "ko-KR",
       targetDate: safeText(inputSummary.targetDate, 20),
       hasBirthTime: Boolean(inputSummary.hasBirthTime),
@@ -177,6 +183,28 @@ const TOPIC_EXPERT_INSTRUCTIONS = Object.freeze({
   decision: "관성·인성·비겁적 판단 기준, 망설임의 원인, 되돌릴 수 있는 작은 선택을 우선한다.",
 });
 
+const CATEGORY_EXPERT_INSTRUCTIONS = Object.freeze({
+  fusion: "여섯 체계가 공통으로 가리키는 패턴을 우선하고, 특정 체계의 용어 나열로 끝내지 마.",
+  saju: "사주를 중심으로 일간·오행·십성의 생활 패턴을 풀되 다른 체계는 교차 근거로만 사용해.",
+  ziwei: "자미두수의 궁위와 별의 역할을 중심으로, 생시 기반 명반의 범위를 벗어나 단정하지 마.",
+  vedic: "베다점의 달·나크샤트라·리듬을 중심으로, 서양 점성술과 체계를 섞지 말고 보조 근거로만 연결해.",
+  sukuyo: "숙요점의 관계 거리감과 감정 반응을 중심으로, 상대의 속마음을 확정하지 마.",
+  astrology: "점성술의 태양·달·상승·행성 상징을 중심으로, 출생지와 생시가 필요한 해석 범위를 구분해.",
+  tarot: "서버가 선택한 카드와 스프레드만 사용하고, 카드 이름이나 상징을 새로 만들지 마.",
+});
+
+// 카테고리 선택은 '더 깊게 보기'가 아니라 상담의 해석 중심을 정하는 입력이다.
+// 기존 파일의 레거시 다국어 문자열과 분리해, 신규 프롬프트 문구는 UTF-8 한국어로 유지한다.
+const GUARDIAN_CATEGORY_INSTRUCTIONS_KO = Object.freeze({
+  fusion: "여섯 체계가 공통으로 가리키는 반복 패턴을 우선하고, 체계별 용어를 나열하지 말고 하나의 상담으로 연결합니다.",
+  saju: "사주를 중심으로 일간·오행·십성과 선택 습관을 읽고, 다른 체계는 교차 확인 근거로만 사용합니다.",
+  ziwei: "자미두수의 궁위와 주요 별의 역할을 중심으로 읽되, 생시 기반 명반의 범위를 넘어서 단정하지 않습니다.",
+  vedic: "베다점의 라그나·문사인·나크샤트라·리듬을 중심으로 읽고 서양 점성술과 체계를 혼동하지 않습니다.",
+  sukuyo: "숙요점의 관계 거리감과 감정 반응을 중심으로 읽고, 상대의 마음을 확정하지 않습니다.",
+  astrology: "서양 점성술의 태양·달·상승궁·행성 패턴을 중심으로 읽되, 출생지 또는 생시가 필요한 범위를 구분합니다.",
+  tarot: "서버가 선택한 카드와 스프레드만 사용하고 카드 이름이나 의미를 임의로 만들지 않습니다.",
+});
+
 export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
   const inputSummary = context?.inputSummary || {};
   const mode = inputSummary.mode === "neo" || input?.mode === "neo" ? "neo" : "yeoni";
@@ -184,7 +212,12 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     ? inputSummary.topic
     : (GUARDIAN_FORTUNE_TOPICS[input?.topic] ? input.topic : "daily");
   const topicContract = getTopicContract(topic);
-  const priority = GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic] || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  const category = Object.prototype.hasOwnProperty.call(GUARDIAN_CATEGORY_INSTRUCTIONS_KO, inputSummary.category)
+    ? inputSummary.category
+    : "fusion";
+  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[category]
+    || GUARDIAN_TOPIC_ADAPTER_PRIORITY[topic]
+    || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
   const systemPrompt = [
     MODE_SYSTEM_PROMPTS[mode],
     EXPERT_SYSTEM_GUIDANCE,
@@ -194,6 +227,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
   ].join(" ");
 
   const userPrompt = [
+    `상담 체계: ${category}. ${GUARDIAN_CATEGORY_INSTRUCTIONS_KO[category]}`,
     `관심 분야: ${topicContract.label} (${topic})`,
     `상담 지침: ${topicContract.instruction}`,
     `운세 체계별 역할: ${EXPERT_SYSTEM_ROLE_GUIDE}`,
@@ -217,6 +251,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     responseSchemaHint: buildSchemaHint(),
     mode,
     topic,
+    category,
   };
 }
 

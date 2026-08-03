@@ -11,6 +11,7 @@
   var state = {
     mode: 'yeoni',
     topic: 'daily',
+    category: 'fusion',
     flow: 'disabled',
     usage: 'guest-available',
     usageStatus: null,
@@ -93,7 +94,7 @@
     },
     validation: {
       yeoni: '필수 정보만 살짝 채워주면 연이가 더 섬세하게 읽어볼게요.',
-      neo: '입력값만 정리하면 바로 시작할 수 있어. 생시는 몰라도 괜찮아.'
+      neo: '입력값을 정리하면 바로 시작할 수 있어. 생시까지 입력해야 상담 체계별 해석을 정확히 맞출 수 있어.'
     },
     error: {
       yeoni: '잠깐 흐름이 흐려졌어요. 실패한 요청은 결과처럼 남기지 않을게요.',
@@ -440,6 +441,17 @@
     updateDuoDialogue();
   }
 
+  function setCategory(category) {
+    if (!mock.categories || !mock.categories[category]) return;
+    state.category = category;
+    qsa('[data-guardian-category]').forEach(function (button) {
+      var selected = button.getAttribute('data-guardian-category') === category;
+      button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+    var description = qs('[data-guardian-category-description]');
+    if (description) description.textContent = mock.categories[category].description;
+  }
+
   function setLoadingCopy() {
     var generate = qs('[data-guardian-generate]');
     if (generate) generate.textContent = currentMode().loading;
@@ -453,11 +465,11 @@
     if (!usage.isLoggedIn) {
       return usage.guestFreeRemaining > 0
         ? '첫 1회는 로그인 없이 무료로 볼 수 있어요.'
-        : '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.';
+        : '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.';
     }
     if (usage.dailyFreeRemaining > 0) return '오늘 남은 무료 상담 ' + usage.dailyFreeRemaining + '회';
     if (usage.paidCreditsRemaining > 0) return '오늘의 무료 상담은 모두 사용했어요. 보유 대화권 ' + usage.paidCreditsRemaining + '회 중 1회를 사용할 수 있어요.';
-    return '오늘의 무료 상담 3회를 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.';
+    return '오늘 이용 가능한 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.';
   }
 
   function setError(message) {
@@ -507,7 +519,7 @@
     var usage = getUsage();
     generate.disabled = !usage.canGenerate;
     if (usage.canGenerate) generate.textContent = currentMode().button;
-    else if (usage.nextAction === 'login') generate.textContent = '로그인하고 하루 3회 받기';
+    else if (usage.nextAction === 'login') generate.textContent = '로그인하고 하루 최대 3회 보기';
     else if (usage.nextAction === 'buy_credits') generate.textContent = '대화권 보러가기';
     else generate.textContent = '곧 다시 열릴 예정이에요';
   }
@@ -540,15 +552,15 @@
     cta.hidden = false;
     if (usage.kind === 'guest') {
       title.textContent = '로그인하면 상담을 더 이어갈 수 있어요';
-      description.textContent = '로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.';
-      addCTAButton(actions, '무료로 가입하고 3회 받기', true, 'login');
+      description.textContent = '로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.';
+      addCTAButton(actions, '가입하고 하루 최대 3회 보기', true, 'login');
       addCTAButton(actions, '로그인하고 이어서 보기', false, 'login');
       return;
     }
     if (usage.dailyFreeRemaining > 0) {
       title.textContent = '오늘 아직 ' + usage.dailyFreeRemaining + '번 더 물어볼 수 있어요.';
       description.textContent = '다른 분야를 골라 보거나 상담자를 바꿔서 이어서 살펴보세요.';
-      addCTAButton(actions, '다른 분야도 물어보기', true, 'focus-topic');
+      addCTAButton(actions, '다른 상담 체계 고르기', true, 'focus-category');
       addCTAButton(actions, usage.kind === 'auth' ? '다른 모드로 보기' : '연이·네오 바꿔보기', false, 'focus-mode');
       return;
     }
@@ -568,14 +580,13 @@
   function readInput() {
     var date = qs('[data-guardian-input="birthDate"]');
     var time = qs('[data-guardian-input="birthTime"]');
-    var unknown = qs('[data-guardian-input="birthTimeUnknown"]');
     var gender = qs('[data-guardian-input="gender"]');
     var nickname = qs('[data-guardian-input="nickname"]');
     var concern = qs('[data-guardian-input="concern"]');
     var calendar = qs('[data-guardian-calendar]:checked');
     return {
       birthDate: date ? date.value.trim() : '',
-      birthTime: unknown && unknown.checked ? '' : (time ? time.value.trim() : ''),
+      birthTime: time ? time.value.trim() : '',
       calendarType: calendar ? calendar.value : 'solar',
       gender: gender ? gender.value : 'unknown',
       nickname: nickname ? nickname.value.trim() : '',
@@ -600,7 +611,8 @@
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate)) return mock.copy.validationBirthDateFormat;
     var date = new Date(input.birthDate + 'T00:00:00');
     if (Number.isNaN(date.getTime()) || date > new Date()) return '생년월일을 다시 확인해 주세요.';
-    if (input.birthTime && !/^\d{2}:\d{2}$/.test(input.birthTime)) return '생시 형식을 한 번만 확인해 주세요.';
+    if (!input.birthTime) return '생시를 입력해 주세요. 상담 체계별 해석을 더 정확히 맞춰드려요.';
+    if (!/^\d{2}:\d{2}$/.test(input.birthTime)) return '생시 형식을 한 번만 확인해 주세요.';
     if (input.concern.length > 120) return mock.copy.validationConcernLength;
     if (input.nickname.length > 20) return '닉네임은 20자 안에서 적어주세요.';
     if (['solar', 'lunar'].indexOf(input.calendarType) < 0) return '달력 기준을 선택해 주세요.';
@@ -614,6 +626,7 @@
       calendarType: input.calendarType,
       gender: input.gender || 'unknown',
       topic: state.topic,
+      category: state.category,
       mode: state.mode,
       locale: 'ko-KR',
       targetDate: getKoreaDateKey()
@@ -665,7 +678,7 @@
     });
     setText('[data-result-mode-label]', mode.label + (state.flow === 'api' ? ' 상담 결과' : '의 mock 상담 결과'));
     setText('[data-result-title]', result.title);
-    setText('[data-result-cta-label]', result.premiumCta && result.premiumCta.label ? result.premiumCta.label : '더 깊게 이어서 보기');
+    setText('[data-result-cta-label]', result.premiumCta && result.premiumCta.label ? result.premiumCta.label : '다른 상담 체계로 보기');
     setText('[data-result-provider]', state.flow === 'api' ? 'API mock preview' : 'mock preview');
     updateShareControls();
     updateUsage();
@@ -728,7 +741,7 @@
     var code = error && String(error.code || '');
     if (code === 'GUARDIAN_FORTUNE_FEATURE_DISABLED') return '오늘의 귀인 운세는 준비 중이에요.';
     if (code === 'GUARDIAN_FORTUNE_INVALID_INPUT') return '입력 내용을 한 번 확인해 주세요.';
-    if (code === 'GUARDIAN_FORTUNE_GUEST_LIMIT_EXCEEDED') return '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 3번까지 연이와 네오에게 물어볼 수 있어요.';
+    if (code === 'GUARDIAN_FORTUNE_GUEST_LIMIT_EXCEEDED') return '첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.';
     if (code === 'GUARDIAN_FORTUNE_DAILY_LIMIT_EXCEEDED' || code === 'GUARDIAN_FORTUNE_NO_CREDITS') return '오늘의 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.';
     if (code === 'GUARDIAN_FORTUNE_REQUEST_IN_PROGRESS') return '같은 상담을 준비하고 있어요. 잠시만 기다려 주세요.';
     if (code === 'GUARDIAN_FORTUNE_CONTEXT_FAILED' || code === 'GUARDIAN_FORTUNE_GENERATION_FAILED' || code === 'GUARDIAN_FORTUNE_RESULT_INVALID' || code === 'GUARDIAN_FORTUNE_USAGE_COMMIT_FAILED') return '지금은 귀인이 흐름을 읽는 데 문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
@@ -859,17 +872,20 @@
     });
   }
 
+  function bindCategories() {
+    qsa('[data-guardian-category]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (state.status === 'loading') return;
+        setCategory(button.getAttribute('data-guardian-category'));
+      });
+    });
+  }
+
   function bindForm() {
     var form = qs('[data-guardian-form]');
     if (form) form.addEventListener('submit', function (event) {
       event.preventDefault();
       generate();
-    });
-    var unknown = qs('[data-guardian-input="birthTimeUnknown"]');
-    var time = qs('[data-guardian-input="birthTime"]');
-    if (unknown && time) unknown.addEventListener('change', function () {
-      time.disabled = unknown.checked;
-      if (unknown.checked) time.value = '';
     });
   }
 
@@ -886,6 +902,8 @@
       var queryTopic = params.get('guardianTopic');
       if (queryMode && mock.modes[queryMode]) state.mode = queryMode;
       if (queryTopic && mock.topics[queryTopic]) state.topic = queryTopic;
+      var queryCategory = params.get('guardianCategory');
+      if (queryCategory && mock.categories && mock.categories[queryCategory]) state.category = queryCategory;
     } catch (_) {}
   }
 
@@ -1011,11 +1029,16 @@
         showToast('프리미엄 상담 연결은 다음 단계에서 진행돼요.');
         return;
       }
-      if (action === 'focus-topic') {
+    if (action === 'focus-topic') {
         var topicList = qs('[data-guardian-topic]');
         if (topicList) topicList.focus();
-        return;
-      }
+      return;
+    }
+    if (action === 'focus-category') {
+      var categoryButton = qs('[data-guardian-category]');
+      if (categoryButton) categoryButton.focus();
+      return;
+    }
       if (action === 'focus-mode') {
         var modeButton = qs('[data-guardian-mode-button]');
         if (modeButton) modeButton.focus();
@@ -1063,6 +1086,7 @@
     applyQueryDefaults();
     bindModeButtons();
     bindTopics();
+    bindCategories();
     bindForm();
     bindCharacterMotion();
     bindShares();
@@ -1070,6 +1094,7 @@
     bindDebugUsage();
     setMode(state.mode);
     setTopic(state.topic);
+    setCategory(state.category);
     updateUsage();
     if (state.flow === 'api') loadUsage();
   }

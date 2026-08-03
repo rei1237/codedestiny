@@ -1,5 +1,15 @@
 # Feature Map
 
+## 초융합 운세
+
+- 주요 라우트: `/fusion-fortune`
+- 주요 API: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`
+- 주요 lib: `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-prompt.js`, `worker/lib/fusion-fortune-purchase.js`, `worker/routes/fusion-fortune.js`
+- 데이터: `FusionFortuneTicketBalance`, `FusionFortuneTicketTransaction`, `FusionFortuneDailyLimit`, `FusionFortuneGenerationAttempt`
+- 권한: 별도 1회 이용권만 가능하며 일반 이용권, family 이용권, 대화권, entitlement, price coverage와 분리한다.
+- 접수: Asia/Seoul 기준 성공 결과 완성 순서로 선착순 하루 100자리만 확정한다. 실패·검증 실패·결제 미완료는 자리를 소진하지 않는다.
+- UI: 오늘의 귀인에서 이어지는 프리미엄 화면으로, repo-local WebP 히어로와 CSS/SVG 오브를 사용하고 390px 이하까지 반응형으로 제공한다.
+
 ## 사주
 
 - 주요 라우트: `/saju`, `/saju/basic`, `/saju/basic/play`, `/manse`, `/daily-fortune`, `/saju/compatibility`, `/saju/five-elements`, `/saju/ten-gods`, `/saju/sibyl`
@@ -75,6 +85,8 @@
 ## 오늘의 귀인 운세
 
 - 단계: Stage 14 최종 품질 튜닝 및 배포 전 mock 기준 QA
+- 로그인 무료 상담은 하루에 3회를 보장 지급하는 문구가 아니라, 이용 상태에 따라 **하루 최대 3회**로 표시한다.
+- 생시는 모든 상담에서 필수이며 `통합 상담·사주·자미두수·베다점·숙요점·점성술·타로` 카테고리가 어댑터 우선순위와 전문가 프롬프트를 결정한다.
 - 주요 Worker 라우트: `/api/fortune/guardian/usage`, `/api/fortune/guardian/generate`, `/api/fortune/guardian/share`
 - 주요 lib: `worker/lib/guardian-fortune-context.js`, `worker/lib/guardian-fortune-prompt.js`, `worker/lib/guardian-fortune-result.js`, `worker/lib/guardian-fortune-fallback.js`, `worker/lib/guardian-fortune-llm-policy.js`, `worker/lib/guardian-fortune-llm.js`
 - 결과 흐름: 기존 운세 adapter → `GuardianFortuneContext` → allowlist prompt → mock 또는 guarded Gemini → parser/validator → context-driven fallback → usage commit

@@ -8,6 +8,7 @@ const ADAPTER_NAMES = Object.freeze([
 ]);
 
 const VALID_TOPICS = new Set(["daily", "love", "money_work", "relationship", "mind", "decision"]);
+const VALID_CATEGORIES = new Set(["fusion", "saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]);
 const VALID_MODES = new Set(["yeoni", "neo"]);
 const VALID_CALENDAR_TYPES = new Set(["solar", "lunar"]);
 const VALID_GENDERS = new Set(["female", "male", "unknown"]);
@@ -23,6 +24,16 @@ const GUARDIAN_TOPIC_ADAPTER_PRIORITY = Object.freeze({
   relationship: ["sukuyo", "saju", "ziwei", "tarot", "astrology", "vedic"],
   mind: ["vedic", "astrology", "saju", "sukuyo", "tarot", "ziwei"],
   decision: ["tarot", "saju", "ziwei", "astrology", "vedic", "sukuyo"],
+});
+
+const GUARDIAN_CATEGORY_ADAPTER_PRIORITY = Object.freeze({
+  fusion: null,
+  saju: ["saju", "ziwei", "tarot", "astrology", "vedic", "sukuyo"],
+  ziwei: ["ziwei", "saju", "tarot", "astrology", "vedic", "sukuyo"],
+  vedic: ["vedic", "astrology", "saju", "tarot", "ziwei", "sukuyo"],
+  sukuyo: ["sukuyo", "tarot", "saju", "ziwei", "astrology", "vedic"],
+  astrology: ["astrology", "vedic", "saju", "tarot", "ziwei", "sukuyo"],
+  tarot: ["tarot", "saju", "ziwei", "sukuyo", "astrology", "vedic"],
 });
 
 const SENSITIVE_TEXT_PATTERNS = [
@@ -174,6 +185,7 @@ function maskGuardianFortuneInputForLog(input = {}) {
     hasBirthPlace: Boolean(input.birthPlace),
     calendarType: VALID_CALENDAR_TYPES.has(input.calendarType) ? input.calendarType : "unknown",
     topic: VALID_TOPICS.has(input.topic) ? input.topic : "unknown",
+    category: VALID_CATEGORIES.has(input.category) ? input.category : "unknown",
     mode: VALID_MODES.has(input.mode) ? input.mode : "unknown",
     locale: typeof input.locale === "string" ? input.locale.slice(0, 20) : "unknown",
     hasConcern: Boolean(input.concern),
@@ -183,9 +195,11 @@ function maskGuardianFortuneInputForLog(input = {}) {
 export {
   ADAPTER_NAMES,
   DEFAULT_TIMEZONE,
+  GUARDIAN_CATEGORY_ADAPTER_PRIORITY,
   GUARDIAN_TOPIC_ADAPTER_PRIORITY,
   MAX_CONCERN_LENGTH,
   VALID_CALENDAR_TYPES,
+  VALID_CATEGORIES,
   VALID_GENDERS,
   VALID_MODES,
   VALID_TOPICS,

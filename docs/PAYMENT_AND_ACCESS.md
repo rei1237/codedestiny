@@ -20,6 +20,15 @@
 
 ## 결제 생성 흐름
 
+### 초융합 운세 이용권 예외 정책
+
+- 상품은 `fusion_fortune_ticket_1` / `fusion_fortune_ticket`, 1개 10,000원, 결과 1회용이다.
+- 구매는 PG만 허용하며, 일반 이용권·family 이용권·무료/이벤트권·대화권·credit·price coverage·monthly entitlement는 구매 또는 이용 수단이 될 수 없다.
+- `GET|POST /api/payments/fusion-fortune/{catalog,balance,prepare,confirm}`는 전용 balance/transaction만 사용한다. 일반 entitlement 또는 price coverage는 초융합 생성 가능 여부에 조회하지 않는다.
+- PG 확인 성공 후에만 purchase transaction을 적립하며 동일 `paymentId`는 unique transaction으로 중복 적립을 막는다.
+- `/fusion-fortune#ticket`의 전용 구매 UI는 서버 catalog 가격을 표시하고 `prepare → PortOne V2 → confirm` 순서만 사용한다. 클라이언트 금액은 지급 판단에 사용하지 않으며 redirect 복귀도 같은 전용 confirm 경로에서 검증한다.
+- 실제 PG 결제 검증은 이 구현 작업에서 수행하지 않는다. 로컬 검증은 정적 정책·mock 경로만 사용한다.
+
 1. 프론트가 결제 가능한 featureKey와 사용 의도를 Worker에 보낸다.
 2. `worker/routes/billing.js`가 feature pricing, 이용권, 월정석 가능 여부를 판단한다.
 3. 결제창은 `이용권으로 구매`, `단건 결제`, `월정석`을 함께 보여야 한다.

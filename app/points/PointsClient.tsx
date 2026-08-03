@@ -2808,7 +2808,7 @@ function GuardianFortuneCreditShop({
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">오늘의 귀인 운세</p>
           <h2 id="guardian-fortune-credit-heading" className="mt-2 text-2xl font-black text-white">오늘의 귀인 운세 대화권</h2>
           <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-[color:var(--moon-mist)]">
-            무료 상담 3회를 모두 사용했다면, 대화권으로 연이와 네오에게 더 물어볼 수 있어요.
+            오늘 이용 가능한 무료 상담을 모두 사용했다면, 대화권으로 연이와 네오에게 더 물어볼 수 있어요.
           </p>
         </div>
         <p className="rounded-full border border-[color:var(--moon-rim)] px-3 py-2 text-sm font-black text-[color:var(--moon-gold)]">

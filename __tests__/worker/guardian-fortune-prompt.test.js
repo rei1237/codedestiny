@@ -43,6 +43,20 @@ describe("Guardian Fortune prompt builder", () => {
     }
   });
 
+  it("uses the selected category for expert guidance and prompt-safe adapter order", () => {
+    for (const category of ["fusion", "saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]) {
+      const context = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, category } };
+      const prompt = promptModule.buildGuardianFortunePrompt({ input: { ...fixtures.baseInput, category }, context });
+      const formatted = promptModule.formatGuardianFortuneContextForPrompt(context);
+      expect(prompt.category).toBe(category);
+      expect(prompt.userPrompt).toContain(`상담 체계: ${category}`);
+      expect(formatted).toContain(`"category": "${category}"`);
+    }
+    const tarotContext = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, category: "tarot" } };
+    const tarotFormatted = promptModule.formatGuardianFortuneContextForPrompt(tarotContext);
+    expect(tarotFormatted.indexOf('"tarot"')).toBeLessThan(tarotFormatted.indexOf('"saju"'));
+  });
+
   it("formats only allowlisted context and never includes raw birth input or concern", () => {
     const prompt = promptModule.buildGuardianFortunePrompt({ input: fixtures.baseInput, context: fixtures.mockContext });
     expect(prompt.userPrompt).toContain("합성 일간");
