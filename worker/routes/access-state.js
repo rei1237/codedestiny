@@ -1,7 +1,5 @@
-import { requireUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
-import { withMongoRetry } from "../lib/db.js";
+import { peekAccessTokenUserId, requireUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound } from "../lib/http.js";
-import { ProfileCard } from "../lib/models.js";
 import { resolveActivePassPolicy } from "../lib/profile-limits.js";
 import {
   ACCESS_STATE_USER_PROJECTION,
@@ -13,7 +11,23 @@ import {
   writeAccessStateInFlight,
 } from "../lib/access-state.js";
 
-function responseFor(state, degraded = false) {
+function responseHeaders(state) {
+  const entitlementVersion = String(state?.versions?.entitlementVersion || state?.entitlementSnapshot?.entitlementVersion || "unknown")
+    .replace(/[^a-zA-Z0-9._:-]/g, "_")
+    .slice(0, 120);
+  return {
+    "Cache-Control": "private, max-age=60, stale-while-revalidate=1800",
+    "ETag": `W/\"${entitlementVersion}\"`,
+    "Last-Modified": new Date(state?.fetchedAt || Date.now()).toUTCString(),
+    "X-Access-State-Source": String(state?.source || "db"),
+  };
+}
+
+function responseFor(state, degraded = false, request = null) {
+  const headers = responseHeaders(state);
+  if (!degraded && request?.headers?.get("If-None-Match") === headers.ETag) {
+    return new Response(null, { status: 304, headers });
+  }
   return json({
     ok: true,
     data: { ...state, degraded },
@@ -21,10 +35,7 @@ function responseFor(state, degraded = false) {
     degraded,
   }, {
     status: 200,
-    headers: {
-      "Cache-Control": "private, max-age=60, stale-while-revalidate=1800",
-      "X-Access-State-Source": String(state?.source || "db"),
-    },
+    headers,
   });
 }
 
@@ -33,6 +44,15 @@ function isAccessStateEnabled(env = {}) {
   if (configured) return ["1", "true", "yes", "on"].includes(configured);
   const nodeEnv = String(env.NODE_ENV || env.ENV || "").trim().toLowerCase();
   return nodeEnv !== "production";
+}
+
+function degradedHeaders(request, stage) {
+  return {
+    "Retry-After": "2",
+    "X-Request-ID": String(request.headers.get("x-request-id") || request.headers.get("cf-ray") || "unknown").slice(0, 120),
+    "X-CD-Error-Stage": stage,
+    "Server-Timing": `cd-error;desc=\"${stage}\"`,
+  };
 }
 
 export async function handleAccessStateRoutes(request, env) {
@@ -45,6 +65,7 @@ export async function handleAccessStateRoutes(request, env) {
     if (path !== "/") return notFound();
     if (!isAccessStateEnabled(env)) return notFound();
 
+    userId = await peekAccessTokenUserId(request, env);
     const auth = await requireUserFromRequest(request, env, {
       surfaceDbInfraError: true,
       userProjection: ACCESS_STATE_USER_PROJECTION,
@@ -54,32 +75,30 @@ export async function handleAccessStateRoutes(request, env) {
     userId = String(auth.userId || "").trim();
 
     const cached = readAccessStateCache(userId);
-    if (cached) return responseFor(cached);
+    if (cached) return responseFor(cached, false, request);
 
     const pending = readAccessStateInFlight(userId);
-    if (pending) return responseFor(await pending);
+    if (pending) return responseFor(await pending, false, request);
 
     const promise = (async () => {
       const user = auth.authUserDoc || {};
-      const profileCount = await withMongoRetry(env, () => ProfileCard.countDocuments({ userId }));
       const entitlement = resolveActivePassPolicy(user || {});
       const state = buildAccessState({
         userId,
         user: { ...user, activeEntitlement: entitlement },
-        profileCount,
         source: "db",
       });
       return writeAccessStateCache(userId, state);
     })();
     writeAccessStateInFlight(userId, promise);
     try {
-      return responseFor(await promise);
+      return responseFor(await promise, false, request);
     } finally {
       clearAccessStateInFlight(userId, promise);
     }
   } catch (error) {
     const stale = userId ? readAccessStateCache(userId, { allowStale: true }) : null;
-    if (stale) return responseFor(stale, true);
+    if (stale) return responseFor(stale, true, request);
     if (/timeout|timed out/i.test(String(error?.message || error || ""))) {
       return json({
         ok: false,
@@ -87,7 +106,7 @@ export async function handleAccessStateRoutes(request, env) {
         degraded: true,
         retryable: true,
         message: "접근 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.",
-      }, { status: 504, headers: { "Retry-After": "2" } });
+      }, { status: 504, headers: degradedHeaders(request, "db-op-timeout") });
     }
     if (isAuthDbInfraError(error) || isDbUnavailableError(error)) {
       return json({
@@ -96,7 +115,7 @@ export async function handleAccessStateRoutes(request, env) {
         degraded: true,
         retryable: true,
         message: "접근 상태를 잠시 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      }, { status: 503, headers: { "Retry-After": "2" } });
+      }, { status: 503, headers: degradedHeaders(request, "db") });
     }
     return handleRouteError(error, { env, request, trace });
   }

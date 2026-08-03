@@ -99,7 +99,8 @@ function hasCookieAuthHint() {
 }
 
 type AdsenseAccessStore = {
-  ensureLoaded: (options?: { reason?: string; authenticated?: boolean }) => Promise<unknown> | unknown;
+  getSnapshot?: () => { checkedAt?: number; status?: string };
+  subscribe?: (listener: () => void) => () => void;
   isUnlocked?: (key: string) => boolean;
 };
 
@@ -108,7 +109,7 @@ type AdsenseWindow = Window & typeof globalThis & {
 };
 
 function hasAdRemovalEntitlement(accessStore: AdsenseAccessStore | null) {
-  // AccessStore supersedes the former direct authFetch("/api/billing/balance" path.
+  // Ad removal is read only from the shared access snapshot.
   if (!accessStore || typeof accessStore.isUnlocked !== "function") return false;
   return Array.from(AD_REMOVAL_FEATURE_KEYS).some((key) => accessStore.isUnlocked?.(key) === true);
 }
@@ -122,17 +123,8 @@ async function currentViewerAllowsAdsense() {
   try {
     const accessStore = (window as AdsenseWindow).CodeDestinyAccessStore;
     if (accessStore) {
-      const result = await accessStore.ensureLoaded({ reason: "adsense-access", authenticated: true });
-      if (
-        result &&
-        typeof result === "object" &&
-        "status" in result &&
-        // Keep the explicit auth failure contract visible to the readiness guard: response.status === 401 || response.status === 403.
-        (Number((result as { status?: unknown }).status) === 401 || Number((result as { status?: unknown }).status) === 403)
-      ) {
-        clearCachedAdRemovalEntitlement();
-        return true;
-      }
+      const snapshot = accessStore.getSnapshot?.();
+      if (!snapshot || Number(snapshot.checkedAt || 0) <= 0 || snapshot.status === "loading") return false;
       const hasAdRemoval = hasAdRemovalEntitlement(accessStore);
       writeCachedAdRemovalEntitlement(hasAdRemoval);
       return !hasAdRemoval;
@@ -208,6 +200,9 @@ export default function DeferredAdsense() {
 
     scheduleRefreshViewerAdsenseState(800);
 
+    const accessStore = (window as AdsenseWindow).CodeDestinyAccessStore;
+    const unsubscribeAccessStore = accessStore?.subscribe?.(() => scheduleRefreshViewerAdsenseState(50));
+
     window.addEventListener("cd:auth-changed", handleAuthChanged);
     window.addEventListener("storage", handleStorageChanged);
 
@@ -215,6 +210,7 @@ export default function DeferredAdsense() {
       cancelled = true;
       refreshPending = false;
       if (refreshTimerId !== null) window.clearTimeout(refreshTimerId);
+      unsubscribeAccessStore?.();
       window.removeEventListener("cd:auth-changed", handleAuthChanged);
       window.removeEventListener("storage", handleStorageChanged);
     };

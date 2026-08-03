@@ -72,7 +72,7 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 
 1. 로컬 이용권 스냅샷이 커버를 확답하면 즉시 무료 통과한다.
 2. 그 외에는 결제창을 열고 `이용권으로 구매`, `단건 결제`, `월정석`을 함께 제시한다.
-3. 단건 결제 직전에도 Worker가 이용권 커버를 다시 확인한다.
+3. `이용권으로 구매`를 선택한 요청만 Worker가 이용권 커버를 최종 확인한다. `단건 결제`는 클릭 후 PortOne 주문·결제·confirm을 각각 한 번 거친다.
 4. PortOne 결제 완료/웹훅/검증 후 `Payment`, `PointHistory`, `ContentEntitlement`, `PaidExecutionRecord` 등 관련 기록을 갱신한다.
 5. 실패하면 복구/환불/월정석 복구 경로를 확인한다.
 
@@ -93,6 +93,8 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 
 - 인증 중심: `worker/routes/auth.js`, `worker/lib/auth.js`, `worker/lib/jwt.js`
 - 세션: custom JWT access/refresh token 기반으로 보이며 NextAuth 정본이 아니다.
+- 로그인·세션 복원 bootstrap: `GET /api/me/access-state` 한 번으로 사용자 식별자, 이용권, 월정석 요약, 전역 해금 목록을 중앙 snapshot에 적재한다.
+- 프로필별 잠금 조회: 실제 잠금 화면 진입 또는 명시적 재시도에서만 `CodeDestinyAccessStore.ensureLoaded()`가 `/api/access/unlocks`를 호출한다. 전역 이벤트와 광고/타일 소비자는 snapshot만 읽는다.
 - OAuth: Google, Naver, Kakao callback 경로가 Worker config와 auth route에 있다.
 - 프로필: `User.destinyProfiles`, `ProfileCard`, `/api/profile/*`, `/api/user/destiny-profiles`
 - 권한: `profileSubscription`, `ContentEntitlement`, `PaidExecutionRecord`, monthly credit lots, paid feature registry를 함께 본다.

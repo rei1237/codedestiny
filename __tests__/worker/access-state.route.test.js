@@ -6,8 +6,7 @@ import { jest } from "@jest/globals";
 
 const TEST_USER_ID = "507f1f77bcf86cd799439011";
 const requireUserFromRequest = jest.fn();
-const countDocuments = jest.fn();
-const withMongoRetry = jest.fn(async (_env, operation) => operation());
+const peekAccessTokenUserId = jest.fn();
 const resolveActivePassPolicy = jest.fn(() => ({
   isActive: true,
   tier: "premium",
@@ -23,13 +22,8 @@ beforeAll(async () => {
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireUserFromRequest,
+      peekAccessTokenUserId,
       isAuthDbInfraError: () => false,
-    })),
-    jest.unstable_mockModule("../../worker/lib/db.js", () => ({
-      withMongoRetry,
-    })),
-    jest.unstable_mockModule("../../worker/lib/models.js", () => ({
-      ProfileCard: { countDocuments },
     })),
     jest.unstable_mockModule("../../worker/lib/profile-limits.js", () => ({
       resolveActivePassPolicy,
@@ -45,7 +39,8 @@ function request() {
 
 beforeEach(() => {
   requireUserFromRequest.mockClear();
-  countDocuments.mockClear();
+  peekAccessTokenUserId.mockClear();
+  peekAccessTokenUserId.mockResolvedValue(TEST_USER_ID);
   requireUserFromRequest.mockResolvedValue({
     userId: TEST_USER_ID,
     authUserDoc: {
@@ -56,7 +51,6 @@ beforeEach(() => {
       profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
     },
   });
-  countDocuments.mockResolvedValue(2);
   invalidateAccessStateCacheForUser(TEST_USER_ID);
 });
 
@@ -74,7 +68,8 @@ test("returns the authoritative access state without calling payment providers",
     passType: "premium",
     coinBalance: 42,
     monthlyStoneBalance: 250,
-    profileCount: 2,
+    profileCount: null,
+    profileCountDeferred: true,
     maxProfileCount: 7,
     currentProfileId: "profile-main",
     source: "db",
@@ -85,10 +80,14 @@ test("returns the authoritative access state without calling payment providers",
     unlockedFeatureIds: ["fpti-premium-report"],
     monthlyBalance: { remaining: 250 },
     purchasePolicyVersion: "access-state-snapshot-v1",
+    completeness: "full",
+    authority: "server",
     source: "db",
   });
   expect(payload.data.expiresAt).toBeTruthy();
   expect(payload.data.staleUntil).toBeTruthy();
+  expect(payload.data.graceUntil).toBeTruthy();
+  expect(response.headers.get("ETag")).toBeTruthy();
 });
 
 test("keeps the production access-state route disabled unless explicitly enabled", async () => {
@@ -107,21 +106,15 @@ test("allows the production access-state route when explicitly enabled", async (
   expect(response.status).toBe(200);
 });
 
-test("joins concurrent access-state requests into one profile count query", async () => {
-  let release;
-  countDocuments.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));
-
+test("serves repeated access-state requests without a separate profile count query", async () => {
   const first = handleAccessStateRoutes(request(), {});
   const second = handleAccessStateRoutes(request(), {});
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  release(3);
   await Promise.all([first, second]);
-
-  expect(countDocuments).toHaveBeenCalledTimes(1);
+  expect(requireUserFromRequest).toHaveBeenCalledTimes(2);
 });
 
 test("returns 504 for an access-state database timeout", async () => {
-  countDocuments.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
+  requireUserFromRequest.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
 
   const response = await handleAccessStateRoutes(request(), {});
   const payload = await response.json();
@@ -129,6 +122,7 @@ test("returns 504 for an access-state database timeout", async () => {
   expect(response.status).toBe(504);
   expect(payload.code).toBe("ACCESS_STATE_TIMEOUT");
   expect(payload.retryable).toBe(true);
+  expect(response.headers.get("X-CD-Error-Stage")).toBe("db-op-timeout");
 });
 
 test("keeps stale access-state snapshot when refresh hits a transient 503", async () => {
@@ -138,7 +132,7 @@ test("keeps stale access-state snapshot when refresh hits a transient 503", asyn
   const entry = globalThis.__codeDestinyAccessStateCache.entries.get(TEST_USER_ID);
   entry.expiresAt = 0;
   entry.staleUntil = Date.now() + 60_000;
-  countDocuments.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
+  requireUserFromRequest.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
 
   const second = await handleAccessStateRoutes(request(), {});
   const payload = await second.json();
@@ -146,4 +140,18 @@ test("keeps stale access-state snapshot when refresh hits a transient 503", asyn
   expect(second.status).toBe(200);
   expect(payload.degraded).toBe(true);
   expect(payload.data.entitlementSnapshot.tier).toBe("premium");
+});
+
+test("returns 304 for a matching private entitlement version", async () => {
+  const first = await handleAccessStateRoutes(request(), {});
+  const etag = first.headers.get("ETag");
+  const conditionalRequest = new Request("https://example.com/api/me/access-state", {
+    method: "GET",
+    headers: { "If-None-Match": etag },
+  });
+  const second = await handleAccessStateRoutes(conditionalRequest, {});
+
+  expect(second.status).toBe(304);
+  expect(second.headers.get("Cache-Control")).toContain("private");
+  expect(second.headers.get("Cache-Control")).not.toContain("public");
 });

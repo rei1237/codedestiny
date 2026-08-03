@@ -541,8 +541,6 @@ const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 for (const marker of [
   "SAJU_ACCESS_CONTENT_KEY_BY_FEATURE_KEY",
   "잠금 해제 상태 확인 중",
-  "/api/billing/saju-analysis/entitlements?",
-  "/api/access/unlocks?",
   "SAJU_UNLOCK_CONFIRM_DELAYS_MS = [500, 1500, 3000]",
   "SAJU_VERIFIED_UNLOCK_HOLD_TTL_MS = 15000",
   "sajuVerifiedUnlockHoldMap",
@@ -569,6 +567,19 @@ for (const marker of [
 ]) {
   assert.ok(indexHtml.includes(marker), `UI/access marker exists: ${marker}`);
 }
+assert.ok(
+  !indexHtml.includes("/api/billing/saju-analysis/entitlements?"),
+  "static shell must not call the legacy Saju entitlement endpoint directly",
+);
+assert.ok(
+  !indexHtml.includes("/api/access/unlocks?"),
+  "static shell must not own direct unlock requests",
+);
+const accessStoreSource = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
+assert.ok(
+  accessStoreSource.includes("/api/access/unlocks?profileId="),
+  "AccessStore remains the single owner of unlock snapshot requests",
+);
 assert.ok(!indexHtml.includes("이용권으로 사용"), "payment selector must not offer pass usage inside modal");
 
 const billingSource = fs.readFileSync(path.join(root, "worker/routes/billing.js"), "utf8");

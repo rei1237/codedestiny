@@ -759,6 +759,29 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     };
   }
 
+  if (!requiresMeteredPassWrite(usage.tier)) {
+    return {
+      ok: true,
+      idempotent: false,
+      tier: usage.tier,
+      passTier: usage.tier,
+      accessMethod: "pass",
+      transactionType: "membership_pass",
+      accessType: "membership_pass",
+      requestId: normalizedRequestId,
+      idempotencyKey: normalizedRequestId,
+      featureKey,
+      profileId,
+      coinCost,
+      amountKRW,
+      user: {
+        id: String(authUserId || ""),
+        points: Number(user?.points || 0),
+        profileSubscription: user?.profileSubscription || null,
+      },
+    };
+  }
+
   const now = new Date();
   const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
   const tierMatchValues = buildPassTierMatchValues(usage.tier);
@@ -1903,6 +1926,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
   if (!authUserId || !featureKey || !normalizedRequestId) return null;
   const normalizedAccessMethod = String(body?.accessMethod || "").trim().toUpperCase() === "FAMILY" ? "FAMILY" : "PASS";
   const normalizedAccessType = normalizedAccessMethod === "FAMILY" ? "family" : "membership_pass";
+  if (normalizedAccessMethod !== "FAMILY") return null;
 
   await connectDb(env);
   const existing = await PointHistory.findOne({
@@ -2875,6 +2899,16 @@ function shouldCreateDirectPortOneOrder(body = {}) {
     || paymentMode === "single"
     || isTruthyFlag(body?.forceDirectPayment)
     || (provider === "portone_v2" && (pg === "kg_inicis" || pg === "kg-inicis" || pg === "inicis"));
+}
+
+function shouldApplyMembershipPassBeforeCard(body = {}) {
+  if (shouldCreateDirectPortOneOrder(body)) return false;
+  const paymentMode = String(body?.paymentMode || body?.accessMode || body?.mode || "").trim().toLowerCase();
+  return paymentMode === "membership_pass" || paymentMode === "membership";
+}
+
+function requiresMeteredPassWrite(tier) {
+  return normalizePassTier(tier) === "family";
 }
 
 function isSajuPdfGenerationFeatureKey(featureKey) {
@@ -6317,14 +6351,8 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
   return success(payload, toMessage(payload, "결제 요청이 성공했습니다."));
 }
 
-// 🔴 이용권 최종 안전망. 카드 주문이 만들어지기 전 마지막 관문이며, **결제수단을 명시했더라도**
-// 이용권이 커버하면 커버가 이긴다. 예전에는 여기 맨 앞에 `shouldCreateDirectPortOneOrder(body)` 조기
-// 반환이 있어서 DIRECT_KRW(=provider PORTONE_V2 + pg KG_INICIS)를 보내면 안전망이 스스로 꺼졌다.
-// 그때는 프론트 선검사가 그 앞을 막고 있어 드러나지 않았지만, 선검사가 사라진 지금은 스냅샷 없는
-// 이용권 보유자(새 기기·시크릿창·저장소 삭제·타 기기에서 방금 구매)가 자기 이용권으로 무료인
-// 콘텐츠를 카드로 결제하게 된다. 커버되지 않는 건은 아래 `canUseByPass` 검사가 그대로 걸러내므로
-// (이용권 제외 기능 `profile-card-manage` 포함) 이 관문이 넓히는 범위는 "커버되는데 카드로 결제하려는
-// 경우" 하나뿐이고, 그 경우의 결론은 항상 사용자에게 유리한 쪽(무료)이다.
+// Existing permanent unlocks may bypass duplicate payment. An explicit DIRECT_KRW
+// choice must never be converted to pass access before the PortOne flow.
 async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {}, authCheckOverride = null, pricingResultOverride = null) {
   const pricingResult = pricingResultOverride || resolvePricingFromBody(body);
   if (!pricingResult?.ok) return null;
@@ -6385,6 +6413,8 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {},
       }, "ALREADY_UNLOCKED");
     }
   }
+
+  if (!shouldApplyMembershipPassBeforeCard(body)) return null;
 
   const subscriptionPass = await getMembershipPassForBillingRequest(
     request,
@@ -6628,8 +6658,6 @@ async function handleCheckout(request, env) {
   }
   let delegatedBody = body;
   if (!isSubscription) {
-    // 결제수단을 DIRECT_KRW 로 명시했더라도 이용권 커버 검사를 건너뛰지 않는다 — 여기가 카드 주문이
-    // 생성되기 전 마지막 지점이다(자세한 근거는 grantPassFreeAccessBeforeCardIfAvailable 주석).
     {
       const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(
         request,
@@ -6719,9 +6747,8 @@ async function handleConfirm(request, env) {
   if (!confirmAuthCheck.ok) return replaceConfirmAuthFailureMessage(confirmAuthCheck.response);
   let delegatedBody = body;
   let delegatedPricing = pricingResult?.pricing || null;
-  // 결제수단 명시(DIRECT_KRW)는 더 이상 이용권 검사를 끄지 않는다. 다만 이미 PG 결제가 끝나
-  // 검증 페이로드(impUid/paymentId 등)가 실린 요청은 그대로 검증·기록해야 한다 — 돈이 움직인 뒤에
-  // 이용권 무료로 바꾸면 그 결제가 고아가 된다.
+  // A confirm request without provider evidence may only apply an explicitly chosen pass.
+  // DIRECT_KRW always continues to provider verification and can never become PASS_FREE here.
   if (!isSubscription && !hasPaymentVerificationPayload) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(
       request,
@@ -6930,6 +6957,9 @@ export const __billingTestUtils = {
   buildRefundedSpendSourceId,
   isPassExcludedPricing,
   isExplicitLegacyCoinPaymentMode,
+  shouldCreateDirectPortOneOrder,
+  shouldApplyMembershipPassBeforeCard,
+  requiresMeteredPassWrite,
   requireBillingAuth,
   resolvePaidContentAccess,
 };

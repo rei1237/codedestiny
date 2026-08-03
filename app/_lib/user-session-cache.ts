@@ -14,7 +14,8 @@ export type AccessStateData = {
   coinBalance: number;
   monthlyStoneBalance?: number;
   membershipCreditBalance?: number;
-  profileCount: number;
+  profileCount: number | null;
+  profileCountDeferred?: boolean;
   maxProfileCount: number;
   currentProfileId?: string;
   unlockedFeatureIds?: string[];
@@ -29,6 +30,10 @@ export type AccessStateData = {
   fetchedAt?: string;
   expiresAt?: string;
   staleUntil?: string;
+  graceUntil?: string;
+  completeness?: "full" | "partial";
+  authority?: "server" | "cache";
+  adminStaleGraceAllowed?: boolean;
   source: "db" | "cache" | "stale-cache";
   checkedAt: string;
   degraded?: boolean;
@@ -246,7 +251,7 @@ function responseFromCached(entry: CachedResponse) {
 }
 
 function getCacheTtlMs(kind: CacheKind) {
-  if (kind === "accessState") return 5000;
+  if (kind === "accessState") return 60_000;
   if (kind === "entitlement") return SUBSCRIPTION_STATUS_CACHE_TTL_MS;
   if (kind === "session") return 300_000;
   if (kind === "profile") return 120_000;
@@ -272,19 +277,6 @@ function guardedGuestAuthResponse() {
       "X-Code-Destiny-Client-Guard": REQUEST_GUARD_MARKER,
     },
   });
-}
-
-async function hasAuthenticatedSession(response: Response | null) {
-  if (!response?.ok) return false;
-  try {
-    const payload = await response.clone().json() as Record<string, unknown>;
-    const nested = payload.data && typeof payload.data === "object" ? payload.data as Record<string, unknown> : null;
-    if (payload.authenticated === false || payload.loggedIn === false || nested?.authenticated === false) return false;
-    if (payload.authenticated === true || payload.loggedIn === true || nested?.authenticated === true) return true;
-    return Boolean(payload.user || payload.account || nested?.user || nested?.account || resolveUserKey() !== "guest");
-  } catch {
-    return resolveUserKey() !== "guest";
-  }
 }
 
 function updateStatus(kind: CacheKind, status: UserAccessSnapshot["profileStatus"], error?: string | null) {
@@ -425,10 +417,6 @@ async function ensureUserAccessLoadedUncached(options: { force?: boolean; includ
       "X-Code-Destiny-Client": "app:user-session-cache",
     },
   };
-  const authResponse = await fetch("/api/auth/me", init).catch(() => null);
-  const hasSession = await hasAuthenticatedSession(authResponse);
-  if (!hasSession) return getUserAccessSnapshot();
-
   const accessResponse = await authFetch("/api/me/access-state", init, {
     clientSource: "app:user-session-cache",
   }).catch(() => null);

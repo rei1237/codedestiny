@@ -103,6 +103,29 @@ export function getRequestMeta(request) {
   };
 }
 
+function resolveErrorStage(error, context = {}) {
+  const code = String(error?.code || "").toUpperCase();
+  const message = String(error?.message || error || "");
+  const trace = context?.trace || {};
+  if (code === "MONGO_OPERATION_ADMISSION_TIMEOUT") return "db-op-admission";
+  if (/operation timed out|timed out in Worker/i.test(message)) return "db-op-timeout";
+  if (trace.paymentProviderFailed || /portone|payment provider/i.test(message)) return "payment-provider";
+  if (trace.authPresent && !trace.authVerified) return "auth";
+  if (isDbUnavailableError(error)) return "db";
+  return "route";
+}
+
+function errorResponseHeaders(error, context = {}) {
+  const requestMeta = context?.request ? getRequestMeta(context.request) : null;
+  return {
+    "X-Error-Code": "SERVICE_UNAVAILABLE",
+    "X-Request-ID": String(requestMeta?.requestId || "unknown"),
+    "X-CD-Error-Stage": resolveErrorStage(error, context),
+    "Server-Timing": `cd-error;desc=\"${resolveErrorStage(error, context)}\"`,
+    "Retry-After": "2",
+  };
+}
+
 function resolveRequestPathFromContext(context = {}) {
   const fromTrace = String(context?.trace?.requestPath || "").trim();
   if (fromTrace) return fromTrace;
@@ -245,9 +268,7 @@ export async function handleRouteError(error, context = {}) {
       },
     }, {
       status: 503,
-      headers: {
-        "X-Error-Code": "SERVICE_UNAVAILABLE",
-      },
+      headers: errorResponseHeaders(error, context),
     });
   }
 

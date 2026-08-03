@@ -13871,21 +13871,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     var stateForHydrate = window._sySukuyoYearlyReading || reading || {};
     syBindSukuyoYearlyUnlockButton(stateForHydrate);
-
-    // 자동 하이드레이션은 "아직 이 조건으로 그려진 적 없는 화면"에만 건다.
-    // 렌더 완료 표식을 DOM(#syYearlyFortuneContent)에 남기므로, 모달을 다시 열어 화면이
-    // 새로 그려지면 표식이 사라져 정상적으로 다시 불러온다(종전 전역 키 방식은 두 번째
-    // 열람에서 로딩 문구에 그대로 멈췄다).
-    var content = document.getElementById('syYearlyFortuneContent');
-    if (!content) return;
-    var hydrateProfileId = syResolveSukuyoYearlyProfileId(stateForHydrate);
-    var hydrateYear = String((document.querySelector('[data-sy-yearly-input]') || {}).value || stateForHydrate.targetYear || '');
-    if (!/^\d{4}$/.test(hydrateYear)) return;
-    var hydrateKey = syBuildSukuyoYearlyHydrateKey(hydrateProfileId, hydrateYear);
-    if (content.getAttribute('data-sy-yearly-rendered') === hydrateKey) return;
-    if (window._sySukuyoYearlyInFlightKey) return;
-    if (Number(window._sySukuyoYearlyAutoRetryAt || 0) > Date.now()) return;
-    syHydrateSukuyoYearlyFortune(stateForHydrate);
   }
 
   function syBindSukuyoYearlyUnlockButton(reading) {

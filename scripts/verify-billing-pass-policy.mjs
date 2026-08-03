@@ -29,6 +29,7 @@ const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "u
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const tarotPromptMakerSource = readFileSync(resolve(root, "app/tarot/prompt-maker/page.tsx"), "utf8");
 const pointsSourcePath = existsSync(resolve(root, "app/points/PointsClient.tsx"))
@@ -81,7 +82,7 @@ function assertPaidFallback(result, label) {
 }
 
 function finalAccess(result, requestedMode = "monthly") {
-  if (result.canUseByPass) {
+  if (requestedMode === "pass" && result.canUseByPass) {
     return {
       ok: true,
       accessMethod: "PASS",
@@ -158,8 +159,7 @@ assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard 
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
 assert.equal(standard30.passLimitKRW, 3000, "standard 30 passLimitKRW");
 assertPassFree(standard30, "standard 30");
-assertFinalPass(standard30, "monthly", "standard 30 requested monthly");
-assertFinalPass(standard30, "card", "standard 30 requested card");
+assertFinalPass(standard30, "pass", "standard 30 requested pass");
 
 const standard50 = decision({
   pass: activePass(PASS_TIERS.STANDARD),
@@ -174,7 +174,7 @@ const premium50 = decision({
   monthlyBalance: 500,
 });
 assertPassFree(premium50, "premium 50");
-assertFinalPass(premium50, "monthly", "premium 50 requested monthly");
+assertFinalPass(premium50, "pass", "premium 50 requested pass");
 
 const vvip100 = decision({
   pass: activePass(PASS_TIERS.VVIP),
@@ -182,7 +182,7 @@ const vvip100 = decision({
   monthlyBalance: 1000,
 });
 assertPassFree(vvip100, "vvip 100");
-assertFinalPass(vvip100, "card", "vvip 100 requested card");
+assertFinalPass(vvip100, "pass", "vvip 100 requested pass");
 
 const vvip200 = decision({
   pass: activePass(PASS_TIERS.VVIP),
@@ -202,7 +202,7 @@ assert.equal(normalizePassTier("family_1m"), PASS_TIERS.FAMILY, "family plan id 
 assert.equal(normalizePassTier("honey_family"), PASS_TIERS.FAMILY, "honey family plan id normalizes to family pass");
 assert.equal(family690.canUseByPass, true, "family 690: canUseByPass");
 assert.equal(family690.canUseByMonthly, false, "family 690: monthly fallback is unnecessary without balance");
-assertFinalPass(family690, "card", "family 690 requested card");
+assertFinalPass(family690, "pass", "family 690 requested pass");
 
 const familyStatusSnapshotPass = __billingTestUtils.buildMembershipPassFromStatusSnapshot({
   isActive: true,
@@ -550,40 +550,33 @@ assertBefore(
   checkoutSource,
   "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(",
   'const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";',
-  "PASS is checked before card checkout prepare",
+  "the explicit pass helper runs before checkout delegation",
 );
 assertBefore(
   confirmSource,
   "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(",
   'const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";',
-  "PASS is checked before card confirm",
+  "the explicit pass helper runs before confirm delegation",
 );
-assertContains(billingSource, 'if (passAccess) return passAccess;', "card request stops when PASS is available");
+assertContains(billingSource, 'if (passAccess) return passAccess;', "an explicit pass response stops payment delegation");
 assertContains(billingSource, '"/api/payments/prepare"', "single card prepare path remains");
 assertContains(billingSource, '"/api/payments/confirm"', "single card confirm path remains");
 assertContains(checkoutSource, "preverifiedAuth: checkoutAuthCheck.auth", "checkout delegates its verified auth without a second User lookup");
 assertContains(confirmSource, "preverifiedAuth: confirmAuthCheck.auth", "confirm delegates its verified auth without a second User lookup");
 assertContains(paymentsSource, "const auth = delegatedAuth?.userId", "payments accepts only an internally delegated verified auth object");
 
-// 🔴 이용권 보유자 과금 방지 — 결제수단을 DIRECT_KRW 로 명시해도 이용권 커버가 이긴다.
-//
-// 위 finalAccess 모델은 이미 "card 를 요청해도 커버되면 accessMethod:PASS / charged:0 / cardCreated:false"
-// 를 단언한다(assertFinalPass(standard30, "card", …)). 그런데 실제 라우트에는 그 모델을 배신하는 조기
-// 반환이 있었다 — grantPassFreeAccessBeforeCardIfAvailable 맨 앞의 shouldCreateDirectPortOneOrder 바일아웃과,
-// handleCheckout/handleConfirm 이 그 호출을 !directPaymentRequested 로 감싼 것. 프론트 이용권 선검사가
-// 사라진 뒤로는 이 구멍이 곧 "스냅샷 없는 이용권 보유자가 카드로 결제" 사고가 되므로 소스에 고정한다.
-assertNotContains(
+// 결제수단 선택은 명시적이다. DIRECT_KRW는 PortOne으로, MEMBERSHIP_PASS만 이용권 적용으로 간다.
+assertContains(
   billingSource,
-  "if (shouldCreateDirectPortOneOrder(body)) return null;",
-  "PASS safety net must not disable itself when DIRECT_KRW is requested",
+  "if (shouldCreateDirectPortOneOrder(body)) return false;",
+  "DIRECT_KRW must never be converted to membership-pass access",
 );
-assertNotContains(
+assertContains(
   billingSource,
-  "const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);",
-  "checkout/confirm must not gate the PASS safety net behind an explicit direct-payment flag",
+  "if (!shouldApplyMembershipPassBeforeCard(body)) return null;",
+  "only an explicit membership-pass choice may apply a pass before card checkout",
 );
-// 다만 이미 PG 결제가 끝나 검증 페이로드가 실린 confirm 요청은 그대로 검증·기록해야 한다.
-// 돈이 움직인 뒤에 이용권 무료로 바꾸면 그 결제가 고아가 된다.
+// 이미 PG 결제가 끝나 검증 페이로드가 실린 confirm 요청은 그대로 검증·기록한다.
 assertContains(
   billingSource,
   "if (!isSubscription && !hasPaymentVerificationPayload) {",
@@ -693,8 +686,7 @@ assertContains(
   "payment confirmation must keep showing something (now the 'applied' frame, not a checking frame)",
 );
 assertContains(indexSource, "if (bodyMode === 'MEMBERSHIP_PASS') return { type: 'payment', mode: 'pass'", "membership pass check keeps its own wait overlay");
-// 사전발급은 결제수단 모달을 덮지 않도록 무음이어야 하고, 클릭을 절대 늦추지 않아야 한다
-// (진행 중인 사전발급을 await 하면 그 대기가 곧 '너무 느리다'+'네트워크 오류'가 된다).
+// checkout POST는 결제수단 모달에서 발급하지 않고 명시적인 단건 클릭에서만 한 번 실행한다.
 // 🔴 이용권 선검사가 '미커버'로 결론난 뒤에 대기 화면을 한 번 더 띄우지 않는다. 예전에는 React
 // 결제 클라이언트가 status:"loadingProducts" 를 셸 게이트로 보냈고, 셸 카피 해석기가 그것을
 // access_check.single 로 매핑해 '결제 상태 확인 중 / 단건으로 카드 결제를 준비 중이에요' 화면을
@@ -715,22 +707,31 @@ assertContains(billingClientSource, '_cdRunDirectKrwCheckout?: PaidServiceRuntim
 assertContains(billingClientSource, 'let parsed: BillingResult<BillingCoinGateData> = explicitDirectMode', "React explicit DIRECT_KRW must skip the redundant coin-gate probe");
 assertContains(billingClientSource, '(!explicitPaymentMode || explicitDirectMode)', "explicit DIRECT_KRW must be allowed through the payment runtime fallback");
 
-assertContains(indexSource, "__cdSuppressPaymentOverlay: true", "direct checkout prefetch must be silent");
-assertContains(indexSource, "prefetch.settled === true", "direct checkout must reuse the prefetch only when it already settled (never await a pending one)");
-assertNotContains(indexSource, "var settled = await prefetch.promise;", "direct checkout must not block on a pending prefetch");
+assertNotContains(indexSource, "_cdStartDirectCheckoutPrefetch", "the payment-choice modal must not pre-issue a checkout order");
+assertNotContains(indexSource, "__cdDirectCheckoutPrefetch", "the static shell must not retain checkout POST prefetch state");
+assertNotContains(destinyProfileSource, "_dpStartDirectCheckoutPrefetch", "the React bridge must not pre-issue a checkout order");
+assertNotContains(destinyProfileSource, "__cdDirectCheckoutPrefetch", "the React bridge must not retain checkout POST prefetch state");
+assert.equal((indexSource.match(/fetchJsonWithAuth\('\/api\/billing\/checkout'/g) || []).length, 1, "the static shell owns exactly one checkout POST call site");
+assert.equal((destinyProfileSource.match(/_dpPaymentFetchJson\('\/api\/billing\/checkout'/g) || []).length, 1, "the React bridge owns exactly one checkout POST call site");
+const staticDirectCheckoutSource = indexSource.slice(indexSource.indexOf("async function _cdRunDirectKrwCheckout("), indexSource.indexOf("async function _cdRunMonthlyCreditGate(", indexSource.indexOf("async function _cdRunDirectKrwCheckout(")));
+const bridgeDirectCheckoutSource = destinyProfileSource.slice(destinyProfileSource.indexOf("window._cdRunDirectKrwCheckout = async function("), destinyProfileSource.indexOf("window._cdRunDirectKrwCheckout = _dpRunDirectKrwCheckoutGuarded;", destinyProfileSource.indexOf("window._cdRunDirectKrwCheckout = async function(")));
+assertNotContains(staticDirectCheckoutSource, "ApplyMembershipPassBeforePayment", "static DIRECT_KRW must not switch to pass access");
+assertNotContains(bridgeDirectCheckoutSource, "ApplyMembershipPassBeforePayment", "React DIRECT_KRW must not switch to pass access");
 
 // 🔴 게이트 재제안 루프(_cdGateAttempt, 최대 4회)가 같은 requestId 를 Idempotency-Key 로 재사용하면
 // 서버가 같은 주문(merchantUid)을 멱등 반환하고, PortOne 이 **paymentId 중복**을 결제창 렌더 전에
 // 거절한다 → "첫 실패 후에는 몇 번 눌러도 결제창이 안 뜬다". 시도별 키 파생을 고정한다.
 assertContains(indexSource, "var _cdAttemptIdempotencyKey = requestId + ':a' + _cdGateAttempt;", "each payment attempt must derive its own Idempotency-Key (duplicate paymentId = PG window never opens)");
-assertContains(indexSource, "idempotencyKey: _cdAttemptIdempotencyKey", "the per-attempt key must reach both the choice modal (prefetch) and the direct checkout call");
+assertContains(indexSource, "idempotencyKey: _cdAttemptIdempotencyKey", "the per-attempt key must reach the explicit direct checkout call");
 assertContains(indexSource, "checkoutPayload.idempotencyKey || opts.idempotencyKey || checkoutPayload.requestId", "the payload builder must prefer the per-attempt key over the loop-stable requestId");
 // 중복 코드로 거절되면 새 키로 1회 재시도해 사용자가 고착되지 않게 한다.
 assertContains(indexSource, "_cdIsPortOneDuplicatePaymentCode", "duplicate paymentId rejection must be detected and retried once with a fresh key");
 assertContains(indexSource, "__cdDuplicatePaymentRetry", "the duplicate-paymentId retry must be bounded to a single attempt");
 // 503 폭풍에서 주문 발급 POST 가 브레이크 없이 재발사되지 않게 한다(쿨다운은 원래 GET 전용이었다).
 assertContains(indexSource, "normalizedMethod === 'POST' && String(pathname || '').indexOf('/api/billing/checkout') === 0) return true", "checkout POST needs a 503 breaker (cooldown used to be GET-only)");
-assertContains(indexSource, "readApiCooldown('/api/billing/checkout') > Date.now()) return;", "prefetch must not fire while checkout is cooling down");
+assertContains(indexSource, "if (normalizedMethod !== 'GET' && normalizedMethod !== 'HEAD') return false;", "automatic network retries must be limited to read requests");
+assertContains(indexSource, "if (response.status === 401 && (normalizedMethod === 'GET' || normalizedMethod === 'HEAD'))", "401 refresh replay must not repeat payment POST requests");
+assertContains(destinyProfileSource, "retryTransient: requestMethod === 'GET' && opts.retryTransient === true", "React payment POST requests must not opt into transient retries");
 // 진단 로그는 콘솔에서 'Object' 로 접히면 쓸모가 없다 — 한 줄 문자열이어야 한다.
 assertContains(indexSource, "'[direct-checkout] PortOne requestPayment failed'\n            + ' code='", "PortOne failure must be logged as one flat line (an object collapses to 'Object' in the console)");
 // PG 호출 직전에는 아무것도 끼우지 않는다(한 프레임이라도 끼면 user-gesture 소멸에 가까워진다).

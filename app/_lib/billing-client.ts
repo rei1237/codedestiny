@@ -3736,9 +3736,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // 판정 근거는 로컬 구독 스냅샷뿐이고, 스냅샷이 커버/미커버를 확답하지 못하면 기다리지 않고
     // 곧바로 결제창을 연다. 예전에는 여기서 /api/billing/unlock-status 를 기다렸고, 그 대기가 곧
     // 사용자가 결제창을 만나기까지의 지연이었다.
-    // 안전성: ① 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 서버로 수행하고
-    //        ② 카드 주문 직전 서버가 grantPassFreeAccessBeforeCardIfAvailable 로 한 번 더 검사하므로
-    //        스냅샷이 없는 이용권 보유자도 결제되지 않는다.
+    // 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 서버로 수행한다.
+    // 단건 결제 선택은 이용권으로 자동 전환하지 않고 PortOne 경로를 그대로 따른다.
     //
     // 단, **영구 해금(unlock/pdf) 기능은 예외로 이 조회를 유지한다.** 이 조회는 이용권만 보는 게 아니라
     // "이미 해금한 콘텐츠인가"(access.canAccess)도 함께 답하는데, React 쪽에는 셸의 isTileKeyUnlocked 같은
@@ -4072,8 +4071,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
     // 과금 없는 pass 확인은 재시도까지 합쳐 6초를 넘기지 않는다. 확인이 더 늦어지면 붙잡는 대신 결제창을 연다.
     const coinGatePassProbeDeadline = coinGateMayDeduct ? Number.POSITIVE_INFINITY : Date.now() + COIN_GATE_PASS_PROBE_BUDGET_MS;
-    // DIRECT_KRW를 이미 고른 뒤에는 coin-gate 402를 한 번 더 받을 이유가 없다. 카드 주문 직전
-    // /api/billing/checkout가 이용권 커버를 서버에서 다시 확인하므로 곧바로 그 경로로 넘긴다.
+    // DIRECT_KRW를 이미 고른 뒤에는 coin-gate 402를 한 번 더 받을 이유가 없다.
+    // 선택한 단건 결제의 checkout 경로로 곧바로 넘긴다.
     let parsed: BillingResult<BillingCoinGateData> = explicitDirectMode
       ? {
           ok: false,

@@ -1328,7 +1328,7 @@
 
             lastResult = result;
 
-            if (response.status === 401 && _dpShouldTryRefresh(pathname, opts)) {
+            if (method === 'GET' && response.status === 401 && _dpShouldTryRefresh(pathname, opts)) {
               return _dpRefreshAuthSessionSilently({ timeoutMs: opts.timeoutMs }).then(function(refreshed) {
                 if (!refreshed) return result;
                 return _dpFetchWithTimeout(candidate.url, requestInit, opts.timeoutMs)
@@ -1375,7 +1375,7 @@
             }
 
             if (cooldownEnabled) _dpMarkCooldown(pathname, response.status, looksHtml);
-            var hasNext = index < candidates.length - 1;
+            var hasNext = method === 'GET' && index < candidates.length - 1;
             /* 후보 베이스 순회는 "이 API 주소가 틀렸다"를 위한 장치다. 그런데 워커가 내는 JSON 503은
                "DB가 잠시 아프다"는 degraded 신호이고, 후보(상대경로·origin·workers.dev)는 전부 같은
                워커·같은 클러스터로 가므로 순회해봐야 똑같이 503이다. 요청·콘솔오류·DB부하만 후보 수만큼
@@ -1406,7 +1406,7 @@
           };
 
           if (cooldownEnabled) _dpMarkCooldown(pathname, 0, false);
-          if (index < candidates.length - 1) return attempt(index + 1);
+          if (method === 'GET' && index < candidates.length - 1) return attempt(index + 1);
           return lastResult;
         });
     }
@@ -2689,9 +2689,9 @@
       { 'Content-Type': 'application/json' },
       requestInit.headers || {}
     ));
-    var isCoinGate = /\/api\/billing\/coin-gate$/.test(String(pathname || ''));
+    var requestMethod = String(requestInit.method || 'GET').toUpperCase();
     var retryOptions = Object.assign({}, opts, {
-      retryTransient: opts.retryTransient === true || isCoinGate,
+      retryTransient: requestMethod === 'GET' && opts.retryTransient === true,
       maxTransientRetries: opts.maxTransientRetries == null ? 1 : opts.maxTransientRetries,
     });
     if (typeof window.fetchJsonWithAuth === 'function') {
@@ -2700,7 +2700,7 @@
       }, retryOptions, _dpNormalizeBillingFetchResult);
     }
     return _dpFetchJsonWithFallback(pathname, requestInit, Object.assign({
-      retryOn401: true,
+      retryOn401: requestMethod === 'GET',
       // 셸이 없는 App Router 페이지에서 쓰이는 폴백 경로다. 셸의 resolveTimeoutMs 는 결제 POST
       // (coin-gate/checkout/confirm)에 25s 를 주는데 여기가 20s 라 어긋나 있었다 — 공유혀 Mongo 에서
       // 클라가 먼저 끊으면 status 0 → "네트워크 오류" 로 PG창이 안 열리고, confirm 이 끊기면
@@ -3072,9 +3072,7 @@
     try { _dpPortOneV2SdkPromise(); } catch (_) {}
   }
 
-  // 단건 checkout 본문 정본. 사전발급(결제수단 모달을 여는 시점)과 클릭 시 실제 요청이 **같은 본문·같은
-  // 멱등키**를 써야 서버가 같은 주문으로 묶어준다. 예전에는 이 조립이 _cdRunDirectKrwCheckout 안에만
-  // 있어서 사전발급 자체가 불가능했고, 클릭 이후에야 checkout 왕복이 시작됐다(React 경로 최대 지연).
+  // 단건 checkout 본문 정본. 명시적인 단건 선택 뒤 한 번만 주문을 발급한다.
   function _dpBuildDirectCheckoutPayload(options) {
     var opts = options || {};
     var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
@@ -3112,73 +3110,14 @@
     return { checkoutPayload: checkoutPayload, coinPrice: coinPrice, amountKrw: amountKrw, featureKey: directFeatureKey };
   }
 
-  // 정적 셸(index.html)의 __cdDirectCheckoutPrefetch 와 같은 규칙·같은 전역 슬롯을 쓴다(구현을 두 벌
-  // 두지 않는다). 사용자가 결제수단을 읽는 동안 주문을 미리 발급해 두고, 단건을 고르면 그 응답을 쓴다.
-  // 월정석/취소로 닫히면 발급된 주문은 그냥 버려진다(구독 prepare 가 이미 쓰는 트레이드오프).
-  function _dpResetDirectCheckoutPrefetch() {
-    window.__cdDirectCheckoutPrefetch = null;
-  }
-
-  function _dpStartDirectCheckoutPrefetch(checkoutPayload) {
-    try {
-      var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
-      if (!key) return;
-      var existing = window.__cdDirectCheckoutPrefetch;
-      if (existing && existing.key === key) return;
-      var slot = { key: key, settled: false, value: null, promise: null };
-      window.__cdDirectCheckoutPrefetch = slot;
-      slot.promise = _dpPaymentFetchJson('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Idempotency-Key': key },
-        body: JSON.stringify(checkoutPayload),
-        // 사전발급은 결제수단 모달 뒤에서 조용히 끝나야 한다 — 셸의 전역 fetch 오버레이가 모달을 덮지 않게.
-        __cdSuppressPaymentOverlay: true,
-      }).then(function(res) {
-        slot.settled = true;
-        slot.value = { ok: true, res: res };
-        return slot.value;
-      }, function(error) {
-        slot.settled = true;
-        slot.value = { ok: false, error: error };
-        return slot.value;
-      });
-    } catch (_dpPrefetchError) {
-      _dpResetDirectCheckoutPrefetch();
-    }
-  }
-
-  // 사전발급이 끝났으면 그대로 재사용(왕복 0), 아직 진행 중이면 새 요청과 **경합**시켜 먼저 도착한
-  // 응답을 쓴다. 같은 Idempotency-Key 라 서버가 멱등 처리하므로 두 요청이 겹쳐도 주문은 하나다.
-  //
-  // 🔴 value.ok 는 "promise 가 reject 되지 않았다"일 뿐 HTTP 성공이 아니다. _dpPaymentFetchJson 은
-  // 401/402/503/타임아웃도 reject 하지 않고 { ok:false } 로 resolve 하므로(_dpNormalizeBillingFetchResult),
-  // value.ok 로 판정하면 **실패한 사전발급이 정답으로 재사용**된다. 사전발급은 결제수단 모달 뒤에서
-  // 조용히 돌아 실패가 보이지 않다가, 단건을 고르는 순간 '결제 준비에 실패했습니다'로 터져 PG창이
-  // 영영 안 뜬다. 판정은 반드시 안쪽 응답의 HTTP 성공(value.res.ok)으로 한다 — 실패면 fresh 로 넘긴다.
-  function _dpIsUsableCheckoutPrefetch(value) {
-    return Boolean(value && value.res && value.res.ok === true);
-  }
-
+  // 결제 POST는 사전발급하거나 자동 재시도하지 않는다. 클릭 한 번과 주문 한 번을 대응시킨다.
   function _dpTakeDirectCheckoutResponse(checkoutPayload) {
     var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
-    var prefetch = window.__cdDirectCheckoutPrefetch;
-    _dpResetDirectCheckoutPrefetch();
-    var reusable = key && prefetch && prefetch.key === key;
-    if (reusable && prefetch.settled === true && _dpIsUsableCheckoutPrefetch(prefetch.value)) {
-      return Promise.resolve(prefetch.value.res);
-    }
-    var fresh = _dpPaymentFetchJson('/api/billing/checkout', {
+    return _dpPaymentFetchJson('/api/billing/checkout', {
       method: 'POST',
       headers: key ? { 'Idempotency-Key': key } : undefined,
       body: JSON.stringify(checkoutPayload),
     });
-    if (!reusable || prefetch.settled === true || !prefetch.promise || typeof prefetch.promise.then !== 'function') return fresh;
-    return Promise.race([
-      prefetch.promise.then(function(value) {
-        return _dpIsUsableCheckoutPrefetch(value) ? value.res : fresh;
-      }, function() { return fresh; }),
-      fresh
-    ]);
   }
 
   // 서버 trimUtf8Bytes(worker/routes/payments.js)와 같은 규칙. 이니시스 orderName 제한은
@@ -3633,17 +3572,12 @@
         // 스냅샷이 커버를 확답하면 위에서 이미 무료로 통과했고, 확답하지 못하면 기다리지 않고 곧바로
         // 결제창을 연다. 예전에는 여기서 __cdApplyMembershipPassBeforePayment 를 6초 예산 + 재시도 2회로
         // 두드렸고, 그 대기가 곧 사용자가 결제창을 만나기까지의 지연이었다.
-        // 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 수행하고, 카드 주문 직전 서버가
-        // grantPassFreeAccessBeforeCardIfAvailable 로 한 번 더 검사한다.
+        // 이용권 확인은 결제창의 '이용권으로 구매' 카드가 그 자리에서 수행한다.
+        // 단건 결제 선택은 이용권으로 자동 전환하지 않는다.
       }
       // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
       _dpPreloadPortOneV2Sdk();
-      // 같은 이유로 단건 주문도 미리 발급해 둔다 — 단건을 고르면 그 응답을 그대로 써서 클릭~PG창 사이
-      // checkout 왕복이 사라진다(정적 셸이 이미 쓰는 방식). 월정석/취소로 닫히면 아래에서 폐기한다.
-      var _dpDirectPrefetchOpts = Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId });
-      _dpStartDirectCheckoutPrefetch(_dpBuildDirectCheckoutPayload(_dpDirectPrefetchOpts).checkoutPayload);
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
-      if (choice !== 'direct') _dpResetDirectCheckoutPrefetch();
       if (!choice || choice === 'cancel') {
         if (typeof opts.onCancel === 'function') opts.onCancel();
         return { status: 'cancelled' };
@@ -3683,20 +3617,10 @@
       var coinPrice = _dpDirectBuilt.coinPrice;
       var amountKrw = _dpDirectBuilt.amountKrw;
       var directFeatureKey = _dpDirectBuilt.featureKey;
-      var directGateAuthorized = opts.forceDirectPayment === true && (opts.internalMainGate === true || opts.__cdPaymentGateAuthorized === true);
-      if (!directGateAuthorized && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
-        // 게이트를 거치지 않은 진입점은 여기서 이용권 선검사를 한다 — 그 왕복 동안 화면을 비워두지 않는다.
-        _dpSetPaymentPending(true, '', 'card');
-        var passBeforeDirect = await window.__cdApplyMembershipPassBeforePayment(opts);
-        if (passBeforeDirect && (passBeforeDirect.status === 'pass_applied' || passBeforeDirect.status === 'already_unlocked')) {
-          return passBeforeDirect.payload || {};
-        }
-      }
-
       // 🔴 주문 요청을 **먼저 발사**하고 그 다음에 대기 오버레이를 켠다. 오버레이 점등은 리플로우와
       // 스크롤락을 동반해(React 경로에서는 리렌더까지) 메인스레드를 붙잡으므로, 앞에 두면 그만큼
       // checkout 요청 시작이 밀린다 — 대기 UI 때문에 PG창이 늦어지지 않게 하는 것이 이 순서의 목적이다.
-      // 결제수단 모달을 열 때 사전발급한 주문이 있으면 왕복 0으로 재사용한다.
+      // 명시적인 단건 선택 뒤 주문을 한 번만 발급한다.
       var checkoutPending = _dpTakeDirectCheckoutResponse(checkoutPayload);
       // 클릭~PG창 구간을 꽃돼지 '단건 결제창 준비 중'(mode 'card') 오버레이로 채운다. 빈 화면은
       // 이탈로 이어진다. 결제수단 선택 모달이 이미 닫힌 뒤라 겹치지 않고, PG창 렌더 직전의

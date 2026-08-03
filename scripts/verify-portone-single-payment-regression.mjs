@@ -260,8 +260,7 @@ function runInstantPgWindowTests() {
 //
 // 지금은 **진입 경로에 서버 왕복이 아예 없다**. 스냅샷이 커버/미커버를 확답하면 그대로 쓰고,
 // 확답하지 못하면 기다리지 않고 결제창을 연다(snapshotVerdictOnly). 이용권 확인은 결제창의
-// '이용권으로 구매' 카드가 그 자리에서 수행하고, 카드 주문 직전 서버 안전망
-// (grantPassFreeAccessBeforeCardIfAvailable)이 한 번 더 검사한다.
+// '이용권으로 구매' 카드가 수행하며 단건 선택은 PortOne 경로를 그대로 따른다.
 function runInstantPgLatencyTests() {
   // ① 스냅샷 즉답 판정은 _cdCoverageFromSubscriptionSnapshot 하나만 근거로 쓴다.
   //    (pending 결제까지 받아주는 _cdBuildFastMembershipCoverage 는 판정 근거로 부적합하다.)
@@ -418,9 +417,7 @@ function runPreCheckoutWaitUiAndArtWeightTests() {
   );
   // 결제창을 여는 함수 진입에서 세우고, 실제로 붙으면 해제한다.
   assertBefore(indexSource, "_cdBeginPreCheckoutWaitUiSuppression();", "_cdEndPreCheckoutWaitUiSuppression();", "suppression must begin before it is released");
-  // 🔴 해제는 결제창이 **DOM 에 붙은 뒤**여야 한다. 예전에는 그 앞(주문 사전발급 직전)에서 풀었고,
-  // 그 사이 사전발급의 /api/billing/checkout 이 전역 fetch 래퍼를 깨워 'PAYMENT CHECK · 결제 상태
-  // 확인 중' 화면이 갓 열린 결제창을 덮었다(2026-08 재발). 순서를 리터럴로 고정한다.
+  // 해제는 결제창이 DOM에 붙은 뒤여야 한다. 순서를 리터럴로 고정한다.
   assert.ok(
     /document\.body\.appendChild\(modal\);[\s\S]{0,600}?_cdEndPreCheckoutWaitUiSuppression\(\);/.test(indexSource),
     "suppression must be released only after the choice modal is mounted",

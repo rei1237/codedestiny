@@ -187,6 +187,8 @@
         checkedAt: checkedAt,
         purchaseVersion: text(parsed.purchaseVersion),
         source: text(parsed.source) || "local",
+        completeness: text(parsed.completeness),
+        authority: text(parsed.authority),
         stale: stale,
       };
     } catch (_readError) {
@@ -198,7 +200,8 @@
   // 서버 응답(형태가 라우트마다 다르다) → 스냅샷. 후보 필드는 셸·React 두 목록의 합집합이다.
   function buildSnapshotFromStatus(userId, status, source) {
     var data = status && typeof status === "object" ? status : {};
-    var nested = (data.subscription && typeof data.subscription === "object" && data.subscription)
+    var nested = (data.entitlementSnapshot && typeof data.entitlementSnapshot === "object" && data.entitlementSnapshot)
+      || (data.subscription && typeof data.subscription === "object" && data.subscription)
       || (data.membership && typeof data.membership === "object" && data.membership)
       || (data.membershipPass && typeof data.membershipPass === "object" && data.membershipPass)
       || {};
@@ -255,6 +258,8 @@
         || data.subscriptionId || data.updatedAt || expiresAt
       ),
       source: text(source || data.source) || "client",
+      completeness: text(data.completeness || nested.completeness),
+      authority: text(data.authority || nested.authority),
       stale: false,
     };
   }
@@ -272,6 +277,8 @@
         checkedAt: Number(snapshot.checkedAt) || Date.now(),
         purchaseVersion: text(snapshot.purchaseVersion),
         source: text(snapshot.source) || "client",
+        completeness: text(snapshot.completeness),
+        authority: text(snapshot.authority),
       };
       storage.setItem(snapshotKey(uid), JSON.stringify(payload));
       return Object.assign({}, payload, { stale: false });
@@ -281,7 +288,19 @@
   }
 
   function storeStatus(userId, status, source) {
-    return writeSnapshot(userId, buildSnapshotFromStatus(userId, status, source));
+    var next = buildSnapshotFromStatus(userId, status, source);
+    if (next.state === "none") {
+      var existing = readSnapshot(userId, { allowStaleNone: true });
+      var data = status && typeof status === "object" ? status : {};
+      var nested = data.entitlementSnapshot && typeof data.entitlementSnapshot === "object"
+        ? data.entitlementSnapshot
+        : {};
+      var complete = text(data.completeness || nested.completeness).toLowerCase() === "full";
+      var authoritative = text(data.authority || nested.authority).toLowerCase() === "server";
+      var degraded = data.degraded === true || nested.degraded === true;
+      if (existing && existing.state === "active" && (!complete || !authoritative || degraded)) return existing;
+    }
+    return writeSnapshot(userId, next);
   }
 
   /**
