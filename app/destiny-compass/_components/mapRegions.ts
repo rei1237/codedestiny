@@ -11,11 +11,11 @@ export interface RegionDef {
 }
 
 export const REGIONS: RegionDef[] = [
-  { key: "castle", label: "운명의 성", icon: "🏰", x: 50, y: 15, glow: "rgba(232,213,163,.75)" },
-  { key: "forest", label: "성장의 숲", icon: "🌲", x: 19, y: 40, glow: "rgba(122,222,140,.6)" },
-  { key: "city", label: "재물의 도시", icon: "🏙️", x: 82, y: 42, glow: "rgba(96,200,255,.6)" },
-  { key: "lake", label: "관계의 호수", icon: "💧", x: 28, y: 76, glow: "rgba(120,160,255,.62)" },
-  { key: "fog", label: "안개의 계곡", icon: "🌫️", x: 72, y: 78, glow: "rgba(190,180,225,.55)" },
+  { key: "castle", label: "운명의 성", icon: "🏰", x: 50, y: 20, glow: "rgba(232,213,163,.75)" },
+  { key: "forest", label: "성장의 숲", icon: "🌲", x: 18, y: 43, glow: "rgba(122,222,140,.6)" },
+  { key: "city", label: "재물의 도시", icon: "🏙️", x: 82, y: 43, glow: "rgba(96,200,255,.6)" },
+  { key: "lake", label: "관계의 호수", icon: "💧", x: 27, y: 74, glow: "rgba(120,160,255,.62)" },
+  { key: "fog", label: "안개의 계곡", icon: "🌫️", x: 73, y: 74, glow: "rgba(190,180,225,.55)" },
 ];
 
 export const HERE = { x: 50, y: 56 };

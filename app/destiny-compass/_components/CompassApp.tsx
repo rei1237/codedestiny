@@ -19,7 +19,7 @@ import { Arrival } from "./Arrival";
 import { DestinyMap } from "./DestinyMap";
 import { ConcernInput } from "./ConcernInput";
 import { ConstellationMark } from "./ConstellationMark";
-import { PIG_LINES, type PigExpr } from "../_stage/mapDialogue";
+import { type PigExpr } from "../_stage/mapDialogue";
 import { ProcessingScene } from "./ProcessingScene";
 import { Starfield } from "./Starfield";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
@@ -30,7 +30,6 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [pigExpr, setPigExpr] = useState<PigExpr>("talk");
-  const [heroLine, setHeroLine] = useState<string>(PIG_LINES.intro.text);
 
   if (s.step === "hub") {
     return <JourneyHub onStart={() => s.setStep(s.birth ? "map" : "birth")} />;
@@ -49,13 +48,12 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
 
   if (s.step === "map") {
     return (
-      <DestinyMap islandArt spotlightRegion={spotlight} pigExpr={pigExpr} heroLine={heroLine} guideTilt={waiting}>
+      <DestinyMap islandArt spotlightRegion={spotlight} pigExpr={pigExpr} guideTilt={waiting}>
         <ConcernInput
           onSubmit={(c) => s.submitConcern(c)}
           onSpotlight={setSpotlight}
           onWaitingChange={setWaiting}
           onPigExpr={setPigExpr}
-          onLine={setHeroLine}
         />
         {s.error && (
           <p role="alert" style={{ textAlign: "center", color: "#ffd9ec", fontWeight: 700 }}>
