@@ -7,7 +7,7 @@ import {
   User,
 } from "./models.js";
 import { createHttpError } from "./http.js";
-import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 
 // 계정 스코프(프로필 무관) 엔타이틀먼트의 profileId 자리표시자. 읽기 절(buildProfileScopeClause)과
 // 쓰기 경로가 같은 값을 써야 하므로 정산 코드(payments.js)에서도 이 상수를 가져다 쓴다.
@@ -185,8 +185,11 @@ export function resolvePaidContentUnlockTarget({
   const resolvedServiceKey = cleanKey(serviceKey || resolvePaidContentServiceKey(rawFeatureKey || normalizedContentKey), 80);
   const requiresProfile = Boolean(profileContentKey);
   const normalizedScope = cleanKey(scope, 20)
-    || (requiresProfile || profileId ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER);
-  const normalizedProfileId = cleanKey(profileId || (normalizedScope === CONTENT_ENTITLEMENT_SCOPES.USER ? USER_SCOPE_PROFILE_ID : ""), 100);
+    || (requiresProfile ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER);
+  const normalizedProfileId = normalizedScope === CONTENT_ENTITLEMENT_SCOPES.USER
+    ? USER_SCOPE_PROFILE_ID
+    : cleanKey(profileId, 100);
+  const normalizedFeatureKey = cleanKey(normalizePaidFeatureKey(rawFeatureKey) || rawFeatureKey || normalizedContentKey, 160);
 
   return {
     userId: cleanKey(userId, 120),
@@ -195,7 +198,24 @@ export function resolvePaidContentUnlockTarget({
     contentKey: normalizedContentKey,
     scope: normalizedScope,
     requiresProfile,
-    featureKey: rawFeatureKey,
+    featureKey: normalizedFeatureKey,
+  };
+}
+
+export function formatPermanentUnlockGrant(document = {}, fallback = {}) {
+  if (String(document?.grantType || "").trim().toLowerCase() !== "permanent_unlock") return null;
+  const featureKey = cleanKey(document?.featureKey || fallback?.featureKey, 160);
+  if (!featureKey) return null;
+  const grantedAt = normalizeDateOrNull(document?.grantedAt || document?.unlockedAt || fallback?.grantedAt) || new Date();
+  return {
+    id: cleanKey(document?._id || fallback?.id, 180),
+    featureKey,
+    profileId: cleanKey(document?.profileId || fallback?.profileId, 100),
+    scope: cleanKey(document?.scope || fallback?.scope, 20) || CONTENT_ENTITLEMENT_SCOPES.USER,
+    grantType: "permanent_unlock",
+    status: String(document?.status || fallback?.status || CONTENT_ENTITLEMENT_STATUSES.ACTIVE).toLowerCase(),
+    grantedAt: grantedAt.toISOString(),
+    version: grantedAt.getTime(),
   };
 }
 
@@ -241,6 +261,10 @@ export async function findActivePaidContentUnlockByServiceKeys(input = {}) {
 }
 
 export async function upsertPaidContentUnlock(input = {}) {
+  return grantPermanentUnlock(input);
+}
+
+export async function grantPermanentUnlock(input = {}) {
   const target = resolvePaidContentUnlockTarget(input);
   if (!target.userId || !target.serviceKey || !target.contentKey) {
     throw createHttpError(400, "Unlock target is required.", { code: "INVALID_UNLOCK_TARGET" });
@@ -254,7 +278,12 @@ export async function upsertPaidContentUnlock(input = {}) {
     profileId: target.profileId || USER_SCOPE_PROFILE_ID,
     serviceKey: target.serviceKey,
     contentKey: target.contentKey,
+    featureKey: target.featureKey,
     scope: target.scope,
+    grantType: "permanent_unlock",
+    evidenceId: input.evidenceId || input.paymentId || input.orderId || input.passId,
+    grantedAt: input.grantedAt || input.unlockedAt,
+    expiresAt: null,
   });
 }
 
@@ -395,14 +424,18 @@ export async function upsertContentUnlock({
   profileId,
   serviceKey,
   contentKey,
+  featureKey = "",
   scope = CONTENT_ENTITLEMENT_SCOPES.PROFILE,
   status = CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
   source,
   orderId = "",
   paymentId = "",
   passId = "",
+  grantType = "",
+  evidenceId = "",
   coinAmount = 0,
   unlockedAt = null,
+  grantedAt = null,
   expiresAt = null,
   session = null,
 }) {
@@ -411,6 +444,7 @@ export async function upsertContentUnlock({
     profileId: cleanKey(profileId, 100),
     serviceKey: cleanKey(serviceKey, 80),
     contentKey: cleanKey(contentKey, 160),
+    featureKey: cleanKey(featureKey, 160),
     scope: cleanKey(scope, 20) || CONTENT_ENTITLEMENT_SCOPES.PROFILE,
     status: cleanKey(status, 20) || CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     source: cleanKey(source, 20),
@@ -425,44 +459,59 @@ export async function upsertContentUnlock({
 
   const now = new Date();
   const effectiveUnlockedAt = normalizeDateOrNull(unlockedAt) || now;
+  const effectiveGrantedAt = normalizeDateOrNull(grantedAt) || effectiveUnlockedAt;
   const effectiveExpiresAt = normalizeDateOrNull(expiresAt);
 
-  const document = await ContentEntitlement.findOneAndUpdate(
-    {
-      userId: normalized.userId,
-      profileId: normalized.profileId,
-      serviceKey: normalized.serviceKey,
-      contentKey: normalized.contentKey,
-      scope: normalized.scope,
-    },
-    {
-      $set: {
-        status: normalized.status,
-        source: normalized.source,
-        orderId: cleanKey(orderId, 160),
-        paymentId: cleanKey(paymentId, 160),
-        passId: cleanKey(passId, 160),
-        coinAmount: Math.max(0, Math.floor(Number(coinAmount || 0))),
-        expiresAt: effectiveExpiresAt,
-        updatedAt: now,
-      },
-      $setOnInsert: {
+  const identity = normalized.featureKey
+    ? {
+        userId: normalized.userId,
+        profileId: normalized.profileId,
+        scope: normalized.scope,
+        $or: [
+          { featureKey: normalized.featureKey },
+          { featureKey: "", serviceKey: normalized.serviceKey, contentKey: normalized.contentKey },
+          { featureKey: { $exists: false }, serviceKey: normalized.serviceKey, contentKey: normalized.contentKey },
+        ],
+      }
+    : {
         userId: normalized.userId,
         profileId: normalized.profileId,
         serviceKey: normalized.serviceKey,
         contentKey: normalized.contentKey,
         scope: normalized.scope,
+      };
+
+  const query = ContentEntitlement.findOneAndUpdate(
+    identity,
+    {
+      $set: {
+        serviceKey: normalized.serviceKey,
+        contentKey: normalized.contentKey,
+        featureKey: normalized.featureKey,
+        status: normalized.status,
+        source: normalized.source,
+        grantType: cleanKey(grantType, 40),
+        evidenceId: cleanKey(evidenceId, 180),
+        orderId: cleanKey(orderId, 160),
+        paymentId: cleanKey(paymentId, 160),
+        passId: cleanKey(passId, 160),
+        coinAmount: Math.max(0, Math.floor(Number(coinAmount || 0))),
+        expiresAt: effectiveExpiresAt,
+        grantedAt: effectiveGrantedAt,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        userId: normalized.userId,
+        profileId: normalized.profileId,
+        scope: normalized.scope,
         unlockedAt: effectiveUnlockedAt,
         createdAt: now,
       },
     },
-    {
-      upsert: true,
-      new: true,
-      setDefaultsOnInsert: true,
-      ...(session ? { session } : {}),
-    },
-  ).lean();
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  if (session) query.session(session);
+  const document = await query.lean();
   invalidateAccessReadCaches(normalized.userId);
   return document;
 }
@@ -527,7 +576,7 @@ export async function getUnlockedContentSnapshot({
   }
 
   const docs = await ContentEntitlement.find(query)
-    .select("contentKey contentId serviceKey scope profileId source unlockedAt expiresAt updatedAt")
+    .select("featureKey contentKey contentId serviceKey scope profileId source grantType grantedAt unlockedAt expiresAt updatedAt")
     .lean();
   const normalizedProfileId = cleanKey(profileId, 100);
   const applicableDocs = includeAllProfiles
@@ -541,7 +590,8 @@ export async function getUnlockedContentSnapshot({
 
   for (const doc of applicableDocs) {
     const contentKey = canonicalizeContentKey(doc?.contentKey || doc?.contentId);
-    const featureKey = resolveUnlockedFeatureKeyFromContentKey(contentKey);
+    const featureKey = cleanKey(doc?.featureKey, 160) || resolveUnlockedFeatureKeyFromContentKey(contentKey);
+    if (!isUnlockPaidFeatureKey(featureKey)) continue;
     if (contentKey) contentKeys.push(contentKey);
     if (featureKey) {
       featureKeys.push(featureKey);

@@ -113,7 +113,8 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - 인증과 권한은 분리한다. 최종 `401`만 로그인 필요이며, `403`/`404` 프로필·권한 오류와 `503`/`504` 일시 장애는 마지막 정상 스냅샷을 삭제하지 않는다.
 - OAuth: Google, Naver, Kakao callback 경로가 Worker config와 auth route에 있다.
 - 프로필: `User.destinyProfiles`, `ProfileCard`, `/api/profile/*`, `/api/user/destiny-profiles`
-- 권한: `profileSubscription`, `ContentEntitlement`, `PaidExecutionRecord`, monthly credit lots, paid feature registry를 함께 본다.
+- 권한: `worker/lib/permission-service.js`가 paid feature registry의 access model과 로그인 access snapshot을 판정한다. 영구 해금 정본은 `ContentEntitlement`, 회당 실행 정본은 `PaidExecutionRecord`다.
+- 결제 쓰기 정본은 `worker/lib/payment-service.js`다. 이용권 검증, 월정석 lot 차감, 결제 원장과 access grant 발급을 담당한다.
 - 기능 라우트는 결제 Payment Service가 발급한 access grant만 소비하며 월정석 저장소를 직접 차감하지 않는다. 직접 차감 재도입은 `verify:payment-service-boundary`가 차단한다.
 
 ## 에셋/R2 구조

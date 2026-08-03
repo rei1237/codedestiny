@@ -14,7 +14,7 @@
  */
 
 const STORAGE_KEY = "cd_verified_unlock_grants_v1";
-const VERIFIED_TTL_MS = 72 * 60 * 60 * 1000;
+const LEGACY_VERIFIED_TTL_MS = 72 * 60 * 60 * 1000;
 const OPTIMISTIC_TTL_MS = 10 * 60 * 1000;
 
 type GrantEntry = {
@@ -22,6 +22,8 @@ type GrantEntry = {
   profileId?: string;
   requestId?: string;
   mode?: string;
+  grantType?: string;
+  status?: string;
   ts?: number;
 };
 
@@ -36,8 +38,8 @@ function readGrantMap(): Record<string, GrantEntry> {
     for (const mapKey of Object.keys(parsed)) {
       const entry = parsed[mapKey] as GrantEntry;
       if (!entry || typeof entry !== "object") continue;
-      const ttl = entry.mode === "optimistic" ? OPTIMISTIC_TTL_MS : VERIFIED_TTL_MS;
-      if (now - Number(entry.ts || 0) > ttl) continue;
+      const ttl = entry.mode === "optimistic" ? OPTIMISTIC_TTL_MS : LEGACY_VERIFIED_TTL_MS;
+      if (entry.mode !== "confirmed" && now - Number(entry.ts || 0) > ttl) continue;
       next[mapKey] = entry;
     }
     return next;
@@ -88,17 +90,51 @@ export function recordOptimisticUnlock(featureKey: string): void {
 }
 
 /** 서버가 해금을 확정했을 때 호출한다. 낙관 엔트리를 확정 엔트리로 승격해 다음 방문에서도 즉시 열린다. */
-export function recordVerifiedUnlock(featureKey: string): void {
+export function recordVerifiedUnlock(featureKey: string, grant?: Record<string, unknown>): void {
   const key = String(featureKey || "").trim();
   if (!key || typeof window === "undefined") return;
   try {
     const map = readGrantMap();
     const existing = map[`${key}::`];
-    if (existing && existing.mode !== "optimistic") return;
-    map[`${key}::`] = { featureKey: key, profileId: "", requestId: "", ts: Date.now() };
+    const confirmed = String(grant?.grantType || "").toLowerCase() === "permanent_unlock"
+      && String(grant?.status || "").toLowerCase() === "active";
+    if (existing && existing.mode === "confirmed") return;
+    map[`${key}::`] = {
+      featureKey: key,
+      profileId: String(grant?.profileId || ""),
+      requestId: String(grant?.id || ""),
+      mode: confirmed ? "confirmed" : "legacy_verified",
+      grantType: confirmed ? "permanent_unlock" : "",
+      status: confirmed ? "active" : "",
+      ts: Date.now(),
+    };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   } catch {
     /* noop */
+  }
+  try {
+    const store = (window as Window & {
+      CodeDestinyAccessStore?: { markConfirmedUnlocked?: (key: string, profileId?: string, metadata?: Record<string, unknown>) => boolean };
+    }).CodeDestinyAccessStore;
+    if (String(grant?.grantType || "").toLowerCase() === "permanent_unlock") {
+      store?.markConfirmedUnlocked?.(key, String(grant?.profileId || ""), grant);
+    }
+  } catch {
+    /* compatibility storage remains available */
+  }
+}
+
+function collectPermanentGrants(source: unknown, out: Record<string, Record<string, unknown>>): void {
+  if (!source || typeof source !== "object") return;
+  const record = source as Record<string, unknown>;
+  const accessGrant = record.accessGrant as Record<string, unknown> | undefined;
+  const candidates = [record.unlockGrant, accessGrant?.unlockGrant];
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const grant = candidate as Record<string, unknown>;
+    const featureKey = String(grant.featureKey || "").trim();
+    if (featureKey && String(grant.grantType || "").toLowerCase() === "permanent_unlock"
+      && String(grant.status || "").toLowerCase() === "active") out[featureKey] = grant;
   }
 }
 
@@ -131,13 +167,19 @@ function collectPayloadUnlockKeys(source: unknown, out: string[]): void {
 export function recordUnlocksFromPaymentPayload(payload: unknown): string[] {
   if (!payload || typeof payload === "string") return [];
   const keys: string[] = [];
+  const permanentGrants: Record<string, Record<string, unknown>> = {};
+  collectPermanentGrants(payload, permanentGrants);
+  collectPermanentGrants((payload as Record<string, unknown>).data, permanentGrants);
   collectPayloadUnlockKeys(payload, keys);
   collectPayloadUnlockKeys((payload as Record<string, unknown>).data, keys);
   collectPayloadUnlockKeys((payload as Record<string, unknown>).consume, keys);
   const data = (payload as Record<string, unknown>).data;
   if (data && typeof data === "object") collectPayloadUnlockKeys((data as Record<string, unknown>).consume, keys);
+  for (const key of Object.keys(permanentGrants)) {
+    if (!keys.includes(key)) keys.push(key);
+  }
   if (!keys.length) return [];
-  for (const key of keys) recordVerifiedUnlock(key);
+  for (const key of keys) recordVerifiedUnlock(key, permanentGrants[key]);
   try {
     window.dispatchEvent(new CustomEvent("cd:unlocks-changed"));
   } catch {

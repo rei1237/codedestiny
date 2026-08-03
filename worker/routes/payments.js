@@ -35,7 +35,14 @@ import {
   validatePurchasePolicy,
   resolveServerProductType,
 } from "../lib/entitlement-policy.js";
-import { resolvePaidContentUnlockTarget, USER_SCOPE_PROFILE_ID } from "../lib/content-unlocks.js";
+import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
+import { isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
+import {
+  formatPermanentUnlockGrant,
+  grantPermanentUnlock,
+  resolvePaidContentUnlockTarget,
+  USER_SCOPE_PROFILE_ID,
+} from "../lib/content-unlocks.js";
 // 환불 코어는 관리자 라우트(/api/admin/orders)와 공유한다 — 두 벌이 되면 한쪽만 고쳐지는 사고가 난다.
 import {
   invalidatePaidAccessDecisionCacheForUser,
@@ -1348,6 +1355,35 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
     throw error;
   }
 
+  if (isUnlockPaidFeatureKey(payment?.featureKey)) {
+    const entitlement = await grantPermanentUnlock({
+      userId: String(payment.userId),
+      profileId: entitlementProfileId,
+      serviceKey,
+      contentKey,
+      featureKey: payment?.featureKey,
+      scope: entitlementScope,
+      source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+      orderId: String(payment?.merchantUid || ""),
+      paymentId: String(payment?.merchantUid || ""),
+      evidenceId: String(payment?._id || payment?.merchantUid || ""),
+      coinAmount: coinPrice,
+      unlockedAt: paidAt,
+    });
+    return {
+      ...entitlement,
+      serviceId,
+      contentId,
+      contentType,
+      coinPrice,
+      amountKRW,
+      unlockGrant: formatPermanentUnlockGrant(entitlement, {
+        featureKey: payment?.featureKey,
+        profileId: entitlementProfileId,
+      }),
+    };
+  }
+
   const now = new Date();
   const effectiveUnlockedAt = paidAt ? new Date(paidAt) : now;
   // 결제 완료 API는 여러 번 호출될 수 있으므로 profileId + contentKey 단위로 upsert해 중복 unlock 생성을 막는다.
@@ -1702,6 +1738,7 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
       alreadyCompleted: true,
       status: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED,
       payment: formatPaymentResponse(order),
+      unlockGrant: entitlement?.unlockGrant || null,
       accessGrant: buildSingleCompleteAccessGrant({
         payment: order,
         entitlement,
@@ -1966,6 +2003,7 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     alreadyUnlocked: Boolean(existingUnlock),
     status: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED,
     payment: formatPaymentResponse(responsePayment),
+    unlockGrant: entitlement?.unlockGrant || null,
     accessGrant: buildSingleCompleteAccessGrant({
       payment: responsePayment,
       entitlement,
@@ -2472,52 +2510,26 @@ async function upsertSajuPaymentUnlockEntitlement({
   session = null,
 }) {
   const featureKey = String(payment?.featureKey || body?.featureKey || body?.subFeatureKey || "").trim();
+  if (!isUnlockPaidFeatureKey(featureKey)) return null;
   const contentKey = resolveProfileUnlockContentKey(
     featureKey,
     body?.contentKey || payment?.pricingSnapshot?.contentKey || payment?.pricingSnapshot?.contentId,
   );
   const serviceKey = resolveProfileUnlockServiceKey(featureKey, contentKey);
-  if (!contentKey || !serviceKey) return null;
-  if (!userId || !profileId) {
-    const error = new Error("Profile id is required for profile-scoped unlock entitlement.");
-    error.code = "MISSING_PROFILE_ID";
-    throw error;
-  }
-
-  const now = new Date();
-  const effectiveUnlockedAt = paidAt ? new Date(paidAt) : now;
-  const query = ContentEntitlement.findOneAndUpdate(
-    {
-      userId: String(userId),
-      profileId: String(profileId),
-      serviceKey,
-      contentKey,
-      scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
-    },
-    {
-      $set: {
-        status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
-        source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
-        orderId: String(payment?.merchantUid || body?.merchantUid || body?.merchant_uid || ""),
-        paymentId: String(payment?._id || accessEvidence?.metadata?.paymentId || ""),
-        coinAmount: Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || body?.coinPrice || 0))),
-        expiresAt: null,
-        updatedAt: now,
-      },
-      $setOnInsert: {
-        userId: String(userId),
-        profileId: String(profileId),
-        serviceKey,
-        contentKey,
-        scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
-        unlockedAt: Number.isNaN(effectiveUnlockedAt.getTime()) ? now : effectiveUnlockedAt,
-        createdAt: now,
-      },
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
-  );
-  if (session) query.session(session);
-  return query.lean().catch((error) => {
+  return grantPermanentUnlock({
+    userId: String(userId),
+    profileId,
+    featureKey,
+    contentKey: contentKey || undefined,
+    serviceKey: serviceKey || undefined,
+    source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+    orderId: String(payment?.merchantUid || body?.merchantUid || body?.merchant_uid || ""),
+    paymentId: String(payment?._id || accessEvidence?.metadata?.paymentId || ""),
+    evidenceId: String(payment?._id || accessEvidence?._id || ""),
+    coinAmount: Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || body?.coinPrice || 0))),
+    unlockedAt: paidAt,
+    session,
+  }).catch((error) => {
     throw createUnlockEntitlementSaveError(error);
   });
 }
@@ -2889,6 +2901,10 @@ async function settlePaymentByImpUid({
         points: await getUserPoints(ownerUserId),
       },
       payment: formatPaymentResponse(paymentRecord),
+      unlockGrant: unlockEntitlement ? formatPermanentUnlockGrant(unlockEntitlement, {
+        featureKey: paymentRecord.featureKey,
+        profileId,
+      }) : null,
       accessGrant: isDigitalContentPayment ? {
         ok: true,
         accessType: "single_purchase",
@@ -3250,6 +3266,10 @@ async function settlePaymentByImpUid({
         idempotent: false,
         user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
         payment: formatPaymentResponse(finalizedPayment),
+        unlockGrant: unlockEntitlement ? formatPermanentUnlockGrant(unlockEntitlement, {
+          featureKey: finalizedPayment.featureKey,
+          profileId,
+        }) : null,
         accessGrant: {
           ok: true,
           accessType: "single_purchase",
@@ -3352,6 +3372,10 @@ async function settlePaymentByImpUid({
             idempotent: false,
             user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
             payment: formatPaymentResponse(finalizedPayment),
+            unlockGrant: unlockEntitlement ? formatPermanentUnlockGrant(unlockEntitlement, {
+              featureKey: finalizedPayment.featureKey,
+              profileId,
+            }) : null,
         accessGrant: {
               ok: true,
               accessType: "single_purchase",

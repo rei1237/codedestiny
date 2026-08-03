@@ -24,7 +24,8 @@ import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-typ
 import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
-import { checkoutEntryRuntime as checkoutEntry, passVerdictRuntime as passVerdict } from "@/app/_lib/legacy-core-runtime";
+import passVerdict from "@/js/core/pass-verdict.js";
+import checkoutEntry from "@/js/core/checkout-entry.js";
 import paymentService from "@/js/core/payment-service.js";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
@@ -2690,7 +2691,7 @@ function buildLicensePassOverlayMessage(data: BillingCoinGateData & Record<strin
     return [
       "FAMILY 이용권이 적용되었습니다.",
       "이 콘텐츠는 FAMILY 이용권으로 무료 이용됩니다.",
-      "추가 결제 없이 모든 유료 서비스를 이용할 수 있어요.",
+      "이 기능은 추가 결제 없이 이용할 수 있어요.",
     ].join("\n");
   }
   if (gate.licenseTier === "VVIP") {

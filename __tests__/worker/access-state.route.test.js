@@ -68,7 +68,7 @@ beforeEach(() => {
     authUserDoc: {
       _id: TEST_USER_ID,
       points: 42,
-      unlockedFeatures: ["fpti-premium-report"],
+      unlockedFeatures: ["premium-sibyl-dominator"],
       paidFeatures: ["account-purchase", "section_daewun"],
       destinyProfilesCurrentId: "profile-main",
       profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
@@ -95,12 +95,10 @@ test("returns the authoritative access state without calling payment providers",
     profileCountDeferred: true,
     maxProfileCount: 7,
     currentProfileId: "profile-main",
-    unlockedFeatureIds: ["fpti-premium-report", "account-purchase", "section_summary", "section_compat"],
+    unlockedFeatureIds: ["premium-sibyl-dominator", "section_compat"],
     ownedProductIds: ["account-purchase", "section_daewun", "section_compat"],
     lockMap: {
-      "fpti-premium-report": false,
-      "account-purchase": false,
-      section_summary: false,
+      "premium-sibyl-dominator": false,
       section_compat: false,
     },
     source: "db",
@@ -108,7 +106,7 @@ test("returns the authoritative access state without calling payment providers",
   expect(payload.data.entitlementSnapshot).toMatchObject({
     userId: TEST_USER_ID,
     tier: "premium",
-    unlockedFeatureIds: ["fpti-premium-report", "account-purchase", "section_summary", "section_compat"],
+    unlockedFeatureIds: ["premium-sibyl-dominator", "section_compat"],
     monthlyBalance: { remaining: 250 },
     purchasePolicyVersion: "access-state-snapshot-v2",
     completeness: "full",
@@ -116,16 +114,13 @@ test("returns the authoritative access state without calling payment providers",
     source: "db",
   });
   expect(payload.data.entitlementSnapshot.unlockedFeatureIds).toEqual([
-    "fpti-premium-report",
-    "account-purchase",
-    "section_summary",
+    "premium-sibyl-dominator",
     "section_compat",
   ]);
   expect(payload.data.profileEntitlements["profile-main"][0]).toMatchObject({ featureKey: "section_compat" });
   expect(getUnlockedContentSnapshot).toHaveBeenCalledWith({
     userId: TEST_USER_ID,
     profileId: "profile-main",
-    includeAllProfiles: true,
   });
   expect(payload.data.expiresAt).toBeTruthy();
   expect(payload.data.staleUntil).toBeTruthy();
@@ -134,6 +129,7 @@ test("returns the authoritative access state without calling payment providers",
   expect(payload.data.profileScopedAuthoritative).toBe(true);
   expect(payload.data.unlockedContentKeys).toEqual(["saju.compatibility"]);
   expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
+  expect(pointHistoryDistinct).not.toHaveBeenCalled();
 });
 
 test("keeps the production access-state route enabled by default", async () => {
@@ -188,16 +184,31 @@ test("isolates complete access snapshots by selected profile", async () => {
   expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(2);
 });
 
-test("returns 504 for an access-state database timeout", async () => {
+test("requested profile takes precedence over the stored previous profile", async () => {
+  const response = await handleAccessStateRoutes(new Request(
+    "https://example.com/api/me/access-state?profileId=profile-requested",
+    { method: "GET" },
+  ), {});
+  const payload = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(payload.data.currentProfileId).toBe("profile-requested");
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledWith({
+    userId: TEST_USER_ID,
+    profileId: "profile-requested",
+  });
+});
+
+test("returns a degraded 200 for an authenticated access-state database timeout", async () => {
   requireUserFromRequest.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
 
   const response = await handleAccessStateRoutes(request(), {});
   const payload = await response.json();
 
-  expect(response.status).toBe(504);
+  expect(response.status).toBe(200);
   expect(payload.code).toBe("ACCESS_STATE_TIMEOUT");
-  expect(payload.retryable).toBe(true);
-  expect(response.headers.get("X-CD-Error-Stage")).toBe("db-op-timeout");
+  expect(payload.degraded).toBe(true);
+  expect(payload.data.authority).toBe("none");
 });
 
 test("keeps stale access-state snapshot when refresh hits a transient 503", async () => {

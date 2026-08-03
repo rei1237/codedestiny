@@ -349,6 +349,7 @@ export const CONTENT_ENTITLEMENT_SOURCES = Object.freeze({
 const contentEntitlementSchema = new mongoose.Schema({
   userId: { type: String, required: true, trim: true, index: true },
   profileId: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  featureKey: { type: String, default: "", trim: true, maxlength: 160, index: true },
   serviceId: { type: String, default: "", trim: true, maxlength: 80, index: true },
   serviceKey: { type: String, required: true, trim: true, maxlength: 80, index: true },
   contentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
@@ -357,6 +358,8 @@ const contentEntitlementSchema = new mongoose.Schema({
   scope: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_SCOPES), required: true, default: CONTENT_ENTITLEMENT_SCOPES.PROFILE, index: true },
   status: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_STATUSES), required: true, default: CONTENT_ENTITLEMENT_STATUSES.ACTIVE, index: true },
   source: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_SOURCES), required: true },
+  grantType: { type: String, enum: ["", "permanent_unlock"], default: "", index: true },
+  evidenceId: { type: String, default: "", trim: true, maxlength: 180, index: true },
   unlockedBy: { type: String, default: "", trim: true, maxlength: 80, index: true },
   orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
@@ -365,6 +368,7 @@ const contentEntitlementSchema = new mongoose.Schema({
   coinPrice: { type: Number, default: 0, min: 0 },
   amountKRW: { type: Number, default: 0, min: 0 },
   unlockedAt: { type: Date, required: true, default: Date.now, index: true },
+  grantedAt: { type: Date, required: true, default: Date.now, index: true },
   expiresAt: { type: Date, default: null, index: true },
 }, { timestamps: true, collection: "content_entitlements" });
 
@@ -373,6 +377,14 @@ contentEntitlementSchema.index(
   { unique: true },
 );
 contentEntitlementSchema.index({ userId: 1, serviceKey: 1, status: 1, expiresAt: 1 });
+contentEntitlementSchema.index(
+  { userId: 1, profileId: 1, featureKey: 1, scope: 1 },
+  {
+    unique: true,
+    name: "permanent_unlock_identity",
+    partialFilterExpression: { featureKey: { $exists: true, $type: "string", $gt: "" } },
+  },
+);
 
 const refreshTokenSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },

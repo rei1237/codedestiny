@@ -44,6 +44,7 @@ import {
 } from "../lib/pdf-pass-discount.js";
 import {
   findActivePaidContentUnlock,
+  formatPermanentUnlockGrant,
   getUnlockedContentSnapshot,
   upsertPaidContentUnlock,
 } from "../lib/content-unlocks.js";
@@ -478,7 +479,7 @@ async function upsertSajuProfileUnlockEntitlement(env, {
     error.code = "MISSING_PROFILE_ID";
     throw error;
   }
-  return upsertPaidContentUnlock({
+  const entitlement = await upsertPaidContentUnlock({
     userId,
     profileId,
     featureKey,
@@ -493,6 +494,10 @@ async function upsertSajuProfileUnlockEntitlement(env, {
   }).catch((error) => {
     throw createUnlockEntitlementSaveError(error);
   });
+  return {
+    ...entitlement,
+    unlockGrant: formatPermanentUnlockGrant(entitlement, { featureKey, profileId }),
+  };
 }
 
 const PASS_EXCLUDED_FEATURE_KEYS = new Set([
@@ -2584,11 +2589,12 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   }
   let unlockedFeatures = Array.isArray(data?.unlockedFeatures) ? [...data.unlockedFeatures] : [];
   let unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
+  const unlockGrant = data?.unlockGrant || accessGrant?.unlockGrant || null;
   const isPermanentUnlock = isUnlockPaidFeatureKey(featureKey);
   const isUserScopedPermanentUnlock = isPermanentUnlock
     && !resolveSajuProfileUnlockContentKey(featureKey)
     && featureKey !== LOTTO_RITUAL_REPORT_FEATURE_KEY;
-  if (authUserId && featureKey && isUserScopedPermanentUnlock) {
+  if (authUserId && featureKey && isUserScopedPermanentUnlock && !unlockGrant) {
     await connectDb(env);
     const updatedUser = await User.findByIdAndUpdate(
       authUserId,
@@ -2668,6 +2674,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     profileId: profileId || undefined,
     unlockedFeatures,
     unlockMap,
+    unlockGrant,
     ...(normalizedAccessDecision ? { accessDecision: normalizedAccessDecision } : {}),
     ...(accessGateResult ? { accessGateResult, licensePass: accessGateResult } : {}),
   }, message, hasResponseHeaders ? { ...init, headers: responseHeaders } : init);
@@ -2866,7 +2873,7 @@ function resolvePaidReportSessionFallback(pricing = {}, reportId = "", requestId
 }
 
 function shouldPersistProfileUnlockEntitlement(pricing = {}) {
-  return !canGeneratePaidPdf(pricing) && isProfileScopedUnlockKey(pricing?.featureKey);
+  return !canGeneratePaidPdf(pricing) && isUnlockPaidFeatureKey(pricing?.featureKey);
 }
 
 function logCoinGateResult(payload) {
@@ -3650,6 +3657,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         requestId,
         purchaseId: resolvedUnlockId || requestId,
         evidenceId: resolvedUnlockId,
+        unlockGrant: passUnlockEntitlement?.unlockGrant || null,
         reportId: reportId || undefined,
         profileId: profileId || undefined,
         paidAt: new Date().toISOString(),
@@ -3868,6 +3876,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           requestId,
           purchaseId: requestId,
           evidenceId: String(unlockEntitlement?._id || passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
+          unlockGrant: unlockEntitlement?.unlockGrant || null,
           reportId: reportId || undefined,
           profileId: profileId || undefined,
           paidAt: new Date().toISOString(),
@@ -4129,6 +4138,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             ledgerId: membershipConsume.ledgerId || "",
             purchaseId: membershipConsume.purchaseId || requestId,
             evidenceId: String(unlockEntitlement?._id || membershipConsume.transactionId || ""),
+            unlockGrant: unlockEntitlement?.unlockGrant || null,
             reportId: reportId || undefined,
             profileId: profileId || undefined,
             paidAt: new Date().toISOString(),
@@ -4664,6 +4674,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       requestId,
       purchaseId: coinPurchaseId || String(coinHistory?._id || ""),
       evidenceId: String(unlockEntitlement?._id || coinHistory?._id || ""),
+      unlockGrant: unlockEntitlement?.unlockGrant || null,
       reportId: reportId || undefined,
       profileId: profileId || undefined,
       paidAt: new Date().toISOString(),
@@ -6505,6 +6516,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {},
       requestId,
       purchaseId: requestId,
       evidenceId: String(unlockEntitlement?._id || passEvidence?._id || `membership:${subscriptionPass.tier}:${requestId}`),
+      unlockGrant: unlockEntitlement?.unlockGrant || null,
       reportId: reportId || undefined,
       profileId: profileId || undefined,
       paidAt: new Date().toISOString(),

@@ -44,6 +44,6 @@ describe("billing route payment-service boundary", () => {
     expect(billingSource).toContain("PointHistory.create([buildHistoryPayload(updatedUser?.points, monthlyCredits)], { session })");
     expect(billingSource).toContain("MonthlyCreditLedger.create([buildLedgerPayload(history?._id, monthlyCredits)], { session })");
     expect(billingSource).toContain("atomicUnlock({ session, updatedUser, monthlyCredits, history, ledger, purchaseId })");
-    expect(unlockSource).toContain("...(session ? { session } : {})");
+    expect(unlockSource).toContain("if (session) query.session(session);");
   });
 });
