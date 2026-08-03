@@ -50,6 +50,7 @@
 - `/admin/cms`
 - `/admin/content`
 - `/admin/insights`
+- `/admin/monthly-credits` — 마케팅 월정석 지급 UI
 - `/admin/site-content`
 - `/admin/cache-status`
 
@@ -119,3 +120,4 @@ Entry: `worker/index.js`
 - `/premium/*`, `/premium-reports`, `/premium-unlock`: 실제 결제 상품/권한 매핑 확인 필요
 - `/app/*`: Capacitor 앱 번들에서 pruning된 route와 웹 route 차이 확인 필요
 - 정적 HTML 게임/오라클 파일: 현재 홈/서비스 카드에서 링크되는지, noindex 의도인지 확인 필요
+
