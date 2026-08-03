@@ -64,7 +64,7 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
   const gender = input.gender === undefined ? "unknown" : input.gender;
   const mode = input.mode === undefined ? "yeoni" : input.mode;
   const topic = input.topic === undefined ? "daily" : input.topic;
-  const category = input.category === undefined ? "fusion" : input.category;
+  const category = typeof input.category === "string" ? input.category.trim() : "";
   const locale = input.locale === undefined ? DEFAULT_LOCALE : String(input.locale).trim();
   const targetDate = input.targetDate ? String(input.targetDate).trim() : kstDateKey(now);
   const concern = input.concern ? String(input.concern).trim() : undefined;
@@ -166,7 +166,7 @@ function projectAstrology(data) {
 
 function projectTarot(data) {
   return {
-    spreadType: data.spreadType === "three_card" ? "three_card" : "one_card",
+    spreadType: data.spreadType === "fusion_six_system_bridge" ? "fusion_six_system_bridge" : data.spreadType === "three_card" ? "three_card" : "one_card",
     spreadId: String(data.spreadId || "").slice(0, 80),
     questionType: String(data.questionType || "").slice(0, 80),
     cards: Array.isArray(data.cards)
@@ -175,7 +175,7 @@ function projectTarot(data) {
           orientation: card.orientation === "reversed" ? "reversed" : "upright",
           positionKey: String(card.positionKey || "").slice(0, 80),
           meaningSummary: String(card.meaningSummary || "오늘의 상징을 차분히 살펴봅니다.").slice(0, 300),
-        })).slice(0, 3)
+        })).slice(0, data.spreadType === "fusion_six_system_bridge" ? 6 : 3)
       : [],
     symbolicMessage: String(data.symbolicMessage || "오늘의 상징을 행동의 기준으로 삼아보세요.").slice(0, 320),
     evidence: Array.isArray(data.evidence) ? data.evidence.slice(0, 8) : [],
@@ -195,6 +195,43 @@ function projectionHasValue(value) {
   return value && Object.values(value).some((item) => Array.isArray(item) ? item.length > 0 : Boolean(item));
 }
 
+function buildLimitedProjection(adapterName, reason) {
+  if (adapterName === "ziwei" && reason === "birth_time_unknown") {
+    return {
+      lifePalaceSummary: "생시를 몰라 명궁·신궁과 궁위별 정밀 명반은 계산하지 않았습니다.",
+      topicPalaceSummary: "생시 기반 궁위는 단정하지 않고, 현재 고민의 질문 구조만 조심스럽게 살핍니다.",
+      keyStarsSummary: undefined,
+      strengths: ["정밀 명반이 없는 상태에서는 별과 궁을 지어내지 않는 것이 우선입니다."],
+      cautions: ["생시를 확인하면 명궁과 주제별 궁위 해석을 다시 정교하게 볼 수 있습니다."],
+      evidence: ["ziwei.limited.birth_time_unknown"],
+    };
+  }
+  if (adapterName === "vedic" && reason === "birth_place_unknown") {
+    return {
+      lagnaSummary: undefined,
+      moonSignSummary: "출생지를 몰라 라그나·문사인·나크샤트라의 정밀 위치를 계산하지 않았습니다.",
+      nakshatraSummary: undefined,
+      dashaSummary: undefined,
+      padaSummary: undefined,
+      innerRhythm: "위치를 추정하지 않고, 현재 관심 주제에서 확인 가능한 감정 리듬만 낮은 확신으로 살핍니다.",
+      evidence: ["vedic.limited.birth_place_unknown"],
+    };
+  }
+  if (adapterName === "astrology" && reason === "birth_place_unknown") {
+    return {
+      sunSummary: "출생지를 몰라 행성 위치와 하우스를 정밀 계산하지 않았습니다.",
+      moonSummary: undefined,
+      ascendantSummary: undefined,
+      venusSummary: undefined,
+      marsSummary: undefined,
+      saturnSummary: undefined,
+      currentMoodSummary: "상승궁·하우스는 단정하지 않고, 현재 질문의 선택 패턴만 낮은 확신으로 살핍니다.",
+      evidence: ["astrology.limited.birth_place_unknown"],
+    };
+  }
+  return undefined;
+}
+
 export async function buildGuardianFortuneContext(input, options = {}) {
   let normalized;
   try {
@@ -212,9 +249,7 @@ export async function buildGuardianFortuneContext(input, options = {}) {
   const results = {};
   const unavailableClaims = [];
   const adapters = options.adapters || DEFAULT_ADAPTERS;
-  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[normalized.category]
-    || GUARDIAN_TOPIC_ADAPTER_PRIORITY[normalized.topic]
-    || GUARDIAN_TOPIC_ADAPTER_PRIORITY.daily;
+  const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[normalized.category];
   const adapterOptions = {
     ...options,
     now: options.now instanceof Date ? options.now : new Date(),
@@ -228,12 +263,14 @@ export async function buildGuardianFortuneContext(input, options = {}) {
       const warning = createWarning("ziwei", "birth_time_unknown", "생시가 없어 자미두수의 시간 의존 해석을 생략했습니다.");
       warnings.push(warning);
       unavailableClaims.push("ziwei.birth_time_required");
+      results.ziwei = buildLimitedProjection("ziwei", "birth_time_unknown");
       continue;
     }
     if ((adapterName === "vedic" || adapterName === "astrology") && !normalized.hasBirthPlace) {
       const warning = createWarning(adapterName, "birth_place_required", "출생지가 없어 위치 의존 해석을 생략했습니다.");
       warnings.push(warning);
       unavailableClaims.push(`${adapterName}.birth_place_required`);
+      results[adapterName] = buildLimitedProjection(adapterName, "birth_place_unknown");
       continue;
     }
 

@@ -5912,7 +5912,7 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
     requestId,
     dateKey: getGuardianFortuneDateKey(new Date()),
     store,
-    contextOptions: { env, requestUrl: request.url, ctx, requireBirthTime: true },
+    contextOptions: { env, requestUrl: request.url, ctx },
     // Scenario switches are test-only. Production clients cannot select a failure mode.
     scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
   });

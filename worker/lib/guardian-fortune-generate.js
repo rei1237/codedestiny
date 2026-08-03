@@ -124,6 +124,21 @@ export async function generateGuardianFortuneRequest({
       });
     }
 
+    const availableSystems = Array.isArray(contextResult.context?.availableSystems)
+      ? contextResult.context.availableSystems
+      : [];
+    if (availableSystems.length !== 1 || availableSystems[0] !== normalizedInput.category) {
+      await releaseGuardianFortuneUsage(reservation, { store, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED, now });
+      const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
+      return errorResponse({
+        code: GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED,
+        status: 502,
+        usage,
+        isLoggedIn,
+        requestId,
+      });
+    }
+
     const selectedGenerator = generator || mockGenerator || generateGuardianFortuneWithConfiguredLLM;
     const generated = await selectedGenerator({
       input: safeInput,

@@ -1,21 +1,43 @@
 /** @jest-environment node */
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 import {
   FUSION_FORTUNE_TICKET_PRODUCT,
   assertFusionFortuneTicketPurchaseAllowed,
+  buildFusionFortuneContext,
   buildFusionFortuneStatus,
   createMemoryFusionFortuneStore,
   generateFusionFortuneRequest,
   generateFusionFortuneWithMockLLM,
+  generateFusionFortuneWithRealLLM,
   getFusionFortuneDateKey,
   selectFusionFortuneTarotSpread,
   validateFusionFortuneResult,
 } from "../../worker/lib/fusion-fortune.js";
 import { buildFusionFortunePrompt } from "../../worker/lib/fusion-fortune-prompt.js";
+import {
+  createFusionFortuneTicketOrder,
+  isFusionFortuneTicketSalesEnabled,
+} from "../../worker/lib/fusion-fortune-purchase.js";
 
 const input = { birthDate: "1995-04-18", birthTime: "08:30", calendarType: "solar", gender: "female", topic: "삶의 전반적인 흐름", concern: "" };
 const contextBuilder = async () => ({ ok: true, context: { birthTimeKnown: true } });
 const ticketedStore = () => createMemoryFusionFortuneStore({ balances: { user: { totalRemaining: 1, purchasedTotal: 1, usedTotal: 0 } } });
+
+function fusionAdapters(calls) {
+  const mark = (name, value) => async () => { calls[name] += 1; return value; };
+  return {
+    saju: mark("saju", { dayMaster: "갑목", currentFlowSummary: "정리한 기준을 행동으로 옮기는 흐름", evidence: ["saju.dayMaster"] }),
+    ziwei: mark("ziwei", { lifePalaceSummary: "명궁의 역할을 차분히 정리하는 흐름", topicPalaceSummary: "관록궁의 책임을 조율하는 흐름", evidence: ["ziwei.lifePalace"] }),
+    vedic: mark("vedic", { moonSignSummary: "달의 감정 리듬을 살피는 흐름", nakshatraSummary: "나크샤트라의 반복 습관", innerRhythm: "감정의 속도를 알아차리는 리듬", evidence: ["vedic.nakshatra"] }),
+    sukuyo: mark("sukuyo", { birthMansion: "묘숙", relationshipPattern: "관계의 거리를 천천히 맞추는 흐름", evidence: ["sukuyo.birthMansion"] }),
+    astrology: mark("astrology", { sunSummary: "태양의 목표 방향", moonSummary: "달의 정서적 안정", currentMoodSummary: "기준을 먼저 확인하는 흐름", evidence: ["astrology.sun"] }),
+    tarot: mark("tarot", {
+      spreadType: "fusion_six_system_bridge", spreadId: "fusion_six_system_bridge", symbolicMessage: "여섯 장을 현실 행동으로 연결합니다.",
+      cards: ["바보", "마법사", "여사제", "여황제", "황제", "연인"].map((name, index) => ({ name, orientation: "upright", positionKey: `position_${index}`, meaningSummary: `${name}의 선택 상징` })),
+      evidence: ["tarot.cards"],
+    }),
+  };
+}
 
 describe("Fusion Fortune ticket policy and mock generation", () => {
   it("defines a 10,000 KRW PG-only ticket", () => {
@@ -25,9 +47,88 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
   });
 
   it("does not allow ordinary passes or entitlements to substitute a ticket", async () => {
-    const store = createMemoryFusionFortuneStore({ balances: { user: { totalRemaining: 0, purchasedTotal: 0, usedTotal: 0 } } });
+    const store = createMemoryFusionFortuneStore({
+      balances: { user: { totalRemaining: 0, purchasedTotal: 0, usedTotal: 0 } },
+      pass: { user: true },
+      familyPass: { user: true },
+      conversationCredits: { user: 10 },
+      monthlyEntitlements: { user: true },
+      priceCoverage: { user: true },
+    });
     const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "no-ticket", store, contextBuilder });
     expect(result).toMatchObject({ ok: false, error: "FUSION_FORTUNE_NO_TICKET" });
+  });
+
+  it("reports login, ticket, sold-out, and disabled status independently", async () => {
+    const now = new Date("2026-08-04T04:00:00.000Z");
+    const emptyStore = createMemoryFusionFortuneStore();
+    expect(await buildFusionFortuneStatus({ store: emptyStore, now })).toMatchObject({ isLoggedIn: false, nextAction: "login", canGenerate: false });
+    expect(await buildFusionFortuneStatus({ userId: "user", store: emptyStore, now })).toMatchObject({ nextAction: "buy_ticket", ticket: { remaining: 0 }, canGenerate: false });
+    expect(await buildFusionFortuneStatus({ userId: "user", store: ticketedStore(), now })).toMatchObject({ nextAction: "generate", ticket: { remaining: 1 }, canGenerate: true });
+    expect(await buildFusionFortuneStatus({ userId: "user", store: ticketedStore(), now, enabled: false })).toMatchObject({ nextAction: "disabled", canGenerate: false });
+  });
+
+  it("creates only a server-priced PG order and keeps sales behind its own flag", async () => {
+    expect(isFusionFortuneTicketSalesEnabled({ ENABLE_FUSION_FORTUNE_TICKET_SALES: "true" })).toBe(true);
+    expect(isFusionFortuneTicketSalesEnabled({ ENABLE_FUSION_FORTUNE_TICKET_SALES: "false" })).toBe(false);
+    const paymentModel = {
+      findOne: jest.fn(() => ({ sort: () => ({ lean: async () => null }) })),
+      create: jest.fn(async (record) => record),
+    };
+    const userModel = { findById: jest.fn(() => ({ select: () => ({ lean: async () => ({ name: "테스트 사용자" }) }) })) };
+    const env = { PORTONE_STORE_ID: "store-test", PORTONE_CHANNEL_KEY: "channel-test", PORTONE_API_SECRET: "server-test-secret" };
+    const body = { productId: "fusion_fortune_ticket_1", productType: "fusion_fortune_ticket", amount: 10000, paymentMethod: "pg", idempotencyKey: "fusion-order-test" };
+    const prepared = await createFusionFortuneTicketOrder({ env, userId: "user", body, requestUrl: "https://code-destiny.com/points", paymentModel, userModel });
+    expect(prepared).toMatchObject({ ok: true, order: { paymentMethod: "pg", product: { priceKRW: 10000, ticketAmount: 1 } } });
+    expect(paymentModel.create).toHaveBeenCalledWith(expect.objectContaining({ paymentAmount: 10000, expectedChargedPoints: 0, membershipCreditCost: 0 }));
+    await expect(createFusionFortuneTicketOrder({ env, userId: "user", body: { ...body, amount: 9999 }, paymentModel, userModel })).rejects.toMatchObject({ code: "FUSION_FORTUNE_PRODUCT_MISMATCH" });
+    await expect(createFusionFortuneTicketOrder({ env, userId: "user", body: { ...body, paymentMethod: "conversation_credit" }, paymentModel, userModel })).rejects.toMatchObject({ code: "FUSION_FORTUNE_PURCHASE_CHANNEL_BLOCKED" });
+  });
+
+  it("builds fusion context by running all six explicit adapters exactly once", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(calls) });
+
+    expect(built.ok).toBe(true);
+    expect(Object.keys(built.context.systems)).toEqual(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]);
+    expect(calls).toEqual({ saju: 1, ziwei: 1, vedic: 1, sukuyo: 1, astrology: 1, tarot: 1 });
+    expect(built.context.tarotSpread.cards).toHaveLength(6);
+  });
+
+  it("fails the whole fusion context when a known system adapter fails", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const adapters = fusionAdapters(calls);
+    adapters.saju = async () => { calls.saju += 1; throw new Error("calculator unavailable"); };
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters });
+
+    expect(built).toMatchObject({ ok: false, errorCode: "FUSION_FORTUNE_CONTEXT_FAILED", failedSystem: "saju" });
+    expect(calls).toEqual({ saju: 1, ziwei: 0, vedic: 0, sukuyo: 0, astrology: 0, tarot: 0 });
+  });
+
+  it("uses at most one initial Gemini call and one repair before a context fallback", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(calls) });
+    const providerCall = jest.fn(async () => ({ ok: true, provider: "gemini", model: "gemini-2.5-flash", text: "{invalid" }));
+    const generated = await generateFusionFortuneWithRealLLM({
+      input,
+      context: built.context,
+      requestId: "fusion-two-call-test",
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
+      providerCall,
+    });
+
+    expect(providerCall).toHaveBeenCalledTimes(2);
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 2 });
+    expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: built.context.tarotSpread.cards }).ok).toBe(true);
   });
 
   it("consumes exactly one ticket and one daily slot only after a valid result", async () => {
@@ -58,6 +159,20 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "sold-out", store, contextBuilder });
     expect(result.error).toBe("FUSION_FORTUNE_SOLD_OUT");
     expect((await buildFusionFortuneStatus({ userId: "user", store })).dailyLimit.isSoldOut).toBe(true);
+  });
+
+  it("allows the hundredth success after ninety-nine completed results", async () => {
+    const dateKey = getFusionFortuneDateKey();
+    const store = createMemoryFusionFortuneStore({ balances: { user: { totalRemaining: 1 } }, daily: { [dateKey]: { dateKey, limit: 100, successCount: 99, reserved: 0 } } });
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "hundredth", dateKey, store, contextBuilder, generator: generateFusionFortuneWithMockLLM });
+    expect(result.ok).toBe(true);
+    expect((await store.getDaily(dateKey)).successCount).toBe(100);
+    expect(result.fusionStatus.dailyLimit.isSoldOut).toBe(true);
+  });
+
+  it("resets the date key at KST midnight", () => {
+    expect(getFusionFortuneDateKey(new Date("2026-08-03T14:59:59.999Z"))).toBe("2026-08-03");
+    expect(getFusionFortuneDateKey(new Date("2026-08-03T15:00:00.000Z"))).toBe("2026-08-04");
   });
 
   it("reserves at most one hundred concurrent successful attempts", async () => {
@@ -103,10 +218,20 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     expect(checked).toMatchObject({ ok: false, issues: ["section_depth"] });
   });
 
+  it("rejects padding that repeats the same long sentences across systems", async () => {
+    const result = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true } });
+    const repeated = {
+      ...result,
+      ziweiSection: { ...result.ziweiSection, content: result.sajuSection.content },
+      vedicSection: { ...result.vedicSection, content: result.sajuSection.content },
+    };
+    expect(validateFusionFortuneResult(repeated)).toMatchObject({ ok: false, issues: ["repeated_sentence"] });
+  });
+
   it("selects a six-position tarot spread on the server and never accepts client card names", () => {
     const spread = selectFusionFortuneTarotSpread(input);
     expect(spread).toMatchObject({ spreadType: "fusion_six_system_bridge" });
     expect(spread.cards).toHaveLength(6);
-    expect(spread.cards.every((card) => /^major_\d+$/.test(card.cardId))).toBe(true);
+    expect(spread.cards.every((card) => /^major_[a-z_]+$/.test(card.cardId) && card.name && card.positionKey)).toBe(true);
   });
 });

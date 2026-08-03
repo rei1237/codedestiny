@@ -288,6 +288,22 @@
 .ticketAction input:hover {
   border-color: #8a73a8;
 }
+.inlineCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: #eee7ff;
+  font-size: .82rem;
+  font-weight: 700;
+}
+.inlineCheck input {
+  width: 18px;
+  min-height: 18px;
+  height: 18px;
+  padding: 0;
+  accent-color: #d8b8ff;
+}
 .form textarea {
   min-height: 120px;
   resize: vertical;
@@ -309,7 +325,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid rgba(216, 184, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
   font-weight: 600;
+  cursor: pointer;
 }
 .form fieldset input {
   width: 20px;

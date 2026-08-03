@@ -31,6 +31,12 @@ type TicketProduct = { productId: string; productType: string; name: string; pri
 type TicketOrder = { merchantUid: string; product: TicketProduct; customer?: { customerId?: string; fullName?: string; email?: string; phoneNumber?: string }; redirectUrl?: string };
 type PortOneConfig = { storeId: string; channelKey: string; currency?: string; payMethod?: string; noticeUrl?: string };
 type PortOneResponse = { paymentId?: string; code?: string; message?: string };
+type BirthPlaceOption = { label: string; tz: string; lon: number; lat: number; country?: string };
+type BirthPlaceGroup = { label?: string; places?: BirthPlaceOption[] };
+
+declare global {
+  interface Window { BIRTH_PLACE_GROUPS?: BirthPlaceGroup[] }
+}
 
 const EMPTY_STATUS: Status = {
   isLoggedIn: false,
@@ -44,6 +50,7 @@ const EMPTY_STATUS: Status = {
 const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection", "integratedReading"] as const;
 const SECTION_ICONS = ["木", "紫", "ॐ", "宿", "✦", "◇", "∞"];
 const FUSION_PENDING_PAYMENT_KEY = "fusion_fortune_pending_payment";
+const DEFAULT_BIRTH_PLACES: BirthPlaceOption[] = [{ label: "대한민국 · 서울", tz: "Asia/Seoul", lon: 126.978, lat: 37.5665, country: "KR" }];
 
 function FusionOrb() {
   return (
@@ -95,8 +102,9 @@ export function FusionFortuneClient() {
   const [notice, setNotice] = useState("");
   const [ticketProduct, setTicketProduct] = useState<TicketProduct | null>(null);
   const [paymentPhone, setPaymentPhone] = useState("");
+  const [birthPlaces, setBirthPlaces] = useState<BirthPlaceOption[]>(DEFAULT_BIRTH_PLACES);
   const redirectHandled = useRef(false);
-  const [form, setForm] = useState({ birthDate: "", birthTime: "", calendarType: "solar", gender: "unspecified", nickname: "", topic: "삶의 전반적인 흐름", concern: "" });
+  const [form, setForm] = useState({ birthDate: "", birthTime: "", birthTimeUnknown: false, birthPlaceKey: "", calendarType: "solar", gender: "unspecified", nickname: "", topic: "삶의 전반적인 흐름", concern: "" });
 
   const refresh = useCallback(async () => {
     try {
@@ -125,11 +133,29 @@ export function FusionFortuneClient() {
     const payload = await parseJson<{ ok?: boolean; message?: string }>(response);
     if (!response.ok || payload.ok === false) throw new Error(payload.message || "결제 확인에 실패했어요.");
     sessionStorage.removeItem(FUSION_PENDING_PAYMENT_KEY);
-    setNotice("초융합 운세 이용권 1개가 충전되었어요.");
+    setNotice("초융합 운세 상담권 1회가 충전되었어요.");
     await refresh();
   }, [apiBase, refresh]);
 
   useEffect(() => { void Promise.all([refresh(), loadCatalog()]); }, [loadCatalog, refresh]);
+
+  useEffect(() => {
+    const applyPlaces = () => {
+      const places = (window.BIRTH_PLACE_GROUPS || []).flatMap((group) => Array.isArray(group.places) ? group.places : [])
+        .filter((place) => place?.label && place?.tz && Number.isFinite(Number(place.lat)) && Number.isFinite(Number(place.lon)))
+        .map((place) => ({ ...place, country: place.country || String(place.label).split("·")[0].trim() }));
+      if (places.length) setBirthPlaces(places);
+    };
+    if (window.BIRTH_PLACE_GROUPS?.length) { applyPlaces(); return; }
+    const existing = document.querySelector<HTMLScriptElement>('script[data-fusion-birth-places="true"]');
+    if (existing) { existing.addEventListener("load", applyPlaces, { once: true }); return; }
+    const script = document.createElement("script");
+    script.src = "/js/birth-place-groups.js";
+    script.defer = true;
+    script.dataset.fusionBirthPlaces = "true";
+    script.addEventListener("load", applyPlaces, { once: true });
+    document.head.appendChild(script);
+  }, []);
 
   useEffect(() => {
     if (redirectHandled.current || typeof window === "undefined") return;
@@ -154,7 +180,7 @@ export function FusionFortuneClient() {
   const startPurchase = async () => {
     setError(""); setNotice("");
     if (!status.isLoggedIn) { window.location.assign("/auth/login"); return; }
-    if (!ticketProduct) { setError("초융합 운세 이용권 판매 상태를 확인하지 못했어요."); return; }
+    if (!ticketProduct) { setError("초융합 운세 상담권 판매 상태를 확인하지 못했어요."); return; }
     const phoneNumber = paymentPhone.replace(/\D/g, "");
     if (phoneNumber.length < 10 || phoneNumber.length > 11) { setError("결제에 사용할 휴대전화 번호를 확인해 주세요."); return; }
     setPurchaseBusy(true);
@@ -193,11 +219,23 @@ export function FusionFortuneClient() {
     event.preventDefault(); setError(""); setNotice("");
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
     if (status.nextAction === "buy_ticket") { document.getElementById("ticket")?.scrollIntoView({ behavior: "smooth" }); return; }
-    if (!form.birthDate || !form.birthTime) { setError("생년월일과 생시를 입력해 주세요."); return; }
+    if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError("생년월일과 생시를 입력하거나, 생시를 모르는 경우를 선택해 주세요."); return; }
     setLoading(true);
     try {
+      const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
+      const requestBody = {
+        birthDate: form.birthDate,
+        birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+        birthTimeUnknown: form.birthTimeUnknown,
+        calendarType: form.calendarType,
+        gender: form.gender,
+        nickname: form.nickname,
+        topic: form.topic,
+        concern: form.concern,
+        ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
+      };
       const response = await authFetch(`${apiBase}/api/fusion-fortune/generate`, {
-        method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify(form),
+        method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify(requestBody),
       }, { retryOn401: true, apiBase });
       const payload = await parseJson<{ ok?: boolean; message?: string; result?: Result; fusionStatus?: Status }>(response);
       if (!response.ok || !payload.ok || !payload.result || !payload.fusionStatus) throw new Error(payload.message || "결과를 생성하지 못했어요.");
@@ -240,12 +278,13 @@ export function FusionFortuneClient() {
     <section className={styles.panel}>
       <div className={styles.status}>
         <div><span>오늘 선착순 남은 자리</span><strong>{status.dailyLimit.remainingCount} / 100</strong><div className={styles.progress}><i style={{ width: `${usedPercent}%` }} /></div><small>성공 결과가 완성된 순서대로 자리가 확정돼요.</small></div>
-        <div><span>초융합 운세 이용권</span><strong>{status.ticket.remaining}개</strong><small>일반 이용권·family 이용권·대화권과 별도예요.</small></div>
+        <div><span>초융합 운세 상담권</span><strong>{status.ticket.remaining}회</strong><small>일반 이용권·family 이용권·대화권과 별도예요.</small></div>
       </div>
       {status.dailyLimit.isSoldOut ? <div className={styles.sold}><p className={styles.kicker}>오늘 선착순 마감</p><h2>오늘의 100자리가 모두 채워졌어요.</h2><p>이용권은 차감되지 않았습니다. 다음 접수는 한국 시간 {resetTime} 이후에 열립니다.</p><div className={styles.soldLinks}><Link href="/#guardian-fortune">오늘의 귀인 보기</Link><Link href="/tarot">타로 둘러보기</Link></div></div> : <form className={styles.form} onSubmit={submit}>
         <div className={styles.formIntro}><p className={styles.kicker}>나의 흐름 입력</p><h2>정확한 생시로 여섯 체계를 연결해요</h2><p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p></div>
         <label>생년월일<input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
-        <label>생시<input type="time" required value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><small>자미두수·베다점·상승궁 해석의 정밀도를 높여요.</small></label>
+        <label>생시<input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
+        <label>출생지<select value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">출생지를 몰라요</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>베다점·서양 점성술의 위치 계산에 사용해요.</small></label>
         <fieldset><legend>달력 기준</legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> 양력</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> 음력</label></fieldset>
         <label>성별 <em>(선택)</em><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}><option value="unspecified">선택하지 않음</option><option value="female">여성</option><option value="male">남성</option></select></label>
         <label>닉네임 <em>(선택)</em><input maxLength={40} value={form.nickname} onChange={(event) => setForm({ ...form, nickname: event.target.value })} placeholder="결과에서 불릴 이름" /></label>
@@ -257,7 +296,7 @@ export function FusionFortuneClient() {
     </section>
 
     {!status.dailyLimit.isSoldOut && status.ticket.remaining < 1 && <section className={styles.ticket} id="ticket" aria-labelledby="fusion-ticket-heading">
-      <div><p className={styles.kicker}>별도 프리미엄 이용권</p><h2 id="fusion-ticket-heading">초융합 운세 이용권</h2><p>{ticketProduct?.description || "여섯 운세 체계를 한 번에 엮어 1만자 이상의 깊은 전체 운세를 볼 수 있어요."}</p><ul><li>이용권 1개로 결과 1회 생성</li><li>PG 단건 결제로만 구매</li><li>생성 실패 또는 선착순 마감 시 미차감</li></ul></div>
+      <div><p className={styles.kicker}>별도 프리미엄 상담권</p><h2 id="fusion-ticket-heading">초융합 운세 상담권</h2><p>{ticketProduct?.description || "여섯 운세 체계를 한 번에 엮어 1만자 이상의 깊은 전체 운세를 볼 수 있어요."}</p><ul><li>상담권 1회로 결과 1회 생성</li><li>PG 단건 결제로만 구매</li><li>생성 실패 또는 선착순 마감 시 미차감</li></ul></div>
       <div className={styles.ticketAction}><strong>{(ticketProduct?.priceKRW || 10000).toLocaleString("ko-KR")}원</strong><label>결제용 휴대전화 번호<input inputMode="numeric" autoComplete="tel" value={paymentPhone} onChange={(event) => setPaymentPhone(event.target.value)} placeholder="01012345678" maxLength={13} /></label><button type="button" disabled={purchaseBusy || !ticketProduct} onClick={() => void startPurchase()}>{purchaseBusy ? "결제 준비 중…" : "단건 결제로 구매하기"}</button><small>실제 결제 전 PG 결제창에서 금액을 다시 확인할 수 있어요.</small></div>
     </section>}
 

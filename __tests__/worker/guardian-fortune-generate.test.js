@@ -10,13 +10,14 @@ const input = {
   calendarType: "solar",
   gender: "unknown",
   topic: "daily",
+  category: "saju",
   mode: "yeoni",
   locale: "ko-KR",
 };
 
 const context = {
   version: "guardian-fortune.v1",
-  inputSummary: { hasBirthTime: false, hasBirthPlace: false, calendarType: "solar", topic: "daily", mode: "yeoni", targetDate: "2026-08-02", locale: "ko-KR", hasConcern: false },
+  inputSummary: { hasBirthTime: false, hasBirthPlace: false, calendarType: "solar", topic: "daily", category: "saju", mode: "yeoni", targetDate: "2026-08-02", locale: "ko-KR", hasConcern: false },
   availableSystems: ["saju"],
   unavailableClaims: [],
   saju: { dayMaster: "갑목", currentFlowSummary: "작은 정리가 흐름을 가볍게 합니다." },
@@ -50,6 +51,24 @@ function successfulContextBuilder() {
 }
 
 describe("Guardian Fortune mock generate controller", () => {
+  it.each([undefined, "fusion", "unknown"])("rejects category %s before reserving usage", async (category) => {
+    const store = createMemoryGuardianFortuneStore();
+    const contextBuilder = jest.fn(successfulContextBuilder);
+    const response = await generateGuardianFortuneRequest({
+      input: { ...input, category },
+      guestIdHash: "guest-invalid-category",
+      requestId: `invalid-category-${String(category)}`,
+      dateKey: "2026-08-02",
+      store,
+      now: NOW,
+      contextBuilder,
+    });
+
+    expect(response).toMatchObject({ ok: false, status: 400, error: "GUARDIAN_FORTUNE_INVALID_INPUT" });
+    expect(contextBuilder).not.toHaveBeenCalled();
+    expect(store.state.guests.get("guest-invalid-category")).toBeUndefined();
+  });
+
   it("generates for a guest and commits exactly one guest use", async () => {
     const store = createMemoryGuardianFortuneStore();
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));

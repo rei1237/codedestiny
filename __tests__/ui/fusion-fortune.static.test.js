@@ -30,6 +30,7 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(css, /max-width:\s*390px/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /min-height:\s*50px/);
+  assert.match(css, /\.form fieldset label[\s\S]*?min-height:\s*44px/);
   assert.match(css, /content-visibility:\s*auto/);
 });
 

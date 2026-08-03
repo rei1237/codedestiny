@@ -79,6 +79,8 @@
     "verify:compass-report-indexes": "node scripts/migrations/20260801-add-destiny-compass-report-indexes.mjs --check",
     "migrate:access-unlock-indexes": "node scripts/migrations/20260802-add-access-unlock-indexes.mjs",
     "verify:access-unlock-indexes": "node scripts/migrations/20260802-add-access-unlock-indexes.mjs --check",
+    "migrate:fusion-fortune-indexes": "node scripts/migrations/20260804-add-fusion-fortune-indexes.mjs",
+    "verify:fusion-fortune-indexes": "node scripts/migrations/20260804-add-fusion-fortune-indexes.mjs --check",
     "migrate:fix-ttl-index-drift": "node scripts/migrations/20260705-fix-ttl-index-drift.mjs",
     "migrate:monthly-credit-lot-expiry": "node scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs",
     "verify:mongo-launch-indexes": "node scripts/verify-mongo-launch-indexes.mjs",

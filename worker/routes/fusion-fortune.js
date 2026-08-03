@@ -8,6 +8,7 @@ import {
   getFusionFortuneDateKey,
   isFusionFortuneApiEnabled,
   isFusionFortuneMockFlowEnabled,
+  isFusionFortuneRealLlmAllowed,
   isFusionFortuneUiEnabled,
   FUSION_FORTUNE_ERROR_CODES,
 } from "../lib/fusion-fortune.js";
@@ -47,7 +48,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/generate") {
-      if (!isFusionFortuneMockFlowEnabled(env)) {
+      if (!isFusionFortuneMockFlowEnabled(env) && !isFusionFortuneRealLlmAllowed(env)) {
         return respond({ ok: false, status: 503, error: FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED, message: "초융합 운세 생성은 아직 준비 중입니다." });
       }
       const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
@@ -59,7 +60,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
         requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
         dateKey: getFusionFortuneDateKey(),
         store: createMongoFusionFortuneStore(),
-        // Feature flag가 켜져도 이 엔드포인트는 mock만 사용한다. 실제 제공자 호출은 별도 서버 전용 구현과 명시 승인 후 추가한다.
+        env,
         ctx,
       });
       return respond(result);

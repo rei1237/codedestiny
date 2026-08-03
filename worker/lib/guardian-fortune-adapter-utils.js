@@ -8,7 +8,7 @@ const ADAPTER_NAMES = Object.freeze([
 ]);
 
 const VALID_TOPICS = new Set(["daily", "love", "money_work", "relationship", "mind", "decision"]);
-const VALID_CATEGORIES = new Set(["fusion", "saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]);
+const VALID_CATEGORIES = new Set(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]);
 const VALID_MODES = new Set(["yeoni", "neo"]);
 const VALID_CALENDAR_TYPES = new Set(["solar", "lunar"]);
 const VALID_GENDERS = new Set(["female", "male", "unknown"]);
@@ -27,13 +27,12 @@ const GUARDIAN_TOPIC_ADAPTER_PRIORITY = Object.freeze({
 });
 
 const GUARDIAN_CATEGORY_ADAPTER_PRIORITY = Object.freeze({
-  fusion: null,
-  saju: ["saju", "ziwei", "tarot", "astrology", "vedic", "sukuyo"],
-  ziwei: ["ziwei", "saju", "tarot", "astrology", "vedic", "sukuyo"],
-  vedic: ["vedic", "astrology", "saju", "tarot", "ziwei", "sukuyo"],
-  sukuyo: ["sukuyo", "tarot", "saju", "ziwei", "astrology", "vedic"],
-  astrology: ["astrology", "vedic", "saju", "tarot", "ziwei", "sukuyo"],
-  tarot: ["tarot", "saju", "ziwei", "sukuyo", "astrology", "vedic"],
+  saju: ["saju"],
+  ziwei: ["ziwei"],
+  vedic: ["vedic"],
+  sukuyo: ["sukuyo"],
+  astrology: ["astrology"],
+  tarot: ["tarot"],
 });
 
 const SENSITIVE_TEXT_PATTERNS = [

@@ -11,7 +11,7 @@
   var state = {
     mode: 'yeoni',
     topic: 'daily',
-    category: 'fusion',
+    category: '',
     flow: 'disabled',
     usage: 'guest-available',
     usageStatus: null,
@@ -442,14 +442,19 @@
   }
 
   function setCategory(category) {
-    if (!mock.categories || !mock.categories[category]) return;
-    state.category = category;
+    if (category && (!mock.categories || !mock.categories[category])) return;
+    state.category = category || '';
     qsa('[data-guardian-category]').forEach(function (button) {
-      var selected = button.getAttribute('data-guardian-category') === category;
+      var selected = button.getAttribute('data-guardian-category') === state.category;
       button.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
     var description = qs('[data-guardian-category-description]');
-    if (description) description.textContent = mock.categories[category].description;
+    if (description) description.textContent = state.category
+      ? mock.categories[state.category].description
+      : '상담에 사용할 운세 체계 하나를 선택해 주세요.';
+    var placeField = qs('[data-guardian-birth-place-field]');
+    if (placeField) placeField.hidden = state.category !== 'vedic' && state.category !== 'astrology';
+    updateGenerateButton();
   }
 
   function setLoadingCopy() {
@@ -517,8 +522,9 @@
       return;
     }
     var usage = getUsage();
-    generate.disabled = !usage.canGenerate;
-    if (usage.canGenerate) generate.textContent = currentMode().button;
+    generate.disabled = !usage.canGenerate || !state.category;
+    if (usage.canGenerate && !state.category) generate.textContent = '운세 카테고리를 먼저 골라주세요';
+    else if (usage.canGenerate) generate.textContent = currentMode().button;
     else if (usage.nextAction === 'login') generate.textContent = '로그인하고 하루 최대 3회 보기';
     else if (usage.nextAction === 'buy_credits') generate.textContent = '대화권 보러가기';
     else generate.textContent = '곧 다시 열릴 예정이에요';
@@ -584,9 +590,20 @@
     var nickname = qs('[data-guardian-input="nickname"]');
     var concern = qs('[data-guardian-input="concern"]');
     var calendar = qs('[data-guardian-calendar]:checked');
+    var timeUnknown = qs('[data-guardian-input="birthTimeUnknown"]');
+    var place = qs('[data-guardian-input="birthPlace"]');
+    var placeOption = place && place.selectedIndex >= 0 ? place.options[place.selectedIndex] : null;
     return {
       birthDate: date ? date.value.trim() : '',
-      birthTime: time ? time.value.trim() : '',
+      birthTime: time && !(timeUnknown && timeUnknown.checked) ? time.value.trim() : '',
+      birthTimeUnknown: Boolean(timeUnknown && timeUnknown.checked),
+      birthPlace: placeOption && placeOption.value ? {
+        city: placeOption.textContent.trim(),
+        country: placeOption.getAttribute('data-country') || undefined,
+        latitude: Number(placeOption.getAttribute('data-lat')),
+        longitude: Number(placeOption.getAttribute('data-lon')),
+        timezone: placeOption.getAttribute('data-timezone') || ''
+      } : undefined,
       calendarType: calendar ? calendar.value : 'solar',
       gender: gender ? gender.value : 'unknown',
       nickname: nickname ? nickname.value.trim() : '',
@@ -607,12 +624,13 @@
   }
 
   function validateInput(input) {
+    if (!state.category || !mock.categories[state.category]) return '운세 카테고리 하나를 선택해 주세요.';
     if (!input.birthDate) return mock.copy.validationMissingBirthDate;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate)) return mock.copy.validationBirthDateFormat;
     var date = new Date(input.birthDate + 'T00:00:00');
     if (Number.isNaN(date.getTime()) || date > new Date()) return '생년월일을 다시 확인해 주세요.';
-    if (!input.birthTime) return '생시를 입력해 주세요. 상담 체계별 해석을 더 정확히 맞춰드려요.';
-    if (!/^\d{2}:\d{2}$/.test(input.birthTime)) return '생시 형식을 한 번만 확인해 주세요.';
+    if (!input.birthTime && !input.birthTimeUnknown) return '생시를 입력하거나 “생시를 몰라요”를 선택해 주세요.';
+    if (input.birthTime && !/^\d{2}:\d{2}$/.test(input.birthTime)) return '생시 형식을 한 번만 확인해 주세요.';
     if (input.concern.length > 120) return mock.copy.validationConcernLength;
     if (input.nickname.length > 20) return '닉네임은 20자 안에서 적어주세요.';
     if (['solar', 'lunar'].indexOf(input.calendarType) < 0) return '달력 기준을 선택해 주세요.';
@@ -632,6 +650,7 @@
       targetDate: getKoreaDateKey()
     };
     if (input.birthTime) request.birthTime = input.birthTime;
+    if (input.birthPlace) request.birthPlace = input.birthPlace;
     if (input.nickname) request.nickname = input.nickname;
     if (input.concern) request.concern = input.concern;
     return request;
@@ -639,12 +658,13 @@
 
   function mockResult(raw) {
     var topicResult = mock.results[state.topic] || mock.results.daily;
+    var categoryResult = mock.categoryResults && mock.categoryResults[state.category];
     var shared = mock.sharedCore;
     return {
       title: (raw && raw.title) || ('오늘의 ' + currentTopic().label + '을 읽어봤어요'),
       openingLine: (raw && raw.openingLine) || mock.copy.resultOpening[state.mode],
       innerState: (raw && raw.innerState) || shared.innerState,
-      coreReading: (raw && raw.coreReading) || topicResult.coreReading,
+      coreReading: (raw && raw.coreReading) || (categoryResult && categoryResult.coreReading) || topicResult.coreReading,
       topicAdvice: (raw && raw.topicAdvice) || topicResult.topicAdvice,
       cautionPattern: (raw && raw.cautionPattern) || shared.cautionPattern,
       luckyAction: (raw && raw.luckyAction) || shared.luckyAction,
@@ -881,6 +901,46 @@
     });
   }
 
+  function populateBirthPlaces() {
+    var select = qs('[data-guardian-input="birthPlace"]');
+    if (!select || select.getAttribute('data-populated') === 'true') return;
+    var groups = Array.isArray(window.BIRTH_PLACE_GROUPS) ? window.BIRTH_PLACE_GROUPS : [];
+    if (!groups.length) {
+      groups = [{ label: '대한민국', places: [{ label: '대한민국 · 서울', tz: 'Asia/Seoul', lon: 126.978, lat: 37.5665 }] }];
+    }
+    groups.forEach(function (group) {
+      var optgroup = document.createElement('optgroup');
+      optgroup.label = String(group.label || '출생지');
+      (Array.isArray(group.places) ? group.places : []).forEach(function (place) {
+        if (!place || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lon)) || !place.tz) return;
+        var option = document.createElement('option');
+        option.value = String(place.label || place.tz);
+        option.textContent = String(place.label || place.tz);
+        option.setAttribute('data-country', String(place.label || '').split('·')[0].trim());
+        option.setAttribute('data-lat', String(Number(place.lat)));
+        option.setAttribute('data-lon', String(Number(place.lon)));
+        option.setAttribute('data-timezone', String(place.tz));
+        optgroup.appendChild(option);
+      });
+      if (optgroup.children.length) select.appendChild(optgroup);
+    });
+    select.setAttribute('data-populated', 'true');
+  }
+
+  function bindBirthPrecisionInputs() {
+    var unknown = qs('[data-guardian-input="birthTimeUnknown"]');
+    var time = qs('[data-guardian-input="birthTime"]');
+    if (unknown && time) {
+      var syncTimeState = function () {
+        time.disabled = unknown.checked;
+        if (unknown.checked) time.value = '';
+      };
+      unknown.addEventListener('change', syncTimeState);
+      syncTimeState();
+    }
+    populateBirthPlaces();
+  }
+
   function bindForm() {
     var form = qs('[data-guardian-form]');
     if (form) form.addEventListener('submit', function (event) {
@@ -1087,6 +1147,7 @@
     bindModeButtons();
     bindTopics();
     bindCategories();
+    bindBirthPrecisionInputs();
     bindForm();
     bindCharacterMotion();
     bindShares();

@@ -23,18 +23,18 @@ export async function getFusionFortuneTicketBalance(userId) {
 
 export async function createFusionFortuneTicketOrder({ env = {}, userId, body = {}, requestUrl = "", paymentModel = Payment, userModel = User } = {}) {
   const user = text(userId, 120); if (!user) throw error("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
-  if (body.productId !== FUSION_FORTUNE_TICKET_PRODUCT.productId || body.productType !== FUSION_FORTUNE_TICKET_PRODUCT.productType || (body.amount !== undefined && Number(body.amount) !== FUSION_FORTUNE_TICKET_PRODUCT.priceKRW)) throw error("FUSION_FORTUNE_PRODUCT_MISMATCH", "초융합 운세 이용권 상품 또는 가격이 일치하지 않습니다.");
+  if (body.productId !== FUSION_FORTUNE_TICKET_PRODUCT.productId || body.productType !== FUSION_FORTUNE_TICKET_PRODUCT.productType || (body.amount !== undefined && Number(body.amount) !== FUSION_FORTUNE_TICKET_PRODUCT.priceKRW)) throw error("FUSION_FORTUNE_PRODUCT_MISMATCH", "초융합 운세 상담권 상품 또는 가격이 일치하지 않습니다.");
   assertFusionFortuneTicketPurchaseAllowed(body.paymentMethod || body.paymentMode || "pg");
   const config = getPortOnePublicConfig(env); if (!config.configured) throw error("PORTONE_V2_CONFIG_MISSING", "PG 결제 설정을 확인할 수 없습니다.", 503);
   const idempotencyKey = text(body.idempotencyKey, 180) || randomId("fusion-ticket-key");
   const existing = await paymentModel.findOne({ userId: objectIdOrString(user), idempotencyKey, paymentType: "digital_content" }).sort({ createdAt: -1 }).lean();
   if (existing) {
     if (!isFusionFortuneTicketPaymentRecord(existing) || Number(existing.paymentAmount) !== FUSION_FORTUNE_TICKET_PRODUCT.priceKRW) throw error("IDEMPOTENCY_CONFLICT", "같은 결제 키가 다른 상품에 사용되었습니다.", 409);
-    return { ok: true, idempotent: true, order: { merchantUid: existing.merchantUid, product: FUSION_FORTUNE_TICKET_PRODUCT, paymentMethod: "pg", customer: customer(await userModel.findById(user).lean(), user), redirectUrl: `${new URL(requestUrl || "https://code-destiny.com").origin}/points?fusion_fortune=1` } };
+    return { ok: true, idempotent: true, order: { merchantUid: existing.merchantUid, product: FUSION_FORTUNE_TICKET_PRODUCT, paymentMethod: "pg", customer: customer(await userModel.findById(user).lean(), user), redirectUrl: `${new URL(requestUrl || "https://code-destiny.com").origin}/points?fusion_fortune_payment=1&merchantUid=${encodeURIComponent(existing.merchantUid)}` } };
   }
   const merchantUid = randomId("fusion-ticket"); const userRecord = await userModel.findById(user).select("name email phone phoneNumber fullName displayName").lean();
   await paymentModel.create({ userId: objectIdOrString(user), merchantUid, idempotencyKey, paymentAmount: FUSION_FORTUNE_TICKET_PRODUCT.priceKRW, expectedChargedPoints: 0, chargedPoints: 0, featureKey: "fusion-fortune", productId: FUSION_FORTUNE_TICKET_PRODUCT.productId, coinPrice: 0, membershipCreditCost: 0, accessType: "single_purchase", paymentMethod: "pg", status: "pending", orderState: "PENDING", source: "fusion_fortune_prepare", paymentType: "digital_content", subscriptionTier: "", pricingSnapshot: { productId: FUSION_FORTUNE_TICKET_PRODUCT.productId, productType: FUSION_FORTUNE_TICKET_PRODUCT.productType, ticketAmount: 1, amountKRW: 10000, currency: "KRW", paymentChannel: "pg" }, metadata: { fusionFortuneTicket: true, productType: FUSION_FORTUNE_TICKET_PRODUCT.productType } });
-  return { ok: true, idempotent: false, order: { merchantUid, product: FUSION_FORTUNE_TICKET_PRODUCT, paymentMethod: "pg", customer: customer(userRecord, user), redirectUrl: `${new URL(requestUrl || "https://code-destiny.com").origin}/points?fusion_fortune=1` } };
+  return { ok: true, idempotent: false, order: { merchantUid, product: FUSION_FORTUNE_TICKET_PRODUCT, paymentMethod: "pg", customer: customer(userRecord, user), redirectUrl: `${new URL(requestUrl || "https://code-destiny.com").origin}/points?fusion_fortune_payment=1&merchantUid=${encodeURIComponent(merchantUid)}` } };
 }
 
 export async function grantFusionFortuneTicketPurchase({ userId, paymentId, now = new Date() } = {}) {
@@ -54,7 +54,7 @@ export async function grantFusionFortuneTicketPurchase({ userId, paymentId, now 
 export async function settleFusionFortuneTicketPayment({ env = {}, paymentId, providerPaymentId = paymentId, userId, paymentModel = Payment, fetchPayment = fetchPortOnePayment, now = new Date() } = {}) {
   const merchantUid = text(paymentId, 160); if (!merchantUid) throw error("PAYMENT_ID_REQUIRED", "paymentId가 필요합니다.");
   const order = await paymentModel.findOne({ merchantUid, paymentType: "digital_content", accessType: "single_purchase" }).lean();
-  if (!order || !isFusionFortuneTicketPaymentRecord(order)) throw error("FUSION_FORTUNE_ORDER_NOT_FOUND", "초융합 운세 이용권 주문을 찾을 수 없습니다.", 404);
+  if (!order || !isFusionFortuneTicketPaymentRecord(order)) throw error("FUSION_FORTUNE_ORDER_NOT_FOUND", "초융합 운세 상담권 주문을 찾을 수 없습니다.", 404);
   if (text(userId) && String(order.userId) !== String(userId)) throw error("FORBIDDEN", "결제 주문에 접근할 수 없습니다.", 403);
   const provider = await fetchPayment(env, text(providerPaymentId, 160) || merchantUid);
   if (!paid(provider?.status) || paymentAmount(provider) !== 10000 || !["krw", "currency_krw"].includes(text(provider?.currency, 30).toLowerCase())) throw error("FUSION_FORTUNE_PAYMENT_MISMATCH", "결제 상태, 통화 또는 금액이 상품과 일치하지 않습니다.");

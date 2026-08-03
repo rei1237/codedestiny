@@ -20,8 +20,16 @@ generate, and share endpoints with `ENABLE_GUARDIAN_FORTUNE_API=true` and
 
 `ENABLE_GUARDIAN_FORTUNE_REAL_LLM` and
 `ALLOW_REAL_GUARDIAN_FORTUNE_LLM` remain explicitly `false`, so production
-continues to use the mock generator. Credits sales remain disabled with
-`ENABLE_GUARDIAN_FORTUNE_CREDITS=false`.
+uses the context-driven server generator. 대화권 판매를 열 때에는 별도 운영 승인 후
+`ENABLE_GUARDIAN_FORTUNE_CREDITS=true`만 켜며 초융합 플래그와 묶지 않는다.
+
+### Fusion Fortune activation
+
+- 기능/판매/실 LLM은 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_TICKET_SALES`, `ENABLE_FUSION_FORTUNE_REAL_LLM`, `ALLOW_FUSION_FORTUNE_REAL_LLM`을 서로 독립적으로 제어한다. 테스트는 `ENABLE_FUSION_FORTUNE_MOCK_FLOW=true`와 fake provider만 사용한다.
+- 판매 전 `npm run verify:fusion-fortune-indexes`로 전용 balance, transaction, daily limit, attempt 인덱스를 확인한다. 누락 시 별도 운영 DB 승인 후 `npm run migrate:fusion-fortune-indexes`를 한 번 실행한다.
+- 운영 활성화 순서는 전용 인덱스 확인 → Worker 배포 → `/api/version` 동일 SHA 확인 → status/catalog 확인 → Pages 배포다. 결제 성공 전에 ticket을 적립하지 않으며 생성 성공 transaction 안에서만 ticket과 KST daily count를 함께 commit한다.
+- 롤백은 판매 → API → 실 LLM → UI 플래그 순으로 끄고 이전 Worker/Pages SHA로 되돌린다. 기존 ticket balance와 원장은 삭제하거나 일반 entitlement로 변환하지 않는다.
+- R2 asset config에서 검증 가능한 fusion 전용 prefix를 찾지 못하면 외부 hotlink를 만들지 않고 repo-local 최적화 WebP와 CSS/SVG fallback을 사용한다.
 
 Rollback: remove the static UI/API flags or set the Worker API/share vars to
 `false`, then redeploy through the same CI paths. No provider key, payment, or

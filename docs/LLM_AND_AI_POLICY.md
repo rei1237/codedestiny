@@ -12,11 +12,12 @@
 ## 초융합 운세
 
 - `/fusion-fortune`와 `POST /api/fusion-fortune/generate`는 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_MOCK_FLOW`을 분리해 제어한다.
-- 기본 생성기는 mock이며 실제 외부 LLM을 호출하지 않는다. 운영 제공자 연결은 `ENABLE_FUSION_FORTUNE_REAL_LLM=true`, `ALLOW_FUSION_FORTUNE_REAL_LLM=true`, 서버 전용 API key, `NODE_ENV !== test`가 모두 충족되는 별도 승인 경로에서만 추가할 수 있다.
+- 테스트와 기본 개발 환경은 mock만 사용한다. 운영 제공자 연결은 `ENABLE_FUSION_FORTUNE_REAL_LLM=true`, `ALLOW_FUSION_FORTUNE_REAL_LLM=true`, 서버 전용 API key, `NODE_ENV !== test`가 모두 충족될 때만 허용한다.
 - 결과는 서버 컨텍스트와 서버 선택 타로 spread만 근거로 삼고 raw prompt·raw response·birthDate·birthTime·고민 원문·결제/이용권 정보는 결과 또는 공유 텍스트에 포함하지 않는다.
 - validator가 10,000~15,000자, 8개 결과 영역, 안전 표현, 개인정보 노출을 모두 확인한 성공 결과만 이용권과 하루 한도를 commit한다.
-- `worker/lib/fusion-fortune-prompt.js`는 여섯 체계의 전문가 계약, 교차 검증 규칙, 생시 미확인 단정 금지, 섹션별 최소 깊이와 JSON schema를 서버에서 고정한다. mock도 동일 validator를 통과해야 하며 실제 제공자 호출은 하지 않는다.
-- 오늘의 귀인은 선택한 상담 카테고리를 prompt-safe context의 어댑터 우선순위에도 적용한다. 통합 상담은 공통 패턴을 우선하고, 단일 체계 카테고리는 해당 체계의 전문 용어와 해석 범위를 우선한다.
+- `worker/lib/fusion-fortune-prompt.js`는 여섯 체계의 전문가 계약, 교차 검증 규칙, 생시·출생지 미확인 단정 금지, 섹션별 최소 깊이와 JSON schema를 서버에서 고정한다. 최초 생성과 1회 보정까지 최대 두 번만 Gemini를 호출하며, 둘 다 실패하면 실제 여섯 계산값을 사용하는 체계별 장문 fallback을 동일 validator로 검증한다.
+- validator는 동일 긴 문장의 섹션 간 반복, 서버가 선택하지 않은 타로 카드, 개인정보·raw 데이터·공포/확정 표현을 거부한다. 문장을 반복해 분량만 채우는 결과는 유료 결과로 제공하지 않는다.
+- 오늘의 귀인은 `fusion` 없이 사용자가 고른 카테고리의 어댑터 하나만 실행한다. 프롬프트에는 해당 계산 결과와 해당 체계 전문가 지침만 전달하고, validator가 다른 다섯 체계의 용어·계산 근거·카드를 거부한다.
 
 - 공통 클라이언트: `lib/llm-client.ts`
 - Gemini wrapper: `worker/lib/gemini.js`, `worker/lib/gemini-client.js`

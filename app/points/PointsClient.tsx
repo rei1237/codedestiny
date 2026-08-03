@@ -2808,7 +2808,7 @@ function GuardianFortuneCreditShop({
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">오늘의 귀인 운세</p>
           <h2 id="guardian-fortune-credit-heading" className="mt-2 text-2xl font-black text-white">오늘의 귀인 운세 대화권</h2>
           <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-[color:var(--moon-mist)]">
-            오늘 이용 가능한 무료 상담을 모두 사용했다면, 대화권으로 연이와 네오에게 더 물어볼 수 있어요.
+            원하는 운세 카테고리 하나를 골라 연이와 네오에게 상담해요. 대화권 1회는 단일 카테고리 상담 한 번에만 사용됩니다.
           </p>
         </div>
         <p className="rounded-full border border-[color:var(--moon-rim)] px-3 py-2 text-sm font-black text-[color:var(--moon-gold)]">
@@ -2857,10 +2857,150 @@ function GuardianFortuneCreditShop({
               ))}
           </div>
           <p className="mt-4 text-xs font-bold leading-5 text-[color:var(--moon-mist)]">
-            대화권은 PG사 단건 결제로만 구매할 수 있어요. 보유 이용권이나 family 이용권으로는 구매할 수 없습니다.
+            대화권은 PG사 단건 결제로만 구매할 수 있어요. 보유 이용권이나 family 이용권으로는 구매할 수 없고, 초융합 운세에는 사용할 수 없습니다.
           </p>
         </>
       )}
+    </section>
+  );
+}
+
+type FusionFortuneTicketProductClient = {
+  productId: string;
+  productType: "fusion_fortune_ticket";
+  name: string;
+  priceKRW: number;
+  ticketAmount: number;
+  description: string;
+  allowedPurchaseChannels: string[];
+};
+
+type FusionFortuneTicketOrderClient = {
+  merchantUid: string;
+  product: FusionFortuneTicketProductClient;
+  redirectUrl?: string;
+  customer?: PortOneCustomer;
+};
+
+const FUSION_FORTUNE_PENDING_PAYMENT_KEY = "fusion_fortune_shop_pending_payment";
+
+function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
+  apiBase: string;
+  authUser: AuthUser | null;
+  formatLocale: string;
+  onToast: (type: ToastItem["type"], text: string) => void;
+}) {
+  const [product, setProduct] = useState<FusionFortuneTicketProductClient | null>(null);
+  const [remaining, setRemaining] = useState(0);
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const redirectHandledRef = useRef(false);
+
+  const load = useCallback(async () => {
+    if (!authUser) { setIsEnabled(false); return; }
+    setIsLoading(true); setErrorMessage("");
+    try {
+      const [catalogResponse, balanceResponse] = await Promise.all([
+        authFetch(`${apiBase}/api/payments/fusion-fortune/catalog`, { credentials: "include" }, { retryOn401: true, apiBase }),
+        authFetch(`${apiBase}/api/payments/fusion-fortune/balance`, { credentials: "include" }, { retryOn401: true, apiBase }),
+      ]);
+      const catalog = await safeParseJson<{ enabled?: boolean; products?: FusionFortuneTicketProductClient[]; message?: string }>(catalogResponse);
+      const balance = await safeParseJson<{ balance?: { remaining?: number }; message?: string }>(balanceResponse);
+      if (catalogResponse.status === 404 || catalog.enabled === false) { setIsEnabled(false); return; }
+      if (!catalogResponse.ok) throw new Error(catalog.message || "초융합 운세 상담권 상품을 확인하지 못했습니다.");
+      if (!balanceResponse.ok) throw new Error(balance.message || "초융합 운세 상담권 잔액을 확인하지 못했습니다.");
+      setIsEnabled(true);
+      setProduct(catalog.products?.find((item) => item.productId === "fusion_fortune_ticket_1" && item.allowedPurchaseChannels?.includes("pg")) || null);
+      setRemaining(Math.max(0, Math.floor(Number(balance.balance?.remaining || 0))));
+    } catch (error) {
+      setIsEnabled(true);
+      setErrorMessage(error instanceof Error ? error.message : "초융합 운세 상담권을 확인하지 못했습니다.");
+    } finally { setIsLoading(false); }
+  }, [apiBase, authUser]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const confirm = useCallback(async (merchantUid: string, providerPaymentId = merchantUid) => {
+    const response = await authFetch(`${apiBase}/api/payments/fusion-fortune/confirm`, {
+      method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ merchantUid, paymentId: providerPaymentId }),
+    }, { retryOn401: true, apiBase });
+    const payload = await safeParseJson<{ ok?: boolean; message?: string; balance?: { remaining?: number } }>(response);
+    if (!response.ok || payload.ok === false) throw new Error(payload.message || "초융합 운세 상담권 결제 확인에 실패했습니다.");
+    sessionStorage.removeItem(FUSION_FORTUNE_PENDING_PAYMENT_KEY);
+    setRemaining(Math.max(0, Math.floor(Number(payload.balance?.remaining || 0))));
+    onToast("success", "초융합 운세 상담권 1회가 충전되었어요.");
+  }, [apiBase, onToast]);
+
+  useEffect(() => {
+    if (!authUser || redirectHandledRef.current || typeof window === "undefined") return;
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("fusion_fortune_payment") !== "1") return;
+    const merchantUid = String(query.get("merchantUid") || "").trim();
+    if (!merchantUid || sessionStorage.getItem(FUSION_FORTUNE_PENDING_PAYMENT_KEY) !== merchantUid) return;
+    redirectHandledRef.current = true; setIsBusy(true);
+    void confirm(merchantUid).catch((error) => onToast("error", error instanceof Error ? error.message : "결제 확인에 실패했습니다.")).finally(() => {
+      setIsBusy(false); window.history.replaceState({}, "", window.location.pathname);
+    });
+  }, [authUser, confirm, onToast]);
+
+  const startPurchase = useCallback(async () => {
+    if (!authUser || !product || isBusy) return;
+    setIsBusy(true); setErrorMessage("");
+    try {
+      const prepareResponse = await authFetch(`${apiBase}/api/payments/fusion-fortune/prepare`, {
+        method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.productId, productType: product.productType, paymentMethod: "pg", idempotencyKey: window.crypto.randomUUID() }),
+      }, { retryOn401: true, apiBase });
+      const prepared = await safeParseJson<{ order?: FusionFortuneTicketOrderClient; message?: string }>(prepareResponse);
+      if (!prepareResponse.ok || !prepared.order) throw new Error(prepared.message || "초융합 운세 상담권 결제 준비에 실패했습니다.");
+      const order = prepared.order;
+      sessionStorage.setItem(FUSION_FORTUNE_PENDING_PAYMENT_KEY, order.merchantUid);
+      const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
+      if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
+      const phoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
+      const customer = buildPortOneCustomer(authUser, order.merchantUid, phoneNumber || order.customer?.phoneNumber);
+      const requestData: PortOnePaymentRequest = {
+        storeId: paymentConfig.storeId, channelKey: paymentConfig.channelKey, paymentId: order.merchantUid,
+        orderName: order.product.name, totalAmount: order.product.priceKRW, currency: paymentConfig.currency || "CURRENCY_KRW", payMethod: paymentConfig.payMethod || "CARD",
+        redirectUrl: order.redirectUrl || `${window.location.origin}/points?fusion_fortune_payment=1&merchantUid=${encodeURIComponent(order.merchantUid)}`,
+        customer, customData: { productId: order.product.productId, productType: order.product.productType },
+      };
+      if (paymentConfig.noticeUrl) requestData.noticeUrls = [paymentConfig.noticeUrl];
+      const paymentResponse = await window.PortOne.requestPayment(requestData);
+      const providerPaymentId = String(paymentResponse?.paymentId || order.merchantUid).trim();
+      if (!paymentResponse || paymentResponse.code || !providerPaymentId) { sessionStorage.removeItem(FUSION_FORTUNE_PENDING_PAYMENT_KEY); throw new Error(paymentResponse?.message || "결제가 취소되었습니다."); }
+      await confirm(order.merchantUid, providerPaymentId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "초융합 운세 상담권 결제를 진행하지 못했습니다.";
+      setErrorMessage(message); onToast("error", message);
+    } finally { setIsBusy(false); }
+  }, [apiBase, authUser, confirm, isBusy, onToast, product]);
+
+  if (!authUser || isEnabled === false) return null;
+  return (
+    <section className="moon-card rounded-[24px] border border-[#d8b8ff]/45 p-5 sm:p-6" aria-labelledby="fusion-fortune-ticket-heading" data-testid="fusion-fortune-ticket-shop">
+      <div className="grid gap-5 md:grid-cols-[1.25fr_.75fr] md:items-center">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#f3dd9a]">선착순! 하루 100명</p>
+          <h2 id="fusion-fortune-ticket-heading" className="mt-2 text-2xl font-black text-white">초융합 운세 상담권 · 1회</h2>
+          <p className="mt-2 text-sm font-bold leading-6 text-[color:var(--moon-mist)]">여섯 운세를 모두 계산해 하나의 10,000~15,000자 리포트로 연결해요.</p>
+          <div className="mt-4 grid gap-2 text-sm font-bold text-slate-100 sm:grid-cols-2">
+            <p className="rounded-xl bg-white/5 px-3 py-2">대화권: 원하는 카테고리 하나</p>
+            <p className="rounded-xl bg-[#d8b8ff]/10 px-3 py-2">초융합: 여섯 체계 전체 통합</p>
+          </div>
+          <p className="mt-3 text-xs font-bold text-[color:var(--moon-silver)]">일반 이용권·family·대화권·월정석으로 대신 사용할 수 없어요.</p>
+        </div>
+        <div className="rounded-[20px] border border-[#f3dd9a]/35 bg-[rgba(8,9,26,.48)] p-4">
+          {isLoading ? <p className="text-sm font-bold text-[color:var(--moon-mist)]">상품을 확인하고 있어요.</p> : errorMessage ? <><p className="text-sm font-bold text-rose-100">{errorMessage}</p><button type="button" className="mt-3 rounded-xl border border-white/20 px-3 py-2 text-xs font-black text-white" onClick={() => void load()}>다시 확인하기</button></> : <>
+            <p className="text-sm font-black text-[color:var(--moon-mist)]">보유 상담권 {remaining.toLocaleString(formatLocale)}회</p>
+            <p className="mt-2 text-3xl font-black text-[color:var(--moon-gold)]">{(product?.priceKRW || 10000).toLocaleString(formatLocale)}원</p>
+            <button type="button" disabled={isBusy || !product} onClick={() => void startPurchase()} className="btn-moonlight mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:opacity-50">{isBusy ? "결제 준비 중…" : "단건 결제로 1회 구매"}</button>
+            <Link href="/fusion-fortune" className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-black text-white">초융합 운세 자세히 보기</Link>
+          </>}
+        </div>
+      </div>
     </section>
   );
 }
@@ -4762,6 +4902,12 @@ export default function PointsPage() {
           formatLocale={formatLocale}
         />
         <GuardianFortuneCreditShop
+          apiBase={apiBase}
+          authUser={authUser}
+          formatLocale={formatLocale}
+          onToast={pushToast}
+        />
+        <FusionFortuneTicketShop
           apiBase={apiBase}
           authUser={authUser}
           formatLocale={formatLocale}
