@@ -13,6 +13,8 @@ const server = await startStaticServer();
 const tempProfilePrefix = path.join(os.tmpdir(), "code-destiny-mobile-cdp-profile-");
 const debugCdp = process.env.MOBILE_CDP_DEBUG === "1";
 const focusAllFortunes = process.env.MOBILE_CDP_FOCUS === "all-fortunes";
+const hybridDesktopProfile = process.argv.includes("--hybrid-desktop");
+const desktopProfile = hybridDesktopProfile || process.argv.includes("--desktop");
 
 const failures = [];
 let chrome;
@@ -27,15 +29,75 @@ try {
 
   await send(cdp, "Runtime.enable");
   await send(cdp, "Network.enable");
-  await send(cdp, "Emulation.setDeviceMetricsOverride", {
+  if (hybridDesktopProfile) {
+    await send(cdp, "Page.addScriptToEvaluateOnNewDocument", {
+      source: `Object.defineProperty(Navigator.prototype, "maxTouchPoints", {
+        configurable: true,
+        get: () => 10
+      });`,
+    });
+  }
+  await send(cdp, "Emulation.setDeviceMetricsOverride", desktopProfile ? {
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false,
+  } : {
     width: 390,
     height: 844,
     deviceScaleFactor: 3,
     mobile: true,
   });
-  await send(cdp, "Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await send(cdp, "Emulation.setTouchEmulationEnabled", desktopProfile ? { enabled: false } : { enabled: true, maxTouchPoints: 5 });
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
 
+  if (desktopProfile) {
+    const desktopState = await evaluate(cdp, `(() => ({
+      viewport: { width: innerWidth, height: innerHeight },
+      maxTouchPoints: navigator.maxTouchPoints,
+      bridgeReady: window.__cdMobileTouchBridgeReady === true,
+      touchBridgeBound: document.__cdTouchBridgeBound === true,
+      fallbackBound: document.__cdMobileDataActionFallbackBound === true,
+      touchStyleInjected: !!document.getElementById('cd-mobile-touch-bridge-style'),
+      bottomNavDisplay: getComputedStyle(document.getElementById('cdMobileBottomNav')).display
+    }))()`, "desktop bridge state");
+    assert(desktopState.viewport.width === 1440 && desktopState.viewport.height === 900, "desktop viewport is 1440x900", desktopState);
+    assert(!desktopState.bridgeReady && !desktopState.touchBridgeBound && !desktopState.fallbackBound && !desktopState.touchStyleInjected, "desktop does not initialize the mobile touch bridge or its global capture handlers", desktopState);
+    assert(desktopState.bottomNavDisplay === "none", "desktop keeps the mobile bottom nav out of layout", desktopState);
+
+    const selector = '.fc-toggle-btn[data-target="tarotCollection"]';
+    const probeReady = await evaluate(cdp, `(() => {
+      const target = document.querySelector(${JSON.stringify(selector)});
+      if (!target) return false;
+      target.scrollIntoView({ block: 'center', behavior: 'instant' });
+      sessionStorage.setItem('__cdDesktopClickProbe', '[]');
+      window.addEventListener('click', function desktopClickProbe(event) {
+        if (!event.target || !event.target.closest(${JSON.stringify(selector)})) return;
+        window.setTimeout(function () {
+          const clicks = JSON.parse(sessionStorage.getItem('__cdDesktopClickProbe') || '[]');
+          clicks.push({
+            defaultPrevented: event.defaultPrevented,
+            expanded: target.getAttribute('aria-expanded')
+          });
+          sessionStorage.setItem('__cdDesktopClickProbe', JSON.stringify(clicks));
+        }, 0);
+      }, true);
+      return true;
+    })()`, "desktop click probe setup");
+    assert(probeReady, "desktop tarot collection control exists", { selector });
+    await clickSelector(cdp, selector);
+    await delay(100);
+    await clickSelector(cdp, selector);
+    await delay(100);
+    const clickState = await evaluate(cdp, `(() => ({
+      clicks: JSON.parse(sessionStorage.getItem('__cdDesktopClickProbe') || '[]'),
+      bridgeReady: window.__cdMobileTouchBridgeReady === true,
+      touchBridgeBound: document.__cdTouchBridgeBound === true
+    }))()`, "desktop click probe result");
+    assert(clickState.clicks.length === 2, "desktop collection control receives consecutive native clicks", clickState);
+    assert(clickState.clicks[0]?.expanded === "true" && clickState.clicks[1]?.expanded === "false", "desktop collection remains usable after its first interaction", clickState);
+    assert(!clickState.bridgeReady && !clickState.touchBridgeBound, "desktop click flow never activates the mobile bridge", clickState);
+  } else {
   const initial = await evaluate(cdp, mobileStateExpression(), "initial mobile state");
   assert(initial.viewportWidth === 390, "viewport width is 390", initial);
   if (!focusAllFortunes) {
@@ -175,23 +237,32 @@ try {
   );
   }
 
+  }
+
   if (failures.length) {
-    console.error("Mobile CDP smoke failed.");
+    console.error(desktopProfile ? "Desktop CDP smoke failed." : "Mobile CDP smoke failed.");
     for (const failure of failures) {
       console.error(`- ${failure.name}: ${JSON.stringify(failure.details)}`);
     }
     process.exitCode = 1;
   } else {
-    console.log("Mobile CDP smoke OK");
-    console.log("- Viewport: 390x844");
-    if (!focusAllFortunes) {
-    console.log("- Primary CTA opens the destiny journey: OK");
-    console.log("- Tarot touch: OK");
-    console.log("- Bottom nav 5-tab tarot touch: OK");
-    console.log("- Membership benefits CTA routes to the pass guide: OK");
+    if (desktopProfile) {
+      console.log("Desktop CDP smoke OK");
+      console.log(`- Profile: ${hybridDesktopProfile ? "1440x900 hybrid touch desktop" : "1440x900 mouse desktop"}`);
+      console.log("- Mobile bridge initialization: skipped");
+      console.log("- Consecutive tarot collection clicks: OK");
+    } else {
+      console.log("Mobile CDP smoke OK");
+      console.log("- Viewport: 390x844");
+      if (!focusAllFortunes) {
+        console.log("- Primary CTA opens the destiny journey: OK");
+        console.log("- Tarot touch: OK");
+        console.log("- Bottom nav 5-tab tarot touch: OK");
+        console.log("- Membership benefits CTA routes to the pass guide: OK");
+      }
+      console.log("- Initial audio/video elements: 0");
+      if (focusAllFortunes) console.log("- Focused all-fortunes touch flow: OK");
     }
-    console.log("- Initial audio/video elements: 0");
-    if (focusAllFortunes) console.log("- Focused all-fortunes touch flow: OK");
   }
 } finally {
   if (cdp) {
@@ -681,6 +752,41 @@ async function tapSelector(cdp, selector) {
     type: "touchEnd",
     touchPoints: [],
   });
+}
+
+async function clickSelector(cdp, selector) {
+  let box = await evaluate(cdp, selectorBoxExpression(selector));
+  if (!box.exists || !box.visible) {
+    throw new Error(`Cannot click hidden selector: ${selector} ${JSON.stringify(box)}`);
+  }
+  if (!box.inViewport) {
+    await evaluate(cdp, scrollSelectorIntoViewExpression(selector), `scroll ${selector} into view`);
+    await delay(120);
+    box = await evaluate(cdp, selectorBoxExpression(selector));
+  }
+  if (!box.inViewport) {
+    throw new Error(`Cannot click selector outside viewport: ${selector} ${JSON.stringify(box)}`);
+  }
+  let hit = null;
+  const occlusionDeadline = Date.now() + 8000;
+  for (;;) {
+    hit = await evaluate(cdp, tapPointHitExpression(selector, box.centerX, box.centerY), `hit-test ${selector}`);
+    if (hit.hits) break;
+    if (Date.now() > occlusionDeadline) {
+      throw new Error(`Click point occluded for ${selector}: top element is ${hit.top || "(none)"}`);
+    }
+    await delay(120);
+    box = await evaluate(cdp, selectorBoxExpression(selector));
+    if (!box.exists || !box.visible || !box.inViewport) {
+      throw new Error(`Selector became unclickable while waiting: ${selector} ${JSON.stringify(box)}`);
+    }
+  }
+  await evaluate(cdp, `(() => {
+    const node = document.querySelector(${JSON.stringify(selector)});
+    if (!node) return false;
+    node.click();
+    return true;
+  })()`, `click ${selector}`);
 }
 
 function tapPointHitExpression(selector, x, y) {
