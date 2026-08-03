@@ -55,6 +55,8 @@
 
 관리자 API는 `/api/admin/*`이며 `worker/routes/admin.js`가 우선이다.
 
+- `POST /api/admin/monthly-credits/grant` — 관리자 전용 마케팅 월정석 지급(운영 플래그 필요)
+
 ## Next.js App API Routes
 
 정적 export/Worker 운영에서 실제 사용 여부는 확인 필요다. 운영 API 정본은 일반적으로 Worker다.

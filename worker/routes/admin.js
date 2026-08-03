@@ -5102,6 +5102,13 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminOrderRoutes(path.slice("/orders".length) || "/", request, env, adminContext);
     }
 
+    // 마케팅 월정석 지급은 관리자 인증을 거친 별도 네임스페이스에서만 허용한다.
+    if (path === "/monthly-credits/grant") {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminMonthlyCreditRoutes } = await import("./admin-monthly-credits.js");
+      return await handleAdminMonthlyCreditRoutes("/grant", request, env, adminContext);
+    }
+
     if (path === "/site-content/overrides") {
       if (method === "GET") return await handleSiteContentOverrideList(request, env);
       return methodNotAllowed();
