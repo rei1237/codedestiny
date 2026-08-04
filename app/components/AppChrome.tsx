@@ -23,6 +23,7 @@ const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => m
 
 const CHROMELESS_ROUTES = [
   "/app",
+  "/points/history",
   "/nakshatra",
   "/saju/love-simulation",
   "/saju/destiny-bias",
@@ -77,6 +78,7 @@ const IMMERSIVE_FORTUNE_ROUTES = [
 // Routes that render their own in-experience back/home controls, so the global
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
+  "/points/history",
   "/fortune-tea-house",
   "/master-love-codex",
   "/fortune/prompt-hub",

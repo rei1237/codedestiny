@@ -91,6 +91,15 @@ for (const rel of SHELL_MIRRORS) {
     ? source.slice(explicitPassFallbackStart, explicitPassFallbackEnd)
     : "";
   must(explicitPassFallback.includes("allowSnapshotFastPath: false"), `${label}: 결제창 이용권 선택 폴백이 스냅샷으로 미커버를 확정합니다`);
+
+  // 재진입 직후의 인증 복구가 끝나기 전에 final POST가 나가면 첫 401이 이용권 미커버로 오인될 수 있다.
+  // 기존 이용권 확인 UI 안에서 인증 single-flight를 먼저 완료하고, 그 뒤에만 final MEMBERSHIP_PASS를 보낸다.
+  const finalPass = stripComments(sliceFunction(source, "  async function _cdResolvePaidContentAccess(content) {", `${label}/final-pass-auth-ready`));
+  const authPrepareIndex = finalPass.indexOf("_cdPrepareMembershipPassAuth()");
+  const passPostIndex = finalPass.indexOf("fetchJsonWithAuth('/api/billing/coin-gate'");
+  must(authPrepareIndex >= 0, `${label}: 결제창 이용권 선택이 인증 준비 single-flight를 기다리지 않습니다`);
+  must(passPostIndex >= 0 && authPrepareIndex < passPostIndex, `${label}: 인증 준비보다 MEMBERSHIP_PASS final POST가 먼저 나갑니다`);
+  must(!finalPass.includes("status: 'payment_required', reason: 'auth_recovered_payment_required'"), `${label}: 인증 401을 이용권 미커버/상점 이동으로 바꿉니다`);
 }
 
 // ── A~C, E: React 렌더러 ─────────────────────────────────────────────────────────────────
@@ -161,6 +170,11 @@ for (const rel of STANDALONE_FALLBACKS) {
   const finalApply = stripComments(sliceFunction(source, "  async function _dpApplyMembershipPassBeforePayment(", `${label}/final-pass-apply`));
   must(!finalApply.includes("cached && cached.status === 'payment_required'"), `${label}: 직전 미커버 캐시가 다음 명시적 이용권 확인을 막습니다`);
   must(!finalApply.includes("_dpStorePaidPassGateResult(cacheKey, notCovered)"), `${label}: 미커버 결과를 재사용해 다음 이용권 확인을 막습니다`);
+  const authPrepareIndex = finalApply.indexOf("_dpPrepareMembershipPassAuth()");
+  const passPostIndex = finalApply.indexOf("_dpPaymentFetchJson('/api/billing/coin-gate'");
+  must(authPrepareIndex >= 0, `${label}: 독립 정적 이용권 선택이 인증 준비 single-flight를 기다리지 않습니다`);
+  must(passPostIndex >= 0 && authPrepareIndex < passPostIndex, `${label}: 독립 정적 인증 준비보다 MEMBERSHIP_PASS final POST가 먼저 나갑니다`);
+  must(!finalApply.includes("status: 'payment_required', code: code || 'AUTH_REQUIRED'"), `${label}: 독립 정적 인증 401을 이용권 미커버/상점 이동으로 바꿉니다`);
 }
 
 // ── B(소비자): 게이트가 결제창의 'pass' 반환을 실제로 처리한다 ────────────────────────────

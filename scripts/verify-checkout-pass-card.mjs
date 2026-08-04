@@ -278,6 +278,87 @@ console.log("\n[8] 이용권 확인이 실패하면 상점으로 보내지 않�
   check("다시 누르면 이용권이 적용돼 'pass' 로 닫힌다", () => assert.equal(retryChoice, "pass"));
 }
 
+// ── 9. 재진입 직후 인증 복구가 끝난 뒤 final pass POST가 한 번만 나가는지 ──────────────────
+console.log("\n[9] 인증 준비 완료 뒤 이용권 최종 판정이 한 번만 실행되는가");
+{
+  const { window, storeUrls } = bootRuntime();
+  const calls = [];
+  window.fetch = async (url, init = {}) => {
+    const pathname = new URL(String(url), window.location.origin).pathname;
+    if (pathname === "/api/auth/me") {
+      calls.push({ pathname, init });
+      return new Response(JSON.stringify({ ok: true, user: { id: "pass-auth-ready-user" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (pathname === "/api/billing/coin-gate") {
+      calls.push({ pathname, init });
+      const request = JSON.parse(String(init.body || "{}"));
+      return new Response(JSON.stringify({
+        ok: true,
+        data: {
+          accessType: "membership_pass",
+          freeBySubscription: true,
+          requestId: request.requestId,
+        },
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ ok: false }), { status: 404, headers: { "Content-Type": "application/json" } });
+  };
+
+  const choicePromise = openChoice(window);
+  findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const choice = await choicePromise;
+  const authIndex = calls.findIndex((call) => call.pathname === "/api/auth/me");
+  const finalCalls = calls.filter((call) => call.pathname === "/api/billing/coin-gate");
+  check("인증 준비 GET 뒤에 final MEMBERSHIP_PASS POST", () => {
+    assert.ok(authIndex >= 0, "인증 준비 GET이 실행되지 않았습니다");
+    assert.equal(finalCalls.length, 1, `final pass POST ${finalCalls.length}회`);
+    assert.ok(calls.indexOf(finalCalls[0]) > authIndex, "인증 준비보다 final pass POST가 먼저 실행되었습니다");
+    assert.equal(JSON.parse(String(finalCalls[0].init.body || "{}")).paymentMode, "MEMBERSHIP_PASS");
+  });
+  check("인증 복구 후 이용권 커버면 바로 무료 통과", () => assert.equal(choice, "pass"));
+  check("인증 준비는 PG 주문을 만들지 않음", () => {
+    assert.equal(calls.some((call) => call.pathname === "/api/billing/checkout"), false);
+    assert.deepEqual(storeUrls, []);
+  });
+}
+
+// ── 10. 인증 미확정은 상점 이동이 아니라 기존 모달의 재시도 상태로 남는지 ───────────────────
+console.log("\n[10] 인증 미확정이면 결제창을 유지하고 상점으로 보내지 않는가");
+{
+  const { window, storeUrls } = bootRuntime();
+  const calls = [];
+  let settled = false;
+  window.fetch = async (url) => {
+    const pathname = new URL(String(url), window.location.origin).pathname;
+    calls.push(pathname);
+    if (pathname === "/api/auth/me" || pathname === "/api/auth/refresh") {
+      return new Response(JSON.stringify({ ok: false, error: { code: "AUTH_REQUIRED" } }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ ok: false }), { status: 404, headers: { "Content-Type": "application/json" } });
+  };
+  const choicePromise = openChoice(window).then((value) => { settled = true; return value; });
+  findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await flush();
+  await flush();
+  check("인증 미확정은 final pass POST를 보내지 않음", () => assert.equal(calls.includes("/api/billing/coin-gate"), false));
+  check("인증 미확정은 이용권 상점으로 이동하지 않음", () => assert.deepEqual(storeUrls, []));
+  check("인증 미확정은 결제창을 유지하고 재시도할 수 있음", () => {
+    assert.equal(settled, false);
+    assert.equal(findCard(window, "pass-store").hasAttribute("disabled"), false);
+  });
+  findCard(window, "cancel")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await choicePromise;
+}
+
 if (failures.length) {
   console.error(`\n[verify-checkout-pass-card] FAIL (${failures.length})`);
   for (const failure of failures) console.error(`  - ${failure}`);

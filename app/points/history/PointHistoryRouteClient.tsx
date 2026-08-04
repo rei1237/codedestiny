@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import styles from "./PointHistoryClient.module.css";
 
 const PointHistoryClient = dynamic(() => import("./PointHistoryClient"), {
   ssr: false,
@@ -9,23 +10,21 @@ const PointHistoryClient = dynamic(() => import("./PointHistoryClient"), {
 
 function PointHistoryShell() {
   return (
-    <main className="min-h-screen bg-[#FFF8E8] px-4 py-10 text-[#5C3A1E]">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
-        <div className="h-10 w-44 animate-pulse rounded-full bg-[#EAD7A4]" />
-        <section className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]">
-          <div className="h-7 w-48 animate-pulse rounded-full bg-[#EAD7A4]" />
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="h-24 animate-pulse rounded-[18px] bg-[#F5E7BE]" />
-            <div className="h-24 animate-pulse rounded-[18px] bg-[#F5E7BE]" />
-            <div className="h-24 animate-pulse rounded-[18px] bg-[#F5E7BE]" />
-          </div>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.hero} aria-hidden="true">
+          <div className={`${styles.skeletonBar} ${styles.skeletonBarWide} animate-pulse`} />
+          <div className={`${styles.skeletonTitle} animate-pulse`} />
+        </div>
+        <section className={styles.surface} aria-hidden="true">
+          <div className={`${styles.skeletonBar} ${styles.skeletonBarMedium} animate-pulse`} />
+          <div className={`${styles.skeletonBlock} animate-pulse`} style={{ marginTop: 20 }} />
         </section>
-        <section className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]">
-          <div className="h-6 w-40 animate-pulse rounded-full bg-[#EAD7A4]" />
-          <div className="mt-4 space-y-3">
-            <div className="h-16 animate-pulse rounded-[16px] bg-[#F5E7BE]" />
-            <div className="h-16 animate-pulse rounded-[16px] bg-[#F5E7BE]" />
-            <div className="h-16 animate-pulse rounded-[16px] bg-[#F5E7BE]" />
+        <section className={styles.surface} aria-hidden="true">
+          <div className={`${styles.skeletonBar} ${styles.skeletonBarMedium} animate-pulse`} />
+          <div className={styles.skeletonStack}>
+            <div className={`${styles.skeletonBlock} animate-pulse`} />
+            <div className={`${styles.skeletonBlock} animate-pulse`} />
           </div>
         </section>
       </div>
