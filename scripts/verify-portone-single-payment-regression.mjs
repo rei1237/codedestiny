@@ -935,9 +935,10 @@ function runClientStaticTests() {
   assertContains(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "runtime direct checkout phone fallback");
   assertContains(destinyProfileSource, "phoneNumber: customerPhone", "runtime PortOne V2 customer phoneNumber");
   assertBefore(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "window.PortOne.requestPayment(requestData)", "runtime phone fallback must run before PortOne window opens");
-  // 두 결제 경로 모두 모달 오픈 시 프리페치해 둔 번호 조회 결과를 재사용해야 한다(왕복 1회 절감).
-  // 예전에는 포인트 패키지 경로만 프리페치 없이 호출해 클릭 후 번호 조회 왕복이 한 번 더 있었다.
-  assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current)", "points page reuses the prefetched payment phone lookup");
+  // 결제 프로필은 결제 모달을 여는 순간이 아니라 실제 결제 버튼을 누른 뒤에만 조회한다.
+  // 상점/결제창 진입만으로 payment-phone을 호출하면 503과 사용자별 조회 폭주를 다시 만들 수 있다.
+  assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser, null)", "points page resolves payment phone only during checkout");
+  assertNotContains(pointsPageSource, "paymentPhonePrefetchRef", "points page must not prefetch payment phone before checkout");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
   assertContains(mePageSource, "const result = await runBillingCoinGate({", "profile actions delegate checkout to the shared Payment Service");
   assertContains(mePageSource, "paymentMode: \"DIRECT_KRW\"", "profile action card checkout uses the shared direct-KRW command");
