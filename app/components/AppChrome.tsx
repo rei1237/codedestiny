@@ -70,6 +70,12 @@ const FEATURE_NAV_EXTRA_ROUTES = [
   "/pdf/life-book",
 ];
 
+// Premium fortune routes that own their complete in-experience navigation.
+// They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
+const IMMERSIVE_FORTUNE_ROUTES = [
+  "/fusion-fortune",
+];
+
 // Routes that render their own in-experience back/home controls, so the global
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
@@ -148,10 +154,11 @@ function FeatureBackHomeNav() {
 
 export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
+  const isImmersiveFortuneRoute = IMMERSIVE_FORTUNE_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const hideChrome = isAuthRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const hideChrome = isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const selfManagedNav = FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const showFeatureNav = !isAuthRoute && pathname !== HOME_ROUTE && !selfManagedNav && (
+  const showFeatureNav = !isAuthRoute && !isImmersiveFortuneRoute && pathname !== HOME_ROUTE && !selfManagedNav && (
     hideChrome
     || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
     || /\/(result|play|start)(?=\/|$)/.test(pathname)
@@ -167,8 +174,9 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           보여 줬는데, 정적 HTML 에 남는 것이 그 영문 문구뿐이라 전 페이지가 동일 보일러플레이트를
           갖고 크롤러는 내부 링크 51개를 전혀 보지 못했다. SiteFooterHub 는 훅·브라우저 API 가 없다. */}
       {!hideChrome && <SiteFooterHub />}
-      {/* 몰입형(hideChrome) 라우트에서도 하단 네비는 유지한다 — 모든 모바일 화면 공통 탐색. */}
-      {!isAppShellRoute && !isAuthRoute && <MobileBottomNav />}
+      {/* App-shell and fully immersive routes own their mobile navigation. */}
+      {/* App-shell, auth, and fully immersive routes own their navigation. */}
+      {!isAppShellRoute && !isAuthRoute && !isImmersiveFortuneRoute && <MobileBottomNav />}
     </LazyMotion>
   );
 }

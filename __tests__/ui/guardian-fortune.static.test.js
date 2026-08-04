@@ -27,6 +27,29 @@ test('guardian fortune prototype is feature-flagged and preserves the legacy hub
   assert.match(html, /data-guardian-room-label/);
 });
 
+test('guardian fortune opens from a compact native destiny gate without changing its consultation root', () => {
+  const html = read('index.html');
+  const gateway = read('js/fortune-gateway.js');
+  const css = read('styles/fortune-gateway.css');
+
+  assert.match(html, /id="fortuneGatewayEntry"/);
+  assert.match(html, /id="fortuneGatewayDialog"/);
+  assert.match(html, /<dialog class="fortune-gateway__dialog"/);
+  assert.match(html, /flower-pig-honey-hug\.webp/);
+  assert.match(html, /flower-pig-f16\.webp/);
+  assert.match(html, /href="\/fusion-fortune"/);
+  assert.match(html, /fortune-gateway\.css/);
+  assert.match(html, /fortune-gateway\.js/);
+  assert.match(gateway, /showModal/);
+  assert.match(gateway, /cd:guardian-ready/);
+  assert.match(gateway, /#guardian-fortune/);
+  assert.match(css, /min-height: 236px/);
+  assert.match(css, /safe-area-inset/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /min-height: 44px/);
+  assert.doesNotMatch(css, /https?:\/\//);
+});
+
 test('guardian fortune production activation enables approved real LLM and credit sales', () => {
   const wrangler = read('worker/wrangler.toml');
   assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_API\s*=\s*"true"/);
@@ -77,14 +100,26 @@ test('guardian fortune mock controller does not call real API, LLM, payment, or 
   assert.match(home, /setTimeout/);
 });
 
-test('guardian chat keeps a Yeon-only timeline and passes only a minimal Fusion handoff', () => {
+test('guardian chat switches between Yeon and Neo while passing only a minimal Fusion handoff', () => {
   const html = read('index.html');
+  const css = read('styles/guardian-fortune.css');
   const home = read('js/guardian-fortune-home.js');
   const api = read('js/guardian-fortune-api.js');
   const route = read('worker/routes/fortune.js');
   assert.match(html, /data-guardian-chat-timeline/);
+  assert.match(html, /data-guardian-chat-assistant/);
+  assert.match(html, /data-guardian-chat-speaker="yeoni"/);
+  assert.match(html, /data-guardian-chat-speaker-name/);
+  assert.match(html, /data-guardian-chat-composer-label/);
   assert.match(html, /data-guardian-chat-input/);
   assert.match(html, /data-guardian-intro-dialog/);
+  assert.match(home, /function updateChatPersona/);
+  assert.match(home, /speakerName = isNeo/);
+  assert.match(home, /data-guardian-chat-speaker/);
+  assert.match(home, /data-guardian-chat-composer-label/);
+  assert.match(css, /data-guardian-chat-speaker="neo"/);
+  assert.match(css, /flower-pig-honey-hug\.webp/);
+  assert.match(css, /neo-transparent-s1-f01\.webp/);
   assert.match(home, /cdGuardianFusionHandoffV1/);
   assert.match(home, /source:\s*'guardian'/);
   assert.match(home, /topic:\s*state\.topic/);

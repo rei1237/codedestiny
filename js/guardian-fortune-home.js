@@ -426,9 +426,32 @@
     setText('[data-guardian-room-label]', mode === 'neo' ? 'NEO STRATEGY ROOM' : 'LIVE MOON CONSULT');
     setText('[data-guardian-mode-title]', modeInfo.title);
     setText('[data-guardian-mode-description]', modeInfo.description);
+    updateChatPersona();
     if (state.status !== 'loading') updateGenerateButton();
     else setLoadingCopy();
     updateDuoDialogue();
+  }
+
+  function updateChatPersona() {
+    var isNeo = state.mode === 'neo';
+    var speakerName = isNeo ? '네오' : '연이';
+    var greeting = isNeo
+      ? '안녕하세요. 네오입니다. 오늘의 질문 하나를 주면, 선택한 체계의 흐름에서 지금 필요한 판단 기준만 선명하게 정리할게요.'
+      : '안녕하세요. 오늘 당신을 만나러 왔어요. 생년 정보와 궁금한 한 가지를 알려주시면, 선택한 운세 체계의 흐름으로 차분히 읽어드릴게요.';
+    var introCopy = isNeo
+      ? '네오는 한 가지 운세 체계의 실제 계산 근거를 바탕으로, 지금 필요한 선택과 주의할 패턴을 직설적이되 존중하는 방식으로 정리해요.'
+      : '연이는 한 가지 운세 체계의 실제 계산 근거를 바탕으로 오늘의 흐름을 함께 정리해요. 답변은 가능성과 선택지를 중심으로 안내합니다.';
+    qsa('[data-guardian-chat-speaker-name]').forEach(function (node) { node.textContent = speakerName; });
+    setText('[data-guardian-chat-greeting]', greeting);
+    setText('[data-guardian-intro-title]', '오늘의 귀인, ' + speakerName);
+    setText('[data-guardian-intro-copy]', introCopy);
+    setText('[data-guardian-chat-composer-label]', speakerName + '에게 전할 오늘의 질문');
+    var assistant = qs('[data-guardian-chat-assistant]');
+    if (assistant) assistant.setAttribute('data-guardian-chat-speaker', state.mode);
+    var timeline = qs('[data-guardian-chat-timeline]');
+    if (timeline) timeline.setAttribute('aria-label', speakerName + '와의 오늘의 귀인 대화');
+    var introTrigger = qs('[data-guardian-intro-dialog-open]');
+    if (introTrigger) introTrigger.setAttribute('aria-label', speakerName + ' 소개 보기');
   }
 
   function setTopic(topic) {
@@ -646,7 +669,7 @@
     if (!input.birthTime && !input.birthTimeUnknown) return '생시를 입력하거나 “생시를 몰라요”를 선택해 주세요.';
     if (input.birthTime && !/^\d{2}:\d{2}$/.test(input.birthTime)) return '생시 형식을 한 번만 확인해 주세요.';
     if (input.concern.length > 120) return mock.copy.validationConcernLength;
-    if (qs('[data-guardian-chat-input]') && input.concern.length < 2) return '연이에게 전할 오늘의 질문을 2자 이상 적어 주세요.';
+    if (qs('[data-guardian-chat-input]') && input.concern.length < 2) return (state.mode === 'neo' ? '네오' : '연이') + '에게 전할 오늘의 질문을 2자 이상 적어 주세요.';
     if (input.nickname.length > 20) return '닉네임은 20자 안에서 적어주세요.';
     if (['solar', 'lunar'].indexOf(input.calendarType) < 0) return '달력 기준을 선택해 주세요.';
     if (['female', 'male', 'unknown'].indexOf(input.gender) < 0) return '성별 선택을 다시 확인해 주세요.';
@@ -1199,6 +1222,17 @@
     }
     if (state.flow === 'disabled') return;
     root.hidden = false;
+    var gatewayReadyEvent;
+    try {
+      gatewayReadyEvent = typeof window.CustomEvent === 'function'
+        ? new window.CustomEvent('cd:guardian-ready')
+        : (function () {
+          var event = document.createEvent('Event');
+          event.initEvent('cd:guardian-ready', false, false);
+          return event;
+        })();
+      document.dispatchEvent(gatewayReadyEvent);
+    } catch (_) {}
     state.mode = 'yeoni';
     root.setAttribute('data-guardian-chat-journey', 'true');
     root.setAttribute('data-guardian-mode', state.mode);

@@ -53,6 +53,7 @@ Last curated: `2026-08-02`
 1. Start with this file only for what is current right now. If it drifts, update it instead of adding another summary document.
 2. For billing, access, or pass work, read this file together with `docs/PAYMENT_AND_ACCESS.md`.
 3. For shell-entry or home runtime work, check `index.html` and `js/core/**` before touching mirrored outputs.
-4. For premium tarot yearly work, verify both `lib/tarot/tarot-year-premium.mjs` and `worker/routes/tarot.js` before editing UI copy or flow logic.
-5. Treat historical audit outputs as evidence only, not as active coding instructions.
-6. When presenting options to the user, always state one recommended path first, mark it clearly as the recommendation, and briefly explain why it is the best default. Do not present a flat neutral list unless the user explicitly asks for neutral comparison only.
+4. Immersive React fortune routes must own their home/back controls and must not render the shared header, footer, or mobile bottom navigation.
+5. For premium tarot yearly work, verify both `lib/tarot/tarot-year-premium.mjs` and `worker/routes/tarot.js` before editing UI copy or flow logic.
+6. Treat historical audit outputs as evidence only, not as active coding instructions.
+7. When presenting options to the user, always state one recommended path first, mark it clearly as the recommendation, and briefly explain why it is the best default. Do not present a flat neutral list unless the user explicitly asks for neutral comparison only.

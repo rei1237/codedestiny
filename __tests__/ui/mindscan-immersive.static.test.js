@@ -13,7 +13,8 @@ test("마인드 스캔은 해당 라우트만 크롬리스로 렌더링한다", 
   assert.ok(chrome.includes("{!hideChrome && <GlobalHeader />"));
   assert.ok(chrome.includes("{!hideChrome && <SiteFooterHub />"));
   assert.ok(chrome.includes("{!hideChrome && <DisclaimerBanner />"));
-  assert.ok(chrome.includes("{!isAppShellRoute && !isAuthRoute && <MobileBottomNav />"));
+  assert.ok(chrome.includes('"/fusion-fortune"'));
+  assert.ok(chrome.includes("!isAppShellRoute && !isAuthRoute && !isImmersiveFortuneRoute && <MobileBottomNav />"));
   assert.ok(chrome.includes("showFeatureNav"));
 });
 

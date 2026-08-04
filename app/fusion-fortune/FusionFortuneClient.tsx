@@ -389,8 +389,26 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
 
   const buttonLabel = loading ? "여섯 전문가의 흐름을 엮는 중…" : status.nextAction === "login" ? "로그인하고 이용권 확인하기" : status.nextAction === "buy_ticket" ? "이용권 구매 영역으로 이동" : "초융합 운세 생성하기";
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
+  const leaveExperience = useCallback(() => {
+    const fallback = "/#fortune-gateway";
+    if (typeof window === "undefined") return;
+    try {
+      const previous = document.referrer ? new URL(document.referrer) : null;
+      if (previous?.origin === window.location.origin && window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+    } catch {
+      // A malformed or unavailable referrer should keep the user in the service.
+    }
+    window.location.assign(fallback);
+  }, []);
 
   return <main className={styles.page}>
+    <nav className={styles.experienceNav} aria-label="초융합 사주 탐색">
+      <button type="button" onClick={leaveExperience}>이전</button>
+      <Link href="/#fortune-gateway">홈으로</Link>
+    </nav>
     <section className={styles.hero}>
       <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 1080px" />
       <div className={styles.heroVeil} />
