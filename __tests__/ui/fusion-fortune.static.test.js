@@ -52,6 +52,20 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(css, /content-visibility:\s*auto/);
 });
 
+test("fusion fortune consumes server-sent completion stages without changing its PG-only ticket flow", () => {
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const css = read("app/fusion-fortune/fusion-fortune.module.css");
+  assert.match(client, /fusion-fortune\/generate\/stream/);
+  assert.match(client, /consumeFusionStream/);
+  assert.match(client, /FUSION_STAGES/);
+  assert.match(client, /Fusion Core 진행 방식 보기/);
+  assert.match(client, /<dialog/);
+  assert.match(client, /aria-expanded/);
+  assert.match(client, /useAiProfileSeed/);
+  assert.match(css, /stageActive/);
+  assert.match(css, /content-visibility:\s*auto/);
+});
+
 test("fusion fortune production switches enable the approved live flow and keep mock off", () => {
   const wrangler = read("worker/wrangler.toml");
   for (const flag of [

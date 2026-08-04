@@ -30,6 +30,80 @@ function disabledStatus() {
   });
 }
 
+const SSE_HEADERS = Object.freeze({
+  "Content-Type": "text/event-stream; charset=utf-8",
+  "Cache-Control": "no-store, no-transform",
+  "X-Accel-Buffering": "no",
+});
+
+export function formatFusionFortuneSseEvent(event, payload) {
+  return `event: ${String(event || "message")}\ndata: ${JSON.stringify(payload || {})}\n\n`;
+}
+
+function writeFusionFortuneSse(writer, event, payload) {
+  return writer.write(new TextEncoder().encode(formatFusionFortuneSseEvent(event, payload)));
+}
+
+function canGenerateFusionFortune(env) {
+  return isFusionFortuneMockFlowEnabled(env) || isFusionFortuneRealLlmAllowed(env);
+}
+
+async function handleFusionFortuneStreamRoute(request, env, ctx) {
+  if (!canGenerateFusionFortune(env)) {
+    return respond({
+      ok: false,
+      status: 503,
+      error: FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED,
+      message: "Fusion Fortune generation is not available right now.",
+    });
+  }
+
+  const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+  const body = await readJson(request);
+  await connectDb(env);
+  const transformer = new TransformStream();
+  const writer = transformer.writable.getWriter();
+  const run = (async () => {
+    try {
+      await writeFusionFortuneSse(writer, "status", { status: "started" });
+      const result = await generateFusionFortuneRequest({
+        input: body,
+        userId: String(auth.userId),
+        requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
+        dateKey: getFusionFortuneDateKey(),
+        store: createMongoFusionFortuneStore(),
+        env,
+        ctx,
+        abortSignal: request.signal,
+        onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
+        onDelivery: (delivery) => writeFusionFortuneSse(writer, "result", delivery),
+      });
+      if (!result.ok) {
+        await writeFusionFortuneSse(writer, "error", {
+          error: result.error || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
+          message: result.message || "Unable to prepare the result.",
+          requestId: result.requestId || "",
+        });
+        return;
+      }
+      await writeFusionFortuneSse(writer, "complete", {
+        requestId: result.requestId,
+        fusionStatus: result.fusionStatus,
+      });
+    } catch {
+      await writeFusionFortuneSse(writer, "error", {
+        error: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
+        message: "Unable to prepare the result.",
+      }).catch(() => {});
+    } finally {
+      await writer.close().catch(() => {});
+    }
+  })();
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(run);
+  else void run;
+  return new Response(transformer.readable, { headers: SSE_HEADERS });
+}
+
 export async function handleFusionFortuneRoutes(request, env, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/fusion-fortune");
@@ -66,11 +140,15 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       return respond(result);
     }
 
-    if (["/status", "/generate"].includes(path)) return methodNotAllowed();
+    if (method === "POST" && path === "/generate/stream") {
+      return await handleFusionFortuneStreamRoute(request, env, ctx);
+    }
+
+    if (["/status", "/generate", "/generate/stream"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
     return handleRouteError(error, { request, env, trace: { route: "fusion-fortune", method, requestPath: new URL(request.url).pathname } });
   }
 }
 
-export const __fusionFortuneRouteTestUtils = { disabledStatus };
+export const __fusionFortuneRouteTestUtils = { disabledStatus, formatFusionFortuneSseEvent };

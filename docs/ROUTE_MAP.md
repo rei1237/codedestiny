@@ -93,7 +93,8 @@ Entry: `worker/index.js`
 - Reviews/feedback: `/api/reviews/*`, `/api/feedback/*`
 - Payments/access: `/api/payments/*`, `/api/payment/*`, `/api/checkout/*`, `/api/billing/*`, `/api/access/*`, `/api/unlocks/*`, `/api/points/me`, `/api/points/balance`
 - Guardian/Fusion ticket shop preview: authenticated `GET /api/payments/guardian-fortune/shop-preview`, `GET /api/payments/fusion-fortune/shop-preview` (explicit user lookup; server catalog and balance in one response)
-- Fusion fortune: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`, `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`
+- Guardian chat: `POST /api/fortune/guardian/chat` (SSE; existing Guardian usage reservation/commit path, public context/mock reply only, transcript is not persisted)
+- Fusion fortune: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`, `POST /api/fusion-fortune/generate/stream` (SSE actual-completion stages: saju → ziwei → sukuyo → vedic → astrology → tarot → fusion), `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`
 - Legacy COIN compatibility: `/api/billing/coin-gate` (route name retained; new COIN debit is disabled), `/api/fortune/pig-coin/*` (read-only historical compatibility or `PAYMENT_REQUIRED`)
 - App store: `/api/app-store/*`
 - User/profile/subscription: `/api/user/*`, `/api/profile/*`, `/api/profiles/*`, `/api/subscriptions/*`, `/api/subscription/status`, `/api/subscription/me`, `GET /api/me/access-state?profileId=...` (complete account/current-profile access bootstrap snapshot)

@@ -28,5 +28,16 @@ describe("Guardian Fortune Worker routes", () => {
       error: "GUARDIAN_FORTUNE_FEATURE_DISABLED",
     });
   });
-});
 
+  it("keeps the SSE chat route behind the existing Guardian feature flag", async () => {
+    const response = await handleFortuneRoutes(
+      new Request("https://example.test/api/fortune/guardian/chat", { method: "POST" }),
+      {},
+    );
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: false,
+      error: "GUARDIAN_FORTUNE_FEATURE_DISABLED",
+    });
+  });
+});

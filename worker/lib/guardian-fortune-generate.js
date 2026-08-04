@@ -33,6 +33,13 @@ function safeErrorMessage(code) {
   }
 }
 
+function throwIfGuardianFortuneAborted(signal) {
+  if (!signal?.aborted) return;
+  const error = new Error("guardian_fortune_cancelled");
+  error.code = GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED;
+  throw error;
+}
+
 function errorResponse({ code, status, usage, isLoggedIn, requestId, details = undefined }) {
   return {
     ok: false,
@@ -71,6 +78,8 @@ export async function generateGuardianFortuneRequest({
   generator,
   contextOptions = {},
   scenario = "normal",
+  abortSignal,
+  onDelivery,
 } = {}) {
   const normalizedUserId = String(userId || "").trim();
   const isLoggedIn = Boolean(normalizedUserId);
@@ -111,6 +120,7 @@ export async function generateGuardianFortuneRequest({
   }
 
   try {
+    throwIfGuardianFortuneAborted(abortSignal);
     const contextResult = await contextBuilder(safeInput, { ...contextOptions, now });
     if (!contextResult?.ok) {
       await releaseGuardianFortuneUsage(reservation, { store, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED, now });
@@ -139,6 +149,7 @@ export async function generateGuardianFortuneRequest({
       });
     }
 
+    throwIfGuardianFortuneAborted(abortSignal);
     const selectedGenerator = generator || mockGenerator || generateGuardianFortuneWithConfiguredLLM;
     const generated = await selectedGenerator({
       input: safeInput,
@@ -159,6 +170,15 @@ export async function generateGuardianFortuneRequest({
       return errorResponse({ code, status: 502, usage, isLoggedIn, requestId });
     }
 
+    throwIfGuardianFortuneAborted(abortSignal);
+    if (typeof onDelivery === "function") {
+      await onDelivery({
+        requestId,
+        result: generated.result,
+        generationSource: reservation.source,
+      });
+    }
+    throwIfGuardianFortuneAborted(abortSignal);
     const committed = await commitGuardianFortuneUsage(reservation, { store, now });
     if (!committed.ok) {
       const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
@@ -174,7 +194,7 @@ export async function generateGuardianFortuneRequest({
     const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
     let shareDraftToken;
     const shareEnv = contextOptions?.env || {};
-    if (isGuardianFortuneShareEnabled(shareEnv)) {
+    if (!contextOptions?.disableShare && isGuardianFortuneShareEnabled(shareEnv)) {
       try {
         shareDraftToken = await createGuardianFortuneShareDraftToken({
           env: shareEnv,
@@ -191,12 +211,15 @@ export async function generateGuardianFortuneRequest({
       }
     }
     return successResponse({ result: generated.result, usage, generationSource: reservation.source, requestId, shareDraftToken });
-  } catch {
-    await releaseGuardianFortuneUsage(reservation, { store, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR, now }).catch(() => {});
+  } catch (error) {
+    const code = error?.code === GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED
+      ? GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED
+      : GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR;
+    await releaseGuardianFortuneUsage(reservation, { store, errorCode: code, now }).catch(() => {});
     const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now }).catch(() => null);
     return errorResponse({
-      code: GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR,
-      status: 500,
+      code,
+      status: code === GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED ? 499 : 500,
       usage,
       isLoggedIn,
       requestId,

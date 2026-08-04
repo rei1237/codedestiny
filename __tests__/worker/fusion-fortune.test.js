@@ -93,7 +93,7 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     }, { adapters: fusionAdapters(calls) });
 
     expect(built.ok).toBe(true);
-    expect(Object.keys(built.context.systems)).toEqual(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"]);
+    expect(Object.keys(built.context.systems)).toEqual(["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"]);
     expect(calls).toEqual({ saju: 1, ziwei: 1, vedic: 1, sukuyo: 1, astrology: 1, tarot: 1 });
     expect(built.context.tarotSpread.cards).toHaveLength(6);
   });
@@ -138,6 +138,57 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     expect(result.ok).toBe(true);
     expect((await store.getBalance("user")).totalRemaining).toBe(0);
     expect((await store.getDaily(dateKey)).successCount).toBe(1);
+  });
+
+  it("emits actual completed stages in the streamed public order before the final Fusion stage", async () => {
+    const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
+    const store = ticketedStore();
+    const completed = [];
+    const contextBuilderWithStages = (candidate, options) => buildFusionFortuneContext({
+      ...candidate,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(Object.fromEntries(["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"].map((name) => [name, 0]))), onStage: options.onStage });
+    const generated = await generateFusionFortuneRequest({
+      input,
+      userId: "user",
+      requestId: "stream-stage-order",
+      dateKey,
+      store,
+      contextBuilder: contextBuilderWithStages,
+      generator: generateFusionFortuneWithMockLLM,
+      onStage: (event) => completed.push(event.stage),
+    });
+    expect(generated.ok).toBe(true);
+    expect(completed).toEqual(["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "fusion"]);
+  });
+
+  it("releases a reserved ticket and daily slot when the streamed request is already cancelled", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
+    const store = ticketedStore();
+    const generated = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stream-cancelled", dateKey, store, contextBuilder, abortSignal: controller.signal });
+    expect(generated).toMatchObject({ ok: false, error: "FUSION_FORTUNE_CANCELLED" });
+    expect((await store.getBalance("user")).totalRemaining).toBe(1);
+    expect((await store.getDaily(dateKey)).successCount).toBe(0);
+  });
+
+  it("does not consume a ticket or daily slot when the stream cannot deliver the final result", async () => {
+    const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
+    const store = ticketedStore();
+    const generated = await generateFusionFortuneRequest({
+      input,
+      userId: "user",
+      requestId: "stream-undelivered",
+      dateKey,
+      store,
+      contextBuilder,
+      generator: generateFusionFortuneWithMockLLM,
+      onDelivery: async () => { throw new Error("stream disconnected"); },
+    });
+    expect(generated).toMatchObject({ ok: false, error: "FUSION_FORTUNE_GENERATION_FAILED" });
+    expect((await store.getBalance("user")).totalRemaining).toBe(1);
+    expect((await store.getDaily(dateKey)).successCount).toBe(0);
   });
 
   it.each([

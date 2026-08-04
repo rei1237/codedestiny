@@ -34,6 +34,121 @@ const EXPERT_CONTRACTS = Object.freeze([
   "타로: 서버가 고른 카드 ID와 포지션만 해석한다. 카드나 배열을 새로 만들지 않고, 상징을 현재 선택과 행동 기준으로 연결한다.",
 ]);
 
+export const FUSION_SYSTEM_QUALITY_GATES = Object.freeze({
+  saju: Object.freeze({
+    fields: ["dayMaster", "fiveElementsSummary", "tenGodsSummary", "currentFlowSummary", "seasonSummary", "relationSummary"],
+    readingRule: "사주 근거를 기질, 반복 선택, 현재 흐름으로 번역하고 과한 점과 부족한 점이 일상에서 어떻게 함께 드러나는지 설명한다.",
+  }),
+  ziwei: Object.freeze({
+    fields: ["lifePalaceSummary", "topicPalaceSummary", "keyStarsSummary", "strengths", "cautions"],
+    readingRule: "자미두수의 궁위와 별은 이름을 나열하지 말고 역할, 책임, 관계에서 반복되는 선택 방식으로 번역한다.",
+  }),
+  sukuyo: Object.freeze({
+    fields: ["birthMansion", "todayMansion", "emotionalPattern", "relationshipPattern", "distancePattern"],
+    readingRule: "숙요는 관계의 거리, 감정 반응, 대화 속도를 다루며 상대의 마음을 단정하지 않는다.",
+  }),
+  vedic: Object.freeze({
+    fields: ["lagnaSummary", "moonSignSummary", "nakshatraSummary", "dashaSummary", "innerRhythm"],
+    readingRule: "베다점은 라그나·달·나크샤트라·다샤가 실제로 제공된 경우에만 쓰고, 감정의 리듬과 회복 방식으로 풀어쓴다.",
+  }),
+  astrology: Object.freeze({
+    fields: ["sunSummary", "moonSummary", "ascendantSummary", "venusSummary", "marsSummary", "saturnSummary", "currentMoodSummary"],
+    readingRule: "서양 점성술은 태양의 방향, 달의 정서, 금성·화성의 관계와 행동, 토성의 책임을 섞지 않고 현재 선택으로 번역한다.",
+  }),
+  tarot: Object.freeze({
+    fields: ["spreadType", "cards", "symbolicMessage"],
+    readingRule: "타로는 서버가 뽑은 카드와 자리만 인용하며, 카드가 정답을 대신한다고 말하지 않고 현재 선택의 기준으로 연결한다.",
+  }),
+});
+
+function safeText(value, max = 240) {
+  return String(value || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
+}
+
+function safeArray(value, maxItems = 3, maxText = 140) {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => safeText(item, maxText)).filter(Boolean).slice(0, maxItems);
+}
+
+function projectTarot(cards) {
+  if (!Array.isArray(cards)) return [];
+  return cards.map((card) => ({
+    name: safeText(card?.name, 80),
+    orientation: card?.orientation === "reversed" ? "reversed" : "upright",
+    positionKey: safeText(card?.positionKey || card?.position, 60),
+    meaningSummary: safeText(card?.meaningSummary, 170),
+  })).filter((card) => card.name || card.meaningSummary).slice(0, 6);
+}
+
+function projectSystem(name, source) {
+  if (!source || typeof source !== "object") return undefined;
+  const gate = FUSION_SYSTEM_QUALITY_GATES[name];
+  if (!gate) return undefined;
+  const projected = {};
+  for (const field of gate.fields) {
+    if (field === "cards") {
+      const cards = projectTarot(source.cards);
+      if (cards.length) projected.cards = cards;
+      continue;
+    }
+    if (Array.isArray(source[field])) {
+      const values = safeArray(source[field]);
+      if (values.length) projected[field] = values;
+      continue;
+    }
+    const value = safeText(source[field]);
+    if (value) projected[field] = value;
+  }
+  const evidence = safeArray(source.evidence, 6, 80);
+  if (evidence.length) projected.evidence = evidence;
+  return Object.keys(projected).length ? projected : undefined;
+}
+
+/**
+ * The only Fusion context allowed to reach a provider. It omits raw birth
+ * input, the free-form concern, payment state, and unknown calculator fields.
+ */
+export function projectFusionFortuneContextForPrompt(context = {}) {
+  const systems = {};
+  for (const name of ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"]) {
+    const projected = projectSystem(name, context?.systems?.[name]);
+    if (projected) systems[name] = projected;
+  }
+  const insightSource = context?.integratedInsight || {};
+  const integratedInsight = {};
+  for (const field of ["openingHook", "currentTheme", "likelyConcern", "adviceDirection", "cautionPattern", "luckyActionHint", "premiumBridge"]) {
+    const value = safeText(insightSource[field], 260);
+    if (value) integratedInsight[field] = value;
+  }
+  const evidenceKeys = safeArray(insightSource.evidenceKeys, 10, 80);
+  if (evidenceKeys.length) integratedInsight.evidenceKeys = evidenceKeys;
+
+  return {
+    version: String(context.version || "fusion-fortune.v1"),
+    birthTimeKnown: context.birthTimeKnown === true,
+    birthPlaceKnown: context.birthPlaceKnown === true,
+    systems,
+    tarotSpread: {
+      spreadType: safeText(context?.tarotSpread?.spreadType, 80),
+      cards: projectTarot(context?.tarotSpread?.cards),
+    },
+    integratedInsight,
+    questionFocus: {
+      intentKey: safeText(context?.questionFocus?.intentKey, 60),
+      label: safeText(context?.questionFocus?.label, 120),
+      answerFrame: safeText(context?.questionFocus?.answerFrame, 260),
+      actionFrame: safeText(context?.questionFocus?.actionFrame, 260),
+    },
+    limitations: safeArray(context.limitations, 8, 100),
+    topic: safeText(context.topic, 80),
+    inputSummary: {
+      calendarType: safeText(context.inputSummary?.calendarType || "solar", 10),
+      gender: safeText(context.inputSummary?.gender || "unspecified", 20),
+      topic: safeText(context.inputSummary?.topic, 80),
+    },
+  };
+}
+
 function projectContext(context = {}) {
   return {
     version: String(context.version || "fusion-fortune.v1"),
@@ -53,7 +168,7 @@ function projectContext(context = {}) {
 }
 
 export function buildFusionFortunePrompt({ context = {} } = {}) {
-  const safeContext = projectContext(context);
+  const safeContext = projectFusionFortuneContextForPrompt(context);
   const precisionRule = safeContext.birthTimeKnown
     ? "생시 기반 정보도 서버 컨텍스트에 존재하는 값만 해석한다."
     : "생시가 없으므로 시주, 정밀 자미 명반, 라그나, 상승궁, 하우스와 시간 기반 시기를 확정하지 않는다.";
@@ -72,6 +187,7 @@ export function buildFusionFortunePrompt({ context = {} } = {}) {
   ].join(" ");
 
   const userPrompt = [
+    `질문 중심 답변: ${safeContext.questionFocus.answerFrame || "질문에서 사용자가 확인하려는 선택의 기준"}. 첫 문단과 실행 조언은 이 질문에 바로 답해야 하며, 원문 질문을 그대로 인용하지 않는다.`,
     `관심 주제: ${safeContext.topic}`,
     "체계별 전문가 계약:\n" + EXPERT_CONTRACTS.map((item, index) => `${index + 1}. ${item}`).join("\n"),
     "통합 원칙: 두 체계 이상이 같은 행동 패턴을 가리킬 때 핵심 주제로 승격하고, 서로 다른 신호는 모순으로 숨기지 말고 상황별 선택지로 설명한다.",

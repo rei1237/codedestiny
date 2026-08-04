@@ -4,6 +4,7 @@ import {
   getTopicContract,
 } from "./guardian-fortune-runtime-contract.js";
 import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
+import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -208,6 +209,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     ? inputSummary.topic
     : (GUARDIAN_FORTUNE_TOPICS[input?.topic] ? input.topic : "daily");
   const topicContract = getTopicContract(topic);
+  const questionFocus = buildFortuneQuestionFocus({ concern: input?.concern, topic });
   const category = Object.prototype.hasOwnProperty.call(GUARDIAN_CATEGORY_INSTRUCTIONS_KO, inputSummary.category)
     ? inputSummary.category
     : "";
@@ -226,6 +228,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
   ].join(" ");
 
   const userPrompt = [
+    `질문 중심 답변: ${questionFocus.answerFrame}. 고민 원문을 인용하지 말고, 이 질문에 바로 답한 뒤 계산 근거와 실행 기준을 제시한다.`,
     `상담 체계: ${category}. ${GUARDIAN_CATEGORY_INSTRUCTIONS_KO[category]}`,
     `관심 분야: ${topicContract.label} (${topic})`,
     `상담 지침: ${topicContract.instruction}`,
