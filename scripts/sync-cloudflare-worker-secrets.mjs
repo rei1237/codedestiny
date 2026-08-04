@@ -8,6 +8,8 @@ const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
 const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
 const onlyPortone = args.has("--only-portone");
+const onlyKeyArg = [...args].find((arg) => arg.startsWith("--only-key="));
+const onlyKey = onlyKeyArg ? normalizeEnvKey(onlyKeyArg.slice("--only-key=".length)) : "";
 const continueOnTransientApiError = args.has("--continue-on-transient-api-error");
 const retryDelayMs = Number(process.env.CF_SECRET_SYNC_RETRY_DELAY_MS || 15000);
 
@@ -394,8 +396,12 @@ const activeSecretKeys = onlyPortone
   ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
   : SECRET_KEYS;
 
+const selectedSecretKeys = onlyKey
+  ? activeSecretKeys.filter((key) => normalizeEnvKey(key) === onlyKey)
+  : activeSecretKeys;
+
 const available = [];
-for (const key of activeSecretKeys) {
+for (const key of selectedSecretKeys) {
   const value = getSecretValue(key);
   if (!value) continue;
 

@@ -39,3 +39,12 @@ test("web auth response does not expose bearer tokens and post-login bootstrap i
   assert.match(authStore, /status: "temporarilyOffline"/);
   assert.match(authStore, /status: "expired"/);
 });
+
+test("Resend secret sync is env-only and can target one key", () => {
+  const emailScript = read("scripts/test-resend-email.mjs");
+  const syncScript = read("scripts/sync-cloudflare-worker-secrets.mjs");
+  assert.match(emailScript, /process\.env\.RESEND_API_KEY/);
+  assert.doesNotMatch(emailScript, /re_[A-Za-z0-9]{20,}/);
+  assert.match(syncScript, /--only-key=/);
+  assert.match(syncScript, /normalizeEnvKey\(key\) === onlyKey/);
+});
