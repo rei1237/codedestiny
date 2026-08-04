@@ -73,6 +73,7 @@ import {
 const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity, writeSecurityLog } from "../lib/security/index.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
+import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
@@ -112,6 +113,29 @@ function normalizePaymentMethod(value) {
   return method ? method.slice(0, 32) : "unknown";
 }
 
+const SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_CODE = "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED";
+const SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_MESSAGE = "이용권은 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.";
+
+function isSubscriptionMonthlyCreditMethod(value) {
+  const normalized = String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return [
+    "monthly",
+    "monthly_credit",
+    "membership_credit",
+    "moonlight_stone",
+    "moonlightstone",
+    "moonlight_credit",
+    "monthly_billing",
+  ].includes(normalized);
+}
+
+function rejectSubscriptionMonthlyCreditPurchase() {
+  return json({
+    message: SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_MESSAGE,
+    code: SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_CODE,
+  }, { status: 400 });
+}
+
 async function rejectPurchasePolicy(request, env, auth, decision, context = {}) {
   if (decision?.allowed) return null;
   await writeSecurityLog({
@@ -135,9 +159,11 @@ async function rejectPurchasePolicy(request, env, auth, decision, context = {}) 
     code: decision?.denialReason || "PURCHASE_POLICY_DENIED",
     reason: decision?.denialReason || "PURCHASE_POLICY_DENIED",
     message: decision?.denialReason === "CANNOT_BUY_PASS_WITH_PASS"
-      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 명확히 허용된 월정석 결제 플로우를 이용해 주세요."
+      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다."
       : decision?.denialReason === "FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS"
         ? "패밀리 이용권은 기능 이용 권한이며, 더 높은 가격의 이용권 구매 수단으로 사용할 수 없습니다."
+        : decision?.allowedPaymentMethods?.length === 1 && decision.allowedPaymentMethods[0] === "pg"
+          ? "이용권은 원화 단건 결제로만 구매할 수 있습니다."
         : "현재 상품은 PG 결제 또는 허용된 월정석 정책으로만 구매할 수 있습니다.",
     policyVersion: decision?.policyVersion || "",
     auditCode: decision?.auditCode || "PURCHASE_POLICY_DENIED",
@@ -424,13 +450,36 @@ async function findUserByIdRaw(userId, projection = {}) {
   );
 }
 
-async function findRecentPaymentsForUser(userId, limit = 20) {
+async function findRecentPaymentsForUser(userId, limit = 20, { includeDetails = true } = {}) {
   const normalizedId = String(userId || "").trim();
   if (!mongoose.Types.ObjectId.isValid(normalizedId)) return [];
 
   const objectId = new mongoose.Types.ObjectId(normalizedId);
+  const projection = {
+    _id: 1,
+    merchantUid: 1,
+    paymentAmount: 1,
+    coinPrice: 1,
+    expectedChargedPoints: 1,
+    membershipCreditCost: 1,
+    chargedPoints: 1,
+    featureKey: 1,
+    productId: 1,
+    accessType: 1,
+    paymentMethod: 1,
+    paymentType: 1,
+    subscriptionTier: 1,
+    status: 1,
+    orderState: 1,
+    requestId: 1,
+    createdAt: 1,
+    updatedAt: 1,
+    paidAt: 1,
+  };
+  if (includeDetails) projection.rawPortOne = 1;
   return mongoose.connection.collection("payments")
     .find({ userId: { $in: [objectId, normalizedId] } })
+    .project(projection)
     .sort({ createdAt: -1, paidAt: -1 })
     .limit(limit)
     .toArray();
@@ -486,12 +535,30 @@ function isPaymentShopSummaryRequest(request) {
   }
 }
 
+function isPaymentHistorySummaryRequest(request) {
+  try {
+    return new URL(request.url).searchParams.get("view") === "history";
+  } catch {
+    return false;
+  }
+}
+
 function getPaymentDeploySha(env) {
   return String(env?.CF_PAGES_COMMIT_SHA || env?.COMMIT_SHA || env?.DEPLOY_COMMIT_SHA || "").slice(0, 80);
 }
 
 function logPaymentsMeTrace(level, fields) {
   const line = { event: "payments.me.lookup", ...fields };
+  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
+  try {
+    writer(JSON.stringify(line));
+  } catch {
+    writer(line);
+  }
+}
+
+function logPaymentOrderTrace(level, fields) {
+  const line = { event: "payments.order.detail", ...fields };
   const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
   try {
     writer(JSON.stringify(line));
@@ -695,6 +762,66 @@ function formatPaymentResponse(payment) {
     cancelAmount,
     cancelledAt: toIsoOrNull(cancelledAt),
     cancelEligible: isPaymentAutoCancelEligible(payment),
+  };
+}
+
+function maskPaymentIdentifier(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  return text.length <= 4 ? `••••${text}` : `••••${text.slice(-4)}`;
+}
+
+function formatPaymentSummaryResponse(payment) {
+  const detail = formatPaymentResponse(payment);
+  if (!detail) return null;
+  return {
+    id: detail.id,
+    paymentAmount: detail.paymentAmount,
+    coinPrice: detail.coinPrice,
+    membershipCreditCost: detail.membershipCreditCost,
+    chargedPoints: detail.chargedPoints,
+    featureKey: detail.featureKey,
+    productId: detail.productId,
+    accessType: detail.accessType,
+    paymentMethod: detail.paymentMethod,
+    paymentMethodLabel: detail.paymentMethodLabel,
+    paymentType: detail.paymentType,
+    subscriptionTier: detail.subscriptionTier,
+    status: detail.status,
+    orderState: detail.orderState,
+    createdAt: detail.createdAt,
+    updatedAt: detail.updatedAt,
+    paidAt: detail.paidAt,
+  };
+}
+
+function formatOrderDetailResponse(payment) {
+  const detail = formatPaymentResponse(payment);
+  if (!detail) return null;
+  return {
+    id: detail.id,
+    paymentAmount: detail.paymentAmount,
+    coinPrice: detail.coinPrice,
+    membershipCreditCost: detail.membershipCreditCost,
+    chargedPoints: detail.chargedPoints,
+    featureKey: detail.featureKey,
+    productId: detail.productId,
+    accessType: detail.accessType,
+    paymentMethod: detail.paymentMethod,
+    paymentMethodLabel: detail.paymentMethodLabel,
+    paymentType: detail.paymentType,
+    subscriptionTier: detail.subscriptionTier,
+    status: detail.status,
+    orderState: detail.orderState,
+    createdAt: detail.createdAt,
+    updatedAt: detail.updatedAt,
+    paidAt: detail.paidAt,
+    orderNumberMasked: maskPaymentIdentifier(detail.merchantUid || detail.id),
+    approvalNumberMasked: maskPaymentIdentifier(detail.approvalNumber),
+    receiptUrl: detail.receiptUrl || null,
+    receiptAvailable: Boolean(detail.receiptUrl),
+    cancelAmount: detail.cancelAmount,
+    cancelledAt: detail.cancelledAt,
   };
 }
 
@@ -3913,6 +4040,9 @@ async function handleSubscriptionPrepare(request, env, auth) {
   }
 
   const paymentMethod = normalizePaymentMethod(body?.paymentMethod || "card_general");
+  if (isSubscriptionMonthlyCreditMethod(paymentMethod)) {
+    return rejectSubscriptionMonthlyCreditPurchase();
+  }
   // 라우터가 인증과 같은 조회에서 profileSubscription 을 함께 읽어줬으면 재조회하지 않는다
   // (결제창 진입 왕복 1회 절감). refresh/admin 폴백 경로 등 authUserDoc 부재 시에만 직접 읽는다.
   const currentUser = auth.authUserDoc
@@ -4095,425 +4225,6 @@ async function handleSubscriptionPrepare(request, env, auth) {
   }, { status: 201 });
 }
 
-async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint }) {
-  const requestId = String(body?.requestId || body?.idempotencyKey || body?.merchantUid || "").trim().slice(0, 160)
-    || `sub_monthly_${Date.now()}_${tier}_${String(auth.userId || "user").slice(-8)}`;
-  const merchantUid = String(body?.merchantUid || body?.merchant_uid || requestId).trim().slice(0, 160);
-  const customerUid = String(body?.customerUid || "").trim() || buildSubscriptionCustomerUid(auth.userId);
-  const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
-
-  let existingPayment = await Payment.findOne({
-    userId: auth.userId,
-    paymentType: "membership_pass",
-    idempotencyKey: requestId,
-  }).sort({ createdAt: -1 }).lean();
-
-  if (existingPayment?.status === "success") {
-    const currentUser = await User.findById(auth.userId).select("points profileSubscription").lean();
-    const sub = currentUser?.profileSubscription || {};
-    return json({
-      message: "Membership pass monthly-credit payment already processed.",
-      idempotent: true,
-      payment: formatPaymentResponse(existingPayment),
-      subscription: {
-        tier: sub?.tier || "free",
-        source: sub?.source || "pass",
-        isActive: hasActiveSubscriptionConflict(sub),
-        expiresAt: toIsoOrNull(sub?.expiresAt),
-        profileLimit: plan.profileLimit,
-        planId: String(sub?.planId || plan.planId),
-        durationMonths: Number(sub?.durationMonths || plan.durationMonths),
-        productType: String(sub?.productType || plan.productType),
-        monthlyStoneBalance: Number(sub?.membershipCreditBalance || 0),
-        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
-        membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
-        membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
-        membershipCreditCost: requiredMonthlyCredits,
-        cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
-        cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
-        customerUid,
-        paymentMethod: "monthly_credit",
-        nextBillingAt: null,
-        lastBillingStatus: "success",
-      },
-      monthlyStoneBalance: Number(sub?.membershipCreditBalance || 0),
-      monthlyCredits: Number(sub?.membershipCreditBalance || 0),
-      user: {
-        id: String(auth.userId),
-        points: Number(currentUser?.points || 0),
-      },
-    });
-  }
-
-  const now = new Date();
-  const existingUser = await User.findById(auth.userId).select("points profileSubscription").lean();
-  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
-
-  const transition = evaluateSubscriptionTierTransition(existingUser?.profileSubscription, tier);
-  if (!transition.allow) {
-    return json({
-      message: transition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
-        ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
-        : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
-      code: transition.code,
-      activeTier: transition.activeTier,
-    }, { status: 409 });
-  }
-
-  // 월정석은 지급일+30일 만료(지급분별) — 만료분을 제외한 "유효 잔액"으로 사용 가능 여부를 판정한다.
-  const ensuredExisting = ensureLotsForBalance(existingUser?.profileSubscription, now.getTime());
-  const currentMonthlyCredits = ensuredExisting.balance;
-  if (currentMonthlyCredits < requiredMonthlyCredits) {
-    return json({
-      message: "이용권 혜택이 부족합니다.",
-      code: "INSUFFICIENT_MONTHLY_CREDITS",
-      requiredMonthlyCredits,
-      currentMonthlyCredits,
-      monthlyStoneBalance: currentMonthlyCredits,
-      membershipCreditBalance: currentMonthlyCredits,
-    }, { status: 402 });
-  }
-
-  const expiresAt = calculateSubscriptionActivationExpiresAt({
-    existingSubscription: existingUser?.profileSubscription,
-    transitionCode: transition.code,
-    now,
-    paidAt: now,
-    durationDays: plan.durationDays,
-  });
-  const subscriptionUpdateGuard = buildSubscriptionUpdateGuard(existingUser?.profileSubscription, now);
-
-  let paymentRecord = existingPayment;
-  if (!paymentRecord) {
-    try {
-      paymentRecord = await Payment.create({
-        userId: auth.userId,
-        merchantUid,
-        idempotencyKey: requestId,
-        paymentAmount: plan.wonPrice,
-        expectedChargedPoints: 0,
-        chargedPoints: 0,
-        paymentMethod: "monthly_credit",
-        status: "pending",
-        source: "prepare",
-        paymentType: "membership_pass",
-        subscriptionTier: tier,
-        productId: plan.planId,
-        membershipCreditCost: requiredMonthlyCredits,
-        requestId,
-        metadata: {
-          planId: plan.planId,
-          durationMonths: plan.durationMonths,
-          durationDays: plan.durationDays,
-          productType: plan.productType,
-          currency: "MONTHLY_CREDIT",
-          requiredMonthlyCredits,
-          paymentMethod: paymentMethodHint,
-        },
-      });
-    } catch (error) {
-      if (Number(error?.code) !== 11000) throw error;
-      paymentRecord = await Payment.findOne({
-        userId: auth.userId,
-        paymentType: "membership_pass",
-        $or: [
-          { idempotencyKey: requestId },
-          { merchantUid },
-        ],
-      }).sort({ createdAt: -1 });
-      if (!paymentRecord) throw error;
-    }
-  }
-
-  // 월정석 지급분별(lot) FIFO 차감 + 이용권 활성화를 한 번의 원자적 write로 처리한다.
-  // 단일 $inc로는 FIFO 배열 갱신이 불가하므로 버전 가드 기반 낙관적 write + 재시도로 경합을 처리한다.
-  const PASS_BUY_MAX_ATTEMPTS = 5;
-  let updatedUser = null;
-  for (let attempt = 0; attempt < PASS_BUY_MAX_ATTEMPTS; attempt += 1) {
-    const freshSub = attempt === 0
-      ? (existingUser?.profileSubscription || {})
-      : ((await User.findById(auth.userId).select("profileSubscription recentConsumeRequestIds").lean())?.profileSubscription || {});
-    const ensuredForWrite = ensureLotsForBalance(freshSub, now.getTime());
-    const deduction = deductLotsFIFO(ensuredForWrite.lots, requiredMonthlyCredits, now.getTime());
-    if (!deduction.ok) break; // 유효 월정석 부족 → 아래 !updatedUser 블록이 insufficient로 분류
-    const lotsVersion = Math.floor(Number(freshSub.membershipCreditLotsVersion || 0));
-    updatedUser = await User.findOneAndUpdate(
-      {
-        _id: auth.userId,
-        "profileSubscription.membershipCreditLotsVersion": lotsVersion,
-        recentConsumeRequestIds: { $ne: requestId },
-        ...subscriptionUpdateGuard,
-      },
-      {
-        $set: {
-          "profileSubscription.tier": tier,
-          "profileSubscription.passTier": tier,
-          "profileSubscription.planId": plan.planId,
-          "profileSubscription.durationMonths": plan.durationMonths,
-          "profileSubscription.productType": plan.productType,
-          "profileSubscription.profileLimit": plan.profileLimit,
-          "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
-          "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
-          "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
-          "profileSubscription.source": "pass",
-          "profileSubscription.startedAt": now,
-          "profileSubscription.expiresAt": expiresAt,
-          "profileSubscription.cancelAtPeriodEnd": false,
-          "profileSubscription.cancelRequestedAt": null,
-          "profileSubscription.customerUid": customerUid,
-          "profileSubscription.paymentMethod": "monthly_credit",
-          "profileSubscription.nextBillingAt": null,
-          "profileSubscription.lastBillingAt": now,
-          "profileSubscription.lastBillingStatus": "success",
-          "profileSubscription.lastBillingError": "",
-          "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || now,
-          "profileSubscription.membershipCreditLots": deduction.lots,
-          "profileSubscription.membershipCreditBalance": deduction.balance,
-        },
-        $inc: {
-          "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
-          "profileSubscription.membershipCreditLotsVersion": 1,
-        },
-        // 중복 방지는 위 필터의 `$ne: requestId` 가드가 담당한다($push는 스스로 못 막는다).
-        $push: {
-          recentConsumeRequestIds: { $each: [requestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
-        },
-      },
-      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-    ).lean();
-    if (updatedUser) break;
-    // null: 버전 충돌/멱등/구독 가드 미충족 → 재시도(멱등·insufficient·conflict는 아래 블록이 재분류).
-  }
-
-  if (!updatedUser) {
-    const currentUser = await User.findById(auth.userId).select("points profileSubscription recentConsumeRequestIds").lean();
-    if (Array.isArray(currentUser?.recentConsumeRequestIds) && currentUser.recentConsumeRequestIds.includes(requestId)) {
-      const sub = currentUser?.profileSubscription || {};
-      const activeExpiresAt = toValidDate(sub?.expiresAt);
-      const remainingDays = activeExpiresAt
-        ? Math.max(0, Math.ceil((activeExpiresAt.getTime() - Date.now()) / 86400000))
-        : 0;
-      return json({
-        message: "Membership pass monthly-credit payment already processed.",
-        idempotent: true,
-        payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean() || paymentRecord),
-        subscription: {
-          tier: sub?.tier || "free",
-          source: sub?.source || "pass",
-          isActive: hasActiveSubscriptionConflict(sub),
-          expiresAt: toIsoOrNull(sub?.expiresAt),
-          profileLimit: Number.isFinite(Number(sub?.profileLimit ?? plan.profileLimit)) ? Math.max(0, Math.floor(Number(sub?.profileLimit ?? plan.profileLimit))) : 1,
-          planId: String(sub?.planId || plan.planId),
-          durationMonths: Number(sub?.durationMonths || plan.durationMonths),
-          productType: String(sub?.productType || plan.productType),
-          membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
-          membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
-          membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
-          membershipCreditCost: requiredMonthlyCredits,
-          cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
-          cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
-          customerUid,
-          paymentMethod: "monthly_credit",
-          nextBillingAt: null,
-          lastBillingStatus: String(sub?.lastBillingStatus || "success"),
-        },
-        monthlyCredits: Number(sub?.membershipCreditBalance || 0),
-        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
-        passBalance: {
-          active: hasActiveSubscriptionConflict(sub),
-          tier: sub?.tier || "free",
-          remainingDays,
-          expiresAt: toIsoOrNull(sub?.expiresAt),
-          profileLimit: Number.isFinite(Number(sub?.profileLimit ?? plan.profileLimit)) ? Math.max(0, Math.floor(Number(sub?.profileLimit ?? plan.profileLimit))) : 1,
-        },
-        user: {
-          id: String(auth.userId),
-          points: Number(currentUser?.points || 0),
-        },
-      });
-    }
-    const postTransition = evaluateSubscriptionTierTransition(currentUser?.profileSubscription, tier);
-    if (!postTransition.allow) {
-      await markPaymentFailure(paymentRecord, {
-        status: "failed",
-        paymentMethod: "monthly_credit",
-        failureCode: "subscription_monthly_credit_conflict",
-        failureMessage: "Subscription state changed before monthly-credit purchase could be completed.",
-        failureStage: "subscription_monthly_credit_subscription_guard",
-        incrementAttempt: true,
-      }).catch(() => {});
-      return json({
-        message: postTransition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
-          ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
-          : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
-        code: postTransition.code,
-        activeTier: postTransition.activeTier,
-        monthlyCredits: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
-        membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
-      }, { status: 409 });
-    }
-
-    await markPaymentFailure(paymentRecord, {
-      status: "failed",
-      paymentMethod: "monthly_credit",
-      failureCode: "subscription_monthly_credit_insufficient",
-      failureMessage: "Insufficient monthly credits for membership pass purchase.",
-      failureStage: "subscription_monthly_credit_consume",
-      incrementAttempt: true,
-    }).catch(() => {});
-    return json({
-      message: "이용권 혜택이 부족합니다.",
-      code: "INSUFFICIENT_MONTHLY_CREDITS",
-      requiredMonthlyCredits,
-      currentMonthlyCredits,
-    }, { status: 402 });
-  }
-
-  const updatedMonthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-  const updatedExpiresAt = toValidDate(updatedUser?.profileSubscription?.expiresAt);
-  const remainingPassDays = updatedExpiresAt
-    ? Math.max(0, Math.ceil((updatedExpiresAt.getTime() - Date.now()) / 86400000))
-    : 0;
-
-  let ledger = null;
-  try {
-    ledger = await MonthlyCreditLedger.create({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      amount: requiredMonthlyCredits,
-      beforeBalance: updatedMonthlyCredits + requiredMonthlyCredits,
-      afterBalance: updatedMonthlyCredits,
-      reason: `${plan.name} monthly-credit membership pass purchase`,
-      sourceId: requestId,
-      serviceKey: plan.planId,
-      profileId: "",
-      metadata: {
-        paymentId: String(paymentRecord?._id || ""),
-        merchantUid,
-        requestId,
-        planId: plan.planId,
-        tier,
-        durationMonths: plan.durationMonths,
-        productType: plan.productType,
-        wonPrice: plan.wonPrice,
-        requiredMonthlyCredits,
-      },
-    });
-  } catch (error) {
-    if (Number(error?.code) === 11000) {
-      // 동일 sourceId(requestId) 원장이 이미 존재 = 멱등 재시도. 크레딧 차감·구독 활성은 유효하므로
-      // 롤백하지 않고 기존 원장을 재사용해 정상 완료 처리한다.
-      ledger = await MonthlyCreditLedger.findOne({
-        userId: auth.userId,
-        type: "MONTHLY_CREDIT_SPEND",
-        sourceId: requestId,
-      }).lean().catch(() => null);
-    } else {
-      // 원장 생성 실패 시 크레딧 차감+구독 활성을 함께 되돌린다. profileSubscription 서브도큐먼트 전체를
-      // 무조건 스냅샷으로 치환하면 그 사이 다른 요청의 변경을 덮어쓰므로, 우리가 방금 설정한 활성
-      // 상태(expiresAt)가 그대로일 때만(=우리 활성이 최신일 때만) 스냅샷으로 복원한다.
-      await User.updateOne(
-        { _id: auth.userId, "profileSubscription.expiresAt": expiresAt },
-        {
-          $set: { profileSubscription: existingUser.profileSubscription || {} },
-          $pull: { recentConsumeRequestIds: requestId },
-        },
-      ).catch(() => {});
-      await markPaymentFailure(paymentRecord, {
-        status: "failed",
-        paymentMethod: "monthly_credit",
-        failureCode: "subscription_monthly_credit_ledger_failed",
-        failureMessage: String(error?.message || "Monthly credit ledger creation failed."),
-        failureStage: "subscription_monthly_credit_ledger",
-        incrementAttempt: true,
-      }).catch(() => {});
-      throw error;
-    }
-  }
-
-  await Payment.findByIdAndUpdate(paymentRecord._id, {
-    $set: {
-      paymentAmount: plan.wonPrice,
-      expectedChargedPoints: 0,
-      chargedPoints: 0,
-      paymentMethod: "monthly_credit",
-      status: "success",
-      paidAt: now,
-      source: "confirm",
-      paymentType: "membership_pass",
-      subscriptionTier: tier,
-      productId: plan.planId,
-      membershipCreditCost: requiredMonthlyCredits,
-      metadata: {
-        ...(paymentRecord.metadata || {}),
-        planId: plan.planId,
-        durationMonths: plan.durationMonths,
-        durationDays: plan.durationDays,
-        productType: plan.productType,
-        currency: "MONTHLY_CREDIT",
-        verifiedAmount: plan.wonPrice,
-        requiredMonthlyCredits,
-        monthlyCreditLedgerId: String(ledger?._id || ""),
-      },
-      rawPortOne: null,
-      failureCode: null,
-      failureMessage: null,
-      failureStage: null,
-      lastErrorAt: null,
-    },
-  });
-
-  return json({
-    message: "이용권 혜택으로 달빛 이용권이 활성화되었습니다.",
-    idempotent: false,
-    payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
-    subscription: {
-      tier,
-      source: "pass",
-      isActive: true,
-      expiresAt: expiresAt.toISOString(),
-      profileLimit: plan.profileLimit,
-      planId: plan.planId,
-      durationMonths: plan.durationMonths,
-      productType: plan.productType,
-      monthlyStoneBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
-      membershipCreditBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
-      membershipCreditGranted: Number(updatedUser?.profileSubscription?.membershipCreditGranted || 0),
-      membershipCreditUsed: Number(updatedUser?.profileSubscription?.membershipCreditUsed || 0),
-      membershipCreditCost: requiredMonthlyCredits,
-      cancelAtPeriodEnd: false,
-      cancelRequestedAt: null,
-      customerUid,
-      paymentMethod: "monthly_credit",
-      nextBillingAt: null,
-      lastBillingStatus: "success",
-    },
-    monthlyStoneBalance: updatedMonthlyCredits,
-    monthlyCredits: updatedMonthlyCredits,
-    membershipCreditBalance: updatedMonthlyCredits,
-    passBalance: {
-      active: true,
-      tier,
-      remainingDays: remainingPassDays,
-      expiresAt: expiresAt.toISOString(),
-      profileLimit: plan.profileLimit,
-    },
-    monthlyCreditLedger: ledger ? {
-      id: String(ledger._id || ""),
-      type: ledger.type,
-      amount: Number(ledger.amount || 0),
-      beforeBalance: Number(ledger.beforeBalance || 0),
-      afterBalance: Number(ledger.afterBalance || 0),
-      reason: String(ledger.reason || ""),
-      createdAt: ledger.createdAt ? ledger.createdAt.toISOString() : new Date().toISOString(),
-    } : null,
-    user: {
-      id: String(auth.userId),
-      points: Number(updatedUser?.points || 0),
-    },
-  });
-}
-
 async function handleSubscriptionConfirm(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.paymentId || "").trim();
@@ -4526,6 +4237,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
   const customerUidFromClient = String(body?.customerUid || "").trim();
   const merchantUidHint = String(body?.merchantUid || body?.merchant_uid || "").trim();
   const paymentMethodHint = normalizePaymentMethod(body?.paymentMethod || "card");
+  if (isSubscriptionMonthlyCreditMethod(paymentMethodHint)) {
+    return rejectSubscriptionMonthlyCreditPurchase();
+  }
   if (!validateNewSubscriptionDuration(durationMonths, body?.durationDays)) {
     return json({
       message: "Only 30-day membership passes are available for new purchase.",
@@ -4569,9 +4283,6 @@ async function handleSubscriptionConfirm(request, env, auth) {
     route: "subscription_confirm",
   });
   if (confirmPolicyResponse) return confirmPolicyResponse;
-  if (paymentMethodHint === "monthly_credit" || paymentMethodHint === "monthly") {
-    return await handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint });
-  }
   if (!impUid) {
     return json({ message: "impUid and valid tier are required." }, { status: 400 });
   }
@@ -5931,7 +5642,71 @@ function buildSubscriptionSummary(profileSubscription) {
   }];
 }
 
-function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers) {
+function buildMoonlightStoreSnapshot(env, {
+  generatedAt = new Date().toISOString(),
+  monthlyCredits = null,
+  monthlyStoneExpiresAt = null,
+  subscriptions = [],
+  degraded = false,
+} = {}) {
+  const guardianEnabled = !degraded && isGuardianFortuneCreditSalesEnabled(env);
+  const fusionEnabled = !degraded && isFusionFortuneTicketSalesEnabled(env);
+  const activeSubscription = Array.isArray(subscriptions) ? subscriptions[0] : null;
+  const source = degraded ? "token" : "db";
+  const areaStatus = degraded ? "unavailable" : "ready";
+
+  return {
+    schemaVersion: 1,
+    generatedAt,
+    expiresAt: new Date(Date.parse(generatedAt) + 30_000).toISOString(),
+    source,
+    areas: {
+      moonstone: {
+        status: areaStatus,
+        balance: degraded ? null : monthlyCredits,
+        expiresAt: degraded ? null : monthlyStoneExpiresAt,
+      },
+      membership: {
+        status: areaStatus,
+        tier: activeSubscription?.tier || null,
+        isActive: activeSubscription ? activeSubscription.isActive === true : (degraded ? null : false),
+        expiresAt: activeSubscription?.expiresAt || null,
+      },
+      passes: {
+        status: degraded ? "unavailable" : "unrequested",
+        summary: [
+          {
+            productType: "guardian-fortune",
+            status: guardianEnabled ? "unrequested" : "unavailable",
+            remaining: null,
+            detailRequired: true,
+          },
+          {
+            productType: "fusion-fortune",
+            status: fusionEnabled ? "unrequested" : "unavailable",
+            remaining: null,
+            detailRequired: true,
+          },
+        ],
+      },
+      orders: {
+        status: "deferred",
+        hasRecentOrders: null,
+      },
+    },
+    availability: {
+      status: degraded ? "unavailable" : "ready",
+      purchasesEnabled: !degraded,
+    },
+  };
+}
+
+function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers, {
+  env,
+  includeStoreSnapshot = false,
+  includePaymentDetails = true,
+  generatedAt = new Date().toISOString(),
+} = {}) {
   const safeUser = user || {};
   const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
   const unlockMap = Object.create(null);
@@ -5943,6 +5718,10 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   const mappedPayments = Array.isArray(recentPayments)
     ? recentPayments.map((payment) => formatPaymentResponse(payment)).filter(Boolean)
     : [];
+  const mappedPaymentSummaries = Array.isArray(recentPayments)
+    ? recentPayments.map((payment) => formatPaymentSummaryResponse(payment)).filter(Boolean)
+    : [];
+  const paymentView = includePaymentDetails ? mappedPayments : mappedPaymentSummaries;
   const mappedTransactions = Array.isArray(pointHistories)
     ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
     : [];
@@ -5954,6 +5733,14 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
   const monthlyStoneExpiresAt = resolveNextExpiry(profileSubscription.membershipCreditLots);
   const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
+  const storeSnapshot = includeStoreSnapshot
+    ? buildMoonlightStoreSnapshot(env, {
+      generatedAt,
+      monthlyCredits,
+      monthlyStoneExpiresAt,
+      subscriptions,
+    })
+    : null;
 
   return {
     success: true,
@@ -5961,13 +5748,14 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
     data: {
       balance,
       transactions: mappedTransactions,
-      payments: mappedPayments,
+      payments: paymentView,
       subscriptions,
       monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       membershipCreditBalance: monthlyCredits,
       monthlyStoneExpiresAt,
       monthlyCreditLedgers: mappedMonthlyCreditLedgers,
+      ...(storeSnapshot ? { storeSnapshot } : {}),
     },
     user: {
       id: String(auth.userId),
@@ -5980,14 +5768,14 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
     },
     unlockedFeatures,
     unlockMap,
-    payments: mappedPayments,
+    payments: paymentView,
     pointHistories: mappedTransactions,
     monthlyCreditLedgers: mappedMonthlyCreditLedgers,
     subscriptions,
   };
 }
 
-function buildTokenFallbackPaymentsMe(auth, message) {
+function buildTokenFallbackPaymentsMe(auth, message, { storeSnapshot = null } = {}) {
   const balance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
   return {
     success: true,
@@ -6006,6 +5794,7 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       monthlyCredits: 0,
       membershipCreditBalance: 0,
       monthlyCreditLedgers: [],
+      ...(storeSnapshot ? { storeSnapshot } : {}),
     },
     user: {
       id: String(auth?.userId || ""),
@@ -6029,8 +5818,15 @@ function buildDegradedPaymentsMeResponse(auth, {
   requestId,
   dbErrorCode = "DATABASE_TEMPORARILY_UNAVAILABLE",
   dbQueryCount = 0,
+  env,
+  includeStoreSnapshot = false,
+  generatedAt = new Date().toISOString(),
 } = {}) {
-  const body = buildTokenFallbackPaymentsMe(auth, message);
+  const body = buildTokenFallbackPaymentsMe(auth, message, {
+    storeSnapshot: includeStoreSnapshot
+      ? buildMoonlightStoreSnapshot(env, { generatedAt, degraded: true })
+      : null,
+  });
   body.requestId = requestId;
   body.degraded = true;
   body.retryable = true;
@@ -6048,10 +5844,119 @@ function buildDegradedPaymentsMeResponse(auth, {
   return body;
 }
 
+async function handleOrderDetail(request, env, auth, path) {
+  const startedAt = Date.now();
+  const requestId = createPaymentRequestId(request);
+  const encodedId = String(path || "").replace(/^\/orders\//, "").trim();
+  let orderId = "";
+  try {
+    orderId = decodeURIComponent(encodedId);
+  } catch {
+    orderId = encodedId;
+  }
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return json({
+      ok: false,
+      success: false,
+      code: "INVALID_ORDER_ID",
+      error: buildApiError({ code: "INVALID_ORDER_ID", retryable: false, message: "주문을 확인할 수 없습니다.", requestId }),
+      requestId,
+    }, { status: 400 });
+  }
+
+  const normalizedUserId = String(auth?.userId || "").trim();
+  const userObjectId = mongoose.Types.ObjectId.isValid(normalizedUserId)
+    ? new mongoose.Types.ObjectId(normalizedUserId)
+    : null;
+  if (!userObjectId) {
+    return json({
+      ok: false,
+      success: false,
+      code: "UNAUTHORIZED",
+      error: buildApiError({ code: "UNAUTHORIZED", retryable: false, message: "로그인이 필요합니다.", requestId }),
+      requestId,
+    }, { status: 401 });
+  }
+
+  const payment = await withMongoRetry(env, () => mongoose.connection.collection("payments").findOne(
+    {
+      _id: new mongoose.Types.ObjectId(orderId),
+      userId: { $in: [userObjectId, normalizedUserId] },
+    },
+    {
+      projection: {
+        _id: 1,
+        merchantUid: 1,
+        impUid: 1,
+        paymentAmount: 1,
+        coinPrice: 1,
+        expectedChargedPoints: 1,
+        membershipCreditCost: 1,
+        chargedPoints: 1,
+        featureKey: 1,
+        productId: 1,
+        accessType: 1,
+        requestId: 1,
+        paymentMethod: 1,
+        paymentType: 1,
+        subscriptionTier: 1,
+        status: 1,
+        orderState: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        paidAt: 1,
+        rawPortOne: 1,
+      },
+    },
+  ));
+
+  if (!payment) {
+    logPaymentOrderTrace("warn", {
+      requestId,
+      userHash: hashPaymentLogValue(auth?.userId),
+      orderHash: hashPaymentLogValue(orderId),
+      status: 404,
+      durationMs: Date.now() - startedAt,
+      dbQueryCount: 1,
+      cache: "miss",
+      result: "order_not_found",
+      commitSha: getPaymentDeploySha(env),
+    });
+    return json({
+      ok: false,
+      success: false,
+      code: "ORDER_NOT_FOUND",
+      error: buildApiError({ code: "ORDER_NOT_FOUND", retryable: false, message: "주문을 찾을 수 없습니다.", requestId }),
+      requestId,
+    }, { status: 404 });
+  }
+
+  const generatedAt = new Date().toISOString();
+  logPaymentOrderTrace("info", {
+    requestId,
+    userHash: hashPaymentLogValue(auth?.userId),
+    orderHash: hashPaymentLogValue(orderId),
+    status: 200,
+    durationMs: Date.now() - startedAt,
+    dbQueryCount: 1,
+    cache: "miss",
+    result: "ok",
+    commitSha: getPaymentDeploySha(env),
+  });
+  return json({
+    ok: true,
+    success: true,
+    data: { order: formatOrderDetailResponse(payment) },
+    meta: buildApiMeta({ generatedAt, stale: false, source: "db" }),
+    requestId,
+  });
+}
+
 async function handleMe(auth, env, request) {
   const startedAt = Date.now();
   const requestId = createPaymentRequestId(request);
   const shopSummary = isPaymentShopSummaryRequest(request);
+  const historySummary = isPaymentHistorySummaryRequest(request);
   const metrics = {
     env,
     requestId,
@@ -6063,7 +5968,7 @@ async function handleMe(auth, env, request) {
     cache: auth?.authUserDoc ? "authUserDoc" : "miss",
     stageMs: {},
     errors: [],
-    view: shopSummary ? "shop" : "full",
+    view: shopSummary ? "shop" : historySummary ? "history" : "full",
     commitSha: getPaymentDeploySha(env),
   };
 
@@ -6076,12 +5981,23 @@ async function handleMe(auth, env, request) {
       durationMs: Date.now() - startedAt,
       result: "degraded_token_snapshot",
     });
-    return json(buildDegradedPaymentsMeResponse(auth, {
+    const body = buildDegradedPaymentsMeResponse(auth, {
       message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
       requestId,
       dbErrorCode: "AUTH_DB_DEGRADED",
       dbQueryCount: 0,
-    }));
+      env,
+      includeStoreSnapshot: shopSummary,
+      generatedAt: new Date().toISOString(),
+    });
+    body.error = buildApiError({
+      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      retryable: true,
+      message: "결제 및 이용권 상태를 잠시 확인할 수 없습니다.",
+      requestId,
+    });
+    body.meta = buildApiMeta({ generatedAt: new Date().toISOString(), stale: true, source: "degraded" });
+    return json(body);
   }
 
   try {
@@ -6112,6 +6028,7 @@ async function handleMe(auth, env, request) {
         success: false,
         ok: false,
         code: "USER_NOT_FOUND",
+        error: buildApiError({ code: "USER_NOT_FOUND", retryable: false, message: "사용자 정보를 찾을 수 없습니다.", requestId }),
         requestId,
         message: "User profile was not found.",
       }, { status: 404 });
@@ -6119,7 +6036,7 @@ async function handleMe(auth, env, request) {
 
     const recentPaymentsResult = shopSummary
       ? { ok: true, value: [] }
-      : await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
+      : await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10, { includeDetails: !historySummary }));
     const pointHistoriesResult = shopSummary
       ? { ok: true, value: [] }
       : await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
@@ -6131,7 +6048,12 @@ async function handleMe(auth, env, request) {
     const pointHistories = pointHistoriesResult.ok ? pointHistoriesResult.value : [];
     const monthlyCreditLedgers = monthlyCreditLedgersResult.ok ? monthlyCreditLedgersResult.value : [];
 
-    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers);
+    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers, {
+      env,
+      includeStoreSnapshot: shopSummary,
+      includePaymentDetails: !historySummary,
+      generatedAt: new Date().toISOString(),
+    });
     body.requestId = requestId;
     body.data.degradedPayments = !recentPaymentsResult.ok;
     body.data.degradedTransactions = !pointHistoriesResult.ok;
@@ -6141,6 +6063,12 @@ async function handleMe(auth, env, request) {
       dbQueryCount: metrics.dbQueryCount,
       maxConcurrentDbOps: 1,
     };
+    body.meta = buildApiMeta({
+      generatedAt: body.data?.storeSnapshot?.generatedAt || new Date().toISOString(),
+      stale: Boolean(body.degraded || body.data.degradedPayments || body.data.degradedMonthlyCredits),
+      source: body.source || (body.degraded ? "degraded" : "db"),
+      expiresAt: body.data?.storeSnapshot?.expiresAt || null,
+    });
 
     logPaymentsMeTrace(metrics.errors.length ? "warn" : "info", {
       ...metrics,
@@ -6166,12 +6094,23 @@ async function handleMe(auth, env, request) {
       originalErrorName: String(error?.name || "Error").slice(0, 120),
       stack: String(error?.stack || "").slice(0, 2000),
     });
-    return json(buildDegradedPaymentsMeResponse(auth, {
+    const body = buildDegradedPaymentsMeResponse(auth, {
       message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
       requestId,
       dbErrorCode: code,
       dbQueryCount: metrics.dbQueryCount,
-    }));
+      env,
+      includeStoreSnapshot: shopSummary,
+      generatedAt: new Date().toISOString(),
+    });
+    body.error = buildApiError({
+      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      retryable: true,
+      message: "결제 및 이용권 상태를 잠시 확인할 수 없습니다.",
+      requestId,
+    });
+    body.meta = buildApiMeta({ generatedAt: new Date().toISOString(), stale: true, source: "degraded" });
+    return json(body);
   }
 }
 async function handlePointsMe(auth, env) {
@@ -6458,7 +6397,7 @@ async function handleFusionFortuneTicketCatalog(env) {
 
 async function handleFusionFortuneTicketBalance(auth, env) {
   if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
-  return json({ ok: true, balance: await getFusionFortuneTicketBalance(auth.userId) });
+  return json({ ok: true, enabled: true, balance: await getFusionFortuneTicketBalance(auth.userId) });
 }
 
 async function handleFusionFortuneTicketShopPreview(auth, env) {
@@ -6557,6 +6496,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (minorBlocked) return minorBlocked;
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
+    if (method === "GET" && /^\/orders\/[^/]+$/.test(path)) return await handleOrderDetail(request, env, auth, path);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
     if (method === "GET" && path === "/guardian-fortune/catalog") return await handleGuardianFortuneCreditCatalog(env);
     if (method === "GET" && path === "/fusion-fortune/catalog") return await handleFusionFortuneTicketCatalog(env);
@@ -6613,6 +6553,9 @@ export const __paymentsTestUtils = {
   handleSubscriptionPrepare,
   handleSubscriptionConfirm,
   handleMe,
+  handleOrderDetail,
+  formatPaymentSummaryResponse,
+  formatOrderDetailResponse,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
   signStandardWebhookPayload,

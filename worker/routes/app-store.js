@@ -41,7 +41,7 @@ async function rejectGooglePlayPassPurchase(request, env, auth, product) {
   return json({
     ok: false,
     code: "PASS_PURCHASE_CHANNEL_DISABLED",
-    message: "이용권 신규 구매는 현재 웹 PG 결제 또는 허용된 월정석 정책으로만 진행할 수 있습니다.",
+    message: "이용권 신규 구매는 웹 PG 단건 결제로만 진행할 수 있습니다.",
   }, { status: 403 });
 }
 

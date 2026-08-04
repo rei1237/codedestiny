@@ -346,12 +346,24 @@ function applyAccessStateToGlobalStore(accessData: Record<string, unknown>) {
   store.applyAccessStateSnapshot(accessData, { profileId, reason: "user-session-bootstrap" });
 }
 
-function invalidateMatching(predicate: (entry: CachedResponse) => boolean) {
+function invalidateMatching(predicate: (entry: CachedResponse) => boolean, affectedKinds: CacheKind[] = []) {
+  const kinds = new Set(affectedKinds);
   Array.from(cache.entries()).forEach(([key, entry]) => {
     if (predicate(entry)) cache.delete(key);
   });
-  inFlight.clear();
-  ensureLoadInFlight.clear();
+  Array.from(inFlight.keys()).forEach((key) => {
+    const kind = String(key).split("|", 1)[0] as CacheKind;
+    if (kinds.has(kind)) inFlight.delete(key);
+  });
+  if (kinds.has("session")) {
+    ensureLoadInFlight.clear();
+  } else {
+    Array.from(ensureLoadInFlight.keys()).forEach((key) => {
+      const profileAffected = kinds.has("profile") && key.includes("|profile");
+      const billingAffected = (kinds.has("entitlement") || kinds.has("paymentAccess")) && key.includes("|billing");
+      if (profileAffected || billingAffected) ensureLoadInFlight.delete(key);
+    });
+  }
   cacheGeneration += 1;
 }
 
@@ -379,7 +391,7 @@ export function invalidateUserAccessCache(reason = "manual") {
 }
 
 export function invalidateSessionCache(reason = "manual") {
-  invalidateMatching((entry) => entry.kind === "session");
+  invalidateMatching((entry) => entry.kind === "session", ["session"]);
   updateStatus("session", "idle", null);
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("cd:user-access-cache-invalidated", { detail: { reason, kind: "session", at: Date.now() } }));
@@ -387,7 +399,7 @@ export function invalidateSessionCache(reason = "manual") {
 }
 
 export function invalidateEntitlementCache(reason = "manual") {
-  invalidateMatching((entry) => entry.kind === "entitlement" || entry.kind === "paymentAccess");
+  invalidateMatching((entry) => entry.kind === "entitlement" || entry.kind === "paymentAccess", ["entitlement", "paymentAccess"]);
   setSnapshot({
     entitlementStatus: "idle",
     paymentAccessStatus: "idle",
@@ -399,7 +411,7 @@ export function invalidateEntitlementCache(reason = "manual") {
 }
 
 export function invalidateProfileCache(reason = "manual") {
-  invalidateMatching((entry) => entry.kind === "profile");
+  invalidateMatching((entry) => entry.kind === "profile", ["profile"]);
   updateStatus("profile", "idle", null);
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("cd:user-access-cache-invalidated", { detail: { reason, kind: "profile", at: Date.now() } }));

@@ -106,6 +106,15 @@ describe("Payments prepare idempotency", () => {
     expect(payload).toMatchObject({ ok: true, degraded: true, source: "token" });
     expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
     expect(User.collection.findOne).not.toHaveBeenCalled();
+    expect(payload.data.storeSnapshot).toMatchObject({
+      schemaVersion: 1,
+      source: "token",
+      areas: {
+        moonstone: { status: "unavailable", balance: null },
+        passes: { status: "unavailable" },
+        orders: { status: "deferred", hasRecentOrders: null },
+      },
+    });
   });
 
   test("payments/me shop summary reuses the authenticated user snapshot without history reads", async () => {
@@ -139,6 +148,20 @@ describe("Payments prepare idempotency", () => {
     expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
     expect(payload.data.monthlyCredits).toBe(80);
     expect(collection).not.toHaveBeenCalled();
+    expect(payload.data.storeSnapshot).toMatchObject({
+      schemaVersion: 1,
+      source: "db",
+      areas: {
+        moonstone: { status: "ready", balance: 80 },
+        membership: { status: "ready", tier: "family", isActive: true },
+        passes: { status: "unrequested" },
+        orders: { status: "deferred", hasRecentOrders: null },
+      },
+    });
+    expect(payload.data.storeSnapshot.areas.passes.summary).toEqual([
+      expect.objectContaining({ productType: "guardian-fortune", remaining: null, detailRequired: true }),
+      expect.objectContaining({ productType: "fusion-fortune", remaining: null, detailRequired: true }),
+    ]);
   });
 
   test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {

@@ -6,6 +6,7 @@ import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId, 
 import { cookieValue, createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { incrementRateLimit } from "../lib/rate-limit.js";
 import { generateGuardianFortuneRequest } from "../lib/guardian-fortune-generate.js";
+import { generateGuardianFortuneWithMockLLM } from "../lib/guardian-fortune-mock.js";
 import {
   buildGuardianFortuneDisabledUsageStatus,
   buildGuardianFortuneGuestCookie,
@@ -5759,6 +5760,20 @@ const GUARDIAN_FORTUNE_RATE_LIMIT_MAX = 12;
 const GUARDIAN_FORTUNE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const GUARDIAN_FORTUNE_SHARE_RATE_LIMIT_MAX = 20;
 
+const GUARDIAN_FORTUNE_CHAT_SSE_HEADERS = Object.freeze({
+  "Content-Type": "text/event-stream; charset=utf-8",
+  "Cache-Control": "no-store, no-transform",
+  "X-Accel-Buffering": "no",
+});
+
+export function formatGuardianFortuneChatSseEvent(event, payload) {
+  return `event: ${String(event || "message")}\ndata: ${JSON.stringify(payload || {})}\n\n`;
+}
+
+function writeGuardianFortuneChatSse(writer, event, payload) {
+  return writer.write(new TextEncoder().encode(formatGuardianFortuneChatSseEvent(event, payload)));
+}
+
 function guardianFortuneRouteResponse(result, { cookie = "" } = {}) {
   const { status = 200, ...payload } = result || {};
   const headers = cookie ? { "Set-Cookie": cookie } : undefined;
@@ -5919,6 +5934,83 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
   return guardianFortuneRouteResponse(result, { cookie: identity.cookie });
 }
 
+async function handleGuardianFortuneChatRoute(request, env, ctx, trace) {
+  if (!isGuardianFortuneApiEnabled(env)) {
+    return guardianFortuneRouteResponse({
+      ok: false,
+      status: 403,
+      error: GUARDIAN_FORTUNE_ERROR_CODES.FEATURE_DISABLED,
+      message: "오늘의 귀인 운세는 준비 중이에요.",
+      usage: buildGuardianFortuneDisabledUsageStatus(),
+    });
+  }
+
+  const body = await readJson(request);
+  const auth = await resolveGuardianFortuneOptionalAuth(request, env);
+  trace.authVerified = Boolean(auth);
+  const identity = await resolveGuardianFortuneIdentity(request, env, auth);
+  const requestId = String(
+    body?.requestId
+      || request.headers.get("idempotency-key")
+      || request.headers.get("x-idempotency-key")
+      || createGuardianFortuneRequestId(),
+  ).trim().slice(0, 120);
+  const rateLimitResponse = await enforceGuardianFortuneRateLimit({ request, env, identity });
+  if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
+
+  await connectDb(env);
+  trace.dbConnected = true;
+  const transformer = new TransformStream();
+  const writer = transformer.writable.getWriter();
+  const run = (async () => {
+    try {
+      await writeGuardianFortuneChatSse(writer, "status", { status: "started" });
+      // The public chat route intentionally uses the verified context/mock path.
+      // It never enables a live provider and does not persist a transcript.
+      const result = await generateGuardianFortuneRequest({
+        input: { ...body, mode: "yeoni" },
+        userId: identity.userId,
+        guestIdHash: identity.guestIdHash,
+        requestId,
+        dateKey: getGuardianFortuneDateKey(new Date()),
+        store: createMongoGuardianFortuneStore({ env }),
+        generator: generateGuardianFortuneWithMockLLM,
+        abortSignal: request.signal,
+        onDelivery: (delivery) => writeGuardianFortuneChatSse(writer, "result", delivery),
+        contextOptions: { env, requestUrl: request.url, ctx, disableShare: true },
+        scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
+      });
+      if (!result.ok) {
+        await writeGuardianFortuneChatSse(writer, "error", {
+          error: result.error || GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR,
+          message: result.message || "상담을 준비하지 못했어요.",
+          requestId: result.requestId || requestId,
+          usage: result.usage || null,
+        });
+        return;
+      }
+      await writeGuardianFortuneChatSse(writer, "complete", {
+        requestId: result.requestId,
+        usage: result.usage,
+        shareDraftToken: result.shareDraftToken || "",
+      });
+    } catch {
+      await writeGuardianFortuneChatSse(writer, "error", {
+        error: GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR,
+        message: "상담을 준비하지 못했어요.",
+        requestId,
+      }).catch(() => {});
+    } finally {
+      await writer.close().catch(() => {});
+    }
+  })();
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(run);
+  else void run;
+  return new Response(transformer.readable, {
+    headers: identity.cookie ? { ...GUARDIAN_FORTUNE_CHAT_SSE_HEADERS, "Set-Cookie": identity.cookie } : GUARDIAN_FORTUNE_CHAT_SSE_HEADERS,
+  });
+}
+
 async function handleGuardianFortuneShareCreateRoute(request, env, trace) {
   if (!isGuardianFortuneApiEnabled(env) || !isGuardianFortuneShareEnabled(env)) {
     return guardianFortuneRouteResponse({
@@ -5999,6 +6091,10 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
 
     if (method === "POST" && path === "/guardian/generate") {
       return await handleGuardianFortuneGenerateRoute(request, env, ctx, trace);
+    }
+
+    if (method === "POST" && path === "/guardian/chat") {
+      return await handleGuardianFortuneChatRoute(request, env, ctx, trace);
     }
 
     if (method === "POST" && path === "/guardian/share") {

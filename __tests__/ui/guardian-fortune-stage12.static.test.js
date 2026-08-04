@@ -32,13 +32,13 @@ test('Stage 12 keeps every Guardian Fortune flag explicit and safe by default', 
   assert.match(purchase, /value === true \|\| String\(value \|\| ["']?["']?\)\.trim\(\)\.toLowerCase\(\) === ["']true["']/);
 });
 
-test('Stage 12 keeps API precedence, local mock fallback, and allowlisted query defaults', () => {
+test('Stage 12 keeps API precedence, local mock fallback, and the Yeon-only chat default', () => {
   const home = read('js/guardian-fortune-home.js');
   assert.match(home, /if \(apiFlag\) return ['"]api['"];\s*if \(mockFlag \|\| local\) return ['"]mock['"]/);
-  assert.match(home, /guardianMode/);
   assert.match(home, /guardianTopic/);
-  assert.match(home, /mock\.modes\[queryMode\]/);
   assert.match(home, /mock\.topics\[queryTopic\]/);
+  assert.match(home, /state\.mode = ['"]yeoni['"]/);
+  assert.doesNotMatch(home, /guardianMode/);
   assert.match(home, /if \(state\.status === ['"]loading['"]\) return/);
 });
 

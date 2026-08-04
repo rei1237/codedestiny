@@ -38,6 +38,9 @@ test("points shop fusion ticket waits for an explicit preview and never falls ba
   assert.match(shop, /tryAcquireShopTicketPreview\("fusion"\)/);
   assert.match(shop, /activeScopeRef\.current = authScope/);
   assert.match(shop, /activeScopeRef\.current !== requestScope/);
+  assert.match(shop, /AbortController/);
+  assert.match(shop, /signal: requestController\.signal/);
+  assert.match(shop, /error\.name === "AbortError"/);
   assert.match(shop, /setIsEnabled\(null\);[\s\S]*setHasLoaded\(false\);[\s\S]*setRemaining\(null\);/);
   assert.match(shop, /isFusionFortuneTicketProduct\(payload\.product\)[\s\S]*setProduct\(payload\.product\)[\s\S]*setRemaining\(payload\.balance\.remaining\)/);
 });
@@ -49,6 +52,20 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /min-height:\s*50px/);
   assert.match(css, /\.form fieldset label[\s\S]*?min-height:\s*44px/);
+  assert.match(css, /content-visibility:\s*auto/);
+});
+
+test("fusion fortune consumes server-sent completion stages without changing its PG-only ticket flow", () => {
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const css = read("app/fusion-fortune/fusion-fortune.module.css");
+  assert.match(client, /fusion-fortune\/generate\/stream/);
+  assert.match(client, /consumeFusionStream/);
+  assert.match(client, /FUSION_STAGES/);
+  assert.match(client, /Fusion Core 진행 방식 보기/);
+  assert.match(client, /<dialog/);
+  assert.match(client, /aria-expanded/);
+  assert.match(client, /useAiProfileSeed/);
+  assert.match(css, /stageActive/);
   assert.match(css, /content-visibility:\s*auto/);
 });
 

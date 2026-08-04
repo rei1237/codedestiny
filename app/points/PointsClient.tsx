@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -15,7 +15,13 @@ import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { useAuthStore } from "../_lib/auth-store";
 import { clearSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
+import {
+  clearMoonlightStoreSnapshot,
+  fetchMoonlightStoreSnapshot,
+  type MoonlightStoreSnapshot,
+} from "../_lib/moonlight-store-snapshot";
 import { checkoutEntryRuntime as checkoutEntry } from "@/app/_lib/legacy-core-runtime";
 import { isAuthUserCacheVerified, persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
@@ -285,6 +291,7 @@ type MeResponse = {
     membershipCreditBalance?: number;
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
     historyDeferred?: boolean;
+    storeSnapshot?: MoonlightStoreSnapshot;
     subscription?: Record<string, unknown> | null;
     subscriptions?: Record<string, unknown>[];
   };
@@ -789,7 +796,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         over3000Single: "30일 동안 스탠다드 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       premium: {
         profile7: "프로필 최대 7개 생성",
@@ -797,7 +804,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         over5000Single: "30일 동안 프리미엄 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       vvip: {
         profile15: "프로필 최대 15개 생성",
@@ -805,14 +812,14 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         over10000Single: "30일 동안 VVIP 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
         allPaidPdf: "초융합 제외 · 3만원 미만 기능 무제한",
         familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
     },
     pointPackages: {
@@ -859,9 +866,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     lowerTierBlocked: "상위 티어 사용 중 (구매 불가)",
     lowerTierBlockedHelp: "현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.",
     activePassLabel: "30일 이용권 활성화",
-    activePassMessage: (expires) => `${expires}까지 30일 혜택이 유지됩니다. 월정석 또는 원화로 다음 이용권을 다시 열 수 있습니다.`,
+    activePassMessage: (expires) => `${expires}까지 30일 혜택이 유지됩니다. 다음 이용권은 원화 단건 결제로 구매할 수 있습니다.`,
     activePassFooter: "결제 즉시 이용권 혜택이 활성화되며 30일 동안 유효합니다.",
-    activePassAutoRenewWarning: "만료 후에는 월정석 또는 원화로 30일 혜택을 다시 열 수 있습니다.",
+    activePassAutoRenewWarning: "만료 후에는 원화 단건 결제로 30일 혜택을 다시 열 수 있습니다.",
     coffeeBadge: "커피 2잔 값으로 30일",
   },
   en: {
@@ -1019,14 +1026,6 @@ function formatCoinValue(amount: number, copy: PointsPageCopy = POINTS_PAGE_COPY
 
 function formatMonthlyCreditValue(amount: number, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
   return copy.monthlyCreditValue(amount, locale);
-}
-
-function calculateSubscriptionMonthlyCreditCost(plan: Pick<SubscriptionPlan, "wonPrice">) {
-  return Math.max(0, Math.ceil(Number(plan.wonPrice || 0) / 10));
-}
-
-function buildMonthlyCreditSubscriptionRequestId(plan: Pick<SubscriptionPlan, "planId">) {
-  return `sub_monthly_${Date.now().toString(36)}_${String(plan.planId || "plan").replace(/[^a-z0-9_-]/gi, "").slice(0, 40)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function normalizeSubscriptionDurationMonths(value: unknown, planIdRaw?: unknown): 1 | 3 | 6 | 12 | null {
@@ -1683,7 +1682,7 @@ function SubscriptionSection({
             30일 이용권 상품과 원화 결제 조건을 확인하세요.
           </p>
           <p className="mt-2 text-[12.5px] font-semibold text-[#ffe8a3]">
-            이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 명확히 허용된 월정석 결제 플로우만 사용할 수 있습니다.
+            이용권 상품은 보유 이용권으로 구매할 수 없습니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.
           </p>
         </div>
 
@@ -1697,7 +1696,7 @@ function SubscriptionSection({
             30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
           <p className="mt-2 text-[12.5px] font-semibold text-[#ded4ff]">
-            월정석 또는 원화 결제로 30일 혜택을 다시 열 수 있습니다.
+            이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
           </p>
         </div>
 
@@ -1726,7 +1725,7 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>월정석 또는 원화로 여는 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>원화 단건 결제로 여는 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</span></li>
           </ul>
         </div>
@@ -2180,7 +2179,7 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
               </span>
             </div>
             <p className="max-w-[300px] text-[12.5px] leading-5 text-slate-100 sm:text-right">
-              월정석 또는 원화로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
+              원화 단건 결제로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
             </p>
             <p className="max-w-[300px] text-[12.5px] font-bold leading-5 text-[#ffe8a3] sm:text-right">
               월정석은 보너스 혜택으로만 지급되며 월정석 자체는 구매·충전할 수 없습니다.
@@ -2304,7 +2303,7 @@ function MoonlightShopHero() {
               달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
             </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
-              월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+              이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
             </p>
           </div>
         </div>
@@ -2617,7 +2616,7 @@ function MoonlightShopPlans({
                       <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">월정석 또는 원화로 구매하는 30일 이용권</p>
+                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">원화 단건 결제로 구매하는 30일 이용권</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-silver)]">
                       {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
@@ -2766,17 +2765,24 @@ function GuardianFortuneCreditShop({
   const [errorMessage, setErrorMessage] = useState("");
   const redirectHandledRef = useRef(false);
   const previewInFlightRef = useRef<Promise<void> | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
   const authScope = getShopTicketAuthScope(authUser);
   const activeScopeRef = useRef(authScope);
   activeScopeRef.current = authScope;
 
   useEffect(() => {
     activeScopeRef.current = authScope;
+    previewAbortRef.current?.abort();
+    previewAbortRef.current = null;
     setHasLoaded(false);
     setIsEnabled(null);
     setProducts([]);
     setBalance(null);
     setErrorMessage("");
+    return () => {
+      previewAbortRef.current?.abort();
+      previewAbortRef.current = null;
+    };
   }, [authScope]);
 
   const loadCatalogAndBalance = useCallback(async () => {
@@ -2792,6 +2798,8 @@ function GuardianFortuneCreditShop({
       return;
     }
     const requestScope = authScope;
+    const requestController = new AbortController();
+    previewAbortRef.current = requestController;
     const requestPromise = (async () => {
       setHasLoaded(false);
       setIsLoading(true);
@@ -2803,6 +2811,7 @@ function GuardianFortuneCreditShop({
           method: "GET",
           credentials: "include",
           cache: "no-store",
+          signal: requestController.signal,
         }, { retryOn401: true, apiBase, clientSource: "app:points" });
         const payload = await safeParseJson<{
           ok?: boolean;
@@ -2831,6 +2840,7 @@ function GuardianFortuneCreditShop({
         setProducts(nextProducts);
         setBalance(payload.balance);
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
         if (activeScopeRef.current === requestScope) {
           setIsEnabled(null);
           setHasLoaded(false);
@@ -2847,6 +2857,7 @@ function GuardianFortuneCreditShop({
       await requestPromise;
     } finally {
       if (previewInFlightRef.current === requestPromise) previewInFlightRef.current = null;
+      if (previewAbortRef.current === requestController) previewAbortRef.current = null;
       releaseShopTicketPreview("guardian");
     }
   }, [apiBase, authScope, authUser]);
@@ -3085,17 +3096,24 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
   const [errorMessage, setErrorMessage] = useState("");
   const redirectHandledRef = useRef(false);
   const previewInFlightRef = useRef<Promise<void> | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
   const authScope = getShopTicketAuthScope(authUser);
   const activeScopeRef = useRef(authScope);
   activeScopeRef.current = authScope;
 
   useEffect(() => {
     activeScopeRef.current = authScope;
+    previewAbortRef.current?.abort();
+    previewAbortRef.current = null;
     setHasLoaded(false);
     setIsEnabled(null);
     setProduct(null);
     setRemaining(null);
     setErrorMessage("");
+    return () => {
+      previewAbortRef.current?.abort();
+      previewAbortRef.current = null;
+    };
   }, [authScope]);
 
   const load = useCallback(async () => {
@@ -3106,6 +3124,8 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
       return;
     }
     const requestScope = authScope;
+    const requestController = new AbortController();
+    previewAbortRef.current = requestController;
     const requestPromise = (async () => {
       setHasLoaded(false);
       setIsLoading(true);
@@ -3117,6 +3137,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
           method: "GET",
           credentials: "include",
           cache: "no-store",
+          signal: requestController.signal,
         }, { retryOn401: true, apiBase, clientSource: "app:points" });
         const payload = await safeParseJson<{
           ok?: boolean;
@@ -3145,6 +3166,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
         setProduct(nextProduct);
         setRemaining(payload.balance.remaining);
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
         if (activeScopeRef.current === requestScope) {
           setIsEnabled(null);
           setHasLoaded(false);
@@ -3161,6 +3183,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
       await requestPromise;
     } finally {
       if (previewInFlightRef.current === requestPromise) previewInFlightRef.current = null;
+      if (previewAbortRef.current === requestController) previewAbortRef.current = null;
       releaseShopTicketPreview("fusion");
     }
   }, [apiBase, authScope, authUser]);
@@ -3396,7 +3419,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 월정석으로 30일 이용권을 구매할 수 있습니다.
+      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
     </section>
   );
 }
@@ -3473,6 +3496,8 @@ function PackageCard({
 
 export default function PointsPage() {
   const router = useRouter();
+  const authState = useAuthStore();
+  const authStoreUserId = authState.user?.id || "";
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
@@ -3490,8 +3515,6 @@ export default function PointsPage() {
     promise: Promise<"success" | "unknown" | "failed">;
   } | null>(null);
   const singlePaymentConfirmTimerRef = useRef<number | null>(null);
-  const singlePaymentPhonePrefetchRef = useRef<Promise<string> | null>(null);
-  const singlePaymentWarmupUserRef = useRef<string | null>(null);
   const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   const fetchSubscriptionStatusInFlightRef = useRef<Promise<void> | null>(null);
   const hasVerifiedShopSnapshotRef = useRef(false);
@@ -3562,12 +3585,10 @@ export default function PointsPage() {
     };
   }, []);
 
-  /* ── 이용권 결제 준비 프리페치 ───────────────────────────────────────
-     결제창 진입에 필요한 서버 왕복(prepare)을 모달 오픈 시점으로 앞당긴다.
-     프리페치와 실제 클릭이 같은 Idempotency-Key 를 쓰므로 서버가 같은 주문을 돌려주고,
-     pending 주문이 중복 생성되지 않는다(서버 handleSubscriptionPrepare 의 idempotent 분기). */
+  /* ── 이용권 결제 준비 ────────────────────────────────────────────────
+     결제 준비 요청은 사용자가 실제 원화 결제 버튼을 누른 뒤에만 실행한다.
+     동일 Idempotency-Key는 서버의 멱등 분기와 함께 사용해 연속 클릭 중복을 막는다. */
   const subscriptionPrepareRef = useRef<SubscriptionPrepareEntry | null>(null);
-  const paymentPhonePrefetchRef = useRef<Promise<string> | null>(null);
 
   const requestSubscriptionPrepare = useCallback(async (
     plan: SubscriptionPlan,
@@ -3629,38 +3650,13 @@ export default function PointsPage() {
 
   useEffect(() => {
     setIsSubscriptionRefundAgreed(false);
-    // 결제방식 모달이 열리면 결제창에 필요한 모든 준비물을 미리 워밍해, '원화 결제' 클릭 시 서버 왕복
-    // 없이 곧바로 이니시스 창이 뜨게 한다. 예전에는 클릭 후에야 prepare 를 호출해서 그 대기가 그대로
-    // "결제 정보를 준비하고 있어요" 오버레이로 보였다.
-    // (ensurePortoneSdk는 멱등, config는 세션 캐시 — 프리페치 실패는 무시하고 실제 결제 시 재시도.)
+    // 결제 모달을 여는 것만으로는 결제 준비 API를 호출하지 않는다.
+    // SDK/config/prepare/payment-phone은 실제 원화 결제 버튼을 누른 뒤에만 준비한다.
     if (!pendingSubscriptionPaymentPlan) {
       subscriptionPrepareRef.current = null;
-      paymentPhonePrefetchRef.current = null;
       return;
     }
-    void ensurePortoneSdk().catch(() => {});
-    void fetchPortOnePaymentConfigCached(apiBase).catch(() => {});
-    if (!authUser) return;
-    // 저장된 결제용 번호 "조회"만 미리 받는다(입력 prompt 는 실제 결제 시점에만 띄운다).
-    paymentPhonePrefetchRef.current = getSavedPaymentPhoneNumber(apiBase).catch(() => "");
-    startSubscriptionPrepare(pendingSubscriptionPaymentPlan);
-  }, [pendingSubscriptionPaymentPlan?.id, apiBase, authUser?.id, startSubscriptionPrepare]);
-
-  useEffect(() => {
-    const userId = String(authUser?.id || "");
-    if (!isMethodModalOpen || !userId) return;
-
-    if (singlePaymentWarmupUserRef.current !== userId) {
-      singlePaymentWarmupUserRef.current = userId;
-      singlePaymentPhonePrefetchRef.current = null;
-    }
-
-    void ensurePortoneSdk().catch(() => {});
-    void fetchPortOnePaymentConfigCached(apiBase).catch(() => {});
-    if (!singlePaymentPhonePrefetchRef.current) {
-      singlePaymentPhonePrefetchRef.current = getSavedPaymentPhoneNumber(apiBase).catch(() => "");
-    }
-  }, [apiBase, authUser?.id, isMethodModalOpen]);
+  }, [pendingSubscriptionPaymentPlan?.id]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3677,8 +3673,8 @@ export default function PointsPage() {
   /**
    * 🔴 결제창 → 이용권 상점 원클릭 인계. 예전에는 ?plan= 이 플랜을 '강조'만 해서 사용자가 그 플랜을
    * 다시 찾아 누르고 결제 버튼을 또 눌러야 했다(클릭 2회 + 화면 탐색). 여기서 결제 확인 모달까지
-   * 바로 열어 준다 — 이 state 는 PortOne SDK·prepare·config 프리페치도 함께 태우므로(아래 effect)
-   * 사용자는 결제 버튼 한 번이면 왕복 0으로 PG창에 도달한다.
+   * 바로 열어 준다 — 결제 버튼을 누르면 그 시점에 PortOne SDK·prepare·config를 준비한다.
+   * 결제 모달만 열린 상태에서는 결제 관련 API를 호출하지 않는다.
    * 비로그인이면 열지 않는다(기존 로그인 유도 흐름을 그대로 둔다). ref 가드로 한 번만 발화한다.
    */
   useEffect(() => {
@@ -3819,114 +3815,114 @@ export default function PointsPage() {
 
   /* ── 서버에서 주문/이용권 상태 조회 ─────────────────────────────── */
   const fetchMyPointState = useCallback(
-    async () => {
+    async ({ force = false, signal }: { force?: boolean; signal?: AbortSignal } = {}) => {
       if (fetchMyPointStateInFlightRef.current) {
         return fetchMyPointStateInFlightRef.current;
       }
       const requestPromise = (async () => {
-      // 일시적 DB 장애(503)는 상점 요약을 하드 실패시키지 말고 공용 완충으로 흡수한다.
-      // 완충이 없던 탓에 DB 블립 한 번이 "결제 및 이용권 정보를 불러오지 못했습니다"로 굳었다.
-      const attempt = await runAccessCheckWithTransientRetry(async () => {
-        const res = await authFetch(`${apiBase}/api/payments/me?view=shop`, {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        }, {
-          retryOn401: true,
-          apiBase,
-          clientSource: "app:points",
-        });
-        // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
-        const parsed = await safeParseJson<MeResponse>(res);
-        return { status: res.status, data: { ...parsed, ok: res.ok } };
-      }, { maxAttempts: 1, baseDelayMs: 700 });
+        if (!authStoreUserId) return;
+        // 일시적 DB 장애(503)는 상점 요약을 하드 실패시키지 말고 공용 완충으로 흡수한다.
+        // 완충이 없던 탓에 DB 블립 한 번이 "결제 및 이용권 정보를 불러오지 못했습니다"로 굳었다.
+        const attempt = await runAccessCheckWithTransientRetry(async () => {
+          const snapshotResult = await fetchMoonlightStoreSnapshot({
+            userId: authStoreUserId,
+            apiBase,
+            force,
+            signal,
+          });
+          // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
+          return {
+            status: snapshotResult.status,
+            data: { ...snapshotResult.payload, ok: snapshotResult.ok },
+          };
+        }, { maxAttempts: 1, baseDelayMs: 700 });
 
-      const response = { status: attempt.status, ok: attempt.data.ok === true, statusText: "" };
-      if (response.status === 401 || response.status === 403) {
-        clearClientAuthState();
-        router.replace("/login?next=%2Fpoints");
-        return;
-      }
-
-      const payload = attempt.data as MeResponse;
-      const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
-      if (!response.ok) {
-        console.warn("[points-page] API error", {
-          endpoint: "/api/payments/me",
-          status: response.status,
-          code: payloadCode || undefined,
-          message: payload.message || response.statusText || "Unknown API error",
-        });
-      }
-
-      if (!response.ok) {
-        if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
-          throw new Error(mapAuthRefreshTemporaryFailureMessage());
+        const response = { status: attempt.status, ok: attempt.data.ok === true, statusText: "" };
+        if (response.status === 401 || response.status === 403) {
+          clearClientAuthState();
+          router.replace("/login?next=%2Fpoints");
+          return;
         }
-        throw new Error(payload.message || "결제 및 이용권 정보를 불러오지 못했습니다.");
-      }
 
-      const normalized = normalizeMePayload(payload);
-      const nextUser = normalized.user;
-      if (normalized.subscription) {
-        saveSubscriptionSnapshotForUser(undefined, normalized.subscription, "payments-me");
-        setSubscription((prev) => {
-          const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
-          if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
-          return nextSubscription;
-        });
-      }
-
-      const normalizedPayments = Array.isArray(normalized.payments)
-        ? normalized.payments
-            .filter((entry) => entry && typeof entry === "object")
-            .slice(0, 10)
-        : [];
-      // 결제 건과 이용권 이용 건을 각각 10건씩 자른 뒤 병합한다. 하나의 상한을 공유하면
-      // 이용권 이용이 잦은 계정에서 실제 결제 내역이 목록 밖으로 밀려난다.
-      const passAccessItems = buildPassAccessHistoryItems(
-        Array.isArray(normalized.transactions)
-          ? normalized.transactions.filter((entry) => entry && typeof entry === "object")
-          : [],
-      ).slice(0, 10);
-      setPaymentHistory(
-        [...normalizedPayments, ...passAccessItems].sort(
-          (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
-        ),
-      );
-      setPaymentHistoryDeferred(normalized.historyDeferred);
-      // null = 서버가 잔량을 확인하지 못한 경우(침묵-0). 0 으로 덮어써 결제 수단을 잠그지 않는다.
-      if (normalized.monthlyStoneBalance !== null) setMonthlyStoneBalance(normalized.monthlyStoneBalance);
-      if (normalized.monthlyStoneBalance !== null) {
-        const cachedUser = readSanitizedAuthUser();
-        if (cachedUser) {
-          persistSanitizedAuthUser({
-            ...cachedUser,
-            monthlyStoneBalance: normalized.monthlyStoneBalance,
-            monthlyCredits: normalized.monthlyStoneBalance,
-            profileSubscription: {
-              ...(cachedUser.profileSubscription || {}),
-              monthlyStoneBalance: normalized.monthlyStoneBalance,
-              membershipCreditBalance: normalized.monthlyStoneBalance,
-            },
+        const payload = attempt.data as MeResponse;
+        const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
+        if (!response.ok) {
+          console.warn("[points-page] API error", {
+            endpoint: "/api/payments/me",
+            status: response.status,
+            code: payloadCode || undefined,
+            message: payload.message || response.statusText || "Unknown API error",
           });
         }
-      }
-      setMonthlyStoneUnverified(normalized.monthlyStoneBalance === null);
-      setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
-      setMonthlyCreditLedgers(
-        Array.isArray(normalized.monthlyCreditLedgers)
-          ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 8)
-          : [],
-      );
-      if (nextUser) {
-        setAuthUser((prev) => ({
-          ...(prev || {}),
-          id: nextUser.id,
-          name: nextUser.name,
-          email: nextUser.email,
-        }));
-      }
+
+        if (!response.ok) {
+          if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
+            throw new Error(mapAuthRefreshTemporaryFailureMessage());
+          }
+          throw new Error(payload.message || "결제 및 이용권 정보를 불러오지 못했습니다.");
+        }
+
+        const normalized = normalizeMePayload(payload);
+        const nextUser = normalized.user;
+        if (normalized.subscription) {
+          saveSubscriptionSnapshotForUser(undefined, normalized.subscription, "payments-me");
+          setSubscription((prev) => {
+            const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
+            if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
+            return nextSubscription;
+          });
+        }
+
+        const normalizedPayments = Array.isArray(normalized.payments)
+          ? normalized.payments
+              .filter((entry) => entry && typeof entry === "object")
+              .slice(0, 10)
+          : [];
+      // 결제 건과 이용권 이용 건을 각각 10건씩 자른 뒤 병합한다. 하나의 상한을 공유하면
+      // 이용권 이용이 잦은 계정에서 실제 결제 내역이 목록 밖으로 밀려난다.
+        const passAccessItems = buildPassAccessHistoryItems(
+          Array.isArray(normalized.transactions)
+            ? normalized.transactions.filter((entry) => entry && typeof entry === "object")
+            : [],
+        ).slice(0, 10);
+        setPaymentHistory(
+          [...normalizedPayments, ...passAccessItems].sort(
+            (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
+          ),
+        );
+        setPaymentHistoryDeferred(normalized.historyDeferred);
+      // null = 서버가 잔량을 확인하지 못한 경우(침묵-0). 0 으로 덮어써 결제 수단을 잠그지 않는다.
+        if (normalized.monthlyStoneBalance !== null) setMonthlyStoneBalance(normalized.monthlyStoneBalance);
+        if (normalized.monthlyStoneBalance !== null) {
+          const cachedUser = readSanitizedAuthUser();
+          if (cachedUser) {
+            persistSanitizedAuthUser({
+              ...cachedUser,
+              monthlyStoneBalance: normalized.monthlyStoneBalance,
+              monthlyCredits: normalized.monthlyStoneBalance,
+              profileSubscription: {
+                ...(cachedUser.profileSubscription || {}),
+                monthlyStoneBalance: normalized.monthlyStoneBalance,
+                membershipCreditBalance: normalized.monthlyStoneBalance,
+              },
+            });
+          }
+        }
+        setMonthlyStoneUnverified(normalized.monthlyStoneBalance === null);
+        setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
+        setMonthlyCreditLedgers(
+          Array.isArray(normalized.monthlyCreditLedgers)
+            ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 8)
+            : [],
+        );
+        if (nextUser) {
+          setAuthUser((prev) => ({
+            ...(prev || {}),
+            id: nextUser.id,
+            name: nextUser.name,
+            email: nextUser.email,
+          }));
+        }
       })();
       fetchMyPointStateInFlightRef.current = requestPromise;
       try {
@@ -3937,21 +3933,22 @@ export default function PointsPage() {
         }
       }
     },
-    [apiBase, persistSubscriptionCache, router],
+    [apiBase, authStoreUserId, persistSubscriptionCache, router],
   );
 
   const syncSubscriptionAppliedStage = useCallback(async (tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
     const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
     setProcessingStage(`${passLabel}을 계정에 반영하고 있어요.\n잠시만 기다려 주세요.`, "pass-applied");
+    clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
     const [refreshResult] = await Promise.allSettled([
-      fetchMyPointState(),
+      fetchMyPointState({ force: true }),
     ]);
     const finalMessage = refreshResult.status === "rejected"
       ? "결제와 이용권 반영은 완료됐어요.\n최신 월정석 잔량은 잠시 후 다시 확인해 주세요."
       : "최신 월정석 잔량을 확인했어요.\n이제 이용할 수 있어요.";
     await showPassAppliedStage(finalMessage, tier);
-  }, [fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
+  }, [apiBase, authStoreUserId, fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
@@ -3977,9 +3974,14 @@ export default function PointsPage() {
     setIsBooting(false);
   }, [router]);
 
+  useEffect(() => {
+    if (!authState.authReady) return;
+    setAuthUser(authState.user as AuthUser | null);
+  }, [authState.authReady, authState.user]);
+
   /* ── 부팅 후 결제/주문 정보 로드 ─────────────────────────────── */
   useEffect(() => {
-    if (isBooting) return;
+    if (isBooting || !authState.authReady || !authState.isAuthenticated || !authStoreUserId) return;
 
     setPointStateStatus("loading");
     setPointStateError(null);
@@ -4001,7 +4003,7 @@ export default function PointsPage() {
       setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
       console.warn("[points-page] shop summary unavailable", error);
     });
-  }, [fetchMyPointState, isBooting]);
+  }, [authState.authReady, authState.isAuthenticated, authStoreUserId, fetchMyPointState, isBooting]);
 
   /* ── 월정석 잔량 실시간 반영: 차감/지급 표준 브로드캐스트 구독 ─────────── */
   useEffect(() => {
@@ -4293,7 +4295,8 @@ export default function PointsPage() {
         "상품 이용 권한을 반영하고 있어요.\n최신 이용 상태를 확인하는 중이에요.",
         "unlock-saving",
       );
-      const [refreshResult] = await Promise.allSettled([fetchMyPointState()]);
+      clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
+      const [refreshResult] = await Promise.allSettled([fetchMyPointState({ force: true })]);
       const refreshFailed = refreshResult.status === "rejected";
       pushToast(
         "success",
@@ -4306,7 +4309,7 @@ export default function PointsPage() {
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     },
-    [fetchMyPointState, pushToast, setProcessingStage],
+    [apiBase, authStoreUserId, fetchMyPointState, pushToast, setProcessingStage],
   );
 
   const clearSinglePaymentConfirmTimer = useCallback(() => {
@@ -4478,7 +4481,8 @@ export default function PointsPage() {
           throw new Error(payload.message || "결제 취소에 실패했습니다.");
         }
 
-        await fetchMyPointState();
+        clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
+        await fetchMyPointState({ force: true });
         pushToast("success", payload.message || "결제가 취소되었습니다.");
       } catch (error: unknown) {
         pushToast("error", getErrorMessage(error, "결제 취소 처리 중 오류가 발생했습니다."));
@@ -4486,7 +4490,7 @@ export default function PointsPage() {
         setCancelingPaymentId(null);
       }
     },
-    [apiBase, fetchMyPointState, pushToast],
+    [apiBase, authStoreUserId, fetchMyPointState, pushToast],
   );
 
   /* ── 모바일 결제 리디렉션 복귀 처리 ───────────────────────────── */
@@ -4741,8 +4745,8 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
-      // 결제 모달 오픈 시 미리 받아둔 번호 조회 결과를 재사용한다(왕복 1회 절감).
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, singlePaymentPhonePrefetchRef.current);
+      // 저장된 번호가 없으면 실제 결제 버튼을 누른 이 시점에만 결제용 번호를 조회한다.
+      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -4865,7 +4869,7 @@ export default function PointsPage() {
       }
 
       if (!prepareData.order) {
-        // 준비가 실패한 프리페치 결과를 계속 물고 있으면 재시도해도 같은 실패가 되풀이된다.
+        // 준비 요청이 실패한 결과를 계속 물고 있으면 재시도해도 같은 실패가 되풀이된다.
         subscriptionPrepareRef.current = null;
         if (prepareStatus === 409) {
           pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
@@ -4894,8 +4898,8 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
 
-      // 모달 오픈 시 미리 받아둔 결제용 번호 조회 결과를 재사용한다(왕복 1회 절감).
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current);
+      // 저장된 번호가 없으면 실제 결제 버튼을 누른 이 시점에만 결제용 번호를 조회한다.
+      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -5036,107 +5040,17 @@ export default function PointsPage() {
     }
   };
 
-  const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {
-    if (pendingSubscriptionConfirmRef.current) return;
+  // Pass products are purchased through direct KRW checkout only.
 
-    const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
-    const requestedTierRank = getSubscriptionTierRank(plan.tier);
-    const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
 
-    if (!authUser) {
-      router.replace("/login?next=%2Fpoints");
-      return;
-    }
 
-    if (plan.durationMonths !== 1) {
-      pushToast("error", "현재 신규 판매 이용권은 30일권만 선택할 수 있습니다.");
-      return;
-    }
 
-    if (activeTierRank > requestedTierRank) {
-      pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
-      return;
-    }
 
-    // 잔량이 확정적으로 부족할 때만 막는다. 미확정이면 서버가 판정하게 둔다(과금 없이 402로 거절).
-    if (!monthlyStoneUnverified && monthlyStoneBalance < requiredMonthlyCredits) {
-      pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
-      return;
-    }
 
-    const requestId = buildMonthlyCreditSubscriptionRequestId(plan);
-    const actionLockKey = `subscription-monthly-credit:${plan.planId}`;
-    if (!acquirePaymentActionLock(actionLockKey)) return;
 
-    setIsProcessing(true);
-    setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("월정석 사용 내역과 이용권 적용을 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "monthly");
 
-    try {
-      const confirmPayload: SubscriptionConfirmPayload = {
-        requestId,
-        merchantUid: requestId,
-        tier: plan.tier,
-        planId: plan.planId,
-        durationMonths: plan.durationMonths,
-        durationDays: 30,
-        amount: plan.wonPrice,
-        currency: "KRW",
-        productType: plan.productType,
-        paymentMethod: "monthly_credit",
-      };
-      pendingSubscriptionConfirmRef.current = {
-        payload: confirmPayload,
-        fromRedirect: false,
-      };
-      const confirmData = await confirmSubscriptionWithServer(confirmPayload);
 
-      if (confirmData.subscription) {
-        const newSub: SubscriptionStatus = {
-          tier: confirmData.subscription?.tier || "free",
-          source: confirmData.subscription?.source || "pass",
-          isActive: !!confirmData.subscription?.isActive,
-          startedAt: confirmData.subscription?.startedAt || null,
-          expiresAt: confirmData.subscription?.expiresAt || null,
-          profileLimit: typeof confirmData.subscription?.profileLimit === "number"
-            ? confirmData.subscription.profileLimit
-            : getSubscriptionPolicyProfileLimit(confirmData.subscription?.tier || plan.tier),
-          durationMonths: normalizeSubscriptionDurationMonths(confirmData.subscription?.durationMonths ?? plan.durationMonths) ?? plan.durationMonths,
-          lowBalanceWarning: false,
-          cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
-          cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
-          freeLimit: getSubscriptionPolicyFreeLimit(confirmData.subscription?.tier || plan.tier),
-        };
-        setSubscription((prev) => mergeSubscriptionState(prev, newSub));
-        persistSubscriptionCache(newSub);
-      }
 
-      pendingSubscriptionConfirmRef.current = null;
-      await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
-      pushToast("success", confirmData.message || "월정석이 깃들었습니다.");
-      setShowStarBurst(true);
-      setTimeout(() => setShowStarBurst(false), 1200);
-    } catch (error: unknown) {
-      if (isUncertainSubscriptionConfirmError(error)) {
-        markSubscriptionPaymentUnknown();
-        return;
-      }
-      pendingSubscriptionConfirmRef.current = null;
-      const message = getErrorMessage(error, "월정석을 적용하지 못했습니다.");
-      if (message.includes("INSUFFICIENT_MONTHLY_CREDITS") || message.includes("부족")) {
-        pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
-      } else if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
-        pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
-      } else {
-        pushToast("error", message);
-      }
-    } finally {
-      releasePaymentActionLock(actionLockKey);
-      if (!pendingSubscriptionConfirmRef.current) {
-        setIsProcessing(false);
-      }
-    }
-  };
 
   const handleSubscriptionCancel = async (resume: boolean) => {
     const flowerAdminToken = getFlowerAdminTokenClient();
@@ -5216,20 +5130,16 @@ export default function PointsPage() {
     );
   }
 
-  const pendingSubscriptionMonthlyCreditCost = pendingSubscriptionPaymentPlan
-    ? calculateSubscriptionMonthlyCreditCost(pendingSubscriptionPaymentPlan)
-    : 0;
   // 잔량이 "확정적으로" 부족할 때만 버튼을 잠근다. 미확정(서버가 확인 못 함)이면 열어두고
   // 최종 판정은 서버 402(INSUFFICIENT_MONTHLY_CREDITS)에 맡긴다 — 과금 없이 안전하게 거절된다.
   // 예전에는 조회 실패의 0 이 곧 "부족"이 되어 월정석 구매 자체가 막다른 길이 됐다.
-  const canUseMonthlyCreditForPendingSubscription = pendingSubscriptionMonthlyCreditCost > 0
-    && (monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost);
   const pointStateIsLoading = pointStateStatus === "idle" || pointStateStatus === "loading";
   const pointStateHasError = pointStateStatus === "error" || Boolean(pointStateError);
   const retryPointState = () => {
     setPointStateStatus("loading");
     setPointStateError(null);
-    fetchMyPointState().then(() => {
+    clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
+    fetchMyPointState({ force: true }).then(() => {
       setPointStateStatus("ready");
     }).catch((error) => {
       // 재조회 실패도 잔액 0으로 간주하지 않는다. 서버 confirm이 최종 판정한다.
@@ -5293,13 +5203,13 @@ export default function PointsPage() {
               {copy.planTitles[pendingSubscriptionPaymentPlan.tier]} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan, copy, formatLocale)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice, copy, formatLocale)}
             </p>
             <p className="mt-1 text-[12px] font-bold text-[#f3dd9a]">
-              {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)} · {monthlyStoneUnverified ? "잔액 확인 중 · 서버에서 최종 확인" : formatMonthlyCreditValue(monthlyStoneBalance, copy, formatLocale)}
+              이용권은 원화 단건 결제로만 구매할 수 있습니다.
             </p>
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
               <p className="font-black text-white">30일 이용권 조건</p>
               <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
-              <p className="mt-1 font-bold text-[#f3dd9a]">월정석 또는 원화 결제로 30일 혜택을 활성화할 수 있습니다.</p>
-              <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다. 월정석은 각 지급분이 지급일로부터 30일간만 유효하고, 미사용분은 소멸합니다.</p>
+              <p className="mt-1 font-bold text-[#f3dd9a]">이용권은 원화 단건 결제로만 활성화할 수 있으며, 월정석으로는 구매할 수 없습니다.</p>
+              <p className="mt-1 font-bold text-[#cab8ff]">보유한 월정석은 이용권 구매에 사용할 수 없습니다. 월정석 자체는 구매·충전하거나 현금 환불할 수 없으며, 각 지급분은 지급일로부터 30일간만 유효하고 미사용분은 소멸합니다.</p>
               <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
               <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
                 자세한 환불 규정 보기
@@ -5328,24 +5238,6 @@ export default function PointsPage() {
               >
                 <span className="block text-sm font-black">원화 결제</span>
                 <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.</span>
-              </button>
-              <button
-                type="button"
-                disabled={isProcessing || !isSubscriptionRefundAgreed || !canUseMonthlyCreditForPendingSubscription}
-                onClick={() => {
-                  const plan = pendingSubscriptionPaymentPlan;
-                  if (!plan) return;
-                  setPendingSubscriptionPaymentPlan(null);
-                  void handleSubscribeWithMonthlyCredit(plan);
-                }}
-                className="rounded-[14px] border border-[#cab8ff]/45 bg-[#cab8ff]/18 px-4 py-3 text-left text-slate-100 shadow-[0_10px_22px_rgba(202,184,255,0.14)] transition hover:bg-[#cab8ff]/24 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <span className="block text-sm font-black">보너스 월정석 사용</span>
-                <span className="mt-1 block text-[12px] font-semibold">
-                  {monthlyStoneUnverified
-                    ? "잔액은 서버에서 최종 확인해요."
-                    : formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)}
-                </span>
               </button>
             </div>
             <button
@@ -5450,7 +5342,7 @@ export default function PointsPage() {
                     달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
-                    월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+                    이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
                   </p>
                 </div>
               </div>
@@ -5512,7 +5404,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 월정석으로 30일 이용권을 구매할 수 있습니다.
+          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">

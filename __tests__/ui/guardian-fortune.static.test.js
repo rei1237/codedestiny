@@ -77,6 +77,25 @@ test('guardian fortune mock controller does not call real API, LLM, payment, or 
   assert.match(home, /setTimeout/);
 });
 
+test('guardian chat keeps a Yeon-only timeline and passes only a minimal Fusion handoff', () => {
+  const html = read('index.html');
+  const home = read('js/guardian-fortune-home.js');
+  const api = read('js/guardian-fortune-api.js');
+  const route = read('worker/routes/fortune.js');
+  assert.match(html, /data-guardian-chat-timeline/);
+  assert.match(html, /data-guardian-chat-input/);
+  assert.match(html, /data-guardian-intro-dialog/);
+  assert.match(home, /cdGuardianFusionHandoffV1/);
+  assert.match(home, /source:\s*'guardian'/);
+  assert.match(home, /topic:\s*state\.topic/);
+  assert.match(home, /category:\s*state\.category/);
+  assert.doesNotMatch(home, /handoff[\s\S]{0,240}(?:birthDate|concern|shareText)/);
+  assert.match(api, /guardian\/chat/);
+  assert.match(route, /generator:\s*generateGuardianFortuneWithMockLLM/);
+  assert.match(route, /disableShare:\s*true/);
+  assert.match(route, /does not persist a transcript/);
+});
+
 test('guardian fortune prototype includes mobile and reduced-motion rules', () => {
   const css = read('styles/guardian-fortune.css');
   assert.match(css, /max-width: 780px/);
@@ -199,15 +218,11 @@ test('guardian fortune mock controller switches on safely and renders a mock res
   assert.equal(root.hidden, false);
   assert.equal(legacy.hidden, true);
 
-  const neoButton = root.querySelector('[data-guardian-mode-button="neo"]');
-  neoButton.click();
-  assert.equal(root.getAttribute('data-guardian-mode'), 'neo');
-  assert.equal(neoButton.getAttribute('aria-pressed'), 'true');
-  assert.equal(root.querySelector('[data-guardian-duo-chat]').getAttribute('data-active-speaker'), 'neo');
-  assert.equal(root.querySelector('[data-guardian-character="yeoni"]').hidden, true);
-  assert.equal(root.querySelector('[data-guardian-character="neo"]').hidden, false);
-  assert.equal(root.querySelector('.guardian-fortune__duo-bubble--yeoni').hidden, true);
-  assert.equal(root.querySelector('.guardian-fortune__duo-bubble--neo').hidden, false);
+  assert.equal(root.getAttribute('data-guardian-mode'), 'yeoni');
+  assert.equal(root.getAttribute('data-guardian-chat-journey'), 'true');
+  assert.equal(root.querySelector('[data-guardian-duo-chat]').getAttribute('data-active-speaker'), 'yeoni');
+  assert.equal(root.querySelector('[data-guardian-character="yeoni"]').hidden, false);
+  assert.equal(root.querySelector('[data-guardian-character="neo"]').hidden, true);
 
   root.querySelector('[data-guardian-topic="love"]').click();
   assert.match(root.querySelector('[data-guardian-dialogue="yeoni"]').textContent, /연애 흐름/);
@@ -219,5 +234,5 @@ test('guardian fortune mock controller switches on safely and renders a mock res
   assert.equal(root.querySelector('[data-guardian-generate]').disabled, true);
   await new Promise((resolve) => setTimeout(resolve, 720));
   assert.equal(root.querySelector('[data-guardian-result]').hidden, false);
-  assert.match(root.querySelector('[data-result-opening]').textContent, /네오가 보기엔/);
+  assert.match(root.querySelector('[data-result-opening]').textContent, /연이가 보기엔/);
 });
