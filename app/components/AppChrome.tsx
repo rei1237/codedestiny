@@ -16,6 +16,7 @@ const HOME_ROUTE = SHELL_HOME_PATH;
 // /app/** 은 자체 하단 탭바(app/app/_components/AppTabBar.tsx)를 이미 갖고 있다.
 // 여기서 또 깔면 탭바가 두 겹으로 쌓인다.
 const APP_SHELL_ROUTE = "/app";
+const AUTH_ROUTES = ["/login", "/signup", "/auth"];
 
 // framer-motion feature 번들을 비동기 청크로 로드 (m.* 컴포넌트 전용).
 const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => mod.default);
@@ -147,9 +148,10 @@ function FeatureBackHomeNav() {
 
 export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
-  const hideChrome = CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const hideChrome = isAuthRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const selfManagedNav = FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const showFeatureNav = pathname !== HOME_ROUTE && !selfManagedNav && (
+  const showFeatureNav = !isAuthRoute && pathname !== HOME_ROUTE && !selfManagedNav && (
     hideChrome
     || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
     || /\/(result|play|start)(?=\/|$)/.test(pathname)
@@ -166,7 +168,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           갖고 크롤러는 내부 링크 51개를 전혀 보지 못했다. SiteFooterHub 는 훅·브라우저 API 가 없다. */}
       {!hideChrome && <SiteFooterHub />}
       {/* 몰입형(hideChrome) 라우트에서도 하단 네비는 유지한다 — 모든 모바일 화면 공통 탐색. */}
-      {!isAppShellRoute && <MobileBottomNav />}
+      {!isAppShellRoute && !isAuthRoute && <MobileBottomNav />}
     </LazyMotion>
   );
 }

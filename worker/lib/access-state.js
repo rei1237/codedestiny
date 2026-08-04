@@ -202,6 +202,7 @@ export function buildAccessState({
       ? null
       : Math.max(0, Math.floor(Number(profileCount || 0))),
     profileCountDeferred: profileCount === null || profileCount === undefined,
+    hasProfile: Boolean(currentProfileId) || Number(profileCount || 0) > 0,
     maxProfileCount,
     currentProfileId,
     profileId: currentProfileId,
@@ -225,6 +226,10 @@ export function buildAccessState({
     versions: {
       entitlementVersion: entitlementSnapshot.entitlementVersion,
       policyVersion: ACCESS_STATE_POLICY_VERSION,
+    },
+    account: {
+      termsVersion: String(user?.legalConsents?.termsVersion || ""),
+      privacyVersion: String(user?.legalConsents?.privacyVersion || ""),
     },
     version: entitlementSnapshot.entitlementVersion,
     source,
@@ -360,6 +365,7 @@ export const ACCESS_STATE_USER_PROJECTION = Object.freeze({
   unlockedFeatures: 1,
   paidFeatures: 1,
   destinyProfilesCurrentId: 1,
+  legalConsents: 1,
   profileSubscription: 1,
   subscription: 1,
   membership: 1,

@@ -1,0 +1,41 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const test = require("node:test");
+
+const root = process.cwd();
+const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+
+test("auth return path applies internal-only redirect guards", () => {
+  const source = read("app/_lib/auth-return.js");
+  assert.match(source, /!raw\.startsWith\("\/"\)/);
+  assert.match(source, /raw\.startsWith\("\/\/"\)/);
+  assert.match(source, /raw\.includes\("\\\\"\)/);
+  assert.match(source, /parsed\.origin !== base/);
+  assert.match(source, /AUTH_ROUTE_PREFIXES/);
+});
+
+test("shared auth shell keeps email and social login in one mobile-first surface", () => {
+  const shell = read("app/components/auth/AuthShell.tsx");
+  assert.match(shell, /type=\"email\"/);
+  assert.match(shell, /autoComplete=\{isSignup \? \"new-password\" : \"current-password\"\}/);
+  assert.match(shell, /\["google", "naver", "kakao"\]/);
+  assert.match(shell, /ageAttested: age/);
+  assert.match(shell, /phoneNumber/);
+  assert.match(shell, /min-h-\[100dvh\]/);
+  assert.doesNotMatch(shell, /birthDate|birthTime|gender/);
+});
+
+test("web auth response does not expose bearer tokens and post-login bootstrap is bounded", () => {
+  const workerAuth = read("worker/routes/auth.js");
+  const authStore = read("app/_lib/auth-store.ts");
+  assert.match(workerAuth, /\.\.\.\(isMobileAppAuthRequest\(request\) \? \{/);
+  assert.match(authStore, /if \(state\.isLoggingIn\)/);
+  assert.match(authStore, /if \(refreshInFlight\) return refreshInFlight/);
+  assert.match(authStore, /refreshAccessState/);
+  assert.match(authStore, /if \(accessStateSupported\) return/);
+  assert.match(authStore, /export function hydrateAuthSuccessUser/);
+  assert.match(authStore, /void syncPostLoginData\(expectedAuthMutationSeq\)/);
+  assert.match(authStore, /status: "temporarilyOffline"/);
+  assert.match(authStore, /status: "expired"/);
+});
