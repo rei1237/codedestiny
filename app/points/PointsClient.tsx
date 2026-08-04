@@ -126,6 +126,23 @@ type ConfirmResponse = {
   payment?: PaymentHistoryItem;
 };
 
+type SinglePaymentConfirmPayload = {
+  impUid: string;
+  merchantUid?: string;
+  paymentAmount?: number;
+  chargePoints?: number;
+  paymentType?: "digital_content";
+  productId?: string;
+  featureKey?: string;
+  productName?: string;
+  paymentMethod?: string;
+};
+
+type PendingSinglePaymentConfirm = {
+  payload: SinglePaymentConfirmPayload;
+  fromRedirect: boolean;
+};
+
 type MonthlyCreditLedgerItem = {
   id: string;
   type: "MONTHLY_CREDIT_GRANT" | "MONTHLY_CREDIT_SPEND" | "MONTHLY_CREDIT_REFUND" | string;
@@ -157,6 +174,26 @@ type ConfirmSubscriptionResponse = {
   };
   monthlyCredits?: number;
   monthlyCreditLedger?: MonthlyCreditLedgerItem | null;
+};
+
+type SubscriptionConfirmPayload = {
+  impUid?: string;
+  merchantUid?: string;
+  tier: string;
+  planId?: string;
+  durationMonths: number;
+  durationDays?: number;
+  amount?: number;
+  currency?: string;
+  productType: string;
+  customerUid?: string;
+  paymentMethod?: string;
+  requestId?: string;
+};
+
+type PendingSubscriptionConfirm = {
+  payload: SubscriptionConfirmPayload;
+  fromRedirect: boolean;
 };
 
 type PaymentHistoryItem = {
@@ -274,6 +311,43 @@ type PendingOrder = {
   paymentMethod: string;
 };
 
+const PENDING_SINGLE_PAYMENT_CONFIRM_KEY = "fortune_pending_single_payment_confirm";
+
+type PendingSinglePaymentSession = {
+  impUid: string;
+  merchantUid?: string;
+};
+
+function savePendingSinglePaymentSession(payload: PendingSinglePaymentSession) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(PENDING_SINGLE_PAYMENT_CONFIRM_KEY, JSON.stringify(payload));
+  } catch {
+    /* sessionStorage can be unavailable in privacy-restricted browsers. */
+  }
+}
+
+function readPendingSinglePaymentSession(): PendingSinglePaymentSession | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(PENDING_SINGLE_PAYMENT_CONFIRM_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PendingSinglePaymentSession;
+    return parsed?.impUid ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingSinglePaymentSession() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(PENDING_SINGLE_PAYMENT_CONFIRM_KEY);
+  } catch {
+    /* noop */
+  }
+}
+
 type PendingSubscriptionOrder = {
   merchantUid: string;
   customerUid: string;
@@ -284,6 +358,21 @@ type PendingSubscriptionOrder = {
 };
 
 type PointStateStatus = "idle" | "loading" | "ready" | "error";
+
+function getPaymentErrorStatus(error: unknown): number | null {
+  if (!error || typeof error !== "object" || !("status" in error)) return null;
+  const status = Number((error as { status?: unknown }).status);
+  return Number.isFinite(status) ? status : null;
+}
+
+function isUncertainSubscriptionConfirmError(error: unknown): boolean {
+  return isUncertainPaymentConfirmError(error);
+}
+
+function isUncertainPaymentConfirmError(error: unknown): boolean {
+  const status = getPaymentErrorStatus(error);
+  return status === null || status === 408 || status === 425 || status === 429 || status >= 500;
+}
 
 type PaymentFailureReportPayload = {
   merchantUid?: string;
@@ -3382,6 +3471,19 @@ export default function PointsPage() {
   const paymentActionLockRef = useRef<{ key: string; startedAt: number } | null>(null);
   const confirmPaymentInFlightRef = useRef(new Map<string, Promise<ConfirmResponse>>());
   const confirmSubscriptionInFlightRef = useRef(new Map<string, Promise<ConfirmSubscriptionResponse>>());
+  const pendingSubscriptionConfirmRef = useRef<PendingSubscriptionConfirm | null>(null);
+  const subscriptionStatusCheckInFlightRef = useRef(false);
+  const subscriptionStatusCheckHandlerRef = useRef<(() => Promise<void>) | null>(null);
+  const pendingSinglePaymentConfirmRef = useRef<PendingSinglePaymentConfirm | null>(null);
+  const singlePaymentStatusCheckInFlightRef = useRef(false);
+  const singlePaymentStatusCheckHandlerRef = useRef<(() => Promise<void>) | null>(null);
+  const singlePaymentConfirmFlowRef = useRef<{
+    key: string;
+    promise: Promise<"success" | "unknown" | "failed">;
+  } | null>(null);
+  const singlePaymentConfirmTimerRef = useRef<number | null>(null);
+  const singlePaymentPhonePrefetchRef = useRef<Promise<string> | null>(null);
+  const singlePaymentWarmupUserRef = useRef<string | null>(null);
   const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   const fetchSubscriptionStatusInFlightRef = useRef<Promise<void> | null>(null);
   const hasVerifiedShopSnapshotRef = useRef(false);
@@ -3409,6 +3511,7 @@ export default function PointsPage() {
   const {
     startProcessing: showProcessingOverlay,
     stopProcessing: hideProcessingOverlay,
+    setProcessingAction,
   } = usePaymentProcessing();
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
@@ -3534,6 +3637,22 @@ export default function PointsPage() {
     paymentPhonePrefetchRef.current = getSavedPaymentPhoneNumber(apiBase).catch(() => "");
     startSubscriptionPrepare(pendingSubscriptionPaymentPlan);
   }, [pendingSubscriptionPaymentPlan?.id, apiBase, authUser?.id, startSubscriptionPrepare]);
+
+  useEffect(() => {
+    const userId = String(authUser?.id || "");
+    if (!isMethodModalOpen || !userId) return;
+
+    if (singlePaymentWarmupUserRef.current !== userId) {
+      singlePaymentWarmupUserRef.current = userId;
+      singlePaymentPhonePrefetchRef.current = null;
+    }
+
+    void ensurePortoneSdk().catch(() => {});
+    void fetchPortOnePaymentConfigCached(apiBase).catch(() => {});
+    if (!singlePaymentPhonePrefetchRef.current) {
+      singlePaymentPhonePrefetchRef.current = getSavedPaymentPhoneNumber(apiBase).catch(() => "");
+    }
+  }, [apiBase, authUser?.id, isMethodModalOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3816,11 +3935,14 @@ export default function PointsPage() {
   const syncSubscriptionAppliedStage = useCallback(async (tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
     const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
-    setProcessingStage(`${passLabel}을 확인했어요\n결과를 불러오는 중이에요`, "pass-applied");
-    await Promise.allSettled([
+    setProcessingStage(`${passLabel}을 계정에 반영하고 있어요.\n잠시만 기다려 주세요.`, "pass-applied");
+    const [refreshResult] = await Promise.allSettled([
       fetchMyPointState(),
     ]);
-    await showPassAppliedStage(undefined, tier);
+    const finalMessage = refreshResult.status === "rejected"
+      ? "결제와 이용권 반영은 완료됐어요.\n최신 월정석 잔량은 잠시 후 다시 확인해 주세요."
+      : "최신 월정석 잔량을 확인했어요.\n이제 이용할 수 있어요.";
+    await showPassAppliedStage(finalMessage, tier);
   }, [fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
@@ -3976,17 +4098,7 @@ export default function PointsPage() {
 
   /* ── 서버 결제 검증 ────────────────────────────────────────────── */
   const confirmPaymentWithServer = useCallback(
-    async (params: {
-      impUid: string;
-      merchantUid?: string;
-      paymentAmount?: number;
-      chargePoints?: number;
-      paymentType?: "digital_content";
-      productId?: string;
-      featureKey?: string;
-      productName?: string;
-      paymentMethod?: string;
-    }) => {
+    async (params: SinglePaymentConfirmPayload) => {
       const body: Record<string, unknown> = {
         impUid: params.impUid,
         merchantUid: params.merchantUid,
@@ -4020,7 +4132,9 @@ export default function PointsPage() {
       const payload = await safeParseJson<ConfirmResponse & { message?: string }>(response);
 
       if (!response.ok) {
-        throw new Error(payload.message || "서버 결제 검증에 실패했습니다.");
+        const error = new Error(payload.message || "서버 결제 검증에 실패했습니다.");
+        (error as Error & { status?: number }).status = response.status;
+        throw error;
       }
 
         return payload;
@@ -4039,20 +4153,7 @@ export default function PointsPage() {
   );
 
   const confirmSubscriptionWithServer = useCallback(
-    async (body: {
-      impUid?: string;
-      merchantUid?: string;
-      tier: string;
-      planId?: string;
-      durationMonths: number;
-      durationDays?: number;
-      amount?: number;
-      currency?: string;
-      productType: string;
-      customerUid?: string;
-      paymentMethod?: string;
-      requestId?: string;
-    }) => {
+    async (body: SubscriptionConfirmPayload) => {
       const confirmKey = `${body.impUid || body.requestId || "monthly_credit"}:${body.merchantUid || body.planId || ""}`;
       const existing = confirmSubscriptionInFlightRef.current.get(confirmKey);
       if (existing) return existing;
@@ -4072,7 +4173,9 @@ export default function PointsPage() {
 
         const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
         if (!response.ok) {
-          throw new Error(data.message || "Subscription payment confirm failed.");
+          const error = new Error(data.message || "Subscription payment confirm failed.");
+          (error as Error & { status?: number }).status = response.status;
+          throw error;
         }
         // 결제 성공 지점은 카드·월정석·모바일 리다이렉트 복귀 세 곳인데 전부 이 헬퍼를 지난다.
         // 여기서 '예약'만 하므로(1.2초 뒤 이동) 호출부의 상태 갱신·토스트가 끝날 시간이 남는다.
@@ -4091,6 +4194,68 @@ export default function PointsPage() {
     },
     [apiBase, scheduleCheckoutReturn],
   );
+
+  const markSubscriptionPaymentUnknown = useCallback(() => {
+    const merchantUid = pendingSubscriptionConfirmRef.current?.payload.merchantUid || "";
+    const orderHint = merchantUid ? `\n주문번호 끝자리 ${merchantUid.slice(-4)}` : "";
+    setProcessingStage(
+      `결제 결과를 확인하는 데 시간이 걸리고 있어요.\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
+      "subscription",
+    );
+    setProcessingAction({
+      label: "결제 상태 다시 확인",
+      onClick: () => { void subscriptionStatusCheckHandlerRef.current?.(); },
+    });
+  }, [setProcessingAction, setProcessingStage]);
+
+  const checkPendingSubscriptionPayment = useCallback(async () => {
+    const pending = pendingSubscriptionConfirmRef.current;
+    if (!pending || subscriptionStatusCheckInFlightRef.current) return;
+
+    subscriptionStatusCheckInFlightRef.current = true;
+    setProcessingAction(null);
+    setIsProcessing(true);
+    setProcessingStage("결제 상태를 다시 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "subscription");
+
+    try {
+      const data = await confirmSubscriptionWithServer(pending.payload);
+      pendingSubscriptionConfirmRef.current = null;
+      clearPendingSubscriptionOrder();
+      await syncSubscriptionAppliedStage(data.subscription?.tier || pending.payload.tier);
+      pushToast("success", data.message || "이용권 결제가 확인되어 이용권이 활성화되었습니다.");
+      setShowStarBurst(true);
+      setTimeout(() => setShowStarBurst(false), 1200);
+      if (pending.fromRedirect && typeof window !== "undefined" && window.location.search) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+      setIsProcessing(false);
+    } catch (error: unknown) {
+      if (isUncertainSubscriptionConfirmError(error)) {
+        markSubscriptionPaymentUnknown();
+      } else {
+        pendingSubscriptionConfirmRef.current = null;
+        clearPendingSubscriptionOrder();
+        setIsProcessing(false);
+        pushToast("error", getErrorMessage(error, "결제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요."));
+      }
+    } finally {
+      subscriptionStatusCheckInFlightRef.current = false;
+    }
+  }, [
+    confirmSubscriptionWithServer,
+    markSubscriptionPaymentUnknown,
+    pushToast,
+    setProcessingAction,
+    setProcessingStage,
+    syncSubscriptionAppliedStage,
+  ]);
+
+  useEffect(() => {
+    subscriptionStatusCheckHandlerRef.current = checkPendingSubscriptionPayment;
+    return () => {
+      subscriptionStatusCheckHandlerRef.current = null;
+    };
+  }, [checkPendingSubscriptionPayment]);
 
   const reportPaymentFailureToServer = useCallback(
     async (payload: PaymentFailureReportPayload) => {
@@ -4116,18 +4281,159 @@ export default function PointsPage() {
   /* ── 결제 성공 후 처리 ─────────────────────────────────────────── */
   const handleConfirmSuccess = useCallback(
     async (result: ConfirmResponse, fromRedirect = false) => {
+      setProcessingStage(
+        "상품 이용 권한을 반영하고 있어요.\n최신 이용 상태를 확인하는 중이에요.",
+        "unlock-saving",
+      );
+      const [refreshResult] = await Promise.allSettled([fetchMyPointState()]);
+      const refreshFailed = refreshResult.status === "rejected";
       pushToast(
         "success",
-        fromRedirect
-          ? "모바일 결제 복귀 확인이 완료되었습니다. 결제 내역에서 상품 이용을 이어갈 수 있어요."
-          : result.message || "결제가 완료되었습니다. 해당 상품 이용을 이어가세요.",
+        refreshFailed
+          ? "결제와 상품 반영은 완료됐어요. 최신 이용 상태는 잠시 후 다시 확인해 주세요."
+          : fromRedirect
+            ? "결제 복귀와 상품 반영이 완료되었습니다. 이제 이용할 수 있어요."
+            : result.message || "결제와 상품 반영이 완료되었습니다. 이제 이용할 수 있어요.",
       );
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
-      await fetchMyPointState();
     },
-    [fetchMyPointState, pushToast],
+    [fetchMyPointState, pushToast, setProcessingStage],
   );
+
+  const clearSinglePaymentConfirmTimer = useCallback(() => {
+    if (singlePaymentConfirmTimerRef.current !== null) {
+      if (typeof window !== "undefined") window.clearTimeout(singlePaymentConfirmTimerRef.current);
+      singlePaymentConfirmTimerRef.current = null;
+    }
+  }, []);
+
+  const markSinglePaymentUnknown = useCallback(() => {
+    clearSinglePaymentConfirmTimer();
+    const merchantUid = pendingSinglePaymentConfirmRef.current?.payload.merchantUid || "";
+    const orderHint = merchantUid ? `\n주문번호 끝자리 ${merchantUid.slice(-4)}` : "";
+    setProcessingStage(
+      `결제 결과를 확인하는 데 시간이 걸리고 있어요.\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
+      "confirm",
+    );
+    setProcessingAction({
+      label: "결제 상태 다시 확인",
+      onClick: () => { void singlePaymentStatusCheckHandlerRef.current?.(); },
+    });
+  }, [clearSinglePaymentConfirmTimer, setProcessingAction, setProcessingStage]);
+
+  const armSinglePaymentConfirmTimer = useCallback(() => {
+    clearSinglePaymentConfirmTimer();
+    if (typeof window === "undefined") return;
+    singlePaymentConfirmTimerRef.current = window.setTimeout(() => {
+      if (pendingSinglePaymentConfirmRef.current) markSinglePaymentUnknown();
+    }, 20000);
+  }, [clearSinglePaymentConfirmTimer, markSinglePaymentUnknown]);
+
+  const confirmPendingSinglePayment = useCallback((
+    payload: SinglePaymentConfirmPayload,
+    fromRedirect = false,
+  ): Promise<"success" | "unknown" | "failed"> => {
+    const flowKey = `${payload.impUid}:${payload.merchantUid || ""}`;
+    const existingFlow = singlePaymentConfirmFlowRef.current;
+    if (existingFlow?.key === flowKey) return existingFlow.promise;
+
+    const flow = (async (): Promise<"success" | "unknown" | "failed"> => {
+      pendingSinglePaymentConfirmRef.current = { payload, fromRedirect };
+      savePendingSinglePaymentSession({
+        impUid: payload.impUid,
+        merchantUid: payload.merchantUid,
+      });
+      setProcessingAction(null);
+      setIsProcessing(true);
+      setProcessingStage(
+        "결제 승인 내역을 안전하게 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.",
+        "confirm",
+      );
+      armSinglePaymentConfirmTimer();
+
+      try {
+        const result = await confirmPaymentWithServer(payload);
+        clearSinglePaymentConfirmTimer();
+        pendingSinglePaymentConfirmRef.current = null;
+        clearPendingSinglePaymentSession();
+        clearPendingOrder();
+        await handleConfirmSuccess(result, fromRedirect);
+        if (fromRedirect && typeof window !== "undefined" && window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+        return "success";
+      } catch (error: unknown) {
+        clearSinglePaymentConfirmTimer();
+        if (isUncertainPaymentConfirmError(error)) {
+          markSinglePaymentUnknown();
+          return "unknown";
+        }
+
+        pendingSinglePaymentConfirmRef.current = null;
+        clearPendingSinglePaymentSession();
+        clearPendingOrder();
+        await reportPaymentFailureToServer({
+          merchantUid: payload.merchantUid,
+          impUid: payload.impUid,
+          reasonCode: fromRedirect ? "redirect_confirm_failed" : "confirm_failed",
+          reasonMessage: getErrorMessage(error, "결제 검증에 실패했습니다."),
+          paymentMethod: payload.paymentMethod,
+        });
+        pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
+        if (fromRedirect && typeof window !== "undefined" && window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+        return "failed";
+      } finally {
+        if (!pendingSinglePaymentConfirmRef.current) setIsProcessing(false);
+      }
+    })();
+
+    singlePaymentConfirmFlowRef.current = { key: flowKey, promise: flow };
+    void flow.then(
+      () => {
+        if (singlePaymentConfirmFlowRef.current?.promise === flow) {
+          singlePaymentConfirmFlowRef.current = null;
+        }
+      },
+      () => {
+        if (singlePaymentConfirmFlowRef.current?.promise === flow) {
+          singlePaymentConfirmFlowRef.current = null;
+        }
+      },
+    );
+    return flow;
+  }, [
+    armSinglePaymentConfirmTimer,
+    clearSinglePaymentConfirmTimer,
+    confirmPaymentWithServer,
+    handleConfirmSuccess,
+    markSinglePaymentUnknown,
+    pushToast,
+    reportPaymentFailureToServer,
+    setProcessingAction,
+    setProcessingStage,
+  ]);
+
+  const checkPendingSinglePayment = useCallback(async () => {
+    const pending = pendingSinglePaymentConfirmRef.current;
+    if (!pending || singlePaymentStatusCheckInFlightRef.current) return;
+
+    singlePaymentStatusCheckInFlightRef.current = true;
+    try {
+      await confirmPendingSinglePayment(pending.payload, pending.fromRedirect);
+    } finally {
+      singlePaymentStatusCheckInFlightRef.current = false;
+    }
+  }, [confirmPendingSinglePayment]);
+
+  useEffect(() => {
+    singlePaymentStatusCheckHandlerRef.current = checkPendingSinglePayment;
+    return () => {
+      singlePaymentStatusCheckHandlerRef.current = null;
+    };
+  }, [checkPendingSinglePayment]);
 
   const requestCancelPayment = useCallback(
     async (payment: PaymentHistoryItem) => {
@@ -4185,20 +4491,24 @@ export default function PointsPage() {
     const subscriptionRedirectMarked = query.get("portone_subscription_redirect");
     const impSuccess = String(query.get("imp_success") || query.get("code") || "").toLowerCase();
     const impUid = query.get("paymentId") || query.get("payment_id") || query.get("imp_uid");
+    const pendingSingleSession = readPendingSinglePaymentSession();
+    const isSubscriptionRedirect = !!subscriptionRedirectMarked;
+    const effectiveImpUid = impUid || (!isSubscriptionRedirect ? pendingSingleSession?.impUid : undefined);
 
-    if (!impUid && impSuccess !== "false" && !redirectMarked && !subscriptionRedirectMarked) return;
+    if (!effectiveImpUid && impSuccess !== "false" && !redirectMarked && !subscriptionRedirectMarked) return;
 
     redirectHandledRef.current = true;
 
     const merchantUidFromQuery = query.get("paymentId") || query.get("payment_id") || query.get("merchant_uid") || undefined;
     const pending = readPendingOrder();
     const pendingSubscription = readPendingSubscriptionOrder();
-    const isSubscriptionRedirect = !!subscriptionRedirectMarked;
-    const redirectConfirmKey = `${isSubscriptionRedirect ? "subscription" : "point"}:${impUid || "missing"}:${merchantUidFromQuery || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid) || ""}`;
+    const effectiveMerchantUid = merchantUidFromQuery || pendingSingleSession?.merchantUid;
+    const redirectConfirmKey = `${isSubscriptionRedirect ? "subscription" : "point"}:${effectiveImpUid || "missing"}:${effectiveMerchantUid || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid) || ""}`;
 
-    if (!impUid || impSuccess === "false") {
+    if (!effectiveImpUid || impSuccess === "false") {
       clearPendingOrder();
       clearPendingSubscriptionOrder();
+      clearPendingSinglePaymentSession();
 
       const failMessage = mapPaymentErrorMessage(
         query.get("error_msg") || query.get("errorMsg") || "결제가 취소되었습니다.",
@@ -4206,7 +4516,7 @@ export default function PointsPage() {
 
       reportPaymentFailureToServer({
         merchantUid: merchantUidFromQuery || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid),
-        impUid: impUid || undefined,
+        impUid: effectiveImpUid || undefined,
         reasonCode: isSubscriptionRedirect ? "subscription_mobile_redirect_failed" : "mobile_redirect_failed",
         reasonMessage: failMessage,
         paymentMethod: isSubscriptionRedirect ? pendingSubscription?.paymentMethod : pending?.paymentMethod,
@@ -4224,9 +4534,9 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingStage(
       isSubscriptionRedirect
-        ? "30일 이용권이 활성화되고 있어요\n곧 이용 가능해져요"
-        : "결제가 완료됐어요\n결과를 불러오는 중이에요",
-      "payment-complete",
+        ? "결제 결과를 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요."
+        : "결제 결과를 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.",
+      isSubscriptionRedirect ? "subscription" : "confirm",
     );
 
     if (isSubscriptionRedirect) {
@@ -4244,8 +4554,8 @@ export default function PointsPage() {
         return;
       }
 
-      confirmSubscriptionWithServer({
-          impUid,
+      const confirmPayload: SubscriptionConfirmPayload = {
+          impUid: effectiveImpUid,
           merchantUid,
           tier: pendingSub.tier,
           planId: pendingSub.planId,
@@ -4254,7 +4564,13 @@ export default function PointsPage() {
           customerUid: pendingSub.customerUid,
           paymentMethod: pendingSub.paymentMethod,
           durationDays: 30,
-      })
+      };
+      pendingSubscriptionConfirmRef.current = {
+        payload: confirmPayload,
+        fromRedirect: true,
+      };
+
+      confirmSubscriptionWithServer(confirmPayload)
         .then(async (data) => {
           if (data.subscription) {
             const newSub: SubscriptionStatus = {
@@ -4277,6 +4593,7 @@ export default function PointsPage() {
           }
 
           clearPendingSubscriptionOrder();
+          pendingSubscriptionConfirmRef.current = null;
           await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub.tier);
           pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
           setShowStarBurst(true);
@@ -4286,9 +4603,14 @@ export default function PointsPage() {
           }
         })
         .catch((error) => {
+          if (isUncertainSubscriptionConfirmError(error)) {
+            markSubscriptionPaymentUnknown();
+            return;
+          }
+          pendingSubscriptionConfirmRef.current = null;
           reportPaymentFailureToServer({
             merchantUid,
-            impUid,
+            impUid: effectiveImpUid,
             reasonCode: "subscription_redirect_confirm_failed",
             reasonMessage: getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."),
             paymentMethod: pendingSub.paymentMethod,
@@ -4300,14 +4622,25 @@ export default function PointsPage() {
         })
         .finally(() => {
           releasePaymentRedirectLock(redirectConfirmKey);
-          setIsProcessing(false);
+          if (pendingSubscriptionConfirmRef.current?.payload !== confirmPayload) {
+            setIsProcessing(false);
+          }
         });
 
       return;
     }
 
-    confirmPaymentWithServer({
-      impUid,
+    if (!pending || !effectiveImpUid) {
+      clearPendingOrder();
+      clearPendingSinglePaymentSession();
+      pushToast("error", "결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
+      releasePaymentRedirectLock(redirectConfirmKey);
+      setIsProcessing(false);
+      return;
+    }
+
+    void confirmPendingSinglePayment({
+      impUid: effectiveImpUid,
       merchantUid: merchantUidFromQuery || pending?.merchantUid,
       paymentAmount: pending?.paymentAmount,
       chargePoints: pending?.chargePoints,
@@ -4316,37 +4649,14 @@ export default function PointsPage() {
       featureKey: pending?.featureKey,
       productName: pending?.productName,
       paymentMethod: pending?.paymentMethod,
-    })
-      .then(async (result) => {
-        clearPendingOrder();
-        await handleConfirmSuccess(result, true);
-        if (window.location.search) {
-          window.history.replaceState({}, "", window.location.pathname);
-        }
-      })
-      .catch((error) => {
-        reportPaymentFailureToServer({
-          merchantUid: merchantUidFromQuery || pending?.merchantUid,
-          impUid,
-          reasonCode: "redirect_confirm_failed",
-          reasonMessage: getErrorMessage(error, "모바일 결제 복귀 검증에 실패했습니다."),
-          paymentMethod: pending?.paymentMethod,
-        });
-        pushToast("error", getErrorMessage(error, "모바일 결제 검증에 실패했습니다."));
-        if (window.location.search) {
-          window.history.replaceState({}, "", window.location.pathname);
-        }
-      })
-      .finally(() => {
-        releasePaymentRedirectLock(redirectConfirmKey);
-        setIsProcessing(false);
-      });
+    }, true).finally(() => {
+      releasePaymentRedirectLock(redirectConfirmKey);
+    });
   }, [
-    apiBase,
-    confirmPaymentWithServer,
+    confirmPendingSinglePayment,
     confirmSubscriptionWithServer,
-    handleConfirmSuccess,
     isBooting,
+    markSubscriptionPaymentUnknown,
     persistSubscriptionCache,
     pushToast,
     reportPaymentFailureToServer,
@@ -4356,6 +4666,8 @@ export default function PointsPage() {
 
   /* ── 이용권 결제 시작 ───────────────────────────────────────────── */
   const startPayment = async () => {
+    if (pendingSinglePaymentConfirmRef.current) return;
+
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
@@ -4365,7 +4677,10 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingStage("잔액을 확인하는 중이에요", "payment");
+    setProcessingStage(
+      "단건 결제를 준비하고 있어요.\n주문 정보와 결제창을 확인하고 있어요.",
+      "checkout",
+    );
 
     try {
       const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
@@ -4418,8 +4733,8 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
-      // 구독 경로와 동일하게 모달 오픈 시 미리 받아둔 번호 조회 결과를 재사용한다(왕복 1회 절감).
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current);
+      // 결제 모달 오픈 시 미리 받아둔 번호 조회 결과를 재사용한다(왕복 1회 절감).
+      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, singlePaymentPhonePrefetchRef.current);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -4454,6 +4769,8 @@ export default function PointsPage() {
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
       if (!rsp || rsp.code || !paymentId) {
+        clearPendingOrder();
+        clearPendingSinglePaymentSession();
         const message = mapPaymentErrorMessage(
           rsp?.message || rsp?.error_msg || rsp?.errorMsg || "결제가 취소되었습니다.",
         );
@@ -4469,36 +4786,23 @@ export default function PointsPage() {
         return;
       }
 
-      try {
-        setProcessingStage("결제가 완료됐어요\n결과를 불러오는 중이에요", "payment-complete");
-        setIsProcessing(true);
-        const result = await confirmPaymentWithServer({
-          impUid: paymentId,
-          merchantUid: order.merchantUid,
-          paymentAmount: order.paymentAmount,
-          chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
-          paymentType: "digital_content",
-          productId: selectedPackage.id,
-          featureKey: selectedPackage.featureKey,
-          productName: order.productName || getPointPackageTitle(selectedPackage, copy),
-          paymentMethod: selectedMethod,
-        });
-        clearPendingOrder();
-        await handleConfirmSuccess(result);
+      const confirmStatus = await confirmPendingSinglePayment({
+        impUid: paymentId,
+        merchantUid: order.merchantUid,
+        paymentAmount: order.paymentAmount,
+        chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
+        paymentType: "digital_content",
+        productId: selectedPackage.id,
+        featureKey: selectedPackage.featureKey,
+        productName: order.productName || getPointPackageTitle(selectedPackage, copy),
+        paymentMethod: selectedMethod,
+      });
+      if (confirmStatus === "success") {
         setIsMethodModalOpen(false);
-      } catch (error: unknown) {
-        reportPaymentFailureToServer({
-          merchantUid: order.merchantUid,
-          impUid: paymentId,
-          reasonCode: "confirm_failed",
-          reasonMessage: getErrorMessage(error, "결제 검증에 실패했습니다."),
-          paymentMethod: selectedMethod,
-        });
-        pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
-      } finally {
-        setIsProcessing(false);
       }
     } catch (error: unknown) {
+      clearPendingOrder();
+      clearPendingSinglePaymentSession();
       reportPaymentFailureToServer({
         reasonCode: "prepare_or_sdk_failed",
         reasonMessage: getErrorMessage(error, "결제를 시작하지 못했습니다."),
@@ -4513,6 +4817,8 @@ export default function PointsPage() {
 
   /* ── 이용권(30일) 결제 핸들러 — PortOne V2 · KG이니시스 ─────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
+    if (pendingSubscriptionConfirmRef.current) return;
+
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
     const requestedTierRank = getSubscriptionTierRank(plan.tier);
 
@@ -4534,16 +4840,11 @@ export default function PointsPage() {
     const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
-    // 모달을 열 때 걸어둔 준비가 이미 끝났으면 대기 오버레이를 아예 띄우지 않는다 —
-    // 이 오버레이("결제 정보를 준비하고 있어요")의 정체가 곧 prepare 서버 왕복 대기였다.
     const prepareEntry = startSubscriptionPrepare(plan);
-    const showPrepareOverlay = !prepareEntry.settled;
 
     setPendingSubscriptionPaymentPlan(null);
-    if (showPrepareOverlay) {
-      setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout");
-      setIsProcessing(true);
-    }
+    setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "checkout");
+    setIsProcessing(true);
 
     try {
       const prepareAttempt = await prepareEntry.promise;
@@ -4648,9 +4949,9 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("30일 이용권 결제를 확인하고 있어요\n잠시만 기다려 주세요", "subscription");
+        setProcessingStage("결제 승인 내역을 안전하게 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "subscription");
         setIsProcessing(true);
-        const confirmData = await confirmSubscriptionWithServer({
+        const confirmPayload: SubscriptionConfirmPayload = {
           impUid: paymentId,
           merchantUid: order.merchantUid,
           tier: plan.tier,
@@ -4662,7 +4963,12 @@ export default function PointsPage() {
           productType: plan.productType,
           customerUid: order.customerUid,
           paymentMethod: selectedMethod || "card_general",
-        });
+        };
+        pendingSubscriptionConfirmRef.current = {
+          payload: confirmPayload,
+          fromRedirect: false,
+        };
+        const confirmData = await confirmSubscriptionWithServer(confirmPayload);
 
         if (confirmData.subscription) {
           const newSub: SubscriptionStatus = {
@@ -4685,11 +4991,17 @@ export default function PointsPage() {
         }
 
         clearPendingSubscriptionOrder();
+        pendingSubscriptionConfirmRef.current = null;
         await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
         pushToast("success", confirmData.message || `${copy.planTitles[plan.tier]} ${copy.activePassLabel}`);
         setShowStarBurst(true);
         setTimeout(() => setShowStarBurst(false), 1200);
       } catch (error: unknown) {
+        if (isUncertainSubscriptionConfirmError(error)) {
+          markSubscriptionPaymentUnknown();
+          return;
+        }
+        pendingSubscriptionConfirmRef.current = null;
         clearPendingSubscriptionOrder();
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
@@ -4710,11 +5022,24 @@ export default function PointsPage() {
       pushToast("error", message);
     } finally {
       releasePaymentActionLock(actionLockKey);
-      setIsProcessing(false);
+      if (!pendingSubscriptionConfirmRef.current) {
+        setIsProcessing(false);
+      }
     }
   };
 
   // Pass products are purchased through direct KRW checkout only.
+
+
+
+
+
+
+
+
+
+
+
   const handleSubscriptionCancel = async (resume: boolean) => {
     const flowerAdminToken = getFlowerAdminTokenClient();
     if (!authUser) {
