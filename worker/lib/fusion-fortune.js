@@ -8,6 +8,7 @@ import { mongoose } from "./db.js";
 import { buildFusionFortunePrompt } from "./fusion-fortune-prompt.js";
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
+import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { callGeminiText } from "./gemini.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 
@@ -40,6 +41,7 @@ export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
   GENERATION_FAILED: "FUSION_FORTUNE_GENERATION_FAILED",
   RESULT_INVALID: "FUSION_FORTUNE_RESULT_INVALID",
   COMMIT_FAILED: "FUSION_FORTUNE_COMMIT_FAILED",
+  CANCELLED: "FUSION_FORTUNE_CANCELLED",
 });
 
 const FORBIDDEN = ["무조건", "반드시", "100%", "확실히 된다", "확실히 망한다", "큰일 난다", "결제해야 해결된다", "유료로 봐야만 답이 나온다", "투자하면 오른다", "반드시 매수해라", "병이 있다", "고소하면 이긴다", "상대는 반드시 돌아온다"];
@@ -53,6 +55,22 @@ function safeRequestId(value) { return text(value, 120) || globalThis.crypto?.ra
 function objectIdOrString(value) {
   const normalized = text(value, 120);
   return mongoose.Types.ObjectId.isValid(normalized) ? new mongoose.Types.ObjectId(normalized) : normalized;
+}
+
+async function emitFusionFortuneStage(onStage, stage) {
+  if (typeof onStage !== "function") return;
+  try {
+    await onStage({ stage, status: "completed" });
+  } catch {
+    // A disconnected progress stream never changes ticket or daily-limit state.
+  }
+}
+
+function throwIfFusionFortuneAborted(signal) {
+  if (!signal?.aborted) return;
+  const error = new Error("fusion_fortune_cancelled");
+  error.code = FUSION_FORTUNE_ERROR_CODES.CANCELLED;
+  throw error;
 }
 
 export function isFusionFortuneUiEnabled(env = {}) { return flag(env, "ENABLE_FUSION_FORTUNE_UI"); }
@@ -159,10 +177,13 @@ export async function buildFusionFortuneContext(input, options = {}) {
       : normalized.topic.includes("마음") || normalized.topic.includes("회복")
         ? "mind"
         : "daily";
+  const questionFocus = buildFortuneQuestionFocus({ concern: normalized.concern, topic });
   const systems = {};
   const limitations = [];
   const systemInsights = {};
-  const categories = ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"];
+  // This order is the public premium-stream contract. Each event is emitted
+  // only after the corresponding calculator completes successfully.
+  const categories = ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"];
   for (const category of categories) {
     const guardian = await buildGuardianFortuneContext({
       birthDate: normalized.birthDate,
@@ -189,6 +210,7 @@ export async function buildFusionFortuneContext(input, options = {}) {
     }
     systemInsights[category] = guardian.context.integratedInsight;
     limitations.push(...(guardian.context.unavailableClaims || []));
+    await emitFusionFortuneStage(options.onStage, category);
   }
   const integratedInsight = buildIntegratedInsight({ topic, results: systems, hasConcern: Boolean(normalized.concern) });
   return {
@@ -206,6 +228,7 @@ export async function buildFusionFortuneContext(input, options = {}) {
       integratedInsight: { ...integratedInsight, systemInsights },
       limitations: [...new Set(limitations)],
       topic: normalized.topic,
+      questionFocus,
       // Privacy boundary: no raw birth date, time, or concern is retained in the result context.
       inputSummary: { calendarType: normalized.calendarType, gender: normalized.gender, topic: normalized.topic },
     },
@@ -375,8 +398,22 @@ function fusionValidationOptions(context = {}, input = {}) {
   };
 }
 
+function attachQuestionFocusedFusionReading(result, context = {}) {
+  const focus = context?.questionFocus;
+  if (!focus?.answerFrame || !focus?.actionFrame) return result;
+  return {
+    ...result,
+    openingMessage: `질문에 바로 답하면, ${focus.answerFrame}가 이번 초융합 해석의 중심입니다. ${result.openingMessage}`,
+    executiveSummary: `이번 리딩은 “${focus.label || "현재의 선택"}”을 두고 ${focus.answerFrame}를 살피는 데서 시작합니다. ${result.executiveSummary}`,
+    timingAndAction: {
+      ...result.timingAndAction,
+      content: `${focus.actionFrame} ${result.timingAndAction?.content || ""}`.trim(),
+    },
+  };
+}
+
 async function buildValidatedFusionFallback({ context, input }) {
-  const result = await generateFusionFortuneWithMockLLM({ context });
+  const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context }), context);
   const checked = validateFusionFortuneResult(result, fusionValidationOptions(context, input));
   return checked.ok ? checked.value : undefined;
 }
@@ -447,7 +484,7 @@ export async function generateFusionFortuneWithRealLLM({
 export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
   if (isFusionFortuneRealLlmAllowed(args.env || {})) return generateFusionFortuneWithRealLLM(args);
   if (isFusionFortuneMockFlowEnabled(args.env || {})) {
-    const result = await generateFusionFortuneWithMockLLM(args);
+    const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM(args), args.context);
     return { result, deliverable: true, generationSource: "mock" };
   }
   const error = new Error("FUSION_FORTUNE_GENERATION_DISABLED");
@@ -548,23 +585,31 @@ export async function buildFusionFortuneStatus({ userId = "", store, now = new D
   return { isLoggedIn: true, ticket: { remaining: ticketRemaining, canUse: ticketRemaining > 0 }, dailyLimit: { dateKey, limit: 100, usedCount: count(daily.successCount), remainingCount: remaining, isSoldOut: soldOut, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: !soldOut && ticketRemaining > 0, nextAction, message: soldOut ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요." : ticketRemaining > 0 ? `오늘 선착순 ${remaining}자리가 남아 있어요. 상담권으로 결과를 생성할 수 있어요.` : `오늘 선착순 ${remaining}자리가 남아 있어요. 초융합 운세 상담권이 필요해요.`, cta: soldOut ? { label: "다른 운세 보기", targetPath: "/", reason: "daily_sold_out" } : ticketRemaining > 0 ? undefined : { label: "상담권 구매하기", targetPath: "/fusion-fortune#ticket", reason: "ticket_required" } };
 }
 
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {} } = {}) {
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
   let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
   const safeId = safeRequestId(requestId); const reservation = await store.reserve(userId, dateKey || getFusionFortuneDateKey(now), safeId, now); if (!reservation.ok) return { ok: false, status: reservation.status, error: reservation.errorCode, message: reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.SOLD_OUT ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요." : reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.NO_TICKET ? "초융합 운세 상담권이 필요해요." : "이미 처리 중인 요청입니다." };
   let committed = false;
   try {
-    const contextResult = await contextBuilder(normalized, { now, env });
+    throwIfFusionFortuneAborted(abortSignal);
+    const contextResult = await contextBuilder(normalized, { now, env, onStage });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
+    throwIfFusionFortuneAborted(abortSignal);
     const prompt = buildFusionFortunePrompt({ context: contextResult.context });
     const generated = await generator({ input: normalized, context: contextResult.context, prompt, env, requestId: safeId, userId });
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
     if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED });
     const validated = validateFusionFortuneResult(result, fusionValidationOptions(contextResult.context, normalized));
     if (!validated.ok) throw Object.assign(new Error("result"), { code: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID });
+    throwIfFusionFortuneAborted(abortSignal);
+    if (typeof onDelivery === "function") {
+      await onDelivery({ requestId: safeId, result: validated.value, generationSource: generated?.generationSource || "mock" });
+    }
+    throwIfFusionFortuneAborted(abortSignal);
     const commitResult = await store.commit(reservation, now);
     if (!commitResult) throw Object.assign(new Error("commit"), { code: FUSION_FORTUNE_ERROR_CODES.COMMIT_FAILED });
     committed = true;
+    await emitFusionFortuneStage(onStage, "fusion");
     const status = await buildFusionFortuneStatus({ userId, store, now }).catch(() => ({
       isLoggedIn: true,
       ticket: { remaining: Math.max(0, count(commitResult.balance?.totalRemaining)), canUse: count(commitResult.balance?.totalRemaining) > 0 },
@@ -577,6 +622,6 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   } catch (error) {
     if (!committed) await store.release(reservation, now).catch(() => {});
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;
-    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: "결과를 준비하지 못했어요. 이용권과 오늘의 한도는 차감되지 않았습니다." };
+    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? "분석이 중단되어 이용권과 오늘의 한도는 차감되지 않았습니다." : "결과를 준비하지 못했어요. 이용권과 오늘의 한도는 차감되지 않았습니다." };
   }
 }

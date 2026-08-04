@@ -103,6 +103,42 @@ describe("Guardian Fortune mock generate controller", () => {
     expect(store.state.guests.get("guest-context-0001")).toMatchObject({ totalUsed: 0, reserved: 0 });
   });
 
+  it("releases the reserved use when a chat stream is cancelled before delivery", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const store = createMemoryGuardianFortuneStore();
+    const response = await generateGuardianFortuneRequest({
+      input,
+      guestIdHash: "guest-chat-cancelled-01",
+      requestId: "guardian-chat-cancelled",
+      dateKey: "2026-08-02",
+      store,
+      now: NOW,
+      contextBuilder: successfulContextBuilder,
+      mockGenerator: async () => ({ result, usedFallback: false }),
+      abortSignal: controller.signal,
+    });
+    expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_CANCELLED", status: 499 });
+    expect(store.state.guests.get("guest-chat-cancelled-01")).toMatchObject({ totalUsed: 0, reserved: 0 });
+  });
+
+  it("does not consume a use when the chat result cannot be delivered to its stream", async () => {
+    const store = createMemoryGuardianFortuneStore();
+    const response = await generateGuardianFortuneRequest({
+      input,
+      guestIdHash: "guest-chat-undelivered-01",
+      requestId: "guardian-chat-undelivered",
+      dateKey: "2026-08-02",
+      store,
+      now: NOW,
+      contextBuilder: successfulContextBuilder,
+      mockGenerator: async () => ({ result, usedFallback: false }),
+      onDelivery: async () => { throw new Error("stream disconnected"); },
+    });
+    expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_SERVER_ERROR" });
+    expect(store.state.guests.get("guest-chat-undelivered-01")).toMatchObject({ totalUsed: 0, reserved: 0 });
+  });
+
   it("does not consume quota when mock generation returns a fallback", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({

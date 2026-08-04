@@ -1590,6 +1590,199 @@
   }
 }
 
+/* Chat journey refresh: Yeon is the single guardian for this surface. */
+#guardianFortuneSection[data-guardian-chat-journey="true"] {
+  width: min(760px, calc(100% - 20px));
+  padding-inline: 0;
+  --gf-chat-rose: #b31955;
+  --gf-chat-plum: #3b1830;
+  --gf-chat-mist: #fff6fa;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-mode-button="neo"],
+#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-character="neo"],
+#guardianFortuneSection[data-guardian-chat-journey="true"] [data-result-mode-image="neo"],
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__duo-bubble--neo {
+  display: none !important;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__shell {
+  overflow: visible;
+  background: radial-gradient(circle at 80% 0, rgba(244, 190, 209, .48), transparent 33%), var(--gf-chat-mist);
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__hero {
+  display: grid;
+  gap: 16px;
+  padding: clamp(22px, 6vw, 48px) clamp(16px, 5vw, 44px) 12px;
+  text-align: left;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__title {
+  max-width: 19ch;
+  font-size: clamp(2rem, 6.4vw, 3.35rem);
+  line-height: 1.06;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__subtitle {
+  max-width: 58ch;
+  font-size: 1rem;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__free-note {
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--gf-accent) 22%, transparent);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fff;
+  font-size: .86rem;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__hero-stage {
+  display: none;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__content {
+  gap: 18px;
+  padding: 0 clamp(10px, 3vw, 26px) 28px;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__panel,
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result,
+#guardianFortuneSection[data-guardian-chat-journey="true"] > .guardian-fortune__cta {
+  border: 0;
+  border-radius: 28px;
+  background: #fffdfd;
+  box-shadow: 0 18px 48px -36px rgba(80, 20, 51, .58);
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__panel--form {
+  padding: clamp(18px, 4vw, 34px);
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__mode-grid {
+  display: none;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__chat-timeline {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 24px;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 92%;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--user {
+  justify-self: end;
+  margin-left: auto;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message-avatar {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 15px;
+  background: #fff0f6;
+  padding: 2px;
+  cursor: pointer;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message-sprite,
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog-sprite {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background: url("/images/guardian-fortune/yeoni/flower-pig-f16.webp") center / contain no-repeat;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__bubble {
+  position: relative;
+  min-width: 0;
+  border: 1px solid rgba(179, 25, 85, .12);
+  border-radius: 7px 22px 22px 22px;
+  background: #fff;
+  padding: 13px 15px;
+  color: var(--gf-chat-plum);
+  line-height: 1.62;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__bubble strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--gf-chat-rose);
+  font-size: .82rem;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__bubble p { margin: 0; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--quiet { margin-left: 54px; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--quiet .guardian-fortune__bubble {
+  background: #fff7fa;
+  color: #71465d;
+  font-size: .88rem;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--user .guardian-fortune__bubble {
+  border-radius: 22px 7px 22px 22px;
+  border-color: #8f1644;
+  background: var(--gf-chat-rose);
+  color: #fff;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__typing { display: inline-flex; gap: 5px; min-height: 18px; align-items: center; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--gf-chat-rose); animation: guardianChatDot .84s ease-in-out infinite alternate; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__typing i:nth-child(2) { animation-delay: .14s; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__typing i:nth-child(3) { animation-delay: .28s; }
+@keyframes guardianChatDot { from { opacity: .3; transform: translate3d(0, 2px, 0); } to { opacity: 1; transform: translate3d(0, -2px, 0); } }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__composer {
+  display: grid;
+  gap: 8px;
+  margin-top: 22px;
+  border-top: 1px solid rgba(179, 25, 85, .12);
+  padding-top: 20px;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__composer label { color: var(--gf-chat-plum); font-weight: 800; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__composer textarea {
+  width: 100%;
+  min-height: 92px;
+  border: 1px solid rgba(179, 25, 85, .22);
+  border-radius: 18px;
+  padding: 14px;
+  color: var(--gf-chat-plum);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__composer p { margin: 0; color: var(--gf-muted); font-size: .8rem; line-height: 1.5; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result {
+  content-visibility: auto;
+  contain-intrinsic-size: 720px;
+  padding: clamp(18px, 4vw, 34px);
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result-visual {
+  align-items: flex-start;
+  background: #fff7fa;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result-cards { display: grid; gap: 12px; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result-card {
+  border-radius: 7px 22px 22px 22px;
+  border-color: rgba(179, 25, 85, .14);
+  background: #fff;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result-card h4 { color: var(--gf-chat-rose); }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__result-card--action { background: #fff1f7; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog {
+  width: min(420px, calc(100% - 30px));
+  border: 0;
+  border-radius: 24px;
+  background: #fffdfd;
+  color: var(--gf-chat-plum);
+  padding: 22px;
+  box-shadow: 0 20px 70px rgba(55, 10, 33, .35);
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog::backdrop { background: rgba(43, 12, 32, .48); }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog form { display: flex; justify-content: flex-end; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog button { min-height: 44px; border: 0; background: transparent; color: var(--gf-chat-rose); font: inherit; font-weight: 800; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog-sprite { width: 96px; margin: -8px auto 4px; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog h3 { margin: 0; text-align: center; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__dialog p { color: var(--gf-muted); line-height: 1.7; }
+@media (max-width: 780px) {
+  #guardianFortuneSection[data-guardian-chat-journey="true"] { width: calc(100% - 16px); margin-top: 14px !important; }
+  #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message { max-width: 96%; }
+  #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--quiet { margin-left: 0; }
+  #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__form input,
+  #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__form select,
+  #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__form textarea { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__typing i { animation: none; opacity: 1; transform: none; }
+}
+
 /* Final centered consult-room finish.
    Keep this scoped to Guardian Fortune so the legacy home surfaces remain unchanged. */
 #guardianFortuneSection {

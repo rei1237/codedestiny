@@ -31,6 +31,18 @@ describe("Guardian Fortune prompt builder", () => {
     expect(yeoni.systemPrompt).not.toBe(neo.systemPrompt);
   });
 
+  it("turns the free-form concern into a non-identifying question focus", () => {
+    const concern = "이직 제안을 받아도 될까요";
+    const prompt = promptModule.buildGuardianFortunePrompt({
+      input: { ...fixtures.baseInput, topic: "daily", concern },
+      context: fixtures.mockContext,
+    });
+
+    expect(prompt.userPrompt).toContain("질문 중심 답변");
+    expect(prompt.userPrompt).toContain("옮기기 전에 어떤 조건을 확인해야 하는지");
+    expect(prompt.userPrompt).not.toContain(concern);
+  });
+
   it("includes every topic instruction", () => {
     for (const topic of Object.keys(fixtures.topicInputs).filter((key) => ["daily", "love", "money_work", "relationship", "mind", "decision"].includes(key))) {
       const context = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, topic } };

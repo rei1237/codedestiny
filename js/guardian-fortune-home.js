@@ -23,6 +23,7 @@
     shareDraftToken: '',
     shareState: { status: 'idle' },
     sharePromise: null,
+    chatQuestion: '',
     timer: null,
     abortController: null
   };
@@ -482,6 +483,19 @@
     announce(message || '');
   }
 
+  function setChatTyping(active) {
+    var typing = qs('[data-guardian-chat-typing]');
+    if (typing) typing.hidden = !active;
+  }
+
+  function setChatQuestion(question) {
+    state.chatQuestion = String(question || '').trim();
+    var message = qs('[data-guardian-chat-user]');
+    var text = qs('[data-guardian-chat-user-text]');
+    if (text) text.textContent = state.chatQuestion;
+    if (message) message.hidden = !state.chatQuestion;
+  }
+
   function updateUsage() {
     var usage = getUsage();
     var banner = qs('[data-guardian-usage]');
@@ -588,7 +602,7 @@
     var time = qs('[data-guardian-input="birthTime"]');
     var gender = qs('[data-guardian-input="gender"]');
     var nickname = qs('[data-guardian-input="nickname"]');
-    var concern = qs('[data-guardian-input="concern"]');
+    var concern = qs('[data-guardian-chat-input]') || qs('[data-guardian-input="concern"]');
     var calendar = qs('[data-guardian-calendar]:checked');
     var timeUnknown = qs('[data-guardian-input="birthTimeUnknown"]');
     var place = qs('[data-guardian-input="birthPlace"]');
@@ -632,6 +646,7 @@
     if (!input.birthTime && !input.birthTimeUnknown) return '생시를 입력하거나 “생시를 몰라요”를 선택해 주세요.';
     if (input.birthTime && !/^\d{2}:\d{2}$/.test(input.birthTime)) return '생시 형식을 한 번만 확인해 주세요.';
     if (input.concern.length > 120) return mock.copy.validationConcernLength;
+    if (qs('[data-guardian-chat-input]') && input.concern.length < 2) return '연이에게 전할 오늘의 질문을 2자 이상 적어 주세요.';
     if (input.nickname.length > 20) return '닉네임은 20자 안에서 적어주세요.';
     if (['solar', 'lunar'].indexOf(input.calendarType) < 0) return '달력 기준을 선택해 주세요.';
     if (['female', 'male', 'unknown'].indexOf(input.gender) < 0) return '성별 선택을 다시 확인해 주세요.';
@@ -645,7 +660,7 @@
       gender: input.gender || 'unknown',
       topic: state.topic,
       category: state.category,
-      mode: state.mode,
+      mode: 'yeoni',
       locale: 'ko-KR',
       targetDate: getKoreaDateKey()
     };
@@ -700,8 +715,18 @@
     setText('[data-result-title]', result.title);
     setText('[data-result-cta-label]', result.premiumCta && result.premiumCta.label ? result.premiumCta.label : '다른 상담 체계로 보기');
     setText('[data-result-provider]', state.flow === 'api' ? 'API mock preview' : 'mock preview');
+    var fusionActions = qs('[data-result-cta] .guardian-fortune__cta-actions');
+    if (fusionActions && !fusionActions.querySelector('[data-guardian-fusion-handoff]')) {
+      var fusionLink = document.createElement('a');
+      fusionLink.className = 'guardian-fortune__cta-button guardian-fortune__cta-button--primary';
+      fusionLink.href = '/fusion-fortune';
+      fusionLink.setAttribute('data-guardian-fusion-handoff', 'true');
+      fusionLink.textContent = '초융합 사주로 더 깊게 보기';
+      fusionActions.appendChild(fusionLink);
+    }
     updateShareControls();
     updateUsage();
+    setChatTyping(false);
     try {
       var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!reduced && typeof resultRoot.scrollIntoView === 'function') resultRoot.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -738,7 +763,9 @@
     }
     state.status = 'loading';
     setError('');
+    setChatQuestion(input.concern);
     hideResult();
+    setChatTyping(true);
     setLoadingCopy();
     updateUsage();
     announce(currentMode().loading);
@@ -746,6 +773,7 @@
     state.timer = window.setTimeout(function () {
       if (state.usage === 'mock-error') {
         state.status = 'error';
+        setChatTyping(false);
         setError(mock.copy.mockError);
         updateUsage();
         return;
@@ -779,6 +807,7 @@
     state.shareDraftToken = '';
     state.shareState = { status: 'idle' };
     state.sharePromise = null;
+    setChatTyping(false);
     updateShareControls();
   }
 
@@ -837,13 +866,23 @@
     var input = buildInput(formInput);
     state.status = 'loading';
     setError('');
+    setChatQuestion(formInput.concern);
     hideResult();
+    setChatTyping(true);
     setLoadingCopy();
     updateUsage();
     announce(currentMode().loading);
     state.abortController = typeof window.AbortController === 'function' ? new window.AbortController() : null;
     try {
-      var payload = await getApiClient().generateGuardianFortune(input, { signal: state.abortController && state.abortController.signal });
+      var api = getApiClient();
+      var payload = api && typeof api.generateGuardianFortuneChat === 'function'
+        ? await api.generateGuardianFortuneChat(input, {
+          signal: state.abortController && state.abortController.signal,
+          onEvent: function (event) {
+            if (event === 'status') announce('연이가 답변을 준비하고 있어요.');
+          }
+        })
+        : await api.generateGuardianFortune(input, { signal: state.abortController && state.abortController.signal });
       state.status = 'success';
       state.usageStatus = normalizeUsage(payload.usage);
       state.usageError = null;
@@ -857,6 +896,7 @@
       announce(mapApiError(error));
     } finally {
       state.abortController = null;
+      setChatTyping(false);
       updateUsage();
     }
   }
@@ -958,9 +998,7 @@
   function applyQueryDefaults() {
     try {
       var params = new URLSearchParams(window.location.search || '');
-      var queryMode = params.get('guardianMode');
       var queryTopic = params.get('guardianTopic');
-      if (queryMode && mock.modes[queryMode]) state.mode = queryMode;
       if (queryTopic && mock.topics[queryTopic]) state.topic = queryTopic;
       var queryCategory = params.get('guardianCategory');
       if (queryCategory && mock.categories && mock.categories[queryCategory]) state.category = queryCategory;
@@ -1108,6 +1146,27 @@
     });
   }
 
+  function bindChatDialogs() {
+    var trigger = qs('[data-guardian-intro-dialog-open]');
+    var dialog = qs('[data-guardian-intro-dialog]');
+    if (trigger && dialog && typeof dialog.showModal === 'function') {
+      trigger.addEventListener('click', function () { dialog.showModal(); });
+    }
+  }
+
+  function storeFusionHandoff() {
+    if (!state.result) return;
+    try {
+      window.sessionStorage.setItem('cdGuardianFusionHandoffV1', JSON.stringify({
+        version: 1,
+        source: 'guardian',
+        topic: state.topic,
+        category: state.category,
+        createdAt: Date.now()
+      }));
+    } catch (_) {}
+  }
+
   function bindDebugUsage() {
     var debug = qs('[data-guardian-debug]');
     var select = qs('[data-guardian-debug-usage]');
@@ -1140,6 +1199,8 @@
     }
     if (state.flow === 'disabled') return;
     root.hidden = false;
+    state.mode = 'yeoni';
+    root.setAttribute('data-guardian-chat-journey', 'true');
     root.setAttribute('data-guardian-mode', state.mode);
     root.setAttribute('data-guardian-flow', state.flow);
     root.setAttribute('data-guardian-share-enabled', state.shareEnabled ? 'true' : 'false');
@@ -1152,12 +1213,17 @@
     bindCharacterMotion();
     bindShares();
     bindCTAs();
+    bindChatDialogs();
     bindDebugUsage();
     setMode(state.mode);
     setTopic(state.topic);
     setCategory(state.category);
     updateUsage();
     if (state.flow === 'api') loadUsage();
+    root.addEventListener('click', function (event) {
+      var link = event.target && event.target.closest ? event.target.closest('[data-guardian-fusion-handoff]') : null;
+      if (link && root.contains(link)) storeFusionHandoff();
+    });
   }
 
   function boot() {

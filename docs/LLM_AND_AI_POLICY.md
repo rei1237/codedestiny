@@ -1,5 +1,12 @@
 # LLM and AI Policy
 
+## Question-focused fortune boundary
+
+- `worker/lib/fortune-question-focus.js` converts the current free-form question into a fixed, non-identifying intent key, answer frame, and action frame. It never returns the original concern.
+- Guardian Chat uses that frame only while preparing the current reply. The raw concern is neither logged, saved, shared, nor included in a prompt or result; the context fallback answers the question through the selected system's calculated fields.
+- Fusion keeps the same fixed frame in its transient server context. `projectFusionFortuneContextForPrompt` allowlists compact fields for the six calculated systems and omits raw birth input, concern, payment state, and unknown calculator fields before a provider can receive it.
+- Quality gate for every system: answer the classified question first, cite one or two actual calculated anchors, translate them into a current pattern and strength/shadow, then offer a reversible action. Unit fixtures assert the six system boundaries, raw-question exclusion, and prompt-size cap without any live provider call.
+
 ## 최상위 원칙
 
 - LLM 관련 테스트는 mock/fake/stub이 기본이다.
@@ -11,7 +18,7 @@
 
 ## 초융합 운세
 
-- `/fusion-fortune`와 `POST /api/fusion-fortune/generate`는 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_MOCK_FLOW`을 분리해 제어한다.
+- `/fusion-fortune`와 `POST /api/fusion-fortune/generate`, `POST /api/fusion-fortune/generate/stream`은 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_MOCK_FLOW`을 분리해 제어한다. stream은 기존 생성 코어의 실제 완료 후 단계 이벤트만 전송하며, 결과·상담권 차감·일일 한도·멱등성·실패 release 규칙을 변경하지 않는다.
 - 테스트와 기본 개발 환경은 mock만 사용한다. 운영 제공자 연결은 `ENABLE_FUSION_FORTUNE_REAL_LLM=true`, `ALLOW_FUSION_FORTUNE_REAL_LLM=true`, 서버 전용 API key, `NODE_ENV !== test`가 모두 충족될 때만 허용한다.
 - 결과는 서버 컨텍스트와 서버 선택 타로 spread만 근거로 삼고 raw prompt·raw response·birthDate·birthTime·고민 원문·결제/이용권 정보는 결과 또는 공유 텍스트에 포함하지 않는다.
 - validator가 10,000~15,000자, 8개 결과 영역, 안전 표현, 개인정보 노출을 모두 확인한 성공 결과만 이용권과 하루 한도를 commit한다.
@@ -128,6 +135,8 @@
 ## Guardian Fortune Stage 13: guarded real LLM path
 
 오늘의 귀인 운세는 기본적으로 mock LLM 경로를 사용한다. 운영 LLM 경로는 다음 조건을 모두 만족하는 staging allowlist 사용자에게만 선택된다.
+
+`POST /api/fortune/guardian/chat`의 공개 자유 입력은 위 allowlist와 별개로 항상 검증된 context/mock generator만 사용한다. 이 SSE 경로는 대화 원문을 DB·공유 draft·운영 로그에 저장하지 않고, 전달 완료 뒤에만 기존 Guardian 사용량을 commit한다. 운영 실 LLM 공개는 비용·모니터링 승인을 별도로 받기 전까지 이 경로에 추가하지 않는다.
 
 - `ENABLE_GUARDIAN_FORTUNE_REAL_LLM=true`
 - `ALLOW_REAL_GUARDIAN_FORTUNE_LLM=true`

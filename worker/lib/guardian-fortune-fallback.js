@@ -5,6 +5,7 @@ import {
   getTopicContract,
 } from "./guardian-fortune-runtime-contract.js";
 import { GUARDIAN_TOPIC_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
+import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 
 const TOPIC_GUIDANCE = Object.freeze({
   daily: {
@@ -46,6 +47,33 @@ const ADAPTER_EVIDENCE_LABELS = Object.freeze({
   sukuyo: Object.freeze({ label: "숙요점", role: "관계의 거리감" }),
   astrology: Object.freeze({ label: "점성술", role: "감정과 표현 방식" }),
   tarot: Object.freeze({ label: "타로", role: "오늘의 상징 조언" }),
+});
+
+const ADAPTER_QUESTION_PERSPECTIVES = Object.freeze({
+  saju: "타고난 추진 방식과 지금의 흐름",
+  ziwei: "역할과 책임이 반복되는 자리",
+  vedic: "감정의 리듬과 회복의 순서",
+  sukuyo: "관계의 거리와 대화의 속도",
+  astrology: "정서와 행동이 만나는 지점",
+  tarot: "지금 선택에서 확인할 상징과 행동",
+});
+
+const ADAPTER_QUESTION_FIELDS = Object.freeze({
+  saju: ["dayMaster", "currentFlowSummary", "fiveElementsSummary", "tenGodsSummary", "seasonSummary", "relationSummary"],
+  ziwei: ["topicPalaceSummary", "lifePalaceSummary", "keyStarsSummary", "strengths", "cautions"],
+  vedic: ["innerRhythm", "moonSignSummary", "nakshatraSummary", "dashaSummary", "lagnaSummary"],
+  sukuyo: ["relationshipPattern", "distancePattern", "emotionalPattern", "birthMansion", "todayMansion"],
+  astrology: ["currentMoodSummary", "moonSummary", "sunSummary", "venusSummary", "marsSummary", "saturnSummary"],
+  tarot: ["symbolicMessage", "cards"],
+});
+
+const ADAPTER_QUESTION_SPECIALIST_MOVES = Object.freeze({
+  saju: "사주는 이 근거를 좋고 나쁜 운의 판정이 아니라, 힘을 쓰는 방식과 멈춰야 할 타이밍을 읽는 기준으로 봅니다.",
+  ziwei: "자미두수는 이 근거를 역할과 책임이 반복되는 자리로 읽어, 내가 맡을 몫과 협의할 몫을 나누게 합니다.",
+  vedic: "베다점은 이 근거를 감정의 리듬으로 읽어, 마음이 급해질 때 무엇을 먼저 회복해야 하는지 살핍니다.",
+  sukuyo: "숙요는 이 근거를 관계의 속도로 읽으며, 상대의 속마음이 아니라 실제 대화와 거리의 변화를 봅니다.",
+  astrology: "점성술은 이 근거를 정서와 행동이 만나는 지점으로 읽어, 원하는 것과 바로 행동할 수 있는 것을 구분합니다.",
+  tarot: "타로는 이 근거를 현재 선택을 비추는 상징으로 읽으며, 카드가 결정을 대신한다고 말하지 않습니다.",
 });
 
 function safeText(value, max = 420) {
@@ -102,6 +130,48 @@ function collectEvidence(context, topic) {
     .slice(0, 3);
 }
 
+function adapterQuestionAnchors(name, data) {
+  if (!data || typeof data !== "object") return [];
+  const fields = ADAPTER_QUESTION_FIELDS[name] || [];
+  const values = [];
+  for (const field of fields) {
+    if (field === "cards") {
+      for (const card of Array.isArray(data.cards) ? data.cards : []) {
+        const cardValue = safeText(card?.meaningSummary || card?.name, 150);
+        if (cardValue) values.push(cardValue);
+      }
+      continue;
+    }
+    if (Array.isArray(data[field])) {
+      values.push(...data[field].map((item) => safeText(item, 150)).filter(Boolean));
+      continue;
+    }
+    const value = safeText(data[field], 180);
+    if (value) values.push(value);
+  }
+  return [...new Set(values)].slice(0, 2);
+}
+
+function buildQuestionSpecificEvidence(context, questionFocus) {
+  const requested = context?.inputSummary?.category;
+  const available = Array.isArray(context?.availableSystems) ? context.availableSystems : [];
+  const category = available.includes(requested) ? requested : available[0];
+  const meta = ADAPTER_EVIDENCE_LABELS[category];
+  if (!category || !meta) {
+    return `질문의 핵심은 ${questionFocus.label}입니다. 계산 가능한 근거가 충분하지 않은 부분은 단정하지 않고, 지금 확인할 수 있는 행동을 기준으로 답하겠습니다.`;
+  }
+  const anchors = adapterQuestionAnchors(category, context?.[category]);
+  const perspective = ADAPTER_QUESTION_PERSPECTIVES[category] || meta.role;
+  const specialistMove = ADAPTER_QUESTION_SPECIALIST_MOVES[category] || "계산 근거를 현재의 선택 기준으로 번역합니다.";
+  if (anchors.length >= 2) {
+    return `“${questionFocus.label}”에 관한 질문에 ${meta.label}은 ${perspective}의 관점에서 “${anchors[0]}”, “${anchors[1]}”라는 계산 근거를 함께 보여줍니다. ${specialistMove} 그래서 답은 서두른 결론보다 이 두 흐름이 실제 상황에서 어떻게 반복되는지 확인하는 데 있습니다.`;
+  }
+  if (anchors.length === 1) {
+    return `“${questionFocus.label}”에 관한 질문에 ${meta.label}은 ${perspective}의 관점에서 “${anchors[0]}”라는 계산 근거를 보여줍니다. ${specialistMove} 이 근거 하나로 결론을 정하지 않고, 지금의 선택에서 확인할 기준으로 쓰겠습니다.`;
+  }
+  return `“${questionFocus.label}”에 관한 질문을 ${meta.label}의 ${perspective} 관점에서 읽되, 계산 결과에 없는 정보는 덧붙이지 않겠습니다.`;
+}
+
 function unavailableNote(context) {
   const claims = Array.isArray(context?.unavailableClaims) ? context.unavailableClaims : [];
   if (!claims.length) return "계산되지 않은 영역은 억지로 단정하지 않고, 확인 가능한 흐름만 바탕으로 읽었습니다.";
@@ -126,6 +196,7 @@ function buildPremiumReason(insight, topic) {
  */
 export function buildContextDrivenGuardianFallback({ input = {}, context = {}, reason = "" } = {}) {
   const { topic, mode } = topicAndMode(input, context);
+  const questionFocus = buildFortuneQuestionFocus({ concern: input.concern, topic });
   const insight = insightOf(context);
   const guidance = TOPIC_GUIDANCE[topic];
   const contract = getTopicContract(topic);
@@ -137,6 +208,7 @@ export function buildContextDrivenGuardianFallback({ input = {}, context = {}, r
   const caution = safeText(insight.cautionPattern, 300) || guidance.caution;
   const action = safeText(insight.luckyActionHint, 320) || guidance.action;
   const evidence = collectEvidence(context, topic);
+  const questionEvidence = buildQuestionSpecificEvidence(context, questionFocus);
   const evidenceSentence = evidence.length >= 2
     ? evidence.length >= 3
       ? `${evidence[0]}라는 단서, ${evidence[1]}라는 흐름, 그리고 ${evidence[2]}라는 상징이 같은 방향을 겹쳐 가리킵니다. 서로 다른 체계가 반복해서 찍어주는 지점은 오늘의 핵심 패턴으로 우선 봅니다.`
@@ -145,7 +217,7 @@ export function buildContextDrivenGuardianFallback({ input = {}, context = {}, r
       ? `${evidence[0]}라는 단서가 이번 해석의 중심에 놓입니다. 다만 한 체계의 근거만으로 모든 결론을 확정하지는 않고, 낮은 확신의 조언으로 정리합니다.`
       : "계산된 흐름은 감정과 현실의 순서를 함께 살필 때 더 선명해집니다.";
 
-  return {
+  const baseResult = {
     title: GUARDIAN_FORTUNE_SAFE_RESULT_DEFAULTS.title,
     openingLine: buildModeVoice(mode, topic, hook),
     innerState: `지금 마음에는 ${concern}이(가) 함께 놓여 있어 보여요. ${hook || "겉으로는 괜찮아 보여도 속에서는 이미 여러 가능성을 비교하고 있는 모습"}이(가) 있어, 감정을 억지로 밀어내기보다 내가 확인할 수 있는 부분과 조금 더 기다려야 하는 부분을 나누는 것이 좋아요. ${unavailableNote(context)}`,
@@ -161,6 +233,13 @@ export function buildContextDrivenGuardianFallback({ input = {}, context = {}, r
     },
     shareText: `${GUARDIAN_FORTUNE_MODE_SHARE_HINTS[mode]} ${contract.shareHint}`,
     _reason: reason,
+  };
+  return {
+    ...baseResult,
+    openingLine: `${baseResult.openingLine} 지금 답할 질문은 ${questionFocus.answerFrame}입니다.`,
+    innerState: `지금 질문은 ${questionFocus.answerFrame}에 대한 답을 찾고 있어요. ${baseResult.innerState}`,
+    coreReading: `${questionEvidence} ${baseResult.coreReading}`,
+    topicAdvice: `질문에 바로 답하면, ${questionFocus.answerFrame}에서는 ${advice}가 먼저입니다. ${questionFocus.actionFrame} ${baseResult.topicAdvice}`,
   };
 }
 

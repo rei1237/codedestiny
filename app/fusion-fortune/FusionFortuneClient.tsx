@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import styles from "./fusion-fortune.module.css";
 
 type Status = {
@@ -33,6 +34,8 @@ type PortOneConfig = { storeId: string; channelKey: string; currency?: string; p
 type PortOneResponse = { paymentId?: string; code?: string; message?: string };
 type BirthPlaceOption = { label: string; tz: string; lon: number; lat: number; country?: string };
 type BirthPlaceGroup = { label?: string; places?: BirthPlaceOption[] };
+type FusionStageKey = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology" | "tarot" | "fusion";
+type FusionStageState = "pending" | "active" | "completed";
 
 declare global {
   interface Window { BIRTH_PLACE_GROUPS?: BirthPlaceGroup[] }
@@ -51,6 +54,20 @@ const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSect
 const SECTION_ICONS = ["木", "紫", "ॐ", "宿", "✦", "◇", "∞"];
 const FUSION_PENDING_PAYMENT_KEY = "fusion_fortune_pending_payment";
 const DEFAULT_BIRTH_PLACES: BirthPlaceOption[] = [{ label: "대한민국 · 서울", tz: "Asia/Seoul", lon: 126.978, lat: 37.5665, country: "KR" }];
+const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
+const FUSION_STAGES: { key: FusionStageKey; label: string; message: string }[] = [
+  { key: "saju", label: "사주", message: "사주의 계절과 기질을 읽고 있어요." },
+  { key: "ziwei", label: "자미두수", message: "자미두수의 주제 흐름을 연결하고 있어요." },
+  { key: "sukuyo", label: "숙요", message: "숙요의 관계 리듬을 살피고 있어요." },
+  { key: "vedic", label: "베다", message: "베다점의 시기 흐름을 살피고 있어요." },
+  { key: "astrology", label: "점성술", message: "점성술의 표현과 선택 패턴을 정리하고 있어요." },
+  { key: "tarot", label: "타로", message: "질문에 맞는 타로 스프레드를 연결하고 있어요." },
+  { key: "fusion", label: "Fusion", message: "모든 흐름을 하나의 읽기로 융합하고 있어요." },
+];
+
+function initialStageStates(): Record<FusionStageKey, FusionStageState> {
+  return FUSION_STAGES.reduce((states, stage) => ({ ...states, [stage.key]: "pending" }), {} as Record<FusionStageKey, FusionStageState>);
+}
 
 function FusionOrb() {
   return (
@@ -92,6 +109,52 @@ async function parseJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function consumeFusionStream(
+  response: Response,
+  onEvent: (event: string, payload: Record<string, unknown>) => void,
+): Promise<Record<string, unknown>> {
+  if (!response.ok || !response.body || !response.headers.get("content-type")?.includes("text/event-stream")) {
+    const fallback = await response.json().catch(() => ({})) as { message?: string };
+    throw new Error(fallback.message || "분석 연결을 시작하지 못했어요.");
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let finalPayload: Record<string, unknown> | null = null;
+  const processBlock = (block: string) => {
+    let event = "message";
+    let data = "";
+    block.split(/\r?\n/).forEach((line) => {
+      if (line.startsWith("event:")) event = line.slice(6).trim();
+      if (line.startsWith("data:")) data += line.slice(5).trim();
+    });
+    if (!data) return;
+    const payload = JSON.parse(data) as Record<string, unknown>;
+    onEvent(event, payload);
+    if (event === "result") finalPayload = payload;
+    if (event === "complete" && finalPayload) finalPayload = { ...finalPayload, ...payload };
+    if (event === "error") throw new Error(String(payload.message || "분석을 완료하지 못했어요."));
+  };
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary >= 0) {
+        processBlock(buffer.slice(0, boundary));
+        buffer = buffer.slice(boundary + 2);
+        boundary = buffer.indexOf("\n\n");
+      }
+    }
+    if (buffer.trim()) processBlock(buffer);
+  } finally {
+    reader.releaseLock();
+  }
+  if (!finalPayload) throw new Error("분석 결과를 받지 못했어요. 다시 시도해 주세요.");
+  return finalPayload;
+}
+
 export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) {
   const apiBase = getApiBaseUrl();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
@@ -104,6 +167,13 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   const [paymentPhone, setPaymentPhone] = useState("");
   const [birthPlaces, setBirthPlaces] = useState<BirthPlaceOption[]>(DEFAULT_BIRTH_PLACES);
   const redirectHandled = useRef(false);
+  const requestAbortRef = useRef<AbortController | null>(null);
+  const profileTouchedRef = useRef(false);
+  const coreDialogRef = useRef<HTMLDialogElement>(null);
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const [stageStates, setStageStates] = useState<Record<FusionStageKey, FusionStageState>>(initialStageStates);
+  const [openSection, setOpenSection] = useState<string>("");
+  const [guardianHandoff, setGuardianHandoff] = useState<{ topic: string; category: string } | null>(null);
   const [form, setForm] = useState({ birthDate: "", birthTime: "", birthTimeUnknown: false, birthPlaceKey: "", calendarType: "solar", gender: "unspecified", nickname: "", topic: "삶의 전반적인 흐름", concern: "" });
 
   const refresh = useCallback(async () => {
@@ -138,6 +208,44 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   }, [apiBase, refresh]);
 
   useEffect(() => { void Promise.all([refresh(), loadCatalog()]); }, [loadCatalog, refresh]);
+
+  useEffect(() => {
+    if (!profileSeed || profileTouchedRef.current) return;
+    setForm((previous) => ({
+      ...previous,
+      birthDate: previous.birthDate || profileSeed.birthDate || "",
+      birthTime: previous.birthTime || profileSeed.birthTime || "",
+      birthTimeUnknown: previous.birthTime || profileSeed.birthTime ? false : Boolean(profileSeed.birthTimeUnknown),
+      calendarType: previous.calendarType === "lunar" ? "lunar" : profileSeed.calendarType || previous.calendarType,
+      gender: previous.gender !== "unspecified" ? previous.gender : profileSeed.gender === "female" || profileSeed.gender === "male" ? profileSeed.gender : previous.gender,
+      nickname: previous.nickname || profileSeed.name || "",
+    }));
+  }, [profileSeed, seedVersion]);
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(FUSION_HANDOFF_KEY);
+      window.sessionStorage.removeItem(FUSION_HANDOFF_KEY);
+      if (!raw) return;
+      const handoff = JSON.parse(raw) as { version?: number; source?: string; topic?: string; category?: string; createdAt?: number };
+      const fresh = Number.isFinite(Number(handoff.createdAt)) && Date.now() - Number(handoff.createdAt) < 30 * 60 * 1000;
+      const allowedCategories = ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"];
+      if (handoff.version !== 1 || handoff.source !== "guardian" || !fresh || !allowedCategories.includes(String(handoff.category))) return;
+      const topics: Record<string, string> = {
+        love: "연애와 관계",
+        money_work: "돈과 일",
+        relationship: "연애와 관계",
+        mind: "마음과 회복",
+        decision: "삶의 전반적인 흐름",
+        daily: "삶의 전반적인 흐름",
+      };
+      setGuardianHandoff({ topic: String(handoff.topic || "daily"), category: String(handoff.category) });
+      setForm((previous) => ({ ...previous, topic: topics[String(handoff.topic)] || previous.topic }));
+      setNotice("연이가 남긴 주제만 이어받았어요. 출생 정보와 질문은 여기에서 다시 확인해 주세요.");
+    } catch {
+      // A malformed or unavailable handoff is discarded without affecting access.
+    }
+  }, []);
 
   useEffect(() => {
     const applyPlaces = () => {
@@ -220,6 +328,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
     if (status.nextAction === "buy_ticket") { document.getElementById("ticket")?.scrollIntoView({ behavior: "smooth" }); return; }
     if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError("생년월일과 생시를 입력하거나, 생시를 모르는 경우를 선택해 주세요."); return; }
+    requestAbortRef.current?.abort();
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    setStageStates(initialStageStates());
     setLoading(true);
     try {
       const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
@@ -234,15 +346,36 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         concern: form.concern,
         ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
       };
-      const response = await authFetch(`${apiBase}/api/fusion-fortune/generate`, {
-        method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify(requestBody),
+      const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
+        method: "POST", credentials: "include", signal: controller.signal,
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify(requestBody),
       }, { retryOn401: true, apiBase });
-      const payload = await parseJson<{ ok?: boolean; message?: string; result?: Result; fusionStatus?: Status }>(response);
-      if (!response.ok || !payload.ok || !payload.result || !payload.fusionStatus) throw new Error(payload.message || "결과를 생성하지 못했어요.");
-      setResult(payload.result); setStatus(payload.fusionStatus); setNotice("결과가 완성되어 오늘의 선착순 자리가 확정됐어요.");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "결과를 생성하지 못했어요."); }
-    finally { setLoading(false); }
+      const payload = await consumeFusionStream(response, (streamEvent, streamPayload) => {
+        if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
+        const completed = streamPayload.stage as FusionStageKey;
+        if (!FUSION_STAGES.some((stage) => stage.key === completed)) return;
+        setStageStates(() => {
+          const completedIndex = FUSION_STAGES.findIndex((stage) => stage.key === completed);
+          return FUSION_STAGES.reduce((next, stage, index) => ({
+            ...next,
+            [stage.key]: index <= completedIndex ? "completed" : index === completedIndex + 1 ? "active" : "pending",
+          }), {} as Record<FusionStageKey, FusionStageState>);
+        });
+      });
+      const streamResult = payload.result as Result | undefined;
+      const fusionStatus = payload.fusionStatus as Status | undefined;
+      if (!streamResult || !fusionStatus) throw new Error(String(payload.message || "결과를 생성하지 못했어요."));
+      setResult(streamResult); setStatus(fusionStatus); setNotice("결과가 완성되어 오늘의 선착순 자리가 확정됐어요.");
+    } catch (cause) {
+      if ((cause as Error)?.name === "AbortError") setNotice("분석을 중단했어요. 완료 전 중단된 요청은 상담권과 선착순 자리를 차감하지 않아요.");
+      else setError(cause instanceof Error ? cause.message : "결과를 생성하지 못했어요.");
+    } finally {
+      if (requestAbortRef.current === controller) requestAbortRef.current = null;
+      setLoading(false);
+    }
   };
+
+  const cancelGeneration = () => requestAbortRef.current?.abort();
 
   const share = async () => {
     if (!result) return;
@@ -255,6 +388,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   };
 
   const buttonLabel = loading ? "여섯 전문가의 흐름을 엮는 중…" : status.nextAction === "login" ? "로그인하고 이용권 확인하기" : status.nextAction === "buy_ticket" ? "이용권 구매 영역으로 이동" : "초융합 운세 생성하기";
+  const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
 
   return <main className={styles.page}>
     <section className={styles.hero}>
@@ -265,6 +399,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <p className={styles.kicker}>초융합 운세</p><h1>여섯 개의 해석을<br />하나의 상담으로</h1>
         <p>사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 지금의 선택과 현실 행동으로 하나로 엮습니다.</p>
         <div className={styles.heroMeta}><span className={styles.firstCome}>선착순! 하루 100명</span><span>1회 10,000원</span><span>10,000~15,000자</span></div>
+        <p className={styles.chatLead}>Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.</p>
       </div>
       <FusionOrb />
     </section>
@@ -279,9 +414,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       <div className={styles.status}>
         <div><span>오늘 선착순 남은 자리</span><strong>{status.dailyLimit.remainingCount} / 100</strong><div className={styles.progress}><i style={{ width: `${usedPercent}%` }} /></div><small>성공 결과가 완성된 순서대로 자리가 확정돼요.</small></div>
         <div><span>초융합 운세 상담권</span><strong>{status.ticket.remaining}회</strong><small>일반 이용권·family 이용권·대화권과 별도예요.</small></div>
+        <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">Fusion Core 진행 방식 보기</button>
       </div>
-      {status.dailyLimit.isSoldOut ? <div className={styles.sold}><p className={styles.kicker}>오늘 선착순 마감</p><h2>오늘의 100자리가 모두 채워졌어요.</h2><p>이용권은 차감되지 않았습니다. 다음 접수는 한국 시간 {resetTime} 이후에 열립니다.</p><div className={styles.soldLinks}><Link href="/#guardian-fortune">오늘의 귀인 보기</Link><Link href="/tarot">타로 둘러보기</Link></div></div> : <form className={styles.form} onSubmit={submit}>
-        <div className={styles.formIntro}><p className={styles.kicker}>나의 흐름 입력</p><h2>정확한 생시로 여섯 체계를 연결해요</h2><p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p></div>
+      {status.dailyLimit.isSoldOut ? <div className={styles.sold}><p className={styles.kicker}>오늘 선착순 마감</p><h2>오늘의 100자리가 모두 채워졌어요.</h2><p>이용권은 차감되지 않았습니다. 다음 접수는 한국 시간 {resetTime} 이후에 열립니다.</p><div className={styles.soldLinks}><Link href="/#guardian-fortune">오늘의 귀인 보기</Link><Link href="/tarot">타로 둘러보기</Link></div></div> : <form className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+        <div className={styles.formIntro}><p className={styles.kicker}>Fusion AI · 상담 시작</p><h2>정확한 생시로 여섯 체계를 연결해요</h2><p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p>{guardianHandoff && <p className={styles.handoffNotice}>연이가 남긴 <strong>{guardianHandoff.topic}</strong> 주제만 이어받았어요. 개인 대화와 결과 원문은 가져오지 않았습니다.</p>}<button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>저장한 프로필 다시 불러오기</button></div>
         <label>생년월일<input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
         <label>생시<input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
         <label>출생지<select value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">출생지를 몰라요</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>베다점·서양 점성술의 위치 계산에 사용해요.</small></label>
@@ -293,6 +429,12 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <p className={styles.notice}>{status.message}</p>{notice && <p className={styles.success} role="status">{notice}</p>}{error && <p className={styles.error} role="alert">{error}</p>}
         <button disabled={loading || status.nextAction === "disabled"} type="submit">{buttonLabel}</button>
       </form>}
+      {loading && <section className={styles.progressCanvas} aria-live="polite" aria-label="초융합 분석 진행 상황">
+        <div className={styles.progressOrb}><FusionOrb /></div>
+        <div><p className={styles.kicker}>Fusion Core 활성화</p><h2>{FUSION_STAGES.find((stage) => stageStates[stage.key] === "active")?.message || "분석 준비를 확인하고 있어요."}</h2><p>각 항목은 서버에서 실제 분석이 완료된 뒤 표시됩니다.</p></div>
+        <ol className={styles.stageList}>{FUSION_STAGES.map((stage) => <li className={stageStates[stage.key] === "completed" ? styles.stageComplete : stageStates[stage.key] === "active" ? styles.stageActive : styles.stagePending} key={stage.key}><span>{stageStates[stage.key] === "completed" ? "완료" : stageStates[stage.key] === "active" ? "진행 중" : "대기"}</span>{stage.label}</li>)}</ol>
+        <button className={styles.cancelGeneration} type="button" onClick={cancelGeneration}>분석 중단하기</button>
+      </section>}
     </section>
 
     {!status.dailyLimit.isSoldOut && status.ticket.remaining < 1 && <section className={styles.ticket} id="ticket" aria-labelledby="fusion-ticket-heading">
@@ -300,7 +442,21 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       <div className={styles.ticketAction}><strong>{(ticketProduct?.priceKRW || 10000).toLocaleString("ko-KR")}원</strong><label>결제용 휴대전화 번호<input inputMode="numeric" autoComplete="tel" value={paymentPhone} onChange={(event) => setPaymentPhone(event.target.value)} placeholder="01012345678" maxLength={13} /></label><button type="button" disabled={purchaseBusy || !ticketProduct} onClick={() => void startPurchase()}>{purchaseBusy ? "결제 준비 중…" : "단건 결제로 구매하기"}</button><small>실제 결제 전 PG 결제창에서 금액을 다시 확인할 수 있어요.</small></div>
     </section>}
 
-    {result && <section className={styles.result}><header><p className={styles.kicker}>나의 초융합 리딩</p><h2>{result.title}</h2><p>{result.openingMessage}</p></header><article className={styles.summary}>{result.executiveSummary}</article>{SECTION_KEYS.map((key, index) => <details key={key} open={index === 0}><summary><span>{SECTION_ICONS[index]}</span>{result[key].title}</summary><p>{result[key].content}</p><ul>{result[key].keyPoints.map((point) => <li key={point}>{point}</li>)}</ul></details>)}<details open><summary><span>→</span>{result.timingAndAction.title}</summary><p>{result.timingAndAction.content}</p><h3>이번 흐름에서 해볼 일</h3><ul>{result.timingAndAction.luckyActions.map((item) => <li key={item}>{item}</li>)}</ul><h3>주의해서 볼 반복 패턴</h3><ul>{result.timingAndAction.cautionPatterns.map((item) => <li key={item}>{item}</li>)}</ul></details><p className={styles.closing}>{result.closingMessage}</p><div className={styles.resultActions}><button className={styles.share} onClick={() => void share()}>개인정보 제외 요약 공유</button><Link href="/#guardian-fortune">오늘의 귀인에게 이어서 묻기</Link></div></section>}
+    {result && <section className={styles.result}><header><p className={styles.kicker}>Fusion AI · 결과 대화</p><h2>{result.title}</h2><p>{result.openingMessage}</p></header><article className={styles.summary}>{result.executiveSummary}</article>{SECTION_KEYS.map((key, index) => {
+      const expanded = openSection === key || (!openSection && index === 0);
+      return <article className={styles.resultMessage} key={key}><h3><button type="button" aria-expanded={expanded} aria-controls={`fusion-section-${key}`} onClick={() => toggleSection(key)}><span>{SECTION_ICONS[index]}</span>{result[key].title}<b>{expanded ? "접기" : "근거 보기"}</b></button></h3>{expanded && <div id={`fusion-section-${key}`} className={styles.sectionBody}><p>{result[key].content}</p><ul>{result[key].keyPoints.map((point) => <li key={point}>{point}</li>)}</ul></div>}</article>;
+    })}{(() => {
+      const timingKey = "timing";
+      const expanded = openSection === timingKey;
+      return <article className={styles.resultMessage}><h3><button type="button" aria-expanded={expanded} aria-controls="fusion-section-timing" onClick={() => toggleSection(timingKey)}><span>→</span>{result.timingAndAction.title}<b>{expanded ? "접기" : "행동 보기"}</b></button></h3>{expanded && <div id="fusion-section-timing" className={styles.sectionBody}><p>{result.timingAndAction.content}</p><h4>이번 흐름에서 해볼 일</h4><ul>{result.timingAndAction.luckyActions.map((item) => <li key={item}>{item}</li>)}</ul><h4>주의해서 볼 반복 패턴</h4><ul>{result.timingAndAction.cautionPatterns.map((item) => <li key={item}>{item}</li>)}</ul></div>}</article>;
+    })()}<p className={styles.closing}>{result.closingMessage}</p><div className={styles.resultActions}><button className={styles.share} onClick={() => void share()}>개인정보 제외 요약 공유</button><Link href="/#guardian-fortune">오늘의 귀인에게 이어서 묻기</Link></div></section>}
+    <dialog ref={coreDialogRef} className={styles.coreDialog} aria-labelledby="fusion-core-dialog-title">
+      <form method="dialog"><button className={styles.dialogClose} aria-label="Fusion Core 설명 닫기">닫기</button></form>
+      <p className={styles.kicker}>Fusion Core</p><h2 id="fusion-core-dialog-title">완료된 분석만 연결합니다</h2>
+      <p>사주, 자미두수, 숙요, 베다점, 점성술, 타로를 각각 마친 뒤 마지막에 하나의 읽기로 융합합니다.</p>
+      <ol>{FUSION_STAGES.map((stage) => <li key={stage.key}><strong>{stage.label}</strong><span>{stage.message}</span></li>)}</ol>
+      <p className={styles.dialogNote}>중단·실패한 분석은 완료 전 예약을 해제하며, 결과가 완성될 때만 상담권과 오늘의 자리가 확정됩니다.</p>
+    </dialog>
     {seoContent}
   </main>;
 }
