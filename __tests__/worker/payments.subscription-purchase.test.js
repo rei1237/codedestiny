@@ -498,6 +498,7 @@ describe("달빛 이용권 상점 — 월정석 구매 차단", () => {
 
       expect(status).toBe(400);
       expect(payload.code).toBe("SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED");
+      expect(payload.message).toBe("이용권은 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.");
       expect(Payment.findOne).not.toHaveBeenCalled();
       expect(Payment.create).not.toHaveBeenCalled();
       expect(Payment.findByIdAndUpdate).not.toHaveBeenCalled();
