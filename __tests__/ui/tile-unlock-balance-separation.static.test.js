@@ -69,7 +69,8 @@ test("paid pass snapshot remains optimistic while direct checkout still requires
 
   assert.match(paidAccessBlock, /_cdCoverageFromSubscriptionSnapshot\(coinCost,\s*\{\s*allowStaleNone:\s*true\s*\}\)/);
   assert.match(paidAccessBlock, /return _cdBuildOptimisticPassAccess/);
-  assert.match(passModalBlock, /allowSnapshotFastPath:\s*true/);
+  assert.match(passModalBlock, /allowSnapshotFastPath:\s*false/);
+  assert.doesNotMatch(passModalBlock, /allowSnapshotFastPath:\s*true/);
   assert.match(precheckCacheBlock, /status === 'pass_applied'/);
   assert.match(directCheckoutBlock, /var allowDirectCheckoutAccessBypass = opts\.allowServerAccessBypass === true && opts\.forceDirectPayment !== true/);
   assert.match(directCheckoutBlock, /!order\.merchantUid && allowDirectCheckoutAccessBypass && _cdIsCheckoutAccessBypass/);
