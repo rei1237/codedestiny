@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "style": "CODE DESTINY 고급 애니풍 비주얼 노벨",
+  "assets": [
+    {
+      "id": "yeon-human-sprite-set-v1",
+      "path": "yeon/*.webp",
+      "type": "transparent-character-sprites",
+      "count": 12,
+      "source": "existing-approved-Yeon-artwork",
+      "usage": "연이 인간형 표정·입장·퇴장",
+      "maxTotalBytes": 850000
+    },
+    {
+      "id": "moka-expression-sheet-v1",
+      "file": "moka-sheet.webp",
+      "type": "transparent-character-sprite-sheet",
+      "dimensions": "1536x1024, 3x2",
+      "source": "existing-approved-Moka-artwork + built-in-imagegen expression derivation",
+      "usage": "모카 표정·입장·감정 반응",
+      "maxBytes": 360000
+    },
+    {
+      "id": "crow-sprite-set-v1",
+      "path": "crow/*.webp",
+      "type": "transparent-character-sprites",
+      "count": 2,
+      "source": "existing-approved-crow-artwork",
+      "usage": "까마귀 빌런 등장·퇴장",
+      "maxTotalBytes": 250000
+    },
+    {
+      "id": "river-of-names-v1",
+      "file": "river-of-names-v1.webp",
+      "type": "background",
+      "dimensions": "1920x1080",
+      "usage": "사주의 강 · 달빛 · 별자리 전환 장면",
+      "parallax": "분리 레이어가 준비되기 전에는 미세 카메라 이동을 사용",
+      "maxBytes": 320000
+    },
+    {
+      "id": "tarot-door-awakening-v1",
+      "file": "tarot-door-awakening-v1.webp",
+      "type": "event-background",
+      "dimensions": "1920x1080",
+      "source": "built-in-imagegen",
+      "usage": "Prologue tarot door opening",
+      "parallax": "foreground papers, room midground, portal background use camera drift",
+      "maxBytes": 200000
+    },
+    {
+      "id": "abyss-moon-awakening-v1",
+      "file": "abyss-moon-awakening-v1.webp",
+      "type": "event-background",
+      "dimensions": "1920x1080",
+      "source": "built-in-imagegen",
+      "usage": "EP.04 abyss name awakening",
+      "parallax": "water surface, vines, abyss ruins use camera drift",
+      "maxBytes": 220000
+    },
+    {
+      "id": "mirror-trial-v1",
+      "file": "mirror-trial-v1.webp",
+      "type": "event-background",
+      "dimensions": "1920x1080",
+      "source": "built-in-imagegen",
+      "usage": "EP.05 mirror final trial",
+      "parallax": "floor foreground, mirrors midground, moonlight background use camera drift",
+      "maxBytes": 240000
+    },
+    {
+      "id": "memory-vault-release-v1",
+      "file": "memory-vault-release-v1.webp",
+      "type": "late-arc-event-background",
+      "dimensions": "1672x941",
+      "source": "built-in-imagegen",
+      "usage": "EP.36 stolen memories archive reveal",
+      "parallax": "foreground loom, archive shelves, distant passage use camera drift",
+      "maxBytes": 240000
+    },
+    {
+      "id": "clear-moon-waterway-v1",
+      "file": "clear-moon-waterway-v1.webp",
+      "type": "late-arc-event-background",
+      "dimensions": "1672x941",
+      "source": "built-in-imagegen",
+      "usage": "EP.41 Luna and Mu opening the cleansing waterway",
+      "parallax": "foreground water, suspended threads, distant moon opening use camera drift",
+      "maxBytes": 330000
+    },
+    {
+      "id": "cherry-moon-portal-promise-v1",
+      "file": "cherry-moon-portal-promise-v1.webp",
+      "type": "late-arc-event-background",
+      "dimensions": "1672x941",
+      "source": "built-in-imagegen",
+      "usage": "EP.43 friends arriving through the final tarot portal",
+      "parallax": "foreground petals, riverside midground, portal and moonlit world background use camera drift",
+      "maxBytes": 370000
+    }
+  ]
+}

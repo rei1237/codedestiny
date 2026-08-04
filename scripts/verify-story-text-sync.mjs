@@ -1,48 +1,50 @@
-// lib/stories/vn/episodes.generated.json 이 public/codedestiny-novel.html 과 어긋나지 않았는지 검사.
-//
-// VN HTML 이 authoritative source 이고 JSON 은 파생물이다. 원본만 고치고 재생성을 잊으면
-// 텍스트 리더가 옛 이야기를 계속 보여 주게 되므로, prebuild 에서 막는다.
-// 어긋나면: node scripts/build-story-text.mjs 후 커밋.
+// 정본과 정적 플레이어 청크/텍스트 리더 산출물이 한 번에 동기화됐는지 검사한다.
 import { existsSync, readFileSync } from "node:fs";
-import { buildStoryPayload, STORY_OUTPUT_PATH, STORY_SOURCE_PATH } from "./build-story-text.mjs";
+import { dirname, resolve } from "node:path";
+import { buildNovelPayload, MANIFEST_PATH, READER_OUTPUT_PATH, SOURCE_PATH, readerPayload } from "./build-novel-runtime.mjs";
 
 function fail(message) {
   console.error(`[story-text-sync] ${message}`);
   process.exit(1);
 }
 
-if (!existsSync(STORY_SOURCE_PATH)) fail(`missing source: ${STORY_SOURCE_PATH}`);
-if (!existsSync(STORY_OUTPUT_PATH)) {
-  fail("missing lib/stories/vn/episodes.generated.json — run: node scripts/build-story-text.mjs");
+for (const path of [SOURCE_PATH, MANIFEST_PATH, READER_OUTPUT_PATH]) {
+  if (!existsSync(path)) fail(`missing generated source or output: ${path}`);
 }
 
-const expected = buildStoryPayload(readFileSync(STORY_SOURCE_PATH, "utf8"));
-
-let actual;
+const expected = buildNovelPayload();
+let manifest;
+let reader;
 try {
-  actual = JSON.parse(readFileSync(STORY_OUTPUT_PATH, "utf8"));
+  manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
+  reader = JSON.parse(readFileSync(READER_OUTPUT_PATH, "utf8"));
 } catch (error) {
   fail(`generated json is not parseable: ${error.message}`);
 }
 
-if (actual.sourceHash !== expected.sourceHash) {
-  fail(
-    `source changed but generated json was not rebuilt (expected ${expected.sourceHash}, found ${actual.sourceHash}) — run: node scripts/build-story-text.mjs`,
-  );
+for (const [label, output] of [["manifest", manifest], ["reader", reader]]) {
+  if (output.sourceHash !== expected.sourceHash) fail(`${label} is stale — run: npm run story:generate`);
+  if (!Array.isArray(output.episodes) || output.episodes.length !== expected.episodeCount) {
+    fail(`${label} episode count mismatch (expected ${expected.episodeCount}, found ${output.episodes?.length})`);
+  }
 }
 
-if (!Array.isArray(actual.episodes) || actual.episodes.length !== expected.episodes.length) {
-  fail(`episode count mismatch (expected ${expected.episodes.length}, found ${actual.episodes?.length})`);
+for (const meta of manifest.episodes) {
+  const chunkPath = resolve(dirname(MANIFEST_PATH), "episodes", `${meta.id}.json`);
+  if (!existsSync(chunkPath)) fail(`missing episode chunk: ${meta.path}`);
+  const chunk = JSON.parse(readFileSync(chunkPath, "utf8"));
+  if (chunk.sourceHash !== expected.sourceHash || chunk.id !== meta.id || chunk.beats.length !== meta.beatCount) {
+    fail(`invalid episode chunk: ${meta.path}`);
+  }
+  if (chunk.beats.some((beat) => beat.scene && !beat.a11y?.description)) fail(`accessibility description missing in ${meta.id}`);
 }
+
+const expectedReader = readerPayload(expected);
+if (JSON.stringify(reader) !== JSON.stringify(expectedReader)) fail("text reader output does not match canonical source");
 
 const thin = expected.episodes.filter(
   (episode) => episode.beats.reduce((sum, beat) => sum + (beat.t.match(/[가-힣]/g) || []).length, 0) < 1800,
 );
-if (thin.length > 0) {
-  // 각 화가 색인 대상이므로 게이트 임계(1,800자) 미만이면 배포가 막힌다. 미리 잡는다.
-  fail(`episodes below the 1800-char indexable threshold: ${thin.map((episode) => episode.slug).join(", ")}`);
-}
+if (thin.length > 0) fail(`episodes below the 1800-char indexable threshold: ${thin.map((episode) => episode.id).join(", ")}`);
 
-console.log(
-  `[story-text-sync] OK: ${expected.episodes.length} episodes in sync (hash ${expected.sourceHash})`,
-);
+console.log(`[story-text-sync] OK: ${expected.episodeCount} episodes · ${expected.beatCount.toLocaleString("ko-KR")} beats in sync (hash ${expected.sourceHash.slice(0, 16)})`);
