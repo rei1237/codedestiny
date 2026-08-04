@@ -112,6 +112,29 @@ function normalizePaymentMethod(value) {
   return method ? method.slice(0, 32) : "unknown";
 }
 
+const SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_CODE = "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED";
+const SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_MESSAGE = "이용권은 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.";
+
+function isSubscriptionMonthlyCreditMethod(value) {
+  const normalized = String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return [
+    "monthly",
+    "monthly_credit",
+    "membership_credit",
+    "moonlight_stone",
+    "moonlightstone",
+    "moonlight_credit",
+    "monthly_billing",
+  ].includes(normalized);
+}
+
+function rejectSubscriptionMonthlyCreditPurchase() {
+  return json({
+    message: SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_MESSAGE,
+    code: SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_CODE,
+  }, { status: 400 });
+}
+
 async function rejectPurchasePolicy(request, env, auth, decision, context = {}) {
   if (decision?.allowed) return null;
   await writeSecurityLog({
@@ -3913,6 +3936,9 @@ async function handleSubscriptionPrepare(request, env, auth) {
   }
 
   const paymentMethod = normalizePaymentMethod(body?.paymentMethod || "card_general");
+  if (isSubscriptionMonthlyCreditMethod(paymentMethod)) {
+    return rejectSubscriptionMonthlyCreditPurchase();
+  }
   // 라우터가 인증과 같은 조회에서 profileSubscription 을 함께 읽어줬으면 재조회하지 않는다
   // (결제창 진입 왕복 1회 절감). refresh/admin 폴백 경로 등 authUserDoc 부재 시에만 직접 읽는다.
   const currentUser = auth.authUserDoc
@@ -4095,425 +4121,6 @@ async function handleSubscriptionPrepare(request, env, auth) {
   }, { status: 201 });
 }
 
-async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint }) {
-  const requestId = String(body?.requestId || body?.idempotencyKey || body?.merchantUid || "").trim().slice(0, 160)
-    || `sub_monthly_${Date.now()}_${tier}_${String(auth.userId || "user").slice(-8)}`;
-  const merchantUid = String(body?.merchantUid || body?.merchant_uid || requestId).trim().slice(0, 160);
-  const customerUid = String(body?.customerUid || "").trim() || buildSubscriptionCustomerUid(auth.userId);
-  const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
-
-  let existingPayment = await Payment.findOne({
-    userId: auth.userId,
-    paymentType: "membership_pass",
-    idempotencyKey: requestId,
-  }).sort({ createdAt: -1 }).lean();
-
-  if (existingPayment?.status === "success") {
-    const currentUser = await User.findById(auth.userId).select("points profileSubscription").lean();
-    const sub = currentUser?.profileSubscription || {};
-    return json({
-      message: "Membership pass monthly-credit payment already processed.",
-      idempotent: true,
-      payment: formatPaymentResponse(existingPayment),
-      subscription: {
-        tier: sub?.tier || "free",
-        source: sub?.source || "pass",
-        isActive: hasActiveSubscriptionConflict(sub),
-        expiresAt: toIsoOrNull(sub?.expiresAt),
-        profileLimit: plan.profileLimit,
-        planId: String(sub?.planId || plan.planId),
-        durationMonths: Number(sub?.durationMonths || plan.durationMonths),
-        productType: String(sub?.productType || plan.productType),
-        monthlyStoneBalance: Number(sub?.membershipCreditBalance || 0),
-        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
-        membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
-        membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
-        membershipCreditCost: requiredMonthlyCredits,
-        cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
-        cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
-        customerUid,
-        paymentMethod: "monthly_credit",
-        nextBillingAt: null,
-        lastBillingStatus: "success",
-      },
-      monthlyStoneBalance: Number(sub?.membershipCreditBalance || 0),
-      monthlyCredits: Number(sub?.membershipCreditBalance || 0),
-      user: {
-        id: String(auth.userId),
-        points: Number(currentUser?.points || 0),
-      },
-    });
-  }
-
-  const now = new Date();
-  const existingUser = await User.findById(auth.userId).select("points profileSubscription").lean();
-  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
-
-  const transition = evaluateSubscriptionTierTransition(existingUser?.profileSubscription, tier);
-  if (!transition.allow) {
-    return json({
-      message: transition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
-        ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
-        : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
-      code: transition.code,
-      activeTier: transition.activeTier,
-    }, { status: 409 });
-  }
-
-  // 월정석은 지급일+30일 만료(지급분별) — 만료분을 제외한 "유효 잔액"으로 사용 가능 여부를 판정한다.
-  const ensuredExisting = ensureLotsForBalance(existingUser?.profileSubscription, now.getTime());
-  const currentMonthlyCredits = ensuredExisting.balance;
-  if (currentMonthlyCredits < requiredMonthlyCredits) {
-    return json({
-      message: "이용권 혜택이 부족합니다.",
-      code: "INSUFFICIENT_MONTHLY_CREDITS",
-      requiredMonthlyCredits,
-      currentMonthlyCredits,
-      monthlyStoneBalance: currentMonthlyCredits,
-      membershipCreditBalance: currentMonthlyCredits,
-    }, { status: 402 });
-  }
-
-  const expiresAt = calculateSubscriptionActivationExpiresAt({
-    existingSubscription: existingUser?.profileSubscription,
-    transitionCode: transition.code,
-    now,
-    paidAt: now,
-    durationDays: plan.durationDays,
-  });
-  const subscriptionUpdateGuard = buildSubscriptionUpdateGuard(existingUser?.profileSubscription, now);
-
-  let paymentRecord = existingPayment;
-  if (!paymentRecord) {
-    try {
-      paymentRecord = await Payment.create({
-        userId: auth.userId,
-        merchantUid,
-        idempotencyKey: requestId,
-        paymentAmount: plan.wonPrice,
-        expectedChargedPoints: 0,
-        chargedPoints: 0,
-        paymentMethod: "monthly_credit",
-        status: "pending",
-        source: "prepare",
-        paymentType: "membership_pass",
-        subscriptionTier: tier,
-        productId: plan.planId,
-        membershipCreditCost: requiredMonthlyCredits,
-        requestId,
-        metadata: {
-          planId: plan.planId,
-          durationMonths: plan.durationMonths,
-          durationDays: plan.durationDays,
-          productType: plan.productType,
-          currency: "MONTHLY_CREDIT",
-          requiredMonthlyCredits,
-          paymentMethod: paymentMethodHint,
-        },
-      });
-    } catch (error) {
-      if (Number(error?.code) !== 11000) throw error;
-      paymentRecord = await Payment.findOne({
-        userId: auth.userId,
-        paymentType: "membership_pass",
-        $or: [
-          { idempotencyKey: requestId },
-          { merchantUid },
-        ],
-      }).sort({ createdAt: -1 });
-      if (!paymentRecord) throw error;
-    }
-  }
-
-  // 월정석 지급분별(lot) FIFO 차감 + 이용권 활성화를 한 번의 원자적 write로 처리한다.
-  // 단일 $inc로는 FIFO 배열 갱신이 불가하므로 버전 가드 기반 낙관적 write + 재시도로 경합을 처리한다.
-  const PASS_BUY_MAX_ATTEMPTS = 5;
-  let updatedUser = null;
-  for (let attempt = 0; attempt < PASS_BUY_MAX_ATTEMPTS; attempt += 1) {
-    const freshSub = attempt === 0
-      ? (existingUser?.profileSubscription || {})
-      : ((await User.findById(auth.userId).select("profileSubscription recentConsumeRequestIds").lean())?.profileSubscription || {});
-    const ensuredForWrite = ensureLotsForBalance(freshSub, now.getTime());
-    const deduction = deductLotsFIFO(ensuredForWrite.lots, requiredMonthlyCredits, now.getTime());
-    if (!deduction.ok) break; // 유효 월정석 부족 → 아래 !updatedUser 블록이 insufficient로 분류
-    const lotsVersion = Math.floor(Number(freshSub.membershipCreditLotsVersion || 0));
-    updatedUser = await User.findOneAndUpdate(
-      {
-        _id: auth.userId,
-        "profileSubscription.membershipCreditLotsVersion": lotsVersion,
-        recentConsumeRequestIds: { $ne: requestId },
-        ...subscriptionUpdateGuard,
-      },
-      {
-        $set: {
-          "profileSubscription.tier": tier,
-          "profileSubscription.passTier": tier,
-          "profileSubscription.planId": plan.planId,
-          "profileSubscription.durationMonths": plan.durationMonths,
-          "profileSubscription.productType": plan.productType,
-          "profileSubscription.profileLimit": plan.profileLimit,
-          "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
-          "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
-          "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
-          "profileSubscription.source": "pass",
-          "profileSubscription.startedAt": now,
-          "profileSubscription.expiresAt": expiresAt,
-          "profileSubscription.cancelAtPeriodEnd": false,
-          "profileSubscription.cancelRequestedAt": null,
-          "profileSubscription.customerUid": customerUid,
-          "profileSubscription.paymentMethod": "monthly_credit",
-          "profileSubscription.nextBillingAt": null,
-          "profileSubscription.lastBillingAt": now,
-          "profileSubscription.lastBillingStatus": "success",
-          "profileSubscription.lastBillingError": "",
-          "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || now,
-          "profileSubscription.membershipCreditLots": deduction.lots,
-          "profileSubscription.membershipCreditBalance": deduction.balance,
-        },
-        $inc: {
-          "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
-          "profileSubscription.membershipCreditLotsVersion": 1,
-        },
-        // 중복 방지는 위 필터의 `$ne: requestId` 가드가 담당한다($push는 스스로 못 막는다).
-        $push: {
-          recentConsumeRequestIds: { $each: [requestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
-        },
-      },
-      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-    ).lean();
-    if (updatedUser) break;
-    // null: 버전 충돌/멱등/구독 가드 미충족 → 재시도(멱등·insufficient·conflict는 아래 블록이 재분류).
-  }
-
-  if (!updatedUser) {
-    const currentUser = await User.findById(auth.userId).select("points profileSubscription recentConsumeRequestIds").lean();
-    if (Array.isArray(currentUser?.recentConsumeRequestIds) && currentUser.recentConsumeRequestIds.includes(requestId)) {
-      const sub = currentUser?.profileSubscription || {};
-      const activeExpiresAt = toValidDate(sub?.expiresAt);
-      const remainingDays = activeExpiresAt
-        ? Math.max(0, Math.ceil((activeExpiresAt.getTime() - Date.now()) / 86400000))
-        : 0;
-      return json({
-        message: "Membership pass monthly-credit payment already processed.",
-        idempotent: true,
-        payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean() || paymentRecord),
-        subscription: {
-          tier: sub?.tier || "free",
-          source: sub?.source || "pass",
-          isActive: hasActiveSubscriptionConflict(sub),
-          expiresAt: toIsoOrNull(sub?.expiresAt),
-          profileLimit: Number.isFinite(Number(sub?.profileLimit ?? plan.profileLimit)) ? Math.max(0, Math.floor(Number(sub?.profileLimit ?? plan.profileLimit))) : 1,
-          planId: String(sub?.planId || plan.planId),
-          durationMonths: Number(sub?.durationMonths || plan.durationMonths),
-          productType: String(sub?.productType || plan.productType),
-          membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
-          membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
-          membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
-          membershipCreditCost: requiredMonthlyCredits,
-          cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
-          cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
-          customerUid,
-          paymentMethod: "monthly_credit",
-          nextBillingAt: null,
-          lastBillingStatus: String(sub?.lastBillingStatus || "success"),
-        },
-        monthlyCredits: Number(sub?.membershipCreditBalance || 0),
-        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
-        passBalance: {
-          active: hasActiveSubscriptionConflict(sub),
-          tier: sub?.tier || "free",
-          remainingDays,
-          expiresAt: toIsoOrNull(sub?.expiresAt),
-          profileLimit: Number.isFinite(Number(sub?.profileLimit ?? plan.profileLimit)) ? Math.max(0, Math.floor(Number(sub?.profileLimit ?? plan.profileLimit))) : 1,
-        },
-        user: {
-          id: String(auth.userId),
-          points: Number(currentUser?.points || 0),
-        },
-      });
-    }
-    const postTransition = evaluateSubscriptionTierTransition(currentUser?.profileSubscription, tier);
-    if (!postTransition.allow) {
-      await markPaymentFailure(paymentRecord, {
-        status: "failed",
-        paymentMethod: "monthly_credit",
-        failureCode: "subscription_monthly_credit_conflict",
-        failureMessage: "Subscription state changed before monthly-credit purchase could be completed.",
-        failureStage: "subscription_monthly_credit_subscription_guard",
-        incrementAttempt: true,
-      }).catch(() => {});
-      return json({
-        message: postTransition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
-          ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
-          : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
-        code: postTransition.code,
-        activeTier: postTransition.activeTier,
-        monthlyCredits: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
-        membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
-      }, { status: 409 });
-    }
-
-    await markPaymentFailure(paymentRecord, {
-      status: "failed",
-      paymentMethod: "monthly_credit",
-      failureCode: "subscription_monthly_credit_insufficient",
-      failureMessage: "Insufficient monthly credits for membership pass purchase.",
-      failureStage: "subscription_monthly_credit_consume",
-      incrementAttempt: true,
-    }).catch(() => {});
-    return json({
-      message: "이용권 혜택이 부족합니다.",
-      code: "INSUFFICIENT_MONTHLY_CREDITS",
-      requiredMonthlyCredits,
-      currentMonthlyCredits,
-    }, { status: 402 });
-  }
-
-  const updatedMonthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-  const updatedExpiresAt = toValidDate(updatedUser?.profileSubscription?.expiresAt);
-  const remainingPassDays = updatedExpiresAt
-    ? Math.max(0, Math.ceil((updatedExpiresAt.getTime() - Date.now()) / 86400000))
-    : 0;
-
-  let ledger = null;
-  try {
-    ledger = await MonthlyCreditLedger.create({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      amount: requiredMonthlyCredits,
-      beforeBalance: updatedMonthlyCredits + requiredMonthlyCredits,
-      afterBalance: updatedMonthlyCredits,
-      reason: `${plan.name} monthly-credit membership pass purchase`,
-      sourceId: requestId,
-      serviceKey: plan.planId,
-      profileId: "",
-      metadata: {
-        paymentId: String(paymentRecord?._id || ""),
-        merchantUid,
-        requestId,
-        planId: plan.planId,
-        tier,
-        durationMonths: plan.durationMonths,
-        productType: plan.productType,
-        wonPrice: plan.wonPrice,
-        requiredMonthlyCredits,
-      },
-    });
-  } catch (error) {
-    if (Number(error?.code) === 11000) {
-      // 동일 sourceId(requestId) 원장이 이미 존재 = 멱등 재시도. 크레딧 차감·구독 활성은 유효하므로
-      // 롤백하지 않고 기존 원장을 재사용해 정상 완료 처리한다.
-      ledger = await MonthlyCreditLedger.findOne({
-        userId: auth.userId,
-        type: "MONTHLY_CREDIT_SPEND",
-        sourceId: requestId,
-      }).lean().catch(() => null);
-    } else {
-      // 원장 생성 실패 시 크레딧 차감+구독 활성을 함께 되돌린다. profileSubscription 서브도큐먼트 전체를
-      // 무조건 스냅샷으로 치환하면 그 사이 다른 요청의 변경을 덮어쓰므로, 우리가 방금 설정한 활성
-      // 상태(expiresAt)가 그대로일 때만(=우리 활성이 최신일 때만) 스냅샷으로 복원한다.
-      await User.updateOne(
-        { _id: auth.userId, "profileSubscription.expiresAt": expiresAt },
-        {
-          $set: { profileSubscription: existingUser.profileSubscription || {} },
-          $pull: { recentConsumeRequestIds: requestId },
-        },
-      ).catch(() => {});
-      await markPaymentFailure(paymentRecord, {
-        status: "failed",
-        paymentMethod: "monthly_credit",
-        failureCode: "subscription_monthly_credit_ledger_failed",
-        failureMessage: String(error?.message || "Monthly credit ledger creation failed."),
-        failureStage: "subscription_monthly_credit_ledger",
-        incrementAttempt: true,
-      }).catch(() => {});
-      throw error;
-    }
-  }
-
-  await Payment.findByIdAndUpdate(paymentRecord._id, {
-    $set: {
-      paymentAmount: plan.wonPrice,
-      expectedChargedPoints: 0,
-      chargedPoints: 0,
-      paymentMethod: "monthly_credit",
-      status: "success",
-      paidAt: now,
-      source: "confirm",
-      paymentType: "membership_pass",
-      subscriptionTier: tier,
-      productId: plan.planId,
-      membershipCreditCost: requiredMonthlyCredits,
-      metadata: {
-        ...(paymentRecord.metadata || {}),
-        planId: plan.planId,
-        durationMonths: plan.durationMonths,
-        durationDays: plan.durationDays,
-        productType: plan.productType,
-        currency: "MONTHLY_CREDIT",
-        verifiedAmount: plan.wonPrice,
-        requiredMonthlyCredits,
-        monthlyCreditLedgerId: String(ledger?._id || ""),
-      },
-      rawPortOne: null,
-      failureCode: null,
-      failureMessage: null,
-      failureStage: null,
-      lastErrorAt: null,
-    },
-  });
-
-  return json({
-    message: "이용권 혜택으로 달빛 이용권이 활성화되었습니다.",
-    idempotent: false,
-    payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
-    subscription: {
-      tier,
-      source: "pass",
-      isActive: true,
-      expiresAt: expiresAt.toISOString(),
-      profileLimit: plan.profileLimit,
-      planId: plan.planId,
-      durationMonths: plan.durationMonths,
-      productType: plan.productType,
-      monthlyStoneBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
-      membershipCreditBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
-      membershipCreditGranted: Number(updatedUser?.profileSubscription?.membershipCreditGranted || 0),
-      membershipCreditUsed: Number(updatedUser?.profileSubscription?.membershipCreditUsed || 0),
-      membershipCreditCost: requiredMonthlyCredits,
-      cancelAtPeriodEnd: false,
-      cancelRequestedAt: null,
-      customerUid,
-      paymentMethod: "monthly_credit",
-      nextBillingAt: null,
-      lastBillingStatus: "success",
-    },
-    monthlyStoneBalance: updatedMonthlyCredits,
-    monthlyCredits: updatedMonthlyCredits,
-    membershipCreditBalance: updatedMonthlyCredits,
-    passBalance: {
-      active: true,
-      tier,
-      remainingDays: remainingPassDays,
-      expiresAt: expiresAt.toISOString(),
-      profileLimit: plan.profileLimit,
-    },
-    monthlyCreditLedger: ledger ? {
-      id: String(ledger._id || ""),
-      type: ledger.type,
-      amount: Number(ledger.amount || 0),
-      beforeBalance: Number(ledger.beforeBalance || 0),
-      afterBalance: Number(ledger.afterBalance || 0),
-      reason: String(ledger.reason || ""),
-      createdAt: ledger.createdAt ? ledger.createdAt.toISOString() : new Date().toISOString(),
-    } : null,
-    user: {
-      id: String(auth.userId),
-      points: Number(updatedUser?.points || 0),
-    },
-  });
-}
-
 async function handleSubscriptionConfirm(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.paymentId || "").trim();
@@ -4526,6 +4133,9 @@ async function handleSubscriptionConfirm(request, env, auth) {
   const customerUidFromClient = String(body?.customerUid || "").trim();
   const merchantUidHint = String(body?.merchantUid || body?.merchant_uid || "").trim();
   const paymentMethodHint = normalizePaymentMethod(body?.paymentMethod || "card");
+  if (isSubscriptionMonthlyCreditMethod(paymentMethodHint)) {
+    return rejectSubscriptionMonthlyCreditPurchase();
+  }
   if (!validateNewSubscriptionDuration(durationMonths, body?.durationDays)) {
     return json({
       message: "Only 30-day membership passes are available for new purchase.",
@@ -4569,9 +4179,6 @@ async function handleSubscriptionConfirm(request, env, auth) {
     route: "subscription_confirm",
   });
   if (confirmPolicyResponse) return confirmPolicyResponse;
-  if (paymentMethodHint === "monthly_credit" || paymentMethodHint === "monthly") {
-    return await handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint });
-  }
   if (!impUid) {
     return json({ message: "impUid and valid tier are required." }, { status: 400 });
   }

@@ -43,6 +43,15 @@
 ```
 이용권 보유자는 결제 선택창에서만 서버 상태를 확인하며, 메인 진입 시에는 월정석·레거시 잔액을 예열하지 않는다.
 
+### 이용권 상품 자체의 구매 흐름
+
+위 공통 흐름은 유료 콘텐츠 이용 결제창의 정책이다. 달빛 이용권 상품 자체를 구매하는 흐름은 별도로 다음을 따른다.
+
+1. `/points`와 앱 이용권 상점에는 `원화 단건 결제`만 구매 수단으로 표시한다.
+2. `/api/payments/subscription/prepare`와 `/api/payments/subscription/confirm`은 `monthly_credit` 및 월정석 별칭을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부한다.
+3. 단건 결제는 기존 `prepare → PortOne V2 → confirm` 서버 검증을 그대로 사용한다. 가격, 환불, 인증, 권한 반영 정책은 변경하지 않는다.
+4. 월정석은 유료 콘텐츠 소비 흐름에만 남고, 이용권 상품 구매로 전환되지 않는다.
+
 ### Legacy COIN 요청 처리
 
 - 구형 클라이언트가 `paymentMode=COIN`, `forceDeduct=true`, 또는 결제 방식 없는 요청을 보내도 서버는 `User.points`를 읽거나 차감하지 않고 `PAYMENT_REQUIRED`와 `legacyCoinDisabled: true`를 반환한다.
@@ -54,6 +63,7 @@
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-08-04 | **달빛 이용권 상품을 원화 단건 결제로만 구매하도록 고정.** subscription prepare/confirm의 월정석 요청을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부하고 `/points` 구매 UI에서 월정석 구매 선택지를 제거했다. |
 | 2026-08-03 | **명시적 결제수단 경계 복구.** `DIRECT_KRW`의 이용권 자동 전환과 결제수단 모달의 checkout POST 사전발급을 제거했다. `MEMBERSHIP_PASS`만 서버 이용권 판정을 실행하며, 결제 POST는 자동 재시도하지 않는다. |
 | 2026-07-04 | 결제 정책 3부작 최초 작성(개요/콘텐츠 접근 유형/결제 플로우로 분할). 코인 단위 사용자 노출 UI 5곳을 원화 표시로 수정(코드 내부 변수명은 유지). 이용권=구독형(자동갱신 없음)/월정석=비구독 방침 확정. 숙요점 궁합은 유료 회당 결제로 유지 확정 |
 | 2026-07-08 | 공통 결제 게이팅 정책 명문화: 모든 유료 결제는 이용권 선검사(등급 한도가 가격 커버 시 결제창 없이 통과) 후 미커버 시에만 결제창 노출, 결제창은 단건결제(KRW)+월정석 2옵션 동등 제시(월정석은 자동 차감 아님). "결제창 노출 규칙(공통)" 신설(서버 `paymentMode` 하드코딩 금지). ziwei-ai runtimeGate의 `paymentMode:"DIRECT_KRW"` 제거 |

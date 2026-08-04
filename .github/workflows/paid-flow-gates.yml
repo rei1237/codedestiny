@@ -34,6 +34,7 @@ on:
       # 깨어나지 않았다.
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
+      - "scripts/verify-payment-concurrency-guards.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "scripts/verify-master-love-codex-batch-budget.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"
@@ -77,6 +78,7 @@ on:
       # 깨어나지 않았다.
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
+      - "scripts/verify-payment-concurrency-guards.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "scripts/verify-master-love-codex-batch-budget.mjs"
       - "scripts/verify-master-love-codex-compat-determinism.mjs"

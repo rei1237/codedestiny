@@ -6,13 +6,12 @@
  *
  * 검증 대상
  *  - KRW 단건 결제로 이용권을 사는 경로 (`/api/payments/subscription/confirm`)
- *  - 월정석으로 이용권을 사는 경로 (같은 엔드포인트, paymentMethod: "monthly_credit" → PG 미경유)
+ *  - 월정석으로 이용권을 사려는 경로가 prepare/confirm 단계에서 차단되는지
  */
 
 let testUtils;
 let Payment;
 let User;
-let MonthlyCreditLedger;
 let PaymentFailureLog;
 let originalFetch;
 let originals;
@@ -106,7 +105,6 @@ beforeAll(async () => {
   testUtils = paymentsMod.__paymentsTestUtils;
   Payment = modelsMod.Payment;
   User = modelsMod.User;
-  MonthlyCreditLedger = modelsMod.MonthlyCreditLedger;
   PaymentFailureLog = modelsMod.PaymentFailureLog;
 
   originalFetch = global.fetch;
@@ -121,8 +119,6 @@ beforeAll(async () => {
     userFindByIdAndUpdate: User.findByIdAndUpdate,
     userFindOneAndUpdate: User.findOneAndUpdate,
     userUpdateOne: User.updateOne,
-    ledgerCreate: MonthlyCreditLedger.create,
-    ledgerFindOne: MonthlyCreditLedger.findOne,
     failureLogCreate: PaymentFailureLog.create,
   };
 
@@ -156,8 +152,6 @@ afterEach(() => {
   User.findByIdAndUpdate = originals.userFindByIdAndUpdate;
   User.findOneAndUpdate = originals.userFindOneAndUpdate;
   User.updateOne = originals.userUpdateOne;
-  MonthlyCreditLedger.create = originals.ledgerCreate;
-  MonthlyCreditLedger.findOne = originals.ledgerFindOne;
 });
 
 describe("달빛 이용권 상점 — 가격 정본", () => {
@@ -176,7 +170,7 @@ describe("달빛 이용권 상점 — 가격 정본", () => {
 });
 
 describe("달빛 이용권 상점 — 결제 준비(prepare)", () => {
-  function prepareRequest(tier, idempotencyKey) {
+  function prepareRequest(tier, idempotencyKey, paymentMethod = "card_general") {
     return new Request("https://example.com/api/payments/subscription/prepare", {
       method: "POST",
       headers: {
@@ -191,10 +185,32 @@ describe("달빛 이용권 상점 — 결제 준비(prepare)", () => {
         amount: WEB_PASS_PRICES[tier],
         currency: "KRW",
         productType: "membership_pass",
-        paymentMethod: "card_general",
+        paymentMethod,
       }),
     });
   }
+
+  test.each(["monthly_credit", "monthly", "membership_credit", "moonlight_stone"])(
+    "%s 결제 방식은 이용권 prepare에서 차단되어야 한다",
+    async (paymentMethod) => {
+      User.findById = jest.fn();
+      Payment.findOne = jest.fn();
+      Payment.create = jest.fn();
+
+      const response = await testUtils.handleSubscriptionPrepare(
+        prepareRequest("standard", `membership-prepare-${paymentMethod}-blocked`, paymentMethod),
+        ENV,
+        AUTH,
+      );
+      const { status, payload } = await readResponse(response);
+
+      expect(status).toBe(400);
+      expect(payload.code).toBe("SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED");
+      expect(User.findById).not.toHaveBeenCalled();
+      expect(Payment.findOne).not.toHaveBeenCalled();
+      expect(Payment.create).not.toHaveBeenCalled();
+    },
+  );
 
   test("같은 멱등키로 두 번 준비하면 같은 주문을 돌려주고 주문을 새로 만들지 않아야 한다", async () => {
     // 모달 오픈 시 프리페치 + 실제 클릭이 같은 키를 쓰는 상황. 주문이 중복 생성되면 안 된다.
@@ -284,6 +300,7 @@ describe("달빛 이용권 상점 — KRW 단건 결제 구매", () => {
     const { status, payload } = await readResponse(response);
 
     expect(status).toBe(200);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(payload.subscription.tier).toBe("standard");
     expect(payload.subscription.isActive).toBe(true);
 
@@ -443,11 +460,12 @@ describe("달빛 이용권 상점 — KRW 단건 결제 구매", () => {
   });
 });
 
-describe("달빛 이용권 상점 — 월정석 구매", () => {
-  function monthlyBody(tier, overrides = {}) {
+describe("달빛 이용권 상점 — 월정석 구매 차단", () => {
+  function monthlyBody(tier, paymentMethod) {
     return {
-      merchantUid: `sub_monthly_${tier}_001`,
-      requestId: `sub_monthly_${tier}_001`,
+      impUid: `pay_monthly_${tier}_blocked`,
+      merchantUid: `sub_monthly_${tier}_blocked`,
+      requestId: `sub_monthly_${tier}_blocked`,
       tier,
       planId: `${tier}_1m`,
       durationMonths: 1,
@@ -455,77 +473,39 @@ describe("달빛 이용권 상점 — 월정석 구매", () => {
       amount: WEB_PASS_PRICES[tier],
       currency: "KRW",
       productType: "membership_pass",
-      paymentMethod: "monthly_credit",
-      ...overrides,
+      paymentMethod,
     };
   }
 
-  test("월정석 잔액이 부족하면 402 로 거부하고 차감하지 않아야 한다", async () => {
-    // standard 이용권 = 9,900원 → 필요 월정석 990
-    Payment.findOne = jest.fn().mockReturnValue(chain(null));
-    User.findById = jest.fn().mockReturnValue(chain(freeUser({ membershipCreditBalance: 500 })));
-    User.findOneAndUpdate = jest.fn();
-    Payment.create = jest.fn();
+  test.each(["monthly_credit", "monthly", "membership_credit", "moonlight_stone"])(
+    "%s 결제 방식은 이용권 confirm에서 차단되어야 한다",
+    async (paymentMethod) => {
+      global.fetch = jest.fn();
+      Payment.findOne = jest.fn();
+      Payment.create = jest.fn();
+      Payment.findByIdAndUpdate = jest.fn();
+      Payment.findById = jest.fn();
+      User.findById = jest.fn();
+      User.findByIdAndUpdate = jest.fn();
+      User.findOneAndUpdate = jest.fn();
 
-    const response = await testUtils.handleSubscriptionConfirm(
-      confirmRequest(monthlyBody("standard")),
-      ENV,
-      AUTH,
-    );
-    const { status, payload } = await readResponse(response);
+      const response = await testUtils.handleSubscriptionConfirm(
+        confirmRequest(monthlyBody("premium", paymentMethod)),
+        ENV,
+        AUTH,
+      );
+      const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(402);
-    expect(payload.code).toBe("INSUFFICIENT_MONTHLY_CREDITS");
-    expect(payload.requiredMonthlyCredits).toBe(990);
-    expect(User.findOneAndUpdate).not.toHaveBeenCalled();
-    expect(Payment.create).not.toHaveBeenCalled();
-  });
-
-  test("월정석이 충분하면 PG 를 거치지 않고 차감 후 이용권이 활성화돼야 한다", async () => {
-    const required = WEB_PASS_PRICES.premium / 10; // 2,990
-    global.fetch = jest.fn(); // 월정석 결제는 PortOne 을 절대 호출하지 않아야 한다
-
-    Payment.findOne = jest.fn().mockReturnValue(chain(null));
-    User.findById = jest.fn().mockReturnValue(chain(freeUser({ membershipCreditBalance: 5000 })));
-    Payment.create = jest.fn().mockResolvedValue({ _id: "payment-doc-monthly", metadata: {} });
-    User.findOneAndUpdate = jest.fn().mockReturnValue(chain({
-      _id: AUTH.userId,
-      points: 0,
-      profileSubscription: {
-        tier: "premium",
-        planId: "premium_1m",
-        membershipCreditBalance: 5000 - required,
-        membershipCreditUsed: required,
-        expiresAt: new Date(Date.now() + 30 * 86400000),
-      },
-    }));
-    MonthlyCreditLedger.create = jest.fn().mockResolvedValue({ _id: "ledger-1", type: "MONTHLY_CREDIT_SPEND", amount: required });
-    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(chain({}));
-    Payment.findById = jest.fn().mockReturnValue(chain({ _id: "payment-doc-monthly", status: "success" }));
-
-    const response = await testUtils.handleSubscriptionConfirm(
-      confirmRequest(monthlyBody("premium")),
-      ENV,
-      AUTH,
-    );
-    const { status, payload } = await readResponse(response);
-
-    expect(status).toBe(200);
-    expect(global.fetch).not.toHaveBeenCalled();
-    expect(payload.subscription.tier).toBe("premium");
-    expect(payload.subscription.paymentMethod).toBe("monthly_credit");
-    expect(payload.subscription.membershipCreditCost).toBe(required);
-    expect(payload.monthlyStoneBalance).toBe(5000 - required);
-
-    // 차감·활성이 한 번의 원자적 write 로 나가야 한다.
-    const [, update] = User.findOneAndUpdate.mock.calls[0];
-    expect(update.$inc["profileSubscription.membershipCreditUsed"]).toBe(required);
-    expect(update.$set["profileSubscription.tier"]).toBe("premium");
-    expect(update.$set["profileSubscription.membershipCreditBalance"]).toBe(5000 - required);
-
-    // 사용 원장이 남아야 한다.
-    expect(MonthlyCreditLedger.create).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "MONTHLY_CREDIT_SPEND", amount: required }),
-    );
-  });
+      expect(status).toBe(400);
+      expect(payload.code).toBe("SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED");
+      expect(Payment.findOne).not.toHaveBeenCalled();
+      expect(Payment.create).not.toHaveBeenCalled();
+      expect(Payment.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(Payment.findById).not.toHaveBeenCalled();
+      expect(User.findById).not.toHaveBeenCalled();
+      expect(User.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(User.findOneAndUpdate).not.toHaveBeenCalled();
+      expect(global.fetch).not.toHaveBeenCalled();
+    },
+  );
 });
