@@ -159,9 +159,11 @@ async function rejectPurchasePolicy(request, env, auth, decision, context = {}) 
     code: decision?.denialReason || "PURCHASE_POLICY_DENIED",
     reason: decision?.denialReason || "PURCHASE_POLICY_DENIED",
     message: decision?.denialReason === "CANNOT_BUY_PASS_WITH_PASS"
-      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. PG 결제 또는 명확히 허용된 월정석 결제 플로우를 이용해 주세요."
+      ? "이용권 상품은 보유 이용권으로 구매할 수 없습니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다."
       : decision?.denialReason === "FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS"
         ? "패밀리 이용권은 기능 이용 권한이며, 더 높은 가격의 이용권 구매 수단으로 사용할 수 없습니다."
+        : decision?.allowedPaymentMethods?.length === 1 && decision.allowedPaymentMethods[0] === "pg"
+          ? "이용권은 원화 단건 결제로만 구매할 수 있습니다."
         : "현재 상품은 PG 결제 또는 허용된 월정석 정책으로만 구매할 수 있습니다.",
     policyVersion: decision?.policyVersion || "",
     auditCode: decision?.auditCode || "PURCHASE_POLICY_DENIED",

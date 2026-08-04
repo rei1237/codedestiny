@@ -1603,6 +1603,35 @@
     return _dpSessionVerify.pending;
   }
 
+  // 명시적인 이용권 선택은 최종 coin-gate POST 전에 인증 복구가 끝날 때까지 기다린다.
+  // 재진입 직후에는 쿠키 세션은 유효하지만 이 독립 런타임의 메모리/로컬 스냅샷이 아직 비어 있을 수 있다.
+  // 이 상태의 첫 401을 payment_required로 바꾸면 이용권 보유자를 상점으로 보내므로, 인증이 미확정이면
+  // 결제창을 유지하고 재시도 가능한 오류로 표면화한다.
+  async function _dpPrepareMembershipPassAuth() {
+    var hadSessionHint = _dpHasSessionHint();
+    try {
+      var authenticated = await _dpVerifyLoginSession(true, { allowIndeterminate: false });
+      if (authenticated) return { ready: true };
+      if (hadSessionHint || _dpHasSessionHint()) {
+        return {
+          ready: false,
+          code: 'AUTH_SESSION_CHECK_UNAVAILABLE',
+          message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
+        };
+      }
+      return { ready: false, code: 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.' };
+    } catch (_authPreparationError) {
+      if (hadSessionHint || _dpHasSessionHint()) {
+        return {
+          ready: false,
+          code: 'AUTH_SESSION_CHECK_UNAVAILABLE',
+          message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
+        };
+      }
+      return { ready: false, code: 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.' };
+    }
+  }
+
   function _dpHasLoginSession() {
     var now = Date.now();
     var ttlMs = _dpGetSessionVerifyTtlMs(_dpSessionVerify);
@@ -3443,6 +3472,17 @@
     if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
     // 명시적 이용권 선택은 매번 현재 서버 상태로 판정한다. 직전 미커버 캐시를 재사용하면
     // 이용권 구매·세션 갱신 뒤에도 사용자를 다시 상점으로 보내는 stale-miss가 된다.
+    // 최종 MEMBERSHIP_PASS 판정 전에 현재 세션을 먼저 확정한다. 이 GET은 인증 복구를 위한
+    // single-flight 준비 단계이며, coin-gate 결제 명령을 자동 재시도하지 않는다.
+    var authPreparation = await _dpPrepareMembershipPassAuth();
+    if (!authPreparation || authPreparation.ready !== true) {
+      return {
+        status: 'error',
+        code: (authPreparation && authPreparation.code) || 'AUTH_SESSION_CHECK_UNAVAILABLE',
+        message: (authPreparation && authPreparation.message) || '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.',
+        requestId: requestId
+      };
+    }
     var res;
     try {
       res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
@@ -3483,7 +3523,12 @@
       && code !== 'AUTH_DB_UNAVAILABLE'
       && code !== 'AUTH_REFRESH_TEMPORARY_FAILURE';
     if (passCheckAuthDefinite) {
-      return { status: 'payment_required', code: code || 'AUTH_REQUIRED', payload: payload, requestId: requestId };
+      // 401/403은 이용권 미커버가 아니다. 인증 복구 중일 수 있는 사용자를 상점으로 보내지 않고
+      // 결제창을 유지한다. 세션 흔적이 전혀 없을 때만 로그인 안내를 반환한다.
+      if (_dpHasSessionHint()) {
+        return { status: 'error', code: 'AUTH_SESSION_CHECK_UNAVAILABLE', message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.', payload: payload, requestId: requestId };
+      }
+      return { status: 'error', code: code || 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.', payload: payload, requestId: requestId };
     }
     if (statusCode >= 500 || passCheckDegraded || code === 'PASS_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'BALANCE_SNAPSHOT_UNAVAILABLE' || (res && res.ok === false)) {
       return { status: 'error', code: code || 'PASS_CHECK_UNAVAILABLE', payload: payload, requestId: requestId };
