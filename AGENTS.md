@@ -38,6 +38,7 @@
 - Static shell and React routes are not interchangeable. The live home source is root `index.html`.
 - Mirror files under `public/**/index.html` are generated mirrors. Do not patch them directly unless explicitly requested.
 - Mobile UI regressions are high risk. Preserve route behavior, safe areas, touch targets, and app payment routing.
+- 몰입형 React 운세 경험은 공용 헤더·푸터·모바일 하단 내비게이션을 렌더하지 않고, 페이지 안에서 접근 가능한 홈·뒤로가기 이탈 제어를 제공한다.
 
 ## Worktree-Only Development and PR Delivery
 

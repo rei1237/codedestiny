@@ -1590,19 +1590,13 @@
   }
 }
 
-/* Chat journey refresh: Yeon is the single guardian for this surface. */
+/* Chat journey refresh: Yeon and Neo share one compact consultation stage. */
 #guardianFortuneSection[data-guardian-chat-journey="true"] {
   width: min(760px, calc(100% - 20px));
   padding-inline: 0;
   --gf-chat-rose: #b31955;
   --gf-chat-plum: #3b1830;
   --gf-chat-mist: #fff6fa;
-}
-#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-mode-button="neo"],
-#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-character="neo"],
-#guardianFortuneSection[data-guardian-chat-journey="true"] [data-result-mode-image="neo"],
-#guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__duo-bubble--neo {
-  display: none !important;
 }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__shell {
   overflow: visible;
@@ -1650,7 +1644,10 @@
   padding: clamp(18px, 4vw, 34px);
 }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__mode-grid {
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 17px;
 }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__chat-timeline {
   display: grid;
@@ -1682,7 +1679,11 @@
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  background: url("/images/guardian-fortune/yeoni/flower-pig-f16.webp") center / contain no-repeat;
+  background: url("/images/fortune-tea-house/flower-pig-honey-hug.webp") center / contain no-repeat;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"][data-guardian-mode="neo"] [data-guardian-chat-avatar] {
+  background-image: url("/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp");
+  background-color: #17132f;
 }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__bubble {
   position: relative;
@@ -1701,6 +1702,13 @@
   font-size: .82rem;
 }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__bubble p { margin: 0; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-chat-assistant][data-guardian-chat-speaker="neo"] .guardian-fortune__bubble {
+  border-color: rgba(201, 186, 255, .28);
+  background: #17132f;
+  color: #f8f3ff;
+}
+#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-chat-assistant][data-guardian-chat-speaker="neo"] .guardian-fortune__bubble strong { color: #efdba5; }
+#guardianFortuneSection[data-guardian-chat-journey="true"] [data-guardian-chat-assistant][data-guardian-chat-speaker="neo"] .guardian-fortune__message-avatar { background: #17132f; }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--quiet { margin-left: 54px; }
 #guardianFortuneSection[data-guardian-chat-journey="true"] .guardian-fortune__message--quiet .guardian-fortune__bubble {
   background: #fff7fa;

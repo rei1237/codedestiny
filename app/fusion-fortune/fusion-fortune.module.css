@@ -16,6 +16,33 @@
   outline: 3px solid #f1d896;
   outline-offset: 3px;
 }
+.experienceNav {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  width: min(100%, 1160px);
+  min-height: 44px;
+  margin: 0 auto 12px;
+}
+.experienceNav button,
+.experienceNav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid rgba(232, 213, 163, 0.4);
+  border-radius: 999px;
+  background: rgba(19, 16, 42, 0.76);
+  padding: 9px 15px;
+  color: #f7f1ff;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.experienceNav a { color: #f6e8b4; }
 .hero {
   position: relative;
   isolation: isolate;
