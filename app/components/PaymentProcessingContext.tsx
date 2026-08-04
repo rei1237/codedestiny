@@ -21,6 +21,10 @@ import { PaymentPigVisual } from "./common/PaymentPigVisual";
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 type LoadingStage = "pg_processing" | "result_loading" | "access_check";
 type PaymentType = "subscription" | "single" | "pass";
+type PaymentProcessingAction = {
+  label: string;
+  onClick: () => void;
+};
 
 const PAYMENT_LOADING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
 type LoadingLocale = (typeof PAYMENT_LOADING_LOCALES)[number];
@@ -92,6 +96,7 @@ type PaymentProcessingContextValue = {
   startProcessing: (message?: string, variant?: PaymentLoadingVariant) => void;
   stopProcessing: () => void;
   setProcessingMessage: (message: string) => void;
+  setProcessingAction: (action: PaymentProcessingAction | null) => void;
   startPayment: (message?: string, variant?: PaymentLoadingVariant) => void;
   endPayment: () => void;
   setPaymentMessage: (message: string) => void;
@@ -1000,6 +1005,7 @@ export function PaymentProcessingProvider({
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
   );
+  const [processingAction, setProcessingAction] = useState<PaymentProcessingAction | null>(null);
 
   // 유료 액션을 누르기 "전"에 구독 스냅샷을 데워 둔다. 스냅샷이 활성이면 이용권 보유자는 서버 왕복 없이
   // 즉시 통과하고(runBillingCoinGate의 낙관 fast-path), 그래서 서버가 느린 날에도 결제창으로 새지 않는다.
@@ -1080,6 +1086,7 @@ export function PaymentProcessingProvider({
     setIsProcessing(false);
     setPaymentLoadingVariant("payment");
     setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
+    setProcessingAction(null);
   }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
 
   const startProcessing = useCallback((message?: string, variant?: PaymentLoadingVariant) => {
@@ -1219,6 +1226,7 @@ export function PaymentProcessingProvider({
       startProcessing,
       stopProcessing,
       setProcessingMessage,
+      setProcessingAction,
       startPayment: startProcessing,
       endPayment: stopProcessing,
       setPaymentMessage: setProcessingMessage,
@@ -1229,6 +1237,7 @@ export function PaymentProcessingProvider({
       startProcessing,
       stopProcessing,
       setProcessingMessage,
+      setProcessingAction,
     ],
   );
 
@@ -1243,6 +1252,8 @@ export function PaymentProcessingProvider({
             stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
             paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
             statusMessage={processingMessage}
+            actionLabel={processingAction?.label}
+            onAction={processingAction?.onClick}
           />
         ) : null}
       </PaidFeatureGateProvider>

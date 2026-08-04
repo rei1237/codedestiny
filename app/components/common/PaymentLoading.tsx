@@ -33,6 +33,8 @@ export type PaymentLoadingProps = {
   statusMessage?: string;
   stage?: LoadingStage;
   paymentType?: PaymentType;
+  actionLabel?: string;
+  onAction?: () => void;
 };
 
 const DEFAULT_TITLE = FALLBACK_LOADING_MESSAGE.title;
@@ -206,6 +208,8 @@ export default function PaymentLoading({
   statusMessage,
   stage,
   paymentType,
+  actionLabel,
+  onAction,
 }: PaymentLoadingProps) {
   const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [locale, setLocale] = useState<LoadingLocale>("ko");
@@ -368,6 +372,15 @@ export default function PaymentLoading({
 
         {resolvedStatus ? (
           <p className="mt-4 inline-flex rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-1 text-xs font-extrabold text-amber-100">{resolvedStatus}</p>
+        ) : null}
+        {actionLabel && onAction ? (
+          <button
+            type="button"
+            onClick={onAction}
+            className="mt-5 min-h-12 w-full rounded-[8px] border border-amber-100/50 bg-amber-100 px-4 text-sm font-black text-slate-950 shadow-[0_10px_28px_rgba(254,240,138,.18)] transition hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          >
+            {actionLabel}
+          </button>
         ) : null}
       </div>
     </div>
