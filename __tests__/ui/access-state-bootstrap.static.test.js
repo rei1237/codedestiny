@@ -25,7 +25,9 @@ test("React bootstrap requests access-state before legacy fallback endpoints", (
 test("auth client deduplicates safe access GET endpoints but does not generalize POST retries", () => {
   assert.match(authSource, /"\/api\/me\/access-state"/);
   assert.match(authSource, /const authGetInFlight = new Map<string, Promise<Response>>\(\);/);
-  assert.match(authSource, /if \(method !== "GET" \|\| init\.signal\) return "";/);
+  assert.match(authSource, /if \(method !== "GET"\) return "";/);
+  assert.match(authSource, /const sharedInit = init\.signal \? \{ \.\.\.init, signal: undefined \} : init;/);
+  assert.match(authSource, /withCallerAbort\(pending, init\.signal \?\? undefined\)/);
 });
 
 test("post-login bootstrap hydrates the shared AccessStore instead of creating another entitlement owner", () => {
