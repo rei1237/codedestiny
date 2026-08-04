@@ -1,5 +1,6 @@
 import { toAbsoluteUrl } from "./seo";
 import { siteSeo } from "./seo/siteSeo";
+import { FUSION_FORTUNE_PROFILE } from "./seo/entity-registry.mjs";
 import { LOCALE_CONFIG } from "./i18n/locales";
 
 type FaqItem = {
@@ -27,6 +28,20 @@ export function buildOrganizationJsonLd() {
       contactType: siteSeo.contact.contactType,
       availableLanguage: siteSeo.contact.availableLanguage,
     },
+    knowsAbout: [
+      {
+        "@type": "Thing",
+        name: FUSION_FORTUNE_PROFILE.primary,
+        alternateName: FUSION_FORTUNE_PROFILE.secondary,
+        description: "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로의 해석 관점을 AI가 종합하는 CODE DESTINY의 초융합 운세 방법론입니다.",
+      },
+      { "@type": "Thing", name: "사주" },
+      { "@type": "Thing", name: "자미두수" },
+      { "@type": "Thing", name: "숙요점" },
+      { "@type": "Thing", name: "베다 점성술" },
+      { "@type": "Thing", name: "서양 점성술" },
+      { "@type": "Thing", name: "타로" },
+    ],
     sameAs: siteSeo.sameAs,
   };
 }
@@ -53,11 +68,6 @@ export function buildWebsiteJsonLd(locale?: string) {
     alternateName: siteSeo.alternateName,
     inLanguage: toInLanguage(locale),
     publisher: { "@id": `${siteSeo.siteUrl}/#organization` },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${siteSeo.siteUrl}/insights?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
   };
 }
 

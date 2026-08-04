@@ -60,6 +60,15 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - 모바일 앱: `/app`, `/app/store`
 - API: 자세한 목록은 `docs/ROUTE_MAP.md` 참고
 
+## 공개 SEO 엔터티와 토픽 클러스터
+
+- 공용 정본: `lib/seo/entity-registry.mjs`. 한국어 공개 허브별 Primary/Secondary/Long-tail 검색 의도와 관련 링크를 관리한다.
+- 브랜드 식별자: `CODE DESTINY`, `CodeDestiny`, `code-destiny`, `코드데스티니`, `코드 데스티니`, `CODEDESTINY`, `꿀꿀운세`, `꿀꿀만세력`은 Organization/WebSite 및 브랜드 안내에서만 사용한다. 기능 페이지에 모든 별칭을 반복하지 않는다.
+- 핵심 허브: 사주 → 자미두수 → 숙요점 → 베다 점성술 → 서양 점성술의 흐름과 타로·궁합·오늘의 운세·꿈해몽을 맥락 링크로 연결한다.
+- `초융합 운세`의 대표 공개 URL은 `/fusion-fortune`이다. Organization `knowsAbout`, 공개 허브의 보이는 정의·FAQ·Service JSON-LD, 핵심 운세 허브의 맥락 링크를 같은 URL로 정합화한다. 별도 경쟁 랜딩이나 중복 Service JSON-LD는 만들지 않는다.
+- 네이버 우선 운영에서는 한국어 제목·설명뿐 아니라 보이는 정의 문단, FAQ, 내부 링크, 루트 robots 및 sitemap 계약을 함께 유지한다. Google·Bing 90일 데이터가 없을 때에는 키워드 볼륨을 추정해 확장하지 않는다.
+- URL별 키워드 우선순위는 Search Console·네이버·Bing의 최근 90일 데이터로 갱신한다. 데이터가 없을 때에는 키워드 확장이나 순위 약속을 하지 않는다.
+
 ## API 구조
 
 - Entry: `worker/index.js`

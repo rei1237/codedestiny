@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SEO_CORE_KEYWORDS, mergeKeywords } from "./seo-metadata";
+import { getSeoProfileKeywords } from "./seo/entity-registry.mjs";
 import {
   getPublicSeoPageByPath,
   isNoindexPath,
@@ -38,7 +39,12 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
   const description = String(options.description || page?.description || siteSeo.defaultDescription).trim();
   const indexable = !options.noindex && !isNoindexPath(path);
   const image = options.ogImage || page?.ogImage || siteSeo.defaultOgImage;
-  const keywords = mergeKeywords(SEO_CORE_KEYWORDS, page?.keywords, options.keywords);
+  const keywords = mergeKeywords(
+    SEO_CORE_KEYWORDS,
+    getSeoProfileKeywords(path),
+    page?.keywords,
+    options.keywords,
+  );
 
   const languages: Record<string, string> = {};
   if (options.hreflang) {

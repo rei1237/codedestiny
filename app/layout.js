@@ -16,6 +16,7 @@ import { siteSeo } from "../lib/seo/siteSeo";
 import {
   buildOrganizationJsonLd,
   buildWebPageJsonLd,
+  buildWebsiteJsonLd,
 } from "../lib/structured-data";
 
 const notoSansKRVariable = "font-noto-sans-kr-offline";
@@ -155,20 +156,9 @@ export const viewport = {
 };
 
 const BRAND_WEBSITE_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
+  ...buildWebsiteJsonLd("ko"),
   name: "꿀꿀 운세 — Code Destiny",
-  alternateName: ["꿀꿀 만세력", "코드 데스티니", "Code Destiny"],
-  url: "https://code-destiny.com",
   description: "생년월일로 무료 사주팔자·타로·궁합·신년운세를 제공하는 한국 운세 플랫폼",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: {
-      "@type": "EntryPoint",
-      urlTemplate: "https://code-destiny.com/?q={search_term_string}",
-    },
-    "query-input": "required name=search_term_string",
-  },
 };
 
 const jsonLdGraph = {
