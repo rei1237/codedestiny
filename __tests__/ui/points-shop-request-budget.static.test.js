@@ -42,18 +42,18 @@ test("points shop keeps a last confirmed monthly-stone snapshot display-only unt
   assert.match(pointsSource, /shop summary unavailable; keeping verified snapshot/);
 });
 
-test("points shop keeps monthly-credit purchase available when the shop summary fails", () => {
-  const initialFailureBlock = between(pointsSource, "fetchMyPointState().then(() =>", "}, [fetchMyPointState, isBooting]);");
-  const retryFailureBlock = between(pointsSource, "const retryPointState = () =>", "/* ── 메인 렌더");
-
-  assert.match(initialFailureBlock, /setMonthlyStoneUnverified\(true\);\s*setPointStateStatus\("error"\)/);
-  assert.match(retryFailureBlock, /setMonthlyStoneUnverified\(true\);\s*setPointStateStatus\("error"\)/);
-  assert.match(pointsSource, /monthlyStoneUnverified \? "잔액 확인 중 · 서버에서 최종 확인"/);
+test("points shop exposes direct-only pass purchase UI", () => {
+  assert.doesNotMatch(pointsSource, /handleSubscribeWithMonthlyCredit/);
+  assert.doesNotMatch(pointsSource, /paymentMethod:\s*["']monthly_credit["']/);
+  assert.doesNotMatch(pointsSource, /<span[^>]*>보너스 월정석 사용<\/span>/);
+  assert.match(pointsSource, /void handleSubscribe\(plan\);/);
+  assert.match(pointsSource, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
+  assert.match(pointsSource, /월정석으로는 이용권을 구매할 수 없습니다\./);
 });
 
 test("subscription prepare does not auto retry with a new idempotency key", () => {
   const prepareBlock = between(pointsSource, "const requestSubscriptionPrepare = useCallback", "const startSubscriptionPrepare = useCallback");
-  const subscribeBlock = between(pointsSource, "const handleSubscribe = async", "const handleSubscribeWithMonthlyCredit");
+  const subscribeBlock = between(pointsSource, "const handleSubscribe = async", "const handleSubscriptionCancel");
 
   assert.match(prepareBlock, /Idempotency-Key/);
   assert.doesNotMatch(prepareBlock, /runAccessCheckWithTransientRetry/);

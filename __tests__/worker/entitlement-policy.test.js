@@ -108,11 +108,14 @@ describe("server purchase policy", () => {
   );
 
   test.each(["pass", "subscription", "bundle", "family"])(
-    "%s requires PG or monthly credit",
+    "%s requires direct PG checkout",
     (productType) => {
       expect(policy.validatePurchasePolicy({ productType, requestedPaymentMethod: "pass" }).allowed).toBe(false);
       expect(policy.validatePurchasePolicy({ productType, requestedPaymentMethod: "pg" }).allowed).toBe(true);
-      expect(policy.validatePurchasePolicy({ productType, requestedPaymentMethod: "monthly_credit" }).allowed).toBe(true);
+      expect(policy.validatePurchasePolicy({ productType, requestedPaymentMethod: "monthly_credit" })).toMatchObject({
+        allowed: false,
+        denialReason: "INVALID_PAYMENT_METHOD_FOR_PASS_PRODUCT",
+      });
     },
   );
 

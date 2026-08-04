@@ -38,6 +38,12 @@
 4. 사용자가 `단건 결제`를 선택하면 `worker/routes/payments.js`가 PortOne 주문을 준비한다.
 5. `단건 결제`와 `월정석` 경로는 이용권 DB를 조회하거나 이용권 방식으로 자동 전환하지 않는다.
 
+### 달빛 이용권 상품 구매 정책
+
+- 달빛 이용권 상품 자체는 `단건 결제`(원화 PG)로만 구매할 수 있다. 보유 월정석은 이용권 구매 수단이 아니다.
+- `/api/payments/subscription/prepare`와 `/api/payments/subscription/confirm`은 `monthly_credit` 및 월정석 별칭 요청을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부한다.
+- 월정석은 유료 기능 이용과 서버가 별도로 허용한 소비 흐름에만 사용하며, 이용권 구매 UI에는 구매 선택지로 노출하지 않는다. 이용권 가격·환불 정책은 변경하지 않는다.
+
 ## 결제 검증 흐름
 
 1. PortOne 결제 완료 후 클라이언트 confirm 또는 webhook이 Worker로 들어온다.
@@ -150,7 +156,7 @@
 - `profileSubscription` is the canonical entitlement. Legacy fields are read-only compatibility data and never elevate the canonical tier.
 - Conflicting active legacy entitlements fail closed with `LEGACY_ENTITLEMENT_CONFLICT`.
 - `standard`, `premium`, and `vvip` feature access uses the shared 30/50/100 coin limits. Family is feature access only and is never a payment substitute.
-- `pass`, `subscription`, `bundle`, and `family` products require `pg` or an explicitly approved `monthly_credit` flow. Pass, entitlement, family, coin, balance, and credit methods cannot purchase pass-like products.
+- `pass`, `subscription`, `bundle`, and `family` products require direct `pg` checkout. `monthly_credit`, pass, entitlement, family, coin, balance, and credit methods cannot purchase pass-like products.
 - Server checkout preparation and confirmation must call `validatePurchasePolicy`. Client fields such as `coveredByPass` and `userEntitlement` are untrusted.
 - Google Play pass SKUs are legacy/deprecated for new entitlement grants. Content SKUs remain a separate policy surface.
 - Policy implementation: `worker/lib/entitlement-policy.js`; audit events are written through `writeSecurityLog` without payment credentials or raw personal data.

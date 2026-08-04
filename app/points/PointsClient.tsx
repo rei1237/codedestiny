@@ -700,7 +700,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         over3000Single: "30일 동안 스탠다드 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       premium: {
         profile7: "프로필 최대 7개 생성",
@@ -708,7 +708,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         over5000Single: "30일 동안 프리미엄 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       vvip: {
         profile15: "프로필 최대 15개 생성",
@@ -716,14 +716,14 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
         over10000Single: "30일 동안 VVIP 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
         allPaidPdf: "초융합 제외 · 3만원 미만 기능 무제한",
         familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        notAutoBilling: "원화 단건 결제로 구매 가능",
       },
     },
     pointPackages: {
@@ -770,9 +770,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     lowerTierBlocked: "상위 티어 사용 중 (구매 불가)",
     lowerTierBlockedHelp: "현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.",
     activePassLabel: "30일 이용권 활성화",
-    activePassMessage: (expires) => `${expires}까지 30일 혜택이 유지됩니다. 월정석 또는 원화로 다음 이용권을 다시 열 수 있습니다.`,
+    activePassMessage: (expires) => `${expires}까지 30일 혜택이 유지됩니다. 다음 이용권은 원화 단건 결제로 구매할 수 있습니다.`,
     activePassFooter: "결제 즉시 이용권 혜택이 활성화되며 30일 동안 유효합니다.",
-    activePassAutoRenewWarning: "만료 후에는 월정석 또는 원화로 30일 혜택을 다시 열 수 있습니다.",
+    activePassAutoRenewWarning: "만료 후에는 원화 단건 결제로 30일 혜택을 다시 열 수 있습니다.",
     coffeeBadge: "커피 2잔 값으로 30일",
   },
   en: {
@@ -930,14 +930,6 @@ function formatCoinValue(amount: number, copy: PointsPageCopy = POINTS_PAGE_COPY
 
 function formatMonthlyCreditValue(amount: number, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
   return copy.monthlyCreditValue(amount, locale);
-}
-
-function calculateSubscriptionMonthlyCreditCost(plan: Pick<SubscriptionPlan, "wonPrice">) {
-  return Math.max(0, Math.ceil(Number(plan.wonPrice || 0) / 10));
-}
-
-function buildMonthlyCreditSubscriptionRequestId(plan: Pick<SubscriptionPlan, "planId">) {
-  return `sub_monthly_${Date.now().toString(36)}_${String(plan.planId || "plan").replace(/[^a-z0-9_-]/gi, "").slice(0, 40)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function normalizeSubscriptionDurationMonths(value: unknown, planIdRaw?: unknown): 1 | 3 | 6 | 12 | null {
@@ -1608,7 +1600,7 @@ function SubscriptionSection({
             30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
           <p className="mt-2 text-[12.5px] font-semibold text-[#ded4ff]">
-            월정석 또는 원화 결제로 30일 혜택을 다시 열 수 있습니다.
+            이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
           </p>
         </div>
 
@@ -1637,7 +1629,7 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>월정석 또는 원화로 여는 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>원화 단건 결제로 여는 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</span></li>
           </ul>
         </div>
@@ -2091,7 +2083,7 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
               </span>
             </div>
             <p className="max-w-[300px] text-[12.5px] leading-5 text-slate-100 sm:text-right">
-              월정석 또는 원화로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
+              원화 단건 결제로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
             </p>
             <p className="max-w-[300px] text-[12.5px] font-bold leading-5 text-[#ffe8a3] sm:text-right">
               월정석은 보너스 혜택으로만 지급되며 월정석 자체는 구매·충전할 수 없습니다.
@@ -2215,7 +2207,7 @@ function MoonlightShopHero() {
               달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
             </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
-              월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+              이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
             </p>
           </div>
         </div>
@@ -2528,7 +2520,7 @@ function MoonlightShopPlans({
                       <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">월정석 또는 원화로 구매하는 30일 이용권</p>
+                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">원화 단건 결제로 구매하는 30일 이용권</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-silver)]">
                       {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
@@ -3307,7 +3299,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 월정석으로 30일 이용권을 구매할 수 있습니다.
+      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
     </section>
   );
 }
@@ -4722,93 +4714,7 @@ export default function PointsPage() {
     }
   };
 
-  const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {
-    const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
-    const requestedTierRank = getSubscriptionTierRank(plan.tier);
-    const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
-
-    if (!authUser) {
-      router.replace("/login?next=%2Fpoints");
-      return;
-    }
-
-    if (plan.durationMonths !== 1) {
-      pushToast("error", "현재 신규 판매 이용권은 30일권만 선택할 수 있습니다.");
-      return;
-    }
-
-    if (activeTierRank > requestedTierRank) {
-      pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
-      return;
-    }
-
-    // 잔량이 확정적으로 부족할 때만 막는다. 미확정이면 서버가 판정하게 둔다(과금 없이 402로 거절).
-    if (!monthlyStoneUnverified && monthlyStoneBalance < requiredMonthlyCredits) {
-      pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
-      return;
-    }
-
-    const requestId = buildMonthlyCreditSubscriptionRequestId(plan);
-    const actionLockKey = `subscription-monthly-credit:${plan.planId}`;
-    if (!acquirePaymentActionLock(actionLockKey)) return;
-
-    setIsProcessing(true);
-    setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("월정석이 깃들고 있어요\n곧 이용 가능해져요", "payment-complete");
-
-    try {
-      const confirmData = await confirmSubscriptionWithServer({
-        requestId,
-        merchantUid: requestId,
-        tier: plan.tier,
-        planId: plan.planId,
-        durationMonths: plan.durationMonths,
-        durationDays: 30,
-        amount: plan.wonPrice,
-        currency: "KRW",
-        productType: plan.productType,
-        paymentMethod: "monthly_credit",
-      });
-
-      if (confirmData.subscription) {
-        const newSub: SubscriptionStatus = {
-          tier: confirmData.subscription?.tier || "free",
-          source: confirmData.subscription?.source || "pass",
-          isActive: !!confirmData.subscription?.isActive,
-          startedAt: confirmData.subscription?.startedAt || null,
-          expiresAt: confirmData.subscription?.expiresAt || null,
-          profileLimit: typeof confirmData.subscription?.profileLimit === "number"
-            ? confirmData.subscription.profileLimit
-            : getSubscriptionPolicyProfileLimit(confirmData.subscription?.tier || plan.tier),
-          durationMonths: normalizeSubscriptionDurationMonths(confirmData.subscription?.durationMonths ?? plan.durationMonths) ?? plan.durationMonths,
-          lowBalanceWarning: false,
-          cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
-          cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
-          freeLimit: getSubscriptionPolicyFreeLimit(confirmData.subscription?.tier || plan.tier),
-        };
-        setSubscription((prev) => mergeSubscriptionState(prev, newSub));
-        persistSubscriptionCache(newSub);
-      }
-
-      await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
-      pushToast("success", confirmData.message || "월정석이 깃들었습니다.");
-      setShowStarBurst(true);
-      setTimeout(() => setShowStarBurst(false), 1200);
-    } catch (error: unknown) {
-      const message = getErrorMessage(error, "월정석을 적용하지 못했습니다.");
-      if (message.includes("INSUFFICIENT_MONTHLY_CREDITS") || message.includes("부족")) {
-        pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
-      } else if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
-        pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
-      } else {
-        pushToast("error", message);
-      }
-    } finally {
-      releasePaymentActionLock(actionLockKey);
-      setIsProcessing(false);
-    }
-  };
-
+  // Pass products are purchased through direct KRW checkout only.
   const handleSubscriptionCancel = async (resume: boolean) => {
     const flowerAdminToken = getFlowerAdminTokenClient();
     if (!authUser) {
@@ -4887,14 +4793,9 @@ export default function PointsPage() {
     );
   }
 
-  const pendingSubscriptionMonthlyCreditCost = pendingSubscriptionPaymentPlan
-    ? calculateSubscriptionMonthlyCreditCost(pendingSubscriptionPaymentPlan)
-    : 0;
   // 잔량이 "확정적으로" 부족할 때만 버튼을 잠근다. 미확정(서버가 확인 못 함)이면 열어두고
   // 최종 판정은 서버 402(INSUFFICIENT_MONTHLY_CREDITS)에 맡긴다 — 과금 없이 안전하게 거절된다.
   // 예전에는 조회 실패의 0 이 곧 "부족"이 되어 월정석 구매 자체가 막다른 길이 됐다.
-  const canUseMonthlyCreditForPendingSubscription = pendingSubscriptionMonthlyCreditCost > 0
-    && (monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost);
   const pointStateIsLoading = pointStateStatus === "idle" || pointStateStatus === "loading";
   const pointStateHasError = pointStateStatus === "error" || Boolean(pointStateError);
   const retryPointState = () => {
@@ -4964,13 +4865,13 @@ export default function PointsPage() {
               {copy.planTitles[pendingSubscriptionPaymentPlan.tier]} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan, copy, formatLocale)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice, copy, formatLocale)}
             </p>
             <p className="mt-1 text-[12px] font-bold text-[#f3dd9a]">
-              {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)} · {monthlyStoneUnverified ? "잔액 확인 중 · 서버에서 최종 확인" : formatMonthlyCreditValue(monthlyStoneBalance, copy, formatLocale)}
+              이용권은 원화 단건 결제로만 구매할 수 있습니다.
             </p>
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
               <p className="font-black text-white">30일 이용권 조건</p>
               <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
-              <p className="mt-1 font-bold text-[#f3dd9a]">월정석 또는 원화 결제로 30일 혜택을 활성화할 수 있습니다.</p>
-              <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다. 월정석은 각 지급분이 지급일로부터 30일간만 유효하고, 미사용분은 소멸합니다.</p>
+              <p className="mt-1 font-bold text-[#f3dd9a]">이용권은 원화 단건 결제로만 활성화할 수 있으며, 월정석으로는 구매할 수 없습니다.</p>
+              <p className="mt-1 font-bold text-[#cab8ff]">보유한 월정석은 이용권 구매에 사용할 수 없습니다. 월정석 자체는 구매·충전하거나 현금 환불할 수 없으며, 각 지급분은 지급일로부터 30일간만 유효하고 미사용분은 소멸합니다.</p>
               <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
               <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
                 자세한 환불 규정 보기
@@ -4999,24 +4900,6 @@ export default function PointsPage() {
               >
                 <span className="block text-sm font-black">원화 결제</span>
                 <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.</span>
-              </button>
-              <button
-                type="button"
-                disabled={isProcessing || !isSubscriptionRefundAgreed || !canUseMonthlyCreditForPendingSubscription}
-                onClick={() => {
-                  const plan = pendingSubscriptionPaymentPlan;
-                  if (!plan) return;
-                  setPendingSubscriptionPaymentPlan(null);
-                  void handleSubscribeWithMonthlyCredit(plan);
-                }}
-                className="rounded-[14px] border border-[#cab8ff]/45 bg-[#cab8ff]/18 px-4 py-3 text-left text-slate-100 shadow-[0_10px_22px_rgba(202,184,255,0.14)] transition hover:bg-[#cab8ff]/24 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <span className="block text-sm font-black">보너스 월정석 사용</span>
-                <span className="mt-1 block text-[12px] font-semibold">
-                  {monthlyStoneUnverified
-                    ? "잔액은 서버에서 최종 확인해요."
-                    : formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)}
-                </span>
               </button>
             </div>
             <button
@@ -5121,7 +5004,7 @@ export default function PointsPage() {
                     달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
-                    월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+                    이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
                   </p>
                 </div>
               </div>
@@ -5183,7 +5066,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 월정석으로 30일 이용권을 구매할 수 있습니다.
+          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">
