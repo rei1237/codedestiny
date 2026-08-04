@@ -121,7 +121,7 @@ export default function AppPassStoreClient() {
 
   const buy = useCallback(async (plan: PassPlan) => {
     if (APP_PASS_PURCHASE_DISABLED) {
-      setMessage("이용권 신규 구매는 현재 웹 PG 결제 또는 허용된 월정석 정책으로만 진행할 수 있습니다.");
+      setMessage("이용권 신규 구매는 웹 PG 단건 결제로만 진행할 수 있습니다.");
       return;
     }
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
@@ -207,7 +207,7 @@ export default function AppPassStoreClient() {
       {!nativeReady ? (
         <div className="cd-app-surface p-4">
           <p className="cd-app-heading">Google Play 이용권 신규 구매는 중단되었습니다.</p>
-          <p className="cd-app-body mt-2">이용권 상품은 현재 웹 PG 결제 또는 허용된 월정석 정책으로만 구매할 수 있습니다.</p>
+          <p className="cd-app-body mt-2">이용권 상품은 웹 PG 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.</p>
           <button
             type="button"
             onClick={() => void loadProducts()}

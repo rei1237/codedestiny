@@ -322,7 +322,10 @@ export function validatePurchasePolicy({
   );
   const base = {
     allowed: true,
-    allowedPaymentMethods: passLike ? ["pg", "monthly_credit"] : ["pg", "monthly_credit", "pass"],
+    // A membership pass product is purchased only through direct KRW checkout.
+    // Monthly credits remain a valid payment method for eligible content usage,
+    // but cannot purchase another pass.
+    allowedPaymentMethods: passLike ? ["pg"] : ["pg", "monthly_credit", "pass"],
     denialReason: null,
     normalizedProductType,
     policyVersion: PURCHASE_POLICY_VERSION,
@@ -364,7 +367,7 @@ export function validatePurchasePolicy({
       auditCode: activeFamily ? "FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS" : "CLIENT_PAYMENT_METHOD_TAMPERING_DETECTED",
     };
   }
-  if (normalizedMethod !== "pg" && normalizedMethod !== "monthly_credit") {
+  if (normalizedMethod !== "pg") {
     return {
       ...base,
       allowed: false,

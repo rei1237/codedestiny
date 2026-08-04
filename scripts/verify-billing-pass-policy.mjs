@@ -567,15 +567,16 @@ assertContains(billingSource, "const shouldLoadMembershipPass = shouldVerifyMemb
 assertContains(paymentsSource, "fetchPortOnePayment", "PortOne verification remains");
 assertContains(paymentsSource, "PortOne V2 KG Inicis", "KG Inicis public config remains");
 assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remains");
-assertContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscription pass monthly credit confirm path");
-assertContains(paymentsSource, 'paymentMethodHint === "monthly_credit"', "subscription pass monthly credit routing");
-assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pass monthly credit ledger");
-assertNotContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");
-assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request remains explicit");
+assertContains(paymentsSource, "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED", "subscription pass monthly credit purchase is explicitly rejected");
+assertNotContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscription pass monthly credit confirm path removed");
+assertNotContains(pointsSource, "handleSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");
+assertNotContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass UI does not submit monthly-credit purchases");
+assertContains(pointsSource, "이용권은 원화 단건 결제로만 구매할 수 있습니다.", "subscription pass UI states direct-only purchase");
+assertNotContains(pointsSource, '<span className="block text-sm font-black">보너스 월정석 사용</span>', "subscription pass UI does not offer monthly-credit purchase");
 const handleSubscribeStart = pointsSource.indexOf("const handleSubscribe = async (plan: SubscriptionPlan) => {");
-const handleMonthlyCreditStart = pointsSource.indexOf("const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {");
-assert.ok(handleSubscribeStart >= 0 && handleMonthlyCreditStart > handleSubscribeStart, "points page subscription handlers found");
-const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, handleMonthlyCreditStart);
+const subscriptionCancelStart = pointsSource.indexOf("const handleSubscriptionCancel = async", handleSubscribeStart);
+assert.ok(handleSubscribeStart >= 0 && subscriptionCancelStart > handleSubscribeStart, "points page subscription handlers found");
+const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, subscriptionCancelStart);
 assertContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요.", "checkout")', "card subscription prepare uses checkout wait UI");
 assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
 // 🔴 오버레이 정리는 **await 하지 않는다**. 예전에는 이 함수가 rAF 를 await 해서 PG 창을 여는 직전에
@@ -584,8 +585,6 @@ assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보�
 assertNotContains(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "overlay cleanup must not be awaited before opening the PG window");
 assertBefore(cardSubscriptionSource, "closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens right after the React overlay is cleared");
 assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"결제 승인 내역을 안전하게 확인하고 있어요.", "subscription confirm wait starts only after PG response");
-const monthlyCreditSubscriptionSource = pointsSource.slice(handleMonthlyCreditStart, pointsSource.indexOf("const handleSubscriptionCancel", handleMonthlyCreditStart));
-assertContains(monthlyCreditSubscriptionSource, "monthlyStoneBalance < requiredMonthlyCredits", "monthly credit shortage check remains inside monthly-credit handler");
 assertContains(pointsSource, "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.", "standard pass paid-service policy UI");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
@@ -792,17 +791,12 @@ for (const shellPath of [
     `${shellPath}: pass shop does not render the moonlight-stone purchase button`,
   );
 }
-// 이용권 결제 진입 경로(/points)의 회귀 3종.
-// ① 결제 준비를 모달 오픈 때 미리 돌리고 ② 프리페치와 실제 클릭이 같은 멱등키를 써 주문이 중복되지 않으며
-// ③ 잔량 미확정(서버가 확인 실패)을 "부족"으로 취급해 월정석 수단을 잠그지 않아야 한다.
+// 이용권 결제 진입 경로(/points)의 회귀: 직접 원화 단건 결제만 노출한다.
 assertContains(pointsSource, '"Idempotency-Key": idempotencyKey', "points pass prepare sends a stable idempotency key");
 assertContains(pointsSource, "startSubscriptionPrepare", "points pass prepare is prefetched when the payment-method modal opens");
 assertContains(pointsSource, "runAccessCheckWithTransientRetry", "points payment entry buffers transient 503s");
-assertContains(
-  pointsSource,
-  "monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost",
-  "points moonlight-stone option stays enabled while the balance is unverified",
-);
+assertContains(pointsSource, "void handleSubscribe(plan);", "points pass modal keeps the direct payment action");
+assertNotContains(pointsSource, "monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost", "points pass modal has no monthly-credit purchase eligibility gate");
 
 assertContains(fortuneSource, "resolveCanonicalEntitlement", "subscription status uses canonical pass entitlement");
 assertContains(fortuneSource, "subscription: 1", "subscription status reads legacy subscription field");

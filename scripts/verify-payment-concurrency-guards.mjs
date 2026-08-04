@@ -17,10 +17,10 @@ const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "u
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const monthlyCreditStoreSource = readFileSync(resolve(root, "worker/lib/monthly-credit-store.js"), "utf8");
 
-// 멱등 마커를 직접 write하는 소스 전량 — 공통 billing 위임 라우트는 제외한다.
+// 멱등 마커를 직접 write하는 소스 전량 — payments.js는 이용권 월정석 구매 경로 제거 후
+// 해당 마커를 직접 write하지 않으므로 대상에서 제외한다.
 const MARKER_WRITE_SOURCES = {
   "billing.js": billingSource,
-  "payments.js": paymentsSource,
   "fortune.js": fortuneSource,
   "monthly-credit-store.js": monthlyCreditStoreSource,
 };
@@ -242,17 +242,23 @@ assert.match(
 );
 
 // ── 시나리오 6: 월정석 원장 실패 롤백 안전성 (F5) ────────────────────────────
-// 6a. 중복 원장(11000)은 멱등 재시도로 간주, 롤백 금지.
-assert.match(
+// 6a. 이용권은 월정석 구매를 지원하지 않으므로 payments.js가 월정석 원장을
+//     생성하거나 이용권을 활성화하는 경로를 다시 갖지 않아야 한다.
+assert.doesNotMatch(
   paymentsSource,
-  /if \(Number\(error\?\.code\) === 11000\) \{[\s\S]*?MonthlyCreditLedger\.findOne\(\{[\s\S]*?sourceId: requestId/,
-  "중복 원장(11000)은 롤백 없이 기존 원장을 재사용해야 한다",
+  /MonthlyCreditLedger\.create\(/,
+  "payments.js는 이용권 월정석 구매 원장을 생성하지 않아야 한다",
 );
-// 6b. 롤백은 무조건 전체 치환이 아니라, 우리 활성(expiresAt)이 최신일 때만 복원(동시 변경 소실 방지).
-assert.match(
+assert.doesNotMatch(
+  paymentsSource,
+  /monthly-credit membership pass purchase/,
+  "payments.js에는 월정석 이용권 구매 경로가 남아 있지 않아야 한다",
+);
+// 6b. 월정석 이용권 구매 경로가 제거된 뒤, 해당 보상 롤백 패턴도 남아 있지 않아야 한다.
+assert.doesNotMatch(
   paymentsSource,
   /User\.updateOne\(\s*\{ _id: auth\.userId, "profileSubscription\.expiresAt": expiresAt \}/,
-  "롤백 복원은 expiresAt 가드로 우리 활성이 최신일 때만 수행해야 한다",
+  "payments.js에는 삭제된 월정석 이용권 구매 롤백 경로가 남아 있지 않아야 한다",
 );
 assert.doesNotMatch(
   paymentsSource,
