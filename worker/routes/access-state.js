@@ -10,6 +10,7 @@ import {
   writeAccessStateCache,
   writeAccessStateInFlight,
 } from "../lib/access-state.js";
+import { buildApiError, buildApiMeta, requestIdFromRequest } from "../lib/api-contract.js";
 
 function responseHeaders(state) {
   const entitlementVersion = String(state?.versions?.entitlementVersion || state?.entitlementSnapshot?.entitlementVersion || "unknown")
@@ -26,12 +27,20 @@ function responseHeaders(state) {
 function responseFor(state, degraded = false, request = null) {
   const headers = responseHeaders(state);
   if (degraded) headers["Cache-Control"] = "private, no-store";
+  const requestId = requestIdFromRequest(request);
   if (!degraded && request?.headers?.get("If-None-Match") === headers.ETag) {
     return new Response(null, { status: 304, headers });
   }
   return json({
     ok: true,
     data: { ...state, degraded },
+    meta: buildApiMeta({
+      generatedAt: state?.fetchedAt,
+      stale: degraded,
+      source: state?.source || (degraded ? "degraded" : "db"),
+      expiresAt: state?.expiresAt || null,
+    }),
+    requestId,
     ...state,
     degraded,
   }, {
@@ -126,6 +135,7 @@ export async function handleAccessStateRoutes(request, env) {
       clearAccessStateInFlight(userId, promise, { profileId });
     }
   } catch (error) {
+    const requestId = requestIdFromRequest(request);
     const stale = userId ? readAccessStateCache(userId, { profileId, allowStale: true }) : null;
     if (stale) return responseFor(stale, true, request);
     if (/timeout|timed out/i.test(String(error?.message || error || ""))) {
@@ -135,6 +145,8 @@ export async function handleAccessStateRoutes(request, env) {
       return json({
         ok: false,
         code: "ACCESS_STATE_TIMEOUT",
+        error: buildApiError({ code: "ACCESS_STATE_TIMEOUT", retryable: true, message: "접근 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.", requestId }),
+        requestId,
         degraded: true,
         retryable: true,
         message: "접근 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.",
@@ -147,6 +159,8 @@ export async function handleAccessStateRoutes(request, env) {
       return json({
         ok: false,
         code: "ACCESS_STATE_UNAVAILABLE",
+        error: buildApiError({ code: "ACCESS_STATE_UNAVAILABLE", retryable: true, message: "접근 상태를 잠시 확인할 수 없습니다.", requestId }),
+        requestId,
         degraded: true,
         retryable: true,
         message: "접근 상태를 잠시 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",

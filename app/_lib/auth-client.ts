@@ -288,6 +288,12 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}, clientSourc
   if (isAuthoritativeAuthPath(targetUrl)) {
     headers.set(CACHE_REFRESH_HEADER, "1");
   }
+  if (!headers.has("X-Request-ID")) {
+    const requestId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `cd-client-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    headers.set("X-Request-ID", requestId.slice(0, 120));
+  }
   // AI 응답 언어. 모든 React AI 클라이언트가 authFetch 를 타므로 여기 한 줄이면 전 기능이 커버된다.
   // 워커는 worker/lib/ai-locale-context.js 가 이 헤더를 읽어 요청 스코프에 심는다.
   if (!headers.has(AI_LOCALE_HEADER)) {
@@ -449,7 +455,7 @@ async function refreshSession(apiBase: string, clientSource?: string) {
 
 function authGetDedupeKey(url: string, init: RequestInit = {}) {
   const method = String(init.method || "GET").trim().toUpperCase();
-  if (method !== "GET" || init.signal) return "";
+  if (method !== "GET") return "";
   try {
     const parsed = new URL(url, "http://localhost");
     const safePaths = [
@@ -461,13 +467,41 @@ function authGetDedupeKey(url: string, init: RequestInit = {}) {
       "/api/me/access-state",
       "/api/subscription/status",
       "/api/fortune/pig-coin/profile-subscription/status",
+      "/api/fusion-fortune/status",
+      "/api/payments/guardian-fortune/catalog",
+      "/api/payments/guardian-fortune/balance",
+      "/api/payments/guardian-fortune/shop-preview",
+      "/api/payments/fusion-fortune/catalog",
+      "/api/payments/fusion-fortune/balance",
+      "/api/payments/fusion-fortune/shop-preview",
     ];
-    if (!safePaths.includes(parsed.pathname)) return "";
+    const isOrderPath = parsed.pathname === "/api/payments/orders"
+      || /^\/api\/payments\/orders\/[^/]+$/.test(parsed.pathname);
+    if (!safePaths.includes(parsed.pathname) && !isOrderPath) return "";
     const headers = new Headers(init.headers || {});
     return `${url}|refresh:${headers.get(CACHE_REFRESH_HEADER) || "0"}`;
   } catch (e) {
     return "";
   }
+}
+
+function withCallerAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(new DOMException("The operation was aborted.", "AbortError"));
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(new DOMException("The operation was aborted.", "AbortError"));
+    signal.addEventListener("abort", abort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", abort);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", abort);
+        reject(error);
+      },
+    );
+  });
 }
 
 // 호출부가 자기 signal 을 준 경우(취소 제어를 이미 쥐고 있는 경우)에는 건드리지 않는다.
@@ -527,13 +561,16 @@ export async function authFetch(
 
   let pending = authGetInFlight.get(dedupeKey);
   if (!pending) {
-    pending = performAuthFetch(targetUrl, init, retryOn401, apiBase, clientSource)
+    // A shared GET must not be cancelled by one consumer. Each caller still gets
+    // its own abort race below, while the network request remains single-flight.
+    const sharedInit = init.signal ? { ...init, signal: undefined } : init;
+    pending = performAuthFetch(targetUrl, sharedInit, retryOn401, apiBase, clientSource)
       .finally(() => {
         if (authGetInFlight.get(dedupeKey) === pending) authGetInFlight.delete(dedupeKey);
       });
     authGetInFlight.set(dedupeKey, pending);
   }
-  return (await pending).clone();
+  return (await withCallerAbort(pending, init.signal ?? undefined)).clone();
 }
 
 export async function logoutWithServer(apiBase?: string) {

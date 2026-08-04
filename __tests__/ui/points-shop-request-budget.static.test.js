@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @jest-environment node
  */
 
@@ -9,6 +9,8 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "../..");
 const pointsSource = fs.readFileSync(path.join(root, "app/points/PointsClient.tsx"), "utf8");
+const snapshotSource = fs.readFileSync(path.join(root, "app/_lib/moonlight-store-snapshot.ts"), "utf8");
+const serviceReadSource = fs.readFileSync(path.join(root, "app/_lib/service-read-client.ts"), "utf8");
 const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 function between(source, start, end) {
@@ -19,15 +21,38 @@ function between(source, start, end) {
     : "";
 }
 
-test("points shop initial summary has a single in-flight payments/me request and one retry layer", () => {
+test("points shop initial summary has one snapshot request and one retry layer", () => {
   const fetchStateBlock = between(pointsSource, "const fetchMyPointState = useCallback", "const syncSubscriptionAppliedStage");
 
   assert.match(fetchStateBlock, /fetchMyPointStateInFlightRef\.current/);
-  assert.match(fetchStateBlock, /\/api\/payments\/me/);
-  assert.match(fetchStateBlock, /\/api\/payments\/me\?view=shop/);
+  assert.match(fetchStateBlock, /fetchMoonlightStoreSnapshot/);
+  assert.match(snapshotSource, /\/api\/payments\/me\?view=shop/);
   assert.match(fetchStateBlock, /maxAttempts:\s*1/);
   assert.doesNotMatch(fetchStateBlock, /\/api\/billing\/balance/);
   assert.doesNotMatch(fetchStateBlock, /\/api\/subscription\/status/);
+});
+
+test("points shop waits for confirmed auth before its initial summary request", () => {
+  assert.match(pointsSource, /import \{ useAuthStore \} from "\.\.\/_lib\/auth-store"/);
+  assert.match(pointsSource, /if \(isBooting \|\| !authState\.authReady \|\| !authState\.isAuthenticated \|\| !authStoreUserId\) return;/);
+});
+
+test("points shop uses one versioned snapshot owner with in-flight deduplication and bounded cache", () => {
+  assert.match(pointsSource, /type MoonlightStoreSnapshot/);
+  assert.match(snapshotSource, /MOONLIGHT_STORE_SNAPSHOT_SCHEMA_VERSION = 1/);
+  assert.match(snapshotSource, /const inFlight = new Map/);
+  assert.match(snapshotSource, /const cache = new Map/);
+  assert.match(snapshotSource, /MOONLIGHT_STORE_SNAPSHOT_TTL_MS = 30_000/);
+  assert.match(snapshotSource, /STORE_SNAPSHOT_CONTRACT_INVALID/);
+  assert.match(snapshotSource, /STORE_SNAPSHOT_CIRCUIT_OPEN/);
+  assert.match(snapshotSource, /SNAPSHOT_CIRCUIT_COOLDOWN_MS/);
+});
+
+test("read-only service calls open an endpoint cooldown after repeated transient failures", () => {
+  assert.match(serviceReadSource, /const readCircuits = new Map/);
+  assert.match(serviceReadSource, /READ_CIRCUIT_OPEN/);
+  assert.match(serviceReadSource, /isRetryableReadStatus\(response\.status\)/);
+  assert.doesNotMatch(serviceReadSource, /method: "POST"/);
 });
 
 test("points shop keeps a last confirmed monthly-stone snapshot display-only until the server confirms it", () => {
@@ -49,6 +74,27 @@ test("points shop exposes direct-only pass purchase UI", () => {
   assert.match(pointsSource, /void handleSubscribe\(plan\);/);
   assert.match(pointsSource, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
   assert.match(pointsSource, /월정석으로는 이용권을 구매할 수 없습니다\./);
+});
+
+test("points shop keeps monthly-credit purchase available when the shop summary fails", () => {
+  assert.match(pointsSource, /if \(hasVerifiedShopSnapshotRef\.current\)/);
+  assert.match(pointsSource, /setMonthlyStoneUnverified\(true\);\s*setPointStateStatus\("error"\)/);
+  assert.match(pointsSource, /setMonthlyStoneUnverified\(true\)/);
+  assert.match(pointsSource, /월정석의 달빛이 잠시 흐려졌어요/);
+});
+
+test("points shop invalidates only after a mutation while ticket detail keeps abort support", () => {
+  assert.match(pointsSource, /previewAbortRef/);
+  assert.match(pointsSource, /clearMoonlightStoreSnapshot\(authStoreUserId, apiBase\)/);
+  assert.match(pointsSource, /fetchMyPointState\(\{ force: true \}\)/);
+});
+
+test("payment profile and prepare stay behind the actual KRW payment button", () => {
+  const planSelectionEffect = between(pointsSource, "setIsSubscriptionRefundAgreed(false);", "}, [pendingSubscriptionPaymentPlan?.id]);");
+  assert.doesNotMatch(planSelectionEffect, /getSavedPaymentPhoneNumber/);
+  assert.doesNotMatch(planSelectionEffect, /startSubscriptionPrepare/);
+  assert.doesNotMatch(planSelectionEffect, /fetchPortOnePaymentConfigCached/);
+  assert.match(pointsSource, /ensurePaymentPhoneNumber\(apiBase, authUser, null\)/);
 });
 
 test("subscription prepare does not auto retry with a new idempotency key", () => {
@@ -82,7 +128,7 @@ test("single payment shows the shared wait UI before checkout and confirms after
 
   assert.match(startPaymentBlock, /단건 결제를 준비하고 있어요/);
   assert.match(startPaymentBlock, /"checkout"/);
-  assert.match(startPaymentBlock, /singlePaymentPhonePrefetchRef\.current/);
+  assert.match(startPaymentBlock, /ensurePaymentPhoneNumber\(apiBase, authUser, null\)/);
   assert.match(startPaymentBlock, /closeProcessingOverlayBeforeExternalCheckout/);
   assert.match(startPaymentBlock, /confirmPendingSinglePayment/);
   assert.doesNotMatch(startPaymentBlock, /setProcessingStage\("결제가 완료됐어요/);

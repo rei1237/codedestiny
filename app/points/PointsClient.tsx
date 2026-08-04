@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -15,7 +15,13 @@ import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { useAuthStore } from "../_lib/auth-store";
 import { clearSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
+import {
+  clearMoonlightStoreSnapshot,
+  fetchMoonlightStoreSnapshot,
+  type MoonlightStoreSnapshot,
+} from "../_lib/moonlight-store-snapshot";
 import { checkoutEntryRuntime as checkoutEntry } from "@/app/_lib/legacy-core-runtime";
 import { isAuthUserCacheVerified, persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
@@ -285,6 +291,7 @@ type MeResponse = {
     membershipCreditBalance?: number;
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
     historyDeferred?: boolean;
+    storeSnapshot?: MoonlightStoreSnapshot;
     subscription?: Record<string, unknown> | null;
     subscriptions?: Record<string, unknown>[];
   };
@@ -2758,17 +2765,24 @@ function GuardianFortuneCreditShop({
   const [errorMessage, setErrorMessage] = useState("");
   const redirectHandledRef = useRef(false);
   const previewInFlightRef = useRef<Promise<void> | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
   const authScope = getShopTicketAuthScope(authUser);
   const activeScopeRef = useRef(authScope);
   activeScopeRef.current = authScope;
 
   useEffect(() => {
     activeScopeRef.current = authScope;
+    previewAbortRef.current?.abort();
+    previewAbortRef.current = null;
     setHasLoaded(false);
     setIsEnabled(null);
     setProducts([]);
     setBalance(null);
     setErrorMessage("");
+    return () => {
+      previewAbortRef.current?.abort();
+      previewAbortRef.current = null;
+    };
   }, [authScope]);
 
   const loadCatalogAndBalance = useCallback(async () => {
@@ -2784,6 +2798,8 @@ function GuardianFortuneCreditShop({
       return;
     }
     const requestScope = authScope;
+    const requestController = new AbortController();
+    previewAbortRef.current = requestController;
     const requestPromise = (async () => {
       setHasLoaded(false);
       setIsLoading(true);
@@ -2795,6 +2811,7 @@ function GuardianFortuneCreditShop({
           method: "GET",
           credentials: "include",
           cache: "no-store",
+          signal: requestController.signal,
         }, { retryOn401: true, apiBase, clientSource: "app:points" });
         const payload = await safeParseJson<{
           ok?: boolean;
@@ -2823,6 +2840,7 @@ function GuardianFortuneCreditShop({
         setProducts(nextProducts);
         setBalance(payload.balance);
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
         if (activeScopeRef.current === requestScope) {
           setIsEnabled(null);
           setHasLoaded(false);
@@ -2839,6 +2857,7 @@ function GuardianFortuneCreditShop({
       await requestPromise;
     } finally {
       if (previewInFlightRef.current === requestPromise) previewInFlightRef.current = null;
+      if (previewAbortRef.current === requestController) previewAbortRef.current = null;
       releaseShopTicketPreview("guardian");
     }
   }, [apiBase, authScope, authUser]);
@@ -3077,17 +3096,24 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
   const [errorMessage, setErrorMessage] = useState("");
   const redirectHandledRef = useRef(false);
   const previewInFlightRef = useRef<Promise<void> | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
   const authScope = getShopTicketAuthScope(authUser);
   const activeScopeRef = useRef(authScope);
   activeScopeRef.current = authScope;
 
   useEffect(() => {
     activeScopeRef.current = authScope;
+    previewAbortRef.current?.abort();
+    previewAbortRef.current = null;
     setHasLoaded(false);
     setIsEnabled(null);
     setProduct(null);
     setRemaining(null);
     setErrorMessage("");
+    return () => {
+      previewAbortRef.current?.abort();
+      previewAbortRef.current = null;
+    };
   }, [authScope]);
 
   const load = useCallback(async () => {
@@ -3098,6 +3124,8 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
       return;
     }
     const requestScope = authScope;
+    const requestController = new AbortController();
+    previewAbortRef.current = requestController;
     const requestPromise = (async () => {
       setHasLoaded(false);
       setIsLoading(true);
@@ -3109,6 +3137,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
           method: "GET",
           credentials: "include",
           cache: "no-store",
+          signal: requestController.signal,
         }, { retryOn401: true, apiBase, clientSource: "app:points" });
         const payload = await safeParseJson<{
           ok?: boolean;
@@ -3137,6 +3166,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
         setProduct(nextProduct);
         setRemaining(payload.balance.remaining);
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
         if (activeScopeRef.current === requestScope) {
           setIsEnabled(null);
           setHasLoaded(false);
@@ -3153,6 +3183,7 @@ function FusionFortuneTicketShop({ apiBase, authUser, formatLocale, onToast }: {
       await requestPromise;
     } finally {
       if (previewInFlightRef.current === requestPromise) previewInFlightRef.current = null;
+      if (previewAbortRef.current === requestController) previewAbortRef.current = null;
       releaseShopTicketPreview("fusion");
     }
   }, [apiBase, authScope, authUser]);
@@ -3465,6 +3496,8 @@ function PackageCard({
 
 export default function PointsPage() {
   const router = useRouter();
+  const authState = useAuthStore();
+  const authStoreUserId = authState.user?.id || "";
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
@@ -3482,8 +3515,6 @@ export default function PointsPage() {
     promise: Promise<"success" | "unknown" | "failed">;
   } | null>(null);
   const singlePaymentConfirmTimerRef = useRef<number | null>(null);
-  const singlePaymentPhonePrefetchRef = useRef<Promise<string> | null>(null);
-  const singlePaymentWarmupUserRef = useRef<string | null>(null);
   const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   const fetchSubscriptionStatusInFlightRef = useRef<Promise<void> | null>(null);
   const hasVerifiedShopSnapshotRef = useRef(false);
@@ -3554,12 +3585,10 @@ export default function PointsPage() {
     };
   }, []);
 
-  /* ── 이용권 결제 준비 프리페치 ───────────────────────────────────────
-     결제창 진입에 필요한 서버 왕복(prepare)을 모달 오픈 시점으로 앞당긴다.
-     프리페치와 실제 클릭이 같은 Idempotency-Key 를 쓰므로 서버가 같은 주문을 돌려주고,
-     pending 주문이 중복 생성되지 않는다(서버 handleSubscriptionPrepare 의 idempotent 분기). */
+  /* ── 이용권 결제 준비 ────────────────────────────────────────────────
+     결제 준비 요청은 사용자가 실제 원화 결제 버튼을 누른 뒤에만 실행한다.
+     동일 Idempotency-Key는 서버의 멱등 분기와 함께 사용해 연속 클릭 중복을 막는다. */
   const subscriptionPrepareRef = useRef<SubscriptionPrepareEntry | null>(null);
-  const paymentPhonePrefetchRef = useRef<Promise<string> | null>(null);
 
   const requestSubscriptionPrepare = useCallback(async (
     plan: SubscriptionPlan,
@@ -3621,38 +3650,13 @@ export default function PointsPage() {
 
   useEffect(() => {
     setIsSubscriptionRefundAgreed(false);
-    // 결제방식 모달이 열리면 결제창에 필요한 모든 준비물을 미리 워밍해, '원화 결제' 클릭 시 서버 왕복
-    // 없이 곧바로 이니시스 창이 뜨게 한다. 예전에는 클릭 후에야 prepare 를 호출해서 그 대기가 그대로
-    // "결제 정보를 준비하고 있어요" 오버레이로 보였다.
-    // (ensurePortoneSdk는 멱등, config는 세션 캐시 — 프리페치 실패는 무시하고 실제 결제 시 재시도.)
+    // 결제 모달을 여는 것만으로는 결제 준비 API를 호출하지 않는다.
+    // SDK/config/prepare/payment-phone은 실제 원화 결제 버튼을 누른 뒤에만 준비한다.
     if (!pendingSubscriptionPaymentPlan) {
       subscriptionPrepareRef.current = null;
-      paymentPhonePrefetchRef.current = null;
       return;
     }
-    void ensurePortoneSdk().catch(() => {});
-    void fetchPortOnePaymentConfigCached(apiBase).catch(() => {});
-    if (!authUser) return;
-    // 저장된 결제용 번호 "조회"만 미리 받는다(입력 prompt 는 실제 결제 시점에만 띄운다).
-    paymentPhonePrefetchRef.current = getSavedPaymentPhoneNumber(apiBase).catch(() => "");
-    startSubscriptionPrepare(pendingSubscriptionPaymentPlan);
-  }, [pendingSubscriptionPaymentPlan?.id, apiBase, authUser?.id, startSubscriptionPrepare]);
-
-  useEffect(() => {
-    const userId = String(authUser?.id || "");
-    if (!isMethodModalOpen || !userId) return;
-
-    if (singlePaymentWarmupUserRef.current !== userId) {
-      singlePaymentWarmupUserRef.current = userId;
-      singlePaymentPhonePrefetchRef.current = null;
-    }
-
-    void ensurePortoneSdk().catch(() => {});
-    void fetchPortOnePaymentConfigCached(apiBase).catch(() => {});
-    if (!singlePaymentPhonePrefetchRef.current) {
-      singlePaymentPhonePrefetchRef.current = getSavedPaymentPhoneNumber(apiBase).catch(() => "");
-    }
-  }, [apiBase, authUser?.id, isMethodModalOpen]);
+  }, [pendingSubscriptionPaymentPlan?.id]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3669,8 +3673,8 @@ export default function PointsPage() {
   /**
    * 🔴 결제창 → 이용권 상점 원클릭 인계. 예전에는 ?plan= 이 플랜을 '강조'만 해서 사용자가 그 플랜을
    * 다시 찾아 누르고 결제 버튼을 또 눌러야 했다(클릭 2회 + 화면 탐색). 여기서 결제 확인 모달까지
-   * 바로 열어 준다 — 이 state 는 PortOne SDK·prepare·config 프리페치도 함께 태우므로(아래 effect)
-   * 사용자는 결제 버튼 한 번이면 왕복 0으로 PG창에 도달한다.
+   * 바로 열어 준다 — 결제 버튼을 누르면 그 시점에 PortOne SDK·prepare·config를 준비한다.
+   * 결제 모달만 열린 상태에서는 결제 관련 API를 호출하지 않는다.
    * 비로그인이면 열지 않는다(기존 로그인 유도 흐름을 그대로 둔다). ref 가드로 한 번만 발화한다.
    */
   useEffect(() => {
@@ -3811,114 +3815,114 @@ export default function PointsPage() {
 
   /* ── 서버에서 주문/이용권 상태 조회 ─────────────────────────────── */
   const fetchMyPointState = useCallback(
-    async () => {
+    async ({ force = false, signal }: { force?: boolean; signal?: AbortSignal } = {}) => {
       if (fetchMyPointStateInFlightRef.current) {
         return fetchMyPointStateInFlightRef.current;
       }
       const requestPromise = (async () => {
-      // 일시적 DB 장애(503)는 상점 요약을 하드 실패시키지 말고 공용 완충으로 흡수한다.
-      // 완충이 없던 탓에 DB 블립 한 번이 "결제 및 이용권 정보를 불러오지 못했습니다"로 굳었다.
-      const attempt = await runAccessCheckWithTransientRetry(async () => {
-        const res = await authFetch(`${apiBase}/api/payments/me?view=shop`, {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        }, {
-          retryOn401: true,
-          apiBase,
-          clientSource: "app:points",
-        });
-        // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
-        const parsed = await safeParseJson<MeResponse>(res);
-        return { status: res.status, data: { ...parsed, ok: res.ok } };
-      }, { maxAttempts: 1, baseDelayMs: 700 });
+        if (!authStoreUserId) return;
+        // 일시적 DB 장애(503)는 상점 요약을 하드 실패시키지 말고 공용 완충으로 흡수한다.
+        // 완충이 없던 탓에 DB 블립 한 번이 "결제 및 이용권 정보를 불러오지 못했습니다"로 굳었다.
+        const attempt = await runAccessCheckWithTransientRetry(async () => {
+          const snapshotResult = await fetchMoonlightStoreSnapshot({
+            userId: authStoreUserId,
+            apiBase,
+            force,
+            signal,
+          });
+          // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
+          return {
+            status: snapshotResult.status,
+            data: { ...snapshotResult.payload, ok: snapshotResult.ok },
+          };
+        }, { maxAttempts: 1, baseDelayMs: 700 });
 
-      const response = { status: attempt.status, ok: attempt.data.ok === true, statusText: "" };
-      if (response.status === 401 || response.status === 403) {
-        clearClientAuthState();
-        router.replace("/login?next=%2Fpoints");
-        return;
-      }
-
-      const payload = attempt.data as MeResponse;
-      const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
-      if (!response.ok) {
-        console.warn("[points-page] API error", {
-          endpoint: "/api/payments/me",
-          status: response.status,
-          code: payloadCode || undefined,
-          message: payload.message || response.statusText || "Unknown API error",
-        });
-      }
-
-      if (!response.ok) {
-        if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
-          throw new Error(mapAuthRefreshTemporaryFailureMessage());
+        const response = { status: attempt.status, ok: attempt.data.ok === true, statusText: "" };
+        if (response.status === 401 || response.status === 403) {
+          clearClientAuthState();
+          router.replace("/login?next=%2Fpoints");
+          return;
         }
-        throw new Error(payload.message || "결제 및 이용권 정보를 불러오지 못했습니다.");
-      }
 
-      const normalized = normalizeMePayload(payload);
-      const nextUser = normalized.user;
-      if (normalized.subscription) {
-        saveSubscriptionSnapshotForUser(undefined, normalized.subscription, "payments-me");
-        setSubscription((prev) => {
-          const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
-          if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
-          return nextSubscription;
-        });
-      }
-
-      const normalizedPayments = Array.isArray(normalized.payments)
-        ? normalized.payments
-            .filter((entry) => entry && typeof entry === "object")
-            .slice(0, 10)
-        : [];
-      // 결제 건과 이용권 이용 건을 각각 10건씩 자른 뒤 병합한다. 하나의 상한을 공유하면
-      // 이용권 이용이 잦은 계정에서 실제 결제 내역이 목록 밖으로 밀려난다.
-      const passAccessItems = buildPassAccessHistoryItems(
-        Array.isArray(normalized.transactions)
-          ? normalized.transactions.filter((entry) => entry && typeof entry === "object")
-          : [],
-      ).slice(0, 10);
-      setPaymentHistory(
-        [...normalizedPayments, ...passAccessItems].sort(
-          (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
-        ),
-      );
-      setPaymentHistoryDeferred(normalized.historyDeferred);
-      // null = 서버가 잔량을 확인하지 못한 경우(침묵-0). 0 으로 덮어써 결제 수단을 잠그지 않는다.
-      if (normalized.monthlyStoneBalance !== null) setMonthlyStoneBalance(normalized.monthlyStoneBalance);
-      if (normalized.monthlyStoneBalance !== null) {
-        const cachedUser = readSanitizedAuthUser();
-        if (cachedUser) {
-          persistSanitizedAuthUser({
-            ...cachedUser,
-            monthlyStoneBalance: normalized.monthlyStoneBalance,
-            monthlyCredits: normalized.monthlyStoneBalance,
-            profileSubscription: {
-              ...(cachedUser.profileSubscription || {}),
-              monthlyStoneBalance: normalized.monthlyStoneBalance,
-              membershipCreditBalance: normalized.monthlyStoneBalance,
-            },
+        const payload = attempt.data as MeResponse;
+        const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
+        if (!response.ok) {
+          console.warn("[points-page] API error", {
+            endpoint: "/api/payments/me",
+            status: response.status,
+            code: payloadCode || undefined,
+            message: payload.message || response.statusText || "Unknown API error",
           });
         }
-      }
-      setMonthlyStoneUnverified(normalized.monthlyStoneBalance === null);
-      setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
-      setMonthlyCreditLedgers(
-        Array.isArray(normalized.monthlyCreditLedgers)
-          ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 8)
-          : [],
-      );
-      if (nextUser) {
-        setAuthUser((prev) => ({
-          ...(prev || {}),
-          id: nextUser.id,
-          name: nextUser.name,
-          email: nextUser.email,
-        }));
-      }
+
+        if (!response.ok) {
+          if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
+            throw new Error(mapAuthRefreshTemporaryFailureMessage());
+          }
+          throw new Error(payload.message || "결제 및 이용권 정보를 불러오지 못했습니다.");
+        }
+
+        const normalized = normalizeMePayload(payload);
+        const nextUser = normalized.user;
+        if (normalized.subscription) {
+          saveSubscriptionSnapshotForUser(undefined, normalized.subscription, "payments-me");
+          setSubscription((prev) => {
+            const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
+            if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
+            return nextSubscription;
+          });
+        }
+
+        const normalizedPayments = Array.isArray(normalized.payments)
+          ? normalized.payments
+              .filter((entry) => entry && typeof entry === "object")
+              .slice(0, 10)
+          : [];
+      // 결제 건과 이용권 이용 건을 각각 10건씩 자른 뒤 병합한다. 하나의 상한을 공유하면
+      // 이용권 이용이 잦은 계정에서 실제 결제 내역이 목록 밖으로 밀려난다.
+        const passAccessItems = buildPassAccessHistoryItems(
+          Array.isArray(normalized.transactions)
+            ? normalized.transactions.filter((entry) => entry && typeof entry === "object")
+            : [],
+        ).slice(0, 10);
+        setPaymentHistory(
+          [...normalizedPayments, ...passAccessItems].sort(
+            (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
+          ),
+        );
+        setPaymentHistoryDeferred(normalized.historyDeferred);
+      // null = 서버가 잔량을 확인하지 못한 경우(침묵-0). 0 으로 덮어써 결제 수단을 잠그지 않는다.
+        if (normalized.monthlyStoneBalance !== null) setMonthlyStoneBalance(normalized.monthlyStoneBalance);
+        if (normalized.monthlyStoneBalance !== null) {
+          const cachedUser = readSanitizedAuthUser();
+          if (cachedUser) {
+            persistSanitizedAuthUser({
+              ...cachedUser,
+              monthlyStoneBalance: normalized.monthlyStoneBalance,
+              monthlyCredits: normalized.monthlyStoneBalance,
+              profileSubscription: {
+                ...(cachedUser.profileSubscription || {}),
+                monthlyStoneBalance: normalized.monthlyStoneBalance,
+                membershipCreditBalance: normalized.monthlyStoneBalance,
+              },
+            });
+          }
+        }
+        setMonthlyStoneUnverified(normalized.monthlyStoneBalance === null);
+        setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
+        setMonthlyCreditLedgers(
+          Array.isArray(normalized.monthlyCreditLedgers)
+            ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 8)
+            : [],
+        );
+        if (nextUser) {
+          setAuthUser((prev) => ({
+            ...(prev || {}),
+            id: nextUser.id,
+            name: nextUser.name,
+            email: nextUser.email,
+          }));
+        }
       })();
       fetchMyPointStateInFlightRef.current = requestPromise;
       try {
@@ -3929,21 +3933,22 @@ export default function PointsPage() {
         }
       }
     },
-    [apiBase, persistSubscriptionCache, router],
+    [apiBase, authStoreUserId, persistSubscriptionCache, router],
   );
 
   const syncSubscriptionAppliedStage = useCallback(async (tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
     const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
     setProcessingStage(`${passLabel}을 계정에 반영하고 있어요.\n잠시만 기다려 주세요.`, "pass-applied");
+    clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
     const [refreshResult] = await Promise.allSettled([
-      fetchMyPointState(),
+      fetchMyPointState({ force: true }),
     ]);
     const finalMessage = refreshResult.status === "rejected"
       ? "결제와 이용권 반영은 완료됐어요.\n최신 월정석 잔량은 잠시 후 다시 확인해 주세요."
       : "최신 월정석 잔량을 확인했어요.\n이제 이용할 수 있어요.";
     await showPassAppliedStage(finalMessage, tier);
-  }, [fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
+  }, [apiBase, authStoreUserId, fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
@@ -3969,9 +3974,14 @@ export default function PointsPage() {
     setIsBooting(false);
   }, [router]);
 
+  useEffect(() => {
+    if (!authState.authReady) return;
+    setAuthUser(authState.user as AuthUser | null);
+  }, [authState.authReady, authState.user]);
+
   /* ── 부팅 후 결제/주문 정보 로드 ─────────────────────────────── */
   useEffect(() => {
-    if (isBooting) return;
+    if (isBooting || !authState.authReady || !authState.isAuthenticated || !authStoreUserId) return;
 
     setPointStateStatus("loading");
     setPointStateError(null);
@@ -3993,7 +4003,7 @@ export default function PointsPage() {
       setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
       console.warn("[points-page] shop summary unavailable", error);
     });
-  }, [fetchMyPointState, isBooting]);
+  }, [authState.authReady, authState.isAuthenticated, authStoreUserId, fetchMyPointState, isBooting]);
 
   /* ── 월정석 잔량 실시간 반영: 차감/지급 표준 브로드캐스트 구독 ─────────── */
   useEffect(() => {
@@ -4285,7 +4295,8 @@ export default function PointsPage() {
         "상품 이용 권한을 반영하고 있어요.\n최신 이용 상태를 확인하는 중이에요.",
         "unlock-saving",
       );
-      const [refreshResult] = await Promise.allSettled([fetchMyPointState()]);
+      clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
+      const [refreshResult] = await Promise.allSettled([fetchMyPointState({ force: true })]);
       const refreshFailed = refreshResult.status === "rejected";
       pushToast(
         "success",
@@ -4298,7 +4309,7 @@ export default function PointsPage() {
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     },
-    [fetchMyPointState, pushToast, setProcessingStage],
+    [apiBase, authStoreUserId, fetchMyPointState, pushToast, setProcessingStage],
   );
 
   const clearSinglePaymentConfirmTimer = useCallback(() => {
@@ -4470,7 +4481,8 @@ export default function PointsPage() {
           throw new Error(payload.message || "결제 취소에 실패했습니다.");
         }
 
-        await fetchMyPointState();
+        clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
+        await fetchMyPointState({ force: true });
         pushToast("success", payload.message || "결제가 취소되었습니다.");
       } catch (error: unknown) {
         pushToast("error", getErrorMessage(error, "결제 취소 처리 중 오류가 발생했습니다."));
@@ -4478,7 +4490,7 @@ export default function PointsPage() {
         setCancelingPaymentId(null);
       }
     },
-    [apiBase, fetchMyPointState, pushToast],
+    [apiBase, authStoreUserId, fetchMyPointState, pushToast],
   );
 
   /* ── 모바일 결제 리디렉션 복귀 처리 ───────────────────────────── */
@@ -4733,8 +4745,8 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
-      // 결제 모달 오픈 시 미리 받아둔 번호 조회 결과를 재사용한다(왕복 1회 절감).
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, singlePaymentPhonePrefetchRef.current);
+      // 저장된 번호가 없으면 실제 결제 버튼을 누른 이 시점에만 결제용 번호를 조회한다.
+      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -4857,7 +4869,7 @@ export default function PointsPage() {
       }
 
       if (!prepareData.order) {
-        // 준비가 실패한 프리페치 결과를 계속 물고 있으면 재시도해도 같은 실패가 되풀이된다.
+        // 준비 요청이 실패한 결과를 계속 물고 있으면 재시도해도 같은 실패가 되풀이된다.
         subscriptionPrepareRef.current = null;
         if (prepareStatus === 409) {
           pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
@@ -4886,8 +4898,8 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
 
-      // 모달 오픈 시 미리 받아둔 결제용 번호 조회 결과를 재사용한다(왕복 1회 절감).
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current);
+      // 저장된 번호가 없으면 실제 결제 버튼을 누른 이 시점에만 결제용 번호를 조회한다.
+      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -5126,7 +5138,8 @@ export default function PointsPage() {
   const retryPointState = () => {
     setPointStateStatus("loading");
     setPointStateError(null);
-    fetchMyPointState().then(() => {
+    clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
+    fetchMyPointState({ force: true }).then(() => {
       setPointStateStatus("ready");
     }).catch((error) => {
       // 재조회 실패도 잔액 0으로 간주하지 않는다. 서버 confirm이 최종 판정한다.
