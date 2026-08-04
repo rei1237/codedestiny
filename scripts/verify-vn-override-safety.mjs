@@ -1,6 +1,6 @@
 // 라이트 노벨 CMS 오버라이드가 대본을 훼손하지 않는지 검사한다.
 //
-// apply-vn-overrides 는 fail-soft(문제가 있으면 반영을 거름)라서 조용히 지나갈 수 있다.
+// apply-vn-overrides 는 정본 JSON에 fail-soft로 적용하므로(문제가 있으면 반영을 거름) 조용히 지나갈 수 있다.
 // 이 스크립트는 그 "조용함"을 소리 나게 만드는 쪽이다 — CI 에서 돌려 무엇이 왜 걸러졌는지 남긴다.
 //
 // 검사 항목
@@ -18,7 +18,6 @@ import { resolve } from "node:path";
 import { buildStoryPayload } from "./build-story-text.mjs";
 
 const rootDir = process.cwd();
-const SOURCE_PATH = resolve(rootDir, "public", "codedestiny-novel.html");
 const OVERRIDES_PATH = resolve(rootDir, "lib", "stories", "vn", "overrides.generated.json");
 
 const BEAT_MAX_LENGTH = 250;
@@ -52,7 +51,7 @@ function main() {
     return;
   }
 
-  const payload = buildStoryPayload(readFileSync(SOURCE_PATH, "utf8"));
+  const payload = buildStoryPayload();
   const bySlug = new Map(payload.episodes.map((episode) => [episode.slug, episode]));
 
   for (const slug of overrideSlugs) {

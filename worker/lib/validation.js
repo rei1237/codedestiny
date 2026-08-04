@@ -116,35 +116,29 @@ export function validateRegisterPayload(payload = {}) {
   const name = String(payload.name || "").trim();
   const email = String(payload.email || "").trim().toLowerCase();
   const password = String(payload.password || "");
-  const birthDate = String(payload.birthDate || "").trim();
-  const birthTime = String(payload.birthTime || "").trim();
-  const gender = String(payload.gender || "").trim().toUpperCase();
+  const ageAttested = payload.ageAttested === true;
+  const termsAccepted = payload.termsAccepted === true;
+  const privacyAccepted = payload.privacyAccepted === true;
 
   if (!name || name.length < 2) errors.push("Name must be at least 2 characters.");
   if (name.length > 40) errors.push("Name must be 40 characters or fewer.");
   if (!emailRegex.test(email)) errors.push("Email format is invalid.");
   if (password.length < 8) errors.push("Password must be at least 8 characters.");
-  if (!birthDateRegex.test(birthDate)) errors.push("birthDate must use YYYY-MM-DD format.");
-  if (!birthTimeRegex.test(birthTime)) errors.push("birthTime must use HH:mm format.");
-  if (!["M", "F", "OTHER"].includes(gender)) errors.push("gender must be M, F, or OTHER.");
+  if (!termsAccepted) errors.push("Terms acceptance is required.");
+  if (!privacyAccepted) errors.push("Privacy policy acceptance is required.");
+  if (!ageAttested) errors.push("Age 14 or older attestation is required.");
 
   // 만 14세 이상 검증
-  const ageValidation = validateBirthDateWithAge(birthDate);
-  if (!ageValidation.isValid) {
-    errors.push(ageValidation.error);
-  }
-
   return {
     isValid: errors.length === 0,
     errors,
-    age: ageValidation.age,
     sanitized: {
       name,
       email,
       password,
-      birthDate,
-      birthTime,
-      gender,
+      ageAttested,
+      termsAccepted,
+      privacyAccepted,
     },
   };
 }

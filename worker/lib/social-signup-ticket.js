@@ -35,7 +35,7 @@ export async function verifySocialSignupTicket(token, secret, issuer) {
 
 /**
  * 티켓을 다시 소셜 프로필 모양으로 되돌린다. 이메일 연결 판정
- * (hasExplicitlyUnverifiedSocialEmail)이 emailVerified === false 를 보므로 그 값을 보존한다.
+ * 기존 계정 이메일 연결은 명시적으로 확인된 이메일만 허용하므로 true/false/unknown을 보존한다.
  */
 export function socialProfileFromSignupTicket(ticket) {
   return {
@@ -44,7 +44,7 @@ export function socialProfileFromSignupTicket(ticket) {
     name: String(ticket?.name || ""),
     image: String(ticket?.image || ""),
     phoneNumber: String(ticket?.phoneNumber || ""),
-    emailVerified: ticket?.emailVerified === false ? false : true,
+    emailVerified: ticket?.emailVerified === true ? true : (ticket?.emailVerified === false ? false : null),
   };
 }
 

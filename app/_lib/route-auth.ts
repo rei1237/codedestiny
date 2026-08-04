@@ -50,10 +50,6 @@ function getAccessTokenSecret(): string {
   return readEnv("JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET") || "dev-secret";
 }
 
-function getRefreshTokenSecret(): string {
-  return readEnv("JWT_REFRESH_SECRET", "JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET") || getAccessTokenSecret();
-}
-
 function getJwtIssuer(): string {
   return readEnv("JWT_ISSUER") || "code-destiny-api";
 }
@@ -71,33 +67,19 @@ function buildExplicitJwtVerifyOptions(): jwt.VerifyOptions {
   return verifyOptions;
 }
 
-function routeAuthStackSnippet(error: unknown): string {
-  const stack = String((error as any)?.stack || "");
-  if (!stack) return "";
-  return stack
-    .split("\n")
-    .slice(0, 4)
-    .map((line) => line.trim())
-    .join(" | ")
-    .slice(0, 600);
-}
-
 function logRouteAuthDiagnostic(req: NextRequest, error: unknown, marker: string) {
   const payload = {
     marker,
     routePath: String(req.nextUrl?.pathname || ""),
     provider: "",
     requestHost: String(req.nextUrl?.host || ""),
-    errorName: String((error as any)?.name || "Error"),
-    errorMessage: String((error as any)?.message || "route_auth_error").slice(0, 300),
-    stackSnippet: routeAuthStackSnippet(error),
+    errorName: String((error as any)?.name || "Error").slice(0, 80),
+    errorCode: String((error as any)?.code || marker || "route_auth_error").slice(0, 100),
     env: {
       hasAuthSecret: Boolean(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
       hasJwtSecret: Boolean(process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET),
       hasJwtIssuer: Boolean(readEnv("JWT_ISSUER")),
-      jwtIssuerValue: getJwtIssuer(),
       hasJwtAudience: Boolean(readEnv("JWT_AUDIENCE", "AUTH_AUDIENCE")),
-      jwtAudienceValue: getJwtAudience(),
       hasAuthUrl: Boolean(process.env.AUTH_URL || process.env.NEXTAUTH_URL),
       hasAuthApiBaseUrl: Boolean(process.env.AUTH_API_BASE_URL),
       hasAuthTrustHost: Boolean(process.env.AUTH_TRUST_HOST || process.env.NEXTAUTH_TRUST_HOST),
@@ -122,10 +104,6 @@ function getBearerTokenFromRequest(req: NextRequest): string {
 
 function getAccessCookieTokenFromRequest(req: NextRequest): string {
   return String(req.cookies.get("fortune_auth_token")?.value || "").trim();
-}
-
-function getRefreshCookieTokenFromRequest(req: NextRequest): string {
-  return String(req.cookies.get("fortune_auth_refresh")?.value || "").trim();
 }
 
 function extractUserId(decoded: string | jwt.JwtPayload): string {
@@ -154,28 +132,14 @@ function verifyAccessTokenAndExtractUserId(token: string): string {
   }
 }
 
-function verifyRefreshTokenAndExtractUserId(token: string): string {
-  if (!token) return "";
-  try {
-    const decoded = jwt.verify(token, getRefreshTokenSecret(), buildExplicitJwtVerifyOptions());
-    if (!decoded || typeof decoded === "string") return "";
-    const payload = decoded as AuthPayload;
-    if (String(payload.typ || "").trim().toLowerCase() !== "refresh") return "";
-    return extractUserId(decoded);
-  } catch (e) {
-    return "";
-  }
-}
-
 export function requireRouteAuth(req: NextRequest): { ok: true; userId: string } | { ok: false; response: NextResponse } {
   const bearerToken = getBearerTokenFromRequest(req);
   const accessCookieToken = getAccessCookieTokenFromRequest(req);
-  const refreshCookieToken = getRefreshCookieTokenFromRequest(req);
   const devUserId = getDevAuthUserId();
   if (devUserId) return { ok: true, userId: devUserId };
   const copy = getRouteAuthCopy(req);
 
-  if (!bearerToken && !accessCookieToken && !refreshCookieToken) {
+  if (!bearerToken && !accessCookieToken) {
     logRouteAuthDiagnostic(req, new Error("missing_auth_token"), "route_auth_missing_token");
     return {
       ok: false,
@@ -195,9 +159,6 @@ export function requireRouteAuth(req: NextRequest): { ok: true; userId: string }
 
   const cookieUserId = verifyAccessTokenAndExtractUserId(accessCookieToken);
   if (cookieUserId) return { ok: true, userId: cookieUserId };
-
-  const refreshUserId = verifyRefreshTokenAndExtractUserId(refreshCookieToken);
-  if (refreshUserId) return { ok: true, userId: refreshUserId };
 
   try {
     throw new Error("route_auth_verify_failed");

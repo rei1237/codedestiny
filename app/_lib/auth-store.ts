@@ -47,7 +47,10 @@ export type AuthUser = ClientAuthUser & {
   monthlyCredits?: number;
 };
 
+export type AuthStatus = "unknown" | "guest" | "authenticating" | "authenticated" | "refreshing" | "temporarilyOffline" | "expired" | "error";
+
 export type AuthState = {
+  status: AuthStatus;
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -124,6 +127,7 @@ const SUBSCRIPTION_REFETCH_MARGIN_MS = 60 * 60 * 1000;
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 let state: AuthState = {
+  status: "unknown",
   user: null,
   isAuthenticated: false,
   isLoading: false,
@@ -160,6 +164,19 @@ function emitChange() {
 }
 
 function setState(partial: Partial<AuthState>) {
+  const next = { ...state, ...partial };
+  if (!Object.prototype.hasOwnProperty.call(partial, "status")) {
+    next.status = next.isLoggingIn
+      ? "authenticating"
+      : !next.authReady
+        ? "unknown"
+        : next.isAuthenticated
+          ? (next.isLoading ? "refreshing" : "authenticated")
+          : next.error
+            ? "error"
+            : "guest";
+  }
+  partial = next;
   const keys = Object.keys(partial) as Array<keyof AuthState>;
   if (keys.length === 0) return;
 
@@ -172,7 +189,7 @@ function setState(partial: Partial<AuthState>) {
   }
 
   if (!changed) return;
-  state = { ...state, ...partial };
+  state = next;
   emitChange();
 }
 
@@ -550,6 +567,33 @@ export async function syncPostLoginData(expectedAuthMutationSeq = authMutationSe
   ]);
 }
 
+/**
+ * 로그인·회원가입·소셜 가입 응답에 이미 포함된 사용자 스냅샷을 전역 상태에 즉시 반영한다.
+ * /api/auth/me를 다시 호출하지 않고, 권한 요약만 단일 access-state 요청으로 비동기 동기화한다.
+ */
+export function hydrateAuthSuccessUser(user: unknown): AuthUser | null {
+  const safe = resolveSafeUser(user);
+  if (!safe) return null;
+
+  authMutationSeq += 1;
+  refreshInFlight = null;
+  billingBalanceInFlight = null;
+  lastRefreshCompletedAt = Date.now();
+  const expectedAuthMutationSeq = authMutationSeq;
+
+  markAuthUserCacheVerified(safe);
+  applyResolvedUser(safe);
+  setState({ authReady: true, isLoading: false, isLoggingIn: false, error: null });
+  publishAuthSync("login");
+
+  void syncPostLoginData(expectedAuthMutationSeq).then(() => {
+    if (expectedAuthMutationSeq !== authMutationSeq) return;
+    const merged = (readSanitizedAuthUser() as AuthUser | null) || safe;
+    applyResolvedUser(merged);
+  });
+  return safe;
+}
+
 function applyResolvedUser(user: AuthUser | null) {
   if (!user) {
     setState({
@@ -741,6 +785,7 @@ export function handleSessionInvalidated(options: { redirect?: boolean } = {}) {
   lastSessionInvalidationAt = now;
 
   clearAuthStateHard();
+  if (wasAuthenticated) setState({ status: "expired" });
   clearAuthUserCacheVerified();
   publishAuthSync("logout");
 
@@ -876,7 +921,10 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
       // 503 으로 실패하면 1.5초 쿨다운이 영영 꺼진 상태가 되고 이후 모든 refreshAuth({force:false})가
       // 새 /api/auth/me 를 발사했다 — 정확히 DB 장애 중에 재발사가 폭주하는 조건이었다.
       lastRefreshCompletedAt = Date.now();
+      const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+      if (cachedUser) applyResolvedUser(cachedUser);
       setState({
+        status: "temporarilyOffline",
         authReady: true,
         isLoading: false,
       });

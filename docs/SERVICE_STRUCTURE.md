@@ -39,6 +39,7 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - 데이터: Worker는 `worker/lib/db.js`와 `worker/lib/models.js`의 Mongoose 모델을 사용한다.
 - 결제/권한: `worker/routes/billing.js`, `worker/routes/payments.js`, `worker/lib/paid-feature-registry.js`, `worker/lib/profile-limits.js`가 중심이다.
 - LLM: `lib/llm-client.ts`, `worker/lib/gemini.js`, `worker/lib/structured-consultation.js`, AI feature routes가 중심이다.
+- 비주얼 노벨: `content/novel/episodes.source.json`이 프롤로그+EP.01~EP.43(44화·8,836비트)의 정본이다. `scripts/build-novel-runtime.mjs`가 에피소드별 플레이어 청크(`public/data/novel/**`)와 텍스트 리더 산출물(`lib/stories/vn/episodes.generated.json`)을 함께 생성하고, `public/codedestiny-novel.html`은 엔진·UI·에셋 맵만 보관한다.
 
 ## 주요 기능군
 
@@ -129,6 +130,7 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 ## 에셋/R2 구조
 
 - 로컬 정적 자산: `public/**`, 루트 HTML 파일, `fuctionassets/**`, `icons/**`, `styles/**`, `js/**`
+- VN 신규 시각 자산: `public/images/novel/remaster/**`의 repo-local WebP와 같은 폴더의 `manifest.json`에 용도·규격·예산을 기록한다. R2 업로드는 별도 승인 전까지 하지 않는다.
 - R2 공개 에셋: `assets.code-destiny.com` 형태의 공개 자산 도메인 사용
 - 음악: `music.code-destiny.com` 기반 공개 스트리밍/커버 자산
 - Worker R2 binding: `FEEDBACK_IMAGES_BUCKET`, `INSIGHT_IMAGES_BUCKET`

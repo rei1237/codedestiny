@@ -8,6 +8,8 @@
   "scripts": {
     "novel:assets": "node scripts/fetch-novel-assets.mjs",
     "novel:sheets": "node scripts/build-novel-pig-sheets.mjs",
+    "novel:migrate-source": "node scripts/migrate-novel-source.mjs",
+    "novel:build": "node scripts/build-novel-runtime.mjs",
     "novel:serve": "node scripts/serve-novel.mjs",
     "novel:preview": "npm run novel:assets && node scripts/serve-novel.mjs",
     "dev": "node scripts/dev-with-local-auth.mjs",
@@ -249,6 +251,8 @@
     "test": "npm run test:jest && npm run test:node",
     "story:generate": "node scripts/build-story-text.mjs",
     "verify:story-sync": "node scripts/verify-story-text-sync.mjs",
+    "verify:novel-runtime": "node scripts/verify-novel-runtime.mjs",
+    "verify:novel-player-start": "node scripts/verify-novel-player-start.mjs",
     "cms:apply-novel": "node scripts/apply-vn-overrides.mjs && node scripts/build-story-text.mjs",
     "verify:vn-override-safety": "node scripts/verify-vn-override-safety.mjs",
     "verify:cms-registry": "node scripts/verify-cms-registry.mjs",

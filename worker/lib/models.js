@@ -18,9 +18,9 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String, default: "", trim: true },
   phoneNumber: { type: String, default: "", trim: true, match: /^01\d{8,9}$/ },
   passwordHash: { type: String, required: false, default: "", select: false },
-  birthDate: { type: String, required: true, default: "1900-01-01", match: birthDateRegex },
-  birthTime: { type: String, required: true, default: "00:00", match: birthTimeRegex },
-  gender: { type: String, required: true, enum: ["M", "F", "OTHER"], default: "OTHER" },
+  birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
+  birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },
+  gender: { type: String, enum: ["", "M", "F", "OTHER"], default: "" },
   joinedAt: { type: Date, default: Date.now },
   status: { type: String, enum: ["active", "withdrawn"], default: "active", index: true },
   withdrawnAt: { type: Date, default: null },
@@ -39,6 +39,13 @@ const userSchema = new mongoose.Schema({
   localAuth: {
     enabled: { type: Boolean, default: true },
     activatedAt: { type: Date, default: Date.now },
+  },
+  legalConsents: {
+    termsVersion: { type: String, default: "", trim: true },
+    termsAcceptedAt: { type: Date, default: null },
+    privacyVersion: { type: String, default: "", trim: true },
+    privacyAcceptedAt: { type: Date, default: null },
+    age14AttestedAt: { type: Date, default: null },
   },
   // 만 14세 미만 가입자의 법정대리인 동의 기록 (개인정보보호법 제22조의2).
   // 만 14세 이상 계정에는 이 필드가 아예 생기지 않는다(status 기본값 "none").
