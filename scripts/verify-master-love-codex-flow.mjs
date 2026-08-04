@@ -612,6 +612,21 @@ for (const shell of [
   }
 }
 
+// 8. New structured chapters are optional in persisted data but must be
+//    normalized by the Worker and rendered without trusting HTML.
+{
+  const routeSource = read("worker/routes/master-love-codex.js");
+  assertIncludes("worker/routes/master-love-codex.js", routeSource, "normalizeChapterContent");
+  assertIncludes("worker/routes/master-love-codex.js", routeSource, "content, chars, ok");
+  const chapterSource = read("src/features/master-love-codex/components/CodexChapter.tsx");
+  for (const marker of ["narration", "evidence", "actions", "visualization", "AiResultProse"]) {
+    assertIncludes("src/features/master-love-codex/components/CodexChapter.tsx", chapterSource, marker);
+  }
+  const readerSource = read("src/features/master-love-codex/components/CodexReader.tsx");
+  assertIncludes("src/features/master-love-codex/components/CodexReader.tsx", readerSource, "masterLoveCodexReading:");
+  assertIncludes("src/features/master-love-codex/components/CodexReader.tsx", readerSource, "이어서 읽기");
+}
+
 if (failures.length) {
   console.error("[verify-master-love-codex-flow] FAILED");
   for (const failure of failures) console.error(` - ${failure}`);

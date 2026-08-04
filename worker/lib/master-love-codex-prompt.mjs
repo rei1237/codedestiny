@@ -428,22 +428,35 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
     "",
   ].filter((line) => line !== "");
 
-  if (chapter.jsonMode) {
+  if (chapter.structured !== false) {
     return [
       ...body,
       "[작성 지시 — JSON]",
       "아래 JSON 스키마로만 답하라. 코드블록·설명문 없이 JSON 객체 하나만 출력한다.",
       "{",
-      '  "typeName": "이 사람의 연애 유형 이름(8자 이내, 예: 늦게 여는 수호자)",',
-      '  "typeSummary": "유형 한 줄 요약(60자 내외)",',
-      `  "metrics": [ ${LOVE_DNA_METRICS.map((m) => `{"key":"${m.key}","label":"${m.label}","score":0~100,"basis":"명식/명반 근거 한 문장"}`).join(", ")} ],`,
-      '  "body": "● 소제목으로 구조화된 본문. 열 개 지표를 묶어 해석하고, 높은 값과 낮은 값이 관계에서 어떤 장면을 만드는지 구체적으로 설명한다."',
+      ...(chapter.jsonMode ? [
+        '  "typeName": "이 사람의 연애 유형 이름(8자 이내, 예: 늦게 여는 수호자)",',
+        '  "typeSummary": "유형 한 줄 요약(60자 내외)",',
+        `  "metrics": [ ${LOVE_DNA_METRICS.map((m) => `{"key":"${m.key}","label":"${m.label}","score":0~100,"basis":"명식/명반 근거 한 문장"}`).join(", ")} ],`,
+      ] : []),
+      '  "narration": "연애 고수의 짧은 도입 메시지(2~4문장)",',
+      '  "evidence": [{"label":"실제 근거 용어","system":"사주 또는 자미두수","explanation":"쉬운 설명"}],',
+      '  "insight": "일상 장면으로 번역한 핵심 해석",',
+      '  "keySentence": "이번 장의 핵심 한 문장",',
+      '  "caution": "문제가 커지는 조건과 주의할 순간",',
+      '  "actions": ["지금 할 수 있는 구체적 행동 1", "행동 2"],',
+      '  "bridge": "다음 장으로 이어지는 한 문장",',
+      '  "visualization": {"kind":"balance 또는 loop 또는 timeline","title":"정성적 읽기","items":[{"label":"항목","level":"low 또는 balanced 또는 high 또는 watch 또는 opportunity","note":"근거 설명"}]},',
+      '  "body": "이전 버전 호환용 Markdown 본문"',
       "}",
       `- "body"는 공백 포함 최소 ${min}자 이상.`,
-      "- metrics는 반드시 10개 전부 채운다. score는 정수.",
-      "- 각 basis 는 실제 배치된 간지·성요 이름을 담아라. '전반적으로 무난합니다' 같은 무근거 문장은 금지.",
-      "- typeName 에 '천생연분·운명의 짝·특별한 인연' 류의 상투어를 쓰지 마라. 이 사람의 행동 방식이 보이는 이름을 지어라.",
+      ...(chapter.jsonMode ? [
+        "- metrics는 반드시 10개 전부 채운다. score는 정수.",
+        "- 각 basis 는 실제 배치된 간지·성요 이름을 담아라. '전반적으로 무난합니다' 같은 무근거 문장은 금지.",
+        "- typeName 에 '천생연분·운명의 짝·특별한 인연' 류의 상투어를 쓰지 마라. 이 사람의 행동 방식이 보이는 이름을 지어라.",
+      ] : []),
       "- JSON 문자열 안에서 줄바꿈은 \\n 으로 이스케이프한다.",
+      "- visualization은 실제 제공된 근거로 설명 가능한 장에서만 채운다. 숫자, 점수, 확률, 퍼센트는 절대 쓰지 마라.",
     ].join("\n");
   }
 

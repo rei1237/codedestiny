@@ -118,6 +118,13 @@
 
 ## 고위험 영역
 
+## Master Love Codex structured chapters
+
+- New Master Love Codex chapters may include an optional `content` object beside the legacy Markdown `body`.
+- `content` is display-only and contains narration, evidence, insight, caution, actions, bridge, and an optional qualitative visualization. It must never contain relationship scores, probabilities, or unsupported percentages.
+- Existing saved sessions remain `body`-only and the reader must continue to render them without migration or regeneration.
+- The Worker sanitizes every optional field before persistence and the client renders plain text/Markdown only; raw HTML is not accepted.
+
 - `worker/routes/life-book-ai.js`
 - `worker/routes/love-secret-ai.js`
 - `worker/routes/ziwei-ai.js`
