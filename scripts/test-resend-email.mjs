@@ -1,20 +1,34 @@
-// Resend 이메일 발송 테스트 스크립트
-import { Resend } from 'resend';
+import { config } from "dotenv";
+import { sendEmail } from "../worker/lib/resend.js";
 
-const resend = new Resend('re_5dDBGZLX_2CQDtQm4jc7txnsFTgFDXYhg');
+config({ path: ".env.local" });
 
-async function main() {
-  try {
-    const result = await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: 'admin@code-destiny.com',
-      subject: 'Hello World',
-      html: '<p>Congrats on sending your <strong>first email</strong>!</p>'
-    });
-    console.log('이메일 발송 성공:', result);
-  } catch (error) {
-    console.error('이메일 발송 실패:', error);
-  }
+const live = process.argv.includes("--live");
+const to = String(process.env.AUTH_EMAIL_TEST_TO || "").trim();
+const apiKey = String(process.env.RESEND_API_KEY || process.env.emailapi || "").trim();
+
+if (!live) {
+  console.log("DRY RUN: add --live to send a real test email.");
+  process.exit(0);
 }
 
-main();
+if (!apiKey || !to) {
+  console.error("RESEND_API_KEY (or emailapi) and AUTH_EMAIL_TEST_TO are required for --live.");
+  process.exit(1);
+}
+
+const result = await sendEmail(
+  { RESEND_API_KEY: apiKey, EMAIL_FROM: process.env.EMAIL_FROM || process.env.RESEND_FROM || "" },
+  {
+    to,
+    subject: "Code Destiny email configuration test",
+    html: "<p>Email delivery is configured.</p>",
+  },
+);
+
+if (!result.ok) {
+  console.error(`Email test failed (status=${Number(result.status || 0)}).`);
+  process.exit(1);
+}
+
+console.log(`Email test accepted (status=${Number(result.status || 0)}).`);

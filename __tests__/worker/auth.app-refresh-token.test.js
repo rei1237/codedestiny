@@ -206,7 +206,7 @@ describe("로그인 응답 본문의 리프레시 토큰 노출 범위", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(payload.accessToken).toEqual(expect.any(String));
+    expect(payload.accessToken).toBeUndefined();
     expect(payload.refreshToken).toBeUndefined();
     // 쿠키 경로는 그대로 살아 있어야 한다.
     expect(String(response.headers.get("set-cookie") || "")).toContain("fortune_auth_refresh=");
@@ -244,9 +244,9 @@ describe("회원가입 응답 본문의 리프레시 토큰 노출 범위", () =
         email: "newbie@example.com",
         password: "correct-horse-battery",
         phoneNumber: "01012345678",
-        birthDate: "1990-01-01",
-        birthTime: "12:00",
-        gender: "M",
+        ageAttested: true,
+        termsAccepted: true,
+        privacyAccepted: true,
       }),
     });
   }
@@ -264,7 +264,7 @@ describe("회원가입 응답 본문의 리프레시 토큰 노출 범위", () =
     const payload = await response.json();
 
     expect(response.status).toBe(201);
-    expect(payload.accessToken).toEqual(expect.any(String));
+    expect(payload.accessToken).toBeUndefined();
     expect(payload.refreshToken).toBeUndefined();
     expect(String(response.headers.get("set-cookie") || "")).toContain("fortune_auth_refresh=");
   });

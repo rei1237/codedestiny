@@ -23,7 +23,7 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
-import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge, validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
+import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
   signSocialSignupTicket,
@@ -61,6 +61,8 @@ const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const LOGIN_RATE_LIMIT_DEFAULT_MAX = 20;
 const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
 const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
+const AUTH_TERMS_VERSION = "2026-04-11";
+const AUTH_PRIVACY_VERSION = "2026-08-04";
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
 const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
@@ -1155,9 +1157,16 @@ function resolveProviderCallbackUrl(provider, request, env) {
 }
 
 function sanitizeNextPath(rawNext) {
-  if (!rawNext || typeof rawNext !== "string") return null;
-  if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
-  return rawNext;
+  if (!rawNext || typeof rawNext !== "string" || rawNext.length > 1200) return null;
+  if (!rawNext.startsWith("/") || rawNext.startsWith("//") || rawNext.includes("\\") || /[\u0000-\u001f\u007f]/.test(rawNext)) return null;
+  try {
+    const base = "https://code-destiny.invalid";
+    const parsed = new URL(rawNext, base);
+    if (parsed.origin !== base) return null;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
 }
 
 function isUnsafeOAuthRedirectPath(pathname) {
@@ -1478,10 +1487,6 @@ function mapSocialProfile(provider, payload) {
   return { providerId: "", email: "", emailVerified: null, name: "", image: "" };
 }
 
-function hasExplicitlyUnverifiedSocialEmail(profile) {
-  return Boolean(profile?.email) && profile?.emailVerified === false;
-}
-
 // OAuth 공급자(네이버·카카오·구글) 토큰/프로필 fetch용 타임아웃+제한적 재시도 래퍼.
 // 국내 호스팅 공급자 API의 지연 편차가 그대로 로그인 실패로 표면화되던 문제를 흡수한다.
 // (kasi.js의 AbortController+setTimeout(abort) 패턴 재사용)
@@ -1608,7 +1613,7 @@ async function findExistingSocialUser(provider, profile, socialField) {
     user = await User.findOne({ email: profile.email });
     if (user) {
       if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
-      if (hasExplicitlyUnverifiedSocialEmail(profile)) {
+      if (profile.emailVerified !== true) {
         throw new Error(`${provider}_email_unverified`);
       }
       user.set(socialField, profile.providerId);
@@ -1652,14 +1657,11 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   let createdUser;
   try {
     createdUser = await User.create({
-      name: profile.name || `${provider} user`,
+      name: signupProfile?.name || profile.name || `${provider} user`,
       email: profile.email || fallbackEmail,
       profileImage: String(profile.image || ""),
       ...(profilePhoneNumber ? { phoneNumber: profilePhoneNumber } : {}),
       passwordHash: "",
-      birthDate: signupProfile?.birthDate || "1900-01-01",
-      birthTime: signupProfile?.birthTime || "00:00",
-      gender: signupProfile?.gender || "OTHER",
       role: "user",
       points: 0,
       profileSubscription: buildSignupProfileSubscription(joinedAt),
@@ -1668,6 +1670,7 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
         enabled: false,
         activatedAt: null,
       },
+      legalConsents: signupProfile?.legalConsents || {},
       socialAccounts: {
         [provider]: {
           id: profile.providerId,
@@ -2030,6 +2033,8 @@ function normalizeAuthUserResponse(user) {
   return {
     ...normalized,
     profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "auth_me" }),
+    termsVersion: String(user?.legalConsents?.termsVersion || ""),
+    privacyVersion: String(user?.legalConsents?.privacyVersion || ""),
     ...(phoneNumber ? { phoneNumber } : {}),
   };
 }
@@ -2137,9 +2142,11 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
     message: status === 201 ? "Registration completed." : "Login completed.",
     user: normalizeAuthUserResponse(user),
     nextPath: sanitizeNextPath(nextPath) || "/",
-    accessToken,
-    tokenType: "Bearer",
-    accessTokenExpiresInSec: accessExpiresInSec,
+    ...(isMobileAppAuthRequest(request) ? {
+      accessToken,
+      tokenType: "Bearer",
+      accessTokenExpiresInSec: accessExpiresInSec,
+    } : {}),
     ...appRefreshTokenField(request, refreshToken),
     ...extra,
   }, { status });
@@ -2212,8 +2219,6 @@ function logSignupFailure(request, env, errorCode, errorMessage) {
   }));
 }
 
-const SIGNUP_BIRTH_TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
-
 /**
  * 만 14세 미만은 가입 불가라 이 상태의 계정이 새로 생기지는 않는다.
  * 2026-07-29 하루 동안 운영했던 보호자 동의 절차에서 남았을 수 있는 대기 계정을
@@ -2270,7 +2275,7 @@ async function handleRegister(request, env) {
     );
   }
 
-  const requiredKeys = ["name", "email", "password", "birthDate", "birthTime", "gender"];
+  const requiredKeys = ["name", "email", "password"];
   const missingFields = requiredKeys.filter((key) => {
     const value = body[key];
     return typeof value !== "string" || value.trim() === "";
@@ -2288,9 +2293,13 @@ async function handleRegister(request, env) {
   }
 
   // 프론트 우회를 막기 위해 서버에서도 만 나이를 판정한다. 만 14세 미만은 가입 불가.
-  const ageCheck = validateBirthDateWithAge(body.birthDate);
+  const ageCheck = {
+    isValid: body.ageAttested === true,
+    age: body.ageAttested === true ? 14 : 0,
+    error: "Age 14 or older attestation is required.",
+  };
   if (!ageCheck.isValid) {
-    const isUnderage = ageCheck.age >= 0 && ageCheck.age < MIN_SELF_CONSENT_AGE;
+    const isUnderage = ageCheck.age >= 0 && ageCheck.age < 14;
     return signupErrorResponse(
       request,
       env,
@@ -2324,7 +2333,7 @@ async function handleRegister(request, env) {
     );
   }
 
-  const { name, email, password, birthDate, birthTime, gender } = validated.sanitized;
+  const { name, email, password } = validated.sanitized;
   const phoneNumber = normalizeKoreanPhoneNumber(body.phoneNumber || body.phone);
   if (!phoneNumber) {
     return signupErrorResponse(
@@ -2448,9 +2457,6 @@ async function handleRegister(request, env) {
         email,
         phoneNumber,
         passwordHash,
-        birthDate,
-        birthTime,
-        gender,
         role: "user",
         points: 0,
         profileSubscription: buildSignupProfileSubscription(),
@@ -2458,6 +2464,13 @@ async function handleRegister(request, env) {
         localAuth: {
           enabled: true,
           activatedAt: new Date(),
+        },
+        legalConsents: {
+          termsVersion: AUTH_TERMS_VERSION,
+          termsAcceptedAt: new Date(),
+          privacyVersion: AUTH_PRIVACY_VERSION,
+          privacyAcceptedAt: new Date(),
+          age14AttestedAt: new Date(),
         },
       }),
       timeoutMs,
@@ -2742,6 +2755,7 @@ const ME_USER_PROJECTION = {
   joinedAt: 1,
   image: 1,
   profileImage: 1,
+  legalConsents: 1,
   profileSubscription: 1,
   subscription: 1,
   membership: 1,
@@ -3581,7 +3595,7 @@ async function buildSocialSignupTicket(provider, socialProfile, statePayload, en
     name: String(socialProfile?.name || ""),
     image: String(socialProfile?.image || ""),
     phoneNumber: normalizeKoreanPhoneNumber(socialProfile?.phoneNumber) || "",
-    emailVerified: socialProfile?.emailVerified === false ? false : true,
+    emailVerified: socialProfile?.emailVerified === true ? true : (socialProfile?.emailVerified === false ? false : null),
     nextPath: nextPath || "/",
     flow: flow || "signup",
     appRedirect: appRedirect || "",
@@ -4009,9 +4023,13 @@ async function handleOAuthCompleteSignup(request, env) {
   }
 
   // 만 14세 미만이면 계정을 만들기 전에 거부한다 — 소셜도 이메일 가입과 같은 기준이다.
-  const ageCheck = validateBirthDateWithAge(String(body?.birthDate || "").trim());
+  const ageCheck = {
+    isValid: body?.ageAttested === true && body?.termsAccepted === true && body?.privacyAccepted === true,
+    age: body?.ageAttested === true ? 14 : 0,
+    error: "Required signup consent is missing.",
+  };
   if (!ageCheck.isValid) {
-    const isUnderage = ageCheck.age >= 0 && ageCheck.age < MIN_SELF_CONSENT_AGE;
+    const isUnderage = ageCheck.age >= 0 && ageCheck.age < 14;
     return signupErrorResponse(
       request,
       env,
@@ -4021,12 +4039,11 @@ async function handleOAuthCompleteSignup(request, env) {
     );
   }
 
-  // 위 validateBirthDateWithAge 가 YYYY-MM-DD 형식까지 검증한 값이다.
-  const birthDate = String(body.birthDate).trim();
-  const birthTimeRaw = String(body?.birthTime || "").trim();
-  const birthTime = SIGNUP_BIRTH_TIME_REGEX.test(birthTimeRaw) ? birthTimeRaw : "00:00";
-  const genderRaw = String(body?.gender || "").trim().toUpperCase();
-  const gender = ["M", "F", "OTHER"].includes(genderRaw) ? genderRaw : "OTHER";
+  // 소셜 제공자 정보는 이름의 기본값으로만 사용하고, 신규 계정의 결제 고객정보는 사용자가 확인한다.
+  const signupName = String(body?.name || ticket?.name || "").trim().slice(0, 40);
+  if (signupName.length < 2) {
+    return signupErrorResponse(request, env, 400, "invalid_name", "Name must be at least 2 characters.");
+  }
 
   // 이메일 가입(handleRegister)과 같은 기준으로 번호를 받는다. 소셜만 면제하면 그 계정들은
   // 첫 단건결제 때 별도 입력 단계를 타야 하고, 그 저장이 실패하면 결제가 그대로 막힌다.
@@ -4047,7 +4064,17 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 503, "db_connection_failed", toErrorMessage(error) || "Database connection failed.");
   }
 
-  const signupProfile = { birthDate, birthTime, gender, phoneNumber };
+  const signupProfile = {
+    name: signupName,
+    phoneNumber,
+    legalConsents: {
+      termsVersion: AUTH_TERMS_VERSION,
+      termsAcceptedAt: new Date(),
+      privacyVersion: AUTH_PRIVACY_VERSION,
+      privacyAcceptedAt: new Date(),
+      age14AttestedAt: new Date(),
+    },
+  };
 
   let socialUser;
   try {
