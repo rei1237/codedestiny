@@ -17784,7 +17784,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                         aria-label="화투점 시작" data-cd-trans-attr="aria-label:home.tiles.hwatuAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tazza.webp" data-img-alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세" data-cd-trans-attr="data-img-alt:home.tiles.hwatuAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.hwatuTitle">🎴 타짜들의 화투점</span>
@@ -17897,7 +17897,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-9bfac0f6f9f0" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.sikojenTitle">🐷 핀란드 돼지 주석점</span>
@@ -18018,7 +18018,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamigod.webp" data-img-alt="자미두수 심화 분석 — 12궁 인생 전략" data-cd-trans-attr="data-img-alt:home.tiles.ziweiAdvancedAlt">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">紫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei" data-cd-trans="home.badges.advanced">심화</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">명반 무료 · 전문가 상담</span>
+                    <span class="tarot-tile__coin-badge">명반 무료 · 전문가 상담 유료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.ziweiAdvancedTitle">🌟 자미두수 심화</span>
@@ -33129,7 +33129,7 @@ function updateBadge() {
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 기본 명반',fallbackTitle:'🌌 자미두수(紫微斗數)',tagline:'명궁·신궁·일·돈·관계 축을 먼저 읽고, 필요한 확장 해석은 아래에서 따로 펼칩니다',feats:['명궁·신궁으로 기본 기질과 현실 작동축 확인','관록궁·재백궁·부부궁을 중심으로 기본 3단 리딩 제공','사화 신호로 강점과 주의 흐름을 짧게 정리','궁합·12궁 전체·대한 흐름은 선택 확장으로 분리'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
-    navigateToZiweiChart:{cat:'자미두수 심화 · 12궁 인생 전략',fallbackTitle:'🌟 자미두수 심화',tagline:'자미두수 12궁 해석 — 명궁부터 마스터플랜까지 운명 전략을 정리합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 분석','관록궁·재백궁·부부궁을 잇는 인생 전략','대한·유년 타이밍 분석으로 기회의 시기 파악','프로필 카드 연동 자동 계산으로 즉시 분석'],cost:'✨ 명반 무료 · 전문가 상담 별도',ct:'free',img:'/fuctionassets/jamigod.webp'},
+    navigateToZiweiChart:{cat:'자미두수 심화 · 12궁 인생 전략',fallbackTitle:'🌟 자미두수 심화',tagline:'자미두수 12궁 해석 — 명궁부터 마스터플랜까지 운명 전략을 정리합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 분석','관록궁·재백궁·부부궁을 잇는 인생 전략','대한·유년 타이밍 분석으로 기회의 시기 파악','프로필 카드 연동 자동 계산으로 즉시 분석'],cost:'✨ 명반 무료 · 전문가 상담 유료',ct:'free',img:'/fuctionassets/jamigod.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',fallbackTitle:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',fallbackTitle:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 지금의 흐름에 가까운 상징을 찾아, 별자리 기반 메시지로 오늘의 방향을 비춥니다',feats:['12 올림푸스 신 상징 중 현재 흐름과 맞닿은 테마 확인','수호신 카드가 전하는 오늘의 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 요약','해금 후 기존 올림푸스 신탁 화면으로 이동'],cost:'🔒 해금 10,000원',ct:'paid',img:'/fuctionassets/olympus.webp'},
     openSibylModal:{cat:'시빌라 사주 시스템',fallbackTitle:'⚡ SIBYL SYSTEM',tagline:'당신의 운명계수를 시스템이 정밀 스캔합니다 — 사주팔자 기반 진로 적성·위험 계수·도미네이터 리포트',feats:['데스티니 휴: 오행 분포 색채 진단','적성 섹터 배정: 격국·십성 기반 최적 직업군','도미네이터 리포트: 위험 계수 10년 그래프','개인 맞춤 개운법 처방전 (10,000원)'],cost:'✨ 기본 무료 · 도미네이터 10,000원',ct:'free',img:'/fuctionassets/sybila.webp'}
