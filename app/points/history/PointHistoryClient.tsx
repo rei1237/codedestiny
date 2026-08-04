@@ -997,4 +997,125 @@ export default function PointHistoryPage() {
                     ? { text: copy.spendLabel, cls: "bg-rose-100 text-rose-700 border-rose-300" }
                     : { text: copy.grantLabel, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
                   const dc = isSpend ? "text-rose-700" : "text-emerald-700";
-                  const prefix
+                  const prefix = isSpend ? "-" : "+";
+                  const displayReason = entry.reason || entry.serviceKey || "-";
+                  return (
+                    <div
+                      key={entry.id}
+                      className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5 flex items-start gap-3"
+                    >
+                      <span className="flex-shrink-0 text-xl mt-0.5 leading-none">{isSpend ? copy.spendIcon : copy.grantIcon}</span>
+                      <div className="flex-1 min-w-0">
+                        {/* 날짜 */}
+                        <p className="text-[11px] text-[#9B7040] mb-1 font-medium">
+                          {formatDateTime(entry.createdAt, formatLocale)}
+                        </p>
+                        {/* 상품명 + 금액 */}
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${kl.cls}`}>
+                              {kl.text}
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#5C3A1E] line-clamp-1">
+                              {displayReason}
+                            </span>
+                          </div>
+                          <span className={`text-[15px] font-black flex-shrink-0 ${dc}`}>
+                            {prefix}{formatMonthlyCredits(entry.amount, copy, formatLocale)}
+                          </span>
+                        </div>
+                        {/* 잔여 이용권 혜택 */}
+                        <div className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-amber-50 border border-amber-100 px-2.5 py-1.5">
+                          <CoinIcon size="sm" />
+                          <p className="text-[12px] text-[#7A4A00] font-bold">
+                            {copy.afterBalance}&nbsp;
+                            <span className="text-[13px] text-[#5C3A1E]">
+                              {formatMonthlyCredits(entry.afterBalance, copy, formatLocale)}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* 결제 내역 (결제 성공 건) */}
+        <section
+          aria-label={copy.paymentsAria}
+          className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
+        >
+          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">{copy.paymentsTitle}</h2>
+          {paymentsError ? (
+            <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
+              <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
+              <button
+                type="button"
+                onClick={() => { fetchPaymentsSection(); }}
+                className="mt-2 text-[12px] font-bold text-rose-600 underline"
+              >
+                {copy.retryPayments}
+              </button>
+            </div>
+          ) : payments.length === 0 && !isLoading ? (
+            <p className="text-sm text-[#7A5230]">{copy.emptyPayments}</p>
+          ) : (
+            <div className="space-y-2.5">
+              {payments.map((p) => {
+                const order = adaptOrderToViewModel(p as PaymentOrderRecord, lang);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => { void loadOrderDetail(p); }}
+                    className="block w-full rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5 text-left transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_6px_18px_rgba(120,80,10,0.1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+                    aria-label={`${order.title} ${order.statusLabel}`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-bold text-[#5C3A1E]">
+                        {order.amount ? copy.paymentAmount(formatWon(order.amount.value, copy, formatLocale)) : order.title}
+                      </p>
+                      <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${orderStatusClass(order.status)}`}>
+                        {order.statusLabel}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
+                      <p>{copy.paidAt(formatDateTime(order.purchasedAt, formatLocale))}</p>
+                      <p>{copy.paymentMethod(order.paymentMethod || "-")}</p>
+                    </div>
+                    <p className="mt-2 text-[11px] font-bold text-amber-700">{lang === "ko" ? "상세 확인 ›" : "View details ›"}</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {selectedOrder ? (
+          <OrderDetailModal
+            locale={lang}
+            order={selectedOrder}
+            loading={orderDetailLoading}
+            error={orderDetailError}
+            onRetry={() => { const current = payments.find((item) => item.id === selectedOrder.id); if (current) void loadOrderDetail(current); }}
+            onClose={closeOrderDetail}
+          />
+        ) : null}
+
+        {/* 안내 */}
+        <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
+          <h3 className="font-bold text-[#5C3A1E] mb-2">{copy.guideTitle}</h3>
+          <ul className="space-y-1.5 text-sm text-[#7A5230]">
+            {copy.guideItems.map((item) => (
+              <li key={item}>• {item}</li>
+            ))}
+          </ul>
+        </section>
+
+      </div>
+    </main>
+  );
+}
