@@ -9,6 +9,7 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "../..");
 const pointsSource = fs.readFileSync(path.join(root, "app/points/PointsClient.tsx"), "utf8");
+const paymentsSource = fs.readFileSync(path.join(root, "worker/routes/payments.js"), "utf8");
 const snapshotSource = fs.readFileSync(path.join(root, "app/_lib/moonlight-store-snapshot.ts"), "utf8");
 const serviceReadSource = fs.readFileSync(path.join(root, "app/_lib/service-read-client.ts"), "utf8");
 const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
@@ -76,7 +77,16 @@ test("points shop exposes direct-only pass purchase UI", () => {
   assert.match(pointsSource, /월정석으로는 이용권을 구매할 수 없습니다\./);
 });
 
-test("points shop keeps monthly-credit purchase available when the shop summary fails", () => {
+test("pass purchase copy never advertises a monthly-credit purchase path", () => {
+  const misleadingCopy = /PG 결제 또는 명확히 허용된 월정석/;
+
+  assert.doesNotMatch(pointsSource, misleadingCopy);
+  assert.doesNotMatch(paymentsSource, misleadingCopy);
+  assert.match(pointsSource, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
+  assert.match(paymentsSource, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
+});
+
+test("points shop keeps the direct purchase action available when the shop summary fails", () => {
   assert.match(pointsSource, /if \(hasVerifiedShopSnapshotRef\.current\)/);
   assert.match(pointsSource, /setMonthlyStoneUnverified\(true\);\s*setPointStateStatus\("error"\)/);
   assert.match(pointsSource, /setMonthlyStoneUnverified\(true\)/);
