@@ -38,6 +38,9 @@ test("points shop fusion ticket waits for an explicit preview and never falls ba
   assert.match(shop, /tryAcquireShopTicketPreview\("fusion"\)/);
   assert.match(shop, /activeScopeRef\.current = authScope/);
   assert.match(shop, /activeScopeRef\.current !== requestScope/);
+  assert.match(shop, /AbortController/);
+  assert.match(shop, /signal: requestController\.signal/);
+  assert.match(shop, /error\.name === "AbortError"/);
   assert.match(shop, /setIsEnabled\(null\);[\s\S]*setHasLoaded\(false\);[\s\S]*setRemaining\(null\);/);
   assert.match(shop, /isFusionFortuneTicketProduct\(payload\.product\)[\s\S]*setProduct\(payload\.product\)[\s\S]*setRemaining\(payload\.balance\.remaining\)/);
 });

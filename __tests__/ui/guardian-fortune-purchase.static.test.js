@@ -36,6 +36,9 @@ test('guardian fortune shop defers its single server preview until the user asks
   assert.match(shop, /tryAcquireShopTicketPreview\("guardian"\)/);
   assert.match(shop, /activeScopeRef\.current = authScope/);
   assert.match(shop, /activeScopeRef\.current !== requestScope/);
+  assert.match(shop, /AbortController/);
+  assert.match(shop, /signal: requestController\.signal/);
+  assert.match(shop, /error\.name === "AbortError"/);
   assert.match(shop, /setIsEnabled\(null\);[\s\S]*setHasLoaded\(false\);[\s\S]*setBalance\(null\);/);
   assert.match(client, /api\/payments\/guardian-fortune\/prepare/);
   assert.match(client, /api\/payments\/guardian-fortune\/confirm/);
@@ -52,6 +55,7 @@ test('ticket shop preview handlers keep catalog and balance in one authenticated
   const routes = read('worker/routes/payments.js');
   assert.match(routes, /async function handleGuardianFortuneCreditShopPreview[\s\S]*products: listGuardianFortuneCreditProducts\(\)[\s\S]*balance/);
   assert.match(routes, /async function handleFusionFortuneTicketShopPreview[\s\S]*products: getFusionFortuneTicketCatalog\(\)[\s\S]*balance:/);
+  assert.match(routes, /async function handleFusionFortuneTicketBalance[\s\S]*ok: true, enabled: true, balance/);
   assert.match(routes, /GET" && path === "\/guardian-fortune\/shop-preview"/);
   assert.match(routes, /GET" && path === "\/fusion-fortune\/shop-preview"/);
 });

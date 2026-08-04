@@ -160,6 +160,19 @@ function toPublicErrorDetails(error, context = {}) {
   };
 }
 
+function retryableForHttpStatus(status) {
+  return status === 429 || status === 502 || status === 503 || status === 504;
+}
+
+function publicErrorContract({ code, status, message, requestId }) {
+  return {
+    code: String(code || "INTERNAL_SERVER_ERROR"),
+    retryable: retryableForHttpStatus(status),
+    message: String(message || "요청을 처리하지 못했습니다."),
+    ...(requestId ? { requestId: String(requestId).slice(0, 120) } : {}),
+  };
+}
+
 /* DB 일시 장애 판별의 단일 정의.
    handleRouteError 가 503을 낼지 결정하는 데 쓰고, 라우트가 "이 오류면 degraded 로 응답한다"를
    판단할 때도 같은 것을 쓴다 — 두 곳이 다른 기준을 갖고 있으면 어떤 오류는 degraded 로도,
@@ -179,11 +192,15 @@ export async function handleRouteError(error, context = {}) {
     const payloadDetails = error?.payload && typeof error.payload === "object"
       ? error.payload.errorDetails
       : undefined;
+    const requestId = String(toPublicErrorDetails(error, context).requestId || "").trim();
+    const code = String(error?.payload?.code || `HTTP_${error.status}`).trim();
     return json({
       ok: false,
       success: false,
       message: error.message,
+      ...(requestId ? { requestId } : {}),
       ...error.payload,
+      error: publicErrorContract({ code, status: error.status, message: error.message, requestId }),
       errorDetails: payloadDetails && typeof payloadDetails === "object"
         ? payloadDetails
         : toPublicErrorDetails(error, context),
@@ -191,22 +208,28 @@ export async function handleRouteError(error, context = {}) {
   }
 
   if (error?.name === "TokenExpiredError") {
+    const details = toPublicErrorDetails(error, context);
     return json({
       ok: false,
       success: false,
       message: "Authentication has expired. Please sign in again.",
       code: "UNAUTHORIZED",
-      errorDetails: toPublicErrorDetails(error, context),
+      error: publicErrorContract({ code: "UNAUTHORIZED", status: 401, message: "Authentication has expired. Please sign in again.", requestId: details.requestId }),
+      ...(details.requestId ? { requestId: details.requestId } : {}),
+      errorDetails: details,
     }, { status: 401 });
   }
 
   if (error?.name === "JsonWebTokenError") {
+    const details = toPublicErrorDetails(error, context);
     return json({
       ok: false,
       success: false,
       message: "Invalid authentication token.",
       code: "UNAUTHORIZED",
-      errorDetails: toPublicErrorDetails(error, context),
+      error: publicErrorContract({ code: "UNAUTHORIZED", status: 401, message: "Invalid authentication token.", requestId: details.requestId }),
+      ...(details.requestId ? { requestId: details.requestId } : {}),
+      errorDetails: details,
     }, { status: 401 });
   }
 
@@ -254,14 +277,18 @@ export async function handleRouteError(error, context = {}) {
   const isDbUnavailable = isDbUnavailableError(error);
 
   if (isDbUnavailable || isConfigError) {
+    const details = toPublicErrorDetails(error, context);
+    const publicMessage = exposeMessage && errorText ? errorText : "Database is temporarily unavailable.";
     return json({
       ok: false,
       success: false,
       code: "SERVICE_UNAVAILABLE",
-      message: exposeMessage && errorText ? errorText : "Database is temporarily unavailable.",
+      message: publicMessage,
+      error: publicErrorContract({ code: isConfigError ? "DATABASE_CONFIG_INVALID" : "DATABASE_TEMPORARILY_UNAVAILABLE", status: 503, message: publicMessage, requestId: details.requestId }),
+      ...(details.requestId ? { requestId: details.requestId } : {}),
       requestPath: exposeMessage ? requestPath : undefined,
       errorDetails: {
-        ...toPublicErrorDetails(error, context),
+        ...details,
         code: "SERVICE_UNAVAILABLE",
         reason: isConfigError ? "CONFIG_ERROR" : "DB_UNAVAILABLE",
         message: exposeMessage && errorText ? errorText : "Database is temporarily unavailable.",
@@ -277,6 +304,8 @@ export async function handleRouteError(error, context = {}) {
     success: false,
     code: "INTERNAL_SERVER_ERROR",
     message: exposeMessage && errorText ? errorText : "Internal server error.",
+    error: publicErrorContract({ code: "INTERNAL_SERVER_ERROR", status: 500, message: exposeMessage && errorText ? errorText : "Internal server error.", requestId: requestMeta?.requestId }),
+    ...(requestMeta?.requestId ? { requestId: requestMeta.requestId } : {}),
     requestPath: exposeMessage ? requestPath : undefined,
     errorDetails: {
       ...toPublicErrorDetails(error, context),

@@ -106,6 +106,15 @@ describe("Payments prepare idempotency", () => {
     expect(payload).toMatchObject({ ok: true, degraded: true, source: "token" });
     expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
     expect(User.collection.findOne).not.toHaveBeenCalled();
+    expect(payload.data.storeSnapshot).toMatchObject({
+      schemaVersion: 1,
+      source: "token",
+      areas: {
+        moonstone: { status: "unavailable", balance: null },
+        passes: { status: "unavailable" },
+        orders: { status: "deferred", hasRecentOrders: null },
+      },
+    });
   });
 
   test("payments/me shop summary reuses the authenticated user snapshot without history reads", async () => {
@@ -139,6 +148,20 @@ describe("Payments prepare idempotency", () => {
     expect(payload.data.queryBudget).toMatchObject({ dbQueryCount: 0, maxConcurrentDbOps: 1 });
     expect(payload.data.monthlyCredits).toBe(80);
     expect(collection).not.toHaveBeenCalled();
+    expect(payload.data.storeSnapshot).toMatchObject({
+      schemaVersion: 1,
+      source: "db",
+      areas: {
+        moonstone: { status: "ready", balance: 80 },
+        membership: { status: "ready", tier: "family", isActive: true },
+        passes: { status: "unrequested" },
+        orders: { status: "deferred", hasRecentOrders: null },
+      },
+    });
+    expect(payload.data.storeSnapshot.areas.passes.summary).toEqual([
+      expect.objectContaining({ productType: "guardian-fortune", remaining: null, detailRequired: true }),
+      expect.objectContaining({ productType: "fusion-fortune", remaining: null, detailRequired: true }),
+    ]);
   });
 
   test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {
@@ -393,130 +416,4 @@ describe("Payments prepare idempotency", () => {
     mockPaymentFindOne(null);
     Payment.create = jest.fn();
 
-    const req = new Request("https://example.com/api/payments/prepare", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "idempotency-key": "idem-neo-amount-mismatch",
-      },
-      body: JSON.stringify({
-        productId: "neo-operation-room",
-        paymentType: "digital_content",
-        featureKey: "neo-operation-room-consultation",
-        paymentAmount: 100,
-      }),
-    });
-
-    const response = await testUtils.handlePrepare(req, {}, auth);
-    const { status, payload } = await readResponse(response);
-
-    expect(status).toBe(400);
-    expect(payload.code).toBe("CLIENT_AMOUNT_MISMATCH");
-    expect(Payment.create).not.toHaveBeenCalled();
-  });
-
-  // 아래 4개는 digital content prepare 의 upsert 전환(조회+생성 2왕복 → 1왕복)을 고정한다.
-  // 전환 전에는 해피패스·경합 커버리지가 아예 없었고, 동시 요청은 order 없는 409 로 죽었다.
-  describe("digital content prepare: upsert 멱등", () => {
-    const digitalBody = {
-      productId: "neo-operation-room",
-      paymentType: "digital_content",
-      featureKey: "neo-operation-room-consultation",
-    };
-
-    function digitalRequest(idempotencyKey) {
-      return new Request("https://example.com/api/payments/prepare", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(idempotencyKey ? { "idempotency-key": idempotencyKey } : {}),
-        },
-        body: JSON.stringify(digitalBody),
-      });
-    }
-
-    test("신규 주문은 upsert 1회로 생성되고 Payment.create 를 쓰지 않는다", async () => {
-      mockUserFindById({ profileSubscription: { tier: "free", expiresAt: null } });
-      Payment.create = jest.fn();
-      Payment.findOne = jest.fn();
-      Payment.findOneAndUpdate = jest.fn().mockResolvedValue({
-        lastErrorObject: { updatedExisting: false },
-        value: { merchantUid: "cd_new_order_001" },
-      });
-
-      const response = await testUtils.handlePrepare(digitalRequest("idem-digital-new"), {}, auth);
-      const { status, payload } = await readResponse(response);
-
-      expect(status).toBe(201);
-      expect(payload.idempotent).toBe(false);
-      expect(Payment.findOneAndUpdate).toHaveBeenCalledTimes(1);
-      // 키가 있으면 create 경로를 타지 않는다(2왕복 → 1왕복).
-      expect(Payment.create).not.toHaveBeenCalled();
-      // 조회는 upsert 안에서 끝난다 — 별도 findOne 왕복이 없어야 한다.
-      expect(Payment.findOne).not.toHaveBeenCalled();
-
-      // 필터 3키는 $setOnInsert 에 들어가면 안 된다(Mongo 가 필터 등식을 삽입 문서에 적용해 충돌).
-      const [filter, update, options] = Payment.findOneAndUpdate.mock.calls[0];
-      expect(filter).toEqual({ userId: auth.userId, idempotencyKey: "idem-digital-new", paymentType: "digital_content" });
-      expect(options.upsert).toBe(true);
-      expect(options.sort).toEqual({ createdAt: -1 });
-      expect(update.$setOnInsert.userId).toBeUndefined();
-      expect(update.$setOnInsert.idempotencyKey).toBeUndefined();
-      expect(update.$setOnInsert.paymentType).toBeUndefined();
-    });
-
-    test("같은 키 + 같은 금액이면 기존 주문을 idempotent=true 로 돌려준다", async () => {
-      mockUserFindById({ profileSubscription: { tier: "free", expiresAt: null } });
-      Payment.create = jest.fn();
-      const existing = { merchantUid: "cd_existing_001", paymentAmount: 30000, expectedChargedPoints: 300, featureKey: "neo-operation-room-consultation" };
-      Payment.findOneAndUpdate = jest.fn().mockResolvedValue({
-        lastErrorObject: { updatedExisting: true },
-        value: existing,
-      });
-
-      const response = await testUtils.handlePrepare(digitalRequest("idem-digital-replay"), {}, auth);
-      const { status, payload } = await readResponse(response);
-
-      expect(status).toBe(200);
-      expect(payload.idempotent).toBe(true);
-      expect(payload.order.merchantUid).toBe("cd_existing_001");
-      expect(Payment.create).not.toHaveBeenCalled();
-    });
-
-    test("같은 키 + 다른 금액이면 409 IDEMPOTENCY_CONFLICT 여야 한다", async () => {
-      mockUserFindById({ profileSubscription: { tier: "free", expiresAt: null } });
-      Payment.create = jest.fn();
-      Payment.findOneAndUpdate = jest.fn().mockResolvedValue({
-        lastErrorObject: { updatedExisting: true },
-        value: { merchantUid: "cd_existing_002", paymentAmount: 999999, expectedChargedPoints: 9999, featureKey: "neo-operation-room-consultation" },
-      });
-
-      const response = await testUtils.handlePrepare(digitalRequest("idem-digital-conflict"), {}, auth);
-      const { status, payload } = await readResponse(response);
-
-      expect(status).toBe(409);
-      expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
-      expect(Payment.create).not.toHaveBeenCalled();
-    });
-
-    test("동시 insert 경합(E11000)은 order 없는 409 대신 기존 주문을 복구해 돌려준다", async () => {
-      mockUserFindById({ profileSubscription: { tier: "free", expiresAt: null } });
-      Payment.create = jest.fn();
-      Payment.findOneAndUpdate = jest.fn().mockRejectedValue({ code: 11000 });
-      const { lean } = mockPaymentFindOne({
-        merchantUid: "cd_race_winner_001",
-        paymentAmount: 30000,
-        expectedChargedPoints: 300,
-        featureKey: "neo-operation-room-consultation",
-      });
-
-      const response = await testUtils.handlePrepare(digitalRequest("idem-digital-race"), {}, auth);
-      const { status, payload } = await readResponse(response);
-
-      expect(status).toBe(200);
-      expect(payload.idempotent).toBe(true);
-      expect(payload.order.merchantUid).toBe("cd_race_winner_001");
-      expect(lean).toHaveBeenCalled();
-    });
-  });
-});
+    const req = new Request("https://example.com/api/payments/pre

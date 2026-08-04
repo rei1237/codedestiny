@@ -92,6 +92,8 @@ Entry: `worker/index.js`
 - Admin/content: `/api/admin/*`, `/api/cms/*`, `/api/content/*`, `/api/content-feed/*`, `/api/insights/*`
 - Reviews/feedback: `/api/reviews/*`, `/api/feedback/*`
 - Payments/access: `/api/payments/*`, `/api/payment/*`, `/api/checkout/*`, `/api/billing/*`, `/api/access/*`, `/api/unlocks/*`, `/api/points/me`, `/api/points/balance`
+- Moonlight shop snapshot: authenticated `GET /api/payments/me?view=shop` returns the minimal versioned `data.storeSnapshot`; detailed ticket balance/catalog remains click-triggered through the ticket `shop-preview` routes.
+- Order history/detail: authenticated `GET /api/payments/me?view=history` returns summary-only order rows; authenticated `GET /api/payments/orders/:id` returns one user-scoped detail view with masked identifiers and optional receipt URL.
 - Guardian/Fusion ticket shop preview: authenticated `GET /api/payments/guardian-fortune/shop-preview`, `GET /api/payments/fusion-fortune/shop-preview` (explicit user lookup; server catalog and balance in one response)
 - Guardian chat: `POST /api/fortune/guardian/chat` (SSE; existing Guardian usage reservation/commit path, public context/mock reply only, transcript is not persisted)
 - Fusion fortune: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`, `POST /api/fusion-fortune/generate/stream` (SSE actual-completion stages: saju → ziwei → sukuyo → vedic → astrology → tarot → fusion), `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`
