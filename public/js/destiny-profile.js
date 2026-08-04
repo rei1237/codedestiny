@@ -3441,8 +3441,8 @@
     var cacheKey = _dpPaidPassCacheKey(opts, title, coinPrice);
     var cached = _dpTakePaidPassGateResult(cacheKey);
     if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
-    // 미커버도 30초간 재사용한다(반복 클릭이 같은 답을 서버에서 다시 받아오지 않도록).
-    if (cached && cached.status === 'payment_required') return cached;
+    // 명시적 이용권 선택은 매번 현재 서버 상태로 판정한다. 직전 미커버 캐시를 재사용하면
+    // 이용권 구매·세션 갱신 뒤에도 사용자를 다시 상점으로 보내는 stale-miss가 된다.
     var res;
     try {
       res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
@@ -3467,7 +3467,6 @@
     }
     if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
       var notCovered = { status: 'payment_required', payload: payload, requestId: requestId };
-      _dpStorePaidPassGateResult(cacheKey, notCovered);
       return notCovered;
     }
     // 진짜 미보유(402/미커버)만 결제창으로 유도한다. 5xx·degraded·인증 일시장애·비2xx 응답을 '이용권 없음'으로

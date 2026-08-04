@@ -264,6 +264,14 @@ type RuntimePaidServiceGateResult = {
 };
 
 type PaidServiceRuntimeGate = (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
+type RuntimeMembershipPassApplyResult = {
+  status?: string;
+  code?: string;
+  message?: string;
+  requestId?: string;
+  payload?: Record<string, unknown>;
+};
+type RuntimeMembershipPassApply = (options: Record<string, unknown>) => Promise<RuntimeMembershipPassApplyResult> | RuntimeMembershipPassApplyResult;
 type PaymentChoiceMode = "direct" | "monthly" | "pass" | "pass-store" | "refresh" | "cancel";
 type PaymentChoiceFunction = ((options: Record<string, unknown>) => Promise<PaymentChoiceMode> | PaymentChoiceMode) & {
   __cdSupportsPassChoice?: boolean;
@@ -296,6 +304,7 @@ type RuntimeApiWindow = Window & {
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdRunDirectKrwCheckout?: PaidServiceRuntimeGate;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
+  __cdApplyMembershipPassBeforePayment?: RuntimeMembershipPassApply;
   __cdSuppressPaymentFetchOverlayCount?: number;
   __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
   __cdOpenChargeModal?: () => void;
@@ -435,7 +444,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9322d379c0d2";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-0e80aaf07557";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1383,28 +1392,46 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           button.classList.add("is-loading");
           checkoutEntry.trackCheckoutEvent("checkout_option_click", { option: "pass", renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
           setStatus("이용권을 확인하고 있습니다.");
-          const passProbe = await fetchPaymentEligibility({
-            categoryKey: toText(opts.categoryKey) || undefined,
-            subFeatureKey: toText(opts.subFeatureKey) || undefined,
-            featureKey: passCheckFeatureKey || undefined,
-            reason: toText(opts.reason) || undefined,
-            productId: toText(opts.productId) || undefined,
-            serviceType: toText(opts.serviceType || opts.productType) || undefined,
-            coinPrice,
-            amountKRW: directAmount,
-            // 🔴 force 가 아니라 revalidate 다. force 는 서버에 묻기 **전에** 로컬 스냅샷을 지우는데,
-            // 이 확인이 degrade/타임아웃으로 실패하면 판정 근거가 영구히 사라져 그 뒤 모든 유료 클릭에서
-            // 낙관 즉시통과가 죽는다(= 이 버튼을 눌렀다 실패한 뒤 매번 결제창이 뜨던 회귀).
-            // revalidate 는 서버 정본을 다시 읽되 성공했을 때만 덮어쓴다.
-          }, { revalidate: true, phase: "pass" }).catch(() => null);
-          if (passProbe?.ok && passProbe.data?.pass.canUse === true) {
+          const runtimeWindow = window as RuntimeApiWindow;
+          let passResult: RuntimeMembershipPassApplyResult | null = null;
+          try {
+            if (typeof runtimeWindow.__cdApplyMembershipPassBeforePayment !== "function") {
+              throw new Error("PASS_RUNTIME_UNAVAILABLE");
+            }
+            passResult = await runtimeWindow.__cdApplyMembershipPassBeforePayment({
+              categoryKey: toText(opts.categoryKey) || undefined,
+              subFeatureKey: toText(opts.subFeatureKey) || undefined,
+              featureKey: passCheckFeatureKey || undefined,
+              reason: toText(opts.reason) || undefined,
+              title,
+              productId: toText(opts.productId) || undefined,
+              productType: toText(opts.productType) || undefined,
+              serviceType: toText(opts.serviceType || opts.productType) || undefined,
+              contentKey: toText(opts.contentKey) || undefined,
+              reportId: toText(opts.reportId) || undefined,
+              sessionId: toText(opts.sessionId) || undefined,
+              reportSessionId: toText(opts.reportSessionId || opts.sessionId) || undefined,
+              purchaseId: toText(opts.purchaseId) || undefined,
+              profileId: toText(opts.profileId) || undefined,
+              selectedProfileId: toText(opts.selectedProfileId || opts.profileId) || undefined,
+              requestId: toText(opts.requestId) || undefined,
+              coinPrice,
+              cost: coinPrice,
+              amountKrw: directAmount,
+              amountKRW: directAmount,
+            });
+          } catch {
+            passResult = null;
+          }
+          const passStatus = toText(passResult?.status).toLowerCase();
+          if (passStatus === "pass_applied" || passStatus === "already_unlocked") {
             checkoutEntry.trackCheckoutEvent("pass_verified_free", { option: "pass", renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
             close("pass");
             return;
           }
-          // 확인 자체가 실패했으면(응답 없음·5xx·degrade) 상점으로 보내지 않는다 — 지연을 미커버 근거로 쓰면
-          // 실제 보유자가 이미 가진 이용권을 또 사러 가게 된다. 모달을 열어 둔 채 재시도를 안내한다.
-          if (!passProbe?.ok || !passProbe.data) {
+          // `payment_required`(서버 402/명시적 미커버)만 상점으로 보낸다. 일시 장애와 런타임
+          // 로드 실패는 보유 여부를 확정할 수 없으므로 모달 안에서 다시 시도하게 한다.
+          if (passStatus !== "payment_required") {
             button.disabled = false;
             button.classList.remove("is-loading");
             setStatus(checkoutEntry.text("payment.directModal.passCheckRetry", "이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요."), true);

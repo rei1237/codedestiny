@@ -61,6 +61,7 @@ for (const rel of SHELL_MIRRORS) {
   // A: 서버 재검증을 실제로 돌린다(로컬 스냅샷 fast-path 로 때우지 않는다).
   must(refresh.includes("_cdResolvePaidContentAccess"), `${label}: 이용권 카드가 서버 재검증(_cdResolvePaidContentAccess)을 호출하지 않습니다`);
   must(refresh.includes("requireServerPassCheck: true"), `${label}: 이용권 재검증에 requireServerPassCheck 가 없습니다`);
+  must(refresh.includes("allowSnapshotFastPath: false"), `${label}: 결제창 안 이용권 확인이 오래된 스냅샷으로 미커버를 확정합니다`);
   // C: 확인 전에 스냅샷을 지우지 않는다.
   must(
     !/_cdClearSubscriptionSnapshotForCurrentUser\s*\(/.test(refresh),
@@ -83,6 +84,13 @@ for (const rel of SHELL_MIRRORS) {
   must(passBranch.includes("close('pass')") || passBranch.includes("close('pass_applied')"), `${label}: 이용권 커버 확인 후 무료 통과로 닫는 경로가 없습니다`);
   // E: 실패는 상점으로 보내지 않고 재시도를 안내한다.
   must(passBranch.includes("pass_check_failed"), `${label}: 이용권 확인 실패 시 재시도 분기 없이 상점으로 보냅니다`);
+
+  const explicitPassFallbackStart = source.indexOf("var passChoiceAccess = await _cdResolvePaidContentAccess({");
+  const explicitPassFallbackEnd = source.indexOf("if (_cdIsPassBypassAccess(passChoiceAccess))", explicitPassFallbackStart);
+  const explicitPassFallback = explicitPassFallbackStart >= 0 && explicitPassFallbackEnd > explicitPassFallbackStart
+    ? source.slice(explicitPassFallbackStart, explicitPassFallbackEnd)
+    : "";
+  must(explicitPassFallback.includes("allowSnapshotFastPath: false"), `${label}: 결제창 이용권 선택 폴백이 스냅샷으로 미커버를 확정합니다`);
 }
 
 // ── A~C, E: React 렌더러 ─────────────────────────────────────────────────────────────────
@@ -92,8 +100,11 @@ for (const rel of SHELL_MIRRORS) {
   const modal = stripComments(sliceFunction(source, "async function openReactPaymentChoiceModalInner(", `${label}/modal`));
 
   must(modal.includes('data-mode="pass-store"'), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
-  // A: 클릭이 서버 이용권 재검증을 돌린다.
-  must(/fetchPaymentEligibility\(/.test(modal) && modal.includes('phase: "pass"'), `${label}: 이용권 카드 클릭이 서버 이용권 재검증을 호출하지 않습니다`);
+  // A: 읽기 전용 GET이 아니라 공용 런타임의 최종 MEMBERSHIP_PASS 적용을 호출한다.
+  must(modal.includes("__cdApplyMembershipPassBeforePayment"), `${label}: 이용권 카드 클릭이 최종 이용권 적용을 호출하지 않습니다`);
+  must(!/fetchPaymentEligibility\(/.test(modal), `${label}: 이용권 카드 클릭이 최종 판정 전에 읽기 전용 이용권 조회로 갈립니다`);
+  must(modal.includes("requestId: toText(opts.requestId)"), `${label}: React 최종 이용권 적용이 기존 requestId를 전달하지 않습니다`);
+  must(modal.includes("featureKey: passCheckFeatureKey"), `${label}: React 최종 이용권 적용이 표시 기능 키를 전달하지 않습니다`);
   // B: 커버면 'pass' 로 닫는다.
   must(modal.includes('close("pass")'), `${label}: 이용권 커버 확인 후 무료 통과('pass')로 닫는 경로가 없습니다`);
   // C: 확인 전 스냅샷 선삭제 금지 — force:true 는 fetchPaymentEligibility 진입부에서 스냅샷을 지운다.
@@ -101,6 +112,7 @@ for (const rel of SHELL_MIRRORS) {
   must(!/clearSubscriptionSnapshotForUser\s*\(/.test(modal), `${label}: 결제창이 구독 스냅샷을 직접 삭제합니다`);
   // E: 확인 실패는 상점으로 세탁하지 않는다.
   must(modal.includes("passCheckRetry"), `${label}: 이용권 확인 실패 시 재시도 분기 없이 상점으로 보냅니다`);
+  must(modal.includes('passStatus !== "payment_required"'), `${label}: 실제 미커버 외 응답도 이용권 상점으로 이동할 수 있습니다`);
 
   // C(진입부 계약): revalidate 는 스냅샷을 지우지 않는 경로여야 한다.
   const uncached = stripComments(sliceUntilNextTopLevelDeclaration(source, "async function fetchPaymentEligibilityUncached(", `${label}/eligibility`));
@@ -124,6 +136,7 @@ for (const rel of SHELL_MIRRORS) {
   // D(낙관 잠금): 전역 60초 잠금은 '한도 초과'만으로 켜지면 안 된다.
   const record = stripComments(sliceFunction(source, "async function recordMembershipPassInBackground(", `${label}/record`));
   must(record.includes("passLimitForTier"), `${label}: 낙관 잠금이 한도초과 402 와 보유상태 불일치를 구분하지 않습니다(전역 60초 잠금이 한도 이내 기능까지 죽입니다)`);
+
 }
 
 // ── A~C, E: 독립 정적 폴백 2사본 ──────────────────────────────────────────────────────────
@@ -144,6 +157,10 @@ for (const rel of STANDALONE_FALLBACKS) {
   // D(낙관 잠금): 한도초과 402 로 전역 잠금을 켜지 않는다.
   const record = stripComments(sliceFunction(source, "  function _dpRecordMembershipPassInBackground(", `${label}/record`));
   must(record.includes("_dpMembershipPassLimitForTier"), `${label}: 낙관 잠금이 한도초과 402 와 보유상태 불일치를 구분하지 않습니다`);
+
+  const finalApply = stripComments(sliceFunction(source, "  async function _dpApplyMembershipPassBeforePayment(", `${label}/final-pass-apply`));
+  must(!finalApply.includes("cached && cached.status === 'payment_required'"), `${label}: 직전 미커버 캐시가 다음 명시적 이용권 확인을 막습니다`);
+  must(!finalApply.includes("_dpStorePaidPassGateResult(cacheKey, notCovered)"), `${label}: 미커버 결과를 재사용해 다음 이용권 확인을 막습니다`);
 }
 
 // ── B(소비자): 게이트가 결제창의 'pass' 반환을 실제로 처리한다 ────────────────────────────
