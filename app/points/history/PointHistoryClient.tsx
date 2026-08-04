@@ -12,6 +12,7 @@ import { readServiceJson } from "../../_lib/service-read-client";
 import { remoteQueryKeyToString, remoteQueryKeys } from "../../_lib/remote-query-keys";
 import OrderDetailModal from "./OrderDetailModal";
 import { adaptOrderToViewModel, type OrderDetailViewModel, type PaymentOrderRecord } from "./order-view-model";
+import styles from "./PointHistoryClient.module.css";
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -186,9 +187,9 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       success: "결제완료",
     },
     loadingPage: "이용권 혜택 내역을 불러오는 중...",
-    headerEyebrow: "Payment Management",
-    title: "결제/멤버십 관리",
-    subtitle: "결제 내역과 멤버십 상태를 확인하세요.",
+    headerEyebrow: "Moonlight Pass",
+    title: "결제·이용권 기록",
+    subtitle: "달빛 이용권과 결제 상태를 한 곳에서 확인하세요.",
     backToPoints: "← 달빛 이용권 관리",
     backToService: "서비스 화면으로",
     contentUnitAria: "콘텐츠 가치 단위 안내",
@@ -267,9 +268,9 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       success: "Paid",
     },
     loadingPage: "Loading pass benefit history...",
-    headerEyebrow: "Payment Management",
-    title: "Payments & Membership",
-    subtitle: "Review your payment history and membership status.",
+    headerEyebrow: "Moonlight Pass",
+    title: "Payments & Passes",
+    subtitle: "Review your Moonlight Pass and payment status in one place.",
     backToPoints: "← Moonlight Pass",
     backToService: "Back to services",
     contentUnitAria: "Content value unit guide",
@@ -447,11 +448,11 @@ function formatWon(n: number, copy: PointHistoryCopy, locale: string) {
 }
 
 function orderStatusClass(status: OrderDetailViewModel["status"]) {
-  if (status === "refunded") return "bg-sky-100 text-sky-800 border-sky-300";
-  if (status === "cancelled") return "bg-slate-100 text-slate-700 border-slate-300";
-  if (status === "pending" || status === "unknown") return "bg-amber-100 text-amber-800 border-amber-300";
-  if (status === "failed") return "bg-rose-100 text-rose-800 border-rose-300";
-  return "bg-emerald-100 text-emerald-800 border-emerald-300";
+  if (status === "refunded") return `${styles.status} ${styles.statusRefunded}`;
+  if (status === "cancelled") return `${styles.status} ${styles.statusCancelled}`;
+  if (status === "pending" || status === "unknown") return `${styles.status} ${styles.statusPending}`;
+  if (status === "failed") return `${styles.status} ${styles.statusFailed}`;
+  return `${styles.status} ${styles.statusCompleted}`;
 }
 
 function normalizePointPayload(payload: MeResponse, copy: PointHistoryCopy) {
@@ -794,13 +795,10 @@ export default function PointHistoryPage() {
   /* ── 부팅 중 ─────────────────────────────────────────────────── */
   if (isBooting) {
     return (
-      <main
-        className="flex min-h-screen items-center justify-center"
-        style={{ background: "linear-gradient(160deg, #FDF8F0 0%, #FDF0D8 100%)" }}
-      >
-        <div className="text-center text-[#5C3A1E]">
-          <div className="mb-3 text-5xl animate-bounce">🐷</div>
-          <p className="font-semibold">{copy.loadingPage}</p>
+      <main className={styles.loadingPage}>
+        <div className={styles.loadingContent}>
+          <div className="text-4xl" aria-hidden="true">✦</div>
+          <p>{copy.loadingPage}</p>
         </div>
       </main>
     );
@@ -808,102 +806,62 @@ export default function PointHistoryPage() {
 
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
-    <main
-      className="relative min-h-screen px-4 py-8"
-      style={{ background: "linear-gradient(160deg, #FDFAF4 0%, #FDF3E0 35%, #FAE9CC 65%, #F7DEB8 100%)" }}
-    >
-      <div className="mx-auto w-full max-w-2xl space-y-5">
+    <main className={styles.page}>
+      <div className={styles.container}>
 
-        {/* 헤더 */}
-        <header className="rounded-[24px] overflow-hidden shadow-[0_12px_40px_rgba(120,80,10,0.14)]">
-          <div
-            className="h-[3px] w-full"
-            style={{ background: "linear-gradient(90deg, #A0680A 0%, #FFD060 25%, #FFFFFF 50%, #FFD060 75%, #A0680A 100%)" }}
-            aria-hidden="true"
-          />
-          <div
-            className="border border-t-0 border-[#EDDBA3] rounded-b-[24px] p-6"
-            style={{ background: "linear-gradient(135deg, rgba(255,253,247,0.97) 0%, rgba(255,249,238,0.95) 100%)" }}
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">{copy.headerEyebrow}</p>
-                <h1 className="mt-0.5 text-[22px] font-black text-[#5C3A1E] leading-tight">
-                  🐷 {copy.title}
-                </h1>
-                <p className="mt-1 text-sm text-[#7A5230]">{copy.subtitle}</p>
-              </div>
-              <div className="flex flex-col gap-2 self-start sm:items-end">
-                <Link
-                  href="/points"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
-                >
-                  {copy.backToPoints}
-                </Link>
-                <Link
-                  href="/"
-                  prefetch={false}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
-                >
-                  {copy.backToService}
-                </Link>
-              </div>
-            </div>
+        <section className={styles.hero} aria-labelledby="point-history-title">
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>{copy.headerEyebrow}</p>
+            <h1 id="point-history-title" className={styles.title}>✦ {copy.title}</h1>
+            <p className={styles.subtitle}>{copy.subtitle}</p>
           </div>
-        </header>
+          <nav className={styles.nav} aria-label={copy.backToPoints}>
+            <Link href="/points" className={styles.navLink}>{copy.backToPoints}</Link>
+            <Link href="/" prefetch={false} className={styles.navLink}>{copy.backToService}</Link>
+          </nav>
+        </section>
 
         {/* 콘텐츠 가치 단위 안내 */}
-        <section
-          aria-label={copy.contentUnitAria}
-          className="rounded-[24px] overflow-hidden shadow-[0_10px_36px_rgba(180,130,30,0.22)]"
-        >
-          <div
-            className="h-[3px] w-full"
-            style={{ background: "linear-gradient(90deg, #C8860A 0%, #FFE070 30%, #FFFFFF 50%, #FFE070 70%, #C8860A 100%)" }}
-            aria-hidden="true"
-          />
-          <div
-            className="border border-t-0 border-amber-200 rounded-b-[24px] p-5"
-            style={{ background: "linear-gradient(135deg, #FFFAE8 0%, #FFF3CC 50%, #FFE89C 100%)" }}
-          >
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">{copy.contentUnitLabel}</p>
-            <div className="flex items-center gap-3">
+        <section aria-label={copy.contentUnitAria} className={styles.highlight}>
+          <div className={styles.highlightBody}>
+            <p className={styles.sectionLabel}>{copy.contentUnitLabel}</p>
+            <div className={styles.balanceRow}>
               <CoinIcon size="lg" />
-              <span className="text-[28px] font-black text-[#7A4A00] leading-none">
+              <span className={styles.balanceValue}>
                 {copy.benefitBalance}
-                <span className="ml-1.5 text-base font-bold text-amber-800">{copy.serverBalance}</span>
+                <span className={styles.balanceHint}>{copy.serverBalance}</span>
               </span>
             </div>
             {pointsError ? (
-              <div className="mt-2 rounded-[10px] border border-rose-200 bg-rose-50 px-2.5 py-2">
-                <p className="text-[11px] font-bold text-rose-700">{copy.pointLookupFailed(pointsError)}</p>
+              <div className={styles.error}>
+                <p>{copy.pointLookupFailed(pointsError)}</p>
                 <button
                   type="button"
                   onClick={() => { fetchPointsSection(); }}
-                  className="mt-1 text-[11px] font-bold text-rose-600 underline"
+                  className={styles.errorAction}
                 >
                   {copy.retry}
                 </button>
               </div>
             ) : (
-              <p className="mt-2 text-[11px] text-amber-800 font-semibold">
+              <p className={styles.bodyText}>
                 {copy.userSummary(userName)}
               </p>
             )}
-            <p className="mt-1 text-[11px] text-[#9B7040]">
+            <p className={styles.bodyText}>
               {copy.ledgerNote}
             </p>
           </div>
         </section>
 
-        <section className="rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] px-4 py-3">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">{copy.currentMembership}</p>
-          <p className="mt-1 text-sm font-semibold text-[#7A5230]">{subscriptionSummary}</p>
+        <section className={styles.surface}>
+          <p className={styles.sectionLabel}>{copy.currentMembership}</p>
+          <p className={styles.membershipSummary}>{subscriptionSummary}</p>
           {subscriptionError && (
             <button
               type="button"
               onClick={() => { fetchSubscriptionSection(); }}
-              className="mt-1 text-[12px] font-bold text-rose-600 underline"
+              className={styles.actionLink}
             >
               {copy.retrySubscription}
             </button>
@@ -913,24 +871,20 @@ export default function PointHistoryPage() {
         {/* 요약 통계 */}
         <section
           aria-label={copy.summaryAria}
-          className="grid grid-cols-2 gap-3"
+          className={styles.stats}
         >
             {[
-              { label: copy.currentBenefit, value: currentMonthlyStoneBalance, icon: copy.remainingIcon, showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
-              { label: copy.spentBenefit, value: totalSpentMonthlyCredits, icon: copy.usedIcon, showCoin: false, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
+              { label: copy.currentBenefit, value: currentMonthlyStoneBalance, icon: copy.remainingIcon },
+              { label: copy.spentBenefit, value: totalSpentMonthlyCredits, icon: copy.usedIcon },
             ].map((item) => (
-            <div
-              key={item.label}
-              className={`rounded-[20px] border p-4 shadow-[0_4px_16px_rgba(0,0,0,0.06)] ${item.cls}`}
-            >
-              <p className="text-[11px] font-bold text-neutral-500 mb-1">{item.icon} {item.label}</p>
-              <div className="flex items-center gap-1.5">
-                {item.showCoin && <CoinIcon size="sm" />}
-                <span className={`text-[18px] font-black leading-none ${item.valcls}`}>
+            <div key={item.label} className={styles.stat}>
+              <p className={styles.statLabel}>{item.icon} {item.label}</p>
+              <div>
+                <span className={styles.statValue}>
                   {pointSnapshotReady ? formatMonthlyCredits(item.value, copy, formatLocale) : "—"}
                 </span>
               </div>
-              <p className="mt-1 text-[10px] text-neutral-400">{copy.recentLimit}</p>
+              <p className={styles.statMeta}>{copy.recentLimit}</p>
             </div>
           ))}
         </section>
@@ -938,13 +892,14 @@ export default function PointHistoryPage() {
         {/* 이용권 혜택 흐름 내역 */}
         <section
           aria-label={copy.flowAria}
-          className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] overflow-hidden shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
+          className={styles.surface}
         >
-          <div className="p-5 pb-0">
-            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">{copy.flowTitle}</h2>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>{copy.flowTitle}</h2>
+          </div>
 
             {/* 탭 */}
-            <div className="flex gap-2 mb-4">
+            <div className={styles.tabs}>
               {([
                 { id: "all", label: copy.tabs.all },
                 { id: "grant", label: copy.tabs.grant },
@@ -954,86 +909,64 @@ export default function PointHistoryPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={[
-                    "rounded-full px-3.5 py-1.5 text-[12px] font-bold transition",
-                    activeTab === tab.id
-                      ? "bg-amber-500 text-white shadow-[0_4px_12px_rgba(180,130,0,0.35)]"
-                      : "bg-white border border-[#EDDBA3] text-[#7A5230] hover:bg-amber-50",
-                  ].join(" ")}
+                  className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""}`}
+                  aria-pressed={activeTab === tab.id}
                 >
                   {tab.label}
                 </button>
               ))}
             </div>
-          </div>
 
-          <div className="px-5 pb-5">
+          <div>
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-3xl animate-bounce">🐷</div>
-                <p className="ml-3 text-sm text-[#7A5230]">{copy.loadingList}</p>
+              <div className={styles.loadingState}>
+                <div className="text-2xl" aria-hidden="true">✦</div>
+                <p>{copy.loadingList}</p>
               </div>
             ) : pointsError ? (
-              <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
-                <p className="text-sm font-semibold text-rose-700">⚠️ {pointsError}</p>
+              <div className={styles.error} role="alert">
+                <p>{pointsError}</p>
                 <button
                   type="button"
                   onClick={() => { fetchPointsSection(); }}
-                  className="mt-2 text-[12px] font-bold text-rose-600 underline"
+                  className={styles.errorAction}
                 >
                   {copy.retry}
                 </button>
               </div>
             ) : filteredHistories.length === 0 ? (
-              <div className="py-8 text-center">
-                <p className="text-3xl mb-2">📭</p>
-                <p className="text-sm text-[#7A5230]">{copy.emptyLedger}</p>
+              <div className={styles.emptyState}>
+                <p className="text-2xl" aria-hidden="true">—</p>
+                <p>{copy.emptyLedger}</p>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className={styles.list}>
                 {filteredHistories.map((entry) => {
                   const isSpend = entry.type === "MONTHLY_CREDIT_SPEND";
-                  const kl = isSpend
-                    ? { text: copy.spendLabel, cls: "bg-rose-100 text-rose-700 border-rose-300" }
-                    : { text: copy.grantLabel, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
-                  const dc = isSpend ? "text-rose-700" : "text-emerald-700";
                   const prefix = isSpend ? "-" : "+";
                   const displayReason = entry.reason || entry.serviceKey || "-";
                   return (
-                    <div
-                      key={entry.id}
-                      className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5 flex items-start gap-3"
-                    >
-                      <span className="flex-shrink-0 text-xl mt-0.5 leading-none">{isSpend ? copy.spendIcon : copy.grantIcon}</span>
-                      <div className="flex-1 min-w-0">
+                    <div key={entry.id} className={styles.ledgerRow}>
+                      <span className={styles.ledgerIcon}>{isSpend ? copy.spendIcon : copy.grantIcon}</span>
+                      <div className={styles.ledgerContent}>
                         {/* 날짜 */}
-                        <p className="text-[11px] text-[#9B7040] mb-1 font-medium">
+                        <p className={styles.ledgerDate}>
                           {formatDateTime(entry.createdAt, formatLocale)}
                         </p>
                         {/* 상품명 + 금액 */}
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${kl.cls}`}>
-                              {kl.text}
-                            </span>
-                            <span className="text-[12px] font-semibold text-[#5C3A1E] line-clamp-1">
-                              {displayReason}
-                            </span>
-                          </div>
-                          <span className={`text-[15px] font-black flex-shrink-0 ${dc}`}>
+                        <div className={styles.ledgerMain}>
+                          <p className={styles.ledgerName}>{displayReason}</p>
+                          <span className={styles.ledgerAmount}>
                             {prefix}{formatMonthlyCredits(entry.amount, copy, formatLocale)}
                           </span>
                         </div>
                         {/* 잔여 이용권 혜택 */}
-                        <div className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-amber-50 border border-amber-100 px-2.5 py-1.5">
-                          <CoinIcon size="sm" />
-                          <p className="text-[12px] text-[#7A4A00] font-bold">
-                            {copy.afterBalance}&nbsp;
-                            <span className="text-[13px] text-[#5C3A1E]">
+                        <p className={styles.ledgerAfter}>
+                          {copy.afterBalance}&nbsp;
+                          <strong>
                               {formatMonthlyCredits(entry.afterBalance, copy, formatLocale)}
-                            </span>
-                          </p>
-                        </div>
+                          </strong>
+                        </p>
                       </div>
                     </div>
                   );
@@ -1046,24 +979,26 @@ export default function PointHistoryPage() {
         {/* 결제 내역 (결제 성공 건) */}
         <section
           aria-label={copy.paymentsAria}
-          className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
+          className={styles.surface}
         >
-          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">{copy.paymentsTitle}</h2>
+          <h2 className={styles.sectionTitle}>{copy.paymentsTitle}</h2>
           {paymentsError ? (
-            <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
-              <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
+            <div className={styles.error} role="alert">
+              <p>{paymentsError}</p>
               <button
                 type="button"
                 onClick={() => { fetchPaymentsSection(); }}
-                className="mt-2 text-[12px] font-bold text-rose-600 underline"
+                className={styles.errorAction}
               >
                 {copy.retryPayments}
               </button>
             </div>
           ) : payments.length === 0 && !isLoading ? (
-            <p className="text-sm text-[#7A5230]">{copy.emptyPayments}</p>
+            <div className={styles.emptyState}>
+              <p>{copy.emptyPayments}</p>
+            </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className={styles.paymentList}>
               {payments.map((p) => {
                 const order = adaptOrderToViewModel(p as PaymentOrderRecord, lang);
                 return (
@@ -1071,22 +1006,22 @@ export default function PointHistoryPage() {
                     key={p.id}
                     type="button"
                     onClick={() => { void loadOrderDetail(p); }}
-                    className="block w-full rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5 text-left transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_6px_18px_rgba(120,80,10,0.1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+                    className={styles.paymentRow}
                     aria-label={`${order.title} ${order.statusLabel}`}
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-[#5C3A1E]">
+                    <div className={styles.paymentTop}>
+                      <p className={styles.paymentTitle}>
                         {order.amount ? copy.paymentAmount(formatWon(order.amount.value, copy, formatLocale)) : order.title}
                       </p>
-                      <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${orderStatusClass(order.status)}`}>
+                      <span className={orderStatusClass(order.status)}>
                         {order.statusLabel}
                       </span>
                     </div>
-                    <div className="mt-1.5 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
-                      <p>{copy.paidAt(formatDateTime(order.purchasedAt, formatLocale))}</p>
-                      <p>{copy.paymentMethod(order.paymentMethod || "-")}</p>
+                    <div className={styles.paymentMetaGrid}>
+                      <p className={styles.paymentMeta}>{copy.paidAt(formatDateTime(order.purchasedAt, formatLocale))}</p>
+                      <p className={styles.paymentMeta}>{copy.paymentMethod(order.paymentMethod || "-")}</p>
                     </div>
-                    <p className="mt-2 text-[11px] font-bold text-amber-700">{lang === "ko" ? "상세 확인 ›" : "View details ›"}</p>
+                    <span className={styles.detailLink}>{lang === "ko" ? "상세 확인 ›" : "View details ›"}</span>
                   </button>
                 );
               })}
@@ -1106,11 +1041,11 @@ export default function PointHistoryPage() {
         ) : null}
 
         {/* 안내 */}
-        <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
-          <h3 className="font-bold text-[#5C3A1E] mb-2">{copy.guideTitle}</h3>
-          <ul className="space-y-1.5 text-sm text-[#7A5230]">
+        <section className={styles.guide}>
+          <h3 className={styles.guideTitle}>{copy.guideTitle}</h3>
+          <ul className={styles.guideList}>
             {copy.guideItems.map((item) => (
-              <li key={item}>• {item}</li>
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
