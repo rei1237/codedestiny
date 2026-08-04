@@ -8,6 +8,10 @@ import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { readServiceJson } from "../../_lib/service-read-client";
+import { remoteQueryKeyToString, remoteQueryKeys } from "../../_lib/remote-query-keys";
+import OrderDetailModal from "./OrderDetailModal";
+import { adaptOrderToViewModel, type OrderDetailViewModel, type PaymentOrderRecord } from "./order-view-model";
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -15,11 +19,19 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type PaymentHistoryItem = {
   id: string;
-  paymentAmount: number;
-  chargedPoints: number;
-  paymentMethod: string;
-  status: "pending" | "success" | "failed" | "cancelled" | "refunded";
-  paidAt?: string;
+  paymentAmount?: number;
+  chargedPoints?: number;
+  paymentMethod?: string;
+  paymentMethodLabel?: string;
+  paymentType?: string;
+  productId?: string;
+  featureKey?: string;
+  membershipCreditCost?: number;
+  orderState?: string;
+  subscriptionTier?: string;
+  status: string;
+  createdAt?: string | null;
+  paidAt?: string | null;
   approvalNumber?: string | null;
 };
 
@@ -45,6 +57,9 @@ type MeResponse = {
     payments?: PaymentHistoryItem[];
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
     subscriptions?: SubscriptionStatusResponse[];
+    degradedPayments?: boolean;
+    degradedTransactions?: boolean;
+    degradedMonthlyCredits?: boolean;
   };
   message?: string;
   user?: {
@@ -431,10 +446,12 @@ function formatWon(n: number, copy: PointHistoryCopy, locale: string) {
   return copy.won(Number(n || 0), locale);
 }
 
-function paymentStatusView(status: PaymentHistoryItem["status"], copy: PointHistoryCopy) {
-  if (status === "refunded") return { label: copy.paymentStatuses.refunded, cls: "bg-sky-100 text-sky-800 border-sky-300" };
-  if (status === "cancelled") return { label: copy.paymentStatuses.cancelled, cls: "bg-slate-100 text-slate-700 border-slate-300" };
-  return { label: copy.paymentStatuses.success, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+function orderStatusClass(status: OrderDetailViewModel["status"]) {
+  if (status === "refunded") return "bg-sky-100 text-sky-800 border-sky-300";
+  if (status === "cancelled") return "bg-slate-100 text-slate-700 border-slate-300";
+  if (status === "pending" || status === "unknown") return "bg-amber-100 text-amber-800 border-amber-300";
+  if (status === "failed") return "bg-rose-100 text-rose-800 border-rose-300";
+  return "bg-emerald-100 text-emerald-800 border-emerald-300";
 }
 
 function normalizePointPayload(payload: MeResponse, copy: PointHistoryCopy) {
@@ -532,16 +549,22 @@ export default function PointHistoryPage() {
 
   const [userName, setUserName] = useState(() => copy.defaultUserName);
   const [currentMonthlyStoneBalance, setCurrentMonthlyStoneBalance] = useState(0);
+  const [pointSnapshotReady, setPointSnapshotReady] = useState(false);
   const [histories, setHistories] = useState<MonthlyCreditLedgerItem[]>([]);
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("all");
+  const [selectedOrder, setSelectedOrder] = useState<OrderDetailViewModel | null>(null);
+  const [orderDetailLoading, setOrderDetailLoading] = useState(false);
+  const [orderDetailError, setOrderDetailError] = useState<string | null>(null);
 
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const paymentsMeInFlightRef = useRef<Promise<Response> | null>(null);
+  const orderDetailAbortRef = useRef<AbortController | null>(null);
+  const orderDetailCacheRef = useRef(new Map<string, OrderDetailViewModel>());
 
   const fetchPaymentsMe = useCallback(async () => {
     if (!paymentsMeInFlightRef.current) {
-      const requestPromise = authFetch(`${apiBase}/api/payments/me`, {
+      const requestPromise = authFetch(`${apiBase}/api/payments/me?view=history`, {
         method: "GET",
         credentials: "include",
         cache: "no-store",
@@ -550,8 +573,7 @@ export default function PointHistoryPage() {
         apiBase,
         clientSource: "app:points-history",
       });
-      let trackedPromise: Promise<Response>;
-      trackedPromise = requestPromise.finally(() => {
+      const trackedPromise = requestPromise.finally(() => {
         if (paymentsMeInFlightRef.current === trackedPromise) paymentsMeInFlightRef.current = null;
       });
       paymentsMeInFlightRef.current = trackedPromise;
@@ -559,6 +581,53 @@ export default function PointHistoryPage() {
     const response = await paymentsMeInFlightRef.current;
     return response.clone();
   }, [apiBase]);
+
+  const loadOrderDetail = useCallback(async (item: PaymentHistoryItem) => {
+    const order = adaptOrderToViewModel(item as PaymentOrderRecord, lang);
+    const cacheKey = remoteQueryKeyToString(remoteQueryKeys.orders.detail(order.id));
+    setSelectedOrder(order);
+    setOrderDetailError(null);
+    const cached = orderDetailCacheRef.current.get(cacheKey);
+    if (cached) {
+      setSelectedOrder(cached);
+      return;
+    }
+
+    orderDetailAbortRef.current?.abort();
+    const controller = new AbortController();
+    orderDetailAbortRef.current = controller;
+    setOrderDetailLoading(true);
+    try {
+      const { data } = await readServiceJson<{ data?: { order?: PaymentOrderRecord } }>(
+        `${apiBase}/api/payments/orders/${encodeURIComponent(order.id)}`,
+        { credentials: "include", cache: "no-store" },
+        { apiBase, clientSource: "app:points-history-order-detail", signal: controller.signal, maxRetries: 1 },
+      );
+      const detail = data?.data?.order;
+      if (!detail) throw new Error("주문 상세 응답이 비어 있습니다.");
+      const viewModel = adaptOrderToViewModel(detail, lang);
+      orderDetailCacheRef.current.set(cacheKey, viewModel);
+      setSelectedOrder(viewModel);
+    } catch (error: unknown) {
+      if (controller.signal.aborted) return;
+      setOrderDetailError(friendlyErrorMessage(error, "주문 상세를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."));
+    } finally {
+      if (orderDetailAbortRef.current === controller) {
+        orderDetailAbortRef.current = null;
+        setOrderDetailLoading(false);
+      }
+    }
+  }, [apiBase, lang]);
+
+  const closeOrderDetail = useCallback(() => {
+    orderDetailAbortRef.current?.abort();
+    orderDetailAbortRef.current = null;
+    setSelectedOrder(null);
+    setOrderDetailError(null);
+    setOrderDetailLoading(false);
+  }, []);
+
+  useEffect(() => () => orderDetailAbortRef.current?.abort(), []);
 
   useEffect(() => {
     const refreshLocale = () => setLang(getCurrentLoadingLocale());
@@ -591,14 +660,14 @@ export default function PointHistoryPage() {
         throw new Error(msg || copy.pointLoadFailed);
       }
       const normalized = normalizePointPayload(data, copy);
+      const degradedLedger = Boolean(data?.data?.degradedTransactions || data?.data?.degradedMonthlyCredits);
       setUserName(normalized.userName);
-      setCurrentMonthlyStoneBalance(normalized.balance);
-      setHistories(
-        Array.isArray(normalized.pointHistories)
-          ? normalized.pointHistories.filter(Boolean)
-          : [],
-      );
-      setPointsError(null);
+      if (!degradedLedger) {
+        setCurrentMonthlyStoneBalance(normalized.balance);
+        setHistories(Array.isArray(normalized.pointHistories) ? normalized.pointHistories.filter(Boolean) : []);
+        setPointSnapshotReady(true);
+      }
+      setPointsError(degradedLedger ? copy.temporaryServerError : null);
     } catch (e: unknown) {
       setPointsError(friendlyErrorMessage(e, copy.pointLoadFailed));
     }
@@ -624,11 +693,14 @@ export default function PointHistoryPage() {
         throw new Error(msg || copy.paymentLoadFailed);
       }
       const normalized = normalizePaymentPayload(data);
-      setPayments(
-        Array.isArray(normalized.payments)
-          ? normalized.payments.filter((p) => p?.status === "success" || p?.status === "refunded" || p?.status === "cancelled")
-          : [],
-      );
+      const degradedPayments = Boolean(data?.data?.degradedPayments);
+      if (!degradedPayments) {
+        setPayments(
+          Array.isArray(normalized.payments)
+            ? normalized.payments.filter((p) => Boolean(p?.id))
+            : [],
+        );
+      }
       const activeSubscription = Array.isArray(normalized.subscriptions)
         ? normalized.subscriptions.find((sub) => sub?.isActive) || normalized.subscriptions[0]
         : null;
@@ -636,7 +708,7 @@ export default function PointHistoryPage() {
         setSubscriptionSummary(buildSubscriptionSummaryText(activeSubscription, copy, formatLocale));
         setSubscriptionError(null);
       }
-      setPaymentsError(null);
+      setPaymentsError(degradedPayments ? copy.temporaryServerError : null);
     } catch (e: unknown) {
       setPaymentsError(friendlyErrorMessage(e, copy.paymentLoadFailed));
     }
@@ -855,7 +927,7 @@ export default function PointHistoryPage() {
               <div className="flex items-center gap-1.5">
                 {item.showCoin && <CoinIcon size="sm" />}
                 <span className={`text-[18px] font-black leading-none ${item.valcls}`}>
-                  {formatMonthlyCredits(item.value, copy, formatLocale)}
+                  {pointSnapshotReady ? formatMonthlyCredits(item.value, copy, formatLocale) : "—"}
                 </span>
               </div>
               <p className="mt-1 text-[10px] text-neutral-400">{copy.recentLimit}</p>
@@ -925,111 +997,4 @@ export default function PointHistoryPage() {
                     ? { text: copy.spendLabel, cls: "bg-rose-100 text-rose-700 border-rose-300" }
                     : { text: copy.grantLabel, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
                   const dc = isSpend ? "text-rose-700" : "text-emerald-700";
-                  const prefix = isSpend ? "-" : "+";
-                  const displayReason = entry.reason || entry.serviceKey || "-";
-                  return (
-                    <div
-                      key={entry.id}
-                      className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5 flex items-start gap-3"
-                    >
-                      <span className="flex-shrink-0 text-xl mt-0.5 leading-none">{isSpend ? copy.spendIcon : copy.grantIcon}</span>
-                      <div className="flex-1 min-w-0">
-                        {/* 날짜 */}
-                        <p className="text-[11px] text-[#9B7040] mb-1 font-medium">
-                          {formatDateTime(entry.createdAt, formatLocale)}
-                        </p>
-                        {/* 상품명 + 금액 */}
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${kl.cls}`}>
-                              {kl.text}
-                            </span>
-                            <span className="text-[12px] font-semibold text-[#5C3A1E] line-clamp-1">
-                              {displayReason}
-                            </span>
-                          </div>
-                          <span className={`text-[15px] font-black flex-shrink-0 ${dc}`}>
-                            {prefix}{formatMonthlyCredits(entry.amount, copy, formatLocale)}
-                          </span>
-                        </div>
-                        {/* 잔여 이용권 혜택 */}
-                        <div className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-amber-50 border border-amber-100 px-2.5 py-1.5">
-                          <CoinIcon size="sm" />
-                          <p className="text-[12px] text-[#7A4A00] font-bold">
-                            {copy.afterBalance}&nbsp;
-                            <span className="text-[13px] text-[#5C3A1E]">
-                              {formatMonthlyCredits(entry.afterBalance, copy, formatLocale)}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* 결제 내역 (결제 성공 건) */}
-        <section
-          aria-label={copy.paymentsAria}
-          className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
-        >
-          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">{copy.paymentsTitle}</h2>
-          {paymentsError ? (
-            <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
-              <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
-              <button
-                type="button"
-                onClick={() => { fetchPaymentsSection(); }}
-                className="mt-2 text-[12px] font-bold text-rose-600 underline"
-              >
-                {copy.retryPayments}
-              </button>
-            </div>
-          ) : payments.length === 0 && !isLoading ? (
-            <p className="text-sm text-[#7A5230]">{copy.emptyPayments}</p>
-          ) : (
-            <div className="space-y-2.5">
-              {payments.map((p) => {
-                const status = paymentStatusView(p.status, copy);
-                return (
-                  <div
-                    key={p.id}
-                    className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-[#5C3A1E]">
-                        {copy.paymentAmount(formatWon(p.paymentAmount, copy, formatLocale))}
-                      </p>
-                      <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${status.cls}`}>
-                        {status.label}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
-                      <p>{copy.paidAt(formatDateTime(p.paidAt, formatLocale))}</p>
-                      <p>{copy.paymentMethod(p.paymentMethod || "-")}</p>
-                      {p.approvalNumber && <p className="sm:col-span-2">{copy.approvalNumber(p.approvalNumber)}</p>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* 안내 */}
-        <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
-          <h3 className="font-bold text-[#5C3A1E] mb-2">{copy.guideTitle}</h3>
-          <ul className="space-y-1.5 text-sm text-[#7A5230]">
-            {copy.guideItems.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
-          </ul>
-        </section>
-
-      </div>
-    </main>
-  );
-}
+                  const prefix

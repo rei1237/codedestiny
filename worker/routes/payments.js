@@ -73,6 +73,7 @@ import {
 const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity, writeSecurityLog } from "../lib/security/index.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
+import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
@@ -447,13 +448,36 @@ async function findUserByIdRaw(userId, projection = {}) {
   );
 }
 
-async function findRecentPaymentsForUser(userId, limit = 20) {
+async function findRecentPaymentsForUser(userId, limit = 20, { includeDetails = true } = {}) {
   const normalizedId = String(userId || "").trim();
   if (!mongoose.Types.ObjectId.isValid(normalizedId)) return [];
 
   const objectId = new mongoose.Types.ObjectId(normalizedId);
+  const projection = {
+    _id: 1,
+    merchantUid: 1,
+    paymentAmount: 1,
+    coinPrice: 1,
+    expectedChargedPoints: 1,
+    membershipCreditCost: 1,
+    chargedPoints: 1,
+    featureKey: 1,
+    productId: 1,
+    accessType: 1,
+    paymentMethod: 1,
+    paymentType: 1,
+    subscriptionTier: 1,
+    status: 1,
+    orderState: 1,
+    requestId: 1,
+    createdAt: 1,
+    updatedAt: 1,
+    paidAt: 1,
+  };
+  if (includeDetails) projection.rawPortOne = 1;
   return mongoose.connection.collection("payments")
     .find({ userId: { $in: [objectId, normalizedId] } })
+    .project(projection)
     .sort({ createdAt: -1, paidAt: -1 })
     .limit(limit)
     .toArray();
@@ -509,12 +533,30 @@ function isPaymentShopSummaryRequest(request) {
   }
 }
 
+function isPaymentHistorySummaryRequest(request) {
+  try {
+    return new URL(request.url).searchParams.get("view") === "history";
+  } catch {
+    return false;
+  }
+}
+
 function getPaymentDeploySha(env) {
   return String(env?.CF_PAGES_COMMIT_SHA || env?.COMMIT_SHA || env?.DEPLOY_COMMIT_SHA || "").slice(0, 80);
 }
 
 function logPaymentsMeTrace(level, fields) {
   const line = { event: "payments.me.lookup", ...fields };
+  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
+  try {
+    writer(JSON.stringify(line));
+  } catch {
+    writer(line);
+  }
+}
+
+function logPaymentOrderTrace(level, fields) {
+  const line = { event: "payments.order.detail", ...fields };
   const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
   try {
     writer(JSON.stringify(line));
@@ -718,6 +760,66 @@ function formatPaymentResponse(payment) {
     cancelAmount,
     cancelledAt: toIsoOrNull(cancelledAt),
     cancelEligible: isPaymentAutoCancelEligible(payment),
+  };
+}
+
+function maskPaymentIdentifier(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  return text.length <= 4 ? `••••${text}` : `••••${text.slice(-4)}`;
+}
+
+function formatPaymentSummaryResponse(payment) {
+  const detail = formatPaymentResponse(payment);
+  if (!detail) return null;
+  return {
+    id: detail.id,
+    paymentAmount: detail.paymentAmount,
+    coinPrice: detail.coinPrice,
+    membershipCreditCost: detail.membershipCreditCost,
+    chargedPoints: detail.chargedPoints,
+    featureKey: detail.featureKey,
+    productId: detail.productId,
+    accessType: detail.accessType,
+    paymentMethod: detail.paymentMethod,
+    paymentMethodLabel: detail.paymentMethodLabel,
+    paymentType: detail.paymentType,
+    subscriptionTier: detail.subscriptionTier,
+    status: detail.status,
+    orderState: detail.orderState,
+    createdAt: detail.createdAt,
+    updatedAt: detail.updatedAt,
+    paidAt: detail.paidAt,
+  };
+}
+
+function formatOrderDetailResponse(payment) {
+  const detail = formatPaymentResponse(payment);
+  if (!detail) return null;
+  return {
+    id: detail.id,
+    paymentAmount: detail.paymentAmount,
+    coinPrice: detail.coinPrice,
+    membershipCreditCost: detail.membershipCreditCost,
+    chargedPoints: detail.chargedPoints,
+    featureKey: detail.featureKey,
+    productId: detail.productId,
+    accessType: detail.accessType,
+    paymentMethod: detail.paymentMethod,
+    paymentMethodLabel: detail.paymentMethodLabel,
+    paymentType: detail.paymentType,
+    subscriptionTier: detail.subscriptionTier,
+    status: detail.status,
+    orderState: detail.orderState,
+    createdAt: detail.createdAt,
+    updatedAt: detail.updatedAt,
+    paidAt: detail.paidAt,
+    orderNumberMasked: maskPaymentIdentifier(detail.merchantUid || detail.id),
+    approvalNumberMasked: maskPaymentIdentifier(detail.approvalNumber),
+    receiptUrl: detail.receiptUrl || null,
+    receiptAvailable: Boolean(detail.receiptUrl),
+    cancelAmount: detail.cancelAmount,
+    cancelledAt: detail.cancelledAt,
   };
 }
 
@@ -5538,7 +5640,71 @@ function buildSubscriptionSummary(profileSubscription) {
   }];
 }
 
-function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers) {
+function buildMoonlightStoreSnapshot(env, {
+  generatedAt = new Date().toISOString(),
+  monthlyCredits = null,
+  monthlyStoneExpiresAt = null,
+  subscriptions = [],
+  degraded = false,
+} = {}) {
+  const guardianEnabled = !degraded && isGuardianFortuneCreditSalesEnabled(env);
+  const fusionEnabled = !degraded && isFusionFortuneTicketSalesEnabled(env);
+  const activeSubscription = Array.isArray(subscriptions) ? subscriptions[0] : null;
+  const source = degraded ? "token" : "db";
+  const areaStatus = degraded ? "unavailable" : "ready";
+
+  return {
+    schemaVersion: 1,
+    generatedAt,
+    expiresAt: new Date(Date.parse(generatedAt) + 30_000).toISOString(),
+    source,
+    areas: {
+      moonstone: {
+        status: areaStatus,
+        balance: degraded ? null : monthlyCredits,
+        expiresAt: degraded ? null : monthlyStoneExpiresAt,
+      },
+      membership: {
+        status: areaStatus,
+        tier: activeSubscription?.tier || null,
+        isActive: activeSubscription ? activeSubscription.isActive === true : (degraded ? null : false),
+        expiresAt: activeSubscription?.expiresAt || null,
+      },
+      passes: {
+        status: degraded ? "unavailable" : "unrequested",
+        summary: [
+          {
+            productType: "guardian-fortune",
+            status: guardianEnabled ? "unrequested" : "unavailable",
+            remaining: null,
+            detailRequired: true,
+          },
+          {
+            productType: "fusion-fortune",
+            status: fusionEnabled ? "unrequested" : "unavailable",
+            remaining: null,
+            detailRequired: true,
+          },
+        ],
+      },
+      orders: {
+        status: "deferred",
+        hasRecentOrders: null,
+      },
+    },
+    availability: {
+      status: degraded ? "unavailable" : "ready",
+      purchasesEnabled: !degraded,
+    },
+  };
+}
+
+function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers, {
+  env,
+  includeStoreSnapshot = false,
+  includePaymentDetails = true,
+  generatedAt = new Date().toISOString(),
+} = {}) {
   const safeUser = user || {};
   const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
   const unlockMap = Object.create(null);
@@ -5550,6 +5716,10 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   const mappedPayments = Array.isArray(recentPayments)
     ? recentPayments.map((payment) => formatPaymentResponse(payment)).filter(Boolean)
     : [];
+  const mappedPaymentSummaries = Array.isArray(recentPayments)
+    ? recentPayments.map((payment) => formatPaymentSummaryResponse(payment)).filter(Boolean)
+    : [];
+  const paymentView = includePaymentDetails ? mappedPayments : mappedPaymentSummaries;
   const mappedTransactions = Array.isArray(pointHistories)
     ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
     : [];
@@ -5561,6 +5731,14 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
   const monthlyStoneExpiresAt = resolveNextExpiry(profileSubscription.membershipCreditLots);
   const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
+  const storeSnapshot = includeStoreSnapshot
+    ? buildMoonlightStoreSnapshot(env, {
+      generatedAt,
+      monthlyCredits,
+      monthlyStoneExpiresAt,
+      subscriptions,
+    })
+    : null;
 
   return {
     success: true,
@@ -5568,13 +5746,14 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
     data: {
       balance,
       transactions: mappedTransactions,
-      payments: mappedPayments,
+      payments: paymentView,
       subscriptions,
       monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       membershipCreditBalance: monthlyCredits,
       monthlyStoneExpiresAt,
       monthlyCreditLedgers: mappedMonthlyCreditLedgers,
+      ...(storeSnapshot ? { storeSnapshot } : {}),
     },
     user: {
       id: String(auth.userId),
@@ -5587,14 +5766,14 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
     },
     unlockedFeatures,
     unlockMap,
-    payments: mappedPayments,
+    payments: paymentView,
     pointHistories: mappedTransactions,
     monthlyCreditLedgers: mappedMonthlyCreditLedgers,
     subscriptions,
   };
 }
 
-function buildTokenFallbackPaymentsMe(auth, message) {
+function buildTokenFallbackPaymentsMe(auth, message, { storeSnapshot = null } = {}) {
   const balance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
   return {
     success: true,
@@ -5613,6 +5792,7 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       monthlyCredits: 0,
       membershipCreditBalance: 0,
       monthlyCreditLedgers: [],
+      ...(storeSnapshot ? { storeSnapshot } : {}),
     },
     user: {
       id: String(auth?.userId || ""),
@@ -5636,8 +5816,15 @@ function buildDegradedPaymentsMeResponse(auth, {
   requestId,
   dbErrorCode = "DATABASE_TEMPORARILY_UNAVAILABLE",
   dbQueryCount = 0,
+  env,
+  includeStoreSnapshot = false,
+  generatedAt = new Date().toISOString(),
 } = {}) {
-  const body = buildTokenFallbackPaymentsMe(auth, message);
+  const body = buildTokenFallbackPaymentsMe(auth, message, {
+    storeSnapshot: includeStoreSnapshot
+      ? buildMoonlightStoreSnapshot(env, { generatedAt, degraded: true })
+      : null,
+  });
   body.requestId = requestId;
   body.degraded = true;
   body.retryable = true;
@@ -5655,10 +5842,119 @@ function buildDegradedPaymentsMeResponse(auth, {
   return body;
 }
 
+async function handleOrderDetail(request, env, auth, path) {
+  const startedAt = Date.now();
+  const requestId = createPaymentRequestId(request);
+  const encodedId = String(path || "").replace(/^\/orders\//, "").trim();
+  let orderId = "";
+  try {
+    orderId = decodeURIComponent(encodedId);
+  } catch {
+    orderId = encodedId;
+  }
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return json({
+      ok: false,
+      success: false,
+      code: "INVALID_ORDER_ID",
+      error: buildApiError({ code: "INVALID_ORDER_ID", retryable: false, message: "주문을 확인할 수 없습니다.", requestId }),
+      requestId,
+    }, { status: 400 });
+  }
+
+  const normalizedUserId = String(auth?.userId || "").trim();
+  const userObjectId = mongoose.Types.ObjectId.isValid(normalizedUserId)
+    ? new mongoose.Types.ObjectId(normalizedUserId)
+    : null;
+  if (!userObjectId) {
+    return json({
+      ok: false,
+      success: false,
+      code: "UNAUTHORIZED",
+      error: buildApiError({ code: "UNAUTHORIZED", retryable: false, message: "로그인이 필요합니다.", requestId }),
+      requestId,
+    }, { status: 401 });
+  }
+
+  const payment = await withMongoRetry(env, () => mongoose.connection.collection("payments").findOne(
+    {
+      _id: new mongoose.Types.ObjectId(orderId),
+      userId: { $in: [userObjectId, normalizedUserId] },
+    },
+    {
+      projection: {
+        _id: 1,
+        merchantUid: 1,
+        impUid: 1,
+        paymentAmount: 1,
+        coinPrice: 1,
+        expectedChargedPoints: 1,
+        membershipCreditCost: 1,
+        chargedPoints: 1,
+        featureKey: 1,
+        productId: 1,
+        accessType: 1,
+        requestId: 1,
+        paymentMethod: 1,
+        paymentType: 1,
+        subscriptionTier: 1,
+        status: 1,
+        orderState: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        paidAt: 1,
+        rawPortOne: 1,
+      },
+    },
+  ));
+
+  if (!payment) {
+    logPaymentOrderTrace("warn", {
+      requestId,
+      userHash: hashPaymentLogValue(auth?.userId),
+      orderHash: hashPaymentLogValue(orderId),
+      status: 404,
+      durationMs: Date.now() - startedAt,
+      dbQueryCount: 1,
+      cache: "miss",
+      result: "order_not_found",
+      commitSha: getPaymentDeploySha(env),
+    });
+    return json({
+      ok: false,
+      success: false,
+      code: "ORDER_NOT_FOUND",
+      error: buildApiError({ code: "ORDER_NOT_FOUND", retryable: false, message: "주문을 찾을 수 없습니다.", requestId }),
+      requestId,
+    }, { status: 404 });
+  }
+
+  const generatedAt = new Date().toISOString();
+  logPaymentOrderTrace("info", {
+    requestId,
+    userHash: hashPaymentLogValue(auth?.userId),
+    orderHash: hashPaymentLogValue(orderId),
+    status: 200,
+    durationMs: Date.now() - startedAt,
+    dbQueryCount: 1,
+    cache: "miss",
+    result: "ok",
+    commitSha: getPaymentDeploySha(env),
+  });
+  return json({
+    ok: true,
+    success: true,
+    data: { order: formatOrderDetailResponse(payment) },
+    meta: buildApiMeta({ generatedAt, stale: false, source: "db" }),
+    requestId,
+  });
+}
+
 async function handleMe(auth, env, request) {
   const startedAt = Date.now();
   const requestId = createPaymentRequestId(request);
   const shopSummary = isPaymentShopSummaryRequest(request);
+  const historySummary = isPaymentHistorySummaryRequest(request);
   const metrics = {
     env,
     requestId,
@@ -5670,7 +5966,7 @@ async function handleMe(auth, env, request) {
     cache: auth?.authUserDoc ? "authUserDoc" : "miss",
     stageMs: {},
     errors: [],
-    view: shopSummary ? "shop" : "full",
+    view: shopSummary ? "shop" : historySummary ? "history" : "full",
     commitSha: getPaymentDeploySha(env),
   };
 
@@ -5683,12 +5979,23 @@ async function handleMe(auth, env, request) {
       durationMs: Date.now() - startedAt,
       result: "degraded_token_snapshot",
     });
-    return json(buildDegradedPaymentsMeResponse(auth, {
+    const body = buildDegradedPaymentsMeResponse(auth, {
       message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
       requestId,
       dbErrorCode: "AUTH_DB_DEGRADED",
       dbQueryCount: 0,
-    }));
+      env,
+      includeStoreSnapshot: shopSummary,
+      generatedAt: new Date().toISOString(),
+    });
+    body.error = buildApiError({
+      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      retryable: true,
+      message: "결제 및 이용권 상태를 잠시 확인할 수 없습니다.",
+      requestId,
+    });
+    body.meta = buildApiMeta({ generatedAt: new Date().toISOString(), stale: true, source: "degraded" });
+    return json(body);
   }
 
   try {
@@ -5719,6 +6026,7 @@ async function handleMe(auth, env, request) {
         success: false,
         ok: false,
         code: "USER_NOT_FOUND",
+        error: buildApiError({ code: "USER_NOT_FOUND", retryable: false, message: "사용자 정보를 찾을 수 없습니다.", requestId }),
         requestId,
         message: "User profile was not found.",
       }, { status: 404 });
@@ -5726,7 +6034,7 @@ async function handleMe(auth, env, request) {
 
     const recentPaymentsResult = shopSummary
       ? { ok: true, value: [] }
-      : await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10));
+      : await runPaymentsMeOptionalQuery(metrics, "recentPayments", () => findRecentPaymentsForUser(auth.userId, 10, { includeDetails: !historySummary }));
     const pointHistoriesResult = shopSummary
       ? { ok: true, value: [] }
       : await runPaymentsMeOptionalQuery(metrics, "pointHistories", () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(10).lean());
@@ -5738,7 +6046,12 @@ async function handleMe(auth, env, request) {
     const pointHistories = pointHistoriesResult.ok ? pointHistoriesResult.value : [];
     const monthlyCreditLedgers = monthlyCreditLedgersResult.ok ? monthlyCreditLedgersResult.value : [];
 
-    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers);
+    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers, {
+      env,
+      includeStoreSnapshot: shopSummary,
+      includePaymentDetails: !historySummary,
+      generatedAt: new Date().toISOString(),
+    });
     body.requestId = requestId;
     body.data.degradedPayments = !recentPaymentsResult.ok;
     body.data.degradedTransactions = !pointHistoriesResult.ok;
@@ -5748,6 +6061,12 @@ async function handleMe(auth, env, request) {
       dbQueryCount: metrics.dbQueryCount,
       maxConcurrentDbOps: 1,
     };
+    body.meta = buildApiMeta({
+      generatedAt: body.data?.storeSnapshot?.generatedAt || new Date().toISOString(),
+      stale: Boolean(body.degraded || body.data.degradedPayments || body.data.degradedMonthlyCredits),
+      source: body.source || (body.degraded ? "degraded" : "db"),
+      expiresAt: body.data?.storeSnapshot?.expiresAt || null,
+    });
 
     logPaymentsMeTrace(metrics.errors.length ? "warn" : "info", {
       ...metrics,
@@ -5773,12 +6092,23 @@ async function handleMe(auth, env, request) {
       originalErrorName: String(error?.name || "Error").slice(0, 120),
       stack: String(error?.stack || "").slice(0, 2000),
     });
-    return json(buildDegradedPaymentsMeResponse(auth, {
+    const body = buildDegradedPaymentsMeResponse(auth, {
       message: "Payment data is temporarily unavailable. Kept the last verified client snapshot.",
       requestId,
       dbErrorCode: code,
       dbQueryCount: metrics.dbQueryCount,
-    }));
+      env,
+      includeStoreSnapshot: shopSummary,
+      generatedAt: new Date().toISOString(),
+    });
+    body.error = buildApiError({
+      code: "PAYMENTS_ME_TEMPORARILY_UNAVAILABLE",
+      retryable: true,
+      message: "결제 및 이용권 상태를 잠시 확인할 수 없습니다.",
+      requestId,
+    });
+    body.meta = buildApiMeta({ generatedAt: new Date().toISOString(), stale: true, source: "degraded" });
+    return json(body);
   }
 }
 async function handlePointsMe(auth, env) {
@@ -6065,7 +6395,7 @@ async function handleFusionFortuneTicketCatalog(env) {
 
 async function handleFusionFortuneTicketBalance(auth, env) {
   if (!isFusionFortuneTicketSalesEnabled(env)) return json({ ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" }, { status: 404 });
-  return json({ ok: true, balance: await getFusionFortuneTicketBalance(auth.userId) });
+  return json({ ok: true, enabled: true, balance: await getFusionFortuneTicketBalance(auth.userId) });
 }
 
 async function handleFusionFortuneTicketShopPreview(auth, env) {
@@ -6164,6 +6494,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (minorBlocked) return minorBlocked;
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
+    if (method === "GET" && /^\/orders\/[^/]+$/.test(path)) return await handleOrderDetail(request, env, auth, path);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
     if (method === "GET" && path === "/guardian-fortune/catalog") return await handleGuardianFortuneCreditCatalog(env);
     if (method === "GET" && path === "/fusion-fortune/catalog") return await handleFusionFortuneTicketCatalog(env);
@@ -6220,6 +6551,9 @@ export const __paymentsTestUtils = {
   handleSubscriptionPrepare,
   handleSubscriptionConfirm,
   handleMe,
+  handleOrderDetail,
+  formatPaymentSummaryResponse,
+  formatOrderDetailResponse,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
   signStandardWebhookPayload,
