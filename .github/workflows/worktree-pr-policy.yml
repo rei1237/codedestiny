@@ -34,7 +34,7 @@ jobs:
           node-version: "24"
 
       - name: Fetch latest main base
-        run: git fetch origin main --no-tags
+        run: git fetch origin refs/heads/main:refs/remotes/origin/main --no-tags
 
       - name: Verify worktree and PR policy
         run: npm run verify:worktree-policy -- --mode=ci
