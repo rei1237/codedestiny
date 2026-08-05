@@ -9,6 +9,8 @@ const requireUserFromRequest = jest.fn();
 const peekAccessTokenUserId = jest.fn();
 const pointHistoryDistinct = jest.fn();
 const getUnlockedContentSnapshot = jest.fn();
+const buildGuardianFortuneUsageStatus = jest.fn();
+const createMongoGuardianFortuneStore = jest.fn(() => ({ kind: "mock-guardian" }));
 const resolveActivePassPolicy = jest.fn(() => ({
   isActive: true,
   tier: "premium",
@@ -36,6 +38,12 @@ beforeAll(async () => {
     jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
       getUnlockedContentSnapshot,
       isProfileScopedContentUnlockFeatureKey: (key) => ["section_daewun", "section_summary", "section_compat"].includes(String(key || "")),
+    })),
+    jest.unstable_mockModule("../../worker/lib/guardian-fortune-usage.js", () => ({
+      buildGuardianFortuneUsageStatus,
+      createMongoGuardianFortuneStore,
+      getGuardianFortuneDateKey: () => "2026-08-05",
+      isGuardianFortuneApiEnabled: (env = {}) => env.ENABLE_GUARDIAN_FORTUNE_API === true,
     })),
   ]);
   ({ handleAccessStateRoutes } = await import("../../worker/routes/access-state.js"));
@@ -74,6 +82,18 @@ beforeEach(() => {
       profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
     },
   });
+  buildGuardianFortuneUsageStatus.mockReset();
+  buildGuardianFortuneUsageStatus.mockResolvedValue({
+    isLoggedIn: true,
+    dailyFreeLimit: 3,
+    dailyFreeUsed: 1,
+    dailyFreeRemaining: 2,
+    paidCreditsRemaining: 4,
+    canGenerate: true,
+    generationSource: "daily_free",
+    nextAction: "generate",
+  });
+  createMongoGuardianFortuneStore.mockClear();
   invalidateAccessStateCacheForUser(TEST_USER_ID);
 });
 
@@ -148,11 +168,126 @@ test("allows an explicit emergency disable for the access-state route", async ()
   expect(response.status).toBe(404);
 });
 
-test("serves repeated access-state requests without a separate profile count query", async () => {
-  const first = handleAccessStateRoutes(request(), {});
-  const second = handleAccessStateRoutes(request(), {});
-  await Promise.all([first, second]);
+test("single-flights 50 concurrent requests before the authenticated user DB lookup", async () => {
+  let releaseAuth;
+  requireUserFromRequest.mockImplementationOnce(() => new Promise((resolve) => { releaseAuth = resolve; }));
+  const requests = Array.from({ length: 50 }, () => handleAccessStateRoutes(request(), {}));
+  await Promise.resolve();
+  releaseAuth({
+    userId: TEST_USER_ID,
+    authUserDoc: {
+      _id: TEST_USER_ID,
+      points: 42,
+      destinyProfilesCurrentId: "profile-main",
+      profileSubscription: { tier: "premium", profileLimit: 7, membershipCreditBalance: 250 },
+    },
+  });
+  const responses = await Promise.all(requests);
+  expect(responses.every((response) => response.status === 200)).toBe(true);
+  expect(requireUserFromRequest).toHaveBeenCalledTimes(1);
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
+});
+
+test("keeps concurrent snapshots isolated between users", async () => {
+  const secondUserId = "507f1f77bcf86cd799439012";
+  invalidateAccessStateCacheForUser(secondUserId);
+  peekAccessTokenUserId.mockImplementation(async (input) => input.headers.get("x-test-user"));
+  requireUserFromRequest.mockImplementation(async (input) => {
+    const resolvedUserId = input.headers.get("x-test-user");
+    return {
+      userId: resolvedUserId,
+      authUserDoc: {
+        _id: resolvedUserId,
+        points: resolvedUserId === TEST_USER_ID ? 11 : 22,
+        destinyProfilesCurrentId: "profile-main",
+        profileSubscription: { tier: "free", profileLimit: 1, membershipCreditBalance: 0 },
+      },
+    };
+  });
+  const makeUserRequest = (resolvedUserId) => new Request("https://example.com/api/me/access-state", {
+    method: "GET",
+    headers: { "x-test-user": resolvedUserId },
+  });
+
+  const responses = await Promise.all([
+    ...Array.from({ length: 20 }, () => handleAccessStateRoutes(makeUserRequest(TEST_USER_ID), {})),
+    ...Array.from({ length: 20 }, () => handleAccessStateRoutes(makeUserRequest(secondUserId), {})),
+  ]);
+  const payloads = await Promise.all(responses.map((response) => response.json()));
+
   expect(requireUserFromRequest).toHaveBeenCalledTimes(2);
+  expect(payloads.slice(0, 20).every((payload) => payload.data.userId === TEST_USER_ID && payload.data.coinBalance === 11)).toBe(true);
+  expect(payloads.slice(20).every((payload) => payload.data.userId === secondUserId && payload.data.coinBalance === 22)).toBe(true);
+});
+
+test("evicts a rejected single-flight promise so the next request can recover", async () => {
+  requireUserFromRequest.mockRejectedValueOnce(new Error("MongoDB operation timed out in Worker"));
+  const failed = await handleAccessStateRoutes(request(), {});
+  const recovered = await handleAccessStateRoutes(request(), {});
+  const recoveredPayload = await recovered.json();
+
+  expect(failed.status).toBe(200);
+  expect(recovered.status).toBe(200);
+  expect(recoveredPayload.data.authority).toBe("server");
+  expect(requireUserFromRequest).toHaveBeenCalledTimes(2);
+});
+
+test("adds Guardian usage only when explicitly included and versions the ETag", async () => {
+  const baseResponse = await handleAccessStateRoutes(request(), { ENABLE_GUARDIAN_FORTUNE_API: true });
+  const guardianResponse = await handleAccessStateRoutes(new Request(
+    "https://example.com/api/me/access-state?include=guardian",
+    { method: "GET" },
+  ), { ENABLE_GUARDIAN_FORTUNE_API: true });
+  const basePayload = await baseResponse.json();
+  const guardianPayload = await guardianResponse.json();
+
+  expect(basePayload.data.freeUsage).toBeUndefined();
+  expect(guardianPayload.data.freeUsage.guardian).toMatchObject({
+    degraded: false,
+    dailyFreeUsed: 1,
+    dailyFreeRemaining: 2,
+    paidCreditsRemaining: 4,
+  });
+  expect(guardianPayload.data.versions.guardianUsageVersion).toMatch(/^guardian:/);
+  expect(guardianResponse.headers.get("ETag")).not.toBe(baseResponse.headers.get("ETag"));
+  expect(buildGuardianFortuneUsageStatus).toHaveBeenCalledTimes(1);
+});
+
+test("keeps entitlements authoritative when the optional Guardian query is degraded", async () => {
+  buildGuardianFortuneUsageStatus.mockRejectedValue(new Error("guardian query timed out"));
+  const guardianRequest = () => new Request("https://example.com/api/me/access-state?include=guardian", { method: "GET" });
+
+  const first = await handleAccessStateRoutes(guardianRequest(), { ENABLE_GUARDIAN_FORTUNE_API: true });
+  const firstPayload = await first.json();
+  const second = await handleAccessStateRoutes(guardianRequest(), { ENABLE_GUARDIAN_FORTUNE_API: true });
+
+  expect(first.status).toBe(200);
+  expect(firstPayload.degraded).toBe(false);
+  expect(firstPayload.data.entitlementSnapshot.tier).toBe("premium");
+  expect(firstPayload.data.freeUsage.guardian).toMatchObject({
+    degraded: true,
+    code: "DB_QUERY_TIMEOUT",
+  });
+  expect(firstPayload.data.freeUsage.guardian.canGenerate).toBeUndefined();
+  expect(buildGuardianFortuneUsageStatus).toHaveBeenCalledTimes(2);
+  expect(second.status).toBe(200);
+});
+
+test("emits opt-in diagnostics without raw identity or auth material", async () => {
+  const info = jest.spyOn(console, "info").mockImplementation(() => {});
+  try {
+    const response = await handleAccessStateRoutes(request(), { ACCESS_STATE_DIAGNOSTICS_ENABLED: "true" });
+    expect(response.status).toBe(200);
+    expect(info).toHaveBeenCalledTimes(1);
+    const line = info.mock.calls[0].join(" ");
+    expect(line).toContain("[access-state-diagnostics]");
+    expect(line).toContain('"externalApiCalled":false');
+    expect(line).toContain('"singleFlightJoin":false');
+    expect(line).not.toContain(TEST_USER_ID);
+    expect(line).not.toMatch(/authorization|cookie|token/i);
+  } finally {
+    info.mockRestore();
+  }
 });
 
 test("isolates complete access snapshots by selected profile", async () => {

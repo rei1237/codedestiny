@@ -40,8 +40,9 @@ test("central access store requests one complete profile access snapshot", () =>
   assert.doesNotMatch(initialBootstrapBlock, /syncBalanceFromServer/);
 });
 test("central unlock GET is single-flight, throttled, and has no automatic retry", () => {
-  assert.match(accessStoreSource, /if \(inFlight\[context\.key\]\)/);
-  assert.match(accessStoreSource, /return inFlight\[context\.key\]\.promise/);
+  assert.match(accessStoreSource, /var requestKey = context\.key \+ \(opts\.includeGuardian === true \? '::include=guardian' : ''\)/);
+  assert.match(accessStoreSource, /if \(inFlight\[requestKey\]\)/);
+  assert.match(accessStoreSource, /return inFlight\[requestKey\]\.promise/);
   assert.match(accessStoreSource, /var REFRESH_THROTTLE_MS = 15 \* 1000/);
   assert.match(accessStoreSource, /var RETRY_DELAYS = \[\]/);
 });

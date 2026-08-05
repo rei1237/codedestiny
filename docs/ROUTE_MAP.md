@@ -99,7 +99,7 @@ Entry: `worker/index.js`
 - Fusion fortune: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`, `POST /api/fusion-fortune/generate/stream` (SSE actual-completion stages: saju → ziwei → sukuyo → vedic → astrology → tarot → fusion), `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`
 - Legacy COIN compatibility: `/api/billing/coin-gate` (route name retained; new COIN debit is disabled), `/api/fortune/pig-coin/*` (read-only historical compatibility or `PAYMENT_REQUIRED`)
 - App store: `/api/app-store/*`
-- User/profile/subscription: `/api/user/*`, `/api/profile/*`, `/api/profiles/*`, `/api/subscriptions/*`, `/api/subscription/status`, `/api/subscription/me`, `GET /api/me/access-state?profileId=...` (complete account/current-profile access bootstrap snapshot)
+- User/profile/subscription: `/api/user/*`, `/api/profile/*`, `/api/profiles/*`, `/api/subscriptions/*`, `/api/subscription/status`, `/api/subscription/me`, `GET /api/me/access-state?profileId=...&include=guardian` (complete account/current-profile access bootstrap snapshot; `include=guardian` is optional and used by the static home only)
 - Fortune core: `/api/fortune/*`, `/api/tarot/*`, `/api/fpti/*`, `/api/celestial-harmony/*`, `/api/dream/*`, `/api/oracle/*`, `/api/kasi/*`, `/api/palm/*`, `/api/destiny-bias/*`
 - Saju AI: `/api/life-book-ai/*`, `/api/love-secret-ai/*`, `/api/saju-new-year/*`, `/api/new-year-ai/*`, `/api/karma-destiny-ai/*`, `/api/guardian/*`, `/api/naming-prompt/*`
 - Ziwei: `/api/ziwei-ai/*`, `/api/ziwei-deep-report/*`, `/api/ziwei/daehan/*`, `/api/ziwei-island-ai/*`, `/api/ziwei-island-report/*`, `/api/ziwei-island/*`
