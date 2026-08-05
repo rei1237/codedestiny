@@ -60,6 +60,17 @@ test("static membership command prepares auth once and never replays the same PO
   assert.doesNotMatch(passCommand, /verifyAuthSessionForCoinApi/);
 });
 
+test("pass card click paints the pass wait overlay before entitlement lookup", () => {
+  const passBranchStart = shellSource.indexOf("if (mode === 'pass-store' || mode === 'pass')");
+  const passBranchEnd = shellSource.indexOf("if (mode === 'direct' || mode === 'monthly')", passBranchStart);
+  assert.ok(passBranchStart >= 0 && passBranchEnd > passBranchStart);
+  const passBranch = shellSource.slice(passBranchStart, passBranchEnd);
+  assert.match(passBranch, /var passCheckingText = _cdPaymentI18n\(/);
+  assert.match(passBranch, /_cdSetCoinGateOverlay\(true, passCheckingText, 'pass'\)/);
+  assert.match(passBranch, /await _cdWaitForPaymentOverlayPaint\(\)/);
+  assert.match(passBranch, /_cdSetCoinGateOverlay\(false\)/);
+});
+
 test("automatic balance reads reuse the access snapshot and do not append timestamps", () => {
   assert.match(shellSource, /function _cdApplyFreshAccessStoreBalances\(\)/);
   assert.doesNotMatch(shellSource, /\/api\/billing\/balance[^'\"]*[?&]_=/);
