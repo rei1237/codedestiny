@@ -139,11 +139,11 @@
 
 ## 운세 플래너 (기기 로컬)
 
-- 주요 라우트: `/fortune-planner`, legacy `/luck-sync-diary` → `/fortune-planner`
-- 주요 컴포넌트: `app/fortune-planner/PlannerApp.tsx`, `app/fortune-planner/recurrence.ts`, `app/fortune-planner/planner.css`
+- 주요 라우트: `/fortune-planner`, legacy `/luck-sync-diary` → `/?fortunePlanner=1` (기존 다이어리 모달 열기)
+- 주요 UI: `js/luck-sync-diary.js`의 기존 월간 다이어리 달력에 일정·할 일 패널을 결합한다. `app/fortune-planner/**`는 기존 링크 호환 redirect를 유지한다.
 - 데이터: 브라우저 `localStorage`의 `cd.fortunePlanner.v2`; 기존 `luck_sync_diary_v2` 기록은 첫 진입 시 읽기 변환한다.
 - 권한: 완전 무료, 로그인·프로필·이용권·월정석·결제 조회 없음. 다른 유료 콘텐츠의 정책은 별도 유지.
-- 기능: 오늘/주간/월간/시간표/기록, 일정·할 일·반복 범위 수정, 기기 알림 권한 안내, 비결정론적 날짜 흐름 보조.
+- 기능: 기존 오늘 운기·루틴·밤 회고·명상·기록 흐름, 월간 달력의 일정 수 표시, 선택 날짜 일정·할 일 추가/완료/삭제, 반복 일정, 비결정론적 날짜 흐름 보조.
 
 ## PDF / 결과 저장 / 다운로드
 

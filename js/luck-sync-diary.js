@@ -600,6 +600,64 @@ function _lsdText(key) {
       return false;
     }
   }
+
+  // 일정은 기존 다이어리 기록과 분리해 같은 기기 안에만 보관한다. 운세 계산이나
+  // 이용권 상태와 연결하지 않아, 사주 프로필·네트워크 상태와 무관하게 작동한다.
+  var PLANNER_STORAGE_KEY = 'cd.fortunePlanner.v2';
+
+  function loadPlannerStore() {
+    try {
+      var parsed = JSON.parse(localStorage.getItem(PLANNER_STORAGE_KEY) || '{}');
+      return {
+        version: 2,
+        events: Array.isArray(parsed.events) ? parsed.events : [],
+        timetables: Array.isArray(parsed.timetables) ? parsed.timetables : []
+      };
+    } catch (_) {
+      return { version: 2, events: [], timetables: [] };
+    }
+  }
+
+  function savePlannerStore(store) {
+    try {
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(store));
+      return true;
+    } catch (_) {
+      showDiaryToast('기기 저장소가 가득 차 일정을 저장하지 못했습니다.');
+      return false;
+    }
+  }
+
+  function plannerEventOccursOn(event, dateKey) {
+    if (!event || !event.date || !dateKey || event.date > dateKey || (event.repeatUntil && dateKey > event.repeatUntil)) return false;
+    if (Array.isArray(event.excludedDates) && event.excludedDates.indexOf(dateKey) >= 0) return false;
+    var repeat = event.repeat || 'none';
+    if (repeat === 'none') return event.date === dateKey;
+    var start = _parseDateKeyToDate(event.date);
+    var target = _parseDateKeyToDate(dateKey);
+    if (!start || !target) return false;
+    var days = Math.floor((target.getTime() - start.getTime()) / 86400000);
+    if (days < 0) return false;
+    if (repeat === 'daily') return true;
+    if (repeat === 'weekdays') return target.getDay() > 0 && target.getDay() < 6;
+    if (repeat === 'weekly') return target.getDay() === start.getDay();
+    if (repeat === 'biweekly') return target.getDay() === start.getDay() && Math.floor(days / 7) % 2 === 0;
+    if (repeat === 'monthly') return target.getDate() === start.getDate();
+    if (repeat === 'yearly') return target.getDate() === start.getDate() && target.getMonth() === start.getMonth();
+    return event.date === dateKey;
+  }
+
+  function plannerEventsForDate(dateKey) {
+    return loadPlannerStore().events.filter(function (event) {
+      return plannerEventOccursOn(event, dateKey);
+    }).sort(function (a, b) {
+      return String(a.start || '').localeCompare(String(b.start || ''));
+    });
+  }
+
+  function plannerEventId() {
+    return 'planner_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
   function getTodayKey() {
     var now = _getSeoulDateParts(new Date());
     return _formatDateKeyParts(now.year, now.month, now.day);
@@ -643,38 +701,9 @@ function _lsdText(key) {
   }
 
   function isLuckSyncDiaryUnlocked() {
-    var map = window.unlockedFeatureMap || window.__UNLOCKED_FEATURES__ || {};
-    var keys = [
-      'luckSyncDiaryEntryCard',
-      'openLuckSyncDiary',
-      'luckSyncDiary',
-      'sajuDiary',
-      'saju-diary',
-      'godlifeDiary',
-      'allPaidSaju'
-    ];
-    for (var i = 0; i < keys.length; i++) {
-      if (map && map[keys[i]]) return true;
-      try {
-        if (localStorage.getItem('unlocked_' + keys[i]) === '1') return true;
-      } catch (_) {}
-      try {
-        if (localStorage.getItem('cd_unlock_feature_' + keys[i]) === '1') return true;
-      } catch (_) {}
-    }
-    try {
-      for (var j = 0; j < localStorage.length; j++) {
-        var storageKey = localStorage.key(j) || '';
-        if (storageKey.indexOf('cd_tile_locks_v2') !== 0 && storageKey !== 'cd_tile_locks') continue;
-        var parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
-        for (var k = 0; k < keys.length; k++) {
-          if (parsed && parsed[keys[k]] === true) return true;
-        }
-      }
-    } catch (_) {
-      return false;
-    }
-    return false;
+    // 운세 플래너는 누구나 쓸 수 있는 기기 로컬 기능이다. 과거 구매 기록은 읽거나
+    // 삭제하지 않으며, 이 화면을 열기 위한 entitlement 조회도 하지 않는다.
+    return true;
   }
 
   var _lsdPwaPrompt = null;
@@ -2701,6 +2730,7 @@ function _lsdText(key) {
     grid.innerHTML = cells.map(function (cell) {
       var classes = ['lsd-month-cell'];
       var title = '';
+      var scheduled = cell.inMonth ? plannerEventsForDate(cell.key) : [];
       var dayData = mode === 'ganzhi' ? _buildDailyGanzhiCalendarDay(cell, selectedKey, todayKey) : null;
       if (!cell.inMonth) {
         classes.push('is-muted');
@@ -2717,6 +2747,7 @@ function _lsdText(key) {
       }
       if (cell.key === selectedKey) classes.push('is-selected');
       if (cell.key === todayKey) classes.push('is-today');
+      if (scheduled.length) classes.push('has-schedule');
       if (mode === 'ganzhi') classes.push('is-ganzhi');
       function pillarLine(pillar, suffix) {
         return pillar && pillar.hanja
@@ -2734,6 +2765,7 @@ function _lsdText(key) {
           + pillarLine(dayData.dayPillar, '日')
           + '  </span>'
           + '  <span class="lsd-month-record-dot"></span>'
+          + (scheduled.length ? '<span class="lsd-month-schedule-count" aria-label="일정 ' + scheduled.length + '개">' + scheduled.length + '</span>' : '')
           + '</button>';
       }
       return ''
@@ -2741,6 +2773,7 @@ function _lsdText(key) {
         + (title ? (' title="' + escHtml(title) + '"') : '') + '>'
         + '  <span class="lsd-month-day-no">' + cell.day + '</span>'
         + '  <span class="lsd-month-record-dot"></span>'
+        + (scheduled.length ? '<span class="lsd-month-schedule-count" aria-label="일정 ' + scheduled.length + '개">' + scheduled.length + '</span>' : '')
         + '</button>';
     }).join('');
 
@@ -2756,13 +2789,40 @@ function _lsdText(key) {
         var selectedSnap = _classifyDayFromSaju(selectedDate, pillars, power, jong);
         var selectedEntry = diary[selectedKey] || null;
         var memo = selectedEntry ? (selectedEntry.practiceNote || selectedEntry.nightLog || selectedEntry.memoNote || '') : '';
+        var scheduledForDay = plannerEventsForDate(selectedKey);
         hint.innerHTML = ''
           + '<strong>' + escHtml(selectedKey) + '</strong> · '
           + '<span style="font-weight:800">' + escHtml(selectedSnap.label) + '</span>'
           + ' · 안정도 ' + selectedSnap.goodness + '점'
-          + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '');
+          + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '')
+          + (scheduledForDay.length ? ('<div class="lsd-month-schedule-summary"><b>오늘의 일정 ' + scheduledForDay.length + '개</b>' + scheduledForDay.slice(0, 3).map(function (event) {
+            return '<span>' + escHtml(event.allDay ? '하루 종일' : (event.start || '시간 미정')) + ' · ' + escHtml(event.title || '이름 없는 일정') + '</span>';
+          }).join('') + (scheduledForDay.length > 3 ? '<span>외 ' + (scheduledForDay.length - 3) + '개</span>' : '') + '</div>') : '<div class="lsd-month-schedule-empty">아직 일정이 없어요. 아래에서 가볍게 하나 추가해보세요.</div>');
       }
     }
+  }
+
+  function renderSchedulePanel() {
+    _ensureMonthCalendarState();
+    var key = _lsdMonthCalendarState.selectedKey || getTodayKey();
+    var list = document.getElementById('lsdScheduleList');
+    var dateInput = document.getElementById('lsdScheduleDate');
+    if (dateInput) dateInput.value = key;
+    if (!list) return;
+    var events = plannerEventsForDate(key);
+    if (!events.length) {
+      list.innerHTML = '<div class="lsd-schedule-empty">아직 등록된 일정이 없어요. 중요한 일 하나부터 적어보세요.</div>';
+      return;
+    }
+    list.innerHTML = events.map(function (event) {
+      var time = event.allDay ? '하루 종일' : (event.start || '시간 미정');
+      var repeat = event.repeat && event.repeat !== 'none' ? ' · 반복' : '';
+      return '<div class="lsd-schedule-item" data-schedule-id="' + escHtml(event.id) + '">'
+        + '<button type="button" class="lsd-schedule-done' + (event.done ? ' is-done' : '') + '" data-schedule-toggle="' + escHtml(event.id) + '" aria-label="' + escHtml(event.title || '일정') + ' 완료 전환">' + (event.done ? '✓' : '') + '</button>'
+        + '<div class="lsd-schedule-copy"><b>' + escHtml(event.title || '이름 없는 일정') + '</b><span>' + escHtml(time + repeat) + '</span></div>'
+        + '<button type="button" class="lsd-schedule-delete" data-schedule-delete="' + escHtml(event.id) + '" aria-label="' + escHtml(event.title || '일정') + ' 삭제">삭제</button>'
+        + '</div>';
+    }).join('');
   }
 
   /* ─── 기록 렌더링 ─────────────────────────────────────────────── */
@@ -2771,6 +2831,7 @@ function _lsdText(key) {
     var list = document.getElementById('lsdHistoryList');
     if (!list) return;
     renderMonthCalendar(diary);
+    renderSchedulePanel();
     var keys = Object.keys(diary).sort().reverse();
     _ensureMonthCalendarState();
     var monthPrefix = _lsdMonthCalendarState.year + '-' + _pad2(_lsdMonthCalendarState.month + 1) + '-';
@@ -3357,6 +3418,7 @@ function _lsdText(key) {
         '@media(max-width:760px){.lsd-month-mode-toggle{display:flex;width:100%;box-sizing:border-box}.lsd-month-mode-btn{flex:1;padding:8px 7px;font-size:.68rem}.lsd-month-body{grid-template-columns:1fr}.lsd-month-grid.is-ganzhi-mode{gap:5px}.lsd-month-cell.is-ganzhi{height:66px;padding:5px 4px;gap:2px}.lsd-month-cell.is-ganzhi .lsd-month-day-no{font-size:.66rem}.lsd-ganzhi-line{font-size:.56rem;line-height:1.04}.lsd-ganzhi-suffix{display:none}.lsd-ganzhi-detail{padding:12px}.lsd-ganzhi-pillars div{padding:7px 9px}.lsd-ganzhi-pillars b{font-size:.78rem}}',
         '.lsd-empty-state{text-align:center;border:1px dashed #cbd5e1;background:linear-gradient(135deg,#ffffff,#f8fbff);border-radius:18px;padding:28px 18px;color:#475569}.lsd-empty-state-mark{width:44px;height:44px;border-radius:999px;background:#eef2ff;color:#4f46e5;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-weight:950}.lsd-empty-state-title{margin:0 0 5px;font-size:.9rem;font-weight:950;color:#0f172a}.lsd-empty-state-copy{margin:0 auto 14px;max-width:300px;font-size:.76rem;line-height:1.5}.lsd-empty-state-btn{border:none;border-radius:999px;padding:10px 15px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.76rem;font-weight:900;cursor:pointer;box-shadow:0 9px 20px rgba(14,165,233,.23)}',
         '.lsd-local-policy{margin:14px 14px 0;border:1px solid #bfdbfe;background:linear-gradient(135deg,#ffffff,#eff6ff 60%,#f5f3ff);border-radius:18px;padding:12px 13px;box-shadow:0 8px 22px rgba(59,130,246,.07);color:#334155}.lsd-local-policy-title{margin:0 0 5px;font-size:.76rem;font-weight:950;color:#1d4ed8}.lsd-local-policy-copy{margin:0;font-size:.72rem;line-height:1.55;font-weight:750}.lsd-local-policy-note{display:block;margin-top:5px;color:#64748b;font-weight:800}',
+        '.lsd-month-cell.has-schedule{border-color:#c4b5fd}.lsd-month-schedule-count{position:absolute;top:4px;right:4px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:#6d28d9;color:#fff;font-size:.56rem;font-weight:950;line-height:15px;text-align:center}.lsd-month-schedule-summary{display:grid;gap:3px;margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0}.lsd-month-schedule-summary b{font-size:.7rem;color:#4c1d95}.lsd-month-schedule-summary span,.lsd-month-schedule-empty{font-size:.69rem;color:#64748b}.lsd-schedule-card{margin-top:12px;border:1px solid rgba(196,181,253,.65);border-radius:18px;padding:14px;background:linear-gradient(145deg,#fff,#faf5ff 58%,#eff6ff);box-shadow:0 10px 25px rgba(76,29,149,.08)}.lsd-schedule-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.lsd-schedule-kicker{margin:0 0 3px;font-size:.58rem;font-weight:950;letter-spacing:.14em;color:#7c3aed}.lsd-schedule-head h3{margin:0;font-size:.92rem;font-weight:950;color:#251238}.lsd-schedule-head p:not(.lsd-schedule-kicker){margin:4px 0 0;font-size:.71rem;line-height:1.45;color:#64748b}.lsd-schedule-free{flex-shrink:0;border-radius:999px;padding:5px 8px;background:#ede9fe;color:#5b21b6;font-size:.59rem;font-weight:950}.lsd-schedule-list{display:grid;gap:7px;margin:12px 0}.lsd-schedule-empty{padding:11px;border:1px dashed #cbd5e1;border-radius:12px;background:rgba(255,255,255,.68);line-height:1.5}.lsd-schedule-item{display:flex;align-items:center;gap:8px;border:1px solid #e2e8f0;border-radius:12px;padding:8px;background:#fff}.lsd-schedule-done{width:22px;height:22px;flex:0 0 22px;border:1.5px solid #a78bfa;border-radius:7px;background:#fff;color:#fff;font-weight:950;cursor:pointer}.lsd-schedule-done.is-done{background:#7c3aed;border-color:#7c3aed}.lsd-schedule-copy{min-width:0;flex:1;display:grid;gap:2px}.lsd-schedule-copy b{font-size:.74rem;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lsd-schedule-copy span{font-size:.64rem;color:#64748b}.lsd-schedule-delete{border:none;background:transparent;color:#b91c1c;font-size:.64rem;font-weight:850;cursor:pointer;padding:6px}.lsd-schedule-form{display:grid;gap:8px;padding-top:11px;border-top:1px solid #e9d5ff}.lsd-schedule-form label{display:grid;gap:4px;min-width:0}.lsd-schedule-form label span{font-size:.64rem;font-weight:900;color:#6b4b7d}.lsd-schedule-form input,.lsd-schedule-form select{width:100%;min-height:38px;box-sizing:border-box;border:1px solid #d8b4fe;border-radius:10px;background:#fff;color:#251238;padding:8px;font:inherit;font-size:.72rem}.lsd-schedule-form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lsd-schedule-save{min-height:42px;border:none;border-radius:12px;background:linear-gradient(135deg,#4c1d95,#7c3aed);color:#fff;font-size:.75rem;font-weight:950;cursor:pointer;box-shadow:0 10px 20px rgba(76,29,149,.2)}.lsd-schedule-save:focus-visible,.lsd-schedule-done:focus-visible,.lsd-schedule-delete:focus-visible{outline:3px solid #facc15;outline-offset:2px}',
         '.lsd-pwa-card{margin:10px 14px 0;border:1px solid #c7d2fe;background:linear-gradient(135deg,#ffffff,#f5f3ff 62%,#ecfeff);border-radius:18px;padding:13px;box-shadow:0 10px 24px rgba(99,102,241,.08);color:#1e293b}.lsd-pwa-card.is-locked{background:#fff;border-style:dashed;color:#64748b}.lsd-pwa-card.is-installed{border-color:#99f6e4;background:linear-gradient(135deg,#f0fdfa,#ffffff)}.lsd-pwa-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.lsd-pwa-title{margin:0;font-size:.78rem;font-weight:950;color:#312e81}.lsd-pwa-status{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#4338ca;padding:5px 9px;font-size:.64rem;font-weight:950;white-space:nowrap}.lsd-pwa-card.is-locked .lsd-pwa-title{color:#64748b}.lsd-pwa-card.is-locked .lsd-pwa-status{background:#f1f5f9;color:#64748b}.lsd-pwa-copy{margin:7px 0 0;font-size:.73rem;line-height:1.55;font-weight:800;color:#334155}.lsd-pwa-note{margin:5px 0 0;font-size:.7rem;line-height:1.45;color:#64748b;font-weight:800}.lsd-pwa-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.lsd-pwa-install-btn,.lsd-pwa-guide-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:9px 13px;font-size:.72rem;font-weight:950;cursor:pointer}.lsd-pwa-install-btn{border:none;background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;box-shadow:0 9px 18px rgba(79,70,229,.22)}.lsd-pwa-guide-btn{border:1px solid #bfdbfe;background:#fff;color:#1d4ed8}',
         '.lsd-diary-toast{position:absolute;left:50%;bottom:68px;z-index:35;max-width:min(320px,calc(100% - 32px));transform:translate(-50%,12px);opacity:0;pointer-events:none;border:1px solid rgba(99,102,241,.22);background:rgba(15,23,42,.92);color:#f8fafc;border-radius:999px;padding:10px 14px;font-size:.74rem;font-weight:900;line-height:1.35;box-shadow:0 16px 32px rgba(15,23,42,.22);transition:opacity .2s ease,transform .2s ease}.lsd-diary-toast.is-show{opacity:1;transform:translate(-50%,0)}',
         '.lsd-confirm-overlay{position:absolute;inset:0;z-index:34;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.42);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.lsd-confirm-card{width:min(340px,100%);border-radius:20px;border:1px solid #e2e8f0;background:#fff;padding:18px;box-shadow:0 24px 56px rgba(15,23,42,.28)}.lsd-confirm-title{margin:0 0 6px;font-size:.95rem;font-weight:950;color:#0f172a}.lsd-confirm-copy{margin:0;font-size:.78rem;line-height:1.55;color:#475569;font-weight:750}.lsd-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.lsd-confirm-cancel,.lsd-confirm-delete{border-radius:999px;padding:9px 14px;font-size:.74rem;font-weight:900;cursor:pointer}.lsd-confirm-cancel{border:1px solid #cbd5e1;background:#fff;color:#475569}.lsd-confirm-delete{border:1px solid #fecaca;background:#fff1f2;color:#e11d48}',
@@ -3617,6 +3679,16 @@ function _lsdText(key) {
       '</div>',
       '<div id="lsdMonthSelectedHint" class="lsd-month-hint"></div>',
       '</div>',
+      '<section class="lsd-schedule-card" aria-labelledby="lsdScheduleTitle">',
+      '<div class="lsd-schedule-head"><div><p class="lsd-schedule-kicker">LIFE RHYTHM</p><h3 id="lsdScheduleTitle">달력에 일정 더하기</h3><p>일정과 할 일을 오늘의 흐름 옆에 차분히 놓아보세요.</p></div><span class="lsd-schedule-free">무료 · 횟수 제한 없음</span></div>',
+      '<div id="lsdScheduleList" class="lsd-schedule-list"></div>',
+      '<form id="lsdScheduleForm" class="lsd-schedule-form">',
+      '<label><span>일정명</span><input id="lsdScheduleTitleInput" name="title" type="text" maxlength="60" required placeholder="예: 발표 자료 마무리"></label>',
+      '<div class="lsd-schedule-form-row"><label><span>날짜</span><input id="lsdScheduleDate" name="date" type="date" required></label><label><span>시간</span><input id="lsdScheduleStart" name="start" type="time" value="09:00"></label></div>',
+      '<div class="lsd-schedule-form-row"><label><span>유형</span><select id="lsdScheduleKind" name="kind"><option value="schedule">일정</option><option value="todo">할 일</option></select></label><label><span>반복</span><select id="lsdScheduleRepeat" name="repeat"><option value="none">반복 안 함</option><option value="daily">매일</option><option value="weekdays">평일</option><option value="weekly">매주</option><option value="biweekly">격주</option><option value="monthly">매월</option><option value="yearly">매년</option></select></label></div>',
+      '<button type="submit" class="lsd-schedule-save">+ 이 날짜에 일정 추가</button>',
+      '</form>',
+      '</section>',
       '<button id="lsdPredictFromCalendarBtn" type="button" class="lsd-month-cta">+ 나의 운세 예측하기</button>',
       '</div>',
       '<div class="lsd-history-head">',
@@ -4155,6 +4227,63 @@ function _lsdText(key) {
         _lsdMonthCalendarState.month = Math.max(0, (Number(parts[1]) || 1) - 1);
       }
       renderHistory();
+    };
+
+    var scheduleForm = document.getElementById('lsdScheduleForm');
+    if (scheduleForm) scheduleForm.onsubmit = function (ev) {
+      ev.preventDefault();
+      var titleInput = document.getElementById('lsdScheduleTitleInput');
+      var dateInput = document.getElementById('lsdScheduleDate');
+      var timeInput = document.getElementById('lsdScheduleStart');
+      var kindInput = document.getElementById('lsdScheduleKind');
+      var repeatInput = document.getElementById('lsdScheduleRepeat');
+      var title = String(titleInput && titleInput.value || '').trim();
+      var date = String(dateInput && dateInput.value || '').trim();
+      if (!title || !date) {
+        showDiaryToast('일정명과 날짜를 먼저 입력해 주세요.');
+        return;
+      }
+      var store = loadPlannerStore();
+      store.events.push({
+        id: plannerEventId(),
+        title: title,
+        date: date,
+        start: String(timeInput && timeInput.value || ''),
+        allDay: false,
+        todo: !!(kindInput && kindInput.value === 'todo'),
+        done: false,
+        repeat: String(repeatInput && repeatInput.value || 'none'),
+        createdAt: new Date().toISOString()
+      });
+      if (!savePlannerStore(store)) return;
+      _lsdMonthCalendarState.selectedKey = date;
+      if (titleInput) titleInput.value = '';
+      showDiaryToast('달력에 일정을 추가했어요.');
+      renderHistory();
+    };
+
+    var scheduleList = document.getElementById('lsdScheduleList');
+    if (scheduleList) scheduleList.onclick = function (ev) {
+      var toggle = ev.target && ev.target.closest('[data-schedule-toggle]');
+      var remove = ev.target && ev.target.closest('[data-schedule-delete]');
+      if (!toggle && !remove) return;
+      var id = (toggle || remove).getAttribute(toggle ? 'data-schedule-toggle' : 'data-schedule-delete');
+      var store = loadPlannerStore();
+      var eventIndex = store.events.findIndex(function (item) { return item.id === id; });
+      if (eventIndex < 0) return;
+      if (toggle) {
+        store.events[eventIndex].done = !store.events[eventIndex].done;
+        savePlannerStore(store);
+        renderHistory();
+        return;
+      }
+      showDiaryConfirm('이 일정을 달력에서 삭제할까요? 반복 일정은 전체 반복에서 삭제됩니다.', function () {
+        store.events.splice(eventIndex, 1);
+        if (savePlannerStore(store)) {
+          renderHistory();
+          showDiaryToast('일정을 삭제했어요.');
+        }
+      });
     };
 
     var historyList = document.getElementById('lsdHistoryList');
