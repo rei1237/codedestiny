@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { Starfield } from "./Starfield";
 import { ConstellationMark } from "./ConstellationMark";
 import { DIRECTION_LABEL_KO } from "../_engine/constants";
@@ -138,13 +141,117 @@ function InteractiveCompass({
   );
 }
 
-export function JourneyHub({ onStart }: { onStart: () => void }) {
+function BirthProfilePanel({ onStart }: { onStart: (birth: AnimalDestinyInput) => void }) {
+  const { seed, reload } = useAiProfileSeed();
+  const [birthDate, setBirthDate] = useState("");
+  const [birthTime, setBirthTime] = useState("");
+  const [timeUnknown, setTimeUnknown] = useState(false);
+  const [gender, setGender] = useState<AnimalDestinyInput["gender"]>("female");
+  const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar");
+  const [lunarLeap, setLunarLeap] = useState(false);
+  const [editing, setEditing] = useState(true);
+  const appliedRef = useRef(false);
+
+  const applySeed = useCallback((next: AiPrefillSeed | null, force = false) => {
+    if (!next || (!force && appliedRef.current)) return;
+    appliedRef.current = true;
+    if (next.birthDate) setBirthDate(next.birthDate);
+    if (next.birthTime) {
+      setBirthTime(next.birthTime);
+      setTimeUnknown(false);
+    } else if (next.birthTimeUnknown) {
+      setBirthTime("");
+      setTimeUnknown(true);
+    }
+    if (next.gender === "male" || next.gender === "female") setGender(next.gender);
+    if (next.calendarType === "lunar" || next.calendarType === "solar") setCalendarType(next.calendarType);
+    setEditing(!next.birthDate);
+  }, []);
+
+  useEffect(() => {
+    if (!appliedRef.current && !birthDate) applySeed(seed);
+  }, [applySeed, birthDate, seed]);
+
+  const submit = () => {
+    if (!birthDate) return;
+    onStart({
+      birthDate,
+      birthTime: timeUnknown ? undefined : birthTime || undefined,
+      gender,
+      calendarType,
+      lunarLeap: calendarType === "lunar" ? lunarLeap : false,
+    });
+  };
+
+  const reloadFromProfile = async () => applySeed(await reload(), true);
+  const genderKo = gender === "male" ? "남성" : "여성";
+  const calendarKo = calendarType === "lunar" ? (lunarLeap ? "음력(윤달)" : "음력") : "양력";
+  const hasProfile = Boolean(birthDate) && !editing;
+
+  return (
+    <section className={hub.profile} aria-labelledby="compass-profile-title">
+      <div className={hub.profileHeading}>
+        <p className={hub.profileKicker}>방향을 읽을 준비</p>
+        <h2 id="compass-profile-title">{hasProfile ? "이 정보로 나침반을 맞출게요" : "생년 정보를 알려주세요"}</h2>
+        <p>{hasProfile ? "프로필 카드에서 불러온 정보예요. 이번 계산에만 사용합니다." : "생년 정보는 오늘의 질문과 함께 방향을 읽는 데만 사용합니다."}</p>
+      </div>
+
+      {hasProfile ? (
+        <>
+          <dl className={hub.profileSummary}>
+            <div><dt>생년월일</dt><dd>{birthDate}</dd></div>
+            <div><dt>태어난 시각</dt><dd>{timeUnknown || !birthTime ? "모름" : birthTime}</dd></div>
+            <div><dt>성별</dt><dd>{genderKo}</dd></div>
+            <div><dt>달력</dt><dd>{calendarKo}</dd></div>
+          </dl>
+          <button type="button" className={hub.profileEdit} onClick={() => setEditing(true)}>정보 변경</button>
+        </>
+      ) : (
+        <form className={hub.profileForm} onSubmit={(event) => { event.preventDefault(); submit(); }}>
+          {seed?.birthDate && (
+            <button type="button" className={hub.profileReload} onClick={reloadFromProfile}>프로필 카드에서 다시 불러오기</button>
+          )}
+          <div className={hub.profileField}>
+            <label htmlFor="compass-birth-date">생년월일</label>
+            <input id="compass-birth-date" type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)} required />
+          </div>
+          <div className={hub.profileField}>
+            <label htmlFor="compass-birth-time">태어난 시각</label>
+            <input id="compass-birth-time" type="time" value={birthTime} disabled={timeUnknown} onChange={(event) => { setBirthTime(event.target.value); if (event.target.value) setTimeUnknown(false); }} />
+            <label className={hub.checkRow}><input type="checkbox" checked={timeUnknown} onChange={(event) => setTimeUnknown(event.target.checked)} /> 태어난 시각을 몰라요</label>
+          </div>
+          <div className={hub.profileRow}>
+            <div className={hub.profileField}>
+              <label htmlFor="compass-gender">성별</label>
+              <select id="compass-gender" value={gender} onChange={(event) => setGender(event.target.value as AnimalDestinyInput["gender"])}>
+                <option value="female">여성</option><option value="male">남성</option>
+              </select>
+            </div>
+            <div className={hub.profileField}>
+              <label htmlFor="compass-calendar">달력</label>
+              <select id="compass-calendar" value={calendarType} onChange={(event) => setCalendarType(event.target.value as "solar" | "lunar")}>
+                <option value="solar">양력</option><option value="lunar">음력</option>
+              </select>
+            </div>
+          </div>
+          {calendarType === "lunar" && <label className={hub.checkRow}><input type="checkbox" checked={lunarLeap} onChange={(event) => setLunarLeap(event.target.checked)} /> 윤달이에요</label>}
+        </form>
+      )}
+
+      <button type="button" className={hub.cta} onClick={submit} disabled={!birthDate}>
+        <CompassNeedleIcon />
+        <span>이 정보로 나침반 맞추기</span>
+      </button>
+    </section>
+  );
+}
+
+export function JourneyHub({ onStart }: { onStart: (birth: AnimalDestinyInput) => void }) {
   const [snap, setSnap] = useState<RpgSnapshot | null>(null);
   const [dexCount, setDexCount] = useState(0);
   const [selected, setSelected] = useState<DirectionKey>("venture");
   const [angle, setAngle] = useState(bearingForIndex(COMPASS_ORDER.indexOf("venture")));
   const [pulse, setPulse] = useState(false);
-  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     checkInToday();
@@ -172,13 +279,6 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
       return key;
     });
     setAngle(nextAngle);
-  };
-
-  const begin = () => {
-    if (starting) return;
-    setStarting(true);
-    navigator.vibrate?.(18);
-    window.setTimeout(onStart, 520);
   };
 
   const greeting = useMemo(() => {
@@ -209,7 +309,7 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
           </p>
         </div>
 
-        <InteractiveCompass selected={selected} angle={angle} settling={starting} onSelect={selectDirection} />
+        <InteractiveCompass selected={selected} angle={angle} settling={false} onSelect={selectDirection} />
 
         <div className={hub.reading} data-pulse={pulse || undefined} aria-live="polite">
           <span className={hub.readingMark} aria-hidden="true">
@@ -227,11 +327,9 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
           </div>
         )}
 
-        <button type="button" className={hub.cta} onClick={begin} disabled={starting}>
-          <CompassNeedleIcon />
-          <span>{starting ? "운명을 읽는 중..." : "운명 탐색 시작"}</span>
-        </button>
+        <BirthProfilePanel onStart={onStart} />
       </section>
     </main>
   );
 }
+
