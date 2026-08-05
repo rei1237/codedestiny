@@ -120,6 +120,7 @@
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",
     "verify:worktree-policy": "node scripts/verify-worktree-policy.mjs",
+    "verify:release-pr-overlap": "node scripts/verify-release-pr-overlap.mjs",
     "verify:worker-single-deploy": "node scripts/verify-worker-single-deploy-guard.mjs",
     "verify:release-ci-gates": "node scripts/wait-for-ci-gates.mjs --self-test",
     "verify:llm-token-usage": "node --experimental-strip-types --no-warnings scripts/verify-llm-token-usage.mjs",
