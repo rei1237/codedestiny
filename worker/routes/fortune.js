@@ -1,4 +1,5 @@
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
@@ -5937,6 +5938,7 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
     // Scenario switches are test-only. Production clients cannot select a failure mode.
     scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
   });
+  if (result?.ok === true && identity.userId) invalidateAccessStateCacheForUser(identity.userId);
   return guardianFortuneRouteResponse(result, { cookie: identity.cookie });
 }
 
@@ -6000,6 +6002,7 @@ async function handleGuardianFortuneChatRoute(request, env, ctx, trace) {
         usage: result.usage,
         shareDraftToken: result.shareDraftToken || "",
       });
+      if (identity.userId) invalidateAccessStateCacheForUser(identity.userId);
     } catch {
       await writeGuardianFortuneChatSse(writer, "error", {
         error: GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR,

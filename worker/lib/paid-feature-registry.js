@@ -325,6 +325,8 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
   "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock" },
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
+  // Legacy compatibility only. The standalone Fortune Planner never reads or charges this entry.
+  "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock" },
   "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 100, reason: "사주 가디언 소환진 해금" },
   "unlock.tetogen_deep_report": { featureKey: "tetogen_deep_report", cost: 100, reason: "테토 에겐 상세 리포트 해금" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
