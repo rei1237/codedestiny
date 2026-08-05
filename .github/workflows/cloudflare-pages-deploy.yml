@@ -13,6 +13,8 @@ concurrency:
 
 permissions:
   contents: read
+  checks: read
+  statuses: read
 
 jobs:
   release:
@@ -57,6 +59,7 @@ jobs:
 
       - name: Wait for required security and CI gates
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           CI_GATE_CHECKS: Secret Scan,Paid Flow Gates,Docs Freshness Gate,Pages Config Guard
         run: node scripts/wait-for-ci-gates.mjs
 
