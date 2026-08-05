@@ -12,6 +12,7 @@ build-cache/
 .deploy-state/
 
 *.log
+*.err
 *.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*

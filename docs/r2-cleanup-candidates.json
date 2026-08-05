@@ -1,0 +1,11 @@
+{
+  "auditedAt": "2026-08-05T00:00:00.000Z",
+  "scope": "repository-reference audit only",
+  "candidates": [],
+  "manualReviewRequired": [
+    {
+      "scope": "all R2 objects referenced through public URLs, dynamic paths, CMS, MongoDB, or purchaser download records",
+      "reason": "This PR intentionally does not list R2, query production data, or delete external objects."
+    }
+  ]
+}
