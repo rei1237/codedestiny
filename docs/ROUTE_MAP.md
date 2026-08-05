@@ -116,7 +116,7 @@ Entry: `worker/index.js`
 - `/saju/love-secret`은 `/love-secret-ai`로 redirect된다.
 - `/en-us`, `/ja-jp`, `/zh-cn`은 `/en`, `/ja`, `/zh`로 redirect된다.
 - `/blog/*`는 `/insights/*`로 redirect된다.
-- `/luck-sync-diary`는 과거 운기·기일 다이어리 즐겨찾기 호환 경로이며 `/fortune-planner`로 영구 이동한다.
+- `/fortune-planner`와 `/luck-sync-diary`는 기존 운기·기일 다이어리의 월간 달력을 여는 `/?fortunePlanner=1`로 이동한다.
 - 다수 루트 HTML 파일은 legacy/static noindex 자산으로 보인다. 예: `/vedic-astrology.html`, `/destiny-island.html`, `/secret-house_real.html`, `/royal-tea-oracle.html`
 
 ## 확인 필요한 라우트
