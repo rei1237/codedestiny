@@ -90,6 +90,7 @@ on:
       - "scripts/verify-security-hardening.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
