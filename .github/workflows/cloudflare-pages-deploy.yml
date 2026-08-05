@@ -1,150 +1,59 @@
-name: Deploy Cloudflare Pages
+name: Release Cloudflare Pages and Worker
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
+# A release is an ordered Worker then Pages transaction. Never cancel a running
+# deployment midway; newer main commits queue behind it instead.
 concurrency:
-  group: cloudflare-pages-${{ github.ref }}
-  cancel-in-progress: true
+  group: cloudflare-production-release
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  deploy-pages:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
-      CF_PAGES_BRANCH: main
-      CF_PAGES_FORCE_DIRECT_DEPLOY: '0'
+      CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
+      CD_DEPLOY_BASE_SHA: ${{ github.event.before }}
+      CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
+      CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+      CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
+
     steps:
-      - name: Checkout
+      - name: Checkout exact release SHA
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Verify deployment is from merged main
+      - name: Verify CI main deployment policy
         run: node scripts/verify-worktree-policy.mjs --mode=deploy
-
-      - name: Verify payment Worker and Pages commit parity
-        env:
-          CD_WORKER_VERSION_URL: https://code-destiny.com/api/version
-        run: npm run verify:pages-worker-parity
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: '24'
           cache: npm
 
-      - name: Validate required secrets
-        run: |
-          set -euo pipefail
-          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
-            echo "::error::Missing required secret CLOUDFLARE_API_TOKEN"
-            exit 1
-          fi
-          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-            echo "::error::Missing required secret CLOUDFLARE_ACCOUNT_ID"
-            exit 1
-          fi
-
-      - name: Install dependencies
+      - name: Install dependencies once
         run: npm ci
 
-      # 관리자(꽃 admin)에서 발행한 파일 기반 콘텐츠 수정본을 빌드에 병합 (fail-soft: 실패해도 배포 진행)
-      - name: Fetch content overrides
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
-        run: node scripts/fetch-content-overrides.mjs
-
-      # 라이트 노벨 수정본을 VN 원본 HTML 에 먹인 뒤 텍스트 리더용 JSON 을 다시 만든다.
-      # 순서가 중요하다: 원본이 authoritative source 이고 episodes.generated.json 은 파생물이라,
-      # 패치 후 재생성해야 prebuild:cf 의 verify-story-text-sync 해시 대조를 통과한다.
-      # 검사는 무엇이 왜 걸러졌는지 로그로 남기되 배포를 막지 않는다(적용 자체가 fail-soft).
-      - name: Verify light-novel override safety
-        run: node scripts/verify-vn-override-safety.mjs || echo "::warning::라이트 노벨 오버라이드 일부가 안전 규칙에 걸려 반영되지 않습니다."
-
-      - name: Apply light-novel overrides
-        run: node scripts/apply-vn-overrides.mjs
-
-      - name: Rebuild story text from novel source
-        run: node scripts/build-story-text.mjs
-
-      - name: Sync public static artifacts
-        run: npm run sync:public
-
-      - name: Verify sitemap integrity
-        run: npm run verify:sitemap
-
-      - name: Verify ads.txt present (AdSense)
-        run: npm run verify:ads-txt
-
-      # 홈 배너의 "N곡"은 app/music 매니페스트가 정본이다. 곡을 추가하고 문구를 안 고치면 여기서 막는다.
-      - name: Verify music track count matches manifest
-        run: npm run verify:music-track-count
-
-      - name: Verify locale main sync
-        run: npm run verify:locale-main-sync
-
-      - name: Verify runtime cache sync
-        run: npm run verify:runtime-cache-sync
-
-      # 모바일 공용 상세 래퍼가 기능 UI 를 재도색·재배치하지 못하게 막는다.
-      # (2026-07 sticky 이름판·주입 배지·팔레트 재도색이 18개 기능을 덮은 사고 재발 방지)
-      - name: Verify mobile detail wrapper stays non-intrusive
-        run: npm run verify:mobile-detail-nonintrusive
-
-      # @font-face 선언만 배포되고 woff2 는 R2 에 안 올라가 상시 404 였던 사고(b26d29de1) 재발 방지.
-      # CSP font-src 가 허용하지 않는 오리진의 폰트를 선언하는 것도 여기서 막는다.
-      - name: Verify font assets & CSP font-src
-        run: npm run verify:r2-fonts
-
-      - name: Wrangler token preflight
-        run: npx --no-install wrangler whoami
-
-      - name: Sync Pages public values
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL || secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXT_PUBLIC_AUTH_API_BASE_URL: ${{ vars.NEXT_PUBLIC_AUTH_API_BASE_URL || secrets.NEXT_PUBLIC_AUTH_API_BASE_URL }}
-          NEXT_PUBLIC_ASSETS_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSETS_BASE_URL || secrets.NEXT_PUBLIC_ASSETS_BASE_URL }}
-          NEXT_PUBLIC_MUSIC_BASE_URL: ${{ vars.NEXT_PUBLIC_MUSIC_BASE_URL || secrets.NEXT_PUBLIC_MUSIC_BASE_URL }}
-          NEXT_PUBLIC_PORTONE_IMP_CODE: ${{ vars.NEXT_PUBLIC_PORTONE_IMP_CODE || secrets.NEXT_PUBLIC_PORTONE_IMP_CODE }}
-          NEXT_PUBLIC_PORTONE_STORE_ID: ${{ vars.NEXT_PUBLIC_PORTONE_STORE_ID || secrets.NEXT_PUBLIC_PORTONE_STORE_ID }}
-          NEXT_PUBLIC_PORTONE_CHANNEL_KEY: ${{ vars.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || secrets.NEXT_PUBLIC_PORTONE_CHANNEL_KEY }}
-          NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY: ${{ vars.NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY || secrets.NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY }}
-          NEXT_PUBLIC_PORTONE_PG_CARD: ${{ vars.NEXT_PUBLIC_PORTONE_PG_CARD || secrets.NEXT_PUBLIC_PORTONE_PG_CARD }}
-          NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH: ${{ vars.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || secrets.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH }}
-        run: npm run secrets:cf:pages -- --skip-empty
-
-      # GitHub Actions의 명시적 배포만 허용한다. legacy/production/preview Git 자동 배포가
-      # 켜지면 같은 PR/커밋에 Pages deployment가 중복 생성되고 외부 check가 pending으로 남을 수 있다.
-      - name: Ensure single Pages deployment configuration
-        run: npm run ensure:pages-single-deploy
-
-      - name: Deploy Cloudflare Pages
-        env:
-          CF_PAGES_FORCE_DIRECT_DEPLOY: '1'
-        run: npm run deploy:cf:pages
-
-      # 배포 전환 틈새에 엣지가 새 자산 URL 로 404 를 내면, Cloudflare 가 그 404 를
-      # max-age=172800(2일)으로 캐시해 오리진에 파일이 멀쩡해도 그 URL 만 이틀간 죽는다.
-      # HTML 은 no-store 라 새로고침해도 같은 죽은 URL 을 다시 요청 → 사용자에겐 영구 장애다.
-      # 2026-07-30 에 globals.css 산출물 하나가 이렇게 죽어 React 라우트 전부가 무스타일로 떴고,
-      # 사용자 신고로 발견되기까지가 곧 장애 시간이었다. 배포 시점에 바로 드러내야 한다.
-      - name: Verify deployed assets reachable
-        env:
-          CD_DEPLOY_VERIFY_ORIGIN: https://code-destiny.com
-          # 죽은 URL 만 골라 퍼지하려면 Zone Cache Purge 권한이 있는 별도 토큰이 필요하다.
-          # 기존 CLOUDFLARE_API_TOKEN 에는 그 권한이 없다(실측: Authentication error).
-          # 시크릿이 없으면 퍼지는 건너뛰고 실패로 보고만 한다.
-          CLOUDFLARE_CACHE_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN }}
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      - name: Verify release pipeline contract
         run: |
-          sleep 45
-          npm run verify:deployed-assets
+          npm run verify:deploy-safe
+          npm run verify:pages-single-deploy-guard
+          npm run verify:worker-single-deploy
+
+      - name: Verify Pages Git deployments stay disabled
+        run: npm run verify:pages-single-deploy
+
+      - name: Preview, smoke, and promote the exact SHA
+        run: npm run deploy:safe -- --ci --yes

@@ -1,5 +1,14 @@
 # Deployment and Infra
 
+## Current release policy (2026-08-06)
+
+- Normal production authority is `.github/workflows/cloudflare-pages-deploy.yml`: it runs once for each `main` SHA, creates a preview, executes mock-only smoke checks, promotes the Worker before Pages when the changed paths require it, and records rollback targets in the release state.
+- `release:fast` is intentionally narrow: only a clean secondary-worktree commit classified as low risk can push `HEAD:main`. It rejects billing, payment, entitlement, authentication, database, Worker, cache, Wrangler, environment, and workflow changes. Those changes require a PR.
+- `check:quick` is range-based; `check:full` is lint, typecheck, core mock smoke, node tests, and one Pages build; `check:critical` retains the payment/access mock gates.
+- Git uses HTTPS with Git Credential Manager. gh uses its own interactive encrypted host login. Do not configure Git to use `gh auth git-credential`, and project gh scripts clear process-injected `GH_TOKEN` before invoking gh.
+- A running production release is never cancelled. Newer `main` SHAs queue, preventing partial Worker/Pages releases.
+- The manual Worker workflow is emergency-only. It is not the normal main release path; use the integrated workflow for standard releases.
+
 ## Worker 단일 배포 경로
 
 - 운영 Worker 배포의 정본은 `.github/workflows/cloudflare-worker-deploy.yml` 하나다.

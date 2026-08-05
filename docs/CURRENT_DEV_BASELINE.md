@@ -45,8 +45,8 @@ Last curated: `2026-08-02`
 ### 5. Worktree and PR delivery safety
 
 - Source files: `AGENTS.md`, `scripts/verify-worktree-policy.mjs`, `.github/workflows/worktree-pr-policy.yml`, `.codex/PR_WORKFLOW.md`
-- The primary worktree and protected branches are read-only for normal development. Changes begin in a secondary worktree based on the latest `origin/main`, then move through a PR before merge or production deployment.
-- Run `npm run verify:worktree-policy -- --mode=edit` before editing and `npm run verify:worktree-policy -- --mode=pr` before opening a PR. Production deploy scripts require the CI `main` context.
+- The primary worktree and protected branches are read-only for normal development. Changes begin in a secondary worktree based on the latest `origin/main`.
+- Use `npm run release:fast` only for clean, committed low-risk changes. It performs range-based checks and pushes the feature SHA to `main`; the CI release workflow deploys Worker and Pages from that SHA. High-risk paths remain PR-only and use `npm run verify:worktree-policy -- --mode=pr`.
 
 ## Working Rules For Current Tasks
 
