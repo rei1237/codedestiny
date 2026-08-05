@@ -27,6 +27,7 @@ jobs:
       CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
       CD_DEPLOY_BASE_SHA: ${{ github.event.before }}
       CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
+      CD_ALLOW_EMPTY_CHANGESET: "true"
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
 
