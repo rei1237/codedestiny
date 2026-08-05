@@ -39,5 +39,12 @@ jobs:
       - name: Verify worktree and PR policy
         run: npm run verify:worktree-policy -- --mode=ci
 
+      - name: Block overlapping release configuration PRs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: npm run verify:release-pr-overlap
+
       - name: Verify policy self-test
         run: npm run verify:worktree-policy -- --self-test
