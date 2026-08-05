@@ -80,6 +80,17 @@ test("pass-first payment modal does not start a parallel monthly balance probe",
   assert.match(modalTail, /refreshDirectMonthlyBalance\(\{ silent: true \}\)/);
 });
 
+test("home header renders cached identity without starting auth or subscription probes", () => {
+  const headerDecisionStart = shellSource.indexOf("if (!isAdm) {\n                var recentSubscriptionStatus");
+  const headerDecisionEnd = shellSource.indexOf("          window.__cdUpdateAuthState = __cdAuthState;", headerDecisionStart);
+  assert.ok(headerDecisionStart >= 0 && headerDecisionEnd > headerDecisionStart);
+  const headerDecision = shellSource.slice(headerDecisionStart, headerDecisionEnd);
+  assert.match(headerDecision, /__cdResolveAuthCardFromCurrentUser\(p\)/);
+  assert.doesNotMatch(headerDecision, /__cdSyncSubscription\(p\)/);
+  assert.doesNotMatch(headerDecision, /__cdSyncAuthMe\(p\)/);
+  assert.doesNotMatch(headerDecision, /__cdScheduleSubscriptionRetry\(/);
+});
+
 test("automatic balance reads reuse the access snapshot and do not append timestamps", () => {
   assert.match(shellSource, /function _cdApplyFreshAccessStoreBalances\(\)/);
   assert.doesNotMatch(shellSource, /\/api\/billing\/balance[^'\"]*[?&]_=/);
