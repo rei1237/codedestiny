@@ -6,14 +6,19 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("fortune planner keeps the established diary modal as its entry experience", () => {
+test("fortune planner keeps the diary modal and provides a dedicated mobile planner route", () => {
   const runtime = read("js/core/index-inline-runtime.js");
   const plannerRoute = read("app/fortune-planner/page.tsx");
+  const plannerClient = read("app/fortune-planner/FortunePlannerClient.tsx");
   const legacyRoute = read("app/luck-sync-diary/page.tsx");
 
   assert.match(runtime, /openFortunePlanner[\s\S]*luck-sync-diary\.js/);
   assert.match(runtime, /LuckSyncDiary\.open/);
-  assert.match(plannerRoute, /redirect\("\/\?fortunePlanner=1"\)/);
+  assert.match(plannerRoute, /import FortunePlannerClient/);
+  assert.match(plannerRoute, /return <FortunePlannerClient \/>/);
+  assert.match(plannerClient, /useSearchParams/);
+  assert.match(plannerClient, /localStorage/);
+  assert.doesNotMatch(plannerRoute, /redirect\("\/\?fortunePlanner=1"\)/);
   assert.match(legacyRoute, /redirect\("\/\?fortunePlanner=1"\)/);
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
 });

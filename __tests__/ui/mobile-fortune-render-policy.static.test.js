@@ -8,8 +8,9 @@ const shell = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const accessStore = fs.readFileSync(path.join(root, "js/core/access-store.js"), "utf8");
 const provider = fs.readFileSync(path.join(root, "app/providers/UnlockProvider.tsx"), "utf8");
 
-test("mobile fortune cards use detach plus viewport lazy rendering", () => {
-  assert.match(shell, /MOBILE_COLLECTION_LIMIT\s*=\s*4/);
+test("mobile fortune cards keep every collection card available", () => {
+  assert.match(shell, /MOBILE_COLLECTION_LIMIT\s*=\s*Number\.MAX_SAFE_INTEGER/);
+  assert.match(shell, /\[data-mobile-collapsed-card="true"\]\{display:flex!important\}/);
   assert.match(shell, /__cdLazyCards/);
   assert.match(shell, /cd-mobile-card-placeholder/);
   assert.match(shell, /IntersectionObserver/);
