@@ -121,16 +121,15 @@ test('mock usage covers guest, daily free, paid credit, and blocked states', () 
   assert.equal(usage.authExhausted.nextAction, 'buy_credits');
 });
 
-test('real LLM requires the guarded staging allowlist policy', () => {
+test('real LLM requires the explicit production feature flags', () => {
   assert.equal(contract.isGuardianFortuneRealLlmEnabled({}), false);
   assert.doesNotThrow(() => contract.assertGuardianFortuneRealLlmDisabled({}));
   assert.equal(contract.isGuardianFortuneRealLlmEnabled({
     ENABLE_GUARDIAN_FORTUNE_REAL_LLM: 'true',
     ALLOW_REAL_GUARDIAN_FORTUNE_LLM: 'true',
     ENABLE_GUARDIAN_FORTUNE_API: 'true',
-    APP_ENV: 'staging',
+    APP_ENV: 'production',
     GUARDIAN_FORTUNE_LLM_PROVIDER: 'gemini',
-    GUARDIAN_FORTUNE_REAL_LLM_ALLOWLIST: 'stage-user',
   }, 'stage-user'), true);
   assert.throws(() => contract.assertGuardianFortuneRealLlmAllowed({ ENABLE_GUARDIAN_FORTUNE_REAL_LLM: 'true' }, 'stage-user'), /REAL_LLM_BLOCKED/);
 });

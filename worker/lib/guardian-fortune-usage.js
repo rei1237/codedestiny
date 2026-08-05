@@ -4,7 +4,6 @@ import {
   GuardianFortuneChatCreditTransaction,
   GuardianFortuneAccountUsage,
   GuardianFortuneAnonymousMerge,
-  GuardianFortuneDailyUsage,
   GuardianFortuneGenerationAttempt,
   GuardianFortuneGuestUsage,
 } from "./models.js";
@@ -498,22 +497,14 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
     async ensureDaily(userId, dateKey, now = new Date()) {
       await connectDb(env);
       const accountId = objectIdOrString(userId);
-      const account = await leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+      // Account quota is lifetime-scoped. Historical per-day rows are deliberately
+      // not imported: they remain legacy audit data and must never grant or remove
+      // a user's current three free consultations.
+      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: accountId },
-        { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, legacyMigratedAt: null, createdAt: now, updatedAt: now } },
+        { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, legacyMigratedAt: now, createdAt: now, updatedAt: now } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       ));
-      if (account?.legacyMigratedAt) return account;
-      const legacy = await GuardianFortuneDailyUsage.aggregate([
-        { $match: { userId: accountId } },
-        { $group: { _id: null, total: { $sum: { $ifNull: ["$freeUsed", 0] } } } },
-      ]);
-      const migratedUsed = Math.min(GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, clampNonNegative(legacy?.[0]?.total));
-      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
-        { userId: accountId, legacyMigratedAt: null },
-        { $set: { freeUsed: migratedUsed, legacyMigratedAt: now, updatedAt: now } },
-        { new: true },
-      )) || account;
     },
     async reserveDaily(userId, dateKey, now = new Date()) {
       await store.ensureDaily(userId, dateKey, now);

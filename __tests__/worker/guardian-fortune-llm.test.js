@@ -7,19 +7,18 @@ import { makeGuardianFortuneContext, guardianFortuneLlmInput } from "../fixtures
 import { countGuardianFortuneVisibleTextLength } from "../../worker/lib/guardian-fortune-result.js";
 
 const realEnv = {
-  NODE_ENV: "staging",
-  APP_ENV: "staging",
+  NODE_ENV: "production",
+  APP_ENV: "production",
   ENABLE_GUARDIAN_FORTUNE_API: "true",
   ENABLE_GUARDIAN_FORTUNE_REAL_LLM: "true",
   ALLOW_REAL_GUARDIAN_FORTUNE_LLM: "true",
   GUARDIAN_FORTUNE_LLM_PROVIDER: "gemini",
-  GUARDIAN_FORTUNE_REAL_LLM_ALLOWLIST: "staging-user-1",
 };
 
 describe("Guardian Fortune guarded LLM", () => {
-  it("defaults to mock and fails closed outside the staging allowlist", async () => {
+  it("defaults to mock and fails closed unless production flags allow Gemini", async () => {
     expect(shouldUseRealGuardianFortuneLLM({ env: {}, userId: "staging-user-1" })).toBe(false);
-    expect(getGuardianFortuneRealLlmBlockReason({ env: realEnv, userId: "other-user" })).toBe("ALLOWLIST_MISS");
+    expect(getGuardianFortuneRealLlmBlockReason({ env: realEnv, userId: "other-user" })).toBe("");
     expect(getGuardianFortuneRealLlmBlockReason({ env: { ...realEnv, NODE_ENV: "test" }, userId: "staging-user-1" })).toBe("TEST_ENVIRONMENT");
 
     const result = await generateGuardianFortuneWithConfiguredLLM({
@@ -93,7 +92,7 @@ describe("Guardian Fortune guarded LLM", () => {
     const result = await generateGuardianFortuneWithConfiguredLLM({
       input: guardianFortuneLlmInput,
       context: makeGuardianFortuneContext(),
-      env: { ...realEnv, APP_ENV: "production" },
+      env: { ...realEnv, ENABLE_GUARDIAN_FORTUNE_REAL_LLM: "false" },
       userId: "staging-user-1",
       providerCall: provider,
     });

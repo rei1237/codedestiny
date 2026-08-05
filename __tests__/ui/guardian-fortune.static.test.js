@@ -39,8 +39,8 @@ test('guardian fortune opens from a compact native destiny gate without changing
   assert.match(html, /flower-pig-honey-hug\.webp/);
   assert.match(guardianCss, /flower-pig-f16\.webp/);
   assert.match(html, /href="\/fusion-fortune"/);
-  assert.match(html, /fortune-gateway__path-note[^>]*>비로그인 1회 무료 · 로그인하면 하루 3회 무료<\/p>/);
-  assert.match(html, /fortune-gateway__path-note[^>]*>무료 상담은 오늘의 귀인: 비로그인 1회 · 로그인 시 하루 3회 \/ 초융합은 별도 단건 결제<\/p>/);
+  assert.match(html, /fortune-gateway__path-note[^>]*>비회원 1회 · 계정당 총 3회 무료 · 매일 초기화되지 않아요<\/p>/);
+  assert.match(html, /fortune-gateway__path-note[^>]*>가벼운 상담 뒤, 필요할 때 같은 상담방에서 별도 상담권으로 이어집니다\.<\/p>/);
   assert.match(html, /fortune-gateway\.css/);
   assert.match(html, /fortune-gateway\.js/);
   assert.match(gateway, /showModal/);
