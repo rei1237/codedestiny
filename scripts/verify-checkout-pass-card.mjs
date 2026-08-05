@@ -217,7 +217,7 @@ console.log("\n[6] 계측이 예외를 던져도 이용권 무료 통과는 그�
 
 // ── ⑦ 대기 화면은 이용권 확인에서만 뜬다 ──────────────────────────────────
 // 2026-08 신고: 유료 기능을 누르면 결제창 대신 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드
-// 결제를 준비 중이에요' 전체화면이 떴다. 정책은 "진행 중 표시는 이용권 확인('pass')에서만"이다.
+// 결제를 준비 중이에요' 전체화면이 떴다. 정책은 "진행 중 표시는 이용권/월정석 결과 준비에서만"이다.
 // 독립 정적 환경의 집행 지점(window._cdSetCoinGateOverlay 심)을 실제로 눌러 확인한다.
 console.log("\n[7] 대기 오버레이가 이용권 확인 모드에서만 뜨는가");
 {
@@ -226,7 +226,7 @@ console.log("\n[7] 대기 오버레이가 이용권 확인 모드에서만 뜨�
     const node = window.document.getElementById("cdStandalonePaymentOverlay");
     return Boolean(node) && node.style.display === "flex";
   };
-  for (const mode of ["payment", "checkout", "card", "confirm", "monthly", "subscription"]) {
+  for (const mode of ["payment", "checkout", "card", "confirm", "subscription"]) {
     check(`'${mode}' 진행 화면은 뜨지 않는다`, () => {
       window._cdSetCoinGateOverlay(true, "테스트", mode);
       assert.equal(overlayVisible(), false, `${mode} 오버레이가 떴다`);

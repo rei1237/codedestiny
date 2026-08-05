@@ -423,7 +423,7 @@ const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|payment-fa
 // 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 `CD_WAIT_UI_ALLOWED_MODE_RE` 의 거울.
 // 진행 중 표시는 이용권 확인('pass') 하나뿐이고 나머지는 결과 표시만 통과한다. 셸이 없는 Next
 // 라우트에는 정본이 없으므로 여기서 같은 규칙을 세운다(값이 갈리면 verify 가드가 잡는다).
-const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
+const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
 function isPaymentWaitUiBlocked(mode: string) {
   if (typeof window === "undefined") return false;
   const shellVerdict = (window as PaymentOverlayWindow).__cdPaymentWaitUiBlocked;

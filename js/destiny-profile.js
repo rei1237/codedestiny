@@ -2276,7 +2276,7 @@
   }
 
   // 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 CD_WAIT_UI_ALLOWED_MODE_RE 의 거울(셸이 없을 때만 쓴다).
-  var DP_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
+  var DP_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
   function _dpSetPaymentPending(show, message, mode) {
     var text = String(message || '').trim() || '결제가 진행 중입니다.';
     if (show && String(mode || '').trim() === 'card' && /준비|여는 중|열고 있|주문 정보를 확인|보안 결제창|결제를 처리하고 있어요|창을 닫지 말아 주세요|진행 중입니다/.test(text)) {
