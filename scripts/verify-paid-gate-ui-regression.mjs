@@ -1,363 +1,65 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
+­r‡^Ñf¥–Ø¦{[r‰İ°ë­¦ëZ[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÃBš[\ÜÈ™XYš[TŞ[˜ÈHœ›ÛH››ÙN™œÈÃBš[\ÜÈš[UT“Ô]Hœ›ÛH››ÙN\›ÃBš[\ÜÈ™\ÛÛ™HHœ›ÛH››ÙNœ]ÃBƒB˜ÛÛœİ›ÛİH™\ÛÛ™Jš[UT“Ô]
+™]ÈT“
+‹‹ˆ‹[\Ü›Y]K\›
+JJNÃB˜ÛÛœİ[™^Ûİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİš[™^š[ŠK]ŠNÃB˜ÛÛœİİ]XÒ[™^Ûİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİœX›XËÜİ]XËÚ[™^š[ŠK]ŠNÃB˜ÛÛœİš[[™ĞÛY[Ûİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\×ÛX‹Øš[[™ËXÛY[ÈŠK]ŠNÃB˜ÛÛœİ^[Y[›ØÙ\ÜÚ[™ĞÛÛ^Ûİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\ØÛÛ\Û™[ËÔ^[Y[›ØÙ\ÜÚ[™ĞÛÛ^ŞŠK]ŠNÃB˜ÛÛœİØY[™ÓY\ÜØYÙ\ÔÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜ÛÛœİ[ËÛØY[™ÓY\ÜØYÙ\ËÈŠK]ŠNÃB˜ÛÛœİš[[™Ô›İ]TÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİÛÜšÙ\‹Ü›İ]\ËØš[[™ËšœÈŠK]ŠNÃB˜ÛÛœİ^[Y[Ô›İ]TÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİÛÜšÙ\‹Ü›İ]\ËÜ^[Y[ËšœÈŠK]ŠNÃB˜ÛÛœİ\›İİ™TÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİšœËİ\›İ[İ™KY^\šY[˜ÙKšœÈŠK]ŠNÃB˜ÛÛœİ\İ[T›Ùš[TÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİšœËÙ\İ[K\›Ùš[KšœÈŠK]ŠNÃB˜ÛÛœİ›Ü[™UXRİ\ÙTÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİœÜ˜ËÙ™X]\™\ËÙ›Ü[™K]XKZİ\ÙKÑ›Ü[™UXRİ\ÙTYÙKŞŠK]ŠNÃB˜ÛÛœİ™[ÓÜ\˜][Û”›ÛÛTÛİ\˜ÙHH™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİœÜ˜ËÙ™X]\™\ËÛ™[Ë]Ø\‹\›ÛÛKÓ™[ÓÜ\˜][Û”›ÛÛTYÙKŞŠK]ŠNÃB˜ÛÛœİ™XXİØ]Qš\œİ™X]\™TÛİ\˜Ù\ÈHÃBˆÃBˆX™[ˆ›Y™KX›ÛÚËXZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\ÛY™KX›ÛÚËXZKÓY™P›ÛÚĞZPÛY[ŞŠK]ŠKBˆËÈ;!(:¬ ; «;f.;-§;'`\ÛY™KX›ÛÚËXZKÛY™P›ÛÚĞ\KÈ;'f™\\™SY™P›ÛÚÈ:èg;&+º¬¯:âé
+]]™]Ú
+È;'o;"ç;'©{%h;'«;"ç:ãá
+È;`à;'¡;%a;&àÊKƒBˆËÈ:¬á;%oJ:¬£;'m;b®;&);e"8¡¤ˆ;!(:¬ ; «8¡¤ˆ:¬¬;(';,/J{'`:­î:ã :èg:âéƒBˆ\Nˆœ™\\™SY™P›ÛÚÏ™\\™T™\İ[Š‹BˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKBˆÃBˆX™[ˆ›İ™K\ÙXÜ™]XZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\Ûİ™K\ÙXÜ™]XZKÓİ™TÙXÜ™]ZPÛY[ŞŠK]ŠKBˆ\Nˆ	ÜÜİœÛÛ[œİ\™PXØÙ\ÜÔ™\İ[Š‹Ø\KÛİ™K\ÙXÜ™]XZKÜ™\\™H‰ËBˆÚXÚÛİ]ˆœ[“İ™TÙXÜ™]^[Y[Ø]H‹BˆKBˆÃBˆX™[ˆ›™]Ë^YX\‹XZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\Û™]Ë^YX\‹XZKXÛÛœİ[][Û‹Ó™]ÖYX\ZPÛY[ŞŠK]ŠKBˆ\Nˆ	ÜÜİœÛÛ[œİ\™PXØÙ\ÜÔ™\İ[Š‹Ø\KÛ™]Ë^YX\‹XZKÙ[œİ\™KXXØÙ\ÜÈ‰ËBˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKBˆÃBˆX™[ˆ˜\İ›ÛÙŞKXZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\Ø\İ›ÛÙŞKXZKĞ\İ›ÛÙŞPZPÛY[ŞŠK]ŠKBˆ\NˆœÜİœÛÛ[œİ\™PXØÙ\ÜÔ™\İ[ŠTWÑS‘ÒS•Ë™[œİ\™PXØÙ\ÜÈ‹BˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKBˆÃBˆX™[ˆš]ÙZKXZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\Şš]ÙZKXZKÖš]ÙZPZPÛY[ŞŠK]ŠKBˆ\Nˆ	ÜÜİœÛÛ\T™\İ[Š‹Ø\KŞš]ÙZKXZKÜ™\\™H‰ËBˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKBˆÃBˆX™[ˆ™YXËXZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\İ™YXËXZKÕ™YXĞZPÛY[ŞŠK]ŠKBˆ\Nˆ	È‹Ø\Kİ™YXËXZKÙ[œİ\™KXXØÙ\ÜÈ‰ËBˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKBˆÃBˆX™[ˆœİZİ^[ËXÛÛ\]Xš[]KXZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\ÜİZİ^[ËXÛÛ\]Xš[]KXZKÔİZİ^[ĞÛÛ\]Xš[]PZPÛY[ŞŠK]ŠKBˆ\Nˆ	È‹Ø\KÜİZİ^[ËXÛÛ\]Xš[]KXZKÜ™\\™H‰ËBˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKBˆÃBˆX™[ˆšØ\›XKY\İ[KXZH‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›Ûİ˜\ÚØ\›XKY\İ[KXZKÒØ\›XQ\İ[PZPÛY[ŞŠK]ŠKBˆ\Nˆ	ÜÜİœÛÛ[œİ\™PXØÙ\ÜÔ™\İ[Š‹Ø\KÚØ\›XKY\İ[KXZKÙ[œİ\™KXXØÙ\ÜÈ‰ËBˆÚXÚÛİ]ˆœ[ÛÛ[[Ûš[[™ÑØ]H‹BˆKBˆÃBˆX™[ˆ›X\İ\‹[İ™KXÛÙ^‹BˆÛİ\˜ÙNˆ™XYš[TŞ[˜Ê™\ÛÛ™J›ÛİœÜ˜ËÙ™X]\™\ËÛX\İ\‹[İ™KXÛÙ^ÓX\İ\“İ™PÛÙ^YÙKŞŠK]ŠKBˆ\Nˆ	È‹Ø\KÛX\İ\‹[İ™KXÛÙ^Ù[œİ\™KXXØÙ\ÜÈ‰ËBˆÚXÚÛİ]ˆœ[š[[™ĞÛÚ[‘Ø]H‹BˆKB—NÃBƒB™[˜İ[Ûˆ\ÜÙ\ÛÛZ[œÊÛİ\˜ÙKX\šÙ\‹X™[HX\šÙ\ŠHÃBˆ\ÜÙ\›ÚÊÛİ\˜ÙKš[˜ÛY\ÊX\šÙ\ŠK	ÛX™[NˆZ\ÜÚ[™ÈX\šÙ\˜
+NÃBŸCBƒB™[˜İ[Ûˆ\ÜÙ\›İÛÛZ[œÊÛİ\˜ÙKX\šÙ\‹X™[HX\šÙ\ŠHÃBˆ\ÜÙ\›ÚÊ\Ûİ\˜ÙKš[˜ÛY\ÊX\šÙ\ŠK	ÛX™[Nˆ[™^XİYX\šÙ\˜
+NÃBŸCBƒB™[˜İ[Ûˆ\ÜÙ\™Y›Ü™JÛİ\˜ÙKš\œİÙXÛÛ™X™[
+HÃBˆÛÛœİš\œİ[™^HÛİ\˜ÙKš[™^ÙŠš\œİ
+NÃBˆÛÛœİÙXÛÛ™[™^HÛİ\˜ÙKš[™^ÙŠÙXÛÛ™
+NÃBˆ\ÜÙ\›ÚÊš\œİ[™^H	ÛX™[NˆZ\ÜÚ[™Èš\œİX\šÙ\˜
+NÃBˆ\ÜÙ\›ÚÊÙXÛÛ™[™^H	ÛX™[NˆZ\ÜÚ[™ÈÙXÛÛ™X\šÙ\˜
+NÃBˆ\ÜÙ\›ÚÊš\œİ[™^ÙXÛÛ™[™^	ÛX™[NˆÜ™\ˆZ\ÛX]Ú
+NÃBŸCBƒB™[˜İ[Ûˆ\ÜÙ\[™Y›Ü™JÛİ\˜ÙK™Y›Ü™SX\šÙ\‹Y\“X\šÙ\‹X™[
+HÃBˆ]ÙX\˜Úœ›ÛHHÃBˆ]Ûİ[HÃBˆÚ[H
+YJHÃBˆÛÛœİY\’[™^HÛİ\˜ÙKš[™^ÙŠY\“X\šÙ\‹ÙX\˜Úœ›ÛJNÃBˆYˆ
+Y\’[™^
+Hœ™XZÎÃBˆÛÛœİ™Y›Ü™R[™^HÛİ\˜ÙK›\İ[™^ÙŠ™Y›Ü™SX\šÙ\‹Y\’[™^
+NÃBˆ\ÜÙ\›ÚÊ™Y›Ü™R[™^H	ÛX™[NˆZ\ÜÚ[™ÈİX\™™Y›Ü™HØØİ\œ™[˜ÙH	ØÛİ[
+È_X
+NÃBˆÛİ[
+ÏHNÃBˆÙX\˜Úœ›ÛHHY\’[™^
+ÈY\“X\šÙ\‹›[™İÃBˆCBˆ\ÜÙ\›ÚÊÛİ[ˆ	ÛX™[Nˆ›ÈİX\™YØØİ\œ™[˜ÙH›İ[™
+NÃBŸCBƒB™[˜İ[ÛˆÙXİ[ÛŠÛİ\˜ÙKİ\X\šÙ\‹[™X\šÙ\‹X™[
+HÃBˆÛÛœİİ\HÛİ\˜ÙKš[™^ÙŠİ\X\šÙ\ŠNÃBˆ\ÜÙ\›ÚÊİ\H	ÛX™[NˆZ\ÜÚ[™Èİ\X\šÙ\˜
+NÃBˆÛÛœİ[™HÛİ\˜ÙKš[™^ÙŠ[™X\šÙ\‹İ\
+NÃBˆ\ÜÙ\›ÚÊ[™ˆİ\	ÛX™[NˆZ\ÜÚ[™È[™X\šÙ\˜
+NÃBˆ™]\›ˆÛİ\˜ÙKœÛXÙJİ\[™
+NÃBŸCBƒB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK™[˜İ[ÛˆØÙÚÛÜÙTÙ\šXÙT^[Y[[ÙJÜ[ÛœÊH‹˜ÛÛ[[Ûˆ^[Y[[ÙHÙ[XİÜˆŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK™[˜İ[ÛˆØÙ[‘\™XİÜĞÚXÚÛİ]
+Ü[ÛœÊH‹˜ÛÛ[[Ûˆ\™XİÔ•ÈÚXÚÛİ]ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË—ØÙÚÛÜÙTÙ\šXÙT^[Y[[ÙHHØÙÚÛÜÙTÙ\šXÙT^[Y[[ÙH‹œ^[Y[Ù[XİÜˆ^ÜYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË—×ØÙÚÛÜÙTÙ\šXÙT^[Y[[ÙPØ[›ÛšXØ[HØÙÚÛÜÙTÙ\šXÙT^[Y[[ÙH‹˜Ø[›ÛšXØ[^[Y[Ù[XİÜˆ^ÜYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË—×ØÙ™\İÜ™PØ[›ÛšXØ[^[Y[[ÙH‹˜Ø[›ÛšXØ[^[Y[Ù[XİÜˆ™\İÜ™HİX\™ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË—ØÙ[‘\™XİÜĞÚXÚÛİ]HØÙ[‘\™XİÜĞÚXÚÛİ]‹™\™XİÚXÚÛİ]^ÜYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË—ØÙ\Õ™\šYšYYÙ\™\XØÙ\ÜÈHØÙ\Õ™\šYšYYÙ\™\XØÙ\ÜÈ‹œÙ\™\ˆXØÙ\ÜÈİX\™^ÜYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË—×ØÙ\™Xİ^[Y[ÚÚXÙPXİ]™H‹™\™Xİ^[Y[ÚÚXÙHXİ]™H[Ù[ØÚÈŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœÙ\šXÙK™^Xİ]T^[Y[
+È‹™ÛØ˜[ZYØ]H\Ù\ÈÚ\™YÛÛ[X[™Ú[™ÛKY›YÚŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK™˜[˜XÚĞÛİ™\˜YÙKœÛİ\˜ÙHH	ØØXÚWİ[™\šYšYY	ÎÈ‹œ^[Y[[Ù[[[YYX]HØXÚH˜[˜XÚÈŠNÃB˜ÛÛœİ\•\ÙQØ]TÛİ\˜ÙHHÙXİ[ÛŠ[™^Ûİ\˜ÙK™[˜İ[ÛˆØÙ[”\•\ÙPÛÚ[‘Ø]J‹Ú[™İË—×ØÙ[”\•\ÙPÛÚ[‘Ø]Qœ›ÛU[H‹œ\‹]\ÙHØ]HŠNÃB˜\ÜÙ\™Y›Ü™J\•\ÙQØ]TÛİ\˜ÙK—ØÙ™YÚ[”ZY™X]\™R[‘›YÚ
+Xİ[Û‹ZYØ]Q™X]\™RÙ^H‹˜]ØZ]ØÙÚÛÜÙTÙ\šXÙT^[Y[[ÙJÈ‹œZYØ]HÜ[œÈ™Y›Ü™H[YÚXš[]HØZ]ŠNÃBƒB˜\ÜÙ\™Y›Ü™J[™^Ûİ\˜ÙK	Ù]K[[ÙOHœ\ÜË\İÜ™H‰Ë	Ù]K[[ÙOH™\™Xİ‰Ëœ\ÜÈİÜ™HÜ[Ûˆ\X\œÈ™Y›Ü™H\™XİØ\™ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK	Ù]K[[ÙOH›[ÛHˆ]K[[ÛK[Ü[Û‰Ë›[ÛH^[Y[Ü[Ûˆ™\İÜ™YŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK˜\ˆ\ÜÓ[ÙHH	Ü\ÜË\İÜ™IÎÈ‹œ\ÜÈİÜ™H[ÙHŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK˜\ˆ\ÜÑ\ØX›YÛ\ÜÈH	È\Ë\İÜ™IÎÈ‹œ\ÜÈİÜ™Hš\İX[İ]HŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK™\™Xİ\^[Y[\\ÜË\İÜ™K]ŒŒŒŒÈ‹œ\ÜÈİÜ™H[Ù[X\šÙ\ˆŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKšYˆ
+[ÙHOOH	Ü\ÜË\İÜ™IÈ[ÙHOOH	Ü\ÜÉÊH‹œ\ÜÈİÜ™HÚÚXÙH\\ÜÙ\È^[Y[›ØÙ\ÜÚ[™ÈŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË›ØØ][Û‹˜\ÜÚYÛŠ	ËÜÚ[ÏÜÛİ\˜ÙOY\™Xİ\^[Y[\\ÜË\İÜ™IÊNÈ‹œ\ÜÈİÜ™H™Y\™XİŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK	Ù]K\^[Y[\İ]\ÉËœ^[Y[ÚÚXÙHİ]\Èİ]HŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK˜\ˆ[İÓ[ÛPÚÚXÙHH^[Y[[ÙP[İÙY
+ÉÛ[ÛIË	Û[ÛWØÜ™Y]	Ë	Û[ÛÛ›YÚÜİÛ™IË	ÛY[X™\œÚ\ØÜ™Y]	×JH‹›[ÛHÜ[Ûˆ[˜ÛY\È›Ùš[HYÙ[]HŠNÃBƒB˜\ÜÙ\™Y›Ü™J[™^Ûİ\˜ÙK˜\ˆ[İÑ\™XİÚXÚÛİ]XØÙ\ÜĞ\\ÜÈHÜË˜[İÔÙ\™\XØÙ\ÜĞ\\ÜÈOOHYH	‰ˆÜË™›Ü˜ÙQ\™Xİ^[Y[OOHYNÈ‹˜]ØZ]ØÙÜÛ™UŒ”ÙÔ›ÛZ\ÙJ
+H‹™\™XİÚXÚÛİ]Yš[™\ÈHXØÙ\ÜËX\\ÜÈİX\™™Y›Ü™HÜÛ™HÑÈŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKšYˆ
+[Ü™\‹›Y\˜Ú[ZY	‰ˆ[İÑ\™XİÚXÚÛİ]XØÙ\ÜĞ\\ÜÈ	‰ˆØÙ\ĞÚXÚÛİ]XØÙ\ÜĞ\\ÜÈ‹™\™XİÚXÚÛİ]]\İ›İXØÙ\\ÜËØXØÙ\ÜÈ\\ÜÈ[›\ÜÈ^XÚ]H[İÙYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœ›İšY\ˆ	ÔÔ•Ó‘WÕŒ‰È‹”ÜÛ™H›İšY\ˆ[ˆÚXÚÛİ]^[ØYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœÎˆ	ÒÑ×ÒS’PÒTÉÈ‹’ÑÈ[šXÚ\ÈÈ[ˆÚXÚÛİ]^[ØYŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË”ÜÛ™Kœ™\]Y\İ^[Y[
+™\]Y\İ]JH‹”ÜÛ™HŒˆ™\]Y\İ^[Y[Ø[ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœİÜ™RYˆİÜ™RY‹”ÜÛ™HİÜ™RY™\]Y\İšY[ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK˜Ú[›™[Ù^NˆÚ[›™[Ù^H‹”ÜÛ™HÚ[›™[Ù^H™\]Y\İšY[ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœ^[Y[YˆÜ™\‹›Y\˜Ú[ZY‹”ÜÛ™H^[Y[Y™\]Y\İšY[ŠNÃBƒB˜\ÜÙ\™Y›Ü™J[™^Ûİ\˜ÙK—ØÙ\Õ™\šYšYYÙ\™\XØÙ\ÜÊÛÛ™š\›T™\Ëœ^[ØY‹œ™]\›ˆÛÛ™š\›T™\Ëœ^[ØY‹™\™XİÚXÚÛİ]™\šYšY\ÈÙ\™\ˆ™Y›Ü™HİXØÙ\ÜÈ™]\›ˆŠNÃB˜\ÜÙ\[™Y›Ü™J[™^Ûİ\˜ÙK—ØÙ\Õ™\šYšYYÙ\™\XØÙ\ÜÈ‹œÙ\ÜÚ[Û”İÜ˜YÙKœÙ]][J	ØÙÜWÉÈ
+ÈXİ[Û‹	ÌIÊH‹›ØØ[ZYX\šÙ\ˆİX\™YHÙ\™\ˆXØÙ\ÜÈŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœ^[Y[˜Z[Y‹œ^[Y[˜Z[Yİ]HŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKº¬¬;(':¬ ;)§{%ä;"é;c*;e¢;"­zââ:âéˆ‹›XZ[ˆÚ[^[Y[™\šYšXØ][Ûˆ˜Z[\™HY\ÜØYÙHŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKšÛ™^KY›Ü[™K[ÙÛË\^[Y[]^]ŒŒŒŒN‹šÛ™^H›Ü[™HÙÛÈ^[Y[^X\šÙ\ˆŠNÃB‹ËÈ;'¤; ¬;'m:í ;c!H:¬£;'m;b®;&`:¬&{'`ÚXÛÛœËØ\[ÙÛËMLL‹ÙXœ:èg;a­{ejzä&:êm;!'
+ÌŒ
+H;'m:âê;%®;'m:à¨{%f:¬èB‹ËÈ:¬&{'`;'¨{'f;%gˆ:âê:¬á
+™\šYNœÙXİ\š]KZ\™[š[™Êz¬ :ê/;( ;(ï{%­;'¢;%­;"é;c*:¬ :äç:çë:à¦;)à;%b»%f:âéƒB‹ËÈ:¬ :äç;'f;'f:ãá:â¥º¬¬;('û'm;&ªz­£:ã :®,;&):ì¡:è";'m:¬ :î#:ç§:äç:èg:¬è:éo;$í:âé»'m:ëà:èg;f!;'«;(%zìî:¬¯zèg:èg:éç»-¦:âéƒB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK	Ø˜XÚÙÜ›İ[™Z[XYÙNˆ\›
+‹ÚXÛÛœËØ\[ÙÛËMLL‹ÙXœŠIËœ^[Y[Ü\ÜÈİ™\›^H\Ù\Èœ˜[™ÙÛÈ\ÜÙ]ŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœØZSØY\’Û™^SÙÛÑ›Ø]‹œ^[Y[Ü\ÜÈØZ][™ÈÙÛÈ›Ø][š[X][ÛˆŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK’Ó‘VH“Ô•S‘HTÔÈ‹œ\ÜÈ\YYİXØÙ\ÜÈÛÜHŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK’Ó‘VH“Ô•S‘HRQ‹œ^[Y[ÛÛ\]HİXØÙ\ÜÈÛÜHŠNÃB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙKœØZK\^[Y[XÛÜKYœ›Û]ŒŒŒŒNH‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜHœ›ÛX\šÙ\ˆŠNÃB˜ÛÛœİÛ™^Sİ™\›^U^ÜÜÈHÙXİ[ÛŠBˆ[™^Ûİ\˜ÙKBˆ	ÈÜØZSØY\“İ™\›^VÙ]K[X\šÙ\ŸHšÛ™^KY›Ü[™K[ÙÛË\^[Y[]^]ŒŒŒŒN—HœØZK[ØY\‹Y^YXœ›İË	ËBˆ	ÈÜØZSØY\“İ™\›^VÙ]K[[ÙO\^[Y[VÙ]K[X\šÙ\ŸHšÛ™^KY›Ü[™K[ÙÛË\^[Y[]^]ŒŒŒŒN—HœØZK[ØY\‹\›ÙÜ™\ÜÉËBˆšÛ™^H^[Y[İ™\›^H^ÜÜÈƒBŠNÃB˜\ÜÙ\ÛÛZ[œÊÛ™^Sİ™\›^U^ÜÜËœÜÚ][Ûˆ™[]]™HZ[\Ü[‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜH\Èš\ÚX›HŠNÃB˜\ÜÙ\ÛÛZ[œÊÛ™^Sİ™\›^U^ÜÜË‹Z[™^ˆ‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜHİ^\È[ˆœ›ÛŠNÃB˜\ÜÙ\ÛÛZ[œÊÛ™^Sİ™\›^U^ÜÜËÚ]K\ÜXÙNˆ›Ü›X[Z[\Ü[‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜHÜ˜\ÈŠNÃB˜\ÜÙ\ÛÛZ[œÊÛ™^Sİ™\›^U^ÜÜË›İ™\™›İË]Ü˜\ˆœ™XZË]ÛÜ™‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜH]›ÚYÈİ™\™›İÈŠNÃB˜\ÜÙ\›İÛÛZ[œÊÛ™^Sİ™\›^U^ÜÜËœÜÚ][ÛˆXœÛÛ]HZ[\Ü[‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜH]\İ›İ™Hš\İX[HY[ˆŠNÃB˜\ÜÙ\›İÛÛZ[œÊÛ™^Sİ™\›^U^ÜÜË˜Û\ˆ™Xİ‹œ^[Y[Ü\ÜÈØZ][™ÈÛÜH]\İ›İ™HÛ\YŠNÃB‹ËÈ<'å-:¬¬;(':éâ;"©;/e;b®:â¥
+Šºêe;'n;!':îa;"©:èg:¬è
+È:¬¯zçâH;'¤; ¬
+Š»'m;%­;%o;eg:âéˆ;&";(!;%ä:â¥;&n:í ;f.;"©;b®;'fÌRĞˆ‘È:éoB‹ËÈ;)à{($H;,.;(l;e¢:¬èÔÔÈ:¬ Ø\šXKZY[H™˜[ÙH—H:èg:¬£;'m;b®:ãï;&):ì¡:è";'m:éo;%ë:â¥;"':¬!
+zâê:¬m:¬¬;(';`m:é«H;)à{fá
+CB‹ËÈ;,¦;'c;&¥;,«{'m:à¦:¬ ÚXÚÛİ]ÔÜÛ™HÑÈ;&`:ã ;%ë{cë{'a:âé;bg:âé8¡¤ˆºá);b®;&ã;`k;&):éf
+Èû,/H:ëî:án;-§‹ƒB‹ËÈ:ãæ{'o;&):é«;)áÌ’Ğˆ:èg:¬è:èg:¬è;(%{eg:âé8 %XY;%ä™[\™[ØY™]Úš[Üš]OZYÚ:¬ ;'m:ëî;'¢;%­B‹ËÈ:¬¬;(';`m:é«H;"ç;($;%ä:â¥;&ã;%á;.¤;"ç;'m:¬è;`m:é«H;'¡:¬á:¬¯zèg;%ä;-¥:¬ :á);b®;&ã;`k:¬ ;'m:âéƒB˜\ÜÙ\ÛÛZ[œÊ[™^Ûİ\˜ÙK‹˜Ù\ZYYØ]W×ÜÜš]KYœ˜[Y^ÜÜÚ][Ûœ™[]]™NİÚYŒL	NÚZYÚŒL	NØ˜XÚÙÜ›İ[™Z[XYÙN\›
+‹ÚXÛÛœËØ\[ÙÛËMLL‹ÙXœ‹œZYØ]HÜš]H\Ù\ÈH™[ØYYØ[YK[ÜšYÚ[ˆÙ\šXÙHÙÛÈŠNÃB˜\ÜÙ\›İÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË˜[\
+	úâê:¬m:¬¬;(':¬ ;&a:èã:ä&;%­;%í:ç£:ä&;%â;"­zââ:âé‰ÊNÈ‹œÚ[™ÛH^[Y[İXØÙ\ÜÈ\Ù\È\ÚYÛ™Yİ™\›^H[œİXYÙˆ[\ŠNÃB˜\ÜÙ\›İÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË˜[\
+ØÙ\ÓY[X™\œÚ\œ™YT^[ØY
+™\İ[œ^[ØY
+HÈ	û'm;&ªz­£;'/:èg;%í:ç£:ä&;%â;"­zââ:âé‰Èˆ	û&å;(%{!'H; «;&ª{'m;&a:èã:ä&;%â;"­zââ:âé‰ÊNÈ‹[›ØÚÈ[ÛKÜ\ÜÈİXØÙ\ÜÈ\Ù\È\ÚYÛ™Yİ™\›^H[œİXYÙˆ[\ŠNÃB˜\ÜÙ\›İÛÛZ[œÊ[™^Ûİ\˜ÙKÚ[™İË˜[\
+ØÙ\ÓY[X™\œÚ\œ™YT^[ØY
+‹œ^[ØY
+HÈ	û'm;&ªz­£;'/:èg;%í:ç£:ä&;%â;"­zââ:âé‰Èˆ	û&å;(%{!'H; «;&ª{'m;&a:èã:ä&;%â;"­zââ:âé‰ÊNÈ‹[H[ÛKÜ\ÜÈİXØÙ\ÜÈ\Ù\È\ÚYÛ™Yİ™\›^H[œİXYÙˆ[\ŠNÃBƒB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙKš\Õ™\šYšYYš[[™ĞXØÙ\ÜÈ‹”™XXİš[[™ÈXØÙ\ÜÈİX\™ŠNÃB˜\ÜÙ\™Y›Ü™Jš[[™ĞÛY[Ûİ\˜ÙKšYˆ
+Z\Õ™\šYšYYš[[™ĞXØÙ\ÜÊ\œÙY™]H‹›X\šÔZY][\^[Y[İXØÙYYY
 
-const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
-const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
-const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
-const paymentProcessingContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
-const loadingMessagesSource = readFileSync(resolve(root, "constants/loadingMessages.ts"), "utf8");
-const billingRouteSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
-const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
-const tarotLoveSource = readFileSync(resolve(root, "js/tarot-love-experience.js"), "utf8");
-const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
-const fortuneTeaHouseSource = readFileSync(resolve(root, "src/features/fortune-tea-house/FortuneTeaHousePage.tsx"), "utf8");
-const neoOperationRoomSource = readFileSync(resolve(root, "src/features/neo-war-room/NeoOperationRoomPage.tsx"), "utf8");
-const reactGateFirstFeatureSources = [
-  {
-    label: "life-book-ai",
-    source: readFileSync(resolve(root, "app/life-book-ai/LifeBookAiClient.tsx"), "utf8"),
-    // ì„ ê²€ì‚¬ í˜¸ì¶œì€ app/life-book-ai/lifeBookApi.ts ì˜ prepareLifeBook ë¡œ ì˜®ê²¼ë‹¤(authFetch + ì¼ì‹œì¥ì•  ì¬ì‹œë„ + íƒ€ì„ì•„ì›ƒ).
-    // ê³„ì•½(ê²Œì´íŠ¸ ì˜¤í”ˆ â†’ ì„ ê²€ì‚¬ â†’ ê²°ì œì°½)ì€ ê·¸ëŒ€ë¡œë‹¤.
-    api: "prepareLifeBook<PrepareResult>(",
-    checkout: "runBillingCoinGate",
-  },
-  {
-    label: "love-secret-ai",
-    source: readFileSync(resolve(root, "app/love-secret-ai/LoveSecretAiClient.tsx"), "utf8"),
-    api: 'postJson<EnsureAccessResult>("/api/love-secret-ai/prepare"',
-    checkout: "runLoveSecretPaymentGate",
-  },
-  {
-    label: "new-year-ai",
-    source: readFileSync(resolve(root, "app/new-year-ai-consultation/NewYearAiClient.tsx"), "utf8"),
-    api: 'postJson<EnsureAccessResult>("/api/new-year-ai/ensure-access"',
-    checkout: "runBillingCoinGate",
-  },
-  {
-    label: "astrology-ai",
-    source: readFileSync(resolve(root, "app/astrology-ai/AstrologyAiClient.tsx"), "utf8"),
-    api: "postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess",
-    checkout: "runBillingCoinGate",
-  },
-  {
-    label: "ziwei-ai",
-    source: readFileSync(resolve(root, "app/ziwei-ai/ZiweiAiClient.tsx"), "utf8"),
-    api: 'postJson<ApiResult>("/api/ziwei-ai/prepare"',
-    checkout: "runBillingCoinGate",
-  },
-  {
-    label: "vedic-ai",
-    source: readFileSync(resolve(root, "app/vedic-ai/VedicAiClient.tsx"), "utf8"),
-    api: '"/api/vedic-ai/ensure-access"',
-    checkout: "runBillingCoinGate",
-  },
-  {
-    label: "sukuyo-compatibility-ai",
-    source: readFileSync(resolve(root, "app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx"), "utf8"),
-    api: '"/api/sukuyo-compatibility-ai/prepare"',
-    checkout: "runBillingCoinGate",
-  },
-  {
-    label: "karma-destiny-ai",
-    source: readFileSync(resolve(root, "app/karma-destiny-ai/KarmaDestinyAiClient.tsx"), "utf8"),
-    api: 'postJson<EnsureAccessResult>("/api/karma-destiny-ai/ensure-access"',
-    checkout: "runCommonBillingGate",
-  },
-  {
-    label: "master-love-codex",
-    source: readFileSync(resolve(root, "src/features/master-love-codex/MasterLoveCodexPage.tsx"), "utf8"),
-    api: '"/api/master-love-codex/ensure-access"',
-    checkout: "runBillingCoinGate",
-  },
-];
-
-function assertContains(source, marker, label = marker) {
-  assert.ok(source.includes(marker), `${label}: missing marker`);
-}
-
-function assertNotContains(source, marker, label = marker) {
-  assert.ok(!source.includes(marker), `${label}: unexpected marker`);
-}
-
-function assertBefore(source, first, second, label) {
-  const firstIndex = source.indexOf(first);
-  const secondIndex = source.indexOf(second);
-  assert.ok(firstIndex >= 0, `${label}: missing first marker`);
-  assert.ok(secondIndex >= 0, `${label}: missing second marker`);
-  assert.ok(firstIndex < secondIndex, `${label}: order mismatch`);
-}
-
-function assertAllBefore(source, beforeMarker, afterMarker, label) {
-  let searchFrom = 0;
-  let count = 0;
-  while (true) {
-    const afterIndex = source.indexOf(afterMarker, searchFrom);
-    if (afterIndex < 0) break;
-    const beforeIndex = source.lastIndexOf(beforeMarker, afterIndex);
-    assert.ok(beforeIndex >= 0, `${label}: missing guard before occurrence ${count + 1}`);
-    count += 1;
-    searchFrom = afterIndex + afterMarker.length;
-  }
-  assert.ok(count > 0, `${label}: no guarded occurrence found`);
-}
-
-function section(source, startMarker, endMarker, label) {
-  const start = source.indexOf(startMarker);
-  assert.ok(start >= 0, `${label}: missing start marker`);
-  const end = source.indexOf(endMarker, start);
-  assert.ok(end > start, `${label}: missing end marker`);
-  return source.slice(start, end);
-}
-
-assertContains(indexSource, "function _cdChooseServicePaymentMode(options)", "common payment mode selector");
-assertContains(indexSource, "function _cdRunDirectKrwCheckout(options)", "common direct KRW checkout");
-assertContains(indexSource, "window._cdChooseServicePaymentMode = _cdChooseServicePaymentMode", "payment selector exported");
-assertContains(indexSource, "window.__cdChooseServicePaymentModeCanonical = _cdChooseServicePaymentMode", "canonical payment selector exported");
-assertContains(indexSource, "window.__cdRestoreCanonicalPaymentMode", "canonical payment selector restore guard");
-assertContains(indexSource, "window._cdRunDirectKrwCheckout = _cdRunDirectKrwCheckout", "direct checkout exported");
-assertContains(indexSource, "window._cdHasVerifiedServerAccess = _cdHasVerifiedServerAccess", "server access guard exported");
-assertContains(indexSource, "window.__cdDirectPaymentChoiceActive", "direct payment choice active modal lock");
-assertContains(indexSource, "service.executePayment({", "global paid gate uses shared command single-flight");
-assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "payment modal immediate cache fallback");
-const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", "window.__cdRunPerUseCoinGateFromTile", "per-use gate");
-assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
-
-assertBefore(indexSource, 'data-mode="pass-store"', 'data-mode="direct"', "pass store option appears before direct card");
-assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment option restored");
-assertContains(indexSource, "var passMode = 'pass-store';", "pass store mode");
-assertContains(indexSource, "var passDisabledClass = ' is-store';", "pass store visual state");
-assertContains(indexSource, "direct-payment-pass-store-v20260607", "pass store modal marker");
-assertContains(indexSource, "if (mode === 'pass-store' || mode === 'pass')", "pass store choice bypasses payment processing");
-assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "pass store redirect");
-assertContains(indexSource, 'data-payment-status', "payment choice status state");
-assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly option includes profile add/delete");
-
-assertBefore(indexSource, "var allowDirectCheckoutAccessBypass = opts.allowServerAccessBypass === true && opts.forceDirectPayment !== true;", "await _cdPortOneV2SdkPromise()", "direct checkout defines the access-bypass guard before PortOne SDK");
-assertContains(indexSource, "if (!order.merchantUid && allowDirectCheckoutAccessBypass && _cdIsCheckoutAccessBypass", "direct checkout must not accept pass/access bypass unless explicitly allowed");
-assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");
-assertContains(indexSource, "pg: 'KG_INICIS'", "KG Inicis pg in checkout payload");
-assertContains(indexSource, "window.PortOne.requestPayment(requestData)", "PortOne V2 requestPayment call");
-assertContains(indexSource, "storeId: storeId", "PortOne storeId request field");
-assertContains(indexSource, "channelKey: channelKey", "PortOne channelKey request field");
-assertContains(indexSource, "paymentId: order.merchantUid", "PortOne paymentId request field");
-
-assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "direct checkout verifies server before success return");
-assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setItem('cd_pa_' + action, '1')", "local paid marker guarded by server access");
-assertContains(indexSource, "paymentFailed", "payment failed state");
-assertContains(indexSource, "ê²°ì œ ê²€ì¦ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.", "main shell payment verification failure message");
-assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-// ìì‚°ì´ ë¶€íŒ… ê²Œì´íŠ¸ì™€ ê°™ì€ /icons/app-logo-512.webp ë¡œ í†µí•©ë˜ë©´ì„œ(#200) ì´ ë‹¨ì–¸ì´ ë‚¡ì•˜ê³ ,
-// ê°™ì€ ì¡ì˜ ì• ë‹¨ê³„(verify:security-hardening)ê°€ ë¨¼ì € ì£½ì–´ ìˆì–´ ì‹¤íŒ¨ê°€ ë“œëŸ¬ë‚˜ì§€ ì•Šì•˜ë‹¤.
-// ê°€ë“œì˜ ì˜ë„ëŠ” "ê²°ì œ/ì´ìš©ê¶Œ ëŒ€ê¸° ì˜¤ë²„ë ˆì´ê°€ ë¸Œëœë“œ ë¡œê³ ë¥¼ ì“´ë‹¤"ì´ë¯€ë¡œ í˜„ì¬ ì •ë³¸ ê²½ë¡œë¡œ ë§ì¶˜ë‹¤.
-assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp")', "payment/pass overlay uses brand logo asset");
-assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
-assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
-assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
-assertContains(indexSource, "saju-payment-copy-front-v20260619", "payment/pass waiting copy front marker");
-const honeyOverlayTextCss = section(
-  indexSource,
-  '#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-eyebrow,',
-  '#sajuLoaderOverlay[data-mode=payment][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress',
-  "honey payment overlay text css"
-);
-assertContains(honeyOverlayTextCss, "position: relative !important", "payment/pass waiting copy is visible");
-assertContains(honeyOverlayTextCss, "z-index: 4", "payment/pass waiting copy stays in front");
-assertContains(honeyOverlayTextCss, "white-space: normal !important", "payment/pass waiting copy wraps");
-assertContains(honeyOverlayTextCss, "overflow-wrap: break-word", "payment/pass waiting copy avoids overflow");
-assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment/pass waiting copy must not be visually hidden");
-assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
-// ğŸ”´ ê²°ì œ ë§ˆìŠ¤ì½”íŠ¸ëŠ” **ë©”ì¸ ì„œë¹„ìŠ¤ ë¡œê³  + ê²½ëŸ‰ ìì‚°**ì´ì–´ì•¼ í•œë‹¤. ì˜ˆì „ì—ëŠ” ì™¸ë¶€ í˜¸ìŠ¤íŠ¸ì˜ 725KB PNG ë¥¼
-// ì§ì ‘ ì°¸ì¡°í–ˆê³ , CSS ê°€ [aria-hidden="false"] ë¡œ ê²Œì´íŠ¸ë¼ ì˜¤ë²„ë ˆì´ë¥¼ ì—¬ëŠ” ìˆœê°„(=ë‹¨ê±´ê²°ì œ í´ë¦­ ì§í›„)
-// ì²˜ìŒ ìš”ì²­ì´ ë‚˜ê°€ checkout/PortOne SDK ì™€ ëŒ€ì—­í­ì„ ë‹¤í‰œë‹¤ â†’ "ë„¤íŠ¸ì›Œí¬ ì˜¤ë¥˜ + PGì°½ ë¯¸ë…¸ì¶œ".
-// ë™ì¼ ì˜¤ë¦¬ì§„ 32KB ë¡œê³ ë¡œ ê³ ì •í•œë‹¤ â€” head ì— rel=preload fetchpriority=high ê°€ ì´ë¯¸ ìˆì–´
-// ê²°ì œ í´ë¦­ ì‹œì ì—ëŠ” ì›Œì—„ ìºì‹œì´ê³ , í´ë¦­ ì„ê³„ê²½ë¡œì— ì¶”ê°€ ë„¤íŠ¸ì›Œí¬ê°€ 0 ì´ë‹¤.
-assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/app-logo-512.webp", "paid gate sprite uses the preloaded same-origin service logo");
-assertNotContains(indexSource, "window.alert('ë‹¨ê±´ ê²°ì œê°€ ì™„ë£Œë˜ì–´ ì—´ëŒë˜ì—ˆìŠµë‹ˆë‹¤.');", "single payment success uses designed overlay instead of alert");
-assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? 'ì´ìš©ê¶Œìœ¼ë¡œ ì—´ëŒë˜ì—ˆìŠµë‹ˆë‹¤.' : 'ì›”ì •ì„ ì‚¬ìš©ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.');", "unlock monthly/pass success uses designed overlay instead of alert");
-assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? 'ì´ìš©ê¶Œìœ¼ë¡œ ì—´ëŒë˜ì—ˆìŠµë‹ˆë‹¤.' : 'ì›”ì •ì„ ì‚¬ìš©ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.');", "tile monthly/pass success uses designed overlay instead of alert");
-
-assertContains(billingClientSource, "hasVerifiedBillingAccess", "React billing access guard");
-assertBefore(billingClientSource, "if (!hasVerifiedBillingAccess(parsed.data", "markPaidAttemptPaymentSucceeded()", "React billing verifies before success");
-assertContains(billingClientSource, "SERVER_ACCESS_GRANT_MISSING", "React server grant missing error");
-assertContains(billingClientSource, "ì„œë²„ ê¶Œí•œ ê²€ì¦ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤", "React server verification failure message");
-assertContains(billingClientSource, "billingCoinGateInFlight", "React in-flight duplicate guard");
-assertContains(billingClientSource, "export function beginPaidFeatureGateCheck", "React paid feature gate check helper");
-assertContains(billingClientSource, 'status: "checkingEntitlement"', "React paid feature gate starts from entitlement check");
-assertContains(billingClientSource, "export function completePaidFeatureGateCheck", "React paid feature gate complete helper");
-assertContains(billingClientSource, "export function failPaidFeatureGateCheck", "React paid feature gate failure helper");
-assertContains(billingClientSource, 'status: cancelled ? "cancelled" : "error"', "React paid feature gate cancellation status");
-assertContains(billingClientSource, 'status: runtimeCode === "PAYMENT_CANCELLED" ? "cancelled" : "paymentFailed"', "React runtime cancellation is not payment failure");
-assertContains(billingClientSource, "const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;", "React checkout timeout is long enough for PG setup");
-assertContains(billingClientSource, "const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;", "React confirm timeout is long enough for payment verification");
-assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React coin gate uses confirm timeout");
-assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React billing confirm uses confirm timeout");
-assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "React payment verification must not use shared 14s mutation timeout");
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-0e80aaf07557"', "React paid runtime cache key includes the final pass verification fix");
-assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
-assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
-assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
-assertContains(billingClientSource, "const monthlyApplied = candidates.some(isMonthlyCreditAccessType);", "React monthly-credit success is resolved before pass success");
-assertContains(billingClientSource, "resolveAppliedBillingPayment(runtimeData, requestedMode, passFirstEligible", "React coin-gate success uses applied payment resolver");
-// ì´ìš©ê¶Œ í™•ì¸ì´ ì‹¤íŒ¨/ì§€ì—°ìœ¼ë¡œ ì£½ì–´ë„ ê²°ì œì°½(ë‹¨ê±´+ì›”ì •ì„)ì´ ì—´ë ¤ì•¼ í•œë‹¤ â€” í´ë°± ëŒ€ìƒ ì½”ë“œ ë³´ê°• íšŒê·€ ë°©ì§€.
-const reactPaymentFallbackSource = section(
-  billingClientSource,
-  "function shouldOpenRuntimePaymentFallback(",
-  "function shouldRedirectToLoginAfterBilling(",
-  "React runtime payment fallback",
-);
-assertContains(reactPaymentFallbackSource, 'normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary pass-status 503");
-assertContains(reactPaymentFallbackSource, 'normalizedCode === "BILLING_REQUEST_TIMEOUT"', "React payment fallback opens on client abort timeout 503");
-// ì„œë²„ degraded í‘œë©´í™”(680114ad)ë¡œ ìƒˆë¡œ ë‚´ë ¤ì˜¤ëŠ” ì¸ì¦/ìŠ¤ëƒ…ìƒ· 503ë„ dead-end ëŒ€ì‹  ê²°ì œì°½ì„ ì—´ì–´ì•¼ í•œë‹¤.
-assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary auth-status 503");
-assertContains(reactPaymentFallbackSource, 'normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"', "React payment fallback opens on degraded balance snapshot 503");
-assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILABLE"', "React payment fallback opens on degraded auth-db 503");
-// degraded-503ì€ ê²°ì œì°½ì„ ì—´ê¸° ì „ì— ë¨¼ì € ì¬ì‹œë„í•´ ì´ìš©ê¶Œ ë³´ìœ ìì˜ ë¬´ë£Œ í†µê³¼ë¥¼ ì‚´ë¦°ë‹¤(ì¬ì‹œë„-ìš°ì„ ).
-assertNotContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React payment POST is not automatically retried");
-
-// ğŸ”´ ì”ëŸ‰ 'ì¡°íšŒ ì‹¤íŒ¨'ë¥¼ 'ì”ëŸ‰ ë¶€ì¡±'ê³¼ ê°™ì´ ë¬¶ì–´ ì›”ì •ì„ ë²„íŠ¼ì„ ë¹„í™œì„±í•˜ë©´, ì¬ì¡°íšŒê°€ ê³„ì† ì‹¤íŒ¨í•  ë•Œ
-// ì›”ì •ì„ì´ ì˜êµ¬ íšŒìƒ‰ì´ ë¼ ê²°ì œ ìì²´ê°€ ë¶ˆê°€ëŠ¥í•´ì§„ë‹¤(2026-08 /naming-ai ì‚¬ê³ : íšŒë‹¹ê²°ì œëŠ” eligibility
-// ì™•ë³µì„ ê±´ë„ˆë›°ì–´ ê²°ì œì°½ì´ í•­ìƒ 'í™•ì¸ í•„ìš”'ë¡œ ì—´ë¦¬ë¯€ë¡œ, ìë™ ì¬ì¡°íšŒ 1íšŒì˜ ì‹¤íŒ¨ê°€ ê³§ ê²°ì œ ë¶ˆê°€ì˜€ë‹¤).
-// ê²°ì œ í›„ ì¬ë…¸ì¶œ ê²½ë¡œì—ëŠ” verify-static-paid-gate-failsafe.mjs ê°€ ì´ë¯¸ ê°™ì€ ê³„ì•½ì„ ê°•ì œí•œë‹¤ â€”
-// ì—¬ê¸°ì„œëŠ” 'ì”ëŸ‰ ì¡°íšŒ' ê²½ë¡œì— ëŒ€í•´ 3ë Œë”ëŸ¬ ëª¨ë‘ë¥¼ ê°•ì œí•œë‹¤. í™•ì¸ëœ ì”ëŸ‰ì´ í•„ìš”ë¶„ë³´ë‹¤ ì ì„ ë•Œë§Œ ë¹„í™œì„±.
-const reactMoonlightApplySource = section(
-  billingClientSource,
-  "const applyMoonlightBalance = (rawBalance: number | null",
-  "const refreshMonthlyBalance = async (",
-  "React moonlight balance apply",
-);
-assertContains(reactMoonlightApplySource, "const insufficient = known && balance < monthlyCost;", "React moonlight disable is decided by confirmed shortage only");
-assertContains(reactMoonlightApplySource, 'const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;', "React moonlight stays enabled while the balance is unconfirmed");
-assertNotContains(reactMoonlightApplySource, "const canUse = known && monthlyCost > 0 && balance >= monthlyCost;", "React moonlight must not treat a failed lookup as insufficient");
-assertContains(reactMoonlightApplySource, "lastKnownMonthlyBalance", "React moonlight keeps the last confirmed balance across a failed refresh");
-assertContains(billingClientSource, "const snapshotMonthlyBalance = hasCallerMonthlyBalance ? 0 : readSubscriptionSnapshotMonthlyBalance();", "React payment choice seeds the moonlight balance from the local subscription snapshot");
-
-const shellMoonlightRefreshSource = section(
-  indexSource,
-  "async function refreshDirectMonthlyBalance(options)",
-  "function close(mode)",
-  "shell moonlight balance refresh",
-);
-assertContains(
-  shellMoonlightRefreshSource,
-  "canUseMonthly = allowMonthlyChoice && requiredMonthlyCredits > 0 && (!monthlyBalanceFresh || monthlyBalance >= requiredMonthlyCredits);",
-  "shell moonlight stays enabled while the balance is unconfirmed",
-);
-assertNotContains(
-  shellMoonlightRefreshSource,
-  "canUseMonthly = monthlyBalanceFresh && monthlyBalance >= requiredMonthlyCredits",
-  "shell moonlight must not treat a failed lookup as insufficient",
-);
-assertNotContains(
-  shellMoonlightRefreshSource,
-  "if (silent && !monthlyBalanceFresh && previousMonthlyBalanceFresh)",
-  "shell keeps the last confirmed balance on manual refresh failure too, not only silent ones",
-);
-
-const standaloneMoonlightApplySource = section(
-  destinyProfileSource,
-  "function applyStandaloneMoonbal(state, balance)",
-  "function refreshStandaloneMoonbal(",
-  "standalone moonlight balance apply",
-);
-assertContains(standaloneMoonlightApplySource, "var insufficient = known && balance < monthlyStones;", "standalone moonlight disable is decided by confirmed shortage only");
-assertContains(standaloneMoonlightApplySource, "lastKnownStandaloneBalance", "standalone moonlight keeps the last confirmed balance across a failed refresh");
-// ì„œë²„ëŠ” ê²ŒìŠ¤íŠ¸/ë§Œë£Œ í† í°ì— 200 + authenticated:false + ì”ì•¡ 0 ì„ ì¤€ë‹¤. ok ë¥¼ ë¨¼ì € ê²€ì‚¬í•˜ë©´ ê·¸ 0 ì´
-// 'ì”ì—¬ í™•ì¸ ì™„ë£Œ Â· í˜„ì¬ 0ê°œ'ë¡œ ë Œë”ë¼ ì›”ì •ì„ì´ ì ê¸´ë‹¤ â€” signedOut ì„ ë°˜ë“œì‹œ ë¨¼ì € ë³¸ë‹¤.
-const standaloneMoonlightRefreshSource = section(
-  destinyProfileSource,
-  "function refreshStandaloneMoonbal(fresh)",
-  "function finish(choice)",
-  "standalone moonlight balance refresh",
-);
-assertBefore(
-  standaloneMoonlightRefreshSource,
-  "if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);",
-  "else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);",
-  "standalone moonlight checks signed-out before treating a zero balance as confirmed",
-);
-
-// ì¸ì¦ ì˜ˆì—´ì´ ë¬´í•œ ëŒ€ê¸°í•˜ë©´ ê²Œì´íŠ¸ê°€ 'ì´ìš©ê¶Œ í™•ì¸ ì¤‘'ì—ì„œ ê³ ì°©í•œë‹¤ â€” Promise.race ìƒí•œ íšŒê·€ ë°©ì§€.
-const reactAuthPrewarmSource = section(
-  billingClientSource,
-  "ê²Œì´íŠ¸ ì§„ì… ì „ ì¸ì¦ì„ ì˜ˆì—´í•œë‹¤.",
-  "const activeAttempt = beginPaidAttempt(",
-  "React billing auth pre-warm",
-);
-assertNotContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm leaves no competing request");
-assertContains(reactAuthPrewarmSource, "refreshAuth({ force: true, silent: true })", "React billing auth pre-warm still refreshes");
-assertContains(billingClientSource, "paymentService.executePayment", "React paid commands use the shared Payment Service");
-assertContains(indexSource, "CodeDestinyPaymentService", "static shell paid commands use the shared Payment Service");
-assertContains(destinyProfileSource, "CodeDestinyPaymentService", "standalone paid commands use the shared Payment Service");
-
-// openPaidFeatureGate + runBillingCoinGate íŒ¨í„´ ê¸°ëŠ¥ë„ ê³µí†µ ê²Œì´íŠ¸ë¥¼ ê±°ì³ì•¼ í•œë‹¤(ì§ì ‘ PortOne/points ì§í–‰ ê¸ˆì§€).
-const gateRunBillingFeatureSources = [
-  { label: "destiny-meeting-place", source: readFileSync(resolve(root, "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx"), "utf8") },
-  { label: "destiny-bias", source: readFileSync(resolve(root, "app/saju/destiny-bias/DestinyBiasClient.tsx"), "utf8") },
-  { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
-];
-for (const feature of gateRunBillingFeatureSources) {
-  const commonGateMarker = feature.source.includes("runPaidAccessGate") ? "runPaidAccessGate" : "runBillingCoinGate";
-  assertContains(feature.source, "openPaidFeatureGate", `${feature.label} opens paid gate overlay`);
-  assertContains(feature.source, commonGateMarker, `${feature.label} routes through common billing gate`);
-  assertBefore(feature.source, "openPaidFeatureGate(", `${commonGateMarker}(`, `${feature.label} opens gate before billing`);
-  assertNotContains(feature.source, "window.PortOne.requestPayment", `${feature.label} must not run custom PortOne checkout`);
-  assertNotContains(feature.source, 'fetch("/api/billing/coin-gate"', `${feature.label} must not bypass common coin-gate`);
-  assertNotContains(feature.source, "/points?source=", `${feature.label} must not jump straight to charge page`);
-}
-
-const reactWaitKindSource = section(billingClientSource, "function resolvePaymentWaitKind(", "function formatLoadingMessage", "React payment wait kind");
-assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
-assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
-assertNotContains(reactWaitKindSource, "ì´ìš©ê¶Œìœ¼ë¡œ|membership", "React pass wait kind must not use broad membership regex");
-
-const reactBillingOverlayOwnershipSource = section(billingClientSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaymentWaitKind", "React billing overlay ownership");
-assertNotContains(reactBillingOverlayOwnershipSource, '"checkingEntitlement"', "React billing entitlement check must stay in paid gate UI");
-assertNotContains(reactBillingOverlayOwnershipSource, '"hasEntitlement"', "React billing pass success must stay in paid gate UI");
-assertNotContains(reactBillingOverlayOwnershipSource, '"paymentSuccess"', "React billing payment success must stay in paid gate UI");
-assertNotContains(reactBillingOverlayOwnershipSource, '"paymentWindowOpen"', "React billing must not keep overlay during external PG window");
-const reactBillingGateEmitSource = section(billingClientSource, "function emitPaidFeatureGate(", "function resolvePaidFeatureInFlightKey", "React billing paid gate emit");
-assertBefore(reactBillingGateEmitSource, 'if (action !== "close" && isExternalPaymentWindowStatus(status))', 'if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status))', "React billing closes overlays before PG window owns focus");
-assertContains(reactBillingGateEmitSource, "emitPaymentLoadingState(false);", "React billing closes payment overlay for PG window");
-const reactProviderOverlayOwnershipSource = section(paymentProcessingContextSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaidFeatureStatusOverlay", "React provider overlay ownership");
-assertNotContains(reactProviderOverlayOwnershipSource, '"checkingEntitlement"', "React provider entitlement check must stay in paid gate UI");
-assertNotContains(reactProviderOverlayOwnershipSource, '"hasEntitlement"', "React provider pass success must stay in paid gate UI");
-assertNotContains(reactProviderOverlayOwnershipSource, '"paymentSuccess"', "React provider payment success must stay in paid gate UI");
-assertNotContains(reactProviderOverlayOwnershipSource, '"paymentWindowOpen"', "React provider must not keep overlay during external PG window");
-assertContains(paymentProcessingContextSource, "function isMonthlyPaidFeatureDetail", "React provider has monthly paid-feature resolver");
-assertContains(paymentProcessingContextSource, "<PaidFeatureGateProvider>", "React app connects paid gate provider globally");
-assertContains(paymentProcessingContextSource, 'checkingEntitlement: { label: "í™•ì¸ ì¤‘", title: "ì´ìš©ê¶Œ í™•ì¸"', "React paid gate checking entitlement copy");
-assertContains(paymentProcessingContextSource, 'cancelled: { label: "ì·¨ì†Œë¨", title: "ê²°ì œ ì„ íƒ ì·¨ì†Œ"', "React paid gate cancelled copy");
-assertNotContains(paymentProcessingContextSource, 'document.body.style.overflow = "hidden"', "React paid gate must not lock mobile body scroll");
-const reactProviderStatusOverlaySource = section(paymentProcessingContextSource, "function resolvePaidFeatureStatusOverlay(", "function nowForPaidGate", "React provider paid status overlay");
-assertBefore(reactProviderStatusOverlaySource, "isMonthlyPaidFeatureDetail(resolvedDetail)", "isPassPaidFeatureDetail(resolvedDetail)", "React provider resolves monthly success before pass success");
-assertContains(reactProviderStatusOverlaySource, 'return { message: "ì›”ì •ì„ì´ ê¹ƒë“¤ê³  ìˆì–´ìš”", mode: "payment-complete" };', "React provider monthly success copy");
-assertContains(loadingMessagesSource, 'title: "ì—°ì´ì˜ ì›”ì •ì„ Â· ê¹ƒë“¤ê³  ìˆì–´ìš”"', "React payment loading monthly success title");
-assertNotContains(loadingMessagesSource, 'title: "ì´ìš©ê¶Œì´ í™œì„±í™”ë˜ê³  ìˆì–´ìš”"', "React payment loading must not show pass copy for monthly success");
-const reactProviderOpenSource = section(paymentProcessingContextSource, "const open = useCallback", "const update = useCallback", "React provider open");
-assertBefore(reactProviderOpenSource, "if (isExternalPaymentWindowStatus(status))", "if (paymentLoadingOwnsPaidFeatureStatus(status))", "React provider closes overlays before opening payment loading");
-const reactProviderUpdateSource = section(paymentProcessingContextSource, "const update = useCallback", "const preload = useCallback", "React provider update");
-assertBefore(reactProviderUpdateSource, "if (isExternalPaymentWindowStatus(requestedStatus))", "if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus))", "React provider update closes overlays before payment loading");
-const reactOverlayApplySource = section(paymentProcessingContextSource, "const applyReactPaymentOverlay = useCallback", "useEffect(() => {", "React payment overlay apply");
-assertBefore(reactOverlayApplySource, "if (!previous.open) {", "stopProcessing();", "React provider closes directly-started payment overlay on global close");
-assertContains(reactOverlayApplySource, "closeProcessingNow();", "React provider direct payment overlay close");
-
-assertContains(billingRouteSource, "consumeTierPassIfAvailable", "tier pass consume path");
-assertNotContains(billingRouteSource, ["consume", "Usage", "Pass", "If", "Available"].join(""), "removed usage pass consume path");
-assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");
-assertContains(billingRouteSource, "paymentCommand.method === PAYMENT_METHODS.MONTHLY", "monthly mode stays separate");
-assertContains(indexSource, "paymentMode: 'DIRECT_KRW'", "direct mode stays separate");
-assertContains(indexSource, "paymentMode: 'MOONLIGHT_STONE'", "post-modal monthly route remains explicit");
-assertNotContains(indexSource, "perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal per-use route cannot fall back to membership pass");
-assertNotContains(indexSource, "paymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal unlock route cannot fall back to membership pass");
-assertNotContains(indexSource, "tilePaymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal tile route cannot fall back to membership pass");
-assertContains(billingRouteSource, '"/api/payments/prepare"', "direct payment prepare path");
-assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment confirm path");
-const directCheckoutSource = section(billingRouteSource, "async function handleCheckout(", "function logCheckoutElapsed(", "direct checkout adapter");
-const directConfirmSource = section(billingRouteSource, "async function handleConfirm(", "async function runServiceExecutionAction(", "direct confirm adapter");
-assertNotContains(directCheckoutSource, "getMembershipPassForBillingRequest", "card prepare performs zero pass lookups");
+H‹”™XXİš[[™È™\šYšY\È™Y›Ü™HİXØÙ\ÜÈŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK”ÑT•‘T—ĞPĞÑTÔ×ÑÔS•ÓRTÔÒS‘È‹”™XXİÙ\™\ˆÜ˜[Z\ÜÚ[™È\œ›ÜˆŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK»!':ì¡:­£;eg:¬ ;)§{%ä;"é;c*;e¢;"­zââ:âé‹”™XXİÙ\™\ˆ™\šYšXØ][Ûˆ˜Z[\™HY\ÜØYÙHŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK˜š[[™ĞÛÚ[‘Ø]R[‘›YÚ‹”™XXİ[‹Y›YÚ\XØ]HİX\™ŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK™^Ü[˜İ[Ûˆ™YÚ[”ZY™X]\™QØ]PÚXÚÈ‹”™XXİZY™X]\™HØ]HÚXÚÈ[\ˆŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK	Üİ]\Îˆ˜ÚXÚÚ[™Ñ[][Y[‰Ë”™XXİZY™X]\™HØ]Hİ\Èœ›ÛH[][Y[ÚXÚÈŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK™^Ü[˜İ[ÛˆÛÛ\]TZY™X]\™QØ]PÚXÚÈ‹”™XXİZY™X]\™HØ]HÛÛ\]H[\ˆŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK™^Ü[˜İ[Ûˆ˜Z[ZY™X]\™QØ]PÚXÚÈ‹”™XXİZY™X]\™HØ]H˜Z[\™H[\ˆŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK	Üİ]\ÎˆØ[˜Ù[YÈ˜Ø[˜Ù[Yˆˆ™\œ›Üˆ‰Ë”™XXİZY™X]\™HØ]HØ[˜Ù[][Ûˆİ]\ÈŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK	Üİ]\Îˆ[[YPÛÙHOOH”VSQS•ĞĞSÑSQˆÈ˜Ø[˜Ù[Yˆˆœ^[Y[˜Z[Y‰Ë”™XXİ[[YHØ[˜Ù[][Ûˆ\È›İ^[Y[˜Z[\™HŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK˜ÛÛœİ’SS‘×Ñ‘UÒĞÒPÒÓÕUÕSQSÕUÓTÈHÈ‹”™XXİÚXÚÛİ][Y[İ]\ÈÛ™È[›İYÚ›ÜˆÈÙ]\ŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK˜ÛÛœİ’SS‘×Ñ‘UÒĞÓÓ‘’T“WÕSQSÕUÓTÈHŒÈ‹”™XXİÛÛ™š\›H[Y[İ]\ÈÛ™È[›İYÚ›Üˆ^[Y[™\šYšXØ][ÛˆŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK	Û›Ü›X[^™Y]œİ\ÕÚ]
+‹Ø\KØš[[™ËØÛÚ[‹YØ]HŠJH™]\›ˆ’SS‘×Ñ‘UÒĞÓÓ‘’T“WÕSQSÕUÓTÎÉË”™XXİÛÚ[ˆØ]H\Ù\ÈÛÛ™š\›H[Y[İ]ŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK	Û›Ü›X[^™Y]œİ\ÕÚ]
+‹Ø\KØš[[™ËØÛÛ™š\›HŠJH™]\›ˆ’SS‘×Ñ‘UÒĞÓÓ‘’T“WÕSQSÕUÓTÎÉË”™XXİš[[™ÈÛÛ™š\›H\Ù\ÈÛÛ™š\›H[Y[İ]ŠNÃB˜\ÜÙ\›İÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK’SS‘×Ñ‘UÒÓUUUSÓ—ÕSQSÕUÓTÈ‹”™XXİ^[Y[™\šYšXØ][Ûˆ]\İ›İ\ÙHÚ\™YMÈ]]][Ûˆ[Y[İ]ŠNÃB˜\ÜÙ\ÛÛZ[œÊš[[™ĞÛY[Ûİ\˜ÙK	ÔRQÔÑT•’PÑWÔ•S•SQWÔÔÈH‹Ú¹ßo-¢G§²ÚîÆ­yÓe, "getMembershipPassForBillingRequest", "card prepare performs zero pass lookups");
 assertNotContains(directCheckoutSource, "grantPassFreeAccessBeforeCardIfAvailable", "card prepare cannot convert to pass access");
 assertNotContains(directConfirmSource, "getMembershipPassForBillingRequest", "card confirm performs zero pass lookups");
 assertNotContains(directConfirmSource, "grantPassFreeAccessBeforeCardIfAvailable", "card confirm cannot convert to pass access");
@@ -488,7 +190,7 @@ for (const source of [indexSource, staticIndexSource]) {
 // ì£¼ë¬¸ ë°œê¸‰(/api/billing/checkout)ì„ ì „ì—­ fetch ë˜í¼ê°€ 'ê²°ì œ ì§„í–‰ ì¤‘'ìœ¼ë¡œ ì¡ì•„ ê²°ì œì°½ì„
 // ë®ì§€ ì•Šë„ë¡ ë‘ ì„±ì§ˆì„ ì‹¤ì œ í‰ê°€ë¡œ ê³ ì •í•œë‹¤.
 //   â“ ë˜í¼ëŠ” checkout/prepare ë¥¼ ì¶”ì í•˜ì§€ ì•ŠëŠ”ë‹¤(ë¬¸ìì—´ í•€ì´ ì•„ë‹ˆë¼ í•¨ìˆ˜ë¥¼ ì‹¤í–‰í•´ í™•ì¸).
-//   â“‘ ëŒ€ê¸°/ê²°ê³¼ ì˜¤ë²„ë ˆì´ í—ˆìš©ëª©ë¡ì—ì„œ ì§„í–‰ ì¤‘ ëª¨ë“œëŠ” 'pass' í•˜ë‚˜ë¿ì´ë‹¤.
+//   â“‘ ëŒ€ê¸°/ê²°ê³¼ ì˜¤ë²„ë ˆì´ í—ˆìš©ëª©ë¡ì—ì„œ ì§„í–‰ ì¤‘ ëª¨ë“œëŠ” 'pass'ì™€ 'monthly'ë‹¤.
 const indexRuntimeSource = readFileSync(resolve(root, "js/core/index-inline-runtime.js"), "utf8");
 const shouldTrackSource = section(
   indexRuntimeSource,
@@ -517,10 +219,10 @@ for (const entry of waitUiAllowLists) {
   const literal = entry.source.match(new RegExp(`${entry.name}\\s*=\\s*(/[^\\n]+/)\\s*;`))?.[1];
   assert.ok(literal, `${entry.label}: ${entry.name} ì •ê·œì‹ ë¦¬í„°ëŸ´ì„ ì°¾ì§€ ëª»í–ˆë‹¤`);
   const allowed = new Function(`return ${literal};`)();
-  for (const mode of ["pass", "pass-applied", "payment-complete", "payment-failed"]) {
+  for (const mode of ["pass", "monthly", "pass-applied", "payment-complete", "payment-failed"]) {
     assert.ok(allowed.test(mode), `${entry.label}: ${mode} ëŠ” í‘œì‹œë˜ì–´ì•¼ í•œë‹¤`);
   }
-  for (const mode of ["payment", "checkout", "card", "confirm", "monthly", "subscription"]) {
+  for (const mode of ["payment", "checkout", "card", "confirm", "subscription"]) {
     assert.ok(!allowed.test(mode), `${entry.label}: ${mode} ëŒ€ê¸° í™”ë©´ì€ ì°¨ë‹¨ë˜ì–´ì•¼ í•œë‹¤`);
   }
 }

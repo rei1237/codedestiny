@@ -1,2362 +1,156 @@
-(function () {
-  'use strict';
-
-  /* mobile touch: direct tap only (scroll/move/long-press blocked) */
-  var TAP_MAX_DX = 16;
-  var TAP_MAX_DY = 16;
-  var TAP_MOVE_DETECT_PX = 4;
-  var TAP_VERTICAL_BLOCK_PX = 18;
-  var MAX_TAP_DURATION_MS = 650;
-  var GHOST_CLICK_BLOCK_MS = 500;
-  var ACTION_DEDUPE_MS = 650;
-  var SCROLL_BLOCK_MS = 200;
-  var suppressClickUntil = 0;
-  var lastScrollAt = 0;
-  var touchCtx = null;
-  var lastTouchStart = null;
-  var lastTouchHadMove = false;
-  var lastActionInvoke = { action: '', at: 0 };
-  var cardScrollLockUntil = 0;
-  var cardScrollTouch = { active: false, moved: false };
-  var tapFeedbackEl = null;
-  var tapFeedbackTimer = 0;
-  var overlayGuardTimer = 0;
-  var TAP_FEEDBACK_CLASS = 'cd-mobile-tap-feedback';
-  var CARD_SCROLL_SELECTORS = [
-    '.feature-card-grid',
-    '.feat-collection',
-    '.tarot-collection',
-    '.feat-collection__grid',
-    '.tarot-collection__grid',
-    '.tarot-tile',
-    '.lifebook-tile',
-    '.lovebible-tile',
-    '.lovesim-tile',
-    '.sibyl-entry-tile',
-    '.prem-card',
-    '.fc-toggle-btn'
-  ].join(',');
-  var GENERIC_CARD_ACTION_SELECTORS = [
-    '.moon-preview-card',
-    '.cd-comprehensive-prompt-entry',
-    '.feature-card-grid .feature-card',
-    '.feature-card-grid .tarot-tile',
-    '.feature-card-grid .lifebook-tile',
-    '.feature-card-grid .lovebible-tile',
-    '.feature-card-grid .lovesim-tile',
-    '.feature-card-grid .sibyl-entry-tile',
-    '.feature-card-grid .prem-card',
-    '.lifebook-tile',
-    '.lovebible-tile',
-    '.lovesim-tile',
-    '.sibyl-entry-tile',
-    '.prem-card',
-    '.feat-collection__grid .tarot-tile',
-    '.tarot-collection__grid .tarot-tile',
-    '.pvc-prem-grid .tarot-tile'
-  ].join(',');
-  var MOBILE_INTERACTION_PATCH_COPY = {
-    ko: { locationSeoul: 'ëŒ€í•œë¯¼êµ­ (ì„œìš¸)' },
-    en: { locationSeoul: 'South Korea (Seoul)' },
-    ja: { locationSeoul: 'éŸ“å›½ï¼ˆã‚½ã‚¦ãƒ«ï¼‰' },
-    zh: { locationSeoul: 'éŸ©å›½ï¼ˆé¦–å°”ï¼‰' }
-  };
-
-  function getMobileInteractionLocale() {
-    try {
-      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
-      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
-      if (!raw && window.localStorage) raw = localStorage.getItem('cd_locale') || localStorage.getItem('code-destiny-locale') || '';
-      raw = String(raw || '').toLowerCase();
-      if (raw.indexOf('ja') === 0) return 'ja';
-      if (raw.indexOf('zh') === 0) return 'zh';
-      if (raw.indexOf('en') === 0) return 'en';
-    } catch (_) {}
-    return 'ko';
-  }
-
-  function mobileInteractionPatchText(key) {
-    var locale = getMobileInteractionLocale();
-    var copy = MOBILE_INTERACTION_PATCH_COPY[locale] || MOBILE_INTERACTION_PATCH_COPY.ko;
-    return copy[key] || MOBILE_INTERACTION_PATCH_COPY.ko[key] || 'Translation pending';
-  }
-
-  function markCardScrollLock(durationMs) {
-    var until = Date.now() + (durationMs || 220);
-    if (until > cardScrollLockUntil) cardScrollLockUntil = until;
-    // ì£¼ì˜: ì—¬ê¸°ì„œ suppressClickUntil ì„ ë°€ì§€ ì•ŠëŠ”ë‹¤. ëª¨ë“  ìŠ¤í¬ë¡¤ ì´ë²¤íŠ¸ë§ˆë‹¤ í´ë¦­ ì–µì œì°½ì„
-    // ì—°ì¥í•˜ë©´ í”Œë§/ìŠ¤í¬ë¡¤ ì§í›„ì˜ 'ì •ì§€ íƒ­'ì´ ê³ ìŠ¤íŠ¸ë¡œ ì˜¤ì¸ë¼ ì”¹íŒë‹¤. ì‹¤ì œ ìŠ¤í¬ë¡¤ ì œìŠ¤ì²˜ì˜
-    // ê³ ìŠ¤íŠ¸ í´ë¦­ì€ move-gated recentScrollGuard(ë° shouldBlockCardTap=cardScrollLockUntil)ê°€
-    // ê³„ì† ì°¨ë‹¨í•˜ë¯€ë¡œ ì•ˆì „í•˜ë‹¤.
-  }
-
-  function isCardScrollTarget(node) {
-    return !!(node && node.closest && node.closest(CARD_SCROLL_SELECTORS));
-  }
-
-  function isGenericCardActionElement(node) {
-    return !!(node && node.closest && node.closest(GENERIC_CARD_ACTION_SELECTORS));
-  }
-
-  function shouldBlockCardTap() {
-    return Date.now() < cardScrollLockUntil;
-  }
-
-  function getTapFeedbackElement(node) {
-    if (!node || typeof node.closest !== 'function') return null;
-    var el = node.closest('[data-action],a[href],button,[role="button"],.MobileFeatureCard,.MobileCompactCard,.MobileQuickAction,.tarot-tile,.feature-card,.prem-card,.moon-preview-card,.cd-comprehensive-prompt-entry');
-    if (!el) return null;
-    if (el.matches && el.matches('input,textarea,select,label')) return null;
-    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return null;
-    return el;
-  }
-
-  function clearTapFeedback() {
-    if (tapFeedbackTimer) {
-      clearTimeout(tapFeedbackTimer);
-      tapFeedbackTimer = 0;
-    }
-    if (tapFeedbackEl && tapFeedbackEl.classList) {
-      tapFeedbackEl.classList.remove(TAP_FEEDBACK_CLASS);
-    }
-    tapFeedbackEl = null;
-  }
-
-  function showTapFeedback(node) {
-    var el = getTapFeedbackElement(node);
-    if (!el) return;
-    if (tapFeedbackEl && tapFeedbackEl !== el) clearTapFeedback();
-    tapFeedbackEl = el;
-    el.classList.add(TAP_FEEDBACK_CLASS);
-    tapFeedbackTimer = setTimeout(clearTapFeedback, 220);
-  }
-
-  function hasOpenMobileOverlay() {
-    var selectors = [
-      '#tilePvwOverlay.pvw-open',
-      '#sajuLoaderOverlay[aria-hidden="false"]',
-      '#cdPaidFeatureGate.is-open',
-      '#cdLoginRequiredModal.is-open',
-      '#privacy-modal-overlay[aria-hidden="false"]',
-      '#goldenGrainChargeModalRoot[aria-hidden="false"]',
-      '#namingPromptModal[aria-hidden="false"]',
-      '.saju-loader-overlay[aria-hidden="false"]',
-      '.modal[aria-hidden="false"]',
-      '[role="dialog"][aria-modal="true"][aria-hidden="false"]'
-    ].join(',');
-    try {
-      var nodes = document.querySelectorAll(selectors);
-      for (var i = 0; i < nodes.length; i += 1) {
-        var node = nodes[i];
-        var style = window.getComputedStyle ? window.getComputedStyle(node) : null;
-        if (style && (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0')) continue;
-        var rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
-        if (!rect || rect.width > 20 || rect.height > 20) return true;
-      }
-    } catch (_) {}
-    return false;
-  }
-
-  function reconcileOverlayLifecycle() {
-    try {
-      if (!hasOpenMobileOverlay()) {
-        if (document.body && document.body.style && document.body.style.overflow === 'hidden') {
-          document.body.style.overflow = '';
-        }
-        if (document.body && document.body.classList) {
-          document.body.classList.remove('lb-modal-open');
-          if (!document.querySelector('#namingPromptModal[aria-hidden="false"]')) {
-            document.body.classList.remove('naming-prompt-open');
-          }
-        }
-      }
-    } catch (_) {}
-  }
-
-  function scheduleOverlayLifecycleGuard(delayMs) {
-    if (overlayGuardTimer) clearTimeout(overlayGuardTimer);
-    overlayGuardTimer = setTimeout(function() {
-      overlayGuardTimer = 0;
-      reconcileOverlayLifecycle();
-    }, typeof delayMs === 'number' ? delayMs : 80);
-  }
-
-  function shouldEnableMobileInteractionBridge() {
-    try {
-      var hasMatchMedia = typeof window.matchMedia === 'function';
-      var mobileViewport = hasMatchMedia && window.matchMedia('(max-width: 768px)').matches;
-      var primaryCoarse = hasMatchMedia && window.matchMedia('(pointer: coarse)').matches;
-      var primaryNoHover = hasMatchMedia && window.matchMedia('(hover: none)').matches;
-      var mobileUserAgent = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
-
-      // A touch-capable desktop is still a desktop when its primary input is a
-      // mouse/trackpad. maxTouchPoints intentionally does not participate here:
-      // hybrid laptops expose it even while their desktop click path is active.
-      return !!(mobileViewport || mobileUserAgent || (primaryCoarse && primaryNoHover));
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function isMobileRuntime() {
-    return shouldEnableMobileInteractionBridge();
-  }
-
-  function applyMobileMediaPerformance(root) {
-    var scope = root && root.querySelectorAll ? root : document;
-    var mobile = isMobileRuntime();
-    var imgs = [];
-    if (scope.matches && scope.matches('img')) imgs.push(scope);
-    if (scope.querySelectorAll) imgs = imgs.concat(Array.prototype.slice.call(scope.querySelectorAll('img')));
-    imgs.forEach(function(img) {
-      if (!img || img.dataset.cdMobilePerfMedia === '1') return;
-      var className = String(img.className || '');
-      var isLcp = img.getAttribute('data-lcp-candidate') === '1';
-      var isMobileHubLogo = className.indexOf('cd-mobile-hub__logo') !== -1;
-      if (!isLcp && !isMobileHubLogo) {
-        img.setAttribute('loading', 'lazy');
-        if (!img.hasAttribute('fetchpriority')) img.setAttribute('fetchpriority', 'low');
-      }
-      if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
-      if (!img.hasAttribute('sizes')) {
-        if (className.indexOf('tarot-tile__img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 92px, 200px');
-        else if (className.indexOf('tarot-face-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 31vw, 200px');
-        else if (isMobileHubLogo) img.setAttribute('sizes', '46px');
-        else if (className.indexOf('sibyl-entry-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 116px, 320px');
-        else if (className.indexOf('sb-logo-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 72px, 160px');
-        else if (className.indexOf('honey-membership-mini__pass-img') !== -1) img.setAttribute('sizes', '86px');
-        else if (className.indexOf('membership-recap-cta__mascot-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 128px, 240px');
-        else if (className.indexOf('tile-pvw-hero-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 100vw, 500px');
-        else if (img.closest && img.closest('.moon-music-entry__cover-stack')) img.setAttribute('sizes', '(max-width: 768px) 260px, 320px');
-        else if (Number(img.getAttribute('width') || 0) >= 1000) img.setAttribute('sizes', '(max-width: 768px) 88vw, 720px');
-        else if (Number(img.getAttribute('width') || 0) >= 400) img.setAttribute('sizes', '(max-width: 768px) 42vw, 420px');
-        else if (Number(img.getAttribute('width') || 0) > 0) img.setAttribute('sizes', img.getAttribute('width') + 'px');
-      }
-      if (mobile && img.id === 'neoLogo') {
-        img.setAttribute('loading', 'lazy');
-        img.setAttribute('fetchpriority', 'low');
-      }
-      img.dataset.cdMobilePerfMedia = '1';
-    });
-
-    var mediaNodes = [];
-    if (scope.matches && scope.matches('audio,video')) mediaNodes.push(scope);
-    if (scope.querySelectorAll) mediaNodes = mediaNodes.concat(Array.prototype.slice.call(scope.querySelectorAll('audio,video')));
-    mediaNodes.forEach(function(node) {
-      if (!node || node.dataset.cdMobilePerfMedia === '1') return;
-      if (!node.hasAttribute('data-user-media-started')) node.setAttribute('preload', 'none');
-      node.autoplay = false;
-      node.removeAttribute('autoplay');
-      node.dataset.cdMobilePerfMedia = '1';
-    });
-  }
-
-  function watchMobileMediaPerformance() {
-    applyMobileMediaPerformance(document);
-    try { window.__cdMobilePerformanceMediaGuardReady = true; } catch (_) {}
-    if (!document.body || typeof MutationObserver === 'undefined') return;
-    var mediaObserver = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        Array.prototype.forEach.call(mutation.addedNodes || [], function(node) {
-          if (node && node.nodeType === 1) applyMobileMediaPerformance(node);
-        });
-      });
-    });
-    mediaObserver.observe(document.body, { childList: true, subtree: true });
-  }
-
-  /* INP: defer heavy data-action handlers in index-inline-runtime / uiBindings to the next task. */
-  var __CD_DEFER_INP_ACTIONS = {
-    checkPrivacyAndCalculate: 1,
-    agreeAndCalculate: 1,
-    calculate: 1,
-    runCompat: 1,
-    startTarotReading: 1,
-    startTarotLoveReading: 1,
-    startTarotHealingReading: 1,
-    startTarotReunionReading: 1,
-    startTarotSelfEsteemReading: 1,
-    startDreamReading: 1,
-    startKemetOracle: 1,
-    startQuantumAnalysis: 1,
-    startAnimalTotemRitual: 1,
-    psychoDreamStartAnalysis: 1,
-    showTarotFinalInterpretation: 1,
-    showTarotLoveFinalReading: 1,
-    showTarotHealingFinalReading: 1,
-    showTarotReunionFinalReading: 1,
-    showTarotSelfEsteemFinalReading: 1,
-    dreamLibrarySearch: 1,
-    dreamLibrarySearchByDream: 1,
-    dreamLibraryLoadMore: 1,
-    revealDreamStage: 1,
-    nextDreamStage: 1
-  };
-
-  var RULES = [
-    {
-      action: 'openPhysiognomyApp',
-      cardSelector: '.feature-card--face, .tarot-tile--physio',
-      targetSelector: [
-        '[data-action="openPhysiognomyApp"]',
-        '.tarot-tile--physio',
-        '.tarot-tile--physio .tarot-tile__img-wrap',
-        '.tarot-tile--physio .tarot-tile__img',
-        '.tarot-tile--physio .tarot-tile__badge',
-        '.tarot-tile--physio .tarot-tile__title',
-        '.tarot-tile--physio .tarot-tile__desc',
-        '.tarot-tile--physio .tarot-tile__body',
-        '.feature-card--face .feature-card__visual',
-        '.feature-card--face .feature-card__img-wrap',
-        '.feature-card--face .feature-card__img',
-        '.feature-card--face .feature-card__title',
-        '.feature-card--face .feature-card__desc',
-        '.feature-card--face .feature-card__cta',
-        '.feature-card--face .feature-card__launch'
-      ].join(',')
-    },
-    {
-      action: 'openMbtiModal',
-      cardSelector: '.tarot-tile--mbti',
-      targetSelector: [
-        '[data-action="openMbtiModal"]',
-        '.tarot-tile--mbti',
-        '.tarot-tile--mbti .tarot-tile__img-wrap',
-        '.tarot-tile--mbti .tarot-tile__img',
-        '.tarot-tile--mbti .tarot-tile__badge',
-        '.tarot-tile--mbti .tarot-tile__title',
-        '.tarot-tile--mbti .tarot-tile__desc',
-        '.tarot-tile--mbti .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openHwatuModal',
-      cardSelector: '.feature-card--tazza, .tarot-tile--hwatu',
-      targetSelector: [
-        '[data-action="openHwatuModal"]',
-        '.tarot-tile--hwatu',
-        '.tarot-tile--hwatu .tarot-tile__img-wrap',
-        '.tarot-tile--hwatu .tarot-tile__img',
-        '.tarot-tile--hwatu .tarot-tile__title',
-        '.tarot-tile--hwatu .tarot-tile__desc',
-        '.tarot-tile--hwatu .tarot-tile__body',
-        '.feature-card--tazza .feature-card__visual',
-        '.feature-card--tazza .feature-card__img-wrap',
-        '.feature-card--tazza .feature-card__img',
-        '.feature-card--tazza .feature-card__title',
-        '.feature-card--tazza .feature-card__desc',
-        '.feature-card--tazza .feature-card__cta',
-        '.feature-card--tazza .feature-card__launch'
-      ].join(',')
-    },
-    {
-      action: 'openAnimalTotemModal',
-      cardSelector: '.tarot-tile--animal-totem',
-      targetSelector: [
-        '[data-action="openAnimalTotemModal"]',
-        '.tarot-tile--animal-totem',
-        '.tarot-tile--animal-totem .tarot-tile__img-wrap',
-        '.tarot-tile--animal-totem .tarot-tile__img',
-        '.tarot-tile--animal-totem .tarot-tile__badge',
-        '.tarot-tile--animal-totem .tarot-tile__title',
-        '.tarot-tile--animal-totem .tarot-tile__desc',
-        '.tarot-tile--animal-totem .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotModal',
-      cardSelector: '.feature-card--tarot, .tarot-tile--classic',
-      targetSelector: [
-        '[data-action="openTarotModal"]',
-        '.tarot-tile--classic',
-        '.tarot-tile--classic .tarot-tile__img-wrap',
-        '.tarot-tile--classic .tarot-tile__img',
-        '.tarot-tile--classic .tarot-tile__badge',
-        '.tarot-tile--classic .tarot-tile__title',
-        '.tarot-tile--classic .tarot-tile__desc',
-        '.tarot-tile--classic .tarot-tile__body',
-        '.feature-card--tarot .feature-card__visual',
-        '.feature-card--tarot .feature-card__img-wrap',
-        '.feature-card--tarot .feature-card__img',
-        '.feature-card--tarot .feature-card__title',
-        '.feature-card--tarot .feature-card__desc',
-        '.feature-card--tarot .feature-card__cta',
-        '.feature-card--tarot .feature-card__launch'
-      ].join(',')
-    },
-    {
-      action: 'openCelestialHarmony',
-      cardSelector: '.tarot-tile--celestial-harmony',
-      targetSelector: [
-        '[data-action="openCelestialHarmony"]',
-        '.tarot-tile--celestial-harmony',
-        '.tarot-tile--celestial-harmony .tarot-tile__img-wrap',
-        '.tarot-tile--celestial-harmony .tarot-tile__img',
-        '.tarot-tile--celestial-harmony .tarot-tile__badge',
-        '.tarot-tile--celestial-harmony .tarot-tile__title',
-        '.tarot-tile--celestial-harmony .tarot-tile__desc',
-        '.tarot-tile--celestial-harmony .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openDestinyFlowerStudio',
-      cardSelector: '.tarot-tile--bloom',
-      targetSelector: [
-        '[data-action="openDestinyFlowerStudio"]',
-        '.tarot-tile--bloom',
-        '.tarot-tile--bloom .tarot-tile__img-wrap',
-        '.tarot-tile--bloom .tarot-tile__img',
-        '.tarot-tile--bloom .tarot-tile__badge',
-        '.tarot-tile--bloom .tarot-tile__title',
-        '.tarot-tile--bloom .tarot-tile__desc',
-        '.tarot-tile--bloom .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openAstrologyFlowerStudio',
-      cardSelector: '.tarot-tile--astro-flower',
-      targetSelector: [
-        '[data-action="openAstrologyFlowerStudio"]',
-        '.tarot-tile--astro-flower',
-        '.tarot-tile--astro-flower .tarot-tile__img-wrap',
-        '.tarot-tile--astro-flower .tarot-tile__img',
-        '.tarot-tile--astro-flower .tarot-tile__badge',
-        '.tarot-tile--astro-flower .tarot-tile__title',
-        '.tarot-tile--astro-flower .tarot-tile__desc',
-        '.tarot-tile--astro-flower .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openJamidusuFlowerStudio',
-      cardSelector: '.tarot-tile--jami-flower',
-      targetSelector: [
-        '[data-action="openJamidusuFlowerStudio"]',
-        '.tarot-tile--jami-flower',
-        '.tarot-tile--jami-flower .tarot-tile__img-wrap',
-        '.tarot-tile--jami-flower .tarot-tile__img',
-        '.tarot-tile--jami-flower .tarot-tile__badge',
-        '.tarot-tile--jami-flower .tarot-tile__title',
-        '.tarot-tile--jami-flower .tarot-tile__desc',
-        '.tarot-tile--jami-flower .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openSukuyoFlowerStudio',
-      cardSelector: '.tarot-tile--sukuyo-fl',
-      targetSelector: [
-        '[data-action="openSukuyoFlowerStudio"]',
-        '.tarot-tile--sukuyo-fl',
-        '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap',
-        '.tarot-tile--sukuyo-fl .tarot-tile__img',
-        '.tarot-tile--sukuyo-fl .tarot-tile__badge',
-        '.tarot-tile--sukuyo-fl .tarot-tile__title',
-        '.tarot-tile--sukuyo-fl .tarot-tile__desc',
-        '.tarot-tile--sukuyo-fl .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openNevilleMeditationPage',
-      cardSelector: '.tarot-tile--meditation[data-action="openNevilleMeditationPage"], .tarot-tile--meditation[href*="neville-meditation"]',
-      targetSelector: [
-        '[data-action="openNevilleMeditationPage"]',
-        '.tarot-tile--meditation[href*="neville-meditation"]',
-        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__img-wrap',
-        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__img',
-        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__badge',
-        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__title',
-        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__desc',
-        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openCosmicSoulMeditation',
-      cardSelector: '.tarot-tile--meditation[data-action="openCosmicSoulMeditation"], .tarot-tile--meditation[href*="cosmic-soul-meditation"]',
-      targetSelector: [
-        '[data-action="openCosmicSoulMeditation"]',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"]',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__img-wrap',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__img',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__badge',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__title',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__desc',
-        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotHealingModal',
-      cardSelector: '.tarot-tile--healing',
-      targetSelector: [
-        '[data-action="openTarotHealingModal"]',
-        '.tarot-tile--healing',
-        '.tarot-tile--healing .tarot-tile__img-wrap',
-        '.tarot-tile--healing .tarot-tile__img',
-        '.tarot-tile--healing .tarot-tile__title',
-        '.tarot-tile--healing .tarot-tile__desc',
-        '.tarot-tile--healing .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openRoyalTeaOracle',
-      cardSelector: '[data-action="openRoyalTeaOracle"]',
-      targetSelector: [
-        '[data-action="openRoyalTeaOracle"]'
-      ].join(',')
-    },
-    {
-      action: 'openTarotYearFortuneModal',
-      cardSelector: '.tarot-tile--year',
-      targetSelector: [
-        '[data-action="openTarotYearFortuneModal"]',
-        '.tarot-tile--year',
-        '.tarot-tile--year .tarot-tile__img-wrap',
-        '.tarot-tile--year .tarot-tile__img',
-        '.tarot-tile--year .tarot-tile__title',
-        '.tarot-tile--year .tarot-tile__desc',
-        '.tarot-tile--year .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotLoveModal',
-      cardSelector: '.tarot-tile--love',
-      targetSelector: [
-        '[data-action="openTarotLoveModal"]',
-        '.tarot-tile--love',
-        '.tarot-tile--love .tarot-tile__img-wrap',
-        '.tarot-tile--love .tarot-tile__img',
-        '.tarot-tile--love .tarot-tile__badge',
-        '.tarot-tile--love .tarot-tile__title',
-        '.tarot-tile--love .tarot-tile__desc',
-        '.tarot-tile--love .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotSelfEsteemModal',
-      cardSelector: '.tarot-tile--self-esteem',
-      targetSelector: [
-        '[data-action="openTarotSelfEsteemModal"]',
-        '.tarot-tile--self-esteem',
-        '.tarot-tile--self-esteem .tarot-tile__img-wrap',
-        '.tarot-tile--self-esteem .tarot-tile__img',
-        '.tarot-tile--self-esteem .tarot-tile__badge',
-        '.tarot-tile--self-esteem .tarot-tile__title',
-        '.tarot-tile--self-esteem .tarot-tile__desc',
-        '.tarot-tile--self-esteem .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotReunionModal',
-      cardSelector: '.tarot-tile--reunion',
-      targetSelector: [
-        '[data-action="openTarotReunionModal"]',
-        '.tarot-tile--reunion',
-        '.tarot-tile--reunion .tarot-tile__img-wrap',
-        '.tarot-tile--reunion .tarot-tile__img',
-        '.tarot-tile--reunion .tarot-tile__badge',
-        '.tarot-tile--reunion .tarot-tile__title',
-        '.tarot-tile--reunion .tarot-tile__desc',
-        '.tarot-tile--reunion .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'startMindScanTarot',
-      cardSelector: '.tarot-tile--mindscan',
-      targetSelector: [
-        '[data-action="startMindScanTarot"]',
-        '.tarot-tile--mindscan',
-        '.tarot-tile--mindscan .tarot-tile__img-wrap',
-        '.tarot-tile--mindscan .tarot-tile__img',
-        '.tarot-tile--mindscan .tarot-tile__badge',
-        '.tarot-tile--mindscan .tarot-tile__title',
-        '.tarot-tile--mindscan .tarot-tile__desc',
-        '.tarot-tile--mindscan .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'startCrystalSoulTarot',
-      cardSelector: '.tarot-tile--crystal-soul',
-      targetSelector: [
-        '[data-action="startCrystalSoulTarot"]',
-        '.tarot-tile--crystal-soul',
-        '.tarot-tile--crystal-soul .tarot-tile__img-wrap',
-        '.tarot-tile--crystal-soul .tarot-tile__img',
-        '.tarot-tile--crystal-soul .tarot-tile__badge',
-        '.tarot-tile--crystal-soul .tarot-tile__title',
-        '.tarot-tile--crystal-soul .tarot-tile__desc',
-        '.tarot-tile--crystal-soul .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openZiweiModal',
-      cardSelector: '.tarot-tile--ziwei-fc',
-      targetSelector: [
-        '[data-action="openZiweiModal"]',
-        '.tarot-tile--ziwei-fc',
-        '.tarot-tile--ziwei-fc .tarot-tile__img-wrap',
-        '.tarot-tile--ziwei-fc .tarot-tile__img',
-        '.tarot-tile--ziwei-fc .tarot-tile__badge',
-        '.tarot-tile--ziwei-fc .tarot-tile__title',
-        '.tarot-tile--ziwei-fc .tarot-tile__desc',
-        '.tarot-tile--ziwei-fc .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'navigateToZiweiChart',
-      cardSelector: '.tarot-tile--ziwei-deep',
-      targetSelector: [
-        '[data-action="navigateToZiweiChart"]',
-        '.tarot-tile--ziwei-deep',
-        '.tarot-tile--ziwei-deep .tarot-tile__img-wrap',
-        '.tarot-tile--ziwei-deep .tarot-tile__img',
-        '.tarot-tile--ziwei-deep .tarot-tile__badge',
-        '.tarot-tile--ziwei-deep .tarot-tile__title',
-        '.tarot-tile--ziwei-deep .tarot-tile__desc',
-        '.tarot-tile--ziwei-deep .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openDreamModal',
-      cardSelector: '.tarot-tile--dream-tile',
-      targetSelector: [
-        '[data-action="openDreamModal"]',
-        '.tarot-tile--dream-tile',
-        '.tarot-tile--dream-tile .tarot-tile__img-wrap',
-        '.tarot-tile--dream-tile .tarot-tile__img',
-        '.tarot-tile--dream-tile .tarot-tile__badge',
-        '.tarot-tile--dream-tile .tarot-tile__title',
-        '.tarot-tile--dream-tile .tarot-tile__desc',
-        '.tarot-tile--dream-tile .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openPsychoDreamModal',
-      cardSelector: '.tarot-tile--psycho-freud-tile',
-      targetSelector: [
-        '[data-action="openPsychoDreamModal"]',
-        '.tarot-tile--psycho-freud-tile',
-        '.tarot-tile--psycho-freud-tile .tarot-tile__img-wrap',
-        '.tarot-tile--psycho-freud-tile .tarot-tile__img',
-        '.tarot-tile--psycho-freud-tile .tarot-tile__badge',
-        '.tarot-tile--psycho-freud-tile .tarot-tile__title',
-        '.tarot-tile--psycho-freud-tile .tarot-tile__desc',
-        '.tarot-tile--psycho-freud-tile .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openKemetModal',
-      cardSelector: '.tarot-tile--egypt-fc, .feature-card--egypt',
-      targetSelector: [
-        '[data-action="openKemetModal"]',
-        '.tarot-tile--egypt-fc',
-        '.tarot-tile--egypt-fc .tarot-tile__img-wrap',
-        '.tarot-tile--egypt-fc .tarot-tile__img',
-        '.tarot-tile--egypt-fc .tarot-tile__title',
-        '.tarot-tile--egypt-fc .tarot-tile__desc',
-        '.tarot-tile--egypt-fc .tarot-tile__body',
-        '.feature-card--egypt .feature-card__visual',
-        '.feature-card--egypt .feature-card__img-wrap',
-        '.feature-card--egypt .feature-card__img',
-        '.feature-card--egypt .feature-card__title',
-        '.feature-card--egypt .feature-card__desc',
-        '.feature-card--egypt .feature-card__cta',
-        '.feature-card--egypt .feature-card__launch'
-      ].join(',')
-    },
-    {
-      action: 'openJuyukModal',
-      cardSelector: '.tarot-tile--juyuk-fc, .feature-card--juyuk',
-      targetSelector: [
-        '[data-action="openJuyukModal"]',
-        '.tarot-tile--juyuk-fc',
-        '.tarot-tile--juyuk-fc .tarot-tile__img-wrap',
-        '.tarot-tile--juyuk-fc .tarot-tile__img',
-        '.tarot-tile--juyuk-fc .tarot-tile__title',
-        '.tarot-tile--juyuk-fc .tarot-tile__desc',
-        '.tarot-tile--juyuk-fc .tarot-tile__body',
-        '.feature-card--juyuk .feature-card__visual',
-        '.feature-card--juyuk .feature-card__img-wrap',
-        '.feature-card--juyuk .feature-card__img',
-        '.feature-card--juyuk .feature-card__title',
-        '.feature-card--juyuk .feature-card__desc',
-        '.feature-card--juyuk .feature-card__cta',
-        '.feature-card--juyuk .feature-card__launch'
-      ].join(',')
-    },
-    {
-      action: 'openOlympusOracleModal',
-      cardSelector: '.tarot-tile--olympus-oracle',
-      targetSelector: [
-        '[data-action="openOlympusOracleModal"]',
-        '.tarot-tile--olympus-oracle',
-        '.tarot-tile--olympus-oracle .tarot-tile__img-wrap',
-        '.tarot-tile--olympus-oracle .tarot-tile__img',
-        '.tarot-tile--olympus-oracle .tarot-tile__badge',
-        '.tarot-tile--olympus-oracle .tarot-tile__title',
-        '.tarot-tile--olympus-oracle .tarot-tile__desc',
-        '.tarot-tile--olympus-oracle .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openGeomancyOracle',
-      cardSelector: '.tarot-tile--geomancy-fc',
-      targetSelector: [
-        '[data-action="openGeomancyOracle"]',
-        '.tarot-tile--geomancy-fc',
-        '.tarot-tile--geomancy-fc .tarot-tile__img-wrap',
-        '.tarot-tile--geomancy-fc .tarot-tile__img',
-        '.tarot-tile--geomancy-fc .tarot-tile__badge',
-        '.tarot-tile--geomancy-fc .tarot-tile__title',
-        '.tarot-tile--geomancy-fc .tarot-tile__desc',
-        '.tarot-tile--geomancy-fc .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'navigateToVedic',
-      cardSelector: '.tarot-tile--vedic-fc',
-      targetSelector: [
-        '[data-action="navigateToVedic"]',
-        '.tarot-tile--vedic-fc',
-        '.tarot-tile--vedic-fc .tarot-tile__img-wrap',
-        '.tarot-tile--vedic-fc .tarot-tile__img',
-        '.tarot-tile--vedic-fc .tarot-tile__title',
-        '.tarot-tile--vedic-fc .tarot-tile__desc',
-        '.tarot-tile--vedic-fc .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'gotoNamingPremium',
-      cardSelector: '.prem-card--naming',
-      targetSelector: [
-        '[data-action="gotoNamingPremium"]',
-        '.prem-card--naming',
-        '.prem-card--naming img'
-      ].join(',')
-    },
-    {
-      action: 'openSibylModal',
-      cardSelector: '#sibylSystemSection .sibyl-entry-tile',
-      targetSelector: [
-        '[data-action="openSibylModal"]',
-        '#sibylSystemSection .sibyl-entry-tile',
-        '#sibylSystemSection .sibyl-entry-inner',
-        '#sibylSystemSection .sibyl-entry-img-col',
-        '#sibylSystemSection .sibyl-entry-img',
-        '#sibylSystemSection .sibyl-entry-content'
-      ].join(',')
-    }
-  ];
-  var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
-    if (rule && rule.action) acc[rule.action] = true;
-    return acc;
-  }, {});
-
-  function nodeLabel(el) {
-    if (!el || !el.tagName) return '(null)';
-    var id = el.id ? '#' + el.id : '';
-    var cls = '';
-    if (el.classList && el.classList.length) {
-      cls = '.' + Array.prototype.slice.call(el.classList, 0, 4).join('.');
-    }
-    return el.tagName.toLowerCase() + id + cls;
-  }
-
-  function getPoint(event) {
-    if (!event) return null;
-    var t = null;
-    if (event.changedTouches && event.changedTouches.length) {
-      t = event.changedTouches[0];
-    } else if (event.touches && event.touches.length) {
-      t = event.touches[0];
-    }
-    if (t) return { x: t.clientX, y: t.clientY };
-    if (typeof event.clientX === 'number' && typeof event.clientY === 'number') {
-      return { x: event.clientX, y: event.clientY };
-    }
-    return null;
-  }
-
-  function findRuleFromTarget(origin) {
-    if (!origin || typeof origin.closest !== 'function') return null;
-    for (var i = 0; i < RULES.length; i += 1) {
-      if (origin.closest(RULES[i].targetSelector)) return RULES[i];
-    }
-    return null;
-  }
-
-  /* When touchend event.target is unreliable, re-scan the actual target with elementFromPoint. */
-  function findRuleFromPoint(x, y) {
-    if (!document.elementFromPoint || !Number.isFinite(x) || !Number.isFinite(y)) return null;
-    var el = document.elementFromPoint(x, y);
-    return el ? findRuleFromTarget(el) : null;
-  }
-
-  /* í•˜ë‹¨ ë„¤ë¹„Â·í—ˆë¸Œ ì¹©Â·ì»¬ë ‰ì…˜ í¬ë¡¬ë°”ëŠ” index.html ì˜ ì „ìš© í•¸ë“¤ëŸ¬ê°€ ì†Œìœ í•œë‹¤.
-     ì´ë“¤ì€ íƒ­ ì¦‰ì‹œ í’€ìŠ¤í¬ë¦° ì»¬ë ‰ì…˜ ì˜¤ë²„ë ˆì´ë¥¼ ì—¬ëŠ”ë°, ì•„ë˜ ì¢Œí‘œ ì¬ìŠ¤ìº”ì€ rAF í•œ í”„ë ˆì„ ë’¤ì—
-     ëŒê¸° ë•Œë¬¸ì— ê·¸ë•Œ ê°™ì€ ì¢Œí‘œì—ëŠ” ë°©ê¸ˆ ì—´ë¦° ì»¬ë ‰ì…˜ íƒ€ì¼ì´ ë†“ì—¬ ìˆë‹¤. ê·¸ íƒ€ì¼ì„ íƒ­ ëŒ€ìƒìœ¼ë¡œ
-     ì˜¤ì¸í•´ ì—‰ëš±í•œ íƒ€ë¡œë¡œ í•˜ë“œ ë‚´ë¹„ê²Œì´ì…˜(=ìƒˆë¡œê³ ì¹¨ í›„ ì˜¤ì—°ê²°)í•´ ë²„ë¦°ë‹¤. */
-  var NAV_OWNED_TAP_SELECTOR = '#cdMobileBottomNav,.cd-mobile-hub__chips,.cd-mobile-collection-chrome';
-  function isNavOwnedTap(target) {
-    return !!(target && target.closest && target.closest(NAV_OWNED_TAP_SELECTOR));
-  }
-
-  function findActionElement(origin, rule) {
-    if (!origin || !rule) return null;
-    var direct = origin.closest('[data-action="' + rule.action + '"]');
-    if (direct) return direct;
-
-    var card = origin.closest(rule.cardSelector);
-    if (card && typeof card.querySelector === 'function') {
-      var inCard = card.querySelector('[data-action="' + rule.action + '"]');
-      if (inCard) return inCard;
-    }
-
-    if (rule.action === 'openTarotYearFortuneModal') {
-      var tile = origin.closest('.tarot-tile--year');
-      if (tile) return tile;
-    }
-
-    if (rule.action === 'openTarotHealingModal') {
-      var tile = origin.closest('.tarot-tile--healing');
-      if (tile) return tile;
-    }
-
-    if (rule.action === 'openRoyalTeaOracle') {
-      var teaTile = origin.closest('.tarot-tile--royal-tea');
-      if (teaTile) return teaTile;
-    }
-
-    if (rule.action === 'openAnimalTotemModal') {
-      var tile = origin.closest('.tarot-tile--animal-totem');
-      if (tile) return tile;
-    }
-
-    return document.querySelector('[data-action="' + rule.action + '"]');
-  }
-
-  function probeTopNodeFromPoint(x, y, reason) {
-    var top = document.elementFromPoint(x, y);
-    var stack = [];
-    if (typeof document.elementsFromPoint === 'function') {
-      stack = document.elementsFromPoint(x, y).slice(0, 8);
-    }
-
-    console.groupCollapsed('[overlay-probe] ' + (reason || 'tap') + ' @ (' + x + ', ' + y + ')');
-    console.log('top node:', nodeLabel(top), top);
-    console.log('stack:', stack.map(nodeLabel), stack);
-    console.groupEnd();
-
-    return { top: top, stack: stack };
-  }
-
-  window.debugTopNodeAtTap = function (x, y, reason) {
-    var px = Number(x);
-    var py = Number(y);
-    if (!Number.isFinite(px) || !Number.isFinite(py)) {
-      console.warn('[overlay-probe] invalid coordinates:', x, y);
-      return null;
-    }
-    return probeTopNodeFromPoint(px, py, reason || 'manual');
-  };
-
-  function dispatchFeatureTapEvent(rule, origin, sourceEvent) {
-    var detail = {
-      action: rule.action,
-      sourceType: sourceEvent ? sourceEvent.type : 'manual',
-      target: origin || null,
-      timestamp: Date.now()
-    };
-    window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
-  }
-
-  function blockCollectionToggleEvent(event) {
-    if (event && event.cancelable && typeof event.preventDefault === 'function') event.preventDefault();
-    if (event && typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-    else if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-  }
-
-  function findCollectionToggleFromOrigin(origin) {
-    return origin instanceof Element ? origin.closest('[data-action="toggleCollection"][data-target]') : null;
-  }
-
-  function findCollectionToggleFromPoint(x, y) {
-    var px = Number(x);
-    var py = Number(y);
-    if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
-    var top = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(px, py) : null;
-    var direct = findCollectionToggleFromOrigin(top);
-    if (direct) return direct;
-    if (typeof document.elementsFromPoint === 'function') {
-      var stack = document.elementsFromPoint(px, py);
-      for (var i = 0; i < stack.length; i += 1) {
-        var stacked = findCollectionToggleFromOrigin(stack[i]);
-        if (stacked) return stacked;
-      }
-    }
-    var toggles = document.querySelectorAll('[data-action="toggleCollection"][data-target]');
-    for (var j = 0; j < toggles.length; j += 1) {
-      var toggle = toggles[j];
-      var rect = toggle.getBoundingClientRect();
-      if (!rect || rect.width <= 0 || rect.height <= 0) continue;
-      if (px < rect.left || px > rect.right || py < rect.top || py > rect.bottom) continue;
-      var style = window.getComputedStyle ? window.getComputedStyle(toggle) : null;
-      if (style && (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none')) continue;
-      return toggle;
-    }
-    return null;
-  }
-
-  function toggleMobileCollection(toggle, event, source) {
-    if (!toggle) return false;
-    var targetId = String(toggle.getAttribute('data-target') || '').trim();
-    var collection = targetId ? document.getElementById(targetId) : null;
-    if (!collection) return false;
-    var guard = window.__cdMobileCollectionToggleGuard;
-    if (guard && guard.targetId === targetId && (Date.now() - guard.at) < 650) {
-      blockCollectionToggleEvent(event);
-      return true;
-    }
-    window.__cdMobileCollectionToggleGuard = { targetId: targetId, at: Date.now(), source: source || 'mobile-patch' };
-    window.__cdLastMobileAction = { action: 'toggleCollection', sourceType: source || 'mobile-patch', at: Date.now() };
-    blockCollectionToggleEvent(event);
-    var nextState = collection.getAttribute('data-collection-open') !== 'true';
-    collection.setAttribute('data-collection-open', String(nextState));
-    toggle.setAttribute('aria-expanded', String(nextState));
-    try {
-      document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
-        detail: { targetId: targetId, isOpen: nextState }
-      }));
-    } catch (_) {}
-    return true;
-  }
-
-  function handleCollectionToggleTap(event, point, source) {
-    if (!event || !point) return false;
-    var start = lastTouchStart;
-    if (start && (Date.now() - (start.at || 0)) <= MAX_TAP_DURATION_MS) {
-      var dx = Math.abs(Number(point.x) - Number(start.x));
-      var dy = Math.abs(Number(point.y) - Number(start.y));
-      if (dx >= TAP_MAX_DX || dy >= TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) return false;
-    }
-    var toggle = findCollectionToggleFromOrigin(event.target) || findCollectionToggleFromPoint(point.x, point.y);
-    return toggleMobileCollection(toggle, event, source);
-  }
-
-  function shouldSkipDuplicateAction(action) {
-    if (!action) return false;
-    var now = Date.now();
-    if (lastActionInvoke.action === action && (now - lastActionInvoke.at) < ACTION_DEDUPE_MS) {
-      return true;
-    }
-    lastActionInvoke = { action: action, at: now };
-    return false;
-  }
-
-  function parseActionArgs(raw) {
-    if (!raw) return [];
-    return String(raw)
-      .split(',')
-      .map(function(v) { return v.trim(); })
-      .filter(function(v) { return v.length > 0; });
-  }
-
-  var __CD_USE_FEATURE_SPLASH = false;
-  var __CD_SERVICE_SPLASH_MESSAGES = {
-    openNevilleMeditationPage: 'ëª…ìƒ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openCosmicSoulMeditation: 'ì½”ìŠ¤ë¯¹ ì†Œìš¸ ëª…ìƒ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openYogaGuru: 'ìš”ê°€ ê°€ì´ë“œ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openTarotHealingModal: 'íƒ€ë¡œ íë§ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openTarotLoveModal: 'íƒ€ë¡œ ê²°ê³¼ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openTarotReunionModal: 'íƒ€ë¡œ ê²°ê³¼ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openTarotSelfEsteemModal: 'íƒ€ë¡œ ê²°ê³¼ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openTarotYearFortuneModal: 'íƒ€ë¡œ ì—°ê°„ ìš´ì„¸ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openDreamModal: 'ë“œë¦¼ íƒ€ë¡œ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openPsychoDreamModal: 'ì‹¬ë¦¬ í•´ì„ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openKemetModal: 'ì˜¤ë¼í´ ë¶„ì„ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openRoyalTeaOracle: 'ë¡œì–„í‹° ì˜¤ë¼í´ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openGeomancyOracle: 'ì§€ë§¨ì‹œ ë¶„ì„ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openSibylModal: 'ì‚¬ì´ë¹Œ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openAnimalTotemModal: 'ë™ë¬¼ í† í…œ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openHwatuModal: 'í™”íˆ¬ ë¶„ì„ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openSajuguiModal: 'ì‚¬ì£¼ ë™ë¬¼ ë¶„ì„ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openAstrologyFlowerStudio: 'ê½ƒ ìŠ¤íŠœë””ì˜¤ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openDestinyFlowerStudio: 'ê½ƒ ìŠ¤íŠœë””ì˜¤ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openJamidusuFlowerStudio: 'ê½ƒ ìŠ¤íŠœë””ì˜¤ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openSukuyoFlowerStudio: 'ê½ƒ ìŠ¤íŠœë””ì˜¤ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openSajuAnimalPage: 'ë™ë¬¼ ì‹¬ë¦¬ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    openLoveSimulation: 'ì—°ì•  ì‹œë®¬ë ˆì´ì…˜ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    navigateToVedic: 'ë³„ìë¦¬ ì°¨íŠ¸ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.',
-    gotoNamingPremium: 'ìœ ë£Œ ê¸°ëŠ¥ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.'
-  };
-  var __cdFeatureLoadingToken = 0;
-
-  function getServiceSplash() {
-    if (window.__cdServiceSplash) return window.__cdServiceSplash;
-    if (typeof window.__cdShowServiceSplash === 'function' || typeof window.__cdHideServiceSplash === 'function') {
-      return {
-        show: window.__cdShowServiceSplash,
-        hide: window.__cdHideServiceSplash
-      };
-    }
-    return null;
-  }
-
-  function beginFeatureLoading(action, options) {
-    if (!__CD_USE_FEATURE_SPLASH) return 0;
-    var serviceSplash = getServiceSplash();
-    if (!serviceSplash || typeof serviceSplash.show !== 'function') return 0;
-    var token = ++__cdFeatureLoadingToken;
-    var message = (options && options.message) || __CD_SERVICE_SPLASH_MESSAGES[action] || 'ì„œë¹„ìŠ¤ í™”ë©´ì„ ì¤€ë¹„í•˜ê³  ìˆìŠµë‹ˆë‹¤.';
-    var shown = serviceSplash.show(message, {
-      forceMobile: true,
-      minMs: options && typeof options.minMs === 'number' ? options.minMs : 400,
-      maxMs: options ? options.maxMs : undefined
-    });
-    return shown ? token : 0;
-  }
-
-  function endFeatureLoading(token) {
-    if (!token || token !== __cdFeatureLoadingToken) return;
-    var serviceSplash = getServiceSplash();
-    if (serviceSplash && typeof serviceSplash.hide === 'function') {
-      serviceSplash.hide();
-    }
-  }
-
-  function finalizeFeatureLoading(result, token) {
-    if (!token) return;
-    if (result && typeof result.then === 'function') {
-      result.then(function () {
-        endFeatureLoading(token);
-      }).catch(function () {
-        endFeatureLoading(token);
-      });
-      return;
-    }
-    endFeatureLoading(token);
-  }
-
-  function ensureMobileBackstackRuntime() {
-    if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-a7f5a2b0f6f5').catch(function(err) {
-      console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
-    });
-  }
-
-  function invokeConfiguredDataAction(actionEl, sourceEvent) {
-    if (!actionEl) return false;
-    var action = actionEl.getAttribute('data-action');
-    if (!action) return false;
-    var loadToken = beginFeatureLoading(action, { minMs: 250, maxMs: 3000 });
-    ensureMobileBackstackRuntime();
-    try {
-      if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
-        window.__cdMobileNav.onActionInvoke(action, actionEl);
-      }
-    } catch (_) {}
-    var fn = window[action];
-    if (typeof fn !== 'function') {
-      endFeatureLoading(loadToken);
-      return false;
-    }
-
-    var args = parseActionArgs(actionEl.getAttribute('data-action-args'));
-    var passSelfMode = actionEl.getAttribute('data-action-pass-self');
-    var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
-
-    function runInvoke() {
-      var result = undefined;
-      try {
-        if (passSelfMode === 'append') {
-          result = fn.apply(window, args.concat([actionEl]));
-        } else if (passSelfMode === '1' || passSelfMode === 'prepend') {
-          result = fn.apply(window, [actionEl].concat(args));
-        } else if (passEvent) {
-          result = fn.call(window, sourceEvent);
-        } else if (args.length) {
-          result = fn.apply(window, args);
-        } else {
-          result = fn.call(window);
-        }
-        finalizeFeatureLoading(result, loadToken);
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] data-action invoke failed:', action, err);
-        endFeatureLoading(loadToken);
-        return false;
-      }
-    }
-
-    if (__CD_DEFER_INP_ACTIONS[action]) {
-      setTimeout(runInvoke, 0);
-      return true;
-    }
-    return runInvoke();
-  }
-
-  function detectMobileBuildVersion() {
-    try {
-      var scripts = document.querySelectorAll('script[src]');
-      for (var i = 0; i < scripts.length; i += 1) {
-        var src = String(scripts[i].getAttribute('src') || '');
-        if (!src) continue;
-        if (src.indexOf('index-inline-runtime.js?v=') !== -1 || src.indexOf('mobile-interaction-patch.js?v=') !== -1) {
-          var m = src.match(/[?&]v=([^&]+)/);
-          if (m && m[1]) return m[1];
-        }
-      }
-    } catch (_) {}
-    return '';
-  }
-
-  var __CD_MOBILE_BUILD_VERSION = detectMobileBuildVersion();
-  function withMobileBuild(path) {
-    var p = String(path || '').trim();
-    if (!p) return p;
-    if (!__CD_MOBILE_BUILD_VERSION) return p;
-    return p + (p.indexOf('?') === -1 ? '?v=' : '&v=') + __CD_MOBILE_BUILD_VERSION;
-  }
-
-  var LAZY_LOAD_ACTIONS = {
-    openPhysiognomyApp: [
-      'AnalysisEngine.js?v=20260606-physio-accuracy',
-      'PhysiognomyUI.js?v=20260606-physio-accuracy'
-    ],
-    openMbtiModal: ['js/astral-soul.js'],
-    openAnimalTotemModal: [
-      'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-a7f5a2b0f6f5'
-    ],
-    openHwatuModal: ['HwatuFortune.js'],
-    // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
-    // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-a7f5a2b0f6f5'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-a7f5a2b0f6f5'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-a7f5a2b0f6f5'],
-
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-a7f5a2b0f6f5'],
-    openDreamModal: ['js/dream-ledger.js?v=build-a7f5a2b0f6f5'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-a7f5a2b0f6f5'],
-    openKemetModal: ['js/oracle-kcg.js'],
-    openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
-    openRoyalTeaOracle: [],
-    openOlympusOracleModal: ['js/olympus-oracle.js'],
-    gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-a7f5a2b0f6f5']
-  };
-
-  // ì œìë¦¬(in-place)ì—ì„œ ëª¨ë‹¬ì„ ì—¬ëŠ” ì•¡ì…˜ì¸ì§€ íŒì •í•œë‹¤.
-  // ì •ë³¸ì€ ë°ìŠ¤í¬íƒ‘ í´ë¦­ ìœ„ì„ì´ ì“°ëŠ” __cdRouteActionAllowList (js/core/index-inline-runtime.js) í•˜ë‚˜ì´ë©°,
-  // ì—¬ê¸°ì„œ ëª©ë¡ì„ ìƒˆë¡œ ë§Œë“¤ì§€ ì•ŠëŠ”ë‹¤ â€” ë‘ ê²½ë¡œê°€ ì–´ê¸‹ë‚˜ë©´ í•œìª½ë§Œ ê³ ì³ì§€ëŠ” ë°˜ìª½ ìˆ˜ì •ì´ ì¬ë°œí•œë‹¤.
-  // í•¸ë“¤ëŸ¬(ë˜ëŠ” ì§€ì—° ë¡œë”)ê°€ ì‹¤ì œë¡œ ìˆëŠ” ì•¡ì…˜ë§Œ ì¸ì •í•œë‹¤. ëª©ë¡ì—ë§Œ ìˆê³  ì—¬ëŠ” ì½”ë“œê°€ ì—†ìœ¼ë©´
-  // ì•µì»¤ ì´ë™ì„ ë§‰ëŠ” ìˆœê°„ "íƒ­í–ˆëŠ”ë° ì•„ë¬´ ì¼ë„ ì—†ìŒ"ì´ ë˜ë¯€ë¡œ, ê·¸ë•ŒëŠ” ê¸°ì¡´ ì´ë™ì„ ê·¸ëŒ€ë¡œ ë‘”ë‹¤.
-  function isInPlaceModalAction(action) {
-    if (!action) return false;
-    var allowList = window.__cdRouteActionAllowList;
-    if (!allowList || !allowList[action]) return false;
-    if (typeof window[action] === 'function') return true;
-    var lazyPaths = LAZY_LOAD_ACTIONS[action];
-    if (lazyPaths && lazyPaths.length) return true;
-    return !!(window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[action]);
-  }
-
-  function normalizeScriptSrc(src) {
-    var raw = String(src || '').trim().replace(/^\.\//, '');
-    if (!raw) return '';
-    if (/^(?:[a-z]+:)?\/\//i.test(raw) || raw.indexOf('data:') === 0 || raw.indexOf('blob:') === 0) return raw;
-    if (raw.charAt(0) === '/') return raw;
-    return '/' + raw;
-  }
-
-  function loadScript(src) {
-    return new Promise(function(resolve, reject) {
-      var norm = normalizeScriptSrc(src);
-      var normBase = norm.split('?')[0];
-      var fileName = normBase.split('/').pop();
-      var all = document.querySelectorAll('script[src]');
-      var existing = null;
-      for (var i = 0; i < all.length; i++) {
-        var a = all[i].getAttribute('src') || '';
-        var aBase = a.split('?')[0];
-        if (a === norm || aBase === normBase || (fileName && aBase.indexOf('/' + fileName) !== -1)) { existing = all[i]; break; }
-      }
-      if (existing) {
-        if (existing.dataset.loaded === '1' || existing.readyState === 'complete' || existing.readyState === 'loaded') {
-          resolve();
-          return;
-        }
-        if (existing.dataset.loading !== '1') {
-          resolve();
-          return;
-        }
-        existing.addEventListener('load', function() { resolve(); }, { once: true });
-        existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
-        return;
-      }
-      var s = document.createElement('script');
-      s.src = norm;
-      s.defer = true;
-      s.async = true;
-      s.dataset.loading = '1';
-      s.onload = function() {
-        s.dataset.loading = '0';
-        s.dataset.loaded = '1';
-        resolve();
-      };
-      s.onerror = function() { reject(new Error('load failed: ' + src)); };
-      document.head.appendChild(s);
-    });
-  }
-
-  function invokeBusinessAction(rule, origin, sourceEvent) {
-    if (!rule) return false;
-    try {
-      window.__cdLastMobileAction = {
-        action: rule.action,
-        sourceType: sourceEvent ? sourceEvent.type : 'manual',
-        at: Date.now()
-      };
-    } catch (_) {}
-    ensureMobileBackstackRuntime();
-    try {
-      if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
-        window.__cdMobileNav.onActionInvoke(rule.action, origin || null);
-      }
-    } catch (_) {}
-    // Preview CTA with data-pvw-bypass is a normal direct path.
-    var _fromPreviewBypass = false;
-    if (origin && typeof origin.closest === 'function') {
-      _fromPreviewBypass = !!origin.closest('[data-pvw-bypass]');
-    }
-    if (!_fromPreviewBypass && shouldSkipDuplicateAction(rule.action)) return true;
-
-    // Coin/payment gate checks
-    // Prevent touch events from bypassing the coin/payment gate into premium actions.
-    // Premium panels still need to pass through the upstream gate flow.
-    // If pvw-bypass is active (direct click from Preview CTA), skip the gate.
-    var _coinGateTile = null;
-    if (origin && typeof origin.closest === 'function') {
-      _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
-    }
-    // When pvw-bypass is set, Preview CTA direct entry should skip the gate.
-    if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
-    if (!_coinGateTile) {
-      _coinGateTile = document.querySelector(
-        '[data-action="' + rule.action + '"][data-tile-lock-key],' +
-        '[data-action="' + rule.action + '"][data-coin-cost]'
-      );
-      // Fallback tile also needs the pvw-bypass check
-      if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
-    }
-    if (_coinGateTile) {
-      var _coinGateCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0);
-      if (_coinGateCost > 0 && !_fromPreviewBypass && typeof window._cdOpenTilePreview === 'function') {
-        try {
-          if (window._cdOpenTilePreview(_coinGateTile)) {
-            return true;
-          }
-        } catch (_) {}
-      }
-      if (typeof window.__cdRequireTileLockGate === 'function') {
-        if (!window.__cdRequireTileLockGate(_coinGateTile)) {
-          return true;
-        }
-      } else if (typeof window._cdOpenTilePreview === 'function' && !_coinGateTile.getAttribute('data-pvw-bypass')) {
-        if (window._cdOpenTilePreview(_coinGateTile)) {
-          return true;
-        }
-        return false;
-      }
-    }
-    // Coin/payment gate check complete.
-
-    var directLinkEl = origin && typeof origin.closest === 'function'
-      ? origin.closest('a[href]')
-      : null;
-    // ì‹œë¹Œë¼/ìë¯¸ë‘ìˆ˜/ìˆ™ìš”/ì ì„±ìˆ /íƒ€ë¡œ ì§„ì… íƒ€ì¼ì€ SEOÂ·í¬ë¡¤ìš©ìœ¼ë¡œ <a href> ì´ì§€ë§Œ ëª¨ë‹¬ì€ ì œìë¦¬ì—ì„œ
-    // ì—´ë ¤ì•¼ í•œë‹¤. ì´ ì§€ë¦„ê¸¸ì´ ê·¸ ì•µì»¤ê¹Œì§€ ì‚¼í‚¤ë©´ íƒ­ í•œ ë²ˆì— ì…¸ì´ í†µì§¸ë¡œ ì¬ë¡œë“œë˜ê³ , ì‚¬ì£¼ ê²°ê³¼ê°€
-    // ì‚´ì•„ìˆì–´ì•¼ ë™ì‘í•˜ëŠ” ì‹œë¹Œë¼ëŠ” ë°ì´í„°ë¥¼ ìƒì€ ì±„ ì—´ë ¤ "ë©”ì¸ìœ¼ë¡œ íŠ•ê¸´" ê²ƒì²˜ëŸ¼ ë³´ì¸ë‹¤.
-    // ë°ìŠ¤í¬íƒ‘ í´ë¦­ ìœ„ì„ì€ ê°™ì€ ì•¡ì…˜ì„ ì´ë¯¸ preventDefault í•˜ê³  ìˆë‹¤ â€” ê·¸ ì§ì„ ì—¬ê¸°ì— ë§ì¶˜ë‹¤.
-    if (directLinkEl && isInPlaceModalAction(rule.action)) {
-      directLinkEl = null;
-    }
-    if (directLinkEl) {
-      var directCoinCost = Number(directLinkEl.getAttribute('data-coin-cost') || 0);
-      var directLockCost = Number(directLinkEl.getAttribute('data-tile-lock-cost') || 0);
-      var directHref = directLinkEl.getAttribute('href') || directLinkEl.getAttribute('data-direct-href') || directLinkEl.getAttribute('data-fallback-href') || '';
-      var normalizedHref = String(directHref || '').trim();
-      if (
-        directCoinCost <= 0 &&
-        directLockCost <= 0 &&
-        normalizedHref &&
-        normalizedHref !== '#' &&
-        normalizedHref.indexOf('javascript:') !== 0
-      ) {
-        try {
-          window.location.href = normalizedHref;
-          return true;
-        } catch (directErr) {
-          try {
-            window.location.assign(normalizedHref);
-            return true;
-          } catch (assignErr) {
-            console.error('[mobile-interaction-patch] direct link navigation failed:', assignErr || directErr);
-          }
-        }
-      }
-    }
-
-    var loadToken = beginFeatureLoading(rule.action, { minMs: 350, maxMs: 7000 });
-
-    if (rule.action === 'openNevilleMeditationPage') {
-      try {
-        window.location.href = '/neville-meditation.html';
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] meditation navigation failed:', err);
-        endFeatureLoading(loadToken);
-        var fallbackHref = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/neville-meditation.html';
-        if (fallbackHref) {
-          try {
-            window.location.assign(fallbackHref);
-            return true;
-          } catch (fallbackErr) {
-            console.error('[mobile-interaction-patch] meditation fallback navigation failed:', fallbackErr);
-          }
-        }
-      }
-      endFeatureLoading(loadToken);
-      return false;
-    }
-
-    if (rule.action === 'openCosmicSoulMeditation') {
-      try {
-        window.location.href = '/cosmic-soul-meditation.html';
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] cosmic soul meditation navigation failed:', err);
-        endFeatureLoading(loadToken);
-        var fallbackHref2 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/cosmic-soul-meditation.html';
-        if (fallbackHref2) {
-          try { window.location.assign(fallbackHref2); return true; } catch (_) {}
-        }
-      }
-      endFeatureLoading(loadToken);
-      return false;
-    }
-
-    if (rule.action === 'openYogaGuru') {
-      try {
-        window.location.href = '/yoga-guru.html';
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] yoga guru navigation failed:', err);
-        endFeatureLoading(loadToken);
-        var fallbackHref3 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/yoga-guru.html';
-        if (fallbackHref3) {
-          try { window.location.assign(fallbackHref3); return true; } catch (_) {}
-        }
-      }
-      endFeatureLoading(loadToken);
-      return false;
-    }
-
-    if (rule.action === 'openTarotHealingModal') {
-      try {
-        window.location.href = '/tarot/healing';
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] tarot healing navigation failed:', err);
-        endFeatureLoading(loadToken);
-        try {
-          window.location.assign('/tarot/healing');
-          return true;
-        } catch (_) {}
-      }
-      endFeatureLoading(loadToken);
-      return false;
-    }
-
-    dispatchFeatureTapEvent(rule, origin, sourceEvent);
-
-    var fn = window[rule.action];
-    var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
-    if (rule.action === 'gotoNamingPremium' && typeof fn !== 'function') {
-      window.location.href = '/myungwun_final.html';
-      return true;
-    }
-
-    /* lazy-load: keep routing through even if the script is not ready yet. */
-    if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
-      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-      raf(function() {
-        var chain = Promise.resolve();
-        lazyPaths.forEach(function(src) {
-          chain = chain.then(function() { return loadScript(src); });
-        });
-        chain.then(function() {
-          if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
-          var f = window[rule.action];
-          if (typeof f === 'function') {
-            var result;
-            try { 
-              result = f();
-              finalizeFeatureLoading(result, loadToken);
-            } catch (err) {
-              console.error('[mobile-interaction-patch] post-load action failed:', rule.action, err);
-              endFeatureLoading(loadToken);
-            }
-          } else {
-            endFeatureLoading(loadToken);
-          }
-        }).catch(function(err) {
-          console.error('[mobile-interaction-patch] lazy load failed:', rule.action, err);
-          endFeatureLoading(loadToken);
-        });
-      });
-      return true;
-    }
-
-    if (typeof fn !== 'function') {
-      endFeatureLoading(loadToken);
-      return false;
-    }
-
-    /* If a heavy browser gets stuck while handling touch, defer with rAF. */
-    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-    try {
-      raf(function() {
-        if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
-        try {
-          var result = fn();
-          finalizeFeatureLoading(result, loadToken);
-        } catch (err) {
-          console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
-          endFeatureLoading(loadToken);
-        }
-      });
-      return true;
-    } catch (err) {
-      console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
-      endFeatureLoading(loadToken);
-      return false;
-    }
-  }
-
-  function findDataActionElement(origin) {
-    if (!origin || typeof origin.closest !== 'function') return null;
-    var el = origin.closest('[data-action]');
-    if (!el) return null;
-    var action = el.getAttribute('data-action');
-    if (!action || action === 'toggleCollection') return null;
-    if (!FEATURE_ACTION_SET[action] && !isGenericCardActionElement(el)) return null;
-    return el;
-  }
-
-  function invokeDataActionFallback(actionEl, sourceEvent) {
-    if (!actionEl) return false;
-    var action = actionEl.getAttribute('data-action');
-    if (!action) return false;
-    var actionArgsRaw = actionEl.getAttribute('data-action-args') || '';
-    if (shouldSkipDuplicateAction(action + '::' + actionArgsRaw)) return true;
-
-    var hasActionConfig = !!actionArgsRaw
-      || !!actionEl.getAttribute('data-action-pass-self')
-      || actionEl.getAttribute('data-action-pass-event') === '1';
-
-    // Generic data-action route must preserve args/self/event config.
-    if (hasActionConfig) {
-      if (invokeConfiguredDataAction(actionEl, sourceEvent)) return true;
-    } else if (invokeBusinessAction({ action: action }, actionEl, sourceEvent)) {
-      return true;
-    }
-
-    // ìœ ë£Œ ê²Œì´íŠ¸ê°€ í•„ìš”í•œ ì•¡ì…˜ì€ ì „ì—­ í•¸ë“¤ëŸ¬ë¡œ ì „ë‹¬í•œë‹¤.
-    // Route through the global click handler to keep Preview/gates stable.
-    var isPremGateAction = (
-      action === 'gotoNamingPremium'
-    );
-    if (isPremGateAction && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
-      return false;
-    }
-
-    // Let the global data-action binder handle generic actions.
-    if (typeof actionEl.click === 'function') {
-      actionEl.click();
-      return true;
-    }
-    return false;
-  }
-
-  function findMobileCardLink(origin) {
-    if (!origin || typeof origin.closest !== 'function') return null;
-    var link = origin.closest(
-      'a[href].tarot-tile,' +
-      'a[href].premium-card,' +
-      'a[href].service-card,' +
-      'a[href].MobileFeatureCard,' +
-      'a[href].MobileLockedCard,' +
-      'a[href].moon-preview-card'
-    );
-    if (!link) return null;
-    var href = String(link.getAttribute('href') || '').trim();
-    if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return null;
-    // ì´ ë§í¬ íƒìƒ‰ì€ ì•„ë˜ rule ê¸°ë°˜ ì•¡ì…˜ ì²˜ë¦¬ë³´ë‹¤ ë¨¼ì € ëˆë‹¤. í™ˆì˜ ìë¯¸ë‘ìˆ˜Â·ìˆ™ìš”Â·ì ì„±ìˆ Â·íƒ€ë¡œ
-    // ì§„ì… ì¹´ë“œëŠ” .moon-preview-card ì´ë©´ì„œ ë™ì‹œì— ì œìë¦¬ ê°œë´‰ ì•¡ì…˜ì„ ë“¤ê³  ìˆìœ¼ë¯€ë¡œ,
-    // ì—¬ê¸°ì„œ ê±¸ëŸ¬ ì£¼ì§€ ì•Šìœ¼ë©´ ì•¡ì…˜ì´ ì‹¤í–‰ë˜ê¸° ì „ì— ì…¸ì´ í†µì§¸ë¡œ ì¬ë¡œë“œëœë‹¤.
-    if (isInPlaceModalAction(link.getAttribute('data-action'))) return null;
-    return link;
-  }
-
-  function invokeMobileCardLink(link) {
-    if (!link) return false;
-    var href = String(link.getAttribute('href') || '').trim();
-    if (!href || shouldSkipDuplicateAction('link::' + href)) return false;
-    try {
-      window.__cdLastMobileAction = {
-        action: 'navigateLink',
-        href: href,
-        sourceType: 'touch',
-        at: Date.now()
-      };
-    } catch (_) {}
-    window.location.href = href;
-    return true;
-  }
-
-  function injectTouchActionStyle() {
-    if (document.getElementById('cd-mobile-touch-bridge-style')) return;
-
-    var css = [
-      '.feature-card--face, .feature-card--tazza,',
-      '.tarot-tile--healing, .tarot-tile--year, .tarot-tile--love, .tarot-tile--reunion, .tarot-tile--self-esteem, .tarot-tile--animal-totem, .tarot-tile--meditation,',
-      '.tarot-tile--dream-tile, .tarot-tile--psycho-freud-tile,',
-      '.tarot-tile--hwatu, .tarot-tile--egypt-fc, .tarot-tile--vedic-fc, .tarot-tile--olympus-oracle, .tarot-tile--geomancy-fc,',
-      '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl,',
-      '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
-      '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',
-      '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img,',
-      '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title,',
-      '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc,',
-      '.tarot-tile--love .tarot-tile__img-wrap, .tarot-tile--love .tarot-tile__img, .tarot-tile--love .tarot-tile__badge, .tarot-tile--love .tarot-tile__body, .tarot-tile--love .tarot-tile__title, .tarot-tile--love .tarot-tile__desc,',
-      '.tarot-tile--self-esteem .tarot-tile__img-wrap, .tarot-tile--self-esteem .tarot-tile__img, .tarot-tile--self-esteem .tarot-tile__badge, .tarot-tile--self-esteem .tarot-tile__body, .tarot-tile--self-esteem .tarot-tile__title, .tarot-tile--self-esteem .tarot-tile__desc,',
-      '.tarot-tile--reunion .tarot-tile__img-wrap, .tarot-tile--reunion .tarot-tile__img, .tarot-tile--reunion .tarot-tile__badge, .tarot-tile--reunion .tarot-tile__body, .tarot-tile--reunion .tarot-tile__title, .tarot-tile--reunion .tarot-tile__desc,',
-      '.tarot-tile--dream-tile .tarot-tile__img-wrap, .tarot-tile--dream-tile .tarot-tile__img, .tarot-tile--dream-tile .tarot-tile__badge, .tarot-tile--dream-tile .tarot-tile__body, .tarot-tile--dream-tile .tarot-tile__title, .tarot-tile--dream-tile .tarot-tile__desc,',
-      '.tarot-tile--psycho-freud-tile .tarot-tile__img-wrap, .tarot-tile--psycho-freud-tile .tarot-tile__img, .tarot-tile--psycho-freud-tile .tarot-tile__badge, .tarot-tile--psycho-freud-tile .tarot-tile__body, .tarot-tile--psycho-freud-tile .tarot-tile__title, .tarot-tile--psycho-freud-tile .tarot-tile__desc,',
-      '.tarot-tile--healing .tarot-tile__img-wrap, .tarot-tile--healing .tarot-tile__img, .tarot-tile--healing .tarot-tile__body, .tarot-tile--healing .tarot-tile__title, .tarot-tile--healing .tarot-tile__desc,',
-      '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
-      '.tarot-tile--hwatu .tarot-tile__img-wrap, .tarot-tile--hwatu .tarot-tile__img, .tarot-tile--hwatu .tarot-tile__body, .tarot-tile--hwatu .tarot-tile__title, .tarot-tile--hwatu .tarot-tile__desc,',
-      '.tarot-tile--egypt-fc .tarot-tile__img-wrap, .tarot-tile--egypt-fc .tarot-tile__img, .tarot-tile--egypt-fc .tarot-tile__body, .tarot-tile--egypt-fc .tarot-tile__title, .tarot-tile--egypt-fc .tarot-tile__desc,',
-      '.tarot-tile--vedic-fc .tarot-tile__img-wrap, .tarot-tile--vedic-fc .tarot-tile__img, .tarot-tile--vedic-fc .tarot-tile__body, .tarot-tile--vedic-fc .tarot-tile__title, .tarot-tile--vedic-fc .tarot-tile__desc,',
-      '.tarot-tile--olympus-oracle .tarot-tile__img-wrap, .tarot-tile--olympus-oracle .tarot-tile__img, .tarot-tile--olympus-oracle .tarot-tile__badge, .tarot-tile--olympus-oracle .tarot-tile__body, .tarot-tile--olympus-oracle .tarot-tile__title, .tarot-tile--olympus-oracle .tarot-tile__desc,',
-      '.tarot-tile--geomancy-fc .tarot-tile__img-wrap, .tarot-tile--geomancy-fc .tarot-tile__img, .tarot-tile--geomancy-fc .tarot-tile__badge, .tarot-tile--geomancy-fc .tarot-tile__body, .tarot-tile--geomancy-fc .tarot-tile__title, .tarot-tile--geomancy-fc .tarot-tile__desc,',
-      '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__badge, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
-      '.tarot-tile--saju-guardian .tarot-tile__img-wrap, .tarot-tile--saju-guardian .tarot-tile__img, .tarot-tile--saju-guardian .tarot-tile__badge, .tarot-tile--saju-guardian .tarot-tile__body, .tarot-tile--saju-guardian .tarot-tile__title, .tarot-tile--saju-guardian .tarot-tile__desc,',
-      '.tarot-tile--bloom .tarot-tile__img-wrap, .tarot-tile--bloom .tarot-tile__img, .tarot-tile--bloom .tarot-tile__badge, .tarot-tile--bloom .tarot-tile__body, .tarot-tile--bloom .tarot-tile__title, .tarot-tile--bloom .tarot-tile__desc,',
-      '.tarot-tile--astro-flower .tarot-tile__img-wrap, .tarot-tile--astro-flower .tarot-tile__img, .tarot-tile--astro-flower .tarot-tile__badge, .tarot-tile--astro-flower .tarot-tile__body, .tarot-tile--astro-flower .tarot-tile__title, .tarot-tile--astro-flower .tarot-tile__desc,',
-      '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
-      '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
-      '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
-      '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"],',
-      '/* Reader/service tile touch optimization */',
-      '.lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile,',
-      '.lifebook-tile__inner, .lovebible-tile__inner, .lovesim-tile__inner, .sibyl-entry-inner,',
-      '.lifebook-tile__img-wrap, .lifebook-tile__img, .lifebook-tile__body, .lifebook-tile__title, .lifebook-tile__desc, .lifebook-tile__features, .lifebook-tile__cta,',
-      '.lovebible-tile__inner, .lovebible-tile__body, .lovebible-tile__title, .lovebible-tile__desc, .lovebible-tile__features, .lovebible-tile__cta,',
-      '.lovesim-tile__inner, .lovesim-tile__body, .lovesim-tile__title, .lovesim-tile__desc, .lovesim-tile__features, .lovesim-tile__cta,',
-      '.sibyl-entry-inner, .sibyl-entry-img-col, .sibyl-entry-img, .sibyl-entry-content,',
-      '[data-action="openLoveSimulation"], [data-action="openSibylModal"] {',
-      '  touch-action: manipulation;',
-      '  -webkit-tap-highlight-color: transparent;',
-      '  cursor: pointer;',
-      '}',
-      '.fc-toggle-btn {',
-      '  touch-action: manipulation;',
-      '  -webkit-tap-highlight-color: transparent;',
-      '  cursor: pointer;',
-      '}',
-      '.moon-preview-card, .cd-comprehensive-prompt-entry,',
-      '.lang-trigger, .cd-mobile-hub__chip, .cd-mobile-hub__section-more, .cd-mobile-bottom-nav__chip, .moon-music-entry__cta,',
-      '.feature-card-grid .feature-card, .feature-card-grid .tarot-tile, .feature-card-grid .lifebook-tile,',
-      '.feature-card-grid .lovebible-tile, .feature-card-grid .lovesim-tile, .feature-card-grid .sibyl-entry-tile,',
-      '.feature-card-grid .prem-card, .lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile, .prem-card {',
-      '  touch-action: manipulation;',
-      '  -webkit-tap-highlight-color: transparent;',
-      '  cursor: pointer;',
-      '  min-height: 44px;',
-      '  min-width: 44px;',
-      '}',
-      '.lang-trigger, .cd-mobile-hub__chip, .cd-mobile-hub__section-more, .cd-mobile-bottom-nav__chip, .moon-music-entry__cta {',
-      '  min-height: 44px !important;',
-      '  min-width: 44px !important;',
-      '}',
-      '.lang-trigger {',
-      '  height: 44px !important;',
-      '}',
-      '.moon-preview-card__sigil, .moon-preview-card__meta,',
-      '.feature-card-grid .tarot-tile__img-wrap, .feature-card-grid .tarot-tile__img,',
-      '.feature-card-grid .tarot-tile__body, .feature-card-grid .tarot-tile__title,',
-      '.feature-card-grid .tarot-tile__desc, .feature-card-grid .tarot-tile__badge,',
-      '.feature-card-grid .tarot-tile__coin-badge, .feature-card-grid .tarot-tile__lock-icon,',
-      '.feature-card-grid .tarot-tile__img-placeholder, .feature-card-grid .tarot-tile__img-skeleton,',
-      '.tarot-tile__img-wrap, .tarot-tile__img, .tarot-tile__body,',
-      '.tarot-tile__title, .tarot-tile__desc, .tarot-tile__badge,',
-      '.tarot-tile__coin-badge, .tarot-tile__lock-icon,',
-      '.tarot-tile__img-placeholder, .tarot-tile__img-skeleton,',
-      '.lifebook-tile__bg, .lifebook-tile__particles,',
-      '.lovebible-tile__bg, .lovebible-tile__particles {',
-      '  pointer-events: none;',
-      '}',
-      '.feature-card-grid, .feat-collection, .tarot-collection, .feat-collection__grid, .tarot-collection__grid {',
-      '  touch-action: pan-y;',
-      '}',
-      ':root {',
-      '  --cd-safe-vh: 100vh;',
-      '}',
-      '.cd-mobile-tap-feedback {',
-      '  transform: translateY(1px) scale(.992);',
-      '  filter: brightness(1.06);',
-      '  transition: transform .12s ease, filter .12s ease;',
-      '}',
-      '#tilePvwOverlay:not(.pvw-open), #sajuLoaderOverlay[aria-hidden="true"], #privacy-modal-overlay[aria-hidden="true"], #goldenGrainChargeModalRoot[aria-hidden="true"], #namingPromptModal[aria-hidden="true"], #cdLoginRequiredModal[aria-hidden="true"], .saju-loader-overlay[aria-hidden="true"], .modal[aria-hidden="true"] {',
-      '  pointer-events: none !important;',
-      '}',
-      '#namingPromptModal[aria-hidden="false"] {',
-      '  min-height: var(--cd-safe-vh);',
-      '}',
-      '@supports (height: 100dvh) {',
-      '  :root { --cd-safe-vh: 100dvh; }',
-      '}',
-      '#kemetOracleOverlay, #psychoDreamModalOverlay, #tarotHealingOverlay, #tarotLoveOverlay, #tarotReunionOverlay, #tarotYearFortuneOverlay, #dreamModalOverlay {',
-      '  min-height: var(--cd-safe-vh);',
-      '  max-height: var(--cd-safe-vh);',
-      '  overflow-x: hidden;',
-      '  -webkit-overflow-scrolling: touch;',
-      '}',
-      '@media (max-width: 767px), (hover: none) and (pointer: coarse) {',
-      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-visual,',
-      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite,',
-      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite::before,',
-      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-progress::after {',
-      '    animation-play-state: paused !important;',
-      '    -webkit-animation-play-state: paused !important;',
-      '  }',
-      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite::before {',
-      '    background-image: none !important;',
-      '  }',
-      '  #sajuLoaderOverlay[aria-hidden="false"][data-marker~="honey-fortune-logo-payment-ux-v20260618"],',
-      '  #cdPaidFeatureGate {',
-      '    backdrop-filter: blur(6px) saturate(1.02) !important;',
-      '    -webkit-backdrop-filter: blur(6px) saturate(1.02) !important;',
-      '  }',
-      '  .tile-pvw-bd, .tile-pvw-close, .tile-pvw-hero-cat, .tile-pvw-hero-cost {',
-      '    backdrop-filter: none !important;',
-      '    -webkit-backdrop-filter: none !important;',
-      '  }',
-      '}',
-      '@media (prefers-reduced-motion: reduce) {',
-      '  .moon-music-entry__stars, .moon-music-entry__stars-crescent,',
-      '  #sajuLoaderOverlay .saju-loader-yeon-sprite::before,',
-      '  .tile-pvw-hero-img.pvw-img-enter {',
-      '    animation: none !important;',
-      '    -webkit-animation: none !important;',
-      '  }',
-      '}'
-    ].join('\n');
-
-    var style = document.createElement('style');
-    style.id = 'cd-mobile-touch-bridge-style';
-    style.textContent = css;
-    document.head.appendChild(style);
-  }
-
-  function bindMobileDataActionFallback(root) {
-    if (!root || root.__cdMobileDataActionFallbackBound) return;
-    root.__cdMobileDataActionFallbackBound = true;
-    root.addEventListener('click', function (event) {
-      if (!shouldEnableMobileInteractionBridge()) return;
-      if (!event || event.__cdMobileBridgeHandled || !event.target || !event.target.closest) return;
-      var actionEl = findDataActionElement(event.target);
-      if (!actionEl) return;
-      var now = Date.now();
-      var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
-        && (lastTouchHadMove || cardScrollTouch.moved);
-      if (now < suppressClickUntil || recentScrollGuard) return;
-      if (!invokeDataActionFallback(actionEl, event)) return;
-      event.__cdMobileBridgeHandled = true;
-      showTapFeedback(actionEl);
-      scheduleOverlayLifecycleGuard(360);
-      event.preventDefault();
-      event.stopPropagation();
-    }, true);
-  }
-
-  function bindDirectFeatureCardActions(root) {
-    var scope = root && root.querySelectorAll ? root : document;
-    var nodes = scope.querySelectorAll('.feature-card-grid [data-action], .moon-collection-nav [data-action], #cdMobileDestinyHub [data-action]');
-    nodes.forEach(function(node) {
-      if (!node || node.__cdMobileDirectActionBound) return;
-      var action = node.getAttribute('data-action');
-      if (!action || action === 'toggleCollection') return;
-      if (!FEATURE_ACTION_SET[action] && !isGenericCardActionElement(node)) return;
-      node.__cdMobileDirectActionBound = true;
-      var directTouch = null;
-      node.addEventListener('touchstart', function(event) {
-        var pt = getPoint(event);
-        directTouch = pt ? { x: pt.x, y: pt.y, moved: false, at: Date.now() } : null;
-      }, { passive: true });
-      node.addEventListener('touchmove', function(event) {
-        if (!directTouch) return;
-        var pt = getPoint(event);
-        if (!pt) return;
-        if (Math.abs(pt.x - directTouch.x) > TAP_MOVE_DETECT_PX || Math.abs(pt.y - directTouch.y) > TAP_MOVE_DETECT_PX) {
-          directTouch.moved = true;
-        }
-      }, { passive: true });
-      node.addEventListener('touchend', function(event) {
-        if (!directTouch || directTouch.moved || Date.now() - directTouch.at > MAX_TAP_DURATION_MS) {
-          directTouch = null;
-          return;
-        }
-        directTouch = null;
-        if (event && event.__cdMobileBridgeHandled) return;
-        if (!invokeDataActionFallback(node, event)) return;
-        event.__cdMobileBridgeHandled = true;
-        showTapFeedback(node);
-        scheduleOverlayLifecycleGuard(360);
-        event.preventDefault();
-        event.stopPropagation();
-      }, { passive: false });
-      node.addEventListener('pointerup', function(event) {
-        if (!event || event.pointerType !== 'touch' || event.__cdMobileBridgeHandled) return;
-        if (directTouch && directTouch.moved) return;
-        if (!invokeDataActionFallback(node, event)) return;
-        event.__cdMobileBridgeHandled = true;
-        showTapFeedback(node);
-        scheduleOverlayLifecycleGuard(360);
-        event.preventDefault();
-        event.stopPropagation();
-      }, { passive: false });
-      node.addEventListener('click', function(event) {
-        if (!shouldEnableMobileInteractionBridge()) return;
-        if (!event || event.__cdMobileBridgeHandled) return;
-        if (!invokeDataActionFallback(node, event)) return;
-        event.__cdMobileBridgeHandled = true;
-        showTapFeedback(node);
-        scheduleOverlayLifecycleGuard(360);
-        event.preventDefault();
-        event.stopPropagation();
-      }, true);
-    });
-  }
-
-  function createBulletproofDelegator(root) {
-    if (!root || root.__cdTouchBridgeBound) return;
-    root.__cdTouchBridgeBound = true;
-
-    function __cdRafBatch(readPhase, writePhase) {
-      var readResult = null;
-      if (typeof readPhase === 'function') readResult = readPhase();
-      requestAnimationFrame(function () {
-        if (typeof writePhase === 'function') writePhase(readResult);
-      });
-    }
-
-    root.addEventListener('touchstart', function (event) {
-      var pt = getPoint(event);
-      if (pt) {
-        lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
-        lastTouchHadMove = false;
-      }
-      if (event && event.target) {
-        showTapFeedback(event.target);
-        scheduleOverlayLifecycleGuard(260);
-      }
-      if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
-      if (!rule) return;
-      if (!pt) return;
-      cardScrollTouch.active = isCardScrollTarget(event.target);
-      cardScrollTouch.moved = false;
-
-      touchCtx = {
-        rule: rule,
-        startX: pt.x,
-        startY: pt.y,
-        target: event.target,
-        startedAt: Date.now(),
-        moved: false,
-        hadMoveEvent: false,
-        maxDx: 0,
-        maxDy: 0
-      };
-    }, { passive: true, capture: true });
-
-    root.addEventListener('touchmove', function (event) {
-      if (!touchCtx) return;
-      var pt = getPoint(event);
-      if (!pt) return;
-      var dx = Math.abs(pt.x - touchCtx.startX);
-      var dy = Math.abs(pt.y - touchCtx.startY);
-      if (dx > touchCtx.maxDx) touchCtx.maxDx = dx;
-      if (dy > touchCtx.maxDy) touchCtx.maxDy = dy;
-      if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
-        touchCtx.hadMoveEvent = true;
-        lastTouchHadMove = true;
-        clearTapFeedback();
-      }
-      if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
-        touchCtx.moved = true;
-        if (cardScrollTouch.active) {
-          cardScrollTouch.moved = true;
-          markCardScrollLock(240);
-        }
-      }
-    }, { passive: false, capture: true });
-
-    root.addEventListener('touchend', function (event) {
-      var pt = getPoint(event);
-      if (!pt) return;
-
-      if (handleCollectionToggleTap(event, pt, 'touch')) {
-        event.__cdMobileBridgeHandled = true;
-        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        return;
-      }
-
-      if (event.target && event.target.closest) {
-        var gateTile = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
-        if (gateTile && !gateTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
-          try {
-            if (window._cdOpenTilePreview(gateTile)) {
-              showTapFeedback(gateTile);
-              scheduleOverlayLifecycleGuard(360);
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-              return;
-            }
-          } catch (_) {}
-        }
-      }
-
-      if (lastTouchStart) {
-        var directDx = Math.abs(pt.x - lastTouchStart.x);
-        var directDy = Math.abs(pt.y - lastTouchStart.y);
-        var directAge = Date.now() - (lastTouchStart.at || 0);
-        var directLink = findMobileCardLink(event.target);
-        if (directLink && directDx < TAP_MAX_DX && directDy < TAP_MAX_DY && directAge <= MAX_TAP_DURATION_MS && !lastTouchHadMove && !cardScrollTouch.moved) {
-          if (invokeMobileCardLink(directLink)) {
-            showTapFeedback(directLink);
-            scheduleOverlayLifecycleGuard(360);
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-        }
-      }
-
-      var ctx = touchCtx;
-      touchCtx = null;
-
-      if (ctx) {
-        var dy = Math.abs(pt.y - ctx.startY);
-        var dx = Math.abs(pt.x - ctx.startX);
-        var now = Date.now();
-        var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
-        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
-        var recentScrollGuard = ((now - lastScrollAt) <= SCROLL_BLOCK_MS || shouldBlockCardTap())
-          && (ctx.hadMoveEvent || lastTouchHadMove || cardScrollTouch.moved);
-        var shouldBlockTap = ctx.moved
-          || dx >= TAP_MAX_DX
-          || dy >= TAP_MAX_DY
-          || verticalDominant
-          || tapDuration > MAX_TAP_DURATION_MS
-          || recentScrollGuard;
-
-        if (!shouldBlockTap) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-          if (handled) {
-            scheduleOverlayLifecycleGuard(360);
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-        } else {
-          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        }
-      }
-
-      /* Mobile callback: re-scan with elementFromPoint when touchCtx delayed handling fails (minimal fallback). */
-      if (isNavOwnedTap(event.target)) {
-        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        return;
-      }
-      if (lastTouchStart) {
-        var touchAge = Date.now() - (lastTouchStart.at || 0);
-        if (touchAge > MAX_TAP_DURATION_MS) {
-          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-          return;
-        }
-        var dx = Math.abs(pt.x - lastTouchStart.x);
-        var dy = Math.abs(pt.y - lastTouchStart.y);
-        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
-          if ((Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) && lastTouchHadMove) {
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-          __cdRafBatch(function () {
-            var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromTarget = findDataActionElement(event.target);
-            var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromPoint = findDataActionElement(actionFromPointEl);
-            var linkFromTarget = findMobileCardLink(event.target);
-            var linkFromPoint = findMobileCardLink(actionFromPointEl);
-            var elAtPoint = actionFromPointEl || document.body;
-            return {
-              ruleFromPoint: ruleFromPoint,
-              actionEl: actionFromTarget || actionFromPoint,
-              linkEl: linkFromTarget || linkFromPoint,
-              elAtPoint: elAtPoint
-            };
-          }, function (state) {
-            if (!state) return;
-            if (state.ruleFromPoint) {
-              var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
-              if (handledRule) {
-                scheduleOverlayLifecycleGuard(360);
-                event.preventDefault();
-                event.stopPropagation();
-                suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-                return;
-              }
-            }
-            if (invokeDataActionFallback(state.actionEl, event)) {
-              scheduleOverlayLifecycleGuard(360);
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-              return;
-            }
-            if (invokeMobileCardLink(state.linkEl)) {
-              showTapFeedback(state.linkEl);
-              scheduleOverlayLifecycleGuard(360);
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            }
-          });
-        }
-      }
-    }, { passive: false, capture: true });
-
-    /* pointer event callback: allow pointer input on touch browsers too. */
-    root.addEventListener('pointerdown', function (event) {
-      if (event.pointerType !== 'touch') return;
-      var pt = getPoint(event);
-      if (pt) {
-        lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
-        lastTouchHadMove = false;
-      }
-      if (event && event.target) {
-        showTapFeedback(event.target);
-        scheduleOverlayLifecycleGuard(260);
-      }
-      if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
-      if (!rule) return;
-      if (!pt) return;
-      touchCtx = {
-        rule: rule,
-        startX: pt.x,
-        startY: pt.y,
-        target: event.target,
-        startedAt: Date.now(),
-        moved: false,
-        hadMoveEvent: false,
-        maxDx: 0,
-        maxDy: 0
-      };
-    }, { passive: true, capture: true });
-
-    root.addEventListener('pointermove', function (event) {
-      if (event.pointerType !== 'touch' || !touchCtx) return;
-      var pt = getPoint(event);
-      if (!pt) return;
-      var dx = Math.abs(pt.x - touchCtx.startX);
-      var dy = Math.abs(pt.y - touchCtx.startY);
-      if (dx > touchCtx.maxDx) touchCtx.maxDx = dx;
-      if (dy > touchCtx.maxDy) touchCtx.maxDy = dy;
-      if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
-        touchCtx.hadMoveEvent = true;
-        lastTouchHadMove = true;
-        clearTapFeedback();
-      }
-      if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
-        touchCtx.moved = true;
-      }
-    }, { passive: true, capture: true });
-
-    root.addEventListener('pointerup', function (event) {
-      if (event.pointerType !== 'touch') return;
-      var pt = getPoint(event);
-      if (!pt) return;
-      if (handleCollectionToggleTap(event, pt, 'pointer')) {
-        event.__cdMobileBridgeHandled = true;
-        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        return;
-      }
-      if (event.target && event.target.closest) {
-        var gateTile2 = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
-        if (gateTile2 && !gateTile2.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
-          try {
-            if (window._cdOpenTilePreview(gateTile2)) {
-              showTapFeedback(gateTile2);
-              scheduleOverlayLifecycleGuard(360);
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-              return;
-            }
-          } catch (_) {}
-        }
-      }
-      if (lastTouchStart) {
-        var directDx2 = Math.abs(pt.x - lastTouchStart.x);
-        var directDy2 = Math.abs(pt.y - lastTouchStart.y);
-        var directAge2 = Date.now() - (lastTouchStart.at || 0);
-        var directLink2 = findMobileCardLink(event.target);
-        if (directLink2 && directDx2 < TAP_MAX_DX && directDy2 < TAP_MAX_DY && directAge2 <= MAX_TAP_DURATION_MS && !lastTouchHadMove && !cardScrollTouch.moved) {
-          if (invokeMobileCardLink(directLink2)) {
-            showTapFeedback(directLink2);
-            scheduleOverlayLifecycleGuard(360);
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-        }
-      }
-      var ctx = touchCtx;
-      touchCtx = null;
-      if (ctx) {
-        var dy = Math.abs(pt.y - ctx.startY);
-        var dx = Math.abs(pt.x - ctx.startX);
-        var now = Date.now();
-        var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
-        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
-        var recentScrollGuard = (now - lastScrollAt) <= SCROLL_BLOCK_MS
-          && (ctx.hadMoveEvent || lastTouchHadMove);
-        var shouldBlockTap = ctx.moved
-          || dx >= TAP_MAX_DX
-          || dy >= TAP_MAX_DY
-          || verticalDominant
-          || tapDuration > MAX_TAP_DURATION_MS
-          || recentScrollGuard;
-        if (!shouldBlockTap) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-          if (handled) {
-            scheduleOverlayLifecycleGuard(360);
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-        } else {
-          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        }
-      }
-      if (isNavOwnedTap(event.target)) {
-        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        return;
-      }
-      if (lastTouchStart) {
-        var touchAge = Date.now() - (lastTouchStart.at || 0);
-        if (touchAge > MAX_TAP_DURATION_MS) {
-          suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-          return;
-        }
-        var dx = Math.abs(pt.x - lastTouchStart.x);
-        var dy = Math.abs(pt.y - lastTouchStart.y);
-        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
-          if ((Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) && lastTouchHadMove) {
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-          __cdRafBatch(function () {
-            var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromTarget = findDataActionElement(event.target);
-            var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromPoint = findDataActionElement(actionFromPointEl);
-            var linkFromTarget = findMobileCardLink(event.target);
-            var linkFromPoint = findMobileCardLink(actionFromPointEl);
-            var elAtPoint = actionFromPointEl || document.body;
-            return {
-              ruleFromPoint: ruleFromPoint,
-              actionEl: actionFromTarget || actionFromPoint,
-              linkEl: linkFromTarget || linkFromPoint,
-              elAtPoint: elAtPoint
-            };
-          }, function (state) {
-            if (!state) return;
-            if (state.ruleFromPoint) {
-              var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
-              if (handledRule) {
-                scheduleOverlayLifecycleGuard(360);
-                event.preventDefault();
-                event.stopPropagation();
-                suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-                return;
-              }
-            }
-            if (invokeDataActionFallback(state.actionEl, event)) {
-              scheduleOverlayLifecycleGuard(360);
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-              return;
-            }
-            if (invokeMobileCardLink(state.linkEl)) {
-              showTapFeedback(state.linkEl);
-              scheduleOverlayLifecycleGuard(360);
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            }
-          });
-        }
-      }
-    }, { passive: false, capture: true });
-
-    root.addEventListener('touchcancel', function () {
-      cardScrollTouch.active = false;
-      cardScrollTouch.moved = false;
-      clearTapFeedback();
-      markCardScrollLock(180);
-    }, { passive: true, capture: true });
-
-    root.addEventListener('click', function (event) {
-      if (!shouldEnableMobileInteractionBridge()) return;
-      if (!event || !event.target || !event.target.closest) return;
-      if (handleCollectionToggleTap(event, { x: event.clientX, y: event.clientY }, 'click')) {
-        event.__cdMobileBridgeHandled = true;
-        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-        return;
-      }
-      var rule = findRuleFromTarget(event.target);
-      if (!rule) return;
-
-      // Scroll/touch ghost click suppression must only apply to bridge-managed rules.
-      var now = Date.now();
-      var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
-        && (lastTouchHadMove || cardScrollTouch.moved);
-      if (now < suppressClickUntil || recentScrollGuard) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-
-      var handled = invokeBusinessAction(rule, event.target, event);
-      if (!handled) return;
-
-      event.__cdMobileBridgeHandled = true;
-      showTapFeedback(event.target);
-      scheduleOverlayLifecycleGuard(360);
-      event.preventDefault();
-      event.stopPropagation();
-    }, true);
-
-    bindMobileDataActionFallback(root);
-  }
-
-  function init() {
-    // This file is for mobile interaction safety; never install its global
-    // observers or capture handlers for desktop and hybrid desktop input.
-    if (!shouldEnableMobileInteractionBridge()) return;
-
-    (function syncViewportHeight() {
-      var root = document.documentElement;
-      if (!root) return;
-      function update() {
-        var h = 0;
-        if (window.visualViewport && Number(window.visualViewport.height) > 0) {
-          h = window.visualViewport.height;
-        } else if (Number(window.innerHeight) > 0) {
-          h = window.innerHeight;
-        }
-        if (h > 0) root.style.setProperty('--cd-safe-vh', h + 'px');
-      }
-      update();
-      window.addEventListener('resize', update, { passive: true });
-      window.addEventListener('orientationchange', update, { passive: true });
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', update, { passive: true });
-        window.visualViewport.addEventListener('scroll', update, { passive: true });
-      }
-    })();
-
-    watchMobileMediaPerformance();
-
-    // Global scroll state tracking.
-    window.addEventListener('scroll', function() {
-      lastScrollAt = Date.now();
-      clearTapFeedback();
-      markCardScrollLock(160);
-    }, { passive: true });
-
-    // ë©”ì¸ í™”ë©´ ì»¬ë ‰ì…˜ ìŠ¤í¬ë¡¤ ê°ì§€ - í”„ë¦¬ë¯¸ì—„, ë™ë¬¼&ê´€ìƒ, ëª…ìƒ ì»¬ë ‰ì…˜
-    var collectionSelectors = [
-      '#premiumVvipCollection',
-      '#animalCollection',
-      '#meditationCollection',
-      '#inputPage .feature-card-grid',
-      '#inputPage .feat-collection',
-      '#inputPage .tarot-collection',
-      '#inputPage .feat-collection__grid',
-      '#inputPage .tarot-collection__grid',
-      '.feat-collection__grid',
-      '.tarot-collection__grid',
-      '.fg-group--animal',
-      '.fg-group--lovebible',
-      '.fg-group--premium',
-      '.fg-group--lovesim',
-      '.fg-group--sibyl'
-    ];
-
-    function setupCollectionScrollListeners() {
-      collectionSelectors.forEach(function(selector) {
-        var containers = document.querySelectorAll(selector);
-        containers.forEach(function(container) {
-          if (container && !container.__cdScrollBound) {
-            container.__cdScrollBound = true;
-            container.addEventListener('scroll', function() {
-              lastScrollAt = Date.now();
-              markCardScrollLock(160);
-            }, { passive: true });
-          }
-        });
-      });
-
-      // ë©”ì¸ fg-group ì„¹ì…˜ë“¤ì˜ ìŠ¤í¬ë¡¤ ê°€ëŠ¥í•œ ë¶€ëª¨ë„ ê°ì§€
-      var scrollableParents = document.querySelectorAll('.fg-group, .tarot-collection, .feat-collection, .feature-card-grid, .feat-collection__grid, .tarot-collection__grid');
-      scrollableParents.forEach(function(parent) {
-        if (parent && !parent.__cdScrollBound) {
-          parent.__cdScrollBound = true;
-          parent.addEventListener('scroll', function() {
-            lastScrollAt = Date.now();
-            markCardScrollLock(160);
-          }, { passive: true });
-        }
-      });
-
-      bindDirectFeatureCardActions(document);
-    }
-
-    // ì´ˆê¸° ì„¤ì • ë° DOM ë³€ê²½ ì‹œ ì¬ì„¤ì •
-    setupCollectionScrollListeners();
-    var scrollObserver = new MutationObserver(function() {
-      setupCollectionScrollListeners();
-    });
-    scrollObserver.observe(document.body, { childList: true, subtree: true });
-
-    injectTouchActionStyle();
-    try { createBulletproofDelegator(document); } catch (err) { console.error('[mobile-interaction-patch] touch bridge bind failed:', err); }
-    bindMobileDataActionFallback(document);
-    bindDirectFeatureCardActions(document);
-    try { window.__cdMobileTouchBridgeReady = !!document.__cdTouchBridgeBound; } catch (_) {}
-    reconcileOverlayLifecycle();
-    window.addEventListener('pageshow', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
-    window.addEventListener('pagehide', function() { clearTapFeedback(); scheduleOverlayLifecycleGuard(40); }, { passive: true });
-    window.addEventListener('popstate', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
-    window.addEventListener('hashchange', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
-    window.addEventListener('code-destiny:feature-tap', function() { scheduleOverlayLifecycleGuard(360); }, { passive: true });
-    document.addEventListener('visibilitychange', function() {
-      clearTapFeedback();
-      scheduleOverlayLifecycleGuard(40);
-    }, { passive: true });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    init();
-  }
-
-  // ìœ ë£Œ ê²Œì´íŠ¸ í†µê³¼ í›„ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜ - ì˜êµ­ í™ì°¨ì  í˜ì´ì§€ ì´ë™
-  window.openRoyalTeaOracle = function() {
-    window.location.href = '/royal-tea-oracle.html';
-  };
-
-  // ê¸°ë³¸ ë² ë‹¤ì  ê¸°ëŠ¥ - í”„ë¡œí•„ ë°ì´í„° ì „ë‹¬ ë° í˜ì´ì§€ ì´ë™
-  window.navigateToVedic = function(profileArg) {
-    var loadToken = beginFeatureLoading('navigateToVedic', { minMs: 650, maxMs: 9000 });
-    try {
-      var profile = profileArg || null;
-      // í”„ë¡œí•„ì´ ì—†ìœ¼ë©´ ì €ì¥ì†Œì—ì„œ ì½ê¸° ì‹œë„
-      if (!profile && typeof window._readProfileFromStorage === 'function') {
-        profile = window._readProfileFromStorage();
-      }
-      // ì •ë³¸ í”„ë¡œí•„ ì¹´ë“œ ë¸Œë¦¬ì§€ ìš°ì„  í™•ì¸
-      if (!profile && typeof window.__cdGetCurrentDestinyProfile === 'function') {
-        try {
-          var bridged = window.__cdGetCurrentDestinyProfile();
-          if (bridged && bridged.birth) profile = bridged;
-        } catch (_) {}
-      }
-      if (!profile && typeof localStorage !== 'undefined') {
-        try {
-          var canonical = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || 'null');
-          if (canonical && canonical.birth) profile = canonical;
-        } catch (_) {}
-      }
-      // localStorageì—ì„œë„ í™•ì¸
-      if (!profile && typeof localStorage !== 'undefined') {
-        try {
-          var saved = localStorage.getItem('FORTUNE_PROFILE_DATA');
-          if (saved) profile = JSON.parse(saved);
-        } catch (_) {}
-      }
-      // í”„ë¡œí•„ì´ ìˆìœ¼ë©´ Vedic í˜ì´ì§€ë¡œ ì „ë‹¬í•  í˜•ì‹ìœ¼ë¡œ ì €ì¥
-      if (profile && profile.birth) {
-        var vedicPayload = {
-          id: profile.id || 'profile',
-          name: profile.name || '',
-          gender: profile.gender || 'M',
-          birth: {
-            year: profile.birth.year,
-            month: profile.birth.month,
-            day: profile.birth.day,
-            hour: profile.birth.hour != null ? profile.birth.hour : 12,
-            minute: profile.birth.minute != null ? profile.birth.minute : 0
-          },
-          location: {
-            lat: profile.location && profile.location.lat != null ? profile.location.lat : 37.5665,
-            lng: profile.location && profile.location.lng != null ? profile.location.lng : 126.978,
-            tzOffset: profile.location && profile.location.tzOffset != null ? profile.location.tzOffset : 9,
-            baseTzOffset: profile.location && profile.location.baseTzOffset != null ? profile.location.baseTzOffset : 9,
-            label: profile.location && profile.location.label ? profile.location.label : mobileInteractionPatchText('locationSeoul')
-          }
-        };
-        // /vedic-astrology.htmlì—ì„œ ì½ì„ ìˆ˜ ìˆë„ë¡ ì €ì¥
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
-        }
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
-        }
-        // URL íŒŒë¼ë¯¸í„°ë¡œë„ ì „ë‹¬ (ë°±ì—…)
-        var vp = encodeURIComponent(JSON.stringify(vedicPayload));
-        window.location.href = '/vedic-astrology.html?vp=' + vp;
-        return;
-      }
-      // í”„ë¡œí•„ì´ ì—†ìœ¼ë©´ ê·¸ëƒ¥ ì´ë™ (ì…ë ¥ í˜ì´ì§€ í‘œì‹œ)
-      window.location.href = '/vedic-astrology.html';
-    } catch (err) {
-      console.error('[navigateToVedic] Error:', err);
-      endFeatureLoading(loadToken);
-      // ì˜¤ë¥˜ ë°œìƒ ì‹œì—ë„ í˜ì´ì§€ ì´ë™ì€ ì‹œë„
-      window.location.href = '/vedic-astrology.html';
-    }
-  };
-})();
+­r‡^Ñf¥–Ø¦{[r‰İ°ë­¦ëJ[˜İ[Ûˆ
+
+HÂˆ	İ\ÙHİšXİ	ÎÂ‚ˆÊˆ[Øš[HİXÚˆ\™Xİ\Û›H
+ØÜ›ÛÛ[İ™KÛÛ™Ë\™\ÜÈ›ØÚÙY
+H
+‹Âˆ˜\ˆTÓPVÑHMÂˆ˜\ˆTÓPVÑHHMÂˆ˜\ˆTÓSÕ‘WÑUPÕÔHÂˆ˜\ˆTÕ‘T•PĞSĞ“ĞÒ×ÔHNÂˆ˜\ˆPVÕTÑTUSÓ—ÓTÈHLÂˆ˜\ˆÒÔÕĞÓPÒ×Ğ“ĞÒ×ÓTÈHLÂˆ˜\ˆPÕSÓ—ÑQTWÓTÈHLÂˆ˜\ˆĞÔ“ÓĞ“ĞÒ×ÓTÈHŒÂˆ˜\ˆİ\™\ÜĞÛXÚÕ[[HÂˆ˜\ˆ\İØÜ›Û]HÂˆ˜\ˆİXÚİH[Âˆ˜\ˆ\İİXÚİ\H[Âˆ˜\ˆ\İİXÚY[İ™HH˜[ÙNÂˆ˜\ˆ\İXİ[Û’[›ÚÙHHÈXİ[Ûˆ	ÉË]ˆNÂˆ˜\ˆØ\™ØÜ›ÛØÚÕ[[HÂˆ˜\ˆØ\™ØÜ›ÛİXÚHÈXİ]™Nˆ˜[ÙK[İ™Yˆ˜[ÙHNÂˆ˜\ˆ\™YY˜XÚÑ[H[Âˆ˜\ˆ\™YY˜XÚÕ[Y\ˆHÂˆ˜\ˆİ™\›^QİX\™[Y\ˆHÂˆ˜\ˆTÑ‘QQPÒ×ĞÓTÔÈH	ØÙ[[Øš[K]\Y™YY˜XÚÉÎÂˆ˜\ˆĞT‘ÔĞÔ“ÓÔÑSPÕÔ”ÈHÂˆ	Ë™™X]\™KXØ\™YÜšY	Ëˆ	Ë™™X]XÛÛXİ[Û‰Ëˆ	Ë\›İXÛÛXİ[Û‰Ëˆ	Ë™™X]XÛÛXİ[Û—×ÙÜšY	Ëˆ	Ë\›İXÛÛXİ[Û—×ÙÜšY	Ëˆ	Ë\›İ][IËˆ	Ë›Y™X›ÛÚË][IËˆ	Ë›İ™XšX›K][IËˆ	Ë›İ™\Ú[K][IËˆ	ËœÚX[Y[K][IËˆ	Ëœ™[KXØ\™	Ëˆ	Ë™˜Ë]ÙÙÛKX‰ÂˆKš›Ú[Š	Ë	ÊNÂˆ˜\ˆÑS‘T’P×ĞĞT‘ĞPÕSÓ—ÔÑSPÕÔ”ÈHÂˆ	Ë›[ÛÛ‹\™]šY]ËXØ\™	Ëˆ	Ë˜ÙXÛÛ\™Z[œÚ]™K\›Û\Y[IËˆ	Ë™™X]\™KXØ\™YÜšY™™X]\™KXØ\™	Ëˆ	Ë™™X]\™KXØ\™YÜšY\›İ][IËˆ	Ë™™X]\™KXØ\™YÜšY›Y™X›ÛÚË][IËˆ	Ë™™X]\™KXØ\™YÜšY›İ™XšX›K][IËˆ	Ë™™X]\™KXØ\™YÜšY›İ™\Ú[K][IËˆ	Ë™™X]\™KXØ\™YÜšYœÚX[Y[K][IËˆ	Ë™™X]\™KXØ\™YÜšYœ™[KXØ\™	Ëˆ	Ë›Y™X›ÛÚË][IËˆ	Ë›İ™XšX›K][IËˆ	Ë›İ™\Ú[K][IËˆ	ËœÚX[Y[K][IËˆ	Ëœ™[KXØ\™	Ëˆ	Ë™™X]XÛÛXİ[Û—×ÙÜšY\›İ][IËˆ	Ë\›İXÛÛXİ[Û—×ÙÜšY\›İ][IËˆ	Ëœ˜Ë\™[KYÜšY\›İ][IÂˆKš›Ú[Š	Ë	ÊNÂˆ˜\ˆSĞ’SWÒS•TPÕSÓ—ÔUÒĞÓÔHHÂˆÛÎˆÈØØ][Û”Ù[İ[ˆ	úã ;eg:ëï:­kH
+;!';&®
+IÈKˆ[ˆÈØØ][Û”Ù[İ[ˆ	ÔÛİ]ÛÜ™XH
+Ù[İ[
+IÈKˆ˜NˆÈØØ][Û”Ù[İ[ˆ	úgäùfï{ï"8à¯xà©¸àêûï"IÈKˆšˆÈØØ][Û”Ù[İ[ˆ	úgêyfï{ï":i¥¹l%;ï"IÈBˆNÂ‚ˆ[˜İ[ÛˆÙ][Øš[R[\˜Xİ[Û“ØØ[J
+HÂˆHÂˆ˜\ˆÛÛÚÚYSX]ÚHØİ[Y[˜ÛÛÚÚYK›X]Ú
+ÊÎ—Ÿ×ÊŠJÎ˜ÙÛØØ[_‘VÓĞĞS_[™ÊOJ××JÊKÊNÂˆ˜\ˆ˜]ÈHÛÛÚÚYSX]ÚÈXÛÙUT’PÛÛ\Û™[
+ÛÛÚÚYSX]ÚÌWH	ÉÊHˆ	ÉÎÂˆYˆ
+\˜]È	‰ˆÚ[™İË›ØØ[İÜ˜YÙJH˜]ÈHØØ[İÜ˜YÙK™Ù]][J	ØÙÛØØ[IÊHØØ[İÜ˜YÙK™Ù]][J	ØÛÙKY\İ[K[ØØ[IÊH	ÉÎÂˆ˜]ÈHİš[™Ê˜]È	ÉÊKÓİÙ\Ø\ÙJ
+NÂˆYˆ
+˜]Ëš[™^ÙŠ	Ú˜IÊHOOH
+H™]\›ˆ	Ú˜IÎÂˆYˆ
+˜]Ëš[™^ÙŠ	Şš	ÊHOOH
+H™]\›ˆ	Şš	ÎÂˆYˆ
+˜]Ëš[™^ÙŠ	Ù[‰ÊHOOH
+H™]\›ˆ	Ù[‰ÎÂˆHØ]Ú
+ÊHßBˆ™]\›ˆ	ÚÛÉÎÂˆB‚ˆ[˜İ[Ûˆ[Øš[R[\˜Xİ[Û”]Ú^
+Ù^JHÂˆ˜\ˆØØ[HHÙ][Øš[R[\˜Xİ[Û“ØØ[J
+NÂˆ˜\ˆÛÜHHSĞ’SWÒS•TPÕSÓ—ÔUÒĞÓÔVÛØØ[WHSĞ’SWÒS•TPÕSÓ—ÔUÒĞÓÔKšÛÎÂˆ™]\›ˆÛÜVÚÙ^WHSĞ’SWÒS•TPÕSÓ—ÔUÒĞÓÔKšÛÖÚÙ^WH	Õ˜[œÛ][Ûˆ[™[™ÉÎÂˆB‚ˆ[˜İ[ÛˆX\šĞØ\™ØÜ›ÛØÚÊ\˜][Û“\ÊHÂˆ˜\ˆ[[H]K››İÊ
+H
+È
+\˜][Û“\ÈŒŒ
+NÂˆYˆ
+[[ˆØ\™ØÜ›ÛØÚÕ[[
+HØ\™ØÜ›ÛØÚÕ[[H[[ÂˆËÈ;(ï;'fˆ;%ë:®,;!'İ\™\ÜĞÛXÚÕ[[;'a:ì ;)à;%bºâ¥:âéˆ:êª:äè;"©;`k:èi;'m:ì©;b®:éâ:âé;`m:é«H;%­{(';,/{'aˆËÈ;%ì;'©{ef:êm;e#:éàKû"©;`k:èi;)à{fá;'f	û(%{)à;`ëIû'm:¬è;"©;b®:èg;&);'n:ãï;%.{g£:âéˆ;"é;(';"©;`k:èi;(';"©;,¦;'fˆËÈ:¬è;"©;b®;`m:é«{'`[İ™KYØ]Y™XÙ[ØÜ›ÛİX\™
+:ì#ÈÚİ[›ØÚĞØ\™\XØ\™ØÜ›ÛØÚÕ[[
+z¬ ˆËÈ:¬á;!£H;,*:âê;ef:ëà:èg;%b;(!;ef:âé‚ˆB‚ˆ[˜İ[Ûˆ\ĞØ\™ØÜ›Û\™Ù]
+›ÙJHÂˆ™]\›ˆHJ›ÙH	‰ˆ›ÙK˜ÛÜÙ\İ	‰ˆ›ÙK˜ÛÜÙ\İ
+ĞT‘ÔĞÔ“ÓÔÑSPÕÔ”ÊJNÂˆB‚ˆ[˜İ[Ûˆ\ÑÙ[™\šXĞØ\™Xİ[Û‘[[Y[
+›ÙJHÂˆ™]\›ˆHJ›ÙH	‰ˆ›ÙK˜ÛÜÙ\İ	‰ˆ›ÙK˜ÛÜÙ\İ
+ÑS‘T’P×ĞĞT‘ĞPÕSÓ—ÔÑSPÕÔ”ÊJNÂˆB‚ˆ[˜İ[ÛˆÚİ[›ØÚĞØ\™\
+
+HÂˆ™]\›ˆ]K››İÊ
+HØ\™ØÜ›ÛØÚÕ[[ÂˆB‚ˆ[˜İ[ÛˆÙ]\™YY˜XÚÑ[[Y[
+›ÙJHÂˆYˆ
+[›ÙH\[Ùˆ›ÙK˜ÛÜÙ\İOOH	Ù[˜İ[Û‰ÊH™]\›ˆ[Âˆ˜\ˆ[H›ÙK˜ÛÜÙ\İ
+	ÖÙ]KXXİ[Û—KVÚ™Y—K]Û‹Ü›ÛOH˜]Ûˆ—K“[Øš[Q™X]\™PØ\™“[Øš[PÛÛ\XİØ\™“[Øš[T]ZXÚĞXİ[Û‹\›İ][K™™X]\™KXØ\™œ™[KXØ\™›[ÛÛ‹\™]šY]ËXØ\™˜ÙXÛÛ\™Z[œÚ]™K\›Û\Y[IÊNÂˆYˆ
+Y[
+H™]\›ˆ[ÂˆYˆ
+[›X]Ú\È	‰ˆ[›X]Ú\Ê	Ú[œ]^\™XKÙ[XİX™[	ÊJH™]\›ˆ[ÂˆYˆ
+[™\ØX›Y[™Ù]]šX]J	Ø\šXKY\ØX›Y	ÊHOOH	İYIÊH™]\›ˆ[Âˆ™]\›ˆ[ÂˆB‚ˆ[˜İ[ÛˆÛX\•\™YY˜XÚÊ
+HÂˆYˆ
+\™YY˜XÚÕ[Y\ŠHÂˆÛX\•[Y[İ]
+\™YY˜XÚÕ[Y\ŠNÂˆ\™YY˜XÚÕ[Y\ˆHÂˆBˆYˆ
+\™YY˜XÚÑ[	‰ˆ\™YY˜XÚÑ[˜Û\ÜÓ\İ
+HÂˆ\™YY˜XÚÑ[˜Û\ÜÓ\İœ™[[İ™JTÑ‘QQPÒ×ĞÓTÔÊNÂˆBˆ\™YY˜XÚÑ[H[ÂˆB‚ˆ[˜İ[ÛˆÚİÕ\™YY˜XÚÊ›ÙJHÂˆ˜\ˆ[HÙ]\™YY˜XÚÑ[[Y[
+›ÙJNÂˆYˆ
+Y[
+H™]\›ÂˆYˆ
+\™YY˜XÚÑ[	‰ˆ\™YY˜XÚÑ[OOH[
+HÛX\•\™YY˜XÚÊ
+NÂˆ\™YY˜XÚÑ[H[Âˆ[˜Û\ÜÓ\İ˜Y
+TÑ‘QQPÒ×ĞÓTÔÊNÂˆ\™YY˜XÚÕ[Y\ˆHÙ][Y[İ]
+ÛX\•\™YY˜XÚËŒŒ
+NÂˆB‚ˆ[˜İ[Ûˆ\ÓÜ[“[Øš[Sİ™\›^J
+HÂˆ˜\ˆÙ[XİÜœÈHÂˆ	Èİ[TÓİ™\›^KœË[Ü[‰Ëˆ	ÈÜØZSØY\“İ™\›^VØ\šXKZY[H™˜[ÙH—IËˆ	ÈØÙZY™X]\™QØ]Kš\Ë[Ü[‰Ëˆ	ÈØÙÙÚ[”™\]Z\™Y[Ù[š\Ë[Ü[‰Ëˆ	ÈÜš]˜XŞK[[Ù[[İ™\›^VØ\šXKZY[H™˜[ÙH—IËˆ	ÈÙÛÛ[‘Ü˜Z[Ú\™ÙS[Ù[›ÛİØ\šXKZY[H™˜[ÙH—IËˆ	ÈÛ˜[Z[™Ô›Û\[Ù[Ø\šXKZY[H™˜[ÙH—IËˆ	ËœØZK[ØY\‹[İ™\›^VØ\šXKZY[H™˜[ÙH—IËˆ	Ë›[Ù[Ø\šXKZY[H™˜[ÙH—IËˆ	ÖÜ›ÛOH™X[ÙÈ—VØ\šXK[[Ù[HYH—VØ\šXKZY[H™˜[ÙH—IÂˆKš›Ú[Š	Ë	ÊNÂˆHÂˆ˜\ˆ›Ù\ÈHØİ[Y[œ]Y\TÙ[XİÜ[
+Ù[XİÜœÊNÂˆ›Üˆ
+˜\ˆHHÈH›Ù\Ë›[™İÈH
+ÏHJHÂˆ˜\ˆ›ÙHH›Ù\ÖÚWNÂˆ˜\ˆİ[HHÚ[™İË™Ù]ÛÛ\]Yİ[HÈÚ[™İË™Ù]ÛÛ\]Yİ[J›ÙJHˆ[ÂˆYˆ
+İ[H	‰ˆ
+İ[K™\Ü^HOOH	Û›Û™IÈİ[Kš\ÚXš[]HOOH	ÚY[‰Èİ[K›ÜXÚ]HOOH	Ì	ÊJHÛÛ[YNÂˆ˜\ˆ™XİH›ÙK™Ù]›İ[™[™ĞÛY[™XİÈ›ÙK™Ù]›İ[™[™ĞÛY[™Xİ
+
+Hˆ[ÂˆYˆ
+\™Xİ™XİÚYˆŒ™XİšZYÚˆŒ
+H™]\›ˆYNÂˆBˆHØ]Ú
+ÊHßBˆ™]\›ˆ˜[ÙNÂˆB‚ˆ[˜İ[Ûˆ™XÛÛ˜Ú[Sİ™\›^SY™XŞXÛJ
+HÂˆHÂˆYˆ
+Z\ÓÜ[“[Øš[Sİ™\›^J
+JHÂˆYˆ
+Øİ[Y[˜›ÙH	‰ˆØİ[Y[˜›ÙKœİ[H	‰ˆØİ[Y[˜›ÙKœİ[K›İ™\™›İÈOOH	ÚY[‰ÊHÂˆØİ[Y[˜›ÙKœİ[K›İ™\™›İÈH	ÉÎÂˆBˆYˆ
+Øİ[Y[˜›ÙH	‰ˆØİ[Y[˜›ÙK˜Û\ÜÓ\İ
+HÂˆØİ[Y[˜›ÙK˜Û\ÜÓ\İœ™[[İ™J	Û‹[[Ù[[Ü[‰ÊNÂˆYˆ
+YØİ[Y[œ]Y\TÙ[XİÜŠ	ÈÛ˜[Z[™Ô›Û\[Ù[Ø\šXKZY[H™˜[ÙH—IÊJHÂˆØİ[Y[˜›ÙK˜Û\ÜÓ\İœ™[[İ™J	Û˜[Z[™Ë\›Û\[Ü[‰ÊNÂˆBˆBˆBˆHØ]Ú
+ÊHßBˆB‚ˆ[˜İ[ÛˆØÚY[Sİ™\›^SY™XŞXÛQİX\™
+[^S\ÊHÂˆYˆ
+İ™\›^QİX\™[Y\ŠHÛX\•[Y[İ]
+İ™\›^QİX\™[Y\ŠNÂˆİ™\›^QİX\™[Y\ˆHÙ][Y[İ]
+[˜İ[ÛŠ
+HÂˆİ™\›^QİX\™[Y\ˆHÂˆ™XÛÛ˜Ú[Sİ™\›^SY™XŞXÛJ
+NÂˆK\[Ùˆ[^S\ÈOOH	Û[X™\‰ÈÈ[^S\Èˆ
+NÂˆB‚ˆ[˜İ[ÛˆÚİ[[˜X›S[Øš[R[\˜Xİ[ÛœšYÙJ
+HÂˆHÂˆ˜\ˆ\ÓX]ÚYYXHH\[ÙˆÚ[™İË›X]ÚYYXHOOH	Ù[˜İ[Û‰ÎÂˆ˜\ˆ[Øš[UšY]ÜÜH\ÓX]ÚYYXH	‰ˆÚ[™İË›X]ÚYYXJ	ÊX^]ÚYˆÍ
+IÊK›X]Ú\ÎÂˆ˜\ˆš[X\PÛØ\œÙHH\ÓX]ÚYYXH	‰ˆÚ[™İË›X]ÚYYXJ	ÊÚ[\ˆÛØ\œÙJIÊK›X]Ú\ÎÂˆ˜\ˆš[X\S›Òİ™\ˆH\ÓX]ÚYYXH	‰ˆÚ[™İË›X]ÚYYXJ	Êİ™\ˆ›Û™JIÊK›X]Ú\ÎÂˆ˜\ˆ[Øš[U\Ù\YÙ[HØ[™›ÚY\Û™_\Y\ÙÚK\İ
+˜]šYØ]Ü‹\Ù\YÙ[	ÉÊNÂ‚ˆËÈHİXÚXØ\X›H\ÚİÜ\Èİ[H\ÚİÜÚ[ˆ]Èš[X\H[œ]\ÈBˆËÈ[İ\ÙKİ˜XÚÜYˆX^İXÚÚ[È[[[Û˜[HÙ\È›İ\XÚ\]H\™N‚ˆËÈXœšY\ÜÈ^ÜÙH]]™[ˆÚ[HZ\ˆ\ÚİÜÛXÚÈ]\ÈXİ]™K‚ˆ™]\›ˆHJ[Øš[UšY]ÜÜ[Øš[U\Ù\YÙ[
+š[X\PÛØ\œÙH	‰ˆš[X\S›Òİ™\ŠJNÂˆHØ]Ú
+ÊHÂˆ™]\›ˆ˜[ÙNÂˆBˆB‚ˆ[˜İ[Ûˆ\Ó[Øš[T[[YJ
+HÂˆ™]\›ˆÚİ[[˜X›S[Øš[R[\˜Xİ[ÛœšYÙJ
+NÂˆB‚ˆ[˜İ[Ûˆ\S[Øš[SYYXT\™›Ü›X[˜ÙJ›Ûİ
+HÂˆ˜\ˆØÛÜHH›Ûİ	‰ˆ›Ûİœ]Y\TÙ[XİÜ[È›ÛİˆØİ[Y[Âˆ˜\ˆ[Øš[HH\Ó[Øš[T[[YJ
+NÂˆ˜\ˆ[YÜÈH×NÂˆYˆ
+ØÛÜK›X]Ú\È	‰ˆØÛÜK›X]Ú\Ê	Ú[YÉÊJH[YÜËœ\Ú
+ØÛÜJNÂˆYˆ
+ØÛÜKœ]Y\TÙ[XİÜ[
+H[YÜÈH[YÜË˜ÛÛ˜Ø]
+\œ˜^Kœ›İİ\KœÛXÙK˜Ø[
+ØÛÜKœ]Y\TÙ[XİÜ[
+	Ú[YÉÊJJNÂˆ[YÜË™›Ü‘XXÚ
+[˜İ[ÛŠ[YÊHÂˆYˆ
+Z[YÈ[YË™]\Ù]˜Ù[Øš[T\™“YYXHOOH	ÌIÊH™]\›Âˆ˜\ˆÛ\ÜÓ˜[YHHİš[™Ê[YË˜Û\ÜÓ˜[YH	ÉÊNÂˆ˜\ˆ\ÓÜH[YË™Ù]]šX]J	Ù]K[ÜXØ[™Y]IÊHOOH	ÌIÎÂˆ˜\ˆ\Ó[Øš[RX“ÙÛÈHÛ\ÜÓ˜[YKš[™^ÙŠ	ØÙ[[Øš[KZX—×ÛÙÛÉÊHOOHLNÂˆYˆ
+Z\ÓÜ	‰ˆZ\Ó[Øš[RX“ÙÛÊHÂˆ[YËœÙ]]šX]J	ÛØY[™ÉË	Û^IÊNÂˆYˆ
+Z[YËš\Ğ]šX]J	Ù™]Úš[Üš]IÊJH[YËœÙ]]šX]J	Ù™]Úš[Üš]IË	ÛİÉÊNÂˆBˆYˆ
+Z[YËš\Ğ]šX]J	ÙXÛÙ[™ÉÊJH[YËœÙ]]šX]J	ÙXÛÙ[™ÉË	Ø\Ş[˜ÉÊNÂˆYˆ
+Z[YËš\Ğ]šX]J	ÜÚ^™\ÉÊJHÂˆYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	İ\›İ][W×Ú[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HLœŒ	ÊNÂˆ[ÙHYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	İ\›İY˜XÙKZ[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HÌ]ËŒ	ÊNÂˆ[ÙHYˆ
+\Ó[Øš[RX“ÙÛÊH[YËœÙ]]šX]J	ÜÚ^™\ÉË	Íœ	ÊNÂˆ[ÙHYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	ÜÚX[Y[KZ[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HLMœÌŒ	ÊNÂˆ[ÙHYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	ÜØ‹[ÙÛËZ[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HÌœMŒ	ÊNÂˆ[ÙHYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	ÚÛ™^K[Y[X™\œÚ\[Z[šW×Ü\ÜËZ[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	Îœ	ÊNÂˆ[ÙHYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	ÛY[X™\œÚ\\™XØ\XİW×ÛX\ØÛİZ[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HL	ÊNÂˆ[ÙHYˆ
+Û\ÜÓ˜[YKš[™^ÙŠ	İ[K\ËZ\›ËZ[YÉÊHOOHLJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HLËL	ÊNÂˆ[ÙHYˆ
+[YË˜ÛÜÙ\İ	‰ˆ[YË˜ÛÜÙ\İ
+	Ë›[ÛÛ‹[]\ÚXËY[W×ØÛİ™\‹\İXÚÉÊJH[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HŒÌŒ	ÊNÂˆ[ÙHYˆ
+[X™\Š[YË™Ù]]šX]J	İÚY	ÊH
+HHL
+H[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HËÌŒ	ÊNÂˆ[ÙHYˆ
+[X™\Š[YË™Ù]]šX]J	İÚY	ÊH
+HH
+H[YËœÙ]]šX]J	ÜÚ^™\ÉË	ÊX^]ÚYˆÍ
+HËŒ	ÊNÂˆ[ÙHYˆ
+[X™\Š[YË™Ù]]šX]J	İÚY	ÊH
+Hˆ
+H[YËœÙ]]šX]J	ÜÚ^™\ÉË[YË™Ù]]šX]J	İÚY	ÊH
+È	Ü	ÊNÂˆBˆYˆ
+[Øš[H	‰ˆ[YËšYOOH	Û™[ÓÙÛÉÊHÂˆ[YËœÙ]]šX]J	ÛØY[™ÉË	Û^IÊNÂˆ[YËœÙ]]šX]J	Ù™]Úš[Üš]IË	ÛİÉÊNÂˆBˆ[YË™]\Ù]˜Ù[Øš[T\™“YYXHH	ÌIÎÂˆJNÂ‚ˆ˜\ˆYYXS›Ù\ÈH×NÂˆYˆ
+ØÛÜK›X]Ú\È	‰ˆØÛÜK›X]Ú\Ê	Ø]Y[ËšY[ÉÊJHYYXS›Ù\Ëœ\Ú
+ØÛÜJNÂˆYˆ
+ØÛÜKœ]Y\TÙ[XİÜ[
+HYYXS›Ù\ÈHYYXS›Ù\Ë˜ÛÛ˜Ø]
+\œ˜^Kœ›İİ\KœÛXÙK˜Ø[
+ØÛÜKœ]Y\TÙ[XİÜ[
+	Ø]Y[ËšY[ÉÊJJNÂˆYYXS›Ù\Ë™›Ü‘XXÚ
+[˜İ[ÛŠ›ÙJHÂˆYˆ
+[›ÙH›ÙK™]\Ù]˜Ù[Øš[T\™“YYXHOOH	ÌIÊH™]\›ÂˆYˆ
+[›ÙKš\Ğ]šX]J	Ù]K]\Ù\‹[YYXK\İ\Y	ÊJH›ÙKœÙ]]šX]J	Ü™[ØY	Ë	Û›Û™IÊNÂˆ›ÙK˜]]Ü^HH˜[ÙNÂˆ›ÙKœ™[[İ™P]šX]J	Ø]]Ü^IÊNÂˆ›ÙK™]\Ù]˜Ù[Øš[T\™“YYXHH	ÌIÎÂˆJNÂˆB‚ˆ[˜İ[ÛˆØ]Ú[Øš[SYYXT\™›Ü›X[˜ÙJ
+HÂˆ\S[Øš[SYYXT\™›Ü›X[˜ÙJØİ[Y[
+NÂˆHÈÚ[™İË—×ØÙ[Øš[T\™›Ü›X[˜ÙSYYXQİX\™™XYHHYNÈHØ]Ú
+ÊHßBˆYˆ
+YØİ[Y[˜›ÙH\[Ùˆ]]][Û“ØœÙ\™\ˆOOH	İ[™Yš[™Y	ÊH™]\›Âˆ˜\ˆYYXSØœÙ\™\ˆH™]È]]][Û“ØœÙ\™\Š[˜İ[ÛŠ]]][ÛœÊHÂˆ]]][ÛœË™›Ü‘XXÚ
+[˜İ[ÛŠ]]][ÛŠHÂˆ\œ˜^Kœ›İİ\K™›Ü‘XXÚ˜Ø[
+]]][Û‹˜YY›Ù\È×K[˜İ[ÛŠ›ÙJHÂˆYˆ
+›ÙH	‰ˆ›ÙK››ÙU\HOOHJH\S[Øš[SYYXT\™›Ü›X[˜ÙJ›ÙJNÂˆJNÂˆJNÂˆJNÂˆYYXSØœÙ\™\‹›ØœÙ\™JØİ[Y[˜›ÙKÈÚ[\İˆYKİX™YNˆYHJNÂˆB‚ˆÊˆS”ˆY™\ˆX]H]KXXİ[Ûˆ[™\œÈ[ˆ[™^Z[›[™K\[[YHÈZPš[™[™ÜÈÈH™^\ÚËˆ
+‹Âˆ˜\ˆ×ĞÑÑQ‘T—ÒS”ĞPÕSÓ”ÈHÂˆÚXÚÔš]˜XŞP[™Ø[İ[]NˆKˆYÜ™YP[™Ø[İ[]NˆKˆØ[İ[]NˆKˆ[ÛÛ\]ˆKˆİ\\›İ™XY[™ÎˆKˆİ\\›İİ™T™XY[™ÎˆKˆİ\\›İX[[™Ô™XY[™ÎˆKˆİ\\›İ™][š[Û”™XY[™ÎˆKˆİ\\›İÙ[‘\İY[T™XY[™ÎˆKˆİ\™X[T™XY[™ÎˆKˆİ\Ù[Y]Ü˜XÛNˆKˆİ\]X[[P[˜[\Ú\ÎˆKˆİ\[š[X[İ[Tš]X[ˆKˆŞXÚÑ™X[Tİ\[˜[\Ú\ÎˆKˆÚİÕ\›İš[˜[[\œ™]][ÛˆKˆÚİÕ\›İİ™Qš[˜[™XY[™ÎˆKˆÚİÕ\›İX[[™Ñš[˜[™XY[™ÎˆKˆÚİÕ\›İ™][š[Û‘š[˜[™XY[™ÎˆKˆÚİÕ\›İÙ[‘\İY[Qš[˜[™XY[™ÎˆKˆ™X[SXœ˜\TÙX\˜ÚˆKˆ™X[SXœ˜\TÙX\˜ÚQ™X[NˆKˆ™X[SXœ˜\SØY[Ü™NˆKˆ™]™X[™X[TİYÙNˆKˆ™^™X[TİYÙNˆBˆNÂ‚ˆ˜\ˆ•STÈHÂˆÂˆXİ[Ûˆ	ÛÜ[”\Ú[ÙÛ›Û^P\	ËˆØ\™Ù[XİÜˆ	Ë™™X]\™KXØ\™KY˜XÙK\›İ][KK\\Ú[ÉËˆ\™Ù]Ù[XİÜˆÂˆ	ÖÙ]KXXİ[ÛH›Ü[”\Ú[ÙÛ›Û^P\—IËˆ	Ë\›İ][KK\\Ú[ÉËˆ	Ë\›İ][KK\\Ú[È\›İ][W×Ú[YË]Ü˜\	Ëˆ	Ë\›İ][KK\\Ú[È\›İ][W×Ú[YÉËˆ	Ë\›İ][KK\\Ú[È\›İ][W×Ø˜YÙIËˆ	Ë\›İ][KK\\Ú[È\›İ][W×İ]IËˆ	Ë\›İ][KK\\Ú[È\›İ][W×Ù\ØÉËˆ	Ë\›İ][KK\\Ú[È\›İ][W×Ø›ÙIËˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×İš\İX[	Ëˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×Ú[YË]Ü˜\	Ëˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×Ú[YÉËˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×İ]IËˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×Ù\ØÉËˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×ØİIËˆ	Ë™™X]\™KXØ\™KY˜XÙH™™X]\™KXØ\™×Û][˜Ú	ÂˆKš›Ú[Š	Ë	ÊBˆKˆÂˆXİ[Ûˆ	ÛÜ[“XS[Ù[	ËˆØ\™Ù[XİÜˆ	Ë\›İ][KK[XIËˆ\™Ù]Ù[XİÜˆÂˆ	ÖÙ]KXXİ[ÛH›Ü[“XS[Ù[—IËˆ	Ë\›İ][KK[XIËˆ	Ë\›İ][KK[XH\›İ][W×Ú[YË]Ü˜\	Ëˆ	Ë\›İ][KK[XH\›İ][W×Ú[YÉËˆ	Ë\›İ][KK[XH\›İ][W×Ø˜YÙIËˆ	Ë\›İ][KK[XH\›İ][W×İ]IËˆ	Ë\›İ][KK[XH\›İ][W×Ù\ØÉËˆ	Ë\›İ][KK[XH\›İ][W×Ø›ÙIÂˆKš›Ú[Š	Ë	ÊBˆKˆÂˆXİ[Ûˆ	ÛÜ[’Ø]S[Ù[	ËˆØ\™Ù[XİÜˆ	Ë™™X]\™KXØ\™K]^˜K\›İ][KKZØ]IËˆ\™Ù]Ù[XİÜˆÂˆ	ÖÙ]KXXİ[ÛH›Ü[’Ø]S[Ù[—IËˆ	Ë\›İ][KKZØ]IËˆ	Ë\›İ][KKZØ]H\›İ][W×Ú[YË]Ü˜\	Ëˆ	Ë\›İ][KKZØ]H\›İ][W×Ú[YÉËˆ	Ë\›İ][KKZØ]H\›İ][W×İ]IËˆ	Ë\›İ][KKZØ]H\›İ][W×Ù\ØÉËˆ	Ë\›İ][KKZØ]H\›İ][W×Ø›ÙIËˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×İš\İX[	Ëˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×Ú[YË]Ü˜\	Ëˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×Ú[YÉËˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×İ]IËˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×Ù\ØÉËˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×ØİIËˆ	Ë™™X]\™KXØ\™K]^˜H™™X]\™KXØ\™×Û][˜Ú	ÂˆKš›Ú[Š	Ë	ÊBˆKˆÂˆXİ[Ûˆ	ÛÜ[[š[X[İ[S[Ù[	ËˆØ\™Ù[XİÜˆ	Ë\›İ][KKX[š[X[]İ[IËˆ\™Ù]Ù[XİÜˆÂˆ	ÖÙ]KXXİ[ÛH›Ü[[š[X[İ[S[Ù[—IËˆ	Ë\›İ][KKX[š[X[]İ[IËˆ	Ë\›İ][KKX[š[X[]İ[H\›İ][W×Ú[YË]Ü˜\	Ëˆ	Ë\›İ][KKX[š[X[]İ[H\›İ][W×Ú[YÉËˆ	Ë\›İ][KKX[š[X[]İ[H\›İ][W×Ø˜YÙIËˆ	Ë\›İ][KKX[š[X[]İ[H\›İ][vã­¸¶‰ËkºwµçQ¥±”È€ô•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ m‘…Ñ„µÑ¥±”µ±½¬µ­•åt±m‘…Ñ„µ½¥¸µ½ÍÑtœ¤ì(€€€€€€€¥˜€¡…Ñ•Q¥±”È€˜˜€……Ñ•Q¥±”È¹•ÑÑÑÉ¥‰ÕÑ” ‘…Ñ„µÁÙÜµ‰åÁ…ÍÌœ¤€˜˜ÑåÁ•½˜İ¥¹‘½Ü¹}‘=Á•¹Q¥±•AÉ•Ù¥•Ü€ôôô€™Õ¹Ñ¥½¸œ¤ì(€€€€€€€€€ÑÉäì(€€€€€€€€€€€¥˜€¡İ¥¹‘½Ü¹}‘=Á•¹Q¥±•AÉ•Ù¥•Ü¡…Ñ•Q¥±”È¤¤ì(€€€€€€€€€€€€€Í¡½İQ…Á••‘‰…¬¡…Ñ•Q¥±”È¤ì(€€€€€€€€€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€€€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€€€ô(€€€€€€€€€ô…Ñ €¡|¤íô(€€€€€€€ô(€€€€€ô(€€€€€¥˜€¡±…ÍÑQ½Õ¡MÑ…ÉĞ¤ì(€€€€€€€Ù…È‘¥É•ÑàÈ€ô5…Ñ ¹…‰Ì¡ÁĞ¹à€´±…ÍÑQ½Õ¡MÑ…ÉĞ¹à¤ì(€€€€€€€Ù…È‘¥É•ÑäÈ€ô5…Ñ ¹…‰Ì¡ÁĞ¹ä€´±…ÍÑQ½Õ¡MÑ…ÉĞ¹ä¤ì(€€€€€€€Ù…È‘¥É•Ñ”È€ô…Ñ”¹¹½Ü ¤€´€¡±…ÍÑQ½Õ¡MÑ…ÉĞ¹…Ğñğ€À¤ì(€€€€€€€Ù…È‘¥É•Ñ1¥¹¬È€ô™¥¹‘5½‰¥±•…É‘1¥¹¬¡•Ù•¹Ğ¹Ñ…É•Ğ¤ì(€€€€€€€¥˜€¡‘¥É•Ñ1¥¹¬È€˜˜‘¥É•ÑàÈ€ğQA}5a}`€˜˜‘¥É•ÑäÈ€ğQA}5a}d€˜˜‘¥É•Ñ”È€ğô5a}QA}UIQ%=9}5L€˜˜€…±…ÍÑQ½Õ¡!…‘5½Ù”€˜˜€……É‘MÉ½±±Q½Õ ¹µ½Ù•¤ì(€€€€€€€€€¥˜€¡¥¹Ù½­•5½‰¥±•…É‘1¥¹¬¡‘¥É•Ñ1¥¹¬È¤¤ì(€€€€€€€€€€€Í¡½İQ…Á••‘‰…¬¡‘¥É•Ñ1¥¹¬È¤ì(€€€€€€€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€ô(€€€€€€€ô(€€€€€ô(€€€€€Ù…ÈÑà€ôÑ½Õ¡Ñàì(€€€€€Ñ½Õ¡Ñà€ô¹Õ±°ì(€€€€€¥˜€¡Ñà¤ì(€€€€€€€Ù…È‘ä€ô5…Ñ ¹…‰Ì¡ÁĞ¹ä€´Ñà¹ÍÑ…ÉÑd¤ì(€€€€€€€Ù…È‘à€ô5…Ñ ¹…‰Ì¡ÁĞ¹à€´Ñà¹ÍÑ…ÉÑ`¤ì(€€€€€€€Ù…È¹½Ü€ô…Ñ”¹¹½Ü ¤ì(€€€€€€€Ù…ÈÑ…ÁÕÉ…Ñ¥½¸€ôÑà¹ÍÑ…ÉÑ•‘Ğ€ü€¡¹½Ü€´Ñà¹ÍÑ…ÉÑ•‘Ğ¤€è€Àì(€€€€€€€Ù…ÈÙ•ÉÑ¥…±½µ¥¹…¹Ğ€ô‘ä€øôQA}YIQ%1}	1=-}A`€˜˜‘ä€øô‘à€¨€Ä¸Èì(€€€€€€€Ù…ÈÉ••¹ÑMÉ½±±Õ…É€ô€¡¹½Ü€´±…ÍÑMÉ½±±Ğ¤€ğôMI=11}	1=-}5L(€€€€€€€€€€˜˜€¡Ñà¹¡…‘5½Ù•Ù•¹Ğñğ±…ÍÑQ½Õ¡!…‘5½Ù”¤ì(€€€€€€€Ù…ÈÍ¡½Õ±‘	±½­Q…À€ôÑà¹µ½Ù•(€€€€€€€€€ñğ‘à€øôQA}5a}`(€€€€€€€€€ñğ‘ä€øôQA}5a}d(€€€€€€€€€ñğÙ•ÉÑ¥…±½µ¥¹…¹Ğ(€€€€€€€€€ñğÑ…ÁÕÉ…Ñ¥½¸€ø5a}QA}UIQ%=9}5L(€€€€€€€€€ñğÉ••¹ÑMÉ½±±Õ…Éì(€€€€€€€¥˜€ …Í¡½Õ±‘	±½­Q…À¤ì(€€€€€€€€€Ù…È¡…¹‘±•€ô¥¹Ù½­•	ÕÍ¥¹•ÍÍÑ¥½¸¡Ñà¹ÉÕ±”°Ñà¹Ñ…É•Ğ°•Ù•¹Ğ¤ì(€€€€€€€€€¥˜€¡¡…¹‘±•¤ì(€€€€€€€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€ô(€€€€€€€ô•±Í”ì(€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€ô(€€€€€ô(€€€€€¥˜€¡¥Í9…Ù=İ¹•‘Q…À¡•Ù•¹Ğ¹Ñ…É•Ğ¤¤ì(€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€É•ÑÕÉ¸ì(€€€€€ô(€€€€€¥˜€¡±…ÍÑQ½Õ¡MÑ…ÉĞ¤ì(€€€€€€€Ù…ÈÑ½Õ¡”€ô…Ñ”¹¹½Ü ¤€´€¡±…ÍÑQ½Õ¡MÑ…ÉĞ¹…Ğñğ€À¤ì(€€€€€€€¥˜€¡Ñ½Õ¡”€ø5a}QA}UIQ%=9}5L¤ì(€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€ô(€€€€€€€Ù…È‘à€ô5…Ñ ¹…‰Ì¡ÁĞ¹à€´±…ÍÑQ½Õ¡MÑ…ÉĞ¹à¤ì(€€€€€€€Ù…È‘ä€ô5…Ñ ¹…‰Ì¡ÁĞ¹ä€´±…ÍÑQ½Õ¡MÑ…ÉĞ¹ä¤ì(€€€€€€€¥˜€¡‘à€ğQA}5a}`€˜˜‘ä€ğQA}5a}d€˜˜‘ä€ğQA}YIQ%1}	1=-}A`¤ì(€€€€€€€€€¥˜€ ¡…Ñ”¹¹½Ü ¤€´±…ÍÑMÉ½±±Ğ€ğôMI=11}	1=-}5L¤€˜˜±…ÍÑQ½Õ¡!…‘5½Ù”¤ì(€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€ô(€€€€€€€€€}}‘I…™	…Ñ ¡™Õ¹Ñ¥½¸€ ¤ì(€€€€€€€€€€€Ù…ÈÉÕ±•É½µA½¥¹Ğ€ô™¥¹‘IÕ±•É½µA½¥¹Ğ¡ÁĞ¹à°ÁĞ¹ä¤ñğ™¥¹‘IÕ±•É½µA½¥¹Ğ¡±…ÍÑQ½Õ¡MÑ…ÉĞ¹à°±…ÍÑQ½Õ¡MÑ…ÉĞ¹ä¤ì(€€€€€€€€€€€Ù…È…Ñ¥½¹É½µQ…É•Ğ€ô™¥¹‘…Ñ…Ñ¥½¹±•µ•¹Ğ¡•Ù•¹Ğ¹Ñ…É•Ğ¤ì(€€€€€€€€€€€Ù…È…Ñ¥½¹É½µA½¥¹Ñ°€ô‘½Õµ•¹Ğ¹•±•µ•¹ÑÉ½µA½¥¹Ğ¡ÁĞ¹à°ÁĞ¹ä¤ñğ‘½Õµ•¹Ğ¹•±•µ•¹ÑÉ½µA½¥¹Ğ¡±…ÍÑQ½Õ¡MÑ…ÉĞ¹à°±…ÍÑQ½Õ¡MÑ…ÉĞ¹ä¤ì(€€€€€€€€€€€Ù…È…Ñ¥½¹É½µA½¥¹Ğ€ô™¥¹‘…Ñ…Ñ¥½¹±•µ•¹Ğ¡…Ñ¥½¹É½µA½¥¹Ñ°¤ì(€€€€€€€€€€€Ù…È±¥¹­É½µQ…É•Ğ€ô™¥¹‘5½‰¥±•…É‘1¥¹¬¡•Ù•¹Ğ¹Ñ…É•Ğ¤ì(€€€€€€€€€€€Ù…È±¥¹­É½µA½¥¹Ğ€ô™¥¹‘5½‰¥±•…É‘1¥¹¬¡…Ñ¥½¹É½µA½¥¹Ñ°¤ì(€€€€€€€€€€€Ù…È•±ÑA½¥¹Ğ€ô…Ñ¥½¹É½µA½¥¹Ñ°ñğ‘½Õµ•¹Ğ¹‰½‘äì(€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€€€€€ÉÕ±•É½µA½¥¹ĞèÉÕ±•É½µA½¥¹Ğ°(€€€€€€€€€€€€€…Ñ¥½¹°è…Ñ¥½¹É½µQ…É•Ğñğ…Ñ¥½¹É½µA½¥¹Ğ°(€€€€€€€€€€€€€±¥¹­°è±¥¹­É½µQ…É•Ğñğ±¥¹­É½µA½¥¹Ğ°(€€€€€€€€€€€€€•±ÑA½¥¹Ğè•±ÑA½¥¹Ğ(€€€€€€€€€€€ôì(€€€€€€€€€ô°™Õ¹Ñ¥½¸€¡ÍÑ…Ñ”¤ì(€€€€€€€€€€€¥˜€ …ÍÑ…Ñ”¤É•ÑÕÉ¸ì(€€€€€€€€€€€¥˜€¡ÍÑ…Ñ”¹ÉÕ±•É½µA½¥¹Ğ¤ì(€€€€€€€€€€€€€Ù…È¡…¹‘±•‘IÕ±”€ô¥¹Ù½­•	ÕÍ¥¹•ÍÍÑ¥½¸¡ÍÑ…Ñ”¹ÉÕ±•É½µA½¥¹Ğ°ÍÑ…Ñ”¹•±ÑA½¥¹Ğ°•Ù•¹Ğ¤ì(€€€€€€€€€€€€€¥˜€¡¡…¹‘±•‘IÕ±”¤ì(€€€€€€€€€€€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€€€€€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€€€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€€€€€ô(€€€€€€€€€€€ô(€€€€€€€€€€€¥˜€¡¥¹Ù½­•…Ñ…Ñ¥½¹…±±‰…¬¡ÍÑ…Ñ”¹…Ñ¥½¹°°•Ù•¹Ğ¤¤ì(€€€€€€€€€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€€€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€€€ô(€€€€€€€€€€€¥˜€¡¥¹Ù½­•5½‰¥±•…É‘1¥¹¬¡ÍÑ…Ñ”¹±¥¹­°¤¤ì(€€€€€€€€€€€€€Í¡½İQ…Á••‘‰…¬¡ÍÑ…Ñ”¹±¥¹­°¤ì(€€€€€€€€€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€€€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€€€€€ô(€€€€€€€€€ô¤ì(€€€€€€€ô(€€€€€ô(€€€ô°ìÁ…ÍÍ¥Ù”è™…±Í”°…ÁÑÕÉ”èÑÉÕ”ô¤ì((€€€É½½Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È Ñ½Õ¡…¹•°œ°™Õ¹Ñ¥½¸€ ¤ì(€€€€€…É‘MÉ½±±Q½Õ ¹…Ñ¥Ù”€ô™…±Í”ì(€€€€€…É‘MÉ½±±Q½Õ ¹µ½Ù•€ô™…±Í”ì(€€€€€±•…ÉQ…Á••‘‰…¬ ¤ì(€€€€€µ…É­…É‘MÉ½±±1½¬ ÄàÀ¤ì(€€€ô°ìÁ…ÍÍ¥Ù”èÑÉÕ”°…ÁÑÕÉ”èÑÉÕ”ô¤ì((€€€É½½Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ±¥¬œ°™Õ¹Ñ¥½¸€¡•Ù•¹Ğ¤ì(€€€€€¥˜€ …Í¡½Õ±‘¹…‰±•5½‰¥±•%¹Ñ•É…Ñ¥½¹	É¥‘” ¤¤É•ÑÕÉ¸ì(€€€€€¥˜€ …•Ù•¹Ğñğ€…•Ù•¹Ğ¹Ñ…É•Ğñğ€…•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ¤É•ÑÕÉ¸ì(€€€€€¥˜€¡¡…¹‘±•½±±•Ñ¥½¹Q½±•Q…À¡•Ù•¹Ğ°ìàè•Ù•¹Ğ¹±¥•¹Ñ`°äè•Ù•¹Ğ¹±¥•¹Ñdô°€±¥¬œ¤¤ì(€€€€€€€•Ù•¹Ğ¹}}‘5½‰¥±•	É¥‘•!…¹‘±•€ôÑÉÕ”ì(€€€€€€€ÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°€ô…Ñ”¹¹½Ü ¤€¬!=MQ}1%-}	1=-}5Lì(€€€€€€€É•ÑÕÉ¸ì(€€€€€ô(€€€€€Ù…ÈÉÕ±”€ô™¥¹‘IÕ±•É½µQ…É•Ğ¡•Ù•¹Ğ¹Ñ…É•Ğ¤ì(€€€€€¥˜€ …ÉÕ±”¤É•ÑÕÉ¸ì((€€€€€€¼¼MÉ½±°½Ñ½Õ ¡½ÍĞ±¥¬ÍÕÁÁÉ•ÍÍ¥½¸µÕÍĞ½¹±ä…ÁÁ±äÑ¼‰É¥‘”µµ…¹…•ÉÕ±•Ì¸(€€€€€Ù…È¹½Ü€ô…Ñ”¹¹½Ü ¤ì(€€€€€Ù…ÈÉ••¹ÑMÉ½±±Õ…É€ô€ ¡¹½Ü€´±…ÍÑMÉ½±±Ğ€ğMI=11}	1=-}5L¤ñğÍ¡½Õ±‘	±½­…É‘Q…À ¤¤(€€€€€€€€˜˜€¡±…ÍÑQ½Õ¡!…‘5½Ù”ñğ…É‘MÉ½±±Q½Õ ¹µ½Ù•¤ì(€€€€€¥˜€¡¹½Ü€ğÍÕÁÁÉ•ÍÍ±¥­U¹Ñ¥°ñğÉ••¹ÑMÉ½±±Õ…É¤ì(€€€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€€€€€É•ÑÕÉ¸ì(€€€€€ô((€€€€€Ù…È¡…¹‘±•€ô¥¹Ù½­•	ÕÍ¥¹•ÍÍÑ¥½¸¡ÉÕ±”°•Ù•¹Ğ¹Ñ…É•Ğ°•Ù•¹Ğ¤ì(€€€€€¥˜€ …¡…¹‘±•¤É•ÑÕÉ¸ì((€€€€€•Ù•¹Ğ¹}}‘5½‰¥±•	É¥‘•!…¹‘±•€ôÑÉÕ”ì(€€€€€Í¡½İQ…Á••‘‰…¬¡•Ù•¹Ğ¹Ñ…É•Ğ¤ì(€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ì(€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì(€€€€€•Ù•¹Ğ¹ÍÑ½ÁAÉ½Á……Ñ¥½¸ ¤ì(€€€ô°ÑÉÕ”¤ì((€€€‰¥¹‘5½‰¥±•…Ñ…Ñ¥½¹…±±‰…¬¡É½½Ğ¤ì(€ô((€™Õ¹Ñ¥½¸¥¹¥Ğ ¤ì(€€€€¼¼Q¡¥Ì™¥±”¥Ì™½Èµ½‰¥±”¥¹Ñ•É…Ñ¥½¸Í…™•Ñäì¹•Ù•È¥¹ÍÑ…±°¥ÑÌ±½‰…°(€€€€¼¼½‰Í•ÉÙ•ÉÌ½È…ÁÑÕÉ”¡…¹‘±•ÉÌ™½È‘•Í­Ñ½À…¹¡å‰É¥‘•Í­Ñ½À¥¹ÁÕĞ¸(€€€¥˜€ …Í¡½Õ±‘¹…‰±•5½‰¥±•%¹Ñ•É…Ñ¥½¹	É¥‘” ¤¤É•ÑÕÉ¸ì((€€€€¡™Õ¹Ñ¥½¸Íå¹Y¥•İÁ½ÉÑ!•¥¡Ğ ¤ì(€€€€€Ù…ÈÉ½½Ğ€ô‘½Õµ•¹Ğ¹‘½Õµ•¹Ñ±•µ•¹Ğì(€€€€€¥˜€ …É½½Ğ¤É•ÑÕÉ¸ì(€€€€€™Õ¹Ñ¥½¸ÕÁ‘…Ñ” ¤ì(€€€€€€€Ù…È €ô€Àì(€€€€€€€¥˜€¡İ¥¹‘½Ü¹Ù¥ÍÕ…±Y¥•İÁ½ÉĞ€˜˜9Õµ‰•È¡İ¥¹‘½Ü¹Ù¥ÍÕ…±Y¥•İÁ½ÉĞ¹¡•¥¡Ğ¤€ø€À¤ì(€€€€€€€€€ €ôİ¥¹‘½Ü¹Ù¥ÍÕ…±Y¥•İÁ½ÉĞ¹¡•¥¡Ğì(€€€€€€€ô•±Í”¥˜€¡9Õµ‰•È¡İ¥¹‘½Ü¹¥¹¹•É!•¥¡Ğ¤€ø€À¤ì(€€€€€€€€€ €ôİ¥¹‘½Ü¹¥¹¹•É!•¥¡Ğì(€€€€€€€ô(€€€€€€€¥˜€¡ €ø€À¤É½½Ğ¹ÍÑå±”¹Í•ÑAÉ½Á•ÉÑä œ´µµÍ…™”µÙ œ° €¬€Áàœ¤ì(€€€€€ô(€€€€€ÕÁ‘…Ñ” ¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È É•Í¥é”œ°ÕÁ‘…Ñ”°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ½É¥•¹Ñ…Ñ¥½¹¡…¹”œ°ÕÁ‘…Ñ”°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€€€¥˜€¡İ¥¹‘½Ü¹Ù¥ÍÕ…±Y¥•İÁ½ÉĞ¤ì(€€€€€€€İ¥¹‘½Ü¹Ù¥ÍÕ…±Y¥•İÁ½ÉĞ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È É•Í¥é”œ°ÕÁ‘…Ñ”°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€€€€€İ¥¹‘½Ü¹Ù¥ÍÕ…±Y¥•İÁ½ÉĞ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ÍÉ½±°œ°ÕÁ‘…Ñ”°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€€€ô(€€€ô¤ ¤ì((€€€İ…Ñ¡5½‰¥±•5•‘¥…A•É™½Éµ…¹” ¤ì((€€€€¼¼±½‰…°ÍÉ½±°ÍÑ…Ñ”ÑÉ…­¥¹œ¸(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ÍÉ½±°œ°™Õ¹Ñ¥½¸ ¤ì(€€€€€±…ÍÑMÉ½±±Ğ€ô…Ñ”¹¹½Ü ¤ì(€€€€€±•…ÉQ…Á••‘‰…¬ ¤ì(€€€€€µ…É­…É‘MÉ½±±1½¬ ÄØÀ¤ì(€€€ô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì((€€€€¼¼ƒ®¦S²vàƒ¶fS®¦Ğƒ²î³®‚'²`ƒ²*“¶³®†ƒªÂC² €´ƒ¶R®š³®¾ã²^°ƒ®>g®²ğ›ªÒ²°ƒ®ª²ƒ²î³®‚'²`(€€€Ù…È½±±•Ñ¥½¹M•±•Ñ½ÉÌ€ôl(€€€€€€œÁÉ•µ¥ÕµYÙ¥Á½±±•Ñ¥½¸œ°(€€€€€€œ…¹¥µ…±½±±•Ñ¥½¸œ°(€€€€€€œµ•‘¥Ñ…Ñ¥½¹½±±•Ñ¥½¸œ°(€€€€€€œ¥¹ÁÕÑA…”€¹™•…ÑÕÉ”µ…ÉµÉ¥œ°(€€€€€€œ¥¹ÁÕÑA…”€¹™•…Ğµ½±±•Ñ¥½¸œ°(€€€€€€œ¥¹ÁÕÑA…”€¹Ñ…É½Ğµ½±±•Ñ¥½¸œ°(€€€€€€œ¥¹ÁÕÑA…”€¹™•…Ğµ½±±•Ñ¥½¹}}É¥œ°(€€€€€€œ¥¹ÁÕÑA…”€¹Ñ…É½Ğµ½±±•Ñ¥½¹}}É¥œ°(€€€€€€œ¹™•…Ğµ½±±•Ñ¥½¹}}É¥œ°(€€€€€€œ¹Ñ…É½Ğµ½±±•Ñ¥½¹}}É¥œ°(€€€€€€œ¹™œµÉ½ÕÀ´µ…¹¥µ…°œ°(€€€€€€œ¹™œµÉ½ÕÀ´µ±½Ù•‰¥‰±”œ°(€€€€€€œ¹™œµÉ½ÕÀ´µÁÉ•µ¥Õ´œ°(€€€€€€œ¹™œµÉ½ÕÀ´µ±½Ù•Í¥´œ°(€€€€€€œ¹™œµÉ½ÕÀ´µÍ¥‰å°œ(€€€tì((€€€™Õ¹Ñ¥½¸Í•ÑÕÁ½±±•Ñ¥½¹MÉ½±±1¥ÍÑ•¹•ÉÌ ¤ì(€€€€€½±±•Ñ¥½¹M•±•Ñ½ÉÌ¹™½É… ¡™Õ¹Ñ¥½¸¡Í•±•Ñ½È¤ì(€€€€€€€Ù…È½¹Ñ…¥¹•ÉÌ€ô‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±°¡Í•±•Ñ½È¤ì(€€€€€€€½¹Ñ…¥¹•ÉÌ¹™½É… ¡™Õ¹Ñ¥½¸¡½¹Ñ…¥¹•È¤ì(€€€€€€€€€¥˜€¡½¹Ñ…¥¹•È€˜˜€…½¹Ñ…¥¹•È¹}}‘MÉ½±±	½Õ¹¤ì(€€€€€€€€€€€½¹Ñ…¥¹•È¹}}‘MÉ½±±	½Õ¹€ôÑÉÕ”ì(€€€€€€€€€€€½¹Ñ…¥¹•È¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ÍÉ½±°œ°™Õ¹Ñ¥½¸ ¤ì(€€€€€€€€€€€€€±…ÍÑMÉ½±±Ğ€ô…Ñ”¹¹½Ü ¤ì(€€€€€€€€€€€€€µ…É­…É‘MÉ½±±1½¬ ÄØÀ¤ì(€€€€€€€€€€€ô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€€€€€€€ô(€€€€€€€ô¤ì(€€€€€ô¤ì((€€€€€€¼¼ƒ®¦S²và™œµÉ½ÕÀƒ²ç²c®N“²v`ƒ²*“¶³®†ƒªÂ®*—¶Vpƒ®Ú®ª£®>ƒªÂC² (€€€€€Ù…ÈÍÉ½±±…‰±•A…É•¹ÑÌ€ô‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° œ¹™œµÉ½ÕÀ°€¹Ñ…É½Ğµ½±±•Ñ¥½¸°€¹™•…Ğµ½±±•Ñ¥½¸°€¹™•…ÑÕÉ”µ…ÉµÉ¥°€¹™•…Ğµ½±±•Ñ¥½¹}}É¥°€¹Ñ…É½Ğµ½±±•Ñ¥½¹}}É¥œ¤ì(€€€€€ÍÉ½±±…‰±•A…É•¹ÑÌ¹™½É… ¡™Õ¹Ñ¥½¸¡Á…É•¹Ğ¤ì(€€€€€€€¥˜€¡Á…É•¹Ğ€˜˜€…Á…É•¹Ğ¹}}‘MÉ½±±	½Õ¹¤ì(€€€€€€€€€Á…É•¹Ğ¹}}‘MÉ½±±	½Õ¹€ôÑÉÕ”ì(€€€€€€€€€Á…É•¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ÍÉ½±°œ°™Õ¹Ñ¥½¸ ¤ì(€€€€€€€€€€€±…ÍÑMÉ½±±Ğ€ô…Ñ”¹¹½Ü ¤ì(€€€€€€€€€€€µ…É­…É‘MÉ½±±1½¬ ÄØÀ¤ì(€€€€€€€€€ô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€€€€€ô(€€€€€ô¤ì((€€€€€‰¥¹‘¥É•Ñ•…ÑÕÉ•…É‘Ñ¥½¹Ì¡‘½Õµ•¹Ğ¤ì(€€€ô((€€€€¼¼ƒ²Ò#ªâÀƒ²“²‚Tƒ®Â<=4ƒ®ÎªÊôƒ².pƒ²z³²“²‚T(€€€Í•ÑÕÁ½±±•Ñ¥½¹MÉ½±±1¥ÍÑ•¹•ÉÌ ¤ì(€€€Ù…ÈÍÉ½±±=‰Í•ÉÙ•È€ô¹•Ü5ÕÑ…Ñ¥½¹=‰Í•ÉÙ•È¡™Õ¹Ñ¥½¸ ¤ì(€€€€€Í•ÑÕÁ½±±•Ñ¥½¹MÉ½±±1¥ÍÑ•¹•ÉÌ ¤ì(€€€ô¤ì(€€€ÍÉ½±±=‰Í•ÉÙ•È¹½‰Í•ÉÙ”¡‘½Õµ•¹Ğ¹‰½‘ä°ì¡¥±‘1¥ÍĞèÑÉÕ”°ÍÕ‰ÑÉ•”èÑÉÕ”ô¤ì((€€€¥¹©•ÑQ½Õ¡Ñ¥½¹MÑå±” ¤ì(€€€ÑÉäìÉ•…Ñ•	Õ±±•ÑÁÉ½½™•±•…Ñ½È¡‘½Õµ•¹Ğ¤ìô…Ñ €¡•ÉÈ¤ì½¹Í½±”¹•ÉÉ½È mµ½‰¥±”µ¥¹Ñ•É…Ñ¥½¸µÁ…Ñ¡tÑ½Õ ‰É¥‘”‰¥¹™…¥±•èœ°•ÉÈ¤ìô(€€€‰¥¹‘5½‰¥±•…Ñ…Ñ¥½¹…±±‰…¬¡‘½Õµ•¹Ğ¤ì(€€€‰¥¹‘¥É•Ñ•…ÑÕÉ•…É‘Ñ¥½¹Ì¡‘½Õµ•¹Ğ¤ì(€€€ÑÉäìİ¥¹‘½Ü¹}}‘5½‰¥±•Q½Õ¡	É¥‘•I•…‘ä€ô€„…‘½Õµ•¹Ğ¹}}‘Q½Õ¡	É¥‘•	½Õ¹ìô…Ñ €¡|¤íô(€€€É•½¹¥±•=Ù•É±…å1¥™•å±” ¤ì(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È Á…•Í¡½Üœ°™Õ¹Ñ¥½¸ ¤ìÍ¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ĞÀ¤ìô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È Á…•¡¥‘”œ°™Õ¹Ñ¥½¸ ¤ì±•…ÉQ…Á••‘‰…¬ ¤ìÍ¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ĞÀ¤ìô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È Á½ÁÍÑ…Ñ”œ°™Õ¹Ñ¥½¸ ¤ìÍ¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ĞÀ¤ìô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…Í¡¡…¹”œ°™Õ¹Ñ¥½¸ ¤ìÍ¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ĞÀ¤ìô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ½‘”µ‘•ÍÑ¥¹äé™•…ÑÕÉ”µÑ…Àœ°™Õ¹Ñ¥½¸ ¤ìÍ¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ÌØÀ¤ìô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€€€‘½Õµ•¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È Ù¥Í¥‰¥±¥Ñå¡…¹”œ°™Õ¹Ñ¥½¸ ¤ì(€€€€€±•…ÉQ…Á••‘‰…¬ ¤ì(€€€€€Í¡•‘Õ±•=Ù•É±…å1¥™•å±•Õ…É ĞÀ¤ì(€€€ô°ìÁ…ÍÍ¥Ù”èÑÉÕ”ô¤ì(€ô((€¥˜€¡‘½Õµ•¹Ğ¹É•…‘åMÑ…Ñ”€ôôô€±½…‘¥¹œœ¤ì(€€€‘½Õµ•¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È =5½¹Ñ•¹Ñ1½…‘•œ°¥¹¥Ğ°ì½¹”èÑÉÕ”ô¤ì(€ô•±Í”ì(€€€¥¹¥Ğ ¤ì(€ô((€€¼¼ƒ²rƒ®0ƒªÊ3²vÓ¶*àƒ¶×ªÎğƒ¶nƒ¶bã²Ús®Bc®*Pƒ¶V£²"`€´ƒ²bªÖ´ƒ¶f7²Â£²‚@ƒ¶:c²vÓ² ƒ²vÓ®>d(€İ¥¹‘½Ü¹½Á•¹I½å…±Q•…=É…±”€ô™Õ¹Ñ¥½¸ ¤ì(€€€İ¥¹‘½Ü¹±½…Ñ¥½¸¹¡É•˜€ô€œ½É½å…°µÑ•„µ½É…±”¹¡Ñµ°œì(€ôì((€€¼¼ƒªâÃ®Îàƒ®Êƒ®.“²‚@ƒªâÃ®*”€´ƒ¶R®†s¶Vƒ®6Ã²vÓ¶Àƒ²‚®.°ƒ®Â<ƒ¶:c²vÓ² ƒ²vÓ®>d(€İ¥¹‘½Ü¹¹…Ù¥…Ñ•Q½Y•‘¥Œ€ô™Õ¹Ñ¥½¸¡ÁÉ½™¥±•Éœ¤ì(€€€Ù…È±½…‘Q½­•¸€ô‰•¥¹•…ÑÕÉ•1½…‘¥¹œ ¹…Ù¥…Ñ•Q½Y•‘¥Œœ°ìµ¥¹5Ìè€ØÔÀ°µ…á5Ìè€äÀÀÀô¤ì(€€€ÑÉäì(€€€€€Ù…ÈÁÉ½™¥±”€ôÁÉ½™¥±•Éœñğ¹Õ±°ì(€€€€€€¼¼ƒ¶R®†s¶V²vĞƒ²^²ró®¦Ğƒ²‚²z—²3²^C²pƒ²v÷ªâÀƒ².s®>(€€€€€¥˜€ …ÁÉ½™¥±”€˜˜ÑåÁ•½˜İ¥¹‘½Ü¹}É•…‘AÉ½™¥±•É½µMÑ½É…”€ôôô€™Õ¹Ñ¥½¸œ¤ì(€€€€€€€ÁÉ½™¥±”€ôİ¥¹‘½Ü¹}É•…‘AÉ½™¥±•É½µMÑ½É…” ¤ì(€€€€€ô(€€€€€€¼¼ƒ²‚W®Îàƒ¶R®†s¶Vƒ²æÓ®Npƒ®â3®š³² ƒ²jÃ²€ƒ¶fW²và(€€€€€¥˜€ …ÁÉ½™¥±”€˜˜ÑåÁ•½˜İ¥¹‘½Ü¹}}‘•ÑÕÉÉ•¹Ñ•ÍÑ¥¹åAÉ½™¥±”€ôôô€™Õ¹Ñ¥½¸œ¤ì(€€€€€€€ÑÉäì(€€€€€€€€€Ù…È‰É¥‘•€ôİ¥¹‘½Ü¹}}‘•ÑÕÉÉ•¹Ñ•ÍÑ¥¹åAÉ½™¥±” ¤ì(€€€€€€€€€¥˜€¡‰É¥‘•€˜˜‰É¥‘•¹‰¥ÉÑ ¤ÁÉ½™¥±”€ô‰É¥‘•ì(€€€€€€€ô…Ñ €¡|¤íô(€€€€€ô(€€€€€¥˜€ …ÁÉ½™¥±”€˜˜ÑåÁ•½˜±½…±MÑ½É…”€„ôô€Õ¹‘•™¥¹•œ¤ì(€€€€€€€ÑÉäì(€€€€€€€€€Ù…È…¹½¹¥…°€ô)M=8¹Á…ÉÍ”¡±½…±MÑ½É…”¹•Ñ%Ñ•´ =IQU9}AA}UMI}AI=%1œ¤ñğ€¹Õ±°œ¤ì(€€€€€€€€€¥˜€¡…¹½¹¥…°€˜˜…¹½¹¥…°¹‰¥ÉÑ ¤ÁÉ½™¥±”€ô…¹½¹¥…°ì(€€€€€€€ô…Ñ €¡|¤íô(€€€€€ô(€€€€€€¼¼±½…±MÑ½É…—²^C²s®>ƒ¶fW²và(€€€€€¥˜€ …ÁÉ½™¥±”€˜˜ÑåÁ•½˜±½…±MÑ½É…”€„ôô€Õ¹‘•™¥¹•œ¤ì(€€€€€€€ÑÉäì(€€€€€€€€€Ù…ÈÍ…Ù•€ô±½…±MÑ½É…”¹•Ñ%Ñ•´ =IQU9}AI=%1}Qœ¤ì(€€€€€€€€€¥˜€¡Í…Ù•¤ÁÉ½™¥±”€ô)M=8¹Á…ÉÍ”¡Í…Ù•¤ì(€€€€€€€ô…Ñ €¡|¤íô(€€€€€ô(€€€€€€¼¼ƒ¶R®†s¶V²vĞƒ²z#²ró®¦ĞY•‘¥Œƒ¶:c²vÓ²®†pƒ²‚®.³¶V€ƒ¶bW².w²ró®†pƒ²‚²z”(€€€€€¥˜€¡ÁÉ½™¥±”€˜˜ÁÉ½™¥±”¹‰¥ÉÑ ¤ì(€€€€€€€Ù…ÈÙ•‘¥A…å±½…€ôì(€€€€€€€€€¥èÁÉ½™¥±”¹¥ñğ€ÁÉ½™¥±”œ°(€€€€€€€€€¹…µ”èÁÉ½™¥±”¹¹…µ”ñğ€œœ°(€€€€€€€€€•¹‘•ÈèÁÉ½™¥±”¹•¹‘•Èñğ€4œ°(€€€€€€€€€‰¥ÉÑ èì(€€€€€€€€€€€å•…ÈèÁÉ½™¥±”¹‰¥ÉÑ ¹å•…È°(€€€€€€€€€€€µ½¹Ñ èÁÉ½™¥±”¹‰¥ÉÑ ¹µ½¹Ñ °(€€€€€€€€€€€‘…äèÁÉ½™¥±”¹‰¥ÉÑ ¹‘…ä°(€€€€€€€€€€€¡½ÕÈèÁÉ½™¥±”¹‰¥ÉÑ ¹¡½ÕÈ€„ô¹Õ±°€üÁÉ½™¥±”¹‰¥ÉÑ ¹¡½ÕÈ€è€ÄÈ°(€€€€€€€€€€€µ¥¹ÕÑ”èÁÉ½™¥±”¹‰¥ÉÑ ¹µ¥¹ÕÑ”€„ô¹Õ±°€üÁÉ½™¥±”¹‰¥ÉÑ ¹µ¥¹ÕÑ”€è€À(€€€€€€€€€ô°(€€€€€€€€€±½…Ñ¥½¸èì(€€€€€€€€€€€±…ĞèÁÉ½™¥±”¹±½…Ñ¥½¸€˜˜ÁÉ½™¥±”¹±½…Ñ¥½¸¹±…Ğ€„ô¹Õ±°€üÁÉ½™¥±”¹±½…Ñ¥½¸¹±…Ğ€è€ÌÜ¸ÔØØÔ°(€€€€€€€€€€€±¹œèÁÉ½™¥±”¹±½…Ñ¥½¸€˜˜ÁÉ½™¥±”¹±½…Ñ¥½¸¹±¹œ€„ô¹Õ±°€üÁÉ½™¥±”¹±½…Ñ¥½¸¹±¹œ€è€ÄÈØ¸äÜà°(€€€€€€€€€€€Ñé=™™Í•ĞèÁÉ½™¥±”¹±½…Ñ¥½¸€˜˜ÁÉ½™¥±”¹±½…Ñ¥½¸¹Ñé=™™Í•Ğ€„ô¹Õ±°€üÁÉ½™¥±”¹±½…Ñ¥½¸¹Ñé=™™Í•Ğ€è€ä°(€€€€€€€€€€€‰…Í•Qé=™™Í•ĞèÁÉ½™¥±”¹±½…Ñ¥½¸€˜˜ÁÉ½™¥±”¹±½…Ñ¥½¸¹‰…Í•Qé=™™Í•Ğ€„ô¹Õ±°€üÁÉ½™¥±”¹±½…Ñ¥½¸¹‰…Í•Qé=™™Í•Ğ€è€ä°(€€€€€€€€€€€±…‰•°èÁÉ½™¥±”¹±½…Ñ¥½¸€˜˜ÁÉ½™¥±”¹±½…Ñ¥½¸¹±…‰•°€üÁÉ½™¥±”¹±½…Ñ¥½¸¹±…‰•°€èµ½‰¥±•%¹Ñ•É…Ñ¥½¹A…Ñ¡Q•áĞ ±½…Ñ¥½¹M•½Õ°œ¤(€€€€€€€€€ô(€€€€€€€ôì(€€€€€€€€¼¼€½Ù•‘¥Œµ…ÍÑÉ½±½ä¹¡Ñµ³²^C²pƒ²v÷²vƒ²"`ƒ²z#®>®†tƒ²‚²z”(€€€€€€€¥˜€¡ÑåÁ•½˜±½…±MÑ½É…”€„ôô€Õ¹‘•™¥¹•œ¤ì(€€€€€€€€€±½…±MÑ½É…”¹Í•Ñ%Ñ•´ =IQU9}AA}Y%}Ae1=œ°)M=8¹ÍÑÉ¥¹¥™ä¡Ù•‘¥A…å±½…¤¤ì(€€€€€€€ô(€€€€€€€¥˜€¡ÑåÁ•½˜Í•ÍÍ¥½¹MÑ½É…”€„ôô€Õ¹‘•™¥¹•œ¤ì(€€€€€€€€€Í•ÍÍ¥½¹MÑ½É…”¹Í•Ñ%Ñ•´ =IQU9}AA}Y%}Ae1=œ°)M=8¹ÍÑÉ¥¹¥™ä¡Ù•‘¥A…å±½…¤¤ì(€€€€€€€ô(€€€€€€€€¼¼UI0ƒ¶23®vó®¾ã¶Ã®†s®>ƒ²‚®.°€£®ÂÇ²^¤(€€€€€€€Ù…ÈÙÀ€ô•¹½‘•UI%½µÁ½¹•¹Ğ¡)M=8¹ÍÑÉ¥¹¥™ä¡Ù•‘¥A…å±½…¤¤ì(€€€€€€€İ¥¹‘½Ü¹±½…Ñ¥½¸¹¡É•˜€ô€œ½Ù•‘¥Œµ…ÍÑÉ½±½ä¹¡Ñµ°ıÙÀôœ€¬ÙÀì(€€€€€€€É•ÑÕÉ¸ì(€€€€€ô(€€€€€€¼¼ƒ¶R®†s¶V²vĞƒ²^²ró®¦ĞƒªŞã®”ƒ²vÓ®>d€£²z®‚”ƒ¶:c²vÓ² ƒ¶Fs².p¤(€€€€€İ¥¹‘½Ü¹±½…Ñ¥½¸¹¡É•˜€ô€œ½Ù•‘¥Œµ…ÍÑÉ½±½ä¹¡Ñµ°œì(€€€ô…Ñ €¡•ÉÈ¤ì(€€€€€½¹Í½±”¹•ÉÉ½È m¹…Ù¥…Ñ•Q½Y•‘¥tÉÉ½Èèœ°•ÉÈ¤ì(€€€€€•¹‘•…ÑÕÉ•1½…‘¥¹œ¡±½…‘Q½­•¸¤ì(€€€€€€¼¼ƒ²b“®–`ƒ®Âs²tƒ².s²^C®>ƒ¶:c²vÓ² ƒ²vÓ®>g²v ƒ².s®>(€€€€€İ¥¹‘½Ü¹±½…Ñ¥½¸¹¡É•˜€ô€œ½Ù•‘¥Œµ…ÍÑÉ½±½ä¹¡Ñµ°œì(€€€ô(€ôì)ô¤ ¤ì(

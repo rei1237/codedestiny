@@ -1,9177 +1,211 @@
-const INDEX_RUNTIME_TEXT_TRANSLATIONS = {
-  ko: {
-    "indexRuntime.message.001": "ì›”ì •ì„ ì •ë³´ë¥¼ í™•ì¸í•˜ëŠ” ì¤‘ì´ì—ìš”",
-    "indexRuntime.message.002": "ì›”ì •ì„ì´ í™œì„±í™”ë˜ê³  ìˆì–´ìš”\nê³§ ì´ìš© ê°€ëŠ¥í•´ì ¸ìš”",
-    "indexRuntime.message.003": "ì›”ì •ì„ì´ í™œì„±í™”ë˜ê³  ìˆì–´ìš”\nê³§ ì´ìš© ê°€ëŠ¥í•´ì ¸ìš”",
-    "indexRuntime.message.004": "ë‹¨ê±´ìœ¼ë¡œ ì¹´ë“œ ê²°ì œë¥¼ ì¤€ë¹„ ì¤‘ì´ì—ìš”",
-    "indexRuntime.message.005": "ê²°ì œê°€ ì™„ë£Œëì–´ìš”\nê²°ê³¼ë¥¼ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘ì´ì—ìš”",
-    "indexRuntime.message.006": "ì´ìš©ê¶Œì„ í™•ì¸í•˜ëŠ” ì¤‘ì´ì—ìš”",
-    "indexRuntime.message.007": "ì²˜ë¦¬ ì¤‘ì´ì—ìš”\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”",
-    "indexRuntime.message.008": "ì²˜ë¦¬ ì¤‘ì´ì—ìš”\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”",
-    "indexRuntime.confirm.001": "ğŸ”’ ë¡œê·¸ì¸ì´ í•„ìš”í•œ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤.\\\\në¡œê·¸ì¸ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.",
-    "indexRuntime.aria-label.001": "ì‹œë¹Œë¼ ì‚¬ì£¼ ì‹œìŠ¤í…œ ì—´ê¸°",
-    "indexRuntime.error.001": "SwissEph loader failed.",
-    "indexRuntime.confirm.002": "ğŸ”’ ë¡œê·¸ì¸ì´ í•„ìš”í•œ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤.\\\\në¡œê·¸ì¸ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.",
-    "indexRuntime.label.001": "ë‹¬ ìœ„ìƒ",
-    "indexRuntime.label.002": "ìˆ˜í˜¸ë™ë¬¼",
-    "indexRuntime.label.003": "ì˜¤ëŠ˜ì˜ ê°•í•œ ë³„",
-    "indexRuntime.label.004": "ë³„ ë°ê¸°",
-    "indexRuntime.label.005": "ê¶ìœ„",
-    "indexRuntime.label.006": "íƒœì–‘ê¶",
-    "indexRuntime.label.007": "ìƒìŠ¹ê¶",
-    "indexRuntime.label.008": "ë‹¬ê¶",
-    "indexRuntime.label.009": "ì‹ ê°•/ì‹ ì•½",
-    "indexRuntime.label.010": "ìš©ì‹ ",
-    "indexRuntime.label.011": "ì¡°í›„",
-    "indexRuntime.aria-label.002": "ìš´ëª…ì˜ ê½ƒ ì—°ë™í•˜ê¸°",
-    "indexRuntime.confirm.003": "ğŸ”’ ë¡œê·¸ì¸ì´ í•„ìš”í•œ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤.\\\\në¡œê·¸ì¸ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.",
-    "indexRuntime.confirm.004": "ì €ì¥ëœ ìš´ëª…ì˜ ê½ƒ ê¸°ë¡ì„ ëª¨ë‘ ì‚­ì œí• ê¹Œìš”?",
-    "indexRuntime.title.001": "ì• ë‹ˆë©€ í† í…œ ë¦¬ë”© ê²°ê³¼",
-    "indexRuntime.confirm.005": "ğŸ”’ ë¡œê·¸ì¸ì´ í•„ìš”í•œ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤.\\\\në¡œê·¸ì¸ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.",
-    "indexRuntime.confirm.006": "ğŸ”’ ë¡œê·¸ì¸ì´ í•„ìš”í•œ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤.\\\\në¡œê·¸ì¸ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.",
-    "indexRuntime.confirm.007": "ğŸ”’ ë¡œê·¸ì¸ì´ í•„ìš”í•œ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤.\\\\në¡œê·¸ì¸ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.",
-  },
-};
-
-function _indexRuntimeText(key) {
-  var ko = INDEX_RUNTIME_TEXT_TRANSLATIONS.ko[key] || "";
-  try {
-    if (typeof window !== "undefined" && window && typeof window.cdTranslate === "function") {
-      return window.cdTranslate(key, {}, ko);
-    }
-  } catch (_) {}
-  return ko || "Translation pending";
-}
-
-function __cdPushPerfMetric(name, value, detail) {
-  try {
-    var root = window.__cdPerfMetrics = window.__cdPerfMetrics || {
-      lcp: null,
-      cls: 0,
-      inp: null,
-      collectionTapSamples: [],
-      marks: []
-    };
-
-    root[name] = value;
-    root.marks.push({
-      name: name,
-      value: value,
-      detail: detail || null,
-      ts: Date.now()
-    });
-
-    window.dispatchEvent(new CustomEvent('cd:perf-metric', {
-      detail: {
-        name: name,
-        value: value,
-        meta: detail || null
-      }
-    }));
-  } catch (_) {}
-}
-
-function __cdInitCollectionPerfMetrics() {
-  if (window.__cdCollectionPerfInited) return;
-  window.__cdCollectionPerfInited = true;
-
-  var supportsPO = typeof PerformanceObserver !== 'undefined';
-  var lastLcp = null;
-  var clsValue = 0;
-  var maxInp = null;
-
-  if (supportsPO) {
-    try {
-      var lcpObserver = new PerformanceObserver(function(list) {
-        var entries = list.getEntries();
-        if (!entries || !entries.length) return;
-        lastLcp = entries[entries.length - 1];
-        __cdPushPerfMetric('lcp', Math.round(lastLcp.startTime), {
-          entryType: 'largest-contentful-paint'
-        });
-      });
-      lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'hidden') {
-          try { lcpObserver.disconnect(); } catch (_) {}
-          if (lastLcp) {
-            __cdPushPerfMetric('lcpFinal', Math.round(lastLcp.startTime), {
-              reason: 'visibility-hidden'
-            });
-          }
-        }
-      }, { once: true });
-    } catch (_) {}
-
-    try {
-      var clsObserver = new PerformanceObserver(function(list) {
-        var entries = list.getEntries();
-        for (var i = 0; i < entries.length; i++) {
-          if (entries[i].hadRecentInput) continue;
-          clsValue += entries[i].value || 0;
-        }
-        __cdPushPerfMetric('cls', Number(clsValue.toFixed(4)), {
-          entryType: 'layout-shift'
-        });
-      });
-      clsObserver.observe({ type: 'layout-shift', buffered: true });
-    } catch (_) {}
-
-    try {
-      var inpObserver = new PerformanceObserver(function(list) {
-        var entries = list.getEntries();
-        for (var i = 0; i < entries.length; i++) {
-          var e = entries[i];
-          if (!e || typeof e.duration !== 'number') continue;
-          if (!maxInp || e.duration > maxInp.duration) {
-            maxInp = e;
-            __cdPushPerfMetric('inp', Math.round(e.duration), {
-              entryType: 'event',
-              interactionId: e.interactionId || 0,
-              target: e.name || 'unknown'
-            });
-          }
-        }
-      });
-      inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 16 });
-    } catch (_) {}
-  }
-
-  var trackedSelector = '.fc-toggle-btn, .tarot-tile, [data-action="toggleCollection"]';
-  var tapState = { ts: 0, key: '' };
-
-  function getTargetKey(el) {
-    if (!el || !el.closest) return '';
-    var target = el.closest(trackedSelector);
-    if (!target) return '';
-    var action = target.getAttribute('data-action') || '';
-    var id = target.id || target.getAttribute('data-target') || '';
-    var cls = target.className || '';
-    return [action, id, cls].join('|');
-  }
-
-  function onPressStart(event) {
-    var key = getTargetKey(event.target);
-    if (!key) return;
-    tapState.ts = performance.now();
-    tapState.key = key;
-  }
-
-  function onClick(event) {
-    var key = getTargetKey(event.target);
-    if (!key || !tapState.ts) return;
-    var delta = performance.now() - tapState.ts;
-    if (tapState.key !== key) return;
-    if (!(delta >= 0 && delta < 10000)) return;
-
-    var ms = Math.round(delta);
-    var root = window.__cdPerfMetrics = window.__cdPerfMetrics || { collectionTapSamples: [] };
-    if (!Array.isArray(root.collectionTapSamples)) root.collectionTapSamples = [];
-    root.collectionTapSamples.push({ key: key, latencyMs: ms, ts: Date.now() });
-    if (root.collectionTapSamples.length > 50) {
-      root.collectionTapSamples.shift();
-    }
-
-    __cdPushPerfMetric('collectionTapLatencyLast', ms, {
-      key: key
-    });
-  }
-
-  document.addEventListener('pointerdown', onPressStart, { passive: true });
-  document.addEventListener('touchstart', onPressStart, { passive: true });
-  document.addEventListener('click', onClick, { passive: true });
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', __cdInitCollectionPerfMetrics, { once: true });
-} else {
-  __cdInitCollectionPerfMetrics();
-}
-
-function __cdResolveRequestUrl(input) {
-  try {
-    if (typeof input === 'string') return new URL(input, window.location.origin);
-    if (input && typeof input.url === 'string') {
-      return new URL(input.url, window.location.origin);
-    }
-  } catch (_) {}
-  return null;
-}
-
-function __cdResolveRequestMethod(input, init) {
-  if (init && typeof init.method === 'string' && init.method.trim()) {
-    return String(init.method).toUpperCase();
-  }
-  if (input && typeof input === 'object' && typeof input.method === 'string' && input.method.trim()) {
-    return String(input.method).toUpperCase();
-  }
-  return 'GET';
-}
-
-function __cdShouldTrackPaymentRequest(pathname, method) {
-  if (!pathname) return false;
-  if (method === 'GET' || method === 'HEAD') return false;
-
-  if (pathname.indexOf('/api/billing/coin-gate') === 0) return false;
-  // ğŸ”´ [regression-guard] ì£¼ë¬¸ ë°œê¸‰(checkout/prepare)ì€ PG ê²°ì œì°½ì„ ì—´ê¸° **ì „** ë‹¨ê³„ì´ê³ , ê²°ì œìˆ˜ë‹¨
-  // ì„ íƒì°½ì´ ëœ° ë•Œ ì‚¬ìš©ì ëª°ë˜ ë¯¸ë¦¬ ë°œì‚¬ë˜ëŠ” ì‚¬ì „ë°œê¸‰ì´ê¸°ë„ í•˜ë‹¤ â€” ì—¬ê¸°ì— ëŒ€ê¸° UIë¥¼ ë„ìš°ë©´
-  // 'PAYMENT CHECK Â· ê²°ì œ ìƒíƒœ í™•ì¸ ì¤‘ Â· ë‹¨ê±´ìœ¼ë¡œ ì¹´ë“œ ê²°ì œë¥¼ ì¤€ë¹„ ì¤‘ì´ì—ìš”' ì „ì²´í™”ë©´ì´ ê²°ì œì°½ì„
-  // ë®ëŠ”ë‹¤(2026-08 ì¬ë°œ). ì…¸ ì¸ë¼ì¸ ìŒë‘¥ì´(index.html _cdResolvePendingPaymentMeta)ì—ëŠ” ì´ ì˜ˆì™¸ê°€
-  // ì´ë¯¸ ìˆì—ˆëŠ”ë° ì™¸ë¶€í™”ëœ ì´ ì‚¬ë³¸ì—ë§Œ ë¹ ì ¸ ìˆì—ˆë‹¤. ëŒ€ê¸° UIëŠ” ê²°ì œì°½ì„ í†µê³¼í•œ ë’¤ì˜ ìŠ¹ì¸ ê²€ì¦
-  // (confirm)ì—ì„œë§Œ ë„ìš´ë‹¤ â€” ë°”ë¡œ ì•„ë˜ ë¶„ê¸°.
-  if (pathname.indexOf('/api/billing/checkout') === 0) return false;
-  if (pathname.indexOf('/api/payments/prepare') === 0) return false;
-  if (pathname.indexOf('/api/billing/purchase') === 0) return true;
-  if (pathname.indexOf('/api/billing/charge') === 0) return true;
-  if (pathname.indexOf('/api/billing/confirm') === 0) return true;
-  if (pathname.indexOf('/api/payments/confirm') === 0) return true;
-  if (pathname.indexOf('/api/payments/subscription/prepare') === 0) return true;
-  if (pathname.indexOf('/api/payments/subscription/confirm') === 0) return true;
-  if (pathname.indexOf('/api/premium/') === 0) return true;
-  if (pathname.indexOf('/api/sibyl/report') === 0) return true;
-  if (pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) return true;
-  return false;
-}
-
-function __cdResolvePaymentMeta(pathname) {
-  if (pathname && pathname.indexOf('/api/payments/subscription/prepare') === 0) return { message: _indexRuntimeText("indexRuntime.message.001"), mode: 'monthly' };
-  if (pathname && pathname.indexOf('/api/payments/subscription/confirm') === 0) return { message: _indexRuntimeText("indexRuntime.message.002"), mode: 'payment-complete' };
-  if (pathname && pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) return { message: _indexRuntimeText("indexRuntime.message.003"), mode: 'payment-complete' };
-  // checkout/prepare ë¶„ê¸°ëŠ” ì—†ë‹¤ â€” __cdShouldTrackPaymentRequest ê°€ ì• ì´ˆì— ì¶”ì í•˜ì§€ ì•ŠëŠ”ë‹¤(ìœ„ ì£¼ì„).
-  if (pathname && (pathname.indexOf('/api/billing/confirm') === 0 || pathname.indexOf('/api/payments/confirm') === 0)) return { message: _indexRuntimeText("indexRuntime.message.005"), mode: 'payment-complete' };
-  if (pathname && pathname.indexOf('/api/billing/coin-gate') === 0) return { message: _indexRuntimeText("indexRuntime.message.006"), mode: 'pass' };
-  return { message: _indexRuntimeText("indexRuntime.message.007"), mode: 'payment' };
-}
-
-function __cdSetPaymentLoadingOverlay(open, message, mode) {
-  if (typeof window !== 'undefined' && typeof window._cdSetCoinGateOverlay === 'function') {
-    window._cdSetCoinGateOverlay(!!open, message, mode);
-    return;
-  }
-  try {
-    window.dispatchEvent(new CustomEvent('cd:payment-loading-state', {
-      detail: { open: !!open, message: String(message || '').trim() || 'ì²˜ë¦¬ ì¤‘ì´ì—ìš”\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”', mode: String(mode || '').trim() || 'payment' }
-    }));
-  } catch (_) {
-  }
-}
-
-function __cdInitGlobalPaymentLoading() {
-  if (window.__cdPaymentLoadingInited) return;
-  window.__cdPaymentLoadingInited = true;
-
-  var state = {
-    depth: 0,
-    message: _indexRuntimeText("indexRuntime.message.008"),
-    mode: 'payment'
-  };
-
-  function startPayment(message, mode) {
-    if (typeof message === 'string' && message.trim()) {
-      state.message = message.trim();
-    }
-    if (typeof mode === 'string' && mode.trim()) {
-      state.mode = mode.trim();
-    }
-    state.depth += 1;
-    __cdSetPaymentLoadingOverlay(true, state.message, state.mode);
-  }
-
-  function endPayment() {
-    state.depth = Math.max(0, state.depth - 1);
-    if (state.depth === 0) {
-      __cdSetPaymentLoadingOverlay(false, state.message, state.mode);
-      state.message = 'ì²˜ë¦¬ ì¤‘ì´ì—ìš”\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”';
-      state.mode = 'payment';
-    }
-  }
-
-  function setPaymentMessage(message, mode) {
-    if (!message || !String(message).trim()) return;
-    state.message = String(message).trim();
-    if (typeof mode === 'string' && mode.trim()) state.mode = mode.trim();
-    if (state.depth > 0) {
-      __cdSetPaymentLoadingOverlay(true, state.message, state.mode);
-    }
-  }
-
-  var api = {
-    startPayment: startPayment,
-    endPayment: endPayment,
-    setPaymentMessage: setPaymentMessage,
-    startProcessing: startPayment,
-    stopProcessing: endPayment,
-    setProcessingMessage: setPaymentMessage
-  };
-
-  try {
-    Object.defineProperty(api, 'isPaymentLoading', {
-      configurable: false,
-      enumerable: true,
-      get: function() {
-        return state.depth > 0;
-      }
-    });
-  } catch (_) {
-    api.isPaymentLoading = false;
-  }
-
-  window.__cdPaymentLoading = api;
-
-  if (window.__cdPaymentFetchPatched || typeof window.fetch !== 'function') return;
-  window.__cdPaymentFetchPatched = true;
-
-  var originalFetch = window.fetch.bind(window);
-
-  function __cdReadPremiumAccessTokenForBridge() {
-    var token = '';
-    try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
-    if (!token) {
-      try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
-    }
-    if (!token) {
-      try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; }
-    }
-    return token;
-  }
-
-  function __cdPersistPremiumAccessTokenForBridge(token) {
-    var safeToken = String(token || '').trim();
-    if (!safeToken) return;
-    try { window.__cdPremiumAccessToken = safeToken; } catch (_) {}
-    try { sessionStorage.setItem('cd_premium_access_token', safeToken); } catch (_) {}
-    try { localStorage.setItem('cd_premium_access_token', safeToken); } catch (_) {}
-  }
-
-  function __cdExtractPremiumAccessTokenFromAny(payload) {
-    if (!payload || typeof payload !== 'object') return '';
-    var keys = ['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token'];
-    for (var i = 0; i < keys.length; i += 1) {
-      var v = payload[keys[i]];
-      if (typeof v === 'string' && v.trim()) return v.trim();
-    }
-    if (payload.data && typeof payload.data === 'object') {
-      var nested = __cdExtractPremiumAccessTokenFromAny(payload.data);
-      if (nested) return nested;
-    }
-    if (payload.payload && typeof payload.payload === 'object') {
-      var nestedPayload = __cdExtractPremiumAccessTokenFromAny(payload.payload);
-      if (nestedPayload) return nestedPayload;
-    }
-    return '';
-  }
-
-  function __cdTapPremiumTokenFromResponse(response, reqUrl) {
-    if (!response || !reqUrl || !__cdIsOwnApiOrigin(reqUrl)) return;
-    var pathname = String(reqUrl.pathname || '');
-    if (pathname.indexOf('/api/') !== 0) return;
-    var contentType = '';
-    try { contentType = String(response.headers.get('content-type') || '').toLowerCase(); } catch (_) { contentType = ''; }
-    if (contentType.indexOf('application/json') === -1) return;
-
-    try {
-      response.clone().json().then(function (payload) {
-        var token = __cdExtractPremiumAccessTokenFromAny(payload);
-        if (token) __cdPersistPremiumAccessTokenForBridge(token);
-      }).catch(function () {});
-    } catch (_) {}
-  }
-
-  /* ì…¸ì˜ ë˜í¼(fetchJsonWithAuth/_dpFetchJsonWithFallback)ë¥¼ ìš°íšŒí•˜ëŠ” raw fetch ê°€ 401/403 ì„
-     ë°›ì•„ë„ ìœ ë ¹ ë¡œê·¸ì¸ UI ê°€ ë‚¨ì§€ ì•Šê²Œ í•œë‹¤. 401 ì„ ì—¬ê¸°ì„œ ë¡œê·¸ì•„ì›ƒìœ¼ë¡œ í•´ì„í•˜ì§€ëŠ” ì•ŠëŠ”ë‹¤ â€”
-     ë¦¬í”„ë ˆì‹œ ì´ì „ì´ê±°ë‚˜ ì¼ì‹œ ì¥ì• ì¼ ìˆ˜ ìˆìœ¼ë¯€ë¡œ /api/auth/me ì¬ê²€ì¦ë§Œ ì˜ˆì•½í•˜ê³  íŒì •ì€ ê·¸ìª½ì´ í•œë‹¤. */
-  function __cdObserveApiAuthFailure(response, reqUrl) {
-    try {
-      if (!response || !reqUrl || !__cdIsOwnApiOrigin(reqUrl)) return;
-      if (response.status !== 401 && response.status !== 403) return;
-      var pathname = String(reqUrl.pathname || '');
-      if (pathname.indexOf('/api/') !== 0) return;
-      if (pathname.indexOf('/api/auth/') === 0) return;
-      if (typeof window.__cdScheduleSessionRevalidation === 'function') {
-        window.__cdScheduleSessionRevalidation();
-      }
-    } catch (_) {}
-  }
-
-  /* Capacitor ì•±ì¸ê°€. ì•±ì€ https://localhost ì¶œì²˜ì—ì„œ ëŒê³  API ëŠ” ìì‚¬ ë„ë©”ì¸ìœ¼ë¡œ ë‚˜ê°„ë‹¤. */
-  function __cdIsMobileAppRuntime() {
-    try {
-      if (window.__CODE_DESTINY_RUNTIME_TARGET === 'mobile-app') return true;
-      if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function') {
-        return !!window.Capacitor.isNativePlatform();
-      }
-      return !!window.Capacitor;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /* í† í°ì„ ì‹¤ì–´ë„ ë˜ëŠ” ìì‚¬ API ì¶œì²˜ì¸ê°€.
-     ì›¹ì€ ë™ì¼ ì¶œì²˜ë§Œ í•´ë‹¹í•œë‹¤(ê¸°ì¡´ ë™ì‘ ê·¸ëŒ€ë¡œ). ì•±ì€ ì¶œì²˜ê°€ https://localhost ë¼ ë™ì¼ ì¶œì²˜ ì¡°ê±´ì´
-     í•­ìƒ ê±°ì§“ì´ê³  ì„¸ì…˜ ì¿ í‚¤ë„ SameSite=Lax ë¡œ êµì°¨ ì „ì†¡ë˜ì§€ ì•ŠëŠ”ë‹¤ â€” ê·¸ë˜ì„œ ì—¬ê¸°ì„œ í† í°ì„ ë¶™ì´ì§€
-     ì•Šìœ¼ë©´ ì…¸ì˜ ëª¨ë“  API í˜¸ì¶œì´ ê²ŒìŠ¤íŠ¸ë¡œ ì·¨ê¸‰ëœë‹¤. destiny-profile ì´ aa018053 ì—ì„œ ìê¸° í˜¸ì¶œì—ë§Œ
-     ì ìš©í•œ ì²˜ë°©ì„ íŒ¨ì¹˜ ë ˆë²¨ë¡œ ì˜¬ë ¤ ì…¸ ì—”ì§„ ì „ì²´ê°€ ê°™ì€ í˜œíƒì„ ë°›ê²Œ í•œë‹¤. */
-  function __cdIsOwnApiOrigin(reqUrl) {
-    if (!reqUrl) return false;
-    if (reqUrl.origin === window.location.origin) return true;
-    if (!__cdIsMobileAppRuntime()) return false;
-    var host = String(reqUrl.hostname || '').toLowerCase();
-    return host === 'code-destiny.com'
-      || host === 'www.code-destiny.com'
-      || host === 'workers.dev'
-      || host.slice(-12) === '.workers.dev';
-  }
-
-  window.fetch = function(input, init) {
-    var reqUrl = __cdResolveRequestUrl(input);
-    var reqMethod = __cdResolveRequestMethod(input, init);
-    var pathname = reqUrl ? reqUrl.pathname : '';
-    var patchedInit = init;
-
-    // Keep legacy premium frontends working by forwarding auth/premium tokens to same-origin API calls.
-    if (reqUrl && __cdIsOwnApiOrigin(reqUrl) && pathname.indexOf('/api/') === 0) {
-      patchedInit = (init && typeof init === 'object') ? Object.assign({}, init) : {};
-      var headers = new Headers((patchedInit && patchedInit.headers) || undefined);
-
-      if (!headers.has('Authorization')) {
-        var authToken = '';
-        try { authToken = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { authToken = ''; }
-        if (authToken) headers.set('Authorization', 'Bearer ' + authToken);
-      }
-
-      // ì›Œì»¤ì˜ ë™ì¼ ì¶œì²˜ ê°€ë“œëŠ” ì´ í—¤ë”ë¥¼ ë“  ì•± ìš”ì²­ë§Œ ë©´ì œí•œë‹¤(worker/routes/auth.js isMobileAppAuthRequest).
-      if (__cdIsMobileAppRuntime() && !headers.has('X-Code-Destiny-Runtime')) {
-        headers.set('X-Code-Destiny-Runtime', 'mobile-app');
-      }
-
-      if (!headers.has('x-premium-access-token')) {
-        var premiumToken = __cdReadPremiumAccessTokenForBridge();
-        if (premiumToken) headers.set('x-premium-access-token', premiumToken);
-      }
-
-      var bodyToken = __cdReadPremiumAccessTokenForBridge();
-      if (bodyToken && patchedInit && typeof patchedInit.body === 'string') {
-        try {
-          var parsedBody = JSON.parse(patchedInit.body);
-          if (parsedBody && typeof parsedBody === 'object' && !Array.isArray(parsedBody) && !parsedBody.premiumAccessToken) {
-            parsedBody.premiumAccessToken = bodyToken;
-            patchedInit.body = JSON.stringify(parsedBody);
-          }
-        } catch (_) {}
-      }
-
-      patchedInit.headers = headers;
-    }
-
-    var shouldTrack = __cdShouldTrackPaymentRequest(pathname, reqMethod);
-
-    if (!shouldTrack) {
-      return originalFetch(input, patchedInit).then(function(response) {
-        __cdTapPremiumTokenFromResponse(response, reqUrl);
-        __cdObserveApiAuthFailure(response, reqUrl);
-        return response;
-      });
-    }
-
-    var paymentMeta = __cdResolvePaymentMeta(pathname);
-    startPayment(paymentMeta.message, paymentMeta.mode);
-
-    try {
-      return originalFetch(input, patchedInit).then(
-        function(response) {
-          __cdTapPremiumTokenFromResponse(response, reqUrl);
-          __cdObserveApiAuthFailure(response, reqUrl);
-          endPayment();
-          return response;
-        },
-        function(error) {
-          endPayment();
-          throw error;
-        }
-      );
-    } catch (error) {
-      endPayment();
-      throw error;
-    }
-  };
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', __cdInitGlobalPaymentLoading, { once: true });
-} else {
-  __cdInitGlobalPaymentLoading();
-}
-
-function cdNormalizeLang(langCode) {
-  var raw = String(langCode || 'ko').trim();
-  if (!raw) return 'ko';
-  var low = raw.toLowerCase();
-  if (low === 'jp') return 'ja';
-  if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
-  if (low === 'en' || low === 'ja' || low === 'hi' || low === 'es' || low === 'fr' || low === 'de' || low === 'nl' || low === 'ms' || low === 'ko') {
-    return low;
-  }
-  return 'ko';
-}
-
-function cdGetCurrentLang() {
-  try {
-    var q = new URLSearchParams(window.location.search || '');
-    var fromQuery = q.get('lang');
-    if (fromQuery) return cdNormalizeLang(fromQuery);
-  } catch (_) {}
-
-  try {
-    var saved = localStorage.getItem('cd_lang');
-    if (saved) return cdNormalizeLang(saved);
-  } catch (_) {}
-
-  try {
-    var gt = document.cookie.match(/(?:^|;\s*)googtrans=\/ko\/([^;]+)/i);
-    if (gt && gt[1]) return cdNormalizeLang(gt[1]);
-  } catch (_) {}
-
-  return 'ko';
-}
-
-function cdSaveCurrentLang(langCode) {
-  var normalized = cdNormalizeLang(langCode);
-  try { localStorage.setItem('cd_lang', normalized); } catch (_) {}
-  return normalized;
-}
-
-var __cdCollectionToggleHintTextByLang = {
-  ko: { open: 'ëˆŒëŸ¬ì„œ ì—´ê¸°', close: 'ë‹«ê¸°' },
-  en: { open: 'Tap to open', close: 'Close' },
-  ja: { open: 'ã‚¿ãƒƒãƒ—ã—ã¦é–‹ã', close: 'é–‰ã˜ã‚‹' },
-  'zh-CN': { open: 'ç‚¹å‡»å±•å¼€', close: 'æ”¶èµ·' },
-  hi: { open: 'à¤–à¥‹à¤²à¤¨à¥‡ à¤•à¥‡ à¤²à¤¿à¤ à¤Ÿà¥ˆà¤ª à¤•à¤°à¥‡à¤‚', close: 'à¤¬à¤‚à¤¦ à¤•à¤°à¥‡à¤‚' },
-  es: { open: 'Toca para abrir', close: 'Cerrar' },
-  fr: { open: 'Touchez pour ouvrir', close: 'Fermer' },
-  de: { open: 'Zum Oeffnen tippen', close: 'Schliessen' },
-  nl: { open: 'Tik om te openen', close: 'Sluiten' },
-  ms: { open: 'Ketuk untuk buka', close: 'Tutup' }
-};
-
-function cdGetCollectionToggleHintCopy(langCode) {
-  var normalized = cdNormalizeLang(langCode || cdGetCurrentLang());
-  return __cdCollectionToggleHintTextByLang[normalized] || __cdCollectionToggleHintTextByLang.ko;
-}
-
-function cdApplyCollectionToggleHintTexts(langCode) {
-  var copy = cdGetCollectionToggleHintCopy(langCode);
-  var collections = document.querySelectorAll('[data-collection-open]');
-  for (var i = 0; i < collections.length; i++) {
-    var collection = collections[i];
-    var isOpen = collection.getAttribute('data-collection-open') === 'true';
-    var hintText = collection.querySelector('.fc-toggle-hint__text');
-    if (hintText) {
-      hintText.textContent = isOpen ? copy.close : copy.open;
-    }
-  }
-}
-
-window.cdApplyCollectionToggleHintTexts = cdApplyCollectionToggleHintTexts;
-
-var __cdLocalePrefixMap = {
-  en: '/en-us',
-  ja: '/ja-jp',
-  'zh-CN': '/zh-cn',
-  hi: '/hi-in',
-  es: '/es-es',
-  fr: '/fr-fr',
-  de: '/de-de',
-  nl: '/nl-nl',
-  ms: '/ms-my'
-};
-
-function cdStripLocalePrefix(pathname) {
-  var p = String(pathname || '/');
-  var prefixes = Object.keys(__cdLocalePrefixMap).map(function(k) { return __cdLocalePrefixMap[k]; });
-  for (var i = 0; i < prefixes.length; i++) {
-    var pref = prefixes[i];
-    if (p === pref) return '/';
-    if (p.indexOf(pref + '/') === 0) return p.slice(pref.length);
-  }
-  return p;
-}
-
-function cdBuildLocalizedAppPath(basePath, langCode) {
-  var normalized = cdNormalizeLang(langCode);
-  if (normalized === 'ko') return basePath;
-  var prefix = __cdLocalePrefixMap[normalized] || '';
-  return prefix ? (prefix + basePath) : basePath;
-}
-
-function cdResolveLocalizedFeatureHref(rawHref, langCode) {
-  if (!rawHref) return rawHref;
-  var normalized = cdNormalizeLang(langCode || cdGetCurrentLang());
-  var u;
-  try {
-    u = new URL(rawHref, window.location.origin);
-  } catch (_) {
-    return rawHref;
-  }
-  if (u.origin !== window.location.origin) return rawHref;
-
-  var basePath = cdStripLocalePrefix(u.pathname);
-  var isAppLocalized = (
-    basePath === '/oracle/rune' ||
-    basePath === '/oracle/sikojen-povailu' ||
-    basePath === '/insights' ||
-    basePath === '/olympus'
-  );
-  var isStandaloneHtml = (
-    basePath === '/vedic-ai' ||
-    basePath === '/geomancy-oracle-v4.html' ||
-    basePath === '/royal-tea-oracle.html' ||
-    basePath === '/destiny-poker.html'
-  );
-
-  if (isAppLocalized) {
-    u.pathname = cdBuildLocalizedAppPath(basePath, normalized);
-  }
-
-  if (isStandaloneHtml) {
-    u.pathname = basePath;
-    if (normalized === 'ko') u.searchParams.delete('lang');
-    else u.searchParams.set('lang', normalized);
-  }
-
-  return u.pathname + u.search + u.hash;
-}
-
-function cdRetargetLocaleSensitiveLinks() {
-  var lang = cdGetCurrentLang();
-  var selector = [
-    'a[href^="/oracle/rune"]',
-    'a[href^="/oracle/sikojen-povailu"]',
-    'a[href^="/insights"]',
-    'a[href^="/olympus"]',
-    'a[href^="/vedic-ai"]',
-    'a[href^="/geomancy-oracle-v4.html"]',
-    'a[href^="/royal-tea-oracle.html"]',
-    'a[href^="/destiny-poker.html"]'
-  ].join(', ');
-  var links = document.querySelectorAll(selector);
-  for (var i = 0; i < links.length; i++) {
-    var link = links[i];
-    var raw = link.getAttribute('href');
-    var nextHref = cdResolveLocalizedFeatureHref(raw, lang);
-    if (nextHref && raw !== nextHref) {
-      link.setAttribute('href', nextHref);
-    }
-  }
-}
-
-window.__cdResolveLocalizedFeatureHref = cdResolveLocalizedFeatureHref;
-window.__cdRetargetLocaleSensitiveLinks = cdRetargetLocaleSensitiveLinks;
-
-// êµ¬ê¸€ ë²ˆì—­ ì–¸ì–´ ì„ íƒ ì¹´ë“œ í† ê¸€ ê¸°ëŠ¥ (DOM ë¡œë“œ ëŒ€ê¸°)
-function initTranslateLangUI() {
-  var langWrap = document.querySelector('.translate-lang-wrap');
-  var langBtn = document.getElementById('translateLangToggleBtn');
-  var langCard = document.getElementById('translateLangCard');
-  var langLabel = document.getElementById('translateLangLabel');
-  var hideTimer = null;
-  var HIDE_DELAY = 30000; // 30ì´ˆ
-  window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
-  
-  // ìš”ì†Œê°€ ì—†ìœ¼ë©´ ì œí•œì ìœ¼ë¡œ ì¬ì‹œë„ (ë¬´í•œ ë£¨í”„ ë°©ì§€)
-  if (!langBtn || !langCard || !langWrap) {
-    if (window.__cdTranslateInitAttempts < 120) {
-      setTimeout(initTranslateLangUI, 100);
-    }
-    return;
-  }
-  
-  // ìë™ ìˆ¨ê¹€ ì‹œì‘
-  function startHideTimer() {
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(function() {
-      if (langWrap) {
-        langWrap.classList.add('translate-lang-wrap--hidden');
-      }
-    }, HIDE_DELAY);
-  }
-  
-  // ë²„íŠ¼ í‘œì‹œ ë° íƒ€ì´ë¨¸ ë¦¬ì…‹
-  function showTranslateButton() {
-    clearTimeout(hideTimer);
-    if (langWrap) {
-      langWrap.classList.remove('translate-lang-wrap--hidden');
-    }
-  }
-  
-  // ë²„íŠ¼ í´ë¦­ ì‹œ ì¹´ë“œ í† ê¸€
-  langBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    langCard.classList.toggle('active');
-    showTranslateButton();
-  });
-  
-  // ë°”ê¹¥ í´ë¦­ ì‹œ ì¹´ë“œ ë‹«ê¸°
-  document.addEventListener('click', function(e) {
-    if (langWrap && !langWrap.contains(e.target)) {
-      langCard.classList.remove('active');
-    }
-  });
-  
-  // ì–¸ì–´ ë³€ê²½ ì¹´ë“œ ë²„íŠ¼ í•¸ë“¤ëŸ¬
-  // NOTE: Google Translate includedLanguagesì™€ ë¼ë²¨ ë§¤í•‘ì„ ë§ì¶˜ë‹¤.
-  var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'zh-TW': 'TW', 'vi': 'VI', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
-  var langCodeBtns = document.querySelectorAll('.translate-lang-code');
-  Array.prototype.forEach.call(langCodeBtns, function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      var lang = btn.getAttribute('data-lang');
-      if (!lang) return;
-      cdSaveCurrentLang(lang);
-      
-      // í™œì„± ìƒíƒœ ì—…ë°ì´íŠ¸
-      Array.prototype.forEach.call(langCodeBtns, function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      
-      // ë²„íŠ¼ ë ˆì´ë¸” ì—…ë°ì´íŠ¸
-      if (langLabel) langLabel.textContent = langCodeMap[lang] || lang.toUpperCase();
-      
-      // Google Translate ë“œë¡­ë‹¤ìš´ ë³€ê²½ (ë¡œë”© ì§€ì—°/ì¤‘ë³µ ì¸ìŠ¤í„´ìŠ¤ ëŒ€ì‘)
-      cdSetGoogleTranslateLanguage(lang, {
-        maxAttempts: 60,
-        retryDelay: 200,
-        fallbackToCookieReload: true
-      });
-      cdRetargetLocaleSensitiveLinks();
-      cdApplyCollectionToggleHintTexts(lang);
-      startHideTimer();
-      
-      // ì¹´ë“œ ë‹«ê¸°
-      if (langCard) langCard.classList.remove('active');
-    });
-  });
-}
-
-function cdDispatchNativeChangeEvent(el) {
-  if (!el) return;
-  try {
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    return;
-  } catch (_) {}
-  try {
-    var legacyEvt = document.createEvent('HTMLEvents');
-    legacyEvt.initEvent('change', true, false);
-    el.dispatchEvent(legacyEvt);
-  } catch (_) {}
-}
-
-window.__cdNativeOnlyLanguage = true;
-
-function cdShouldSkipGoogleTranslate(langCode) {
-  try {
-    if (window.__cdNativeOnlyLanguage) return true;
-    if (typeof window.__cdShouldSkipGoogleTranslate === 'function') {
-      return !!window.__cdShouldSkipGoogleTranslate(langCode);
-    }
-    return !!window.__cdGoogleTranslateSuppressed;
-  } catch (_) {}
-  return false;
-}
-
-function cdClearLangUiBusy() {
-  var wrap = document.getElementById('langWrap');
-  var trigger = document.getElementById('langTrigger');
-  if (wrap) wrap.classList.remove('is-loading');
-  if (trigger) trigger.setAttribute('aria-busy', 'false');
-}
-
-function cdEnsureGoogleTranslateBootstrap() {
-  cdClearLangUiBusy();
-  return;
-  var hasGoogleTranslateRuntime = !!(window.google && window.google.translate && window.google.translate.TranslateElement);
-  if (hasGoogleTranslateRuntime) {
-    cdSetLangUiLoading(false);
-    if (typeof window.googleTranslateElementInit === 'function') {
-      try { window.googleTranslateElementInit(); } catch (_) {}
-    }
-    return;
-  }
-
-  if (window.__cdGoogleTranslateScriptRequested) return;
-  window.__cdGoogleTranslateScriptRequested = true;
-  cdSetLangUiLoading(true, 'ì–¸ì–´ ì—”ì§„ ë¡œë”© ì¤‘...');
-
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-  script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-  script.onerror = function() {
-    window.__cdGoogleTranslateScriptRequested = false;
-    cdSetLangUiLoading(false);
-  };
-  document.head.appendChild(script);
-}
-
-function cdSetGoogleTranslateLanguage(langCode, options) {
-  if (!langCode) return Promise.resolve(false);
-  cdClearLangUiBusy();
-  return Promise.resolve(false);
-
-  var opts = options || {};
-  var attempts = 0;
-  var maxAttempts = typeof opts.maxAttempts === 'number' ? opts.maxAttempts : 180;
-  var retryDelay = typeof opts.retryDelay === 'number' ? opts.retryDelay : 80;
-  var useCookieFallback = opts.fallbackToCookieReload === true;
-  var maxWaitMs = typeof opts.maxWaitMs === 'number' ? opts.maxWaitMs : 15000;
-
-  function pickGoogleTranslateSelect() {
-    var scope = document.getElementById('google_translate_element') || document;
-    var selects = scope.querySelectorAll('.goog-te-combo');
-    if (selects && selects.length) return selects[0];
-    return null;
-  }
-
-  function fallbackByCookieOnly() {
-    if (!useCookieFallback || !langCode || langCode === 'ko') return;
-    var host = window.location.hostname;
-    var cookieValue = '/ko/' + langCode;
-    var expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
-    document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; path=/; SameSite=Lax';
-    if (host) {
-      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=' + host + '; path=/; SameSite=Lax';
-      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=.' + host + '; path=/; SameSite=Lax';
-    }
-  }
-
-  // language changeê°€ ì‹¤ì œ DOM ë²ˆì—­ìœ¼ë¡œ ë°˜ì˜ë˜ì§€ ì•ŠëŠ” ì¼€ì´ìŠ¤ë¥¼ ëŒ€ë¹„í•´,
-  // select ë³€ê²½ ì „ì— cookieë¥¼ ë¨¼ì € ì„¸íŒ…í•œë‹¤.
-  function setCookieForLang(code) {
-    if (!code || code === 'ko') return;
-    var host = window.location.hostname;
-    var cookieValue = '/ko/' + code;
-    var expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
-    document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; path=/; SameSite=Lax';
-    if (host) {
-      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=' + host + '; path=/; SameSite=Lax';
-      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=.' + host + '; path=/; SameSite=Lax';
-    }
-  }
-
-  function clearCookieForKo() {
-    var host = window.location.hostname;
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + host + '; path=/; SameSite=Lax;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + host + '; path=/; SameSite=Lax;';
-  }
-
-  function hasOptionValue(selectField, value) {
-    if (!selectField || !selectField.options) return false;
-    for (var i = 0; i < selectField.options.length; i++) {
-      if (selectField.options[i] && selectField.options[i].value === value) return true;
-    }
-    return false;
-  }
-
-  function applyValueToSelect(selectField, value) {
-    if (!selectField) return false;
-    if (value !== 'ko' && !hasOptionValue(selectField, value)) return false;
-    selectField.value = value;
-    try { selectField.setAttribute('value', value); } catch (_) {}
-    try { selectField.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
-    try { selectField.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
-    cdDispatchNativeChangeEvent(selectField);
-    return true;
-  }
-
-  if (langCode === 'ko') clearCookieForKo();
-  else setCookieForLang(langCode);
-
-  return new Promise(function(resolve) {
-    var done = false;
-    var observer = null;
-    var startedAt = Date.now();
-
-    function finish(result) {
-      if (done) return;
-      done = true;
-      if (observer) {
-        try { observer.disconnect(); } catch (_) {}
-      }
-      resolve(result);
-    }
-
-    function tryApply() {
-      cdEnsureGoogleTranslateBootstrap();
-      var selectField = pickGoogleTranslateSelect();
-      if (!selectField) return false;
-      if (!applyValueToSelect(selectField, langCode)) return false;
-      return true;
-    }
-
-    function apply() {
-      if (tryApply()) {
-        // ì¼ë¶€ ë¸Œë¼ìš°ì €ì—ì„œ ì²« change ì´ë²¤íŠ¸ë¥¼ ë“œëí•˜ëŠ” ê²½ìš°ê°€ ìˆì–´ ì§§ê²Œ 1íšŒ ë³´ê°•í•œë‹¤.
-        setTimeout(function() {
-          if (!done) {
-            tryApply();
-            finish(true);
-          }
-        }, 120);
-        return;
-      }
-      if (attempts >= maxAttempts || (Date.now() - startedAt) >= maxWaitMs) {
-        fallbackByCookieOnly();
-        finish(false);
-        return;
-      }
-      attempts++;
-      setTimeout(apply, retryDelay);
-    }
-
-    if (typeof MutationObserver === 'function' && document.documentElement) {
-      try {
-        observer = new MutationObserver(function() {
-          if (done) return;
-          if (tryApply()) {
-            setTimeout(function() {
-              if (!done) {
-                tryApply();
-                finish(true);
-              }
-            }, 120);
-          }
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-      } catch (_) {
-        observer = null;
-      }
-    }
-
-    apply();
-  });
-}
-
-function cdForceHideGoogleTranslateBanner() {
-  try {
-    var styleId = 'cd-hide-google-translate-banner-style';
-    if (!document.getElementById(styleId)) {
-      var st = document.createElement('style');
-      st.id = styleId;
-      st.textContent = ''
-        + '.goog-te-banner-frame{display:none !important;visibility:hidden !important;height:0 !important;}'
-        + '.goog-te-balloon-frame{display:none !important;visibility:hidden !important;height:0 !important;}'
-        + '#goog-gt-tt{display:none !important;visibility:hidden !important;}'
-        + '.goog-tooltip{display:none !important;visibility:hidden !important;}'
-        + '.goog-text-highlight{background-color:transparent !important;box-shadow:none !important;}'
-        + '.skiptranslate iframe{display:none !important;}'
-        + 'body{top:0 !important;position:static !important;}'
-        + 'html{margin-top:0 !important;}';
-      document.head.appendChild(st);
-    }
-  } catch (_) {}
-
-  try {
-    var frames = document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame, .goog-te-balloon-frame, iframe.goog-te-balloon-frame');
-    for (var i = 0; i < frames.length; i++) {
-      frames[i].style.setProperty('display', 'none', 'important');
-      frames[i].style.setProperty('visibility', 'hidden', 'important');
-      frames[i].style.setProperty('height', '0', 'important');
-    }
-    var gtTooltip = document.getElementById('goog-gt-tt');
-    if (gtTooltip) {
-      gtTooltip.style.setProperty('display', 'none', 'important');
-      gtTooltip.style.setProperty('visibility', 'hidden', 'important');
-    }
-    var highlighted = document.querySelectorAll('.goog-text-highlight');
-    for (var j = 0; j < highlighted.length; j++) {
-      highlighted[j].classList.remove('goog-text-highlight');
-    }
-    document.body.style.setProperty('top', '0px', 'important');
-    document.body.style.setProperty('position', 'static', 'important');
-    document.documentElement.style.setProperty('margin-top', '0px', 'important');
-  } catch (_) {}
-}
-
-function cdInstallGoogleTranslateBannerGuard() {
-  cdForceHideGoogleTranslateBanner();
-  setTimeout(cdForceHideGoogleTranslateBanner, 120);
-  setTimeout(cdForceHideGoogleTranslateBanner, 600);
-  setTimeout(cdForceHideGoogleTranslateBanner, 1600);
-  if (window.__cdGtBannerGuardInstalled) return;
-  window.__cdGtBannerGuardInstalled = true;
-
-  if (typeof MutationObserver === 'function' && document.documentElement) {
-    try {
-      var scheduled = false;
-      var obs = new MutationObserver(function() {
-        if (scheduled) return;
-        scheduled = true;
-        __cdScheduleVisualTask(function() {
-          scheduled = false;
-          cdForceHideGoogleTranslateBanner();
-        });
-      });
-      obs.observe(document.documentElement, { childList: true, subtree: true });
-    } catch (_) {}
-  }
-}
-
-// DOM ì¤€ë¹„ ì™„ë£Œ ì‹œ ì´ˆê¸°í™”
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    cdInstallGoogleTranslateBannerGuard();
-    try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
-    cdSaveCurrentLang(cdGetCurrentLang());
-    cdRetargetLocaleSensitiveLinks();
-    cdApplyCollectionToggleHintTexts(cdGetCurrentLang());
-  });
-} else {
-  cdInstallGoogleTranslateBannerGuard();
-  try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
-  cdSaveCurrentLang(cdGetCurrentLang());
-  cdRetargetLocaleSensitiveLinks();
-  cdApplyCollectionToggleHintTexts(cdGetCurrentLang());
-}
-
-function initPerformanceDiagnosisObservers() {
-  if (typeof window === 'undefined' || typeof PerformanceObserver !== 'function') return;
-  var host = String(window.location && window.location.hostname || '').toLowerCase();
-  var isLocalHost = (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.local'));
-  var debugEnabled = !!window.__CD_ENABLE_PERF_LOGS__;
-  if (!isLocalHost && !debugEnabled) return;
-  if (window.__cdPerfObserverInstalled) return;
-  window.__cdPerfObserverInstalled = true;
-
-  try {
-    var longTaskObserver = new PerformanceObserver(function(entryList) {
-      var entries = entryList.getEntries();
-      for (var i = 0; i < entries.length; i += 1) {
-        var entry = entries[i];
-        if (entry && entry.duration > 50) {
-          console.warn('[perf] Long task detected', {
-            duration: Math.round(entry.duration),
-            startTime: Math.round(entry.startTime)
-          });
-        }
-      }
-    });
-    longTaskObserver.observe({ type: 'longtask', buffered: true });
-  } catch (_) {}
-
-  try {
-    var clsValue = 0;
-    var clsObserver = new PerformanceObserver(function(entryList) {
-      var entries = entryList.getEntries();
-      for (var i = 0; i < entries.length; i += 1) {
-        var entry = entries[i];
-        if (entry && !entry.hadRecentInput) {
-          clsValue += entry.value || 0;
-        }
-      }
-      if (clsValue >= 0.1) {
-        console.warn('[perf] CLS warning', { cls: Number(clsValue.toFixed(4)) });
-      }
-    });
-    clsObserver.observe({ type: 'layout-shift', buffered: true });
-  } catch (_) {}
-}
-
-initPerformanceDiagnosisObservers();
-
-function __cdScheduleVisualTask(task) {
-  if (typeof task !== 'function') return;
-  var raf = window.requestAnimationFrame;
-  if (typeof raf === 'function') {
-    raf(function() { task(); });
-    return;
-  }
-  setTimeout(task, 0);
-}
-
-function __cdScheduleIdleTask(task, timeout) {
-  if (typeof task !== 'function') return;
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(function() { task(); }, { timeout: typeof timeout === 'number' ? timeout : 500 });
-    return;
-  }
-  setTimeout(task, 0);
-}
-
-function __cdRunChunked(items, iteratee, options) {
-  var list = Array.prototype.slice.call(items || []);
-  if (!list.length || typeof iteratee !== 'function') return Promise.resolve();
-
-  var opts = options || {};
-  var i = 0;
-  var minBatch = typeof opts.minBatch === 'number' ? opts.minBatch : 6;
-  var maxBatch = typeof opts.maxBatch === 'number' ? opts.maxBatch : 32;
-  var budgetMs = typeof opts.budgetMs === 'number' ? opts.budgetMs : 8;
-  var perf = (typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function') ? window.performance : null;
-
-  return new Promise(function(resolve) {
-    function runBatch() {
-      var started = perf ? perf.now() : Date.now();
-      var processed = 0;
-      while (i < list.length && processed < maxBatch) {
-        iteratee(list[i], i);
-        i += 1;
-        processed += 1;
-        if (processed >= minBatch) {
-          var now = perf ? perf.now() : Date.now();
-          if ((now - started) >= budgetMs) break;
-        }
-      }
-
-      if (i >= list.length) {
-        resolve();
-        return;
-      }
-      setTimeout(runBatch, 0);
-    }
-
-    runBatch();
-  });
-}
-
-function syncFeatureCardHeight(card) {
-  if (!card) return;
-  var detail = card.querySelector('.feature-card__detail');
-  var inner = card.querySelector('.feature-card__detail-inner');
-  if (!detail || !inner) return;
-  if (card.classList.contains('feature-card--open')) {
-    var buffer = card.classList.contains('feature-card--destiny-flower') ? 18 : 8;
-    detail.style.setProperty('--fc-open-height', (inner.scrollHeight + buffer) + 'px');
-  } else {
-    detail.style.setProperty('--fc-open-height', '0px');
-  }
-}
-
-(function() {
-  var resizeTicking = false;
-  function onResize() {
-    if (resizeTicking) return;
-    resizeTicking = true;
-    requestAnimationFrame(function() {
-      resizeTicking = false;
-      document.querySelectorAll('.feature-card').forEach(syncFeatureCardHeight);
-    });
-  }
-  window.addEventListener('resize', onResize, { passive: true });
-})();
-
-function fcToggle(btn) {
-  var card = btn.closest('.feature-card');
-  function openByAction(actionName) {
-    if (!card || !actionName) return false;
-    var fn = window[actionName];
-    if (typeof fn === 'function') {
-      fn();
-      return true;
-    }
-    var launch = card.querySelector('.feature-card__launch[data-action="' + actionName + '"]');
-    if (launch && typeof launch.click === 'function') {
-      launch.click();
-      return true;
-    }
-    return false;
-  }
-
-  if (card) {
-    if (card.classList.contains('feature-card--face') && openByAction('openPhysiognomyApp')) { return; }
-    if (card.classList.contains('feature-card--animal') && openByAction('openMbtiModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-love') && openByAction('openTarotLoveModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-healing') && openByAction('openTarotHealingModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-self-esteem') && openByAction('openTarotSelfEsteemModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-reunion') && openByAction('openTarotReunionModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-year') && openByAction('openTarotYearFortuneModal')) { return; }
-    if (card.classList.contains('feature-card--tarot') && openByAction('openTarotModal')) { return; }
-    if (card.classList.contains('feature-card--animal-totem') && openByAction('openAnimalTotemModal')) { return; }
-    if (card.classList.contains('feature-card--tazza') && openByAction('openHwatuModal')) { return; }
-    if (card.classList.contains('feature-card--egypt') && openByAction('openKemetModal')) { return; }
-    if (card.classList.contains('feature-card--juyuk') && openByAction('openJuyukModal')) { return; }
-    if (card.classList.contains('feature-card--sukuyo') && openByAction('openSukuyoModal')) { return; }
-    if (card.classList.contains('feature-card--astro-fc') && openByAction('openAstroModal')) { return; }
-    if (card.classList.contains('feature-card--ziwei') && openByAction('openZiweiModal')) { return; }
-    if (card.classList.contains('feature-card--destiny-flower') && openByAction('openDestinyFlower')) { return; }
-    if (card.classList.contains('feature-card--astrology-flower') && openByAction('openAstrologyFlower')) { return; }
-    if (card.classList.contains('feature-card--jamidusu-flower') && openByAction('openJamidusuFlower')) { return; }
-    if (card.classList.contains('feature-card--sukuyo-flower') && openByAction('openSukuyoFlower')) { return; }
-    if (card.classList.contains('feature-card--dream') && openByAction('openDreamModal')) { return; }
-  }
-
-  var open = card.classList.toggle('feature-card--open');
-  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', open ? 'false' : 'true');
-  syncFeatureCardHeight(card);
-  btn.querySelector('.feature-card__cta-label').textContent = open ? 'ë‹«ê¸°' : btn.dataset.label;
-  btn.querySelector('.feature-card__cta-arrow').textContent = open ? 'â–²' : 'â–¼';
-}
-
-function bindFeatureCardVisualActions() {
-  var defs = [
-    { cardClass: 'feature-card--face', action: 'openPhysiognomyApp' },
-    { cardClass: 'feature-card--animal', action: 'openMbtiModal' },
-    { cardClass: 'feature-card--tarot-love', action: 'openTarotLoveModal' },
-    { cardClass: 'feature-card--tarot-healing', action: 'openTarotHealingModal' },
-    { cardClass: 'feature-card--tarot-self-esteem', action: 'openTarotSelfEsteemModal' },
-    { cardClass: 'feature-card--tarot-reunion', action: 'openTarotReunionModal' },
-    { cardClass: 'feature-card--tarot-year', action: 'openTarotYearFortuneModal' },
-    { cardClass: 'feature-card--tarot', action: 'openTarotModal' },
-    { cardClass: 'feature-card--animal-totem', action: 'openAnimalTotemModal' },
-    { cardClass: 'feature-card--tazza', action: 'openHwatuModal' },
-    { cardClass: 'feature-card--egypt', action: 'openKemetModal' },
-    { cardClass: 'feature-card--juyuk', action: 'openJuyukModal' },
-    { cardClass: 'feature-card--sukuyo', action: 'openSukuyoModal' },
-    { cardClass: 'feature-card--astro-fc', action: 'openAstroModal' },
-    { cardClass: 'feature-card--ziwei', action: 'openZiweiModal' },
-    { cardClass: 'feature-card--destiny-flower', action: 'openDestinyFlower' },
-    { cardClass: 'feature-card--astrology-flower', action: 'openAstrologyFlower' },
-    { cardClass: 'feature-card--jamidusu-flower', action: 'openJamidusuFlower' },
-    { cardClass: 'feature-card--sukuyo-flower', action: 'openSukuyoFlower' },
-    { cardClass: 'feature-card--dream', action: 'openDreamModal' }
-  ];
-
-  defs.forEach(function(def) {
-    var card = document.querySelector('.feature-card.' + def.cardClass);
-    if (!card) return;
-    ['.feature-card__img-wrap', '.feature-card__img', '.feature-card__title', '.feature-card__desc'].forEach(function(sel) {
-      var nodes = card.querySelectorAll(sel);
-      __cdRunChunked(nodes, function(el) {
-        if (!el.getAttribute('data-action')) {
-          el.setAttribute('data-action', def.action);
-        }
-      }, { minBatch: 4, maxBatch: 20, budgetMs: 6 });
-    });
-  });
-}
-
-function bindFeatureCardImageFallbacks() {
-  var defs = [
-    { cardClass: 'feature-card--animal-totem', fileName: 'animaltotem-cute.svg' },
-    { cardClass: 'feature-card--tarot-year', fileName: '12animals.webp' },
-    { cardClass: 'feature-card--tarot-self-esteem', fileName: 'jajongam.webp' },
-    { cardClass: 'feature-card--tarot-love', fileName: 'tarolove.webp' }
-  ];
-
-  defs.forEach(function(def) {
-    var img = document.querySelector('.feature-card.' + def.cardClass + ' .feature-card__img');
-    if (!img) return;
-
-    var relativePath = 'fuctionassets/' + def.fileName;
-    var absolutePath = '/fuctionassets/' + def.fileName;
-
-    if (!img.dataset.fallbackBound) {
-      img.dataset.fallbackBound = '1';
-      img.addEventListener('error', function() {
-        if (img.dataset.fallbackTried === '1') return;
-        img.dataset.fallbackTried = '1';
-        img.src = relativePath;
-      });
-    }
-
-    img.src = absolutePath;
-  });
-}
-
-function normalizeLegacyFuctionAssetImagePaths() {
-  var imgs = document.querySelectorAll('img[src^="fuctionassets/"]');
-  __cdRunChunked(imgs, function(img) {
-    var raw = img.getAttribute('src') || '';
-    if (!raw || raw.indexOf('fuctionassets/') !== 0) return;
-    img.setAttribute('src', '/' + raw);
-  }, { minBatch: 8, maxBatch: 30, budgetMs: 6 });
-}
-
-function __cdSortAnimalCollectionTitlesDesc() {
-  var collection = document.getElementById('animalCollection');
-  if (!collection || collection.dataset.cdTitleSortedDesc === '1') return;
-
-  var grid = collection.querySelector('.feat-collection__grid');
-  if (!grid) return;
-
-  var tiles = [];
-  for (var i = 0; i < grid.children.length; i++) {
-    var child = grid.children[i];
-    if (child && child.classList && child.classList.contains('tarot-tile')) {
-      tiles.push(child);
-    }
-  }
-  if (!tiles.length) return;
-
-  var lang = (document.documentElement && document.documentElement.lang) || 'ko';
-  var collator = (typeof Intl !== 'undefined' && typeof Intl.Collator === 'function')
-    ? new Intl.Collator(lang, { numeric: true, sensitivity: 'base' })
-    : null;
-
-  function getTitleText(tile) {
-    var titleEl = tile ? tile.querySelector('.tarot-tile__title') : null;
-    var raw = titleEl && titleEl.textContent ? titleEl.textContent : '';
-    return raw.replace(/\s+/g, ' ').trim();
-  }
-
-  tiles.sort(function(a, b) {
-    var aTitle = getTitleText(a);
-    var bTitle = getTitleText(b);
-    if (collator) return collator.compare(bTitle, aTitle);
-    return bTitle.localeCompare(aTitle);
-  });
-
-  var fragment = document.createDocumentFragment();
-  tiles.forEach(function(tile) { fragment.appendChild(tile); });
-  grid.appendChild(fragment);
-  collection.dataset.cdTitleSortedDesc = '1';
-}
-
-function initFeatureCardBindings() {
-  __cdSortAnimalCollectionTitlesDesc();
-  __cdScheduleIdleTask(function() {
-    normalizeLegacyFuctionAssetImagePaths();
-    bindFeatureCardVisualActions();
-    bindFeatureCardImageFallbacks();
-  }, 700);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initFeatureCardBindings, { once: true });
-} else {
-  initFeatureCardBindings();
-}
-
-function __cdResolveEventElement(event) {
-  if (!event || !event.target) return null;
-  if (event.target instanceof Element) return event.target;
-  if (event.target.parentElement instanceof Element) return event.target.parentElement;
-  return null;
-}
-
-/**
- * ì˜¤ë²„ë ˆì´ ë£¨íŠ¸ì— data-actionì´ ìˆìœ¼ë©´ ëª¨ë°”ì¼ì—ì„œ event.targetì´ ì˜¤ë²„ë ˆì´ë¡œë§Œ ì¡í ë•Œ
- * closestê°€ ë‹«ê¸°ë¡œ ì²˜ë¦¬í•œë‹¤. íˆíŠ¸ ìŠ¤íƒìœ¼ë¡œ ì‹œíŠ¸ ë‚´ë¶€ ì‹¤ì œ ìš”ì†Œë¥¼ ë³µêµ¬í•œë‹¤.
- */
-function __cdDestinyFlowerPickHitFromElementsStack(event) {
-  var sheet = document.getElementById('destinyFlowerStudioSheet');
-  var ov = document.getElementById('destinyFlowerStudioOverlay');
-  if (!sheet) return null;
-  var x = event && event.clientX;
-  var y = event && event.clientY;
-  if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return null;
-  try {
-    if (typeof document.elementsFromPoint === 'function') {
-      var stack = document.elementsFromPoint(x, y);
-      for (var i = 0; i < stack.length && i < 28; i++) {
-        var el = stack[i];
-        if (!el) continue;
-        if (ov && (el === ov || el.id === 'destinyFlowerStudioOverlay')) break;
-        if (el === sheet || sheet.contains(el)) return el;
-      }
-    }
-    if (typeof document.elementFromPoint === 'function') {
-      var one = document.elementFromPoint(x, y);
-      if (one && sheet.contains(one)) return one;
-    }
-  } catch (e) {}
-  return null;
-}
-
-function __cdResolveDestinyFlowerClickTarget(event) {
-  var t = __cdResolveEventElement(event);
-  var picked = __cdDestinyFlowerPickHitFromElementsStack(event);
-  if (picked) return picked;
-  return t;
-}
-
-function __cdIsInsideDestinyFlowerSheet(event, el) {
-  var sheet = document.getElementById('destinyFlowerStudioSheet');
-  if (!sheet) return false;
-  if (el && sheet.contains(el)) return true;
-  var picked = __cdDestinyFlowerPickHitFromElementsStack(event);
-  return !!(picked && sheet.contains(picked));
-}
-
-function __cdIsPointInsideElement(x, y, el) {
-  if (!el || typeof x !== 'number' || typeof y !== 'number') return false;
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
-  var rect = el.getBoundingClientRect();
-  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-}
-
-if (typeof window !== 'undefined') {
-  window.__cdIsInsideDestinyFlowerSheet = __cdIsInsideDestinyFlowerSheet;
-  window.__cdResolveDestinyFlowerClickTarget = __cdResolveDestinyFlowerClickTarget;
-}
-
-function __cdParseActionArgs(raw) {
-  if (!raw) return [];
-  return raw
-    .split(',')
-    .map(function(v) { return v.trim(); })
-    .filter(function(v) { return v.length > 0; });
-}
-
-function __cdCallGlobal(fnName) {
-  var fn = window[fnName];
-  if (typeof fn !== 'function') return undefined;
-  var args = Array.prototype.slice.call(arguments, 1);
-  return fn.apply(window, args);
-}
-
-function __cdHasAuthToken() {
-  try {
-    if (typeof window.hasAuthToken === 'function') return !!window.hasAuthToken();
-  } catch (_) {}
-  try {
-    if (localStorage.getItem('fortune_auth_token') || '') return true;
-    if (sessionStorage.getItem('fortune_auth_token') || '') return true;
-    if (localStorage.getItem('fortune_auth_user') || '') return true;
-  } catch (_) {}
-  try {
-    return document.cookie.indexOf('fortune_auth_role=') >= 0;
-  } catch (_) {}
-  return false;
-}
-
-function __cdResolveTileLockAliasKeys(lockKey) {
-  var base = String(lockKey || '').trim();
-  if (!base) return [];
-  var map = Object.create(null);
-  map[base] = true;
-  if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
-  if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
-  var aliases = {
-    flower_all: ['flower', 'flower-fc', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
-    'flower-fc': ['flower', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
-    flower: ['flower-fc', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
-    'flower-destiny': ['flower-fc', 'flower'],
-    'flower-astro': ['flower-fc', 'flower'],
-    'flower-ziwei': ['flower-fc', 'flower'],
-    'flower-sukuyo': ['flower-fc', 'flower'],
-    allPaidSaju: ['all-paid-saju', 'rpgCharacter', 'travelDestiny', 'healthReport', 'sajuDiary', 'secretHouseEpisodes', 'rpt_skillTreeCard', 'rpt_energyCoordCard', 'rpt_healthReportCard', 'rpt_luckSyncDiaryEntryCard', 'rpt_secretHouseEntryCard'],
-    'all-paid-saju': ['allPaidSaju', 'rpgCharacter', 'travelDestiny', 'healthReport', 'sajuDiary', 'secretHouseEpisodes', 'rpt_skillTreeCard', 'rpt_energyCoordCard', 'rpt_healthReportCard', 'rpt_luckSyncDiaryEntryCard', 'rpt_secretHouseEntryCard'],
-    rpgCharacter: ['rpt_skillTreeCard'],
-    rpt_skillTreeCard: ['rpgCharacter'],
-    travelDestiny: ['rpt_energyCoordCard'],
-    rpt_energyCoordCard: ['travelDestiny'],
-    healthReport: ['health-report', 'rpt_healthReportCard', 'allPaidSaju', 'all-paid-saju'],
-    'health-report': ['healthReport', 'rpt_healthReportCard', 'allPaidSaju', 'all-paid-saju'],
-    rpt_healthReportCard: ['healthReport', 'health-report', 'allPaidSaju', 'all-paid-saju'],
-    sajuDiary: ['rpt_luckSyncDiaryEntryCard'],
-    rpt_luckSyncDiaryEntryCard: ['sajuDiary'],
-    secretHouseEpisodes: ['rpt_secretHouseEntryCard'],
-    rpt_secretHouseEntryCard: ['secretHouseEpisodes']
-  }[base] || [];
-  for (var i = 0; i < aliases.length; i += 1) map[aliases[i]] = true;
-  return Object.keys(map);
-}
-
-function __cdMapHasTileLockUnlocked(mapObj, lockKey) {
-  if (!mapObj || typeof mapObj !== 'object') return false;
-  var aliases = __cdResolveTileLockAliasKeys(lockKey);
-  for (var i = 0; i < aliases.length; i += 1) {
-    if (mapObj[aliases[i]] === true) return true;
-  }
-  return false;
-}
-
-function __cdIsTileLockUnlocked(actionEl, lockKey) {
-  if (!lockKey) return false;
-  if (!__cdHasAuthToken()) return false;
-  if (actionEl && actionEl.classList && actionEl.classList.contains('tarot-tile--tileUnlocked')) return true;
-  if (!__cdTileLockServerSyncDone && !__cdTileLockServerSyncInFlight) {
-    __cdSyncTileLocksFromServer();
-  }
-  try {
-    if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
-      if (__cdMapHasTileLockUnlocked(window.unlockedFeatureMap, lockKey)) return true;
-    }
-  } catch (_) {}
-  try {
-    var authRaw = localStorage.getItem('fortune_auth_user') || '';
-    var auth = authRaw ? JSON.parse(authRaw) : null;
-    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
-    var scope = String(scopeRaw || '').trim().toLowerCase();
-    if (scope) {
-      var scopedKey = 'cd_tile_locks_v2::' + scope;
-      var scopedRaw = localStorage.getItem(scopedKey);
-      if (scopedRaw) {
-        var scopedMap = JSON.parse(scopedRaw);
-        return __cdMapHasTileLockUnlocked(scopedMap, lockKey);
-      }
-      return false;
-    }
-  } catch (_) {}
-  return false;
-}
-
-function __cdRequireTileLockGate(actionEl) {
-  if (!actionEl) return true;
-  if (actionEl.getAttribute('data-pvw-bypass')) return true;
-  var lockKey = actionEl.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(actionEl.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.001"))) {
-      window.location.href = '/login?next=%2F';
-    }
-    return false;
-  }
-
-  if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
-
-  if (typeof window._cdOpenTilePreview === 'function') {
-    try {
-      if (window._cdOpenTilePreview(actionEl)) return false;
-    } catch (_) {}
-  }
-
-  window.alert('ì ê¸ˆëœ ì„œë¹„ìŠ¤ì…ë‹ˆë‹¤. í•´ê¸ˆ í›„ ì´ìš©í•´ ì£¼ì„¸ìš”.');
-  return false;
-}
-
-var __cdTileLockServerSyncInFlight = false;
-var __cdTileLockServerSyncDone = false;
-
-function __cdGetAuthTokenForLockSync() {
-  try {
-    return String(localStorage.getItem('fortune_auth_token') || '');
-  } catch (_) {}
-  return '';
-}
-
-function __cdResolveApiBaseForLockSync() {
-  try {
-    if (window.CODE_DESTINY_API_BASE_URL) {
-      return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
-    }
-  } catch (_) {}
-  try {
-    var custom = localStorage.getItem('fortune_api_base_url');
-    if (custom) return String(custom).replace(/\/+$/, '');
-  } catch (_) {}
-  return window.location.origin;
-}
-
-function __cdGetTileLockScopeStorageKey() {
-  try {
-    var raw = localStorage.getItem('fortune_auth_user') || '';
-    var user = raw ? JSON.parse(raw) : null;
-    var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
-    var scope = String(scopeRaw || '').trim().toLowerCase();
-    if (!scope) return '';
-    return 'cd_tile_locks_v2::' + scope;
-  } catch (_) {}
-  return '';
-}
-
-function __cdReadTileLockMapForSync() {
-  var merged = Object.create(null);
-  try {
-    var scopedKey = __cdGetTileLockScopeStorageKey();
-    if (scopedKey) {
-      var scopedRaw = localStorage.getItem(scopedKey);
-      if (scopedRaw) {
-        var scopedMap = JSON.parse(scopedRaw);
-        if (scopedMap && typeof scopedMap === 'object') {
-          var scopedKeys = Object.keys(scopedMap);
-          for (var i = 0; i < scopedKeys.length; i += 1) {
-            if (scopedMap[scopedKeys[i]] === true) merged[scopedKeys[i]] = true;
-          }
-        }
-      }
-    }
-  } catch (_) {}
-
-  try {
-    localStorage.removeItem('cd_tile_locks');
-  } catch (_) {}
-
-  var normalized = Object.create(null);
-  var keys = Object.keys(merged);
-  for (var k = 0; k < keys.length; k += 1) {
-    var aliases = __cdResolveTileLockAliasKeys(keys[k]);
-    for (var a = 0; a < aliases.length; a += 1) normalized[aliases[a]] = true;
-  }
-  return normalized;
-}
-
-function __cdNormalizeLockPayload(payload) {
-  var data = null;
-  var keys = Object.create(null);
-  var list = [];
-  try {
-    if (payload && payload.ok === false) return list;
-  } catch (_) {}
-
-  try {
-    if (payload && payload.data && typeof payload.data === 'object') {
-      data = payload.data;
-    } else if (payload && payload.raw && typeof payload.raw === 'object') {
-      data = payload.raw;
-    }
-
-    if (!data || typeof data !== 'object') return list;
-
-    if (data && Array.isArray(data.unlockedFeatures)) {
-      for (var i = 0; i < data.unlockedFeatures.length; i += 1) {
-        var feature = String(data.unlockedFeatures[i] || '').trim();
-        if (feature && !keys[feature]) {
-          keys[feature] = true;
-          list.push(feature);
-        }
-      }
-    }
-    if (data && Array.isArray(data.unlockedContentKeys)) {
-      for (var c = 0; c < data.unlockedContentKeys.length; c += 1) {
-        var contentKey = String(data.unlockedContentKeys[c] || '').trim();
-        if (contentKey && !keys[contentKey]) {
-          keys[contentKey] = true;
-          list.push(contentKey);
-        }
-      }
-    }
-    if (data && data.unlocks && typeof data.unlocks === 'object') {
-      var contentMapKeys = Object.keys(data.unlocks);
-      for (var u = 0; u < contentMapKeys.length; u += 1) {
-        var contentMapKey = String(contentMapKeys[u] || '').trim();
-        var unlockState = data.unlocks[contentMapKeys[u]];
-        if (contentMapKey && unlockState && unlockState.unlocked === true && !keys[contentMapKey]) {
-          keys[contentMapKey] = true;
-          list.push(contentMapKey);
-        }
-      }
-    }
-    if (data && data.unlockMap && typeof data.unlockMap === 'object') {
-      var mapKeys = Object.keys(data.unlockMap);
-      for (var j = 0; j < mapKeys.length; j += 1) {
-        var key = String(mapKeys[j] || '').trim();
-        if (key && data.unlockMap[mapKeys[j]] === true && !keys[key]) {
-          keys[key] = true;
-          list.push(key);
-        }
-      }
-    }
-  } catch (_) {}
-
-  return list;
-}
-
-function __cdWriteTileLockMapForSync(mapObj) {
-  var safe = Object.create(null);
-  if (mapObj && typeof mapObj === 'object') {
-    var keys = Object.keys(mapObj);
-    for (var i = 0; i < keys.length; i += 1) {
-      if (mapObj[keys[i]] === true) safe[keys[i]] = true;
-    }
-  }
-
-  try {
-    var scopedKey = __cdGetTileLockScopeStorageKey();
-    if (scopedKey) localStorage.setItem(scopedKey, JSON.stringify(safe));
-  } catch (_) {}
-  try {
-    localStorage.removeItem('cd_tile_locks');
-  } catch (_) {}
-}
-
-function __cdDispatchTileLockSyncEvent() {
-  try {
-    window.dispatchEvent(new CustomEvent('cd:tile-locks-updated'));
-    return;
-  } catch (_) {}
-  try {
-    var evt = document.createEvent('Event');
-    evt.initEvent('cd:tile-locks-updated', true, true);
-    window.dispatchEvent(evt);
-  } catch (_) {}
-}
-
-function __cdMergeServerUnlockKeys(unlockKeys) {
-  if (!Array.isArray(unlockKeys) || !unlockKeys.length) return false;
-  var localMap = __cdReadTileLockMapForSync();
-  var changed = false;
-  try {
-    if (!window.unlockedFeatureMap || typeof window.unlockedFeatureMap !== 'object') {
-      window.unlockedFeatureMap = Object.create(null);
-    }
-  } catch (_) {}
-
-  for (var i = 0; i < unlockKeys.length; i += 1) {
-    var raw = String(unlockKeys[i] || '').trim();
-    if (!raw) continue;
-    var aliases = __cdResolveTileLockAliasKeys(raw);
-    for (var a = 0; a < aliases.length; a += 1) {
-      if (localMap[aliases[a]] !== true) {
-        localMap[aliases[a]] = true;
-        changed = true;
-      }
-      try {
-        if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
-          window.unlockedFeatureMap[aliases[a]] = true;
-        }
-      } catch (_) {}
-    }
-  }
-
-  if (!changed) return false;
-  __cdWriteTileLockMapForSync(localMap);
-  return true;
-}
-
-function __cdSyncTileLocksFromServer() {
-  if (!__cdHasAuthToken()) return;
-
-  var currentProfile = window.__cdCurrentDestinyProfile && typeof window.__cdCurrentDestinyProfile === 'object'
-    ? window.__cdCurrentDestinyProfile
-    : {};
-  var profileId = String(currentProfile.profileId || currentProfile.id || '').trim();
-  if (!profileId) {
-    __cdTileLockServerSyncDone = true;
-    return;
-  }
-
-  var accessStore = window.CodeDestinyAccessStore;
-  if (!accessStore || typeof accessStore.getSnapshot !== 'function') return;
-  var snapshot = accessStore.getSnapshot() || {};
-  if (snapshot.profileId && String(snapshot.profileId) !== profileId) return;
-  var keys = Object.keys(snapshot.persistentUnlocks || {});
-  if (!keys.length && snapshot.lastPayload) keys = __cdNormalizeLockPayload(snapshot.lastPayload);
-  if (__cdMergeServerUnlockKeys(keys)) __cdDispatchTileLockSyncEvent();
-  __cdTileLockServerSyncDone = Number(snapshot.checkedAt || 0) > 0;
-}
-
-function __cdScheduleTileLockServerSync() {
-  if (__cdTileLockServerSyncDone) return;
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', __cdSyncTileLocksFromServer, { once: true });
-  } else {
-    __cdSyncTileLocksFromServer();
-  }
-}
-
-// Locked-feature access is loaded only after an explicit lock/feature interaction or auth change.
-
-var __cdTileLockAccessStore = window.CodeDestinyAccessStore;
-if (__cdTileLockAccessStore && typeof __cdTileLockAccessStore.subscribe === 'function' && !window.__cdTileLockSnapshotUnsubscribe) {
-  window.__cdTileLockSnapshotUnsubscribe = __cdTileLockAccessStore.subscribe(function() {
-    __cdTileLockServerSyncDone = false;
-    __cdSyncTileLocksFromServer();
-  });
-}
-
-var __cdInlineRuntimeEvents = window.__cdInlineRuntimeEvents = window.__cdInlineRuntimeEvents || {};
-// ì¸ì¦ ì´ë²¤íŠ¸ëŠ” ì¤‘ì•™ snapshotì„ ë‹¤ì‹œ ì½ê¸°ë§Œ í•œë‹¤. ì‹¤ì œ ë„¤íŠ¸ì›Œí¬ ì¡°íšŒëŠ” ì ê¸ˆ í™”ë©´ì˜ ëª…ì‹œì  ì§„ì…ì´ ì†Œìœ í•œë‹¤.
-function __cdHandleRuntimeAuthChangedForTileLocks(event) {
-  var detail = (event && event.detail && typeof event.detail === 'object') ? event.detail : {};
-  var source = String(detail.source || '').toLowerCase();
-  var ev = String(detail.event || '').toLowerCase();
-  if ((source === 'subscription-sync' || source === 'membership-cache') && ev === 'subscription') return;
-  __cdTileLockServerSyncDone = false;
-  __cdSyncTileLocksFromServer();
-}
-if (typeof __cdInlineRuntimeEvents.authChangedForTileLocks === 'function') {
-  window.removeEventListener('cd:auth-changed', __cdInlineRuntimeEvents.authChangedForTileLocks);
-}
-__cdInlineRuntimeEvents.authChangedForTileLocks = __cdHandleRuntimeAuthChangedForTileLocks;
-window.addEventListener('cd:auth-changed', __cdInlineRuntimeEvents.authChangedForTileLocks);
-
-function __cdEnsureSukuyoAIConsultationReady() {
-  return new Promise(function(resolve) {
-    var attempts = 0;
-    function tick() {
-      if (
-        window.__sukyoAiConsultationPatchActive === true &&
-        (typeof window.gotoSukuyoPremium === 'function' || typeof window.openSukuyoBookModal === 'function')
-      ) {
-        resolve(true);
-        return;
-      }
-      attempts += 1;
-      if (attempts >= 40) {
-        resolve(false);
-        return;
-      }
-      setTimeout(tick, 50);
-    }
-    tick();
-  });
-}
-
-var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-a7f5a2b0f6f5'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-a7f5a2b0f6f5'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-a7f5a2b0f6f5'); },
-  openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-a7f5a2b0f6f5').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-a7f5a2b0f6f5'); }); },
-  openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-a7f5a2b0f6f5'); },
-  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-a7f5a2b0f6f5'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-a7f5a2b0f6f5').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-a7f5a2b0f6f5'); }); },
-  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-a7f5a2b0f6f5'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-a7f5a2b0f6f5'); },
-  openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a7f5a2b0f6f5'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-a7f5a2b0f6f5'); },
-  openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-a7f5a2b0f6f5').then(function() {
-      if (typeof window.openSibylModal === 'function') window.openSibylModal();
-    });
-  },
-  goLoveSecretAi: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  openLoveSecretModal: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  closeLoveSecretModal: function() { return Promise.resolve(); },
-  generateLoveSecret: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  openLoveSecretLatestReport: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  downloadLoveSecretPdf: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  shareLoveSecretKakao: function() { return Promise.resolve(); },
-  openLifeBookModal: function() { window.location.assign('/life-book-ai'); return Promise.resolve(); },
-  closeLifeBookModal: function() { return Promise.resolve(); },
-  generateLifeBook: function() { window.location.assign('/life-book-ai'); return Promise.resolve(); },
-  openAstroBookModal: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
-  closeAstroBookModal: function() { return Promise.resolve(true); },
-  generateAstroBook: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
-  downloadAstroBookPdf: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
-  gotoAstrologyPremium: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
-  gotoZiweiPremium: function() { return __cdGotoZiweiAi(); },
-  openSajuNewYearModal: function() { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
-  closeSajuNewYearModal: function() { return Promise.resolve(true); },
-  generateSajuNewYear: function() { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
-  downloadSajuNewYearPdf: function() { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
-  openVedicBookModal: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  closeVedicBookModal: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  generateVedicBook: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  downloadVedicBookPdf: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  gotoVedicPremium: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  openSukuyoBookModal: function() { return __cdEnsureSukuyoAIConsultationReady(); },
-  closeSukuyoBookModal: function() { return __cdEnsureSukuyoAIConsultationReady(); },
-  generateSukuyoBook: function() { return __cdEnsureSukuyoAIConsultationReady(); },
-  downloadSukuyoBookPdf: function() { return __cdEnsureSukuyoAIConsultationReady(); },
-  gotoSukuyoPremium: function() { return __cdEnsureSukuyoAIConsultationReady(); },
-  openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
-  setTarotMode: function() { return __cdEnsureSajuCoreLoaded(); },
-  selectTarotCategory: function() { return __cdEnsureSajuCoreLoaded(); },
-  startTarotReading: function() { return __cdEnsureSajuCoreLoaded(); },
-  flipTarotSpreadCard: function() { return __cdEnsureSajuCoreLoaded(); },
-  showTarotFinalInterpretation: function() { return __cdEnsureSajuCoreLoaded(); },
-  checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
-  agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
-  calculate: function() { return __cdEnsureSajuCoreLoaded(); },
-  // ì‚¬ì£¼ ì…ë ¥ í¼ì˜ ë„¤ ë²ˆì§¸ ì•¡ì…˜. í˜•ì œë“¤ê³¼ ë‹¬ë¦¬ ì´ ë ˆì§€ìŠ¤íŠ¸ë¦¬ì—ë„, ì•„ë˜ ìŠ¤í… ëª©ë¡ì—ë„ ì—†ì–´
-  // ì½”ì–´ ë¡œë“œ ì „ ì²« íƒ­ì´ ë²„ë ¤ì¡Œë‹¤. ë‘ ê³³ì€ ì¡°íšŒ ê²½ë¡œê°€ ë‹¬ë¼(ì§ì ‘ window[action] í˜¸ì¶œ vs
-  // ë ˆì§€ìŠ¤íŠ¸ë¦¬ ì¡°íšŒ) ì„œë¡œë¥¼ ëŒ€ì²´í•˜ì§€ ëª»í•˜ë¯€ë¡œ í˜•ì œë“¤ê³¼ ë˜‘ê°™ì´ ì–‘ìª½ì— ë‘”ë‹¤.
-  setGender: function() { return __cdEnsureSajuCoreLoaded(); },
-  runCompat: function() { return __cdEnsureSajuCoreLoaded(); },
-  // ì‚¬ì£¼ ê²°ê³¼ ê³µìœ  ë²„íŠ¼ 3ì¢…. shareKakao/shareInstagram/shareSajuResultImage ëŠ”
-  // js/share.js ì•ˆì— ì •ì˜ë˜ëŠ”ë° ê·¸ íŒŒì¼ì´ noncritical-defer-loader(ì²« feature-intent
-  // íƒ­/45ì´ˆ íƒ€ì„ì•„ì›ƒ/ë°±ê·¸ë¼ìš´ë“œ ì „í™˜ ì¤‘ í•˜ë‚˜ê°€ ìˆì–´ì•¼ ë¡œë“œ)ë¡œë§Œ ì‹¤ë ¤ì„œ, ê²°ê³¼ í™”ë©´
-  // ë„ë‹¬ í›„ ì²« ê³µìœ  íƒ­ì´ ì•„ì§ ë¡œë“œ ì „ì´ë©´ ì¡°ìš©íˆ ì•„ë¬´ ë°˜ì‘ ì—†ì´ ì£½ì—ˆë‹¤(setGenderì™€
-  // ê°™ì€ ê³„ì—´ì˜ ë²„ê·¸ â€” ìœ„ ì£¼ì„ ì°¸ê³ ).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-a7f5a2b0f6f5'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-a7f5a2b0f6f5'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-a7f5a2b0f6f5'); }
-};
-window.__cdLazyActionLoaders = __cdLazyActionLoaders;
-var __cdLazyActionState = {};
-
-function __cdGotoZiweiAi() {
-  window.location.assign('/ziwei-ai');
-  return Promise.resolve(true);
-}
-
-window.gotoZiweiPremium = function gotoZiweiPremium() {
-  return __cdGotoZiweiAi();
-};
-
-function __cdEnsureSibylSystemEntry() {
-  try {
-    var section = document.getElementById('sibylSystemSection');
-    var modal = document.getElementById('sibylModal');
-
-    if (section) {
-      section.hidden = false;
-      section.removeAttribute('hidden');
-      if (section.style && section.style.display === 'none') section.style.display = '';
-
-      var existingAction = section.querySelector('[data-action="openSibylModal"]');
-      if (!existingAction && modal) {
-        var fallbackTile = document.createElement('button');
-        fallbackTile.type = 'button';
-        fallbackTile.className = 'sibyl-entry-tile sibyl-entry-tile--fallback';
-        fallbackTile.setAttribute('data-action', 'openSibylModal');
-        fallbackTile.setAttribute('aria-label', 'ì‹œë¹Œë¼ ì‚¬ì£¼ ì‹œìŠ¤í…œ ì—´ê¸°');
-        fallbackTile.innerHTML = '<span>âš¡ SIBYL SYSTEM ë³µì›ë¨ Â· íƒ­í•˜ì—¬ ì—´ê¸°</span>';
-        section.insertBefore(fallbackTile, section.firstChild || null);
-      }
-      return true;
-    }
-
-    if (!modal) return false;
-
-    var fallbackSection = document.createElement('section');
-    fallbackSection.className = 'saju-section-wrap';
-    fallbackSection.id = 'sibylSystemSection';
-    fallbackSection.innerHTML =
-      '<button type="button" class="sibyl-entry-tile sibyl-entry-tile--fallback" data-action="openSibylModal" aria-label="' + _indexRuntimeText("indexRuntime.aria-label.001") + '">'
-      + '<span>âš¡ SIBYL SYSTEM ë³µì›ë¨ Â· íƒ­í•˜ì—¬ ì—´ê¸°</span>'
-      + '</button>';
-
-    if (modal.parentNode) {
-      modal.parentNode.insertBefore(fallbackSection, modal);
-    } else {
-      document.body.appendChild(fallbackSection);
-    }
-    return true;
-  } catch (e) {
-    console.warn('[SibylGuard] ì„¹ì…˜ ë³µì› ì‹¤íŒ¨:', e);
-    return false;
-  }
-}
-
-if (typeof window !== 'undefined') {
-  window.__cdEnsureSibylSystemEntry = __cdEnsureSibylSystemEntry;
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      __cdEnsureSibylSystemEntry();
-    }, { once: true });
-  } else {
-    __cdEnsureSibylSystemEntry();
-  }
-  window.addEventListener('pageshow', function() {
-    __cdEnsureSibylSystemEntry();
-  });
-}
-
-/**
- * INP: í´ë¦­ ì§í›„ ë©”ì¸ ìŠ¤ë ˆë“œì—ì„œ ë™ê¸° ì‹¤í–‰ë˜ë˜ ë¬´ê±°ìš´ í•¸ë“¤ëŸ¬(ì‚¬ì£¼/ê¶í•©/ë¦¬ë”© ë“±)ë¥¼
- * setTimeout(0)ìœ¼ë¡œ í•œ í‹± ë¯¸ë¤„ ë‹¤ìŒ í˜ì¸íŠ¸Â·ì…ë ¥ ì‘ë‹µì„ ë¨¼ì € ì²˜ë¦¬í•˜ê²Œ í•œë‹¤.
- * (uiBindings.js ì˜ __CD_DEFER_INP_ACTIONS ì™€ ë™ì¼ ëª©ë¡ ìœ ì§€)
- */
-var __CD_DEFER_INP_ACTIONS = {
-  checkPrivacyAndCalculate: 1,
-  agreeAndCalculate: 1,
-  calculate: 1,
-  runCompat: 1,
-  startTarotReading: 1,
-  startTarotLoveReading: 1,
-  startTarotHealingReading: 1,
-  startTarotReunionReading: 1,
-  startTarotSelfEsteemReading: 1,
-  startDreamReading: 1,
-  startKemetOracle: 1,
-  startQuantumAnalysis: 1,
-  startAnimalTotemRitual: 1,
-  psychoDreamStartAnalysis: 1,
-  showTarotFinalInterpretation: 1,
-  showTarotLoveFinalReading: 1,
-  showTarotHealingFinalReading: 1,
-  showTarotReunionFinalReading: 1,
-  showTarotSelfEsteemFinalReading: 1,
-  dreamLibrarySearch: 1,
-  dreamLibrarySearchByDream: 1,
-  dreamLibraryLoadMore: 1,
-  revealDreamStage: 1,
-  nextDreamStage: 1
-};
-
-function __cdNormalizeScriptSrc(src) {
-  var raw = String(src || '').trim().replace(/^\.\//, '');
-  if (!raw) return '';
-  if (/^(?:[a-z]+:)?\/\//i.test(raw) || raw.indexOf('data:') === 0 || raw.indexOf('blob:') === 0) return raw;
-  if (raw.charAt(0) === '/') return raw;
-  return '/' + raw;
-}
-
-function __cdLoadScriptOnce(src) {
-  return new Promise(function(resolve, reject) {
-    var norm = __cdNormalizeScriptSrc(src);
-    if (!norm) {
-      reject(new Error('missing src'));
-      return;
-    }
-
-    var all = document.querySelectorAll('script[src]');
-    var fileName = norm.split('?')[0].split('/').pop();
-    var existing = null;
-    for (var i = 0; i < all.length; i += 1) {
-      var cur = all[i].getAttribute('src') || '';
-      var curBase = cur.split('?')[0];
-      if (cur === norm || curBase === norm.split('?')[0] || (fileName && curBase.indexOf('/' + fileName) !== -1)) {
-        existing = all[i];
-        break;
-      }
-    }
-
-    if (existing) {
-      if (existing.dataset.loaded === '1' || existing.readyState === 'complete' || existing.readyState === 'loaded') {
-        resolve();
-        return;
-      }
-      if (existing.dataset.loading !== '1') {
-        resolve();
-        return;
-      }
-      existing.addEventListener('load', function() { resolve(); }, { once: true });
-      existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
-      return;
-    }
-
-    var s = document.createElement('script');
-    s.src = norm;
-    s.defer = true;
-    s.async = true;
-    s.dataset.loading = '1';
-    s.onload = function() {
-      s.dataset.loading = '0';
-      s.dataset.loaded = '1';
-      resolve();
-    };
-    s.onerror = function() { reject(new Error('load failed: ' + src)); };
-    document.head.appendChild(s);
-  });
-}
-
-function __cdOpenZiweiPremiumFromCard(event) {
-  var target = __cdResolveEventElement(event);
-  if (!target || !target.closest) return;
-  var card = target.closest('[data-action="gotoZiweiPremium"][data-ziwei-premium-card]');
-  if (!card) return;
-  if (event && event.cancelable) event.preventDefault();
-  if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-  if (event && typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-  __cdGotoZiweiAi();
-}
-
-function __cdBindZiweiPremiumCardFallback() {
-  if (window.__cdZiweiPremiumCardFallbackBound === 1) return;
-  window.__cdZiweiPremiumCardFallbackBound = 1;
-  document.addEventListener('click', __cdOpenZiweiPremiumFromCard, true);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', __cdBindZiweiPremiumCardFallback, { once: true });
-} else {
-  __cdBindZiweiPremiumCardFallback();
-}
-
-var __cdSajuCoreLoadPromise = null;
-var __cdSwissEphLoadPromise = null;
-var __cdLunarLibLoadPromise = null;
-var __cdDestinyProfileLoadPromise = null;
-
-function __cdHasLunarLibReady() {
-  return (
-    typeof window.Solar !== 'undefined' &&
-    typeof window.Solar.fromYmdHms === 'function' &&
-    typeof window.Lunar !== 'undefined' &&
-    typeof window.Lunar.fromYmd === 'function'
-  );
-}
-
-function __cdWaitForLunarLibReady(timeoutMs) {
-  var ms = (typeof timeoutMs === 'number' && timeoutMs > 0) ? timeoutMs : 12000;
-  return new Promise(function(resolve, reject) {
-    if (__cdHasLunarLibReady()) {
-      resolve(true);
-      return;
-    }
-    var start = Date.now();
-    var timer = setInterval(function() {
-      if (__cdHasLunarLibReady()) {
-        clearInterval(timer);
-        resolve(true);
-        return;
-      }
-      if (Date.now() - start >= ms) {
-        clearInterval(timer);
-        reject(new Error('lunar library timeout'));
-      }
-    }, 100);
-  });
-}
-
-function __cdEnsureLunarLibReady() {
-  if (__cdHasLunarLibReady()) return Promise.resolve(true);
-  if (__cdLunarLibLoadPromise) return __cdLunarLibLoadPromise;
-
-  __cdLunarLibLoadPromise = __cdLoadScriptOnce('/js/services/saju-library-loader.js')
-    .then(function() {
-      if (__cdHasLunarLibReady()) return true;
-
-      var loader = window.SajuLibraryLoader;
-      if (loader && typeof loader.loadNext === 'function') {
-        var isLoading = (typeof loader.isLoading === 'function') ? loader.isLoading() : false;
-        if (!isLoading) {
-          loader.loadNext();
-        }
-        return __cdWaitForLunarLibReady(14000);
-      }
-
-      return __cdLoadScriptOnce('https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.min.js')
-        .then(function() { return __cdWaitForLunarLibReady(7000); });
-    })
-    .then(function() { return true; })
-    .catch(function(err) {
-      __cdLunarLibLoadPromise = null;
-      throw err;
-    });
-
-  return __cdLunarLibLoadPromise;
-}
-
-function __cdEnsureSajuCoreLoaded() {
-  if (window.__cdSajuCoreReady === 1) return Promise.resolve(true);
-  if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
-
-  var sajuAstroRolloutMarker = 'saju-astro-rollout-20260602';
-  window.__cdSajuAstroRolloutMarker = sajuAstroRolloutMarker;
-
-  var chain = [
-    'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',
-    '/js/core/kasi-calendar-service.js?v=build-a7f5a2b0f6f5',
-    '/js/compat-llm-prompts.js?v=build-a7f5a2b0f6f5',
-    '/js/saju-engine.js?v=build-a7f5a2b0f6f5',
-      '/js/core/saju/extremeTResult.js?v=build-a7f5a2b0f6f5',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a7f5a2b0f6f5',
-    '/js/core/saju/modalProfileState.js?v=build-a7f5a2b0f6f5',
-    '/js/core/saju/reportDashboard.js?v=build-a7f5a2b0f6f5',
-    '/js/saju-engine-continuation.js?v=build-a7f5a2b0f6f5',
-    '/js/entertain-engine.js?v=build-a7f5a2b0f6f5',
-    /* ì²´ì¸ì€ ìˆœì°¨ reduceë¼ ì•ì— ë¼ìš°ë©´ ì´ íŒŒì¼ì˜ ì‹¤íŒ¨ê°€ ë’¤ìª½ ì „ì²´ë¥¼ ì£½ì¸ë‹¤ â€” ì‹ ê·œ ì¹´ë“œ ìŠ¤í¬ë¦½íŠ¸ëŠ” ë§¨ ë’¤ì— ë‘”ë‹¤. */
-    '/js/core/saju/dopamineResult.js?v=build-a7f5a2b0f6f5'
-  ];
-
-  __cdSajuCoreLoadPromise = chain.reduce(function(promise, src) {
-    return promise.then(function() { return __cdLoadScriptOnce(src); });
-  }, Promise.resolve()).then(function() {
-    window.__cdSajuCoreReady = 1;
-    return true;
-  }).catch(function(err) {
-    __cdSajuCoreLoadPromise = null;
-    throw err;
-  });
-
-  return __cdSajuCoreLoadPromise;
-}
-
-function __cdEnsureDestinyProfileLoaded() {
-  if (window.DestinyProfileManager) return Promise.resolve(true);
-  if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
-
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-a7f5a2b0f6f5')
-    .then(function() { return true; })
-    .catch(function(err) {
-      __cdDestinyProfileLoadPromise = null;
-      throw err;
-    });
-
-  return __cdDestinyProfileLoadPromise;
-}
-// index.html ì¸ë¼ì¸ ìŠ¤ì½”í”„(ì˜¬ë¦¼í‘¸ìŠ¤ ë“± ìœ ë£Œ ì ê¸ˆ ì§„ì…)ì—ì„œ ì •ë³¸ ê²Œì´íŠ¸ íŒŒì¼ ë¡œë“œë¥¼ ë³´ì¥í•˜ë ¤ë©´ window ë…¸ì¶œ í•„ìš”
-window.__cdEnsureDestinyProfileLoaded = __cdEnsureDestinyProfileLoaded;
-
-function __cdEnsureSwissEphLoaded() {
-  if (window.__cdSwissEphReady === 1 && (window.swisseph || window.Swe || window.swe)) {
-    window.__cdSwissEphReady = 1;
-    return Promise.resolve(true);
-  }
-  if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
-
-  __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-a7f5a2b0f6f5';
-    var norm = __cdNormalizeScriptSrc(src);
-    if (!norm) {
-      reject(new Error('missing swisseph src'));
-      return;
-    }
-
-    function bridgeReady() {
-      return Boolean(
-        (window.swisseph || window.Swe || window.swe) &&
-        window.__swissephBridge &&
-        window.__swissephBridge.ready === true &&
-        window.__swissephSelfTest &&
-        Number.isFinite(Number(window.__swissephSelfTest.sunLongitude)) &&
-        Number.isFinite(Number(window.__swissephSelfTest.ascendant))
-      );
-    }
-
-    function markReady() {
-      window.__cdSwissEphReady = 1;
-      resolve(true);
-    }
-
-    function waitForBridge() {
-      if (bridgeReady()) {
-        markReady();
-        return;
-      }
-
-      var settled = false;
-      var done = function(ok, reason) {
-        if (settled) return;
-        settled = true;
-        window.removeEventListener('swisseph:ready', onReady);
-        window.removeEventListener('swisseph:error', onError);
-        if (ok && bridgeReady()) {
-          markReady();
-        } else {
-          var detail = reason || (window.__swissephBridge && window.__swissephBridge.error) || 'SwissEph bridge did not become ready.';
-          reject(new Error(detail));
-        }
-      };
-
-      var onReady = function() { done(true); };
-      var onError = function(event) {
-        var error = event && event.detail && event.detail.error ? event.detail.error : _indexRuntimeText("indexRuntime.error.001");
-        done(false, error);
-      };
-      window.addEventListener('swisseph:ready', onReady, { once: true });
-      window.addEventListener('swisseph:error', onError, { once: true });
-      setTimeout(function() { done(false, 'SwissEph loader timed out before self-test completed.'); }, 15000);
-    }
-
-    var all = document.querySelectorAll('script[src]');
-    var existing = null;
-    var normBase = norm.split('?')[0];
-    for (var i = 0; i < all.length; i += 1) {
-      var cur = all[i].getAttribute('src') || '';
-      var curBase = cur.split('?')[0];
-      if (curBase === normBase) {
-        existing = all[i];
-        break;
-      }
-    }
-
-    if (existing) {
-      if (existing.dataset.loaded === '1') {
-        waitForBridge();
-        return;
-      }
-      existing.addEventListener('load', waitForBridge, { once: true });
-      existing.addEventListener('error', function() { reject(new Error('swisseph module load failed')); }, { once: true });
-      return;
-    }
-
-    var s = document.createElement('script');
-    s.type = 'module';
-    s.src = norm;
-    s.async = true;
-    s.defer = true;
-    s.dataset.loading = '1';
-    s.onload = function() {
-      s.dataset.loading = '0';
-      s.dataset.loaded = '1';
-      waitForBridge();
-    };
-    s.onerror = function() { reject(new Error('swisseph module load failed')); };
-    document.head.appendChild(s);
-  }).catch(function(err) {
-    __cdSwissEphLoadPromise = null;
-    throw err;
-  });
-
-  return __cdSwissEphLoadPromise;
-}
-
-if (typeof window !== 'undefined') {
-  window.__cdEnsureSwissEphLoaded = __cdEnsureSwissEphLoaded;
-}
-
-function __cdInstallSajuActionStub(actionName) {
-  if (!actionName) return;
-  if (typeof window[actionName] === 'function') return;
-  var stub = function() {
-    var args = arguments;
-    return __cdEnsureSajuCoreLoaded().then(function() {
-      var fn = window[actionName];
-      if (typeof fn === 'function' && fn !== stub) {
-        return fn.apply(window, args);
-      }
-      return undefined;
-    }).catch(function(err) {
-      console.error('[index-inline-runtime] saju core lazy load failed:', actionName, err);
-      return undefined;
-    });
-  };
-  window[actionName] = stub;
-}
-
-function __cdBindSajuIntentPrefetch() {
-  if (window.__cdSajuIntentPrefetchBound) return;
-  window.__cdSajuIntentPrefetchBound = 1;
-
-  var selectors = [
-    '#birthDate',
-    '#birthHour',
-    '#birthMinute',
-    '#birthCountry',
-    '#btnF',
-    '#btnM',
-    '[data-action="checkPrivacyAndCalculate"]',
-    '[data-action="agreeAndCalculate"]',
-    '[data-action="calculate"]',
-    '[data-action="runCompat"]'
-  ].join(',');
-
-  var trigger = function(event) {
-    var target = __cdResolveEventElement(event);
-    if (!target || !target.closest(selectors)) return;
-    __cdEnsureSajuCoreLoaded().catch(function(err) {
-      console.error('[index-inline-runtime] saju prefetch failed:', err);
-    });
-    document.removeEventListener('focusin', trigger, true);
-    document.removeEventListener('pointerdown', trigger, true);
-    document.removeEventListener('touchstart', trigger, true);
-  };
-
-  document.addEventListener('focusin', trigger, true);
-  document.addEventListener('pointerdown', trigger, true);
-  document.addEventListener('touchstart', trigger, true);
-}
-
-function __cdWarmupSajuInputsIfNeeded() {
-  if (window.__cdSajuInputWarmupDone === 1) return;
-  ['birthDate', 'birthHour', 'birthMinute', 'birthCountry', 'btnF', 'btnM'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    try {
-      el.disabled = false;
-      el.removeAttribute('disabled');
-    } catch (e) {}
-  });
-  window.__cdSajuInputWarmupDone = 1;
-}
-
-function __cdNeedsSajuInputBootstrap() {
-  var hourSel = document.getElementById('birthHour');
-  var minuteSel = document.getElementById('birthMinute');
-  var countrySel = document.getElementById('birthCountry');
-  var infoDiv = document.getElementById('timeCorrectionInfo');
-
-  var hourMissing = !!(hourSel && hourSel.options && hourSel.options.length === 0);
-  var minuteMissing = !!(minuteSel && minuteSel.options && minuteSel.options.length === 0);
-  var countryMissing = !!(countrySel && countrySel.options && countrySel.options.length <= 1);
-  var infoBusy = !!(infoDiv && infoDiv.classList && infoDiv.classList.contains('time-correction-info--loading'));
-
-  return hourMissing || minuteMissing || countryMissing || infoBusy;
-}
-
-function __cdRepairSajuInputsFallback() {
-  __cdWarmupSajuInputsIfNeeded();
-
-  var hourSel = document.getElementById('birthHour');
-  var minuteSel = document.getElementById('birthMinute');
-  var countrySel = document.getElementById('birthCountry');
-  var infoDiv = document.getElementById('timeCorrectionInfo');
-
-  if (hourSel && hourSel.options && hourSel.options.length === 0) {
-    var hBuf = '';
-    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + 'ì‹œ</option>';
-    hourSel.innerHTML = hBuf;
-  }
-  if (minuteSel && minuteSel.options && minuteSel.options.length === 0) {
-    var mBuf = '';
-    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + 'ë¶„</option>';
-    minuteSel.innerHTML = mBuf;
-  }
-
-  if (hourSel) {
-    var hVal = String(hourSel.value || '').trim();
-    if (hVal === '' || isNaN(parseInt(hVal, 10))) hourSel.value = '12';
-  }
-  if (minuteSel) {
-    var mVal = String(minuteSel.value || '').trim();
-    if (mVal === '' || isNaN(parseInt(mVal, 10))) minuteSel.value = '0';
-  }
-
-  if (countrySel && countrySel.options && countrySel.options.length <= 1) {
-    var first = countrySel.options[0] || null;
-    if (!first) {
-      first = document.createElement('option');
-      countrySel.appendChild(first);
-    }
-    first.value = first.value || 'Asia/Seoul';
-    first.textContent = 'ëŒ€í•œë¯¼êµ­ Â· ì„œìš¸';
-    first.setAttribute('data-long', first.getAttribute('data-long') || '127.0');
-    first.setAttribute('data-lat', first.getAttribute('data-lat') || '37.6');
-    first.setAttribute('data-tz', first.getAttribute('data-tz') || '9');
-    first.setAttribute('data-base-tz', first.getAttribute('data-base-tz') || first.getAttribute('data-tz') || '9');
-    countrySel.selectedIndex = 0;
-  }
-
-  if (typeof window.updateCorrectedTimePreview === 'function') {
-    try {
-      window.updateCorrectedTimePreview();
-      return;
-    } catch (err) {
-      console.error('[index-inline-runtime] fallback updateCorrectedTimePreview failed:', err);
-    }
-  }
-
-  if (infoDiv) {
-    infoDiv.classList.remove('time-correction-info--loading');
-    infoDiv.setAttribute('aria-busy', 'false');
-    if (!infoDiv.innerHTML || infoDiv.innerHTML.indexOf('ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘') >= 0) {
-      infoDiv.innerHTML = 'ğŸŒ <b>ì‹œê°„ ë³´ì • ë¯¸ë¦¬ë³´ê¸°</b><br><span style="font-size:0.75rem;">ê¸°ì¤€ UTC+9, ê¸°ë³¸ ì¶œìƒì§€(ì„œìš¸)ë¡œ ê³„ì‚°ë©ë‹ˆë‹¤.</span>';
-    }
-  }
-}
-
-function __cdBootstrapSajuInputsOnLoad() {
-  if (window.__cdSajuBootstrapAttempted === 1) return;
-  if (!__cdNeedsSajuInputBootstrap()) return;
-
-  window.__cdSajuBootstrapAttempted = 1;
-  // í™ˆ ì²« ì§„ì…ì—ì„œ ì‹œê°„ ë³´ì • ì•ˆë‚´ì˜ ìŠ¤ì¼ˆë ˆí†¤ë§Œìœ¼ë¡œ ëŒ€í˜• ì‚¬ì£¼ ì—”ì§„ ì²´ì¸ì„ ì¦‰ì‹œ ë‚´ë ¤ë°›ìœ¼ë©´,
-  // ì•„ì§ ìš´ì„¸ ì…ë ¥ì„ ì‹œì‘í•˜ì§€ ì•Šì€ ë°©ë¬¸ìë„ ê³„ì‚°ìš© JS ì•½ 1MBë¥¼ íŒŒì‹±í•˜ê²Œ ëœë‹¤. ì •ì  ê¸°ë³¸ê°’ìœ¼ë¡œ
-  // ì…ë ¥ì„ ì¦‰ì‹œ ì‚¬ìš©í•  ìˆ˜ ìˆê²Œ ë§Œë“  ë’¤, ì‹¤ì œ focus/pointer intentëŠ” __cdBindSajuIntentPrefetchê°€
-  // ê¸°ì¡´ê³¼ ë™ì¼í•˜ê²Œ ì „ì²´ ì—”ì§„ì„ ë³´ì¥í•œë‹¤. ì´ëŠ” ê²°ì œÂ·ê³„ì‚°Â·ê²°ê³¼ íë¦„ì„ ë°”ê¾¸ì§€ ì•ŠëŠ”ë‹¤.
-  __cdRepairSajuInputsFallback();
-}
-
-window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
-__cdInstallSajuActionStub('checkPrivacyAndCalculate');
-__cdInstallSajuActionStub('agreeAndCalculate');
-__cdInstallSajuActionStub('calculate');
-__cdInstallSajuActionStub('runCompat');
-// ì„±ë³„ í† ê¸€ë„ saju-engine.js(ì§€ì—° ë¡œë“œ)ì˜ setGender ê°€ ì²˜ë¦¬í•œë‹¤. ìŠ¤í…ì´ ì—†ìœ¼ë©´ ì½”ì–´ê°€ ì˜¤ê¸° ì „ì˜
-// ì²« íƒ­ì€ window.setGender ê°€ ì—†ì–´ ê·¸ëŒ€ë¡œ ë²„ë ¤ì§€ê³ , 'on' í´ë˜ìŠ¤ê°€ ì•ˆ ì›€ì§ì—¬ ì„ íƒì´ ì‹œê°ì ìœ¼ë¡œë„
-// ë¨¹ì§€ ì•ŠëŠ”ë‹¤(ê·¸ í´ë˜ìŠ¤ê°€ ë‹¤ë¥¸ ì†Œë¹„ìë“¤ì˜ ì„±ë³„ ì›ì²œì´ë‹¤ â€” ì´ íŒŒì¼ 7856í–‰).
-__cdInstallSajuActionStub('setGender');
-__cdInstallSajuActionStub('openAnimalDestinyRoute');
-__cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
-window.openLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-a7f5a2b0f6f5').then(function() {
-    if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
-      return window.LuckSyncDiary.open();
-    }
-    return undefined;
-  });
-};
-window.closeLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-a7f5a2b0f6f5').then(function() {
-    if (window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
-      return window.LuckSyncDiary.close();
-    }
-    return undefined;
-  });
-};
-window.openNevilleMeditationPage = function() {
-  try {
-    window.location.href = '/neville-meditation.html';
-  } catch (err) {
-    console.error('[index-inline-runtime] openNevilleMeditationPage failed:', err);
-  }
-};
-window.openCosmicSoulMeditation = function() {
-  try {
-    window.location.href = '/cosmic-soul-meditation.html';
-  } catch (err) {
-    console.error('[index-inline-runtime] openCosmicSoulMeditation failed:', err);
-  }
-};
-window.openYogaGuru = function() {
-  try {
-    window.location.href = '/yoga-guru.html';
-  } catch (err) {
-    console.error('[index-inline-runtime] openYogaGuru failed:', err);
-  }
-};
-window.openDestinyEggPage = function() {
-  try {
-    window.location.href = '/tadagochi.html';
-  } catch (err) {
-    console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
-  }
-};
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    __cdEnsureDestinyProfileLoaded().catch(function(err) {
-      console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
-    });
-    __cdBindSajuIntentPrefetch();
-    __cdWarmupSajuInputsIfNeeded();
-    __cdBootstrapSajuInputsOnLoad();
-  }, { once: true });
-} else {
-  __cdEnsureDestinyProfileLoaded().catch(function(err) {
-    console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
-  });
-  __cdBindSajuIntentPrefetch();
-  __cdWarmupSajuInputsIfNeeded();
-  __cdBootstrapSajuInputsOnLoad();
-}
-
-function __cdInvokeActionWithConfig(action, actionEl, event, args) {
-  var passSelfMode = actionEl.getAttribute('data-action-pass-self');
-  var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
-  if (passSelfMode === 'append') return __cdCallGlobal.apply(null, [action].concat(args, [actionEl]));
-  if (passSelfMode === '1' || passSelfMode === 'prepend') return __cdCallGlobal.apply(null, [action, actionEl].concat(args));
-  if (passEvent) return __cdCallGlobal(action, event);
-  if (args.length) return __cdCallGlobal.apply(null, [action].concat(args));
-  return __cdCallGlobal(action);
-}
-
-function __cdScheduleAfterActionScroll(actionEl) {
-  if (!actionEl || !actionEl.getAttribute) return;
-  var targetId = actionEl.getAttribute('data-after-action-scroll-target');
-  if (!targetId) return;
-  window.setTimeout(function() {
-    var focusTarget = document.getElementById(targetId);
-    if (!focusTarget || typeof focusTarget.scrollIntoView !== 'function') return;
-    focusTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    var firstInput = focusTarget.querySelector('input, select, textarea, button');
-    if (firstInput && typeof firstInput.focus === 'function') {
-      try { firstInput.focus({ preventScroll: true }); } catch (_) { firstInput.focus(); }
-    }
-  }, 220);
-}
-
-function __cdInvokeAction(action, actionEl, event) {
-  if (!action || !actionEl) return;
-  if (!__cdRequireTileLockGate(actionEl)) return;
-
-  var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
-
-  function runInvoke() {
-    var out = __cdInvokeActionWithConfig(action, actionEl, event, args);
-    __cdScheduleAfterActionScroll(actionEl);
-
-    var loader = __cdLazyActionLoaders[action];
-    var hasFn = typeof window[action] === 'function';
-    if (!loader || hasFn || out !== undefined) return;
-
-    if (!__cdLazyActionState[action]) {
-      __cdLazyActionState[action] = loader().catch(function(err) {
-        __cdLazyActionState[action] = null;
-        console.error('[index-inline-runtime] lazy action load failed:', action, err);
-        throw err;
-      });
-    }
-
-    __cdLazyActionState[action].then(function() {
-      if (typeof window[action] !== 'function') {
-        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
-          window._dpOpenFortuneType('olympus');
-        } else if (action === 'openLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
-          window.LuckSyncDiary.open();
-        } else if (action === 'closeLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
-          window.LuckSyncDiary.close();
-        }
-        return;
-      }
-      try {
-        __cdInvokeActionWithConfig(action, actionEl, event, args);
-      } catch (err) {
-        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
-          window._dpOpenFortuneType('olympus');
-          return;
-        }
-        throw err;
-      }
-    }).catch(function() {});
-  }
-
-  if (__CD_DEFER_INP_ACTIONS[action]) {
-    setTimeout(runInvoke, 0);
-    return;
-  }
-  runInvoke();
-}
-
-function __cdBindActionEventFallback(root, eventName, attrName) {
-  root.addEventListener(eventName, function(event) {
-    var target = __cdResolveEventElement(event);
-    if (!target) return;
-    var actionEl = target.closest('[' + attrName + ']');
-    if (!actionEl) return;
-    var action = actionEl.getAttribute(attrName);
-    if (!action) return;
-    __cdInvokeAction(action, actionEl, event);
-  });
-}
-
-function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
-  if (!collection) return;
-  // ëª¨ë°”ì¼ì—ì„œë„ ë°ìŠ¤í¬í†±ê³¼ ë™ì¼í•˜ê²Œ ì „ ì»¬ë ‰ì…˜ì˜ ì´ë¯¸ì§€ë¥¼ í•˜ì´ë“œë ˆì´ì…˜í•œë‹¤.
-  // ì˜ˆì „ì—ëŠ” ëª©ë¡í˜• 7ê°œ ì»¬ë ‰ì…˜ì„ ì—¬ê¸°ì„œ ê±¸ëŸ¬ë‚´ ì‹¬ë³¼ë§Œ ë‚¨ê²¼ëŠ”ë°, ì»¬ë ‰ì…˜ì€ ì ‘íŒ ìƒíƒœë¡œ ì‹œì‘í•˜ê³ 
-  // í¼ì¹  ë•Œë§Œ(__cdScheduleCollectionHydration) ì´ í•¨ìˆ˜ê°€ ëŒë©° IntersectionObserver ë¡œ
-  // ë·°í¬íŠ¸ ì§„ì…ë¶„ë§Œ ë°›ì•„ì˜¤ë¯€ë¡œ, í•œ ë²ˆì— ë°›ëŠ” ì´ë¯¸ì§€ëŠ” ìµœëŒ€ 12ì¥(íƒ€ë¡œ) ìˆ˜ì¤€ì´ë‹¤.
-  var wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
-  var ioEnabled = typeof IntersectionObserver !== 'undefined';
-  var r2AssetBase = 'https://assets.code-destiny.com/';
-  var localAssetKeys = {
-    'saju-guardian-animal-v20260615.webp': true,
-    // R2 ì— ì˜¬ë¼ê°€ ìˆì§€ ì•Šì•„ ë¦¬ì‚¬ì´ì¦ˆÂ·ì›ë³¸ì´ ëª¨ë‘ 404 ë‹¤. ë¡œì»¬ ê²½ë¡œë¡œ ë°”ë¡œ ê°„ë‹¤.
-    'comprehensive-fortune-prompt.webp': true
-  };
-
-  function splitCollectionImagePath(src) {
-    var raw = String(src || '').trim();
-    var queryIndex = raw.indexOf('?');
-    var hashIndex = raw.indexOf('#');
-    var suffixIndex = -1;
-    if (queryIndex >= 0 && hashIndex >= 0) suffixIndex = Math.min(queryIndex, hashIndex);
-    else suffixIndex = Math.max(queryIndex, hashIndex);
-    if (suffixIndex < 0) return { path: raw, suffix: '' };
-    return { path: raw.slice(0, suffixIndex), suffix: raw.slice(suffixIndex) };
-  }
-
-  function encodeCollectionAssetKey(objectKey) {
-    return String(objectKey || '').replace(/^\/+/, '').split('/').map(function(part) {
-      try {
-        return encodeURIComponent(decodeURIComponent(part));
-      } catch (_) {
-        return encodeURIComponent(part);
-      }
-    }).join('/');
-  }
-
-  function buildR2CollectionAssetUrl(objectKey, suffix) {
-    var decodedKey = String(objectKey || '').replace(/^\/+/, '');
-    try {
-      decodedKey = decodeURIComponent(decodedKey);
-    } catch (_) {}
-    if (localAssetKeys[decodedKey]) return '';
-    var encodedKey = encodeCollectionAssetKey(objectKey);
-    if (!encodedKey) return '';
-    return r2AssetBase + encodedKey + (suffix || '');
-  }
-
-  // R2 ì›ë³¸ì€ 1300~1500px ê°€ë¡œ ë°°ë„ˆë¼ ì¥ë‹¹ 150~200KBë‹¤. ì¹´ë“œì— ê·¸ë¦´ ì‹¤ì œ í¬ê¸°ëŠ” ê·¸ 1/3 ì´í•˜ì´ë¯€ë¡œ
-  // Cloudflare Image Resizing(/cdn-cgi/image/)ìœ¼ë¡œ í•„ìš”í•œ í­ë§Œ ë°›ì•„ì˜¨ë‹¤(ì¥ë‹¹ ì•½ 20~40KB).
-  // í­ì€ 80px ë²„í‚·ìœ¼ë¡œ ë°˜ì˜¬ë¦¼í•´ CDN ìºì‹œ í‚¤ê°€ ì˜ê²Œ ìª¼ê°œì§€ì§€ ì•Šê²Œ í•œë‹¤.
-  // ë¦¬ì‚¬ì´ì¦ˆê°€ ì‹¤íŒ¨í•˜ë©´ bindCollectionImageFallback ì´ ì›ë³¸ R2 ì£¼ì†Œë¡œ ë˜ëŒë¦°ë‹¤.
-  function buildResizedCollectionImageUrl(r2Url, wrap) {
-    var raw = String(r2Url || '');
-    if (raw.indexOf(r2AssetBase) !== 0) return '';
-    if (raw.indexOf('/cdn-cgi/') >= 0) return '';
-    var dpr = 1;
-    var cssWidth = 0;
-    var maxCss = 400;
-    try {
-      dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
-      cssWidth = (wrap && wrap.clientWidth) || 0;
-      // í•˜ì´ë“œë ˆì´ì…˜ì€ 2ì—´ ë ˆì´ì•„ì›ƒì´ í™•ì •ë˜ê¸° ì „ì— ëŒ ìˆ˜ ìˆì–´ clientWidth ê°€ 1ì—´ ê¸°ì¤€(â‰ˆë·°í¬íŠ¸ í­)ìœ¼ë¡œ
-      // ì¡íˆê³¤ í•œë‹¤. ê·¸ëŒ€ë¡œ ì“°ë©´ í•„ìš”ë³´ë‹¤ ë‘ ë°° í° ì´ë¯¸ì§€ë¥¼ ë°›ëŠ”ë‹¤ â€” ë·°í¬íŠ¸ë¡œ ìƒí•œì„ ê±´ë‹¤.
-      var isNarrow = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-      maxCss = isNarrow ? Math.ceil(window.innerWidth / 2) : window.innerWidth;
-    } catch (_) {}
-    if (!cssWidth) cssWidth = maxCss;
-    cssWidth = Math.min(cssWidth, maxCss);
-    var target = Math.ceil((cssWidth * dpr) / 80) * 80;
-    if (target < 240) target = 240;
-    if (target > 960) target = 960;
-    return r2AssetBase + 'cdn-cgi/image/width=' + target + ',quality=72,format=auto/' + raw.slice(r2AssetBase.length);
-  }
-
-  function resolveCollectionImageSrc(src) {
-    var raw = String(src || '').trim();
-    if (!raw) return raw;
-    if (raw.indexOf(r2AssetBase) === 0) return raw;
-    var parts = splitCollectionImagePath(raw);
-    var path = parts.path;
-    if (path.indexOf('/fuctionassets/') === 0) return buildR2CollectionAssetUrl(path.slice('/fuctionassets/'.length), parts.suffix) || raw;
-    if (path.indexOf('fuctionassets/') === 0) return buildR2CollectionAssetUrl(path.slice('fuctionassets/'.length), parts.suffix) || raw;
-    if (path.indexOf('/images/') === 0) return buildR2CollectionAssetUrl(path.slice('/images/'.length), parts.suffix) || raw;
-    if (path.indexOf('images/') === 0) return buildR2CollectionAssetUrl(path.slice('images/'.length), parts.suffix) || raw;
-    try {
-      var url = new URL(raw, window.location.href);
-      if (url.origin === 'https://code-destiny.com' || url.origin === window.location.origin) {
-        if (url.pathname.indexOf('/fuctionassets/') === 0) return buildR2CollectionAssetUrl(url.pathname.slice('/fuctionassets/'.length), url.search + url.hash) || raw;
-        if (url.pathname.indexOf('/images/') === 0) return buildR2CollectionAssetUrl(url.pathname.slice('/images/'.length), url.search + url.hash) || raw;
-      }
-    } catch (_) {}
-    return raw;
-  }
-
-  /* í´ë°±ì€ í•˜ë‚˜ê°€ ì•„ë‹ˆë¼ ìˆœì„œ ìˆëŠ” ëª©ë¡ì´ë‹¤.
-     ì˜ˆì „ì—ëŠ” "ë¦¬ì‚¬ì´ì¦ˆ â†’ R2 ì›ë³¸" í•œ ë‹¨ê³„ë¿ì´ë¼, R2 ì— ì•„ì§ ì˜¬ë¼ê°€ì§€ ì•Šì€ ìì‚°ì€
-     ë‘ ì£¼ì†Œê°€ ëª¨ë‘ 404 ê°€ ë˜ë©´ì„œ ë§ˆí¬ì—…ì— ì›ë˜ ë°•í˜€ ìˆë˜(ê·¸ë¦¬ê³  ì‹¤ì œë¡œëŠ” 200 ì¸)
-     /fuctionassets/â€¦ ê²½ë¡œë¡œ ë˜ëŒì•„ê°ˆ ê¸¸ì´ ì—†ì–´ ì´ë¯¸ì§€ê°€ í†µì§¸ë¡œ ì‚¬ë¼ì¡Œë‹¤. */
-  function bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) {
-    if (!img) return;
-    var list = Object.prototype.toString.call(fallbackSrc) === '[object Array]' ? fallbackSrc : [fallbackSrc];
-    var currentSrc = img.getAttribute('src');
-    var chain = [];
-    for (var i = 0; i < list.length; i += 1) {
-      var candidate = String(list[i] || '').trim();
-      if (!candidate || candidate === currentSrc) continue;
-      if (chain.indexOf(candidate) < 0) chain.push(candidate);
-    }
-    img.__cdImgFallbackChain = chain;
-    // ì´ ì†ì„±ì„ ì½ëŠ” ë‹¤ë¥¸ ì½”ë“œê°€ ìˆì–´ ì²« í›„ë³´ëŠ” ê·¸ëŒ€ë¡œ ë…¸ì¶œí•œë‹¤.
-    if (chain.length) img.setAttribute('data-cd-img-fallback-src', chain[0]);
-    else img.removeAttribute('data-cd-img-fallback-src');
-    if (skeleton) {
-      img.addEventListener('load', function() { skeleton.remove(); }, { once: true });
-    }
-    if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
-    if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
-    img.addEventListener('error', function() {
-      var rest = img.__cdImgFallbackChain || [];
-      var next = rest.shift();
-      if (next) {
-        if (rest.length) img.setAttribute('data-cd-img-fallback-src', rest[0]);
-        else img.removeAttribute('data-cd-img-fallback-src');
-        img.src = next;
-        return;
-      }
-      if (skeleton) skeleton.remove();
-      img.remove();
-      if (placeholder) placeholder.style.display = '';
-    });
-  }
-
-  function hydrateWrap(wrap) {
-    if (!wrap) return;
-    var src = wrap.getAttribute('data-img-src');
-    if (!src) return;
-    var resolvedSrc = resolveCollectionImageSrc(src);
-    var fallbackSrc = resolvedSrc === src ? '' : src;
-    var alt = wrap.getAttribute('data-img-alt') || '';
-    var placeholder = wrap.querySelector('.tarot-tile__img-placeholder');
-
-    var existingImg = wrap.querySelector('img.tarot-tile__img');
-    if (existingImg) {
-      var existingSrc = existingImg.getAttribute('src') || src;
-      var resolvedExistingSrc = resolveCollectionImageSrc(existingSrc);
-      // ë§ˆí¬ì—…ì— ë°•í˜€ ìˆëŠ” ì •ì  <img> ë„ ê°™ì€ ë¦¬ì‚¬ì´ì¦ˆ ê²½ë¡œë¥¼ íƒœìš´ë‹¤ â€” ì´ìª½ì´ ì˜¤íˆë ¤ ì›ë³¸(80~200KB)ì„
-      // ê·¸ëŒ€ë¡œ ë°›ê³  ìˆì—ˆë‹¤.
-      var resizedExisting = buildResizedCollectionImageUrl(resolvedExistingSrc, wrap);
-      // ë¦¬ì‚¬ì´ì¦ˆ â†’ R2 ì›ë³¸ â†’ ë§ˆí¬ì—…ì— ë°•í˜€ ìˆë˜ ì›ë˜ ê²½ë¡œ ìˆœìœ¼ë¡œ ë¬¼ëŸ¬ë‚œë‹¤.
-      var existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
-      var nextSrc = resizedExisting || resolvedExistingSrc;
-      if (nextSrc && nextSrc !== existingSrc) {
-        // ì²´ì¸ì€ "ë°”ì¸ë”© ì‹œì ì˜ src" ì™€ ê°™ì€ í›„ë³´ë¥¼ ì¤‘ë³µìœ¼ë¡œ ë³´ê³  ê±¸ëŸ¬ë‚¸ë‹¤. ë¨¼ì € ë°”ì¸ë”©í•˜ë©´
-        // ë§ˆí¬ì—…ì˜ ì›ë˜ ê²½ë¡œ(/fuctionassets/â€¦)ê°€ ì•„ì§ í˜„ì¬ src ë¼ ì²´ì¸ì—ì„œ ë¹ ì§€ê³ , R2 ì— ì—†ëŠ”
-        // ìì‚°ì€ ë¦¬ì‚¬ì´ì¦ˆÂ·R2 ì›ë³¸ì´ ëª¨ë‘ 404 ê°€ ë˜ë©´ì„œ ë¬¼ëŸ¬ë‚  ê³³ì´ ì—†ì–´ img ê°€ í†µì§¸ë¡œ ì œê±°ëœë‹¤.
-        // src ë¥¼ ë¨¼ì € ë°”ê¾¼ ë’¤ ë°”ì¸ë”©í•´ì•¼ ì›ë˜ ê²½ë¡œê°€ ë§ˆì§€ë§‰ í›„ë³´ë¡œ ë‚¨ëŠ”ë‹¤.
-        existingImg.loading = 'eager';
-        existingImg.src = nextSrc;
-        bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
-      } else if (nextSrc && !(existingImg.complete && existingImg.naturalWidth > 0)) {
-        // ë‹«íŒ(=display:none) ì»¬ë ‰ì…˜ ì•ˆì—ì„œ íŒŒì‹±ëœ loading="lazy" ì´ë¯¸ì§€ëŠ” ë‚˜ì¤‘ì— ì»¬ë ‰ì…˜ì´ ì—´ë ¤ë„
-        // í¬ë¡œë¯¸ì›€ì´ ìš”ì²­ì„ ë‹¤ì‹œ ê±¸ì§€ ì•ŠëŠ”ë‹¤. src ëŠ” ê·¸ëŒ€ë¡œ ë‘” ì±„ ë…¸ë“œë§Œ ìƒˆë¡œ ë¶™ì—¬ í•œ ë²ˆ ê¹¨ìš´ë‹¤.
-        var revived = existingImg.cloneNode(false);
-        revived.loading = 'eager';
-        if (revived.dataset) delete revived.dataset.cdCollectionFallbackBound;
-        bindCollectionImageFallback(revived, existingFallback, placeholder, null);
-        existingImg.parentNode.replaceChild(revived, existingImg);
-      }
-      return;
-    }
-
-    if (placeholder) placeholder.style.display = 'none';
-
-    var skeleton = document.createElement('div');
-    skeleton.className = 'tarot-tile__img-skeleton';
-    wrap.insertBefore(skeleton, wrap.firstChild);
-
-    var isPriorityImage = !!(wrap.closest && wrap.closest('.cd-prompt-feature-spotlight'));
-    var img = document.createElement('img');
-    img.className = 'tarot-tile__img';
-    // ì´ í•¨ìˆ˜ëŠ” IntersectionObserver ê°€ ë·°í¬íŠ¸ ì§„ì…ì„ í™•ì¸í•œ ë’¤ì—ë§Œ ë¶ˆë¦°ë‹¤ â€” ì¦‰ ì§€ì—°ë¡œë”©ì€ ì´ë¯¸
-    // ìš°ë¦¬ ìª½ì—ì„œ ëë‚¬ë‹¤. ì—¬ê¸°ì— loading="lazy" ë¥¼ ë˜ ê±¸ë©´ ë¸Œë¼ìš°ì €ê°€ ìì²´ íŒë‹¨ìœ¼ë¡œ ìš”ì²­ì„
-    // ë¯¸ë¤„ ì´ë¯¸ì§€ê°€ ì˜ì˜ ì•ˆ ëœ¨ëŠ” ê²½ìš°ê°€ ìƒê¸´ë‹¤(ì§€ì—° ì¥ì¹˜ ë‘ ê°œê°€ ì„œë¡œë¥¼ ê¸°ë‹¤ë¦¼).
-    img.loading = 'eager';
-    img.fetchPriority = isPriorityImage ? 'high' : 'low';
-    img.decoding = 'async';
-    img.width = 200;
-    img.height = 150;
-    img.alt = alt;
-    var resizedSrc = buildResizedCollectionImageUrl(resolvedSrc, wrap);
-    // ë¦¬ì‚¬ì´ì¦ˆë³¸ â†’ ì›ë³¸ R2 â†’ ë§ˆí¬ì—…ì˜ ì›ë˜ ê²½ë¡œ â†’ ê·¸ë˜ë„ ì•ˆ ë˜ë©´ ì‹¬ë³¼ í”Œë ˆì´ìŠ¤í™€ë”.
-    bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
-    img.src = resizedSrc || resolvedSrc;
-    wrap.insertBefore(img, wrap.firstChild);
-  }
-
-  if (!ioEnabled || forceHydrateAll) {
-    __cdRunChunked(wraps, function(wrap) {
-      hydrateWrap(wrap);
-    }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
-    return;
-  }
-
-  var grid = collection.querySelector('.feat-collection__grid, .tarot-collection__grid');
-  var observer = collection.__cdCollectionImageObserver;
-  if (!observer) {
-    observer = new IntersectionObserver(function(entries, obs) {
-      for (var i = 0; i < entries.length; i++) {
-        if (!entries[i].isIntersecting) continue;
-        var wrap = entries[i].target;
-        obs.unobserve(wrap);
-        if (wrap && wrap.dataset) {
-          delete wrap.dataset.cdImgObserved;
-        }
-        hydrateWrap(wrap);
-      }
-    }, {
-      root: grid || null,
-      rootMargin: '96px 0px',
-      threshold: 0.01
-    });
-    collection.__cdCollectionImageObserver = observer;
-  }
-
-  __cdRunChunked(wraps, function(wrap) {
-    if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
-    if (wrap.dataset && wrap.dataset.cdImgObserved === '1') return;
-    if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
-    observer.observe(wrap);
-  }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
-}
-
-function __cdScheduleCollectionHydration(collection, forceHydrateAll) {
-  var start = function() { __cdHydrateCollectionImagesChunked(collection, forceHydrateAll); };
-  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(start, { timeout: 350 });
-    return;
-  }
-  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(start);
-    return;
-  }
-  setTimeout(start, 0);
-}
-
-function __cdReleaseCollectionImagesChunked(collection) {
-  if (!collection) return;
-  var observer = collection.__cdCollectionImageObserver;
-  if (observer && typeof observer.disconnect === 'function') {
-    observer.disconnect();
-  }
-  collection.__cdCollectionImageObserver = null;
-
-  var observedWraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src][data-cd-img-observed]');
-  __cdRunChunked(observedWraps, function(wrap) {
-    if (!wrap || !wrap.dataset) return;
-    delete wrap.dataset.cdImgObserved;
-  }, { minBatch: 12, maxBatch: 30, budgetMs: 5 });
-
-  var imgs = collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img');
-  var skeletons = collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton');
-  var placeholders = collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-placeholder');
-
-  __cdRunChunked(imgs, function(img) {
-    img.remove();
-  }, { minBatch: 8, maxBatch: 24, budgetMs: 6 }).then(function() {
-    return __cdRunChunked(skeletons, function(sk) {
-      sk.remove();
-    }, { minBatch: 8, maxBatch: 24, budgetMs: 6 });
-  }).then(function() {
-    return __cdRunChunked(placeholders, function(placeholder) {
-      placeholder.style.display = '';
-    }, { minBatch: 8, maxBatch: 30, budgetMs: 6 });
-  });
-}
-
-function __cdBindCollectionToggleHydration() {
-  if (typeof document === 'undefined') return;
-  if (window.__cdCollectionToggleHydrationBound) return;
-  window.__cdCollectionToggleHydrationBound = true;
-  document.addEventListener('cd:collection-toggle', function(event) {
-    var detail = event && event.detail ? event.detail : {};
-    var targetId = String(detail.targetId || '').trim();
-    if (!targetId) return;
-    var collection = document.getElementById(targetId);
-    if (!collection) return;
-    if (detail.isOpen === true) {
-      __cdScheduleCollectionHydration(collection, true);
-    } else if (detail.isOpen === false) {
-      __cdReleaseCollectionImagesChunked(collection);
-    }
-  });
-}
-
-function __cdSchedulePromptSpotlightHydration() {
-  if (typeof document === 'undefined') return;
-  var start = function() {
-    var spotlights = document.querySelectorAll('.cd-prompt-feature-spotlight');
-    __cdRunChunked(spotlights, function(spotlight) {
-      __cdScheduleCollectionHydration(spotlight, true);
-    }, { minBatch: 1, maxBatch: 3, budgetMs: 4 });
-  };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
-    return;
-  }
-  start();
-}
-
-__cdBindCollectionToggleHydration();
-__cdSchedulePromptSpotlightHydration();
-
-function __cdBindGlobalActionsFallback() {
-  if (window.__codeDestinyGlobalActionsBound) return;
-  window.__codeDestinyGlobalActionsBound = 'fallback';
-
-  var root = document;
-  root.addEventListener('click', function(event) {
-    var target = __cdResolveEventElement(event);
-    if (!target) return;
-    var actionEl = target.closest('[data-action]');
-    if (!actionEl) return;
-
-    var action = actionEl.getAttribute('data-action');
-    if (!action) return;
-
-    if (actionEl.getAttribute('data-action-self-only') === '1' && target !== actionEl) {
-      return;
-    }
-
-    if (actionEl.getAttribute('data-action-stop-propagation') === '1') {
-      event.stopPropagation();
-    }
-
-    if (action === 'changeLanguage') {
-      var lang = actionEl.getAttribute('data-lang');
-      if (lang) {
-        __cdCallGlobal('changeLanguage', lang, actionEl);
-      }
-      return;
-    }
-
-    if (action === 'toggleCollection') {
-      var targetId = actionEl.getAttribute('data-target');
-      var collection = targetId ? document.getElementById(targetId) : null;
-      if (!collection) return;
-
-      var isOpen = collection.getAttribute('data-collection-open') === 'true';
-      var newState = !isOpen;
-
-      collection.setAttribute('data-collection-open', String(newState));
-      actionEl.setAttribute('aria-expanded', String(newState));
-      if (typeof window.cdApplyCollectionToggleHintTexts === 'function') {
-        window.cdApplyCollectionToggleHintTexts(cdGetCurrentLang());
-      }
-
-      document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
-        detail: { targetId: targetId, isOpen: newState }
-      }));
-
-      var currentLabel = actionEl.getAttribute('aria-label') || '';
-      if (currentLabel) {
-        actionEl.setAttribute('aria-label', currentLabel.replace(/ì—´ê¸°|ë‹«ê¸°/, newState ? 'ë‹«ê¸°' : 'ì—´ê¸°'));
-      }
-
-      if (newState) {
-        __cdScheduleCollectionHydration(collection);
-      } else {
-        __cdReleaseCollectionImagesChunked(collection);
-      }
-      return;
-    }
-
-    // ì‹œë¹Œë¼ ì§„ì… íƒ€ì¼ê³¼ íƒ€ë¡œ/ê¸°ëŠ¥ ì»¬ë ‰ì…˜ íƒ€ì¼ì€ SEO/í¬ë¡¤ìš© <a href>ì´ì§€ë§Œ ëª¨ë‹¬Â·í”„ë¦¬ë·°ë¥¼
-    // ì œìë¦¬ì—ì„œ ì—´ì–´ì•¼ í•œë‹¤. ì•µì»¤ ê¸°ë³¸ ì´ë™ì„ ë§‰ì§€ ì•Šìœ¼ë©´ í´ë¦­ ì‹œ ì œìë¦¬ ì˜¤í”ˆê³¼ ì „ì²´ í˜ì´ì§€
-    // ì´ë™ì´ ë™ì‹œì— ë°œìƒí•´ ë¦¬ë”©ì´ ì•ˆ ì—´ë¦¬ëŠ” íšŒê·€ê°€ ìƒê¸´ë‹¤(ì»¤ë°‹ 49118133ì—ì„œ buttonâ†’a ì „í™˜ í›„ ë…¸ì¶œ).
-    // ë‹¨, ì‹¤ì œë¡œ ì—´ì–´ì¤„ ëª¨ë‹¬/ì•¡ì…˜ í•¸ë“¤ëŸ¬ê°€ ì—†ëŠ” ìˆœìˆ˜ ì´ë™í˜• íƒ€ì¼(ë¬´ë£Œ ì‹¬ë¦¬í…ŒìŠ¤íŠ¸ í—ˆë¸Œ ë“±)ê¹Œì§€
-    // preventDefaultë¡œ ë§‰ìœ¼ë©´ í´ë¦­ì´ ì•„ë¬´ ë°˜ì‘ ì—†ì´ ì£½ëŠ”ë‹¤ â€” í•¸ë“¤ëŸ¬ ì¡´ì¬ ì—¬ë¶€ë¥¼ í•¨ê»˜ í™•ì¸í•œë‹¤.
-    var hasRealActionHandler = !!__cdLazyActionLoaders[action] || typeof window[action] === 'function';
-    if (hasRealActionHandler
-      && actionEl.tagName === 'A'
-      && actionEl.getAttribute('href')
-      && event && event.cancelable
-      && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-      && (event.button === undefined || event.button === 0)
-      && (action === 'openSibylModal'
-        || __cdRouteActionAllowList[action]
-        || actionEl.closest('.tarot-collection__grid, .feat-collection__grid'))) {
-      event.preventDefault();
-    }
-
-    __cdInvokeAction(action, actionEl, event);
-  });
-
-  /* ëª¨ë°”ì¼: modal-top-nav ë‹«ê¸° ë²„íŠ¼ touchend í´ë°± (ë¡œë”© ì¤‘ ë°œë™ ë°©ì§€: í•´ë‹¹ overlayê°€ ì‹¤ì œ í‘œì‹œ ì¤‘ì¼ ë•Œë§Œ) */
-  var _cdPageLoadTime = Date.now();
-  root.addEventListener('touchend', function(event) {
-    var target = __cdResolveEventElement(event);
-    if (!target) return;
-    var actionEl = target.closest('[data-action]');
-    if (!actionEl) return;
-    var nav = actionEl.closest('.modal-top-nav');
-    if (!nav) return;
-    var overlay = nav.closest('[id$="ModalOverlay"]');
-    if (!overlay) return;
-    var computed = window.getComputedStyle ? window.getComputedStyle(overlay) : null;
-    if (computed && computed.display === 'none') return;
-    if (Date.now() - _cdPageLoadTime < 600) return;
-    var action = actionEl.getAttribute('data-action');
-    if (!action) return;
-    if (action !== 'closeCurrentPage' && action !== 'closeSukuyoModal' && action !== 'closeZiweiModal' && action !== 'closeAstroModal' && action !== 'closeJuyukModal') return;
-    event.preventDefault();
-    __cdInvokeAction(action, actionEl, event);
-  }, { passive: false });
-
-  root.addEventListener('change', function(event) {
-    var target = event.target;
-    if (!(target instanceof Element)) return;
-    var action = target.getAttribute('data-change-action');
-    if (!action) return;
-    var args = __cdParseActionArgs(target.getAttribute('data-change-args'));
-    __cdCallGlobal.apply(null, [action].concat(args));
-  });
-
-  __cdBindActionEventFallback(root, 'mousedown', 'data-mousedown-action');
-  __cdBindActionEventFallback(root, 'mouseup', 'data-mouseup-action');
-  __cdBindActionEventFallback(root, 'mouseleave', 'data-mouseleave-action');
-  __cdBindActionEventFallback(root, 'touchstart', 'data-touchstart-action');
-  __cdBindActionEventFallback(root, 'touchend', 'data-touchend-action');
-  __cdBindActionEventFallback(root, 'touchcancel', 'data-touchcancel-action');
-}
-
-var __cdRouteActionAllowList = {
-  runCompat: true,
-  openZiweiModal: true,
-  openAstroModal: true,
-  openSibylModal: true,
-  openTarotModal: true,
-  openPhysiognomyApp: true,
-  openTarotLoveModal: true,
-  openTarotHealingModal: true,
-  openTarotSelfEsteemModal: true,
-  openTarotReunionModal: true,
-  openTarotYearFortuneModal: true,
-  openSukuyoModal: true,
-  navigateToVedic: true,
-  openDreamModal: true,
-  openHwatuModal: true,
-  openJuyukModal: true,
-  openIfaOracle: true,
-  openRoyalTeaOracle: true,
-  openRuneOracle: true,
-  openSikojenPovailu: true,
-  checkPrivacyAndCalculate: true,
-  // ëª¨ë°”ì¼ í•˜ë‹¨ ë„¤ë¹„ íƒ­ì´ React í˜ì´ì§€ì—ì„œ ì…¸ë¡œ ë„˜ì–´ì˜¬ ë•Œ ì“°ëŠ” ì•¡ì…˜
-  cdSajuTabEntry: true,
-  cdOpenAllFortunes: true,
-  openAnimalTotemModal: true,
-  openSajuAnimalPage: true,
-  openDestinyFlowerStudio: true,
-  openAstrologyFlowerStudio: true,
-  openJamidusuFlowerStudio: true,
-  openSukuyoFlowerStudio: true,
-  openPsychoDreamModal: true,
-  startMindScanTarot: true,
-  openLoveSimulation: true,
-  openYogaGuru: true
-};
-
-var __cdStaticCanonicalPathActions = {
-  '/saju/sibyl': 'openSibylModal',
-  '/tarot/mingri': 'openTarotModal',
-  '/tarot/love': 'openTarotLoveModal',
-  '/tarot/reunion': 'openTarotReunionModal',
-  '/tarot/self-esteem': 'openTarotSelfEsteemModal',
-  '/tarot/year': 'openTarotYearFortuneModal',
-  '/astrology/cosmic': 'openAstroModal',
-  '/oracle/hwatu': 'openHwatuModal',
-  '/oracle/juyuk': 'openJuyukModal',
-  '/oracle/sukuyo': 'openSukuyoModal'
-};
-
-function __cdNormalizeRoutePath(pathname) {
-  var path = String(pathname || '/').split('?')[0].split('#')[0] || '/';
-  if (path.charAt(0) !== '/') path = '/' + path;
-  path = path.replace(/\/{2,}/g, '/');
-  // ì•±ì€ í™•ì¥ì ì—†ëŠ” ê²½ë¡œë¥¼ ì„œë¹™í•˜ì§€ ëª»í•´ CodeDestinyNavigationPlugin ì´ /index.html ì„ ë¶™ì—¬ ë¡œë“œí•œë‹¤.
-  // ê·¸ ìƒíƒœë¡œëŠ” ì•„ë˜ canonical-path í‘œ ì¡°íšŒê°€ ë¹—ë‚˜ê°€ ëª¨ë‹¬ ìë™ ì˜¤í”ˆì´ ì£½ëŠ”ë‹¤.
-  // ì›¹ pathname ì—ëŠ” /index.html ì´ ë¶™ì§€ ì•Šìœ¼ë¯€ë¡œ ì›¹ì—ëŠ” ì˜í–¥ì´ ì—†ë‹¤.
-  path = path.replace(/\/index\.html$/, '') || '/';
-  return path === '/' ? '/' : path.replace(/\/+$/, '');
-}
-
-function __cdGetRouteActionParam() {
-  try {
-    var params = new URLSearchParams(window.location.search || '');
-    var queryAction = String(params.get('action') || '').trim();
-    if (queryAction) return queryAction;
-  } catch (_) {
-    return '';
-  }
-  return __cdStaticCanonicalPathActions[__cdNormalizeRoutePath(window.location.pathname || '/')] || '';
-}
-
-function __cdFindRouteActionElement(action) {
-  var nodes = document.querySelectorAll('[data-action]');
-  var fallback = null;
-  for (var i = 0; i < nodes.length; i += 1) {
-    var node = nodes[i];
-    if (String(node.getAttribute('data-action') || '').trim() !== action) continue;
-    if (!fallback) fallback = node;
-    if (node.disabled) continue;
-    var rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
-    if (rect && rect.width > 0 && rect.height > 0) return node;
-  }
-  return fallback;
-}
-
-// ë”¥ë§í¬ ì§„ì… ì»¤ë²„(html.cd-deeplink-boot, ì…¸ head ì—ì„œ ì²« í”„ë ˆì„ë¶€í„° ê¹”ë¦°ë‹¤)ë¥¼ ê±·ëŠ”ë‹¤.
-// ëª¨ë‹¬ì´ ì‹¤ì œë¡œ ì—´ë¦° ë’¤ì— ê±·ì–´ì•¼ í™ˆì´ ì ê¹ ë³´ì´ëŠ” ì „í™˜ì´ ì‚¬ë¼ì§„ë‹¤. ì—´ë¦¬ì§€ ì•ŠëŠ” ê²½ìš°ë¥¼ ëŒ€ë¹„í•´ ìƒí•œì„ ë‘”ë‹¤.
-var CD_DEEPLINK_COVER_MAX_MS = 4000;
-
-function __cdReleaseDeepLinkBootCover() {
-  try { document.documentElement.classList.remove('cd-deeplink-boot'); } catch (_) {}
-}
-
-function __cdReleaseDeepLinkCoverWhenModalVisible() {
-  if (!document.documentElement.classList.contains('cd-deeplink-boot')) return;
-  var startedAt = Date.now();
-  var timer = window.setInterval(function() {
-    var opened = false;
-    try {
-      var nodes = document.querySelectorAll('.modal-overlay-shell, .modal, [role="dialog"]');
-      for (var i = 0; i < nodes.length && !opened; i += 1) {
-        var cs = window.getComputedStyle(nodes[i]);
-        if (cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0') {
-          var rect = nodes[i].getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) opened = true;
-        }
-      }
-    } catch (_) { opened = true; }
-    if (opened || (Date.now() - startedAt) > CD_DEEPLINK_COVER_MAX_MS) {
-      window.clearInterval(timer);
-      __cdReleaseDeepLinkBootCover();
-    }
-  }, 80);
-}
-
-function __cdRunRouteActionOnce() {
-  if (window.__cdRouteActionHandled) return;
-  var action = __cdGetRouteActionParam();
-  if (!action || !__cdRouteActionAllowList[action]) {
-    // ìë™ ì˜¤í”ˆ ëŒ€ìƒì´ ì•„ë‹ˆë©´ ì»¤ë²„ë¥¼ ë¶™ì¡ê³  ìˆì„ ì´ìœ ê°€ ì—†ë‹¤.
-    __cdReleaseDeepLinkBootCover();
-    return;
-  }
-  window.__cdRouteActionHandled = action;
-  var actionEl = __cdFindRouteActionElement(action);
-  if (actionEl) {
-    __cdInvokeAction(action, actionEl, null);
-    __cdReleaseDeepLinkCoverWhenModalVisible();
-  } else {
-    __cdReleaseDeepLinkBootCover();
-  }
-}
-
-function __cdBindAnimalTotemTileDirect() {
-  var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
-  var touchStart = null;
-  var lastTouchStart = null;
-  /* ëª¨ë°”ì¼: ìŠ¤í¬ë¡¤ ì‹œ ë¯¸ì„¸ ì›€ì§ì„ í—ˆìš© (10pxë¡œ ì¶•ì†Œí•˜ì—¬ ìŠ¤í¬ë¡¤ ì˜¤ë™ì‘ ë°©ì§€) */
-  var TAP_THRESH = 10;
-
-  function loadScriptOnce(src) {
-    return new Promise(function(resolve, reject) {
-      var norm = (src || '').replace(/^\.\//, '');
-      var existing = document.querySelector('script[src*="' + norm.split('/').pop() + '"]');
-      if (existing && (existing.dataset.loaded === '1' || existing.readyState === 'complete')) {
-        resolve();
-        return;
-      }
-      var s = document.createElement('script');
-      s.src = norm;
-      s.defer = true;
-      s.async = true;
-      s.onload = function() { resolve(); };
-      s.onerror = function() { reject(new Error('load failed: ' + src)); };
-      document.head.appendChild(s);
-    });
-  }
-
-  function openTotemModal() {
-    try {
-      var overlay = document.getElementById('animalTotemOverlay');
-      if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-      // â”€â”€ ìœ ë£Œ ê²Œì´íŠ¸ ì²´í¬ â”€â”€
-      var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
-      var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
-      if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
-        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
-        if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(_coinCost, 'ì• ë‹ˆë©€ í† í…œ ë¦¬ë”©', function() { _doOpenTotem(); });
-          return;
-        }
-        // âš ï¸ ë¯¸ë¡œê·¸ì¸ ìƒíƒœ: _cdCoinGatePerUse ë¯¸ì •ì˜
-        if (!__cdHasAuthToken()) {
-          if (window.confirm(_indexRuntimeText("indexRuntime.confirm.002"))) {
-            window.location.href = '/login?next=%2F';
-          }
-          return;
-        }
-        // ë¡œê·¸ì¸ ìƒíƒœì¸ë° _cdCoinGatePerUseê°€ ì—†ìœ¼ë©´ ì˜¤ë¥˜ë¡œ ê°„ì£¼
-        window.alert('ì„œë¹„ìŠ¤ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. ì ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.');
-        return;
-      }
-      // â”€â”€ ìœ ë£Œ ê²Œì´íŠ¸ í†µê³¼ â”€â”€
-      _doOpenTotem();
-    } catch (err) { console.error('[totem] openTotemModal error:', err); }
-    function _doOpenTotem() {
-      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-      if (typeof window.openAnimalTotemModal === 'function') {
-        raf(function() {
-          try { window.openAnimalTotemModal(); } catch (e) { console.error('[totem] open error:', e); }
-        });
-        return;
-      }
-      raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-a7f5a2b0f6f5')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-a7f5a2b0f6f5'); })
-          .then(function() {
-            try {
-              if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
-            } catch (e) { console.error('[totem] open error:', e); }
-          })
-          .catch(function(err) { console.error('[totem] load failed:', err); });
-      });
-    }
-  }
-
-  function isTotemTile(el) {
-    return el && el.closest && el.closest(sel);
-  }
-  function handleClick(ev) {
-    var target = ev && ev.target;
-    if (!target || !isTotemTile(target)) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    ev.stopImmediatePropagation();
-    openTotemModal();
-  }
-  function handleTouchStart(ev) {
-    var t = ev.touches && ev.touches[0];
-    if (t) lastTouchStart = { x: t.clientX, y: t.clientY };
-    if (!ev.target || !isTotemTile(ev.target)) return;
-    touchStart = t ? { x: t.clientX, y: t.clientY } : null;
-  }
-  function handleTouchCancel() {
-    touchStart = null;
-  }
-  function handleTouchEnd(ev) {
-    if (!ev.changedTouches || !ev.changedTouches[0]) return;
-    var t = ev.changedTouches[0];
-    var x = t.clientX, y = t.clientY;
-    var start = touchStart || lastTouchStart;
-    touchStart = null;
-    if (start) {
-      var dx = Math.abs(x - start.x);
-      var dy = Math.abs(y - start.y);
-      if (dx > TAP_THRESH || dy > TAP_THRESH) return;
-    }
-    /* touchStartë¡œ ì‹œì‘í–ˆê±°ë‚˜, elementFromPointë¡œ í„°ì¹˜ ìœ„ì¹˜ê°€ í† í…œ íƒ€ì¼ì¸ ê²½ìš° (ëª¨ë°”ì¼ event.target ë¶€ì •í™• ëŒ€ë¹„) */
-    var fromStart = start && isTotemTile(ev.target);
-    var elAtPoint = null;
-    if (typeof document.elementFromPoint === 'function') {
-      elAtPoint = document.elementFromPoint(x, y);
-      if ((!elAtPoint || !isTotemTile(elAtPoint)) && lastTouchStart) {
-        elAtPoint = document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-      }
-    }
-    var fromPoint = elAtPoint && isTotemTile(elAtPoint);
-    if (fromStart || fromPoint) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      ev.stopImmediatePropagation();
-      openTotemModal();
-    }
-  }
-  document.addEventListener('click', handleClick, { capture: true });
-  document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-  document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
-  document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
-
-  /* ì§ì ‘ ë°”ì¸ë”©: ìœ„ì„ì´ ì‹¤íŒ¨í•˜ëŠ” í™˜ê²½(ì˜¤ë²„ë ˆì´/ìŠ¤íƒ ì»¨í…ìŠ¤íŠ¸) ëŒ€ë¹„ */
-  function bindDirectToTiles() {
-    var tiles = document.querySelectorAll(sel);
-    tiles.forEach(function(tile) {
-      if (tile._cdTotemDirectBound) return;
-      tile._cdTotemDirectBound = true;
-      var tileTouchStart = null;
-      tile.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        openTotemModal();
-      });
-      tile.addEventListener('touchstart', function(ev) {
-        var t = ev.touches && ev.touches[0];
-        tileTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
-      }, { passive: true });
-      tile.addEventListener('touchend', function(ev) {
-        if (!ev.changedTouches || !ev.changedTouches[0]) return;
-        var t = ev.changedTouches[0];
-        var x = t.clientX, y = t.clientY;
-        var start = tileTouchStart;
-        tileTouchStart = null;
-        if (start) {
-          var dx = Math.abs(x - start.x);
-          var dy = Math.abs(y - start.y);
-          if (dx > TAP_THRESH || dy > TAP_THRESH) return;
-        } else {
-          /* touchstart ë¯¸ìˆ˜ì‹  ì‹œ elementFromPointë¡œ í„°ì¹˜ í•´ì œ ìœ„ì¹˜ í™•ì¸ (ëª¨ë°”ì¼ ëŒ€ì‘) */
-          var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
-          if (!elAt || !tile.contains(elAt)) return;
-        }
-        if (ev.cancelable) ev.preventDefault();
-        openTotemModal();
-      }, { passive: false });
-    });
-  }
-  bindDirectToTiles();
-  /* ë™ì  ì‚½ì… ëŒ€ë¹„: ìŠ¤í”Œë˜ì‹œ ì œê±° í›„ ì¬ë°”ì¸ë”© */
-  var splash = document.getElementById('codeSplash');
-  if (splash && splash.parentNode) {
-    var obs = new MutationObserver(function() {
-      if (!document.getElementById('codeSplash')) {
-        obs.disconnect();
-        bindDirectToTiles();
-      }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-  }
-}
-
-/**
- * ìš´ëª…ì˜ ê½ƒ íƒ€ì¼ â€” ëª¨ë°”ì¼ í„°ì¹˜ ì§ì ‘ ë°”ì¸ë”©
- * click ì´ë²¤íŠ¸ê°€ ìŠ¤í¬ë¡¤/ìŠ¤ì™€ì´í”„ì™€ ì¶©ëŒí•´ ëª¨ë°”ì¼ì—ì„œ ë¯¸ë°œë™í•˜ëŠ” ë¬¸ì œ í•´ê²°
- */
-function __cdBindDestinyFlowerTileDirect() {
-  var sel = '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl, [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"]';
-  var touchStart = null;
-  var lastTouchStart = null;
-  var lastOpenTime = 0;
-  var TAP_THRESH = 10;
-  var DEBOUNCE_MS = 400;
-
-  function isFlowerTile(el) {
-    return el && el.closest && el.closest(sel);
-  }
-
-  function openFlowerStudio(actionEl) {
-    var now = Date.now();
-    if (now - lastOpenTime < DEBOUNCE_MS) return;
-    lastOpenTime = now;
-    var action = actionEl && actionEl.getAttribute('data-action');
-    if (!action) return;
-    __cdInvokeAction(action, actionEl, null);
-  }
-
-  function handleClick(ev) {
-    var target = ev && ev.target;
-    if (!target || !isFlowerTile(target)) return;
-    var actionEl = target.closest(sel);
-    if (!actionEl) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    ev.stopImmediatePropagation();
-    openFlowerStudio(actionEl);
-  }
-
-  function handleTouchStart(ev) {
-    var t = ev.touches && ev.touches[0];
-    if (t) lastTouchStart = { x: t.clientX, y: t.clientY };
-    if (!ev.target || !isFlowerTile(ev.target)) return;
-    touchStart = t ? { x: t.clientX, y: t.clientY } : null;
-  }
-
-  function handleTouchCancel() {
-    touchStart = null;
-  }
-
-  function handleTouchEnd(ev) {
-    if (!ev.changedTouches || !ev.changedTouches[0]) return;
-    var t = ev.changedTouches[0];
-    var x = t.clientX, y = t.clientY;
-    var start = touchStart || lastTouchStart;
-    touchStart = null;
-    if (start) {
-      var dx = Math.abs(x - start.x);
-      var dy = Math.abs(y - start.y);
-      if (dx > TAP_THRESH || dy > TAP_THRESH) return;
-    }
-    /* touchStartë¡œ ì‹œì‘í–ˆê±°ë‚˜, elementFromPointë¡œ í„°ì¹˜ í•´ì œ ìœ„ì¹˜ê°€ ê½ƒ íƒ€ì¼ì¸ ê²½ìš° (ëª¨ë°”ì¼ event.target ë¶€ì •í™• ëŒ€ë¹„) */
-    var fromStart = start && isFlowerTile(ev.target);
-    var elAtPoint = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
-    var fromPoint = elAtPoint && isFlowerTile(elAtPoint);
-    var actionEl = (fromStart && ev.target.closest(sel)) || (fromPoint && elAtPoint.closest(sel));
-    if (actionEl) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      ev.stopImmediatePropagation();
-      openFlowerStudio(actionEl);
-    }
-  }
-
-  document.addEventListener('click', handleClick, { capture: true });
-  document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-  document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
-  document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
-
-  function bindDirectToTiles() {
-    var tiles = document.querySelectorAll(sel);
-    tiles.forEach(function(tile) {
-      if (tile._cdFlowerDirectBound) return;
-      tile._cdFlowerDirectBound = true;
-      var tileTouchStart = null;
-      tile.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        openFlowerStudio(tile);
-      });
-      tile.addEventListener('touchstart', function(ev) {
-        var t = ev.touches && ev.touches[0];
-        tileTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
-      }, { passive: true });
-      tile.addEventListener('touchend', function(ev) {
-        if (!ev.changedTouches || !ev.changedTouches[0]) return;
-        var t = ev.changedTouches[0];
-        var x = t.clientX, y = t.clientY;
-        var start = tileTouchStart;
-        tileTouchStart = null;
-        if (start) {
-          var dx = Math.abs(x - start.x);
-          var dy = Math.abs(y - start.y);
-          if (dx > TAP_THRESH || dy > TAP_THRESH) return;
-        } else {
-          /* touchstart ë¯¸ìˆ˜ì‹  ì‹œ elementFromPointë¡œ í„°ì¹˜ í•´ì œ ìœ„ì¹˜ í™•ì¸ (ëª¨ë°”ì¼ ëŒ€ì‘) */
-          var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
-          if (!elAt || !tile.contains(elAt)) return;
-        }
-        if (ev.cancelable) ev.preventDefault();
-        openFlowerStudio(tile);
-      }, { passive: false });
-    });
-  }
-  bindDirectToTiles();
-
-  var splash = document.getElementById('codeSplash');
-  if (splash && splash.parentNode) {
-    var obs = new MutationObserver(function() {
-      if (!document.getElementById('codeSplash')) {
-        obs.disconnect();
-        bindDirectToTiles();
-      }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-  }
-}
-
-function _cdEnsureMainScreenOnLoad() {
-  var ids = ['juyukModalOverlay','sukuyoModalOverlay','astroModalOverlay','ziweiModalOverlay'];
-  for (var j = 0; j < ids.length; j++) {
-    var active = document.getElementById(ids[j]);
-    if (active && active.style && active.style.display && active.style.display !== 'none') return;
-  }
-  for (var i = 0; i < ids.length; i++) {
-    var el = document.getElementById(ids[i]);
-    if (el) el.style.display = 'none';
-  }
-
-  var scrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-  if (_cdShouldSkipMainScrollReset(scrollY)) return;
-  window.scrollTo(0, 0);
-}
-
-var _cdMainLoadUserMoved = false;
-
-function _cdMarkMainLoadUserMoved() {
-  _cdMainLoadUserMoved = true;
-}
-
-function _cdBindMainLoadScrollGuard() {
-  if (window.__cdMainLoadScrollGuardBound) return;
-  window.__cdMainLoadScrollGuardBound = true;
-
-  function markByScrollY() {
-    var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    if (y > 12) _cdMainLoadUserMoved = true;
-  }
-
-  window.addEventListener('scroll', markByScrollY, { passive: true });
-  window.addEventListener('wheel', _cdMarkMainLoadUserMoved, { passive: true });
-  window.addEventListener('touchmove', _cdMarkMainLoadUserMoved, { passive: true });
-  window.addEventListener('keydown', _cdMarkMainLoadUserMoved, { passive: true });
-}
-
-function _cdIsHistoryRestoreNavigation() {
-  try {
-    if (performance && typeof performance.getEntriesByType === 'function') {
-      var navs = performance.getEntriesByType('navigation');
-      if (navs && navs.length > 0 && navs[0].type === 'back_forward') {
-        return true;
-      }
-    }
-  } catch (_) {}
-  return false;
-}
-
-function _cdShouldSkipMainScrollReset(scrollY) {
-  if (_cdMainLoadUserMoved) return true;
-  if (_cdIsHistoryRestoreNavigation()) return true;
-  if (scrollY > 12) return true;
-  return false;
-}
-
-function _cdInitAfterSplash() {
-  var splash = document.getElementById('codeSplash');
-  if (splash && splash.parentNode) {
-    var obs = new MutationObserver(function(mutations, observer) {
-      if (!document.getElementById('codeSplash')) {
-        observer.disconnect();
-        _cdEnsureMainScreenOnLoad();
-      }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-    setTimeout(function() {
-      obs.disconnect();
-      _cdEnsureMainScreenOnLoad();
-    }, 3500);
-  } else {
-    _cdEnsureMainScreenOnLoad();
-  }
-}
-
-/* ëª¨ë°”ì¼ containment í•´ê²°: transform:translateZ(0) ë¶€ëª¨ ë‚´ fixedê°€ ë·°í¬íŠ¸ ëŒ€ì‹  ë¶€ëª¨ ê¸°ì¤€ìœ¼ë¡œ ë°°ì¹˜ë˜ëŠ” ì´ìŠˆ.
-   ì´ ì˜¤ë²„ë ˆì´ë“¤ì€ body ì§ê³„ê°€ ì•„ë‹ˆë©´ ëª¨ë°”ì¼ì—ì„œ í™”ë©´ì— ì•ˆ ë³´ì„ â†’ bodyë¡œ ì´ë™ */
-function __cdEnsureModalOverlaysInBody() {
-  var ids = ['tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
-    'dreamModalOverlay', 'psychoDreamModalOverlay', 'kemetOracleOverlay', 'tarotModalOverlay'];
-  for (var i = 0; i < ids.length; i++) {
-    var el = document.getElementById(ids[i]);
-    if (el && el.parentNode !== document.body) {
-      try { document.body.appendChild(el); } catch (e) { /* ignore */ }
-    }
-  }
-}
-window.__cdEnsureModalOverlaysInBody = __cdEnsureModalOverlaysInBody;
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    _cdBindMainLoadScrollGuard();
-    __cdEnsureModalOverlaysInBody();
-    _cdInitAfterSplash();
-    __cdBindAnimalTotemTileDirect();
-    __cdBindDestinyFlowerTileDirect();
-    setTimeout(__cdBindGlobalActionsFallback, 0);
-  }, { once: true });
-} else {
-  _cdBindMainLoadScrollGuard();
-  __cdEnsureModalOverlaysInBody();
-  _cdInitAfterSplash();
-  __cdBindAnimalTotemTileDirect();
-  __cdBindDestinyFlowerTileDirect();
-  setTimeout(__cdBindGlobalActionsFallback, 0);
-}
-
-function _dfSafeColor(color, fallback) {
-  if (typeof color !== 'string') return fallback;
-  var trimmed = color.trim();
-  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(trimmed) ? trimmed : fallback;
-}
-
-function _dfHexToRgba(hex, alpha) {
-  var raw = String(hex || '').replace('#', '');
-  if (raw.length === 3) {
-    raw = raw.charAt(0) + raw.charAt(0) + raw.charAt(1) + raw.charAt(1) + raw.charAt(2) + raw.charAt(2);
-  }
-  if (raw.length !== 6) {
-    return 'rgba(244,114,182,' + alpha + ')';
-  }
-  var r = parseInt(raw.slice(0, 2), 16);
-  var g = parseInt(raw.slice(2, 4), 16);
-  var b = parseInt(raw.slice(4, 6), 16);
-  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
-}
-
-function _dfNormalizeHex6(hex, fallback) {
-  var raw = String(hex || '').trim().replace('#', '');
-  if (/^[0-9a-fA-F]{3}$/.test(raw)) {
-    raw = raw.charAt(0) + raw.charAt(0) + raw.charAt(1) + raw.charAt(1) + raw.charAt(2) + raw.charAt(2);
-  }
-  if (!/^[0-9a-fA-F]{6}$/.test(raw)) {
-    return _dfNormalizeHex6(fallback || '#f472b6', '#f472b6');
-  }
-  return '#' + raw.toLowerCase();
-}
-
-function _dfHexToRgbParts(hex) {
-  var safe = _dfNormalizeHex6(hex, '#f472b6').replace('#', '');
-  return {
-    r: parseInt(safe.slice(0, 2), 16),
-    g: parseInt(safe.slice(2, 4), 16),
-    b: parseInt(safe.slice(4, 6), 16)
-  };
-}
-
-function _dfMixHex(aHex, bHex, ratio) {
-  var t = Number(ratio);
-  if (!Number.isFinite(t)) t = 0.5;
-  if (t < 0) t = 0;
-  if (t > 1) t = 1;
-  var a = _dfHexToRgbParts(aHex);
-  var b = _dfHexToRgbParts(bHex);
-  var r = Math.round(a.r * (1 - t) + b.r * t);
-  var g = Math.round(a.g * (1 - t) + b.g * t);
-  var bl = Math.round(a.b * (1 - t) + b.b * t);
-  var toHex = function(v) { return v.toString(16).padStart(2, '0'); };
-  return '#' + toHex(r) + toHex(g) + toHex(bl);
-}
-
-function _dfHashText(input) {
-  var text = String(input || 'destiny-flower');
-  var hash = 2166136261;
-  for (var i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
-    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-  }
-  return (hash >>> 0);
-}
-
-function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label) {
-  var primary = _dfNormalizeHex6(primaryHex, '#f472b6');
-  var secondary = _dfNormalizeHex6(secondaryHex, '#22d3ee');
-  var accent = _dfMixHex(primary, secondary, 0.5);
-  var deep = _dfMixHex(primary, '#0f172a', 0.24);
-  var pale = _dfMixHex(secondary, '#ffffff', 0.42);
-  var centerX = 160;
-  var centerY = 130;
-  var petalCount = 10;
-  var petalRy = 66;
-  var petalRx = 20;
-  var baseSpin = seed % 360;
-
-  if (source === 'astrology') {
-    petalCount = 12;
-    petalRy = 72;
-    petalRx = 16;
-  } else if (source === 'jamidusu') {
-    petalCount = 14;
-    petalRy = 62;
-    petalRx = 15;
-  } else if (source === 'sukuyo') {
-    petalCount = 9;
-    petalRy = 64;
-    petalRx = 21;
-  }
-
-  var petals = '';
-  for (var i = 0; i < petalCount; i++) {
-    var angle = (360 / petalCount) * i + baseSpin;
-    var localTone = (i % 2 === 0) ? primary : secondary;
-    var localGlow = (i % 2 === 0) ? accent : pale;
-    petals += '<ellipse cx="' + centerX + '" cy="' + centerY + '" rx="' + petalRx + '" ry="' + petalRy + '" '
-      + 'fill="url(#petalGrad' + i + ')" transform="rotate(' + angle.toFixed(2) + ' ' + centerX + ' ' + centerY + ')" />'
-      + '<defs><linearGradient id="petalGrad' + i + '" x1="0" y1="0" x2="0" y2="1">'
-      + '<stop offset="0%" stop-color="' + localGlow + '" stop-opacity="0.95" />'
-      + '<stop offset="100%" stop-color="' + localTone + '" stop-opacity="0.86" />'
-      + '</linearGradient></defs>';
-  }
-
-  var extra = '';
-  if (source === 'astrology') {
-    for (var s = 0; s < 18; s++) {
-      var sx = 18 + ((seed + s * 37) % 286);
-      var sy = 12 + ((Math.floor(seed / (s + 3)) + s * 19) % 96);
-      var sr = 1 + ((seed + s * 13) % 3);
-      extra += '<circle cx="' + sx + '" cy="' + sy + '" r="' + sr + '" fill="' + pale + '" fill-opacity="0.72" />';
-    }
-  } else if (source === 'jamidusu') {
-    extra += '<circle cx="' + centerX + '" cy="' + centerY + '" r="96" fill="none" stroke="' + _dfMixHex(accent, '#ffffff', 0.35) + '" stroke-opacity="0.45" stroke-width="1.8" />';
-    extra += '<path d="M72 52 L98 34 L126 52 L160 30 L194 52 L222 34 L248 52" fill="none" stroke="' + pale + '" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round" />';
-  } else if (source === 'sukuyo') {
-    extra += '<circle cx="242" cy="58" r="30" fill="' + pale + '" fill-opacity="0.56" />';
-    extra += '<circle cx="254" cy="58" r="26" fill="' + _dfMixHex(deep, '#020617', 0.7) + '" fill-opacity="0.92" />';
-    extra += '<circle cx="160" cy="130" r="104" fill="none" stroke="' + _dfMixHex(secondary, '#e2e8f0', 0.4) + '" stroke-opacity="0.36" stroke-width="1.4" />';
-  }
-
-  var symbol = source === 'astrology' ? 'ASTRO' : (source === 'jamidusu' ? 'ZIWEI' : (source === 'sukuyo' ? 'SUKUYO' : 'SAJU'));
-  var safeLabel = String(label || '').replace(/[<>&"']/g, '');
-
-  return ''
-    + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="' + safeLabel + '">'
-    + '<defs>'
-    + '<radialGradient id="bg" cx="50%" cy="40%" r="70%">'
-    + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#ffffff', 0.44) + '" stop-opacity="0.94" />'
-    + '<stop offset="52%" stop-color="' + _dfMixHex(secondary, '#0ea5e9', 0.36) + '" stop-opacity="0.66" />'
-    + '<stop offset="100%" stop-color="' + _dfMixHex(deep, '#020617', 0.6) + '" stop-opacity="0.84" />'
-    + '</radialGradient>'
-    + '<linearGradient id="coreGrad" x1="0" y1="0" x2="1" y2="1">'
-    + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#ffffff', 0.4) + '" />'
-    + '<stop offset="100%" stop-color="' + _dfMixHex(secondary, '#fde047', 0.24) + '" />'
-    + '</linearGradient>'
-    + '</defs>'
-    + '<rect width="320" height="240" rx="20" fill="url(#bg)" />'
-    + '<g opacity="0.96">' + petals + '</g>'
-    + '<circle cx="' + centerX + '" cy="' + centerY + '" r="34" fill="url(#coreGrad)" />'
-    + '<circle cx="' + centerX + '" cy="' + centerY + '" r="14" fill="' + _dfMixHex(accent, '#ffffff', 0.5) + '" fill-opacity="0.9" />'
-    + extra
-    + '<text x="16" y="222" fill="' + _dfMixHex(pale, '#ffffff', 0.3) + '" fill-opacity="0.82" font-size="14" font-family="Noto Sans KR, sans-serif" letter-spacing="2">' + symbol + '</text>'
-    + '</svg>';
-}
-
-function _dfBuildFlowerDataUri(selection, sourceOverride) {
-  var source = sourceOverride || (selection && selection.source) || 'saju';
-  var flower = (selection && selection.flower) || {};
-  var primary = (selection && selection.primary) || (flower && flower.primary_color) || '#f472b6';
-  var secondary = (selection && selection.secondary) || (flower && flower.secondary_color) || '#22d3ee';
-  var key = [
-    source,
-    flower.id || flower.name || '',
-    flower.scientific_name || '',
-    Array.isArray(selection && selection.keywords) ? selection.keywords.join('|') : '',
-    (selection && selection.matched && selection.matched.narrative) || ''
-  ].join('|');
-  var seed = _dfHashText(key);
-  var svg = _dfBuildFlowerSvgMarkup(source, primary, secondary, seed, flower.name || 'destiny flower');
-  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-}
-
-function _dfApplyGeneratedFlowerImage(imageEl, selection, sourceOverride) {
-  if (!imageEl || !selection) return;
-  try {
-    imageEl.src = _dfBuildFlowerDataUri(selection, sourceOverride);
-    if (typeof imageEl.removeAttribute === 'function') {
-      imageEl.removeAttribute('srcset');
-      imageEl.removeAttribute('data-lazy-src');
-      imageEl.removeAttribute('data-lazy-srcset');
-      imageEl.removeAttribute('loading');
-    }
-    if (imageEl.classList && imageEl.classList.contains('io-lazy-img')) {
-      imageEl.classList.remove('io-lazy-img');
-    }
-    imageEl.setAttribute('data-df-generated', '1');
-  } catch (e) {
-    console.warn('[DestinyFlower] ë™ì  SVG ìƒì„± ì‹¤íŒ¨:', e);
-  }
-}
-
-function _dfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = 'ğŸŒ¸ ìš´ëª…ì˜ ê½ƒ ë‹¤ì‹œ í”¼ìš°ê¸°';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = 'âœ¦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _dfRenderPetals(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 14; i++) {
-    var petal = document.createElement('span');
-    petal.className = 'destiny-flower-petal';
-    petal.style.setProperty('--x', (4 + Math.random() * 88).toFixed(2) + '%');
-    petal.style.setProperty('--y', (8 + Math.random() * 72).toFixed(2) + '%');
-    petal.style.setProperty('--rot', (Math.random() * 46 - 23).toFixed(1) + 'deg');
-    petal.style.setProperty('--dur', (2.8 + Math.random() * 1.8).toFixed(2) + 's');
-    petal.style.setProperty('--delay', (Math.random() * 1.6).toFixed(2) + 's');
-    petal.style.setProperty('--petal-start', _dfHexToRgba(secondary, 0.92));
-    petal.style.setProperty('--petal-end', _dfHexToRgba(primary, 0.72));
-    container.appendChild(petal);
-  }
-}
-
-var _DF_ASTRO_SIGNS_EN = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-
-function _dfPickNumber(candidates, fallback, requirePositive) {
-  for (var i = 0; i < candidates.length; i++) {
-    var n = Number(candidates[i]);
-    if (!Number.isFinite(n)) continue;
-    if (requirePositive && n <= 0) continue;
-    return n;
-  }
-  return fallback;
-}
-
-function _dfHasBirthCore(birth) {
-  return !!(birth && Number(birth.year) > 0 && Number(birth.month) > 0 && Number(birth.day) > 0);
-}
-
-function _dfNormalizeAstroSign(raw) {
-  var text = String(raw || '').trim();
-  if (!text) return '';
-
-  var englishMatch = text.match(/Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces/i);
-  if (englishMatch && englishMatch[0]) {
-    var found = englishMatch[0].toLowerCase();
-    return found.charAt(0).toUpperCase() + found.slice(1);
-  }
-
-  var map = {
-    'ì–‘ìë¦¬': 'Aries',
-    'í™©ì†Œìë¦¬': 'Taurus',
-    'ìŒë‘¥ì´ìë¦¬': 'Gemini',
-    'ê²Œìë¦¬': 'Cancer',
-    'ì‚¬ììë¦¬': 'Leo',
-    'ì²˜ë…€ìë¦¬': 'Virgo',
-    'ì²œì¹­ìë¦¬': 'Libra',
-    'ì „ê°ˆìë¦¬': 'Scorpio',
-    'ì‚¬ìˆ˜ìë¦¬': 'Sagittarius',
-    'ì—¼ì†Œìë¦¬': 'Capricorn',
-    'ë¬¼ë³‘ìë¦¬': 'Aquarius',
-    'ë¬¼ê³ ê¸°ìë¦¬': 'Pisces'
-  };
-  var keys = Object.keys(map);
-  for (var i = 0; i < keys.length; i++) {
-    if (text.indexOf(keys[i]) !== -1) return map[keys[i]];
-  }
-
-  return '';
-}
-
-function _dfAstroSignFromNode(nodeLike) {
-  if (!nodeLike) return '';
-  var idx = Number(nodeLike.idx);
-  if (Number.isFinite(idx) && idx >= 0 && idx < _DF_ASTRO_SIGNS_EN.length) {
-    return _DF_ASTRO_SIGNS_EN[idx];
-  }
-  return _dfNormalizeAstroSign(nodeLike._baseSign || nodeLike.sign || '');
-}
-
-function _dfResolveBirthContext(payload) {
-  var pBirth = (payload && payload.birth) || {};
-  var iBirth = (payload && payload.identity && payload.identity.birth) || {};
-  var location = (payload && payload.location) || {};
-  var astroBirth = window._astroBirth || {};
-  var ziweiBirth = window._ziweiBirth || {};
-
-  var hasProfileCore = _dfHasBirthCore(pBirth) || _dfHasBirthCore(iBirth);
-  var yearCandidates = hasProfileCore
-    ? [pBirth.year, iBirth.year]
-    : [pBirth.year, iBirth.year, astroBirth.year, ziweiBirth.year];
-  var monthCandidates = hasProfileCore
-    ? [pBirth.month, iBirth.month]
-    : [pBirth.month, iBirth.month, astroBirth.month, ziweiBirth.month];
-  var dayCandidates = hasProfileCore
-    ? [pBirth.day, iBirth.day]
-    : [pBirth.day, iBirth.day, astroBirth.day, ziweiBirth.day];
-  var hourCandidates = hasProfileCore
-    ? [pBirth.hour, iBirth.hour]
-    : [pBirth.hour, iBirth.hour, astroBirth.hour, ziweiBirth.hour];
-  var minuteCandidates = hasProfileCore
-    ? [pBirth.minute, iBirth.minute]
-    : [pBirth.minute, iBirth.minute, astroBirth.minute, ziweiBirth.minute];
-
-  var year = _dfPickNumber(yearCandidates, 0, true);
-  var month = _dfPickNumber(monthCandidates, 0, true);
-  var day = _dfPickNumber(dayCandidates, 0, true);
-  var hour = _dfPickNumber(hourCandidates, 12, false);
-  var minute = _dfPickNumber(minuteCandidates, 0, false);
-  var lat = _dfPickNumber([pBirth.lat, pBirth.latitude, iBirth.lat, iBirth.latitude, location.lat], 37.6, false);
-  var lon = _dfPickNumber([pBirth.lon, pBirth.lng, iBirth.lon, iBirth.lng, location.lng, location.lon], 127, false);
-  var tz = _dfPickNumber([pBirth.tz, pBirth.tzOffset, iBirth.tz, iBirth.tzOffset, location.tzOffset, location.baseTzOffset], 9, false);
-
-  // ìë¯¸ë‘ìˆ˜Â·ì ì„±ìˆ  ë“±ì€ ì–‘ë ¥ ê¸°ì¤€. ìŒë ¥ ì…ë ¥ ì‹œ ì–‘ë ¥ìœ¼ë¡œ ë³€í™˜í•˜ì—¬ ëª…ê¶ ë“±ì´ ì •í™•íˆ ê³„ì‚°ë˜ë„ë¡ í•¨.
-  var calType = pBirth.calType || iBirth.calType || 'solar';
-  if ((calType === 'lunar' || calType === 'lunar_leap') && year && month && day &&
-      window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
-    try {
-      var conv = window.KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
-      if (conv && conv.year && conv.month && conv.day) {
-        year = Number(conv.year);
-        month = Number(conv.month);
-        day = Number(conv.day);
-      }
-    } catch (e) {
-      console.warn('[DestinyFlower] ìŒë ¥â†’ì–‘ë ¥ ë³€í™˜ ì‹¤íŒ¨, ì›ë³¸ ì‚¬ìš©:', e);
-    }
-  }
-
-  return {
-    year: year,
-    month: month,
-    day: day,
-    hour: hour,
-    minute: minute,
-    lat: lat,
-    lon: lon,
-    tz: tz
-  };
-}
-
-function _dfExtractAstroLiveData(birthCtx) {
-  if (!_dfHasBirthCore(birthCtx)) return null;
-
-  var chart = null;
-  var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
-
-  if (typeof window.calcAstroApiChartOrThrow === 'function') {
-    try {
-      chart = window.calcAstroApiChartOrThrow(
-        Number(birthCtx.year),
-        Number(birthCtx.month),
-        Number(birthCtx.day),
-        localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        window.ASTRO_HOUSE_SYSTEM || 'P'
-      );
-    } catch (e) {
-      // Strict SwissEph ëª¨ë“œ ë¯¸ì¤€ë¹„ ì‹œì—ëŠ” ì¡°ìš©íˆ ë ˆê±°ì‹œ ì°¨íŠ¸ë¡œ í´ë°± ì‹œë„.
-      if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
-        console.warn('[DestinyFlower] ì ì„±ìˆ  ë¸Œë¦¬ì§€ ê³„ì‚° ì‹¤íŒ¨:', e);
-      }
-    }
-  }
-
-  if (!chart && window.AstroEngine && typeof window.AstroEngine.calcAll === 'function') {
-    try {
-      chart = window.AstroEngine.calcAll(
-        Number(birthCtx.year),
-        Number(birthCtx.month),
-        Number(birthCtx.day),
-        localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
-      );
-    } catch (e2) {
-      console.warn('[DestinyFlower] ì ì„±ìˆ  ë¸Œë¦¬ì§€ ê³„ì‚° ì‹¤íŒ¨:', e2);
-      return null;
-    }
-  }
-
-  if (!chart) return null;
-  return {
-    sunSign: _dfAstroSignFromNode(chart && chart.sun),
-    moonSign: _dfAstroSignFromNode(chart && chart.moon),
-    risingSign: _dfAstroSignFromNode(chart && chart.asc)
-  };
-}
-
-function _dfExtractZiweiLiveRaw(birthCtx) {
-  // ìƒë…„ì›”ì¼ì´ ìˆìœ¼ë©´ í•­ìƒ í•´ë‹¹ ë°ì´í„°ë¡œ ì¬ê³„ì‚°. _currentZiweiDataëŠ” ì´ì „ ì‚¬ìš©ì/ëª¨ë‹¬ ì¡°íšŒ ìºì‹œì´ë¯€ë¡œ
-  // ìš´ëª…ì˜ ê½ƒ ì•„í‹€ë¦¬ì—ì—ì„œëŠ” ì‚¬ìš©í•˜ì§€ ì•ŠìŒ(ì˜ëª»ëœ ëª…ê¶ ê²°ê³¼ ë°©ì§€).
-  if (!_dfHasBirthCore(birthCtx) || typeof window.calcZiweiPalaces !== 'function') return null;
-  try {
-    return window.calcZiweiPalaces(
-      Number(birthCtx.year),
-      Number(birthCtx.month),
-      Number(birthCtx.day),
-      Number(birthCtx.hour),
-      Number(birthCtx.minute)
-    );
-  } catch (e) {
-    console.warn('[DestinyFlower] ìë¯¸ë‘ìˆ˜ ë¸Œë¦¬ì§€ ê³„ì‚° ì‹¤íŒ¨:', e);
-  }
-  return null;
-}
-
-function _dfDeriveZiweiDomain(ziweiRaw) {
-  if (!ziweiRaw || typeof ziweiRaw !== 'object') return null;
-
-  var palaceIdx = -1;
-  if (Array.isArray(ziweiRaw.palacesByIndex)) {
-    palaceIdx = ziweiRaw.palacesByIndex.indexOf('ëª…ê¶');
-  }
-  if (palaceIdx < 0) palaceIdx = 0;
-
-  var palace = (Array.isArray(ziweiRaw.palacesByIndex) && ziweiRaw.palacesByIndex[palaceIdx]) || 'ëª…ê¶';
-  var starRows = (ziweiRaw.palaceStarData && ziweiRaw.palaceStarData[palaceIdx] && ziweiRaw.palaceStarData[palaceIdx].stars) || [];
-  var starNames = starRows.map(function(row) {
-    return row && row.name ? String(row.name) : '';
-  }).filter(Boolean);
-
-  if (!starNames.length && ziweiRaw.stars && ziweiRaw.stars[palaceIdx] && Array.isArray(ziweiRaw.stars[palaceIdx].main)) {
-    starNames = ziweiRaw.stars[palaceIdx].main.map(function(name) {
-      return String(name || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    }).filter(Boolean);
-  }
-
-  var brightness = '';
-  if (starRows[0] && starRows[0].strength) brightness = String(starRows[0].strength);
-
-  return {
-    mainStar: starNames.join(' Â· '),
-    palace: palace,
-    brightness: brightness,
-    stars: starNames
-  };
-}
-
-function _dfExtractSukuyoLiveData(birthCtx) {
-  if (!_dfHasBirthCore(birthCtx) || typeof window.calcSukuyoData !== 'function') return null;
-
-  var lunarObj = null;
-  try {
-    if (window.KasiEngine && typeof window.KasiEngine.solarToLunar === 'function') {
-      lunarObj = window.KasiEngine.solarToLunar(new Date(
-        Number(birthCtx.year),
-        Number(birthCtx.month) - 1,
-        Number(birthCtx.day),
-        Number(birthCtx.hour),
-        Number(birthCtx.minute),
-        0,
-        0
-      ));
-    }
-  } catch (e) {
-    console.warn('[DestinyFlower] ìˆ™ìš” ë‹¬ë ¥ ë³€í™˜ ì‹¤íŒ¨:', e);
-  }
-
-  if (!lunarObj) return null;
-
-  try {
-    var sData = window.calcSukuyoData(lunarObj);
-    if (!sData) return null;
-
-    var phase = '';
-    if (typeof window.getDailyKarmicGuidance === 'function') {
-      var daily = window.getDailyKarmicGuidance(lunarObj, sData.mansion);
-      phase = (daily && daily.moon && daily.moon.label) ? String(daily.moon.label) : '';
-    }
-
-    return {
-      mansion: sData.mansion || '',
-      mansionIndex: Number(sData.mansionIdx) + 1,
-      phase: phase
-    };
-  } catch (e2) {
-    console.warn('[DestinyFlower] ìˆ™ìš” ë¸Œë¦¬ì§€ ê³„ì‚° ì‹¤íŒ¨:', e2);
-  }
-
-  return null;
-}
-
-function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
-  if (!payload || typeof payload !== 'object') return payload;
-  var opts = options && typeof options === 'object' ? options : {};
-  var rawHint = String(opts.sourceHint || '').trim();
-  var sourceHint = rawHint ? _dfNormalizeSource(rawHint) : '';
-  var applyAstro = !sourceHint || sourceHint === 'astrology';
-  var applyZiwei = !sourceHint || sourceHint === 'jamidusu';
-  var applySukuyo = !sourceHint || sourceHint === 'sukuyo';
-
-  var astro = applyAstro ? _dfExtractAstroLiveData(birthCtx) : null;
-  if (astro && (astro.sunSign || astro.moonSign || astro.risingSign)) {
-    payload.astrology = Object.assign({}, payload.astrology || {}, {
-      sunSign: astro.sunSign,
-      sun_sign: astro.sunSign,
-      moonSign: astro.moonSign,
-      moon_sign: astro.moonSign,
-      risingSign: astro.risingSign,
-      rising_sign: astro.risingSign
-    });
-    if (payload.domains && payload.domains.astrology) {
-      payload.domains.astrology = Object.assign({}, payload.domains.astrology, {
-        enabled: true,
-        sun_sign: astro.sunSign || payload.domains.astrology.sun_sign || '',
-        moon_sign: astro.moonSign || payload.domains.astrology.moon_sign || '',
-        rising_sign: astro.risingSign || payload.domains.astrology.rising_sign || ''
-      });
-    }
-  }
-
-  var ziweiRaw = applyZiwei ? _dfExtractZiweiLiveRaw(birthCtx) : null;
-  var ziwei = _dfDeriveZiweiDomain(ziweiRaw);
-  if (ziwei && (ziwei.mainStar || ziwei.palace)) {
-    payload.ziwei = Object.assign({}, payload.ziwei || {}, {
-      mainStar: ziwei.mainStar,
-      main_star: ziwei.mainStar,
-      palace: ziwei.palace,
-      brightness: ziwei.brightness,
-      stars: ziwei.stars
-    });
-    if (payload.domains && payload.domains.ziwei) {
-      payload.domains.ziwei = Object.assign({}, payload.domains.ziwei, {
-        enabled: true,
-        main_star: ziwei.mainStar || payload.domains.ziwei.main_star || '',
-        palace: ziwei.palace || payload.domains.ziwei.palace || '',
-        brightness: ziwei.brightness || payload.domains.ziwei.brightness || '',
-        stars: Array.isArray(ziwei.stars) ? ziwei.stars : (payload.domains.ziwei.stars || [])
-      });
-    }
-  }
-
-  var sukuyo = applySukuyo ? _dfExtractSukuyoLiveData(birthCtx) : null;
-  if (sukuyo && (sukuyo.mansion || Number.isFinite(Number(sukuyo.mansionIndex)))) {
-    payload.sukuyo = Object.assign({}, payload.sukuyo || {}, {
-      mansion: sukuyo.mansion,
-      name: sukuyo.mansion,
-      mansionIndex: sukuyo.mansionIndex,
-      index: sukuyo.mansionIndex,
-      phase: sukuyo.phase
-    });
-    if (payload.domains && payload.domains.sukuyo) {
-      payload.domains.sukuyo = Object.assign({}, payload.domains.sukuyo, {
-        enabled: true,
-        mansion: sukuyo.mansion || payload.domains.sukuyo.mansion || '',
-        mansion_index: Number.isFinite(Number(sukuyo.mansionIndex))
-          ? Number(sukuyo.mansionIndex)
-          : Number(payload.domains.sukuyo.mansion_index || 0),
-        phase: sukuyo.phase || payload.domains.sukuyo.phase || ''
-      });
-    }
-  }
-
-  return payload;
-}
-
-function _dfGetProfilePayload(options) {
-  var opts = options && typeof options === 'object' ? options : {};
-  function getCurrentProfile() {
-    try {
-      if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
-        return window.DestinyProfileManager.storage.current() || {};
-      }
-    } catch (e) {
-      console.warn('[DestinyFlower] í”„ë¡œí•„ ë¡œë“œ ì‹¤íŒ¨:', e);
-    }
-    return {};
-  }
-
-  function sameBirth(a, b) {
-    if (!a || !b) return false;
-    var sameYmd = Number(a.year || 0) === Number(b.year || 0)
-      && Number(a.month || 0) === Number(b.month || 0)
-      && Number(a.day || 0) === Number(b.day || 0);
-    if (!sameYmd) return false;
-
-    // snapshot ë°ì´í„°ì— ì‹œ/ë¶„/ë‹¬ë ¥ íƒ€ì…ì´ ì—†ëŠ” ê²½ìš°ê°€ ìˆì–´, ì–‘ìª½ ê°’ì´ ëª¨ë‘ ìˆì„ ë•Œë§Œ ì—„ê²© ë¹„êµí•œë‹¤.
-    var aHour = Number(a.hour);
-    var bHour = Number(b.hour);
-    if (Number.isFinite(aHour) && Number.isFinite(bHour) && aHour !== bHour) return false;
-
-    var aMinute = Number(a.minute);
-    var bMinute = Number(b.minute);
-    if (Number.isFinite(aMinute) && Number.isFinite(bMinute) && aMinute !== bMinute) return false;
-
-    var aCal = String(a.calType || '').trim();
-    var bCal = String(b.calType || '').trim();
-    if (aCal && bCal && aCal !== bCal) return false;
-
-    return true;
-  }
-
-  function buildProfileSignature(profile) {
-    var p = profile || {};
-    var b = (p.birth || (p.identity && p.identity.birth) || {});
-    return [
-      Number(b.year || 0),
-      Number(b.month || 0),
-      Number(b.day || 0),
-      Number(b.hour || 0),
-      Number(b.minute || 0),
-      String(b.calType || 'solar'),
-      String(p.name || ''),
-      String(p.gender || '')
-    ].join('|');
-  }
-
-  function syncStudioStateByProfile(profile) {
-    if (typeof _dfStudioState !== 'object' || !_dfStudioState) return;
-    var signature = buildProfileSignature(profile);
-    if (!signature) return;
-    if (_dfStudioState.profileSignature && _dfStudioState.profileSignature !== signature) {
-      _dfStudioState.flowerData = null;
-      _dfStudioState.selection = null;
-    }
-    _dfStudioState.profileSignature = signature;
-  }
-
-  function pickSajuSnapshot(baseProfile) {
-    var snap = window.__destinyFlowerSajuSnapshot;
-    if (!snap || typeof snap !== 'object') return null;
-    var weights = snap.elementWeights || (snap.analysis && snap.analysis.elementWeights) || (snap.saju && snap.saju.elementWeights);
-    if (!weights || typeof weights !== 'object') return null;
-    var baseBirth = baseProfile && baseProfile.birth;
-    var snapBirth = snap.birth;
-    if (baseBirth && snapBirth && !sameBirth(baseBirth, snapBirth)) return null;
-    return snap;
-  }
-
-  function isMeaningfulSnapshot(snapshot) {
-    if (!snapshot) return false;
-    var weights = snapshot.elementWeights || (snapshot.analysis && snapshot.analysis.elementWeights) || (snapshot.saju && snapshot.saju.elementWeights);
-    if (!weights || typeof weights !== 'object') return false;
-    var values = ['wood', 'fire', 'earth', 'metal', 'water'].map(function(key) {
-      return Number(weights[key] || 0);
-    });
-    var allSame = values.every(function(v) { return Math.abs(v - values[0]) < 0.05; });
-    var looksDefault = allSame && Math.abs(values[0] - 20) < 0.2;
-    return !looksDefault;
-  }
-
-  function mergePayload(baseProfile, snapshot) {
-    if (!snapshot) return baseProfile || {};
-    var merged = Object.assign({}, baseProfile || {}, snapshot || {});
-    merged.birth = Object.assign({}, (baseProfile && baseProfile.birth) || {}, snapshot.birth || {});
-    merged.analysis = Object.assign({}, (baseProfile && baseProfile.analysis) || {}, snapshot.analysis || {});
-    merged.saju = Object.assign({}, (baseProfile && baseProfile.saju) || {}, snapshot.saju || {});
-    if (!merged.name && baseProfile && baseProfile.name) merged.name = baseProfile.name;
-    if (!merged.gender && baseProfile && baseProfile.gender) merged.gender = baseProfile.gender;
-    return merged;
-  }
-
-  var current = getCurrentProfile();
-  syncStudioStateByProfile(current);
-  var payload = current || {};
-  var snapshot = pickSajuSnapshot(current);
-  if (snapshot && isMeaningfulSnapshot(snapshot)) {
-    payload = mergePayload(current, snapshot);
-  }
-
-  if (payload && payload.birth && typeof window.computeProfileForModal === 'function') {
-    try {
-      window.computeProfileForModal(payload);
-      snapshot = pickSajuSnapshot(payload);
-      if (snapshot) payload = mergePayload(payload, snapshot);
-    } catch (e2) {
-      console.warn('[DestinyFlower] ì‚¬ì£¼ ì¬ê³„ì‚° ì‹¤íŒ¨:', e2);
-    }
-  }
-
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  if (payload && typeof payload === 'object') {
-    payload.birth = Object.assign({}, payload.birth || {}, {
-      year: birthCtx.year,
-      month: birthCtx.month,
-      day: birthCtx.day,
-      hour: birthCtx.hour,
-      minute: birthCtx.minute
-    });
-    if (!Number.isFinite(Number(payload.birth.lat)) && Number.isFinite(Number(birthCtx.lat))) payload.birth.lat = birthCtx.lat;
-    if (!Number.isFinite(Number(payload.birth.lon)) && Number.isFinite(Number(birthCtx.lon))) payload.birth.lon = birthCtx.lon;
-    if (!Number.isFinite(Number(payload.birth.tz)) && Number.isFinite(Number(birthCtx.tz))) payload.birth.tz = birthCtx.tz;
-  }
-
-  if (opts.skipLiveBridge) return payload || {};
-  return _dfApplyLiveDomainBridge(payload || {}, birthCtx, opts);
-}
-
-function _dfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'saju' });
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
-
-  // ìƒë…„ì›”ì¼ í•µì‹¬ ì •ë³´ê°€ ì „í˜€ ì—†ìœ¼ë©´ ìš´ëª…ì˜ ê½ƒì„ ê³„ì‚°í•˜ì§€ ì•ŠëŠ”ë‹¤.
-  // (ë¹ˆ ìƒíƒœì—ì„œëŠ” ì–´ë–¤ ê½ƒë„ ë…¸ì¶œí•˜ì§€ ì•Šê³  ì•ˆë‚´ ë¬¸êµ¬ë§Œ ë³´ì—¬ì£¼ê¸° ìœ„í•¨)
-  if (!_dfHasBirthCore(birthCtx)) {
-    console.warn('[DestinyFlower][Saju] resolve failed: missing birth core', {
-      year: birthCtx && birthCtx.year,
-      month: birthCtx && birthCtx.month,
-      day: birthCtx && birthCtx.day
-    });
-    return null;
-  }
-
-  if (!_dfHasReadySourceData('saju', payload) && !allowUserForcedFallback) {
-    console.warn('[DestinyFlower][Saju] resolve failed: saju domain not ready and fallback not allowed', {
-      linked: _dfIsSourceLinked('saju'),
-      userRequested: allowUserForcedFallback
-    });
-    return null;
-  }
-
-  var matched = null;
-  var theme = null;
-  var hasEngineMatcher = !!(
-    (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')
-    || typeof window.matchDestinyFlower === 'function'
-  );
-
-  if (!hasEngineMatcher) {
-    console.error('[DestinyFlower][Saju] resolve failed: matcher unavailable');
-    return null;
-  }
-
-  try {
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchDestinyFlower(payload, { limit: 5 });
-      if (typeof window.DestinyFlowerEngine.updateFlowerTheme === 'function') {
-        theme = window.DestinyFlowerEngine.updateFlowerTheme(payload, {});
-      }
-    } else if (typeof window.matchDestinyFlower === 'function') {
-      matched = window.matchDestinyFlower(payload, { limit: 5 });
-    }
-  } catch (e2) {
-    console.warn('[DestinyFlower] ë§¤ì¹­ ì‹¤íŒ¨:', e2);
-  }
-
-  if (!matched) {
-    console.error('[DestinyFlower][Saju] resolve failed: matcher returned empty result');
-    return null;
-  }
-
-  var fallbackUsed = !!(matched.fallback_logic && matched.fallback_logic.used);
-  if (fallbackUsed && !allowUserForcedFallback) {
-    console.warn('[DestinyFlower][Saju] resolve blocked: fallback result requires user-initiated load');
-    return null;
-  }
-
-  var matchedSaju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
-  var matchedDayMaster = String(matchedSaju.day_master || matchedSaju.dayMaster || '').trim();
-  if (!matchedDayMaster && !allowUserForcedFallback) {
-    console.warn('[DestinyFlower][Saju] resolve blocked: missing day master in matched profile');
-    return null;
-  }
-
-  var flower = matched.flower || matched.flowerSymbology;
-  if (!flower && allowUserForcedFallback && window.flowerSymbology) {
-    flower = window.flowerSymbology.LOTUS || null;
-  }
-  if (!flower) return null;
-
-  var primary = _dfSafeColor((flower.primary_color || (theme && theme.palette && theme.palette.primary)), '#f472b6');
-  var secondary = _dfSafeColor((flower.secondary_color || (theme && theme.palette && theme.palette.secondary)), '#22d3ee');
-  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
-    ? flower.keywords.slice(0, 4)
-    : [flower.particle_type || 'petal', 'balance', 'bloom'];
-
-  if (_dfStudioState.userRequestedLoad) {
-    _dfStudioState.userRequestedLoad.saju = false;
-  }
-
-  return {
-    source: 'saju',
-    payload: payload,
-    matched: matched,
-    theme: theme,
-    flowerData: matched && matched.flower_data ? matched.flower_data : null,
-    flower: flower,
-    primary: primary,
-    secondary: secondary,
-    keywords: keywords
-  };
-}
-
-function _afResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
-  if (!_dfHasReadySourceData('astrology', payload)) return null;
-  var matched = null;
-
-  try {
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchAstrologyFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchAstrologyFlower(payload, { source: 'astrology' });
-    } else if (typeof window.matchAstrologyFlower === 'function') {
-      matched = window.matchAstrologyFlower(payload, { source: 'astrology' });
-    } else if (typeof window.getAstrologyFlower === 'function') {
-      matched = window.getAstrologyFlower((payload && payload.astrology) || {});
-    }
-  } catch (e) {
-    console.warn('[AstrologyFlower] ë§¤ì¹­ ì‹¤íŒ¨:', e);
-  }
-  if (!matched) return null;
-
-  var chart = matched && matched.chart ? matched.chart : {};
-  var hasChartSignals = !!(
-    String(chart.sun_sign || chart.sunSign || '').trim() ||
-    String(chart.moon_sign || chart.moonSign || '').trim() ||
-    String(chart.rising_sign || chart.risingSign || '').trim()
-  );
-  if (!hasChartSignals) return null;
-
-  var flower = matched && matched.flower;
-  if (!flower) {
-    flower = {
-      id: 'astro_lavender',
-      name: 'ì„±ìš´ ë¼ë²¤ë”',
-      scientific_name: 'Lavandula nebula',
-      symbolism: 'ë³„ë¹›ì˜ ê²°ì„ ë”°ë¼ íë¥´ëŠ” ì²­ëª…í•œ ì§ê´€',
-      primary_color: '#8D99FF',
-      secondary_color: '#C77DFF',
-      keywords: ['nebula', 'zodiac', 'stardust'],
-      particle_type: 'stardust_air',
-      vibe_message: 'ë³„ì˜ ë¦¬ë“¬ì„ ë”°ë¼ í˜¸í¡í•˜ë©´ ì§ê´€ì´ ì„ ëª…í•´ì§‘ë‹ˆë‹¤.'
-    };
-  }
-
-  var theme = matched && matched.theme ? matched.theme : {};
-  var primary = _dfSafeColor((flower.primary_color || (theme.palette && theme.palette.primary)), '#8D99FF');
-  var secondary = _dfSafeColor((flower.secondary_color || (theme.palette && theme.palette.secondary)), '#C77DFF');
-  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
-    ? flower.keywords.slice(0, 4)
-    : ['zodiac', 'nebula', 'stardust'];
-
-  return {
-    source: 'astrology',
-    payload: payload,
-    matched: matched,
-    theme: theme,
-    flowerData: matched && matched.flower_data ? matched.flower_data : null,
-    flower: flower,
-    primary: primary,
-    secondary: secondary,
-    keywords: keywords
-  };
-}
-
-function _afRenderStardust(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 22; i++) {
-    var star = document.createElement('span');
-    star.className = 'astrology-stardust';
-    star.style.setProperty('--x', (4 + Math.random() * 92).toFixed(2) + '%');
-    star.style.setProperty('--y', (6 + Math.random() * 80).toFixed(2) + '%');
-    star.style.setProperty('--size', (2 + Math.random() * 3.4).toFixed(2) + 'px');
-    star.style.setProperty('--dur', (2.6 + Math.random() * 2.6).toFixed(2) + 's');
-    star.style.setProperty('--delay', (Math.random() * 2.2).toFixed(2) + 's');
-    star.style.setProperty('--star-a', _dfHexToRgba(primary, 0.84));
-    star.style.setProperty('--star-b', _dfHexToRgba(secondary, 0.94));
-    container.appendChild(star);
-  }
-}
-
-function _afEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = 'âœ¨ ì ì„±ìˆ  ê½ƒ ë‹¤ì‹œ ì†Œí™˜í•˜ê¸°';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = 'âœ¦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _afApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var chart = matched.chart || {};
-  var stage = card.querySelector('.astrology-flower-stage');
-  var nameEl = document.getElementById('afCardName');
-  var symbolismEl = document.getElementById('afCardSymbolism');
-  var keywordsEl = document.getElementById('afCardKeywords');
-  var sunBadgeEl = document.getElementById('afCardSunBadge');
-  var risingBadgeEl = document.getElementById('afCardRisingBadge');
-  var moonBadgeEl = document.getElementById('afCardMoonBadge');
-  var dataLineEl = document.getElementById('afCardDataLine');
-  var stardust = card.querySelector('.astrology-stardust-field');
-  var nebula = card.querySelector('.astrology-flower-nebula');
-  var image = card.querySelector('.astrology-flower-stage__image');
-  var heroImage = card.querySelector('.astrology-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--af-primary', selection.primary);
-  card.style.setProperty('--af-secondary', selection.secondary);
-  if (matched.theme && matched.theme.palette) {
-    if (matched.theme.palette.moonGlowInner) card.style.setProperty('--af-glow-inner', matched.theme.palette.moonGlowInner);
-    if (matched.theme.palette.moonGlowOuter) card.style.setProperty('--af-glow-outer', matched.theme.palette.moonGlowOuter);
-  }
-
-  nameEl.textContent = selection.flower.name + ' Â· ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.astro_verdict || matched.narrative || 'ì ì„±ìˆ  ì°¨íŠ¸ ê¸°ë°˜ ìš´ëª…ê½ƒì„ íŒë… ì¤‘ì…ë‹ˆë‹¤.';
-  keywordsEl.textContent = 'zodiac flower keywords Â· ' + selection.keywords.join(' â€¢ ');
-  if (sunBadgeEl) sunBadgeEl.textContent = chart.sun_sign ? ('íƒœì–‘ê¶ ' + chart.sun_sign) : 'íƒœì–‘ê¶ ë¯¸í™•ì¸';
-  if (risingBadgeEl) risingBadgeEl.textContent = chart.rising_sign ? ('ìƒìŠ¹ê¶ ' + chart.rising_sign) : 'ìƒìŠ¹ê¶ ë¯¸í™•ì¸';
-  if (moonBadgeEl) moonBadgeEl.textContent = chart.moon_sign ? ('ë‹¬ê¶ ' + chart.moon_sign) : 'ë‹¬ê¶ ë¯¸í™•ì¸';
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || 'ì°¨íŠ¸ ì‹œê·¸ë„ ëŒ€ê¸°') + ' Â· ' + (flowerData.ritual_tip || 'ë³„ì˜ ë¦¬ë“¬ì„ ê³ ì • ì¤‘ì…ë‹ˆë‹¤.');
-  }
-
-  if (nebula) {
-    nebula.style.background =
-      'radial-gradient(circle at 24% 40%, ' + _dfHexToRgba(selection.primary, 0.38) + ', transparent 58%),'
-      + 'radial-gradient(circle at 72% 24%, ' + _dfHexToRgba(selection.secondary, 0.34) + ', transparent 56%),'
-      + 'radial-gradient(circle at 50% 86%, var(--af-glow-inner, rgba(141,153,255,0.22)), transparent 60%)';
-  }
-
-  _afRenderStardust(stardust, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, 'astrology');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'astrology');
-
-  if (!card.__afPointerBound) {
-    card.__afPointerBound = true;
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
-      var x = ((e.clientX - rect.left) / rect.width) * 100;
-      var y = ((e.clientY - rect.top) / rect.height) * 100;
-      card.style.setProperty('--af-pointer-x', x.toFixed(2) + '%');
-      card.style.setProperty('--af-pointer-y', y.toFixed(2) + '%');
-    });
-    card.addEventListener('mouseleave', function() {
-      card.style.setProperty('--af-pointer-x', '50%');
-      card.style.setProperty('--af-pointer-y', '42%');
-    });
-  }
-
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
-function _jfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'jamidusu' });
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  if (!_dfHasBirthCore(birthCtx)) return null;
-
-  var matched = null;
-
-  try {
-    // ìë¯¸ë‘ìˆ˜ ë°ì´í„°ëŠ” ëª…ê¶ë¿ ì•„ë‹ˆë¼ ê° ê¶ì˜ ì£¼ì„± ì •ë³´ë¥¼ í•¨ê»˜ ìœ ì§€í•œë‹¤.
-    // (ì—”ì§„/ë Œë”ê°€ ê¶ë³„ ë³„ ì •ë³´ë¥¼ ì°¸ì¡°í•  ë•Œ ëˆ„ë½ë˜ì§€ ì•Šë„ë¡ í•¨)
-    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function') {
-      try {
-        var zw = window.calcZiweiPalaces(
-          Number(birthCtx.year),
-          Number(birthCtx.month),
-          Number(birthCtx.day),
-          Number(birthCtx.hour),
-          Number(birthCtx.minute)
-        );
-        if (zw && zw.palacesByIndex && zw.stars) {
-          var cleanStarName = function(raw) {
-            return String(raw || '')
-              .replace(/<[^>]*>/g, ' ')
-              .replace(/\(ì°¨ì„±\)/g, ' ')
-              .replace(/í™”ë¡|í™”ê¶Œ|í™”ê³¼|í™”ê¸°/g, ' ')
-              .replace(/\s+/g, ' ')
-              .trim();
-          };
-
-          var palaceRows = [];
-          var allStarSet = {};
-          for (var pi = 0; pi < zw.palacesByIndex.length; pi++) {
-            var pName = String(zw.palacesByIndex[pi] || '').trim();
-            if (!pName) continue;
-            var rawMain = (zw.stars[pi] && Array.isArray(zw.stars[pi].main)) ? zw.stars[pi].main : [];
-            var mainStars = rawMain.map(cleanStarName).filter(Boolean);
-            for (var si = 0; si < mainStars.length; si++) {
-              allStarSet[mainStars[si]] = true;
-            }
-            var palaceBrightness = '';
-            if (zw.palaceStarData && zw.palaceStarData[pi] && zw.palaceStarData[pi].stars && zw.palaceStarData[pi].stars[0]) {
-              palaceBrightness = String(zw.palaceStarData[pi].stars[0].strength || '');
-            }
-            palaceRows.push({ palace: pName, stars: mainStars, brightness: palaceBrightness });
-          }
-
-          var mingIdx = zw.palacesByIndex.indexOf('ëª…ê¶');
-          var mingStars = [];
-          var brightness = '';
-          if (mingIdx >= 0 && zw.stars[mingIdx] && zw.stars[mingIdx].main && zw.stars[mingIdx].main.length) {
-            mingStars = zw.stars[mingIdx].main.map(cleanStarName).filter(Boolean);
-          }
-          if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
-            brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
-          }
-          var mainStar = mingStars.join(' Â· ');
-          var allMainStars = Object.keys(allStarSet);
-          payload = payload && typeof payload === 'object' ? payload : {};
-          payload.ziwei = {
-            mainStar: mainStar,
-            palace: 'ëª…ê¶',
-            brightness: brightness,
-            stars: mingStars,
-            palaces: palaceRows,
-            allMainStars: allMainStars
-          };
-          payload.domains = payload.domains && typeof payload.domains === 'object' ? payload.domains : {};
-          payload.domains.ziwei = {
-            main_star: mainStar,
-            palace: 'ëª…ê¶',
-            brightness: brightness,
-            stars: mingStars,
-            palaces: palaceRows,
-            all_main_stars: allMainStars
-          };
-        }
-      } catch (eFix) {
-        // ignore
-      }
-    }
-
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchJamidusuFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchJamidusuFlower(payload, { source: 'jamidusu' });
-    } else if (typeof window.matchJamidusuFlower === 'function') {
-      matched = window.matchJamidusuFlower(payload, { source: 'jamidusu' });
-    } else if (typeof window.getJamidusuFlower === 'function') {
-      matched = window.getJamidusuFlower((payload && payload.ziwei) || {});
-    }
-  } catch (e) {
-    console.warn('[JamidusuFlower] ë§¤ì¹­ ì‹¤íŒ¨:', e);
-  }
-  if (!_dfHasReadySourceData('jamidusu', payload)) return null;
-  if (!matched) return null;
-
-  var flower = matched && matched.flower;
-  if (!flower) {
-    flower = {
-      id: 'peony_ziwei',
-      name: 'ëª¨ë€',
-      scientific_name: 'Paeonia suffruticosa',
-      symbolism: 'ì œì™•ì˜ ê¸°í’ˆê³¼ ì¤‘ì‹¬ì˜ í˜',
-      primary_color: '#D946EF',
-      secondary_color: '#F9A8D4',
-      keywords: ['ì œì™•', 'ê¸°í’ˆ', 'ì¤‘ì‹¬'],
-      particle_type: 'imperial_petal',
-      vibe_message: 'ì¤‘ì‹¬ì„ ì§€í‚¤ëŠ” íƒœë„ê°€ ê²°êµ­ ê°€ì¥ ë©€ë¦¬ ê°‘ë‹ˆë‹¤.'
-    };
-  }
-
-  var theme = matched && matched.theme ? matched.theme : {};
-  var primary = _dfSafeColor((flower.primary_color || (theme.palette && theme.palette.primary)), '#D946EF');
-  var secondary = _dfSafeColor((flower.secondary_color || (theme.palette && theme.palette.secondary)), '#F9A8D4');
-  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
-    ? flower.keywords.slice(0, 5)
-    : ['ziwei', 'minggong', 'flower'];
-
-  return {
-    source: 'jamidusu',
-    payload: payload,
-    matched: matched,
-    theme: theme,
-    flowerData: matched && matched.flower_data ? matched.flower_data : null,
-    flower: flower,
-    primary: primary,
-    secondary: secondary,
-    keywords: keywords
-  };
-}
-
-function _jfRenderPetals(container, primary, secondary, shouldFall) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 18; i++) {
-    var petal = document.createElement('span');
-    petal.className = 'jamidusu-petal';
-    if (shouldFall) petal.classList.add('is-fall');
-    petal.style.setProperty('--x', (4 + Math.random() * 92).toFixed(2) + '%');
-    petal.style.setProperty('--y', (6 + Math.random() * 72).toFixed(2) + '%');
-    petal.style.setProperty('--size', (8 + Math.random() * 8).toFixed(2) + 'px');
-    petal.style.setProperty('--dur', (2.6 + Math.random() * 2.2).toFixed(2) + 's');
-    petal.style.setProperty('--delay', (Math.random() * 2.2).toFixed(2) + 's');
-    petal.style.setProperty('--petal-a', _dfHexToRgba(primary, 0.76));
-    petal.style.setProperty('--petal-b', _dfHexToRgba(secondary, 0.88));
-    container.appendChild(petal);
-  }
-}
-
-function _jfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = 'ğŸŒº ìë¯¸ë‘ìˆ˜ ê½ƒ ë‹¤ì‹œ ì†Œí™˜í•˜ê¸°';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = 'âœ¦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _jfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var ziwei = matched.ziwei || {};
-  var intensity = matched.visual_intensity || { glow: 0.7, saturation: 0.8, mist: 0.2, brightness_label: 'í‰(å¹³)' };
-  var stage = card.querySelector('.jamidusu-flower-stage');
-  var nameEl = document.getElementById('jfCardName');
-  var symbolismEl = document.getElementById('jfCardSymbolism');
-  var keywordsEl = document.getElementById('jfCardKeywords');
-  var starBadgeEl = document.getElementById('jfCardStarBadge');
-  var brightBadgeEl = document.getElementById('jfCardBrightnessBadge');
-  var palaceBadgeEl = document.getElementById('jfCardPalaceBadge');
-  var dataLineEl = document.getElementById('jfCardDataLine');
-  var petals = card.querySelector('.jamidusu-petal-field');
-  var mist = card.querySelector('.jamidusu-mist');
-  var image = card.querySelector('.jamidusu-flower-stage__image');
-  var heroImage = card.querySelector('.jamidusu-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--jf-primary', selection.primary);
-  card.style.setProperty('--jf-secondary', selection.secondary);
-  card.style.setProperty('--jf-glow-strength', String(intensity.glow || 0.7));
-  card.style.setProperty('--jf-mist-opacity', String(intensity.mist || 0.2));
-  stage.style.setProperty('--jf-saturation', String(intensity.saturation || 0.8));
-
-  nameEl.textContent = selection.flower.name + ' Â· ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || 'ì˜¤ëŠ˜ì˜ ê°•í•œ ë³„ ê¸°ë°˜ ìš´ëª…ê½ƒì„ íŒë… ì¤‘ì…ë‹ˆë‹¤.';
-  keywordsEl.textContent = 'ziwei flower keywords Â· ' + selection.keywords.join(' â€¢ ');
-  if (starBadgeEl) {
-    var starLine = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('Â·') : 'ì£¼ì„± ë¯¸í™•ì¸';
-    starBadgeEl.textContent = 'ì˜¤ëŠ˜ì˜ ê°•í•œ ë³„ ' + starLine;
-  }
-  if (brightBadgeEl) brightBadgeEl.textContent = 'ë³„ ë°ê¸° ' + (ziwei.brightness || intensity.brightness_label || 'í‰(å¹³)');
-  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || 'ë¯¸í™•ì¸';
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || 'ì£¼ì„± ì‹œê·¸ë„ ëŒ€ê¸°') + ' Â· ' + (flowerData.ritual_tip || 'ë³„ì˜ ê¸°ìš´ì„ ì •ë ¬ ì¤‘ì…ë‹ˆë‹¤.');
-  }
-
-  if (mist) {
-    mist.style.background =
-      'radial-gradient(circle at 22% 38%, ' + _dfHexToRgba(selection.primary, 0.24) + ', transparent 56%),'
-      + 'radial-gradient(circle at 72% 64%, ' + _dfHexToRgba(selection.secondary, 0.22) + ', transparent 60%)';
-  }
-
-  var shouldFall = Array.isArray(ziwei.primary_stars) && ziwei.primary_stars.some(function(s) {
-    return /ì²œê¸°|íƒœìŒ/.test(String(s || ''));
-  });
-  _jfRenderPetals(petals, selection.primary, selection.secondary, shouldFall);
-  _dfApplyGeneratedFlowerImage(image, selection, 'jamidusu');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'jamidusu');
-
-  card.__jfKeywords = selection.keywords || [];
-
-  if (!card.__jfPopupBound) {
-    card.__jfPopupBound = true;
-    var popupEl = document.getElementById('jfCardKeywordPopup');
-    stage.addEventListener('click', function() {
-      if (!popupEl) return;
-      popupEl.textContent = (card.__jfKeywords || []).join(' Â· ') || 'ì œì™•ì˜ ê¸°í’ˆ';
-      popupEl.classList.add('is-show');
-      setTimeout(function() {
-        popupEl.classList.remove('is-show');
-      }, 1800);
-    });
-  }
-
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
-function _sfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'sukuyo' });
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  if (!_dfHasBirthCore(birthCtx)) return null;
-
-  var matched = null;
-
-  try {
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchSukuyoFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchSukuyoFlower(payload, { source: 'sukuyo' });
-    } else if (typeof window.matchSukuyoFlower === 'function') {
-      matched = window.matchSukuyoFlower(payload, { source: 'sukuyo' });
-    } else if (typeof window.calculateSukyoFlower === 'function') {
-      var b = (payload && payload.birth) || (payload && payload.identity && payload.identity.birth) || {};
-      var idx = (((Number(b.year || 2000) * 372 + Number(b.month || 1) * 31 + Number(b.day || 1) + 13) % 27) + 27) % 27 + 1;
-      matched = window.calculateSukyoFlower(idx, payload && payload.sukuyo && payload.sukuyo.phase);
-    }
-  } catch (e) {
-    console.warn('[SukuyoFlower] ë§¤ì¹­ ì‹¤íŒ¨:', e);
-  }
-  if (!_dfHasReadySourceData('sukuyo', payload)) return null;
-  if (!matched) return null;
-
-  var flower = matched && matched.flower;
-  if (!flower) {
-    flower = {
-      id: 'moon_lily',
-      name: 'ë°±í•©',
-      scientific_name: 'Lilium candidum',
-      symbolism: 'ë‹¬ë¹› ì†ì—ì„œ ë§‘ê²Œ í”¼ì–´ë‚˜ëŠ” ìˆ˜í˜¸ì˜ ê½ƒ',
-      primary_color: '#F8FAFC',
-      secondary_color: '#93C5FD',
-      keywords: ['ë‹¬ë¹›', 'ìˆ˜í˜¸', 'ì •í™”'],
-      particle_type: 'lunar_pollen',
-      vibe_message: 'ì˜¤ëŠ˜ ë°¤ ë‹¬ì˜ í˜¸í¡ê³¼ ë¦¬ë“¬ì„ ë§ì¶”ë©´ ì„ íƒì´ ë” ì„ ëª…í•´ì§‘ë‹ˆë‹¤.'
-    };
-  }
-
-  var theme = matched && matched.theme ? matched.theme : {};
-  var primary = _dfSafeColor((flower.primary_color || (theme.palette && theme.palette.primary)), '#F8FAFC');
-  var secondary = _dfSafeColor((flower.secondary_color || (theme.palette && theme.palette.secondary)), '#93C5FD');
-  var sukuyo = (matched && matched.sukuyo) || {};
-  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
-    ? flower.keywords.slice(0, 5)
-    : [sukuyo.mansion_name || 'ìˆ™ìš”', sukuyo.guardian_animal || 'ìˆ˜í˜¸ë™ë¬¼', sukuyo.moon_phase || 'ë‹¬ìœ„ìƒ'];
-
-  return {
-    source: 'sukuyo',
-    payload: payload,
-    matched: matched,
-    theme: theme,
-    flowerData: matched && matched.flower_data ? matched.flower_data : null,
-    flower: flower,
-    primary: primary,
-    secondary: secondary,
-    keywords: keywords
-  };
-}
-
-function _sfRenderStarfall(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 20; i++) {
-    var star = document.createElement('span');
-    star.className = 'sukuyo-starfall';
-    star.style.setProperty('--x', (3 + Math.random() * 94).toFixed(2) + '%');
-    star.style.setProperty('--y', (4 + Math.random() * 54).toFixed(2) + '%');
-    star.style.setProperty('--len', (10 + Math.random() * 16).toFixed(2) + 'px');
-    star.style.setProperty('--dur', (1.6 + Math.random() * 2.6).toFixed(2) + 's');
-    star.style.setProperty('--delay', (Math.random() * 1.8).toFixed(2) + 's');
-    star.style.setProperty('--star-a', _dfHexToRgba(primary, 0.72));
-    star.style.setProperty('--star-b', _dfHexToRgba(secondary, 0.94));
-    container.appendChild(star);
-  }
-}
-
-function _sfRenderOrbit(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 27; i++) {
-    var dot = document.createElement('span');
-    dot.className = 'sukuyo-orbit-dot';
-    dot.style.setProperty('--i', String(i));
-    dot.style.setProperty('--orbit-color-a', _dfHexToRgba(primary, 0.76));
-    dot.style.setProperty('--orbit-color-b', _dfHexToRgba(secondary, 0.84));
-    container.appendChild(dot);
-  }
-}
-
-function _sfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = 'ğŸŒ™ ìˆ™ìš” ê½ƒ ë‹¤ì‹œ ì†Œí™˜í•˜ê¸°';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = 'âœ¦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _sfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var sukuyo = matched.sukuyo || {};
-  var intensity = matched.visual_intensity || { glow: 0.72, halo: 0.56, moon_style: 'lunar_flow', moon_label: 'ìƒí˜„/í•˜í˜„ë‹¬' };
-  var theme = matched.theme || {};
-
-  var stage = card.querySelector('.sukuyo-flower-stage');
-  var nameEl = document.getElementById('sfCardName');
-  var symbolismEl = document.getElementById('sfCardSymbolism');
-  var keywordsEl = document.getElementById('sfCardKeywords');
-  var mansionBadgeEl = document.getElementById('sfCardMansionBadge');
-  var phaseBadgeEl = document.getElementById('sfCardPhaseBadge');
-  var guardianBadgeEl = document.getElementById('sfCardGuardianBadge');
-  var dataLineEl = document.getElementById('sfCardDataLine');
-  var starfall = card.querySelector('.sukuyo-starfall-field');
-  var orbit = card.querySelector('.sukuyo-orbit-field');
-  var constellationPath = document.getElementById('sfCardConstellationPath');
-  var image = card.querySelector('.sukuyo-flower-stage__image');
-  var heroImage = card.querySelector('.sukuyo-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--sf-primary', selection.primary);
-  card.style.setProperty('--sf-secondary', selection.secondary);
-  card.style.setProperty('--sf-glow', String(intensity.glow || 0.72));
-  card.style.setProperty('--sf-halo', String(intensity.halo || 0.56));
-  if (theme.palette && theme.palette.bgGradient) {
-    stage.style.setProperty('--sf-lunar-bg', theme.palette.bgGradient);
-  }
-
-  nameEl.textContent = selection.flower.name + ' Â· ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.sukuyo_verdict || matched.narrative || 'ìˆ™ìš” 27ìˆ™ ê¸°ë°˜ ìš´ëª…ê½ƒì„ íŒë… ì¤‘ì…ë‹ˆë‹¤.';
-  keywordsEl.textContent = 'sukuyo flower keywords Â· ' + selection.keywords.join(' â€¢ ');
-  if (mansionBadgeEl) {
-    var mansionLabel = _dfNormalizeSukuyoMansionLabel(sukuyo.mansion_name);
-    var groupLabel = _dfNormalizeSukuyoGroupLabel(sukuyo.group);
-    mansionBadgeEl.textContent = (mansionLabel || 'ìˆ™ ë¯¸í™•ì¸') + (groupLabel ? (' Â· ' + groupLabel) : '');
-  }
-  if (phaseBadgeEl) phaseBadgeEl.textContent = 'ë‹¬ ìœ„ìƒ ' + (sukuyo.moon_phase || intensity.moon_label || 'íŒì • ëŒ€ê¸°');
-  if (guardianBadgeEl) guardianBadgeEl.textContent = 'ìˆ˜í˜¸ë™ë¬¼ ' + (sukuyo.guardian_animal || 'ë¯¸í™•ì¸');
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || 'ìˆ™ìš” ì‹œê·¸ë„ ëŒ€ê¸°') + ' Â· ' + (flowerData.ritual_tip || 'ë‹¬ì˜ ë¦¬ë“¬ì„ ë™ê¸°í™” ì¤‘ì…ë‹ˆë‹¤.');
-  }
-
-  if (constellationPath) {
-    var points = (sukuyo.constellation_points || (theme && theme.constellation_points) || []).slice(0, 10);
-    if (points.length >= 2) {
-      var d = 'M ' + points[0][0] + ' ' + points[0][1];
-      for (var i = 1; i < points.length; i++) d += ' L ' + points[i][0] + ' ' + points[i][1];
-      constellationPath.setAttribute('d', d);
-    }
-  }
-
-  _sfRenderStarfall(starfall, selection.primary, selection.secondary);
-  _sfRenderOrbit(orbit, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, 'sukuyo');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'sukuyo');
-
-  stage.classList.remove('is-eclipse', 'is-full-glow', 'is-lunar-flow', 'is-bloomed');
-  if (intensity.moon_style === 'eclipse') stage.classList.add('is-eclipse');
-  else if (intensity.moon_style === 'full_glow') stage.classList.add('is-full-glow');
-  else stage.classList.add('is-lunar-flow');
-
-  if (!card.__sfTiltBound) {
-    card.__sfTiltBound = true;
-    var image = card.querySelector('.sukuyo-flower-stage__image');
-    card.addEventListener('mousemove', function(e) {
-      if (!image) return;
-      var rect = card.getBoundingClientRect();
-      var rx = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
-      var ry = ((e.clientX - rect.left) / rect.width - 0.5) * 7;
-      image.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(1.02)';
-    });
-    card.addEventListener('mouseleave', function() {
-      if (image) image.style.transform = '';
-    });
-    card.addEventListener('touchmove', function() {
-      if (image) image.style.transform = 'scale(1.015)';
-    }, { passive: true });
-    card.addEventListener('touchend', function() {
-      if (image) image.style.transform = '';
-    }, { passive: true });
-  }
-
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
-function _dfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var source = _dfNormalizeSource(selection.source || _dfStudioState.activeSource || 'saju');
-  selection.source = source;
-  var sourceMeta = _DF_SOURCE_META[source] || _DF_SOURCE_META.saju;
-  var stageContent = _dfGetUnifiedStageContent(selection);
-  var sajuVerdict = _dfGetSajuVerdict(selection);
-  var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
-  var stage = card.querySelector('.destiny-flower-stage');
-  var nameEl = card.querySelector('.destiny-flower-stage__name');
-  var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
-  var keywordsEl = card.querySelector('.destiny-flower-stage__keywords');
-  var descEl = document.getElementById('dfUnifiedCardDesc');
-  var dayMasterBadgeEl = document.getElementById('dfCardDayMasterBadge');
-  var seasonBadgeEl = document.getElementById('dfCardSeasonBadge');
-  var environmentBadgeEl = document.getElementById('dfCardEnvironmentBadge');
-  var scenarioTitleEl = document.getElementById('dfCardScenarioTitle');
-  var dataLineEl = document.getElementById('dfCardDataLine');
-  var backdrop = card.querySelector('.destiny-flower-backdrop');
-  var glow = card.querySelector('.destiny-flower-glow');
-  var particles = card.querySelector('.destiny-flower-particles');
-  var image = card.querySelector('.destiny-flower-stage__image');
-  var heroImage = card.querySelector('.destiny-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  _dfSyncSourceTabs(source);
-  _dfSyncSourceStickers(source);
-
-  card.style.setProperty('--df-primary', selection.primary);
-  card.style.setProperty('--df-secondary', selection.secondary);
-  stage.setAttribute('data-source', source);
-  if (selection.theme && selection.theme.background && selection.theme.background.gradient) {
-    card.style.setProperty('--df-env-gradient', selection.theme.background.gradient);
-  }
-  if (selection.theme && selection.theme.background && selection.theme.background.season_tint) {
-    card.style.setProperty('--df-season-tint', selection.theme.background.season_tint);
-  }
-
-  nameEl.textContent = selection.flower.name + ' Â· ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = stageContent.symbolism || sajuVerdict;
-  keywordsEl.textContent = sourceMeta.labelKo + ' í‚¤ì›Œë“œ Â· ' + (_dfToArray(selection.keywords).join(' â€¢ ') || sourceMeta.fallbackKeyword);
-  if (descEl) descEl.textContent = sourceMeta.description;
-  if (dayMasterBadgeEl) dayMasterBadgeEl.textContent = stageContent.badge1;
-  if (seasonBadgeEl) seasonBadgeEl.textContent = stageContent.badge2;
-  if (environmentBadgeEl) environmentBadgeEl.textContent = stageContent.badge3;
-  if (scenarioTitleEl) scenarioTitleEl.textContent = stageContent.scenarioTitle;
-  if (dataLineEl) dataLineEl.textContent = stageContent.dataLine;
-
-  if (backdrop) {
-    backdrop.style.background =
-      'radial-gradient(circle at 22% 50%, ' + _dfHexToRgba(selection.primary, 0.46) + ', transparent 56%),'
-      + 'radial-gradient(circle at 72% 34%, ' + _dfHexToRgba(selection.secondary, 0.40) + ', transparent 60%)';
-  }
-  if (glow) {
-    glow.style.background = 'radial-gradient(circle, ' + _dfHexToRgba(selection.secondary, 0.62) + ', rgba(255,255,255,0))';
-  }
-
-  _dfRenderPetals(particles, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, source);
-  _dfApplyGeneratedFlowerImage(heroImage, selection, source);
-  stage.classList.remove('is-motion-wood', 'is-motion-water', 'is-motion-fire');
-  if (source === 'astrology' || source === 'sukuyo') {
-    stage.classList.add('is-motion-water');
-  } else if (source === 'jamidusu') {
-    stage.classList.add('is-motion-fire');
-  } else if (flowerData.motion_preset === 'water-flow') {
-    stage.classList.add('is-motion-water');
-  } else if (flowerData.motion_preset === 'fire-bloom') {
-    stage.classList.add('is-motion-fire');
-  } else {
-    stage.classList.add('is-motion-wood');
-  }
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
-function _dfSetBodyLock(locked) {
-  if (window._perf && typeof window._perf.lockBody === 'function' && typeof window._perf.unlockBody === 'function') {
-    if (locked) window._perf.lockBody();
-    else window._perf.unlockBody();
-    return;
-  }
-  if (locked) {
-    if (!document.body.dataset.dfPrevOverflow) {
-      document.body.dataset.dfPrevOverflow = document.body.style.overflow || '';
-    }
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = document.body.dataset.dfPrevOverflow || '';
-    delete document.body.dataset.dfPrevOverflow;
-  }
-}
-
-var _DF_STUDIO_HISTORY_KEY = 'destinyFlowerStudioHistory.v1';
-var _DF_STUDIO_HISTORY_LIMIT = 12;
-var _DF_ACTIVE_SOURCE_KEY = 'destinyFlowerActiveSource.v1';
-var _DF_SOURCE_PROGRESS_KEY = 'destinyFlowerSourceProgress.v1';
-var _DF_SOURCE_UNLOCK_MODE_KEY = 'destinyFlowerSourceUnlockMode.v1';
-var _DF_SOURCE_UNLOCK_MODES = { sequential: true, cumulative: true };
-var _DF_SOURCE_UNLOCK_DEFAULT_MODE = 'sequential';
-var _DF_SOURCE_ORDER = ['saju', 'astrology', 'jamidusu', 'sukuyo'];
-var _DF_SOURCE_ALIAS = {
-  astro: 'astrology',
-  zodiac: 'astrology',
-  ziwei: 'jamidusu',
-  jami: 'jamidusu',
-  suk: 'sukuyo',
-  lunar: 'sukuyo',
-  bazi: 'saju',
-  fourpillars: 'saju'
-};
-var _DF_SOURCE_META = {
-  saju: {
-    labelKo: 'ì‚¬ì£¼',
-    stickerMain: 'å››æŸ±',
-    stickerSub: 'Native',
-    description: 'ë‹¹ì‹ ì˜ ì¼ê°„ê³¼ ì›”ë ¹, ì˜¤í–‰ì˜ ê· í˜•ì„ í•˜ë‚˜í•˜ë‚˜ ì½ì–´, ì§€ê¸ˆ ì´ ê³„ì ˆ ë‹¹ì‹ ì˜ ê¸°ìš´ê³¼ ê°€ì¥ ê¹Šì´ ë§ë‹¿ëŠ” ê½ƒ í•œ ì†¡ì´ë¥¼ ê³¨ë¼ ë“œë¦½ë‹ˆë‹¤.',
-    fallbackKeyword: 'saju â€¢ bloom â€¢ destiny'
-  },
-  astrology: {
-    labelKo: 'ì ì„±ìˆ ',
-    stickerMain: 'Zodiac',
-    stickerSub: 'Star',
-    description: 'íƒœì–‘ê¶Â·ìƒìŠ¹ê¶Â·ë‹¬ê¶ì´ ê·¸ë¦¬ëŠ” ì„¸ ê°ˆë˜ ë³„ë¹›ì„ ê²¹ì³ ì½ì–´, ì§€ê¸ˆ ë‹¹ì‹ ì˜ ë³„ìë¦¬ì™€ ê°€ì¥ ë§‘ê²Œ ì–´ìš°ëŸ¬ì§€ëŠ” ê½ƒì„ í”¼ì›Œ ë“œë¦½ë‹ˆë‹¤.',
-    fallbackKeyword: 'zodiac â€¢ nebula â€¢ stardust'
-  },
-  jamidusu: {
-    labelKo: 'ìë¯¸ë‘ìˆ˜',
-    stickerMain: 'ç´«å¾®',
-    stickerSub: 'Purple Star',
-    description: 'ëª…ê¶ì— ë“  ì£¼ì„±ê³¼ ê·¸ ë°ê¸°, ì‚¬í™”ì˜ íë¦„ì„ ì§šì–´, ì§€ê¸ˆ ë‹¹ì‹ ì˜ ëª…ë°˜ì´ ê°€ì¥ ë˜ë ·í•˜ê²Œ í”¼ì›Œ ë‚´ëŠ” ê½ƒì„ ì°¾ì•„ ë“œë¦½ë‹ˆë‹¤.',
-    fallbackKeyword: 'ziwei â€¢ ming-gong â€¢ imperial bloom'
-  },
-  sukuyo: {
-    labelKo: 'ìˆ™ìš”ì ',
-    stickerMain: '27-Suk',
-    stickerSub: 'å®¿æ›œ',
-    description: 'íƒœì–´ë‚œ ë‚ ì˜ 27ìˆ˜ì™€ ì˜¤ëŠ˜ ë°¤ ë‹¬ì˜ ìœ„ìƒì„ ë§ëŒ€ì–´, ì§€ê¸ˆ ë‹¹ì‹ ì˜ ë§ˆìŒê²°ê³¼ ê°€ì¥ ê³±ê²Œ ë§ë¬¼ë¦¬ëŠ” ê½ƒì„ ê±´ë„¤ ë“œë¦½ë‹ˆë‹¤.',
-    fallbackKeyword: 'sukuyo â€¢ lunar mansion â€¢ moon bloom'
-  }
-};
-
-var _dfStudioState = {
-  selection: null,
-  history: [],
-  flowerData: null,
-  profileSignature: '',
-  activeSource: 'saju',
-  loadingSource: '',
-  loadingTasks: {},
-  userRequestedLoad: {},
-  linkedSources: {},
-  unlockMode: _DF_SOURCE_UNLOCK_DEFAULT_MODE,
-  sourceProgress: {
-    saju: false,
-    astrology: false,
-    jamidusu: false,
-    sukuyo: false
-  },
-  sourceUnlockCache: {
-    saju: true,
-    astrology: false,
-    jamidusu: false,
-    sukuyo: false
-  },
-  coinGatePassed: false,
-  coinGateInFlight: false,
-  _coinGatePassToken: null  // ìœ ë£Œ ê²Œì´íŠ¸ í† í° (ë‚´ë¶€ ì½œë°±ìš©, ì™¸ë¶€ í˜¸ì¶œ ë°©ì–´)
-};
-
-var _DF_STUDIO_TITLE = 'ğŸŒ¸ ìš´ëª…ì˜ ê½ƒ ì•„í‹€ë¦¬ì—';
-var _dfOriginalTitle = null;
-
-function _dfCaptureOriginalTitle() {
-  if (!_dfOriginalTitle) {
-    _dfOriginalTitle = document.title || '';
-  }
-}
-
-function _dfApplyStudioTitle() {
-  _dfCaptureOriginalTitle();
-  document.title = _DF_STUDIO_TITLE;
-}
-
-function _dfRestoreOriginalTitle() {
-  if (_dfOriginalTitle) {
-    document.title = _dfOriginalTitle;
-  }
-}
-
-function _dfMaybeRestoreTitleAfterNavigation() {
-  var overlay = document.getElementById('destinyFlowerStudioOverlay');
-  if (!overlay || overlay.style.display === 'none' || !overlay.classList.contains('is-show')) {
-    _dfRestoreOriginalTitle();
-  }
-}
-
-function _dfBindTitleRestoreGuards() {
-  if (window.__dfTitleRestoreGuardsBound) return;
-  window.__dfTitleRestoreGuardsBound = true;
-
-  window.addEventListener('hashchange', _dfMaybeRestoreTitleAfterNavigation, true);
-  window.addEventListener('popstate', _dfMaybeRestoreTitleAfterNavigation, true);
-
-  if (window.history && !window.history.__dfTitleWrapped) {
-    window.history.__dfTitleWrapped = true;
-    var originalPushState = window.history.pushState;
-    var originalReplaceState = window.history.replaceState;
-    window.history.pushState = function() {
-      var result = originalPushState.apply(this, arguments);
-      _dfMaybeRestoreTitleAfterNavigation();
-      return result;
-    };
-    window.history.replaceState = function() {
-      var result = originalReplaceState.apply(this, arguments);
-      _dfMaybeRestoreTitleAfterNavigation();
-      return result;
-    };
-  }
-}
-
-function _dfToArray(v) {
-  return Array.isArray(v) ? v.filter(function(item) { return !!item; }) : [];
-}
-
-function _dfNormalizeSource(source) {
-  var value = String(source || '').trim().toLowerCase();
-  if (_DF_SOURCE_ORDER.indexOf(value) >= 0) return value;
-  if (_DF_SOURCE_ALIAS[value]) return _DF_SOURCE_ALIAS[value];
-  return 'saju';
-}
-
-function _dfLoadActiveSource() {
-  try {
-    return _dfNormalizeSource(localStorage.getItem(_DF_ACTIVE_SOURCE_KEY) || 'saju');
-  } catch (e) {
-    return 'saju';
-  }
-}
-
-function _dfPersistActiveSource(source) {
-  try {
-    localStorage.setItem(_DF_ACTIVE_SOURCE_KEY, _dfNormalizeSource(source));
-  } catch (e) {}
-}
-
-function _dfCreateSourceProgressTemplate() {
-  var template = {};
-  for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
-    template[_DF_SOURCE_ORDER[i]] = false;
-  }
-  return template;
-}
-
-function _dfResolveSourceUnlockMode(rawMode) {
-  var mode = String(rawMode || '').trim().toLowerCase();
-  if (_DF_SOURCE_UNLOCK_MODES[mode]) return mode;
-  return _DF_SOURCE_UNLOCK_DEFAULT_MODE;
-}
-
-function _dfLoadSourceUnlockMode() {
-  try {
-    if (typeof window !== 'undefined' && window.__dfSourceUnlockMode) {
-      return _dfResolveSourceUnlockMode(window.__dfSourceUnlockMode);
-    }
-  } catch (_) {}
-  try {
-    return _dfResolveSourceUnlockMode(localStorage.getItem(_DF_SOURCE_UNLOCK_MODE_KEY));
-  } catch (_) {
-    return _DF_SOURCE_UNLOCK_DEFAULT_MODE;
-  }
-}
-
-function _dfPersistSourceProgressState() {
-  try {
-    localStorage.setItem(_DF_SOURCE_UNLOCK_MODE_KEY, _dfResolveSourceUnlockMode(_dfStudioState.unlockMode));
-    localStorage.setItem(_DF_SOURCE_PROGRESS_KEY, JSON.stringify({
-      mode: _dfResolveSourceUnlockMode(_dfStudioState.unlockMode),
-      progress: _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate()
-    }));
-  } catch (_) {}
-}
-
-function _dfLoadSourceProgressState() {
-  var progress = _dfCreateSourceProgressTemplate();
-  var mode = _dfLoadSourceUnlockMode();
-  try {
-    var raw = localStorage.getItem(_DF_SOURCE_PROGRESS_KEY);
-    if (raw) {
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') {
-        var parsedProgress = (parsed.progress && typeof parsed.progress === 'object') ? parsed.progress : parsed;
-        for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
-          var src = _DF_SOURCE_ORDER[i];
-          progress[src] = parsedProgress[src] === true;
-        }
-        if (parsed.mode) mode = _dfResolveSourceUnlockMode(parsed.mode);
-      }
-    }
-  } catch (_) {}
-  _dfStudioState.unlockMode = _dfResolveSourceUnlockMode(mode);
-  _dfStudioState.sourceProgress = progress;
-  _dfRefreshSourceUnlockCache(true);
-}
-
-function _dfGetRequiredSourceForUnlock(source) {
-  var normalized = _dfNormalizeSource(source);
-  var idx = _DF_SOURCE_ORDER.indexOf(normalized);
-  if (idx <= 0) return null;
-  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
-  for (var i = idx - 1; i >= 0; i -= 1) {
-    var prevSource = _DF_SOURCE_ORDER[i];
-    if (!progress[prevSource]) return prevSource;
-  }
-  return _DF_SOURCE_ORDER[idx - 1] || null;
-}
-
-function _dfGetNextRecommendedSource() {
-  var cache = _dfRefreshSourceUnlockCache();
-  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
-  for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
-    var source = _DF_SOURCE_ORDER[i];
-    if (cache[source] && !progress[source]) return source;
-  }
-  return null;
-}
-
-function _dfBuildSourceFlowGuide() {
-  var nextSource = _dfGetNextRecommendedSource();
-  if (!nextSource) return 'ëª¨ë“  ê½ƒì´ ê°œí™”ë˜ì—ˆìŠµë‹ˆë‹¤. ì›í•˜ëŠ” íƒ­ì—ì„œ ë‹¤ì‹œ ê°ìƒí•´ ë³´ì„¸ìš”.';
-  if (nextSource === 'saju') return 'ë‹¤ìŒ ë‹¨ê³„: ì‚¬ì£¼ ê½ƒì„ ë¨¼ì € ì—´ì–´ ê°œí™”ë¥¼ ì‹œì‘í•´ ë³´ì„¸ìš”.';
-  return 'ë‹¤ìŒ ë‹¨ê³„: ' + _dfGetSourceLabel(nextSource) + ' ê½ƒìœ¼ë¡œ ì´ë™í•´ ê°œí™”ë¥¼ ì´ì–´ê°€ì„¸ìš”.';
-}
-
-function _dfIsSourcePaidUnlocked(source) {
-  var normalized = _dfNormalizeSource(source);
-  if (normalized === 'saju') return true;
-  var tile = _dfResolveLockTileBySource(normalized);
-  if (!tile) return false;
-  var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-  if (_dfIsLockKeyUnlocked(lockKey)) return true;
-  if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
-  return false;
-}
-
-function _dfComputeSourceUnlockCache() {
-  var cache = {
-    saju: true,
-    astrology: false,
-    jamidusu: false,
-    sukuyo: false
-  };
-  var mode = _dfResolveSourceUnlockMode(_dfStudioState.unlockMode);
-  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
-
-  if (mode === 'cumulative') {
-    var completedCount = 0;
-    for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
-      if (progress[_DF_SOURCE_ORDER[i]]) completedCount += 1;
-    }
-    for (var j = 1; j < _DF_SOURCE_ORDER.length && j <= completedCount; j += 1) {
-      cache[_DF_SOURCE_ORDER[j]] = true;
-    }
-  } else {
-    for (var k = 1; k < _DF_SOURCE_ORDER.length; k += 1) {
-      cache[_DF_SOURCE_ORDER[k]] = !!progress[_DF_SOURCE_ORDER[k - 1]];
-    }
-  }
-
-  for (var p = 0; p < _DF_SOURCE_ORDER.length; p += 1) {
-    var src = _DF_SOURCE_ORDER[p];
-    if (_dfIsSourcePaidUnlocked(src)) cache[src] = true;
-  }
-  return cache;
-}
-
-function _dfRefreshSourceUnlockCache(forceRecalc) {
-  if (!forceRecalc && _dfStudioState.sourceUnlockCache) {
-    return _dfStudioState.sourceUnlockCache;
-  }
-  _dfStudioState.sourceUnlockCache = _dfComputeSourceUnlockCache();
-  return _dfStudioState.sourceUnlockCache;
-}
-
-function _dfSyncSourceTabsLockState(options) {
-  var opts = options && typeof options === 'object' ? options : {};
-  var cache = _dfRefreshSourceUnlockCache(true);
-  var tabs = document.querySelectorAll('.df-source-tab[data-df-source-tab]');
-  if (!tabs || !tabs.length) return;
-  var nextSource = _dfGetNextRecommendedSource();
-  var highlightMap = Object.create(null);
-  var highlights = Array.isArray(opts.highlightSources) ? opts.highlightSources : [];
-  for (var h = 0; h < highlights.length; h += 1) {
-    highlightMap[_dfNormalizeSource(highlights[h])] = true;
-  }
-
-  tabs.forEach(function(tab) {
-    var src = _dfNormalizeSource(tab.getAttribute('data-df-source-tab'));
-    var unlocked = cache[src] === true;
-    tab.classList.toggle('is-locked', !unlocked);
-    tab.classList.toggle('is-unlocked', unlocked);
-    tab.classList.toggle('is-next-target', src === nextSource);
-    tab.setAttribute('data-df-unlocked', unlocked ? 'true' : 'false');
-
-    if (!unlocked) {
-      var required = _dfGetRequiredSourceForUnlock(src);
-      var lockLabel = required ? (_dfGetSourceLabel(required) + ' ì™„ë£Œ ì‹œ í•´ê¸ˆ') : 'í•´ê¸ˆ ì¡°ê±´ í•„ìš”';
-      tab.setAttribute('aria-disabled', 'true');
-      tab.setAttribute('data-df-lock-label', lockLabel);
-      tab.title = lockLabel;
-    } else {
-      tab.removeAttribute('aria-disabled');
-      tab.removeAttribute('data-df-lock-label');
-      tab.removeAttribute('title');
-    }
-
-    if (highlightMap[src]) {
-      tab.classList.remove('is-unlock-reveal');
-      void tab.offsetWidth;
-      tab.classList.add('is-unlock-reveal');
-      if (tab.__dfUnlockRevealTimer) clearTimeout(tab.__dfUnlockRevealTimer);
-      tab.__dfUnlockRevealTimer = setTimeout(function() {
-        tab.classList.remove('is-unlock-reveal');
-        tab.__dfUnlockRevealTimer = null;
-      }, 960);
-    }
-  });
-}
-
-function _dfMarkSourceCompleted(source, options) {
-  var opts = options && typeof options === 'object' ? options : {};
-  var normalized = _dfNormalizeSource(source);
-  if (_DF_SOURCE_ORDER.indexOf(normalized) < 0) {
-    return { changed: false, newlyUnlocked: [] };
-  }
-
-  if (!_dfStudioState.sourceProgress || typeof _dfStudioState.sourceProgress !== 'object') {
-    _dfStudioState.sourceProgress = _dfCreateSourceProgressTemplate();
-  }
-
-  var before = _dfRefreshSourceUnlockCache(true);
-  var beforeMap = {};
-  for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
-    var src = _DF_SOURCE_ORDER[i];
-    beforeMap[src] = before[src] === true;
-  }
-
-  if (_dfStudioState.sourceProgress[normalized] === true) {
-    _dfSyncSourceTabsLockState();
-    return { changed: false, newlyUnlocked: [] };
-  }
-
-  _dfStudioState.sourceProgress[normalized] = true;
-  _dfPersistSourceProgressState();
-
-  var after = _dfRefreshSourceUnlockCache(true);
-  var newlyUnlocked = [];
-  for (var j = 0; j < _DF_SOURCE_ORDER.length; j += 1) {
-    var sourceName = _DF_SOURCE_ORDER[j];
-    if (after[sourceName] === true && beforeMap[sourceName] !== true) {
-      newlyUnlocked.push(sourceName);
-    }
-  }
-
-  _dfSyncSourceTabsLockState({ highlightSources: newlyUnlocked });
-  if (!opts.silent && newlyUnlocked.length) {
-    _dfSetStudioStatus('âœ¨ ' + _dfGetSourceLabel(newlyUnlocked[0]) + ' ê½ƒì´ ìƒˆë¡œ ì—´ë ¸ìŠµë‹ˆë‹¤.');
-  }
-  return { changed: true, newlyUnlocked: newlyUnlocked };
-}
-
-function _dfSyncSourceTabs(source) {
-  var normalized = _dfNormalizeSource(source);
-  var tabs = document.querySelectorAll('.df-source-tab[data-df-source-tab]');
-  if (!tabs || !tabs.length) return;
-  tabs.forEach(function(tab) {
-    var tabSource = _dfNormalizeSource(tab.getAttribute('data-df-source-tab'));
-    var active = tabSource === normalized;
-    tab.classList.toggle('is-active', active);
-    tab.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-  _dfSyncSourceTabsLockState();
-}
-
-function _dfApplySourceBadgeStyles(el, baseClass, source, mainText, subText) {
-  if (!el) return;
-  var normalized = _dfNormalizeSource(source);
-  var cls = baseClass === 'hero' ? 'df-source-badge--' : 'df-stage-source-sticker--';
-  _DF_SOURCE_ORDER.forEach(function(src) {
-    el.classList.remove(cls + src);
-  });
-  el.classList.add(cls + normalized);
-  el.innerHTML = '<b>' + _dfEscapeHtml(mainText || '') + '</b><em>' + _dfEscapeHtml(subText || '') + '</em>';
-}
-
-function _dfSyncSourceStickers(source) {
-  var normalized = _dfNormalizeSource(source);
-  var meta = _DF_SOURCE_META[normalized] || _DF_SOURCE_META.saju;
-  var heroSticker = document.getElementById('dfHeroSourceSticker');
-  var stageSticker = document.getElementById('dfStageSourceSticker');
-  _dfApplySourceBadgeStyles(heroSticker, 'hero', normalized, meta.stickerMain, meta.stickerSub);
-  _dfApplySourceBadgeStyles(stageSticker, 'stage', normalized, meta.stickerMain, meta.stickerSub);
-}
-
-function _dfSetActiveSource(source) {
-  var normalized = _dfNormalizeSource(source);
-  _dfStudioState.activeSource = normalized;
-  _dfPersistActiveSource(normalized);
-  _dfSyncSourceTabs(normalized);
-  _dfSyncSourceStickers(normalized);
-  return normalized;
-}
-
-function _dfIsSourceLinked(source) {
-  var normalized = _dfNormalizeSource(source);
-  return !!(_dfStudioState.linkedSources && _dfStudioState.linkedSources[normalized]);
-}
-
-function _dfCanResolveSourceSelection(source, forceRefresh) {
-  var normalized = _dfNormalizeSource(source);
-  if (forceRefresh) return true;
-  if (_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalized]) return true;
-  return _dfIsSourceLinked(normalized);
-}
-
-function _dfResolveSelectionBySource(source) {
-  var normalized = _dfNormalizeSource(source);
-  if (normalized === 'astrology') return _afResolveSelection();
-  if (normalized === 'jamidusu') return _jfResolveSelection();
-  if (normalized === 'sukuyo') return _sfResolveSelection();
-  return _dfResolveSelection();
-}
-
-function _dfBuildUnifiedFlowerData(forceRefresh, source) {
-  var normalizedSource = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  var userRequested = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalizedSource]);
-  var hasCache = !!(_dfStudioState.flowerData && _dfStudioState.flowerData.sources);
-  if (!hasCache) {
-    _dfStudioState.flowerData = {
-      updatedAt: 0,
-      sources: {}
-    };
-  }
-
-  var sources = _dfStudioState.flowerData.sources;
-  // If cached selection exists and user did not request recalculation, reuse it.
-  if (!forceRefresh && !userRequested && typeof sources[normalizedSource] !== 'undefined') {
-    return _dfStudioState.flowerData;
-  }
-
-  try {
-    var selection = _dfResolveSelectionBySource(normalizedSource);
-    if (selection) selection.source = _dfNormalizeSource(selection.source || normalizedSource);
-    sources[normalizedSource] = selection || null;
-  } catch (e) {
-    console.warn('[DestinyFlower] í†µí•© ë°ì´í„° ê³„ì‚° ì‹¤íŒ¨ (' + normalizedSource + '):', e);
-    sources[normalizedSource] = null;
-  }
-
-  _dfStudioState.flowerData.updatedAt = Date.now();
-  return _dfStudioState.flowerData;
-}
-
-function _dfGetUnifiedSelection(source, forceRefresh) {
-  var normalized = _dfNormalizeSource(source);
-  if (!_dfCanResolveSourceSelection(normalized, !!forceRefresh)) {
-    return null;
-  }
-  var userRequested = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalized]);
-  var shouldResolve = !!forceRefresh || userRequested;
-  var data = _dfBuildUnifiedFlowerData(!!forceRefresh, normalized);
-  var selection = data && data.sources ? data.sources[normalized] : null;
-  if (!selection && shouldResolve) {
-    selection = _dfResolveSelectionBySource(normalized);
-  }
-  if (!selection && normalized === 'saju' && shouldResolve) {
-    selection = _dfResolveSelection();
-  }
-  if (selection) selection.source = _dfNormalizeSource(selection.source || normalized);
-  return selection;
-}
-
-_dfStudioState.activeSource = _dfLoadActiveSource();
-_dfLoadSourceProgressState();
-
-function _dfGetSajuVerdict(selection) {
-  if (!selection) return 'ìš´ëª…ì˜ ê½ƒ íŒì •ì„ ì¤€ë¹„ ì¤‘ì…ë‹ˆë‹¤.';
-  var matched = selection.matched || {};
-  if (matched.sukuyo_verdict) return matched.sukuyo_verdict;
-  if (matched.jamidusu_verdict) return matched.jamidusu_verdict;
-  if (matched.astro_verdict) return matched.astro_verdict;
-  if (matched.saju_verdict) return matched.saju_verdict;
-  if (matched.verdict) return matched.verdict;
-  var flower = selection.flower || {};
-  var flowerName = flower.name || 'ìš´ëª…ì˜ ê½ƒ';
-  var latin = flower.scientific_name ? ' (' + flower.scientific_name + ')' : '';
-  if (selection.source === 'sukuyo') {
-    return 'ìˆ™ìš”ì ìœ¼ë¡œ ë³¼ ë•Œ ë‹¹ì‹ ì˜ ê½ƒì€ ' + flowerName + latin + ' ì…ë‹ˆë‹¤.';
-  }
-  if (selection.source === 'jamidusu') {
-    return 'ìë¯¸ë‘ìˆ˜ë¡œ ë³¼ ë•Œ ë‹¹ì‹ ì˜ ê½ƒì€ ' + flowerName + latin + ' ì…ë‹ˆë‹¤.';
-  }
-  if (selection.source === 'astrology') {
-    return 'ì ì„±ìˆ ë¡œ ë³¼ ë•Œ ë‹¹ì‹ ì˜ ê½ƒì€ ' + flowerName + latin + ' ì…ë‹ˆë‹¤.';
-  }
-  return 'ì‚¬ì£¼ë¡œ ë³¼ ë•Œ ë‹¹ì‹ ì˜ ê½ƒì€ ' + flowerName + latin + ' ì…ë‹ˆë‹¤.';
-}
-
-function _dfElementLabelKo(raw) {
-  var map = {
-    wood: 'ëª©(æœ¨)',
-    fire: 'í™”(ç«)',
-    earth: 'í† (åœŸ)',
-    metal: 'ê¸ˆ(é‡‘)',
-    water: 'ìˆ˜(æ°´)',
-    Wood: 'ëª©(æœ¨)',
-    Fire: 'í™”(ç«)',
-    Earth: 'í† (åœŸ)',
-    Metal: 'ê¸ˆ(é‡‘)',
-    Water: 'ìˆ˜(æ°´)'
-  };
-  return map[String(raw || '').trim()] || String(raw || '').trim();
-}
-
-function _dfJohuLabel(raw) {
-  var v = String(raw || '').trim().toLowerCase();
-  if (!v) return 'íŒì • ëŒ€ê¸°';
-  if (v === 'hot' || v === 'warm') return 'ì˜¨ì¡°(æº«ç‡¥)';
-  if (v === 'cold' || v === 'cool') return 'í•œìŠµ(å¯’æ¿•)';
-  if (v === 'temperate' || v === 'balanced') return 'ì¤‘í™”(ä¸­å’Œ)';
-  return String(raw || '').trim();
-}
-
-function _dfJoinElementLabels(list) {
-  var arr = _dfToArray(list).map(_dfElementLabelKo).filter(Boolean);
-  return arr.length ? arr.join(' Â· ') : 'íŒì • ëŒ€ê¸°';
-}
-
-function _dfNormalizeSukuyoMansionLabel(raw) {
-  var text = String(raw || '').trim();
-  if (!text) return '';
-  text = text.replace(/^ìˆ™\s+/, '').trim();
-  if (text.indexOf('Â·') >= 0) text = text.split('Â·')[0].trim();
-  if (text.indexOf('|') >= 0) text = text.split('|')[0].trim();
-  return text;
-}
-
-function _dfNormalizeSukuyoGroupLabel(raw) {
-  var text = String(raw || '').trim();
-  if (!text) return '';
-  text = text.replace(/^ê·¸ë£¹\s+/, '').trim();
-  if (/ê·¸ë£¹$/.test(text)) return text;
-  text = text.replace(/ìˆ™$/, '').trim();
-  return text ? (text + ' ê·¸ë£¹') : '';
-}
-
-function _dfGetSajuBadges(selection) {
-  var saved = selection && selection.saju_badges;
-  if (saved && typeof saved === 'object' && saved.mode === 'sukuyo') {
-    return {
-      mode: 'sukuyo',
-      mansion: _dfNormalizeSukuyoMansionLabel(saved.mansion) || 'ë¯¸í™•ì¸',
-      group: _dfNormalizeSukuyoGroupLabel(saved.group || ''),
-      phase: saved.phase || 'ë¯¸í™•ì¸',
-      guardian: saved.guardian || 'ë¯¸í™•ì¸'
-    };
-  }
-  if (saved && typeof saved === 'object' && saved.mode === 'jamidusu') {
-    return {
-      mode: 'jamidusu',
-      star: saved.star || 'ë¯¸í™•ì¸',
-      brightness: saved.brightness || 'ë¯¸í™•ì¸',
-      palace: saved.palace || 'ë¯¸í™•ì¸'
-    };
-  }
-  if (saved && typeof saved === 'object' && saved.mode === 'astrology') {
-    return {
-      mode: 'astrology',
-      sun: saved.sun || 'ë¯¸í™•ì¸',
-      rising: saved.rising || 'ë¯¸í™•ì¸',
-      moon: saved.moon || 'ë¯¸í™•ì¸'
-    };
-  }
-  if (saved && typeof saved === 'object' && saved.mode !== 'astrology') {
-    return {
-      mode: 'saju',
-      strength: saved.strength || 'íŒì • ëŒ€ê¸°',
-      yongshin: saved.yongshin || 'íŒì • ëŒ€ê¸°',
-      johu: saved.johu || 'íŒì • ëŒ€ê¸°'
-    };
-  }
-
-  var matched = selection && selection.matched ? selection.matched : {};
-  if ((selection && selection.source === 'sukuyo') || matched.source === 'sukuyo') {
-    var sy = matched.sukuyo || {};
-    return {
-      mode: 'sukuyo',
-      mansion: _dfNormalizeSukuyoMansionLabel(sy.mansion_name) || 'ë¯¸í™•ì¸',
-      group: _dfNormalizeSukuyoGroupLabel(sy.group || ''),
-      phase: sy.moon_phase || (matched.visual_intensity && matched.visual_intensity.moon_label) || 'ë¯¸í™•ì¸',
-      guardian: sy.guardian_animal || 'ë¯¸í™•ì¸'
-    };
-  }
-  if ((selection && selection.source === 'jamidusu') || matched.source === 'jamidusu') {
-    var ziwei = matched.ziwei || {};
-    var stars = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('Â·') : '';
-    return {
-      mode: 'jamidusu',
-      star: stars || 'ë¯¸í™•ì¸',
-      brightness: ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || 'ë¯¸í™•ì¸',
-      palace: ziwei.palace || 'ë¯¸í™•ì¸'
-    };
-  }
-  if ((selection && selection.source === 'astrology') || matched.source === 'astrology') {
-    var chart = matched.chart || {};
-    return {
-      mode: 'astrology',
-      sun: chart.sun_sign || 'ë¯¸í™•ì¸',
-      rising: chart.rising_sign || 'ë¯¸í™•ì¸',
-      moon: chart.moon_sign || 'ë¯¸í™•ì¸'
-    };
-  }
-
-  var payload = selection && selection.payload ? selection.payload : {};
-  var analysis = payload.analysis || {};
-  var saju = payload.saju || {};
-
-  var strength = '';
-  if (analysis.power_label) strength = String(analysis.power_label);
-  else if (saju.power_label) strength = String(saju.power_label);
-  else if (typeof analysis.isStrong === 'boolean') strength = analysis.isStrong ? 'ì‹ ê°•' : 'ì‹ ì•½';
-  else if (typeof saju.is_strong === 'boolean') strength = saju.is_strong ? 'ì‹ ê°•' : 'ì‹ ì•½';
-  else strength = 'íŒì • ëŒ€ê¸°';
-
-  var yongshin = _dfJoinElementLabels(saju.yongshin_elements || analysis.yongshin_elements || []);
-  var johu = _dfJohuLabel(saju.johu_type || saju.johuType || analysis.johuType || analysis.johu_type || '');
-
-  return {
-    mode: 'saju',
-    strength: strength,
-    yongshin: yongshin,
-    johu: johu
-  };
-}
-
-function _dfGetUnifiedStageContent(selection) {
-  var source = _dfNormalizeSource(selection && selection.source);
-  var matched = (selection && selection.matched) || {};
-  var flowerData = (selection && selection.flowerData) || matched.flower_data || {};
-  var badges = _dfGetSajuBadges(selection || {});
-
-  if (source === 'astrology') {
-    return {
-      badge1: 'íƒœì–‘ê¶ ' + (badges.sun || 'ë¯¸í™•ì¸'),
-      badge2: 'ìƒìŠ¹ê¶ ' + (badges.rising || 'ë¯¸í™•ì¸'),
-      badge3: 'ë‹¬ê¶ ' + (badges.moon || 'ë¯¸í™•ì¸'),
-      scenarioTitle: matched.astro_verdict || matched.narrative || 'ì ì„±ìˆ  ë³„ìë¦¬ ê°œí™” ì‹œë‚˜ë¦¬ì˜¤ë¥¼ ê³„ì‚° ì¤‘ì…ë‹ˆë‹¤.',
-      dataLine: (flowerData.focus_signal || 'ì°¨íŠ¸ ì‹œê·¸ë„ ëŒ€ê¸°') + ' Â· ' + (flowerData.ritual_tip || 'ì„±ìš´ ë¦¬ë“¬ì„ ì •ë ¬ ì¤‘ì…ë‹ˆë‹¤.'),
-      symbolism: matched.astro_verdict || matched.narrative || ''
-    };
-  }
-
-  if (source === 'jamidusu') {
-    return {
-      badge1: 'ì˜¤ëŠ˜ì˜ ê°•í•œ ë³„ ' + (badges.star || 'ë¯¸í™•ì¸'),
-      badge2: 'ë³„ ë°ê¸° ' + (badges.brightness || 'ë¯¸í™•ì¸'),
-      badge3: 'ê¶ìœ„ ' + (badges.palace || 'ë¯¸í™•ì¸'),
-      scenarioTitle: matched.jamidusu_verdict || matched.narrative || 'ìë¯¸ë‘ìˆ˜ ì£¼ì„± ê°œí™” ì‹œë‚˜ë¦¬ì˜¤ë¥¼ ê³„ì‚° ì¤‘ì…ë‹ˆë‹¤.',
-      dataLine: (flowerData.focus_signal || 'ì£¼ì„± ì‹œê·¸ë„ ëŒ€ê¸°') + ' Â· ' + (flowerData.ritual_tip || 'ì œì™•ì˜ ê¸°ìš´ì„ ì¡°ìœ¨ ì¤‘ì…ë‹ˆë‹¤.'),
-      symbolism: matched.jamidusu_verdict || matched.narrative || ''
-    };
-  }
-
-  if (source === 'sukuyo') {
-    return {
-      badge1: badges.mansion || 'ë¯¸í™•ì¸',
-      badge2: 'ë‹¬ ìœ„ìƒ ' + (badges.phase || 'ë¯¸í™•ì¸'),
-      badge3: 'ìˆ˜í˜¸ë™ë¬¼ ' + (badges.guardian || 'ë¯¸í™•ì¸'),
-      scenarioTitle: matched.sukuyo_verdict || matched.narrative || 'ìˆ™ìš” ë‹¬ë¹› ê°œí™” ì‹œë‚˜ë¦¬ì˜¤ë¥¼ ê³„ì‚° ì¤‘ì…ë‹ˆë‹¤.',
-      dataLine: (flowerData.focus_signal || 'ìˆ™ìš” ì‹œê·¸ë„ ëŒ€ê¸°') + ' Â· ' + (flowerData.ritual_tip || 'ë‹¬ì˜ ë¦¬ë“¬ì„ ë™ê¸°í™” ì¤‘ì…ë‹ˆë‹¤.'),
-      symbolism: matched.sukuyo_verdict || matched.narrative || ''
-    };
-  }
-
-  return {
-    badge1: flowerData.day_master_badge || 'ì¼ê°„ íŒë… ëŒ€ê¸°',
-    badge2: (flowerData.season_label || 'ê³„ì ˆ') + ' ê²°',
-    badge3: (flowerData.environment_label || 'í™˜ê²½') + ' ë¬´ë“œ',
-    scenarioTitle: flowerData.scenario_title || 'ì¼ê°„-í™˜ê²½ ê°œí™” ì‹œë‚˜ë¦¬ì˜¤ë¥¼ ê³„ì‚° ì¤‘ì…ë‹ˆë‹¤.',
-    dataLine: (flowerData.ritual_tip || '') + ((flowerData.ritual_tip && flowerData.focus_signal) ? ' Â· ' : '') + (flowerData.focus_signal || 'ê½ƒ ë°ì´í„° ì‹œíŠ¸ë¥¼ ì¤€ë¹„ ì¤‘ì…ë‹ˆë‹¤.'),
-    symbolism: flowerData.scenario_reason || ''
-  };
-}
-
-function _dfAnimateUnifiedCardSwitch(card, selection) {
-  if (!card || !selection) return;
-  var syncCardHeight = function() {
-    if (typeof syncFeatureCardHeight === 'function') {
-      syncFeatureCardHeight(card);
-    }
-  };
-  var stage = card.querySelector('.destiny-flower-stage');
-  if (!stage) {
-    _dfApplyCardVisual(card, selection);
-    syncCardHeight();
-    return;
-  }
-  syncCardHeight();
-  if (card.__dfSwitchTimer) clearTimeout(card.__dfSwitchTimer);
-  stage.classList.remove('is-switching-in', 'is-switching-out', 'is-switching');
-  stage.classList.add('is-switching', 'is-switching-out');
-  card.__dfSwitchTimer = setTimeout(function() {
-    _dfApplyCardVisual(card, selection);
-    syncCardHeight();
-    stage.classList.remove('is-switching-out');
-    stage.classList.add('is-switching-in');
-    setTimeout(function() {
-      stage.classList.remove('is-switching-in', 'is-switching');
-      syncCardHeight();
-    }, 390);
-  }, 170);
-}
-
-function _dfBurstButtonPetals(button) {
-  if (!button || !button.getBoundingClientRect) return;
-  var count = 7;
-  for (var i = 0; i < count; i++) {
-    var petal = document.createElement('span');
-    petal.className = 'df-click-petal';
-    var dx = (Math.random() * 42 - 21).toFixed(1) + 'px';
-    var dy = (-18 - Math.random() * 34).toFixed(1) + 'px';
-    var dr = (Math.random() * 80 - 40).toFixed(1) + 'deg';
-    petal.style.setProperty('--dx', dx);
-    petal.style.setProperty('--dy', dy);
-    petal.style.setProperty('--dr', dr);
-    petal.style.left = (24 + Math.random() * 52).toFixed(2) + '%';
-    petal.style.top = (36 + Math.random() * 34).toFixed(2) + '%';
-    button.appendChild(petal);
-    setTimeout(function(node) {
-      if (node && node.parentNode) node.parentNode.removeChild(node);
-    }, 920, petal);
-  }
-}
-
-function _dfBindBloomingInteractions() {
-  if (window.__dfBloomBound) return;
-  window.__dfBloomBound = true;
-
-  document.addEventListener('click', function(e) {
-    var target = e.target && e.target.closest ? e.target.closest('.df-bloom-btn') : null;
-    if (!target) return;
-    _dfBurstButtonPetals(target);
-  });
-
-  var card = document.querySelector('.feature-card.feature-card--destiny-flower');
-  if (!card || card.__dfHoverBound) return;
-  card.__dfHoverBound = true;
-
-  card.addEventListener('mousemove', function(e) {
-    var rect = card.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    var nx = (e.clientX - rect.left) / rect.width;
-    var ny = (e.clientY - rect.top) / rect.height;
-    var tiltY = ((nx - 0.5) * 5.6).toFixed(2) + 'deg';
-    var tiltX = ((0.5 - ny) * 4.6).toFixed(2) + 'deg';
-    card.style.setProperty('--df-tilt-x', tiltX);
-    card.style.setProperty('--df-tilt-y', tiltY);
-  });
-  card.addEventListener('mouseleave', function() {
-    card.style.setProperty('--df-tilt-x', '0deg');
-    card.style.setProperty('--df-tilt-y', '0deg');
-  });
-}
-
-function _dfRunIntroBloom() {
-  var card = document.querySelector('.feature-card.feature-card--destiny-flower');
-  if (!card || card.classList.contains('is-intro-bloom')) return;
-  card.classList.add('is-intro-bloom');
-  setTimeout(function() {
-    card.classList.remove('is-intro-bloom');
-  }, 1800);
-}
-
-function _dfRenderSajuBadges(selection) {
-  var wrap = document.getElementById('dfStudioSajuBadges');
-  if (!wrap) return;
-
-  var badges = _dfGetSajuBadges(selection);
-  var rows = badges.mode === 'sukuyo'
-    ? [
-      { cls: 'is-strength', label: 'ìˆ™', value: badges.mansion },
-      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.001"), value: badges.phase },
-      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.002"), value: badges.guardian }
-    ]
-    : (badges.mode === 'jamidusu'
-      ? [
-        { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: badges.star },
-        { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: badges.brightness },
-        { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: badges.palace }
-      ]
-      : (badges.mode === 'astrology'
-        ? [
-          { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.006"), value: badges.sun },
-          { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.007"), value: badges.rising },
-          { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.008"), value: badges.moon }
-        ]
-        : [
-          { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.009"), value: badges.strength },
-          { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.010"), value: badges.yongshin },
-          { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.011"), value: badges.johu }
-        ]));
-
-  wrap.innerHTML = rows.map(function(row) {
-    return '<span class="df-saju-badge ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>' + _dfEscapeHtml(row.value || 'íŒì • ëŒ€ê¸°') + '</em></span>';
-  }).join('');
-}
-
-function _dfFormatSavedAt(ts) {
-  var d = new Date(ts || Date.now());
-  var y = d.getFullYear();
-  var m = String(d.getMonth() + 1).padStart(2, '0');
-  var day = String(d.getDate()).padStart(2, '0');
-  var hh = String(d.getHours()).padStart(2, '0');
-  var mm = String(d.getMinutes()).padStart(2, '0');
-  return y + '.' + m + '.' + day + ' ' + hh + ':' + mm;
-}
-
-function _dfBuildSnapshot(selection) {
-  if (!selection || !selection.flower) return null;
-  var flower = selection.flower;
-  var badges = _dfGetSajuBadges(selection);
-  var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || null;
-  var matched = selection.matched || {};
-  return {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-    savedAt: Date.now(),
-    savedAtLabel: _dfFormatSavedAt(Date.now()),
-    name: flower.name || 'Unknown flower',
-    scientific_name: flower.scientific_name || 'Unknown species',
-    symbolism: flower.symbolism || '',
-    keywords: _dfToArray(selection.keywords),
-    primary: selection.primary || '#f472b6',
-    secondary: selection.secondary || '#22d3ee',
-    particle_type: flower.particle_type || 'petal',
-    source: selection.source || 'saju',
-    astrology_chart: matched.chart || null,
-    ziwei_data: matched.ziwei || null,
-    sukuyo_data: matched.sukuyo || null,
-    visual_intensity: matched.visual_intensity || null,
-    day_master_badge: flowerData && flowerData.day_master_badge ? flowerData.day_master_badge : '',
-    flower_data: flowerData,
-    saju_badges: badges,
-    saju_verdict: _dfGetSajuVerdict(selection),
-    narrative: (selection.matched && selection.matched.narrative) || '',
-    guidance: flower.vibe_message || 'ì˜¤ëŠ˜ì€ ê²°ê³¼ë³´ë‹¤ ë¦¬ë“¬ì„ ë¨¼ì € ë§ì¶”ë©´ ê°œí™” ì†ë„ê°€ ë¹¨ë¼ì§‘ë‹ˆë‹¤.'
-  };
-}
-
-function _dfSelectionFromSnapshot(snapshot) {
-  var keywords = _dfToArray(snapshot && snapshot.keywords);
-  var savedBadges = (snapshot && snapshot.saju_badges && typeof snapshot.saju_badges === 'object') ? snapshot.saju_badges : null;
-  return {
-    source: (snapshot && snapshot.source) || 'saju',
-    matched: {
-      narrative: (snapshot && snapshot.narrative) || '',
-      saju_verdict: (snapshot && snapshot.saju_verdict) || '',
-      flower_data: (snapshot && snapshot.flower_data) || null,
-      chart: (snapshot && snapshot.astrology_chart) || null,
-      ziwei: (snapshot && snapshot.ziwei_data) || null,
-      sukuyo: (snapshot && snapshot.sukuyo_data) || null,
-      visual_intensity: (snapshot && snapshot.visual_intensity) || null
-    },
-    flower: {
-      name: (snapshot && snapshot.name) || 'Unknown flower',
-      scientific_name: (snapshot && snapshot.scientific_name) || 'Unknown species',
-      symbolism: (snapshot && snapshot.symbolism) || '',
-      keywords: keywords,
-      particle_type: (snapshot && snapshot.particle_type) || 'petal',
-      vibe_message: (snapshot && snapshot.guidance) || ''
-    },
-    primary: (snapshot && snapshot.primary) || '#f472b6',
-    secondary: (snapshot && snapshot.secondary) || '#22d3ee',
-    keywords: keywords,
-    flowerData: (snapshot && snapshot.flower_data) || null,
-    saju_badges: savedBadges
-  };
-}
-
-function _dfLoadHistory() {
-  try {
-    var raw = localStorage.getItem(_DF_STUDIO_HISTORY_KEY);
-    var parsed = raw ? JSON.parse(raw) : [];
-    _dfStudioState.history = Array.isArray(parsed) ? parsed.slice(0, _DF_STUDIO_HISTORY_LIMIT) : [];
-  } catch (e) {
-    _dfStudioState.history = [];
-  }
-  return _dfStudioState.history;
-}
-
-function _dfPersistHistory() {
-  try {
-    localStorage.setItem(_DF_STUDIO_HISTORY_KEY, JSON.stringify(_dfStudioState.history.slice(0, _DF_STUDIO_HISTORY_LIMIT)));
-  } catch (e) {
-    console.warn('[DestinyFlower] íˆìŠ¤í† ë¦¬ ì €ì¥ ì‹¤íŒ¨:', e);
-  }
-}
-
-function _dfHasReadySourceData(source, payload) {
-  var normalized = _dfNormalizeSource(source);
-  var data = payload && typeof payload === 'object' ? payload : {};
-  if (normalized === 'saju') {
-    var hasEngineMatcher = !!(
-      (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')
-      || typeof window.matchDestinyFlower === 'function'
-    );
-    if (!hasEngineMatcher) return false;
-
-    var saju = data.saju || {};
-    var sajuDomain = (data.domains && data.domains.saju) || {};
-    var analysis = data.analysis || {};
-    var dayMaster = String(
-      saju.dayMaster
-      || saju.day_master
-      || saju.ilgan
-      || sajuDomain.day_master
-      || sajuDomain.dayMaster
-      || analysis.day_master
-      || analysis.dayMaster
-      || ''
-    ).trim();
-
-    var hasPillar = !!(
-      String(saju.yearPillar || sajuDomain.year_pillar || '').trim()
-      || String(saju.monthPillar || sajuDomain.month_pillar || '').trim()
-      || String(saju.dayPillar || sajuDomain.day_pillar || '').trim()
-      || String(saju.hourPillar || sajuDomain.hour_pillar || '').trim()
-    );
-
-    var weights = analysis.elementalWeights || analysis.elements || saju.elementalWeights || saju.elements || {};
-    var values = ['wood', 'fire', 'earth', 'metal', 'water'].map(function(key) {
-      return Number(weights && weights[key]);
-    }).filter(function(v) {
-      return Number.isFinite(v);
-    });
-    var hasNonDefaultWeights = false;
-    if (values.length === 5) {
-      var allSame = values.every(function(v) { return Math.abs(v - values[0]) < 0.05; });
-      var looksDefault = allSame && Math.abs(values[0] - 20) < 0.2;
-      hasNonDefaultWeights = !looksDefault;
-    }
-
-    return !!(dayMaster || hasPillar || hasNonDefaultWeights);
-  }
-
-  if (normalized === 'astrology') {
-    var astrology = data.astrology || {};
-    var astroDomain = (data.domains && data.domains.astrology) || {};
-    var sun = _dfNormalizeAstroSign(astrology.sunSign || astrology.sun_sign || astroDomain.sun_sign || '');
-    var moon = _dfNormalizeAstroSign(astrology.moonSign || astrology.moon_sign || astroDomain.moon_sign || '');
-    var rising = _dfNormalizeAstroSign(astrology.risingSign || astrology.rising_sign || astroDomain.rising_sign || '');
-    return !!(sun || moon || rising);
-  }
-
-  if (normalized === 'jamidusu') {
-    var ziwei = data.ziwei || {};
-    var ziweiDomain = (data.domains && data.domains.ziwei) || {};
-    var mainStar = String(ziwei.mainStar || ziwei.main_star || ziweiDomain.main_star || '').trim();
-    var palace = String(ziwei.palace || ziwei.mainPalace || ziweiDomain.palace || '').trim();
-    var stars = Array.isArray(ziwei.stars) ? ziwei.stars : (Array.isArray(ziweiDomain.stars) ? ziweiDomain.stars : []);
-    return !!(mainStar || palace || stars.length);
-  }
-
-  if (normalized === 'sukuyo') {
-    var sukuyo = data.sukuyo || {};
-    var sukuyoDomain = (data.domains && data.domains.sukuyo) || {};
-    var mansion = String(sukuyo.mansion || sukuyo.name || sukuyoDomain.mansion || '').trim();
-    var idx = Number(sukuyo.mansionIndex || sukuyo.index || sukuyoDomain.mansion_index);
-    return !!(mansion || Number.isFinite(idx));
-  }
-
-  return true;
-}
-
-function _dfHasBirthInfo(payload) {
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  return _dfHasBirthCore(birthCtx);
-}
-
-function _dfGetNoDomainDataMessage(source) {
-  var normalized = _dfNormalizeSource(source);
-  var label = _dfGetSourceLabel(normalized);
-  return 'ì•„ì§ ì—°ë™ëœ ' + label + ' ë°ì´í„°ê°€ ì—†ì–´ìš”. ì•„ë˜ ë²„íŠ¼ì„ ëˆ„ë¥´ë©´ ì§€ê¸ˆ ë‹¹ì‹ ë§Œì˜ ìš´ëª…ì˜ ê½ƒì´ í”¼ì–´ë‚©ë‹ˆë‹¤.';
-}
-
-function _dfGetNotLinkedMessage(source) {
-  var normalized = _dfNormalizeSource(source);
-  var label = _dfGetSourceLabel(normalized);
-  return label + ' ê½ƒì€ ì—°ë™í•˜ê¸° ë²„íŠ¼ì„ ëˆ„ë¥´ëŠ” ìˆœê°„ í”¼ì–´ë‚©ë‹ˆë‹¤. ì•„ë˜ ë²„íŠ¼ì„ ëˆŒëŸ¬ ì§€ê¸ˆ ë‹¹ì‹ ì—ê²Œ ì˜¨ í•œ ì†¡ì´ë¥¼ ë§Œë‚˜ë³´ì„¸ìš”.';
-}
-
-function _dfCanShowLoadButton(source, missingDomain) {
-  var normalized = _dfNormalizeSource(source);
-  var linked = _dfIsSourceLinked(normalized);
-  return !linked || !!missingDomain;
-}
-
-function _dfGetDataMissingUiState(source) {
-  var normalized = _dfNormalizeSource(source);
-  var payload = _dfGetProfilePayload({ skipLiveBridge: true }) || {};
-
-  if (!_dfHasBirthInfo(payload)) {
-    return {
-      message: _dfGetNoBirthMessage(normalized),
-      showLoadButton: false,
-      source: normalized
-    };
-  }
-
-  if (!_dfIsSourceLinked(normalized)) {
-    return {
-      message: _dfGetNotLinkedMessage(normalized),
-      showLoadButton: true,
-      source: normalized
-    };
-  }
-
-  var missingDomain = !_dfHasReadySourceData(normalized, payload);
-  return {
-    message: missingDomain ? _dfGetNoDomainDataMessage(normalized) : _dfGetNoBirthMessage(normalized),
-    showLoadButton: _dfCanShowLoadButton(normalized, missingDomain),
-    source: normalized
-  };
-}
-
-function _dfEnsureStudioEmptyState(main) {
-  if (!main) return null;
-  var emptyEl = main.querySelector('#dfStudioEmptyState');
-  if (emptyEl) {
-    var existingBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
-    if (existingBtn) _dfBindEmptyLoadButton(existingBtn);
-    return emptyEl;
-  }
-
-  emptyEl = document.createElement('section');
-  emptyEl.id = 'dfStudioEmptyState';
-  emptyEl.className = 'df-studio-empty';
-  emptyEl.hidden = true;
-  emptyEl.innerHTML = ''
-    + '<p id="dfStudioEmptyMessage" class="df-studio-empty-message"></p>'
-    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="' + _indexRuntimeText("indexRuntime.aria-label.002") + '">ìš´ëª…ì˜ ê½ƒ ì—°ë™í•˜ê¸°</button>';
-  main.appendChild(emptyEl);
-
-  var loadBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
-  if (loadBtn) _dfBindEmptyLoadButton(loadBtn);
-
-  return emptyEl;
-}
-
-function _dfBindEmptyLoadButton(loadBtn) {
-  if (!loadBtn || loadBtn.__dfBound) return;
-  loadBtn.__dfBound = true;
-  loadBtn.addEventListener('click', function() {
-    var source = loadBtn.getAttribute('data-df-source') || _dfStudioState.activeSource || 'saju';
-    _dfSetEmptyLoadButtonState(true, source, true);
-    _dfSetActiveSource(source);
-    _dfFetchSourceOnDemand(source, { force: true, userInitiated: true });
-  });
-}
-
-function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
-  var btn = document.getElementById('dfStudioEmptyLoadButton');
-  if (!btn) return;
-  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  var enable = !!canLoad;
-  btn.hidden = !enable || !!isLoading;
-  if (!enable) return;
-  btn.disabled = !!isLoading;
-  btn.classList.toggle('is-loading', !!isLoading);
-  btn.setAttribute('data-df-source', normalized);
-  btn.textContent = isLoading ? 'ì—°ë™ ì¤‘...' : 'ìš´ëª…ì˜ ê½ƒ ì—°ë™í•˜ê¸°';
-}
-
-function _dfShowStudioEmptyState(source, message, showLoadButton) {
-  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  var main = document.querySelector('.df-studio-main');
-  var panels = document.querySelector('.df-studio-panels');
-  var historySection = document.querySelector('.df-studio-history');
-  var narrativeEl = document.getElementById('dfStudioNarrative');
-  var badgesEl = document.getElementById('dfStudioSajuBadges');
-  var sourceDescEl = document.getElementById('dfStudioSourceDesc');
-  var nameEl = document.getElementById('dfStudioName');
-  var latinEl = document.getElementById('dfStudioLatin');
-  var dayMasterEl = document.getElementById('dfStudioDayMasterBadge');
-  var symbolismEl = document.getElementById('dfStudioSymbolism');
-  var keywordsEl = document.getElementById('dfStudioKeywords');
-
-  if (!main) return;
-  var emptyEl = _dfEnsureStudioEmptyState(main);
-  var messageEl = emptyEl ? emptyEl.querySelector('#dfStudioEmptyMessage') : null;
-
-  if (sourceDescEl) {
-    var meta = _DF_SOURCE_META[normalized] || _DF_SOURCE_META.saju;
-    sourceDescEl.textContent = meta.description || '';
-  }
-  if (narrativeEl) narrativeEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
-  if (nameEl) nameEl.textContent = _dfGetSourceLabel(normalized) + ' ë°ì´í„° ì—°ë™ ëŒ€ê¸°';
-  if (latinEl) latinEl.textContent = 'Data not linked';
-  if (dayMasterEl) dayMasterEl.textContent = _dfGetSourceLabel(normalized) + ' íŒë… ëŒ€ê¸°';
-  if (symbolismEl) symbolismEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
-  if (keywordsEl) keywordsEl.textContent = _dfGetSourceLabel(normalized) + ' keywords Â· loading';
-  if (badgesEl) badgesEl.style.display = 'none';
-
-  if (messageEl) messageEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
-  if (emptyEl) emptyEl.hidden = false;
-  main.classList.add('is-empty');
-  main.style.display = '';
-  if (panels) panels.style.display = 'none';
-  if (historySection) historySection.style.display = 'none';
-
-  _dfSetEmptyLoadButtonState(_dfStudioState.loadingSource === normalized, normalized, !!showLoadButton);
-}
-
-function _dfHideStudioEmptyState() {
-  var main = document.querySelector('.df-studio-main');
-  var panels = document.querySelector('.df-studio-panels');
-  var historySection = document.querySelector('.df-studio-history');
-  var badgesEl = document.getElementById('dfStudioSajuBadges');
-  if (!main) return;
-  var emptyEl = main.querySelector('#dfStudioEmptyState');
-  if (emptyEl) emptyEl.hidden = true;
-  main.classList.remove('is-empty');
-  if (badgesEl) badgesEl.style.display = '';
-  if (panels) panels.style.display = '';
-  if (historySection) historySection.style.display = '';
-}
-
-function _dfRefreshStudioForSource(source, forceRefresh) {
-  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  var selection = _dfGetUnifiedSelection(normalized, !!forceRefresh);
-  _dfStudioState.selection = selection;
-
-  if (!selection) {
-    var emptyState = _dfGetDataMissingUiState(normalized);
-    _dfShowStudioEmptyState(normalized, emptyState.message, emptyState.showLoadButton);
-    _dfSetStudioStatus(emptyState.message, {
-      showLoadButton: emptyState.showLoadButton,
-      source: normalized
-    });
-    return null;
-  }
-
-  _dfApplyStudioSelection(selection);
-  _dfHideStudioEmptyState();
-  var main = document.querySelector('.df-studio-main');
-  if (main) main.style.display = '';
-  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' ê²°ê³¼ë¥¼ ì €ì¥í•˜ê±°ë‚˜ ì¹´ì¹´ì˜¤í†¡ìœ¼ë¡œ ê³µìœ í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.');
-  return selection;
-}
-
-function _dfReloadSourceData(source, options) {
-  var opts = options && typeof options === 'object' ? options : {};
-  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  if (!opts.silentStatus) {
-    _dfSetStudioStatus('ë°ì´í„°ë¥¼ ë‹¤ì‹œ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘ì…ë‹ˆë‹¤. ì ì‹œë§Œ ê¸°ë‹¤ë ¤ì£¼ì„¸ìš”.');
-  }
-
-  var loader = Promise.resolve(true);
-  if (!(window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')) {
-    loader = loader.then(function() {
-      return import('/js/core/bootstrapDestinyFlower.js').then(function(mod) {
-        if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
-          mod.bootstrapDestinyFlower(window);
-        }
-        return true;
-      }).catch(function(err) {
-        console.warn('[DestinyFlower] ì—”ì§„ ë¶€íŠ¸ìŠ¤íŠ¸ë© ì‹¤íŒ¨:', err);
-        return false;
-      });
-    });
-  }
-
-  if (typeof __cdEnsureLunarLibReady === 'function') {
-    loader = loader.then(function() {
-      return __cdEnsureLunarLibReady().catch(function(err) {
-        console.warn('[DestinyFlower] ìŒë ¥ ë¼ì´ë¸ŒëŸ¬ë¦¬ ë¡œë“œ ì‹¤íŒ¨:', err);
-        return false;
-      });
-    });
-  }
-
-  if (normalized === 'astrology' && typeof __cdEnsureSwissEphLoaded === 'function') {
-    loader = loader.then(function() {
-      __cdEnsureSwissEphLoaded().catch(function(err) {
-        console.warn('[DestinyFlower] SwissEph ë¡œë“œ ì‹¤íŒ¨:', err);
-        return false;
-      });
-      return true;
-    });
-  }
-
-  if (typeof __cdEnsureSajuCoreLoaded === 'function') {
-    loader = loader.then(function() {
-      return __cdEnsureSajuCoreLoaded().catch(function(err) {
-        console.warn('[DestinyFlower] ë°ì´í„° ë¡œë“œ ì¤€ë¹„ ì‹¤íŒ¨:', err);
-        return false;
-      });
-    });
-  }
-
-  return loader.then(function() {
-    if (normalized === 'saju') {
-      try {
-        if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
-          var currentProfile = window.DestinyProfileManager.storage.current() || {};
-          if (currentProfile && currentProfile.birth && typeof window.computeProfileForModal === 'function') {
-            window.computeProfileForModal(currentProfile);
-          }
-        }
-      } catch (e2) {
-        console.warn('[DestinyFlower][Saju] pre-resolve recompute failed:', e2);
-      }
-    }
-    _dfStudioState.flowerData = null;
-    if (opts.skipUiRefresh) {
-      return _dfGetUnifiedSelection(normalized, true);
-    }
-    return _dfRefreshStudioForSource(normalized, true);
-  });
-}
-
-function _dfFetchSourceOnDemand(source, options) {
-  var opts = options && typeof options === 'object' ? options : {};
-  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  if (_dfStudioState.userRequestedLoad && (opts.force || opts.userInitiated)) {
-    _dfStudioState.userRequestedLoad[normalized] = true;
-  }
-  var state = _dfGetDataMissingUiState(normalized);
-  if (!state.showLoadButton && !opts.force) {
-    _dfSetStudioStatus(state.message, {
-      showLoadButton: state.showLoadButton,
-      source: normalized
-    });
-    return Promise.resolve(null);
-  }
-
-  if (_dfStudioState.loadingTasks && _dfStudioState.loadingTasks[normalized]) {
-    return _dfStudioState.loadingTasks[normalized];
-  }
-
-  _dfStudioState.loadingSource = normalized;
-  _dfSetEmptyLoadButtonState(true, normalized, true);
-
-  if (!opts.silentStatus) {
-    _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' ë°ì´í„°ë¥¼ ì—°ë™ ì¤‘ì…ë‹ˆë‹¤. ì ì‹œë§Œ ê¸°ë‹¤ë ¤ì£¼ì„¸ìš”.', {
-      showLoadButton: true,
-      source: normalized,
-      isLoading: true
-    });
-  }
-
-  var task = _dfReloadSourceData(normalized, {
-    silentStatus: true,
-    skipUiRefresh: true
-  }).then(function(selection) {
-    if (selection) {
-      _dfSetActiveSource(normalized);
-      if (_dfStudioState.linkedSources) _dfStudioState.linkedSources[normalized] = true;
-      // í´ë¦­ìœ¼ë¡œ ì–»ì€ 1ì°¨ ê²°ê³¼ë¥¼ ê·¸ëŒ€ë¡œ ë°˜ì˜í•´ì•¼ fallback í”Œë˜ê·¸ ì†Œê±° í›„
-      // ì¬ê³„ì‚°(null)ë¡œ ë®ì–´ì¨ì§€ëŠ” íšŒê·€ë¥¼ ë§‰ì„ ìˆ˜ ìˆë‹¤.
-      _dfStudioState.selection = selection;
-      _dfApplyStudioSelection(selection);
-      _dfHideStudioEmptyState();
-      var main = document.querySelector('.df-studio-main');
-      if (main) main.style.display = '';
-      _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' ë°ì´í„°ë¥¼ ë¶ˆëŸ¬ì™”ìŠµë‹ˆë‹¤.');
-      return selection;
-    }
-
-    var retryState = _dfGetDataMissingUiState(normalized);
-    if (normalized === 'saju') {
-      console.error('[DestinyFlower][Saju] linkage failed: on-demand reload returned no selection', {
-        stateMessage: retryState && retryState.message,
-        showLoadButton: !!(retryState && retryState.showLoadButton)
-      });
-    }
-    _dfSetStudioStatus(retryState.message, {
-      showLoadButton: retryState.showLoadButton,
-      source: retryState.source
-    });
-    return null;
-  }).finally(function() {
-    if (_dfStudioState.loadingTasks) delete _dfStudioState.loadingTasks[normalized];
-    if (_dfStudioState.loadingSource === normalized) _dfStudioState.loadingSource = '';
-    if (_dfStudioState.userRequestedLoad) _dfStudioState.userRequestedLoad[normalized] = false;
-    var latestState = _dfGetDataMissingUiState(normalized);
-    _dfSetEmptyLoadButtonState(false, normalized, latestState.showLoadButton);
-  });
-
-  _dfStudioState.loadingTasks[normalized] = task;
-  return task;
-}
-
-function _dfSetStudioStatus(message, options) {
-  var el = document.getElementById('dfStudioStatus');
-  var text = message || '';
-  var flowGuide = _dfBuildSourceFlowGuide();
-  if (flowGuide) {
-    text = text ? (text + ' Â· ' + flowGuide) : flowGuide;
-  }
-  if (el) el.textContent = text;
-  if (options && options.showLoadButton) {
-    var source = _dfNormalizeSource(options.source || _dfStudioState.activeSource || 'saju');
-    var state = _dfGetDataMissingUiState(source);
-    _dfSetEmptyLoadButtonState(
-      !!options.isLoading || _dfStudioState.loadingSource === source,
-      source,
-      !!state.showLoadButton
-    );
-  }
-}
-
-function _dfEscapeHtml(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function _dfBuildShareText(snapshot) {
-  if (!snapshot) return 'ìš´ëª…ì˜ ê½ƒ ê²°ê³¼ë¥¼ ì¤€ë¹„ ì¤‘ì…ë‹ˆë‹¤.';
-  var sourceLabel = snapshot.source === 'sukuyo'
-    ? 'ìˆ™ìš”ì '
-    : (snapshot.source === 'jamidusu' ? 'ìë¯¸ë‘ìˆ˜' : (snapshot.source === 'astrology' ? 'ì ì„±ìˆ ' : 'ì‚¬ì£¼'));
-  var sajuVerdict = snapshot.saju_verdict || (sourceLabel + 'ë¡œ ë³¼ ë•Œ ë‹¹ì‹ ì˜ ê½ƒì€ ' + snapshot.name + ' ì…ë‹ˆë‹¤.');
-  var lines = [
-    'ğŸŒ¸ ìš´ëª…ì˜ ê½ƒ ì•„í‹€ë¦¬ì— ê²°ê³¼',
-    '',
-    sajuVerdict,
-    snapshot.name + ' (' + snapshot.scientific_name + ')',
-    snapshot.day_master_badge ? ((snapshot.source === 'astrology' ? 'ì°¨íŠ¸ ë°°ì§€: ' : (snapshot.source === 'jamidusu' ? 'ì£¼ì„± ë°°ì§€: ' : (snapshot.source === 'sukuyo' ? 'ìˆ™ìš” ë°°ì§€: ' : 'ì¼ê°„ ë°°ì§€: '))) + snapshot.day_master_badge) : '',
-    snapshot.symbolism,
-    'í‚¤ì›Œë“œ: ' + _dfToArray(snapshot.keywords).join(' â€¢ '),
-    'íŒ”ë ˆíŠ¸: ' + snapshot.primary + ' / ' + snapshot.secondary,
-    'ì…ì ë¬´ë“œ: ' + snapshot.particle_type
-  ];
-  if (snapshot.narrative) lines.push('', snapshot.narrative);
-  lines.push('', window.location.href);
-  return lines.join('\n');
-}
-
-function _dfOneLineText(value, fallback) {
-  var line = String(value || '').replace(/\s+/g, ' ').trim();
-  return line || (fallback || '');
-}
-
-function _dfGetSourceLabel(source) {
-  return source === 'sukuyo'
-    ? 'ìˆ™ìš”ì '
-    : (source === 'jamidusu' ? 'ìë¯¸ë‘ìˆ˜' : (source === 'astrology' ? 'ì ì„±ìˆ ' : 'ì‚¬ì£¼'));
-}
-
-function _dfGetPromptArtDirection(source) {
-  if (source === 'astrology') {
-    return {
-      mood: 'ë³„ë¹› ì„±ìš´ê³¼ ë„¤ì˜¨ ê¸€ë¡œìš°ê°€ ê°ë„ëŠ” ëª½í™˜ì  í”Œë¡œëŸ´',
-      lighting: 'moonlit rim light, cosmic dust volumetric light',
-      background: 'deep navy nebula sky with subtle zodiac traces',
-      composition: 'hero blossom centered, spiral petal motion, celestial particles'
-    };
-  }
-  if (source === 'jamidusu') {
-    return {
-      mood: 'ì œì™•ì˜ í’ˆê²©ê³¼ ê¶ì¤‘ì˜ ì •ì œë¯¸ê°€ ê³µì¡´í•˜ëŠ” í”Œë¡œëŸ´',
-      lighting: 'royal soft spotlight, silky ambient glow',
-      background: 'imperial jade and plum gradient with star map motif',
-      composition: 'symmetrical ceremonial bloom, layered velvet petals'
-    };
-  }
-  if (source === 'sukuyo') {
-    return {
-      mood: 'ë‹¬ë¹› ëª…ìƒê³¼ ê³ ìš”í•œ ìˆ˜ë©´ ê°™ì€ ì²­ëª…í•œ í”Œë¡œëŸ´',
-      lighting: 'silver moon halo, soft mist backlight',
-      background: 'midnight blue sky with lunar mansion orbit lines',
-      composition: 'single moon-bloom portrait, floating pollen and orbit arcs'
-    };
-  }
-  return {
-    mood: 'ì˜¤í–‰ì˜ ê²°ì„ ë”°ë¼ í”¼ì–´ë‚˜ëŠ” ì„œì •ì  ë™ì–‘ í”Œë¡œëŸ´',
-    lighting: 'soft dawn light, translucent petal glow',
-    background: 'seasonal gradient inspired by wood fire earth metal water',
-    composition: 'centered blossom portrait, elegant negative space, subtle petal drift'
-  };
-}
-
-function _dfAstroElementFromSign(sign) {
-  var v = String(sign || '').trim().toLowerCase();
-  if (!v) return '';
-  if (/aries|leo|sagittarius|ì–‘ìë¦¬|ì‚¬ììë¦¬|ì‚¬ìˆ˜ìë¦¬/.test(v)) return 'fire';
-  if (/taurus|virgo|capricorn|í™©ì†Œìë¦¬|ì²˜ë…€ìë¦¬|ì—¼ì†Œìë¦¬/.test(v)) return 'earth';
-  if (/gemini|libra|aquarius|ìŒë‘¥ì´ìë¦¬|ì²œì¹­ìë¦¬|ë¬¼ë³‘ìë¦¬/.test(v)) return 'air';
-  if (/cancer|scorpio|pisces|ê²Œìë¦¬|ì „ê°ˆìë¦¬|ë¬¼ê³ ê¸°ìë¦¬/.test(v)) return 'water';
-  return '';
-}
-
-function _dfExtractFiveElements(text) {
-  var src = String(text || '');
-  var list = [];
-  ['ëª©', 'í™”', 'í† ', 'ê¸ˆ', 'ìˆ˜'].forEach(function(el) {
-    if (src.indexOf(el) >= 0) list.push(el);
-  });
-  return list;
-}
-
-function _dfBuildYongshinCareLine(yongshinText) {
-  var careByElement = {
-    'ëª©': 'ì•„ì¹¨ í–‡ì‚´ì´ ë“œëŠ” ë™ìª½ ì°½ê°€ì—ì„œ 8ë¶„ ìŠ¤íŠ¸ë ˆì¹­ìœ¼ë¡œ ìƒì¥ì ì„ ê¹¨ìš°ê¸°',
-    'í™”': 'ë‚¨í–¥ ë¹›ì„ 5ë¶„ ì¬ë©° ì˜¤ëŠ˜ì˜ ëª©í‘œë¥¼ ì†Œë¦¬ ë‚´ì–´ ì„ ì–¸í•˜ê¸°',
-    'í† ': 'ì‘ì—… ê³µê°„ í•œ êµ¬ì—­ì„ ì •ë¦¬í•´ ì¤‘ì‹¬ ì¶•ì„ ë‹¨ë‹¨íˆ ì„¸ìš°ê¸°',
-    'ê¸ˆ': 'ìš°ì„ ìˆœìœ„ 3ê°€ì§€ë¥¼ ì ê³  ë¶ˆí•„ìš”í•œ ì•½ì†ì„ ê³¼ê°íˆ ê°€ì§€ì¹˜ê¸°',
-    'ìˆ˜': 'ì €ë… 10ë¶„ ì‚°ì±…ê³¼ ìˆ˜ë¶„ ë³´ì¶©ìœ¼ë¡œ ê°ì •ì˜ ìˆœí™˜ë¡œ ì—´ê¸°'
-  };
-  var elements = _dfExtractFiveElements(yongshinText);
-  if (!elements.length) {
-    return 'ë¹›(ì˜¤ì „)ê³¼ ìˆ˜ë¶„(ì €ë…) ë£¨í‹´ì„ ê³ ì •í•´ ê¸°ì´ˆ ìƒìœ¡ ë¦¬ë“¬ì„ ë¨¼ì € ì•ˆì •í™”í•˜ì„¸ìš”.';
-  }
-  return elements.slice(0, 2).map(function(el) {
-    return careByElement[el] || '';
-  }).filter(Boolean).join(' + ');
-}
-
-function _dfBuildSynergyPaletteText(source, primaryHex, secondaryHex) {
-  var primary = _dfSafeColor(primaryHex, '#f472b6');
-  var secondary = _dfSafeColor(secondaryHex, '#22d3ee');
-  var accent = _dfMixHex(primary, secondary, 0.5);
-  var materials = source === 'astrology'
-    ? 'ìœ ë¦¬ í™”ê¸°, ì‹¤ë²„ í”„ë ˆì„, ë¯¸ì„¸ ì¡°ëª…'
-    : (source === 'jamidusu'
-      ? 'ìƒˆí‹´ íŒ¨ë¸Œë¦­, ë¸Œë¡ ì¦ˆ ì˜¤ë¸Œì œ, ëŒ€ì¹­í˜• ì„¸ë¼ë¯¹'
-      : (source === 'sukuyo'
-        ? 'ì„œë¦¬ ìœ ë¦¬, ë‹¬ë¹› í†¤ ë¦°ë„¨, ë¬¼ê²° ë¬´ëŠ¬ íŠ¸ë ˆì´'
-        : 'ë¬´ê´‘ ì„¸ë¼ë¯¹, ë‚´ì¶”ëŸ´ ìš°ë“œ, ì”ì”í•œ íŒ¨í„´ íŒ¨ë¸Œë¦­'));
-  return 'ì¶”ì²œ ì»¬ëŸ¬: Primary ' + primary + ', Secondary ' + secondary + ', Accent ' + accent + ' / ì¶”ì²œ ì†Œì¬: ' + materials + '.';
-}
-
-function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sajuVerdict) {
-  var source = _dfNormalizeSource(selection && selection.source);
-  var flower = (selection && selection.flower) || {};
-  var primary = _dfSafeColor(selection && selection.primary, '#f472b6');
-  var secondary = _dfSafeColor(selection && selection.secondary, '#22d3ee');
-  var scenarioTitle = flowerData.scenario_title || (sourceLabel + ' ê°œí™” ì‹œë‚˜ë¦¬ì˜¤');
-  var growthCycle = flowerData.growth_cycle || 'ê°œí™” ì‚¬ì´í´ ê³„ì‚° ëŒ€ê¸°';
-  var ritualTip = flowerData.ritual_tip || 'ì˜¤ëŠ˜ì˜ ì‹¤ì²œ ë£¨í‹´ì„ ê³„ì‚° ì¤‘ì…ë‹ˆë‹¤.';
-  var relation = flowerData.relationship_theme || '';
-  var career = flowerData.career_theme || '';
-  var matrix = [];
-  var sectionTitle = '';
-  var observationLog = '';
-  var secretRecipe = '';
-  var flowerLanguage = '';
-  var gardenerWord = '';
-  var particleMood = '';
-
-  if (source === 'astrology') {
-    var sun = badges.sun || 'ë¯¸í™•ì¸';
-    var rising = badges.rising || sun;
-    var moon = badges.moon || sun;
-    var risingEl = _dfAstroElementFromSign(rising) || _dfAstroElementFromSign(sun) || 'air';
-    var moonEl = _dfAstroElementFromSign(moon) || risingEl;
-    var lighting = risingEl === 'fire'
-      ? 'í•œì—¬ë¦„ ì •ì˜¤ì²˜ëŸ¼ ê°ë„ê°€ ë†’ì€ ê°•ë ¬í•œ íƒœì–‘ê´‘'
-      : (risingEl === 'earth'
-        ? 'ëŠ¦ì€ ì˜¤í›„ì˜ í™©ê¸ˆë¹›ì´ ì˜¤ë˜ ë¨¸ë¬´ëŠ” ì•ˆì •í˜• ê´‘ëŸ‰'
-        : (risingEl === 'water'
-          ? 'ìƒˆë²½ë…˜ì˜ ì°¨ê°€ìš´ í‘¸ë¥¸ ë¹›ì´ ì²œì²œíˆ ë²ˆì§€ëŠ” ì¡°ë„'
-          : 'ë°”ëŒê²°ì²˜ëŸ¼ ê¸°ìš¸ì–´ì§„ ì‚¬ì„ ê´‘ì´ ê³µê°„ì„ ê°€ë³ê²Œ ì—¬ëŠ” ì¡°ë„'));
-    var humidity = moonEl === 'water'
-      ? 'ê°ì„± ìŠµë„ê°€ ë†’ì€ ì‹¤ë²„ ë¯¸ìŠ¤íŠ¸ ìƒíƒœ'
-      : (moonEl === 'fire'
-        ? 'ì—´ê¸°ë¥¼ í’ˆì€ ë“œë¼ì´ ì—ì–´, ê°ì • ë°˜ì‘ì´ ë¹ ë¥¸ ìƒíƒœ'
-        : (moonEl === 'earth'
-          ? 'ì•ˆì •ì ì¸ í† ë¶„ ìŠµë„, ê°ì •ì´ ì„œì„œíˆ ë†ìµëŠ” ìƒíƒœ'
-          : 'ê°€ë³ê³  ìœ ë™ì ì¸ ë¸Œë¦¬ì¦ˆ ìŠµë„, ì•„ì´ë””ì–´ê°€ ë¹ ë¥´ê²Œ í™˜ê¸°ë˜ëŠ” ìƒíƒœ'));
-    var cosmicSeason = risingEl === 'fire'
-      ? 'ê°œí™” ê°€ì†ê¸°: ì‹¤í–‰ê³¼ ë°œí‘œê°€ ê½ƒë´‰ì˜¤ë¦¬ë¥¼ ë°€ì–´ ì˜¬ë¦¬ëŠ” êµ¬ê°„'
-      : (risingEl === 'water'
-        ? 'ë‚´ë©´ ì–‘ë¶„ê¸°: íœ´ì‹ê³¼ ì§ê´€ì´ ë¿Œë¦¬ì¸µì„ ì±„ìš°ëŠ” êµ¬ê°„'
-        : 'ê· í˜• ì¡°ìœ¨ê¸°: êµ¬ì¡°ì™€ ê°ì„±ì´ êµì°¨í•˜ë©° ë‹¤ìŒ ê½ƒëˆˆì„ ì¤€ë¹„í•˜ëŠ” êµ¬ê°„');
-
-    sectionTitle = 'ì²œì²´ì˜ ì¡°ë„ì™€ ì—ë„ˆì§€';
-    matrix = [
-      'â˜€ï¸ ì²œì²´ì˜ ì¡°ë„: ' + lighting,
-      'ğŸ’§ ëŒ€ê¸°ì˜ ìŠµë„: ' + humidity,
-      'ğŸª ìš°ì£¼ì˜ ê³„ì ˆ: ' + cosmicSeason
-    ];
-    observationLog = 'ì •ì›ì‚¬ì˜ ê´€ì°° ì¼ì§€: íƒœì–‘ê¶ ' + sun + 'ì˜ ë°©í–¥ì„±ê³¼ ìƒìŠ¹ê¶ ' + rising + 'ì˜ ë¹›ì´ ê½ƒëŒ€ì˜ ê°ë„ë¥¼ ì¡ì•„ì¤ë‹ˆë‹¤. ë‹¬ê¶ ' + moon + 'ì˜ ìŠµë„ ì¡°ì ˆì´ ê°ì • ìë§¥ì„ ë¶€ë“œëŸ½ê²Œ ì—´ë©°, ì´ë²ˆ ì£¼ëŠ” ê¸°íšŒê°€ ë¨¼ì € ë³´ì´ëŠ” ê°œí™” ì „ì¡° êµ¬ê°„ì…ë‹ˆë‹¤.';
-    secretRecipe = 'ë¹„ë°€ ë ˆì‹œí”¼: ë°¤ 9ì‹œ ì´í›„ ì°½ê°€ ì¡°ëª…ì„ í•œ ë‹¨ê³„ ë‚®ì¶”ê³ , ë‚´ì¼ ì‹¤í–‰í•  í•œ ê°€ì§€ë¥¼ ë…¸íŠ¸ ì²« ì¤„ì— ì ì–´ ë‘ì„¸ìš”. ì•„ì¹¨ ì²« 12ë¶„ì€ ê·¸ í•œ ê°€ì§€ì—ë§Œ ì§‘ì¤‘í•˜ë©´ ë³„ë¹› ë¦¬ë“¬ì´ ê°€ì¥ ë¹ ë¥´ê²Œ ë§ì¶°ì§‘ë‹ˆë‹¤.';
-    flowerLanguage = 'ìš´ëª…ì˜ ê½ƒë§: ë³„ì˜ ê°ë„ë¥¼ ë¯¿ê³  í•œ ê±¸ìŒì„ ë¨¼ì € ë‚´ë”›ëŠ” ìš©ê¸°.';
-    gardenerWord = 'ì´ ê½ƒì„ ìœ„í•œ ê°€ë“œë„ˆì˜ í•œ ë§ˆë””: ì˜¤ëŠ˜ì˜ ì§ê°ì€ ê³¼ì¥ì´ ì•„ë‹ˆë¼ ì˜ˆë³´ì…ë‹ˆë‹¤. ì‘ì€ ì‹¤í–‰ì´ ì„±ìš´ì„ í˜„ì‹¤ì˜ ê½ƒë°­ìœ¼ë¡œ ë°”ê¿‰ë‹ˆë‹¤.';
-    particleMood = sourceLabel + 'ì˜ ê´‘ëŸ‰ì„ ì…ìë¡œ ë²ˆì—­í•˜ë©´ "' + (flower.particle_type || 'stardust') + '" ê²°ì´ ê°€ì¥ ì•ˆì •ì ìœ¼ë¡œ ë¹›ë‚©ë‹ˆë‹¤.';
-  } else if (source === 'jamidusu') {
-    var star = badges.star || 'ë¯¸í™•ì¸';
-    var brightness = badges.brightness || 'ë¯¸í™•ì¸';
-    var palace = badges.palace || 'ë¯¸í™•ì¸';
-    var structure = /ìë¯¸|zi ?wei/i.test(star)
-      ? 'ìë¯¸ì„± ê³„ì—´ì˜ í™©ì‹¤ ê¸°í’ˆì´ ê¹ƒë“  ë‹¨ë‹¨í•œ ê½ƒëŒ€'
-      : (/ì¹ ì‚´|íŒŒêµ°|qisha|pogun/i.test(star)
-        ? 'ëŒíŒŒí˜• ì¥êµ° ê¸°ì§ˆì´ ë§Œë“  êµµê³  ê°•ì§í•œ ì¤„ê¸°'
-        : (/íƒœìŒ|tai ?yin|ì²œê¸°|tian ?ji/i.test(star)
-          ? 'ìœ ì—°í•˜ì§€ë§Œ ì‰½ê²Œ êº¾ì´ì§€ ì•ŠëŠ” ì„¸ë°€í•œ ë³µì¸µ ê½ƒì'
-          : 'ê· í˜•í˜• ì£¼ì„±ì´ ë§Œë“  ì •ì œëœ ëŒ€ì¹­ êµ¬ì¡°ì˜ ê½ƒê³¨ê²©'));
-    var social = palace + ' ì£¼ë³€ìœ¼ë¡œ ë‚˜ë¹„ì™€ ë²Œì´ ìˆœí™˜í•˜ë“¯, ê°€ê¹Œìš´ ì¸ì—°ì´ ì—­í•  ë¶„ë‹´ì„ ë‚˜ëˆ  ì„±ì¥ì„ ë•ëŠ” íë¦„ì…ë‹ˆë‹¤.';
-    var thorns = /í•¨|é™·|í•œ|é–‘/.test(brightness)
-      ? 'ë°©ì–´ë ¥ì´ ë†’ì€ ì§§ì€ ê°€ì‹œê°€ ì´˜ì´˜í•´ ê²½ê³„ë¥¼ ì„¸ì›Œì£¼ëŠ” ì‹œê¸°'
-      : 'ë¹›ì„ ë°˜ì‚¬í•˜ëŠ” ê²° ë¬´ëŠ¬ê°€ ê°€ì‹œ ì—­í• ì„ ëŒ€ì‹ í•´ í’ˆê²© ìˆê²Œ ìì‹ ì„ ë³´í˜¸í•˜ëŠ” ì‹œê¸°';
-
-    sectionTitle = 'ê½ƒì˜ í’ˆê²©ê³¼ í˜•íƒœ';
-    matrix = [
-      'ğŸ›ï¸ ê½ƒì˜ ê³¨ê²©: ' + structure,
-      'ğŸ¦‹ ë‚˜ë¹„ì™€ ë²Œ: ' + social,
-      'ğŸŒµ ìˆ˜í˜¸ì˜ ê°€ì‹œ: ' + thorns
-    ];
-    observationLog = 'ì •ì›ì‚¬ì˜ ê´€ì°° ì¼ì§€: ì˜¤ëŠ˜ì˜ ê°•í•œ ë³„ ' + star + 'ì´ ì¤„ê¸° ì¤‘ì‹¬ì„ ê³§ê²Œ ì„¸ìš°ê³ , ë³„ ë°ê¸° ' + brightness + 'ê°€ ê½ƒìì˜ ìœ¤ê¸°ë¥¼ ì¡°ì •í•©ë‹ˆë‹¤. ì§€ê¸ˆì€ í™”ë ¤í•¨ë³´ë‹¤ êµ¬ì¡°ì  ì™„ì„±ë„ê°€ ì„±ê³¼ë¥¼ í‚¤ìš°ëŠ” ì‹œê¸°ì…ë‹ˆë‹¤.';
-    secretRecipe = 'ë¹„ë°€ ë ˆì‹œí”¼: ì±…ìƒ ì™¼ìª½ì— ë©”íƒˆ ê³„ì—´ ì˜¤ë¸Œì œë¥¼ í•˜ë‚˜ ë‘ê³ , ì˜¤ëŠ˜ì˜ ê¸°ì¤€ 1ê°œì™€ ì–‘ë³´ì„  1ê°œë¥¼ ë™ì‹œì— ê¸°ë¡í•˜ì„¸ìš”. ê²½ê³„ê°€ ì„ ëª…í•´ì§ˆìˆ˜ë¡ ê½ƒì€ ë” ìš°ì•„í•˜ê²Œ í•ë‹ˆë‹¤.';
-    flowerLanguage = 'ìš´ëª…ì˜ ê½ƒë§: í’ˆê²©ì€ ë‹¨ë‹¨í•œ êµ¬ì¡°ì—ì„œ í”¼ì–´ë‚˜ëŠ” ê°€ì¥ ì¡°ìš©í•œ ê´‘ì±„.';
-    gardenerWord = 'ì´ ê½ƒì„ ìœ„í•œ ê°€ë“œë„ˆì˜ í•œ ë§ˆë””: í™”ë ¤í•¨ì„ ì„œë‘ë¥´ì§€ ë§ˆì„¸ìš”. ê¸°ì¤€ì„ ì§€í‚¨ í•˜ë£¨ê°€ ê²°êµ­ ê°€ì¥ ì˜¤ë˜ê°€ëŠ” ê½ƒëŒ€ë¥¼ ë§Œë“­ë‹ˆë‹¤.';
-    particleMood = sourceLabel + 'ì˜ ìœ„ê³„ë¥¼ ì…ìë¡œ ë²ˆì—­í•˜ë©´ "' + (flower.particle_type || 'imperial') + '" ë¬´ë“œê°€ ì§ˆì„œë¥¼ ê°€ì¥ ì•„ë¦„ë‹µê²Œ ë“œëŸ¬ëƒ…ë‹ˆë‹¤.';
-  } else if (source === 'sukuyo') {
-    var mansion = badges.mansion || 'ë¯¸í™•ì¸';
-    var phase = badges.phase || 'ë¯¸í™•ì¸';
-    var guardian = badges.guardian || 'ìˆ˜í˜¸ë™ë¬¼ ë¯¸í™•ì¸';
-    var scent = /ì¹œ|å‹|friend/i.test(mansion)
-      ? 'ë‹¬ë¹› ì•„ë˜ ë²ˆì§€ëŠ” ì€ì€í•œ í™”ì´íŠ¸ ë¨¸ìŠ¤í¬ ê³„ì—´'
-      : (/ì—…|å±|danger/i.test(mansion)
-        ? 'ì§™ê³  ê¹Šì€ ì¹¨í–¥ ê³„ì—´, ì§‘ì¤‘ë ¥ì„ ëŒì–´ì˜¬ë¦¬ëŠ” í–¥'
-        : 'ì²­ëª…í•œ í—ˆë¸Œ í”Œë¡œëŸ´ ê³„ì—´, ê´€ê³„ì˜ ì˜¨ë„ë¥¼ ë¶€ë“œëŸ½ê²Œ ë§ì¶”ëŠ” í–¥');
-    var dew = /ë³´ë¦„|full/i.test(phase)
-      ? 'ë°¤ì´ìŠ¬ì´ ê°€ì¥ ì¶©ë§Œí•´ ì˜ê°ê³¼ ê°ì • í‘œí˜„ì´ ë™ì‹œì— í’ì„±í•œ ìƒíƒœ'
-      : (/ì‚­|new/i.test(phase)
-        ? 'ì´ìŠ¬ì´ ì–‡ê²Œ ë§ºíˆëŠ” ì‹ ì›” êµ¬ê°„ìœ¼ë¡œ, ê´€ì°°ê³¼ ì¤€ë¹„ê°€ ìš°ì„ ì¸ ìƒíƒœ'
-        : 'ì ë‹¹í•œ ì´ìŠ¬ëŸ‰ìœ¼ë¡œ ê°ì •ì˜ ê· í˜•ê³¼ ì‹¤í–‰ë ¥ì´ í•¨ê»˜ ìë¼ëŠ” ìƒíƒœ');
-    var companion = /ìš©|dragon/i.test(guardian)
-      ? 'ë“±ë‚˜ë¬´ì™€ ë¸”ë£¨ì„¸ì´ì§€ ì¡°í•©, í° í™•ì¥ íë¦„ì„ ì§€ì§€'
-      : (/ê°œ|dog/i.test(guardian)
-        ? 'ë¡œì¦ˆë©”ë¦¬ì™€ ìºëª¨ë§ˆì¼ ì¡°í•©, ê´€ê³„ ì•ˆì •ê³¼ íšŒë³µ íƒ„ë ¥ ê°•í™”'
-        : (/í˜¸ë‘ì´|tiger/i.test(guardian)
-          ? 'ìœ ì¹¼ë¦½íˆ¬ìŠ¤ì™€ ë£¨ë“œë² í‚¤ì•„ ì¡°í•©, ê²°ë‹¨ë ¥ê³¼ ë³´í˜¸ ë³¸ëŠ¥ ê°•í™”'
-          : 'ë¼ë²¤ë”ì™€ ì•„ì´ë¹„ ì¡°í•©, ì •ì„œ ì•ˆì •ê³¼ ì¥ê¸° ì„±ì¥ ë™ì‹œ ì§€ì›'));
-
-    sectionTitle = 'ì¸ì—°ì˜ í–¥ê¸°ì™€ ì´ìŠ¬';
-    matrix = [
-      'ğŸŒ™ ìš´ëª…ì˜ í–¥ê¸°: ' + scent,
-      'ğŸ’¦ ë°¤ì´ìŠ¬ì˜ ì–‘: ' + dew,
-      'ğŸŒ¿ ë™ë°˜ ì‹ë¬¼: ' + companion
-    ];
-    observationLog = 'ì •ì›ì‚¬ì˜ ê´€ì°° ì¼ì§€: ' + mansion + 'ì˜ ê´€ê³„ì„±ì€ í–¥ê¸°ë¡œ ë¨¼ì € ë“œëŸ¬ë‚˜ê³ , ë‹¬ ìœ„ìƒ ' + phase + 'ì€ ì´ìŠ¬ì˜ ë°€ë„ë¡œ ê°ì • ë¦¬ë“¬ì„ ì¡°ì ˆí•©ë‹ˆë‹¤. ì§€ê¸ˆì€ ì¸ì—°ì˜ ì†ë„ë¥¼ ì¬ì´‰í•˜ê¸°ë³´ë‹¤ ê²°ì„ ë§ì¶”ëŠ” ì„¸ì‹¬í•¨ì´ ê½ƒì„ ì˜¤ë˜ ì§€í‚µë‹ˆë‹¤.';
-    secretRecipe = 'ë¹„ë°€ ë ˆì‹œí”¼: ìê¸° ì „ ë¬¼ í•œ ì”ì„ ì²œì²œíˆ ë§ˆì‹  ë’¤, ì˜¤ëŠ˜ ê³ ë§ˆì› ë˜ ì´ë¦„ 1ê°œë¥¼ ì¡°ìš©íˆ ì ì–´ë‘ì„¸ìš”. ë‹¬ì˜ ìˆ˜ë¶„ ë¦¬ë“¬ì´ ì•ˆì •ë˜ë©° ê´€ê³„ ìš´ì´ ë¶€ë“œëŸ½ê²Œ ì—´ë¦½ë‹ˆë‹¤.';
-    flowerLanguage = 'ìš´ëª…ì˜ ê½ƒë§: ì¡°ìš©í•œ ê³µê°ì´ ê°€ì¥ ë©€ë¦¬ í¼ì§€ëŠ” í–¥ê¸°ê°€ ëœë‹¤.';
-    gardenerWord = 'ì´ ê½ƒì„ ìœ„í•œ ê°€ë“œë„ˆì˜ í•œ ë§ˆë””: ì„œë‘ë¥´ì§€ ì•Šì•„ë„ ê´œì°®ìŠµë‹ˆë‹¤. ë°¤ì´ìŠ¬ì´ ëª¨ì´ë“¯, ë‹¹ì‹ ì˜ ì¸ì—°ë„ ì •í™•í•œ íƒ€ì´ë°ì— ì„ ëª…í•´ì§‘ë‹ˆë‹¤.';
-    particleMood = sourceLabel + 'ì˜ ë‹¬ë¹› ë¦¬ë“¬ì„ ì…ìë¡œ ë²ˆì—­í•˜ë©´ "' + (flower.particle_type || 'lunar') + '" ë¬´ë“œê°€ ê°€ì¥ í¬ê·¼í•˜ê²Œ ê°ì‹¸ì¤ë‹ˆë‹¤.';
-  } else {
-    var strength = badges.strength || 'íŒì • ëŒ€ê¸°';
-    var johu = badges.johu || 'íŒì • ëŒ€ê¸°';
-    var yongshin = badges.yongshin || '';
-    var soil = johu.indexOf('í•œìŠµ') >= 0
-      ? 'ìˆ˜ë¶„ì„ ë¨¸ê¸ˆì€ ìŠµì§€í˜• ì˜¥í† '
-      : (johu.indexOf('ì˜¨ì¡°') >= 0
-        ? 'ë°°ìˆ˜ì„±ì´ ë†’ì€ ë”°ëœ»í•œ ìê°ˆ í˜¼í•©í† '
-        : 'ì…ìê°€ ê³ ë¥´ê³  ë¯¸ë„¤ë„ì´ ì•ˆì •ëœ ë¹„ì˜¥í•œ ì˜¥í† ');
-    var root = strength.indexOf('ì‹ ê°•') >= 0
-      ? 'ë¿Œë¦¬ê°€ ê¹Šê²Œ ë°•í˜€ ì™¸ë¶€ ë³€í™”ì—ë„ ì¤‘ì‹¬ì„ ì§€í‚¤ëŠ” ë‹¨ê³„'
-      : (strength.indexOf('ì‹ ì•½') >= 0
-        ? 'ì„¬ì„¸í•œ ì”ë¿Œë¦¬ê°€ ë¨¼ì € í¼ì§€ë©° ì§€ì§€ëŒ€ë¥¼ í•„ìš”ë¡œ í•˜ëŠ” ë‹¨ê³„'
-        : 'ì¤‘ê°„ ê¹Šì´ ë¿Œë¦¬ê°€ ê³ ë¥´ê²Œ í™•ì¥ë˜ëŠ” ê· í˜• ë‹¨ê³„');
-    var nutrient = _dfBuildYongshinCareLine(yongshin);
-
-    sectionTitle = 'ì„±ì¥ì˜ í† ì–‘ê³¼ ë¿Œë¦¬';
-    matrix = [
-      'ğŸª¨ í† ì–‘ì˜ ì„±ë¶„: ' + soil,
-      'ğŸŒ± ë¿Œë¦¬ì˜ ê¹Šì´: ' + root,
-      'ğŸ§ª ê°€ë“œë„ˆì˜ ì˜ì–‘ì œ: ' + nutrient
-    ];
-    observationLog = 'ì •ì›ì‚¬ì˜ ê´€ì°° ì¼ì§€: ì˜¤ëŠ˜ ì •ì›ì€ ' + soil + 'ì˜ ê²°ì„ ë ë©°, ' + root + ' íë¦„ìœ¼ë¡œ ìƒì¥ ì—ë„ˆì§€ê°€ ì›€ì§ì…ë‹ˆë‹¤. ê²‰ìœ¼ë¡œ ì¡°ìš©í•´ ë³´ì—¬ë„ ë¿Œë¦¬ì¸µì—ì„œëŠ” ë‹¤ìŒ ê°œí™”ë¥¼ ìœ„í•œ í˜ì´ ë‹¨ë‹¨íˆ ì €ì¥ë˜ê³  ìˆìŠµë‹ˆë‹¤.';
-    secretRecipe = 'ë¹„ë°€ ë ˆì‹œí”¼: ë¶ìª½ ë˜ëŠ” ë™ìª½ ì°½ê°€ì— í‘¸ë¥¸ ì ì‹ë¬¼ì„ ë‘ê³ , ì•„ì¹¨ 10ë¶„ì€ ëª¸ì„ í’€ê³  ì €ë… 10ë¶„ì€ í˜¸í¡ì„ ê³ ë¥´ì„¸ìš”. í•˜ë£¨ ë‘ ë²ˆì˜ ë¦¬ë“¬ ê³ ì •ì´ ìš©ì‹  ê¸°ìš´ì„ ê°€ì¥ ë¹ ë¥´ê²Œ ëŒì–´ì˜¬ë¦½ë‹ˆë‹¤.';
-    flowerLanguage = 'ìš´ëª…ì˜ ê½ƒë§: ë‹¨ë‹¨í•œ ë¿Œë¦¬ëŠ” ëŠ¦ì–´ ë³´ì—¬ë„ ê²°êµ­ ê°€ì¥ ë†’ê²Œ í•€ë‹¤.';
-    gardenerWord = 'ì´ ê½ƒì„ ìœ„í•œ ê°€ë“œë„ˆì˜ í•œ ë§ˆë””: ì¡°ê¸‰í•¨ë³´ë‹¤ ì¶•ì ì„ ë¯¿ìœ¼ì„¸ìš”. ì˜¤ëŠ˜ì˜ ì‘ì€ ê´€ë¦¬ê°€ ë‹¤ìŒ ê³„ì ˆì˜ í° ê²°ì‹¤ì„ ë§Œë“­ë‹ˆë‹¤.';
-    particleMood = sourceLabel + ' ê¸°ìš´ì˜ ë¯¸ì„¸í•œ ì›€ì§ì„ì„ ì…ìë¡œ ë²ˆì—­í•˜ë©´ "' + (flower.particle_type || 'petal') + '" ë¬´ë“œê°€ ê°€ì¥ ì¡°í™”ë¡­ìŠµë‹ˆë‹¤.';
-  }
-
-  return {
-    dataSummary: '[' + sectionTitle + '] ' + scenarioTitle + ' Â· ' + growthCycle,
-    ritualLine: ritualTip,
-    themesLine: [relation, career].filter(Boolean).join(' Â· ') || 'ê´€ê³„/ì¼ í…Œë§ˆë¥¼ ë¶„ì„ ì¤‘ì…ë‹ˆë‹¤.',
-    sourceMatrix: matrix,
-    observationLog: observationLog,
-    secretRecipe: secretRecipe,
-    flowerLanguage: flowerLanguage,
-    synergyPalette: _dfBuildSynergyPaletteText(source, primary, secondary),
-    gardenerWord: gardenerWord,
-    particleMood: particleMood,
-    oneLineGuidance: sourceLabel + ' ìš´ëª…ê½ƒ ì‹¤ì²œ ê°€ì´ë“œ: ' + (flower.vibe_message || sajuVerdict)
-  };
-}
-
-function _dfBuildPromptBadgeLine(selection) {
-  var badges = _dfGetSajuBadges(selection || {});
-  if (badges.mode === 'sukuyo') {
-    return 'ìˆ™ìš” ë°°ì§€: ' + _dfOneLineText(badges.mansion, 'ë¯¸í™•ì¸') + ' / ë‹¬ ìœ„ìƒ ' + _dfOneLineText(badges.phase, 'ë¯¸í™•ì¸') + ' / ìˆ˜í˜¸ë™ë¬¼ ' + _dfOneLineText(badges.guardian, 'ë¯¸í™•ì¸');
-  }
-  if (badges.mode === 'jamidusu') {
-    return 'ìë¯¸ë‘ìˆ˜ ë°°ì§€: ì˜¤ëŠ˜ì˜ ê°•í•œ ë³„ ' + _dfOneLineText(badges.star, 'ë¯¸í™•ì¸') + ' / ë³„ ë°ê¸° ' + _dfOneLineText(badges.brightness, 'ë¯¸í™•ì¸') + ' / ê¶ìœ„ ' + _dfOneLineText(badges.palace, 'ë¯¸í™•ì¸');
-  }
-  if (badges.mode === 'astrology') {
-    return 'ì ì„±ìˆ  ë°°ì§€: íƒœì–‘ê¶ ' + _dfOneLineText(badges.sun, 'ë¯¸í™•ì¸') + ' / ìƒìŠ¹ê¶ ' + _dfOneLineText(badges.rising, 'ë¯¸í™•ì¸') + ' / ë‹¬ê¶ ' + _dfOneLineText(badges.moon, 'ë¯¸í™•ì¸');
-  }
-  return 'ì‚¬ì£¼ ë°°ì§€: ì‹ ê°•/ì‹ ì•½ ' + _dfOneLineText(badges.strength, 'íŒì • ëŒ€ê¸°') + ' / ìš©ì‹  ' + _dfOneLineText(badges.yongshin, 'íŒì • ëŒ€ê¸°') + ' / ì¡°í›„ ' + _dfOneLineText(badges.johu, 'íŒì • ëŒ€ê¸°');
-}
-
-function _dfBuildArtPrompt(selection) {
-  if (!selection || !selection.flower) {
-    return 'Elegant symbolic flower portrait, soft cinematic lighting, premium botanical illustration, centered composition, no text.';
-  }
-
-  var flower = selection.flower || {};
-  var source = selection.source || 'saju';
-  var sourceLabel = _dfGetSourceLabel(source);
-  var direction = _dfGetPromptArtDirection(source);
-  var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
-  var nameKo = _dfOneLineText(flower.name, 'ìš´ëª…ì˜ ê½ƒ');
-  var latin = _dfOneLineText(flower.scientific_name, 'Unknown species');
-  var symbolism = _dfOneLineText(flower.symbolism, 'ìš´ëª…ì˜ íë¦„ì„ ìƒì§•í•˜ëŠ” ê½ƒ');
-  var narrative = _dfOneLineText((selection.matched && selection.matched.narrative) || _dfGetSajuVerdict(selection), 'ìš´ëª…ì˜ ê½ƒ ì„œì‚¬');
-  var scenario = _dfOneLineText(flowerData.scenario_reason || flowerData.scenario_title, 'ê°œí™” ì‹œë‚˜ë¦¬ì˜¤ ê¸°ë°˜ ì—°ì¶œ');
-  var keywords = _dfToArray(selection.keywords).slice(0, 8).map(function(word) {
-    return _dfOneLineText(word, '');
-  }).filter(Boolean);
-  var keywordLine = keywords.length ? keywords.join(', ') : 'bloom, destiny, aura';
-  var palette = (_dfSafeColor(selection.primary, '#f472b6')) + ' and ' + (_dfSafeColor(selection.secondary, '#22d3ee'));
-  var badgeLine = _dfBuildPromptBadgeLine(selection);
-
-  return [
-    'Korean premium floral editorial illustration, masterpiece, ultra-detailed petals, poetic and elegant tone-and-manner.',
-    'Fortune source: ' + sourceLabel + '.',
-    'Main subject: ' + nameKo + ' (' + latin + ') symbolic flower portrait.',
-    'Symbolism: ' + symbolism + '.',
-    'Narrative mood: ' + narrative + '.',
-    'Scenario cue: ' + scenario + '.',
-    badgeLine + '.',
-    'Color palette focus: ' + palette + '.',
-    'Keywords: ' + keywordLine + '.',
-    'Art direction: ' + direction.mood + '; ' + direction.background + '; ' + direction.composition + '.',
-    'Lighting: ' + direction.lighting + '.',
-    'Render style: botanical painting + fantasy concept art hybrid, refined brush texture, high detail, 4k, clean background.',
-    'Aspect ratio hint: 4:5 portrait.'
-  ].join('\n');
-}
-
-function _dfBuildNegativePrompt() {
-  return [
-    'lowres, blurry, noisy, jpeg artifacts, pixelated, out of focus',
-    'deformed flower, distorted petals, duplicate main flower, cropped subject, bad composition',
-    'text, letters, logo, watermark, signature, frame, collage, split screen, ui overlay',
-    'muddy color, overexposed highlight, harsh clipping, dirty background, horror, gore'
-  ].join(', ');
-}
-
-function _dfBuildPromptPack(selection) {
-  return '[Main Prompt]\n' + _dfBuildArtPrompt(selection) + '\n\n[Negative Prompt]\n' + _dfBuildNegativePrompt();
-}
-
-function _dfUpdateStudioPrompt(selection) {
-  var guideEl = document.getElementById('dfStudioPromptGuide');
-  var promptEl = document.getElementById('dfStudioArtPrompt');
-  var negativeEl = document.getElementById('dfStudioNegativePrompt');
-  if (!guideEl && !promptEl && !negativeEl) return;
-
-  var source = (selection && selection.source) || 'saju';
-  var sourceLabel = _dfGetSourceLabel(source);
-  var direction = _dfGetPromptArtDirection(source);
-  if (guideEl) {
-    guideEl.textContent = sourceLabel + ' í†¤ ë””ë ‰ì…˜: ' + direction.mood + ' / ' + direction.background;
-  }
-  if (promptEl) promptEl.value = _dfBuildArtPrompt(selection);
-  if (negativeEl) negativeEl.value = _dfBuildNegativePrompt();
-}
-
-function _dfClipboardWrite(text, onDoneMessage) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(function() { _dfSetStudioStatus(onDoneMessage || 'í´ë¦½ë³´ë“œì— ë³µì‚¬ë˜ì—ˆìŠµë‹ˆë‹¤.'); })
-      .catch(function() { _dfSetStudioStatus('ë³µì‚¬ ê¶Œí•œì´ ì—†ì–´ ìˆ˜ë™ ë³µì‚¬ê°€ í•„ìš”í•©ë‹ˆë‹¤.'); });
-    return;
-  }
-
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.setAttribute('readonly', 'readonly');
-  ta.style.position = 'fixed';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    var ok = document.execCommand('copy');
-    _dfSetStudioStatus(ok ? (onDoneMessage || 'í´ë¦½ë³´ë“œì— ë³µì‚¬ë˜ì—ˆìŠµë‹ˆë‹¤.') : 'ë³µì‚¬ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
-  } catch (e) {
-    _dfSetStudioStatus('ë³µì‚¬ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
-  }
-  document.body.removeChild(ta);
-}
-
-function _dfShareSnapshot(snapshot) {
-  var text = _dfBuildShareText(snapshot);
-  var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
-  if (!isMobile) {
-    _dfClipboardWrite(text, 'PC í™˜ê²½ì—ì„œëŠ” ì¹´ì¹´ì˜¤í†¡ ë§í¬ë¥¼ í´ë¦½ë³´ë“œì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤. ì¹´ì¹´ì˜¤í†¡ì— ë¶™ì—¬ë„£ì–´ ê³µìœ í•˜ì„¸ìš”.');
-    return;
-  }
-
-  var encoded = encodeURIComponent(text);
-  var kakaoUrl = 'kakaotalk://send?text=' + encoded;
-  var anchor = document.createElement('a');
-  anchor.href = kakaoUrl;
-  anchor.style.display = 'none';
-  document.body.appendChild(anchor);
-
-  var fallbackTimer = setTimeout(function() {
-    _dfClipboardWrite(text, 'ì¹´ì¹´ì˜¤í†¡ ì‹¤í–‰ì´ í™•ì¸ë˜ì§€ ì•Šì•„ ìš”ì•½ì„ í´ë¦½ë³´ë“œì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤. ì¹´ì¹´ì˜¤í†¡ì— ë¶™ì—¬ë„£ì–´ ê³µìœ í•˜ì„¸ìš”.');
-  }, 1000);
-
-  try {
-    anchor.click();
-    _dfSetStudioStatus('ì¹´ì¹´ì˜¤í†¡ ê³µìœ ë¥¼ ì—¬ëŠ” ì¤‘ì…ë‹ˆë‹¤...');
-  } catch (e) {
-    clearTimeout(fallbackTimer);
-    _dfClipboardWrite(text, 'ì¹´ì¹´ì˜¤í†¡ ê³µìœ ë¥¼ ì—´ì§€ ëª»í•´ ìš”ì•½ì„ í´ë¦½ë³´ë“œì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤.');
-  }
-
-  setTimeout(function() {
-    if (anchor && anchor.parentNode) anchor.parentNode.removeChild(anchor);
-  }, 1200);
-}
-
-function _dfRenderHistoryList() {
-  var listEl = document.getElementById('dfStudioHistoryList');
-  if (!listEl) return;
-  var history = _dfStudioState.history;
-  if (!history.length) {
-    listEl.innerHTML = '';
-    _dfSetStudioStatus('ì•„ì§ ì €ì¥ëœ ê°œí™” ê¸°ë¡ì´ ì—†ìŠµë‹ˆë‹¤. í˜„ì¬ ê²°ê³¼ë¥¼ ì €ì¥í•´ë³´ì„¸ìš”.');
-    return;
-  }
-
-  var html = history.map(function(item) {
-    return '<article class="df-history-item" role="listitem">'
-      + '<div class="df-history-item-head">'
-      + '<p class="df-history-item-name">' + _dfEscapeHtml(item.name) + '</p>'
-      + '<span class="df-history-item-time">' + _dfEscapeHtml(item.savedAtLabel || _dfFormatSavedAt(item.savedAt)) + '</span>'
-      + '</div>'
-      + '<p class="df-history-item-keywords">' + _dfEscapeHtml(_dfToArray(item.keywords).join(' â€¢ ')) + '</p>'
-      + '<div class="df-history-item-actions">'
-      + '<button type="button" class="df-history-btn df-history-btn--restore" data-action="restoreDestinyFlowerSnapshot" data-action-args="' + item.id + '">ë¶ˆëŸ¬ì˜¤ê¸°</button>'
-        + '<button type="button" class="df-history-btn df-history-btn--share" data-action="shareDestinyFlowerSnapshotById" data-action-args="' + item.id + '">ì¹´ì¹´ì˜¤ ê³µìœ </button>'
-        + '<button type="button" class="df-history-btn df-history-btn--delete" data-action="deleteDestinyFlowerSnapshot" data-action-args="' + item.id + '">ì‚­ì œ</button>'
-      + '</div>'
-      + '</article>';
-  }).join('');
-
-  listEl.innerHTML = html;
-}
-
-function _dfApplyStudioSelection(selection) {
-  if (!selection || !selection.flower) return;
-  _dfMarkSourceCompleted(selection.source || _dfStudioState.activeSource || 'saju', { silent: true });
-  var flower = selection.flower;
-  var sourceLabel = selection.source === 'sukuyo'
-    ? 'ìˆ™ìš”ì '
-    : (selection.source === 'jamidusu' ? 'ìë¯¸ë‘ìˆ˜' : (selection.source === 'astrology' ? 'ì ì„±ìˆ ' : 'ì‚¬ì£¼'));
-  var sourceShort = selection.source === 'sukuyo'
-    ? 'ìˆ™ìš”'
-    : (selection.source === 'jamidusu' ? 'ìë¯¸ë‘ìˆ˜' : (selection.source === 'astrology' ? 'ì°¨íŠ¸' : 'ì‚¬ì£¼'));
-  var sajuVerdict = _dfGetSajuVerdict(selection);
-  var badges = _dfGetSajuBadges(selection);
-  var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
-  var extension = _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sajuVerdict);
-  var nameEl = document.getElementById('dfStudioName');
-  var latinEl = document.getElementById('dfStudioLatin');
-  var dayMasterEl = document.getElementById('dfStudioDayMasterBadge');
-  var sourceDescEl = document.getElementById('dfStudioSourceDesc');
-  var symbolismEl = document.getElementById('dfStudioSymbolism');
-  var keywordsEl = document.getElementById('dfStudioKeywords');
-  var narrativeEl = document.getElementById('dfStudioNarrative');
-  var dataSummaryEl = document.getElementById('dfStudioDataSummary');
-  var dataRitualEl = document.getElementById('dfStudioDataRitual');
-  var dataThemesEl = document.getElementById('dfStudioDataThemes');
-  var sourceMatrixEl = document.getElementById('dfStudioSourceMatrix');
-  var journalEl = document.getElementById('dfStudioJournal');
-  var recipeEl = document.getElementById('dfStudioRecipe');
-  var flowerLanguageEl = document.getElementById('dfStudioFlowerLanguage');
-  var synergyEl = document.getElementById('dfStudioSynergy');
-  var gardenerWordEl = document.getElementById('dfStudioGardenerWord');
-  var auraEl = document.getElementById('dfStudioAura');
-  var primaryDot = document.getElementById('dfStudioPrimaryDot');
-  var secondaryDot = document.getElementById('dfStudioSecondaryDot');
-  var primaryText = document.getElementById('dfStudioPrimaryText');
-  var secondaryText = document.getElementById('dfStudioSecondaryText');
-  var particleEl = document.getElementById('dfStudioParticle');
-  var guidanceEl = document.getElementById('dfStudioGuidance');
-  var imageEl = document.getElementById('dfStudioImage');
-
-  if (nameEl) nameEl.textContent = flower.name;
-  _dfRenderSajuBadges(selection);
-  if (latinEl) latinEl.textContent = flower.scientific_name || 'Unknown species';
-  if (sourceDescEl) {
-    var meta = _DF_SOURCE_META[_dfNormalizeSource(selection.source || 'saju')] || _DF_SOURCE_META.saju;
-    sourceDescEl.textContent = meta.description || '';
-  }
-  if (dayMasterEl) {
-    dayMasterEl.textContent = flowerData.day_master_badge || (selection.source === 'jamidusu' ? 'ì£¼ì„± íŒë… ëŒ€ê¸°' : (selection.source === 'sukuyo' ? 'ìˆ™ìš” íŒë… ëŒ€ê¸°' : 'ì¼ê°„ íŒë… ëŒ€ê¸°'));
-  }
-  if (symbolismEl) {
-    symbolismEl.textContent = sajuVerdict + ' ' + (flowerData.scenario_reason || (flower.symbolism ? ('ì´ ê½ƒì€ ' + flower.symbolism + 'ì„ ìƒì§•í•©ë‹ˆë‹¤.') : 'ì´ ê½ƒì´ ë‹¹ì‹ ì˜ í˜„ì¬ ìš´ì„¸ íë¦„ê³¼ ê°•í•˜ê²Œ ê³µëª…í•©ë‹ˆë‹¤.'));
-  }
-  if (keywordsEl) keywordsEl.textContent = sourceLabel + ' í‚¤ì›Œë“œ Â· ' + _dfToArray(selection.keywords).join(' â€¢ ');
-  if (narrativeEl) {
-    narrativeEl.textContent = (selection.matched && selection.matched.narrative)
-      || (sajuVerdict + ' ' + sourceShort + ' ê· í˜•ì„ ê¸°ì¤€ìœ¼ë¡œ ì§€ê¸ˆì˜ ê°œí™” í¬ì¸íŠ¸ë¥¼ ì •ë ¬í–ˆìŠµë‹ˆë‹¤.');
-  }
-  if (dataSummaryEl) {
-    dataSummaryEl.textContent = extension.dataSummary;
-  }
-  if (dataRitualEl) {
-    dataRitualEl.textContent = extension.ritualLine;
-  }
-  if (dataThemesEl) {
-    dataThemesEl.textContent = extension.themesLine;
-  }
-  if (sourceMatrixEl) {
-    sourceMatrixEl.innerHTML = (extension.sourceMatrix || []).map(function(line) {
-      return '<li>' + _dfEscapeHtml(line) + '</li>';
-    }).join('');
-  }
-  if (journalEl) journalEl.textContent = extension.observationLog;
-  if (recipeEl) recipeEl.textContent = extension.secretRecipe;
-  if (flowerLanguageEl) flowerLanguageEl.textContent = extension.flowerLanguage;
-  if (synergyEl) synergyEl.textContent = extension.synergyPalette;
-  if (gardenerWordEl) gardenerWordEl.textContent = extension.gardenerWord;
-  if (primaryDot) primaryDot.style.background = selection.primary;
-  if (secondaryDot) secondaryDot.style.background = selection.secondary;
-  if (primaryText) primaryText.textContent = 'Primary ' + selection.primary;
-  if (secondaryText) secondaryText.textContent = 'Secondary ' + selection.secondary;
-  if (particleEl) {
-    particleEl.textContent = extension.particleMood;
-  }
-  if (guidanceEl) {
-    guidanceEl.textContent = extension.oneLineGuidance;
-  }
-  _dfUpdateStudioPrompt(selection);
-  _dfApplyGeneratedFlowerImage(imageEl, selection, selection.source || 'saju');
-  if (auraEl) {
-    auraEl.style.background =
-      'radial-gradient(circle at 22% 50%, ' + _dfHexToRgba(selection.primary, 0.44) + ', transparent 58%),'
-      + 'radial-gradient(circle at 74% 34%, ' + _dfHexToRgba(selection.secondary, 0.34) + ', transparent 60%)';
-  }
-  if (imageEl && imageEl.style) {
-    imageEl.style.filter = 'drop-shadow(0 12px 26px ' + _dfHexToRgba(selection.primary, 0.24) + ') saturate(1.08)';
-  }
-}
-
-function openAstrologyFlower() {
-  _dfSetActiveSource('astrology');
-  return openDestinyFlower(false);
-}
-
-function openJamidusuFlower() {
-  _dfSetActiveSource('jamidusu');
-  return openDestinyFlower(false);
-}
-
-function openSukuyoFlower() {
-  _dfSetActiveSource('sukuyo');
-  return openDestinyFlower(false);
-}
-
-function _dfResolveLockTileBySource(source) {
-  var normalized = _dfNormalizeSource(source);
-  var sourceLockMap = {
-    saju: 'openDestinyFlowerStudio',
-    astrology: 'openAstrologyFlowerStudio',
-    jamidusu: 'openJamidusuFlowerStudio',
-    sukuyo: 'openSukuyoFlowerStudio'
-  };
-  var actionName = sourceLockMap[normalized] || '';
-  if (!actionName) return null;
-  var tile = document.querySelector('[data-action="' + actionName + '"][data-tile-lock-key]');
-  return tile;
-}
-
-function _dfIsLockKeyUnlocked(lockKey) {
-  if (!lockKey) return false;
-  try {
-    if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
-      return __cdMapHasTileLockUnlocked(window.unlockedFeatureMap, lockKey);
-    }
-  } catch (_) {}
-  try {
-    var authRaw = localStorage.getItem('fortune_auth_user') || '';
-    var auth = authRaw ? JSON.parse(authRaw) : null;
-    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
-    var scope = String(scopeRaw || '').trim().toLowerCase();
-    if (scope) {
-      var scopedKey = 'cd_tile_locks_v2::' + scope;
-      var scopedRaw = localStorage.getItem(scopedKey);
-      if (scopedRaw) {
-        var scopedMap = JSON.parse(scopedRaw);
-        if (__cdMapHasTileLockUnlocked(scopedMap, lockKey)) return true;
-      }
-    }
-  } catch (_) {}
-  try {
-    localStorage.removeItem('cd_tile_locks');
-  } catch (_) {}
-  return false;
-}
-
-function _dfIsSourceUnlocked(source) {
-  var normalized = _dfNormalizeSource(source);
-  var cache = _dfRefreshSourceUnlockCache(true);
-  if (cache[normalized] === true) return true;
-  return _dfIsSourcePaidUnlocked(normalized);
-}
-
-function _dfRequirePaidSourceUnlock(source) {
-  var normalized = _dfNormalizeSource(source);
-  var lockTile = _dfResolveLockTileBySource(normalized);
-  if (!lockTile) return true;
-
-  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-  if (_dfIsLockKeyUnlocked(lockKey)) return true;
-  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
-
-  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
-    try {
-      if (window._cdOpenTilePreview(lockTile)) return false;
-    } catch (_) {}
-  }
-
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
-      window.location.href = '/login?next=%2F';
-    }
-    return false;
-  }
-
-  window.alert(_dfGetSourceLabel(normalized) + ' ê½ƒì€ í•´ê¸ˆ í›„ ì´ìš©í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.');
-  return false;
-}
-
-function _dfRequireSourceCoinPayment(source) {
-  var normalized = _dfNormalizeSource(source);
-  if (!_dfRequirePaidSourceUnlock(normalized)) return false;
-  if (_dfIsSourceUnlocked(normalized)) return true;
-  var required = _dfGetRequiredSourceForUnlock(normalized);
-  var requiredLabel = required ? _dfGetSourceLabel(required) : 'ì´ì „ ë‹¨ê³„';
-  _dfSetStudioStatus(requiredLabel + 'ì„ ë¨¼ì € ì™„ë£Œí•˜ë©´ ' + _dfGetSourceLabel(normalized) + ' ê½ƒì´ ì—´ë¦½ë‹ˆë‹¤.');
-  _dfSyncSourceTabsLockState();
-  return false;
-}
-
-function openAstrologyFlowerStudio() {
-  return openDestinyFlowerStudio('astrology');
-}
-
-function openJamidusuFlowerStudio() {
-  return openDestinyFlowerStudio('jamidusu');
-}
-
-function openSukuyoFlowerStudio() {
-  return openDestinyFlowerStudio('sukuyo');
-}
-
-function openDestinyFlower(forceRefreshData) {
-  var card = document.querySelector('.feature-card.feature-card--destiny-flower');
-  if (!card) return;
-
-  _dfEnsureCardOpen(card);
-  var activeSource = _dfSetActiveSource(_dfStudioState.activeSource || 'saju');
-  var refresh = forceRefreshData !== false;
-  var selection = _dfGetUnifiedSelection(activeSource, refresh);
-  if (selection) {
-    _dfAnimateUnifiedCardSwitch(card, selection);
-  } else {
-    var stage = card.querySelector('.destiny-flower-stage');
-    var nameEl = card.querySelector('.destiny-flower-stage__name');
-    var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
-    var emptyState = _dfGetDataMissingUiState(activeSource);
-    if (stage && nameEl && symbolismEl) {
-      nameEl.textContent = 'ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸° ëŒ€ê¸°';
-      symbolismEl.textContent = emptyState.message;
-    }
-  }
-  if (typeof syncFeatureCardHeight === 'function') {
-    syncFeatureCardHeight(card);
-    requestAnimationFrame(function() {
-      syncFeatureCardHeight(card);
-    });
-  }
-  _dfStudioState.selection = selection;
-
-  document.body.classList.add('destiny-flower-focus');
-  if (window.__destinyFlowerFocusTimer) {
-    clearTimeout(window.__destinyFlowerFocusTimer);
-  }
-  window.__destinyFlowerFocusTimer = setTimeout(function() {
-    document.body.classList.remove('destiny-flower-focus');
-  }, 2800);
-
-  return selection;
-}
-
-function openDestinyFlowerStudio(source, gatePassed) {
-  _dfCaptureOriginalTitle();
-  _dfBindTitleRestoreGuards();
-  var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (gatePassed !== true && !_dfRequireSourceCoinPayment(requestedSource)) {
-    return;
-  }
-  var _dfActiveSource = _dfSetActiveSource(requestedSource);
-  var overlay = document.getElementById('destinyFlowerStudioOverlay');
-  if (!overlay) return;
-  if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) {
-    setDestinyFlowerSourceTab(_dfActiveSource, true);
-    return;
-  }
-
-  var sheet = document.getElementById('destinyFlowerStudioSheet');
-  try {
-  if (!overlay.__dfCloseBridgeBound) {
-    overlay.__dfCloseBridgeBound = '1';
-    overlay.addEventListener('click', function(e) {
-      var rawTarget = __cdResolveEventElement(e);
-      var clickTarget = __cdResolveDestinyFlowerClickTarget(e);
-      if (!clickTarget) return;
-      var closeTrigger = clickTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
-      if (!closeTrigger && sheet && __cdIsPointInsideElement(e.clientX, e.clientY, sheet.querySelector('.df-studio-close'))) {
-        closeTrigger = sheet.querySelector('.df-studio-close');
-      }
-      if (closeTrigger) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeDestinyFlowerStudio();
-        return;
-      }
-      if (sheet && __cdIsInsideDestinyFlowerSheet(e, rawTarget)) return;
-      if (clickTarget === overlay) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeDestinyFlowerStudio();
-      }
-    });
-  }
-
-  if (sheet && !sheet.__dfTabBound) {
-    sheet.__dfTabBound = true;
-    sheet.addEventListener('click', function(e) {
-      var tab = e.target && e.target.closest ? e.target.closest('.df-source-tab[data-df-source-tab]') : null;
-      if (!tab) return;
-      var source = tab.getAttribute('data-df-source-tab');
-      if (!source) return;
-      e.preventDefault();
-      e.stopPropagation();
-      setDestinyFlowerSourceTab(source);
-    }, true);
-  }
-
-  if (sheet && !sheet.__dfTouchActionBound) {
-    sheet.__dfTouchActionBound = true;
-    sheet.addEventListener('touchend', function(e) {
-      var ov = document.getElementById('destinyFlowerStudioOverlay');
-      if (!ov || ov.style.display === 'none') return;
-      var touch = e.changedTouches && e.changedTouches[0];
-      if (!touch) return;
-      var x = touch.clientX;
-      var y = touch.clientY;
-      if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return;
-      var el = null;
-      try {
-        el = document.elementFromPoint(x, y);
-      } catch (err) {
-        return;
-      }
-      if (!el || !sheet.contains(el)) return;
-      var closeBtn = sheet.querySelector('.df-studio-close');
-      if (closeBtn && __cdIsPointInsideElement(x, y, closeBtn)) {
-        if (e.cancelable) e.preventDefault();
-        e.stopPropagation();
-        closeDestinyFlowerStudio();
-        return;
-      }
-      var btn = el.closest && el.closest('[data-action]');
-      if (!btn || !sheet.contains(btn)) return;
-      var act = btn.getAttribute('data-action');
-      if (!act) return;
-      if (act === 'closeDestinyFlowerStudio') {
-        if (e.cancelable) e.preventDefault();
-        e.stopPropagation();
-        closeDestinyFlowerStudio();
-        return;
-      }
-      if (btn.classList && btn.classList.contains('df-source-tab')) return;
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
-      window.__dfStudioLastTouchActionAt = Date.now();
-      __cdInvokeAction(act, btn, e);
-    }, { passive: false, capture: true });
-    sheet.addEventListener('click', function(e) {
-      if (Date.now() - (window.__dfStudioLastTouchActionAt || 0) > 520) return;
-      var t = __cdResolveEventElement(e);
-      if (!t || !sheet.contains(t)) return;
-      if (t.closest && t.closest('[data-action="closeDestinyFlowerStudio"]')) return;
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    }, true);
-  }
-
-  var selection = openDestinyFlower(false) || _dfGetUnifiedSelection(_dfStudioState.activeSource || 'saju', false);
-
-  if (!selection) {
-    _dfStudioState.selection = null;
-    var emptyState = _dfGetDataMissingUiState(_dfStudioState.activeSource || 'saju');
-    _dfShowStudioEmptyState(emptyState.source, emptyState.message, emptyState.showLoadButton);
-    _dfSetStudioStatus(emptyState.message, {
-      showLoadButton: emptyState.showLoadButton,
-      source: emptyState.source
-    });
-  } else {
-    _dfStudioState.selection = selection;
-    _dfApplyStudioSelection(selection);
-    _dfHideStudioEmptyState();
-    _dfLoadHistory();
-    _dfRenderHistoryList();
-    _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' ê²°ê³¼ë¥¼ ì €ì¥í•˜ê±°ë‚˜ ì¹´ì¹´ì˜¤í†¡ìœ¼ë¡œ ê³µìœ í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.');
-  }
-
-  overlay.style.display = 'block';
-  overlay.scrollTop = 0;
-  if (sheet) sheet.scrollTop = 0;
-  _dfSetBodyLock(true);
-  _dfApplyStudioTitle();
-  requestAnimationFrame(function() {
-    overlay.classList.add('is-show');
-  });
-  } catch (err) {
-    if (typeof console !== 'undefined' && console.error) console.error('[DestinyFlower]', err);
-    overlay.style.display = 'none';
-    _dfSetBodyLock(false);
-  }
-}
-
-/* í”„ë¡œí•„ ì¹´ë“œ â†’ ìš´ëª…ì˜ ê½ƒ ì§„ì…ìš©: ì •ì˜ ì§í›„ windowì— ë…¸ì¶œ (ìŠ¤í¬ë¦½íŠ¸ í›„ë°˜ ì˜¤ë¥˜ ì‹œì—ë„ ì‚¬ìš© ê°€ëŠ¥) */
-window.openDestinyFlowerStudio = openDestinyFlowerStudio;
-window.openDestinyFlower = openDestinyFlower;
-
-function _dfGetNoBirthMessage(source) {
-  var normalized = _dfNormalizeSource(source);
-  if (normalized === 'jamidusu') return 'ìë¯¸ë‘ìˆ˜ ê½ƒì„ ë³´ë ¤ë©´ ìƒë…„ì›”ì¼ì„ ì…ë ¥í•´ì£¼ì„¸ìš”.';
-  if (normalized === 'sukuyo') return 'ìˆ™ìš”ì  ê½ƒì„ ë³´ë ¤ë©´ ìƒë…„ì›”ì¼ì„ ì…ë ¥í•´ì£¼ì„¸ìš”.';
-  return 'ì´ë¦„ê³¼ ìƒë…„ì›”ì¼ ì •ë³´ë¥¼ ë¨¼ì € ì…ë ¥í•˜ë©´, ë‚˜ë§Œì˜ ìš´ëª…ì˜ ê½ƒì´ ì—¬ê¸°ì—ì„œ í”¼ì–´ë‚©ë‹ˆë‹¤.';
-}
-
-function setDestinyFlowerSourceTab(source, gatePassed) {
-  var normalized = _dfNormalizeSource(source);
-  if (gatePassed !== true && !_dfRequireSourceCoinPayment(normalized)) {
-    return _dfStudioState.selection || null;
-  }
-  normalized = _dfSetActiveSource(normalized);
-  var overlay = document.getElementById('destinyFlowerStudioOverlay');
-  var isStudioOpen = overlay && overlay.style.display !== 'none';
-  var selection = _dfGetUnifiedSelection(normalized, false);
-  _dfStudioState.selection = selection;
-
-  if (isStudioOpen) {
-    var studioSelection = _dfRefreshStudioForSource(normalized, false);
-    if (studioSelection) {
-      _dfMarkSourceCompleted(normalized, { silent: true });
-      _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' ê¸°ì¤€ìœ¼ë¡œ íƒ­ê³¼ í”„ë¡¬í”„íŠ¸ë¥¼ ê°±ì‹ í–ˆìŠµë‹ˆë‹¤.');
-    }
-  } else {
-    var card = document.querySelector('.feature-card.feature-card--destiny-flower');
-    if (card) {
-      _dfEnsureCardOpen(card);
-      if (selection) {
-        _dfAnimateUnifiedCardSwitch(card, selection);
-        _dfMarkSourceCompleted(normalized, { silent: true });
-      } else {
-        var stage = card.querySelector('.destiny-flower-stage');
-        var nameEl = card.querySelector('.destiny-flower-stage__name');
-        var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
-        if (stage && nameEl && symbolismEl) {
-          nameEl.textContent = 'ìƒë…„ì›”ì¼ ì…ë ¥ ëŒ€ê¸°';
-          symbolismEl.textContent = _dfGetDataMissingUiState(normalized).message;
-        }
-      }
-      if (typeof syncFeatureCardHeight === 'function') {
-        syncFeatureCardHeight(card);
-        requestAnimationFrame(function() {
-          syncFeatureCardHeight(card);
-        });
-      }
-    }
-  }
-
-  return selection;
-}
-
-function closeDestinyFlowerStudio() {
-  var overlay = document.getElementById('destinyFlowerStudioOverlay');
-  if (!overlay) return;
-  _dfStudioState.coinGatePassed = false;
-  _dfStudioState.coinGateInFlight = false;
-  _dfStudioState._coinGatePassToken = null;  // í† í°ë„ ë¦¬ì…‹
-  _dfRestoreOriginalTitle();
-  overlay.classList.remove('is-show');
-  setTimeout(function() {
-    if (!overlay.classList.contains('is-show')) {
-      overlay.style.display = 'none';
-      _dfRestoreOriginalTitle();
-    }
-  }, 220);
-  _dfSetBodyLock(false);
-}
-
-function goHomeFromDestinyFlower() {
-  closeDestinyFlowerStudio();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function goAskAIFromDestinyFlower(button) {
-  var url = (button && button.getAttribute && button.getAttribute('data-ai-url')) || 'https://chatgpt.com/';
-  closeDestinyFlowerStudio();
-  _dfSetStudioStatus('AIë¥¼ ìƒˆ íƒ­ì—ì„œ ì—½ë‹ˆë‹¤. ì—´ë¦¬ì§€ ì•Šìœ¼ë©´ íŒì—… í—ˆìš© í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.');
-  setTimeout(function() {
-    var w = null;
-    try {
-      w = window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      w = null;
-    }
-    if (!w || (typeof w.closed !== 'undefined' && w.closed)) {
-      try {
-        window.open(url, '_blank', 'noopener');
-      } catch (e2) {}
-      _dfSetStudioStatus('ìƒˆ íƒ­ì´ ì°¨ë‹¨ëœ ê²ƒ ê°™ìŠµë‹ˆë‹¤. ë¸Œë¼ìš°ì €ì—ì„œ íŒì—…ì„ í—ˆìš©í•˜ê±°ë‚˜ ì›í•˜ëŠ” AI ì‚¬ì´íŠ¸ë¥¼ ì§ì ‘ ì—´ì–´ ì£¼ì„¸ìš”.');
-    }
-  }, 100);
-}
-
-function saveDestinyFlowerSnapshot() {
-  var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
-  var snapshot = _dfBuildSnapshot(selection);
-  if (!snapshot) return;
-
-  _dfLoadHistory();
-  _dfStudioState.history = _dfStudioState.history.filter(function(item) {
-    return !(item.name === snapshot.name && item.primary === snapshot.primary && item.secondary === snapshot.secondary);
-  });
-  _dfStudioState.history.unshift(snapshot);
-  _dfStudioState.history = _dfStudioState.history.slice(0, _DF_STUDIO_HISTORY_LIMIT);
-  _dfPersistHistory();
-  _dfRenderHistoryList();
-  _dfSetStudioStatus('ê°œí™” ê¸°ë¡ì´ ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤: ' + snapshot.name + ' (' + snapshot.savedAtLabel + ')');
-}
-
-function restoreDestinyFlowerSnapshot(snapshotId) {
-  if (!snapshotId) return;
-  _dfLoadHistory();
-  var target = null;
-  for (var i = 0; i < _dfStudioState.history.length; i++) {
-    if (_dfStudioState.history[i].id === snapshotId) {
-      target = _dfStudioState.history[i];
-      break;
-    }
-  }
-  if (!target) {
-    _dfSetStudioStatus('í•´ë‹¹ ê¸°ë¡ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.');
-    return;
-  }
-
-  var selection = _dfSelectionFromSnapshot(target);
-  _dfSetActiveSource(selection.source || 'saju');
-  _dfStudioState.selection = selection;
-  _dfApplyStudioSelection(selection);
-  var card = document.querySelector('.feature-card.feature-card--destiny-flower');
-  if (card) {
-    _dfEnsureCardOpen(card);
-    _dfAnimateUnifiedCardSwitch(card, selection);
-  }
-  _dfSetStudioStatus('ì €ì¥í•œ ê°œí™” ê¸°ë¡ì„ ë¶ˆëŸ¬ì™”ìŠµë‹ˆë‹¤: ' + target.name);
-}
-
-function deleteDestinyFlowerSnapshot(snapshotId) {
-  if (!snapshotId) return;
-  _dfLoadHistory();
-  var before = _dfStudioState.history.length;
-  _dfStudioState.history = _dfStudioState.history.filter(function(item) {
-    return item.id !== snapshotId;
-  });
-  if (_dfStudioState.history.length === before) {
-    _dfSetStudioStatus('ì‚­ì œí•  ê¸°ë¡ì„ ì°¾ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.');
-    return;
-  }
-  _dfPersistHistory();
-  _dfRenderHistoryList();
-  _dfSetStudioStatus('ì„ íƒí•œ ê°œí™” ê¸°ë¡ì„ ì‚­ì œí–ˆìŠµë‹ˆë‹¤.');
-}
-
-function clearDestinyFlowerSnapshots() {
-  _dfLoadHistory();
-  if (!_dfStudioState.history.length) {
-    _dfSetStudioStatus('ì‚­ì œí•  ê°œí™” ê¸°ë¡ì´ ì—†ìŠµë‹ˆë‹¤.');
-    return;
-  }
-  var ok = window.confirm(_indexRuntimeText("indexRuntime.confirm.004"));
-  if (!ok) return;
-  _dfStudioState.history = [];
-  _dfPersistHistory();
-  _dfRenderHistoryList();
-  _dfSetStudioStatus('ì €ì¥ëœ ê°œí™” ê¸°ë¡ì„ ëª¨ë‘ ì‚­ì œí–ˆìŠµë‹ˆë‹¤.');
-}
-
-function shareDestinyFlowerSnapshot() {
-  var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
-  var snapshot = _dfBuildSnapshot(selection);
-  _dfShareSnapshot(snapshot);
-}
-
-function shareDestinyFlowerSnapshotById(snapshotId) {
-  if (!snapshotId) return;
-  _dfLoadHistory();
-  var target = null;
-  for (var i = 0; i < _dfStudioState.history.length; i++) {
-    if (_dfStudioState.history[i].id === snapshotId) {
-      target = _dfStudioState.history[i];
-      break;
-    }
-  }
-  if (!target) {
-    _dfSetStudioStatus('ê³µìœ í•  ê¸°ë¡ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.');
-    return;
-  }
-  _dfShareSnapshot(target);
-}
-
-function copyDestinyFlowerSummary() {
-  var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
-  var snapshot = _dfBuildSnapshot(selection);
-  var text = _dfBuildShareText(snapshot);
-  _dfClipboardWrite(text, 'ìš”ì•½ì„ í´ë¦½ë³´ë“œì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤.');
-}
-
-function copyDestinyFlowerArtPrompt() {
-  var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
-  var text = _dfBuildArtPrompt(selection);
-  _dfClipboardWrite(text, 'AI ê½ƒ ë©”ì¸ í”„ë¡¬í”„íŠ¸ë¥¼ í´ë¦½ë³´ë“œì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤.');
-}
-
-function copyDestinyFlowerPromptPack() {
-  var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
-  var text = _dfBuildPromptPack(selection);
-  _dfClipboardWrite(text, 'ë©”ì¸/ë„¤ê±°í‹°ë¸Œ í”„ë¡¬í”„íŠ¸ ì„¸íŠ¸ë¥¼ í´ë¦½ë³´ë“œì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤.');
-}
-
-window.openDestinyFlower = openDestinyFlower;
-window.openAstrologyFlower = openAstrologyFlower;
-window.openJamidusuFlower = openJamidusuFlower;
-window.openSukuyoFlower = openSukuyoFlower;
-window.openDestinyFlowerStudio = openDestinyFlowerStudio;
-window.openAstrologyFlowerStudio = openAstrologyFlowerStudio;
-window.openJamidusuFlowerStudio = openJamidusuFlowerStudio;
-window.openSukuyoFlowerStudio = openSukuyoFlowerStudio;
-window.setDestinyFlowerSourceTab = setDestinyFlowerSourceTab;
-window.closeDestinyFlowerStudio = closeDestinyFlowerStudio;
-window.goHomeFromDestinyFlower = goHomeFromDestinyFlower;
-window.goAskAIFromDestinyFlower = goAskAIFromDestinyFlower;
-window.saveDestinyFlowerSnapshot = saveDestinyFlowerSnapshot;
-window.restoreDestinyFlowerSnapshot = restoreDestinyFlowerSnapshot;
-window.deleteDestinyFlowerSnapshot = deleteDestinyFlowerSnapshot;
-window.clearDestinyFlowerSnapshots = clearDestinyFlowerSnapshots;
-window.shareDestinyFlowerSnapshot = shareDestinyFlowerSnapshot;
-window.shareDestinyFlowerSnapshotById = shareDestinyFlowerSnapshotById;
-window.copyDestinyFlowerSummary = copyDestinyFlowerSummary;
-window.copyDestinyFlowerArtPrompt = copyDestinyFlowerArtPrompt;
-window.copyDestinyFlowerPromptPack = copyDestinyFlowerPromptPack;
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    _dfSyncSourceTabs(_dfStudioState.activeSource || 'saju');
-    _dfSyncSourceTabsLockState();
-    _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
-    _dfBindBloomingInteractions();
-    // [UX FIX] ìë™ ì• ë‹ˆë©”ì´ì…˜ ì œê±° â€” ë²„íŠ¼ í´ë¦­ìœ¼ë¡œë§Œ ê½ƒ ì•„í‹€ë¦¬ì— ì§„ì…
-    // _dfRunIntroBloom();
-  }, { once: true });
-} else {
-  _dfSyncSourceTabs(_dfStudioState.activeSource || 'saju');
-  _dfSyncSourceTabsLockState();
-  _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
-  _dfBindBloomingInteractions();
-  // [UX FIX] ìë™ ì• ë‹ˆë©”ì´ì…˜ ì œê±° â€” ë²„íŠ¼ í´ë¦­ìœ¼ë¡œë§Œ ê½ƒ ì•„í‹€ë¦¬ì— ì§„ì…
-  // _dfRunIntroBloom();
-}
-
-if (!window.__destinyFlowerEscBound) {
-  window.__destinyFlowerEscBound = true;
-  document.addEventListener('keydown', function(e) {
-    if (e.key !== 'Escape') return;
-    var overlay = document.getElementById('destinyFlowerStudioOverlay');
-    if (!overlay || overlay.style.display === 'none') return;
-    closeDestinyFlowerStudio();
-  });
-}
-
-function _dpStorage() {
-  return window.DestinyProfileManager ? window.DestinyProfileManager.storage : null;
-}
-function _dpEsc(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-function _dpZodiac(y) {
-  return ['ğŸ€', 'ğŸ‚', 'ğŸ…', 'ğŸ‡', 'ğŸ‰', 'ğŸ', 'ğŸ', 'ğŸ‘', 'ğŸ’', 'ğŸ“', 'ğŸ•', 'ğŸ–'][(y - 4 + 120) % 12];
-}
-
-function _dpParseBirthPartsForFeature(profile) {
-  var birth = profile && profile.birth && typeof profile.birth === 'object' ? profile.birth : {};
-  var year = parseInt(birth.year != null ? birth.year : profile && profile.birthYear, 10);
-  var month = parseInt(birth.month != null ? birth.month : profile && profile.birthMonth, 10);
-  var day = parseInt(birth.day != null ? birth.day : profile && profile.birthDay, 10);
-  if (isFinite(year) && isFinite(month) && isFinite(day)) return { year: year, month: month, day: day };
-  var text = String((profile && (profile.birthDate || profile.birthIso || profile.date || profile.birthday)) || '').trim();
-  if (!text) return null;
-  var datePart = text.split(/[T\s]/)[0] || text;
-  var parts = datePart.indexOf('-') >= 0 || datePart.indexOf('/') >= 0 || datePart.indexOf('.') >= 0
-    ? datePart.split(/[-/.]/)
-    : [datePart.replace(/\D/g, '').slice(0, 4), datePart.replace(/\D/g, '').slice(4, 6), datePart.replace(/\D/g, '').slice(6, 8)];
-  if (parts.length < 3) return null;
-  year = parseInt(parts[0], 10);
-  month = parseInt(parts[1], 10);
-  day = parseInt(parts[2], 10);
-  return (isFinite(year) && isFinite(month) && isFinite(day)) ? { year: year, month: month, day: day } : null;
-}
-
-function _dpNormalizeProfileForFeature(profile) {
-  if (!profile || typeof profile !== 'object') return null;
-  var parsed = _dpParseBirthPartsForFeature(profile);
-  if (!parsed) return null;
-  var b = profile.birth && typeof profile.birth === 'object' ? profile.birth : {};
-  var timeText = String(profile.birthTime || profile.birthIso || '').trim();
-  var timePart = timeText.indexOf('T') >= 0 || timeText.indexOf(' ') >= 0 ? (timeText.split(/[T\s]/)[1] || '') : timeText;
-  var timePieces = timePart ? timePart.split(':') : [];
-  var hour = parseInt(b.hour != null ? b.hour : (profile.birthHour != null ? profile.birthHour : timePieces[0]), 10);
-  var minute = parseInt(b.minute != null ? b.minute : (profile.birthMinute != null ? profile.birthMinute : timePieces[1]), 10);
-  if (!isFinite(hour) || hour < 0 || hour > 23) hour = 12;
-  if (!isFinite(minute) || minute < 0 || minute > 59) minute = 0;
-  var calType = String(b.calType || profile.calType || profile.calendarType || 'solar').trim();
-  if (calType !== 'lunar' && calType !== 'lunar_leap') calType = 'solar';
-  var l = profile.location && typeof profile.location === 'object' ? profile.location : {};
-  var normalized = Object.assign({}, profile);
-  normalized.id = String(profile.id || profile.profileId || '').trim() || normalized.id;
-  normalized.profileId = String(profile.profileId || profile.id || '').trim() || normalized.profileId;
-  normalized.birth = Object.assign({}, b, {
-    year: parsed.year,
-    month: parsed.month,
-    day: parsed.day,
-    hour: hour,
-    minute: minute,
-    calType: calType
-  });
-  normalized.birthYear = parsed.year;
-  normalized.birthMonth = parsed.month;
-  normalized.birthDay = parsed.day;
-  normalized.birthHour = hour;
-  normalized.birthMinute = minute;
-  normalized.calType = calType;
-  normalized.birthDate = parsed.year + '-' + String(parsed.month).padStart(2, '0') + '-' + String(parsed.day).padStart(2, '0');
-  normalized.birthTime = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
-  normalized.location = Object.assign({}, l);
-  return normalized;
-}
-
-function _dpNormalizeProfileListForFeature(profiles) {
-  if (!Array.isArray(profiles)) return [];
-  return profiles.map(_dpNormalizeProfileForFeature).filter(function(profile) { return !!profile; });
-}
-
-var _dpSwitchPending = null;
-var _dpSwitchTrigger = null;
-var _dpSwitchUnmountTimer = null;
-
-function _dpEnsureSwitchConfirmOverlayMounted() {
-  var existing = document.getElementById('dpSwitchConfirmOverlay');
-  if (existing) return existing;
-  var tpl = document.getElementById('dpSwitchConfirmOverlayTemplate');
-  if (!tpl || !tpl.content) return null;
-  var frag = tpl.content.cloneNode(true);
-  document.body.appendChild(frag);
-  return document.getElementById('dpSwitchConfirmOverlay');
-}
-
-function _dpUnmountSwitchConfirmOverlayAfterClose() {
-  if (_dpSwitchUnmountTimer) {
-    clearTimeout(_dpSwitchUnmountTimer);
-    _dpSwitchUnmountTimer = null;
-  }
-  _dpSwitchUnmountTimer = setTimeout(function() {
-    var ov = document.getElementById('dpSwitchConfirmOverlay');
-    if (!ov || ov.classList.contains('dp-switch-overlay--in')) return;
-    if (ov.parentNode) ov.parentNode.removeChild(ov);
-  }, 320);
-}
-
-function _dpRestoreSwitchConfirmFocus() {
-  var target = _dpSwitchTrigger;
-  _dpSwitchTrigger = null;
-  if (target && typeof target.focus === 'function' && document.contains(target)) {
-    try { target.focus({ preventScroll: true }); return; } catch (_) {}
-  }
-  var fallback = document.querySelector('#dpListSheet button, #profileHub button, button, [href], [tabindex]:not([tabindex="-1"])');
-  if (fallback && typeof fallback.focus === 'function') {
-    try { fallback.focus({ preventScroll: true }); } catch (_) {}
-  }
-}
-
-function _dpCloseSwitchConfirmOverlay() {
-  var ov = document.getElementById('dpSwitchConfirmOverlay');
-  if (ov) {
-    ov.classList.remove('dp-switch-overlay--in');
-    ov.setAttribute('aria-hidden', 'true');
-    setTimeout(function() {
-      var node = document.getElementById('dpSwitchConfirmOverlay');
-      if (node) node.style.display = 'none';
-    }, 300);
-    _dpUnmountSwitchConfirmOverlayAfterClose();
-  }
-  _dpRestoreSwitchConfirmFocus();
-}
-
-function _dpShowSwitchConfirm(profile, onYes) {
-  profile = _dpNormalizeProfileForFeature(profile) || profile;
-  _dpSwitchPending = { profile: profile, onYes: onYes };
-  _dpSwitchTrigger = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
-  if (_dpSwitchUnmountTimer) {
-    clearTimeout(_dpSwitchUnmountTimer);
-    _dpSwitchUnmountTimer = null;
-  }
-  var ov = _dpEnsureSwitchConfirmOverlayMounted();
-  if (!ov) return;
-  var b = profile.birth || {}, l = profile.location || {};
-  var cal = b.calType === 'solar' ? 'ì–‘ë ¥' : (b.calType === 'lunar_leap' ? 'ìŒë ¥(ìœ¤)' : 'ìŒë ¥');
-  var dateStr = cal + ' ' + b.year + '.'
-    + String(b.month || 1).padStart(2, '0') + '.' + String(b.day || 1).padStart(2, '0')
-    + ' Â· ' + String(b.hour != null ? b.hour : 12).padStart(2, '0')
-    + ':' + String(b.minute != null ? b.minute : 0).padStart(2, '0');
-  var iconEl = document.getElementById('dpSwIcon');
-  var nameEl = document.getElementById('dpSwName');
-  var detailEl = document.getElementById('dpSwDetail');
-  var locEl = document.getElementById('dpSwLoc');
-  if (iconEl) iconEl.textContent = _dpZodiac(b.year);
-  if (nameEl) nameEl.textContent = profile.name || '';
-  if (detailEl) detailEl.textContent = dateStr;
-  if (locEl) locEl.textContent = l.label ? 'ğŸ“ ' + l.label : '';
-  ov.style.display = 'flex';
-  ov.setAttribute('aria-hidden', 'false');
-  ov.classList.remove('dp-switch-overlay--in');
-  requestAnimationFrame(function() { ov.classList.add('dp-switch-overlay--in'); });
-  var focusTarget = ov.querySelector('.dp-switch-no, button, [href], [tabindex]:not([tabindex="-1"])');
-  if (focusTarget && typeof focusTarget.focus === 'function') {
-    try { focusTarget.focus({ preventScroll: true }); } catch (_) {}
-  }
-}
-
-function dpSwitchConfirmYes() {
-  _dpCloseSwitchConfirmOverlay();
-  if (_dpSwitchPending) {
-    var cb = _dpSwitchPending.onYes, p = _dpSwitchPending.profile;
-    _dpSwitchPending = null;
-    try { cb(p); } catch (e) { console.error('[dpSwitchConfirm] ì½œë°± ì˜¤ë¥˜:', e); }
-  }
-}
-
-function dpSwitchConfirmNo() {
-  _dpCloseSwitchConfirmOverlay();
-  _dpSwitchPending = null;
-}
-
-function _dpSelect(id, type) {
-  var s = _dpStorage(); if (!s) return;
-  var list = _dpNormalizeProfileListForFeature(s.list()), profile = null;
-  for (var i = 0; i < list.length; i++) { if (list[i].id === id) { profile = list[i]; break; } }
-  if (!profile) return;
-  _dpShowSwitchConfirm(profile, function(p) {
-    s.setCurrent(id);
-    if (type === 'saju') {
-      if (typeof window.dpRunWithProfile === 'function') window.dpRunWithProfile(id);
-    } else {
-      _ModalProfileState.dispatch(p, type);
-    }
-  });
-}
-
-function closeAllMysticModalsToHome() {
-  if (typeof closeSukuyoModal === 'function') closeSukuyoModal();
-  if (typeof closeZiweiModal === 'function') closeZiweiModal();
-  if (typeof closeAstroModal === 'function') closeAstroModal();
-  if (typeof closeSibylModal === 'function') closeSibylModal();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function _dpPickerHTML(profiles, type, theme, backFn) {
-  profiles = _dpNormalizeProfileListForFeature(profiles);
-  var h = '<div style="padding:16px 0 8px;">'
-    + '<div style="text-align:center;margin-bottom:22px;padding:0 8px;">'
-    + '<div style="font-size:2.5rem;margin-bottom:10px;">' + theme.icon + '</div>'
-    + '<div style="font-family:\'Gowun Dodum\',serif;font-size:1rem;color:' + theme.ac + ';letter-spacing:2px;font-weight:700;margin-bottom:6px;">' + theme.title + '</div>'
-    + '<div style="font-size:0.8rem;color:rgba(255,255,255,0.4);line-height:1.6;">' + (theme.sub || 'ìš´ëª… ì¹´ë“œë¥¼ ì„ íƒí•˜ë©´ ë°”ë¡œ ê²°ê³¼ë¥¼ í™•ì¸í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤') + '</div>'
-    + '</div><div style="display:flex;flex-direction:column;gap:10px;">';
-  profiles.forEach(function(p) {
-    var b = p.birth, l = p.location || {};
-    var zodiac = _dpZodiac(b.year);
-    var cal = b.calType === 'solar' ? 'ì–‘ë ¥' : (b.calType === 'lunar_leap' ? 'ìŒë ¥(ìœ¤)' : 'ìŒë ¥');
-    var gbadge = p.gender === 'M'
-      ? '<span style="font-size:0.63rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">â™‚</span>'
-      : '<span style="font-size:0.63rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">â™€</span>';
-    h += '<button type="button" data-action="_dpSelect" data-action-args="' + _dpEsc(p.id) + ',' + _dpEsc(type) + '" '
-      + 'style="display:flex;align-items:center;gap:13px;width:100%;padding:13px 15px;cursor:pointer;text-align:left;font:inherit;'
-      + 'background:rgba(255,255,255,0.03);border:1px solid rgba(' + theme.br + ',0.22);'
-      + 'border-radius:14px;touch-action:pan-y;-webkit-tap-highlight-color:transparent;">'
-      + '<div style="font-size:1.9rem;flex-shrink:0;">' + zodiac + '</div>'
-      + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-family:\'Gowun Dodum\',serif;font-size:0.92rem;color:rgba(255,255,255,0.88);font-weight:700;margin-bottom:3px;">'
-      + _dpEsc(p.name) + '&nbsp;' + gbadge + '</div>'
-      + '<div style="font-size:0.76rem;color:rgba(255,255,255,0.45);">'
-      + cal + '&nbsp;' + b.year + '.' + String(b.month).padStart(2, '0') + '.' + String(b.day).padStart(2, '0')
-      + '&nbsp;&middot;&nbsp;' + String(b.hour != null ? b.hour : 12).padStart(2, '0') + ':' + String(b.minute != null ? b.minute : 0).padStart(2, '0') + '</div>'
-      + (l.label ? '<div style="font-size:0.7rem;color:rgba(255,255,255,0.28);margin-top:2px;">ğŸ“&nbsp;' + _dpEsc(l.label) + '</div>' : '')
-      + '</div>'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + theme.ac + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.7;"><polyline points="9 18 15 12 9 6"/></svg>'
-      + '</button>';
-  });
-  h += '</div>'
-    + '<div style="text-align:center;margin-top:18px;">'
-    + '<button data-action="' + (backFn || 'closeAllMysticModalsToHome') + '" '
-    + 'style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);'
-    + 'padding:9px 18px;border-radius:10px;font-family:\'Gowun Dodum\',serif;font-size:0.8rem;cursor:pointer;touch-action:manipulation;">' + (backFn ? 'â† ë‹«ê¸°' : 'â† í™ˆìœ¼ë¡œ') + '</button>'
-    + '</div></div>';
-  return h;
-}
-
-function _dpEmptyHTML(theme) {
-  return '<div style="text-align:center;padding:60px 20px;">'
-    + '<div style="font-size:3rem;margin-bottom:16px;">' + theme.icon + '</div>'
-    + '<h3 style="color:' + theme.ac + ';margin-bottom:8px;font-family:\'Gowun Dodum\',serif;">ë‚˜ì˜ ìš´ëª… ì¹´ë“œ í•„ìš”</h3>'
-    + '<p style="color:#9ca3af;line-height:1.6;margin-bottom:24px;">' + theme.desc + '</p>'
-    + '<button data-action="closeAllMysticModalsToHome" data-after-action-scroll-target="destinyCardForm" '
-    + 'style="background:' + theme.bb + ';border:1px solid rgba(' + theme.br + ',0.5);color:' + theme.ac + ';'
-    + 'padding:12px 24px;border-radius:12px;font-family:\'Gowun Dodum\',serif;font-size:0.9rem;cursor:pointer;touch-action:manipulation;">ìš´ëª… ì¹´ë“œ ë§Œë“¤ê¸°</button>'
-    + '</div>';
-}
-
-function __cdForceUnlockBodyScroll() {
-  try {
-    if (window._perf && typeof window._perf.unlockBody === 'function') {
-      window._perf.unlockBody();
-    }
-  } catch (e) {}
-  // í‚¤ë“œ ë ˆí¼ëŸ°ìŠ¤ ì¹´ìš´íŠ¸ ë½ë„ í•¨ê»˜ 0ìœ¼ë¡œ ë¦¬ì…‹ â€” ì§ unlock ëˆ„ë½ìœ¼ë¡œ lockCountê°€
-  // ë‚¨ì•„ìˆìœ¼ë©´ ì•„ë˜ ì¸ë¼ì¸ ë³µì›ì´ ì´í›„ ì¬-ë½ì— ë®ì—¬ ìŠ¤í¬ë¡¤ì´ ê³„ì† ë§‰í˜.
-  try {
-    if (typeof window.__cdResetBodyScrollLock === 'function') {
-      window.__cdResetBodyScrollLock();
-    }
-  } catch (e) {}
-  try {
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-  } catch (e) {}
-}
-
-function __cdBirthModalDepsMissing() {
-  return (
-    typeof _ModalProfileState === 'undefined' ||
-    typeof _renderSukuyoSection !== 'function' ||
-    typeof _renderZiweiSection !== 'function' ||
-    typeof _renderAstroSection !== 'function' ||
-    typeof window.Solar === 'undefined' ||
-    typeof window.Solar.fromYmdHms !== 'function' ||
-    typeof window.Lunar === 'undefined' ||
-    typeof window.Lunar.fromYmd !== 'function' ||
-    typeof window.renderSukuyo !== 'function' ||
-    typeof window.renderZiwei !== 'function'
-  );
-}
-
-function __cdEnsureSukuyoZiweiCoreLoaded() {
-  var needsCore = (
-    typeof window.Solar === 'undefined' ||
-    typeof window.Solar.fromYmdHms !== 'function' ||
-    typeof window.Lunar === 'undefined' ||
-    typeof window.Lunar.fromYmd !== 'function' ||
-    typeof window.renderSukuyo !== 'function' ||
-    typeof window.renderZiwei !== 'function' ||
-    typeof window.calcSukuyoData !== 'function' ||
-    typeof window.calcZiweiPalaces !== 'function'
-  );
-
-  if (!needsCore) return Promise.resolve(true);
-
-  var chain = [
-    '/js/compat-llm-prompts.js?v=build-a7f5a2b0f6f5',
-      '/js/saju-engine.js?v=build-a7f5a2b0f6f5',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a7f5a2b0f6f5'
-  ];
-
-  return __cdEnsureLunarLibReady().then(function() {
-    return chain.reduce(function(promise, src) {
-      return promise.then(function() { return __cdLoadScriptOnce(src); });
-    }, Promise.resolve());
-  }).then(function() {
-    return true;
-  });
-}
-
-function __cdEnsureBirthModalDepsLoaded() {
-  var tasks = [];
-  if (
-    typeof _ModalProfileState === 'undefined' ||
-    typeof _renderSukuyoSection !== 'function' ||
-    typeof _renderZiweiSection !== 'function' ||
-    typeof _renderAstroSection !== 'function'
-  ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-a7f5a2b0f6f5'));
-  }
-  tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
-  if (!tasks.length) return Promise.resolve(true);
-  return Promise.all(tasks).then(function() { return true; });
-}
-
-function openSukuyoModal(_retried) {
-  if (!_retried && __cdBirthModalDepsMissing()) {
-    __cdEnsureBirthModalDepsLoaded()
-      .then(function() { openSukuyoModal(true); })
-      .catch(function(err) { console.error('[openSukuyoModal] dependency load failed:', err); });
-    return;
-  }
-  var overlay = document.getElementById('sukuyoModalOverlay');
-  if (!overlay) return;
-  __cdForceUnlockBodyScroll();
-  var s = _dpStorage();
-  var profiles = _dpNormalizeProfileListForFeature(s ? s.list() : []);
-  var profile = _dpNormalizeProfileForFeature(s ? s.current() : null);
-  overlay.style.display = 'flex';
-  overlay.style.overflow = 'hidden';
-  var sh = document.getElementById('sukuyoModalSheet');
-  if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
-  var noProfile = document.getElementById('sukuyoNoProfile');
-  var card = document.getElementById('sukuyoCard');
-  var theme = { icon: 'ğŸ’«', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: 'ğŸ’« å®¿æ›œå  Â· ìˆ™ìš”ì ', desc: 'ìˆ™ìš”ì ì„ ë³´ë ¤ë©´ ë©”ì¸ í™”ë©´ì—ì„œ<br>ë‚˜ì˜ ìš´ëª… ì¹´ë“œë¥¼ ë¨¼ì € ì„¤ì •í•´ì£¼ì„¸ìš”' };
-  if (typeof _ModalProfileState === 'undefined' || typeof _ModalProfileState.subscribe !== 'function' || typeof _renderSukuyoSection !== 'function') {
-    console.error('[openSukuyoModal] missing modal profile dependencies');
-    if (card) card.style.display = 'none';
-    if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = _dpEmptyHTML(theme); }
-    return;
-  }
-  _ModalProfileState.subscribe('sukuyo', _renderSukuyoSection);
-  if (!profile || !profile.birth) {
-    if (card) card.style.display = 'none';
-    if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'sukuyo', theme) : _dpEmptyHTML(theme); }
-    return;
-  }
-  _ModalProfileState.dispatch(profile, 'sukuyo');
-}
-function closeSukuyoModal() {
-  var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
-  _ModalProfileState.unsubscribe('sukuyo');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function navigateToVedic() {
-  if (typeof window.openFortuneFromProfile === 'function') {
-    try {
-      var bridged = window.openFortuneFromProfile('vedic');
-      if (bridged) return;
-    } catch (_) {}
-  }
-  function normalizeVedicProfile(profile) {
-    if (!profile) return null;
-    var parsedBirth = null;
-    if (typeof profile.birthDate === 'string') {
-      var dparts = profile.birthDate.split(/[-/]/);
-      if (dparts.length >= 3) {
-        parsedBirth = {
-          year: parseInt(dparts[0], 10),
-          month: parseInt(dparts[1], 10),
-          day: parseInt(dparts[2], 10)
-        };
-      } else if (dparts.length === 1 && dparts[0].length >= 8) {
-        parsedBirth = {
-          year: parseInt(dparts[0].slice(0, 4), 10),
-          month: parseInt(dparts[0].slice(4, 6), 10),
-          day: parseInt(dparts[0].slice(6, 8), 10)
-        };
-      }
-    }
-    var b = profile.birth || {
-      year: profile.birthYear != null ? profile.birthYear : (parsedBirth && parsedBirth.year),
-      month: profile.birthMonth != null ? profile.birthMonth : (parsedBirth && parsedBirth.month),
-      day: profile.birthDay != null ? profile.birthDay : (parsedBirth && parsedBirth.day),
-      hour: profile.birthHour,
-      minute: profile.birthMinute,
-      calType: profile.calType
-    };
-    if (!b || (b.year == null && b.month == null && b.day == null && profile.birthDate == null)) return null;
-    if ((b.hour == null || b.hour === '') && profile.birthHour != null && profile.birthHour !== '') b.hour = profile.birthHour;
-    if ((b.minute == null || b.minute === '') && profile.birthMinute != null && profile.birthMinute !== '') b.minute = profile.birthMinute;
-    if ((b.hour == null || b.hour === '' || b.minute == null || b.minute === '') && typeof profile.birthTime === 'string') {
-      var tparts = profile.birthTime.split(':');
-      if (tparts.length >= 2) {
-        if (b.hour == null || b.hour === '') b.hour = parseInt(tparts[0], 10);
-        if (b.minute == null || b.minute === '') b.minute = parseInt(tparts[1], 10);
-      }
-    }
-    var year = parseInt(b.year, 10);
-    var month = parseInt(b.month, 10);
-    var day = parseInt(b.day, 10);
-    if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return null;
-    var l = profile.location || {};
-    var lat = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : parseFloat(l.lat);
-    var lng = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng : (typeof l.lon === 'number' && !isNaN(l.lon) ? l.lon : (parseFloat(l.lng) || parseFloat(l.lon)));
-    var tzHours = (typeof l.baseTzOffset === 'number' && !isNaN(l.baseTzOffset)) ? l.baseTzOffset
-      : ((typeof l.tzOffset === 'number' && !isNaN(l.tzOffset)) ? (Math.abs(l.tzOffset) <= 24 ? l.tzOffset : l.tzOffset / 60) : 9);
-    return {
-      id: profile.id,
-      name: profile.name,
-      gender: profile.gender,
-      birth: {
-        year: year,
-        month: month,
-        day: day,
-        hour: b.hour != null ? b.hour : 12,
-        minute: b.minute != null ? b.minute : 0,
-        calType: b.calType || 'solar'
-      },
-      location: {
-        label: l.label || 'ëŒ€í•œë¯¼êµ­ (ì„œìš¸)',
-        tz: l.tz || 'Asia/Seoul',
-        lat: (!isNaN(lat) ? lat : 37.5665),
-        lng: (!isNaN(lng) ? lng : 126.978),
-        tzOffset: tzHours,
-        baseTzOffset: tzHours,
-        dstMinutes: l.dstMinutes
-      }
-    };
-  }
-
-  function _vedicPad2(value) {
-    var n = parseInt(value, 10);
-    if (!isFinite(n)) n = 0;
-    return String(n).padStart(2, '0');
-  }
-
-  function buildVedicBridgePayload(profile) {
-    var normalized = normalizeVedicProfile(profile);
-    if (!normalized) return null;
-
-    var b = normalized.birth || {};
-    var l = normalized.location || {};
-    var year = parseInt(b.year, 10);
-    var month = parseInt(b.month, 10);
-    var day = parseInt(b.day, 10);
-    var hour = parseInt(b.hour, 10);
-    var minute = parseInt(b.minute, 10);
-    if (!isFinite(year)) year = 1990;
-    if (!isFinite(month)) month = 1;
-    if (!isFinite(day)) day = 1;
-    if (!isFinite(hour)) hour = 12;
-    if (!isFinite(minute)) minute = 0;
-
-    var lat = parseFloat(l.lat);
-    var lng = parseFloat(l.lng);
-    if (!isFinite(lng)) lng = parseFloat(l.lon);
-    if (!isFinite(lat)) lat = 37.5665;
-    if (!isFinite(lng)) lng = 126.978;
-
-    var tzHours = parseFloat(l.baseTzOffset);
-    if (!isFinite(tzHours)) {
-      tzHours = parseFloat(l.tzOffset);
-      if (isFinite(tzHours) && Math.abs(tzHours) > 24) tzHours = tzHours / 60;
-    }
-    if (!isFinite(tzHours)) tzHours = 9;
-
-    normalized.birthYear = year;
-    normalized.birthMonth = month;
-    normalized.birthDay = day;
-    normalized.birthHour = hour;
-    normalized.birthMinute = minute;
-    normalized.calType = normalized.birth && normalized.birth.calType ? normalized.birth.calType : 'solar';
-    normalized.birthDate = year + '-' + _vedicPad2(month) + '-' + _vedicPad2(day);
-    normalized.birthTime = _vedicPad2(hour) + ':' + _vedicPad2(minute);
-    normalized.lat = lat;
-    normalized.lng = lng;
-    normalized.lon = lng;
-    normalized.timezone = tzHours;
-    normalized.tzOffset = tzHours;
-    normalized.baseTzOffset = tzHours;
-
-    return normalized;
-  }
-
-  function readMainFormProfileFallback() {
-    try {
-      var bdEl = document.getElementById('birthDate');
-      var bd = bdEl ? String(bdEl.value || '').trim() : '';
-      if (!bd) return null;
-      var digits = bd.replace(/\D/g, '');
-      var parts = digits.length === 8 ? [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)] : bd.split(/[-/.]/);
-      if (parts.length < 3) return null;
-      var year = parseInt(parts[0], 10);
-      var month = parseInt(parts[1], 10);
-      var day = parseInt(parts[2], 10);
-      if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return null;
-      var hourRaw = parseInt((document.getElementById('birthHour') || {}).value, 10);
-      var minuteRaw = parseInt((document.getElementById('birthMinute') || {}).value, 10);
-      var hour = (isFinite(hourRaw) && hourRaw >= 0 && hourRaw <= 23) ? hourRaw : 12;
-      var minute = (isFinite(minuteRaw) && minuteRaw >= 0 && minuteRaw <= 59) ? minuteRaw : 0;
-      var gender = 'F';
-      var btnM = document.getElementById('btnM');
-      var btnF = document.getElementById('btnF');
-      if (btnM && btnM.classList.contains('on')) gender = 'M';
-      else if (btnF && btnF.classList.contains('on')) gender = 'F';
-      var countrySel = document.getElementById('birthCountry');
-      var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
-      var tz = opt ? countrySel.value : 'Asia/Seoul';
-      var lng = opt ? parseFloat(opt.getAttribute('data-long') || '127') : 127.0;
-      var lat = opt ? parseFloat(opt.getAttribute('data-lat') || '37.6') : 37.6;
-      var tzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
-      var locationLabel = opt ? opt.text : 'ëŒ€í•œë¯¼êµ­ (ì„œìš¸)';
-      return {
-        id: 'vedic_main_form',
-        name: '(ë©”ì¸ ì…ë ¥)',
-        gender: gender,
-        birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: 'solar' },
-        location: { label: locationLabel, tz: tz, lng: lng, lat: lat, tzOffset: tzOff, baseTzOffset: tzOff }
-      };
-    } catch (_) { return null; }
-  }
-
-  var profile = typeof window.dpGetDataForVedic === 'function' ? window.dpGetDataForVedic() : null;
-  profile = _dpNormalizeProfileForFeature(profile) || profile;
-  profile = normalizeVedicProfile(profile);
-  if (!profile) {
-    try {
-      var storage = window.DestinyProfileManager && window.DestinyProfileManager.storage;
-      var currentProfile = window.__cdCurrentDestinyProfile
-        || (storage && typeof storage.current === 'function' ? storage.current() : null);
-      profile = normalizeVedicProfile(_dpNormalizeProfileForFeature(currentProfile) || currentProfile);
-      if (!profile && storage && typeof storage.list === 'function') {
-        var arr = storage.list();
-        if (Array.isArray(arr)) {
-          for (var i = 0; i < arr.length; i++) {
-            profile = normalizeVedicProfile(_dpNormalizeProfileForFeature(arr[i]) || arr[i]);
-            if (profile) break;
-          }
-        }
-      }
-    } catch (e) {}
-  }
-  if (!profile) {
-    var mainFormFallback = readMainFormProfileFallback();
-    profile = normalizeVedicProfile(_dpNormalizeProfileForFeature(mainFormFallback) || mainFormFallback);
-  }
-  if (profile) {
-    profile = buildVedicBridgePayload(profile) || profile;
-    try {
-      sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
-      localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
-      sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(profile));
-      localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(profile));
-      window.FORTUNE_APP_VEDIC_PAYLOAD = profile;
-    } catch (e) {}
-  }
-  var _vedicTarget = '/vedic-astrology.html';
-  if (profile) {
-    try {
-      var _vp = encodeURIComponent(JSON.stringify(profile));
-      _vedicTarget += (_vedicTarget.indexOf('?') >= 0 ? '&' : '?') + 'vp=' + _vp;
-    } catch (_) {}
-  }
-  window.location.href = _vedicTarget;
-}
-
-function navigateToZiweiChart() {
-  // ë©”ì¸ í™”ë©´ ìš´ëª… ì¹´ë“œ í”„ë¡œí•„ì—ì„œ ìƒë…„ì›”ì¼ ì¶”ì¶œ
-  var profile = null;
-  try {
-    var storage = window.DestinyProfileManager && window.DestinyProfileManager.storage;
-    profile = _dpNormalizeProfileForFeature(window.__cdCurrentDestinyProfile)
-      || (storage && typeof storage.current === 'function' ? storage.current() : null);
-    profile = _dpNormalizeProfileForFeature(profile) || profile;
-    if ((!profile || !profile.birth || profile.birth.year == null) && storage && typeof storage.list === 'function') {
-      var arr = storage.list();
-      if (Array.isArray(arr)) {
-        for (var i = 0; i < arr.length; i++) {
-          var row = arr[i] || null;
-          row = _dpNormalizeProfileForFeature(row) || row;
-          if (row && row.birth && row.birth.year != null) {
-            profile = row;
-            break;
-          }
-        }
-      }
-    }
-  } catch (e) {}
-  // ìš´ëª… ì¹´ë“œ í”„ë¡œí•„ì´ ìˆìœ¼ë©´ /ziwei/chart ì…ë ¥ í¼ ìë™ ì„¸íŒ… í›„ ì´ë™
-  if (profile && profile.birth) {
-    try {
-      var b = profile.birth;
-      var preSession = {
-        step: 'form',
-        birthYear: String(b.year || ''),
-        birthMonth: String(b.month || ''),
-        birthDay: String(b.day || ''),
-        birthHour: String(b.hour != null ? b.hour : 12),
-        unknownHour: false
-      };
-      localStorage.setItem('premium:ziwei:session:v1', JSON.stringify(preSession));
-    } catch (e) {}
-  }
-  // ìë¯¸ë‘ìˆ˜ ì‹¬í™” ë³¸ì²´ëŠ” /ziwei/chart ë‹¤. ê¸°ë³¸ ìë¯¸ë‘ìˆ˜ ì…¸ ëª¨ë‹¬(/index.html?action=openZiweiModal)
-  // ë¡œ ë³´ë‚´ë©´ ì‹¬í™” ì¹´ë“œê°€ ê¸°ë³¸ ëª…ë°˜ í™”ë©´ìœ¼ë¡œ ì˜ëª» ì—°ê²°ëœë‹¤.
-  window.location.href = '/ziwei/chart';
-}
-
-function openGeomancyOracle() {
-  window.location.href = cdResolveLocalizedFeatureHref('/geomancy-oracle-v4.html', cdGetCurrentLang());
-}
-
-function openZiweiModal(_retried) {
-  if (!_retried && __cdBirthModalDepsMissing()) {
-    __cdEnsureBirthModalDepsLoaded()
-      .then(function() { openZiweiModal(true); })
-      .catch(function(err) { console.error('[openZiweiModal] dependency load failed:', err); });
-    return;
-  }
-  var overlay = document.getElementById('ziweiModalOverlay');
-  if (!overlay) return;
-  __cdForceUnlockBodyScroll();
-  var s = _dpStorage();
-  var profiles = _dpNormalizeProfileListForFeature(s ? s.list() : []);
-  var profile = _dpNormalizeProfileForFeature(s ? s.current() : null);
-  overlay.style.display = 'flex';
-  overlay.style.overflow = 'hidden';
-  var sh = document.getElementById('ziweiModalSheet');
-  if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
-  var noProfile = document.getElementById('ziweiNoProfile');
-  var card = document.getElementById('ziweiModalCard');
-  var theme = { icon: 'ğŸŒŒ', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: 'ğŸŒŒ ç´«å¾®æ–—æ•¸ Â· ìë¯¸ë‘ìˆ˜', desc: 'ìë¯¸ë‘ìˆ˜ ëª…ë°˜ì„ ë³´ë ¤ë©´<br>ë©”ì¸ í™”ë©´ì—ì„œ ë‚˜ì˜ ìš´ëª… ì¹´ë“œë¥¼ ë¨¼ì € ì„¤ì •í•´ì£¼ì„¸ìš”' };
-  if (typeof _ModalProfileState === 'undefined' || typeof _ModalProfileState.subscribe !== 'function' || typeof _renderZiweiSection !== 'function') {
-    console.error('[openZiweiModal] missing modal profile dependencies');
-    if (card) card.style.display = 'none';
-    if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = _dpEmptyHTML(theme); }
-    return;
-  }
-  _ModalProfileState.subscribe('ziwei', _renderZiweiSection);
-  if (!profile || !profile.birth) {
-    if (card) card.style.display = 'none';
-    if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'ziwei', theme) : _dpEmptyHTML(theme); }
-    return;
-  }
-  _ModalProfileState.dispatch(profile, 'ziwei');
-}
-function closeZiweiModal() {
-  var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
-  _ModalProfileState.unsubscribe('ziwei');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function openAstroModal(_retried) {
-  if (!_retried) {
-    Promise.resolve()
-      .then(function() {
-        return __cdBirthModalDepsMissing() ? __cdEnsureBirthModalDepsLoaded() : true;
-      })
-      .then(function() {
-        return __cdEnsureSwissEphLoaded().catch(function(err) {
-          console.warn('[openAstroModal] swisseph lazy load failed:', err);
-          throw err;
-        });
-      })
-      .then(function() {
-        // í”„ë¡œí•„ ê²Œì´íŠ¸ê°€ ì½ëŠ” DestinyProfileManager(destiny-profile.js)ëŠ” defer ë¡œë“œë¼
-        // íƒ­ ì‹œì ì— ì•„ì§ ì—†ì„ ìˆ˜ ìˆë‹¤. í”„ë¡œí•„ì„ ì½ê¸° ì „ì— ë§¤ë‹ˆì € ë¡œë“œë¥¼ ë³´ì¥í•œë‹¤.
-        return (typeof __cdEnsureDestinyProfileLoaded === 'function')
-          ? __cdEnsureDestinyProfileLoaded().catch(function() { return true; })
-          : true;
-      })
-      .then(function() { openAstroModal(true); })
-      .catch(function(err) {
-        console.error('[openAstroModal] dependency load failed:', err);
-        var overlay = document.getElementById('astroModalOverlay');
-        var cardWrap = document.getElementById('astroCardWrap');
-        var noProfile = document.getElementById('astroNoProfile');
-        if (overlay) overlay.style.display = 'flex';
-        if (cardWrap) cardWrap.style.display = 'block';
-        if (noProfile) noProfile.style.display = 'none';
-        if (typeof window.renderAstroSwissUnavailable === 'function') {
-          window.renderAstroSwissUnavailable((err && err.message) || err || 'SwissEph loader failed.');
-        }
-      });
-    return;
-  }
-  var overlay = document.getElementById('astroModalOverlay');
-  if (!overlay) return;
-  _cdAstroEnsureCosmos(overlay);
-  __cdForceUnlockBodyScroll();
-  var s = _dpStorage();
-  var profiles = _dpNormalizeProfileListForFeature(s ? s.list() : []);
-  var profile = _dpNormalizeProfileForFeature(s ? s.current() : null);
-  overlay.style.display = 'flex';
-  overlay.style.overflow = 'hidden';
-  var sh = document.getElementById('astroModalSheet');
-  if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
-  var noProfile = document.getElementById('astroNoProfile');
-  var cardWrap = document.getElementById('astroCardWrap');
-  var theme = { icon: 'âœ¨', ac: '#e8d5a3', br: '196,181,253', bb: 'linear-gradient(135deg,#13102a,#0a0818)', title: 'âœ¨ ì„œì–‘ ì ì„±ìˆ  ê¸°ë³¸ ì°¨íŠ¸', desc: 'ì„œì–‘ ì ì„±ìˆ  ê¸°ë³¸ ì¶œìƒì°¨íŠ¸ë¥¼ ë³´ë ¤ë©´<br>ìƒë…„ì›”ì¼ê³¼ ì¶œìƒ ì‹œê°„Â·ì¶œìƒì§€ë¥¼ ë¨¼ì € ì„¤ì •í•´ì£¼ì„¸ìš”' };
-  if (typeof _ModalProfileState === 'undefined' || typeof _ModalProfileState.subscribe !== 'function' || typeof _renderAstroSection !== 'function') {
-    console.error('[openAstroModal] missing modal profile dependencies');
-    if (cardWrap) cardWrap.style.display = 'none';
-    if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = _dpEmptyHTML(theme); }
-    return;
-  }
-  _ModalProfileState.subscribe('astro', _renderAstroSection);
-  var rerenderAstroInsight = (typeof window.renderAstroInsight === 'function')
-    ? window.renderAstroInsight
-    : (typeof renderAstroInsight === 'function' ? renderAstroInsight : null);
-  var rerenderAstroFromCurrentBirth = function() {
-    if (!rerenderAstroInsight || !(window._astroBirth || window._ziweiBirth)) return false;
-    try {
-      rerenderAstroInsight();
-      return true;
-    } catch (err) {
-      console.warn('[openAstroModal] astro rerender skipped:', err);
-      return false;
-    }
-  };
-  if (!profile || !profile.birth) {
-    if (rerenderAstroFromCurrentBirth()) {
-      if (cardWrap) cardWrap.style.display = 'block';
-      if (noProfile) noProfile.style.display = 'none';
-      return;
-    }
-    // í”„ë¡œí•„/ëª…ë‹¨ì´ ì „í˜€ ì—†ìœ¼ë©´ defer ë¡œë“œÂ·ë¹„ë™ê¸° ì¸ì¦ í•˜ì´ë“œë ˆì´ì…˜ì´ íƒ­ë³´ë‹¤ ëŠ¦ê²Œ
-    // ëë‚œ ë ˆì´ìŠ¤ì¼ ìˆ˜ ìˆìœ¼ë¯€ë¡œ, ì¦‰ì‹œ "ë¯¸ì„¤ì •"ìœ¼ë¡œ í™•ì •í•˜ì§€ ì•Šê³  í•˜ì´ë“œë ˆì´ì…˜ì„ ê¸°ë‹¤ë¦°ë‹¤.
-    // ì„œë²„ ì‘ë‹µ ì „ì¼ ë•Œë§Œ ëŒ€ê¸°í•œë‹¤ â€” ì‘ë‹µì´ í™•ì •ëëŠ”ë°ë„ ëª©ë¡ì´ ë¹„ì—ˆìœ¼ë©´ ì§„ì§œ ë¯¸ì„¤ì •ì´ë¯€ë¡œ ì¦‰ì‹œ í‘œì‹œ.
-    if (profiles.length === 0 && !window.__cdDestinyProfileServerReady && _cdAstroWaitForProfileHydration(overlay, theme)) return;
-    if (cardWrap) cardWrap.style.display = 'none';
-    if (noProfile) { noProfile.style.display = 'block'; noProfile.innerHTML = profiles.length > 0 ? _dpPickerHTML(profiles, 'astro', theme) : _dpEmptyHTML(theme); }
-    return;
-  }
-  _ModalProfileState.dispatch(profile, 'astro');
-  rerenderAstroFromCurrentBirth();
-}
-function _cdAstroEnsureCosmos(overlay) {
-  // ì„œì–‘ ì ì„±ìˆ  ëª¨ë‹¬ì— ìš°ì£¼ ë°°ê²½(ë³„ë°­Â·ì„±ìš´Â·ë³„ì˜ ë¹„) ì¥ì‹ ë ˆì´ì–´ë¥¼ 1íšŒ ì£¼ì…í•œë‹¤.
-  // ìˆœìˆ˜ ì¥ì‹ì´ë¯€ë¡œ aria-hidden, pointer-events:none. ìŠ¤íƒ€ì¼ì€ styles/fortune-ui.cssì˜ .astro-cosmos* ê·œì¹™.
-  if (!overlay || overlay.querySelector('.astro-cosmos')) return;
-  var layer = document.createElement('div');
-  layer.className = 'astro-cosmos';
-  layer.setAttribute('aria-hidden', 'true');
-  layer.innerHTML =
-    '<div class="astro-cosmos__nebula"></div>' +
-    '<div class="astro-cosmos__stars"></div>' +
-    '<i class="astro-meteor astro-meteor-1"></i>' +
-    '<i class="astro-meteor astro-meteor-2"></i>' +
-    '<i class="astro-meteor astro-meteor-3"></i>' +
-    '<i class="astro-meteor astro-meteor-4"></i>' +
-    '<i class="astro-meteor astro-meteor-5"></i>';
-  overlay.insertBefore(layer, overlay.firstChild);
-}
-function _cdAstroCleanupHydrationWait(overlay) {
-  if (!overlay || !overlay.__cdAstroHydrateWait) return;
-  var w = overlay.__cdAstroHydrateWait;
-  try { if (w.timer) clearTimeout(w.timer); } catch (_) {}
-  try { window.removeEventListener('cd:destiny-profile-server-ready', w.onReady); } catch (_) {}
-  try { document.removeEventListener('destinyProfileChanged', w.onReady); } catch (_) {}
-  overlay.__cdAstroHydrateWait = null;
-}
-function _cdAstroWaitForProfileHydration(overlay, theme) {
-  if (!overlay || overlay.__cdAstroHydrateWaited) return false;
-  overlay.__cdAstroHydrateWaited = true;
-  var noProfile = document.getElementById('astroNoProfile');
-  var cardWrap = document.getElementById('astroCardWrap');
-  if (cardWrap) cardWrap.style.display = 'none';
-  if (noProfile) {
-    noProfile.style.display = 'block';
-    noProfile.innerHTML = '<div role="status" aria-live="polite" style="padding:48px 24px;text-align:center;color:' + theme.ac + ';">'
-      + '<div style="font-size:32px;margin-bottom:12px;" aria-hidden="true">' + theme.icon + '</div>'
-      + '<div style="font-size:15px;opacity:.85;">í”„ë¡œí•„ì„ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘ì´ì—ìš”â€¦</div></div>';
-  }
-  // ê³ ì • 3500ms 1íšŒ ëŒ€ê¸° ëŒ€ì‹ , í”„ë¡œí•„ ë„ì°©/ì„œë²„ ì‘ë‹µ í™•ì •ê¹Œì§€ í´ë¼ í´ë§(fetch ì—†ìŒ, í•˜ë“œìº¡ 12s).
-  // ì„œë²„ ì‘ë‹µ(__cdDestinyProfileServerReady)ì´ ëœ¨ëŠ” ì‹œì ì—” í”„ë¡œí•„ì´ ì´ë¯¸ ì €ì¥ë¼ ìˆìœ¼ë¯€ë¡œ(destiny-profile.js
-  // _dpSetProfileStateâ†’_dpNotifyProfileServerReady ìˆœì„œ), ê·¸ë•Œ ì¬ë Œë”í•˜ë©´ ì¹´ë“œê°€ ì •ìƒ ì¸ì‹ëœë‹¤.
-  var settled = false;
-  var startedAt = Date.now();
-  var HARD_CAP_MS = 12000;
-  var finish = function() {
-    if (settled) return;
-    settled = true;
-    _cdAstroCleanupHydrationWait(overlay);
-    openAstroModal(true);
-  };
-  var poll = function() {
-    if (settled || !overlay.__cdAstroHydrateWait) return;
-    var s = _dpStorage();
-    var prof = s ? _dpNormalizeProfileForFeature(s.current()) : null;
-    var list = _dpNormalizeProfileListForFeature(s ? s.list() : []);
-    if ((prof && prof.birth) || list.length > 0) { finish(); return; }
-    if (window.__cdDestinyProfileServerReady === true) { finish(); return; }
-    if (Date.now() - startedAt > HARD_CAP_MS) { finish(); return; }
-    overlay.__cdAstroHydrateWait.timer = setTimeout(poll, 250);
-  };
-  var onSignal = function() {
-    if (settled || !overlay.__cdAstroHydrateWait) return;
-    try { clearTimeout(overlay.__cdAstroHydrateWait.timer); } catch (_) {}
-    overlay.__cdAstroHydrateWait.timer = setTimeout(poll, 30);
-  };
-  overlay.__cdAstroHydrateWait = { onReady: onSignal, timer: setTimeout(poll, 200) };
-  try { window.addEventListener('cd:destiny-profile-server-ready', onSignal); } catch (_) {}
-  try { document.addEventListener('destinyProfileChanged', onSignal); } catch (_) {}
-  return true;
-}
-function closeAstroModal() {
-  var o = document.getElementById('astroModalOverlay');
-  if (o) { o.style.display = 'none'; _cdAstroCleanupHydrationWait(o); o.__cdAstroHydrateWaited = false; }
-  _ModalProfileState.unsubscribe('astro');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-window.openAstroModal = openAstroModal;
-window.closeAstroModal = closeAstroModal;
-
-function closeCurrentPage() {
-  var overlayMap = [
-    { id: 'tarotLoveOverlay', closeFn: 'closeTarotLoveModal' },
-    { id: 'tarotHealingOverlay', closeFn: 'closeTarotHealingModal' },
-    { id: 'tarotReunionOverlay', closeFn: 'closeTarotReunionModal' },
-    { id: 'tarotSelfEsteemOverlay', closeFn: 'closeTarotSelfEsteemModal' },
-    { id: 'tarotYearFortuneOverlay', closeFn: 'closeTarotYearFortuneModal' },
-    { id: 'animalTotemOverlay', closeFn: 'closeAnimalTotemModal' },
-    { id: 'dreamModalOverlay', closeFn: 'closeDreamModal' },
-    { id: 'psychoDreamModalOverlay', closeFn: 'closePsychoDreamModal' },
-    { id: 'kemetOracleOverlay', closeFn: 'closeKemetModal' },
-    { id: 'destinyFlowerStudioOverlay', closeFn: 'closeDestinyFlowerStudio' },
-    { id: 'juyukModalOverlay', closeFn: 'closeJuyukModal' },
-    { id: 'sukuyoModalOverlay', closeFn: 'closeSukuyoModal' },
-    { id: 'olympusOracleOverlay', closeFn: 'closeOlympusOracleModal' },
-    { id: 'astroModalOverlay', closeFn: 'closeAstroModal' },
-    { id: 'ziweiModalOverlay', closeFn: 'closeZiweiModal' }
-  ];
-
-  for (var i = 0; i < overlayMap.length; i++) {
-    var item = overlayMap[i];
-    var overlay = document.getElementById(item.id);
-    if (!overlay) continue;
-    var computed = window.getComputedStyle ? window.getComputedStyle(overlay) : null;
-    var isHidden = overlay.style.display === 'none' || (computed && computed.display === 'none');
-    if (isHidden) continue;
-
-    if (typeof window[item.closeFn] === 'function') {
-      window[item.closeFn]();
-    } else {
-      overlay.style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    return;
-  }
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-window.closeCurrentPage = closeCurrentPage;
-
-var _animalTotemPool = [
-  { category: 'ê¸°ë³¸', name: 'ê³ ì–‘ì´', icon: 'ğŸ±', keyword: 'ë…ë¦½ì‹¬ê³¼ ì§ê´€', advice: 'ë‹¹ì‹ ë§Œì˜ í˜ì´ìŠ¤ë¡œ ê±¸ì–´ê°€ë„ ê´œì°®ì•„ìš”. ì•¼ì˜¹!' },
-  { category: 'ê¸°ë³¸', name: 'ë‹¤ëŒì¥', icon: 'ğŸ¿ï¸', keyword: 'ì¤€ë¹„ì™€ í™œê¸°', advice: 'ì‘ì€ ë…¸ë ¥ì´ í° ê²°ì‹¤ì´ ë  ê±°ì˜ˆìš”. ë„í† ë¦¬ë¥¼ ëª¨ìœ¼ë“¯ ì°¨ê·¼ì°¨ê·¼!' },
-  { category: 'ê¸°ë³¸', name: 'íŒŒë‘ìƒˆ', icon: 'ğŸ¦', keyword: 'í¬ë§ê³¼ ì†Œì‹', advice: 'í–‰ìš´ì€ ë©€ë¦¬ ìˆì§€ ì•Šì•„ìš”. ë°”ë¡œ ë‹¹ì‹ ì˜ ì–´ê¹¨ ìœ„ì— ìˆì£ .' },
-  { category: 'ê¸°ë³¸', name: 'ê°•ì•„ì§€', icon: 'ğŸ¶', keyword: 'ì¶©ì„±ì‹¬ê³¼ ì‚¬ë‘', advice: 'ë‹¹ì‹ ì€ í˜¼ìê°€ ì•„ë‹ˆì—ìš”. ê³ì— ìˆëŠ” ì†Œì¤‘í•œ ì¸ì—°ì„ ë¯¿ìœ¼ì„¸ìš”.' },
-  { category: 'ê¸°ë³¸', name: 'í† ë¼', icon: 'ğŸ°', keyword: 'ë„ì•½ê³¼ í’ìš”', advice: 'ê²ë‚´ì§€ ë§ê³  í´ì§ ë›°ì–´ë³´ì„¸ìš”. ìƒˆë¡œìš´ ì„¸ìƒì´ ê¸°ë‹¤ë ¤ìš”!' },
-  { category: 'ì§€ìƒ', name: 'ëŠ‘ëŒ€', icon: 'ğŸº', keyword: 'ì§ê´€, ììœ ', advice: 'ìì‹ ì˜ ë³¸ëŠ¥ì„ ë¯¿ìœ¼ì„¸ìš”. ê³µë™ì²´ì™€ í•¨ê»˜í•˜ë˜ ê°œì„±ì„ ìƒì§€ ë§ˆì„¸ìš”.' },
-  { category: 'ì§€ìƒ', name: 'ê³°', icon: 'ğŸ»', keyword: 'ì„±ì°°, ì¹˜ìœ ', advice: 'ì§€ê¸ˆì€ ë‚´ë©´ìœ¼ë¡œ ë“¤ì–´ê°ˆ ì‹œê°„ì…ë‹ˆë‹¤. íœ´ì‹ì„ í†µí•´ í˜ì„ íšŒë³µí•˜ì„¸ìš”.' },
-  { category: 'ì§€ìƒ', name: 'ì‚¬ìŠ´', icon: 'ğŸ¦Œ', keyword: 'ë¶€ë“œëŸ¬ì›€, ë¯¼ê°', advice: 'ê°•í•¨ë³´ë‹¤ ë¶€ë“œëŸ¬ì›€ì´ í•„ìš”í•œ ë•Œì…ë‹ˆë‹¤. ì£¼ë³€ì˜ ë³€í™”ë¥¼ ì˜ˆë¯¼í•˜ê²Œ ì‚´í”¼ì„¸ìš”.' },
-  { category: 'ì§€ìƒ', name: 'í˜¸ë‘ì´', icon: 'ğŸ¯', keyword: 'ìš©ê¸°, ì˜ì§€ë ¥', advice: 'ë‹¹ì‹ ì€ ì¶©ë¶„í•œ í˜ì„ ê°€ì¡ŒìŠµë‹ˆë‹¤. ëª©í‘œë¥¼ í–¥í•´ ì§‘ì¤‘í•˜ê³  ëŒì§„í•˜ì„¸ìš”.' },
-  { category: 'ê³µì¤‘', name: 'ì˜¬ë¹¼ë¯¸', icon: 'ğŸ¦‰', keyword: 'ì§€í˜œ, í†µì°°', advice: 'ê²‰ëª¨ìŠµ ë„ˆë¨¸ì˜ ì§„ì‹¤ì„ ë³´ì„¸ìš”. ë°¤ì˜ ì–´ë‘  ì†ì—ì„œë„ ê¸¸ì„ ì°¾ì„ ìˆ˜ ìˆìŠµë‹ˆë‹¤.' },
-  { category: 'ê³µì¤‘', name: 'ë…ìˆ˜ë¦¬', icon: 'ğŸ¦…', keyword: 'ê³ ê²°, ì‹œì•¼', advice: 'ì‚¬ì†Œí•œ ë¬¸ì œì—ì„œ ë²—ì–´ë‚˜ ë” ë„“ì€ ì‹œì•¼ë¡œ ì¸ìƒì˜ í° ê·¸ë¦¼ì„ ê·¸ë¦¬ì„¸ìš”.' },
-  { category: 'ê³µì¤‘', name: 'ë‚˜ë¹„', icon: 'ğŸ¦‹', keyword: 'ë³€í™”, ê°€ë²¼ì›€', advice: 'ë³€í™”ëŠ” ì•„ë¦„ë‹¤ìš´ ê²ƒì…ë‹ˆë‹¤. ê³¼ê±°ì˜ í—ˆë¬¼ì„ ë²—ê³  ìƒˆë¡œìš´ ëª¨ìŠµìœ¼ë¡œ ë‚ ì•„ì˜¤ë¥´ì„¸ìš”.' },
-  { category: 'ê³µì¤‘', name: 'ê¹Œë§ˆê·€', icon: 'ğŸ¦â€â¬›', keyword: 'ë§ˆë²•, ì°½ì¡°', advice: 'ìš°ì—°í•œ ì¼ë“¤ì— ì£¼ëª©í•˜ì„¸ìš”. ì§€ê¸ˆ ë‹¹ì‹  ì£¼ë³€ì—ëŠ” ë³€í™”ì˜ ë§ˆë²•ì´ ì¼ì–´ë‚˜ê³  ìˆìŠµë‹ˆë‹¤.' },
-  { category: 'ë¬¼/ê¸°íƒ€', name: 'ëŒê³ ë˜', icon: 'ğŸ¬', keyword: 'ì¡°í™”, ìœ í¬', advice: 'ì‚¶ì„ ë„ˆë¬´ ì‹¬ê°í•˜ê²Œ ìƒê°í•˜ì§€ ë§ˆì„¸ìš”. í˜¸í¡í•˜ê³ , ì¦ê¸°ê³ , ì†Œí†µí•˜ì„¸ìš”.' },
-  { category: 'ë¬¼/ê¸°íƒ€', name: 'ê±°ë¶ì´', icon: 'ğŸ¢', keyword: 'ì¸ë‚´, ë³´í˜¸', advice: 'ì²œì²œíˆ ê°€ë„ ê´œì°®ìŠµë‹ˆë‹¤. ìì‹ ì˜ ì†ë„ë¥¼ ìœ ì§€í•˜ë©° ê¾¸ì¤€íˆ ë‚˜ì•„ê°€ì„¸ìš”.' },
-  { category: 'ë¬¼/ê¸°íƒ€', name: 'ë±€', icon: 'ğŸ', keyword: 'ì¬ìƒ, ìƒëª…ë ¥', advice: 'ë‚¡ì€ ê°ì •ì„ ë²—ì–´ë˜ì§ˆ ë•Œì…ë‹ˆë‹¤. ìƒëª… ì—ë„ˆì§€ë¥¼ íšŒë³µí•˜ê³  ë‹¤ì‹œ íƒœì–´ë‚˜ì„¸ìš”.' },
-  { category: 'ë¬¼/ê¸°íƒ€', name: 'ì—¬ìš°', icon: 'ğŸ¦Š', keyword: 'ê¸°ì§€, ì ì‘', advice: 'ìƒí™©ì— ë§ì¶° ìœ ì—°í•˜ê²Œ ëŒ€ì²˜í•˜ì„¸ìš”. ì§€í˜œë¡œìš´ ê´€ì°°ì´ ë¬¸ì œë¥¼ í•´ê²°í•´ ì¤„ ê²ƒì…ë‹ˆë‹¤.' }
-];
-var _animalTotemDeck = [];
-var _animalTotemMeditationTimer = null;
-var _animalTotemMeditationRunning = false;
-var _animalTotemReadLocked = false;
-var _animalTotemSelected = null;
-var _animalTotemCategoryWeights = {
-  'ê¸°ë³¸': 0.2,
-  'ì§€ìƒ': 0.33,
-  'ê³µì¤‘': 0.27,
-  'ë¬¼/ê¸°íƒ€': 0.2
-};
-
-function _pickAnimalTotemDeck(size) {
-  var grouped = {};
-  _animalTotemPool.forEach(function(item) {
-    var cat = item.category || 'ê¸°ë³¸';
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
-  });
-
-  Object.keys(grouped).forEach(function(cat) {
-    var list = grouped[cat];
-    for (var i = list.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = list[i];
-      list[i] = list[j];
-      list[j] = tmp;
-    }
-  });
-
-  var picked = [];
-  var guard = 0;
-  while (picked.length < size && guard < 120) {
-    guard += 1;
-    var candidates = [];
-    var total = 0;
-    Object.keys(grouped).forEach(function(cat) {
-      if (!grouped[cat] || grouped[cat].length === 0) return;
-      var w = _animalTotemCategoryWeights[cat];
-      var weight = typeof w === 'number' && w > 0 ? w : 0.1;
-      candidates.push({ cat: cat, weight: weight });
-      total += weight;
-    });
-    if (!candidates.length) break;
-    var r = Math.random() * total;
-    var selectedCat = candidates[0].cat;
-    var acc = 0;
-    for (var c = 0; c < candidates.length; c++) {
-      acc += candidates[c].weight;
-      if (r <= acc) {
-        selectedCat = candidates[c].cat;
-        break;
-      }
-    }
-    var card = grouped[selectedCat].pop();
-    if (card) picked.push(card);
-  }
-  return picked;
-}
-
-function _clearAnimalTotemTimer() {
-  if (_animalTotemMeditationTimer) {
-    clearInterval(_animalTotemMeditationTimer);
-    _animalTotemMeditationTimer = null;
-  }
-  _animalTotemMeditationRunning = false;
-}
-
-function _renderAnimalTotemDeck() {
-  _animalTotemDeck = _pickAnimalTotemDeck(5);
-  for (var i = 0; i < 5; i++) {
-    var iconEl = document.querySelector('[data-animal-totem-icon="' + i + '"]');
-    var nameEl = document.querySelector('[data-animal-totem-name="' + i + '"]');
-    var item = _animalTotemDeck[i] || _animalTotemPool[i];
-    if (iconEl) iconEl.textContent = item.icon;
-    if (nameEl) nameEl.textContent = item.name;
-  }
-}
-
-function _setAnimalTotemMeditationStatus(text) {
-  var statusEl = document.getElementById('animalTotemMeditationStatus');
-  if (statusEl) statusEl.textContent = text;
-}
-
-function resetAnimalTotemFlow() {
-  _clearAnimalTotemTimer();
-  _animalTotemReadLocked = false;
-  _animalTotemSelected = null;
-  var meditationStage = document.getElementById('animalTotemMeditationStage');
-  var drawStage = document.getElementById('animalTotemDrawStage');
-  var result = document.getElementById('animalTotemResult');
-  var btn = document.getElementById('animalTotemMeditationBtn');
-  if (meditationStage) meditationStage.style.display = 'block';
-  if (drawStage) drawStage.style.display = 'none';
-  if (result) result.style.display = 'none';
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = 'ğŸ§˜ 10ì´ˆ ëª…ìƒ ì‹œì‘í•˜ê¸°';
-  }
-  _setAnimalTotemMeditationStatus('ì•„ì§ ëª…ìƒì„ ì‹œì‘í•˜ì§€ ì•Šì•˜ì–´ìš”.');
-  document.querySelectorAll('.animal-totem-card').forEach(function(card) {
-    card.classList.remove('is-flipped');
-    card.classList.remove('is-muted');
-    card.disabled = false;
-  });
-  _renderAnimalTotemDeck();
-}
-window.resetAnimalTotemFlow = resetAnimalTotemFlow;
-
-function startAnimalTotemMeditation() {
-  if (_animalTotemMeditationRunning) return;
-  var btn = document.getElementById('animalTotemMeditationBtn');
-  var drawStage = document.getElementById('animalTotemDrawStage');
-  var meditationStage = document.getElementById('animalTotemMeditationStage');
-  if (!btn || !drawStage || !meditationStage) return;
-
-  _animalTotemMeditationRunning = true;
-  btn.disabled = true;
-  var remain = 10;
-  _setAnimalTotemMeditationStatus('ëª…ìƒ ì§„í–‰ ì¤‘... ' + remain + 'ì´ˆ');
-  btn.textContent = 'í˜¸í¡ ìœ ì§€ ì¤‘...';
-
-  _animalTotemMeditationTimer = setInterval(function() {
-    remain -= 1;
-    if (remain > 0) {
-      _setAnimalTotemMeditationStatus('ëª…ìƒ ì§„í–‰ ì¤‘... ' + remain + 'ì´ˆ');
-      return;
-    }
-    _clearAnimalTotemTimer();
-    _setAnimalTotemMeditationStatus('ëª…ìƒ ì™„ë£Œ! ì´ì œ íƒ€ë¡œ ì¹´ë“œë¥¼ ì„ íƒí•´ ì£¼ì„¸ìš”.');
-    meditationStage.style.display = 'none';
-    drawStage.style.display = 'block';
-  }, 1000);
-}
-window.startAnimalTotemMeditation = startAnimalTotemMeditation;
-
-function drawAnimalTotemCard(btn, idxRaw) {
-  var idx = parseInt(idxRaw, 10);
-  if (_animalTotemReadLocked || Number.isNaN(idx)) return;
-  var drawStage = document.getElementById('animalTotemDrawStage');
-  var result = document.getElementById('animalTotemResult');
-  if (!drawStage || drawStage.style.display === 'none' || !result) return;
-
-  var picked = _animalTotemDeck[idx];
-  if (!picked) return;
-  _animalTotemReadLocked = true;
-  _animalTotemSelected = picked;
-  if (btn) btn.classList.add('is-flipped');
-
-  document.querySelectorAll('.animal-totem-card').forEach(function(card) {
-    if (card !== btn) {
-      card.classList.add('is-muted');
-      card.disabled = true;
-    }
-  });
-
-  setTimeout(function() {
-    var nameEl = document.getElementById('animalTotemName');
-    var keywordEl = document.getElementById('animalTotemKeyword');
-    var adviceEl = document.getElementById('animalTotemAdvice');
-    if (nameEl) nameEl.textContent = picked.icon + ' ' + picked.name;
-    if (keywordEl) keywordEl.textContent = (picked.category || 'í† í…œ') + ' Â· ' + picked.keyword;
-    if (adviceEl) adviceEl.textContent = 'â€œ' + picked.advice + 'â€';
-    result.style.display = 'block';
-  }, 450);
-}
-window.drawAnimalTotemCard = drawAnimalTotemCard;
-
-function shareAnimalTotemResult() {
-  if (!_animalTotemSelected) return;
-  var picked = _animalTotemSelected;
-  var text =
-    'ğŸ§¸ ì˜¤ëŠ˜ì˜ ì• ë‹ˆë©€ í† í…œ\n\n' +
-    picked.icon + ' ' + picked.name + '\n' +
-    'ë¶„ë¥˜: ' + (picked.category || 'í† í…œ') + '\n' +
-    'í‚¤ì›Œë“œ: ' + picked.keyword + '\n' +
-    'ë©”ì‹œì§€: "' + picked.advice + '"\n\n' +
-    'https://code-destiny.com';
-
-  if (navigator.share) {
-    navigator.share({
-      title: _indexRuntimeText("indexRuntime.title.001"),
-      text: text
-    }).catch(function() {});
-    return;
-  }
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(function() { alert('í† í…œ ê²°ê³¼ ë¬¸êµ¬ë¥¼ ë³µì‚¬í–ˆì–´ìš”!'); })
-      .catch(function() { alert(text); });
-    return;
-  }
-
-  alert(text);
-}
-window.shareAnimalTotemResult = shareAnimalTotemResult;
-
-function openAnimalTotemModal() {
-  var currentOpenFn = openAnimalTotemModal;
-  var hasFullTotemFlow =
-    typeof window.startAnimalTotemRitual === 'function' &&
-    typeof window.drawAnimalTotemSpread === 'function';
-
-  if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-a7f5a2b0f6f5')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-a7f5a2b0f6f5'); })
-      .then(function() {
-        var upgradedOpen = window.openAnimalTotemModal;
-        if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
-          upgradedOpen();
-          return;
-        }
-        var overlay = document.getElementById('animalTotemOverlay');
-        if (!overlay) return;
-        overlay.style.display = 'block';
-        if (overlay.classList) overlay.classList.add('is-open');
-        resetAnimalTotemFlow();
-        if (window._perf && window._perf.lockBody) window._perf.lockBody();
-        else document.body.style.overflow = 'hidden';
-      })
-      .catch(function(err) {
-        console.error('[animal-totem] lazy load failed in inline runtime:', err);
-      });
-    return;
-  }
-
-  var overlay = document.getElementById('animalTotemOverlay');
-  if (!overlay) return;
-  overlay.style.display = 'block';
-  if (overlay.classList) overlay.classList.add('is-open');
-  resetAnimalTotemFlow();
-  if (window._perf && window._perf.lockBody) window._perf.lockBody();
-  else document.body.style.overflow = 'hidden';
-}
-window.openAnimalTotemModal = openAnimalTotemModal;
-
-function closeAnimalTotemModal() {
-  var overlay = document.getElementById('animalTotemOverlay');
-  if (!overlay) return;
-  overlay.style.display = 'none';
-  if (overlay.classList) overlay.classList.remove('is-open');
-  _clearAnimalTotemTimer();
-  if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-  else document.body.style.overflow = '';
-}
-window.closeAnimalTotemModal = closeAnimalTotemModal;
-
-function _resetTarotUI() {
-  if (typeof window.invalidateTarotFlow === 'function') window.invalidateTarotFlow();
-  var tarotResultEl = document.getElementById('tarotResultContainer');
-  if (tarotResultEl) tarotResultEl.classList.add('is-empty');
-  var cardEl = document.getElementById('tarotCardEl');
-  if (cardEl) cardEl.classList.remove('flipped');
-  var ritualMsgEl = document.getElementById('tarotRitualMsg');
-  if (ritualMsgEl) ritualMsgEl.innerText = '"ê³ ë¯¼ì˜ ë¬¸ì„ í•˜ë‚˜ ì„ íƒí•˜ë©´ ì¹´ë“œì˜ ê²°ì„ í¼ì¹©ë‹ˆë‹¤."';
-  document.querySelectorAll('.oracle-cat-btn-m').forEach(function(btn) { btn.classList.remove('active'); });
-  document.querySelectorAll('.tarot-spread-card').forEach(function(el) { el.classList.remove('flipped'); });
-  var finalBtn = document.getElementById('tarotFinalBtn');
-  if (finalBtn) finalBtn.disabled = true;
-  window.curTarotCat = null;
-  window.isReading = false;
-  if (window.tarotThreeCardState) window.tarotThreeCardState = { cards: [], revealedIndex: -1 };
-}
-function resetTarotForCategorySelection() {
-  var overlay = document.getElementById('tarotModalOverlay');
-  if (!overlay || overlay.style.display === 'none') return;
-  _resetTarotUI();
-  if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
-}
-window.resetTarotForCategorySelection = resetTarotForCategorySelection;
-function openTarotModal() {
-  var overlay = document.getElementById('tarotModalOverlay');
-  if (!overlay) return;
-  var didShow = false;
-  var showOverlay = function() {
-    if (didShow) return;
-    didShow = true;
-    overlay.style.display = 'block';
-    if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
-    if (window._perf && window._perf.lockBody) window._perf.lockBody();
-    else document.body.style.overflow = 'hidden';
-    var w = window.innerWidth || document.documentElement.clientWidth;
-    var req = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.mozRequestFullScreen || overlay.msRequestFullscreen;
-    if (req && w > 768) {
-      req.call(overlay).catch(function() {});
-    }
-  };
-
-  // íƒ€ë¡œ ì—”ì§„ì´ ëŠ¦ê²Œ ë¡œë“œë˜ë©´ ì¹´í…Œê³ ë¦¬/ì¹´ë“œ í´ë¦­ì´ ë¬´ë°˜ì‘ì´ ë  ìˆ˜ ìˆì–´ ëª¨ë‹¬ ì˜¤í”ˆ ì „ì— ë³´ì¥í•œë‹¤.
-  if (typeof __cdEnsureSajuCoreLoaded === 'function') {
-    __cdEnsureSajuCoreLoaded()
-      .then(function() {
-        if (overlay.style.display !== 'none' && typeof window.setTarotMode === 'function') {
-          window.setTarotMode(window.tarotSpreadMode || 'one');
-        }
-      })
-      .catch(function(err) {
-        console.error('[tarot] core preload failed:', err);
-      });
-  }
-
-  showOverlay();
-}
-function closeTarotModal() {
-  var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-  if (isFs) {
-    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-    if (exit) exit.call(document);
-  } else {
-    var overlay = document.getElementById('tarotModalOverlay');
-    if (overlay) overlay.style.display = 'none';
-    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-    else document.body.style.overflow = '';
-    _resetTarotUI();
-  }
-}
-// Ensure uiBindings `data-action` routing can always find these handlers on `window`.
-window.openTarotModal = openTarotModal;
-window.closeTarotModal = closeTarotModal;
-
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   ì„¸ íƒ€ë¡œ ë©”ì¸ í™”ë©´ í´ë¦­ ì‹œ ìœ ë£Œ ì²˜ë¦¬ í•¸ë“¤ëŸ¬
-   ì´ì§ ìš´ëª…ì˜ ì¹´ë“œ Â· ì†ë§ˆìŒ ì•Œì•„ë³´ê¸° Â· ì›ì„ ì†Œìš¸ íƒ€ë¡œ
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-function startIjikTarot() {
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.005"))) {
-      window.location.href = '/login?next=%2Ftarot-ijik.html';
-    }
-    return;
-  }
-  window.location.href = '/tarot-ijik.html';
-}
-function startMindScanTarot() {
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.006"))) {
-      window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
-    }
-    return;
-  }
-  window.location.href = '/tarot/mindscan/';
-}
-function startCrystalSoulTarot() {
-  if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.007"))) {
-      window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
-    }
-    return;
-  }
-  window.location.href = '/tarot/crystal-soul/';
-}
-window.startIjikTarot = startIjikTarot;
-window.startMindScanTarot = startMindScanTarot;
-window.startCrystalSoulTarot = startCrystalSoulTarot;
-
-function openSajuLifeBookBuilder() {
-  window.location.assign('/life-book-ai');
-}
-
-window.openSajuLifeBookBuilder = openSajuLifeBookBuilder;
-
-(function() {
-  function onFsChange() {
-    // ëª…ë¦¬ íƒ€ë¡œ 3ì¹´ë“œ ê²°ì œëŠ” ê²°ì œì°½ì„ ë„ìš°ë ¤ ì˜ë„ì ìœ¼ë¡œ í’€ìŠ¤í¬ë¦°ì„ ì¢…ë£Œí•œë‹¤. ì´ë•ŒëŠ” ì‚¬ìš©ìê°€ ëª¨ë‹¬ì„ ë‹«ì€
-    // ê²ƒì´ ì•„ë‹ˆë¯€ë¡œ íƒ€ë¡œ í™”ë©´ì„ ë‹«ì§€ ì•ŠëŠ”ë‹¤(ê²°ì œ í›„ _myeongriTarotRestoreFullscreenì´ ë³µì›). ì‹¤ì œ ë‹«ê¸°ëŠ”
-    // í”Œë˜ê·¸ê°€ falseë¼ ì•„ë˜ ë¡œì§ì´ ê·¸ëŒ€ë¡œ ë™ì‘í•œë‹¤.
-    if (window.__cdMyeongriTarotPaymentInFlight) return;
-    var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-    if (!isFs) {
-      var overlay = document.getElementById('tarotModalOverlay');
-      if (overlay && overlay.style.display !== 'none') {
-        overlay.style.display = 'none';
-        if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-        else document.body.style.overflow = '';
-        _resetTarotUI();
-      }
-    }
-  }
-  document.addEventListener('fullscreenchange', onFsChange);
-  document.addEventListener('webkitfullscreenchange', onFsChange);
-  document.addEventListener('mozfullscreenchange', onFsChange);
-  document.addEventListener('MSFullscreenChange', onFsChange);
-})();
-
-function switchMysticTab(tabId, btnTarget) {
-  if (typeof closeJuyukModal === 'function') closeJuyukModal();
-  var container = btnTarget.closest('.mystic-tabs-wrapper');
-  container.querySelectorAll('.mystic-tab-content').forEach(function(el) { el.classList.remove('active'); });
-  container.querySelectorAll('.mystic-tab-btn').forEach(function(el) { el.classList.remove('active'); });
-
-  document.getElementById(tabId).classList.add('active');
-  btnTarget.classList.add('active');
-}
-
-function updateCompatUI() {
-  var t = document.getElementById('compatType');
-  var desc = document.getElementById('compatTypeDesc');
-  var btn = document.getElementById('compatRunBtn');
-  if (!t || !desc || !btn) return;
-  var v = t.value || 'love';
-  if (v === 'love') {
-    desc.textContent = 'ì—°ì• /ê²°í˜¼: ê°ì •, ì˜¨ê¸°, ì¼ì§€Â·ì‹­ì„± ê°„ì˜ ì¡°í™”ê°€ ì¤‘ì‹¬ì— ë¨¸ë­…ë‹ˆë‹¤.';
-    btn.innerHTML = 'ğŸ’— ì—°ì•  ê¶í•© ë¶„ì„í•˜ê¸°';
-  } else if (v === 'business') {
-    desc.textContent = 'ì‚¬ì—…/ë™ì—…: ì—­í• Â·ì±…ì„Â·ìš©ì‹ Â·ìƒê·¹ì„ ì¤‘ì‹¬ìœ¼ë¡œ ì‹¤ë¬´ì Â·ì¬ë¬´ì  ì í•©ì„±ì„ í‰ê°€í•©ë‹ˆë‹¤.';
-    btn.innerHTML = 'ğŸ’¼ ì‚¬ì—… ê¶í•© ë¶„ì„í•˜ê¸°';
-  } else {
-    desc.textContent = 'ì¹œêµ¬/ë™ë£Œ: ìš°ì •Â·í˜‘ì—…Â·ì—ë„ˆì§€ í˜¸í¡ì„ ì¤‘ì‹¬ìœ¼ë¡œ í¸ì•ˆí•¨ê³¼ ì‹œë„ˆì§€ í¬ì¸íŠ¸ë¥¼ ì•ˆë‚´í•©ë‹ˆë‹¤.';
-    btn.innerHTML = 'ğŸ¤ ìš°ì •/ë™ë£Œ ê¶í•© ë¶„ì„í•˜ê¸°';
-  }
-}
-var compatTypeEl = document.getElementById('compatType');
-if (compatTypeEl) compatTypeEl.addEventListener('change', updateCompatUI);
-if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(updateCompatUI, 50);
-
-window.googleTranslateElementInit = window.googleTranslateElementInit || function googleTranslateElementInit() {
-  if (!window.google || !google.translate || !google.translate.TranslateElement) return;
-  if (window.__cdGoogleTranslateInited) return;
-  window.__cdGoogleTranslateInited = true;
-  new google.translate.TranslateElement({
-    pageLanguage: 'ko',
-    includedLanguages: 'ko,en,ja,zh-CN,zh-TW,vi,fr,es,hi,de,nl,ms',
-    autoDisplay: false
-  }, 'google_translate_element');
-  cdSetLangUiLoading(false);
-};
-
-/* ê¸°ëŠ¥(ë¡œë”/ëª¨ë‹¬/ì˜¤ë²„ë ˆì´) ë™ì‘ ì¤‘ì—ëŠ” ì–¸ì–´ ë²„íŠ¼ ìë™ ìˆ¨ê¹€, ì¢…ë£Œ ì‹œ ë‹¤ì‹œ í‘œì‹œ */
-var _langWrapFeatureOverlayIds = [
-  'sajuLoaderOverlay', 'privacy-modal-overlay', 'destinyFlowerStudioOverlay',
-  'tarotModalOverlay', 'tarotFocusOverlay', 'tarotSelfEsteemOverlay',
-  'tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
-  'animalTotemOverlay', 'dreamModalOverlay', 'dreamLoader', 'psychoDreamModalOverlay',
-  'juyukModalOverlay', 'sukuyoModalOverlay', 'astroModalOverlay', 'ziweiModalOverlay',
-  'dpSwitchConfirmOverlay', 'dpListOverlay', 'kemetOracleOverlay', 'kemetLoader',
-  'astralModal'
-];
-
-var _langLabelMap = { 'ko': 'KR', 'en': 'ENG', 'ja': 'JPN', 'zh-CN': 'CHN', 'hi': 'HIN', 'es': 'ESP', 'fr': 'FRA', 'de': 'DEU', 'nl': 'NLD', 'ms': 'MYS' };
-var __cdLangUiApplying = false;
-
-function cdGetLangLabel(code) {
-  return _langLabelMap[code] || String(code || 'KR').toUpperCase();
-}
-
-function cdNormalizeTranslateLang(code) {
-  var next = String(code || '').trim();
-  if (next === 'zh' || next === 'zh-cn' || next === 'zh_CN') return 'zh-CN';
-  return Object.prototype.hasOwnProperty.call(_langLabelMap, next) ? next : 'ko';
-}
-
-function cdReadUrlTranslateLang() {
-  try {
-    var params = new URLSearchParams(window.location.search || '');
-    var lang = params.get('lang');
-    return lang ? cdNormalizeTranslateLang(lang) : '';
-  } catch (_) {}
-  return '';
-}
-
-function cdReadExplicitTranslateLang() {
-  try {
-    if (localStorage.getItem('cd_lang_explicit') !== '1') return '';
-    var stored = localStorage.getItem('cd_lang');
-    return stored ? cdNormalizeTranslateLang(stored) : '';
-  } catch (_) {}
-  return '';
-}
-
-function cdGetExplicitTranslateIntentLang() {
-  var urlLang = cdReadUrlTranslateLang();
-  if (urlLang && urlLang !== 'ko') return urlLang;
-  var storedLang = cdReadExplicitTranslateLang();
-  if (storedLang && storedLang !== 'ko') return storedLang;
-  return '';
-}
-
-function cdClearGoogleTranslateCookies() {
-  var host = window.location.hostname;
-  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
-  if (host) {
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + host + '; path=/; SameSite=Lax;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + host + '; path=/; SameSite=Lax;';
-  }
-}
-
-function cdClearImplicitTranslateState() {
-  try {
-    if (localStorage.getItem('cd_lang_explicit') === '1') return;
-    localStorage.removeItem('cd_lang');
-  } catch (_) {}
-  cdClearGoogleTranslateCookies();
-}
-
-function cdMarkExplicitLanguageChoice(langCode) {
-  try {
-    localStorage.setItem('cd_lang_explicit', '1');
-    if (langCode) localStorage.setItem('cd_lang', cdNormalizeTranslateLang(langCode));
-  } catch (_) {}
-}
-
-cdClearImplicitTranslateState();
-
-if (!window.__cdExplicitLangChoiceBound) {
-  window.__cdExplicitLangChoiceBound = true;
-  document.addEventListener('click', function(event) {
-    var target = event && event.target;
-    if (!target || !target.closest) return;
-    var btn = target.closest('.lang-btn[data-lang]');
-    if (!btn) return;
-    cdMarkExplicitLanguageChoice(btn.getAttribute('data-lang'));
-  }, true);
-}
-
-function cdGetCurrentLangFromCookie() {
-  var googCookie = document.cookie.match(/(^|;\\s*)googtrans=([^;]*)/);
-  if (googCookie && googCookie[2]) {
-    var parsed = googCookie[2].split('/').pop();
-    if (parsed) return parsed;
-  }
-  return 'ko';
-}
-
-function cdRefreshLangLabel() {
-  var label = document.getElementById('langLabel');
-  if (!label) return;
-  label.textContent = cdGetLangLabel(cdGetCurrentLangFromCookie());
-}
-
-function cdSetLangUiLoading(isLoading, message) {
-  var wrap = document.getElementById('langWrap');
-  var trigger = document.getElementById('langTrigger');
-  var label = document.getElementById('langLabel');
-  if (wrap) {
-    if (isLoading) wrap.classList.add('is-loading');
-    else wrap.classList.remove('is-loading');
-  }
-  if (trigger) trigger.setAttribute('aria-busy', isLoading ? 'true' : 'false');
-  if (label && isLoading) {
-    label.textContent = message || 'ì–¸ì–´ ì—”ì§„ ë¡œë”© ì¤‘...';
-    return;
-  }
-  if (!isLoading) {
-    cdRefreshLangLabel();
-  }
-}
-
-function cdIsGoogleTranslateReady() {
-  if (window.google && window.google.translate && window.google.translate.TranslateElement) return true;
-  var selectField = document.querySelector('#google_translate_element .goog-te-combo');
-  return !!selectField;
-}
-
-// ì–¸ì–´ ì„ íƒ(êµ¬ê¸€ ë²ˆì—­ ì„œë¹„ìŠ¤ ì‚¬ìš©) í›„ ì¼ì • ì‹œê°„ ë’¤ ìœ„ì ¯ ìë™ ìˆ¨ê¹€
-var __cdLangWrapHideTimer = null;
-var __cdLangWrapHideDelayMs = 20000;
-
-function __cdCancelLangWrapHide() {
-  if (__cdLangWrapHideTimer) clearTimeout(__cdLangWrapHideTimer);
-  __cdLangWrapHideTimer = null;
-  var wrap = document.getElementById('langWrap');
-  if (wrap) wrap.classList.remove('lang-wrap--hidden');
-}
-
-function __cdScheduleLangWrapHide() {
-  if (__cdLangWrapHideTimer) clearTimeout(__cdLangWrapHideTimer);
-  var wrap = document.getElementById('langWrap');
-  if (!wrap) return;
-  wrap.classList.remove('lang-wrap--hidden');
-  var trigger = document.getElementById('langTrigger');
-  if (trigger) trigger.setAttribute('aria-expanded', 'false');
-  __cdLangWrapHideTimer = setTimeout(function() {
-    var currentWrap = document.getElementById('langWrap');
-    if (!currentWrap) return;
-    currentWrap.classList.remove('open');
-    currentWrap.classList.add('lang-wrap--hidden');
-    var currentTrigger = document.getElementById('langTrigger');
-    if (currentTrigger) currentTrigger.setAttribute('aria-expanded', 'false');
-    __cdLangWrapHideTimer = null;
-  }, __cdLangWrapHideDelayMs);
-}
-
-function cdGetContentTranslateTargets() {
-  return Array.prototype.slice.call(document.querySelectorAll('[data-cd-translate="content"]'));
-}
-
-function cdAllowGoogleTranslateForContent() {
-  var nodes = cdGetContentTranslateTargets();
-  nodes.forEach(function(el) {
-    if (!el) return;
-    el.classList.remove('notranslate');
-    try { el.removeAttribute('data-cd-translate'); } catch (_) {}
-  });
-}
-
-function cdResetGoogleTranslateToKorean() {
-  var host = window.location.hostname;
-  var expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
-  var cookieValue = '/ko/ko';
-  try {
-    document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; path=/; SameSite=Lax';
-    if (host) {
-      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=' + host + '; path=/; SameSite=Lax';
-      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=.' + host + '; path=/; SameSite=Lax';
-    }
-  } catch (_) {}
-
-  try {
-    var selectField = document.querySelector('#google_translate_element .goog-te-combo');
-    if (selectField) {
-      selectField.value = 'ko';
-      selectField.dispatchEvent(new Event('change', { bubbles: true }));
-      cdDispatchNativeChangeEvent(selectField);
-    }
-  } catch (_) {}
-}
-
-function cdFinalizeKoreanLanguageSwitch(prevLangCode) {
-  if (!prevLangCode || prevLangCode === 'ko') return;
-  cdForceHideGoogleTranslateBanner();
-  setTimeout(cdForceHideGoogleTranslateBanner, 120);
-  setTimeout(cdForceHideGoogleTranslateBanner, 480);
-}
-
-function changeLanguage(langCode, btn) {
-  // cd-lang-native.js ê°€ ë¡œë“œë˜ë©´ í•´ë‹¹ í•¨ìˆ˜ê°€ window.changeLanguage ë¥¼ ë®ì–´ì”€.
-  // ì´ ê¸°ë³¸ êµ¬í˜„ì€ native ëª¨ë“œ íŒŒì¼ ë¡œë“œ ì „ ë˜ëŠ” í´ë°±ìœ¼ë¡œë§Œ ì‹¤í–‰ë¨.
-  if (window.__cdNativeLangBound) {
-    return;
-  }
-  if (__cdLangUiApplying) return;
-  __cdLangUiApplying = true;
-  var prevLangCode = cdGetCurrentLangFromCookie();
-  cdEnsureGoogleTranslateBootstrap();
-  if (!cdIsGoogleTranslateReady()) {
-    cdSetLangUiLoading(true, 'ì–¸ì–´ ì—”ì§„ ë¡œë”© ì¤‘...');
-  }
-  __cdCancelLangWrapHide();
-
-  var btns = document.querySelectorAll('.lang-btn');
-  btns.forEach(function(b) { b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-
-  var label = document.getElementById('langLabel');
-  var wrapForLoading = document.getElementById('langWrap');
-  if (label && !(wrapForLoading && wrapForLoading.classList.contains('is-loading'))) {
-    label.textContent = cdGetLangLabel(langCode);
-  }
-
-  cdMarkExplicitLanguageChoice(langCode);
-
-  var applyPromise = cdSetGoogleTranslateLanguage(langCode, {
-    maxAttempts: 90,
-    retryDelay: 50,
-    fallbackToCookieReload: true
-  });
-  if (applyPromise && typeof applyPromise.then === 'function') {
-    applyPromise.then(function() {
-      if (langCode === 'ko') {
-        cdResetGoogleTranslateToKorean();
-      }
-      cdAllowGoogleTranslateForContent();
-      cdApplyCollectionToggleHintTexts(langCode);
-      cdSetLangUiLoading(false);
-      __cdLangUiApplying = false;
-
-      if (langCode === 'ko') {
-        cdFinalizeKoreanLanguageSwitch(prevLangCode);
-      }
-    }).catch(function() {
-      cdSetLangUiLoading(false);
-      __cdLangUiApplying = false;
-    });
-  } else {
-    if (langCode === 'ko') {
-      cdResetGoogleTranslateToKorean();
-    }
-    cdAllowGoogleTranslateForContent();
-    cdApplyCollectionToggleHintTexts(langCode);
-    cdSetLangUiLoading(false);
-    __cdLangUiApplying = false;
-
-    if (langCode === 'ko') {
-      cdFinalizeKoreanLanguageSwitch(prevLangCode);
-    }
-  }
-
-  if (langCode === 'ko') {
-    var domain = window.location.hostname;
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + domain + '; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + domain + '; path=/;';
-  }
-
-  // ë²ˆì—­ ì„ íƒ í›„ì—ëŠ” ë“œë¡­ë‹¤ìš´ë§Œ ë‹«ê³ , ë©”ì¸ í† ê¸€ì€ ê³„ì† ë…¸ì¶œí•œë‹¤.
-  var wrap = document.getElementById('langWrap');
-  if (wrap) {
-    wrap.classList.remove('open');
-  }
-  var trigger = document.getElementById('langTrigger');
-  if (trigger) trigger.setAttribute('aria-expanded', 'false');
-
-  __cdScheduleLangWrapHide();
-}
-
-function toggleLangDropdown() {
-  var wrap = document.getElementById('langWrap');
-  if (!wrap) return;
-
-  if (!cdShouldSkipGoogleTranslate()) {
-    if (!cdIsGoogleTranslateReady()) {
-      cdSetLangUiLoading(true, 'ì–¸ì–´ ì—”ì§„ ë¡œë”© ì¤‘...');
-      cdEnsureGoogleTranslateBootstrap();
-      return;
-    }
-    cdSetLangUiLoading(false);
-  } else {
-    cdClearLangUiBusy();
-  }
-
-  var isOpen = wrap.classList.contains('open');
-  if (isOpen) {
-    wrap.classList.remove('open');
-    __cdScheduleLangWrapHide();
-  } else {
-    __cdCancelLangWrapHide();
-    wrap.classList.remove('lang-wrap--hidden');
-    wrap.classList.add('open');
-  }
-
-  var trigger = document.getElementById('langTrigger');
-  if (trigger) trigger.setAttribute('aria-expanded', String(!isOpen));
-
-  if (!window.__cdLangDropdownOutsideBound) {
-    window.__cdLangDropdownOutsideBound = true;
-    document.addEventListener('click', function(e) {
-      if (!wrap.classList.contains('open')) return;
-      if (wrap.contains(e.target)) return;
-      wrap.classList.remove('open');
-      if (trigger) trigger.setAttribute('aria-expanded', 'false');
-      __cdScheduleLangWrapHide();
-    }, true);
-
-    document.addEventListener('keydown', function(e) {
-      if (!wrap.classList.contains('open')) return;
-      if (e && (e.key === 'Escape' || e.key === 'Esc')) {
-        wrap.classList.remove('open');
-        if (trigger) trigger.setAttribute('aria-expanded', 'false');
-        __cdScheduleLangWrapHide();
-      }
-    }, true);
-  }
-}
-
-(function() {
-  function scheduleRouteAction() {
-    setTimeout(__cdRunRouteActionOnce, 0);
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scheduleRouteAction, { once: true });
-  } else {
-    scheduleRouteAction();
-  }
-})();
-
-window.addEventListener('load', function() {
-  var explicitLang = cdGetExplicitTranslateIntentLang();
-  if (explicitLang && !cdShouldSkipGoogleTranslate(explicitLang)) {
-    cdSetGoogleTranslateLanguage(explicitLang, {
-      maxAttempts: 90,
-      retryDelay: 50,
-      fallbackToCookieReload: true
-    });
-  }
-  if (!window.__cdLangWrapAutoHideScheduled) {
-    window.__cdLangWrapAutoHideScheduled = true;
-    __cdScheduleLangWrapHide();
-  }
-
-  var wrap = document.getElementById('langWrap');
-  if (wrap && !window.__cdLangWrapInteractionBound) {
-    window.__cdLangWrapInteractionBound = true;
-    var rescheduleHide = function() {
-      if (wrap.classList.contains('open')) return;
-      __cdScheduleLangWrapHide();
-    };
-    wrap.addEventListener('pointerenter', __cdCancelLangWrapHide, { passive: true });
-    wrap.addEventListener('pointerleave', rescheduleHide, { passive: true });
-    wrap.addEventListener('touchstart', __cdCancelLangWrapHide, { passive: true });
-    wrap.addEventListener('touchend', rescheduleHide, { passive: true });
-  }
-
-  setTimeout(function() {
-    var googCookie = document.cookie.match(/(^|;\\s*)googtrans=([^;]*)/);
-    var lang = 'ko';
-    if (googCookie && googCookie[2]) {
-      lang = googCookie[2].split('/').pop();
-    }
-
-    var btns = document.querySelectorAll('.lang-btn');
-    btns.forEach(function(b) {
-      b.classList.remove('active');
-      if (b.getAttribute('data-lang') === lang) b.classList.add('active');
-    });
-    var label = document.getElementById('langLabel');
-    if (label) label.textContent = cdGetLangLabel(lang || 'ko');
-  }, 1000);
-});
-
-(function() {
-  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  var modal = document.getElementById('ios-install-modal');
-  if (modal) {
-    var iosGuide = document.getElementById('ios-guide');
-    var andGuide = document.getElementById('android-guide');
-    if (isIos) {
-      if (iosGuide) iosGuide.style.display = 'block';
-    } else {
-      if (andGuide) andGuide.style.display = 'block';
-    }
-  }
-})();
+­r‡^Ñf¥–Ø¦{[r‰İ°ë­¦ëXÛÛœİS‘VÔ•S•SQWÕVÕS”ÓUSÓ”ÈHÂˆÛÎˆÂˆš[™^[[YK›Y\ÜØYÙKŒHˆ»&å;(%{!'H;(%zìí:éo;fe{'n;ef:â¥;)${'m;%ä;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒˆˆ»&å;(%{!'{'m;fg;!,{fe:ä&:¬è;'¢;%­;&¥º¬éÈ;'m;&ªH:¬ :â©{em;(.;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒÈˆ»&å;(%{!'{'m;fg;!,{fe:ä&:¬è;'¢;%­;&¥º¬éÈ;'m;&ªH:¬ :â©{em;(.;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒˆºâê:¬m;'/:èg;.m:äç:¬¬;(':éo;) :îa;)${'m;%ä;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒHˆº¬¬;(':¬ ;&a:èã:ä$;%­;&¥º¬¬:¬ï:éo:í¢:çë;&):â¥;)${'m;%ä;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒˆˆ»'m;&ªz­£;'a;fe{'n;ef:â¥;)${'m;%ä;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒÈˆ»,¦:é«;)${'m;%ä;&¥»'¨;"ç:éã:®,:âé:è);(ï;!.;&¥‹ˆš[™^[[YK›Y\ÜØYÙKŒˆ»,¦:é«;)${'m;%ä;&¥»'¨;"ç:éã:®,:âé:è);(ï;!.;&¥‹ˆš[™^[[YK˜ÛÛ™š\›KŒHˆ¼'å$ˆ:èg:­î;'n;'m;ea;&¥;eg;!':îa;"©;'¡zââ:âé—ºèg:­î;'n;fá;'m;&ª{em;(ï;!.;&¥ˆ‹ˆš[™^[[YK˜\šXK[X™[ŒHˆ»"ç:îc:ço; «;(ï;"ç;"©;ag;%í:®,‹ˆš[™^[[YK™\œ›Ü‹ŒHˆ”İÚ\ÜÑ\ØY\ˆ˜Z[Yˆ‹ˆš[™^[[YK˜ÛÛ™š\›KŒˆˆ¼'å$ˆ:èg:­î;'n;'m;ea;&¥;eg;!':îa;"©;'¡zââ:âé—ºèg:­î;'n;fá;'m;&ª{em;(ï;!.;&¥ˆ‹ˆš[™^[[YK›X™[ŒHˆºâë;'!; àH‹ˆš[™^[[YK›X™[Œˆˆ»"&;f.:ãæzë/‹ˆš[™^[[YK›X™[ŒÈˆ»&):â¦;'f:¬%{eg:ìá‹ˆš[™^[[YK›X™[Œˆºìá:ì'z®,‹ˆš[™^[[YK›X™[ŒHˆº­ {'!‹ˆš[™^[[YK›X™[Œˆˆ»`ç;%¤z­ H‹ˆš[™^[[YK›X™[ŒÈˆ» à{"®z­ H‹ˆš[™^[[YK›X™[Œˆºâë:­ H‹ˆš[™^[[YK›X™[ŒHˆ»"è:¬%Kû"è;%oH‹ˆš[™^[[YK›X™[ŒLˆ»&ª{"è‹ˆš[™^[[YK›X™[ŒLHˆ»(l;fá‹ˆš[™^[[YK˜\šXK[X™[Œˆˆ»&­:ê¡{'f:¯`È;%ì:ãæ{ef:®,‹ˆš[™^[[YK˜ÛÛ™š\›KŒÈˆ¼'å$ˆ:èg:­î;'n;'m;ea;&¥;eg;!':îa;"©;'¡zââ:âé—ºèg:­î;'n;fá;'m;&ª{em;(ï;!.;&¥ˆ‹ˆš[™^[[YK˜ÛÛ™š\›KŒˆ»( ;'©zä';&­:ê¡{'f:¯`È:®,:èg{'a:êª:äd; «{(';eh:®c;&¥È‹ˆš[™^[[YK]KŒHˆ»%h:ââ:ê`;a¨;ag:é«:å*H:¬¬:¬ï‹ˆš[™^[[YK˜ÛÛ™š\›KŒHˆ¼'å$ˆ:èg:­î;'n;'m;ea;&¥;eg;!':îa;"©;'¡zââ:âé—ºèg:­î;'n;fá;'m;&ª{em;(ï;!.;&¥ˆ‹ˆš[™^[[YK˜ÛÛ™š\›KŒˆˆ¼'å$ˆ:èg:­î;'n;'m;ea;&¥;eg;!':îa;"©;'¡zââ:âé—ºèg:­î;'n;fá;'m;&ª{em;(ï;!.;&¥ˆ‹ˆš[™^[[YK˜ÛÛ™š\›KŒÈˆ¼'å$ˆ:èg:­î;'n;'m;ea;&¥;eg;!':îa;"©;'¡zââ:âé—ºèg:­î;'n;fá;'m;&ª{em;(ï;!.;&¥ˆ‹ˆKŸNÂ‚™[˜İ[ÛˆÚ[™^[[YU^
+Ù^JHÂˆ˜\ˆÛÈHS‘VÔ•S•SQWÕVÕS”ÓUSÓ”ËšÛÖÚÙ^WHˆÂˆHÂˆYˆ
+\[ÙˆÚ[™İÈOOH[™Yš[™Yˆ	‰ˆÚ[™İÈ	‰ˆ\[ÙˆÚ[™İË˜Ù˜[œÛ]HOOH™[˜İ[ÛˆŠHÂˆ™]\›ˆÚ[™İË˜Ù˜[œÛ]JÙ^KßKÛÊNÂˆBˆHØ]Ú
+ÊHßBˆ™]\›ˆÛÈ•˜[œÛ][Ûˆ[™[™ÈÂŸB‚™[˜İ[Ûˆ×ØÙ\Ú\™“Y]šXÊ˜[YK˜[YK]Z[
+HÂˆHÂˆ˜\ˆ›ÛİHÚ[™İË—×ØÙ\™“Y]šXÜÈHÚ[™İË—×ØÙ\™“Y]šXÜÈÂˆÜˆ[ˆÛÎˆˆ[œˆ[ˆÛÛXİ[Û•\Ø[\\Îˆ×KˆX\šÜÎˆ×BˆNÂ‚ˆ›ÛİÛ˜[YWHH˜[YNÂˆ›Ûİ›X\šÜËœ\Ú
+Âˆ˜[YNˆ˜[YKˆ˜[YNˆ˜[YKˆ]Z[ˆ]Z[[ˆÎˆ]K››İÊ
+BˆJNÂ‚ˆÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ØÙœ\™‹[Y]šXÉËÂˆ]Z[ˆÂˆ˜[YNˆ˜[YKˆ˜[YNˆ˜[YKˆY]Nˆ]Z[[ˆBˆJJNÂˆHØ]Ú
+ÊHßBŸB‚™[˜İ[Ûˆ×ØÙ[š]ÛÛXİ[Û”\™“Y]šXÜÊ
+HÂˆYˆ
+Ú[™İË—×ØÙÛÛXİ[Û”\™’[š]Y
+H™]\›ÂˆÚ[™İË—×ØÙÛÛXİ[Û”\™’[š]YHYNÂ‚ˆ˜\ˆİ\ÜÔÈH\[Ùˆ\™›Ü›X[˜ÙSØœÙ\™\ˆOOH	İ[™Yš[™Y	ÎÂˆ˜\ˆ\İÜH[Âˆ˜\ˆÛÕ˜[YHHÂˆ˜\ˆX^[œH[Â‚ˆYˆ
+İ\ÜÔÊHÂˆHÂˆ˜\ˆÜØœÙ\™\ˆH™]È\™›Ü›X[˜ÙSØœÙ\™\Š[˜İ[ÛŠ\İ
+HÂˆ˜\ˆ[šY\ÈH\İ™Ù][šY\Ê
+NÂˆYˆ
+Y[šY\ÈY[šY\Ë›[™İ
+H™]\›Âˆ\İÜH[šY\ÖÙ[šY\Ë›[™İHWNÂˆ×ØÙ\Ú\™“Y]šXÊ	ÛÜ	ËX]œ›İ[™
+\İÜœİ\[YJKÂˆ[U\Nˆ	Û\™Ù\İXÛÛ[[\Z[	ÂˆJNÂˆJNÂˆÜØœÙ\™\‹›ØœÙ\™JÈ\Nˆ	Û\™Ù\İXÛÛ[[\Z[	ËY™™\™YˆYHJNÂ‚ˆØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIË[˜İ[ÛŠ
+HÂˆYˆ
+Øİ[Y[š\ÚXš[]Tİ]HOOH	ÚY[‰ÊHÂˆHÈÜØœÙ\™\‹™\ØÛÛ›™Xİ
+
+NÈHØ]Ú
+ÊHßBˆYˆ
+\İÜ
+HÂˆ×ØÙ\Ú\™“Y]šXÊ	ÛÜš[˜[	ËX]œ›İ[™
+\İÜœİ\[YJKÂˆ™X\ÛÛˆ	İš\ÚXš[]KZY[‰ÂˆJNÂˆBˆBˆKÈÛ˜ÙNˆYHJNÂˆHØ]Ú
+ÊHßB‚ˆHÂˆ˜\ˆÛÓØœÙ\™\ˆH™]È\™›Ü›X[˜ÙSØœÙ\™\Š[˜İ[ÛŠ\İ
+HÂˆ˜\ˆ[šY\ÈH\İ™Ù][šY\Ê
+NÂˆ›Üˆ
+˜\ˆHHÈH[šY\Ë›[™İÈJÊÊHÂˆYˆ
+[šY\ÖÚWKšY™XÙ[[œ]
+HÛÛ[YNÂˆÛÕ˜[YH
+ÏH[šY\ÖÚWK˜[YHÂˆBˆ×ØÙ\Ú\™“Y]šXÊ	ØÛÉË[X™\ŠÛÕ˜[YKÑš^Y
+
+JKÂˆ[U\Nˆ	Û^[İ]\ÚY	ÂˆJNÂˆJNÂˆÛÓØœÙ\™\‹›ØœÙ\™JÈ\Nˆ	Û^[İ]\ÚY	ËY™™\™YˆYHJNÂˆHØ]Ú
+ÊHßB‚ˆHÂˆ˜\ˆ[œØœÙ\™\ˆH™]È\™›Ü›X[˜ÙSØœÙ\™\Š[˜İ[ÛŠ\İ
+HÂˆ˜\ˆ[šY\ÈH\İ™Ù][šY\Ê
+NÂˆ›Üˆ
+˜\ˆHHÈH[šY\Ë›[™İÈJÊÊHÂˆ˜\ˆHH[šY\ÖÚWNÂˆYˆ
+YH\[ÙˆK™\˜][ÛˆOOH	Û[X™\‰ÊHÛÛ[YNÂˆYˆ
+[X^[œK™\˜][ÛˆˆX^[œ™\˜][ÛŠHÂˆX^[œHNÂˆ×ØÙ\Ú\™“Y]šXÊ	Ú[œ	ËX]œ›İ[™
+K™\˜][ÛŠKÂˆ[U\Nˆ	Ù]™[	Ëˆ[\˜Xİ[Û’YˆKš[\˜Xİ[Û’Yˆ\™Ù]ˆK›˜[YH	İ[šÛ›İÛ‰ÂˆJNÂˆBˆBˆJNÂˆ[œØœÙ\™\‹›ØœÙ\™JÈ\Nˆ	Ù]™[	ËY™™\™YˆYK\˜][Û•™\ÚÛˆMˆJNÂˆHØ]Ú
+ÊHßBˆB‚ˆ˜\ˆ˜XÚÙYÙ[XİÜˆH	Ë™˜Ë]ÙÙÛKX‹\›İ][KÙ]KXXİ[ÛHÙÙÛPÛÛXİ[Ûˆ—IÎÂˆ˜\ˆ\İ]HHÈÎˆÙ^Nˆ	ÉÈNÂ‚ˆ[˜İ[ÛˆÙ]\™Ù]Ù^J[
+HÂˆYˆ
+Y[Y[˜ÛÜÙ\İ
+H™]\›ˆ	ÉÎÂˆ˜\ˆ\™Ù]H[˜ÛÜÙ\İ
+˜XÚÙYÙ[XİÜŠNÂˆYˆ
+]\™Ù]
+H™]\›ˆ	ÉÎÂˆ˜\ˆXİ[ÛˆH\™Ù]™Ù]]šX]J	Ù]KXXİ[Û‰ÊH	ÉÎÂˆ˜\ˆYH\™Ù]šY\™Ù]™Ù]]šX]J	Ù]K]\™Ù]	ÊH	ÉÎÂˆ˜\ˆÛÈH\™Ù]˜Û\ÜÓ˜[YH	ÉÎÂˆ™]\›ˆØXİ[Û‹YÛ×Kš›Ú[Š	ß	ÊNÂˆB‚ˆ[˜İ[ÛˆÛ”™\ÜÔİ\
+]™[
+HÂˆ˜\ˆÙ^HHÙ]\™Ù]Ù^J]™[\™Ù]
+NÂˆYˆ
+ZÙ^JH™]\›Âˆ\İ]KÈH\™›Ü›X[˜ÙK››İÊ
+NÂˆ\İ]KšÙ^HHÙ^NÂˆB‚ˆ[˜İ[ÛˆÛÛXÚÊ]™[
+HÂˆ˜\ˆÙ^HHÙ]\™Ù]Ù^J]™[\™Ù]
+NÂˆYˆ
+ZÙ^H]\İ]KÊH™]\›Âˆ˜\ˆ[HH\™›Ü›X[˜ÙK››İÊ
+HH\İ]KÎÂˆYˆ
+\İ]KšÙ^HOOHÙ^JH™]\›ÂˆYˆ
+J[HH	‰ˆ[HL
+JH™]\›Â‚ˆ˜\ˆ\ÈHX]œ›İ[™
+[JNÂˆ˜\ˆ›ÛİHÚ[™İË—×ØÙ\™“Y]šXÜÈHÚ[™İË—×ØÙ\™“Y]šXÜÈÈÛÛXİ[Û•\Ø[\\Îˆ×HNÂˆYˆ
+P\œ˜^Kš\Ğ\œ˜^J›Ûİ˜ÛÛXİ[Û•\Ø[\\ÊJH›Ûİ˜ÛÛXİ[Û•\Ø[\\ÈH×NÂˆ›Ûİ˜ÛÛXİ[Û•\Ø[\\Ëœ\Ú
+ÈÙ^NˆÙ^K][˜ŞS\Îˆ\ËÎˆ]K››İÊ
+HJNÂˆYˆ
+›Ûİ˜ÛÛXİ[Û•\Ø[\\Ë›[™İˆL
+HÂˆ›Ûİ˜ÛÛXİ[Û•\Ø[\\ËœÚY
+
+NÂˆB‚ˆ×ØÙ\Ú\™“Y]šXÊ	ØÛÛXİ[Û•\][˜ŞS\İ	Ë\ËÂˆÙ^NˆÙ^BˆJNÂˆB‚ˆØİ[Y[˜Y]™[\İ[™\Š	ÜÚ[\™İÛ‰ËÛ”™\ÜÔİ\È\ÜÚ]™NˆYHJNÂˆØİ[Y[˜Y]™[\İ[™\Š	İİXÚİ\	ËÛ”™\ÜÔİ\È\ÜÚ]™NˆYHJNÂˆØİ[Y[˜Y]™[\İ[™\Š	ØÛXÚÉËÛÛXÚËÈ\ÜÚ]™NˆYHJNÂŸB‚šYˆ
+Øİ[Y[œ™XYTİ]HOOH	ÛØY[™ÉÊHÂˆØİ[Y[˜Y]™[\İ[™\Š	ÑÓPÛÛ[ØYY	Ë×ØÙ[š]ÛÛXİ[Û”\™“Y]šXÜËÈÛ˜ÙNˆYHJNÂŸH[ÙHÂˆ×ØÙ[š]ÛÛXİ[Û”\™“Y]šXÜÊ
+NÂŸB‚™[˜İ[Ûˆ×ØÙ™\ÛÛ™T™\]Y\İ\›
+[œ]
+HÂˆHÂˆYˆ
+\[Ùˆ[œ]OOH	Üİš[™ÉÊH™]\›ˆ™]ÈT“
+[œ]Ú[™İË›ØØ][Û‹›ÜšYÚ[ŠNÂˆYˆ
+[œ]	‰ˆ\[Ùˆ[œ]\›OOH	Üİš[™ÉÊHÂˆ™]\›ˆ™]ÈT“
+[œ]\›Ú[™İË›ØØ][Û‹›ÜšYÚ[ŠNÂˆBˆHØ]Ú
+ÊHßBˆ™]\›ˆ[ÂŸB‚™[˜İ[Ûˆ×ØÙ™\ÛÛ™T™\]Y\İY]Ù
+[œ][š]
+HÂˆYˆ
+[š]	‰ˆ\[Ùˆ[š]›Y]ÙOOH	Üİš[™ÉÈ	‰ˆ[š]›Y]Ùš[J
+JHÂˆ™]\›ˆİš[™Ê[š]›Y]Ù
+KÕ\\Ø\ÙJ
+NÂˆBˆYˆ
+[œ]	‰ˆ\[Ùˆ[œ]OOH	ÛØš™Xİ	È	‰ˆ\[Ùˆ[œ]›Y]ÙOOH	Üİš[™ÉÈ	‰ˆ[œ]›Y]Ùš[J
+JHÂˆ™]\›ˆİš[™Ê[œ]›Y]Ù
+KÕ\\Ø\ÙJ
+NÂˆBˆ™]\›ˆ	ÑÑU	ÎÂŸB‚™[˜İ[Ûˆ×ØÙÚİ[˜XÚÔ^[Y[™\]Y\İ
+]˜[YKY]Ù
+HÂˆYˆ
+\]˜[YJH™]\›ˆ˜[ÙNÂˆYˆ
+Y]ÙOOH	ÑÑU	ÈY]ÙOOH	ÒPQ	ÊH™]\›ˆ˜[ÙNÂ‚ˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËØÛÚ[‹YØ]IÊHOOH
+H™]\›ˆ˜[ÙNÂˆËÈ<'å-Ü™YÜ™\ÜÚ[Û‹YİX\™H;(ï:ë.:ì':®"JÚXÚÛİ]Ü™\\™J{'`È:¬¬;(';,/{'a;%í:®,
+Š»(!
+Šˆ:âê:¬á;'m:¬è:¬¬;(';"&:âêˆËÈ;!(;`ç{,/{'m:ç,:åc; «;&ª{'¤:ê¬:ç¦:ëî:é«:ì'; «:ä&:â¥; «;(!:ì':®"{'m:®,:ãá;ef:âé8 %;%ë:®,;%ä:ã :®,Rzéo:ça;&¬:êmˆËÈ	ÔVSQS•ÒPÒÈ0­È:¬¬;('; à{`ç;fe{'n;)$H0­È:âê:¬m;'/:èg;.m:äç:¬¬;(':éo;) :îa;)${'m;%ä;&¥	È;(!;,­;fe:êm;'m:¬¬;(';,/{'aˆËÈ:ãkºâ¥:âé
+Œ‹L;'«:ì'
+Kˆ;!n;'n:ço;'n;##zäi{'m
+[™^š[ØÙ™\ÛÛ™T[™[™Ô^[Y[Y]J{%ä:â¥;'m;&";&n:¬ ˆËÈ;'m:ëî;'¢;%â:â¥:ãl;&n:í ;fe:ä';'m; «:ìî;%ä:éã:îh;(.;'¢;%â:âéˆ:ã :®,Rzâ¥:¬¬;(';,/{'a;a­z¬ï;eg:ä©;'f;"®{'n:¬ ;)§BˆËÈ
+ÛÛ™š\›J{%ä;!':éã:ça;&­:âé8 %:ì%:èg;%a:ç¦:í¡:®,‚ˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËØÚXÚÛİ]	ÊHOOH
+H™]\›ˆ˜[ÙNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËÜ™\\™IÊHOOH
+H™]\›ˆ˜[ÙNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËÜ\˜Ú\ÙIÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËØÚ\™ÙIÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËØÛÛ™š\›IÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËØÛÛ™š\›IÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËÜİXœØÜš\[Û‹Ü™\\™IÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËÜİXœØÜš\[Û‹ØÛÛ™š\›IÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÜ™[Z][KÉÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÜÚX[Ü™\Ü	ÊHOOH
+H™]\›ˆYNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÙ›Ü[™KÜYËXÛÚ[‹Ü›Ùš[K\İXœØÜš\[Û‹ÜİXœØÜšX™IÊHOOH
+H™]\›ˆYNÂˆ™]\›ˆ˜[ÙNÂŸB‚™[˜İ[Ûˆ×ØÙ™\ÛÛ™T^[Y[Y]J]˜[YJHÂˆYˆ
+]˜[YH	‰ˆ]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËÜİXœØÜš\[Û‹Ü™\\™IÊHOOH
+H™]\›ˆÈY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒHŠK[ÙNˆ	Û[ÛIÈNÂˆYˆ
+]˜[YH	‰ˆ]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËÜİXœØÜš\[Û‹ØÛÛ™š\›IÊHOOH
+H™]\›ˆÈY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒˆŠK[ÙNˆ	Ü^[Y[XÛÛ\]IÈNÂˆYˆ
+]˜[YH	‰ˆ]˜[YKš[™^ÙŠ	ËØ\KÙ›Ü[™KÜYËXÛÚ[‹Ü›Ùš[K\İXœØÜš\[Û‹ÜİXœØÜšX™IÊHOOH
+H™]\›ˆÈY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒÈŠK[ÙNˆ	Ü^[Y[XÛÛ\]IÈNÂˆËÈÚXÚÛİ]Ü™\\™H:í¡:®,:â¥;%áºâé8 %×ØÙÚİ[˜XÚÔ^[Y[™\]Y\İ:¬ ;%h;-";%ä;-¥;( {ef;)à;%bºâ¥:âé
+;'!;(ï;!'JK‚ˆYˆ
+]˜[YH	‰ˆ
+]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËØÛÛ™š\›IÊHOOH]˜[YKš[™^ÙŠ	ËØ\KÜ^[Y[ËØÛÛ™š\›IÊHOOH
+JH™]\›ˆÈY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒHŠK[ÙNˆ	Ü^[Y[XÛÛ\]IÈNÂˆYˆ
+]˜[YH	‰ˆ]˜[YKš[™^ÙŠ	ËØ\KØš[[™ËØÛÚ[‹YØ]IÊHOOH
+H™]\›ˆÈY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒˆŠK[ÙNˆ	Ü\ÜÉÈNÂˆ™]\›ˆÈY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒÈŠK[ÙNˆ	Ü^[Y[	ÈNÂŸB‚™[˜İ[Ûˆ×ØÙÙ]^[Y[ØY[™Óİ™\›^JÜ[‹Y\ÜØYÙK[ÙJHÂˆYˆ
+\[ÙˆÚ[™İÈOOH	İ[™Yš[™Y	È	‰ˆ\[ÙˆÚ[™İË—ØÙÙ]ÛÚ[‘Ø]Sİ™\›^HOOH	Ù[˜İ[Û‰ÊHÂˆÚ[™İË—ØÙÙ]ÛÚ[‘Ø]Sİ™\›^JH[Ü[‹Y\ÜØYÙK[ÙJNÂˆ™]\›ÂˆBˆHÂˆÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ØÙœ^[Y[[ØY[™Ë\İ]IËÂˆ]Z[ˆÈÜ[ˆH[Ü[‹Y\ÜØYÙNˆİš[™ÊY\ÜØYÙH	ÉÊKš[J
+H	û,¦:é«;)${'m;%ä;&¥»'¨;"ç:éã:®,:âé:è);(ï;!.;&¥	Ë[ÙNˆİš[™Ê[ÙH	ÉÊKš[J
+H	Ü^[Y[	ÈBˆJJNÂˆHØ]Ú
+ÊHÂˆBŸB‚™[˜İ[Ûˆ×ØÙ[š]ÛØ˜[^[Y[ØY[™Ê
+HÂˆYˆ
+Ú[™İË—×ØÙ^[Y[ØY[™Ò[š]Y
+H™]\›ÂˆÚ[™İË—×ØÙ^[Y[ØY[™Ò[š]YHYNÂ‚ˆ˜\ˆİ]HHÂˆ\ˆˆY\ÜØYÙNˆÚ[™^[[YU^
+š[™^[[YK›Y\ÜØYÙKŒŠKˆ[ÙNˆ	Ü^[Y[	ÂˆNÂ‚ˆ[˜İ[Ûˆİ\^[Y[
+Y\ÜØYÙK[ÙJHÂˆYˆ
+\[ÙˆY\ÜØYÙHOOH	Üİš[™ÉÈ	‰ˆY\ÜØYÙKš[J
+JHÂˆİ]K›Y\ÜØYÙHHY\ÜØYÙKš[J
+NÂˆBˆYˆ
+\[Ùˆ[ÙHOOH	Üİš[™ÉÈ	‰ˆ[ÙKš[J
+JHÂˆİ]K›[ÙHH[ÙKš[J
+NÂˆBˆİ]K™\
+ÏHNÂˆ×ØÙÙ]^[Y[ØY[™Óİ™\›^JYKİ]K›Y\ÜØYÙKİ]K›[ÙJNÂˆB‚ˆ[˜İ[Ûˆ[™^[Y[
+
+HÂˆİ]K™\HX]›X^
+İ]K™\HJNÂˆYˆ
+İ]K™\OOH
+HÂˆ×ØÙÙ]^[Y[ØY[™Óİ™\›^J˜[ÙKİ]K›Y\ÜØYÙKİ]K›[ÙJNÂˆİ]K›Y\ÜØYÙHH	û,¦:é«;)${'m;%ä;&¥»'¨;"ç:éã:®,:âé:è);(ï;!.;&¥	ÎÂˆİ]K›[ÙHH	Ü^[Y[	ÎÂˆBˆB‚ˆ[˜İ[ÛˆÙ]^[Y[Y\ÜØYÙJY\ÜØYÙK[ÙJHÂˆYˆ
+[Y\ÜØYÙHTİš[™ÊY\ÜØYÙJKš[J
+JH™]\›Âˆİ]K›Y\ÜØYÙHHİš[™ÊY\ÜØYÙJKš[J
+NÂˆYˆ
+\[Ùˆ[ÙHOOH	Üİš[™ÉÈ	‰ˆ[ÙKš[J
+JHİ]K›[ÙHH[ÙKš[J
+NÂˆYˆ
+İ]K™\ˆ
+HÂˆ×ØÙÙ]^[Y[ØY[™Óİ™\›^JYKİ]K›Y\ÜØYÙKİ]K›[ÙJNÂˆBˆB‚ˆ˜\ˆ\HHÂˆİ\^[Y[ˆİ\^[Y[ˆ[™^[Y[ˆ[™^[Y[ˆÙ]^[Y[Y\ÜØYÙNˆÙ]^[Y[Y\ÜØYÙKˆİ\›ØÙ\ÜÚ[™Îˆİ\^[Y[ˆİÜ›ØÙ\ÜÚ[™Îˆ[™^[Y[ˆÙ]›ØÙ\ÜÚ[™ÓY\ÜØYÙNˆÙ]^[Y[Y\ÜØYÙBˆNÂ‚ˆHÂˆØš™Xİ™Yš[™T›Ü\J\K	Ú\Ô^[Y[ØY[™ÉËÂˆÛÛ™šYİ\˜X›Nˆ˜[ÙKˆ[[Y\˜X›NˆYKˆÙ]ˆ[˜İ[ÛŠ
+HÂˆ™]\›ˆİ]K™\ˆÂˆBˆJNÂˆHØ]Ú
+ÊHÂˆ\Kš\Ô^[Y[ØY[™ÈH˜[ÙNÂˆB‚ˆÚ[™İË—×ØÙ^[Y[ØY[™ÈH\NÂ‚ˆYˆ
+Ú[™İË—×ØÙ^[Y[™]Ú]ÚY\[ÙˆÚ[™İË™™]ÚOOH	Ù[˜İ[Û‰ÊH™]\›ÂˆÚ[™İË—×ØÙ^[Y[™]Ú]ÚYHYNÂ‚ˆ˜\ˆÜšYÚ[˜[™]ÚHÚ[™İË™™]Ú˜š[™
+Ú[™İÊNÂ‚ˆ[˜İ[Ûˆ×ØÙ™XY™[Z][PXØÙ\ÜÕÚÙ[‘›ÜœšYÙJ
+HÂˆ˜\ˆÚÙ[ˆH	ÉÎÂˆHÈÚÙ[ˆHİš[™ÊÚ[™İË—×ØÙ™[Z][PXØÙ\ÜÕÚÙ[ˆ	ÉÊKš[J
+NÈHØ]Ú
+ÊHÈÚÙ[ˆH	ÉÎÈBˆYˆ
+]ÚÙ[ŠHÂˆHÈÚÙ[ˆHİš[™ÊÙ\ÜÚ[Û”İÜ˜YÙK™Ù]][J	ØÙÜ™[Z][WØXØÙ\Ü×İÚÙ[‰ÊH	ÉÊKš[J
+NÈHØ]Ú
+ÊHÈÚÙ[ˆH	ÉÎÈBˆBˆYˆ
+]ÚÙ[ŠHÂˆHÈÚÙ[ˆHİš[™ÊØØ[İÜ˜YÙK™Ù]][J	ØÙÜ™[Z][WØXØÙ\Ü×İÚÙ[‰ÊH	ÉÊKš[J
+NÈHØ]Ú
+ÊHÈÚÙ[ˆH	ÉÎÈBˆBˆ™]\›ˆÚÙ[ÂˆB‚ˆ[˜İ[Ûˆ×ØÙ\œÚ\İ™[Z][PXØÙ\ÜÕÚÙ[‘›ÜœšYÙJÚÙ[ŠHÂˆ˜\ˆØY™UÚÙ[ˆHİš[™ÊÚÙ[ˆ	ÉÊKš[J
+NÂˆYˆ
+\ØY™UÚÙ[ŠH™]\›ÂˆHÈÚ[™İË—×ØÙ™[Z][PXØÙ\ÜÕÚÙ[ˆHØY™UÚÙ[ÈHØ]Ú
+ÊHßBˆHÈÙ\ÜÚ[Û”İÜ˜YÙKœÙ]][J	ØÙÜ™[Z][WØXØÙ\Ü×İÚÙ[‰ËØY™UÚÙ[ŠNÈHØ]Ú
+ÊHßBˆHÈØØ[İÜ˜YÙKœÙ]][J	ØÙÜ™[Z][WØXØÙ\Ü×İÚÙ[‰ËØY™UÚÙ[ŠNÈHØ]Ú
+ÊHßBˆB‚ˆ[˜İ[Ûˆ×ØÙ^˜Xİ™[Z][PXØÙ\ÜÕÚÙ[‘œ›ÛP[J^[ØY
+HÂˆYˆ
+\^[ØY\[Ùˆ^[ØYOOH	ÛØš™Xİ	ÊH™]\›ˆ	ÉÎÂˆ˜\ˆÙ^\ÈHÉÜ™[Z][PXØÙ\ÜÕÚÙ[‰Ë	×Ü™[Z][PXØÙ\ÜÕÚÙ[‰Ë	ØXØÙ\ÜÕÚÙ[‰Ë	İÚÙ[‰×NÂˆ›Üˆ
+˜\ˆHHÈHÙ^\Ë›[™İÈH
+ÏHJHÂˆ˜\ˆˆH^[ØYÚÙ^\ÖÚWWNÂˆYˆ
+\[ÙˆˆOOH	Üİš[™ÉÈ	‰ˆ‹š[J
+JH™]\›ˆ‹š[J
+NÂˆBˆYˆ
+^[ØY™]H	‰ˆ\[Ùˆ^[ØY™]HOOH	ÛØš™Xİ	ÊHÂˆ˜\ˆ™\İYH×ØÙ^˜Xİ™[Z][PXØÙ\ÜÕÚÙ[‘œ›ÛP[J^[ØY™]JNÂˆYˆ
+™\İY
+H™]\›ˆ™\İYÂˆBˆYˆ
+^[ØYœ^[ØY	‰ˆ\[Ùˆ^[ØYœ^[ØYOOH	ÛØš™Xİ	ÊHÂˆ˜\ˆ™\İY^[ØYH×ØÙ^˜Xİ™[Z][PXØÙ\ÜÕÚÙ[‘œ›ÛP[J^[ØYœ^[ØY
+NÂˆYˆ
+™\İY^[ØY
+H™]\›ˆ™\İY^[ØYÂˆBˆ™]\›ˆ	ÉÎÂˆB‚ˆ[˜İ[Ûˆ×ØÙ\™[Z][UÚÙ[‘œ›ÛT™\ÜÛœÙJ™\ÜÛœÙK™\U\›
+HÂˆYˆ
+\™\ÜÛœÙH\™\U\›W×ØÙ\ÓİÛ\SÜšYÚ[Š™\U\›
+JH™]\›Âˆ˜\ˆ]˜[YHHİš[™Ê™\U\›œ]˜[YH	ÉÊNÂˆYˆ
+]˜[YKš[™^ÙŠ	ËØ\KÉÊHOOH
+H™]\›Âˆ˜\ˆÛÛ[\HH	ÉÎÂˆHÈÛÛ[\5×¿8âÚ$z{-®éÜj×…DÔÂÒ	ù)rÉ{ÉZ«hÙZ’»hNÈIŞÙY«‹s°¢ÒVÇ6R–b‡bÓÓÒv'W6–æW72r’°¢FW62çFW‡D6öçFVçBÒ~È*ÎÉxRş¸ùÉxS¢ÉzŞÙZ+~Ë^ÉèL+~ÉªÈº+~È8«{ÉØBÊIÈºÎÉËÎºÂÈºNºËNÊ+~ÉêÎºËNÊÊÙZÈKÉØBØø«ÙZ¸¸¸ºBâs°¢'Fâæ–ææW$…DÔÂÒ	ù+ÂÈ*ÎÉxR«hÙZ’»hNÈIŞÙY«‹s°¢ÒVÇ6R°¢FW62çFW‡D6öçFVçBÒ~Ë™Î«ZÂş¸ùº8Ã¢É«Ê	\+~Ù‰Éx\+~Éy¸HÊxÙ‹ÙÚÉØBÊIÈºÎÉËÎºÂØëÉXÙZ«;ÂÈ¹Î¸HÊxØúÎÉÛØ«º[ÂÉX¸+NÙZ¸¸¸ºBâs°¢'Fâæ–ææW$…DÔÂÒ	úIÒÉ«Ê	Rş¸ùº8Â«hÙZ’»hNÈIŞÙY«‹s°¢Ğ§Ğ§f"6ö×EG—TVÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚v6ö×EG—Rr“°¦–b†6ö×EG—TVÂ’6ö×EG—TVÂæFDWfVçDÆ—7FVæW"‚v6†ævRrÂWFFT6ö×ET’“°¦–b†Fö7VÖVçBç&VG•7FFRÓÓÒv6ö×ÆWFRrÇÂFö7VÖVçBç&VG•7FFRÓÓÒv–çFW&7F—fRr’6WEF–ÖV÷WB‡WFFT6ö×ET’ÂS“° §v–æF÷rævöövÆUG&ç6ÆFTVÆVÖVçD–æ—BÒv–æF÷rævöövÆUG&ç6ÆFTVÆVÖVçD–æ—BÇÂgVæ7F–öâvöövÆUG&ç6ÆFTVÆVÖVçD–æ—B‚’°¢–b‚v–æF÷rævöövÆRÇÂvöövÆRçG&ç6ÆFRÇÂvöövÆRçG&ç6ÆFRåG&ç6ÆFTVÆVÖVçB’&WGW&ã°¢–b‡v–æF÷råõö6DvöövÆUG&ç6ÆFT–æ—FVB’&WGW&ã°¢v–æF÷råõö6DvöövÆUG&ç6ÆFT–æ—FVBÒG'VS°¢æWrvöövÆRçG&ç6ÆFRåG&ç6ÆFTVÆVÖVçB‡°¢vTÆæwVvS¢v¶òrÀ¢–æ6ÇVFVDÆæwVvW3¢v¶òÆVâÆ¦Ç¦‚Ô4âÇ¦‚ÕErÇf’Æg"ÆW2Æ†’ÆFRÆæÂÆ×2rÀ¢WFôF—7Æ“¢fÇ6P¢ÒÂvvöövÆU÷G&ç6ÆFUöVÆVÖVçBr“°¢6E6WDÆæuV”ÆöF–ær†fÇ6R“°§Ó° ¢ò¢«‹¸ªRºÎ¸ÙBşºª¸ºÂşÉŠN»(NºÉÛB’¸ùÉéÊIÉy¸©BÉkÉkB»(NØ«ÂÉé¸ù’ÈŠ«˜ÂÊ(^º8ÂÈ¹Â¸ºNÈ¹ÂÙÎÈ¹Â¢ğ§f"öÆæuw&fVGW&T÷fW&Æ”–G2Ò°¢w6§TÆöFW$÷fW&Æ’rÂw&—f7’ÖÖöFÂÖ÷fW&Æ’rÂvFW7F–ç”fÆ÷vW%7GVF–ô÷fW&Æ’rÀ¢wF&÷DÖöFÄ÷fW&Æ’rÂwF&÷Dfö7W4÷fW&Æ’rÂwF&÷E6VÆdW7FVVÔ÷fW&Æ’rÀ¢wF&÷DÆ÷fT÷fW&Æ’rÂwF&÷D†VÆ–æt÷fW&Æ’rÂwF&÷E&WVæ–öä÷fW&Æ’rÂwF&÷E–V$f÷'GVæT÷fW&Æ’rÀ¢væ–ÖÅF÷FVÔ÷fW&Æ’rÂvG&VÔÖöFÄ÷fW&Æ’rÂvG&VÔÆöFW"rÂw7–6†ôG&VÔÖöFÄ÷fW&Æ’rÀ¢v§W—V´ÖöFÄ÷fW&Æ’rÂw7V·W–ôÖöFÄ÷fW&Æ’rÂv7G&ôÖöFÄ÷fW&Æ’rÂw¦—vV”ÖöFÄ÷fW&Æ’rÀ¢vG7v—F6„6öæf—&Ô÷fW&Æ’rÂvGÆ—7D÷fW&Æ’rÂv¶VÖWD÷&6ÆT÷fW&Æ’rÂv¶VÖWDÆöFW"rÀ¢v7G&ÄÖöFÂp¥Ó° §f"öÆætÆ&VÄÖÒ²v¶òs¢tµ"rÂvVâs¢tTärrÂv¦s¢t¥ârÂw¦‚Ô4âs¢t4„ârÂv†’s¢t„”ârÂvW2s¢tU5rÂvg"s¢te$rÂvFRs¢tDURrÂvæÂs¢täÄBrÂv×2s¢tÕ•2rÓ°§f"õö6DÆæuV”Ç––ærÒfÇ6S° ¦gVæ7F–öâ6DvWDÆætÆ&VÂ†6öFR’°¢&WGW&âöÆætÆ&VÄÖ¶6öFUÒÇÂ7G&–ær†6öFRÇÂtµ"r’çFõWW$66R‚“°§Ğ ¦gVæ7F–öâ6Dæ÷&ÖÆ—¦UG&ç6ÆFTÆær†6öFR’°¢f"æW‡BÒ7G&–ær†6öFRÇÂrr’çG&–Ò‚“°¢–b†æW‡BÓÓÒw¦‚rÇÂæW‡BÓÓÒw¦‚Ö6ârÇÂæW‡BÓÓÒw¦…ô4âr’&WGW&âw¦‚Ô4âs°¢&WGW&âö&¦V7Bç&÷F÷G—Ræ†4÷vå&÷W'G’æ6ÆÂ…öÆætÆ&VÄÖÂæW‡B’òæW‡B¢v¶òs°§Ğ ¦gVæ7F–öâ6E&VEW&ÅG&ç6ÆFTÆær‚’°¢G'’°¢f"&×2ÒæWrU$Å6V&6…&×2‡v–æF÷ræÆö6F–öâç6V&6‚ÇÂrr“°¢f"ÆærÒ&×2ævWB‚vÆærr“°¢&WGW&âÆærò6Dæ÷&ÖÆ—¦UG&ç6ÆFTÆær†Æær’¢rs°¢Ò6F6‚…ò’·Ğ¢&WGW&ârs°§Ğ ¦gVæ7F–öâ6E&VDW‡Æ–6—EG&ç6ÆFTÆær‚’°¢G'’°¢–b†Æö6Å7F÷&vRævWD—FVÒ‚v6EöÆæuöW‡Æ–6—Br’ÓÒsr’&WGW&ârs°¢f"7F÷&VBÒÆö6Å7F÷&vRævWD—FVÒ‚v6EöÆærr“°¢&WGW&â7F÷&VBò6Dæ÷&ÖÆ—¦UG&ç6ÆFTÆær‡7F÷&VB’¢rs°¢Ò6F6‚…ò’·Ğ¢&WGW&ârs°§Ğ ¦gVæ7F–öâ6DvWDW‡Æ–6—EG&ç6ÆFT–çFVçDÆær‚’°¢f"W&ÄÆærÒ6E&VEW&ÅG&ç6ÆFTÆær‚“°¢–b‡W&ÄÆærbbW&ÄÆærÓÒv¶òr’&WGW&âW&ÄÆæs°¢f"7F÷&VDÆærÒ6E&VDW‡Æ–6—EG&ç6ÆFTÆær‚“°¢–b‡7F÷&VDÆærbb7F÷&VDÆærÓÒv¶òr’&WGW&â7F÷&VDÆæs°¢&WGW&ârs°§Ğ ¦gVæ7F–öâ6D6ÆV$vöövÆUG&ç6ÆFT6öö¶–W2‚’°¢f"†÷7BÒv–æF÷ræÆö6F–öâæ†÷7FæÖS°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Ó²W‡—&W3ÕF‡RÂ¦â“s££UD3²FƒÒó²6ÖU6—FSÔÆƒ²s°¢–b††÷7B’°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Ó²W‡—&W3ÕF‡RÂ¦â“s££UD3²FöÖ–ãÒr²†÷7B²s²FƒÒó²6ÖU6—FSÔÆƒ²s°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Ó²W‡—&W3ÕF‡RÂ¦â“s££UD3²FöÖ–ãÒâr²†÷7B²s²FƒÒó²6ÖU6—FSÔÆƒ²s°¢Ğ§Ğ ¦gVæ7F–öâ6D6ÆV$–×Æ–6—EG&ç6ÆFU7FFR‚’°¢G'’°¢–b†Æö6Å7F÷&vRævWD—FVÒ‚v6EöÆæuöW‡Æ–6—Br’ÓÓÒsr’&WGW&ã°¢Æö6Å7F÷&vRç&VÖ÷fT—FVÒ‚v6EöÆærr“°¢Ò6F6‚…ò’·Ğ¢6D6ÆV$vöövÆUG&ç6ÆFT6öö¶–W2‚“°§Ğ ¦gVæ7F–öâ6DÖ&´W‡Æ–6—DÆæwVvT6†ö–6R†Ææt6öFR’°¢G'’°¢Æö6Å7F÷&vRç6WD—FVÒ‚v6EöÆæuöW‡Æ–6—BrÂsr“°¢–b†Ææt6öFR’Æö6Å7F÷&vRç6WD—FVÒ‚v6EöÆærrÂ6Dæ÷&ÖÆ—¦UG&ç6ÆFTÆær†Ææt6öFR’“°¢Ò6F6‚…ò’·Ğ§Ğ ¦6D6ÆV$–×Æ–6—EG&ç6ÆFU7FFR‚“° ¦–b‚v–æF÷råõö6DW‡Æ–6—DÆæt6†ö–6T&÷VæB’°¢v–æF÷råõö6DW‡Æ–6—DÆæt6†ö–6T&÷VæBÒG'VS°¢Fö7VÖVçBæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂgVæ7F–öâ†WfVçB’°¢f"F&vWBÒWfVçBbbWfVçBçF&vWC°¢–b‚F&vWBÇÂF&vWBæ6Æ÷6W7B’&WGW&ã°¢f"'FâÒF&vWBæ6Æ÷6W7B‚ræÆærÖ'Få¶FFÖÆæuÒr“°¢–b‚'Fâ’&WGW&ã°¢6DÖ&´W‡Æ–6—DÆæwVvT6†ö–6R†'FâævWDGG&–'WFR‚vFFÖÆærr’“°¢ÒÂG'VR“°§Ğ ¦gVæ7F–öâ6DvWD7W'&VçDÆætg&öÔ6öö¶–R‚’°¢f"vööt6öö¶–RÒFö7VÖVçBæ6öö¶–RæÖF6‚‚ò…çÃµÅÇ2¢–vööwG&ç3Ò…µãµÒ¢’ò“°¢–b†vööt6öö¶–Rbbvööt6öö¶–U³%Ò’°¢f"'6VBÒvööt6öö¶–U³%Òç7Æ—B‚ròr’ç÷‚“°¢–b‡'6VB’&WGW&â'6VC°¢Ğ¢&WGW&âv¶òs°§Ğ ¦gVæ7F–öâ6E&Vg&W6„ÆætÆ&VÂ‚’°¢f"Æ&VÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆætÆ&VÂr“°¢–b‚Æ&VÂ’&WGW&ã°¢Æ&VÂçFW‡D6öçFVçBÒ6DvWDÆætÆ&VÂ†6DvWD7W'&VçDÆætg&öÔ6öö¶–R‚’“°§Ğ ¦gVæ7F–öâ6E6WDÆæuV”ÆöF–ær†—4ÆöF–ærÂÖW76vR’°¢f"w&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢f"G&–vvW"ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuG&–vvW"r“°¢f"Æ&VÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆætÆ&VÂr“°¢–b‡w&’°¢–b†—4ÆöF–ær’w&æ6Æ74Æ—7BæFB‚v—2ÖÆöF–ærr“°¢VÇ6Rw&æ6Æ74Æ—7Bç&VÖ÷fR‚v—2ÖÆöF–ærr“°¢Ğ¢–b‡G&–vvW"’G&–vvW"ç6WDGG&–'WFR‚v&–Ö'W7’rÂ—4ÆöF–æròwG'VRr¢vfÇ6Rr“°¢–b†Æ&VÂbb—4ÆöF–ær’°¢Æ&VÂçFW‡D6öçFVçBÒÖW76vRÇÂ~ÉkÉkBÉyNÊxBºÎ¹J’ÊIâââs°¢&WGW&ã°¢Ğ¢–b‚—4ÆöF–ær’°¢6E&Vg&W6„ÆætÆ&VÂ‚“°¢Ğ§Ğ ¦gVæ7F–öâ6D—4vöövÆUG&ç6ÆFU&VG’‚’°¢–b‡v–æF÷rævöövÆRbbv–æF÷rævöövÆRçG&ç6ÆFRbbv–æF÷rævöövÆRçG&ç6ÆFRåG&ç6ÆFTVÆVÖVçB’&WGW&âG'VS°¢f"6VÆV7Df–VÆBÒFö7VÖVçBçVW'•6VÆV7F÷"‚r6vöövÆU÷G&ç6ÆFUöVÆVÖVçBævöör×FRÖ6öÖ&òr“°¢&WGW&â6VÆV7Df–VÆC°§Ğ ¢òòÉkÉkBÈJØ9Ò«ZÎ«ˆ»(ÉzÒÈIÎ»˜NÈªBÈ*ÎÉª’’Ù¸BÉÛÎÊ	RÈ¹Î«B¹*BÉÈNÊ
+òÉé¸ù’ÈŠ«˜ §f"õö6DÆæuw&†–FUF–ÖW"ÒçVÆÃ°§f"õö6DÆæuw&†–FTFVÆ”×2Ò#° ¦gVæ7F–öâõö6D6æ6VÄÆæuw&†–FR‚’°¢–b…õö6DÆæuw&†–FUF–ÖW"’6ÆV%F–ÖV÷WB…õö6DÆæuw&†–FUF–ÖW"“°¢õö6DÆæuw&†–FUF–ÖW"ÒçVÆÃ°¢f"w&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b‡w&’w&æ6Æ74Æ—7Bç&VÖ÷fR‚vÆær×w&ÒÖ†–FFVâr“°§Ğ ¦gVæ7F–öâõö6E66†VGVÆTÆæuw&†–FR‚’°¢–b…õö6DÆæuw&†–FUF–ÖW"’6ÆV%F–ÖV÷WB…õö6DÆæuw&†–FUF–ÖW"“°¢f"w&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b‚w&’&WGW&ã°¢w&æ6Æ74Æ—7Bç&VÖ÷fR‚vÆær×w&ÒÖ†–FFVâr“°¢f"G&–vvW"ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuG&–vvW"r“°¢–b‡G&–vvW"’G&–vvW"ç6WDGG&–'WFR‚v&–ÖW‡æFVBrÂvfÇ6Rr“°¢õö6DÆæuw&†–FUF–ÖW"Ò6WEF–ÖV÷WB†gVæ7F–öâ‚’°¢f"7W'&VçEw&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b‚7W'&VçEw&’&WGW&ã°¢7W'&VçEw&æ6Æ74Æ—7Bç&VÖ÷fR‚v÷Vâr“°¢7W'&VçEw&æ6Æ74Æ—7BæFB‚vÆær×w&ÒÖ†–FFVâr“°¢f"7W'&VçEG&–vvW"ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuG&–vvW"r“°¢–b†7W'&VçEG&–vvW"’7W'&VçEG&–vvW"ç6WDGG&–'WFR‚v&–ÖW‡æFVBrÂvfÇ6Rr“°¢õö6DÆæuw&†–FUF–ÖW"ÒçVÆÃ°¢ÒÂõö6DÆæuw&†–FTFVÆ”×2“°§Ğ ¦gVæ7F–öâ6DvWD6öçFVçEG&ç6ÆFUF&vWG2‚’°¢&WGW&â'&’ç&÷F÷G—Rç6Æ–6Ræ6ÆÂ†Fö7VÖVçBçVW'•6VÆV7F÷$ÆÂ‚u¶FFÖ6B×G&ç6ÆFSÒ&6öçFVçB%Òr’“°§Ğ ¦gVæ7F–öâ6DÆÆ÷tvöövÆUG&ç6ÆFTf÷$6öçFVçB‚’°¢f"æöFW2Ò6DvWD6öçFVçEG&ç6ÆFUF&vWG2‚“°¢æöFW2æf÷$V6‚†gVæ7F–öâ†VÂ’°¢–b‚VÂ’&WGW&ã°¢VÂæ6Æ74Æ—7Bç&VÖ÷fR‚væ÷G&ç6ÆFRr“°¢G'’²VÂç&VÖ÷fTGG&–'WFR‚vFFÖ6B×G&ç6ÆFRr“²Ò6F6‚…ò’·Ğ¢Ò“°§Ğ ¦gVæ7F–öâ6E&W6WDvöövÆUG&ç6ÆFUFô¶÷&Vâ‚’°¢f"†÷7BÒv–æF÷ræÆö6F–öâæ†÷7FæÖS°¢f"W‡—&W2ÒvW‡—&W3Ôg&’Â3FV2“““’#3£S“£S’tÕBs°¢f"6öö¶–UfÇVRÒrö¶òö¶òs°¢G'’°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Òr²6öö¶–UfÇVR²s²r²W‡—&W2²s²FƒÒó²6ÖU6—FSÔÆ‚s°¢–b††÷7B’°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Òr²6öö¶–UfÇVR²s²r²W‡—&W2²s²FöÖ–ãÒr²†÷7B²s²FƒÒó²6ÖU6—FSÔÆ‚s°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Òr²6öö¶–UfÇVR²s²r²W‡—&W2²s²FöÖ–ãÒâr²†÷7B²s²FƒÒó²6ÖU6—FSÔÆ‚s°¢Ğ¢Ò6F6‚…ò’·Ğ ¢G'’°¢f"6VÆV7Df–VÆBÒFö7VÖVçBçVW'•6VÆV7F÷"‚r6vöövÆU÷G&ç6ÆFUöVÆVÖVçBævöör×FRÖ6öÖ&òr“°¢–b‡6VÆV7Df–VÆB’°¢6VÆV7Df–VÆBçfÇVRÒv¶òs°¢6VÆV7Df–VÆBæF—7F6„WfVçB†æWrWfVçB‚v6†ævRrÂ²'V&&ÆW3¢G'VRÒ’“°¢6DF—7F6„æF—fT6†ævTWfVçB‡6VÆV7Df–VÆB“°¢Ğ¢Ò6F6‚…ò’·Ğ§Ğ ¦gVæ7F–öâ6Df–æÆ—¦T¶÷&VäÆæwVvU7v—F6‚‡&WdÆæt6öFR’°¢–b‚&WdÆæt6öFRÇÂ&WdÆæt6öFRÓÓÒv¶òr’&WGW&ã°¢6Df÷&6T†–FTvöövÆUG&ç6ÆFT&ææW"‚“°¢6WEF–ÖV÷WB†6Df÷&6T†–FTvöövÆUG&ç6ÆFT&ææW"Â#“°¢6WEF–ÖV÷WB†6Df÷&6T†–FTvöövÆUG&ç6ÆFT&ææW"ÂCƒ“°§Ğ ¦gVæ7F–öâ6†ævTÆæwVvR†Ææt6öFRÂ'Fâ’°¢òò6BÖÆærÖæF—fRæ§2«ºÎ¹9Î¹	º›BÙ[N¸»’ÙZÈ‰«v–æF÷ræ6†ævTÆæwVvRº[Â¸ÚîÉkNÉHà¢òòÉÛB«‹»;‚«ZÎÙˆNÉØæF—fRºª¹9ÂØÈÎÉÛÂºÎ¹9ÂÊB¹‰¸©BØûN»ÉËÎºÎºxÂÈºNÙh¹
+‚à¢–b‡v–æF÷råõö6DæF—fTÆæt&÷VæB’°¢&WGW&ã°¢Ğ¢–b…õö6DÆæuV”Ç––ær’&WGW&ã°¢õö6DÆæuV”Ç––ærÒG'VS°¢f"&WdÆæt6öFRÒ6DvWD7W'&VçDÆætg&öÔ6öö¶–R‚“°¢6DVç7W&TvöövÆUG&ç6ÆFT&ö÷G7G&‚“°¢–b‚6D—4vöövÆUG&ç6ÆFU&VG’‚’’°¢6E6WDÆæuV”ÆöF–ær‡G'VRÂ~ÉkÉkBÉyNÊxBºÎ¹J’ÊIâââr“°¢Ğ¢õö6D6æ6VÄÆæuw&†–FR‚“° ¢f"'Fç2ÒFö7VÖVçBçVW'•6VÆV7F÷$ÆÂ‚ræÆærÖ'Fâr“°¢'Fç2æf÷$V6‚†gVæ7F–öâ†"’²"æ6Æ74Æ—7Bç&VÖ÷fR‚v7F—fRr“²Ò“°¢–b†'Fâ’'Fâæ6Æ74Æ—7BæFB‚v7F—fRr“° ¢f"Æ&VÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆætÆ&VÂr“°¢f"w&f÷$ÆöF–ærÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b†Æ&VÂbb‡w&f÷$ÆöF–ærbbw&f÷$ÆöF–æræ6Æ74Æ—7Bæ6öçF–ç2‚v—2ÖÆöF–ærr’’’°¢Æ&VÂçFW‡D6öçFVçBÒ6DvWDÆætÆ&VÂ†Ææt6öFR“°¢Ğ ¢6DÖ&´W‡Æ–6—DÆæwVvT6†ö–6R†Ææt6öFR“° ¢f"Ç•&öÖ—6RÒ6E6WDvöövÆUG&ç6ÆFTÆæwVvR†Ææt6öFRÂ°¢Ö„GFV×G3¢“À¢&WG'”FVÆ“¢SÀ¢fÆÆ&6µFô6öö¶–U&VÆöC¢G'VP¢Ò“°¢–b†Ç•&öÖ—6RbbG—VöbÇ•&öÖ—6RçF†VâÓÓÒvgVæ7F–öâr’°¢Ç•&öÖ—6RçF†Vâ†gVæ7F–öâ‚’°¢–b†Ææt6öFRÓÓÒv¶òr’°¢6E&W6WDvöövÆUG&ç6ÆFUFô¶÷&Vâ‚“°¢Ğ¢6DÆÆ÷tvöövÆUG&ç6ÆFTf÷$6öçFVçB‚“°¢6DÇ”6öÆÆV7F–öåFövvÆT†–çEFW‡G2†Ææt6öFR“°¢6E6WDÆæuV”ÆöF–ær†fÇ6R“°¢õö6DÆæuV”Ç––ærÒfÇ6S° ¢–b†Ææt6öFRÓÓÒv¶òr’°¢6Df–æÆ—¦T¶÷&VäÆæwVvU7v—F6‚‡&WdÆæt6öFR“°¢Ğ¢Ò’æ6F6‚†gVæ7F–öâ‚’°¢6E6WDÆæuV”ÆöF–ær†fÇ6R“°¢õö6DÆæuV”Ç––ærÒfÇ6S°¢Ò“°¢ÒVÇ6R°¢–b†Ææt6öFRÓÓÒv¶òr’°¢6E&W6WDvöövÆUG&ç6ÆFUFô¶÷&Vâ‚“°¢Ğ¢6DÆÆ÷tvöövÆUG&ç6ÆFTf÷$6öçFVçB‚“°¢6DÇ”6öÆÆV7F–öåFövvÆT†–çEFW‡G2†Ææt6öFR“°¢6E6WDÆæuV”ÆöF–ær†fÇ6R“°¢õö6DÆæuV”Ç––ærÒfÇ6S° ¢–b†Ææt6öFRÓÓÒv¶òr’°¢6Df–æÆ—¦T¶÷&VäÆæwVvU7v—F6‚‡&WdÆæt6öFR“°¢Ğ¢Ğ ¢–b†Ææt6öFRÓÓÒv¶òr’°¢f"FöÖ–âÒv–æF÷ræÆö6F–öâæ†÷7FæÖS°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Ó²W‡—&W3ÕF‡RÂ¦â“s££UD3²FƒÒó²s°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Ó²W‡—&W3ÕF‡RÂ¦â“s££UD3²FöÖ–ãÒr²FöÖ–â²s²FƒÒó²s°¢Fö7VÖVçBæ6öö¶–RÒvvööwG&ç3Ó²W‡—&W3ÕF‡RÂ¦â“s££UD3²FöÖ–ãÒâr²FöÖ–â²s²FƒÒó²s°¢Ğ ¢òò»(ÉzÒÈJØ9ÒÙ¸NÉy¸©B¹9ÎºŞ¸ºNÉ«NºxÂ¸º¾«:Âº™NÉÛ‚Øj«ˆÉØ«8NÈhÒ¸[ËiÎÙYÎ¸ºBà¢f"w&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b‡w&’°¢w&æ6Æ74Æ—7Bç&VÖ÷fR‚v÷Vâr“°¢Ğ¢f"G&–vvW"ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuG&–vvW"r“°¢–b‡G&–vvW"’G&–vvW"ç6WDGG&–'WFR‚v&–ÖW‡æFVBrÂvfÇ6Rr“° ¢õö6E66†VGVÆTÆæuw&†–FR‚“°§Ğ ¦gVæ7F–öâFövvÆTÆætG&÷F÷vâ‚’°¢f"w&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b‚w&’&WGW&ã° ¢–b‚6E6†÷VÆE6¶—vöövÆUG&ç6ÆFR‚’’°¢–b‚6D—4vöövÆUG&ç6ÆFU&VG’‚’’°¢6E6WDÆæuV”ÆöF–ær‡G'VRÂ~ÉkÉkBÉyNÊxBºÎ¹J’ÊIâââr“°¢6DVç7W&TvöövÆUG&ç6ÆFT&ö÷G7G&‚“°¢&WGW&ã°¢Ğ¢6E6WDÆæuV”ÆöF–ær†fÇ6R“°¢ÒVÇ6R°¢6D6ÆV$ÆæuV”'W7’‚“°¢Ğ ¢f"—4÷VâÒw&æ6Æ74Æ—7Bæ6öçF–ç2‚v÷Vâr“°¢–b†—4÷Vâ’°¢w&æ6Æ74Æ—7Bç&VÖ÷fR‚v÷Vâr“°¢õö6E66†VGVÆTÆæuw&†–FR‚“°¢ÒVÇ6R°¢õö6D6æ6VÄÆæuw&†–FR‚“°¢w&æ6Æ74Æ—7Bç&VÖ÷fR‚vÆær×w&ÒÖ†–FFVâr“°¢w&æ6Æ74Æ—7BæFB‚v÷Vâr“°¢Ğ ¢f"G&–vvW"ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuG&–vvW"r“°¢–b‡G&–vvW"’G&–vvW"ç6WDGG&–'WFR‚v&–ÖW‡æFVBrÂ7G&–ær‚—4÷Vâ’“° ¢–b‚v–æF÷råõö6DÆætG&÷F÷vä÷WG6–FT&÷VæB’°¢v–æF÷råõö6DÆætG&÷F÷vä÷WG6–FT&÷VæBÒG'VS°¢Fö7VÖVçBæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂgVæ7F–öâ†R’°¢–b‚w&æ6Æ74Æ—7Bæ6öçF–ç2‚v÷Vâr’’&WGW&ã°¢–b‡w&æ6öçF–ç2†RçF&vWB’’&WGW&ã°¢w&æ6Æ74Æ—7Bç&VÖ÷fR‚v÷Vâr“°¢–b‡G&–vvW"’G&–vvW"ç6WDGG&–'WFR‚v&–ÖW‡æFVBrÂvfÇ6Rr“°¢õö6E66†VGVÆTÆæuw&†–FR‚“°¢ÒÂG'VR“° ¢Fö7VÖVçBæFDWfVçDÆ—7FVæW"‚v¶W–F÷vârÂgVæ7F–öâ†R’°¢–b‚w&æ6Æ74Æ—7Bæ6öçF–ç2‚v÷Vâr’’&WGW&ã°¢–b†Rbb†Ræ¶W’ÓÓÒtW66RrÇÂRæ¶W’ÓÓÒtW62r’’°¢w&æ6Æ74Æ—7Bç&VÖ÷fR‚v÷Vâr“°¢–b‡G&–vvW"’G&–vvW"ç6WDGG&–'WFR‚v&–ÖW‡æFVBrÂvfÇ6Rr“°¢õö6E66†VGVÆTÆæuw&†–FR‚“°¢Ğ¢ÒÂG'VR“°¢Ğ§Ğ ¢†gVæ7F–öâ‚’°¢gVæ7F–öâ66†VGVÆU&÷WFT7F–öâ‚’°¢6WEF–ÖV÷WB…õö6E'Vå&÷WFT7F–öäöæ6RÂ“°¢Ğ¢–b†Fö7VÖVçBç&VG•7FFRÓÓÒvÆöF–ærr’°¢Fö7VÖVçBæFDWfVçDÆ—7FVæW"‚tDôÔ6öçFVçDÆöFVBrÂ66†VGVÆU&÷WFT7F–öâÂ²öæ6S¢G'VRÒ“°¢ÒVÇ6R°¢66†VGVÆU&÷WFT7F–öâ‚“°¢Ğ§Ò’‚“° §v–æF÷ræFDWfVçDÆ—7FVæW"‚vÆöBrÂgVæ7F–öâ‚’°¢f"W‡Æ–6—DÆærÒ6DvWDW‡Æ–6—EG&ç6ÆFT–çFVçDÆær‚“°¢–b†W‡Æ–6—DÆærbb6E6†÷VÆE6¶—vöövÆUG&ç6ÆFR†W‡Æ–6—DÆær’’°¢6E6WDvöövÆUG&ç6ÆFTÆæwVvR†W‡Æ–6—DÆærÂ°¢Ö„GFV×G3¢“À¢&WG'”FVÆ“¢SÀ¢fÆÆ&6µFô6öö¶–U&VÆöC¢G'VP¢Ò“°¢Ğ¢–b‚v–æF÷råõö6DÆæuw&WFô†–FU66†VGVÆVB’°¢v–æF÷råõö6DÆæuw&WFô†–FU66†VGVÆVBÒG'VS°¢õö6E66†VGVÆTÆæuw&†–FR‚“°¢Ğ ¢f"w&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆæuw&r“°¢–b‡w&bbv–æF÷råõö6DÆæuw&–çFW&7F–öä&÷VæB’°¢v–æF÷råõö6DÆæuw&–çFW&7F–öä&÷VæBÒG'VS°¢f"&W66†VGVÆT†–FRÒgVæ7F–öâ‚’°¢–b‡w&æ6Æ74Æ—7Bæ6öçF–ç2‚v÷Vâr’’&WGW&ã°¢õö6E66†VGVÆTÆæuw&†–FR‚“°¢Ó°¢w&æFDWfVçDÆ—7FVæW"‚wö–çFW&VçFW"rÂõö6D6æ6VÄÆæuw&†–FRÂ²76—fS¢G'VRÒ“°¢w&æFDWfVçDÆ—7FVæW"‚wö–çFW&ÆVfRrÂ&W66†VGVÆT†–FRÂ²76—fS¢G'VRÒ“°¢w&æFDWfVçDÆ—7FVæW"‚wF÷V6‡7F'BrÂõö6D6æ6VÄÆæuw&†–FRÂ²76—fS¢G'VRÒ“°¢w&æFDWfVçDÆ—7FVæW"‚wF÷V6†VæBrÂ&W66†VGVÆT†–FRÂ²76—fS¢G'VRÒ“°¢Ğ ¢6WEF–ÖV÷WB†gVæ7F–öâ‚’°¢f"vööt6öö¶–RÒFö7VÖVçBæ6öö¶–RæÖF6‚‚ò…çÃµÅÇ2¢–vööwG&ç3Ò…µãµÒ¢’ò“°¢f"ÆærÒv¶òs°¢–b†vööt6öö¶–Rbbvööt6öö¶–U³%Ò’°¢ÆærÒvööt6öö¶–U³%Òç7Æ—B‚ròr’ç÷‚“°¢Ğ ¢f"'Fç2ÒFö7VÖVçBçVW'•6VÆV7F÷$ÆÂ‚ræÆærÖ'Fâr“°¢'Fç2æf÷$V6‚†gVæ7F–öâ†"’°¢"æ6Æ74Æ—7Bç&VÖ÷fR‚v7F—fRr“°¢–b†"ævWDGG&–'WFR‚vFFÖÆærr’ÓÓÒÆær’"æ6Æ74Æ—7BæFB‚v7F—fRr“°¢Ò“°¢f"Æ&VÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚vÆætÆ&VÂr“°¢–b†Æ&VÂ’Æ&VÂçFW‡D6öçFVçBÒ6DvWDÆætÆ&VÂ†ÆærÇÂv¶òr“°¢ÒÂ“°§Ò“° ¢†gVæ7F–öâ‚’°¢f"—4–÷2Òö—†öæWÆ—GÆ—öBö’çFW7B†æf–vF÷"çW6W$vVçB“°¢f"ÖöFÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚v–÷2Ö–ç7FÆÂÖÖöFÂr“°¢–b†ÖöFÂ’°¢f"–÷4wV–FRÒFö7VÖVçBævWDVÆVÖVçD'”–B‚v–÷2ÖwV–FRr“°¢f"æDwV–FRÒFö7VÖVçBævWDVÆVÖVçD'”–B‚væG&ö–BÖwV–FRr“°¢–b†—4–÷2’°¢–b†–÷4wV–FR’–÷4wV–FRç7G–ÆRæF—7Æ’Òv&Æö6²s°¢ÒVÇ6R°¢–b†æDwV–FR’æDwV–FRç7G–ÆRæF—7Æ’Òv&Æö6²s°¢Ğ¢Ğ§Ò’‚“° 

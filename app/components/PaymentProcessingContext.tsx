@@ -1,1280 +1,69 @@
-"use client";
-
-import dynamic from "next/dynamic";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
-import type { PaymentLoadingProps } from "./common/PaymentLoading";
-import LoadingProgressMotion, {
-  type LoadingMotionPhase,
-  type LoadingMotionTone,
-} from "./common/LoadingProgressMotion";
-import { PaymentPigVisual } from "./common/PaymentPigVisual";
-
-type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
-type LoadingStage = "pg_processing" | "result_loading" | "access_check";
-type PaymentType = "subscription" | "single" | "pass";
-type PaymentProcessingAction = {
-  label: string;
-  onClick: () => void;
-};
-
-const PAYMENT_LOADING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
-type LoadingLocale = (typeof PAYMENT_LOADING_LOCALES)[number];
-type LoadingMessage = { title: string; sub: string };
-
-function normalizeLoadingLocale(value?: string | null): LoadingLocale {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return PAYMENT_LOADING_LOCALES.find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function getCurrentLoadingLocale(): LoadingLocale {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
-    if (runtimeLang) return normalizeLoadingLocale(runtimeLang);
-  } catch {}
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeLoadingLocale(fromQuery);
-  } catch {}
-  try {
-    const fromStorage = window.localStorage.getItem("cd_lang");
-    if (fromStorage) return normalizeLoadingLocale(fromStorage);
-  } catch {}
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
-    if (match?.[1]) return normalizeLoadingLocale(decodeURIComponent(match[1]));
-  } catch {}
-  return "ko";
-}
-
-function PaymentOverlayFallback() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed inset-0 z-[2147483001] flex items-end justify-center bg-slate-950/62 px-0 backdrop-blur-sm sm:items-center sm:px-4"
-    >
-      <div
-        className="w-full rounded-t-[8px] border border-white/15 bg-slate-950/92 p-5 text-white shadow-[0_18px_60px_rgba(2,6,23,.5)] sm:max-w-[420px] sm:rounded-[8px]"
-        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
-      >
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-        <p className="m-0 text-sm font-black">ê²°ì œ í™•ì¸ í™”ë©´ì„ ì—¬ëŠ” ì¤‘ì…ë‹ˆë‹¤.</p>
-        <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-300">
-          ì°½ì„ ë‹«ì§€ ë§ê³  ì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-const DeferredPaymentProcessingOverlay = dynamic<PaymentLoadingProps>(
-  () => import("./PaymentProcessingOverlay"),
-  {
-    ssr: false,
-    loading: () => <PaymentOverlayFallback />,
-  },
-);
-
-type PaymentProcessingContextValue = {
-  isProcessing: boolean;
-  isPaymentLoading: boolean;
-  processingMessage: string;
-  startProcessing: (message?: string, variant?: PaymentLoadingVariant) => void;
-  stopProcessing: () => void;
-  setProcessingMessage: (message: string) => void;
-  setProcessingAction: (action: PaymentProcessingAction | null) => void;
-  startPayment: (message?: string, variant?: PaymentLoadingVariant) => void;
-  endPayment: () => void;
-  setPaymentMessage: (message: string) => void;
-};
-
-type PaymentProcessingProviderProps = {
-  children: React.ReactNode;
-};
-
-type PaidFeatureGateStatus =
-  | "idle"
-  | "opening"
-  | "checkingEntitlement"
-  | "hasEntitlement"
-  | "noEntitlement"
-  | "loadingProducts"
-  | "readyToPay"
-  | "paymentProcessing"
-  | "paymentSuccess"
-  | "paymentFailed"
-  | "error"
-  | "paymentPreparing"
-  | "paymentWindowOpen"
-  | "savingUnlock"
-  | "unlockSaving"
-  | "cancelled";
-
-type PaidFeatureGateDetail = {
-  featureId?: string;
-  featureKey?: string;
-  requestId?: string;
-  title?: string;
-  message?: string;
-  status?: PaidFeatureGateStatus;
-  cost?: number;
-  paymentMode?: string;
-  accessType?: string;
-  accessMethod?: string;
-  paymentMethod?: string;
-  startedAt?: number;
-};
-
-type PaidFeatureGateState = Required<Pick<PaidFeatureGateDetail, "featureId" | "requestId" | "title" | "message">> & {
-  open: boolean;
-  status: PaidFeatureGateStatus;
-  cost: number | null;
-  seq: number;
-  startedAt: number;
-};
-
-type PaidFeatureGateContextValue = {
-  state: PaidFeatureGateState;
-  open: (detail: PaidFeatureGateDetail) => number;
-  update: (detail: PaidFeatureGateDetail) => void;
-  close: (requestId?: string) => void;
-  preload: () => void;
-};
-
-const DEFAULT_PROCESSING_MESSAGE = "ì²˜ë¦¬ ì¤‘ì´ì—ìš”\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”";
-
-const PAID_GATE_DEFAULT_TITLE = "ê²°ì œ/ì´ìš©ê¶Œ í™•ì¸";
-const ACCESS_CHECKING_MESSAGE = "ì´ìš©ê¶Œ í™•ì¸ ì¤‘ì´ì—ìš”\nì ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”";
-const PAID_GATE_DEFAULT_MESSAGE = ACCESS_CHECKING_MESSAGE;
-
-type PaidGateCopy = { label: string; title: string; message: string };
-type PaidGateUiCopy = {
-  closeLabel: string;
-  costPrefix: string;
-  costSuffix: string;
-  payAction: string;
-  genericLabel: string;
-  progressLabel: string;
-  progressSteps: readonly [string, string, string];
-};
-
-const KOREAN_TEXT_PATTERN = /[ê°€-í£]/;
-
-const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
-  idle: { label: "ëŒ€ê¸°", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
-  opening: { label: "ì¤€ë¹„", title: "ì´ìš©ê¶Œ í™•ì¸", message: ACCESS_CHECKING_MESSAGE },
-  checkingEntitlement: { label: "í™•ì¸ ì¤‘", title: "ì´ìš©ê¶Œ í™•ì¸", message: ACCESS_CHECKING_MESSAGE },
-  hasEntitlement: { label: "ì´ìš© ê°€ëŠ¥", title: "ì´ìš©ê¶Œ í™•ì¸ ì™„ë£Œ", message: "ì´ìš©ê¶Œ í™•ì¸ì´ ëë‚¬ì–´ìš”\nê²°ê³¼ë¥¼ ì¤€ë¹„í•˜ê³  ìˆì–´ìš”" },
-  noEntitlement: { label: "ê²°ì œ í•„ìš”", title: PAID_GATE_DEFAULT_TITLE, message: "ì‚¬ìš© ê°€ëŠ¥í•œ ì´ìš©ê¶Œì´ ì—†ì–´ ê²°ì œê°€ í•„ìš”í•©ë‹ˆë‹¤." },
-  loadingProducts: { label: "í™•ì¸ ì¤‘", title: "ì´ìš©ê¶Œ/ê²°ì œ í™•ì¸", message: ACCESS_CHECKING_MESSAGE },
-  readyToPay: { label: "ì„ íƒ ëŒ€ê¸°", title: "ê²°ì œ ìˆ˜ë‹¨ ì„ íƒ", message: "ì´ ì½˜í…ì¸ ë¥¼ ì—´ ìˆ˜ ìˆëŠ” ê²°ì œ ìˆ˜ë‹¨ì„ ì„ íƒí•´ ì£¼ì„¸ìš”." },
-  paymentProcessing: { label: "ì²˜ë¦¬ ì¤‘", title: "ê²°ì œ ì²˜ë¦¬ ì¤‘", message: "ê²°ì œ ìŠ¹ì¸ê³¼ ì´ìš© ê¶Œí•œì„ í™•ì¸í•˜ê³  ìˆì–´ìš”\nì°½ì„ ë‹«ì§€ ë§ì•„ ì£¼ì„¸ìš”" },
-  paymentSuccess: { label: "ì™„ë£Œ", title: "ê²°ì œ ì™„ë£Œ", message: "ê²°ì œê°€ ì™„ë£Œëì–´ìš”\nê²°ê³¼ë¥¼ ì¤€ë¹„í•˜ê³  ìˆì–´ìš”" },
-  paymentFailed: { label: "ì‹¤íŒ¨", title: "ê²°ì œ í™•ì¸ ì‹¤íŒ¨", message: "ê²°ì œë¥¼ ì™„ë£Œí•˜ì§€ ëª»í–ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”." },
-  error: { label: "ì˜¤ë¥˜", title: "í™•ì¸ ì‹¤íŒ¨", message: "ì´ìš©ê¶Œ í™•ì¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ì ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”." },
-  paymentPreparing: { label: "ê²°ì œ ì¤€ë¹„", title: "ë‹¨ê±´ ê²°ì œ ì¤€ë¹„ ì¤‘", message: "ì£¼ë¬¸ ì •ë³´ì™€ ì¸ì¦ íë¦„ì´ ì¡°ìš©íˆ ë§ì¶°ì§€ê³  ìˆì–´ìš”\nì°½ì„ ë‹«ì§€ ë§ì•„ ì£¼ì„¸ìš”" },
-  paymentWindowOpen: { label: "ê²°ì œ ì§„í–‰", title: "ë‹¨ê±´ ê²°ì œ ì¤€ë¹„ ì¤‘", message: "ì£¼ë¬¸ ì •ë³´ì™€ ì¸ì¦ íë¦„ì´ ì¡°ìš©íˆ ë§ì¶°ì§€ê³  ìˆì–´ìš”\nì°½ì„ ë‹«ì§€ ë§ì•„ ì£¼ì„¸ìš”" },
-  savingUnlock: { label: "ì €ì¥ ì¤‘", title: "ì´ìš© ê¶Œí•œ ì €ì¥ ì¤‘", message: "ê²°ê³¼ í™”ë©´ìœ¼ë¡œ ì´ì–´ì§€ë„ë¡ ì´ìš© ê¶Œí•œì„ ì €ì¥í•˜ê³  ìˆìŠµë‹ˆë‹¤." },
-  unlockSaving: { label: "ì €ì¥ ì¤‘", title: "ì´ìš© ê¶Œí•œ ì €ì¥ ì¤‘", message: "ê²°ê³¼ í™”ë©´ìœ¼ë¡œ ì´ì–´ì§€ë„ë¡ ì´ìš© ê¶Œí•œì„ ì €ì¥í•˜ê³  ìˆìŠµë‹ˆë‹¤." },
-  cancelled: { label: "ì·¨ì†Œë¨", title: "ê²°ì œ ì„ íƒ ì·¨ì†Œ", message: "ê²°ì œ ì„ íƒì´ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤. í•„ìš”í•  ë•Œ ë‹¤ì‹œ ì§„í–‰í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤." },
-};
-
-const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Record<PaidFeatureGateStatus, PaidGateCopy>>> = {
-  en: {
-    idle: { label: "Waiting", title: "Payment/pass check", message: "Checking your pass." },
-    noEntitlement: { label: "Payment needed", title: "Payment/pass check", message: "No usable pass was found." },
-    readyToPay: { label: "Choose payment", title: "Choose a payment method", message: "Select a payment method to open this content." },
-    paymentFailed: { label: "Failed", title: "Payment check failed", message: "Payment could not be completed." },
-    error: { label: "Error", title: "Check failed", message: "Please check your network and try again." },
-    cancelled: { label: "Cancelled", title: "Payment selection cancelled", message: "You can try again whenever needed." },
-  },
-  ja: {
-    idle: { label: "å¾…æ©Ÿä¸­", title: "æ±ºæ¸ˆãƒ»åˆ©ç”¨åˆ¸ã®ç¢ºèª", message: "åˆ©ç”¨åˆ¸ã‚’ç¢ºèªã—ã¦ã„ã¾ã™ã€‚" },
-    noEntitlement: { label: "æ±ºæ¸ˆãŒå¿…è¦", title: "æ±ºæ¸ˆãƒ»åˆ©ç”¨åˆ¸ã®ç¢ºèª", message: "åˆ©ç”¨ã§ãã‚‹åˆ©ç”¨åˆ¸ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚" },
-    readyToPay: { label: "é¸æŠå¾…ã¡", title: "æ±ºæ¸ˆæ–¹æ³•ã®é¸æŠ", message: "ã“ã®ã‚³ãƒ³ãƒ†ãƒ³ãƒ„ã‚’é–‹ãæ±ºæ¸ˆæ–¹æ³•ã‚’é¸ã‚“ã§ãã ã•ã„ã€‚" },
-    paymentFailed: { label: "å¤±æ•—", title: "æ±ºæ¸ˆç¢ºèªã«å¤±æ•—ã—ã¾ã—ãŸ", message: "ãŠæ”¯æ‰•ã„ã‚’å®Œäº†ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚" },
-    error: { label: "ã‚¨ãƒ©ãƒ¼", title: "ç¢ºèªã«å¤±æ•—ã—ã¾ã—ãŸ", message: "é€šä¿¡çŠ¶æ³ã‚’ç¢ºèªã—ã¦ã€ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚" },
-    cancelled: { label: "ã‚­ãƒ£ãƒ³ã‚»ãƒ«", title: "æ±ºæ¸ˆé¸æŠã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ã¾ã—ãŸ", message: "å¿…è¦ãªã¨ãã«ã‚‚ã†ä¸€åº¦é€²ã‚ã‚‰ã‚Œã¾ã™ã€‚" },
-  },
-  "zh-CN": {
-    idle: { label: "ç­‰å¾…", title: "æ”¯ä»˜/é€šè¡Œåˆ¸ç¡®è®¤", message: "æ­£åœ¨ç¡®è®¤é€šè¡Œåˆ¸ã€‚" },
-    noEntitlement: { label: "éœ€è¦æ”¯ä»˜", title: "æ”¯ä»˜/é€šè¡Œåˆ¸ç¡®è®¤", message: "æœªæ‰¾åˆ°å¯ç”¨çš„é€šè¡Œåˆ¸ã€‚" },
-    readyToPay: { label: "ç­‰å¾…é€‰æ‹©", title: "é€‰æ‹©æ”¯ä»˜æ–¹å¼", message: "è¯·é€‰æ‹©å¯æ‰“å¼€æ­¤å†…å®¹çš„æ”¯ä»˜æ–¹å¼ã€‚" },
-    paymentFailed: { label: "å¤±è´¥", title: "æ”¯ä»˜ç¡®è®¤å¤±è´¥", message: "æœªèƒ½å®Œæˆæ”¯ä»˜ã€‚" },
-    error: { label: "é”™è¯¯", title: "ç¡®è®¤å¤±è´¥", message: "è¯·æ£€æŸ¥ç½‘ç»œçŠ¶æ€åé‡è¯•ã€‚" },
-    cancelled: { label: "å·²å–æ¶ˆ", title: "å·²å–æ¶ˆæ”¯ä»˜é€‰æ‹©", message: "éœ€è¦æ—¶å¯ä»¥å†æ¬¡ç»§ç»­ã€‚" },
-  },
-  "zh-TW": {
-    idle: { label: "ç­‰å¾…", title: "ä»˜æ¬¾/é€šè¡Œåˆ¸ç¢ºèª", message: "æ­£åœ¨ç¢ºèªé€šè¡Œåˆ¸ã€‚" },
-    noEntitlement: { label: "éœ€è¦ä»˜æ¬¾", title: "ä»˜æ¬¾/é€šè¡Œåˆ¸ç¢ºèª", message: "æ‰¾ä¸åˆ°å¯ç”¨çš„é€šè¡Œåˆ¸ã€‚" },
-    readyToPay: { label: "ç­‰å¾…é¸æ“‡", title: "é¸æ“‡ä»˜æ¬¾æ–¹å¼", message: "è«‹é¸æ“‡å¯é–‹å•Ÿæ­¤å…§å®¹çš„ä»˜æ¬¾æ–¹å¼ã€‚" },
-    paymentFailed: { label: "å¤±æ•—", title: "ä»˜æ¬¾ç¢ºèªå¤±æ•—", message: "æœªèƒ½å®Œæˆä»˜æ¬¾ã€‚" },
-    error: { label: "éŒ¯èª¤", title: "ç¢ºèªå¤±æ•—", message: "è«‹æª¢æŸ¥ç¶²è·¯ç‹€æ…‹å¾Œå†è©¦ä¸€æ¬¡ã€‚" },
-    cancelled: { label: "å·²å–æ¶ˆ", title: "å·²å–æ¶ˆä»˜æ¬¾é¸æ“‡", message: "éœ€è¦æ™‚å¯ä»¥å†æ¬¡ç¹¼çºŒã€‚" },
-  },
-  vi: {
-    idle: { label: "Äang chá»", title: "Kiá»ƒm tra thanh toÃ¡n/vÃ©", message: "Äang kiá»ƒm tra vÃ© sá»­ dá»¥ng." },
-    noEntitlement: { label: "Cáº§n thanh toÃ¡n", title: "Kiá»ƒm tra thanh toÃ¡n/vÃ©", message: "KhÃ´ng tÃ¬m tháº¥y vÃ© cÃ³ thá»ƒ dÃ¹ng." },
-    readyToPay: { label: "Chá» chá»n", title: "Chá»n phÆ°Æ¡ng thá»©c thanh toÃ¡n", message: "Chá»n phÆ°Æ¡ng thá»©c thanh toÃ¡n Ä‘á»ƒ má»Ÿ ná»™i dung nÃ y." },
-    paymentFailed: { label: "Tháº¥t báº¡i", title: "XÃ¡c nháº­n thanh toÃ¡n tháº¥t báº¡i", message: "KhÃ´ng thá»ƒ hoÃ n táº¥t thanh toÃ¡n." },
-    error: { label: "Lá»—i", title: "Kiá»ƒm tra tháº¥t báº¡i", message: "Vui lÃ²ng kiá»ƒm tra máº¡ng rá»“i thá»­ láº¡i." },
-    cancelled: { label: "ÄÃ£ há»§y", title: "ÄÃ£ há»§y lá»±a chá»n thanh toÃ¡n", message: "Báº¡n cÃ³ thá»ƒ thá»±c hiá»‡n láº¡i khi cáº§n." },
-  },
-  hi: {
-    idle: { label: "à¤ªà¥à¤°à¤¤à¥€à¤•à¥à¤·à¤¾", title: "à¤­à¥à¤—à¤¤à¤¾à¤¨/à¤ªà¤¾à¤¸ à¤œà¤¾à¤à¤š", message: "à¤†à¤ªà¤•à¤¾ à¤ªà¤¾à¤¸ à¤œà¤¾à¤à¤šà¤¾ à¤œà¤¾ à¤°à¤¹à¤¾ à¤¹à¥ˆ." },
-    noEntitlement: { label: "à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤†à¤µà¤¶à¥à¤¯à¤•", title: "à¤­à¥à¤—à¤¤à¤¾à¤¨/à¤ªà¤¾à¤¸ à¤œà¤¾à¤à¤š", message: "à¤‰à¤ªà¤¯à¥‹à¤— à¤¯à¥‹à¤—à¥à¤¯ à¤ªà¤¾à¤¸ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾." },
-    readyToPay: { label: "à¤šà¤¯à¤¨ à¤ªà¥à¤°à¤¤à¥€à¤•à¥à¤·à¤¾", title: "à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤µà¤¿à¤§à¤¿ à¤šà¥à¤¨à¥‡à¤‚", message: "à¤‡à¤¸ à¤¸à¤¾à¤®à¤—à¥à¤°à¥€ à¤•à¥‹ à¤–à¥‹à¤²à¤¨à¥‡ à¤•à¥‡ à¤²à¤¿à¤ à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤µà¤¿à¤§à¤¿ à¤šà¥à¤¨à¥‡à¤‚." },
-    paymentFailed: { label: "à¤µà¤¿à¤«à¤²", title: "à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤ªà¥à¤·à¥à¤Ÿà¤¿ à¤µà¤¿à¤«à¤²", message: "à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤ªà¥‚à¤°à¤¾ à¤¨à¤¹à¥€à¤‚ à¤¹à¥‹ à¤¸à¤•à¤¾." },
-    error: { label: "à¤¤à¥à¤°à¥à¤Ÿà¤¿", title: "à¤œà¤¾à¤à¤š à¤µà¤¿à¤«à¤²", message: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤¨à¥‡à¤Ÿà¤µà¤°à¥à¤• à¤¸à¥à¤¥à¤¿à¤¤à¤¿ à¤œà¤¾à¤à¤šà¤•à¤° à¤«à¤¿à¤° à¤ªà¥à¤°à¤¯à¤¾à¤¸ à¤•à¤°à¥‡à¤‚." },
-    cancelled: { label: "à¤°à¤¦à¥à¤¦", title: "à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤šà¤¯à¤¨ à¤°à¤¦à¥à¤¦ à¤¹à¥à¤†", message: "à¤œà¤¼à¤°à¥‚à¤°à¤¤ à¤ªà¤¡à¤¼à¤¨à¥‡ à¤ªà¤° à¤«à¤¿à¤° à¤¸à¥‡ à¤†à¤—à¥‡ à¤¬à¤¢à¤¼ à¤¸à¤•à¤¤à¥‡ à¤¹à¥ˆà¤‚." },
-  },
-  es: {
-    idle: { label: "En espera", title: "ComprobaciÃ³n de pago/pase", message: "Comprobando tu pase." },
-    noEntitlement: { label: "Pago necesario", title: "ComprobaciÃ³n de pago/pase", message: "No se encontrÃ³ un pase disponible." },
-    readyToPay: { label: "Elegir pago", title: "Elige un mÃ©todo de pago", message: "Selecciona un mÃ©todo de pago para abrir este contenido." },
-    paymentFailed: { label: "FallÃ³", title: "FallÃ³ la confirmaciÃ³n del pago", message: "No se pudo completar el pago." },
-    error: { label: "Error", title: "FallÃ³ la comprobaciÃ³n", message: "Revisa la conexiÃ³n e intÃ©ntalo de nuevo." },
-    cancelled: { label: "Cancelado", title: "SelecciÃ³n de pago cancelada", message: "Puedes intentarlo de nuevo cuando lo necesites." },
-  },
-  fr: {
-    idle: { label: "En attente", title: "VÃ©rification paiement/pass", message: "VÃ©rification de votre pass." },
-    noEntitlement: { label: "Paiement requis", title: "VÃ©rification paiement/pass", message: "Aucun pass utilisable n'a Ã©tÃ© trouvÃ©." },
-    readyToPay: { label: "Choix du paiement", title: "Choisir un moyen de paiement", message: "SÃ©lectionnez un moyen de paiement pour ouvrir ce contenu." },
-    paymentFailed: { label: "Ã‰chec", title: "Ã‰chec de la confirmation du paiement", message: "Le paiement n'a pas pu Ãªtre terminÃ©." },
-    error: { label: "Erreur", title: "Ã‰chec de la vÃ©rification", message: "VÃ©rifiez votre connexion puis rÃ©essayez." },
-    cancelled: { label: "AnnulÃ©", title: "SÃ©lection du paiement annulÃ©e", message: "Vous pourrez rÃ©essayer quand vous le souhaitez." },
-  },
-  de: {
-    idle: { label: "Warten", title: "Zahlung/Pass wird geprÃ¼ft", message: "Dein Pass wird geprÃ¼ft." },
-    noEntitlement: { label: "Zahlung nÃ¶tig", title: "Zahlung/Pass wird geprÃ¼ft", message: "Es wurde kein nutzbarer Pass gefunden." },
-    readyToPay: { label: "Zahlung wÃ¤hlen", title: "Zahlungsmethode wÃ¤hlen", message: "WÃ¤hle eine Zahlungsmethode, um diesen Inhalt zu Ã¶ffnen." },
-    paymentFailed: { label: "Fehlgeschlagen", title: "ZahlungsprÃ¼fung fehlgeschlagen", message: "Die Zahlung konnte nicht abgeschlossen werden." },
-    error: { label: "Fehler", title: "PrÃ¼fung fehlgeschlagen", message: "Bitte prÃ¼fe deine Verbindung und versuche es erneut." },
-    cancelled: { label: "Abgebrochen", title: "Zahlungsauswahl abgebrochen", message: "Du kannst es bei Bedarf erneut versuchen." },
-  },
-  nl: {
-    idle: { label: "Wachten", title: "Betaling/pas controleren", message: "Je pas wordt gecontroleerd." },
-    noEntitlement: { label: "Betaling nodig", title: "Betaling/pas controleren", message: "Er is geen bruikbare pas gevonden." },
-    readyToPay: { label: "Betaling kiezen", title: "Kies een betaalmethode", message: "Kies een betaalmethode om deze inhoud te openen." },
-    paymentFailed: { label: "Mislukt", title: "Betaalcontrole mislukt", message: "De betaling kon niet worden voltooid." },
-    error: { label: "Fout", title: "Controle mislukt", message: "Controleer je netwerk en probeer het opnieuw." },
-    cancelled: { label: "Geannuleerd", title: "Betaalkeuze geannuleerd", message: "Je kunt het opnieuw proberen wanneer dat nodig is." },
-  },
-  ms: {
-    idle: { label: "Menunggu", title: "Semakan bayaran/pas", message: "Menyemak pas anda." },
-    noEntitlement: { label: "Bayaran diperlukan", title: "Semakan bayaran/pas", message: "Tiada pas yang boleh digunakan ditemui." },
-    readyToPay: { label: "Pilih bayaran", title: "Pilih kaedah bayaran", message: "Pilih kaedah bayaran untuk membuka kandungan ini." },
-    paymentFailed: { label: "Gagal", title: "Pengesahan bayaran gagal", message: "Bayaran tidak dapat diselesaikan." },
-    error: { label: "Ralat", title: "Semakan gagal", message: "Sila semak rangkaian anda dan cuba lagi." },
-    cancelled: { label: "Dibatalkan", title: "Pilihan bayaran dibatalkan", message: "Anda boleh cuba semula apabila perlu." },
-  },
-};
-
-const PAID_GATE_UI_COPY: Record<LoadingLocale, PaidGateUiCopy> = {
-  ko: { closeLabel: "ë‹«ê¸°", costPrefix: "í•„ìš” ê¸ˆì•¡", costSuffix: "ì›", payAction: "ê²°ì œ ìƒí’ˆ ë³´ê¸°", genericLabel: "í™•ì¸ ì¤‘", progressLabel: "ì´ìš©ê¶Œ í™•ì¸ ì§„í–‰ ìƒíƒœ", progressSteps: ["ê¶Œí•œ í™•ì¸", "ì²˜ë¦¬ ì§„í–‰", "ê²°ê³¼ ì¤€ë¹„"] },
-  en: { closeLabel: "Close", costPrefix: "Required amount", costSuffix: " KRW", payAction: "View payment options", genericLabel: "Checking", progressLabel: "Access check progress", progressSteps: ["Check access", "Processing", "Prepare result"] },
-  ja: { closeLabel: "é–‰ã˜ã‚‹", costPrefix: "å¿…è¦é‡‘é¡", costSuffix: "ã‚¦ã‚©ãƒ³", payAction: "æ±ºæ¸ˆå•†å“ã‚’è¦‹ã‚‹", genericLabel: "ç¢ºèªä¸­", progressLabel: "åˆ©ç”¨åˆ¸ç¢ºèªã®é€²è¡ŒçŠ¶æ³", progressSteps: ["æ¨©é™ç¢ºèª", "å‡¦ç†ä¸­", "çµæœæº–å‚™"] },
-  "zh-CN": { closeLabel: "å…³é—­", costPrefix: "æ‰€éœ€é‡‘é¢", costSuffix: "éŸ©å…ƒ", payAction: "æŸ¥çœ‹æ”¯ä»˜é€‰é¡¹", genericLabel: "ç¡®è®¤ä¸­", progressLabel: "æƒé™ç¡®è®¤è¿›åº¦", progressSteps: ["ç¡®è®¤æƒé™", "å¤„ç†ä¸­", "å‡†å¤‡ç»“æœ"] },
-  "zh-TW": { closeLabel: "é—œé–‰", costPrefix: "æ‰€éœ€é‡‘é¡", costSuffix: "éŸ“å…ƒ", payAction: "æŸ¥çœ‹ä»˜æ¬¾é¸é …", genericLabel: "ç¢ºèªä¸­", progressLabel: "æ¬Šé™ç¢ºèªé€²åº¦", progressSteps: ["ç¢ºèªæ¬Šé™", "è™•ç†ä¸­", "æº–å‚™çµæœ"] },
-  vi: { closeLabel: "ÄÃ³ng", costPrefix: "Sá»‘ tiá»n cáº§n", costSuffix: " KRW", payAction: "Xem lá»±a chá»n thanh toÃ¡n", genericLabel: "Äang kiá»ƒm tra", progressLabel: "Tiáº¿n trÃ¬nh kiá»ƒm tra quyá»n", progressSteps: ["Kiá»ƒm tra quyá»n", "Äang xá»­ lÃ½", "Chuáº©n bá»‹ káº¿t quáº£"] },
-  hi: { closeLabel: "à¤¬à¤‚à¤¦ à¤•à¤°à¥‡à¤‚", costPrefix: "à¤†à¤µà¤¶à¥à¤¯à¤• à¤°à¤¾à¤¶à¤¿", costSuffix: " KRW", payAction: "à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤µà¤¿à¤•à¤²à¥à¤ª à¤¦à¥‡à¤–à¥‡à¤‚", genericLabel: "à¤œà¤¾à¤à¤š à¤œà¤¾à¤°à¥€", progressLabel: "à¤ªà¤¹à¥à¤à¤š à¤œà¤¾à¤à¤š à¤ªà¥à¤°à¤—à¤¤à¤¿", progressSteps: ["à¤ªà¤¹à¥à¤à¤š à¤œà¤¾à¤à¤š", "à¤ªà¥à¤°à¤•à¥à¤°à¤¿à¤¯à¤¾", "à¤ªà¤°à¤¿à¤£à¤¾à¤® à¤¤à¥ˆà¤¯à¤¾à¤°"] },
-  es: { closeLabel: "Cerrar", costPrefix: "Importe requerido", costSuffix: " KRW", payAction: "Ver opciones de pago", genericLabel: "Comprobando", progressLabel: "Progreso de verificaciÃ³n", progressSteps: ["Comprobar acceso", "Procesando", "Preparar resultado"] },
-  fr: { closeLabel: "Fermer", costPrefix: "Montant requis", costSuffix: " KRW", payAction: "Voir les options de paiement", genericLabel: "VÃ©rification", progressLabel: "Progression de vÃ©rification", progressSteps: ["VÃ©rifier l'accÃ¨s", "Traitement", "PrÃ©parer le rÃ©sultat"] },
-  de: { closeLabel: "SchlieÃŸen", costPrefix: "Erforderlicher Betrag", costSuffix: " KRW", payAction: "Zahlungsoptionen ansehen", genericLabel: "PrÃ¼fung", progressLabel: "Fortschritt der ZugriffsprÃ¼fung", progressSteps: ["Zugriff prÃ¼fen", "Verarbeitung", "Ergebnis vorbereiten"] },
-  nl: { closeLabel: "Sluiten", costPrefix: "Benodigd bedrag", costSuffix: " KRW", payAction: "Betaalopties bekijken", genericLabel: "Controleren", progressLabel: "Voortgang toegangscontrole", progressSteps: ["Toegang checken", "Verwerken", "Resultaat voorbereiden"] },
-  ms: { closeLabel: "Tutup", costPrefix: "Jumlah diperlukan", costSuffix: " KRW", payAction: "Lihat pilihan bayaran", genericLabel: "Menyemak", progressLabel: "Kemajuan semakan akses", progressSteps: ["Semak akses", "Memproses", "Sedia hasil"] },
-};
-
-const PAID_GATE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
-  ko: "ko-KR",
-  en: "en-US",
-  ja: "ja-JP",
-  "zh-CN": "zh-CN",
-  "zh-TW": "zh-TW",
-  vi: "vi-VN",
-  hi: "hi-IN",
-  es: "es-ES",
-  fr: "fr-FR",
-  de: "de-DE",
-  nl: "nl-NL",
-  ms: "ms-MY",
-};
-
-const LIGHTWEIGHT_LOADING_MESSAGES: Record<LoadingStage, Record<PaymentType, LoadingMessage>> = {
-  pg_processing: {
-    subscription: { title: "Processing moonstone payment", sub: "Please stay with us for a moment" },
-    single: { title: "Processing payment", sub: "Please do not close this window" },
-    pass: { title: "Checking pass access", sub: "Please stay with us for a moment" },
-  },
-  result_loading: {
-    subscription: { title: "Moonstone access is opening", sub: "Loading your result" },
-    single: { title: "Payment is complete", sub: "Loading your result" },
-    pass: { title: "Pass access is confirmed", sub: "Loading your result" },
-  },
-  access_check: {
-    subscription: { title: "Checking moonstone access", sub: "Confirming your access safely" },
-    single: { title: "Checking payment access", sub: "Confirming whether payment can continue" },
-    pass: { title: "Checking pass access", sub: "Confirming whether your pass can be used" },
-  },
-};
-
-function resolveFallbackLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null): LoadingMessage {
-  const activeLocale = normalizeLoadingLocale(locale || "ko");
-  if (activeLocale === "ko") {
-    if (stage === "pg_processing") return { title: PAID_GATE_COPY.paymentProcessing.title, sub: PAID_GATE_COPY.paymentProcessing.message };
-    if (stage === "result_loading") return { title: PAID_GATE_COPY.paymentSuccess.title, sub: PAID_GATE_COPY.paymentSuccess.message };
-    return { title: PAID_GATE_COPY.checkingEntitlement.title, sub: PAID_GATE_COPY.checkingEntitlement.message || DEFAULT_PROCESSING_MESSAGE };
-  }
-  return LIGHTWEIGHT_LOADING_MESSAGES[stage || "access_check"]?.[paymentType || "pass"] || LIGHTWEIGHT_LOADING_MESSAGES.access_check.pass;
-}
-
-function resolveLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null): LoadingMessage {
-  return resolveFallbackLoadingMessage(stage, paymentType, locale);
-}
-
-const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
-
-function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentLoadingVariant {
-  const normalizedMode = String(mode || "").trim().toLowerCase();
-  if (["payment-complete", "paymentcomplete", "payment-success", "success", "complete"].includes(normalizedMode)) return "payment-complete";
-  if (normalizedMode === "pass-applied" || normalizedMode === "passapplied") return "pass-applied";
-  if (normalizedMode === "pass" || normalizedMode === "pass-checking" || normalizedMode === "membership") return "pass-checking";
-  if (["checkout", "card", "prepare", "opening"].includes(normalizedMode)) return "checkout";
-  // 'payment-failed' ëŠ” ì…¸ì´ ê²°ì œ ì‹¤íŒ¨ë¥¼ ì„±ê³µ(payment-complete)ê³¼ ê°ˆë¼ ë³´ë‚´ëŠ” ëª¨ë“œë‹¤. React ì˜¤ë²„ë ˆì´ì—ëŠ”
-  // ì „ìš© ìŠ¤í‚¨ì´ ì—†ìœ¼ë¯€ë¡œ ì¢…ì „ ì‹¤íŒ¨ í‘œì‹œì™€ ê°™ì€ 'confirm' ìŠ¤í‚¨ì„ ì“´ë‹¤(ë¬¸êµ¬ëŠ” statusMessage ê°€ ë‚˜ë¥¸ë‹¤).
-  if (["confirm", "verification", "payment-confirm", "payment-failed"].includes(normalizedMode)) return "confirm";
-  if (["monthly", "monthly-credit", "monthly_credit", "membership-credit", "membership_credit", "moonstone", "moonlight-stone", "moonlight_stone", "moonlight stone"].includes(normalizedMode)) return "monthly";
-  if (["subscription", "subscription-confirm", "subscription-prepare"].includes(normalizedMode)) return "subscription";
-  if (["unlock-saving", "savingunlock", "saving-unlock"].includes(normalizedMode)) return "unlock-saving";
-  if (normalizedMode === "refund") return "refund";
-
-  const normalizedMessage = String(message || "");
-  if (/ì´ìš©ê¶Œì„ ì ìš©|ì´ìš©ê¶Œ í™•ì¸|30ì¼ ì´ìš©ê¶Œ|ì´ìš©ê¶Œ ê¶Œí•œ|membership_pass|pass_applied|ë‹¬ë¹› ê²°ì œ ì‹œìŠ¤í…œ/i.test(normalizedMessage)) return "pass-checking";
-  if (/ê²°ì œì°½|ì£¼ë¬¸|checkout|prepare|ì—°ê²°|ì—´ê³ /i.test(normalizedMessage)) return "checkout";
-  if (/ê²°ì œ ê²°ê³¼|ê²°ì œ ìŠ¹ì¸|ì¹´ë“œ ìŠ¹ì¸|ì„œë²„ ê²€ì¦|ê²€ì¦|ìŠ¹ì¸|confirm|ë³µê·€ ì‹ í˜¸/i.test(normalizedMessage)) return "confirm";
-  if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
-  if (/ì´ìš©ê¶Œ ê²°ì œ|ì›”ì •ì„|subscription|í”Œëœ|í™œì„±í™”/i.test(normalizedMessage)) return "subscription";
-  if (/ê¶Œí•œ ì €ì¥|ì €ì¥|í•´ê¸ˆ|ì ê¸ˆ í•´ì œ|ê²°ê³¼ í™”ë©´/i.test(normalizedMessage)) return "unlock-saving";
-  if (/í™˜ë¶ˆ|refund|ë³µêµ¬/i.test(normalizedMessage)) return "refund";
-  return "payment";
-}
-
-function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: string): LoadingStage {
-  const normalizedMessage = String(message || "");
-  if (/í™œì„±í™”ë˜ê³ |ì™„ë£Œëì–´ìš”|í™•ì¸í–ˆì–´ìš”|ê²°ê³¼ë¥¼ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘|ê²°ê³¼ë¥¼ ì¤€ë¹„í•˜ê³ /.test(normalizedMessage)) return "result_loading";
-  if (/ê²°ì œë¥¼ ì²˜ë¦¬í•˜ê³  ìˆì–´ìš”|ê²°ì œ ìŠ¹ì¸ê³¼ ì´ìš© ê¶Œí•œ|ì°½ì„ ë‹«ì§€ ë§ì•„ ì£¼ì„¸ìš”/.test(normalizedMessage)) return "pg_processing";
-  if (/ì •ë³´ë¥¼ í™•ì¸í•˜ëŠ” ì¤‘ì´ì—ìš”|ì´ìš©ê¶Œì„ í™•ì¸í•˜ëŠ” ì¤‘ì´ì—ìš”|ì´ìš©ê¶Œ í™•ì¸ ì¤‘|ê²°ì œ ê°€ëŠ¥ ìƒíƒœë¥¼ í™•ì¸í•˜ê³  ìˆì–´ìš”/.test(normalizedMessage)) return "access_check";
-  if (variant === "subscription" || variant === "checkout" || variant === "confirm") return "pg_processing";
-  if (variant === "payment-complete" || variant === "pass-applied" || variant === "unlock-saving") return "result_loading";
-  return "access_check";
-}
-
-function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: string): PaymentType {
-  const normalizedMessage = String(message || "");
-  if (/ì´ìš©ê¶Œì„ í™•ì¸í•˜ëŠ” ì¤‘ì´ì—ìš”|ì´ìš©ê¶Œ í™•ì¸|ì´ìš©ê¶Œì„ í™•ì¸í–ˆì–´ìš”|30ì¼ ì´ìš©ê¶Œìœ¼ë¡œ/.test(normalizedMessage)) return "pass";
-  if (/ì›”ì •ì„|í™œì„±í™”ë˜ê³ /.test(normalizedMessage)) return "subscription";
-  if (/ë‹¨ê±´|ê²°ì œê°€ ì™„ë£Œëì–´ìš”|ê²°ì œë¥¼ ì²˜ë¦¬í•˜ê³  ìˆì–´ìš”/.test(normalizedMessage)) return "single";
-  if (variant === "subscription" || variant === "monthly") return "subscription";
-  if (variant === "pass-checking" || variant === "pass-applied") return "pass";
-  // ğŸ”´ variant 'payment' ì€ ê²°ì œ ìˆ˜ë‹¨ì´ í™•ì •ë˜ì§€ ì•Šì€ ê¸°ë³¸ ìƒíƒœë‹¤(ê¸°ë³¸ prop Â· ì´ˆê¸° state Â· ë¦¬ì…‹ê°’).
-  // ì—¬ê¸°ì„œ 'single' ì„ ëŒë ¤ì£¼ë©´ access_check Ã— single = "ë‹¨ê±´ìœ¼ë¡œ ì¹´ë“œ ê²°ì œë¥¼ ì¤€ë¹„ ì¤‘ì´ì—ìš”" ê°€ ë˜ì–´
-  // ì¹´ë“œ ê²°ì œë¥¼ ê³ ë¥´ì§€ë„ ì•Šì€ ì‚¬ìš©ìì—ê²Œ ì¹´ë“œ ì¤€ë¹„ ì¤‘ì´ë¼ê³  ë§í•œë‹¤(PaymentLoading ì˜ variant ë§¤í•‘ê³¼ ë™ì¼ ê·œì¹™).
-  // checkout/confirm/payment-complete/unlock-saving ì€ ì‹¤ì œ ë‹¨ê±´ ë‹¨ê³„ì´ë¯€ë¡œ ì•„ë˜ ê¸°ë³¸ê°’ 'single' ì„ ìœ ì§€í•œë‹¤.
-  if (variant === "payment") return "pass";
-  return "single";
-}
-
-function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
-  return variant === "payment-complete" || variant === "pass-applied";
-}
-
-const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
-  undefined,
-);
-
-type PaymentOverlayWindow = Window & {
-  _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string, mode?: string) => void;
-  __CD_REACT_PAYMENT_OVERLAY_OWNER__?: boolean;
-  // ì…¸ì´ ì„¸ìš°ëŠ” "ëŒ€ê¸° ì˜¤ë²„ë ˆì´ ê¸ˆì§€ êµ¬ê°„" íŒì •ì˜ ì •ë³¸(index.html `_cdPaymentWaitUiBlocked`).
-  __cdPaymentWaitUiBlocked?: (mode?: string) => boolean;
-};
-
-// ğŸ”´ ëŒ€ê¸° ì˜¤ë²„ë ˆì´ë¥¼ ë„ìš°ë©´ ì•ˆ ë˜ëŠ” êµ¬ê°„ì¸ê°€. ì •ë³¸ì€ ì…¸ì˜ `__cdPaymentWaitUiBlocked` ì´ë©°,
-// ì´ Provider ê°€ window._cdSetCoinGateOverlay ë¥¼ ìê¸° ë Œë”ëŸ¬ë¡œ ê°ˆì•„ì¹˜ìš°ëŠ” íƒ“ì— ì…¸ í•¨ìˆ˜ ë³¸ë¬¸ ì•ˆì˜
-// ì–µì œ ê²€ì‚¬ê°€ í†µì§¸ë¡œ ìš°íšŒë˜ë˜ ê²ƒì„ ì—¬ê¸°ì„œ ë˜ì‚´ë¦°ë‹¤.
-// ì…¸ì´ ì—†ëŠ” Next ë¼ìš°íŠ¸ì—ì„œëŠ” ì •ë³¸ì´ ì—†ìœ¼ë¯€ë¡œ(fail-open) ìµœì†Œí•œ "ê²°ì œìˆ˜ë‹¨ ì„ íƒì°½ì´ ë–  ìˆìœ¼ë©´
-// ê²¹ì¹˜ì§€ ì•ŠëŠ”ë‹¤"ë§Œ ë¡œì»¬ë¡œ íŒì •í•œë‹¤ â€” `.cd-direct-payment-modal` ì€ 3ë Œë”ëŸ¬ ê³µí†µ í´ë˜ìŠ¤ì´ê³ 
-// verify:payment-choice-parity ê°€ ë™ì¼ì„±ì„ ê°•ì œí•œë‹¤. ìƒˆ ì–µì œ ì°½Â·íƒ€ì´ë¨¸ëŠ” ë§Œë“¤ì§€ ì•ŠëŠ”ë‹¤.
-const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|payment-failed|refund|unlock-saving|confirm/;
-// ğŸ”´ ì „ì²´í™”ë©´ ëŒ€ê¸°/ê²°ê³¼ ì˜¤ë²„ë ˆì´ í—ˆìš©ëª©ë¡ â€” ì…¸ `CD_WAIT_UI_ALLOWED_MODE_RE` ì˜ ê±°ìš¸.
-// ì§„í–‰ ì¤‘ í‘œì‹œëŠ” ì´ìš©ê¶Œ í™•ì¸('pass') í•˜ë‚˜ë¿ì´ê³  ë‚˜ë¨¸ì§€ëŠ” ê²°ê³¼ í‘œì‹œë§Œ í†µê³¼í•œë‹¤. ì…¸ì´ ì—†ëŠ” Next
-// ë¼ìš°íŠ¸ì—ëŠ” ì •ë³¸ì´ ì—†ìœ¼ë¯€ë¡œ ì—¬ê¸°ì„œ ê°™ì€ ê·œì¹™ì„ ì„¸ìš´ë‹¤(ê°’ì´ ê°ˆë¦¬ë©´ verify ê°€ë“œê°€ ì¡ëŠ”ë‹¤).
-const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
-function isPaymentWaitUiBlocked(mode: string) {
-  if (typeof window === "undefined") return false;
-  const shellVerdict = (window as PaymentOverlayWindow).__cdPaymentWaitUiBlocked;
-  if (typeof shellVerdict === "function") {
-    try {
-      return Boolean(shellVerdict(mode));
-    } catch {
-      return false;
-    }
-  }
-  if (!REACT_WAIT_UI_ALLOWED_MODE_RE.test(String(mode || "").trim() || "payment")) return true;
-  if (typeof document === "undefined") return false;
-  if (REACT_TERMINAL_OVERLAY_MODE_RE.test(String(mode || ""))) return false;
-  return Boolean(document.querySelector(".cd-direct-payment-modal"));
-}
-
-function closeStaticPaymentOverlay() {
-  if (typeof document === "undefined") return;
-  const overlay = document.getElementById("sajuLoaderOverlay");
-  if (!overlay) return;
-  const staticOverlayOpen = overlay.getAttribute("aria-hidden") !== "true" || overlay.style.display === "flex";
-  overlay.setAttribute("aria-hidden", "true");
-  overlay.classList.remove("is-animating", "saju-loader-overlay--front");
-  overlay.style.display = "none";
-  overlay.style.visibility = "hidden";
-  overlay.style.opacity = "";
-  overlay.style.pointerEvents = "";
-  overlay.style.zIndex = "";
-  // ì •ì  ì˜¤ë²„ë ˆì´ê°€ ê±´ ë½ë§Œ ì²­ì†Œ â€” ref-count ë½(data-cd-scroll-lock)ì€ ê±´ë“œë¦¬ì§€ ì•ŠìŒ
-  if (staticOverlayOpen && document.body && !document.body.hasAttribute("data-cd-scroll-lock")) {
-    document.body.style.overflow = "";
-  }
-}
-
-function emitCoinGateOverlay(open: boolean, message?: string, mode?: string) {
-  if (typeof window === "undefined") return;
-  const overlayWindow = window as PaymentOverlayWindow;
-  overlayWindow._cdSetCoinGateOverlay?.(open, message, mode);
-}
-
-function isExternalPaymentWindowStatus(status: PaidFeatureGateStatus) {
-  return status === "paymentWindowOpen";
-}
-
-function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
-  return [
-    "processing",
-    "deliveryProcessing",
-    "refund_pending",
-    "refunded",
-    "refund_failed",
-  ].includes(status);
-}
-
-// ì›”ì •ì„ aliases: monthly_credit, membership_credit, moonlight_stone, MONTHLY, ì›”ì •ì„ì€ ëª¨ë‘ ì›”ì •ì„ìœ¼ë¡œ ì²˜ë¦¬í•œë‹¤.
-function isMonthlyPaidFeatureDetail(detail: PaidFeatureGateDetail) {
-  const haystack = [
-    detail.message,
-    detail.paymentMode,
-    detail.accessType,
-    detail.accessMethod,
-    detail.paymentMethod,
-  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
-  return /\b(monthly|monthly_credit|membership_credit|moonlight_stone|monthly_subscription)\b|ì›”ì •ì„/.test(haystack);
-}
-
-function isPassPaidFeatureDetail(detail: PaidFeatureGateDetail) {
-  const haystack = [
-    detail.message,
-    detail.paymentMode,
-    detail.accessType,
-    detail.accessMethod,
-    detail.paymentMethod,
-  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
-  return /\b(pass|membership_pass|license_pass|subscription_pass|family_pass|pass_applied)\b|ì´ìš©ê¶Œ í™•ì¸|ì´ìš©ê¶Œ ì ìš©|ì´ìš©ê¶Œìœ¼ë¡œ/.test(haystack);
-}
-
-function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: PaidFeatureGateDetail | string = {}) {
-  const resolvedDetail = typeof detail === "string" ? { message: detail } : detail;
-  const message = String(resolvedDetail.message || "");
-  if (status === "checkingEntitlement") {
-    return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
-  }
-  if (status === "hasEntitlement") {
-    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: "ì›”ì •ì„ì´ ê¹ƒë“¤ê³  ìˆì–´ìš”", mode: "payment-complete" };
-    }
-    return { message: message || "ì´ìš©ê¶Œ í™•ì¸ì´ ëë‚¬ì–´ìš”\nê²°ê³¼ë¥¼ ì¤€ë¹„í•˜ê³  ìˆì–´ìš”", mode: "pass-applied" };
-  }
-  if (status === "paymentSuccess") {
-    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: "ì›”ì •ì„ì´ ê¹ƒë“¤ê³  ìˆì–´ìš”", mode: "payment-complete" };
-    }
-    if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: "ì´ìš©ê¶Œ í™•ì¸ì´ ëë‚¬ì–´ìš”\nê²°ê³¼ë¥¼ ì¤€ë¹„í•˜ê³  ìˆì–´ìš”", mode: "pass-applied" };
-    }
-    return { message: message || "ì´ìš© ê¶Œí•œ ì €ì¥ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.", mode: "payment-complete" };
-  }
-  if (status === "opening" || status === "loadingProducts") {
-    if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
-    }
-    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: message || "ì›”ì •ì„ ì •ë³´ë¥¼ í™•ì¸í•˜ëŠ” ì¤‘ì´ì—ìš”", mode: "monthly" };
-    }
-    return { message: ACCESS_CHECKING_MESSAGE, mode: "checkout" };
-  }
-  if (status === "paymentProcessing") {
-    // ğŸ”´ PGì°½ì„ í†µê³¼í•œ ë’¤ì˜ ìŠ¹ì¸ ê²€ì¦ êµ¬ê°„ì€ 'í™•ì¸ ì¤‘'ì´ ì•„ë‹ˆë¼ 'ì ìš©ë¨' í•œ ì¥ë©´ìœ¼ë¡œ ë³´ì—¬ì¤€ë‹¤
-    // (ì…¸ _cdResolvePaymentWaitCopy ì˜ ê°™ì€ ë¶„ê¸°ì™€ ë™ì¼ ê·œì¹™). ë‹¨ê±´Â·ì›”ì •ì„ì—ëŠ” ì§„í–‰ í™”ë©´ì„ ë‘ì§€ ì•ŠëŠ”ë‹¤.
-    if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
-    }
-    return { message: message || "ì½˜í…ì¸ ë¥¼ ì—¬ëŠ” ì¤‘ì´ì—ìš”", mode: "payment-complete" };
-  }
-  if (status === "paymentPreparing") {
-    return { message: message || "ë‹¨ê±´ ê²°ì œ ì¤€ë¹„ ì¤‘\nì£¼ë¬¸ ì •ë³´ì™€ ì¸ì¦ íë¦„ì„ í™•ì¸í•˜ê³  ìˆì–´ìš”", mode: "checkout" };
-  }
-  if (status === "paymentWindowOpen") {
-    return { message: message || "ë‹¨ê±´ ê²°ì œ ì¤€ë¹„ ì¤‘\nì£¼ë¬¸ ì •ë³´ì™€ ì¸ì¦ íë¦„ì„ í™•ì¸í•˜ê³  ìˆì–´ìš”", mode: "checkout" };
-  }
-  if (status === "savingUnlock" || status === "unlockSaving") {
-    return { message: message || "ì´ìš© ê¶Œí•œì„ ì €ì¥í•˜ê³  ìˆìŠµë‹ˆë‹¤.", mode: "unlock-saving" };
-  }
-  return { message, mode: resolvePaymentLoadingVariant(message) };
-}
-
-function nowForPaidGate() {
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
-    return performance.now();
-  }
-  return Date.now();
-}
-
-function markPaidGate(name: string) {
-  try {
-    if (typeof performance !== "undefined" && typeof performance.mark === "function") {
-      performance.mark(name);
-    }
-  } catch (_) {}
-}
-
-function resolvePaidGateFeature(detail: PaidFeatureGateDetail) {
-  return String(detail.featureId || detail.featureKey || "paid-feature").trim() || "paid-feature";
-}
-
-function resolvePaidGateLocalizedCopy(status: PaidFeatureGateStatus, locale: LoadingLocale): PaidGateCopy {
-  const koFallback = PAID_GATE_COPY[status] || PAID_GATE_COPY.checkingEntitlement;
-  if (locale === "ko") return koFallback;
-
-  const localized = PAID_GATE_LOCALIZED_COPY[locale]?.[status] || PAID_GATE_LOCALIZED_COPY.en[status];
-  if (localized) return localized;
-
-  const uiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.en;
-  const loadingCopy =
-    status === "paymentProcessing" || status === "paymentPreparing" || status === "paymentWindowOpen"
-      ? resolveLoadingMessage("pg_processing", "single", locale)
-      : status === "hasEntitlement" || status === "paymentSuccess" || status === "savingUnlock" || status === "unlockSaving"
-        ? resolveLoadingMessage("result_loading", "pass", locale)
-        : resolveLoadingMessage("access_check", "pass", locale);
-
-  return {
-    label: uiCopy.genericLabel,
-    title: loadingCopy.title,
-    message: loadingCopy.sub || loadingCopy.title,
-  };
-}
-
-function resolvePaidGateDisplayText(value: string, fallback: string, locale: LoadingLocale) {
-  const normalized = String(value || "").trim();
-  if (!normalized) return fallback;
-  if (locale !== "ko" && KOREAN_TEXT_PATTERN.test(normalized)) return fallback;
-  return normalized;
-}
-
-function formatPaidGateCost(cost: number, locale: LoadingLocale) {
-  const uiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
-  const numberLocale = PAID_GATE_NUMBER_LOCALE[locale] || PAID_GATE_NUMBER_LOCALE.ko;
-  const amount = Math.max(0, Math.floor(Number(cost || 0) * 100));
-  return `${new Intl.NumberFormat(numberLocale).format(amount)}${uiCopy.costSuffix}`;
-}
-
-function resolvePaidGateCopy(state: PaidFeatureGateState, locale: LoadingLocale) {
-  const fallback = PAID_GATE_COPY[state.status] || PAID_GATE_COPY.checkingEntitlement;
-  const localized = resolvePaidGateLocalizedCopy(state.status, locale);
-  return {
-    label: localized.label,
-    title: resolvePaidGateDisplayText(state.title, localized.title || fallback.title, locale),
-    message: resolvePaidGateDisplayText(state.message, localized.message || fallback.message, locale),
-  };
-}
-
-function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
-  const seqRef = useRef(0);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const holdRef = useRef<{ requestId: string; until: number; capMs: number } | null>(null);
-  const [locale, setLocale] = useState<LoadingLocale>("ko");
-  const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
-  const [state, setState] = useState<PaidFeatureGateState>({
-    open: false,
-    status: "idle",
-    featureId: "",
-    requestId: "",
-    title: PAID_GATE_DEFAULT_TITLE,
-    message: PAID_GATE_DEFAULT_MESSAGE,
-    cost: null,
-    seq: 0,
-    startedAt: 0,
-  });
-  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
-  // ğŸ”´ í‘œì‹œ ë‹¨ê³„ëŠ” ê²½ê³¼ ì‹œê°„ì´ ì•„ë‹ˆë¼ ì‹¤ì œ status ë¡œë§Œ ì›€ì§ì¸ë‹¤(ê¶Œí•œ í™•ì¸ â†’ ì²˜ë¦¬ ì§„í–‰ â†’ ê²°ê³¼ ì¤€ë¹„).
-  // ì˜ˆì „ì—ëŠ” 2.5ì´ˆ/6ì´ˆ íƒ€ì´ë¨¸ê°€ ë‹¨ê³„ë¥¼ ì˜¬ë ¤, ì„œë²„ ë‹µë§Œ ê¸°ë‹¤ë¦¬ëŠ” ë™ì•ˆì—ë„ ë‹¤ìŒ ë‹¨ê³„ê°€ ì¼œì¡Œë‹¤.
-  const gateProgressStep = ["savingUnlock", "unlockSaving"].includes(state.status)
-    ? 2
-    : ["loadingProducts", "paymentPreparing", "paymentProcessing"].includes(state.status)
-      ? 1
-      : 0;
-
-  const close = useCallback((requestId?: string) => {
-    setState((prev) => {
-      if (requestId && prev.requestId && requestId !== prev.requestId) return prev;
-      return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-    });
-    if (!requestId || !holdRef.current || holdRef.current.requestId === requestId) {
-      holdRef.current = null;
-    }
-    emitCoinGateOverlay(false);
-  }, []);
-
-  const holdOpen = useCallback((requestId?: string, maxMs?: number) => {
-    const id = String(requestId || "").trim();
-    if (!id) return;
-    const cap = Number.isFinite(Number(maxMs)) && Number(maxMs) > 0 ? Math.min(Number(maxMs), 120000) : 12000;
-    holdRef.current = { requestId: id, until: nowForPaidGate() + cap, capMs: cap };
-  }, []);
-
-  const release = useCallback((requestId?: string) => {
-    if (requestId && holdRef.current && holdRef.current.requestId !== String(requestId)) return;
-    holdRef.current = null;
-  }, []);
-
-  const open = useCallback((detail: PaidFeatureGateDetail) => {
-    const seq = seqRef.current + 1;
-    seqRef.current = seq;
-    const startedAt = Number.isFinite(Number(detail.startedAt)) ? Number(detail.startedAt) : nowForPaidGate();
-    const featureId = resolvePaidGateFeature(detail);
-    const status = detail.status || "checkingEntitlement";
-    const activeLocale = getCurrentLoadingLocale();
-    const copy = resolvePaidGateLocalizedCopy(status, activeLocale);
-    setLocale(activeLocale);
-
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-
-    if (isExternalPaymentWindowStatus(status)) {
-      setState((prev) => {
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(false);
-      return seq;
-    }
-
-    if (paymentLoadingOwnsPaidFeatureStatus(status)) {
-      const overlay = resolvePaidFeatureStatusOverlay(status, { ...detail, message: detail.message || copy.message });
-      setState((prev) => {
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(true, overlay.message, overlay.mode);
-      if (status === "hasEntitlement" || status === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), status === "hasEntitlement" ? 800 : 700);
-      }
-      return seq;
-    }
-
-    markPaidGate("cd-paid-feature-gate-open-call");
-    setState((prev) => {
-      if (prev.open && detail.requestId && prev.requestId === detail.requestId) {
-        return {
-          ...prev,
-          status,
-          title: detail.title || prev.title || copy.title,
-          message: detail.message || copy.message,
-          cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : prev.cost,
-        };
-      }
-      return {
-        open: true,
-        status,
-        featureId,
-        requestId: String(detail.requestId || `${featureId}:${seq}`),
-        title: detail.title || copy.title,
-        message: detail.message || copy.message,
-        cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : null,
-        seq,
-        startedAt,
-      };
-    });
-
-    if (typeof requestAnimationFrame === "function") {
-      requestAnimationFrame(() => {
-        markPaidGate("cd-paid-feature-gate-first-frame");
-        try {
-          const elapsed = Math.round(nowForPaidGate() - startedAt);
-          if (elapsed > 100) {
-            console.warn("[paid-feature-gate] first frame exceeded 100ms", { featureId, elapsed });
-          }
-        } catch (_) {}
-      });
-    }
-    emitCoinGateOverlay(false);
-    return seq;
-  }, []);
-
-  const update = useCallback((detail: PaidFeatureGateDetail) => {
-    const requestedStatus = detail.status || "checkingEntitlement";
-    const activeLocale = getCurrentLoadingLocale();
-    setLocale(activeLocale);
-    if (/^(error|paymentFailed|noEntitlement|readyToPay|cancelled)$/.test(requestedStatus)) {
-      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
-      if (!detailRequestId || !holdRef.current || holdRef.current.requestId === detailRequestId) {
-        holdRef.current = null;
-      }
-    }
-    // holdëŠ” "í™•ì¸ì´ ëë‚œ ë’¤ ë‹¤ìŒ í™”ë©´ì´ ëœ° ë•Œê¹Œì§€"ë¥¼ ì§€í‚¤ëŠ” ì¥ì¹˜ë‹¤. ê·¸ëŸ°ë° í˜¸ì¶œë¶€ëŠ” í™•ì¸ì„ ì‹œì‘í•˜ê¸° ì „ì—
-    // holdë¥¼ ê±¸ê¸° ë•Œë¬¸ì—, ì´ìš©ê¶Œ í™•ì¸ ìì²´ê°€ hold ìƒí•œ(ëŒ€ê°œ 8ì´ˆ)ë³´ë‹¤ ì˜¤ë˜ ê±¸ë¦¬ë©´ ì„±ê³µì´ ë„ì°©í•œ ì‹œì ì—” ì´ë¯¸
-    // ë§Œë£Œë¼ ê²Œì´íŠ¸ê°€ ê³§ë°”ë¡œ ë‹«í˜”ë‹¤(= ëŠë¦° ë‚ ì—ë§Œ ì¬í˜„ë˜ë˜ "í™•ì¸ UIê°€ ì‚¬ë¼ì§„ ë’¤ í•œì°¸ ë’¤ ì‹¤í–‰").
-    // ì„±ê³µìœ¼ë¡œ ì „ì´í•˜ëŠ” ìˆœê°„ ê°™ì€ ìƒí•œì„ ê·¸ ì‹œì ë¶€í„° ë‹¤ì‹œ ì„¼ë‹¤ â€” í˜¸ì¶œë¶€ ìˆ˜ì • ì—†ì´ 9ê°œ í™”ë©´ì— í•¨ê»˜ ì ìš©ëœë‹¤.
-    if (/^(hasEntitlement|paymentSuccess)$/.test(requestedStatus) && holdRef.current) {
-      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
-      if (!detailRequestId || holdRef.current.requestId === detailRequestId) {
-        holdRef.current = { ...holdRef.current, until: nowForPaidGate() + holdRef.current.capMs };
-      }
-    }
-    if (isExternalPaymentWindowStatus(requestedStatus)) {
-      setState((prev) => {
-        if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(false);
-      return;
-    }
-
-    if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus)) {
-      const overlay = resolvePaidFeatureStatusOverlay(
-        requestedStatus,
-        {
-          ...detail,
-          message: detail.message || resolvePaidGateLocalizedCopy(detail.status || "checkingEntitlement", activeLocale).message || PAID_GATE_DEFAULT_MESSAGE,
-        },
-      );
-      setState((prev) => {
-        if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(true, overlay.message, overlay.mode);
-      if (requestedStatus === "hasEntitlement" || requestedStatus === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), requestedStatus === "hasEntitlement" ? 800 : 700);
-      }
-      return;
-    }
-
-    setState((prev) => {
-      if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
-      const status = detail.status || prev.status;
-      const copy = resolvePaidGateLocalizedCopy(status, activeLocale);
-      if (!prev.open) {
-        return {
-          open: true,
-          status,
-          featureId: detail.featureId || detail.featureKey || prev.featureId || "paid-feature",
-          requestId: String(detail.requestId || prev.requestId || `paid-feature:${Date.now().toString(36)}`),
-          title: detail.title || copy.title,
-          message: detail.message || copy.message,
-          cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : null,
-          seq: prev.seq + 1,
-          startedAt: nowForPaidGate(),
-        };
-      }
-      return {
-        ...prev,
-        status,
-        featureId: detail.featureId || detail.featureKey || prev.featureId,
-        title: detail.title || prev.title || copy.title,
-        message: detail.message || copy.message,
-        cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : prev.cost,
-      };
-    });
-    emitCoinGateOverlay(false);
-  }, []);
-
-  const preload = useCallback(() => {
-    markPaidGate("cd-paid-feature-gate-preload");
-  }, []);
-
-  useEffect(() => {
-    if (!state.open) return;
-    if (!["hasEntitlement", "paymentSuccess"].includes(state.status)) return;
-    let cancelled = false;
-    const tryClose = () => {
-      if (cancelled) return;
-      const hold = holdRef.current;
-      if (hold && hold.requestId === state.requestId && nowForPaidGate() < hold.until) {
-        closeTimerRef.current = setTimeout(tryClose, 400);
-        return;
-      }
-      if (hold && hold.requestId === state.requestId) holdRef.current = null;
-      close(state.requestId);
-    };
-    closeTimerRef.current = setTimeout(tryClose, state.status === "hasEntitlement" ? 800 : 700);
-    return () => {
-      cancelled = true;
-      if (closeTimerRef.current) {
-        clearTimeout(closeTimerRef.current);
-        closeTimerRef.current = null;
-      }
-    };
-  }, [close, state.open, state.requestId, state.status]);
-
-  useEffect(() => {
-    if (!state.open || !showSkeleton) {
-      setLoadingPhase("fresh");
-      return;
-    }
-
-    setLoadingPhase("fresh");
-    // ì •ì  ì…¸ì€ 2.5ì´ˆë©´ "ì„œë²„ ì‘ë‹µì´ í‰ì†Œë³´ë‹¤ ëŠë ¤ìš”"ë¡œ í™”ë©´ì´ ë°”ë€ŒëŠ”ë°, React ê²Œì´íŠ¸ëŠ” 8ì´ˆ/20ì´ˆë¼
-    // ëŠë¦° ë‚ ì— ì•„ë¬´ ë³€í™” ì—†ëŠ” í™”ë©´ì„ ì˜¤ë˜ ë´ì•¼ í–ˆë‹¤. ì„ ê²€ì‚¬ ì˜ˆì‚°(6ì´ˆ)ê³¼ ë§ë¬¼ë¦¬ê²Œ ì•ë‹¹ê¸´ë‹¤.
-    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 2500);
-    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 6000);
-
-    return () => {
-      window.clearTimeout(warmTimer);
-      window.clearTimeout(slowTimer);
-    };
-  }, [showSkeleton, state.open, state.status]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    type PaidGateWindow = Window & {
-      __cdPaidFeatureGate?: {
-        open: (detail: PaidFeatureGateDetail) => number;
-        update: (detail: PaidFeatureGateDetail) => void;
-        close: (requestId?: string) => void;
-        holdOpen: (requestId?: string, maxMs?: number) => void;
-        release: (requestId?: string) => void;
-        preload: () => void;
-      };
-    };
-    const runtimeWindow = window as PaidGateWindow;
-    runtimeWindow.__cdPaidFeatureGate = { open, update, close, holdOpen, release, preload };
-
-    const onGateEvent = (event: Event) => {
-      const detail = (event as CustomEvent<PaidFeatureGateDetail & { action?: string; maxMs?: number }>).detail || {};
-      if (detail.action === "close") {
-        close(detail.requestId);
-        return;
-      }
-      if (detail.action === "hold") {
-        holdOpen(detail.requestId, detail.maxMs);
-        return;
-      }
-      if (detail.action === "release") {
-        release(detail.requestId);
-        return;
-      }
-      if (detail.action === "update") {
-        update(detail);
-        return;
-      }
-      open(detail);
-    };
-
-    window.addEventListener("cd:paid-feature-gate", onGateEvent);
-    return () => {
-      window.removeEventListener("cd:paid-feature-gate", onGateEvent);
-      if (runtimeWindow.__cdPaidFeatureGate?.open === open) {
-        delete runtimeWindow.__cdPaidFeatureGate;
-      }
-    };
-  }, [close, holdOpen, open, preload, release, update]);
-
-  const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
-  const copy = resolvePaidGateCopy(state, locale);
-  const gateUiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
-  const gateMotionTone: LoadingMotionTone =
-    state.status === "paymentProcessing" || state.status === "paymentPreparing" || state.status === "paymentWindowOpen"
-      ? "payment"
-      : state.status === "hasEntitlement" || state.status === "paymentSuccess" || state.status === "savingUnlock" || state.status === "unlockSaving"
-        ? "result"
-        : "pass";
-  const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed" || state.status === "cancelled";
-
-  return (
-    <PaidFeatureGateContext.Provider value={contextValue}>
-      {children}
-      {state.open ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-live="polite"
-          data-paid-feature-gate-status={state.status}
-          data-loading-phase={loadingPhase}
-          className="fixed inset-0 z-[2147483002] flex items-end justify-center bg-[linear-gradient(180deg,rgba(3,6,18,.50),rgba(2,6,23,.72))] px-0 backdrop-blur-[14px] sm:items-center sm:px-4"
-        >
-          <div
-            className="w-full overflow-y-auto rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6"
-            style={{ maxHeight: "min(88svh, 88dvh)", paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
-          >
-            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-            <PaymentPigVisual tone={gateMotionTone} />
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-cyan-200/80">{copy.label}</p>
-                <h2 className="m-0 text-[22px] font-black leading-[1.24] tracking-normal text-white">{copy.title}</h2>
-              </div>
-              <button
-                type="button"
-                aria-label={gateUiCopy.closeLabel}
-                onClick={() => close(state.requestId)}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10 text-lg font-bold text-white/80"
-              >
-                Ã—
-              </button>
-            </div>
-            <p className="whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{copy.message}</p>
-            {showSkeleton ? (
-              <LoadingProgressMotion
-                phase={loadingPhase}
-                step={gateProgressStep}
-                tone={gateMotionTone}
-                label={gateUiCopy.progressLabel}
-                labels={gateUiCopy.progressSteps}
-              />
-            ) : null}
-            {state.cost !== null ? (
-              <p className="mt-3 inline-flex rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-1 text-xs font-extrabold text-amber-100">
-                {gateUiCopy.costPrefix} {formatPaidGateCost(state.cost, locale)}
-              </p>
-            ) : null}
-            {showSkeleton ? (
-              <div className="mt-5 grid gap-[9px]">
-                <span className="h-3 w-full animate-pulse rounded-full bg-white/10" />
-                <span className="h-3 w-[82%] animate-pulse rounded-full bg-white/10" />
-                <span className="h-3 w-[64%] animate-pulse rounded-full bg-white/10" />
-              </div>
-            ) : null}
-            {showPayAction ? (
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = `/points?feature=${encodeURIComponent(state.featureId)}`;
-                }}
-                className="mt-5 min-h-12 w-full rounded-[8px] bg-amber-100 px-4 text-sm font-black text-slate-950"
-              >
-                {gateUiCopy.payAction}
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-    </PaidFeatureGateContext.Provider>
-  );
-}
-
-export function PaymentProcessingProvider({
-  children,
-}: PaymentProcessingProviderProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
-  const processingVariantRef = useRef<PaymentLoadingVariant>("payment");
-  const overlayStateRef = useRef({ open: false, message: "", mode: "" });
-  const completionCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [processingMessage, setProcessingMessageState] = useState(
-    DEFAULT_PROCESSING_MESSAGE,
-  );
-  const [processingAction, setProcessingAction] = useState<PaymentProcessingAction | null>(null);
-
-  // ìœ ë£Œ ì•¡ì…˜ì„ ëˆ„ë¥´ê¸° "ì „"ì— êµ¬ë… ìŠ¤ëƒ…ìƒ·ì„ ë°ì›Œ ë‘”ë‹¤. ìŠ¤ëƒ…ìƒ·ì´ í™œì„±ì´ë©´ ì´ìš©ê¶Œ ë³´ìœ ìëŠ” ì„œë²„ ì™•ë³µ ì—†ì´
-  // ì¦‰ì‹œ í†µê³¼í•˜ê³ (runBillingCoinGateì˜ ë‚™ê´€ fast-path), ê·¸ë˜ì„œ ì„œë²„ê°€ ëŠë¦° ë‚ ì—ë„ ê²°ì œì°½ìœ¼ë¡œ ìƒˆì§€ ì•ŠëŠ”ë‹¤.
-  // ì§€ê¸ˆê¹Œì§€ëŠ” useCoinGate ë§ˆìš´íŠ¸ì—ì„œë§Œ ì›Œë°í•´ ê·¸ í›…ì„ ì“°ì§€ ì•ŠëŠ” í™”ë©´(AI ìƒë‹´ ë“±)ì´ ì „ë¶€ ë¹ ì ¸ ìˆì—ˆë‹¤.
-  // ì—¬ê¸°(ì•± ì „ì—­ Provider) í•œ ê³³ì— ë‘ë©´ í™”ë©´ë§ˆë‹¤ ë°°ì„ í•˜ëŠ” ì¤‘ë³µì´ ì—†ë‹¤. ì´ë¯¸ ì‹ ì„ í•œ ìŠ¤ëƒ…ìƒ·ì´ ìˆìœ¼ë©´
-  // warmSubscriptionSnapshotOnEntryê°€ ì¡°ê¸° ë°˜í™˜í•˜ë¯€ë¡œ ì‹¤ì œ ìš”ì²­ì€ TTLë‹¹ 1íšŒë‹¤.
-  // billing-client/auth-storeëŠ” ë™ì  importë¡œë§Œ ì°¸ì¡°í•œë‹¤ â€” ë£¨íŠ¸ ë ˆì´ì•„ì›ƒ ë²ˆë“¤ì„ í‚¤ìš°ì§€ ì•Šê¸° ìœ„í•´ì„œë‹¤.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    let cancelled = false;
-    let unsubscribe: (() => void) | null = null;
-    let idleHandle: number | null = null;
-
-    const warmIfAuthenticated = async () => {
-      if (cancelled) return;
-      try {
-        const { getAuthState } = await import("../_lib/auth-store");
-        if (cancelled || !getAuthState().isAuthenticated) return;
-        const { warmSubscriptionSnapshotOnEntry } = await import("../_lib/billing-client");
-        if (!cancelled) void warmSubscriptionSnapshotOnEntry();
-      } catch {
-        // ì›Œë° ì‹¤íŒ¨ëŠ” ë¬´ì‹œí•œë‹¤ â€” ì²« ìœ ë£Œ ì•¡ì…˜ì´ ì¢…ì „ëŒ€ë¡œ ì„œë²„ íŒì •ìœ¼ë¡œ í´ë°±í•œë‹¤.
-      }
-    };
-
-    // ìµœì´ˆ ì§„ì… ì‹œì ì—” ì¸ì¦ì´ ì•„ì§ í•˜ì´ë“œë ˆì´ì…˜ ì „ì¼ ìˆ˜ ìˆì–´, ì¸ì¦ ìƒíƒœ ë³€í™”ì—ë„ í•œ ë²ˆ ë” ì‹œë„í•œë‹¤.
-    void warmIfAuthenticated();
-    void (async () => {
-      try {
-        const { subscribeAuth } = await import("../_lib/auth-store");
-        if (cancelled) return;
-        unsubscribe = subscribeAuth(() => { void warmIfAuthenticated(); });
-      } catch {
-        // êµ¬ë… ì‹¤íŒ¨ ì‹œì—” ìœ„ 1íšŒ ì‹œë„ë§Œìœ¼ë¡œ ë‘”ë‹¤.
-      }
-    })();
-
-    // ğŸ”´ ë§Œë£Œë¥¼ ë©”ìš°ëŠ” ì¬ì›Œë°. ì´ìš©ê¶Œ ë¯¸ë³´ìœ  ìŠ¤ëƒ…ìƒ· TTLì€ 60ì´ˆ(ë³´ìœ ìëŠ” 5ë¶„)ì¸ë° ì˜ˆì—´ì´ ì§„ì… 1íšŒë¿ì´ë¼,
-    // 1ë¶„ ë„˜ê²Œ ì½ë‹¤ê°€ ëˆ„ë¥´ëŠ” ì‚¬ìš©ìëŠ” ë§¤ë²ˆ ì„œë²„ ì™•ë³µ + ê·¸ê²Œ ëŠë¦¬ë©´ "ê²°ì œ ì²˜ë¦¬ ì¤‘" í™”ë©´ê¹Œì§€ ê°”ë‹¤.
-    // ëŠë¦° ê²½ë¡œê°€ ë¯¸ë³´ìœ ì ì „ìš©ì´ì—ˆë˜ ì´ìœ ê°€ ì´ TTL ë¹„ëŒ€ì¹­ì´ë‹¤. ì •ì  ì…¸ì´ #129ì—ì„œ ê°™ì€ ë¬¸ì œë¥¼
-    // ìœ íœ´+ì˜ë„(pointerdown) ì˜ˆì—´ë¡œ í•´ê²°í–ˆê³ , React ê²½ë¡œì—ë„ ê°™ì€ ë°©ì‹ì„ ë‘”ë‹¤.
-    // ìƒˆ ì¿¨ë‹¤ìš´Â·ìƒˆ dedupì„ ë§Œë“¤ì§€ ì•ŠëŠ”ë‹¤ â€” warmSubscriptionSnapshotOnEntryê°€ ì‹ ì„ í•œ ìŠ¤ëƒ…ìƒ·ì´ ìˆìœ¼ë©´
-    // ì¡°ê¸° ë°˜í™˜í•˜ê³  in-flight ì¤‘ë³µë„ ìŠ¤ìŠ¤ë¡œ ë§‰ìœ¼ë¯€ë¡œ, ì‹¤ì œ ìš”ì²­ì€ 'ë§Œë£Œëì„ ë•Œë§Œ' ë‚˜ê°„ë‹¤(ìê¸°ì œí•œì ).
-    // TTL ìì²´ëŠ” ëŠ˜ë¦¬ì§€ ì•ŠëŠ”ë‹¤: ì´ìš©ê¶Œ êµ¬ë§¤ ì§í›„ ë¬´íš¨í™” í›…ì´ ì—†ì–´ ëŠ˜ë¦¬ë©´ ë°©ê¸ˆ ì‚° ì‚¬ìš©ìê°€ 'ë¯¸ë³´ìœ 'ë¡œ ë‚¨ëŠ”ë‹¤.
-    const warmOnIntent = () => { void warmIfAuthenticated(); };
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-    if (typeof idleWindow.requestIdleCallback === "function") {
-      idleHandle = idleWindow.requestIdleCallback(warmOnIntent, { timeout: 4000 });
-    }
-
-    return () => {
-      cancelled = true;
-      if (unsubscribe) unsubscribe();
-      if (idleHandle !== null && typeof idleWindow.cancelIdleCallback === "function") {
-        idleWindow.cancelIdleCallback(idleHandle);
-      }
-    };
-  }, []);
-
-  const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
-    processingVariantRef.current = variant;
-    setProcessingVariant(variant);
-  }, []);
-
-  const clearCompletionCloseTimer = useCallback(() => {
-    if (completionCloseTimerRef.current) {
-      clearTimeout(completionCloseTimerRef.current);
-      completionCloseTimerRef.current = null;
-    }
-  }, []);
-
-  const closeProcessingNow = useCallback(() => {
-    clearCompletionCloseTimer();
-    overlayStateRef.current = { open: false, message: "", mode: "" };
-    setIsProcessing(false);
-    setPaymentLoadingVariant("payment");
-    setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
-    setProcessingAction(null);
-  }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
-
-  const startProcessing = useCallback((message?: string, variant?: PaymentLoadingVariant) => {
-    clearCompletionCloseTimer();
-    if (typeof message === "string" && message.trim()) {
-      setProcessingMessageState(message);
-    }
-    setPaymentLoadingVariant(variant || resolvePaymentLoadingVariant(message));
-    setIsProcessing(true);
-  }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
-
-  const stopProcessing = useCallback(() => {
-    if (isPaymentCompletionVariant(processingVariantRef.current) && typeof window !== "undefined") {
-      clearCompletionCloseTimer();
-      completionCloseTimerRef.current = setTimeout(() => {
-        closeProcessingNow();
-      }, processingVariantRef.current === "pass-applied" ? 800 : 700);
-      return;
-    }
-    closeProcessingNow();
-  }, [clearCompletionCloseTimer, closeProcessingNow]);
-
-  const setProcessingMessage = useCallback((message: string) => {
-    if (!message || !message.trim()) {
-      setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
-      setPaymentLoadingVariant("payment");
-      return;
-    }
-    setProcessingMessageState(message);
-    setPaymentLoadingVariant(resolvePaymentLoadingVariant(message));
-  }, [setPaymentLoadingVariant]);
-
-  useEffect(() => {
-    return () => clearCompletionCloseTimer();
-  }, [clearCompletionCloseTimer]);
-
-  const applyReactPaymentOverlay = useCallback((show: boolean, message?: string, mode?: string) => {
-    const nextMessage = String(message || "").trim() || DEFAULT_PROCESSING_MESSAGE;
-    const nextMode = String(mode || "").trim();
-    const previous = overlayStateRef.current;
-    if (show) {
-      // ğŸ”´ ê²°ì œì°½ê³¼ ëŒ€ê¸° í™”ë©´ì´ ê²¹ì¹˜ì§€ ì•Šê²Œ í•œë‹¤. ì…¸ì˜ _cdSetCoinGateOverlay ì²« ì¤„ê³¼ ê°™ì€ íŒì •ì´ë©°,
-      // ì´ Provider ê°€ ê·¸ í•¨ìˆ˜ë¥¼ ê°ˆì•„ì¹˜ìš°ëŠ” íƒ“ì— íŒì •ì´ ìš°íšŒë˜ë˜ ê²ƒì„ ë˜ì‚´ë¦° ê²ƒì´ë‹¤.
-      if (isPaymentWaitUiBlocked(nextMode)) return;
-      if (previous.open && previous.message === nextMessage && previous.mode === nextMode) return;
-      overlayStateRef.current = { open: true, message: nextMessage, mode: nextMode };
-      closeStaticPaymentOverlay();
-      clearCompletionCloseTimer();
-      const nextVariant = resolvePaymentLoadingVariant(nextMessage, nextMode);
-      setPaymentLoadingVariant(nextVariant);
-      setProcessingMessageState(nextMessage);
-      setIsProcessing(true);
-      return;
-    }
-    if (!previous.open) {
-      closeProcessingNow();
-      return;
-    }
-    stopProcessing();
-  }, [clearCompletionCloseTimer, closeProcessingNow, setPaymentLoadingVariant, stopProcessing]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const overlayWindow = window as PaymentOverlayWindow;
-    const previousOverlay = overlayWindow._cdSetCoinGateOverlay;
-    const onPaymentLoadingState = (event: Event) => {
-      const detail = (event as CustomEvent<{ open?: boolean; message?: string; mode?: string }>).detail || {};
-      applyReactPaymentOverlay(Boolean(detail.open), detail.message, detail.mode);
-    };
-    overlayWindow.__CD_REACT_PAYMENT_OVERLAY_OWNER__ = true;
-    closeStaticPaymentOverlay();
-    overlayWindow._cdSetCoinGateOverlay = applyReactPaymentOverlay;
-    window.addEventListener("cd:payment-loading-state", onPaymentLoadingState);
-    return () => {
-      window.removeEventListener("cd:payment-loading-state", onPaymentLoadingState);
-      if (overlayWindow._cdSetCoinGateOverlay === applyReactPaymentOverlay) {
-        overlayWindow._cdSetCoinGateOverlay = previousOverlay;
-      }
-      if (overlayWindow.__CD_REACT_PAYMENT_OVERLAY_OWNER__) {
-        delete overlayWindow.__CD_REACT_PAYMENT_OVERLAY_OWNER__;
-      }
-    };
-  }, [applyReactPaymentOverlay]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const runtimeWindow = window as unknown as Record<string, unknown>;
-    runtimeWindow.__CD_PAYMENT_PROCESSING__ = isProcessing;
-
-    if (document?.body) {
-      if (isProcessing) {
-        document.body.dataset.cdVersionGuardBusy = "1";
-      } else {
-        delete document.body.dataset.cdVersionGuardBusy;
-      }
-    }
-
-    window.dispatchEvent(new CustomEvent("cd:critical-operation-state", {
-      detail: {
-        isPaymentProcessing: isProcessing,
-      },
-    }));
-
-    return () => {
-      runtimeWindow.__CD_PAYMENT_PROCESSING__ = false;
-      if (document?.body) {
-        delete document.body.dataset.cdVersionGuardBusy;
-      }
-    };
-  }, [isProcessing]);
-
-  useEffect(() => {
-    if (!isProcessing || typeof window === "undefined") return;
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // PG(PortOne)ëŠ” ëª¨ë°”ì¼ì—ì„œ ê²°ì œë¥¼ ìƒìœ„ í”„ë ˆì„ ë¦¬ë‹¤ì´ë ‰íŠ¸ë¡œ ì²˜ë¦¬í•œë‹¤ â€” ê·¸ê±´ ì˜ë„ëœ ì´ë™ì´ë¯€ë¡œ
-      // ë§‰ìœ¼ë©´ "ì‚¬ì´íŠ¸ë¥¼ ë‚˜ê°€ì‹œê² ìŠµë‹ˆê¹Œ?"ê°€ ëœ¨ê±°ë‚˜ ì´ë™ ìì²´ê°€ ì·¨ì†Œë˜ì–´ ê²°ì œì°½ì´ ì•ˆ ì—´ë¦° ê²ƒì²˜ëŸ¼ ë³´ì¸ë‹¤.
-      // ê²°ì œ ëŸ°íƒ€ì„ì´ requestPayment ì§ì „ì— ì´ í”Œë˜ê·¸ë¥¼ ì„¸ìš´ë‹¤. isProcessing ì´ false ë¡œ flush ë˜ëŠ”
-      // íƒ€ì´ë°ì— ì˜ì¡´í•˜ì§€ ì•Šìœ¼ë ¤ê³  ë³„ë„ í”Œë˜ê·¸ë¥¼ ì“´ë‹¤.
-      if ((window as unknown as { __cdSuppressPaymentUnloadBlock?: boolean }).__cdSuppressPaymentUnloadBlock === true) return;
-      event.preventDefault();
-      event.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [isProcessing]);
-
-  const value = useMemo(
-    () => ({
-      isProcessing,
-      isPaymentLoading: isProcessing,
-      processingMessage,
-      startProcessing,
-      stopProcessing,
-      setProcessingMessage,
-      setProcessingAction,
-      startPayment: startProcessing,
-      endPayment: stopProcessing,
-      setPaymentMessage: setProcessingMessage,
-    }),
-    [
-      isProcessing,
-      processingMessage,
-      startProcessing,
-      stopProcessing,
-      setProcessingMessage,
-      setProcessingAction,
-    ],
-  );
-
-  return (
-    <PaymentProcessingContext.Provider value={value}>
-      <PaidFeatureGateProvider>
-        {children}
-        {isProcessing ? (
-          <DeferredPaymentProcessingOverlay
-            open
-            variant={processingVariant}
-            stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
-            paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
-            statusMessage={processingMessage}
-            actionLabel={processingAction?.label}
-            onAction={processingAction?.onClick}
-          />
-        ) : null}
-      </PaidFeatureGateProvider>
-    </PaymentProcessingContext.Provider>
-  );
-}
-
-export function usePaymentProcessing() {
-  const context = useContext(PaymentProcessingContext);
-  if (!context) {
-    throw new Error("usePaymentProcessing must be used within PaymentProcessingProvider");
-  }
-  return context;
-}
-
-export const usePayment = usePaymentProcessing;
-
-export function usePaidFeatureGate() {
-  const context = useContext(PaidFeatureGateContext);
-  if (!context) {
-    throw new Error("usePaidFeatureGate must be used within PaidFeatureGateProvider");
-  }
-  return context;
-}
+­r‡^Ñf¥–Ø¦{[r‰İ°ë­¦ëH\ÙHÛY[ÃBƒBš[\Ü[˜[ZXÈœ›ÛH›™^Ù[˜[ZXÈÃBš[\ÜÃBˆÜ™X]PÛÛ^Bˆ\ÙPØ[˜XÚËBˆ\ÙPÛÛ^Bˆ\ÙQY™™XİBˆ\ÙSY[[ËBˆ\ÙT™Y‹Bˆ\ÙTİ]KBŸHœ›ÛHœ™XXİÃBƒBš[\Ü\HÈ^[Y[ØY[™Ô›ÜÈHœ›ÛH‹‹ØÛÛ[[Û‹Ô^[Y[ØY[™ÈÃBš[\ÜØY[™Ô›ÙÜ™\ÜÓ[İ[Û‹ÃBˆ\HØY[™Ó[İ[Û”\ÙKBˆ\HØY[™Ó[İ[Û•Û™KBŸHœ›ÛH‹‹ØÛÛ[[Û‹ÓØY[™Ô›ÙÜ™\ÜÓ[İ[ÛˆÃBš[\ÜÈ^[Y[YÕš\İX[Hœ›ÛH‹‹ØÛÛ[[Û‹Ô^[Y[YÕš\İX[ÃBƒB\H^[Y[ØY[™Õ˜\šX[H›Û“[X›O^[Y[ØY[™Ô›ÜÖÈ˜\šX[—OÃB\HØY[™ÔİYÙHHœ×Ü›ØÙ\ÜÚ[™Èˆœ™\İ[ÛØY[™Èˆ˜XØÙ\Ü×ØÚXÚÈÃB\H^[Y[\HHœİXœØÜš\[ÛˆˆœÚ[™ÛHˆœ\ÜÈÃB\H^[Y[›ØÙ\ÜÚ[™ĞXİ[ÛˆHÃBˆX™[ˆİš[™ÎÃBˆÛÛXÚÎˆ
+
+HOˆ›ÚYÃBŸNÃBƒB˜ÛÛœİVSQS•ÓĞQS‘×ÓĞĞSTÈHÈšÛÈ‹™[ˆ‹š˜H‹šPÓˆ‹šUÈ‹šH‹šH‹™\È‹™œˆ‹™H‹››‹›\È—H\ÈÛÛœİÃB\HØY[™ÓØØ[HH
+\[ÙˆVSQS•ÓĞQS‘×ÓĞĞSTÊVÛ[X™\—NÃB\HØY[™ÓY\ÜØYÙHHÈ]Nˆİš[™ÎÈİXˆİš[™ÈNÃBƒB™[˜İ[Ûˆ›Ü›X[^™SØY[™ÓØØ[J˜[YOÎˆİš[™È[
+NˆØY[™ÓØØ[HÃBˆÛÛœİ›Ü›X[^™YHİš[™Ê˜[YHˆŠKš[J
+Kœ™\XÙJ—È‹‹HŠKÓİÙ\Ø\ÙJ
+NÃBˆYˆ
+›Ü›X[^™YOOHšˆ›Ü›X[^™YOOHšXÛˆˆ›Ü›X[^™YOOHšZ[œÈŠH™]\›ˆšPÓˆÃBˆYˆ
+›Ü›X[^™YOOHš]Èˆ›Ü›X[^™YOOHšZ[ˆ›Ü›X[^™YOOHšZÈˆ›Ü›X[^™YOOHš[[ÈŠH™]\›ˆšUÈÃBˆYˆ
+›Ü›X[^™YOOHšK]›ˆŠH™]\›ˆšHÃBˆ™]\›ˆVSQS•ÓĞQS‘×ÓĞĞSTË™š[™
+
+ØØ[JHOˆØØ[KÓİÙ\Ø\ÙJ
+HOOH›Ü›X[^™Y
+HšÛÈÃBŸCBƒB™[˜İ[ÛˆÙ]İ\œ™[ØY[™ÓØØ[J
+NˆØY[™ÓØØ[HÃBˆYˆ
+\[ÙˆÚ[™İÈOOH[™Yš[™YŠH™]\›ˆšÛÈÃBˆHÃBˆÛÛœİ[[YS[™ÈH
+Ú[™İÈ\È\[ÙˆÚ[™İÈ	ˆÈÙÙ]İ\œ™[[™İXYÙOÎˆ
+
+HOˆİš[™ÈJK˜ÙÙ]İ\œ™[[™İXYÙOËŠ
+NÃBˆYˆ
+[[YS[™ÊH™]\›ˆ›Ü›X[^™SØY[™ÓØØ[J[[YS[™ÊNÃBˆHØ]ÚßCBˆHÃBˆÛÛœİ\˜[\ÈH™]ÈT“ÙX\˜Ú\˜[\ÊÚ[™İË›ØØ][Û‹œÙX\˜ÚˆŠNÃBˆÛÛœİœ›ÛT]Y\HH\˜[\Ë™Ù]
+›[™ÈŠNÃBˆYˆ
+œ›ÛT]Y\JH™]\›ˆ›Ü›X[^™SØY[™ÓØØ[Jœ›ÛT]Y\JNÃBˆHØ]ÚßCBˆHÃBˆÛÛœİœ›ÛTİÜ˜YÙHHÚ[™İË›ØØ[İÜ˜YÙK™Ù]][J˜ÙÛ[™ÈŠNÃBˆYˆ
+œ›ÛTİÜ˜YÙJH™]\›ˆ›Ü›X[^™SØY[™ÓØØ[Jœ›ÛTİÜ˜YÙJNÃBˆHØ]ÚßCBˆHÃBˆÛÛœİX]ÚHØİ[Y[˜ÛÛÚÚYK›X]Ú
+ÊÎ—Ÿ×ÊŠXÙÛØØ[OJ××JÊKÊNÃBˆYˆ
+X]ÚË–ÌWJH™]\›ˆ›Ü›X[^™SØY[™ÓØØ[JXÛÙUT’PÛÛ\Û™[
+X]ÚÌWJJNÃBˆHØ]ÚßCBˆ™]\›ˆšÛÈÃBŸCBƒB™[˜İ[Ûˆ^[Y[İ™\›^Q˜[˜XÚÊ
+HÃBˆ™]\›ˆ
+Bˆ]ƒBˆ›ÛOHœİ]\ÈƒBˆ\šXK[]™OHœÛ]HƒBˆÛ\ÜÓ˜[YOH™š^Y[œÙ]L‹VÌŒMÍÌWH›^][\ËY[™\İYKXÙ[\ˆ™Ë\Û]KNMLÍŒˆL˜XÚÙ›ÜX›\‹\ÛHÛNš][\ËXÙ[\ˆÛNœMƒBˆƒBˆ]ƒBˆÛ\ÜÓ˜[YOHËY[›İ[™Y]VÎH›Ü™\ˆ›Ü™\‹]Ú]KÌMH™Ë\Û]KNMLÎLˆMH^]Ú]HÚYİËVÌÌNÍŒÜ™Ø˜J‹‹ŒËJWHÛN›X^]ËVÍŒHÛNœ›İ[™YVÎHƒBˆİ[O^ŞÈY[™Ğ›İÛNˆ˜Ø[ÊKŒ\™[H
+È[ŠØY™KX\™XKZ[œÙ]X›İÛK
+JHˆ_CBˆƒBˆ]ˆÛ\ÜÓ˜[YOH›^X]]ÈX‹MLKHËLLˆ›İ[™YY[™Ë]Ú]KÌŒÛNšY[ˆˆÏƒBˆÛ\ÜÓ˜[YOH›KL^\ÛH›ÛX›XÚÈº¬¬;(';fe{'n;fe:êm;'a;%ë:â¥;)${'¡zââ:âéÜƒBˆÛ\ÜÓ˜[YOH›]Lˆ^^È›Û\Ù[ZX›ÛXY[™Ë\™[^Y^\Û]KLÌƒBˆ;,/{'a:âêû)à:éä:¬è;'¨;"ç:éã:®,:âé:è);(ï;!.;&¥ƒBˆÜƒBˆÙ]ƒBˆÙ]ƒBˆ
+NÃBŸCBƒB˜ÛÛœİY™\œ™Y^[Y[›ØÙ\ÜÚ[™Óİ™\›^HH[˜[ZXÏ^[Y[ØY[™Ô›ÜÏŠBˆ
+
+HOˆ[\Ü
+‹‹Ô^[Y[›ØÙ\ÜÚ[™Óİ™\›^HŠKBˆÃBˆÜÜˆ˜[ÙKBˆØY[™Îˆ
+
+HOˆ^[Y[İ™\›^Q˜[˜XÚÈÏ‹BˆKBŠNÃBƒB\H^[Y[›ØÙ\ÜÚ[™ĞÛÛ^˜[YHHÃBˆ\Ô›ØÙ\ÜÚ[™Îˆ›ÛÛX[ÃBˆ\Ô^[Y[ØY[™Îˆ›ÛÛX[ÃBˆ›ØÙ\ÜÚ[™ÓY\ÜØYÙNˆİš[™ÎÃBˆİ\›ØÙ\ÜÚ[™Îˆ
+Y\ÜØYÙOÎˆİš[™Ë˜\šX[Îˆ^[Y[ØY[™Õ˜\šX[
+HOˆ›ÚYÃBˆİÜ›ØÙ\ÜÚ[™Îˆ
+
+HOˆ›ÚYÃBˆÙ]›ØÙ\ÜÚ[™ÓY\ÜØYÙNˆ
+Y\ÜØYÙNˆİš[™ÊHOˆ›ÚYÃBˆÙ]›ØÙ\ÜÚ[™ĞXİ[Ûˆ
+Xİ[Ûˆ^[Y[›ØÙ\ÜÚ[™ĞXİ[Ûˆ[
+HOˆ›ÚYÃBˆİ\^[Y[ˆ
+Y\ÜØYÙOÎˆİš[™Ë˜\šX[Îˆ^[Y[ØY[™Õ˜\šX[
+HOˆ›ÚYÃBˆ[™^[Y[ˆ
+
+HOˆ›ÚYÃBˆÙ]^[Y[Y\ÜØYÙNˆ
+Y\ÜØYÙNˆİš[™ÊHOˆ›ÚYÃBŸNÃBƒB\H^[Y[›ØÙ\ÜÚ[™Ô›İšY\”›ÜÈHÃBˆÚ[™[ˆ™XXİ”™XXİ›ÙNÃBŸNÃBƒB\HZY™X]\™QØ]Tİ]\ÈCBˆšYHƒBˆ›Ü[š[™ÈƒBˆ˜ÚXÚÚ[™Ñ[][Y[ƒBˆš\Ñ[][Y[ƒBˆ››Ñ[][Y[ƒBˆ›ØY[™Ô›ÙXİÈƒBˆœ™XYUÔ^HƒBˆœ^[Y[›ØÙ\ÜÚ[™ÈƒBˆœ^[Y[İXØÙ\ÜÈƒBˆœ^[Y[˜Z[YƒBˆ™\œ›ÜˆƒBˆœ^[Y[™\\š[™ÈƒBˆœ^[Y[Ú[™İÓÜ[ˆƒBˆœØ]š[™Õ[›ØÚÈƒBˆ[›ØÚÔØ]š[™ÈƒBˆ˜Ø[˜Ù[YÃBƒB\HZY™X]\™QØ]Q]Z[HÃBˆ™X]\™RYÎˆİš[™ÎÃBˆ™X]\™RÙ^OÎˆİš[™ÎÃBˆ™\]Y\İYÎˆİš[™ÎÃBˆ]OÎˆİš[™ÎÃBˆY\ÜØYÙOÎˆİš[™ÎÃBˆİ]\ÏÎˆZY™X]\™QØ]Tİ]\ÎÃBˆÛÜİÎˆ[X™\ÃBˆ^[Y[[ÙOÎˆİš[™ÎÃBˆXØÙ\ÜÕ\OÎˆİš[™ÎÃBˆXØÙ\ÜÓY]ÙÎˆİš[™ÎÃBˆ^[Y[Y]ÙÎˆİš[™ÎÃBˆİ\Y]Îˆ[X™\ÃBŸNÃBƒB\HZY™X]\™QØ]Tİ]HH™\]Z\™YXÚÏZY™X]\™QØ]Q]Z[™™X]\™RYˆœ™\]Y\İYˆ]Hˆ›Y\ÜØYÙHˆ	ˆÃBˆÜ[ˆ›ÛÛX[ÃBˆİ]\ÎˆZY™X]\™QØ]Tİ]\ÎÃBˆÛÜİˆ[X™\ˆ[ÃBˆÙ\Nˆ[X™\ÃBˆİ\Y]ˆ[X™\ÃBŸNÃBƒB\HZY™X]\™QØ]PÛÛ^˜[YHHÃBˆİ]NˆZY™X]\™QØ]Tİ]NÃBˆÜ[ˆ
+]Z[ˆZY™X]\™QØ]Q]Z[
+HOˆ[X™\ÃBˆ\]Nˆ
+]Z[ˆZY™X]\™QØ]Q]Z[
+HOˆ›ÚYÃBˆÛÜÙNˆ
+™\]Y\İYÎˆİš[™ÊHOˆ›ÚYÃBˆ™[ØYˆ
+
+HOˆ›ÚYÃBŸNÃBƒB˜ÛÛœİQUSÔ“ĞÑTÔÒS‘×ÓQTÔĞQÑHH»,¦:é«;)${'m;%ä;&¥»'¨;"ç:éã:®,:âé:è);(ï;!.;&¥ÃBƒB˜ÛÛœİRQÑĞUWÑQUSÕUHHº¬¬;('û'm;&ªz­£;fe{'nÃB˜ÛÛœİPĞÑTÔ×ĞÒPÒÒS‘×ÓQTÔĞQÑHH»'m;&ªz­£;fe{'n;)${'m;%ä;&¥»'¨;"ç:éã:®,:âé:è);(ï;!.;&¥ÃB˜ÛÛœİRQÑĞUWÑQUSÓQTÔĞQÑHHPĞÑTÔ×ĞÒPÒÒS‘×ÓQTÔĞQÑNÃBƒB\HZYØ]PÛÜHHÈX™[ˆİš[™ÎÈ]Nˆİš[™ÎÈY\ÜØYÙNˆİš[™ÈNÃB\HZYØ]UZPÛÜHHÃBˆÛÜÙSX™[ˆİš[™ÎÃBˆÛÜİ™Yš^ˆİš[™ÎÃBˆÛÜİİY™š^ˆİš[™ÎÃBˆ^PXİ[Ûˆİš[™ÎÃBˆÙ[™\šXÓX™[ˆİš[™ÎÃBˆ›ÙÜ™\ÜÓX™[ˆİš[™ÎÃBˆ›ÙÜ™\ÜÔİ\Îˆ™XYÛ›HÜİš[™Ëİš[™Ëİš[™×NÃBŸNÃBƒB˜ÛÛœİÓÔ‘PS—ÕVÔUT“ˆHÖú¬ {g¨×KÎÃBƒB˜ÛÛœİRQÑĞUWĞÓÔNˆ™XÛÜ™ZY™X]\™QØ]Tİ]\ËZYØ]PÛÜOˆHÃBˆYNˆÈX™[ˆºã :®,‹]NˆRQÑĞUWÑQUSÕUKY\ÜØYÙNˆRQÑĞUWÑQUSÓQTÔĞQÑHKBˆÜ[š[™ÎˆÈX™[ˆ») :îa‹]Nˆ»'m;&ªz­£;fe{'n‹Y\ÜØYÙNˆPĞÑTÔ×ĞÒPÒÒS‘×ÓQTÔĞQÑHKBˆÚXÚÚ[™Ñ[][Y[ˆÈX™[ˆ»fe{'n;)$H‹]Nˆ»'m;&ªz­£;fe{'n‹Y\ÜØYÙNˆPĞÑTÔ×ĞÒPÒÒS‘×ÓQTÔĞQÑHKBˆ\Ñ[][Y[ˆÈX™[ˆ»'m;&ªH:¬ :â©H‹]Nˆ»'m;&ªz­£;fe{'n;&a:èã‹Y\ÜØYÙNˆ»'m;&ªz­£;fe{'n;'m:àgzà«;%­;&¥º¬¬:¬ï:éo;) :îa;ef:¬è;'¢;%­;&¥ˆKBˆ›Ñ[][Y[ˆÈX™[ˆº¬¬;(';ea;&¥‹]NˆRQÑĞUWÑQUSÕUKY\ÜØYÙNˆ» «;&ªH:¬ :â©{eg;'m;&ªz­£;'m;%á»%­:¬¬;(':¬ ;ea;&¥;ejzââ:âéˆˆKBˆØY[™Ô›ÙXİÎˆÈX™[ˆ»fe{'n;)$H‹]Nˆ»'m;&ªz­£ú¬¬;(';fe{'n‹Y\ÜØYÙNˆPĞÑTÔ×ĞÒPÒÒS‘×ÓQTÔĞQÑHKBˆ™XYUÔ^NˆÈX™[ˆ»!(;`çH:ã :®,‹]Nˆº¬¬;(';"&:âê;!(;`çH‹Y\ÜØYÙNˆ»'m;/f;ad;.(:éo;%í;"&;'¢:â¥:¬¬;(';"&:âê;'a;!(;`ç{em;(ï;!.;&¥ˆˆKBˆ^[Y[›ØÙ\ÜÚ[™ÎˆÈX™[ˆ»,¦:é«;)$H‹]Nˆº¬¬;(';,¦:é«;)$H‹Y\ÜØYÙNˆº¬¬;(';"®{'n:¬ï;'m;&ªH:­£;eg;'a;fe{'n;ef:¬è;'¢;%­;&¥»,/{'a:âêû)à:éä;%a;(ï;!.;&¥ˆKBˆ^[Y[İXØÙ\ÜÎˆÈX™[ˆ»&a:èã‹]Nˆº¬¬;(';&a:èã‹Y\ÜØYÙNˆº¬¬;(':¬ ;&a:èã:ä$;%­;&¥º¬¬:¬ï:éo;) :îa;ef:¬è;'¢;%­;&¥ˆKBˆ^[Y[˜Z[YˆÈX™[ˆ»"é;c*‹]Nˆº¬¬;(';fe{'n;"é;c*‹Y\ÜØYÙNˆº¬¬;(':éo;&a:èã;ef;)à:ê®ûe¢;"­zââ:âéˆ:âé;"ç;"ç:ãá;em;(ï;!.;&¥ˆˆKBˆ\œ›ÜˆÈX™[ˆ»&):éf‹]Nˆ»fe{'n;"é;c*‹Y\ÜØYÙNˆ»'m;&ªz­£;fe{'n;%ä;"é;c*;e¢;"­zââ:âéˆ;'¨;"ç;fá:âé;"ç;"ç:ãá;em;(ï;!.;&¥ˆˆKBˆ^[Y[™\\š[™ÎˆÈX™[ˆº¬¬;(';) :îa‹]Nˆºâê:¬m:¬¬;(';) :îa;)$H‹Y\ÜØYÙNˆ»(ï:ë.;(%zìí;&`;'n;)§H;gd:é¡;'m;(l;&ª{g¢:éç»-¬;)à:¬è;'¢;%­;&¥»,/{'a:âêû)à:éä;%a;(ï;!.;&¥ˆKBˆ^[Y[Ú[™İÓÜ[ˆÈX™[ˆº¬¬;(';)á;e¢H‹]Nˆºâê:¬m:¬¬;(';) :îa;)$H‹Y\ÜØYÙNˆ»(ï:ë.;(%zìí;&`;'n;)§H;gd:é¡;'m;(l;&ª{g¢:éç»-¬;)à:¬è;'¢;%­;&¥»,/{'a:âêû)à:éä;%a;(ï;!.;&¥ˆKBˆØ]š[™Õ[›ØÚÎˆÈX™[ˆ»( ;'©H;)$H‹]Nˆ»'m;&ªH:­£;eg;( ;'©H;)$H‹Y\ÜØYÙNˆº¬¬:¬ï;fe:êm;'/:èg;'m;%­;)à:ãá:ègH;'m;&ªH:­£;eg;'a;( ;'©{ef:¬è;'¢;"­zââ:âéˆˆKBˆ[›ØÚÔØ]š[™ÎˆÈX™[ˆ»( ;'©H;)$H‹]Nˆ»'m;&ªH:­£;eg;( ;'©H;)$H‹Y\ÜØYÙNˆº¬¬:¬ï;fe:êm;'/:èg;'m;%­;)à:ãá:ègH;'m;&ªH:­£;eg;'a;( ;'©{ef:¬è;'¢;"­zââ:âéˆˆKBˆØ[˜Ù[YˆÈX™[ˆ»-ê;!£:ä*‹]Nˆº¬¬;(';!(;`çH;-ê;!£‹Y\ÜØYÙNˆº¬¬;(';!(;`ç{'m;-ê;!£:ä&;%â;"­zââ:âéˆ;ea;&¥;eh:åc:âé;"ç;)á;e¢{eh;"&;'¢;"­zââ:âéˆˆKBŸNÃBƒB˜ÛÛœİRQÑĞUWÓĞĞSV‘QĞÓÔNˆ™XÛÜ™^ÛYOØY[™ÓØØ[KšÛÈ‹\X[™XÛÜ™ZY™X]\™QØ]Tİ]\ËZYØ]PÛÜOˆHÃBˆ[ˆÃBˆYNˆÈX™[ˆ•ØZ][™È‹]Nˆ”^[Y[Ü\ÜÈÚXÚÈ‹Y\ÜØYÙNˆÚXÚÚ[™È[İ\ˆ\ÜËˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆ”^[Y[™YYY‹]Nˆ”^[Y[Ü\ÜÈÚXÚÈ‹Y\ÜØYÙNˆ“›È\ØX›H\ÜÈØ\È›İ[™ˆˆKBˆ™XYUÔ^NˆÈX™[ˆÚÛÜÙH^[Y[‹]NˆÚÛÜÙHH^[Y[Y]Ù‹Y\ÜØYÙNˆ”Ù[XİH^[Y[Y]ÙÈÜ[ˆ\ÈÛÛ[ˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ‘˜Z[Y‹]Nˆ”^[Y[ÚXÚÈ˜Z[Y‹Y\ÜØYÙNˆ”^[Y[Ûİ[›İ™HÛÛ\]YˆˆKBˆ\œ›ÜˆÈX™[ˆ‘\œ›Üˆ‹]NˆÚXÚÈ˜Z[Y‹Y\ÜØYÙNˆ”X\ÙHÚXÚÈ[İ\ˆ™]ÛÜšÈ[™HYØZ[‹ˆˆKBˆØ[˜Ù[YˆÈX™[ˆØ[˜Ù[Y‹]Nˆ”^[Y[Ù[Xİ[ÛˆØ[˜Ù[Y‹Y\ÜØYÙNˆ–[İHØ[ˆHYØZ[ˆÚ[™]™\ˆ™YYYˆˆKBˆKBˆ˜NˆÃBˆYNˆÈX™[ˆ¹o¡yªgù.+H‹]Nˆ¹¬n¹®"8àîùb*yå*9b.8àk¹è®º*£H‹Y\ÜØYÙNˆ¹b*yå*9b.8à¤¹è®º*£xàeøài¸àa8ào¸àfxà ˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆ¹¬n¹®"8àc9oáz) H‹]Nˆ¹¬n¹®"8àîùb*yå*9b.8àk¹è®º*£H‹Y\ÜØYÙNˆ¹b*yå*8àiøàcxà¢ùb*yå*9b.8àc:)¢øài8àbøà¢¸ào¸àføà¤øàiøàeøàgøà ˆˆKBˆ™XYUÔ^NˆÈX™[ˆº`n9¢§¹o¡xàhH‹]Nˆ¹¬n¹®"9¥®y¬åxàkº`n9¢§ˆ‹Y\ÜØYÙNˆ¸àdøàk¸à¬øàìøàá¸àìøàá8à¤ºe¢øàcù¬n¹®"9¥®y¬åxà¤º`n8à¤øàiøàcøàh8àexàa8à ˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ¹i,y¥eÈ‹]Nˆ¹¬n¹®"9è®º*£xàjùi,y¥eøàeøào¸àeøàgÈ‹Y\ÜØYÙNˆ¸àb¹¥+ù¢exàa8à¤¹k£9.¡¸àiøàcxào¸àføà¤øàiøàeøàgøà ˆˆKBˆ\œ›ÜˆÈX™[ˆ¸àª8àêxàï‹]Nˆ¹è®º*£xàjùi,y¥eøàeøào¸àeøàgÈ‹Y\ÜØYÙNˆº`&¹/èyâ­¹¬àxà¤¹è®º*£xàeøài¸à xà ¸àa¹. 9n©¸àbº*i¸àeøàcøàh8àexàa8à ˆˆKBˆØ[˜Ù[YˆÈX™[ˆ¸à«xàèøàìøà®øàêÈ‹]Nˆ¹¬n¹®":`n9¢§¸à¤¸à«xàèøàìøà®øàêøàeøào¸àeøàgÈ‹Y\ÜØYÙNˆ¹oáz) xàj¸àj8àcxàjøà ¸àa¹. 9n©º`,¸à xà¢xà£8ào¸àfxà ˆˆKBˆKBˆšPÓˆˆÃBˆYNˆÈX™[ˆ¹ëbyo¡H‹]Nˆ¹¥+ù.æú`&º(c9b.9èkº+©‹Y\ÜØYÙNˆ¹«hùg*9èkº+©:`&º(c9b.8à ˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆºg :) y¥+ù.æ‹]Nˆ¹¥+ù.æú`&º(c9b.9èkº+©‹Y\ÜØYÙNˆ¹§*¹¢o¹b,9cëùå*9æ¡:`&º(c9b.8à ˆˆKBˆ™XYUÔ^NˆÈX™[ˆ¹ëbyo¡z`"y¢êH‹]Nˆº`"y¢êy¥+ù.æ9¥®yo#È‹Y\ÜØYÙNˆº+íú`"y¢êycëù¢dùo 9«i9a¡yk®yæ¡9¥+ù.æ9¥®yo#øà ˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ¹i,z-)H‹]Nˆ¹¥+ù.æ9èkº+©9i,z-)H‹Y\ÜØYÙNˆ¹§*º ïyk£9¢$9¥+ù.æ8à ˆˆKBˆ\œ›ÜˆÈX™[ˆºe&z+ëÈ‹]Nˆ¹èkº+©9i,z-)H‹Y\ÜØYÙNˆº+íù¨à9§éyïdyîç9â­¹  yd#ºaãz+åxà ˆˆKBˆØ[˜Ù[YˆÈX™[ˆ¹mì¹cå¹­¢‹]Nˆ¹mì¹cå¹­¢9¥+ù.æ:`"y¢êH‹Y\ÜØYÙNˆºg :) y¥í¹cëù.éya£y«(yîéùîëxà ˆˆKBˆKBˆšUÈˆÃBˆYNˆÈX™[ˆ¹ëbyo¡H‹]Nˆ¹.æ9«/‹ú`&º(c9b.9è®º*£H‹Y\ÜØYÙNˆ¹«hùg*9è®º*£z`&º(c9b.8à ˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆºg :) y.æ9«/ˆ‹]Nˆ¹.æ9«/‹ú`&º(c9b.9è®º*£H‹Y\ÜØYÙNˆ¹¢o¹.#yb,9cëùå*9æ¡:`&º(c9b.8à ˆˆKBˆ™XYUÔ^NˆÈX™[ˆ¹ëbyo¡z`n9¤áÈ‹]Nˆº`n9¤áù.æ9«/¹¥®yo#È‹Y\ÜØYÙNˆº*âú`n9¤áùcëúe¢ùegù«i9aiùk®yæ¡9.æ9«/¹¥®yo#øà ˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ¹i,y¥eÈ‹]Nˆ¹.æ9«/¹è®º*£yi,y¥eÈ‹Y\ÜØYÙNˆ¹§*º ïyk£9¢$9.æ9«/¸à ˆˆKBˆ\œ›ÜˆÈX™[ˆºc+ú*©‹]Nˆ¹è®º*£yi,y¥eÈ‹Y\ÜØYÙNˆº*âùª¨¹§éyí¬º-ëùâà9¡bùo£9a£z*i¹. 9«(xà ˆˆKBˆØ[˜Ù[YˆÈX™[ˆ¹mì¹cå¹­¢‹]Nˆ¹mì¹cå¹­¢9.æ9«/º`n9¤áÈ‹Y\ÜØYÙNˆºg :) y¦`¹cëù.éya£y«(yîo9î£8à ˆˆKBˆKBˆšNˆÃBˆYNˆÈX™[ˆ±$[™ÈÚ8nçH‹]Nˆ’ÚxnàÛH˜H[šğè[‹İ°êH‹Y\ÜØYÙNˆ±$[™ÈÚxnàÛH˜H°êHønëH8né[™ËˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆøn©Ûˆ[šğè[ˆ‹]Nˆ’ÚxnàÛH˜H[šğè[‹İ°êH‹Y\ÜØYÙNˆ’Ú0í™È0ëH8n©^H°êHğìÈ8nàÈ0î[™ËˆˆKBˆ™XYUÔ^NˆÈX™[ˆÚ8nçHÚ8nã[ˆ‹]NˆÚ8nã[ˆ1¬1¨[™È8nêXÈ[šğè[ˆ‹Y\ÜØYÙNˆÚ8nã[ˆ1¬1¨[™È8nêXÈ[šğè[ˆ1$xnàÈxnçÈ¸næZH[™È°èKˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ•8n©]¸n¨ZH‹]Nˆ–0èXÈš8n«[ˆ[šğè[ˆ8n©]¸n¨ZH‹Y\ÜØYÙNˆ’Ú0í™È8nàÈğèˆ8n©][šğè[‹ˆˆKBˆ\œ›ÜˆÈX™[ˆ“8nåÚH‹]Nˆ’ÚxnàÛH˜H8n©]¸n¨ZH‹Y\ÜØYÙNˆ•ZH0ì›™ÈÚxnàÛH˜Hxn¨[™È¸näÚH8nëH8n¨ZKˆˆKBˆØ[˜Ù[YˆÈX™[ˆ±$0èÈ8néŞH‹]Nˆ±$0èÈ8néŞH8nìXHÚ8nã[ˆ[šğè[ˆ‹Y\ÜØYÙNˆ¸n¨[ˆğìÈ8nàÈ8nìXÈxnáÛˆ8n¨ZHÚHøn©Û‹ˆˆKBˆKBˆNˆÃBˆYNˆÈX™[ˆ¸)*¸)cx),8))8)`8)%x)cx)-ø)/ˆ‹]Nˆ¸)+x)`x)%ø))8)/¸)*ø)*¸)/¸).8)'8)/¸) x)&ˆ‹Y\ÜØYÙNˆ¸)!¸)*¸)%x)/ˆ8)*¸)/¸).8)'8)/¸) x)&¸)/ˆ8)'8)/ˆ8),8).x)/ˆ8).x)bˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆ¸)+x)`x)%ø))8)/¸)*8)!¸)-x)-¸)cx)+ø)%H‹]Nˆ¸)+x)`x)%ø))8)/¸)*ø)*¸)/¸).8)'8)/¸) x)&ˆ‹Y\ÜØYÙNˆ¸)"x)*¸)+ø)bø)%È8)+ø)bø)%ø)cx)+È8)*¸)/¸).8)*8).x)`8) ˆ8)+¸)/ø),¸)/‹ˆˆKBˆ™XYUÔ^NˆÈX™[ˆ¸)&¸)+ø)*8)*¸)cx),8))8)`8)%x)cx)-ø)/ˆ‹]Nˆ¸)+x)`x)%ø))8)/¸)*8)-x)/ø))ø)/È8)&¸)`x)*8)aø) ˆ‹Y\ÜØYÙNˆ¸)!ø).8).8)/¸)+¸)%ø)cx),8)`8)%x)bÈ8)%¸)bø),¸)*8)aÈ8)%x)aÈ8),¸)/ø)#È8)+x)`x)%ø))8)/¸)*8)-x)/ø))ø)/È8)&¸)`x)*8)aø) ‹ˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ¸)-x)/ø)*ø),ˆ‹]Nˆ¸)+x)`x)%ø))8)/¸)*8)*¸)`x)-ø)cx)'ø)/È8)-x)/ø)*ø),ˆ‹Y\ÜØYÙNˆ¸)+x)`x)%ø))8)/¸)*8)*¸)`¸),8)/ˆ8)*8).x)`8) ˆ8).x)bÈ8).8)%x)/‹ˆˆKBˆ\œ›ÜˆÈX™[ˆ¸))8)cx),8)`x)'ø)/È‹]Nˆ¸)'8)/¸) x)&ˆ8)-x)/ø)*ø),ˆ‹Y\ÜØYÙNˆ¸)%x)`ø)*¸)+ø)/ˆ8)*8)aø)'ø)-x),8)cx)%H8).8)cx))x)/ø))8)/È8)'8)/¸) x)&¸)%x),8)*ø)/ø),8)*¸)cx),8)+ø)/¸).8)%x),8)aø) ‹ˆˆKBˆØ[˜Ù[YˆÈX™[ˆ¸),8))¸)cx))ˆ‹]Nˆ¸)+x)`x)%ø))8)/¸)*8)&¸)+ø)*8),8))¸)cx))ˆ8).x)`x)!ˆ‹Y\ÜØYÙNˆ¸)'8)/8),8)`¸),8))8)*¸)(x)/8)*8)aÈ8)*¸),8)*ø)/ø),8).8)aÈ8)!¸)%ø)aÈ8)+8)(¸)/8).8)%x))8)aÈ8).x)b8) ‹ˆˆKBˆKBˆ\ÎˆÃBˆYNˆÈX™[ˆ‘[ˆ\Ü\˜H‹]NˆÛÛ\›Ø˜XÚpìÛˆHYÛËÜ\ÙH‹Y\ÜØYÙNˆÛÛ\›Ø˜[™ÈH\ÙKˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆ”YÛÈ™XÙ\Ø\š[È‹]NˆÛÛ\›Ø˜XÚpìÛˆHYÛËÜ\ÙH‹Y\ÜØYÙNˆ“›ÈÙH[˜ÛÛ°ìÈ[ˆ\ÙH\ÜÛšX›KˆˆKBˆ™XYUÔ^NˆÈX™[ˆ‘[YÚ\ˆYÛÈ‹]Nˆ‘[YÙH[ˆpê]ÙÈHYÛÈ‹Y\ÜØYÙNˆ”Ù[XØÚ[Û˜H[ˆpê]ÙÈHYÛÈ\˜HXœš\ˆ\İHÛÛ[šYËˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ‘˜[0ìÈ‹]Nˆ‘˜[0ìÈHÛÛ™š\›XXÚpìÛˆ[YÛÈ‹Y\ÜØYÙNˆ“›ÈÙHYÈÛÛ\]\ˆ[YÛËˆˆKBˆ\œ›ÜˆÈX™[ˆ‘\œ›Üˆ‹]Nˆ‘˜[0ìÈHÛÛ\›Ø˜XÚpìÛˆ‹Y\ÜØYÙNˆ”™]š\ØHHÛÛ™^pìÛˆH[0ê[[ÈHY]›ËˆˆKBˆØ[˜Ù[YˆÈX™[ˆØ[˜Ù[YÈ‹]Nˆ”Ù[XØÚpìÛˆHYÛÈØ[˜Ù[YH‹Y\ÜØYÙNˆ”YY\È[[\›ÈHY]›ÈİX[™ÈÈ™XÙ\Ú]\ËˆˆKBˆKBˆœˆÃBˆYNˆÈX™[ˆ‘[ˆ][H‹]Nˆ•°ê\šYšXØ][ÛˆZY[Y[Ü\ÜÈ‹Y\ÜØYÙNˆ•°ê\šYšXØ][ÛˆH›İ™H\ÜËˆˆKBˆ›Ñ[][Y[ˆÈX™[ˆ”ZY[Y[™\]Z\È‹]Nˆ•°ê\šYšXØ][ÛˆZY[Y[Ü\ÜÈ‹Y\ÜØYÙNˆ]Xİ[ˆ\ÜÈ][\ØX›H‰ØH0ê]0êH›İ]°êKˆˆKBˆ™XYUÔ^NˆÈX™[ˆÚÚ^HZY[Y[‹]NˆÚÚ\Ú\ˆ[ˆ[ŞY[ˆHZY[Y[‹Y\ÜØYÙNˆ”ğê[Xİ[Û›™^ˆ[ˆ[ŞY[ˆHZY[Y[İ\ˆİ]œš\ˆÙHÛÛ[KˆˆKBˆ^[Y[˜Z[YˆÈX™[ˆ°âXÚXÈ‹]Nˆ°âXÚXÈHHÛÛ™š\›X][ÛˆHZY[Y[‹Y\ÜØYÙNˆ“HZY[Y[‰ØH\ÈH0ê™H\›Z[°êKµÛ®ö¶‰ËkºwµçA ´Ä¸ÔÜ´ÄÈÉ½Õ¹‘•µ™Õ±°‰œµİ¡¥Ñ”¼ÈÀÍ´é¡¥‘‘•¸ˆ€¼ø4(€€€€€€€€€€€€ñA…åµ•¹ÑA¥Y¥ÍÕ…°Ñ½¹”õí…Ñ•5½Ñ¥½¹Q½¹•ô€¼ø4(€€€€€€€€€€€€ñ‘¥Ø±…ÍÍ9…µ”ô‰µˆ´Ğ™±•à¥Ñ•µÌµÍÑ…ÉĞ©ÕÍÑ¥™äµ‰•Ñİ••¸…À´Ğˆø4(€€€€€€€€€€€€€€ñ‘¥Øø4(€€€€€€€€€€€€€€€€ñÀ±…ÍÍ9…µ”ô‰µˆ´Ä¸ÔÑ•áĞµlÄÅÁát™½¹Ğµ•áÑÉ…‰½±ÕÁÁ•É…Í”ÑÉ…­¥¹œµlÀ¸ÄÑ•µtÑ•áĞµå…¸´ÈÀÀ¼àÀˆùí½Áä¹±…‰•±ôğ½Àø4(€€€€€€€€€€€€€€€€ñ È±…ÍÍ9…µ”ô‰´´ÀÑ•áĞµlÈÉÁát™½¹Ğµ‰±…¬±•…‘¥¹œµlÄ¸ÈÑtÑÉ…­¥¹œµ¹½Éµ…°Ñ•áĞµİ¡¥Ñ”ˆùí½Áä¹Ñ¥Ñ±•ôğ½ Èø4(€€€€€€€€€€€€€€ğ½‘¥Øø4(€€€€€€€€€€€€€€ñ‰ÕÑÑ½¸4(€€€€€€€€€€€€€€€ÑåÁ”ô‰‰ÕÑÑ½¸ˆ4(€€€€€€€€€€€€€€€…É¥„µ±…‰•°õí…Ñ•U¥½Áä¹±½Í•1…‰•±ô4(€€€€€€€€€€€€€€€½¹±¥¬õì ¤€ôø±½Í”¡ÍÑ…Ñ”¹É•ÅÕ•ÍÑ%¥ô4(€€€€€€€€€€€€€€€±…ÍÍ9…µ”ô‰É¥ ´ÄÀÜ´ÄÀÍ¡É¥¹¬´ÀÁ±…”µ¥Ñ•µÌµ•¹Ñ•ÈÉ½Õ¹‘•µ™Õ±°‰½É‘•È‰½É‘•Èµİ¡¥Ñ”¼ÄÔ‰œµİ¡¥Ñ”¼ÄÀÑ•áĞµ±œ™½¹Ğµ‰½±Ñ•áĞµİ¡¥Ñ”¼àÀˆ4(€€€€€€€€€€€€€€ø4(€€€€€€€€€€€€€€€ƒ\4(€€€€€€€€€€€€€€ğ½‰ÕÑÑ½¸ø4(€€€€€€€€€€€€ğ½‘¥Øø4(€€€€€€€€€€€€ñÀ±…ÍÍ9…µ”ô‰İ¡¥Ñ•ÍÁ…”µÁÉ”µ±¥¹”Ñ•áĞµÍ´±•…‘¥¹œµlÄ¸İtÑ•áĞµÍ±…Ñ”´ÈÀÀ¼äÀˆùí½Áä¹µ•ÍÍ…•ôğ½Àø4(€€€€€€€€€€€íÍ¡½İM­•±•Ñ½¸€ü€ 4(€€€€€€€€€€€€€€ñ1½…‘¥¹AÉ½É•ÍÍ5½Ñ¥½¸4(€€€€€€€€€€€€€€€Á¡…Í”õí±½…‘¥¹A¡…Í•ô4(€€€€€€€€€€€€€€€ÍÑ•Àõí…Ñ•AÉ½É•ÍÍMÑ•Áô4(€€€€€€€€€€€€€€€Ñ½¹”õí…Ñ•5½Ñ¥½¹Q½¹•ô4(€€€€€€€€€€€€€€€±…‰•°õí…Ñ•U¥½Áä¹ÁÉ½É•ÍÍ1…‰•±ô4(€€€€€€€€€€€€€€€±…‰•±Ìõí…Ñ•U¥½Áä¹ÁÉ½É•ÍÍMÑ•ÁÍô4(€€€€€€€€€€€€€€¼ø4(€€€€€€€€€€€€¤€è¹Õ±±ô4(€€€€€€€€€€€íÍÑ…Ñ”¹½ÍĞ€„ôô¹Õ±°€ü€ 4(€€€€€€€€€€€€€€ñÀ±…ÍÍ9…µ”ô‰µĞ´Ì¥¹±¥¹”µ™±•àÉ½Õ¹‘•µ™Õ±°‰½É‘•È‰½É‘•Èµ…µ‰•È´ÈÀÀ¼ÌÀ‰œµ…µ‰•È´ÌÀÀ¼ÄÀÁà´ÌÁä´ÄÑ•áĞµáÌ™½¹Ğµ•áÑÉ…‰½±Ñ•áĞµ…µ‰•È´ÄÀÀˆø4(€€€€€€€€€€€€€€€í…Ñ•U¥½Áä¹½ÍÑAÉ•™¥áôí™½Éµ…ÑA…¥‘…Ñ•½ÍĞ¡ÍÑ…Ñ”¹½ÍĞ°±½…±”¥ô4(€€€€€€€€€€€€€€ğ½Àø4(€€€€€€€€€€€€¤€è¹Õ±±ô4(€€€€€€€€€€€íÍ¡½İM­•±•Ñ½¸€ü€ 4(€€€€€€€€€€€€€€ñ‘¥Ø±…ÍÍ9…µ”ô‰µĞ´ÔÉ¥…ÀµlåÁátˆø4(€€€€€€€€€€€€€€€€ñÍÁ…¸±…ÍÍ9…µ”ô‰ ´ÌÜµ™Õ±°…¹¥µ…Ñ”µÁÕ±Í”É½Õ¹‘•µ™Õ±°‰œµİ¡¥Ñ”¼ÄÀˆ€¼ø4(€€€€€€€€€€€€€€€€ñÍÁ…¸±…ÍÍ9…µ”ô‰ ´ÌÜµlàÈ•t…¹¥µ…Ñ”µÁÕ±Í”É½Õ¹‘•µ™Õ±°‰œµİ¡¥Ñ”¼ÄÀˆ€¼ø4(€€€€€€€€€€€€€€€€ñÍÁ…¸±…ÍÍ9…µ”ô‰ ´ÌÜµlØĞ•t…¹¥µ…Ñ”µÁÕ±Í”É½Õ¹‘•µ™Õ±°‰œµİ¡¥Ñ”¼ÄÀˆ€¼ø4(€€€€€€€€€€€€€€ğ½‘¥Øø4(€€€€€€€€€€€€¤€è¹Õ±±ô4(€€€€€€€€€€€íÍ¡½İA…åÑ¥½¸€ü€ 4(€€€€€€€€€€€€€€ñ‰ÕÑÑ½¸4(€€€€€€€€€€€€€€€ÑåÁ”ô‰‰ÕÑÑ½¸ˆ4(€€€€€€€€€€€€€€€½¹±¥¬õì ¤€ôøì4(€€€€€€€€€€€€€€€€€İ¥¹‘½Ü¹±½…Ñ¥½¸¹¡É•˜€ô€½Á½¥¹ÑÌı™•…ÑÕÉ”ô‘í•¹½‘•UI%½µÁ½¹•¹Ğ¡ÍÑ…Ñ”¹™•…ÑÕÉ•%¥õ€ì4(€€€€€€€€€€€€€€€õô4(€€€€€€€€€€€€€€€±…ÍÍ9…µ”ô‰µĞ´Ôµ¥¸µ ´ÄÈÜµ™Õ±°É½Õ¹‘•µláÁát‰œµ…µ‰•È´ÄÀÀÁà´ĞÑ•áĞµÍ´™½¹Ğµ‰±…¬Ñ•áĞµÍ±…Ñ”´äÔÀˆ4(€€€€€€€€€€€€€€ø4(€€€€€€€€€€€€€€€í…Ñ•U¥½Áä¹Á…åÑ¥½¹ô4(€€€€€€€€€€€€€€ğ½‰ÕÑÑ½¸ø4(€€€€€€€€€€€€¤€è¹Õ±±ô4(€€€€€€€€€€ğ½‘¥Øø4(€€€€€€€€ğ½‘¥Øø4(€€€€€€¤€è¹Õ±±ô4(€€€€ğ½A…¥‘•…ÑÕÉ•…Ñ•½¹Ñ•áĞ¹AÉ½Ù¥‘•Èø4(€€¤ì4)ô4(4)•áÁ½ÉĞ™Õ¹Ñ¥½¸A…åµ•¹ÑAÉ½•ÍÍ¥¹AÉ½Ù¥‘•È¡ì4(€¡¥±‘É•¸°4)ôèA…åµ•¹ÑAÉ½•ÍÍ¥¹AÉ½Ù¥‘•ÉAÉ½ÁÌ¤ì4(€½¹ÍĞm¥ÍAÉ½•ÍÍ¥¹œ°Í•Ñ%ÍAÉ½•ÍÍ¥¹t€ôÕÍ•MÑ…Ñ”¡™…±Í”¤ì4(€½¹ÍĞmÁÉ½•ÍÍ¥¹Y…É¥…¹Ğ°Í•ÑAÉ½•ÍÍ¥¹Y…É¥…¹Ñt€ôÕÍ•MÑ…Ñ”ñA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğø ‰Á…åµ•¹Ğˆ¤ì4(€½¹ÍĞÁÉ½•ÍÍ¥¹Y…É¥…¹ÑI•˜€ôÕÍ•I•˜ñA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğø ‰Á…åµ•¹Ğˆ¤ì4(€½¹ÍĞ½Ù•É±…åMÑ…Ñ•I•˜€ôÕÍ•I•˜¡ì½Á•¸è™…±Í”°µ•ÍÍ…”è€ˆˆ°µ½‘”è€ˆˆô¤ì4(€½¹ÍĞ½µÁ±•Ñ¥½¹±½Í•Q¥µ•ÉI•˜€ôÕÍ•I•˜ñI•ÑÕÉ¹QåÁ”ñÑåÁ•½˜Í•ÑQ¥µ•½ÕĞøğ¹Õ±°ø¡¹Õ±°¤ì4(€½¹ÍĞmÁÉ½•ÍÍ¥¹5•ÍÍ…”°Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…•MÑ…Ñ•t€ôÕÍ•MÑ…Ñ” 4(€€€U1Q}AI=MM%9}5MM°4(€€¤ì4(€½¹ÍĞmÁÉ½•ÍÍ¥¹Ñ¥½¸°Í•ÑAÉ½•ÍÍ¥¹Ñ¥½¹t€ôÕÍ•MÑ…Ñ”ñA…åµ•¹ÑAÉ½•ÍÍ¥¹Ñ¥½¸ğ¹Õ±°ø¡¹Õ±°¤ì4(4(€€¼¼ƒ²rƒ®0ƒ²V‡²c²vƒ®"®–ÓªâÀ€‹²‚‹²^@ƒªÖ³®>ƒ²*“®²ß²vƒ®6Ã²n0ƒ®FS®.¸ƒ²*“®²ß²vĞƒ¶fs²Ç²vÓ®¦Ğƒ²vÓ²j§ªÚ0ƒ®ÎÓ²rƒ²zC®*Pƒ²s®Êƒ²fW®ÎÔƒ²^²vĞ4(€€¼¼ƒ²š'².pƒ¶×ªÎó¶VcªÎ€¡ÉÕ¹	¥±±¥¹½¥¹…Ñ—²v`ƒ®
+gªÒ ™…ÍĞµÁ…Ñ ¤°ƒªŞã®zc²pƒ²s®ÊªÂ ƒ®*C®šÀƒ®
+ƒ²^C®>ƒªÊÃ²‚s²Â÷²ró®†pƒ²#² ƒ²V+®*S®.¸4(€€¼¼ƒ²ªâ#ªæ3²®*PÕÍ•½¥¹…Ñ”ƒ®#²jÓ¶*ã²^C²s®0ƒ²n3®Â7¶VĞƒªŞàƒ¶n²vƒ²NÃ² ƒ²V+®*Pƒ¶fS®¦Ğ¡$ƒ²®.Ğƒ®NÄ§²vĞƒ²‚®Ú ƒ®æƒ²‚àƒ²z#²^#®.¸4(€€¼¼ƒ²^³ªâÀ£²VÄƒ²‚²^´AÉ½Ù¥‘•È¤ƒ¶VpƒªÎÏ²^@ƒ®FC®¦Ğƒ¶fS®¦Ó®#®.ƒ®ÂÃ²ƒ¶Vc®*Pƒ²’G®Î×²vĞƒ²^®.¸ƒ²vÓ®¾àƒ².ƒ²ƒ¶Vpƒ²*“®²ß²vĞƒ²z#²ró®¦Ğ4(€€¼¼İ…ÉµMÕ‰ÍÉ¥ÁÑ¥½¹M¹…ÁÍ¡½Ñ=¹¹ÑÉçªÂ ƒ²†ÃªâÀƒ®Âc¶fc¶Vc®¾®†pƒ².“²‚pƒ²jS²Ê·²v QQ3®.ä€Ç¶j3®.¸4(€€¼¼‰¥±±¥¹œµ±¥•¹Ğ½…ÕÑ µÍÑ½É—®*Pƒ®>g²‚¥µÁ½ÉÓ®†s®0ƒ²Âã²†Ã¶Vs®.ƒŠPƒ®£¶*àƒ®‚#²vÓ²V²nƒ®Ê#®N“²vƒ¶
+“²jÃ² ƒ²V+ªâÀƒ²r¶VÓ²s®.¸4(€ÕÍ•™™•Ğ  ¤€ôøì4(€€€¥˜€¡ÑåÁ•½˜İ¥¹‘½Ü€ôôô€‰Õ¹‘•™¥¹•ˆ¤É•ÑÕÉ¸ì4(€€€±•Ğ…¹•±±•€ô™…±Í”ì4(€€€±•ĞÕ¹ÍÕ‰ÍÉ¥‰”è€  ¤€ôøÙ½¥¤ğ¹Õ±°€ô¹Õ±°ì4(€€€±•Ğ¥‘±•!…¹‘±”è¹Õµ‰•Èğ¹Õ±°€ô¹Õ±°ì4(4(€€€½¹ÍĞİ…Éµ%™ÕÑ¡•¹Ñ¥…Ñ•€ô…Íå¹Œ€ ¤€ôøì4(€€€€€¥˜€¡…¹•±±•¤É•ÑÕÉ¸ì4(€€€€€ÑÉäì4(€€€€€€€½¹ÍĞì•ÑÕÑ¡MÑ…Ñ”ô€ô…İ…¥Ğ¥µÁ½ÉĞ ˆ¸¸½}±¥ˆ½…ÕÑ µÍÑ½É”ˆ¤ì4(€€€€€€€¥˜€¡…¹•±±•ñğ€…•ÑÕÑ¡MÑ…Ñ” ¤¹¥ÍÕÑ¡•¹Ñ¥…Ñ•¤É•ÑÕÉ¸ì4(€€€€€€€½¹ÍĞìİ…ÉµMÕ‰ÍÉ¥ÁÑ¥½¹M¹…ÁÍ¡½Ñ=¹¹ÑÉäô€ô…İ…¥Ğ¥µÁ½ÉĞ ˆ¸¸½}±¥ˆ½‰¥±±¥¹œµ±¥•¹Ğˆ¤ì4(€€€€€€€¥˜€ ……¹•±±•¤Ù½¥İ…ÉµMÕ‰ÍÉ¥ÁÑ¥½¹M¹…ÁÍ¡½Ñ=¹¹ÑÉä ¤ì4(€€€€€ô…Ñ ì4(€€€€€€€€¼¼ƒ²n3®Â4ƒ².“¶2£®*Pƒ®²Ó².s¶Vs®.ƒŠPƒ²Ê¬ƒ²rƒ®0ƒ²V‡²c²vĞƒ²Š²‚®2®†pƒ²s®Êƒ¶2C²‚W²ró®†pƒ¶>Ó®ÂÇ¶Vs®.¸4(€€€€€ô4(€€€ôì4(4(€€€€¼¼ƒ²Ös²Ò ƒ²²zƒ².s²‚C²^Pƒ²vã²šw²vĞƒ²V²ƒ¶Vc²vÓ®Ns®‚#²vÓ²`ƒ²‚²vğƒ²"`ƒ²z#²ZĞ°ƒ²vã²štƒ²¶pƒ®Î¶fS²^C®>ƒ¶Vpƒ®Ê ƒ®6Pƒ².s®>¶Vs®.¸4(€€€Ù½¥İ…Éµ%™ÕÑ¡•¹Ñ¥…Ñ• ¤ì4(€€€Ù½¥€¡…Íå¹Œ€ ¤€ôøì4(€€€€€ÑÉäì4(€€€€€€€½¹ÍĞìÍÕ‰ÍÉ¥‰•ÕÑ ô€ô…İ…¥Ğ¥µÁ½ÉĞ ˆ¸¸½}±¥ˆ½…ÕÑ µÍÑ½É”ˆ¤ì4(€€€€€€€¥˜€¡…¹•±±•¤É•ÑÕÉ¸ì4(€€€€€€€Õ¹ÍÕ‰ÍÉ¥‰”€ôÍÕ‰ÍÉ¥‰•ÕÑ   ¤€ôøìÙ½¥İ…Éµ%™ÕÑ¡•¹Ñ¥…Ñ• ¤ìô¤ì4(€€€€€ô…Ñ ì4(€€€€€€€€¼¼ƒªÖ³®>ƒ².“¶2 ƒ².s²^Pƒ²r€Ç¶j0ƒ².s®>®3²ró®†pƒ®FS®.¸4(€€€€€ô4(€€€ô¤ ¤ì4(4(€€€€¼¼ƒÂ~RĞƒ®3®3®–ğƒ®¦S²jÃ®*Pƒ²z³²n3®Â4¸ƒ²vÓ²j§ªÚ0ƒ®¾ã®ÎÓ²r€ƒ²*“®²ÜQQ3²v €ØÃ²Ò £®ÎÓ²rƒ²zC®*P€×®Ú§²vã®6Àƒ²b#²^Ó²vĞƒ²²z€Ç¶j3®şC²vÓ®vğ°4(€€€€¼¼€Ç®Úƒ®cªÊ0ƒ²v÷®.“ªÂ ƒ®"®–Ó®*Pƒ²
+³²j§²zC®*Pƒ®“®Ê ƒ²s®Êƒ²fW®ÎÔ€¬ƒªŞãªÊ0ƒ®*C®š³®¦Ğ€‹ªÊÃ²‚pƒ²Êc®š°ƒ²’Dˆƒ¶fS®¦Óªæ3² ƒªÂS®.¸4(€€€€¼¼ƒ®*C®šÀƒªÊ÷®†sªÂ ƒ®¾ã®ÎÓ²rƒ²z@ƒ²‚²j§²vÓ²^#®6`ƒ²vÓ²rƒªÂ ƒ²vĞQQ0ƒ®æ®2²æ·²vÓ®.¸ƒ²‚W²‚ƒ²ã²vĞ€ŒÄÈç²^C²pƒªÂg²v ƒ®²ã²‚s®–ğ4(€€€€¼¼ƒ²rƒ¶rĞ¯²vc®>¡Á½¥¹Ñ•É‘½İ¸¤ƒ²b#²^Ó®†pƒ¶VÓªÊÃ¶Z#ªÎ€°I•…ĞƒªÊ÷®†s²^C®>ƒªÂg²v ƒ®Â§².w²vƒ®FS®.¸4(€€€€¼¼ƒ² ƒ²ş£®.“²jÓ
+ß² ‘•‘ÕÃ²vƒ®3®N“² ƒ²V+®*S®.ƒŠPİ…ÉµMÕ‰ÍÉ¥ÁÑ¥½¹M¹…ÁÍ¡½Ñ=¹¹ÑÉçªÂ ƒ².ƒ²ƒ¶Vpƒ²*“®²ß²vĞƒ²z#²ró®¦Ğ4(€€€€¼¼ƒ²†ÃªâÀƒ®Âc¶fc¶VcªÎ€¥¸µ™±¥¡Ğƒ²’G®Î×®>ƒ²*“²*“®†pƒ®'²ró®¾®†p°ƒ².“²‚pƒ²jS²Ê·²v €Ÿ®3®3®BC²vƒ®V3®0œƒ®
+cªÂ®.£²zCªâÃ²‚s¶Vs²‚¤¸4(€€€€¼¼QQ0ƒ²zC²ÊÓ®*Pƒ®*c®š³² ƒ²V+®*S®.èƒ²vÓ²j§ªÚ0ƒªÖ³®ƒ²¶nƒ®²Ó¶j£¶fPƒ¶n²vĞƒ²^²ZĞƒ®*c®š³®¦Ğƒ®Â§ªâ ƒ²
+Àƒ²
+³²j§²zCªÂ €Ÿ®¾ã®ÎÓ²r€Ÿ®†pƒ®
+£®*S®.¸4(€€€½¹ÍĞİ…Éµ=¹%¹Ñ•¹Ğ€ô€ ¤€ôøìÙ½¥İ…Éµ%™ÕÑ¡•¹Ñ¥…Ñ• ¤ìôì4(€€€½¹ÍĞ¥‘±•]¥¹‘½Ü€ôİ¥¹‘½Ü…Ì]¥¹‘½Ü€˜ì4(€€€€€É•ÅÕ•ÍÑ%‘±•…±±‰…¬üè€¡ˆè€ ¤€ôøÙ½¥°½ÁÑÌüèìÑ¥µ•½ÕĞüè¹Õµ‰•Èô¤€ôø¹Õµ‰•Èì4(€€€€€…¹•±%‘±•…±±‰…¬üè€¡¡…¹‘±”è¹Õµ‰•È¤€ôøÙ½¥ì4(€€€ôì4(€€€¥˜€¡ÑåÁ•½˜¥‘±•]¥¹‘½Ü¹É•ÅÕ•ÍÑ%‘±•…±±‰…¬€ôôô€‰™Õ¹Ñ¥½¸ˆ¤ì4(€€€€€¥‘±•!…¹‘±”€ô¥‘±•]¥¹‘½Ü¹É•ÅÕ•ÍÑ%‘±•…±±‰…¬¡İ…Éµ=¹%¹Ñ•¹Ğ°ìÑ¥µ•½ÕĞè€ĞÀÀÀô¤ì4(€€€ô4(4(€€€É•ÑÕÉ¸€ ¤€ôøì4(€€€€€…¹•±±•€ôÑÉÕ”ì4(€€€€€¥˜€¡Õ¹ÍÕ‰ÍÉ¥‰”¤Õ¹ÍÕ‰ÍÉ¥‰” ¤ì4(€€€€€¥˜€¡¥‘±•!…¹‘±”€„ôô¹Õ±°€˜˜ÑåÁ•½˜¥‘±•]¥¹‘½Ü¹…¹•±%‘±•…±±‰…¬€ôôô€‰™Õ¹Ñ¥½¸ˆ¤ì4(€€€€€€€¥‘±•]¥¹‘½Ü¹…¹•±%‘±•…±±‰…¬¡¥‘±•!…¹‘±”¤ì4(€€€€€ô4(€€€ôì4(€ô°mt¤ì4(4(€½¹ÍĞÍ•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ€ôÕÍ•…±±‰…¬ ¡Ù…É¥…¹ĞèA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¤€ôøì4(€€€ÁÉ½•ÍÍ¥¹Y…É¥…¹ÑI•˜¹ÕÉÉ•¹Ğ€ôÙ…É¥…¹Ğì4(€€€Í•ÑAÉ½•ÍÍ¥¹Y…É¥…¹Ğ¡Ù…É¥…¹Ğ¤ì4(€ô°mt¤ì4(4(€½¹ÍĞ±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È€ôÕÍ•…±±‰…¬  ¤€ôøì4(€€€¥˜€¡½µÁ±•Ñ¥½¹±½Í•Q¥µ•ÉI•˜¹ÕÉÉ•¹Ğ¤ì4(€€€€€±•…ÉQ¥µ•½ÕĞ¡½µÁ±•Ñ¥½¹±½Í•Q¥µ•ÉI•˜¹ÕÉÉ•¹Ğ¤ì4(€€€€€½µÁ±•Ñ¥½¹±½Í•Q¥µ•ÉI•˜¹ÕÉÉ•¹Ğ€ô¹Õ±°ì4(€€€ô4(€ô°mt¤ì4(4(€½¹ÍĞ±½Í•AÉ½•ÍÍ¥¹9½Ü€ôÕÍ•…±±‰…¬  ¤€ôøì4(€€€±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È ¤ì4(€€€½Ù•É±…åMÑ…Ñ•I•˜¹ÕÉÉ•¹Ğ€ôì½Á•¸è™…±Í”°µ•ÍÍ…”è€ˆˆ°µ½‘”è€ˆˆôì4(€€€Í•Ñ%ÍAÉ½•ÍÍ¥¹œ¡™…±Í”¤ì4(€€€Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ ‰Á…åµ•¹Ğˆ¤ì4(€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…•MÑ…Ñ”¡U1Q}AI=MM%9}5MM¤ì4(€€€Í•ÑAÉ½•ÍÍ¥¹Ñ¥½¸¡¹Õ±°¤ì4(€ô°m±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È°Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ñt¤ì4(4(€½¹ÍĞÍÑ…ÉÑAÉ½•ÍÍ¥¹œ€ôÕÍ•…±±‰…¬ ¡µ•ÍÍ…”üèÍÑÉ¥¹œ°Ù…É¥…¹ĞüèA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¤€ôøì4(€€€±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È ¤ì4(€€€¥˜€¡ÑåÁ•½˜µ•ÍÍ…”€ôôô€‰ÍÑÉ¥¹œˆ€˜˜µ•ÍÍ…”¹ÑÉ¥´ ¤¤ì4(€€€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…•MÑ…Ñ”¡µ•ÍÍ…”¤ì4(€€€ô4(€€€Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¡Ù…É¥…¹ĞñğÉ•Í½±Ù•A…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¡µ•ÍÍ…”¤¤ì4(€€€Í•Ñ%ÍAÉ½•ÍÍ¥¹œ¡ÑÉÕ”¤ì4(€ô°m±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È°Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ñt¤ì4(4(€½¹ÍĞÍÑ½ÁAÉ½•ÍÍ¥¹œ€ôÕÍ•…±±‰…¬  ¤€ôøì4(€€€¥˜€¡¥ÍA…åµ•¹Ñ½µÁ±•Ñ¥½¹Y…É¥…¹Ğ¡ÁÉ½•ÍÍ¥¹Y…É¥…¹ÑI•˜¹ÕÉÉ•¹Ğ¤€˜˜ÑåÁ•½˜İ¥¹‘½Ü€„ôô€‰Õ¹‘•™¥¹•ˆ¤ì4(€€€€€±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È ¤ì4(€€€€€½µÁ±•Ñ¥½¹±½Í•Q¥µ•ÉI•˜¹ÕÉÉ•¹Ğ€ôÍ•ÑQ¥µ•½ÕĞ  ¤€ôøì4(€€€€€€€±½Í•AÉ½•ÍÍ¥¹9½Ü ¤ì4(€€€€€ô°ÁÉ½•ÍÍ¥¹Y…É¥…¹ÑI•˜¹ÕÉÉ•¹Ğ€ôôô€‰Á…ÍÌµ…ÁÁ±¥•ˆ€ü€àÀÀ€è€ÜÀÀ¤ì4(€€€€€É•ÑÕÉ¸ì4(€€€ô4(€€€±½Í•AÉ½•ÍÍ¥¹9½Ü ¤ì4(€ô°m±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È°±½Í•AÉ½•ÍÍ¥¹9½İt¤ì4(4(€½¹ÍĞÍ•ÑAÉ½•ÍÍ¥¹5•ÍÍ…”€ôÕÍ•…±±‰…¬ ¡µ•ÍÍ…”èÍÑÉ¥¹œ¤€ôøì4(€€€¥˜€ …µ•ÍÍ…”ñğ€…µ•ÍÍ…”¹ÑÉ¥´ ¤¤ì4(€€€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…•MÑ…Ñ”¡U1Q}AI=MM%9}5MM¤ì4(€€€€€Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ ‰Á…åµ•¹Ğˆ¤ì4(€€€€€É•ÑÕÉ¸ì4(€€€ô4(€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…•MÑ…Ñ”¡µ•ÍÍ…”¤ì4(€€€Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¡É•Í½±Ù•A…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¡µ•ÍÍ…”¤¤ì4(€ô°mÍ•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ñt¤ì4(4(€ÕÍ•™™•Ğ  ¤€ôøì4(€€€É•ÑÕÉ¸€ ¤€ôø±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È ¤ì4(€ô°m±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•Ét¤ì4(4(€½¹ÍĞ…ÁÁ±åI•…ÑA…åµ•¹Ñ=Ù•É±…ä€ôÕÍ•…±±‰…¬ ¡Í¡½Üè‰½½±•…¸°µ•ÍÍ…”üèÍÑÉ¥¹œ°µ½‘”üèÍÑÉ¥¹œ¤€ôøì4(€€€½¹ÍĞ¹•áÑ5•ÍÍ…”€ôMÑÉ¥¹œ¡µ•ÍÍ…”ñğ€ˆˆ¤¹ÑÉ¥´ ¤ñğU1Q}AI=MM%9}5MMì4(€€€½¹ÍĞ¹•áÑ5½‘”€ôMÑÉ¥¹œ¡µ½‘”ñğ€ˆˆ¤¹ÑÉ¥´ ¤ì4(€€€½¹ÍĞÁÉ•Ù¥½ÕÌ€ô½Ù•É±…åMÑ…Ñ•I•˜¹ÕÉÉ•¹Ğì4(€€€¥˜€¡Í¡½Ü¤ì4(€€€€€€¼¼ƒÂ~RĞƒªÊÃ²‚s²Â÷ªÎğƒ®2ªâÀƒ¶fS®¦Ó²vĞƒªÊç²æc² ƒ²V+ªÊ0ƒ¶Vs®.¸ƒ²ã²v`}‘M•Ñ½¥¹…Ñ•=Ù•É±…äƒ²Ê¬ƒ²’ªÎğƒªÂg²v ƒ¶2C²‚W²vÓ®¦À°4(€€€€€€¼¼ƒ²vĞAÉ½Ù¥‘•ÈƒªÂ ƒªŞàƒ¶V£²"c®–ğƒªÂ#²V²æc²jÃ®*Pƒ¶O²^@ƒ¶2C²‚W²vĞƒ²jÃ¶j3®Bc®6`ƒªÊ²vƒ®Bc²
+Ó®šÀƒªÊ²vÓ®.¸4(€€€€€¥˜€¡¥ÍA…åµ•¹Ñ]…¥ÑU¥	±½­•¡¹•áÑ5½‘”¤¤É•ÑÕÉ¸ì4(€€€€€¥˜€¡ÁÉ•Ù¥½ÕÌ¹½Á•¸€˜˜ÁÉ•Ù¥½ÕÌ¹µ•ÍÍ…”€ôôô¹•áÑ5•ÍÍ…”€˜˜ÁÉ•Ù¥½ÕÌ¹µ½‘”€ôôô¹•áÑ5½‘”¤É•ÑÕÉ¸ì4(€€€€€½Ù•É±…åMÑ…Ñ•I•˜¹ÕÉÉ•¹Ğ€ôì½Á•¸èÑÉÕ”°µ•ÍÍ…”è¹•áÑ5•ÍÍ…”°µ½‘”è¹•áÑ5½‘”ôì4(€€€€€±½Í•MÑ…Ñ¥A…åµ•¹Ñ=Ù•É±…ä ¤ì4(€€€€€±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È ¤ì4(€€€€€½¹ÍĞ¹•áÑY…É¥…¹Ğ€ôÉ•Í½±Ù•A…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¡¹•áÑ5•ÍÍ…”°¹•áÑ5½‘”¤ì4(€€€€€Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ¡¹•áÑY…É¥…¹Ğ¤ì4(€€€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…•MÑ…Ñ”¡¹•áÑ5•ÍÍ…”¤ì4(€€€€€Í•Ñ%ÍAÉ½•ÍÍ¥¹œ¡ÑÉÕ”¤ì4(€€€€€É•ÑÕÉ¸ì4(€€€ô4(€€€¥˜€ …ÁÉ•Ù¥½ÕÌ¹½Á•¸¤ì4(€€€€€±½Í•AÉ½•ÍÍ¥¹9½Ü ¤ì4(€€€€€É•ÑÕÉ¸ì4(€€€ô4(€€€ÍÑ½ÁAÉ½•ÍÍ¥¹œ ¤ì4(€ô°m±•…É½µÁ±•Ñ¥½¹±½Í•Q¥µ•È°±½Í•AÉ½•ÍÍ¥¹9½Ü°Í•ÑA…åµ•¹Ñ1½…‘¥¹Y…É¥…¹Ğ°ÍÑ½ÁAÉ½•ÍÍ¥¹t¤ì4(4(€ÕÍ•™™•Ğ  ¤€ôøì4(€€€¥˜€¡ÑåÁ•½˜İ¥¹‘½Ü€ôôô€‰Õ¹‘•™¥¹•ˆ¤É•ÑÕÉ¸ì4(€€€½¹ÍĞ½Ù•É±…å]¥¹‘½Ü€ôİ¥¹‘½Ü…ÌA…åµ•¹Ñ=Ù•É±…å]¥¹‘½Üì4(€€€½¹ÍĞÁÉ•Ù¥½ÕÍ=Ù•É±…ä€ô½Ù•É±…å]¥¹‘½Ü¹}‘M•Ñ½¥¹…Ñ•=Ù•É±…äì4(€€€½¹ÍĞ½¹A…åµ•¹Ñ1½…‘¥¹MÑ…Ñ”€ô€¡•Ù•¹ĞèÙ•¹Ğ¤€ôøì4(€€€€€½¹ÍĞ‘•Ñ…¥°€ô€¡•Ù•¹Ğ…ÌÕÍÑ½µÙ•¹Ğñì½Á•¸üè‰½½±•…¸ìµ•ÍÍ…”üèÍÑÉ¥¹œìµ½‘”üèÍÑÉ¥¹œôø¤¹‘•Ñ…¥°ñğíôì4(€€€€€…ÁÁ±åI•…ÑA…åµ•¹Ñ=Ù•É±…ä¡	½½±•…¸¡‘•Ñ…¥°¹½Á•¸¤°‘•Ñ…¥°¹µ•ÍÍ…”°‘•Ñ…¥°¹µ½‘”¤ì4(€€€ôì4(€€€½Ù•É±…å]¥¹‘½Ü¹}}}IQ}Ae59Q}=YI1e}=]9I}|€ôÑÉÕ”ì4(€€€±½Í•MÑ…Ñ¥A…åµ•¹Ñ=Ù•É±…ä ¤ì4(€€€½Ù•É±…å]¥¹‘½Ü¹}‘M•Ñ½¥¹…Ñ•=Ù•É±…ä€ô…ÁÁ±åI•…ÑA…åµ•¹Ñ=Ù•É±…äì4(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰éÁ…åµ•¹Ğµ±½…‘¥¹œµÍÑ…Ñ”ˆ°½¹A…åµ•¹Ñ1½…‘¥¹MÑ…Ñ”¤ì4(€€€É•ÑÕÉ¸€ ¤€ôøì4(€€€€€İ¥¹‘½Ü¹É•µ½Ù•Ù•¹Ñ1¥ÍÑ•¹•È ‰éÁ…åµ•¹Ğµ±½…‘¥¹œµÍÑ…Ñ”ˆ°½¹A…åµ•¹Ñ1½…‘¥¹MÑ…Ñ”¤ì4(€€€€€¥˜€¡½Ù•É±…å]¥¹‘½Ü¹}‘M•Ñ½¥¹…Ñ•=Ù•É±…ä€ôôô…ÁÁ±åI•…ÑA…åµ•¹Ñ=Ù•É±…ä¤ì4(€€€€€€€½Ù•É±…å]¥¹‘½Ü¹}‘M•Ñ½¥¹…Ñ•=Ù•É±…ä€ôÁÉ•Ù¥½ÕÍ=Ù•É±…äì4(€€€€€ô4(€€€€€¥˜€¡½Ù•É±…å]¥¹‘½Ü¹}}}IQ}Ae59Q}=YI1e}=]9I}|¤ì4(€€€€€€€‘•±•Ñ”½Ù•É±…å]¥¹‘½Ü¹}}}IQ}Ae59Q}=YI1e}=]9I}|ì4(€€€€€ô4(€€€ôì4(€ô°m…ÁÁ±åI•…ÑA…åµ•¹Ñ=Ù•É±…åt¤ì4(4(€ÕÍ•™™•Ğ  ¤€ôøì4(€€€¥˜€¡ÑåÁ•½˜İ¥¹‘½Ü€ôôô€‰Õ¹‘•™¥¹•ˆ¤É•ÑÕÉ¸ì4(4(€€€½¹ÍĞÉÕ¹Ñ¥µ•]¥¹‘½Ü€ôİ¥¹‘½Ü…ÌÕ¹­¹½İ¸…ÌI•½ÉñÍÑÉ¥¹œ°Õ¹­¹½İ¸øì4(€€€ÉÕ¹Ñ¥µ•]¥¹‘½Ü¹}}}Ae59Q}AI=MM%9}|€ô¥ÍAÉ½•ÍÍ¥¹œì4(4(€€€¥˜€¡‘½Õµ•¹Ğü¹‰½‘ä¤ì4(€€€€€¥˜€¡¥ÍAÉ½•ÍÍ¥¹œ¤ì4(€€€€€€€‘½Õµ•¹Ğ¹‰½‘ä¹‘…Ñ…Í•Ğ¹‘Y•ÉÍ¥½¹Õ…É‘	ÕÍä€ô€ˆÄˆì4(€€€€€ô•±Í”ì4(€€€€€€€‘•±•Ñ”‘½Õµ•¹Ğ¹‰½‘ä¹‘…Ñ…Í•Ğ¹‘Y•ÉÍ¥½¹Õ…É‘	ÕÍäì4(€€€€€ô4(€€€ô4(4(€€€İ¥¹‘½Ü¹‘¥ÍÁ…Ñ¡Ù•¹Ğ¡¹•ÜÕÍÑ½µÙ•¹Ğ ‰éÉ¥Ñ¥…°µ½Á•É…Ñ¥½¸µÍÑ…Ñ”ˆ°ì4(€€€€€‘•Ñ…¥°èì4(€€€€€€€¥ÍA…åµ•¹ÑAÉ½•ÍÍ¥¹œè¥ÍAÉ½•ÍÍ¥¹œ°4(€€€€€ô°4(€€€ô¤¤ì4(4(€€€É•ÑÕÉ¸€ ¤€ôøì4(€€€€€ÉÕ¹Ñ¥µ•]¥¹‘½Ü¹}}}Ae59Q}AI=MM%9}|€ô™…±Í”ì4(€€€€€¥˜€¡‘½Õµ•¹Ğü¹‰½‘ä¤ì4(€€€€€€€‘•±•Ñ”‘½Õµ•¹Ğ¹‰½‘ä¹‘…Ñ…Í•Ğ¹‘Y•ÉÍ¥½¹Õ…É‘	ÕÍäì4(€€€€€ô4(€€€ôì4(€ô°m¥ÍAÉ½•ÍÍ¥¹t¤ì4(4(€ÕÍ•™™•Ğ  ¤€ôøì4(€€€¥˜€ …¥ÍAÉ½•ÍÍ¥¹œñğÑåÁ•½˜İ¥¹‘½Ü€ôôô€‰Õ¹‘•™¥¹•ˆ¤É•ÑÕÉ¸ì4(4(€€€½¹ÍĞ¡…¹‘±•	•™½É•U¹±½…€ô€¡•Ù•¹Ğè	•™½É•U¹±½…‘Ù•¹Ğ¤€ôøì4(€€€€€€¼¼A¡A½ÉÑ=¹”§®*Pƒ®ª£®ÂS²vó²^C²pƒªÊÃ²‚s®–ğƒ²²rƒ¶R®‚#²zƒ®š³®.“²vÓ®‚'¶*ã®†pƒ²Êc®š³¶Vs®.ƒŠPƒªŞãªÆĞƒ²vc®>®Bpƒ²vÓ®>g²vÓ®¾®†p4(€€€€€€¼¼ƒ®'²ró®¦Ğ€‹²
+³²vÓ¶*ã®–ğƒ®
+cªÂ².sªÊƒ²*×®.#ªæ0ü‹ªÂ ƒ®r£ªÆÃ®
+`ƒ²vÓ®>dƒ²zC²ÊÓªÂ ƒ²Ş£²3®Bc²ZĞƒªÊÃ²‚s²Â÷²vĞƒ²V ƒ²^Ó®šÀƒªÊ²Êc®~ğƒ®ÎÓ²vã®.¸4(€€€€€€¼¼ƒªÊÃ²‚pƒ®~Ã¶²z²vĞÉ•ÅÕ•ÍÑA…åµ•¹Ğƒ²²‚²^@ƒ²vĞƒ¶R3®zcªŞã®–ğƒ²ã²jÓ®.¸¥ÍAÉ½•ÍÍ¥¹œƒ²vĞ™…±Í”ƒ®†p™±ÕÍ ƒ®Bc®*P4(€€€€€€¼¼ƒ¶²vÓ®Â7²^@ƒ²vc²†Ó¶Vc² ƒ²V+²ró®‚“ªÎ€ƒ®Î®>ƒ¶R3®zcªŞã®–ğƒ²NÓ®.¸4(€€€€€¥˜€ ¡İ¥¹‘½Ü…ÌÕ¹­¹½İ¸…Ìì}}‘MÕÁÁÉ•ÍÍA…åµ•¹ÑU¹±½…‘	±½¬üè‰½½±•…¸ô¤¹}}‘MÕÁÁÉ•ÍÍA…åµ•¹ÑU¹±½…‘	±½¬€ôôôÑÉÕ”¤É•ÑÕÉ¸ì4(€€€€€•Ù•¹Ğ¹ÁÉ•Ù•¹Ñ•™…Õ±Ğ ¤ì4(€€€€€•Ù•¹Ğ¹É•ÑÕÉ¹Y…±Õ”€ô€ˆˆì4(€€€ôì4(4(€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰‰•™½É•Õ¹±½…ˆ°¡…¹‘±•	•™½É•U¹±½…¤ì4(€€€É•ÑÕÉ¸€ ¤€ôøì4(€€€€€İ¥¹‘½Ü¹É•µ½Ù•Ù•¹Ñ1¥ÍÑ•¹•È ‰‰•™½É•Õ¹±½…ˆ°¡…¹‘±•	•™½É•U¹±½…¤ì4(€€€ôì4(€ô°m¥ÍAÉ½•ÍÍ¥¹t¤ì4(4(€½¹ÍĞÙ…±Õ”€ôÕÍ•5•µ¼ 4(€€€€ ¤€ôø€¡ì4(€€€€€¥ÍAÉ½•ÍÍ¥¹œ°4(€€€€€¥ÍA…åµ•¹Ñ1½…‘¥¹œè¥ÍAÉ½•ÍÍ¥¹œ°4(€€€€€ÁÉ½•ÍÍ¥¹5•ÍÍ…”°4(€€€€€ÍÑ…ÉÑAÉ½•ÍÍ¥¹œ°4(€€€€€ÍÑ½ÁAÉ½•ÍÍ¥¹œ°4(€€€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…”°4(€€€€€Í•ÑAÉ½•ÍÍ¥¹Ñ¥½¸°4(€€€€€ÍÑ…ÉÑA…åµ•¹ĞèÍÑ…ÉÑAÉ½•ÍÍ¥¹œ°4(€€€€€•¹‘A…åµ•¹ĞèÍÑ½ÁAÉ½•ÍÍ¥¹œ°4(€€€€€Í•ÑA…åµ•¹Ñ5•ÍÍ…”èÍ•ÑAÉ½•ÍÍ¥¹5•ÍÍ…”°4(€€€ô¤°4(€€€l4(€€€€€¥ÍAÉ½•ÍÍ¥¹œ°4(€€€€€ÁÉ½•ÍÍ¥¹5•ÍÍ…”°4(€€€€€ÍÑ…ÉÑAÉ½•ÍÍ¥¹œ°4(€€€€€ÍÑ½ÁAÉ½•ÍÍ¥¹œ°4(€€€€€Í•ÑAÉ½•ÍÍ¥¹5•ÍÍ…”°4(€€€€€Í•ÑAÉ½•ÍÍ¥¹Ñ¥½¸°4(€€€t°4(€€¤ì4(4(€É•ÑÕÉ¸€ 4(€€€€ñA…åµ•¹ÑAÉ½•ÍÍ¥¹½¹Ñ•áĞ¹AÉ½Ù¥‘•ÈÙ…±Õ”õíÙ…±Õ•ôø4(€€€€€€ñA…¥‘•…ÑÕÉ•…Ñ•AÉ½Ù¥‘•Èø4(€€€€€€€í¡¥±‘É•¹ô4(€€€€€€€í¥ÍAÉ½•ÍÍ¥¹œ€ü€ 4(€€€€€€€€€€ñ•™•ÉÉ•‘A…åµ•¹ÑAÉ½•ÍÍ¥¹=Ù•É±…ä4(€€€€€€€€€€€½Á•¸4(€€€€€€€€€€€Ù…É¥…¹ĞõíÁÉ½•ÍÍ¥¹Y…É¥…¹Ñô4(€€€€€€€€€€€ÍÑ…”õíÉ•Í½±Ù•A…åµ•¹Ñ1½…‘¥¹MÑ…”¡ÁÉ½•ÍÍ¥¹Y…É¥…¹Ğ°ÁÉ½•ÍÍ¥¹5•ÍÍ…”¥ô4(€€€€€€€€€€€Á…åµ•¹ÑQåÁ”õíÉ•Í½±Ù•A…åµ•¹Ñ1½…‘¥¹QåÁ”¡ÁÉ½•ÍÍ¥¹Y…É¥…¹Ğ°ÁÉ½•ÍÍ¥¹5•ÍÍ…”¥ô4(€€€€€€€€€€€ÍÑ…ÑÕÍ5•ÍÍ…”õíÁÉ½•ÍÍ¥¹5•ÍÍ…•ô4(€€€€€€€€€€€…Ñ¥½¹1…‰•°õíÁÉ½•ÍÍ¥¹Ñ¥½¸ü¹±…‰•±ô4(€€€€€€€€€€€½¹Ñ¥½¸õíÁÉ½•ÍÍ¥¹Ñ¥½¸ü¹½¹±¥­ô4(€€€€€€€€€€¼ø4(€€€€€€€€¤€è¹Õ±±ô4(€€€€€€ğ½A…¥‘•…ÑÕÉ•…Ñ•AÉ½Ù¥‘•Èø4(€€€€ğ½A…åµ•¹ÑAÉ½•ÍÍ¥¹½¹Ñ•áĞ¹AÉ½Ù¥‘•Èø4(€€¤ì4)ô4(4)•áÁ½ÉĞ™Õ¹Ñ¥½¸ÕÍ•A…åµ•¹ÑAÉ½•ÍÍ¥¹œ ¤ì4(€½¹ÍĞ½¹Ñ•áĞ€ôÕÍ•½¹Ñ•áĞ¡A…åµ•¹ÑAÉ½•ÍÍ¥¹½¹Ñ•áĞ¤ì4(€¥˜€ …½¹Ñ•áĞ¤ì4(€€€Ñ¡É½Ü¹•ÜÉÉ½È ‰ÕÍ•A…åµ•¹ÑAÉ½•ÍÍ¥¹œµÕÍĞ‰”ÕÍ•İ¥Ñ¡¥¸A…åµ•¹ÑAÉ½•ÍÍ¥¹AÉ½Ù¥‘•Èˆ¤ì4(€ô4(€É•ÑÕÉ¸½¹Ñ•áĞì4)ô4(4)•áÁ½ÉĞ½¹ÍĞÕÍ•A…åµ•¹Ğ€ôÕÍ•A…åµ•¹ÑAÉ½•ÍÍ¥¹œì4(4)•áÁ½ÉĞ™Õ¹Ñ¥½¸ÕÍ•A…¥‘•…ÑÕÉ•…Ñ” ¤ì4(€½¹ÍĞ½¹Ñ•áĞ€ôÕÍ•½¹Ñ•áĞ¡A…¥‘•…ÑÕÉ•…Ñ•½¹Ñ•áĞ¤ì4(€¥˜€ …½¹Ñ•áĞ¤ì4(€€€Ñ¡É½Ü¹•ÜÉÉ½È ‰ÕÍ•A…¥‘•…ÑÕÉ•…Ñ”µÕÍĞ‰”ÕÍ•İ¥Ñ¡¥¸A…¥‘•…ÑÕÉ•…Ñ•AÉ½Ù¥‘•Èˆ¤ì4(€ô4(€É•ÑÕÉ¸½¹Ñ•áĞì4)ô4
