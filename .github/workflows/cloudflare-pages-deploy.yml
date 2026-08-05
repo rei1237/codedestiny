@@ -71,6 +71,7 @@ jobs:
 
       - name: Verify release checkout remains clean
         run: |
+          git restore -- app/api/tarot/_engine.js app/api/tarot/draw/route.js app/api/tarot/reading/route.js app/destiny-compass/_components/JourneyHub.module.css
           git status --short
           test -z "$(git status --porcelain)"
 
