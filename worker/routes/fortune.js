@@ -5881,14 +5881,15 @@ async function handleGuardianFortuneUsageRoute(request, env, trace) {
   const auth = await resolveGuardianFortuneOptionalAuth(request, env);
   trace.authVerified = Boolean(auth);
   const identity = await resolveGuardianFortuneIdentity(request, env, auth);
-  await connectDb(env);
-  trace.dbConnected = true;
   const store = createMongoGuardianFortuneStore({ env });
-  const status = await buildGuardianFortuneUsageStatus({
-    userId: identity.userId,
-    guestIdHash: identity.guestIdHash,
-    dateKey: getGuardianFortuneDateKey(new Date()),
-    store,
+  const status = await withMongoRetry(env, async () => {
+    trace.dbConnected = true;
+    return buildGuardianFortuneUsageStatus({
+      userId: identity.userId,
+      guestIdHash: identity.guestIdHash,
+      dateKey: getGuardianFortuneDateKey(new Date()),
+      store,
+    });
   });
   return guardianFortuneRouteResponse({ ok: true, ...status }, { cookie: identity.cookie });
 }

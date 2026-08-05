@@ -31,13 +31,16 @@ test('guardian fortune opens from a compact native destiny gate without changing
   const html = read('index.html');
   const gateway = read('js/fortune-gateway.js');
   const css = read('styles/fortune-gateway.css');
+  const guardianCss = read('styles/guardian-fortune.css');
 
   assert.match(html, /id="fortuneGatewayEntry"/);
   assert.match(html, /id="fortuneGatewayDialog"/);
   assert.match(html, /<dialog class="fortune-gateway__dialog"/);
   assert.match(html, /flower-pig-honey-hug\.webp/);
-  assert.match(html, /flower-pig-f16\.webp/);
+  assert.match(guardianCss, /flower-pig-f16\.webp/);
   assert.match(html, /href="\/fusion-fortune"/);
+  assert.match(html, /fortune-gateway__path-note[^>]*>비로그인 1회 무료 · 로그인하면 하루 3회 무료<\/p>/);
+  assert.match(html, /fortune-gateway__path-note[^>]*>무료 상담은 오늘의 귀인: 비로그인 1회 · 로그인 시 하루 3회 \/ 초융합은 별도 단건 결제<\/p>/);
   assert.match(html, /fortune-gateway\.css/);
   assert.match(html, /fortune-gateway\.js/);
   assert.match(gateway, /showModal/);
@@ -70,7 +73,7 @@ test('guardian fortune prototype exposes all six topics and verified local webp 
   assert.match(home, /CDGuardianFortuneMock/);
   assert.match(mock, /flower-pig-honey-hug\.webp/);
   assert.match(mock, /neo-operation-room\/sprites\/transparent\/neo-transparent-s1-f01\.webp/);
-  assert.match(mock, /팩폭 전략실 네오가 시크하게 짚어줘요/);
+  assert.match(mock, /네오의 행운 상담소/);
   assert.match(mock, /네오 모드의 팩폭 전략실 인간형 캐릭터/);
   assert.match(home, /NEO_HUMAN_SPRITE_SRC/);
   assert.match(home, /NEO STRATEGY ROOM/);
@@ -147,6 +150,27 @@ test('guardian fortune prototype includes mobile and reduced-motion rules', () =
   assert.match(css, /guardian-button-yeoni\.webp/);
   assert.match(css, /guardian-button-neo\.webp/);
   assert.match(css, /prefers-reduced-motion: no-preference/);
+});
+
+test('guardian fortune result presents both readings as a horizontal novel reader', () => {
+  const html = read('index.html');
+  const home = read('js/guardian-fortune-home.js');
+  const mock = read('js/guardian-fortune-mock.js');
+  const css = read('styles/guardian-fortune.css');
+
+  assert.match(html, /data-guardian-result-pages/);
+  assert.match(html, /data-result-page-button="fortune"/);
+  assert.match(html, /data-result-page-button="fusion"/);
+  assert.match(html, /data-fusion-summary/);
+  assert.match(html, /data-guardian-cta-action="fusion"/);
+  assert.match(home, /function setResultPage/);
+  assert.match(home, /function bindResultPageButtons/);
+  assert.match(home, /data-fusion-opening/);
+  assert.match(mock, /꽃돼지 연이의 행운 상담소/);
+  assert.match(mock, /네오의 행운 상담소/);
+  assert.match(mock, /fusion:\s*\{/);
+  assert.match(css, /scroll-snap-type:\s*x mandatory/);
+  assert.match(css, /guardian-fortune__novel-scroll/);
 });
 
 test('guardian fortune hero uses one active mascot per mode with local webp sprite assets', () => {

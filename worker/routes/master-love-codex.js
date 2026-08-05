@@ -570,6 +570,58 @@ function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
   };
 }
 
+/**
+ * New reports may carry an editorial reading contract alongside their legacy
+ * markdown body.  Keep every field optional: previously purchased reports and
+ * safe fallbacks only have `body` and must remain readable forever.
+ */
+function normalizeChapterContent(parsed, fallbackBody = "") {
+  const source = asObject(parsed);
+  const text = (value, limit) => clean(value, limit);
+  const list = (value, limit, max = 4) => (Array.isArray(value) ? value : [])
+    .map((item) => text(item, limit))
+    .filter(Boolean)
+    .slice(0, max);
+  const evidence = (Array.isArray(source.evidence) ? source.evidence : [])
+    .map((item) => {
+      const entry = asObject(item);
+      const label = text(entry.label, 60);
+      if (!label) return null;
+      return {
+        label,
+        system: text(entry.system, 32),
+        explanation: text(entry.explanation, 180),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+  const visualization = asObject(source.visualization);
+  const visualizationItems = (Array.isArray(visualization.items) ? visualization.items : [])
+    .map((item) => {
+      const entry = asObject(item);
+      const label = text(entry.label, 48);
+      const level = ["low", "balanced", "high", "watch", "opportunity"].includes(text(entry.level, 16))
+        ? text(entry.level, 16) : "";
+      return label && level ? { label, level, note: text(entry.note, 100) } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+  const body = text(source.body, 12000) || text(fallbackBody, 12000);
+  return {
+    narration: text(source.narration, 520),
+    evidence,
+    insight: text(source.insight, 1200),
+    keySentence: text(source.keySentence, 320),
+    caution: text(source.caution, 900),
+    actions: list(source.actions, 240, 3),
+    bridge: text(source.bridge, 360),
+    visualization: visualizationItems.length
+      ? { kind: text(visualization.kind, 32), title: text(visualization.title, 80), items: visualizationItems }
+      : null,
+    body,
+  };
+}
+
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
   birthInfo, partnerInfo, chapter, prologueChoice, memory, deadlineAt = Infinity,
@@ -589,7 +641,7 @@ async function generateChapter(env, {
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory });
   const cache = chapterCache(env, modeDef.mode);
   try {
-    if (chapter.jsonMode) {
+    if (chapter.structured !== false) {
       // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
       const raced = await withDeadline(callGeminiJsonWithRetry(env, prompt, {
         attempts: 2,
@@ -603,12 +655,13 @@ async function generateChapter(env, {
       if (raced.error) throw raced.error;
       const ai = raced.value;
       const parsed = parseChapterJson(ai?.text);
-      const body = clean(parsed?.body || "");
+      const content = normalizeChapterContent(parsed);
+      const body = content.body;
       if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
       return {
         status: "ok",
-        chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
-        loveDna: normalizeLoveDna(parsed, modeDef.dnaMetrics),
+        chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, content, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
+        loveDna: chapter.jsonMode ? normalizeLoveDna(parsed, modeDef.dnaMetrics) : null,
       };
     }
 
@@ -668,7 +721,7 @@ function publicSession(doc) {
   const chapters = (Array.isArray(doc?.chapters) ? doc.chapters : [])
     .slice()
     .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
-    .map(({ id, order, symbol, title, body, chars, ok }) => ({ id, order, symbol, title, body, chars, ok }));
+    .map(({ id, order, symbol, title, body, content, chars, ok }) => ({ id, order, symbol, title, body, content, chars, ok }));
   const modeDef = resolveMode(doc?.mode);
   return {
     ok: true,
