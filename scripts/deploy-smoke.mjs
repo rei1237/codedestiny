@@ -12,6 +12,7 @@ function valueAfter(name) {
 }
 const base = (valueAfter("--base") || process.env.CD_SMOKE_BASE || "").replace(/\/+$/, "");
 const apiOrigin = (valueAfter("--api-origin") || process.env.CD_SMOKE_API_ORIGIN || base).replace(/\/+$/, "");
+const skipApi = process.argv.includes("--skip-api");
 if (!/^https?:\/\//i.test(base)) throw new Error("Smoke base must be an absolute HTTP(S) URL.");
 
 const failures = [];
@@ -110,14 +111,16 @@ async function checkPages() {
   await browser.close();
 }
 
-await Promise.all([
-  checkApi("/api/health"),
-  checkApi("/api/version"),
-  checkApi("/api/me/access-state"),
-  checkApi("/api/subscription/status"),
-  checkApi("/api/profile"),
-  checkApi("/api/__deploy_safe_missing__"),
-]);
+if (!skipApi) {
+  await Promise.all([
+    checkApi("/api/health"),
+    checkApi("/api/version"),
+    checkApi("/api/me/access-state"),
+    checkApi("/api/subscription/status"),
+    checkApi("/api/profile"),
+    checkApi("/api/__deploy_safe_missing__"),
+  ]);
+}
 try {
   await checkPages();
 } catch (error) {
@@ -135,6 +138,6 @@ if (failures.length) {
 }
 console.log("[deploy-smoke] PASS base=" + base);
 console.log("- routes: home, login, profile, fortune, mobile app, store, lock screen");
-console.log("- APIs: health, version, access/subscription/profile guest boundary, 5xx/503 probe");
+console.log(skipApi ? "- APIs: skipped because this Pages preview has no Worker preview origin" : "- APIs: health, version, access/subscription/profile guest boundary, 5xx/503 probe");
 console.log("- assets: referenced local static assets");
 console.log("- payment: dialog open only; no order/payment/LLM/DB mutation");
