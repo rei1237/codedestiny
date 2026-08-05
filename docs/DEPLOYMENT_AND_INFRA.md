@@ -8,6 +8,8 @@
 - Git uses HTTPS with Git Credential Manager. gh uses its own interactive encrypted host login. Do not configure Git to use `gh auth git-credential`, and project gh scripts clear process-injected `GH_TOKEN` before invoking gh.
 - A running production release is never cancelled. Newer `main` SHAs queue, preventing partial Worker/Pages releases.
 - The integrated release workflow is the only production deployment authority. It is never cancelled mid-release; newer `main` SHAs queue behind it.
+- The release job waits for `Secret Scan`, `Paid Flow Gates`, `Docs Freshness Gate`, and `Pages Config Guard` on the same SHA before any Cloudflare preview or production promotion starts.
+- GitHub cannot make a future CI result retroactively approve an already completed `git push`; remote pushes remain available, while production promotion is fail-closed on the required CI gates.
 
 ## Worker 단일 배포 경로
 
