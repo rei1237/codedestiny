@@ -18,17 +18,6 @@ function isTrue(env, key) {
   return valueOf(env, key).toLowerCase() === TRUE;
 }
 
-export function getGuardianFortuneDeploymentEnvironment(env = {}) {
-  return valueOf(env, "APP_ENV") || valueOf(env, "DEPLOY_ENV") || valueOf(env, "ENVIRONMENT") || valueOf(env, "NODE_ENV");
-}
-
-export function getGuardianFortuneRealLlmAllowlist(env = {}) {
-  return valueOf(env, "GUARDIAN_FORTUNE_REAL_LLM_ALLOWLIST")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-}
-
 export function getGuardianFortuneLLMConfig(env = {}) {
   const maxRetries = Math.min(1, Math.max(0, Number.parseInt(valueOf(env, "GUARDIAN_FORTUNE_LLM_MAX_RETRIES"), 10) || DEFAULTS.maxRetries));
   const maxOutputTokens = Math.min(2200, Math.max(900, Number.parseInt(valueOf(env, "GUARDIAN_FORTUNE_LLM_MAX_TOKENS"), 10) || DEFAULTS.maxOutputTokens));
@@ -53,12 +42,6 @@ export function getGuardianFortuneRealLlmBlockReason({ env = {}, userId = "" } =
   if (!isTrue(env, "ALLOW_REAL_GUARDIAN_FORTUNE_LLM")) return "REAL_LLM_ALLOW_FLAG_OFF";
   if (!isTrue(env, "ENABLE_GUARDIAN_FORTUNE_API")) return "GUARDIAN_API_FLAG_OFF";
   if (valueOf(env, "NODE_ENV").toLowerCase() === "test") return "TEST_ENVIRONMENT";
-  if (getGuardianFortuneDeploymentEnvironment(env).toLowerCase() !== "staging") return "STAGING_ONLY";
-  if (!String(userId || "").trim()) return "LOGIN_REQUIRED";
-
-  const allowlist = getGuardianFortuneRealLlmAllowlist(env);
-  if (!allowlist.includes(String(userId).trim())) return "ALLOWLIST_MISS";
-
   const config = getGuardianFortuneLLMConfig(env);
   if (config.provider !== "gemini") return "PROVIDER_NOT_ALLOWED";
   return "";
