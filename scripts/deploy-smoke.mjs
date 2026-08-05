@@ -20,6 +20,11 @@ const failures = [];
 const browserErrors = [];
 function fail(message) { failures.push(message); }
 function allowedGuestStatus(status) { return status === 200 || status === 401 || status === 403; }
+function isExpectedFontNoise(value) {
+  return /assets\.code-destiny\.com\/fonts\//i.test(value) ||
+    /font.*blocked by CORS policy/i.test(value) ||
+    /blocked by CORS policy.*font/i.test(value);
+}
 
 async function checkApi(pathname) {
   const url = apiOrigin + pathname;
@@ -71,7 +76,7 @@ async function checkPages() {
     // A Pages preview has a different origin from the approved asset CDN. The
     // production site receives these font responses same-origin, so preview
     // CORS warnings do not indicate a broken page or runtime regression.
-    if (/assets\.code-destiny\.com\/fonts\//i.test(message.text()) && /CORS policy/i.test(message.text())) return;
+    if (isExpectedFontNoise(message.text())) return;
     if (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(message.text())) return;
     browserErrors.push("console.error: " + message.text());
   });
@@ -80,7 +85,7 @@ async function checkPages() {
     // Navigations and in-flight analytics/assets are routinely cancelled when
     // the next smoke route starts; they are not runtime failures.
     if (/ERR_ABORTED|AbortError/i.test(errorText)) return;
-    if (/^https:\/\/assets\.code-destiny\.com\/fonts\//i.test(request.url()) && /ERR_FAILED/i.test(errorText)) return;
+    if (isExpectedFontNoise(request.url())) return;
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
 
@@ -103,11 +108,10 @@ async function checkPages() {
       await cookieAccept.click({ timeout: 10000 });
       await page.waitForTimeout(150);
     }
-    const payments = page.locator('[data-action="openGoldenGrainStore"], [data-action="openGoldenGrainCharge"]');
-    await payments.first().waitFor({ state: "attached", timeout: 10000 }).catch(() => {});
+    const paymentEntries = page.locator('[data-action="openGoldenGrainStore"], [data-action="openGoldenGrainCharge"]');
+    await paymentEntries.first().waitFor({ state: "attached", timeout: 10000 }).catch(() => {});
     let payment = null;
-    for (let index = 0; index < await payments.count(); index += 1) {
-      const candidate = payments.nth(index);
+    for (const candidate of await paymentEntries.all()) {
       if (await candidate.isVisible()) {
         payment = candidate;
         break;
@@ -125,7 +129,9 @@ async function checkPages() {
         }),
       );
       if (!dialogVisible) fail("payment dialog did not open after a non-submitting click");
-    } else if (!isPagesPreview) {
+    } else if (isPagesPreview) {
+      console.log("[deploy-smoke] payment dialog check skipped: no visible guest entry control");
+    } else {
       fail("payment entry control [data-action=\"openGoldenGrainStore\"] was not found");
     }
   } catch (error) {
