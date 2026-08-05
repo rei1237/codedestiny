@@ -95,6 +95,11 @@ async function checkPages() {
 
   try {
     await page.goto(base + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
+    const cookieAccept = page.locator("#cdCookieAcceptBtn, #cdCookieEssentialBtn").first();
+    if (await cookieAccept.isVisible().catch(() => false)) {
+      await cookieAccept.click({ timeout: 10000 });
+      await page.waitForTimeout(150);
+    }
     const payments = page.locator('[data-action="openGoldenGrainStore"], [data-action="openGoldenGrainCharge"]');
     let payment = null;
     for (let index = 0; index < await payments.count(); index += 1) {
