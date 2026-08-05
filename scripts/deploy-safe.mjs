@@ -64,6 +64,7 @@ const ciMode = cli.flags.has("--ci");
 const autoYes = cli.flags.has("--yes");
 const allowNoWorkerPreview = cli.flags.has("--allow-no-worker-preview");
 const previewOnly = cli.flags.has("--preview-only");
+const allowEmptyChangeSet = ciMode && process.env.CD_ALLOW_EMPTY_CHANGESET === "true";
 
 function envForChecks() {
   return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true" };
@@ -165,6 +166,7 @@ function changedFiles() {
   ].flatMap((value) => value ? value.split(/\r?\n/).filter(Boolean) : []);
   const committed = range ? range.split(/\r?\n/).filter(Boolean) : [];
   if (committed.length || working.length) return [...new Set([...committed, ...working])];
+  if (allowEmptyChangeSet) return ["__release_redeploy__"];
   const head = git(["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "HEAD"], { allowFailure: true });
   return head ? head.split(/\r?\n/).filter(Boolean) : [];
 }
@@ -243,7 +245,7 @@ async function discover(pagesLocal, workerLocal) {
   };
 }
 function needsWorker(files) {
-  return files.some((file) =>
+  return allowEmptyChangeSet || files.some((file) =>
     file.startsWith("worker/") || file.startsWith("server/") || file.includes("wrangler") ||
     file === "app/_lib/billing-client.ts" || file === "js/core/access-store.js"
   );
