@@ -367,9 +367,12 @@ async function uploadWorker(value) {
   if (!previewUrl && !allowNoWorkerPreview) throw new Error("Worker preview URL missing. Set CD_WORKER_PREVIEW_ORIGIN or pass --allow-no-worker-preview.");
   return { versionId, previewUrl, alias };
 }
-async function smoke(base, apiOrigin = "") {
+async function smoke(base, apiOrigin = "", skipApi = false) {
   const args = [path.join(scriptDir, "deploy-smoke.mjs"), "--base", base];
   if (apiOrigin) args.push("--api-origin", apiOrigin);
+  // A Pages preview is static-only in this release path. Its /api routes are
+  // intentionally absent; production smoke below remains API-strict.
+  if (skipApi) args.push("--skip-api");
   run("read-only smoke test", process.execPath, args, { env: envForChecks() });
 }
 function productionOrigin(value) {
