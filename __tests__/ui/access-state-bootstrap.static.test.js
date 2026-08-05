@@ -71,6 +71,15 @@ test("pass card click paints the pass wait overlay before entitlement lookup", (
   assert.match(passBranch, /_cdSetCoinGateOverlay\(false\)/);
 });
 
+test("pass-first payment modal does not start a parallel monthly balance probe", () => {
+  const modalTailStart = shellSource.indexOf("window.__cdDirectPaymentChoiceActive = { modal: modal");
+  const modalTailEnd = shellSource.indexOf("    });\n  }", modalTailStart);
+  assert.ok(modalTailStart >= 0 && modalTailEnd > modalTailStart);
+  const modalTail = shellSource.slice(modalTailStart, modalTailEnd);
+  assert.match(modalTail, /if \(allowMonthlyChoice && !allowPassChoice && !monthlyBalanceFresh\)/);
+  assert.match(modalTail, /refreshDirectMonthlyBalance\(\{ silent: true \}\)/);
+});
+
 test("automatic balance reads reuse the access snapshot and do not append timestamps", () => {
   assert.match(shellSource, /function _cdApplyFreshAccessStoreBalances\(\)/);
   assert.doesNotMatch(shellSource, /\/api\/billing\/balance[^'\"]*[?&]_=/);
