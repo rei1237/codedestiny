@@ -401,7 +401,7 @@
   .fortune-gateway__choices { margin-top: 28px; }
   .fortune-gateway__paths { grid-template-columns: 1fr; }
   .fortune-gateway__path { grid-template-columns: 104px minmax(0, 1fr); min-height: 188px; padding: 19px 17px; border-radius: 20px; }
-  .fortune-gateway__path--fusion { grid-template-columns: minmax(0, 1fr) 96px; text-align: left; }
+  .fortune-gateway__path--fusion { grid-template-columns: 104px minmax(0, 1fr); text-align: left; }
   .fortune-gateway__path > img,
   .fortune-gateway__fusion-art,
   .fortune-gateway__fusion-orb { width: 94px; height: 94px; }
