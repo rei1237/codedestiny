@@ -8,6 +8,42 @@ const withBundleAnalyzer = createBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+// These files are deliberately UMD/CommonJS: the static shell loads them as
+// classic scripts while React imports the same implementation.  Next's dev
+// SWC refresh transform appends `import.meta.webpackHot` to them, but webpack
+// correctly parses their CommonJS wrapper as a non-module and then rejects
+// that injected ESM-only syntax.  Keep the shared legacy boundary out of the
+// refresh transform; webpack still bundles its plain CommonJS exports.
+const LEGACY_SHARED_BROWSER_MODULE = /[\\/]js[\\/]core[\\/](?:checkout-entry|pass-verdict|payment-service)\.js$/;
+
+function isRefreshOrSwcRule(rule) {
+  const loaders = Array.isArray(rule?.use) ? rule.use : [rule?.use];
+  return loaders.some((loader) => {
+    const name = String(loader?.loader || loader || "");
+    return name.includes("next-swc-loader") || name.includes("react-refresh");
+  });
+}
+
+function matchesExclude(exclude, resourcePath) {
+  if (typeof exclude === "function") return exclude(resourcePath);
+  if (Array.isArray(exclude)) return exclude.some((entry) => matchesExclude(entry, resourcePath));
+  return Boolean(exclude?.test?.(resourcePath));
+}
+
+function excludeLegacySharedBrowserModules(rule) {
+  const previousExclude = rule.exclude;
+  rule.exclude = (resourcePath) => LEGACY_SHARED_BROWSER_MODULE.test(resourcePath)
+    || matchesExclude(previousExclude, resourcePath);
+}
+
+function visitWebpackRules(rules) {
+  for (const rule of rules || []) {
+    if (isRefreshOrSwcRule(rule)) excludeLegacySharedBrowserModules(rule);
+    visitWebpackRules(rule.oneOf);
+    visitWebpackRules(rule.rules);
+  }
+}
+
 function firstNonEmpty(values = []) {
   for (const value of values) {
     const normalized = String(value || "").trim();
@@ -147,6 +183,7 @@ function createNextConfig(phase) {
     },
     trailingSlash: true,
     webpack(config, { dev }) {
+      visitWebpackRules(config.module?.rules);
       if (!dev) {
         config.cache = false;
       }

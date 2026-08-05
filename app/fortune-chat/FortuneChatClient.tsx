@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
 
@@ -12,15 +13,26 @@ type Usage = { isLoggedIn: boolean; guestFreeRemaining: number; accountFreeRemai
 type Bootstrap = { session?: { sessionId?: string; messages?: Message[]; characterId?: Character; selectedTopic?: string }; usage?: Usage; fusion?: { ticketRemaining: number; canGenerate: boolean; nextAction: string } };
 
 const TOPICS = ["연애와 인연", "재물과 직업", "인간관계", "가까운 미래", "마음과 선택", "종합적인 흐름"] as const;
-const TOPIC_MAP: Record<string, string> = { "연애와 인연": "love", "재물과 직업": "money_work", 인간관계: "relationship", "가까운 미래": "daily", "마음과 선택": "mind", "종합적인 흐름": "decision" };
+const TOPIC_MAP: Record<string, string> = { "연애와 인연": "love", "재물과 직업": "money_work", "인간관계": "relationship", "가까운 미래": "daily", "마음과 선택": "mind", "종합적인 흐름": "decision" };
 const CHARACTER_LABEL: Record<Character, string> = { flower_pig: "꽃돼지", yeoni: "연이", neo: "네오" };
+const FLOWER_PIG_R2 = getAssetUrlFromPublicPath("/DestinyCafe/nobackground/flower-pig-cutout.webp", {
+  baseUrl: "https://assets.code-destiny.com",
+  fallbackPublicPath: "/images/fortune-tea-house/flower-pig-honey-hug.webp",
+  prefix: "",
+});
+const FLOWER_PIG_FALLBACK = "/images/fortune-tea-house/flower-pig-honey-hug.webp";
 
 function id() { return globalThis.crypto?.randomUUID?.() || `fortune-chat-${Date.now()}-${Math.random()}`; }
 function welcome(): Message[] {
-  return [
-    { id: id(), speaker: "assistant", text: "안녕하세요, 꽃돼지예요. 한 가지 고민에서 시작해 지금의 흐름과 다음 선택을 함께 살펴볼게요." },
-    { id: id(), speaker: "system", text: "비회원 1회 · 계정당 총 3회 무료", detail: "무료 횟수는 매일 초기화되지 않아요." },
-  ];
+  return [{
+    id: id(),
+    speaker: "assistant",
+    text: "안녕하세요, 꽃돼지예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
+  }];
+}
+
+function FlowerPigImage({ className = "" }: { className?: string }) {
+  return <img className={className} src={FLOWER_PIG_R2} alt="꽃을 단 꽃돼지 연이" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = FLOWER_PIG_FALLBACK; }} />;
 }
 
 export default function FortuneChatClient() {
@@ -37,6 +49,7 @@ export default function FortuneChatClient() {
   const [error, setError] = useState("");
   const [sessionId, setSessionId] = useState("");
   const timelineRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const persistTimerRef = useRef<number | null>(null);
 
   const bootstrap = useCallback(async () => {
@@ -44,7 +57,7 @@ export default function FortuneChatClient() {
     const endpoint = requestedSession ? `${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(requestedSession)}` : `${apiBase}/api/fortune-chat/bootstrap`;
     const response = await fetch(endpoint, { credentials: "include" });
     const payload = await response.json().catch(() => null) as Bootstrap | null;
-    if (!response.ok || !payload) throw new Error("상담방 정보를 불러오지 못했어요.");
+    if (!response.ok || !payload) throw new Error("상담방 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     if (payload.session?.sessionId) setSessionId(payload.session.sessionId);
     if (payload.usage) setUsage(payload.usage);
     if (payload.fusion) setFusion(payload.fusion);
@@ -72,32 +85,33 @@ export default function FortuneChatClient() {
     setMessages((current) => { const next = [...current, ...items]; persist(next, nextTopic); return next; });
   }, [persist, topic]);
 
-  const freeRemaining = usage?.isLoggedIn ? usage.accountFreeRemaining : usage?.guestFreeRemaining;
-  const policy = usage?.isLoggedIn
-    ? `무료 상담 3회 중 ${Math.max(0, freeRemaining || 0)}회가 남았어요.`
-    : "회원가입 없이 1회 무료로 체험할 수 있어요.";
+  const usageLabel = usage
+    ? usage.isLoggedIn
+      ? `무료 상담 ${Math.max(0, usage.accountFreeRemaining)}회 남음`
+      : usage.guestFreeRemaining > 0 ? "첫 상담을 무료로 시작할 수 있어요" : "로그인하고 상담을 이어갈 수 있어요"
+    : "상담 가능 여부를 확인하는 중";
 
-  const send = async (selectedTopic = topic) => {
+  const send = async () => {
     const concern = question.trim();
     if (busy) return;
-    if (!selectedTopic && !concern) { setError("먼저 고민 주제를 고르거나 질문을 적어 주세요."); return; }
+    if (!topic && !concern) { setError("궁금한 분야를 고르거나, 직접 질문을 적어 주세요."); return; }
     const requestId = id();
-    const label = concern || selectedTopic;
+    const label = concern || topic;
     setBusy(true); setError("");
-    append([{ id: requestId, speaker: "user", text: label }], selectedTopic);
+    append([{ id: requestId, speaker: "user", text: label }], topic);
     try {
       const response = await fetch(`${apiBase}/api/fortune/guardian/generate`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "Idempotency-Key": requestId },
-        body: JSON.stringify({ requestId, topic: TOPIC_MAP[selectedTopic] || "decision", mode: character === "neo" ? "neo" : "yeoni", concern: concern || undefined }),
+        body: JSON.stringify({ requestId, topic: TOPIC_MAP[topic] || "decision", mode: character === "neo" ? "neo" : "yeoni", concern: concern || undefined }),
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) throw new Error(payload?.message || "상담 결과를 준비하지 못했어요.");
       const result = payload.result || {};
       append([
         { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: result.coreReading || result.topicAdvice || "결과를 정리하고 있어요." },
-        { id: id(), speaker: "assistant", kind: "reading", text: "오늘의 한걸음", detail: result.luckyAction || "하나의 선택을 작게 시작해 보세요." },
-        { id: id(), speaker: "assistant", kind: "cta", text: "지금 답변은 현재 고민을 중심으로 가볍게 살펴본 결과예요.", detail: "사주·자미두수·베다점·숙요점·점성술의 흐름을 연결하면 반복되는 이유와 앞으로의 시기까지 더 깊게 볼 수 있어요." },
-      ], selectedTopic);
+        { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: result.luckyAction || "작은 선택 하나부터 가볍게 시작해 보세요." },
+        { id: id(), speaker: "assistant", kind: "cta", text: "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
+      ]);
       setQuestion("");
       await bootstrap();
     } catch (reason) {
@@ -110,27 +124,52 @@ export default function FortuneChatClient() {
     router.push(`/fusion-fortune?fortuneChatSession=${encodeURIComponent(sessionId)}&topic=${encodeURIComponent(TOPIC_MAP[topic] || "decision")}`);
   };
 
-  return <main className={styles.room}>
+  const selectTopic = (nextTopic: string) => {
+    setTopic(nextTopic);
+    setQuestion((current) => current || nextTopic);
+    window.setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const startNewChat = () => {
+    const next = welcome();
+    setMessages(next);
+    persist(next, "");
+    setTopic("");
+    setQuestion("");
+    setError("");
+  };
+
+  return <main className={styles.room} data-character={character}>
     <header className={styles.header}>
-      <button type="button" onClick={() => router.back()} aria-label="이전 페이지로 이동">←</button>
-      <div><strong>꽃돼지 운명상담</strong><span>{CHARACTER_LABEL[character]}와 함께 흐름을 살펴보고 있어요</span></div>
-      <button type="button" aria-label="새 상담 시작" onClick={() => { const next = welcome(); setMessages(next); persist(next, ""); setTopic(""); }}>새 상담</button>
+      <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label="이전 페이지로 이동">←</button>
+      <div className={styles.brand}><FlowerPigImage className={styles.brandPig} /><div><strong>꽃돼지 운명상담</strong><span>작은 마음부터 천천히 살펴봐요</span></div></div>
+      <button className={styles.resetButton} type="button" aria-label="새 상담 시작" onClick={startNewChat}>새 상담</button>
     </header>
+
     <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
-      <section className={styles.characterPicker} aria-label="상담 스타일 선택">
-        {(["flower_pig", "yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => setCharacter(item)}>{CHARACTER_LABEL[item]}{item === "flower_pig" ? " · 균형" : item === "yeoni" ? " · 다정" : " · 현실"}</button>)}
+      <section className={styles.welcomeCard} aria-labelledby="fortuneChatWelcomeTitle">
+        <div><p>달빛 찻집의 편지함</p><h1 id="fortuneChatWelcomeTitle">오늘, 무엇이 가장 마음에 남나요?</h1><span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span></div>
+        <FlowerPigImage className={styles.welcomePig} />
+      </section>
+      <section className={styles.characterPicker} aria-label="상담자 선택">
+        {(["flower_pig", "yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => setCharacter(item)}>
+          <span>{item === "flower_pig" ? "🌸" : item === "yeoni" ? "☕" : "✦"}</span><strong>{CHARACTER_LABEL[item]}</strong><small>{item === "flower_pig" ? "다정한 길잡이" : item === "yeoni" ? "마음을 듣는 연이" : "핵심을 짚는 네오"}</small>
+        </button>)}
       </section>
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
-        <p>{message.text}</p>{message.detail && <details open={message.kind === "reading"}><summary>자세히 보기</summary><p>{message.detail}</p></details>}
-        {message.kind === "cta" && <div className={styles.actions}><button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기</button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>무료 상담만 마치기</button></div>}
+        {message.speaker === "assistant" ? <span className={styles.messageAvatar} aria-hidden>🌸</span> : null}
+        <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details open={message.kind === "reading"}><summary>자세히 보기</summary><p>{message.detail}</p></details>}
+          {message.kind === "cta" && <div className={styles.actions}><button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기 <span aria-hidden>→</span></button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>여기까지 볼게요</button></div>}
+        </div>
       </article>)}
-      {busy && <p className={styles.typing}>{CHARACTER_LABEL[character]}가 답을 정리하고 있어요…</p>}
+      {busy && <article className={`${styles.message} ${styles.assistant}`}><span className={styles.messageAvatar} aria-hidden>🌸</span><p className={styles.typing}><i /><i /><i /><span>{CHARACTER_LABEL[character]}가 답을 정리하고 있어요</span></p></article>}
       {fusion?.ticketRemaining ? <p className={styles.ticketStatus}>초융합 상담권 {fusion.ticketRemaining}회가 준비되어 있어요.</p> : null}
     </div>
+
     <section className={styles.composer} aria-label="상담 입력">
-      <p className={styles.policy}>{policy}<small>매일 초기화되지 않아요.</small></p>
-      <div className={styles.chips}>{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => { setTopic(item); void send(item); }}>{item}</button>)}</div>
-      <div className={styles.input}><input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void send(); }} placeholder="직접 질문하기" aria-label="상담 질문 입력" disabled={busy}/><button type="button" onClick={() => void send()} disabled={busy}>{busy ? "정리 중" : "전송"}</button></div>
+      <p className={styles.policy}>{usageLabel}</p>
+      <div className={styles.chips} aria-label="추천 질문 분야">{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>
+      <div className={styles.input}><input ref={inputRef} value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="마음에 남은 질문을 적어 주세요" aria-label="상담 질문 입력" disabled={busy} /><button type="button" onClick={() => void send()} disabled={busy}>{busy ? "정리 중" : "보내기"}</button></div>
       {error && <p className={styles.error} role="alert">{error}</p>}
     </section>
   </main>;
