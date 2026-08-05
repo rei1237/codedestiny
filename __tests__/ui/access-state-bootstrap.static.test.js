@@ -60,6 +60,26 @@ test("static membership command prepares auth once and never replays the same PO
   assert.doesNotMatch(passCommand, /verifyAuthSessionForCoinApi/);
 });
 
+test("pass card click paints the pass wait overlay before entitlement lookup", () => {
+  const passBranchStart = shellSource.indexOf("if (mode === 'pass-store' || mode === 'pass')");
+  const passBranchEnd = shellSource.indexOf("if (mode === 'direct' || mode === 'monthly')", passBranchStart);
+  assert.ok(passBranchStart >= 0 && passBranchEnd > passBranchStart);
+  const passBranch = shellSource.slice(passBranchStart, passBranchEnd);
+  assert.match(passBranch, /var passCheckingText = _cdPaymentI18n\(/);
+  assert.match(passBranch, /_cdSetCoinGateOverlay\(true, passCheckingText, 'pass'\)/);
+  assert.match(passBranch, /await _cdWaitForPaymentOverlayPaint\(\)/);
+  assert.match(passBranch, /_cdSetCoinGateOverlay\(false\)/);
+});
+
+test("pass-first payment modal does not start a parallel monthly balance probe", () => {
+  const modalTailStart = shellSource.indexOf("window.__cdDirectPaymentChoiceActive = { modal: modal");
+  const modalTailEnd = shellSource.indexOf("    });\n  }", modalTailStart);
+  assert.ok(modalTailStart >= 0 && modalTailEnd > modalTailStart);
+  const modalTail = shellSource.slice(modalTailStart, modalTailEnd);
+  assert.match(modalTail, /if \(allowMonthlyChoice && !allowPassChoice && !monthlyBalanceFresh\)/);
+  assert.match(modalTail, /refreshDirectMonthlyBalance\(\{ silent: true \}\)/);
+});
+
 test("automatic balance reads reuse the access snapshot and do not append timestamps", () => {
   assert.match(shellSource, /function _cdApplyFreshAccessStoreBalances\(\)/);
   assert.doesNotMatch(shellSource, /\/api\/billing\/balance[^'\"]*[?&]_=/);
