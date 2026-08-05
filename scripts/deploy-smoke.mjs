@@ -13,7 +13,13 @@ function valueAfter(name) {
 const base = (valueAfter("--base") || process.env.CD_SMOKE_BASE || "").replace(/\/+$/, "");
 const apiOrigin = (valueAfter("--api-origin") || process.env.CD_SMOKE_API_ORIGIN || base).replace(/\/+$/, "");
 const skipApi = process.argv.includes("--skip-api");
-const isPagesPreview = /^https:\/\/[^/]+\.pages\.dev$/i.test(base);
+const isPagesPreview = (() => {
+  try {
+    return new URL(base).hostname.toLowerCase().endsWith(".pages.dev");
+  } catch {
+    return false;
+  }
+})();
 if (!/^https?:\/\//i.test(base)) throw new Error("Smoke base must be an absolute HTTP(S) URL.");
 
 const failures = [];
