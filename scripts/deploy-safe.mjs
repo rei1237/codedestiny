@@ -453,7 +453,8 @@ async function safeStage() {
   lock();
   try {
     const preview = await previewStage();
-    await smoke(preview.state.preview.pages.url, preview.state.preview.worker?.previewUrl || "");
+    const previewApiOrigin = preview.state.preview.worker?.previewUrl || process.env.CD_SMOKE_API_ORIGIN || "";
+    await smoke(preview.state.preview.pages.url, previewApiOrigin);
     const state = { ...preview.state, preview: { ...preview.state.preview, smokePassed: true, smokedAt: new Date().toISOString() } };
     writeState(state);
     console.log("[deploy-safe] Preview passed. Production is the only remaining step.");

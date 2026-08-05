@@ -28,6 +28,7 @@ jobs:
       CD_DEPLOY_BASE_SHA: ${{ github.event.before }}
       CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+      CD_SMOKE_API_ORIGIN: ${{ vars.CD_SMOKE_API_ORIGIN || vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
 
     steps:
@@ -47,6 +48,9 @@ jobs:
 
       - name: Install dependencies once
         run: npm ci
+
+      - name: Install Chromium for release smoke
+        run: npx playwright install --with-deps chromium
 
       - name: Verify release pipeline contract
         run: |
