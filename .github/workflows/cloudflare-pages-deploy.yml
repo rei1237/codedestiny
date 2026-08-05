@@ -65,5 +65,10 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/wait-for-ci-gates.mjs
 
+      - name: Verify release checkout remains clean
+        run: |
+          git status --short
+          test -z "$(git status --porcelain)"
+
       - name: Preview, smoke, and promote the exact SHA
         run: npm run deploy:safe -- --ci --yes
