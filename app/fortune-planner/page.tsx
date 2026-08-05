@@ -1,5 +1,5 @@
-import FortunePlannerClient from "./FortunePlannerClient";
+import { redirect } from "next/navigation";
 
 export default function FortunePlannerPage() {
-  return <FortunePlannerClient />;
+  redirect("/?fortunePlanner=1");
 }
