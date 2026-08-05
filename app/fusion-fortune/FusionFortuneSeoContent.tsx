@@ -42,6 +42,15 @@ export function FusionFortuneSeoContent() {
   return (
     <section className={styles.seoGuide} aria-labelledby="fusion-fortune-guide-heading">
       <header className={styles.seoGuideHeader}>
+        <p className={styles.kicker}>AI 다중 운세 상담</p>
+        <h2>꽃돼지 운명상담의 초융합 심층 리딩</h2>
+        <p>
+          가벼운 고민 상담 뒤에는 사주, 자미두수, 베다점, 숙요점, 점성술, 타로의 흐름을 연결한 초융합 심층 리딩을 같은 상담방에서 이어갈 수 있습니다.
+          각 체계의 해석을 한 가지 정답처럼 단정하지 않고, 공통으로 반복되는 신호와 서로 다른 관점을 함께 정리해 다음 선택을 생각할 수 있도록 돕습니다.
+          심층 리딩은 기존 Fusion 티켓 정책에 따라 별도 결제가 필요하며, 무료 상담 또는 일반 이용권만으로 열리지 않습니다.
+        </p>
+      </header>
+      <header className={styles.seoGuideHeader}>
         <p className={styles.kicker}>Fusion Fortune Guide</p>
         <h2 id="fusion-fortune-guide-heading">초융합 운세란 무엇인가요?</h2>
         <p>

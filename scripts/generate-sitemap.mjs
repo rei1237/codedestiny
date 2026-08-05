@@ -150,7 +150,6 @@ const coreRoutes = [
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
   { path: "/saju-picture", changefreq: "weekly", priority: 0.86 },
   { path: "/fortune-tea-house", changefreq: "weekly", priority: 0.86 },
-  { path: "/fusion-fortune", changefreq: "weekly", priority: 0.9 },
   { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
   { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
   { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
