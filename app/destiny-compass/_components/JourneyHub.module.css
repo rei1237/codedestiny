@@ -2,7 +2,7 @@
   position: relative;
   min-height: 100dvh;
   width: 100%;
-  overflow: hidden;
+  overflow-x: clip;
   color: #f5f0ff;
   background:
     radial-gradient(46% 34% at 24% 16%, rgba(255, 232, 184, 0.16), transparent 64%),
@@ -268,8 +268,165 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-.cta {
+.profile {
   width: min(100%, 420px);
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(232, 213, 163, 0.28);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(12, 17, 38, 0.9), rgba(5, 9, 22, 0.94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 42px rgba(0, 0, 0, 0.22);
+}
+
+.profileHeading {
+  display: grid;
+  gap: 5px;
+}
+
+.profileKicker {
+  margin: 0;
+  color: #e8d5a3;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.profileHeading h2 {
+  margin: 0;
+  color: #fff8ec;
+  font-size: 1.16rem;
+  line-height: 1.35;
+}
+
+.profileHeading p:last-child {
+  margin: 0;
+  color: rgba(223, 216, 255, 0.86);
+  font-size: 0.86rem;
+  line-height: 1.58;
+}
+
+.profileSummary {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid rgba(232, 213, 163, 0.16);
+}
+
+.profileSummary div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  border-bottom: 1px solid rgba(232, 213, 163, 0.16);
+}
+
+.profileSummary dt {
+  color: rgba(211, 202, 247, 0.82);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.profileSummary dd {
+  margin: 0;
+  color: #fff8ec;
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.profileForm {
+  display: grid;
+  gap: 12px;
+}
+
+.profileRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profileField {
+  display: grid;
+  gap: 6px;
+}
+
+.profileField label,
+.checkRow {
+  color: rgba(223, 216, 255, 0.9);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.profileField input,
+.profileField select {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  border: 1px solid rgba(196, 181, 253, 0.38);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #fff8ec;
+  background: rgba(4, 8, 21, 0.72);
+  color-scheme: dark;
+  font: inherit;
+}
+
+.profileField input:hover,
+.profileField select:hover {
+  border-color: rgba(232, 213, 163, 0.74);
+}
+
+.profileField input:focus-visible,
+.profileField select:focus-visible,
+.profileEdit:focus-visible,
+.profileReload:focus-visible {
+  outline: 2px solid #e8d5a3;
+  outline-offset: 2px;
+}
+
+.profileField input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: #e8d5a3;
+}
+
+.profileEdit,
+.profileReload {
+  min-height: 44px;
+  border: 1px solid rgba(232, 213, 163, 0.36);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #f4e9c4;
+  background: rgba(232, 213, 163, 0.08);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profileEdit:hover,
+.profileReload:hover {
+  border-color: rgba(232, 213, 163, 0.72);
+  background: rgba(232, 213, 163, 0.14);
+}
+
+.cta {
+  width: 100%;
   min-height: 60px;
   display: inline-flex;
   align-items: center;
@@ -307,7 +464,7 @@
 }
 
 .cta:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   filter: saturate(0.82);
 }
 
@@ -334,8 +491,8 @@
     grid-template-areas:
       "copy dial"
       "reading dial"
-      "status dial"
-      "cta dial";
+       "status dial"
+       "profile dial";
     justify-items: start;
     gap: 18px 42px;
   }
@@ -369,8 +526,8 @@
     justify-content: flex-start;
   }
 
-  .cta {
-    grid-area: cta;
+  .profile {
+    grid-area: profile;
   }
 
   .direction {
@@ -423,6 +580,10 @@
     width: min(76vw, 300px);
   }
 
+  .profile {
+    padding: 18px;
+  }
+
   .direction {
     min-width: 48px;
     min-height: 44px;
@@ -454,3 +615,4 @@
     animation: none !important;
   }
 }
+
