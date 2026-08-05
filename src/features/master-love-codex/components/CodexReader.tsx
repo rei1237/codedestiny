@@ -79,7 +79,10 @@ export default function CodexReader({
   const [isExporting, setIsExporting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resumeTop, setResumeTop] = useState(0);
+  const [showResume, setShowResume] = useState(false);
   const documentRef = useRef<HTMLDivElement | null>(null);
+  const readingKey = `masterLoveCodexReading:${sessionId}`;
 
   const ordered = useMemo(
     () => chapters.slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0)),
@@ -92,14 +95,47 @@ export default function CodexReader({
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) { setDecrypted(true); return undefined; }
+    const savedTop = Number(window.sessionStorage.getItem(readingKey) || 0);
+    if (savedTop > 80) {
+      setResumeTop(savedTop);
+      setShowResume(true);
+      setDecrypted(true);
+      return undefined;
+    }
+    if (reduce || window.sessionStorage.getItem(`${readingKey}:opened`) === "true") { setDecrypted(true); return undefined; }
+    window.sessionStorage.setItem(`${readingKey}:opened`, "true");
     const stepTimer = window.setInterval(
       () => setDecryptStep((current) => (current + 1) % DECRYPT_LINES.length),
       DECRYPT_MS / DECRYPT_LINES.length,
     );
     const doneTimer = window.setTimeout(() => setDecrypted(true), DECRYPT_MS);
     return () => { window.clearInterval(stepTimer); window.clearTimeout(doneTimer); };
-  }, []);
+  }, [readingKey]);
+
+  useEffect(() => {
+    if (!decrypted || typeof window === "undefined") return undefined;
+    let frame = 0;
+    const savePosition = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        window.sessionStorage.setItem(readingKey, String(Math.round(window.scrollY)));
+        frame = 0;
+      });
+    };
+    window.addEventListener("scroll", savePosition, { passive: true });
+    return () => { window.removeEventListener("scroll", savePosition); if (frame) window.cancelAnimationFrame(frame); };
+  }, [decrypted, readingKey]);
+
+  const resumeReading = useCallback(() => {
+    window.scrollTo({ top: resumeTop, behavior: "smooth" });
+    setShowResume(false);
+  }, [resumeTop]);
+
+  const startOver = useCallback(() => {
+    window.sessionStorage.removeItem(readingKey);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowResume(false);
+  }, [readingKey]);
 
   // 스크롤 스파이 — 화면 상단 가까이 걸린 막을 현재 막으로 잡는다.
   useEffect(() => {
@@ -181,6 +217,14 @@ export default function CodexReader({
   return (
     <CodexShell motes={false} ariaLabel={`${bookTitle} 본문`}>
       <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} />
+
+      {showResume ? (
+        <aside className={styles.resumePrompt} aria-label="독서 위치 복원">
+          <p>마지막으로 읽던 곳이 있어요.</p>
+          <button type="button" onClick={resumeReading}>이어서 읽기</button>
+          <button type="button" onClick={startOver}>처음부터</button>
+        </aside>
+      ) : null}
 
       {/* data-codex-exporting: 캡처 중 문서 전체의 모션을 정지시키는 안전망(codex.module.css) */}
       <div
