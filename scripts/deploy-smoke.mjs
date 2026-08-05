@@ -32,6 +32,7 @@ async function checkApi(pathname) {
     if (response.status >= 500 || response.status === 503) fail("API " + pathname + " returned HTTP " + response.status);
     if (pathname === "/api/health" && response.status !== 200) fail("API health expected 200, received " + response.status);
     if (pathname === "/api/version" && response.status !== 200) fail("API version expected 200, received " + response.status);
+    if (pathname === "/api/__deploy_safe_missing__" && response.status === 404) return;
     if (pathname !== "/api/health" && pathname !== "/api/version" && !allowedGuestStatus(response.status)) {
       fail("API " + pathname + " returned unexpected HTTP " + response.status);
     }
