@@ -2,6 +2,8 @@ import { connectDb, mongoose } from "./db.js";
 import {
   GuardianFortuneChatCreditBalance,
   GuardianFortuneChatCreditTransaction,
+  GuardianFortuneAccountUsage,
+  GuardianFortuneAnonymousMerge,
   GuardianFortuneDailyUsage,
   GuardianFortuneGenerationAttempt,
   GuardianFortuneGuestUsage,
@@ -9,6 +11,7 @@ import {
 
 export const GUARDIAN_FORTUNE_GUEST_LIMIT = 1;
 export const GUARDIAN_FORTUNE_DAILY_LIMIT = 3;
+export const GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT = 3;
 export const GUARDIAN_FORTUNE_DEFAULT_TIMEZONE = "Asia/Seoul";
 export const GUARDIAN_FORTUNE_GUEST_COOKIE = "guardian_fortune_guest_id";
 export const GUARDIAN_FORTUNE_RESERVATION_TTL_MS = 10 * 60 * 1000;
@@ -161,7 +164,7 @@ export function buildGuardianFortuneDisabledUsageStatus({ isLoggedIn = false } =
     guestFreeLimit: isLoggedIn ? 0 : GUARDIAN_FORTUNE_GUEST_LIMIT,
     guestFreeUsed: 0,
     guestFreeRemaining: 0,
-    dailyFreeLimit: isLoggedIn ? GUARDIAN_FORTUNE_DAILY_LIMIT : 0,
+    dailyFreeLimit: isLoggedIn ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
     dailyFreeUsed: 0,
     dailyFreeRemaining: 0,
     paidCreditsRemaining: 0,
@@ -178,9 +181,9 @@ function emptyStatus(isLoggedIn) {
     guestFreeLimit: isLoggedIn ? 0 : GUARDIAN_FORTUNE_GUEST_LIMIT,
     guestFreeUsed: 0,
     guestFreeRemaining: isLoggedIn ? 0 : GUARDIAN_FORTUNE_GUEST_LIMIT,
-    dailyFreeLimit: isLoggedIn ? GUARDIAN_FORTUNE_DAILY_LIMIT : 0,
+    dailyFreeLimit: isLoggedIn ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
     dailyFreeUsed: 0,
-    dailyFreeRemaining: isLoggedIn ? GUARDIAN_FORTUNE_DAILY_LIMIT : 0,
+    dailyFreeRemaining: isLoggedIn ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
     paidCreditsRemaining: 0,
     canGenerate: !isLoggedIn,
     generationSource: isLoggedIn ? "daily_free" : "guest_free",
@@ -211,7 +214,7 @@ export async function buildGuardianFortuneUsageStatus({ userId, guestIdHash, dat
     store.findCredit(normalizedUserId),
   ]);
   status.dailyFreeUsed = clampNonNegative(daily?.freeUsed);
-  status.dailyFreeRemaining = Math.max(0, clampNonNegative(daily?.freeLimit || GUARDIAN_FORTUNE_DAILY_LIMIT) - status.dailyFreeUsed);
+  status.dailyFreeRemaining = Math.max(0, clampNonNegative(daily?.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT) - status.dailyFreeUsed);
   status.paidCreditsRemaining = clampNonNegative(credit?.remaining);
   status.canGenerate = status.dailyFreeRemaining > 0 || status.paidCreditsRemaining > 0;
   status.generationSource = status.dailyFreeRemaining > 0
@@ -232,7 +235,7 @@ function guestKey(hash) {
 }
 
 function dailyKey(userId, dateKey) {
-  return `${normalizeUserId(userId)}:${normalizeDateKey(dateKey)}`;
+  return normalizeUserId(userId);
 }
 
 function creditKey(userId) {
@@ -255,9 +258,18 @@ function attemptValue({ requestId, userId, guestIdHash, source, dateKey, status 
 }
 
 export function createMemoryGuardianFortuneStore(seed = {}) {
+  const accountSeed = new Map();
+  Object.values(seed.daily || {}).forEach((entry) => {
+    const userId = normalizeUserId(entry?.userId);
+    if (!userId) return;
+    const previous = accountSeed.get(userId) || { ...entry, userId, freeUsed: 0, reserved: 0 };
+    previous.freeUsed = Math.min(GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, clampNonNegative(previous.freeUsed) + clampNonNegative(entry?.freeUsed));
+    previous.reserved = clampNonNegative(previous.reserved) + clampNonNegative(entry?.reserved);
+    accountSeed.set(userId, previous);
+  });
   const state = {
     guests: new Map(Object.entries(seed.guests || {})),
-    daily: new Map(Object.entries(seed.daily || {})),
+    daily: accountSeed,
     credits: new Map(Object.entries(seed.credits || {})),
     attempts: new Map(Object.entries(seed.attempts || {})),
     transactions: Array.isArray(seed.transactions) ? seed.transactions.map(clone) : [],
@@ -303,12 +315,12 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
     async findDaily(userId, dateKey) { return state.daily.get(dailyKey(userId, dateKey)) || null; },
     async ensureDaily(userId, dateKey, now = new Date()) {
       const key = dailyKey(userId, dateKey);
-      if (!state.daily.has(key)) state.daily.set(key, { userId: normalizeUserId(userId), dateKey, freeLimit: GUARDIAN_FORTUNE_DAILY_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, createdAt: now, updatedAt: now });
+      if (!state.daily.has(key)) state.daily.set(key, { userId: normalizeUserId(userId), dateKey, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, createdAt: now, updatedAt: now });
       return state.daily.get(key);
     },
     async reserveDaily(userId, dateKey, now = new Date()) {
       const doc = await store.ensureDaily(userId, dateKey, now);
-      if (clampNonNegative(doc.freeUsed) + clampNonNegative(doc.reserved) >= clampNonNegative(doc.freeLimit || GUARDIAN_FORTUNE_DAILY_LIMIT)) return null;
+      if (clampNonNegative(doc.freeUsed) + clampNonNegative(doc.reserved) >= clampNonNegative(doc.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT)) return null;
       doc.reserved = clampNonNegative(doc.reserved) + 1;
       doc.reservationUpdatedAt = now;
       doc.updatedAt = now;
@@ -403,6 +415,37 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
   return store;
 }
 
+export async function mergeGuardianFortuneAnonymousUsage({ userId, guestIdHash, env, now = new Date() } = {}) {
+  const normalizedUserId = normalizeUserId(userId);
+  const normalizedGuestHash = normalizeGuestHash(guestIdHash);
+  if (!normalizedUserId || !normalizedGuestHash) return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.INVALID_INPUT, status: 400 };
+  await connectDb(env);
+  const accountId = objectIdOrString(normalizedUserId);
+  const session = await mongoose.startSession();
+  try {
+    let merged = false;
+    let guestUsed = 0;
+    let freeUsed = 0;
+    await session.withTransaction(async () => {
+      const existing = await GuardianFortuneAnonymousMerge.findOne({ userId: accountId, guestIdHash: normalizedGuestHash }).session(session).lean();
+      const guest = await GuardianFortuneGuestUsage.findOne({ guestIdHash: normalizedGuestHash }).session(session).lean();
+      guestUsed = Math.min(GUARDIAN_FORTUNE_GUEST_LIMIT, clampNonNegative(guest?.totalUsed));
+      const account = await GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: accountId },
+        { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, legacyMigratedAt: now } },
+        { upsert: true, new: true, session },
+      ).lean();
+      if (!existing) {
+        const nextUsed = Math.min(GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, clampNonNegative(account?.freeUsed) + guestUsed);
+        await GuardianFortuneAccountUsage.updateOne({ userId: accountId }, { $set: { freeUsed: nextUsed, updatedAt: now } }, { session });
+        await GuardianFortuneAnonymousMerge.create([{ userId: accountId, guestIdHash: normalizedGuestHash, mergedGuestUsed: guestUsed }], { session });
+        merged = true; freeUsed = nextUsed;
+      } else freeUsed = clampNonNegative(account?.freeUsed);
+    });
+    return { ok: true, merged, guestUsed, freeUsed, remaining: Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - freeUsed) };
+  } finally { await session.endSession(); }
+}
+
 function objectIdOrString(value) {
   const normalized = normalizeUserId(value);
   if (mongoose.Types.ObjectId.isValid(normalized)) return new mongoose.Types.ObjectId(normalized);
@@ -450,34 +493,46 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
       ));
     },
     async findDaily(userId, dateKey) {
-      return leanQuery(GuardianFortuneDailyUsage.findOne({ userId: objectIdOrString(userId), dateKey: normalizeDateKey(dateKey) }));
+      return leanQuery(GuardianFortuneAccountUsage.findOne({ userId: objectIdOrString(userId) }));
     },
     async ensureDaily(userId, dateKey, now = new Date()) {
       await connectDb(env);
-      return leanQuery(GuardianFortuneDailyUsage.findOneAndUpdate(
-        { userId: objectIdOrString(userId), dateKey: normalizeDateKey(dateKey) },
-        { $setOnInsert: { userId: objectIdOrString(userId), dateKey: normalizeDateKey(dateKey), freeLimit: GUARDIAN_FORTUNE_DAILY_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, createdAt: now, updatedAt: now } },
+      const accountId = objectIdOrString(userId);
+      const account = await leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: accountId },
+        { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, legacyMigratedAt: null, createdAt: now, updatedAt: now } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       ));
+      if (account?.legacyMigratedAt) return account;
+      const legacy = await GuardianFortuneDailyUsage.aggregate([
+        { $match: { userId: accountId } },
+        { $group: { _id: null, total: { $sum: { $ifNull: ["$freeUsed", 0] } } } },
+      ]);
+      const migratedUsed = Math.min(GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, clampNonNegative(legacy?.[0]?.total));
+      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: accountId, legacyMigratedAt: null },
+        { $set: { freeUsed: migratedUsed, legacyMigratedAt: now, updatedAt: now } },
+        { new: true },
+      )) || account;
     },
     async reserveDaily(userId, dateKey, now = new Date()) {
       await store.ensureDaily(userId, dateKey, now);
-      return leanQuery(GuardianFortuneDailyUsage.findOneAndUpdate(
-        { userId: objectIdOrString(userId), dateKey: normalizeDateKey(dateKey), $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_DAILY_LIMIT] }] } },
+      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: objectIdOrString(userId), $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }] } },
         { $inc: { reserved: 1 }, $set: { reservationUpdatedAt: now, updatedAt: now } },
         { new: true },
       ));
     },
     async commitDaily(userId, dateKey, now = new Date()) {
-      return leanQuery(GuardianFortuneDailyUsage.findOneAndUpdate(
-        { userId: objectIdOrString(userId), dateKey: normalizeDateKey(dateKey), reserved: { $gt: 0 } },
+      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: objectIdOrString(userId), reserved: { $gt: 0 } },
         { $inc: { reserved: -1, freeUsed: 1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
       ));
     },
     async releaseDaily(userId, dateKey, now = new Date()) {
-      return leanQuery(GuardianFortuneDailyUsage.findOneAndUpdate(
-        { userId: objectIdOrString(userId), dateKey: normalizeDateKey(dateKey), reserved: { $gt: 0 } },
+      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: objectIdOrString(userId), reserved: { $gt: 0 } },
         { $inc: { reserved: -1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
       ));
@@ -554,7 +609,7 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
       const before = new Date(toDate(now).getTime() - GUARDIAN_FORTUNE_RESERVATION_TTL_MS);
       const [guest, daily, credit] = await Promise.all([
         GuardianFortuneGuestUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
-        GuardianFortuneDailyUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
+        GuardianFortuneAccountUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
         GuardianFortuneChatCreditBalance.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
       ]);
       return Number(guest.modifiedCount || 0) + Number(daily.modifiedCount || 0) + Number(credit.modifiedCount || 0);

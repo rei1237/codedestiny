@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { authFetch } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
@@ -157,6 +158,8 @@ async function consumeFusionStream(
 
 export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) {
   const apiBase = getApiBaseUrl();
+  const searchParams = useSearchParams();
+  const fortuneChatSessionId = searchParams?.get("fortuneChatSession") || "";
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
   const [purchaseBusy, setPurchaseBusy] = useState(false);
@@ -361,11 +364,24 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
             [stage.key]: index <= completedIndex ? "completed" : index === completedIndex + 1 ? "active" : "pending",
           }), {} as Record<FusionStageKey, FusionStageState>);
         });
+        if (fortuneChatSessionId) {
+          void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
+            method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "running", messages: [{ id: `fusion-stage-${completed}`, speaker: "assistant", kind: "progress", text: FUSION_STAGES.find((stage) => stage.key === completed)?.message || "초융합 리딩을 정리하고 있어요." }] }),
+          }, { retryOn401: true, apiBase });
+        }
       });
       const streamResult = payload.result as Result | undefined;
       const fusionStatus = payload.fusionStatus as Status | undefined;
       if (!streamResult || !fusionStatus) throw new Error(String(payload.message || "결과를 생성하지 못했어요."));
       setResult(streamResult); setStatus(fusionStatus); setNotice("결과가 완성되어 오늘의 선착순 자리가 확정됐어요.");
+      if (fortuneChatSessionId) {
+        void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
+          method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "completed", messages: [{ id: `fusion-${payload.requestId || Date.now()}`, speaker: "assistant", kind: "fusion_result", text: streamResult.openingMessage, detail: streamResult.executiveSummary, result: streamResult }] }),
+        }, { retryOn401: true, apiBase });
+        window.setTimeout(() => window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`), 300);
+      }
     } catch (cause) {
       if ((cause as Error)?.name === "AbortError") setNotice("분석을 중단했어요. 완료 전 중단된 요청은 상담권과 선착순 자리를 차감하지 않아요.");
       else setError(cause instanceof Error ? cause.message : "결과를 생성하지 못했어요.");

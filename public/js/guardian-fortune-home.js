@@ -786,7 +786,7 @@
     if (fusionActions && !fusionActions.querySelector('[data-guardian-fusion-handoff]')) {
       var fusionLink = document.createElement('a');
       fusionLink.className = 'guardian-fortune__cta-button guardian-fortune__cta-button--primary';
-      fusionLink.href = '/fusion-fortune';
+      fusionLink.href = '/fortune-chat';
       fusionLink.setAttribute('data-guardian-fusion-handoff', 'true');
       fusionLink.textContent = '초융합 사주로 더 깊게 보기';
       fusionActions.appendChild(fusionLink);

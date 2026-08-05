@@ -47,7 +47,7 @@ describe("Guardian Fortune usage service", () => {
     expect(second).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED, status: 429 });
   });
 
-  it("allows exactly three daily reservations and resets on the next KST date", async () => {
+  it("allows exactly three account reservations and never resets at KST midnight", async () => {
     const store = createMemoryGuardianFortuneStore();
     for (let index = 0; index < 3; index += 1) {
       const reservation = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: `daily-request-${index}`, store, now: NOW });
@@ -58,7 +58,7 @@ describe("Guardian Fortune usage service", () => {
     expect(blocked).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS });
 
     const nextDay = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: "2026-08-03", requestId: "daily-request-next", store, now: new Date("2026-08-02T15:00:00.000Z") });
-    expect(nextDay).toMatchObject({ ok: true, source: "daily_free" });
+    expect(nextDay).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS });
   });
 
   it("uses paid credit only after the daily free quota is exhausted", async () => {
@@ -111,7 +111,7 @@ describe("Guardian Fortune usage service", () => {
     await releaseGuardianFortuneUsage(reservation, { store, errorCode: "TEST_FAILURE", now: NOW });
     const status = await buildGuardianFortuneUsageStatus({ userId: "user-release", dateKey: DATE_KEY, store, now: NOW });
     expect(status).toMatchObject({ dailyFreeUsed: 0, dailyFreeRemaining: 3, canGenerate: true });
-    expect(store.state.daily.get(`user-release:${DATE_KEY}`)).toMatchObject({ reserved: 0, freeUsed: 0 });
+    expect(store.state.daily.get("user-release")).toMatchObject({ reserved: 0, freeUsed: 0 });
   });
 
   it("blocks duplicate request IDs before a second reservation", async () => {

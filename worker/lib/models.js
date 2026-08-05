@@ -1321,6 +1321,37 @@ const guardianFortuneDailyUsageSchema = new mongoose.Schema({
 }, { timestamps: true, collection: "guardianFortuneDailyUsages" });
 guardianFortuneDailyUsageSchema.index({ userId: 1, dateKey: 1 }, { unique: true });
 
+// The legacy daily collection remains read-only migration input. New guidance
+// quota is lifetime-scoped so a midnight never grants another free reading.
+const guardianFortuneAccountUsageSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true },
+  freeLimit: { type: Number, default: 3, min: 0, max: 3 },
+  freeUsed: { type: Number, default: 0, min: 0, max: 3 },
+  reserved: { type: Number, default: 0, min: 0, max: 3 },
+  reservationUpdatedAt: { type: Date, default: null },
+  legacyMigratedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "guardianFortuneAccountUsages" });
+
+const guardianFortuneAnonymousMergeSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  guestIdHash: { type: String, required: true, trim: true, maxlength: 128 },
+  mergedGuestUsed: { type: Number, default: 0, min: 0, max: 1 },
+}, { timestamps: true, collection: "guardianFortuneAnonymousMerges" });
+guardianFortuneAnonymousMergeSchema.index({ userId: 1, guestIdHash: 1 }, { unique: true });
+
+const fortuneChatSessionSchema = new mongoose.Schema({
+  sessionId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, default: null, index: true },
+  anonymousSessionId: { type: String, default: "", trim: true, maxlength: 128, index: true },
+  characterId: { type: String, enum: ["flower_pig", "yeoni", "neo"], default: "flower_pig" },
+  selectedTopic: { type: String, default: "", maxlength: 80 },
+  mode: { type: String, enum: ["free_guidance", "fusion_deep_reading"], default: "free_guidance" },
+  paymentStatus: { type: String, default: "idle", maxlength: 40 },
+  generationStatus: { type: String, default: "idle", maxlength: 40 },
+  messages: { type: [mongoose.Schema.Types.Mixed], default: [] },
+}, { timestamps: true, collection: "fortuneChatSessions" });
+fortuneChatSessionSchema.index({ userId: 1, updatedAt: -1 });
+
 const guardianFortuneChatCreditBalanceSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true },
   remaining: { type: Number, default: 0, min: 0 },
@@ -1509,6 +1540,12 @@ export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsa
   || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
 export const GuardianFortuneDailyUsage = mongoose.models.GuardianFortuneDailyUsage
   || mongoose.model("GuardianFortuneDailyUsage", guardianFortuneDailyUsageSchema);
+export const GuardianFortuneAccountUsage = mongoose.models.GuardianFortuneAccountUsage
+  || mongoose.model("GuardianFortuneAccountUsage", guardianFortuneAccountUsageSchema);
+export const GuardianFortuneAnonymousMerge = mongoose.models.GuardianFortuneAnonymousMerge
+  || mongoose.model("GuardianFortuneAnonymousMerge", guardianFortuneAnonymousMergeSchema);
+export const FortuneChatSession = mongoose.models.FortuneChatSession
+  || mongoose.model("FortuneChatSession", fortuneChatSessionSchema);
 export const GuardianFortuneChatCreditBalance = mongoose.models.GuardianFortuneChatCreditBalance
   || mongoose.model("GuardianFortuneChatCreditBalance", guardianFortuneChatCreditBalanceSchema);
 export const GuardianFortuneChatCreditTransaction = mongoose.models.GuardianFortuneChatCreditTransaction
