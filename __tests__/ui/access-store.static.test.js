@@ -142,6 +142,46 @@ test("AccessStore uses the auth-aware adapter and the complete access-state endp
   assert.equal(store.isUnlocked("section_summary"), true);
 });
 
+test("AccessStore requests Guardian as an include variant and preserves the last good usage on partial degradation", async () => {
+  const urls = [];
+  const store = loadStore(async (url) => {
+    urls.push(String(url));
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        data: {
+          userId: "user-1",
+          currentProfileId: "profile-1",
+          unlockedFeatureIds: ["section_summary"],
+          completeness: "full",
+          authority: "server",
+          freeUsage: {
+            guardian: { degraded: false, dailyFreeRemaining: 2, paidCreditsRemaining: 4, canGenerate: true },
+          },
+        },
+      }),
+    };
+  });
+
+  await store.ensureLoaded({ userId: "user-1", profileId: "profile-1", authenticated: true, includeGuardian: true });
+  assert.deepEqual(urls, ["/api/me/access-state?profileId=profile-1&include=guardian"]);
+  assert.equal(store.getSnapshot().freeUsage.guardian.dailyFreeRemaining, 2);
+
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["section_summary"],
+    completeness: "full",
+    authority: "server",
+    freeUsage: { guardian: { degraded: true, code: "DB_QUERY_TIMEOUT" } },
+  }, { profileId: "profile-1" });
+
+  assert.equal(store.getSnapshot().freeUsage.guardian.dailyFreeRemaining, 2);
+  assert.equal(store.getSnapshot().freeUsage.guardian.degraded, false);
+});
+
 test("permission and profile failures preserve login state and the last good unlock snapshot", async () => {
   let calls = 0;
   const store = loadStore(async () => {

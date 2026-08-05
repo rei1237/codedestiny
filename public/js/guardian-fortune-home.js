@@ -23,6 +23,10 @@
     shareDraftToken: '',
     shareState: { status: 'idle' },
     sharePromise: null,
+    usagePromise: null,
+    accessBootstrapPromise: null,
+    accessUnsubscribe: null,
+    guestUsageObserver: null,
     chatQuestion: '',
     timer: null,
     abortController: null
@@ -883,34 +887,117 @@
     return window.CDGuardianFortuneApi;
   }
 
+  function hasAuthSessionHint() {
+    try {
+      var roleMatch = String(document.cookie || '').match(/(?:^|;\s*)fortune_auth_role=([^;]*)/);
+      var role = roleMatch && roleMatch[1] ? decodeURIComponent(roleMatch[1]).toLowerCase() : '';
+      if (role && role !== 'guest' && role !== 'anonymous') return true;
+      return Boolean(
+        window.localStorage && (window.localStorage.getItem('fortune_auth_token') || window.localStorage.getItem('fortune_auth_user'))
+        || window.sessionStorage && window.sessionStorage.getItem('fortune_auth_token')
+      );
+    } catch (_) {
+      return Boolean(window.__cdAuthSessionHint || window.__cdHasAuthSession);
+    }
+  }
+
+  function applyAccessStoreUsage() {
+    var store = window.CodeDestinyAccessStore;
+    if (!store || typeof store.getSnapshot !== 'function') return false;
+    var snapshot = store.getSnapshot() || {};
+    var freeUsage = snapshot.freeUsage || snapshot.lastPayload && snapshot.lastPayload.freeUsage;
+    var guardian = freeUsage && freeUsage.guardian;
+    if (!guardian || typeof guardian !== 'object') return false;
+    if (guardian.degraded === true) {
+      if (!state.usageStatus) state.usageError = new Error('Guardian usage snapshot unavailable');
+      state.usageLoading = false;
+      updateUsage();
+      return true;
+    }
+    var normalized = normalizeUsage(guardian);
+    if (!normalized) return false;
+    state.usageStatus = normalized;
+    state.usageError = null;
+    state.usageLoading = false;
+    state.status = state.status === 'limit' && normalized.canGenerate ? 'idle' : state.status;
+    updateUsage();
+    return true;
+  }
+
+  function bootstrapAccessUsage(force) {
+    if (state.accessBootstrapPromise) return state.accessBootstrapPromise;
+    var cache = window.CodeDestinyUserAccessCache;
+    if (!cache || typeof cache.ensureUserAccessLoaded !== 'function') return Promise.resolve(false);
+    state.accessBootstrapPromise = Promise.resolve(cache.ensureUserAccessLoaded({
+      force: force === true,
+      includeProfile: true,
+      includeBilling: true,
+      includeGuardian: true,
+      reason: force === true ? 'guardian-explicit-refresh' : 'guardian-home-bootstrap'
+    })).then(function () {
+      return applyAccessStoreUsage();
+    }).catch(function () {
+      return false;
+    }).finally(function () {
+      state.accessBootstrapPromise = null;
+    });
+    return state.accessBootstrapPromise;
+  }
+
   async function loadUsage() {
     if (state.flow !== 'api') return;
+    if (state.usagePromise) return state.usagePromise;
+    if (hasAuthSessionHint()) return bootstrapAccessUsage(true);
     var api = getApiClient();
     if (!api || typeof api.fetchGuardianFortuneUsage !== 'function') {
       state.usageError = new Error('Guardian Fortune API client unavailable');
       state.usageLoading = false;
       updateUsage();
-      return;
+      return false;
     }
-    state.usageLoading = true;
-    state.usageError = null;
-    updateUsage();
-    try {
-      var payload = await api.fetchGuardianFortuneUsage();
-      state.usageStatus = normalizeUsage(payload);
+    state.usagePromise = (async function () {
+      state.usageLoading = true;
       state.usageError = null;
-      state.status = 'idle';
-    } catch (error) {
-      state.usageError = error;
-      if (error && error.usage) state.usageStatus = normalizeUsage(error.usage);
-    } finally {
-      state.usageLoading = false;
       updateUsage();
+      try {
+        var payload = await api.fetchGuardianFortuneUsage();
+        state.usageStatus = normalizeUsage(payload);
+        state.usageError = null;
+        state.status = 'idle';
+        return true;
+      } catch (error) {
+        state.usageError = error;
+        if (error && error.usage) state.usageStatus = normalizeUsage(error.usage);
+        return false;
+      } finally {
+        state.usageLoading = false;
+        state.usagePromise = null;
+        updateUsage();
+      }
+    })();
+    return state.usagePromise;
+  }
+
+  function scheduleGuestUsageLoad() {
+    if (hasAuthSessionHint() || state.usageStatus || state.usagePromise) return;
+    var loadOnce = function () {
+      if (state.guestUsageObserver) state.guestUsageObserver.disconnect();
+      state.guestUsageObserver = null;
+      void loadUsage();
+    };
+    if (typeof window.IntersectionObserver === 'function') {
+      state.guestUsageObserver = new window.IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) loadOnce();
+      }, { rootMargin: '160px 0px' });
+      state.guestUsageObserver.observe(root);
     }
+    root.addEventListener('pointerdown', loadOnce, { once: true, passive: true });
+    root.addEventListener('focusin', loadOnce, { once: true });
   }
 
   async function generateApi() {
     if (state.status === 'loading') return;
+    if (!state.usageStatus && !state.usageError) await loadUsage();
     if (state.usageError) {
       await loadUsage();
       return;
@@ -1305,7 +1392,21 @@
     setTopic(state.topic);
     setCategory(state.category);
     updateUsage();
-    if (state.flow === 'api') loadUsage();
+    if (state.flow === 'api') {
+      var accessStore = window.CodeDestinyAccessStore;
+      if (accessStore && typeof accessStore.subscribe === 'function') {
+        state.accessUnsubscribe = accessStore.subscribe(function () { applyAccessStoreUsage(); });
+      }
+      void bootstrapAccessUsage(false).then(function (applied) {
+        if (!applied && !hasAuthSessionHint()) scheduleGuestUsageLoad();
+      });
+      window.addEventListener('cd:auth-changed', function () {
+        state.usagePromise = null;
+        state.usageError = null;
+        if (hasAuthSessionHint()) void bootstrapAccessUsage(true);
+        else scheduleGuestUsageLoad();
+      });
+    }
     root.addEventListener('click', function (event) {
       var link = event.target && event.target.closest ? event.target.closest('[data-guardian-fusion-handoff]') : null;
       if (link && root.contains(link)) storeFusionHandoff();

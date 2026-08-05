@@ -144,3 +144,10 @@
 - `Possible EventEmitter memory leak detected`가 반복되면 timeout으로 종료된 Mongo 작업이 실제로 취소되지 않고 남아 있는지 확인한다. `Promise.race` timeout은 underlying query를 자동 취소하지 않는다.
 - 동일 사용자 auth/snapshot 조회는 in-flight single-flight로 합치고, Mongo 작업 admission을 `MONGO_MAX_IN_FLIGHT_OPS`와 `MONGO_OP_ADMISSION_TIMEOUT_MS`로 제한한다.
 - 복구 검증은 결제/LLM 실호출 없이 mock 또는 dry-run으로 진행하고, 배포 후 tail에서 checkout 실패율·503율·중복 호출 수를 다시 비교한다.
+
+### 로그인 직후 access-state/Guardian 진단
+
+- 정상 로그인 홈 진입은 `GET /api/me/access-state?include=guardian` 1회이며 `/api/fortune/guardian/usage`, `/api/billing/balance`, `/api/billing/coin-gate`는 0회다. 비로그인 Guardian usage는 섹션 viewport 진입 또는 첫 상호작용 뒤 1회만 허용한다.
+- 코드상 503 후보는 Guardian optional auth의 `GUARDIAN_FORTUNE_AUTH_STATUS_UNAVAILABLE`, billing balance의 `BALANCE_SNAPSHOT_UNAVAILABLE`, coin-gate auth/pass/DB 분기, `worker/lib/db.js`의 connection·operation timeout과 admission wait queue다. 운영 예외 원문은 Worker tail 확인 전까지 확정하지 않는다.
+- `ACCESS_STATE_DIAGNOSTICS_ENABLED=true`일 때 access-state는 request id, 비식별 user hash, auth/entitlement/Guardian 소요 시간, cache/single-flight 상태, 외부 API 호출 여부, status, 내부 error type, total time만 구조화 기록한다. 기본값은 off이며 토큰, 쿠키, 이메일, 원문 user id, 결제정보는 기록하지 않는다.
+- 내부 분류는 `AUTH_NOT_READY`, `DB_CONNECTION_TIMEOUT`, `DB_QUERY_TIMEOUT`, `RATE_LIMITED`, `DUPLICATE_REQUEST_OVERLOAD`, `INTERNAL_DEPENDENCY_ERROR`, `UNKNOWN_SERVER_ERROR`다. Guardian-only 실패는 entitlement를 503이나 미보유로 바꾸지 않고 `freeUsage.guardian.degraded=true`로 남긴다.

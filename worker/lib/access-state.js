@@ -26,10 +26,18 @@ function normalizeProfileId(profileId) {
   return String(profileId || "").trim().slice(0, 100);
 }
 
-function accessStateCacheKey(userId, profileId = "") {
+function normalizeIncludes(include = "") {
+  const values = Array.isArray(include) ? include : String(include || "").split(",");
+  return Array.from(new Set(values.map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))).sort();
+}
+
+function accessStateCacheKey(userId, profileId = "", include = "") {
   const normalizedUserId = normalizeUserId(userId);
+  if (!normalizedUserId) return "";
   const normalizedProfileId = normalizeProfileId(profileId);
-  return normalizedProfileId ? `${normalizedUserId}::${normalizedProfileId}` : normalizedUserId;
+  const base = normalizedProfileId ? `${normalizedUserId}::${normalizedProfileId}` : normalizedUserId;
+  const includeKey = normalizeIncludes(include).join(",");
+  return includeKey ? `${base}::include=${includeKey}` : base;
 }
 
 function normalizeIsoDate(value) {
@@ -225,6 +233,7 @@ export function buildAccessState({
     serverTime: checkedAt,
     versions: {
       entitlementVersion: entitlementSnapshot.entitlementVersion,
+      accessStateVersion: entitlementSnapshot.entitlementVersion,
       policyVersion: ACCESS_STATE_POLICY_VERSION,
     },
     account: {
@@ -242,6 +251,55 @@ export function buildAccessState({
     completenessDetails: entitlementSnapshot.completenessDetails,
     authority: "server",
     adminStaleGraceAllowed: false,
+  };
+}
+
+export function attachGuardianUsageToAccessState(state, usage = {}) {
+  const guardianUsageVersion = `guardian:${snapshotFingerprint([
+    usage.isLoggedIn,
+    usage.guestFreeLimit,
+    usage.guestFreeUsed,
+    usage.guestFreeRemaining,
+    usage.dailyFreeLimit,
+    usage.dailyFreeUsed,
+    usage.dailyFreeRemaining,
+    usage.paidCreditsRemaining,
+    usage.canGenerate,
+    usage.generationSource,
+    usage.nextAction,
+  ])}`;
+  const entitlementVersion = String(state?.versions?.entitlementVersion || state?.version || "unknown");
+  return {
+    ...state,
+    freeUsage: {
+      ...(state?.freeUsage && typeof state.freeUsage === "object" ? state.freeUsage : {}),
+      guardian: { ...usage, degraded: false, version: guardianUsageVersion },
+    },
+    versions: {
+      ...(state?.versions || {}),
+      guardianUsageVersion,
+      accessStateVersion: `${entitlementVersion}:${guardianUsageVersion}`,
+    },
+  };
+}
+
+export function attachDegradedGuardianUsageToAccessState(state, code = "INTERNAL_DEPENDENCY_ERROR") {
+  const entitlementVersion = String(state?.versions?.entitlementVersion || state?.version || "unknown");
+  return {
+    ...state,
+    freeUsage: {
+      ...(state?.freeUsage && typeof state.freeUsage === "object" ? state.freeUsage : {}),
+      guardian: {
+        degraded: true,
+        code: String(code || "INTERNAL_DEPENDENCY_ERROR"),
+        checkedAt: new Date().toISOString(),
+      },
+    },
+    versions: {
+      ...(state?.versions || {}),
+      guardianUsageVersion: "guardian:degraded",
+      accessStateVersion: `${entitlementVersion}:guardian:degraded`,
+    },
   };
 }
 
@@ -285,10 +343,10 @@ export async function resolveCompleteAccessState({
   });
 }
 
-export function readAccessStateCache(userId, { profileId = "", allowStale = false } = {}) {
+export function readAccessStateCache(userId, { profileId = "", include = "", allowStale = false } = {}) {
   const normalizedUserId = normalizeUserId(userId);
   const fallbackProfileId = profileId || cache.currentProfileByUser.get(normalizedUserId) || "";
-  const key = accessStateCacheKey(normalizedUserId, fallbackProfileId);
+  const key = accessStateCacheKey(normalizedUserId, fallbackProfileId, include);
   if (!key) return null;
   const entry = cache.entries.get(key);
   if (!entry) return null;
@@ -299,10 +357,10 @@ export function readAccessStateCache(userId, { profileId = "", allowStale = fals
   return null;
 }
 
-export function writeAccessStateCache(userId, value, { profileId = "" } = {}) {
+export function writeAccessStateCache(userId, value, { profileId = "", include = "" } = {}) {
   const normalizedUserId = normalizeUserId(userId);
   const normalizedProfileId = normalizeProfileId(profileId || value?.currentProfileId || value?.profileId);
-  const key = accessStateCacheKey(normalizedUserId, normalizedProfileId);
+  const key = accessStateCacheKey(normalizedUserId, normalizedProfileId, include);
   if (!key || !value) return value;
   const now = Date.now();
   prune(now);
@@ -315,19 +373,19 @@ export function writeAccessStateCache(userId, value, { profileId = "" } = {}) {
   return value;
 }
 
-export function readAccessStateInFlight(userId, { profileId = "" } = {}) {
-  return cache.inFlight.get(accessStateCacheKey(userId, profileId)) || null;
+export function readAccessStateInFlight(userId, { profileId = "", include = "" } = {}) {
+  return cache.inFlight.get(accessStateCacheKey(userId, profileId, include)) || null;
 }
 
-export function writeAccessStateInFlight(userId, promise, { profileId = "" } = {}) {
-  const key = accessStateCacheKey(userId, profileId);
+export function writeAccessStateInFlight(userId, promise, { profileId = "", include = "" } = {}) {
+  const key = accessStateCacheKey(userId, profileId, include);
   if (!key || !promise) return promise;
   cache.inFlight.set(key, promise);
   return promise;
 }
 
-export function clearAccessStateInFlight(userId, promise, { profileId = "" } = {}) {
-  const key = accessStateCacheKey(userId, profileId);
+export function clearAccessStateInFlight(userId, promise, { profileId = "", include = "" } = {}) {
+  const key = accessStateCacheKey(userId, profileId, include);
   if (cache.inFlight.get(key) === promise) cache.inFlight.delete(key);
 }
 

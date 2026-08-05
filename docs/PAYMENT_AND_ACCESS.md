@@ -211,8 +211,11 @@
 
 - `GET /api/me/access-state` is enabled by default in every runtime; `ACCESS_STATE_ENABLED=false` is an emergency disable only. Login/bootstrap consumers use its existing user-scoped single-flight instead of mounting separate pass, monthly-balance, entitlement, and profile probes.
 - The response includes the active pass, canonical unexpired monthly lots/balance, current profile, `ContentEntitlement` grouped by profile, product ownership, `unlockMap`, `lockMap`, and `entitlementVersion`.
+- The static home alone requests `GET /api/me/access-state?include=guardian`. A successful optional Guardian read is returned as `freeUsage.guardian` and participates in `versions.accessStateVersion`/ETag. A Guardian-only query failure returns `freeUsage.guardian.degraded=true` without downgrading the authoritative entitlement snapshot or inventing a zero balance.
+- The access-state single-flight key is the locally JWT-verified user id plus requested profile and include set. It is installed before the authenticated user DB lookup, while every later sequential request still performs the canonical auth check. Failed promises and partial Guardian snapshots are not cached.
 - Only the current profile plus user-scoped entitlements are projected into the active `unlockMap`. Entitlements for other profiles remain in `profileEntitlements` and never unlock the current profile by accident.
 - `CodeDestinyAccessStore` may read this Snapshot first, preserve a verified stale read during a transient failure, and apply optimistic success patches. It cannot deduct monthly credits, create orders, or grant server authority.
+- `/api/billing/coin-gate` remains an explicit server command after the user selects `이용권` or `월정석`; it is not part of snapshot hydration. Static membership commands prepare auth before sending one POST and do not replay that POST after a 401. Fresh snapshot balances are reused for display, while `fresh=1` remains limited to explicit refresh or completed payment/use reconciliation.
 
 ## Feature route boundary
 

@@ -53,6 +53,7 @@
       membership: null,
       entitlementSnapshot: null,
       monthlyBalance: null,
+      freeUsage: null,
       accessDecision: Object.create(null),
       status: 'loading',
       error: null,
@@ -304,6 +305,7 @@
           membership: state.membership,
           entitlementSnapshot: state.entitlementSnapshot,
           monthlyBalance: state.monthlyBalance,
+          freeUsage: state.freeUsage,
           savedAt: savedAt
         })
       );
@@ -394,6 +396,7 @@
       state.membership = cacheExpired ? readMembershipSnapshot(userId) : copyObject(restored.membership) || readMembershipSnapshot(userId);
       state.entitlementSnapshot = cacheExpired ? null : copyObject(restored.entitlementSnapshot);
       state.monthlyBalance = cacheExpired ? null : copyObject(restored.monthlyBalance);
+      state.freeUsage = cacheExpired ? null : copyObject(restored.freeUsage);
       state.checkedAt = Number(restored.savedAt || 0);
       state.source = 'localStorage';
       state.status = cacheExpired || Date.now() - state.checkedAt > FRESH_TTL_MS ? 'degraded' : 'ready';
@@ -495,6 +498,12 @@
     if (nextMonthlyBalance && typeof nextMonthlyBalance === 'object') {
       state.monthlyBalance = copyObject(nextMonthlyBalance);
     }
+    if (payload && payload.freeUsage && typeof payload.freeUsage === 'object') {
+      var nextGuardianUsage = payload.freeUsage.guardian;
+      if (!nextGuardianUsage || nextGuardianUsage.degraded !== true || !state.freeUsage || !state.freeUsage.guardian) {
+        state.freeUsage = copyObject(payload.freeUsage);
+      }
+    }
     if (payload && payload.entitlementSnapshot) {
       state.membership = copyObject(payload.entitlementSnapshot);
     }
@@ -573,6 +582,12 @@
     if (incomingMonthlyBalance && typeof incomingMonthlyBalance === 'object'
       && (authoritativeFull || !state.monthlyBalance)) {
       state.monthlyBalance = copyObject(incomingMonthlyBalance);
+    }
+    if (source.freeUsage && typeof source.freeUsage === 'object') {
+      var incomingGuardianUsage = source.freeUsage.guardian;
+      if (!incomingGuardianUsage || incomingGuardianUsage.degraded !== true || !state.freeUsage || !state.freeUsage.guardian) {
+        state.freeUsage = copyObject(source.freeUsage);
+      }
     }
     state.status = source.degraded === true || !authoritativeFull ? 'degraded' : 'ready';
     state.error = source.degraded === true ? { code: 'ACCESS_STATE_DEGRADED' } : null;
@@ -722,18 +737,21 @@
       || Object.keys(state.optimistic).length > 0 || Boolean(state.membership);
   }
 
-  function startFetch(context, attempt) {
-    if (inFlight[context.key]) {
+  function startFetch(context, attempt, options) {
+    var includeGuardian = options && options.includeGuardian === true;
+    var requestKey = context.key + (includeGuardian ? '::include=guardian' : '');
+    if (inFlight[requestKey]) {
       debug('reused', { cacheKey: context.key });
-      return inFlight[context.key].promise;
+      return inFlight[requestKey].promise;
     }
     if (typeof global.fetch !== 'function') {
       return Promise.resolve({ ok: false, status: state.status, reason: 'FETCH_UNAVAILABLE' });
     }
     abortController = typeof global.AbortController === 'function' ? new global.AbortController() : null;
-    lastRefreshAttemptAt[context.key] = Date.now();
+    lastRefreshAttemptAt[requestKey] = Date.now();
     var controller = abortController;
     var query = '/api/me/access-state?profileId=' + encodeURIComponent(context.profileId);
+    if (includeGuardian) query += '&include=guardian';
     traceEvent('access:start', {
       request: 'unlocks',
       serviceKeys: context.serviceKeys.slice(),
@@ -805,11 +823,11 @@
       debug('fetch failed', { cacheKey: context.key, status: error && error.status, attempt: attempt || 0 });
       return { ok: false, status: state.status, stale: hasUsableCache() };
     }).finally(function () {
-      if (inFlight[context.key] && inFlight[context.key].promise === request) delete inFlight[context.key];
+      if (inFlight[requestKey] && inFlight[requestKey].promise === request) delete inFlight[requestKey];
       if (abortController === controller) abortController = null;
       traceEvent('access:finish', { request: 'unlocks' });
     });
-    inFlight[context.key] = { promise: request, controller: controller, epoch: epoch };
+    inFlight[requestKey] = { promise: request, controller: controller, epoch: epoch };
     debug('fetch started', { cacheKey: context.key, attempt: attempt || 0 });
     return request;
   }
@@ -839,6 +857,7 @@
       membership: copyObject(state.membership),
       entitlementSnapshot: copyObject(state.entitlementSnapshot),
       monthlyBalance: copyObject(state.monthlyBalance),
+      freeUsage: copyObject(state.freeUsage),
       accessDecision: copyObject(state.accessDecision) || {},
       status: state.status,
       error: copyObject(state.error),
@@ -962,15 +981,18 @@
       notify();
       return Promise.resolve({ ok: true, skipped: true, reason: 'NO_AUTH_PROFILE' });
     }
-    if (inFlight[context.key]) {
+    var opts = options || {};
+    var requestKey = context.key + (opts.includeGuardian === true ? '::include=guardian' : '');
+    if (inFlight[requestKey]) {
       debug('reused', { cacheKey: context.key });
       traceEvent('access:dedupe', { request: 'unlocks', reason: options && options.reason || 'unknown' });
-      return inFlight[context.key].promise;
-    }    var opts = options || {};
+      return inFlight[requestKey].promise;
+    }
     var ageMs = state.checkedAt ? Date.now() - state.checkedAt : Number.POSITIVE_INFINITY;
     var tier = getEffectiveTier();
     var adminSnapshot = tier === 'admin';
-    if (!opts.force && ageMs <= FRESH_TTL_MS) {
+    var guardianReady = opts.includeGuardian !== true || Boolean(state.freeUsage && state.freeUsage.guardian && state.freeUsage.guardian.degraded !== true);
+    if (!opts.force && guardianReady && ageMs <= FRESH_TTL_MS) {
       traceEvent('access:cache-hit', { request: 'unlocks', reason: options && options.reason || 'cached' });      return Promise.resolve({ ok: true, cached: true, snapshot: getSnapshot() });
     }
     var canUseStale = hasUsableCache() && ageMs <= STALE_TTL_MS;
@@ -978,13 +1000,13 @@
     if (!opts.force && (canUseStale || canUseGrace)) {
       state.status = 'degraded';
       notify();
-      if (Date.now() - Number(lastRefreshAttemptAt[context.key] || 0) >= REFRESH_THROTTLE_MS) {
-        startFetch(context, 0);
+      if (Date.now() - Number(lastRefreshAttemptAt[requestKey] || 0) >= REFRESH_THROTTLE_MS) {
+        startFetch(context, 0, opts);
       }
       return Promise.resolve({ ok: true, cached: true, stale: true, snapshot: getSnapshot() });
     }
     loadedEpoch[context.key] = bootEpoch;
-    return startFetch(context, 0);
+    return startFetch(context, 0, opts);
   }
 
   function revalidate(options) {

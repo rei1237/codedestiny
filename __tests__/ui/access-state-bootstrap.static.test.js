@@ -37,7 +37,9 @@ test("post-login bootstrap hydrates the shared AccessStore instead of creating a
 });
 
 test("static shell bootstrap uses access-state and keeps legacy calls as compatibility fallback", () => {
-  assert.match(shellSource, /fetch\('\/api\/me\/access-state', init\)/);
+  assert.match(shellSource, /var accessStateUrl = '\/api\/me\/access-state' \+ \(opts\.includeGuardian === true \? '\?include=guardian' : ''\)/);
+  assert.match(shellSource, /fetch\(accessStateUrl, init\)/);
+  assert.match(shellSource, /if \(!hasClientAuthHint\(\)\) return Promise\.resolve\(snapshot\)/);
   assert.match(shellSource, /accessResponse.status !== 404 && accessResponse.status !== 405/);
   const bootstrapSource = shellSource.slice(
     shellSource.indexOf("function ensureLoaded(options)"),
@@ -46,4 +48,19 @@ test("static shell bootstrap uses access-state and keeps legacy calls as compati
   assert.doesNotMatch(bootstrapSource, /fetch\('\/api\/auth\/me'/);
   assert.match(shellSource, /_cdIsAuthRequiredBillingError\(primary\.status, primary\.payload\)/);
   assert.match(shellSource, /String\(lastPayload\.completeness \|\| ''\)\.toLowerCase\(\) === 'full'/);
+});
+
+test("static membership command prepares auth once and never replays the same POST after 401", () => {
+  const passCommand = shellSource.slice(
+    shellSource.indexOf("var passApplyRequest"),
+    shellSource.indexOf("var code =", shellSource.indexOf("var passApplyRequest")),
+  );
+  assert.match(passCommand, /fetchJsonWithAuth\('\/api\/billing\/coin-gate', passApplyRequest\)/);
+  assert.equal((passCommand.match(/fetchJsonWithAuth\('\/api\/billing\/coin-gate'/g) || []).length, 1);
+  assert.doesNotMatch(passCommand, /verifyAuthSessionForCoinApi/);
+});
+
+test("automatic balance reads reuse the access snapshot and do not append timestamps", () => {
+  assert.match(shellSource, /function _cdApplyFreshAccessStoreBalances\(\)/);
+  assert.doesNotMatch(shellSource, /\/api\/billing\/balance[^'\"]*[?&]_=/);
 });

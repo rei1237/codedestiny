@@ -213,6 +213,19 @@ test('guardian fortune buy-credit CTA points to the live points shop section', (
   assert.doesNotMatch(home, /대화권 상점은 아직 mock 상태예요/);
 });
 
+test('guardian fortune consumes the central snapshot and lazy-loads guest usage once', () => {
+  const home = read('js/guardian-fortune-home.js');
+  const route = read('worker/routes/fortune.js');
+  assert.match(home, /includeGuardian: true/);
+  assert.match(home, /snapshot\.freeUsage \|\| snapshot\.lastPayload && snapshot\.lastPayload\.freeUsage/);
+  assert.match(home, /guardian\.degraded === true/);
+  assert.match(home, /if \(state\.usagePromise\) return state\.usagePromise/);
+  assert.match(home, /new window\.IntersectionObserver/);
+  assert.match(home, /root\.addEventListener\('pointerdown', loadOnce/);
+  assert.doesNotMatch(home, /if \(state\.flow === 'api'\) loadUsage\(\)/);
+  assert.match(route, /result\?\.ok === true && identity\.userId\) invalidateAccessStateCacheForUser\(identity\.userId\)/);
+});
+
 test('guardian fortune flag off leaves the legacy hub visible', () => {
   const dom = new JSDOM(`<!doctype html><body>
     <section id="cdTodayHub"></section>
