@@ -8,6 +8,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Codex may inject an expired process-scoped GH_TOKEN. gh gives it precedence
+# over its encrypted host login, so use the saved interactive account instead.
+Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+
 function Invoke-Gh {
   param([string[]]$Args)
   & gh @Args
@@ -42,10 +47,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 if (-not $SkipPush) {
-  # Use the GitHub CLI credential helper for this push so stale Git Credential
-  # Manager entries cannot override the current GH_TOKEN authentication.
-  $gitCredentialHelper = 'credential.helper=!gh auth git-credential'
-  git -c $gitCredentialHelper push -u origin $Head
+  # HTTPS Git authentication is owned by Git Credential Manager. Do not route
+  # pushes through gh: it would reintroduce the GH_TOKEN precedence problem.
+  git -c credential.helper=manager push -u origin $Head
   if ($LASTEXITCODE -ne 0) { throw "Failed to push feature branch: $Head" }
 }
 

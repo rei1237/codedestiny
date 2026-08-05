@@ -25,7 +25,7 @@
 - Do not write to production MongoDB without explicit user approval.
 - Do not deploy to production without explicit user approval.
 - Do not make real LLM API calls, run real payments, write to production DB, or deploy to production during ordinary coding work. Use mock/fake/stub, sandbox, local DB, or test DB validation only unless the user explicitly approves the exact live action.
-- Production release work must go through a PR first. Before any production deploy, document regression risks, run the relevant no-regression checks, and confirm there is no known regression in the PR notes.
+- High-risk production changes must go through a PR. Low-risk changes may use the documented `release:fast` path after its range-based checks pass; it only pushes a committed feature-worktree SHA to `main`, and the CI release workflow owns deployment.
 - Codex may merge a PR only after the user explicitly approves the merge in the current task, required CI checks are green, required approvals are present, there are no unresolved blocking reviews or conflicts, and the final diff still matches the approved scope. Never bypass required checks, force-merge, or merge a PR whose scope changed after approval. If GitHub authentication is unavailable, stop and ask the user to re-authenticate.
 - After a permitted merge, Codex may continue to the explicitly approved deployment workflow, verify the deployed commit/version, and run the post-deploy latency runbook. A merge alone never authorizes production deployment, payment, LLM, or production DB actions.
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
@@ -49,7 +49,8 @@ The primary repository worktree is protected. All repository edits, commits, pus
 - Run `npm run verify:worktree-policy -- --mode=edit` before the first edit. The PreToolUse hooks and this guard are fail-closed when the current worktree cannot be identified safely.
 - Keep each worktree's feature scope and `.work-locks/<session-id>.md` registration explicit. If another `IN_PROGRESS` lock overlaps the target files or feature, stop and report `LOCK DETECTED`.
 - Before opening a PR, fetch `origin/main`, confirm the feature branch contains the latest base, run the relevant checks, and use `npm run verify:worktree-policy -- --mode=pr`.
-- Push only the feature branch and create or update a PR targeting `main`. Direct pushes to `main`, force pushes, and PR-less production changes are prohibited.
+- Low-risk documentation, copy, static asset, CSS, isolated UI, and test-only changes may use `npm run release:fast` from a clean secondary feature worktree. The command rejects high-risk paths and never creates commits. Payment, access, auth, database, LLM, Worker, cache, deployment, binding, environment, and workflow changes remain PR-only.
+- Direct pushes through `release:fast` must use `HEAD:main`; force pushes and direct primary-worktree pushes remain prohibited.
 - A PR must contain `## Validation`, `## Risk`, `## No-regression Scope`, and `## Rollback` sections. Merge requires green required checks, required review approval, no blocking conflict/review, final-diff scope confirmation, and the user's explicit merge approval for that task.
 - Production Pages/Worker deployment is CI-only from `main` after merge and still requires explicit user approval for that exact deployment. Local `npm run deploy:*` commands are blocked by the worktree policy guard.
 
