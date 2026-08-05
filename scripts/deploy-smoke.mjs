@@ -25,6 +25,12 @@ function isExpectedFontNoise(value) {
     /font.*blocked by CORS policy/i.test(value) ||
     /blocked by CORS policy.*font/i.test(value);
 }
+function isExpectedPagesPreviewApiNoise(url, detail = "") {
+  // Static Pages previews intentionally have no Worker route binding. Their
+  // shell may still reference the production API, which the browser blocks by
+  // CORS. Production smoke continues to treat this request as a real failure.
+  return isPagesPreview && /^https:\/\/code-destiny\.com\/api\//i.test(url) && /CORS policy|ERR_FAILED/i.test(detail);
+}
 
 async function checkApi(pathname) {
   const url = apiOrigin + pathname;
@@ -78,6 +84,7 @@ async function checkPages() {
     // CORS warnings do not indicate a broken page or runtime regression.
     if (isExpectedFontNoise(message.text())) return;
     if (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(message.text())) return;
+    if (isExpectedPagesPreviewApiNoise(message.text(), message.text())) return;
     browserErrors.push("console.error: " + message.text());
   });
   page.on("requestfailed", (request) => {
@@ -86,6 +93,7 @@ async function checkPages() {
     // the next smoke route starts; they are not runtime failures.
     if (/ERR_ABORTED|AbortError/i.test(errorText)) return;
     if (isExpectedFontNoise(request.url())) return;
+    if (isExpectedPagesPreviewApiNoise(request.url(), errorText)) return;
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
 
