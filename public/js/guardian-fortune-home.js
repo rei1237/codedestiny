@@ -424,6 +424,7 @@
     });
     var modeInfo = currentMode();
     setText('[data-guardian-room-label]', mode === 'neo' ? 'NEO STRATEGY ROOM' : 'LIVE MOON CONSULT');
+    setText('[data-guardian-mode-label]', modeInfo.label);
     setText('[data-guardian-mode-title]', modeInfo.title);
     setText('[data-guardian-mode-description]', modeInfo.description);
     updateChatPersona();
@@ -698,6 +699,7 @@
     var topicResult = mock.results[state.topic] || mock.results.daily;
     var categoryResult = mock.categoryResults && mock.categoryResults[state.category];
     var shared = mock.sharedCore;
+    var topicLabel = currentTopic().label || '오늘의 흐름';
     return {
       title: (raw && raw.title) || ('오늘의 ' + currentTopic().label + '을 읽어봤어요'),
       openingLine: (raw && raw.openingLine) || mock.copy.resultOpening[state.mode],
@@ -706,9 +708,43 @@
       topicAdvice: (raw && raw.topicAdvice) || topicResult.topicAdvice,
       cautionPattern: (raw && raw.cautionPattern) || shared.cautionPattern,
       luckyAction: (raw && raw.luckyAction) || shared.luckyAction,
+      fusion: {
+        title: (raw && raw.fusionTitle) || mock.copy.fusion.title,
+        subtitle: (raw && raw.fusionSubtitle) || mock.copy.fusion.subtitle,
+        openingLine: (raw && raw.fusionOpeningLine) || mock.copy.fusion.opening[state.mode],
+        summary: (raw && raw.fusionSummary) || ((mock.copy.fusion.synopsisPrefix || '') + topicLabel + '의 핵심 흐름을 요약하면, ' + ((raw && raw.innerState) || shared.innerState)),
+        detail: (raw && raw.fusionDetail) || ((raw && raw.coreReading) || (categoryResult && categoryResult.coreReading) || topicResult.coreReading),
+        caution: (raw && raw.fusionCaution) || ((mock.copy.fusion.cautionPrefix || '') + ((raw && raw.cautionPattern) || shared.cautionPattern)),
+        action: (raw && raw.fusionAction) || ((mock.copy.fusion.actionPrefix || '') + ((raw && raw.luckyAction) || shared.luckyAction))
+      },
       premiumCta: (raw && raw.premiumCta) || shared.cta,
       shareText: (raw && raw.shareText) || '오늘의 귀인 운세에서 내 흐름을 살펴봤어요.'
     };
+  }
+
+  function setResultPage(page) {
+    var track = qs('[data-guardian-result-pages]');
+    var buttons = qsa('[data-result-page-button]');
+    var current = page === 'fusion' ? 'fusion' : 'fortune';
+    if (!track) return;
+    var target = track.querySelector('[data-result-page="' + current + '"]');
+    if (!target) return;
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var left = target.offsetLeft;
+    if (track.scrollTo) track.scrollTo({ left: left, behavior: reduced ? 'auto' : 'smooth' });
+    else track.scrollLeft = left;
+    buttons.forEach(function (button) {
+      button.setAttribute('aria-pressed', String(button.getAttribute('data-result-page') === current));
+    });
+  }
+
+  function bindResultPageButtons() {
+    root.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-result-page-button]');
+      if (!button || !root.contains(button)) return;
+      event.preventDefault();
+      setResultPage(button.getAttribute('data-result-page'));
+    });
   }
 
   function renderResult(raw, shareDraftToken) {
@@ -731,6 +767,13 @@
     setText('[data-result-topic-advice]', result.topicAdvice);
     setText('[data-result-caution]', result.cautionPattern);
     setText('[data-result-action]', result.luckyAction);
+    setText('[data-fusion-title]', result.fusion.title);
+    setText('[data-fusion-subtitle]', result.fusion.subtitle);
+    setText('[data-fusion-opening]', result.fusion.openingLine);
+    setText('[data-fusion-summary]', result.fusion.summary);
+    setText('[data-fusion-detail]', result.fusion.detail);
+    setText('[data-fusion-caution]', result.fusion.caution);
+    setText('[data-fusion-action]', result.fusion.action);
     qsa('[data-result-cta-reason]').forEach(function (element) {
       element.textContent = result.premiumCta && result.premiumCta.reason ? result.premiumCta.reason : '';
     });
@@ -738,6 +781,7 @@
     setText('[data-result-title]', result.title);
     setText('[data-result-cta-label]', result.premiumCta && result.premiumCta.label ? result.premiumCta.label : '다른 상담 체계로 보기');
     setText('[data-result-provider]', state.flow === 'api' ? 'API mock preview' : 'mock preview');
+    setText('[data-result-cta-label]', '초융합 운세로 이어보기');
     var fusionActions = qs('[data-result-cta] .guardian-fortune__cta-actions');
     if (fusionActions && !fusionActions.querySelector('[data-guardian-fusion-handoff]')) {
       var fusionLink = document.createElement('a');
@@ -747,6 +791,7 @@
       fusionLink.textContent = '초융합 사주로 더 깊게 보기';
       fusionActions.appendChild(fusionLink);
     }
+    setResultPage('fortune');
     updateShareControls();
     updateUsage();
     setChatTyping(false);
@@ -1150,6 +1195,12 @@
         showToast('프리미엄 상담 연결은 다음 단계에서 진행돼요.');
         return;
       }
+      if (action === 'fusion') {
+        event.preventDefault();
+        setResultPage('fusion');
+        showToast('초융합 운세로 넘겨봤어요. 가로로 밀어 다시 돌아갈 수 있어요.');
+        return;
+      }
     if (action === 'focus-topic') {
         var topicList = qs('[data-guardian-topic]');
         if (topicList) topicList.focus();
@@ -1247,6 +1298,7 @@
     bindCharacterMotion();
     bindShares();
     bindCTAs();
+    bindResultPageButtons();
     bindChatDialogs();
     bindDebugUsage();
     setMode(state.mode);

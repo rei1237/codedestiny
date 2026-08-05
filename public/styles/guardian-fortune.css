@@ -845,6 +845,208 @@
   gap: 16px;
 }
 
+.guardian-fortune__result-top {
+  display: grid;
+  gap: 12px;
+}
+
+.guardian-fortune__result-page-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.guardian-fortune__result-page-btn {
+  min-height: 44px;
+  border: 1px solid var(--gf-border);
+  border-radius: 999px;
+  padding: 0 12px;
+  color: var(--gf-ink);
+  background: color-mix(in srgb, var(--gf-surface) 92%, var(--gf-surface-soft));
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 820;
+  transition: transform .16s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.guardian-fortune__result-page-btn:hover,
+.guardian-fortune__result-page-btn:focus-visible {
+  transform: translateY(-1px);
+}
+
+.guardian-fortune__result-page-btn[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--gf-accent) 56%, transparent);
+  color: #2f1630;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 45%), var(--gf-accent-soft);
+  box-shadow: 0 10px 20px -16px rgba(0, 0, 0, .4);
+}
+
+#guardianFortuneSection[data-guardian-mode="neo"] .guardian-fortune__result-page-btn[aria-pressed="true"] {
+  color: #22184a;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 45%), color-mix(in srgb, var(--gf-accent-soft) 40%, var(--gf-surface));
+}
+
+.guardian-fortune__result-viewer {
+  position: relative;
+  border: 1px solid var(--gf-border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--gf-surface) 88%, var(--gf-bg));
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .48), 0 18px 44px -32px rgba(0, 0, 0, .45);
+}
+
+.guardian-fortune__result-pages {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.guardian-fortune__result-pages::-webkit-scrollbar { display: none; }
+
+.guardian-fortune__result-page {
+  display: grid;
+  min-width: 100%;
+  max-width: 100%;
+  gap: 12px;
+  padding: 16px;
+  scroll-snap-align: start;
+}
+
+.guardian-fortune__result-page--fusion {
+  background: color-mix(in srgb, var(--gf-gold) 14%, transparent);
+}
+
+.guardian-fortune__novel-page-title,
+.guardian-fortune__novel-page-subtitle,
+.guardian-fortune__novel-speaker-name,
+.guardian-fortune__novel-text { margin: 0; }
+
+.guardian-fortune__novel-page-title {
+  color: var(--gf-ink);
+  font-size: .98rem;
+  font-weight: 820;
+}
+
+.guardian-fortune__novel-page-subtitle {
+  color: var(--gf-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.guardian-fortune__novel-chat { display: grid; gap: 10px; }
+
+.guardian-fortune__novel-speaker {
+  display: grid;
+  grid-template-columns: 48px 48px auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.guardian-fortune__novel-avatar {
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gf-border) 82%, transparent);
+  border-radius: 14px;
+  background: var(--gf-bg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .5);
+}
+
+.guardian-fortune__novel-avatar[data-result-mode-image="yeoni"] { background-image: url('/images/guardian-fortune/yeoni/flower-pig-f16.webp'); }
+.guardian-fortune__novel-avatar[data-result-mode-image="neo"] { background-image: url('/neo-operation-room/sprites/transparent/neo-transparent-s1-f04.webp'); }
+.guardian-fortune__novel-avatar[hidden] { display: none; }
+
+.guardian-fortune__novel-speaker-name {
+  color: var(--gf-ink);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.guardian-fortune__novel-bubble {
+  position: relative;
+  margin: 0;
+  border: 1px solid var(--gf-border);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: var(--gf-surface);
+}
+
+.guardian-fortune__novel-bubble::before {
+  position: absolute;
+  top: -7px;
+  left: 14px;
+  width: 14px;
+  height: 14px;
+  transform: rotate(45deg);
+  border-top: 1px solid var(--gf-border);
+  border-left: 1px solid var(--gf-border);
+  border-radius: 2px;
+  background: var(--gf-surface);
+  content: "";
+}
+
+.guardian-fortune__novel-bubble-title {
+  margin: 0 0 5px;
+  color: var(--gf-accent);
+  font-size: 12px;
+  font-weight: 840;
+}
+
+.guardian-fortune__novel-text {
+  color: var(--gf-ink);
+  font-size: .98rem;
+  line-height: 1.84;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.guardian-fortune__novel-scroll {
+  display: grid;
+  max-height: min(380px, 58vh);
+  gap: 10px;
+  overflow: auto;
+  border-top: 1px dashed var(--gf-border);
+  padding-top: 8px;
+  padding-right: 3px;
+}
+
+.guardian-fortune__novel-detail {
+  border: 1px solid color-mix(in srgb, var(--gf-border) 80%, transparent);
+  border-radius: 15px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--gf-surface) 94%, transparent);
+}
+
+.guardian-fortune__novel-detail summary {
+  color: var(--gf-ink);
+  font-weight: 780;
+  cursor: pointer;
+  list-style: none;
+}
+
+.guardian-fortune__novel-detail summary::-webkit-details-marker { display: none; }
+.guardian-fortune__novel-detail summary::after { float: right; content: "＋"; }
+.guardian-fortune__novel-detail[open] summary::after { content: "━"; }
+
+.guardian-fortune__novel-detail p {
+  max-width: 70ch;
+  margin: 8px 0 0;
+  color: var(--gf-ink);
+  font-size: .92rem;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
 .guardian-fortune__result-visual {
   display: flex;
   align-items: center;
