@@ -74,6 +74,8 @@ test('guardian fortune prototype exposes all six topics and verified local webp 
   assert.match(home, /CDGuardianFortuneMock/);
   assert.match(mock, /flower-pig-honey-hug\.webp/);
   assert.match(mock, /neo-operation-room\/sprites\/transparent\/neo-transparent-s1-f01\.webp/);
+  assert.match(mock, /연이의 달빛 상담소/);
+  assert.doesNotMatch(mock, /꽃돼지 연이의 행운 상담소/);
   assert.match(mock, /네오의 행운 상담소/);
   assert.match(mock, /네오 모드의 팩폭 전략실 인간형 캐릭터/);
   assert.match(home, /NEO_HUMAN_SPRITE_SRC/);
@@ -122,6 +124,8 @@ test('guardian chat switches between Yeon and Neo while passing only a minimal F
   assert.match(home, /data-guardian-chat-speaker/);
   assert.match(home, /data-guardian-chat-composer-label/);
   assert.match(css, /data-guardian-chat-speaker="neo"/);
+  assert.match(css, /guardian-fortune__chat-timeline/);
+  assert.match(css, /guardian-fortune__composer/);
   assert.match(css, /flower-pig-honey-hug\.webp/);
   assert.match(css, /neo-transparent-s1-f01\.webp/);
   assert.match(home, /cdGuardianFusionHandoffV1/);
@@ -167,7 +171,8 @@ test('guardian fortune result presents both readings as a horizontal novel reade
   assert.match(home, /function setResultPage/);
   assert.match(home, /function bindResultPageButtons/);
   assert.match(home, /data-fusion-opening/);
-  assert.match(mock, /꽃돼지 연이의 행운 상담소/);
+  assert.match(mock, /연이의 달빛 상담소/);
+  assert.doesNotMatch(mock, /꽃돼지 연이의 행운 상담소/);
   assert.match(mock, /네오의 행운 상담소/);
   assert.match(mock, /fusion:\s*\{/);
   assert.match(css, /scroll-snap-type:\s*x mandatory/);

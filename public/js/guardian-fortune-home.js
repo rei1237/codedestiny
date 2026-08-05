@@ -448,7 +448,7 @@
       : '연이는 한 가지 운세 체계의 실제 계산 근거를 바탕으로 오늘의 흐름을 함께 정리해요. 답변은 가능성과 선택지를 중심으로 안내합니다.';
     qsa('[data-guardian-chat-speaker-name]').forEach(function (node) { node.textContent = speakerName; });
     setText('[data-guardian-chat-greeting]', greeting);
-    setText('[data-guardian-intro-title]', '오늘의 귀인, ' + speakerName);
+    setText('[data-guardian-intro-title]', speakerName + ' 상담 방식');
     setText('[data-guardian-intro-copy]', introCopy);
     setText('[data-guardian-chat-composer-label]', speakerName + '에게 전할 오늘의 질문');
     var assistant = qs('[data-guardian-chat-assistant]');
