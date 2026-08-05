@@ -663,6 +663,10 @@ function apiFetch(path, options){
 
 /* ═══ 3) 오버레이 ═══ */
 function showLoading(title, message){
+  if (/이용권\s*확인/.test(String(title || "")) && typeof window._cdSetCoinGateOverlay === "function") {
+    window._cdSetCoinGateOverlay(true, message || "", "pass");
+    return;
+  }
   $("overlayTitle").textContent = title;
   $("overlayMsg").textContent = message || "";
   $("overlaySpin").hidden = false;
@@ -684,7 +688,10 @@ function showError(title, message, actions){
   });
   $("overlay").classList.add("is-on");
 }
-function hideOverlay(){ $("overlay").classList.remove("is-on"); }
+function hideOverlay(){
+  $("overlay").classList.remove("is-on");
+  if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(false);
+}
 
 /* ═══ 4) 상태 ═══ */
 var state = {

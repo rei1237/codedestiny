@@ -1883,6 +1883,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }
 
     function setLoading(on, message, step){
+      var isPassCheck = !!on && (step || 'pay') === 'pay';
+      if (typeof window._cdSetCoinGateOverlay === 'function') {
+        window._cdSetCoinGateOverlay(isPassCheck, isPassCheck ? '이용권으로 바로 열 수 있는지 꽃돼지 연이가 확인하고 있어요.' : '', 'pass');
+      }
       $loadSec.classList.toggle('is-open', !!on);
       $loadSec.setAttribute('aria-busy', on ? 'true' : 'false');
       if(message) $loadMsg.innerHTML = message;
