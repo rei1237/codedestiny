@@ -455,7 +455,10 @@ async function safeStage() {
   lock();
   try {
     const preview = await previewStage();
-    await smoke(preview.state.preview.pages.url, preview.state.preview.worker?.previewUrl || productionOrigin(preview.value));
+    // workers.dev preview aliases do not carry the Pages custom-domain routing
+    // used by /api. Validate preview rendering here; production smoke below
+    // remains the authoritative API health and guest-boundary check.
+    await smoke(preview.state.preview.pages.url, "", true);
     const state = { ...preview.state, preview: { ...preview.state.preview, smokePassed: true, smokedAt: new Date().toISOString() } };
     writeState(state);
     console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
