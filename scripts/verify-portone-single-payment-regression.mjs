@@ -410,6 +410,8 @@ function runPreCheckoutWaitUiAndArtWeightTests() {
   // 안에만 있었고, React Provider 가 그 함수를 자기 렌더러로 갈아치우는 탓에 셋 다 우회돼
   // 결제창 위에 대기 오버레이가 겹쳤다.
   assertContains(indexSource, "function _cdPaymentWaitUiBlocked(mode) {", "wait-UI block verdict must live in one shared function");
+  assertContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|", "pass and monthly wait UI must be allowed");
+  assertNotContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|card|", "direct-card wait UI must remain blocked");
   assertContains(indexSource, "window.__cdPaymentWaitUiBlocked = _cdPaymentWaitUiBlocked;", "block verdict must be shared with dp/React");
   assertContains(indexSource, "if (isOpen && _cdPaymentWaitUiBlocked(mode)) return;", "shell overlay must honour the shared block verdict");
   assertContains(destinyProfileSource, "window.__cdPaymentWaitUiBlocked(mode)) return;", "dp overlay must honour the shared block verdict");
