@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import FortunePlannerClient from "./FortunePlannerClient";
 
-/** The planner remains inside the established diary experience, not a separate shell. */
 export default function FortunePlannerPage() {
-  redirect("/?fortunePlanner=1");
+  return <FortunePlannerClient />;
 }
