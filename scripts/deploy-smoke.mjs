@@ -37,6 +37,7 @@ async function checkApi(pathname) {
     if (response.status >= 500 || response.status === 503) fail("API " + pathname + " returned HTTP " + response.status);
     if (pathname === "/api/health" && response.status !== 200) fail("API health expected 200, received " + response.status);
     if (pathname === "/api/version" && response.status !== 200) fail("API version expected 200, received " + response.status);
+    if (pathname === "/api/__deploy_safe_missing__" && response.status === 404) return;
     if (pathname !== "/api/health" && pathname !== "/api/version" && !allowedGuestStatus(response.status)) {
       fail("API " + pathname + " returned unexpected HTTP " + response.status);
     }
@@ -100,7 +101,13 @@ async function checkPages() {
 
   try {
     await page.goto(base + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
+    const cookieAccept = page.locator("#cdCookieAcceptBtn, #cdCookieEssentialBtn").first();
+    if (await cookieAccept.isVisible().catch(() => false)) {
+      await cookieAccept.click({ timeout: 10000 });
+      await page.waitForTimeout(150);
+    }
     const paymentEntries = page.locator('[data-action="openGoldenGrainStore"], [data-action="openGoldenGrainCharge"]');
+    await paymentEntries.first().waitFor({ state: "attached", timeout: 10000 }).catch(() => {});
     let payment = null;
     for (const candidate of await paymentEntries.all()) {
       if (await candidate.isVisible()) {

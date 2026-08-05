@@ -64,7 +64,6 @@ const ciMode = cli.flags.has("--ci");
 const autoYes = cli.flags.has("--yes");
 const allowNoWorkerPreview = cli.flags.has("--allow-no-worker-preview");
 const previewOnly = cli.flags.has("--preview-only");
-const allowEmptyChangeSet = ciMode && process.env.CD_ALLOW_EMPTY_CHANGESET === "true";
 
 function envForChecks() {
   return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true" };
@@ -166,7 +165,6 @@ function changedFiles() {
   ].flatMap((value) => value ? value.split(/\r?\n/).filter(Boolean) : []);
   const committed = range ? range.split(/\r?\n/).filter(Boolean) : [];
   if (committed.length || working.length) return [...new Set([...committed, ...working])];
-  if (allowEmptyChangeSet) return ["__release_redeploy__"];
   const head = git(["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "HEAD"], { allowFailure: true });
   return head ? head.split(/\r?\n/).filter(Boolean) : [];
 }
@@ -245,7 +243,7 @@ async function discover(pagesLocal, workerLocal) {
   };
 }
 function needsWorker(files) {
-  return allowEmptyChangeSet || files.some((file) =>
+  return files.some((file) =>
     file.startsWith("worker/") || file.startsWith("server/") || file.includes("wrangler") ||
     file === "app/_lib/billing-client.ts" || file === "js/core/access-store.js"
   );
@@ -367,10 +365,9 @@ async function uploadWorker(value) {
   if (!previewUrl && !allowNoWorkerPreview) throw new Error("Worker preview URL missing. Set CD_WORKER_PREVIEW_ORIGIN or pass --allow-no-worker-preview.");
   return { versionId, previewUrl, alias };
 }
-async function smoke(base, apiOrigin = "", skipApi = false) {
+async function smoke(base, apiOrigin = "") {
   const args = [path.join(scriptDir, "deploy-smoke.mjs"), "--base", base];
   if (apiOrigin) args.push("--api-origin", apiOrigin);
-  if (skipApi) args.push("--skip-api");
   run("read-only smoke test", process.execPath, args, { env: envForChecks() });
 }
 function productionOrigin(value) {
@@ -456,7 +453,7 @@ async function safeStage() {
   lock();
   try {
     const preview = await previewStage();
-    await smoke(preview.state.preview.pages.url, preview.state.preview.worker?.previewUrl || "", !preview.state.preview.worker?.previewUrl);
+    await smoke(preview.state.preview.pages.url, preview.state.preview.worker?.previewUrl || productionOrigin(preview.value));
     const state = { ...preview.state, preview: { ...preview.state.preview, smokePassed: true, smokedAt: new Date().toISOString() } };
     writeState(state);
     console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
