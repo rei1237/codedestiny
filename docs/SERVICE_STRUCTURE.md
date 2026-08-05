@@ -179,6 +179,14 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - `lib/llm-client.ts`
 - `index.html`
 
+## International market localization boundary
+
+- `lib/market-policy/market-policy-registry.js` is the single source for market enablement, supported UI locales, AI output locales, settlement/display currency, tax mode, legal pack ids, and launch gates.
+- `lib/market-policy/context.js` keeps `languageLocale`, `marketCode`, `billingCountry`, `paymentCountry`, `taxCountry`, `settlementCurrency`, `displayCurrency`, `residenceCountry`, `timeZone`, birth place, and current location separate.
+- `lib/market-policy/legal-packs/legal-market-packs.js` stores market-specific legal pack metadata and official source URLs. Draft packs are not publishable and cannot authorize live payment.
+- AI output locale support remains the existing five locales only: `ko`, `en`, `ja`, `zh-CN`, `zh-TW`. UI locale support can be broader, but it must not imply a payment market or legal jurisdiction.
+- Current payment copy and policy are limited to `이용권`, `월정석`, and `단건 결제`. The current service must not invent auto-renewal, free-trial conversion, or subscription-cancellation rights.
+
 ## 운세 플래너 경계
 
 - 플래너의 주 UI는 기존 `js/luck-sync-diary.js` 모달이다. `/fortune-planner`는 이 경험을 여는 호환 redirect이며 일정 원본과 운세 문구를 분리한다.

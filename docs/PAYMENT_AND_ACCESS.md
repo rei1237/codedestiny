@@ -224,6 +224,15 @@
 - Refund and recovery paths may read spend evidence and create an idempotent restore/grant ledger, but those operations are not new payment execution and remain evidence-bound.
 - `npm run verify:payment-service-boundary` fails when a UI screen calls coin-gate outside the compatibility adapters, or when a feature route reintroduces a direct monthly lot deduction/spend-ledger write.
 
+## International payment market gate
+
+- Market availability is decided by `lib/market-policy/market-policy-registry.js`, not by UI locale, browser language, birth place, IP country, or current location.
+- `languageLocale` never changes `marketCode`, `billingCountry`, `paymentCountry`, `taxCountry`, `settlementCurrency`, `displayCurrency`, legal jurisdiction, refund policy, or international-transfer notices.
+- A market can expose live payment only when it is enabled, has an approved legal pack, has confirmed payment processor support, has a supported settlement currency, and has no legal/tax/native-review launch blocker.
+- Legal packs in `LEGAL_REVIEW_REQUIRED`, `DRAFT`, `MACHINE_TRANSLATED`, or other non-approved states must not be used for live overseas payment.
+- The current service product wording remains `이용권`, `월정석`, and `단건 결제`. Do not add user-facing claims for auto-renewal, free trials, subscription-cancellation rights, unlimited access, lifetime access, or guaranteed fortune/AI outcomes unless the product and legal review are separately approved.
+- IP country, Cloudflare country, and PG billing country can be used only as risk or reconciliation signals according to the registry priority; they must not silently override the user's explicit payment-country selection.
+
 ## Mobile fortune entry read policy
 
 - The mobile “모든 운세” overview does not mount the feature preview dialog until the user opens a card. Closing the dialog removes it after the exit animation, and the original trigger remains the focus return target.
