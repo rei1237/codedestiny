@@ -60,11 +60,11 @@
 
   var modes = {
     yeoni: {
-      label: '꽃돼지 연이의 행운 상담소',
-      title: '꽃돼지 연이의 행운 상담소',
-      description: '하루의 흐름을 감성적으로 풀어내고, 마음을 편안하게 정리해줘요.',
+      label: '연이의 달빛 상담소',
+      title: '연이의 달빛 상담소',
+      description: '꽃돼지 캐릭터 연이가 마음의 결을 부드럽게 읽고, 오늘의 선택을 차분히 정리해줘요.',
       loading: '연이가 달빛 조각을 모으는 중이에요…',
-      button: '꽃돼지 연이의 행운 상담소로 오늘의 흐름 보기',
+      button: '연이의 달빛 상담소로 오늘의 흐름 보기',
       image: '/images/fortune-tea-house/flower-pig-honey-hug.webp',
       alt: '연이 모드의 꽃돼지 캐릭터'
     },

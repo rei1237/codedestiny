@@ -588,6 +588,107 @@
   line-height: 1.45;
 }
 
+.guardian-fortune__chat-timeline {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--gf-border) 84%, transparent);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--gf-accent-soft) 30%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--gf-surface) 96%, transparent), color-mix(in srgb, var(--gf-surface-soft) 74%, var(--gf-surface)));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .62),
+    0 18px 42px -34px rgba(80, 20, 58, .72);
+}
+
+#guardianFortuneSection[data-guardian-mode="neo"] .guardian-fortune__chat-timeline {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(196, 181, 253, .20), transparent 36%),
+    linear-gradient(180deg, color-mix(in srgb, var(--gf-surface) 92%, transparent), color-mix(in srgb, var(--gf-surface-soft) 72%, var(--gf-surface)));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .10),
+    0 18px 46px -34px rgba(9, 8, 24, .90);
+}
+
+.guardian-fortune__message {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+
+.guardian-fortune__message--quiet {
+  grid-template-columns: minmax(0, 1fr);
+  margin-left: 54px;
+}
+
+.guardian-fortune__message-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid color-mix(in srgb, var(--gf-border) 88%, transparent);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--gf-surface) 90%, var(--gf-surface-soft));
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .62);
+}
+
+.guardian-fortune__message-sprite {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background-image: url("/images/guardian-fortune/yeoni/flower-pig-f16.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+#guardianFortuneSection[data-guardian-mode="neo"] .guardian-fortune__message-sprite {
+  background-image: url("/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp");
+}
+
+.guardian-fortune__bubble {
+  position: relative;
+  max-width: 68ch;
+  border: 1px solid color-mix(in srgb, var(--gf-border) 82%, transparent);
+  border-radius: 18px;
+  padding: 13px 15px;
+  color: var(--gf-ink);
+  background: color-mix(in srgb, var(--gf-surface) 94%, transparent);
+  box-shadow: 0 12px 26px -24px rgba(60, 24, 48, .74);
+}
+
+.guardian-fortune__bubble strong {
+  display: block;
+  margin: 0 0 5px;
+  color: var(--gf-accent);
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.guardian-fortune__bubble p {
+  margin: 0;
+  color: var(--gf-ink);
+  font-size: .92rem;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+.guardian-fortune__message--quiet .guardian-fortune__bubble {
+  max-width: 62ch;
+  color: var(--gf-muted);
+  background: color-mix(in srgb, var(--gf-surface-soft) 70%, transparent);
+}
+
+.guardian-fortune__message--quiet .guardian-fortune__bubble p {
+  color: var(--gf-muted);
+  font-size: .82rem;
+}
+
 .guardian-fortune__form {
   display: grid;
   gap: 18px;
@@ -712,6 +813,67 @@
   color: var(--gf-muted);
   font-size: 12px;
   line-height: 1.55;
+}
+
+.guardian-fortune__composer {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--gf-border) 86%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--gf-surface-soft) 60%, var(--gf-surface));
+}
+
+.guardian-fortune__composer label {
+  margin: 0;
+  color: var(--gf-ink);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.guardian-fortune__composer textarea {
+  min-height: 92px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--gf-surface) 96%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .46);
+}
+
+.guardian-fortune__composer p {
+  margin: 0;
+  color: var(--gf-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .guardian-fortune__chat-timeline {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .guardian-fortune__message {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .guardian-fortune__message--quiet {
+    margin-left: 0;
+  }
+
+  .guardian-fortune__message-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+  }
+
+  .guardian-fortune__message-sprite {
+    width: 30px;
+    height: 30px;
+  }
+
+  .guardian-fortune__bubble {
+    max-width: 100%;
+    padding: 12px 13px;
+  }
 }
 
 .guardian-fortune__topics {
