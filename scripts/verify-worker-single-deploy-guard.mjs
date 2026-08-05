@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const canonicalWorkflow = ".github/workflows/cloudflare-worker-deploy.yml";
+const canonicalWorkflow = ".github/workflows/cloudflare-pages-deploy.yml";
 const forbiddenWorkerCommands = /(?:wrangler\s+deploy\b|wrangler\s+versions\s+upload|npm\s+run\s+deploy:cf:worker|npm\s+run\s+deploy:worker)/;
 
 function assert(condition, message) {
@@ -28,24 +28,18 @@ async function verifyCanonicalWorkflow() {
   const workflow = await readRepoFile(canonicalWorkflow);
   const triggers = deploymentTriggerBlock(workflow);
 
-  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?$/.test(triggers), `${canonicalWorkflow} must support manual dispatch.`);
-  assert(/(^|\r?\n)\s+push:\s*\r?\n\s+branches:\s*\r?\n\s+- main\s*(?:\r?\n|$)/m.test(triggers), `${canonicalWorkflow} must deploy on main pushes.`);
+  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?(?:\r?\n|$)/m.test(triggers), `${canonicalWorkflow} must support manual dispatch.`);
+  assert(/(^|\r?\n)\s+push:\s*\r?\n\s+branches:\s*(?:\[main\]|\r?\n\s+- main\s*(?:\r?\n|$))/m.test(triggers), `${canonicalWorkflow} must deploy on main pushes.`);
   assert(!/^\s+(pull_request|schedule|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on pull_request, schedule, or workflow_call.`);
-  assert(workflow.includes("CF_WORKER_NAME: code-destiny-web"), `${canonicalWorkflow} must target code-destiny-web.`);
+  assert(workflow.includes("CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}"), `${canonicalWorkflow} must target the configured Worker.`);
   assert(workflow.includes("scripts/verify-worktree-policy.mjs --mode=deploy"), `${canonicalWorkflow} must enforce the deploy worktree policy.`);
-  assert(workflow.includes("npm run build:worker"), `${canonicalWorkflow} must run the Worker dry-run build.`);
-  assert(workflow.includes("npm run deploy:cf:worker"), `${canonicalWorkflow} must use the canonical Worker deploy command.`);
+  assert(workflow.includes("npm run deploy:safe -- --ci --yes"), `${canonicalWorkflow} must use the integrated SHA release command.`);
 }
 
 async function verifyPackageAndDeployScript() {
   const packageJson = JSON.parse(await readRepoFile("package.json"));
-  const deployCommand = String(packageJson.scripts?.["deploy:cf:worker"] || "");
-  assert(deployCommand.includes("verify:worktree-policy"), "deploy:cf:worker must enforce the deploy worktree policy.");
-  assert(deployCommand.includes("scripts/deploy-worker.mjs"), "deploy:cf:worker must call scripts/deploy-worker.mjs.");
-
-  const deployScript = await readRepoFile("scripts/deploy-worker.mjs");
-  assert(deployScript.includes('"wrangler", "deploy", "--config", "worker/wrangler.toml"'), "scripts/deploy-worker.mjs must deploy from worker/wrangler.toml.");
-  assert(deployScript.includes('"--var", `COMMIT_SHA:${deployCommit}`'), "scripts/deploy-worker.mjs must bind the deployed commit SHA at runtime.");
+  const deployCommand = String(packageJson.scripts?.["deploy:safe"] || "");
+  assert(deployCommand.includes("scripts/deploy-safe.mjs"), "deploy:safe must call scripts/deploy-safe.mjs.");
 }
 
 async function verifyNoOtherWorkflowDeploys() {

@@ -7,13 +7,14 @@
 - `check:quick` is range-based; `check:full` is lint, typecheck, core mock smoke, node tests, and one Pages build; `check:critical` retains the payment/access mock gates.
 - Git uses HTTPS with Git Credential Manager. gh uses its own interactive encrypted host login. Do not configure Git to use `gh auth git-credential`, and project gh scripts clear process-injected `GH_TOKEN` before invoking gh.
 - A running production release is never cancelled. Newer `main` SHAs queue, preventing partial Worker/Pages releases.
-- The manual Worker workflow is emergency-only. It is not the normal main release path; use the integrated workflow for standard releases.
+- The integrated release workflow is the only production deployment authority. It is never cancelled mid-release; newer `main` SHAs queue behind it.
 
 ## Worker 단일 배포 경로
 
-- 운영 Worker 배포의 정본은 `.github/workflows/cloudflare-worker-deploy.yml` 하나다.
-- 이 workflow는 `workflow_dispatch`로만 실행되고, `main` 기준 작업 트리 정책 확인과 `worker/wrangler.toml` dry-run을 통과한 뒤 `npm run deploy:cf:worker`를 실행한다.
-- `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 다른 workflow에 Worker 업로드 명령이 생기거나 PR에 `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
+- 운영 Pages·Worker 배포의 정본은 `.github/workflows/cloudflare-pages-deploy.yml` 하나다.
+- 이 workflow는 동일한 `github.sha`를 checkout한 뒤 `npm run deploy:safe -- --ci --yes`로 Worker preview, Worker promotion, Pages production 배포를 순서대로 수행한다.
+- 중복 Worker production workflow인 `.github/workflows/cloudflare-worker-deploy.yml`은 제거했다. 수동 Worker 단독 배포는 더 이상 지원하지 않는다.
+- `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 통합 workflow 외 Worker 업로드 명령이 생기거나 PR에 `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
 - Cloudflare Workers Builds Git trigger는 운영 Worker의 중복 배포를 만들 수 있으므로 `code-destiny-web`에서는 제거한다. Worker 자체, route, custom domain, cron, R2 binding, runtime secret은 이 정리의 대상이 아니다.
 - `scripts/deploy-worker.mjs`는 배포 커밋 SHA를 비밀값이 아닌 Worker runtime variable `COMMIT_SHA`로 주입한다. 배포 후 `/api/version`의 `commit`으로 Worker 코드 기준점을 확인한다.
 - `app/_lib/billing-client.ts`, `js/core/access-store.js`, `worker/routes/access.js`, `worker/routes/billing.js`, `worker/routes/payments.js` 중 하나가 바뀐 Pages 배포는 `/api/version`의 Worker SHA가 `GITHUB_SHA`와 같은지 먼저 확인한다. 이 경우 Worker를 먼저 배포하고, parity check가 통과한 뒤 Pages workflow를 실행한다.
