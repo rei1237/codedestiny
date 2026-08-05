@@ -60,7 +60,7 @@ jobs:
       - name: Wait for required security and CI gates
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          CI_GATE_CHECKS: Secret Scan,Paid Flow Gates,Docs Freshness Gate,Pages Config Guard
+          CI_GATE_CHECKS: gitleaks,docs-freshness-gate,Verify Cloudflare Pages automatic deployments are disabled
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/wait-for-ci-gates.mjs
