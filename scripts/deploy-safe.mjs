@@ -365,9 +365,10 @@ async function uploadWorker(value) {
   if (!previewUrl && !allowNoWorkerPreview) throw new Error("Worker preview URL missing. Set CD_WORKER_PREVIEW_ORIGIN or pass --allow-no-worker-preview.");
   return { versionId, previewUrl, alias };
 }
-async function smoke(base, apiOrigin = "") {
+async function smoke(base, apiOrigin = "", skipApi = false) {
   const args = [path.join(scriptDir, "deploy-smoke.mjs"), "--base", base];
   if (apiOrigin) args.push("--api-origin", apiOrigin);
+  if (skipApi) args.push("--skip-api");
   run("read-only smoke test", process.execPath, args, { env: envForChecks() });
 }
 function productionOrigin(value) {
@@ -453,7 +454,7 @@ async function safeStage() {
   lock();
   try {
     const preview = await previewStage();
-    await smoke(preview.state.preview.pages.url, preview.state.preview.worker?.previewUrl || "");
+    await smoke(preview.state.preview.pages.url, preview.state.preview.worker?.previewUrl || "", !preview.state.preview.worker?.previewUrl);
     const state = { ...preview.state, preview: { ...preview.state.preview, smokePassed: true, smokedAt: new Date().toISOString() } };
     writeState(state);
     console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
