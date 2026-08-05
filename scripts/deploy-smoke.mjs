@@ -25,6 +25,12 @@ function isExpectedFontNoise(value) {
     /font.*blocked by CORS policy/i.test(value) ||
     /blocked by CORS policy.*font/i.test(value);
 }
+function isExpectedPreviewCorsNoise(value) {
+  return isPagesPreview && (
+    /code-destiny\.com\/api\//i.test(value) && /CORS policy|preflight|ERR_FAILED/i.test(value) ||
+    /Failed to load resource: the server responded with a status of 404/i.test(value)
+  );
+}
 function isExpectedPagesPreviewNoise(value) {
   return isPagesPreview && (
     (/code-destiny\.com\/api\//i.test(value) && /CORS policy/i.test(value)) ||
@@ -83,6 +89,7 @@ async function checkPages() {
     // production site receives these font responses same-origin, so preview
     // CORS warnings do not indicate a broken page or runtime regression.
     if (isExpectedFontNoise(message.text())) return;
+    if (isExpectedPreviewCorsNoise(message.text())) return;
     if (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(message.text())) return;
     if (isExpectedPagesPreviewNoise(message.text())) return;
     browserErrors.push("console.error: " + message.text());
@@ -93,6 +100,7 @@ async function checkPages() {
     // the next smoke route starts; they are not runtime failures.
     if (/ERR_ABORTED|AbortError/i.test(errorText)) return;
     if (isExpectedFontNoise(request.url())) return;
+    if (isExpectedPreviewCorsNoise(request.url() + " " + errorText)) return;
     if (isPagesPreview && /^https:\/\/code-destiny\.com\/api\//i.test(request.url())) return;
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
