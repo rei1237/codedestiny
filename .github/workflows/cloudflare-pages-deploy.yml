@@ -61,6 +61,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           CI_GATE_CHECKS: Secret Scan,Paid Flow Gates,Docs Freshness Gate,Pages Config Guard
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/wait-for-ci-gates.mjs
 
       - name: Preview, smoke, and promote the exact SHA
