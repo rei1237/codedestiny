@@ -71,6 +71,9 @@ async function checkPages() {
     // Guest smoke intentionally visits auth-gated read-only endpoints; their
     // expected 401 boundary is already validated by checkApi().
     if (/server responded with a status of 401/i.test(message.text())) return;
+    // A Pages preview has a different origin from the approved asset CDN. The
+    // production site receives these font responses same-origin, so preview
+    // CORS warnings do not indicate a broken page or runtime regression.
     if (isExpectedFontNoise(message.text())) return;
     browserErrors.push("console.error: " + message.text());
   });
@@ -106,6 +109,7 @@ async function checkPages() {
       }
     }
     if (payment) {
+      await payment.scrollIntoViewIfNeeded();
       await payment.click({ timeout: 10000 });
       await page.waitForTimeout(300);
       const dialogVisible = await page.locator("#goldenGrainChargeModal, [role=\"dialog\"]").evaluateAll((nodes) =>
