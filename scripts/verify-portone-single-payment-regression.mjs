@@ -296,8 +296,8 @@ function runInstantPgLatencyTests() {
     "if (item.snapshotVerdictOnly === true && !isBackgroundPassRecord) {",
     "indeterminate snapshot must open the checkout instead of asking the server",
   );
-  // ③ 진입 확인 화면 자체가 없다 — 대기 UI 를 켜지 않고, 중복 클릭 가드만 남긴다.
-  assertContains(indexSource, "suppressWaitUi: true", "entry gate must not raise a pass-checking wait screen");
+  // ③ 이용권 확인에는 꽃돼지 대기 UI를 보이되, 단건 결제 대기 화면으로 바뀌어서는 안 된다.
+  assertContains(indexSource, "suppressWaitUi: false", "entry gate must show the pass-checking wait screen");
   assertContains(indexSource, "if (opts.suppressWaitUi !== true) {", "paid-feature gate must honour suppressWaitUi");
   assertContains(indexSource, "_cdBeginPaidFeatureInFlight(paidGateAction, featureKey, {", "duplicate-click guard must stay in place");
   assertContains(indexSource, "var allowDirectCheckoutAccessBypass = opts.allowServerAccessBypass === true && opts.forceDirectPayment !== true;", "direct single-payment checkout must reject access bypass by default");
@@ -410,6 +410,8 @@ function runPreCheckoutWaitUiAndArtWeightTests() {
   // 안에만 있었고, React Provider 가 그 함수를 자기 렌더러로 갈아치우는 탓에 셋 다 우회돼
   // 결제창 위에 대기 오버레이가 겹쳤다.
   assertContains(indexSource, "function _cdPaymentWaitUiBlocked(mode) {", "wait-UI block verdict must live in one shared function");
+  assertContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|", "pass and monthly wait UI must be allowed");
+  assertNotContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|card|", "direct-card wait UI must remain blocked");
   assertContains(indexSource, "window.__cdPaymentWaitUiBlocked = _cdPaymentWaitUiBlocked;", "block verdict must be shared with dp/React");
   assertContains(indexSource, "if (isOpen && _cdPaymentWaitUiBlocked(mode)) return;", "shell overlay must honour the shared block verdict");
   assertContains(destinyProfileSource, "window.__cdPaymentWaitUiBlocked(mode)) return;", "dp overlay must honour the shared block verdict");

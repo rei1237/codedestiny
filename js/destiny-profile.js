@@ -2368,6 +2368,13 @@
       '  border-top-color: rgba(232, 200, 112, 0.96);',
       '  animation: cdStandalonePaymentSpin 0.9s linear infinite;',
       '}',
+      '#cdStandalonePaymentOverlay .cd-standalone-payment-yeon {',
+      '  display: block;',
+      '  width: min(132px, 40vw);',
+      '  height: auto;',
+      '  margin: -8px auto 8px;',
+      '  filter: drop-shadow(0 10px 18px rgba(244, 190, 209, 0.22));',
+      '}',
       '#cdStandalonePaymentOverlay .cd-standalone-payment-title {',
       '  margin: 0;',
       '  font-size: 19px;',
@@ -2393,6 +2400,9 @@
       '@media (max-width: 480px) {',
       '  #cdStandalonePaymentOverlay .cd-standalone-payment-card { padding: 20px 16px; border-radius: 18px; }',
       '  #cdStandalonePaymentOverlay .cd-standalone-payment-title { font-size: 17px; }',
+      '}',
+      '@media (prefers-reduced-motion: reduce) {',
+      '  #cdStandalonePaymentOverlay .cd-standalone-payment-spinner { animation: none; }',
       '}'
     ].join('\n');
     document.head.appendChild(style);
@@ -2409,6 +2419,7 @@
     overlay.id = 'cdStandalonePaymentOverlay';
     overlay.innerHTML = [
       '<div class="cd-standalone-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
+      '  <img class="cd-standalone-payment-yeon" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="이용권을 확인하는 꽃돼지 연이">',
       '  <div class="cd-standalone-payment-spinner" id="cdStandalonePaymentOverlaySpinner" aria-hidden="true"></div>',
       '  <p class="cd-standalone-payment-title" id="cdStandalonePaymentOverlayTitle">이용권 확인 중</p>',
       '  <p class="cd-standalone-payment-desc" id="cdStandalonePaymentOverlayDesc">보유 이용권으로 바로 열 수 있는지 확인하고 있어요.</p>',
@@ -4087,8 +4098,10 @@
         console.error('[legacy-main-paid-service-gate]', error);
         var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
         var gateCode = String(error && error.code || '').toUpperCase();
-        if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
-          gateMessage = '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+        if (gateCode === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || gateCode === 'AUTH_DB_UNAVAILABLE' || gateCode === 'AUTH_REFRESH_TEMPORARY_FAILURE') {
+          gateMessage = '로그아웃되지 않았어요. 이용권 확인이 잠시 지연되고 있으니 잠시 후 다시 시도해 주세요.';
+        } else if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
+          gateMessage = '이용권 확인 서버 연결을 일시적으로 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
         }
         window.alert(gateMessage);
         if (typeof onCancel === 'function') onCancel(error);
@@ -10074,8 +10087,10 @@
         console.error('[main-paid-service-gate]', error);
         var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
         var gateCode = String(error && error.code || '').toUpperCase();
-        if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
-          gateMessage = '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+        if (gateCode === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || gateCode === 'AUTH_DB_UNAVAILABLE' || gateCode === 'AUTH_REFRESH_TEMPORARY_FAILURE') {
+          gateMessage = '로그아웃되지 않았어요. 이용권 확인이 잠시 지연되고 있으니 잠시 후 다시 시도해 주세요.';
+        } else if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
+          gateMessage = '이용권 확인 서버 연결을 일시적으로 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.';
         }
         window.alert(gateMessage);
         if (typeof onCancel === 'function') onCancel(error);

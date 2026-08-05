@@ -6980,7 +6980,7 @@ function _vedicSetPaymentPending(show, message){
   var text = String(message || '').trim() || '결제가 진행 중입니다.';
   try {
     if (typeof window._cdSetCoinGateOverlay === 'function') {
-      window._cdSetCoinGateOverlay(!!show, text);
+      window._cdSetCoinGateOverlay(!!show, text, 'pass');
       return;
     }
   } catch (_) {}
@@ -7032,7 +7032,7 @@ async function _vedicCompatCoinGate(cost, reason){
       return false;
     }
     _vedicCompatChargeInFlight=true;
-    _vedicSetPaymentPending(true,'베다 궁합 결제 권한을 확인하는 중입니다...');
+    _vedicSetPaymentPending(true,'이용권으로 바로 열 수 있는지 꽃돼지 연이가 확인하고 있어요.');
     var granted=false;
     try{
       var gateResult=window._cdCoinGatePerUse(cost,reason,function(transactionId,payload){
