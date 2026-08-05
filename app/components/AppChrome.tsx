@@ -74,6 +74,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
 const IMMERSIVE_FORTUNE_ROUTES = [
   "/fusion-fortune",
+  "/fortune-chat",
 ];
 
 // Routes that render their own in-experience back/home controls, so the global

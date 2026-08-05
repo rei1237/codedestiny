@@ -445,6 +445,7 @@ const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () 
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
 const handleFusionFortuneRoutes = createLazyRouteHandler("./routes/fusion-fortune.js", () => import("./routes/fusion-fortune.js"), "handleFusionFortuneRoutes", "api/fusion-fortune");
+const handleFortuneChatRoutes = createLazyRouteHandler("./routes/fortune-chat.js", () => import("./routes/fortune-chat.js"), "handleFortuneChatRoutes", "api/fortune-chat");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
 const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-harmony.js", () => import("./routes/celestial-harmony.js"), "handleCelestialHarmonyRoutes");
 const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
@@ -1309,6 +1310,10 @@ export default {
 
       if (url.pathname === "/api/fusion-fortune" || url.pathname.startsWith("/api/fusion-fortune/")) {
         return withCorsHeaders(request, env, await handleFusionFortuneRoutes(request, env, ctx));
+      }
+
+      if (url.pathname === "/api/fortune-chat" || url.pathname.startsWith("/api/fortune-chat/")) {
+        return withCorsHeaders(request, env, await handleFortuneChatRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {

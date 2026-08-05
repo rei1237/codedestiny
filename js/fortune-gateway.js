@@ -40,7 +40,7 @@
       var opener = event.target && event.target.closest ? event.target.closest("[data-fortune-gateway-open]") : null;
       if (!opener || !entry.contains(opener)) return;
       event.preventDefault();
-      open(opener.getAttribute("data-fortune-gateway-open"), opener);
+      window.location.assign("/fortune-chat");
     });
 
     dialog.addEventListener("click", function (event) {
@@ -65,7 +65,7 @@
     if (guardian.getAttribute("data-guardian-chat-journey") === "true") revealEntry();
 
     function openFromHash() {
-      if (window.location.hash === "#guardian-fortune") open("guardian", entry);
+      if (window.location.hash === "#guardian-fortune") window.location.replace("/fortune-chat");
     }
     window.addEventListener("hashchange", openFromHash);
     openFromHash();

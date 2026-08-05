@@ -19,6 +19,7 @@ import {
   hashGuardianFortuneGuestId,
   isGuardianFortuneApiEnabled,
   isValidGuardianFortuneGuestId,
+  mergeGuardianFortuneAnonymousUsage,
 } from "../lib/guardian-fortune-usage.js";
 import {
   createGuardianFortuneShareSnapshot,
@@ -5894,6 +5895,15 @@ async function handleGuardianFortuneUsageRoute(request, env, trace) {
   return guardianFortuneRouteResponse({ ok: true, ...status }, { cookie: identity.cookie });
 }
 
+async function handleGuardianFortuneAnonymousMergeRoute(request, env, trace) {
+  const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+  trace.authVerified = true;
+  const guest = guardianFortuneGuestIdFromRequest(request);
+  const guestIdHash = await hashGuardianFortuneGuestId(guest.value, { env });
+  const result = await mergeGuardianFortuneAnonymousUsage({ userId: String(auth.userId), guestIdHash, env });
+  return guardianFortuneRouteResponse({ ok: true, ...result });
+}
+
 async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
   if (!isGuardianFortuneApiEnabled(env)) {
     return guardianFortuneRouteResponse({
@@ -6088,6 +6098,10 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
 
     if (method === "GET" && path === "/guardian/usage") {
       return await handleGuardianFortuneUsageRoute(request, env, trace);
+    }
+
+    if (method === "POST" && path === "/guardian/merge-anonymous") {
+      return await handleGuardianFortuneAnonymousMergeRoute(request, env, trace);
     }
 
     if (method === "POST" && path === "/guardian/generate") {
