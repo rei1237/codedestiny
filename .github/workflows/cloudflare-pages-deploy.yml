@@ -55,5 +55,10 @@ jobs:
       - name: Verify Pages Git deployments stay disabled
         run: npm run verify:pages-single-deploy
 
+      - name: Wait for required security and CI gates
+        env:
+          CI_GATE_CHECKS: Secret Scan,Paid Flow Gates,Docs Freshness Gate,Pages Config Guard
+        run: node scripts/wait-for-ci-gates.mjs
+
       - name: Preview, smoke, and promote the exact SHA
         run: npm run deploy:safe -- --ci --yes
