@@ -1,5 +1,4 @@
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
-import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
@@ -1845,18 +1844,15 @@ const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
     "rpgCharacter",
     "travelDestiny",
     "healthReport",
-    "sajuDiary",
     "secretHouseEpisodes",
     "rpt_skillTreeCard",
     "rpt_energyCoordCard",
     "rpt_healthReportCard",
-    "rpt_luckSyncDiaryEntryCard",
     "rpt_secretHouseEntryCard",
   ],
   rpgCharacter: ["rpt_skillTreeCard"],
   travelDestiny: ["rpt_energyCoordCard"],
   healthReport: ["rpt_healthReportCard"],
-  sajuDiary: ["rpt_luckSyncDiaryEntryCard"],
   secretHouseEpisodes: ["rpt_secretHouseEntryCard"],
 });
 const PERSISTENT_UNLOCK_KEY_SET = new Set([
@@ -1874,7 +1870,6 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "rpgCharacter",
   "travelDestiny",
   "healthReport",
-  "sajuDiary",
   "secretHouseEpisodes",
   "animal-destiny-unlock",
   "loveSimulation",
@@ -1886,7 +1881,6 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "rpt_skillTreeCard",
   "rpt_energyCoordCard",
   "rpt_villainCard",
-  "rpt_luckSyncDiaryEntryCard",
   "rpt_secretHouseEntryCard",
   "fun.quantumLotto.ritualReport",
   "premium-ziwei",
@@ -5943,7 +5937,6 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
     // Scenario switches are test-only. Production clients cannot select a failure mode.
     scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
   });
-  if (result?.ok === true && identity.userId) invalidateAccessStateCacheForUser(identity.userId);
   return guardianFortuneRouteResponse(result, { cookie: identity.cookie });
 }
 
@@ -6002,7 +5995,6 @@ async function handleGuardianFortuneChatRoute(request, env, ctx, trace) {
         });
         return;
       }
-      if (identity.userId) invalidateAccessStateCacheForUser(identity.userId);
       await writeGuardianFortuneChatSse(writer, "complete", {
         requestId: result.requestId,
         usage: result.usage,

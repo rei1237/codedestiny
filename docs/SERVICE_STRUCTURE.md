@@ -178,3 +178,9 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - `worker/routes/payments.js`
 - `lib/llm-client.ts`
 - `index.html`
+
+## 운세 플래너 경계
+
+- 플래너는 Next App Router의 `app/fortune-planner/**`에서 동작하며 일정 원본과 운세 문구를 분리한다.
+- 일정·시간표·기록은 현재 서버 API 또는 entitlement를 호출하지 않고 기기 `localStorage`에만 저장한다.
+- 과거 `luck_sync_diary_v2`는 보존하고, 신규 키가 없을 때에만 날짜·메모·감정 태그를 `DiaryEntry` 호환 값으로 변환한다.
