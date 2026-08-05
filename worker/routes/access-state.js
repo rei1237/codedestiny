@@ -3,6 +3,8 @@ import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAl
 import { resolveActivePassPolicy } from "../lib/profile-limits.js";
 import {
   ACCESS_STATE_USER_PROJECTION,
+  attachDegradedGuardianUsageToAccessState,
+  attachGuardianUsageToAccessState,
   clearAccessStateInFlight,
   readAccessStateCache,
   readAccessStateInFlight,
@@ -11,17 +13,67 @@ import {
   writeAccessStateInFlight,
 } from "../lib/access-state.js";
 import { buildApiError, buildApiMeta, requestIdFromRequest } from "../lib/api-contract.js";
+import {
+  buildGuardianFortuneUsageStatus,
+  createMongoGuardianFortuneStore,
+  getGuardianFortuneDateKey,
+  isGuardianFortuneApiEnabled,
+} from "../lib/guardian-fortune-usage.js";
 
 function responseHeaders(state) {
-  const entitlementVersion = String(state?.versions?.entitlementVersion || state?.entitlementSnapshot?.entitlementVersion || "unknown")
+  const accessStateVersion = String(state?.versions?.accessStateVersion || state?.versions?.entitlementVersion || state?.entitlementSnapshot?.entitlementVersion || "unknown")
     .replace(/[^a-zA-Z0-9._:-]/g, "_")
     .slice(0, 120);
   return {
     "Cache-Control": "private, max-age=60, stale-while-revalidate=1800",
-    "ETag": `W/\"${entitlementVersion}\"`,
+    "ETag": `W/\"${accessStateVersion}\"`,
     "Last-Modified": new Date(state?.fetchedAt || Date.now()).toUTCString(),
     "X-Access-State-Source": String(state?.source || "db"),
   };
+}
+
+function diagnosticsEnabled(env = {}) {
+  return ["1", "true", "yes", "on"].includes(String(env.ACCESS_STATE_DIAGNOSTICS_ENABLED || "").trim().toLowerCase());
+}
+
+async function anonymizeUserId(userId) {
+  const value = String(userId || "").trim();
+  if (!value || !globalThis.crypto?.subtle) return "anonymous";
+  const bytes = new TextEncoder().encode(`access-state:${value}`);
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).slice(0, 8).map((item) => item.toString(16).padStart(2, "0")).join("");
+}
+
+function classifyAccessError(error, stage = "") {
+  const message = String(error?.message || error || "");
+  const code = String(error?.code || error?.name || "").toUpperCase();
+  if (/admission|wait queue|pool.*queue/i.test(message) || /ADMISSION|OVERLOAD/.test(code)) return "DUPLICATE_REQUEST_OVERLOAD";
+  if (/rate.?limit/i.test(message) || /RATE_LIMIT/.test(code)) return "RATE_LIMITED";
+  if (/server selection|connect(?:ion)?.*timed out|MONGO.*CONNECT/i.test(message) || stage === "db-connect") return "DB_CONNECTION_TIMEOUT";
+  if (/operation timed out|query.*timed out|socket.*timed out/i.test(message) || stage === "db-query") return "DB_QUERY_TIMEOUT";
+  if (/auth/i.test(message) || stage === "auth") return "AUTH_NOT_READY";
+  if (/dependency|guardian/i.test(message) || stage === "guardian") return "INTERNAL_DEPENDENCY_ERROR";
+  return "UNKNOWN_SERVER_ERROR";
+}
+
+async function logAccessStateDiagnostics(env, trace, response, userId, errorType = "") {
+  if (!diagnosticsEnabled(env)) return;
+  const payload = {
+    requestId: trace.requestId,
+    userHash: await anonymizeUserId(userId),
+    route: trace.route,
+    authReady: trace.authVerified === true,
+    authMs: Math.max(0, Math.round(Number(trace.authMs || 0))),
+    entitlementQueryMs: Math.max(0, Math.round(Number(trace.entitlementQueryMs || 0))),
+    guardianQueryMs: Math.max(0, Math.round(Number(trace.guardianQueryMs || 0))),
+    cache: trace.cache || "miss",
+    singleFlightJoin: trace.singleFlightJoin === true,
+    externalApiCalled: false,
+    status: Number(response?.status || 0),
+    errorType: errorType || trace.errorType || null,
+    totalMs: Math.max(0, Math.round(Date.now() - trace.startedAt)),
+  };
+  console.info("[access-state-diagnostics]", JSON.stringify(payload));
 }
 
 function responseFor(state, degraded = false, request = null) {
@@ -88,9 +140,23 @@ function buildDegradedAccessState(userId, profileId, code) {
 }
 
 export async function handleAccessStateRoutes(request, env) {
-  const trace = { route: "me/access-state", method: request.method, authVerified: false, dbConnected: false };
+  const trace = {
+    route: "me/access-state",
+    method: request.method,
+    requestId: requestIdFromRequest(request),
+    startedAt: Date.now(),
+    authVerified: false,
+    dbConnected: false,
+    cache: "miss",
+    singleFlightJoin: false,
+  };
   let userId = "";
   let profileId = "";
+  let include = "";
+  const finish = async (response, errorType = "") => {
+    await logAccessStateDiagnostics(env, trace, response, userId, errorType);
+    return response;
+  };
   try {
     const method = String(request.method || "GET").toUpperCase();
     const path = getRoutePath(request, "/api/me/access-state");
@@ -98,51 +164,114 @@ export async function handleAccessStateRoutes(request, env) {
     if (path !== "/") return notFound();
     if (!isAccessStateEnabled(env)) return notFound();
 
-    const requestedProfileId = String(new URL(request.url).searchParams.get("profileId") || "").trim();
+    const url = new URL(request.url);
+    const requestedProfileId = String(url.searchParams.get("profileId") || "").trim();
+    const includeValues = String(url.searchParams.get("include") || "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+    const includeGuardian = includeValues.includes("guardian");
+    include = includeGuardian ? "guardian" : "";
     profileId = requestedProfileId;
+    const authStartedAt = Date.now();
     userId = await peekAccessTokenUserId(request, env);
-    const auth = await requireUserFromRequest(request, env, {
-      surfaceDbInfraError: true,
-      userProjection: ACCESS_STATE_USER_PROJECTION,
-    });
-    trace.authPresent = true;
-    trace.authVerified = true;
-    userId = String(auth.userId || "").trim();
-    const storedProfileId = String(auth.authUserDoc?.destinyProfilesCurrentId || "").trim();
-    profileId = requestedProfileId || storedProfileId;
+    trace.authMs = Date.now() - authStartedAt;
 
-    const cached = readAccessStateCache(userId, { profileId });
-    if (cached) return responseFor(cached, false, request);
-
-    const pending = readAccessStateInFlight(userId, { profileId });
-    if (pending) return responseFor(await pending, false, request);
+    const pending = userId ? readAccessStateInFlight(userId, { profileId: requestedProfileId, include }) : null;
+    if (pending) {
+      trace.singleFlightJoin = true;
+      trace.cache = "single-flight";
+      const shared = await pending;
+      userId = shared.userId;
+      profileId = shared.profileId;
+      trace.authVerified = true;
+      trace.authMs = shared.authMs;
+      trace.entitlementQueryMs = shared.entitlementQueryMs;
+      trace.guardianQueryMs = shared.guardianQueryMs;
+      trace.errorType = shared.errorType || "";
+      return finish(responseFor(shared.state, false, request), shared.errorType || "");
+    }
 
     const promise = (async () => {
+      const verifiedAuthStartedAt = Date.now();
+      const auth = await requireUserFromRequest(request, env, {
+        surfaceDbInfraError: true,
+        userProjection: ACCESS_STATE_USER_PROJECTION,
+      });
+      const authMs = Date.now() - verifiedAuthStartedAt;
+      const verifiedUserId = String(auth.userId || "").trim();
+      const storedProfileId = String(auth.authUserDoc?.destinyProfilesCurrentId || "").trim();
+      const resolvedProfileId = requestedProfileId || storedProfileId;
+      const cached = readAccessStateCache(verifiedUserId, { profileId: resolvedProfileId, include });
+      if (cached) {
+        return { state: cached, userId: verifiedUserId, profileId: resolvedProfileId, authMs, entitlementQueryMs: 0, guardianQueryMs: 0, cache: "hit", errorType: "" };
+      }
+
+      const entitlementStartedAt = Date.now();
       const user = auth.authUserDoc || {};
       const entitlement = resolveActivePassPolicy(user || {});
-      const state = await resolveCompleteAccessState({
-        userId,
+      let state = await resolveCompleteAccessState({
+        userId: verifiedUserId,
         user: { ...user, activeEntitlement: entitlement },
-        profileId,
+        profileId: resolvedProfileId,
         source: "db",
       });
-      return writeAccessStateCache(userId, state, { profileId });
+      const entitlementQueryMs = Date.now() - entitlementStartedAt;
+      let guardianQueryMs = 0;
+      let errorType = "";
+      if (includeGuardian) {
+        const guardianStartedAt = Date.now();
+        try {
+          const usage = isGuardianFortuneApiEnabled(env)
+            ? await buildGuardianFortuneUsageStatus({
+              userId: verifiedUserId,
+              dateKey: getGuardianFortuneDateKey(new Date()),
+              store: createMongoGuardianFortuneStore({ env }),
+            })
+            : { isLoggedIn: true, canGenerate: false, generationSource: "blocked", nextAction: "wait_tomorrow" };
+          state = attachGuardianUsageToAccessState(state, usage);
+        } catch (guardianError) {
+          errorType = classifyAccessError(guardianError, "guardian");
+          state = attachDegradedGuardianUsageToAccessState(state, errorType);
+        } finally {
+          guardianQueryMs = Date.now() - guardianStartedAt;
+        }
+      }
+      if (!state?.freeUsage?.guardian?.degraded) {
+        state = writeAccessStateCache(verifiedUserId, state, { profileId: resolvedProfileId, include });
+      }
+      return { state, userId: verifiedUserId, profileId: resolvedProfileId, authMs, entitlementQueryMs, guardianQueryMs, cache: "miss", errorType };
     })();
-    writeAccessStateInFlight(userId, promise, { profileId });
+    if (userId) writeAccessStateInFlight(userId, promise, { profileId: requestedProfileId, include });
     try {
-      return responseFor(await promise, false, request);
+      const resolved = await promise;
+      userId = resolved.userId;
+      profileId = resolved.profileId;
+      trace.authPresent = true;
+      trace.authVerified = true;
+      trace.authMs = resolved.authMs;
+      trace.entitlementQueryMs = resolved.entitlementQueryMs;
+      trace.guardianQueryMs = resolved.guardianQueryMs;
+      trace.cache = resolved.cache;
+      trace.errorType = resolved.errorType || "";
+      return finish(responseFor(resolved.state, false, request), resolved.errorType || "");
     } finally {
-      clearAccessStateInFlight(userId, promise, { profileId });
+      if (userId) clearAccessStateInFlight(userId, promise, { profileId: requestedProfileId, include });
     }
   } catch (error) {
-    const requestId = requestIdFromRequest(request);
-    const stale = userId ? readAccessStateCache(userId, { profileId, allowStale: true }) : null;
-    if (stale) return responseFor(stale, true, request);
+    const requestId = trace.requestId;
+    const errorType = classifyAccessError(error, trace.authVerified ? "db-query" : "auth");
+    let stale = userId ? readAccessStateCache(userId, { profileId, include, allowStale: true }) : null;
+    if (!stale && include === "guardian" && userId) {
+      const entitlementStale = readAccessStateCache(userId, { profileId, allowStale: true });
+      if (entitlementStale) stale = attachDegradedGuardianUsageToAccessState(entitlementStale, errorType);
+    }
+    if (stale) return finish(responseFor(stale, true, request), errorType);
     if (/timeout|timed out/i.test(String(error?.message || error || ""))) {
       if (userId) {
-        return responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_TIMEOUT"), true, request);
+        return finish(responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_TIMEOUT"), true, request), errorType);
       }
-      return json({
+      return finish(json({
         ok: false,
         code: "ACCESS_STATE_TIMEOUT",
         error: buildApiError({ code: "ACCESS_STATE_TIMEOUT", retryable: true, message: "접근 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.", requestId }),
@@ -150,13 +279,13 @@ export async function handleAccessStateRoutes(request, env) {
         degraded: true,
         retryable: true,
         message: "접근 상태 확인 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.",
-      }, { status: 504, headers: degradedHeaders(request, "db-op-timeout") });
+      }, { status: 504, headers: degradedHeaders(request, "db-op-timeout") }), errorType);
     }
     if (isAuthDbInfraError(error) || isDbUnavailableError(error)) {
       if (userId) {
-        return responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_UNAVAILABLE"), true, request);
+        return finish(responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_UNAVAILABLE"), true, request), errorType);
       }
-      return json({
+      return finish(json({
         ok: false,
         code: "ACCESS_STATE_UNAVAILABLE",
         error: buildApiError({ code: "ACCESS_STATE_UNAVAILABLE", retryable: true, message: "접근 상태를 잠시 확인할 수 없습니다.", requestId }),
@@ -164,8 +293,8 @@ export async function handleAccessStateRoutes(request, env) {
         degraded: true,
         retryable: true,
         message: "접근 상태를 잠시 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      }, { status: 503, headers: degradedHeaders(request, "db") });
+      }, { status: 503, headers: degradedHeaders(request, "db") }), errorType);
     }
-    return handleRouteError(error, { env, request, trace });
+    return finish(handleRouteError(error, { env, request, trace }), errorType);
   }
 }
