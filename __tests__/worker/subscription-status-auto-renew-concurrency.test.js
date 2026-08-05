@@ -68,6 +68,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   PointHistory: PointHistoryMock,
   MonthlyCreditLedger: {},
   GuardianFortuneAccountUsage: {},
+  GuardianFortuneAnonymousMerge: {},
   ContentEntitlement: {},
   PaymentFailureLog: {},
   PaymentWebhookEvent: {},
