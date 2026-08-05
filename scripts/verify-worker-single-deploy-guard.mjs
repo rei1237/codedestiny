@@ -28,8 +28,9 @@ async function verifyCanonicalWorkflow() {
   const workflow = await readRepoFile(canonicalWorkflow);
   const triggers = deploymentTriggerBlock(workflow);
 
-  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?$/.test(triggers), `${canonicalWorkflow} must be manually dispatched.`);
-  assert(!/^\s+(push|pull_request|schedule|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on push, pull_request, schedule, or workflow_call.`);
+  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?$/.test(triggers), `${canonicalWorkflow} must support manual dispatch.`);
+  assert(/(^|\r?\n)\s+push:\s*\r?\n\s+branches:\s*\r?\n\s+- main\s*(?:\r?\n|$)/m.test(triggers), `${canonicalWorkflow} must deploy on main pushes.`);
+  assert(!/^\s+(pull_request|schedule|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on pull_request, schedule, or workflow_call.`);
   assert(workflow.includes("CF_WORKER_NAME: code-destiny-web"), `${canonicalWorkflow} must target code-destiny-web.`);
   assert(workflow.includes("scripts/verify-worktree-policy.mjs --mode=deploy"), `${canonicalWorkflow} must enforce the deploy worktree policy.`);
   assert(workflow.includes("npm run build:worker"), `${canonicalWorkflow} must run the Worker dry-run build.`);
@@ -63,10 +64,12 @@ async function verifyNoOtherWorkflowDeploys() {
 }
 
 function runSelfTest() {
-  const valid = `on:\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
-  const invalid = `on:\n  push:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
-  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?$/.test(deploymentTriggerBlock(valid)), "valid manual trigger fixture should pass");
-  assert(/^\s+(push|pull_request|schedule|workflow_call):/m.test(deploymentTriggerBlock(invalid)), "push trigger fixture should be detected");
+  const valid = `on:\n  push:\n    branches:\n      - main\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const invalid = `on:\n  pull_request:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const validTriggers = deploymentTriggerBlock(valid);
+  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?$/.test(validTriggers), "valid manual trigger fixture should pass");
+  assert(/(^|\r?\n)\s+push:\s*\r?\n\s+branches:\s*\r?\n\s+- main\s*(?:\r?\n|$)/m.test(validTriggers), "valid main push trigger fixture should pass");
+  assert(/^\s+(pull_request|schedule|workflow_call):/m.test(deploymentTriggerBlock(invalid)), "pull request trigger fixture should be detected");
   console.log("[verify-worker-single-deploy-guard] self-test passed");
 }
 
