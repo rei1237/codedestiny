@@ -246,6 +246,8 @@
 .fortune-gateway__path h3 { margin: 4px 0 7px; font-family: var(--font-display, Georgia, serif); font-size: 25px; letter-spacing: -.03em; line-height: 1.2; }
 .fortune-gateway__path p:not(.fortune-gateway__path-kicker) { margin: 0; color: #70445c; font-size: 13px; line-height: 1.62; }
 .fortune-gateway__path--fusion p:not(.fortune-gateway__path-kicker) { color: #d8cce6; }
+.fortune-gateway__path-note { margin-top: 8px !important; font-weight: 800; }
+.fortune-gateway__path--fusion .fortune-gateway__path-note { color: #f1dfb5 !important; }
 
 .fortune-gateway__path button,
 .fortune-gateway__path a {
