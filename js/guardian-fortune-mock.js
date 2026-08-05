@@ -60,20 +60,20 @@
 
   var modes = {
     yeoni: {
-      label: '연이',
-      title: '꽃돼지 연이가 다정하게 안아줘요',
-      description: '마음을 먼저 포근하게 어루만지고, 오늘의 흐름을 부드럽게 알려줘요.',
+      label: '꽃돼지 연이의 행운 상담소',
+      title: '꽃돼지 연이의 행운 상담소',
+      description: '하루의 흐름을 감성적으로 풀어내고, 마음을 편안하게 정리해줘요.',
       loading: '연이가 달빛 조각을 모으는 중이에요…',
-      button: '연이에게 오늘의 흐름 물어보기',
+      button: '꽃돼지 연이의 행운 상담소로 오늘의 흐름 보기',
       image: '/images/fortune-tea-house/flower-pig-honey-hug.webp',
       alt: '연이 모드의 꽃돼지 캐릭터'
     },
     neo: {
-      label: '네오',
-      title: '팩폭 전략실 네오가 시크하게 짚어줘요',
-      description: '괜히 돌려 말하지 않고, 지금 필요한 포인트를 차분하게 알려줘요.',
+      label: '네오의 행운 상담소',
+      title: '네오의 행운 상담소',
+      description: '복잡한 흐름을 정리해주고, 한 번에 적용할 수 있는 액션을 짚어줘요.',
       loading: '네오가 별의 흐름을 정리하는 중…',
-      button: '네오에게 오늘의 핵심 물어보기',
+      button: '네오의 행운 상담소로 오늘의 핵심 보기',
       image: '/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp',
       alt: '네오 모드의 팩폭 전략실 인간형 캐릭터'
     }
@@ -173,6 +173,17 @@
       resultOpening: {
         yeoni: '연이가 보기엔, 오늘 너는 괜찮은 척하면서도 마음속으로는 이미 중요한 답을 거의 정해둔 상태에 가까워 보여.',
         neo: '네오가 보기엔, 지금 문제는 운이 없는 게 아니라 이미 알고 있는 답을 확인받고 싶어 한다는 점이야.'
+      },
+      fusion: {
+        title: '초융합 운세 미리보기',
+        subtitle: '사주·타로·점성·숙요점·베다점을 함께 엮어 보여주는 패널입니다.',
+        opening: {
+          yeoni: '초융합은 연이의 해석을 더 넓게 뻗어, 사소한 신호까지 연결해서 읽는 방식이에요.',
+          neo: '초융합은 네오의 해석을 중심으로, 오늘의 판단 포인트를 한 번에 정리해요.'
+        },
+        synopsisPrefix: '초융합 해석은 여러 체계를 겹쳐 오늘의 흐름에서 반복 신호를 추려내요. ',
+        cautionPrefix: '특히 지금은 감정선이 격해지기 쉬운 구간이라, 즉시 단정 결론으로 뛰기보다 확인 가능한 행동부터 잡는 게 좋아요. ',
+        actionPrefix: '실행 액션은 짧고 구체적으로 적혀요. 지금은 1개만 실행해도 방향이 보입니다. '
       },
       resultModeSuffix: '의 mock 상담 결과',
       resultTitleSuffix: '을 읽어봤어요'
