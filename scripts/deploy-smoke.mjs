@@ -21,7 +21,7 @@ const browserErrors = [];
 function fail(message) { failures.push(message); }
 function allowedGuestStatus(status) { return status === 200 || status === 401 || status === 403; }
 function isExpectedFontNoise(value) {
-  return /assets\.code-destiny\.com\/fonts\//i.test(value) ||
+  return /assets\.code-destiny\.com\/.*\.(?:woff2?|ttf|otf)/i.test(value) ||
     /font.*blocked by CORS policy/i.test(value) ||
     /blocked by CORS policy.*font/i.test(value);
 }
