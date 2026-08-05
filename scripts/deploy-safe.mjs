@@ -68,6 +68,12 @@ const previewOnly = cli.flags.has("--preview-only");
 function envForChecks() {
   return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true" };
 }
+function assertProductionCi() {
+  const ref = String(process.env.GITHUB_REF || "");
+  if (!ciMode || process.env.GITHUB_ACTIONS !== "true" || ref !== "refs/heads/main") {
+    throw new Error("Production promotion is CI-only from main. Push a verified SHA to main and use the unified release workflow.");
+  }
+}
 function npmCommand() { return process.platform === "win32" ? "npm.cmd" : "npm"; }
 function npxCommand() { return process.platform === "win32" ? "npx.cmd" : "npx"; }
 function wrangler(args) { return ["--no-install", "wrangler", ...args]; }
@@ -396,6 +402,7 @@ async function previewStage() {
   return { value, state };
 }
 async function promote(value, state, yes) {
+  assertProductionCi();
   if (!yes) throw new Error("Production promotion requires --yes.");
   assertArtifact(state);
   const oldPages = (await pageDeployments(value.cf, "production")).find((item) => metadata(item).branch === value.cf.pages.productionBranch);
@@ -458,6 +465,7 @@ async function safeStage() {
   } finally { unlock(); }
 }
 async function rollbackStage() {
+  assertProductionCi();
   if (!autoYes) throw new Error("Rollback requires --yes.");
   const state = readState();
   if (!state?.rollback) throw new Error("No rollback record in " + stateFile);

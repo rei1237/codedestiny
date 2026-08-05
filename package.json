@@ -102,7 +102,7 @@
     "check:quick": "node scripts/check-changed.mjs",
     "check:full": "npm run lint && npm run typecheck && npm run smoke:core && npm run test:node && npm run build:cf",
     "release:fast": "node scripts/release-fast.mjs",
-    "release:safe": "npm run deploy:safe",
+    "release:safe": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .codex/gh-pr-run.ps1",
     "rollback:production": "npm run deploy:rollback --",
     "verify:monthly-credit-lots": "node scripts/verify-monthly-credit-lots.mjs",
     "verify:monthly-credit-expiry": "node scripts/verify-monthly-credit-expiry-flow.mjs",
