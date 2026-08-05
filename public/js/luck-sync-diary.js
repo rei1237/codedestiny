@@ -621,6 +621,7 @@ function _lsdText(key) {
   function savePlannerStore(store) {
     try {
       localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(store));
+      window.dispatchEvent(new CustomEvent('cd:fortune-planner-updated'));
       return true;
     } catch (_) {
       showDiaryToast('기기 저장소가 가득 차 일정을 저장하지 못했습니다.');
