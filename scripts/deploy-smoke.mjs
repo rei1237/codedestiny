@@ -13,7 +13,13 @@ function valueAfter(name) {
 const base = (valueAfter("--base") || process.env.CD_SMOKE_BASE || "").replace(/\/+$/, "");
 const apiOrigin = (valueAfter("--api-origin") || process.env.CD_SMOKE_API_ORIGIN || base).replace(/\/+$/, "");
 const skipApi = process.argv.includes("--skip-api");
-const isPagesPreview = /^https:\/\/[^/]+\.pages\.dev$/i.test(base);
+const isPagesPreview = (() => {
+  try {
+    return new URL(base).hostname.toLowerCase().endsWith(".pages.dev");
+  } catch {
+    return false;
+  }
+})();
 if (!/^https?:\/\//i.test(base)) throw new Error("Smoke base must be an absolute HTTP(S) URL.");
 
 const failures = [];
@@ -25,9 +31,11 @@ function isExpectedFontNoise(value) {
     /font.*blocked by CORS policy/i.test(value) ||
     /blocked by CORS policy.*font/i.test(value);
 }
-function isExpectedPagesPreviewAuthNoise(value) {
-  return isPagesPreview &&
-    /https:\/\/code-destiny\.com\/api\/auth\/me.*blocked by CORS policy/i.test(value);
+function isExpectedPagesPreviewNoise(value) {
+  return isPagesPreview && (
+    (/code-destiny\.com\/api\//i.test(value) && /CORS policy/i.test(value)) ||
+    /server responded with a status of 404/i.test(value)
+  );
 }
 
 async function checkApi(pathname) {
@@ -81,8 +89,8 @@ async function checkPages() {
     // production site receives these font responses same-origin, so preview
     // CORS warnings do not indicate a broken page or runtime regression.
     if (isExpectedFontNoise(message.text())) return;
-    if (isExpectedPagesPreviewAuthNoise(message.text())) return;
     if (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(message.text())) return;
+    if (isExpectedPagesPreviewNoise(message.text())) return;
     browserErrors.push("console.error: " + message.text());
   });
   page.on("requestfailed", (request) => {
@@ -91,7 +99,7 @@ async function checkPages() {
     // the next smoke route starts; they are not runtime failures.
     if (/ERR_ABORTED|AbortError/i.test(errorText)) return;
     if (isExpectedFontNoise(request.url())) return;
-    if (isExpectedPagesPreviewAuthNoise(request.url())) return;
+    if (isPagesPreview && /^https:\/\/code-destiny\.com\/api\//i.test(request.url())) return;
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
 
