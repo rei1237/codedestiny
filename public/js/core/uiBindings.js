@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-a7f5a2b0f6f5'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-a7f5a2b0f6f5'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-a7f5a2b0f6f5'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-00f18484d3e7'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-00f18484d3e7'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-00f18484d3e7'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-a7f5a2b0f6f5')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-00f18484d3e7')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-a7f5a2b0f6f5'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-a7f5a2b0f6f5'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-00f18484d3e7'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-00f18484d3e7'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a7f5a2b0f6f5'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-a7f5a2b0f6f5'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-00f18484d3e7'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-00f18484d3e7'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -105,14 +105,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-a7f5a2b0f6f5').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-00f18484d3e7').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-a7f5a2b0f6f5')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-00f18484d3e7')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -129,7 +129,7 @@ window.gotoZiweiPremium = function gotoZiweiPremium() {
   return __gotoZiweiAi();
 };
 
-/** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
+/** INP: 臾닿굅??data-action ?몃뱾?щ? ?ㅼ쓬 ?쒖뒪?щ줈 誘몃８ (index-inline-runtime ??__CD_DEFER_INP_ACTIONS ? ?숈씪) */
 const __CD_DEFER_INP_ACTIONS = new Set([
   'checkPrivacyAndCalculate',
   'agreeAndCalculate',
@@ -337,7 +337,7 @@ function bindEventAction(root, eventName, attrName) {
 const __COLLECTION_R2_ASSET_BASE = 'https://assets.code-destiny.com/';
 const __COLLECTION_LOCAL_ASSET_KEYS = new Set([
   'saju-guardian-animal-v20260615.webp',
-  // R2 에 올라가 있지 않아 리사이즈·원본이 모두 404 다. 로컬 경로로 바로 간다.
+  // R2 ???щ씪媛 ?덉? ?딆븘 由ъ궗?댁쫰쨌?먮낯??紐⑤몢 404 ?? 濡쒖뺄 寃쎈줈濡?諛붾줈 媛꾨떎.
   'comprehensive-fortune-prompt.webp'
 ]);
 
@@ -373,9 +373,9 @@ function __buildR2CollectionAssetUrl(objectKey, suffix = '') {
   return `${__COLLECTION_R2_ASSET_BASE}${encodedKey}${suffix}`;
 }
 
-// R2 원본(가로 1300~1500px, 장당 150~200KB)을 카드 크기에 맞춰 Cloudflare Image Resizing 으로
-// 줄여 받는다(장당 20~40KB). 폭은 80px 버킷으로 반올림해 CDN 캐시가 잘게 쪼개지지 않게 한다.
-// 실패하면 __bindCollectionImageFallback 이 원본 R2 주소로 되돌린다.
+// R2 ?먮낯(媛濡?1300~1500px, ?λ떦 150~200KB)??移대뱶 ?ш린??留욎떠 Cloudflare Image Resizing ?쇰줈
+// 以꾩뿬 諛쏅뒗???λ떦 20~40KB). ??? 80px 踰꾪궥?쇰줈 諛섏삱由쇳빐 CDN 罹먯떆媛 ?섍쾶 履쇨컻吏吏 ?딄쾶 ?쒕떎.
+// ?ㅽ뙣?섎㈃ __bindCollectionImageFallback ???먮낯 R2 二쇱냼濡??섎룎由곕떎.
 function __buildResizedCollectionImageUrl(r2Url, wrap) {
   const raw = String(r2Url || '');
   if (!raw.startsWith(__COLLECTION_R2_ASSET_BASE)) return '';
@@ -386,7 +386,7 @@ function __buildResizedCollectionImageUrl(r2Url, wrap) {
   try {
     dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
     cssWidth = (wrap && wrap.clientWidth) || 0;
-    // 하이드레이션이 2열 레이아웃 확정 전에 돌면 clientWidth 가 1열 기준으로 잡힌다 — 뷰포트로 상한
+    // ?섏씠?쒕젅?댁뀡??2???덉씠?꾩썐 ?뺤젙 ?꾩뿉 ?뚮㈃ clientWidth 媛 1??湲곗??쇰줈 ?≫엺????酉고룷?몃줈 ?곹븳
     const isNarrow = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     maxCss = isNarrow ? Math.ceil(window.innerWidth / 2) : window.innerWidth;
   } catch {}
@@ -417,10 +417,10 @@ function __resolveCollectionImageSrc(src) {
   return raw;
 }
 
-/* 폴백은 하나가 아니라 순서 있는 목록이다.
-   예전에는 "리사이즈 → R2 원본" 한 단계뿐이라, R2 에 올라가지 않은 자산은
-   두 주소가 모두 404 가 되면서 마크업에 원래 박혀 있던(그리고 실제로는 200 인)
-   /fuctionassets/… 경로로 되돌아갈 길이 없어 이미지가 통째로 사라졌다. */
+/* ?대갚? ?섎굹媛 ?꾨땲???쒖꽌 ?덈뒗 紐⑸줉?대떎.
+   ?덉쟾?먮뒗 "由ъ궗?댁쫰 ??R2 ?먮낯" ???④퀎肉먯씠?? R2 ???щ씪媛吏 ?딆? ?먯궛?
+   ??二쇱냼媛 紐⑤몢 404 媛 ?섎㈃??留덊겕?낆뿉 ?먮옒 諛뺥? ?덈뜕(洹몃━怨??ㅼ젣濡쒕뒗 200 ??
+   /fuctionassets/??寃쎈줈濡??섎룎?꾧컝 湲몄씠 ?놁뼱 ?대?吏媛 ?듭㎏濡??щ씪議뚮떎. */
 function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) {
   if (!img) return;
   const chain = (Array.isArray(fallbackSrc) ? fallbackSrc : [fallbackSrc])
@@ -428,7 +428,7 @@ function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) 
     .filter(Boolean)
     .filter((src, index, list) => list.indexOf(src) === index && src !== img.getAttribute('src'));
   img.__cdImgFallbackChain = chain;
-  // 이 속성을 읽는 다른 코드가 있어 첫 후보는 그대로 노출한다.
+  // ???띿꽦???쎈뒗 ?ㅻⅨ 肄붾뱶媛 ?덉뼱 泥??꾨낫??洹몃?濡??몄텧?쒕떎.
   if (chain.length) img.setAttribute('data-cd-img-fallback-src', chain[0]);
   else img.removeAttribute('data-cd-img-fallback-src');
   if (skeleton) {
@@ -500,8 +500,8 @@ function __runChunked(listLike, fn, opts = {}) {
 
 function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
   if (!collection) return;
-  // 모바일에서도 데스크톱과 동일하게 전 컬렉션의 이미지를 하이드레이션한다.
-  // (목록형 7개 컬렉션을 걸러내던 분기 제거 — index-inline-runtime.js 의 같은 함수와 짝을 맞춘다)
+  // 紐⑤컮?쇱뿉?쒕룄 ?곗뒪?ы넲怨??숈씪?섍쾶 ??而щ젆?섏쓽 ?대?吏瑜??섏씠?쒕젅?댁뀡?쒕떎.
+  // (紐⑸줉??7媛?而щ젆?섏쓣 嫄몃윭?대뜕 遺꾧린 ?쒓굅 ??index-inline-runtime.js ??媛숈? ?⑥닔? 吏앹쓣 留욎텣??
   const wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
   const ioEnabled = typeof IntersectionObserver !== 'undefined';
 
@@ -518,22 +518,21 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     if (existingImg) {
       const existingSrc = existingImg.getAttribute('src') || src;
       const resolvedExistingSrc = __resolveCollectionImageSrc(existingSrc);
-      // 마크업에 박힌 정적 <img> 도 같은 리사이즈 경로를 태운다(원본 80~200KB 를 그대로 받고 있었다)
+      // 留덊겕?낆뿉 諛뺥엺 ?뺤쟻 <img> ??媛숈? 由ъ궗?댁쫰 寃쎈줈瑜??쒖슫???먮낯 80~200KB 瑜?洹몃?濡?諛쏄퀬 ?덉뿀??
       const resizedExisting = __buildResizedCollectionImageUrl(resolvedExistingSrc, wrap);
-      // 리사이즈 → R2 원본 → 마크업에 박혀 있던 원래 경로 순으로 물러난다.
-      // 마지막 후보가 있어야 R2 에 아직 안 올라간 자산도 화면에서 사라지지 않는다.
+      // 由ъ궗?댁쫰 ??R2 ?먮낯 ??留덊겕?낆뿉 諛뺥? ?덈뜕 ?먮옒 寃쎈줈 ?쒖쑝濡?臾쇰윭?쒕떎.
+      // 留덉?留??꾨낫媛 ?덉뼱??R2 ???꾩쭅 ???щ씪媛??먯궛???붾㈃?먯꽌 ?щ씪吏吏 ?딅뒗??
       const existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       const nextSrc = resizedExisting || resolvedExistingSrc;
       if (nextSrc && nextSrc !== existingSrc) {
-        // 체인은 "바인딩 시점의 src" 와 같은 후보를 걸러낸다. 먼저 바인딩하면 마크업의 원래
-        // 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는 자산은
-        // 리사이즈·R2 원본이 모두 404 라 물러날 곳이 없어 img 가 통째로 제거된다.
+        // 泥댁씤? "諛붿씤???쒖젏??src" ? 媛숈? ?꾨낫瑜?嫄몃윭?몃떎. 癒쇱? 諛붿씤?⑺븯硫?留덊겕?낆쓽 ?먮옒
+        // 寃쎈줈(/fuctionassets/??媛 ?꾩쭅 ?꾩옱 src ??泥댁씤?먯꽌 鍮좎?怨? R2 ???녿뒗 ?먯궛?
+        // 由ъ궗?댁쫰쨌R2 ?먮낯??紐⑤몢 404 ??臾쇰윭??怨녹씠 ?놁뼱 img 媛 ?듭㎏濡??쒓굅?쒕떎.
         existingImg.loading = 'eager';
         existingImg.src = nextSrc;
         __bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
       } else if (nextSrc && !(existingImg.complete && existingImg.naturalWidth > 0)) {
-        // 닫힌 컬렉션 안에서 파싱된 loading="lazy" 이미지는 열려도 요청이 다시 걸리지 않는다 — 노드를 새로 붙여 깨운다
-        const revived = existingImg.cloneNode(false);
+        // ?ロ엺 而щ젆???덉뿉???뚯떛??loading="lazy" ?대?吏???대젮???붿껌???ㅼ떆 嫄몃━吏 ?딅뒗?????몃뱶瑜??덈줈 遺숈뿬 源⑥슫??        const revived = existingImg.cloneNode(false);
         revived.loading = 'eager';
         if (revived.dataset) delete revived.dataset.cdCollectionFallbackBound;
         __bindCollectionImageFallback(revived, existingFallback, placeholder, null);
@@ -551,8 +550,7 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     const isPriorityImage = Boolean(wrap.closest && wrap.closest('.cd-prompt-feature-spotlight'));
     const img = document.createElement('img');
     img.className = 'tarot-tile__img';
-    // IntersectionObserver 가 이미 지연로딩을 끝낸 뒤라 loading="lazy" 를 또 걸면 요청이 영영 안 나간다
-    img.loading = 'eager';
+    // IntersectionObserver 媛 ?대? 吏?곕줈?⑹쓣 ?앸궦 ?ㅻ씪 loading="lazy" 瑜???嫄몃㈃ ?붿껌???곸쁺 ???섍컙??    img.loading = 'eager';
     img.fetchPriority = isPriorityImage ? 'high' : 'low';
     img.decoding = 'async';
     img.width = 200;
@@ -717,7 +715,7 @@ export function bindGlobalActions(root) {
       }
       actionEl.setAttribute('aria-label',
         actionEl.getAttribute('aria-label')
-          ? actionEl.getAttribute('aria-label').replace(/열기|닫기/, newState ? '닫기' : '열기')
+          ? actionEl.getAttribute('aria-label').replace(/?닿린|?リ린/, newState ? '?リ린' : '?닿린')
           : '');
 
       document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
@@ -732,11 +730,11 @@ export function bindGlobalActions(root) {
       return;
     }
 
-    // 시빌라 진입 타일과 타로/기능 컬렉션 타일은 SEO/크롤용 <a href>이지만 모달·프리뷰를
-    // 제자리에서 열어야 한다. 앵커 기본 이동을 막지 않으면 클릭 시 제자리 오픈과 전체 페이지
-    // 이동이 동시에 발생해 리딩이 안 열리는 회귀가 생긴다(커밋 49118133에서 button→a 전환 후 노출).
-    // 단, 실제로 열어줄 모달/액션 핸들러가 없는 순수 이동형 타일(무료 심리테스트 허브 등)까지
-    // preventDefault로 막으면 클릭이 아무 반응 없이 죽는다 — 핸들러 존재 여부를 함께 확인한다.
+    // ?쒕퉴??吏꾩엯 ??쇨낵 ?濡?湲곕뒫 而щ젆????쇱? SEO/?щ·??<a href>?댁?留?紐⑤떖쨌?꾨━酉곕?
+    // ?쒖옄由ъ뿉???댁뼱???쒕떎. ?듭빱 湲곕낯 ?대룞??留됱? ?딆쑝硫??대┃ ???쒖옄由??ㅽ뵂怨??꾩껜 ?섏씠吏
+    // ?대룞???숈떆??諛쒖깮??由щ뵫?????대━???뚭?媛 ?앷릿??而ㅻ컠 49118133?먯꽌 button?뭓 ?꾪솚 ???몄텧).
+    // ?? ?ㅼ젣濡??댁뼱以?紐⑤떖/?≪뀡 ?몃뱾?ш? ?녿뒗 ?쒖닔 ?대룞?????臾대즺 ?щ━?뚯뒪???덈툕 ??源뚯?
+    // preventDefault濡?留됱쑝硫??대┃???꾨Т 諛섏쓳 ?놁씠 二쎈뒗?????몃뱾??議댁옱 ?щ?瑜??④퍡 ?뺤씤?쒕떎.
     const hasRealActionHandler = !!__lazyActionLoaders[action] || typeof window[action] === 'function';
     if (hasRealActionHandler
       && actionEl.tagName === 'A'

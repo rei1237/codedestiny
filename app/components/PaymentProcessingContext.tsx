@@ -72,9 +72,9 @@ function PaymentOverlayFallback() {
         style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
       >
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-        <p className="m-0 text-sm font-black">결제 확인 화면을 여는 중입니다.</p>
+        <p className="m-0 text-sm font-black">寃곗젣 ?뺤씤 ?붾㈃???щ뒗 以묒엯?덈떎.</p>
         <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-300">
-          창을 닫지 말고 잠시만 기다려 주세요.
+          李쎌쓣 ?レ? 留먭퀬 ?좎떆留?湲곕떎??二쇱꽭??
         </p>
       </div>
     </div>
@@ -155,10 +155,10 @@ type PaidFeatureGateContextValue = {
   preload: () => void;
 };
 
-const DEFAULT_PROCESSING_MESSAGE = "처리 중이에요\n잠시만 기다려 주세요";
+const DEFAULT_PROCESSING_MESSAGE = "泥섎━ 以묒씠?먯슂\n?좎떆留?湲곕떎??二쇱꽭??;
 
-const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
-const ACCESS_CHECKING_MESSAGE = "이용권 확인 중이에요\n잠시만 기다려 주세요";
+const PAID_GATE_DEFAULT_TITLE = "寃곗젣/?댁슜沅??뺤씤";
+const ACCESS_CHECKING_MESSAGE = "?댁슜沅??뺤씤 以묒씠?먯슂\n?좎떆留?湲곕떎??二쇱꽭??;
 const PAID_GATE_DEFAULT_MESSAGE = ACCESS_CHECKING_MESSAGE;
 
 type PaidGateCopy = { label: string; title: string; message: string };
@@ -172,25 +172,25 @@ type PaidGateUiCopy = {
   progressSteps: readonly [string, string, string];
 };
 
-const KOREAN_TEXT_PATTERN = /[가-힣]/;
+const KOREAN_TEXT_PATTERN = /[媛-??/;
 
 const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
-  idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
-  opening: { label: "준비", title: "이용권 확인", message: ACCESS_CHECKING_MESSAGE },
-  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: ACCESS_CHECKING_MESSAGE },
-  hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "이용권 확인이 끝났어요\n결과를 준비하고 있어요" },
-  noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "사용 가능한 이용권이 없어 결제가 필요합니다." },
-  loadingProducts: { label: "확인 중", title: "이용권/결제 확인", message: ACCESS_CHECKING_MESSAGE },
-  readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
-  paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제 승인과 이용 권한을 확인하고 있어요\n창을 닫지 말아 주세요" },
-  paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 준비하고 있어요" },
-  paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다. 다시 시도해 주세요." },
-  error: { label: "오류", title: "확인 실패", message: "이용권 확인에 실패했습니다. 잠시 후 다시 시도해 주세요." },
-  paymentPreparing: { label: "결제 준비", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
-  paymentWindowOpen: { label: "결제 진행", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
-  savingUnlock: { label: "저장 중", title: "이용 권한 저장 중", message: "결과 화면으로 이어지도록 이용 권한을 저장하고 있습니다." },
-  unlockSaving: { label: "저장 중", title: "이용 권한 저장 중", message: "결과 화면으로 이어지도록 이용 권한을 저장하고 있습니다." },
-  cancelled: { label: "취소됨", title: "결제 선택 취소", message: "결제 선택이 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." },
+  idle: { label: "?湲?, title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
+  opening: { label: "以鍮?, title: "?댁슜沅??뺤씤", message: ACCESS_CHECKING_MESSAGE },
+  checkingEntitlement: { label: "?뺤씤 以?, title: "?댁슜沅??뺤씤", message: ACCESS_CHECKING_MESSAGE },
+  hasEntitlement: { label: "?댁슜 媛??, title: "?댁슜沅??뺤씤 ?꾨즺", message: "?댁슜沅??뺤씤???앸궗?댁슂\n寃곌낵瑜?以鍮꾪븯怨??덉뼱?? },
+  noEntitlement: { label: "寃곗젣 ?꾩슂", title: PAID_GATE_DEFAULT_TITLE, message: "?ъ슜 媛?ν븳 ?댁슜沅뚯씠 ?놁뼱 寃곗젣媛 ?꾩슂?⑸땲??" },
+  loadingProducts: { label: "?뺤씤 以?, title: "?댁슜沅?寃곗젣 ?뺤씤", message: ACCESS_CHECKING_MESSAGE },
+  readyToPay: { label: "?좏깮 ?湲?, title: "寃곗젣 ?섎떒 ?좏깮", message: "??肄섑뀗痢좊? ?????덈뒗 寃곗젣 ?섎떒???좏깮??二쇱꽭??" },
+  paymentProcessing: { label: "泥섎━ 以?, title: "寃곗젣 泥섎━ 以?, message: "寃곗젣 ?뱀씤怨??댁슜 沅뚰븳???뺤씤?섍퀬 ?덉뼱??n李쎌쓣 ?レ? 留먯븘 二쇱꽭?? },
+  paymentSuccess: { label: "?꾨즺", title: "寃곗젣 ?꾨즺", message: "寃곗젣媛 ?꾨즺?먯뼱??n寃곌낵瑜?以鍮꾪븯怨??덉뼱?? },
+  paymentFailed: { label: "?ㅽ뙣", title: "寃곗젣 ?뺤씤 ?ㅽ뙣", message: "寃곗젣瑜??꾨즺?섏? 紐삵뻽?듬땲?? ?ㅼ떆 ?쒕룄??二쇱꽭??" },
+  error: { label: "?ㅻ쪟", title: "?뺤씤 ?ㅽ뙣", message: "?댁슜沅??뺤씤???ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??" },
+  paymentPreparing: { label: "寃곗젣 以鍮?, title: "?④굔 寃곗젣 以鍮?以?, message: "二쇰Ц ?뺣낫? ?몄쬆 ?먮쫫??議곗슜??留욎떠吏怨??덉뼱??n李쎌쓣 ?レ? 留먯븘 二쇱꽭?? },
+  paymentWindowOpen: { label: "寃곗젣 吏꾪뻾", title: "?④굔 寃곗젣 以鍮?以?, message: "二쇰Ц ?뺣낫? ?몄쬆 ?먮쫫??議곗슜??留욎떠吏怨??덉뼱??n李쎌쓣 ?レ? 留먯븘 二쇱꽭?? },
+  savingUnlock: { label: "???以?, title: "?댁슜 沅뚰븳 ???以?, message: "寃곌낵 ?붾㈃?쇰줈 ?댁뼱吏?꾨줉 ?댁슜 沅뚰븳????ν븯怨??덉뒿?덈떎." },
+  unlockSaving: { label: "???以?, title: "?댁슜 沅뚰븳 ???以?, message: "寃곌낵 ?붾㈃?쇰줈 ?댁뼱吏?꾨줉 ?댁슜 沅뚰븳????ν븯怨??덉뒿?덈떎." },
+  cancelled: { label: "痍⑥냼??, title: "寃곗젣 ?좏깮 痍⑥냼", message: "寃곗젣 ?좏깮??痍⑥냼?섏뿀?듬땲?? ?꾩슂?????ㅼ떆 吏꾪뻾?????덉뒿?덈떎." },
 };
 
 const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Record<PaidFeatureGateStatus, PaidGateCopy>>> = {
@@ -203,67 +203,67 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
     cancelled: { label: "Cancelled", title: "Payment selection cancelled", message: "You can try again whenever needed." },
   },
   ja: {
-    idle: { label: "待機中", title: "決済・利用券の確認", message: "利用券を確認しています。" },
-    noEntitlement: { label: "決済が必要", title: "決済・利用券の確認", message: "利用できる利用券が見つかりませんでした。" },
-    readyToPay: { label: "選択待ち", title: "決済方法の選択", message: "このコンテンツを開く決済方法を選んでください。" },
-    paymentFailed: { label: "失敗", title: "決済確認に失敗しました", message: "お支払いを完了できませんでした。" },
-    error: { label: "エラー", title: "確認に失敗しました", message: "通信状況を確認して、もう一度お試しください。" },
-    cancelled: { label: "キャンセル", title: "決済選択をキャンセルしました", message: "必要なときにもう一度進められます。" },
+    idle: { label: "孃끾찣訝?, title: "黎뷸툑?삣닶?ⓨ댏??▶沃?, message: "?⑴뵪?멥굮閻븃첀?쀣겍?꾠겲?쇻? },
+    noEntitlement: { label: "黎뷸툑?뚦퓚誤?, title: "黎뷸툑?삣닶?ⓨ댏??▶沃?, message: "?⑴뵪?㎯걤?뗥닶?ⓨ댏?뚩쫳?ㅳ걢?듽겲?쎼굯?㎯걮?잆? },
+    readyToPay: { label: "?멩뒢孃끹걾", title: "黎뷸툑?방퀡??겦??, message: "?볝겗?녈꺍?녴꺍?꾠굮?뗣걦黎뷸툑?방퀡?믧겦?볝겎?뤵걽?뺛걚?? },
+    paymentFailed: { label: "鸚길븮", title: "黎뷸툑閻븃첀?ュㅁ?쀣걮?얇걮??, message: "?딀뵱?뺛걚?믣츑雅녴겎?띲겲?쎼굯?㎯걮?잆? },
+    error: { label: "?ⓦ꺀??, title: "閻븃첀?ュㅁ?쀣걮?얇걮??, message: "?싦에?뜻퀋?믥▶沃띲걮?╉곥굚?녵?佯╉걡屋╉걮?뤵걽?뺛걚?? },
+    cancelled: { label: "??깵?녈궩??, title: "黎뷸툑?멩뒢?믡궘?ｃ꺍?삠꺂?쀣겲?쀣걼", message: "恙낁쫨?ゃ겏?띲겓?귙걝訝佯?꿔굙?됥굦?얇걲?? },
   },
   "zh-CN": {
-    idle: { label: "等待", title: "支付/通行券确认", message: "正在确认通行券。" },
-    noEntitlement: { label: "需要支付", title: "支付/通行券确认", message: "未找到可用的通行券。" },
-    readyToPay: { label: "等待选择", title: "选择支付方式", message: "请选择可打开此内容的支付方式。" },
-    paymentFailed: { label: "失败", title: "支付确认失败", message: "未能完成支付。" },
-    error: { label: "错误", title: "确认失败", message: "请检查网络状态后重试。" },
-    cancelled: { label: "已取消", title: "已取消支付选择", message: "需要时可以再次继续。" },
+    idle: { label: "嶺됧푷", title: "??퍡/?싪죱?며‘溫?, message: "閭ｅ쑉簾???싪죱?멥? },
+    noEntitlement: { label: "?誤곫뵱餓?, title: "??퍡/?싪죱?며‘溫?, message: "?ゆ돻?겼룾?①쉪?싪죱?멥? },
+    readyToPay: { label: "嶺됧푷?됪떓", title: "?됪떓??퍡?밧폀", message: "瑥룬됪떓??돀凉閭ㅵ냵若밭쉪??퍡?밧폀?? },
+    paymentFailed: { label: "鸚김뇰", title: "??퍡簾??鸚김뇰", message: "?よ꺗若뚧닇??퍡?? },
+    error: { label: "?숃?", title: "簾??鸚김뇰", message: "瑥룡??η퐨瀯쒐듁?곩릮?띹캊?? },
+    cancelled: { label: "藥꿨룚易?, title: "藥꿨룚易덃뵱餓섌됪떓", message: "?誤곫뿶??빳?띷А瀯㎫뺌?? },
   },
   "zh-TW": {
-    idle: { label: "等待", title: "付款/通行券確認", message: "正在確認通行券。" },
-    noEntitlement: { label: "需要付款", title: "付款/通行券確認", message: "找不到可用的通行券。" },
-    readyToPay: { label: "等待選擇", title: "選擇付款方式", message: "請選擇可開啟此內容的付款方式。" },
-    paymentFailed: { label: "失敗", title: "付款確認失敗", message: "未能完成付款。" },
-    error: { label: "錯誤", title: "確認失敗", message: "請檢查網路狀態後再試一次。" },
-    cancelled: { label: "已取消", title: "已取消付款選擇", message: "需要時可以再次繼續。" },
+    idle: { label: "嶺됧푷", title: "餓섉Ь/?싪죱?며▶沃?, message: "閭ｅ쑉閻븃첀?싪죱?멥? },
+    noEntitlement: { label: "?誤곦퍡轝?, title: "餓섉Ь/?싪죱?며▶沃?, message: "?얌툖?겼룾?①쉪?싪죱?멥? },
+    readyToPay: { label: "嶺됧푷?멩뱡", title: "?멩뱡餓섉Ь?밧폀", message: "獄뗩겦?뉐룾?뗥븶閭ㅵ뀱若밭쉪餓섉Ь?밧폀?? },
+    paymentFailed: { label: "鸚길븮", title: "餓섉Ь閻븃첀鸚길븮", message: "?よ꺗若뚧닇餓섉Ь?? },
+    error: { label: "??い", title: "閻븃첀鸚길븮", message: "獄뗦あ?η떤瓮???뗥풄?띹ĳ訝轝▲? },
+    cancelled: { label: "藥꿨룚易?, title: "藥꿨룚易덁퍡轝얗겦??, message: "?誤곫셽??빳?띷А濚쇘틠?? },
   },
   vi: {
-    idle: { label: "Đang chờ", title: "Kiểm tra thanh toán/vé", message: "Đang kiểm tra vé sử dụng." },
-    noEntitlement: { label: "Cần thanh toán", title: "Kiểm tra thanh toán/vé", message: "Không tìm thấy vé có thể dùng." },
-    readyToPay: { label: "Chờ chọn", title: "Chọn phương thức thanh toán", message: "Chọn phương thức thanh toán để mở nội dung này." },
-    paymentFailed: { label: "Thất bại", title: "Xác nhận thanh toán thất bại", message: "Không thể hoàn tất thanh toán." },
-    error: { label: "Lỗi", title: "Kiểm tra thất bại", message: "Vui lòng kiểm tra mạng rồi thử lại." },
-    cancelled: { label: "Đã hủy", title: "Đã hủy lựa chọn thanh toán", message: "Bạn có thể thực hiện lại khi cần." },
+    idle: { label: "휂ang ch沼?, title: "Ki沼긩 tra thanh to찼n/v챕", message: "휂ang ki沼긩 tra v챕 s沼?d沼쩸g." },
+    noEntitlement: { label: "C梳쬷 thanh to찼n", title: "Ki沼긩 tra thanh to찼n/v챕", message: "Kh척ng t챙m th梳쪅 v챕 c처 th沼?d첫ng." },
+    readyToPay: { label: "Ch沼?ch沼뛫", title: "Ch沼뛫 ph튼퉤ng th沼쯢 thanh to찼n", message: "Ch沼뛫 ph튼퉤ng th沼쯢 thanh to찼n 휃沼?m沼?n沼셢 dung n횪y." },
+    paymentFailed: { label: "Th梳쩿 b梳죍", title: "X찼c nh梳춏 thanh to찼n th梳쩿 b梳죍", message: "Kh척ng th沼?ho횪n t梳쩿 thanh to찼n." },
+    error: { label: "L沼뾦", title: "Ki沼긩 tra th梳쩿 b梳죍", message: "Vui l챵ng ki沼긩 tra m梳죒g r沼밿 th沼?l梳죍." },
+    cancelled: { label: "휂찾 h沼쭃", title: "휂찾 h沼쭃 l沼켥 ch沼뛫 thanh to찼n", message: "B梳죒 c처 th沼?th沼켧 hi沼뇆 l梳죍 khi c梳쬷." },
   },
   hi: {
-    idle: { label: "प्रतीक्षा", title: "भुगतान/पास जाँच", message: "आपका पास जाँचा जा रहा है." },
-    noEntitlement: { label: "भुगतान आवश्यक", title: "भुगतान/पास जाँच", message: "उपयोग योग्य पास नहीं मिला." },
-    readyToPay: { label: "चयन प्रतीक्षा", title: "भुगतान विधि चुनें", message: "इस सामग्री को खोलने के लिए भुगतान विधि चुनें." },
-    paymentFailed: { label: "विफल", title: "भुगतान पुष्टि विफल", message: "भुगतान पूरा नहीं हो सका." },
-    error: { label: "त्रुटि", title: "जाँच विफल", message: "कृपया नेटवर्क स्थिति जाँचकर फिर प्रयास करें." },
-    cancelled: { label: "रद्द", title: "भुगतान चयन रद्द हुआ", message: "ज़रूरत पड़ने पर फिर से आगे बढ़ सकते हैं." },
+    idle: { label: "西む쪓西겯ㄴ誓西뺖쪓西룅ㅎ", title: "西?쪇西쀠ㄴ西약ㄸ/西むㅎ西?西쒉ㅎ西곟쩀", message: "西녱ㄺ西뺖ㅎ 西むㅎ西?西쒉ㅎ西곟쩀西?西쒉ㅎ 西겯ㅉ西?西밝쪎." },
+    noEntitlement: { label: "西?쪇西쀠ㄴ西약ㄸ 西녱ㅅ西뜩쪓西?쨻", title: "西?쪇西쀠ㄴ西약ㄸ/西むㅎ西?西쒉ㅎ西곟쩀", message: "西됢ㄺ西?쪑西?西?쪑西쀠쪓西?西むㅎ西?西ⓣㅉ誓西?西?ㅏ西꿋ㅎ." },
+    readyToPay: { label: "西싟ㄿ西?西む쪓西겯ㄴ誓西뺖쪓西룅ㅎ", title: "西?쪇西쀠ㄴ西약ㄸ 西듀ㅏ西㏅ㅏ 西싟쪇西ⓣ쪍西?, message: "西뉋ㅈ 西멘ㅎ西?쨽誓띭ㅀ誓 西뺖쪑 西뽤쪑西꿋ㄸ誓?西뺖쪍 西꿋ㅏ西?西?쪇西쀠ㄴ西약ㄸ 西듀ㅏ西㏅ㅏ 西싟쪇西ⓣ쪍西?" },
+    paymentFailed: { label: "西듀ㅏ西ムㅂ", title: "西?쪇西쀠ㄴ西약ㄸ 西む쪇西룅쪓西잀ㅏ 西듀ㅏ西ムㅂ", message: "西?쪇西쀠ㄴ西약ㄸ 西む쪈西겯ㅎ 西ⓣㅉ誓西?西밝쪑 西멘쨻西?" },
+    error: { label: "西ㅰ쪓西겯쪇西잀ㅏ", title: "西쒉ㅎ西곟쩀 西듀ㅏ西ムㅂ", message: "西뺖쪉西むㄿ西?西ⓣ쪍西잀ㅅ西겯쪓西?西멘쪓西?ㅏ西ㅰㅏ 西쒉ㅎ西곟쩀西뺖ㅀ 西ムㅏ西?西む쪓西겯ㄿ西약ㅈ 西뺖ㅀ誓뉋쨧." },
+    cancelled: { label: "西겯ㄶ誓띭ㄶ", title: "西?쪇西쀠ㄴ西약ㄸ 西싟ㄿ西?西겯ㄶ誓띭ㄶ 西밝쪇西?, message: "西쒉ㅌ西겯쪈西겯ㄴ 西むㄱ西솰ㄸ誓?西むㅀ 西ムㅏ西?西멘쪍 西녱쨽誓?西оㄲ西?西멘쨻西ㅰ쪍 西밝쪎西?" },
   },
   es: {
-    idle: { label: "En espera", title: "Comprobación de pago/pase", message: "Comprobando tu pase." },
-    noEntitlement: { label: "Pago necesario", title: "Comprobación de pago/pase", message: "No se encontró un pase disponible." },
-    readyToPay: { label: "Elegir pago", title: "Elige un método de pago", message: "Selecciona un método de pago para abrir este contenido." },
-    paymentFailed: { label: "Falló", title: "Falló la confirmación del pago", message: "No se pudo completar el pago." },
-    error: { label: "Error", title: "Falló la comprobación", message: "Revisa la conexión e inténtalo de nuevo." },
-    cancelled: { label: "Cancelado", title: "Selección de pago cancelada", message: "Puedes intentarlo de nuevo cuando lo necesites." },
+    idle: { label: "En espera", title: "Comprobaci처n de pago/pase", message: "Comprobando tu pase." },
+    noEntitlement: { label: "Pago necesario", title: "Comprobaci처n de pago/pase", message: "No se encontr처 un pase disponible." },
+    readyToPay: { label: "Elegir pago", title: "Elige un m챕todo de pago", message: "Selecciona un m챕todo de pago para abrir este contenido." },
+    paymentFailed: { label: "Fall처", title: "Fall처 la confirmaci처n del pago", message: "No se pudo completar el pago." },
+    error: { label: "Error", title: "Fall처 la comprobaci처n", message: "Revisa la conexi처n e int챕ntalo de nuevo." },
+    cancelled: { label: "Cancelado", title: "Selecci처n de pago cancelada", message: "Puedes intentarlo de nuevo cuando lo necesites." },
   },
   fr: {
-    idle: { label: "En attente", title: "Vérification paiement/pass", message: "Vérification de votre pass." },
-    noEntitlement: { label: "Paiement requis", title: "Vérification paiement/pass", message: "Aucun pass utilisable n'a été trouvé." },
-    readyToPay: { label: "Choix du paiement", title: "Choisir un moyen de paiement", message: "Sélectionnez un moyen de paiement pour ouvrir ce contenu." },
-    paymentFailed: { label: "Échec", title: "Échec de la confirmation du paiement", message: "Le paiement n'a pas pu être terminé." },
-    error: { label: "Erreur", title: "Échec de la vérification", message: "Vérifiez votre connexion puis réessayez." },
-    cancelled: { label: "Annulé", title: "Sélection du paiement annulée", message: "Vous pourrez réessayer quand vous le souhaitez." },
+    idle: { label: "En attente", title: "V챕rification paiement/pass", message: "V챕rification de votre pass." },
+    noEntitlement: { label: "Paiement requis", title: "V챕rification paiement/pass", message: "Aucun pass utilisable n'a 챕t챕 trouv챕." },
+    readyToPay: { label: "Choix du paiement", title: "Choisir un moyen de paiement", message: "S챕lectionnez un moyen de paiement pour ouvrir ce contenu." },
+    paymentFailed: { label: "횋chec", title: "횋chec de la confirmation du paiement", message: "Le paiement n'a pas pu 챗tre termin챕." },
+    error: { label: "Erreur", title: "횋chec de la v챕rification", message: "V챕rifiez votre connexion puis r챕essayez." },
+    cancelled: { label: "Annul챕", title: "S챕lection du paiement annul챕e", message: "Vous pourrez r챕essayer quand vous le souhaitez." },
   },
   de: {
-    idle: { label: "Warten", title: "Zahlung/Pass wird geprüft", message: "Dein Pass wird geprüft." },
-    noEntitlement: { label: "Zahlung nötig", title: "Zahlung/Pass wird geprüft", message: "Es wurde kein nutzbarer Pass gefunden." },
-    readyToPay: { label: "Zahlung wählen", title: "Zahlungsmethode wählen", message: "Wähle eine Zahlungsmethode, um diesen Inhalt zu öffnen." },
-    paymentFailed: { label: "Fehlgeschlagen", title: "Zahlungsprüfung fehlgeschlagen", message: "Die Zahlung konnte nicht abgeschlossen werden." },
-    error: { label: "Fehler", title: "Prüfung fehlgeschlagen", message: "Bitte prüfe deine Verbindung und versuche es erneut." },
+    idle: { label: "Warten", title: "Zahlung/Pass wird gepr체ft", message: "Dein Pass wird gepr체ft." },
+    noEntitlement: { label: "Zahlung n철tig", title: "Zahlung/Pass wird gepr체ft", message: "Es wurde kein nutzbarer Pass gefunden." },
+    readyToPay: { label: "Zahlung w채hlen", title: "Zahlungsmethode w채hlen", message: "W채hle eine Zahlungsmethode, um diesen Inhalt zu 철ffnen." },
+    paymentFailed: { label: "Fehlgeschlagen", title: "Zahlungspr체fung fehlgeschlagen", message: "Die Zahlung konnte nicht abgeschlossen werden." },
+    error: { label: "Fehler", title: "Pr체fung fehlgeschlagen", message: "Bitte pr체fe deine Verbindung und versuche es erneut." },
     cancelled: { label: "Abgebrochen", title: "Zahlungsauswahl abgebrochen", message: "Du kannst es bei Bedarf erneut versuchen." },
   },
   nl: {
@@ -285,554 +285,11 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
 };
 
 const PAID_GATE_UI_COPY: Record<LoadingLocale, PaidGateUiCopy> = {
-  ko: { closeLabel: "닫기", costPrefix: "필요 금액", costSuffix: "원", payAction: "결제 상품 보기", genericLabel: "확인 중", progressLabel: "이용권 확인 진행 상태", progressSteps: ["권한 확인", "처리 진행", "결과 준비"] },
+  ko: { closeLabel: "?リ린", costPrefix: "?꾩슂 湲덉븸", costSuffix: "??, payAction: "寃곗젣 ?곹뭹 蹂닿린", genericLabel: "?뺤씤 以?, progressLabel: "?댁슜沅??뺤씤 吏꾪뻾 ?곹깭", progressSteps: ["沅뚰븳 ?뺤씤", "泥섎━ 吏꾪뻾", "寃곌낵 以鍮?] },
   en: { closeLabel: "Close", costPrefix: "Required amount", costSuffix: " KRW", payAction: "View payment options", genericLabel: "Checking", progressLabel: "Access check progress", progressSteps: ["Check access", "Processing", "Prepare result"] },
-  ja: { closeLabel: "閉じる", costPrefix: "必要金額", costSuffix: "ウォン", payAction: "決済商品を見る", genericLabel: "確認中", progressLabel: "利用券確認の進行状況", progressSteps: ["権限確認", "処理中", "結果準備"] },
-  "zh-CN": { closeLabel: "关闭", costPrefix: "所需金额", costSuffix: "韩元", payAction: "查看支付选项", genericLabel: "确认中", progressLabel: "权限确认进度", progressSteps: ["确认权限", "处理中", "准备结果"] },
-  "zh-TW": { closeLabel: "關閉", costPrefix: "所需金額", costSuffix: "韓元", payAction: "查看付款選項", genericLabel: "確認中", progressLabel: "權限確認進度", progressSteps: ["確認權限", "處理中", "準備結果"] },
-  vi: { closeLabel: "Đóng", costPrefix: "Số tiền cần", costSuffix: " KRW", payAction: "Xem lựa chọn thanh toán", genericLabel: "Đang kiểm tra", progressLabel: "Tiến trình kiểm tra quyền", progressSteps: ["Kiểm tra quyền", "Đang xử lý", "Chuẩn bị kết quả"] },
-  hi: { closeLabel: "बंद करें", costPrefix: "आवश्यक राशि", costSuffix: " KRW", payAction: "भुगतान विकल्प देखें", genericLabel: "जाँच जारी", progressLabel: "पहुँच जाँच प्रगति", progressSteps: ["पहुँच जाँच", "प्रक्रिया", "परिणाम तैयार"] },
-  es: { closeLabel: "Cerrar", costPrefix: "Importe requerido", costSuffix: " KRW", payAction: "Ver opciones de pago", genericLabel: "Comprobando", progressLabel: "Progreso de verificación", progressSteps: ["Comprobar acceso", "Procesando", "Preparar resultado"] },
-  fr: { closeLabel: "Fermer", costPrefix: "Montant requis", costSuffix: " KRW", payAction: "Voir les options de paiement", genericLabel: "Vérification", progressLabel: "Progression de vérification", progressSteps: ["Vérifier l'accès", "Traitement", "Préparer le résultat"] },
-  de: { closeLabel: "Schließen", costPrefix: "Erforderlicher Betrag", costSuffix: " KRW", payAction: "Zahlungsoptionen ansehen", genericLabel: "Prüfung", progressLabel: "Fortschritt der Zugriffsprüfung", progressSteps: ["Zugriff prüfen", "Verarbeitung", "Ergebnis vorbereiten"] },
-  nl: { closeLabel: "Sluiten", costPrefix: "Benodigd bedrag", costSuffix: " KRW", payAction: "Betaalopties bekijken", genericLabel: "Controleren", progressLabel: "Voortgang toegangscontrole", progressSteps: ["Toegang checken", "Verwerken", "Resultaat voorbereiden"] },
-  ms: { closeLabel: "Tutup", costPrefix: "Jumlah diperlukan", costSuffix: " KRW", payAction: "Lihat pilihan bayaran", genericLabel: "Menyemak", progressLabel: "Kemajuan semakan akses", progressSteps: ["Semak akses", "Memproses", "Sedia hasil"] },
-};
-
-const PAID_GATE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
-  ko: "ko-KR",
-  en: "en-US",
-  ja: "ja-JP",
-  "zh-CN": "zh-CN",
-  "zh-TW": "zh-TW",
-  vi: "vi-VN",
-  hi: "hi-IN",
-  es: "es-ES",
-  fr: "fr-FR",
-  de: "de-DE",
-  nl: "nl-NL",
-  ms: "ms-MY",
-};
-
-const LIGHTWEIGHT_LOADING_MESSAGES: Record<LoadingStage, Record<PaymentType, LoadingMessage>> = {
-  pg_processing: {
-    subscription: { title: "Processing moonstone payment", sub: "Please stay with us for a moment" },
-    single: { title: "Processing payment", sub: "Please do not close this window" },
-    pass: { title: "Checking pass access", sub: "Please stay with us for a moment" },
-  },
-  result_loading: {
-    subscription: { title: "Moonstone access is opening", sub: "Loading your result" },
-    single: { title: "Payment is complete", sub: "Loading your result" },
-    pass: { title: "Pass access is confirmed", sub: "Loading your result" },
-  },
-  access_check: {
-    subscription: { title: "Checking moonstone access", sub: "Confirming your access safely" },
-    single: { title: "Checking payment access", sub: "Confirming whether payment can continue" },
-    pass: { title: "Checking pass access", sub: "Confirming whether your pass can be used" },
-  },
-};
-
-function resolveFallbackLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null): LoadingMessage {
-  const activeLocale = normalizeLoadingLocale(locale || "ko");
-  if (activeLocale === "ko") {
-    if (stage === "pg_processing") return { title: PAID_GATE_COPY.paymentProcessing.title, sub: PAID_GATE_COPY.paymentProcessing.message };
-    if (stage === "result_loading") return { title: PAID_GATE_COPY.paymentSuccess.title, sub: PAID_GATE_COPY.paymentSuccess.message };
-    return { title: PAID_GATE_COPY.checkingEntitlement.title, sub: PAID_GATE_COPY.checkingEntitlement.message || DEFAULT_PROCESSING_MESSAGE };
-  }
-  return LIGHTWEIGHT_LOADING_MESSAGES[stage || "access_check"]?.[paymentType || "pass"] || LIGHTWEIGHT_LOADING_MESSAGES.access_check.pass;
-}
-
-function resolveLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null): LoadingMessage {
-  return resolveFallbackLoadingMessage(stage, paymentType, locale);
-}
-
-const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
-
-function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentLoadingVariant {
-  const normalizedMode = String(mode || "").trim().toLowerCase();
-  if (["payment-complete", "paymentcomplete", "payment-success", "success", "complete"].includes(normalizedMode)) return "payment-complete";
-  if (normalizedMode === "pass-applied" || normalizedMode === "passapplied") return "pass-applied";
-  if (normalizedMode === "pass" || normalizedMode === "pass-checking" || normalizedMode === "membership") return "pass-checking";
-  if (["checkout", "card", "prepare", "opening"].includes(normalizedMode)) return "checkout";
-  // 'payment-failed' 는 셸이 결제 실패를 성공(payment-complete)과 갈라 보내는 모드다. React 오버레이에는
-  // 전용 스킨이 없으므로 종전 실패 표시와 같은 'confirm' 스킨을 쓴다(문구는 statusMessage 가 나른다).
-  if (["confirm", "verification", "payment-confirm", "payment-failed"].includes(normalizedMode)) return "confirm";
-  if (["monthly", "monthly-credit", "monthly_credit", "membership-credit", "membership_credit", "moonstone", "moonlight-stone", "moonlight_stone", "moonlight stone"].includes(normalizedMode)) return "monthly";
-  if (["subscription", "subscription-confirm", "subscription-prepare"].includes(normalizedMode)) return "subscription";
-  if (["unlock-saving", "savingunlock", "saving-unlock"].includes(normalizedMode)) return "unlock-saving";
-  if (normalizedMode === "refund") return "refund";
-
-  const normalizedMessage = String(message || "");
-  if (/이용권을 적용|이용권 확인|30일 이용권|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
-  if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
-  if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
-  if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
-  if (/이용권 결제|월정석|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
-  if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";
-  if (/환불|refund|복구/i.test(normalizedMessage)) return "refund";
-  return "payment";
-}
-
-function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: string): LoadingStage {
-  const normalizedMessage = String(message || "");
-  if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중|결과를 준비하고/.test(normalizedMessage)) return "result_loading";
-  if (/결제를 처리하고 있어요|결제 승인과 이용 권한|창을 닫지 말아 주세요/.test(normalizedMessage)) return "pg_processing";
-  if (/정보를 확인하는 중이에요|이용권을 확인하는 중이에요|이용권 확인 중|결제 가능 상태를 확인하고 있어요/.test(normalizedMessage)) return "access_check";
-  if (variant === "subscription" || variant === "checkout" || variant === "confirm") return "pg_processing";
-  if (variant === "payment-complete" || variant === "pass-applied" || variant === "unlock-saving") return "result_loading";
-  return "access_check";
-}
-
-function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: string): PaymentType {
-  const normalizedMessage = String(message || "");
-  if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|30일 이용권으로/.test(normalizedMessage)) return "pass";
-  if (/월정석|활성화되고/.test(normalizedMessage)) return "subscription";
-  if (/단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
-  if (variant === "subscription" || variant === "monthly") return "subscription";
-  if (variant === "pass-checking" || variant === "pass-applied") return "pass";
-  // 🔴 variant 'payment' 은 결제 수단이 확정되지 않은 기본 상태다(기본 prop · 초기 state · 리셋값).
-  // 여기서 'single' 을 돌려주면 access_check × single = "단건으로 카드 결제를 준비 중이에요" 가 되어
-  // 카드 결제를 고르지도 않은 사용자에게 카드 준비 중이라고 말한다(PaymentLoading 의 variant 매핑과 동일 규칙).
-  // checkout/confirm/payment-complete/unlock-saving 은 실제 단건 단계이므로 아래 기본값 'single' 을 유지한다.
-  if (variant === "payment") return "pass";
-  return "single";
-}
-
-function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
-  return variant === "payment-complete" || variant === "pass-applied";
-}
-
-const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
-  undefined,
-);
-
-type PaymentOverlayWindow = Window & {
-  _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string, mode?: string) => void;
-  __CD_REACT_PAYMENT_OVERLAY_OWNER__?: boolean;
-  // 셸이 세우는 "대기 오버레이 금지 구간" 판정의 정본(index.html `_cdPaymentWaitUiBlocked`).
-  __cdPaymentWaitUiBlocked?: (mode?: string) => boolean;
-};
-
-// 🔴 대기 오버레이를 띄우면 안 되는 구간인가. 정본은 셸의 `__cdPaymentWaitUiBlocked` 이며,
-// 이 Provider 가 window._cdSetCoinGateOverlay 를 자기 렌더러로 갈아치우는 탓에 셸 함수 본문 안의
-// 억제 검사가 통째로 우회되던 것을 여기서 되살린다.
-// 셸이 없는 Next 라우트에서는 정본이 없으므로(fail-open) 최소한 "결제수단 선택창이 떠 있으면
-// 겹치지 않는다"만 로컬로 판정한다 — `.cd-direct-payment-modal` 은 3렌더러 공통 클래스이고
-// verify:payment-choice-parity 가 동일성을 강제한다. 새 억제 창·타이머는 만들지 않는다.
-const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|payment-failed|refund|unlock-saving|confirm/;
-// 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 `CD_WAIT_UI_ALLOWED_MODE_RE` 의 거울.
-// 진행 중 표시는 이용권 확인('pass') 하나뿐이고 나머지는 결과 표시만 통과한다. 셸이 없는 Next
-// 라우트에는 정본이 없으므로 여기서 같은 규칙을 세운다(값이 갈리면 verify 가드가 잡는다).
-const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
-function isPaymentWaitUiBlocked(mode: string) {
-  if (typeof window === "undefined") return false;
-  const shellVerdict = (window as PaymentOverlayWindow).__cdPaymentWaitUiBlocked;
-  if (typeof shellVerdict === "function") {
-    try {
-      return Boolean(shellVerdict(mode));
-    } catch {
-      return false;
-    }
-  }
-  if (!REACT_WAIT_UI_ALLOWED_MODE_RE.test(String(mode || "").trim() || "payment")) return true;
-  if (typeof document === "undefined") return false;
-  if (REACT_TERMINAL_OVERLAY_MODE_RE.test(String(mode || ""))) return false;
-  return Boolean(document.querySelector(".cd-direct-payment-modal"));
-}
-
-function closeStaticPaymentOverlay() {
-  if (typeof document === "undefined") return;
-  const overlay = document.getElementById("sajuLoaderOverlay");
-  if (!overlay) return;
-  const staticOverlayOpen = overlay.getAttribute("aria-hidden") !== "true" || overlay.style.display === "flex";
-  overlay.setAttribute("aria-hidden", "true");
-  overlay.classList.remove("is-animating", "saju-loader-overlay--front");
-  overlay.style.display = "none";
-  overlay.style.visibility = "hidden";
-  overlay.style.opacity = "";
-  overlay.style.pointerEvents = "";
-  overlay.style.zIndex = "";
-  // 정적 오버레이가 건 락만 청소 — ref-count 락(data-cd-scroll-lock)은 건드리지 않음
-  if (staticOverlayOpen && document.body && !document.body.hasAttribute("data-cd-scroll-lock")) {
-    document.body.style.overflow = "";
-  }
-}
-
-function emitCoinGateOverlay(open: boolean, message?: string, mode?: string) {
-  if (typeof window === "undefined") return;
-  const overlayWindow = window as PaymentOverlayWindow;
-  overlayWindow._cdSetCoinGateOverlay?.(open, message, mode);
-}
-
-function isExternalPaymentWindowStatus(status: PaidFeatureGateStatus) {
-  return status === "paymentWindowOpen";
-}
-
-function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
-  return [
-    "processing",
-    "deliveryProcessing",
-    "refund_pending",
-    "refunded",
-    "refund_failed",
-  ].includes(status);
-}
-
-// 월정석 aliases: monthly_credit, membership_credit, moonlight_stone, MONTHLY, 월정석은 모두 월정석으로 처리한다.
-function isMonthlyPaidFeatureDetail(detail: PaidFeatureGateDetail) {
-  const haystack = [
-    detail.message,
-    detail.paymentMode,
-    detail.accessType,
-    detail.accessMethod,
-    detail.paymentMethod,
-  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
-  return /\b(monthly|monthly_credit|membership_credit|moonlight_stone|monthly_subscription)\b|월정석/.test(haystack);
-}
-
-function isPassPaidFeatureDetail(detail: PaidFeatureGateDetail) {
-  const haystack = [
-    detail.message,
-    detail.paymentMode,
-    detail.accessType,
-    detail.accessMethod,
-    detail.paymentMethod,
-  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
-  return /\b(pass|membership_pass|license_pass|subscription_pass|family_pass|pass_applied)\b|이용권 확인|이용권 적용|이용권으로/.test(haystack);
-}
-
-function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: PaidFeatureGateDetail | string = {}) {
-  const resolvedDetail = typeof detail === "string" ? { message: detail } : detail;
-  const message = String(resolvedDetail.message || "");
-  if (status === "checkingEntitlement") {
-    return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
-  }
-  if (status === "hasEntitlement") {
-    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };
-    }
-    return { message: message || "이용권 확인이 끝났어요\n결과를 준비하고 있어요", mode: "pass-applied" };
-  }
-  if (status === "paymentSuccess") {
-    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };
-    }
-    if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: "이용권 확인이 끝났어요\n결과를 준비하고 있어요", mode: "pass-applied" };
-    }
-    return { message: message || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
-  }
-  if (status === "opening" || status === "loadingProducts") {
-    if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
-    }
-    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: message || "월정석 정보를 확인하는 중이에요", mode: "monthly" };
-    }
-    return { message: ACCESS_CHECKING_MESSAGE, mode: "checkout" };
-  }
-  if (status === "paymentProcessing") {
-    // 🔴 PG창을 통과한 뒤의 승인 검증 구간은 '확인 중'이 아니라 '적용됨' 한 장면으로 보여준다
-    // (셸 _cdResolvePaymentWaitCopy 의 같은 분기와 동일 규칙). 단건·월정석에는 진행 화면을 두지 않는다.
-    if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
-    }
-    return { message: message || "콘텐츠를 여는 중이에요", mode: "payment-complete" };
-  }
-  if (status === "paymentPreparing") {
-    return { message: message || "단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", mode: "checkout" };
-  }
-  if (status === "paymentWindowOpen") {
-    return { message: message || "단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", mode: "checkout" };
-  }
-  if (status === "savingUnlock" || status === "unlockSaving") {
-    return { message: message || "이용 권한을 저장하고 있습니다.", mode: "unlock-saving" };
-  }
-  return { message, mode: resolvePaymentLoadingVariant(message) };
-}
-
-function nowForPaidGate() {
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
-    return performance.now();
-  }
-  return Date.now();
-}
-
-function markPaidGate(name: string) {
-  try {
-    if (typeof performance !== "undefined" && typeof performance.mark === "function") {
-      performance.mark(name);
-    }
-  } catch (_) {}
-}
-
-function resolvePaidGateFeature(detail: PaidFeatureGateDetail) {
-  return String(detail.featureId || detail.featureKey || "paid-feature").trim() || "paid-feature";
-}
-
-function resolvePaidGateLocalizedCopy(status: PaidFeatureGateStatus, locale: LoadingLocale): PaidGateCopy {
-  const koFallback = PAID_GATE_COPY[status] || PAID_GATE_COPY.checkingEntitlement;
-  if (locale === "ko") return koFallback;
-
-  const localized = PAID_GATE_LOCALIZED_COPY[locale]?.[status] || PAID_GATE_LOCALIZED_COPY.en[status];
-  if (localized) return localized;
-
-  const uiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.en;
-  const loadingCopy =
-    status === "paymentProcessing" || status === "paymentPreparing" || status === "paymentWindowOpen"
-      ? resolveLoadingMessage("pg_processing", "single", locale)
-      : status === "hasEntitlement" || status === "paymentSuccess" || status === "savingUnlock" || status === "unlockSaving"
-        ? resolveLoadingMessage("result_loading", "pass", locale)
-        : resolveLoadingMessage("access_check", "pass", locale);
-
-  return {
-    label: uiCopy.genericLabel,
-    title: loadingCopy.title,
-    message: loadingCopy.sub || loadingCopy.title,
-  };
-}
-
-function resolvePaidGateDisplayText(value: string, fallback: string, locale: LoadingLocale) {
-  const normalized = String(value || "").trim();
-  if (!normalized) return fallback;
-  if (locale !== "ko" && KOREAN_TEXT_PATTERN.test(normalized)) return fallback;
-  return normalized;
-}
-
-function formatPaidGateCost(cost: number, locale: LoadingLocale) {
-  const uiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
-  const numberLocale = PAID_GATE_NUMBER_LOCALE[locale] || PAID_GATE_NUMBER_LOCALE.ko;
-  const amount = Math.max(0, Math.floor(Number(cost || 0) * 100));
-  return `${new Intl.NumberFormat(numberLocale).format(amount)}${uiCopy.costSuffix}`;
-}
-
-function resolvePaidGateCopy(state: PaidFeatureGateState, locale: LoadingLocale) {
-  const fallback = PAID_GATE_COPY[state.status] || PAID_GATE_COPY.checkingEntitlement;
-  const localized = resolvePaidGateLocalizedCopy(state.status, locale);
-  return {
-    label: localized.label,
-    title: resolvePaidGateDisplayText(state.title, localized.title || fallback.title, locale),
-    message: resolvePaidGateDisplayText(state.message, localized.message || fallback.message, locale),
-  };
-}
-
-function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
-  const seqRef = useRef(0);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const holdRef = useRef<{ requestId: string; until: number; capMs: number } | null>(null);
-  const [locale, setLocale] = useState<LoadingLocale>("ko");
-  const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
-  const [state, setState] = useState<PaidFeatureGateState>({
-    open: false,
-    status: "idle",
-    featureId: "",
-    requestId: "",
-    title: PAID_GATE_DEFAULT_TITLE,
-    message: PAID_GATE_DEFAULT_MESSAGE,
-    cost: null,
-    seq: 0,
-    startedAt: 0,
-  });
-  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
-  // 🔴 표시 단계는 경과 시간이 아니라 실제 status 로만 움직인다(권한 확인 → 처리 진행 → 결과 준비).
-  // 예전에는 2.5초/6초 타이머가 단계를 올려, 서버 답만 기다리는 동안에도 다음 단계가 켜졌다.
-  const gateProgressStep = ["savingUnlock", "unlockSaving"].includes(state.status)
-    ? 2
-    : ["loadingProducts", "paymentPreparing", "paymentProcessing"].includes(state.status)
-      ? 1
-      : 0;
-
-  const close = useCallback((requestId?: string) => {
-    setState((prev) => {
-      if (requestId && prev.requestId && requestId !== prev.requestId) return prev;
-      return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-    });
-    if (!requestId || !holdRef.current || holdRef.current.requestId === requestId) {
-      holdRef.current = null;
-    }
-    emitCoinGateOverlay(false);
-  }, []);
-
-  const holdOpen = useCallback((requestId?: string, maxMs?: number) => {
-    const id = String(requestId || "").trim();
-    if (!id) return;
-    const cap = Number.isFinite(Number(maxMs)) && Number(maxMs) > 0 ? Math.min(Number(maxMs), 120000) : 12000;
-    holdRef.current = { requestId: id, until: nowForPaidGate() + cap, capMs: cap };
-  }, []);
-
-  const release = useCallback((requestId?: string) => {
-    if (requestId && holdRef.current && holdRef.current.requestId !== String(requestId)) return;
-    holdRef.current = null;
-  }, []);
-
-  const open = useCallback((detail: PaidFeatureGateDetail) => {
-    const seq = seqRef.current + 1;
-    seqRef.current = seq;
-    const startedAt = Number.isFinite(Number(detail.startedAt)) ? Number(detail.startedAt) : nowForPaidGate();
-    const featureId = resolvePaidGateFeature(detail);
-    const status = detail.status || "checkingEntitlement";
-    const activeLocale = getCurrentLoadingLocale();
-    const copy = resolvePaidGateLocalizedCopy(status, activeLocale);
-    setLocale(activeLocale);
-
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-
-    if (isExternalPaymentWindowStatus(status)) {
-      setState((prev) => {
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(false);
-      return seq;
-    }
-
-    if (paymentLoadingOwnsPaidFeatureStatus(status)) {
-      const overlay = resolvePaidFeatureStatusOverlay(status, { ...detail, message: detail.message || copy.message });
-      setState((prev) => {
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(true, overlay.message, overlay.mode);
-      if (status === "hasEntitlement" || status === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), status === "hasEntitlement" ? 800 : 700);
-      }
-      return seq;
-    }
-
-    markPaidGate("cd-paid-feature-gate-open-call");
-    setState((prev) => {
-      if (prev.open && detail.requestId && prev.requestId === detail.requestId) {
-        return {
-          ...prev,
-          status,
-          title: detail.title || prev.title || copy.title,
-          message: detail.message || copy.message,
-          cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : prev.cost,
-        };
-      }
-      return {
-        open: true,
-        status,
-        featureId,
-        requestId: String(detail.requestId || `${featureId}:${seq}`),
-        title: detail.title || copy.title,
-        message: detail.message || copy.message,
-        cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : null,
-        seq,
-        startedAt,
-      };
-    });
-
-    if (typeof requestAnimationFrame === "function") {
-      requestAnimationFrame(() => {
-        markPaidGate("cd-paid-feature-gate-first-frame");
-        try {
-          const elapsed = Math.round(nowForPaidGate() - startedAt);
-          if (elapsed > 100) {
-            console.warn("[paid-feature-gate] first frame exceeded 100ms", { featureId, elapsed });
-          }
-        } catch (_) {}
-      });
-    }
-    emitCoinGateOverlay(false);
-    return seq;
-  }, []);
-
-  const update = useCallback((detail: PaidFeatureGateDetail) => {
-    const requestedStatus = detail.status || "checkingEntitlement";
-    const activeLocale = getCurrentLoadingLocale();
-    setLocale(activeLocale);
-    if (/^(error|paymentFailed|noEntitlement|readyToPay|cancelled)$/.test(requestedStatus)) {
-      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
-      if (!detailRequestId || !holdRef.current || holdRef.current.requestId === detailRequestId) {
-        holdRef.current = null;
-      }
-    }
-    // hold는 "확인이 끝난 뒤 다음 화면이 뜰 때까지"를 지키는 장치다. 그런데 호출부는 확인을 시작하기 전에
-    // hold를 걸기 때문에, 이용권 확인 자체가 hold 상한(대개 8초)보다 오래 걸리면 성공이 도착한 시점엔 이미
-    // 만료돼 게이트가 곧바로 닫혔다(= 느린 날에만 재현되던 "확인 UI가 사라진 뒤 한참 뒤 실행").
-    // 성공으로 전이하는 순간 같은 상한을 그 시점부터 다시 센다 — 호출부 수정 없이 9개 화면에 함께 적용된다.
-    if (/^(hasEntitlement|paymentSuccess)$/.test(requestedStatus) && holdRef.current) {
-      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
-      if (!detailRequestId || holdRef.current.requestId === detailRequestId) {
-        holdRef.current = { ...holdRef.current, until: nowForPaidGate() + holdRef.current.capMs };
-      }
-    }
-    if (isExternalPaymentWindowStatus(requestedStatus)) {
-      setState((prev) => {
-        if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(false);
-      return;
-    }
-
-    if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus)) {
-      const overlay = resolvePaidFeatureStatusOverlay(
-        requestedStatus,
-        {
-          ...detail,
-          message: detail.message || resolvePaidGateLocalizedCopy(detail.status || "checkingEntitlement", activeLocale).message || PAID_GATE_DEFAULT_MESSAGE,
-        },
-      );
-      setState((prev) => {
-        if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
-        if (!prev.open) return prev;
-        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
-      });
-      emitCoinGateOverlay(true, overlay.message, overlay.mode);
-      if (requestedStatus === "hasEntitlement" || requestedStatus === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), requestedStatus === "hasEntitlement" ? 800 : 700);
-      }
-      return;
-    }
-
-    setState((prev) => {
-      if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
-      const status = detail.status || prev.status;
-      const copy = resolvePaidGateLocalizedCopy(status, activeLocale);
-      if (!prev.open) {
-        return {
-          open: true,
-          status,
-          featureId: detail.featureId || detail.featureKey || prev.featureId || "paid-feature",
-          requestId: String(detail.requestId || prev.requestId || `paid-feature:${Date.now().toString(36)}`),
-          title: detail.title || copy.title,
-          message: detail.message || copy.message,
-          cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : null,
-          seq: prev.seq + 1,
-          startedAt: nowForPaidGate(),
-        };
-      }
-      return {
-        ...prev,
-        status,
-        featureId: detail.featureId || detail.featureKey || prev.featureId,
-        title: detail.title || prev.title || copy.title,
-        message: detail.message || copy.message,
-        cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : prev.cost,
-      };
-    });
-    emitCoinGateOverlay(false);
-  }, []);
-
-  const preload = useCallback(() => {
-    markPaidGate("cd-paid-feature-gate-preload");
-  }, []);
-
-  useEffect(() => {
-    if (!state.open) return;
-    if (!["hasEntitlement", "paymentSuccess"].includes(state.status)) return;
-    let cancelled = false;
-    const tryClose = () => {
-      if (cancelled) return;
-      const hold = holdRef.current;
-      if (hold && hold.requestId === state.requestId && nowForPaidGate() < hold.until) {
-        closeTimerRef.current = setTimeout(tryClose, 400);
+  ja: { closeLabel: "?됥걯??, costPrefix: "恙낁쫨?묌죲", costSuffix: "?╉궔??, payAction: "黎뷸툑?녶뱚?믦쫳??, genericLabel: "閻븃첀訝?, progressLabel: "?⑴뵪?며▶沃띲겗?꿱죱?뜻퀋", progressSteps: ["與⑶솏閻븃첀", "??릤訝?, "永먩옖繹뽩굺"] },
+  "zh-CN": { closeLabel: "?녜뿭", costPrefix: "???묌쥫", costSuffix: "?⒴뀇", payAction: "?η쐦??퍡?됮」", genericLabel: "簾??訝?, progressLabel: "?껈솏簾??瓦쎾벧", progressSteps: ["簾???껈솏", "鸚꾤릤訝?, "?녶쨭瀯볠옖"] },
+  "zh-TW": { closeLabel: "?쒒뻾", costPrefix: "???묌죲", costSuffix: "?볟뀇", payAction: "?η쐦餓섉Ь?면쟿", genericLabel: "閻븃첀訝?, progressLabel: "轝딃솏閻븃첀?꿨벧", progressSteps: ["閻븃…7517 tokens truncated…TimerRef.current = setTimeout(tryClose, 400);
         return;
       }
       if (hold && hold.requestId === state.requestId) holdRef.current = null;
@@ -855,8 +312,8 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     }
 
     setLoadingPhase("fresh");
-    // 정적 셸은 2.5초면 "서버 응답이 평소보다 느려요"로 화면이 바뀌는데, React 게이트는 8초/20초라
-    // 느린 날에 아무 변화 없는 화면을 오래 봐야 했다. 선검사 예산(6초)과 맞물리게 앞당긴다.
+    // ?뺤쟻 ?몄? 2.5珥덈㈃ "?쒕쾭 ?묐떟???됱냼蹂대떎 ?먮젮??濡??붾㈃??諛붾뚮뒗?? React 寃뚯씠?몃뒗 8珥?20珥덈씪
+    // ?먮┛ ?좎뿉 ?꾨Т 蹂???녿뒗 ?붾㈃???ㅻ옒 遊먯빞 ?덈떎. ?좉????덉궛(6珥?怨?留욌Ъ由ш쾶 ?욌떦湲대떎.
     const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 2500);
     const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 6000);
 
@@ -951,7 +408,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
                 onClick={() => close(state.requestId)}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10 text-lg font-bold text-white/80"
               >
-                ×
+                횞
               </button>
             </div>
             <p className="whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{copy.message}</p>
@@ -1007,12 +464,12 @@ export function PaymentProcessingProvider({
   );
   const [processingAction, setProcessingAction] = useState<PaymentProcessingAction | null>(null);
 
-  // 유료 액션을 누르기 "전"에 구독 스냅샷을 데워 둔다. 스냅샷이 활성이면 이용권 보유자는 서버 왕복 없이
-  // 즉시 통과하고(runBillingCoinGate의 낙관 fast-path), 그래서 서버가 느린 날에도 결제창으로 새지 않는다.
-  // 지금까지는 useCoinGate 마운트에서만 워밍해 그 훅을 쓰지 않는 화면(AI 상담 등)이 전부 빠져 있었다.
-  // 여기(앱 전역 Provider) 한 곳에 두면 화면마다 배선하는 중복이 없다. 이미 신선한 스냅샷이 있으면
-  // warmSubscriptionSnapshotOnEntry가 조기 반환하므로 실제 요청은 TTL당 1회다.
-  // billing-client/auth-store는 동적 import로만 참조한다 — 루트 레이아웃 번들을 키우지 않기 위해서다.
+  // ?좊즺 ?≪뀡???꾨Ⅴ湲?"????援щ룆 ?ㅻ깄?룹쓣 ?곗썙 ?붾떎. ?ㅻ깄?룹씠 ?쒖꽦?대㈃ ?댁슜沅?蹂댁쑀?먮뒗 ?쒕쾭 ?뺣났 ?놁씠
+  // 利됱떆 ?듦낵?섍퀬(runBillingCoinGate???숆? fast-path), 洹몃옒???쒕쾭媛 ?먮┛ ?좎뿉??寃곗젣李쎌쑝濡??덉? ?딅뒗??
+  // 吏湲덇퉴吏??useCoinGate 留덉슫?몄뿉?쒕쭔 ?뚮컢??洹??낆쓣 ?곗? ?딅뒗 ?붾㈃(AI ?곷떞 ?????꾨? 鍮좎졇 ?덉뿀??
+  // ?ш린(???꾩뿭 Provider) ??怨녹뿉 ?먮㈃ ?붾㈃留덈떎 諛곗꽑?섎뒗 以묐났???녿떎. ?대? ?좎꽑???ㅻ깄?룹씠 ?덉쑝硫?
+  // warmSubscriptionSnapshotOnEntry媛 議곌린 諛섑솚?섎?濡??ㅼ젣 ?붿껌? TTL??1?뚮떎.
+  // billing-client/auth-store???숈쟻 import濡쒕쭔 李몄“?쒕떎 ??猷⑦듃 ?덉씠?꾩썐 踰덈뱾???ㅼ슦吏 ?딄린 ?꾪빐?쒕떎.
   useEffect(() => {
     if (typeof window === "undefined") return;
     let cancelled = false;
@@ -1027,11 +484,11 @@ export function PaymentProcessingProvider({
         const { warmSubscriptionSnapshotOnEntry } = await import("../_lib/billing-client");
         if (!cancelled) void warmSubscriptionSnapshotOnEntry();
       } catch {
-        // 워밍 실패는 무시한다 — 첫 유료 액션이 종전대로 서버 판정으로 폴백한다.
+        // ?뚮컢 ?ㅽ뙣??臾댁떆?쒕떎 ??泥??좊즺 ?≪뀡??醫낆쟾?濡??쒕쾭 ?먯젙?쇰줈 ?대갚?쒕떎.
       }
     };
 
-    // 최초 진입 시점엔 인증이 아직 하이드레이션 전일 수 있어, 인증 상태 변화에도 한 번 더 시도한다.
+    // 理쒖큹 吏꾩엯 ?쒖젏???몄쬆???꾩쭅 ?섏씠?쒕젅?댁뀡 ?꾩씪 ???덉뼱, ?몄쬆 ?곹깭 蹂?붿뿉????踰????쒕룄?쒕떎.
     void warmIfAuthenticated();
     void (async () => {
       try {
@@ -1039,17 +496,17 @@ export function PaymentProcessingProvider({
         if (cancelled) return;
         unsubscribe = subscribeAuth(() => { void warmIfAuthenticated(); });
       } catch {
-        // 구독 실패 시엔 위 1회 시도만으로 둔다.
+        // 援щ룆 ?ㅽ뙣 ?쒖뿏 ??1???쒕룄留뚯쑝濡??붾떎.
       }
     })();
 
-    // 🔴 만료를 메우는 재워밍. 이용권 미보유 스냅샷 TTL은 60초(보유자는 5분)인데 예열이 진입 1회뿐이라,
-    // 1분 넘게 읽다가 누르는 사용자는 매번 서버 왕복 + 그게 느리면 "결제 처리 중" 화면까지 갔다.
-    // 느린 경로가 미보유자 전용이었던 이유가 이 TTL 비대칭이다. 정적 셸이 #129에서 같은 문제를
-    // 유휴+의도(pointerdown) 예열로 해결했고, React 경로에도 같은 방식을 둔다.
-    // 새 쿨다운·새 dedup을 만들지 않는다 — warmSubscriptionSnapshotOnEntry가 신선한 스냅샷이 있으면
-    // 조기 반환하고 in-flight 중복도 스스로 막으므로, 실제 요청은 '만료됐을 때만' 나간다(자기제한적).
-    // TTL 자체는 늘리지 않는다: 이용권 구매 직후 무효화 훅이 없어 늘리면 방금 산 사용자가 '미보유'로 남는다.
+    // ?뵶 留뚮즺瑜?硫붿슦???ъ썙諛? ?댁슜沅?誘몃낫???ㅻ깄??TTL? 60珥?蹂댁쑀?먮뒗 5遺??몃뜲 ?덉뿴??吏꾩엯 1?뚮퓧?대씪,
+    // 1遺??섍쾶 ?쎈떎媛 ?꾨Ⅴ???ъ슜?먮뒗 留ㅻ쾲 ?쒕쾭 ?뺣났 + 洹멸쾶 ?먮━硫?"寃곗젣 泥섎━ 以? ?붾㈃源뚯? 媛붾떎.
+    // ?먮┛ 寃쎈줈媛 誘몃낫?좎옄 ?꾩슜?댁뿀???댁쑀媛 ??TTL 鍮꾨?移?씠?? ?뺤쟻 ?몄씠 #129?먯꽌 媛숈? 臾몄젣瑜?
+    // ?좏쑕+?섎룄(pointerdown) ?덉뿴濡??닿껐?덇퀬, React 寃쎈줈?먮룄 媛숈? 諛⑹떇???붾떎.
+    // ??荑⑤떎?는룹깉 dedup??留뚮뱾吏 ?딅뒗????warmSubscriptionSnapshotOnEntry媛 ?좎꽑???ㅻ깄?룹씠 ?덉쑝硫?
+    // 議곌린 諛섑솚?섍퀬 in-flight 以묐났???ㅼ뒪濡?留됱쑝誘濡? ?ㅼ젣 ?붿껌? '留뚮즺?먯쓣 ?뚮쭔' ?섍컙???먭린?쒗븳??.
+    // TTL ?먯껜???섎━吏 ?딅뒗?? ?댁슜沅?援щℓ 吏곹썑 臾댄슚???낆씠 ?놁뼱 ?섎━硫?諛⑷툑 ???ъ슜?먭? '誘몃낫??濡??⑤뒗??
     const warmOnIntent = () => { void warmIfAuthenticated(); };
     const idleWindow = window as Window & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
@@ -1128,8 +585,8 @@ export function PaymentProcessingProvider({
     const nextMode = String(mode || "").trim();
     const previous = overlayStateRef.current;
     if (show) {
-      // 🔴 결제창과 대기 화면이 겹치지 않게 한다. 셸의 _cdSetCoinGateOverlay 첫 줄과 같은 판정이며,
-      // 이 Provider 가 그 함수를 갈아치우는 탓에 판정이 우회되던 것을 되살린 것이다.
+      // ?뵶 寃곗젣李쎄낵 ?湲??붾㈃??寃뱀튂吏 ?딄쾶 ?쒕떎. ?몄쓽 _cdSetCoinGateOverlay 泥?以꾧낵 媛숈? ?먯젙?대ŉ,
+      // ??Provider 媛 洹??⑥닔瑜?媛덉븘移섏슦???볦뿉 ?먯젙???고쉶?섎뜕 寃껋쓣 ?섏궡由?寃껋씠??
       if (isPaymentWaitUiBlocked(nextMode)) return;
       if (previous.open && previous.message === nextMessage && previous.mode === nextMode) return;
       overlayStateRef.current = { open: true, message: nextMessage, mode: nextMode };
@@ -1203,10 +660,10 @@ export function PaymentProcessingProvider({
     if (!isProcessing || typeof window === "undefined") return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // PG(PortOne)는 모바일에서 결제를 상위 프레임 리다이렉트로 처리한다 — 그건 의도된 이동이므로
-      // 막으면 "사이트를 나가시겠습니까?"가 뜨거나 이동 자체가 취소되어 결제창이 안 열린 것처럼 보인다.
-      // 결제 런타임이 requestPayment 직전에 이 플래그를 세운다. isProcessing 이 false 로 flush 되는
-      // 타이밍에 의존하지 않으려고 별도 플래그를 쓴다.
+      // PG(PortOne)??紐⑤컮?쇱뿉??寃곗젣瑜??곸쐞 ?꾨젅??由щ떎?대젆?몃줈 泥섎━?쒕떎 ??洹멸굔 ?섎룄???대룞?대?濡?
+      // 留됱쑝硫?"?ъ씠?몃? ?섍??쒓쿋?듬땲源?"媛 ?④굅???대룞 ?먯껜媛 痍⑥냼?섏뼱 寃곗젣李쎌씠 ???대┛ 寃껋쿂??蹂댁씤??
+      // 寃곗젣 ?고??꾩씠 requestPayment 吏곸쟾?????뚮옒洹몃? ?몄슫?? isProcessing ??false 濡?flush ?섎뒗
+      // ??대컢???섏〈?섏? ?딆쑝?ㅺ퀬 蹂꾨룄 ?뚮옒洹몃? ?대떎.
       if ((window as unknown as { __cdSuppressPaymentUnloadBlock?: boolean }).__cdSuppressPaymentUnloadBlock === true) return;
       event.preventDefault();
       event.returnValue = "";

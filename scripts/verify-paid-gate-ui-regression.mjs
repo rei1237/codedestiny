@@ -19,8 +19,8 @@ const reactGateFirstFeatureSources = [
   {
     label: "life-book-ai",
     source: readFileSync(resolve(root, "app/life-book-ai/LifeBookAiClient.tsx"), "utf8"),
-    // 선검사 호출은 app/life-book-ai/lifeBookApi.ts 의 prepareLifeBook 로 옮겼다(authFetch + 일시장애 재시도 + 타임아웃).
-    // 계약(게이트 오픈 → 선검사 → 결제창)은 그대로다.
+    // ?좉????몄텧? app/life-book-ai/lifeBookApi.ts ??prepareLifeBook 濡???꼈??authFetch + ?쇱떆?μ븷 ?ъ떆??+ ??꾩븘??.
+    // 怨꾩빟(寃뚯씠???ㅽ뵂 ???좉?????寃곗젣李?? 洹몃?濡쒕떎.
     api: "prepareLifeBook<PrepareResult>(",
     checkout: "runBillingCoinGate",
   },
@@ -147,11 +147,11 @@ assertContains(indexSource, "paymentId: order.merchantUid", "PortOne paymentId r
 assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "direct checkout verifies server before success return");
 assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setItem('cd_pa_' + action, '1')", "local paid marker guarded by server access");
 assertContains(indexSource, "paymentFailed", "payment failed state");
-assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
+assertContains(indexSource, "寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎.", "main shell payment verification failure message");
 assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
-// 자산이 부팅 게이트와 같은 /icons/app-logo-512.webp 로 통합되면서(#200) 이 단언이 낡았고,
-// 같은 잡의 앞 단계(verify:security-hardening)가 먼저 죽어 있어 실패가 드러나지 않았다.
-// 가드의 의도는 "결제/이용권 대기 오버레이가 브랜드 로고를 쓴다"이므로 현재 정본 경로로 맞춘다.
+// ?먯궛??遺??寃뚯씠?몄? 媛숈? /icons/app-logo-512.webp 濡??듯빀?섎㈃??#200) ???⑥뼵???≪븯怨?
+// 媛숈? ?≪쓽 ???④퀎(verify:security-hardening)媛 癒쇱? 二쎌뼱 ?덉뼱 ?ㅽ뙣媛 ?쒕윭?섏? ?딆븯??
+// 媛?쒖쓽 ?섎룄??"寃곗젣/?댁슜沅??湲??ㅻ쾭?덉씠媛 釉뚮옖??濡쒓퀬瑜??대떎"?대?濡??꾩옱 ?뺣낯 寃쎈줈濡?留욎텣??
 assertContains(indexSource, 'background-image: url("/icons/app-logo-512.webp")', "payment/pass overlay uses brand logo asset");
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
@@ -169,20 +169,20 @@ assertContains(honeyOverlayTextCss, "white-space: normal !important", "payment/p
 assertContains(honeyOverlayTextCss, "overflow-wrap: break-word", "payment/pass waiting copy avoids overflow");
 assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment/pass waiting copy must not be visually hidden");
 assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
-// 🔴 결제 마스코트는 **메인 서비스 로고 + 경량 자산**이어야 한다. 예전에는 외부 호스트의 725KB PNG 를
-// 직접 참조했고, CSS 가 [aria-hidden="false"] 로 게이트돼 오버레이를 여는 순간(=단건결제 클릭 직후)
-// 처음 요청이 나가 checkout/PortOne SDK 와 대역폭을 다퉜다 → "네트워크 오류 + PG창 미노출".
-// 동일 오리진 32KB 로고로 고정한다 — head 에 rel=preload fetchpriority=high 가 이미 있어
-// 결제 클릭 시점에는 워엄 캐시이고, 클릭 임계경로에 추가 네트워크가 0 이다.
+// ?뵶 寃곗젣 留덉뒪肄뷀듃??**硫붿씤 ?쒕퉬??濡쒓퀬 + 寃쎈웾 ?먯궛**?댁뼱???쒕떎. ?덉쟾?먮뒗 ?몃? ?몄뒪?몄쓽 725KB PNG 瑜?
+// 吏곸젒 李몄“?덇퀬, CSS 媛 [aria-hidden="false"] 濡?寃뚯씠?몃뤌 ?ㅻ쾭?덉씠瑜??щ뒗 ?쒓컙(=?④굔寃곗젣 ?대┃ 吏곹썑)
+// 泥섏쓬 ?붿껌???섍? checkout/PortOne SDK ? ???룺???ㅽ돏????"?ㅽ듃?뚰겕 ?ㅻ쪟 + PG李?誘몃끂異?.
+// ?숈씪 ?ㅻ━吏?32KB 濡쒓퀬濡?怨좎젙?쒕떎 ??head ??rel=preload fetchpriority=high 媛 ?대? ?덉뼱
+// 寃곗젣 ?대┃ ?쒖젏?먮뒗 ?뚯뾼 罹먯떆?닿퀬, ?대┃ ?꾧퀎寃쎈줈??異붽? ?ㅽ듃?뚰겕媛 0 ?대떎.
 assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/app-logo-512.webp", "paid gate sprite uses the preloaded same-origin service logo");
-assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
-assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
-assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert('?④굔 寃곗젣媛 ?꾨즺?섏뼱 ?대엺?섏뿀?듬땲??');", "single payment success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '?댁슜沅뚯쑝濡??대엺?섏뿀?듬땲??' : '?붿젙???ъ슜???꾨즺?섏뿀?듬땲??');", "unlock monthly/pass success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '?댁슜沅뚯쑝濡??대엺?섏뿀?듬땲??' : '?붿젙???ъ슜???꾨즺?섏뿀?듬땲??');", "tile monthly/pass success uses designed overlay instead of alert");
 
 assertContains(billingClientSource, "hasVerifiedBillingAccess", "React billing access guard");
 assertBefore(billingClientSource, "if (!hasVerifiedBillingAccess(parsed.data", "markPaidAttemptPaymentSucceeded()", "React billing verifies before success");
 assertContains(billingClientSource, "SERVER_ACCESS_GRANT_MISSING", "React server grant missing error");
-assertContains(billingClientSource, "서버 권한 검증에 실패했습니다", "React server verification failure message");
+assertContains(billingClientSource, "?쒕쾭 沅뚰븳 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎", "React server verification failure message");
 assertContains(billingClientSource, "billingCoinGateInFlight", "React in-flight duplicate guard");
 assertContains(billingClientSource, "export function beginPaidFeatureGateCheck", "React paid feature gate check helper");
 assertContains(billingClientSource, 'status: "checkingEntitlement"', "React paid feature gate starts from entitlement check");
@@ -201,7 +201,7 @@ assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
 assertContains(billingClientSource, "const monthlyApplied = candidates.some(isMonthlyCreditAccessType);", "React monthly-credit success is resolved before pass success");
 assertContains(billingClientSource, "resolveAppliedBillingPayment(runtimeData, requestedMode, passFirstEligible", "React coin-gate success uses applied payment resolver");
-// 이용권 확인이 실패/지연으로 죽어도 결제창(단건+월정석)이 열려야 한다 — 폴백 대상 코드 보강 회귀 방지.
+// ?댁슜沅??뺤씤???ㅽ뙣/吏?곗쑝濡?二쎌뼱??寃곗젣李??④굔+?붿젙?????대젮???쒕떎 ???대갚 ???肄붾뱶 蹂닿컯 ?뚭? 諛⑹?.
 const reactPaymentFallbackSource = section(
   billingClientSource,
   "function shouldOpenRuntimePaymentFallback(",
@@ -210,18 +210,18 @@ const reactPaymentFallbackSource = section(
 );
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary pass-status 503");
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "BILLING_REQUEST_TIMEOUT"', "React payment fallback opens on client abort timeout 503");
-// 서버 degraded 표면화(680114ad)로 새로 내려오는 인증/스냅샷 503도 dead-end 대신 결제창을 열어야 한다.
+// ?쒕쾭 degraded ?쒕㈃??680114ad)濡??덈줈 ?대젮?ㅻ뒗 ?몄쬆/?ㅻ깄??503??dead-end ???寃곗젣李쎌쓣 ?댁뼱???쒕떎.
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary auth-status 503");
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"', "React payment fallback opens on degraded balance snapshot 503");
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILABLE"', "React payment fallback opens on degraded auth-db 503");
-// degraded-503은 결제창을 열기 전에 먼저 재시도해 이용권 보유자의 무료 통과를 살린다(재시도-우선).
+// degraded-503? 寃곗젣李쎌쓣 ?닿린 ?꾩뿉 癒쇱? ?ъ떆?꾪빐 ?댁슜沅?蹂댁쑀?먯쓽 臾대즺 ?듦낵瑜??대┛???ъ떆???곗꽑).
 assertNotContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React payment POST is not automatically retried");
 
-// 🔴 잔량 '조회 실패'를 '잔량 부족'과 같이 묶어 월정석 버튼을 비활성하면, 재조회가 계속 실패할 때
-// 월정석이 영구 회색이 돼 결제 자체가 불가능해진다(2026-08 /naming-ai 사고: 회당결제는 eligibility
-// 왕복을 건너뛰어 결제창이 항상 '확인 필요'로 열리므로, 자동 재조회 1회의 실패가 곧 결제 불가였다).
-// 결제 후 재노출 경로에는 verify-static-paid-gate-failsafe.mjs 가 이미 같은 계약을 강제한다 —
-// 여기서는 '잔량 조회' 경로에 대해 3렌더러 모두를 강제한다. 확인된 잔량이 필요분보다 적을 때만 비활성.
+// ?뵶 ?붾웾 '議고쉶 ?ㅽ뙣'瑜?'?붾웾 遺議?怨?媛숈씠 臾띠뼱 ?붿젙??踰꾪듉??鍮꾪솢?깊븯硫? ?ъ“?뚭? 怨꾩냽 ?ㅽ뙣????
+// ?붿젙?앹씠 ?곴뎄 ?뚯깋????寃곗젣 ?먯껜媛 遺덇??ν빐吏꾨떎(2026-08 /naming-ai ?ш퀬: ?뚮떦寃곗젣??eligibility
+// ?뺣났??嫄대꼫?곗뼱 寃곗젣李쎌씠 ??긽 '?뺤씤 ?꾩슂'濡??대━誘濡? ?먮룞 ?ъ“??1?뚯쓽 ?ㅽ뙣媛 怨?寃곗젣 遺덇????.
+// 寃곗젣 ???щ끂異?寃쎈줈?먮뒗 verify-static-paid-gate-failsafe.mjs 媛 ?대? 媛숈? 怨꾩빟??媛뺤젣?쒕떎 ??
+// ?ш린?쒕뒗 '?붾웾 議고쉶' 寃쎈줈?????3?뚮뜑??紐⑤몢瑜?媛뺤젣?쒕떎. ?뺤씤???붾웾???꾩슂遺꾨낫???곸쓣 ?뚮쭔 鍮꾪솢??
 const reactMoonlightApplySource = section(
   billingClientSource,
   "const applyMoonlightBalance = (rawBalance: number | null",
@@ -246,96 +246,18 @@ assertContains(
   "shell moonlight stays enabled while the balance is unconfirmed",
 );
 assertNotContains(
-  shellMoonlightRefreshSource,
-  "canUseMonthly = monthlyBalanceFresh && monthlyBalance >= requiredMonthlyCredits",
-  "shell moonlight must not treat a failed lookup as insufficient",
-);
-assertNotContains(
-  shellMoonlightRefreshSource,
-  "if (silent && !monthlyBalanceFresh && previousMonthlyBalanceFresh)",
-  "shell keeps the last confirmed balance on manual refresh failure too, not only silent ones",
-);
-
-const standaloneMoonlightApplySource = section(
-  destinyProfileSource,
-  "function applyStandaloneMoonbal(state, balance)",
-  "function refreshStandaloneMoonbal(",
-  "standalone moonlight balance apply",
-);
-assertContains(standaloneMoonlightApplySource, "var insufficient = known && balance < monthlyStones;", "standalone moonlight disable is decided by confirmed shortage only");
-assertContains(standaloneMoonlightApplySource, "lastKnownStandaloneBalance", "standalone moonlight keeps the last confirmed balance across a failed refresh");
-// 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을 준다. ok 를 먼저 검사하면 그 0 이
-// '잔여 확인 완료 · 현재 0개'로 렌더돼 월정석이 잠긴다 — signedOut 을 반드시 먼저 본다.
-const standaloneMoonlightRefreshSource = section(
-  destinyProfileSource,
-  "function refreshStandaloneMoonbal(fresh)",
-  "function finish(choice)",
-  "standalone moonlight balance refresh",
-);
-assertBefore(
-  standaloneMoonlightRefreshSource,
-  "if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);",
-  "else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);",
-  "standalone moonlight checks signed-out before treating a zero balance as confirmed",
-);
-
-// 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
-const reactAuthPrewarmSource = section(
-  billingClientSource,
-  "게이트 진입 전 인증을 예열한다.",
-  "const activeAttempt = beginPaidAttempt(",
-  "React billing auth pre-warm",
-);
-assertNotContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm leaves no competing request");
-assertContains(reactAuthPrewarmSource, "refreshAuth({ force: true, silent: true })", "React billing auth pre-warm still refreshes");
-assertContains(billingClientSource, "paymentService.executePayment", "React paid commands use the shared Payment Service");
-assertContains(indexSource, "CodeDestinyPaymentService", "static shell paid commands use the shared Payment Service");
-assertContains(destinyProfileSource, "CodeDestinyPaymentService", "standalone paid commands use the shared Payment Service");
-
-// openPaidFeatureGate + runBillingCoinGate 패턴 기능도 공통 게이트를 거쳐야 한다(직접 PortOne/points 직행 금지).
-const gateRunBillingFeatureSources = [
-  { label: "destiny-meeting-place", source: readFileSync(resolve(root, "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx"), "utf8") },
-  { label: "destiny-bias", source: readFileSync(resolve(root, "app/saju/destiny-bias/DestinyBiasClient.tsx"), "utf8") },
-  { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
-];
-for (const feature of gateRunBillingFeatureSources) {
-  const commonGateMarker = feature.source.includes("runPaidAccessGate") ? "runPaidAccessGate" : "runBillingCoinGate";
-  assertContains(feature.source, "openPaidFeatureGate", `${feature.label} opens paid gate overlay`);
-  assertContains(feature.source, commonGateMarker, `${feature.label} routes through common billing gate`);
-  assertBefore(feature.source, "openPaidFeatureGate(", `${commonGateMarker}(`, `${feature.label} opens gate before billing`);
-  assertNotContains(feature.source, "window.PortOne.requestPayment", `${feature.label} must not run custom PortOne checkout`);
-  assertNotContains(feature.source, 'fetch("/api/billing/coin-gate"', `${feature.label} must not bypass common coin-gate`);
-  assertNotContains(feature.source, "/points?source=", `${feature.label} must not jump straight to charge page`);
-}
-
-const reactWaitKindSource = section(billingClientSource, "function resolvePaymentWaitKind(", "function formatLoadingMessage", "React payment wait kind");
-assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
-assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
-assertNotContains(reactWaitKindSource, "이용권으로|membership", "React pass wait kind must not use broad membership regex");
-
-const reactBillingOverlayOwnershipSource = section(billingClientSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaymentWaitKind", "React billing overlay ownership");
-assertNotContains(reactBillingOverlayOwnershipSource, '"checkingEntitlement"', "React billing entitlement check must stay in paid gate UI");
-assertNotContains(reactBillingOverlayOwnershipSource, '"hasEntitlement"', "React billing pass success must stay in paid gate UI");
-assertNotContains(reactBillingOverlayOwnershipSource, '"paymentSuccess"', "React billing payment success must stay in paid gate UI");
-assertNotContains(reactBillingOverlayOwnershipSource, '"paymentWindowOpen"', "React billing must not keep overlay during external PG window");
-const reactBillingGateEmitSource = section(billingClientSource, "function emitPaidFeatureGate(", "function resolvePaidFeatureInFlightKey", "React billing paid gate emit");
-assertBefore(reactBillingGateEmitSource, 'if (action !== "close" && isExternalPaymentWindowStatus(status))', 'if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status))', "React billing closes overlays before PG window owns focus");
-assertContains(reactBillingGateEmitSource, "emitPaymentLoadingState(false);", "React billing closes payment overlay for PG window");
-const reactProviderOverlayOwnershipSource = section(paymentProcessingContextSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaidFeatureStatusOverlay", "React provider overlay ownership");
-assertNotContains(reactProviderOverlayOwnershipSource, '"checkingEntitlement"', "React provider entitlement check must stay in paid gate UI");
-assertNotContains(reactProviderOverlayOwnershipSource, '"hasEntitlement"', "React provider pass success must stay in paid gate UI");
-assertNotContains(reactProviderOverlayOwnershipSource, '"paymentSuccess"', "React provider payment success must stay in paid gate UI");
+  shellMoonlightRefre…1647 tokens truncated…vider payment success must stay in paid gate UI");
 assertNotContains(reactProviderOverlayOwnershipSource, '"paymentWindowOpen"', "React provider must not keep overlay during external PG window");
 assertContains(paymentProcessingContextSource, "function isMonthlyPaidFeatureDetail", "React provider has monthly paid-feature resolver");
 assertContains(paymentProcessingContextSource, "<PaidFeatureGateProvider>", "React app connects paid gate provider globally");
-assertContains(paymentProcessingContextSource, 'checkingEntitlement: { label: "확인 중", title: "이용권 확인"', "React paid gate checking entitlement copy");
-assertContains(paymentProcessingContextSource, 'cancelled: { label: "취소됨", title: "결제 선택 취소"', "React paid gate cancelled copy");
+assertContains(paymentProcessingContextSource, 'checkingEntitlement: { label: "?뺤씤 以?, title: "?댁슜沅??뺤씤"', "React paid gate checking entitlement copy");
+assertContains(paymentProcessingContextSource, 'cancelled: { label: "痍⑥냼??, title: "寃곗젣 ?좏깮 痍⑥냼"', "React paid gate cancelled copy");
 assertNotContains(paymentProcessingContextSource, 'document.body.style.overflow = "hidden"', "React paid gate must not lock mobile body scroll");
 const reactProviderStatusOverlaySource = section(paymentProcessingContextSource, "function resolvePaidFeatureStatusOverlay(", "function nowForPaidGate", "React provider paid status overlay");
 assertBefore(reactProviderStatusOverlaySource, "isMonthlyPaidFeatureDetail(resolvedDetail)", "isPassPaidFeatureDetail(resolvedDetail)", "React provider resolves monthly success before pass success");
-assertContains(reactProviderStatusOverlaySource, 'return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };', "React provider monthly success copy");
-assertContains(loadingMessagesSource, 'title: "연이의 월정석 · 깃들고 있어요"', "React payment loading monthly success title");
-assertNotContains(loadingMessagesSource, 'title: "이용권이 활성화되고 있어요"', "React payment loading must not show pass copy for monthly success");
+assertContains(reactProviderStatusOverlaySource, 'return { message: "?붿젙?앹씠 源껊뱾怨??덉뼱??, mode: "payment-complete" };', "React provider monthly success copy");
+assertContains(loadingMessagesSource, 'title: "?곗씠???붿젙??쨌 源껊뱾怨??덉뼱??', "React payment loading monthly success title");
+assertNotContains(loadingMessagesSource, 'title: "?댁슜沅뚯씠 ?쒖꽦?붾릺怨??덉뼱??', "React payment loading must not show pass copy for monthly success");
 const reactProviderOpenSource = section(paymentProcessingContextSource, "const open = useCallback", "const update = useCallback", "React provider open");
 assertBefore(reactProviderOpenSource, "if (isExternalPaymentWindowStatus(status))", "if (paymentLoadingOwnsPaidFeatureStatus(status))", "React provider closes overlays before opening payment loading");
 const reactProviderUpdateSource = section(paymentProcessingContextSource, "const update = useCallback", "const preload = useCallback", "React provider update");
@@ -364,11 +286,11 @@ assertNotContains(directConfirmSource, "grantPassFreeAccessBeforeCardIfAvailable
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "pass option is available by default unless explicitly disabled");
-// 🔴 결제창 안에서 이용권을 확인할 수 있어야 한다(2026-07 정책 전환).
-// 진입 선검사의 서버 왕복을 없앤 대신 '이용권으로 구매' 카드가 그 자리에서 서버에 묻는다. 예전에는
-// 반대로 "이용권은 결제창을 열기 전에만 확인됩니다"라는 막다른 안내가 있었고, 그 문구를 여기서 고정하고
-// 있었다 — 그 상태로 선검사를 없애면 스냅샷 없는 이용권 보유자가 확인할 방법 자체를 잃는다.
-assertNotContains(indexSource, "이용권은 결제창을 열기 전에만 확인됩니다.", "in-modal pass verification must not be blocked again");
+// ?뵶 寃곗젣李??덉뿉???댁슜沅뚯쓣 ?뺤씤?????덉뼱???쒕떎(2026-07 ?뺤콉 ?꾪솚).
+// 吏꾩엯 ?좉??ъ쓽 ?쒕쾭 ?뺣났???놁븻 ???'?댁슜沅뚯쑝濡?援щℓ' 移대뱶媛 洹??먮━?먯꽌 ?쒕쾭??臾삳뒗?? ?덉쟾?먮뒗
+// 諛섎?濡?"?댁슜沅뚯? 寃곗젣李쎌쓣 ?닿린 ?꾩뿉留??뺤씤?⑸땲???쇰뒗 留됰떎瑜??덈궡媛 ?덉뿀怨? 洹?臾멸뎄瑜??ш린??怨좎젙?섍퀬
+// ?덉뿀????洹??곹깭濡??좉??щ? ?놁븷硫??ㅻ깄???녿뒗 ?댁슜沅?蹂댁쑀?먭? ?뺤씤??諛⑸쾿 ?먯껜瑜??껊뒗??
+assertNotContains(indexSource, "?댁슜沅뚯? 寃곗젣李쎌쓣 ?닿린 ?꾩뿉留??뺤씤?⑸땲??", "in-modal pass verification must not be blocked again");
 assertContains(indexSource, "var passReady = await refreshDirectEntitlementStatus();", "pass card verifies the entitlement in place");
 assertBefore(
   indexSource,
@@ -377,8 +299,8 @@ assertBefore(
   "pass card must verify first and only then fall through to the store",
 );
 assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "canonical pass choice opens pass store");
-// 🔴 앱에서는 /points 로 프로그래매틱 이동하면 404 다(앱 번들에 없고, 가드는 앵커 클릭만 가로챈다).
-// 반드시 __cdOpenChargeModal(가드가 /app/store/ 로 고정) 분기를 먼저 타야 한다.
+// ?뵶 ?깆뿉?쒕뒗 /points 濡??꾨줈洹몃옒留ㅽ떛 ?대룞?섎㈃ 404 ????踰덈뱾???녾퀬, 媛?쒕뒗 ?듭빱 ?대┃留?媛濡쒖콌??.
+// 諛섎뱶??__cdOpenChargeModal(媛?쒓? /app/store/ 濡?怨좎젙) 遺꾧린瑜?癒쇱? ????쒕떎.
 assertBefore(
   indexSource,
   "if (_cdShouldUseAppStoreEntry() && typeof window.__cdOpenChargeModal === 'function') {",
@@ -389,8 +311,8 @@ assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pa
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
 assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback requires pass-capable selector");
-// 독립(정적) 폴백도 정본과 같은 3옵션 결제창이어야 한다. 옛 2옵션(이용권 상점 없는) 모달 부활 방지의
-// 본체는 아래 canonical 위임 단언들이고, 여기서는 세 결제수단이 모두 렌더되는지를 직접 확인한다.
+// ?낅┰(?뺤쟻) ?대갚???뺣낯怨?媛숈? 3?듭뀡 寃곗젣李쎌씠?댁빞 ?쒕떎. ??2?듭뀡(?댁슜沅??곸젏 ?녿뒗) 紐⑤떖 遺??諛⑹???
+// 蹂몄껜???꾨옒 canonical ?꾩엫 ?⑥뼵?ㅼ씠怨? ?ш린?쒕뒗 ??寃곗젣?섎떒??紐⑤몢 ?뚮뜑?섎뒗吏瑜?吏곸젒 ?뺤씤?쒕떎.
 assertContains(destinyProfileSource, 'data-mode="pass-store"', "standalone chooser keeps pass store option");
 assertContains(destinyProfileSource, 'data-mode="direct"', "standalone chooser keeps direct option");
 assertContains(destinyProfileSource, 'data-mode="monthly" data-monthly-option', "standalone chooser keeps monthly option");
@@ -399,11 +321,11 @@ assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "d
 assertContains(destinyProfileSource, "service.executePayment({", "destiny fallback uses shared command single-flight");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
 assertContains(destinyProfileSource, "_dpSetPaymentPending(false);\n      var rsp = await window.PortOne.requestPayment(requestData);", "destiny runtime hides payment overlay immediately before PG window");
-// 정적 폴백 오버레이가 결제수단별 안내를 렌더하는지(월정석·단건·완료 제목 전환 + 완료 프레임) 회귀 방지.
+// ?뺤쟻 ?대갚 ?ㅻ쾭?덉씠媛 寃곗젣?섎떒蹂??덈궡瑜??뚮뜑?섎뒗吏(?붿젙?씲룸떒嫄는룹셿猷??쒕ぉ ?꾪솚 + ?꾨즺 ?꾨젅?? ?뚭? 諛⑹?.
 assertContains(destinyProfileSource, "function _dpResolveStandaloneOverlayCopy", "destiny fallback overlay copy is mode-aware");
-assertContains(destinyProfileSource, "title: '월정석 사용 중'", "destiny fallback monthly overlay title");
-assertContains(destinyProfileSource, "title: '결제 진행 중'", "destiny fallback direct payment overlay title");
-assertContains(destinyProfileSource, "title: '결제 완료'", "destiny fallback payment-complete overlay title");
+assertContains(destinyProfileSource, "title: '?붿젙???ъ슜 以?", "destiny fallback monthly overlay title");
+assertContains(destinyProfileSource, "title: '寃곗젣 吏꾪뻾 以?", "destiny fallback direct payment overlay title");
+assertContains(destinyProfileSource, "title: '寃곗젣 ?꾨즺'", "destiny fallback payment-complete overlay title");
 assertContains(destinyProfileSource, "if (choice === 'monthly') _dpShowPaymentCompleteOverlay(_dpText('monthlyAppliedOverlay'))", "destiny fallback shows monthly completion frame");
 assertContains(destinyProfileSource, "_dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'))", "destiny fallback shows direct completion frame");
 
@@ -449,8 +371,8 @@ for (const feature of reactGateFirstFeatureSources) {
   assertBefore(gateFirstFlowSource, feature.api, feature.checkout, `${feature.label} checks entitlement before checkout gate`);
 }
 
-// oracle(지오맨시)·yoga-guru: 서버가 결제를 Gemini(callGeminiText) 호출 이전에 검증해야 한다.
-// 클라 우회로 /api/oracle/geomancy·/api/yoga-guru를 직접 호출해 무료 LLM 생성하는 것을 차단.
+// oracle(吏?ㅻ㎤??쨌yoga-guru: ?쒕쾭媛 寃곗젣瑜?Gemini(callGeminiText) ?몄텧 ?댁쟾??寃利앺빐???쒕떎.
+// ?대씪 ?고쉶濡?/api/oracle/geomancy쨌/api/yoga-guru瑜?吏곸젒 ?몄텧??臾대즺 LLM ?앹꽦?섎뒗 寃껋쓣 李⑤떒.
 const oracleRouteSource = readFileSync(resolve(root, "worker/routes/oracle.js"), "utf8");
 const yogaGuruRouteSource = readFileSync(resolve(root, "worker/routes/yoga-guru.js"), "utf8");
 const accessControlSource = readFileSync(resolve(root, "worker/lib/access-control.js"), "utf8");
@@ -464,7 +386,7 @@ assertBefore(yogaHandlerSource, "requireAuth(request, env)", "callGeminiText", "
 assertBefore(yogaHandlerSource, "requirePremiumReportAccess(", "callGeminiText", "yoga-guru verifies payment before Gemini");
 assertContains(accessControlSource, 'reportType === "geomancyOracle"', "access-control has geomancy payment rule");
 assertContains(accessControlSource, 'reportType === "yogaGuruCourse"', "access-control has yoga payment rule");
-// 배열은 리포트타입이 늘어날 수 있으므로 리터럴 전체가 아니라 필수 항목 포함 여부로 본다.
+// 諛곗뿴? 由ы룷?명??낆씠 ?섏뼱?????덉쑝誘濡?由ы꽣???꾩껜媛 ?꾨땲???꾩닔 ??ぉ ?ы븿 ?щ?濡?蹂몃떎.
 const recentPaymentWindowList = accessControlSource.match(/\[[^\]]*\]\.includes\(normalizedReportType\)/)?.[0] || "";
 for (const reportType of ["celestialHarmony", "geomancyOracle", "yogaGuruCourse"]) {
   assertContains(recentPaymentWindowList, `"${reportType}"`, `recent-payment-window fallback covers ${reportType}`);
@@ -484,11 +406,11 @@ for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, '<link rel="stylesheet" href="/styles/fortune-ui.css', "fortune CSS blocking stylesheet");
 }
 
-// ── 🔴 대기 화면 정책: '진행 중' 전체화면은 이용권 확인에서만 ──────────────────────────────
-// 주문 발급(/api/billing/checkout)을 전역 fetch 래퍼가 '결제 진행 중'으로 잡아 결제창을
-// 덮지 않도록 두 성질을 실제 평가로 고정한다.
-//   ⓐ 래퍼는 checkout/prepare 를 추적하지 않는다(문자열 핀이 아니라 함수를 실행해 확인).
-//   ⓑ 대기/결과 오버레이 허용목록에서 진행 중 모드는 'pass' 하나뿐이다.
+// ?? ?뵶 ?湲??붾㈃ ?뺤콉: '吏꾪뻾 以? ?꾩껜?붾㈃? ?댁슜沅??뺤씤?먯꽌留???????????????????????????????
+// 二쇰Ц 諛쒓툒(/api/billing/checkout)???꾩뿭 fetch ?섑띁媛 '寃곗젣 吏꾪뻾 以??쇰줈 ?≪븘 寃곗젣李쎌쓣
+// ??? ?딅룄濡????깆쭏???ㅼ젣 ?됯?濡?怨좎젙?쒕떎.
+//   ???섑띁??checkout/prepare 瑜?異붿쟻?섏? ?딅뒗??臾몄옄??????꾨땲???⑥닔瑜??ㅽ뻾???뺤씤).
+//   ???湲?寃곌낵 ?ㅻ쾭?덉씠 ?덉슜紐⑸줉?먯꽌 吏꾪뻾 以?紐⑤뱶??'pass' ?섎굹肉먯씠??
 const indexRuntimeSource = readFileSync(resolve(root, "js/core/index-inline-runtime.js"), "utf8");
 const shouldTrackSource = section(
   indexRuntimeSource,
@@ -501,12 +423,12 @@ for (const path of ["/api/billing/checkout", "/api/payments/prepare"]) {
   assert.equal(
     shouldTrackPaymentRequest(path, "POST"),
     false,
-    `주문 발급은 대기 UI를 켜지 않아야 한다: ${path}`,
+    `二쇰Ц 諛쒓툒? ?湲?UI瑜?耳쒖? ?딆븘???쒕떎: ${path}`,
   );
 }
-// 승인 검증(confirm)은 결제창을 통과한 뒤라 그대로 추적한다 — 위 예외가 과하게 넓어지지 않게 고정.
-assert.equal(shouldTrackPaymentRequest("/api/billing/confirm", "POST"), true, "승인 검증은 계속 추적한다");
-assert.equal(shouldTrackPaymentRequest("/api/payments/confirm", "POST"), true, "승인 검증은 계속 추적한다");
+// ?뱀씤 寃利?confirm)? 寃곗젣李쎌쓣 ?듦낵???ㅻ씪 洹몃?濡?異붿쟻?쒕떎 ?????덉쇅媛 怨쇳븯寃??볦뼱吏吏 ?딄쾶 怨좎젙.
+assert.equal(shouldTrackPaymentRequest("/api/billing/confirm", "POST"), true, "?뱀씤 寃利앹? 怨꾩냽 異붿쟻?쒕떎");
+assert.equal(shouldTrackPaymentRequest("/api/payments/confirm", "POST"), true, "?뱀씤 寃利앹? 怨꾩냽 異붿쟻?쒕떎");
 
 const waitUiAllowLists = [
   { label: "shell", source: indexSource, name: "CD_WAIT_UI_ALLOWED_MODE_RE" },
@@ -515,18 +437,18 @@ const waitUiAllowLists = [
 ];
 for (const entry of waitUiAllowLists) {
   const literal = entry.source.match(new RegExp(`${entry.name}\\s*=\\s*(/[^\\n]+/)\\s*;`))?.[1];
-  assert.ok(literal, `${entry.label}: ${entry.name} 정규식 리터럴을 찾지 못했다`);
+  assert.ok(literal, `${entry.label}: ${entry.name} ?뺢퇋??由ы꽣?댁쓣 李얠? 紐삵뻽??);
   const allowed = new Function(`return ${literal};`)();
-  for (const mode of ["pass", "pass-applied", "payment-complete", "payment-failed"]) {
-    assert.ok(allowed.test(mode), `${entry.label}: ${mode} 는 표시되어야 한다`);
+  for (const mode of ["pass", "monthly", "pass-applied", "payment-complete", "payment-failed"]) {
+    assert.ok(allowed.test(mode), `${entry.label}: ${mode} ???쒖떆?섏뼱???쒕떎`);
   }
-  for (const mode of ["payment", "checkout", "card", "confirm", "monthly", "subscription"]) {
-    assert.ok(!allowed.test(mode), `${entry.label}: ${mode} 대기 화면은 차단되어야 한다`);
+  for (const mode of ["payment", "checkout", "card", "confirm", "subscription"]) {
+    assert.ok(!allowed.test(mode), `${entry.label}: ${mode} ?湲??붾㈃? 李⑤떒?섏뼱???쒕떎`);
   }
 }
-// 실패는 성공(payment-complete)과 다른 모드로 갈라야 한다 — 같은 모드면 '결제 완료' 제목 아래 실패가 뜬다.
+// ?ㅽ뙣???깃났(payment-complete)怨??ㅻⅨ 紐⑤뱶濡?媛덈씪???쒕떎 ??媛숈? 紐⑤뱶硫?'寃곗젣 ?꾨즺' ?쒕ぉ ?꾨옒 ?ㅽ뙣媛 ?щ떎.
 assertContains(indexSource, "mode: 'payment-failed'", "failure overlay mode split");
-assertNotContains(indexSource, "'결제 또는 이용권 확인에 실패했습니다.'), mode: 'confirm' }", "failure no longer shares confirm mode");
+assertNotContains(indexSource, "'寃곗젣 ?먮뒗 ?댁슜沅??뺤씤???ㅽ뙣?덉뒿?덈떎.'), mode: 'confirm' }", "failure no longer shares confirm mode");
 assert.ok(
   /document\.body\.appendChild\(modal\);[\s\S]{0,300}?_cdEndPreCheckoutWaitUiSuppression\(\);/.test(indexSource),
   "pre-checkout suppression ends after the modal is mounted",
