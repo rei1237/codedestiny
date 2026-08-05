@@ -34,6 +34,15 @@
 - Locale context: `worker/lib/ai-locale-context.js`, `lib/i18n/ai-locale.js`
 - Leak guard: `worker/lib/llm-leak-guard.js`
 
+## AI output locale boundary
+
+- AI output locale support remains exactly the existing five locales: `ko`, `en`, `ja`, `zh-CN`, `zh-TW`.
+- `languageLocale` controls generated user-visible AI text only. It must not imply a payment market, tax country, billing country, legal jurisdiction, refund outcome, or legal-pack language.
+- UI runtime locales outside the five AI locales may exist, but server AI routes must normalize them through the AI output allowlist before prompt construction and cache lookup.
+- LLM cache keys must include the normalized AI output locale. Legal jurisdiction must stay out of fortune-result cache keys unless an approved policy notice is explicitly injected as policy data.
+- LLM prompts and fallbacks must not generate legal, refund, tax, subscription, or payment-rights advice. Those notices come from `lib/market-policy/market-policy-registry.js` and legal-pack metadata after approval.
+- All locale validation tests continue to use mock/fake/stub provider responses only.
+
 기본 구조는 Gemini primary, Cloudflare Workers AI fallback이다. fallback model chain과 timeout 정책은 `lib/llm-client.ts`와 env override를 확인한다.
 
 ## 프롬프트 파일/생성 위치
