@@ -137,6 +137,14 @@
 - 데이터: `Payment`, `PointHistory`, `MonthlyCreditLedger`, `ContentEntitlement`, `CheckoutFunnelEvent`
 - 주의점: 실결제 금지. sandbox/mock만 사용.
 
+## 운세 플래너 (기기 로컬)
+
+- 주요 라우트: `/fortune-planner`, legacy `/luck-sync-diary` → `/fortune-planner`
+- 주요 컴포넌트: `app/fortune-planner/PlannerApp.tsx`, `app/fortune-planner/recurrence.ts`, `app/fortune-planner/planner.css`
+- 데이터: 브라우저 `localStorage`의 `cd.fortunePlanner.v2`; 기존 `luck_sync_diary_v2` 기록은 첫 진입 시 읽기 변환한다.
+- 권한: 완전 무료, 로그인·프로필·이용권·월정석·결제 조회 없음. 다른 유료 콘텐츠의 정책은 별도 유지.
+- 기능: 오늘/주간/월간/시간표/기록, 일정·할 일·반복 범위 수정, 기기 알림 권한 안내, 비결정론적 날짜 흐름 보조.
+
 ## PDF / 결과 저장 / 다운로드
 
 - 주요 라우트: `/pdf/life-book`, `/pdf/love-report`, result routes under AI features

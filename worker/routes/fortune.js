@@ -1845,18 +1845,15 @@ const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
     "rpgCharacter",
     "travelDestiny",
     "healthReport",
-    "sajuDiary",
     "secretHouseEpisodes",
     "rpt_skillTreeCard",
     "rpt_energyCoordCard",
     "rpt_healthReportCard",
-    "rpt_luckSyncDiaryEntryCard",
     "rpt_secretHouseEntryCard",
   ],
   rpgCharacter: ["rpt_skillTreeCard"],
   travelDestiny: ["rpt_energyCoordCard"],
   healthReport: ["rpt_healthReportCard"],
-  sajuDiary: ["rpt_luckSyncDiaryEntryCard"],
   secretHouseEpisodes: ["rpt_secretHouseEntryCard"],
 });
 const PERSISTENT_UNLOCK_KEY_SET = new Set([
@@ -1874,7 +1871,6 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "rpgCharacter",
   "travelDestiny",
   "healthReport",
-  "sajuDiary",
   "secretHouseEpisodes",
   "animal-destiny-unlock",
   "loveSimulation",
@@ -1886,7 +1882,6 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "rpt_skillTreeCard",
   "rpt_energyCoordCard",
   "rpt_villainCard",
-  "rpt_luckSyncDiaryEntryCard",
   "rpt_secretHouseEntryCard",
   "fun.quantumLotto.ritualReport",
   "premium-ziwei",
@@ -6002,12 +5997,12 @@ async function handleGuardianFortuneChatRoute(request, env, ctx, trace) {
         });
         return;
       }
-      if (identity.userId) invalidateAccessStateCacheForUser(identity.userId);
       await writeGuardianFortuneChatSse(writer, "complete", {
         requestId: result.requestId,
         usage: result.usage,
         shareDraftToken: result.shareDraftToken || "",
       });
+      if (identity.userId) invalidateAccessStateCacheForUser(identity.userId);
     } catch {
       await writeGuardianFortuneChatSse(writer, "error", {
         error: GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR,

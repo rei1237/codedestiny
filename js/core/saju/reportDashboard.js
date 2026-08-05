@@ -159,7 +159,7 @@ var REPORT_CARDS = [
   { id:'trip',       thumb:'사주로 보는 여행지.webp', label:_reportDashboardText("rd.label.008"),     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:_reportDashboardText("rd.cta.011"),         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
   { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
   { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:_reportDashboardText("rd.cta.013"),          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
-  { id:'godlife',    thumb:'사주 다이어리.webp', label:_reportDashboardText("rd.label.011"),          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:_reportDashboardText("rd.cta.014"),       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
+  { id:'fortunePlanner', thumb:'사주 다이어리.webp', label:'운세 플래너', desc:'일정·할 일·시간표에 오늘의 운 흐름을 함께 정리해보세요.', note:'누구나 무료로, 횟수 제한 없이 이 기기에 일정을 저장할 수 있습니다.', cta:'일정 보기', accent:'#818cf8', glow:'rgba(129,140,248,.55)', action:'openFortunePlanner', coinCost:0, badge:'무료' },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축, 몰입 분야, 오늘의 미션까지 한 번에 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', coinCost:0, badge:'NEW' },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
@@ -298,7 +298,7 @@ var REPORT_CARDS = [
 })();
 
 function _rptIsDirectAction(actionName) {
-  return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
+  return actionName === 'openFortunePlanner' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
 }
 
 window.openSecretHouseRoute = function() {
@@ -1698,8 +1698,8 @@ window.openSajuFunFeature = function(targetId, afterAction) {
   var tries = 0;
   var maxTries = 12;
   var tick = function() {
-    if (afterAction === 'openLuckSyncDiary' && typeof window.openLuckSyncDiary === 'function') {
-      try { window.openLuckSyncDiary(); } catch (e2) {}
+    if (afterAction === 'openFortunePlanner' && typeof window.openFortunePlanner === 'function') {
+      try { window.openFortunePlanner(); } catch (e2) {}
       return;
     }
 

@@ -239,3 +239,8 @@
 - 기존 `ContentEntitlement`, `User.unlockedFeatures`, `PointHistory`, `daehan_purchases` 및 과거 결제 기록은 삭제하지 않는다. backfill·환불·보상 복구는 과거 거래 증거가 있을 때만 읽기 호환으로 유지한다.
 - 신규 영구 해금 인덱스는 `scripts/migrations/20260804-add-permanent-unlock-index.mjs`로 별도 적용한다. 기존 문서를 backfill하거나 삭제하지 않으며 운영 실행은 별도 승인이 필요하다.
 - 메인 셸과 일반 잠금 상태 조회는 `/api/access/unlocks` 또는 entitlement 전용 조회를 사용한다. 월정석/레거시 잔액 조회는 결제 선택창과 명시적 결제 갱신에서만 수행한다.
+
+## 운세 플래너 예외
+
+- `/fortune-planner`와 legacy `/luck-sync-diary`는 운기·기일 다이어리의 무료 후속 기능이다. 이 경로에서는 entitlement, 이용권, 월정석, 결제 이력, 무료 체험 및 PG 분기를 조회하거나 차감하지 않는다.
+- 이 예외는 플래너 전용이다. paid-feature registry와 다른 유료 운세의 이용권·월정석·단건 결제 정책에는 적용하지 않는다.
