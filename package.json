@@ -112,6 +112,7 @@
     "verify:paid-feature-billing-policy": "node scripts/verify-paid-feature-billing-policy.mjs",
     "verify:feature-marketing-schema": "node scripts/verify-feature-marketing-schema.mjs",
     "verify:ai-prompt-billing-policy": "node scripts/verify-ai-prompt-billing-policy.mjs",
+    "verify:market-policy-registry": "node scripts/verify-market-policy-registry.mjs",
     "verify:analysis-basis-contract": "node scripts/verify-analysis-basis-contract.mjs",
     "verify:llm-generation-resilience": "node scripts/verify-llm-generation-resilience.mjs",
     "verify:ai-locale-pipeline": "node scripts/verify-ai-locale-pipeline.mjs",
