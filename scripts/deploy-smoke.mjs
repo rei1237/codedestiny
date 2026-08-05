@@ -25,6 +25,10 @@ function isExpectedFontNoise(value) {
     /font.*blocked by CORS policy/i.test(value) ||
     /blocked by CORS policy.*font/i.test(value);
 }
+function isExpectedPagesPreviewAuthNoise(value) {
+  return isPagesPreview &&
+    /https:\/\/code-destiny\.com\/api\/auth\/me.*blocked by CORS policy/i.test(value);
+}
 
 async function checkApi(pathname) {
   const url = apiOrigin + pathname;
@@ -77,6 +81,7 @@ async function checkPages() {
     // production site receives these font responses same-origin, so preview
     // CORS warnings do not indicate a broken page or runtime regression.
     if (isExpectedFontNoise(message.text())) return;
+    if (isExpectedPagesPreviewAuthNoise(message.text())) return;
     if (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(message.text())) return;
     browserErrors.push("console.error: " + message.text());
   });
@@ -86,6 +91,7 @@ async function checkPages() {
     // the next smoke route starts; they are not runtime failures.
     if (/ERR_ABORTED|AbortError/i.test(errorText)) return;
     if (isExpectedFontNoise(request.url())) return;
+    if (isExpectedPagesPreviewAuthNoise(request.url())) return;
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
 
