@@ -1,4 +1,4 @@
-function callGlobal(fnName, ...args) {
+�r�^�f��ئ{Oly�'vî���function callGlobal(fnName, ...args) {
   const fn = window[fnName];
   if (typeof fn === 'function') {
     return fn(...args);
@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-a7f5a2b0f6f5'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-a7f5a2b0f6f5'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-a7f5a2b0f6f5'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-00f18484d3e7'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-00f18484d3e7'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-00f18484d3e7'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-a7f5a2b0f6f5')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-00f18484d3e7')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-a7f5a2b0f6f5'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-a7f5a2b0f6f5'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-00f18484d3e7'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-00f18484d3e7'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a7f5a2b0f6f5'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-a7f5a2b0f6f5'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-00f18484d3e7'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-00f18484d3e7'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -105,14 +105,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-a7f5a2b0f6f5').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-00f18484d3e7').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-a7f5a2b0f6f5')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-00f18484d3e7')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -374,51 +374,7 @@ function __buildR2CollectionAssetUrl(objectKey, suffix = '') {
 }
 
 // R2 원본(가로 1300~1500px, 장당 150~200KB)을 카드 크기에 맞춰 Cloudflare Image Resizing 으로
-// 줄여 받는다(장당 20~40KB). 폭은 80px 버킷으로 반올림해 CDN 캐시가 잘게 쪼개지지 않게 한다.
-// 실패하면 __bindCollectionImageFallback 이 원본 R2 주소로 되돌린다.
-function __buildResizedCollectionImageUrl(r2Url, wrap) {
-  const raw = String(r2Url || '');
-  if (!raw.startsWith(__COLLECTION_R2_ASSET_BASE)) return '';
-  if (raw.includes('/cdn-cgi/')) return '';
-  let dpr = 1;
-  let cssWidth = 0;
-  let maxCss = 400;
-  try {
-    dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
-    cssWidth = (wrap && wrap.clientWidth) || 0;
-    // 하이드레이션이 2열 레이아웃 확정 전에 돌면 clientWidth 가 1열 기준으로 잡힌다 — 뷰포트로 상한
-    const isNarrow = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-    maxCss = isNarrow ? Math.ceil(window.innerWidth / 2) : window.innerWidth;
-  } catch {}
-  if (!cssWidth) cssWidth = maxCss;
-  cssWidth = Math.min(cssWidth, maxCss);
-  let target = Math.ceil((cssWidth * dpr) / 80) * 80;
-  if (target < 240) target = 240;
-  if (target > 960) target = 960;
-  return `${__COLLECTION_R2_ASSET_BASE}cdn-cgi/image/width=${target},quality=72,format=auto/${raw.slice(__COLLECTION_R2_ASSET_BASE.length)}`;
-}
-
-function __resolveCollectionImageSrc(src) {
-  const raw = String(src || '').trim();
-  if (!raw) return raw;
-  if (raw.startsWith(__COLLECTION_R2_ASSET_BASE)) return raw;
-  const { path, suffix } = __splitCollectionImagePath(raw);
-  if (path.startsWith('/fuctionassets/')) return __buildR2CollectionAssetUrl(path.slice('/fuctionassets/'.length), suffix) || raw;
-  if (path.startsWith('fuctionassets/')) return __buildR2CollectionAssetUrl(path.slice('fuctionassets/'.length), suffix) || raw;
-  if (path.startsWith('/images/')) return __buildR2CollectionAssetUrl(path.slice('/images/'.length), suffix) || raw;
-  if (path.startsWith('images/')) return __buildR2CollectionAssetUrl(path.slice('images/'.length), suffix) || raw;
-  try {
-    const url = new URL(raw, window.location.href);
-    if (url.origin === 'https://code-destiny.com' || url.origin === window.location.origin) {
-      if (url.pathname.startsWith('/fuctionassets/')) return __buildR2CollectionAssetUrl(url.pathname.slice('/fuctionassets/'.length), `${url.search}${url.hash}`) || raw;
-      if (url.pathname.startsWith('/images/')) return __buildR2CollectionAssetUrl(url.pathname.slice('/images/'.length), `${url.search}${url.hash}`) || raw;
-    }
-  } catch {}
-  return raw;
-}
-
-/* 폴백은 하나가 아니라 순서 있는 목록이다.
-   예전에는 "리사이즈 → R2 원본" 한 단계뿐이라, R2 에 올라가지 않은 자산은
+// 줄��-�G����ƭy�R2 원본" 한 단계뿐이라, R2 에 올라가지 않은 자산은
    두 주소가 모두 404 가 되면서 마크업에 원래 박혀 있던(그리고 실제로는 200 인)
    /fuctionassets/… 경로로 되돌아갈 길이 없어 이미지가 통째로 사라졌다. */
 function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) {
