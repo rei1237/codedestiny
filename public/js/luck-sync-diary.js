@@ -394,19 +394,86 @@ function _lsdText(key) {
     return getGanZhiByDate(new Date());
   }
 
+  function _activeProfilePillars() {
+    var profile = null;
+    try {
+      profile = typeof window.__cdGetCurrentDestinyProfile === 'function'
+        ? window.__cdGetCurrentDestinyProfile()
+        : (window.__cdCurrentDestinyProfile || window.__cdActiveBirthProfile || null);
+    } catch (_) {}
+
+    var birth = profile && profile.birth;
+    if (!birth || !window.Solar || typeof window.Solar.fromYmdHms !== 'function') return null;
+
+    var year = Number(birth.year);
+    var month = Number(birth.month);
+    var day = Number(birth.day);
+    var hour = Number(birth.hour);
+    var minute = Number(birth.minute);
+    if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return null;
+    if (!isFinite(hour) || hour < 0 || hour > 23) hour = 12;
+    if (!isFinite(minute) || minute < 0 || minute > 59) minute = 0;
+
+    var calType = String(birth.calType || profile.calType || 'solar');
+    if (calType !== 'solar' && window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
+      try {
+        var converted = window.KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
+        if (converted) {
+          year = Number(converted.year);
+          month = Number(converted.month);
+          day = Number(converted.day);
+        }
+      } catch (_) { return null; }
+    }
+
+    try {
+      var birthDate = new Date(year, month - 1, day, hour, minute, 0, 0);
+      var solar = window.Solar.fromYmdHms(year, month, day, hour, minute, 0);
+      var eightChar = solar && solar.getLunar && solar.getLunar().getEightChar();
+      var ganji = window.KasiEngine && typeof window.KasiEngine.getGanji === 'function'
+        ? window.KasiEngine.getGanji(birthDate, { yaja: false, leapMonthOption: 'prev' })
+        : null;
+      var yearPair = _normalizeGanjiPair(ganji && (ganji.secha || ganji.year)) || _normalizeGanjiPair(eightChar && eightChar.getYear && eightChar.getYear());
+      var monthPair = _normalizeGanjiPair(ganji && (ganji.weolgeon || ganji.month)) || _normalizeGanjiPair(eightChar && eightChar.getMonth && eightChar.getMonth());
+      var dayPair = _normalizeGanjiPair(ganji && (ganji.iljin || ganji.day)) || _normalizeGanjiPair(eightChar && eightChar.getDay && eightChar.getDay());
+      var hourPair = _normalizeGanjiPair(ganji && (ganji.sigan || ganji.hour)) || _normalizeGanjiPair(eightChar && eightChar.getTime && eightChar.getTime());
+      if (!yearPair || !monthPair || !dayPair || !hourPair) return null;
+
+      var pillars = {
+        y: { g: yearPair.charAt(0), j: yearPair.charAt(1) },
+        m: { g: monthPair.charAt(0), j: monthPair.charAt(1) },
+        d: { g: dayPair.charAt(0), j: dayPair.charAt(1) },
+        h: { g: hourPair.charAt(0), j: hourPair.charAt(1) }
+      };
+      var power = typeof window.calcPower === 'function' ? window.calcPower(pillars) : null;
+      var jong = typeof window.detectJong === 'function' ? window.detectJong(pillars) : null;
+      return { pillars: pillars, power: power, jong: jong, source: 'active-profile' };
+    } catch (_) {
+      return null;
+    }
+  }
+
   /* ─── 갓생 5대 지수 계산 ─────────────────────────────────────── */
   function calcGodlifeScores(pillars, power, jong, todayGZ) {
-    var base = { wealth: 50, love: 50, fame: 50, health: 50, study: 50 };
-    if (!pillars || !pillars.d) return base;
+    if (!pillars || !pillars.d || !pillars.d.g || !todayGZ || !todayGZ.g) return null;
 
     var dEl    = GAN_ELEM[pillars.d.g]  || 'earth';
     var yons   = (power && power.yongshin)  || [];
     var kis    = (power && power.kijishin)  || [];
     var todayEl = todayGZ ? (GAN_ELEM[todayGZ.g] || 'earth') : 'earth';
+    var natal = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+    [pillars.y, pillars.m, pillars.d, pillars.h].forEach(function (pillar) {
+      if (!pillar) return;
+      [pillar.g, pillar.j].forEach(function (char) {
+        var element = GAN_ELEM[char] || JI_ELEM[char];
+        if (element) natal[element] += 1;
+      });
+    });
 
     function score(els) {
-      var s = 50;
+      var s = 34;
       els.forEach(function (el) {
+        s += natal[el] * 5;
         if (yons.indexOf(el) >= 0)          s += 18;
         if (kis.indexOf(el) >= 0)           s -= 13;
         if (el === todayEl)                 s += 10;
@@ -848,7 +915,9 @@ return true;
       '.lsd-chip.is-on{background:linear-gradient(135deg,#7c3aed,#4f46e5);border-color:transparent;color:#fff;box-shadow:0 4px 10px rgba(124,58,237,.25)}',
       '.lsd-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
       '.lsd-mini-box{border:1px dashed #d1d5db;border-radius:12px;padding:8px;font-size:.7rem;color:#4b5563;line-height:1.45;background:#fcfcff}',
-      '.lsd-graph-wrap{background:linear-gradient(180deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;border-radius:12px;padding:8px}',
+      '.lsd-graph-wrap{position:relative;background:linear-gradient(135deg,#fffdfc,#fff5fa 62%,#f5f0ff);border:1px solid #f0cee0;border-radius:16px;padding:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.94)}',
+      '.lsd-graph-wrap:before{content:"";position:absolute;inset:5px;border:1px dashed rgba(179,25,85,.13);border-radius:12px;pointer-events:none}.lsd-graph-wrap>*{position:relative}',
+      '.lsd-energy-empty,.lsd-score-empty{display:grid;gap:4px;padding:10px 11px;border:1px dashed #d8a8c4;border-radius:12px;background:rgba(255,255,255,.7);color:#70445c;font-size:.72rem;line-height:1.55}.lsd-energy-empty strong,.lsd-score-empty strong{color:#63233f}.lsd-energy-empty span,.lsd-score-empty span{font-size:.67rem;color:#8f6279}',
       '.lsd-review-rate{display:flex;gap:6px;flex-wrap:wrap}',
       '.lsd-review-rate button{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:6px 10px;font-size:.7rem;font-weight:700;color:#6b7280;cursor:pointer}',
       '.lsd-review-rate button.is-on{background:#ecfeff;border-color:#22d3ee;color:#0e7490}',
@@ -1006,12 +1075,16 @@ return true;
   function renderEnergyFlowGraph(scores, todayEl) {
     var box = document.getElementById('lsdEnergyFlowGraph');
     if (!box) return;
+    if (!scores) {
+      box.innerHTML = '<div class="lsd-energy-empty"><strong>사주 프로필을 불러오면 오늘의 균형을 계산합니다.</strong><span>임의의 기본 점수는 표시하지 않습니다.</span></div>';
+      return;
+    }
     var values = [
-      Number(scores && scores.health) || 50,
-      Number(scores && scores.study) || 50,
-      Number(scores && scores.wealth) || 50,
-      Number(scores && scores.fame) || 50,
-      Number(scores && scores.love) || 50
+      Number(scores.health),
+      Number(scores.study),
+      Number(scores.wealth),
+      Number(scores.fame),
+      Number(scores.love)
     ];
     var avg = Math.round(values.reduce(function (a, b) { return a + b; }, 0) / values.length);
     var phase = avg >= 68 ? '상승 흐름' : (avg >= 52 ? '안정 흐름' : '정비 흐름');
@@ -1405,7 +1478,14 @@ return true;
     ensureMzBlocks();
     applyElementTheme(luckyEl);
 
-    renderSajuInsightPanel(_buildSajuInsightModel(pillars, power, todayGZ, scores, mainTenStar, luckyEl));
+    if (!scores) {
+      var tabBar = document.getElementById('lsdSajuInsightTabBar');
+      var insightBody = document.getElementById('lsdSajuInsightBody');
+      if (tabBar) tabBar.innerHTML = '';
+      if (insightBody) insightBody.innerHTML = '<div class="lsd-score-empty"><strong>사주 프로필이 있어야 다이어리 리딩을 계산할 수 있어요.</strong><span>프로필의 생년월일·출생시간을 바탕으로 일진과 오행 균형을 정리합니다.</span></div>';
+    } else {
+      renderSajuInsightPanel(_buildSajuInsightModel(pillars, power, todayGZ, scores, mainTenStar, luckyEl));
+    }
 
     var dEl = (pillars && pillars.d && pillars.d.g) ? (GAN_ELEM[pillars.d.g] || 'earth') : 'earth';
     _lsdCtx = {
@@ -2460,12 +2540,15 @@ return true;
   function _classifyDayFromSaju(dateObj, pillars, power, jong) {
     var gz = getGanZhiByDate(dateObj);
     var scores = calcGodlifeScores(pillars, power, jong, gz);
+    if (!scores) {
+      return { tone: 'profile', label: '사주 프로필 필요', goodness: null, badness: null, scores: null, gz: gz };
+    }
     var avg = Math.round((
-      Number(scores.wealth || 50)
-      + Number(scores.love || 50)
-      + Number(scores.fame || 50)
-      + Number(scores.health || 50)
-      + Number(scores.study || 50)
+      Number(scores.wealth)
+      + Number(scores.love)
+      + Number(scores.fame)
+      + Number(scores.health)
+      + Number(scores.study)
     ) / 5);
 
     var stemEl = (gz && gz.g) ? (GAN_ELEM[gz.g] || 'earth') : 'earth';
@@ -2741,7 +2824,7 @@ return true;
       } else {
         var snap = _classifyDayFromSaju(cell.date, pillars, power, jong);
         classes.push('is-' + snap.tone);
-        title = snap.label + ' · 안정도 ' + snap.goodness + '점';
+        title = snap.goodness == null ? snap.label : (snap.label + ' · 안정도 ' + snap.goodness + '점');
         if (_hasDiaryRecord(diary[cell.key])) classes.push('is-recorded');
       }
       if (mode === 'ganzhi' && dayData && dayData.dayPillar.hanja) {
@@ -2795,7 +2878,7 @@ return true;
         hint.innerHTML = ''
           + '<strong>' + escHtml(selectedKey) + '</strong> · '
           + '<span style="font-weight:800">' + escHtml(selectedSnap.label) + '</span>'
-          + ' · 안정도 ' + selectedSnap.goodness + '점'
+          + (selectedSnap.goodness == null ? '<br><span style="color:#70445c">프로필을 저장하면 이 날짜의 개인 일운을 계산합니다.</span>' : (' · 안정도 ' + selectedSnap.goodness + '점'))
           + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '')
           + (scheduledForDay.length ? ('<div class="lsd-month-schedule-summary"><b>오늘의 일정 ' + scheduledForDay.length + '개</b>' + scheduledForDay.slice(0, 3).map(function (event) {
             return '<span>' + escHtml(event.allDay ? '하루 종일' : (event.start || '시간 미정')) + ' · ' + escHtml(event.title || '이름 없는 일정') + '</span>';
@@ -3033,6 +3116,10 @@ return true;
   function renderScoreBars(scores) {
     var container = document.getElementById('lsdScoreBars');
     if (!container) return;
+    if (!scores) {
+      container.innerHTML = '<div class="lsd-score-empty"><strong>오늘의 운기 점수는 사주 원국과 일진을 함께 계산해 표시합니다.</strong><span>프로필을 불러온 뒤 다시 열어주세요.</span></div>';
+      return;
+    }
     var items = [
       { key: 'wealth', label: _lsdText("lsd.label.022"), color: '#f59e0b' },
       { key: 'love',   label: _lsdText("lsd.label.023"), color: '#ec4899' },
@@ -3724,6 +3811,10 @@ return true;
       });
       return openDiary.__loadingCore;
     }
+    if (!openDiary.__profileLoadAttempted && !window.__cdGetCurrentDestinyProfile && typeof window.__cdEnsureDestinyProfileLoaded === 'function') {
+      openDiary.__profileLoadAttempted = true;
+      return window.__cdEnsureDestinyProfileLoaded().catch(function () {}).then(function () { return openDiary(); });
+    }
 
     buildModal();
     ensureMzBlocks();
@@ -3749,6 +3840,15 @@ return true;
     var pillars = window.G_PILLARS || null;
     var power   = window.G_POWER   || null;
     var jong    = window.G_JONG    || null;
+    var profileSnapshot = null;
+    if (!pillars || !pillars.d || !pillars.d.g) {
+      profileSnapshot = _activeProfilePillars();
+      if (profileSnapshot) {
+        pillars = profileSnapshot.pillars;
+        power = profileSnapshot.power;
+        jong = profileSnapshot.jong;
+      }
+    }
 
     /* 일간 위젯 */
     var dayMasterEl = document.getElementById('lsdDayMaster');
@@ -4344,7 +4444,7 @@ return true;
             e1.stickers.push(name);
           }
           saveDiary(d1);
-          renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e1, d1, _lsdCtx.jong || null);
+          renderMzSections(_lsdCtx.pillars || null, _lsdCtx.power || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e1, d1, _lsdCtx.jong || null);
           return;
         }
 
@@ -4361,7 +4461,7 @@ return true;
             e2.emotionTags.push(tag);
           }
           saveDiary(d2);
-          renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e2, d2, _lsdCtx.jong || null);
+          renderMzSections(_lsdCtx.pillars || null, _lsdCtx.power || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e2, d2, _lsdCtx.jong || null);
         }
       });
     }

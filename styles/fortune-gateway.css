@@ -128,21 +128,25 @@
 
 .cd-diary-planner-entry__visual::before {
   position: absolute;
-  inset: 18px 18px 14px 0;
+  inset: 17px 18px 15px 0;
   border: 1px solid rgba(179, 25, 85, .16);
   border-radius: 24px 0 0 24px;
-  background: rgba(255, 255, 255, .26);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .68), rgba(255, 247, 251, .24));
   content: "";
 }
 
 .cd-diary-planner-entry__visual img {
   position: relative;
   z-index: 2;
-  width: min(100%, 238px);
+  width: min(100%, 320px);
+  aspect-ratio: 4 / 3;
   height: auto;
-  margin: 0 22px -18px 0;
-  object-fit: contain;
-  filter: drop-shadow(0 16px 17px rgba(101, 37, 74, .2));
+  margin: 14px 18px -13px 0;
+  border: 1px solid rgba(179, 25, 85, .18);
+  border-radius: 19px 19px 0 0;
+  object-fit: cover;
+  object-position: 72% center;
+  box-shadow: 0 17px 28px -18px rgba(101, 37, 74, .58), inset 0 1px 0 rgba(255,255,255,.65);
 }
 
 .cd-diary-planner-entry__moon,
@@ -634,7 +638,7 @@ html.neo-mode body .fortune-gateway__entry-action:focus-visible { outline-color:
   .cd-diary-planner-entry__action { min-height: 42px; margin-top: 12px; padding: 8px 11px 8px 14px; font-size: 12px; }
   .cd-diary-planner-entry__note { max-width: 24ch; margin-top: 7px; font-size: 9px; }
   .cd-diary-planner-entry__visual::before { inset: 12px 6px 10px -24px; border-radius: 18px 0 0 18px; }
-  .cd-diary-planner-entry__visual img { width: 156px; margin: 0 -18px -7px 0; }
+  .cd-diary-planner-entry__visual img { width: 166px; margin: 34px -18px -7px 0; border-radius: 15px 15px 0 0; object-position: 70% center; }
   .cd-diary-planner-entry__moon { top: 24px; right: 6%; width: 54px; }
   .cd-diary-planner-entry__orbit--one { width: 100px; height: 100px; right: -13%; bottom: -37px; }
   .cd-diary-planner-entry__orbit--two { width: 64px; height: 64px; right: 33%; bottom: 16px; }

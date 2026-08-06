@@ -40,3 +40,15 @@ test("diary calendar adds local schedules without an entitlement dependency", ()
   assert.match(diary, /function isLuckSyncDiaryUnlocked\(\)[\s\S]*return true/);
   assert.doesNotMatch(diary, /fetch\([^)]*entitlement/i);
 });
+
+test("diary energy waits for a real saju profile instead of rendering uniform defaults", () => {
+  const html = read("index.html");
+  const diary = read("js/luck-sync-diary.js");
+
+  assert.match(html, /luck-sync-diary-v2\.webp/);
+  assert.ok(fs.existsSync(path.join(root, "public/fuctionassets/luck-sync-diary-v2.webp")));
+  assert.match(diary, /function _activeProfilePillars\(/);
+  assert.match(diary, /__cdEnsureDestinyProfileLoaded/);
+  assert.match(diary, /if \(!scores\) \{[\s\S]*사주 프로필을 불러오면 오늘의 균형을 계산합니다/);
+  assert.doesNotMatch(diary, /var base = \{ wealth: 50, love: 50, fame: 50, health: 50, study: 50 \}/);
+});
