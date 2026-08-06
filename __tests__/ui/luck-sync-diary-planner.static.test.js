@@ -20,8 +20,11 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
-  assert.doesNotMatch(html, /cd-planner-entry/);
-  assert.doesNotMatch(html, /FREE · 오늘의 생활 운세/);
+  assert.match(html, /id="cdDiaryPlannerEntry"[\s\S]*data-action="openLuckSyncDiary"/);
+  assert.match(html, /id="cdDiaryPlannerTitle">운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
+  assert.ok(html.indexOf('id="cdSignatureConsult"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
+  assert.match(html, /cdDiaryPlannerEntry'\) \|\| document\.getElementById\('cdSignatureConsult'/);
   assert.match(dashboard, /label:'갓생 다이어리'/);
   assert.match(dashboard, /cta:'다이어리 열기'/);
 });
