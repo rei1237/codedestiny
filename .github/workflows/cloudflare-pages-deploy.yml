@@ -79,7 +79,13 @@ jobs:
           git diff --cached --exit-code
           test -z "$(git ls-files --others --exclude-standard)"
           git diff --check
-          git diff --ignore-space-at-eol --exit-code
+          if ! git diff --quiet; then
+            # GitHub's checkout can normalize line endings after npm ci. Restore
+            # only after every staged, untracked, and meaningful-diff guard passed.
+            git diff --ignore-space-at-eol --exit-code
+            git diff --name-only -z | xargs -0r git restore --worktree --
+          fi
+          test -z "$(git status --porcelain)"
 
       - name: Preview, smoke, and promote the exact SHA
         run: npm run deploy:safe -- --ci --yes
