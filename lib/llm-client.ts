@@ -191,7 +191,11 @@ async function raceWithDeadline<T>(promise: Promise<T>, timeoutMs: number, timeo
   });
   try {
     const outcome = await Promise.race([settled, timeout]);
-    if (outcome.ok === "timeout") throw new Error(timeoutMessage);
+    if (outcome.ok === "timeout") {
+      const timeoutError = new Error(timeoutMessage) as Error & { fallbackBudgetExhausted?: boolean };
+      timeoutError.fallbackBudgetExhausted = true;
+      throw timeoutError;
+    }
     if (outcome.ok === false) throw outcome.error;
     return outcome.value;
   } finally {
@@ -541,9 +545,10 @@ async function callCloudflareWorkersAI(
   //    아예 돌지 못한다. 예산은 호출자가 준 timeoutMs 를 **체인 전체**에 배분한다 — 폐기 모델은
   //    빠르게 실패하므로(5028) 체인의 목적인 폐기 대응은 그대로 유지된다.
   const chainDeadlineAt = Date.now() + resolveTimeoutMs(normalized.timeoutMs);
+  let fallbackBudgetExhausted = false;
   for (const model of models) {
     const remainingMs = chainDeadlineAt - Date.now();
-    if (remainingMs <= 0) {
+    if (fallbackBudgetExhausted || remainingMs <= 0) {
       failures.push(`${model}: skipped (fallback budget exhausted)`);
       continue;
     }
@@ -576,6 +581,9 @@ async function callCloudflareWorkersAI(
       // 폐기(5028)·스키마 거부·빈 응답 — 사유를 가리지 않고 다음 모델로 넘긴다.
       // 마지막 모델까지 실패하면 사유를 전부 합쳐 올린다.
       failures.push(`${model}: ${getErrorMessage(error)}`);
+      if ((error as Error & { fallbackBudgetExhausted?: boolean }).fallbackBudgetExhausted) {
+        fallbackBudgetExhausted = true;
+      }
     }
   }
 
