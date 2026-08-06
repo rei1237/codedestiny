@@ -7,3 +7,115 @@
 .message{max-width:min(92%,600px);display:flex;gap:8px;align-items:flex-end}.assistant{justify-self:start}.user{justify-self:end}.system{justify-self:center;max-width:100%;text-align:center}.messageAvatar{width:32px;height:32px;display:grid;flex:0 0 32px;place-items:center;border:1px solid rgba(179,25,85,.15);border-radius:50%;background:#fff7fa}.bubble{border:1px solid rgba(179,25,85,.13);border-radius:18px 18px 18px 6px;background:#fff;padding:12px 14px;box-shadow:0 10px 22px rgba(150,72,104,.09);line-height:1.68}.bubble>p{margin:0}.user .bubble{border-color:transparent;border-radius:18px 18px 6px;background:var(--rose);color:#fff}.system .bubble{border:0;background:transparent;box-shadow:none;color:var(--muted);font-size:.82rem}.reading .bubble{border-color:rgba(179,25,85,.22)}.bubble details{margin-top:10px;padding-top:9px;border-top:1px solid rgba(179,25,85,.12)}.bubble summary{color:var(--rose);font-size:.82rem;font-weight:900;cursor:pointer}.bubble details p{margin:7px 0 0;color:var(--muted);font-size:.9rem}.cta .bubble{background:#fff9fc}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.actions button,.input button{min-height:44px;border:0;border-radius:999px;padding:0 15px;background:var(--rose);color:#fff;font:inherit;font-size:.84rem;font-weight:900;cursor:pointer}.actions button+button{border:1px solid var(--line);background:transparent;color:var(--ink)}.typing{display:flex;align-items:center;gap:5px;margin:0;padding:12px 14px;border-radius:18px;background:#fff;color:var(--muted);font-size:.84rem}.typing i{width:6px;height:6px;border-radius:50%;background:var(--rose);animation:dotPulse 1.15s infinite ease-in-out}.typing i:nth-child(2){animation-delay:.16s}.typing i:nth-child(3){animation-delay:.32s}.typing span{margin-left:4px}.ticketStatus{justify-self:center;margin:0;border-radius:999px;background:#fff0c7;padding:7px 11px;color:#633d12;font-size:.78rem;font-weight:800}
 .composer{position:sticky;bottom:0;z-index:4;padding:10px max(16px,calc((100vw - 920px)/2)) calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(255,250,252,.94);backdrop-filter:blur(18px)}.policy{margin:0 0 8px;color:var(--muted);font-size:.78rem;font-weight:800}.chips{display:flex;gap:7px;overflow:auto;padding:0 0 9px}.chips button{min-height:34px;white-space:nowrap;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);padding:0 11px;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer}.chips button[aria-pressed=true]{border-color:var(--rose);background:#fff0f6;color:var(--rose)}.input{display:flex;gap:8px}.input input{min-width:0;min-height:46px;flex:1;border:1px solid rgba(179,25,85,.28);border-radius:999px;background:#fff;padding:0 15px;color:var(--ink);font:inherit;font-size:.9rem;outline:none}.input input::placeholder{color:#8c6174}.input input:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(179,25,85,.12)}.input button:disabled{opacity:.55;cursor:not-allowed}.error{margin:8px 0 0;color:#9b173f;font-size:.82rem;font-weight:700}
 @keyframes dotPulse{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-3px);opacity:1}}@media (max-width:560px){.header{min-height:66px}.timeline{padding:14px 12px 136px}.welcomeCard{min-height:166px;padding:18px}.welcomePig{right:-19px;width:154px;height:154px}.welcomeCard>div{max-width:20rem}.message{max-width:94%}.bubble{font-size:.94rem}.characterPicker{gap:6px}.characterPicker button{min-height:78px;padding:9px 8px;column-gap:5px}.characterPicker button>span{font-size:1.08rem}.characterPicker strong{font-size:.78rem}.characterPicker small{font-size:.66rem;line-height:1.2}}@media (prefers-reduced-motion:reduce){.room *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Fortune chat: keep the conversation at the center and let choices feel like voices, not product cards. */
+.room {
+  background:
+    radial-gradient(circle at 82% 13%, rgba(244, 190, 209, .52), transparent 19rem),
+    radial-gradient(circle at 12% 0%, rgba(255, 231, 241, .9), transparent 30rem),
+    #fff8fb;
+}
+
+.header {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .86), 0 10px 28px rgba(150, 72, 104, .06);
+}
+
+.backButton:focus-visible,
+.resetButton:focus-visible,
+.characterPicker button:focus-visible,
+.chips button:focus-visible,
+.actions button:focus-visible,
+.input button:focus-visible,
+.bubble summary:focus-visible {
+  outline: 3px solid rgba(179, 25, 85, .32);
+  outline-offset: 3px;
+}
+
+.timeline {
+  gap: 16px;
+  padding-top: 28px;
+}
+
+.welcomeCard {
+  min-height: 202px;
+  border-color: rgba(179, 25, 85, .24);
+  background:
+    radial-gradient(circle at 77% 18%, rgba(255, 245, 198, .72), transparent 15%),
+    linear-gradient(125deg, #fffdfd 0%, #fff0f6 62%, #fbeeff 100%);
+  box-shadow: 0 18px 38px -26px rgba(135, 49, 82, .56), inset 0 1px 0 rgba(255, 255, 255, .92);
+}
+
+.welcomeCard::after {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: -1;
+  width: 116px;
+  height: 116px;
+  border: 1px solid rgba(179, 25, 85, .14);
+  border-radius: 50%;
+  content: "";
+}
+
+.welcomeCard h1 { font-size: 2rem; }
+.welcomeCard span { max-width: 36ch; font-size: .92rem; }
+
+.characterPicker {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+}
+
+.characterPicker button {
+  min-height: 72px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.characterPicker button:hover {
+  border-color: rgba(179, 25, 85, .4);
+  box-shadow: 0 10px 20px -17px rgba(135, 49, 82, .72), inset 0 1px 0 rgba(255, 255, 255, .9);
+  transform: translateY(-1px);
+}
+
+.characterPicker button[aria-pressed=true] {
+  background: linear-gradient(135deg, #fffafd, #ffedf4);
+  box-shadow: 0 0 0 3px rgba(179, 25, 85, .1), inset 0 1px 0 rgba(255, 255, 255, .92);
+}
+
+.message { gap: 9px; }
+.messageAvatar { box-shadow: 0 5px 14px rgba(150, 72, 104, .1); }
+.bubble { box-shadow: 0 12px 24px -20px rgba(115, 37, 70, .56); }
+.assistant .bubble { border-radius: 20px 20px 20px 7px; }
+.user .bubble { box-shadow: 0 12px 22px -18px rgba(179, 25, 85, .72); }
+
+.bubble details { margin-top: 12px; }
+.bubble summary { width: fit-content; border-radius: 999px; padding: 3px 8px; transition: background-color 150ms ease, color 150ms ease; }
+.bubble summary:hover { background: #fff0f6; }
+.bubble details[open] summary { background: #fff0f6; }
+
+.composer {
+  border-top-color: rgba(179, 25, 85, .16);
+  box-shadow: 0 -14px 30px rgba(150, 72, 104, .06);
+}
+
+.policy { display: flex; align-items: center; gap: 6px; }
+.policy::before { width: 7px; height: 7px; border-radius: 50%; background: #d85b89; content: ""; box-shadow: 0 0 0 3px rgba(216, 91, 137, .13); }
+.chips button { transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease; }
+.chips button:hover { border-color: rgba(179, 25, 85, .44); background: #fff7fa; }
+.input button { box-shadow: 0 10px 20px -16px rgba(179, 25, 85, .84); transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
+.input button:not(:disabled):hover { background: #941343; box-shadow: 0 13px 24px -16px rgba(179, 25, 85, .9); transform: translateY(-1px); }
+
+@media (max-width:560px) {
+  .timeline { gap: 13px; padding-top: 18px; }
+  .welcomeCard { min-height: 180px; }
+  .welcomeCard h1 { font-size: 1.55rem; }
+  .characterPicker button { min-height: 70px; padding: 10px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .characterPicker button:hover,
+  .input button:not(:disabled):hover { transform: none; }
+}

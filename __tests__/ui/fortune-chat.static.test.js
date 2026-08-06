@@ -6,13 +6,16 @@ const assert = require("node:assert/strict");
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("flower pig chat keeps the compact usage label and verified R2 fallback asset", () => {
+test("Yeoni chat keeps a unified character choice and neutral usage label", () => {
   const client = read("app/fortune-chat/FortuneChatClient.tsx");
 
   assert.match(client, /DestinyCafe\/nobackground\/flower-pig-cutout\.webp/);
   assert.match(client, /flower-pig-honey-hug\.webp/);
   assert.doesNotMatch(client, /매일 초기화되지/);
   assert.doesNotMatch(client, /계정당 총 3회/);
+  assert.match(client, /type Character = "yeoni" \| "neo"/);
+  assert.doesNotMatch(client, /\["flower_pig", "yeoni", "neo"\]/);
+  assert.match(client, /usage\.dailyFreeRemaining/);
   assert.match(client, /무료 상담/);
 });
 

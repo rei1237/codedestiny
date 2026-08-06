@@ -7,14 +7,14 @@ import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
 
 type Speaker = "assistant" | "user" | "system";
-type Character = "flower_pig" | "yeoni" | "neo";
+type Character = "yeoni" | "neo";
 type Message = { id: string; speaker: Speaker; text: string; detail?: string; kind?: "reading" | "cta" | "progress" };
-type Usage = { isLoggedIn: boolean; guestFreeRemaining: number; accountFreeRemaining: number; conversationCreditsRemaining: number; canGenerate: boolean };
+type Usage = { isLoggedIn: boolean; guestFreeRemaining: number; dailyFreeRemaining: number; conversationCreditsRemaining: number; canGenerate: boolean };
 type Bootstrap = { session?: { sessionId?: string; messages?: Message[]; characterId?: Character; selectedTopic?: string }; usage?: Usage; fusion?: { ticketRemaining: number; canGenerate: boolean; nextAction: string } };
 
 const TOPICS = ["연애와 인연", "재물과 직업", "인간관계", "가까운 미래", "마음과 선택", "종합적인 흐름"] as const;
 const TOPIC_MAP: Record<string, string> = { "연애와 인연": "love", "재물과 직업": "money_work", "인간관계": "relationship", "가까운 미래": "daily", "마음과 선택": "mind", "종합적인 흐름": "decision" };
-const CHARACTER_LABEL: Record<Character, string> = { flower_pig: "꽃돼지", yeoni: "연이", neo: "네오" };
+const CHARACTER_LABEL: Record<Character, string> = { yeoni: "연이", neo: "네오" };
 const FLOWER_PIG_R2 = getAssetUrlFromPublicPath("/DestinyCafe/nobackground/flower-pig-cutout.webp", {
   baseUrl: "https://assets.code-destiny.com",
   fallbackPublicPath: "/images/fortune-tea-house/flower-pig-honey-hug.webp",
@@ -27,11 +27,11 @@ function welcome(): Message[] {
   return [{
     id: id(),
     speaker: "assistant",
-    text: "안녕하세요, 꽃돼지예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
+    text: "안녕하세요, 연이예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
   }];
 }
 
-function FlowerPigImage({ className = "" }: { className?: string }) {
+function YeoniImage({ className = "" }: { className?: string }) {
   return <img className={className} src={FLOWER_PIG_R2} alt="꽃을 단 꽃돼지 연이" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = FLOWER_PIG_FALLBACK; }} />;
 }
 
@@ -44,7 +44,7 @@ export default function FortuneChatClient() {
   const [fusion, setFusion] = useState<Bootstrap["fusion"]>();
   const [topic, setTopic] = useState(params?.get("topic") || "");
   const [question, setQuestion] = useState("");
-  const [character, setCharacter] = useState<Character>("flower_pig");
+  const [character, setCharacter] = useState<Character>("yeoni");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sessionId, setSessionId] = useState("");
@@ -61,7 +61,8 @@ export default function FortuneChatClient() {
     if (payload.session?.sessionId) setSessionId(payload.session.sessionId);
     if (payload.usage) setUsage(payload.usage);
     if (payload.fusion) setFusion(payload.fusion);
-    if (payload.session?.characterId) setCharacter(payload.session.characterId);
+    if (payload.session?.characterId === "neo") setCharacter("neo");
+    else if (payload.session?.characterId) setCharacter("yeoni");
     if (payload.session?.selectedTopic) setTopic(payload.session.selectedTopic);
     if (payload.session?.messages?.length) setMessages(payload.session.messages);
   }, [apiBase, params]);
@@ -87,7 +88,7 @@ export default function FortuneChatClient() {
 
   const usageLabel = usage
     ? usage.isLoggedIn
-      ? `무료 상담 ${Math.max(0, usage.accountFreeRemaining)}회 남음`
+      ? `무료 상담 ${Math.max(0, usage.dailyFreeRemaining)}회 남음`
       : usage.guestFreeRemaining > 0 ? "첫 상담을 무료로 시작할 수 있어요" : "로그인하고 상담을 이어갈 수 있어요"
     : "상담 가능 여부를 확인하는 중";
 
@@ -142,23 +143,23 @@ export default function FortuneChatClient() {
   return <main className={styles.room} data-character={character}>
     <header className={styles.header}>
       <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label="이전 페이지로 이동">←</button>
-      <div className={styles.brand}><FlowerPigImage className={styles.brandPig} /><div><strong>꽃돼지 운명상담</strong><span>작은 마음부터 천천히 살펴봐요</span></div></div>
+      <div className={styles.brand}><YeoniImage className={styles.brandPig} /><div><strong>연이 운명 상담</strong><span>작은 마음부터 천천히 살펴봐요</span></div></div>
       <button className={styles.resetButton} type="button" aria-label="새 상담 시작" onClick={startNewChat}>새 상담</button>
     </header>
 
     <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
       <section className={styles.welcomeCard} aria-labelledby="fortuneChatWelcomeTitle">
         <div><p>달빛 찻집의 편지함</p><h1 id="fortuneChatWelcomeTitle">오늘, 무엇이 가장 마음에 남나요?</h1><span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span></div>
-        <FlowerPigImage className={styles.welcomePig} />
+        <YeoniImage className={styles.welcomePig} />
       </section>
       <section className={styles.characterPicker} aria-label="상담자 선택">
-        {(["flower_pig", "yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => setCharacter(item)}>
-          <span>{item === "flower_pig" ? "🌸" : item === "yeoni" ? "☕" : "✦"}</span><strong>{CHARACTER_LABEL[item]}</strong><small>{item === "flower_pig" ? "다정한 길잡이" : item === "yeoni" ? "마음을 듣는 연이" : "핵심을 짚는 네오"}</small>
+        {(["yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => setCharacter(item)}>
+          <span>{item === "yeoni" ? "🌸" : "✦"}</span><strong>{CHARACTER_LABEL[item]}</strong><small>{item === "yeoni" ? "꽃돼지 모습의 연이" : "핵심을 짚는 네오"}</small>
         </button>)}
       </section>
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <span className={styles.messageAvatar} aria-hidden>🌸</span> : null}
-        <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details open={message.kind === "reading"}><summary>자세히 보기</summary><p>{message.detail}</p></details>}
+        <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}
           {message.kind === "cta" && <div className={styles.actions}><button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기 <span aria-hidden>→</span></button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>여기까지 볼게요</button></div>}
         </div>
       </article>)}
