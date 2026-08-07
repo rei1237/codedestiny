@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { PersonaAvatar } from "./PersonaAvatar";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import styles from "./fortune-chat.module.css";
@@ -54,28 +54,19 @@ const CATEGORY_BY_TOPIC: Record<string, Category> = {
 };
 
 const CHARACTER_LABEL: Record<Character, string> = { yeoni: "연이", neo: "네오" };
-const FLOWER_PIG_R2 = getAssetUrlFromPublicPath("/DestinyCafe/nobackground/flower-pig-cutout.webp", {
-  baseUrl: "https://assets.code-destiny.com",
-  fallbackPublicPath: "/images/fortune-tea-house/flower-pig-honey-hug.webp",
-  prefix: "",
-});
-const FLOWER_PIG_FALLBACK = "/images/fortune-tea-house/flower-pig-honey-hug.webp";
+const CHARACTER_BLURB: Record<Character, string> = { yeoni: "꽃돼지 모습의 연이", neo: "핵심을 짚는 백사자 네오" };
+const CHARACTER_GREETING: Record<Character, string> = {
+  yeoni: "안녕하세요, 연이예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
+  neo: "네오다. 돌려 말하지 않는다. 무엇을 정하지 못하고 있는지부터 말해라. 판세와 다음 수순을 정리해 주지.",
+};
 
 function id() { return globalThis.crypto?.randomUUID?.() || `fortune-chat-${Date.now()}-${Math.random()}`; }
 
 /** 결제 게이트와 생성 요청이 **같은 requestId** 를 써야 서버가 증빙을 찾는다. */
 function makeRequestId() { return `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 
-function welcome(): Message[] {
-  return [{
-    id: id(),
-    speaker: "assistant",
-    text: "안녕하세요, 연이예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
-  }];
-}
-
-function YeoniImage({ className = "" }: { className?: string }) {
-  return <img className={className} src={FLOWER_PIG_R2} alt="꽃을 단 꽃돼지 연이" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = FLOWER_PIG_FALLBACK; }} />;
+function welcome(character: Character = "yeoni"): Message[] {
+  return [{ id: id(), speaker: "assistant", text: CHARACTER_GREETING[character] }];
 }
 
 export default function FortuneChatClient() {
@@ -278,8 +269,17 @@ export default function FortuneChatClient() {
     setBirth((current) => ({ ...current, ...patch }));
   };
 
+  /**
+   * 상담자를 바꾼다. 아직 대화가 시작되지 않았으면 인사말도 그 상담자의 것으로 갈아준다 —
+   * 네오를 골랐는데 연이의 인사가 남아 있으면 누가 답하는지 알 수 없다.
+   */
+  const switchCharacter = (next: Character) => {
+    setCharacter(next);
+    setMessages((current) => (current.length === 1 && current[0].speaker === "assistant" ? welcome(next) : current));
+  };
+
   const startNewChat = () => {
-    const next = welcome();
+    const next = welcome(character);
     setMessages(next);
     persist(next, "");
     setTopic("");
@@ -295,27 +295,35 @@ export default function FortuneChatClient() {
   return <main className={styles.room} data-character={character}>
     <header className={styles.header}>
       <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label="이전 페이지로 이동">←</button>
-      <div className={styles.brand}><YeoniImage className={styles.brandPig} /><div><strong>연이 운명 상담</strong><span>작은 마음부터 천천히 살펴봐요</span></div></div>
+      <div className={styles.brand}>
+        <PersonaAvatar persona={character} mood="greet" size="sm" decorative />
+        <div><strong>{CHARACTER_LABEL[character]} 운명 상담</strong><span>{character === "neo" ? "판세부터 정리해 드릴게요" : "작은 마음부터 천천히 살펴봐요"}</span></div>
+      </div>
       <button className={styles.resetButton} type="button" aria-label="새 상담 시작" onClick={startNewChat}>새 상담</button>
     </header>
 
     <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
       <section className={styles.welcomeCard} aria-labelledby="fortuneChatWelcomeTitle">
-        <div><p>달빛 찻집의 편지함</p><h1 id="fortuneChatWelcomeTitle">오늘, 무엇이 가장 마음에 남나요?</h1><span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span></div>
-        <YeoniImage className={styles.welcomePig} />
+        <div>
+          <p>달빛 찻집의 편지함</p>
+          <h1 id="fortuneChatWelcomeTitle">{character === "neo" ? "무엇을 정하지 못하고 있나요?" : "오늘, 무엇이 가장 마음에 남나요?"}</h1>
+          <span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span>
+        </div>
+        <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
       </section>
       <section className={styles.characterPicker} aria-label="상담자 선택">
-        {(["yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => setCharacter(item)}>
-          <span>{item === "yeoni" ? "🌸" : "✦"}</span><strong>{CHARACTER_LABEL[item]}</strong><small>{item === "yeoni" ? "꽃돼지 모습의 연이" : "핵심을 짚는 네오"}</small>
+        {(["yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => switchCharacter(item)}>
+          <PersonaAvatar persona={item} mood={character === item ? "cheer" : "listen"} size="md" decorative />
+          <strong>{CHARACTER_LABEL[item]}</strong><small>{CHARACTER_BLURB[item]}</small>
         </button>)}
       </section>
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
-        {message.speaker === "assistant" ? <span className={styles.messageAvatar} aria-hidden>🌸</span> : null}
+        {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}
         <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}
           {message.kind === "cta" && <div className={styles.actions}><button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기 <span aria-hidden>→</span></button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>여기까지 볼게요</button></div>}
         </div>
       </article>)}
-      {(busy || isPaying) && <article className={`${styles.message} ${styles.assistant}`}><span className={styles.messageAvatar} aria-hidden>🌸</span><p className={styles.typing}><i /><i /><i /><span>{busyLabel}</span></p></article>}
+      {(busy || isPaying) && <article className={`${styles.message} ${styles.assistant}`}><PersonaAvatar persona={character} mood="think" size="sm" decorative /><p className={styles.typing}><i /><i /><i /><span>{busyLabel}</span></p></article>}
       {notice && <p className={styles.ticketStatus} role="status">{notice}</p>}
     </div>
 

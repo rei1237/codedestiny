@@ -8,30 +8,104 @@
 .composer{position:sticky;bottom:0;z-index:4;padding:10px max(16px,calc((100vw - 920px)/2)) calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(255,250,252,.94);backdrop-filter:blur(18px)}.policy{margin:0 0 8px;color:var(--muted);font-size:.78rem;font-weight:800}.chips{display:flex;gap:7px;overflow:auto;padding:0 0 9px}.chips button{min-height:34px;white-space:nowrap;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);padding:0 11px;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer}.chips button[aria-pressed=true]{border-color:var(--rose);background:#fff0f6;color:var(--rose)}.input{display:flex;gap:8px}.input input{min-width:0;min-height:46px;flex:1;border:1px solid rgba(179,25,85,.28);border-radius:999px;background:#fff;padding:0 15px;color:var(--ink);font:inherit;font-size:.9rem;outline:none}.input input::placeholder{color:#8c6174}.input input:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(179,25,85,.12)}.input button:disabled{opacity:.55;cursor:not-allowed}.error{margin:8px 0 0;color:#9b173f;font-size:.82rem;font-weight:700}
 @keyframes dotPulse{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-3px);opacity:1}}@media (max-width:560px){.header{min-height:66px}.timeline{padding:14px 12px 136px}.welcomeCard{min-height:166px;padding:18px}.welcomePig{right:-19px;width:154px;height:154px}.welcomeCard>div{max-width:20rem}.message{max-width:94%}.bubble{font-size:.94rem}.characterPicker{gap:6px}.characterPicker button{min-height:78px;padding:9px 8px;column-gap:5px}.characterPicker button>span{font-size:1.08rem}.characterPicker strong{font-size:.78rem}.characterPicker small{font-size:.66rem;line-height:1.2}}@media (prefers-reduced-motion:reduce){.room *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
-/* Fortune chat: keep the conversation at the center and let choices feel like voices, not product cards. */
+/* ────────────────────────────────────────────────────────────────────────────
+   두 상담자 = 같은 구조, 다른 색 계열 (DESIGN.md "두 페르소나를 가르는 축은 밝기가
+   아니라 색상 계열"). 값은 디자인 토큰(styles/theme-tokens.css)에서 가져오고, 이 화면이
+   자체 팔레트를 다시 정의하지 않는다. 폴백은 토큰이 없는 문맥(정적 미리보기)용이다.
+
+   🔴 표면·텍스트·강조색은 반드시 한 세트로 함께 바뀐다. 배경만 바꾸고 글자색을 두면
+   가독성이 무너진다(PRODUCT.md anti-reference: 반쪽 테마 오버라이드).
+   ──────────────────────────────────────────────────────────────────────────── */
 .room {
+  /* 🔴 .room 과 .timeline 은 둘 다 grid 인데 열을 선언하지 않아 암묵 열이 auto(=max-content)였다.
+     그래서 가로로 긴 자식(상담자 카드·칩 줄)이 열을 뷰포트보다 넓히고 화면 전체가 밀렸다
+     (390px 뷰포트에서 문서 폭 539px 측정). 두 단계 모두 못 박아야 자식이 줄어든다. */
+  grid-template-columns: minmax(0, 1fr);
+
+  /* 연이 — 로즈/크림. 밝은 표면이 기본. */
+  --ink: var(--cd-text, #3c1830);
+  --muted: var(--cd-text-muted, #70445c);
+  --rose: var(--cd-accent, #b31955);
+  --rose-soft: var(--cd-accent-soft, #f4bed1);
+  --gold: var(--cd-gold, #ead089);
+  --line: var(--cd-border, rgba(179, 25, 85, .16));
+  --bubble: #fff;
+  --bubble-mine-ink: #fff;
+  --halo: rgba(179, 25, 85, .12);
+  --focus-ring: rgba(179, 25, 85, .32);
+
   background:
     radial-gradient(circle at 82% 13%, rgba(244, 190, 209, .52), transparent 19rem),
     radial-gradient(circle at 12% 0%, rgba(255, 231, 241, .9), transparent 30rem),
     #fff8fb;
+  transition: background-color 260ms cubic-bezier(.22, 1, .36, 1), color 260ms cubic-bezier(.22, 1, .36, 1);
+}
+
+/* 네오 — 미드나잇 잉크 + 트와일라잇 바이올렛. 아이스블루는 강조가 아니라 글로우 보조색이라
+   본문에는 쓰지 않는다(One Accent Rule: 모드당 강조색은 하나). */
+.room[data-character="neo"] {
+  --ink: #f4eeff;
+  --muted: #cbb6ff;
+  --rose: #c4b5fd;
+  --rose-soft: rgba(167, 139, 250, .26);
+  --gold: #e8d5a3;
+  --line: rgba(196, 181, 253, .32);
+  --bubble: rgba(24, 20, 50, .96);
+  --bubble-mine-ink: #0a0818;
+  --halo: rgba(125, 211, 252, .22);
+  --focus-ring: rgba(125, 211, 252, .55);
+
+  background:
+    radial-gradient(circle at 82% 10%, rgba(125, 211, 252, .16), transparent 20rem),
+    radial-gradient(circle at 14% 0%, rgba(167, 139, 250, .26), transparent 28rem),
+    linear-gradient(168deg, #0a0818 0%, #13102a 52%, #090718 100%);
+  color: var(--ink);
 }
 
 .header {
   box-shadow: 0 1px 0 rgba(255, 255, 255, .86), 0 10px 28px rgba(150, 72, 104, .06);
+  background: color-mix(in srgb, var(--bubble) 88%, transparent);
 }
+
+.room[data-character="neo"] .header {
+  box-shadow: 0 1px 0 rgba(196, 181, 253, .1), 0 10px 28px rgba(4, 2, 16, .5);
+}
+
+.backButton,
+.resetButton,
+.brand strong { color: var(--ink); }
+
+/* 헤더는 한 줄로 고정한다. 좁은 화면에서 부제가 2줄이 되면 헤더 높이가 출렁인다. */
+.brand > div { min-width: 0; }
+.brand strong,
+.brand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resetButton { color: var(--rose); }
+.brand span,
+.policy { color: var(--muted); }
+
+.room[data-character="neo"] .backButton:hover,
+.room[data-character="neo"] .resetButton:hover { background: rgba(196, 181, 253, .12); }
 
 .backButton:focus-visible,
 .resetButton:focus-visible,
 .characterPicker button:focus-visible,
 .chips button:focus-visible,
+.followUps button:focus-visible,
 .actions button:focus-visible,
 .input button:focus-visible,
+.input input:focus-visible,
+.birthPanel > summary:focus-visible,
+.birthReload:focus-visible,
 .bubble summary:focus-visible {
-  outline: 3px solid rgba(179, 25, 85, .32);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
 .timeline {
+  /* 🔴 grid 의 암묵 열은 auto = max-content 라, 상담자 카드처럼 한 줄로 긴 자식이 있으면
+     열이 뷰포트보다 넓어지고 화면 전체가 가로로 밀린다(390px 뷰포트에서 539px 측정).
+     minmax(0,1fr) 로 못 박아야 자식이 줄어든다. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   padding-top: 28px;
 }
@@ -57,8 +131,73 @@
   content: "";
 }
 
-.welcomeCard h1 { font-size: 2rem; }
-.welcomeCard span { max-width: 36ch; font-size: .92rem; }
+.welcomeCard h1 {
+  max-width: 22ch;
+  font-size: 2rem;
+  color: var(--ink);
+  /* 한국어는 어절 안에서 끊으면 안 된다. balance 만 걸면 "무엇이 가 / 장 마음에"처럼
+     단어 중간에서 잘린다(원본 화면의 실제 증상). */
+  word-break: keep-all;
+}
+.welcomeCard span { max-width: 34ch; font-size: .92rem; color: var(--muted); word-break: keep-all; }
+.welcomeCard p { color: var(--rose); }
+
+.room[data-character="neo"] .welcomeCard {
+  border-color: rgba(196, 181, 253, .3);
+  background:
+    radial-gradient(circle at 77% 18%, rgba(125, 211, 252, .2), transparent 34%),
+    linear-gradient(125deg, #171334 0%, #14112c 58%, #0d0a22 100%);
+  box-shadow: 0 20px 44px -28px rgba(2, 0, 12, .9), inset 0 1px 0 rgba(196, 181, 253, .16);
+}
+
+.room[data-character="neo"] .welcomeCard::after { border-color: rgba(196, 181, 253, .18); }
+
+/* ── 상담자 아바타 ─────────────────────────────────────────────────────────
+   표정 시트 한 장에서 셀 하나를 잘라 쓴다(app/fortune-chat/personaSprite.ts).
+   장식이 아니라 상태 표시라, 듣는 중과 읽어주는 중이 다른 얼굴로 나온다. */
+.avatar {
+  display: block;
+  flex: 0 0 auto;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  /* 시트가 흰 여백 없는 투명 PNG라 원형 마스크 안에서 얼굴이 위쪽에 앉는다. */
+  background-color: color-mix(in srgb, var(--rose-soft) 42%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.avatar_sm { width: 34px; height: 34px; }
+.avatar_md { width: 46px; height: 46px; }
+.avatar_lg { width: 132px; height: 132px; border-radius: 28px; }
+
+.room[data-character="neo"] .avatar {
+  background-color: rgba(125, 211, 252, .12);
+  box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .34), 0 0 18px -6px rgba(125, 211, 252, .5);
+}
+
+/* 웰컴 카드의 큰 상담자 — 숨쉬듯 아주 조금만 움직인다.
+   원반 배경은 여기서 걷어낸다. 카드 위에서는 캐릭터가 그대로 서 있어야 한다.
+   (페르소나별 .avatar 규칙보다 선택자를 무겁게 잡아야 원반이 되살아나지 않는다.) */
+.room .welcomeCard .avatar_lg {
+  position: absolute;
+  right: 8px;
+  bottom: 10px;
+  width: clamp(132px, 32vw, 186px);
+  height: clamp(132px, 32vw, 186px);
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 18px rgba(70, 20, 44, .22));
+  animation: personaBreathe 5.5s ease-in-out infinite;
+}
+
+.room[data-character="neo"] .welcomeCard .avatar_lg {
+  filter: drop-shadow(0 16px 22px rgba(2, 0, 12, .6)) drop-shadow(0 0 26px rgba(125, 211, 252, .28));
+}
+
+@keyframes personaBreathe {
+  0%, 100% { transform: translateY(0) rotate(-.6deg); }
+  50% { transform: translateY(-6px) rotate(.6deg); }
+}
 
 .characterPicker {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -69,53 +208,140 @@
 .characterPicker button {
   min-height: 72px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, .82);
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--bubble) 82%, transparent);
+  color: var(--ink);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
-  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: border-color 160ms cubic-bezier(.22, 1, .36, 1), background-color 160ms cubic-bezier(.22, 1, .36, 1), box-shadow 160ms cubic-bezier(.22, 1, .36, 1), transform 160ms cubic-bezier(.22, 1, .36, 1);
 }
 
+/* 어절 중간에서 끊으면 "백사자 네 / 오"가 된다. */
+.characterPicker strong,
+.characterPicker small { color: var(--muted); word-break: keep-all; }
+.characterPicker strong { color: var(--ink); }
+
 .characterPicker button:hover {
-  border-color: rgba(179, 25, 85, .4);
+  border-color: color-mix(in srgb, var(--rose) 44%, transparent);
   box-shadow: 0 10px 20px -17px rgba(135, 49, 82, .72), inset 0 1px 0 rgba(255, 255, 255, .9);
   transform: translateY(-1px);
 }
 
 .characterPicker button[aria-pressed=true] {
-  background: linear-gradient(135deg, #fffafd, #ffedf4);
-  box-shadow: 0 0 0 3px rgba(179, 25, 85, .1), inset 0 1px 0 rgba(255, 255, 255, .92);
+  border-color: var(--rose);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--rose-soft) 26%, var(--bubble)), var(--bubble));
+  box-shadow: 0 0 0 3px var(--halo), inset 0 1px 0 rgba(255, 255, 255, .92);
+}
+
+.room[data-character="neo"] .characterPicker button {
+  box-shadow: inset 0 1px 0 rgba(196, 181, 253, .12);
+}
+
+.room[data-character="neo"] .characterPicker button[aria-pressed=true] {
+  box-shadow: 0 0 0 3px var(--halo), 0 0 24px -10px rgba(125, 211, 252, .8);
 }
 
 .message { gap: 9px; }
-.messageAvatar { box-shadow: 0 5px 14px rgba(150, 72, 104, .1); }
-.bubble { box-shadow: 0 12px 24px -20px rgba(115, 37, 70, .56); }
-.assistant .bubble { border-radius: 20px 20px 20px 7px; }
-.user .bubble { box-shadow: 0 12px 22px -18px rgba(179, 25, 85, .72); }
 
 .bubble details { margin-top: 12px; }
-.bubble summary { width: fit-content; border-radius: 999px; padding: 3px 8px; transition: background-color 150ms ease, color 150ms ease; }
-.bubble summary:hover { background: #fff0f6; }
-.bubble details[open] summary { background: #fff0f6; }
+.bubble summary { width: fit-content; border-radius: 999px; padding: 3px 8px; transition: background-color 150ms cubic-bezier(.22, 1, .36, 1), color 150ms cubic-bezier(.22, 1, .36, 1); }
+.bubble summary:hover,
+.bubble details[open] summary { background: color-mix(in srgb, var(--rose-soft) 26%, transparent); }
+.reading .bubble { border-color: color-mix(in srgb, var(--rose) 26%, transparent); }
+
+/* ── 말풍선 ────────────────────────────────────────────────────────────────
+   스티커처럼 둥글고, 꼬리로 누가 말하는지 형태만으로 읽히게 한다. */
+.bubble {
+  position: relative;
+  border-color: var(--line);
+  border-radius: 20px 20px 20px 7px;
+  background: var(--bubble);
+  color: var(--ink);
+  box-shadow: 0 12px 26px -18px rgba(150, 72, 104, .5);
+}
+
+/* 꼬리: 배경과 테두리를 그대로 물려받은 마름모를 말풍선 모서리에 붙인다. */
+.assistant .bubble::before,
+.user .bubble::after {
+  position: absolute;
+  bottom: 9px;
+  width: 11px;
+  height: 11px;
+  border: inherit;
+  background: inherit;
+  content: "";
+}
+
+.assistant .bubble::before {
+  left: -5px;
+  border-width: 0 0 1px 1px;
+  border-bottom-left-radius: 3px;
+  transform: rotate(20deg) skewX(-8deg);
+}
+
+.user .bubble::after {
+  right: -5px;
+  border-width: 0 1px 1px 0;
+  border-bottom-right-radius: 3px;
+  transform: rotate(-20deg) skewX(8deg);
+}
+
+.user .bubble {
+  border-radius: 20px 20px 7px 20px;
+  background: var(--rose);
+  color: var(--bubble-mine-ink);
+  box-shadow: 0 14px 28px -18px var(--halo);
+}
+
+.system .bubble { color: var(--muted); }
+.bubble summary { color: var(--rose); }
+.bubble details { border-top-color: var(--line); }
+.bubble details p { color: var(--muted); }
+.cta .bubble { background: color-mix(in srgb, var(--rose-soft) 16%, var(--bubble)); }
+
+.room[data-character="neo"] .bubble { box-shadow: 0 14px 30px -20px rgba(2, 0, 12, .9); }
+.room[data-character="neo"] .cta .bubble { background: color-mix(in srgb, rgba(125, 211, 252, .14) 60%, var(--bubble)); }
+
+/* 새 말풍선은 아래에서 살짝 올라오며 자리를 잡는다(도착을 알리는 모션). */
+.message { animation: bubbleArrive 320ms cubic-bezier(.22, 1, .36, 1) both; }
+
+@keyframes bubbleArrive {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.typing { background: var(--bubble); color: var(--muted); border: 1px solid var(--line); }
+.typing i { background: var(--rose); }
+
+.ticketStatus { background: color-mix(in srgb, var(--gold) 34%, var(--bubble)); color: var(--ink); }
 
 .composer {
-  border-top-color: rgba(179, 25, 85, .16);
+  border-top-color: var(--line);
+  background: color-mix(in srgb, var(--bubble) 92%, transparent);
   box-shadow: 0 -14px 30px rgba(150, 72, 104, .06);
 }
 
+.room[data-character="neo"] .composer { box-shadow: 0 -14px 30px rgba(2, 0, 12, .55); }
+
 .policy { display: flex; align-items: center; gap: 6px; }
-.policy::before { width: 7px; height: 7px; border-radius: 50%; background: #d85b89; content: ""; box-shadow: 0 0 0 3px rgba(216, 91, 137, .13); }
-.chips button { transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease; }
-.chips button:hover { border-color: rgba(179, 25, 85, .44); background: #fff7fa; }
-.input button { box-shadow: 0 10px 20px -16px rgba(179, 25, 85, .84); transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
-.input button:not(:disabled):hover { background: #941343; box-shadow: 0 13px 24px -16px rgba(179, 25, 85, .9); transform: translateY(-1px); }
+.policy::before { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); content: ""; box-shadow: 0 0 0 3px var(--halo); }
+.chips button { border-color: var(--line); background: var(--bubble); color: var(--ink); transition: border-color 150ms cubic-bezier(.22, 1, .36, 1), background-color 150ms cubic-bezier(.22, 1, .36, 1), color 150ms cubic-bezier(.22, 1, .36, 1); }
+.chips button:hover { border-color: color-mix(in srgb, var(--rose) 48%, transparent); background: color-mix(in srgb, var(--rose-soft) 20%, var(--bubble)); }
+.chips button[aria-pressed=true] { border-color: var(--rose); background: color-mix(in srgb, var(--rose-soft) 30%, var(--bubble)); color: var(--rose); }
+.input input { border-color: color-mix(in srgb, var(--rose) 30%, transparent); background: var(--bubble); color: var(--ink); }
+.input input::placeholder { color: var(--muted); }
+.input input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px var(--halo); }
+.input button { background: var(--rose); color: var(--bubble-mine-ink); box-shadow: 0 10px 20px -16px var(--halo); transition: transform 150ms cubic-bezier(.22, 1, .36, 1), box-shadow 150ms cubic-bezier(.22, 1, .36, 1), filter 150ms cubic-bezier(.22, 1, .36, 1); }
+.input button:not(:disabled):hover { filter: brightness(.92); box-shadow: 0 13px 24px -16px var(--halo); transform: translateY(-1px); }
+.error { color: color-mix(in srgb, var(--rose) 76%, #ff4d6d); }
 
 /* 남은 무료 횟수와 유료 전환 가격을 한 줄에서 읽히게 한다. */
 .policyRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .priceBadge {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(179, 25, 85, .3);
+  border: 1px solid color-mix(in srgb, var(--rose) 34%, transparent);
   border-radius: 999px;
-  background: #fff2f7;
+  background: color-mix(in srgb, var(--rose-soft) 24%, var(--bubble));
   padding: 4px 11px;
   color: var(--rose);
   font-size: .76rem;
@@ -130,37 +356,37 @@
   min-height: 34px;
   flex: 0 0 auto;
   white-space: nowrap;
-  border: 1px dashed rgba(179, 25, 85, .34);
+  border: 1px dashed color-mix(in srgb, var(--rose) 38%, transparent);
   border-radius: 999px;
-  background: #fff6fa;
+  background: color-mix(in srgb, var(--rose-soft) 16%, var(--bubble));
   padding: 0 12px;
   color: var(--rose);
   font: inherit;
   font-size: .78rem;
   font-weight: 800;
   cursor: pointer;
+  transition: border-color 150ms cubic-bezier(.22, 1, .36, 1), background-color 150ms cubic-bezier(.22, 1, .36, 1);
 }
-.followUps button:hover { border-style: solid; background: #ffeef5; }
-.followUps button:focus-visible { outline: 3px solid rgba(179, 25, 85, .32); outline-offset: 3px; }
+.followUps button:hover { border-style: solid; background: color-mix(in srgb, var(--rose-soft) 30%, var(--bubble)); }
 
 /* 근거 목록은 줄바꿈을 살려야 읽힌다(detail 에 개행으로 담긴다). */
 .bubble details p { white-space: pre-wrap; }
 
 /* 생년 정보 — 프로필 카드가 있으면 접힌 채로 요약만 보이고, 없을 때만 펼쳐 묻는다. */
-.birthPanel { margin: 0 0 9px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, .78); padding: 9px 12px; }
+.birthPanel { margin: 0 0 9px; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--bubble) 78%, transparent); padding: 9px 12px; }
 .birthPanel > summary { color: var(--ink); font-size: .8rem; font-weight: 800; cursor: pointer; list-style: none; }
 .birthPanel > summary::-webkit-details-marker { display: none; }
 .birthPanel > summary::after { margin-left: 6px; color: var(--rose); content: "▾"; }
 .birthPanel[open] > summary::after { content: "▴"; }
 .birthGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .birthGrid label { display: grid; gap: 4px; min-width: 0; color: var(--muted); font-size: .74rem; font-weight: 800; }
-.birthGrid em { color: #9a7286; font-style: normal; font-weight: 600; }
+.birthGrid em { color: var(--muted); font-style: normal; font-weight: 600; opacity: .85; }
 .birthGrid input,
 .birthGrid select {
   min-height: 44px;
-  border: 1px solid rgba(179, 25, 85, .24);
+  border: 1px solid color-mix(in srgb, var(--rose) 26%, transparent);
   border-radius: 12px;
-  background: #fff;
+  background: var(--bubble);
   padding: 0 10px;
   color: var(--ink);
   /* iOS 확대 방지 — 16px 미만으로 낮추지 말 것. */
@@ -168,18 +394,29 @@
   font-size: 16px;
 }
 .birthGrid input:focus,
-.birthGrid select:focus { border-color: var(--rose); outline: none; box-shadow: 0 0 0 3px rgba(179, 25, 85, .12); }
-.birthReload { min-height: 36px; margin-top: 9px; border: 1px solid var(--line); border-radius: 999px; background: #fff; padding: 0 12px; color: var(--rose); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; }
-.birthReload:hover { background: #fff4f8; }
-.birthPanel > summary:focus-visible,
-.birthReload:focus-visible { outline: 3px solid rgba(179, 25, 85, .32); outline-offset: 3px; }
+.birthGrid select:focus { border-color: var(--rose); outline: none; box-shadow: 0 0 0 3px var(--halo); }
+.birthReload { min-height: 36px; margin-top: 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--bubble); padding: 0 12px; color: var(--rose); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.birthReload:hover { background: color-mix(in srgb, var(--rose-soft) 20%, var(--bubble)); }
+
+/* 네오의 날짜·시간 입력은 브라우저 기본 피커 아이콘이 검정이라 어두운 표면에서 사라진다. */
+.room[data-character="neo"] .birthGrid input::-webkit-calendar-picker-indicator { filter: invert(1) brightness(1.6); }
 
 @media (max-width:560px) {
   .timeline { gap: 13px; padding-top: 18px; }
-  .welcomeCard { min-height: 180px; }
-  .welcomeCard h1 { font-size: 1.55rem; }
-  .characterPicker button { min-height: 70px; padding: 10px; }
+  .welcomeCard { min-height: 190px; }
+  .welcomeCard h1 { font-size: 1.5rem; max-width: 13ch; }
+  .welcomeCard span { max-width: 22ch; }
+  .characterPicker button { min-height: 70px; padding: 10px 9px; column-gap: 8px; }
+  .characterPicker small { font-size: .68rem; line-height: 1.25; white-space: normal; }
+  .avatar_md { width: 38px; height: 38px; }
+  .room .welcomeCard .avatar_lg { right: 2px; bottom: 6px; width: clamp(112px, 34vw, 150px); height: clamp(112px, 34vw, 150px); }
   .birthGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* 파일 앞쪽 규칙이 .room * 에 animation/transition none !important 를 이미 걸어
+   자식 요소는 덮이지만, .room 자신은 그 선택자에 안 걸린다. */
+@media (prefers-reduced-motion: reduce) {
+  .room { transition: none; }
 }
 
 @media (prefers-reduced-motion:reduce) {
