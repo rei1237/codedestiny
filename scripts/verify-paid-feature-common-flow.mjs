@@ -4,7 +4,21 @@ import assert from "node:assert/strict";
 
 const root = process.cwd();
 const scanRoots = ["app", "components", "src", "js"];
-const rootFiles = ["index.html"];
+// 루트 정적 페이지도 배포되는 결제 표면이다. 예전에는 index.html 만 스캔해서
+// celestial-harmony.html 의 paymentMode 없는 coin-gate 직접 fetch 가 그대로 통과했다.
+const rootFiles = [
+  "index.html",
+  "celestial-harmony.html",
+  "cosmic-soul-meditation.html",
+  "geomancy-oracle-v4.html",
+  "ifa_oracle_v2_full.html",
+  "neville-meditation.html",
+  "pet-saju.html",
+  "royal-tea-oracle.html",
+  "tarot-ijik.html",
+  "vedic-astrology.html",
+  "yoga-guru.html",
+];
 const allowedFiles = new Set([
   path.normalize("app/_lib/billing-client.ts"),
   path.normalize("index.html"),

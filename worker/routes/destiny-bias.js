@@ -1,19 +1,7 @@
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose } from "../lib/db.js";
-import { callGeminiText } from "../lib/gemini.js";
-import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import {
-  buildDestinyBiasAnalysis,
-  buildDestinyBiasCanonical,
-  buildRuleBasedDestinyReport,
-  buildSajuProfile,
-  listDestinyBiasThemes,
-  resolveThemeGate,
-} from "../lib/destiny-bias-engine.js";
-import { buildDestinyBiasInterpretationPrompt } from "../lib/destiny-bias-prompts.js";
 import {
   createHttpError,
-  getRequestMeta,
   getRoutePath,
   handleRouteError,
   json,
@@ -22,7 +10,6 @@ import {
   readJson,
 } from "../lib/http.js";
 import { DestinyBiasCard, User } from "../lib/models.js";
-import { handleFortuneRoutes } from "./fortune.js";
 
 const FEATURE_KEYS = Object.freeze({
   analyze: "destiny-bias-analyze",
@@ -32,16 +19,12 @@ const FEATURE_KEYS = Object.freeze({
 });
 
 const FREE_COLLECTION_LIMIT = 3;
+// 회당 결제 정본은 worker/lib/paid-feature-registry.js 의 destiny-bias-analyze(=5,000원)다.
+// 여기 상수는 OG 카드에 가격을 렌더할 때만 쓴다(buildDestinyBiasOgSvg).
 const DESTINY_BIAS_ANALYZE_COST = 50;
-const DESTINY_BIAS_ANALYZE_REASON = "최애운명 심화 분석";
 
 function normalizeText(value, maxLen = 1200) {
   return String(value || "").trim().slice(0, maxLen);
-}
-
-function normalizeNumber(value) {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
 }
 
 function parsePositiveInt(value, fallback, min, max) {
@@ -98,19 +81,6 @@ function parseCardsQuery(request) {
   };
 }
 
-async function tryResolveRuntimeUser(request, env) {
-  try {
-    const auth = await requireAuth(request, env);
-    await connectDb(env);
-    const user = await User.findById(auth.userId)
-      .select("unlockedFeatures profileSubscription points")
-      .lean();
-    return { auth, user };
-  } catch (e) {
-    return { auth: null, user: null };
-  }
-}
-
 function buildGateState(auth, user) {
   const canUsePremiumTheme = hasFeatureAccess(user, FEATURE_KEYS.premiumTheme);
   const canSaveCollection = Boolean(auth);
@@ -122,49 +92,6 @@ function buildGateState(auth, user) {
     canSaveCollection,
     freeCollectionLimit: FREE_COLLECTION_LIMIT,
     featureKeys: FEATURE_KEYS,
-  };
-}
-
-function normalizePersonInput(rawValue, fallbackName) {
-  const source = (rawValue && typeof rawValue === "object") ? rawValue : {};
-  const rawBirth = source.birth && typeof source.birth === "object" ? source.birth : {};
-  const latitude = normalizeNumber(source.latitude ?? source.lat ?? rawBirth.latitude ?? rawBirth.lat);
-  const longitude = normalizeNumber(source.longitude ?? source.lng ?? rawBirth.longitude ?? rawBirth.lng);
-  const locationName = normalizeText(source.birthPlace || source.place || rawBirth.birthPlace || rawBirth.place, 64);
-  const timezone = normalizeText(source.timezone || rawBirth.timezone, 40);
-
-  const birth = {
-    ...rawBirth,
-    calendarType: normalizeText(rawBirth.calendarType || rawBirth.calendar || source.calendarType || source.calendar, 24),
-    year: rawBirth.year ?? source.year,
-    month: rawBirth.month ?? source.month,
-    day: rawBirth.day ?? source.day,
-    hour: rawBirth.hour ?? source.hour,
-    minute: rawBirth.minute ?? source.minute,
-    birthDate: normalizeText(rawBirth.birthDate || source.birthDate || source.date || source.birthday, 32),
-    birthTime: normalizeText(rawBirth.birthTime || source.birthTime || source.time, 16),
-    unknownTime: rawBirth.unknownTime ?? source.unknownTime,
-    timezone: timezone || rawBirth.timezone,
-    birthPlace: locationName || rawBirth.birthPlace,
-    latitude,
-    longitude,
-  };
-
-  return {
-    name: normalizeText(source.name, 24) || fallbackName,
-    gender: normalizeText(source.gender, 12),
-    timezone,
-    location: locationName || latitude !== null || longitude !== null
-      ? {
-          name: locationName || "출생지 미상",
-          latitude,
-          longitude,
-          timezone,
-        }
-      : null,
-    hourPillarTimePolicy: normalizeText(source.hourPillarTimePolicy || source.timeCorrectionPolicy, 32),
-    dayChangePolicy: normalizeText(source.dayChangePolicy, 32),
-    birth,
   };
 }
 
@@ -250,142 +177,6 @@ function handleOgImage(request) {
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
       "Cache-Control": "public, max-age=0, s-maxage=3600",
-    },
-  });
-}
-
-function buildConsumeRequestId() {
-  try {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return `destiny-bias-${crypto.randomUUID()}`;
-    }
-  } catch (e) {
-    // ignore
-  }
-
-  return `destiny-bias-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function pickHeader(sourceHeaders, key) {
-  const value = sourceHeaders.get(key);
-  return value == null ? "" : String(value);
-}
-
-async function consumeAnalyzeCoins(request, env) {
-  const consumeUrl = new URL("/api/fortune/pig-coin/consume", request.url).toString();
-  const headers = new Headers();
-  headers.set("Content-Type", "application/json");
-
-  const authHeader = pickHeader(request.headers, "Authorization");
-  const cookieHeader = pickHeader(request.headers, "Cookie");
-  const adminHeader = pickHeader(request.headers, "x-admin-token");
-  if (authHeader) headers.set("Authorization", authHeader);
-  if (cookieHeader) headers.set("Cookie", cookieHeader);
-  if (adminHeader) headers.set("x-admin-token", adminHeader);
-
-  const delegatedRequest = new Request(consumeUrl, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      featureKey: FEATURE_KEYS.analyze,
-      reason: DESTINY_BIAS_ANALYZE_REASON,
-      requestId: buildConsumeRequestId(),
-    }),
-  });
-
-  const consumeResponse = await handleFortuneRoutes(delegatedRequest, env);
-  const payload = await consumeResponse.clone().json().catch(() => ({}));
-
-  if (!consumeResponse.ok) {
-    throw createHttpError(Number(consumeResponse.status || 402), String(payload?.message || "결제 확인에 실패했습니다."), {
-      code: String(payload?.code || "PAYMENT_CONFIRM_FAILED"),
-      featureKey: FEATURE_KEYS.analyze,
-      requiredCoins: DESTINY_BIAS_ANALYZE_COST,
-      consume: payload,
-    });
-  }
-
-  return payload;
-}
-
-async function handleAnalyze(request, env) {
-  const auth = await requireAuth(request, env);
-  const consumePayload = await consumeAnalyzeCoins(request, env);
-
-  const body = await readJson(request);
-  const userInput = normalizePersonInput(body?.user, "나");
-  const biasInput = normalizePersonInput(body?.bias, "최애");
-
-  let userProfile;
-  let biasProfile;
-  try {
-    userProfile = buildSajuProfile(userInput);
-    biasProfile = buildSajuProfile(biasInput);
-  } catch (error) {
-    throw createHttpError(400, "유효한 생년월일 정보를 입력해 주세요.", {
-      code: "INVALID_BIRTH_INPUT",
-      detail: normalizeText(error?.message, 240),
-    });
-  }
-
-  const runtime = await tryResolveRuntimeUser(request, env);
-  const gates = buildGateState(runtime.auth, runtime.user);
-  const themeGate = resolveThemeGate(body?.themeKey, gates.canUsePremiumTheme);
-
-  const analysis = buildDestinyBiasAnalysis(userProfile, biasProfile, {
-    themeKey: themeGate.resolvedThemeKey,
-  });
-  const canonical = buildDestinyBiasCanonical(userProfile, biasProfile, analysis);
-
-  const prompt = buildDestinyBiasInterpretationPrompt(canonical);
-  const geminiResult = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["DESTINY_BIAS_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
-    temperature: 0.86,
-    topP: 0.95,
-    maxOutputTokens: 4096,
-    timeoutMs: Number(env.DESTINY_BIAS_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    maxAttemptsPerPair: Number(env.DESTINY_BIAS_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2),
-    // 결정적(생년월일 기반) 해석 → 캐시 + in-flight dedup으로 중복 과금 방지
-    cache: {
-      store: createLlmCacheStore(env),
-      deterministic: true,
-      ttlSeconds: 30 * 24 * 60 * 60,
-      keyExtra: "destiny-bias-v1",
-    },
-  });
-
-  const reportText = geminiResult?.ok
-    ? String(geminiResult.text || "").trim()
-    : buildRuleBasedDestinyReport(canonical);
-  const analysisSource = geminiResult?.ok ? "gemini" : "rule-based";
-  const warnings = [];
-  if (themeGate.downgraded && themeGate.warning) warnings.push(themeGate.warning);
-  if (!geminiResult?.ok) warnings.push("전문가 해석이 일시적으로 지연되어 내부 룰 기반 해석으로 응답했습니다.");
-
-  return json({
-    ok: true,
-    analysisSource,
-    calculationMode: "internal-saju-engine",
-    result: {
-      ...analysis,
-      reportText,
-      canonical,
-      themes: listDestinyBiasThemes(),
-      gates,
-      warnings,
-      pricing: {
-        featureKey: FEATURE_KEYS.analyze,
-        perUseCoins: DESTINY_BIAS_ANALYZE_COST,
-        chargedCoins: Number(consumePayload?.chargedCoins || DESTINY_BIAS_ANALYZE_COST),
-      },
-      coinTransaction: {
-        code: String(consumePayload?.code || "OK"),
-        transactionId: String(consumePayload?.transactionId || ""),
-      },
-      auth: {
-        userId: String(auth?.userId || ""),
-      },
-      requestMeta: getRequestMeta(request),
     },
   });
 }
@@ -488,10 +279,6 @@ export async function handleDestinyBiasRoutes(request, env) {
 
     if (method === "GET" && path === "/og") {
       return handleOgImage(request);
-    }
-
-    if (method === "POST" && path === "/analyze") {
-      return await handleAnalyze(request, env);
     }
 
     if (method === "POST" && path === "/cards") {
