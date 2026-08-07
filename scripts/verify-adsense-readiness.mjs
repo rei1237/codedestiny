@@ -1072,19 +1072,49 @@ function verifyCustomNotFoundPage(baseDir) {
   );
 }
 
+/** `_headers` 를 [경로, 헤더줄들] 블록으로 나눈다. */
+function parseHeadersRules(headersText) {
+  const rules = [];
+  let current = null;
+  for (const line of headersText.split(/\r?\n/)) {
+    if (line.startsWith("/")) {
+      current = { path: line.trim(), headers: [] };
+      rules.push(current);
+    } else if (current && /^[ \t]+\S/.test(line)) {
+      current.headers.push(line.trim());
+    } else if (!line.trim()) {
+      current = null;
+    }
+  }
+  return rules;
+}
+
+/**
+ * `_headers` 규칙 하나가 요구 패턴을 덮는가.
+ *
+ * Cloudflare 는 `/x*` 를 `/x` 와 `/x/…` 양쪽에 적용하므로, 두 규칙을 하나로 합쳐도 계약은
+ * 그대로다. 합치는 것은 취향이 아니라 필요다 — Pages 는 `_headers` 규칙을 **100개까지만**
+ * 적용하고 나머지를 조용히 버린다(2026-08-08: 133개 중 33개가 버려져 `/_next/static/*` 의
+ * immutable 규칙이 통째로 죽어 있었다). 그래서 여기서는 문자열 일치가 아니라 포함관계를 본다.
+ */
+function headersRuleCovers(rulePath, pattern) {
+  if (rulePath === pattern) return true;
+  if (!rulePath.endsWith("*")) return false;
+  return pattern.startsWith(rulePath.slice(0, -1));
+}
+
 function verifyXRobotsNoindexHeaders(headersPath) {
   const headersText = readRequired(headersPath);
+  const rules = parseHeadersRules(headersText);
   for (const pattern of xRobotsNoindexHeaderPatterns) {
     const policyPath = pattern.endsWith("/*") ? pattern.slice(0, -2) : pattern;
     assert(!canLoadAdsense(policyPath), `${policyPath}: X-Robots noindex route must not load AdSense`);
 
     // 셸 사본 라우트는 색인만 막고 링크는 통과시키려고 `noindex, follow` 를 쓴다.
     // 게이트가 지켜야 할 것은 noindex 이므로 follow/nofollow 는 둘 다 허용한다.
-    const rulePattern = new RegExp(
-      `^${escapeRegex(pattern)}\\s*\\r?\\n(?:[ \\t].*\\r?\\n)*?[ \\t]+X-Robots-Tag:\\s*noindex,\\s*(?:no)?follow\\s*$`,
-      "im",
-    );
-    assert(rulePattern.test(headersText), `${headersPath}: missing X-Robots-Tag noindex rule for ${pattern}`);
+    const covered = rules.some((rule) => headersRuleCovers(rule.path, pattern)
+      && rule.headers.some((header) => /^X-Robots-Tag:\s*noindex,\s*(?:no)?follow$/i.test(header)));
+    assert(covered, `${headersPath}: missing X-Robots-Tag noindex rule for ${pattern}`);
   }
 }
 
