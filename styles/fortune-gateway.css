@@ -156,18 +156,23 @@
 .cd-diary-planner-entry__orbit--one { width: 150px; height: 150px; right: 3%; bottom: -58px; }
 .cd-diary-planner-entry__orbit--two { width: 92px; height: 92px; right: 36%; bottom: 13px; border-color: rgba(234, 208, 137, .54); }
 
+/*
+ * 진입점은 배너 하나가 아니라 두 개의 문(門)이다. 예전 구조는 "운명의 문 열기" 버튼이
+ * 다이얼로그를 여는 것처럼 보였지만 실제로는 곧장 /fortune-chat 으로 넘어갔고, 초융합으로
+ * 가는 길은 이 화면 어디에도 없었다. 이제 두 경로와 각각의 가격을 여기서 바로 읽고 고른다.
+ */
 .fortune-gateway__entry-shell {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(210px, .52fr);
-  min-height: 236px;
+  gap: clamp(16px, 2.4vw, 26px);
   overflow: hidden;
   border: 1px solid rgba(179, 25, 85, .2);
   border-radius: 28px;
+  padding: clamp(24px, 3.2vw, 40px);
   background:
-    radial-gradient(circle at 77% 22%, rgba(255, 232, 185, .82), transparent 18%),
-    radial-gradient(circle at 85% 74%, rgba(255, 185, 213, .58), transparent 32%),
+    radial-gradient(circle at 82% 6%, rgba(255, 232, 185, .78), transparent 26%),
+    radial-gradient(circle at 10% 94%, rgba(255, 185, 213, .5), transparent 40%),
     linear-gradient(112deg, #fffdf9 0%, #fff4f8 54%, #f4e7ff 100%);
   box-shadow: 0 20px 48px -34px rgba(91, 23, 65, .75);
 }
@@ -182,25 +187,26 @@
   pointer-events: none;
 }
 
+/* 달 하나. 예전에는 별도 span 이었는데, 장식 하나 때문에 마크업을 늘릴 이유가 없다. */
 .fortune-gateway__entry-shell::after {
   position: absolute;
-  z-index: 1;
-  top: 18%;
-  right: 33%;
-  bottom: 18%;
-  width: 1px;
+  top: 22px;
+  right: 6%;
+  z-index: 0;
+  width: 88px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, .8);
+  border-radius: 50%;
+  background: rgba(255, 251, 230, .58);
+  box-shadow: 0 0 40px rgba(255, 226, 161, .72);
   content: '';
-  background: linear-gradient(180deg, transparent, rgba(153, 63, 105, .18), transparent);
   pointer-events: none;
 }
 
 .fortune-gateway__entry-copy {
+  position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 30px 34px;
+  max-width: 62ch;
 }
 
 .fortune-gateway__eyebrow,
@@ -237,7 +243,6 @@
   line-height: 1.62;
 }
 
-.fortune-gateway__entry-action,
 .fortune-gateway__path button,
 .fortune-gateway__path a,
 .fortune-gateway__close {
@@ -254,89 +259,179 @@
   cursor: pointer;
 }
 
-.fortune-gateway__entry-action {
-  position: relative;
-  overflow: hidden;
-  margin-top: 18px;
-  border: 1px solid rgba(139, 23, 71, .76);
-  border-radius: 999px;
-  background: linear-gradient(135deg, #9d2055, #761338);
-  padding: 10px 18px 10px 20px;
-  color: #fff;
-  box-shadow: 0 12px 22px -16px rgba(99, 10, 47, .9), inset 0 1px 0 rgba(255, 255, 255, .23);
-  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-}
-
-.fortune-gateway__entry-action::after {
-  position: absolute;
-  top: -120%;
-  left: -30%;
-  width: 34%;
-  height: 340%;
-  content: '';
-  background: rgba(255, 255, 255, .22);
-  transform: rotate(24deg) translateX(-280%);
-  transition: transform 420ms ease;
-  pointer-events: none;
-}
-
-.fortune-gateway__entry-action:hover {
-  background: #7b123f;
-  box-shadow: 0 14px 28px -16px rgba(99, 10, 47, .94), inset 0 1px 0 rgba(255, 255, 255, .23);
-  transform: translateY(-2px);
-}
-
-.fortune-gateway__entry-action:hover::after {
-  transform: rotate(24deg) translateX(740%);
-}
-
-.fortune-gateway__entry-action span:last-child,
 .fortune-gateway__path button span,
 .fortune-gateway__path a span {
   font-size: 18px;
   line-height: 1;
 }
 
-.fortune-gateway__entry-visual {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: end center;
-  min-width: 0;
-}
-
-.fortune-gateway__entry-visual img {
+/* ── 두 개의 문 ──────────────────────────────────────────────── */
+.fortune-gateway__doors {
   position: relative;
   z-index: 2;
-  width: min(100%, 248px);
-  height: auto;
-  margin: 0 14px -19px 0;
-  object-fit: contain;
-  filter: drop-shadow(0 16px 16px rgba(101, 37, 74, .18));
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(12px, 1.6vw, 18px);
 }
 
-.fortune-gateway__entry-moon {
-  position: absolute;
-  top: 24px;
-  right: 18%;
-  width: 84px;
-  aspect-ratio: 1;
-  border: 1px solid rgba(255, 255, 255, .8);
-  border-radius: 50%;
-  background: rgba(255, 251, 230, .6);
-  box-shadow: 0 0 34px rgba(255, 226, 161, .78);
+.fortune-gateway__door {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: hidden;
+  min-height: 258px;
+  border-radius: 22px;
+  padding: 22px 22px 20px;
+  text-decoration: none;
+  transition: transform 220ms cubic-bezier(.22, 1, .36, 1), box-shadow 220ms cubic-bezier(.22, 1, .36, 1);
 }
+
+/* 연이 문 — 핑크 크림. 밝은 표면 위에 로즈 크림슨 텍스트. */
+.fortune-gateway__door--chat {
+  border: 1px solid rgba(179, 25, 85, .24);
+  background: linear-gradient(150deg, #fffdfb 0%, #fff1f6 56%, #ffe6f0 100%);
+  box-shadow: 0 16px 34px -28px rgba(102, 29, 74, .68), inset 0 1px 0 rgba(255, 255, 255, .82);
+}
+
+/*
+ * 초융합 문 — 연이 다크(딥 플럼). DESIGN.md "연이 Dark(핑크 다크)" 정본 값이다.
+ * 🔴 깊이를 주려고 네이비·퍼플로 새면 연이 모드의 색 계열이 깨진다.
+ */
+.fortune-gateway__door--fusion {
+  border: 1px solid rgba(244, 190, 209, .38);
+  background:
+    radial-gradient(circle at 78% 78%, rgba(234, 208, 137, .2), transparent 46%),
+    linear-gradient(150deg, #3a0e28 0%, #24081a 100%);
+  box-shadow: 0 18px 40px -26px rgba(38, 6, 26, .9), inset 0 1px 0 rgba(255, 255, 255, .1);
+}
+
+.fortune-gateway__door-art {
+  position: absolute;
+  right: -10px;
+  bottom: -12px;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  width: 168px;
+  height: 168px;
+  pointer-events: none;
+}
+
+.fortune-gateway__door-art img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fortune-gateway__door--chat .fortune-gateway__door-art img { filter: drop-shadow(0 14px 16px rgba(101, 37, 74, .2)); }
+
+.fortune-gateway__door-halo {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+}
+
+.fortune-gateway__door--chat .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(255, 226, 161, .5), transparent 62%); }
+.fortune-gateway__door--fusion .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(232, 213, 163, .3), transparent 64%); }
+
+.fortune-gateway__door-kicker {
+  color: #9f1c52;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.fortune-gateway__door-title {
+  margin: 5px 0 8px;
+  color: #3c1830;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(21px, 2.6vw, 26px);
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1.18;
+}
+
+.fortune-gateway__door-desc {
+  max-width: 27ch;
+  color: #70445c;
+  font-size: 13px;
+  line-height: 1.62;
+  word-break: keep-all;
+}
+
+.fortune-gateway__door-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fortune-gateway__door-meta b {
+  border: 1px solid rgba(179, 25, 85, .26);
+  border-radius: 999px;
+  background: rgba(179, 25, 85, .1);
+  padding: 4px 11px;
+  color: #8b1747;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.fortune-gateway__door-meta i {
+  color: #70445c;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.fortune-gateway__door-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  color: #8b1747;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.fortune-gateway__door-go em {
+  font-size: 17px;
+  font-style: normal;
+  line-height: 1;
+  transition: transform 220ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.fortune-gateway__door--fusion .fortune-gateway__door-kicker { color: #ead089; }
+.fortune-gateway__door--fusion .fortune-gateway__door-title { color: #fff1f7; }
+.fortune-gateway__door--fusion .fortune-gateway__door-desc { color: rgba(255, 228, 240, .88); }
+.fortune-gateway__door--fusion .fortune-gateway__door-meta b {
+  border-color: rgba(234, 208, 137, .48);
+  background: rgba(234, 208, 137, .16);
+  color: #f6e5b8;
+}
+.fortune-gateway__door--fusion .fortune-gateway__door-meta i { color: rgba(255, 228, 240, .82); }
+.fortune-gateway__door--fusion .fortune-gateway__door-go { color: #ffd9e8; }
+
+.fortune-gateway__door:hover {
+  transform: translate3d(0, -3px, 0);
+  box-shadow: 0 24px 44px -26px rgba(91, 23, 65, .72);
+}
+.fortune-gateway__door:hover .fortune-gateway__door-go em { transform: translateX(4px); }
+.fortune-gateway__door:focus-visible { outline: 3px solid #8b1747; outline-offset: 3px; }
 
 .fortune-gateway__entry-note {
-  position: absolute;
-  right: 24px;
-  bottom: 16px;
-  z-index: 3;
+  position: relative;
+  z-index: 2;
   margin: 0;
-  color: rgba(89, 33, 70, .68);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .02em;
+  color: rgba(89, 33, 70, .78);
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: keep-all;
 }
 
 html.neo-mode body #cdDiaryPlannerEntry {
@@ -369,18 +464,50 @@ html.neo-mode body .fortune-gateway__entry-shell {
   box-shadow: 0 20px 48px -34px rgba(0, 0, 0, .86), 0 0 30px rgba(124, 92, 222, .16);
 }
 html.neo-mode body .fortune-gateway__entry-shell::before { border-color: rgba(228, 214, 255, .14); }
-html.neo-mode body .fortune-gateway__entry-shell::after { background: linear-gradient(180deg, transparent, rgba(232, 213, 163, .22), transparent); }
+html.neo-mode body .fortune-gateway__entry-shell::after {
+  border-color: rgba(232, 213, 163, .5);
+  background: rgba(232, 213, 163, .16);
+  box-shadow: 0 0 40px rgba(196, 181, 253, .34);
+}
 html.neo-mode body .fortune-gateway__eyebrow { color: #e8d5a3; }
 html.neo-mode body .fortune-gateway__entry-copy h2 { color: #f4eeff; }
 html.neo-mode body .fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) { color: rgba(218, 206, 255, .9); }
-html.neo-mode body .fortune-gateway__entry-action {
-  border-color: rgba(232, 213, 163, .62);
-  background: linear-gradient(135deg, #d7c7ff, #a78bfa);
-  color: #17102f;
-  box-shadow: 0 12px 22px -16px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .38);
+html.neo-mode body .fortune-gateway__entry-note { color: rgba(218, 206, 255, .82); }
+
+/*
+ * 네오 모드의 두 문 — 퍼플 계열. 표면·텍스트·강조색을 한 세트로 바꾼다.
+ * 배경만 어둡게 하고 글자색을 두면 그게 가독성 붕괴의 주범이다.
+ */
+html.neo-mode body .fortune-gateway__door--chat {
+  border-color: rgba(196, 181, 253, .3);
+  background: linear-gradient(150deg, #1e1840 0%, #16112f 100%);
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, .86), inset 0 1px 0 rgba(228, 214, 255, .1);
 }
-html.neo-mode body .fortune-gateway__entry-action:hover { background: #c4b5fd; }
-html.neo-mode body .fortune-gateway__entry-action:focus-visible { outline-color: #e8d5a3; }
+html.neo-mode body .fortune-gateway__door--fusion {
+  border-color: rgba(232, 213, 163, .34);
+  background:
+    radial-gradient(circle at 78% 78%, rgba(232, 213, 163, .18), transparent 46%),
+    linear-gradient(150deg, #221a4c 0%, #0f0c22 100%);
+  box-shadow: 0 20px 44px -26px rgba(0, 0, 0, .9), 0 0 28px rgba(124, 92, 222, .14);
+}
+html.neo-mode body .fortune-gateway__door-kicker { color: #c4b5fd; }
+html.neo-mode body .fortune-gateway__door--fusion .fortune-gateway__door-kicker { color: #e8d5a3; }
+html.neo-mode body .fortune-gateway__door-title { color: #f4eeff; }
+html.neo-mode body .fortune-gateway__door-desc { color: rgba(218, 206, 255, .9); }
+html.neo-mode body .fortune-gateway__door-meta b {
+  border-color: rgba(196, 181, 253, .34);
+  background: rgba(196, 181, 253, .14);
+  color: #eee6ff;
+}
+html.neo-mode body .fortune-gateway__door--fusion .fortune-gateway__door-meta b {
+  border-color: rgba(232, 213, 163, .48);
+  background: rgba(232, 213, 163, .16);
+  color: #f6e5b8;
+}
+html.neo-mode body .fortune-gateway__door-meta i { color: rgba(218, 206, 255, .84); }
+html.neo-mode body .fortune-gateway__door-go { color: #e8d5a3; }
+html.neo-mode body .fortune-gateway__door--chat .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(196, 181, 253, .26), transparent 62%); }
+html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3; }
 
 #fortuneGatewayDialog.fortune-gateway__dialog {
   position: fixed;
@@ -620,10 +747,8 @@ html.neo-mode body .fortune-gateway__entry-action:focus-visible { outline-color:
   line-height: 1.48;
 }
 
-.fortune-gateway__entry-action:hover,
 .fortune-gateway__path button:hover,
 .fortune-gateway__path a:hover { transform: translate3d(0, -1px, 0); }
-.fortune-gateway__entry-action:focus-visible,
 .fortune-gateway__path button:focus-visible,
 .fortune-gateway__path a:focus-visible,
 .fortune-gateway__close:focus-visible { outline: 3px solid #8b1747; outline-offset: 3px; }
@@ -643,14 +768,39 @@ html.neo-mode body .fortune-gateway__entry-action:focus-visible { outline-color:
   .cd-diary-planner-entry__orbit--one { width: 100px; height: 100px; right: -13%; bottom: -37px; }
   .cd-diary-planner-entry__orbit--two { width: 64px; height: 64px; right: 33%; bottom: 16px; }
   #fortuneGatewayEntry { margin-top: 14px; padding: 0 14px 22px; }
-  .fortune-gateway__entry-shell { height: 236px; min-height: 236px; grid-template-columns: minmax(0, 1fr) 116px; border-radius: 23px; }
-  .fortune-gateway__entry-copy { padding: 20px 0 18px 22px; }
-  .fortune-gateway__entry-copy h2 { margin-block: 5px 7px; font-size: 19px; line-height: 1.16; white-space: nowrap; }
-  .fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) { display: -webkit-box; max-width: 23ch; overflow: hidden; font-size: 12px; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-  .fortune-gateway__entry-action { margin-top: 11px; padding: 9px 12px 9px 14px; font-size: 13px; }
-  .fortune-gateway__entry-visual img { width: 153px; margin: 0 -20px -7px 0; }
-  .fortune-gateway__entry-moon { top: 25px; right: 10%; width: 56px; }
-  .fortune-gateway__entry-note { right: 13px; bottom: 11px; font-size: 9px; }
+  .fortune-gateway__entry-shell { border-radius: 23px; padding: 22px 18px 20px; }
+  .fortune-gateway__entry-shell::after { top: 16px; right: 5%; width: 60px; }
+  .fortune-gateway__entry-copy h2 { margin-block: 5px 7px; font-size: 21px; line-height: 1.18; }
+  .fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) { font-size: 12.5px; }
+  /*
+   * 좁은 화면에서는 아트를 겹치지 않게 자리로 내린다. 절대배치로 두면 카드 폭이 좁아
+   * 설명·가격·CTA 가 차례로 아트 위에 올라앉는다 — 유료 안내가 캐릭터 뒤로 숨는 게 제일 나쁘다.
+   * 카드 높이도 내용에 맞춘다(세로로 쌓이므로 높이를 맞출 이유가 없다).
+   */
+  .fortune-gateway__door {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 96px;
+    align-content: start;
+    min-height: 0;
+    padding: 18px 17px 16px;
+    border-radius: 19px;
+  }
+  .fortune-gateway__door-art {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    justify-self: end;
+    align-self: start;
+    width: 96px;
+    height: 96px;
+    inset: auto;
+  }
+  .fortune-gateway__door-kicker { grid-area: 1 / 1; }
+  .fortune-gateway__door-title { grid-area: 2 / 1; }
+  .fortune-gateway__door-desc { grid-column: 1 / -1; max-width: none; font-size: 12.5px; }
+  .fortune-gateway__door-meta { grid-column: 1 / -1; margin-top: 10px; }
+  .fortune-gateway__door-go { grid-column: 1 / -1; padding-top: 14px; }
+  .fortune-gateway__entry-note { font-size: 11.5px; }
   .fortune-gateway__dialog { padding-inline: 14px; }
   .fortune-gateway__choices { margin-top: 28px; }
   .fortune-gateway__paths { grid-template-columns: 1fr; }
@@ -671,11 +821,12 @@ html.neo-mode body .fortune-gateway__entry-action:focus-visible { outline-color:
 @media (prefers-reduced-motion: reduce) {
   .cd-diary-planner-entry__action { transition: none; }
   .cd-diary-planner-entry__action:hover { transform: none; }
-  .fortune-gateway__entry-action,
+  .fortune-gateway__door,
+  .fortune-gateway__door-go em,
   .fortune-gateway__path button,
   .fortune-gateway__path a { transition: none; }
-  .fortune-gateway__entry-action::after { transition: none; }
-  .fortune-gateway__entry-action:hover,
+  .fortune-gateway__door:hover,
+  .fortune-gateway__door:hover .fortune-gateway__door-go em,
   .fortune-gateway__path button:hover,
   .fortune-gateway__path a:hover { transform: none; }
 }
