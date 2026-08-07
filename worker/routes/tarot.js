@@ -1,5 +1,5 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { requireAuth } from "../lib/auth.js";
+import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -204,19 +204,35 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
   }
 
   if (auth?.userId) {
-    const accessDecision = await canAccessPaidFeature(auth.userId, NUMEROLOGY_TAROT_READING_FEATURE_KEY, {
-      env,
-      // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
-      userDoc: auth.authUserDoc,
-      reason: "수비학 타로 리딩",
-    });
+    // 🔴 이 호출은 관문이 아니라 지름길이다. 회당결제 키에 canAccessPaidFeature 는 원래 늘
+    //    PAYMENT_REQUIRED 를 돌려주고(정본 주석: worker/lib/nakshatra-paid-access.js 상단),
+    //    실제 증빙은 아래 verifyPerUsePayment 가 본다. 그래서 여기서 무엇이 터지든 결제한
+    //    사용자를 막을 이유가 없다 — 증빙 조회로 그대로 넘어간다.
+    //    감싸기 전에는 Mongo 로 분류되지 않는 예외 하나가 handleRouteError 에서 그대로 500 이
+    //    되어, 이미 돈을 낸 사용자가 재시도 안내조차 못 받고 막다른 길에 섰다.
+    let accessDecision = null;
+    try {
+      accessDecision = await canAccessPaidFeature(auth.userId, NUMEROLOGY_TAROT_READING_FEATURE_KEY, {
+        env,
+        // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+        userDoc: auth.authUserDoc,
+        reason: "수비학 타로 리딩",
+      });
+    } catch (error) {
+      // 개인정보는 남기지 않는다(featureKey·오류명만).
+      console.error("[tarot] numerology entitlement precheck failed", JSON.stringify({
+        featureKey: NUMEROLOGY_TAROT_READING_FEATURE_KEY,
+        name: error?.name || "Error",
+        message: String(error?.message || "").slice(0, 200),
+      }));
+    }
     if (accessDecision?.allowed) {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }
 
   if (!auth?.userId) {
-    const authStatus = Number(authError?.status) || 401;
+    const authStatus = Number(authError?.status) || 0;
     if (authStatus === 401 || authStatus === 403) {
       return {
         ok: false,
@@ -225,12 +241,36 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
         message: "로그인 후 결과를 확인할 수 있습니다.",
       };
     }
+    // 자격증명이 아예 오지 않은 경우 — 종전대로 로그인 안내.
+    if (!authError) {
+      return {
+        ok: false,
+        status: 401,
+        code: "NUMEROLOGY_TAROT_AUTH_REQUIRED",
+        message: "로그인 후 결과를 확인할 수 있습니다.",
+      };
+    }
+
     // 인증 자체가 DB 장애로 실패한 경우다. 미결제로 세탁하지 않는다.
+    // 🔴 여기서 바꾼 것은 **status 가 없는 예외** 하나뿐이다. 예전 기본값 `|| 401` 이 그 경우를
+    //    전부 401 로 세탁해, 결제한 로그인 사용자에게 "로그인 후 확인" 을 띄웠다 — 바로 위 주석이
+    //    막겠다고 선언한 경우가 정작 그 기본값으로 새고 있었다. status 가 붙은 실패의 처리는
+    //    종전 그대로다(401·403 은 로그인 안내, 그 밖의 status 는 보류).
+    if (authStatus > 0 || isAuthDbInfraError(authError)) {
+      return {
+        ok: false,
+        status: 503,
+        code: "NUMEROLOGY_TAROT_VERIFY_UNAVAILABLE",
+        message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+      };
+    }
+
+    // status 도 없고 DB 인프라 오류도 아닌 인증 실패 — 종전대로 로그인 안내.
     return {
       ok: false,
-      status: 503,
-      code: "NUMEROLOGY_TAROT_VERIFY_UNAVAILABLE",
-      message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+      status: 401,
+      code: "NUMEROLOGY_TAROT_AUTH_REQUIRED",
+      message: "로그인 후 결과를 확인할 수 있습니다.",
     };
   }
 
@@ -1616,6 +1656,12 @@ export async function handleTarotRoutes(request, env = {}) {
   } catch (error) {
     const mapped = mapInterpretationErrorToHttp(error);
     if (mapped) return mapped;
-    return handleRouteError(error);
+    // context 를 넘겨야 응답과 로그에 requestId·경로가 남는다. 없이 부르던 동안에는 500 이 떠도
+    // 브라우저에도 로그에도 "Internal server error." 한 줄뿐이라 어느 경로가 터졌는지 특정할 수 없었다.
+    return handleRouteError(error, {
+      request,
+      env,
+      trace: { route: "api/tarot", method: request?.method || "" },
+    });
   }
 }
