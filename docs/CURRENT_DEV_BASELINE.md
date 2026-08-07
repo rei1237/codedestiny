@@ -29,8 +29,9 @@ Last curated: `2026-08-02`
 
 ### 2. Session, profile, and points state consistency
 
-- Source files: `app/_lib/auth-client.ts`, `app/_lib/auth-store.ts`, `app/_lib/user-session-cache.ts`, `app/_lib/consultationResultPolling.ts`, `app/me/MeClient.tsx`, `app/points/PointsClient.tsx`, `app/points/history/PointHistoryClient.tsx`, `worker/lib/auth.js`, `worker/lib/db.js`
+- Source files: `app/_lib/auth-client.ts`, `app/_lib/auth-store.ts`, `app/_lib/user-session-cache.ts`, `app/_lib/consultationResultPolling.ts`, `js/destiny-profile.js`, `app/points/PointsClient.tsx`, `app/points/history/PointHistoryClient.tsx`, `worker/lib/auth.js`, `worker/lib/db.js`
 - Why it matters now: sign-in state, profile hydration, points history, and client/server state repair are still active regression areas.
+- Profile card CRUD lives only in the static shell (`js/destiny-profile.js`, mirrored to `public/js/`). The React `/me` duplicate was removed; `/points` and `/points/history` own subscription and payment history, and the mobile "마이" tab routes to the shell via `/?action=dpOpenList`.
 
 ### 3. Premium tarot yearly experience
 
