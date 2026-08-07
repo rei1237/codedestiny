@@ -1,4 +1,4 @@
-# Safe Branch -> PR -> Merge -> Deploy Workflow
+# Safe Branch -> Lane -> Deploy Workflow
 
 ## Start every task
 
@@ -8,6 +8,13 @@
 4. Run `npm run verify:worktree-policy -- --mode=edit` before editing.
 5. Only when two sessions must run in parallel, create a sibling worktree instead:
    `powershell -File scripts/create-safe-worktree.ps1 -Slug <short-feature-name>`
+
+## Pick the lane before shipping
+
+Run `node scripts/lib/change-risk.mjs <file...>` or `npm run release:fast -- --dry-run`.
+
+- **PR required** — auth/login, payment/entitlement, DB schema and migrations, deployment pipeline (`.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). Follow the sections below.
+- **Direct** — everything else. Run `npm run release:fast`; skip to "Merge and deployment" step 5.
 
 ## Before opening a PR
 
