@@ -1,7 +1,10 @@
 name: Worker Deploy Path Guard
 
+# PR 이 없어졌으므로 push 시점의 사후 회귀망으로 돈다. 릴리스 자체를 막지는 않지만
+# Cloudflare 대시보드에서 Worker Git 연동이 켜지면(= 외부 Workers Builds 체크가 생기면)
+# 여기서 드러난다.
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
@@ -23,10 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout PR head
+      - name: Checkout commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

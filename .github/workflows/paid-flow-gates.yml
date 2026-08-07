@@ -1,7 +1,7 @@
 name: Paid Flow Gates
 
 on:
-  pull_request:
+  push:
     branches: [main]
     paths:
       - "worker/**"

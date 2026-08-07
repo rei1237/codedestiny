@@ -29,10 +29,12 @@ async function verifyCanonicalWorkflow() {
   const triggers = deploymentTriggerBlock(workflow);
 
   assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?(?:\r?\n|$)/m.test(triggers), `${canonicalWorkflow} must support manual dispatch.`);
-  assert(/(^|\r?\n)\s+push:\s*\r?\n\s+branches:\s*(?:\[main\]|\r?\n\s+- main\s*(?:\r?\n|$))/m.test(triggers), `${canonicalWorkflow} must deploy on main pushes.`);
+  // push 자동 배포는 2026-08-08 에 제거했다. 로컬 승격이 주 경로이므로 push 트리거가
+  // 살아 있으면 같은 커밋이 로컬과 CI 에서 두 번 나간다.
+  assert(!/^\s+push:/m.test(triggers), `${canonicalWorkflow} must not deploy on push; production promotion is an explicit action.`);
   assert(!/^\s+(pull_request|schedule|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on pull_request, schedule, or workflow_call.`);
   assert(workflow.includes("CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}"), `${canonicalWorkflow} must target the configured Worker.`);
-  assert(workflow.includes("scripts/verify-worktree-policy.mjs --mode=deploy"), `${canonicalWorkflow} must enforce the deploy worktree policy.`);
+  assert(workflow.includes("npm run deploy:safe -- --ci --preview-only"), `${canonicalWorkflow} must offer a preview-only run.`);
   assert(workflow.includes("npm run deploy:safe -- --ci --yes"), `${canonicalWorkflow} must use the integrated SHA release command.`);
 }
 
@@ -58,11 +60,13 @@ async function verifyNoOtherWorkflowDeploys() {
 }
 
 function runSelfTest() {
-  const valid = `on:\n  push:\n    branches:\n      - main\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const valid = `on:\n  workflow_dispatch:\n    inputs:\n      mode:\n        type: choice\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const pushTriggered = `on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
   const invalid = `on:\n  pull_request:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
   const validTriggers = deploymentTriggerBlock(valid);
-  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?$/.test(validTriggers), "valid manual trigger fixture should pass");
-  assert(/(^|\r?\n)\s+push:\s*\r?\n\s+branches:\s*\r?\n\s+- main\s*(?:\r?\n|$)/m.test(validTriggers), "valid main push trigger fixture should pass");
+  assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?(?:\r?\n|$)/m.test(validTriggers), "valid manual trigger fixture should pass");
+  assert(!/^\s+push:/m.test(validTriggers), "dispatch-only fixture must not look push-triggered");
+  assert(/^\s+push:/m.test(deploymentTriggerBlock(pushTriggered)), "push trigger fixture should be detected");
   assert(/^\s+(pull_request|schedule|workflow_call):/m.test(deploymentTriggerBlock(invalid)), "pull request trigger fixture should be detected");
   console.log("[verify-worker-single-deploy-guard] self-test passed");
 }
@@ -131,10 +135,12 @@ async function main() {
   await verifyNoOtherWorkflowDeploys();
   console.log(`[verify-worker-single-deploy-guard] PASS: ${canonicalWorkflow} is the only repository Worker deploy path.`);
 
-  if (process.env.GITHUB_ACTIONS === "true" && process.env.GITHUB_EVENT_NAME === "pull_request") {
+  // 예전에는 pull_request 이벤트에서만 돌았다. PR 을 폐기한 뒤 그 조건은 영원히 거짓이 되어
+  // Cloudflare Worker Git 연동이 켜져도 아무도 몰랐을 것이다. 이제 push 에서도 확인한다.
+  if (process.env.GITHUB_ACTIONS === "true" && ["pull_request", "push"].includes(String(process.env.GITHUB_EVENT_NAME))) {
     await verifyNoExternalWorkerBuildCheck();
   } else {
-    console.log("[verify-worker-single-deploy-guard] external check lookup skipped outside pull_request CI.");
+    console.log("[verify-worker-single-deploy-guard] external check lookup skipped outside CI push/pull_request events.");
   }
 }
 

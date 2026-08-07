@@ -16,12 +16,12 @@
 - `MONGO_SOCKET_TIMEOUT_MS`는 Worker 작업 제한보다 짧아야 한다. 현재 기준은 socket 11초, auth/operation 12초이며 풀 크기나 재시도 횟수를 장애 대응으로 늘리지 않는다.
 - 운영 인덱스 점검은 `npm run verify:access-unlock-indexes`의 `--check` 성격으로 먼저 수행하고, 생성은 별도 운영 DB 쓰기 승인 뒤 실행한다.
 
-## 결제·권한 복구 PR이 병합 불가로 남는 경우
+## 배포가 preview 단계에서 멈추는 경우
 
-- 증상: 최신 CI 실행은 통과했는데도 PR의 merge status에 이전 `Worktree / PR Policy` 실패가 남는다.
-- 가능한 원인: PR 본문 필수 섹션(`Scope`, `Validation`, `No-regression Scope`, `Risk`, `Rollback`) 누락으로 같은 head SHA에 실패 check run이 기록된 뒤, 본문만 수정해 성공 run을 추가한 경우다.
-- 안전한 해소: 누락 섹션을 보완한 뒤 새 커밋 SHA에서 정책 검사를 다시 실행한다. 이전 실패 check run을 우회하거나 보호 브랜치 규칙을 완화하지 않는다.
-- 배포 전 확인: 새 head SHA의 `Worktree / PR Policy`, `paid-flow-gates`, Pages build, secret scan이 통과하고, Worker와 Pages가 같은 SHA로 배포될 준비가 되었는지 확인한다.
+- 증상: `npm run deploy:preview` 가 checks 단계에서 종료되고 preview URL 이 생기지 않는다.
+- 확인 순서: `npm run deploy:check` 로 무엇이 바뀌었고 risk·deep 판정이 무엇인지 먼저 본다. `deep=true` 면 `deploy:critical` 전체가 도는 중이라 시간이 오래 걸릴 뿐 실패가 아닐 수 있다.
+- 베이스가 낡아 막힌 경우: `assertWorkerBaseIsFresh` 가 사라질 커밋 목록과 함께 종료한다. `git merge origin/main` 후 재시도한다. `--allow-stale` 은 의도한 롤백에만 쓴다.
+- 잠금이 잡힌 경우: `Another deploy-safe process owns ...` 는 다른 워크트리·세션이 배포 중이라는 뜻이다. 그쪽이 끝날 때까지 기다린다. 프로세스가 죽어 잠금만 남았다면 주 워크트리의 `.deploy-state/active.lock` 을 확인하고 지운다.
 
 ## 결제 성공 후 이용권 미반영
 
@@ -128,7 +128,7 @@
 - 증상: Cloudflare 자격 증명과 배포 정책 검사는 통과하지만 `changed-file lint`에서 `ESLint found too many warnings (maximum: 0)`으로 종료되고 preview URL이 생성되지 않는다.
 - 원인: 린트 경고를 배포 오류로 승격하는 `--max-warnings=0`이 기존 CommonJS 또는 레거시 정적 JS 경고까지 운영 차단으로 처리한다.
 - 안전한 해소: 배포 게이트는 ESLint `--quiet`으로 실제 오류만 차단한다. 타입 검사, mock 결제·인증 게이트, 전체 회귀 테스트, Worker dry-run과 preview smoke는 그대로 유지한다.
-- 검증: `npm run verify:deploy-safe`, `npm run deploy:critical`, `npm test`, PR 필수 CI를 통과시킨 뒤 새 `main` SHA의 `Cloudflare Safe Auto Release`만 사용한다. 실패한 배포를 수동 Worker/Pages 명령으로 우회하지 않는다.
+- 검증: `npm run verify:deploy-safe`, `npm run deploy:critical`, `npm test` 를 통과시킨 뒤 `npm run deploy:preview` 로 재확인한다. 실패한 배포를 `deploy:cf:worker` 같은 수동 명령으로 우회하지 않는다 — 그 경로에는 아티팩트 지문 대조도 자동 롤백도 없다.
 
 ## Pages preview 업로드 후 배포 목록 조회가 400으로 중단됨
 

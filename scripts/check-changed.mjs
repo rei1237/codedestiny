@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { riskOf, requiresPullRequest, selfTest as riskSelfTest } from "./lib/change-risk.mjs";
+import { riskOf, requiresDeepVerification, selfTest as riskSelfTest } from "./lib/change-risk.mjs";
 
 const root = process.cwd();
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -63,10 +63,10 @@ function main() {
   const files = changedFiles();
   if (!files.length) throw new Error("No changed files found.");
   const risk = riskOf(files).level;
-  const pr = requiresPullRequest(files);
-  console.log(`[check:changed] risk=${risk} prRequired=${pr.required} files=${files.length}`);
+  const deep = requiresDeepVerification(files);
+  console.log(`[check:changed] risk=${risk} deepRequired=${deep.required} files=${files.length}`);
   files.forEach((file) => console.log(`  - ${file}`));
-  for (const match of pr.matches) console.log(`  PR-required: ${match.file} (${match.reason})`);
+  for (const match of deep.matches) console.log(`  deep-verification: ${match.file} (${match.reason})`);
   run("whitespace", "git", ["diff", "--check", committedHead ? "HEAD^..HEAD" : "HEAD"]);
 
   if (files.every((file) => docsOnly.test(file))) {

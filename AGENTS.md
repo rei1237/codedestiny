@@ -25,11 +25,10 @@
 - Do not write to production MongoDB without explicit user approval.
 - Do not deploy to production without explicit user approval.
 - Do not make real LLM API calls, run real payments, write to production DB, or deploy to production during ordinary coding work. Use mock/fake/stub, sandbox, local DB, or test DB validation only unless the user explicitly approves the exact live action.
-- High-risk production changes must go through a PR. Low-risk changes may use the documented `release:fast` path after its range-based checks pass; it only pushes a committed feature-worktree SHA to `main`, and the CI release workflow owns deployment.
-- Codex may merge a PR only after the user explicitly approves the merge in the current task, required CI checks are green, required approvals are present, there are no unresolved blocking reviews or conflicts, and the final diff still matches the approved scope. Never bypass required checks, force-merge, or merge a PR whose scope changed after approval. If GitHub authentication is unavailable, stop and ask the user to re-authenticate.
-- After a permitted merge, Codex may continue to the explicitly approved deployment workflow, verify the deployed commit/version, and run the post-deploy latency runbook. A merge alone never authorizes production deployment, payment, LLM, or production DB actions.
+- Production promotion always needs explicit user approval for that exact run. Preview deployment does not — it never touches `code-destiny.com`.
+- Pushing to `main` deploys nothing. Git is backup, history, and the rollback reference; production is reached only by `npm run deploy:production` or the manual GitHub Actions dispatch.
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
-- Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the GitHub PR/deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
+- Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the normal deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
 - Do not delete existing features, routes, badges, or content unless the user explicitly asks.
 - Do not remove `준비중` badges without user approval.
 - Do not change payment policy, prices, access order, refund behavior, auth, DB schema, Worker bindings, or deployment config casually.
@@ -40,33 +39,49 @@
 - Mobile UI regressions are high risk. Preserve route behavior, safe areas, touch targets, and app payment routing.
 - 몰입형 React 운세 경험은 공용 헤더·푸터·모바일 하단 내비게이션을 렌더하지 않고, 페이지 안에서 접근 가능한 홈·뒤로가기 이탈 제어를 제공한다.
 
-## Branch-First Development and PR Delivery
+## Delivery: Preview First, Then One Command
 
-`main` and `master` are protected. All repository edits, commits, and pushes must happen on a feature branch. A secondary worktree is optional and only pays for itself when two sessions must run in parallel.
+PR-first delivery was retired on 2026-08-08. This is a single-developer repository; the branch → PR → review → merge → deploy chain cost time and agent tokens without preventing regressions. What prevents regressions now is the pipeline: risk-scaled checks, a real preview the user inspects, and a production promotion that verifies itself and rolls back on failure.
 
-- Never edit or commit from `main`, `master`, or a detached HEAD. Editing the primary worktree on a feature branch is allowed and is the default.
-- Start work with `git fetch origin main --no-tags && git switch -c codex/<slug> origin/main`.
-- Run `npm run verify:worktree-policy -- --mode=edit` before the first edit. The PreToolUse hooks and this guard are fail-closed when the current branch cannot be identified safely.
-- Create a sibling worktree with `scripts/create-safe-worktree.ps1` only for genuinely parallel sessions. Keep each session's feature scope and `.work-locks/<session-id>.md` registration explicit. If another `IN_PROGRESS` lock overlaps the target files or feature, stop and report `LOCK DETECTED`.
-- Before opening a PR, fetch `origin/main`, confirm the feature branch contains the latest base, run the relevant checks, and use `npm run verify:worktree-policy -- --mode=pr`.
-- Direct pushes through `release:fast` must use `HEAD:main`; force pushes and direct pushes from a protected branch remain prohibited.
+Work happens on `main` by default. `main` has no branch protection and no ruleset — nothing rejects a direct push.
 
-### Two delivery lanes
+```
+edit on main → commit
+   ↓
+npm run deploy:preview      checks → build → Pages preview + Worker preview version → smoke → opens the browser
+   ↓
+the user inspects the preview themselves
+   ↓
+npm run deploy:production   artifact fingerprint match → Worker 100% → Pages production → health check (auto-rollback on failure)
+   ↓
+git push origin main        backup
+```
 
-`scripts/lib/change-risk.mjs` is the single source of truth. Run `node scripts/lib/change-risk.mjs <file...>` to see the verdict for a change set; `npm run release:fast -- --dry-run` reports the lane without pushing.
+- `npm run deploy:check` prints the change set, risk, deep-verification hits, and the live Cloudflare configuration without deploying anything.
+- `npm run deploy:preview` is safe to run at any time. It never touches `code-destiny.com`.
+- `npm run deploy:production` requires the recorded preview to match `HEAD` and to have passed smoke. It prompts before promoting unless `--yes` is passed.
+- `npm run deploy:rollback -- --list` shows recent Pages deployments and Worker versions; `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]` rolls back and then smokes production.
+- The GitHub Actions **Release Cloudflare Pages and Worker** workflow is the backup path — `Run workflow` with `mode: preview` or `mode: production`. It has no push trigger.
 
-| Lane | When | How |
-|---|---|---|
-| **Pull request** | The change touches auth/login, payment/entitlement, DB schema or migrations, or the deployment pipeline itself | Open a PR targeting `main`. `release:fast` refuses these paths and names the offending files |
-| **Direct** | Everything else, including non-payment Worker routes | `npm run release:fast` pushes `HEAD:main`; the GitHub Actions release owns the deployment |
+### Verification depth instead of review
 
-The split is drawn by one question: can the release pipeline's preview smoke catch the mistake? A broken build or a dead route stops at the preview stage and never reaches production, so it does not need a human. Auth and payment bugs return HTTP 200 while being wrong, DB migrations cannot be rolled back, and a broken pipeline destroys the recovery path — those need a reviewer.
+`scripts/lib/change-risk.mjs` remains the single source of truth and still judges two independent axes. Run `node scripts/lib/change-risk.mjs <file...>` to see the verdict for a change set.
 
-Risk level and lane are independent. `worker/**` stays `level=high`, so CI keeps running `deploy:critical` on it whichever lane it takes.
+| Axis | Meaning |
+|---|---|
+| `level` (low/medium/high) | How deep the ordinary checks go |
+| `deepRequired` | Paths a preview smoke cannot validate — auth/login, payment/entitlement, DB schema and migrations, and the deployment pipeline itself |
 
-- `release:fast` requires a clean tree, a non-protected branch, and `origin/main` as an ancestor. It never creates commits and skips the local Pages build — CI builds during the preview stage.
-- A PR must contain `## Validation`, `## Risk`, `## No-regression Scope`, and `## Rollback` sections. Merge requires green required checks, required review approval, no blocking conflict/review, final-diff scope confirmation, and the user's explicit merge approval for that task.
-- Production Pages/Worker deployment is CI-only from `main` after merge and still requires explicit user approval for that exact deployment. Local `npm run deploy:*` commands are blocked by the policy guard's `--mode=deploy` CI check.
+`deepRequired` used to mean "a human must review this". It now means the pipeline runs the full `deploy:critical` regression regardless of `level`, and `deploy:production` names the offending paths and asks before promoting. The reasoning is unchanged: auth and payment bugs return HTTP 200 while being wrong, migrations cannot be rolled back, and a broken pipeline destroys the recovery path.
+
+The two axes stay independent. `worker/**` remains `level=high`, so `deploy:critical` runs on it either way.
+
+### Parallel sessions
+
+Worktrees are for filesystem isolation, not review. Create one with `powershell -File scripts/create-safe-worktree.ps1 -Slug <name>`, work there, and merge back with a plain `git merge` — no PR.
+
+- `.deploy-state/` and the deploy lock live in the **primary** worktree, so only one worktree can build or promote at a time. A second attempt fails with `Another deploy-safe process owns ...`.
+- `wrangler` pushes the working tree, not a commit. `deploy:preview` calls `assertWorkerBaseIsFresh`, which refuses to run when `origin/main` holds `worker/` or `lib/` commits your HEAD lacks — the failure mode that silently erased four merged changes on 2026-08-01. Override with `--allow-stale` only for a deliberate rollback.
 
 ## Development Workflow
 

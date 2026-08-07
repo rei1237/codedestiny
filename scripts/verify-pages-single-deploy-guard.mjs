@@ -161,12 +161,14 @@ async function testMissingToken() {
 
 const source = await readFile(scriptPath, "utf8");
 assert(source.includes("preview_deployment_setting"), "guard must inspect preview deployment setting");
-const pagesBuildWorkflow = await readFile(new URL("../.github/workflows/pages-build-gate.yml", import.meta.url), "utf8");
-assert(pagesBuildWorkflow.includes("pull_request.head.sha"), "Pages build gate must validate the actual PR head");
-assert(pagesBuildWorkflow.includes("verify:pages-pr-contract"), "Pages build gate must enforce a fresh PR base");
-assert(pagesBuildWorkflow.includes("verify:pages-pr-contract-test"), "Pages build gate must test the fresh-base contract");
-assert(pagesBuildWorkflow.includes("verify:sitemap"), "Pages build gate must verify sitemap integrity");
-assert(!pagesBuildWorkflow.includes("CLOUDFLARE_API_TOKEN"), "PR Pages workflow must not receive Cloudflare secrets");
+// PR 전용 pages-build-gate.yml 은 2026-08-08 에 제거했다. 그 워크플로가 담당하던
+// "배포 전에 build:cf 를 실제로 돌린다"는 이제 deploy-safe 의 preview 단계가 맡는다 —
+// 로컬이든 백업 워크플로든 preview 없이는 승격에 도달하지 못하므로 커버는 유지된다.
+const releaseWorkflow = await readFile(new URL("../.github/workflows/cloudflare-pages-deploy.yml", import.meta.url), "utf8");
+assert(releaseWorkflow.includes("npm run verify:pages-single-deploy"), "release workflow must re-check Pages Git deployments before deploying");
+assert(releaseWorkflow.includes("verify:sitemap"), "release workflow must verify sitemap integrity");
+const deploySafeSource = await readFile(new URL("./deploy-safe.mjs", import.meta.url), "utf8");
+assert(deploySafeSource.includes('run("single Cloudflare production build"'), "preview stage must build Pages once before any deploy");
 const pagesConfigWorkflow = await readFile(new URL("../.github/workflows/pages-config-guard.yml", import.meta.url), "utf8");
 assert(pagesConfigWorkflow.includes("schedule:"), "Pages config guard must run on a schedule");
 assert(pagesConfigWorkflow.includes("workflow_dispatch:"), "Pages config guard must support manual verification");

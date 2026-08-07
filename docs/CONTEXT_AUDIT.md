@@ -18,12 +18,13 @@ Use it only for:
 
 If the first three documents disagree, do not merge rules silently. Record the mismatch here, then resolve it before coding.
 
-## Worktree and PR Policy
+## Delivery Policy
 
-- Active rule: the primary repository worktree, `main`, `master`, and detached HEAD are not valid edit or commit locations. Normal changes must use a registered secondary worktree created from the latest `origin/main`.
-- Active rule: delivery goes through a feature branch and a PR targeting `main`. Required checks, review approval, final-diff scope confirmation, and explicit user merge approval are required before merge. Production deployment remains a separate explicit approval.
-- Enforcement: `scripts/verify-worktree-policy.mjs`, PreToolUse hooks, the worktree PR policy workflow, and the GitHub main branch ruleset enforce the rule at local, CI, and repository levels.
-- Historical drift: older instructions that create a fresh branch in the current primary worktree or auto-deploy a Worker are superseded by this rule.
+- Active rule: work on `main` directly. Ship with `npm run deploy:preview`, let the user inspect the preview, then `npm run deploy:production`. Pushing to `main` deploys nothing.
+- Active rule: production promotion needs explicit user approval for that exact run. Preview does not.
+- Enforcement: `scripts/deploy-safe.mjs` (artifact fingerprint, shared lock, auto-rollback), `scripts/lib/change-risk.mjs` (`deepRequired` forces the full regression on auth/payment/DB/pipeline paths), `scripts/lib/worker-deploy-base-guard.mjs` (stale-base block), `scripts/verify-worker-single-deploy-guard.mjs` (no second deploy path).
+- **2026-08-08 — PR-first policy retired.** The branch → PR → review → merge → deploy chain was removed for a single-developer repository: it cost time and agent tokens without preventing regressions, and `main` never had branch protection or a ruleset enforcing it anyway. Deleted with it: the worktree-policy judge, the release-fast direct lane, the release-PR-overlap check, the Pages PR contract check, the CI-gate waiter, the Codex PR helper directory, and the worktree-pr-policy / pages-build-gate / cloudflare-safe-auto-release workflows. Recover any of them from git history before 2026-08-08 if needed. What replaced review is verification depth, not less checking.
+- Historical drift: any document describing a PR lane, `release:fast`, `verify:worktree-policy`, or a push-triggered production deploy predates this change.
 
 ## Current Conflict Resolutions
 
@@ -44,8 +45,8 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ### Deployment safety
 
-- Active rule: no production deploy without explicit approval, and production release work goes through a PR first.
-- Historical drift: older deployment notes may describe direct or manual flows. Use the active approval-first rule instead.
+- Active rule: no production deploy without explicit approval for that exact run. The preview stage runs freely; only promotion is gated.
+- Historical drift: older deployment notes may describe a PR-gated or push-triggered release. Use the preview-then-promote rule instead.
 
 ## Historical-Only References
 

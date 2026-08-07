@@ -33,7 +33,7 @@ $baseSha = Invoke-Git @('rev-parse', '--verify', $Base)
 if (-not $baseSha) { throw "Base ref is unavailable: $Base" }
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$branch = "codex/$Slug-$stamp"
+$branch = "wt/$Slug-$stamp"
 $target = Join-Path $WorktreeRoot "$Slug-$stamp"
 if (Test-Path -LiteralPath $target) { throw "Refusing to overwrite existing path: $target" }
 $null = & git show-ref --verify --quiet "refs/heads/$branch"
@@ -46,4 +46,5 @@ Write-Host "WORKTREE=$target"
 Write-Host "BRANCH=$branch"
 Write-Host "BASE=$baseSha"
 Write-Host "Next: Set-Location -LiteralPath '$target'"
-Write-Host "Then: npm run verify:worktree-policy -- --mode=edit"
+Write-Host "Deploy lock and .deploy-state stay shared with the primary worktree, so only one"
+Write-Host "worktree can promote at a time. Merge back with a plain 'git merge' - no PR."

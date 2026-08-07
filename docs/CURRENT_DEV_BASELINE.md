@@ -42,11 +42,12 @@ Last curated: `2026-08-02`
 - Source files: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`
 - Why it matters now: the root shell is still the live home source of truth, and mirror sync remains a recurring regression risk.
 
-### 5. Worktree and PR delivery safety
+### 5. Preview-first delivery safety
 
-- Source files: `AGENTS.md`, `scripts/verify-worktree-policy.mjs`, `.github/workflows/worktree-pr-policy.yml`, `.codex/PR_WORKFLOW.md`
-- The primary worktree and protected branches are read-only for normal development. Changes begin in a secondary worktree based on the latest `origin/main`.
-- Use `npm run release:fast` only for clean, committed low-risk changes. It performs range-based checks and pushes the feature SHA to `main`; the CI release workflow deploys Worker and Pages from that SHA. High-risk paths remain PR-only and use `npm run verify:worktree-policy -- --mode=pr`.
+- Source files: `AGENTS.md`, `scripts/deploy-safe.mjs`, `scripts/lib/change-risk.mjs`, `scripts/lib/worker-deploy-base-guard.mjs`, `.github/workflows/cloudflare-pages-deploy.yml`
+- PR-first delivery was retired on 2026-08-08. Work on `main`; ship with `npm run deploy:preview`, inspect the preview, then `npm run deploy:production`. Pushing to `main` deploys nothing.
+- `deepRequired` in `change-risk.mjs` replaces the old PR lane: auth, payment, DB schema, and deployment-pipeline paths force the full `deploy:critical` regression and an explicit confirmation before promotion.
+- Worktrees remain available for parallel sessions. The deploy lock and `.deploy-state/` live in the primary worktree, so only one worktree can promote at a time, and `assertWorkerBaseIsFresh` blocks a stale base from erasing upstream `worker/`/`lib/` commits.
 
 ## Working Rules For Current Tasks
 

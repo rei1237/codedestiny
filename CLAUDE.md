@@ -142,12 +142,13 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 ## 신규 페이지/라우트 추가 시 SEO 콘텐츠 게이트 (배포 차단 주의)
 
-`scripts/verify-adsense-readiness.mjs`는 `build:cf`의 `postbuild` 단계(GitHub Actions에서만 완주 가능 — Windows 로컬은 `/_not-found` prerender 이슈로 `next build`가 끝까지 안 돔)에서 `out/sitemap.xml`에 있는 모든 라우트의 **서버 렌더링된 텍스트 분량**을 검사해 미달 시 배포 자체를 실패시킨다. 카운트 방식(`getVisibleText`, 같은 파일 527번째 줄 부근)은 `<script>`/`<style>`/`<svg>`만 제거하고 나머지 모든 태그 텍스트를 그대로 합산하므로, **클라이언트 전용(`ssr:false`)으로 마운트되는 인터랙티브 도구는 텍스트로 잡히지 않는다** — 서버 컴포넌트에 실제 문단/리스트/FAQ 등 실질 콘텐츠가 있어야 한다.
+`scripts/verify-adsense-readiness.mjs`는 `build:cf`의 `postbuild` 단계에서 `out/sitemap.xml`에 있는 모든 라우트의 **서버 렌더링된 텍스트 분량**을 검사해 미달 시 배포 자체를 실패시킨다. 카운트 방식(`getVisibleText`, 같은 파일 527번째 줄 부근)은 `<script>`/`<style>`/`<svg>`만 제거하고 나머지 모든 태그 텍스트를 그대로 합산하므로, **클라이언트 전용(`ssr:false`)으로 마운트되는 인터랙티브 도구는 텍스트로 잡히지 않는다** — 서버 컴포넌트에 실제 문단/리스트/FAQ 등 실질 콘텐츠가 있어야 한다.
 
 - 라우트가 `app/components/adsense-route-policy.js`의 `canLoadAdsense()` 기준으로 광고 게재 가능(AdSense-eligible)이면: sitemap에 self-canonical로 반드시 포함되어야 하고(`verifyAdsenseEligibleRouteSitemapAlignment`), noindex/nofollow가 없어야 한다.
 - 광고 게재 **불가능**하지만 sitemap에 색인 가능 상태로 남아있는 라우트(예: `/`, 로케일 인덱스 `/ja`, `/zh`, `/en` 및 그 하위, `/today`, `/manse`, `/oracle/*`, `/psychotest/*` 등 다수)는 `verifyBlockedIndexableSitemapRouteQuality`가 **최소 1800자**의 렌더링 텍스트를 요구한다(2026-07 기준 실측 임계값, 같은 파일 상단 `minimumBlockedIndexableVisibleTextLength` 상수 참고 — 값이 바뀔 수 있으니 코드에서 재확인할 것).
 - 신규 유틸리티/허브형 페이지(도구 UI가 `dynamic(..., { ssr: false })`로 마운트되는 경우 특히), 신규 로케일(`/ja`, `/zh`, `/en`) 인덱스·소개 페이지를 추가할 때는 한두 줄짜리 intro만 넣지 말고, 실제 설명 문단·지원 항목 목록·FAQ 등 서버 렌더링되는 실질 콘텐츠를 함께 작성한다.
-- 페이지 추가/사이트맵 변경 후에는 반드시 실제 GitHub Actions "Deploy Cloudflare Pages" 실행 결과로 최종 확인한다 — 로컬 `next build`가 Windows에서 완주되지 않아 `out/` 기반 검사를 로컬 재현할 수 없다.
+- 페이지 추가/사이트맵 변경 후에는 `npm run deploy:preview` 로 실제 빌드를 통과시켜 확인한다. 이 게이트는 `out/` 산출물을 읽으므로 빌드가 끝나야만 돈다.
+  - **Windows 로컬 `next build` 는 완주된다**(예전 서술은 폐기 — `/_not-found` prerender 이슈는 `scripts/next-build-with-pages-manifest.mjs` 의 매니페스트 복구·스텁·taskkill 워치독·재시도가 해결했다). 로컬 빌드가 끝내 실패하면 GitHub Actions "Release Cloudflare Pages and Worker" 를 `mode: preview` 로 디스패치해 CI 에서 확인한다.
 
 ## AdSense 승인·검증·ads.txt (2026-07 감사)
 
@@ -212,12 +213,12 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 - 5줄 이상 변경 시 코딩 전 계획(plan) 우선
 - 코딩 후: `lint` → `typecheck` → 관련 `verify:*` 스크립트 실행 → 변경 파일만 `git add` → Conventional Commits
-- **워커 변경 자동 배포 규칙**: `worker/` 코드를 수정해 커밋/푸시하는 경우, 아래 "문제없음" 조건을 모두 만족하면 **사용자에게 매번 묻지 말고 `npm run deploy:cf:worker`까지 이어서 진행**한다(Pages/정적은 GitHub Actions가 처리하므로 워커만 수동 배포하면 됨). 배포 후 Version ID·라우트·크론 스케줄 등 결과를 보고한다.
-  - **문제없음(자동 배포 진행) 조건**: `typecheck`·관련 `verify:*`·해당 테스트가 모두 통과 + 변경이 수술적이고 회귀 위험이 낮음 + 배포 자체가 표준 절차(강제/롤백/시크릿 변경 없음).
-  - **문제 가능성 있음(자동 배포 보류 + 먼저 안내)**: 신뢰성/우선순위/기본값 등 동작 모델을 바꾸는 변경, 공유 모듈·여러 라우트가 참조하는 함수 수정, 크론/`wrangler.toml`(수정 금지)·바인딩·시크릿에 영향, 검증이 변경을 충분히 커버하지 못함, 또는 결제·인증 등 장애 시 파급이 큰 영역. 이때는 위험·시나리오·확인 필요 여부를 먼저 안내하고 사용자 판단을 받은 뒤 배포한다.
+- **배포 흐름 (2026-08-08 개정 — PR 정책 폐기)**: `main` 에서 직접 작업하고 커밋한 뒤 `npm run deploy:preview` → 사용자가 preview 직접 확인 → `npm run deploy:production` → `git push origin main`. **main 에 push 해도 아무것도 배포되지 않는다.** Pages 와 Worker 는 `deploy-safe.mjs` 하나가 순서대로 올린다(`deploy:cf:worker` 를 따로 부르지 않는다). 상세 계약은 [AGENTS.md](AGENTS.md) 의 "Delivery: Preview First, Then One Command".
+  - **프로덕션 승격은 매번 사용자 승인을 받는다.** preview 는 `code-destiny.com` 을 건드리지 않으므로 승인 없이 돌려도 된다.
+  - 결제·인증·DB 스키마·배포 인프라 경로가 걸리면 risk level 과 무관하게 `deploy:critical` 전체가 돌고, 승격 직전에 어떤 경로가 왜 위험한지 나열한 뒤 확인을 받는다(`scripts/lib/change-risk.mjs` 의 `deepRequired`).
   - 작업 중 취약점, 보안 위험, 재현 가능한 버그를 발견하면 즉시 사용자에게 보고하고, 필요하면 다른 세션에서 분리 디버깅할 수 있도록 위험도와 짧은 제안도 함께 남긴다.
-  - 판단이 애매하면 자동 배포하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
-- 🔴 **워커 배포는 커밋이 아니라 워킹트리를 민다 — 낡은 베이스면 남의 워커 커밋이 사라진다**: `wrangler deploy` 는 PR·CI 를 안 거치고 현재 트리를 그대로 프로덕션에 올린다. 그래서 베이스가 낡았으면 그 사이 main 에 머지된 `worker/`·`lib/` 변경이 **즉시 조용히 증발**한다(2026-08-01 하루에 서로 다른 세션에서 3회 발생 — #222·#223·#224·#226 이 각각 사라졌다). `git status` 가 깨끗한 것과 베이스가 최신인 것은 **별개 문제**라 눈으로는 안 잡힌다.
+  - 판단이 애매하면 배포하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
+- 🔴 **워커 배포는 커밋이 아니라 워킹트리를 민다 — 낡은 베이스면 남의 워커 커밋이 사라진다**: `wrangler deploy` 는 CI 를 안 거치고 현재 트리를 그대로 프로덕션에 올린다. 로컬이 주 배포 경로가 된 지금은 더 중요해졌다. 그래서 베이스가 낡았으면 그 사이 main 에 머지된 `worker/`·`lib/` 변경이 **즉시 조용히 증발**한다(2026-08-01 하루에 서로 다른 세션에서 3회 발생 — #222·#223·#224·#226 이 각각 사라졌다). `git status` 가 깨끗한 것과 베이스가 최신인 것은 **별개 문제**라 눈으로는 안 잡힌다.
   - 이제 `scripts/lib/worker-deploy-base-guard.mjs` 가 배포 직전 자동으로 막는다 — "내 HEAD 에 없는데 origin/main 에는 있는 `worker/`·`lib/` 커밋"이 하나라도 있으면 사라질 커밋 목록과 함께 exit 1. 내 변경은 안 잡히고(오탐 없음), `scripts/`·`.github/` 만 바뀐 커밋도 안 잡힌다. 막히면 `git rebase origin/main` → verify 재실행 → 재배포. 의도한 롤백이면 `-- --allow-stale`.
   - 배포에는 `--message "<sha> @<branch>"` 가 자동으로 붙는다. `npx wrangler deployments list` 로 **라이브 버전이 어느 커밋인지 확인**할 수 있다(예전엔 전부 `-` 라 "지금 뜬 게 내 코드인가"를 따질 방법이 없었고, 그게 사고를 키웠다).
   - 가드 자체는 `npm run verify:deploy-base-guard` 가 임시 저장소를 만들어 차단·통과·오탐없음까지 실제 실행으로 검증한다(CI 포함).
@@ -229,18 +230,17 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **파일 검색·스캔**(Glob, Grep, 코드베이스 탐색): `claude-haiku-4-5-20251001` 고정 — 검색은 정확도·속도 충분, 사용자 요청 여부 무관 반드시 Haiku 사용 및 안내 필수
   - **커밋 메시지·코드 리뷰·일상 대화**: `claude-haiku-4-5-20251001` 고정 — 토큰 효율성과 빠른 응답 속도 우선
 
-## Codex Override: Worktree-Only PR-First Delivery
+## Delivery Contract (2026-08-08 — PR 정책 폐기)
 
-- This section is authoritative for Codex and supersedes any older Worker auto-deploy, current-worktree branch, or direct-deploy wording in this file.
-- Never edit, commit, push, or deploy from `main`, `master`, or detached HEAD. Start work with `git switch -c codex/<slug> origin/main`; editing the primary worktree on a feature branch is the default. Create a secondary worktree with `scripts/create-safe-worktree.ps1` only for genuinely parallel sessions.
-- Run `npm run verify:worktree-policy -- --mode=edit` before editing and `npm run verify:worktree-policy -- --mode=pr` before PR creation. PreToolUse hooks enforce the edit rule where supported.
-- Do not deploy directly to production during normal coding work.
-- Delivery has two lanes and `scripts/lib/change-risk.mjs` decides which one applies. **PR required** for auth/login, payment/entitlement, DB schema and migrations, and the deployment pipeline itself (`.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). **Direct** for everything else — including non-payment Worker routes — via `npm run release:fast`, which pushes `HEAD:main` and lets the GitHub Actions release deploy. It never commits, and it refuses PR-required paths by name. Check a change set with `node scripts/lib/change-risk.mjs <file...>` or `npm run release:fast -- --dry-run`.
-- The lane is not the risk level. `worker/**` stays `level=high` so CI keeps running `deploy:critical` on it either way; the lane only decides whether a human reviews it first.
-- The PR must record validation commands, mock/sandbox validation results, regression risks, confirmed no-regression scope, and rollback method.
+- This section supersedes any older PR-first, worktree-only, or Worker auto-deploy wording elsewhere in this file. The full contract lives in [AGENTS.md](AGENTS.md); this is the summary.
+- Work on `main` directly. There is no branch protection, no ruleset, and no PR requirement. Worktrees (`scripts/create-safe-worktree.ps1`) exist for parallel sessions only — they are filesystem isolation, not a review gate, and merge back with a plain `git merge`.
+- Ship with two commands: `npm run deploy:preview` (checks → build → Pages preview + Worker preview version → smoke → opens the browser), then `npm run deploy:production` after the user has inspected the preview. `git push origin main` afterwards is backup only — **pushing deploys nothing**.
+- Production promotion needs explicit user approval for that exact run. Preview does not.
+- `scripts/lib/change-risk.mjs` judges two independent axes: `level` (how deep the ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level` and makes `deploy:production` list the risky paths before promoting. `worker/**` stays `level=high` either way.
+- Rollback: `npm run deploy:rollback -- --list` to see targets, then `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]`. The rollback smokes production afterwards.
+- Backup path: the GitHub Actions **Release Cloudflare Pages and Worker** workflow, `Run workflow` with `mode: preview` or `mode: production`. It has no push trigger by design.
 - Do not run real LLM API calls, real payments, production DB writes, production Pages/Worker deploys, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
 - Use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.
-- Merge only after required CI checks and review approvals pass, no blocking review or conflict remains, the final diff matches the approved scope, and the user explicitly approves the merge for the current task. Production deployment remains a separate explicit approval and is CI-only from `main`.
 
 ## Doc Precedence
 

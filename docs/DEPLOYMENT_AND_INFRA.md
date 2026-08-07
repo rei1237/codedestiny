@@ -1,25 +1,52 @@
 # Deployment and Infra
 
-## Current release policy (2026-08-06)
+## Current release policy (2026-08-08)
 
-- Normal production authority is `.github/workflows/cloudflare-pages-deploy.yml`: it runs once for each `main` SHA, creates a preview, executes mock-only smoke checks, promotes the Worker before Pages when the changed paths require it, and records rollback targets in the release state.
-- `release:fast` is intentionally narrow: only a clean secondary-worktree commit classified as low risk can push `HEAD:main`. It rejects billing, payment, entitlement, authentication, database, Worker, cache, Wrangler, environment, and workflow changes. Those changes require a PR.
+PR-first delivery was retired. `scripts/deploy-safe.mjs` is the single release engine, and it is driven from the developer's machine.
+
+```
+edit on main → commit
+   ↓
+npm run deploy:preview      risk-scaled checks → build:cf → Pages preview + Worker preview version → smoke → opens the browser
+   ↓
+the user inspects the preview themselves
+   ↓
+npm run deploy:production   artifact sha256 must still match → Worker 100% → Pages production → health check
+   ↓
+git push origin main        backup only; pushing deploys nothing
+```
+
+- **Commands.** `deploy:check` (inspect only), `deploy:preview`, `deploy:production`, `deploy:rollback -- --list`, `deploy:safe` (all stages in one run, still prompts before promoting). `deploy:smoke -- --base <url>` smokes an arbitrary origin.
+- **Nothing deploys on push.** `.github/workflows/cloudflare-pages-deploy.yml` is `workflow_dispatch` only, with a `mode` input of `preview` or `production`. It is the backup path for when the local build cannot run. Re-adding a push trigger would double-deploy every commit; `verify:worker-single-deploy` fails the build if one appears.
+- **Verification depth replaced review.** `scripts/lib/change-risk.mjs` judges `level` (how deep ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level`, and `deploy:production` names the risky paths before asking to promote.
+- **Ordering is a transaction.** Worker is promoted to 100% first, then Pages. A Pages failure automatically rolls the Worker back and prints the Pages rollback target. The concurrency group `cloudflare-production-release` is never cancelled mid-release.
+- **Post-deploy health.** Production smoke (`deploy-smoke.mjs`), Pages/Worker commit parity (`verify-pages-worker-parity.mjs`), and `_next/static` availability (`verify-deployed-assets.mjs`) all run after promotion. The last two were dead code between the 2026-08 workflow rewrite and this change.
+- **Secret scanning.** `verify:no-secret-leak` runs immediately before promotion, replacing the old "wait for the gitleaks check" step that only existed in CI.
 - `check:quick` is range-based; `check:full` is lint, typecheck, core mock smoke, node tests, and one Pages build; `check:critical` retains the payment/access mock gates.
-- Git uses HTTPS with Git Credential Manager. gh uses its own interactive encrypted host login. Do not configure Git to use `gh auth git-credential`, and project gh scripts clear process-injected `GH_TOKEN` before invoking gh.
-- A running production release is never cancelled. Newer `main` SHAs queue, preventing partial Worker/Pages releases.
-- The integrated release workflow is the only production deployment authority. It is never cancelled mid-release; newer `main` SHAs queue behind it.
-- The release job waits for `Secret Scan`, `Paid Flow Gates`, `Docs Freshness Gate`, and `Pages Config Guard` on the same SHA before any Cloudflare preview or production promotion starts.
-- GitHub cannot make a future CI result retroactively approve an already completed `git push`; remote pushes remain available, while production promotion is fail-closed on the required CI gates.
+- Git uses HTTPS with Git Credential Manager. gh uses its own interactive encrypted host login. Do not configure Git to use `gh auth git-credential`.
+
+### Rollback
+
+```bash
+npm run deploy:rollback -- --list                                   # recent Pages deployments + Worker versions
+npm run deploy:rollback -- --yes --to=<pagesDeploymentId>           # Pages only
+npm run deploy:rollback -- --yes --worker-version=<versionId>       # Worker only
+npm run deploy:rollback -- --yes                                    # whatever the last production deploy recorded
+```
+
+`--list` is read-only and does not take the deploy lock, so it works while a release is running. Every rollback smokes production afterwards — an unverified rollback is just a second outage.
+
+Note that a rollback does **not** fix an edge-cached `_next/static` 404: identical content hashes to the same URL. See the cache-poisoning section below.
 
 ## Worker 단일 배포 경로
 
-- 운영 Pages·Worker 배포의 정본은 `.github/workflows/cloudflare-pages-deploy.yml` 하나다.
-- 이 workflow는 동일한 `github.sha`를 checkout한 뒤 `npm run deploy:safe -- --ci --yes`로 Worker preview, Worker promotion, Pages production 배포를 순서대로 수행한다.
+- Worker 와 Pages 를 올리는 코드는 `scripts/deploy-safe.mjs` 하나다. 로컬 `npm run deploy:production` 과 백업 워크플로 `.github/workflows/cloudflare-pages-deploy.yml` 이 같은 함수를 부른다.
+- 백업 워크플로는 `github.sha` 를 checkout 한 뒤 `mode` 입력에 따라 `deploy:safe -- --ci --preview-only` 또는 `-- --ci --yes` 를 실행한다. push 트리거는 없다.
 - 중복 Worker production workflow인 `.github/workflows/cloudflare-worker-deploy.yml`은 제거했다. 수동 Worker 단독 배포는 더 이상 지원하지 않는다.
-- `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 통합 workflow 외 Worker 업로드 명령이 생기거나 PR에 `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
+- `.github/workflows/worker-deploy-path-guard.yml`와 `scripts/verify-worker-single-deploy-guard.mjs`는 정본 workflow 외 Worker 업로드 명령이 생기거나, 정본에 push 트리거가 되살아나거나, `Workers Builds:` 외부 체크가 다시 나타나는 경우 검증을 실패시킨다.
 - Cloudflare Workers Builds Git trigger는 운영 Worker의 중복 배포를 만들 수 있으므로 `code-destiny-web`에서는 제거한다. Worker 자체, route, custom domain, cron, R2 binding, runtime secret은 이 정리의 대상이 아니다.
 - `scripts/deploy-worker.mjs`는 배포 커밋 SHA를 비밀값이 아닌 Worker runtime variable `COMMIT_SHA`로 주입한다. 배포 후 `/api/version`의 `commit`으로 Worker 코드 기준점을 확인한다.
-- `app/_lib/billing-client.ts`, `js/core/access-store.js`, `worker/routes/access.js`, `worker/routes/billing.js`, `worker/routes/payments.js` 중 하나가 바뀐 Pages 배포는 `/api/version`의 Worker SHA가 `GITHUB_SHA`와 같은지 먼저 확인한다. 이 경우 Worker를 먼저 배포하고, parity check가 통과한 뒤 Pages workflow를 실행한다.
+- `app/_lib/billing-client.ts`, `js/core/access-store.js`, `worker/routes/access.js`, `worker/routes/billing.js`, `worker/routes/payments.js` 중 하나가 바뀌면 `deploy:production` 이 승격 후 `verify-pages-worker-parity.mjs` 로 `/api/version` 의 Worker SHA 와 배포 커밋이 같은지 확인한다. Worker 를 Pages 보다 먼저 올리는 순서가 이 검사의 전제다.
 
 ## Cloudflare Pages 구조
 
@@ -61,7 +88,7 @@ database write is required for this activation.
 ### Pages 자동 배포 단일화
 
 - Cloudflare 대시보드의 `Deployments paused`는 이 저장소에서는 정상 운영 상태다. Pages Git 자동/프리뷰 배포를 끄고 GitHub Actions의 명시적 배포만 정본으로 쓴다.
-- PR마다 Cloudflare Pages Git preview 배포를 만들지 않는다. PR 검증은 `.github/workflows/pages-build-gate.yml`의 `npm ci`와 `npm run build:cf`로 수행한다.
+- Cloudflare Git preview 배포를 쓰지 않는다. preview 는 `npm run deploy:preview` 가 `wrangler pages deploy --branch safe-preview-<sha>` 로 직접 만든다. Git 연동을 되살리면 이중 배포로 청크 해시가 어긋난다.
 - Pages 프로젝트의 Git source config는 다음 세 값을 명시적으로 비활성화한다.
   - `deployments_enabled=false` (legacy 호환 필드)
   - `production_deployments_enabled=false`
@@ -69,24 +96,32 @@ database write is required for this activation.
 - `scripts/ensure-pages-single-deploy.mjs`가 세 값을 함께 검사하고, 자동 수정 시 전체 `source.config`를 보존 병합한 뒤 GET으로 재검증한다.
 - `--check`와 CI에서는 Cloudflare 인증 누락 또는 API 조회 실패를 성공으로 처리하지 않는다. 로컬에서 토큰이 없을 때만 안내 후 건너뛴다.
 - 기존에 취소되거나 pending으로 남은 배포는 자동 삭제하지 않는다. 삭제하려면 Pages Write 권한과 별도 승인이 필요하다.
-- Pages external check를 branch protection의 required check로 유지하지 말고, `Pages Build Gate` workflow가 생성하는 `Build Cloudflare Pages output` check를 required check로 지정한다. branch protection 변경은 저장소 관리자 권한으로 수행한다.
+- `main` 에는 branch protection 도 ruleset 도 없다(2026-08-08 확인). required check 개념 자체를 쓰지 않으며, 배포 가부는 `deploy-safe.mjs` 가 로컬에서 판정한다.
 
 재발 방지 계층:
 
-1. `pages-build-gate.yml`: PR head가 최신 `main`을 포함하는지 먼저 확인한 뒤 Pages guard mock, sitemap integrity, `npm run build:cf`를 실행한다.
-2. `pages-config-guard.yml`: Cloudflare secret을 PR에 노출하지 않고, `main` push·매일 schedule·수동 실행에서 Pages 설정 drift를 read-only로 감시한다.
-3. `cloudflare-pages-deploy.yml`: 실제 main 배포 직전에 동일한 Pages 설정 guard를 다시 실행한다.
-4. `Cloudflare Pages` external check는 배포 성공의 기준으로 사용하지 않는다. 취소된 deployment가 GitHub check를 pending으로 남길 수 있으므로, build 결과는 GitHub Actions gate로 판단한다.
-5. PR이 stale base이면 Pages build를 시작하지 않고 rebase를 요구한다. 이는 최신 main의 Pages 보강이 빠진 상태에서 build가 실패하는 낭비와 원인 혼동을 줄인다.
+1. `npm run deploy:preview`: `build:cf` 를 실제로 돌려 빌드가 깨지면 preview 단계에서 멈춘다. 프로덕션에는 닿지 않는다.
+2. `pages-config-guard.yml`: `main` push·매일 schedule·수동 실행에서 Pages 설정 drift 를 read-only 로 감시한다.
+3. `verify:pages-single-deploy`: `deploy:production` 이 discover() 로 라이브 Pages 설정(build command·output dir·source type)을 매번 대조하고, 백업 워크플로도 승격 전에 같은 guard 를 다시 실행한다.
+4. `Cloudflare Pages` external check 는 배포 성공의 기준으로 쓰지 않는다. 취소된 deployment 가 pending 으로 남을 수 있다.
+5. 베이스가 낡으면 `assertWorkerBaseIsFresh` 가 preview 단계에서 막는다 — 최신 main 의 `worker/`·`lib/` 변경을 덮어쓰는 것을 방지한다.
 
-## Worktree and PR delivery boundary
+## Parallel sessions and worktrees
 
-- Normal development never edits, commits, pushes, or deploys from the primary repository worktree. Use `scripts/create-safe-worktree.ps1` to create a registered secondary worktree from the latest `origin/main`.
-- `npm run verify:worktree-policy -- --mode=edit` blocks primary-worktree, protected-branch, detached-HEAD, and unregistered-path edits. `--mode=pr` blocks stale feature branches before PR creation.
-- Pages and Worker production workflows run only from `main` after merge. Local deployment scripts fail unless they are running in the CI `main` context, and production deployment still requires explicit user approval.
-- PR descriptions must include validation results, risk, confirmed no-regression scope, and rollback method. Merge requires required checks, review approval, no unresolved blockers, final-diff scope confirmation, and explicit user merge approval.
+Worktrees are filesystem isolation, not a review gate. They remain useful when two sessions must edit the repository at once; they are not required for ordinary work.
 
-Repository administrators must configure the `main` ruleset to require pull requests, require the worktree policy check and existing required checks, reject force pushes and branch deletion, require an up-to-date base, and disallow direct pushes. The ruleset is verified read-only after configuration.
+```powershell
+powershell -File scripts/create-safe-worktree.ps1 -Slug <name>
+```
+
+Each worktree previews independently and gets its own preview URL. Merge back with a plain `git merge` — there is no PR step.
+
+Two failure modes the tooling handles:
+
+- **Concurrent promotion.** `.deploy-state/` and `active.lock` live in the *primary* worktree (resolved via `git worktree list --porcelain`), so a second worktree's deploy fails with `Another deploy-safe process owns ...` instead of racing. `deploy:rollback -- --list` deliberately skips the lock so it stays readable during a release.
+- **Stale base erasing upstream work.** `wrangler` uploads the working tree, not a commit. `deploy:preview` calls `assertWorkerBaseIsFresh`, which exits when `origin/main` holds `worker/` or `lib/` commits absent from HEAD — the failure that silently erased four merged changes on 2026-08-01. Fix with `git merge origin/main`; `--allow-stale` bypasses it only for a deliberate rollback.
+
+Production promotion still requires explicit user approval for that exact run. Preview does not — it never touches `code-destiny.com`.
 
 ## Cloudflare Workers 구조
 
@@ -218,7 +253,7 @@ Server/Worker secrets or vars:
 - OpenNext: `npm run deploy:cf:opennext`
 - Worker versions upload: `npm run deploy:cf:versions`
 
-### PR-optional local safe deployment
+### Local safe deployment — what each stage guarantees
 
 Cloudflare read-only API inspection on 2026-08-04 confirmed the live Pages
 project settings: project `codedestiny`, GitHub source, production branch
@@ -229,12 +264,11 @@ the `code-destiny-web` Worker. The Worker config is `worker/wrangler.toml`,
 with AI, R2, routes, and cron bindings. Worker Versions/Deployments API is
 available and the current deployment can be identified by its 100% version ID.
 
-The local safe pipeline keeps PR creation optional while retaining release
-gates:
+Stage guarantees:
 
-1. `deploy:check` requires a registered secondary worktree, a feature branch,
-   `origin/main`, Cloudflare project discovery, a clean committed tree by
-   default, and prints the changed-file risk classification.
+1. `deploy:check` requires `origin/main`, Cloudflare project discovery, and a
+   clean committed tree by default, then prints the changed-file risk
+   classification and any deep-verification hits. It deploys nothing.
 2. `deploy:preview` runs the risk-based mock checks, builds Pages once, records
    a SHA-256 artifact fingerprint, uploads the same `dist` to a Pages preview,
    and uploads a Worker Version with a preview alias when Worker parity is
@@ -247,19 +281,22 @@ gates:
    production upload, preserving the existing Worker-first parity rule.
 5. `deploy:safe` connects all steps and asks for confirmation immediately
    before production. `--yes` is the explicit non-interactive approval.
+6. Promotion also runs `verify:no-secret-leak` first, and afterwards
+   `verify-pages-worker-parity.mjs` and `verify-deployed-assets.mjs` as the
+   post-deploy health check.
 
 ```text
 npm run deploy:check
-npm run deploy:safe
-npm run deploy:safe -- --yes
-npm run deploy:rollback -- --yes
+npm run deploy:preview
+npm run deploy:production
+npm run deploy:rollback -- --list
+npm run deploy:rollback -- --yes --to=<pagesDeploymentId>
 ```
 
-GitHub Actions also runs the same decision path automatically after a push to
-`main`; it uses `--ci --yes` only inside the protected workflow, after the
-same preview smoke and artifact checks. The local command remains useful for
-previewing a release before pushing. A failed smoke or missing Cloudflare
-setting blocks production automatically.
+The same decision path is available in GitHub Actions as the backup route —
+`Release Cloudflare Pages and Worker`, `Run workflow`, `mode: preview` or
+`mode: production`. It is manual only; nothing deploys on push. A failed smoke
+or a missing Cloudflare setting blocks production automatically.
 
 Local release identifiers are stored in ignored `.deploy-state/state.json`:
 commit SHA, risk, artifact hash, Pages deployment IDs/URLs, Worker version
@@ -295,15 +332,11 @@ target and explicit `deploy:rollback -- --yes`. KV/R2/D1/Durable Objects state
 is not versioned by Workers, so schema/data changes remain separate expand-
 and-contract migrations and are never bundled into `deploy:safe`.
 
-The old commands remain available for CI and the existing guarded workflows.
-The new local path deliberately does not weaken `verify-worktree-policy`
-for the canonical CI production workflow.
+Deployment rule:
 
-Codex deployment rule:
-
-- Do not deploy directly to production during normal coding work.
-- Put deployable changes into a PR first.
-- The PR must record regression risks, mock/sandbox validation results, no-regression checks, and rollback method.
+- Run `deploy:preview` freely — it never touches production.
+- Get explicit user approval before every `deploy:production` run.
+- Report the deployed commit, Worker version ID, and Pages deployment ID afterwards so a rollback target is on record.
 - Real LLM API calls, real payments, production DB writes, production deploys, and production cancel/refund/reconcile actions require explicit user approval for that exact action.
 - Validation must use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.
 

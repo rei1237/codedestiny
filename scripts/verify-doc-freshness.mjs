@@ -43,7 +43,6 @@ const REPO_PREFIXES = [
   '__tests__/',
   '.github/',
   '.claude/',
-  '.codex/',
 ];
 
 const ROOT_REPO_PATHS = new Set([
