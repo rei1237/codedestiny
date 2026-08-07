@@ -1336,3 +1336,36 @@
   .form > button[type="submit"] { transition: none; }
   .form > button[type="submit"]:hover:not(:disabled) { transform: none; }
 }
+
+/* ── 장문 가독성 ────────────────────────────────────────────────────────────
+   본문이 2만 자를 넘는 리포트다. 폰트는 R2 미러(--font-body = CodeDestinyBody/
+   Pretendard, --font-display = CodeDestinyDisplay)를 그대로 쓰되, 읽는 조건을 맞춘다.
+
+   측정폭: 이 파일의 .closing 이 이미 72ch 를 기준으로 삼고 있다. 한국어는 글자폭이
+   ch(숫자 0 폭)보다 넓어 72ch ≈ 한 줄 40자 안팎으로 떨어진다. 상한이 없던 본문은
+   1,030px(한 줄 약 65자)까지 흘러 눈이 줄을 놓친다. 같은 기준으로 맞춘다. */
+.sectionBody p,
+.verdictRationale,
+.summary {
+  max-width: 72ch;
+  font-family: var(--font-body);
+  text-wrap: pretty;
+}
+.sectionBody p {
+  font-size: 1rem;
+  line-height: 1.92;
+}
+.sectionBody ul,
+.verdictActions ul,
+.monthList li > span {
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+/* 제목은 디스플레이(Mulmaru), 본문은 바디(Pretendard) — 폴백으로 새지 않게 못 박는다. */
+.result h2,
+.verdict h3,
+.formIntro h2,
+.seoGuide h2,
+.seoGuide h3 {
+  font-family: var(--font-display);
+}
