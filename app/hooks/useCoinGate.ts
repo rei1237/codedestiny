@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
 import {
   PAID_SERVICE_RUNTIME_SRC,
+  hasClientAuthSessionHint,
   loadPaidServiceRuntimeGate,
   runPaidAccessGate,
 } from "../_lib/billing-client";
@@ -85,6 +86,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
   featureExecutionFailed: string;
   paymentComplete: string;
   singlePaymentRequired: string;
+  temporarilyUnavailable: string;
   generatingResult: string;
 }> = {
   ko: {
@@ -95,6 +97,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "유료 기능 실행에 실패했습니다.",
     paymentComplete: "결제가 완료되었습니다.",
     singlePaymentRequired: "단건 결제가 필요합니다.",
+    temporarilyUnavailable: "일시적인 오류로 처리하지 못했어요. 잠시 후 다시 시도해 주세요.",
     generatingResult: "결제가 완료되었습니다. 결과를 생성하고 있습니다...",
   },
   en: {
@@ -105,6 +108,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "The paid feature could not be completed.",
     paymentComplete: "Payment has been completed.",
     singlePaymentRequired: "A one-time payment is required.",
+    temporarilyUnavailable: "We couldn't complete this right now. Please try again in a moment.",
     generatingResult: "Payment has been completed. Creating your result...",
   },
   ja: {
@@ -115,6 +119,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "有料機能の実行に失敗しました。",
     paymentComplete: "決済が完了しました。",
     singlePaymentRequired: "単発決済が必要です。",
+    temporarilyUnavailable: "一時的なエラーで処理できませんでした。しばらくしてからもう一度お試しください。",
     generatingResult: "決済が完了しました。結果を生成しています...",
   },
   "zh-CN": {
@@ -125,6 +130,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "付费功能执行失败。",
     paymentComplete: "付款已完成。",
     singlePaymentRequired: "需要单次付款。",
+    temporarilyUnavailable: "因临时故障未能处理。请稍后再试。",
     generatingResult: "付款已完成。正在生成结果...",
   },
   "zh-TW": {
@@ -135,6 +141,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "付費功能執行失敗。",
     paymentComplete: "付款已完成。",
     singlePaymentRequired: "需要單次付款。",
+    temporarilyUnavailable: "因暫時性故障而無法處理。請稍後再試。",
     generatingResult: "付款已完成。正在生成結果...",
   },
   vi: {
@@ -145,6 +152,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "Không thể hoàn tất tính năng trả phí.",
     paymentComplete: "Thanh toán đã hoàn tất.",
     singlePaymentRequired: "Cần thanh toán một lần.",
+    temporarilyUnavailable: "Không thể xử lý do lỗi tạm thời. Vui lòng thử lại sau giây lát.",
     generatingResult: "Thanh toán đã hoàn tất. Đang tạo kết quả...",
   },
   hi: {
@@ -155,6 +163,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "Paid feature पूरा नहीं हो सका.",
     paymentComplete: "भुगतान पूरा हो गया.",
     singlePaymentRequired: "एक बार का भुगतान आवश्यक है.",
+    temporarilyUnavailable: "अस्थायी त्रुटि के कारण यह पूरा नहीं हो सका. कृपया कुछ देर बाद पुनः प्रयास करें.",
     generatingResult: "भुगतान पूरा हो गया. आपका result बनाया जा रहा है...",
   },
   es: {
@@ -165,6 +174,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "No se pudo completar la función de pago.",
     paymentComplete: "El pago se ha completado.",
     singlePaymentRequired: "Se requiere un pago único.",
+    temporarilyUnavailable: "No se pudo completar por un error temporal. Inténtalo de nuevo en un momento.",
     generatingResult: "El pago se ha completado. Creando tu resultado...",
   },
   fr: {
@@ -175,6 +185,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "La fonctionnalité payante n'a pas pu être terminée.",
     paymentComplete: "Le paiement est terminé.",
     singlePaymentRequired: "Un paiement unique est requis.",
+    temporarilyUnavailable: "Impossible d'aboutir en raison d'une erreur temporaire. Réessayez dans un instant.",
     generatingResult: "Le paiement est terminé. Création de votre résultat...",
   },
   de: {
@@ -185,6 +196,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "Die bezahlte Funktion konnte nicht abgeschlossen werden.",
     paymentComplete: "Die Zahlung wurde abgeschlossen.",
     singlePaymentRequired: "Eine Einmalzahlung ist erforderlich.",
+    temporarilyUnavailable: "Aufgrund eines vorübergehenden Fehlers nicht möglich. Bitte versuche es gleich noch einmal.",
     generatingResult: "Die Zahlung wurde abgeschlossen. Dein Ergebnis wird erstellt...",
   },
   nl: {
@@ -195,6 +207,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "De betaalde functie kon niet worden voltooid.",
     paymentComplete: "De betaling is voltooid.",
     singlePaymentRequired: "Een eenmalige betaling is vereist.",
+    temporarilyUnavailable: "Door een tijdelijke fout niet gelukt. Probeer het zo meteen opnieuw.",
     generatingResult: "De betaling is voltooid. Je resultaat wordt gemaakt...",
   },
   ms: {
@@ -205,6 +218,7 @@ const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
     featureExecutionFailed: "Ciri berbayar tidak dapat diselesaikan.",
     paymentComplete: "Bayaran telah selesai.",
     singlePaymentRequired: "Bayaran sekali diperlukan.",
+    temporarilyUnavailable: "Tidak dapat diselesaikan kerana ralat sementara. Sila cuba lagi sebentar lagi.",
     generatingResult: "Bayaran telah selesai. Sedang menjana keputusan...",
   },
 };
@@ -296,6 +310,19 @@ function readNestedObject(source: Record<string, unknown>, key: string) {
   return value && typeof value === "object" ? value as Record<string, unknown> : {};
 }
 
+// 서버가 "일시적으로 확인하지 못했다"고 명시한 코드들. 전부 재시도 가능이며 결제 요구가 아니다.
+// 정본: worker/routes/billing.js(requireBillingAuth / buildPassStatusTemporarilyUnavailableFailure /
+// readBillingSnapshot degraded) + app/_lib/auth-client.ts 의 합성 503.
+const TRANSIENT_BILLING_CODES = new Set([
+  "AUTH_STATUS_TEMPORARILY_UNAVAILABLE",
+  "PASS_STATUS_TEMPORARILY_UNAVAILABLE",
+  "BALANCE_SNAPSHOT_UNAVAILABLE",
+  "AUTH_REFRESH_TEMPORARY_FAILURE",
+  "AUTH_DB_UNAVAILABLE",
+  "SERVICE_UNAVAILABLE",
+  "MONTHLY_CREDIT_CONTENDED",
+]);
+
 function resolveLoginRequired(code: string, status: number) {
   const normalized = normalizeCode(code);
   return (
@@ -369,8 +396,18 @@ export function useCoinGate() {
           }
         }
 
+        // 🔴 "인증 안 됨"과 "아직 모름"을 구분한다.
+        // 위 race 는 **지연 상한**이지 판정이 아니다. 예전에는 4초를 넘기면 그대로
+        // !isAuthenticated → AUTH_REQUIRED 로 접었는데, /api/auth/me 의 서버 예산은 12초이고
+        // authFetch 타임아웃은 22초다. 즉 느리기만 한 요청이 **로그인한 사용자에게 "로그인이
+        // 필요합니다"** 를 띄웠다. status 는 이미 3값 이상을 표현한다(auth-store 의 AuthStatus).
+        // unknown/refreshing/temporarilyOffline/authenticating 은 전부 "모름"이므로 서버로 보낸다 —
+        // 서버가 확정 401 을 주면 아래 resolveLoginRequired 가 그때 로그아웃 처리한다.
         const finalAuth = getAuthState();
-        if (!finalAuth.isAuthenticated) {
+        const definitelySignedOut = finalAuth.authReady
+          && !finalAuth.isAuthenticated
+          && (finalAuth.status === "guest" || finalAuth.status === "expired");
+        if (definitelySignedOut && !hasClientAuthSessionHint()) {
           return {
             ok: false,
             code: "AUTH_REQUIRED",
@@ -411,7 +448,17 @@ export function useCoinGate() {
         const rawPricing = Object.keys(dataPricing).length ? dataPricing : readNestedObject(chargeResult.raw, "pricing");
         requiredCoins = toNumber(rawPricing.cost ?? rawPricing.coinPrice ?? chargeResult.raw.requiredCoins, requiredCoins);
         const code = normalizeCode(chargeResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
-        const message = toText(chargeResult.error?.message || chargeResult.message || coinGateText("singlePaymentRequired")) || coinGateText("singlePaymentRequired");
+        // 🔴 일시 장애의 기본 문구는 "단건 결제가 필요합니다"가 아니다.
+        // 서버가 503(AUTH_STATUS_TEMPORARILY_UNAVAILABLE / PASS_STATUS_TEMPORARILY_UNAVAILABLE /
+        // BALANCE_SNAPSHOT_UNAVAILABLE)이나 합성 503을 돌려줬는데 singlePaymentRequired 로 폴백하면,
+        // 사용자에게는 "인프라 문제"가 "돈을 내라"로 보인다. 실제로 이용권 보유자가 이 문구를 봤다.
+        const transientFailure = chargeResult.status >= 500
+          || chargeResult.status === 0
+          || TRANSIENT_BILLING_CODES.has(code);
+        const fallbackMessage = transientFailure
+          ? coinGateText("temporarilyUnavailable")
+          : coinGateText("singlePaymentRequired");
+        const message = toText(chargeResult.error?.message || chargeResult.message || fallbackMessage) || fallbackMessage;
 
         if (resolveLoginRequired(code, chargeResult.status)) {
           // 유령 로그인: UI는 로그인 상태인데 서버가 확정적 401/403을 반환한 경우.

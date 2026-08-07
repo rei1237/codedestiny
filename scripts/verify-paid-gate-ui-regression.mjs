@@ -279,14 +279,30 @@ assertBefore(
   "standalone moonlight checks signed-out before treating a zero balance as confirmed",
 );
 
-// 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
+// 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — 상한 회귀 방지.
+//
+// 🔴 2026-08 계약 변경: 예전에는 여기서 Promise.race 를 **금지**했다(뒤늦은 인증 응답이 결제
+// 상태를 덮어쓸까 봐). 그 금지는 "useCoinGate 의 AUTH_REQUIRED 검사가 먼저 끊어 주므로 이
+// await 에 도달하지 않는다"는 전제 위에 있었는데, 그 검사가 **느린 인증을 미인증으로 오인**해
+// 로그인한 사용자를 막고 있어 "모름이면 서버로 통과"로 고쳤다. 그래서 이 await 가 실제로
+// 도달 가능해졌고, refreshAuth 는 /me → /refresh → /me 3연쇄에 요청당 22초라 상한이 없으면
+// 결제창이 1분 가까이 안 뜬다.
+// 금지를 푼 근거: refreshAuth 는 결제 상태를 쓰지 않고 auth-store 상태만 바꾸며(실패 시
+// temporarilyOffline, 리다이렉트 없음), silent:true 는 로딩 스피너만 억제하고, auth-store 에서
+// single-flight 라 새 요청을 만들지 않고 합류한다. 게다가 useCoinGate 는 같은 흐름 한 단계 위에서
+// 이미 같은 race 를 쓰고 있었다. 이제 상한의 **존재**를 강제한다.
 const reactAuthPrewarmSource = section(
   billingClientSource,
   "게이트 진입 전 인증을 예열한다.",
   "const activeAttempt = beginPaidAttempt(",
   "React billing auth pre-warm",
 );
-assertNotContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm leaves no competing request");
+assertContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm is bounded");
+assertContains(
+  reactAuthPrewarmSource,
+  "BILLING_AUTH_PREHEAT_BUDGET_MS",
+  "React billing auth pre-warm uses the shared preheat budget constant",
+);
 assertContains(reactAuthPrewarmSource, "refreshAuth({ force: true, silent: true })", "React billing auth pre-warm still refreshes");
 assertContains(billingClientSource, "paymentService.executePayment", "React paid commands use the shared Payment Service");
 assertContains(indexSource, "CodeDestinyPaymentService", "static shell paid commands use the shared Payment Service");

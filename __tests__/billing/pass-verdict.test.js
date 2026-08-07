@@ -105,12 +105,30 @@ describe("readSnapshot — active 는 만료일이 유효기간이다", () => {
     expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(false);
   });
 
-  it("만료일을 모르는 active 는 TTL 을 넘기면 폐기한다(무기한 무료 통과 차단)", () => {
+  // 지켜야 할 불변식은 "삭제한다"가 아니라 **"무기한 무료 통과를 만들지 않는다"** 이다.
+  // 예전에는 TTL 초과 즉시 삭제해서 그걸 달성했는데, 그러면 storeStatus 의 다운그레이드 가드가
+  // 지킬 대상을 잃어 그 뒤 도착한 신뢰 불가 'none'(토큰 폴백)이 '미보유 확정'으로 굳었다.
+  // 이제는 stale 로 보존하되 coversNow=false 로 무료 통과를 막는다 — 불변식은 더 강하게 단언한다.
+  it("만료일을 모르는 active 는 TTL 을 넘겨도 무료 통과를 만들지 않는다", () => {
     seed(storage, {
       state: "active",
       tier: "premium",
       expiresAt: null,
       checkedAt: Date.now() - 10 * MINUTE,
+    });
+    const snapshot = passVerdict.readSnapshot(USER_ID);
+    expect(snapshot).not.toBeNull();
+    expect(snapshot.stale).toBe(true);
+    // 핵심: 낙관 통과 후보가 되지 않는다(서버 검사로 폴백).
+    expect(passVerdict.resolveVerdict(snapshot, 10).coversNow).toBe(false);
+  });
+
+  it("만료일을 모르는 active 도 하드 상한(24h)을 넘기면 폐기한다", () => {
+    seed(storage, {
+      state: "active",
+      tier: "premium",
+      expiresAt: null,
+      checkedAt: Date.now() - 25 * HOUR,
     });
     expect(passVerdict.readSnapshot(USER_ID)).toBeNull();
     expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(false);
@@ -343,5 +361,63 @@ describe("snapshot authority downgrade protection", () => {
 
     expect(stored.state).toBe("none");
     expect(stored.tier).toBe("free");
+  });
+});
+
+// 🔴 프로덕션 사고 경로의 회귀 테스트.
+// /api/auth/me 가 Mongo 블립에서 JWT 만으로 답하면(worker/routes/auth.js buildTokenFallbackUser)
+// profileSubscription 이 실제 구독과 무관하게 무조건 {tier:'free', source:'token'} 이고,
+// 그 응답에는 degraded:true 가 붙지 않는다. 이걸 저장하면 진짜 이용권 보유자에게
+// 'none'(미보유 확정) 스냅샷이 생겨 **서버 왕복 0으로** 결제창에 보내진다.
+describe("신뢰할 수 없는 출처는 '미보유 확정'을 만들 수 없다", () => {
+  const TOKEN_FALLBACK_SUBSCRIPTION = {
+    tier: "free",
+    isActive: false,
+    isSubscribed: false,
+    status: "free",
+    source: "token",
+    expiresAt: null,
+  };
+
+  it("스냅샷이 없을 때 토큰 폴백은 none 을 생성하지 않는다", () => {
+    const stored = passVerdict.storeStatus(USER_ID, TOKEN_FALLBACK_SUBSCRIPTION, "verified-auth-cache");
+    expect(stored).toBeNull();
+    expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(false);
+  });
+
+  it("토큰 폴백은 기존 active 를 덮어쓰지 않는다", () => {
+    const expiresAt = new Date(Date.now() + DAY).toISOString();
+    passVerdict.storeStatus(USER_ID, {
+      tier: "premium",
+      isActive: true,
+      expiresAt,
+      completeness: "full",
+      authority: "server",
+    }, "access-state");
+
+    const stored = passVerdict.storeStatus(USER_ID, TOKEN_FALLBACK_SUBSCRIPTION, "verified-auth-cache");
+    expect(stored.state).toBe("active");
+    expect(stored.tier).toBe("premium");
+  });
+
+  it("degraded 응답도 none 을 생성하지 않는다", () => {
+    const stored = passVerdict.storeStatus(USER_ID, {
+      tier: "free",
+      isActive: false,
+      degraded: true,
+    }, "subscription-status");
+    expect(stored).toBeNull();
+    expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(false);
+  });
+
+  it("정상 서버 응답의 none 은 그대로 기록된다(과잉 차단 아님)", () => {
+    const stored = passVerdict.storeStatus(USER_ID, {
+      tier: "free",
+      isActive: false,
+      completeness: "full",
+      authority: "server",
+    }, "subscription-status");
+    expect(stored).not.toBeNull();
+    expect(stored.state).toBe("none");
   });
 });

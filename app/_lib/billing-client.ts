@@ -1727,7 +1727,19 @@ function collectBillingFallbackBases(): string[] {
     .filter((base) => Boolean(base) && base !== sameOrigin);
 }
 
-function hasClientAuthSessionHint() {
+// 결제 게이트 진입 전 인증 예열의 상한. useCoinGate 의 예열 상한과 같은 값으로 맞춘다 —
+// 둘은 같은 single-flight 에 합류하므로 서로 다른 값을 두면 늦은 쪽이 그냥 잉여 대기가 된다.
+const BILLING_AUTH_PREHEAT_BUDGET_MS = 4000;
+
+/**
+ * 로컬에 세션 흔적이 있는가(= "게스트라고 단정하면 안 되는가").
+ *
+ * 🔴 이건 인증 증명이 아니라 **미인증 단정을 막는 근거**다. 웹은 로그인 후
+ * localStorage.fortune_auth_token 을 지우고 HttpOnly 쿠키만 남기므로, 흔적이 없다고 로그아웃도
+ * 아니고 흔적이 있다고 로그인도 아니다. 판정은 서버가 한다 — 이 값은 "모름"을 "미인증"으로
+ * 접지 않기 위한 가드로만 쓴다(useCoinGate 의 AUTH_REQUIRED 게이트).
+ */
+export function hasClientAuthSessionHint() {
   if (typeof window === "undefined") return false;
   const user = readSanitizedAuthUser();
   const userRecord = asRecord(user);
@@ -3796,12 +3808,22 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
   // 게이트 진입 전 인증을 예열한다. 미hydration/만료직전 토큰으로 첫 유료요청이 새어
   // 이용권 보유자가 결제 경로로 빠지는 문제를 직접호출(runBillingCoinGate) 기능 전반에서 막는다.
   // 정적 import는 auth-store가 순환을 피하려 billing-client import를 일부러 안 하므로 동적 import 사용.
+  //
+  // 🔴 예산이 붙은 이유(예전 주석은 "Promise.race 를 쓰지 말 것"이었다 — 전제가 바뀌었다):
+  // 그 주석의 근거는 "useCoinGate 의 AUTH_REQUIRED 검사가 먼저 끊어 주므로 여기까지 오지 않는다"
+  // 였다. 그런데 그 검사가 **느린 인증을 미인증으로 오인**해 로그인한 사용자를 막고 있어서,
+  // "모름"이면 서버로 통과시키도록 고쳤다(useCoinGate 의 definitelySignedOut). 그 결과 이 await 가
+  // 실제로 도달 가능해졌고, refreshAuth 는 /me → /refresh → /me 로 3연쇄가 되며 authFetch 는
+  // AbortController 를 쓰지 않아 상한이 22초씩이다 — 무한정 기다리면 결제창이 1분 가까이 안 뜬다.
+  // 경쟁 우려는 남지만 (1) refreshAuth 는 auth-store 에서 single-flight 라 새 요청을 만들지 않고
+  // 기존 것에 합류하며 (2) silent:true 라 UI 를 흔들지 않고 (3) 최종 접근 판정은 어차피 서버다.
   try {
     const { getAuthState, refreshAuth } = await import("./auth-store");
     if (!getAuthState().isAuthenticated) {
-      // auth-store의 사용자별 single-flight를 그대로 기다린다. Promise.race로 요청을
-      // 백그라운드에 남기면 뒤늦은 인증 응답이 결제 상태를 덮어쓰는 경쟁이 생긴다.
-      await refreshAuth({ force: true, silent: true });
+      await Promise.race([
+        refreshAuth({ force: true, silent: true }),
+        new Promise<void>((resolve) => { window.setTimeout(resolve, BILLING_AUTH_PREHEAT_BUDGET_MS); }),
+      ]);
     }
   } catch {
     // 인증 예열 실패는 삼킨다 — 최종 접근 판정은 서버가 한다.

@@ -32,6 +32,13 @@
   // state:'active' 가 만들어지는 경로가 있어서(구 unlock-status?scope=pass 등), 이 밸브가 없으면
   // "만료 근거가 전혀 없는 무기한 무료 통과" 스냅샷이 생긴다. 값은 종전 ACTIVE_TTL_MS 와 같다(= 무회귀).
   var ACTIVE_NO_EXPIRY_MAX_MS = 5 * 60 * 1000;
+  // 🔴 만료일 없는 'active' 를 TTL 초과 즉시 **삭제**하지 않고 이 상한까지 stale 로 보존한다.
+  // 삭제하면 storeStatus 의 다운그레이드 가드가 지킬 대상을 잃어, 그 뒤 도착한 신뢰 불가 'none'
+  // (토큰 폴백 등)이 그대로 '미보유 확정'으로 굳는다 — 보유자가 서버 왕복 0으로 결제창에 간다.
+  // 보존해도 무료 통과는 생기지 않는다: resolveVerdict 가 stale && 만료일 미상이면 coversNow=false 다.
+  // ACTIVE_STALE_MAX_MS(35일)를 재사용하지 않는 이유는, 만료 근거가 전혀 없는 기록을 그렇게 오래
+  // 들고 있으면 배지 등 UI 표면에서 '보유 중'이 과하게 오래 남기 때문이다.
+  var ACTIVE_NO_EXPIRY_KEEP_MAX_MS = 24 * 60 * 60 * 1000;
   // 이용권 최장 기간(30일) + 여유. expiresAt 이 비정상적으로 먼 미래여도 이 상한을 넘기면 폐기한다.
   // 보안 통제가 아니라 sanity bound 다 — 권위는 서버의 402 이고 localStorage 는 어차피 사용자 제어다.
   var ACTIVE_STALE_MAX_MS = 35 * 24 * 60 * 60 * 1000;
@@ -166,11 +173,13 @@
       }
       if (state === "active") {
         if (!expiresAt) {
-          // 만료일을 모르면 유효기간을 알 수 없다 — 종전대로 폐기하고 서버 검사로 폴백한다.
-          if (age > ACTIVE_NO_EXPIRY_MAX_MS) {
+          // 만료일을 모르면 커버를 단정할 수 없다 — 하지만 폐기하지도 않는다(위 상수 주석 참고).
+          // TTL 초과는 stale 로 표시만 하고(=coversNow false, 서버 검사로 폴백), 하드 상한에서만 지운다.
+          if (age > ACTIVE_NO_EXPIRY_KEEP_MAX_MS) {
             removeSnapshot(uid);
             return null;
           }
+          if (age > ACTIVE_NO_EXPIRY_MAX_MS) stale = true;
         } else if (age > ACTIVE_STALE_MAX_MS) {
           removeSnapshot(uid);
           return null;
@@ -287,6 +296,26 @@
     }
   }
 
+  // 🔴 "미보유 확정"을 만들 자격이 없는 응답을 가려낸다.
+  //
+  // /api/auth/me 는 Mongo 블립에서 JWT 만으로 토큰 폴백 유저를 돌려주는데, 그 payload 의
+  // profileSubscription 은 실제 구독과 무관하게 **무조건** {tier:"free", isActive:false,
+  // source:"token"} 이다(worker/routes/auth.js buildTokenFallbackUser). 그런데 그 응답에는
+  // degraded:true 가 붙지 않아서 클라이언트가 정상 응답으로 읽는다.
+  //
+  // 이걸 스냅샷으로 저장하면 진짜 이용권 보유자에게 state:'none' 이 생기고, resolveVerdict 가
+  // cannotCover(미보유 확정)를 돌려줘 **서버 왕복 0으로** 결제창에 보내진다. 아래 기존
+  // 다운그레이드 가드는 '이미 active 스냅샷이 있을 때'만 막아서, 스냅샷이 아직 없는 콜드 진입
+  // (시크릿창·저장소 삭제·첫 방문)에서는 그대로 뚫렸다. 그래서 생성 자체를 막는다.
+  function isUntrustedNoneSource(data, nested, source) {
+    if (data.degraded === true || nested.degraded === true) return true;
+    var claimed = text(data.source || nested.source).toLowerCase();
+    if (claimed === "token" || claimed === "fallback") return true;
+    var declared = text(source).toLowerCase();
+    if (declared === "token" || declared === "fallback") return true;
+    return false;
+  }
+
   function storeStatus(userId, status, source) {
     var next = buildSnapshotFromStatus(userId, status, source);
     if (next.state === "none") {
@@ -295,6 +324,9 @@
       var nested = data.entitlementSnapshot && typeof data.entitlementSnapshot === "object"
         ? data.entitlementSnapshot
         : {};
+      // 출처가 신뢰 불가면 'none' 을 생성하지도, 덮어쓰지도 않는다. 기존 스냅샷이 있으면 그대로,
+      // 없으면 null(=미확정) 을 돌려줘 호출부가 서버에 물어보게 한다.
+      if (isUntrustedNoneSource(data, nested, source)) return existing;
       var complete = text(data.completeness || nested.completeness).toLowerCase() === "full";
       var authoritative = text(data.authority || nested.authority).toLowerCase() === "server";
       var degraded = data.degraded === true || nested.degraded === true;

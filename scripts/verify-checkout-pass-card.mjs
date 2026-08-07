@@ -328,8 +328,8 @@ console.log("\n[9] 인증 준비 완료 뒤 이용권 최종 판정이 한 번�
   });
 }
 
-// ── 10. 인증 미확정은 상점 이동이 아니라 기존 모달의 재시도 상태로 남는지 ───────────────────
-console.log("\n[10] 인증 미확정이면 결제창을 유지하고 상점으로 보내지 않는가");
+// ── 10. 확정 미인증(401)은 상점 이동이 아니라 기존 모달의 재시도 상태로 남는지 ──────────────
+console.log("\n[10] 확정 미인증(401)이면 결제창을 유지하고 상점으로 보내지 않는가");
 {
   const { window, storeUrls } = bootRuntime();
   const calls = [];
@@ -349,14 +349,69 @@ console.log("\n[10] 인증 미확정이면 결제창을 유지하고 상점으�
   findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   await flush();
   await flush();
-  check("인증 미확정은 final pass POST를 보내지 않음", () => assert.equal(calls.includes("/api/billing/coin-gate"), false));
-  check("인증 미확정은 이용권 상점으로 이동하지 않음", () => assert.deepEqual(storeUrls, []));
-  check("인증 미확정은 결제창을 유지하고 재시도할 수 있음", () => {
+  check("확정 401은 final pass POST를 보내지 않음", () => assert.equal(calls.includes("/api/billing/coin-gate"), false));
+  check("확정 401은 이용권 상점으로 이동하지 않음", () => assert.deepEqual(storeUrls, []));
+  check("확정 401은 결제창을 유지하고 재시도할 수 있음", () => {
     assert.equal(settled, false);
     assert.equal(findCard(window, "pass-store").hasAttribute("disabled"), false);
   });
   findCard(window, "cancel")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   await choicePromise;
+}
+
+// ── 11. 🔴 인프라 블립(503)은 "미인증"이 아니다 ────────────────────────────────────────────────
+// 프로덕션 사고의 직접 회귀 테스트. 로그인 상태(세션 흔적 있음)인데 /api/auth/me 가 503 을 뱉으면,
+// 예전에는 인증 예열이 그 "모름"을 미인증으로 접어 final MEMBERSHIP_PASS POST 를 **아예 보내지
+// 않고** "로그인 정보를 확인하지 못했어요"만 띄웠다. 서버(requireBillingAuth)는 401 과 503 을
+// 이미 정확히 구분하므로, 클라이언트는 막지 말고 물어봐야 한다.
+// 위 [10] 과 짝이다 — 저기는 **401(확정)** 이라 POST 를 보내지 않는 것이 맞고, 여기는 **503(미확정)**
+// 이라 보내야 맞다. 두 케이스가 갈리는지가 이 가드의 요점이다.
+console.log("\n[11] 인증 503(미확정) + 세션 흔적이면 이용권 최종 판정을 서버에 보내는가");
+{
+  const { window, storeUrls } = bootRuntime();
+  // 로그인 흔적을 남긴다(HttpOnly 쿠키만 살아 있는 실제 웹 세션과 같은 모양).
+  window.document.cookie = "fortune_auth_role=user";
+
+  const calls = [];
+  window.fetch = async (url) => {
+    const pathname = new URL(String(url), window.location.origin).pathname;
+    calls.push(pathname);
+    if (pathname === "/api/auth/me" || pathname === "/api/auth/refresh") {
+      return new Response(JSON.stringify({
+        ok: false,
+        code: "SERVICE_UNAVAILABLE",
+        message: "일시적으로 확인하지 못했습니다.",
+      }), { status: 503, headers: { "Content-Type": "application/json" } });
+    }
+    if (pathname === "/api/billing/coin-gate") {
+      // 서버가 이용권 커버를 확인해 준다 = 보유자는 무료로 열려야 한다.
+      return new Response(JSON.stringify({
+        ok: true,
+        data: {
+          accessType: "membership_pass",
+          freeBySubscription: true,
+          chargedCoins: 0,
+        },
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({ ok: false }), { status: 404, headers: { "Content-Type": "application/json" } });
+  };
+
+  const choicePromise = openChoice(window);
+  findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await flush();
+  await flush();
+  await flush();
+
+  check("503 은 final MEMBERSHIP_PASS POST 를 막지 않는다", () => {
+    assert.equal(calls.includes("/api/billing/coin-gate"), true);
+  });
+  check("503 을 이용권 미커버로 오인해 상점으로 보내지 않는다", () => assert.deepEqual(storeUrls, []));
+
+  const outcome = await choicePromise;
+  check("서버가 커버를 확인하면 무료 통과('pass')로 닫힌다", () => {
+    assert.equal(outcome, "pass");
+  });
 }
 
 if (failures.length) {
