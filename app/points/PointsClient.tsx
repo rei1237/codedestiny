@@ -770,7 +770,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "회원",
     duration30: "30일",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "초융합 제외 · 3만원 미만 무제한 · 전문가 상담 10회 포함",
+    allPaidPdfPolicy: "3만원 미만 무제한 · 초융합 포함 전문가 상담 10회",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
     familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
@@ -816,7 +816,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "초융합 제외 · 3만원 미만 기능 무제한",
+        allPaidPdf: "3만원 미만 무제한 · 초융합 포함 10회",
         familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
         notAutoBilling: "원화 단건 결제로 구매 가능",
@@ -2224,7 +2224,7 @@ function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
 }
 
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {
-  if (tier === "family") return "초융합 제외, 3만원 미만 이용 가능";
+  if (tier === "family") return "3만원 미만 무제한 · 초융합 포함 10회";
   if (tier === "vvip") return "1만원 이하 유료 무료";
   if (tier === "premium") return "5천원 이하 유료 무료";
   if (tier === "standard") return "3천원 이하 유료 무료";
@@ -2345,7 +2345,7 @@ function MoonlightActivePassCard({
     { icon: "👤", label: getMoonlightProfileLabel(subscription) },
     { icon: "✨", label: getMoonlightBenefitLabel(tier) },
     { icon: "🌙", label: "월정석으로도 구매 가능" },
-    { icon: "🗝️", label: tier === "family" ? "초융합 운세는 별도 상담권 필요" : "한도 내 유료 리딩 혜택" },
+    { icon: "🗝️", label: tier === "family" ? "초융합 포함 전문가 상담 10회" : "한도 내 유료 리딩 혜택" },
   ];
 
   return (
@@ -3419,7 +3419,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
+      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)을 이용권 기간당 10회까지 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
     </section>
   );
 }
@@ -5404,7 +5404,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family도 초융합 운세는 별도 상담권이 필요하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
+          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)을 이용권 기간당 10회까지 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">
