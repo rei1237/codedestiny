@@ -364,7 +364,9 @@ async function main() {
   if (poisoned.length) {
     console.error(`::error::엣지에 404 가 캐시된 자산 ${poisoned.length}건 — 스스로 풀리지 않습니다(2일 TTL).`);
     console.error("::error::Cloudflare 대시보드에서 해당 URL 을 Custom Purge 하면 즉시 풀립니다.");
-    console.error("::error::근본 차단: Cache Rules 에서 URI Path prefix /_next/static/ 에 'Edge TTL → status code 404 → Bypass cache' 를 설정하세요.");
+    // 🔴 'Bypass cache' 가 아니라 'No store' 다. Bypass cache 는 캐시 적격성 설정이라 200 까지
+    // 캐시에서 빼 버린다. 여기서 원하는 건 404 만 저장 안 되게 하는 상태코드별 Edge TTL 이다.
+    console.error("::error::근본 차단: Cache Rules 에서 URI Path prefix /_next/static/ 에 'Edge TTL → status code 404 → No store' 를 설정하세요 (API: edge_ttl.status_code_ttl [{status_code:404, value:-1}] — -1=no-store, 0=no-cache, 양수는 그 초만큼 404 를 캐시).");
   }
   if (missing.length) {
     console.error(`::error::배포본에 존재하지 않는 자산 ${missing.length}건 — 빌드/업로드 문제입니다.`);

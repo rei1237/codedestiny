@@ -18,7 +18,11 @@ If both were left on, the same commit would deploy twice with different chunk ha
 
 1. Pages project settings → disable Git integration auto-deploy for push and PR.
 2. Workers → `code-destiny-web` → disconnect the Git integration.
-3. Caching → Cache Rules → `URI Path starts with /_next/static/` → `Edge TTL: by status code → 404: Bypass cache`. Without this, a transient 404 during a deploy cutover is cached for two days and a rollback does not fix it (identical content hashes to the same URL). The repository API tokens have no Zone permission, so this cannot be scripted.
+3. Caching → Cache Rules → `URI Path starts with /_next/static/` → `Edge TTL: by status code → 404: **No store**`. Without this, a transient 404 during a deploy cutover is cached for two days and a rollback does not fix it (identical content hashes to the same URL).
+
+   🔴 **"No store" is not "Bypass cache".** They are different controls. `Bypass cache` is the cache *eligibility* setting (`cache: false`) — it makes every matching response uncacheable, including the 200s, so content-hashed immutable assets would go to the origin on every request. What we want applies to the 404 alone, which is the per-status-code Edge TTL. In the API that is `edge_ttl.status_code_ttl: [{ "status_code": 404, "value": -1 }]`, where **`-1` = no-store and `0` = no-cache**. A positive value caches the 404 for that many seconds — on 2026-08-08 this rule held `31536000` (one year), so a rule named `next-static-404-no-store` was pinning 404s for a year and failing releases back to back.
+
+   `CLOUDFLARE_PURGE_TOKEN` carries Zone/Cache Rules permission as of 2026-08-08, so this rule can now be scripted.
 
 ## After a production deploy
 
