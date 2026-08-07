@@ -81,13 +81,37 @@ The two axes stay independent. `worker/**` remains `level=high`, so `deploy:crit
 
 ### Parallel sessions, independent deploys
 
-Run each concurrent session in its own worktree:
+Run each concurrent session in its own worktree. Two sessions share the main checkout only when they are editing the same files; otherwise split.
 
 ```powershell
 powershell -File scripts/create-safe-worktree.ps1 -Slug <name>
 ```
 
 Work there, ship from there, and merge back with a plain `git merge` — no PR. Sessions never wait on each other to build or preview.
+
+A new worktree is usable immediately, which is what makes splitting the default rather than a chore:
+
+- `node_modules` is linked, not copied. It is 1.2 GB here, so nine worktrees with real copies would be 11 GB — and three of them were exactly that before this was automated. `.claude/settings.json` sets `worktree.symlinkDirectories` for worktrees Claude Code creates; `create-safe-worktree.ps1` makes a junction for the ones you create yourself.
+- `.env.local` and `.env.cloudflare.local` are **hard-linked**, not copied, so there is one copy of each secret on disk and a rotation reaches every worktree at once.
+- Cloudflare credentials also resolve without any of that: `deploy-safe` reads deploy-prefixed keys (`CLOUDFLARE_`/`CF_`/`CD_`) from the primary worktree, so a worktree can promote even with no env file of its own.
+- `worktree.baseRef` is `fresh`, so a new worktree branches from `origin/main` rather than inheriting a stale local HEAD.
+
+**Removing a worktree: break the link first.** `node_modules` is a junction to the primary worktree's real directory, so deleting the worktree without unlinking risks taking the shared 1.2 GB — and every other worktree — with it.
+
+```powershell
+$w = 'D:\Development\codedestiny-worktrees\<name>'
+(Get-Item -LiteralPath "$w\node_modules" -Force).Delete()   # unlink only, never Remove-Item -Recurse
+git worktree remove --force $w
+git branch -D wt/<name>
+```
+
+**Check for overlap before splitting work:**
+
+```bash
+npm run worktree:status
+```
+
+It reads real git state — uncommitted changes plus commits not yet in `origin/main` — across every worktree and reports files touched by more than one. Nothing to register or keep updated, so it cannot drift out of date the way a manual claim file does. Overlap is not automatically wrong; it means those worktrees must merge before the second one promotes.
 
 **What is parallel and what is serial:**
 

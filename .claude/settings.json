@@ -193,6 +193,13 @@
       "\\tmp"
     ]
   },
+  "worktree": {
+    "symlinkDirectories": [
+      "node_modules"
+    ],
+    "baseRef": "fresh",
+    "bgIsolation": "worktree"
+  },
   "hooks": {
     "PostToolUse": [
       {

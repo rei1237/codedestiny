@@ -107,6 +107,7 @@
     "verify:portone-single-payment": "node scripts/verify-portone-single-payment-regression.mjs",
     "verify:payment-concurrency-guards": "node scripts/verify-payment-concurrency-guards.mjs",
     "check:quick": "node scripts/check-changed.mjs",
+    "worktree:status": "node scripts/worktree-status.mjs",
     "check:full": "npm run lint && npm run typecheck && npm run smoke:core && npm run test:node && npm run build:cf",
     "rollback:production": "npm run deploy:rollback --",
     "verify:monthly-credit-lots": "node scripts/verify-monthly-credit-lots.mjs",
