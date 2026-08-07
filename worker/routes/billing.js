@@ -1465,7 +1465,12 @@ async function getMembershipPassForBillingRequest(request, env, authUserId, auth
   // 이용권 미보유자가 다수이고 이 경로가 coin-gate(결제창 직전) 임계경로라 체감이 가장 크다.
   // "확인 실패"는 위에서 throw 로 전파되므로 여기 도달하지 않는다(= degraded 처리 경로 그대로 유지).
   if (directPass?.hasSubscriptionSignal === false) return directPass;
-  const snapshot = await readSubscriptionStatusSnapshot(request, env);
+  // 🔴 신호가 있어 스냅샷 위임이 필요한 경우에도, 위 조회가 방금 읽은 그 문서를 넘겨
+  // 스냅샷이 하던 인증 왕복 + User.findById 를 없앤다(직렬 3왕복 → 1왕복).
+  // 이 두 왕복은 같은 문서로 같은 판정 함수를 다시 돌릴 뿐이라 새로 알아내는 것이 없었는데,
+  // 전역 Mongo 슬롯 5개를 두고 경합하며 10초 예산을 넘겨 503 을 만들던 지점이다.
+  // 인증이 문서를 붙여 주지 못한 드문 경로(JWT-only 폴백 등)는 넘길 문서가 없으므로 기존 경로 그대로 둔다.
+  const snapshot = await readSubscriptionStatusSnapshot(request, env, authUserDoc);
   return buildMembershipPassFromStatusSnapshot(snapshot) || directPass;
 }
 
@@ -4951,12 +4956,16 @@ async function handleBillingSnapshotBalance(request, env) {
   const isFresh = billingUrl.searchParams.get("fresh") === "1";
 
   // 표시용 잔량 캐시: 유효 access 토큰이 있으면 Mongo 없이 로컬 JWT 검증만으로 userId를 얻어 캐시 키를 만든다.
-  // 토큰이 없거나(게스트) fresh 요청이면 캐시를 쓰지 않는다.
-  const cacheUserId = isFresh ? "" : await peekAccessTokenUserId(request, env).catch(() => "");
+  // 토큰이 없으면(게스트) 캐시를 쓰지 않는다.
+  // 🔴 재조회(fresh=1)는 캐시 **읽기만** 건너뛴다. 예전에는 캐시 키 자체를 비워서 in-flight 합류와
+  // 성공 결과 write-back 까지 함께 죽었다 — "월정석 재조회"를 누를수록 매번 인증+조회 왕복을 새로 내고
+  // (전역 Mongo 슬롯 5개를 coin-gate 와 경합) 캐시는 영영 안 채워져, 연타가 곧 degraded →
+  // 503 BALANCE_SNAPSHOT_UNAVAILABLE 로 이어졌다. peek 은 로컬 JWT 검증이라 Mongo 왕복이 0회다.
+  const cacheUserId = await peekAccessTokenUserId(request, env).catch(() => "");
   const cacheKey = cacheUserId
     ? `${cacheUserId}|${isCompactRequest ? "c" : "f"}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}`
     : "";
-  if (cacheKey) {
+  if (cacheKey && !isFresh) {
     const cachedSnapshot = readBillingBalanceFromCache(cacheKey);
     if (cachedSnapshot) {
       // 캐시에는 healthy(비degraded) 스냅샷만 들어오므로 정상 응답 경로로만 되돌린다(Mongo 0회).
@@ -4970,8 +4979,9 @@ async function handleBillingSnapshotBalance(request, env) {
   // Same-user bootstrap requests can arrive from the static shell, React
   // cache and profile runtime at once. Share only the in-flight read; the
   // healthy-result TTL cache below remains the source of truth for reuse.
-  // `fresh=1` intentionally has no cache key and therefore never joins this
-  // path.
+  // `fresh=1` gets its own in-flight bucket (see the `fresh:` segment) so a
+  // manual refresh never joins a cache-allowed read, but concurrent refreshes
+  // — a double-tapped "월정석 재조회" — still share one round trip.
   const snapshotInFlightKey = cacheKey
     ? `${cacheKey}|fresh:${isFresh ? "1" : "0"}`
     : "";
@@ -5288,14 +5298,33 @@ function hasResolvableSubscriptionSignal(user) {
   return false;
 }
 
-async function readSubscriptionStatusSnapshot(request, env) {
+// resolvedUserDoc: 호출부가 이번 요청에서 이미 읽어 온 User 문서.
+// 🔴 넘어오면 아래 인증 왕복(getOptionalUserFromRequest)과 User.findById 를 **둘 다** 건너뛴다.
+// 그 두 왕복은 호출부(getActiveMembershipPassForUser)가 같은 문서로 이미 내린 판정을 재생산할 뿐이었다
+// — 아래 select 목록은 BILLING_SNAPSHOT_USER_PROJECTION 의 부분집합이고, 판정 함수도
+// resolveActivePassPolicyWithProfileFallback 로 동일하다. 그런데도 직렬 3왕복이 되어
+// coin-gate 의 10초 예산(PAID_PASS_DECISION_DB_TIMEOUT_MS)을 정상 부하에서 넘겼고,
+// COIN_GATE_PASS_RESOLVE_TIMEOUT → isDatabaseUnavailableError → 503 PASS_STATUS_TEMPORARILY_UNAVAILABLE
+// 로 떨어졌다. 월정석 보유·만료 구독 잔재가 있는 계정은 hasResolvableSubscriptionSignal 이 항상 true 라
+// 이 경로가 매 요청 재현돼 "간헐적"이 아니라 "항상" 실패했다.
+// 안 넘어오면 기존 경로 그대로 둔다(다른 진입 조건의 회귀 방지).
+async function readSubscriptionStatusSnapshot(request, env, resolvedUserDoc = null) {
   try {
-    const auth = await getOptionalUserFromRequest(request, env);
-    if (auth?.userId) {
-      await connectDb(env);
-      const user = await User.findById(auth.userId)
-        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-        .lean();
+    let user = resolvedUserDoc;
+    // 문서를 받은 것 자체가 "인증된 사용자 맥락"이다. 아래 분기는 user 가 null 이어도(탈퇴 등)
+    // 원본과 동일하게 돌아야 하므로 존재 여부가 아니라 이 플래그로 가른다.
+    let hasAuthContext = Boolean(resolvedUserDoc);
+    if (!hasAuthContext) {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (auth?.userId) {
+        hasAuthContext = true;
+        await connectDb(env);
+        user = await User.findById(auth.userId)
+          .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+          .lean();
+      }
+    }
+    if (hasAuthContext) {
       const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
       if (entitlement.isActive) {
         return {

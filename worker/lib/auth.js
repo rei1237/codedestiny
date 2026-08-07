@@ -467,7 +467,12 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
     // 일시적 오류를 재연결·재시도한다(withMongoRetry가 내부에서 connectDb 호출).
     const tokenHash = hashRefreshToken(refreshToken, env);
     const session = await withMongoRetry(env, () => RefreshTokenSession.findOne({ tokenHash }).lean());
-    if (!session || session.revokedAt) return null;
+    if (!session) return null;
+    // 🔴 회전 직후의 옛 쿠키를 하드 401 로 떨어뜨리지 않는다. 형제 탭이 /api/auth/refresh 로 회전을
+    // 끝낸 순간, 아직 새 쿠키를 못 받은 다른 요청(멀티탭·프리페치·진입 팬아웃)이 옛 refresh 쿠키로
+    // 들어오면 여기서 401 이 났다. 이 경로는 **읽기 전용 신원 확인**이라 새 토큰을 발급하지 않으므로
+    // 회전 계약을 흔들지 않으며, 유예는 회전 경로와 같은 창(getRefreshReuseGraceMs)을 쓴다.
+    if (session.revokedAt && !isRotatedWithinReuseGrace(session, env)) return null;
     if (!refreshSessionMatchesRequest(session, request)) return null;
 
     const expiresAt = new Date(session.expiresAt || 0).getTime();
@@ -501,12 +506,46 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
   }
 }
 
-function refreshSessionMatchesRequest(session, request) {
+// refresh 토큰 회전 grace window — 방금 회전된 토큰이 이 시간 이내에 재생되면 멀티탭 동시 회전으로
+// 간주한다. routes/auth.js 의 회전 경로와 **같은 창**을 쓰기 위해 여기로 옮겨 공유한다(창이 둘이면
+// 한쪽만 허용하는 어긋난 구간이 생긴다). 기본 30초.
+export function getRefreshReuseGraceMs(env) {
+  const raw = Number(getEnv(env, "AUTH_REFRESH_REUSE_GRACE_MS", "30000"));
+  if (!Number.isFinite(raw) || raw < 0) return 30000;
+  return Math.min(Math.floor(raw), 5 * 60 * 1000);
+}
+
+// 🔴 UA 에서 버전 숫자를 걷어낸 형태. 크롬·엣지는 약 4주마다 major 버전을 올리는데, 예전 비교는
+// 완전 문자열 일치라 **브라우저가 자동 업데이트되는 순간 그 사용자의 refresh 세션이 통째로 무효**가
+// 됐다. 그 결과 로그인 상태인데도 /api/me/access-state 가 401 을 내고(→ 셸이 로컬 신원을 지워
+// 이용권 스냅샷이 고아가 됨), /api/auth/refresh 는 "Session changed" 로 전 세션 폐기까지 갔다.
+// 세션 고정 방어의 의도는 "다른 기기·다른 브라우저"를 거르는 것이므로 숫자만 지우고 비교한다 —
+// 브라우저·엔진·플랫폼 토큰(chrome/ edg/ firefox/ safari/ windows nt/ iphone os …)은 그대로 남아
+// 서로 다른 클라이언트는 계속 구분된다.
+function normalizeSessionUserAgent(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\d+(?:[._]\d+)*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function refreshSessionMatchesRequest(session, request) {
   const storedUserAgent = String(session?.userAgent || "").trim();
   if (!storedUserAgent) return true;
   const currentUserAgent = String(getRequestMeta(request).userAgent || "").trim();
   if (!currentUserAgent) return true;
-  return storedUserAgent === currentUserAgent;
+  if (storedUserAgent === currentUserAgent) return true;
+  return normalizeSessionUserAgent(storedUserAgent) === normalizeSessionUserAgent(currentUserAgent);
+}
+
+// 방금 '정상 회전'으로 승계된 세션인지. 승계본(replacedByTokenHash)이 있는 것만 인정하므로
+// 탈취 감지(revokeAllUserRefreshSessions)로 일괄 폐기된 세션은 여기에 걸리지 않는다.
+function isRotatedWithinReuseGrace(session, env) {
+  if (!session?.replacedByTokenHash) return false;
+  const rotatedAt = new Date(session.revokedAt || 0).getTime();
+  if (!Number.isFinite(rotatedAt) || rotatedAt <= 0) return false;
+  return Date.now() - rotatedAt <= getRefreshReuseGraceMs(env);
 }
 
 function extractTokenUserId(payload) {

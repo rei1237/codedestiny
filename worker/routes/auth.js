@@ -9,9 +9,11 @@ import {
   getAccessTokenSecret,
   getJwtAudience,
   getJwtIssuer,
+  getRefreshReuseGraceMs,
   getRefreshTokenExpiresIn,
   getRefreshTokenSecret,
   isAuthDbInfraError,
+  refreshSessionMatchesRequest,
   requireAuth,
   requireUserFromRequest,
   normalizeUserResponse,
@@ -765,14 +767,6 @@ function buildRefreshSessionFromRequest(request, env, userId) {
   };
 }
 
-function refreshSessionMatchesRequest(session, request) {
-  const storedUserAgent = String(session?.userAgent || "").trim();
-  if (!storedUserAgent) return true;
-  const currentUserAgent = String(getRequestMeta(request).userAgent || "").trim();
-  if (!currentUserAgent) return true;
-  return storedUserAgent === currentUserAgent;
-}
-
 async function issueRefreshTokenForUser(userId, env) {
   const nowSec = Math.floor(Date.now() / 1000);
   const refreshTtlSec = parseDurationToSeconds(getRefreshTokenExpiresIn(env), 14 * 24 * 60 * 60);
@@ -947,13 +941,9 @@ function getAuthOpTimeoutMs(env) {
 // 회전을 완료 중) — 이 구간 안의 재생은 탈취 재사용이 아니라 동시 새로고침으로 간주한다.
 const REFRESH_IN_FLIGHT_ROTATION_TOLERANCE_MS = 3000;
 
-// refresh 토큰 회전 grace window — 방금 회전된 토큰이 이 시간 이내에 재생되면
-// 멀티탭 동시 회전으로 간주해 전 세션 폐기 대신 정상 처리한다. (기본 30초)
-function getRefreshReuseGraceMs(env) {
-  const raw = Number(getEnv(env, "AUTH_REFRESH_REUSE_GRACE_MS", "30000"));
-  if (!Number.isFinite(raw) || raw < 0) return 30000;
-  return Math.min(Math.floor(raw), 5 * 60 * 1000);
-}
+// getRefreshReuseGraceMs·refreshSessionMatchesRequest 는 lib/auth.js 가 정본이다.
+// 예전에는 두 파일에 같은 구현이 각각 있어서, 한쪽만 고치면 읽기 경로(verifyRefreshSessionToAuth)와
+// 회전 경로(여기)가 서로 다른 판정을 내는 어긋난 구간이 생겼다.
 
 // 폴백이 준비된 rate-limit 조회 전용 상한. 인증 공용 12초와 분리한다(getLoginRateLimitState 주석).
 function getLoginRateLimitReadTimeoutMs(env) {
