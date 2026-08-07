@@ -5046,9 +5046,15 @@
       quotaText.textContent = _dpText('profileEditingNotice');
       return;
     }
+    /* 남은 슬롯 안내는 띄우지 않는다 — 아직 무료로 만들 수 있다는 건 사용자가 할 일이 없다는
+       뜻이라 화면에 남길 정보가 아니다. 아래 두 분기(추가 생성 유료)는 결제 안내라 유지한다. */
     if (canUsePlanSlot) {
-      quotaText.textContent = label + ' · 기본 제공 프로필 카드 ' + remaining + (unlimited ? '' : '개') + ' 저장 가능 (' + used + '/' + limitLabel + ')';
-    } else if (!_dpSubIsActive) {
+      quotaText.textContent = '';
+      quotaText.hidden = true;
+      return;
+    }
+    quotaText.hidden = false;
+    if (!_dpSubIsActive) {
       quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원';
     } else {
       quotaText.textContent = label + ' · 기본 한도 ' + limitLabel + '개 사용 완료 · 추가 생성 5,000원';
