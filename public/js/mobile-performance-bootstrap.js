@@ -81,11 +81,11 @@ function __throttle(fn, wait) {
 
 function __debounce(fn, wait) {
   let timer = null;
-  return function debounced() {
-    const ctx = this;
-    const args = arguments;
+  // 화살표 함수가 debounced 의 this 를 렉시컬로 잡으므로 별도 alias 가 필요 없다
+  // (no-this-alias). 호출 시점의 수신자·인자는 그대로 유지된다.
+  return function debounced(...args) {
     if (timer) clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(ctx, args), wait);
+    timer = setTimeout(() => fn.apply(this, args), wait);
   };
 }
 
