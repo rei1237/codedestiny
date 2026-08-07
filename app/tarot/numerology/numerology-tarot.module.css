@@ -36,7 +36,10 @@
     radial-gradient(36rem 30rem at 50% 88%, rgba(57, 30, 146, 0.26), transparent 80%),
     linear-gradient(180deg, var(--nt-bg-0) 0%, var(--nt-bg-1) 42%, var(--nt-bg-2) 100%);
   position: relative;
-  overflow: hidden;
+  /* overflow:hidden 은 가로 오버플로를 "숨겨서" 문제를 감추고, 동시에 하위 position:sticky 를
+     전부 무력화한다. 가로만 막고 세로 sticky 는 살린다. */
+  overflow-x: clip;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .screen::before {
@@ -67,9 +70,14 @@
 
 .container {
   position: relative;
-  width: min(1320px, calc(100% - 24px));
+  width: min(1180px, 100%);
   margin: 0 auto;
-  padding: 14px 0 26px;
+  /* 노치 기기의 가로 인셋과 홈 인디케이터를 함께 피한다. */
+  padding:
+    14px
+    max(12px, env(safe-area-inset-right))
+    max(26px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
 }
 
 .topBar {
@@ -90,23 +98,6 @@
   color: var(--nt-gold);
   font-weight: 700;
   font-family: "Cinzel", "Noto Serif KR", serif;
-}
-
-.topNav {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: var(--nt-text-dim);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.topNav button {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  padding: 0;
-  cursor: pointer;
 }
 
 .actions {
@@ -160,10 +151,9 @@
   transform: translateY(-1px);
 }
 
+/* 가짜 폰 목업 사이드패널을 제거해 단일 흐름이 되었다. */
 .heroGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 14px;
+  display: block;
   margin-top: 12px;
 }
 
@@ -204,17 +194,37 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  margin-bottom: 18px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
 }
 
 .stepItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   border: 1px solid var(--nt-line-soft);
   border-radius: 999px;
-  padding: 8px 10px;
+  padding: 9px 10px;
   text-align: center;
   background: rgba(255, 255, 255, 0.02);
-  color: rgba(246, 233, 206, 0.75);
+  color: rgba(246, 233, 206, 0.82);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.stepIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
   font-size: 12px;
+  font-weight: 800;
 }
 
 .stepActive {
@@ -223,12 +233,9 @@
   color: #f8eed8;
 }
 
-.promptToolHeader {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  gap: 12px;
-  align-items: start;
-  margin-bottom: 14px;
+.stepActive .stepIndex {
+  background: rgba(244, 220, 165, 0.9);
+  color: #21162f;
 }
 
 .promptToolKicker {
@@ -236,37 +243,6 @@
   color: rgba(244, 220, 165, 0.78);
   font-size: 12px;
   font-weight: 800;
-}
-
-.promptToolHeader h2,
-.promptToolHeader h4 {
-  margin: 0 0 7px;
-  font-family: "Noto Serif KR", serif;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.promptToolHeader p {
-  margin: 4px 0 0;
-  color: rgba(247, 241, 225, 0.78);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.promptPriceBadge {
-  border: 1px solid rgba(244, 220, 165, 0.42);
-  border-radius: 999px;
-  background: rgba(244, 220, 165, 0.12);
-  color: #f4dca5;
-  padding: 8px 12px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.promptMergedPanel {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(244, 220, 165, 0.2);
 }
 
 .stage {
@@ -358,7 +334,7 @@
 }
 
 .label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--nt-text-dim);
 }
 
@@ -369,13 +345,16 @@
   border: 1px solid rgba(255, 255, 255, 0.24);
   background: rgba(9, 11, 36, 0.7);
   color: var(--nt-text);
-  font-size: 13px;
-  padding: 9px 10px;
+  /* 🔴 16px 미만이면 iOS Safari 가 포커스마다 화면을 확대한다. 내리지 말 것. */
+  font-size: 16px;
+  min-height: 44px;
+  padding: 10px 12px;
   outline: none;
 }
 
+/* 대비 3.7:1 → 4.5:1 이상. 색 계열은 유지하고 명도만 올렸다(The Hue-Stays Rule). */
 .input::placeholder {
-  color: rgba(247, 241, 225, 0.42);
+  color: rgba(247, 241, 225, 0.62);
 }
 
 .input:focus,
@@ -396,8 +375,7 @@
   margin-top: 10px;
 }
 
-.includedList span,
-.noExtraPay {
+.includedList span {
   border: 1px solid rgba(244, 220, 165, 0.24);
   border-radius: 999px;
   background: rgba(244, 220, 165, 0.08);
@@ -407,9 +385,25 @@
   font-weight: 700;
 }
 
+/* 무료 / 유료를 색으로 즉시 구분한다. */
+.includedList .includedBadge {
+  border-color: rgba(134, 231, 174, 0.5);
+  background: rgba(80, 200, 140, 0.18);
+  color: #b6f3d2;
+}
+
+.includedList .includedBadgePaid {
+  border-color: rgba(244, 220, 165, 0.75);
+  background: rgba(244, 220, 165, 0.9);
+  color: #21162f;
+  font-weight: 900;
+}
+
 .error {
   margin-top: 8px;
-  font-size: 12px;
+  max-width: 68ch;
+  font-size: 14px;
+  line-height: 1.7;
   color: #fca5a5;
 }
 
@@ -429,16 +423,26 @@
 
 .failureBox p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  max-width: 68ch;
+  font-size: 15px;
+  line-height: 1.75;
 }
 
+.failureNote {
+  margin-top: 8px !important;
+  color: rgba(248, 239, 224, 0.78);
+  font-size: 14px !important;
+}
+
+/* 🔴 이제 장식 전용이다. 카드 스프레드는 문서 흐름 안(.pickCard)으로 옮겼다.
+   예전에는 .previewSpread 가 이 고정 높이 + overflow:hidden 상자 안에 절대배치돼,
+   모바일에서 5장 중 2~3장이 잘려 보이지도 눌리지도 않았다. 카드를 다시 넣지 말 것. */
 .stageVisual {
   position: relative;
   border: 1px solid var(--nt-line-soft);
   border-radius: 18px;
   background: radial-gradient(circle at 56% 36%, rgba(103, 73, 227, 0.36) 0%, rgba(14, 13, 45, 0.92) 58%, rgba(7, 9, 27, 0.97) 100%);
-  min-height: 470px;
+  min-height: 320px;
   overflow: hidden;
 }
 
@@ -452,10 +456,10 @@
 
 .moon {
   position: absolute;
-  top: 58px;
+  top: 42px;
   left: 22px;
-  width: 112px;
-  height: 112px;
+  width: min(112px, 24vw);
+  height: min(112px, 24vw);
   border-radius: 50%;
   box-shadow: 0 0 36px rgba(255, 245, 194, 0.4);
   background: radial-gradient(circle at 34% 36%, #fef4be 0%, #e4cc8e 44%, rgba(255, 245, 194, 0.1) 100%);
@@ -466,8 +470,9 @@
   top: 24px;
   left: 50%;
   transform: translateX(-50%);
-  width: 280px;
-  height: 280px;
+  /* 320px(iPhone SE)에서도 컨테이너를 넘지 않게 뷰포트에 맞춰 줄인다. */
+  width: min(280px, 72vw);
+  height: min(280px, 72vw);
   border-radius: 50%;
   border: 1px solid rgba(197, 160, 255, 0.4);
   box-shadow: 0 0 42px rgba(102, 74, 210, 0.44);
@@ -494,8 +499,8 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 188px;
+  width: min(120px, 30vw);
+  height: min(188px, 47vw);
   border-radius: 12px;
   border: 1px solid rgba(227, 192, 118, 0.6);
   background: linear-gradient(180deg, rgba(24, 23, 80, 0.95), rgba(5, 6, 24, 0.98));
@@ -507,215 +512,202 @@
   box-shadow: 0 0 26px rgba(158, 109, 255, 0.46);
 }
 
-.previewSpread {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 22px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  padding: 0 14px;
+/* ── 카드 뽑기(무료) ─────────────────────────────────────────────
+   전부 문서 흐름 안에 있다. 절대배치·고정높이·overflow:hidden 조합을 쓰지 말 것. */
+
+.pickCard {
+  margin-top: 14px;
+  border: 1px solid rgba(244, 220, 165, 0.28);
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(30, 24, 78, 0.6), rgba(7, 8, 30, 0.9));
+  padding: clamp(16px, 2.4vw, 24px);
 }
 
-.previewCard {
-  border-radius: 12px;
-  border: 1px solid rgba(225, 191, 121, 0.48);
-  background: linear-gradient(180deg, rgba(24, 20, 84, 0.82), rgba(5, 5, 24, 0.95));
-  min-height: 136px;
-  padding: 10px;
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.previewCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(160deg, rgba(255, 239, 194, 0.1), transparent 35%, transparent 68%, rgba(127, 85, 255, 0.08));
-  pointer-events: none;
-}
-
-.previewCard:hover {
-  transform: translateY(-2px);
-  border-color: rgba(235, 208, 145, 0.84);
-}
-
-.previewCard:disabled {
-  cursor: default;
-  opacity: 0.78;
-}
-
-.previewCardLocked {
+.pickHeader {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.pickHeader h3 {
+  margin: 0 0 6px;
+  font-family: "Noto Serif KR", serif;
+  font-size: clamp(20px, 2.4vw, 26px);
+  line-height: 1.35;
+}
+
+.pickLead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.8;
+  color: rgba(247, 241, 225, 0.86);
+}
+
+.pickProgress {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  color: rgba(250, 243, 229, 0.7);
+  gap: 2px;
+  border: 1px solid rgba(244, 220, 165, 0.4);
+  border-radius: 14px;
+  background: rgba(244, 220, 165, 0.1);
+  padding: 8px 14px;
+  min-width: 76px;
+}
+
+.pickProgress strong {
+  font-size: 20px;
+  color: #f6dfa8;
+}
+
+.pickProgress small {
   font-size: 12px;
-  letter-spacing: 0.18em;
+  color: rgba(247, 241, 225, 0.72);
 }
 
-.previewCardOpen {
+.deckGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.deckSlot {
+  aspect-ratio: 0.64;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid rgba(225, 191, 121, 0.45);
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 3px, transparent 3px 8px),
+    linear-gradient(180deg, rgba(24, 20, 84, 0.9), rgba(5, 5, 24, 0.96));
+  color: rgba(250, 231, 178, 0.72);
+  font-size: 17px;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.deckSlot:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: rgba(244, 220, 165, 0.9);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+}
+
+.deckSlot:disabled {
+  cursor: default;
+}
+
+.deckSlotPicked {
   border-color: rgba(244, 220, 165, 0.95);
-  box-shadow: 0 0 0 2px rgba(244, 220, 165, 0.25), 0 16px 36px rgba(0, 0, 0, 0.34);
+  background: linear-gradient(180deg, rgba(120, 84, 226, 0.6), rgba(38, 24, 92, 0.95));
+  box-shadow: 0 0 0 2px rgba(244, 220, 165, 0.3) inset;
 }
 
-.previewCardImageWrap {
-  width: min(100%, 132px);
-  margin: 0 auto;
+.deckSlotOrder {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffeec2;
+}
+
+.spreadRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.spreadCard {
+  border-radius: 14px;
+  border: 1px solid rgba(244, 220, 165, 0.5);
+  background: linear-gradient(180deg, rgba(24, 20, 84, 0.72), rgba(5, 5, 24, 0.95));
+  padding: 10px;
+  text-align: center;
+}
+
+.spreadPosition {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(250, 231, 178, 0.86);
+}
+
+.spreadImageWrap {
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(240, 219, 170, 0.5);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-.previewCardImage {
+.spreadImage {
   width: 100%;
   height: auto;
   display: block;
 }
 
-.previewPosition {
-  color: rgba(250, 231, 178, 0.78);
-  font-size: 11px;
-  margin-bottom: 8px;
-}
-
-.previewName {
-  margin-top: 8px;
+.spreadName {
+  margin: 8px 0 0;
   font-size: 15px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
-.previewMeta {
-  margin-top: 4px;
+.spreadMeta {
+  margin: 4px 0 0;
   font-size: 12px;
   color: var(--nt-text-dim);
 }
 
-.infoRail {
+.pickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pickHint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(247, 241, 225, 0.76);
+}
+
+.numberRail {
   margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.numberChip {
   border: 1px solid var(--nt-line-soft);
   border-radius: 14px;
   background: rgba(6, 8, 30, 0.75);
   padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.infoItem {
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-  padding-right: 8px;
-}
-
-.infoItem:last-child {
-  border-right: 0;
-}
-
-.infoItem h4 {
-  font-size: 11px;
-  color: var(--nt-text-dim);
-  margin: 0 0 6px;
-}
-
-.infoItem p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.sidePanel {
-  border: 1px solid var(--nt-line-soft);
-  border-radius: 28px;
-  background: linear-gradient(180deg, rgba(10, 12, 46, 0.9), rgba(8, 9, 33, 0.96));
-  padding: 14px;
-}
-
-.sideTitle {
   text-align: center;
-  margin-bottom: 12px;
 }
 
-.sideTitle h3 {
-  margin: 0;
-  color: var(--nt-gold);
-  font-size: 29px;
-  letter-spacing: 0.02em;
-  font-family: "Cinzel", "Noto Serif KR", serif;
-}
-
-.sideTitle p {
-  margin: 4px 0 0;
-  color: var(--nt-text-dim);
-  font-size: 13px;
-}
-
-.phoneGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.phone {
-  border: 1px solid rgba(230, 197, 119, 0.42);
-  border-radius: 32px;
-  background: linear-gradient(180deg, rgba(11, 12, 45, 0.96), rgba(5, 6, 25, 0.98));
-  min-height: 360px;
-  padding: 12px 10px;
-  box-shadow: inset 0 0 0 1px rgba(149, 109, 255, 0.3), 0 16px 30px rgba(6, 6, 20, 0.45);
-}
-
-.phone h4 {
-  margin: 0 0 10px;
-  text-align: center;
+.numberChip span {
+  display: block;
   font-size: 12px;
-  color: #f6deab;
+  color: rgba(244, 220, 165, 0.92);
+  font-weight: 700;
 }
 
-.miniField {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
-  padding: 8px;
-  background: rgba(15, 17, 50, 0.7);
-  font-size: 11px;
-  margin-bottom: 8px;
-  color: #f8edcf;
+.numberChip strong {
+  display: block;
+  margin: 4px 0;
+  font-size: 26px;
+  font-family: "Noto Serif KR", serif;
+  color: #ffeec2;
 }
 
-.miniCardStack {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 3px;
-  margin-bottom: 10px;
-}
-
-.miniCard {
-  border: 1px solid rgba(235, 205, 143, 0.4);
-  border-radius: 8px;
-  min-height: 62px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.miniCardImage {
-  width: 100%;
-  height: auto;
-  border-radius: 6px;
-  border: 1px solid rgba(240, 217, 163, 0.55);
-}
-
-.statPill {
-  border: 1px solid rgba(240, 218, 163, 0.42);
-  border-radius: 10px;
-  padding: 6px;
-  margin-bottom: 7px;
-  font-size: 11px;
+.numberChip small {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(247, 241, 225, 0.82);
 }
 
 .resultCard {
@@ -723,6 +715,9 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  /* 기본 행간을 선언해 둔다. 없으면 line-height 를 안 준 요소가 UA 기본값(≈1.2)으로 떨어져
+     한국어 장문에서 줄이 붙어 버린다. */
+  line-height: 1.75;
   border: 1px solid rgba(244, 220, 165, 0.36);
   border-radius: 26px;
   background:
@@ -790,13 +785,13 @@
 
 .resultHeader p {
   margin: 4px 0 0;
-  color: rgba(248, 239, 224, 0.72);
-  font-size: 13px;
-  line-height: 1.55;
+  color: rgba(248, 239, 224, 0.82);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .resultSubtitle {
-  max-width: 620px;
+  max-width: 62ch;
 }
 
 .resultActions {
@@ -849,9 +844,9 @@
 
 .resultMoonItem p {
   margin: 0;
-  color: rgba(248, 239, 224, 0.82);
-  font-size: 13px;
-  line-height: 1.64;
+  color: rgba(248, 239, 224, 0.88);
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 .resultStack {
@@ -889,16 +884,23 @@
   line-height: 1.35;
 }
 
+/* 행 길이 제어 — 데스크톱 실측 본문 폭이 ~840px(한 줄 90~100자)까지 늘어나던 것을 68ch 로 묶는다. */
 .resultLead {
   margin: 0;
+  max-width: 68ch;
   color: rgba(248, 239, 224, 0.86);
   line-height: 1.82;
   white-space: pre-line;
   font-size: 16px;
 }
 
+.resultLead + .resultLead {
+  margin-top: 12px;
+}
+
 .resultCoreMessage {
   margin: 14px 0 0;
+  max-width: 62ch;
   color: #fff4cf;
   line-height: 1.76;
   font-size: clamp(18px, 2.2vw, 22px);
@@ -907,14 +909,65 @@
 
 .qualityNote {
   margin: 10px 0 0;
-  color: rgba(248, 239, 224, 0.56);
-  font-size: 12px;
+  max-width: 68ch;
+  color: rgba(248, 239, 224, 0.72);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .cardReadingGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
+}
+
+/* ── 스프레드 총합수 ───────────────────────────────────────── */
+.quintessenceSection {
+  border-color: rgba(244, 220, 165, 0.42);
+  background:
+    radial-gradient(18rem 12rem at 8% 0%, rgba(244, 220, 165, 0.16), transparent 70%),
+    linear-gradient(145deg, rgba(79, 51, 112, 0.34), rgba(255, 255, 255, 0.05));
+}
+
+.quintessenceHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.quintessenceBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  border: 1px solid rgba(244, 220, 165, 0.6);
+  background: rgba(244, 220, 165, 0.12);
+}
+
+.quintessenceBadge strong {
+  font-family: "Noto Serif KR", serif;
+  font-size: 30px;
+  line-height: 1;
+  color: #ffeec2;
+}
+
+.quintessenceBadge small {
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(247, 241, 225, 0.78);
+}
+
+.quintessenceTitle {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffeec2;
 }
 
 .cardReadingBox {
@@ -940,11 +993,26 @@
   display: none;
 }
 
+.cardReadingTitleBlock {
+  min-width: 0;
+}
+
 .cardReadingOrder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
-  color: rgba(240, 207, 138, 0.82);
-  font-size: 11px;
+  color: rgba(240, 207, 138, 0.88);
+  font-size: 12px;
   letter-spacing: 0;
+}
+
+.cardReadingRole {
+  border: 1px solid rgba(244, 220, 165, 0.3);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .cardReadingHeader h5,
@@ -959,33 +1027,79 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  font-size: 11px;
-  color: rgba(248, 239, 224, 0.62);
-  white-space: nowrap;
+  font-size: 12px;
+  color: rgba(248, 239, 224, 0.72);
+  /* white-space:nowrap 은 좁은 카드에서 헤더를 컨테이너보다 넓게 만들어 가로 오버플로를 냈다. */
+  text-align: right;
+  min-width: 0;
+}
+
+.cardReadingName {
+  font-weight: 700;
+  color: rgba(255, 244, 207, 0.92);
+}
+
+/* 수 배지 — 카드의 수와 상담자의 수가 어떤 관계인지 한눈에 보여 준다. */
+.numberRelationBadge {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(248, 239, 224, 0.9);
+}
+
+.numberRelationBadge[data-relation="resonance"] {
+  border-color: rgba(244, 220, 165, 0.75);
+  background: rgba(244, 220, 165, 0.2);
+  color: #ffeec2;
+}
+
+.numberRelationBadge[data-relation="tension"] {
+  border-color: rgba(240, 185, 135, 0.7);
+  background: rgba(240, 185, 135, 0.18);
+  color: #ffd9b8;
+}
+
+.numberRelationBadge[data-relation="complement"] {
+  border-color: rgba(160, 214, 255, 0.6);
+  background: rgba(120, 180, 255, 0.16);
+  color: #d5ebff;
 }
 
 .cardReadingBox p {
-  margin: 0 0 8px;
-  color: rgba(248, 239, 224, 0.82);
+  margin: 0 0 10px;
+  max-width: 68ch;
+  color: rgba(248, 239, 224, 0.86);
   font-size: 15px;
-  line-height: 1.65;
+  line-height: 1.8;
+}
+
+/* 수비학 결합 문단은 이 카드의 핵심이라 시각적으로 먼저 잡히게 한다. */
+.numerologyBridgeText {
+  border-left: 2px solid rgba(244, 220, 165, 0.55);
+  padding-left: 10px;
 }
 
 .cautionText {
-  color: #f0b987;
+  color: #f5c79c;
 }
 
 .planList {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 20px;
+  max-width: 68ch;
   display: grid;
-  gap: 8px;
-  color: rgba(248, 239, 224, 0.86);
-  line-height: 1.65;
+  gap: 10px;
+  color: rgba(248, 239, 224, 0.88);
+  font-size: 16px;
+  line-height: 1.8;
 }
 
 .finalWord {
   margin: 10px 0 0;
+  max-width: 62ch;
   color: #fff4cf;
   line-height: 1.82;
   font-size: 17px;
@@ -1017,8 +1131,13 @@
 }
 
 .utilityPanel summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 2px;
   cursor: pointer;
   color: #f0cf8a;
+  font-size: 15px;
   font-weight: 800;
 }
 
@@ -1154,10 +1273,13 @@
   font-size: 12px;
 }
 
+/* 카드별 실행 조언은 결과에서 가장 실천에 가까운 문장이다.
+   12px + line-height 미지정(≈1.2)으로 화면 최소 크기였던 것을 본문 급으로 올린다. */
 .actionTip {
   margin-top: 7px;
-  color: rgba(240, 207, 138, 0.82);
-  font-size: 12px;
+  color: rgba(244, 216, 152, 0.94);
+  font-size: 15px;
+  line-height: 1.75;
 }
 
 .resultCard h3 {
@@ -1182,9 +1304,10 @@
   gap: 8px;
   border-radius: 999px;
   font-family: inherit;
-  min-height: 42px;
-  padding: 10px 16px;
-  font-size: 13px;
+  /* 🔴 전역 44px 탭 타깃을 낮추지 말 것. 결과 화면의 저장·공유·새 질문이 유일하게 미달이었다. */
+  min-height: 44px;
+  padding: 11px 18px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
 }
@@ -1238,18 +1361,26 @@
   padding: 12px;
 }
 
+/* 라벨은 작게 유지하되 트래킹으로 본문과 구분하고, 본문은 15px 로 올린다.
+   .resultBox p 는 현재 흐름·조언·기회·주의·정리·수비학 카드를 전부 렌더하는 유료 결과의 주력 문단이다. */
 .resultBox h4,
 .resultBox h5 {
-  margin: 0 0 6px;
+  margin: 0 0 7px;
   font-size: 13px;
-  color: rgba(240, 207, 138, 0.92);
+  letter-spacing: 0.06em;
+  color: rgba(240, 207, 138, 0.95);
 }
 
 .resultBox p {
   margin: 0;
-  color: rgba(248, 239, 224, 0.8);
-  font-size: 13px;
-  line-height: 1.58;
+  max-width: 68ch;
+  color: rgba(248, 239, 224, 0.88);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.resultBox p + p {
+  margin-top: 8px;
 }
 
 .flowGrid {
@@ -1341,20 +1472,17 @@
 }
 
 @media (max-width: 1200px) {
-  .heroGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .sidePanel {
-    order: 2;
-  }
-
   .stage {
     grid-template-columns: 1fr;
   }
 
   .flowGrid {
     grid-template-columns: 1fr;
+  }
+
+  /* 3열 폼이 전폭 스테이지에서 늘어나는 것을 막는다. */
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1363,53 +1491,35 @@
     display: none;
   }
 
-  .phoneGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .previewSpread {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .userFlowRow,
   .keyList,
   .resultGrid,
   .resultMoonPanel,
-  .infoRail,
   .freeProfileHighlights,
   .freeProfileGrid,
   .followUpList {
     grid-template-columns: 1fr;
   }
 
-  .cardReadingGrid,
-  .miniCardStack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* 🔴 카드별 해석은 1열이어야 한다.
+     ≤900px 에서 2열로 고정하면 360px 기준 카드당 본문 폭이 ~82px(한 줄 5글자)까지 줄어든다.
+     기본 규칙 minmax(280px,1fr) 이 알아서 접히도록 두는 것이 정답이다. */
+  .cardReadingGrid {
+    grid-template-columns: 1fr;
   }
 
-  .infoItem {
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    padding-bottom: 8px;
-  }
-
-  .infoItem:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .mainPanel,
-  .sidePanel {
+  .mainPanel {
     border-radius: 20px;
     padding: 14px;
   }
 
+  /* 42px 로 커지던 역전을 없앤다(clamp 하한보다 커졌었다). */
   .title {
-    font-size: 42px;
+    font-size: clamp(28px, 7vw, 36px);
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .promptToolHeader {
@@ -1421,7 +1531,7 @@
   }
 
   .stageVisual {
-    min-height: 440px;
+    min-height: 260px;
   }
 
   .formGrid {
@@ -1447,5 +1557,114 @@
     width: 100%;
     justify-content: center;
     min-width: 0;
+  }
+}
+
+/* ── 실제 폰 구간 ───────────────────────────────────────────────
+   기존에는 900px 아래로 분기가 하나도 없어 360px 폰과 899px 태블릿이 같은 화면을 받았다. */
+@media (max-width: 640px) {
+  .stepRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* 패딩 4겹 + 테두리 4겹이 누적돼 360px 에서 본문 폭이 236px 까지 줄던 것을 완화한다. */
+  .mainPanel {
+    padding: 12px;
+  }
+
+  .resultStack {
+    gap: 10px;
+  }
+
+  .resultSection {
+    padding: 14px 12px;
+    /* 본문 밀도가 높은 섹션에서 blur 를 걷는다(모바일 GPU 비용 + 대각 해칭 위 가독성). */
+    backdrop-filter: none;
+  }
+
+  .resultCard {
+    padding: 14px 12px;
+  }
+
+  .numberRail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .numberChip {
+    padding: 10px 6px;
+  }
+
+  .numberChip strong {
+    font-size: 22px;
+  }
+
+  .deckGrid {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 6px;
+  }
+
+  .spreadRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pickHeader {
+    flex-direction: column;
+  }
+
+  .pickProgress {
+    align-self: flex-start;
+  }
+
+  .pickActions .mainBtn,
+  .pickActions .ghostBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cardReadingHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardReadingMeta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 400px) {
+  .stepRail {
+    grid-template-columns: 1fr;
+  }
+
+  .spreadRow {
+    grid-template-columns: 1fr;
+  }
+
+  .topicTab,
+  .followUpChip {
+    width: 100%;
+  }
+}
+
+/* 회전·이동 연출을 시스템 설정에 맞춰 멈춘다. */
+@media (prefers-reduced-motion: reduce) {
+  .wheel {
+    animation: none;
+  }
+
+  .deckSlot,
+  .ghostBtn,
+  .lightBtn,
+  .mainBtn {
+    transition: none;
+  }
+
+  .deckSlot:hover:not(:disabled) {
+    transform: none;
   }
 }

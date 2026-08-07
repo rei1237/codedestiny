@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { useAiProfileSeed } from "../../hooks/useAiProfileSeed";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
@@ -13,8 +14,9 @@ import styles from "./numerology-tarot.module.css";
 import {
   NUMEROLOGY_DATA,
   TOPIC_LABELS,
+  buildAttunedDeck,
   buildNumerologyContext,
-  selectCards,
+  drawFromAttunedDeck,
 } from "../../../lib/tarot/numerology-tarot.mjs";
 import { normalizeDuplicatedSubjectParticles } from "../../../lib/tarot/myeongri-tarot-text-utils.mjs";
 
@@ -55,6 +57,13 @@ type NumerologyTarotInterpretationCard = {
   directMeaning?: string;
   contextualInterpretation?: string;
   practicalAdvice?: string;
+  positionRole?: string;
+  cardReducedNumber?: number;
+  numberKeyword?: string;
+  numberRelation?: string;
+  numberRelationLabel?: string;
+  numberRelationWith?: string;
+  numberRelationValue?: number;
 };
 
 type NumerologyTarotInterpretation = {
@@ -74,6 +83,23 @@ type NumerologyTarotInterpretation = {
     }>;
   };
   cardStory?: string;
+  // 스프레드 총합수 — 다섯 장을 한 장으로 압축한 결론 축.
+  quintessence?: {
+    label: string;
+    rawSum: number;
+    arcanaNumber: number;
+    reducedNumber: number;
+    cardName: string;
+    keyword: string;
+    headline: string;
+    summary: string;
+    advice: string;
+    relationType: string;
+  } | null;
+  numberPattern?: {
+    repeatedNumbers: Array<{ number: number; times: number }>;
+    summary: string;
+  };
   cards?: Array<{
     cardId: string;
     cardName: string;
@@ -84,6 +110,14 @@ type NumerologyTarotInterpretation = {
     contextualInterpretation: string;
     practicalAdvice: string;
     caution?: string;
+    numerologyBridge?: string;
+    positionRole?: string;
+    cardReducedNumber?: number;
+    numberKeyword?: string;
+    numberRelation?: string;
+    numberRelationLabel?: string;
+    numberRelationWith?: string;
+    numberRelationValue?: number;
   }>;
   synthesis?: {
     currentSituation: string;
@@ -192,13 +226,11 @@ type ReadingEntitlement = {
 };
 
 type FlowState =
-  | "topic_selection"
-  | "question_input"
-  | "checkout_ready"
-  | "checkout_pending"
-  | "payment_complete"
-  | "card_drawing"
-  | "cards_selected"
+  | "question_input"   // 질문을 아직 안 적음
+  | "free_reading"     // 기초 리딩 열림(무료)
+  | "card_picking"     // 덱에서 뽑는 중(무료)
+  | "cards_selected"   // 5장 완료 — 결제 버튼 활성
+  | "checkout_pending" // 결제창 진행 중
   | "reading_generating"
   | "reading_complete"
   | "reading_failed"
@@ -210,9 +242,7 @@ type ReadingSnapshot = {
   birthDate: string;
   topic: TopicKey;
   question: string;
-  numerology: NumerologyContext | null;
   cards: DrawnCard[];
-  revealed: number[];
   reading: NumerologyTarotInterpretation | null;
 };
 
@@ -269,31 +299,33 @@ const TOPIC_QUESTION_HINTS: Record<TopicKey, string[]> = {
   ],
 };
 
-const INCLUDED_BENEFITS = [
-  "수비학 계산",
-  "타로 카드 5장 추첨",
-  "카드별 해석",
-  "수비학과 타로를 연결한 종합 상담",
+// 무엇이 무료이고 무엇이 결제 대상인지 화면에서 바로 읽히도록 두 그룹으로 나눈다.
+const FREE_BENEFITS = [
+  "생명수·오늘수·질문수 계산",
+  "타고난 결 기초 리딩",
+  "카드 5장 직접 뽑기",
+  "카드 이름·정역방향 공개",
+];
+
+const PAID_BENEFITS = [
+  "스프레드 총합수 총괄 해석",
+  "카드별 수비학 결합 해석",
+  "기회·과제·다음 행동 정리",
   "결과 저장 및 다시 보기",
-  "질문 주제별 실천 흐름",
   "생성 실패 시 무료 재시도",
 ];
 
 const NUMEROLOGY_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_READING_PRICE_LABEL = "3,000원";
-const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement";
-const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:";
+// v2 — 무료/유료 경계가 바뀌며 스냅샷 구조가 달라졌다. 구버전 키는 자연 폐기된다.
+const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement:v2";
+const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:v2:";
 const READING_RECOVERY_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
-const STEP_LABELS = ["상담 입력", "결제 완료", "카드 5장", "상담 결과"];
+const SPREAD_CARD_COUNT = 5;
+const DECK_SLOT_COUNT = 22;
 
-const PREVIEW_PLACEHOLDERS = [
-  { title: "과거", icon: "✶" },
-  { title: "현재", icon: "☽" },
-  { title: "전환", icon: "✦" },
-  { title: "조율", icon: "◆" },
-  { title: "미래", icon: "☀" },
-];
+const STEP_LABELS = ["정보 입력", "기초 리딩 · 무료", "카드 뽑기 · 무료", "심층 상담 · 유료"];
 
 const YEARS = Array.from({ length: 91 }, (_, idx) => String(new Date().getFullYear() - idx));
 const MONTHS = Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
@@ -677,10 +709,24 @@ function clearStoredReadingSession(readingId?: string) {
   }
 }
 
+// 저장된 결제 권한이 어느 계정 것인지 구분한다. 같은 기기에서 계정을 바꿨을 때
+// 남의 결제 권한으로 결과를 요청하지 않도록 막는 용도다(기존에는 "current-user" 고정이었다).
+function resolveAuthScope(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = window.localStorage.getItem("fortune_auth_user");
+    if (!raw) return "";
+    const parsed = JSON.parse(raw);
+    return String(parsed?.id || parsed?.userId || parsed?._id || parsed?.uid || "").trim().toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 function buildReadingEntitlement(readingId: string, paymentContext: ReadingPaymentContext): ReadingEntitlement {
   return {
     readingId,
-    userId: "current-user",
+    userId: resolveAuthScope() || "guest",
     productId: "numerology_tarot_reading",
     paid: true,
     includesCardDraw: true,
@@ -698,6 +744,8 @@ function buildReadingEntitlement(readingId: string, paymentContext: ReadingPayme
 export default function NumerologyTarotClient() {
   const router = useRouter();
   const { ensurePaidAccess, isPaying } = useCoinGate();
+  // 생년 정보 자동 프리필 — 공용 훅을 재사용한다(프로필 조회 로직을 새로 만들지 않는다).
+  const { seed: profileSeed, seedVersion: profileSeedVersion } = useAiProfileSeed();
   const screenRef = useRef<HTMLElement | null>(null);
 
   const [name, setName] = useState("");
@@ -709,17 +757,35 @@ export default function NumerologyTarotClient() {
   const [analysisDate, setAnalysisDate] = useState(getTodayDateInput());
   const [question, setQuestion] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [flowState, setFlowState] = useState<FlowState>("topic_selection");
+  const [flowState, setFlowState] = useState<FlowState>("question_input");
   const [readingId, setReadingId] = useState("");
   const [entitlement, setEntitlement] = useState<ReadingEntitlement | null>(null);
 
-  const [numerology, setNumerology] = useState<NumerologyContext | null>(null);
   const [cards, setCards] = useState<DrawnCard[]>([]);
-  const [revealed, setRevealed] = useState<number[]>([]);
+  // 사용자가 실제로 누른 뒷면 칸. 어느 칸을 눌렀는지는 연출용이고,
+  // 받는 카드는 조율된 덱의 위에서부터 순서대로다(실제 리딩에서 셔플한 덱을 떼어 주는 방식).
+  const [pickedSlots, setPickedSlots] = useState<number[]>([]);
+  const [deckSeed, setDeckSeed] = useState("");
   const [reading, setReading] = useState<ReadingResponse["interpretation"] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // 서버가 준 실패 코드. 실패 안내를 원인별로 다르게 쓰기 위해 따로 둔다.
+  const [errorCode, setErrorCode] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+
+  // 🔴 수비학 계산은 결제와 무관하다. 입력이 유효해지는 순간 바로 나오는 것이 기초 리딩의 전제다.
+  // (예전에는 결제 후 drawCardsForCurrentInput 안에서만 세팅돼 무료 리딩에 도달할 수 없었다.)
+  const numerology = useMemo<NumerologyContext | null>(() => {
+    if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return null;
+    const now = /^\d{4}-\d{2}-\d{2}$/.test(analysisDate) ? new Date(`${analysisDate}T12:00:00`) : new Date();
+    return buildNumerologyContext({ birthDate, topic, now }) as NumerologyContext;
+  }, [analysisDate, birthDate, topic]);
+
+  const deck = useMemo(() => {
+    if (!numerology || !deckSeed) return null;
+    const now = /^\d{4}-\d{2}-\d{2}$/.test(analysisDate) ? new Date(`${analysisDate}T12:00:00`) : new Date();
+    return buildAttunedDeck({ numerology, topic, birthDate, name, sessionSeed: deckSeed, now });
+  }, [analysisDate, birthDate, deckSeed, name, numerology, topic]);
 
   const lifeData = useMemo(() => {
     const key = Number(numerology?.lifePathNumber || 0);
@@ -812,16 +878,19 @@ export default function NumerologyTarotClient() {
 
   const dayOptions = useMemo(() => createDays(birthMonth), [birthMonth]);
 
+  const allCardsPicked = cards.length >= SPREAD_CARD_COUNT;
+
   const activeStep = useMemo(() => {
-    if (flowState === "reading_complete" || reading) return 3;
-    if (flowState === "cards_selected" || (cards.length && revealed.length === cards.length)) return 2;
-    if (hasPaidAccess || cards.length) return 1;
+    if (reading) return 3;
+    if (deck || cards.length) return 2;
+    if (numerology) return 1;
     return 0;
-  }, [cards.length, flowState, hasPaidAccess, reading, revealed.length]);
+  }, [cards.length, deck, numerology, reading]);
 
-  const revealProgress = `${Math.min(revealed.length, cards.length || 5)}/${cards.length || 5}`;
+  const pickProgress = `${cards.length}/${SPREAD_CARD_COUNT}`;
 
-  const readingEnabled = hasPaidAccess && cards.length > 0 && revealed.length === cards.length;
+  // 결제 버튼은 5장을 다 뽑았을 때만 열린다. 결제 여부와는 무관하다(뽑기까지는 무료).
+  const readingEnabled = allCardsPicked && Boolean(numerology) && Boolean(toText(question));
 
   useEffect(() => {
     if (birthDate && /^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
@@ -838,10 +907,30 @@ export default function NumerologyTarotClient() {
     }
   }, [birthDay, birthMonth, birthYear]);
 
+  // 결제 전 단계의 흐름 상태는 입력 상태에서 파생된다.
   useEffect(() => {
-    if (entitlement?.paid || reading) return;
-    setFlowState(toText(question) ? "checkout_ready" : "question_input");
-  }, [birthDate, entitlement?.paid, name, question, reading, topic]);
+    if (reading || flowState === "reading_generating" || flowState === "checkout_pending") return;
+    if (cards.length) {
+      setFlowState(allCardsPicked ? "cards_selected" : "card_picking");
+      return;
+    }
+    if (deck) {
+      setFlowState("card_picking");
+      return;
+    }
+    setFlowState(numerology && toText(question) ? "free_reading" : "question_input");
+  }, [allCardsPicked, cards.length, deck, flowState, numerology, question, reading]);
+
+  // 프로필 카드에서 이름·생년월일 자동 프리필(공용 훅 재사용). 사용자가 이미 넣은 값은 덮지 않는다.
+  useEffect(() => {
+    if (!profileSeed) return;
+    const seededBirth = toText(profileSeed.birthDate);
+    if (seededBirth && /^\d{4}-\d{2}-\d{2}$/.test(seededBirth)) {
+      setBirthDate((prev) => (prev ? prev : seededBirth));
+    }
+    const seededName = toText(profileSeed.name);
+    if (seededName) setName((prev) => (prev ? prev : seededName));
+  }, [profileSeed, profileSeedVersion]);
 
   useEffect(() => {
     const savedEntitlement = readJson<ReadingEntitlement>(READING_ENTITLEMENT_STORAGE_KEY);
@@ -850,26 +939,26 @@ export default function NumerologyTarotClient() {
       clearStoredReadingSession(savedEntitlement.readingId);
       return;
     }
-    const snapshot = readJson<ReadingSnapshot>(`${READING_RESULT_STORAGE_PREFIX}${savedEntitlement.readingId}`);
-    if (snapshot?.reading) {
+    // 계정이 바뀐 기기에서 남의 결제 권한을 그대로 쓰지 않는다.
+    const scope = resolveAuthScope() || "guest";
+    if (savedEntitlement.userId && savedEntitlement.userId !== scope) {
       clearStoredReadingSession(savedEntitlement.readingId);
       return;
     }
+    const snapshot = readJson<ReadingSnapshot>(`${READING_RESULT_STORAGE_PREFIX}${savedEntitlement.readingId}`);
     setEntitlement(savedEntitlement);
     setReadingId(savedEntitlement.readingId);
-    if (!snapshot) {
-      setFlowState("payment_complete");
-      return;
-    }
+    if (!snapshot) return;
     setName(snapshot.name || "");
     setBirthDate(snapshot.birthDate || "");
     setTopic(snapshot.topic || "love");
     setQuestion(snapshot.question || "");
-    setNumerology(snapshot.numerology || null);
     setCards(Array.isArray(snapshot.cards) ? snapshot.cards : []);
-    setRevealed(Array.isArray(snapshot.revealed) ? snapshot.revealed : []);
+    setPickedSlots(Array.isArray(snapshot.cards) ? snapshot.cards.map((_, idx) => idx) : []);
+    // 🔴 결제한 결과는 새로고침해도 그대로 살아 있어야 한다.
+    // (예전에는 리딩 성공 시 스냅샷을 지워, 새로고침하면 재결제를 요구했다.)
     setReading(snapshot.reading || null);
-    setFlowState(snapshot.reading ? "reading_complete" : snapshot.cards?.length ? "cards_selected" : "payment_complete");
+    if (snapshot.reading) setFlowState("reading_complete");
   }, []);
 
   useEffect(() => {
@@ -895,71 +984,169 @@ export default function NumerologyTarotClient() {
     }
   }
 
-  function drawCardsForCurrentInput(nextReadingId = readingId) {
+  // 카드 뽑기는 무료다. 결제는 openDeepReading 한 곳에서만 일어난다.
+  function beginDraw() {
     if (!birthDate) {
       setError("생년월일을 입력해 주세요.");
-      return false;
+      return;
     }
     if (!toText(question)) {
       setError("상담 질문을 입력해 주세요.");
-      return false;
+      return;
     }
-
-    const context = buildNumerologyContext({
-      birthDate,
-      topic,
-    }) as NumerologyContext;
-
-    const selected = selectCards({
-      birthDate,
-      topic,
-      name,
-      numerology: context,
-    }) as DrawnCard[];
-
-    setNumerology(context);
-    setCards(selected);
-    setReading(null);
     setError("");
-    setRevealed([]);
     setSaveStatus("");
-    if (nextReadingId) setReadingId(nextReadingId);
-    setFlowState("card_drawing");
-    return true;
+    setReading(null);
+    setCards([]);
+    setPickedSlots([]);
+    setDeckSeed(createReadingId());
+    if (!readingId) setReadingId(createReadingId());
+    setFlowState("card_picking");
   }
 
-  async function startDraw() {
-    if (!birthDate) {
-      setError("생년월일을 입력해 주세요.");
-      return;
-    }
-    if (!toText(question)) {
-      setError("상담 질문을 입력해 주세요.");
-      return;
-    }
+  function reshuffleDeck() {
+    // 결제된 스프레드는 바꾸지 않는다(결제한 카드와 결과가 어긋나면 안 된다).
+    if (hasPaidAccess) return;
+    setCards([]);
+    setPickedSlots([]);
+    setReading(null);
+    setError("");
+    setDeckSeed(createReadingId());
+  }
 
-    if (hasPaidAccess) {
-      drawCardsForCurrentInput(readingId);
-      return;
-    }
+  function pickCard(slotIndex: number) {
+    if (!deck || cards.length >= SPREAD_CARD_COUNT) return;
+    if (pickedSlots.includes(slotIndex)) return;
+    const nextPicked = [...pickedSlots, slotIndex];
+    setPickedSlots(nextPicked);
+    setCards(drawFromAttunedDeck(deck, nextPicked.length, topic) as DrawnCard[]);
+    setError("");
+  }
 
-    const nextReadingId = createReadingId();
-    const requestId = buildReadingRequestId(nextReadingId);
-    const payloadHash = buildReadingPayloadHash({
+  async function requestReading(activeEntitlement: ReadingEntitlement, activeReadingId: string) {
+    const requestId = activeEntitlement?.requestId || buildReadingRequestId(activeReadingId);
+    const payloadHash = activeEntitlement?.payloadHash || buildReadingPayloadHash({
       name,
       birthDate,
       topic,
       question,
     });
+    const paymentContext = {
+      ...(activeEntitlement?.paymentContext || {}),
+      featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+      requestId,
+      payloadHash,
+      transactionId: activeEntitlement?.transactionId || activeEntitlement?.paymentContext?.transactionId,
+      chargedCoins: activeEntitlement?.chargedCoins ?? activeEntitlement?.paymentContext?.chargedCoins,
+      requiredCoins: activeEntitlement?.requiredCoins ?? activeEntitlement?.paymentContext?.requiredCoins,
+    };
+    const res = await authFetch("/api/tarot/numerology-reading", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        readingId: activeReadingId,
+        featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+        requestId,
+        idempotencyKey: requestId,
+        payloadHash,
+        transactionId: paymentContext.transactionId,
+        chargedCoins: paymentContext.chargedCoins,
+        requiredCoins: paymentContext.requiredCoins,
+        paymentContext,
+        _paymentContext: paymentContext,
+        entitlement: activeEntitlement,
+        name: toText(name),
+        birthDate,
+        topic,
+        topicLabel: numerology?.topicLabel,
+        question: toText(question),
+        questionKeywords,
+        numerology,
+        cards,
+      }),
+    });
+
+    const data = (await res.json().catch(() => ({}))) as ReadingResponse & { code?: string };
+    if (!res.ok || !data?.ok || !data?.interpretation) {
+      const failure = new Error(data?.message || "상담 결과를 생성하지 못했습니다.") as Error & { code?: string };
+      failure.code = toText(data?.code) || (res.status === 503 ? "NUMEROLOGY_TAROT_VERIFY_UNAVAILABLE" : "");
+      throw failure;
+    }
+    const nextReading = {
+      ...data.interpretation,
+      readingId: activeReadingId,
+    };
+    setReading(nextReading);
+    // 🔴 성공 시 세션을 지우지 않고 저장한다.
+    // (예전에는 여기서 clearStoredReadingSession 을 불러, 새로고침하면 재결제를 요구했다.)
+    persistJson(`${READING_RESULT_STORAGE_PREFIX}${activeReadingId}`, {
+      entitlement: activeEntitlement,
+      name,
+      birthDate,
+      topic,
+      question,
+      cards,
+      reading: nextReading,
+    } satisfies ReadingSnapshot);
+    setFlowState("reading_complete");
+    return nextReading;
+  }
+
+  async function runReading(activeEntitlement?: ReadingEntitlement | null, activeReadingId?: string) {
+    const useEntitlement = activeEntitlement || entitlement;
+    const useReadingId = activeReadingId || readingId;
+    if (!useEntitlement?.paid || !useReadingId) {
+      setError("결제 내역을 확인할 수 없습니다. 결과 보기 버튼으로 다시 진행해 주세요.");
+      setFlowState("cards_selected");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setFlowState("reading_generating");
+    try {
+      await requestReading(useEntitlement, useReadingId);
+    } catch (requestError) {
+      setFlowState("reading_failed");
+      setError(requestError instanceof Error ? requestError.message : "상담 결과를 생성하지 못했습니다.");
+      setErrorCode((requestError as { code?: string })?.code || "");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
+   * 🔒 이 함수가 이 화면의 유일한 결제 지점이다.
+   * 정보 입력 · 기초 리딩 · 카드 뽑기는 결제도 로그인도 필요 없다.
+   */
+  async function openDeepReading() {
+    if (!numerology || cards.length < SPREAD_CARD_COUNT) {
+      setError(`카드 ${SPREAD_CARD_COUNT}장을 모두 뽑아 주세요.`);
+      return;
+    }
+    if (!toText(question)) {
+      setError("상담 질문을 입력해 주세요.");
+      return;
+    }
+
+    // 이미 결제한 세션이면 재결제 없이 다시 생성한다(생성 실패 시 무료 재시도).
+    if (entitlement?.paid && readingId) {
+      await runReading();
+      return;
+    }
+
+    const nextReadingId = readingId || createReadingId();
+    const requestId = buildReadingRequestId(nextReadingId);
+    const payloadHash = buildReadingPayloadHash({ name, birthDate, topic, question });
     let paymentContextEvidence: Partial<ReadingPaymentContext> = {};
     setFlowState("checkout_pending");
     setError("");
+    setErrorCode("");
 
     try {
       const paymentResult = await ensurePaidAccess({
         featureKey: NUMEROLOGY_READING_FEATURE_KEY,
         cost: lookupServerCoinPrice(NUMEROLOGY_READING_FEATURE_KEY),
-        reason: "수비학 타로 상담",
+        reason: "수비학 타로 심층 상담",
         requestId,
         payloadHash,
         onPaid: (context) => {
@@ -980,9 +1167,9 @@ export default function NumerologyTarotClient() {
       });
 
       if (!paymentResult.ok) {
-        setFlowState("checkout_ready");
+        setFlowState("cards_selected");
         if (paymentResult.code === "AUTH_REQUIRED") {
-          setError("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+          setError("심층 상담은 로그인 후 이용할 수 있습니다. 로그인 페이지로 이동합니다.");
           if (typeof window !== "undefined") {
             const next = encodeURIComponent(window.location.pathname + window.location.search);
             window.setTimeout(() => {
@@ -1013,118 +1200,18 @@ export default function NumerologyTarotClient() {
       setEntitlement(paidEntitlement);
       setReadingId(nextReadingId);
       persistJson(READING_ENTITLEMENT_STORAGE_KEY, paidEntitlement);
-      setFlowState("payment_complete");
-      drawCardsForCurrentInput(nextReadingId);
       if (paymentResult.chargedCoins > 0) {
-        showToast(`수비학 타로 상담 ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 승인되었습니다.`, "info");
+        showToast(`수비학 타로 심층 상담 ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 승인되었습니다.`, "info");
       } else {
         showSubscriptionIncludedNotice({
           message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
-          reason: "수비학 타로 상담",
+          reason: "수비학 타로 심층 상담",
         });
       }
+      await runReading(paidEntitlement, nextReadingId);
     } catch (paymentError) {
-      setFlowState("checkout_ready");
+      setFlowState("cards_selected");
       setError(paymentError instanceof Error ? paymentError.message : "결제 확인 중 오류가 발생했습니다.");
-    }
-  }
-
-  function revealCard(index: number) {
-    if (revealed.includes(index)) return;
-    setRevealed((prev) => {
-      const next = [...prev, index];
-      if (cards.length && next.length >= cards.length) setFlowState("cards_selected");
-      return next;
-    });
-  }
-
-  async function requestReading() {
-    const requestId = entitlement?.requestId || buildReadingRequestId(readingId);
-    const payloadHash = entitlement?.payloadHash || buildReadingPayloadHash({
-      name,
-      birthDate,
-      topic,
-      question,
-    });
-    const paymentContext = {
-      ...(entitlement?.paymentContext || {}),
-      featureKey: NUMEROLOGY_READING_FEATURE_KEY,
-      requestId,
-      payloadHash,
-      transactionId: entitlement?.transactionId || entitlement?.paymentContext?.transactionId,
-      chargedCoins: entitlement?.chargedCoins ?? entitlement?.paymentContext?.chargedCoins,
-      requiredCoins: entitlement?.requiredCoins ?? entitlement?.paymentContext?.requiredCoins,
-    };
-    const res = await authFetch("/api/tarot/numerology-reading", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        readingId,
-        featureKey: NUMEROLOGY_READING_FEATURE_KEY,
-        requestId,
-        idempotencyKey: requestId,
-        payloadHash,
-        transactionId: paymentContext.transactionId,
-        chargedCoins: paymentContext.chargedCoins,
-        requiredCoins: paymentContext.requiredCoins,
-        paymentContext,
-        _paymentContext: paymentContext,
-        entitlement,
-        name: toText(name),
-        birthDate,
-        topic,
-        topicLabel: numerology?.topicLabel,
-        question: toText(question),
-        questionKeywords,
-        numerology,
-        cards,
-      }),
-    });
-
-    const data = (await res.json().catch(() => ({}))) as ReadingResponse;
-    if (!res.ok || !data?.ok || !data?.interpretation) {
-      throw new Error(data?.message || "리딩 생성에 실패했습니다.");
-    }
-    const nextReading = {
-      ...data.interpretation,
-      readingId,
-    };
-    setReading(nextReading);
-    clearStoredReadingSession(readingId);
-    setFlowState("reading_complete");
-    return nextReading;
-  }
-
-  async function payAndRead() {
-    if (!cards.length || !numerology) {
-      setError("먼저 카드를 열어 주세요.");
-      return;
-    }
-    if (!toText(question)) {
-      setError("상담 질문을 입력해 주세요.");
-      return;
-    }
-    if (revealed.length < cards.length) {
-      setError(`카드 ${cards.length || 5}장을 모두 열어야 리딩을 볼 수 있습니다.`);
-      return;
-    }
-    if (!entitlement?.paid || !readingId) {
-      setError("결제 완료 내역을 확인할 수 없습니다. 처음부터 다시 진행해 주세요.");
-      setFlowState("checkout_ready");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setFlowState("reading_generating");
-
-    try {
-      await requestReading();
-    } catch (requestError) {
-      setFlowState("reading_failed");
-      setError(requestError instanceof Error ? requestError.message : "결과를 불러오지 못했어요");
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -1139,9 +1226,7 @@ export default function NumerologyTarotClient() {
       birthDate,
       topic,
       question,
-      numerology,
       cards,
-      revealed,
       reading,
     } satisfies ReadingSnapshot);
     setSaveStatus("상담 결과가 저장되었습니다.");
@@ -1179,12 +1264,6 @@ export default function NumerologyTarotClient() {
       <div className={styles.container}>
         <header className={styles.topBar}>
           <strong className={styles.brand}>수비학 타로</strong>
-          <nav className={styles.topNav} aria-label="수비학 타로 메뉴">
-            <span>상담 입력</span>
-            <span>결제 완료</span>
-            <span>카드 5장</span>
-            <span>상담 결과</span>
-          </nav>
           <div className={styles.actions}>
             <button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>
             <button type="button" className={styles.lightBtn} onClick={toggleFullscreen}>{isFullscreen ? "전체화면 해제" : "전체화면"}</button>
@@ -1194,15 +1273,16 @@ export default function NumerologyTarotClient() {
         <section className={styles.heroGrid}>
           <div className={styles.mainPanel}>
             <h1 className={styles.title}>수비학 타로 상담</h1>
-            <p className={styles.subtitle}>숫자의 흐름과 선택한 카드를 함께 읽어, 지금 질문에 맞는 상담 결과를 전합니다.</p>
+            <p className={styles.subtitle}>생년월일의 숫자로 덱을 조율하고, 직접 뽑은 다섯 장을 그 숫자와 함께 읽습니다. 기초 리딩과 카드 뽑기는 무료입니다.</p>
 
-            <div className={styles.stepRail}>
+            <ol className={styles.stepRail} aria-label="상담 진행 단계">
               {STEP_LABELS.map((label, idx) => (
-                <div key={label} className={`${styles.stepItem} ${activeStep >= idx ? styles.stepActive : ""}`}>
-                  {idx + 1}. {label}
-                </div>
+                <li key={label} className={`${styles.stepItem} ${activeStep >= idx ? styles.stepActive : ""}`}>
+                  <span className={styles.stepIndex}>{idx + 1}</span>
+                  {label}
+                </li>
               ))}
-            </div>
+            </ol>
 
             <div className={styles.stage}>
               <section className={styles.formCard}>
@@ -1314,118 +1394,34 @@ export default function NumerologyTarotClient() {
                   </label>
                 </div>
 
-                <div className={styles.includedList} aria-label="이번 상담 포함 항목">
-                  {INCLUDED_BENEFITS.map((item) => (
+                <div className={styles.includedList} aria-label="무료로 제공되는 항목">
+                  <span className={styles.includedBadge}>무료</span>
+                  {FREE_BENEFITS.map((item) => (
                     <span key={item}>{item}</span>
                   ))}
                 </div>
 
-                <div className={styles.actions} style={{ marginTop: 12 }}>
-                  {!hasPaidAccess ? (
-                    <button type="button" onClick={startDraw} disabled={isPaying || loading} className={styles.mainBtn}>
-                      {isPaying || flowState === "checkout_pending" ? "결제 확인 중..." : `결제하고 카드 5장 뽑기 · ${NUMEROLOGY_READING_PRICE_LABEL}`}
-                    </button>
-                  ) : null}
-                  {hasPaidAccess && !cards.length ? (
-                    <button type="button" onClick={startDraw} disabled={loading} className={styles.mainBtn}>
-                      카드 5장 뽑기
-                    </button>
-                  ) : null}
-                  {hasPaidAccess && cards.length ? (
-                    <button type="button" onClick={payAndRead} disabled={!readingEnabled || loading} className={styles.lightBtn}>
-                      {loading ? "상담 결과를 정리하는 중..." : flowState === "reading_failed" ? "결과 다시 불러오기" : "상담 결과 확인하기"}
-                    </button>
-                  ) : null}
-                  <span className={styles.noExtraPay}>추가 결제 없음</span>
+                <div className={styles.actions}>
+                  <button type="button" onClick={beginDraw} disabled={loading} className={styles.mainBtn}>
+                    {cards.length || deck ? "카드 다시 뽑기" : "카드 5장 직접 뽑기 · 무료"}
+                  </button>
                 </div>
 
-                {flowState === "reading_failed" ? (
-                  <div className={styles.failureBox} role="alert">
-                    <h4>결과를 불러오지 못했어요</h4>
-                    <p>결제와 카드 선택 내용은 안전하게 저장되어 있습니다. 추가 결제 없이 다시 시도할 수 있어요.</p>
-                  </div>
-                ) : error ? <p className={styles.error}>{error}</p> : null}
+                {error && flowState !== "reading_failed" ? <p className={styles.error}>{error}</p> : null}
               </section>
 
-              <section className={styles.stageVisual}>
-                <div className={styles.moon} aria-hidden="true" />
-                <div className={styles.wheel} aria-hidden="true">
+              <section className={styles.stageVisual} aria-hidden="true">
+                <div className={styles.moon} />
+                <div className={styles.wheel}>
                   <div className={styles.orbitCenter}>☾</div>
-                </div>
-
-                <div className={styles.previewSpread}>
-                  {(cards.length ? cards : PREVIEW_PLACEHOLDERS).map((entry, idx) => {
-                    const isRealCard = "card" in entry;
-                    const isOpen = revealed.includes(idx);
-                    return (
-                      <button
-                        type="button"
-                        key={isRealCard ? `${entry.card.id}-${idx}` : `${entry.title}-${idx}`}
-                        className={`${styles.previewCard} ${isRealCard && !isOpen ? styles.previewCardLocked : ""} ${isRealCard && isOpen ? styles.previewCardOpen : ""}`}
-                        aria-pressed={isRealCard ? isOpen : undefined}
-                        disabled={!isRealCard || !hasPaidAccess}
-                        onClick={() => {
-                          if (isRealCard) revealCard(idx);
-                        }}
-                      >
-                        {isRealCard ? (
-                          isOpen ? (
-                            <>
-                              <p className={styles.previewPosition}>{entry.positionLabel}</p>
-                              <div className={styles.previewCardImageWrap}>
-                                <Image
-                                  src={getCardImageUrl(entry.card.id)}
-                                  alt={entry.card.nameKr || entry.card.name}
-                                  width={158}
-                                  height={248}
-                                  className={styles.previewCardImage}
-                                />
-                              </div>
-                              <p className={styles.previewName}>{entry.card.nameKr || entry.card.name}</p>
-                              <p className={styles.previewMeta}>{entry.orientation === "reversed" ? "역방향" : "정방향"}</p>
-                            </>
-                          ) : (
-                            <span>선택</span>
-                          )
-                        ) : (
-                          <>
-                            <p className={styles.previewPosition}>{entry.title}</p>
-                            <div style={{ fontSize: 30 }}>{entry.icon}</div>
-                            <p className={styles.previewMeta}>숫자 정렬 전</p>
-                          </>
-                        )}
-                      </button>
-                    );
-                  })}
                 </div>
               </section>
             </div>
 
-            {numerology ? (
-              <section className={styles.infoRail}>
-                <article className={styles.infoItem}>
-                  <h4>생명수</h4>
-                  <p>{numerology.lifePathNumber} · {lifeData?.keyword || "핵심 파동"}</p>
-                </article>
-                <article className={styles.infoItem}>
-                  <h4>오늘수</h4>
-                  <p>{numerology.personalDayNumber} · 오늘의 흐름</p>
-                </article>
-                <article className={styles.infoItem}>
-                  <h4>질문수</h4>
-                  <p>{numerology.questionNumber} · {numerology.topicLabel}</p>
-                </article>
-                <article className={styles.infoItem}>
-                  <h4>해석 키워드</h4>
-                  <p>{lifeData?.meaning || "이번 흐름은 정리와 재배치가 핵심입니다."}</p>
-                </article>
-              </section>
-            ) : null}
-
             {numerology && freeProfile ? (
               <section className={styles.freeProfileCard}>
                 <div className={styles.freeProfileHero}>
-                  <p className={styles.promptToolKicker}>기초 리딩</p>
+                  <p className={styles.promptToolKicker}>기초 리딩 · 무료</p>
                   <h3>{freeProfile.headline}</h3>
                   <p className={styles.freeProfileLead}>
                     {freeProfile.summary}
@@ -1451,16 +1447,139 @@ export default function NumerologyTarotClient() {
                 </div>
                 <p className={styles.freeProfileMoonNote}>{freeProfile.moonNote}</p>
 
-                <div className={styles.promptMergedPanel} data-marker="tarot-numerology-one-payment-included-v20260622">
-                  <div className={styles.promptToolHeader}>
-                    <div>
-                      <p className={styles.promptToolKicker}>결제에 포함</p>
-                      <h4>숫자와 카드 5장을 함께 읽는 상담 결과</h4>
-                      <p>카드 추첨, 전체 해석, 결과 저장, 질문 주제별 실천 흐름이 포함됩니다. 추가 결제는 없습니다.</p>
-                    </div>
-                    <div className={styles.promptPriceBadge}>추가 결제 없음</div>
+                <div className={styles.numberRail} aria-label="이번 상담의 기준 수">
+                  <article className={styles.numberChip}>
+                    <span>생명수</span>
+                    <strong>{numerology.lifePathNumber}</strong>
+                    <small>{lifeData?.keyword || "핵심 파동"}</small>
+                  </article>
+                  <article className={styles.numberChip}>
+                    <span>오늘수</span>
+                    <strong>{numerology.personalDayNumber}</strong>
+                    <small>오늘 움직일 속도</small>
+                  </article>
+                  <article className={styles.numberChip}>
+                    <span>질문수</span>
+                    <strong>{numerology.questionNumber}</strong>
+                    <small>{numerology.topicLabel}</small>
+                  </article>
+                </div>
+              </section>
+            ) : null}
+
+            {deck ? (
+              <section className={styles.pickCard} aria-labelledby="numerology-pick-title">
+                <div className={styles.pickHeader}>
+                  <div>
+                    <p className={styles.promptToolKicker}>카드 뽑기 · 무료</p>
+                    <h3 id="numerology-pick-title">덱은 당신의 수로 조율되었습니다</h3>
+                    <p className={styles.pickLead}>
+                      생명수 {numerology?.lifePathNumber}, 오늘수 {numerology?.personalDayNumber}, 질문수 {numerology?.questionNumber}에 공명하도록 22장을 섞었습니다.
+                      마음이 가는 카드를 {SPREAD_CARD_COUNT}번 눌러 주세요. 누른 순서대로 스프레드 자리에 놓입니다.
+                    </p>
+                  </div>
+                  <div className={styles.pickProgress} aria-live="polite">
+                    <strong>{pickProgress}</strong>
+                    <small>뽑은 카드</small>
                   </div>
                 </div>
+
+                <div className={styles.deckGrid} role="group" aria-label="뒷면 카드 22장">
+                  {Array.from({ length: DECK_SLOT_COUNT }, (_, slot) => {
+                    const pickedOrder = pickedSlots.indexOf(slot);
+                    const isPicked = pickedOrder >= 0;
+                    return (
+                      <button
+                        key={`deck-slot-${slot}`}
+                        type="button"
+                        className={`${styles.deckSlot} ${isPicked ? styles.deckSlotPicked : ""}`}
+                        onClick={() => pickCard(slot)}
+                        disabled={isPicked || allCardsPicked}
+                        aria-pressed={isPicked}
+                        aria-label={isPicked ? `${pickedOrder + 1}번째로 뽑은 카드` : `${slot + 1}번 자리 카드 뽑기`}
+                      >
+                        {isPicked ? <span className={styles.deckSlotOrder}>{pickedOrder + 1}</span> : <span aria-hidden="true">✦</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {cards.length ? (
+                  <div className={styles.spreadRow} aria-label="뽑은 카드 스프레드">
+                    {cards.map((entry, idx) => (
+                      <article key={`${entry.card.id}-${idx}`} className={styles.spreadCard}>
+                        <p className={styles.spreadPosition}>{entry.positionLabel}</p>
+                        <div className={styles.spreadImageWrap}>
+                          <Image
+                            src={getCardImageUrl(entry.card.id)}
+                            alt={entry.card.nameKr || entry.card.name || "타로 카드"}
+                            width={158}
+                            height={248}
+                            className={styles.spreadImage}
+                            loading="eager"
+                          />
+                        </div>
+                        <p className={styles.spreadName}>{entry.card.nameKr || entry.card.name}</p>
+                        <p className={styles.spreadMeta}>
+                          {entry.card.id}번 · {entry.orientation === "reversed" ? "역방향" : "정방향"}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className={styles.pickActions}>
+                  {!hasPaidAccess ? (
+                    <button type="button" className={styles.ghostBtn} onClick={reshuffleDeck} disabled={loading}>
+                      <RefreshCw className={styles.actionIcon} size={15} aria-hidden="true" />
+                      덱 다시 섞기
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={styles.mainBtn}
+                    onClick={openDeepReading}
+                    disabled={!readingEnabled || loading || isPaying}
+                  >
+                    {loading || flowState === "reading_generating"
+                      ? "상담 결과를 정리하는 중..."
+                      : isPaying || flowState === "checkout_pending"
+                        ? "결제 확인 중..."
+                        : hasPaidAccess
+                          ? "심층 상담 결과 다시 불러오기"
+                          : `심층 상담 결과 보기 · ${NUMEROLOGY_READING_PRICE_LABEL}`}
+                  </button>
+                </div>
+
+                <div className={styles.includedList} aria-label="심층 상담에 포함되는 항목">
+                  <span className={styles.includedBadgePaid}>{NUMEROLOGY_READING_PRICE_LABEL}</span>
+                  {PAID_BENEFITS.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+
+                {!allCardsPicked ? (
+                  <p className={styles.pickHint}>
+                    {SPREAD_CARD_COUNT - cards.length}장을 더 뽑으면 심층 상담을 열 수 있습니다. 여기까지는 결제가 없습니다.
+                  </p>
+                ) : null}
+
+                {flowState === "reading_failed" ? (
+                  <div className={styles.failureBox} role="alert">
+                    <h4>
+                      {errorCode === "NUMEROLOGY_TAROT_VERIFY_UNAVAILABLE"
+                        ? "잠시 후 다시 시도해 주세요"
+                        : errorCode === "NUMEROLOGY_TAROT_AUTH_REQUIRED"
+                          ? "로그인이 필요합니다"
+                          : "결과를 불러오지 못했어요"}
+                    </h4>
+                    {/* 서버가 보낸 실제 사유를 그대로 보여 준다(예전에는 고정 문구가 원인을 가렸다). */}
+                    <p>{error || "알 수 없는 이유로 실패했습니다."}</p>
+                    <p className={styles.failureNote}>
+                      결제와 뽑은 카드는 그대로 저장되어 있습니다. 위 버튼으로 추가 결제 없이 다시 시도할 수 있어요.
+                    </p>
+                  </div>
+                ) : error ? <p className={styles.error}>{error}</p> : null}
               </section>
             ) : null}
 
@@ -1477,6 +1596,14 @@ export default function NumerologyTarotClient() {
                   contextualInterpretation: item.contextualInterpretation || item.topicInterpretation,
                   practicalAdvice: item.practicalAdvice || item.actionTip,
                   caution: item.caution,
+                  numerologyBridge: item.numerologyBridge,
+                  positionRole: item.positionRole,
+                  cardReducedNumber: item.cardReducedNumber,
+                  numberKeyword: item.numberKeyword,
+                  numberRelation: item.numberRelation,
+                  numberRelationLabel: item.numberRelationLabel,
+                  numberRelationWith: item.numberRelationWith,
+                  numberRelationValue: item.numberRelationValue,
                 }));
               const resultSubtitle = numerology?.lifePathNumber
                 ? `생명수 ${numerology.lifePathNumber}, 선택한 카드 5장을 함께 엮은 맞춤 상담입니다.`
@@ -1542,6 +1669,28 @@ export default function NumerologyTarotClient() {
                       ) : null}
                     </article>
 
+                    {reading.quintessence ? (
+                      <article className={`${styles.resultSection} ${styles.quintessenceSection}`}>
+                        <h4>스프레드 총합수 — 다섯 장을 한 장으로</h4>
+                        <div className={styles.quintessenceHead}>
+                          <div className={styles.quintessenceBadge} aria-hidden="true">
+                            <strong>{reading.quintessence.arcanaNumber}</strong>
+                            <small>총합수</small>
+                          </div>
+                          <div>
+                            <p className={styles.quintessenceTitle}>
+                              {reading.quintessence.cardName || `${reading.quintessence.arcanaNumber}번`} · {reading.quintessence.keyword}
+                            </p>
+                            <p className={styles.resultLead}>{reading.quintessence.headline}</p>
+                          </div>
+                        </div>
+                        <p className={styles.resultLead}>{reading.quintessence.summary}</p>
+                        {reading.numberPattern?.summary ? (
+                          <p className={styles.resultLead}>{reading.numberPattern.summary}</p>
+                        ) : null}
+                      </article>
+                    ) : null}
+
                     <article className={styles.resultSection}>
                       <h4>다섯 장의 카드가 남긴 흐름</h4>
                       <p className={styles.resultLead}>{reading.cardStory || reading.topicReading.topicOverview}</p>
@@ -1549,19 +1698,32 @@ export default function NumerologyTarotClient() {
 
                     <article className={styles.resultSection}>
                       <h4>카드별 핵심 해석</h4>
+                      {/* 결제한 산출물을 탭 뒤에 숨기지 않는다 — 다섯 장 모두 펼친 상태로 시작한다. */}
                       <div className={styles.cardReadingGrid}>
                         {renderedCards.map((item, index) => (
-                          <details key={`${item.cardId}-${item.positionTitle}`} className={styles.cardReadingBox} open={index === 0}>
+                          <details key={`${item.cardId}-${item.positionTitle}`} className={styles.cardReadingBox} open>
                             <summary className={styles.cardReadingHeader}>
-                              <div>
-                                <p className={styles.cardReadingOrder}>{String(index + 1).padStart(2, "0")}</p>
+                              <div className={styles.cardReadingTitleBlock}>
+                                <p className={styles.cardReadingOrder}>
+                                  {String(index + 1).padStart(2, "0")}
+                                  {item.positionRole ? <span className={styles.cardReadingRole}>{item.positionRole}</span> : null}
+                                </p>
                                 <h5>{item.positionTitle}</h5>
                               </div>
                               <div className={styles.cardReadingMeta}>
-                                <span>{item.cardName}</span>
+                                <span className={styles.cardReadingName}>{item.cardName}</span>
                                 <span>{item.arcanaNumber === null ? "번호 없음" : `${item.arcanaNumber}번`} · {item.orientation === "reversed" ? "역방향" : "정방향"}</span>
+                                {item.numberRelationLabel ? (
+                                  <span className={styles.numberRelationBadge} data-relation={item.numberRelation}>
+                                    수 {item.cardReducedNumber} · {item.numberRelationLabel}
+                                    {item.numberRelationWith ? ` · ${item.numberRelationWith} ${item.numberRelationValue}` : ""}
+                                  </span>
+                                ) : null}
                               </div>
                             </summary>
+                            {item.numerologyBridge ? (
+                              <p className={styles.numerologyBridgeText}><strong>숫자와 카드가 만나는 지점</strong><br />{item.numerologyBridge}</p>
+                            ) : null}
                             <p><strong>이 카드가 질문에 주는 답</strong><br />{item.directMeaning}</p>
                             <p><strong>현실에서 확인할 부분</strong><br />{item.contextualInterpretation}</p>
                             <p className={styles.actionTip}><strong>도움이 되는 행동</strong><br />{item.practicalAdvice}</p>
@@ -1621,10 +1783,13 @@ export default function NumerologyTarotClient() {
                           setEntitlement(null);
                           setReadingId("");
                           setCards([]);
-                          setRevealed([]);
+                          setPickedSlots([]);
+                          setDeckSeed("");
                           setReading(null);
                           setSaveStatus("");
-                          setFlowState("checkout_ready");
+                          setError("");
+                          setErrorCode("");
+                          setFlowState("question_input");
                           clearStoredReadingSession(readingId || reading.readingId);
                         }}
                       >
@@ -1644,57 +1809,6 @@ export default function NumerologyTarotClient() {
             })(normalizeNumerologyReadingForDisplay(reading)) : null}
           </div>
 
-          <aside className={styles.sidePanel}>
-            <div className={styles.sideTitle}>
-              <h3>MOBILE READING PREVIEW</h3>
-              <p>간결하고 몰입감 있는 모바일 리딩 동행</p>
-            </div>
-
-            <div className={styles.phoneGrid}>
-              <article className={styles.phone}>
-                <h4>1. 정보 입력</h4>
-                <div className={styles.miniField}>이름: {name || "이름"}</div>
-                <div className={styles.miniField}>생년월일: {birthDate || "YYYY-MM-DD"}</div>
-                <div className={styles.miniField}>주제: {TOPIC_LABELS[topic]}</div>
-                <div className={styles.miniField}>질문: {question || "질문을 입력하세요"}</div>
-              </article>
-
-              <article className={styles.phone}>
-                <h4>2. 카드 열기</h4>
-                <div className={styles.miniCardStack}>
-                  {[0, 1, 2, 3, 4].map((idx) => {
-                    const picked = cards[idx];
-                    const open = revealed.includes(idx);
-                    return (
-                      <div key={`mini-card-${idx}`} className={styles.miniCard}>
-                        {picked ? (
-                          open ? (
-                            <Image
-                              src={getCardImageUrl(picked.card.id)}
-                              alt={picked.card.nameKr || picked.card.name || "Tarot card"}
-                              width={70}
-                              height={112}
-                              className={styles.miniCardImage}
-                            />
-                          ) : "🂠"
-                        ) : "🂠"}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className={styles.miniField}>카드 공개: {revealProgress}</div>
-                <div className={styles.miniField}>리딩 준비: {readingEnabled ? "완료" : `${cards.length || 5}장의 카드 공개 필요`}</div>
-              </article>
-
-              <article className={styles.phone}>
-                <h4>3. 결과 확인</h4>
-                <div className={styles.statPill}>생명수: {numerology?.lifePathNumber ?? "-"}</div>
-                <div className={styles.statPill}>오늘수: {numerology?.personalDayNumber ?? "-"}</div>
-                <div className={styles.statPill}>질문수: {numerology?.questionNumber ?? "-"}</div>
-                <div className={styles.miniField}>{reading?.coreMessage || "세 숫자와 카드가 맞물리면 핵심 메시지가 떠오릅니다."}</div>
-              </article>
-            </div>
-          </aside>
         </section>
       </div>
     </main>
