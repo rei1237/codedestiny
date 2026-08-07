@@ -287,6 +287,12 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 PDF 리포트
   "ziwei-deep-pdf": { cost: 300, amountKRW: 30000, reason: "심화 자미두수 PDF 심층 리포트 생성" },
   "karma-destiny-ai-consultation": { cost: 500, amountKRW: 50000, reason: "운명의 업 전문가 상담" },
+  // 연이 운명 상담 — 무료 횟수(비회원 1회 + 계정 3회)를 모두 쓴 뒤부터 회당 결제.
+  // 전용 "대화권" 재화를 폐지하고 표준 회당 결제로 옮긴 자리다(2026-08-07).
+  "fortune-chat-consultation": { cost: 50, amountKRW: 5000, reason: "연이 운명 상담 1회" },
+  // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 300코인이라 이용권 커버는
+  // family 등급만 통과하고, FAMILY_PREMIUM_MIN_COIN_COST(300)에 걸려 이용권 기간당 10회로 제한된다.
+  "fusion-fortune-consultation": { cost: 300, amountKRW: 30000, reason: "초융합 운세 상담 1회" },
   "premium-sibyl-dominator": { cost: 100, reason: "시빌라 도미네이터 리포트" },
   "ziwei_decade_luck": { cost: 100, reason: "자미두수 대한 흐름 해금" },
   "ziwei_love_deep": { cost: 150, reason: "자미두수 부부궁 심화 상담 해금" },
@@ -456,6 +462,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "life-book-ai-consultation",
   "life-fortune-ai-consultation",
   "karma-destiny-ai-consultation",
+  "fortune-chat-consultation",
+  "fusion-fortune-consultation",
   "ziwei-ai-consultation",
   "ziwei-island-palace-consult",
   "premium-naming-prompt",

@@ -16,6 +16,14 @@ import {
 const NOW = new Date("2026-08-02T03:00:00.000Z");
 const DATE_KEY = "2026-08-02";
 
+// 무료 3회를 모두 쓴 계정. 이 지점부터는 회당 결제(fortune-chat-consultation)가 관문이다.
+const exhaustedStore = (userId) => createMemoryGuardianFortuneStore({
+  daily: { [`${userId}:${DATE_KEY}`]: { userId, dateKey: DATE_KEY, freeLimit: 3, freeUsed: 3, reserved: 0 } },
+});
+// 결제 증빙 판정은 라우트가 주입하는 콜백이 맡는다. 테스트는 그 콜백만 갈아끼운다.
+const paidAccess = async () => ({ ok: true });
+const degradedAccess = async () => ({ ok: false, degraded: true });
+
 describe("Guardian Fortune usage service", () => {
   it("creates a KST date key across the UTC boundary", () => {
     expect(getGuardianFortuneDateKey(new Date("2026-08-01T14:59:00.000Z"))).toBe("2026-08-01");
@@ -55,29 +63,39 @@ describe("Guardian Fortune usage service", () => {
       await commitGuardianFortuneUsage(reservation, { store, now: NOW });
     }
     const blocked = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: "daily-request-4", store, now: NOW });
-    expect(blocked).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS });
+    expect(blocked).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED });
 
     const nextDay = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: "2026-08-03", requestId: "daily-request-next", store, now: new Date("2026-08-02T15:00:00.000Z") });
-    expect(nextDay).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS });
+    expect(nextDay).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED });
   });
 
-  it("uses paid credit only after the daily free quota is exhausted", async () => {
-    const store = createMemoryGuardianFortuneStore({
-      daily: {
-        [`user-2:${DATE_KEY}`]: { userId: "user-2", dateKey: DATE_KEY, freeLimit: 3, freeUsed: 3, reserved: 0 },
-      },
-      credits: {
-        "user-2": { userId: "user-2", remaining: 2, reserved: 0, purchasedTotal: 2, usedTotal: 0, refundedTotal: 0 },
-      },
-    });
-    const reservation = await reserveGuardianFortuneUsage({ userId: "user-2", dateKey: DATE_KEY, requestId: "credit-request-1", store, now: NOW });
-    expect(reservation).toMatchObject({ ok: true, source: "paid_credit" });
+  it("falls through to per-use payment once the free quota is exhausted", async () => {
+    const store = exhaustedStore("user-2");
+    const reservation = await reserveGuardianFortuneUsage({ userId: "user-2", dateKey: DATE_KEY, requestId: "paid-request-1", store, resolvePaidAccess: paidAccess, now: NOW });
+    // 결제분은 무료 카운터를 건드리지 않는다 — 그래서 source 가 daily_free 가 아니다.
+    expect(reservation).toMatchObject({ ok: true, source: "paid" });
     await commitGuardianFortuneUsage(reservation, { store, now: NOW });
     const status = await buildGuardianFortuneUsageStatus({ userId: "user-2", dateKey: DATE_KEY, store, now: NOW });
-    expect(status).toMatchObject({ dailyFreeRemaining: 0, paidCreditsRemaining: 1, generationSource: "paid_credit" });
-    expect(store.transactions).toHaveLength(1);
-    expect(store.transactions[0]).toMatchObject({ type: "use", amount: -1 });
-    expect(store.transactions.some((item) => ["purchase", "refund"].includes(item.type))).toBe(false);
+    expect(status).toMatchObject({ dailyFreeRemaining: 0, generationSource: "paid", nextAction: "purchase", canGenerate: true });
+  });
+
+  it("answers an unverifiable payment with a retryable 503, never 402", async () => {
+    // 402 로 내리면 이미 결제한 사용자가 결제창을 다시 보게 된다.
+    const store = exhaustedStore("user-degraded");
+    const reservation = await reserveGuardianFortuneUsage({ userId: "user-degraded", dateKey: DATE_KEY, requestId: "degraded-request", store, resolvePaidAccess: degradedAccess, now: NOW });
+    expect(reservation).toMatchObject({ ok: false, status: 503, retryable: true, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED });
+  });
+
+  it("treats a throwing payment check as unverifiable rather than unpaid", async () => {
+    const store = exhaustedStore("user-throw");
+    const reservation = await reserveGuardianFortuneUsage({ userId: "user-throw", dateKey: DATE_KEY, requestId: "throwing-request", store, resolvePaidAccess: async () => { throw new Error("mongo down"); }, now: NOW });
+    expect(reservation).toMatchObject({ ok: false, status: 503, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED });
+  });
+
+  it("blocks a logged-in user with no payment proof at 402", async () => {
+    const store = exhaustedStore("user-unpaid");
+    const reservation = await reserveGuardianFortuneUsage({ userId: "user-unpaid", dateKey: DATE_KEY, requestId: "unpaid-request", store, resolvePaidAccess: async () => ({ ok: false }), now: NOW });
+    expect(reservation).toMatchObject({ ok: false, status: 402, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED });
   });
 
   it("prevents concurrent requests from exceeding daily or credit limits", async () => {
@@ -91,18 +109,18 @@ describe("Guardian Fortune usage service", () => {
     })));
     expect(dailyResults.filter((item) => item.ok)).toHaveLength(3);
 
-    const creditStore = createMemoryGuardianFortuneStore({
-      daily: { [`user-credit:${DATE_KEY}`]: { userId: "user-credit", dateKey: DATE_KEY, freeLimit: 3, freeUsed: 3, reserved: 0 } },
-      credits: { "user-credit": { userId: "user-credit", remaining: 1, reserved: 0, purchasedTotal: 1, usedTotal: 0 } },
-    });
-    const creditResults = await Promise.all(Array.from({ length: 5 }, (_, index) => reserveGuardianFortuneUsage({
-      userId: "user-credit",
+    // 결제 경로는 무료 자리를 잡지 않으므로 동시성 상한이 없다. 중복을 막는 것은 requestId
+    // 멱등성뿐이라, 같은 requestId 를 동시에 세 번 보내도 하나만 통과해야 한다.
+    const paidStore = exhaustedStore("user-paid");
+    const sameRequest = await Promise.all(Array.from({ length: 3 }, () => reserveGuardianFortuneUsage({
+      userId: "user-paid",
       dateKey: DATE_KEY,
-      requestId: `concurrent-credit-${index}`,
-      store: creditStore,
+      requestId: "concurrent-same-request",
+      store: paidStore,
+      resolvePaidAccess: paidAccess,
       now: NOW,
     })));
-    expect(creditResults.filter((item) => item.ok)).toHaveLength(1);
+    expect(sameRequest.filter((item) => item.ok)).toHaveLength(1);
   });
 
   it("releases a failed reservation without consuming it", async () => {
@@ -123,10 +141,11 @@ describe("Guardian Fortune usage service", () => {
     await releaseGuardianFortuneUsage(first, { store, now: NOW });
   });
 
-  it("returns the live conversation-credit CTA after the free quota is exhausted", () => {
-    const cta = buildGuardianFortuneLimitCta(GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS, true);
-    expect(cta).toMatchObject({ label: "대화권 보기", targetPath: "/points" });
-    expect(cta.reason).toContain("보유 대화권");
-    expect(cta.reason).not.toContain("후속 단계");
+  it("hands the exhausted-quota CTA to the shared payment gate", () => {
+    // /points 로 보내면 이용권 보유자가 결제창의 [이용권으로 구매] 카드를 만나지 못한다.
+    const cta = buildGuardianFortuneLimitCta(GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, true);
+    expect(cta).toMatchObject({ featureKey: "fortune-chat-consultation" });
+    expect(cta.targetPath).toBeUndefined();
+    expect(cta.reason).not.toContain("대화권");
   });
 });

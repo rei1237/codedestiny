@@ -1,7 +1,11 @@
-// 나크샤트라 회당 결제 라우트 — 서버측 결제 증빙 검증.
+// 회당 결제 라우트 — 서버측 결제 증빙 검증(공용).
 //
 // 대상: /api/nakshatra/compat(₩10,000) · /api/nakshatra-premium/muhurta(₩5,000)
 //       /api/nakshatra-premium/vvip-codex(₩50,000)
+//       /api/fortune/guardian/generate(연이 운명 상담 ₩5,000, 무료 소진 이후)
+//       /api/fusion-fortune/generate[/stream](초융합 운세 ₩30,000)
+// 나크샤트라 3종은 지금도 관측 전용(PER_USE_ENFORCE=false)이지만, 연이·초융합 두 상담은
+// 이 함수의 판정으로 **실제로 차단**한다(2026-08-07, 전용 재화 폐지와 함께).
 // 지금까지 이 셋은 requireAuth 뿐이라 로그인만 하면 결제 없이 본문이 나갔다.
 //
 // 정본 패턴은 같은 기능군의 worker/routes/nakshatra-ai.js resolveStartAccess 다
@@ -139,7 +143,8 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
 }
 
 /**
- * 1단계는 관측 전용 — 결과를 남기기만 하고 아무것도 막지 않는다.
+ * 증빙 판정 결과를 관측용으로 남긴다. 나크샤트라 3종은 이 로그만 쓰고 차단하지 않으며,
+ * 연이·초융합 두 상담은 같은 판정으로 실제 차단까지 한다 — 로그는 양쪽 공통이다.
  * 개인정보를 남기지 않는다(userId·결제 식별자 제외, featureKey/source/proven 만).
  */
 export function logPerUsePaymentProof(featureKey, proof) {

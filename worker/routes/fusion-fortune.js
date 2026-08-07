@@ -11,7 +11,10 @@ import {
   isFusionFortuneRealLlmAllowed,
   isFusionFortuneUiEnabled,
   FUSION_FORTUNE_ERROR_CODES,
+  FUSION_FORTUNE_PAID_FEATURE_KEY,
 } from "../lib/fusion-fortune.js";
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 
 function respond(payload) {
   const { status = 200, ...body } = payload || {};
@@ -22,12 +25,35 @@ function disabledStatus() {
   return respond({
     ok: true,
     isLoggedIn: false,
-    ticket: { remaining: 0, canUse: false },
+    pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY },
     dailyLimit: { dateKey: getFusionFortuneDateKey(), limit: 100, usedCount: 0, remainingCount: 0, isSoldOut: false },
     canGenerate: false,
     nextAction: "disabled",
     message: "초융합 운세는 준비 중입니다.",
   });
+}
+
+/**
+ * 초융합 회당 결제 증빙 확인.
+ *
+ * 🔴 proven === null 은 DB 장애로 "확인 못 함"이다. 402 로 내리면 3만원을 낸 사용자가
+ * 결과를 못 받으므로 degraded 로 올려 503(재시도 가능)으로 만든다.
+ */
+function buildFusionFortunePaidAccessResolver(env) {
+  const coinPrice = Number(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]?.cost || 0);
+  return async ({ userId, requestId }) => {
+    if (!userId) return { ok: false };
+    const proof = await verifyPerUsePayment(env, {
+      userId,
+      featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY,
+      coinPrice,
+      requestId,
+    });
+    logPerUsePaymentProof(FUSION_FORTUNE_PAID_FEATURE_KEY, proof);
+    if (proof?.proven === true) return { ok: true };
+    if (proof?.proven === null) return { ok: false, degraded: true };
+    return { ok: false };
+  };
 }
 
 const SSE_HEADERS = Object.freeze({
@@ -72,6 +98,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
         dateKey: getFusionFortuneDateKey(),
         store: createMongoFusionFortuneStore(),
+        resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
         env,
         ctx,
         abortSignal: request.signal,
@@ -83,6 +110,12 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
           error: result.error || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
           message: result.message || "Unable to prepare the result.",
           requestId: result.requestId || "",
+          // 402(결제 필요)/503(판단 보류)를 클라이언트가 구분할 수 있어야 결제 게이트를 열지,
+          // 재시도를 안내할지 고를 수 있다. SSE 는 HTTP 상태를 다시 줄 수 없어 본문에 싣는다.
+          status: Number(result.status || 0) || undefined,
+          pricing: result.pricing || undefined,
+          retryable: result.retryable === true ? true : undefined,
+          retryRequestId: result.retryRequestId || undefined,
         });
         return;
       }
@@ -134,6 +167,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
         requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
         dateKey: getFusionFortuneDateKey(),
         store: createMongoFusionFortuneStore(),
+        resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
         env,
         ctx,
       });

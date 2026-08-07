@@ -1,7 +1,22 @@
 import { mongoose } from "./db.js";
 import { Payment, User, FusionFortuneTicketBalance, FusionFortuneTicketTransaction } from "./models.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "./portone.js";
-import { FUSION_FORTUNE_TICKET_PRODUCT, assertFusionFortuneTicketPurchaseAllowed } from "./fusion-fortune.js";
+
+// 판매 중단된 상품의 정의. 신규 주문은 만들지 않지만 과거 Payment 레코드를 식별해야
+// 환불·멱등성 가드가 계속 동작하므로 모양만 남긴다(삭제 마이그레이션에서 함께 정리).
+const FUSION_FORTUNE_TICKET_PRODUCT = Object.freeze({
+  productId: "fusion_fortune_ticket_1",
+  productType: "fusion_fortune_ticket",
+  name: "초융합 운세 상담권",
+  priceKRW: 10000,
+  ticketAmount: 1,
+  description: "판매 종료된 상품입니다.",
+  allowedPurchaseChannels: [],
+});
+
+function assertFusionFortuneTicketPurchaseAllowed() {
+  throw error("FUSION_FORTUNE_TICKET_SALES_ENDED", "초융합 운세 상담권 판매는 종료되었습니다. 초융합 운세는 1회 30,000원 결제로 이용할 수 있어요.", 410);
+}
 
 function text(value, max = 180) { return String(value || "").trim().slice(0, max); }
 function objectIdOrString(value) { const normalized = text(value, 120); return mongoose.Types.ObjectId.isValid(normalized) ? new mongoose.Types.ObjectId(normalized) : normalized; }
@@ -11,8 +26,15 @@ function paid(status) { return ["paid", "success", "fulfilled", "done", "complet
 function paymentAmount(payment) { return Number(payment?.amount || payment?.totalAmount || payment?.paidAmount || 0); }
 function customer(user, userId) { return { customerId: text(userId, 120), fullName: text(user?.name || user?.fullName || user?.displayName || "Code Destiny 사용자", 80), email: text(user?.email, 160) || `buyer-${text(userId, 24).replace(/[^A-Za-z0-9]/g, "") || "user"}@code-destiny.com`, phoneNumber: text(user?.phoneNumber || user?.phone, 40) }; }
 
-export function isFusionFortuneTicketSalesEnabled(env = {}) { return env.ENABLE_FUSION_FORTUNE_TICKET_SALES === true || String(env.ENABLE_FUSION_FORTUNE_TICKET_SALES || "").toLowerCase() === "true"; }
-export function getFusionFortuneTicketCatalog() { return [FUSION_FORTUNE_TICKET_PRODUCT]; }
+/**
+ * 🔴 초융합 상담권 판매는 영구 중단됐다(2026-08-07).
+ *
+ * 초융합이 표준 회당 결제(fusion-fortune-consultation, 30,000원)로 옮겨가면서 워커가 티켓을
+ * 더 이상 소비하지 않는다. env 플래그가 켜져 있어도 팔면 소비 불가능한 재화를 파는 셈이라
+ * 플래그를 읽지 않고 false 로 고정한다.
+ */
+export function isFusionFortuneTicketSalesEnabled() { return false; }
+export function getFusionFortuneTicketCatalog() { return []; }
 export function isFusionFortuneTicketPaymentRecord(record) { return Boolean(record?.metadata?.fusionFortuneTicket === true) && record?.productId === FUSION_FORTUNE_TICKET_PRODUCT.productId && record?.metadata?.productType === FUSION_FORTUNE_TICKET_PRODUCT.productType; }
 
 export async function getFusionFortuneTicketBalance(userId) {

@@ -171,28 +171,27 @@ describe("Guardian Fortune mock generate controller", () => {
     expect(response.usage.guestFreeUsed).toBe(1);
   });
 
-  it("uses a paid credit after the authenticated daily quota is exhausted", async () => {
+  it("generates on a verified per-use payment after the free quota is exhausted", async () => {
     const store = createMemoryGuardianFortuneStore({
       daily: { "user-generate:2026-08-02": { userId: "user-generate", dateKey: "2026-08-02", freeLimit: 3, freeUsed: 3, reserved: 0 } },
-      credits: { "user-generate": { userId: "user-generate", remaining: 1, reserved: 0, purchasedTotal: 1, usedTotal: 0 } },
     });
     const response = await generateGuardianFortuneRequest({
       input,
       userId: "user-generate",
-      requestId: "generate-credit-1",
+      requestId: "generate-paid-1",
       dateKey: "2026-08-02",
       store,
+      resolvePaidAccess: async () => ({ ok: true }),
       now: NOW,
       contextBuilder: successfulContextBuilder,
       mockGenerator: async () => ({ result, usedFallback: false }),
     });
-    expect(response).toMatchObject({ ok: true, generationSource: "paid_credit" });
-    expect(response.usage.paidCreditsRemaining).toBe(0);
-    expect(store.transactions).toHaveLength(1);
-    expect(store.transactions[0].type).toBe("use");
+    expect(response).toMatchObject({ ok: true, generationSource: "paid" });
+    // 결제분은 무료 카운터를 쓰지 않으므로 남은 무료는 그대로 0 이다.
+    expect(response.usage.dailyFreeRemaining).toBe(0);
   });
 
-  it("does not call the context or mock provider when no credit is available", async () => {
+  it("does not call the context or mock provider when the payment is missing", async () => {
     const store = createMemoryGuardianFortuneStore({
       daily: { "user-blocked:2026-08-02": { userId: "user-blocked", dateKey: "2026-08-02", freeLimit: 3, freeUsed: 3, reserved: 0 } },
     });
@@ -204,12 +203,14 @@ describe("Guardian Fortune mock generate controller", () => {
       requestId: "generate-blocked-1",
       dateKey: "2026-08-02",
       store,
+      resolvePaidAccess: async () => ({ ok: false }),
       now: NOW,
       contextBuilder,
       mockGenerator,
     });
-    expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_NO_CREDITS", status: 429 });
-    expect(response.cta.targetPath).toBe("/points");
+    expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_PAYMENT_REQUIRED", status: 402 });
+    // 결제창은 공용 게이트가 featureKey 로 연다 — /points 링크로 되돌리면 이용권 카드를 잃는다.
+    expect(response.cta).toMatchObject({ featureKey: "fortune-chat-consultation" });
     expect(contextBuilder).not.toHaveBeenCalled();
     expect(mockGenerator).not.toHaveBeenCalled();
   });

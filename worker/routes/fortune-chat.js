@@ -1,5 +1,5 @@
 import { connectDb, mongoose } from "../lib/db.js";
-import { FortuneChatSession, GuardianFortuneChatCreditBalance } from "../lib/models.js";
+import { FortuneChatSession } from "../lib/models.js";
 import { getOptionalUserFromRequest } from "../lib/auth.js";
 import { cookieValue, getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -7,6 +7,8 @@ import {
   buildGuardianFortuneUsageStatus,
   createGuardianFortuneGuestId,
   createMongoGuardianFortuneStore,
+  GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT,
+  GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
   hashGuardianFortuneGuestId,
   mergeGuardianFortuneAnonymousUsage,
 } from "../lib/guardian-fortune-usage.js";
@@ -40,14 +42,11 @@ async function bootstrap(request, env) {
     await mergeGuardianFortuneAnonymousUsage({ userId: who.userId, guestIdHash: who.guestIdHash, env });
   }
   const usage = await buildGuardianFortuneUsageStatus({ userId: who.userId, guestIdHash: who.guestIdHash, store: createMongoGuardianFortuneStore({ env }) });
-  const [credit, fusion] = await Promise.all([
-    who.userId ? GuardianFortuneChatCreditBalance.findOne({ userId: objectIdOrString(who.userId) }).lean() : null,
-    buildFusionFortuneStatus({
-      userId: who.userId,
-      store: createMongoFusionFortuneStore(),
-      enabled: isFusionFortuneApiEnabled(env),
-    }),
-  ]);
+  const fusion = await buildFusionFortuneStatus({
+    userId: who.userId,
+    store: createMongoFusionFortuneStore(),
+    enabled: isFusionFortuneApiEnabled(env),
+  });
   const accountFilter = who.userId ? { userId: objectIdOrString(who.userId) } : null;
   const anonymousFilter = who.guestIdHash ? { anonymousSessionId: who.guestIdHash } : null;
   let session = accountFilter ? await FortuneChatSession.findOne(accountFilter).sort({ updatedAt: -1 }).lean() : null;
@@ -67,14 +66,15 @@ async function bootstrap(request, env) {
     session,
     usage: {
       ...usage,
-      accountFreeLimit: who.userId ? 3 : 0,
+      accountFreeLimit: who.userId ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
       accountFreeRemaining: who.userId ? usage.dailyFreeRemaining : 0,
-      conversationCreditsRemaining: Math.max(0, Number(credit?.remaining || 0)),
+      // 무료 소진 뒤에는 이 키로 공용 결제 게이트를 연다(가격 정본은 paid-feature-registry).
+      paidFeatureKey: GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
     },
     fusion: {
-      ticketRemaining: Math.max(0, Number(fusion?.ticket?.remaining || 0)),
       canGenerate: Boolean(fusion?.canGenerate),
       nextAction: fusion?.nextAction || "disabled",
+      paidFeatureKey: fusion?.pricing?.featureKey || "",
     },
   }, { headers: who.cookie ? { "Set-Cookie": who.cookie } : undefined });
 }

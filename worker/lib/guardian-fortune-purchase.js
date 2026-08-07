@@ -95,8 +95,15 @@ function isSalesFlagEnabled(env = {}) {
   return value === true || String(value || "").trim().toLowerCase() === "true";
 }
 
-export function isGuardianFortuneCreditSalesEnabled(env = {}) {
-  return isSalesFlagEnabled(env);
+/**
+ * 🔴 대화권 판매는 영구 중단됐다(2026-08-07).
+ *
+ * 연이 운명 상담이 표준 회당 결제(fortune-chat-consultation, 5,000원)로 옮겨가면서 워커가
+ * 대화권을 더 이상 소비하지 않는다. env 플래그가 켜져 있어도 팔면 안 되는 이유가 이것이다 —
+ * 사용자가 소비 불가능한 재화에 돈을 낸다. 잔액/조회 경로는 삭제 마이그레이션 전까지만 남는다.
+ */
+export function isGuardianFortuneCreditSalesEnabled() {
+  return false;
 }
 
 export function listGuardianFortuneCreditProducts() {
