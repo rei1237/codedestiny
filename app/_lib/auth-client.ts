@@ -1,6 +1,7 @@
 import { getApiBaseUrl } from "./api-config";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
+import passVerdict from "@/js/core/pass-verdict.js";
 import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 import { detectLocale } from "@/lib/i18n/dictionary";
 
@@ -72,6 +73,11 @@ const ENTITLEMENT_LOCAL_STORAGE_PREFIXES = [
   "premium:",
   "cd_tetogen",
   "fortune_pending_",
+  // 🔴 이용권 스냅샷. 키가 사용자 id 로 스코프돼 있어(정본: js/core/pass-verdict.js) id 를 알아야
+  // 지울 수 있는데, clearClientAuthState 는 fortune_auth_user 를 먼저 지운다 — 그 뒤에 id 로 지우려
+  // 하면 이미 늦어서 스냅샷이 고아로 남고, 같은 계정 재로그인 시 서버 재조회 전까지 낡은 판정으로
+  // 낙관 무료 통과가 난다. 프리픽스 스윕은 id 없이도 지워지므로 순서에 의존하지 않는다.
+  passVerdict.KEY_PREFIX,
 ];
 
 export function clearEntitlementLocalStorage() {
