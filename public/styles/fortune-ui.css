@@ -12213,6 +12213,23 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         border-color: rgba(125,211,252,0.48);
         color: #e0f2fe;
       }
+      /* 목록 상단 상시 노출되는 새 카드 진입점. 카드 보유자에게는 이것이 유일한 명시적 추가 경로다. */
+      .dp-list-add {
+        display: block; width: 100%; min-height: 44px;
+        margin: 0 0 12px;
+        border: 1px dashed rgba(255,215,0,0.42);
+        border-radius: 12px;
+        background: rgba(255,215,0,0.08);
+        color: var(--dp-gold); font-size: 0.86rem; font-weight: 800;
+        padding: 11px 16px; cursor: pointer;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+      }
+      .dp-list-add:active {
+        background: rgba(255,215,0,0.16);
+        border-color: rgba(255,215,0,0.7);
+        color: #fff4c2;
+      }
 
       /* ── Stardust 파티클 ── */
       .dp-stardust {

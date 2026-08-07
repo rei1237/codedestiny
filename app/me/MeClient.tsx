@@ -121,11 +121,55 @@ const ME_PAGE_TEXT_TRANSLATIONS = {
     "mePage.010": "음력",
     "mePage.011": "윤달",
     "mePage.012": "대한민국 · 서울",
+    "mePage.013": "새 프로필 카드",
+    "mePage.014": "아직 프로필 카드가 없습니다. 새 카드를 만들어 운명의 기준점을 세워 주세요.",
+    "mePage.015": "저장된 프로필 카드가 없습니다. 위에서 새 카드를 만들어 주세요.",
+  },
+  en: {
+    "mePage.013": "New profile card",
+    "mePage.014": "No profile card yet. Create one to set your point of origin.",
+    "mePage.015": "No saved profile cards. Use the button above to create one.",
+  },
+  ja: {
+    "mePage.013": "新しいカードを作る",
+    "mePage.014": "プロフィールカードがまだありません。新しいカードを作って、運命の基準点を決めましょう。",
+    "mePage.015": "保存されたプロフィールカードがありません。上のボタンから作成してください。",
+  },
+  "zh-CN": {
+    "mePage.013": "新建资料卡",
+    "mePage.014": "还没有资料卡。新建一张，确立你的命运基点。",
+    "mePage.015": "暂无已保存的资料卡，请用上方按钮新建。",
+  },
+  "zh-TW": {
+    "mePage.013": "新增命盤卡",
+    "mePage.014": "尚未有資料卡。新增一張，確立你的命運基點。",
+    "mePage.015": "暫無已儲存的資料卡，請用上方按鈕新增。",
   },
 } as const;
 
+function mePageLang(): keyof typeof ME_PAGE_TEXT_TRANSLATIONS {
+  let lang = "ko";
+  try {
+    if (typeof window !== "undefined") {
+      const getter = (window as unknown as { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage;
+      if (typeof getter === "function") lang = getter();
+      else if (window.localStorage) lang = window.localStorage.getItem("cd_lang") || lang;
+    }
+  } catch {
+    // 저장소 접근이 막혀도 기본 로케일로 계속 진행한다.
+  }
+  lang = String(lang || "ko").toLowerCase();
+  if (lang === "zh" || lang === "zh-cn" || lang === "zh-hans") return "zh-CN";
+  if (lang === "zh-tw" || lang === "zh-hant" || lang === "zh-hk") return "zh-TW";
+  if (lang.startsWith("ja")) return "ja";
+  if (lang.startsWith("en")) return "en";
+  return "ko";
+}
+
+// 폴백은 ko 다. 기존 mePage.001~012 는 ko 에만 있으므로, ko 폴백이 없으면 다른 언어에서 통째로 깨진다.
 function mePageText(key: keyof typeof ME_PAGE_TEXT_TRANSLATIONS.ko): string {
-  return ME_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+  const table = ME_PAGE_TEXT_TRANSLATIONS[mePageLang()] as Partial<typeof ME_PAGE_TEXT_TRANSLATIONS.ko>;
+  return table[key] || ME_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
 const PROFILE_CARD_ACTION_COST_COINS = 50;
 const PROFILE_CARD_ACTION_COST_KRW = 5000;
@@ -1241,7 +1285,7 @@ export default function MePage() {
               </div>
             ) : (
               <p className="mt-6 rounded-lg border border-dashed border-amber-300/25 bg-black/15 p-5 text-sm text-slate-300">
-                아직 프로필 카드가 없습니다. 새 프로필을 추가해 운명의 기준점을 세워 주세요.
+                {mePageText("mePage.014")}
               </p>
             )}
 
@@ -1251,7 +1295,7 @@ export default function MePage() {
                 onClick={handleAddProfileClick}
                 className={`rounded-md px-4 py-2 text-sm font-bold ${canCreateMore ? "bg-amber-300 text-slate-950" : "border border-amber-300/40 bg-amber-500/10 text-amber-100"}`}
               >
-                새 프로필 추가
+                {mePageText("mePage.013")}
               </button>
               <Link href="/" className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200">
                 메인으로 이동
@@ -1270,14 +1314,14 @@ export default function MePage() {
                 onClick={openCreateProfile}
                 className="rounded-md border border-amber-300/35 px-3 py-2 text-xs font-semibold text-amber-100"
               >
-                새 프로필 추가
+                {mePageText("mePage.013")}
               </button>
             </div>
 
             <div className="mt-4 space-y-2">
               {profiles.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-white/15 p-4 text-sm text-slate-300">
-                  저장된 프로필 카드가 없습니다. 새 프로필을 추가해 주세요.
+                  {mePageText("mePage.015")}
                 </div>
               ) : (
                 profiles.map((profile) => {
@@ -1382,7 +1426,7 @@ export default function MePage() {
                                 disabled={deleting || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
                               >
-                                새 프로필 추가
+                                {mePageText("mePage.013")}
                               </button>
                               <button
                                 type="button"
@@ -1451,7 +1495,7 @@ export default function MePage() {
       {isCreateProfileOpen ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-amber-100">{editingProfile ? "프로필 수정" : "새 프로필 추가"}</h3>
+            <h3 className="text-lg font-bold text-amber-100">{editingProfile ? "프로필 수정" : mePageText("mePage.013")}</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
               {editingProfile
                 ? isFamilyProfilePlan

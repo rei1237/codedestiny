@@ -107,6 +107,29 @@ const cases = [
     ],
   },
   {
+    // 카드를 이미 가진 사용자의 "추가" 진입점은 두 번 사라진 적이 있다.
+    // ① fd25c7cd9: _dpUpdateSaveBtn 이 hasProfiles 로 조기 반환해 저장 버튼이 영구 "수정"이 됐다.
+    // ② 00fa86d97(#248): 한도 초과 alert 가 createRequiresPayment 과부하 탓에 수정 요청까지 삼켰다.
+    // 추가/수정 구분은 _dpProfileEditTargetId 플래그 하나로만 하고, 한도 초과는 차단이 아니라
+    // 서버 402 → _dpRunProfileManageGate 결제창으로 흘려보낸다(React /me·서버 정책과 동일).
+    name: "profile add entry point stays reachable for existing card holders",
+    includes: [
+      ["destinyProfile", "var _dpProfileEditTargetId = ''"],
+      ["destinyProfile", "window.dpStartProfileCreate"],
+      ["destinyProfile", "function _dpClearProfileEditMode"],
+      ["destinyProfile", "var isUpdate = !!_dpProfileEditTargetId"],
+      ["destinyProfile", "var createRequiresPayment = !isUpdate && !canUsePlanSlot"],
+      ["destinyProfile", "class=\"dp-list-add\""],
+      ["mePage", "mePage.013"],
+    ],
+    excludes: [
+      // 한도 초과를 alert 로 막으면 무료 사용자의 추가 버튼이 다시 죽는다.
+      ["destinyProfile", "현재 이용권에서는 프로필 카드를 "],
+      // 저장 버튼 라벨을 "카드 보유 여부"로 갈라 수정 모드에 가두는 회귀.
+      ["destinyProfile", "var createRequiresPayment = isUpdate ? !isFamilyPlan : !canUsePlanSlot"],
+    ],
+  },
+  {
     name: "profile delete modal opens before auth or payment network work",
     includes: [
       ["destinyProfile", "삭제창은 로컬 카드만으로 먼저 열어 체감 지연을 없앤다."],
