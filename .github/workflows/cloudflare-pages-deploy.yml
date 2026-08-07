@@ -58,6 +58,12 @@ jobs:
           npm run verify:pages-single-deploy-guard
           npm run verify:worker-single-deploy
 
+      # Environment key mismatches only surface at runtime, long after the deploy
+      # succeeds. This step runs before the build so a missing or drifted key stops
+      # the release instead of reaching production.
+      - name: Verify environment key parity
+        run: npm run verify:env-parity:remote
+
       - name: Verify Pages Git deployments stay disabled
         run: npm run verify:pages-single-deploy
 
@@ -86,6 +92,19 @@ jobs:
             git diff --name-only -z | xargs -0r git restore --worktree --
           fi
           test -z "$(git status --porcelain)"
+
+      # Low-risk changes now reach main without a pull request, so the two blocking
+      # checks that only ever ran in PR workflows have to run here too. Both read the
+      # committed tree as-is: sync:public is deliberately not run first, because a
+      # drifted static mirror is exactly what "Verify locale main sync" must catch.
+      #
+      # The i18n coverage metrics from "i18n Gates" stay PR-only on purpose. They are
+      # continue-on-error ratchets, and blocking a release on them stopped production
+      # deploys once already (2026-07-28).
+      - name: Verify sitemap and locale mirrors
+        run: |
+          npm run verify:sitemap
+          npm run verify:locale-main-sync
 
       - name: Preview, smoke, and promote the exact SHA
         run: npm run deploy:safe -- --ci --yes

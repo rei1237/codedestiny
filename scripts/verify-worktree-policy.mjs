@@ -152,9 +152,9 @@ function evaluateWorktreePolicy(context, mode = "edit") {
   if (!context.registered) {
     failures.push("Current directory is not a registered Git worktree.");
   }
-  if (context.isPrimary) {
-    failures.push("Editing the primary worktree is prohibited; create a secondary worktree from origin/main.");
-  }
+  // 주 워크트리 편집은 허용한다. 실제 사고를 막는 것은 아래 protectedBranch 검사이고,
+  // 워크트리 격리는 세션마다 전체 체크아웃 + node_modules 재설치를 강요할 뿐이었다.
+  // 병렬 작업이 필요할 때만 scripts/create-safe-worktree.ps1 로 보조 워크트리를 만든다.
   if (!branch) {
     failures.push("Detached HEAD is not allowed for repository edits.");
   }
@@ -198,7 +198,8 @@ function runSelfTest() {
   };
   const cases = [
     ["secondary edit", evaluateWorktreePolicy(base, "edit"), true],
-    ["primary edit", evaluateWorktreePolicy({ ...base, isPrimary: true }, "edit"), false],
+    ["primary worktree on feature branch", evaluateWorktreePolicy({ ...base, isPrimary: true }, "edit"), true],
+    ["primary worktree on main", evaluateWorktreePolicy({ ...base, isPrimary: true, branch: "main" }, "edit"), false],
     ["main edit", evaluateWorktreePolicy({ ...base, branch: "main" }, "edit"), false],
     ["detached edit", evaluateWorktreePolicy({ ...base, branch: "" }, "edit"), false],
     ["fresh PR", evaluateWorktreePolicy(base, "ci"), true],

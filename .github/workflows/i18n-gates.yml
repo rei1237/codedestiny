@@ -54,8 +54,9 @@ jobs:
         run: npm run i18n:check
         continue-on-error: true
 
-      # 이건 번역 지표가 아니라 셸 미러 구조 정합성이고, 배포 워크플로에서도 하드 게이트다
-      # (Deploy Cloudflare Pages "Verify locale main sync"). PR 에서 빨간불이 뜨는 게
-      # 배포 시점에 놀라는 것보다 낫다 → 일부러 blocking 유지.
+      # 이건 번역 지표가 아니라 셸 미러 구조 정합성이라 blocking 을 유지한다.
+      # 배포 워크플로에도 같은 검사가 있다(Release Cloudflare Pages and Worker 의
+      # "Verify sitemap and locale mirrors"). 저위험 변경이 PR 없이 main 으로 나갈 수
+      # 있게 된 뒤로, PR 에만 두면 그 경로에서 통째로 빠지기 때문이다.
       - name: Verify locale main sync
         run: npm run verify:locale-main-sync

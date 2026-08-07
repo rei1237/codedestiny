@@ -1,0 +1,180 @@
+/**
+ * 변경 파일의 위험도 분류. 두 가지를 서로 독립적으로 판정한다.
+ *
+ *   level      — CI 에서 얼마나 깊게 검사할지 (low / medium / high)
+ *   prRequired — 어느 레인으로 배달할지 (PR 필수 / main 직접 push)
+ *
+ * 두 축을 섞으면 안 된다. worker/** 는 계속 level=high 라서 배포 파이프라인이
+ * deploy:critical 을 계속 돌리지만, 사주·타로 라우트는 prRequired=false 라 PR 없이
+ * 나갈 수 있다. "깊게 검사한다"와 "사람이 봐야 한다"는 다른 질문이다.
+ *
+ * 이 파일이 생기기 전에는 분류기가 두 벌이었다 — check-changed.mjs 와 deploy-safe.mjs 의
+ * 패턴이 서로 달라 같은 커밋을 다르게 판정할 수 있었다. level 패턴은 배포를 좌우하는
+ * deploy-safe.mjs 쪽을 정본으로 그대로 가져왔다.
+ */
+
+const highPatterns = [
+  /^worker\//i, /^server\//i, /(^|\/)(payment|billing|auth|login|signup|access|unlock|entitlement|mongo|database|migration|migrate|kv|d1|r2|durable)/i,
+  /(^|\/)wrangler\.(toml|jsonc?)$/i, /(^|\/)\.env/i, /^\.github\/workflows\//i,
+  /(^|\/)package-lock\.json$/i, /(^|\/)scripts\/deploy/i,
+];
+const mediumPatterns = [
+  /(^|\/)(app|components|src|lib|js)\//i, /(^|\/)(route|cache|profile|session)/i,
+  /(^|\/)(package\.json|next\.config\.|tsconfig\.)/i,
+];
+const lowPatterns = [
+  /(^|\/)(docs?|reports?)\//i, /(^|\/)(styles?|css)\//i,
+  /\.(css|scss|sass|less|svg|png|jpg|jpeg|webp|gif|ico|avif)$/i,
+  /(^|\/)(index\.html|public\/i18n\/|sitemap|robots|ads\.txt)/i,
+];
+
+/**
+ * PR 을 반드시 거쳐야 하는 경로.
+ *
+ * 기준은 "릴리스 파이프라인의 preview 스모크가 이 실수를 잡아낼 수 있는가"다. 잡아낼 수
+ * 있으면 직접 push 해도 프로덕션에 도달하지 못하고 preview 에서 멈춘다. 못 잡는 것만
+ * 사람 눈이 필요하다:
+ *
+ *   인증·결제  — 200 을 반환하면서도 틀릴 수 있다. 스모크는 게스트 경로만 두드린다.
+ *   DB 스키마  — 되돌릴 수 없다. 롤백해도 데이터는 이미 바뀐 뒤다.
+ *   배포 인프라 — 깨지면 복구 수단 자체가 사라진다.
+ */
+const prRequiredRules = [
+  // ── 인증·세션
+  [/^worker\/routes\/auth\.js$/i, "인증 라우트"],
+  [/^worker\/lib\/(auth|jwt|session|token)[^/]*\.(js|mjs|ts)$/i, "인증 라이브러리"],
+  [/^server\/routes\/auth[^/]*\.js$/i, "레거시 인증 라우트"],
+  [/(^|\/)(login|oauth|signup|withdraw)[^/]*\.(js|mjs|jsx|ts|tsx)$/i, "로그인·가입·탈퇴 경로"],
+  [/^js\/core\/access-store\.js$/i, "접근 상태 저장소"],
+
+  // ── 결제·권한
+  [/^worker\/routes\/(payments|billing|access|app-store)\.js$/i, "결제·권한 라우트"],
+  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy)\.js$/i, "결제 정책 정본"],
+  [/^lib\/payment\//i, "결제 클라이언트"],
+  [/^app\/_lib\/billing-client\.ts$/i, "React 결제 게이트"],
+  [/^app\/hooks\/useCoinGate\.ts$/i, "단건 결제 훅"],
+  [/^js\/core\/(pass-verdict|checkout-entry)\.js$/i, "이용권 판정·결제 진입 정본"],
+
+  // ── DB 스키마 (되돌릴 수 없다)
+  [/^scripts\/migrations\//i, "DB 마이그레이션"],
+  [/^worker\/lib\/models\.js$/i, "DB 스키마"],
+
+  // ── 배포 파이프라인 자체 (깨지면 복구 수단이 사라진다)
+  [/^\.github\/workflows\//i, "CI 워크플로"],
+  [/(^|\/)wrangler\.(toml|jsonc?)$/i, "Cloudflare 배포 설정"],
+  [/(^|\/)\.env/i, "환경 변수 파일"],
+  [/^config\/env\.contract\.json$/i, "환경 키 계약"],
+  [/^scripts\/(deploy|release|rollback)/i, "배포·릴리스 스크립트"],
+  [/^scripts\/lib\/(worker-deploy-base-guard|change-risk)\.mjs$/i, "배포 가드"],
+  [/^scripts\/(verify-worktree-policy|check-changed)\.mjs$/i, "배달 정책 판정기"],
+  [/(^|\/)package-lock\.json$/i, "의존성 잠금"],
+];
+
+export function classifyFile(file) {
+  const value = String(file || "").replace(/\\/g, "/");
+  if (highPatterns.some((p) => p.test(value))) return { level: "high", reason: "runtime/payment/auth/infra boundary" };
+  if (mediumPatterns.some((p) => p.test(value))) return { level: "medium", reason: "shared UI/state/API/routing code" };
+  if (lowPatterns.some((p) => p.test(value))) return { level: "low", reason: "static/content/presentation change" };
+  return { level: "medium", reason: "unclassified source/config change" };
+}
+
+export function riskOf(files) {
+  const rows = files.map((file) => ({ file, ...classifyFile(file) }));
+  const rank = { low: 1, medium: 2, high: 3 };
+  const level = rows.reduce((current, row) => (rank[row.level] > rank[current] ? row.level : current), "low");
+  return { level, rows };
+}
+
+/** 한 파일이 PR 을 요구하는 이유. 해당 없으면 빈 문자열. */
+export function prRequiredReason(file) {
+  const value = String(file || "").replace(/\\/g, "/");
+  for (const [pattern, reason] of prRequiredRules) {
+    if (pattern.test(value)) return reason;
+  }
+  return "";
+}
+
+export function requiresPullRequest(files) {
+  const matches = [];
+  for (const file of files) {
+    const reason = prRequiredReason(file);
+    if (reason) matches.push({ file, reason });
+  }
+  return { required: matches.length > 0, matches };
+}
+
+export function selfTest() {
+  const levelCases = [
+    // deploy-safe.mjs 와 check-changed.mjs 가 각각 고정해 두었던 케이스를 모두 옮겼다.
+    ["styles/site.css", "low"],
+    ["docs/guide.md", "low"],
+    ["components/Button.tsx", "medium"],
+    ["app/page.tsx", "medium"],
+    ["worker/routes/payments.js", "high"],
+    ["wrangler.toml", "high"],
+    [".github/workflows/release.yml", "high"],
+  ];
+  for (const [file, expected] of levelCases) {
+    const actual = classifyFile(file).level;
+    if (actual !== expected) throw new Error(`level(${file}) = ${actual}, expected ${expected}`);
+  }
+
+  const prCases = [
+    ["worker/routes/payments.js", true],
+    ["worker/routes/auth.js", true],
+    ["lib/payment/portone.ts", true],
+    ["app/hooks/useCoinGate.ts", true],
+    ["js/core/pass-verdict.js", true],
+    ["worker/lib/models.js", true],
+    ["scripts/migrations/20260805-add-fortune-chat-indexes.mjs", true],
+    [".github/workflows/cloudflare-pages-deploy.yml", true],
+    ["wrangler.toml", true],
+    ["config/env.contract.json", true],
+    ["scripts/deploy-safe.mjs", true],
+    ["package-lock.json", true],
+    // 아래는 level=high 여도 PR 없이 나갈 수 있어야 한다. 이 구분이 이번 변경의 요점이다.
+    ["worker/routes/fortune-tea-house.js", false],
+    ["worker/routes/ziwei-ai.js", false],
+    ["worker/lib/gemini.js", false],
+    ["app/page.tsx", false],
+    ["components/Button.tsx", false],
+    ["styles/site.css", false],
+    ["docs/guide.md", false],
+    ["package.json", false],
+  ];
+  for (const [file, expected] of prCases) {
+    const actual = Boolean(prRequiredReason(file));
+    if (actual !== expected) throw new Error(`prRequired(${file}) = ${actual}, expected ${expected}`);
+  }
+
+  // level 과 prRequired 가 실제로 독립인지 고정한다.
+  if (classifyFile("worker/routes/ziwei-ai.js").level !== "high") throw new Error("non-PR worker route must still be level=high");
+
+  const combined = requiresPullRequest(["docs/a.md", "worker/routes/payments.js"]);
+  if (!combined.required || combined.matches.length !== 1) throw new Error("requiresPullRequest must report only the matching file");
+
+  console.log(`[change-risk] self-test passed (${levelCases.length + prCases.length} cases)`);
+}
+
+if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("scripts/lib/change-risk.mjs")) {
+  if (process.argv.includes("--self-test")) {
+    try {
+      selfTest();
+    } catch (error) {
+      console.error(`[change-risk] FAIL: ${error.message}`);
+      process.exitCode = 1;
+    }
+  } else {
+    const files = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+    if (!files.length) {
+      console.error("Usage: node scripts/lib/change-risk.mjs <file...>  |  --self-test");
+      process.exitCode = 1;
+    } else {
+      const risk = riskOf(files);
+      const pr = requiresPullRequest(files);
+      console.log(`level=${risk.level} prRequired=${pr.required}`);
+      for (const row of risk.rows) console.log(`  ${row.level.padEnd(6)} ${row.file}`);
+      for (const match of pr.matches) console.log(`  PR     ${match.file} (${match.reason})`);
+    }
+  }
+}

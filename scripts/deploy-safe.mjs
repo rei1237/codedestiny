@@ -12,6 +12,7 @@ import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
+import { classifyFile, riskOf } from "./lib/change-risk.mjs";
 
 const root = process.cwd();
 const stateDir = path.join(root, ".deploy-state");
@@ -78,19 +79,26 @@ function assertProductionCi() {
 function npmCommand() { return process.platform === "win32" ? "npm.cmd" : "npm"; }
 function npxCommand() { return process.platform === "win32" ? "npx.cmd" : "npx"; }
 function wrangler(args) { return ["--no-install", "wrangler", ...args]; }
+// Node 20+ refuses to spawn .cmd shims without a shell. CI runs on Linux so this never
+// showed there, but the local preview path hits it. shell: true concatenates args, so
+// quote anything containing whitespace (Pages commit messages do).
+function shellFor(command) { return process.platform === "win32" && command.endsWith(".cmd"); }
+function shellArgs(command, args) {
+  return shellFor(command) ? args.map((arg) => (/\s/.test(String(arg)) ? '"' + arg + '"' : String(arg))) : args;
+}
 
 function run(label, command, args, options = {}) {
   console.log("[deploy-safe] " + label);
-  const result = spawnSync(command, args, {
-    cwd: root, env: options.env || envForChecks(), stdio: "inherit", shell: false, windowsHide: true,
+  const result = spawnSync(command, shellArgs(command, args), {
+    cwd: root, env: options.env || envForChecks(), stdio: "inherit", shell: shellFor(command), windowsHide: true,
     input: options.input,
   });
   if (result.error) throw new Error(label + " could not start: " + result.error.message);
   if (result.status !== 0) throw new Error(label + " failed with exit " + String(result.status));
 }
 function capture(label, command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    cwd: root, env: options.env || envForChecks(), encoding: "utf8", shell: false, windowsHide: true,
+  const result = spawnSync(command, shellArgs(command, args), {
+    cwd: root, env: options.env || envForChecks(), encoding: "utf8", shell: shellFor(command), windowsHide: true,
   });
   const text = String(result.stdout || "") + String(result.stderr || "");
   if (text.trim()) process.stdout.write(text);
@@ -170,39 +178,8 @@ function changedFiles() {
   const head = git(["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "HEAD"], { allowFailure: true });
   return head ? head.split(/\r?\n/).filter(Boolean) : [];
 }
-const highPatterns = [
-  /^worker\//i, /^server\//i, /(^|\/)(payment|billing|auth|login|signup|access|unlock|entitlement|mongo|database|migration|migrate|kv|d1|r2|durable)/i,
-  /(^|\/)wrangler\.(toml|jsonc?)$/i, /(^|\/)\.env/i, /^\.github\/workflows\//i,
-  /(^|\/)package-lock\.json$/i, /(^|\/)scripts\/deploy/i,
-];
-const mediumPatterns = [
-  /(^|\/)(app|components|src|lib|js)\//i, /(^|\/)(route|cache|profile|session)/i,
-  /(^|\/)(package\.json|next\.config\.|tsconfig\.)/i,
-];
-const lowPatterns = [
-  /(^|\/)(docs?|reports?)\//i, /(^|\/)(styles?|css)\//i,
-  /\.(css|scss|sass|less|svg|png|jpg|jpeg|webp|gif|ico|avif)$/i,
-  /(^|\/)(index\.html|public\/i18n\/|sitemap|robots|ads\.txt)/i,
-];
-function classifyFile(file) {
-  const value = file.replace(/\\/g, "/");
-  if (highPatterns.some((p) => p.test(value))) return { level: "high", reason: "runtime/payment/auth/infra boundary" };
-  if (mediumPatterns.some((p) => p.test(value))) return { level: "medium", reason: "shared UI/state/API/routing code" };
-  if (lowPatterns.some((p) => p.test(value))) return { level: "low", reason: "static/content/presentation change" };
-  return { level: "medium", reason: "unclassified source/config change" };
-}
-function riskOf(files) {
-  const rows = files.map((file) => ({ file, ...classifyFile(file) }));
-  const rank = { low: 1, medium: 2, high: 3 };
-  const level = rows.reduce((current, row) => rank[row.level] > rank[current] ? row.level : current, "low");
-  return { level, rows };
-}
-function secondaryWorktree() {
-  const entries = git(["worktree", "list", "--porcelain"]).split(/\r?\n\r?\n/).filter(Boolean);
-  const current = path.resolve(root).replace(/\\/g, "/").toLowerCase();
-  const paths = entries.map((entry) => entry.match(/^worktree (.+)$/m)?.[1]).filter(Boolean);
-  return paths.length > 0 && current !== path.resolve(paths[0]).replace(/\\/g, "/").toLowerCase();
-}
+// classifyFile / riskOf 는 scripts/lib/change-risk.mjs 가 정본이다.
+// check-changed.mjs 와 release-fast.mjs 도 같은 모듈을 쓴다.
 function gitInfo(files) {
   const branch = git(["branch", "--show-current"]);
   const head = git(["rev-parse", "HEAD"]);
@@ -211,7 +188,9 @@ function gitInfo(files) {
   if (["main", "master"].includes(branch.toLowerCase()) && !(ciMode && process.env.GITHUB_ACTIONS === "true")) {
     throw new Error("Protected branch is not deployable locally.");
   }
-  if (!ciMode && !secondaryWorktree()) throw new Error("Use a registered secondary worktree.");
+  // 보조 워크트리 요구는 제거했다. 로컬에서 막아야 하는 것은 위의 보호 브랜치 검사이고,
+  // 프로덕션 승격은 assertProductionCi() 가 CI 전용으로 묶는다. feature 브랜치에서
+  // deploy:preview 를 돌리는 것은 의도적으로 허용한다.
   if (dirtyFiles.length && !allowDirty) throw new Error("Working tree is dirty. Commit first or pass --allow-dirty.");
   if (!ciMode && !git(["rev-parse", "--verify", "origin/main"], { allowFailure: true })) throw new Error("origin/main is unavailable.");
   return { branch, head, dirty: dirtyFiles.length > 0, dirtyFiles, files };
