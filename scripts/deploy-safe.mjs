@@ -367,9 +367,21 @@ function parseUrls(text) { return [...new Set((String(text).match(/https?:\/\/[^
 function lastUuid(text) { const matches = String(text).match(UUID_RE) || []; return matches[matches.length - 1] || ""; }
 function eslintArgs(sourceFiles) { return ["exec", "--", "eslint", "--quiet", ...sourceFiles]; }
 
+/**
+ * 변경 목록에서 실제로 린트할 파일만 고른다.
+ * 🔴 존재 여부를 반드시 확인한다. `git diff --name-only` 는 삭제된 파일도 이름을 내놓는데,
+ * 없는 경로를 eslint 에 넘기면 "No files matching the pattern" 으로 exit 2 가 나고
+ * 릴리스가 통째로 막힌다(파일을 지운 PR 마다 재현된다).
+ */
+function lintTargets(files) {
+  return files
+    .filter((file) => /\.(c|m)?js$|\.(c|m)?tsx?$/.test(file))
+    .filter((file) => fs.existsSync(path.resolve(root, file)));
+}
+
 async function checks(value) {
   const env = envForChecks();
-  const sourceFiles = value.files.filter((file) => /\.(c|m)?js$|\.(c|m)?tsx?$/.test(file));
+  const sourceFiles = lintTargets(value.files);
   if (sourceFiles.length) run("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
   run("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
   if (value.risk.level !== "low") run("core mock smoke tests", npmCommand(), ["run", "smoke:core"], { env });
@@ -421,6 +433,31 @@ async function smoke(base, apiOrigin = "", skipApi = false) {
   if (skipApi) args.push("--skip-api");
   run("read-only smoke test", process.execPath, args, { env: envForChecks() });
 }
+/**
+ * 프로덕션 스모크 **전에** Pages 전환이 실제로 전파될 때까지 기다린다.
+ *
+ * 🔴 이게 없으면 릴리스가 배포마다 무작위로 실패한다. deployPages(production) 직후에는
+ * 새 HTML 을 받은 엣지 PoP 가 아직 옛 배포를 가리켜, 그 HTML 이 참조하는
+ * `_next/static/chunks/webpack-*.js` 가 404 로 내려온다. 브라우저 스모크는 그 404 를
+ * console.error 로 잡아 릴리스를 실패시키고, 그러면 워커가 자동 롤백된다 —
+ * 코드에는 아무 문제가 없는데도 배포가 되돌아간다(2026-08-07: 5연속 실패).
+ *
+ * scripts/verify-deployed-assets.mjs 가 정확히 이 구간을 위해 만들어져 있었지만
+ * (자기 주석에 "배포 30초 뒤 bare/cdcb 모두 404 → 잠시 뒤 둘 다 200" 실측이 적혀 있다)
+ * 어디에서도 호출되지 않아 죽은 도구였다. 5라운드 × 25초 재시도 예산이 곧 전파 대기다.
+ *
+ * 이건 검사를 무르게 하는 것이 아니다 — 전파가 끝난 뒤에도 자산이 죽어 있으면 그대로 실패하고,
+ * 그 실패는 진짜 산출물 문제다. 순서만 바로잡는다.
+ */
+function awaitProductionAssets(base) {
+  run(
+    "production asset propagation",
+    process.execPath,
+    [path.join(scriptDir, "verify-deployed-assets.mjs")],
+    { env: { ...envForChecks(), CD_DEPLOY_VERIFY_ORIGIN: base } },
+  );
+}
+
 function productionOrigin(value) {
   if (process.env.CD_PRODUCTION_ORIGIN) return String(process.env.CD_PRODUCTION_ORIGIN).replace(/\/+$/, "");
   const domain = value.cf.pages.domains.find((item) => !item.includes(".pages.dev")) || value.cf.pages.domains[0];
@@ -472,6 +509,18 @@ async function previewStage() {
   if (worker?.previewUrl) console.log("[deploy-safe] Worker preview URL: " + worker.previewUrl);
   return { value, state };
 }
+/**
+ * Pages 프로덕션 배포를 이전 배포로 되돌린다. rollbackStage 가 쓰던 것과 같은 API 다.
+ */
+async function rollbackPagesDeployment(project, deploymentId) {
+  return cfFetch(
+    apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID
+    + "/pages/projects/" + encodeURIComponent(project)
+    + "/deployments/" + encodeURIComponent(deploymentId) + "/rollback",
+    { method: "POST" },
+  );
+}
+
 async function promote(value, state, yes) {
   if (!yes) throw new Error("Production promotion requires --yes.");
   assertArtifact(state);
@@ -481,6 +530,7 @@ async function promote(value, state, yes) {
   const oldPages = (await pageDeployments(value.cf, "production")).find((item) => metadata(item).branch === value.cf.pages.productionBranch);
   const oldWorker = value.needsWorker ? await workerActive(value.cf) : null;
   let workerPromoted = false;
+  let pagesPromoted = false;
   try {
     if (value.needsWorker) {
       if (!state.worker?.versionId) throw new Error("No Worker preview version to promote.");
@@ -488,24 +538,59 @@ async function promote(value, state, yes) {
       workerPromoted = true;
     }
     const pages = await deployPages(value, value.cf.pages.productionBranch, true);
+    pagesPromoted = true;
     const next = {
       ...state,
       production: { deployedAt: new Date().toISOString(), pagesDeploymentId: pages.id, pagesUrl: productionOrigin(value), workerVersionId: state.worker?.versionId || "" },
       rollback: { pagesDeploymentId: oldPages?.id || "", workerVersionId: oldWorker?.versionId || "" },
     };
     writeState(next);
+    // 전파를 먼저 기다린다(위 awaitProductionAssets 주석 참고). 이 순서가 아니면 브라우저
+    // 스모크가 전환 틈새의 404 를 잡아 멀쩡한 릴리스를 되돌린다.
+    awaitProductionAssets(productionOrigin(value));
+    // 그 다음에 스모크 + Pages/Worker 커밋 패리티까지 본다(postDeployHealth 가 smoke 를 품는다).
     await postDeployHealth(value);
     writeState({ ...next, production: { ...next.production, smokePassed: true } });
     console.log("[deploy-safe] production health check passed; commit=" + value.git.head);
   } catch (error) {
     console.error("[deploy-safe] production failed: " + error.message);
+
+    // 🔴 Pages 와 Worker 는 **함께** 되돌린다.
+    //
+    // 예전에는 Worker 만 자동 롤백하고 Pages 는 롤백 대상 ID 만 출력한 뒤 사람이 확인하도록 두었다.
+    // 그 결과 실패한 릴리스마다 프로덕션이 '새 클라이언트 + 옛 워커' 로 어긋난 채 남았고, 실패가
+    // 반복되면서 어긋남이 누적됐다. 2026-08-07 에는 그 누적이 실제 장애로 드러났다 — 라이브
+    // /me/ 가 참조하는 청크 4개가 404(bare·bypass 둘 다)였다. HTML 세대와 자산 세대가 서로
+    // 다른 배포에서 온 것이다.
+    //
+    // 롤백 순서는 승격의 역순(Pages → Worker)이다. 승격은 Worker → Pages 였으므로 LIFO 로 되돌린다.
+    // 중간 상태의 위험도도 이 순서가 낫다: '옛 클라이언트 + 새 워커'(워커 API 는 대개 하위호환)가
+    // '새 클라이언트 + 옛 워커'(새 클라이언트가 없는 API 를 부른다)보다 안전하다.
+    let pagesRolledBack = false;
+    if (pagesPromoted && oldPages?.id) {
+      try {
+        await rollbackPagesDeployment(value.cf.project, oldPages.id);
+        pagesRolledBack = true;
+        console.error("[deploy-safe] Pages rollback completed. target=" + oldPages.id);
+      } catch (rollbackError) {
+        console.error("[deploy-safe] Pages rollback failed: " + rollbackError.message);
+        console.error("[deploy-safe] Pages rollback target=" + oldPages.id + "; run deploy:rollback -- --yes manually.");
+      }
+    } else if (oldPages?.id) {
+      console.error("[deploy-safe] Pages was not promoted; nothing to roll back.");
+    }
+
     if (workerPromoted && oldWorker?.versionId) {
       try {
         capture("automatic Worker rollback", npxCommand(), wrangler(["versions", "deploy", oldWorker.versionId + "@100", "--name", value.cf.worker, "--message", "safe-auto-rollback-" + value.git.head.slice(0, 12), "--yes"]), { env: envForChecks() });
         console.error("[deploy-safe] Worker rollback completed.");
       } catch (rollbackError) { console.error("[deploy-safe] Worker rollback failed: " + rollbackError.message); }
     }
-    if (oldPages?.id) console.error("[deploy-safe] Pages rollback target=" + oldPages.id + "; run deploy:rollback -- --yes after confirmation.");
+
+    // 한쪽만 되돌아간 상태는 조용히 지나가면 안 된다 — 그게 이번 사고의 형태였다.
+    if (pagesPromoted && !pagesRolledBack && workerPromoted) {
+      console.error("::error::프로덕션이 세대 불일치 상태일 수 있습니다(Pages 새 세대 + Worker 옛 세대). 즉시 확인하세요.");
+    }
     throw error;
   }
 }
@@ -596,8 +681,9 @@ async function rollbackStage() {
     capture("Worker rollback", npxCommand(), wrangler(["versions", "deploy", workerTarget + "@100", "--name", value.cf.worker, "--message", "safe-manual-rollback", "--yes"]), { env: envForChecks() });
     result.workerVersionId = workerTarget;
   }
+  // pagesTarget 을 쓴다(--to 오버라이드 + 기록된 직전 배포 폴백). 실제 호출은 공용 헬퍼로.
   if (pagesTarget) {
-    const pages = await cfFetch(apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/pages/projects/" + encodeURIComponent(value.cf.project) + "/deployments/" + encodeURIComponent(pagesTarget) + "/rollback", { method: "POST" });
+    const pages = await rollbackPagesDeployment(value.cf.project, pagesTarget);
     result.pagesDeploymentId = pages?.id || pagesTarget;
   }
   writeState({ ...(state || {}), lastRollback: { at: new Date().toISOString(), ...result } });
@@ -621,6 +707,11 @@ async function selfTest() {
   for (const item of cases) if (item[1] !== item[2]) throw new Error(item[0] + " classification failed.");
   const lint = eslintArgs(["fixture.js"]);
   if (!lint.includes("--quiet") || lint.includes("--max-warnings=0")) throw new Error("release lint must block errors without promoting warnings.");
+  // 파일을 지운 릴리스가 eslint exit 2 로 막히던 회귀를 잠근다.
+  const targets = lintTargets(["scripts/deploy-safe.mjs", "app/does-not-exist/Deleted.tsx", "docs/readme.md"]);
+  if (!targets.includes("scripts/deploy-safe.mjs")) throw new Error("changed-file lint must keep existing source files.");
+  if (targets.some((file) => file.includes("Deleted.tsx"))) throw new Error("changed-file lint must skip deleted files; eslint exits 2 on missing paths.");
+  if (targets.some((file) => file.endsWith(".md"))) throw new Error("changed-file lint must only take JS/TS sources.");
   const pagesListUrl = pageDeploymentsUrl({ project: "project name" }, "preview");
   if (!pagesListUrl.includes("/project%20name/deployments?env=preview") || /[?&](?:page|per_page)=/.test(pagesListUrl)) throw new Error("Pages deployment lookup must use Cloudflare default pagination.");
   if (parseUrls("https://a.pages.dev https://b.workers.dev").length !== 2) throw new Error("URL parser failed.");

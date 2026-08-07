@@ -109,7 +109,7 @@ function MobileBottomNav() {
       window.location.assign(tab.href);
       return;
     }
-    // React 라우트(/points·/me)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
+    // React 라우트(/points)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
   }, [pendingKey]);
 
   return (

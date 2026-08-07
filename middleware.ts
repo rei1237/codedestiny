@@ -197,7 +197,6 @@ const LANDING_ONLY_ROUTES = new Set([
 const PROTECTED_AUTH_ROUTE_PREFIXES = [
   "/dashboard",
   "/mypage",
-  "/me",
   "/points",
 ];
 

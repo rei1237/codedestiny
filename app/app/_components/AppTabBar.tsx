@@ -5,14 +5,21 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import { Coffee, Home, Sparkles, Target, UserCircle } from "lucide-react";
 import { normalizeAppPathname } from "@/app/app/_lib/app-route";
+import { PROFILE_SHEET_ACTION } from "@/app/_lib/mobile-tabs";
 
 const TABS = [
   { href: "/app", label: "홈", icon: Home },
   { href: "/saju/basic", label: "운세", icon: Sparkles },
   { href: "/fortune-tea-house", label: "찻집", icon: Coffee },
   { href: "/neo-operation-room", label: "전략실", icon: Target },
-  { href: "/me", label: "마이", icon: UserCircle },
+  // 프로필 카드 관리는 정적 셸의 하단 시트가 정본이다. React 라우트가 아니라 셸로 넘긴다.
+  { href: `/?action=${PROFILE_SHEET_ACTION}`, label: "마이", icon: UserCircle },
 ] as const;
+
+/** 셸(정적 index.html) 대상 href. Next 라우터로는 못 가므로 하드 이동시킨다. */
+function targetsStaticShell(href: string) {
+  return href === "/" || href.startsWith("/?");
+}
 
 // 탭 목적지는 전부 무거운 클라이언트 번들이라 청크가 콜드일 때 전환이 1~수 초 걸린다.
 // 이 앱에는 loading 경계가 없어 App Router 는 그 사이 현재 화면을 그대로 유지한다 —
@@ -22,6 +29,8 @@ const TAB_PENDING_FAILSAFE_MS = 6000;
 
 function isActive(pathname: string, href: string) {
   if (href === "/app") return pathname === "/app" || pathname === "/app/";
+  // 셸 대상 탭은 앱 라우트를 벗어나므로 /app 안에서는 절대 활성이 아니다.
+  if (targetsStaticShell(href)) return false;
   return pathname.startsWith(href);
 }
 
@@ -46,6 +55,11 @@ export default function AppTabBar() {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     if (pendingHref) return;
+    if (targetsStaticShell(href)) {
+      setPendingHref(href);
+      window.location.assign(href);
+      return;
+    }
     if (normalizeAppPathname(href) === pathname) return;
     setPendingHref(href);
     router.push(href);

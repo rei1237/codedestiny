@@ -242,6 +242,12 @@ jobs:
       - name: Verify profile card add entry point
         run: npm run verify:profile-card-add-entry
 
+      # 캐시버스트 해시 merge driver 는 .gitattributes·.git/config·드라이버 스크립트 셋이 모두
+      # 맞아야 돈다. 하나만 어긋나면 git 이 조용히 기본 병합으로 돌아가, 리베이스마다 해시 충돌이
+      # 수백 건씩 쏟아진다(실측 240건 / 실제 내용 차이 0건).
+      - name: Verify cache-bust merge driver
+        run: npm run verify:cachebust-merge
+
       # 상세 팝업이 "무엇을 사는지"를 다시 가리지 못하게 막는다(블러 회귀·과장 수치·빈 카드).
       - name: Verify feature marketing schema
         run: npm run verify:feature-marketing-schema

@@ -2933,6 +2933,11 @@ async function handlePigCoinRefund(request, auth) {
     .sort({ createdAt: -1 })
     .lean();
 
+  // 🔴 이 폴백의 목적은 "요청 금액이 원 차감액과 미세하게 어긋나도 같은 행을 찾아준다" 하나다.
+  // 예전에는 필터를 통째로 비워 _id 만 봤는데, 그러면 delta:0 감사행(profile.js 가 프로필 카드
+  // 조작마다, billing.js 가 FAMILY 이용권 접근마다 남긴다)까지 매칭돼 인증만으로 임의 금액을
+  // 발행할 수 있었다. 완화는 금액 조건에만 적용하고 나머지는 1차 조회와 동일하게 유지한다.
+  // (조건 조립은 buildPigCoinRefundDeductQueries 한 곳에 모아 단위 테스트로 고정한다.)
   if (!deducted && deductFallbackQuery) {
     deducted = await PointHistory.findOne(deductFallbackQuery).lean();
   }
@@ -2981,9 +2986,14 @@ async function handlePigCoinRefund(request, auth) {
     });
   }
 
+  // 🔴 환불 금액의 정본은 클라이언트가 보낸 cost 가 아니라 실제 차감 행의 delta 다.
+  // 1차 조회는 delta:-cost 로 묶여 있어 두 값이 같지만, 위 폴백은 금액 조건을 일부러 풀어 두므로
+  // 거기서 cost 를 그대로 믿으면 소액 차감 1건으로 상한(PIG_COIN_MAX_COST)까지 발행할 수 있다.
+  const refundAmount = Math.max(0, Math.floor(Math.abs(Number(deducted.delta || 0))));
+
   const updatedUser = await User.findByIdAndUpdate(
     auth.userId,
-    { $inc: { points: cost } },
+    { $inc: { points: refundAmount } },
     { returnDocument: "after", projection: { points: 1 } },
   ).lean();
 
@@ -2994,7 +3004,7 @@ async function handlePigCoinRefund(request, auth) {
   const refundHistory = await PointHistory.create({
     userId: auth.userId,
     kind: "refund",
-    delta: cost,
+    delta: refundAmount,
     balanceAfter: Number(updatedUser.points || 0),
     reason,
     featureKey,
@@ -3007,8 +3017,8 @@ async function handlePigCoinRefund(request, auth) {
   });
 
   return json({
-    message: `${cost.toLocaleString("ko-KR")} coins refunded.`,
-    refundedCoins: cost,
+    message: `${refundAmount.toLocaleString("ko-KR")} coins refunded.`,
+    refundedCoins: refundAmount,
     sourceTransactionId: String(deducted._id),
     refundTransactionId: String(refundHistory?._id || ""),
     user: userPayload(auth, updatedUser.points),
@@ -6519,6 +6529,7 @@ export const __fortuneAccessTestUtils = {
   resolvePigCoinConsumeAuth: resolvePigCoinConsumeAuthFromGuard,
   isAdminPigCoinBypassEnabled: isAdminPigCoinBypassEnabledFromGuard,
   handleSubscriptionStatus,
+  handlePigCoinRefund,
   buildPigCoinRefundDeductQueries,
   buildAIPromptCardRefundPaymentQuery,
   readAIPromptRefundContext: readSajuAIPromptPointRefundContext,

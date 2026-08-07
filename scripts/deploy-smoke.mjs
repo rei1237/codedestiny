@@ -112,7 +112,7 @@ async function checkPages() {
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
 
-  const routes = ["/", "/login", "/me", "/saju/basic", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
+  const routes = ["/", "/login", "/saju/basic", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
   for (const route of routes) {
     try {
       const response = await page.goto(base + route, { waitUntil: "domcontentloaded", timeout: 30000 });

@@ -15,10 +15,6 @@ const pointsPageSourcePath = existsSync(resolve(root, "app/points/PointsClient.t
   ? "app/points/PointsClient.tsx"
   : "app/points/page.tsx";
 const pointsPageSource = readFileSync(resolve(root, pointsPageSourcePath), "utf8");
-const mePageSourcePath = existsSync(resolve(root, "app/me/MeClient.tsx"))
-  ? "app/me/MeClient.tsx"
-  : "app/me/page.tsx";
-const mePageSource = readFileSync(resolve(root, mePageSourcePath), "utf8");
 const pagesHeadersSource = readFileSync(resolve(root, "public/_headers"), "utf8");
 const clientPaymentSource = `${indexSource}\n${destinyProfileSource}`;
 const portoneAliasGroups = [
@@ -942,11 +938,11 @@ function runClientStaticTests() {
   assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser, null)", "points page resolves payment phone only during checkout");
   assertNotContains(pointsPageSource, "paymentPhonePrefetchRef", "points page must not prefetch payment phone before checkout");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
-  assertContains(mePageSource, "const result = await runBillingCoinGate({", "profile actions delegate checkout to the shared Payment Service");
-  assertContains(mePageSource, "paymentMode: \"DIRECT_KRW\"", "profile action card checkout uses the shared direct-KRW command");
-  assertContains(mePageSource, "paymentMode: \"MOONLIGHT_STONE\"", "profile action monthly checkout uses the shared monthly command");
-  assertNotContains(mePageSource, "window.PortOne", "profile actions must not own a second PortOne orchestrator");
-  assertNotContains(mePageSource, "/api/payments/prepare", "profile actions must not prepare orders outside the shared checkout");
+  // 프로필 카드 관리는 React(app/me)에서 정적 셸 하나로 합쳐졌다. 같은 보장을 셸 기준으로 계속 건다 —
+  // 추가·수정·삭제는 공용 코인 게이트를 타야 하고, 별도 주문 준비 경로를 새로 파면 안 된다.
+  assertContains(destinyProfileSource, "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST", "profile card mutations delegate checkout to the shared coin gate");
+  assertContains(destinyProfileSource, "amountKrw: PROFILE_CARD_MANAGE_COST * 100", "profile card mutations price through the shared gate payload");
+  assertNotContains(destinyProfileSource, "/api/payments/prepare", "profile actions must not prepare orders outside the shared checkout");
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");
