@@ -68,7 +68,6 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/flower/sukuyo": "moon",
   "/points": "coin",
   "/insights": "scroll",
-  "/me": "seal",
   "/login": "seal",
   "/signup": "sparkle",
 };

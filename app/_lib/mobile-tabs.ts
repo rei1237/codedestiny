@@ -32,6 +32,12 @@ export const SAJU_TAB_ACTION = "cdSajuTabEntry";
 /** 모든 운세 탭이 셸에서 실행하는 ?action= 이름. index.html 의 window.cdOpenAllFortunes 와 짝. */
 export const ALL_FORTUNES_ACTION = "cdOpenAllFortunes";
 
+/**
+ * 마이 탭이 셸에서 실행하는 ?action= 이름. js/destiny-profile.js 의 window.dpOpenList 와 짝.
+ * 프로필 카드 관리는 셸 하단 시트 하나가 정본이라, React 페이지의 마이 탭도 셸로 넘긴다.
+ */
+export const PROFILE_SHEET_ACTION = "dpOpenList";
+
 /** 새로고침·뒤로가기에서 활성 탭을 유지하기 위한 sessionStorage 키. */
 export const MOBILE_TAB_STATE_KEY = "cd.mobileTab.v1";
 
@@ -54,8 +60,15 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     shellAction: ALL_FORTUNES_ACTION,
   },
   { key: "pass", label: "이용권", href: "/points", ariaLabel: "이용권 상점", glyph: "◈" },
-  // 셸에서는 프로필 시트를 열고(dpOpenList), React 페이지에서는 /me 로 이동한다.
-  { key: "my", label: "마이", href: "/me", ariaLabel: "마이페이지", glyph: "☰", shellAction: "dpOpenList" },
+  // 셸에서는 프로필 시트를 열고, React 페이지에서는 셸로 넘어가 같은 시트를 연다(사주·모든 운세 탭과 동일).
+  {
+    key: "my",
+    label: "마이",
+    href: `/?action=${PROFILE_SHEET_ACTION}`,
+    ariaLabel: "마이페이지",
+    glyph: "☰",
+    shellAction: PROFILE_SHEET_ACTION,
+  },
 ] as const;
 
 const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
@@ -63,7 +76,6 @@ const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
 /** pathname prefix → 탭 key. 위에서부터 먼저 맞는 것을 쓴다(구체적인 것이 앞). */
 const PATH_RULES: ReadonlyArray<{ prefix: string; key: MobileTabKey }> = [
   { prefix: "/points", key: "pass" },
-  { prefix: "/me", key: "my" },
   { prefix: "/login", key: "my" },
   { prefix: "/signup", key: "my" },
   { prefix: "/saju", key: "saju" },
@@ -93,10 +105,11 @@ function readActionParam(search: string): string {
 export function resolveActiveTabKey(pathname: string, search = ""): MobileTabKey | null {
   const path = stripLocalePrefix(String(pathname || "/").replace(/\/+$/, "") || "/");
 
-  // 사주·모든 운세 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
+  // 사주·모든 운세·마이 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
   const action = readActionParam(search);
   if (action === SAJU_TAB_ACTION) return "saju";
   if (action === ALL_FORTUNES_ACTION) return "fortunes";
+  if (action === PROFILE_SHEET_ACTION) return "my";
   if (path === "/") return "home";
 
   for (const rule of PATH_RULES) {

@@ -11,7 +11,6 @@ const shortcutHrefs = [
   "/oracle/rune",
   "/insights",
   "/points",
-  "/me",
 ] as const;
 
 const QUICK_SHORTCUT_COPY: Record<LoadingLocale, {
@@ -22,62 +21,62 @@ const QUICK_SHORTCUT_COPY: Record<LoadingLocale, {
   ko: {
     title: "빠른 서비스 바로가기",
     description: "자주 찾는 운세 서비스를 빠르게 시작하세요.",
-    labels: { "/astrology/cosmic": "점성술", "/ziwei/chart": "자미두수", "/oracle/rune": "오라클", "/insights": "인사이트", "/points": "결제", "/me": "내 정보" },
+    labels: { "/astrology/cosmic": "점성술", "/ziwei/chart": "자미두수", "/oracle/rune": "오라클", "/insights": "인사이트", "/points": "결제" },
   },
   en: {
     title: "Quick Service Shortcuts",
     description: "Start your frequently used readings faster.",
-    labels: { "/astrology/cosmic": "Astrology", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "Insights", "/points": "Payments", "/me": "My Info" },
+    labels: { "/astrology/cosmic": "Astrology", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "Insights", "/points": "Payments" },
   },
   ja: {
     title: "クイックサービス",
     description: "よく使う占いサービスをすぐに始められます。",
-    labels: { "/astrology/cosmic": "占星術", "/ziwei/chart": "紫微斗数", "/oracle/rune": "オラクル", "/insights": "インサイト", "/points": "決済", "/me": "マイ情報" },
+    labels: { "/astrology/cosmic": "占星術", "/ziwei/chart": "紫微斗数", "/oracle/rune": "オラクル", "/insights": "インサイト", "/points": "決済" },
   },
   "zh-CN": {
     title: "快速服务入口",
     description: "快速开始常用的占卜服务。",
-    labels: { "/astrology/cosmic": "占星", "/ziwei/chart": "紫微斗数", "/oracle/rune": "神谕", "/insights": "洞察", "/points": "支付", "/me": "我的信息" },
+    labels: { "/astrology/cosmic": "占星", "/ziwei/chart": "紫微斗数", "/oracle/rune": "神谕", "/insights": "洞察", "/points": "支付" },
   },
   "zh-TW": {
     title: "快速服務入口",
     description: "快速開始常用的占卜服務。",
-    labels: { "/astrology/cosmic": "占星", "/ziwei/chart": "紫微斗數", "/oracle/rune": "神諭", "/insights": "洞察", "/points": "付款", "/me": "我的資訊" },
+    labels: { "/astrology/cosmic": "占星", "/ziwei/chart": "紫微斗數", "/oracle/rune": "神諭", "/insights": "洞察", "/points": "付款" },
   },
   vi: {
     title: "Lối tắt dịch vụ",
     description: "Mở nhanh những dịch vụ luận vận thường dùng.",
-    labels: { "/astrology/cosmic": "Chiêm tinh", "/ziwei/chart": "Tử Vi", "/oracle/rune": "Oracle", "/insights": "Góc nhìn", "/points": "Thanh toán", "/me": "Thông tin của tôi" },
+    labels: { "/astrology/cosmic": "Chiêm tinh", "/ziwei/chart": "Tử Vi", "/oracle/rune": "Oracle", "/insights": "Góc nhìn", "/points": "Thanh toán" },
   },
   hi: {
     title: "त्वरित सेवा शॉर्टकट",
     description: "अक्सर उपयोग की जाने वाली रीडिंग जल्दी शुरू करें.",
-    labels: { "/astrology/cosmic": "ज्योतिष", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "इनसाइट", "/points": "भुगतान", "/me": "मेरी जानकारी" },
+    labels: { "/astrology/cosmic": "ज्योतिष", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "इनसाइट", "/points": "भुगतान" },
   },
   es: {
     title: "Atajos de servicio",
     description: "Inicia rápidamente tus lecturas frecuentes.",
-    labels: { "/astrology/cosmic": "Astrología", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oráculo", "/insights": "Insights", "/points": "Pagos", "/me": "Mi info" },
+    labels: { "/astrology/cosmic": "Astrología", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oráculo", "/insights": "Insights", "/points": "Pagos" },
   },
   fr: {
     title: "Raccourcis de service",
     description: "Lancez rapidement vos lectures fréquentes.",
-    labels: { "/astrology/cosmic": "Astrologie", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "Insights", "/points": "Paiements", "/me": "Mes infos" },
+    labels: { "/astrology/cosmic": "Astrologie", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "Insights", "/points": "Paiements" },
   },
   de: {
     title: "Schnellzugriff",
     description: "Starte häufig genutzte Deutungen schneller.",
-    labels: { "/astrology/cosmic": "Astrologie", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Orakel", "/insights": "Insights", "/points": "Zahlungen", "/me": "Meine Infos" },
+    labels: { "/astrology/cosmic": "Astrologie", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Orakel", "/insights": "Insights", "/points": "Zahlungen" },
   },
   nl: {
     title: "Snelle servicekoppelingen",
     description: "Start je vaak gebruikte lezingen sneller.",
-    labels: { "/astrology/cosmic": "Astrologie", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Orakel", "/insights": "Inzichten", "/points": "Betalingen", "/me": "Mijn info" },
+    labels: { "/astrology/cosmic": "Astrologie", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Orakel", "/insights": "Inzichten", "/points": "Betalingen" },
   },
   ms: {
     title: "Pintasan servis",
     description: "Mulakan bacaan yang kerap digunakan dengan lebih pantas.",
-    labels: { "/astrology/cosmic": "Astrologi", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "Wawasan", "/points": "Bayaran", "/me": "Maklumat saya" },
+    labels: { "/astrology/cosmic": "Astrologi", "/ziwei/chart": "Zi Wei", "/oracle/rune": "Oracle", "/insights": "Wawasan", "/points": "Bayaran" },
   },
 };
 

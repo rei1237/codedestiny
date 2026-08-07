@@ -3049,6 +3049,8 @@ var __cdRouteActionAllowList = {
   // 모바일 하단 네비 탭이 React 페이지에서 셸로 넘어올 때 쓰는 액션
   cdSajuTabEntry: true,
   cdOpenAllFortunes: true,
+  // 마이 탭 — 프로필 카드 관리는 셸의 하단 시트가 정본이라 React 에서 여기로 넘어온다.
+  dpOpenList: true,
   openAnimalTotemModal: true,
   openSajuAnimalPage: true,
   openDestinyFlowerStudio: true,

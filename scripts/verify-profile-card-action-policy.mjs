@@ -11,7 +11,6 @@ const files = {
   profileRoute: "worker/routes/profile.js",
   billingRoute: "worker/routes/billing.js",
   paymentsRoute: "worker/routes/payments.js",
-  mePage: "app/me/MeClient.tsx",
   billingClient: "app/_lib/billing-client.ts",
   profileStorage: "app/_lib/profile-card-storage.ts",
   yeonSeed: "lib/yeon/profileSeed.ts",
@@ -23,7 +22,17 @@ const files = {
   vedicBook: "js/vedic-book.js",
   olympusOracle: "js/olympus-oracle.js",
   shareRuntime: "js/share.js",
+  mobileTabs: "app/_lib/mobile-tabs.ts",
+  appTabBar: "app/app/_components/AppTabBar.tsx",
 };
+
+/**
+ * 프로필 카드 관리 화면은 정적 셸의 하단 시트 하나가 정본이다.
+ * React 에 두 번째 구현(app/me)이 있던 시절, 같은 결제 정책을 두 벌로 유지하느라
+ * 마커 38개가 MeClient.tsx 에 걸려 있었고 화면은 중복·오작동 상태로 방치됐다.
+ * 다시 생기면 같은 이중화가 재발하므로 여기서 막는다.
+ */
+const REMOVED_REACT_PROFILE_ROUTE = "app/me";
 
 const texts = Object.fromEntries(
   Object.entries(files).map(([key, relPath]) => {
@@ -39,7 +48,6 @@ const cases = [
       ["profileRoute", "async function handleGetProfileDetail"],
       ["profileRoute", "ProfileCard.findOne({ userId: auth.userId, profileId })"],
       ["profileRoute", "if (profileMatch && method === \"GET\")"],
-      ["mePage", "/api/profile/${encodeURIComponent(profile.id)}"],
     ],
   },
   {
@@ -72,8 +80,6 @@ const cases = [
       // 스코프 저장소와 아래 _dpClearGlobalProfileBridge 이므로 그쪽을 계속 단언한다.
       ["destinyProfile", "var initialProfile = DPStorage.current()"],
       ["destinyProfile", "? [_dpGetScopedActiveProfileCacheKey(scope)]"],
-      ["mePage", "clearProfileState()"],
-      ["mePage", "/api/profile/current"],
     ],
   },
   {
@@ -88,7 +94,6 @@ const cases = [
     excludes: [
       ["policy", "VVIP_PROFILE_LIMIT_INCLUDED"],
       ["policy", "PASS_PROFILE_LIMIT_INCLUDED"],
-      ["mePage", "VVIP 무료"],
     ],
   },
   {
@@ -100,8 +105,6 @@ const cases = [
       ["profileRoute", "action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE"],
       ["profileRoute", "actionType: \"profile_card_update\""],
       ["billingRoute", "profile_card_update"],
-      ["mePage", "profile_card_update_50c"],
-      ["mePage", "프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다."],
       ["destinyProfile", "method: isUpdate ? 'PATCH' : 'POST'"],
       ["destinyProfile", "window.dpEditProfile"],
     ],
@@ -111,7 +114,7 @@ const cases = [
     // ① fd25c7cd9: _dpUpdateSaveBtn 이 hasProfiles 로 조기 반환해 저장 버튼이 영구 "수정"이 됐다.
     // ② 00fa86d97(#248): 한도 초과 alert 가 createRequiresPayment 과부하 탓에 수정 요청까지 삼켰다.
     // 추가/수정 구분은 _dpProfileEditTargetId 플래그 하나로만 하고, 한도 초과는 차단이 아니라
-    // 서버 402 → _dpRunProfileManageGate 결제창으로 흘려보낸다(React /me·서버 정책과 동일).
+    // 서버 402 → _dpRunProfileManageGate 결제창으로 흘려보낸다(서버 정책과 동일).
     name: "profile add entry point stays reachable for existing card holders",
     includes: [
       ["destinyProfile", "var _dpProfileEditTargetId = ''"],
@@ -120,7 +123,12 @@ const cases = [
       ["destinyProfile", "var isUpdate = !!_dpProfileEditTargetId"],
       ["destinyProfile", "var createRequiresPayment = !isUpdate && !canUsePlanSlot"],
       ["destinyProfile", "class=\"dp-list-add\""],
-      ["mePage", "mePage.013"],
+      // 입력폼 진입점 — 셸 마크업에 없는 두 노드를 JS 가 만든다.
+      // #dpProfileQuotaText 가 없으면 _dpUpdateProfileQuotaText 가 조용히 early-return 해
+      // 슬롯·편집 안내가 화면에 뜨지 않는다(#416 에서 실제로 그 상태로 배포됐다).
+      ["destinyProfile", "function _dpEnsureProfileFormControls"],
+      ["destinyProfile", "quota.id = 'dpProfileQuotaText'"],
+      ["destinyProfile", "addBtn.className = 'dp-form-add'"],
     ],
     excludes: [
       // 한도 초과를 alert 로 막으면 무료 사용자의 추가 버튼이 다시 죽는다.
@@ -128,6 +136,25 @@ const cases = [
       // 저장 버튼 라벨을 "카드 보유 여부"로 갈라 수정 모드에 가두는 회귀.
       ["destinyProfile", "var createRequiresPayment = isUpdate ? !isFamilyPlan : !canUsePlanSlot"],
     ],
+  },
+  {
+    // 프로필 카드 관리의 두 번째 구현(React /me)이 되살아나면, 같은 결제 정책을 두 벌로
+    // 유지해야 하고 그 화면은 지난번처럼 중복·오작동 상태로 방치된다. 진입점까지 함께 막는다.
+    name: "profile card management lives only in the static shell",
+    includes: [
+      // React 하단 네비·앱 탭바의 마이 탭은 셸 액션으로 넘어간다.
+      ["mobileTabs", "export const PROFILE_SHEET_ACTION = \"dpOpenList\""],
+      ["mobileTabs", "href: `/?action=${PROFILE_SHEET_ACTION}`"],
+      ["appTabBar", "PROFILE_SHEET_ACTION"],
+      ["appTabBar", "function targetsStaticShell"],
+      // 셸이 ?action=dpOpenList 를 자동 실행할 수 있어야 그 이동이 시트 열기로 이어진다.
+      ["mainRuntime", "dpOpenList: true"],
+    ],
+    excludes: [
+      ["mobileTabs", "\"/me\""],
+      ["appTabBar", "\"/me\""],
+    ],
+    removedRoute: REMOVED_REACT_PROFILE_ROUTE,
   },
   {
     name: "profile delete modal opens before auth or payment network work",
@@ -154,13 +181,6 @@ const cases = [
       ["profileRoute", "const profilePolicySnapshot = buildProfilePolicySnapshot"],
       ["profileRoute", "const createFitsLocalPolicy = canCreateProfileWithinSubscriptionLimit"],
       ["profileRoute", "PROFILE_LIMIT_RECONCILE_REQUIRED"],
-      ["mePage", "const isFamilyProfilePlan = subscription.isActive && subscription.tier === \"family\""],
-      ["mePage", "const createRequiresProfileActionPayment = !isFamilyProfilePlan"],
-      ["mePage", "Code Destiny Family 이용권으로 새 프로필 카드를 제한 없이 추가할 수 있습니다."],
-    ],
-    excludes: [
-      ["mePage", "runProfileActionPassGate"],
-      ["mePage", "/api/billing/coin-gate"],
     ],
   },
   {
@@ -193,14 +213,11 @@ const cases = [
     includes: [
       ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true"],
       ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE"],
-      ["mePage", "const deleteRequiresProfileActionPayment = !isFamilyProfilePlan"],
-      ["mePage", "Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다."],
       ["billingRoute", "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\""],
       ["billingRoute", "profile_card_pass_excluded"],
       ["billingRoute", "actionType: \"profile_card_add_extra\""],
     ],
     excludes: [
-      ["mePage", "const deleteRequiresProfileActionPayment = true"],
       // 프로필 카드 이용권 제외를 featureKey 예외 분기로 되풀지 말 것 — premium/vvip가 "이용권으로 커버됨"
       // + 결제수단 전부 숨김을 받은 뒤 소비 단계에서 거부되는 막다른 길이 재발한다.
       ["billingRoute", "isPassExcludedPricing(pricing) && !isProfileCardManage"],
@@ -210,23 +227,12 @@ const cases = [
   {
     name: "single payment products are profile-card specific",
     includes: [
-      ["mePage", "profile_card_delete_50c"],
-      ["mePage", "profile_card_add_extra_50c"],
-      ["mePage", "profile_card_delete"],
-      ["mePage", "profile_card_add_extra"],
-      ["mePage", "const runProfileActionCardPayment = useCallback"],
-      ["mePage", "paymentMode: \"DIRECT_KRW\""],
       ["billingClient", "actionType: input.actionType"],
       ["billingClient", "profileCardId: input.profileCardId || input.profileId"],
       ["destinyProfile", "if (opts.actionType) checkoutPayload.actionType = opts.actionType"],
       ["destinyProfile", "checkoutPayload.profileCardId = opts.profileCardId || opts.profileId"],
       ["paymentsRoute", "createDigitalContentAccessEvidence"],
       ["paymentsRoute", "fetchPortOnePayment(env, impUid)"],
-    ],
-    excludes: [
-      ["mePage", "/api/payments/prepare"],
-      ["mePage", "/api/payments/confirm"],
-      ["mePage", "window.PortOne"],
     ],
   },
   {
@@ -236,14 +242,8 @@ const cases = [
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "evidencePaymentMethodMatches"],
       ["profileRoute", "profileCardActionPaymentRequiredResponse"],
-      ["mePage", "const runProfileActionMonthlyPayment = useCallback"],
-      ["mePage", "const result = await runBillingCoinGate({"],
-      ["mePage", "paymentMode: \"MOONLIGHT_STONE\""],
-      ["mePage", "paymentContext = await runProfileActionMonthlyPayment(action, profile, requestId)"],
-      ["mePage", "paymentContext = await runProfileActionMonthlyPayment(\"create\", actionProfile, requestId)"],
       ["billingClient", "actionType?: string"],
       ["billingClient", "profileAction?: string"],
-      ["mePage", "월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용"],
     ],
     excludes: [
       ["profileRoute", "consumeMonthlyCreditLots"],
@@ -262,8 +262,6 @@ const cases = [
       ["profileRoute", "claimProfileMutationEvidence"],
       ["profileRoute", "recordProfileMutationCompleted"],
       ["billingRoute", "profile_card_pass_excluded"],
-      ["mePage", "paymentMethod: \"single_purchase\""],
-      ["mePage", "paymentMethod: \"membership_credit\""],
     ],
   },
   {
@@ -271,7 +269,6 @@ const cases = [
     includes: [
       ["profileRoute", "const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || \"\""],
       ["profileRoute", "destinyProfilesCurrentId: nextCurrentId"],
-      ["mePage", "emitDestinyProfileChanged(nextProfiles, nextCurrentId)"],
     ],
   },
   {
@@ -356,16 +353,6 @@ const cases = [
       ["shareRuntime", "birthDate.split('-')[0]"],
     ],
   },
-  {
-    name: "mobile modal and loading UI remain available",
-    includes: [
-      ["mePage", "sm:items-center"],
-      ["mePage", "rounded-t-2xl"],
-      ["mePage", "min-h-[44px]"],
-      ["mePage", "결제창을 여는 중입니다."],
-      ["mePage", "월정석을 적용하는 중입니다."],
-    ],
-  },
 ];
 
 let failed = false;
@@ -391,8 +378,12 @@ for (const testCase of cases) {
   const freeInitialViolation = testCase.freeInitialPolicy
     ? !/function buildInitialProfileCardFreePolicy[\s\S]{0,300}?requiresPayment:\s*false[\s\S]{0,200}?costKrw:\s*0/.test(texts.policy || "")
     : false;
+  // removedRoute: 그 디렉터리가 되살아나면 프로필 카드 관리가 다시 두 벌이 된다.
+  const removedRouteViolation = testCase.removedRoute
+    ? fs.existsSync(path.join(root, testCase.removedRoute))
+    : false;
 
-  if (missing.length > 0 || presentButForbidden.length > 0 || orderViolations.length > 0 || freeInitialViolation) {
+  if (missing.length > 0 || presentButForbidden.length > 0 || orderViolations.length > 0 || freeInitialViolation || removedRouteViolation) {
     failed = true;
     console.error(`\n[verify-profile-card-action-policy] FAIL: ${testCase.name}`);
     for (const [fileKey, marker] of missing) {
@@ -406,6 +397,9 @@ for (const testCase of cases) {
     }
     if (freeInitialViolation) {
       console.error(`  - ${files.policy}: buildInitialProfileCardFreePolicy must return requiresPayment:false + costKrw:0`);
+    }
+    if (removedRouteViolation) {
+      console.error(`  - ${testCase.removedRoute}/ 가 되살아났습니다. 프로필 카드 관리는 정적 셸(js/destiny-profile.js)이 정본입니다.`);
     }
   } else {
     console.log(`[verify-profile-card-action-policy] OK: ${testCase.name}`);

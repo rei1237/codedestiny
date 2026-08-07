@@ -15123,7 +15123,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         <a class="cd-mobile-bottom-nav__item" data-nav-key="saju" data-nav-icon="命" href="/?action=cdSajuTabEntry" data-action="cdSajuTabEntry" aria-label="내 프로필로 사주 보기" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio">사주</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="fortunes" data-nav-icon="✦" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" aria-label="모든 운세 둘러보기">모든 운세</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="pass" data-nav-icon="◈" href="/points" aria-label="이용권 상점">이용권</a>
-        <a class="cd-mobile-bottom-nav__item" data-nav-key="my" data-nav-icon="☰" href="/me" data-action="dpOpenList" aria-controls="dpListSheet" aria-label="마이페이지" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s">마이</a>
+        <a class="cd-mobile-bottom-nav__item" data-nav-key="my" data-nav-icon="☰" href="/?action=dpOpenList" data-action="dpOpenList" aria-controls="dpListSheet" aria-label="마이페이지" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s">마이</a>
       </div>
     </nav>
 
@@ -15846,7 +15846,6 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       var TAB_KEYS = ['home','saju','fortunes','pass','my'];
       var PATH_RULES = [
         ['/points','pass'],
-        ['/me','my'],
         ['/login','my'],
         ['/signup','my'],
         ['/saju','saju'],
@@ -15886,6 +15885,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         try { action = String(new URLSearchParams(location.search).get('action') || '').trim(); } catch (_) {}
         if (action === 'cdSajuTabEntry') return 'saju';
         if (action === 'cdOpenAllFortunes') return 'fortunes';
+        if (action === 'dpOpenList') return 'my';
         if (path === '/') return 'home';
         for (var i = 0; i < PATH_RULES.length; i += 1) {
           if (path === PATH_RULES[i][0] || path.indexOf(PATH_RULES[i][0] + '/') === 0) return PATH_RULES[i][1];
@@ -16171,9 +16171,9 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         <div class="dp-list-scroll">
           <div id="dpListInner"></div>
         </div>
-        <!-- 셸에서는 마이 탭이 이 시트를 연다. /me(이용권·결제 내역)로 가는 유일한 경로이므로 지우지 말 것. -->
+        <!-- 셸에서는 마이 탭이 이 시트를 연다. 프로필 카드 관리는 이 시트가 정본이고, 이용권·결제 내역은 /points 로 넘긴다. -->
         <div class="dp-sheet-foot">
-          <a class="dp-sheet-foot__link" href="/me">마이페이지 전체보기 · 이용권 · 결제 내역</a>
+          <a class="dp-sheet-foot__link" href="/points">이용권 · 결제 내역 보기</a>
         </div>
       </div>
     </template>
