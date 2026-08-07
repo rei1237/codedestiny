@@ -1,5 +1,5 @@
 /**
- * MongoDB migration - Fusion Fortune daily limit and idempotency indexes.
+ * MongoDB migration - Fusion Fortune idempotency indexes.
  *
  * 상담권(ticket) 컬렉션 인덱스는 이 목록에서 빠졌다. 그 재화는 폐지됐고
  * 20260808-drop-legacy-consultation-currencies.mjs 가 컬렉션 자체를 드롭한다.
@@ -9,10 +9,7 @@
  */
 import { config } from "dotenv";
 import { connectDb, mongoose } from "../../worker/lib/db.js";
-import {
-  FusionFortuneDailyLimit,
-  FusionFortuneGenerationAttempt,
-} from "../../worker/lib/models.js";
+import { FusionFortuneGenerationAttempt } from "../../worker/lib/models.js";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -38,12 +35,6 @@ if (!env.MONGO_URI && !env.MONGODB_URI) {
 }
 
 const collections = [
-  {
-    model: FusionFortuneDailyLimit,
-    indexes: [
-      { spec: { dateKey: 1 }, options: { unique: true, name: "fusion_daily_date_unique" } },
-    ],
-  },
   {
     model: FusionFortuneGenerationAttempt,
     indexes: [

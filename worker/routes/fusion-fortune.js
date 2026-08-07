@@ -26,7 +26,6 @@ function disabledStatus() {
     ok: true,
     isLoggedIn: false,
     pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY },
-    dailyLimit: { dateKey: getFusionFortuneDateKey(), limit: 100, usedCount: 0, remainingCount: 0, isSoldOut: false },
     canGenerate: false,
     nextAction: "disabled",
     message: "초융합 운세는 준비 중입니다.",
@@ -150,7 +149,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       if (!isFusionFortuneUiEnabled(env)) return disabledStatus();
       const auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true, surfaceDbInfraError: true });
       await connectDb(env);
-      const status = await buildFusionFortuneStatus({ userId: auth?.userId || "", store: createMongoFusionFortuneStore(), enabled: true });
+      const status = await buildFusionFortuneStatus({ userId: auth?.userId || "", enabled: true });
       return respond({ ok: true, ...status });
     }
 

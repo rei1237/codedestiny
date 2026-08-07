@@ -1,14 +1,16 @@
-import {
-  FusionFortuneDailyLimit,
-  FusionFortuneGenerationAttempt,
-} from "./models.js";
+import { FusionFortuneGenerationAttempt } from "./models.js";
 import { mongoose } from "./db.js";
 import {
   buildFusionSectionGroupPrompt,
   FUSION_FORTUNE_LENGTH,
   FUSION_SECTION_GROUP_SPECS,
 } from "./fusion-fortune-prompt.js";
-import { isFusionVisualizationShaped, normalizeFusionVisualization } from "./fusion-fortune-visual.js";
+import {
+  FUSION_VISUAL_SYSTEMS,
+  isFusionVisualizationShaped,
+  normalizeFusionFinalVerdict,
+  normalizeFusionVisualization,
+} from "./fusion-fortune-visual.js";
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
@@ -19,18 +21,10 @@ import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 // 300코인(30,000원)이라 이용권 커버는 family 등급만 통과한다(PASS_LIMITS 참고).
 export const FUSION_FORTUNE_PAID_FEATURE_KEY = "fusion-fortune-consultation";
 
-export const FUSION_FORTUNE_DAILY_LIMIT = Object.freeze({
-  timezone: "Asia/Seoul",
-  maxSuccessfulGenerationsPerDay: 100,
-  countPolicy: "successful_generation_only",
-  resetPolicy: "daily_kst_midnight",
-});
-
 export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
   FEATURE_DISABLED: "FUSION_FORTUNE_FEATURE_DISABLED",
   AUTH_REQUIRED: "FUSION_FORTUNE_AUTH_REQUIRED",
   INVALID_INPUT: "FUSION_FORTUNE_INVALID_INPUT",
-  SOLD_OUT: "FUSION_FORTUNE_SOLD_OUT",
   // 전용 "초융합 상담권"을 폐지하고 표준 회당 결제로 옮겼다(2026-08-07). 구 NO_TICKET 자리다.
   PAYMENT_REQUIRED: "FUSION_FORTUNE_PAYMENT_REQUIRED",
   // 결제 증빙 조회가 DB 장애로 판단 보류된 상태 — 402 가 아니라 503 으로 표면화한다.
@@ -105,7 +99,7 @@ export function isFusionFortuneRealLlmAllowed(env = {}) {
 }
 
 export function getFusionFortuneDateKey(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: FUSION_FORTUNE_DAILY_LIMIT.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
   const value = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
   return `${value.year}-${value.month}-${value.day}`;
 }
@@ -329,6 +323,55 @@ function section(title, intro, vocabulary, length = 2250, evidence = [], domain 
   };
 }
 
+
+/**
+ * 결정론 폴백의 최종 교차 판정.
+ *
+ * 지어낸 합의를 쓰지 않는다 — 입장은 그 체계에 대해 서버가 **실제로 계산한 근거가 있는지**로
+ * 정한다. 근거가 있으면 결론을 지지(agree), 부분적이면 조건부(conditional), 아예 없으면
+ * 속도를 늦추라(caution)로 읽는다. confidence 는 이 분포에서 나온다.
+ */
+function buildFallbackFinalVerdict(context = {}) {
+  const insight = context?.integratedInsight || {};
+  const headline = text(insight.adviceDirection, 90)
+    || "지금은 방향을 바꾸기보다, 이미 정한 방향에서 힘의 배분을 조정할 때입니다.";
+  const systemVerdicts = FUSION_VISUAL_SYSTEMS.map((system) => {
+    // 확정값이 몇 개나 채워졌는지로 읽는다. collectContextEvidence 는 8자 이상만 세어
+    // 짧은 확정값(일간·본명숙 등)을 통째로 놓치므로 여기서는 채움 개수를 본다.
+    const source = context?.systems?.[system.key];
+    const filled = source && typeof source === "object"
+      ? Object.values(source).filter((item) => (Array.isArray(item) ? item.length > 0 : String(item || "").trim().length >= 2)).length
+      : 0;
+    const stance = filled >= 3 ? "agree" : filled >= 1 ? "conditional" : "caution";
+    const note = stance === "agree"
+      ? `${system.label}의 확정값이 이 결론과 같은 방향을 가리킵니다.`
+      : stance === "conditional"
+        ? `${system.label}은 조건이 맞을 때만 같은 방향입니다. 근거가 부분적입니다.`
+        : `${system.label}은 이번 입력으로 확인할 값이 부족해 속도를 늦추라고 읽습니다.`;
+    return { key: system.key, stance, note };
+  });
+  return {
+    headline,
+    systemVerdicts,
+    rationale: composeExpertReading(
+      "여섯 체계를 각각 판정한 뒤 남는 결론은 하나입니다.",
+      "같은 방향을 가리키는 체계가 많을수록 그 조언은 상황이 바뀌어도 잘 흔들리지 않고, 조건부나 주의로 읽히는 체계가 섞일수록 한 번에 크게 움직이기보다 되돌릴 수 있는 크기로 시험하는 편이 안전합니다.",
+      820,
+      [],
+      "integrated",
+    ),
+    doNow: [
+      text(insight.luckyActionHint, 110) || "이번 주에 확인할 사실 하나를 문장으로 적어 두기",
+      "되돌릴 수 있는 크기로 한 가지만 먼저 시험해 보기",
+      "결과가 아니라 반응을 기록해 다음 판단의 근거로 남기기",
+    ],
+    avoid: [
+      text(insight.cautionPattern, 110) || "불안한 마음으로 답을 재촉하는 것",
+      "근거를 더 모으기 전에 한 번에 크게 바꾸는 것",
+    ],
+  };
+}
+
 export async function generateFusionFortuneWithMockLLM({ context = {}, now = new Date() } = {}) {
   const uncertainty = context.birthTimeKnown ? "생시 정보를 참고한 흐름" : "생시가 없어 시간 기반 정밀 해석은 유보한 흐름";
   const evidence = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system) => [system, collectContextEvidence(context.systems?.[system]) ]));
@@ -349,13 +392,16 @@ export async function generateFusionFortuneWithMockLLM({ context = {}, now = new
     integratedReading: section("통합 해석: 하나의 상담으로 엮는 흐름", "여섯 체계가 함께 가리키는 핵심은 감정을 억누르거나 성급히 결론내리지 않고, 기준을 세워 현실의 행동으로 옮기는 과정입니다.", "공통 신호는 삶의 핵심 패턴으로, 서로 다른 신호는 상황별 선택지로 남깁니다. 사랑·일·돈·마음은 분리된 문제가 아니라 같은 선택 기준이 서로 다른 장면에서 나타난 결과로 연결해 읽습니다.", 3100, integratedEvidence, "integrated"),
     timingAndAction: { title: "가까운 시기와 현실적인 행동", content: composeExpertReading("가까운 시기에는 큰 결단보다 현재 가진 자원과 관계를 정리하는 작은 선택이 다음 기회를 만듭니다.", "시기 조언은 특정 사건을 예고하기보다 지금 준비할 것, 지켜볼 신호, 멈춰야 할 습관을 구분하는 데 초점을 둡니다.", 2050, [], "action"), luckyActions: ["이번 주 가장 중요한 일 하나를 문장으로 정리하기", "관계에서 원하는 경계를 부드럽게 말하기", "지출과 일정에서 반복되는 부담 한 가지 줄이기"], cautionPatterns: ["불안한 마음으로 답을 재촉하는 패턴", "남의 속도에 맞추다 내 계획을 놓치는 패턴", "준비 없이 한 번에 크게 바꾸려는 패턴"] },
     visualization: normalizeFusionVisualization(undefined, context, { now }),
+    finalVerdict: buildFallbackFinalVerdict(context),
     closingMessage: composeExpertReading("운세는 정답을 대신 정하는 말이 아니라, 더 나은 선택을 하도록 비추는 지도입니다.", "오늘의 작은 정리와 솔직한 경계가 다음 흐름을 바꾸는 현실적인 출발점이 됩니다.", 850, [], "closing"),
     shareText: "여섯 개의 운세 체계를 하나의 상담으로 엮어, 지금의 나를 다시 읽어봤어요.",
   };
 }
 
 export function countFusionFortuneVisibleText(result = {}) {
-  return [result.title, result.openingMessage, result.executiveSummary, ...SECTION_KEYS.flatMap((key) => [result[key]?.title, result[key]?.content, ...(result[key]?.keyPoints || [])]), result.timingAndAction?.title, result.timingAndAction?.content, ...(result.timingAndAction?.luckyActions || []), ...(result.timingAndAction?.cautionPatterns || []), result.closingMessage].join(" ").length;
+  const verdict = result.finalVerdict || {};
+  return [result.title, result.openingMessage, result.executiveSummary,
+    verdict.headline, verdict.rationale, ...(verdict.systemVerdicts || []).map((item) => item?.note), ...(verdict.doNow || []), ...(verdict.avoid || []), ...SECTION_KEYS.flatMap((key) => [result[key]?.title, result[key]?.content, ...(result[key]?.keyPoints || [])]), result.timingAndAction?.title, result.timingAndAction?.content, ...(result.timingAndAction?.luckyActions || []), ...(result.timingAndAction?.cautionPatterns || []), result.closingMessage].join(" ").length;
 }
 
 function hasRepeatedLongSentence(result = {}) {
@@ -377,6 +423,10 @@ export function validateFusionFortuneResult(result = {}, { birthTimeKnown = true
   // 시각화는 normalizeFusionVisualization 이 항상 채워 준다. 여기서 걸린다면 정규화를
   // 건너뛴 경로가 생겼다는 뜻이지, 모델이 못 쓴 게 아니다.
   if (!isFusionVisualizationShaped(result.visualization)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_visualization"] };
+  // 🔴 최종 교차 판정이 이 상품의 마지막 답이다. 없으면 여섯 해석만 남고 결론이 사라진다.
+  const verdict = normalizeFusionFinalVerdict(result.finalVerdict);
+  if (!verdict.ok) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["final_verdict:" + verdict.reason] };
+  if (text(result.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["final_verdict_depth"] };
   if (!Array.isArray(result.timingAndAction?.luckyActions) || result.timingAndAction.luckyActions.length < 3 || !Array.isArray(result.timingAndAction?.cautionPatterns) || result.timingAndAction.cautionPatterns.length < 3) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_actions"] };
   if (hasRepeatedLongSentence(result)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["repeated_sentence"] };
   if (FORBIDDEN.some((phrase) => source.includes(phrase))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["unsafe_phrase"] };
@@ -510,6 +560,11 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
     if (!Array.isArray(value.timingAndAction?.cautionPatterns) || value.timingAndAction.cautionPatterns.length < 3) return { ok: false, issue: "missing_actions" };
   }
   if (group.keys.includes("closingMessage") && text(value.closingMessage, 50000).length < FUSION_FORTUNE_LENGTH.closingMessage) return { ok: false, issue: "closing_depth" };
+  if (group.keys.includes("finalVerdict")) {
+    const verdict = normalizeFusionFinalVerdict(value.finalVerdict);
+    if (!verdict.ok) return { ok: false, issue: "final_verdict", detail: verdict.reason };
+    if (text(value.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) return { ok: false, issue: "final_verdict_depth" };
+  }
 
   const source = JSON.stringify(value || {});
   if (FORBIDDEN.some((phrase) => source.includes(phrase))) return { ok: false, issue: "unsafe_phrase" };
@@ -694,7 +749,7 @@ export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
 // 스토어는 이제 "오늘의 선착순 100자리"와 requestId 멱등성만 지킨다. 과금은 표준 회당 결제가
 // 맡으므로 잔액(ticket balance) 개념이 사라졌다.
 export function createMemoryFusionFortuneStore(seed = {}) {
-  const daily = new Map(Object.entries(seed.daily || {})); const attempts = new Map(Object.entries(seed.attempts || {}));
+  const attempts = new Map(Object.entries(seed.attempts || {}));
   let reservationQueue = Promise.resolve();
   const withReservationLock = (run) => {
     const previous = reservationQueue;
@@ -703,93 +758,60 @@ export function createMemoryFusionFortuneStore(seed = {}) {
     return previous.then(async () => { try { return await run(); } finally { release(); } });
   };
   return {
-    daily, attempts,
-    async getDaily(dateKey) { return daily.get(dateKey) || { dateKey, limit: 100, successCount: 0, reserved: 0 }; },
+    attempts,
     async reserve(userId, dateKey, requestId) { return withReservationLock(async () => {
       // released(실패·중단)는 끝난 시도다. 409 로 막으면 그 requestId 로 결제한 사용자가
       // 결과를 영원히 못 받는다 — 증빙이 requestId 에 묶여 있어 새 id 로는 안 잡힌다.
       const previous = attempts.get(requestId);
       if (previous && previous.status !== "released") return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
-      const limit = await this.getDaily(dateKey);
-      if (count(limit.successCount) + count(limit.reserved) >= 100) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.SOLD_OUT, status: 429 };
-      limit.reserved = count(limit.reserved) + 1; daily.set(dateKey, limit); attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved" }); return { ok: true, userId: String(userId), dateKey, requestId };
+      attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved" });
+      return { ok: true, userId: String(userId), dateKey, requestId };
     }); },
-    async release(reservation) { const limit = await this.getDaily(reservation.dateKey); limit.reserved = Math.max(0, count(limit.reserved) - 1); daily.set(reservation.dateKey, limit); attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "released" }); },
-    async commit(reservation) { const limit = await this.getDaily(reservation.dateKey); if (count(limit.reserved) < 1) return null; limit.reserved -= 1; limit.successCount = count(limit.successCount) + 1; daily.set(reservation.dateKey, limit); attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "completed" }); return { limit }; },
+    async release(reservation) { attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "released" }); },
+    async commit(reservation) { const previous = attempts.get(reservation.requestId); if (!previous || previous.status !== "reserved") return null; attempts.set(reservation.requestId, { ...previous, status: "completed" }); return { committed: true }; },
   };
 }
 
 export function createMongoFusionFortuneStore() {
   return {
-    async getDaily(dateKey) { return (await FusionFortuneDailyLimit.findOne({ dateKey }).lean()) || { dateKey, limit: 100, successCount: 0, reserved: 0 }; },
     async reserve(userId, dateKey, requestId, now = new Date()) {
-      const session = await mongoose.startSession();
+      const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
       try {
-        await session.withTransaction(async () => {
-          // released(실패·중단)된 시도는 같은 requestId 로 다시 연다. 결제 증빙이 requestId 에
-          // 묶여 있어, 여기서 막으면 이미 결제한 사용자가 결과를 받을 길이 사라진다.
-          const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
-            { requestId, status: "released" },
-            { $set: { status: "reserved", dateKey, expiresAt: new Date(now.getTime() + 10 * 60 * 1000) } },
-            { session },
-          ).lean();
-          if (!reopened) {
-            await FusionFortuneGenerationAttempt.create([{ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt: new Date(now.getTime() + 10 * 60 * 1000) }], { session });
-          }
-          await FusionFortuneDailyLimit.updateOne({ dateKey }, { $setOnInsert: { timezone: "Asia/Seoul", limit: 100, successCount: 0, reserved: 0, createdAt: now }, $set: { updatedAt: now } }, { upsert: true, session });
-          const daily = await FusionFortuneDailyLimit.findOneAndUpdate({ dateKey, $expr: { $lt: [{ $add: [{ $ifNull: ["$successCount", 0] }, { $ifNull: ["$reserved", 0] }] }, 100] } }, { $inc: { reserved: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
-          if (!daily) throw Object.assign(new Error("sold_out"), { fusionCode: FUSION_FORTUNE_ERROR_CODES.SOLD_OUT, status: 429 });
-        });
+        // released(실패·중단)된 시도는 같은 requestId 로 다시 연다. 결제 증빙이 requestId 에
+        // 묶여 있어, 여기서 막으면 이미 결제한 사용자가 결과를 받을 길이 사라진다.
+        const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
+          { requestId, status: "released" },
+          { $set: { status: "reserved", dateKey, expiresAt } },
+        ).lean();
+        if (!reopened) {
+          await FusionFortuneGenerationAttempt.create({ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt });
+        }
         return { ok: true, userId: String(userId), dateKey, requestId };
       } catch (error) {
-        if (error?.fusionCode) return { ok: false, errorCode: error.fusionCode, status: error.status };
         if (Number(error?.code) === 11000) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
         throw error;
-      } finally {
-        await session.endSession();
       }
     },
-    async release(reservation, now = new Date()) {
-      const session = await mongoose.startSession();
-      try {
-        await session.withTransaction(async () => {
-          await FusionFortuneDailyLimit.updateOne({ dateKey: reservation.dateKey, reserved: { $gt: 0 } }, { $inc: { reserved: -1 }, $set: { updatedAt: now } }, { session });
-          await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "released" } }, { session });
-        });
-      } finally {
-        await session.endSession();
-      }
+    async release(reservation) {
+      await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "released" } });
     },
-    async commit(reservation, now = new Date()) {
-      const session = await mongoose.startSession();
-      let committed;
-      try {
-        await session.withTransaction(async () => {
-          const limit = await FusionFortuneDailyLimit.findOneAndUpdate({ dateKey: reservation.dateKey, reserved: { $gt: 0 }, successCount: { $lt: 100 } }, { $inc: { reserved: -1, successCount: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
-          if (!limit) throw new Error("fusion_daily_commit_failed");
-          const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "completed" } }, { session });
-          if (Number(attempt.modifiedCount || 0) !== 1) throw new Error("fusion_attempt_commit_failed");
-          committed = { limit };
-        });
-        return committed || null;
-      } catch {
-        return null;
-      } finally {
-        await session.endSession();
-      }
+    async commit(reservation) {
+      const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "completed" } });
+      return Number(attempt.modifiedCount || 0) === 1 ? { committed: true } : null;
     },
   };
 }
 
-export async function buildFusionFortuneStatus({ userId = "", store, now = new Date(), enabled = true } = {}) {
-  const dateKey = getFusionFortuneDateKey(now); const loggedIn = Boolean(text(userId));
+export async function buildFusionFortuneStatus({ userId = "", enabled = true } = {}) {
+  const loggedIn = Boolean(text(userId));
   const pricing = { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY };
-  if (!enabled) return { isLoggedIn: loggedIn, pricing, dailyLimit: { dateKey, limit: 100, usedCount: 0, remainingCount: 0, isSoldOut: false }, canGenerate: false, nextAction: "disabled", message: "초융합 운세는 준비 중입니다." };
-  if (!loggedIn) return { isLoggedIn: false, pricing, dailyLimit: { dateKey, limit: 100, usedCount: 0, remainingCount: 100, isSoldOut: false, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: false, nextAction: "login", message: "초융합 운세는 로그인 후 이용할 수 있어요.", cta: { label: "로그인하기", targetPath: "/login", reason: "login_required" } };
-  const daily = await store.getDaily(dateKey); const remaining = Math.max(0, 100 - count(daily.successCount) - count(daily.reserved)); const soldOut = remaining === 0;
+  if (!enabled) return { isLoggedIn: loggedIn, pricing, canGenerate: false, nextAction: "disabled", message: "초융합 운세는 준비 중입니다." };
+  if (!loggedIn) {
+    return { isLoggedIn: false, pricing, canGenerate: false, nextAction: "login", message: "초융합 운세는 로그인 후 이용할 수 있어요.", cta: { label: "로그인하기", targetPath: "/login", reason: "login_required" } };
+  }
   // 결제 여부는 여기서 판정하지 않는다 — 진입 시 서버 선검사를 두면 결제창 앞 지연이 되살아난다.
-  // 남은 선착순 자리만 보고, 결제는 생성 요청 직전 공용 게이트가 처리한다.
-  return { isLoggedIn: true, pricing, dailyLimit: { dateKey, limit: 100, usedCount: count(daily.successCount), remainingCount: remaining, isSoldOut: soldOut, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: !soldOut, nextAction: soldOut ? "sold_out" : "generate", message: soldOut ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요." : `오늘 선착순 ${remaining}자리가 남아 있어요.`, cta: soldOut ? { label: "다른 운세 보기", targetPath: "/", reason: "daily_sold_out" } : undefined };
+  // 결제는 생성 요청 직전 공용 게이트가 처리한다.
+  return { isLoggedIn: true, pricing, canGenerate: true, nextAction: "generate", message: "생년 정보를 입력하면 여섯 체계를 한 번에 읽어 드려요." };
 }
 
 export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery } = {}) {
@@ -797,8 +819,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
   const safeId = safeRequestId(requestId);
 
-  // 결제 증빙을 선착순 자리를 잡기 전에 확인한다. 순서를 뒤집으면 미결제 요청이 남의 자리를
-  // 점유했다가 풀리는 낭비가 생긴다. 증빙은 requestId 로 조회되므로 같은 requestId 재시도는
+  // 결제 증빙을 먼저 확인한다. 증빙은 requestId 로 조회되므로 같은 requestId 재시도는
   // 이중 과금 없이 통과한다 — 생성이 실패한 결제 사용자가 결과를 받을 수 있는 근거다.
   const paid = await resolveFusionFortunePaidAccess(resolvePaidAccess, { userId: text(userId, 120), requestId: safeId });
   if (!paid.ok) {
@@ -809,17 +830,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
 
   const reservation = await store.reserve(userId, dateKey || getFusionFortuneDateKey(now), safeId, now);
   if (!reservation.ok) {
-    return {
-      ok: false,
-      status: reservation.status,
-      error: reservation.errorCode,
-      // 이미 결제한 뒤 마감을 만난 경우다. 결제 증빙은 requestId 로 남아 있으므로 같은
-      // requestId 로 내일 다시 시도하면 추가 결제 없이 결과를 받는다.
-      message: reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.SOLD_OUT
-        ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요. 결제하셨다면 내일 같은 화면에서 추가 결제 없이 이어서 받을 수 있어요."
-        : "이미 처리 중인 요청입니다.",
-      ...(reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.SOLD_OUT ? { retryRequestId: safeId } : {}),
-    };
+    return { ok: false, status: reservation.status, error: reservation.errorCode, message: "이미 처리 중인 요청입니다." };
   }
   let committed = false;
   try {
@@ -841,12 +852,11 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (!commitResult) throw Object.assign(new Error("commit"), { code: FUSION_FORTUNE_ERROR_CODES.COMMIT_FAILED });
     committed = true;
     await emitFusionFortuneStage(onStage, "fusion");
-    const status = await buildFusionFortuneStatus({ userId, store, now }).catch(() => ({
+    const status = await buildFusionFortuneStatus({ userId }).catch(() => ({
       isLoggedIn: true,
       pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY },
-      dailyLimit: { dateKey: reservation.dateKey, limit: 100, usedCount: count(commitResult.limit?.successCount), remainingCount: Math.max(0, 100 - count(commitResult.limit?.successCount)), isSoldOut: count(commitResult.limit?.successCount) >= 100, nextResetAt: getFusionFortuneNextResetAt(now) },
-      canGenerate: count(commitResult.limit?.successCount) < 100,
-      nextAction: count(commitResult.limit?.successCount) >= 100 ? "sold_out" : "generate",
+      canGenerate: true,
+      nextAction: "generate",
       message: "초융합 운세 결과가 완성되었어요.",
     }));
     return { ok: true, status: 200, requestId: safeId, result: validated.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined };
@@ -854,7 +864,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (!committed) await store.release(reservation, now).catch(() => {});
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;
     // 결제는 생성 전에 이미 끝났으므로 "차감되지 않았다"고 말하면 거짓이 된다. 실제로 안전한 것은
-    // ①오늘의 선착순 자리 ②같은 requestId 재시도 시 추가 결제가 없다는 점이다.
-    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? "분석을 중단했어요. 오늘의 선착순 자리는 차감되지 않았고, 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 오늘의 선착순 자리는 차감되지 않았고, 다시 시도해도 추가 결제는 없습니다.", retryRequestId: safeId };
+    // 같은 requestId 로 다시 시도하면 추가 결제가 없다는 점이다.
+    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? "분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.", retryRequestId: safeId };
   }
 }

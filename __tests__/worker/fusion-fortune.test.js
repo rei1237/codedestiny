@@ -60,6 +60,21 @@ function buildFusionGroupPayload(group, cards = []) {
       payload.timingAndAction = { title: "가까운 시기와 행동", content: fusionFiller("timingAndAction", 2100), luckyActions: ["기준 한 줄 적기", "경계 말하기", "지출 한 가지 줄이기"], cautionPatterns: ["답을 재촉하기", "속도를 남에게 맞추기", "한 번에 크게 바꾸기"] };
       continue;
     }
+    if (key === "finalVerdict") {
+      payload.finalVerdict = {
+        headline: "지금은 방향을 바꾸기보다 힘의 배분을 조정할 때입니다.",
+        confidence: 72,
+        systemVerdicts: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system, index) => ({
+          key: system,
+          stance: index < 3 ? "agree" : index < 5 ? "conditional" : "caution",
+          note: system + " 확정값이 이 결론에 대해 말하는 바를 한 줄로 적습니다.",
+        })),
+        rationale: fusionFiller("finalVerdict", 900),
+        doNow: ["기준 한 줄 적기", "되돌릴 수 있는 크기로 시험하기", "반응을 기록으로 남기기"],
+        avoid: ["답을 재촉하기", "한 번에 크게 바꾸기"],
+      };
+      continue;
+    }
     if (key === "title") { payload.title = "여섯 체계가 만나는 자리"; continue; }
     if (key === "shareText") { payload.shareText = "여섯 운세 체계를 하나로 엮어 지금의 선택을 정리했어요."; continue; }
     if (key === "openingMessage") { payload.openingMessage = fusionFiller("openingMessage", 320); continue; }
@@ -112,7 +127,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const dateKey = getFusionFortuneDateKey();
     const store = emptyStore();
     await generateFusionFortuneRequest({ input, userId: "user", requestId: "unpaid-slot", dateKey, store, resolvePaidAccess: unpaidAccess, contextBuilder });
-    expect((await store.getDaily(dateKey))).toMatchObject({ successCount: 0, reserved: 0 });
+    expect(store.attempts.get("unpaid-slot")).toBeUndefined();
   });
 
   it("lets a paid request retry on the same id after a failed generation", async () => {
@@ -126,7 +141,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
 
     const retried = await generateFusionFortuneRequest({ input, userId: "user", requestId: "retry-same-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
     expect(retried.ok).toBe(true);
-    expect((await store.getDaily(dateKey)).successCount).toBe(1);
+    expect(store.attempts.get("retry-same-id")).toMatchObject({ status: "completed" });
   });
 
   it("still refuses to replay a completed request", async () => {
@@ -137,7 +152,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(replay).toMatchObject({ ok: false, error: "FUSION_FORTUNE_REQUEST_IN_PROGRESS" });
   });
 
-  it("reports login, sold-out, and disabled status without consulting a wallet", async () => {
+  it("reports login and disabled status without consulting a wallet", async () => {
     const now = new Date("2026-08-04T04:00:00.000Z");
     expect(await buildFusionFortuneStatus({ store: emptyStore(), now })).toMatchObject({ isLoggedIn: false, nextAction: "login", canGenerate: false });
     // 진입 시 결제 선검사를 하지 않으므로 로그인만 되어 있으면 canGenerate 다.
@@ -263,7 +278,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const store = emptyStore();
     const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "success", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
     expect(result.ok).toBe(true);
-    expect((await store.getDaily(dateKey)).successCount).toBe(1);
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(1);
   });
 
   it("emits actual completed stages in the streamed public order before the final Fusion stage", async () => {
@@ -296,7 +311,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const store = emptyStore();
     const generated = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stream-cancelled", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, abortSignal: controller.signal });
     expect(generated).toMatchObject({ ok: false, error: "FUSION_FORTUNE_CANCELLED" });
-    expect((await store.getDaily(dateKey)).successCount).toBe(0);
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(0);
   });
 
   it("does not consume a ticket or daily slot when the stream cannot deliver the final result", async () => {
@@ -314,7 +329,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       onDelivery: async () => { throw new Error("stream disconnected"); },
     });
     expect(generated).toMatchObject({ ok: false, error: "FUSION_FORTUNE_GENERATION_FAILED" });
-    expect((await store.getDaily(dateKey)).successCount).toBe(0);
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(0);
   });
 
   it.each([
@@ -326,37 +341,12 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const args = _name === "context" ? { contextBuilder: generatorOrContext } : { contextBuilder, generator: generatorOrContext };
     const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: `failure-${_name}`, store, resolvePaidAccess: paidAccess, ...args });
     expect(result.ok).toBe(false);
-    expect((await store.getDaily(getFusionFortuneDateKey())).successCount).toBe(0);
-  });
-
-  it("fails closed at 100 daily results and reports sold out", async () => {
-    const dateKey = getFusionFortuneDateKey();
-    const store = createMemoryFusionFortuneStore({ daily: { [dateKey]: { dateKey, limit: 100, successCount: 100, reserved: 0 } } });
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "sold-out", store, resolvePaidAccess: paidAccess, contextBuilder });
-    expect(result.error).toBe("FUSION_FORTUNE_SOLD_OUT");
-    expect((await buildFusionFortuneStatus({ userId: "user", store })).dailyLimit.isSoldOut).toBe(true);
-  });
-
-  it("allows the hundredth success after ninety-nine completed results", async () => {
-    const dateKey = getFusionFortuneDateKey();
-    const store = createMemoryFusionFortuneStore({ daily: { [dateKey]: { dateKey, limit: 100, successCount: 99, reserved: 0 } } });
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "hundredth", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
-    expect(result.ok).toBe(true);
-    expect((await store.getDaily(dateKey)).successCount).toBe(100);
-    expect(result.fusionStatus.dailyLimit.isSoldOut).toBe(true);
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(0);
   });
 
   it("resets the date key at KST midnight", () => {
     expect(getFusionFortuneDateKey(new Date("2026-08-03T14:59:59.999Z"))).toBe("2026-08-03");
     expect(getFusionFortuneDateKey(new Date("2026-08-03T15:00:00.000Z"))).toBe("2026-08-04");
-  });
-
-  it("reserves at most one hundred concurrent successful attempts", async () => {
-    const dateKey = getFusionFortuneDateKey();
-    const store = emptyStore();
-    const reservations = await Promise.all(Array.from({ length: 101 }, (_, index) => store.reserve(`u${index}`, dateKey, `parallel-${index}`)));
-    expect(reservations.filter((item) => item.ok)).toHaveLength(100);
-    expect(reservations.filter((item) => item.errorCode === "FUSION_FORTUNE_SOLD_OUT")).toHaveLength(1);
   });
 
   it("keeps the deterministic fallback inside section, privacy, safety, and the paid length contract", async () => {

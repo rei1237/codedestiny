@@ -192,6 +192,64 @@ export function normalizeFusionVisualization(raw, context = {}, { now = new Date
   };
 }
 
+
+/** 최종 판정의 체계별 입장. 근거 없이 전부 agree 로 몰리는 것을 막기 위해 값으로 고정한다. */
+const VERDICT_STANCES = Object.freeze(["agree", "conditional", "caution"]);
+
+/**
+ * 최종 교차 판정 블록 정규화.
+ *
+ * 🔴 이건 파생 데이터가 아니라 본문이다. 그래서 비어 있으면 조용히 지어내지 않고
+ *    ok:false 를 돌려 그룹 재생성을 유도한다. 다만 체계 목록과 stance 값처럼 **형식**은
+ *    여기서 강제해, 여섯 체계가 빠지거나 엉뚱한 stance 가 들어오는 것을 막는다.
+ */
+export function normalizeFusionFinalVerdict(raw) {
+  if (!raw || typeof raw !== "object") return { ok: false, reason: "missing" };
+  const headline = clean(raw.headline, 90);
+  const rationale = clean(raw.rationale, 4000);
+  if (!headline) return { ok: false, reason: "missing_headline" };
+  if (!rationale) return { ok: false, reason: "missing_rationale" };
+
+  const provided = new Map();
+  for (const item of Array.isArray(raw.systemVerdicts) ? raw.systemVerdicts : []) {
+    const key = clean(item?.key, 20);
+    if (FUSION_VISUAL_SYSTEMS.some((system) => system.key === key)) provided.set(key, item);
+  }
+  if (provided.size !== FUSION_VISUAL_SYSTEMS.length) return { ok: false, reason: "incomplete_system_verdicts" };
+
+  const systemVerdicts = FUSION_VISUAL_SYSTEMS.map((system) => {
+    const item = provided.get(system.key);
+    const stance = clean(item?.stance, 16);
+    return {
+      key: system.key,
+      label: system.label,
+      stance: VERDICT_STANCES.includes(stance) ? stance : "conditional",
+      note: clean(item?.note, 120),
+    };
+  });
+  if (systemVerdicts.some((item) => !item.note)) return { ok: false, reason: "missing_verdict_note" };
+
+  const doNow = (Array.isArray(raw.doNow) ? raw.doNow : []).map((item) => clean(item, 120)).filter(Boolean).slice(0, 5);
+  const avoid = (Array.isArray(raw.avoid) ? raw.avoid : []).map((item) => clean(item, 120)).filter(Boolean).slice(0, 4);
+  if (doNow.length < 3 || avoid.length < 2) return { ok: false, reason: "missing_actions" };
+
+  // confidence 는 모델이 준 값보다 stance 분포가 더 정직하다. 둘을 맞춰 준다.
+  const agreed = systemVerdicts.filter((item) => item.stance === "agree").length;
+  const conditional = systemVerdicts.filter((item) => item.stance === "conditional").length;
+  const derived = Math.round(((agreed + conditional * 0.5) / systemVerdicts.length) * 100);
+  const claimed = Math.round(Number(raw.confidence));
+  const confidence = Number.isFinite(claimed) && Math.abs(claimed - derived) <= 20
+    ? Math.min(100, Math.max(0, claimed))
+    : derived;
+
+  return { ok: true, value: { headline, confidence, systemVerdicts, rationale, doNow, avoid } };
+}
+
+/** 검증용 — normalize 를 통과한 모양인지 확인한다. */
+export function isFusionFinalVerdictShaped(value) {
+  return normalizeFusionFinalVerdict(value).ok;
+}
+
 /** 검증용 — normalize 를 통과한 블록인지 확인한다. */
 export function isFusionVisualizationShaped(value) {
   if (!value || typeof value !== "object") return false;

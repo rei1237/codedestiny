@@ -43,8 +43,10 @@ test('the destiny gate shows both paid consultations with their price in every s
     assert.match(html, /class="fortune-gateway__door fortune-gateway__door--chat" href="\/fortune-chat"/, shell);
     assert.match(html, /class="fortune-gateway__door fortune-gateway__door--fusion" href="\/fusion-fortune"/, shell);
     // 가격과 무료 횟수를 카드에서 바로 읽을 수 있어야 한다.
-    assert.match(html, /매일 무료 3회/, shell);
-    assert.match(html, /이후 1회 5,000원/, shell);
+    assert.match(html, /<b>무료 3회<\/b>/, shell);
+    assert.match(html, /비로그인 1회 · 이후 1회 5,000원/, shell);
+    // 계정 무료 3회는 총량이라 "매일" 로 약속하면 안 된다.
+    assert.doesNotMatch(html, /매일 무료|하루 무료/, shell);
     assert.match(html, /1회 30,000원/, shell);
     // 초융합 카드는 Phase 5 에서 시트에서 잘라낸 Fusion Core 오브를 쓴다.
     assert.match(html, /\/images\/fusion-fortune\/orbs\/core\.webp/, shell);

@@ -19,6 +19,7 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
   integratedReading: 2600,
   timingAndAction: 1600,
   closingMessage: 600,
+  finalVerdictRationale: 700,
 });
 
 function sectionSchema(minChars) {
@@ -36,6 +37,19 @@ export const FUSION_VISUALIZATION_SCHEMA = Object.freeze({
     aligned: [{ theme: "string (60자 이내)", systems: ["string", "string"], meaning: "string (200자 이내)" }],
     divergent: [{ theme: "string (60자 이내)", systems: ["string", "string"], meaning: "string (200자 이내)" }],
   },
+});
+
+/**
+ * 마지막 결론 블록. 여섯 체계를 각각 판정한 뒤 하나의 조언으로 수렴시킨다.
+ * 🔴 여기가 이 상품이 파는 것이다 — 여섯 개의 해석이 아니라, 그 여섯이 만나 남긴 답 하나.
+ */
+export const FUSION_FINAL_VERDICT_SCHEMA = Object.freeze({
+  headline: "string (최종 결론 한 문장, 60자 이내)",
+  confidence: "number (0-100, 여섯 체계가 이 결론에 합의한 정도)",
+  systemVerdicts: [{ key: "saju|ziwei|vedic|sukuyo|astrology|tarot", stance: "agree|conditional|caution", note: "string (그 체계가 이 결론에 대해 말하는 바, 80자 이내)" }],
+  rationale: `string (${FUSION_FORTUNE_LENGTH.finalVerdictRationale}자 이상, 왜 이 결론이 남는지)`,
+  doNow: ["string", "string", "string"],
+  avoid: ["string", "string"],
 });
 
 export const FUSION_FORTUNE_RESPONSE_SCHEMA = Object.freeze({
@@ -56,6 +70,7 @@ export const FUSION_FORTUNE_RESPONSE_SCHEMA = Object.freeze({
     cautionPatterns: ["string", "string", "string"],
   },
   visualization: FUSION_VISUALIZATION_SCHEMA,
+  finalVerdict: FUSION_FINAL_VERDICT_SCHEMA,
   closingMessage: "string",
   shareText: "string (개인정보가 없는 220자 이내 요약)",
 });
@@ -150,11 +165,11 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     id: "action",
     label: "시기·행동과 마무리",
     stageLabel: "12개월 시기 라인 · 행동",
-    keys: Object.freeze(["title", "openingMessage", "timingAndAction", "visualization", "closingMessage", "shareText"]),
-    minChars: Object.freeze({ timingAndAction: 2000, closingMessage: 800, openingMessage: 260 }),
-    targetChars: 3400,
+    keys: Object.freeze(["title", "openingMessage", "timingAndAction", "visualization", "finalVerdict", "closingMessage", "shareText"]),
+    minChars: Object.freeze({ timingAndAction: 2000, finalVerdict: 900, closingMessage: 800, openingMessage: 260 }),
+    targetChars: 4300,
     systems: Object.freeze([]),
-    focus: "앞으로 12개월의 시기 라인과 현실 행동, 그리고 시각화가 쓸 정규화 점수",
+    focus: "앞으로 12개월의 시기 라인과 현실 행동, 시각화가 쓸 정규화 점수, 그리고 여섯 체계를 수렴시킨 최종 결론",
   }),
 ]);
 
@@ -175,6 +190,7 @@ const GROUP_EXTRA_RULES = Object.freeze({
     "visualization.systemScores 는 여섯 체계 각각이 이번 질문에 얼마나 뚜렷한 신호를 주는지(0-100)이며, 사람의 우열 점수가 아니다. 여섯 개를 모두 채우고 값이 전부 같지 않게 한다.",
     "visualization.crossChecks 의 systems 에는 체계 키(saju/ziwei/vedic/sukuyo/astrology/tarot)를 두 개 이상 넣는다.",
     "title 은 25자 이내, openingMessage 는 상담을 여는 두세 문장, shareText 는 개인정보 없는 220자 이내 요약이다.",
+    "🔴 finalVerdict 는 이 상담의 마지막 답이다. 여섯 체계를 다시 나열해 요약하지 말고 **하나의 결론으로 수렴시킨다.** ①headline 은 사용자가 지금 무엇을 하면 되는지 한 문장으로 못박는다. ②systemVerdicts 는 여섯 체계 각각이 그 결론에 대해 어떤 입장인지 판정한다 — agree(같은 방향), conditional(조건이 맞으면 같은 방향), caution(다른 방향이거나 속도를 늦추라고 함) 중 하나와 그 이유를 함께 적는다. 여섯 개를 모두 채우고, 근거 없이 전부 agree 로 몰지 않는다. ③confidence 는 그 입장 분포에서 나오는 합의 정도다(전부 agree 면 높고 caution 이 섞이면 낮다). ④rationale 은 왜 이 결론이 남는지를 근거로 설명한다. ⑤doNow 는 지금 할 일 3가지, avoid 는 피할 일 2가지를 구체적인 동사로 쓴다.",
   ],
 });
 

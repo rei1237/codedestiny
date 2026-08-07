@@ -16,14 +16,29 @@ import styles from "./fusion-fortune.module.css";
 type Status = {
   isLoggedIn: boolean;
   pricing?: { featureKey?: string };
-  dailyLimit: { remainingCount: number; isSoldOut: boolean; nextResetAt?: string };
   canGenerate: boolean;
-  nextAction: "login" | "generate" | "sold_out" | "disabled";
+  nextAction: "login" | "generate" | "disabled";
   message: string;
   cta?: { targetPath: string };
 };
 
 type Section = { title: string; content: string; keyPoints: string[] };
+type VerdictStance = "agree" | "conditional" | "caution";
+type FinalVerdict = {
+  headline: string;
+  confidence: number;
+  systemVerdicts: { key: FusionSystemKey; label: string; stance: VerdictStance; note: string }[];
+  rationale: string;
+  doNow: string[];
+  avoid: string[];
+};
+
+/** 입장 라벨은 화면에서만 쓰는 표기다 — 판정 자체는 서버가 한다. */
+const STANCE_LABEL: Record<VerdictStance, string> = {
+  agree: "같은 방향",
+  conditional: "조건부",
+  caution: "속도 조절",
+};
 type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading", Section> & {
   title: string;
   openingMessage: string;
@@ -31,6 +46,8 @@ type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSe
   timingAndAction: { title: string; content: string; luckyActions: string[]; cautionPatterns: string[] };
   /** 서버가 항상 채워 보낸다(worker/lib/fusion-fortune-visual.js). 그래도 옛 저장본을 위해 관용한다. */
   visualization?: FusionVisualizationData;
+  /** 여섯 체계를 각각 판정한 뒤 하나로 수렴시킨 마지막 답. 옛 저장본에는 없다. */
+  finalVerdict?: FinalVerdict;
   closingMessage: string;
   shareText?: string;
 };
@@ -46,7 +63,6 @@ declare global {
 
 const EMPTY_STATUS: Status = {
   isLoggedIn: false,
-  dailyLimit: { remainingCount: 100, isSoldOut: false },
   canGenerate: false,
   nextAction: "disabled",
   message: "이용 상태를 확인하고 있어요.",
@@ -253,19 +269,11 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     document.head.appendChild(script);
   }, []);
 
-  const resetTime = useMemo(() => status.dailyLimit.nextResetAt
-    ? new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" }).format(new Date(status.dailyLimit.nextResetAt))
-    : "자정", [status.dailyLimit.nextResetAt]);
-  const usedPercent = Math.min(100, Math.max(0, 100 - status.dailyLimit.remainingCount));
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(""); setNotice("");
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
     if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError("생년월일과 생시를 입력하거나, 생시를 모르는 경우를 선택해 주세요."); return; }
-
-    // 🔴 마감 확인이 결제보다 먼저다. 결제 후 마감을 만나면 자동 환불 경로가 없다.
-    await refresh();
-    if (status.dailyLimit.isSoldOut) { setError("오늘 선착순 100자리가 모두 찼어요. 내일 다시 열립니다."); return; }
 
     // 앞선 시도가 결제까지 끝났다면 그 requestId 를 재사용한다 — 새 id 로 보내면 증빙을
     // 못 찾아 이미 낸 3만원이 사라진다.
@@ -341,7 +349,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       const streamResult = payload.result as Result | undefined;
       const fusionStatus = payload.fusionStatus as Status | undefined;
       if (!streamResult || !fusionStatus) throw new Error(String(payload.message || "결과를 생성하지 못했어요."));
-      setResult(streamResult); setStatus(fusionStatus); setNotice("결과가 완성되어 오늘의 선착순 자리가 확정됐어요.");
+      setResult(streamResult); setStatus(fusionStatus); setNotice("결과가 완성됐어요. 아래에서 바로 확인할 수 있어요.");
       if (fortuneChatSessionId) {
         void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
@@ -353,8 +361,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       paidRequestIdRef.current = "";
     } catch (cause) {
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
-      // (선착순 자리 + 추가 결제 없는 재시도)만 안내한다. requestId 는 그대로 들고 있는다.
-      if ((cause as Error)?.name === "AbortError") setNotice("분석을 중단했어요. 오늘의 선착순 자리는 차감되지 않았고, 다시 시도해도 추가 결제는 없습니다.");
+      // (같은 requestId 재시도에 추가 결제가 없다는 점)만 안내한다.
+      if ((cause as Error)?.name === "AbortError") setNotice("분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.");
       else setError(cause instanceof Error ? cause.message : "결과를 생성하지 못했어요. 다시 시도해도 추가 결제는 없습니다.");
     } finally {
       if (requestAbortRef.current === controller) requestAbortRef.current = null;
@@ -411,7 +419,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <Link className={styles.guardianLink} href="/#guardian-fortune">오늘의 귀인에서 이어지는 프리미엄 리딩</Link>
         <p className={styles.kicker}>초융합 운세</p><h1>여섯 개의 해석을<br />하나의 상담으로</h1>
         <p>사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 지금의 선택과 현실 행동으로 하나로 엮습니다.</p>
-        <div className={styles.heroMeta}><span className={styles.firstCome}>선착순! 하루 100명</span><PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.heroPrice} /><span>20,000자 이상</span></div>
+        <div className={styles.heroMeta}><span className={styles.firstCome}>여섯 체계 교차 판정</span><PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.heroPrice} /><span>20,000자 이상</span></div>
         <p className={styles.chatLead}>Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.</p>
       </div>
       <FusionOrb />
@@ -425,11 +433,11 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
 
     <section className={styles.panel}>
       <div className={styles.status}>
-        <div><span>오늘 선착순 남은 자리</span><strong>{status.dailyLimit.remainingCount} / 100</strong><div className={styles.progress}><i style={{ width: `${usedPercent}%` }} /></div><small>성공 결과가 완성된 순서대로 자리가 확정돼요.</small></div>
+        <div><span>이번 리딩이 읽는 범위</span><strong>여섯 체계 · 20,000자 이상</strong><small>사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽고 마지막에 교차 판정합니다.</small></div>
         <div><span>이용 방식</span><strong>회당 결제</strong><small>결제창에서 이용권·단건·월정석을 함께 고를 수 있어요. family 이용권은 커버됩니다.</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">Fusion Core 진행 방식 보기</button>
       </div>
-      {status.dailyLimit.isSoldOut ? <div className={styles.sold}><p className={styles.kicker}>오늘 선착순 마감</p><h2>오늘의 100자리가 모두 채워졌어요.</h2><p>결제는 진행되지 않았습니다. 다음 접수는 한국 시간 {resetTime} 이후에 열립니다.</p><div className={styles.soldLinks}><Link href="/#guardian-fortune">오늘의 귀인 보기</Link><Link href="/tarot">타로 둘러보기</Link></div></div> : <form className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+      {<form className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
         <div className={styles.formIntro}><p className={styles.kicker}>Fusion AI · 상담 시작</p><h2>정확한 생시로 여섯 체계를 연결해요</h2><p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p>{guardianHandoff && <p className={styles.handoffNotice}>연이가 남긴 <strong>{guardianHandoff.topic}</strong> 주제만 이어받았어요. 개인 대화와 결과 원문은 가져오지 않았습니다.</p>}<button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>저장한 프로필 다시 불러오기</button></div>
         <label>생년월일<input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
         <label>생시<input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
@@ -478,13 +486,41 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       const timingKey = "timing";
       const expanded = openSection === timingKey;
       return <article className={styles.resultMessage}><h3><button type="button" aria-expanded={expanded} aria-controls="fusion-section-timing" onClick={() => toggleSection(timingKey)}><span>→</span>{result.timingAndAction.title}<b>{expanded ? "접기" : "행동 보기"}</b></button></h3>{expanded && <div id="fusion-section-timing" className={styles.sectionBody}><p>{result.timingAndAction.content}</p><h4>이번 흐름에서 해볼 일</h4><ul>{result.timingAndAction.luckyActions.map((item) => <li key={item}>{item}</li>)}</ul><h4>주의해서 볼 반복 패턴</h4><ul>{result.timingAndAction.cautionPatterns.map((item) => <li key={item}>{item}</li>)}</ul></div>}</article>;
-    })()}<p className={styles.closing}>{result.closingMessage}</p><div className={styles.resultActions}><button className={styles.share} onClick={() => void share()}>개인정보 제외 요약 공유</button><Link href="/#guardian-fortune">오늘의 귀인에게 이어서 묻기</Link></div></section>}
+    })()}{result.finalVerdict && <section className={styles.verdict} aria-labelledby="fusion-final-verdict-heading">
+      <p className={styles.kicker}>여섯 체계의 최종 교차 판정</p>
+      <h3 id="fusion-final-verdict-heading">{result.finalVerdict.headline}</h3>
+      <div className={styles.verdictMeter}>
+        <span>체계 간 합의</span>
+        <i aria-hidden><em style={{ "--fill": Math.min(1, Math.max(0, result.finalVerdict.confidence / 100)) } as React.CSSProperties} /></i>
+        <b>{result.finalVerdict.confidence}%</b>
+      </div>
+      <ul className={styles.verdictSystems}>
+        {result.finalVerdict.systemVerdicts.map((item) => (
+          <li key={item.key} data-stance={item.stance} style={{ "--tint": FUSION_ORB_BY_KEY[item.key]?.tint || "#e8d5a3" } as React.CSSProperties}>
+            <strong>{item.label}</strong>
+            <span className={styles.verdictStance}>{STANCE_LABEL[item.stance]}</span>
+            <p>{item.note}</p>
+          </li>
+        ))}
+      </ul>
+      <p className={styles.verdictRationale}>{result.finalVerdict.rationale}</p>
+      <div className={styles.verdictActions}>
+        <div>
+          <h4>지금 할 일</h4>
+          <ul>{result.finalVerdict.doNow.map((item) => <li key={item}>{item}</li>)}</ul>
+        </div>
+        <div>
+          <h4>지금은 피할 일</h4>
+          <ul>{result.finalVerdict.avoid.map((item) => <li key={item}>{item}</li>)}</ul>
+        </div>
+      </div>
+    </section>}<p className={styles.closing}>{result.closingMessage}</p><div className={styles.resultActions}><button className={styles.share} onClick={() => void share()}>개인정보 제외 요약 공유</button><Link href="/#guardian-fortune">오늘의 귀인에게 이어서 묻기</Link></div></section>}
     <dialog ref={coreDialogRef} className={styles.coreDialog} aria-labelledby="fusion-core-dialog-title">
       <form method="dialog"><button className={styles.dialogClose} aria-label="Fusion Core 설명 닫기">닫기</button></form>
       <p className={styles.kicker}>Fusion Core</p><h2 id="fusion-core-dialog-title">완료된 분석만 연결합니다</h2>
       <p>사주, 자미두수, 숙요, 베다점, 점성술, 타로를 각각 마친 뒤 마지막에 하나의 읽기로 융합합니다.</p>
       <ol>{FUSION_STAGES.map((stage) => <li key={stage.key}><strong>{stage.label}</strong><span>{stage.message}</span></li>)}</ol>
-      <p className={styles.dialogNote}>중단·실패한 분석은 오늘의 자리를 되돌리며, 같은 요청을 다시 보내면 추가 결제 없이 이어집니다.</p>
+      <p className={styles.dialogNote}>중단·실패한 분석은 같은 요청을 다시 보내면 추가 결제 없이 이어집니다.</p>
     </dialog>
     {seoContent}
   </main>;

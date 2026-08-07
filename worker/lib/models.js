@@ -1392,14 +1392,6 @@ const guardianFortuneSharedSnapshotSchema = new mongoose.Schema({
 guardianFortuneSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 guardianFortuneSharedSnapshotSchema.index({ status: 1, createdAt: -1 });
 
-const fusionFortuneDailyLimitSchema = new mongoose.Schema({
-  dateKey: { type: String, required: true, unique: true, trim: true, maxlength: 10, index: true },
-  timezone: { type: String, enum: ["Asia/Seoul"], default: "Asia/Seoul", required: true },
-  limit: { type: Number, default: 100, min: 1, max: 100 },
-  successCount: { type: Number, default: 0, min: 0, max: 100 },
-  reserved: { type: Number, default: 0, min: 0, max: 100 },
-}, { timestamps: true, collection: "fusionFortuneDailyLimits" });
-
 const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
   requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
@@ -1494,8 +1486,6 @@ export const GuardianFortuneGenerationAttempt = mongoose.models.GuardianFortuneG
   || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema);
 export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneSharedSnapshot
   || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
-export const FusionFortuneDailyLimit = mongoose.models.FusionFortuneDailyLimit
-  || mongoose.model("FusionFortuneDailyLimit", fusionFortuneDailyLimitSchema);
 export const FusionFortuneGenerationAttempt = mongoose.models.FusionFortuneGenerationAttempt
   || mongoose.model("FusionFortuneGenerationAttempt", fusionFortuneGenerationAttemptSchema);
 

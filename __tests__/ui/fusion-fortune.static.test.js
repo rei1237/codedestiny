@@ -6,10 +6,10 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..", "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("fusion fortune renders the first-come premium flow and optimized hero asset", () => {
+test("fusion fortune renders the premium flow and optimized hero asset", () => {
   const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
-  assert.match(client, /선착순! 하루 100명/);
-  assert.match(client, /성공 결과가 완성된 순서대로 자리가 확정돼요/);
+  assert.match(client, /여섯 체계 교차 판정/);
+  assert.match(client, /여섯 체계 · 20,000자 이상/);
   assert.match(client, /fusion-guardian-celestial-hero\.webp/);
   assert.match(client, /priority/);
   assert.ok(fs.existsSync(path.join(root, "public/images/fusion-fortune/fusion-guardian-celestial-hero.webp")));
@@ -29,14 +29,26 @@ test("fusion fortune charges through the shared coin gate, not its own PortOne f
   assert.doesNotMatch(client, /payments\/fusion-fortune\/(?:prepare|confirm|catalog)/);
 });
 
-test("fusion fortune checks the daily sell-out before taking money", () => {
+test("the retired daily quota leaves no sell-out path behind", () => {
   const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
-  // 결제 후 마감을 만나면 자동 환불 경로가 없다. 순서를 뒤집지 말 것.
-  const submit = client.slice(client.indexOf("const submit ="), client.indexOf("const cancelGeneration"));
-  const soldOutAt = submit.indexOf("isSoldOut");
-  const gateAt = submit.indexOf("ensurePaidAccess");
-  assert.ok(soldOutAt > -1 && gateAt > -1, "sold-out check and payment gate must both exist");
-  assert.ok(soldOutAt < gateAt, "sold-out check must run before the payment gate");
+  const lib = read("worker/lib/fusion-fortune.js");
+  // 선착순 하루 100명은 비용 통제 장치였고 폐지됐다. 마감 상태를 되살리지 말 것.
+  assert.doesNotMatch(client, /isSoldOut|dailyLimit|선착순/);
+  assert.doesNotMatch(lib, /SOLD_OUT|FusionFortuneDailyLimit|successCount/);
+  // 결제 증빙은 여전히 requestId 에 묶인다 — 재시도로 결과를 받을 수 있는 근거다.
+  assert.match(client, /paidRequestIdRef/);
+});
+
+test("the final cross verdict is rendered as the last part of the result", () => {
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const prompt = read("worker/lib/fusion-fortune-prompt.js");
+  // 여섯 해석이 아니라 그 여섯이 만나 남긴 답 하나가 이 상품이 파는 것이다.
+  assert.match(prompt, /FUSION_FINAL_VERDICT_SCHEMA/);
+  assert.match(prompt, /systemVerdicts/);
+  assert.match(client, /result\.finalVerdict/);
+  assert.match(client, /STANCE_LABEL/);
+  // 결론은 마지막에 온다 — 맺음말보다 앞이어야 한다.
+  assert.ok(client.indexOf("fusion-final-verdict-heading") < client.indexOf("styles.closing"));
 });
 
 test("fusion orbs come from the generated crops with a documented tarot gap", () => {
@@ -133,6 +145,9 @@ test("family shop copy states the real fusion coverage", () => {
 
 test("the destiny gate states the free quota before the paid price", () => {
   const html = read("index.html");
-  assert.match(html, /매일 무료 3회/);
-  assert.match(html, /이후 1회 5,000원/);
+  // 🔴 계정 무료 3회는 총량이다(worker/lib/guardian-fortune-usage.js: "lifetime-scoped").
+  //    "매일" 로 쓰면 매일 지급을 약속하는 문구가 된다.
+  assert.match(html, /<b>무료 3회<\/b>/);
+  assert.match(html, /비로그인 1회 · 이후 1회 5,000원/);
+  assert.doesNotMatch(html, /매일 무료|하루 무료|매일 3회/);
 });

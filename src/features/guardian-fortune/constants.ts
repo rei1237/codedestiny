@@ -157,8 +157,8 @@ export const GUARDIAN_FORTUNE_PREMIUM_CTA_BY_TOPIC = {
 export const GUARDIAN_FORTUNE_COPY = {
   title: "오늘, 당신에게 필요한 귀인이 찾아왔어요",
   subtitle: "사주·자미두수·베다점·숙요점·점성술·타로의 흐름을 엮어, 오늘 당신에게 필요한 메시지를 전해드려요.",
-  guestFree: "첫 1회는 로그인 없이 무료, 로그인하면 하루 3회까지 볼 수 있어요.",
-  creditHint: "무료 상담을 모두 사용했다면, 1회 5,000원으로 연이와 네오에게 더 물어볼 수 있어요.",
+  guestFree: "로그인 없이 1회, 로그인하면 3회까지 무료로 볼 수 있어요(계정당 총량).",
+  creditHint: "무료 상담을 모두 사용했다면, 1회 5,000원으로 연이와 네오에게 이어서 물어볼 수 있어요.",
 } as const;
 
 /** Adapter execution order used when the same topic has evidence from several systems. */

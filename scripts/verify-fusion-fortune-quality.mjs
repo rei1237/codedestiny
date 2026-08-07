@@ -29,6 +29,7 @@ import {
 import {
   FUSION_TIMELINE_MONTHS,
   FUSION_VISUAL_SYSTEMS,
+  normalizeFusionFinalVerdict,
   normalizeFusionVisualization,
 } from "../worker/lib/fusion-fortune-visual.js";
 
@@ -116,6 +117,21 @@ function groupPayload(group, { shortBy = 0 } = {}) {
         content: filler("timingAndAction", Math.max(1, 2100 - shortBy)),
         luckyActions: ["기준 한 줄 적기", "경계 말하기", "지출 한 가지 줄이기"],
         cautionPatterns: ["답을 재촉하기", "속도를 남에게 맞추기", "한 번에 크게 바꾸기"],
+      };
+      continue;
+    }
+    if (key === "finalVerdict") {
+      payload.finalVerdict = {
+        headline: "지금은 방향을 바꾸기보다 힘의 배분을 조정할 때입니다.",
+        confidence: 72,
+        systemVerdicts: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system, index) => ({
+          key: system,
+          stance: index < 3 ? "agree" : index < 5 ? "conditional" : "caution",
+          note: system + " 확정값이 이 결론에 대해 말하는 바를 한 줄로 적습니다.",
+        })),
+        rationale: filler("finalVerdict", 900),
+        doNow: ["기준 한 줄 적기", "되돌릴 수 있는 크기로 시험하기", "반응을 기록으로 남기기"],
+        avoid: ["답을 재촉하기", "한 번에 크게 바꾸기"],
       };
       continue;
     }
@@ -277,6 +293,30 @@ const validationOptions = {
     check(`시각화(${label}) 교차 검증 존재`, visual.crossChecks.aligned.length >= 1 && visual.crossChecks.divergent.length >= 1);
   }
   console.log("[visual] 누락·형식 붕괴·범위 초과 모두 결정론 백필로 복구");
+}
+
+// ── 9. 최종 교차 판정이 형식을 지키는가 ────────────────────────────────────
+{
+  const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === "action");
+  check("행동 그룹이 최종 판정을 소유", group.keys.includes("finalVerdict"));
+
+  const complete = groupPayload(group);
+  check("정상 판정은 통과", validateFusionFortuneGroup(complete, group, validationOptions).ok === true);
+
+  const missingSystem = groupPayload(group);
+  missingSystem.finalVerdict.systemVerdicts = missingSystem.finalVerdict.systemVerdicts.slice(0, 4);
+  check("여섯 체계를 다 판정하지 않으면 반려", validateFusionFortuneGroup(missingSystem, group, validationOptions).ok === false);
+
+  const shortRationale = groupPayload(group);
+  shortRationale.finalVerdict.rationale = "짧은 근거";
+  check("근거가 짧으면 반려", validateFusionFortuneGroup(shortRationale, group, validationOptions).ok === false);
+
+  // 합의 강도는 모델이 부른 값이 아니라 stance 분포를 따른다.
+  const inflated = groupPayload(group);
+  inflated.finalVerdict.confidence = 100;
+  const normalized = normalizeFusionFinalVerdict(inflated.finalVerdict);
+  check("과장된 합의 강도는 stance 분포로 교정", normalized.ok && normalized.value.confidence < 100, String(normalized.value?.confidence));
+  console.log("[verdict] 여섯 체계 판정 필수 · 근거 하한 · 합의 강도 교정 확인");
 }
 
 if (failures.length) {
