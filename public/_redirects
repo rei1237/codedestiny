@@ -20,6 +20,15 @@
 /oracle/ifa/                   /ifa-oracle.html          301
 /oracle/ifa/*                  /ifa-oracle.html          301
 
+# 폐지된 React /me → 달빛 이용권 상점
+# 프로필 카드 관리가 정적 셸로 이관되며(bd54e99eb) /me 라우트가 빌드에서 사라졌다. 오리진은
+# 한동안 옛 HTML 을 200 으로 계속 내려줬지만(실측 Age: 5256, ?cdcb= 우회는 404) 그 캐시가
+# 만료되면 북마크·검색 유입이 하드 404 를 받는다.
+# 🔴 `/me*` 로 쓰지 말 것 — 그러면 sitemap 에 있는 `/methodology` 까지 삼킨다.
+/me                            /points                   301
+/me/                           /points                   301
+/me/*                          /points                   301
+
 # 구 웹소설 리더(/stories/code-destiny/*) → 신 텍스트 리더(/stories/)
 # 주의: /stories/* 와일드카드를 쓰면 신규 화 라우트(/stories/ep-01/ 등)까지 삼킨다.
 # 반드시 /stories/code-destiny 하위로만 좁힐 것.
