@@ -48,7 +48,7 @@
 - **⚠️ 이용권(pass)으로는 결제 불가 (family 포함 전 등급)**: 프로필 추가/삭제는 **오직 단건결제(`single_purchase`) 또는 월정석(`membership_credit`)** 으로만 정산된다. 이용권 잔여/커버 한도로 대체 결제되지 않으며(`evidenceCostMatches`가 두 방식만 인정), 프론트에도 이용권 결제 옵션을 노출하지 않는다(`ProfileActionPaymentMethod = "card" | "monthly_stones"`).
 - **🔒 서버 최종 안전망**: 이용권 제외 판정의 서버 정본은 `worker/routes/billing.js`의 `PASS_EXCLUDED_FEATURE_KEYS`(→ `isPassExcludedPricing`) **하나**다. `buildPassPaymentDecision`·`processCoinGateFromPricing`에서 featureKey별 예외 분기(`&& !isProfileCardManage` 류)로 제외를 되푸는 것을 **금지**한다 — 과거 이 우회가 premium/vvip에게 `PASS_COVERED` + 결제수단 전부 숨김을 내준 뒤 소비 단계에서 거부하는 막다른 길을 만들었다. 프로필 생성의 개수 제한은 클라이언트가 soft validation을 맡고, Worker `POST /api/profile`은 birth/ownership/duplicate와 최종 count hard validation만 수행한다. 회귀 가드: `scripts/verify-billing-pass-policy.mjs`(제외 기능은 전 tier 미커버·숨김없음) + `scripts/verify-profile-card-action-policy.mjs` + `scripts/verify-profile-client-first.mjs`.
 - **결제 계층 위치**: PortOne 서명·멱등·환불을 포함한 결제 검증은 **Cloudflare Worker(`worker/routes/profile.js`)에만 존재**. 레거시 Express(`server/routes/profile.routes.js`)의 프로필 추가/삭제 라우트는 결제 계층이 없어 **위임 응답(410 `USE_WORKER_PROFILE_ENDPOINT`)으로 차단**되어 있다.
-- **UI**: 추가/삭제 모달에 "5,000원 단건결제 / 월정석" 2개 결제수단만 노출(`app/me/MeClient.tsx`).
+- **UI**: 추가/삭제 모달에 "5,000원 단건결제 / 월정석" 2개 결제수단만 노출. **정본은 정적 셸 하나**(`js/destiny-profile.js`의 `_dpRunProfileManageGate`, `public/js/`에 사본) — 과거 React `/me`(`app/me/MeClient.tsx`)에 같은 CRUD가 두 벌로 있었으나 같은 결제 정책을 두 번 유지해야 해 제거했다. 관리 진입점은 하단 시트(`dpOpenList`)와 입력폼(`#destinyCardForm`)이며, React 하단 네비·앱 탭바의 "마이" 탭은 `/?action=dpOpenList`로 셸에 넘긴다.
 
 ## E. 음악 트랙 — 재생 무료 · 다운로드 유료 (UX 게이트) — 2026-07 개정
 

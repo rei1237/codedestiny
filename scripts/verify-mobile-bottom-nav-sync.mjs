@@ -33,7 +33,9 @@ function readCanonicalTabs() {
   const source = readFileSync(resolve(rootDir, "app/_lib/mobile-tabs.ts"), "utf8");
 
   const constants = {};
-  for (const name of ["SAJU_TAB_ACTION", "ALL_FORTUNES_ACTION"]) {
+  // MOBILE_TABS 가 참조하는 액션 상수는 전부 여기 있어야 한다. 빠지면 템플릿 보간이 펼쳐지지 않아
+  // 셸과 정본이 실제로는 같은데도 불일치로 잡힌다.
+  for (const name of ["SAJU_TAB_ACTION", "ALL_FORTUNES_ACTION", "PROFILE_SHEET_ACTION"]) {
     const found = source.match(new RegExp(`export const ${name}\\s*=\\s*"([^"]+)"`));
     if (!found) throw new Error(`app/_lib/mobile-tabs.ts 에서 ${name} 을 찾지 못했습니다.`);
     constants[name] = found[1];

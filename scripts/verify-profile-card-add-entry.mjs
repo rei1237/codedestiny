@@ -83,8 +83,12 @@ function bootShell(source, initialPayload) {
        <div id="dpListSheet"></div>
        <div id="dpListOverlay"></div>
        <div class="dp-list-scroll"><div id="dpListInner"></div></div>
-       <p id="dpProfileQuotaText"></p>
-       <button id="dpSaveBtn"></button>
+       <!-- #dpProfileQuotaText 를 일부러 넣지 않는다 — 실제 셸 6벌 어디에도 없다.
+            픽스처에만 넣어 두었더니 "슬롯·편집 안내가 화면에 안 뜬다"는 실제 결함을 이 가드가 가렸다(#416).
+            없는 상태에서 _dpEnsureProfileFormControls 가 만들어내는지를 봐야 의미가 있다. -->
+       <section class="card input-section" id="destinyCardForm">
+         <button id="dpSaveBtn"></button>
+       </section>
        <input id="nameInput" />
        <input id="birthDate" />
        <input id="birthHour" />
@@ -97,6 +101,9 @@ function bootShell(source, initialPayload) {
     { url: "https://code-destiny.com/", pretendToBeVisual: true, runScripts: "outside-only" },
   );
   const { window } = dom;
+  // jsdom 은 scrollIntoView 를 구현하지 않는다. 픽스처에 .input-section 을 넣으면서
+  // dpScrollToForm 이 실제로 그 요소를 찾게 됐으므로 스텁이 필요하다.
+  window.Element.prototype.scrollIntoView = function scrollIntoViewStub() {};
   const state = { payload: initialPayload };
   window.fetch = (url) => {
     const requestPath = String(url).replace(/^https?:\/\/[^/]+/, "");
@@ -132,6 +139,14 @@ const quotaLabel = (window) =>
 const listHtml = (window) =>
   String((window.document.getElementById("dpListInner") || {}).innerHTML || "");
 const nameValue = (window) => String(window.document.getElementById("nameInput").value || "");
+const formAddBtn = (window) => window.document.getElementById("dpFormAddBtn");
+/** 주입된 노드가 실제로 입력폼 안, 저장 버튼 앞에 놓였는지. */
+const inFormBeforeSave = (window, id) => {
+  const node = window.document.getElementById(id);
+  const save = window.document.getElementById("dpSaveBtn");
+  if (!node || !save || node.parentNode !== save.parentNode) return false;
+  return !!(node.compareDocumentPosition(save) & 4); // DOCUMENT_POSITION_FOLLOWING
+};
 
 async function runTarget(relPath) {
   const filePath = path.join(root, relPath);
@@ -154,6 +169,28 @@ async function runTarget(relPath) {
       "저장 버튼이 '수정'으로 고착되지 않는다",
       saveLabel(window) !== "" && !saveLabel(window).includes("수정"),
       `label=${saveLabel(window)}`,
+    );
+
+    // 입력폼 주입 — 셸 마크업에 없는 두 노드를 JS 가 만들어야 한다.
+    check("입력폼에 #dpProfileQuotaText 가 생성된다", inFormBeforeSave(window, "dpProfileQuotaText"));
+    check("입력폼에 추가 버튼이 생성된다", inFormBeforeSave(window, "dpFormAddBtn"));
+    check(
+      "카드 보유 시 입력폼 추가 버튼이 보인다",
+      !!formAddBtn(window) && formAddBtn(window).hidden === false,
+      `hidden=${formAddBtn(window)?.hidden}`,
+    );
+    check(
+      "슬롯 안내 문구가 실제로 채워진다",
+      quotaLabel(window).length > 0,
+      `quota=${quotaLabel(window)}`,
+    );
+    const addBtnCountBefore = window.document.querySelectorAll("#dpFormAddBtn, .dp-form-add").length;
+    window.dpEditProfile("dp_1");
+    window.dpStartProfileCreate();
+    check(
+      "재렌더를 반복해도 주입 노드가 중복 생성되지 않는다",
+      window.document.querySelectorAll("#dpFormAddBtn, .dp-form-add").length === addBtnCountBefore,
+      `before=${addBtnCountBefore} after=${window.document.querySelectorAll("#dpFormAddBtn, .dp-form-add").length}`,
     );
 
     window.dpEditProfile("dp_1");
@@ -198,6 +235,30 @@ async function runTarget(relPath) {
       !saveLabel(window).includes("수정"),
       `label=${saveLabel(window)}`,
     );
+    window.close();
+  }
+
+  // 6) 카드 0개 — 저장 버튼이 곧 생성이라 입력폼 추가 버튼은 중복이다
+  {
+    const { window } = bootShell(source, EMPTY_PAYLOAD);
+    await wait(BOOT_WAIT_MS);
+    check(
+      "카드 0개면 입력폼 추가 버튼이 숨겨진다",
+      !!formAddBtn(window) && formAddBtn(window).hidden === true,
+      `hidden=${formAddBtn(window)?.hidden}`,
+    );
+    window.close();
+  }
+
+  // 7) 입력폼 추가 버튼 클릭이 실제 생성 플로우로 이어진다
+  {
+    const { window } = bootShell(source, FREE_ONE_CARD);
+    await wait(BOOT_WAIT_MS);
+    window.dpEditProfile("dp_1");
+    check("7 전제: 편집 모드 + 폼 채워짐", saveLabel(window).includes("수정") && nameValue(window) !== "");
+    formAddBtn(window).click();
+    check("입력폼 추가 버튼 클릭이 편집을 해제한다", !saveLabel(window).includes("수정"), `label=${saveLabel(window)}`);
+    check("입력폼 추가 버튼 클릭이 폼을 비운다", nameValue(window) === "", `name=${nameValue(window)}`);
     window.close();
   }
 }

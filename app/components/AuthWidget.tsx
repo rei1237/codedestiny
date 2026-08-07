@@ -46,24 +46,22 @@ const AUTH_WIDGET_COPY: Record<LoadingLocale, {
   nameLabel: (name: string) => string;
   admin: string;
   subscriptionTitle: string;
-  accountTitle: string;
-  account: string;
   logout: string;
   login: string;
   signup: string;
 }> = {
-  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", accountTitle: "마이페이지", account: "계정", logout: "로그아웃", login: "로그인", signup: "회원가입" },
-  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", accountTitle: "My page", account: "Account", logout: "Log out", login: "Log in", signup: "Sign up" },
-  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", accountTitle: "マイページ", account: "アカウント", logout: "ログアウト", login: "ログイン", signup: "新規登録" },
-  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", accountTitle: "我的页面", account: "账户", logout: "退出登录", login: "登录", signup: "注册" },
-  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", accountTitle: "我的頁面", account: "帳戶", logout: "登出", login: "登入", signup: "註冊" },
-  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", accountTitle: "Trang của tôi", account: "Tài khoản", logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
-  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", accountTitle: "मेरा पेज", account: "खाता", logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
-  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", accountTitle: "Mi página", account: "Cuenta", logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
-  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", accountTitle: "Ma page", account: "Compte", logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
-  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", accountTitle: "Meine Seite", account: "Konto", logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
-  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", accountTitle: "Mijn pagina", account: "Account", logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
-  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", accountTitle: "Halaman saya", account: "Akaun", logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
+  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", logout: "로그아웃", login: "로그인", signup: "회원가입" },
+  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", logout: "Log out", login: "Log in", signup: "Sign up" },
+  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", logout: "ログアウト", login: "ログイン", signup: "新規登録" },
+  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", logout: "退出登录", login: "登录", signup: "注册" },
+  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", logout: "登出", login: "登入", signup: "註冊" },
+  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
+  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
+  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
+  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
+  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
+  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
+  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
 };
 
 export default function AuthWidget() {
@@ -231,13 +229,6 @@ export default function AuthWidget() {
           title={copy.subscriptionTitle}
         >
           {subscriptionLabel}
-        </Link>
-        <Link
-          href="/me"
-          className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
-          title={copy.accountTitle}
-        >
-          {copy.account}
         </Link>
         <button
           type="button"
