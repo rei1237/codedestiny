@@ -9,14 +9,46 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("Yeoni chat keeps a unified character choice and neutral usage label", () => {
   const client = read("app/fortune-chat/FortuneChatClient.tsx");
 
-  assert.match(client, /DestinyCafe\/nobackground\/flower-pig-cutout\.webp/);
-  assert.match(client, /flower-pig-honey-hug\.webp/);
   assert.doesNotMatch(client, /매일 초기화되지/);
   assert.doesNotMatch(client, /계정당 총 3회/);
   assert.match(client, /type Character = "yeoni" \| "neo"/);
   assert.doesNotMatch(client, /\["flower_pig", "yeoni", "neo"\]/);
   assert.match(client, /usage\.dailyFreeRemaining/);
   assert.match(client, /무료 상담/);
+});
+
+test("both personas render from their own expression sheet", () => {
+  // 아바타는 장식이 아니라 누가 답하는지를 알려주는 신호다. 두 시트가 모두 걸려 있어야
+  // 네오로 바꿔도 꽃돼지가 남아 있는 사고가 나지 않는다.
+  const sprite = read("app/fortune-chat/personaSprite.ts");
+
+  assert.match(sprite, /pig-expressions\.webp/);
+  assert.match(sprite, /neo-strategy-sheet\.webp/);
+  // 두 시트 모두 public 에 있어야 한다. R2 직결은 핫링크 보호로 로컬에서 403 이 난다.
+  for (const sheet of ["public/images/novel/pig-expressions.webp", "public/images/novel/neo-strategy-sheet.webp"]) {
+    assert.ok(fs.existsSync(path.join(root, sheet)), `missing sprite sheet: ${sheet}`);
+  }
+  // 백사자 시트는 정확한 4등분이 아니라 손으로 맞춘 좌표다. 등분 계산으로 대체하면 얼굴이 잘린다.
+  assert.match(sprite, /2\.306% 97\.065%/);
+  assert.match(sprite, /PERSONA_SPRITE_SIZE = "400% 400%"/);
+
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+  assert.match(client, /PersonaAvatar/);
+  assert.match(client, /persona=\{character\}/);
+});
+
+test("the chat surface themes from design tokens, not a private palette", () => {
+  const css = read("app/fortune-chat/fortune-chat.module.css");
+
+  // 색은 styles/theme-tokens.css 에서 온다. 여기서 팔레트를 다시 정의하면 드리프트다.
+  assert.match(css, /--ink: var\(--cd-text/);
+  assert.match(css, /--rose: var\(--cd-accent/);
+  // 네오는 표면·텍스트·강조색을 한 세트로 바꾼다(반쪽 오버라이드 금지).
+  assert.match(css, /\.room\[data-character="neo"\]/);
+  // grid 열을 못 박지 않으면 암묵 열이 max-content 라 모바일에서 가로로 밀린다.
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\)/);
+  // 한국어 제목은 어절 중간에서 끊으면 안 된다.
+  assert.match(css, /word-break: keep-all/);
 });
 
 test("flower pig chat hands an existing session to the real Fusion Fortune route", () => {
