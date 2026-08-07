@@ -31,6 +31,28 @@ const registry = read('worker/lib/paid-feature-registry.js');
 // ── 2. 격리 계약 ──
 assert.match(source, /\(function initPastLifeFaceApp\(\)\s*\{/, 'PastLifeFaceUI 는 IIFE 로 감싸야 한다 (PhysiognomyUI 와 최상위 식별자 충돌 방지)');
 
+// ── 2-1. 얼굴 감지 계약 (2026-08-08 NO_FACE_FOUND 장애) ──
+// 관상은 카메라 모드가 매 프레임 send() 를 돌려 그래프를 데우지만, 전생은 업로드 전용이라
+// 첫 추론이 cold graph 로 들어가 프레임째 버려졌다. 예열 + 콜백 resolve + 1회 재시도가 그 방어다.
+assert.match(source, /plfFaceMesh\.onResults\(function \(results\) \{[\s\S]{0,240}?resolve\(/, '랜드마크는 onResults 콜백에서 resolve 해야 한다 — send() resolve 뒤 공유 변수를 읽으면 콜백 순서가 뒤집힐 때 빈 값을 읽는다');
+assert.match(source, /async function plfWarmUpFaceMesh\(\)/, 'cold graph 첫 프레임 유실을 막는 예열 함수가 있어야 한다');
+assert.match(source, /await plfWarmUpFaceMesh\(\);/, '엔진 기동 직후 예열을 실행해야 한다');
+assert.doesNotMatch(source, /\bplfLandmarks\b/, '공유 변수 기반 랜드마크 전달은 제거되어야 한다 (경쟁 조건의 원인)');
+assert.match(source, /if \(!landmarks\) \{[\s\S]{0,400}?plfResetFaceMeshRuntime\(\)/, '첫 추론이 비면 런타임을 리셋하고 1회 재시도해야 한다');
+
+// ── 2-2. UI 구조 계약 (관상의 고급 장치 이식) ──
+assert.match(source, /class="plf-dossier plf-reveal-item"/, '결과 상단에 도시에 메타 슬랩이 있어야 한다');
+assert.match(source, /PAST LIFE DOSSIER/, '도시에 킥커가 있어야 한다');
+assert.match(source, /<details class="plf-chapter plf-reveal-item" id="plfChapter-/, '장(章)은 details 아코디언이어야 한다');
+assert.match(source, /plf-chapter__index/, '장 번호 뱃지가 있어야 한다');
+assert.match(source, /function plfBindChapterNav\(chapters\)/, '칩 네비 ↔ 아코디언 연동 배선이 있어야 한다');
+assert.match(source, /details\.addEventListener\('toggle'/, '아코디언을 직접 펼쳐도 칩이 따라오는 역방향 연동이 있어야 한다');
+assert.match(source, /function plfShowPreviewSkeleton\(show\)/, '사진 디코드 전 shimmer 스켈레톤이 있어야 한다');
+assert.match(source, /plfLongWaitTimer = setTimeout/, '30초 지연 안내가 있어야 한다');
+assert.match(source, /plfVeryLongWaitTimer = setTimeout/, '60초 지연 안내 + 재시도 노출이 있어야 한다');
+// 모션은 기본 노출을 해치면 안 된다 — 전환이 안 뛰면 콘텐츠가 빈 채로 남는다.
+assert.match(source, /@media \(prefers-reduced-motion: no-preference\)\{/, '등장 애니메이션은 모션 허용 환경에서만 얹어야 한다');
+
 // ── 3. 결제 계약: 궁합은 유료로 남는다 ──
 assert.match(registry, /"physiognomy-pastlife-compatibility":\s*\{\s*cost:\s*50/, '전생 궁합 가격표 등록(50코인=5,000원)');
 assert.match(registry, /PER_USE_PAID_FEATURE_KEY_LIST[\s\S]*?"physiognomy-pastlife-compatibility"/, '전생 궁합 회당결제 목록 등록');
@@ -112,6 +134,32 @@ for (const marker of [
   assert.ok(revealText.includes(marker), `리딩 섹션 누락: ${marker}`);
 }
 assert.ok(window.document.getElementById('plfCompatBtn'), '전생 인연 궁합 CTA 가 렌더되어야 함');
+
+// 6-2b. 도시에 슬랩 + 6장 아코디언 + 칩 네비가 실제로 붙는가
+assert.ok(window.document.querySelector('.plf-dossier'), '도시에 메타 슬랩이 렌더되어야 함');
+const chapterNodes = window.document.querySelectorAll('.plf-chapter');
+assert.equal(chapterNodes.length, 6, `장(章)은 6개여야 함 (실제 ${chapterNodes.length})`);
+const chipNodes = window.document.querySelectorAll('.plf-chip');
+assert.equal(chipNodes.length, 6, `칩은 장 수와 같아야 함 (실제 ${chipNodes.length})`);
+assert.equal(
+  Array.prototype.filter.call(chapterNodes, (node) => node.open).length,
+  3,
+  '앞 3장은 기본으로 펼쳐져 있어야 함',
+);
+assert.equal(chipNodes[0].getAttribute('aria-pressed'), 'true', '첫 칩이 활성 상태여야 함');
+
+// 6-2c. 칩 클릭 → 해당 장이 열리고 칩이 활성화되는가 (양방향 연동)
+const lastChapter = chapterNodes[5];
+assert.equal(lastChapter.open, false, '마지막 장은 접혀 있어야 함');
+chipNodes[5].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+assert.equal(lastChapter.open, true, '칩을 누르면 해당 장이 열려야 함');
+assert.equal(chipNodes[5].getAttribute('aria-pressed'), 'true', '누른 칩이 활성화되어야 함');
+assert.equal(chipNodes[0].getAttribute('aria-pressed'), 'false', '이전 활성 칩은 해제되어야 함');
+
+// 역방향: 아코디언을 직접 열면 칩이 따라온다
+chapterNodes[4].open = true;
+chapterNodes[4].dispatchEvent(new window.Event('toggle'));
+assert.equal(chipNodes[4].getAttribute('aria-pressed'), 'true', '장을 직접 펼치면 칩이 따라와야 함');
 
 // 6-3. 27종 × 3 얼굴형이 전부 서로 다른 리딩을 내는가
 const seen = new Map();

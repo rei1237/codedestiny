@@ -46,5 +46,10 @@ jobs:
       - name: Verify sitemap integrity
         run: npm run verify:sitemap
 
+      # 루트 bare 자산(AnalysisEngine.js 등)의 내용이 바뀌었는데 ?v= 가 안 따라가면
+      # 엣지가 최대 7일 동안 옛 파일을 서빙한다 (2026-08-08 전생 관상 장애).
+      - name: Verify static asset cache keys
+        run: npm run verify:static-asset-cache-keys
+
       - name: Build Pages output
         run: npm run build:cf

@@ -1,4 +1,4 @@
-﻿// ============================================
+// ============================================
 // Face Analysis UI Controller (Vanilla JS)
 // 초상권 안내 문구 추가 & 동물 뱃지 미출력 오류 수정
 // 초정밀 안면 / 귀 관상 분석 프롬프트 고도화 적용
@@ -1900,7 +1900,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
     if (typeof window.openPastLifeFaceApp !== 'function') {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'PastLifeFaceUI.js?v=20260807-past-life';
+        script.src = 'PastLifeFaceUI.js?v=h1fcc61afe99b';
         script.onload = resolve;
         script.onerror = () => reject(new Error('PAST_LIFE_SCRIPT_LOAD_FAILED'));
         document.head.appendChild(script);

@@ -5,6 +5,11 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve, join } from "node:path";
+import {
+  ROOT_ASSET_REF_FILES,
+  computeRootAssetCacheKeys,
+  rewriteRootAssetCacheRefs,
+} from "./lib/root-asset-cache-keys.mjs";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
@@ -927,6 +932,42 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     }
   }
 }
+
+/**
+ * 루트 bare 자산(AnalysisEngine.js 등)의 ?v= 를 파일 내용 해시로 맞춘다.
+ *
+ * 🔴 반드시 다른 모든 캐시버스트 **뒤에** 돌아야 한다. 위쪽의 무차별 치환
+ * (`replace(/\?v=[a-zA-Z0-9_-]+/g, buildTimestamp)`)이 index-inline-runtime.js 의
+ * `/HwatuFortune.js?v=` 까지 덮어쓰기 때문에, 먼저 돌면 그 값이 되돌아간다.
+ *
+ * 이 자산들은 디렉터리 없는 bare 파일명이라 위의 `\/js\/`·`js\/` 정규식에
+ * 구조적으로 안 걸린다 — 그게 2026-08-08 전생 관상 장애의 원인이었다.
+ */
+function syncRootAssetCacheKeys() {
+  const keys = computeRootAssetCacheKeys(rootDir);
+  const assetNames = Object.keys(keys);
+  if (!assetNames.length) return;
+
+  const touched = [];
+  for (const relPath of ROOT_ASSET_REF_FILES) {
+    const abs = resolve(rootDir, relPath);
+    if (!existsSync(abs)) continue;
+    const current = stripLeadingBom(readFileSync(abs)).toString("utf8");
+    const next = rewriteRootAssetCacheRefs(current, keys);
+    if (next === current) continue;
+    writeFileSyncWithRetry(abs, Buffer.from(next, "utf8"));
+    touched.push(relPath);
+  }
+
+  console.log(
+    `[sync-legacy-static-to-public] Root asset cache keys: ${assetNames.map((n) => `${n}=${keys[n]}`).join(", ")}`,
+  );
+  if (touched.length) {
+    console.log(`[sync-legacy-static-to-public] Rewrote root asset refs in ${touched.length} file(s): ${touched.join(", ")}`);
+  }
+}
+
+syncRootAssetCacheKeys();
 
 sanitizePublicGoogleFontReferences(publicDir);
 

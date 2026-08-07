@@ -47,11 +47,11 @@
   // ── 상태 ──
   let plfFaceMesh = null;
   let plfMediaPipeReady = null;
-  let plfLandmarks = null;
   let plfUploadToken = 0;
-  let plfActiveLandmarkToken = 0;
   let plfBusy = false;
   let plfScanTimer = null;
+  let plfLongWaitTimer = null;
+  let plfVeryLongWaitTimer = null;
   let plfScanStep = 0;
   let plfSelfResult = null;    // 나(또는 관상에서 넘어온 시드)의 analyze() 결과
   let plfPartnerResult = null; // 궁합 상대
@@ -290,9 +290,15 @@
     '.plf-preview__img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;}',
     '.plf-preview__beam{position:absolute;left:0;right:0;height:26%;pointer-events:none;',
     '  background:linear-gradient(180deg,rgba(232,213,163,0) 0%,rgba(232,213,163,.3) 50%,rgba(232,213,163,0) 100%);}',
+    // 사진이 디코드되기 전까지 도는 shimmer. 빈 상자 대신 "작업 중"을 보여준다.
+    '.plf-preview__skeleton{position:absolute;inset:0;z-index:2;',
+    '  background:radial-gradient(circle at 30% 30%,rgba(196,181,253,.18),rgba(10,8,24,.9));overflow:hidden;}',
+    '.plf-preview__skeleton::before{content:"";position:absolute;inset:0;',
+    '  background:linear-gradient(110deg,transparent,rgba(244,238,255,.16) 45%,transparent);}',
     '.plf-status{padding:16px 18px 18px;text-align:center;}',
+    // min-height 로 문구가 교체될 때 레이아웃이 점프하지 않게 한다.
     '.plf-status__step{margin:0;font-size:.98rem;font-weight:700;line-height:1.6;color:var(--plf-text);min-height:1.6em;}',
-    '.plf-status__sub{margin:6px 0 0;font-size:.84rem;line-height:1.65;color:var(--plf-muted);}',
+    '.plf-status__sub{margin:6px 0 0;font-size:.84rem;line-height:1.65;color:var(--plf-muted);min-height:1.65em;}',
     '.plf-status--error .plf-status__step{color:#ffc9dd;}',
 
     // ③ 개봉 — 전생 카드
@@ -318,10 +324,44 @@
     '.plf-gauge__fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--plf-accent-soft),var(--plf-gold));}',
     '.plf-gauge__note{margin:8px 0 0;font-size:.79rem;line-height:1.62;color:var(--plf-muted);}',
 
-    // 섹션
-    '.plf-sections{margin:20px 0 0;display:grid;gap:12px;}',
-    '.plf-section{border:1px solid var(--plf-border);border-radius:16px;padding:17px 18px;background:var(--plf-surface);}',
-    '.plf-section__title{margin:0;font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:var(--plf-gold);}',
+    // 도시에(dossier) 슬랩 — 표면 안에 한 단계 다른 톤을 박아 명도 대비로 깊이를 만든다.
+    // 관상의 .phy-result-meta 와 같은 장치이고, 상단 inset 광택 라인은 --cd-shadow 네오 값의 기법이다.
+    '.plf-dossier{margin:16px 0 0;border:1px solid var(--plf-border-strong);border-radius:16px;padding:15px 17px 14px;',
+    '  background:linear-gradient(132deg,rgba(24,19,52,.96) 0%,rgba(38,30,74,.92) 54%,rgba(20,16,44,.96) 100%);',
+    '  box-shadow:0 10px 28px rgba(6,4,18,.42),inset 0 1px 0 rgba(228,214,255,.12);}',
+    // 킥커는 화면 전체에서 단 하나. 섹션마다 반복하는 eyebrow 는 쓰지 않는다.
+    '.plf-dossier__kicker{margin:0;font-family:var(--font-serif,var(--font-display,serif));font-size:.68rem;',
+    '  font-weight:700;letter-spacing:.14em;color:var(--plf-gold);}',
+    '.plf-dossier__title{margin:7px 0 0;font-size:1.04rem;font-weight:900;line-height:1.36;color:var(--plf-text);',
+    '  letter-spacing:-.012em;text-wrap:balance;}',
+    '.plf-dossier__summary{margin:6px 0 0;font-size:.82rem;line-height:1.6;color:var(--plf-muted);}',
+
+    // 칩 네비 — 달빛 다크에서 유일한 온색 앵커는 샴페인 골드가 맡는다.
+    // 강조색(트와일라잇 바이올렛)은 하나로 유지된다(One Accent Rule).
+    '.plf-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0;}',
+    '.plf-chip{border:1px solid var(--plf-border-strong);background:rgba(255,255,255,.05);color:var(--plf-text);',
+    '  border-radius:999px;padding:6px 12px;font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer;',
+    '  min-height:32px;transition:background .2s ease-out,color .2s ease-out,border-color .2s ease-out;}',
+    '.plf-chip:hover{background:rgba(196,181,253,.16);}',
+    '.plf-chip:focus-visible{outline:2px solid var(--plf-accent);outline-offset:2px;}',
+    '.plf-chip.is-active{background:linear-gradient(135deg,var(--plf-gold),#f2e6c4);color:#0a0818;',
+    '  border-color:var(--plf-gold);box-shadow:0 6px 16px rgba(232,213,163,.26);}',
+
+    // 장(章) 아코디언 — 화살표 마커 대신 우측 hint 텍스트가 상태 어포던스를 맡는다.
+    '.plf-chapters{margin:16px 0 0;display:grid;gap:11px;}',
+    '.plf-chapter{border:1px solid var(--plf-border);border-radius:16px;background:var(--plf-surface);',
+    '  overflow:hidden;box-shadow:0 8px 20px rgba(6,4,18,.26);}',
+    '.plf-chapter[open]{border-color:var(--plf-border-strong);box-shadow:0 12px 28px rgba(6,4,18,.34);}',
+    '.plf-chapter__summary{display:flex;align-items:center;justify-content:space-between;gap:10px;',
+    '  padding:13px 15px;cursor:pointer;list-style:none;background:var(--plf-surface-2);min-height:44px;}',
+    '.plf-chapter__summary::-webkit-details-marker{display:none;}',
+    '.plf-chapter__summary:focus-visible{outline:2px solid var(--plf-accent);outline-offset:-2px;}',
+    '.plf-chapter__head{display:flex;align-items:center;gap:10px;min-width:0;}',
+    '.plf-chapter__index{flex:none;width:20px;height:20px;border-radius:999px;display:grid;place-items:center;',
+    '  font-size:.66rem;font-weight:900;color:#0a0818;background:linear-gradient(135deg,var(--plf-gold),#d8bd7d);}',
+    '.plf-chapter__title{font-size:.93rem;font-weight:800;color:var(--plf-text);letter-spacing:-.01em;}',
+    '.plf-chapter__hint{flex:none;font-size:.72rem;font-weight:700;color:var(--plf-muted);white-space:nowrap;}',
+    '.plf-chapter__body{padding:3px 15px 15px;}',
     '.plf-section__body{margin:9px 0 0;font-size:.94rem;line-height:1.82;color:var(--plf-text);text-wrap:pretty;}',
     '.plf-section__body + .plf-section__body{margin-top:10px;color:var(--plf-muted);}',
     '.plf-signs{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:9px;}',
@@ -361,10 +401,12 @@
     '  .plf-card__inner{animation:plfFlip .78s cubic-bezier(.22,1,.36,1) both;}',
     '  .plf-reveal-item{animation:plfRise .5s cubic-bezier(.22,1,.36,1) both;}',
     '  .plf-preview__beam{animation:plfBeam 2.1s cubic-bezier(.45,0,.55,1) infinite;}',
+    '  .plf-preview__skeleton::before{animation:plfShimmer 1.1s linear infinite;}',
     '}',
     '@keyframes plfFlip{from{transform:rotateY(-92deg);opacity:0;}60%{opacity:1;}to{transform:rotateY(0);opacity:1;}}',
     '@keyframes plfRise{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}',
-    '@keyframes plfBeam{0%{top:-26%;}100%{top:100%;}}'
+    '@keyframes plfBeam{0%{top:-26%;}100%{top:100%;}}',
+    '@keyframes plfShimmer{from{transform:translateX(-38%);}to{transform:translateX(38%);}}'
   ].join('\n');
 
   function plfEnsureStyles() {
@@ -540,20 +582,64 @@
     return image;
   }
 
+  /** 사진이 디코드될 때까지 도는 shimmer. 빈 상자 대신 "작업 중"을 보여준다. */
+  function plfShowPreviewSkeleton(show) {
+    const host = plfEl('plfPreview');
+    if (!host) return;
+    let skeleton = plfEl('plfPreviewSkeleton');
+    if (!show) {
+      if (skeleton) skeleton.remove();
+      return;
+    }
+    if (skeleton) return;
+    skeleton = document.createElement('div');
+    skeleton.className = 'plf-preview__skeleton';
+    skeleton.id = 'plfPreviewSkeleton';
+    skeleton.setAttribute('aria-hidden', 'true');
+    host.appendChild(skeleton);
+  }
+
+  const PLF_SCAN_SUB = '이 과정은 모두 기기 안에서 처리됩니다.';
+
+  /**
+   * 스캔 문구 순환 + 지연 안내.
+   * 관상의 startAnalysisStepFlow 와 같은 체감 시간 관리다 — 30초/60초를 넘기면
+   * 사용자가 "멈춘 건가"를 묻기 전에 먼저 상태를 알리고 재시도 경로를 연다.
+   */
   function plfStartScanTicker() {
     plfStopScanTicker();
     plfScanStep = 0;
-    plfSetStatus(PLF_SCAN_STEPS[0], '이 과정은 모두 기기 안에서 처리됩니다.');
+    plfSetStatus(PLF_SCAN_STEPS[0], PLF_SCAN_SUB);
     plfScanTimer = setInterval(function () {
       plfScanStep = Math.min(plfScanStep + 1, PLF_SCAN_STEPS.length - 1);
-      plfSetStatus(PLF_SCAN_STEPS[plfScanStep], '이 과정은 모두 기기 안에서 처리됩니다.');
+      plfSetStatus(PLF_SCAN_STEPS[plfScanStep], PLF_SCAN_SUB);
     }, 1400);
+
+    plfLongWaitTimer = setTimeout(function () {
+      const sub = plfEl('plfStatusSub');
+      if (sub) sub.textContent = '조금 더 깊은 층까지 내려가는 중입니다. 곧 문이 열립니다.';
+    }, 30000);
+
+    plfVeryLongWaitTimer = setTimeout(function () {
+      const sub = plfEl('plfStatusSub');
+      if (sub) sub.textContent = '예상보다 오래 걸리고 있습니다. 다른 사진으로 다시 시도해 보셔도 좋습니다.';
+      const retry = plfEl('plfScanRetryBtn');
+      if (retry) retry.style.display = 'block';
+    }, 60000);
   }
 
   function plfStopScanTicker() {
     if (plfScanTimer) {
       clearInterval(plfScanTimer);
       plfScanTimer = null;
+    }
+    if (plfLongWaitTimer) {
+      clearTimeout(plfLongWaitTimer);
+      plfLongWaitTimer = null;
+    }
+    if (plfVeryLongWaitTimer) {
+      clearTimeout(plfVeryLongWaitTimer);
+      plfVeryLongWaitTimer = null;
     }
   }
 
@@ -612,9 +698,44 @@
     _plfFaceMeshAssetBase = String(faceMeshSrc || '').replace(/\/face_mesh\.js(?:\?.*)?$/, '') || _plfFaceMeshAssetBase;
   }
 
-  function plfOnResults(results) {
-    if (plfActiveLandmarkToken !== plfUploadToken) return;
-    plfLandmarks = (results && results.multiFaceLandmarks && results.multiFaceLandmarks[0]) || null;
+  /**
+   * 이미지 한 장에서 얼굴 랜드마크를 뽑는다.
+   *
+   * 🔴 `send()` 의 resolve 를 기다린 뒤 공유 변수를 읽으면 안 된다 — 콜백 순서가
+   * 뒤집히면 빈 값을 읽고 "얼굴 없음"으로 오판한다. 반드시 `onResults` 콜백에서
+   * resolve 한다. 같은 계약이 app/palm-reading/palm-hand-landmarks.ts 에 이미 있다.
+   */
+  function plfDetectLandmarks(imageEl, timeoutMs) {
+    return plfWithTimeout(new Promise(function (resolve, reject) {
+      plfFaceMesh.onResults(function (results) {
+        resolve((results && results.multiFaceLandmarks && results.multiFaceLandmarks[0]) || null);
+      });
+      Promise.resolve(plfFaceMesh.send({ image: imageEl })).catch(reject);
+    }), timeoutMs, 'LANDMARK_TIMEOUT');
+  }
+
+  /**
+   * 그래프 예열.
+   *
+   * 관상(PhysiognomyUI)은 모달을 열면 카메라 모드가 매 프레임 send() 를 돌려 그래프가
+   * 늘 데워져 있다. 전생 관상은 업로드 전용이라 사용자의 **첫 사진이 cold graph 로
+   * 들어가 프레임째 버려진다**(= NO_FACE_FOUND). 빈 캔버스를 한 번 통과시켜 그 비용을
+   * 사용자가 아니라 모달 진입 시점이 내게 한다. 실패해도 본 분석에 영향이 없으므로 무시.
+   */
+  async function plfWarmUpFaceMesh() {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      await plfDetectLandmarks(canvas, 10000);
+    } catch (err) {
+      console.warn('[past-life] 얼굴 인식 예열 실패(무시):', err);
+    }
   }
 
   async function plfStartFaceMesh() {
@@ -628,8 +749,8 @@
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5
     });
-    instance.onResults(plfOnResults);
     plfFaceMesh = instance;
+    await plfWarmUpFaceMesh();
   }
 
   function plfResetFaceMeshRuntime() {
@@ -639,7 +760,6 @@
       console.warn('[past-life] FaceMesh 정리 실패(무시):', err);
     }
     plfFaceMesh = null;
-    plfLandmarks = null;
     plfMediaPipeReady = null;
   }
 
@@ -818,17 +938,150 @@
     ].join('');
   }
 
-  function plfSectionHtml(title, bodies) {
+  function plfParagraphsHtml(bodies) {
+    return (bodies || [])
+      .filter(Boolean)
+      .map(function (text) { return '<p class="plf-section__body">' + plfEscape(text) + '</p>'; })
+      .join('');
+  }
+
+  function plfTalismanHtml(talisman) {
+    const cell = function (key, value) {
+      return '<div class="plf-talisman__cell"><span><span class="plf-talisman__k">' + plfEscape(key) +
+        '</span><span class="plf-talisman__v">' + plfEscape(value) + '</span></span></div>';
+    };
     return [
-      '<article class="plf-section plf-reveal-item">',
-      '  <h3 class="plf-section__title">' + plfEscape(title) + '</h3>',
-      bodies.map(function (text) { return '  <p class="plf-section__body">' + plfEscape(text) + '</p>'; }).join(''),
-      '</article>'
+      '<div class="plf-talisman__grid">',
+      '  <div class="plf-talisman__cell">',
+      '    <span class="plf-talisman__swatch" style="background:' + plfEscape(talisman.swatch) + '" aria-hidden="true"></span>',
+      '    <span><span class="plf-talisman__k">색</span><span class="plf-talisman__v">' + plfEscape(talisman.color) + '</span></span>',
+      '  </div>',
+      cell('숫자', String(talisman.number)),
+      cell('방향', talisman.direction),
+      cell('시각', talisman.hour),
+      cell('곁에 둘 것', talisman.item),
+      '</div>'
     ].join('');
   }
 
+  /** 리딩을 장(章) 단위로 쪼갠다. 칩 네비와 아코디언이 같은 배열을 공유한다. */
+  function plfBuildChapters(reading) {
+    return [
+      {
+        title: '전생의 자리',
+        body: plfParagraphsHtml([
+          reading.dominantText + '.',
+          reading.faceSeal + ' — 그 기운이 지금 얼굴에 그대로 남아 있습니다.'
+        ])
+      },
+      {
+        title: '업(業)으로 남은 것',
+        body: plfParagraphsHtml([reading.karma + '입니다.', reading.relationEcho])
+      },
+      {
+        title: '미완의 약속',
+        body: plfParagraphsHtml([reading.vow, '이번 생에서 반복되는 어떤 장면은, 그 약속을 다시 꺼내려는 신호입니다.'])
+      },
+      {
+        title: '전생이 스치는 순간',
+        body: '<ul class="plf-signs">' +
+          reading.signs.map(function (sign) { return '<li>' + plfEscape(sign) + '</li>'; }).join('') +
+          '</ul>'
+      },
+      {
+        title: '이번 생의 과제',
+        body: plfParagraphsHtml(['당신의 과제는 ' + reading.lesson + '입니다.', reading.wealthEcho, reading.closing])
+      },
+      {
+        title: '전생이 남긴 부적',
+        body: plfTalismanHtml(reading.talisman)
+      }
+    ];
+  }
+
+  /**
+   * 장 카드. 화살표 마커를 없애고 우측 hint 텍스트로 열림 상태를 알린다(관상과 같은 어포던스).
+   * 앞 3장은 기본으로 펼쳐 첫 화면에서 읽을 것이 바로 보이게 한다.
+   */
+  function plfChapterHtml(chapter, index) {
+    const isOpen = index < 3;
+    return [
+      '<details class="plf-chapter plf-reveal-item" id="plfChapter-' + index + '"' + (isOpen ? ' open' : '') + '>',
+      '  <summary class="plf-chapter__summary">',
+      '    <span class="plf-chapter__head">',
+      '      <span class="plf-chapter__index" aria-hidden="true">' + (index + 1) + '</span>',
+      '      <span class="plf-chapter__title">' + plfEscape(chapter.title) + '</span>',
+      '    </span>',
+      '    <span class="plf-chapter__hint">' + (isOpen ? '핵심' : '자세히 보기') + '</span>',
+      '  </summary>',
+      '  <div class="plf-chapter__body">' + chapter.body + '</div>',
+      '</details>'
+    ].join('');
+  }
+
+  function plfDossierHtml(kicker, title, summaryParts) {
+    return [
+      '<div class="plf-dossier plf-reveal-item">',
+      '  <p class="plf-dossier__kicker">' + plfEscape(kicker) + '</p>',
+      '  <p class="plf-dossier__title">' + plfEscape(title) + '</p>',
+      '  <p class="plf-dossier__summary">' + plfEscape(summaryParts.filter(Boolean).join(' · ')) + '</p>',
+      '  <div class="plf-chips" id="plfChips"></div>',
+      '</div>'
+    ].join('');
+  }
+
+  function plfChaptersHtml(chapters) {
+    return '<div class="plf-chapters">' + chapters.map(plfChapterHtml).join('') + '</div>';
+  }
+
+  function plfSetActiveChip(index) {
+    const nav = plfEl('plfChips');
+    if (!nav) return;
+    Array.prototype.forEach.call(nav.querySelectorAll('.plf-chip'), function (chip, i) {
+      const active = i === index;
+      chip.classList.toggle('is-active', active);
+      chip.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  /** 칩 ↔ 아코디언 양방향 연동. 직접 펼쳐도 칩이 따라온다. */
+  function plfBindChapterNav(chapters) {
+    const nav = plfEl('plfChips');
+    if (!nav) return;
+    nav.innerHTML = '';
+
+    chapters.forEach(function (chapter, index) {
+      const details = plfEl('plfChapter-' + index);
+      if (!details) return;
+
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'plf-chip';
+      chip.textContent = chapter.title;
+      chip.setAttribute('aria-pressed', 'false');
+      chip.addEventListener('click', function () {
+        // 상태 반영을 먼저 끝낸다 — scrollIntoView 는 구현이 없는 환경(jsdom·구형 웹뷰)에서
+        // 던질 수 있고, 그러면 뒤에 있던 활성 칩 갱신이 통째로 날아간다.
+        details.open = true;
+        plfSetActiveChip(index);
+        try {
+          details.scrollIntoView({ behavior: plfPrefersReducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
+        } catch (err) {
+          /* 스크롤 이동은 부가 기능이라 실패해도 진행한다 */
+        }
+      });
+      nav.appendChild(chip);
+
+      details.addEventListener('toggle', function () {
+        if (details.open) plfSetActiveChip(index);
+      });
+    });
+
+    plfSetActiveChip(0);
+  }
+
   function plfRenderReading(reading) {
-    const talisman = reading.talisman;
+    const chapters = plfBuildChapters(reading);
     const html = [
       '<div class="plf-card">',
       '  <div class="plf-card__inner">',
@@ -839,6 +1092,13 @@
       '  </div>',
       '</div>',
 
+      plfDossierHtml('PAST LIFE DOSSIER', reading.emoji + ' ' + reading.animalName + '에 남은 전생의 문장', [
+        chapters.length + '장(章) 리딩',
+        '전생 기억 ' + reading.memory,
+        '이번 생 숙제 ' + reading.progress,
+        reading.shapeName
+      ]),
+
       '<div class="plf-gauges">',
       plfGaugeHtml('전생 기억의 선명도', reading.memory,
         reading.memory >= 78 ? '흐릿한 기시감이 자주 올라오는 편입니다.' : '평소엔 잠잠하다가 특정 순간에만 열립니다.'),
@@ -846,39 +1106,12 @@
         reading.progress >= 70 ? '이미 절반 이상 풀어 놓았습니다.' : '아직 본격적으로 손대지 않은 구간이 남아 있습니다.'),
       '</div>',
 
-      '<div class="plf-sections">',
-      plfSectionHtml('전생의 자리', [reading.dominantText + '.', reading.faceSeal + ' — 그 기운이 지금 얼굴에 그대로 남아 있습니다.']),
-      plfSectionHtml('업(業)으로 남은 것', [reading.karma + '입니다.', reading.relationEcho]),
-      plfSectionHtml('미완의 약속', [reading.vow, '이번 생에서 반복되는 어떤 장면은, 그 약속을 다시 꺼내려는 신호입니다.']),
-
-      '<article class="plf-section plf-reveal-item">',
-      '  <h3 class="plf-section__title">전생이 스치는 순간</h3>',
-      '  <ul class="plf-signs">',
-      reading.signs.map(function (sign) { return '<li>' + plfEscape(sign) + '</li>'; }).join(''),
-      '  </ul>',
-      '</article>',
-
-      plfSectionHtml('이번 생의 과제', ['당신의 과제는 ' + reading.lesson + '입니다.', reading.wealthEcho, reading.closing]),
-      '</div>',
-
-      '<div class="plf-talisman plf-reveal-item">',
-      '  <h3 class="plf-talisman__title">전생이 남긴 부적</h3>',
-      '  <div class="plf-talisman__grid">',
-      '    <div class="plf-talisman__cell">',
-      '      <span class="plf-talisman__swatch" style="background:' + plfEscape(talisman.swatch) + '" aria-hidden="true"></span>',
-      '      <span><span class="plf-talisman__k">색</span><span class="plf-talisman__v">' + plfEscape(talisman.color) + '</span></span>',
-      '    </div>',
-      '    <div class="plf-talisman__cell"><span><span class="plf-talisman__k">숫자</span><span class="plf-talisman__v">' + talisman.number + '</span></span></div>',
-      '    <div class="plf-talisman__cell"><span><span class="plf-talisman__k">방향</span><span class="plf-talisman__v">' + plfEscape(talisman.direction) + '</span></span></div>',
-      '    <div class="plf-talisman__cell"><span><span class="plf-talisman__k">시각</span><span class="plf-talisman__v">' + plfEscape(talisman.hour) + '</span></span></div>',
-      '    <div class="plf-talisman__cell"><span><span class="plf-talisman__k">곁에 둘 것</span><span class="plf-talisman__v">' + plfEscape(talisman.item) + '</span></span></div>',
-      '  </div>',
-      '</div>',
-
+      plfChaptersHtml(chapters),
       plfCompatCtaHtml()
     ].join('');
 
     plfEl('plfRevealBody').innerHTML = html;
+    plfBindChapterNav(chapters);
     plfBindCompatCta();
     plfApplyStagger();
     plfShowStage('reveal');
@@ -913,6 +1146,10 @@
   }
 
   function plfRenderCompatResult(compat) {
+    const chapters = (compat.sections || [])
+      .map(function (section) { return { title: section.title, body: plfParagraphsHtml([section.body]) }; })
+      .concat([{ title: '이번 생의 관계 미션', body: plfParagraphsHtml([compat.closing]) }]);
+
     const html = [
       '<div class="plf-card">',
       '  <div class="plf-card__inner">',
@@ -927,21 +1164,24 @@
       '  </div>',
       '</div>',
 
+      plfDossierHtml('PAST LIFE BOND DOSSIER', compat.title, [
+        chapters.length + '장(章) 리딩',
+        '인연 지수 ' + Number(compat.score || 0),
+        compat.grade,
+        compat.relationType
+      ]),
+
       '<div class="plf-gauges">',
       (compat.metrics || []).map(function (metric) {
         return plfGaugeHtml(metric.label, Number(metric.value || 0), metric.text);
       }).join(''),
       '</div>',
 
-      '<div class="plf-sections">',
-      (compat.sections || []).map(function (section) {
-        return plfSectionHtml(section.title, [section.body]);
-      }).join(''),
-      plfSectionHtml('이번 생의 관계 미션', [compat.closing]),
-      '</div>'
+      plfChaptersHtml(chapters)
     ].join('');
 
     plfEl('plfRevealBody').innerHTML = html;
+    plfBindChapterNav(chapters);
     plfApplyStagger();
     plfShowStage('reveal');
   }
@@ -969,10 +1209,9 @@
     plfBusy = true;
     plfUploadToken += 1;
     const token = plfUploadToken;
-    plfActiveLandmarkToken = token;
-    plfLandmarks = null;
 
     plfShowStage('scan');
+    plfShowPreviewSkeleton(true);
     plfStartScanTicker();
 
     try {
@@ -987,6 +1226,7 @@
         preview.src = prepared.dataUrl;
       });
       if (token !== plfUploadToken) return;
+      plfShowPreviewSkeleton(false);
 
       const ready = await plfWithTimeout(plfEnsureFaceMesh(), 20000, 'ENGINE_TIMEOUT').catch(function (err) {
         console.error('[past-life] 얼굴 인식 엔진 준비 실패:', err);
@@ -1003,16 +1243,27 @@
       }
       if (token !== plfUploadToken) return;
 
-      if (typeof plfFaceMesh.reset === 'function') plfFaceMesh.reset();
       await plfWaitFrame();
-      await plfWithTimeout(plfFaceMesh.send({ image: plfImageEl }), 22000, 'LANDMARK_TIMEOUT');
+      let landmarks = await plfDetectLandmarks(preview, 22000);
       if (token !== plfUploadToken) return;
 
-      if (!plfLandmarks) throw new Error('NO_FACE_FOUND');
+      // 예열을 해도 첫 추론이 비는 기기가 있다. 런타임을 새로 올려 한 번만 더 본다.
+      // 그래도 비면 그때는 진짜로 얼굴이 없는 사진이다.
+      if (!landmarks) {
+        plfResetFaceMeshRuntime();
+        const retryReady = await plfWithTimeout(plfEnsureFaceMesh(), 20000, 'ENGINE_TIMEOUT').catch(function () { return false; });
+        if (token !== plfUploadToken) return;
+        if (retryReady) {
+          landmarks = await plfDetectLandmarks(preview, 22000);
+          if (token !== plfUploadToken) return;
+        }
+      }
+
+      if (!landmarks) throw new Error('NO_FACE_FOUND');
 
       const aspect = (prepared.width > 0 && prepared.height > 0) ? (prepared.width / prepared.height) : 1;
       const result = await plfWithTimeout(
-        window.faceAnalysisEngine.analyze(plfLandmarks, null, aspect),
+        window.faceAnalysisEngine.analyze(landmarks, null, aspect),
         45000,
         'ANALYSIS_TIMEOUT'
       );
@@ -1039,6 +1290,7 @@
       plfSetStatus(plfErrorTitle(code), plfErrorHint(code), true);
     } finally {
       plfBusy = false;
+      plfShowPreviewSkeleton(false);
     }
   }
 
@@ -1076,7 +1328,6 @@
     window._cdCoinGatePerUse(PLF_COMPAT_COIN_COST, '전생 관상 궁합 분석', function () {
       plfCompatMode = true;
       plfPartnerResult = null;
-      plfLandmarks = null;
       plfUploadToken += 1;
       plfSetGateCopy('compat');
       plfShowStage('gate');
@@ -1155,8 +1406,8 @@
 
   window.closePastLifeFaceApp = function closePastLifeFaceApp() {
     plfStopScanTicker();
+    plfShowPreviewSkeleton(false);
     plfUploadToken += 1;
-    plfActiveLandmarkToken = 0;
     plfBusy = false;
     const app = plfEl('pastlife-face-app');
     if (app) app.style.display = 'none';
