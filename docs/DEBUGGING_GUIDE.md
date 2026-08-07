@@ -18,7 +18,7 @@
 
 ## 배포가 preview 단계에서 멈추는 경우
 
-- 증상: `npm run deploy:preview` 가 checks 단계에서 종료되고 preview URL 이 생기지 않는다.
+- 증상: `npm run deploy:safe` 가 checks 단계에서 종료되고 preview URL 이 생기지 않는다.
 - 확인 순서: `npm run deploy:check` 로 무엇이 바뀌었고 risk·deep 판정이 무엇인지 먼저 본다. `deep=true` 면 `deploy:critical` 전체가 도는 중이라 시간이 오래 걸릴 뿐 실패가 아닐 수 있다.
 - 베이스가 낡아 막힌 경우: `assertWorkerBaseIsFresh` 가 사라질 커밋 목록과 함께 종료한다. `git merge origin/main` 후 재시도한다. `--allow-stale` 은 의도한 롤백에만 쓴다.
 - 잠금이 잡힌 경우: `Another deploy-safe process owns ...` 는 다른 워크트리·세션이 배포 중이라는 뜻이다. 그쪽이 끝날 때까지 기다린다. 프로세스가 죽어 잠금만 남았다면 주 워크트리의 `.deploy-state/active.lock` 을 확인하고 지운다.
@@ -128,7 +128,7 @@
 - 증상: Cloudflare 자격 증명과 배포 정책 검사는 통과하지만 `changed-file lint`에서 `ESLint found too many warnings (maximum: 0)`으로 종료되고 preview URL이 생성되지 않는다.
 - 원인: 린트 경고를 배포 오류로 승격하는 `--max-warnings=0`이 기존 CommonJS 또는 레거시 정적 JS 경고까지 운영 차단으로 처리한다.
 - 안전한 해소: 배포 게이트는 ESLint `--quiet`으로 실제 오류만 차단한다. 타입 검사, mock 결제·인증 게이트, 전체 회귀 테스트, Worker dry-run과 preview smoke는 그대로 유지한다.
-- 검증: `npm run verify:deploy-safe`, `npm run deploy:critical`, `npm test` 를 통과시킨 뒤 `npm run deploy:preview` 로 재확인한다. 실패한 배포를 `deploy:cf:worker` 같은 수동 명령으로 우회하지 않는다 — 그 경로에는 아티팩트 지문 대조도 자동 롤백도 없다.
+- 검증: `npm run verify:deploy-safe`, `npm run deploy:critical`, `npm test` 를 통과시킨 뒤 `npm run deploy:safe` 로 재확인한다. 실패한 배포를 `deploy:cf:worker` 같은 수동 명령으로 우회하지 않는다 — 그 경로에는 아티팩트 지문 대조도 자동 롤백도 없다.
 
 ## Pages preview 업로드 후 배포 목록 조회가 400으로 중단됨
 

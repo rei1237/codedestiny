@@ -20,7 +20,8 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Delivery Policy
 
-- Active rule: work on `main` directly. Ship with `npm run deploy:preview`, let the user inspect the preview, then `npm run deploy:production`. Pushing to `main` deploys nothing.
+- Active rule: work on `main` directly. Ship with `npm run deploy:safe` — it previews, opens the browser, waits at a `[y/N]` prompt while the user inspects, then promotes. Pushing to `main` deploys nothing.
+- Active rule: a preview is created only as part of a real release. `deploy:check` is the no-upload inspection.
 - Active rule: production promotion needs explicit user approval for that exact run. Preview does not.
 - Enforcement: `scripts/deploy-safe.mjs` (artifact fingerprint, shared lock, auto-rollback), `scripts/lib/change-risk.mjs` (`deepRequired` forces the full regression on auth/payment/DB/pipeline paths), `scripts/lib/worker-deploy-base-guard.mjs` (stale-base block), `scripts/verify-worker-single-deploy-guard.mjs` (no second deploy path).
 - **2026-08-08 — PR-first policy retired.** The branch → PR → review → merge → deploy chain was removed for a single-developer repository: it cost time and agent tokens without preventing regressions, and `main` never had branch protection or a ruleset enforcing it anyway. Deleted with it: the worktree-policy judge, the release-fast direct lane, the release-PR-overlap check, the Pages PR contract check, the CI-gate waiter, the Codex PR helper directory, and the worktree-pr-policy / pages-build-gate / cloudflare-safe-auto-release workflows. Recover any of them from git history before 2026-08-08 if needed. What replaced review is verification depth, not less checking.

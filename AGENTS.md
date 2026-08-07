@@ -25,8 +25,9 @@
 - Do not write to production MongoDB without explicit user approval.
 - Do not deploy to production without explicit user approval.
 - Do not make real LLM API calls, run real payments, write to production DB, or deploy to production during ordinary coding work. Use mock/fake/stub, sandbox, local DB, or test DB validation only unless the user explicitly approves the exact live action.
-- Production promotion always needs explicit user approval for that exact run. Preview deployment does not — it never touches `code-destiny.com`.
-- Pushing to `main` deploys nothing. Git is backup, history, and the rollback reference; production is reached only by `npm run deploy:production` or the manual GitHub Actions dispatch.
+- Production promotion always needs explicit user approval for that exact run — the `[y/N]` prompt in `deploy:safe` is that approval.
+- Create a Cloudflare preview only when a release is actually intended; each run leaves a Pages deployment and a Worker version behind. `npm run deploy:check` is the no-upload way to inspect a change set.
+- Pushing to `main` deploys nothing. Git is backup, history, and the rollback reference; production is reached only by `npm run deploy:safe` (or the `deploy:production` half of the split) or the manual GitHub Actions dispatch.
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
 - Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the normal deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
 - Do not delete existing features, routes, badges, or content unless the user explicitly asks.
@@ -48,18 +49,20 @@ Work happens on `main` by default. `main` has no branch protection and no rulese
 ```
 edit on main → commit
    ↓
-npm run deploy:preview      checks → build → Pages preview + Worker preview version → smoke → opens the browser
-   ↓
-the user inspects the preview themselves
-   ↓
-npm run deploy:production   artifact fingerprint match → Worker 100% → Pages production → health check (auto-rollback on failure)
+npm run deploy:safe         checks → build → Pages preview + Worker preview version → smoke
+                            → opens the browser → WAITS at a [y/N] prompt
+   ↓                        (the user inspects the preview, then answers)
+                            y → Worker 100% → Pages production → health check (auto-rollback on failure)
+                            N → nothing is promoted; the preview URL stays available
    ↓
 git push origin main        backup
 ```
 
-- `npm run deploy:check` prints the change set, risk, deep-verification hits, and the live Cloudflare configuration without deploying anything.
-- `npm run deploy:preview` is safe to run at any time. It never touches `code-destiny.com`.
-- `npm run deploy:production` requires the recorded preview to match `HEAD` and to have passed smoke. It prompts before promoting unless `--yes` is passed.
+🔴 **A preview is created only as part of an actual release.** Do not run `deploy:preview` as a routine verification step — every run uploads a Pages deployment and a Worker version to Cloudflare. `deploy:safe` is the default because it puts the preview immediately before the promotion decision, with a human gate in between. Use `deploy:check` when you only want to inspect a change set.
+
+- `npm run deploy:check` prints the change set, risk, deep-verification hits, and the live Cloudflare configuration. It uploads nothing.
+- `npm run deploy:preview` / `npm run deploy:production` split the same pipeline across two commands. Reach for the split only when the inspection has to happen in a separate session from the promotion; otherwise use `deploy:safe`.
+- `npm run deploy:production` requires the recorded preview to match `HEAD` and to have passed smoke. It prompts before promoting unless `--yes` is passed. Declining is a clean exit, not an error.
 - `npm run deploy:rollback -- --list` shows recent Pages deployments and Worker versions; `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]` rolls back and then smokes production.
 - The GitHub Actions **Release Cloudflare Pages and Worker** workflow is the backup path — `Run workflow` with `mode: preview` or `mode: production`. It has no push trigger.
 
@@ -81,7 +84,7 @@ The two axes stay independent. `worker/**` remains `level=high`, so `deploy:crit
 Worktrees are for filesystem isolation, not review. Create one with `powershell -File scripts/create-safe-worktree.ps1 -Slug <name>`, work there, and merge back with a plain `git merge` — no PR.
 
 - `.deploy-state/` and the deploy lock live in the **primary** worktree, so only one worktree can build or promote at a time. A second attempt fails with `Another deploy-safe process owns ...`.
-- `wrangler` pushes the working tree, not a commit. `deploy:preview` calls `assertWorkerBaseIsFresh`, which refuses to run when `origin/main` holds `worker/` or `lib/` commits your HEAD lacks — the failure mode that silently erased four merged changes on 2026-08-01. Override with `--allow-stale` only for a deliberate rollback.
+- `wrangler` pushes the working tree, not a commit. The preview stage calls `assertWorkerBaseIsFresh`, which refuses to run when `origin/main` holds `worker/` or `lib/` commits your HEAD lacks — the failure mode that silently erased four merged changes on 2026-08-01. Override with `--allow-stale` only for a deliberate rollback.
 
 ## Development Workflow
 

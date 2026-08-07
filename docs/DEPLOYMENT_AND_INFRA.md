@@ -7,16 +7,18 @@ PR-first delivery was retired. `scripts/deploy-safe.mjs` is the single release e
 ```
 edit on main → commit
    ↓
-npm run deploy:preview      risk-scaled checks → build:cf → Pages preview + Worker preview version → smoke → opens the browser
-   ↓
-the user inspects the preview themselves
-   ↓
-npm run deploy:production   artifact sha256 must still match → Worker 100% → Pages production → health check
+npm run deploy:safe         risk-scaled checks → build:cf → Pages preview + Worker preview version
+                            → smoke → opens the browser → WAITS at [y/N]
+   ↓                        (the user inspects the preview, then answers)
+                            y → artifact sha256 re-checked → Worker 100% → Pages production → health check
+                            N → clean exit; nothing promoted, preview URL still live
    ↓
 git push origin main        backup only; pushing deploys nothing
 ```
 
-- **Commands.** `deploy:check` (inspect only), `deploy:preview`, `deploy:production`, `deploy:rollback -- --list`, `deploy:safe` (all stages in one run, still prompts before promoting). `deploy:smoke -- --base <url>` smokes an arbitrary origin.
+**A preview is created only as part of a real release.** Each `deploy:preview` run leaves a Pages deployment and a Worker version on Cloudflare, so it is not a routine check. `deploy:safe` is the default precisely because the preview sits immediately before the promotion decision. To inspect a change set without uploading anything, use `deploy:check`.
+
+- **Commands.** `deploy:safe` (the default), `deploy:check` (inspect only, no upload), `deploy:rollback -- --list`, and the `deploy:preview` + `deploy:production` split for when inspection and promotion happen in separate sessions. `deploy:smoke -- --base <url>` smokes an arbitrary origin.
 - **Nothing deploys on push.** `.github/workflows/cloudflare-pages-deploy.yml` is `workflow_dispatch` only, with a `mode` input of `preview` or `production`. It is the backup path for when the local build cannot run. Re-adding a push trigger would double-deploy every commit; `verify:worker-single-deploy` fails the build if one appears.
 - **Verification depth replaced review.** `scripts/lib/change-risk.mjs` judges `level` (how deep ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level`, and `deploy:production` names the risky paths before asking to promote.
 - **Ordering is a transaction.** Worker is promoted to 100% first, then Pages. A Pages failure automatically rolls the Worker back and prints the Pages rollback target. The concurrency group `cloudflare-production-release` is never cancelled mid-release.
@@ -88,7 +90,7 @@ database write is required for this activation.
 ### Pages 자동 배포 단일화
 
 - Cloudflare 대시보드의 `Deployments paused`는 이 저장소에서는 정상 운영 상태다. Pages Git 자동/프리뷰 배포를 끄고 GitHub Actions의 명시적 배포만 정본으로 쓴다.
-- Cloudflare Git preview 배포를 쓰지 않는다. preview 는 `npm run deploy:preview` 가 `wrangler pages deploy --branch safe-preview-<sha>` 로 직접 만든다. Git 연동을 되살리면 이중 배포로 청크 해시가 어긋난다.
+- Cloudflare Git preview 배포를 쓰지 않는다. preview 는 `deploy-safe.mjs` 의 preview 단계가 `wrangler pages deploy --branch safe-preview-<sha>` 로 직접 만든다. Git 연동을 되살리면 이중 배포로 청크 해시가 어긋난다.
 - Pages 프로젝트의 Git source config는 다음 세 값을 명시적으로 비활성화한다.
   - `deployments_enabled=false` (legacy 호환 필드)
   - `production_deployments_enabled=false`
@@ -100,7 +102,7 @@ database write is required for this activation.
 
 재발 방지 계층:
 
-1. `npm run deploy:preview`: `build:cf` 를 실제로 돌려 빌드가 깨지면 preview 단계에서 멈춘다. 프로덕션에는 닿지 않는다.
+1. `npm run deploy:safe` 의 preview 단계: `build:cf` 를 실제로 돌려 빌드가 깨지면 승격 프롬프트에 도달하지 못한다. 프로덕션에는 닿지 않는다.
 2. `pages-config-guard.yml`: `main` push·매일 schedule·수동 실행에서 Pages 설정 drift 를 read-only 로 감시한다.
 3. `verify:pages-single-deploy`: `deploy:production` 이 discover() 로 라이브 Pages 설정(build command·output dir·source type)을 매번 대조하고, 백업 워크플로도 승격 전에 같은 guard 를 다시 실행한다.
 4. `Cloudflare Pages` external check 는 배포 성공의 기준으로 쓰지 않는다. 취소된 deployment 가 pending 으로 남을 수 있다.
@@ -119,7 +121,7 @@ Each worktree previews independently and gets its own preview URL. Merge back wi
 Two failure modes the tooling handles:
 
 - **Concurrent promotion.** `.deploy-state/` and `active.lock` live in the *primary* worktree (resolved via `git worktree list --porcelain`), so a second worktree's deploy fails with `Another deploy-safe process owns ...` instead of racing. `deploy:rollback -- --list` deliberately skips the lock so it stays readable during a release.
-- **Stale base erasing upstream work.** `wrangler` uploads the working tree, not a commit. `deploy:preview` calls `assertWorkerBaseIsFresh`, which exits when `origin/main` holds `worker/` or `lib/` commits absent from HEAD — the failure that silently erased four merged changes on 2026-08-01. Fix with `git merge origin/main`; `--allow-stale` bypasses it only for a deliberate rollback.
+- **Stale base erasing upstream work.** `wrangler` uploads the working tree, not a commit. The preview stage calls `assertWorkerBaseIsFresh`, which exits when `origin/main` holds `worker/` or `lib/` commits absent from HEAD — the failure that silently erased four merged changes on 2026-08-01. Fix with `git merge origin/main`; `--allow-stale` bypasses it only for a deliberate rollback.
 
 Production promotion still requires explicit user approval for that exact run. Preview does not — it never touches `code-destiny.com`.
 
@@ -286,9 +288,8 @@ Stage guarantees:
    post-deploy health check.
 
 ```text
-npm run deploy:check
-npm run deploy:preview
-npm run deploy:production
+npm run deploy:check                                        # inspect only, uploads nothing
+npm run deploy:safe                                         # preview -> browser -> [y/N] -> promote
 npm run deploy:rollback -- --list
 npm run deploy:rollback -- --yes --to=<pagesDeploymentId>
 ```
@@ -334,7 +335,7 @@ and-contract migrations and are never bundled into `deploy:safe`.
 
 Deployment rule:
 
-- Run `deploy:preview` freely — it never touches production.
+- Run `deploy:check` freely — it uploads nothing. Create a preview only when a release is actually intended.
 - Get explicit user approval before every `deploy:production` run.
 - Report the deployed commit, Worker version ID, and Pages deployment ID afterwards so a rollback target is on record.
 - Real LLM API calls, real payments, production DB writes, production deploys, and production cancel/refund/reconcile actions require explicit user approval for that exact action.

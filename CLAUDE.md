@@ -147,7 +147,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - 라우트가 `app/components/adsense-route-policy.js`의 `canLoadAdsense()` 기준으로 광고 게재 가능(AdSense-eligible)이면: sitemap에 self-canonical로 반드시 포함되어야 하고(`verifyAdsenseEligibleRouteSitemapAlignment`), noindex/nofollow가 없어야 한다.
 - 광고 게재 **불가능**하지만 sitemap에 색인 가능 상태로 남아있는 라우트(예: `/`, 로케일 인덱스 `/ja`, `/zh`, `/en` 및 그 하위, `/today`, `/manse`, `/oracle/*`, `/psychotest/*` 등 다수)는 `verifyBlockedIndexableSitemapRouteQuality`가 **최소 1800자**의 렌더링 텍스트를 요구한다(2026-07 기준 실측 임계값, 같은 파일 상단 `minimumBlockedIndexableVisibleTextLength` 상수 참고 — 값이 바뀔 수 있으니 코드에서 재확인할 것).
 - 신규 유틸리티/허브형 페이지(도구 UI가 `dynamic(..., { ssr: false })`로 마운트되는 경우 특히), 신규 로케일(`/ja`, `/zh`, `/en`) 인덱스·소개 페이지를 추가할 때는 한두 줄짜리 intro만 넣지 말고, 실제 설명 문단·지원 항목 목록·FAQ 등 서버 렌더링되는 실질 콘텐츠를 함께 작성한다.
-- 페이지 추가/사이트맵 변경 후에는 `npm run deploy:preview` 로 실제 빌드를 통과시켜 확인한다. 이 게이트는 `out/` 산출물을 읽으므로 빌드가 끝나야만 돈다.
+- 페이지 추가/사이트맵 변경 후에는 `npm run build:cf` 로 실제 빌드를 통과시켜 확인한다. 이 게이트는 `out/` 산출물을 읽으므로 빌드가 끝나야만 돈다(업로드 없이 빌드만 돌리면 된다).
   - **Windows 로컬 `next build` 는 완주된다**(예전 서술은 폐기 — `/_not-found` prerender 이슈는 `scripts/next-build-with-pages-manifest.mjs` 의 매니페스트 복구·스텁·taskkill 워치독·재시도가 해결했다). 로컬 빌드가 끝내 실패하면 GitHub Actions "Release Cloudflare Pages and Worker" 를 `mode: preview` 로 디스패치해 CI 에서 확인한다.
 
 ## AdSense 승인·검증·ads.txt (2026-07 감사)
@@ -213,8 +213,9 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 - 5줄 이상 변경 시 코딩 전 계획(plan) 우선
 - 코딩 후: `lint` → `typecheck` → 관련 `verify:*` 스크립트 실행 → 변경 파일만 `git add` → Conventional Commits
-- **배포 흐름 (2026-08-08 개정 — PR 정책 폐기)**: `main` 에서 직접 작업하고 커밋한 뒤 `npm run deploy:preview` → 사용자가 preview 직접 확인 → `npm run deploy:production` → `git push origin main`. **main 에 push 해도 아무것도 배포되지 않는다.** Pages 와 Worker 는 `deploy-safe.mjs` 하나가 순서대로 올린다(`deploy:cf:worker` 를 따로 부르지 않는다). 상세 계약은 [AGENTS.md](AGENTS.md) 의 "Delivery: Preview First, Then One Command".
-  - **프로덕션 승격은 매번 사용자 승인을 받는다.** preview 는 `code-destiny.com` 을 건드리지 않으므로 승인 없이 돌려도 된다.
+- **배포 흐름 (2026-08-08 개정 — PR 정책 폐기)**: `main` 에서 직접 작업하고 커밋한 뒤 **`npm run deploy:safe`** → 브라우저가 열리면 사용자가 preview 를 확인하고 `[y/N]` 에 답 → `y` 면 승격, `N` 이면 아무것도 안 나감 → `git push origin main`. **main 에 push 해도 아무것도 배포되지 않는다.** Pages 와 Worker 는 `deploy-safe.mjs` 하나가 순서대로 올린다(`deploy:cf:worker` 를 따로 부르지 않는다). 상세 계약은 [AGENTS.md](AGENTS.md) 의 "Delivery: Preview First, Then One Command".
+  - 🔴 **preview 는 실제 배포 직전에만 만든다.** 매 실행마다 Cloudflare 에 Pages 배포와 Worker 버전이 쌓이므로 `deploy:preview` 를 점검용으로 돌리지 않는다. 변경 내용만 보고 싶으면 업로드가 없는 `npm run deploy:check` 를 쓴다.
+  - **프로덕션 승격은 매번 사용자 승인을 받는다.** `deploy:safe` 의 `[y/N]` 프롬프트가 그 자리이며, 거절은 실패가 아니라 정상 종료다.
   - 결제·인증·DB 스키마·배포 인프라 경로가 걸리면 risk level 과 무관하게 `deploy:critical` 전체가 돌고, 승격 직전에 어떤 경로가 왜 위험한지 나열한 뒤 확인을 받는다(`scripts/lib/change-risk.mjs` 의 `deepRequired`).
   - 작업 중 취약점, 보안 위험, 재현 가능한 버그를 발견하면 즉시 사용자에게 보고하고, 필요하면 다른 세션에서 분리 디버깅할 수 있도록 위험도와 짧은 제안도 함께 남긴다.
   - 판단이 애매하면 배포하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
@@ -234,8 +235,9 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 - This section supersedes any older PR-first, worktree-only, or Worker auto-deploy wording elsewhere in this file. The full contract lives in [AGENTS.md](AGENTS.md); this is the summary.
 - Work on `main` directly. There is no branch protection, no ruleset, and no PR requirement. Worktrees (`scripts/create-safe-worktree.ps1`) exist for parallel sessions only — they are filesystem isolation, not a review gate, and merge back with a plain `git merge`.
-- Ship with two commands: `npm run deploy:preview` (checks → build → Pages preview + Worker preview version → smoke → opens the browser), then `npm run deploy:production` after the user has inspected the preview. `git push origin main` afterwards is backup only — **pushing deploys nothing**.
-- Production promotion needs explicit user approval for that exact run. Preview does not.
+- Ship with `npm run deploy:safe`: checks → build → Pages preview + Worker preview version → smoke → opens the browser → waits at a `[y/N]` prompt while the user inspects → promotes on `y`. `git push origin main` afterwards is backup only — **pushing deploys nothing**. The `deploy:preview` + `deploy:production` split exists for when inspection and promotion happen in different sessions.
+- A preview is created only as part of a real release; each run leaves a Pages deployment and a Worker version on Cloudflare. Use `deploy:check` for a no-upload inspection.
+- Production promotion needs explicit user approval for that exact run — the `[y/N]` prompt is that approval.
 - `scripts/lib/change-risk.mjs` judges two independent axes: `level` (how deep the ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level` and makes `deploy:production` list the risky paths before promoting. `worker/**` stays `level=high` either way.
 - Rollback: `npm run deploy:rollback -- --list` to see targets, then `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]`. The rollback smokes production afterwards.
 - Backup path: the GitHub Actions **Release Cloudflare Pages and Worker** workflow, `Run workflow` with `mode: preview` or `mode: production`. It has no push trigger by design.

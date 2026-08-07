@@ -528,7 +528,11 @@ async function productionStage() {
   const value = await checkStage();
   if (!state || state.git?.commit !== value.git.head) throw new Error("Release state does not match HEAD. Run npm run deploy:preview first.");
   if (!state.preview?.smokePassed) throw new Error("Preview smoke has not passed. Run npm run deploy:preview first.");
-  await promote(value, state, autoYes || await confirmProduction(value));
+  if (!(autoYes || await confirmProduction(value))) {
+    console.log("[deploy-safe] declined; production is untouched.");
+    return;
+  }
+  await promote(value, state, true);
 }
 async function confirmProduction(value) {
   // PR 리뷰를 대체하는 자리. 결제·인증·DB·배포 인프라가 걸렸으면 무엇이 왜 위험한지
@@ -539,7 +543,7 @@ async function confirmProduction(value) {
   }
   if (!input.isTTY || !output.isTTY) throw new Error("Pass --yes in a non-interactive terminal.");
   const rl = createInterface({ input, output });
-  try { return /^y(es)?$/i.test((await rl.question("Preview passed. Promote exact artifact to production? [y/N] ")).trim()); }
+  try { return /^y(es)?$/i.test((await rl.question("Inspect the preview in the browser, then answer. Promote this exact artifact to production? [y/N] ")).trim()); }
   finally { rl.close(); }
 }
 async function safeStage() {
@@ -551,7 +555,13 @@ async function safeStage() {
       console.log("[deploy-safe] Preview-only mode; production was not attempted.");
       return;
     }
-    await promote(preview.value, preview.state, autoYes || await confirmProduction(preview.value));
+    // 거절은 정상적인 답이다. 예전에는 promote() 가 "requires --yes" 로 던져서, 사용자가
+    // preview 를 보고 "아니오" 를 고른 것이 실패처럼 보였다.
+    if (!(autoYes || await confirmProduction(preview.value))) {
+      console.log("[deploy-safe] declined; production is untouched. The preview stays at " + preview.state.preview.pages.url);
+      return;
+    }
+    await promote(preview.value, preview.state, true);
   } finally { unlock(); }
 }
 async function listRollbackTargets(value) {
