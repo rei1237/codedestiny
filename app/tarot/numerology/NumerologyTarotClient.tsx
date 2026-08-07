@@ -794,6 +794,12 @@ export default function NumerologyTarotClient() {
 
   const questionKeywords = useMemo(() => extractQuestionKeywords(question), [question]);
   const hasPaidAccess = Boolean(entitlement?.paid);
+  /**
+   * 🔴 입력 잠금 기준은 "결제한 적이 있는가"가 아니라 "그 결제에 묶인 스프레드가 지금 살아 있는가"다.
+   * hasPaidAccess 만으로 잠그면 결제 권한이 localStorage 에 남아 있는 동안(최대 6시간)
+   * 카드도 결과도 없는 상태에서 주제 탭·질문 칩·입력창이 전부 죽어 아무것도 할 수 없게 된다.
+   */
+  const formLocked = hasPaidAccess && (cards.length > 0 || Boolean(reading));
   const selectedTopicHints = TOPIC_QUESTION_HINTS[topic] || TOPIC_QUESTION_HINTS.general;
   const freeProfile = useMemo<FreeProfile | null>(() => {
     const lifePath = Number(numerology?.lifePathNumber || 0);
@@ -1005,8 +1011,9 @@ export default function NumerologyTarotClient() {
   }
 
   function reshuffleDeck() {
-    // 결제된 스프레드는 바꾸지 않는다(결제한 카드와 결과가 어긋나면 안 된다).
-    if (hasPaidAccess) return;
+    // 이미 나온 결과가 있으면 바꾸지 않는다(화면의 해석과 카드가 어긋난다).
+    // 결제만 되어 있고 아직 결과가 없다면 다시 뽑아도 무방하다 — 리딩은 그때의 카드로 생성된다.
+    if (reading) return;
     setCards([]);
     setPickedSlots([]);
     setReading(null);
@@ -1215,6 +1222,21 @@ export default function NumerologyTarotClient() {
     }
   }
 
+  /** 처음부터 다시 — 결제 권한까지 비운다. 잠긴 폼에서 빠져나올 수 있는 유일한 출구다. */
+  function resetSession() {
+    clearStoredReadingSession(readingId);
+    setEntitlement(null);
+    setReadingId("");
+    setCards([]);
+    setPickedSlots([]);
+    setDeckSeed("");
+    setReading(null);
+    setSaveStatus("");
+    setError("");
+    setErrorCode("");
+    setFlowState("question_input");
+  }
+
   function saveReadingResult() {
     if (!entitlement?.paid || !readingId || !reading) {
       setSaveStatus("저장할 상담 결과가 없습니다.");
@@ -1295,7 +1317,7 @@ export default function NumerologyTarotClient() {
                       type="button"
                       className={`${styles.topicTab} ${topic === option.value ? styles.topicTabActive : ""}`}
                       onClick={() => setTopic(option.value)}
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                       aria-pressed={topic === option.value}
                     >
                       {option.label}
@@ -1310,7 +1332,7 @@ export default function NumerologyTarotClient() {
                       type="button"
                       className={styles.followUpChip}
                       onClick={() => setQuestion(hint)}
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     >
                       {hint}
                     </button>
@@ -1325,7 +1347,7 @@ export default function NumerologyTarotClient() {
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                       placeholder="이름"
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     />
                   </label>
 
@@ -1335,7 +1357,7 @@ export default function NumerologyTarotClient() {
                       className={styles.select}
                       value={birthYear}
                       onChange={(event) => setBirthYear(event.target.value)}
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     >
                       <option value="">연도</option>
                       {YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
@@ -1351,7 +1373,7 @@ export default function NumerologyTarotClient() {
                         setBirthMonth(event.target.value);
                         setBirthDay("");
                       }}
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     >
                       <option value="">월</option>
                       {MONTHS.map((month) => <option key={month} value={month}>{month}</option>)}
@@ -1364,7 +1386,7 @@ export default function NumerologyTarotClient() {
                       className={styles.select}
                       value={birthDay}
                       onChange={(event) => setBirthDay(event.target.value)}
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     >
                       <option value="">일</option>
                       {dayOptions.map((day) => <option key={day} value={day}>{day}</option>)}
@@ -1378,7 +1400,7 @@ export default function NumerologyTarotClient() {
                       type="date"
                       value={analysisDate}
                       onChange={(event) => setAnalysisDate(event.target.value)}
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     />
                   </label>
 
@@ -1389,7 +1411,7 @@ export default function NumerologyTarotClient() {
                       value={question}
                       onChange={(event) => setQuestion(event.target.value)}
                       placeholder="예: 지금 연락하고 있는 사람과 관계가 발전할 가능성이 궁금해요."
-                      disabled={hasPaidAccess}
+                      disabled={formLocked}
                     />
                   </label>
                 </div>
@@ -1529,10 +1551,16 @@ export default function NumerologyTarotClient() {
                 ) : null}
 
                 <div className={styles.pickActions}>
-                  {!hasPaidAccess ? (
+                  {!reading ? (
                     <button type="button" className={styles.ghostBtn} onClick={reshuffleDeck} disabled={loading}>
                       <RefreshCw className={styles.actionIcon} size={15} aria-hidden="true" />
                       덱 다시 섞기
+                    </button>
+                  ) : null}
+                  {/* 폼이 잠기는 구간에서는 항상 빠져나갈 길을 열어 둔다. */}
+                  {formLocked ? (
+                    <button type="button" className={styles.ghostBtn} onClick={resetSession} disabled={loading}>
+                      처음부터 다시 하기
                     </button>
                   ) : null}
                   <button
@@ -1578,6 +1606,12 @@ export default function NumerologyTarotClient() {
                     <p className={styles.failureNote}>
                       결제와 뽑은 카드는 그대로 저장되어 있습니다. 위 버튼으로 추가 결제 없이 다시 시도할 수 있어요.
                     </p>
+                    <div className={styles.pickActions}>
+                      <button type="button" className={styles.ghostBtn} onClick={resetSession}>
+                        <RefreshCw className={styles.actionIcon} size={15} aria-hidden="true" />
+                        처음부터 다시 하기
+                      </button>
+                    </div>
                   </div>
                 ) : error ? <p className={styles.error}>{error}</p> : null}
               </section>
@@ -1779,19 +1813,7 @@ export default function NumerologyTarotClient() {
                       <button
                         type="button"
                         className={styles.lightBtn}
-                        onClick={() => {
-                          setEntitlement(null);
-                          setReadingId("");
-                          setCards([]);
-                          setPickedSlots([]);
-                          setDeckSeed("");
-                          setReading(null);
-                          setSaveStatus("");
-                          setError("");
-                          setErrorCode("");
-                          setFlowState("question_input");
-                          clearStoredReadingSession(readingId || reading.readingId);
-                        }}
+                        onClick={resetSession}
                       >
                         <RefreshCw className={styles.actionIcon} size={15} aria-hidden="true" />
                         새로운 질문
