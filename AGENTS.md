@@ -79,12 +79,38 @@ git push origin main        backup
 
 The two axes stay independent. `worker/**` remains `level=high`, so `deploy:critical` runs on it either way.
 
-### Parallel sessions
+### Parallel sessions, independent deploys
 
-Worktrees are for filesystem isolation, not review. Create one with `powershell -File scripts/create-safe-worktree.ps1 -Slug <name>`, work there, and merge back with a plain `git merge` — no PR.
+Run each concurrent session in its own worktree:
 
-- `.deploy-state/` and the deploy lock live in the **primary** worktree, so only one worktree can build or promote at a time. A second attempt fails with `Another deploy-safe process owns ...`.
-- `wrangler` pushes the working tree, not a commit. The preview stage calls `assertWorkerBaseIsFresh`, which refuses to run when `origin/main` holds `worker/` or `lib/` commits your HEAD lacks — the failure mode that silently erased four merged changes on 2026-08-01. Override with `--allow-stale` only for a deliberate rollback.
+```powershell
+powershell -File scripts/create-safe-worktree.ps1 -Slug <name>
+```
+
+Work there, ship from there, and merge back with a plain `git merge` — no PR. Sessions never wait on each other to build or preview.
+
+**What is parallel and what is serial:**
+
+| Stage | Concurrency | Why |
+|---|---|---|
+| `deploy:check`, checks, `build:cf` | fully parallel | each worktree has its own `dist/`, `out/`, `.next/` |
+| Preview upload + smoke | fully parallel | every worktree gets its own `safe-preview-<sha>` Pages URL and Worker preview alias |
+| **Production promotion** | **serialized** | there is exactly one production. Two promotions cannot both win |
+
+- `.deploy-state/state.json` is **per-worktree** — it records *your* preview artifact. Sharing it would let one worktree's preview overwrite another's, and the next promotion would ship the wrong artifact with a valid-looking fingerprint.
+- `promote.lock` lives in the **primary** worktree and is held only during promotion and rollback, never during build or preview, and never while the `[y/N]` prompt is waiting. A blocked worktree is told which pid, which worktree, and since when.
+
+**The regression guard is the important part.** Serialization alone does not prevent worktree B from erasing what worktree A just shipped — `wrangler` uploads the working tree, not a commit, so B's clean tree and green tests say nothing about A's work. Before promoting, `deploy-safe` reads the live commit from `/version.json` and `/api/version` and refuses unless your HEAD contains it:
+
+```
+Worker is live at 4f2a1c9b3d51, and your HEAD does not contain it.
+  Promoting now would roll production back to before that deploy — another worktree shipped it.
+  Run: git fetch origin && git merge 4f2a1c9b3d51
+```
+
+This is what actually stops the 2026-08-01 failure, where four merged changes vanished. Live is the reference, not `origin/main`, because local-first deploys mean production can be ahead of `origin/main`. `--allow-regression` overrides it and is only correct for a deliberate revert. The older `assertWorkerBaseIsFresh` (`--allow-stale`) still runs at the preview stage against `origin/main` as the earlier, cheaper warning.
+
+After promoting, push so the other worktrees can merge you: `git push origin main`.
 
 ## Development Workflow
 

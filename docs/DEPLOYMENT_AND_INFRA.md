@@ -128,10 +128,18 @@ powershell -File scripts/create-safe-worktree.ps1 -Slug <name>
 
 Each worktree previews independently and gets its own preview URL. Merge back with a plain `git merge` — there is no PR step.
 
-Two failure modes the tooling handles:
+Concurrency is split by stage, because only one of them contends:
 
-- **Concurrent promotion.** `.deploy-state/` and `active.lock` live in the *primary* worktree (resolved via `git worktree list --porcelain`), so a second worktree's deploy fails with `Another deploy-safe process owns ...` instead of racing. `deploy:rollback -- --list` deliberately skips the lock so it stays readable during a release.
-- **Stale base erasing upstream work.** `wrangler` uploads the working tree, not a commit. The preview stage calls `assertWorkerBaseIsFresh`, which exits when `origin/main` holds `worker/` or `lib/` commits absent from HEAD — the failure that silently erased four merged changes on 2026-08-01. Fix with `git merge origin/main`; `--allow-stale` bypasses it only for a deliberate rollback.
+| Stage | Concurrency |
+|---|---|
+| checks, `build:cf`, preview upload, smoke | fully parallel — separate build dirs, separate `safe-preview-<sha>` URLs |
+| production promotion, rollback | serialized by `promote.lock` in the primary worktree |
+
+Three failure modes the tooling handles:
+
+- **Cross-worktree state corruption.** `.deploy-state/state.json` is per-worktree. It records the sha256 of *your* preview artifact; sharing it across worktrees would let one preview overwrite another's record, and the next promotion would ship the wrong build while `assertArtifact` still passed — the fingerprint would match the record, just not the release anyone intended.
+- **Concurrent promotion.** `promote.lock` (primary worktree, resolved via `git worktree list --porcelain`) is taken only around promotion and rollback — never during build, preview, or while the `[y/N]` prompt waits. It is released only by the process that took it; an earlier version unlocked unconditionally in the top-level catch, so a worktree that failed to acquire the lock deleted somebody else's. `deploy:rollback -- --list` skips the lock so it stays readable during a release.
+- **Promotion that regresses production.** `wrangler` uploads the working tree, not a commit, so worktree B promoting after worktree A silently reverts A's work — B's tree is clean and B's tests pass, so nothing signals it. Before promoting, `assertPromotionIsNotRegression` reads the live commit from `/version.json` and `/api/version` and requires HEAD to contain it, naming the merge command when it does not. Live is the reference rather than `origin/main`, because a local-first deploy can put production ahead of `origin/main`. `--allow-regression` overrides it, and is only correct for a deliberate revert. `assertWorkerBaseIsFresh` still runs earlier at the preview stage against `origin/main` (`--allow-stale`) as the cheaper first warning.
 
 Production promotion still requires explicit user approval for that exact run. Preview does not — it never touches `code-destiny.com`.
 

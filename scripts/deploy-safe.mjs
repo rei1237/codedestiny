@@ -27,14 +27,22 @@ function git(args, options = {}) {
   return String(result.stdout || "").trim();
 }
 
-// 보조 워크트리에서 배포해도 잠금과 상태는 주 워크트리 하나를 공유해야 한다. cwd 기준으로
-// 두면 워크트리 A 와 B 가 서로의 lock 을 못 보고 동시에 승격해 Worker 버전이 덮어써진다.
 function primaryWorktree() {
   return git(["worktree", "list", "--porcelain"], { allowFailure: true }).match(/^worktree (.+)$/m)?.[1] || root;
 }
-const stateDir = path.join(primaryWorktree(), ".deploy-state");
+
+// 상태와 잠금의 범위가 다르다. 섞으면 병렬 워크트리가 조용히 서로를 망친다.
+//
+//   state.json  — 워크트리마다 하나. "내가 방금 만든 preview 아티팩트"의 기록이라 공유하면
+//                 A 가 preview 하는 사이 B 의 preview 가 덮어써지고, 이어지는 승격이 엉뚱한
+//                 아티팩트를 올린다. 지문 대조(assertArtifact)는 파일이 바뀐 것만 잡지
+//                 "남의 릴리스 기록"은 못 잡는다.
+//   promote.lock — 저장소 전체에 하나(주 워크트리). 프로덕션은 대상이 하나뿐이라 승격만은
+//                 반드시 직렬화해야 한다. preview 는 서로 다른 URL 로 나가므로 잠그지 않는다.
+const stateDir = path.join(root, ".deploy-state");
 const stateFile = path.join(stateDir, "state.json");
-const lockFile = path.join(stateDir, "active.lock");
+const lockDir = path.join(primaryWorktree(), ".deploy-state");
+const lockFile = path.join(lockDir, "promote.lock");
 
 const DEPLOY_KEY_RE = /^(CLOUDFLARE_|CF_|CD_)/;
 // 파일 전체를 process.env 에 붓지 않는다. 배포에 쓰는 접두사만 통과시키고, 이미 값이 있으면
@@ -84,7 +92,7 @@ function parseArgs(argv) {
   const values = new Map();
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy"].includes(arg)) flags.add(arg);
+    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy", "--allow-regression"].includes(arg)) flags.add(arg);
     else if (arg.startsWith("--") && arg.includes("=")) {
       const separator = arg.indexOf("=");
       values.set(arg.slice(2, separator), arg.slice(separator + 1));
@@ -364,15 +372,32 @@ function assertArtifact(state) {
   const actual = artifact(path.join(root, state.artifact.outputDir));
   if (actual.sha256 !== state.artifact.sha256 || actual.fileCount !== state.artifact.fileCount) throw new Error("Build artifact changed after validation.");
 }
+// 잠금은 이 프로세스가 실제로 잡았을 때만 푼다. 예전에는 최상위 catch 가 무조건 unlock 해서,
+// 잠금을 못 잡고 실패한 워크트리가 **남의 승격 잠금을 지우고** 나갔다.
+let lockHeld = false;
 function lock() {
-  fs.mkdirSync(stateDir, { recursive: true });
+  fs.mkdirSync(lockDir, { recursive: true });
   try {
     const fd = fs.openSync(lockFile, "wx");
-    fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }) + "\\n");
+    fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, worktree: root, startedAt: new Date().toISOString() }, null, 2) + "\n");
     fs.closeSync(fd);
-  } catch { throw new Error("Another deploy-safe process owns " + lockFile + ". Verify before removing it."); }
+    lockHeld = true;
+  } catch {
+    let owner = "";
+    try {
+      const held = JSON.parse(fs.readFileSync(lockFile, "utf8"));
+      owner = " Held by pid " + held.pid + " in " + held.worktree + " since " + held.startedAt + ".";
+    } catch { owner = ""; }
+    throw new Error("Another worktree is promoting to production." + owner
+      + "\n  Production is a single target, so promotions are serialized. Wait for it to finish."
+      + "\n  If that process is gone, delete " + lockFile + " after confirming nothing is deploying.");
+  }
 }
-function unlock() { try { fs.rmSync(lockFile, { force: true }); } catch {} }
+function unlock() {
+  if (!lockHeld) return;
+  try { fs.rmSync(lockFile, { force: true }); } catch {}
+  lockHeld = false;
+}
 
 function pageDeploymentsUrl(cf, env = "production") {
   return apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/pages/projects/" + encodeURIComponent(cf.project) + "/deployments?env=" + encodeURIComponent(env);
@@ -606,8 +631,57 @@ async function rollbackPagesDeployment(project, deploymentId) {
   );
 }
 
+/**
+ * 🔴 병렬 워크트리의 진짜 위험은 동시 실행이 아니라 **되돌리기**다.
+ *
+ * wrangler 는 커밋이 아니라 워킹트리를 민다. 워크트리 A 가 X 를 승격한 뒤, X 를 모르는 워크트리 B 가
+ * 승격하면 프로덕션은 조용히 X 이전으로 돌아간다. B 의 트리는 깨끗하고 B 의 테스트는 통과하므로
+ * 아무 신호도 없다 — 2026-08-01 에 이 방식으로 머지된 변경 4건이 사라졌다.
+ *
+ * origin/main 기준 검사(assertWorkerBaseIsFresh)로는 부족하다. 로컬 우선 배포에서는 **라이브가
+ * origin/main 보다 앞설 수 있다**(배포했지만 아직 push 안 한 상태). 그래서 기준은 오직 라이브다:
+ * 지금 프로덕션에 떠 있는 커밋을 내 HEAD 가 포함하고 있어야 승격할 수 있다.
+ */
+async function assertPromotionIsNotRegression(value) {
+  if (cli.flags.has("--allow-regression")) {
+    console.warn("[deploy-safe] --allow-regression: 라이브 커밋 포함 여부를 확인하지 않습니다. 남의 배포를 되돌릴 수 있습니다.");
+    return;
+  }
+  const origin = productionOrigin(value);
+  if (!origin) return;
+  const read = async (pathname) => {
+    try {
+      const res = await fetch(origin + pathname, { signal: AbortSignal.timeout(10_000) });
+      return String((await res.json())?.commit || "").trim();
+    } catch {
+      return "";
+    }
+  };
+  const [pagesLive, workerLive] = await Promise.all([read("/version.json"), read("/api/version")]);
+  const targets = [["Pages", pagesLive], ["Worker", workerLive]]
+    .filter(([, commit]) => /^[0-9a-f]{7,64}$/i.test(commit) && commit !== value.git.head);
+  const gitOk = (args) => spawnSync("git", args, { cwd: root, windowsHide: true }).status === 0;
+  for (const [label, live] of targets) {
+    // 로컬에 없는 커밋이면 포함 여부를 판단할 수 없다. 조용히 통과시키면 가드가 아니다.
+    if (!gitOk(["cat-file", "-e", live + "^{commit}"])) {
+      if (!gitOk(["fetch", "origin", "--no-tags", "--quiet"]) || !gitOk(["cat-file", "-e", live + "^{commit}"])) {
+        throw new Error(label + " is live at " + live.slice(0, 12) + ", which does not exist in this checkout."
+          + "\n  That commit was deployed from somewhere else and never pushed. Fetch or pull it before promoting,"
+          + "\n  or pass --allow-regression if you are deliberately reverting to this HEAD.");
+      }
+    }
+    if (!gitOk(["merge-base", "--is-ancestor", live, value.git.head])) {
+      throw new Error(label + " is live at " + live.slice(0, 12) + ", and your HEAD does not contain it."
+        + "\n  Promoting now would roll production back to before that deploy — another worktree shipped it."
+        + "\n  Run: git fetch origin && git merge " + live.slice(0, 12)
+        + "\n  Then re-run the release. Use --allow-regression only for a deliberate revert.");
+    }
+  }
+}
+
 async function promote(value, state, yes) {
   if (!yes) throw new Error("Production promotion requires --yes.");
+  await assertPromotionIsNotRegression(value);
   assertArtifact(state);
   // gitleaks 는 GitHub 체크로만 돌았다. 로컬 승격에는 그 경로가 없으므로 레포에 이미 있는
   // 시크릿 스캐너를 승격 직전에 돌린다(외부 바이너리 불필요).
@@ -726,22 +800,21 @@ async function confirmProduction(value) {
   finally { rl.close(); }
 }
 async function safeStage() {
-  lock();
-  try {
-    const preview = await previewAndSmoke();
-    console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
-    if (previewOnly) {
-      console.log("[deploy-safe] Preview-only mode; production was not attempted.");
-      return;
-    }
-    // 거절은 정상적인 답이다. 예전에는 promote() 가 "requires --yes" 로 던져서, 사용자가
-    // preview 를 보고 "아니오" 를 고른 것이 실패처럼 보였다.
-    if (!(autoYes || await confirmProduction(preview.value))) {
-      console.log("[deploy-safe] declined; production is untouched. The preview stays at " + preview.state.preview.pages.url);
-      return;
-    }
-    await promote(preview.value, preview.state, true);
-  } finally { unlock(); }
+  // 잠금은 preview 와 사용자 확인이 끝난 뒤 승격 직전에만 잡는다. 빌드와 스모크까지 잠그면
+  // 다른 워크트리가 몇 분씩 대기하고, 사람이 [y/N] 을 붙들고 있는 시간까지 잠기게 된다.
+  const preview = await previewAndSmoke();
+  console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
+  if (previewOnly) {
+    console.log("[deploy-safe] Preview-only mode; production was not attempted.");
+    return;
+  }
+  // 거절은 정상적인 답이다. 예전에는 promote() 가 "requires --yes" 로 던져서, 사용자가
+  // preview 를 보고 "아니오" 를 고른 것이 실패처럼 보였다.
+  if (!(autoYes || await confirmProduction(preview.value))) {
+    console.log("[deploy-safe] declined; production is untouched. The preview stays at " + preview.state.preview.pages.url);
+    return;
+  }
+  return withLock(() => promote(preview.value, preview.state, true));
 }
 async function listRollbackTargets(value) {
   const pages = await pageDeployments(value.cf, "production");
@@ -823,8 +896,12 @@ async function selfTest() {
   } finally { fs.rmSync(probe, { force: true }); }
 
   // 잠금·상태는 주 워크트리 하나를 공유해야 병렬 워크트리에서 동시 승격을 막는다.
-  if (path.dirname(stateFile) !== stateDir) throw new Error("state file must live in the shared state directory.");
-  if (!stateDir.endsWith(".deploy-state")) throw new Error("state directory name drifted.");
+  // 상태는 워크트리별, 잠금은 저장소 전체 하나. 이 둘이 같은 범위가 되면 병렬 워크트리가
+  // 서로의 preview 기록을 덮거나(상태 공유) 서로의 승격을 놓친다(잠금 분리).
+  if (path.dirname(stateFile) !== stateDir) throw new Error("state file must live in the state directory.");
+  if (path.resolve(stateDir) !== path.resolve(root, ".deploy-state")) throw new Error("state must be per-worktree.");
+  if (path.resolve(lockDir) !== path.resolve(primaryWorktree(), ".deploy-state")) throw new Error("promote lock must live in the primary worktree.");
+  if (path.basename(lockFile) !== "promote.lock") throw new Error("promote lock name drifted.");
 
   console.log("[deploy-safe] self-test passed.");
 }
@@ -875,7 +952,9 @@ async function main() {
   if (cli.flags.has("--self-test")) return selfTest();
   if (stage === "check") return checkStage();
   if (["preview", "production", "safe"].includes(stage) && await abortIfAlreadyLive()) return;
-  if (stage === "preview") return withLock(previewAndSmoke);
+  // preview 는 잠그지 않는다. 워크트리마다 다른 URL 로 나가고 상태도 각자 것이라 서로를
+  // 건드리지 않는다. 여기를 잠그면 병렬 세션이 서로의 빌드를 기다리기만 한다.
+  if (stage === "preview") return previewAndSmoke();
   if (stage === "smoke") return smokeOnlyStage();
   if (stage === "production") return withLock(productionStage);
   // 목록 조회는 읽기 전용이라 잠금을 잡지 않는다. 배포가 도는 중에도 봐야 한다.

@@ -48,7 +48,8 @@ Last curated: `2026-08-02`
 - Source files: `AGENTS.md`, `scripts/deploy-safe.mjs`, `scripts/lib/change-risk.mjs`, `scripts/lib/worker-deploy-base-guard.mjs`, `.github/workflows/cloudflare-pages-deploy.yml`
 - PR-first delivery was retired on 2026-08-08. Work on `main`; ship with `npm run deploy:safe`, which previews, opens the browser, and waits at a `[y/N]` prompt before promoting. Pushing to `main` deploys nothing, and a preview is only created as part of a real release.
 - `deepRequired` in `change-risk.mjs` replaces the old PR lane: auth, payment, DB schema, and deployment-pipeline paths force the full `deploy:critical` regression and an explicit confirmation before promotion.
-- Worktrees remain available for parallel sessions. The deploy lock and `.deploy-state/` live in the primary worktree, so only one worktree can promote at a time, and `assertWorkerBaseIsFresh` blocks a stale base from erasing upstream `worker/`/`lib/` commits.
+- Parallel sessions each get a worktree and deploy independently: checks, build, preview, and smoke are fully parallel; only production promotion is serialized (`promote.lock` in the primary worktree). `.deploy-state/state.json` is per-worktree so previews cannot overwrite each other.
+- The regression guard is what makes independent deploys safe: promotion requires HEAD to contain the commit currently live on `/version.json` and `/api/version`, so a worktree cannot silently roll production back to before another worktree's deploy. Override with `--allow-regression` only for a deliberate revert.
 
 ## Working Rules For Current Tasks
 
