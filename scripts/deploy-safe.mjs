@@ -270,6 +270,36 @@ function needsWorker(files) {
     file === "app/_lib/billing-client.ts" || file === "js/core/access-store.js"
   );
 }
+/**
+ * 🔴 변경 집합만으로는 "워커를 올려야 하는가"를 못 정한다.
+ *
+ * 변경 집합은 origin/main 기준이라 **push 하는 순간 줄어든다.** worker/ 를 고친 커밋을 push 한 뒤
+ * 다른 커밋을 얹고 릴리스하면, 그 릴리스의 변경 집합에는 worker/ 가 없어 워커 preview 자체가
+ * 업로드되지 않는다. 그러면 Pages 만 새 코드로 나가고 워커는 옛 커밋에 남는다.
+ * 2026-08-08 에 실제로 그 상태로 승격 직전까지 갔다 — 초융합 워커 라우트가 라이브에 없는데
+ * 새 초융합 UI 만 나갈 뻔했다.
+ *
+ * 그래서 기준을 "무엇이 바뀌었나"에서 **"지금 떠 있는 워커가 HEAD 와 같은가"**로 바꾼다.
+ * 라이브 워커가 뒤처져 있고 그 사이에 워커 코드 변경이 있으면, 이번 변경 집합과 무관하게 함께 올린다.
+ */
+async function workerBehindHead(cf, head) {
+  const domain = cf.pages.domains.find((item) => !item.includes(".pages.dev")) || cf.pages.domains[0];
+  const origin = process.env.CD_PRODUCTION_ORIGIN
+    || (domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "");
+  if (!origin) return "";
+  let live = "";
+  try {
+    const res = await fetch(origin + "/api/version", { signal: AbortSignal.timeout(10_000) });
+    live = String((await res.json())?.commit || "").trim();
+  } catch {
+    // 워커가 안 떠 있거나 응답이 없으면 판단 근거가 없다. 기존 변경 집합 판정을 그대로 쓴다.
+    return "";
+  }
+  if (!live || live === head) return "";
+  const drift = git(["diff", "--name-only", live + ".." + head, "--", "worker/", "lib/", "server/"], { allowFailure: true });
+  return drift.trim() ? live : "";
+}
+
 async function context() {
   const pagesLocal = localPages();
   const workerLocal = localWorker();
@@ -279,7 +309,12 @@ async function context() {
   const risk = riskOf(files);
   const deep = requiresDeepVerification(files);
   const cf = await discover(pagesLocal, workerLocal);
-  return { pagesLocal, workerLocal, files, git: gitState, risk, deep, cf, needsWorker: needsWorker(files) };
+  const staleWorkerCommit = await workerBehindHead(cf, gitState.head);
+  return {
+    pagesLocal, workerLocal, files, git: gitState, risk, deep, cf,
+    staleWorkerCommit,
+    needsWorker: needsWorker(files) || Boolean(staleWorkerCommit),
+  };
 }
 function printContext(value) {
   console.log("[deploy-safe] branch=" + value.git.branch + " commit=" + value.git.head.slice(0, 12) + (value.git.dirty ? " dirty" : ""));
@@ -289,6 +324,11 @@ function printContext(value) {
   console.log("[deploy-safe] Pages project=" + value.cf.project + " source=" + value.cf.pages.sourceType + " production=" + value.cf.pages.productionBranch + " preview=" + value.cf.pages.previewSetting + " output=" + value.cf.pages.outputDir);
   console.log("[deploy-safe] Worker=" + value.cf.worker + " AI=" + value.workerLocal.hasAi + " R2=" + value.workerLocal.hasR2 + " cron=" + value.workerLocal.crons.length);
   console.log("[deploy-safe] Pages Functions=" + value.pagesLocal.functions + " _routes=" + value.pagesLocal.routes);
+  if (value.staleWorkerCommit) {
+    console.log("[deploy-safe] 라이브 Worker 가 " + value.staleWorkerCommit.slice(0, 12)
+      + " 에 머물러 있고 그 뒤로 worker/·lib/·server/ 변경이 있습니다 — 이번 릴리스에 Worker 를 함께 올립니다.");
+  }
+  console.log("[deploy-safe] Worker included in this release: " + value.needsWorker);
 }
 
 function walk(directory, relative = "") {
