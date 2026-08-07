@@ -92,6 +92,37 @@ describe("Guardian Fortune usage service", () => {
     expect(reservation).toMatchObject({ ok: false, status: 503, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED });
   });
 
+  it("lets a paid request retry on the same id after a failed generation", async () => {
+    // 결제 증빙은 requestId 에 묶여 있다. 실패한 시도를 409 로 잠그면 이미 결제한 사용자가
+    // 새 requestId 로도 증빙을 못 찾아 결과를 영원히 못 받는다.
+    const store = exhaustedStore("user-retry");
+    const first = await reserveGuardianFortuneUsage({ userId: "user-retry", dateKey: DATE_KEY, requestId: "retry-request", store, resolvePaidAccess: paidAccess, now: NOW });
+    expect(first.ok).toBe(true);
+    await releaseGuardianFortuneUsage(first, { store, errorCode: "GUARDIAN_FORTUNE_GENERATION_FAILED", now: NOW });
+
+    const second = await reserveGuardianFortuneUsage({ userId: "user-retry", dateKey: DATE_KEY, requestId: "retry-request", store, resolvePaidAccess: paidAccess, now: NOW });
+    expect(second).toMatchObject({ ok: true, source: "paid" });
+  });
+
+  it("lets a blocked request retry on the same id once the payment lands", async () => {
+    const store = exhaustedStore("user-late-pay");
+    const blocked = await reserveGuardianFortuneUsage({ userId: "user-late-pay", dateKey: DATE_KEY, requestId: "late-pay", store, resolvePaidAccess: async () => ({ ok: false }), now: NOW });
+    expect(blocked).toMatchObject({ ok: false, status: 402 });
+
+    const paid = await reserveGuardianFortuneUsage({ userId: "user-late-pay", dateKey: DATE_KEY, requestId: "late-pay", store, resolvePaidAccess: paidAccess, now: NOW });
+    expect(paid).toMatchObject({ ok: true, source: "paid" });
+  });
+
+  it("still refuses to replay a completed request", async () => {
+    // 끝난 상담을 같은 id 로 다시 돌리면 결제 1회로 결과가 여러 번 나온다.
+    const store = exhaustedStore("user-done");
+    const first = await reserveGuardianFortuneUsage({ userId: "user-done", dateKey: DATE_KEY, requestId: "done-request", store, resolvePaidAccess: paidAccess, now: NOW });
+    await commitGuardianFortuneUsage(first, { store, now: NOW });
+
+    const replay = await reserveGuardianFortuneUsage({ userId: "user-done", dateKey: DATE_KEY, requestId: "done-request", store, resolvePaidAccess: paidAccess, now: NOW });
+    expect(replay).toMatchObject({ ok: false, status: 409, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS });
+  });
+
   it("blocks a logged-in user with no payment proof at 402", async () => {
     const store = exhaustedStore("user-unpaid");
     const reservation = await reserveGuardianFortuneUsage({ userId: "user-unpaid", dateKey: DATE_KEY, requestId: "unpaid-request", store, resolvePaidAccess: async () => ({ ok: false }), now: NOW });

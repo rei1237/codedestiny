@@ -509,7 +509,10 @@ export function createMemoryFusionFortuneStore(seed = {}) {
     daily, attempts,
     async getDaily(dateKey) { return daily.get(dateKey) || { dateKey, limit: 100, successCount: 0, reserved: 0 }; },
     async reserve(userId, dateKey, requestId) { return withReservationLock(async () => {
-      if (attempts.has(requestId)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
+      // released(실패·중단)는 끝난 시도다. 409 로 막으면 그 requestId 로 결제한 사용자가
+      // 결과를 영원히 못 받는다 — 증빙이 requestId 에 묶여 있어 새 id 로는 안 잡힌다.
+      const previous = attempts.get(requestId);
+      if (previous && previous.status !== "released") return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
       const limit = await this.getDaily(dateKey);
       if (count(limit.successCount) + count(limit.reserved) >= 100) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.SOLD_OUT, status: 429 };
       limit.reserved = count(limit.reserved) + 1; daily.set(dateKey, limit); attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved" }); return { ok: true, userId: String(userId), dateKey, requestId };
@@ -526,7 +529,16 @@ export function createMongoFusionFortuneStore() {
       const session = await mongoose.startSession();
       try {
         await session.withTransaction(async () => {
-          await FusionFortuneGenerationAttempt.create([{ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt: new Date(now.getTime() + 10 * 60 * 1000) }], { session });
+          // released(실패·중단)된 시도는 같은 requestId 로 다시 연다. 결제 증빙이 requestId 에
+          // 묶여 있어, 여기서 막으면 이미 결제한 사용자가 결과를 받을 길이 사라진다.
+          const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
+            { requestId, status: "released" },
+            { $set: { status: "reserved", dateKey, expiresAt: new Date(now.getTime() + 10 * 60 * 1000) } },
+            { session },
+          ).lean();
+          if (!reopened) {
+            await FusionFortuneGenerationAttempt.create([{ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt: new Date(now.getTime() + 10 * 60 * 1000) }], { session });
+          }
           await FusionFortuneDailyLimit.updateOne({ dateKey }, { $setOnInsert: { timezone: "Asia/Seoul", limit: 100, successCount: 0, reserved: 0, createdAt: now }, $set: { updatedAt: now } }, { upsert: true, session });
           const daily = await FusionFortuneDailyLimit.findOneAndUpdate({ dateKey, $expr: { $lt: [{ $add: [{ $ifNull: ["$successCount", 0] }, { $ifNull: ["$reserved", 0] }] }, 100] } }, { $inc: { reserved: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
           if (!daily) throw Object.assign(new Error("sold_out"), { fusionCode: FUSION_FORTUNE_ERROR_CODES.SOLD_OUT, status: 429 });
