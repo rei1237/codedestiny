@@ -306,9 +306,21 @@ function parseUrls(text) { return [...new Set((String(text).match(/https?:\/\/[^
 function lastUuid(text) { const matches = String(text).match(UUID_RE) || []; return matches[matches.length - 1] || ""; }
 function eslintArgs(sourceFiles) { return ["exec", "--", "eslint", "--quiet", ...sourceFiles]; }
 
+/**
+ * 변경 목록에서 실제로 린트할 파일만 고른다.
+ * 🔴 존재 여부를 반드시 확인한다. `git diff --name-only` 는 삭제된 파일도 이름을 내놓는데,
+ * 없는 경로를 eslint 에 넘기면 "No files matching the pattern" 으로 exit 2 가 나고
+ * 릴리스가 통째로 막힌다(파일을 지운 PR 마다 재현된다).
+ */
+function lintTargets(files) {
+  return files
+    .filter((file) => /\.(c|m)?js$|\.(c|m)?tsx?$/.test(file))
+    .filter((file) => fs.existsSync(path.resolve(root, file)));
+}
+
 async function checks(value) {
   const env = envForChecks();
-  const sourceFiles = value.files.filter((file) => /\.(c|m)?js$|\.(c|m)?tsx?$/.test(file));
+  const sourceFiles = lintTargets(value.files);
   if (sourceFiles.length) run("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
   run("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
   if (value.risk.level !== "low") run("core mock smoke tests", npmCommand(), ["run", "smoke:core"], { env });
@@ -485,6 +497,11 @@ async function selfTest() {
   for (const item of cases) if (item[1] !== item[2]) throw new Error(item[0] + " classification failed.");
   const lint = eslintArgs(["fixture.js"]);
   if (!lint.includes("--quiet") || lint.includes("--max-warnings=0")) throw new Error("release lint must block errors without promoting warnings.");
+  // 파일을 지운 릴리스가 eslint exit 2 로 막히던 회귀를 잠근다.
+  const targets = lintTargets(["scripts/deploy-safe.mjs", "app/does-not-exist/Deleted.tsx", "docs/readme.md"]);
+  if (!targets.includes("scripts/deploy-safe.mjs")) throw new Error("changed-file lint must keep existing source files.");
+  if (targets.some((file) => file.includes("Deleted.tsx"))) throw new Error("changed-file lint must skip deleted files; eslint exits 2 on missing paths.");
+  if (targets.some((file) => file.endsWith(".md"))) throw new Error("changed-file lint must only take JS/TS sources.");
   const pagesListUrl = pageDeploymentsUrl({ project: "project name" }, "preview");
   if (!pagesListUrl.includes("/project%20name/deployments?env=preview") || /[?&](?:page|per_page)=/.test(pagesListUrl)) throw new Error("Pages deployment lookup must use Cloudflare default pagination.");
   if (parseUrls("https://a.pages.dev https://b.workers.dev").length !== 2) throw new Error("URL parser failed.");
