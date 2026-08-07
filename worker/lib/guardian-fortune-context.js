@@ -55,6 +55,23 @@ function normalizeBirthPlace(value) {
   };
 }
 
+/** 최근 대화 6턴. 클라이언트가 보내는 값이라 개수·길이·민감정보를 서버에서 다시 조인다. */
+const MAX_RECENT_TURNS = 6;
+const MAX_TURN_LENGTH = 160;
+
+function normalizeRecentTurns(value) {
+  if (!Array.isArray(value)) return [];
+  const turns = [];
+  for (const entry of value.slice(-MAX_RECENT_TURNS)) {
+    // 제어문자 제거는 프롬프트의 safeText 가 이미 한다. 여기서는 공백 정리와 길이만 본다.
+    const text = String(entry?.text || "").replace(/\s+/g, " ").trim().slice(0, MAX_TURN_LENGTH);
+    // 민감정보가 섞인 턴은 통째로 버린다 — 맥락 한 줄 때문에 프롬프트로 흘려보낼 이유가 없다.
+    if (!text || containsSensitiveText(text)) continue;
+    turns.push({ speaker: entry?.speaker === "assistant" ? "assistant" : "user", text });
+  }
+  return turns;
+}
+
 export function normalizeGuardianFortuneInput(input = {}, options = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw invalidInput();
   const now = options.now instanceof Date ? options.now : new Date();
@@ -100,6 +117,7 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
     timezone: DEFAULT_TIMEZONE,
     hasConcern: Boolean(concern),
     concernForLLM: concern,
+    recentTurns: normalizeRecentTurns(input.recentTurns),
   };
 }
 
@@ -331,6 +349,9 @@ export async function buildGuardianFortuneContext(input, options = {}) {
     availableSystems,
     unavailableClaims: [...new Set(unavailableClaims)],
     integratedInsight,
+    // 서버가 정규화한 대화 맥락만 프롬프트로 나간다. 원본 body 의 recentTurns 를 그대로
+    // 쓰면 개수·길이·민감정보 필터를 우회한 값이 프롬프트에 실린다.
+    recentTurns: normalized.recentTurns,
     safetyConstraints: [
       "birth_time_dependent_claims_require_birth_time",
       "location_dependent_claims_require_birth_place",

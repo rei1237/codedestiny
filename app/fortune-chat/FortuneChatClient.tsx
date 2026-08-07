@@ -96,10 +96,15 @@ export default function FortuneChatClient() {
   const [sessionId, setSessionId] = useState("");
   const [birth, setBirth] = useState<Birth>({ birthDate: "", birthTime: "", calendarType: "solar", gender: "unknown" });
   const [birthOpen, setBirthOpen] = useState(false);
+  /** 상담자가 제안한 다음 질문. 채팅이 한 턴으로 끝나지 않게 하는 동력이다. */
+  const [followUps, setFollowUps] = useState<string[]>([]);
   const birthTouchedRef = useRef(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const persistTimerRef = useRef<number | null>(null);
+  // 요청 시점의 최신 대화를 읽되 requestReading 을 매 메시지마다 새로 만들지 않기 위한 참조.
+  const messagesRef = useRef<Message[]>(messages);
+  messagesRef.current = messages;
 
   const bootstrap = useCallback(async () => {
     const requestedSession = params?.get("session");
@@ -176,6 +181,10 @@ export default function FortuneChatClient() {
   }, [ensurePaidAccess]);
 
   const requestReading = useCallback(async (requestId: string, concern: string) => {
+    // 최근 6턴만 보낸다. 서버가 개수·길이·민감정보를 다시 조이므로 여기서는 형태만 맞춘다.
+    const recentTurns = messagesRef.current
+      .slice(-6)
+      .map((message) => ({ speaker: message.speaker === "assistant" ? "assistant" : "user", text: message.detail ? `${message.text} ${message.detail}` : message.text }));
     const response = await fetch(`${apiBase}/api/fortune/guardian/generate`, {
       method: "POST",
       credentials: "include",
@@ -190,6 +199,7 @@ export default function FortuneChatClient() {
         topic: topicKey,
         mode: character === "neo" ? "neo" : "yeoni",
         ...(concern ? { concern } : {}),
+        ...(recentTurns.length ? { recentTurns } : {}),
       }),
     });
     const payload = await response.json().catch(() => null);
@@ -237,11 +247,14 @@ export default function FortuneChatClient() {
       if (!attempt.ok || !attempt.payload?.ok) throw new Error(attempt.payload?.message || "상담 결과를 준비하지 못했어요.");
 
       const result = attempt.payload.result || {};
+      const evidence = Array.isArray(result.evidenceLines) ? result.evidenceLines : [];
       append([
-        { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: result.coreReading || result.topicAdvice || "결과를 정리하고 있어요." },
-        { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: result.luckyAction || "작은 선택 하나부터 가볍게 시작해 보세요." },
+        { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: [result.innerState, result.coreReading, result.topicAdvice].filter(Boolean).join("\n\n") || "결과를 정리하고 있어요." },
+        ...(result.cautionPattern ? [{ id: id(), speaker: "assistant" as const, kind: "reading" as const, text: "조심해서 볼 반복 패턴", detail: result.cautionPattern }] : []),
+        { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: [result.luckyAction, evidence.length ? `읽은 근거\n${evidence.map((line: string) => `· ${line}`).join("\n")}` : ""].filter(Boolean).join("\n\n") || "작은 선택 하나부터 가볍게 시작해 보세요." },
         { id: id(), speaker: "assistant", kind: "cta", text: "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
       ]);
+      setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
       setQuestion("");
       await bootstrap();
     } catch (reason) {
@@ -274,6 +287,7 @@ export default function FortuneChatClient() {
     setQuestion("");
     setError("");
     setNotice("");
+    setFollowUps([]);
   };
 
   const busyLabel = isPaying ? "결제를 확인하고 있어요" : `${CHARACTER_LABEL[character]}가 답을 정리하고 있어요`;
@@ -321,6 +335,11 @@ export default function FortuneChatClient() {
         </div>
         <button className={styles.birthReload} type="button" onClick={() => { birthTouchedRef.current = false; void reloadProfileSeed(); }}>저장한 프로필에서 불러오기</button>
       </details>
+
+      {followUps.length > 0 && <div className={styles.followUps} aria-label="이어서 물어볼 질문">
+        <span>이어서 물어볼까요?</span>
+        {followUps.map((item) => <button key={item} type="button" onClick={() => { setQuestion(item); window.setTimeout(() => inputRef.current?.focus(), 0); }}>{item}</button>)}
+      </div>}
 
       <div className={styles.chips} aria-label="추천 질문 분야">{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>
       <div className={styles.chips} aria-label="상담 체계 선택">{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>

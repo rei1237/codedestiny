@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from "@jest/globals";
 
 const require = createRequire(import.meta.url);
 const fixtures = require("../fixtures/guardian-fortune-prompt-fixtures.js");
+import { GUARDIAN_FORTUNE_RESULT_LENGTH } from "../../worker/lib/guardian-fortune-runtime-contract.js";
 
 let promptModule;
 let resultModule;
@@ -117,7 +118,7 @@ describe("Guardian Fortune result parser and validator", () => {
     expect(validated.value.premiumCta.targetPath).toBe("/destiny-compass");
     expect(validated.value.premiumCta.ctaKey).toBe("life_compass");
     expect(validated.value.shareText).not.toContain("1988-08-08");
-    expect(resultModule.countGuardianFortuneVisibleTextLength(validated.value)).toBeGreaterThanOrEqual(800);
+    expect(resultModule.countGuardianFortuneVisibleTextLength(validated.value)).toBeGreaterThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.min);
   });
 
   it("removes unsupported birth-time dependent certainty when birth time is absent", () => {
@@ -180,8 +181,8 @@ describe("Guardian Fortune result parser and validator", () => {
     for (const scenario of ["too_short", "too_long"]) {
       const output = await mockModule.generateGuardianFortuneWithMockLLM({ input: fixtures.baseInput, context: fixtures.mockContext, scenario });
       const length = resultModule.countGuardianFortuneVisibleTextLength(output.result);
-      expect(length).toBeGreaterThanOrEqual(800);
-      expect(length).toBeLessThanOrEqual(1500);
+      expect(length).toBeGreaterThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.min);
+      expect(length).toBeLessThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.max);
     }
   });
 
@@ -190,7 +191,7 @@ describe("Guardian Fortune result parser and validator", () => {
       const output = await mockModule.generateGuardianFortuneWithMockLLM({ input: fixtures.baseInput, context: fixtures.mockContext, scenario });
       expect(output.usedFallback).toBe(true);
       expect(output.result.title).toBe("오늘의 귀인 운세");
-      expect(resultModule.countGuardianFortuneVisibleTextLength(output.result)).toBeGreaterThanOrEqual(800);
+      expect(resultModule.countGuardianFortuneVisibleTextLength(output.result)).toBeGreaterThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.min);
     }
   });
 

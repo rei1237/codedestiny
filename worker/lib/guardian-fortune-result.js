@@ -1,5 +1,6 @@
 import {
   GUARDIAN_FORTUNE_FORBIDDEN_RESULT_PATTERNS,
+  GUARDIAN_FORTUNE_LIST_LIMITS,
   GUARDIAN_FORTUNE_MODE_SHARE_HINTS,
   GUARDIAN_FORTUNE_RESULT_LENGTH,
   GUARDIAN_FORTUNE_SAFE_RESULT_DEFAULTS,
@@ -36,13 +37,19 @@ const CATEGORY_SYSTEM_MARKERS = Object.freeze({
   tarot: ["타로", "스프레드", "정방향", "역방향"],
 });
 
+/**
+ * 모델이 고르지 않은 체계의 용어를 상담 본문에 섞어 쓰는지 본다.
+ *
+ * 🔴 premiumCta 는 검사 대상이 아니다. CTA 는 **다른 상품으로 넘기는 크로스셀 포인터**라
+ * 다른 체계 이름을 부르는 게 정상이다. 예: mind 주제의 bridge 문구는 "나크샤트라 기반
+ * 해석으로 이어갈 수 있습니다"(guardian-fortune-insight.js), decision 주제의 기본 CTA 는
+ * "타로로 선택의 결 보기". 이걸 함께 훑는 바람에 category 가 그 체계가 아닌 거의 모든
+ * 조합이 GUARDIAN_RESULT_CATEGORY_BOUNDARY_FAILED 로 떨어졌고, 폴백까지 같은 이유로
+ * 탈락해 요청 전체가 502 로 끝났다. 검사해야 할 것은 모델이 쓴 상담 본문이다.
+ */
 function findForeignSystemMarker(result, category) {
   if (!CATEGORY_SYSTEM_MARKERS[category]) return "invalid_category";
-  const visibleText = [
-    ...ALL_RESULT_TEXT_FIELDS.map((field) => safeText(result?.[field], 4000)),
-    safeText(result?.premiumCta?.label, 1000),
-    safeText(result?.premiumCta?.reason, 2000),
-  ].join(" ");
+  const visibleText = ALL_RESULT_TEXT_FIELDS.map((field) => safeText(result?.[field], 4000)).join(" ");
   for (const [system, markers] of Object.entries(CATEGORY_SYSTEM_MARKERS)) {
     if (system === category) continue;
     const marker = markers.find((candidate) => visibleText.includes(candidate));
@@ -227,10 +234,28 @@ export function assertGuardianFortuneNoSensitiveLeak({ result, input = {} } = {}
   return true;
 }
 
+/** 목록 필드를 개수·길이 계약 안으로 정규화한다. 금지 표현 치환은 산문과 동일하게 건다. */
+function sanitizeResultList(value, limits) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  const items = [];
+  for (const entry of value) {
+    const normalized = safeText(applyForbiddenReplacements(entry), limits.maxLength);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    items.push(normalized);
+    if (items.length >= limits.max) break;
+  }
+  return items;
+}
+
 export function sanitizeGuardianFortuneResult(result = {}) {
   const source = cloneObject(result);
   const sanitized = {};
   for (const field of ALL_RESULT_TEXT_FIELDS) sanitized[field] = applyForbiddenReplacements(source[field]);
+
+  sanitized.evidenceLines = sanitizeResultList(source.evidenceLines, GUARDIAN_FORTUNE_LIST_LIMITS.evidenceLines);
+  sanitized.followUpQuestions = sanitizeResultList(source.followUpQuestions, GUARDIAN_FORTUNE_LIST_LIMITS.followUpQuestions);
 
   const cta = cloneObject(source.premiumCta);
   sanitized.premiumCta = {
@@ -343,6 +368,10 @@ export function enrichShortGuardianFortuneResult(result = {}, { context = {}, in
     `계산 결과가 보여주는 ${getTopicContract(topic).label}의 단서는 한 문장으로 결론 내리는 답이 아니라, 현재의 선택을 조금 더 잘 관찰하도록 돕는 기준입니다. 오늘은 주변의 반응을 억지로 바꾸려 하기보다 내가 조절할 수 있는 속도와 순서를 먼저 정리해보세요.`,
     "마음이 다시 복잡해지면 처음부터 모든 것을 해결하려 하지 말고, 지금 확인할 수 있는 사실 하나와 잠시 내려놓을 생각 하나를 나누어 적어보세요. 그 구분만으로도 다음 행동을 고르는 부담이 줄어들 수 있어요.",
     "오늘의 귀인 행동은 거창한 결심보다 작은 확인에 있습니다. 답장을 보내기 전 문장을 한 번 줄이고, 결제를 결정하기 전 조건을 다시 읽고, 해야 할 일을 세 가지 안으로 좁혀보세요. 이처럼 되돌릴 수 있는 행동부터 시작하면 흐름을 안전하게 시험할 수 있어요.",
+    `${getTopicContract(topic).label}에서 같은 고민이 반복된다면, 상황이 그대로여서가 아니라 확인하는 순서가 매번 달라졌기 때문일 수 있어요. 오늘은 확인할 것과 미룰 것을 먼저 갈라두면 다음 판단이 한결 가벼워집니다.`,
+    "지금의 흐름은 좋고 나쁨으로 나뉘기보다, 어떤 속도로 움직이면 덜 지치는지를 알려주는 쪽에 가깝습니다. 서두르면 놓치기 쉬운 신호가 있고, 너무 미루면 선택지가 줄어드는 지점도 함께 있어요.",
+    "결정을 앞두고 마음이 무거워지면, 그 무게가 상황의 크기 때문인지 아직 확인하지 못한 정보 때문인지 구분해보세요. 대부분의 부담은 사실이 부족할 때 더 크게 느껴집니다.",
+    "오늘 하루의 결론을 지금 내리지 않아도 괜찮아요. 흐름은 한 번에 뒤집히기보다 작은 확인이 쌓이면서 방향을 바꾸는 경우가 훨씬 많습니다.",
   ].map((value) => safeText(value, 420)).filter(Boolean);
 
   let index = 0;
@@ -470,6 +499,14 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   normalized.premiumCta = normalizeCta(normalized.premiumCta, topic, fallback.premiumCta.reason);
   normalized.shareText = normalizeGuardianFortuneShareText({ candidate: normalized.shareText, input, context });
   normalized = applyContextualClaimSafety(normalized, context);
+  // 목록이 모자라면 폴백의 목록으로 채운다. 목록 부재로 전체 상담을 버리면 결제한
+  // 사용자가 산문까지 잃는다 — 목록은 보조 구조라 폴백 대체가 맞다.
+  for (const [field, limits] of Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS)) {
+    if ((normalized[field] || []).length < limits.min) {
+      normalized[field] = fallback[field] || [];
+      issues.push(`fallback_${field}`);
+    }
+  }
   const hasMissingRequired = VISIBLE_RESULT_FIELDS.some((field) => !safeText(normalized[field])) || !safeText(normalized.title);
   const hasForbidden = ALL_RESULT_TEXT_FIELDS.some((field) => hasForbiddenExpression(normalized[field]))
     || hasForbiddenExpression(normalized.premiumCta.reason);
