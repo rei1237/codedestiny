@@ -41,5 +41,5 @@
 ## Rollout and rollback
 
 - Apply `scripts/migrations/20260804-add-permanent-unlock-index.mjs --check` first. Production index creation requires separate approval; no legacy backfill or deletion is performed.
-- Deploy Worker and Pages only through the approved main CI workflow after PR checks pass.
-- Rollback is PR revert plus previous Worker/Pages version restore. Additive fields and the partial index can remain; no data deletion is required.
+- Deploy Worker and Pages only through `npm run deploy:safe` on `main`, after the preview has been inspected and the `[y/N]` prompt approved. (PR-first delivery was retired on 2026-08-08.)
+- Rollback is `npm run deploy:rollback -- --list` then `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]`, plus a `git revert` on `main` if the code must go back too. Additive fields and the partial index can remain; no data deletion is required.

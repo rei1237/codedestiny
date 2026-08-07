@@ -65,7 +65,7 @@ npm.cmd run measure:post-deploy-latency -- `
 
 ## 측정 시점과 판정
 
-최소한 다음 시점에 같은 명령을 반복하고 PR 또는 배포 기록에 결과를 저장한다.
+최소한 다음 시점에 같은 명령을 반복하고 배포 기록에 결과를 저장한다.
 
 1. 배포 직후(T+5분): 기본 smoke 및 초기 캐시 상태 확인
 2. T+15분: 정상 트래픽 후 권한 조회 p95 확인
@@ -106,7 +106,7 @@ route metrics endpoint는 환경 플래그와 토큰이 필요하다. 토큰을 
 
 ## 대응과 rollback
 
-응답시간 또는 결제·권한 오류가 회귀하면 먼저 새 결제 준비/확정 요청을 중지하고 로그와 배포 ID를 보존한다. 그 다음 승인된 PR을 기준으로 Cloudflare Worker/Pages의 이전 버전으로 rollback하거나 revert한다. 운영 결제 취소·환불·권한 복구 및 DB 변경은 별도 승인 없이 실행하지 않는다.
+응답시간 또는 결제·권한 오류가 회귀하면 먼저 새 결제 준비/확정 요청을 중지하고 로그와 배포 ID를 보존한다. 그 다음 `npm run deploy:rollback -- --list` 로 대상을 확인하고 `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]` 로 Cloudflare Worker/Pages를 이전 버전으로 되돌린다(코드까지 되돌려야 하면 `main` 에서 `git revert`). 운영 결제 취소·환불·권한 복구 및 DB 변경은 별도 승인 없이 실행하지 않는다.
 
 배포 기록에는 다음을 남긴다.
 

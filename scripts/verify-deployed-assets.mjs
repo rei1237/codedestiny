@@ -1,27 +1,38 @@
 #!/usr/bin/env node
 /**
- * 배포 직후, 프로덕션 호스트가 실제로 내려주는 HTML 이 참조하는 `_next/static` 자산이
- * 전부 200 인지 확인한다. 하나라도 죽어 있으면 배포 잡을 실패시킨다.
+ * 배포된 HTML 이 참조하는 자산이 전부 200 인지 확인한다.
  *
- * ── 왜 필요한가 (2026-07-30 사고) ────────────────────────────────────────────
- * Pages 배포 전환 틈새에, 새 HTML 이 참조하는 자산을 아직 옛 배포를 가리키는 엣지 PoP 가
- * 받으면 404 가 난다. 그 404 응답에는 Cloudflare 가 `Cache-Control: max-age=172800`(2일)을
- * 붙이므로 **오리진에 파일이 멀쩡해도 그 URL 만 이틀간 죽는다**. HTML 은 `no-store` 라
- * 새로고침해도 같은 죽은 URL 을 다시 요청한다 → 사용자 입장에선 영구 장애.
- * 실제로 `styles/globals.css` 산출물(React 전 라우트의 메인 스타일시트) 하나가 이렇게 죽어
- * /points·/me·/login 이 전부 무스타일로 떴다. 롤백해도 내용이 같으면 해시가 같아 안 고쳐진다.
+ * ── 왜 두 모드인가 (2026-08-08 개편) ────────────────────────────────────────
+ * 원래는 프로덕션 호스트 하나만 봤다. 그런데 프로덕션 별칭(code-destiny.com)은 배포 전환 중에
+ * **두 세대를 동시에 서빙한다** — HTML 은 새 배포본에서, 자산은 옛 배포본에서 오는 요청이 섞인다.
+ * 그러면 빌드 간 해시가 바뀐 파일(webpack 런타임·app/layout·css·변경된 라우트 청크)만 404 로
+ * 내려오고, 해시가 그대로인 나머지는 양쪽 세대에 다 있어 200 이다.
  *
- * 이 검사는 그 상태를 **배포 시점에 즉시 드러내는 것**이 목적이다. 사용자 신고로 발견되기까지
- * 걸린 시간이 곧 장애 시간이었다.
+ * 2026-08-07 릴리스 실패의 정체가 이것이었다:
+ *   - `wrangler pages deploy` 는 `Uploaded 0 files (3279 already uploaded)` 로 **전부 업로드됨**을 보고
+ *   - 그런데도 5건이 `bare=404 bypass=404` (쿼리스트링은 캐시 키를 바꾸므로 이건 오리진 응답이다)
+ *   - 실패 건수가 라운드마다 5→3→4→6→5 로 요동하고 매니페스트가 매 라운드 바뀜
+ * 즉 "산출물 부재"가 아니라 "세대 혼입"이었는데, 옛 코드에는 둘을 가를 근거가 없었다
+ * (이 파일은 `fs` 를 아예 쓰지 않아 방금 배포한 로컬 빌드를 한 번도 보지 않았다).
+ * 그 오진이 자동 롤백을 불렀고, 롤백은 **또 한 번의 전환 구간**을 만들어 다음 릴리스를 같은 이유로
+ * 실패시켰다(실측: 어떤 실행의 롤백 대상이 직전 실패 실행이 만든 배포본이었다).
  *
- * ── 판정 ─────────────────────────────────────────────────────────────────
- *  - bare 404 + `?cdcb=` 200  → 엣지에 캐시된 404(오리진은 정상). 퍼지 자격이 있으면 퍼지 후 재확인.
- *  - bare 404 + `?cdcb=` 404  → 산출물 누락, **또는 아직 전파되지 않음**.
+ *   `artifact` 모드 — ORIGIN 이 **배포 고유 URL**(`<hash>.<project>.pages.dev`). 이 URL 은 하나의
+ *     불변 배포본만 서빙하므로 세대 혼입이 원천적으로 없다. 여기서 404 면 진짜 산출물/업로드
+ *     문제이고, 재시도해도 달라지지 않으므로 즉시 실패한다. **이게 진짜 빌드 검증 지점이다.**
  *
- * 🔴 이 둘은 배포 직후에는 구분되지 않는다. 엣지가 아직 옛 배포를 가리키는 동안에는 새 자산이
- * 캐시 우회로 요청해도 404 다(실측 2026-07-30: 배포 30초 뒤 `chunks/2325-*.js` 가 bare/cdcb 모두
- * 404 → 잠시 뒤 둘 다 200). 그래서 "오리진 부재"를 첫 라운드에 단정하면 배포마다 무작위로
- * 빨간불이 뜬다. **모든 실패를 라운드가 소진될 때까지 재시도한 뒤에만** 최종 판정한다.
+ *   `alias` 모드 — ORIGIN 이 프로덕션 별칭. 전환이 끝났는지 보는 것이 목적이다.
+ *     `CD_DEPLOY_EXPECTED_DIR`(방금 배포한 로컬 빌드)이 주어지면 세대를 판별할 수 있다:
+ *       · HTML 이 참조하는 자산 중 로컬 빌드에 **없는** 것이 있다 → 아직 옛 세대의 HTML → 판정 보류
+ *       · 로컬 빌드에 **있는데** 404 → 전환 미완. 예산 소진 뒤에는 경고로 남기고 통과시킨다
+ *         (파일 실재는 artifact 모드가 이미 증명했고, 롤백은 전환 구간을 하나 더 만들 뿐이다)
+ *
+ * ── 엣지 캐시 오염은 여전히 하드 실패다 ─────────────────────────────────────
+ * `bare=404` + `?cdcb=` 200 → 오리진은 멀쩡한데 엣지에 404 가 캐시된 상태. Cloudflare 가 404 에
+ * `max-age=172800`(2일)을 붙이므로 **스스로 풀리지 않는다**. HTML 은 `no-store` 라 새로고침해도
+ * 같은 죽은 URL 을 다시 부른다(2026-07-30: `globals.css` 하나가 이렇게 죽어 /points·/me·/login 이
+ * 무스타일로 떴다). 롤백으로도 안 고쳐진다 — 내용이 같으면 해시가 같아 같은 URL 을 가리킨다.
+ * 그래서 이건 감지·퍼지 대상이지 롤백 대상이 아니다.
  *
  * ── 퍼지 자격 ────────────────────────────────────────────────────────────
  * `CLOUDFLARE_CACHE_PURGE_TOKEN` + `CLOUDFLARE_ZONE_ID` 가 있으면 죽은 URL 만 골라 퍼지한다.
@@ -29,7 +40,14 @@
  * ⚠️ 기존 `CLOUDFLARE_API_TOKEN` 에는 Zone Cache Purge 권한이 없다(실측: Authentication error).
  */
 
+import fs from "node:fs";
+import path from "node:path";
+
 const ORIGIN = (process.env.CD_DEPLOY_VERIFY_ORIGIN || "https://code-destiny.com").replace(/\/+$/, "");
+const MODE = String(process.env.CD_DEPLOY_ASSETS_MODE || "alias").trim().toLowerCase() === "artifact" ? "artifact" : "alias";
+const EXPECTED_DIR = String(process.env.CD_DEPLOY_EXPECTED_DIR || "").trim()
+  ? path.resolve(String(process.env.CD_DEPLOY_EXPECTED_DIR).trim())
+  : "";
 const PURGE_TOKEN = process.env.CLOUDFLARE_CACHE_PURGE_TOKEN || "";
 const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || "";
 
@@ -38,15 +56,40 @@ const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || "";
  * 라우트 전용 청크까지 보려면 성격이 다른 화면을 섞어야 한다.
  * `/` 는 정적 셸이라 `_next` 를 참조하지 않지만, 셸이 살아있는지 확인하는 의미로 둔다.
  */
-const ROUTES = ["/", "/points/", "/me/", "/login/", "/music/", "/stories/"];
+// `/me` 는 2026-08-08 에 정적 셸로 이관되며 빌드에서 사라졌다(bd54e99eb). 오리진이 옛 HTML 을
+// 한동안 200 으로 계속 내려주는 바람에, 여기 남아 있는 동안 릴리스마다 그 옛 세대의 청크가
+// "죽은 자산" 으로 보고됐다. 목록에서 빼되, 같은 일이 또 생겨도 routeExistsInBuild 가 막는다.
+const ROUTES = ["/", "/points/", "/login/", "/music/", "/stories/"];
 
-// 전파 지연을 오탐으로 만들지 않을 만큼은 기다린다(실측: 배포 30초 뒤에도 미전파 자산이 있었다).
-// 워크플로의 선행 sleep 45초까지 더하면 약 3분까지 버틴다.
-const MAX_ROUNDS = 5;
-const ROUND_DELAY_MS = 25_000;
+// artifact 모드는 불변 URL 이라 즉시 일관적이다 — 재시도는 순수 네트워크 흔들림 대비 1회뿐.
+// alias 모드는 전환을 기다리는 것이 일이므로 예산을 넉넉히 준다(8×20초 ≈ 160초).
+const MAX_ROUNDS = MODE === "artifact" ? 1 : 8;
+const ROUND_DELAY_MS = MODE === "artifact" ? 8_000 : 20_000;
 const REQUEST_TIMEOUT_MS = 15_000;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** 방금 배포한 로컬 빌드에 이 URL 경로가 존재하는가. 세대 판별의 유일한 근거다. */
+function existsInBuild(urlPath) {
+  if (!EXPECTED_DIR) return true;
+  const segments = String(urlPath).split("?")[0].split("/").filter(Boolean);
+  if (!segments.length) return false;
+  return fs.existsSync(path.join(EXPECTED_DIR, ...segments));
+}
+
+/**
+ * 이 라우트가 방금 배포한 빌드에 존재하는가.
+ *
+ * 🔴 없는 라우트를 검사 대상에 남겨 두면 안 된다. `/me` 는 2026-08-08 에 정적 셸로 이관되며
+ * 빌드에서 사라졌는데, 오리진은 한동안 옛 HTML 을 200 으로 계속 내려줬다(실측: `Age: 5256`,
+ * `?cdcb=` 우회는 404). 검증기가 그 200 을 믿고 옛 세대의 청크를 검사해 `app/me/page-*` 를
+ * "죽은 자산"으로 보고했고, 그게 릴리스 실패 목록에 그대로 올라갔다.
+ */
+function routeExistsInBuild(route) {
+  if (!EXPECTED_DIR) return true;
+  const segments = String(route).split("/").filter(Boolean);
+  return fs.existsSync(path.join(EXPECTED_DIR, ...segments, "index.html"));
+}
 
 async function fetchText(url) {
   const res = await fetch(url, {
@@ -83,10 +126,33 @@ async function statusOf(url) {
   }
 }
 
+function extractAssets(html) {
+  const found = new Set();
+  for (const match of html.matchAll(/\/_next\/static\/[^"'\s>]+?\.(?:css|js)/g)) {
+    found.add(match[0]);
+  }
+  // 정적 셸(`/`)이 참조하는 자산은 `_next/static` 이 아니라 `/js`·`/styles`·`/css` 에 있다.
+  // 같은 엣지 캐시 404 사고가 나도 위 정규식으로는 하나도 잡히지 않아 그동안 무방비였다.
+  // 지연 로더가 쓰는 data-cd-noncritical-* 속성도 결국 같은 URL 을 요청하므로 함께 본다.
+  for (const match of html.matchAll(
+    /(?:\ssrc|\shref|data-cd-noncritical-src|data-cd-noncritical-style-src)=["'](\/(?:js|styles|css)\/[^"'?\s>]+\.(?:js|css))/g,
+  )) {
+    found.add(match[1]);
+  }
+  return [...found];
+}
+
 async function collectAssetUrls() {
   const found = new Set();
   const routeFailures = [];
+  const skippedRoutes = [];
+  const staleRoutes = [];
   for (const route of ROUTES) {
+    // 빌드에 없는 라우트는 아예 묻지 않는다. 오리진이 옛 HTML 을 200 으로 주더라도 속지 않는다.
+    if (!routeExistsInBuild(route)) {
+      skippedRoutes.push(route);
+      continue;
+    }
     const url = `${ORIGIN}${route}`;
     let res;
     try {
@@ -99,26 +165,24 @@ async function collectAssetUrls() {
       routeFailures.push(`${route} → HTTP ${res.status}`);
       continue;
     }
-    for (const match of res.body.matchAll(/\/_next\/static\/[^"'\s>]+?\.(?:css|js)/g)) {
-      found.add(match[0]);
+    const routeAssets = extractAssets(res.body);
+    // 🔴 세대 판별은 **라우트 단위**로 한다. 전환 중에는 라우트마다 다른 세대가 나오므로,
+    // 하나가 옛 세대라고 전체 검사를 미루면 영영 판정하지 못한다. 옛 세대 라우트의 자산만
+    // 검사 대상에서 빼고, 나머지는 지금 바로 확인한다.
+    if (EXPECTED_DIR && MODE === "alias" && routeAssets.some((item) => !existsInBuild(item))) {
+      staleRoutes.push(route);
+      continue;
     }
-    // 정적 셸(`/`)이 참조하는 자산은 `_next/static` 이 아니라 `/js`·`/styles`·`/css` 에 있다.
-    // 같은 엣지 캐시 404 사고가 나도 위 정규식으로는 하나도 잡히지 않아 그동안 무방비였다.
-    // 지연 로더가 쓰는 data-cd-noncritical-* 속성도 결국 같은 URL 을 요청하므로 함께 본다.
-    for (const match of res.body.matchAll(
-      /(?:\ssrc|\shref|data-cd-noncritical-src|data-cd-noncritical-style-src)=["'](\/(?:js|styles|css)\/[^"'?\s>]+\.(?:js|css))/g,
-    )) {
-      found.add(match[1]);
-    }
+    for (const item of routeAssets) found.add(item);
   }
-  return { assets: [...found].sort(), routeFailures };
+  return { assets: [...found].sort(), routeFailures, skippedRoutes, staleRoutes };
 }
 
 async function checkAssets(assets) {
   const dead = [];
-  for (const path of assets) {
-    const status = await statusOf(`${ORIGIN}${path}`);
-    if (status !== 200) dead.push({ path, status });
+  for (const item of assets) {
+    const status = await statusOf(`${ORIGIN}${item}`);
+    if (status !== 200) dead.push({ path: item, status });
   }
   return dead;
 }
@@ -157,68 +221,118 @@ function report(lines) {
 }
 
 async function main() {
-  console.log(`[verify-deployed-assets] 대상 오리진: ${ORIGIN}`);
+  console.log(`[verify-deployed-assets] mode=${MODE} 대상 오리진: ${ORIGIN}`);
+  if (EXPECTED_DIR) console.log(`[verify-deployed-assets] 기준 빌드: ${EXPECTED_DIR}`);
+  else if (MODE === "alias") console.log("[verify-deployed-assets] 기준 빌드 미지정 — 세대 판별 없이 검사합니다(CD_DEPLOY_EXPECTED_DIR).");
 
-  const { assets, routeFailures } = await collectAssetUrls();
-  if (routeFailures.length) {
-    console.log("[verify-deployed-assets] 라우트 응답 이상:");
-    report(routeFailures.map((l) => `  - ${l}`));
+  function describe(snap) {
+    if (snap.routeFailures.length) {
+      console.log("[verify-deployed-assets] 라우트 응답 이상:");
+      report(snap.routeFailures.map((l) => `  - ${l}`));
+    }
+    if (snap.skippedRoutes.length) {
+      console.log(`[verify-deployed-assets] 빌드에 없는 라우트 건너뜀: ${snap.skippedRoutes.join(", ")}`);
+    }
+    if (snap.staleRoutes.length) {
+      console.log(`[verify-deployed-assets] 아직 옛 세대의 HTML 을 주는 라우트: ${snap.staleRoutes.join(", ")}`);
+    }
   }
-  if (!assets.length) {
+
+  let snapshot = await collectAssetUrls();
+  describe(snapshot);
+  if (!snapshot.assets.length && !snapshot.staleRoutes.length) {
     console.error("::error::배포된 HTML 에서 참조 자산(_next/static · 셸 /js·/styles·/css)을 하나도 찾지 못했습니다. 라우트 응답을 확인하세요.");
     process.exit(1);
   }
-  console.log(`[verify-deployed-assets] 검사 대상 ${assets.length}개`);
+  console.log(`[verify-deployed-assets] 검사 대상 ${snapshot.assets.length}개`);
 
-  let dead = await checkAssets(assets);
+  let dead = await checkAssets(snapshot.assets);
 
-  for (let round = 1; dead.length && round <= MAX_ROUNDS; round += 1) {
-    const classified = await classify(dead);
-    const poisoned = classified.filter((d) => d.edgePoisoned);
-    const unresolved = classified.filter((d) => !d.edgePoisoned);
+  for (let round = 1; round <= MAX_ROUNDS; round += 1) {
+    if (!dead.length && !snapshot.staleRoutes.length) break;
+    if (!dead.length) {
+      // 검사한 자산은 전부 살아 있는데 아직 옛 세대를 주는 라우트가 남았다 — 전환이 진행 중이다.
+      console.log(`[verify-deployed-assets] round ${round}/${MAX_ROUNDS}: 자산은 전부 200, 전환 대기 라우트 ${snapshot.staleRoutes.length}건`);
+    } else {
+      const classified = await classify(dead);
+      const poisoned = classified.filter((d) => d.edgePoisoned);
+      const unresolved = classified.filter((d) => !d.edgePoisoned);
 
-    console.log(
-      `[verify-deployed-assets] round ${round}/${MAX_ROUNDS}: 실패 ${classified.length}건` +
-        ` (엣지 캐시 404 ${poisoned.length} / 미전파·부재 ${unresolved.length})`,
-    );
-    report(classified.map((d) => `  - ${d.path} bare=${d.status} bypass=${d.bypassStatus}`));
-
-    // 엣지 오염분만 퍼지로 즉시 풀 수 있다. 미전파분은 기다리는 것 말고 할 수 있는 게 없다.
-    if (poisoned.length) {
-      const purged = await purge(poisoned.map((d) => d.path));
-      if (purged.attempted && purged.ok) console.log("[verify-deployed-assets] 엣지 오염 URL 캐시 퍼지 완료");
-      else console.log(`[verify-deployed-assets] 퍼지 건너뜀 — ${purged.reason}`);
-    }
-
-    await sleep(ROUND_DELAY_MS);
-    const refreshed = await collectAssetUrls();
-    if (refreshed.routeFailures.length) {
-      console.log("[verify-deployed-assets] refreshed route response anomalies:");
-      report(refreshed.routeFailures.map((l) => `  - ${l}`));
-    }
-    const nextAssets = refreshed.assets.length ? refreshed.assets : assets;
-    if (refreshed.assets.length && refreshed.assets.join("\n") !== assets.join("\n")) {
       console.log(
-        `[verify-deployed-assets] refreshed asset manifest during deploy cutover: ${assets.length} -> ${refreshed.assets.length}`,
+        `[verify-deployed-assets] round ${round}/${MAX_ROUNDS}: 실패 ${classified.length}건`
+          + ` (엣지 캐시 404 ${poisoned.length} / 미전파·부재 ${unresolved.length})`,
+      );
+      report(classified.map((d) => `  - ${d.path} bare=${d.status} bypass=${d.bypassStatus}`));
+
+      // artifact 모드는 불변 URL 이다. 여기서 404 면 파일이 그 배포본에 없는 것이고
+      // 기다린다고 생기지 않는다 — 바로 최종 판정으로 간다.
+      if (MODE === "artifact") {
+        dead = classified;
+        break;
+      }
+
+      // 엣지 오염분만 퍼지로 즉시 풀 수 있다. 미전파분은 기다리는 것 말고 할 수 있는 게 없다.
+      if (poisoned.length) {
+        const purged = await purge(poisoned.map((d) => d.path));
+        if (purged.attempted && purged.ok) console.log("[verify-deployed-assets] 엣지 오염 URL 캐시 퍼지 완료");
+        else console.log(`[verify-deployed-assets] 퍼지 건너뜀 — ${purged.reason}`);
+      }
+    }
+
+    if (round === MAX_ROUNDS) break;
+    await sleep(ROUND_DELAY_MS);
+
+    const refreshed = await collectAssetUrls();
+    describe(refreshed);
+    if (refreshed.assets.join("\n") !== snapshot.assets.join("\n")) {
+      console.log(
+        `[verify-deployed-assets] refreshed asset manifest during deploy cutover: ${snapshot.assets.length} -> ${refreshed.assets.length}`,
       );
     }
-    dead = await checkAssets(nextAssets);
+    snapshot = refreshed;
+    dead = await checkAssets(snapshot.assets);
   }
 
   if (!dead.length) {
+    if (snapshot.staleRoutes.length) {
+      // 자산은 전부 살아 있는데 별칭이 아직 옛 세대의 HTML 을 주는 라우트가 남았다.
+      // 자산 부재가 아니므로 실패시키지 않는다 — 롤백은 전환 구간을 하나 더 만들 뿐이다.
+      console.log(`::warning::${MAX_ROUNDS}라운드 뒤에도 전환되지 않은 라우트가 있습니다: ${snapshot.staleRoutes.join(", ")} (자산 부재는 아닙니다)`);
+      return;
+    }
     console.log("[verify-deployed-assets] OK — 참조된 자산 전부 200(_next/static + 셸 /js·/styles·/css)");
     return;
   }
 
   const classified = await classify(dead);
   const poisoned = classified.filter((d) => d.edgePoisoned);
-  console.error(`::error::재시도 ${MAX_ROUNDS}라운드(약 ${Math.round((MAX_ROUNDS * ROUND_DELAY_MS) / 1000)}초) 뒤에도 죽어 있는 자산이 있습니다.`);
-  report(classified.map((d) => `  - ${ORIGIN}${d.path}  bare=${d.status} bypass=${d.bypassStatus} ${d.edgePoisoned ? "(엣지 캐시 오염 — 퍼지 필요)" : "(오리진 부재 — 빌드/업로드 문제)"}`));
+  // 🔴 "전파 지연" 으로 봐주는 것은 **방금 배포한 빌드에 그 파일이 실제로 있다고 증명될 때뿐**이다.
+  // 기준 빌드가 없으면(수동 실행 등) 증명할 방법이 없으므로 종전대로 실패로 본다.
+  const provenInBuild = (item) => Boolean(EXPECTED_DIR) && existsInBuild(item);
+  const missing = classified.filter((d) => !d.edgePoisoned && !provenInBuild(d.path));
+  const lagging = classified.filter((d) => !d.edgePoisoned && provenInBuild(d.path));
+
+  report(classified.map((d) => {
+    const tag = d.edgePoisoned
+      ? "(엣지 캐시 오염 — 퍼지 필요)"
+      : provenInBuild(d.path) ? "(빌드에는 있음 — 전파 미완)" : "(오리진 부재 — 빌드/업로드 문제)";
+    return `  - ${ORIGIN}${d.path}  bare=${d.status} bypass=${d.bypassStatus} ${tag}`;
+  }));
+
   if (poisoned.length) {
-    console.error("::error::엣지 캐시 오염분은 Cloudflare 대시보드에서 해당 URL 을 Custom Purge 하면 즉시 풀립니다.");
-    console.error("::error::근본 차단: Cache Rules 에서 URI Path prefix /_next/static/ 에 'Edge TTL → status code 404 → No-store' 를 설정하면 이 404 가 애초에 캐시되지 않습니다.");
+    console.error(`::error::엣지에 404 가 캐시된 자산 ${poisoned.length}건 — 스스로 풀리지 않습니다(2일 TTL).`);
+    console.error("::error::Cloudflare 대시보드에서 해당 URL 을 Custom Purge 하면 즉시 풀립니다.");
+    console.error("::error::근본 차단: Cache Rules 에서 URI Path prefix /_next/static/ 에 'Edge TTL → status code 404 → Bypass cache' 를 설정하세요.");
   }
-  process.exit(1);
+  if (missing.length) {
+    console.error(`::error::배포본에 존재하지 않는 자산 ${missing.length}건 — 빌드/업로드 문제입니다.`);
+  }
+
+  if (poisoned.length || missing.length) process.exit(1);
+
+  // 남은 건 "빌드에는 있는데 별칭이 아직 옛 배포본으로 응답하는" 것뿐이다. 롤백은 전환 구간을
+  // 하나 더 만들 뿐 이 상태를 고치지 못하므로 실패시키지 않는다(artifact 모드가 실재를 증명했다).
+  console.log(`::warning::전파 대기 ${MAX_ROUNDS}라운드 뒤에도 ${lagging.length}건이 별칭에서 404 입니다. 빌드에는 존재하므로 전환 지연으로 판단합니다.`);
 }
 
 main().catch((error) => {

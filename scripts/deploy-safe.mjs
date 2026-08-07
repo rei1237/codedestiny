@@ -449,13 +449,58 @@ async function smoke(base, apiOrigin = "", skipApi = false) {
  * 이건 검사를 무르게 하는 것이 아니다 — 전파가 끝난 뒤에도 자산이 죽어 있으면 그대로 실패하고,
  * 그 실패는 진짜 산출물 문제다. 순서만 바로잡는다.
  */
-function awaitProductionAssets(base) {
+/**
+ * 방금 만든 Pages 배포본 자체를 검사한다. `pages.url` 은 배포 고유 URL 이라 **하나의 불변 배포본만**
+ * 서빙하므로 세대 혼입이 없다 — 여기서 404 가 나오면 기다린다고 생기지 않는 진짜 산출물 문제이고,
+ * 그때는 롤백이 옳다. 판정을 결정적인 지점으로 옮겨 두면, 아래 별칭 검사를 무르게 해도
+ * "자산이 진짜 빠진 배포"가 통과하지는 않는다.
+ */
+function verifyDeployedArtifact(value, deploymentUrl) {
   run(
-    "production asset propagation",
+    "deployed artifact completeness",
     process.execPath,
     [path.join(scriptDir, "verify-deployed-assets.mjs")],
-    { env: { ...envForChecks(), CD_DEPLOY_VERIFY_ORIGIN: base } },
+    {
+      env: {
+        ...envForChecks(),
+        CD_DEPLOY_VERIFY_ORIGIN: deploymentUrl,
+        CD_DEPLOY_ASSETS_MODE: "artifact",
+        CD_DEPLOY_EXPECTED_DIR: path.join(root, value.cf.pages.outputDir),
+      },
+    },
   );
+}
+
+/**
+ * 프로덕션 별칭이 새 배포본으로 전환됐는지 기다린다. **실패해도 던지지 않는다.**
+ *
+ * 별칭은 전환 중에 두 세대를 동시에 서빙한다. 그 구간에 HTML 은 새 배포본에서, 자산은 옛 배포본에서
+ * 오면 해시가 바뀐 청크만 404 로 내려온다. 이걸 실패로 처리하던 것이 2026-08-07~08 릴리스가
+ * 반복 실패한 이유였고, 더 나쁜 것은 그 실패가 자동 롤백을 불러 **전환 구간을 하나 더 만들어**
+ * 다음 릴리스까지 같은 이유로 실패시킨 점이다(어떤 실행의 롤백 대상이 직전 실패 실행이 만든
+ * 배포본이었다). 롤백으로는 전파도 엣지 캐시 404 도 고쳐지지 않는다.
+ *
+ * 그래서 이 단계는 관측·경보 전용이다. 되돌릴 근거는 위 artifact 검사와 아래 스모크가 갖는다.
+ */
+function awaitProductionAssets(value, base) {
+  try {
+    run(
+      "production asset propagation",
+      process.execPath,
+      [path.join(scriptDir, "verify-deployed-assets.mjs")],
+      {
+        env: {
+          ...envForChecks(),
+          CD_DEPLOY_VERIFY_ORIGIN: base,
+          CD_DEPLOY_ASSETS_MODE: "alias",
+          CD_DEPLOY_EXPECTED_DIR: path.join(root, value.cf.pages.outputDir),
+        },
+      },
+    );
+  } catch (error) {
+    console.error("::error::프로덕션 별칭 자산 검사에서 문제가 보고됐습니다: " + error.message);
+    console.error("::error::릴리스는 되돌리지 않습니다 — 배포본 자체는 artifact 검사에서 완전함이 확인됐고, 롤백은 전환 구간을 하나 더 만들 뿐입니다. 위 로그의 엣지 캐시 오염 여부를 확인하세요.");
+  }
 }
 
 function productionOrigin(value) {
@@ -476,8 +521,8 @@ async function postDeployHealth(value) {
   // Pages 와 Worker 가 같은 커밋인지. 결제·접근 상태처럼 양쪽이 맞물린 변경에서 어긋나면
   // 두 코드가 서로 다른 계약으로 대화한다.
   if (value.needsWorker) run("Pages/Worker commit parity", process.execPath, [path.join(scriptDir, "verify-pages-worker-parity.mjs")], { env });
-  // _next/static 404. 엣지가 404 를 이틀 캐시하면 롤백해도 안 고쳐진다(2026-07-30 사고).
-  run("deployed asset availability", process.execPath, [path.join(scriptDir, "verify-deployed-assets.mjs")], { env });
+  // 자산 검사는 여기서 하지 않는다 — promote() 가 배포본(artifact)과 별칭(alias)을 나눠
+  // 이미 확인했고, 여기서 한 번 더 돌리면 별칭의 전환 구간 404 가 다시 롤백을 부른다.
 }
 
 async function checkStage() {
@@ -545,10 +590,11 @@ async function promote(value, state, yes) {
       rollback: { pagesDeploymentId: oldPages?.id || "", workerVersionId: oldWorker?.versionId || "" },
     };
     writeState(next);
-    // 전파를 먼저 기다린다(위 awaitProductionAssets 주석 참고). 이 순서가 아니면 브라우저
-    // 스모크가 전환 틈새의 404 를 잡아 멀쩡한 릴리스를 되돌린다.
-    awaitProductionAssets(productionOrigin(value));
-    // 그 다음에 스모크 + Pages/Worker 커밋 패리티까지 본다(postDeployHealth 가 smoke 를 품는다).
+    // ① 배포본 자체가 완전한지. 불변 URL 이라 결정적이고, 여기서 깨지면 롤백이 옳다.
+    verifyDeployedArtifact(value, pages.url);
+    // ② 별칭이 전환됐는지. 관측 전용 — 전환 지연으로 릴리스를 되돌리지 않는다.
+    awaitProductionAssets(value, productionOrigin(value));
+    // ③ 그 다음에 스모크 + Pages/Worker 커밋 패리티(postDeployHealth 가 smoke 를 품는다).
     await postDeployHealth(value);
     writeState({ ...next, production: { ...next.production, smokePassed: true } });
     console.log("[deploy-safe] production health check passed; commit=" + value.git.head);

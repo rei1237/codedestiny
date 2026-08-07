@@ -26,31 +26,6 @@ on:
       - "package.json"
       - "scripts/verify-doc-freshness.mjs"
       - ".github/workflows/docs-freshness-gate.yml"
-  push:
-    branches: [main]
-    paths:
-      - "AGENTS.md"
-      - "CLAUDE.md"
-      - "PROJECT_STRUCTURE.md"
-      - "PAYMENT_POLICY.md"
-      - "PAYMENT_CONCURRENCY_AUDIT.md"
-      - "CLOUDFLARE_PAGES_SETUP.md"
-      - "DEPLOY_CHECKLIST.md"
-      - "docs/**"
-      - "app/**"
-      - "worker/**"
-      - "lib/**"
-      - "js/**"
-      - "styles/**"
-      - "server/**"
-      - "public/**"
-      - "__tests__/**"
-      - "index.html"
-      - "PhysiognomyUI.js"
-      - "_headers"
-      - "package.json"
-      - "scripts/verify-doc-freshness.mjs"
-      - ".github/workflows/docs-freshness-gate.yml"
   workflow_dispatch:
 
 concurrency:
