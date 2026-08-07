@@ -666,11 +666,12 @@ function setupLazySectionHydration() {
 function setupFeatureCodeSplit() {
   const loaders = {
     physiognomy: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
+    pastLifeFace: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=20260807-past-life')),
     mbti: () => __loadScriptOnce('js/astral-soul.js'),
     hwatu: () => __loadScriptOnce('HwatuFortune.js')
   };
 
-  const state = { physiognomy: null, mbti: null, hwatu: null };
+  const state = { physiognomy: null, pastLifeFace: null, mbti: null, hwatu: null };
 
   function ensure(key) {
     if (!loaders[key]) return Promise.resolve();
@@ -690,6 +691,21 @@ function setupFeatureCodeSplit() {
     }
     return null;
   };
+
+  // 전생 관상은 관상과 별개 모듈이다. 관상처럼 idle 프리워밍에는 넣지 않는다 —
+  // 초기 로딩 비용을 늘리지 않도록 클릭 시점에만 받는다.
+  //
+  // 관상 결과 화면의 유도 배너가 PastLifeFaceUI.js 를 먼저 로드했을 수 있다. 그 경우
+  // 프록시를 덮어씌우면 실제 구현이 사라지고 프록시가 자기 자신만 보게 되어 기능이 죽는다.
+  if (typeof window.openPastLifeFaceApp !== 'function') {
+    window.openPastLifeFaceApp = async function openPastLifeFaceAppProxy() {
+      try { await ensure('pastLifeFace'); } catch (e) { console.error('[mobile-bootstrap] past-life face load failed', e); }
+      if (typeof window.openPastLifeFaceApp === 'function' && window.openPastLifeFaceApp !== openPastLifeFaceAppProxy) {
+        return window.openPastLifeFaceApp.apply(window, arguments);
+      }
+      return null;
+    };
+  }
 
   window.openMbtiModal = async function openMbtiModalProxy() {
     try { await ensure('mbti'); } catch (e) { console.error('[mobile-bootstrap] mbti load failed', e); }

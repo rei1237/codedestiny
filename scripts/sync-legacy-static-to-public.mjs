@@ -70,6 +70,7 @@ const staticTargets = [
   "myungwun_final.html",
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
+  "PastLifeFaceUI.js",
   "HwatuFortune.js",
   "secret-house_real.html",
   "ads.txt",

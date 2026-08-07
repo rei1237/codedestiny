@@ -37,6 +37,7 @@
 
   var FEATURE_OPEN_ACTIONS = {
     openPhysiognomyApp: true,
+    openPastLifeFaceApp: true,
     openMbtiModal: true,
     openTarotLoveModal: true,
     openTarotHealingModal: true,
