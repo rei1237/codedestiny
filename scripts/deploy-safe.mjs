@@ -366,6 +366,31 @@ async function smoke(base, apiOrigin = "", skipApi = false) {
   if (skipApi) args.push("--skip-api");
   run("read-only smoke test", process.execPath, args, { env: envForChecks() });
 }
+/**
+ * 프로덕션 스모크 **전에** Pages 전환이 실제로 전파될 때까지 기다린다.
+ *
+ * 🔴 이게 없으면 릴리스가 배포마다 무작위로 실패한다. deployPages(production) 직후에는
+ * 새 HTML 을 받은 엣지 PoP 가 아직 옛 배포를 가리켜, 그 HTML 이 참조하는
+ * `_next/static/chunks/webpack-*.js` 가 404 로 내려온다. 브라우저 스모크는 그 404 를
+ * console.error 로 잡아 릴리스를 실패시키고, 그러면 워커가 자동 롤백된다 —
+ * 코드에는 아무 문제가 없는데도 배포가 되돌아간다(2026-08-07: 5연속 실패).
+ *
+ * scripts/verify-deployed-assets.mjs 가 정확히 이 구간을 위해 만들어져 있었지만
+ * (자기 주석에 "배포 30초 뒤 bare/cdcb 모두 404 → 잠시 뒤 둘 다 200" 실측이 적혀 있다)
+ * 어디에서도 호출되지 않아 죽은 도구였다. 5라운드 × 25초 재시도 예산이 곧 전파 대기다.
+ *
+ * 이건 검사를 무르게 하는 것이 아니다 — 전파가 끝난 뒤에도 자산이 죽어 있으면 그대로 실패하고,
+ * 그 실패는 진짜 산출물 문제다. 순서만 바로잡는다.
+ */
+function awaitProductionAssets(base) {
+  run(
+    "production asset propagation",
+    process.execPath,
+    [path.join(scriptDir, "verify-deployed-assets.mjs")],
+    { env: { ...envForChecks(), CD_DEPLOY_VERIFY_ORIGIN: base } },
+  );
+}
+
 function productionOrigin(value) {
   if (process.env.CD_PRODUCTION_ORIGIN) return String(process.env.CD_PRODUCTION_ORIGIN).replace(/\/+$/, "");
   const domain = value.cf.pages.domains.find((item) => !item.includes(".pages.dev")) || value.cf.pages.domains[0];
@@ -417,6 +442,9 @@ async function promote(value, state, yes) {
       rollback: { pagesDeploymentId: oldPages?.id || "", workerVersionId: oldWorker?.versionId || "" },
     };
     writeState(next);
+    // 전파를 먼저 기다린다(위 awaitProductionAssets 주석 참고). 이 순서가 아니면 브라우저
+    // 스모크가 전환 틈새의 404 를 잡아 멀쩡한 릴리스를 되돌린다.
+    awaitProductionAssets(productionOrigin(value));
     await smoke(productionOrigin(value));
     writeState({ ...next, production: { ...next.production, smokePassed: true } });
     console.log("[deploy-safe] production smoke passed; commit=" + value.git.head);
