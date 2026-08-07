@@ -42,6 +42,11 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Invoke-Git @('worktree', 'add', '-b', $branch, $target, $Base) | Write-Host
+
+# 캐시버스트 해시 merge driver 는 .git/config 에만 살고 clone 으로 따라오지 않는다.
+# worktree 는 .git/config 를 본체와 공유하므로 여기서 한 번 등록해 두면 전부에 적용된다.
+& node (Join-Path $repoRoot 'scripts/setup-git-merge-drivers.mjs') | Write-Host
+
 Write-Host "WORKTREE=$target"
 Write-Host "BRANCH=$branch"
 Write-Host "BASE=$baseSha"

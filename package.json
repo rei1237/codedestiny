@@ -6,6 +6,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "prepare": "node scripts/setup-git-merge-drivers.mjs",
+    "setup:git": "node scripts/setup-git-merge-drivers.mjs",
+    "verify:cachebust-merge": "node scripts/verify-cachebust-merge-driver.mjs",
     "novel:assets": "node scripts/fetch-novel-assets.mjs",
     "novel:sheets": "node scripts/build-novel-pig-sheets.mjs",
     "novel:migrate-source": "node scripts/migrate-novel-source.mjs",
