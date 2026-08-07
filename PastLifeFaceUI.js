@@ -37,8 +37,11 @@
   const PLF_IMAGE_MAX_PIXELS = 1280 * 1280;
   const PLF_IMAGE_JPEG_QUALITY = 0.86;
 
-  const PLF_HERO_IMAGE = 'https://assets.code-destiny.com/cdn-cgi/image/width=960,quality=72,format=auto/DestinyAssets/%EA%B4%80%EC%83%81%20%EC%A0%84%EC%83%9D.webp';
-  const PLF_HERO_IMAGE_FALLBACK = 'https://assets.code-destiny.com/DestinyAssets/%EA%B4%80%EC%83%81%20%EC%A0%84%EC%83%9D.webp';
+  // 🔴 히어로에 사진을 쓰지 않는다 (2026-08 2차 개편). 예전엔 R2 의 DestinyAssets/관상 전생.webp 를
+  //    깔았는데, alt 는 "달빛 아래 실루엣"인데 실제 그림은 동물이라 컨셉과 어긋났고
+  //    (전생 관상은 동물상을 맞히는 기능이 아니다) 429KB 를 첫 화면에서 받아야 했다.
+  //    지금은 달·아치문·별밭을 전부 CSS 로 그린다. 기법의 정본은 styles/cosmic-main.css 의 .moon-hero.
+  //    사진을 다시 깔지 말 것 — verify:past-life-face 가 막는다.
 
   // 정본은 worker/lib/paid-feature-registry.js 의 physiognomy-pastlife-compatibility (cost: 50 = 5,000원).
   // featureKey 는 결제 게이트 호출부에 리터럴로 둔다 — verify:paid-feature-billing-policy 가 리터럴을 찾는다.
@@ -111,57 +114,93 @@
     body: '한눈에 분류되지 않는 인상입니다. 첫인상과 세 번째 인상이 꽤 다르다는 말을 들어본 적이 있을 것입니다.'
   };
 
-  // ② 전생 신분 36종 — 키는 `얼굴형:삼정우세:레인`.
-  //    tier 는 난수가 아니라 신분에 고정돼 있다. 레인 0(평범한 수치대)은 낮고, 레인 2(극단)는 높다.
+  // ② 전생 신분 60종 — 키는 `얼굴형(4):삼정우세(3):레인(5)`.
+  //    이름은 한눈에 들어오게 짧게 쓰고, 길이는 intro 가 담당한다.
+  //    tier 는 난수가 아니라 신분에 고정돼 있다 — 레인 0(수치가 평범한 구간)은 낮고, 레인 4(극단)는 높다.
+  //    end 는 "전생의 마지막" 한 줄. 사건 장면 끝에서 가장 큰 궁금증을 남기는 자리다.
   const PLF_ROLES = {
-    // 원형(圓型 · 土·水) — 포용하고 살림을 맡던 계보
-    'round:upper:0':    { emoji: '🕯️', name: '사당의 향을 지키던 재관', tier: 'COMMON', intro: '큰 결정을 내리는 자리는 아니었습니다. 대신 사람들이 무엇을 빌었는지를 전부 듣고 있던 사람이었습니다.', traits: ['경청', '정성', '지속'], echo: '남의 부탁을 잘 거절하지 못하고, 한 번 맡은 일은 티 나지 않게 끝까지 챙깁니다.' },
-    'round:upper:1':    { emoji: '🌸', name: '궁정의 예(禮)를 가르치던 상궁', tier: 'RARE', intro: '권력의 중심에 있지는 않았지만, 그 중심이 어떻게 움직여야 하는지를 정하던 사람이었습니다.', traits: ['품위', '기준', '절제'], echo: '무례한 사람 앞에서 화를 내는 대신 조용히 거리를 둡니다. 그 거리는 잘 좁혀지지 않습니다.' },
-    'round:upper:2':    { emoji: '🍶', name: '왕실 연회를 주관하던 대선(大膳)', tier: 'EPIC', intro: '나라의 큰 자리마다 당신이 차린 상이 놓였습니다. 사람을 움직이는 것이 말이 아니라 대접이라는 걸 알던 사람이었습니다.', traits: ['환대', '감각', '기획'], echo: '모임의 자리 배치와 메뉴를 자기도 모르게 신경 씁니다. 사람들이 즐거워하는 걸 봐야 그날이 끝납니다.' },
-    'round:middle:0':   { emoji: '🧺', name: '마을 사람을 중재하던 촌장', tier: 'COMMON', intro: '싸움이 나면 사람들이 당신을 찾아왔습니다. 옳고 그름보다 이 마을이 내일도 굴러가는 쪽을 골랐습니다.', traits: ['중재', '균형', '인내'], echo: '갈등 한가운데 서는 일이 유독 자주 생기고, 결국 양쪽 말을 다 듣게 됩니다.' },
-    'round:middle:1':   { emoji: '🪔', name: '나루터의 객주를 지키던 주인', tier: 'UNCOMMON', intro: '오가는 사람들이 하룻밤 묵고 가는 자리였습니다. 이름도 모르는 사람의 사정을 가장 많이 알고 있던 사람이었습니다.', traits: ['포용', '기억', '눈썰미'], echo: '스쳐 지나간 사람의 얼굴과 말투를 오래 기억합니다. 정작 본인은 그걸 특별하다고 여기지 않습니다.' },
-    'round:middle:2':   { emoji: '🕊️', name: '나라 사이의 말을 옮기던 사신', tier: 'LEGENDARY', intro: '한 문장을 잘못 옮기면 전쟁이 나는 자리였습니다. 두 나라 사이에서 어느 쪽도 되지 못한 채 평생을 오갔습니다.', traits: ['정확', '균형', '고독'], echo: '어느 편에도 완전히 속하지 못하는 느낌이 반복됩니다. 그런데 양쪽 다 당신을 찾습니다.' },
-    'round:lower:0':    { emoji: '🌾', name: '겨울 곳간을 맡던 살림꾼', tier: 'COMMON', intro: '화려한 일은 아니었습니다. 다만 당신이 없었으면 그 마을은 겨울을 넘기지 못했습니다.', traits: ['축적', '성실', '대비'], echo: '쓸 돈보다 남길 돈을 먼저 계산하고, 준비 없이 시작하는 일에 유독 불안해집니다.' },
-    'round:lower:1':    { emoji: '🏺', name: '도자를 굽던 가마의 주인', tier: 'UNCOMMON', intro: '불을 며칠씩 지키며 살았습니다. 열에서 열은 깨지고 하나가 남는 일을 평생 반복한 사람이었습니다.', traits: ['집념', '손끝', '체념'], echo: '결과가 나오기 전까지 과정을 남에게 보여주기 싫어합니다. 실패에도 남보다 담담합니다.' },
-    'round:lower:2':    { emoji: '💰', name: '상단의 장부를 쥐던 대방', tier: 'EPIC', intro: '칼을 든 적은 없지만 여러 사람의 운명이 당신의 장부 위에서 갈렸습니다.', traits: ['셈', '신용', '결단'], echo: '숫자와 조건을 보는 눈이 빠릅니다. 사람을 믿을 때도 근거를 하나는 쥐고 믿습니다.' },
+    // ── 원형(圓型 · 土·水) — 살림과 사람 사이 ──
+    'round:upper:0':    { emoji: '🏮', name: '사당 지기',       tier: 'COMMON',    intro: '마을 사람들이 무엇을 빌고 갔는지를 전부 듣고 있던 사람이었습니다. 아무에게도 옮기지 않았습니다.', traits: ['경청', '정성', '지속'], echo: '남의 부탁을 잘 거절하지 못하고, 맡은 일은 티 나지 않게 끝까지 챙깁니다.', end: '향이 꺼지지 않게 지키다가, 그 자리에서 조용히 눈을 감았습니다.' },
+    'round:upper:1':    { emoji: '🍚', name: '잔칫상 살림꾼',   tier: 'COMMON',    intro: '큰 자리마다 당신이 차린 상이 놓였습니다. 사람을 움직이는 건 말이 아니라 대접이라는 걸 알고 있었습니다.', traits: ['환대', '눈썰미', '기획'], echo: '모임의 자리 배치와 메뉴를 자기도 모르게 신경 씁니다. 남들이 즐거워하는 걸 봐야 그날이 끝납니다.', end: '마지막 잔치를 차린 다음 날, 아무도 모르게 마을을 떠났습니다.' },
+    'round:upper:2':    { emoji: '🌸', name: '궁정 시녀',       tier: 'UNCOMMON',  intro: '가장 높은 사람의 가장 가까운 곳에 있었습니다. 그래서 아무에게도 말할 수 없는 것을 가장 많이 봤습니다.', traits: ['눈치', '헌신', '침묵'], echo: '상대의 기분 변화를 먼저 알아채고, 알아챘다는 티를 내지 않습니다.', end: '평생 본 것을 한 글자도 남기지 않고 궁을 나왔습니다.' },
+    'round:upper:3':    { emoji: '🍶', name: '왕실 연회관',     tier: 'RARE',      intro: '나라의 중요한 결정이 대개 당신이 차린 술상 앞에서 났습니다. 정작 당신은 한 잔도 마시지 않았습니다.', traits: ['환대', '조율', '절제'], echo: '분위기가 틀어지려는 순간을 먼저 감지하고, 아무렇지 않게 화제를 돌립니다.', end: '마지막 연회의 상을 물린 뒤, 술광 열쇠를 후임에게 건넸습니다.' },
+    'round:upper:4':    { emoji: '🕊️', name: '국경의 밀사',     tier: 'LEGENDARY', intro: '한 문장을 잘못 옮기면 전쟁이 나는 자리였습니다. 두 나라 사이에서 어느 쪽도 되지 못한 채 평생을 오갔습니다.', traits: ['정확', '균형', '고독'], echo: '어느 편에도 완전히 속하지 못하는 느낌이 반복됩니다. 그런데 양쪽 다 당신을 찾습니다.', end: '국경을 넘던 어느 겨울, 어느 나라의 기록에도 남지 않은 채 사라졌습니다.' },
 
-    // 방형(方型 · 金) — 기준을 세우고 실행하던 계보
-    'square:upper:0':   { emoji: '📏', name: '도량형을 관리하던 관리', tier: 'COMMON', intro: '되와 자를 맞추는 일이었습니다. 아무도 고마워하지 않지만 틀리면 전부가 흔들리는 자리였습니다.', traits: ['원칙', '꼼꼼', '공정'], echo: '기준이 사람마다 다르게 적용되는 상황을 특히 못 견딥니다.' },
-    'square:upper:1':   { emoji: '⚖️', name: '법전을 세우던 형관', tier: 'RARE', intro: '누군가를 벌하는 일보다, 벌의 크기를 정하는 일을 했습니다. 그 무게를 평생 안고 살았습니다.', traits: ['판단', '책임', '냉철'], echo: '감정보다 사실을 먼저 정리하려 합니다. 그래서 가끔 차갑다는 오해를 삽니다.' },
-    'square:upper:2':   { emoji: '🐉', name: '왕실의 비밀 책사', tier: 'LEGENDARY', intro: '기록에 이름이 남지 않는 자리였습니다. 그러나 기록에 남은 결정 상당수가 당신의 방에서 나왔습니다.', traits: ['전략', '은닉', '통찰'], echo: '앞에 나서는 것보다 판을 짜는 쪽이 편합니다. 공을 남에게 넘기고도 아깝지 않습니다.' },
-    'square:middle:0':  { emoji: '🏹', name: '변방을 순찰하던 초병', tier: 'COMMON', intro: '큰 전투에 나간 적은 없습니다. 대신 아무 일도 일어나지 않게 하는 것이 당신의 일이었습니다.', traits: ['경계', '지구력', '묵묵'], echo: '위험을 남보다 먼저 감지하고, 그걸 말해도 대개 아무 일도 안 일어나서 답답합니다.' },
-    'square:middle:1':  { emoji: '⚔️', name: '떠돌이 무사', tier: 'UNCOMMON', intro: '주군을 잃었거나, 처음부터 두지 않았습니다. 자기 검의 쓸 곳을 스스로 정해야 했던 사람이었습니다.', traits: ['자립', '실력', '방랑'], echo: '조직에 오래 매이는 것이 답답하고, 실력으로 증명되는 자리에서 가장 편안합니다.' },
-    'square:middle:2':  { emoji: '🛡️', name: '왕실 호위무사', tier: 'EPIC', intro: '한 사람의 목숨을 자기 목숨보다 앞에 두는 훈련을 평생 받았습니다. 그것을 의심해 본 적이 없습니다.', traits: ['충성', '희생', '경계'], echo: '내 사람이라고 정한 순간부터 과할 정도로 지킵니다. 그 선을 넘은 배신은 절대 잊지 못합니다.' },
-    'square:lower:0':   { emoji: '🔨', name: '성벽을 쌓던 석공', tier: 'COMMON', intro: '당신이 놓은 돌 위에 다음 사람이 돌을 놓았습니다. 완성을 본 적은 없습니다.', traits: ['기초', '반복', '견고'], echo: '눈에 띄지 않는 기초 작업을 남보다 잘하고, 대충 넘긴 부실함을 금방 알아봅니다.' },
-    'square:lower:1':   { emoji: '🧱', name: '다리를 놓던 도목수', tier: 'UNCOMMON', intro: '끊긴 곳을 잇는 일이었습니다. 물살을 읽고 사람을 부리고 계절을 계산해야 했습니다.', traits: ['연결', '설계', '통솔'], echo: '흩어진 사람이나 일을 이어붙이는 역할이 자꾸 주어집니다. 그리고 실제로 잘합니다.' },
-    'square:lower:2':   { emoji: '🗡️', name: '무기를 벼리던 도장의 장인', tier: 'RARE', intro: '당신이 만든 것이 누구를 살리고 누구를 벨지 알 수 없었습니다. 그래도 최고를 만들었습니다.', traits: ['완벽', '고집', '자부'], echo: '자기 기준에 못 미치는 결과물을 남에게 내놓지 못합니다. 그래서 마감이 늘 아슬아슬합니다.' },
+    'round:middle:0':   { emoji: '🧺', name: '마을의 장인',     tier: 'COMMON',    intro: '이름을 남기는 물건은 아니었습니다. 다만 마을 사람 절반이 당신이 만든 것을 매일 손에 쥐고 살았습니다.', traits: ['손끝', '성실', '실용'], echo: '잘 만든 물건과 대충 만든 물건을 순식간에 구분하고, 대충 만든 쪽을 못 견딥니다.', end: '작업대 앞에서 만들던 것을 끝내 마치지 못하고 손을 놓았습니다.' },
+    'round:middle:1':   { emoji: '🪔', name: '나루터 객주',     tier: 'UNCOMMON',  intro: '오가는 사람이 하룻밤 묵고 가는 자리였습니다. 이름도 모르는 사람의 사정을 가장 많이 알고 있었습니다.', traits: ['포용', '기억', '눈썰미'], echo: '스쳐 지나간 사람의 얼굴과 말투를 오래 기억합니다. 정작 본인은 그걸 특별하다고 여기지 않습니다.', end: '마지막 손님을 재우고, 그 방에서 아침을 맞지 못했습니다.' },
+    'round:middle:2':   { emoji: '🤝', name: '마을 중재인',     tier: 'UNCOMMON',  intro: '싸움이 나면 사람들이 당신을 찾아왔습니다. 옳고 그름보다 이 마을이 내일도 굴러가는 쪽을 골랐습니다.', traits: ['중재', '균형', '인내'], echo: '갈등 한가운데 서는 일이 유독 자주 생기고, 결국 양쪽 말을 다 듣게 됩니다.', end: '끝내 화해시키지 못한 두 집 사이에서 눈을 감았습니다.' },
+    'round:middle:3':   { emoji: '🎎', name: '혼담 중매인',     tier: 'RARE',      intro: '누구와 누구를 이을지를 정하는 자리였습니다. 사람의 눈빛만 보고 어울릴 짝을 알아봤습니다.', traits: ['직감', '연결', '설득'], echo: '처음 만난 두 사람이 잘 맞을지 아닐지가 이유 없이 먼저 보입니다.', end: '정작 자신의 짝은 정하지 못한 채 나이를 다 썼습니다.' },
+    'round:middle:4':   { emoji: '🏛️', name: '도성의 대상인',   tier: 'EPIC',      intro: '칼을 든 적은 없지만 여러 사람의 운명이 당신의 장부 위에서 갈렸습니다.', traits: ['셈', '신용', '결단'], echo: '숫자와 조건을 보는 눈이 빠릅니다. 사람을 믿을 때도 근거를 하나는 쥐고 믿습니다.', end: '장부를 전부 태우라 이르고, 그 재를 보며 숨을 거뒀습니다.' },
 
-    // 장형(長型 · 木) — 기록하고 헤아리던 계보
-    'long:upper:0':     { emoji: '🕯️', name: '수도원의 기록관', tier: 'UNCOMMON', intro: '세상과 떨어진 방에서 매일 같은 시간에 같은 일을 했습니다. 그 반복이 수백 년을 남겼습니다.', traits: ['기록', '고요', '항상성'], echo: '혼자 있는 시간이 확보되지 않으면 급격히 지칩니다. 루틴이 무너지면 유독 흔들립니다.' },
-    'long:upper:1':     { emoji: '🔮', name: '궁정 점성가', tier: 'EPIC', intro: '별의 위치로 왕의 다음 수를 정하던 자리였습니다. 맞히면 당연하고 틀리면 목이 날아가는 일이었습니다.', traits: ['직관', '해석', '긴장'], echo: '근거를 대기 어려운데 결론은 이미 나와 있는 순간이 자주 옵니다. 그리고 대체로 맞습니다.' },
-    'long:upper:2':     { emoji: '🌌', name: '별의 기록을 남긴 예언자', tier: 'MYTHIC', intro: '당신이 남긴 것은 당대의 조언이 아니라 다음 세대가 읽을 문장이었습니다. 살아서 이해받지는 못했습니다.', traits: ['통찰', '고독', '유산'], echo: '지금 하는 말이 몇 년 뒤에야 이해받는 일이 반복됩니다. 그래서 설명을 포기한 적이 있습니다.' },
-    'long:middle:0':    { emoji: '🏯', name: '궁중 기록관', tier: 'RARE', intro: '누가 무엇을 약속했는지를 적는 사람이었습니다. 권력은 없었지만 모두가 당신의 붓을 의식했습니다.', traits: ['정확', '중립', '기억'], echo: '누가 무슨 말을 했는지를 정확히 기억합니다. 그래서 말 바꾸는 사람에게 크게 실망합니다.' },
-    'long:middle:1':    { emoji: '🌙', name: '달빛을 기록하던 궁정 서기관', tier: 'RARE', intro: '전쟁이나 권력을 직접 움직이는 사람이 아니라, 사람들의 말과 비밀을 기록하던 사람이었습니다.', traits: ['기록', '충성', '직감'], echo: '말보다 행동을 중요하게 생각합니다. 누군가 약속을 가볍게 여길 때 다른 사람보다 크게 실망하는 이유가 여기에 있습니다.' },
-    'long:middle:2':    { emoji: '🧭', name: '항해사', tier: 'EPIC', intro: '땅이 보이지 않는 곳에서 방향을 정하는 사람이었습니다. 당신이 틀리면 배 전체가 돌아오지 못했습니다.', traits: ['판단', '담대', '고립'], echo: '아무 정보가 없는 상황에서도 일단 방향을 정하는 편입니다. 그 책임을 남과 나누지 않습니다.' },
-    'long:lower:0':     { emoji: '🪶', name: '이야기꾼', tier: 'COMMON', intro: '남의 인생을 옮겨 말하며 살았습니다. 정작 자기 이야기는 거의 하지 않았습니다.', traits: ['전달', '공감', '관찰'], echo: '남의 사연은 술술 나오는데 자기 얘기를 꺼내는 건 아직도 어색합니다.' },
-    'long:lower:1':     { emoji: '🌿', name: '약초를 다루던 의원', tier: 'UNCOMMON', intro: '고치지 못하는 병 앞에 여러 번 섰습니다. 그때마다 할 수 있는 것을 끝까지 했습니다.', traits: ['치유', '분별', '책임'], echo: '아픈 사람을 그냥 지나치지 못하고, 도와주고 나서 혼자 소진됩니다.' },
-    'long:lower:2':     { emoji: '📜', name: '비문을 새기던 각자장', tier: 'RARE', intro: '한 글자를 잘못 새기면 돌을 처음부터 다시 깎아야 했습니다. 천 년을 견딜 문장만 남겼습니다.', traits: ['정밀', '영속', '무게'], echo: '되돌릴 수 없는 결정 앞에서 남보다 오래 망설입니다. 대신 한번 정하면 잘 바꾸지 않습니다.' },
+    'round:lower:0':    { emoji: '🌾', name: '곳간지기',        tier: 'COMMON',    intro: '화려한 일은 아니었습니다. 다만 당신이 없었으면 그 마을은 겨울을 넘기지 못했습니다.', traits: ['축적', '대비', '성실'], echo: '쓸 돈보다 남길 돈을 먼저 계산하고, 준비 없이 시작하는 일에 유독 불안해집니다.', end: '가장 추운 겨울을 넘긴 봄, 곳간 문을 열어둔 채 쓰러졌습니다.' },
+    'round:lower:1':    { emoji: '🏺', name: '가마 주인',       tier: 'UNCOMMON',  intro: '불을 며칠씩 지키며 살았습니다. 열에서 아홉은 깨지고 하나가 남는 일을 평생 반복했습니다.', traits: ['집념', '손끝', '체념'], echo: '결과가 나오기 전까지 과정을 남에게 보여주기 싫어합니다. 실패에도 남보다 담담합니다.', end: '마지막 가마를 열기 전날 밤, 불 앞에서 잠들어 깨지 않았습니다.' },
+    'round:lower:2':    { emoji: '🧂', name: '소금길 장사꾼',   tier: 'RARE',      intro: '산을 넘어 소금을 지고 다녔습니다. 없으면 사람이 죽는 것을 파는 일이라 값을 함부로 올리지 않았습니다.', traits: ['근성', '신용', '길눈'], echo: '꼭 필요한 것과 없어도 되는 것을 빠르게 가르고, 필요한 쪽에는 돈을 아끼지 않습니다.', end: '마지막 고개에서 짐을 내려놓고 다시 일어서지 못했습니다.' },
+    'round:lower:3':    { emoji: '💰', name: '상단 대방',       tier: 'EPIC',      intro: '수십 명의 밥줄이 당신의 판단 하나에 걸려 있었습니다. 틀린 적도 있지만 도망친 적은 없었습니다.', traits: ['결단', '책임', '셈'], echo: '책임질 사람이 늘어날수록 오히려 침착해집니다. 대신 혼자 있을 때 무너집니다.', end: '빚을 전부 갚아 놓고, 마지막 장부를 덮은 뒤 조용히 떠났습니다.' },
+    'round:lower:4':    { emoji: '🚢', name: '바다 무역상',     tier: 'EPIC',      intro: '보지 못한 나라의 물건을 처음 들여온 사람이었습니다. 배 세 척 중 두 척은 돌아오지 않았습니다.', traits: ['모험', '셈', '담대'], echo: '남들이 위험하다고 하는 선택지가 당신 눈에는 계산 가능한 것으로 보입니다.', end: '마지막 항해에서 돌아오지 못했고, 그 배의 짐은 항구에 도착했습니다.' },
 
-    // 역삼각형(逆三角型 · 火) — 감각과 영감으로 살던 계보
-    'triangle:upper:0': { emoji: '🎐', name: '신탁을 받아 옮기던 무녀', tier: 'RARE', intro: '당신의 입에서 나온 말을 사람들이 하늘의 말로 들었습니다. 정작 당신은 그 말의 출처를 몰랐습니다.', traits: ['감응', '전달', '불안'], echo: '분위기나 기운을 남보다 강하게 느끼고, 그래서 사람 많은 곳에서 빨리 지칩니다.' },
-    'triangle:upper:1': { emoji: '🌸', name: '궁정 시녀', tier: 'UNCOMMON', intro: '가장 높은 사람의 가장 가까운 곳에 있었습니다. 그래서 아무에게도 말할 수 없는 것을 가장 많이 봤습니다.', traits: ['눈치', '헌신', '침묵'], echo: '상대의 기분 변화를 먼저 알아채고, 알아챘다는 티를 내지 않습니다.' },
-    'triangle:upper:2': { emoji: '🌠', name: '왕의 꿈을 해몽하던 몽관', tier: 'LEGENDARY', intro: '남의 잠 속에서 벌어진 일을 해석해 현실의 결정으로 바꾸는 자리였습니다.', traits: ['해석', '상징', '예지'], echo: '꿈이나 이미지가 유독 선명하고, 나중에 그게 뭔가와 겹치는 경험이 반복됩니다.' },
-    'triangle:middle:0':{ emoji: '🎭', name: '광대', tier: 'COMMON', intro: '사람들을 웃기는 대가로 어디에도 속하지 않았습니다. 그것이 자유이자 벌이었습니다.', traits: ['재치', '거리', '해방'], echo: '진지한 이야기를 웃음으로 덮는 버릇이 있습니다. 정작 본인 얘기일수록 더 그렇습니다.' },
-    'triangle:middle:1':{ emoji: '🐎', name: '역참을 오가던 여행자', tier: 'UNCOMMON', intro: '한곳에 오래 머문 적이 없습니다. 어디서든 사흘이면 적응하고 열흘이면 답답해졌습니다.', traits: ['이동', '적응', '자유'], echo: '환경이 바뀌는 걸 남보다 덜 무서워하고, 반복되는 하루에 남보다 빨리 질립니다.' },
-    'triangle:middle:2':{ emoji: '🎼', name: '궁중 악사', tier: 'RARE', intro: '말로 할 수 없는 것을 소리로 옮기는 일이었습니다. 슬픈 자리에서도 연주를 멈출 수 없었습니다.', traits: ['표현', '감정', '절제'], echo: '감정이 크게 올라올 때 말 대신 다른 통로(음악·글·손작업)를 찾습니다.' },
-    'triangle:lower:0': { emoji: '🏹', name: '사냥꾼', tier: 'COMMON', intro: '기다리는 시간이 대부분이었습니다. 결정적인 순간은 하루에 한 번 올까 말까 했습니다.', traits: ['집중', '인내', '본능'], echo: '평소엔 느슨하다가 결정적인 순간에만 집중력이 폭발합니다. 그 편차가 스스로도 낯섭니다.' },
-    'triangle:lower:1': { emoji: '🎨', name: '불상과 단청을 그리던 화공', tier: 'UNCOMMON', intro: '자기 이름을 남기지 않는 그림을 평생 그렸습니다. 남는 건 색이지 당신이 아니었습니다.', traits: ['색채', '헌신', '무명'], echo: '결과물에 애착이 크면서도 자기 이름을 앞세우는 건 어색해합니다.' },
-    'triangle:lower:2': { emoji: '🌌', name: '이름 없는 유랑 연금술사', tier: 'MYTHIC', intro: '어느 나라의 기록에도 남지 않았습니다. 다만 당신이 지나간 마을마다 이상한 이야기가 하나씩 남았습니다.', traits: ['변환', '탐구', '이단'], echo: '남들이 당연하게 받아들이는 걸 혼자 이상하게 여깁니다. 그 질문을 놓지 못해 멀리 돌아갑니다.' }
+    // ── 방형(方型 · 金) — 기준을 세우고 실행하던 ──
+    'square:upper:0':   { emoji: '📏', name: '저잣거리 감독관', tier: 'COMMON',    intro: '되와 자를 맞추는 일이었습니다. 아무도 고마워하지 않지만 틀리면 전부가 흔들리는 자리였습니다.', traits: ['원칙', '꼼꼼', '공정'], echo: '기준이 사람마다 다르게 적용되는 상황을 특히 못 견딥니다.', end: '마지막까지 저울을 손보다가, 그 저울 앞에서 눈을 감았습니다.' },
+    'square:upper:1':   { emoji: '⚖️', name: '마을 재판관',     tier: 'UNCOMMON',  intro: '벌을 주는 일보다 벌의 크기를 정하는 일을 했습니다. 그 무게를 평생 안고 살았습니다.', traits: ['판단', '책임', '냉철'], echo: '감정보다 사실을 먼저 정리하려 합니다. 그래서 가끔 차갑다는 오해를 삽니다.', end: '자신이 내린 판결 하나를 끝내 되돌리지 못한 채 자리를 물러났습니다.' },
+    'square:upper:2':   { emoji: '📜', name: '법전 편수관',     tier: 'RARE',      intro: '한 조항을 어떻게 쓰느냐로 수십 년 뒤 사람들의 삶이 갈렸습니다. 밤새 한 문장을 고쳤습니다.', traits: ['정밀', '원칙', '장기전'], echo: '되돌릴 수 없는 문장 앞에서 남보다 오래 망설이고, 한번 정하면 잘 바꾸지 않습니다.', end: '마지막 조항을 미완으로 남긴 채 붓을 놓았습니다.' },
+    'square:upper:3':   { emoji: '🏯', name: '성주의 참모',     tier: 'EPIC',      intro: '성주가 결정을 내리기 전 마지막으로 듣는 사람이었습니다. 이름은 어디에도 남지 않았습니다.', traits: ['전략', '조언', '은닉'], echo: '앞에 나서는 것보다 판을 짜는 쪽이 편합니다. 공을 남에게 넘기고도 아깝지 않습니다.', end: '성이 무너지던 날, 성주보다 먼저 성벽 위에 올랐습니다.' },
+    'square:upper:4':   { emoji: '🐉', name: '왕실의 비밀 책사', tier: 'LEGENDARY', intro: '기록에 이름이 남지 않는 자리였습니다. 그러나 기록에 남은 결정 상당수가 당신의 방에서 나왔습니다.', traits: ['전략', '통찰', '은닉'], echo: '판을 읽는 속도가 빨라 결론이 먼저 서고, 설명은 나중에 붙입니다.', end: '왕보다 하루 먼저 죽었고, 그 죽음도 기록되지 않았습니다.' },
+
+    'square:middle:0':  { emoji: '🚩', name: '변방 초병',       tier: 'COMMON',    intro: '큰 전투에 나간 적은 없습니다. 대신 아무 일도 일어나지 않게 하는 것이 당신의 일이었습니다.', traits: ['경계', '지구력', '묵묵'], echo: '위험을 남보다 먼저 감지하고, 말해도 대개 아무 일이 안 일어나서 답답합니다.', end: '교대할 사람을 기다리며 서 있다가, 그대로 아침을 맞지 못했습니다.' },
+    'square:middle:1':  { emoji: '⚔️', name: '떠돌이 무사',     tier: 'COMMON',    intro: '주군을 잃었거나 처음부터 두지 않았습니다. 자기 검의 쓸 곳을 스스로 정해야 했습니다.', traits: ['자립', '실력', '방랑'], echo: '조직에 오래 매이는 것이 답답하고, 실력으로 증명되는 자리에서 가장 편안합니다.', end: '이름 없는 고갯길에서, 이름 없는 상대와의 싸움 끝에 쓰러졌습니다.' },
+    'square:middle:2':  { emoji: '🏇', name: '기마 전령',       tier: 'UNCOMMON',  intro: '당신이 늦으면 사람이 죽었습니다. 말을 세 번 갈아타며 하루를 달린 적도 있었습니다.', traits: ['속도', '책임', '지구력'], echo: '급한 일이 생기면 이상하게 침착해지고, 오히려 평온할 때 안절부절못합니다.', end: '마지막 소식을 전한 자리에서 말과 함께 쓰러졌습니다.' },
+    'square:middle:3':  { emoji: '🛡️', name: '왕실 호위무사',   tier: 'RARE',      intro: '한 사람의 목숨을 자기 목숨보다 앞에 두는 훈련을 평생 받았습니다. 의심해 본 적이 없습니다.', traits: ['충성', '희생', '경계'], echo: '내 사람이라고 정한 순간부터 과할 정도로 지킵니다. 그 선을 넘은 배신은 잊지 못합니다.', end: '지키던 사람 앞을 막아선 채로 마지막을 맞았습니다.' },
+    'square:middle:4':  { emoji: '🎖️', name: '변방의 장군',     tier: 'EPIC',      intro: '이길 수 없는 싸움을 두 번 이겼고, 그 대가로 부하 절반을 잃었습니다.', traits: ['결단', '통솔', '책임'], echo: '결정을 미루는 사람을 답답해하고, 잘못된 결정이라도 빨리 내리는 쪽을 택합니다.', end: '이긴 전장에서 마지막까지 남아 전사자의 이름을 세었습니다.' },
+
+    'square:lower:0':   { emoji: '🔨', name: '성벽 석공',       tier: 'COMMON',    intro: '당신이 놓은 돌 위에 다음 사람이 돌을 놓았습니다. 완성을 본 적은 없습니다.', traits: ['기초', '반복', '견고'], echo: '눈에 띄지 않는 기초 작업을 남보다 잘하고, 대충 넘긴 부실함을 금방 알아봅니다.', end: '자신이 쌓은 성벽의 그늘에서 마지막 숨을 쉬었습니다.' },
+    'square:lower:1':   { emoji: '🧱', name: '다리 놓는 목수',  tier: 'UNCOMMON',  intro: '끊긴 곳을 잇는 일이었습니다. 물살을 읽고 사람을 부리고 계절을 계산해야 했습니다.', traits: ['연결', '설계', '통솔'], echo: '흩어진 사람이나 일을 이어붙이는 역할이 자꾸 주어집니다. 그리고 실제로 잘합니다.', end: '마지막 다리의 첫 판을 놓은 날, 그 물에 휩쓸렸습니다.' },
+    'square:lower:2':   { emoji: '🗝️', name: '창고 열쇠지기',   tier: 'UNCOMMON',  intro: '무엇이 어디에 얼마나 있는지를 혼자 전부 알고 있었습니다. 그래서 아무도 당신을 함부로 대하지 못했습니다.', traits: ['관리', '기억', '신중'], echo: '중요한 것을 남에게 맡기지 못하고, 결국 혼자 다 떠안습니다.', end: '열쇠 꾸러미를 넘길 사람을 정하지 못한 채 병상에 누웠습니다.' },
+    'square:lower:3':   { emoji: '🗡️', name: '도장의 장인',     tier: 'RARE',      intro: '당신이 만든 것이 누구를 살리고 누구를 벨지 알 수 없었습니다. 그래도 최고를 만들었습니다.', traits: ['완벽', '고집', '자부'], echo: '자기 기준에 못 미치는 결과물을 남에게 못 내놓습니다. 그래서 마감이 늘 아슬아슬합니다.', end: '평생의 역작을 끝낸 그 밤, 담금질하던 물가에서 쓰러졌습니다.' },
+    'square:lower:4':   { emoji: '⛏️', name: '왕릉 도편수',     tier: 'EPIC',      intro: '수백 명을 부려 땅속에 하나의 세계를 지었습니다. 완성되면 아무도 볼 수 없는 건축이었습니다.', traits: ['설계', '통솔', '영속'], echo: '아무도 안 볼 부분까지 제대로 하고, 그걸 알아주지 않아도 개의치 않습니다.', end: '자신이 지은 능의 위치를 끝까지 발설하지 않고 눈을 감았습니다.' },
+
+    // ── 장형(長型 · 木) — 기록하고 헤아리던 ──
+    'long:upper:0':     { emoji: '🕯️', name: '수도원 기록관',   tier: 'COMMON',    intro: '세상과 떨어진 방에서 매일 같은 시간에 같은 일을 했습니다. 그 반복이 수백 년을 남겼습니다.', traits: ['기록', '고요', '항상성'], echo: '혼자 있는 시간이 확보되지 않으면 급격히 지칩니다. 루틴이 무너지면 유독 흔들립니다.', end: '필사하던 마지막 장의 절반에서 붓이 멈췄습니다.' },
+    'long:upper:1':     { emoji: '🌙', name: '달 관측꾼',       tier: 'UNCOMMON',  intro: '매일 밤 달의 위치를 적었습니다. 아무도 시키지 않았는데 삼십 년을 적었습니다.', traits: ['관찰', '인내', '기록'], echo: '남들이 지루해하는 반복에서 오히려 패턴을 찾아내 재미를 느낍니다.', end: '보름달이 뜬 밤, 관측대 위에서 마지막 기록을 남겼습니다.' },
+    'long:upper:2':     { emoji: '🔭', name: '천문대 역관',     tier: 'RARE',      intro: '별의 자리로 절기를 정하고 농사의 때를 알렸습니다. 하루를 틀리면 한 해가 틀어졌습니다.', traits: ['혜안', '준비', '정밀'], echo: '몇 수 앞을 미리 계산해 두는 버릇이 있고, 계획이 없는 상태를 견디기 어려워합니다.', end: '다음 해의 역서를 넘긴 뒤, 그해 겨울을 넘기지 못했습니다.' },
+    'long:upper:3':     { emoji: '🔮', name: '궁정 점성가',     tier: 'EPIC',      intro: '별의 위치로 왕의 다음 수를 정하던 자리였습니다. 맞히면 당연하고 틀리면 목이 날아갔습니다.', traits: ['직관', '해석', '긴장'], echo: '근거를 대기 어려운데 결론은 이미 나와 있는 순간이 자주 옵니다. 그리고 대체로 맞습니다.', end: '자신의 마지막 날을 별에서 먼저 읽고, 아무에게도 말하지 않았습니다.' },
+    'long:upper:4':     { emoji: '🌌', name: '별의 예언자',     tier: 'MYTHIC',    intro: '당신이 남긴 것은 당대의 조언이 아니라 다음 세대가 읽을 문장이었습니다. 살아서 이해받지는 못했습니다.', traits: ['통찰', '고독', '유산'], echo: '지금 하는 말이 몇 년 뒤에야 이해받는 일이 반복됩니다. 그래서 설명을 포기한 적이 있습니다.', end: '아무도 없는 언덕에서 하늘을 보다가, 이름 없이 잊혔습니다.' },
+
+    'long:middle:0':    { emoji: '🪶', name: '이야기꾼',        tier: 'COMMON',    intro: '남의 인생을 옮겨 말하며 살았습니다. 정작 자기 이야기는 거의 하지 않았습니다.', traits: ['전달', '공감', '관찰'], echo: '남의 사연은 술술 나오는데 자기 얘기를 꺼내는 건 아직도 어색합니다.', end: '가장 좋아하던 이야기의 결말을 말하기 직전에 목소리가 끊겼습니다.' },
+    'long:middle:1':    { emoji: '🏯', name: '궁중 기록관',     tier: 'UNCOMMON',  intro: '누가 무엇을 약속했는지를 적는 사람이었습니다. 권력은 없었지만 모두가 당신의 붓을 의식했습니다.', traits: ['정확', '중립', '기억'], echo: '누가 무슨 말을 했는지 정확히 기억합니다. 그래서 말 바꾸는 사람에게 크게 실망합니다.', end: '지우라는 명을 끝내 따르지 않고, 그 기록과 함께 물러났습니다.' },
+    'long:middle:2':    { emoji: '🌙', name: '달빛 서기관',     tier: 'RARE',      intro: '전쟁이나 권력을 직접 움직이는 사람이 아니라, 사람들의 말과 비밀을 기록하던 사람이었습니다.', traits: ['기록', '충성', '직감'], echo: '말보다 행동을 중요하게 생각합니다. 누군가 약속을 가볍게 여길 때 크게 실망하는 이유가 여기에 있습니다.', end: '마지막 밤에도 등불을 켜고 무언가를 적다가 그대로 엎드렸습니다.' },
+    'long:middle:3':    { emoji: '🧭', name: '항해사',          tier: 'RARE',      intro: '땅이 보이지 않는 곳에서 방향을 정하는 사람이었습니다. 당신이 틀리면 배 전체가 돌아오지 못했습니다.', traits: ['판단', '담대', '고립'], echo: '정보가 없는 상황에서도 일단 방향을 정하는 편입니다. 그 책임을 남과 나누지 않습니다.', end: '항구가 보이는 자리에서 키를 놓았습니다.' },
+    'long:middle:4':    { emoji: '🗺️', name: '해도 제작자',     tier: 'LEGENDARY', intro: '아무도 가보지 않은 바다를 종이 위에 처음 그린 사람이었습니다. 틀린 곳에서 사람이 죽었습니다.', traits: ['개척', '정밀', '책임'], echo: '없는 길을 그리는 일에 끌리고, 그 결과에 대한 책임감이 과할 정도로 큽니다.', end: '자신이 그린 해도의 빈칸을 채우러 떠나 돌아오지 않았습니다.' },
+
+    'long:lower:0':     { emoji: '📚', name: '서당 훈장',       tier: 'COMMON',    intro: '가르친 아이들이 커서 당신을 잊었습니다. 그래도 그 아이들의 글씨체에는 당신이 남았습니다.', traits: ['전수', '인내', '원칙'], echo: '남이 성장하는 걸 보는 데서 만족을 얻고, 그 공을 자기 것으로 여기지 않습니다.', end: '마지막 제자가 떠난 빈 서당에서 혼자 겨울을 났습니다.' },
+    'long:lower:1':     { emoji: '🍵', name: '약재 도제',       tier: 'COMMON',    intro: '수백 가지 약재를 하나도 빠짐없이 외웠습니다. 정작 사람을 고치는 일은 배우지 못했습니다.', traits: ['성실', '분별', '꼼꼼'], echo: '준비는 남보다 철저한데 정작 나설 순간에는 한 걸음 뒤에 섭니다.', end: '스승보다 먼저, 약재 창고 안에서 발견됐습니다.' },
+    'long:lower:2':     { emoji: '🌿', name: '약초꾼',          tier: 'UNCOMMON',  intro: '산을 혼자 오르내리며 약초를 캤습니다. 무엇이 사람을 살리고 무엇이 죽이는지를 손끝으로 알았습니다.', traits: ['분별', '고독', '감각'], echo: '위험한 것과 이로운 것을 감각으로 먼저 구분하고, 그 감각을 남에게 설명하지 못합니다.', end: '한 번도 가본 적 없는 골짜기에서 마지막 약초를 캐다 길을 잃었습니다.' },
+    'long:lower:3':     { emoji: '💊', name: '궁중 의원',       tier: 'RARE',      intro: '고치지 못하는 병 앞에 여러 번 섰습니다. 그때마다 할 수 있는 것을 끝까지 했습니다.', traits: ['치유', '책임', '분별'], echo: '아픈 사람을 그냥 지나치지 못하고, 도와주고 나서 혼자 소진됩니다.', end: '살리지 못한 환자의 방을 지키다가 자신의 병을 놓쳤습니다.' },
+    'long:lower:4':     { emoji: '📜', name: '비문 각자장',     tier: 'EPIC',      intro: '한 글자를 잘못 새기면 돌을 처음부터 다시 깎아야 했습니다. 천 년을 견딜 문장만 남겼습니다.', traits: ['정밀', '영속', '무게'], echo: '되돌릴 수 없는 결정 앞에서 오래 망설이고, 대신 한번 정하면 잘 바꾸지 않습니다.', end: '자기 이름 한 자를 못 새긴 채, 남의 이름만 천 개를 새기고 갔습니다.' },
+
+    // ── 역삼각형(逆三角型 · 火) — 감각과 영감으로 ──
+    'triangle:upper:0': { emoji: '🎐', name: '마을 무녀',       tier: 'COMMON',    intro: '사람들이 당신의 말을 하늘의 말로 들었습니다. 정작 당신은 그 말의 출처를 몰랐습니다.', traits: ['감응', '전달', '불안'], echo: '분위기나 기운을 남보다 강하게 느끼고, 그래서 사람 많은 곳에서 빨리 지칩니다.', end: '마지막 굿을 마치고 방울을 내려놓은 뒤 자리에서 일어나지 못했습니다.' },
+    'triangle:upper:1': { emoji: '🔔', name: '신당 방울잡이',   tier: 'UNCOMMON',  intro: '무녀 옆에서 방울을 흔드는 일이었습니다. 정작 신은 당신 쪽으로 더 자주 왔습니다.', traits: ['감응', '보조', '인내'], echo: '주인공 자리를 사양하는데, 결정적인 순간엔 결국 당신이 불려 나갑니다.', end: '자기 신당을 열기 하루 전날 밤을 넘기지 못했습니다.' },
+    'triangle:upper:2': { emoji: '🌠', name: '왕의 해몽관',     tier: 'RARE',      intro: '남의 잠 속에서 벌어진 일을 해석해 현실의 결정으로 바꾸는 자리였습니다.', traits: ['해석', '상징', '예지'], echo: '꿈이나 이미지가 유독 선명하고, 나중에 그게 뭔가와 겹치는 경험이 반복됩니다.', end: '자신의 마지막 꿈만은 끝내 해석하지 못했습니다.' },
+    'triangle:upper:3': { emoji: '🪬', name: '국사의 제자',     tier: 'EPIC',      intro: '나라의 큰 스승 밑에서 배웠습니다. 스승이 남긴 것 중 절반은 당신만 이해했습니다.', traits: ['이해', '계승', '고독'], echo: '설명해도 통하지 않는 것을 혼자 안고 가는 데 익숙합니다.', end: '스승의 마지막 가르침을 아무에게도 전하지 못하고 떠났습니다.' },
+    'triangle:upper:4': { emoji: '🌫️', name: '이름 없는 예언자', tier: 'MYTHIC',   intro: '어느 기록에도 남지 않았습니다. 다만 당신이 지나간 마을마다 이상한 이야기가 하나씩 남았습니다.', traits: ['예지', '유랑', '이단'], echo: '남들이 당연하게 받아들이는 걸 혼자 이상하게 여기고, 그 질문을 놓지 못합니다.', end: '언제 어디서 사라졌는지 아무도 모릅니다. 지금도 기록이 없습니다.' },
+
+    'triangle:middle:0':{ emoji: '🎭', name: '광대',            tier: 'COMMON',    intro: '사람들을 웃기는 대가로 어디에도 속하지 않았습니다. 그것이 자유이자 벌이었습니다.', traits: ['재치', '거리', '해방'], echo: '진지한 이야기를 웃음으로 덮는 버릇이 있습니다. 본인 얘기일수록 더 그렇습니다.', end: '마지막 무대에서 관객이 웃는 소리를 들으며 눈을 감았습니다.' },
+    'triangle:middle:1':{ emoji: '🐎', name: '역참 여행자',     tier: 'UNCOMMON',  intro: '한곳에 오래 머문 적이 없습니다. 어디서든 사흘이면 적응하고 열흘이면 답답해졌습니다.', traits: ['이동', '적응', '자유'], echo: '환경이 바뀌는 걸 남보다 덜 무서워하고, 반복되는 하루에 남보다 빨리 질립니다.', end: '다음 역참을 눈앞에 두고 길 위에서 멈췄습니다.' },
+    'triangle:middle:2':{ emoji: '🎼', name: '궁중 악사',       tier: 'UNCOMMON',  intro: '말로 할 수 없는 것을 소리로 옮기는 일이었습니다. 슬픈 자리에서도 연주를 멈출 수 없었습니다.', traits: ['표현', '감정', '절제'], echo: '감정이 크게 올라올 때 말 대신 다른 통로(음악·글·손작업)를 찾습니다.', end: '마지막 곡의 마지막 음을 남기지 않고 손을 내렸습니다.' },
+    'triangle:middle:3':{ emoji: '🎪', name: '유랑 극단주',     tier: 'RARE',      intro: '스무 명의 밥과 잠자리를 책임지며 전국을 돌았습니다. 무대에서는 늘 웃고 있었습니다.', traits: ['통솔', '연출', '책임'], echo: '사람들을 즐겁게 하는 일에 진심이면서, 그 뒤의 계산까지 혼자 다 합니다.', end: '단원들을 각자의 고향으로 보낸 뒤, 빈 천막에 혼자 남았습니다.' },
+    'triangle:middle:4':{ emoji: '🃏', name: '왕의 어릿광대',   tier: 'LEGENDARY', intro: '왕에게 진실을 말할 수 있는 유일한 사람이었습니다. 농담의 형태로만 가능했습니다.', traits: ['재치', '용기', '위장'], echo: '무거운 말을 가볍게 포장해 전하는 재주가 있고, 그래서 진심이 자주 오해받습니다.', end: '마지막 농담을 던진 다음 날, 궁에서 자취를 감췄습니다.' },
+
+    'triangle:lower:0': { emoji: '🏹', name: '사냥꾼',          tier: 'COMMON',    intro: '기다리는 시간이 대부분이었습니다. 결정적인 순간은 하루에 한 번 올까 말까 했습니다.', traits: ['집중', '인내', '본능'], echo: '평소엔 느슨하다가 결정적인 순간에만 집중력이 폭발합니다. 그 편차가 스스로도 낯섭니다.', end: '한 번도 놓친 적 없던 짐승을 쫓다가 산에서 내려오지 못했습니다.' },
+    'triangle:lower:1': { emoji: '🎨', name: '단청 화공',       tier: 'UNCOMMON',  intro: '자기 이름을 남기지 않는 그림을 평생 그렸습니다. 남는 건 색이지 당신이 아니었습니다.', traits: ['색채', '헌신', '무명'], echo: '결과물에 애착이 크면서도 자기 이름을 앞세우는 건 어색해합니다.', end: '천장에 마지막 색을 올리다가 그 아래로 떨어졌습니다.' },
+    'triangle:lower:2': { emoji: '🧵', name: '궁중 자수장',     tier: 'RARE',      intro: '한 벌을 삼 년에 걸쳐 지었습니다. 그 옷을 입은 사람은 당신을 몰랐습니다.', traits: ['정밀', '인내', '헌신'], echo: '오래 걸리는 일을 견디는 힘이 있고, 빨리 끝내라는 요구에 크게 스트레스를 받습니다.', end: '마지막 한 땀을 남기고 바늘을 놓쳤습니다.' },
+    'triangle:lower:3': { emoji: '🪄', name: '유랑 연금술사',   tier: 'RARE',      intro: '쇠를 금으로 바꾸겠다며 평생을 썼습니다. 금은 못 만들었지만 다른 것을 여럿 만들었습니다.', traits: ['탐구', '변환', '이단'], echo: '실패한 시도에서 엉뚱한 성과를 건져내는 일이 많고, 그걸 스스로 과소평가합니다.', end: '마지막 실험이 폭발한 밤, 그 불빛을 본 사람이 여럿 있었습니다.' },
+    'triangle:lower:4': { emoji: '🌋', name: '불을 다루던 도공', tier: 'LEGENDARY', intro: '아무도 내지 못한 색을 불에서 꺼냈습니다. 그 방법은 당신만 알았고, 적지 않았습니다.', traits: ['감각', '집념', '비밀'], echo: '자기만의 방식이 분명하고, 그것을 말로 옮기는 데는 관심이 없습니다.', end: '비법을 묻는 사람들에게 끝내 웃기만 하다가 가마와 함께 식었습니다.' }
   };
+
   const PLF_ROLE_FALLBACK = {
-    emoji: '🌘', name: '오래된 문양을 해석하던 운명의 관찰자', tier: 'RARE',
+    emoji: '🌘', name: '운명의 관찰자', tier: 'RARE',
     intro: '어느 계보에도 깔끔하게 들어가지 않는 자리였습니다. 그래서 여러 자리를 옮겨 다니며 전부를 조금씩 알게 된 사람이었습니다.',
-    traits: ['직관', '해석', '경계인'], echo: '한 가지로 정의되는 걸 답답해하고, 여러 영역을 걸치는 자리에서 오히려 편안해집니다.'
+    traits: ['직관', '해석', '경계인'], echo: '한 가지로 정의되는 걸 답답해하고, 여러 영역을 걸치는 자리에서 오히려 편안해집니다.',
+    end: '어느 기록에도 마지막이 남지 않았습니다.'
   };
 
   // ③ 전생의 시대·장소 = 얼굴형(4) × 삼정 우세(3). 12조합.
@@ -390,15 +429,35 @@
     '.plf-stage{display:none;}',
     '.plf-stage.is-active{display:block;}',
 
-    // ① 문 앞
-    '.plf-hero{position:relative;margin:14px 0 0;border-radius:20px;overflow:hidden;border:1px solid var(--plf-border);',
-    '  box-shadow:var(--plf-glow);}',
-    '.plf-hero__img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;filter:saturate(.9) brightness(.62);}',
-    '.plf-hero__veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,24,.16) 0%,rgba(10,8,24,.82) 100%);}',
-    '.plf-hero__moon{position:absolute;top:14px;right:18px;width:36px;height:36px;border-radius:999px;',
-    '  background:radial-gradient(circle at 34% 34%,#fff6dd 0%,var(--plf-gold) 58%,rgba(232,213,163,.1) 100%);',
-    '  box-shadow:0 0 26px 4px rgba(232,213,163,.42);}',
-    '.plf-hero__copy{position:absolute;left:0;right:0;bottom:0;padding:18px 20px 20px;}',
+    // ① 문 앞 — 사진 없이 CSS 로만 그린 달빛 문.
+    //    별밭·아치문·달의 기법은 styles/cosmic-main.css 의 .moon-hero 를 따랐다.
+    '.plf-hero{position:relative;margin:14px 0 0;border-radius:20px;overflow:hidden;isolation:isolate;',
+    '  min-height:clamp(230px,52vw,320px);display:flex;align-items:flex-end;',
+    '  border:1px solid var(--plf-border);box-shadow:var(--plf-glow);',
+    '  background:radial-gradient(circle at 78% 18%,rgba(232,213,163,.16),transparent 30%),',
+    '    radial-gradient(circle at 16% 30%,rgba(124,110,214,.18),transparent 34%),',
+    '    linear-gradient(158deg,#1b1440 0%,#120e2c 46%,#07050f 100%);}',
+    // 별밭 — 1px 점 5겹에 서로 다른 background-size 를 줘 깊이를 만든다
+    '.plf-hero__stars{position:absolute;inset:0;pointer-events:none;opacity:.72;',
+    '  background-image:radial-gradient(1px 1px at 12% 18%,rgba(244,238,255,.86),transparent),',
+    '    radial-gradient(1px 1px at 44% 26%,rgba(196,181,253,.72),transparent),',
+    '    radial-gradient(1.5px 1.5px at 76% 14%,rgba(232,213,163,.62),transparent),',
+    '    radial-gradient(1px 1px at 88% 62%,rgba(244,238,255,.7),transparent),',
+    '    radial-gradient(1.5px 1.5px at 26% 66%,rgba(196,181,253,.66),transparent);',
+    '  background-size:170px 150px,220px 200px,300px 270px,380px 330px,510px 450px;}',
+    // 아치형 문 — 위는 둥글고 아래는 각진 border-radius 하나로 문틀이 된다
+    '.plf-hero__portal{position:absolute;left:50%;bottom:0;width:min(46%,190px);height:64%;',
+    '  transform:translateX(-50%);pointer-events:none;',
+    '  border-radius:999px 999px 10px 10px;border:1px solid rgba(232,213,163,.26);border-bottom:0;',
+    '  background:radial-gradient(ellipse at 50% 24%,rgba(232,213,163,.24) 0%,rgba(124,110,214,.12) 42%,transparent 72%),',
+    '    linear-gradient(180deg,rgba(28,22,64,.5) 0%,rgba(8,6,20,.78) 100%);',
+    '  box-shadow:inset 0 0 46px rgba(232,213,163,.12),0 0 38px rgba(232,213,163,.1);}',
+    '.plf-hero__veil{position:absolute;inset:0;pointer-events:none;',
+    '  background:linear-gradient(180deg,rgba(10,8,24,0) 0%,rgba(10,8,24,.28) 52%,rgba(10,8,24,.9) 100%);}',
+    '.plf-hero__moon{position:absolute;top:11%;right:13%;width:clamp(46px,11vw,68px);aspect-ratio:1;border-radius:999px;',
+    '  background:radial-gradient(circle at 34% 32%,#fff6dd 0%,var(--plf-gold) 56%,rgba(232,213,163,.12) 100%);',
+    '  box-shadow:0 0 34px 8px rgba(232,213,163,.34),0 0 90px 26px rgba(232,213,163,.12);}',
+    '.plf-hero__copy{position:relative;width:100%;padding:18px 20px 20px;}',
     '.plf-hero__line{font-family:var(--font-serif,var(--font-display,serif));font-size:clamp(20px,4.6vw,28px);',
     '  font-weight:700;line-height:1.34;letter-spacing:-.012em;margin:0;text-wrap:balance;',
     '  text-shadow:0 2px 18px rgba(10,8,24,.9);}',
@@ -467,47 +526,28 @@
     '.plf-gauge__fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--plf-accent-soft),var(--plf-gold));}',
     '.plf-gauge__note{margin:8px 0 0;font-size:.79rem;line-height:1.62;color:var(--plf-muted);}',
 
-    // 도시에(dossier) 슬랩 — 표면 안에 한 단계 다른 톤을 박아 명도 대비로 깊이를 만든다.
-    // 관상의 .phy-result-meta 와 같은 장치이고, 상단 inset 광택 라인은 --cd-shadow 네오 값의 기법이다.
-    '.plf-dossier{margin:16px 0 0;border:1px solid var(--plf-border-strong);border-radius:16px;padding:15px 17px 14px;',
-    '  background:linear-gradient(132deg,rgba(24,19,52,.96) 0%,rgba(38,30,74,.92) 54%,rgba(20,16,44,.96) 100%);',
-    '  box-shadow:0 10px 28px rgba(6,4,18,.42),inset 0 1px 0 rgba(228,214,255,.12);}',
-    // 킥커는 화면 전체에서 단 하나. 섹션마다 반복하는 eyebrow 는 쓰지 않는다.
-    '.plf-dossier__kicker{margin:0;font-family:var(--font-serif,var(--font-display,serif));font-size:.68rem;',
-    '  font-weight:700;letter-spacing:.14em;color:var(--plf-gold);}',
-    '.plf-dossier__title{margin:7px 0 0;font-size:1.04rem;font-weight:900;line-height:1.36;color:var(--plf-text);',
-    '  letter-spacing:-.012em;text-wrap:balance;}',
-    '.plf-dossier__summary{margin:6px 0 0;font-size:.82rem;line-height:1.6;color:var(--plf-muted);}',
+    // ── 장면(scene) — 2차 개편의 핵심. 리포트가 아니라 영화다 ──
+    // 예전의 도시에 슬랩 / 칩 네비 / <details> 아코디언은 전부 걷어냈다.
+    // 한 장면이 한 화면을 차지하고, 스크롤로 하나씩 열린다.
+    ".plf-scenes{margin:6px 0 0;}",
+    ".plf-scene{padding:clamp(38px,9vw,64px) 0 0;}",
+    ".plf-scene:first-child{padding-top:clamp(24px,6vw,40px);}",
+    ".plf-scene__no{display:flex;align-items:center;gap:10px;margin:0;flex-wrap:wrap;}",
+    ".plf-scene__no-num{font-family:var(--font-serif,var(--font-display,serif));font-size:.7rem;font-weight:700;",
+    "  letter-spacing:.22em;color:var(--plf-gold);}",
+    ".plf-scene__label{font-size:.76rem;font-weight:700;letter-spacing:.02em;color:var(--plf-muted);",
+    "  padding-left:10px;border-left:1px solid var(--plf-border-strong);}",
+    // 장면의 큰 한 줄. 여기가 화면의 무게 중심이다.
+    ".plf-scene__lead{margin:14px 0 0;font-family:var(--font-serif,var(--font-display,serif));",
+    "  font-size:clamp(24px,6.2vw,38px);font-weight:700;line-height:1.28;letter-spacing:-.018em;",
+    "  color:var(--plf-text);text-wrap:balance;text-shadow:0 2px 22px rgba(10,8,24,.7);}",
+    ".plf-scene__body{margin:16px 0 0;}",
+    ".plf-scene__lead-sub{margin:22px 0 0;font-size:.78rem;font-weight:800;letter-spacing:.12em;color:var(--plf-gold);}",
+    ".plf-scene__sep{margin:clamp(34px,8vw,56px) 0 0;text-align:center;font-size:.82rem;color:var(--plf-accent);opacity:.42;}",
+    ".plf-scene:last-child .plf-scene__sep{opacity:.2;}",
+    ".plf-section__body{margin:0;font-size:1rem;line-height:1.86;color:var(--plf-text);text-wrap:pretty;}",
+    ".plf-section__body + .plf-section__body{margin-top:14px;color:var(--plf-muted);}",
 
-    // 칩 네비 — 달빛 다크에서 유일한 온색 앵커는 샴페인 골드가 맡는다.
-    // 강조색(트와일라잇 바이올렛)은 하나로 유지된다(One Accent Rule).
-    '.plf-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0;}',
-    '.plf-chip{border:1px solid var(--plf-border-strong);background:rgba(255,255,255,.05);color:var(--plf-text);',
-    '  border-radius:999px;padding:6px 12px;font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer;',
-    '  min-height:32px;transition:background .2s ease-out,color .2s ease-out,border-color .2s ease-out;}',
-    '.plf-chip:hover{background:rgba(196,181,253,.16);}',
-    '.plf-chip:focus-visible{outline:2px solid var(--plf-accent);outline-offset:2px;}',
-    '.plf-chip.is-active{background:linear-gradient(135deg,var(--plf-gold),#f2e6c4);color:#0a0818;',
-    '  border-color:var(--plf-gold);box-shadow:0 6px 16px rgba(232,213,163,.26);}',
-
-    // 장(章) 아코디언 — 화살표 마커 대신 우측 hint 텍스트가 상태 어포던스를 맡는다.
-    '.plf-chapters{margin:16px 0 0;display:grid;gap:11px;}',
-    '.plf-chapter{border:1px solid var(--plf-border);border-radius:16px;background:var(--plf-surface);',
-    '  overflow:hidden;box-shadow:0 8px 20px rgba(6,4,18,.26);}',
-    '.plf-chapter[open]{border-color:var(--plf-border-strong);box-shadow:0 12px 28px rgba(6,4,18,.34);}',
-    '.plf-chapter__summary{display:flex;align-items:center;justify-content:space-between;gap:10px;',
-    '  padding:13px 15px;cursor:pointer;list-style:none;background:var(--plf-surface-2);min-height:44px;}',
-    '.plf-chapter__summary::-webkit-details-marker{display:none;}',
-    '.plf-chapter__summary:focus-visible{outline:2px solid var(--plf-accent);outline-offset:-2px;}',
-    '.plf-chapter__head{display:flex;align-items:center;gap:10px;min-width:0;}',
-    '.plf-chapter__index{flex:none;width:20px;height:20px;border-radius:999px;display:grid;place-items:center;',
-    '  font-size:.66rem;font-weight:900;color:#0a0818;background:linear-gradient(135deg,var(--plf-gold),#d8bd7d);}',
-    '.plf-chapter__title{font-size:.93rem;font-weight:800;color:var(--plf-text);letter-spacing:-.01em;}',
-    '.plf-chapter__hint{flex:none;font-size:.72rem;font-weight:700;color:var(--plf-muted);white-space:nowrap;}',
-    '.plf-chapter__body{padding:3px 15px 15px;}',
-    '.plf-section__body{margin:9px 0 0;font-size:.94rem;line-height:1.82;color:var(--plf-text);text-wrap:pretty;}',
-    '.plf-section__body + .plf-section__body{margin-top:10px;color:var(--plf-muted);}',
-    '.plf-section__lead{margin:14px 0 0;font-size:.8rem;font-weight:800;letter-spacing:.08em;color:var(--plf-gold);}',
     '.plf-signs{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:9px;}',
     '.plf-signs li{display:flex;gap:10px;font-size:.92rem;line-height:1.72;color:var(--plf-text);}',
     '.plf-signs li::before{content:"◈";flex:none;color:var(--plf-accent);font-size:.8rem;line-height:1.95;}',
@@ -523,8 +563,22 @@
     '.plf-talisman__v{display:block;font-size:.9rem;font-weight:700;color:var(--plf-text);}',
 
     // 공유 카드 — html2canvas 캡처 대상. 투명 배경으로 뜨면 안 되므로 자체 불투명 배경을 칠한다.
-    '.plf-sharecard{margin:18px 0 0;border-radius:22px;padding:2px;',
+    // 봉인 상태로 시작해 장면 2(신분 공개)에서 열린다. 내용은 처음부터 DOM 에 있고 CSS 로만 가린다.
+    '.plf-sharecard{position:relative;margin:18px 0 0;border-radius:22px;padding:2px;',
     '  background:linear-gradient(150deg,var(--plf-gold) 0%,rgba(196,181,253,.5) 44%,rgba(232,213,163,.28) 100%);}',
+    '.plf-sharecard__seal{position:absolute;inset:2px;z-index:2;border-radius:20px;display:none;',
+    '  flex-direction:column;align-items:center;justify-content:center;gap:12px;',
+    '  background:linear-gradient(168deg,#181138 0%,#100c26 54%,#07050f 100%);}',
+    '.plf-sharecard__seal-mark{font-size:1.7rem;color:var(--plf-gold);',
+    '  text-shadow:0 0 22px rgba(232,213,163,.5);}',
+    '.plf-sharecard__seal-text{font-size:.82rem;font-weight:700;letter-spacing:.04em;color:var(--plf-muted);}',
+    // 모션 허용 환경에서만 봉인이 걸린다. 모션을 끄면 처음부터 열린 카드가 보인다.
+    '@media (prefers-reduced-motion: no-preference){',
+    '  .plf-sharecard:not(.is-unsealed) .plf-sharecard__seal{display:flex;}',
+    '  .plf-sharecard:not(.is-unsealed) .plf-sharecard__inner{filter:blur(7px);opacity:.4;}',
+    '  .plf-sharecard__inner{transition:filter .6s ease-out,opacity .6s ease-out;}',
+    '  .plf-sharecard__seal{transition:opacity .45s ease-out;}',
+    '}',
     '.plf-sharecard__inner{border-radius:20px;padding:26px 22px 20px;text-align:center;',
     '  background:linear-gradient(168deg,#1b1440 0%,#120e2c 52%,#0a0818 100%);}',
     '.plf-sharecard__kicker{margin:0;font-family:var(--font-serif,var(--font-display,serif));font-size:.72rem;',
@@ -542,13 +596,6 @@
     '.plf-sharecard__tag{border:1px solid var(--plf-border);border-radius:999px;padding:4px 11px;',
     '  font-size:.76rem;font-weight:700;color:var(--plf-accent);background:rgba(196,181,253,.08);}',
     '.plf-sharecard__mark{margin:18px 0 0;font-size:.68rem;letter-spacing:.08em;color:var(--plf-muted);opacity:.8;}',
-
-    // 유형 분류 배지 — 확률은 표기하지 않는다.
-    '.plf-tier{display:inline-flex;align-items:center;gap:7px;margin:9px 0 0;padding:4px 11px;border-radius:999px;',
-    '  border:1px solid var(--plf-tier,var(--plf-accent));background:rgba(10,8,24,.42);}',
-    '.plf-tier__dot{flex:none;width:7px;height:7px;border-radius:999px;background:var(--plf-tier,var(--plf-accent));}',
-    '.plf-tier__label{font-size:.72rem;font-weight:900;letter-spacing:.1em;color:var(--plf-tier,var(--plf-accent));}',
-    '.plf-tier__ko{font-size:.72rem;font-weight:700;color:var(--plf-muted);}',
 
     // 심화 CTA — 신규 유료 기능이 아니라 기존 기능으로 인계한다.
     '.plf-deeper{margin:20px 0 0;border:1px solid var(--plf-border-strong);border-radius:18px;padding:18px;',
@@ -578,8 +625,13 @@
     '.plf-actions{margin:20px 0 0;display:grid;gap:10px;}',
     '.plf-disclaimer{margin:18px 0 0;font-size:.78rem;line-height:1.7;color:var(--plf-muted);opacity:.85;text-align:center;}',
 
-    // 모션 — 기본은 항상 보이고, 모션 허용 환경에서만 등장 애니메이션을 얹는다
+    // 모션 — 기본은 항상 보이고, 모션 허용 환경에서만 등장 애니메이션을 얹는다.
+    // 🔴 장면의 숨김 상태(opacity:0)를 이 블록 밖으로 꺼내지 말 것.
+    //    밖에 두면 IntersectionObserver 가 안 도는 환경에서 리딩이 통째로 빈 화면이 된다.
     '@media (prefers-reduced-motion: no-preference){',
+    '  .plf-scene{opacity:0;transform:translate3d(0,20px,0);',
+    '    transition:opacity .62s ease-out,transform .62s cubic-bezier(.22,1,.36,1);}',
+    '  .plf-scene.is-revealed{opacity:1;transform:none;}',
     '  .plf-card__inner{animation:plfFlip .78s cubic-bezier(.22,1,.36,1) both;}',
     '  .plf-reveal-item{animation:plfRise .5s cubic-bezier(.22,1,.36,1) both;}',
     '  .plf-preview__beam{animation:plfBeam 2.1s cubic-bezier(.45,0,.55,1) infinite;}',
@@ -617,8 +669,10 @@
 
     // ① 문 앞
     '    <section class="plf-stage is-active" id="plfStageGate" aria-labelledby="plfGateLine">',
-    '      <div class="plf-hero">',
-    '        <img class="plf-hero__img" id="plfHeroImg" src="' + PLF_HERO_IMAGE + '" alt="달빛 아래 전생의 문 앞에 선 사람의 실루엣" decoding="async" />',
+    // 사진 없음 — 달·아치문·별밭은 전부 CSS 다. 파일 상단의 히어로 주석 참고.
+    '      <div class="plf-hero" role="img" aria-label="달빛 아래 열린 전생의 문">',
+    '        <div class="plf-hero__stars" aria-hidden="true"></div>',
+    '        <div class="plf-hero__portal" aria-hidden="true"></div>',
     '        <div class="plf-hero__veil" aria-hidden="true"></div>',
     '        <div class="plf-hero__moon" aria-hidden="true"></div>',
     '        <div class="plf-hero__copy">',
@@ -680,16 +734,6 @@
     app.setAttribute('aria-label', '전생 관상');
     app.innerHTML = PLF_MARKUP;
     document.body.appendChild(app);
-
-    // CDN 리사이즈 URL 이 죽으면 원본으로 내려간다. innerHTML 로 붙인 직후라 로딩은
-    // 시작됐지만 error 이벤트는 다음 태스크에 나가므로 여기서 붙여도 늦지 않는다.
-    const hero = plfEl('plfHeroImg');
-    if (hero) {
-      hero.addEventListener('error', function onHeroError() {
-        hero.removeEventListener('error', onHeroError);
-        hero.src = PLF_HERO_IMAGE_FALLBACK;
-      });
-    }
 
     plfEl('plfCloseBtn').addEventListener('click', function () { window.closePastLifeFaceApp(); });
     plfEl('plfPickBtn').addEventListener('click', function () { plfEl('plfFileInput').click(); });
@@ -1054,8 +1098,9 @@
   }
 
   /**
-   * ② 신분 레인 = 코 너비 · 입 크기 · 귀 길이의 합산 구간(0·1·2).
-   * 세 수치가 전부 평범대면 0, 전부 큰 쪽이면 2가 된다. 유형 분류(레어도)가 여기에 연동된다.
+   * ② 신분 레인 = 코 너비 · 입 크기 · 귀 길이의 합산 구간(0~4).
+   * 세 수치가 전부 평범대면 0, 전부 큰 쪽이면 4가 된다. 유형 분류(레어도)가 여기에 연동된다 —
+   * 흔한 수치대일수록 흔한 유형, 극단일수록 희귀한 유형이 나온다(난수가 아니다).
    * 수치가 하나도 없으면 얼굴형·삼정만으로는 레인이 항상 0이 되어 신분 12종만 나오므로,
    * 그 경우에만 해시로 흩는다.
    */
@@ -1068,9 +1113,13 @@
     if (Number.isFinite(nose)) { score += nose <= 0.86 ? 0 : nose <= 0.94 ? 1 : 2; known += 1; }
     if (Number.isFinite(mouth)) { score += mouth <= 1.28 ? 0 : mouth <= 1.44 ? 1 : 2; known += 1; }
     if (Number.isFinite(ear)) { score += ear < 0.16 ? 0 : ear < 0.20 ? 1 : 2; known += 1; }
-    if (known === 0) return plfHash(seed + ':lane') % 3;
+    if (known === 0) return plfHash(seed + ':lane') % 5;
     const normalized = (score / known) * 3; // 0~6 스케일로 환산
-    return normalized <= 1.5 ? 0 : normalized <= 3.5 ? 1 : 2;
+    if (normalized <= 0.5) return 0;
+    if (normalized <= 2.5) return 1;
+    if (normalized <= 3.5) return 2;
+    if (normalized <= 5.5) return 3;
+    return 4;
   }
 
   function plfRoleKey(shapeType, dominant, lane) {
@@ -1164,6 +1213,7 @@
       roleIntro: role.intro,
       roleTraits: role.traits,
       roleEcho: role.echo,
+      roleEnd: role.end,
       world: world,
       // ④ 사건
       eventTitle: event.title,
@@ -1258,33 +1308,44 @@
   }
 
   /**
-   * 리딩을 장(章) 단위로 쪼갠다. 칩 네비와 아코디언이 같은 배열을 공유한다.
-   * 순서가 서사의 전부다 — 얼굴(아직 전생 비공개) → 신분(첫 반전) → 사건 → 수호령(동물은 여기서 처음 나온다)
-   * → 현생의 흔적 → 부적. 동물을 앞으로 끌어올리지 말 것.
+   * 리딩을 장면(scene) 단위로 쪼갠다.
+   *
+   * 🔴 여기는 리포트가 아니라 영화다 (2026-08 2차 개편) — 되돌리지 말 것.
+   *   예전에는 <details> 아코디언 + 칩 네비 + 도시에 슬랩이었고, 그래서 "전생 이야기"가 아니라
+   *   "관상 보고서"로 읽혔다. 지금은 한 화면에 한 장면씩, 스크롤하면서 하나씩 열린다.
+   *   순서가 서사의 전부다 — 얼굴(전생 비공개) → 신분(첫 반전) → 사건 → 수호령(동물은 여기서 처음 나온다)
+   *   → 현생의 흔적 → 부적. 동물을 앞으로 끌어올리지 말 것.
+   *
+   *   lead 는 장면의 큰 한 줄(세리프), body 는 그 아래 본문이다.
    */
-  function plfBuildChapters(reading) {
+  function plfBuildScenes(reading) {
     return [
       {
-        title: '얼굴의 첫인상',
+        label: '얼굴의 첫인상',
+        lead: '“' + reading.firstNick + '”',
         body: plfParagraphsHtml([
-          '“' + reading.firstNick + '”',
           reading.firstBody,
-          reading.faceSeal + '. 여기까지는 지금의 얼굴에서 읽은 것이고, 전생은 아직 열지 않았습니다.'
+          reading.faceSeal + '. 여기까지는 지금의 얼굴에서 읽은 것입니다. 전생은 아직 열지 않았습니다.'
         ])
       },
       {
-        title: '전생의 신분',
+        label: '전생의 당신은…',
+        lead: reading.roleEmoji + ' ' + reading.roleName,
         body: plfParagraphsHtml([reading.roleIntro, reading.world])
       },
       {
-        title: '전생의 사건',
+        label: '그날의 사건',
+        lead: reading.eventTitle,
         body: plfParagraphsHtml([
           reading.eventBody,
-          '그리고 그때부터 당신은 조금 다른 사람이 되었습니다. 이번 생에서 반복되는 어떤 장면은, 그날을 다시 꺼내려는 신호입니다.'
-        ])
+          '그리고 그때부터 당신은 조금 다른 사람이 되었습니다.'
+        ]) +
+          '<p class="plf-scene__lead-sub">그리고 당신의 마지막은…</p>' +
+          plfParagraphsHtml([reading.roleEnd])
       },
       {
-        title: '전생 수호령',
+        label: '전생 수호령',
+        lead: reading.animalEmoji + ' ' + reading.guardianName,
         body: plfParagraphsHtml([
           reading.guardianLine,
           '전생의 당신 곁에는 늘 이 기질이 함께 있었습니다 — ' + (reading.guardianTraits || []).join(' · ') +
@@ -1292,27 +1353,99 @@
         ])
       },
       {
-        title: '현생의 흔적',
+        label: '그래서 지금의 나는',
+        lead: '전생의 흔적이 현생에 남아 있습니다',
         body: plfParagraphsHtml([reading.roleEcho, reading.eventEcho]) +
-          '<p class="plf-section__lead">전생이 스치는 순간</p>' +
+          '<p class="plf-scene__lead-sub">전생이 스치는 순간</p>' +
           '<ul class="plf-signs">' +
           reading.signs.map(function (sign) { return '<li>' + plfEscape(sign) + '</li>'; }).join('') +
           '</ul>'
       },
       {
-        title: '전생이 남긴 부적',
+        label: '전생이 남긴 부적',
+        lead: reading.talisman.color + ' · ' + reading.talisman.direction,
         body: plfTalismanHtml(reading.talisman)
       }
     ];
   }
 
+  function plfSceneHtml(scene, index) {
+    return [
+      '<section class="plf-scene" data-plf-scene="' + index + '">',
+      '  <p class="plf-scene__no"><span class="plf-scene__no-num">SCENE ' + (index < 9 ? '0' : '') + (index + 1) + '</span>' +
+      '<span class="plf-scene__label">' + plfEscape(scene.label) + '</span></p>',
+      '  <h3 class="plf-scene__lead">' + plfEscape(scene.lead) + '</h3>',
+      '  <div class="plf-scene__body">' + scene.body + '</div>',
+      '  <p class="plf-scene__sep" aria-hidden="true">✦</p>',
+      '</section>'
+    ].join('');
+  }
+
+  function plfScenesHtml(scenes) {
+    return '<div class="plf-scenes">' + scenes.map(plfSceneHtml).join('') + '</div>';
+  }
+
   /**
-   * 공유 카드. 결과 최상단에 항상 완전히 렌더된다 —
-   * html2canvas 캡처 대상이라 스크롤 공개로 늦게 채우면 빈 카드가 찍힌다.
+   * 스크롤 공개 배선.
+   *
+   * 🔴 이 프로젝트가 이미 겪은 사고 두 가지를 여기서 막는다:
+   *   1) IntersectionObserver 가 없거나(구형 웹뷰·jsdom) 던지면 전 장면을 즉시 연다.
+   *      관찰자 미동작으로 콘텐츠가 영영 안 보이는 경로를 만들지 않는다.
+   *   2) 숨김 상태는 CSS 에서 prefers-reduced-motion: no-preference 안에만 정의돼 있다.
+   *      모션을 끈 사용자에게는 이 함수가 무엇을 하든 처음부터 전부 보인다.
+   * 장면 2(신분 공개)에 도달하면 상단 공유 카드의 봉인을 푼다.
+   */
+  function plfBindSceneReveal() {
+    const host = plfEl('plfRevealBody');
+    if (!host) return;
+    const scenes = Array.prototype.slice.call(host.querySelectorAll('[data-plf-scene]'));
+    const openAll = function () {
+      scenes.forEach(function (node) { node.classList.add('is-revealed'); });
+      plfUnsealShareCard();
+    };
+
+    if (plfPrefersReducedMotion() || typeof window.IntersectionObserver !== 'function') {
+      openAll();
+      return;
+    }
+
+    let observer = null;
+    try {
+      observer = new window.IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-revealed');
+          // 장면 2 = 전생 신분 공개. 여기서 상단 카드의 봉인이 풀린다.
+          if (Number(entry.target.getAttribute('data-plf-scene')) >= 1) plfUnsealShareCard();
+          observer.unobserve(entry.target);
+        });
+      }, { rootMargin: '0px 0px -12% 0px', threshold: 0.16 });
+    } catch (error) {
+      console.warn('[past-life] 장면 공개 관찰자를 만들지 못해 전부 펼칩니다:', error);
+      openAll();
+      return;
+    }
+
+    scenes.forEach(function (node) { observer.observe(node); });
+    // 첫 장면은 이미 화면 안에 있을 수 있는데 관찰자 콜백이 한 프레임 늦게 온다. 먼저 열어 둔다.
+    if (scenes[0]) scenes[0].classList.add('is-revealed');
+  }
+
+  /**
+   * 공유 카드. 결과 최상단에 있고 **봉인 상태로 시작**한다 —
+   * 스크롤이 장면 2(전생 신분 공개)에 닿으면 `.is-unsealed` 가 붙어 내용이 드러난다.
+   *
+   * 🔴 내용은 처음부터 DOM 에 전부 들어 있다. 봉인은 CSS 로만 가린다.
+   *    늦게 채우면 html2canvas 가 빈 카드를 찍는다(master-love-codex 의 CodexReveal 에 같은 사고 기록).
+   *    거기에 더해 plfShare() 가 캡처 직전 plfUnsealShareCard() 를 무조건 부른다.
    */
   function plfShareCardHtml(reading) {
     return [
       '<div class="plf-sharecard" id="plfShareCard">',
+      '  <div class="plf-sharecard__seal" aria-hidden="true">',
+      '    <span class="plf-sharecard__seal-mark">✦</span>',
+      '    <span class="plf-sharecard__seal-text">스크롤해서 봉인을 여세요</span>',
+      '  </div>',
       '  <div class="plf-sharecard__inner">',
       '    <p class="plf-sharecard__kicker">✦ PAST LIFE ✦</p>',
       '    <p class="plf-sharecard__emoji" aria-hidden="true">' + plfEscape(reading.roleEmoji) + '</p>',
@@ -1333,6 +1466,12 @@
       '  </div>',
       '</div>'
     ].join('');
+  }
+
+  /** 공유 카드의 봉인을 푼다. 여러 번 불러도 안전하다. */
+  function plfUnsealShareCard() {
+    const card = plfEl('plfShareCard');
+    if (card) card.classList.add('is-unsealed');
   }
 
   /**
@@ -1391,125 +1530,12 @@
     });
   }
 
-  /**
-   * 장 카드. 화살표 마커를 없애고 우측 hint 텍스트로 열림 상태를 알린다(관상과 같은 어포던스).
-   *
-   * 마지막 장(부적)만 접어 둔다 — 이 리딩은 첫인상 → 신분 → 사건 → 수호령 → 현생의 흔적으로
-   * 이어지는 하나의 이야기라, 중간을 접으면 스크롤만으로 읽히지 않는다.
-   * 부적은 이야기가 아니라 참조표라 접혀 있어도 흐름이 끊기지 않는다.
-   */
-  function plfChapterHtml(chapter, index, chapters) {
-    const isOpen = index < (chapters || []).length - 1;
-    return [
-      '<details class="plf-chapter plf-reveal-item" id="plfChapter-' + index + '"' + (isOpen ? ' open' : '') + '>',
-      '  <summary class="plf-chapter__summary">',
-      '    <span class="plf-chapter__head">',
-      '      <span class="plf-chapter__index" aria-hidden="true">' + (index + 1) + '</span>',
-      '      <span class="plf-chapter__title">' + plfEscape(chapter.title) + '</span>',
-      '    </span>',
-      '    <span class="plf-chapter__hint">' + (isOpen ? '접기' : '펼쳐 보기') + '</span>',
-      '  </summary>',
-      '  <div class="plf-chapter__body">' + chapter.body + '</div>',
-      '</details>'
-    ].join('');
-  }
-
-  /**
-   * @param {object} [reading] 주면 유형 분류 배지를 함께 단다.
-   *   확률은 표기하지 않는다 — "관상 분석에 따른 유형 분류"라는 것이 정확한 설명이고,
-   *   숫자 확률을 적으면 임의로 조작했다는 인상을 준다.
-   */
-  function plfDossierHtml(kicker, title, summaryParts, reading) {
-    const tier = reading && reading.tierLabel
-      ? '<p class="plf-tier" style="--plf-tier:' + plfEscape(reading.tierColor) + '">' +
-        '<span class="plf-tier__dot" aria-hidden="true"></span>' +
-        '<span class="plf-tier__label">' + plfEscape(reading.tierLabel) + '</span>' +
-        '<span class="plf-tier__ko">' + plfEscape(reading.tierKo) + '</span>' +
-        '</p>'
-      : '';
-    return [
-      '<div class="plf-dossier plf-reveal-item">',
-      '  <p class="plf-dossier__kicker">' + plfEscape(kicker) + '</p>',
-      tier,
-      '  <p class="plf-dossier__title">' + plfEscape(title) + '</p>',
-      '  <p class="plf-dossier__summary">' + plfEscape(summaryParts.filter(Boolean).join(' · ')) + '</p>',
-      '  <div class="plf-chips" id="plfChips"></div>',
-      '</div>'
-    ].join('');
-  }
-
-  function plfChaptersHtml(chapters) {
-    return '<div class="plf-chapters">' + chapters.map(plfChapterHtml).join('') + '</div>';
-  }
-
-  function plfSetActiveChip(index) {
-    const nav = plfEl('plfChips');
-    if (!nav) return;
-    Array.prototype.forEach.call(nav.querySelectorAll('.plf-chip'), function (chip, i) {
-      const active = i === index;
-      chip.classList.toggle('is-active', active);
-      chip.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-  }
-
-  /** 칩 ↔ 아코디언 양방향 연동. 직접 펼쳐도 칩이 따라온다. */
-  function plfBindChapterNav(chapters) {
-    const nav = plfEl('plfChips');
-    if (!nav) return;
-    nav.innerHTML = '';
-
-    chapters.forEach(function (chapter, index) {
-      const details = plfEl('plfChapter-' + index);
-      if (!details) return;
-
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'plf-chip';
-      chip.textContent = chapter.title;
-      chip.setAttribute('aria-pressed', 'false');
-      chip.addEventListener('click', function () {
-        // 상태 반영을 먼저 끝낸다 — scrollIntoView 는 구현이 없는 환경(jsdom·구형 웹뷰)에서
-        // 던질 수 있고, 그러면 뒤에 있던 활성 칩 갱신이 통째로 날아간다.
-        details.open = true;
-        plfSetActiveChip(index);
-        try {
-          details.scrollIntoView({ behavior: plfPrefersReducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
-        } catch (err) {
-          /* 스크롤 이동은 부가 기능이라 실패해도 진행한다 */
-        }
-      });
-      nav.appendChild(chip);
-
-      details.addEventListener('toggle', function () {
-        if (details.open) plfSetActiveChip(index);
-        const hint = details.querySelector('.plf-chapter__hint');
-        if (hint) hint.textContent = details.open ? '접기' : '펼쳐 보기';
-      });
-    });
-
-    plfSetActiveChip(0);
-  }
-
   function plfRenderReading(reading) {
-    const chapters = plfBuildChapters(reading);
     const html = [
+      // 봉인된 공유 카드 → 장면 6개(스크롤로 열림) → 게이지 → 심화 CTA.
+      // 도시에 슬랩·칩 네비·아코디언은 2차 개편에서 걷어냈다(리포트가 아니라 영화).
       plfShareCardHtml(reading),
-
-      '<div class="plf-card">',
-      '  <div class="plf-card__inner">',
-      '    <p class="plf-card__eyebrow">전생의 문이 열렸습니다</p>',
-      '    <h2 class="plf-card__title">' + plfEscape(reading.roleEmoji + ' ' + reading.roleName) + '</h2>',
-      '    <p class="plf-card__era">' + plfEscape(reading.world) + '</p>',
-      '    <p class="plf-card__seal">' + plfEscape('“' + reading.firstNick + '” · ' + reading.shapeName + ' · 수호령 ' + reading.guardianName) + '</p>',
-      '  </div>',
-      '</div>',
-
-      plfDossierHtml('PAST LIFE DOSSIER', reading.roleEmoji + ' ' + reading.roleName, [
-        chapters.length + '장(章) 리딩',
-        '전생 기억 ' + reading.memory,
-        '이번 생 숙제 ' + reading.progress,
-        reading.shapeName
-      ], reading),
+      plfScenesHtml(plfBuildScenes(reading)),
 
       '<div class="plf-gauges">',
       plfGaugeHtml('전생 기억의 선명도', reading.memory,
@@ -1518,12 +1544,11 @@
         reading.progress >= 70 ? '이미 절반 이상 풀어 놓았습니다.' : '아직 본격적으로 손대지 않은 구간이 남아 있습니다.'),
       '</div>',
 
-      plfChaptersHtml(chapters),
       plfDeeperHtml()
     ].join('');
 
     plfEl('plfRevealBody').innerHTML = html;
-    plfBindChapterNav(chapters);
+    plfBindSceneReveal();
     plfBindDeeperCtas();
     plfApplyStagger();
     plfShowStage('reveal');
@@ -1549,7 +1574,7 @@
    *    사용자가 5,000원을 내고 산 수치이고, AnalysisEngine 은 수정하지 않는 것이 이 파일의 계약이다.
    *    여기서 바꾸는 것은 문장뿐이다.
    */
-  function plfBondChapters(compat, me, you) {
+  function plfBondScenes(compat, me, you) {
     const myTraits = me.roleTraits || [];
     const yourTraits = you.roleTraits || [];
     const shared = myTraits.filter(function (trait) { return yourTraits.indexOf(trait) >= 0; })[0];
@@ -1557,7 +1582,8 @@
 
     return [
       {
-        title: '전생에서 두 사람은',
+        label: '전생에서 두 사람은',
+        lead: me.roleName + ' × ' + you.roleName,
         body: plfParagraphsHtml([
           '전생의 당신은 ' + me.roleName + '이었고, 상대는 ' + you.roleName + '이었습니다.',
           sameRole
@@ -1569,7 +1595,8 @@
         ])
       },
       {
-        title: '두 사람의 사건이 겹친 지점',
+        label: '두 사건이 겹친 지점',
+        lead: '「' + me.eventTitle + '」 와 「' + you.eventTitle + '」',
         body: plfParagraphsHtml([
           '당신에게 남은 사건은 「' + me.eventTitle + '」이고, 상대에게 남은 사건은 「' + you.eventTitle + '」입니다.',
           me.eventTitle === you.eventTitle
@@ -1578,7 +1605,8 @@
         ])
       },
       {
-        title: '두 수호령이 함께 있을 때',
+        label: '두 수호령이 함께 있을 때',
+        lead: me.guardianName + ' 와 ' + you.guardianName,
         body: plfParagraphsHtml([
           '당신의 수호령은 ' + me.guardianName + ', 상대의 수호령은 ' + you.guardianName + '입니다.',
           me.guardianName === you.guardianName
@@ -1587,7 +1615,8 @@
         ])
       },
       {
-        title: '이번 생에 다시 만난 이유',
+        label: '이번 생에 다시 만난 이유',
+        lead: compat.relationType,
         body: plfParagraphsHtml([
           '전생의 당신은 이런 사람이었습니다 — ' + me.roleEcho,
           '상대는 이런 사람이었습니다 — ' + you.roleEcho,
@@ -1595,14 +1624,15 @@
         ])
       },
       {
-        title: '이번 생의 관계 미션',
+        label: '이번 생의 관계 미션',
+        lead: compat.grade,
         body: plfParagraphsHtml([compat.closing])
       }
     ];
   }
 
   function plfRenderCompatResult(compat, me, you) {
-    const chapters = plfBondChapters(compat, me, you);
+    const scenes = plfBondScenes(compat, me, you);
     const bondTitle = me.roleEmoji + ' ' + me.roleName + ' × ' + you.roleEmoji + ' ' + you.roleName;
 
     const html = [
@@ -1610,7 +1640,7 @@
       '  <div class="plf-card__inner">',
       '    <p class="plf-card__eyebrow">전생 인연 궁합</p>',
       '    <h2 class="plf-card__title">' + plfEscape(bondTitle) + '</h2>',
-      '    <p class="plf-card__era">' + plfEscape(compat.relationType + ' · ' + me.guardianName + '와 ' + you.guardianName + '이 함께 있던 인연') + '</p>',
+      '    <p class="plf-card__era">' + plfEscape(me.guardianName + '와 ' + you.guardianName + '이 함께 있던 인연') + '</p>',
       '    <div class="plf-score">',
       '      <span class="plf-score__num">' + Number(compat.score || 0) + '</span>',
       '      <span class="plf-score__grade">' + plfEscape(compat.grade + ' · ' + compat.relationType) + '</span>',
@@ -1619,24 +1649,18 @@
       '  </div>',
       '</div>',
 
-      plfDossierHtml('PAST LIFE BOND DOSSIER', bondTitle, [
-        chapters.length + '장(章) 리딩',
-        '인연 지수 ' + Number(compat.score || 0),
-        compat.grade,
-        compat.relationType
-      ]),
-
+      // 게이지 5축은 엔진 값 그대로다 — 사용자가 5,000원을 내고 산 수치라 손대지 않는다.
       '<div class="plf-gauges">',
       (compat.metrics || []).map(function (metric) {
         return plfGaugeHtml(metric.label, Number(metric.value || 0), metric.text);
       }).join(''),
       '</div>',
 
-      plfChaptersHtml(chapters)
+      plfScenesHtml(scenes)
     ].join('');
 
     plfEl('plfRevealBody').innerHTML = html;
-    plfBindChapterNav(chapters);
+    plfBindSceneReveal();
     plfApplyStagger();
     plfShowStage('reveal');
   }
@@ -1808,6 +1832,9 @@
    * 없으면 아래 텍스트 공유로 내려간다. 로더 순서를 건드리는 것보다 이쪽이 회귀 표면이 작다.
    */
   function plfShare() {
+    // 🔴 캡처 전 봉인을 무조건 푼다. 스크롤을 안 내리고 바로 공유를 눌러도
+    //    봉인된 카드가 PNG 로 찍히는 경로가 없어야 한다.
+    plfUnsealShareCard();
     const card = plfEl('plfShareCard');
     if (card && typeof window.cdShareResultCardImage === 'function') {
       try {

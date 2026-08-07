@@ -17405,7 +17405,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 <button class="tarot-tile tarot-tile--pastlife-face" type="button"
                         data-action="openPastLifeFaceApp"
                         aria-label="전생 관상 시작" data-cd-trans-attr="aria-label:home.tiles.pastLifeFaceAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="https://assets.code-destiny.com/DestinyAssets/%EA%B4%80%EC%83%81%20%EC%A0%84%EC%83%9D.webp" data-img-alt="전생 관상 — 달빛 아래 전생의 문 앞에 선 실루엣" data-cd-trans-attr="data-img-alt:home.tiles.pastLifeFaceAlt">
+                  <div class="tarot-tile__img-wrap tarot-tile__img-wrap--moongate" data-img-alt="전생 관상 — 달빛 아래 전생의 문 앞에 선 실루엣" data-cd-trans-attr="data-img-alt:home.tiles.pastLifeFaceAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌘</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--beta" data-cd-trans data-key="home.tiles.pastLifeFaceBadge">전생 리딩</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.pastLifeFacePrice">무료 · 인연 궁합 5,000원</span>
@@ -22938,7 +22938,7 @@ return you.name.restore();</span>
             // 실제 전체화면 대기 UI를 먼저 페인트한다. 느린 인증/DB 조회 중에도 사용자가
             // 클릭이 무시됐다고 오해하거나 중복 클릭하지 않게 한다.
             if (typeof _cdSetCoinGateOverlay === 'function') {
-              _cdSetCoinGateOverlay(true, passCheckingText, 'pass');
+              _cdShowPassCheckWaitOverlay(passCheckingText);
               await _cdWaitForPaymentOverlayPaint();
             }
             var passReady = await refreshDirectEntitlementStatus();
@@ -25719,6 +25719,21 @@ return you.name.restore();</span>
     try { _cdSetCoinGateOverlay(false); } catch (_cdDirectPgHideError) {}
   }
 
+  // 🔴 결제창에서 [이용권으로 구매] 를 누른 뒤 서버 확인이 끝날 때까지 뜨는 꽃돼지 대기 화면.
+  // 아래 조건 ②는 "묻지도 않았는데 결제창 위/아래로 겹쳐 뜨던" 오버레이를 막으려고 만든 규칙인데,
+  // 사용자가 직접 누른 이 확인까지 함께 막아 버렸다(모달은 확인이 끝난 뒤에야 닫히므로 클릭 시점엔
+  // 항상 DOM 에 있고, mode 'pass' 는 TERMINAL 정규식에 없다). 그래서 "이용권 클릭 시 대기 UI"를
+  // 넣은 커밋이 착지 시점부터 무력화돼 있었다. 억제 창을 우회하는 통로는 이 헬퍼 하나뿐이며,
+  // 단건 결제(card)는 ④ 허용목록에서 이미 막히고 PG 창이 열려 있으면 ③ 이 그대로 막는다.
+  var _cdPassCheckAllowOwnOverlay = false;
+  function _cdShowPassCheckWaitOverlay(message) {
+    _cdPassCheckAllowOwnOverlay = true;
+    try { _cdSetCoinGateOverlay(true, message, 'pass'); } catch (_cdPassCheckOverlayError) {}
+    _cdPassCheckAllowOwnOverlay = false;
+  }
+  // dp·React 도 같은 통로를 쓰도록 노출한다(구현을 세 벌 두지 않는다).
+  window.__cdShowPassCheckWaitOverlay = _cdShowPassCheckWaitOverlay;
+
   // 🔴 "이용권 미커버 확정 → 결제수단 선택창이 실제로 뜰 때" 구간에는 어떤 대기 화면도 띄우지 않는다.
   // 이 구간에 뜨던 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를 준비 중이에요' 화면을
   // 호출부에서 여러 번 지웠는데도 계속 살아났다 — 유입구가 전역 fetch 래퍼·게이트 상태·React 중계로
@@ -25761,6 +25776,9 @@ return you.name.restore();</span>
     if (!CD_WAIT_UI_ALLOWED_MODE_RE.test(String(mode || '').trim() || 'payment')) return true;
     // ① 이용권 미커버 확정 → 결제수단 선택창이 실제로 뜰 때까지의 구간
     if (_cdPreCheckoutWaitUiSuppressed(mode)) return true;
+    // 🔴 이용권 확인 대기 화면만 ②를 통과한다(_cdShowPassCheckWaitOverlay 안에서만 켜진다).
+    // ③(PG 결제창이 열려 있는 구간)은 그대로 존중하므로 결제창을 덮는 일은 없다.
+    if (_cdPassCheckAllowOwnOverlay) return _cdDirectPgWindowSuppressedMode(mode);
     // ② 결제수단 선택 모달이 떠 있는 동안 — 예전에는 결제창 위/아래로
     //    'PAYMENT CHECK · 결제 상태 확인 중' 오버레이가 같이 떠 두 화면이 겹쳐 보였다.
     if (_cdPaymentChoiceModalOpen() && !CD_DIRECT_PG_TERMINAL_MODE_RE.test(String(mode || ''))) return true;
@@ -27951,7 +27969,7 @@ return you.name.restore();</span>
       // 백그라운드 기록(낙관 통과 뒤 서버 확인)은 화면을 건드리면 안 된다 — 이미 콘텐츠가 열린 위에
       // '이용권 확인 중' 오버레이가 다시 떠 콘텐츠를 덮는다.
       if (!isBackgroundPassRecord && (typeof _cdIsCoinGateOverlayVisible !== 'function' || !_cdIsCoinGateOverlayVisible())) {
-        _cdSetCoinGateOverlay(true, '이용권 확인 중입니다.', 'pass');
+        _cdShowPassCheckWaitOverlay('이용권 확인 중입니다.');
         passOverlayOpened = true;
         await _cdWaitForPaymentOverlayPaint();
       }
@@ -30210,11 +30228,10 @@ return you.name.restore();</span>
       var accessResult = await _cdFetchSajuAccessUnlocks(Object.assign({}, opts, { skipEntitlementSnapshot: true }));
       if (!accessResult || !accessResult.ok) {
         if (accessResult && accessResult.status === 401) {
-          try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
-          try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
           _cdCoinApiAuthState.checkedAt = Date.now();
           _cdCoinApiAuthState.ok = false;
           _cdCoinApiAuthState.userId = '';
+          _cdScheduleSessionRevalidation();
           if (_cdClearKnownUnlocks()) {
             saveTileLocks();
             applyTileLockVisuals();
@@ -30692,11 +30709,10 @@ return you.name.restore();</span>
           }
         }
         if (_cdIsAuthRequiredBillingError(primary.status, primary.payload)) {
-          try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
-          try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
           _cdCoinApiAuthState.checkedAt = Date.now();
           _cdCoinApiAuthState.ok = false;
           _cdCoinApiAuthState.userId = '';
+          _cdScheduleSessionRevalidation();
         }
         return false;
       } catch (error) {
@@ -33393,7 +33409,7 @@ function updateBadge() {
     openSajuFptiTest:{cat:'사주 FPTI · 오행 성향 분석',fallbackTitle:'🔮 사주로 보는 FPTI 테스트',tagline:'사주 오행·십성 데이터를 4축 코드로 해석하면 당신의 기질, 행동 패턴, 관계 스타일, 운명 전략이 한 번에 드러납니다.',feats:['사주 엔진 기반 오행/십성 자동 계산','FPTI 4축 코드 + 타입명 + 핵심 강약점 제공','시간 미입력 시 신뢰도 안내와 보수 해석 제공','무료 핵심 결과 + 유료 심층 리포트 확장 지원'],cost:'✨ 무료 시작',ct:'free',img:'/fuctionassets/사주로 보는 FPTI 테스트.webp'},
     openDestinyBias:{cat:'최애운명 · 포토카드 리딩',fallbackTitle:'✨ 최애운명',tagline:'최애와 나의 무드, 관계 텐션, 오늘의 감정 코드를 포토카드 감성으로 풀어내는 팬심 특화 운명 리딩입니다.',feats:['최애/나의 무드 시그널을 카드형으로 시각화','관계 에너지·대화 타이밍·행동 힌트 제안','저장/공유하기 좋은 감성 문구 카드 제공','1회 리딩으로 집중도 높은 결과 확인'],cost:'1회 5,000원',ct:'paid',img:'/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp'},
     openPhysiognomyApp:{cat:'AI · 동물 관상',fallbackTitle:'🎭 전문가 동물 관상',tagline:'셀카 한 장이면 됩니다 — 이 얼굴이 돈 버는 관상인지 사랑받는 관상인지 전문가가 즉시 판독합니다',feats:['전문가가 내 얼굴에서 관상 포인트 정밀 분석','내 얼굴이 닮은 동물 토템 & 숨겨진 성격 파악','재물운·연애운·귀인운 얼굴에서 직접 분석','셀카 업로드 1번으로 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20animal.webp'},
-    openPastLifeFaceApp:{cat:'전생 · 관상',fallbackTitle:'🌘 전생 관상',tagline:'얼굴 → 단서 → 전생의 신분 → 그날의 사건 → 수호령 → 현생의 흔적. 사진 한 장으로 당신의 전생을 추리합니다',feats:['얼굴의 첫인상 별명부터 — 전생은 아직 비공개','전생 신분 36종 × 그날의 사건 30종을 얼굴 기하로 판독','전생 수호령 — 동물상은 여기서 상징으로 등장합니다','현생에 남은 흔적과 전생이 스치는 순간 3가지','공유용 전생 프로필 카드 · 관상 유형 분류','사진은 기기 안에서만 처리, 서버 전송 없음'],cost:'✨ 무료',ct:'free',img:'https://assets.code-destiny.com/DestinyAssets/%EA%B4%80%EC%83%81%20%EC%A0%84%EC%83%9D.webp'},
+    openPastLifeFaceApp:{cat:'전생 · 관상',fallbackTitle:'🌘 전생 관상',tagline:'얼굴 → 단서 → 전생의 신분 → 그날의 사건 → 수호령 → 현생의 흔적. 사진 한 장으로 당신의 전생을 추리합니다',feats:['얼굴의 첫인상 별명부터 — 전생은 아직 비공개','전생 신분 36종 × 그날의 사건 30종을 얼굴 기하로 판독','전생 수호령 — 동물상은 여기서 상징으로 등장합니다','현생에 남은 흔적과 전생이 스치는 순간 3가지','공유용 전생 프로필 카드 · 관상 유형 분류','사진은 기기 안에서만 처리, 서버 전송 없음'],cost:'✨ 무료',ct:'free'},
     openMbtiModal:{cat:'MBTI · 연애 궁합',fallbackTitle:'🦁 MBTI 동물 궁합',tagline:'내 MBTI와 가장 잘 맞는 사람이 누구인지 — 이 조합이 실제로 결혼까지 가는지 지금 바로 확인하세요',feats:['MBTI 16유형 연애 궁합 완전 분석','왜 저 MBTI에 끌리면서도 싸우게 되는지 설명','내 연애 패턴의 진짜 문제점 & 해결책 제시','완전 무료 — 즉시 결과 제공'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20face.webp'},
     openAnimalTotemModal:{cat:'토템 · 수호 동물',fallbackTitle:'🧸 애니멀 토템',tagline:'지금 이 순간 나에게 가장 필요한 메시지를 수호 동물이 보내고 있습니다 — 당신은 아직 못 들었을 뿐',feats:['샤머닉 전통 수호 동물 카드 정밀 리딩','오늘 반드시 들어야 할 경고 & 행운 메시지','지금 내가 해야 할 것과 피해야 할 것 분석','고화질 수호 동물 카드 비주얼'],cost:'3,000원~6,000원',ct:'paid',img:'/fuctionassets/animaltotem.webp'},
     openDestinyEggPage:{cat:'다마고치 · 운명의 알',fallbackTitle:'🥚 운명의 알',tagline:'내 사주에서 나온 수호 동물이 알에서 깨어납니다 — 매일 돌봐주면 특별한 운세 메시지를 전해드려요',feats:['사주 기반 나만의 고유 수호 캐릭터 생성','매일 체크인하면 행운 메시지 & 아이템','5가지 테마(벚꽃/마카롱/딸기/우주/검은별)','완전 무료 — 지금 바로 알 부화 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/UNSETAMA2.webp'},

@@ -43,24 +43,56 @@ assert.match(source, /await plfWarmUpFaceMesh\(\);/, '엔진 기동 직후 예�
 assert.doesNotMatch(source, /\bplfLandmarks\b/, '공유 변수 기반 랜드마크 전달은 제거되어야 한다 (경쟁 조건의 원인)');
 assert.match(source, /if \(!landmarks\) \{[\s\S]{0,400}?plfResetFaceMeshRuntime\(\)/, '첫 추론이 비면 런타임을 리셋하고 1회 재시도해야 한다');
 
-// ── 2-2. UI 구조 계약 (관상의 고급 장치 이식) ──
-assert.match(source, /class="plf-dossier plf-reveal-item"/, '결과 상단에 도시에 메타 슬랩이 있어야 한다');
-assert.match(source, /PAST LIFE DOSSIER/, '도시에 킥커가 있어야 한다');
-// 공유 카드는 html2canvas 캡처 대상이라 처음부터 전부 렌더돼 있어야 한다.
-// 스크롤 공개로 늦게 채우면 빈 카드가 찍힌다(master-love-codex 의 CodexReveal 에 같은 사고가 기록돼 있다).
+// ── 2-2. UI 구조 계약 (2026-08 2차 개편: 리포트 → 전생 영화) ──
+// 예전 구조(도시에 슬랩 + 칩 네비 + <details> 아코디언)로 되돌아가면 "관상 보고서"로 다시 읽힌다.
+assert.doesNotMatch(source, /<details class="plf-chapter/, '결과는 아코디언이 아니라 장면(scene)이어야 한다');
+assert.doesNotMatch(source, /class="plf-dossier/, '도시에 슬랩은 제거되어야 한다 — 리포트 잔재');
+assert.doesNotMatch(source, /class="plf-chip"/, '칩 네비는 제거되어야 한다 — 리포트 잔재');
+assert.match(source, /function plfBuildScenes\(reading\)/, '장면 빌더가 있어야 한다');
+assert.match(source, /data-plf-scene="/, '장면에 data-plf-scene 이 붙어야 한다');
+assert.match(source, /function plfBindSceneReveal\(\)/, '스크롤 공개 배선이 있어야 한다');
+
+// 🔴 히어로에 사진을 다시 깔지 못하게 막는다.
+// 예전 R2 아트(관상 전생.webp)는 alt 와 달리 동물 그림이라 "전생 관상 = 동물상" 오해를 재생산했다.
+assert.doesNotMatch(source, /const PLF_HERO_IMAGE/, '히어로 사진 상수를 되살리지 말 것 — 달·문·별은 CSS 로 그린다');
+assert.doesNotMatch(source, /assets\.code-destiny\.com/, '전생 관상은 외부 이미지 자산을 쓰지 않는다');
+assert.doesNotMatch(source, /class="plf-hero__img"/, '히어로에 <img> 를 되살리지 말 것');
+assert.match(source, /\.plf-hero__portal\{/, 'CSS 아치문이 있어야 한다');
+assert.match(source, /\.plf-hero__stars\{/, 'CSS 별밭이 있어야 한다');
+for (const shell of ['index.html', 'public/index.html', 'public/static/index.html']) {
+  assert.doesNotMatch(
+    read(shell),
+    /%EA%B4%80%EC%83%81%20%EC%A0%84%EC%83%9D/,
+    `${shell}: 전생 관상 타일/상세모달에서 동물 아트 참조가 제거되어야 한다`,
+  );
+}
+
+// 🔴 스크롤 공개가 콘텐츠를 영영 숨기는 경로를 만들지 않는다 (이 프로젝트가 이미 겪은 사고).
+//    숨김(opacity:0)은 반드시 prefers-reduced-motion: no-preference 블록 안에만 있어야 하고,
+//    IntersectionObserver 가 없으면 전부 펼쳐야 한다.
+const motionBlock = source.slice(source.indexOf("@media (prefers-reduced-motion: no-preference){"));
+assert.match(motionBlock, /\.plf-scene\{opacity:0/, '장면 숨김은 모션 허용 블록 안에 있어야 한다');
+assert.doesNotMatch(
+  source.slice(0, source.indexOf("@media (prefers-reduced-motion: no-preference){")),
+  /\.plf-scene\{[^}]*opacity:0/,
+  '장면 숨김을 모션 블록 밖에 두면 모션을 끈 사용자에게 빈 화면이 된다',
+);
+assert.match(source, /typeof window\.IntersectionObserver !== 'function'/, 'IntersectionObserver 부재 시 전부 펼치는 폴백이 있어야 한다');
+
+// 공유 카드 — 봉인 상태로 시작하되 캡처 직전에는 반드시 풀린다.
 assert.match(source, /function plfShareCardHtml\(reading\)/, '공유용 전생 프로필 카드 빌더가 있어야 한다');
-assert.doesNotMatch(source, /plf-sharecard[^\n]*plf-reveal-item/, '공유 카드에 등장 애니메이션 클래스를 붙이면 안 된다 — 캡처 시 빈 카드가 찍힌다');
+assert.match(source, /function plfUnsealShareCard\(\)/, '봉인 해제 함수가 있어야 한다');
+assert.match(
+  source,
+  /function plfShare\(\) \{[\s\S]{0,320}?plfUnsealShareCard\(\);/,
+  '🔴 plfShare 는 캡처 전에 무조건 봉인을 풀어야 한다 — 봉인된 카드가 PNG 로 찍히면 안 된다',
+);
 assert.match(source, /typeof window\.cdShareResultCardImage === 'function'/, '공유는 js/share.js 존재를 확인하고 써야 한다 (지연 로더라 보장되지 않는다)');
 assert.match(source, /function plfShareText\(\)/, '이미지 공유 실패 시 텍스트 공유 폴백이 있어야 한다');
-assert.match(source, /<details class="plf-chapter plf-reveal-item" id="plfChapter-/, '장(章)은 details 아코디언이어야 한다');
-assert.match(source, /plf-chapter__index/, '장 번호 뱃지가 있어야 한다');
-assert.match(source, /function plfBindChapterNav\(chapters\)/, '칩 네비 ↔ 아코디언 연동 배선이 있어야 한다');
-assert.match(source, /details\.addEventListener\('toggle'/, '아코디언을 직접 펼쳐도 칩이 따라오는 역방향 연동이 있어야 한다');
+
 assert.match(source, /function plfShowPreviewSkeleton\(show\)/, '사진 디코드 전 shimmer 스켈레톤이 있어야 한다');
 assert.match(source, /plfLongWaitTimer = setTimeout/, '30초 지연 안내가 있어야 한다');
 assert.match(source, /plfVeryLongWaitTimer = setTimeout/, '60초 지연 안내 + 재시도 노출이 있어야 한다');
-// 모션은 기본 노출을 해치면 안 된다 — 전환이 안 뛰면 콘텐츠가 빈 채로 남는다.
-assert.match(source, /@media \(prefers-reduced-motion: no-preference\)\{/, '등장 애니메이션은 모션 허용 환경에서만 얹어야 한다');
 
 // ── 3. 결제 계약: 궁합은 유료로 남는다 ──
 assert.match(registry, /"physiognomy-pastlife-compatibility":\s*\{\s*cost:\s*50/, '전생 궁합 가격표 등록(50코인=5,000원)');
@@ -134,11 +166,13 @@ const SHAPE_CASES = [
   { label: 'triangle/lower', faceRatio: 0.79, chinLength: 0.28, samjung: { upper: 0.30, middle: 0.31, lower: 0.39 } },
 ];
 
-// 신분 레인(0·1·2) = 코 너비 · 입 크기 · 귀 길이의 합산 구간. 12 × 3 = 36 신분 전수 커버.
+// 신분 레인(0~4) = 코 너비 · 입 크기 · 귀 길이의 합산 구간. 얼굴형 12 × 레인 5 = 60 신분 전수 커버.
 const LANE_CASES = [
   { label: 'lane0', noseWidthRatio: 0.80, mouthRatio: 1.20, earRatio: 0.14 },
-  { label: 'lane1', noseWidthRatio: 0.90, mouthRatio: 1.35, earRatio: 0.18 },
-  { label: 'lane2', noseWidthRatio: 0.98, mouthRatio: 1.50, earRatio: 0.22 },
+  { label: 'lane1', noseWidthRatio: 0.90, mouthRatio: 1.20, earRatio: 0.14 },
+  { label: 'lane2', noseWidthRatio: 0.90, mouthRatio: 1.35, earRatio: 0.18 },
+  { label: 'lane3', noseWidthRatio: 0.98, mouthRatio: 1.50, earRatio: 0.18 },
+  { label: 'lane4', noseWidthRatio: 0.98, mouthRatio: 1.50, earRatio: 0.22 },
 ];
 
 const FACE_CASES = SHAPE_CASES.flatMap((shape) =>
@@ -161,70 +195,65 @@ assert.ok(
 // 6-2. 리딩 구성 요소가 전부 렌더되는가
 const revealText = window.document.getElementById('plfRevealBody').textContent;
 for (const marker of [
-  '전생의 문이 열렸습니다',
-  '전생 기억의 선명도',
-  '이번 생 숙제 진행도',
+  'SCENE 01',
   '얼굴의 첫인상',
-  '전생의 신분',
-  '전생의 사건',
+  '전생의 당신은',
+  '그날의 사건',
+  '그리고 당신의 마지막은',
   '전생 수호령',
-  '현생의 흔적',
+  '그래서 지금의 나는',
   '전생이 스치는 순간',
   '전생이 남긴 부적',
+  '전생 기억의 선명도',
   '전생을 더 깊게 열어보기',
 ]) {
-  assert.ok(revealText.includes(marker), `리딩 섹션 누락: ${marker}`);
+  assert.ok(revealText.includes(marker), `리딩 구성 누락: ${marker}`);
 }
 assert.ok(window.document.getElementById('plfCompatBtn'), '전생 인연 궁합 CTA 가 렌더되어야 함');
 
-// 6-2a. 공유 카드 + 유형 분류 배지
+// 6-2a. 장면 6개 — 리포트 잔재(아코디언/칩/도시에)가 DOM 에 없어야 한다
+const sceneNodes = window.document.querySelectorAll('[data-plf-scene]');
+assert.equal(sceneNodes.length, 6, `장면은 6개여야 함 (실제 ${sceneNodes.length})`);
+for (const legacy of ['details.plf-chapter', '.plf-chip', '.plf-dossier']) {
+  assert.equal(
+    window.document.querySelectorAll(legacy).length,
+    0,
+    `리포트 잔재가 남아있음: ${legacy} — 결과는 장면 기반이어야 한다`,
+  );
+}
+// jsdom 에는 IntersectionObserver 가 없다 → 폴백이 전 장면을 열어야 한다.
+assert.equal(
+  Array.prototype.filter.call(sceneNodes, (n) => n.classList.contains('is-revealed')).length,
+  6,
+  'IntersectionObserver 가 없는 환경에서는 전 장면이 즉시 열려야 함 (콘텐츠가 숨은 채 남으면 안 된다)',
+);
+
+// 6-2b. 공유 카드 — 봉인 마크가 DOM 에 있고, 내용도 처음부터 전부 들어 있어야 한다
 const shareCard = window.document.getElementById('plfShareCard');
 assert.ok(shareCard, '공유용 전생 프로필 카드가 렌더되어야 함');
+assert.ok(shareCard.querySelector('.plf-sharecard__seal'), '봉인 레이어가 있어야 함');
 for (const selector of ['.plf-sharecard__role', '.plf-sharecard__guardian', '.plf-sharecard__traits', '.plf-sharecard__tag']) {
   assert.ok(shareCard.querySelector(selector), `공유 카드 구성 누락: ${selector}`);
 }
-const tierBadge = window.document.querySelector('.plf-tier__label');
-assert.ok(tierBadge, '유형 분류 배지가 렌더되어야 함');
+assert.ok(
+  shareCard.classList.contains('is-unsealed'),
+  'IntersectionObserver 가 없는 환경에서는 카드가 처음부터 열려 있어야 함',
+);
+
+// 6-2c. 유형 분류 — 확률은 어디에도 적지 않는다
+const tierBadge = window.document.querySelector('.plf-sharecard__tier');
+assert.ok(tierBadge, '유형 분류 표기가 렌더되어야 함');
 assert.match(
   tierBadge.textContent.trim(),
-  /^(COMMON|UNCOMMON|RARE|EPIC|LEGENDARY|MYTHIC)$/,
+  /^(COMMON|UNCOMMON|RARE|EPIC|LEGENDARY|MYTHIC) · /,
   `유형 분류 라벨이 정의된 6등급 밖이다: ${tierBadge.textContent}`,
 );
-// 확률 표기는 "임의로 조작했다"는 인상을 준다. 어디에도 %를 적지 않는다.
 assert.doesNotMatch(revealText, /\d+(\.\d+)?\s*%/, '결과 화면에 확률(%) 표기가 있으면 안 된다 — 유형 분류는 관상 분석 결과일 뿐이다');
 
 // 6-2d. 심화 CTA 5장 — 신규 유료 기능이 아니라 기존 기능으로 인계한다
 const ctaNodes = window.document.querySelectorAll('[data-plf-cta]');
 assert.equal(ctaNodes.length, 5, `심화 CTA 는 5장이어야 함 (실제 ${ctaNodes.length})`);
 assert.equal(ctaNodes[0].id, 'plfCompatBtn', '첫 CTA 는 이 모달 안의 유료 전생 인연 궁합이어야 함');
-
-// 6-2b. 도시에 슬랩 + 6장 아코디언 + 칩 네비가 실제로 붙는가
-assert.ok(window.document.querySelector('.plf-dossier'), '도시에 메타 슬랩이 렌더되어야 함');
-const chapterNodes = window.document.querySelectorAll('.plf-chapter');
-assert.equal(chapterNodes.length, 6, `장(章)은 6개여야 함 (실제 ${chapterNodes.length})`);
-const chipNodes = window.document.querySelectorAll('.plf-chip');
-assert.equal(chipNodes.length, 6, `칩은 장 수와 같아야 함 (실제 ${chipNodes.length})`);
-// 리딩이 하나의 이야기라 중간을 접으면 스크롤만으로 안 읽힌다. 참조표인 마지막 장(부적)만 접는다.
-assert.equal(
-  Array.prototype.filter.call(chapterNodes, (node) => node.open).length,
-  5,
-  '마지막 장(부적)을 뺀 5장은 기본으로 펼쳐져 있어야 함 — 서사가 스크롤만으로 이어져야 한다',
-);
-assert.equal(chapterNodes[5].open, false, '마지막 장(부적)은 접혀 있어야 함');
-assert.equal(chipNodes[0].getAttribute('aria-pressed'), 'true', '첫 칩이 활성 상태여야 함');
-
-// 6-2c. 칩 클릭 → 해당 장이 열리고 칩이 활성화되는가 (양방향 연동)
-const lastChapter = chapterNodes[5];
-assert.equal(lastChapter.open, false, '마지막 장은 접혀 있어야 함');
-chipNodes[5].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-assert.equal(lastChapter.open, true, '칩을 누르면 해당 장이 열려야 함');
-assert.equal(chipNodes[5].getAttribute('aria-pressed'), 'true', '누른 칩이 활성화되어야 함');
-assert.equal(chipNodes[0].getAttribute('aria-pressed'), 'false', '이전 활성 칩은 해제되어야 함');
-
-// 역방향: 아코디언을 직접 열면 칩이 따라온다
-chapterNodes[4].open = true;
-chapterNodes[4].dispatchEvent(new window.Event('toggle'));
-assert.equal(chipNodes[4].getAttribute('aria-pressed'), 'true', '장을 직접 펼치면 칩이 따라와야 함');
 
 // ── 6-3. 🔴 이번 리뉴얼의 정의: 동물상은 전생 신분을 결정하지 않는다 ──
 // (a) 같은 얼굴 + 다른 동물 → 신분은 같고 수호령만 달라진다
@@ -259,9 +288,9 @@ for (const faceCase of FACE_CASES) {
   }
   rolesByFace.set(role, faceCase.label);
 }
-assert.equal(rolesByFace.size, 36, `전생 신분 풀은 36종이어야 함 (실제 도달 ${rolesByFace.size}종)`);
+assert.equal(rolesByFace.size, 60, `전생 신분 풀은 60종이어야 함 (실제 도달 ${rolesByFace.size}종)`);
 
-// 6-4. 27종 × 36 얼굴 조합이 전부 서로 다른 리딩을 내는가
+// 6-4. 27종 × 60 얼굴 조합이 전부 서로 다른 리딩을 내는가
 const seen = new Map();
 const collisions = [];
 for (const animal of animals) {
@@ -276,13 +305,13 @@ for (const animal of animals) {
 assert.equal(
   collisions.length,
   0,
-  `전생 리딩이 중복됨 (${collisions.length}건). 서사 레이어가 27종 × 36 얼굴을 전부 덮어야 한다:\n  ${collisions.join('\n  ')}`,
+  `전생 리딩이 중복됨 (${collisions.length}건). 서사 레이어가 27종 × 60 얼굴을 전부 덮어야 한다:\n  ${collisions.join('\n  ')}`,
 );
 
 // ── 6-5. 유료 궁합(5,000원) 실렌더 — 결제 후 빈 화면이 되는 회귀를 막는다 ──
 const { buildReading, renderCompat } = window.__plfTestHooks;
 const meSeed = seedFor(animals[0], FACE_CASES[0]);
-const youSeed = seedFor(animals[5], FACE_CASES[20]);
+const youSeed = seedFor(animals[5], FACE_CASES[37]);
 const compat = engine.calculatePastLifeCompatibility(meSeed, youSeed);
 assert.ok(compat && compat.sections, '엔진의 궁합 계산이 살아 있어야 함');
 renderCompat(compat, buildReading(meSeed), buildReading(youSeed));
@@ -291,7 +320,7 @@ const compatText = window.document.getElementById('plfRevealBody').textContent;
 for (const marker of [
   '전생 인연 궁합',
   '전생에서 두 사람은',
-  '두 사람의 사건이 겹친 지점',
+  '두 사건이 겹친 지점',
   '두 수호령이 함께 있을 때',
   '이번 생에 다시 만난 이유',
   '이번 생의 관계 미션',
@@ -305,7 +334,7 @@ assert.equal(
   compat.metrics.length,
   '궁합 5축 게이지가 전부 렌더되어야 함',
 );
-assert.equal(window.document.querySelectorAll('.plf-chapter').length, 5, '궁합은 5장이어야 함');
+assert.equal(window.document.querySelectorAll('[data-plf-scene]').length, 5, '궁합은 5장면이어야 함');
 assert.ok(compatText.trim().length > 600, '궁합 결과가 비정상적으로 짧다 — 서사 조립이 깨졌는지 확인할 것');
 
 // 6-6. seed 없이 열면 문 앞 화면, 문구는 솔로 기본값
