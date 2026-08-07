@@ -41,13 +41,19 @@ if (
 const args = parseArgs(process.argv.slice(2));
 
 // 테스트 계정 설정
-// ⚠️ 이 테스트 계정은 일반 고객과 동일한 유료 처리 로직을 사용합니다
-// - /api/billing/coin-gate API 통해 실제로 결제 권한이 처리됨
-// - PointHistory 컬렉션에 차감 기록 남김 (kind: "deduct")
-// - unlockedFeatures 빈 배열로 설정되어 결제 필요
+// ⚠️ 이 계정은 일반 고객과 똑같이 결제 게이트를 탄다. 아무 권한도 부여하지 않는다.
+// - unlockedFeatures 를 빈 배열로 두어 유료 기능마다 결제창이 뜨는 상태를 만든다
+// - 이용권·월정석을 주지 않으므로 "무료 계정" 시나리오 재현용이다
+//   (유료 기능이 열린 계정이 필요하면 scripts/seed-preview-test-account.mjs 를 쓴다)
+//
+// 🔴 points 는 재화가 아니다. 코인 폐지 후 접근 판정은 points 를 읽지 않으며
+//    (worker/lib/access-control.js 참조 0건) 차감 경로도 없다. 예전 이 스크립트는
+//    points: 9999 를 "쓸 수 있는 잔액"처럼 넣었지만 그것으로 열리는 기능은 하나도 없다.
+//    실제로 접근을 여는 것은 이용권(profileSubscription)과 월정석(membershipCreditLots)뿐이다.
 const TEST_LOGIN_ID = String(args.email || "test1234@example.com").trim().toLowerCase();
 const TEST_PASSWORD = String(args.password || "test!1234").trim();
-const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 9999;
+// 폐지된 필드라 기본값은 0 이다. --points 는 레거시 데이터 재현이 필요할 때만 쓴다.
+const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 0;
 const TEST_NAME = String(args.name || "Test User").trim() || "Test User";
 if (String(args["mongo-uri"] || "").trim()) {
   process.env.MONGO_URI = String(args["mongo-uri"]).trim();
@@ -115,14 +121,13 @@ async function upsertTestAccount() {
   console.log(`  - MongoDB _id: ${String(user._id)}`);
   console.log("");
   console.log("【유료 처리 상태】");
-  console.log(`  - 현재 포인트: ${user.points}`);
+  console.log(`  - 이용권: ${user.profileSubscription?.passTier || "없음"}`);
+  console.log(`  - 월정석: ${Number(user.profileSubscription?.membershipCreditBalance || 0)}`);
   console.log(`  - 프리미엄 해금 상태: ${(user.unlockedFeatures || []).length === 0 ? '미해금 (결제 필요)' : '일부 해금'}`);
   console.log("");
   console.log("【동작 방식】");
-  console.log("  - 일반 고객과 동일한 /api/billing/coin-gate API 사용");
-  console.log("  - 프리미엄 기능 사용 시 실제로 5,000원 결제 가치 차감됨");
-  console.log("  - PointHistory 컬렉션에 차감 기록 자동 생성");
-  console.log("  - 권한 부족 시 결제 유도 (일반 고객과 동일)");
+  console.log("  - 무료 계정 시나리오: 유료 기능마다 결제창이 뜬다");
+  console.log("  - 유료 기능이 열린 계정이 필요하면 npm run seed:preview-test-account");
   console.log("");
   console.log("【로그인】");
   console.log(`  - URL: /login`);

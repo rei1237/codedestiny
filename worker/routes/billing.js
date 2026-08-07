@@ -5390,7 +5390,14 @@ function buildBillingSubscriptionSnapshot(user = {}) {
   };
 }
 
-function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthlyCredits, membership, includeLegacyCoinBalance = true) {
+// includeLegacyCoinBalance 는 폐지된 코인 잔액(user.points)을 응답에 실을지다. 기본값이 true 로
+// 남아 있어서, 코인을 폐지한 뒤에도 모든 /api/billing 스냅샷이 죽은 잔액을 계속 브라우저로
+// 내려보내고 있었다 — 끄는 배관(프로젝션 제거·balance=null)은 이미 다 만들어져 있었고 스위치만
+// 켜진 채였다. 소비자는 전부 `?? user.points` 또는 Number.isFinite 가드 뒤의 폴백이라
+// (billing-client.ts·PalmDestinyMain·animal-totem-experience·StaticOAuthCallbackRedirect)
+// 값이 사라져도 1순위인 data.balance 경로가 그대로 동작한다. 접근 판정은 애초에 points 를
+// 읽지 않는다(worker/lib/access-control.js 참조 0건).
+function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthlyCredits, membership, includeLegacyCoinBalance = false) {
   const payload = {
     id: String(auth?.userId || user?._id || ""),
     monthlyStoneBalance: monthlyCredits,
@@ -5470,7 +5477,8 @@ async function readBillingSnapshot(request, env, options = {}) {
   const {
     seedLegacyCredit = true,
     includeUnlocks = true,
-    includeLegacyCoinBalance = true,
+    // 폐지된 코인 잔액은 기본으로 싣지 않는다. buildBillingSnapshotUser 위 주석 참고.
+    includeLegacyCoinBalance = false,
     includeMonthlyCreditBalance = true,
     allowCache = true,
   } = options || {};

@@ -100,6 +100,7 @@
     "seed:inicis-test-account": "node scripts/seed-inicis-test-account.mjs",
     "seed:dev-users": "node scripts/seed-dev-users.ts",
     "seed:test-account": "node scripts/seed-test-account.mjs",
+    "seed:preview-test-account": "node scripts/seed-preview-test-account.mjs",
     "seed:test-users": "node scripts/seed-test-users.mjs",
     "verify:test-account-payment-flow": "node scripts/verify-test-account-payment-flow.mjs",
     "verify:test-account-all-paid-services": "node scripts/verify-all-paid-services-payment-flow.mjs",

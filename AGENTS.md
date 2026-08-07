@@ -58,6 +58,26 @@ npm run deploy:safe         checks → build → Pages preview + Worker preview 
 git push origin main        backup
 ```
 
+### Verifying paid features on a preview
+
+A preview's `/api` is not a sandbox. `public/_worker.js` proxies it to the production Worker, which reads the production database — there is no staging DB. So a signed-out preview shows the payment dialog on every paid screen and nothing can be verified.
+
+`deploy:safe` opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`. Create that account once:
+
+```bash
+npm run seed:preview-test-account
+```
+
+It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly and cannot be injected; the cookie carries no `Domain`, so it binds to the preview host only and never mixes with a production session. Without the two variables the preview still opens, just signed out.
+
+What that account does **not** cover:
+
+- Profile card add/delete is `passExcluded` for every tier including family, so it still opens the payment dialog. That is the policy, not a bug.
+- Premium consultations above 300 coins are fair-use limited per pass cycle (`resolveFamilyPremiumQuota`).
+- **`points` is not a currency.** Nothing in `worker/lib/access-control.js` reads it and no path deducts it. Only the pass (`profileSubscription`) and moonstones (`membershipCreditLots`) open access. Granting points to a test account buys nothing.
+
+Anything you do on a preview writes to production: real unlock records, real ledger rows. Treat it as production with a comfortable account, not as a test environment.
+
 🔴 **A preview is created only as part of an actual release.** Do not run `deploy:preview` as a routine verification step — every run uploads a Pages deployment and a Worker version to Cloudflare. `deploy:safe` is the default because it puts the preview immediately before the promotion decision, with a human gate in between. Use `deploy:check` when you only want to inspect a change set.
 
 - `npm run deploy:check` prints the change set, risk, deep-verification hits, and the live Cloudflare configuration. It uploads nothing.

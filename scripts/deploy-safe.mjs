@@ -427,6 +427,59 @@ function openInBrowser(url) {
   if (result.error || result.status !== 0) console.log("[deploy-safe] could not open a browser; visit " + url + " manually.");
   else console.log("[deploy-safe] opened " + url + " in the default browser.");
 }
+
+/**
+ * 로그인된 상태로 preview 를 연다.
+ *
+ * 무료 계정으로는 유료 화면이 전부 결제창에서 막혀 검증이 안 된다. FAMILY 이용권 계정
+ * (scripts/seed-preview-test-account.mjs)으로 미리 로그인해 둔 창을 띄운다.
+ *
+ * 로그인은 DOM 폼이 아니라 페이지 안에서 /api/auth/login 을 직접 호출한다. 셀렉터가 바뀌어도
+ * 안 깨지고, 인증 쿠키가 httpOnly 라 주입이 불가능한데 이 경로면 브라우저가 정상 수신한다.
+ * 쿠키에 Domain 속성이 없어(worker/routes/auth.js appendAuthCookies) preview 호스트 전용으로
+ * 붙으므로 프로덕션 세션과 섞이지 않는다.
+ *
+ * 자격증명이 없으면 조용히 기본 브라우저로 폴백한다 — 로그인은 편의지 검증의 전제가 아니다.
+ */
+async function openPreviewSignedIn(url) {
+  if (!openPreview || !url) return null;
+  const email = String(process.env.CD_PREVIEW_TEST_EMAIL || "").trim();
+  const password = String(process.env.CD_PREVIEW_TEST_PASSWORD || "").trim();
+  if (!email || !password) {
+    console.log("[deploy-safe] CD_PREVIEW_TEST_EMAIL/PASSWORD not set; opening the preview signed out.");
+    openInBrowser(url);
+    return null;
+  }
+  try {
+    const { chromium } = await import("@playwright/test");
+    const browser = await chromium.launch({ headless: false, args: ["--start-maximized"] });
+    const context = await browser.newContext({ viewport: null });
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    const status = await page.evaluate(async (creds) => {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: creds.email, password: creds.password }),
+        credentials: "include",
+      });
+      return response.status;
+    }, { email, password });
+    if (status < 200 || status >= 300) {
+      console.log("[deploy-safe] preview login returned HTTP " + status + "; the window is open but signed out.");
+      console.log("[deploy-safe] run `npm run seed:preview-test-account` if the account does not exist yet.");
+    } else {
+      console.log("[deploy-safe] signed in as " + email + " on the preview.");
+    }
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    console.log("[deploy-safe] preview window is open: " + url);
+    return browser;
+  } catch (error) {
+    console.log("[deploy-safe] could not drive a browser (" + error.message + "); falling back to the default browser.");
+    openInBrowser(url);
+    return null;
+  }
+}
 function metadata(deployment) { return deployment?.deployment_trigger?.metadata || {}; }
 function parseUrls(text) { return [...new Set((String(text).match(/https?:\/\/[^\s<>)]+/g) || []).map((v) => v.replace(/[),.;]+$/, "")))]; }
 function lastUuid(text) { const matches = String(text).match(UUID_RE) || []; return matches[matches.length - 1] || ""; }
@@ -773,8 +826,8 @@ async function previewAndSmoke() {
   await smoke(preview.state.preview.pages.url, "", true);
   const state = { ...preview.state, preview: { ...preview.state.preview, smokePassed: true, smokedAt: new Date().toISOString() } };
   writeState(state);
-  openInBrowser(state.preview.pages.url);
-  return { value: preview.value, state };
+  const browser = await openPreviewSignedIn(state.preview.pages.url);
+  return { value: preview.value, state, browser };
 }
 async function productionStage() {
   const state = readState();
@@ -799,6 +852,20 @@ async function confirmProduction(value) {
   try { return /^y(es)?$/i.test((await rl.question("Inspect the preview in the browser, then answer. Promote this exact artifact to production? [y/N] ")).trim()); }
   finally { rl.close(); }
 }
+// deploy:preview 단독 실행. Playwright 창은 이 프로세스가 끝나면 함께 죽으므로, 사용자가
+// 다 볼 때까지 기다렸다가 정리한다. deploy:safe 는 [y/N] 프롬프트가 그 역할을 대신한다.
+async function previewStageStandalone() {
+  const preview = await previewAndSmoke();
+  if (preview.browser && input.isTTY && output.isTTY) {
+    const rl = createInterface({ input, output });
+    try { await rl.question("Preview window is open. Press Enter when you are done inspecting. "); }
+    finally { rl.close(); }
+  }
+  await closePreviewBrowser(preview.browser);
+  console.log("[deploy-safe] preview ready at " + preview.state.preview.pages.url);
+  console.log("[deploy-safe] promote with: npm run deploy:production");
+  return preview;
+}
 async function safeStage() {
   // 잠금은 preview 와 사용자 확인이 끝난 뒤 승격 직전에만 잡는다. 빌드와 스모크까지 잠그면
   // 다른 워크트리가 몇 분씩 대기하고, 사람이 [y/N] 을 붙들고 있는 시간까지 잠기게 된다.
@@ -806,11 +873,15 @@ async function safeStage() {
   console.log("[deploy-safe] Preview passed. Production is the only remaining step.");
   if (previewOnly) {
     console.log("[deploy-safe] Preview-only mode; production was not attempted.");
+    await closePreviewBrowser(preview.browser);
     return;
   }
   // 거절은 정상적인 답이다. 예전에는 promote() 가 "requires --yes" 로 던져서, 사용자가
   // preview 를 보고 "아니오" 를 고른 것이 실패처럼 보였다.
-  if (!(autoYes || await confirmProduction(preview.value))) {
+  const approved = autoYes || await confirmProduction(preview.value);
+  // 브라우저는 결정을 받은 뒤에 닫는다. 그래야 사용자가 [y/N] 을 고민하는 동안 창이 살아 있다.
+  await closePreviewBrowser(preview.browser);
+  if (!approved) {
     console.log("[deploy-safe] declined; production is untouched. The preview stays at " + preview.state.preview.pages.url);
     return;
   }
@@ -908,6 +979,12 @@ async function selfTest() {
 
 // return 만 하면 finally 가 프라미스를 기다리지 않고 즉시 unlock 해, 잠금이 작업 시작
 // 직후 풀렸다. 보조 워크트리와 잠금을 공유하는 지금은 그 창이 곧 동시 승격이다.
+// Playwright 로 띄운 창은 부모 프로세스가 끝나면 함께 죽는다. 그래서 승격 결정 전까지는
+// 열어 두고, 결정이 난 뒤에만 정리한다. 기본 브라우저로 폴백했으면 닫을 대상이 없다.
+async function closePreviewBrowser(browser) {
+  if (!browser) return;
+  try { await browser.close(); } catch {}
+}
 async function withLock(work) {
   lock();
   try { return await work(); } finally { unlock(); }
@@ -954,7 +1031,7 @@ async function main() {
   if (["preview", "production", "safe"].includes(stage) && await abortIfAlreadyLive()) return;
   // preview 는 잠그지 않는다. 워크트리마다 다른 URL 로 나가고 상태도 각자 것이라 서로를
   // 건드리지 않는다. 여기를 잠그면 병렬 세션이 서로의 빌드를 기다리기만 한다.
-  if (stage === "preview") return previewAndSmoke();
+  if (stage === "preview") return previewStageStandalone();
   if (stage === "smoke") return smokeOnlyStage();
   if (stage === "production") return withLock(productionStage);
   // 목록 조회는 읽기 전용이라 잠금을 잡지 않는다. 배포가 도는 중에도 봐야 한다.
