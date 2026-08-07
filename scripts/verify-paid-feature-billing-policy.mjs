@@ -16,6 +16,9 @@ const source = (path) => readFileSync(resolve(root, path), "utf8");
 
 const destinyProfileSource = source("js/destiny-profile.js");
 const physiognomySource = source("PhysiognomyUI.js");
+// 전생 관상은 2026-08 에 관상에서 분리된 독립 모달이다. 전생 궁합(회당 5,000원) 게이트도
+// 함께 이 파일로 옮겨왔으므로, 결제 배선 단언은 이쪽을 봐야 한다.
+const pastLifeFaceSource = source("PastLifeFaceUI.js");
 const sajuEngineSource = source("js/saju-engine.js");
 const sukuyoEngineSource = source("js/saju-engine-tarot-sukuyo-quantum.js");
 const indexRuntimeSource = source("js/core/index-inline-runtime.js");
@@ -78,7 +81,8 @@ for (const featureKey of [
 
 assert.match(destinyProfileSource, /_dpResolvePaidGateReasonFeatureKey/, "common paid gate must resolve legacy paid reasons");
 assert.match(physiognomySource, /featureKey:\s*['"]physiognomy-compatibility['"]/, "physiognomy compatibility must pass its canonical featureKey into billing gate");
-assert.match(physiognomySource, /featureKey:\s*['"]physiognomy-pastlife-compatibility['"]/, "past-life physiognomy compatibility must pass its canonical featureKey into billing gate");
+assert.match(pastLifeFaceSource, /featureKey:\s*['"]physiognomy-pastlife-compatibility['"]/, "past-life physiognomy compatibility must pass its canonical featureKey into billing gate");
+assert.doesNotMatch(physiognomySource, /physiognomy-pastlife-compatibility/, "past-life compatibility gate must live in PastLifeFaceUI.js only (no duplicate gate left in PhysiognomyUI.js)");
 assert.match(destinyProfileSource, /PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage'/, "profile cards must use canonical billing key");
 assert.match(destinyProfileSource, /featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY/, "profile card actions must pass featureKey into billing gate");
 assert.match(destinyProfileSource, /\/api\/billing\/coin-gate/, "common paid gate must use worker billing coin-gate");

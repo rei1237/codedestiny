@@ -132,6 +132,8 @@
     "verify:paid-feature-common-flow": "node scripts/verify-paid-feature-common-flow.mjs",
     "verify:naming-prompt": "node scripts/verify-naming-prompt-flow.mjs",
     "verify:physiognomy-report": "node scripts/verify-physiognomy-report.mjs",
+    "verify:physiognomy-scoring": "node scripts/verify-physiognomy-scoring.mjs",
+    "verify:past-life-face": "node scripts/verify-past-life-face.mjs",
     "verify:palm-flow": "node scripts/verify-palm-flow.mjs",
     "verify:route-await-dispatch": "node scripts/verify-route-await-dispatch.mjs",
     "verify:auth-public-origin": "node scripts/verify-auth-public-origin.mjs",

@@ -316,6 +316,20 @@
       ].join(',')
     },
     {
+      action: 'openPastLifeFaceApp',
+      cardSelector: '.tarot-tile--pastlife-face',
+      targetSelector: [
+        '[data-action="openPastLifeFaceApp"]',
+        '.tarot-tile--pastlife-face',
+        '.tarot-tile--pastlife-face .tarot-tile__img-wrap',
+        '.tarot-tile--pastlife-face .tarot-tile__img',
+        '.tarot-tile--pastlife-face .tarot-tile__badge',
+        '.tarot-tile--pastlife-face .tarot-tile__title',
+        '.tarot-tile--pastlife-face .tarot-tile__desc',
+        '.tarot-tile--pastlife-face .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'openMbtiModal',
       cardSelector: '.tarot-tile--mbti',
       targetSelector: [
@@ -1036,7 +1050,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-250285087925').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-74c9d9cf5d6d').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1120,27 +1134,31 @@
       'AnalysisEngine.js?v=20260606-physio-accuracy',
       'PhysiognomyUI.js?v=20260606-physio-accuracy'
     ],
+    openPastLifeFaceApp: [
+      'AnalysisEngine.js?v=20260606-physio-accuracy',
+      'PastLifeFaceUI.js?v=20260807-past-life'
+    ],
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-250285087925'
+      'js/animal-totem-experience.js?v=build-74c9d9cf5d6d'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-250285087925'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-250285087925'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-250285087925'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-74c9d9cf5d6d'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-74c9d9cf5d6d'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-74c9d9cf5d6d'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-250285087925'],
-    openDreamModal: ['js/dream-ledger.js?v=build-250285087925'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-250285087925'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-74c9d9cf5d6d'],
+    openDreamModal: ['js/dream-ledger.js?v=build-74c9d9cf5d6d'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-74c9d9cf5d6d'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-250285087925']
+    openSibylModal: ['js/sibyl-system.js?v=build-74c9d9cf5d6d']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1555,7 +1573,7 @@
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
+      '[data-action="openPhysiognomyApp"], [data-action="openPastLifeFaceApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
       '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"],',
       '/* Reader/service tile touch optimization */',
       '.lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile,',

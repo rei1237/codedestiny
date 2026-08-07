@@ -2263,7 +2263,7 @@ async analyze(landmarksData, expressionData, imageAspect) {
     const animalName = String(result && result.primaryAnimal || '');
     const animal = this.animalDb.animals.find(a => a.name === animalName) || {};
     const features = result && result.extractedFeatures ? result.extractedFeatures : {};
-    const shape = this.analyzeFaceShape(features);
+    const shape = this.classifyFaceShape(features);
     const samjung = features.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
     const dominantEntry = Object.entries(samjung).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0] || ['middle'];
     const dominant = dominantEntry[0] || 'middle';
@@ -2311,8 +2311,8 @@ async analyze(landmarksData, expressionData, imageAspect) {
     const id2 = (this.animalDb.animals.find(a => a.name === animal2) || {}).id || '';
     const feat1 = result1 && result1.extractedFeatures ? result1.extractedFeatures : {};
     const feat2 = result2 && result2.extractedFeatures ? result2.extractedFeatures : {};
-    const shape1 = this.analyzeFaceShape(feat1);
-    const shape2 = this.analyzeFaceShape(feat2);
+    const shape1 = this.classifyFaceShape(feat1);
+    const shape2 = this.classifyFaceShape(feat2);
     const samjung1 = feat1.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
     const samjung2 = feat2.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
     const dominantOf = (samjung) => {
