@@ -5055,12 +5055,12 @@
     }
   }
 
-  /* 입력폼에는 #dpProfileQuotaText 도 추가 진입점도 마크업이 없다 — 셸 6벌을 건드리지 않으려고
-     여기서 만든다. #dpProfileQuotaText 가 없으면 _dpUpdateProfileQuotaText 가 조용히 early-return 해서
-     슬롯·편집 안내가 화면에 한 번도 뜨지 않는다(그게 이 함수를 만든 이유다).
+  /* 입력폼에는 #dpProfileQuotaText 마크업이 없다 — 셸 6벌을 건드리지 않으려고 여기서 만든다.
+     이게 없으면 _dpUpdateProfileQuotaText 가 조용히 early-return 해서 슬롯·편집 안내가 화면에
+     한 번도 뜨지 않는다(그게 이 함수를 만든 이유다).
      저장 버튼 앞에 한 번만 붙이고 이후 호출에서는 같은 노드를 재사용한다. */
   function _dpEnsureProfileFormControls(saveBtn) {
-    if (!saveBtn || !saveBtn.parentNode) return null;
+    if (!saveBtn || !saveBtn.parentNode) return;
     var parent = saveBtn.parentNode;
 
     if (!document.getElementById('dpProfileQuotaText')) {
@@ -5070,25 +5070,15 @@
       parent.insertBefore(quota, saveBtn);
     }
 
-    var addBtn = document.getElementById('dpFormAddBtn');
-    if (!addBtn) {
-      addBtn = document.createElement('button');
-      addBtn.type = 'button';
-      addBtn.id = 'dpFormAddBtn';
-      addBtn.className = 'dp-form-add';
-      addBtn.addEventListener('click', function() {
-        if (typeof window.dpStartProfileCreate === 'function') window.dpStartProfileCreate();
-      });
-      parent.insertBefore(addBtn, saveBtn);
-    }
-    addBtn.textContent = _dpText('profileAddNew');
-    addBtn.setAttribute('aria-label', _dpText('profileAddNewAria'));
-    return addBtn;
+    // 입력폼 안에는 "＋ 새 프로필 카드" 버튼을 두지 않는다. 목록 상단의 .dp-list-add 가 같은
+    // dpStartProfileCreate() 를 부르는 정본 진입점이고 편집 모드 취소까지 겸하므로, 폼에 하나 더
+    // 붙이면 같은 화면에 동일 동작 버튼이 둘이 된다(저장 버튼 바로 위라 오히려 저장과 헷갈렸다).
+    // 편집 중 안내 문구가 가리키는 [＋ 새 프로필 카드]도 그 목록 버튼이다.
   }
 
   function _dpUpdateSaveBtn() {
     var btn = document.getElementById('dpSaveBtn');
-    var formAddBtn = _dpEnsureProfileFormControls(btn);
+    _dpEnsureProfileFormControls(btn);
     var profileCount = DPStorage.list().length;
     var maxProfiles = _dpGetMaxProfiles();
     var hasProfiles = profileCount > 0;
@@ -5096,8 +5086,6 @@
     var canCreateWithoutPayment = canUsePlanSlot;
     var planLabel = _dpGetTierLabel(_dpSubIsActive ? _dpSubTier : _dpGetUserPlan());
     var slotLabel = _dpGetProfileLimitSlotLabel(profileCount, maxProfiles);
-    /* 카드가 0개면 저장 버튼 자체가 곧 생성이라 추가 버튼은 중복이다. 편집 중에는 "취소" 역할로 필요하다. */
-    if (formAddBtn) formAddBtn.hidden = !(hasProfiles || _dpProfileEditTargetId);
     _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
     if (!btn) return;
 
