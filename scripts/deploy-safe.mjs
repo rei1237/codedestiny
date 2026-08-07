@@ -79,19 +79,26 @@ function assertProductionCi() {
 function npmCommand() { return process.platform === "win32" ? "npm.cmd" : "npm"; }
 function npxCommand() { return process.platform === "win32" ? "npx.cmd" : "npx"; }
 function wrangler(args) { return ["--no-install", "wrangler", ...args]; }
+// Node 20+ refuses to spawn .cmd shims without a shell. CI runs on Linux so this never
+// showed there, but the local preview path hits it. shell: true concatenates args, so
+// quote anything containing whitespace (Pages commit messages do).
+function shellFor(command) { return process.platform === "win32" && command.endsWith(".cmd"); }
+function shellArgs(command, args) {
+  return shellFor(command) ? args.map((arg) => (/\s/.test(String(arg)) ? '"' + arg + '"' : String(arg))) : args;
+}
 
 function run(label, command, args, options = {}) {
   console.log("[deploy-safe] " + label);
-  const result = spawnSync(command, args, {
-    cwd: root, env: options.env || envForChecks(), stdio: "inherit", shell: false, windowsHide: true,
+  const result = spawnSync(command, shellArgs(command, args), {
+    cwd: root, env: options.env || envForChecks(), stdio: "inherit", shell: shellFor(command), windowsHide: true,
     input: options.input,
   });
   if (result.error) throw new Error(label + " could not start: " + result.error.message);
   if (result.status !== 0) throw new Error(label + " failed with exit " + String(result.status));
 }
 function capture(label, command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    cwd: root, env: options.env || envForChecks(), encoding: "utf8", shell: false, windowsHide: true,
+  const result = spawnSync(command, shellArgs(command, args), {
+    cwd: root, env: options.env || envForChecks(), encoding: "utf8", shell: shellFor(command), windowsHide: true,
   });
   const text = String(result.stdout || "") + String(result.stderr || "");
   if (text.trim()) process.stdout.write(text);

@@ -7,8 +7,13 @@ const root = process.cwd();
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const dryRun = process.argv.includes("--dry-run");
 
+// Node 20+ will not spawn .cmd shims without a shell; without this every npm call
+// below failed with EINVAL on Windows, so release:fast never ran there.
+const onWindows = process.platform === "win32";
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, { cwd: root, stdio: "inherit", shell: false, windowsHide: true, ...options });
+  const useShell = onWindows && command.endsWith(".cmd");
+  const finalArgs = useShell ? args.map((arg) => (/\s/.test(String(arg)) ? `"${arg}"` : String(arg))) : args;
+  const result = spawnSync(command, finalArgs, { cwd: root, stdio: "inherit", shell: useShell, windowsHide: true, ...options });
   if (result.status !== 0) throw new Error(`${command} ${args.join(" ")} failed`);
 }
 function capture(args) {

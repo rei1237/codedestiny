@@ -17,13 +17,24 @@ function git(args, allowFailure = false) {
   return String(result.stdout || "").trim();
 }
 
+// Node 20+ refuses to spawn .cmd shims without a shell, so every npm call here died
+// with EINVAL on Windows and surfaced as a bare "typecheck failed" -- check:quick has
+// never run locally on Windows. shell: true concatenates args instead of passing them
+// through, so quote anything with whitespace: changed-file lint passes real paths.
+const onWindows = process.platform === "win32";
+function shellSafe(value) {
+  const text = String(value);
+  return /\s/.test(text) ? `"${text}"` : text;
+}
+
 function run(label, command, commandArgs) {
   console.log(`[check:changed] ${label}`);
-  const result = spawnSync(command, commandArgs, {
+  const useShell = onWindows && command.endsWith(".cmd");
+  const result = spawnSync(command, useShell ? commandArgs.map(shellSafe) : commandArgs, {
     cwd: root,
     env: { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false" },
     stdio: "inherit",
-    shell: false,
+    shell: useShell,
     windowsHide: true,
   });
   if (result.status !== 0) throw new Error(`${label} failed`);
