@@ -12,9 +12,10 @@ const npmArgs = (args) => (canRunNpmCliWithNode ? [npmCli, ...args] : args);
 // 🔴 i18n:check 가 optional 인 이유 — 이건 번역 "커버리지/ratchet" 지표라 콘텐츠가 쌓이는 만큼
 // 자연히 뒤처진다. 그런데 이 스텝이 배포 경로(deploy:cf:pages → build:cf → 여기) 안에 있어서,
 // 한국어 문구 몇 개가 늘어난 것만으로 프로덕션 배포 전체가 멈췄다(2026-07-28, 커밋 88685d224 이후
-// Pages 배포 연속 실패). i18n-gates.yml 상단 주석도 원래 "배포 워크플로에는 일부러 넣지 않았다"고
-// 적고 있어, 여기 있는 것 자체가 그 의도와 어긋나 있었다.
-// 회귀 가시성은 유지된다: 실패 내용은 그대로 로그에 찍히고 PR 의 i18n Gates 가 계속 보고한다.
+// Pages 배포 연속 실패). i18n 검사는 원래 배포 워크플로에 넣지 않기로 한 것이라, 여기 있는 것
+// 자체가 그 의도와 어긋나 있었다.
+// 회귀 가시성은 유지된다: 실패 내용은 그대로 빌드 로그에 찍힌다. 전용 i18n 워크플로는 2026-08-08
+// CI 게이트 정리에서 없앴고, 필요하면 `npm run verify:locale-main-sync` 등을 수동으로 돌린다.
 // 되돌리려면 optional 플래그만 지우면 된다.
 const steps = [
   { command: npmCommand, args: npmArgs(["run", "clean:build"]) },

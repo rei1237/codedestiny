@@ -21,8 +21,8 @@
  * 그 회귀를 잡는 유일한 장치다.
  *
  * 🔴 배포 게이트에 넣지 않는다 — 빌드 산출물이 아니라 인프라 설정을 보는 라이브 네트워크 검사라,
- *    일시적 네트워크 오류가 무관한 배포를 막게 된다. `.github/workflows/canonical-host-check.yml`
- *    에서 하루 1회 스케줄로 돈다.
+ *    일시적 네트워크 오류가 무관한 배포를 막게 된다. 예전에는 canonical-host-check.yml 이 하루 1회
+ *    돌렸지만 2026-08-08 CI 게이트 정리에서 그 워크플로를 없앴다. 지금은 수동 실행 전용이다.
  *
  * 실행:
  *   node scripts/verify-www-canonical.mjs
