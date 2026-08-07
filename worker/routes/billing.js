@@ -1474,6 +1474,17 @@ async function getMembershipPassForBillingRequest(request, env, authUserId, auth
   return buildMembershipPassFromStatusSnapshot(snapshot) || directPass;
 }
 
+// 레거시 포인트→월정석 **1회 전환**이 아직 필요한 계정인지. 방금 읽은 문서만으로 판단한다.
+// 🔴 코인이 폐지된 지금 이 전환은 사실상 전원이 이미 끝냈거나 애초에 대상이 아니다. 그런데도
+// 예전에는 그 가능성 하나 때문에 모든 잔액 조회가 (a) 인증 메모를 우회한 별도 인증 왕복과
+// (b) authUserDoc 재사용 포기로 인한 User.findById 를 **매번** 냈다 — 결과는 write 없는 no-op.
+// 판정을 여기로 끌어올려, 실제로 전환할 것이 있을 때만 왕복이 생기게 한다.
+function needsLegacyCoinCreditSeed(user) {
+  if (!user?._id) return false;
+  if (user?.profileSubscription?.legacyCoinCreditSeeded === true) return false;
+  return Number(user?.points || 0) > 0;
+}
+
 // 이미 조회한 user 문서로 legacy seed 필요 여부만 판단하고, 필요할 때만 원자적 write.
 // readBillingSnapshot처럼 User를 이미 읽은 경로에서 중복 findById를 피하기 위해 사용.
 async function seedMembershipCreditFromUserDoc(authUserId, user) {
@@ -5185,7 +5196,12 @@ async function handlePaidAccessCheck(request, env) {
   const method = request.method.toUpperCase();
   const url = new URL(request.url);
   const body = method === "POST" ? await readJson(request) : {};
-  const auth = await getOptionalUserFromRequest(request, env);
+  // 🔴 요청 단위 인증 메모를 탄다. /access 는 isBillingSecurityPath 라 enforceBillingRouteSecurity 가
+  // 이미 resolveBillingRequestAuth 로 인증을 읽었는데, 여기서 메모를 안 타는 조회를 한 번 더 해
+  // **모든 /api/billing/access 요청이 인증 왕복을 2회** 냈다(이 라우트는 GET 100회/분 허용이다).
+  // 덤으로 DB 일시 장애가 401(미인증)로 세탁되던 것도 사라진다 — surfaceDbInfraError 가 켜져 있어
+  // 재시도 가능한 503 으로 표면화되고, 이용권 보유자가 결제창을 보는 경로 하나가 닫힌다.
+  const auth = await resolveBillingRequestAuth(request, env);
   const featureKey = String(body?.featureKey || url.searchParams.get("featureKey") || "").trim();
   const decision = await canAccessPaidFeature(auth?.userId || "", featureKey, {
     env,
@@ -5544,13 +5560,11 @@ async function readBillingSnapshot(request, env, options = {}) {
     // verifyRefreshSessionToAuth 안에서 이미 재시도되며, 그 안쪽 래퍼가 서버선택 타임아웃(8s)+3.5s를
     // per-attempt 상한의 하한으로 강제한다 — 여기서 11s를 다시 지정할 필요도, 감쌀 이유도 없다.
     // 밖에서 또 감싸면 시도·재연결만 배수로 늘어난다(verify:no-nested-retry 가 감시).
-    // seed 경로(seedLegacyCredit=true)에서는 authUserDoc를 재사용하지 않으므로(아래 stage-2 주석 참고)
-    // 인증 조회를 확장하지 않는다. 조회 전용 경로에서만 billing 필드를 함께 읽어 재조회 왕복을 없앤다.
-    // 조회 전용 경로는 요청 단위 인증 메모를 탄다 — 보안 단계·requireBillingAuth 와 같은 1회 조회를 공유한다.
-    // seed 경로만 projection 없는 전체 문서가 필요해 메모를 우회한다(옵션이 달라 같은 항목을 쓸 수 없다).
-    auth = seedLegacyCredit === true
-      ? await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: null })
-      : await resolveBillingRequestAuth(request, env);
+    // 🔴 seed 경로도 요청 단위 인증 메모를 탄다. 예전에는 seed 경로만 projection 없는 전체 문서가
+    // 필요하다며 메모를 우회해 **인증 왕복을 하나 더** 냈는데, 정작 seed 가 보는 필드(points·
+    // profileSubscription)는 BILLING_SNAPSHOT_USER_PROJECTION 에 이미 들어 있다. 우회할 이유가
+    // 없었고, 그 왕복은 보안 단계·requireBillingAuth 와 공유됐어야 할 조회였다.
+    auth = await resolveBillingRequestAuth(request, env);
   } catch (error) {
     if (!isAuthDbInfraError(error)) throw error;
     // 재시도 후에도 지속되는 infra 에러 = 토큰은 있으나 DB 장애로 확인 불가(진짜 게스트는 throw 없이 null).
@@ -5605,21 +5619,28 @@ async function readBillingSnapshot(request, env, options = {}) {
     // degraded(부정확) 대신 정확한 스냅샷을 돌려주도록 쿼리 전체를 재시도로 감싼다.
     // attemptTimeoutMS를 11s로 넓혀 콜드 연결까지 완료되게 한다(위 인증 경로와 동일 사유).
     // authUserDoc(인증 리졸버가 함께 읽어준 문서)를 재사용해 stage-2 User 재조회 왕복을 없앤다.
-    // ⚠️ 단, seedLegacyCredit=true 경로는 이 closure 안에서 seed write(레거시 월정석 lot 지급)가 일어난다.
-    //   auth 시점에 잡힌 pre-seed authUserDoc를 재사용하면, seed 커밋 뒤 (withMongoRetry 재시도·seed의
-    //   lost-ack·동시 요청 어느 경우든) stale 문서로 갓 지급된 월정석 잔량을 0으로 과소보고할 수 있다.
-    //   그래서 seed 경로에서는 재사용하지 않고 closure 안에서 매번 fresh read한다(원본 동작 유지).
-    //   seed를 안 하는 조회 경로(unlock-status·subscription-status 등)만 authUserDoc를 재사용한다.
-    const reusableUserDoc = seedLegacyCredit === true ? null : (auth.authUserDoc || null);
+    // 🔴 seed 경로도 이제 재사용한다. 예전 주석은 "seed 커밋 뒤 pre-seed 문서를 쓰면 갓 지급된
+    //   월정석을 0으로 과소보고한다"는 이유로 매번 fresh read 를 했는데, 그 위험이 실재하는 구간은
+    //   **실제로 seed write 가 일어나는 계정**뿐이다(계정당 평생 1회). 아래에서 그 경우만 골라
+    //   다시 읽으므로, 나머지 전원은 왕복 하나를 통째로 아낀다.
+    const reusableUserDoc = auth.authUserDoc || null;
     const freshSnapshot = await withMongoRetry(env, async () => {
     const snapshotProjection = { ...BILLING_SNAPSHOT_USER_PROJECTION };
-    if (!includeLegacyCoinBalance) delete snapshotProjection.points;
-    const user = reusableUserDoc || await User.findById(auth.userId)
+    // 폐지된 코인 잔액은 응답에서 빼지만, seed 판정은 points 를 봐야 하므로 읽기에서는 남긴다.
+    if (!includeLegacyCoinBalance && seedLegacyCredit !== true) delete snapshotProjection.points;
+    let user = reusableUserDoc || await User.findById(auth.userId)
       .select(snapshotProjection)
       .lean();
-    const seededUser = seedLegacyCredit === true
-      ? await seedMembershipCreditFromUserDoc(auth.userId, user)
-      : null;
+    let seededUser = null;
+    if (seedLegacyCredit === true && needsLegacyCoinCreditSeed(user)) {
+      seededUser = await seedMembershipCreditFromUserDoc(auth.userId, user);
+      if (!seededUser) {
+        // 멱등 가드($ne: true)에 걸려 write 가 없었다 = 그 사이 다른 요청이나 재시도된 이전 시도가
+        // 이미 전환했다. 손에 든 문서는 pre-seed 라 갓 지급된 월정석을 0으로 과소보고한다 —
+        // 예전 주석이 걱정하던 바로 그 구간이며, 여기서만 다시 읽는다.
+        user = await User.findById(auth.userId).select(snapshotProjection).lean();
+      }
+    }
     const effectiveUser = seededUser ? { ...(user || {}), ...seededUser } : user;
     const sub = effectiveUser?.profileSubscription || {};
     const entitlement = resolveActivePassPolicyWithProfileFallback(effectiveUser || {});

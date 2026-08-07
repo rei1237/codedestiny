@@ -32,12 +32,28 @@ const billingSource = fs.readFileSync(
   "utf8",
 );
 
+// 함수 본문을 중괄호 균형으로 잘라낸다.
+// 🔴 매개변수 목록을 먼저 건너뛴다 — `options = {}` 같은 기본값의 중괄호를 본문 시작으로 오인하면
+// 시그니처 한 줄만 잘려 나와, 단언이 조용히 "매칭 없음"으로 통과/실패한다.
 function sliceFunction(source, header) {
   const start = source.indexOf(header);
   expect(start).toBeGreaterThanOrEqual(0);
+  let paren = 0;
+  let i = start;
+  for (; i < source.length; i += 1) {
+    const ch = source[i];
+    if (ch === "(") paren += 1;
+    else if (ch === ")") {
+      paren -= 1;
+      if (paren === 0) {
+        i += 1;
+        break;
+      }
+    }
+  }
   let depth = 0;
   let seenBody = false;
-  for (let i = start; i < source.length; i += 1) {
+  for (; i < source.length; i += 1) {
     const ch = source[i];
     if (ch === "{") {
       depth += 1;
@@ -92,6 +108,47 @@ describe("coin-gate 이용권 조회 왕복 수 가드", () => {
     // 🔴 CLAUDE.md 원칙 6 — 안쪽(getOptionalUserFromRequest·handleFortuneRoutes)이 이미
     // 재시도를 갖고 있으므로 여기서 다시 감싸면 시도·재연결이 배수로 늘어난다.
     expect(fn).not.toMatch(/withMongoRetry/);
+  });
+});
+
+describe("폐지된 코인 잔재가 만들던 왕복 가드", () => {
+  test("잔액 스냅샷은 seed 경로에서도 요청 단위 인증 메모를 탄다", () => {
+    const fn = sliceFunction(billingSource, "async function readBillingSnapshot(");
+    // 예전에는 seed 경로만 "projection 없는 전체 문서가 필요하다"며 메모를 우회해 인증 왕복을
+    // 하나 더 냈다. 정작 seed 가 보는 필드(points·profileSubscription)는 이미 들어 있었다.
+    expect(fn).not.toMatch(/getOptionalUserFromRequest\(request, env, \{ surfaceDbInfraError: true, userProjection: null \}\)/);
+    expect(fn).toMatch(/auth = await resolveBillingRequestAuth\(request, env\);/);
+    // BILLING_SNAPSHOT_USER_PROJECTION 이 seed 판정 필드를 계속 담고 있어야 위 재사용이 성립한다.
+    const projection = billingSource.slice(
+      billingSource.indexOf("const BILLING_SNAPSHOT_USER_PROJECTION = {"),
+      billingSource.indexOf("};", billingSource.indexOf("const BILLING_SNAPSHOT_USER_PROJECTION = {")),
+    );
+    expect(projection).toMatch(/\bpoints: 1,/);
+    expect(projection).toMatch(/\bprofileSubscription: 1,/);
+  });
+
+  test("legacy seed 는 실제로 전환할 것이 있을 때만 왕복을 만든다", () => {
+    const fn = sliceFunction(billingSource, "async function readBillingSnapshot(");
+    // 이미 읽은 문서로 판정 → 필요할 때만 write. 무조건 호출로 되돌리면 안 된다.
+    expect(fn).toMatch(/seedLegacyCredit === true && needsLegacyCoinCreditSeed\(user\)/);
+    expect(fn).not.toMatch(/const seededUser = seedLegacyCredit === true\s*\r?\n?\s*\? await seedMembershipCreditFromUserDoc/);
+    // seed 경로도 authUserDoc 를 재사용한다.
+    expect(fn).toMatch(/const reusableUserDoc = auth\.authUserDoc \|\| null;/);
+    // 🔴 단, 멱등 가드에 걸려 write 가 없었던 경우에만 다시 읽어야 한다 — 그 재조회가 사라지면
+    // 갓 지급된 월정석을 pre-seed 문서로 0 으로 과소보고한다.
+    expect(fn).toMatch(/if \(!seededUser\) \{[\s\S]{0,400}?User\.findById\(auth\.userId\)/);
+    // 판정 함수는 seed 여부와 잔여 포인트를 모두 봐야 한다.
+    const predicate = sliceFunction(billingSource, "function needsLegacyCoinCreditSeed(");
+    expect(predicate).toMatch(/legacyCoinCreditSeeded === true/);
+    expect(predicate).toMatch(/Number\(user\?\.points \|\| 0\) > 0/);
+  });
+
+  test("/api/billing/access 는 보안 단계가 읽은 인증을 재사용한다", () => {
+    const fn = sliceFunction(billingSource, "async function handlePaidAccessCheck(");
+    // /access 는 isBillingSecurityPath 라 enforceBillingRouteSecurity 가 이미 인증을 읽는다.
+    // 메모를 안 타면 GET 100회/분 라우트가 매번 인증 왕복을 2회 낸다.
+    expect(fn).toMatch(/const auth = await resolveBillingRequestAuth\(request, env\);/);
+    expect(fn).not.toMatch(/getOptionalUserFromRequest\(request, env\)/);
   });
 });
 
