@@ -34,6 +34,16 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # 🔴 엣지에 캐시된 404 를 스스로 풀기 위한 자격.
+      # Pages 전환 틈새에 나간 404 를 Cloudflare 가 max-age=172800(2일)로 캐시하면, 오리진에
+      # 파일이 멀쩡해도 그 URL 만 이틀간 죽는다(bare=404 / ?cdcb=200). 그 상태에서는 프로덕션
+      # 스모크가 실패해 릴리스가 통째로 롤백되는데, 롤백해도 오염은 풀리지 않아 다음 릴리스도
+      # 같은 함정에 빠진다. scripts/verify-deployed-assets.mjs 는 오염된 URL 만 골라 퍼지하는
+      # 기능을 이미 갖고 있었지만, 이 값이 잡 env 에 없어 "퍼지 자격 없음" 으로 건너뛰고 있었다
+      # (레포 시크릿에 토큰이 있어도 워크플로가 전달하지 않으면 스텝에서는 보이지 않는다).
+      # ZONE_ID 는 선택이다 — 토큰에 zone:read 가 있으면 스크립트가 호스트명으로 자동 조회한다.
+      CLOUDFLARE_CACHE_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN }}
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
       CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
       CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
