@@ -232,10 +232,10 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 ## Codex Override: Worktree-Only PR-First Delivery
 
 - This section is authoritative for Codex and supersedes any older Worker auto-deploy, current-worktree branch, or direct-deploy wording in this file.
-- Never edit, commit, push, or deploy from the primary repository worktree, `main`, `master`, or detached HEAD. Create a secondary worktree from the latest `origin/main` with `scripts/create-safe-worktree.ps1`.
+- Never edit, commit, push, or deploy from `main`, `master`, or detached HEAD. Start work with `git switch -c codex/<slug> origin/main`; editing the primary worktree on a feature branch is the default. Create a secondary worktree with `scripts/create-safe-worktree.ps1` only for genuinely parallel sessions.
 - Run `npm run verify:worktree-policy -- --mode=edit` before editing and `npm run verify:worktree-policy -- --mode=pr` before PR creation. PreToolUse hooks enforce the edit rule where supported.
 - Do not deploy directly to production during normal coding work.
-- Keep high-risk changes on a feature branch and create a PR targeting `main`. For a low-risk, committed secondary-worktree change, `npm run release:fast` may push `HEAD:main` only after range-based checks classify it as low risk. It never commits or bypasses high-risk checks.
+- Keep high-risk changes on a feature branch and create a PR targeting `main`. For a low-risk, committed feature-branch change, `npm run release:fast` may push `HEAD:main` only after range-based checks classify it as low risk. It never commits or bypasses high-risk checks.
 - The PR must record validation commands, mock/sandbox validation results, regression risks, confirmed no-regression scope, and rollback method.
 - Do not run real LLM API calls, real payments, production DB writes, production Pages/Worker deploys, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
 - Use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.

@@ -40,19 +40,19 @@
 - Mobile UI regressions are high risk. Preserve route behavior, safe areas, touch targets, and app payment routing.
 - 몰입형 React 운세 경험은 공용 헤더·푸터·모바일 하단 내비게이션을 렌더하지 않고, 페이지 안에서 접근 가능한 홈·뒤로가기 이탈 제어를 제공한다.
 
-## Worktree-Only Development and PR Delivery
+## Branch-First Development and PR Delivery
 
-The primary repository worktree is protected. All repository edits, commits, pushes, and local production deployment attempts must happen in a registered secondary worktree.
+`main` and `master` are protected. All repository edits, commits, and pushes must happen on a feature branch. A secondary worktree is optional and only pays for itself when two sessions must run in parallel.
 
-- Never edit or commit from the primary worktree, `main`, `master`, or a detached HEAD.
-- Before editing, create a sibling worktree from the latest `origin/main` with `scripts/create-safe-worktree.ps1`.
-- Run `npm run verify:worktree-policy -- --mode=edit` before the first edit. The PreToolUse hooks and this guard are fail-closed when the current worktree cannot be identified safely.
-- Keep each worktree's feature scope and `.work-locks/<session-id>.md` registration explicit. If another `IN_PROGRESS` lock overlaps the target files or feature, stop and report `LOCK DETECTED`.
+- Never edit or commit from `main`, `master`, or a detached HEAD. Editing the primary worktree on a feature branch is allowed and is the default.
+- Start work with `git fetch origin main --no-tags && git switch -c codex/<slug> origin/main`.
+- Run `npm run verify:worktree-policy -- --mode=edit` before the first edit. The PreToolUse hooks and this guard are fail-closed when the current branch cannot be identified safely.
+- Create a sibling worktree with `scripts/create-safe-worktree.ps1` only for genuinely parallel sessions. Keep each session's feature scope and `.work-locks/<session-id>.md` registration explicit. If another `IN_PROGRESS` lock overlaps the target files or feature, stop and report `LOCK DETECTED`.
 - Before opening a PR, fetch `origin/main`, confirm the feature branch contains the latest base, run the relevant checks, and use `npm run verify:worktree-policy -- --mode=pr`.
-- Low-risk documentation, copy, static asset, CSS, isolated UI, and test-only changes may use `npm run release:fast` from a clean secondary feature worktree. The command rejects high-risk paths and never creates commits. Payment, access, auth, database, LLM, Worker, cache, deployment, binding, environment, and workflow changes remain PR-only.
-- Direct pushes through `release:fast` must use `HEAD:main`; force pushes and direct primary-worktree pushes remain prohibited.
+- Low-risk documentation, copy, static asset, CSS, isolated UI, and test-only changes may use `npm run release:fast` from a clean feature branch. The command rejects high-risk paths and never creates commits. Payment, access, auth, database, LLM, Worker, cache, deployment, binding, environment, and workflow changes remain PR-only.
+- Direct pushes through `release:fast` must use `HEAD:main`; force pushes and direct pushes from a protected branch remain prohibited.
 - A PR must contain `## Validation`, `## Risk`, `## No-regression Scope`, and `## Rollback` sections. Merge requires green required checks, required review approval, no blocking conflict/review, final-diff scope confirmation, and the user's explicit merge approval for that task.
-- Production Pages/Worker deployment is CI-only from `main` after merge and still requires explicit user approval for that exact deployment. Local `npm run deploy:*` commands are blocked by the worktree policy guard.
+- Production Pages/Worker deployment is CI-only from `main` after merge and still requires explicit user approval for that exact deployment. Local `npm run deploy:*` commands are blocked by the policy guard's `--mode=deploy` CI check.
 
 ## Development Workflow
 

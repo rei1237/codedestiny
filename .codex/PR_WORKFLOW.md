@@ -1,13 +1,13 @@
-# Safe Worktree -> PR -> Merge -> Deploy Workflow
+# Safe Branch -> PR -> Merge -> Deploy Workflow
 
 ## Start every task
 
-1. Leave the primary repository worktree untouched.
-2. Run `git fetch origin main` from a repository checkout.
-3. Create a new secondary worktree from `origin/main`:
+1. Run `git fetch origin main --no-tags`.
+2. Create a feature branch from the fresh base: `git switch -c codex/<short-feature-name> origin/main`.
+3. Register the session in `WORKING_ON.md` and `.work-locks/<session-id>.md`.
+4. Run `npm run verify:worktree-policy -- --mode=edit` before editing.
+5. Only when two sessions must run in parallel, create a sibling worktree instead:
    `powershell -File scripts/create-safe-worktree.ps1 -Slug <short-feature-name>`
-4. In the new worktree, register the session in `WORKING_ON.md` and `.work-locks/<session-id>.md`.
-5. Run `npm run verify:worktree-policy -- --mode=edit` before editing.
 
 ## Before opening a PR
 
@@ -33,7 +33,7 @@
 
 ## Prohibited shortcuts
 
-- Editing or committing in the primary worktree, `main`, `master`, or detached HEAD.
+- Editing or committing on `main`, `master`, or detached HEAD.
 - Pushing directly to `main`.
-- Deploying from a feature branch, stale worktree, or local shell.
+- Deploying from a feature branch, stale base, or local shell.
 - Running real LLM, payment, production DB, or production deployment actions without the exact user approval required by `AGENTS.md`.
