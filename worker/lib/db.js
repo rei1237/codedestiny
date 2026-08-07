@@ -39,11 +39,26 @@ function createMongoOperationOverloadedError() {
 }
 
 function drainMongoOperationWaiters() {
-  while (mongoOperationAdmission.waiters.length > 0) {
-    const waiter = mongoOperationAdmission.waiters[0];
-    if (mongoOperationAdmission.active >= waiter.limit) return;
-    mongoOperationAdmission.waiters.shift();
-    if (waiter.settled) continue;
+  // 🔴 대기열 선두에서 멈추지 않고 **스캔**한다.
+  // 예전에는 선두 대기자가 못 들어가면 곧바로 return 했다. 모든 대기자의 limit 이 같을 때는 그게
+  // 맞았지만, 지금은 낮은 limit 을 쓰는 우선순위 레인이 있다(worker/lib/security: maxConcurrent 2).
+  // 그대로 두면 limit 2 인 보안 대기자가 선두에 있을 때 active 가 2 이상이기만 하면 뒤에 있는
+  // limit 5 인증·결제 대기자까지 통째로 막힌다(head-of-line blocking). 자기 limit 을 못 넘는
+  // 대기자는 건너뛰고 다음을 본다 — 건너뛰어진 쪽은 자기 타임아웃(보안 레인 250ms)에 실패하고,
+  // 그 실패는 fail-open 이라 정책에 영향이 없다.
+  // 같은 limit 끼리는 배열 순서를 그대로 따르므로 FIFO 가 유지된다.
+  let index = 0;
+  while (index < mongoOperationAdmission.waiters.length) {
+    const waiter = mongoOperationAdmission.waiters[index];
+    if (waiter.settled) {
+      mongoOperationAdmission.waiters.splice(index, 1);
+      continue;
+    }
+    if (mongoOperationAdmission.active >= waiter.limit) {
+      index += 1;
+      continue;
+    }
+    mongoOperationAdmission.waiters.splice(index, 1);
     waiter.settled = true;
     clearTimeout(waiter.timer);
     mongoOperationAdmission.active += 1;
@@ -56,20 +71,41 @@ function releaseMongoOperationSlot() {
   drainMongoOperationWaiters();
 }
 
+// 🔴 기본값 3 → 5 (2026-08-08). 게이트가 자기가 보호하려는 자원(maxPoolSize=5)보다 엄격해서,
+// 풀이 처리할 수 있는 작업을 게이트가 먼저 거절하고 있었다.
+//
+// 프로덕션 실측(wrangler tail, 요청 13건): `[db-op-admission] {"limit":3,"active":3,"queued":2}` 가
+// 5회 나왔다 — DB 장애가 아니라 **평상시 진입 팬아웃**만으로 포화된다. 로그인 사용자 1명의 진입이
+// /api/auth/me + /api/profile(직렬 2 op) + /api/me/access-state + 구독/이용권 조회를 동시에 쏘고,
+// 여기에 rate-limit 이 AbuseScore 쓰기까지 같은 슬롯을 먹는다.
+//
+// 이 거절이 특히 나쁜 이유는 **재시도되지 않는다**는 것이다. MongoWaitQueueTimeoutError 는
+// transient 로 분류돼 재시도되지만(아래 isTransientMongoError), MongoOperationOverloadedError 는
+// withMongoRetry 에서 명시적으로 재시도 제외라 그대로 503 이 된다. 즉 게이트가 **복구 가능한 대기를
+// 복구 불가능한 503 으로 바꾸고 있었다.** 5 로 올리면 대기는 풀의 waitQueue(5s 상한, 재시도 대상)로
+// 옮겨간다 — 그게 원래 있어야 할 자리다.
+//
+// maxPoolSize 는 5 로 유지한다. 전역 연결 = 아이솔레이트 수 × poolSize 이고 Atlas M0 상한이 500 이라
+// 근거 없이 올리지 않는다(아래 connectDb 주석 참고). 올리려면 `[db-connect-error]` 가 0 인 것을 먼저 볼 것.
+const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "5";
+// 1500ms 는 콜드 핸드셰이크 중앙값(1497ms)보다 짧았다 — 연결 하나 세우는 시간도 못 기다렸다는 뜻이다.
+// 예산 검산: 2500(admission) + 5000(waitQueue) + 쿼리 ≈ 8s < 11.5s(시도 상한 하한). 여유 있다.
+const MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT = "2500";
+
 async function acquireMongoOperationSlot(env, options = {}) {
   const limit = clampInt(
     options.maxConcurrent != null
       ? options.maxConcurrent
-      : getEnv(env, "MONGO_MAX_IN_FLIGHT_OPS", "3"),
-    3,
+      : getEnv(env, "MONGO_MAX_IN_FLIGHT_OPS", MONGO_MAX_IN_FLIGHT_OPS_DEFAULT),
+    Number(MONGO_MAX_IN_FLIGHT_OPS_DEFAULT),
     1,
     8,
   );
   const waitTimeoutMS = clampTimeoutMs(
     options.admissionTimeoutMS != null
       ? options.admissionTimeoutMS
-      : getEnv(env, "MONGO_OP_ADMISSION_TIMEOUT_MS", "1500"),
-    1500,
+      : getEnv(env, "MONGO_OP_ADMISSION_TIMEOUT_MS", MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT),
+    Number(MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT),
     100,
     5000,
   );
@@ -232,6 +268,44 @@ export async function resetMongooseConnection() {
   } finally {
     poolResetPromise = null;
   }
+}
+
+/**
+ * 라우트가 "연결이 이상하다"고 판단했을 때 부르는 **유일한** 복구 진입점.
+ *
+ * 🔴 resetMongooseConnection() 을 라우트에서 직접 부르면 안 된다. 그건 가드 없는 전역
+ * disconnect 라, 같은 아이솔레이트에서 **살아서 실행 중인 동시 요청의 소켓까지 함께 끊는다**
+ * (bufferCommands:false 라 진행 중인 raw 드라이버 호출이 즉시 throw 한다). 그래서 한 사용자의
+ * 실패한 로그인이 그 아이솔레이트의 모든 동시 요청을 죽일 수 있었다 — 아래 withMongoRetry 의
+ * catch 가 inFlightOps 가드와 쿨다운을 두고 있는 이유가 정확히 그것인데, auth 라우트 3곳이
+ * 그 가드를 통째로 우회하고 있었다(2026-08-08 수정).
+ *
+ * 여기서는 withMongoRetry 가 쓰는 것과 **같은 상태기계**를 재사용한다:
+ *   · 쿨다운(MONGO_POOL_RESET_COOLDOWN_MS) 안이면 건너뛴다 — 재연결 폭풍 방지
+ *   · inFlightOps > 1 이면 지금 끊지 않고 예약만 한다 — 마지막 작업이 빠져나갈 때 처리
+ *   · poolResetPromise single-flight 는 resetMongooseConnection 이 이미 보장
+ * 강제 복구(연속 실패 임계 초과)는 withMongoRetry 안에 그대로 남는다 — 그쪽은 실패 횟수를 안다.
+ *
+ * 호출부는 await 하지 않아도 된다(void). 복구는 다음 요청을 위한 것이지 이 요청을 살리는 게 아니다.
+ */
+export async function requestPoolRecovery(env = {}, options = {}) {
+  const cooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
+  if (options.force !== true && Date.now() - lastPoolResetAt < cooldownMS) return false;
+
+  // 웜 상태는 즉시 무효화한다 — 실제 disconnect 를 미루더라도 다음 connectDb 는 재검증해야 한다.
+  lastHealthyAt = 0;
+  connectPromise = null;
+
+  if (inFlightOps > 1 && options.force !== true) {
+    pendingPoolReset = true;
+    return false;
+  }
+
+  pendingPoolReset = false;
+  lastPoolResetAt = Date.now();
+  consecutiveConnectionFailures = 0;
+  await resetMongooseConnection();
+  return true;
 }
 
 function withTimeout(promise, ms, message) {

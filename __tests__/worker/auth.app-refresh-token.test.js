@@ -31,6 +31,7 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     Types: { ObjectId: class { constructor(id) { this.id = id; } static isValid() { return true; } } },
   },
   resetMongooseConnection: mockResetMongooseConnection,
+  requestPoolRecovery: mockResetMongooseConnection,
   resolveMongoDbName: jest.fn(() => "test"),
   withMongoRetry: mockWithMongoRetry,
   isTransientMongoError: jest.fn(() => false),

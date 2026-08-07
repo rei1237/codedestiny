@@ -259,12 +259,23 @@ export async function addAbuseScore({ env, request, userId = "", endpoint = "", 
 // 단지 "느린 DB 때문에 모든 결제 요청이 20초 느려지는" 것을 막는다.
 const SECURITY_DB_TIMEOUT_MS = 1000;
 
+// 🔴 이 가드는 admission 슬롯을 인증·결제와 동등하게 먹으면 안 된다.
+// acquireMongoOperationSlot 은 대기자마다 자기 limit 을 들고 비교하므로(active >= waiter.limit),
+// 여기만 낮은 limit 을 주면 **기존 메커니즘 그대로** 우선순위 레인이 생긴다: 전역이 2슬롯 이상
+// 차 있으면 보안 가드는 250ms 만 기다리고 포기하고, 남은 슬롯은 인증·결제가 쓴다.
+// 포기해도 정책은 안 바뀐다 — 이 가드는 원래 실패 시 fail-open 이다(아래 catch). 반대로 이걸
+// 안 두면, 어차피 fail-open 될 조회가 로그인/결제의 슬롯을 뺏어 503 을 만든다.
+const SECURITY_DB_MAX_CONCURRENT = 2;
+const SECURITY_DB_ADMISSION_TIMEOUT_MS = 250;
+
 const SECURITY_DB_OPERATION_OPTIONS = Object.freeze({
   retries: 0,
   attemptTimeoutMS: SECURITY_DB_TIMEOUT_MS,
   minAttemptTimeoutMS: SECURITY_DB_TIMEOUT_MS,
   respectServerSelectionFloor: false,
   resetOnOperationTimeout: false,
+  maxConcurrent: SECURITY_DB_MAX_CONCURRENT,
+  admissionTimeoutMS: SECURITY_DB_ADMISSION_TIMEOUT_MS,
 });
 
 function withSecurityDbOperation(env, operation) {

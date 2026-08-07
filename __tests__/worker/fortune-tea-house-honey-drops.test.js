@@ -212,6 +212,7 @@ beforeAll(async () => {
     connectDb: jest.fn(async () => undefined),
     mongoose: { connection: { db: fakeDb } },
     resetMongooseConnection: jest.fn(async () => undefined),
+    requestPoolRecovery: jest.fn(async () => undefined),
     resolveMongoDbName: jest.fn(() => "test"),
     withMongoRetry: jest.fn(async (env, fn) => fn()),
     isTransientMongoError: jest.fn(() => false),

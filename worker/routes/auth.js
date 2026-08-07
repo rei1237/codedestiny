@@ -1,4 +1,4 @@
-import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
+import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
@@ -955,14 +955,23 @@ function getRefreshReuseGraceMs(env) {
   return Math.min(Math.floor(raw), 5 * 60 * 1000);
 }
 
+// 폴백이 준비된 rate-limit 조회 전용 상한. 인증 공용 12초와 분리한다(getLoginRateLimitState 주석).
+function getLoginRateLimitReadTimeoutMs(env) {
+  const raw = Number(getEnv(env, "AUTH_LOGIN_RATE_LIMIT_READ_TIMEOUT_MS", "1200"));
+  if (!Number.isFinite(raw) || raw <= 0) return 1200;
+  return Math.min(Math.max(Math.floor(raw), 250), 5000);
+}
+
 function getAuthConnectTimeoutMs(env) {
   const authTimeoutMs = getAuthOpTimeoutMs(env);
   const guardTimeoutMs = Number(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"));
-  const serverSelectionTimeoutMs = Number(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"));
+  // 🔴 connectDb 는 자기 가드(MONGO_WORKER_CONNECT_GUARD_MS, 기본 10초) 안에서 끝나거나 던진다.
+  // 그보다 긴 상한은 실제로 기다릴 일이 없는 '사예산'이고, 정체 구간에서 그만큼 더 매달릴 뿐이다.
+  // 예전에는 serverSelection+7000 까지 max 로 잡아 15초였다 — connectDb 가 10초에 이미 포기한 뒤
+  // 5초를 더 기다린 셈이다. 가드보다 아주 약간만 크게 잡아 그 초과분을 없앤다.
   return Math.max(
     authTimeoutMs,
-    Number.isFinite(guardTimeoutMs) ? guardTimeoutMs + 5000 : 15000,
-    Number.isFinite(serverSelectionTimeoutMs) ? serverSelectionTimeoutMs + 7000 : 15000,
+    Number.isFinite(guardTimeoutMs) ? guardTimeoutMs + 500 : 10500,
   );
 }
 
@@ -1722,7 +1731,8 @@ async function resolveSocialUserWithRetry(provider, profile, env, options = {}) 
       const infraFailure = isAuthInfraFailure(error, ["auth_social_resolve_user"]);
       if (infraFailure && attempt < 3) {
         console.warn(`[auth/social] transient infra failure resolving ${provider} user, retrying:`, error);
-        resetMongooseConnection().catch(() => {});
+        // 가드된 복구만 쓴다 — 원시 resetMongooseConnection 은 동시 요청의 소켓까지 끊는다(db.js 주석).
+        requestPoolRecovery(env).catch(() => {});
         await sleep(150 * attempt);
         continue;
       }
@@ -1918,9 +1928,15 @@ async function getLoginRateLimitState(request, email, env) {
     // 🔴 이 조회는 로그인 임계경로의 첫 작업인데 readRateLimitState 안에는 maxTimeMS·재시도·타임아웃이
     // 하나도 없다(worker/lib/rate-limit.js). 여기서 상한을 걸지 않으면 Mongo 가 느릴 때 소켓 타임아웃까지
     // 그대로 매달린다. 타임아웃이면 아래 catch 가 기존대로 인메모리 상태로 폴백한다.
+    // 🔴 예산은 인증 공용 상한(12초)이 아니라 전용 상한(1.2초)이다.
+    // 이 조회는 인덱스 하나 타는 AbuseScore.findOne 이고, 실패해도 아래 catch 가 인메모리로 폴백한다
+    // (= 브루트포스 방어는 유지되고 로그인은 계속 진행된다). 그런데 12초를 주면 Mongo 가 느릴 때
+    // **로그인이 시작도 못 한 채** 12초를 버린다. 폴백이 준비된 조회에 긴 예산을 줄 이유가 없다.
+    // ⚠️ user lookup 과 병렬화하지 말 것 — rate-limit 이면 findOne 을 아예 안 하는 것이 의도된
+    // 보안 속성이다(__tests__/worker/auth.login-security.test.js 가 이를 단언한다).
     const state = await withAuthOpTimeout(
       readRateLimitState({ subjectHash: key, endpoint: LOGIN_RATE_LIMIT_ENDPOINT, max, env }),
-      getAuthOpTimeoutMs(env),
+      getLoginRateLimitReadTimeoutMs(env),
       "auth_login_rate_limit_read",
     );
     return { key, source: "mongo", env, windowMs, max, ...state };
@@ -2591,6 +2607,10 @@ async function handleLogin(request, env) {
     return buildLoginRateLimitedResponse(loginRateLimitState);
   }
 
+  // 재시도 사이에 살아남아야 하는 비밀번호 검증 결과(아래 verifyPassword 주석 참고).
+  let verifiedPasswordOk = false;
+  let verifiedPasswordIdentity = "";
+
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_login_connect_db");
@@ -2664,12 +2684,25 @@ async function handleLogin(request, env) {
       }
 
       const legacyHash = needsPasswordRehash(user.passwordHash);
-      const passwordOk = await withAuthOpTimeout(
-        verifyPassword(password, user.passwordHash),
-        timeoutMs,
-        "auth_login_verify_password",
-      );
-      timer.mark("verifyPassword");
+      // 🔴 재시도마다 KDF 를 다시 태우지 않는다.
+      // verifyPassword 는 절대 throw 하지 않고 false 를 돌려주므로(password.js) **재시도 사유가 될 수
+      // 없다** — 이 루프로 다시 들어오는 실제 경로는 세션 발급/조회 타임아웃이다. 그런데 예전에는
+      // 재시도가 try 전체를 다시 돌려서, 느린 RefreshTokenSession.create 하나가 PBKDF2 600k(~89ms)나
+      // 레거시 bcryptjs.compare(~270ms)를 통째로 재계산시켰다. 3회면 최악 CPU 270~810ms(레거시
+      // 재해시까지 겹치면 ~1.08s)이고, 이 워커는 과거 그 CPU 로 error 1102(Worker exceeded resource
+      // limits)를 맞은 이력이 있다(worker/lib/password.js 주석).
+      // 같은 사용자 문서 + 같은 해시면 결과가 달라질 수 없으므로 첫 검증 결과를 그대로 쓴다.
+      const passwordIdentity = `${String(user._id || "")}|${String(user.passwordHash || "")}`;
+      if (verifiedPasswordIdentity !== passwordIdentity) {
+        verifiedPasswordOk = await withAuthOpTimeout(
+          verifyPassword(password, user.passwordHash),
+          timeoutMs,
+          "auth_login_verify_password",
+        );
+        verifiedPasswordIdentity = passwordIdentity;
+        timer.mark("verifyPassword");
+      }
+      const passwordOk = verifiedPasswordOk;
       if (!passwordOk) {
         await recordFailedLoginAttempt(loginRateLimitState);
         timer.log("invalid_credentials", { hashKind: legacyHash ? "bcrypt" : "pbkdf2" });
@@ -2709,7 +2742,8 @@ async function handleLogin(request, env) {
 
       if (infraFailure && attempt < 3) {
         console.warn("[auth/login] transient infra failure, retrying:", error);
-        resetMongooseConnection().catch(() => {});
+        // 가드된 복구만 쓴다 — 원시 resetMongooseConnection 은 동시 요청의 소켓까지 끊는다(db.js 주석).
+        requestPoolRecovery(env).catch(() => {});
         await sleep(150 * attempt);
         continue;
       }
@@ -3950,7 +3984,8 @@ async function handleOAuthComplete(request, env) {
 
         if (infraFailure && attempt < 3) {
           console.warn("[auth/oauth-complete] transient infra failure, retrying:", error);
-          resetMongooseConnection().catch(() => {});
+          // 가드된 복구만 쓴다 — 원시 resetMongooseConnection 은 동시 요청의 소켓까지 끊는다(db.js 주석).
+          requestPoolRecovery(env).catch(() => {});
           await sleep(150 * attempt);
           continue;
         }
