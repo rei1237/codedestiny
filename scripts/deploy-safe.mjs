@@ -84,7 +84,7 @@ function parseArgs(argv) {
   const values = new Map();
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale"].includes(arg)) flags.add(arg);
+    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy"].includes(arg)) flags.add(arg);
     else if (arg.startsWith("--") && arg.includes("=")) {
       const separator = arg.indexOf("=");
       values.set(arg.slice(2, separator), arg.slice(separator + 1));
@@ -835,9 +835,46 @@ async function withLock(work) {
   lock();
   try { return await work(); } finally { unlock(); }
 }
+/**
+ * 🔴 이미 라이브인 커밋을 다시 빌드해서 다시 올리지 않는다.
+ *
+ * Next.js 청크 해시는 환경 간 재현되지 않는다. 같은 커밋이라도 다른 머신에서 빌드하면 파일 이름이
+ * 달라지므로, 로컬로 배포한 커밋을 CI 로 한 번 더 배포하면 **내용이 같은 자산을 다른 이름으로**
+ * 프로덕션에 얹게 된다. 그 전환 틈새에 새 HTML 이 옛 이름의 청크를 참조하면 404 다.
+ * 2026-08-08 에 실제로 그렇게 됐다 — 로컬이 8224-6ae569894fc5f1cb.js 를 올린 뒤 CI 가 같은 커밋을
+ * 8224-267e0d60209cbad4.js 로 다시 빌드해 승격했고, 프로덕션 스모크가 404 를 잡아 롤백했다.
+ *
+ * 얻는 것이 없고 잃을 것만 있는 재배포이므로 시작 전에 정상 종료한다(실패가 아니다).
+ * 롤백 뒤 되돌리기처럼 정말 같은 커밋을 다시 올려야 하면 --allow-redeploy 로 넘긴다.
+ */
+async function abortIfAlreadyLive() {
+  if (cli.flags.has("--allow-redeploy")) return false;
+  const head = git(["rev-parse", "HEAD"]);
+  const value = await context();
+  const origin = productionOrigin(value);
+  if (!origin) return false;
+  const read = async (path) => {
+    try {
+      const res = await fetch(origin + path, { signal: AbortSignal.timeout(10_000) });
+      return String((await res.json())?.commit || "").trim();
+    } catch {
+      return "";
+    }
+  };
+  const [pages, worker] = await Promise.all([read("/version.json"), read("/api/version")]);
+  // 워커가 이번 릴리스에 포함되지 않으면 워커 커밋은 판단에서 뺀다(Pages 만 올리는 릴리스).
+  const workerMatches = !value.needsWorker || worker === head;
+  if (pages !== head || !workerMatches) return false;
+  console.log("[deploy-safe] " + head.slice(0, 12) + " 는 이미 프로덕션에 라이브입니다(Pages"
+    + (value.needsWorker ? " + Worker" : "") + "). 재빌드는 같은 내용을 다른 청크 이름으로 올려 전환 틈새 404 만 만듭니다.");
+  console.log("[deploy-safe] 아무것도 배포하지 않고 종료합니다. 정말 다시 올려야 하면 --allow-redeploy 를 붙이세요.");
+  return true;
+}
+
 async function main() {
   if (cli.flags.has("--self-test")) return selfTest();
   if (stage === "check") return checkStage();
+  if (["preview", "production", "safe"].includes(stage) && await abortIfAlreadyLive()) return;
   if (stage === "preview") return withLock(previewAndSmoke);
   if (stage === "smoke") return smokeOnlyStage();
   if (stage === "production") return withLock(productionStage);
