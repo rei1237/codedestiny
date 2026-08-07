@@ -564,12 +564,16 @@ export default function FortuneTeaHousePage() {
       if (!response.ok) return false;
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; honeyDrops?: FortuneTeaHouseHoneyDropsState } | null;
       const serverHoneyDrops = payload?.ok ? normalizeHoneyDropsState(payload.honeyDrops) : null;
-      // 일시적 DB 오류(disabled)나 미인증(authenticated:false, 쿠키/토큰 정착 전 레이스)으로
-      // 반환된 0값은 실제 잔량을 덮지 않는다 — 미인증은 실패로 처리해 부트스트랩 백오프가 재시도한다.
+      // 일시적 DB 오류(disabled)로 반환된 0값은 실제 잔량을 덮지 않고 실패로 처리해 부트스트랩 백오프가 재시도한다.
       if (serverHoneyDrops && !serverHoneyDrops.disabled && serverHoneyDrops.authenticated) {
         setHoneyDrops(serverHoneyDrops);
         return true;
       }
+      // 🔴 게스트(authenticated:false)는 재시도 대상이 아니다. 서버는 비로그인에 200 + authenticated:false를
+      // 정상 응답으로 주는데(worker/routes/fortune-tea-house.js readHoneyDropsState), 이를 실패로 보고
+      // 백오프를 돌리면 비로그인 방문자 1명당 같은 요청이 4회 나갔다. 잔량은 덮지 않고(로컬 0 유지)
+      // 부트스트랩만 종료한다. 로그인하면 auth 변경 경로가 다시 조회한다.
+      if (serverHoneyDrops && !serverHoneyDrops.disabled && !serverHoneyDrops.authenticated) return true;
       return false;
     } catch {
       return false;

@@ -2783,6 +2783,37 @@ async function findUserByIdRaw(userId, projection = {}) {
   );
 }
 
+// 환불 대상 차감행을 찾는 두 쿼리. 폴백은 "요청한 cost 가 원장의 delta 와 미세하게 어긋나도 같은 행을
+// 찾아준다"가 원래 취지였는데, 그 취지를 넘어 delta·featureKey·기간 필터까지 전부 빠져 있었다.
+// 그 틈으로 delta:0 감사행(프로필 카드 조작 등이 상시 생성)의 _id 만 알면 임의 금액을 발행할 수 있었다.
+// 따라서 폴백에서 완화하는 것은 delta 의 '정확값'뿐이고, 나머지 필터는 1차와 동일하게 유지한다.
+function buildPigCoinRefundDeductQueries({ userId, cost, featureKey, sourceTransactionId, recentWindow }) {
+  const primary = {
+    userId,
+    kind: "deduct",
+    delta: -cost,
+    featureKey,
+    createdAt: { $gte: recentWindow },
+  };
+
+  if (!isObjectIdLike(sourceTransactionId)) {
+    return { primary, fallback: null };
+  }
+
+  primary._id = sourceTransactionId;
+  return {
+    primary,
+    fallback: {
+      userId,
+      kind: "deduct",
+      _id: sourceTransactionId,
+      delta: { $lt: 0 },
+      featureKey,
+      createdAt: { $gte: recentWindow },
+    },
+  };
+}
+
 async function handlePigCoinRefund(request, auth) {
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
@@ -2820,28 +2851,20 @@ async function handlePigCoinRefund(request, auth) {
     }
   }
 
-  const deductQuery = {
+  const { primary: deductQuery, fallback: deductFallbackQuery } = buildPigCoinRefundDeductQueries({
     userId: auth.userId,
-    kind: "deduct",
-    delta: -cost,
+    cost,
     featureKey,
-    createdAt: { $gte: recentWindow },
-  };
-
-  if (isObjectIdLike(sourceTransactionId)) {
-    deductQuery._id = sourceTransactionId;
-  }
+    sourceTransactionId,
+    recentWindow,
+  });
 
   let deducted = await PointHistory.findOne(deductQuery)
     .sort({ createdAt: -1 })
     .lean();
 
-  if (!deducted && isObjectIdLike(sourceTransactionId)) {
-    deducted = await PointHistory.findOne({
-      userId: auth.userId,
-      kind: "deduct",
-      _id: sourceTransactionId,
-    }).lean();
+  if (!deducted && deductFallbackQuery) {
+    deducted = await PointHistory.findOne(deductFallbackQuery).lean();
   }
 
   if (!deducted) {
@@ -3196,6 +3219,10 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   let consumePayload = null;
   let chargedCoins = 0;
   let sourceTransactionId = "";
+  // 코인으로 실제 차감된 건에만 코인 환불을 시도한다. 카드(DIRECT_KRW)·이용권·월정석 결제는
+  // PointHistory 차감행이 없어 코인 환불이 반드시 409로 실패하고, 그 실패가 "환불 시도했으나 실패"로
+  // 기록돼 카드 환불 경로를 가린다. 사주 경로(readSajuAIPromptPointRefundContext)가 쓰던 가드와 동일.
+  let isPointSpend = false;
   const skipPaymentConsume = existing.status === "generation_failed" && storedResult?.order?.paymentStatus === "PAID";
 
   if (!skipPaymentConsume) {
@@ -3226,6 +3253,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       return mapVedicPrashnaConsumeFailure(consumeResponse, consumePayload);
     }
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
+    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
     const accessMethod = readPrashnaAccessMethod(consumePayload || body);
     if (accessMethod !== "single") {
       return buildVedicPrashnaError(
@@ -3335,7 +3363,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   } catch (error) {
     let refundAttempted = false;
     let refundOk = false;
-    if (chargedCoins > 0 && sourceTransactionId) {
+    if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
       refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
@@ -3795,6 +3823,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
+  let isPointSpend = false;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -3829,6 +3858,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -3868,7 +3898,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
   } catch (error) {
     let refundAttempted = false;
     let refundOk = false;
-    if (chargedCoins > 0 && sourceTransactionId) {
+    if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
       refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
@@ -3957,6 +3987,7 @@ async function handleVedicAIPrompt(request, auth, env) {
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
+  let isPointSpend = false;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -3991,6 +4022,7 @@ async function handleVedicAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -4031,7 +4063,7 @@ async function handleVedicAIPrompt(request, auth, env) {
   } catch (error) {
     let refundAttempted = false;
     let refundOk = false;
-    if (chargedCoins > 0 && sourceTransactionId) {
+    if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
       refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
@@ -4858,6 +4890,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
+  let isPointSpend = false;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -4892,6 +4925,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -4930,7 +4964,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
   } catch (error) {
     let refundAttempted = false;
     let refundOk = false;
-    if (chargedCoins > 0 && sourceTransactionId) {
+    if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
       refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
@@ -5054,6 +5088,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
+  let isPointSpend = false;
 
   try {
     if (SUKUYO_AI_PROMPT_PRICE <= 0) {
@@ -5126,6 +5161,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
+    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -5166,7 +5202,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   } catch (error) {
     let refundAttempted = false;
     let refundOk = false;
-    if (chargedCoins > 0 && sourceTransactionId) {
+    if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
       refundAttempted = true;
       try {
         const refundRequest = new Request(request.url, {
@@ -6322,4 +6358,5 @@ export const __fortuneAccessTestUtils = {
   resolvePigCoinConsumeAuth: resolvePigCoinConsumeAuthFromGuard,
   isAdminPigCoinBypassEnabled: isAdminPigCoinBypassEnabledFromGuard,
   handleSubscriptionStatus,
+  buildPigCoinRefundDeductQueries,
 };

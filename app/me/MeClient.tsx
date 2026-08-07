@@ -519,6 +519,12 @@ export default function MePage() {
     emitDestinyProfileChanged([], "");
   }, []);
 
+  // 🔴 잔량 폴백으로 쓰는 현재 points 를 deps 가 아니라 ref 로 읽는다. 이 콜백은 본문에서 user.points 를
+  // 갱신하는데, 그 값이 deps 에 있으면 실행할 때마다 콜백 identity 가 바뀌고, 이 콜백을 deps 로 가진
+  // 부트스트랩 useEffect 가 다시 돌아 /api/auth/me + /api/profile + /api/billing/balance 3요청이 2회 나갔다.
+  const userPointsRef = useRef<number | undefined>(undefined);
+  userPointsRef.current = user?.points;
+
   const refreshProfileActionBalance = useCallback(async () => {
     try {
       const response = await authFetch(`${apiBase}/api/billing/balance`, {
@@ -543,7 +549,7 @@ export default function MePage() {
       const data = payload.data || {};
       setMonthlyStoneBalance(resolveMonthlyStoneBalance(data, data.membership) ?? 0);
       setMonthlyStoneExpiresAt(resolveMonthlyStoneExpiresAt(data, data.membership));
-      const nextPoints = Number(data.legacyCoinBalance ?? data.balance ?? payload.user?.points ?? user?.points ?? 0);
+      const nextPoints = Number(data.legacyCoinBalance ?? data.balance ?? payload.user?.points ?? userPointsRef.current ?? 0);
       if (Number.isFinite(nextPoints)) {
         setUser((prev) => prev ? { ...prev, points: Math.max(0, Math.floor(nextPoints)) } : prev);
       }
@@ -551,7 +557,7 @@ export default function MePage() {
       setMonthlyStoneBalance(0);
       setMonthlyStoneExpiresAt(null);
     }
-  }, [apiBase, user?.points]);
+  }, [apiBase]);
 
   /* ── 월정석 잔량 실시간 반영: 차감/지급 표준 브로드캐스트 구독 ─────────── */
   useEffect(() => {

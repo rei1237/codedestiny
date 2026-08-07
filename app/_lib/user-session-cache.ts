@@ -228,9 +228,13 @@ function readHeaders(init?: RequestInit) {
   return new Headers(init?.headers || {});
 }
 
-function shouldBypass(init?: RequestInit) {
-  const headers = readHeaders(init);
-  return headers.get(CACHE_REFRESH_HEADER) === "1";
+// 🔴 refresh 헤더는 `init.headers`에만 오지 않는다. authFetch(auth-client.ts)는 헤더를 Request 객체에
+// 담아 fetch(request)로 부르므로 그 경로에서는 init 자체가 undefined다. init만 보던 시절에는
+// shouldBypass가 항상 false여서 force:true 호출자(결제 후 갱신·탭 복귀 세션 확정)가 조용히 300초
+// 캐시를 받았다 — 캐시가 죽어 있던 게 아니라 뚫는 스위치가 안 먹던 것이다. 두 경로를 함께 본다.
+function shouldBypass(input?: RequestInfo | URL, init?: RequestInit) {
+  if (readHeaders(init).get(CACHE_REFRESH_HEADER) === "1") return true;
+  return input instanceof Request && input.headers.get(CACHE_REFRESH_HEADER) === "1";
 }
 
 function normalizeSearchParams(url: URL) {
@@ -572,13 +576,13 @@ export function installUserAccessFetchCache() {
     ensureSessionCookie();
     // A caller asking to bypass the cache (e.g. auth-store's force refresh) wants an
     // authoritative server answer — never fabricate a guest response from a local hint for it.
-    if (parsedUrl.pathname === "/api/auth/me" && !hasClientAuthHint() && !shouldBypass(init)) {
+    if (parsedUrl.pathname === "/api/auth/me" && !hasClientAuthHint() && !shouldBypass(input, init)) {
       return Promise.resolve(guardedGuestAuthResponse());
     }
 
     const userKey = resolveUserKey();
     const cacheKey = makeCacheKey(userKey, parsedUrl, kind);
-    if (!shouldBypass(init)) {
+    if (!shouldBypass(input, init)) {
       const cached = cache.get(cacheKey);
       if (isFreshCachedResponse(cached, kind) && cached) return Promise.resolve(responseFromCached(cached));
       if (cached) cache.delete(cacheKey);

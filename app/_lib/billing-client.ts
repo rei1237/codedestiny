@@ -3582,6 +3582,15 @@ function buildEligibilityInput(input: BillingCoinGateInput) {
 // 실패해도 무시한다(실제 호출이 다시 묻는다). 읽기 전용 GET 이라 과금·상태 변화가 없다.
 export function primePaymentEligibility(input: BillingCoinGateInput) {
   try {
+    // 🔴 게이트가 읽지 않을 프리페치는 쏘지 않는다. 아래 runBillingCoinGate 는 `mayBeAlreadyUnlocked`
+    // (= 과금 유형이 per-use 가 아님)일 때만 fetchPaymentEligibility 를 부른다 — per-use 는 '이미 해금'
+    // 상태가 존재하지 않아 물어볼 게 없기 때문이다. 그런데 이 프리페치 호출부 11곳의 featureKey 가
+    // 전부 per-use 라, 화면 진입마다 unlock-status 왕복 1회가 나가고 결과는 한 번도 소비되지 않았다.
+    // 게이트와 같은 조건을 여기서 미리 적용해 그 왕복을 없앤다(조건이 어긋나면 안 되므로 표현을 맞춘다).
+    // 구독 스냅샷 워밍은 이 조회의 부수효과가 아니라 warmSubscriptionSnapshotOnEntry 가 담당한다
+    // (루트 레이아웃의 PaymentProcessingProvider 가 진입·인증변화·유휴·pointerdown 마다 호출).
+    const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
+    if (resolvePaidFeatureBillingType(input.featureKey || featureId) === "per-use") return;
     void fetchPaymentEligibility(buildEligibilityInput(input), { phase: "full" }).catch(() => null);
   } catch {
     // 프리페치는 실패해도 결제 흐름에 영향을 주지 않는다.

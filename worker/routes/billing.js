@@ -3493,6 +3493,12 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       requestedPaymentMode,
       allowPassAutoUnlock: false,
       subscriptionPass: subscriptionPassForDecision,
+      // 인증 조회가 이미 읽어 온 User.unlockedFeatures 원본을 넘겨 같은 필드의 User.exists 왕복을 없앤다
+      // (BILLING_SNAPSHOT_USER_PROJECTION에 unlockedFeatures가 포함돼 있다). 배열이 아니면 null로 넘겨
+      // 기존 User.exists 폴백을 그대로 태운다 — 빈 배열로 넘기면 오탐 거부가 난다.
+      accountUnlockedFeatures: Array.isArray(authCheck.auth.authUserDoc?.unlockedFeatures)
+        ? authCheck.auth.authUserDoc.unlockedFeatures
+        : null,
       body: scopedBody,
     });
     accessDecisionElapsedMs = Date.now() - accessDecisionStartedAt;

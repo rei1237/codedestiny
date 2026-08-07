@@ -8,10 +8,10 @@ import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
-  fetchPaymentEligibility,
   formatPaymentWon,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
+import { useServerPrice } from "@/app/hooks/useServerPrice";
 import NeoSpriteActor from "./components/NeoSpriteActor";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import {
@@ -1139,25 +1139,11 @@ export default function NeoOperationRoomPage() {
     && Boolean(birthState.birth.gender)
     && (birthState.birth.birthTimeUnknown || Boolean(birthState.birth.birthTime));
   const showLaunchConfirm = Boolean(method && topic && hasBirthCoordinates && intensity && questionReady);
-  useEffect(() => {
-    if (!showLaunchConfirm || consultPriceLabel) return;
-    let cancelled = false;
-    void fetchPaymentEligibility({
-      productId: "neo-operation-room",
-      serviceType: FEATURE_KEY,
-      featureKey: FEATURE_KEY,
-    }, { phase: "full" })
-      .then((result) => {
-        const priceKRW = Math.max(0, Math.floor(Number(result.data?.priceKRW || 0)));
-        if (!cancelled && priceKRW > 0) setConsultPriceLabel(formatPaymentWon(priceKRW));
-      })
-      .catch(() => {
-        void 0;
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [consultPriceLabel, showLaunchConfirm]);
+  // 발사 확인 배지의 가격 표시. 예전에는 /api/billing/unlock-status 를 쳐서 priceKRW 하나만 뽑아 썼는데,
+  // 같은 금액을 빌드타임 레지스트리(worker/lib/paid-feature-registry.js)에서 네트워크 0으로 얻을 수 있다.
+  // 결제 확정 후에는 아래에서 서버가 준 실제 금액(consultPriceLabel)이 이 값을 덮는다.
+  const registryConsultPrice = useServerPrice({ featureKey: FEATURE_KEY });
+  const displayConsultPriceLabel = consultPriceLabel || registryConsultPrice.label;
   const lastChoiceDialogue = useMemo(() => {
     if (lastCommandChoice?.kind === "method" && method === lastCommandChoice.value) return getNeoMethodDialogue(method, dialogueSeed);
     if (lastCommandChoice?.kind === "topic" && topic === lastCommandChoice.value) return getNeoTopicDialogue(topic, dialogueSeed);
@@ -2600,7 +2586,7 @@ export default function NeoOperationRoomPage() {
               <div className={styles.launchSummary}>
                 <strong>사자 휘장 확인</strong>
                 <span>{selectedMethod?.label} · {topic} · {selectedIntensity?.label}</span>
-                <span>{consultPriceLabel ? `${FEATURE_TITLE} · ${consultPriceLabel}` : FEATURE_TITLE}</span>
+                <span>{displayConsultPriceLabel ? `${FEATURE_TITLE} · ${displayConsultPriceLabel}` : FEATURE_TITLE}</span>
               </div>
               <button type="submit" className={styles.startButton} disabled={!canStart} aria-busy={busy}>
                 <span className={styles.ctaButtonCopy}>
