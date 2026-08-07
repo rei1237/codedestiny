@@ -512,7 +512,7 @@ function productionOrigin(value) {
 // 배포 직후 확인. deploy-smoke 가 /api/health·/api/version 200 과 콘솔 에러를 이미 보고,
 // 여기서는 그것만으로는 못 잡는 두 가지를 더 본다. 둘 다 이미 있던 스크립트인데 통합
 // 릴리스로 개편될 때 호출부가 사라져 죽어 있었다.
-async function postDeployHealth(value) {
+async function postDeployHealth(value, workerPromoted) {
   const origin = productionOrigin(value);
   await smoke(origin);
   // verify-pages-worker-parity 는 "방금 배포한 커밋"을 GITHUB_SHA 로 읽는다. 로컬 배포에는
@@ -520,7 +520,7 @@ async function postDeployHealth(value) {
   const env = { ...envForChecks(), CD_DEPLOY_VERIFY_ORIGIN: origin, CD_WORKER_VERSION_URL: origin + "/api/version", GITHUB_SHA: value.git.head };
   // Pages 와 Worker 가 같은 커밋인지. 결제·접근 상태처럼 양쪽이 맞물린 변경에서 어긋나면
   // 두 코드가 서로 다른 계약으로 대화한다.
-  if (value.needsWorker) run("Pages/Worker commit parity", process.execPath, [path.join(scriptDir, "verify-pages-worker-parity.mjs")], { env });
+  if (workerPromoted) run("Pages/Worker commit parity", process.execPath, [path.join(scriptDir, "verify-pages-worker-parity.mjs")], { env });
   // 자산 검사는 여기서 하지 않는다 — promote() 가 배포본(artifact)과 별칭(alias)을 나눠
   // 이미 확인했고, 여기서 한 번 더 돌리면 별칭의 전환 구간 404 가 다시 롤백을 부른다.
 }
@@ -573,12 +573,20 @@ async function promote(value, state, yes) {
   // 시크릿 스캐너를 승격 직전에 돌린다(외부 바이너리 불필요).
   run("secret leak scan", npmCommand(), ["run", "verify:no-secret-leak"], { env: envForChecks() });
   const oldPages = (await pageDeployments(value.cf, "production")).find((item) => metadata(item).branch === value.cf.pages.productionBranch);
-  const oldWorker = value.needsWorker ? await workerActive(value.cf) : null;
+  // 🔴 승격 대상은 preview 단계가 결정한다. 여기서 needsWorker 를 다시 계산하면 안 된다.
+  //
+  // needsWorker 는 "변경 파일 집합"에서 나오는데, 그 집합은 preview 이후 push 만으로도 줄어든다
+  // (변경 범위가 origin/main 기준이라 push 하면 커밋분이 빠진다). 그러면 워커 preview 버전을
+  // 멀쩡히 올려 두고도 승격을 건너뛰어 프로덕션이 '새 Pages + 옛 Worker' 로 어긋난다.
+  // 2026-08-08 에 실제로 그렇게 나갔다 — Pages 는 12a969bca 인데 Worker 는 4583e3bb4fff 에
+  // 남았고, 같은 이유로 Pages/Worker 패리티 검사까지 건너뛰어 아무도 잡지 못했다.
+  // state.worker.versionId 가 있다는 것은 preview 가 "이 릴리스는 워커를 포함한다"고 판단했다는 뜻이다.
+  const shouldPromoteWorker = Boolean(state.worker?.versionId);
+  const oldWorker = shouldPromoteWorker ? await workerActive(value.cf) : null;
   let workerPromoted = false;
   let pagesPromoted = false;
   try {
-    if (value.needsWorker) {
-      if (!state.worker?.versionId) throw new Error("No Worker preview version to promote.");
+    if (shouldPromoteWorker) {
       capture("Worker 100% promotion", npxCommand(), wrangler(["versions", "deploy", state.worker.versionId + "@100", "--name", value.cf.worker, "--message", "safe-production-" + value.git.head.slice(0, 12), "--yes"]), { env: envForChecks() });
       workerPromoted = true;
     }
@@ -595,7 +603,7 @@ async function promote(value, state, yes) {
     // ② 별칭이 전환됐는지. 관측 전용 — 전환 지연으로 릴리스를 되돌리지 않는다.
     awaitProductionAssets(value, productionOrigin(value));
     // ③ 그 다음에 스모크 + Pages/Worker 커밋 패리티(postDeployHealth 가 smoke 를 품는다).
-    await postDeployHealth(value);
+    await postDeployHealth(value, workerPromoted);
     writeState({ ...next, production: { ...next.production, smokePassed: true } });
     console.log("[deploy-safe] production health check passed; commit=" + value.git.head);
   } catch (error) {

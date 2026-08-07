@@ -40,7 +40,7 @@ test("promote verifies the immutable deployment before it looks at the productio
   const body = promoteBody();
   const artifactIndex = body.indexOf("verifyDeployedArtifact(value, pages.url)");
   const aliasIndex = body.indexOf("awaitProductionAssets(value, productionOrigin(value))");
-  const smokeIndex = body.indexOf("await postDeployHealth(value)");
+  const smokeIndex = body.indexOf("await postDeployHealth(value, workerPromoted)");
   assert.ok(artifactIndex > 0, "promote() 가 배포본 완전성 검사를 호출하지 않습니다");
   assert.ok(aliasIndex > 0, "promote() 가 별칭 전환 확인을 호출하지 않습니다");
   assert.ok(smokeIndex > 0, "promote() 가 프로덕션 스모크를 호출하지 않습니다");
@@ -72,6 +72,35 @@ test("a lagging production alias never triggers a rollback", () => {
   const healthStart = deploySafe.indexOf("async function postDeployHealth(");
   const healthEnd = deploySafe.indexOf("async function checkStage(");
   assert.doesNotMatch(deploySafe.slice(healthStart, healthEnd), /verify-deployed-assets\.mjs/);
+});
+
+// 🔴 워커 승격 여부는 preview 가 기록한 상태로 판단한다. promote() 에서 다시 계산하면 안 된다.
+//
+// needsWorker 는 변경 파일 집합에서 나오는데 그 집합은 origin/main 기준이라, preview 이후 push
+// 만으로도 줄어든다. 2026-08-08 에 실제로 그렇게 나갔다 — preview 는 워커 버전을 올려 뒀는데
+// 승격 시점에는 변경 집합이 2개(테스트 파일·version.json)로 줄어 needsWorker=false 가 됐고,
+// 워커 승격과 Pages/Worker 패리티 검사가 **둘 다** 조용히 생략됐다. 프로덕션은 Pages 12a969bca +
+// Worker 4583e3bb4fff 로 어긋난 채 "health check passed" 를 찍었고, 보안 수정은 라이브가 아니었다.
+test("worker promotion is decided by the recorded preview, not recomputed at promote time", () => {
+  const body = promoteBody();
+
+  assert.match(body, /const shouldPromoteWorker = Boolean\(state\.worker\?\.versionId\)/);
+  assert.match(body, /if \(shouldPromoteWorker\) \{/);
+
+  // 롤백 대상(옛 워커 버전)도 같은 판단을 써야 한다. 다르면 되돌릴 대상이 비어 버린다.
+  assert.match(body, /const oldWorker = shouldPromoteWorker \? await workerActive\(value\.cf\) : null/);
+
+  // promote() 안에서 needsWorker 를 다시 읽지 않는다.
+  assert.doesNotMatch(body, /value\.needsWorker/);
+
+  // 패리티 검사도 "실제로 승격했는가" 로 걸어야 한다. 변경 집합으로 걸면 함께 생략된다.
+  const healthStart = deploySafe.indexOf("async function postDeployHealth(");
+  const healthEnd = deploySafe.indexOf("async function checkStage(");
+  const healthBody = deploySafe.slice(healthStart, healthEnd);
+  assert.match(healthBody, /async function postDeployHealth\(value, workerPromoted\)/);
+  assert.match(healthBody, /if \(workerPromoted\) run\("Pages\/Worker commit parity"/);
+  assert.doesNotMatch(healthBody, /value\.needsWorker/);
+  assert.match(body, /await postDeployHealth\(value, workerPromoted\)/);
 });
 
 // 🔴 릴리스가 실패하면 Pages 와 Worker 는 **함께** 되돌아가야 한다.
