@@ -2,56 +2,35 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { JSDOM } = require('jsdom');
 
 const root = path.resolve(__dirname, '..', '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('guardian fortune prototype is feature-flagged and preserves the legacy hub', () => {
-  const html = read('index.html');
-  assert.match(html, /id="cdTodayHub"/);
-  assert.match(html, /id="guardianFortuneSection"/);
-  assert.match(html, /data-feature-flag="ENABLE_MAIN_GUARDIAN_FORTUNE"/);
-  assert.match(html, /guardian-fortune\.css/);
-  assert.match(html, /guardian-fortune-mock\.js/);
-  assert.match(html, /guardian-fortune-home\.js/);
-  assert.match(html, /id="cd-guardian-fortune-feature-flags"/);
-  assert.match(html, /ENABLE_MAIN_GUARDIAN_FORTUNE:\s*true/);
-  assert.match(html, /ENABLE_GUARDIAN_FORTUNE_API:\s*true/);
-  assert.match(html, /ENABLE_GUARDIAN_FORTUNE_SHARE:\s*true/);
-  assert.match(html, /ENABLE_GUARDIAN_FORTUNE_CREDITS:\s*true/);
-  assert.match(html, /daily-fortune-core\.js/);
-  assert.match(html, /data-guardian-duo-chat/);
-  assert.match(html, /data-guardian-dialogue="yeoni"/);
-  assert.match(html, /data-guardian-dialogue="neo"/);
-  assert.match(html, /data-guardian-room-label/);
-});
-
-test('guardian fortune opens from a compact native destiny gate without changing its consultation root', () => {
+test('the destiny gate stands on its own after the inline home widget was retired', () => {
   const html = read('index.html');
   const gateway = read('js/fortune-gateway.js');
   const css = read('styles/fortune-gateway.css');
-  const guardianCss = read('styles/guardian-fortune.css');
 
   assert.match(html, /id="fortuneGatewayEntry"/);
-  assert.match(html, /id="fortuneGatewayDialog"/);
-  assert.match(html, /<dialog class="fortune-gateway__dialog"/);
   assert.match(html, /flower-pig-honey-hug\.webp/);
-  assert.match(guardianCss, /flower-pig-f16\.webp/);
   assert.match(html, /href="\/fusion-fortune"/);
-  assert.match(html, /fortune-gateway__path-note[^>]*>한 가지 고민부터 차분하게 시작해 보세요\.<\/p>/);
-  assert.doesNotMatch(html, /매일 초기화되지/);
-  assert.match(html, /fortune-gateway__path-note[^>]*>가벼운 상담 뒤, 필요할 때 같은 상담방에서 별도 상담권으로 이어집니다\.<\/p>/);
   assert.match(html, /fortune-gateway\.css/);
   assert.match(html, /fortune-gateway\.js/);
+  // 옛 앵커(/#guardian-fortune)로 들어온 링크는 정본 화면으로 넘긴다.
   assert.match(gateway, /#guardian-fortune/);
   // 🔴 진입점은 홈 인라인 위젯의 준비 신호에 묶이지 않는다. 예전에는 cd:guardian-ready 를
   //    받아야 hidden 이 풀려서, 그 위젯의 플래그가 꺼지면 두 유료 상담으로 가는 길이 통째로 사라졌다.
   assert.doesNotMatch(gateway, /addEventListener\("cd:guardian-ready"/);
   assert.doesNotMatch(html, /id="fortuneGatewayEntry"[^>]*\shidden/);
-  assert.match(css, /safe-area-inset/);
+  // 위젯과 그것을 감싸던 레거시 다이얼로그, 전용 브라우저 자산은 모두 제거됐다.
+  assert.doesNotMatch(html, /id="guardianFortuneSection"|id="fortuneGatewayDialog"/);
+  for (const dead of ['styles/guardian-fortune.css', 'js/guardian-fortune-home.js', 'js/guardian-fortune-mock.js', 'js/guardian-fortune-api.js', 'js/guardian-fortune-share.js']) {
+    assert.ok(!fs.existsSync(path.join(root, dead)), `still present: ${dead}`);
+  }
   assert.match(css, /prefers-reduced-motion: reduce/);
-  assert.match(css, /min-height: 44px/);
+  // 두 문은 카드 전체가 링크라 탭 타깃이 넉넉하고, 한국어는 단어 중간에서 끊기지 않아야 한다.
+  assert.match(css, /\.fortune-gateway__door \{[\s\S]*?min-height: 258px/);
+  assert.match(css, /word-break: keep-all/);
   assert.doesNotMatch(css, /https?:\/\//);
 });
 
@@ -76,263 +55,13 @@ test('the destiny gate shows both paid consultations with their price in every s
   assert.ok(fs.existsSync(path.join(root, 'public/images/fusion-fortune/orbs/core.webp')));
 });
 
-test('guardian fortune production activation enables approved real LLM and credit sales', () => {
+test('guardian fortune production activation enables the approved real LLM path', () => {
   const wrangler = read('worker/wrangler.toml');
   assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_API\s*=\s*"true"/);
   assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_SHARE\s*=\s*"true"/);
-  assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_CREDITS\s*=\s*"true"/);
   assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_REAL_LLM\s*=\s*"true"/);
   assert.match(wrangler, /ALLOW_REAL_GUARDIAN_FORTUNE_LLM\s*=\s*"true"/);
-});
-
-test('guardian fortune prototype exposes all six topics and verified local webp assets', () => {
-  const mock = read('js/guardian-fortune-mock.js');
-  const home = read('js/guardian-fortune-home.js');
-  const expectedTopics = ['daily', 'love', 'money_work', 'relationship', 'mind', 'decision'];
-  for (const topic of expectedTopics) {
-    assert.match(mock, new RegExp(`\\b${topic}\\b`));
-  }
-  assert.match(home, /guardianFortuneSection/);
-  assert.match(home, /CDGuardianFortuneMock/);
-  assert.match(mock, /flower-pig-honey-hug\.webp/);
-  assert.match(mock, /neo-operation-room\/sprites\/transparent\/neo-transparent-s1-f01\.webp/);
-  assert.match(mock, /연이의 달빛 상담소/);
-  assert.doesNotMatch(mock, /꽃돼지 연이의 행운 상담소/);
-  assert.match(mock, /네오의 행운 상담소/);
-  assert.match(mock, /네오 모드의 팩폭 전략실 인간형 캐릭터/);
-  assert.match(home, /NEO_HUMAN_SPRITE_SRC/);
-  assert.match(home, /NEO STRATEGY ROOM/);
-  assert.match(home, /neo-operation-room\/sprites\/transparent\/neo-transparent-s1-f01\.webp/);
-  assert.doesNotMatch(mock, /neo-operation-room\/sprites\/lion\/neo-lion-/);
-  assert.doesNotMatch(home, /neo-operation-room\/sprites\/lion\/neo-lion-/);
-  assert.ok(fs.existsSync(path.join(root, 'public/images/fortune-tea-house/flower-pig-honey-hug.webp')));
-  assert.ok(fs.existsSync(path.join(root, 'public/images/fortune-tea-house/talking-flower-pig-yeoni3-sprite-safe.webp')));
-  for (let i = 1; i <= 16; i += 1) {
-    assert.ok(fs.existsSync(path.join(root, `public/images/guardian-fortune/yeoni/flower-pig-f${String(i).padStart(2, '0')}.webp`)));
-  }
-  for (let i = 1; i <= 8; i += 1) {
-    assert.ok(fs.existsSync(path.join(root, `public/neo-operation-room/sprites/transparent/neo-transparent-s1-f${String(i).padStart(2, '0')}.webp`)));
-  }
-  assert.ok(fs.existsSync(path.join(root, 'public/images/guardian-fortune/guardian-room-yeoni-bg.webp')));
-  assert.ok(fs.existsSync(path.join(root, 'public/images/guardian-fortune/guardian-room-neo-bg.webp')));
-  assert.ok(fs.existsSync(path.join(root, 'public/images/guardian-fortune/guardian-button-yeoni.webp')));
-  assert.ok(fs.existsSync(path.join(root, 'public/images/guardian-fortune/guardian-button-neo.webp')));
-});
-
-test('guardian fortune mock controller does not call real API, LLM, payment, or share services', () => {
-  const home = read('js/guardian-fortune-home.js');
-  assert.doesNotMatch(home, /\bfetch\s*\(/);
-  assert.doesNotMatch(home, /navigator\.share/);
-  assert.doesNotMatch(home, /navigator\.clipboard/);
-  assert.doesNotMatch(home, /\/api\//);
-  assert.match(home, /setTimeout/);
-});
-
-test('guardian chat switches between Yeon and Neo while passing only a minimal Fusion handoff', () => {
-  const html = read('index.html');
-  const css = read('styles/guardian-fortune.css');
-  const home = read('js/guardian-fortune-home.js');
-  const api = read('js/guardian-fortune-api.js');
-  const route = read('worker/routes/fortune.js');
-  assert.match(html, /data-guardian-chat-timeline/);
-  assert.match(html, /data-guardian-chat-assistant/);
-  assert.match(html, /data-guardian-chat-speaker="yeoni"/);
-  assert.match(html, /data-guardian-chat-speaker-name/);
-  assert.match(html, /data-guardian-chat-composer-label/);
-  assert.match(html, /data-guardian-chat-input/);
-  assert.match(html, /data-guardian-intro-dialog/);
-  assert.match(home, /function updateChatPersona/);
-  assert.match(home, /speakerName = isNeo/);
-  assert.match(home, /data-guardian-chat-speaker/);
-  assert.match(home, /data-guardian-chat-composer-label/);
-  assert.match(css, /data-guardian-chat-speaker="neo"/);
-  assert.match(css, /guardian-fortune__chat-timeline/);
-  assert.match(css, /guardian-fortune__composer/);
-  assert.match(css, /flower-pig-honey-hug\.webp/);
-  assert.match(css, /neo-transparent-s1-f01\.webp/);
-  assert.match(home, /cdGuardianFusionHandoffV1/);
-  assert.match(home, /source:\s*'guardian'/);
-  assert.match(home, /topic:\s*state\.topic/);
-  assert.match(home, /category:\s*state\.category/);
-  assert.doesNotMatch(home, /handoff[\s\S]{0,240}(?:birthDate|concern|shareText)/);
-  assert.match(api, /guardian\/chat/);
-  assert.match(route, /generator:\s*generateGuardianFortuneWithMockLLM/);
-  assert.match(route, /disableShare:\s*true/);
-  assert.match(route, /does not persist a transcript/);
-});
-
-test('guardian fortune prototype includes mobile and reduced-motion rules', () => {
-  const css = read('styles/guardian-fortune.css');
-  assert.match(css, /max-width: 780px/);
-  assert.match(css, /max-width: 380px/);
-  assert.match(css, /prefers-reduced-motion: reduce/);
-  assert.match(css, /min-height: 44px/);
-  assert.match(css, /guardian-fortune__duo-chat/);
-  assert.match(css, /guardianDuoPop/);
-  assert.match(css, /guardianCharacterBreathe/);
-  assert.doesNotMatch(css, /guardianYeoniSprite/);
-  assert.doesNotMatch(css, /guardianNeoSprite/);
-  assert.match(css, /guardian-room-yeoni-bg\.webp/);
-  assert.match(css, /guardian-room-neo-bg\.webp/);
-  assert.match(css, /guardian-button-yeoni\.webp/);
-  assert.match(css, /guardian-button-neo\.webp/);
-  assert.match(css, /prefers-reduced-motion: no-preference/);
-});
-
-test('guardian fortune result presents both readings as a horizontal novel reader', () => {
-  const html = read('index.html');
-  const home = read('js/guardian-fortune-home.js');
-  const mock = read('js/guardian-fortune-mock.js');
-  const css = read('styles/guardian-fortune.css');
-
-  assert.match(html, /data-guardian-result-pages/);
-  assert.match(html, /data-result-page-button="fortune"/);
-  assert.match(html, /data-result-page-button="fusion"/);
-  assert.match(html, /data-fusion-summary/);
-  assert.match(html, /data-guardian-cta-action="fusion"/);
-  assert.match(home, /function setResultPage/);
-  assert.match(home, /function bindResultPageButtons/);
-  assert.match(home, /data-fusion-opening/);
-  assert.match(mock, /연이의 달빛 상담소/);
-  assert.doesNotMatch(mock, /꽃돼지 연이의 행운 상담소/);
-  assert.match(mock, /네오의 행운 상담소/);
-  assert.match(mock, /fusion:\s*\{/);
-  assert.match(css, /scroll-snap-type:\s*x mandatory/);
-  assert.match(css, /guardian-fortune__novel-scroll/);
-});
-
-test('guardian fortune hero uses one active mascot per mode with local webp sprite assets', () => {
-  const html = read('index.html');
-  const css = read('styles/guardian-fortune.css');
-  const home = read('js/guardian-fortune-home.js');
-
-  assert.match(html, /data-guardian-character="yeoni"/);
-  assert.match(html, /data-guardian-character="neo"/);
-  assert.match(html, /data-guardian-sprite="neo"/);
-  assert.match(css, /flower-pig-f16\.webp/);
-  assert.doesNotMatch(css, /talking-flower-pig-yeoni3-sprite-safe\.webp/);
-  assert.doesNotMatch(css, /talking-flower-pig-yeoni3-sprite-mobile\.webp/);
-  assert.match(css, /background-size:\s*contain/);
-  assert.match(css, /neo-operation-room\/sprites\/transparent\/neo-transparent-s1-f01\.webp/);
-  assert.doesNotMatch(css, /neo-operation-room\/sprites\/lion\/neo-lion-/);
-  assert.doesNotMatch(css, /codedestinyassets\/DestinyWar/);
-  assert.match(css, /\.guardian-fortune__character\[hidden\]/);
-  assert.match(css, /\.guardian-fortune__duo-bubble\[hidden\]/);
-  assert.match(css, /data-guardian-mode="yeoni"[\s\S]*guardian-fortune__character--neo/);
-  assert.match(css, /data-guardian-mode="neo"[\s\S]*guardian-fortune__character--yeoni/);
-  assert.match(css, /data-guardian-mode="yeoni"[\s\S]*guardian-fortune__duo-bubble--neo/);
-  assert.match(css, /data-guardian-mode="neo"[\s\S]*guardian-fortune__duo-bubble--yeoni/);
-  assert.match(home, /NEO_HUMAN_SPRITE_SRC/);
-  assert.match(home, /YEONI_FRAME_SEQUENCES/);
-  assert.match(home, /YEONI_FRAME_MS = 1800/);
-  assert.match(home, /NEO_HUMAN_FRAME_SEQUENCES/);
-  assert.match(home, /NEO_HUMAN_FRAME_MS = 1800/);
-  assert.match(home, /updateYeoniSprite/);
-  assert.match(home, /updateNeoSprite/);
-  assert.match(home, /prefers-reduced-motion: reduce/);
-  assert.doesNotMatch(home, /neo-lion-s1-f/);
-  assert.match(home, /neo-transparent-s1-f01/);
-});
-
-test('guardian fortune buy-credit CTA points to the live points shop section', () => {
-  const home = read('js/guardian-fortune-home.js');
-  assert.match(home, /\/points\?source=guardian-fortune-credits#guardian-fortune-credit-heading/);
-  assert.doesNotMatch(home, /대화권 상점 연결은 다음 단계에서 진행돼요/);
-  assert.doesNotMatch(home, /대화권 상점은 아직 mock 상태예요/);
-});
-
-test('guardian fortune consumes the central snapshot and lazy-loads guest usage once', () => {
-  const home = read('js/guardian-fortune-home.js');
-  const route = read('worker/routes/fortune.js');
-  assert.match(home, /includeGuardian: true/);
-  assert.match(home, /snapshot\.freeUsage \|\| snapshot\.lastPayload && snapshot\.lastPayload\.freeUsage/);
-  assert.match(home, /guardian\.degraded === true/);
-  assert.match(home, /if \(state\.usagePromise\) return state\.usagePromise/);
-  assert.match(home, /new window\.IntersectionObserver/);
-  assert.match(home, /root\.addEventListener\('pointerdown', loadOnce/);
-  assert.doesNotMatch(home, /if \(state\.flow === 'api'\) loadUsage\(\)/);
-  assert.match(route, /result\?\.ok === true && identity\.userId\) invalidateAccessStateCacheForUser\(identity\.userId\)/);
-});
-
-test('guardian fortune flag off leaves the legacy hub visible', () => {
-  const dom = new JSDOM(`<!doctype html><body>
-    <section id="cdTodayHub"></section>
-    <section id="guardianFortuneSection" hidden></section>
-  </body>`, { url: 'https://codedestiny.example/', runScripts: 'outside-only' });
-  const { window } = dom;
-  window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
-  window.eval(read('js/guardian-fortune-home.js'));
-  window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
-
-  assert.equal(window.document.getElementById('cdTodayHub').hidden, false);
-  assert.equal(window.document.getElementById('guardianFortuneSection').hidden, true);
-});
-
-test('guardian fortune mock controller switches on safely and renders a mock result', async () => {
-  const dom = new JSDOM(`<!doctype html><body>
-    <section id="cdTodayHub"></section>
-    <section id="guardianFortuneSection" hidden data-guardian-mode="yeoni">
-      <button data-guardian-mode-button="yeoni"></button>
-      <button data-guardian-mode-button="neo"></button>
-      <img data-mode-image="yeoni"><img data-mode-image="neo" hidden>
-      <figure data-guardian-character="yeoni"><span class="guardian-fortune__sprite guardian-fortune__sprite--yeoni" data-guardian-sprite="yeoni" data-sprite-state="idle" data-sprite-frame="1"></span></figure>
-      <figure data-guardian-character="neo"><span data-guardian-sprite="neo"></span></figure>
-      <div data-guardian-duo-chat>
-        <p class="guardian-fortune__duo-bubble guardian-fortune__duo-bubble--yeoni"><span data-guardian-dialogue="yeoni"></span></p>
-        <p class="guardian-fortune__duo-bubble guardian-fortune__duo-bubble--neo" hidden><span data-guardian-dialogue="neo"></span></p>
-      </div>
-      <p data-guardian-mode-title></p><p data-guardian-mode-description></p>
-      <p data-guardian-usage></p>
-      <form data-guardian-form>
-        <input data-guardian-input="birthDate" type="date">
-        <input data-guardian-calendar type="radio" value="solar" checked>
-        <input data-guardian-input="birthTime" type="time">
-        <select data-guardian-input="gender"><option value="unknown" selected>unknown</option></select>
-        <input data-guardian-input="nickname"><textarea data-guardian-input="concern"></textarea>
-        <button data-guardian-generate type="submit"></button>
-      </form>
-      <button data-guardian-topic="daily"></button>
-      <button data-guardian-category="saju"></button>
-      <p data-guardian-topic-description></p><p data-guardian-error></p><p data-guardian-live></p>
-      <section data-guardian-result hidden>
-        <img data-result-mode-image="yeoni"><img data-result-mode-image="neo" hidden>
-        <p data-result-opening></p><p data-result-inner-state></p><p data-result-core-reading></p>
-        <p data-result-topic-advice></p><p data-result-caution></p><p data-result-action></p>
-        <p data-result-mode-label></p><p data-result-title></p><p data-result-cta-label></p>
-        <p data-result-cta-reason></p>
-      </section>
-      <div data-guardian-cta hidden><p data-guardian-cta-title></p><p data-guardian-cta-description></p><div data-guardian-cta-actions></div></div>
-      <div data-guardian-toast hidden></div>
-      <button data-guardian-topic="love"></button>
-    </section>
-  </body>`, { url: 'http://localhost/?guardianFortune=1', runScripts: 'outside-only' });
-  const { window } = dom;
-  window.__CD_FEATURE_FLAGS__ = { ENABLE_MAIN_GUARDIAN_FORTUNE: true };
-  window.matchMedia = () => ({ matches: true });
-  window.eval(read('js/guardian-fortune-mock.js'));
-  window.eval(read('js/guardian-fortune-home.js'));
-  window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
-
-  const root = window.document.getElementById('guardianFortuneSection');
-  const legacy = window.document.getElementById('cdTodayHub');
-  assert.equal(root.hidden, false);
-  assert.equal(legacy.hidden, true);
-
-  assert.equal(root.getAttribute('data-guardian-mode'), 'yeoni');
-  assert.equal(root.getAttribute('data-guardian-chat-journey'), 'true');
-  assert.equal(root.querySelector('[data-guardian-duo-chat]').getAttribute('data-active-speaker'), 'yeoni');
-  assert.equal(root.querySelector('[data-guardian-character="yeoni"]').hidden, false);
-  assert.equal(root.querySelector('[data-guardian-character="neo"]').hidden, true);
-
-  root.querySelector('[data-guardian-topic="love"]').click();
-  assert.match(root.querySelector('[data-guardian-dialogue="yeoni"]').textContent, /연애 흐름/);
-
-  root.querySelector('[data-guardian-input="birthDate"]').value = '1990-01-01';
-  root.querySelector('[data-guardian-input="birthTime"]').value = '08:30';
-  root.querySelector('[data-guardian-category="saju"]').click();
-  root.querySelector('[data-guardian-form]').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-  assert.equal(root.querySelector('[data-guardian-generate]').disabled, true);
-  await new Promise((resolve) => setTimeout(resolve, 720));
-  assert.equal(root.querySelector('[data-guardian-result]').hidden, false);
-  assert.match(root.querySelector('[data-result-opening]').textContent, /연이가 보기엔/);
+  // ENABLE_GUARDIAN_FORTUNE_CREDITS 는 더 이상 읽는 코드가 없다. wrangler.toml 은 수정 금지
+  // 파일이라 선언만 남아 있으므로, 여기서 "켜져 있어야 한다"고 단언하지 않는다.
+  assert.doesNotMatch(read('config/env.contract.json'), /"ENABLE_GUARDIAN_FORTUNE_CREDITS"/);
 });

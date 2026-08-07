@@ -41,17 +41,6 @@ test('Guardian Fortune exposes both modes and six topics with WebP assets', () =
   }
 });
 
-test('credit products keep price, quantity, type, and PG-only policy together', () => {
-  assert.deepEqual(contract.GUARDIAN_FORTUNE_PRODUCTS.map((product) => [product.productId, product.priceKrw, product.creditAmount]), [
-    ['guardian_fortune_chat_3', 10000, 3],
-    ['guardian_fortune_chat_10', 30000, 10],
-  ]);
-  for (const product of contract.GUARDIAN_FORTUNE_PRODUCTS) {
-    assert.equal(product.productType, 'guardian_fortune_conversation_credit');
-    assert.deepEqual(product.allowedPurchaseChannels, ['pg']);
-    assert.ok(product.blockedPurchaseChannels.includes('family_pass'));
-    assert.ok(product.blockedPurchaseChannels.includes('price_coverage'));
-  }
   assert.doesNotThrow(() => contract.assertGuardianFortuneCreditPurchasePolicy({
     productId: 'guardian_fortune_chat_3', channel: 'pg', amountKrw: 10000,
   }));
@@ -116,9 +105,6 @@ test('mock usage covers guest, daily free, paid credit, and blocked states', () 
   assert.equal(usage.authDaily3.dailyFreeRemaining, 3);
   assert.equal(usage.authDaily2.dailyFreeRemaining, 2);
   assert.equal(usage.authDaily1.dailyFreeRemaining, 1);
-  assert.equal(usage.authCredits5.generationSource, 'paid_credit');
-  assert.equal(usage.authCredits10.paidCreditsRemaining, 10);
-  assert.equal(usage.authExhausted.nextAction, 'buy_credits');
 });
 
 test('real LLM requires the explicit production feature flags', () => {

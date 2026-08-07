@@ -15,13 +15,6 @@ export type MoonlightStoreAreaStatus =
   | "deferred"
   | "unrequested";
 
-export type MoonlightStoreProductSummary = {
-  productType: "guardian-fortune" | "fusion-fortune";
-  status: "available" | "unavailable" | "unrequested";
-  remaining: number | null;
-  detailRequired: boolean;
-};
-
 export type MoonlightStoreSnapshot = {
   schemaVersion: number;
   generatedAt: string;
@@ -38,10 +31,6 @@ export type MoonlightStoreSnapshot = {
       tier: string | null;
       isActive: boolean | null;
       expiresAt: string | null;
-    };
-    passes: {
-      status: MoonlightStoreAreaStatus;
-      summary: MoonlightStoreProductSummary[];
     };
     orders: {
       status: "deferred" | "ready" | "unavailable";
@@ -113,30 +102,21 @@ export function isMoonlightStoreSnapshot(value: unknown): value is MoonlightStor
   const areas = isRecord(value.areas) ? value.areas : null;
   const moonstone = areas && isRecord(areas.moonstone) ? areas.moonstone : null;
   const membership = areas && isRecord(areas.membership) ? areas.membership : null;
-  const passes = areas && isRecord(areas.passes) ? areas.passes : null;
   const orders = areas && isRecord(areas.orders) ? areas.orders : null;
   const availability = isRecord(value.availability) ? value.availability : null;
-  if (!moonstone || !membership || !passes || !orders || !availability) return false;
+  if (!moonstone || !membership || !orders || !availability) return false;
   if (!isSnapshotAreaStatus(moonstone.status) || !isFiniteNumberOrNull(moonstone.balance)) return false;
   if (moonstone.expiresAt !== null && typeof moonstone.expiresAt !== "string") return false;
   if (!isSnapshotAreaStatus(membership.status)) return false;
   if (membership.tier !== null && typeof membership.tier !== "string") return false;
   if (membership.isActive !== null && typeof membership.isActive !== "boolean") return false;
   if (membership.expiresAt !== null && typeof membership.expiresAt !== "string") return false;
-  if (!isSnapshotAreaStatus(passes.status) || !Array.isArray(passes.summary)) return false;
   if (orders.status !== "deferred" && orders.status !== "ready" && orders.status !== "unavailable") return false;
   if (orders.hasRecentOrders !== null && typeof orders.hasRecentOrders !== "boolean") return false;
   if (availability.status !== "ready" && availability.status !== "unavailable") return false;
   if (typeof availability.purchasesEnabled !== "boolean") return false;
 
-  return passes.summary.every((entry) => {
-    if (!isRecord(entry)) return false;
-    const productType = entry.productType;
-    return (productType === "guardian-fortune" || productType === "fusion-fortune")
-      && (entry.status === "available" || entry.status === "unavailable" || entry.status === "unrequested")
-      && isFiniteNumberOrNull(entry.remaining)
-      && entry.detailRequired === true;
-  });
+  return true;
 }
 
 function snapshotKey(userId: string, apiBase: string) {

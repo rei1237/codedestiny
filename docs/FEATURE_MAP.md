@@ -4,9 +4,9 @@
 
 - 주요 라우트: `/fusion-fortune`
 - 주요 API: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`
-- 주요 lib: `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-prompt.js`, `worker/lib/fusion-fortune-purchase.js`, `worker/routes/fusion-fortune.js`
-- 데이터: `FusionFortuneTicketBalance`, `FusionFortuneTicketTransaction`, `FusionFortuneDailyLimit`, `FusionFortuneGenerationAttempt`
-- 권한: 별도 초융합 상담권 1회만 가능하며 일반 이용권, family 이용권, 오늘의 귀인 대화권, entitlement, price coverage와 분리한다.
+- 주요 lib: `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-prompt.js`, `worker/lib/fusion-fortune-visual.js`, `worker/routes/fusion-fortune.js`
+- 데이터: `FusionFortuneDailyLimit`, `FusionFortuneGenerationAttempt`
+- 권한: 표준 회당 결제 `fusion-fortune-consultation`(300코인 · 30,000원). 결제 증빙은 `verifyPerUsePayment` 가 `requestId` 로 확인하며, 30,000원이라 이용권은 family 등급만 커버한다.
 - 접수: Asia/Seoul 기준 성공 결과 완성 순서로 선착순 하루 100자리만 확정한다. 실패·검증 실패·결제 미완료는 자리를 소진하지 않는다.
 - UI: 오늘의 귀인에서 이어지는 프리미엄 화면으로, repo-local WebP 히어로와 CSS/SVG 오브를 사용하고 390px 이하까지 반응형으로 제공한다.
 
@@ -96,7 +96,7 @@
 - validator: 생시·출생지가 없을 때 시주·라그나·상승궁·하우스·신궁을 단정하지 않도록 보정하고, 상대 마음 확정·의료/법률/투자 단정·공포/결제 압박 표현을 완화한다.
 - 개인정보: raw input, raw prompt/response/context, user/guest/payment/usage 정보는 prompt·metric·share snapshot에 포함하지 않는다.
 - 검증: `__tests__/worker/guardian-fortune-llm.test.js`, `__tests__/worker/guardian-fortune-fallback.test.js`는 provider injection만 사용하며 실제 네트워크를 호출하지 않는다.
-- 결제/대화권: 3회권 10,000원, 10회권 30,000원 정책과 PG 단건 결제 중심 구매 guard를 유지한다. 일반 이용권, family 이용권, credit, conversation credit, entitlement, price coverage로 대화권을 구매할 수 없다.
+- 결제: 무료 3회 이후 표준 회당 결제 `fortune-chat-consultation`(50코인 · 5,000원). 전용 대화권은 폐지됐고 공용 결제창(이용권·단건·월정석)을 그대로 탄다.
 
 ## 운명의 찻집
 

@@ -65,28 +65,15 @@ export type NormalizedGuardianFortuneInput = {
   concernForLLM?: string;
 };
 
-export type GuardianFortunePurchaseChannel =
-  | "pg"
-  | "monthly_membership_payment"
-  | "pass"
-  | "family_pass"
-  | "free_pass"
-  | "event_pass"
-  | "credit"
-  | "conversation_credit"
-  | "entitlement"
-  | "price_coverage";
-
 export type GuardianFortuneGenerationSource =
   | "guest_free"
   | "daily_free"
-  | "paid_credit"
   | "blocked";
 
 export type GuardianFortuneNextAction =
   | "generate"
   | "login"
-  | "buy_credits"
+  | "pay_per_use"
   | "wait_tomorrow";
 
 export type GuardianFortuneInput = {
@@ -240,7 +227,6 @@ export type GuardianFortuneUsageStatus = {
   dailyFreeLimit: number;
   dailyFreeUsed: number;
   dailyFreeRemaining: number;
-  paidCreditsRemaining: number;
   canGenerate: boolean;
   generationSource: GuardianFortuneGenerationSource;
   nextAction: GuardianFortuneNextAction;
@@ -253,18 +239,6 @@ export type GuardianFortuneGenerateResponse = {
   generationSource: Exclude<GuardianFortuneGenerationSource, "blocked">;
   requestId: string;
   shareDraftToken?: string;
-};
-
-export type GuardianFortuneProduct = {
-  productId: string;
-  productName: string;
-  productType: "guardian_fortune_conversation_credit";
-  priceKrw: number;
-  creditAmount: number;
-  badge?: string;
-  description: string;
-  allowedPurchaseChannels: GuardianFortunePurchaseChannel[];
-  blockedPurchaseChannels: GuardianFortunePurchaseChannel[];
 };
 
 export type GuardianFortuneFeatureFlags = {

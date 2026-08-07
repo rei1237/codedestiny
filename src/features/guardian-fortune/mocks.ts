@@ -1,12 +1,10 @@
 import {
   GUARDIAN_FORTUNE_MODES,
   GUARDIAN_FORTUNE_PREMIUM_CTA_BY_TOPIC,
-  GUARDIAN_FORTUNE_PRODUCTS,
   GUARDIAN_FORTUNE_TOPICS,
 } from "./constants";
 import type {
   GuardianFortuneMode,
-  GuardianFortuneProduct,
   GuardianFortuneResult,
   GuardianFortuneTopic,
   GuardianFortuneUsageStatus,
@@ -59,7 +57,6 @@ const usage = (overrides: Partial<GuardianFortuneUsageStatus>): GuardianFortuneU
   dailyFreeLimit: 0,
   dailyFreeUsed: 0,
   dailyFreeRemaining: 0,
-  paidCreditsRemaining: 0,
   canGenerate: true,
   generationSource: "guest_free",
   nextAction: "generate",
@@ -73,18 +70,13 @@ export const GUARDIAN_FORTUNE_MOCK_USAGE = {
   authDaily3: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeRemaining: 3, canGenerate: true, generationSource: "daily_free", nextAction: "generate", message: "오늘 남은 무료 상담 3회" }),
   authDaily2: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 1, dailyFreeRemaining: 2, canGenerate: true, generationSource: "daily_free", nextAction: "generate", message: "오늘 남은 무료 상담 2회" }),
   authDaily1: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 2, dailyFreeRemaining: 1, canGenerate: true, generationSource: "daily_free", nextAction: "generate", message: "오늘 남은 무료 상담 1회" }),
-  authCredits5: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 3, dailyFreeRemaining: 0, paidCreditsRemaining: 5, canGenerate: true, generationSource: "paid_credit", nextAction: "generate", message: "오늘의 무료 상담은 모두 사용했어요. 보유 대화권 5회 중 1회를 사용할 수 있어요." }),
-  authCredits3: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 3, dailyFreeRemaining: 0, paidCreditsRemaining: 3, canGenerate: true, generationSource: "paid_credit", nextAction: "generate", message: "무료 상담을 모두 사용했어요. 보유 대화권 3회로 계속 물어볼 수 있어요." }),
-  authCredits10: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 3, dailyFreeRemaining: 0, paidCreditsRemaining: 10, canGenerate: true, generationSource: "paid_credit", nextAction: "generate", message: "무료 상담을 모두 사용했어요. 보유 대화권 10회로 계속 물어볼 수 있어요." }),
-  authExhausted: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 3, dailyFreeRemaining: 0, canGenerate: false, generationSource: "blocked", nextAction: "buy_credits", message: "오늘의 무료 상담 3회를 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요." }),
+  authExhausted: usage({ isLoggedIn: true, guestFreeLimit: 0, guestFreeUsed: 0, guestFreeRemaining: 0, dailyFreeLimit: 3, dailyFreeUsed: 3, dailyFreeRemaining: 0, canGenerate: false, generationSource: "blocked", nextAction: "pay_per_use", message: "오늘의 무료 상담 3회를 모두 사용했어요. 1회 5,000원으로 이어서 물어볼 수 있어요." }),
 } satisfies Record<string, GuardianFortuneUsageStatus>;
 
-export const GUARDIAN_FORTUNE_MOCK_PRODUCTS: readonly GuardianFortuneProduct[] = GUARDIAN_FORTUNE_PRODUCTS;
 
 export const GUARDIAN_FORTUNE_MOCK_FIXTURES = {
   modes: GUARDIAN_FORTUNE_MODES,
   topics: GUARDIAN_FORTUNE_TOPICS,
   results: GUARDIAN_FORTUNE_MOCK_RESULTS,
   usage: GUARDIAN_FORTUNE_MOCK_USAGE,
-  products: GUARDIAN_FORTUNE_MOCK_PRODUCTS,
 } as const;

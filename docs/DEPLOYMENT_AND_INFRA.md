@@ -64,15 +64,20 @@ The static home enables the Guardian Fortune UI and API-backed flow through
 generate, and share endpoints with `ENABLE_GUARDIAN_FORTUNE_API=true` and
 `ENABLE_GUARDIAN_FORTUNE_SHARE=true`.
 
-2026-08-04 운영 승인에 따라 `ENABLE_GUARDIAN_FORTUNE_CREDITS`,
-`ENABLE_GUARDIAN_FORTUNE_REAL_LLM`, `ALLOW_REAL_GUARDIAN_FORTUNE_LLM`을
-각각 `true`로 활성화했다. 오늘의 귀인은 사용자가 고른 단일 카테고리만 provider에 전달하며,
-대화권 1회는 해당 단일 카테고리 상담 한 번에만 사용한다.
+2026-08-04 운영 승인에 따라 `ENABLE_GUARDIAN_FORTUNE_REAL_LLM`,
+`ALLOW_REAL_GUARDIAN_FORTUNE_LLM`을 각각 `true`로 활성화했다. 오늘의 귀인은 사용자가
+고른 단일 카테고리만 provider에 전달한다.
+
+2026-08-08 전용 재화(대화권)를 폐지하고 표준 회당 결제로 옮겼다. 무료 3회 이후는
+`fortune-chat-consultation`(50코인 · 5,000원)이며 공용 결제 게이트를 그대로 탄다.
+`ENABLE_GUARDIAN_FORTUNE_CREDITS` 를 읽는 코드는 남아 있지 않다(수정 금지 파일인
+`worker/wrangler.toml` 에 선언만 남아 있어 별도 정리가 필요하다).
 
 ### Fusion Fortune activation
 
-- 기능/판매/실 LLM은 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_TICKET_SALES`, `ENABLE_FUSION_FORTUNE_REAL_LLM`, `ALLOW_FUSION_FORTUNE_REAL_LLM`을 서로 독립적으로 제어한다. 테스트는 `ENABLE_FUSION_FORTUNE_MOCK_FLOW=true`와 fake provider만 사용한다.
-- 2026-08-04 운영 승인과 전용 인덱스 7개 검증 후 UI/API/상담권 판매/실 LLM 플래그를 `true`로 활성화했다. 운영 mock 플래그는 `false`를 유지한다.
+- 기능/실 LLM은 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_REAL_LLM`, `ALLOW_FUSION_FORTUNE_REAL_LLM`을 서로 독립적으로 제어한다. 전용 상담권 판매 플래그(`ENABLE_FUSION_FORTUNE_TICKET_SALES`)는 재화 폐지와 함께 사라졌다. 테스트는 `ENABLE_FUSION_FORTUNE_MOCK_FLOW=true`와 fake provider만 사용한다.
+- 2026-08-04 운영 승인과 전용 인덱스 검증 후 UI/API/실 LLM 플래그를 `true`로 활성화했다. 운영 mock 플래그는 `false`를 유지한다.
+- 2026-08-08 전용 상담권을 폐지하고 `fusion-fortune-consultation`(300코인 · 30,000원) 회당 결제로 옮겼다. 30,000원은 `PASS_LIMITS` 상 family 이용권만 커버한다.
 - 판매 전 `npm run verify:fusion-fortune-indexes`로 전용 balance, transaction, daily limit, attempt 인덱스를 확인한다. 누락 시 별도 운영 DB 승인 후 `npm run migrate:fusion-fortune-indexes`를 한 번 실행한다.
 - 운영 활성화 순서는 전용 인덱스 확인 → Worker 배포 → `/api/version` 동일 SHA 확인 → status/catalog 확인 → Pages 배포다. 결제 성공 전에 ticket을 적립하지 않으며 생성 성공 transaction 안에서만 ticket과 KST daily count를 함께 commit한다.
 - 롤백은 판매 → API → 실 LLM → UI 플래그 순으로 끄고 이전 Worker/Pages SHA로 되돌린다. 기존 ticket balance와 원장은 삭제하거나 일반 entitlement로 변환하지 않는다.

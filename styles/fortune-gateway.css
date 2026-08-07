@@ -209,9 +209,7 @@
   max-width: 62ch;
 }
 
-.fortune-gateway__eyebrow,
-.fortune-gateway__path-kicker,
-.fortune-gateway__dialog-mark {
+.fortune-gateway__eyebrow {
   margin: 0;
   color: #9f1c52;
   font-size: 11px;
@@ -220,8 +218,7 @@
   line-height: 1.4;
 }
 
-.fortune-gateway__entry-copy h2,
-.fortune-gateway__choices-intro h2 {
+.fortune-gateway__entry-copy h2 {
   margin: 7px 0 9px;
   color: #3c1830;
   font-family: var(--font-display, Georgia, serif);
@@ -234,35 +231,12 @@
   text-wrap: balance;
 }
 
-.fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow),
-.fortune-gateway__choices-intro > p {
+.fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) {
   max-width: 48ch;
   margin: 0;
   color: #70445c;
   font-size: 14px;
   line-height: 1.62;
-}
-
-.fortune-gateway__path button,
-.fortune-gateway__path a,
-.fortune-gateway__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 44px;
-  border-radius: 14px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.fortune-gateway__path button span,
-.fortune-gateway__path a span {
-  font-size: 18px;
-  line-height: 1;
 }
 
 /* ── 두 개의 문 ──────────────────────────────────────────────── */
@@ -509,269 +483,25 @@ html.neo-mode body .fortune-gateway__door-go { color: #e8d5a3; }
 html.neo-mode body .fortune-gateway__door--chat .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(196, 181, 253, .26), transparent 62%); }
 html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3; }
 
-#fortuneGatewayDialog.fortune-gateway__dialog {
-  position: fixed;
-  inset: 0;
-  box-sizing: border-box;
-  width: 100vw;
-  max-width: none;
-  height: 100dvh;
-  max-height: none;
-  margin: 0;
-  border: 0;
-  background:
-    radial-gradient(circle at 92% 8%, rgba(232, 208, 145, .19), transparent 26%),
-    radial-gradient(circle at 6% 78%, rgba(179, 25, 85, .16), transparent 33%),
-    #fffaf7;
-  color: #3c1830;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-}
-
-.fortune-gateway__dialog::backdrop { background: rgba(26, 9, 28, .64); }
-
-.fortune-gateway__dialog-chrome {
-  position: sticky;
-  top: calc(env(safe-area-inset-top) * -1);
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(100%, 1100px);
-  min-height: 54px;
-  margin: calc(env(safe-area-inset-top) * -1) auto 0;
-  padding: max(10px, env(safe-area-inset-top)) 0 10px;
-  background: linear-gradient(180deg, #fffaf7 68%, rgba(255, 250, 247, 0));
-}
-
-.fortune-gateway__dialog-mark { color: #70445c; font-size: 10px; }
-
-.fortune-gateway__close {
-  border: 1px solid rgba(112, 68, 92, .2);
-  background: rgba(255, 255, 255, .84);
-  padding: 9px 14px;
-  color: #3c1830;
-}
-
-.fortune-gateway__choices {
-  width: min(100%, 960px);
-  margin: clamp(30px, 7vh, 88px) auto 0;
-  padding-bottom: 38px;
-}
-
-.fortune-gateway__choices-intro {
-  max-width: 600px;
-  margin: 0 auto 32px;
-  text-align: center;
-}
-
-.fortune-gateway__choices-intro .fortune-gateway__eyebrow { color: #9f1c52; }
-.fortune-gateway__choices-intro > p { margin: 0 auto; }
-
-.fortune-gateway__paths {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  align-items: stretch;
-}
-
-.fortune-gateway__path {
-  position: relative;
-  display: grid;
-  grid-template-columns: 138px minmax(0, 1fr);
-  gap: 10px;
-  min-height: 250px;
-  overflow: hidden;
-  border-radius: 24px;
-  padding: 24px 24px 22px;
-  isolation: isolate;
-}
-
-.fortune-gateway__path--guardian {
-  border: 1px solid rgba(179, 25, 85, .18);
-  background:
-    radial-gradient(circle at 13% 12%, rgba(255, 210, 226, .95), transparent 31%),
-    radial-gradient(circle at 86% 20%, rgba(255, 250, 214, .88), transparent 24%),
-    linear-gradient(135deg, #fff 0%, #fff3f8 72%, #ffe8ef 100%);
-}
-
-.fortune-gateway__path--guardian::after {
-  position: absolute;
-  inset: 16px 14px auto auto;
-  z-index: -1;
-  width: 68px;
-  height: 68px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(255,255,255,.86), rgba(255,210,226,.18));
-  content: "";
-}
-
-.fortune-gateway__path--fusion {
-  grid-template-columns: minmax(0, 1fr) 154px;
-  align-items: center;
-  border: 1px solid rgba(196, 181, 253, .32);
-  background:
-    radial-gradient(circle at 82% 16%, rgba(245, 222, 160, .36), transparent 34%),
-    radial-gradient(circle at 16% 88%, rgba(196, 181, 253, .22), transparent 30%),
-    #13102a;
-  color: #f4eeff;
-}
-
-.fortune-gateway__path > img,
-.fortune-gateway__fusion-art,
-.fortune-gateway__fusion-orb { align-self: end; width: 138px; height: 138px; }
-.fortune-gateway__path > img { object-fit: contain; filter: drop-shadow(0 16px 18px rgba(123, 52, 83, .22)); transform: translateY(4px); }
-
-.fortune-gateway__path > div { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; }
-.fortune-gateway__path-kicker { color: #9f1c52; font-size: 10px; }
-.fortune-gateway__path--fusion .fortune-gateway__path-kicker { color: #e8d5a3; }
-.fortune-gateway__path h3 { margin: 4px 0 7px; font-family: var(--font-display, Georgia, serif); font-size: 25px; letter-spacing: -.03em; line-height: 1.2; }
-.fortune-gateway__path p:not(.fortune-gateway__path-kicker) { margin: 0; color: #70445c; font-size: 13px; line-height: 1.62; }
-.fortune-gateway__path--fusion p:not(.fortune-gateway__path-kicker) { color: #d8cce6; }
-.fortune-gateway__path-note { margin-top: 8px !important; font-weight: 800; }
-.fortune-gateway__path--fusion .fortune-gateway__path-note { color: #f1dfb5 !important; }
-
-.fortune-gateway__path button,
-.fortune-gateway__path a {
-  margin-top: auto;
-  border: 1px solid rgba(139, 23, 71, .74);
-  border-radius: 999px;
-  background: #8b1747;
-  padding: 9px 15px;
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
-}
-
-.fortune-gateway__path--fusion a {
-  border-color: rgba(232, 213, 163, .76);
-  background: rgba(90, 65, 143, .84);
-  color: #fff8e8;
-}
-
-.fortune-gateway__fusion-art {
-  position: relative;
-  display: grid;
-  place-items: center;
-  margin: 0 -8px -10px 0;
-}
-
-.fortune-gateway__fusion-art img {
-  position: relative;
-  z-index: 2;
-  width: 136px;
-  height: 136px;
-  object-fit: contain;
-  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .28));
-}
-
-.fortune-gateway__fusion-orb {
-  position: absolute;
-  inset: 6px;
-  z-index: 1;
-  border: 1px solid rgba(232, 213, 163, .56);
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff8d8 0 10%, #bca0eb 29%, #392660 54%, transparent 56%);
-  box-shadow: 0 0 28px rgba(158, 113, 234, .5);
-}
-.fortune-gateway__fusion-orb::before,
-.fortune-gateway__fusion-orb::after,
-.fortune-gateway__fusion-orb i { position: absolute; content: ""; border: 1px solid rgba(232, 213, 163, .48); border-radius: 50%; }
-.fortune-gateway__fusion-orb::before { inset: 8px; }
-.fortune-gateway__fusion-orb::after { inset: 26px; border-color: rgba(255, 248, 216, .76); }
-.fortune-gateway__fusion-orb i:nth-child(1) { width: 14px; height: 14px; transform: translate(48px, -22px); background: #ead089; }
-.fortune-gateway__fusion-orb i:nth-child(2) { width: 9px; height: 9px; transform: translate(-44px, 38px); background: #c4b5fd; }
-.fortune-gateway__fusion-orb i:nth-child(3) { width: 7px; height: 7px; transform: translate(38px, 42px); background: #fff; }
-
-.fortune-gateway__privacy-note {
-  margin: 19px auto 0;
-  color: #70445c;
-  font-size: 12px;
-  line-height: 1.55;
-  text-align: center;
-}
-
-#fortuneGatewayDialog[data-fortune-gateway-view="choices"] #guardianFortuneSection { display: none; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] .fortune-gateway__choices { display: none; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection { max-width: 1100px; margin: 14px auto 0; padding: 0 0 36px; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] .guardian-fortune__shell { border-radius: 24px; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__hero {
-  display: block;
-  padding: 18px 20px 2px;
-  text-align: left;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__title {
-  max-width: none;
-  margin: 0;
-  font-size: clamp(1.55rem, 6vw, 2.05rem);
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__subtitle,
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__free-note {
-  display: none;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__content {
-  gap: 12px;
-  padding-top: 0;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__panel--form { padding: 18px; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__panel-heading {
-  gap: 7px;
-  margin-bottom: 11px;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__panel-heading h3 { font-size: 1.02rem; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__panel-heading > div > p { display: none; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__usage {
-  margin: 0;
-  padding: 7px 9px;
-  font-size: .76rem;
-  line-height: 1.38;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__mode-grid { margin-block: 11px 14px; }
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__mode {
-  grid-template-columns: 42px minmax(0, 1fr);
-  min-height: 66px;
-  padding: 8px;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__mode img,
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__mode-sprite {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__chat-timeline {
-  gap: 8px;
-  margin-block: 12px 16px;
-}
-#fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__bubble {
-  padding: 10px 12px;
-  line-height: 1.48;
-}
-
-.fortune-gateway__path button:hover,
-.fortune-gateway__path a:hover { transform: translate3d(0, -1px, 0); }
-.fortune-gateway__path button:focus-visible,
-.fortune-gateway__path a:focus-visible,
-.fortune-gateway__close:focus-visible { outline: 3px solid #8b1747; outline-offset: 3px; }
-
 @media (max-width: 680px) {
   #cdDiaryPlannerEntry { grid-template-columns: minmax(0, 1fr) 118px; min-height: 246px; margin: 16px 14px 0; padding: 0; border-radius: 23px; }
-  .cd-diary-planner-entry__copy { padding: 20px 0 18px 22px; }
-  .cd-diary-planner-entry h2 { max-width: 19ch; margin-block: 5px 7px; font-size: 20px; line-height: 1.17; }
-  .cd-diary-planner-entry__copy > p:not(.cd-diary-planner-entry__kicker):not(.cd-diary-planner-entry__note) { max-width: 24ch; font-size: 12px; line-height: 1.48; }
-  .cd-diary-planner-entry__points { gap: 5px; margin-top: 10px; }
-  .cd-diary-planner-entry__points li { padding: 4px 7px; font-size: 9px; }
-  .cd-diary-planner-entry__action { min-height: 42px; margin-top: 12px; padding: 8px 11px 8px 14px; font-size: 12px; }
-  .cd-diary-planner-entry__note { max-width: 24ch; margin-top: 7px; font-size: 9px; }
-  .cd-diary-planner-entry__visual::before { inset: 12px 6px 10px -24px; border-radius: 18px 0 0 18px; }
-  .cd-diary-planner-entry__visual img { width: 166px; margin: 34px -18px -7px 0; border-radius: 15px 15px 0 0; object-position: 70% center; }
-  .cd-diary-planner-entry__moon { top: 24px; right: 6%; width: 54px; }
-  .cd-diary-planner-entry__orbit--one { width: 100px; height: 100px; right: -13%; bottom: -37px; }
-  .cd-diary-planner-entry__orbit--two { width: 64px; height: 64px; right: 33%; bottom: 16px; }
-  #fortuneGatewayEntry { margin-top: 14px; padding: 0 14px 22px; }
-  .fortune-gateway__entry-shell { border-radius: 23px; padding: 22px 18px 20px; }
-  .fortune-gateway__entry-shell::after { top: 16px; right: 5%; width: 60px; }
-  .fortune-gateway__entry-copy h2 { margin-block: 5px 7px; font-size: 21px; line-height: 1.18; }
-  .fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) { font-size: 12.5px; }
+.cd-diary-planner-entry__copy { padding: 20px 0 18px 22px; }
+.cd-diary-planner-entry h2 { max-width: 19ch; margin-block: 5px 7px; font-size: 20px; line-height: 1.17; }
+.cd-diary-planner-entry__copy > p:not(.cd-diary-planner-entry__kicker):not(.cd-diary-planner-entry__note) { max-width: 24ch; font-size: 12px; line-height: 1.48; }
+.cd-diary-planner-entry__points { gap: 5px; margin-top: 10px; }
+.cd-diary-planner-entry__points li { padding: 4px 7px; font-size: 9px; }
+.cd-diary-planner-entry__action { min-height: 42px; margin-top: 12px; padding: 8px 11px 8px 14px; font-size: 12px; }
+.cd-diary-planner-entry__note { max-width: 24ch; margin-top: 7px; font-size: 9px; }
+.cd-diary-planner-entry__visual::before { inset: 12px 6px 10px -24px; border-radius: 18px 0 0 18px; }
+.cd-diary-planner-entry__visual img { width: 166px; margin: 34px -18px -7px 0; border-radius: 15px 15px 0 0; object-position: 70% center; }
+.cd-diary-planner-entry__moon { top: 24px; right: 6%; width: 54px; }
+.cd-diary-planner-entry__orbit--one { width: 100px; height: 100px; right: -13%; bottom: -37px; }
+.cd-diary-planner-entry__orbit--two { width: 64px; height: 64px; right: 33%; bottom: 16px; }
+#fortuneGatewayEntry { margin-top: 14px; padding: 0 14px 22px; }
+.fortune-gateway__entry-shell { border-radius: 23px; padding: 22px 18px 20px; }
+.fortune-gateway__entry-shell::after { top: 16px; right: 5%; width: 60px; }
+.fortune-gateway__entry-copy h2 { margin-block: 5px 7px; font-size: 21px; line-height: 1.18; }
+.fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) { font-size: 12.5px; }
   /*
    * 좁은 화면에서는 아트를 겹치지 않게 자리로 내린다. 절대배치로 두면 카드 폭이 좁아
    * 설명·가격·CTA 가 차례로 아트 위에 올라앉는다 — 유료 안내가 캐릭터 뒤로 숨는 게 제일 나쁘다.
@@ -785,7 +515,7 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
     padding: 18px 17px 16px;
     border-radius: 19px;
   }
-  .fortune-gateway__door-art {
+.fortune-gateway__door-art {
     position: relative;
     grid-column: 2;
     grid-row: 1 / span 2;
@@ -795,38 +525,19 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
     height: 96px;
     inset: auto;
   }
-  .fortune-gateway__door-kicker { grid-area: 1 / 1; }
-  .fortune-gateway__door-title { grid-area: 2 / 1; }
-  .fortune-gateway__door-desc { grid-column: 1 / -1; max-width: none; font-size: 12.5px; }
-  .fortune-gateway__door-meta { grid-column: 1 / -1; margin-top: 10px; }
-  .fortune-gateway__door-go { grid-column: 1 / -1; padding-top: 14px; }
-  .fortune-gateway__entry-note { font-size: 11.5px; }
-  .fortune-gateway__dialog { padding-inline: 14px; }
-  .fortune-gateway__choices { margin-top: 28px; }
-  .fortune-gateway__paths { grid-template-columns: 1fr; }
-  .fortune-gateway__path { grid-template-columns: 104px minmax(0, 1fr); min-height: 188px; padding: 19px 17px; border-radius: 20px; }
-  .fortune-gateway__path--fusion { grid-template-columns: 104px minmax(0, 1fr); text-align: left; }
-  .fortune-gateway__path > img,
-  .fortune-gateway__fusion-art,
-  .fortune-gateway__fusion-orb { width: 94px; height: 94px; }
-  .fortune-gateway__fusion-art { margin: 0 -8px -6px 0; }
-  .fortune-gateway__fusion-art img { width: 96px; height: 96px; }
-  .fortune-gateway__path h3 { font-size: 22px; }
-  .fortune-gateway__path p:not(.fortune-gateway__path-kicker) { font-size: 12px; }
-  .fortune-gateway__path button,
-  .fortune-gateway__path a { min-height: 44px; padding: 8px 10px; font-size: 12px; }
-  #fortuneGatewayDialog[data-fortune-gateway-view="guardian"] #guardianFortuneSection .guardian-fortune__hero { padding: 15px 16px 0; }
+.fortune-gateway__door-kicker { grid-area: 1 / 1; }
+.fortune-gateway__door-title { grid-area: 2 / 1; }
+.fortune-gateway__door-desc { grid-column: 1 / -1; max-width: none; font-size: 12.5px; }
+.fortune-gateway__door-meta { grid-column: 1 / -1; margin-top: 10px; }
+.fortune-gateway__door-go { grid-column: 1 / -1; padding-top: 14px; }
+.fortune-gateway__entry-note { font-size: 11.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cd-diary-planner-entry__action { transition: none; }
-  .cd-diary-planner-entry__action:hover { transform: none; }
+.cd-diary-planner-entry__action:hover { transform: none; }
   .fortune-gateway__door,
-  .fortune-gateway__door-go em,
-  .fortune-gateway__path button,
-  .fortune-gateway__path a { transition: none; }
+.fortune-gateway__door-go em { transition: none; }
   .fortune-gateway__door:hover,
-  .fortune-gateway__door:hover .fortune-gateway__door-go em,
-  .fortune-gateway__path button:hover,
-  .fortune-gateway__path a:hover { transform: none; }
+.fortune-gateway__door:hover .fortune-gateway__door-go em { transform: none; }
 }

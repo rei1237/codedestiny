@@ -20,17 +20,16 @@
 
 ## 결제 생성 흐름
 
-### 초융합 운세 상담권 예외 정책
+### 상담 두 기능의 회당 결제 정책 (2026-08-08 전용 재화 폐지)
 
-- 상품은 `fusion_fortune_ticket_1` / `fusion_fortune_ticket`, 상담권 1회 10,000원, 결과 1회용이다.
-- 구매는 PG만 허용하며, 일반 이용권·family 이용권·무료/이벤트권·대화권·credit·price coverage·monthly entitlement는 구매 또는 이용 수단이 될 수 없다.
-- `GET|POST /api/payments/fusion-fortune/{catalog,balance,shop-preview,prepare,confirm}`는 전용 balance/transaction만 사용한다. 일반 entitlement 또는 price coverage는 초융합 생성 가능 여부에 조회하지 않는다.
-- PG 확인 성공 후에만 purchase transaction을 적립하며 동일 `paymentId`는 unique transaction으로 중복 적립을 막는다.
-- `/fusion-fortune#ticket`의 전용 구매 UI는 서버 catalog 가격을 표시하고 `prepare → PortOne V2 → confirm` 순서만 사용한다. 클라이언트 금액은 지급 판단에 사용하지 않으며 redirect 복귀도 같은 전용 confirm 경로에서 검증한다.
-- 오늘의 귀인 대화권은 기존 `3회 10,000원`, `10회 30,000원`이며 선택한 단일 카테고리 상담에만 사용한다. 초융합 상담권과 양방향 교차 사용하지 않는다.
-- 이용권 상점의 귀인·초융합 상담권 카드는 진입 시 catalog/balance를 자동 조회하지 않는다. 사용자가 `조회하기`를 누를 때만 인증 전용 `GET /api/payments/guardian-fortune/shop-preview` 또는 `GET /api/payments/fusion-fortune/shop-preview`를 1회 호출해 서버 상품·PG 채널·가격·보유량을 함께 확인한다. 503 등 조회 실패는 미확인 상태로 남기며 자동 재시도하지 않는다.
-- 결제 취소 webhook이 들어와도 초융합 상담권은 사용 여부를 자동 판단해 회수하지 않고 관리자 검토 상태로 보낸다. 실제 환불은 별도 승인 범위다.
-- 운영 PG E2E는 배포 SHA와 인덱스 준비 상태를 확인한 뒤 사용자가 결제창에서 직접 승인하는 한 건만 수행한다.
+- 전용 재화였던 **대화권**(오늘의 귀인)과 **초융합 상담권**은 폐지됐다. 판매 라우트·잔액/원장 컬렉션·전용 상점 UI를 모두 제거했고, DB 컬렉션은 `scripts/migrations/20260808-drop-legacy-consultation-currencies.mjs` 가 드롭한다(기본 `--dry-run`, 잔액 보유 문서를 JSON 으로 덤프한 뒤에만 드롭).
+- 두 기능은 표준 회당 결제(B유형)로 옮겼다. 가격 정본은 `worker/lib/paid-feature-registry.js`.
+  - `fortune-chat-consultation` — 50코인(5,000원). 무료 3회 이후 1회.
+  - `fusion-fortune-consultation` — 300코인(30,000원). 선착순 하루 100자리와 별개다.
+- 이용권 커버는 코드 분기가 아니라 `PASS_LIMITS` 금액 상한이 정한다. 5,000원은 standard 이상, 30,000원은 family 등급만 통과하며 `FAMILY_PREMIUM_MIN_COIN_COST`(300)에 걸려 이용권 기간당 10회 정책이 그대로 적용된다.
+- 결제 증빙은 `verifyPerUsePayment(env, { userId, featureKey, coinPrice, requestId })` 가 확인한다. 🔴 `proven === null` 은 "결제 안 함"이 아니라 "DB 장애로 확인 못 함"이므로 **503(재시도 가능)** 으로 내보낸다. 402 로 내리면 이미 결제한 사용자가 결제창을 다시 본다.
+- 증빙은 `requestId` 에 묶인다. 생성이 실패하면 **같은 requestId 로 재시도**해야 추가 결제 없이 결과를 받는다. 그래서 실패·중단된 시도(`released`/`blocked`)는 409 로 잠그지 않고 다시 연다.
+- 초융합은 결제보다 **선착순 마감 검사를 먼저** 한다. 결제 후 마감을 만나면 자동 환불 경로가 없다.
 
 1. 프론트가 결제 가능한 featureKey와 사용 의도를 Worker에 보낸다.
 2. `worker/lib/payment-service.js`가 명시적 결제 방식별 정책을 판단하고, `worker/routes/billing.js`는 HTTP 어댑터로 요청을 전달한다.

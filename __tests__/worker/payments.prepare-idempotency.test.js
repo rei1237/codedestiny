@@ -111,7 +111,6 @@ describe("Payments prepare idempotency", () => {
       source: "token",
       areas: {
         moonstone: { status: "unavailable", balance: null },
-        passes: { status: "unavailable" },
         orders: { status: "deferred", hasRecentOrders: null },
       },
     });
@@ -154,14 +153,10 @@ describe("Payments prepare idempotency", () => {
       areas: {
         moonstone: { status: "ready", balance: 80 },
         membership: { status: "ready", tier: "family", isActive: true },
-        passes: { status: "unrequested" },
         orders: { status: "deferred", hasRecentOrders: null },
       },
     });
-    expect(payload.data.storeSnapshot.areas.passes.summary).toEqual([
-      expect.objectContaining({ productType: "guardian-fortune", remaining: null, detailRequired: true }),
-      expect.objectContaining({ productType: "fusion-fortune", remaining: null, detailRequired: true }),
-    ]);
+    expect(payload.data.storeSnapshot.areas.passes).toBeUndefined();
   });
 
   test("point prepare: 선불 충전 비활성 정책으로 410 POINT_CHARGE_DISABLED를 반환해야 한다", async () => {

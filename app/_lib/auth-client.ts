@@ -475,12 +475,6 @@ function authGetDedupeKey(url: string, init: RequestInit = {}, forceFresh = fals
       "/api/subscription/status",
       "/api/fortune/pig-coin/profile-subscription/status",
       "/api/fusion-fortune/status",
-      "/api/payments/guardian-fortune/catalog",
-      "/api/payments/guardian-fortune/balance",
-      "/api/payments/guardian-fortune/shop-preview",
-      "/api/payments/fusion-fortune/catalog",
-      "/api/payments/fusion-fortune/balance",
-      "/api/payments/fusion-fortune/shop-preview",
     ];
     const isOrderPath = parsed.pathname === "/api/payments/orders"
       || /^\/api\/payments\/orders\/[^/]+$/.test(parsed.pathname);
