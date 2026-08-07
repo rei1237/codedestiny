@@ -92,6 +92,39 @@ test("fusion fortune consumes server-sent completion stages", () => {
   assert.match(client, /useAiProfileSeed/);
   assert.match(css, /stageActive/);
   assert.match(css, /content-visibility:\s*auto/);
+  // 4그룹 병렬 생성이 실제 진행률로 보여야 한다 — 여섯 체계 계산 뒤 이 단계가 가장 길다.
+  assert.match(client, /streamPayload\.stage === "compose"/);
+  assert.match(client, /composeProgress/);
+  assert.match(css, /\.composeProgress/);
+});
+
+test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
+  const visual = read("app/fusion-fortune/FusionVisualization.tsx");
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  // 🔴 canvas 기반 차트는 html2canvas 캡처에서 빈 상자로 남는다. recharts 를 새로 들이지 말 것.
+  assert.match(visual, /<svg/);
+  assert.doesNotMatch(visual, /from "recharts"|<canvas/);
+  // 레이더 · 12개월 라인 · 교차 검증 게이지 세 가지를 모두 그린다.
+  assert.match(visual, /체계별 신호 강도/);
+  assert.match(visual, /앞으로 12개월의 시기 라인/);
+  assert.match(visual, /교차 검증/);
+  // 차트는 오브와 같은 색을 말해야 한다.
+  assert.match(visual, /FUSION_ORB_BY_KEY/);
+  // 도표에도 스크린리더용 설명이 붙어야 한다.
+  assert.match(visual, /role="img"/);
+  assert.match(visual, /aria-label=/);
+  // 점수를 사람의 우열로 읽히게 두지 않는다.
+  assert.match(visual, /사람을 평가하는 점수가 아닙니다/);
+  assert.match(client, /<FusionVisualization data=/);
+});
+
+test("fusion hero states the raised length contract", () => {
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const prompt = read("worker/lib/fusion-fortune-prompt.js");
+  // 30,000원으로 오른 만큼 분량 계약도 함께 올렸다. 화면 문구와 서버 계약이 어긋나면 안 된다.
+  assert.match(client, /20,000자 이상/);
+  assert.doesNotMatch(client, /10,000~15,000자/);
+  assert.match(prompt, /total: Object\.freeze\(\{ min: 20000/);
 });
 
 test("fusion fortune production switches enable the approved live flow and keep mock off", () => {
