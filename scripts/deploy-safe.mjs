@@ -422,6 +422,18 @@ async function previewStage() {
   if (worker?.previewUrl) console.log("[deploy-safe] Worker preview URL: " + worker.previewUrl);
   return { value, state };
 }
+/**
+ * Pages 프로덕션 배포를 이전 배포로 되돌린다. rollbackStage 가 쓰던 것과 같은 API 다.
+ */
+async function rollbackPagesDeployment(project, deploymentId) {
+  return cfFetch(
+    apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID
+    + "/pages/projects/" + encodeURIComponent(project)
+    + "/deployments/" + encodeURIComponent(deploymentId) + "/rollback",
+    { method: "POST" },
+  );
+}
+
 async function promote(value, state, yes) {
   assertProductionCi();
   if (!yes) throw new Error("Production promotion requires --yes.");
@@ -429,6 +441,7 @@ async function promote(value, state, yes) {
   const oldPages = (await pageDeployments(value.cf, "production")).find((item) => metadata(item).branch === value.cf.pages.productionBranch);
   const oldWorker = value.needsWorker ? await workerActive(value.cf) : null;
   let workerPromoted = false;
+  let pagesPromoted = false;
   try {
     if (value.needsWorker) {
       if (!state.worker?.versionId) throw new Error("No Worker preview version to promote.");
@@ -436,6 +449,7 @@ async function promote(value, state, yes) {
       workerPromoted = true;
     }
     const pages = await deployPages(value, value.cf.pages.productionBranch, true);
+    pagesPromoted = true;
     const next = {
       ...state,
       production: { deployedAt: new Date().toISOString(), pagesDeploymentId: pages.id, pagesUrl: productionOrigin(value), workerVersionId: state.worker?.versionId || "" },
@@ -450,13 +464,43 @@ async function promote(value, state, yes) {
     console.log("[deploy-safe] production smoke passed; commit=" + value.git.head);
   } catch (error) {
     console.error("[deploy-safe] production failed: " + error.message);
+
+    // 🔴 Pages 와 Worker 는 **함께** 되돌린다.
+    //
+    // 예전에는 Worker 만 자동 롤백하고 Pages 는 롤백 대상 ID 만 출력한 뒤 사람이 확인하도록 두었다.
+    // 그 결과 실패한 릴리스마다 프로덕션이 '새 클라이언트 + 옛 워커' 로 어긋난 채 남았고, 실패가
+    // 반복되면서 어긋남이 누적됐다. 2026-08-07 에는 그 누적이 실제 장애로 드러났다 — 라이브
+    // /me/ 가 참조하는 청크 4개가 404(bare·bypass 둘 다)였다. HTML 세대와 자산 세대가 서로
+    // 다른 배포에서 온 것이다.
+    //
+    // 롤백 순서는 승격의 역순(Pages → Worker)이다. 승격은 Worker → Pages 였으므로 LIFO 로 되돌린다.
+    // 중간 상태의 위험도도 이 순서가 낫다: '옛 클라이언트 + 새 워커'(워커 API 는 대개 하위호환)가
+    // '새 클라이언트 + 옛 워커'(새 클라이언트가 없는 API 를 부른다)보다 안전하다.
+    let pagesRolledBack = false;
+    if (pagesPromoted && oldPages?.id) {
+      try {
+        await rollbackPagesDeployment(value.cf.project, oldPages.id);
+        pagesRolledBack = true;
+        console.error("[deploy-safe] Pages rollback completed. target=" + oldPages.id);
+      } catch (rollbackError) {
+        console.error("[deploy-safe] Pages rollback failed: " + rollbackError.message);
+        console.error("[deploy-safe] Pages rollback target=" + oldPages.id + "; run deploy:rollback -- --yes manually.");
+      }
+    } else if (oldPages?.id) {
+      console.error("[deploy-safe] Pages was not promoted; nothing to roll back.");
+    }
+
     if (workerPromoted && oldWorker?.versionId) {
       try {
         capture("automatic Worker rollback", npxCommand(), wrangler(["versions", "deploy", oldWorker.versionId + "@100", "--name", value.cf.worker, "--message", "safe-auto-rollback-" + value.git.head.slice(0, 12), "--yes"]), { env: envForChecks() });
         console.error("[deploy-safe] Worker rollback completed.");
       } catch (rollbackError) { console.error("[deploy-safe] Worker rollback failed: " + rollbackError.message); }
     }
-    if (oldPages?.id) console.error("[deploy-safe] Pages rollback target=" + oldPages.id + "; run deploy:rollback -- --yes after confirmation.");
+
+    // 한쪽만 되돌아간 상태는 조용히 지나가면 안 된다 — 그게 이번 사고의 형태였다.
+    if (pagesPromoted && !pagesRolledBack && workerPromoted) {
+      console.error("::error::프로덕션이 세대 불일치 상태일 수 있습니다(Pages 새 세대 + Worker 옛 세대). 즉시 확인하세요.");
+    }
     throw error;
   }
 }
@@ -503,7 +547,7 @@ async function rollbackStage() {
     result.workerVersionId = state.rollback.workerVersionId;
   }
   if (state.rollback.pagesDeploymentId) {
-    const pages = await cfFetch(apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/pages/projects/" + encodeURIComponent(value.cf.project) + "/deployments/" + encodeURIComponent(state.rollback.pagesDeploymentId) + "/rollback", { method: "POST" });
+    const pages = await rollbackPagesDeployment(value.cf.project, state.rollback.pagesDeploymentId);
     result.pagesDeploymentId = pages?.id || state.rollback.pagesDeploymentId;
   }
   if (!Object.keys(result).length) throw new Error("Rollback record has no usable target.");

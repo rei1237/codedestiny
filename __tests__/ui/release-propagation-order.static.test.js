@@ -37,6 +37,42 @@ test("production smoke waits for Pages propagation before it runs", () => {
   );
 });
 
+// 🔴 릴리스가 실패하면 Pages 와 Worker 는 **함께** 되돌아가야 한다.
+//
+// 예전에는 Worker 만 자동 롤백하고 Pages 는 롤백 대상 ID 만 출력했다. 그래서 실패한 릴리스마다
+// 프로덕션이 '새 클라이언트 + 옛 워커' 로 어긋난 채 남았고, 실패가 반복되며 어긋남이 누적됐다.
+// 2026-08-07 에 그 누적이 실제 장애로 드러났다 — 라이브 /me/ 가 참조하는 청크 4개가
+// 404(bare·bypass 둘 다)였다. HTML 세대와 자산 세대가 서로 다른 배포에서 온 것이다.
+test("a failed release rolls back Pages together with the Worker", () => {
+  const promoteStart = deploySafe.indexOf("async function promote(");
+  const promoteEnd = deploySafe.indexOf("async function productionStage(");
+  assert.ok(promoteStart > 0 && promoteEnd > promoteStart, "promote() 범위를 찾지 못했습니다");
+  const promoteBody = deploySafe.slice(promoteStart, promoteEnd);
+
+  // Pages 승격 여부를 추적하고, 실패 경로에서 실제로 롤백을 호출한다.
+  assert.match(promoteBody, /pagesPromoted = true;/);
+  assert.match(promoteBody, /await rollbackPagesDeployment\(value\.cf\.project, oldPages\.id\)/);
+
+  // 롤백 순서는 승격의 역순(Pages → Worker)이어야 한다.
+  const pagesRollbackIndex = promoteBody.indexOf("await rollbackPagesDeployment(");
+  const workerRollbackIndex = promoteBody.indexOf('capture("automatic Worker rollback"');
+  assert.ok(pagesRollbackIndex > 0, "Pages 자동 롤백이 없습니다");
+  assert.ok(workerRollbackIndex > 0, "Worker 자동 롤백이 없습니다");
+  assert.ok(
+    pagesRollbackIndex < workerRollbackIndex,
+    "Pages 를 Worker 보다 먼저 되돌려야 합니다('새 클라이언트 + 옛 워커' 구간을 만들지 않기 위해)",
+  );
+
+  // 한쪽만 되돌아간 상태는 조용히 지나가면 안 된다.
+  assert.match(promoteBody, /세대 불일치/);
+
+  // 수동 안내로 되돌아가지 않았는지 고정한다(예전 동작).
+  assert.doesNotMatch(
+    promoteBody,
+    /Pages rollback target=" \+ oldPages\.id \+ "; run deploy:rollback -- --yes after confirmation\./,
+  );
+});
+
 // 전파 대기는 검사를 무르게 하는 것이 아니다 — 대기 후에도 자산이 죽어 있으면 실패해야 한다.
 test("the propagation wait still fails the release when assets stay dead", () => {
   const verifier = fs.readFileSync(path.join(root, "scripts/verify-deployed-assets.mjs"), "utf8");
