@@ -532,11 +532,17 @@ export async function reserveGuardianFortuneUsage({ userId, guestIdHash, dateKey
   const started = await store.beginAttempt({ requestId: safeRequestId, userId: normalizedUserId, guestIdHash: normalizedGuestHash, dateKey: safeDateKey, now });
   if (!started.created) {
     const existingStatus = String(started.attempt?.status || "");
-    return {
-      ok: false,
-      errorCode: existingStatus === "completed" ? GUARDIAN_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS : GUARDIAN_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS,
-      status: 409,
-    };
+    // released(생성 실패) · blocked(결제 전 거절)는 **끝난** 시도다. 여기서 409 로 막으면
+    // 그 requestId 로 결제한 사용자가 영원히 결과를 못 받는다 — 결제 증빙이 requestId 에
+    // 묶여 있어 새 requestId 로는 증빙이 안 잡히기 때문이다. 다시 열어 재시도를 허용한다.
+    if (existingStatus !== "released" && existingStatus !== "blocked") {
+      return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
+    }
+    await store.updateAttempt(safeRequestId, {
+      status: "reserved",
+      errorCode: "",
+      expiresAt: new Date(toDate(now).getTime() + GUARDIAN_FORTUNE_RESERVATION_TTL_MS),
+    });
   }
 
   let reserved = null;

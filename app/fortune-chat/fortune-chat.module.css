@@ -108,11 +108,55 @@
 .input button { box-shadow: 0 10px 20px -16px rgba(179, 25, 85, .84); transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
 .input button:not(:disabled):hover { background: #941343; box-shadow: 0 13px 24px -16px rgba(179, 25, 85, .9); transform: translateY(-1px); }
 
+/* 남은 무료 횟수와 유료 전환 가격을 한 줄에서 읽히게 한다. */
+.policyRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.priceBadge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(179, 25, 85, .3);
+  border-radius: 999px;
+  background: #fff2f7;
+  padding: 4px 11px;
+  color: var(--rose);
+  font-size: .76rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* 생년 정보 — 프로필 카드가 있으면 접힌 채로 요약만 보이고, 없을 때만 펼쳐 묻는다. */
+.birthPanel { margin: 0 0 9px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, .78); padding: 9px 12px; }
+.birthPanel > summary { color: var(--ink); font-size: .8rem; font-weight: 800; cursor: pointer; list-style: none; }
+.birthPanel > summary::-webkit-details-marker { display: none; }
+.birthPanel > summary::after { margin-left: 6px; color: var(--rose); content: "▾"; }
+.birthPanel[open] > summary::after { content: "▴"; }
+.birthGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.birthGrid label { display: grid; gap: 4px; min-width: 0; color: var(--muted); font-size: .74rem; font-weight: 800; }
+.birthGrid em { color: #9a7286; font-style: normal; font-weight: 600; }
+.birthGrid input,
+.birthGrid select {
+  min-height: 44px;
+  border: 1px solid rgba(179, 25, 85, .24);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 10px;
+  color: var(--ink);
+  /* iOS 확대 방지 — 16px 미만으로 낮추지 말 것. */
+  font: inherit;
+  font-size: 16px;
+}
+.birthGrid input:focus,
+.birthGrid select:focus { border-color: var(--rose); outline: none; box-shadow: 0 0 0 3px rgba(179, 25, 85, .12); }
+.birthReload { min-height: 36px; margin-top: 9px; border: 1px solid var(--line); border-radius: 999px; background: #fff; padding: 0 12px; color: var(--rose); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.birthReload:hover { background: #fff4f8; }
+.birthPanel > summary:focus-visible,
+.birthReload:focus-visible { outline: 3px solid rgba(179, 25, 85, .32); outline-offset: 3px; }
+
 @media (max-width:560px) {
   .timeline { gap: 13px; padding-top: 18px; }
   .welcomeCard { min-height: 180px; }
   .welcomeCard h1 { font-size: 1.55rem; }
   .characterPicker button { min-height: 70px; padding: 10px; }
+  .birthGrid { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion:reduce) {

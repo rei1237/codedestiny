@@ -70,6 +70,28 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect((await store.getDaily(dateKey))).toMatchObject({ successCount: 0, reserved: 0 });
   });
 
+  it("lets a paid request retry on the same id after a failed generation", async () => {
+    // 결제 증빙이 requestId 에 묶여 있어, 실패한 시도를 409 로 잠그면 3만원을 낸 사용자가
+    // 결과를 받을 길이 사라진다.
+    const dateKey = getFusionFortuneDateKey();
+    const store = emptyStore();
+    const failed = await generateFusionFortuneRequest({ input, userId: "user", requestId: "retry-same-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder: async () => ({ ok: false }) });
+    expect(failed.ok).toBe(false);
+    expect(failed.retryRequestId).toBe("retry-same-id");
+
+    const retried = await generateFusionFortuneRequest({ input, userId: "user", requestId: "retry-same-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
+    expect(retried.ok).toBe(true);
+    expect((await store.getDaily(dateKey)).successCount).toBe(1);
+  });
+
+  it("still refuses to replay a completed request", async () => {
+    const dateKey = getFusionFortuneDateKey();
+    const store = emptyStore();
+    await generateFusionFortuneRequest({ input, userId: "user", requestId: "replay-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
+    const replay = await generateFusionFortuneRequest({ input, userId: "user", requestId: "replay-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
+    expect(replay).toMatchObject({ ok: false, error: "FUSION_FORTUNE_REQUEST_IN_PROGRESS" });
+  });
+
   it("reports login, sold-out, and disabled status without consulting a wallet", async () => {
     const now = new Date("2026-08-04T04:00:00.000Z");
     expect(await buildFusionFortuneStatus({ store: emptyStore(), now })).toMatchObject({ isLoggedIn: false, nextAction: "login", canGenerate: false });
