@@ -15,13 +15,38 @@ test("fusion fortune renders the first-come premium flow and optimized hero asse
   assert.ok(fs.existsSync(path.join(root, "public/images/fusion-fortune/fusion-guardian-celestial-hero.webp")));
 });
 
-test("fusion fortune keeps ticket purchase PG-only in the client flow", () => {
+test("fusion fortune charges through the shared coin gate, not its own PortOne flow", () => {
   const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
-  assert.match(client, /fusion_fortune_ticket_1/);
-  assert.match(client, /paymentMethod: "pg"/);
-  assert.match(client, /단건 결제로 구매하기/);
-  assert.match(client, /일반 이용권·family 이용권·대화권과 별도/);
-  assert.doesNotMatch(client, /paymentMethod:\s*"(?:pass|credit|family_pass)"/);
+  // 전용 상담권을 폐지하고 표준 회당 결제로 옮겼다(300코인 = 30,000원).
+  assert.match(client, /PAID_FEATURE_KEY = "fusion-fortune-consultation"/);
+  assert.match(client, /useCoinGate/);
+  assert.match(client, /ensurePaidAccess/);
+  // 결제 게이트와 생성이 같은 requestId 를 써야 증빙이 잡힌다.
+  assert.match(client, /paidRequestIdRef/);
+  // 페이지 전용 결제창을 되살리지 말 것 — 공용 게이트만 이용권 카드를 띄운다.
+  assert.doesNotMatch(client, /cdn\.portone\.io/);
+  assert.doesNotMatch(client, /fusion_fortune_ticket_1/);
+  assert.doesNotMatch(client, /payments\/fusion-fortune\/(?:prepare|confirm|catalog)/);
+});
+
+test("fusion fortune checks the daily sell-out before taking money", () => {
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  // 결제 후 마감을 만나면 자동 환불 경로가 없다. 순서를 뒤집지 말 것.
+  const submit = client.slice(client.indexOf("const submit ="), client.indexOf("const cancelGeneration"));
+  const soldOutAt = submit.indexOf("isSoldOut");
+  const gateAt = submit.indexOf("ensurePaidAccess");
+  assert.ok(soldOutAt > -1 && gateAt > -1, "sold-out check and payment gate must both exist");
+  assert.ok(soldOutAt < gateAt, "sold-out check must run before the payment gate");
+});
+
+test("fusion orbs come from the generated crops with a documented tarot gap", () => {
+  const orbs = read("app/fusion-fortune/fusionOrbs.ts");
+  for (const key of ["saju", "ziwei", "vedic", "sukuyo", "astrology", "core"]) {
+    assert.ok(fs.existsSync(path.join(root, `public/images/fusion-fortune/orbs/${key}.webp`)), `missing orb: ${key}`);
+  }
+  // 타로 오브는 원본 시트에 없다. image: null 이면 화면이 CSS 오브로 대체한다.
+  assert.match(orbs, /key: "tarot"[\s\S]*?image: null/);
+  assert.ok(fs.existsSync(path.join(root, "scripts/build-fusion-orb-assets.mjs")));
 });
 
 test("points shop fusion ticket waits for an explicit preview and never falls back to a client price", () => {
@@ -55,7 +80,7 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(css, /content-visibility:\s*auto/);
 });
 
-test("fusion fortune consumes server-sent completion stages without changing its PG-only ticket flow", () => {
+test("fusion fortune consumes server-sent completion stages", () => {
   const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
   const css = read("app/fusion-fortune/fusion-fortune.module.css");
   assert.match(client, /fusion-fortune\/generate\/stream/);
@@ -74,7 +99,6 @@ test("fusion fortune production switches enable the approved live flow and keep 
   for (const flag of [
     "ENABLE_FUSION_FORTUNE_UI",
     "ENABLE_FUSION_FORTUNE_API",
-    "ENABLE_FUSION_FORTUNE_TICKET_SALES",
     "ENABLE_FUSION_FORTUNE_REAL_LLM",
     "ALLOW_FUSION_FORTUNE_REAL_LLM",
   ]) {
@@ -83,14 +107,15 @@ test("fusion fortune production switches enable the approved live flow and keep 
   assert.match(wrangler, /ENABLE_FUSION_FORTUNE_MOCK_FLOW\s*=\s*"false"/);
 });
 
-test("family shop copy explicitly excludes the dedicated fusion ticket", () => {
+test("family shop copy states the real fusion coverage", () => {
   const points = read("app/points/PointsClient.tsx");
   const html = read("index.html");
-  assert.match(points, /초융합 제외 · 3만원 미만 무제한/);
-  assert.match(points, /초융합 운세는 별도 상담권 필요/);
-  assert.match(points, /Family도 초융합 운세는 별도 상담권이 필요/);
+  // family 는 초융합을 커버한다(이용권 기간당 10회). "별도 상담권" 문구는 사실과 다르다.
+  assert.match(points, /초융합 포함 전문가 상담 10회/);
+  assert.doesNotMatch(points, /초융합 제외/);
+  assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
-  assert.match(html, /초융합 제외 3만원 미만 기능 무제한/);
+  assert.match(html, /3만원 미만 기능 무제한 · 초융합 포함 전문가 상담 10회/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
 });
 

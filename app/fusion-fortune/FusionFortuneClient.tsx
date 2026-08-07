@@ -7,14 +7,17 @@ import { useSearchParams } from "next/navigation";
 import { authFetch } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
+import { useCoinGate } from "../hooks/useCoinGate";
+import { PriceBadge } from "../components/PriceBadge";
+import { FUSION_CORE_ORB, FUSION_ORB_BY_KEY, type FusionSystemKey } from "./fusionOrbs";
 import styles from "./fusion-fortune.module.css";
 
 type Status = {
   isLoggedIn: boolean;
-  ticket: { remaining: number; canUse: boolean };
+  pricing?: { featureKey?: string };
   dailyLimit: { remainingCount: number; isSoldOut: boolean; nextResetAt?: string };
   canGenerate: boolean;
-  nextAction: "login" | "buy_ticket" | "generate" | "sold_out" | "disabled";
+  nextAction: "login" | "generate" | "sold_out" | "disabled";
   message: string;
   cta?: { targetPath: string };
 };
@@ -29,10 +32,6 @@ type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSe
   shareText?: string;
 };
 
-type TicketProduct = { productId: string; productType: string; name: string; priceKRW: number; ticketAmount: number; description: string; allowedPurchaseChannels: string[] };
-type TicketOrder = { merchantUid: string; product: TicketProduct; customer?: { customerId?: string; fullName?: string; email?: string; phoneNumber?: string }; redirectUrl?: string };
-type PortOneConfig = { storeId: string; channelKey: string; currency?: string; payMethod?: string; noticeUrl?: string };
-type PortOneResponse = { paymentId?: string; code?: string; message?: string };
 type BirthPlaceOption = { label: string; tz: string; lon: number; lat: number; country?: string };
 type BirthPlaceGroup = { label?: string; places?: BirthPlaceOption[] };
 type FusionStageKey = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology" | "tarot" | "fusion";
@@ -44,16 +43,20 @@ declare global {
 
 const EMPTY_STATUS: Status = {
   isLoggedIn: false,
-  ticket: { remaining: 0, canUse: false },
   dailyLimit: { remainingCount: 100, isSoldOut: false },
   canGenerate: false,
   nextAction: "disabled",
   message: "이용 상태를 확인하고 있어요.",
 };
 
+/** 회당 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js (300코인 = 30,000원). */
+const PAID_FEATURE_KEY = "fusion-fortune-consultation";
+const PAID_COIN_PRICE = 300;
+const PAID_AMOUNT_KRW = 30000;
+
 const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection", "integratedReading"] as const;
-const SECTION_ICONS = ["木", "紫", "ॐ", "宿", "✦", "◇", "∞"];
-const FUSION_PENDING_PAYMENT_KEY = "fusion_fortune_pending_payment";
+/** 섹션 순서와 같은 체계 키 — 결과 헤더에 그 체계의 오브를 띄운다. */
+const SECTION_SYSTEM_KEYS: (FusionSystemKey | "fusion")[] = ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot", "fusion"];
 const DEFAULT_BIRTH_PLACES: BirthPlaceOption[] = [{ label: "대한민국 · 서울", tz: "Asia/Seoul", lon: 126.978, lat: 37.5665, country: "KR" }];
 const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
 const FUSION_STAGES: { key: FusionStageKey; label: string; message: string }[] = [
@@ -70,39 +73,35 @@ function initialStageStates(): Record<FusionStageKey, FusionStageState> {
   return FUSION_STAGES.reduce((states, stage) => ({ ...states, [stage.key]: "pending" }), {} as Record<FusionStageKey, FusionStageState>);
 }
 
-function FusionOrb() {
+/**
+ * 여섯 체계가 도는 융합 코어. 원본 오브 이미지를 쓰고 궤도는 CSS 로 돈다
+ * (scripts/build-fusion-orb-assets.mjs 산출물).
+ */
+function FusionOrb({ stageStates }: { stageStates?: Record<FusionStageKey, FusionStageState> }) {
   return (
-    <svg className={styles.orb} viewBox="0 0 240 240" role="img" aria-label="여섯 운세 체계가 연결된 초융합 오브">
-      <defs><radialGradient id="fusionCore"><stop stopColor="#fff8d8" /><stop offset=".4" stopColor="#dec8ff" /><stop offset="1" stopColor="#352756" /></radialGradient></defs>
-      <circle cx="120" cy="120" r="103" className={styles.orbit} />
-      {[0, 60, 120, 180, 240, 300].map((degree) => {
-        const radians = degree * Math.PI / 180;
-        return <g key={degree}><line x1="120" y1="120" x2={120 + Math.cos(radians) * 84} y2={120 + Math.sin(radians) * 84} className={styles.ray} /><circle cx={120 + Math.cos(radians) * 90} cy={120 + Math.sin(radians) * 90} r="10" className={styles.node} /></g>;
-      })}
-      <circle cx="120" cy="120" r="53" fill="url(#fusionCore)" className={styles.core} />
-      <path d="M95 120h50M120 95v50" className={styles.coreMark} />
-    </svg>
+    <div className={styles.orbStage}>
+      <Image className={styles.orbCore} src={FUSION_CORE_ORB} alt="여섯 운세 체계가 하나로 모인 초융합 코어" width={512} height={512} priority />
+      <div className={styles.orbRing} aria-hidden>
+        {FUSION_STAGES.filter((stage) => stage.key !== "fusion").map((stage, index, all) => {
+          const orb = FUSION_ORB_BY_KEY[stage.key as FusionSystemKey];
+          const angle = (index / all.length) * 360;
+          const state = stageStates?.[stage.key] || "pending";
+          return (
+            <span
+              key={stage.key}
+              className={styles.orbSatellite}
+              data-state={state}
+              style={{ "--angle": `${angle}deg`, "--tint": orb?.tint } as React.CSSProperties}
+            >
+              {orb?.image
+                ? <Image src={orb.image} alt="" width={320} height={320} />
+                : <em />}
+            </span>
+          );
+        })}
+      </div>
+    </div>
   );
-}
-
-function ensurePortOneSdk() {
-  return new Promise<void>((resolve, reject) => {
-    const portOneWindow = window as Window & { PortOne?: { requestPayment: (request: Record<string, unknown>) => Promise<PortOneResponse> } };
-    if (portOneWindow.PortOne?.requestPayment) return resolve();
-    const existing = document.getElementById("portone-v2-sdk") as HTMLScriptElement | null;
-    if (existing) {
-      existing.addEventListener("load", () => portOneWindow.PortOne?.requestPayment ? resolve() : reject(new Error("결제 모듈을 준비하지 못했어요.")), { once: true });
-      existing.addEventListener("error", () => reject(new Error("결제 모듈을 불러오지 못했어요.")), { once: true });
-      return;
-    }
-    const script = document.createElement("script");
-    script.id = "portone-v2-sdk";
-    script.src = "https://cdn.portone.io/v2/browser-sdk.js";
-    script.async = true;
-    script.onload = () => portOneWindow.PortOne?.requestPayment ? resolve() : reject(new Error("결제 모듈을 준비하지 못했어요."));
-    script.onerror = () => reject(new Error("결제 모듈을 불러오지 못했어요."));
-    document.body.appendChild(script);
-  });
 }
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -160,16 +159,18 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   const apiBase = getApiBaseUrl();
   const searchParams = useSearchParams();
   const fortuneChatSessionId = searchParams?.get("fortuneChatSession") || "";
+  const { ensurePaidAccess, isPaying } = useCoinGate();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
-  const [purchaseBusy, setPurchaseBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [ticketProduct, setTicketProduct] = useState<TicketProduct | null>(null);
-  const [paymentPhone, setPaymentPhone] = useState("");
   const [birthPlaces, setBirthPlaces] = useState<BirthPlaceOption[]>(DEFAULT_BIRTH_PLACES);
-  const redirectHandled = useRef(false);
+  /**
+   * 결제 증빙은 requestId 에 묶인다. 생성이 실패하면 **같은 id 로** 다시 보내야
+   * 추가 결제 없이 결과를 받는다(worker/lib/fusion-fortune.js 의 retryRequestId 계약).
+   */
+  const paidRequestIdRef = useRef("");
   const requestAbortRef = useRef<AbortController | null>(null);
   const profileTouchedRef = useRef(false);
   const coreDialogRef = useRef<HTMLDialogElement>(null);
@@ -189,28 +190,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     }
   }, [apiBase]);
 
-  const loadCatalog = useCallback(async () => {
-    try {
-      const response = await authFetch(`${apiBase}/api/payments/fusion-fortune/catalog`, { credentials: "include" }, { retryOn401: true, apiBase });
-      const payload = await parseJson<{ enabled?: boolean; products?: TicketProduct[] }>(response);
-      if (response.ok && payload.enabled !== false) setTicketProduct(payload.products?.find((item) => item.productId === "fusion_fortune_ticket_1") || null);
-    } catch {
-      setTicketProduct(null);
-    }
-  }, [apiBase]);
-
-  const confirmPayment = useCallback(async (merchantUid: string, providerPaymentId = merchantUid) => {
-    const response = await authFetch(`${apiBase}/api/payments/fusion-fortune/confirm`, {
-      method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ merchantUid, paymentId: providerPaymentId }),
-    }, { retryOn401: true, apiBase });
-    const payload = await parseJson<{ ok?: boolean; message?: string }>(response);
-    if (!response.ok || payload.ok === false) throw new Error(payload.message || "결제 확인에 실패했어요.");
-    sessionStorage.removeItem(FUSION_PENDING_PAYMENT_KEY);
-    setNotice("초융합 운세 상담권 1회가 충전되었어요.");
-    await refresh();
-  }, [apiBase, refresh]);
-
-  useEffect(() => { void Promise.all([refresh(), loadCatalog()]); }, [loadCatalog, refresh]);
+  useEffect(() => { void refresh(); }, [refresh]);
 
   useEffect(() => {
     if (!profileSeed || profileTouchedRef.current) return;
@@ -268,69 +248,40 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     document.head.appendChild(script);
   }, []);
 
-  useEffect(() => {
-    if (redirectHandled.current || typeof window === "undefined") return;
-    const query = new URLSearchParams(window.location.search);
-    if (query.get("fusion_fortune_payment") !== "1") return;
-    const merchantUid = String(query.get("merchantUid") || "").trim();
-    const pending = sessionStorage.getItem(FUSION_PENDING_PAYMENT_KEY);
-    if (!merchantUid || pending !== merchantUid) return;
-    redirectHandled.current = true;
-    setPurchaseBusy(true);
-    void confirmPayment(merchantUid).catch((cause) => setError(cause instanceof Error ? cause.message : "결제 확인에 실패했어요.")).finally(() => {
-      setPurchaseBusy(false);
-      window.history.replaceState({}, "", "/fusion-fortune#ticket");
-    });
-  }, [confirmPayment]);
-
   const resetTime = useMemo(() => status.dailyLimit.nextResetAt
     ? new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" }).format(new Date(status.dailyLimit.nextResetAt))
     : "자정", [status.dailyLimit.nextResetAt]);
   const usedPercent = Math.min(100, Math.max(0, 100 - status.dailyLimit.remainingCount));
 
-  const startPurchase = async () => {
-    setError(""); setNotice("");
-    if (!status.isLoggedIn) { window.location.assign("/auth/login"); return; }
-    if (!ticketProduct) { setError("초융합 운세 상담권 판매 상태를 확인하지 못했어요."); return; }
-    const phoneNumber = paymentPhone.replace(/\D/g, "");
-    if (phoneNumber.length < 10 || phoneNumber.length > 11) { setError("결제에 사용할 휴대전화 번호를 확인해 주세요."); return; }
-    setPurchaseBusy(true);
-    try {
-      const idempotencyKey = window.crypto.randomUUID();
-      const prepareResponse = await authFetch(`${apiBase}/api/payments/fusion-fortune/prepare`, {
-        method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: ticketProduct.productId, productType: ticketProduct.productType, paymentMethod: "pg", idempotencyKey }),
-      }, { retryOn401: true, apiBase });
-      const prepared = await parseJson<{ order?: TicketOrder; message?: string }>(prepareResponse);
-      if (!prepareResponse.ok || !prepared.order) throw new Error(prepared.message || "결제 준비에 실패했어요.");
-      const configResponse = await authFetch(`${apiBase}/api/payments/config`, { credentials: "include" }, { retryOn401: false, apiBase });
-      const config = await parseJson<PortOneConfig & { message?: string }>(configResponse);
-      if (!configResponse.ok || !config.storeId || !config.channelKey) throw new Error(config.message || "결제 설정을 확인하지 못했어요.");
-      await ensurePortOneSdk();
-      const order = prepared.order;
-      sessionStorage.setItem(FUSION_PENDING_PAYMENT_KEY, order.merchantUid);
-      const portOneWindow = window as Window & { PortOne?: { requestPayment: (request: Record<string, unknown>) => Promise<PortOneResponse> } };
-      if (!portOneWindow.PortOne?.requestPayment) throw new Error("결제 모듈을 준비하지 못했어요.");
-      const payment = await portOneWindow.PortOne.requestPayment({
-        storeId: config.storeId, channelKey: config.channelKey, paymentId: order.merchantUid, orderName: order.product.name,
-        totalAmount: order.product.priceKRW, currency: config.currency || "CURRENCY_KRW", payMethod: config.payMethod || "CARD",
-        redirectUrl: `${window.location.origin}/fusion-fortune?fusion_fortune_payment=1&merchantUid=${encodeURIComponent(order.merchantUid)}`,
-        customer: { ...order.customer, phoneNumber },
-        customData: { productId: order.product.productId, productType: order.product.productType },
-        ...(config.noticeUrl ? { noticeUrls: [config.noticeUrl] } : {}),
-      });
-      if (!payment || payment.code || !payment.paymentId) { sessionStorage.removeItem(FUSION_PENDING_PAYMENT_KEY); throw new Error(payment?.message || "결제가 취소되었어요."); }
-      await confirmPayment(order.merchantUid, payment.paymentId);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "결제를 진행하지 못했어요.");
-    } finally { setPurchaseBusy(false); }
-  };
-
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(""); setNotice("");
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
-    if (status.nextAction === "buy_ticket") { document.getElementById("ticket")?.scrollIntoView({ behavior: "smooth" }); return; }
     if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError("생년월일과 생시를 입력하거나, 생시를 모르는 경우를 선택해 주세요."); return; }
+
+    // 🔴 마감 확인이 결제보다 먼저다. 결제 후 마감을 만나면 자동 환불 경로가 없다.
+    await refresh();
+    if (status.dailyLimit.isSoldOut) { setError("오늘 선착순 100자리가 모두 찼어요. 내일 다시 열립니다."); return; }
+
+    // 앞선 시도가 결제까지 끝났다면 그 requestId 를 재사용한다 — 새 id 로 보내면 증빙을
+    // 못 찾아 이미 낸 3만원이 사라진다.
+    let requestId = paidRequestIdRef.current;
+    if (!requestId) {
+      requestId = `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const gate = await ensurePaidAccess({
+        featureKey: PAID_FEATURE_KEY,
+        coinPrice: PAID_COIN_PRICE,
+        amountKRW: PAID_AMOUNT_KRW,
+        reason: "초융합 운세 상담 1회",
+        requestId,
+      });
+      if (!gate.ok) {
+        if (gate.code === "AUTH_REQUIRED") { window.location.assign("/auth/login"); return; }
+        if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+      paidRequestIdRef.current = requestId;
+    }
+
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -351,7 +302,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       };
       const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
         method: "POST", credentials: "include", signal: controller.signal,
-        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify(requestBody),
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId },
+        body: JSON.stringify({ ...requestBody, requestId }),
       }, { retryOn401: true, apiBase });
       const payload = await consumeFusionStream(response, (streamEvent, streamPayload) => {
         if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
@@ -382,9 +334,13 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         }, { retryOn401: true, apiBase });
         window.setTimeout(() => window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`), 300);
       }
+      // 결과를 받았으면 이 결제는 소진됐다. 다음 상담은 새로 결제한다.
+      paidRequestIdRef.current = "";
     } catch (cause) {
-      if ((cause as Error)?.name === "AbortError") setNotice("분석을 중단했어요. 완료 전 중단된 요청은 상담권과 선착순 자리를 차감하지 않아요.");
-      else setError(cause instanceof Error ? cause.message : "결과를 생성하지 못했어요.");
+      // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
+      // (선착순 자리 + 추가 결제 없는 재시도)만 안내한다. requestId 는 그대로 들고 있는다.
+      if ((cause as Error)?.name === "AbortError") setNotice("분석을 중단했어요. 오늘의 선착순 자리는 차감되지 않았고, 다시 시도해도 추가 결제는 없습니다.");
+      else setError(cause instanceof Error ? cause.message : "결과를 생성하지 못했어요. 다시 시도해도 추가 결제는 없습니다.");
     } finally {
       if (requestAbortRef.current === controller) requestAbortRef.current = null;
       setLoading(false);
@@ -403,7 +359,15 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     } catch (cause) { if ((cause as Error)?.name !== "AbortError") setError("공유하지 못했어요. 잠시 후 다시 시도해 주세요."); }
   };
 
-  const buttonLabel = loading ? "여섯 전문가의 흐름을 엮는 중…" : status.nextAction === "login" ? "로그인하고 이용권 확인하기" : status.nextAction === "buy_ticket" ? "이용권 구매 영역으로 이동" : "초융합 운세 생성하기";
+  const buttonLabel = loading
+    ? "여섯 전문가의 흐름을 엮는 중…"
+    : isPaying
+      ? "결제를 확인하고 있어요"
+      : status.nextAction === "login"
+        ? "로그인하고 시작하기"
+        : paidRequestIdRef.current
+          ? "추가 결제 없이 다시 시도하기"
+          : "초융합 운세 생성하기";
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
   const leaveExperience = useCallback(() => {
     const fallback = "/#fortune-gateway";
@@ -432,7 +396,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <Link className={styles.guardianLink} href="/#guardian-fortune">오늘의 귀인에서 이어지는 프리미엄 리딩</Link>
         <p className={styles.kicker}>초융합 운세</p><h1>여섯 개의 해석을<br />하나의 상담으로</h1>
         <p>사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 지금의 선택과 현실 행동으로 하나로 엮습니다.</p>
-        <div className={styles.heroMeta}><span className={styles.firstCome}>선착순! 하루 100명</span><span>1회 10,000원</span><span>10,000~15,000자</span></div>
+        <div className={styles.heroMeta}><span className={styles.firstCome}>선착순! 하루 100명</span><PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.heroPrice} /><span>10,000~15,000자</span></div>
         <p className={styles.chatLead}>Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.</p>
       </div>
       <FusionOrb />
@@ -447,10 +411,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     <section className={styles.panel}>
       <div className={styles.status}>
         <div><span>오늘 선착순 남은 자리</span><strong>{status.dailyLimit.remainingCount} / 100</strong><div className={styles.progress}><i style={{ width: `${usedPercent}%` }} /></div><small>성공 결과가 완성된 순서대로 자리가 확정돼요.</small></div>
-        <div><span>초융합 운세 상담권</span><strong>{status.ticket.remaining}회</strong><small>일반 이용권·family 이용권·대화권과 별도예요.</small></div>
+        <div><span>이용 방식</span><strong>회당 결제</strong><small>결제창에서 이용권·단건·월정석을 함께 고를 수 있어요. family 이용권은 커버됩니다.</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">Fusion Core 진행 방식 보기</button>
       </div>
-      {status.dailyLimit.isSoldOut ? <div className={styles.sold}><p className={styles.kicker}>오늘 선착순 마감</p><h2>오늘의 100자리가 모두 채워졌어요.</h2><p>이용권은 차감되지 않았습니다. 다음 접수는 한국 시간 {resetTime} 이후에 열립니다.</p><div className={styles.soldLinks}><Link href="/#guardian-fortune">오늘의 귀인 보기</Link><Link href="/tarot">타로 둘러보기</Link></div></div> : <form className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+      {status.dailyLimit.isSoldOut ? <div className={styles.sold}><p className={styles.kicker}>오늘 선착순 마감</p><h2>오늘의 100자리가 모두 채워졌어요.</h2><p>결제는 진행되지 않았습니다. 다음 접수는 한국 시간 {resetTime} 이후에 열립니다.</p><div className={styles.soldLinks}><Link href="/#guardian-fortune">오늘의 귀인 보기</Link><Link href="/tarot">타로 둘러보기</Link></div></div> : <form className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
         <div className={styles.formIntro}><p className={styles.kicker}>Fusion AI · 상담 시작</p><h2>정확한 생시로 여섯 체계를 연결해요</h2><p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p>{guardianHandoff && <p className={styles.handoffNotice}>연이가 남긴 <strong>{guardianHandoff.topic}</strong> 주제만 이어받았어요. 개인 대화와 결과 원문은 가져오지 않았습니다.</p>}<button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>저장한 프로필 다시 불러오기</button></div>
         <label>생년월일<input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
         <label>생시<input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
@@ -461,24 +425,34 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <label>관심 주제<select value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })}><option>삶의 전반적인 흐름</option><option>연애와 관계</option><option>일과 돈</option><option>마음과 회복</option></select></label>
         <label className={styles.wide}>고민 <em>(선택)</em><textarea maxLength={1000} value={form.concern} onChange={(event) => setForm({ ...form, concern: event.target.value })} placeholder="개인 식별 정보는 적지 말아 주세요." /></label>
         <p className={styles.notice}>{status.message}</p>{notice && <p className={styles.success} role="status">{notice}</p>}{error && <p className={styles.error} role="alert">{error}</p>}
-        <button disabled={loading || status.nextAction === "disabled"} type="submit">{buttonLabel}</button>
+        <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">{buttonLabel}</button>
       </form>}
       {loading && <section className={styles.progressCanvas} aria-live="polite" aria-label="초융합 분석 진행 상황">
-        <div className={styles.progressOrb}><FusionOrb /></div>
+        <div className={styles.progressOrb}><FusionOrb stageStates={stageStates} /></div>
         <div><p className={styles.kicker}>Fusion Core 활성화</p><h2>{FUSION_STAGES.find((stage) => stageStates[stage.key] === "active")?.message || "분석 준비를 확인하고 있어요."}</h2><p>각 항목은 서버에서 실제 분석이 완료된 뒤 표시됩니다.</p></div>
-        <ol className={styles.stageList}>{FUSION_STAGES.map((stage) => <li className={stageStates[stage.key] === "completed" ? styles.stageComplete : stageStates[stage.key] === "active" ? styles.stageActive : styles.stagePending} key={stage.key}><span>{stageStates[stage.key] === "completed" ? "완료" : stageStates[stage.key] === "active" ? "진행 중" : "대기"}</span>{stage.label}</li>)}</ol>
+        <ol className={styles.stageList}>{FUSION_STAGES.map((stage) => {
+          const orb = stage.key === "fusion" ? null : FUSION_ORB_BY_KEY[stage.key as FusionSystemKey];
+          const state = stageStates[stage.key];
+          return <li className={state === "completed" ? styles.stageComplete : state === "active" ? styles.stageActive : styles.stagePending} key={stage.key}>
+            <i className={styles.stageOrb} style={{ "--tint": orb?.tint || "#e8d5a3" } as React.CSSProperties} aria-hidden>
+              {orb?.image ? <Image src={orb.image} alt="" width={320} height={320} /> : <em />}
+            </i>
+            <span>{state === "completed" ? "완료" : state === "active" ? "진행 중" : "대기"}</span>{stage.label}
+          </li>;
+        })}</ol>
         <button className={styles.cancelGeneration} type="button" onClick={cancelGeneration}>분석 중단하기</button>
       </section>}
     </section>
 
-    {!status.dailyLimit.isSoldOut && status.ticket.remaining < 1 && <section className={styles.ticket} id="ticket" aria-labelledby="fusion-ticket-heading">
-      <div><p className={styles.kicker}>별도 프리미엄 상담권</p><h2 id="fusion-ticket-heading">초융합 운세 상담권</h2><p>{ticketProduct?.description || "여섯 운세 체계를 한 번에 엮어 1만자 이상의 깊은 전체 운세를 볼 수 있어요."}</p><ul><li>상담권 1회로 결과 1회 생성</li><li>PG 단건 결제로만 구매</li><li>생성 실패 또는 선착순 마감 시 미차감</li></ul></div>
-      <div className={styles.ticketAction}><strong>{(ticketProduct?.priceKRW || 10000).toLocaleString("ko-KR")}원</strong><label>결제용 휴대전화 번호<input inputMode="numeric" autoComplete="tel" value={paymentPhone} onChange={(event) => setPaymentPhone(event.target.value)} placeholder="01012345678" maxLength={13} /></label><button type="button" disabled={purchaseBusy || !ticketProduct} onClick={() => void startPurchase()}>{purchaseBusy ? "결제 준비 중…" : "단건 결제로 구매하기"}</button><small>실제 결제 전 PG 결제창에서 금액을 다시 확인할 수 있어요.</small></div>
-    </section>}
-
     {result && <section className={styles.result}><header><p className={styles.kicker}>Fusion AI · 결과 대화</p><h2>{result.title}</h2><p>{result.openingMessage}</p></header><article className={styles.summary}>{result.executiveSummary}</article>{SECTION_KEYS.map((key, index) => {
       const expanded = openSection === key || (!openSection && index === 0);
-      return <article className={styles.resultMessage} key={key}><h3><button type="button" aria-expanded={expanded} aria-controls={`fusion-section-${key}`} onClick={() => toggleSection(key)}><span>{SECTION_ICONS[index]}</span>{result[key].title}<b>{expanded ? "접기" : "근거 보기"}</b></button></h3>{expanded && <div id={`fusion-section-${key}`} className={styles.sectionBody}><p>{result[key].content}</p><ul>{result[key].keyPoints.map((point) => <li key={point}>{point}</li>)}</ul></div>}</article>;
+      const systemKey = SECTION_SYSTEM_KEYS[index];
+      const orb = systemKey === "fusion" ? null : FUSION_ORB_BY_KEY[systemKey];
+      return <article className={styles.resultMessage} key={key}><h3><button type="button" aria-expanded={expanded} aria-controls={`fusion-section-${key}`} onClick={() => toggleSection(key)}>
+        <span className={styles.sectionOrb} style={{ "--tint": orb?.tint || "#e8d5a3" } as React.CSSProperties}>
+          {orb?.image ? <Image src={orb.image} alt="" width={320} height={320} /> : <em />}
+        </span>
+        {result[key].title}<b>{expanded ? "접기" : "근거 보기"}</b></button></h3>{expanded && <div id={`fusion-section-${key}`} className={styles.sectionBody}><p>{result[key].content}</p><ul>{result[key].keyPoints.map((point) => <li key={point}>{point}</li>)}</ul></div>}</article>;
     })}{(() => {
       const timingKey = "timing";
       const expanded = openSection === timingKey;
@@ -489,7 +463,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       <p className={styles.kicker}>Fusion Core</p><h2 id="fusion-core-dialog-title">완료된 분석만 연결합니다</h2>
       <p>사주, 자미두수, 숙요, 베다점, 점성술, 타로를 각각 마친 뒤 마지막에 하나의 읽기로 융합합니다.</p>
       <ol>{FUSION_STAGES.map((stage) => <li key={stage.key}><strong>{stage.label}</strong><span>{stage.message}</span></li>)}</ol>
-      <p className={styles.dialogNote}>중단·실패한 분석은 완료 전 예약을 해제하며, 결과가 완성될 때만 상담권과 오늘의 자리가 확정됩니다.</p>
+      <p className={styles.dialogNote}>중단·실패한 분석은 오늘의 자리를 되돌리며, 같은 요청을 다시 보내면 추가 결제 없이 이어집니다.</p>
     </dialog>
     {seoContent}
   </main>;
