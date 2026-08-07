@@ -156,17 +156,27 @@
    표정 시트 한 장에서 셀 하나를 잘라 쓴다(app/fortune-chat/personaSprite.ts).
    장식이 아니라 상태 표시라, 듣는 중과 읽어주는 중이 다른 얼굴로 나온다. */
 .avatar {
+  position: relative;
   display: block;
   flex: 0 0 auto;
-  background-repeat: no-repeat;
+  overflow: hidden;
   border-radius: 50%;
-  /* 시트가 흰 여백 없는 투명 PNG라 원형 마스크 안에서 얼굴이 위쪽에 앉는다. */
   background-color: color-mix(in srgb, var(--rose-soft) 42%, transparent);
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-.avatar_sm { width: 34px; height: 34px; }
-.avatar_md { width: 46px; height: 46px; }
+/*
+ * 작은 원반에서는 전신 컷을 그대로 넣으면 얼굴이 콩알만 해진다. cover 로 채우고
+ * 위쪽(얼굴)을 기준으로 맞춘다. 전역 img 회색 베이스라인도 여기서 끈다.
+ */
+.avatar :global(img) {
+  object-fit: cover;
+  object-position: 50% 16%;
+  background: transparent;
+}
+
+.avatar_sm { width: 40px; height: 40px; }
+.avatar_md { width: 54px; height: 54px; }
 .avatar_lg { width: 132px; height: 132px; border-radius: 28px; }
 
 .room[data-character="neo"] .avatar {
@@ -181,13 +191,20 @@
   position: absolute;
   right: 8px;
   bottom: 10px;
-  width: clamp(132px, 32vw, 186px);
-  height: clamp(132px, 32vw, 186px);
+  overflow: visible;
+  width: clamp(148px, 34vw, 208px);
+  height: clamp(148px, 34vw, 208px);
   border-radius: 0;
   background-color: transparent;
   box-shadow: none;
   filter: drop-shadow(0 14px 18px rgba(70, 20, 44, .22));
   animation: personaBreathe 5.5s ease-in-out infinite;
+}
+
+/* 웰컴 카드에서는 캐릭터가 잘리면 안 된다 — 전신을 비율 그대로 보여준다. */
+.room .welcomeCard .avatar_lg :global(img) {
+  object-fit: contain;
+  object-position: 50% 100%;
 }
 
 .room[data-character="neo"] .welcomeCard .avatar_lg {
@@ -408,8 +425,9 @@
   .welcomeCard span { max-width: 22ch; }
   .characterPicker button { min-height: 70px; padding: 10px 9px; column-gap: 8px; }
   .characterPicker small { font-size: .68rem; line-height: 1.25; white-space: normal; }
-  .avatar_md { width: 38px; height: 38px; }
-  .room .welcomeCard .avatar_lg { right: 2px; bottom: 6px; width: clamp(112px, 34vw, 150px); height: clamp(112px, 34vw, 150px); }
+  .avatar_sm { width: 36px; height: 36px; }
+  .avatar_md { width: 46px; height: 46px; }
+  .room .welcomeCard .avatar_lg { right: 2px; bottom: 6px; width: clamp(128px, 36vw, 168px); height: clamp(128px, 36vw, 168px); }
   .birthGrid { grid-template-columns: minmax(0, 1fr); }
 }
 

@@ -1,4 +1,6 @@
 #fortuneGatewayEntry {
+  /* 🔴 상위 셸이 text-align:center 를 상속시킨다. 이 진입점은 좌측 정렬 전제라 여기서 끊는다. */
+  text-align: left;
   max-width: 1180px;
   margin: 20px auto 0;
   padding: 0 20px 30px;
@@ -222,7 +224,7 @@
   margin: 7px 0 9px;
   color: #3c1830;
   font-family: var(--font-display, Georgia, serif);
-  font-size: clamp(24px, 3.4vw, 37px);
+  font-size: clamp(23px, 2.7vw, 31px);
   font-weight: 700;
   letter-spacing: -.04em;
   line-height: 1.14;
@@ -232,11 +234,12 @@
 }
 
 .fortune-gateway__entry-copy > p:not(.fortune-gateway__eyebrow) {
-  max-width: 48ch;
+  max-width: 52ch;
   margin: 0;
   color: #70445c;
   font-size: 14px;
   line-height: 1.62;
+  word-break: keep-all;
 }
 
 /* ── 두 개의 문 ──────────────────────────────────────────────── */
@@ -255,9 +258,9 @@
   flex-direction: column;
   align-items: flex-start;
   overflow: hidden;
-  min-height: 258px;
+  min-height: 274px;
   border-radius: 22px;
-  padding: 22px 22px 20px;
+  padding: 24px 24px 22px;
   text-decoration: none;
   transition: transform 220ms cubic-bezier(.22, 1, .36, 1), box-shadow 220ms cubic-bezier(.22, 1, .36, 1);
 }
@@ -283,13 +286,13 @@
 
 .fortune-gateway__door-art {
   position: absolute;
-  right: -10px;
-  bottom: -12px;
+  right: -18px;
+  bottom: -18px;
   z-index: -1;
   display: grid;
   place-items: center;
-  width: 168px;
-  height: 168px;
+  width: 208px;
+  height: 208px;
   pointer-events: none;
 }
 
@@ -299,9 +302,13 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  /* 🔴 styles/fortune-ui.css 의 전역 `img { background-color:#e5e5e5 }` 는 깨진 이미지용
+     베이스라인이다. 투명 배경 아트에는 그대로 회색 사각형이 깔리므로 여기서 끈다. */
+  background: transparent;
 }
 
-.fortune-gateway__door--chat .fortune-gateway__door-art img { filter: drop-shadow(0 14px 16px rgba(101, 37, 74, .2)); }
+.fortune-gateway__door--chat .fortune-gateway__door-art img { filter: drop-shadow(0 16px 18px rgba(101, 37, 74, .24)); }
+.fortune-gateway__door--fusion .fortune-gateway__door-art img { filter: drop-shadow(0 0 26px rgba(232, 213, 163, .3)); }
 
 .fortune-gateway__door-halo {
   position: absolute;
@@ -330,7 +337,7 @@
 }
 
 .fortune-gateway__door-desc {
-  max-width: 27ch;
+  max-width: 30ch;
   color: #70445c;
   font-size: 13px;
   line-height: 1.62;

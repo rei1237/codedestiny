@@ -29,7 +29,7 @@ test('the destiny gate stands on its own after the inline home widget was retire
   }
   assert.match(css, /prefers-reduced-motion: reduce/);
   // 두 문은 카드 전체가 링크라 탭 타깃이 넉넉하고, 한국어는 단어 중간에서 끊기지 않아야 한다.
-  assert.match(css, /\.fortune-gateway__door \{[\s\S]*?min-height: 258px/);
+  assert.match(css, /\.fortune-gateway__door \{[\s\S]*?min-height: 274px/);
   assert.match(css, /word-break: keep-all/);
   assert.doesNotMatch(css, /https?:\/\//);
 });

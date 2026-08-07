@@ -48,8 +48,10 @@ const MODE = String(process.env.CD_DEPLOY_ASSETS_MODE || "alias").trim().toLower
 const EXPECTED_DIR = String(process.env.CD_DEPLOY_EXPECTED_DIR || "").trim()
   ? path.resolve(String(process.env.CD_DEPLOY_EXPECTED_DIR).trim())
   : "";
-const PURGE_TOKEN = process.env.CLOUDFLARE_CACHE_PURGE_TOKEN || "";
+// 이름은 둘 다 받는다. `.env*` 는 수정 금지 파일이라 사람이 넣어 둔 이름을 코드가 맞춘다.
+const PURGE_TOKEN = process.env.CLOUDFLARE_CACHE_PURGE_TOKEN || process.env.CLOUDFLARE_PURGE_TOKEN || "";
 const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID || "";
+const CF_READ_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN || "";
 
 /**
  * 대표 라우트. 공용 청크(layout·globals.css)는 어느 React 라우트에서든 잡히지만,
@@ -197,13 +199,53 @@ async function classify(dead) {
   return out;
 }
 
+/**
+ * zone id 는 비밀값이 아니라 오리진 호스트에서 유도되는 식별자다. 그런데 그것 하나가 비어 있다는
+ * 이유로 퍼지가 통째로 죽는 일이 실제로 있었다(토큰은 넣었는데 zone id 를 안 넣어서). 저장 위치가
+ * `.env*`(수정 금지 파일)뿐이라 사람이 넣어 주기를 기다릴 이유가 없으므로, 없으면 API 로 찾는다.
+ */
+let resolvedZoneId = null;
+async function zoneId() {
+  if (ZONE_ID) return ZONE_ID;
+  if (resolvedZoneId !== null) return resolvedZoneId;
+  resolvedZoneId = "";
+  let host = "";
+  try {
+    host = new URL(ORIGIN).hostname.replace(/^www\./, "");
+  } catch {
+    return resolvedZoneId;
+  }
+  // 배포 고유 URL(*.pages.dev)에는 zone 이 없다. 조회할 이유가 없다.
+  if (!host || host.endsWith(".pages.dev") || host.endsWith(".workers.dev")) return resolvedZoneId;
+  const token = CF_READ_TOKEN || PURGE_TOKEN;
+  if (!token) return resolvedZoneId;
+  try {
+    const res = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(host)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (json?.success) resolvedZoneId = json.result?.[0]?.id || "";
+  } catch {
+    // 조회 실패는 퍼지 미수행으로만 이어진다. 검사 자체를 죽이지 않는다.
+  }
+  return resolvedZoneId;
+}
+
 async function purge(paths) {
-  if (!PURGE_TOKEN || !ZONE_ID) return { attempted: false, ok: false, reason: "퍼지 자격 없음(CLOUDFLARE_CACHE_PURGE_TOKEN/CLOUDFLARE_ZONE_ID 미설정)" };
+  const zone = await zoneId();
+  if (!PURGE_TOKEN || !zone) {
+    const missing = [
+      PURGE_TOKEN ? "" : "CLOUDFLARE_CACHE_PURGE_TOKEN(또는 CLOUDFLARE_PURGE_TOKEN)",
+      zone ? "" : "CLOUDFLARE_ZONE_ID(자동 조회도 실패)",
+    ].filter(Boolean).join(" + ");
+    return { attempted: false, ok: false, reason: `퍼지 자격 없음 — ${missing}` };
+  }
   const files = paths.map((p) => `${ORIGIN}${p}`);
   // Cloudflare 는 호출당 최대 30 URL 을 받는다.
   for (let i = 0; i < files.length; i += 30) {
     const batch = files.slice(i, i + 30);
-    const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache`, {
+    const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zone}/purge_cache`, {
       method: "POST",
       headers: { Authorization: `Bearer ${PURGE_TOKEN}`, "Content-Type": "application/json" },
       body: JSON.stringify({ files: batch }),

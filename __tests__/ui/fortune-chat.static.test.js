@@ -21,16 +21,25 @@ test("both personas render from their own expression sheet", () => {
   // 아바타는 장식이 아니라 누가 답하는지를 알려주는 신호다. 두 시트가 모두 걸려 있어야
   // 네오로 바꿔도 꽃돼지가 남아 있는 사고가 나지 않는다.
   const sprite = read("app/fortune-chat/personaSprite.ts");
+  const builder = read("scripts/build-persona-avatar-assets.mjs");
 
-  assert.match(sprite, /pig-expressions\.webp/);
-  assert.match(sprite, /neo-strategy-sheet\.webp/);
-  // 두 시트 모두 public 에 있어야 한다. R2 직결은 핫링크 보호로 로컬에서 403 이 난다.
+  // 🔴 CSS 스프라이트를 그만뒀다. 꽃돼지 시트는 셀이 264×372(세로형)인데 아바타는 정사각이라
+  //    `background-size: 400% 400%` 가 캐릭터를 세로 71% 로 눌렀다. 이제 미리 잘라 쓴다.
+  assert.doesNotMatch(sprite, /backgroundSize|personaSpriteStyle/);
+  assert.match(sprite, /\/images\/fortune-chat\/persona\//);
+  // 백사자 좌표는 정확한 4등분이 아니라 손으로 맞춘 값이라 크롭 스크립트가 정본이다.
+  assert.match(builder, /2\.306, 97\.065/);
+  // 원본 시트는 public 에 있어야 한다. R2 직결은 핫링크 보호로 로컬에서 403 이 난다.
   for (const sheet of ["public/images/novel/pig-expressions.webp", "public/images/novel/neo-strategy-sheet.webp"]) {
     assert.ok(fs.existsSync(path.join(root, sheet)), `missing sprite sheet: ${sheet}`);
   }
-  // 백사자 시트는 정확한 4등분이 아니라 손으로 맞춘 좌표다. 등분 계산으로 대체하면 얼굴이 잘린다.
-  assert.match(sprite, /2\.306% 97\.065%/);
-  assert.match(sprite, /PERSONA_SPRITE_SIZE = "400% 400%"/);
+  // 잘라 둔 표정 10컷이 실제로 있어야 한다(빌드 산출물을 커밋한다).
+  for (const persona of ["yeoni", "neo"]) {
+    for (const mood of ["greet", "listen", "read", "think", "cheer"]) {
+      const cut = `public/images/fortune-chat/persona/${persona}-${mood}.webp`;
+      assert.ok(fs.existsSync(path.join(root, cut)), `missing persona cut: ${cut}`);
+    }
+  }
 
   const client = read("app/fortune-chat/FortuneChatClient.tsx");
   assert.match(client, /PersonaAvatar/);

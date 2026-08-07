@@ -123,12 +123,16 @@ const cases = [
       ["destinyProfile", "var isUpdate = !!_dpProfileEditTargetId"],
       ["destinyProfile", "var createRequiresPayment = !isUpdate && !canUsePlanSlot"],
       ["destinyProfile", "class=\"dp-list-add\""],
-      // 입력폼 진입점 — 셸 마크업에 없는 두 노드를 JS 가 만든다.
+      // 입력폼의 슬롯·편집 안내 — 셸 마크업에 없어 JS 가 만든다.
       // #dpProfileQuotaText 가 없으면 _dpUpdateProfileQuotaText 가 조용히 early-return 해
       // 슬롯·편집 안내가 화면에 뜨지 않는다(#416 에서 실제로 그 상태로 배포됐다).
       ["destinyProfile", "function _dpEnsureProfileFormControls"],
       ["destinyProfile", "quota.id = 'dpProfileQuotaText'"],
-      ["destinyProfile", "addBtn.className = 'dp-form-add'"],
+      // 🔴 폼 안의 추가 버튼(`dp-form-add`) 마커는 뺐다(2026-08-08).
+      // 47e62424b 가 그 버튼을 지운 것은 목록의 `dp-list-add` 와 중복이었기 때문이고,
+      // 이 검사가 지키려는 것은 특정 버튼이 아니라 "카드를 이미 가진 사용자에게 추가 진입점이
+      // 남아 있는가" 다. 그 계약은 위 `class="dp-list-add"` 가 그대로 강제한다.
+      // 진입점이 하나로 줄었으므로, 그 하나가 사라지면 여기서 바로 실패한다.
     ],
     excludes: [
       // 한도 초과를 alert 로 막으면 무료 사용자의 추가 버튼이 다시 죽는다.

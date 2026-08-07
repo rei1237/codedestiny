@@ -519,6 +519,15 @@
 .seoGuideHeader {
   max-width: 76ch;
 }
+/* 🔴 한국어는 단어 중간에서 끊기면 안 된다 — "공통 신호와 다른 맥/락을" 처럼 읽힌다. */
+.seoGuide h2,
+.seoGuide h3,
+.seoGuide p,
+.seoGuide li,
+.seoGuide summary {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
 .seoGuide h2,
 .seoGuide h3 {
   font-family: var(--font-display, Georgia, serif);
