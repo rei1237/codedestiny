@@ -1,8 +1,9 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
-import { PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
+import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
   getWarningCardGuard,
@@ -45,11 +46,6 @@ const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
 const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
 const YEAR_TAROT_PROFILE_PREFIX = "year:";
 const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
-const PAID_EVIDENCE_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
-
-function safeRecord(value) {
-  return value && typeof value === "object" ? value : {};
-}
 
 function uniqueTextValues(values = []) {
   return Array.from(new Set(values.map((value) => asText(value)).filter(Boolean)));
@@ -198,145 +194,6 @@ async function saveYearTarotResult({ env, auth, decision, payload, year, request
   return { status: "completed", payload: publicYearResult(completed) };
 }
 
-function numerologyFeatureCandidates() {
-  return uniqueTextValues([
-    NUMEROLOGY_TAROT_READING_FEATURE_KEY,
-    NUMEROLOGY_TAROT_READING_FEATURE_KEY.replace(/-/g, "_"),
-  ]);
-}
-
-function collectNumerologyPaymentTokens(body = {}) {
-  const entitlement = safeRecord(body?.entitlement);
-  const paymentContext = safeRecord(body?._paymentContext || body?.paymentContext || entitlement.paymentContext);
-  const accessGrant = safeRecord(body?.accessGrant || paymentContext.accessGrant);
-  const accessDecision = safeRecord(body?.accessDecision || paymentContext.accessDecision);
-  const consume = safeRecord(body?.consume || paymentContext.consume);
-  const payment = safeRecord(body?.payment || paymentContext.payment);
-  return uniqueTextValues([
-    body?.requestId,
-    body?.idempotencyKey,
-    body?.transactionId,
-    body?.purchaseId,
-    body?.paymentId,
-    body?.merchantUid,
-    body?.impUid,
-    entitlement.requestId,
-    entitlement.transactionId,
-    paymentContext.requestId,
-    paymentContext.transactionId,
-    paymentContext.purchaseId,
-    paymentContext.paymentId,
-    paymentContext.merchantUid,
-    paymentContext.impUid,
-    accessGrant.evidenceId,
-    accessGrant.ledgerId,
-    accessGrant.purchaseId,
-    accessGrant.paymentId,
-    accessGrant.merchantUid,
-    accessGrant.impUid,
-    accessGrant.requestId,
-    accessDecision.evidenceId,
-    accessDecision.ledgerId,
-    accessDecision.transactionId,
-    accessDecision.purchaseId,
-    accessDecision.paymentId,
-    accessDecision.merchantUid,
-    accessDecision.impUid,
-    accessDecision.requestId,
-    consume.transactionId,
-    consume.pointHistoryId,
-    consume.receiptId,
-    consume.purchaseId,
-    consume.paymentId,
-    consume.merchantUid,
-    consume.impUid,
-    consume.requestId,
-    payment._id,
-    payment.id,
-    payment.transactionId,
-    payment.purchaseId,
-    payment.paymentId,
-    payment.merchantUid,
-    payment.impUid,
-    payment.requestId,
-  ]);
-}
-
-function buildPointHistoryTokenClauses(tokens = []) {
-  const clauses = [];
-  for (const token of tokens) {
-    clauses.push({ "metadata.requestId": token });
-    clauses.push({ "metadata.purchaseId": token });
-    clauses.push({ "metadata.idempotencyKey": token });
-    clauses.push({ "metadata.orderId": token });
-    clauses.push({ "metadata.transactionId": token });
-    clauses.push({ "metadata.pointHistoryId": token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
-  }
-  return clauses;
-}
-
-function buildPaymentTokenClauses(tokens = []) {
-  const clauses = [];
-  for (const token of tokens) {
-    clauses.push({ idempotencyKey: token });
-    clauses.push({ requestId: token });
-    clauses.push({ merchantUid: token });
-    clauses.push({ impUid: token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
-  }
-  return clauses;
-}
-
-async function findNumerologyPaidEvidence({ env, auth, body }) {
-  const tokens = collectNumerologyPaymentTokens(body);
-  if (!tokens.length) return null;
-
-  await connectDb(env);
-  const userId = asText(auth?.userId);
-  const featureKeys = numerologyFeatureCandidates();
-
-  const pointQuery = {
-    kind: "deduct",
-    featureKey: { $in: featureKeys },
-    delta: { $lte: -NUMEROLOGY_TAROT_READING_MIN_COST },
-    $or: buildPointHistoryTokenClauses(tokens),
-  };
-  if (userId && mongoose.Types.ObjectId.isValid(userId)) pointQuery.userId = userId;
-
-  const pointHistory = await PointHistory.findOne(pointQuery)
-    .select("_id delta featureKey metadata")
-    .sort({ createdAt: -1 })
-    .lean();
-  if (pointHistory?._id) return { source: "point_history", record: pointHistory };
-
-  const paymentQuery = {
-    paymentType: "digital_content",
-    featureKey: { $in: featureKeys },
-    status: { $in: PAID_EVIDENCE_STATUSES },
-    $and: [
-      { $or: buildPaymentTokenClauses(tokens) },
-      {
-        $or: [
-          { expectedChargedPoints: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST } },
-          { chargedPoints: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST } },
-          { coinPrice: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST } },
-          { paymentAmount: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST * 100 } },
-        ],
-      },
-    ],
-  };
-  if (userId && mongoose.Types.ObjectId.isValid(userId)) paymentQuery.userId = userId;
-
-  const payment = await Payment.findOne(paymentQuery)
-    .select("_id featureKey status requestId idempotencyKey merchantUid impUid paymentAmount chargedPoints coinPrice")
-    .sort({ updatedAt: -1, createdAt: -1 })
-    .lean();
-  if (payment?._id) return { source: "payment", record: payment };
-
-  return null;
-}
-
 async function verifyNumerologyReadingAccess(request, env, body = {}) {
   let auth = null;
   let authError = null;
@@ -358,33 +215,81 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
     }
   }
 
-  const evidence = await findNumerologyPaidEvidence({ env, auth, body });
-  if (evidence) return { ok: true, auth, evidence };
+  if (!auth?.userId) {
+    const authStatus = Number(authError?.status) || 401;
+    if (authStatus === 401 || authStatus === 403) {
+      return {
+        ok: false,
+        status: authStatus,
+        code: "NUMEROLOGY_TAROT_AUTH_REQUIRED",
+        message: "로그인 후 결과를 확인할 수 있습니다.",
+      };
+    }
+    // 인증 자체가 DB 장애로 실패한 경우다. 미결제로 세탁하지 않는다.
+    return {
+      ok: false,
+      status: 503,
+      code: "NUMEROLOGY_TAROT_VERIFY_UNAVAILABLE",
+      message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+    };
+  }
+
+  // 회당결제 증빙은 저장소 정본 헬퍼 하나로 본다.
+  // 단건결제(Payment) → 코인/월정석(PointHistory) → 월정석 원장 → 이용권 → admin 순.
+  // 🔴 이용권 통과는 차감 기록을 남기지 않는 정상 경로라, 기록 조회만으로 판정하면 이용권 보유자가 전원 막힌다.
+  const proof = await verifyPerUsePayment(env, {
+    userId: auth.userId,
+    featureKey: NUMEROLOGY_TAROT_READING_FEATURE_KEY,
+    coinPrice: NUMEROLOGY_TAROT_READING_MIN_COST,
+    requestId: asText(body?.requestId || body?.idempotencyKey),
+  });
+  logPerUsePaymentProof(NUMEROLOGY_TAROT_READING_FEATURE_KEY, proof);
+
+  if (proof.proven === true) {
+    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };
+  }
+
+  // 🔴 DB 일시 장애를 "미결제"로 바꾸지 않는다 — 결제한 사용자를 잠그는 가장 흔한 경로다.
+  if (proof.proven === null) {
+    return {
+      ok: false,
+      status: 503,
+      code: "NUMEROLOGY_TAROT_VERIFY_UNAVAILABLE",
+      message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+    };
+  }
 
   return {
     ok: false,
-    status: authError?.status === 401 ? 401 : 402,
-    message: "결제 완료 내역을 확인할 수 없습니다. 추가 결제 없이 다시 시도하려면 결제 직후의 결과 확인 버튼을 사용해 주세요.",
+    status: 402,
+    code: "NUMEROLOGY_TAROT_PAYMENT_NOT_VERIFIED",
+    reason: proof.reason || "NO_RECORD",
+    message: proof.reason === "NO_REQUEST_ID"
+      ? "결제 요청 정보가 없어 확인하지 못했습니다. 결과 보기 버튼으로 다시 진행해 주세요."
+      : "결제 완료 내역을 확인할 수 없습니다. 결과 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
   };
 }
 
 function guardNumerologyWarningInterpretation(interpretation, cards = []) {
   if (!interpretation || typeof interpretation !== "object") return interpretation;
-  const cardReadings = Array.isArray(interpretation.cardReadings)
-    ? interpretation.cardReadings.map((section, idx) => {
+
+  const guardSections = (sections) => (Array.isArray(sections)
+    ? sections.map((section, idx) => {
       const entry = cards[idx] || {};
       const cardLike = {
-        nameKo: section?.cardNameKr || entry?.card?.nameKr || entry?.nameKr,
+        nameKo: section?.cardNameKr || section?.cardName || entry?.card?.nameKr || entry?.nameKr,
         nameEn: section?.cardNameEn || entry?.card?.name || entry?.name,
-        name: section?.cardNameEn || section?.cardNameKr || entry?.card?.name || entry?.name,
+        name: section?.cardNameEn || section?.cardNameKr || section?.cardName || entry?.card?.name || entry?.name,
       };
       return guardWarningTarotSection(section, cardLike);
     })
-    : interpretation.cardReadings;
+    : sections);
 
   return {
     ...interpretation,
-    cardReadings,
+    cardReadings: guardSections(interpretation.cardReadings),
+    // UI 는 cards[] 를 우선 렌더한다. 여기를 빼면 경고 카드 순화가 화면에서 무력화된다.
+    cards: guardSections(interpretation.cards),
   };
 }
 
@@ -1510,7 +1415,8 @@ export async function handleTarotRoutes(request, env = {}) {
         return json(
           {
             ok: false,
-            code: "NUMEROLOGY_TAROT_PAYMENT_NOT_VERIFIED",
+            code: access.code || "NUMEROLOGY_TAROT_PAYMENT_NOT_VERIFIED",
+            reason: access.reason || "",
             message: access.message,
           },
           { status: access.status || 402 },
