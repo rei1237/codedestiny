@@ -975,37 +975,46 @@ export default function LoveSecretAiPage() {
 
 function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean }) {
   return (
-    <header className="relative overflow-hidden rounded-[32px] border border-[var(--ls-line)] bg-[var(--ls-surface)] px-5 py-9 text-center shadow-[var(--ls-glow)] sm:px-8 sm:py-12">
+    <header
+      className={`${styles.heroCard} relative overflow-hidden rounded-[32px] border border-[var(--ls-line)] bg-[var(--ls-surface)] px-6 py-10 sm:px-10 sm:py-14`}
+    >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-cover bg-right opacity-45"
+        className="pointer-events-none absolute inset-0 bg-cover bg-right opacity-60"
         style={{ backgroundImage: "url('/fuctionassets/love-secret-reading-room-v1.webp')" }}
       />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(38,16,28,.98)_0%,rgba(38,16,28,.82)_48%,rgba(38,16,28,.16)_100%)]" />
-      <div className={`pointer-events-none absolute inset-0 ${styles.petalTexture}`} aria-hidden="true" />
-      <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-start text-left">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[image:var(--ls-hero-veil)]" />
+      {/* 하트 타일 텍스처(styles.petalTexture)를 여기 얹지 않는다 — 히어로는 이미 사진이
+          질감을 담당하고, 사진 위에 패턴을 깔면 포장지처럼 보인다. 페이지 전역 텍스처는
+          평평한 배경을 맡는 788행 하나로 충분하다. */}
+      {/* 왼쪽 정렬 고정(mx-auto 금지): 베일이 좌측에 무겁게 깔리므로 가운데 정렬하면
+          넓은 화면에서 글이 옅어진 우측으로 밀려 대비가 무너진다. 사진은 오른쪽에 남겨 둔다. */}
+      <div className={`${theme.onDark} relative z-10 flex max-w-2xl flex-col items-start text-left`}>
         <span className={`${styles.heroRing} relative grid h-16 w-16 place-items-center rounded-full bg-[var(--ls-surface-sunken)]`}>
           <Heart className={`${styles.heroHeart} h-8 w-8 fill-[var(--ls-accent)] text-[var(--ls-accent)]`} aria-hidden="true" />
         </span>
-        <h1 className="mt-8 break-keep text-[clamp(2.1rem,7vw,3.4rem)] font-black leading-[1.12] tracking-[-0.02em] text-[var(--ls-text)] [font-family:var(--font-display)]">
+        {/* 서체는 --font-display(픽셀 계열)가 아니라 DESIGN.md 의 brand-serif 역할(--font-serif).
+            사진·밀랍 인장의 고전적인 화면에 픽셀 디스플레이체가 얹히면 결이 어긋난다.
+            한글 명조 미러는 700 만 있으므로(globals.css 345행) font-black 이 아니라 font-bold 다. */}
+        <h1 className="mt-8 text-balance break-keep text-[clamp(2.2rem,7vw,3.6rem)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ls-text)] [font-family:var(--font-serif)]">
           연애 비책 AI
         </h1>
-        <p className="mt-4 break-keep text-lg font-bold leading-8 text-[var(--ls-accent)] sm:text-xl">
+        <p className="mt-3 text-balance break-keep text-lg font-bold leading-8 text-[var(--ls-accent)] sm:text-xl">
           당신만을 위한 연애 컨설턴트
         </p>
-        <p className="mt-3 max-w-xl break-keep text-[0.95rem] leading-7 text-[var(--ls-text-muted)]">
+        <p className="mt-5 max-w-xl text-pretty break-keep text-[0.95rem] leading-7 text-[var(--ls-text-muted)]">
           사주 명식과 연애 심리를 함께 읽어, 오늘 무엇을 하고 무엇을 미뤄야 하는지까지 짚어 드립니다.
         </p>
         <button
           type="button"
           onClick={onStart}
           disabled={busy}
-          className={`${theme.focusRing} mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-[image:var(--ls-cta)] px-7 text-sm font-black text-[var(--ls-cta-ink)] shadow-[var(--ls-glow)] transition hover:-translate-y-0.5 disabled:opacity-55`}
+          className={`${theme.focusRing} mt-10 inline-flex min-h-12 items-center gap-2 rounded-full bg-[image:var(--ls-cta)] px-7 text-sm font-black text-[var(--ls-cta-ink)] shadow-[var(--ls-glow)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 disabled:translate-y-0 disabled:opacity-55 motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
         >
           <Heart className="h-4 w-4 fill-current" aria-hidden="true" />
           상담 시작하기
         </button>
-        <ul className="mt-8 flex flex-wrap justify-center gap-2">
+        <ul className="mt-8 flex flex-wrap justify-start gap-2">
           {HERO_PROMISES.map((item) => (
             <li
               key={item}

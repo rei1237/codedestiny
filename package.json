@@ -207,6 +207,7 @@
     "verify:rpg-phase9": "node scripts/verify-rpg-phase9.mjs",
     "verify:profile-card-level": "node scripts/verify-profile-card-level.mjs",
     "verify:auth-card-theme": "node scripts/verify-auth-card-theme-parity.mjs",
+    "verify:hero-contrast": "node scripts/verify-hero-contrast.mjs",
     "verify:insights-famous-coverage": "node scripts/verify-insight-famous-coverage.mjs",
     "backfill:insights-pexels": "node scripts/backfill-insight-pexels-images.mjs",
     "saju:images": "node scripts/fetch-saju-images.mjs",
