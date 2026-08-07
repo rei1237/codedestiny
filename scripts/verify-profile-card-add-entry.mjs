@@ -140,6 +140,11 @@ const listHtml = (window) =>
   String((window.document.getElementById("dpListInner") || {}).innerHTML || "");
 const nameValue = (window) => String(window.document.getElementById("nameInput").value || "");
 const formAddBtn = (window) => window.document.getElementById("dpFormAddBtn");
+/**
+ * 목록의 추가 버튼. 2026-08-08 부터 이것이 **유일한** 추가 진입점이다.
+ * 입력폼 안에도 같은 버튼이 있었지만 중복이라 제거했다(47e62424b).
+ */
+const listAddBtn = (window) => window.document.querySelector("#dpListInner .dp-list-add");
 /** 주입된 노드가 실제로 입력폼 안, 저장 버튼 앞에 놓였는지. */
 const inFormBeforeSave = (window, id) => {
   const node = window.document.getElementById(id);
@@ -171,26 +176,31 @@ async function runTarget(relPath) {
       `label=${saveLabel(window)}`,
     );
 
-    // 입력폼 주입 — 셸 마크업에 없는 두 노드를 JS 가 만들어야 한다.
+    // 입력폼 주입 — 셸 마크업에 없는 노드를 JS 가 만들어야 한다.
     check("입력폼에 #dpProfileQuotaText 가 생성된다", inFormBeforeSave(window, "dpProfileQuotaText"));
-    check("입력폼에 추가 버튼이 생성된다", inFormBeforeSave(window, "dpFormAddBtn"));
     check(
-      "카드 보유 시 입력폼 추가 버튼이 보인다",
-      !!formAddBtn(window) && formAddBtn(window).hidden === false,
-      `hidden=${formAddBtn(window)?.hidden}`,
+      "카드 보유 시 목록 추가 버튼이 보인다",
+      !!listAddBtn(window) && listAddBtn(window).hidden === false,
+      `listAdd=${listAddBtn(window) ? "있음" : "없음"} hidden=${listAddBtn(window)?.hidden}`,
+    );
+    // 🔴 입력폼 안 추가 버튼은 목록 버튼과 중복이라 제거됐다(47e62424b). 되살아나면 여기서 잡는다.
+    check(
+      "입력폼에는 중복 추가 버튼이 없다",
+      !formAddBtn(window) && window.document.querySelectorAll(".dp-form-add").length === 0,
+      `formAdd=${formAddBtn(window) ? "있음" : "없음"}`,
     );
     check(
       "슬롯 안내 문구가 실제로 채워진다",
       quotaLabel(window).length > 0,
       `quota=${quotaLabel(window)}`,
     );
-    const addBtnCountBefore = window.document.querySelectorAll("#dpFormAddBtn, .dp-form-add").length;
+    const addBtnCountBefore = window.document.querySelectorAll(".dp-list-add").length;
     window.dpEditProfile("dp_1");
     window.dpStartProfileCreate();
     check(
-      "재렌더를 반복해도 주입 노드가 중복 생성되지 않는다",
-      window.document.querySelectorAll("#dpFormAddBtn, .dp-form-add").length === addBtnCountBefore,
-      `before=${addBtnCountBefore} after=${window.document.querySelectorAll("#dpFormAddBtn, .dp-form-add").length}`,
+      "재렌더를 반복해도 추가 버튼이 중복 생성되지 않는다",
+      window.document.querySelectorAll(".dp-list-add").length === addBtnCountBefore,
+      `before=${addBtnCountBefore} after=${window.document.querySelectorAll(".dp-list-add").length}`,
     );
 
     window.dpEditProfile("dp_1");
@@ -238,27 +248,37 @@ async function runTarget(relPath) {
     window.close();
   }
 
-  // 6) 카드 0개 — 저장 버튼이 곧 생성이라 입력폼 추가 버튼은 중복이다
+  // 6) 카드 0개 — 저장 버튼이 곧 생성이므로 추가 버튼은 없어도 된다.
+  //    지켜야 할 것은 "추가 진입점이 없어 막히지 않는가" 하나뿐이라, 저장 버튼이 생성 상태인지 본다.
   {
     const { window } = bootShell(source, EMPTY_PAYLOAD);
     await wait(BOOT_WAIT_MS);
     check(
-      "카드 0개면 입력폼 추가 버튼이 숨겨진다",
-      !!formAddBtn(window) && formAddBtn(window).hidden === true,
-      `hidden=${formAddBtn(window)?.hidden}`,
+      "카드 0개면 저장 버튼 자체가 생성 진입점이다",
+      saveLabel(window) !== "" && !saveLabel(window).includes("수정"),
+      `label=${saveLabel(window)}`,
     );
     window.close();
   }
 
-  // 7) 입력폼 추가 버튼 클릭이 실제 생성 플로우로 이어진다
+  // 7) 목록 추가 버튼이 생성 플로우로 배선돼 있다.
+  //
+  // ⚠️ 여기서 `.click()` 을 쓰지 않는 이유: 이 하네스는 `runScripts: "outside-only"` 라 jsdom 이
+  //    **인라인 onclick 속성을 컴파일하지 않는다.** 목록 버튼은 `onclick="dpStartProfileCreate();"`
+  //    로 배선돼 있어 실제 브라우저에선 동작하지만 여기서 클릭하면 아무 일도 일어나지 않는다
+  //    (제거된 폼 버튼은 addEventListener 라 발화됐다 — 그 차이가 클릭 테스트를 착시로 만든다).
+  //    그래서 배선(어디로 가는가)과 동작(도착지가 무엇을 하는가)을 나눠서 본다.
+  //    도착지 동작은 위 4)의 "dpStartProfileCreate 가 편집 모드를 해제한다/폼이 비워진다"가 이미 고정한다.
   {
     const { window } = bootShell(source, FREE_ONE_CARD);
     await wait(BOOT_WAIT_MS);
-    window.dpEditProfile("dp_1");
-    check("7 전제: 편집 모드 + 폼 채워짐", saveLabel(window).includes("수정") && nameValue(window) !== "");
-    formAddBtn(window).click();
-    check("입력폼 추가 버튼 클릭이 편집을 해제한다", !saveLabel(window).includes("수정"), `label=${saveLabel(window)}`);
-    check("입력폼 추가 버튼 클릭이 폼을 비운다", nameValue(window) === "", `name=${nameValue(window)}`);
+    const addBtn = listAddBtn(window);
+    check("7 전제: 목록 추가 버튼이 존재한다", !!addBtn);
+    check(
+      "목록 추가 버튼이 생성 플로우로 배선돼 있다",
+      /dpStartProfileCreate\s*\(/.test(String(addBtn?.getAttribute("onclick") || "")),
+      `onclick=${addBtn?.getAttribute("onclick") || "(없음)"}`,
+    );
     window.close();
   }
 }

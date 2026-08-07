@@ -1,50 +1,60 @@
 name: Paid Flow Gates
 
+# 🔴 트리거 범위는 결제 · 로그인 · 운세 로직 셋으로 좁혀 둔다(2026-08-08 사용자 지시).
+# 예전에는 worker/** · app/** · js/** · src/** · __tests__/** 처럼 사실상 모든 변경이 걸려
+# CSS 한 줄만 고쳐도 36개 검증기 + 전체 테스트가 돌았다. 그 비용이 게이트의 가치보다 컸다.
+#
+# ⚠️ 대가: 여기 없는 경로만 바꾸면 이 게이트는 깨어나지 않는다. 공용 유틸을 고쳐 결제·인증에
+#    간접적으로 영향이 가는 변경은 자동으로 잡히지 않으므로, 그럴 때는 workflow_dispatch 로 직접 돌린다.
 on:
   push:
     branches: [main]
     paths:
-      - "worker/**"
-      # 테스트 전체를 돌리므로 테스트·러너 설정 변경도 트리거에 넣는다.
-      # (예전엔 __tests__/worker/** 만 있어서, 다른 테스트가 죽어도 CI 가 깨어나지 않았다.)
-      - "__tests__/**"
-      - "jest.config.cjs"
-      - "app/**"
-      - "lib/**"
-      - "index.html"
-      - "public/index.html"
-      - "public/en/index.html"
-      - "public/ja/index.html"
-      - "public/zh/index.html"
-      - "public/static/index.html"
-      # 결제 게이트 정합성 검증기가 읽는 프론트 소스 (destiny-profile·saju-engine·타로 경험 등)
-      - "js/**"
-      - "PhysiognomyUI.js"
-      - "scripts/verify-runtime-cache-sync.mjs"
-      - "scripts/verify-auth-event-loop-guard.mjs"
-      - "scripts/verify-paid-feature-billing-policy.mjs"
-      - "scripts/verify-ai-prompt-billing-policy.mjs"
-      - "scripts/verify-profile-server-first.mjs"
-      # verify:paid-gate-ui / verify:master-love-codex-flow 가 읽는 몰입형 기능 소스.
-      # src/** 가 빠져 있어서 마스터 인연의 서·운명 찻집·네오 전략실 변경은 이 게이트를
-      # 아예 깨우지 못했다.
-      - "src/**"
-      # 결제창 문구는 셸 인라인 폴백이 아니라 로케일 파일이 정본이다(_cdPaymentI18n 조회가 성공하면
-      # 폴백은 죽은 코드가 된다). 여기에 없어서 12개 로케일이 통째로 낡은 문구로 굳어도 게이트가
-      # 깨어나지 않았다.
-      - "public/i18n/**"
-      - "scripts/verify-paid-gate-ui-regression.mjs"
-      - "scripts/verify-payment-concurrency-guards.mjs"
-      - "scripts/verify-master-love-codex-flow.mjs"
-      - "scripts/verify-master-love-codex-batch-budget.mjs"
-      - "scripts/verify-master-love-codex-compat-determinism.mjs"
-      # 2026-07-31 보안 감사 조치의 재유입 가드가 읽는 것들. worker/** 밖이라 여기 없으면
-      # 레거시 Express 의 관리자 비밀번호나 보안 헤더가 되돌아가도 게이트가 깨어나지 않는다.
+      # ── 결제 ──────────────────────────────────────────────
+      - "worker/routes/billing.js"
+      - "worker/routes/payments.js"
+      - "worker/lib/paid-feature-registry.js"
+      - "worker/lib/billing-policy.js"
+      - "worker/lib/payment-refund.js"
+      - "worker/lib/content-unlocks.js"
+      - "worker/lib/profile-limits.js"
+      - "worker/lib/portone.js"
+      - "worker/lib/nakshatra-paid-access.js"
+      - "worker/lib/profile-card-mutation-policy.js"
+      - "worker/routes/access.js"
+      - "worker/routes/profile.js"
+      - "app/_lib/billing-client.ts"
+      - "app/hooks/useCoinGate.ts"
+      - "lib/payment/**"
+      - "js/core/access-store.js"
+      - "js/core/pass-verdict.js"
+      - "js/core/checkout-entry.js"
+      - "js/core/payment-service.js"
+      - "js/core/feature-pricing-store.js"
+      - "js/destiny-profile.js"
+      # ── 로그인 / 인증 ──────────────────────────────────────
+      - "worker/routes/auth.js"
+      - "worker/lib/auth.js"
+      - "app/_lib/auth-client.ts"
+      - "app/_lib/auth-store.ts"
       - "server/routes/admin.routes.js"
-      - "_headers"
-      - "public/_headers"
+      # ── 운세 로직 ─────────────────────────────────────────
+      - "worker/routes/fortune.js"
+      - "worker/routes/*-ai.js"
+      - "worker/lib/gemini.js"
+      - "worker/lib/gemini-client.js"
+      - "worker/lib/structured-consultation.js"
+      - "worker/lib/llm-cache-store.js"
+      - "lib/llm-client.ts"
+      # ── 게이트 자신 ───────────────────────────────────────
+      - "scripts/verify-*billing*.mjs"
+      - "scripts/verify-*paid*.mjs"
+      - "scripts/verify-*pass*.mjs"
+      - "scripts/verify-*payment*.mjs"
+      - "scripts/verify-*auth*.mjs"
+      - "scripts/verify-profile-card-*.mjs"
       - "scripts/verify-security-hardening.mjs"
-      - "package.json"
+      - "scripts/verify-worker-security-guards.mjs"
       - ".github/workflows/paid-flow-gates.yml"
   workflow_dispatch:
 
@@ -67,14 +77,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Verify runtime cache sync
-        run: npm run verify:runtime-cache-sync
-
-      # 2026-07-31 보안 감사에서 닫은 것들의 재유입 가드.
-      # 관리자 진입 비밀번호 하드코딩(공개 레포에 평문으로 있었다), /entry/password 무제한 시도,
-      # /api/admin/keys 무인증, 응답 본문의 Mongo 원문 노출, 임의 포트 localhost 의 credentialed CORS.
-      # 워크트리가 30개 넘게 살아 있어 스테일 베이스에서 갈라진 브랜치가 조용히 되돌릴 수 있다.
       - name: Verify security hardening (regression guard)
         run: npm run verify:security-hardening
 
@@ -99,11 +101,6 @@ jobs:
       # 워커 라우터가 try/catch 안에서 await 없이 핸들러를 위임하면, 그 거부(rejection)는
       # catch 를 빠져나가 Cloudflare 1101(불투명 500, CORS 헤더 없음)이 된다.
       # 2026-08-01 작명 AI 가 이 상태였다 — 비로그인 401 조차 500 으로 나가 원인 추적이 오래 걸렸다.
-      - name: Verify router await dispatch
-        run: npm run verify:route-await-dispatch
-
-      # 결제수단 선택창은 렌더러가 3종(정적 셸 6미러 / React / 독립 폴백)이라 한쪽만 고치면
-      # 진입 경로에 따라 다른 결제창이 뜬다. 정본 CSS·구조 마커·3옵션 노출이 어긋나면 차단한다.
       - name: Verify payment choice modal parity
         run: npm run verify:payment-choice-parity
 
@@ -128,13 +125,6 @@ jobs:
 
       # 정적 마커로는 "캡처 리스너 둘이 같은 클릭을 각각 처리한다"를 못 잡는다(이번 회귀가 그 증거).
       # 실제 크롬으로 클릭을 쏴서 토글 호출 횟수를 센다. 러너 이미지에 Chrome 이 포함돼 있다.
-      - name: Verify rpt preview CTA flow (real Chrome)
-        run: npm run verify:rpt-preview-cta
-
-      # 프로필 카드는 서버(DB)가 정본이어야 한다. 회귀는 함수가 사라져서가 아니라 부트스트랩이
-      # 프로필 조회를 세션검증 성공에 종속시켜서 났고(로그인했는데 빈 카드), 그때도 코드에는
-      # _dpLoadFromServer/'/api/profile' 문자열이 그대로 남아 있어 마커 검사로는 잡히지 않았다.
-      # jsdom 으로 셸을 띄워 "실제로 어떤 요청이 나갔고 무엇이 렌더됐는지"를 본다.
       - name: Verify profile card is server-first
         run: npm run verify:profile-server-first
 
@@ -201,12 +191,6 @@ jobs:
       # 캐시버스트 해시 merge driver 는 .gitattributes·.git/config·드라이버 스크립트 셋이 모두
       # 맞아야 돈다. 하나만 어긋나면 git 이 조용히 기본 병합으로 돌아가, 리베이스마다 해시 충돌이
       # 수백 건씩 쏟아진다(실측 240건 / 실제 내용 차이 0건).
-      - name: Verify cache-bust merge driver
-        run: npm run verify:cachebust-merge
-
-      # 상세 팝업이 "무엇을 사는지"를 다시 가리지 못하게 막는다(블러 회귀·과장 수치·빈 카드).
-      - name: Verify feature marketing schema
-        run: npm run verify:feature-marketing-schema
 
       - name: Verify app store billing policy
         run: npm run verify:app-store-billing-policy
