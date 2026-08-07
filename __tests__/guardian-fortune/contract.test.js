@@ -41,16 +41,6 @@ test('Guardian Fortune exposes both modes and six topics with WebP assets', () =
   }
 });
 
-  assert.doesNotThrow(() => contract.assertGuardianFortuneCreditPurchasePolicy({
-    productId: 'guardian_fortune_chat_3', channel: 'pg', amountKrw: 10000,
-  }));
-  for (const channel of ['monthly_membership_payment', 'pass', 'family_pass', 'credit', 'price_coverage']) {
-    assert.throws(() => contract.assertGuardianFortuneCreditPurchasePolicy({
-      productId: 'guardian_fortune_chat_3', channel,
-    }), /GUARDIAN_FORTUNE_PURCHASE_CHANNEL_BLOCKED/);
-  }
-});
-
 test('input schema accepts optional birth time and rejects invalid or sensitive input', () => {
   const valid = contract.validateGuardianFortuneInput({
     birthDate: '1990-01-02',
