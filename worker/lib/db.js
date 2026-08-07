@@ -9,9 +9,36 @@ let lastHealthyAt = 0;
 // 마지막으로 전역 풀 disconnect(resetMongooseConnection)를 실행한 시각. op-타임아웃 버스트가
 // 동시에 여러 번 disconnect해 아이솔레이트 공유 풀을 반복 절단(재연결 폭풍)하는 것을 쿨다운으로 막는다.
 let lastPoolResetAt = 0;
-// 지금 이 아이솔레이트에서 진행 중인 withMongoRetry 작업 수. 전역 disconnect는 공유 연결을 끊어
+// 지금 이 아이솔레이트에서 진행 중인 withMongoRetry 작업들. 전역 disconnect는 공유 연결을 끊어
 // '아직 살아서 실행 중인' 동시 요청의 소켓까지 함께 절단하므로, 혼자일 때만 즉시 끊는다.
-let inFlightOps = 0;
+//
+// 🔴 단순 카운터였다가 Set 으로 바꿨다(2026-08-08). 카운터는 **영구 누수**했다:
+// op 가 12초 상한에 걸리면 finally 에서 finalizeOperation() 을 부르는데, 그때 드라이버 프로미스가
+// 아직 pending 이면(= 정확히 타임아웃 상황이다) 감소를 건너뛴다. 그 프로미스가 영영 settle 하지
+// 않으면 카운터는 영원히 1 높은 채로 남는다. 프로덕션 실측에서 1 → 2 → 4 → 5 → 6 으로 단조 증가했다.
+//
+// 그 누수의 실제 피해는 "숫자가 틀리는 것"이 아니라 **안전밸브가 죽는 것**이다:
+//   · 리셋 예약(pendingPoolReset)은 finalizeOperation 에서 inFlightOps <= 0 일 때만 실행된다
+//     → 누수로 0 에 영영 도달하지 못해 **안전한 리셋 경로가 사라진다**
+//   · 남는 것은 forceReset(연속 실패 임계) 뿐인데, 이건 쿨다운과 동시성 가드를 **둘 다 우회**한다
+//   · 그 disconnect 가 살아 있는 동시 요청의 체크아웃을 poolClosed 로 죽이고, 그 실패가 다시
+//     연속 실패 카운터를 올려 forceReset 을 재장전한다 → 자기지속 리셋 폭풍 → 유료 라우트 503
+//
+// setTimeout 기반 정리는 쓸 수 없다 — 요청 컨텍스트가 죽으면 그 타이머도 함께 죽어 누수가 그대로다.
+// 그래서 타이머 없이 **읽는 시점에 나이로 만료**시킨다. 버려진 작업은 소켓 정리 시간이 지나면
+// 더는 공유 소켓을 쓰고 있지 않으므로, 그때부터는 보호 대상에서 빼는 것이 옳다.
+const activeMongoOps = new Set();
+// 버려진 작업을 회계에서 제외하기까지의 시간. socketTimeoutMS(기본 11초) + 여유 —
+// 그 시점이면 드라이버가 소켓을 이미 정리했으므로 '살아서 실행 중'으로 볼 근거가 없다.
+const ABANDONED_OP_MAX_AGE_MS = 15000;
+
+function countActiveMongoOps() {
+  const now = Date.now();
+  for (const record of activeMongoOps) {
+    if (now - record.startedAt > ABANDONED_OP_MAX_AGE_MS) activeMongoOps.delete(record);
+  }
+  return activeMongoOps.size;
+}
 // 동시 요청 때문에 미뤄 둔 전역 disconnect가 있는지. 마지막 작업이 빠져나갈 때 한 번만 처리한다.
 let pendingPoolReset = false;
 // A topology failure can be observed by several requests at once. Keep the
@@ -296,7 +323,7 @@ export async function requestPoolRecovery(env = {}, options = {}) {
   lastHealthyAt = 0;
   connectPromise = null;
 
-  if (inFlightOps > 1 && options.force !== true) {
+  if (countActiveMongoOps() > 1 && options.force !== true) {
     pendingPoolReset = true;
     return false;
   }
@@ -546,6 +573,11 @@ export async function connectDb(env = {}) {
 // stateless Worker에서 웜 연결을 재사용하다 백그라운드 모니터 타임아웃 등으로 풀이 초기화되면
 // (MongoPoolClearedError) 확립된 풀 위에서 실행되던 쿼리가 실패한다. 이런 '일시적' 에러는
 // 재연결 후 재시도하면 대개 성공하므로 여기서 판별한다.
+// 우리가 방금 부른 disconnect 의 '메아리'로 볼 실패의 시간 창.
+// disconnect 는 bufferCommands:false 라 그 순간 살아 있던 동시 요청의 작업을 함께 죽인다.
+// 그 직후 쏟아지는 실패는 새로운 진단 정보가 아니라 우리 행동의 결과다.
+const SELF_INFLICTED_FAILURE_WINDOW_MS = 3000;
+
 export function isTransientMongoError(error) {
   if (!error) return false;
   const name = String(error.name || "");
@@ -634,11 +666,12 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   const pendingAttemptTasks = new Set();
   let admissionReleased = false;
   let operationFinalized = false;
+  const opRecord = { startedAt: Date.now() };
   const finalizeOperation = () => {
     if (operationFinalized || pendingAttemptTasks.size > 0) return;
     operationFinalized = true;
-    inFlightOps -= 1;
-    if (inFlightOps <= 0 && pendingPoolReset) {
+    activeMongoOps.delete(opRecord);
+    if (countActiveMongoOps() <= 0 && pendingPoolReset) {
       pendingPoolReset = false;
       lastPoolResetAt = Date.now();
       consecutiveConnectionFailures = 0;
@@ -650,7 +683,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     admissionReleased = true;
     releaseMongoOpSlot();
   };
-  inFlightOps += 1;
+  activeMongoOps.add(opRecord);
   try {
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
       // 시도 단위 계측 — 타임아웃 났을 때 '연결에서 샜는지 / 쿼리에서 샜는지'를 가른다.
@@ -709,7 +742,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
               totalMs: Date.now() - attemptStartedAt,
               connectMs: connectFinishedAt ? connectFinishedAt - attemptStartedAt : null,
               opMs: connectFinishedAt ? Date.now() - connectFinishedAt : null,
-              inFlightOps,
+              inFlightOps: countActiveMongoOps(),
               delta: diffMongoCounters(countersAtStart),
             }));
           } catch (e) {
@@ -725,7 +758,16 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         if (isConnectionLevelFailure) {
           lastHealthyAt = 0;
           connectPromise = null;
-          consecutiveConnectionFailures += 1;
+          // 🔴 우리가 방금 끊은 직후의 실패는 '연속 실패'로 세지 않는다.
+          // disconnect 는 bufferCommands:false 라 그 순간 살아 있던 동시 요청의 작업을 함께 죽인다.
+          // 그 실패들은 새로운 정보가 아니라 **우리 리셋의 메아리**인데, 그대로 세면 한 번의 리셋이
+          // 곧바로 다음 forceReset(연속 3회)을 재장전해 자기지속 폭풍이 된다 — 프로덕션에서 관측된
+          // 형태다(리셋 흔적 lastCheckOutFailReason:"poolClosed" 가 반복되는 내내 12초 op-타임아웃이
+          // 이어지고 유료 라우트가 INFRA_503_AUTH 를 냈다).
+          // 리셋 직후 짧은 창에서는 진짜 장애와 메아리를 구분할 방법이 없고, 방금 복구를 실행했으므로
+          // 재장전을 잠시 미루는 쪽이 안전하다. 창을 지나서도 실패가 계속되면 그때 정상적으로 센다.
+          const echoOfOurReset = Date.now() - lastPoolResetAt < SELF_INFLICTED_FAILURE_WINDOW_MS;
+          if (!echoOfOurReset) consecutiveConnectionFailures += 1;
           // 🔴 데드락 탈출구. 아래 inFlightOps 가드는 '살아서 실행 중인 동시 요청'을 보호하려는 것인데,
           // 이 연결 위에서 성공한 작업 없이 연속으로 N번 실패했다면 보호할 건강한 요청이 없다 —
           // 동시 요청들도 전부 같은 죽은 소켓에 매달려 있다. 그런데도 계속 미루면, 실패를 본 클라이언트가
@@ -748,7 +790,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
             // A lone timed-out attempt may never settle, so deferring its reset
             // forever leaves the isolate pinned to a dead pool. Protect other
             // active requests, but let the lone/forced recovery reset proceed.
-            if (inFlightOps > 1 && !forceReset) {
+            if (countActiveMongoOps() > 1 && !forceReset) {
               pendingPoolReset = true;
             } else {
               // 나 혼자거나(끊어도 아무도 안 다침) 연속 실패로 강행 판정 = 지금 끊는다.
@@ -777,3 +819,23 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
 }
 
 export { mongoose };
+
+// 테스트 전용 관찰/조작 창구. 프로덕션 경로는 이 객체를 참조하지 않는다.
+// in-flight 회계와 연속 실패 카운터는 모듈 스코프라 밖에서 볼 수 없는데, 바로 그 둘이
+// 리셋 폭풍의 핵심 상태라 회귀 테스트가 반드시 확인해야 한다.
+export const __dbTestUtils = {
+  countActiveMongoOps,
+  getConsecutiveConnectionFailuresForTest: () => consecutiveConnectionFailures,
+  // 나이 기반 만료를 시간 경과 없이 재현한다(테스트에서 15초를 실제로 기다릴 수는 없다).
+  expireActiveOpsForTest: () => {
+    for (const record of activeMongoOps) {
+      record.startedAt -= ABANDONED_OP_MAX_AGE_MS + 1000;
+    }
+    return countActiveMongoOps();
+  },
+  // agoMs 만큼 과거에 리셋이 있었던 것으로 둔다(쿨다운·자기유발 창을 시간 경과 없이 재현).
+  markPoolResetForTest: (agoMs = 0) => {
+    lastPoolResetAt = Date.now() - agoMs;
+    consecutiveConnectionFailures = 0;
+  },
+};
