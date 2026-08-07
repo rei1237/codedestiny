@@ -123,6 +123,29 @@
   white-space: nowrap;
 }
 
+/* 상담자가 제안한 다음 질문 — 대화가 한 턴으로 끝나지 않게 하는 동력. */
+.followUps { display: flex; align-items: center; gap: 7px; overflow: auto; padding: 0 0 9px; }
+.followUps > span { flex: 0 0 auto; color: var(--muted); font-size: .74rem; font-weight: 800; }
+.followUps button {
+  min-height: 34px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  border: 1px dashed rgba(179, 25, 85, .34);
+  border-radius: 999px;
+  background: #fff6fa;
+  padding: 0 12px;
+  color: var(--rose);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.followUps button:hover { border-style: solid; background: #ffeef5; }
+.followUps button:focus-visible { outline: 3px solid rgba(179, 25, 85, .32); outline-offset: 3px; }
+
+/* 근거 목록은 줄바꿈을 살려야 읽힌다(detail 에 개행으로 담긴다). */
+.bubble details p { white-space: pre-wrap; }
+
 /* 생년 정보 — 프로필 카드가 있으면 접힌 채로 요약만 보이고, 없을 때만 펼쳐 묻는다. */
 .birthPanel { margin: 0 0 9px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, .78); padding: 9px 12px; }
 .birthPanel > summary { color: var(--ink); font-size: .8rem; font-weight: 800; cursor: pointer; list-style: none; }

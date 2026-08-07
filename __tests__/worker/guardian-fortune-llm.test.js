@@ -5,6 +5,7 @@ import { generateGuardianFortuneWithConfiguredLLM, generateGuardianFortuneWithRe
 import { getGuardianFortuneRealLlmBlockReason, shouldUseRealGuardianFortuneLLM } from "../../worker/lib/guardian-fortune-llm-policy.js";
 import { makeGuardianFortuneContext, guardianFortuneLlmInput } from "../fixtures/guardian-fortune-llm-fixtures.mjs";
 import { countGuardianFortuneVisibleTextLength } from "../../worker/lib/guardian-fortune-result.js";
+import { GUARDIAN_FORTUNE_RESULT_LENGTH } from "../../worker/lib/guardian-fortune-runtime-contract.js";
 
 const realEnv = {
   NODE_ENV: "production",
@@ -55,7 +56,7 @@ describe("Guardian Fortune guarded LLM", () => {
     });
     expect(provider).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ deliverable: true, usedFallback: false });
-    expect(countGuardianFortuneVisibleTextLength(result.result)).toBeGreaterThanOrEqual(800);
+    expect(countGuardianFortuneVisibleTextLength(result.result)).toBeGreaterThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.min);
     expect(metricSink).toHaveBeenCalledWith(expect.objectContaining({ provider: "gemini", success: true, fallbackUsed: false }));
     expect(JSON.stringify(metricSink.mock.calls)).not.toContain("1990-01-01");
   });
@@ -70,8 +71,8 @@ describe("Guardian Fortune guarded LLM", () => {
       providerCall: async () => ({ ok: false, error: "timeout", status: 504 }),
     });
     expect(result).toMatchObject({ deliverable: true, usedFallback: true, errorCode: "timeout" });
-    expect(countGuardianFortuneVisibleTextLength(result.result)).toBeGreaterThanOrEqual(800);
-    expect(countGuardianFortuneVisibleTextLength(result.result)).toBeLessThanOrEqual(1500);
+    expect(countGuardianFortuneVisibleTextLength(result.result)).toBeGreaterThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.min);
+    expect(countGuardianFortuneVisibleTextLength(result.result)).toBeLessThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.max);
   });
 
   it("converts a thrown provider error into a delivered fallback without exposing the error", async () => {

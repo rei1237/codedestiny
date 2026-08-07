@@ -6,9 +6,21 @@
  * must not import the TypeScript feature barrel or payment implementation.
  */
 
+/**
+ * 산문 필드(VISIBLE_RESULT_FIELDS)의 합계 길이 계약.
+ * 무료 3회 이후 1회 5,000원을 받게 되면서 800~1,500자에서 상향했다(2026-08-07).
+ * followUpQuestions·evidenceLines 는 목록이라 이 합계에 넣지 않는다 — 넣으면 길이를
+ * 목록 개수로 채우는 우회가 생긴다.
+ */
 export const GUARDIAN_FORTUNE_RESULT_LENGTH = Object.freeze({
-  min: 800,
-  max: 1500,
+  min: 1500,
+  max: 2500,
+});
+
+/** 후속 질문 제안(대화를 잇는 동력)과 근거 줄(선택 체계의 계산 근거)의 개수 계약. */
+export const GUARDIAN_FORTUNE_LIST_LIMITS = Object.freeze({
+  followUpQuestions: Object.freeze({ min: 3, max: 3, maxLength: 60 }),
+  evidenceLines: Object.freeze({ min: 3, max: 5, maxLength: 120 }),
 });
 
 export const GUARDIAN_FORTUNE_RESULT_FIELDS = Object.freeze([
@@ -19,6 +31,8 @@ export const GUARDIAN_FORTUNE_RESULT_FIELDS = Object.freeze([
   "topicAdvice",
   "cautionPattern",
   "luckyAction",
+  "evidenceLines",
+  "followUpQuestions",
   "premiumCta",
   "shareText",
 ]);

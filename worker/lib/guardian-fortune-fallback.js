@@ -240,7 +240,44 @@ export function buildContextDrivenGuardianFallback({ input = {}, context = {}, r
     innerState: `지금 질문은 ${questionFocus.answerFrame}에 대한 답을 찾고 있어요. ${baseResult.innerState}`,
     coreReading: `${questionEvidence} ${baseResult.coreReading}`,
     topicAdvice: `질문에 바로 답하면, ${questionFocus.answerFrame}에서는 ${advice}가 먼저입니다. ${questionFocus.actionFrame} ${baseResult.topicAdvice}`,
+    evidenceLines: buildEvidenceLines(evidence, contract),
+    followUpQuestions: buildFollowUpQuestions(topic, contract),
   };
+}
+
+/**
+ * 결과 카드에 "무엇을 근거로 이렇게 읽었는가"를 3~5줄로 드러낸다.
+ * 서버가 실제로 가진 근거만 쓰고, 모자라면 체계 역할 설명으로 채운다.
+ */
+function buildEvidenceLines(evidence, contract) {
+  const lines = evidence.map((entry) => safeText(entry, 120)).filter(Boolean);
+  const filler = [
+    `${contract.label}의 흐름은 한 장면이 아니라 반복되는 선택 습관에서 읽습니다.`,
+    "생시나 출생지가 없는 부분은 확정하지 않고 낮은 확신으로 남겨 둡니다.",
+    "같은 방향을 두 번 이상 가리키는 신호를 우선 근거로 삼습니다.",
+  ];
+  for (const line of filler) {
+    if (lines.length >= 3) break;
+    if (!lines.includes(line)) lines.push(line);
+  }
+  return lines.slice(0, 5);
+}
+
+/** 대화를 잇는 동력. 주제마다 다음에 물어볼 만한 질문을 3개 제안한다. */
+const FOLLOW_UP_QUESTIONS = Object.freeze({
+  daily: ["오늘 중 가장 미루고 있는 일은 뭘까요?", "지금 몸과 마음 중 어디가 더 지쳐 있나요?", "내일로 넘겨도 괜찮은 일은 무엇인가요?"],
+  love: ["상대에게 먼저 연락해도 될까요?", "지금 이 관계에서 제가 바라는 건 뭘까요?", "기다리는 게 나을 시기인가요?"],
+  money_work: ["지금 이직을 고민해도 될 시기인가요?", "이번 달 지출에서 먼저 줄일 곳은 어디인가요?", "제가 잘하는 일로 돈을 벌 방법이 있을까요?"],
+  relationship: ["그 사람과 거리를 둬야 할까요?", "제가 반복하는 관계 패턴은 뭘까요?", "먼저 사과하는 게 맞을까요?"],
+  mind: ["요즘 마음이 무거운 이유가 뭘까요?", "지금 내려놓아도 되는 걱정은 무엇인가요?", "회복에 도움이 되는 하루 리듬은요?"],
+  decision: ["두 선택지 중 어느 쪽이 저다울까요?", "지금 결정해야 할 만큼 급한 일인가요?", "결정 전에 확인해야 할 조건은 뭔가요?"],
+});
+
+function buildFollowUpQuestions(topic, contract) {
+  const questions = FOLLOW_UP_QUESTIONS[topic] || FOLLOW_UP_QUESTIONS.daily;
+  return questions.map((question) => safeText(question, 60)).filter(Boolean).slice(0, 3)
+    .concat(`${contract.label}에서 더 궁금한 점이 있나요?`)
+    .slice(0, 3);
 }
 
 export { TOPIC_GUIDANCE };

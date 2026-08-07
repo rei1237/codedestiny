@@ -1,5 +1,7 @@
 import {
+  GUARDIAN_FORTUNE_LIST_LIMITS,
   GUARDIAN_FORTUNE_RESULT_FIELDS,
+  GUARDIAN_FORTUNE_RESULT_LENGTH,
   GUARDIAN_FORTUNE_TOPICS,
   getTopicContract,
 } from "./guardian-fortune-runtime-contract.js";
@@ -13,6 +15,8 @@ const MODE_SYSTEM_PROMPTS = Object.freeze({
     "과도한 애교와 이모지는 쓰지 말고 사용자를 돼지라고 부르지 마.",
     "연이는 꽃돼지 캐릭터와 같은 존재다. 별도 상담자인 것처럼 나누지 말고, 다정한 편지형 존댓말로 마음의 결을 먼저 살핀 뒤 확인 가능한 행동을 한 가지 제안해.",
     "연이 톤은 찻잔, 꽃잎, 달빛 같은 부드러운 이미지를 절제해서 쓰며, 상대 마음·미래·결과를 단정하지 않는다.",
+    "구성 순서: 지금의 마음을 먼저 알아주고 → 계산 근거로 흐름을 설명하고 → 오늘 해볼 수 있는 한 가지로 닫는다. 결론을 첫 문장에 못 박지 않는다.",
+    "문장은 고르게 이어지는 편지체로 쓰고, 명령형 대신 권유형(~해보세요, ~어때요)을 쓴다. 사용자를 평가하거나 진단하듯 말하지 않는다.",
   ].join(" "),
   neo: [
     "너는 네오야. 짧고 정돈된 문장으로 현재 판세와 사용자가 움직일 수 있는 지점을 짚어.",
@@ -20,8 +24,27 @@ const MODE_SYSTEM_PROMPTS = Object.freeze({
     "중2병식 과장, 공포, 운명 확정, 결제 압박은 금지해.",
     "네오는 연이와 확실히 구분되는 전략가다. 짧고 선명한 문장으로 판세, 기준, 다음 작전을 정리하되 사용자를 깎아내리지 않는다.",
     "네오 톤은 전략, 판세, 기준, 정리 같은 어휘를 쓰고 감성적 이미지보다 실행 순서를 우선한다.",
+    "구성 순서: 결론을 첫 문장에 먼저 박고 → 그렇게 본 근거를 대고 → 다음에 확인할 순서를 정리한다. 위로로 시작하지 않는다.",
+    "문장은 짧게 끊고 수식어를 줄인다. 듣기 좋은 말로 감싸지 말고 사용자가 놓치고 있는 지점을 정확히 짚되, 인신공격이나 단정은 하지 않는다.",
   ].join(" "),
 });
+
+/**
+ * 이전 대화 맥락. 이 화면은 채팅인데 매 턴이 단발이라 "이어서 묻는" 경험이 성립하지 않았다.
+ * 원문을 그대로 넣지 않고 발화자 라벨 + 길이 제한으로 눌러 담는다.
+ */
+function formatRecentTurns(recentTurns) {
+  if (!Array.isArray(recentTurns) || !recentTurns.length) return "";
+  return recentTurns
+    .slice(-6)
+    .map((turn) => {
+      const speaker = turn?.speaker === "assistant" ? "상담자" : "사용자";
+      const line = safeText(turn?.text, 160);
+      return line ? `- ${speaker}: ${line}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+}
 
 const PROMPT_ADAPTER_FIELDS = Object.freeze({
   saju: ["dayMaster", "tenGodsSummary", "fiveElementsSummary", "seasonSummary", "relationSummary", "currentFlowSummary", "personalityHook", "cautions", "evidence"],
@@ -144,8 +167,9 @@ export function formatGuardianFortuneContextForPrompt(context = {}) {
 }
 
 function buildSchemaHint() {
+  const listFields = new Set(Object.keys(GUARDIAN_FORTUNE_LIST_LIMITS));
   const fields = GUARDIAN_FORTUNE_RESULT_FIELDS.filter((field) => field !== "premiumCta")
-    .map((field) => `"${field}": "string"`)
+    .map((field) => (listFields.has(field) ? `"${field}": ["string"]` : `"${field}": "string"`))
     .join(", ");
   return `{ ${fields}, "premiumCta": { "ctaKey": "allowlisted key", "label": "string", "reason": "string" } }`;
 }
@@ -232,8 +256,12 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     "반드시 JSON 하나만 반환하고 Markdown, 코드펜스, 설명 문장은 반환하지 마.",
   ].join(" ");
 
+  // 🔴 context 에서만 읽는다. input 은 정규화 전 원본이라 개수·길이·민감정보 필터를 안 거쳤다.
+  const recentTurns = formatRecentTurns(context?.recentTurns);
+
   const userPrompt = [
     `질문 중심 답변: ${questionFocus.answerFrame}. 고민 원문을 인용하지 말고, 이 질문에 바로 답한 뒤 계산 근거와 실행 기준을 제시한다.`,
+    ...(recentTurns ? [`이전 대화 맥락(최근 순):\n${recentTurns}\n앞서 이미 말한 조언을 그대로 반복하지 말고, 이어지는 다음 이야기를 한다. 맥락이 지금 질문과 무관하면 무시한다.`] : []),
     `상담 체계: ${category}. ${GUARDIAN_CATEGORY_INSTRUCTIONS_KO[category]}`,
     `관심 분야: ${topicContract.label} (${topic})`,
     `상담 지침: ${topicContract.instruction}`,
@@ -245,8 +273,10 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     "첫 문장은 integratedInsight.openingHook을 자연스럽게 반영하고, 선택한 단일 체계의 실제 계산 근거를 핵심 해석으로 삼아.",
     "타로는 서버 projection의 카드명, 정/역방향, positionKey, spreadType만 사용하고 새 카드를 만들지 마.",
     "생시가 없으면 시주·라그나·상승궁·하우스·신궁을 확정하지 말고, 출생지가 없으면 하우스/상승궁 기반 단정을 피해서 말해.",
-    "결과는 800자 이상 1500자 이하의 읽기 쉬운 한국어 상담문으로 작성해.",
-    "필수 필드: title, openingLine, innerState, coreReading, topicAdvice, cautionPattern, luckyAction, premiumCta, shareText.",
+    `결과 본문(openingLine·innerState·coreReading·topicAdvice·cautionPattern·luckyAction 합계)은 ${GUARDIAN_FORTUNE_RESULT_LENGTH.min}자 이상 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max}자 이하의 읽기 쉬운 한국어로 작성해. 같은 문장을 늘려 분량을 채우지 말고, 근거와 장면을 더해서 채워.`,
+    `evidenceLines: 선택한 체계의 실제 계산 근거를 ${GUARDIAN_FORTUNE_LIST_LIMITS.evidenceLines.min}~${GUARDIAN_FORTUNE_LIST_LIMITS.evidenceLines.max}줄로 적어. 각 줄 ${GUARDIAN_FORTUNE_LIST_LIMITS.evidenceLines.maxLength}자 이내이며, context 에 없는 값은 쓰지 않는다.`,
+    `followUpQuestions: 사용자가 다음에 이어서 물어볼 만한 질문을 ${GUARDIAN_FORTUNE_LIST_LIMITS.followUpQuestions.min}개, 각 ${GUARDIAN_FORTUNE_LIST_LIMITS.followUpQuestions.maxLength}자 이내로 사용자 말투(반말 아님)로 적어. 상품 홍보 문구가 아니라 진짜 궁금해할 질문이어야 한다.`,
+    "필수 필드: title, openingLine, innerState, coreReading, topicAdvice, cautionPattern, luckyAction, evidenceLines, followUpQuestions, premiumCta, shareText.",
     "premiumCta는 서버가 제공한 topic allowlist의 ctaKey만 사용하고 targetPath는 만들지 마.",
     "shareText에는 생년월일, 생시, 출생지, 성별, 닉네임, 고민 원문을 넣지 마.",
     `JSON schema hint: ${buildSchemaHint()}`,
