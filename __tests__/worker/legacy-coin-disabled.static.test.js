@@ -85,6 +85,15 @@ describe("legacy COIN removal regression guards", () => {
       "src",
       "js",
       "index.html",
+      // 루트 진입 컴포넌트/엔진도 배포되는 클라이언트 표면이다. StonehengeRune 은
+      // app/oracle/rune/RuneRouteClient.tsx 가 dynamic import 로 싣는 살아있는 라우트인데,
+      // 스캔 목록에 루트가 없어 forceDeduct:true 잔재가 그대로 통과했었다.
+      "AnalysisEngine.js",
+      "HwatuFortune.js",
+      "OlympusVIPLounge.jsx",
+      "PastLifeFaceUI.js",
+      "PhysiognomyUI.js",
+      "StonehengeRune.jsx",
     ];
     const blocked = /forceDeduct\s*:\s*true|paymentMode\s*:\s*["']COIN["']|\/api\/fortune\/pig-coin\/(?:balance|consume|unlock|share-reward|charge-simulate|earn)/;
 

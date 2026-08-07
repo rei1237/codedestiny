@@ -1991,63 +1991,12 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         cancelled.code='PAYMENT_CANCELLED';
         throw cancelled;
       }
-      console.log('[CelestialHarmony][Access] token/report/session state', {
-        reportId: reportId,
-        requestId: requestId,
-        sessionId: sessionId,
-        hasAuthToken: Boolean(readAuthToken()),
-        premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
-      });
-      console.log('[CelestialHarmony][CoinGate] request', {
-        url:'/api/billing/coin-gate',
-        body:{
-          categoryKey: body.categoryKey,
-          featureKey: body.featureKey,
-          reportType: body.reportType,
-          reason: body.reason,
-          cost: body.cost,
-          requestId: body.requestId,
-          reportId: body.reportId,
-          sessionId: body.sessionId,
-          reportSessionId: body.reportSessionId,
-          idempotencyKey: body.idempotencyKey
-        },
-        authTokenMasked: maskToken(readAuthToken()),
-        premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
-      });
-      var res=await fetch('/api/billing/coin-gate',{method:'POST',headers:headers,credentials:'include',body:JSON.stringify(body)});
-      var payload={};
-      try{payload=await res.json();}catch(_){payload={};}
-      console.log('[CelestialHarmony][CoinGate] response', { status: res.status, payload: payload });
-      if(!res.ok || payload.ok===false){
-        var gateErr = new Error((payload&&payload.error&&payload.error.message)||payload.message||'원화 결제 확인에 실패했습니다.');
-        gateErr.status = res.status;
-        gateErr.payload = payload;
-        throw gateErr;
-      }
-      var normalized = extractCoinGateResult(payload, body);
-      // 서버가 이용권 커버로 무료 통과시킨 경우에도 거래ID가 비어 있을 수 있다.
-      var directAccessType = hasPassGrantMarker(payload) ? 'membership_pass' : '';
-      var directTransactionId = clean(normalized.transactionId) || (directAccessType ? clean(body.requestId) : '');
-      assertPaymentProof({
-        transactionId: directTransactionId,
-        purchaseId: normalized.purchaseId,
-        premiumAccessToken: normalized.premiumAccessToken,
-        accessGrant: normalized.accessGrant,
-        consume: normalized.consume,
-        accessType: directAccessType,
-      });
-      if(normalized.premiumAccessToken) persistPremiumToken(normalized.premiumAccessToken);
-      return {
-        transactionId: directTransactionId,
-        purchaseId: clean(normalized.purchaseId),
-        reportId: clean(normalized.reportId || reportId),
-        accessGrant: normalized.accessGrant,
-        consume: normalized.consume,
-        premiumAccessToken: normalized.premiumAccessToken,
-        requestId: clean(normalized.requestId || body.requestId),
-        accessType: directAccessType,
-      };
+      // 공유 결제 게이트(destiny-profile.js) 미로드: 정책 우회 차감(직접 coin-gate/forceDeduct/COIN) 대신 안내.
+      window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      var gateUnavailable=new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+      gateUnavailable.code='PAYMENT_GATE_UNAVAILABLE';
+      gateUnavailable.status=503;
+      throw gateUnavailable;
     }
 
     function activateAccessState(paymentInfo){
@@ -2314,6 +2263,12 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           // 사용자가 결제창을 닫은 경우 — 실패가 아니라 취소이므로 중립 안내 후 종료.
           setLoading(false,'');
           updatePremiumStatus('premium ready','결제를 취소했습니다. 준비되면 다시 리딩을 열 수 있습니다.','payment',['draw']);
+          return;
+        }
+        if(code==='PAYMENT_GATE_UNAVAILABLE'){
+          // 결제 실패가 아니라 공유 결제 게이트 스크립트 미로드다 — '결제 확인 실패'로 오인시키지 않는다.
+          setLoading(false,'');
+          updatePremiumStatus('premium issue','결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.','payment',['draw']);
           return;
         }
         if(status===401 || code==='UNAUTHORIZED'){

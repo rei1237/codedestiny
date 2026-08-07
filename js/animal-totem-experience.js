@@ -417,13 +417,27 @@
           break;
         }
       }
+      // 뱃지(__cdSetGoldenBalance)의 단위는 '월정석'이다. 위 remaining 은 data.balance 를 1순위로
+      // 집는데 그건 서버가 아직 함께 내려주는 레거시 코인(user.points)이라 뱃지에 넣으면 안 된다.
+      // 응답에 월정석 잔량이 실제로 있을 때만 출처를 밝혀 넘기고, 없으면 정본을 다시 받는다.
+      var monthlyStoneRaw = (data && data.monthlyStoneBalance) != null
+        ? data.monthlyStoneBalance
+        : (data && data.membershipCreditBalance);
+      var monthlyStone = Number(monthlyStoneRaw);
+      if (Number.isFinite(monthlyStone) && monthlyStone >= 0) {
+        if (typeof global.__cdSetGoldenBalance === "function") {
+          global.__cdSetGoldenBalance(monthlyStone, { source: "coin-gate-monthly-stone" });
+        }
+      } else if (typeof global.__cdRefreshGoldenBalance === "function") {
+        global.__cdRefreshGoldenBalance({ forceAuthProbe: true });
+      }
+
       if (!Number.isFinite(remaining)) return;
       localStorage.setItem("fortune_user_points", String(remaining));
       var authRaw = localStorage.getItem("fortune_auth_user") || "";
       var authUser = authRaw ? JSON.parse(authRaw) : {};
       authUser.points = remaining;
       localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
-      if (typeof global.__cdSetGoldenBalance === "function") global.__cdSetGoldenBalance(remaining);
     } catch (_) {}
   }
 

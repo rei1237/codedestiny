@@ -745,7 +745,6 @@ export default function StonehengeRune() {
       featureKey: fallbackFeatureKey,
       reason: "스톤헨지 룬점",
       coinPrice: RUNE_COST_BY_SPREAD[spread],
-      forceDeduct: true,
       requestId: `rune:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
       onPaid: async () => {
         startDraw();
