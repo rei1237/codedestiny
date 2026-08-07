@@ -1,7 +1,6 @@
 import type {
   GuardianFortuneFeatureFlags,
   GuardianFortuneMode,
-  GuardianFortuneProduct,
   GuardianFortuneTopic,
 } from "./types";
 
@@ -155,56 +154,11 @@ export const GUARDIAN_FORTUNE_PREMIUM_CTA_BY_TOPIC = {
   ],
 } as const;
 
-export const GUARDIAN_FORTUNE_PRODUCTS: readonly GuardianFortuneProduct[] = [
-  {
-    productId: "guardian_fortune_chat_3",
-    productName: "달빛 귀인 대화권 3회",
-    productType: "guardian_fortune_conversation_credit",
-    priceKrw: 10000,
-    creditAmount: 3,
-    badge: "가볍게 더 보기",
-    description: "오늘 더 묻고 싶은 흐름이 있다면, 연이와 네오에게 3번 더 물어볼 수 있어요.",
-    allowedPurchaseChannels: ["pg"],
-    blockedPurchaseChannels: [
-      "monthly_membership_payment",
-      "pass",
-      "family_pass",
-      "free_pass",
-      "event_pass",
-      "credit",
-      "conversation_credit",
-      "entitlement",
-      "price_coverage",
-    ],
-  },
-  {
-    productId: "guardian_fortune_chat_10",
-    productName: "달빛 귀인 대화권 10회",
-    productType: "guardian_fortune_conversation_credit",
-    priceKrw: 30000,
-    creditAmount: 10,
-    badge: "가장 합리적",
-    description: "연애, 일, 마음, 선택까지 여러 흐름을 천천히 보고 싶은 분께 좋아요.",
-    allowedPurchaseChannels: ["pg"],
-    blockedPurchaseChannels: [
-      "monthly_membership_payment",
-      "pass",
-      "family_pass",
-      "free_pass",
-      "event_pass",
-      "credit",
-      "conversation_credit",
-      "entitlement",
-      "price_coverage",
-    ],
-  },
-];
-
 export const GUARDIAN_FORTUNE_COPY = {
   title: "오늘, 당신에게 필요한 귀인이 찾아왔어요",
   subtitle: "사주·자미두수·베다점·숙요점·점성술·타로의 흐름을 엮어, 오늘 당신에게 필요한 메시지를 전해드려요.",
   guestFree: "첫 1회는 로그인 없이 무료, 로그인하면 하루 3회까지 볼 수 있어요.",
-  creditHint: "무료 상담을 모두 사용했다면, 대화권으로 연이와 네오에게 더 물어볼 수 있어요.",
+  creditHint: "무료 상담을 모두 사용했다면, 1회 5,000원으로 연이와 네오에게 더 물어볼 수 있어요.",
 } as const;
 
 /** Adapter execution order used when the same topic has evidence from several systems. */

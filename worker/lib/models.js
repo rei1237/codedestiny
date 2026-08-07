@@ -1352,42 +1352,11 @@ const fortuneChatSessionSchema = new mongoose.Schema({
 }, { timestamps: true, collection: "fortuneChatSessions" });
 fortuneChatSessionSchema.index({ userId: 1, updatedAt: -1 });
 
-const guardianFortuneChatCreditBalanceSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true },
-  remaining: { type: Number, default: 0, min: 0 },
-  reserved: { type: Number, default: 0, min: 0 },
-  purchasedTotal: { type: Number, default: 0, min: 0 },
-  usedTotal: { type: Number, default: 0, min: 0 },
-  refundedTotal: { type: Number, default: 0, min: 0 },
-  reservationUpdatedAt: { type: Date, default: null },
-}, { timestamps: true, collection: "guardianFortuneChatCreditBalances" });
-
-const guardianFortuneChatCreditTransactionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
-  type: { type: String, enum: ["purchase", "use", "refund", "adjustment", "rollback"], required: true, index: true },
-  amount: { type: Number, required: true },
-  balanceAfter: { type: Number, required: true, min: 0 },
-  beforeBalance: { type: Number, required: true, min: 0 },
-  afterBalance: { type: Number, required: true, min: 0 },
-  productId: { type: String, default: "", trim: true, maxlength: 120 },
-  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
-  fortuneRequestId: { type: String, default: "", trim: true, maxlength: 120, index: true },
-  reason: { type: String, default: "", trim: true, maxlength: 200 },
-}, { timestamps: { createdAt: true, updatedAt: false }, collection: "guardianFortuneChatCreditTransactions" });
-guardianFortuneChatCreditTransactionSchema.index(
-  { userId: 1, fortuneRequestId: 1, type: 1 },
-  { unique: true, partialFilterExpression: { fortuneRequestId: { $type: "string", $gt: "" } } },
-);
-guardianFortuneChatCreditTransactionSchema.index(
-  { paymentId: 1, type: 1 },
-  { unique: true, partialFilterExpression: { paymentId: { $type: "string", $gt: "" } } },
-);
-
 const guardianFortuneGenerationAttemptSchema = new mongoose.Schema({
   requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, default: null, index: true },
   guestIdHash: { type: String, default: "", trim: true, maxlength: 128, index: true },
-  source: { type: String, enum: ["guest_free", "daily_free", "paid_credit", "blocked"], default: "blocked" },
+  source: { type: String, enum: ["guest_free", "daily_free", "blocked"], default: "blocked" },
   dateKey: { type: String, required: true, trim: true, maxlength: 10, index: true },
   status: { type: String, enum: ["reserved", "completed", "released", "blocked"], default: "reserved", index: true },
   errorCode: { type: String, default: "", trim: true, maxlength: 100 },
@@ -1422,31 +1391,6 @@ const guardianFortuneSharedSnapshotSchema = new mongoose.Schema({
 }, { collection: "guardianFortuneSharedSnapshots" });
 guardianFortuneSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 guardianFortuneSharedSnapshotSchema.index({ status: 1, createdAt: -1 });
-
-// Fusion Fortune is intentionally isolated from passes, entitlements, monthly
-// credits, and Guardian conversation credits. Operations must provision these
-// indexes through the normal migration process; autoIndex is disabled in Worker.
-const fusionFortuneTicketBalanceSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true, index: true },
-  totalRemaining: { type: Number, default: 0, min: 0 },
-  purchasedTotal: { type: Number, default: 0, min: 0 },
-  usedTotal: { type: Number, default: 0, min: 0 },
-  refundedTotal: { type: Number, default: 0, min: 0 },
-  reserved: { type: Number, default: 0, min: 0 },
-}, { timestamps: true, collection: "fusionFortuneTicketBalances" });
-
-const fusionFortuneTicketTransactionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
-  type: { type: String, enum: ["purchase", "use", "refund", "rollback", "adjustment"], required: true, index: true },
-  amount: { type: Number, required: true },
-  balanceAfter: { type: Number, required: true, min: 0 },
-  productId: { type: String, default: "", trim: true, maxlength: 120 },
-  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
-  fusionRequestId: { type: String, default: "", trim: true, maxlength: 120, index: true },
-  reason: { type: String, default: "", trim: true, maxlength: 200 },
-}, { timestamps: { createdAt: true, updatedAt: false }, collection: "fusionFortuneTicketTransactions" });
-fusionFortuneTicketTransactionSchema.index({ paymentId: 1, type: 1 }, { unique: true, partialFilterExpression: { paymentId: { $type: "string", $gt: "" } } });
-fusionFortuneTicketTransactionSchema.index({ userId: 1, fusionRequestId: 1, type: 1 }, { unique: true, partialFilterExpression: { fusionRequestId: { $type: "string", $gt: "" } } });
 
 const fusionFortuneDailyLimitSchema = new mongoose.Schema({
   dateKey: { type: String, required: true, unique: true, trim: true, maxlength: 10, index: true },
@@ -1546,18 +1490,10 @@ export const GuardianFortuneAnonymousMerge = mongoose.models.GuardianFortuneAnon
   || mongoose.model("GuardianFortuneAnonymousMerge", guardianFortuneAnonymousMergeSchema);
 export const FortuneChatSession = mongoose.models.FortuneChatSession
   || mongoose.model("FortuneChatSession", fortuneChatSessionSchema);
-export const GuardianFortuneChatCreditBalance = mongoose.models.GuardianFortuneChatCreditBalance
-  || mongoose.model("GuardianFortuneChatCreditBalance", guardianFortuneChatCreditBalanceSchema);
-export const GuardianFortuneChatCreditTransaction = mongoose.models.GuardianFortuneChatCreditTransaction
-  || mongoose.model("GuardianFortuneChatCreditTransaction", guardianFortuneChatCreditTransactionSchema);
 export const GuardianFortuneGenerationAttempt = mongoose.models.GuardianFortuneGenerationAttempt
   || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema);
 export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneSharedSnapshot
   || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
-export const FusionFortuneTicketBalance = mongoose.models.FusionFortuneTicketBalance
-  || mongoose.model("FusionFortuneTicketBalance", fusionFortuneTicketBalanceSchema);
-export const FusionFortuneTicketTransaction = mongoose.models.FusionFortuneTicketTransaction
-  || mongoose.model("FusionFortuneTicketTransaction", fusionFortuneTicketTransactionSchema);
 export const FusionFortuneDailyLimit = mongoose.models.FusionFortuneDailyLimit
   || mongoose.model("FusionFortuneDailyLimit", fusionFortuneDailyLimitSchema);
 export const FusionFortuneGenerationAttempt = mongoose.models.FusionFortuneGenerationAttempt

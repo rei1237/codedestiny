@@ -18,10 +18,6 @@ import {
   FUSION_FORTUNE_LENGTH,
   FUSION_SECTION_GROUP_SPECS,
 } from "../../worker/lib/fusion-fortune-prompt.js";
-import {
-  createFusionFortuneTicketOrder,
-  isFusionFortuneTicketSalesEnabled,
-} from "../../worker/lib/fusion-fortune-purchase.js";
 import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
 const input = { birthDate: "1995-04-18", birthTime: "08:30", calendarType: "solar", gender: "female", topic: "삶의 전반적인 흐름", concern: "" };
@@ -147,21 +143,6 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     // 진입 시 결제 선검사를 하지 않으므로 로그인만 되어 있으면 canGenerate 다.
     expect(await buildFusionFortuneStatus({ userId: "user", store: emptyStore(), now })).toMatchObject({ nextAction: "generate", canGenerate: true, pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } });
     expect(await buildFusionFortuneStatus({ userId: "user", store: emptyStore(), now, enabled: false })).toMatchObject({ nextAction: "disabled", canGenerate: false });
-  });
-
-  it("keeps the retired ticket product unsellable regardless of its old env flag", async () => {
-    // 워커가 티켓을 더 이상 소비하지 않으므로 팔면 소비 불가능한 재화를 파는 셈이다.
-    expect(isFusionFortuneTicketSalesEnabled({ ENABLE_FUSION_FORTUNE_TICKET_SALES: "true" })).toBe(false);
-    const paymentModel = {
-      findOne: jest.fn(() => ({ sort: () => ({ lean: async () => null }) })),
-      create: jest.fn(async (record) => record),
-    };
-    const userModel = { findById: jest.fn(() => ({ select: () => ({ lean: async () => ({ name: "테스트 사용자" }) }) })) };
-    const env = { PORTONE_STORE_ID: "store-test", PORTONE_CHANNEL_KEY: "channel-test", PORTONE_API_SECRET: "server-test-secret" };
-    const body = { productId: "fusion_fortune_ticket_1", productType: "fusion_fortune_ticket", amount: 10000, paymentMethod: "pg", idempotencyKey: "fusion-order-test" };
-    await expect(createFusionFortuneTicketOrder({ env, userId: "user", body, requestUrl: "https://code-destiny.com/points", paymentModel, userModel }))
-      .rejects.toMatchObject({ code: "FUSION_FORTUNE_TICKET_SALES_ENDED" });
-    expect(paymentModel.create).not.toHaveBeenCalled();
   });
 
   it("builds fusion context by running all six explicit adapters exactly once", async () => {

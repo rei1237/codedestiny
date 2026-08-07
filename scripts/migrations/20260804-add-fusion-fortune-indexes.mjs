@@ -1,5 +1,8 @@
 /**
- * MongoDB migration - Fusion Fortune ticket, daily limit, and idempotency indexes.
+ * MongoDB migration - Fusion Fortune daily limit and idempotency indexes.
+ *
+ * 상담권(ticket) 컬렉션 인덱스는 이 목록에서 빠졌다. 그 재화는 폐지됐고
+ * 20260808-drop-legacy-consultation-currencies.mjs 가 컬렉션 자체를 드롭한다.
  *
  * This script is never run by build or deploy. Use --check for a read-only
  * preflight. Creating indexes against production requires separate approval.
@@ -9,8 +12,6 @@ import { connectDb, mongoose } from "../../worker/lib/db.js";
 import {
   FusionFortuneDailyLimit,
   FusionFortuneGenerationAttempt,
-  FusionFortuneTicketBalance,
-  FusionFortuneTicketTransaction,
 } from "../../worker/lib/models.js";
 
 config({ path: ".env.local" });
@@ -37,20 +38,6 @@ if (!env.MONGO_URI && !env.MONGODB_URI) {
 }
 
 const collections = [
-  {
-    model: FusionFortuneTicketBalance,
-    indexes: [
-      { spec: { userId: 1 }, options: { unique: true, name: "fusion_ticket_user_unique" } },
-    ],
-  },
-  {
-    model: FusionFortuneTicketTransaction,
-    indexes: [
-      { spec: { paymentId: 1, type: 1 }, options: { unique: true, name: "fusion_payment_type_unique", partialFilterExpression: { paymentId: { $type: "string", $gt: "" } } } },
-      { spec: { userId: 1, fusionRequestId: 1, type: 1 }, options: { unique: true, name: "fusion_request_use_unique", partialFilterExpression: { fusionRequestId: { $type: "string", $gt: "" } } } },
-      { spec: { userId: 1, createdAt: -1 }, options: { name: "fusion_transaction_user_created" } },
-    ],
-  },
   {
     model: FusionFortuneDailyLimit,
     indexes: [

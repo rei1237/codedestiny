@@ -49,27 +49,6 @@ test("fusion orbs come from the generated crops with a documented tarot gap", ()
   assert.ok(fs.existsSync(path.join(root, "scripts/build-fusion-orb-assets.mjs")));
 });
 
-test("points shop fusion ticket waits for an explicit preview and never falls back to a client price", () => {
-  const points = read("app/points/PointsClient.tsx");
-  const start = points.indexOf("function FusionFortuneTicketShop");
-  const end = points.indexOf("function MoonlightOrderHistory");
-  const shop = points.slice(start, end);
-  assert.match(shop, /api\/payments\/fusion-fortune\/shop-preview/);
-  assert.doesNotMatch(shop, /api\/payments\/fusion-fortune\/(?:catalog|balance)/);
-  assert.match(shop, /상담권 조회하기/);
-  assert.doesNotMatch(shop, /useEffect\(\(\) => \{\s*void load\(\);/);
-  assert.doesNotMatch(shop, /priceKRW\s*\|\|\s*10000/);
-  assert.match(shop, /isFusionFortuneTicketProduct/);
-  assert.match(shop, /tryAcquireShopTicketPreview\("fusion"\)/);
-  assert.match(shop, /activeScopeRef\.current = authScope/);
-  assert.match(shop, /activeScopeRef\.current !== requestScope/);
-  assert.match(shop, /AbortController/);
-  assert.match(shop, /signal: requestController\.signal/);
-  assert.match(shop, /error\.name === "AbortError"/);
-  assert.match(shop, /setIsEnabled\(null\);[\s\S]*setHasLoaded\(false\);[\s\S]*setRemaining\(null\);/);
-  assert.match(shop, /isFusionFortuneTicketProduct\(payload\.product\)[\s\S]*setProduct\(payload\.product\)[\s\S]*setRemaining\(payload\.balance\.remaining\)/);
-});
-
 test("fusion fortune mobile UI covers compact widths and reduced motion", () => {
   const css = read("app/fusion-fortune/fusion-fortune.module.css");
   assert.match(css, /max-width:\s*760px/);
@@ -152,11 +131,8 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
 });
 
-test("guardian free copy describes a maximum rather than a guaranteed grant", () => {
+test("the destiny gate states the free quota before the paid price", () => {
   const html = read("index.html");
-  const home = read("js/guardian-fortune-home.js");
-  assert.match(html, /로그인하면 하루 최대 3회까지/);
-  assert.match(home, /로그인하고 하루 최대 3회 보기/);
-  assert.doesNotMatch(home, /로그인하고 하루 3회 받기/);
-  assert.doesNotMatch(home, /생시는 몰라도 괜찮아/);
+  assert.match(html, /매일 무료 3회/);
+  assert.match(html, /이후 1회 5,000원/);
 });

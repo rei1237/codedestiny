@@ -454,8 +454,22 @@ const FUSION_GROUP_RETRY_RATIO = 0.8;
 // 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산.
 const FUSION_GENERATION_DEADLINE_MS = 120000;
 const FUSION_GROUP_RETRY_MIN_BUDGET_MS = 25000;
-/** 한국어 1자 ≈ 1.6 출력 토큰(JSON 키·이스케이프 몫 포함) + 여유. */
-function fusionGroupTokens(group) { return Math.min(12000, Math.round(group.targetChars * 1.8) + 900); }
+/**
+ * 한국어 1자 ≈ 1.6 출력 토큰(JSON 키·이스케이프 몫 포함) + 여유.
+ * 단일 호출 시절의 운영 노브 FUSION_FORTUNE_MAX_OUTPUT_TOKENS 는 이제 **그룹당** 상한으로 읽는다.
+ */
+function fusionGroupTokens(group, env = {}) {
+  const override = Number(env.FUSION_FORTUNE_MAX_OUTPUT_TOKENS);
+  if (Number.isFinite(override) && override > 0) return Math.min(16384, Math.max(3000, Math.round(override)));
+  return Math.min(12000, Math.round(group.targetChars * 1.8) + 900);
+}
+
+/** 그룹 1회 호출의 LLM 대기 상한. FUSION_FORTUNE_LLM_TIMEOUT_MS 로 덮을 수 있다. */
+function fusionGroupTimeoutMs(env = {}) {
+  const override = Number(env.FUSION_FORTUNE_LLM_TIMEOUT_MS);
+  if (Number.isFinite(override) && override > 0) return Math.min(90000, Math.max(20000, Math.round(override)));
+  return FUSION_GROUP_TIMEOUT_MS;
+}
 
 function pickKeys(source, keys) {
   return keys.reduce((picked, key) => {
@@ -567,7 +581,8 @@ export async function generateFusionFortuneWithRealLLM({
   let providerCalls = 0;
   let completedGroups = 0;
 
-  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = FUSION_GROUP_TIMEOUT_MS, extraInstruction = "" } = {}) => {
+  const groupTimeoutMs = fusionGroupTimeoutMs(env);
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "" } = {}) => {
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, extraInstruction });
     providerCalls += 1;
     let response;
@@ -576,7 +591,7 @@ export async function generateFusionFortuneWithRealLLM({
         systemPrompt: groupPrompt.systemPrompt,
         responseMimeType: "application/json",
         attempts,
-        maxOutputTokens: fusionGroupTokens(group),
+        maxOutputTokens: fusionGroupTokens(group, env),
         temperature: 0.62,
         timeoutMs,
         model,
@@ -620,7 +635,7 @@ export async function generateFusionFortuneWithRealLLM({
   const shortGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
   const retryTargets = [...failedGroups, ...shortGroups];
   if (retryTargets.length && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
-    const retryTimeoutMs = Math.max(20000, Math.min(FUSION_GROUP_TIMEOUT_MS, remainingMs() - 8000));
+    const retryTimeoutMs = Math.max(20000, Math.min(groupTimeoutMs, remainingMs() - 8000));
     const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
       attempts: 1,
       timeoutMs: retryTimeoutMs,

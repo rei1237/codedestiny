@@ -94,7 +94,6 @@ test("points shop keeps the direct purchase action available when the shop summa
 });
 
 test("points shop invalidates only after a mutation while ticket detail keeps abort support", () => {
-  assert.match(pointsSource, /previewAbortRef/);
   assert.match(pointsSource, /clearMoonlightStoreSnapshot\(authStoreUserId, apiBase\)/);
   assert.match(pointsSource, /fetchMyPointState\(\{ force: true \}\)/);
 });
