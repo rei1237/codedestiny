@@ -237,6 +237,11 @@ jobs:
       - name: Verify profile card action policy
         run: npm run verify:profile-card-action-policy
 
+      # 카드 보유자의 "추가" 진입점이 두 번 사라진 적이 있다(fd25c7cd9, #248). 마커로는 안 잡혀
+      # jsdom 으로 실제 버튼 라벨과 편집 플래그 전이를 확인한다.
+      - name: Verify profile card add entry point
+        run: npm run verify:profile-card-add-entry
+
       # 상세 팝업이 "무엇을 사는지"를 다시 가리지 못하게 막는다(블러 회귀·과장 수치·빈 카드).
       - name: Verify feature marketing schema
         run: npm run verify:feature-marketing-schema

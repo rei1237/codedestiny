@@ -66,6 +66,10 @@
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
   var _dpProfileMenuSyntheticEvent = false;
+  /* 추가와 수정이 같은 폼·저장 버튼을 공유하므로, 지금이 어느 쪽인지는 이 플래그 하나로만 정한다.
+     "현재 프로필이 있는가"로 유도하면 카드가 1장이라도 있는 순간 영구 수정 모드가 되어
+     추가 진입점이 사라진다(fd25c7cd9 회귀). 비어 있으면 생성, 값이 있으면 그 id를 수정한다. */
+  var _dpProfileEditTargetId = '';
   var DP_TEXT_TRANSLATIONS = {
     ko: {
       apiCooldown: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.',
@@ -81,6 +85,21 @@
       profileCardManage: '프로필 카드 관리',
       loginRequiredConfirm: '🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?',
       close: '닫기',
+      profileAddNew: '＋ 새 프로필 카드',
+      profileAddNewAria: '새 프로필 카드 추가',
+      profileSaveEdit: '프로필 카드 수정',
+      profileSaveCreate: '프로필 카드 생성',
+      profileSaveCreateExtra: '프로필 카드 추가 생성',
+      profileSaveFirst: '이 정보를 나의 운명 카드에 저장',
+      profileEditingNotice: '✎ 선택한 카드를 수정하는 중입니다 · 새로 만들려면 [＋ 새 프로필 카드]를 눌러 주세요',
+      profileEditConfirm: '이 카드의 정보를 수정할까요?\n수정에는 5,000원 단건 결제 또는 월정석이 필요합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
+      profileEditConfirmFree: '이 카드의 정보를 수정할까요?\nCode Destiny Family 이용권으로 추가 결제 없이 수정합니다.\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
+      profileCreateExtraConfirm: '프로필 카드를 하나 더 만들까요?\n기본 제공 한도를 모두 사용해, 추가 생성은 5,000원 단건 결제 또는 월정석으로 진행됩니다.',
+      profileCreateConfirm: '새 프로필 카드를 만들까요?\n생년월일·시각·성별·출생지를 다시 확인해 주세요.',
+      profileEditAria: '프로필 카드 수정',
+      profileDeleteAria: '프로필 카드 삭제',
+      profileEmptyTitle: '아직 저장된 프로필 카드가 없어요.',
+      profileEmptyHint: '생년월일과 태어난 시각을 입력해 첫 카드를 만들어 보세요.',
     },
     en: {
       apiCooldown: 'The server response is unstable, so we are waiting briefly. Please try again soon.',
@@ -96,6 +115,21 @@
       profileCardManage: 'Manage profile cards',
       loginRequiredConfirm: '🔒 Profile cards can only be created after login.\nMove to the login page?',
       close: 'Close',
+      profileAddNew: '＋ New profile card',
+      profileAddNewAria: 'Add a new profile card',
+      profileSaveEdit: 'Update profile card',
+      profileSaveCreate: 'Create profile card',
+      profileSaveCreateExtra: 'Add another card',
+      profileSaveFirst: 'Save this as my destiny card',
+      profileEditingNotice: '✎ Editing the selected card — tap [＋ New profile card] to start a fresh one instead',
+      profileEditConfirm: 'Update this card?\nUpdating requires a single 5,000 KRW payment or Moonlight Stones.\nPlease double-check the birth date, time, gender, and birthplace.',
+      profileEditConfirmFree: 'Update this card?\nYour Code Destiny Family pass covers this at no extra charge.\nPlease double-check the birth date, time, gender, and birthplace.',
+      profileCreateExtraConfirm: 'Create one more profile card?\nYou have used every card included in your plan, so this one takes a single 5,000 KRW payment or Moonlight Stones.',
+      profileCreateConfirm: 'Create a new profile card?\nPlease double-check the birth date, time, gender, and birthplace.',
+      profileEditAria: 'Update this profile card',
+      profileDeleteAria: 'Delete this profile card',
+      profileEmptyTitle: "You don't have any profile cards yet.",
+      profileEmptyHint: 'Enter your birth date and time to create your first one.',
     },
     ja: {
       apiCooldown: 'サーバー応答が不安定なため、しばらく待機しています。少し後でもう一度お試しください。',
@@ -111,6 +145,21 @@
       profileCardManage: 'プロフィールカード管理',
       loginRequiredConfirm: '🔒 プロフィールカードはログイン後にのみ作成できます。\nログインページへ移動しますか？',
       close: '閉じる',
+      profileAddNew: '＋ 新しいカードを作る',
+      profileAddNewAria: '新しいプロフィールカードを追加',
+      profileSaveEdit: 'プロフィールカードを編集',
+      profileSaveCreate: 'プロフィールカードを作成',
+      profileSaveCreateExtra: 'カードを追加で作成',
+      profileSaveFirst: 'この情報を運命カードに保存',
+      profileEditingNotice: '✎ 選択したカードを編集中です。新しく作るには［＋ 新しいカードを作る］をタップしてください',
+      profileEditConfirm: 'このカードの情報を更新しますか？\n更新には5,000ウォンの単発決済、または月精石が必要です。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
+      profileEditConfirmFree: 'このカードの情報を更新しますか？\nCode Destiny Family 利用券により、追加決済なしで更新できます。\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
+      profileCreateExtraConfirm: 'プロフィールカードをもう一枚作成しますか？\n基本枠を使い切っているため、追加作成は5,000ウォンの単発決済または月精石で進みます。',
+      profileCreateConfirm: '新しいプロフィールカードを作成しますか？\n生年月日・時刻・性別・出生地をもう一度ご確認ください。',
+      profileEditAria: 'プロフィールカードを編集',
+      profileDeleteAria: 'プロフィールカードを削除',
+      profileEmptyTitle: '保存されたプロフィールカードはまだありません。',
+      profileEmptyHint: '生年月日と出生時刻を入力して、最初のカードを作ってみましょう。',
     },
     'zh-CN': {
       apiCooldown: '服务器响应不稳定，正在短暂等待。请稍后再试。',
@@ -126,6 +175,21 @@
       profileCardManage: '管理个人资料卡',
       loginRequiredConfirm: '🔒 个人资料卡只能在登录后创建。\n要前往登录页面吗？',
       close: '关闭',
+      profileAddNew: '＋ 新建资料卡',
+      profileAddNewAria: '新建个人资料卡',
+      profileSaveEdit: '修改个人资料卡',
+      profileSaveCreate: '创建个人资料卡',
+      profileSaveCreateExtra: '再建一张资料卡',
+      profileSaveFirst: '将此信息存为我的命运卡',
+      profileEditingNotice: '✎ 正在编辑所选卡片 · 若要新建，请点击［＋ 新建资料卡］',
+      profileEditConfirm: '要修改这张卡片的信息吗？\n修改需支付 5,000 韩元单次费用或使用月精石。\n请再次确认出生日期、时辰、性别与出生地。',
+      profileEditConfirmFree: '要修改这张卡片的信息吗？\nCode Destiny Family 使用券可免费修改，无需额外付款。\n请再次确认出生日期、时辰、性别与出生地。',
+      profileCreateExtraConfirm: '要再建一张个人资料卡吗？\n套餐内的名额已用完，新增将通过 5,000 韩元单次支付或月精石完成。',
+      profileCreateConfirm: '要新建一张个人资料卡吗？\n请再次确认出生日期、时辰、性别与出生地。',
+      profileEditAria: '修改个人资料卡',
+      profileDeleteAria: '删除个人资料卡',
+      profileEmptyTitle: '还没有已保存的个人资料卡。',
+      profileEmptyHint: '输入出生日期与时辰，创建你的第一张卡片。',
     },
     'zh-TW': {
       apiCooldown: '伺服器回應不穩定，正在短暫等待。請稍後再試。',
@@ -141,6 +205,21 @@
       profileCardManage: '管理個人資料卡',
       loginRequiredConfirm: '🔒 個人資料卡只能在登入後建立。\n要前往登入頁面嗎？',
       close: '關閉',
+      profileAddNew: '＋ 新增命盤卡',
+      profileAddNewAria: '新增個人資料卡',
+      profileSaveEdit: '修改個人資料卡',
+      profileSaveCreate: '建立個人資料卡',
+      profileSaveCreateExtra: '再建一張資料卡',
+      profileSaveFirst: '將此資訊存為我的命運卡',
+      profileEditingNotice: '✎ 正在編輯所選卡片 · 若要新建，請點擊［＋ 新增命盤卡］',
+      profileEditConfirm: '要修改這張卡片的資訊嗎？\n修改需支付 5,000 韓元單次費用或使用月精石。\n請再次確認出生日期、時辰、性別與出生地。',
+      profileEditConfirmFree: '要修改這張卡片的資訊嗎？\nCode Destiny Family 使用券可免費修改，無需額外付款。\n請再次確認出生日期、時辰、性別與出生地。',
+      profileCreateExtraConfirm: '要再建一張個人資料卡嗎？\n方案內的名額已用完，新增將透過 5,000 韓元單次付款或月精石完成。',
+      profileCreateConfirm: '要新增一張個人資料卡嗎？\n請再次確認出生日期、時辰、性別與出生地。',
+      profileEditAria: '修改個人資料卡',
+      profileDeleteAria: '刪除個人資料卡',
+      profileEmptyTitle: '尚未有已儲存的個人資料卡。',
+      profileEmptyHint: '輸入出生日期與時辰，建立你的第一張卡片。',
     },
   };
 
@@ -468,6 +547,8 @@
   }
 
   function _dpClearGlobalProfileBridge() {
+    /* 계정·스코프가 바뀌는 경계다. 편집 대상 id는 이전 계정의 것이므로 반드시 버린다. */
+    _dpProfileEditTargetId = '';
     try {
       localStorage.removeItem(ACTIVE_PROFILE_ID_KEY);
       localStorage.removeItem(ACTIVE_PROFILE_CACHE_KEY);
@@ -4962,6 +5043,12 @@
     var remaining = unlimited ? '무제한' : String(Math.max(0, limit - used));
     var limitLabel = unlimited ? '무제한' : String(limit);
     var label = planLabel || '무료 플랜';
+    /* 편집 모드에서는 남은 슬롯이 아니라 "지금 수정 중"이라는 사실이 유일하게 중요한 정보다.
+       저장 버튼 라벨 말고는 추가/수정을 구분할 표시가 없으므로 여기서 알린다. */
+    if (_dpProfileEditTargetId) {
+      quotaText.textContent = _dpText('profileEditingNotice');
+      return;
+    }
     if (canUsePlanSlot) {
       quotaText.textContent = label + ' · 기본 제공 프로필 카드 ' + remaining + (unlimited ? '' : '개') + ' 저장 가능 (' + used + '/' + limitLabel + ')';
     } else if (!_dpSubIsActive) {
@@ -4997,20 +5084,20 @@
     }
 
     btn.disabled = false;
-    if (hasProfiles) {
+    if (_dpProfileEditTargetId) {
       var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
-      setSaveButtonContent('프로필 카드 수정', isFamilyPlan ? '무료' : '5,000원');
+      setSaveButtonContent(_dpText('profileSaveEdit'), isFamilyPlan ? '무료' : '5,000원');
       btn.title = isFamilyPlan
         ? 'Code Destiny Family 이용권으로 프로필 정보를 무료로 수정합니다.'
         : '프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.';
       return;
     }
     if (!hasProfiles && canCreateWithoutPayment) {
-      setSaveButtonContent('이 정보를 나의 운명 카드에 저장', slotLabel);
+      setSaveButtonContent(_dpText('profileSaveFirst'), slotLabel);
     } else if (canCreateWithoutPayment) {
-      setSaveButtonContent('프로필 카드 생성', slotLabel + ' 사용 중');
+      setSaveButtonContent(_dpText('profileSaveCreate'), slotLabel + ' 사용 중');
     } else {
-      setSaveButtonContent('프로필 카드 추가 생성', (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원');
+      setSaveButtonContent(_dpText('profileSaveCreateExtra'), (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원');
     }
     btn.style.opacity = '';
     btn.style.cursor = '';
@@ -7505,17 +7592,20 @@
     try { renderProfileQuickStrip(); } catch (stripErr) { console.warn('[DP] quick strip 렌더 실패', stripErr); }
 
     var list = DPStorage.list();
+    /* 편집 대상이 목록에서 사라졌으면(삭제·다른 탭 동기화·서버 재조회) 편집 모드를 닫는다.
+       renderProfileList 는 프로필이 바뀌는 모든 지점에서 불리므로, 흩어놓는 대신 여기 한 곳에서 자가 치유한다. */
+    if (_dpProfileEditTargetId && !_dpFindProfileById(list, _dpProfileEditTargetId)) _dpClearProfileEditMode();
     var currId = (DPStorage.current() || {}).id;
     var container = document.getElementById('dpListInner');
     if (!container) return;
 
     if (list.length === 0) {
-      container.innerHTML = '<div class="dp-list-empty">아직 저장된 프로필 카드가 없어요.'
-        + '<br><small>생년월일·태어난 시각을 입력해 첫 프로필 카드를 만들어 보세요.</small>'
-        + '<br><button type="button" class="dp-list-empty-cta" onclick="dpCloseList();dpScrollToForm();"'
+      container.innerHTML = '<div class="dp-list-empty">' + _esc(_dpText('profileEmptyTitle'))
+        + '<br><small>' + _esc(_dpText('profileEmptyHint')) + '</small>'
+        + '<br><button type="button" class="dp-list-empty-cta" onclick="dpStartProfileCreate();"'
         + ' style="margin-top:16px;padding:11px 22px;border-radius:999px;border:1px solid rgba(255,215,0,0.42);'
         + 'background:rgba(255,215,0,0.12);color:var(--dp-gold);font-size:0.86rem;font-weight:700;cursor:pointer;'
-        + 'touch-action:manipulation;-webkit-tap-highlight-color:transparent;">프로필 카드 만들기</button></div>';
+        + 'touch-action:manipulation;-webkit-tap-highlight-color:transparent;">' + _esc(_dpText('profileAddNew')) + '</button></div>';
       return;
     }
 
@@ -7536,7 +7626,12 @@
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.</div>'
           : '');
 
-    container.innerHTML = list.map(function(p, idx) {
+        /* 카드를 이미 가진 사용자에게도 추가 진입점이 보여야 한다. 빈 상태 CTA는 list.length === 0 에서만
+           렌더되므로, 보유자에겐 이 버튼이 유일한 명시적 "새로 만들기" 경로다. 편집 모드 취소도 겸한다. */
+        var addCardButton = '<button type="button" class="dp-list-add" onclick="dpStartProfileCreate();"'
+          + ' aria-label="' + _esc(_dpText('profileAddNewAria')) + '">' + _esc(_dpText('profileAddNew')) + '</button>';
+
+    container.innerHTML = addCardButton + list.map(function(p, idx) {
           var safe = p || {};
           var b = safe.birth || {};
           var l = safe.location || {};
@@ -7589,9 +7684,9 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
-              + '<button type="button" class="dp-li-del" aria-label="프로필 수정·삭제 정책 확인" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
+              + '<button type="button" class="dp-li-edit" aria-label="' + _esc(_dpText('profileEditAria')) + '" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원') + '</button>'
+              + '<button type="button" class="dp-li-del" aria-label="' + _esc(_dpText('profileDeleteAria')) + '" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
             + '</div>'
-            + '<button type="button" class="dp-li-edit" aria-label="프로필 카드 수정" data-profile-edit-marker="profile-list-edit-50coin-v20260802">수정 · ' + (_dpSubIsActive && _dpSubTier === 'family' ? '무료' : (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원') + '</button>'
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
@@ -7712,6 +7807,14 @@
     else _dpClearProfileForm();
   }
 
+  /* 편집 대상이 사라졌거나 맥락이 바뀐 지점에서 반드시 부른다. 플래그가 남으면 다음 "추가"가
+     엉뚱한 카드를 덮어쓴다 — 이 기능에서 가장 위험한 실패 모드다. */
+  function _dpClearProfileEditMode() {
+    if (!_dpProfileEditTargetId) return;
+    _dpProfileEditTargetId = '';
+    _dpUpdateSaveBtn();
+  }
+
   window.dpSaveProfile = function() {
     var data = readFormData();
     if (!data) {
@@ -7722,11 +7825,21 @@
     var maxProfiles = _dpGetMaxProfiles();
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
-    var currentProfile = DPStorage.current();
-    var isUpdate = !!(currentProfile && (currentProfile.id || currentProfile.profileId));
+    /* 수정인지 생성인지는 편집 플래그 하나로만 정한다. "현재 프로필이 있는가"로 유도하면
+       카드 보유자가 영구 수정 모드에 갇혀 추가가 불가능해진다. */
+    var isUpdate = !!_dpProfileEditTargetId;
+    var currentProfile = isUpdate ? _dpFindProfileById(DPStorage.list(), _dpProfileEditTargetId) : null;
+    if (isUpdate && !currentProfile) {
+      /* 편집 대상이 사라졌다(다른 탭 삭제·서버 동기화). 조용히 생성으로 강등하지 않고 멈춘다. */
+      _dpClearProfileEditMode();
+      window.alert('수정할 프로필 카드를 찾을 수 없습니다. 목록에서 다시 선택해 주세요.');
+      return;
+    }
     var mutationAction = isUpdate ? 'update' : 'create';
     var isFamilyPlan = _dpSubIsActive && _dpSubTier === 'family';
-    var createRequiresPayment = isUpdate ? !isFamilyPlan : !canUsePlanSlot;
+    /* 과부하 금지 — 두 값은 의미가 다르다. 하나로 합치면 한도 가드가 수정까지 삼킨다(#248 회귀). */
+    var updateRequiresPayment = isUpdate && !isFamilyPlan;
+    var createRequiresPayment = !isUpdate && !canUsePlanSlot;
     var createProfileId = isUpdate
       ? String(currentProfile.id || currentProfile.profileId)
       : String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
@@ -7734,17 +7847,11 @@
     data.id = createProfileId;
     var createRequestId = _dpBuildProfileManageRequestId(mutationAction, createProfileId);
     var createScope = '';
-    if (createRequiresPayment) {
-      var limitLabel = _dpFormatLimitLabel(maxProfiles);
-      window.alert('현재 이용권에서는 프로필 카드를 ' + limitLabel + '까지 저장할 수 있어요. 기존 카드를 정리하거나 이용권을 확인해 주세요.');
-      return;
-    }
-    var createConfirm = createRequiresPayment
-      ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
-      : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
-    if (isUpdate) {
-      createConfirm = '프로필 정보를 수정할까요?\n수정·삭제에는 5,000원 단건 결제 또는 월정석 사용이 필요합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
-    }
+    /* 한도 초과는 차단이 아니라 유료 경로다 — 서버가 402를 주면 _dpRunProfileManageGate 가 결제창을 연다.
+       (React /me 및 서버 정책 profile_card_add_extra 와 같은 동작) */
+    var createConfirm = isUpdate
+      ? (updateRequiresPayment ? _dpText('profileEditConfirm') : _dpText('profileEditConfirmFree'))
+      : (createRequiresPayment ? _dpText('profileCreateExtraConfirm') : _dpText('profileCreateConfirm'));
     if ((isUpdate || createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
@@ -7905,6 +8012,8 @@
         _dpSetProfileState(scope, list, currentId);
       }
       optimisticState = null;
+      // 저장이 끝났으면 편집 모드를 닫아, 다음 저장이 이 카드를 다시 덮어쓰지 않게 한다.
+      _dpClearProfileEditMode();
 
       // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
       var curr = DPStorage.current();
@@ -8077,9 +8186,20 @@
       alert('수정할 프로필 카드를 찾을 수 없습니다.');
       return;
     }
+    _dpProfileEditTargetId = profileId;
     DPStorage.setCurrent(profileId);
     _dpSyncProfileFormToCurrent(profile);
     renderMasterCard(profile);
+    renderProfileList();
+    _dpUpdateSaveBtn();
+    dpCloseList();
+    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+  };
+
+  /* 새 카드 작성 진입점. 편집 모드를 해제하므로 "편집 취소" 역할도 겸한다. */
+  window.dpStartProfileCreate = function() {
+    _dpProfileEditTargetId = '';
+    _dpClearProfileForm();
     renderProfileList();
     _dpUpdateSaveBtn();
     dpCloseList();
@@ -8094,6 +8214,8 @@
       renderProfileList();
       return;
     }
+    /* 다른 카드로 옮겨갔으면 이전 편집 대상은 더 이상 유효하지 않다. */
+    _dpClearProfileEditMode();
     var access = _dpProfileAccess || {};
     var lockedId = String(access.lockedProfileId || '').trim();
     var isServerLocked = String(access.mode || '').trim() === 'single' || access.locked === true || !!lockedId;
