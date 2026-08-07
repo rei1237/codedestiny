@@ -1688,27 +1688,24 @@
   // 재진입 직후에는 쿠키 세션은 유효하지만 이 독립 런타임의 메모리/로컬 스냅샷이 아직 비어 있을 수 있다.
   // 이 상태의 첫 401을 payment_required로 바꾸면 이용권 보유자를 상점으로 보내므로, 인증이 미확정이면
   // 결제창을 유지하고 재시도 가능한 오류로 표면화한다.
+  var _DP_PASS_AUTH_PREPARE_BUDGET_MS = 1500;
+
   async function _dpPrepareMembershipPassAuth() {
-    var hadSessionHint = _dpHasSessionHint();
     try {
-      var authenticated = await _dpVerifyLoginSession(true, { allowIndeterminate: false });
+      // allowIndeterminate:true \uB85C sessionResult() \uC758 3\uAC12 \uD310\uC815\uC744 \uCF20\uB2E4 \u2014
+      //   ok || (indeterminate && hasHint)  =>  "\uBAA8\uB984 + \uD754\uC801 \uC788\uC74C"\uC740 \uD1B5\uACFC\uC2DC\uD0A8\uB2E4.
+      // \uC608\uC0B0\uC744 \uB118\uACA8\uB3C4 \uB9C9\uC9C0 \uC54A\uB294\uB2E4(\uC608\uC5F4\uC774\uC9C0 \uAC8C\uC774\uD2B8\uAC00 \uC544\uB2C8\uB2E4).
+      var authenticated = await Promise.race([
+        _dpVerifyLoginSession(true, { allowIndeterminate: true }),
+        new Promise(function (resolve) {
+          setTimeout(function () { resolve(_dpHasSessionHint()); }, _DP_PASS_AUTH_PREPARE_BUDGET_MS);
+        })
+      ]);
       if (authenticated) return { ready: true };
-      if (hadSessionHint || _dpHasSessionHint()) {
-        return {
-          ready: false,
-          code: 'AUTH_SESSION_CHECK_UNAVAILABLE',
-          message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
-        };
-      }
       return { ready: false, code: 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.' };
     } catch (_authPreparationError) {
-      if (hadSessionHint || _dpHasSessionHint()) {
-        return {
-          ready: false,
-          code: 'AUTH_SESSION_CHECK_UNAVAILABLE',
-          message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
-        };
-      }
+      // \uB358\uC9C4 \uAC83\uC740 "\uBAA8\uB984"\uC774\uB2E4. \uD754\uC801\uC774 \uC788\uC73C\uBA74 \uC11C\uBC84\uAC00 \uD310\uC815\uD558\uAC8C \uB450\uACE0, \uC5C6\uC744 \uB54C\uB9CC \uB85C\uADF8\uC778\uC744 \uC694\uAD6C\uD55C\uB2E4.
+      if (_dpHasSessionHint()) return { ready: true, degraded: true };
       return { ready: false, code: 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.' };
     }
   }
