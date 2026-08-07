@@ -85,6 +85,7 @@ beforeAll(async () => {
     withMongoRetry: jest.fn(async (_env, operation) => operation()),
     mongoose: { Types: { ObjectId: { isValid: jest.fn(() => true) } } },
     resetMongooseConnection: jest.fn(async () => undefined),
+    requestPoolRecovery: jest.fn(async () => undefined),
     resolveMongoDbName: jest.fn(() => "test"),
     isTransientMongoError: jest.fn(() => false),
   }));

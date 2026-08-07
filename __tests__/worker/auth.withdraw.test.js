@@ -44,6 +44,7 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     },
   },
   resetMongooseConnection: jest.fn(async () => undefined),
+  requestPoolRecovery: jest.fn(async () => undefined),
   resolveMongoDbName: jest.fn(() => "test"),
   withMongoRetry: jest.fn(async (env, fn) => fn()),
   isTransientMongoError: jest.fn(() => false),

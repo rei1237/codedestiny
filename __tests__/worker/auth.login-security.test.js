@@ -15,6 +15,7 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   connectDb: mockConnectDb,
   mongoose: { connection: { name: "test" } },
   resetMongooseConnection: mockResetMongooseConnection,
+  requestPoolRecovery: mockResetMongooseConnection,
   resolveMongoDbName: jest.fn(() => "test"),
   withMongoRetry: jest.fn(async (env, fn) => fn()),
   isTransientMongoError: jest.fn(() => false),
