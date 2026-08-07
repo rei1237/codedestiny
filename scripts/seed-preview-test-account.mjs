@@ -22,7 +22,7 @@ import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { connectDb, mongoose } from "../worker/lib/db.js";
+import { connectDb, mongoose, resolveMongoDbName } from "../worker/lib/db.js";
 import { User } from "../worker/lib/models.js";
 import { grantMonthlyCreditLot } from "../worker/lib/monthly-credit-store.js";
 import { HONEY_PASS_POLICY, PASS_TIERS } from "../worker/lib/profile-limits.js";
@@ -71,7 +71,9 @@ const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
 
 async function main() {
   await connectDb(process.env);
-  console.log("[seed-preview-test-account] connected to " + (process.env.MONGODB_DB_NAME || "(default db)"));
+  // MONGODB_DB_NAME 만 읽으면 로컬에서 "(default db)" 로 보여, 어느 DB 에 쓰는지 모른 채
+  // 운영에 쓰게 된다. 실제 해석기를 그대로 써서 대상 DB 를 눈으로 확인시킨다.
+  console.log("[seed-preview-test-account] writing to db: " + resolveMongoDbName(process.env));
 
   const passwordHash = await bcrypt.hash(password, 10);
   // $set 만 쓴다. 기존 사용자를 지우거나 다른 필드를 되돌리지 않는다.
