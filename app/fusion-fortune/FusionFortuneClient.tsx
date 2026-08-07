@@ -10,6 +10,7 @@ import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { PriceBadge } from "../components/PriceBadge";
 import { FUSION_CORE_ORB, FUSION_ORB_BY_KEY, type FusionSystemKey } from "./fusionOrbs";
+import { FusionVisualization, type FusionVisualizationData } from "./FusionVisualization";
 import styles from "./fusion-fortune.module.css";
 
 type Status = {
@@ -28,6 +29,8 @@ type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSe
   openingMessage: string;
   executiveSummary: string;
   timingAndAction: { title: string; content: string; luckyActions: string[]; cautionPatterns: string[] };
+  /** 서버가 항상 채워 보낸다(worker/lib/fusion-fortune-visual.js). 그래도 옛 저장본을 위해 관용한다. */
+  visualization?: FusionVisualizationData;
   closingMessage: string;
   shareText?: string;
 };
@@ -176,6 +179,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   const coreDialogRef = useRef<HTMLDialogElement>(null);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const [stageStates, setStageStates] = useState<Record<FusionStageKey, FusionStageState>>(initialStageStates);
+  /** 융합 단계의 하위 진행 — 서버가 네 그룹을 병렬로 쓰고 끝나는 대로 알려 준다. */
+  const [composeProgress, setComposeProgress] = useState<{ completed: number; total: number; label: string } | null>(null);
   const [openSection, setOpenSection] = useState<string>("");
   const [guardianHandoff, setGuardianHandoff] = useState<{ topic: string; category: string } | null>(null);
   const [form, setForm] = useState({ birthDate: "", birthTime: "", birthTimeUnknown: false, birthPlaceKey: "", calendarType: "solar", gender: "unspecified", nickname: "", topic: "삶의 전반적인 흐름", concern: "" });
@@ -286,6 +291,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     const controller = new AbortController();
     requestAbortRef.current = controller;
     setStageStates(initialStageStates());
+    setComposeProgress(null);
     setLoading(true);
     try {
       const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
@@ -307,6 +313,15 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       }, { retryOn401: true, apiBase });
       const payload = await consumeFusionStream(response, (streamEvent, streamPayload) => {
         if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
+        if (streamPayload.stage === "compose") {
+          setComposeProgress({
+            completed: Number(streamPayload.completedGroups) || 0,
+            total: Number(streamPayload.totalGroups) || 4,
+            label: String(streamPayload.groupLabel || ""),
+          });
+          setStageStates((current) => ({ ...current, fusion: "active" }));
+          return;
+        }
         const completed = streamPayload.stage as FusionStageKey;
         if (!FUSION_STAGES.some((stage) => stage.key === completed)) return;
         setStageStates(() => {
@@ -396,7 +411,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <Link className={styles.guardianLink} href="/#guardian-fortune">오늘의 귀인에서 이어지는 프리미엄 리딩</Link>
         <p className={styles.kicker}>초융합 운세</p><h1>여섯 개의 해석을<br />하나의 상담으로</h1>
         <p>사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 지금의 선택과 현실 행동으로 하나로 엮습니다.</p>
-        <div className={styles.heroMeta}><span className={styles.firstCome}>선착순! 하루 100명</span><PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.heroPrice} /><span>10,000~15,000자</span></div>
+        <div className={styles.heroMeta}><span className={styles.firstCome}>선착순! 하루 100명</span><PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.heroPrice} /><span>20,000자 이상</span></div>
         <p className={styles.chatLead}>Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.</p>
       </div>
       <FusionOrb />
@@ -429,7 +444,13 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       </form>}
       {loading && <section className={styles.progressCanvas} aria-live="polite" aria-label="초융합 분석 진행 상황">
         <div className={styles.progressOrb}><FusionOrb stageStates={stageStates} /></div>
-        <div><p className={styles.kicker}>Fusion Core 활성화</p><h2>{FUSION_STAGES.find((stage) => stageStates[stage.key] === "active")?.message || "분석 준비를 확인하고 있어요."}</h2><p>각 항목은 서버에서 실제 분석이 완료된 뒤 표시됩니다.</p></div>
+        <div><p className={styles.kicker}>Fusion Core 활성화</p><h2>{FUSION_STAGES.find((stage) => stageStates[stage.key] === "active")?.message || "분석 준비를 확인하고 있어요."}</h2><p>각 항목은 서버에서 실제 분석이 완료된 뒤 표시됩니다.</p>
+          {composeProgress && <div className={styles.composeProgress}>
+            <p><strong>{composeProgress.completed} / {composeProgress.total}</strong> 리딩 묶음 완성{composeProgress.label ? ` · ${composeProgress.label}` : ""}</p>
+            <i aria-hidden><em style={{ "--fill": Math.min(1, composeProgress.completed / Math.max(1, composeProgress.total)) } as React.CSSProperties} /></i>
+            <small>2만 자가 넘는 분량이라 네 묶음을 동시에 씁니다. 먼저 끝난 묶음부터 표시돼요.</small>
+          </div>}
+        </div>
         <ol className={styles.stageList}>{FUSION_STAGES.map((stage) => {
           const orb = stage.key === "fusion" ? null : FUSION_ORB_BY_KEY[stage.key as FusionSystemKey];
           const state = stageStates[stage.key];
@@ -444,7 +465,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       </section>}
     </section>
 
-    {result && <section className={styles.result}><header><p className={styles.kicker}>Fusion AI · 결과 대화</p><h2>{result.title}</h2><p>{result.openingMessage}</p></header><article className={styles.summary}>{result.executiveSummary}</article>{SECTION_KEYS.map((key, index) => {
+    {result && <section className={styles.result}><header><p className={styles.kicker}>Fusion AI · 결과 대화</p><h2>{result.title}</h2><p>{result.openingMessage}</p></header><article className={styles.summary}>{result.executiveSummary}</article>{result.visualization && <FusionVisualization data={result.visualization} />}{SECTION_KEYS.map((key, index) => {
       const expanded = openSection === key || (!openSection && index === 0);
       const systemKey = SECTION_SYSTEM_KEYS[index];
       const orb = systemKey === "fusion" ? null : FUSION_ORB_BY_KEY[systemKey];

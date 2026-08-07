@@ -10,9 +10,14 @@ import {
   generateFusionFortuneWithRealLLM,
   getFusionFortuneDateKey,
   selectFusionFortuneTarotSpread,
+  validateFusionFortuneGroup,
   validateFusionFortuneResult,
 } from "../../worker/lib/fusion-fortune.js";
-import { buildFusionFortunePrompt } from "../../worker/lib/fusion-fortune-prompt.js";
+import {
+  buildFusionFortunePrompt,
+  FUSION_FORTUNE_LENGTH,
+  FUSION_SECTION_GROUP_SPECS,
+} from "../../worker/lib/fusion-fortune-prompt.js";
 import {
   createFusionFortuneTicketOrder,
   isFusionFortuneTicketSalesEnabled,
@@ -26,6 +31,50 @@ const paidAccess = async () => ({ ok: true });
 const unpaidAccess = async () => ({ ok: false });
 const degradedAccess = async () => ({ ok: false, degraded: true });
 const emptyStore = () => createMemoryFusionFortuneStore();
+
+/**
+ * 그룹 하나가 돌려줄 법한 "합격 응답"을 만든다. 문장마다 번호가 달라 반복 검사에 걸리지 않고,
+ * 본문에 키 이름을 심어 두어 어느 그룹의 글이 살아남았는지 결과에서 되짚을 수 있다.
+ */
+function fusionFiller(seed, minChars) {
+  let value = "";
+  let index = 0;
+  while (value.length < minChars) {
+    value += `${seed} 근거 ${index}번은 서버가 확정한 값에서 출발해 지금의 선택 기준을 설명하고, 생활에서 그것이 드러나는 장면과 이번 주에 해볼 행동을 함께 담습니다. `;
+    index += 1;
+  }
+  return value.trim();
+}
+
+function buildFusionGroupPayload(group, cards = []) {
+  const payload = {};
+  for (const key of group.keys) {
+    if (key === "visualization") {
+      payload.visualization = {
+        systemScores: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system, index) => ({ key: system, score: 55 + index * 5, note: "신호 강도" })),
+        monthlyTimeline: Array.from({ length: 12 }, (_, index) => ({ label: `${index + 1}월`, intensity: 50 + (index % 5) * 8, note: `${index + 1}번째 달에 점검할 한 가지를 정합니다.` })),
+        crossChecks: {
+          aligned: [{ theme: "속도 조절", systems: ["saju", "ziwei"], meaning: "두 체계가 같은 방향을 가리키므로 우선순위로 둡니다." }],
+          divergent: [{ theme: "표현의 강도", systems: ["astrology", "sukuyo"], meaning: "상황에 따라 어느 쪽을 따를지 나눠 둡니다." }],
+        },
+      };
+      continue;
+    }
+    if (key === "timingAndAction") {
+      payload.timingAndAction = { title: "가까운 시기와 행동", content: fusionFiller("timingAndAction", 2100), luckyActions: ["기준 한 줄 적기", "경계 말하기", "지출 한 가지 줄이기"], cautionPatterns: ["답을 재촉하기", "속도를 남에게 맞추기", "한 번에 크게 바꾸기"] };
+      continue;
+    }
+    if (key === "title") { payload.title = "여섯 체계가 만나는 자리"; continue; }
+    if (key === "shareText") { payload.shareText = "여섯 운세 체계를 하나로 엮어 지금의 선택을 정리했어요."; continue; }
+    if (key === "openingMessage") { payload.openingMessage = fusionFiller("openingMessage", 320); continue; }
+    if (key === "closingMessage") { payload.closingMessage = fusionFiller("closingMessage", 900); continue; }
+    if (key === "executiveSummary") { payload.executiveSummary = fusionFiller("executiveSummary", 1300); continue; }
+    const minChars = key === "integratedReading" ? 3200 : 2400;
+    const tarotNames = key === "tarotSection" ? ` 서버가 고른 카드는 ${cards.map((card) => card.name).join(", ")}입니다.` : "";
+    payload[key] = { title: key, content: `${fusionFiller(key, minChars)}${tarotNames}`, keyPoints: ["남길 판단 하나", "확인할 사실 하나", "이번 주 행동 하나"] };
+  }
+  return payload;
+}
 
 function fusionAdapters(calls) {
   const mark = (name, value) => async () => { calls[name] += 1; return value; };
@@ -141,7 +190,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(calls).toEqual({ saju: 1, ziwei: 0, vedic: 0, sukuyo: 0, astrology: 0, tarot: 0 });
   });
 
-  it("uses at most one initial Gemini call and one repair before a context fallback", async () => {
+  it("runs the four section groups in parallel and retries each once before a context fallback", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
     const built = await buildFusionFortuneContext({
       ...input,
@@ -151,14 +200,81 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const generated = await generateFusionFortuneWithRealLLM({
       input,
       context: built.context,
-      requestId: "fusion-two-call-test",
+      requestId: "fusion-group-call-test",
       env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
       providerCall,
     });
 
-    expect(providerCall).toHaveBeenCalledTimes(2);
-    expect(generated).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 2 });
+    // 그룹 4개 × (1차 + 미달 재생성 1회). 단일 호출로는 20,000자 계약을 채울 수 없다.
+    expect(providerCall).toHaveBeenCalledTimes(FUSION_SECTION_GROUP_SPECS.length * 2);
+    expect(new Set(providerCall.mock.calls.map(([, , options]) => options.logContext.sectionGroup)))
+      .toEqual(new Set(FUSION_SECTION_GROUP_SPECS.map((group) => group.id)));
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 8 });
     expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: built.context.tarotSpread.cards }).ok).toBe(true);
+  });
+
+  it("keeps three good groups when one group fails and fills only that group from the fallback", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(calls) });
+    const cards = built.context.tarotSpread.cards;
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const groupId = options.logContext.sectionGroup;
+      if (groupId === "traditions") return { ok: false, error: "timeout" };
+      const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === groupId);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(buildFusionGroupPayload(group, cards)) };
+    });
+    const generated = await generateFusionFortuneWithRealLLM({
+      input,
+      context: built.context,
+      requestId: "fusion-partial-group-test",
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
+      providerCall,
+    });
+
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "gemini_partial" });
+    // 살아남은 그룹은 LLM 본문 그대로, 실패한 그룹만 결정론 폴백으로 채워진다.
+    expect(generated.result.sajuSection.content).toContain("sajuSection");
+    expect(generated.result.tarotSection.content).toContain("tarotSection");
+    expect(generated.result.vedicSection.content).not.toContain("vedicSection");
+    expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: cards }).ok).toBe(true);
+  });
+
+  it("ignores keys a group does not own so it cannot clobber another group's section", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(calls) });
+    const cards = built.context.tarotSpread.cards;
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === options.logContext.sectionGroup);
+      const payload = buildFusionGroupPayload(group, cards);
+      // foundation 그룹이 남의 구역(tarotSection)까지 써서 돌려주는 상황.
+      if (group.id === "foundation") payload.tarotSection = { title: "남의 구역", content: "가로채기", keyPoints: ["1", "2", "3"] };
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(payload) };
+    });
+    const generated = await generateFusionFortuneWithRealLLM({
+      input,
+      context: built.context,
+      requestId: "fusion-stray-keys-test",
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
+      providerCall,
+    });
+
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "gemini" });
+    expect(generated.result.tarotSection.content).toContain("tarotSection");
+    expect(generated.result.tarotSection.content).not.toContain("가로채기");
+  });
+
+  it("rejects a tarot hallucination at the group boundary, not only after merging", async () => {
+    const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === "synthesis");
+    const cards = [{ name: "별" }, { name: "태양" }];
+    const payload = buildFusionGroupPayload(group, cards);
+    payload.tarotSection.content += " 여기에 죽음 카드 이야기를 덧붙입니다.";
+    expect(validateFusionFortuneGroup(payload, group, { selectedTarotCards: cards })).toMatchObject({ ok: false, issue: "invented_tarot_card" });
   });
 
   it("consumes exactly one ticket and one daily slot only after a valid result", async () => {
@@ -262,12 +378,13 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(reservations.filter((item) => item.errorCode === "FUSION_FORTUNE_SOLD_OUT")).toHaveLength(1);
   });
 
-  it("keeps mock result inside section, privacy, safety, and 10k to 15k bounds", async () => {
+  it("keeps the deterministic fallback inside section, privacy, safety, and the paid length contract", async () => {
     const result = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true } });
     const checked = validateFusionFortuneResult(result, { birthTimeKnown: true, sensitiveValues: [input.birthDate, input.birthTime, "비공개 고민" ] });
+    // 🔴 폴백이 계약 하한을 못 넘기면, 생성이 실패한 결제 사용자가 결과 대신 오류를 받는다.
     expect(checked.ok).toBe(true);
-    expect(checked.length).toBeGreaterThanOrEqual(10000);
-    expect(checked.length).toBeLessThanOrEqual(15000);
+    expect(checked.length).toBeGreaterThanOrEqual(FUSION_FORTUNE_LENGTH.total.min);
+    expect(checked.length).toBeLessThanOrEqual(FUSION_FORTUNE_LENGTH.total.max);
     expect(validateFusionFortuneResult({ ...result, openingMessage: `${result.openingMessage} ${input.birthDate}` }, { sensitiveValues: [input.birthDate] }).ok).toBe(false);
   });
 
@@ -284,7 +401,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       concern: "비공개 고민",
     } });
     for (const domain of ["사주", "자미두수", "베다점", "숙요점", "서양 점성술", "타로"]) expect(prompt.userPrompt).toContain(domain);
-    expect(prompt.systemPrompt).toContain("10,000자 이상 15,000자 이하");
+    expect(prompt.systemPrompt).toContain("20,000자 이상");
     expect(prompt.userPrompt).not.toContain(input.birthDate);
     expect(prompt.userPrompt).not.toContain(input.birthTime);
     expect(prompt.userPrompt).not.toContain("비공개 고민");

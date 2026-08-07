@@ -3,11 +3,16 @@ import {
   FusionFortuneGenerationAttempt,
 } from "./models.js";
 import { mongoose } from "./db.js";
-import { buildFusionFortunePrompt } from "./fusion-fortune-prompt.js";
+import {
+  buildFusionSectionGroupPrompt,
+  FUSION_FORTUNE_LENGTH,
+  FUSION_SECTION_GROUP_SPECS,
+} from "./fusion-fortune-prompt.js";
+import { isFusionVisualizationShaped, normalizeFusionVisualization } from "./fusion-fortune-visual.js";
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
-import { callGeminiText } from "./gemini.js";
+import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 
 // 초융합 운세는 표준 회당 결제(B유형)다. 가격 정본은 worker/lib/paid-feature-registry.js 이며
@@ -40,6 +45,11 @@ export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
 
 const FORBIDDEN = ["무조건", "반드시", "100%", "확실히 된다", "확실히 망한다", "큰일 난다", "결제해야 해결된다", "유료로 봐야만 답이 나온다", "투자하면 오른다", "반드시 매수해라", "병이 있다", "고소하면 이긴다", "상대는 반드시 돌아온다"];
 const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection", "integratedReading"];
+const REQUIRED_KEYS = ["title", "openingMessage", "executiveSummary", "timingAndAction", "closingMessage"];
+// 그룹 검증과 전체 검증이 같은 기준을 보도록 정규식을 한곳에 둔다.
+const INTERNAL_DATA_PATTERN = /(raw[_ ]?(prompt|response|context)|paymentId|merchantUid|ticketRemaining|totalRemaining)/i;
+const BIRTH_TIME_OVERCLAIM_PATTERN = /(상승궁|라그나|정밀 명반|하우스).{0,24}(확실|분명|단정|결정|보장)/;
+const BIRTH_PLACE_OVERCLAIM_PATTERN = /(라그나|상승궁|하우스|나크샤트라).{0,24}(확실|분명|단정|결정|보장)/;
 
 function text(value, max = 1200) { return String(value || "").trim().slice(0, max); }
 function count(value) { return Math.max(0, Number(value || 0)); }
@@ -51,12 +61,12 @@ function objectIdOrString(value) {
   return mongoose.Types.ObjectId.isValid(normalized) ? new mongoose.Types.ObjectId(normalized) : normalized;
 }
 
-async function emitFusionFortuneStage(onStage, stage) {
+async function emitFusionFortuneStage(onStage, stage, extra) {
   if (typeof onStage !== "function") return;
   try {
-    await onStage({ stage, status: "completed" });
+    await onStage({ stage, status: "completed", ...(extra || {}) });
   } catch {
-    // A disconnected progress stream never changes ticket or daily-limit state.
+    // A disconnected progress stream never changes the daily-limit state.
   }
 }
 
@@ -288,6 +298,16 @@ function composeExpertReading(intro, vocabulary, target = 1250, evidence = [], d
     `시기 신호는 “${profile.timing}”입니다. 이때에는 새로운 약속을 늘리기보다 이미 시작한 일의 마감과 회복 시간을 확보해 보세요.`,
     `첫 행동은 “${profile.action}”입니다. 실행한 뒤에는 잘했는지를 즉시 평가하지 말고, 마음과 상황의 변화를 하루 뒤에 다시 기록해 보세요.`,
     `이 체계가 말하는 가능성은 다른 체계의 공통 신호와 함께 볼 때 더 유용합니다. 겹치는 조언은 우선순위로 삼고, 엇갈리는 조언은 상황에 따라 달라질 선택지로 남깁니다.`,
+    `“${profile.focus}”를 한 주 단위로 관찰하면 해석이 훨씬 구체적으로 바뀝니다. 요일마다 반응이 달라지는 지점이 있다면 그것이 지금 다뤄야 할 실제 변수입니다.`,
+    `“${profile.strength}”은 상황이 좋을 때보다 피곤하거나 시간이 없을 때 더 잘 드러납니다. 여유가 없는 날에도 유지되는 방식이 무엇인지 살펴보면 진짜 강점의 자리를 알 수 있습니다.`,
+    `“${profile.shadow}”이 나타나는 순간에는 대개 정보가 부족한 상태에서 결론을 먼저 내리게 됩니다. 판단을 하루 미루고 사실을 한 가지만 더 확인해도 결과가 달라집니다.`,
+    `“${profile.relationship}”은 갈등 자체보다 갈등 뒤의 회복 속도에서 더 정확하게 드러납니다. 서로 다시 말을 거는 데 걸리는 시간이 관계의 실제 상태를 보여 줍니다.`,
+    `“${profile.work}”에서 가장 자주 새는 것은 돈보다 시간과 주의입니다. 어디에 시간이 들어가는지를 한 주만 기록해도 조정할 지점이 눈에 보입니다.`,
+    `“${profile.timing}”은 달력의 날짜가 아니라 준비 상태의 문제입니다. 조건이 갖춰졌는지를 먼저 확인하면 시기를 기다리는 불안이 줄어듭니다.`,
+    `“${profile.action}”을 실행할 때는 완성도를 목표로 삼지 말고 되돌릴 수 있는 크기로 시작하세요. 작게 시작한 일은 수정이 쉽고, 수정이 쉬운 일은 오래 갑니다.`,
+    `해석이 실제와 다르게 느껴진다면 그 차이 자체가 정보입니다. 어떤 부분이 맞고 어떤 부분이 어긋나는지 적어 두면, 다음 상담에서 훨씬 정확한 질문을 할 수 있습니다.`,
+    `“${profile.focus}”와 관련해 이미 시도해 본 방법이 있다면 그 결과를 먼저 살펴보세요. 새로운 조언보다 지난 시도의 기록이 더 나은 판단 근거가 되는 경우가 많습니다.`,
+    `마지막으로 “${profile.action}”은 한 번의 결심이 아니라 반복 가능한 습관으로 옮길 때 힘이 생깁니다. 이번 주에 두 번만 반복해도 다음 선택의 기준이 분명해집니다.`,
   ];
   const evidenceText = evidence.length
     ? `서버 계산에서 확인된 핵심 근거는 ${evidence.slice(0, 3).map((item) => text(item, 180)).join(" ")} 이 근거는 결과를 고정하는 판정이 아니라, 실제 생활에서 반복되는 반응과 선택을 확인하는 출발점으로 사용합니다. `
@@ -301,7 +321,7 @@ function composeExpertReading(intro, vocabulary, target = 1250, evidence = [], d
   return value.trim();
 }
 
-function section(title, intro, vocabulary, length = 1250, evidence = [], domain = "integrated") {
+function section(title, intro, vocabulary, length = 2250, evidence = [], domain = "integrated") {
   return {
     title,
     content: composeExpertReading(intro, vocabulary, length, evidence, domain),
@@ -309,7 +329,7 @@ function section(title, intro, vocabulary, length = 1250, evidence = [], domain 
   };
 }
 
-export async function generateFusionFortuneWithMockLLM({ context = {} } = {}) {
+export async function generateFusionFortuneWithMockLLM({ context = {}, now = new Date() } = {}) {
   const uncertainty = context.birthTimeKnown ? "생시 정보를 참고한 흐름" : "생시가 없어 시간 기반 정밀 해석은 유보한 흐름";
   const evidence = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system) => [system, collectContextEvidence(context.systems?.[system]) ]));
   const integratedEvidence = [...new Set(Object.values(evidence).flat())].slice(0, 12);
@@ -320,15 +340,16 @@ export async function generateFusionFortuneWithMockLLM({ context = {} } = {}) {
     title: "여섯 개의 별자리에서 만난 당신의 흐름",
     openingMessage: `서로 다른 여섯 체계가 공통으로 비추는 것은, 지금의 당신이 방향을 고르는 과정에 있다는 점입니다. ${uncertainty}을 바탕으로 삶의 전반을 차분히 엮어 보겠습니다.`,
     executiveSummary: composeExpertReading("이번 초융합 운세의 핵심은 힘을 한곳에 모으고 관계와 일의 리듬을 함께 정돈하는 데 있습니다.", "여섯 체계는 표현 방식은 달라도 선택을 서두를 때 생기는 소모와 기준을 세운 뒤 살아나는 집중력을 공통으로 비춥니다.", 900, [], "integrated"),
-    sajuSection: section("사주: 기질과 선택의 뿌리", "사주의 일간과 월지, 오행과 십성은 일을 시작하고 관계를 유지하는 기본 리듬을 보여줍니다.", "오행은 많고 적음을 좋고 나쁨으로 가르기보다, 추진력·정리력·표현력·현실 감각·회복력 중 무엇이 자연스럽고 무엇이 의식적인 연습을 필요로 하는지 살피는 언어입니다.", 1250, evidence.saju, "saju"),
-    ziweiSection: section("자미두수: 삶의 무대와 역할", "자미두수의 궁위와 주요 별은 사회적 역할, 재능의 배치, 관계에서 책임을 느끼는 지점을 비춥니다.", "명궁은 기본 태도, 관록궁은 일의 방식, 재백궁은 자원을 다루는 습관, 부처궁은 가까운 관계의 역할, 복덕궁은 혼자 있을 때의 회복 방식을 서로 연결해 읽습니다.", 1250, evidence.ziwei, "ziwei"),
-    vedicSection: section("베다점: 무의식의 리듬", "베다점의 달과 나크샤트라는 감정이 반응하는 속도와 오래 반복된 배움의 패턴을 살펴봅니다.", "라그나와 문사인, 나크샤트라와 다샤는 컨텍스트에 제공된 범위 안에서만 사용하며, 카르마는 벌이나 숙명이 아니라 되풀이해 배우게 되는 선택 습관으로 해석합니다.", 1250, evidence.vedic, "vedic"),
-    sukuyoSection: section("숙요점: 관계의 거리감", "숙요점은 사람 사이의 거리와 감정이 닿는 방식, 가까워질 때와 숨을 고를 때를 보여줍니다.", "본명숙과 관계 리듬은 누가 옳은지를 판정하기보다 친밀감이 편안해지는 속도, 갈등 뒤 회복하는 방식, 사회적 관계에서 에너지를 배분하는 습관을 살피는 데 사용합니다.", 1250, evidence.sukuyo, "sukuyo"),
-    astrologySection: section("점성술: 감정과 표현의 방향", "점성술은 태양과 달의 상징을 통해 원하는 삶과 실제 감정 반응이 만나는 지점을 해석합니다.", "태양은 의식적인 방향, 달은 정서적 안전, 금성과 화성은 관계의 취향과 행동, 토성은 책임과 성장의 시간을 뜻하며 상승궁은 생시가 확인된 범위에서만 다룹니다.", 1250, evidence.astrology, "astrology"),
-    tarotSection: section("타로: 지금의 선택을 비추는 카드", "서버에서 선택된 여섯 장의 타로 배치는 현재의 흐름을 한 단계씩 정리하도록 돕는 상징으로 사용됩니다.", `서버가 선택한 카드는 ${tarotNames.join(", ") || "정해진 여섯 장"}입니다. 카드는 예언을 고정하는 도구가 아니라 핵심 주제, 체계 사이의 다리, 관계 반응, 다음 행동을 비추는 질문이며 이 목록 밖의 카드는 덧붙이지 않습니다.`, 1250, evidence.tarot, "tarot"),
-    integratedReading: section("통합 해석: 하나의 상담으로 엮는 흐름", "여섯 체계가 함께 가리키는 핵심은 감정을 억누르거나 성급히 결론내리지 않고, 기준을 세워 현실의 행동으로 옮기는 과정입니다.", "공통 신호는 삶의 핵심 패턴으로, 서로 다른 신호는 상황별 선택지로 남깁니다. 사랑·일·돈·마음은 분리된 문제가 아니라 같은 선택 기준이 서로 다른 장면에서 나타난 결과로 연결해 읽습니다.", 1500, integratedEvidence, "integrated"),
-    timingAndAction: { title: "가까운 시기와 현실적인 행동", content: composeExpertReading("가까운 시기에는 큰 결단보다 현재 가진 자원과 관계를 정리하는 작은 선택이 다음 기회를 만듭니다.", "시기 조언은 특정 사건을 예고하기보다 지금 준비할 것, 지켜볼 신호, 멈춰야 할 습관을 구분하는 데 초점을 둡니다.", 1050, [], "action"), luckyActions: ["이번 주 가장 중요한 일 하나를 문장으로 정리하기", "관계에서 원하는 경계를 부드럽게 말하기", "지출과 일정에서 반복되는 부담 한 가지 줄이기"], cautionPatterns: ["불안한 마음으로 답을 재촉하는 패턴", "남의 속도에 맞추다 내 계획을 놓치는 패턴", "준비 없이 한 번에 크게 바꾸려는 패턴"] },
-    closingMessage: composeExpertReading("운세는 정답을 대신 정하는 말이 아니라, 더 나은 선택을 하도록 비추는 지도입니다.", "오늘의 작은 정리와 솔직한 경계가 다음 흐름을 바꾸는 현실적인 출발점이 됩니다.", 650, [], "closing"),
+    sajuSection: section("사주: 기질과 선택의 뿌리", "사주의 일간과 월지, 오행과 십성은 일을 시작하고 관계를 유지하는 기본 리듬을 보여줍니다.", "오행은 많고 적음을 좋고 나쁨으로 가르기보다, 추진력·정리력·표현력·현실 감각·회복력 중 무엇이 자연스럽고 무엇이 의식적인 연습을 필요로 하는지 살피는 언어입니다.", 2250, evidence.saju, "saju"),
+    ziweiSection: section("자미두수: 삶의 무대와 역할", "자미두수의 궁위와 주요 별은 사회적 역할, 재능의 배치, 관계에서 책임을 느끼는 지점을 비춥니다.", "명궁은 기본 태도, 관록궁은 일의 방식, 재백궁은 자원을 다루는 습관, 부처궁은 가까운 관계의 역할, 복덕궁은 혼자 있을 때의 회복 방식을 서로 연결해 읽습니다.", 2250, evidence.ziwei, "ziwei"),
+    vedicSection: section("베다점: 무의식의 리듬", "베다점의 달과 나크샤트라는 감정이 반응하는 속도와 오래 반복된 배움의 패턴을 살펴봅니다.", "라그나와 문사인, 나크샤트라와 다샤는 컨텍스트에 제공된 범위 안에서만 사용하며, 카르마는 벌이나 숙명이 아니라 되풀이해 배우게 되는 선택 습관으로 해석합니다.", 2250, evidence.vedic, "vedic"),
+    sukuyoSection: section("숙요점: 관계의 거리감", "숙요점은 사람 사이의 거리와 감정이 닿는 방식, 가까워질 때와 숨을 고를 때를 보여줍니다.", "본명숙과 관계 리듬은 누가 옳은지를 판정하기보다 친밀감이 편안해지는 속도, 갈등 뒤 회복하는 방식, 사회적 관계에서 에너지를 배분하는 습관을 살피는 데 사용합니다.", 2250, evidence.sukuyo, "sukuyo"),
+    astrologySection: section("점성술: 감정과 표현의 방향", "점성술은 태양과 달의 상징을 통해 원하는 삶과 실제 감정 반응이 만나는 지점을 해석합니다.", "태양은 의식적인 방향, 달은 정서적 안전, 금성과 화성은 관계의 취향과 행동, 토성은 책임과 성장의 시간을 뜻하며 상승궁은 생시가 확인된 범위에서만 다룹니다.", 2250, evidence.astrology, "astrology"),
+    tarotSection: section("타로: 지금의 선택을 비추는 카드", "서버에서 선택된 여섯 장의 타로 배치는 현재의 흐름을 한 단계씩 정리하도록 돕는 상징으로 사용됩니다.", `서버가 선택한 카드는 ${tarotNames.join(", ") || "정해진 여섯 장"}입니다. 카드는 예언을 고정하는 도구가 아니라 핵심 주제, 체계 사이의 다리, 관계 반응, 다음 행동을 비추는 질문이며 이 목록 밖의 카드는 덧붙이지 않습니다.`, 2250, evidence.tarot, "tarot"),
+    integratedReading: section("통합 해석: 하나의 상담으로 엮는 흐름", "여섯 체계가 함께 가리키는 핵심은 감정을 억누르거나 성급히 결론내리지 않고, 기준을 세워 현실의 행동으로 옮기는 과정입니다.", "공통 신호는 삶의 핵심 패턴으로, 서로 다른 신호는 상황별 선택지로 남깁니다. 사랑·일·돈·마음은 분리된 문제가 아니라 같은 선택 기준이 서로 다른 장면에서 나타난 결과로 연결해 읽습니다.", 3100, integratedEvidence, "integrated"),
+    timingAndAction: { title: "가까운 시기와 현실적인 행동", content: composeExpertReading("가까운 시기에는 큰 결단보다 현재 가진 자원과 관계를 정리하는 작은 선택이 다음 기회를 만듭니다.", "시기 조언은 특정 사건을 예고하기보다 지금 준비할 것, 지켜볼 신호, 멈춰야 할 습관을 구분하는 데 초점을 둡니다.", 2050, [], "action"), luckyActions: ["이번 주 가장 중요한 일 하나를 문장으로 정리하기", "관계에서 원하는 경계를 부드럽게 말하기", "지출과 일정에서 반복되는 부담 한 가지 줄이기"], cautionPatterns: ["불안한 마음으로 답을 재촉하는 패턴", "남의 속도에 맞추다 내 계획을 놓치는 패턴", "준비 없이 한 번에 크게 바꾸려는 패턴"] },
+    visualization: normalizeFusionVisualization(undefined, context, { now }),
+    closingMessage: composeExpertReading("운세는 정답을 대신 정하는 말이 아니라, 더 나은 선택을 하도록 비추는 지도입니다.", "오늘의 작은 정리와 솔직한 경계가 다음 흐름을 바꾸는 현실적인 출발점이 됩니다.", 850, [], "closing"),
     shareText: "여섯 개의 운세 체계를 하나의 상담으로 엮어, 지금의 나를 다시 읽어봤어요.",
   };
 }
@@ -349,18 +370,21 @@ function hasRepeatedLongSentence(result = {}) {
 
 export function validateFusionFortuneResult(result = {}, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
   const source = JSON.stringify(result || {});
-  const required = ["title", "openingMessage", "executiveSummary", "timingAndAction", "closingMessage"];
-  if (required.some((key) => !text(result[key], 20000))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_required"] };
-  if (SECTION_KEYS.some((key) => text(result[key]?.content, 50000).length < 900 || !Array.isArray(result[key]?.keyPoints) || result[key].keyPoints.length < 3)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["section_depth"] };
-  if (text(result.executiveSummary, 50000).length < 600 || text(result.timingAndAction?.content, 50000).length < 800) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["summary_or_action_depth"] };
+  if (REQUIRED_KEYS.some((key) => !text(result[key], 20000))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_required"] };
+  const sectionMinChars = (key) => (key === "integratedReading" ? FUSION_FORTUNE_LENGTH.integratedReading : FUSION_FORTUNE_LENGTH.section);
+  if (SECTION_KEYS.some((key) => text(result[key]?.content, 50000).length < sectionMinChars(key) || !Array.isArray(result[key]?.keyPoints) || result[key].keyPoints.length < 3)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["section_depth"] };
+  if (text(result.executiveSummary, 50000).length < FUSION_FORTUNE_LENGTH.executiveSummary || text(result.timingAndAction?.content, 50000).length < FUSION_FORTUNE_LENGTH.timingAndAction) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["summary_or_action_depth"] };
+  // 시각화는 normalizeFusionVisualization 이 항상 채워 준다. 여기서 걸린다면 정규화를
+  // 건너뛴 경로가 생겼다는 뜻이지, 모델이 못 쓴 게 아니다.
+  if (!isFusionVisualizationShaped(result.visualization)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_visualization"] };
   if (!Array.isArray(result.timingAndAction?.luckyActions) || result.timingAndAction.luckyActions.length < 3 || !Array.isArray(result.timingAndAction?.cautionPatterns) || result.timingAndAction.cautionPatterns.length < 3) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_actions"] };
   if (hasRepeatedLongSentence(result)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["repeated_sentence"] };
   if (FORBIDDEN.some((phrase) => source.includes(phrase))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["unsafe_phrase"] };
-  if (/(raw[_ ]?(prompt|response|context)|paymentId|merchantUid|ticketRemaining|totalRemaining)/i.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["internal_data_exposed"] };
+  if (INTERNAL_DATA_PATTERN.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["internal_data_exposed"] };
   const exposedSensitiveValue = sensitiveValues.map((value) => text(value, 100)).find((value) => value.length >= 4 && source.includes(value));
   if (exposedSensitiveValue) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["private_input_exposed"] };
-  if (!birthTimeKnown && /(상승궁|라그나|정밀 명반|하우스).{0,24}(확실|분명|단정|결정|보장)/.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["birth_time_overclaim"] };
-  if (!birthPlaceKnown && /(라그나|상승궁|하우스|나크샤트라).{0,24}(확실|분명|단정|결정|보장)/.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["birth_place_overclaim"] };
+  if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["birth_time_overclaim"] };
+  if (!birthPlaceKnown && BIRTH_PLACE_OVERCLAIM_PATTERN.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["birth_place_overclaim"] };
   const selectedNames = selectedTarotCards.map((card) => text(card?.name, 100)).filter(Boolean);
   if (selectedNames.length) {
     const tarotText = `${text(result.tarotSection?.title, 1000)} ${text(result.tarotSection?.content, 50000)} ${(result.tarotSection?.keyPoints || []).join(" ")}`;
@@ -370,7 +394,7 @@ export function validateFusionFortuneResult(result = {}, { birthTimeKnown = true
     if (selectedNames.some((name) => !tarotText.includes(name))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_selected_tarot_card"] };
   }
   const length = countFusionFortuneVisibleText(result);
-  if (length < 10000 || length > 15000) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["length"], length };
+  if (length < FUSION_FORTUNE_LENGTH.total.min || length > FUSION_FORTUNE_LENGTH.total.max) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["length"], length };
   return { ok: true, value: result, length };
 }
 
@@ -414,72 +438,226 @@ function attachQuestionFocusedFusionReading(result, context = {}) {
   };
 }
 
-async function buildValidatedFusionFallback({ context, input }) {
-  const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context }), context);
+async function buildValidatedFusionFallback({ context, input, now = new Date() }) {
+  const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context, now }), context);
   const checked = validateFusionFortuneResult(result, fusionValidationOptions(context, input));
   return checked.ok ? checked.value : undefined;
 }
 
+// ── 4그룹 병렬 생성 ───────────────────────────────────────────────────
+// 그룹 하나의 LLM 대기 상한. 네 그룹이 병렬이라 1차 벽시계는 가장 느린 그룹 기준이다.
+const FUSION_GROUP_TIMEOUT_MS = 55000;
+// callGeminiJsonWithRetry 기본값 attempts=3 은 최악 timeout×3 을 쓴다 — 그룹은 2회로 묶는다.
+const FUSION_GROUP_ATTEMPTS = 2;
+// 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
+const FUSION_GROUP_RETRY_RATIO = 0.8;
+// 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산.
+const FUSION_GENERATION_DEADLINE_MS = 120000;
+const FUSION_GROUP_RETRY_MIN_BUDGET_MS = 25000;
+/** 한국어 1자 ≈ 1.6 출력 토큰(JSON 키·이스케이프 몫 포함) + 여유. */
+function fusionGroupTokens(group) { return Math.min(12000, Math.round(group.targetChars * 1.8) + 900); }
+
+function pickKeys(source, keys) {
+  return keys.reduce((picked, key) => {
+    const value = source?.[key];
+    const empty = value === null || value === undefined || (typeof value === "string" && !value.trim());
+    return empty ? picked : { ...picked, [key]: value };
+  }, {});
+}
+
+/** 그룹이 실제로 쓴 본문 분량. visualization 같은 구조 데이터는 세지 않는다. */
+function countFusionGroupChars(source, group) {
+  return group.keys.reduce((sum, key) => {
+    const value = source?.[key];
+    if (typeof value === "string") return sum + value.length;
+    if (value && typeof value === "object" && typeof value.content === "string") return sum + value.content.length;
+    return sum;
+  }, 0);
+}
+
+/**
+ * 그룹 단위 검증. 병합 전에 여기서 걸러야 한 그룹의 잘못 때문에 나머지 세 그룹의 정상
+ * 결과까지 버려지지 않는다(전체 검증만 두면 그때는 통째로 폴백이 나간다).
+ * 문장 반복(hasRepeatedLongSentence)과 총 분량은 그룹을 가로지르므로 전체 검증이 맡는다.
+ */
+export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
+  const missing = group.keys.filter((key) => key !== "visualization" && !text(value[key], 200) && !text(value[key]?.content, 200));
+  if (missing.length) return { ok: false, issue: "missing_keys", detail: missing.join(",") };
+  for (const key of group.keys) {
+    if (!SECTION_KEYS.includes(key)) continue;
+    const minChars = key === "integratedReading" ? FUSION_FORTUNE_LENGTH.integratedReading : FUSION_FORTUNE_LENGTH.section;
+    if (text(value[key]?.content, 50000).length < minChars) return { ok: false, issue: "section_depth", detail: key };
+    if (!Array.isArray(value[key]?.keyPoints) || value[key].keyPoints.length < 3) return { ok: false, issue: "missing_key_points", detail: key };
+  }
+  if (group.keys.includes("executiveSummary") && text(value.executiveSummary, 50000).length < FUSION_FORTUNE_LENGTH.executiveSummary) return { ok: false, issue: "summary_depth" };
+  if (group.keys.includes("timingAndAction")) {
+    if (text(value.timingAndAction?.content, 50000).length < FUSION_FORTUNE_LENGTH.timingAndAction) return { ok: false, issue: "action_depth" };
+    if (!Array.isArray(value.timingAndAction?.luckyActions) || value.timingAndAction.luckyActions.length < 3) return { ok: false, issue: "missing_actions" };
+    if (!Array.isArray(value.timingAndAction?.cautionPatterns) || value.timingAndAction.cautionPatterns.length < 3) return { ok: false, issue: "missing_actions" };
+  }
+  if (group.keys.includes("closingMessage") && text(value.closingMessage, 50000).length < FUSION_FORTUNE_LENGTH.closingMessage) return { ok: false, issue: "closing_depth" };
+
+  const source = JSON.stringify(value || {});
+  if (FORBIDDEN.some((phrase) => source.includes(phrase))) return { ok: false, issue: "unsafe_phrase" };
+  if (INTERNAL_DATA_PATTERN.test(source)) return { ok: false, issue: "internal_data_exposed" };
+  if (sensitiveValues.map((item) => text(item, 100)).some((item) => item.length >= 4 && source.includes(item))) return { ok: false, issue: "private_input_exposed" };
+  if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) return { ok: false, issue: "birth_time_overclaim" };
+  if (!birthPlaceKnown && BIRTH_PLACE_OVERCLAIM_PATTERN.test(source)) return { ok: false, issue: "birth_place_overclaim" };
+
+  if (group.keys.includes("tarotSection")) {
+    const selectedNames = selectedTarotCards.map((card) => text(card?.name, 100)).filter(Boolean);
+    if (selectedNames.length) {
+      const tarotText = `${text(value.tarotSection?.title, 1000)} ${text(value.tarotSection?.content, 50000)} ${(value.tarotSection?.keyPoints || []).join(" ")}`;
+      const knownNames = TAROT_CARDS.flatMap((card) => [text(card?.nameKo, 100), text(card?.nameEn, 100)]).filter(Boolean);
+      if (knownNames.some((name) => !selectedNames.includes(name) && (tarotText.includes(`${name} 카드`) || tarotText.includes(`카드 ${name}`)))) return { ok: false, issue: "invented_tarot_card" };
+      if (selectedNames.some((name) => !tarotText.includes(name))) return { ok: false, issue: "missing_selected_tarot_card" };
+    }
+  }
+  return { ok: true, value };
+}
+
+/** 기본 그룹 호출 — 잘림 반응형 재시도와 폴백 JSON 정화를 공용 헬퍼에 맡긴다. */
+function callFusionGroupProvider(env, userPrompt, options = {}) {
+  const { attempts, maxOutputTokens, ...rest } = options;
+  return callGeminiJsonWithRetry(env, userPrompt, {
+    ...rest,
+    attempts,
+    baseTokens: maxOutputTokens,
+    capTokens: Math.round(maxOutputTokens * 1.3),
+  });
+}
+
+function buildFusionShortfallInstruction(group, currentChars) {
+  return [
+    `직전 시도는 이 부분을 ${Number(currentChars).toLocaleString("ko-KR")}자로 썼습니다. 목표 ${Number(group.targetChars).toLocaleString("ko-KR")}자에 크게 못 미칩니다.`,
+    "처음부터 다시 쓰되, 위의 키별 최소 분량을 반드시 채우세요.",
+    "같은 말을 바꿔 쓰지 말고, 아직 인용하지 않은 서버 확정값을 새로 끌어와 근거를 더하고 현실의 장면으로 풀어 늘리세요.",
+  ].join("\n");
+}
+
+/**
+ * 초융합 생성 — 네 그룹을 병렬로 부르고 하나의 결과 JSON으로 병합한다.
+ *
+ * 왜 병렬인가: 목표 20,000자를 단일 호출로 뽑으려면 Gemini 출력 상한(16,384토큰)과 요청
+ * 시간 예산이 먼저 바닥난다. 실제로는 매번 잘려 짧은 결과가 30,000원 결제로 배달됐다.
+ * 그룹당 3,400~6,600자면 한 호출이 시간 안에 완주한다. 선행 사례: worker/routes/ziwei-ai.js.
+ *
+ * 실패한 그룹은 그 그룹만 다시 부르고, 끝내 실패하면 그 키만 결정론 폴백으로 메운다.
+ */
 export async function generateFusionFortuneWithRealLLM({
   input = {},
   context = {},
-  prompt = buildFusionFortunePrompt({ context }),
   env = {},
   requestId = "",
-  providerCall = callGeminiText,
+  providerCall = callFusionGroupProvider,
+  onStage,
+  now = new Date(),
 } = {}) {
   if (!isFusionFortuneRealLlmAllowed(env)) {
     const error = new Error("FUSION_REAL_LLM_NOT_ALLOWED");
     error.code = "FUSION_REAL_LLM_NOT_ALLOWED";
     throw error;
   }
-  const options = {
-    systemPrompt: prompt.systemPrompt,
-    responseMimeType: "application/json",
-    maxOutputTokens: Math.min(16384, Math.max(12000, Number(env.FUSION_FORTUNE_MAX_OUTPUT_TOKENS) || 16384)),
-    temperature: 0.62,
-    timeoutMs: Math.min(90000, Math.max(45000, Number(env.FUSION_FORTUNE_LLM_TIMEOUT_MS) || 75000)),
-    model: text(env.FUSION_FORTUNE_LLM_MODEL, 100) || "gemini-2.5-flash",
-    taskType: "fortune",
-    fallbackToWorkersAI: false,
-    logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune" },
-  };
-  let providerResult;
-  try {
-    providerResult = await providerCall(env, prompt.userPrompt, options);
-  } catch (error) {
-    providerResult = { ok: false, error: text(error?.code, 80) || "provider_exception" };
-  }
-  let parsed = providerResult?.ok ? parseFusionFortuneLLMResponse(providerResult.text) : { ok: false, errorCode: text(providerResult?.error, 80) || "provider_failed" };
-  let checked = parsed.ok ? validateFusionFortuneResult(parsed.value, fusionValidationOptions(context, input)) : parsed;
-  let providerCalls = 1;
+  const startedAt = Date.now();
+  const remainingMs = () => FUSION_GENERATION_DEADLINE_MS - (Date.now() - startedAt);
+  const model = text(env.FUSION_FORTUNE_LLM_MODEL, 100) || "gemini-2.5-flash";
+  const validationOptions = fusionValidationOptions(context, input);
+  const providers = new Set();
+  const models = new Set();
+  let providerCalls = 0;
+  let completedGroups = 0;
 
-  if (!checked.ok && providerResult?.ok) {
-    const repairPrompt = [
-      "아래 후보를 같은 JSON 스키마로 한 번만 보정하세요.",
-      `검증 문제: ${(checked.issues || [checked.errorCode]).join(", ")}`,
-      "모든 섹션과 서버 선택 타로 카드만 유지하고, 개인정보를 추가하지 마세요.",
-      `후보 JSON:\n${JSON.stringify(parsed.value || {}).slice(0, 90000)}`,
-      `스키마:\n${JSON.stringify(prompt.responseSchema)}`,
-    ].join("\n\n");
-    let repaired;
-    try {
-      repaired = await providerCall(env, repairPrompt, options);
-    } catch (error) {
-      repaired = { ok: false, error: text(error?.code, 80) || "repair_exception" };
-    }
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = FUSION_GROUP_TIMEOUT_MS, extraInstruction = "" } = {}) => {
+    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, extraInstruction });
     providerCalls += 1;
-    parsed = repaired?.ok ? parseFusionFortuneLLMResponse(repaired.text) : { ok: false, errorCode: text(repaired?.error, 80) || "repair_failed" };
-    checked = parsed.ok ? validateFusionFortuneResult(parsed.value, fusionValidationOptions(context, input)) : parsed;
+    let response;
+    try {
+      response = await providerCall(env, groupPrompt.userPrompt, {
+        systemPrompt: groupPrompt.systemPrompt,
+        responseMimeType: "application/json",
+        attempts,
+        maxOutputTokens: fusionGroupTokens(group),
+        temperature: 0.62,
+        timeoutMs,
+        model,
+        taskType: "fortune",
+        // 🔴 초융합은 Workers AI 폴백을 켜지 않는다. 폴백 모델은 목표의 60~77%에서 스스로
+        // 멈춰(2026-07-30 실측) 20,000자 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
+        // 태우고 결국 반려된다. 폴백을 켜게 되면 fallbackMinChars 를 함께 줘야 한다.
+        fallbackToWorkersAI: false,
+        logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", sectionGroup: group.id },
+      });
+    } catch (error) {
+      response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
+    }
+    completedGroups += 1;
+    await emitFusionFortuneStage(onStage, "compose", { group: group.id, groupLabel: group.stageLabel, completedGroups, totalGroups: FUSION_SECTION_GROUP_SPECS.length });
+    if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
+    const parsed = parseFusionFortuneLLMResponse(response.text);
+    if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
+    const picked = pickKeys(parsed.value, group.keys);
+    const checked = validateFusionFortuneGroup(picked, group, validationOptions);
+    if (response.provider) providers.add(text(response.provider, 40));
+    if (response.model) models.add(text(response.model, 100));
+    if (!checked.ok) return { ok: false, group, issue: checked.issue, detail: checked.detail, value: picked };
+    return { ok: true, group, value: picked };
+  };
+
+  const merged = {};
+  const failedGroups = [];
+  const settled = await Promise.allSettled(FUSION_SECTION_GROUP_SPECS.map((group) => runGroup(group)));
+  settled.forEach((outcome, index) => {
+    const group = FUSION_SECTION_GROUP_SPECS[index];
+    if (outcome.status !== "fulfilled" || !outcome.value.ok) {
+      failedGroups.push(group);
+      console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 120), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 80) });
+      return;
+    }
+    Object.assign(merged, outcome.value.value);
+  });
+
+  // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
+  const shortGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
+  const retryTargets = [...failedGroups, ...shortGroups];
+  if (retryTargets.length && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
+    const retryTimeoutMs = Math.max(20000, Math.min(FUSION_GROUP_TIMEOUT_MS, remainingMs() - 8000));
+    const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
+      attempts: 1,
+      timeoutMs: retryTimeoutMs,
+      extraInstruction: buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)),
+    })));
+    retried.forEach((outcome, index) => {
+      if (outcome.status !== "fulfilled" || !outcome.value.ok) return;
+      const group = retryTargets[index];
+      // 재생성이 더 길 때만 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
+      if (countFusionGroupChars(outcome.value.value, group) <= countFusionGroupChars(merged, group)) return;
+      Object.assign(merged, outcome.value.value);
+      const stillFailedIndex = failedGroups.indexOf(group);
+      if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
+    });
+  } else if (retryTargets.length) {
+    console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), groups: retryTargets.map((group) => group.id) });
   }
+
+  // 남은 실패 그룹은 결정론 폴백으로 메운다. 세 그룹이 멀쩡한데 한 그룹 때문에 전체를
+  // 폴백으로 돌리면 30,000원을 낸 사용자가 받는 글의 4분의 3이 이유 없이 사라진다.
+  const fallbackBase = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context, now }), context);
+  const composed = { ...pickKeys(fallbackBase, Object.keys(fallbackBase)), ...merged };
+  composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
+
+  const checked = validateFusionFortuneResult(composed, validationOptions);
+  const usedFallbackGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => failedGroups.includes(group)).map((group) => group.id);
+  const provider = [...providers][0] || "gemini";
+  const resolvedModel = [...models][0] || model;
 
   if (checked.ok) {
-    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider: text(providerResult?.provider, 40) || "gemini", model: text(providerResult?.model, 100) || options.model, providerCalls, success: true, fallbackUsed: false });
-    return { result: checked.value, deliverable: true, generationSource: "gemini", providerCalls };
+    const generationSource = usedFallbackGroups.length === 0 ? "gemini" : usedFallbackGroups.length === FUSION_SECTION_GROUP_SPECS.length ? "context_fallback" : "gemini_partial";
+    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: checked.length });
+    return { result: checked.value, deliverable: true, generationSource, providerCalls };
   }
 
-  const fallback = await buildValidatedFusionFallback({ context, input });
-  console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider: text(providerResult?.provider, 40) || "gemini", model: text(providerResult?.model, 100) || options.model, providerCalls, success: Boolean(fallback), fallbackUsed: Boolean(fallback), errorCode: text(checked.errorCode, 80) || "validation_failed" });
+  const fallback = await buildValidatedFusionFallback({ context, input, now });
+  console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: Boolean(fallback), fallbackUsed: Boolean(fallback), errorCode: text(checked.errorCode, 80) || "validation_failed", issues: checked.issues || [] });
   return { result: fallback, deliverable: Boolean(fallback), generationSource: "context_fallback", providerCalls };
 }
 
@@ -487,6 +665,10 @@ export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
   if (isFusionFortuneRealLlmAllowed(args.env || {})) return generateFusionFortuneWithRealLLM(args);
   if (isFusionFortuneMockFlowEnabled(args.env || {})) {
     const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM(args), args.context);
+    // mock 도 그룹 진행 이벤트를 흘려보내 로딩 화면이 같은 계약을 보게 한다.
+    for (const [index, group] of FUSION_SECTION_GROUP_SPECS.entries()) {
+      await emitFusionFortuneStage(args.onStage, "compose", { group: group.id, groupLabel: group.stageLabel, completedGroups: index + 1, totalGroups: FUSION_SECTION_GROUP_SPECS.length });
+    }
     return { result, deliverable: true, generationSource: "mock" };
   }
   const error = new Error("FUSION_FORTUNE_GENERATION_DISABLED");
@@ -630,8 +812,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     const contextResult = await contextBuilder(normalized, { now, env, onStage });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
     throwIfFusionFortuneAborted(abortSignal);
-    const prompt = buildFusionFortunePrompt({ context: contextResult.context });
-    const generated = await generator({ input: normalized, context: contextResult.context, prompt, env, requestId: safeId, userId });
+    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now });
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
     if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED });
     const validated = validateFusionFortuneResult(result, fusionValidationOptions(contextResult.context, normalized));
