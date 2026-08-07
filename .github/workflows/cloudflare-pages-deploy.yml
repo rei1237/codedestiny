@@ -58,6 +58,12 @@ jobs:
           npm run verify:pages-single-deploy-guard
           npm run verify:worker-single-deploy
 
+      # Environment key mismatches only surface at runtime, long after the deploy
+      # succeeds. This step runs before the build so a missing or drifted key stops
+      # the release instead of reaching production.
+      - name: Verify environment key parity
+        run: npm run verify:env-parity:remote
+
       - name: Verify Pages Git deployments stay disabled
         run: npm run verify:pages-single-deploy
 
