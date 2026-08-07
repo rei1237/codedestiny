@@ -62,32 +62,19 @@ describe("ticket shop preview", () => {
     expect(GuardianFortuneChatCreditBalance.findOne).not.toHaveBeenCalled();
   });
 
-  test("each preview returns server-priced PG-only products and a mocked balance in one read", async () => {
-    GuardianFortuneChatCreditBalance.findOne = jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue({ remaining: 3, purchasedTotal: 6, usedTotal: 3, refundedTotal: 0 }) });
-    FusionFortuneTicketBalance.findOne = jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue({ totalRemaining: 1, purchasedTotal: 2, usedTotal: 1, refundedTotal: 0 }) });
+  test("both shops stay closed even when their retired env flags are turned on", async () => {
+    // 두 상담이 표준 회당 결제로 옮겨가면서 워커가 대화권·상담권을 더 이상 소비하지 않는다.
+    // 플래그를 되살려 상점을 다시 열면 소비 불가능한 재화를 파는 상태가 된다.
+    GuardianFortuneChatCreditBalance.findOne = jest.fn();
+    FusionFortuneTicketBalance.findOne = jest.fn();
     const env = { ENABLE_GUARDIAN_FORTUNE_CREDITS: "true", ENABLE_FUSION_FORTUNE_TICKET_SALES: "true" };
 
     const guardian = await readResponse(await testUtils.handleGuardianFortuneCreditShopPreview(auth, env));
     const fusion = await readResponse(await testUtils.handleFusionFortuneTicketShopPreview(auth, env));
 
-    expect(guardian.status).toBe(200);
-    expect(guardian.payload).toMatchObject({ ok: true, enabled: true, balance: { remaining: 3 } });
-    expect(guardian.payload.products).toEqual(expect.arrayContaining([
-      expect.objectContaining({ productType: "guardian_fortune_conversation_credit", priceKrw: 10000, allowedPurchaseChannels: ["pg"] }),
-    ]));
-    expect(fusion.status).toBe(200);
-    expect(fusion.payload).toMatchObject({ ok: true, enabled: true, balance: { remaining: 1 } });
-    expect(fusion.payload.products).toEqual([
-      expect.objectContaining({ productId: "fusion_fortune_ticket_1", productType: "fusion_fortune_ticket", priceKRW: 10000, allowedPurchaseChannels: ["pg"] }),
-    ]);
-    expect(GuardianFortuneChatCreditBalance.findOne).toHaveBeenCalledTimes(1);
-    expect(FusionFortuneTicketBalance.findOne).toHaveBeenCalledTimes(1);
-  });
-
-  test("a mocked database failure is propagated instead of inventing a zero ticket balance", async () => {
-    GuardianFortuneChatCreditBalance.findOne = jest.fn().mockReturnValue({ lean: jest.fn().mockRejectedValue(new Error("Database temporarily unavailable")) });
-
-    await expect(testUtils.handleGuardianFortuneCreditShopPreview(auth, { ENABLE_GUARDIAN_FORTUNE_CREDITS: "true" }))
-      .rejects.toThrow("Database temporarily unavailable");
+    expect(guardian).toMatchObject({ status: 404, payload: { ok: false, enabled: false, code: "GUARDIAN_FORTUNE_CREDITS_DISABLED" } });
+    expect(fusion).toMatchObject({ status: 404, payload: { ok: false, enabled: false, code: "FUSION_FORTUNE_TICKET_SALES_DISABLED" } });
+    expect(GuardianFortuneChatCreditBalance.findOne).not.toHaveBeenCalled();
+    expect(FusionFortuneTicketBalance.findOne).not.toHaveBeenCalled();
   });
 });

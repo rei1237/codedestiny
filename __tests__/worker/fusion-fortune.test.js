@@ -1,8 +1,7 @@
 /** @jest-environment node */
 import { describe, expect, it, jest } from "@jest/globals";
 import {
-  FUSION_FORTUNE_TICKET_PRODUCT,
-  assertFusionFortuneTicketPurchaseAllowed,
+  FUSION_FORTUNE_PAID_FEATURE_KEY,
   buildFusionFortuneContext,
   buildFusionFortuneStatus,
   createMemoryFusionFortuneStore,
@@ -18,10 +17,15 @@ import {
   createFusionFortuneTicketOrder,
   isFusionFortuneTicketSalesEnabled,
 } from "../../worker/lib/fusion-fortune-purchase.js";
+import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
 const input = { birthDate: "1995-04-18", birthTime: "08:30", calendarType: "solar", gender: "female", topic: "삶의 전반적인 흐름", concern: "" };
 const contextBuilder = async () => ({ ok: true, context: { birthTimeKnown: true } });
-const ticketedStore = () => createMemoryFusionFortuneStore({ balances: { user: { totalRemaining: 1, purchasedTotal: 1, usedTotal: 0 } } });
+// 결제는 스토어가 아니라 라우트가 주입하는 콜백이 판정한다. 테스트는 그 콜백만 갈아끼운다.
+const paidAccess = async () => ({ ok: true });
+const unpaidAccess = async () => ({ ok: false });
+const degradedAccess = async () => ({ ok: false, degraded: true });
+const emptyStore = () => createMemoryFusionFortuneStore();
 
 function fusionAdapters(calls) {
   const mark = (name, value) => async () => { calls[name] += 1; return value; };
@@ -39,38 +43,44 @@ function fusionAdapters(calls) {
   };
 }
 
-describe("Fusion Fortune ticket policy and mock generation", () => {
-  it("defines a 10,000 KRW PG-only ticket", () => {
-    expect(FUSION_FORTUNE_TICKET_PRODUCT).toMatchObject({ productId: "fusion_fortune_ticket_1", productType: "fusion_fortune_ticket", priceKRW: 10000, ticketAmount: 1, allowedPurchaseChannels: ["pg"] });
-    expect(assertFusionFortuneTicketPurchaseAllowed("pg").channel).toBe("pg");
-    for (const channel of ["pass", "family_pass", "conversation_credit", "price_coverage", "monthly_entitlement", "entitlement", "fusion_fortune_ticket"]) expect(() => assertFusionFortuneTicketPurchaseAllowed(channel)).toThrow();
+describe("Fusion Fortune per-use billing and mock generation", () => {
+  it("prices the reading at 300 coins (30,000 KRW) as a per-use feature", () => {
+    expect(FUSION_FORTUNE_PAID_FEATURE_KEY).toBe("fusion-fortune-consultation");
+    expect(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 300, amountKRW: 30000 });
+    // 회당 결제여야 매번 재판정된다. 영구 해금으로 등록되면 1회 결제로 무제한이 된다.
+    expect(isPerUsePaidFeatureKey(FUSION_FORTUNE_PAID_FEATURE_KEY)).toBe(true);
   });
 
-  it("does not allow ordinary passes or entitlements to substitute a ticket", async () => {
-    const store = createMemoryFusionFortuneStore({
-      balances: { user: { totalRemaining: 0, purchasedTotal: 0, usedTotal: 0 } },
-      pass: { user: true },
-      familyPass: { user: true },
-      conversationCredits: { user: 10 },
-      monthlyEntitlements: { user: true },
-      priceCoverage: { user: true },
-    });
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "no-ticket", store, contextBuilder });
-    expect(result).toMatchObject({ ok: false, error: "FUSION_FORTUNE_NO_TICKET" });
+  it("refuses to generate without a payment proof", async () => {
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "unpaid", store: emptyStore(), resolvePaidAccess: unpaidAccess, contextBuilder });
+    expect(result).toMatchObject({ ok: false, status: 402, error: "FUSION_FORTUNE_PAYMENT_REQUIRED" });
+    expect(result.pricing).toMatchObject({ featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY });
   });
 
-  it("reports login, ticket, sold-out, and disabled status independently", async () => {
+  it("🔴 treats an unverifiable payment as retryable 503, never as 402", async () => {
+    // 402 로 내리면 3만원을 낸 사용자가 결제창을 다시 보게 된다.
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "degraded", store: emptyStore(), resolvePaidAccess: degradedAccess, contextBuilder });
+    expect(result).toMatchObject({ ok: false, status: 503, retryable: true, error: "FUSION_FORTUNE_PAYMENT_CHECK_DEGRADED" });
+  });
+
+  it("does not burn a daily slot when the payment check fails", async () => {
+    const dateKey = getFusionFortuneDateKey();
+    const store = emptyStore();
+    await generateFusionFortuneRequest({ input, userId: "user", requestId: "unpaid-slot", dateKey, store, resolvePaidAccess: unpaidAccess, contextBuilder });
+    expect((await store.getDaily(dateKey))).toMatchObject({ successCount: 0, reserved: 0 });
+  });
+
+  it("reports login, sold-out, and disabled status without consulting a wallet", async () => {
     const now = new Date("2026-08-04T04:00:00.000Z");
-    const emptyStore = createMemoryFusionFortuneStore();
-    expect(await buildFusionFortuneStatus({ store: emptyStore, now })).toMatchObject({ isLoggedIn: false, nextAction: "login", canGenerate: false });
-    expect(await buildFusionFortuneStatus({ userId: "user", store: emptyStore, now })).toMatchObject({ nextAction: "buy_ticket", ticket: { remaining: 0 }, canGenerate: false });
-    expect(await buildFusionFortuneStatus({ userId: "user", store: ticketedStore(), now })).toMatchObject({ nextAction: "generate", ticket: { remaining: 1 }, canGenerate: true });
-    expect(await buildFusionFortuneStatus({ userId: "user", store: ticketedStore(), now, enabled: false })).toMatchObject({ nextAction: "disabled", canGenerate: false });
+    expect(await buildFusionFortuneStatus({ store: emptyStore(), now })).toMatchObject({ isLoggedIn: false, nextAction: "login", canGenerate: false });
+    // 진입 시 결제 선검사를 하지 않으므로 로그인만 되어 있으면 canGenerate 다.
+    expect(await buildFusionFortuneStatus({ userId: "user", store: emptyStore(), now })).toMatchObject({ nextAction: "generate", canGenerate: true, pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } });
+    expect(await buildFusionFortuneStatus({ userId: "user", store: emptyStore(), now, enabled: false })).toMatchObject({ nextAction: "disabled", canGenerate: false });
   });
 
-  it("creates only a server-priced PG order and keeps sales behind its own flag", async () => {
-    expect(isFusionFortuneTicketSalesEnabled({ ENABLE_FUSION_FORTUNE_TICKET_SALES: "true" })).toBe(true);
-    expect(isFusionFortuneTicketSalesEnabled({ ENABLE_FUSION_FORTUNE_TICKET_SALES: "false" })).toBe(false);
+  it("keeps the retired ticket product unsellable regardless of its old env flag", async () => {
+    // 워커가 티켓을 더 이상 소비하지 않으므로 팔면 소비 불가능한 재화를 파는 셈이다.
+    expect(isFusionFortuneTicketSalesEnabled({ ENABLE_FUSION_FORTUNE_TICKET_SALES: "true" })).toBe(false);
     const paymentModel = {
       findOne: jest.fn(() => ({ sort: () => ({ lean: async () => null }) })),
       create: jest.fn(async (record) => record),
@@ -78,11 +88,9 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     const userModel = { findById: jest.fn(() => ({ select: () => ({ lean: async () => ({ name: "테스트 사용자" }) }) })) };
     const env = { PORTONE_STORE_ID: "store-test", PORTONE_CHANNEL_KEY: "channel-test", PORTONE_API_SECRET: "server-test-secret" };
     const body = { productId: "fusion_fortune_ticket_1", productType: "fusion_fortune_ticket", amount: 10000, paymentMethod: "pg", idempotencyKey: "fusion-order-test" };
-    const prepared = await createFusionFortuneTicketOrder({ env, userId: "user", body, requestUrl: "https://code-destiny.com/points", paymentModel, userModel });
-    expect(prepared).toMatchObject({ ok: true, order: { paymentMethod: "pg", product: { priceKRW: 10000, ticketAmount: 1 } } });
-    expect(paymentModel.create).toHaveBeenCalledWith(expect.objectContaining({ paymentAmount: 10000, expectedChargedPoints: 0, membershipCreditCost: 0 }));
-    await expect(createFusionFortuneTicketOrder({ env, userId: "user", body: { ...body, amount: 9999 }, paymentModel, userModel })).rejects.toMatchObject({ code: "FUSION_FORTUNE_PRODUCT_MISMATCH" });
-    await expect(createFusionFortuneTicketOrder({ env, userId: "user", body: { ...body, paymentMethod: "conversation_credit" }, paymentModel, userModel })).rejects.toMatchObject({ code: "FUSION_FORTUNE_PURCHASE_CHANNEL_BLOCKED" });
+    await expect(createFusionFortuneTicketOrder({ env, userId: "user", body, requestUrl: "https://code-destiny.com/points", paymentModel, userModel }))
+      .rejects.toMatchObject({ code: "FUSION_FORTUNE_TICKET_SALES_ENDED" });
+    expect(paymentModel.create).not.toHaveBeenCalled();
   });
 
   it("builds fusion context by running all six explicit adapters exactly once", async () => {
@@ -133,16 +141,15 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
 
   it("consumes exactly one ticket and one daily slot only after a valid result", async () => {
     const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
-    const store = ticketedStore();
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "success", dateKey, store, contextBuilder, generator: generateFusionFortuneWithMockLLM });
+    const store = emptyStore();
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "success", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
     expect(result.ok).toBe(true);
-    expect((await store.getBalance("user")).totalRemaining).toBe(0);
     expect((await store.getDaily(dateKey)).successCount).toBe(1);
   });
 
   it("emits actual completed stages in the streamed public order before the final Fusion stage", async () => {
     const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
-    const store = ticketedStore();
+    const store = emptyStore();
     const completed = [];
     const contextBuilderWithStages = (candidate, options) => buildFusionFortuneContext({
       ...candidate,
@@ -154,6 +161,7 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
       requestId: "stream-stage-order",
       dateKey,
       store,
+      resolvePaidAccess: paidAccess,
       contextBuilder: contextBuilderWithStages,
       generator: generateFusionFortuneWithMockLLM,
       onStage: (event) => completed.push(event.stage),
@@ -166,28 +174,27 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     const controller = new AbortController();
     controller.abort();
     const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
-    const store = ticketedStore();
-    const generated = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stream-cancelled", dateKey, store, contextBuilder, abortSignal: controller.signal });
+    const store = emptyStore();
+    const generated = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stream-cancelled", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, abortSignal: controller.signal });
     expect(generated).toMatchObject({ ok: false, error: "FUSION_FORTUNE_CANCELLED" });
-    expect((await store.getBalance("user")).totalRemaining).toBe(1);
     expect((await store.getDaily(dateKey)).successCount).toBe(0);
   });
 
   it("does not consume a ticket or daily slot when the stream cannot deliver the final result", async () => {
     const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
-    const store = ticketedStore();
+    const store = emptyStore();
     const generated = await generateFusionFortuneRequest({
       input,
       userId: "user",
       requestId: "stream-undelivered",
       dateKey,
       store,
+      resolvePaidAccess: paidAccess,
       contextBuilder,
       generator: generateFusionFortuneWithMockLLM,
       onDelivery: async () => { throw new Error("stream disconnected"); },
     });
     expect(generated).toMatchObject({ ok: false, error: "FUSION_FORTUNE_GENERATION_FAILED" });
-    expect((await store.getBalance("user")).totalRemaining).toBe(1);
     expect((await store.getDaily(dateKey)).successCount).toBe(0);
   });
 
@@ -196,26 +203,25 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
     ["llm", async () => { throw new Error("mock llm failure"); }],
     ["validator", async () => ({ title: "too short" })],
   ])("does not consume a ticket or a daily slot after %s failure", async (_name, generatorOrContext) => {
-    const store = ticketedStore();
+    const store = emptyStore();
     const args = _name === "context" ? { contextBuilder: generatorOrContext } : { contextBuilder, generator: generatorOrContext };
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: `failure-${_name}`, store, ...args });
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: `failure-${_name}`, store, resolvePaidAccess: paidAccess, ...args });
     expect(result.ok).toBe(false);
-    expect((await store.getBalance("user")).totalRemaining).toBe(1);
     expect((await store.getDaily(getFusionFortuneDateKey())).successCount).toBe(0);
   });
 
   it("fails closed at 100 daily results and reports sold out", async () => {
     const dateKey = getFusionFortuneDateKey();
-    const store = createMemoryFusionFortuneStore({ balances: { user: { totalRemaining: 1 } }, daily: { [dateKey]: { dateKey, limit: 100, successCount: 100, reserved: 0 } } });
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "sold-out", store, contextBuilder });
+    const store = createMemoryFusionFortuneStore({ daily: { [dateKey]: { dateKey, limit: 100, successCount: 100, reserved: 0 } } });
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "sold-out", store, resolvePaidAccess: paidAccess, contextBuilder });
     expect(result.error).toBe("FUSION_FORTUNE_SOLD_OUT");
     expect((await buildFusionFortuneStatus({ userId: "user", store })).dailyLimit.isSoldOut).toBe(true);
   });
 
   it("allows the hundredth success after ninety-nine completed results", async () => {
     const dateKey = getFusionFortuneDateKey();
-    const store = createMemoryFusionFortuneStore({ balances: { user: { totalRemaining: 1 } }, daily: { [dateKey]: { dateKey, limit: 100, successCount: 99, reserved: 0 } } });
-    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "hundredth", dateKey, store, contextBuilder, generator: generateFusionFortuneWithMockLLM });
+    const store = createMemoryFusionFortuneStore({ daily: { [dateKey]: { dateKey, limit: 100, successCount: 99, reserved: 0 } } });
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "hundredth", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
     expect(result.ok).toBe(true);
     expect((await store.getDaily(dateKey)).successCount).toBe(100);
     expect(result.fusionStatus.dailyLimit.isSoldOut).toBe(true);
@@ -228,8 +234,7 @@ describe("Fusion Fortune ticket policy and mock generation", () => {
 
   it("reserves at most one hundred concurrent successful attempts", async () => {
     const dateKey = getFusionFortuneDateKey();
-    const balances = Object.fromEntries(Array.from({ length: 101 }, (_, index) => [`u${index}`, { totalRemaining: 1 }]));
-    const store = createMemoryFusionFortuneStore({ balances });
+    const store = emptyStore();
     const reservations = await Promise.all(Array.from({ length: 101 }, (_, index) => store.reserve(`u${index}`, dateKey, `parallel-${index}`)));
     expect(reservations.filter((item) => item.ok)).toHaveLength(100);
     expect(reservations.filter((item) => item.errorCode === "FUSION_FORTUNE_SOLD_OUT")).toHaveLength(1);

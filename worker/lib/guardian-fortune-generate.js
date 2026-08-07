@@ -19,9 +19,11 @@ function safeErrorMessage(code) {
     case GUARDIAN_FORTUNE_ERROR_CODES.INVALID_INPUT:
       return "입력 내용을 한 번 확인해 주세요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED:
-      return "첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요.";
-    case GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS:
-      return "오늘 이용 가능한 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.";
+      return "첫 무료 상담을 이미 사용했어요. 로그인하면 3번까지 연이와 네오에게 물어볼 수 있어요.";
+    case GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED:
+      return "무료 상담을 모두 사용했어요. 1회 5,000원으로 이어서 물어볼 수 있어요.";
+    case GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED:
+      return "결제 내역을 확인하지 못했어요. 잠시 후 다시 시도해 주세요. 이미 결제하셨다면 차감되지 않습니다.";
     case GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED:
     case GUARDIAN_FORTUNE_ERROR_CODES.GENERATION_FAILED:
     case GUARDIAN_FORTUNE_ERROR_CODES.RESULT_INVALID:
@@ -40,7 +42,7 @@ function throwIfGuardianFortuneAborted(signal) {
   throw error;
 }
 
-function errorResponse({ code, status, usage, isLoggedIn, requestId, details = undefined }) {
+function errorResponse({ code, status, usage, isLoggedIn, requestId, retryable = false, details = undefined }) {
   return {
     ok: false,
     status,
@@ -48,7 +50,9 @@ function errorResponse({ code, status, usage, isLoggedIn, requestId, details = u
     message: safeErrorMessage(code),
     requestId,
     usage,
-    ...(status === 429 ? { cta: buildGuardianFortuneLimitCta(code, isLoggedIn) } : {}),
+    // 402(결제 필요)도 CTA 를 준다 — 클라이언트가 이 신호로 공용 결제 게이트를 연다.
+    ...(status === 429 || status === 402 ? { cta: buildGuardianFortuneLimitCta(code, isLoggedIn) } : {}),
+    ...(retryable ? { retryable: true } : {}),
     ...(details ? { details } : {}),
   };
 }
@@ -72,6 +76,8 @@ export async function generateGuardianFortuneRequest({
   requestId,
   dateKey,
   store,
+  // 무료 소진 뒤 회당 결제 증빙을 확인하는 콜백. 라우트가 verifyPerUsePayment 를 감싸 넘긴다.
+  resolvePaidAccess,
   now = new Date(),
   contextBuilder = buildGuardianFortuneContext,
   mockGenerator,
@@ -106,6 +112,7 @@ export async function generateGuardianFortuneRequest({
     dateKey: effectiveDateKey,
     requestId,
     store,
+    resolvePaidAccess,
     now,
   });
   if (!reservation.ok) {
@@ -116,6 +123,7 @@ export async function generateGuardianFortuneRequest({
       usage,
       isLoggedIn,
       requestId,
+      retryable: reservation.retryable === true,
     });
   }
 

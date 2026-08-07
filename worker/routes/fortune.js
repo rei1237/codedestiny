@@ -17,11 +17,13 @@ import {
   createMongoGuardianFortuneStore,
   getGuardianFortuneDateKey,
   GUARDIAN_FORTUNE_ERROR_CODES,
+  GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
   hashGuardianFortuneGuestId,
   isGuardianFortuneApiEnabled,
   isValidGuardianFortuneGuestId,
   mergeGuardianFortuneAnonymousUsage,
 } from "../lib/guardian-fortune-usage.js";
+import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import {
   createGuardianFortuneShareSnapshot,
   findPublicGuardianFortuneSnapshot,
@@ -5912,6 +5914,28 @@ async function handleGuardianFortuneAnonymousMergeRoute(request, env, trace) {
   return guardianFortuneRouteResponse({ ok: true, ...result });
 }
 
+/**
+ * 무료 횟수를 소진한 로그인 사용자의 회당 결제 증빙 확인.
+ *
+ * 🔴 proven === null 은 "결제 안 함"이 아니라 "DB 장애로 확인 못 함"이다. 이걸 402 로
+ * 내리면 이미 결제한 사용자가 결과를 못 받고 돈만 나간다 — degraded 로 올려 503 을 만든다.
+ */
+function buildGuardianFortunePaidAccessResolver(env, coinPrice) {
+  return async ({ userId, requestId }) => {
+    if (!userId) return { ok: false };
+    const proof = await verifyPerUsePayment(env, {
+      userId,
+      featureKey: GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
+      coinPrice,
+      requestId,
+    });
+    logPerUsePaymentProof(GUARDIAN_FORTUNE_PAID_FEATURE_KEY, proof);
+    if (proof?.proven === true) return { ok: true };
+    if (proof?.proven === null) return { ok: false, degraded: true };
+    return { ok: false };
+  };
+}
+
 async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
   if (!isGuardianFortuneApiEnabled(env)) {
     return guardianFortuneRouteResponse({
@@ -5946,6 +5970,10 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
     requestId,
     dateKey: getGuardianFortuneDateKey(new Date()),
     store,
+    resolvePaidAccess: buildGuardianFortunePaidAccessResolver(
+      env,
+      Number(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]?.cost || 0),
+    ),
     contextOptions: { env, requestUrl: request.url, ctx },
     // Scenario switches are test-only. Production clients cannot select a failure mode.
     scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",

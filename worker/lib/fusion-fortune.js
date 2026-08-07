@@ -1,8 +1,6 @@
 import {
   FusionFortuneDailyLimit,
   FusionFortuneGenerationAttempt,
-  FusionFortuneTicketBalance,
-  FusionFortuneTicketTransaction,
 } from "./models.js";
 import { mongoose } from "./db.js";
 import { buildFusionFortunePrompt } from "./fusion-fortune-prompt.js";
@@ -12,16 +10,9 @@ import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { callGeminiText } from "./gemini.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 
-export const FUSION_FORTUNE_TICKET_PRODUCT = Object.freeze({
-  productId: "fusion_fortune_ticket_1",
-  productType: "fusion_fortune_ticket",
-  name: "초융합 운세 상담권",
-  priceKRW: 10000,
-  ticketAmount: 1,
-  description: "사주·자미두수·베다점·숙요점·점성술·타로를 한 번에 엮어 1만자 이상의 깊은 초융합 운세를 볼 수 있어요.",
-  allowedPurchaseChannels: ["pg"],
-  blockedPurchaseChannels: ["pass", "family_pass", "free_pass", "event_pass", "credit", "conversation_credit", "fusion_fortune_ticket", "entitlement", "price_coverage", "monthly_entitlement"],
-});
+// 초융합 운세는 표준 회당 결제(B유형)다. 가격 정본은 worker/lib/paid-feature-registry.js 이며
+// 300코인(30,000원)이라 이용권 커버는 family 등급만 통과한다(PASS_LIMITS 참고).
+export const FUSION_FORTUNE_PAID_FEATURE_KEY = "fusion-fortune-consultation";
 
 export const FUSION_FORTUNE_DAILY_LIMIT = Object.freeze({
   timezone: "Asia/Seoul",
@@ -35,7 +26,10 @@ export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
   AUTH_REQUIRED: "FUSION_FORTUNE_AUTH_REQUIRED",
   INVALID_INPUT: "FUSION_FORTUNE_INVALID_INPUT",
   SOLD_OUT: "FUSION_FORTUNE_SOLD_OUT",
-  NO_TICKET: "FUSION_FORTUNE_NO_TICKET",
+  // 전용 "초융합 상담권"을 폐지하고 표준 회당 결제로 옮겼다(2026-08-07). 구 NO_TICKET 자리다.
+  PAYMENT_REQUIRED: "FUSION_FORTUNE_PAYMENT_REQUIRED",
+  // 결제 증빙 조회가 DB 장애로 판단 보류된 상태 — 402 가 아니라 503 으로 표면화한다.
+  PAYMENT_CHECK_DEGRADED: "FUSION_FORTUNE_PAYMENT_CHECK_DEGRADED",
   REQUEST_IN_PROGRESS: "FUSION_FORTUNE_REQUEST_IN_PROGRESS",
   CONTEXT_FAILED: "FUSION_FORTUNE_CONTEXT_FAILED",
   GENERATION_FAILED: "FUSION_FORTUNE_GENERATION_FAILED",
@@ -66,6 +60,23 @@ async function emitFusionFortuneStage(onStage, stage) {
   }
 }
 
+/**
+ * 회당 결제 증빙 판정. 결제 지식(env·featureKey·verifyPerUsePayment)은 라우트가 소유하고
+ * 여기서는 콜백만 부른다.
+ *
+ * 🔴 예외는 "결제 안 함"이 아니라 "확인 못 함"이다 — degraded 로 올려 503 을 만든다.
+ * 402 로 내리면 이미 결제한 사용자가 3만원을 내고도 결과를 못 받는다.
+ */
+async function resolveFusionFortunePaidAccess(resolvePaidAccess, context) {
+  if (typeof resolvePaidAccess !== "function") return { ok: false, degraded: false };
+  try {
+    const verdict = await resolvePaidAccess(context);
+    return { ok: verdict?.ok === true, degraded: verdict?.degraded === true };
+  } catch {
+    return { ok: false, degraded: true };
+  }
+}
+
 function throwIfFusionFortuneAborted(signal) {
   if (!signal?.aborted) return;
   const error = new Error("fusion_fortune_cancelled");
@@ -81,15 +92,6 @@ export function isFusionFortuneRealLlmAllowed(env = {}) {
     && flag(env, "ALLOW_FUSION_FORTUNE_REAL_LLM")
     && env.NODE_ENV !== "test"
     && Boolean(env.GEMINI_API_KEY || env.GOOGLE_API_KEY);
-}
-export function assertFusionFortuneTicketPurchaseAllowed(channel) {
-  if (String(channel || "").toLowerCase() !== "pg") {
-    const error = new Error("초융합 운세 상담권은 일반 이용권, family 이용권, 대화권, 무료권, 이벤트권, 잔여 크레딧, 월정석 보유 권한, price coverage 로직으로 구매할 수 없습니다.");
-    error.code = "FUSION_FORTUNE_PURCHASE_CHANNEL_BLOCKED";
-    error.status = 400;
-    throw error;
-  }
-  return { channel: "pg", product: FUSION_FORTUNE_TICKET_PRODUCT };
 }
 
 export function getFusionFortuneDateKey(date = new Date()) {
@@ -492,8 +494,10 @@ export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
   throw error;
 }
 
+// 스토어는 이제 "오늘의 선착순 100자리"와 requestId 멱등성만 지킨다. 과금은 표준 회당 결제가
+// 맡으므로 잔액(ticket balance) 개념이 사라졌다.
 export function createMemoryFusionFortuneStore(seed = {}) {
-  const balances = new Map(Object.entries(seed.balances || {})); const daily = new Map(Object.entries(seed.daily || {})); const attempts = new Map(Object.entries(seed.attempts || {})); const transactions = [...(seed.transactions || [])];
+  const daily = new Map(Object.entries(seed.daily || {})); const attempts = new Map(Object.entries(seed.attempts || {}));
   let reservationQueue = Promise.resolve();
   const withReservationLock = (run) => {
     const previous = reservationQueue;
@@ -502,24 +506,21 @@ export function createMemoryFusionFortuneStore(seed = {}) {
     return previous.then(async () => { try { return await run(); } finally { release(); } });
   };
   return {
-    balances, daily, attempts, transactions,
-    async getBalance(userId) { return balances.get(String(userId)) || { totalRemaining: 0, purchasedTotal: 0, usedTotal: 0, refundedTotal: 0, reserved: 0 }; },
+    daily, attempts,
     async getDaily(dateKey) { return daily.get(dateKey) || { dateKey, limit: 100, successCount: 0, reserved: 0 }; },
     async reserve(userId, dateKey, requestId) { return withReservationLock(async () => {
       if (attempts.has(requestId)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
-      const balance = await this.getBalance(userId); const limit = await this.getDaily(dateKey);
+      const limit = await this.getDaily(dateKey);
       if (count(limit.successCount) + count(limit.reserved) >= 100) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.SOLD_OUT, status: 429 };
-      if (count(balance.totalRemaining) - count(balance.reserved) < 1) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.NO_TICKET, status: 402 };
-      balance.reserved = count(balance.reserved) + 1; limit.reserved = count(limit.reserved) + 1; balances.set(String(userId), balance); daily.set(dateKey, limit); attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved" }); return { ok: true, userId: String(userId), dateKey, requestId };
+      limit.reserved = count(limit.reserved) + 1; daily.set(dateKey, limit); attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved" }); return { ok: true, userId: String(userId), dateKey, requestId };
     }); },
-    async release(reservation) { const balance = await this.getBalance(reservation.userId); const limit = await this.getDaily(reservation.dateKey); balance.reserved = Math.max(0, count(balance.reserved) - 1); limit.reserved = Math.max(0, count(limit.reserved) - 1); balances.set(reservation.userId, balance); daily.set(reservation.dateKey, limit); attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "released" }); },
-    async commit(reservation) { const balance = await this.getBalance(reservation.userId); const limit = await this.getDaily(reservation.dateKey); if (count(balance.reserved) < 1 || count(balance.totalRemaining) < 1 || count(limit.reserved) < 1) return null; balance.reserved -= 1; balance.totalRemaining -= 1; balance.usedTotal = count(balance.usedTotal) + 1; limit.reserved -= 1; limit.successCount = count(limit.successCount) + 1; balances.set(reservation.userId, balance); daily.set(reservation.dateKey, limit); transactions.push({ userId: reservation.userId, type: "use", amount: -1, balanceAfter: balance.totalRemaining, fusionRequestId: reservation.requestId }); attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "completed" }); return { balance, limit }; },
+    async release(reservation) { const limit = await this.getDaily(reservation.dateKey); limit.reserved = Math.max(0, count(limit.reserved) - 1); daily.set(reservation.dateKey, limit); attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "released" }); },
+    async commit(reservation) { const limit = await this.getDaily(reservation.dateKey); if (count(limit.reserved) < 1) return null; limit.reserved -= 1; limit.successCount = count(limit.successCount) + 1; daily.set(reservation.dateKey, limit); attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "completed" }); return { limit }; },
   };
 }
 
 export function createMongoFusionFortuneStore() {
   return {
-    async getBalance(userId) { return (await FusionFortuneTicketBalance.findOne({ userId: objectIdOrString(userId) }).lean()) || { totalRemaining: 0, purchasedTotal: 0, usedTotal: 0, refundedTotal: 0, reserved: 0 }; },
     async getDaily(dateKey) { return (await FusionFortuneDailyLimit.findOne({ dateKey }).lean()) || { dateKey, limit: 100, successCount: 0, reserved: 0 }; },
     async reserve(userId, dateKey, requestId, now = new Date()) {
       const session = await mongoose.startSession();
@@ -529,8 +530,6 @@ export function createMongoFusionFortuneStore() {
           await FusionFortuneDailyLimit.updateOne({ dateKey }, { $setOnInsert: { timezone: "Asia/Seoul", limit: 100, successCount: 0, reserved: 0, createdAt: now }, $set: { updatedAt: now } }, { upsert: true, session });
           const daily = await FusionFortuneDailyLimit.findOneAndUpdate({ dateKey, $expr: { $lt: [{ $add: [{ $ifNull: ["$successCount", 0] }, { $ifNull: ["$reserved", 0] }] }, 100] } }, { $inc: { reserved: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
           if (!daily) throw Object.assign(new Error("sold_out"), { fusionCode: FUSION_FORTUNE_ERROR_CODES.SOLD_OUT, status: 429 });
-          const balance = await FusionFortuneTicketBalance.findOneAndUpdate({ userId: objectIdOrString(userId), $expr: { $gte: [{ $subtract: [{ $ifNull: ["$totalRemaining", 0] }, { $ifNull: ["$reserved", 0] }] }, 1] } }, { $inc: { reserved: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
-          if (!balance) throw Object.assign(new Error("no_ticket"), { fusionCode: FUSION_FORTUNE_ERROR_CODES.NO_TICKET, status: 402 });
         });
         return { ok: true, userId: String(userId), dateKey, requestId };
       } catch (error) {
@@ -545,7 +544,6 @@ export function createMongoFusionFortuneStore() {
       const session = await mongoose.startSession();
       try {
         await session.withTransaction(async () => {
-          await FusionFortuneTicketBalance.updateOne({ userId: objectIdOrString(reservation.userId), reserved: { $gt: 0 } }, { $inc: { reserved: -1 }, $set: { updatedAt: now } }, { session });
           await FusionFortuneDailyLimit.updateOne({ dateKey: reservation.dateKey, reserved: { $gt: 0 } }, { $inc: { reserved: -1 }, $set: { updatedAt: now } }, { session });
           await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "released" } }, { session });
         });
@@ -558,14 +556,11 @@ export function createMongoFusionFortuneStore() {
       let committed;
       try {
         await session.withTransaction(async () => {
-          const balance = await FusionFortuneTicketBalance.findOneAndUpdate({ userId: objectIdOrString(reservation.userId), reserved: { $gt: 0 }, totalRemaining: { $gt: 0 } }, { $inc: { reserved: -1, totalRemaining: -1, usedTotal: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
-          if (!balance) throw new Error("fusion_balance_commit_failed");
           const limit = await FusionFortuneDailyLimit.findOneAndUpdate({ dateKey: reservation.dateKey, reserved: { $gt: 0 }, successCount: { $lt: 100 } }, { $inc: { reserved: -1, successCount: 1 }, $set: { updatedAt: now } }, { new: true, session }).lean();
           if (!limit) throw new Error("fusion_daily_commit_failed");
-          await FusionFortuneTicketTransaction.create([{ userId: objectIdOrString(reservation.userId), type: "use", amount: -1, balanceAfter: count(balance.totalRemaining), productId: FUSION_FORTUNE_TICKET_PRODUCT.productId, fusionRequestId: reservation.requestId, reason: "fusion_fortune_generation" }], { session });
           const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "completed" } }, { session });
           if (Number(attempt.modifiedCount || 0) !== 1) throw new Error("fusion_attempt_commit_failed");
-          committed = { balance, limit };
+          committed = { limit };
         });
         return committed || null;
       } catch {
@@ -579,16 +574,44 @@ export function createMongoFusionFortuneStore() {
 
 export async function buildFusionFortuneStatus({ userId = "", store, now = new Date(), enabled = true } = {}) {
   const dateKey = getFusionFortuneDateKey(now); const loggedIn = Boolean(text(userId));
-  if (!enabled) return { isLoggedIn: loggedIn, ticket: { remaining: 0, canUse: false }, dailyLimit: { dateKey, limit: 100, usedCount: 0, remainingCount: 0, isSoldOut: false }, canGenerate: false, nextAction: "disabled", message: "초융합 운세는 준비 중입니다." };
-  if (!loggedIn) return { isLoggedIn: false, ticket: { remaining: 0, canUse: false }, dailyLimit: { dateKey, limit: 100, usedCount: 0, remainingCount: 100, isSoldOut: false, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: false, nextAction: "login", message: "초융합 운세는 로그인 후 이용할 수 있어요.", cta: { label: "로그인하기", targetPath: "/login", reason: "ticket_owner_required" } };
-  const [balance, daily] = await Promise.all([store.getBalance(userId), store.getDaily(dateKey)]); const remaining = Math.max(0, 100 - count(daily.successCount) - count(daily.reserved)); const ticketRemaining = Math.max(0, count(balance.totalRemaining) - count(balance.reserved)); const soldOut = remaining === 0; const nextAction = soldOut ? "sold_out" : ticketRemaining > 0 ? "generate" : "buy_ticket";
-  return { isLoggedIn: true, ticket: { remaining: ticketRemaining, canUse: ticketRemaining > 0 }, dailyLimit: { dateKey, limit: 100, usedCount: count(daily.successCount), remainingCount: remaining, isSoldOut: soldOut, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: !soldOut && ticketRemaining > 0, nextAction, message: soldOut ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요." : ticketRemaining > 0 ? `오늘 선착순 ${remaining}자리가 남아 있어요. 상담권으로 결과를 생성할 수 있어요.` : `오늘 선착순 ${remaining}자리가 남아 있어요. 초융합 운세 상담권이 필요해요.`, cta: soldOut ? { label: "다른 운세 보기", targetPath: "/", reason: "daily_sold_out" } : ticketRemaining > 0 ? undefined : { label: "상담권 구매하기", targetPath: "/fusion-fortune#ticket", reason: "ticket_required" } };
+  const pricing = { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY };
+  if (!enabled) return { isLoggedIn: loggedIn, pricing, dailyLimit: { dateKey, limit: 100, usedCount: 0, remainingCount: 0, isSoldOut: false }, canGenerate: false, nextAction: "disabled", message: "초융합 운세는 준비 중입니다." };
+  if (!loggedIn) return { isLoggedIn: false, pricing, dailyLimit: { dateKey, limit: 100, usedCount: 0, remainingCount: 100, isSoldOut: false, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: false, nextAction: "login", message: "초융합 운세는 로그인 후 이용할 수 있어요.", cta: { label: "로그인하기", targetPath: "/login", reason: "login_required" } };
+  const daily = await store.getDaily(dateKey); const remaining = Math.max(0, 100 - count(daily.successCount) - count(daily.reserved)); const soldOut = remaining === 0;
+  // 결제 여부는 여기서 판정하지 않는다 — 진입 시 서버 선검사를 두면 결제창 앞 지연이 되살아난다.
+  // 남은 선착순 자리만 보고, 결제는 생성 요청 직전 공용 게이트가 처리한다.
+  return { isLoggedIn: true, pricing, dailyLimit: { dateKey, limit: 100, usedCount: count(daily.successCount), remainingCount: remaining, isSoldOut: soldOut, nextResetAt: getFusionFortuneNextResetAt(now) }, canGenerate: !soldOut, nextAction: soldOut ? "sold_out" : "generate", message: soldOut ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요." : `오늘 선착순 ${remaining}자리가 남아 있어요.`, cta: soldOut ? { label: "다른 운세 보기", targetPath: "/", reason: "daily_sold_out" } : undefined };
 }
 
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery } = {}) {
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
   let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
-  const safeId = safeRequestId(requestId); const reservation = await store.reserve(userId, dateKey || getFusionFortuneDateKey(now), safeId, now); if (!reservation.ok) return { ok: false, status: reservation.status, error: reservation.errorCode, message: reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.SOLD_OUT ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요." : reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.NO_TICKET ? "초융합 운세 상담권이 필요해요." : "이미 처리 중인 요청입니다." };
+  const safeId = safeRequestId(requestId);
+
+  // 결제 증빙을 선착순 자리를 잡기 전에 확인한다. 순서를 뒤집으면 미결제 요청이 남의 자리를
+  // 점유했다가 풀리는 낭비가 생긴다. 증빙은 requestId 로 조회되므로 같은 requestId 재시도는
+  // 이중 과금 없이 통과한다 — 생성이 실패한 결제 사용자가 결과를 받을 수 있는 근거다.
+  const paid = await resolveFusionFortunePaidAccess(resolvePaidAccess, { userId: text(userId, 120), requestId: safeId });
+  if (!paid.ok) {
+    return paid.degraded
+      ? { ok: false, status: 503, retryable: true, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED, message: "결제 내역을 확인하지 못했어요. 잠시 후 다시 시도해 주세요. 이미 결제하셨다면 차감되지 않습니다." }
+      : { ok: false, status: 402, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, message: "초융합 운세는 1회 30,000원입니다.", pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } };
+  }
+
+  const reservation = await store.reserve(userId, dateKey || getFusionFortuneDateKey(now), safeId, now);
+  if (!reservation.ok) {
+    return {
+      ok: false,
+      status: reservation.status,
+      error: reservation.errorCode,
+      // 이미 결제한 뒤 마감을 만난 경우다. 결제 증빙은 requestId 로 남아 있으므로 같은
+      // requestId 로 내일 다시 시도하면 추가 결제 없이 결과를 받는다.
+      message: reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.SOLD_OUT
+        ? "오늘 선착순 100명의 초융합 운세가 모두 마감되었어요. 결제하셨다면 내일 같은 화면에서 추가 결제 없이 이어서 받을 수 있어요."
+        : "이미 처리 중인 요청입니다.",
+      ...(reservation.errorCode === FUSION_FORTUNE_ERROR_CODES.SOLD_OUT ? { retryRequestId: safeId } : {}),
+    };
+  }
   let committed = false;
   try {
     throwIfFusionFortuneAborted(abortSignal);
@@ -612,16 +635,18 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     await emitFusionFortuneStage(onStage, "fusion");
     const status = await buildFusionFortuneStatus({ userId, store, now }).catch(() => ({
       isLoggedIn: true,
-      ticket: { remaining: Math.max(0, count(commitResult.balance?.totalRemaining)), canUse: count(commitResult.balance?.totalRemaining) > 0 },
+      pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY },
       dailyLimit: { dateKey: reservation.dateKey, limit: 100, usedCount: count(commitResult.limit?.successCount), remainingCount: Math.max(0, 100 - count(commitResult.limit?.successCount)), isSoldOut: count(commitResult.limit?.successCount) >= 100, nextResetAt: getFusionFortuneNextResetAt(now) },
-      canGenerate: count(commitResult.balance?.totalRemaining) > 0 && count(commitResult.limit?.successCount) < 100,
-      nextAction: count(commitResult.limit?.successCount) >= 100 ? "sold_out" : count(commitResult.balance?.totalRemaining) > 0 ? "generate" : "buy_ticket",
+      canGenerate: count(commitResult.limit?.successCount) < 100,
+      nextAction: count(commitResult.limit?.successCount) >= 100 ? "sold_out" : "generate",
       message: "초융합 운세 결과가 완성되었어요.",
     }));
     return { ok: true, status: 200, requestId: safeId, result: validated.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined };
   } catch (error) {
     if (!committed) await store.release(reservation, now).catch(() => {});
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;
-    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? "분석이 중단되어 이용권과 오늘의 한도는 차감되지 않았습니다." : "결과를 준비하지 못했어요. 이용권과 오늘의 한도는 차감되지 않았습니다." };
+    // 결제는 생성 전에 이미 끝났으므로 "차감되지 않았다"고 말하면 거짓이 된다. 실제로 안전한 것은
+    // ①오늘의 선착순 자리 ②같은 requestId 재시도 시 추가 결제가 없다는 점이다.
+    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? "분석을 중단했어요. 오늘의 선착순 자리는 차감되지 않았고, 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 오늘의 선착순 자리는 차감되지 않았고, 다시 시도해도 추가 결제는 없습니다.", retryRequestId: safeId };
   }
 }

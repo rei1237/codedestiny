@@ -1,7 +1,5 @@
 import { connectDb, mongoose } from "./db.js";
 import {
-  GuardianFortuneChatCreditBalance,
-  GuardianFortuneChatCreditTransaction,
   GuardianFortuneAccountUsage,
   GuardianFortuneAnonymousMerge,
   GuardianFortuneGenerationAttempt,
@@ -14,13 +12,19 @@ export const GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT = 3;
 export const GUARDIAN_FORTUNE_DEFAULT_TIMEZONE = "Asia/Seoul";
 export const GUARDIAN_FORTUNE_GUEST_COOKIE = "guardian_fortune_guest_id";
 export const GUARDIAN_FORTUNE_RESERVATION_TTL_MS = 10 * 60 * 1000;
+// 무료 횟수를 소진한 뒤의 회당 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js 다.
+export const GUARDIAN_FORTUNE_PAID_FEATURE_KEY = "fortune-chat-consultation";
 
 export const GUARDIAN_FORTUNE_ERROR_CODES = Object.freeze({
   FEATURE_DISABLED: "GUARDIAN_FORTUNE_FEATURE_DISABLED",
   INVALID_INPUT: "GUARDIAN_FORTUNE_INVALID_INPUT",
   GUEST_LIMIT_EXCEEDED: "GUARDIAN_FORTUNE_GUEST_LIMIT_EXCEEDED",
   DAILY_LIMIT_EXCEEDED: "GUARDIAN_FORTUNE_DAILY_LIMIT_EXCEEDED",
-  NO_CREDITS: "GUARDIAN_FORTUNE_NO_CREDITS",
+  // 무료 횟수를 모두 쓴 로그인 사용자에게 회당 결제를 요구한다(구 NO_CREDITS = 대화권 소진).
+  PAYMENT_REQUIRED: "GUARDIAN_FORTUNE_PAYMENT_REQUIRED",
+  // 결제 증빙 조회가 DB 장애로 판단 보류된 상태. 402(결제 필요)로 바꾸면 이미 결제한
+  // 사용자에게서 돈만 나가므로 반드시 503으로 표면화한다.
+  PAYMENT_CHECK_DEGRADED: "GUARDIAN_FORTUNE_PAYMENT_CHECK_DEGRADED",
   CONTEXT_FAILED: "GUARDIAN_FORTUNE_CONTEXT_FAILED",
   GENERATION_FAILED: "GUARDIAN_FORTUNE_GENERATION_FAILED",
   RESULT_INVALID: "GUARDIAN_FORTUNE_RESULT_INVALID",
@@ -46,10 +50,6 @@ function clampNonNegative(value) {
 function toDate(value, fallback = new Date()) {
   const date = value instanceof Date ? value : new Date(value || fallback);
   return Number.isNaN(date.getTime()) ? new Date(fallback) : date;
-}
-
-function clone(value) {
-  return JSON.parse(JSON.stringify(value));
 }
 
 function normalizeUserId(userId) {
@@ -146,15 +146,14 @@ export function maskGuardianFortuneUsageIdentity({ userId, guestIdHash } = {}) {
   };
 }
 
-function usageMessage({ isLoggedIn, guestUsed, dailyRemaining, paidRemaining }) {
+function usageMessage({ isLoggedIn, guestUsed, dailyRemaining }) {
   if (!isLoggedIn) {
     return guestUsed > 0
-      ? "첫 무료 상담을 이미 사용했어요. 로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요."
+      ? "첫 무료 상담을 이미 사용했어요. 로그인하면 3번까지 연이와 네오에게 물어볼 수 있어요."
       : "첫 1회는 로그인 없이 무료로 볼 수 있어요.";
   }
-  if (dailyRemaining > 0) return `오늘 남은 무료 상담 ${dailyRemaining}회`;
-  if (paidRemaining > 0) return `오늘의 무료 상담은 모두 사용했어요. 보유 대화권 ${paidRemaining}회 중 1회를 사용할 수 있어요.`;
-  return "오늘 이용 가능한 무료 상담을 모두 사용했어요. 대화권을 구매하면 더 물어볼 수 있어요.";
+  if (dailyRemaining > 0) return `남은 무료 상담 ${dailyRemaining}회`;
+  return "무료 상담을 모두 사용했어요. 지금부터는 1회 5,000원으로 이어서 물어볼 수 있어요.";
 }
 
 export function buildGuardianFortuneDisabledUsageStatus({ isLoggedIn = false } = {}) {
@@ -166,10 +165,9 @@ export function buildGuardianFortuneDisabledUsageStatus({ isLoggedIn = false } =
     dailyFreeLimit: isLoggedIn ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
     dailyFreeUsed: 0,
     dailyFreeRemaining: 0,
-    paidCreditsRemaining: 0,
     canGenerate: false,
     generationSource: "blocked",
-    nextAction: "wait_tomorrow",
+    nextAction: "disabled",
     message: "오늘의 귀인 운세는 준비 중이에요.",
   };
 }
@@ -183,7 +181,6 @@ function emptyStatus(isLoggedIn) {
     dailyFreeLimit: isLoggedIn ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
     dailyFreeUsed: 0,
     dailyFreeRemaining: isLoggedIn ? GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT : 0,
-    paidCreditsRemaining: 0,
     canGenerate: !isLoggedIn,
     generationSource: isLoggedIn ? "daily_free" : "guest_free",
     nextAction: "generate",
@@ -204,27 +201,22 @@ export async function buildGuardianFortuneUsageStatus({ userId, guestIdHash, dat
     status.canGenerate = status.guestFreeRemaining > 0;
     status.generationSource = status.canGenerate ? "guest_free" : "blocked";
     status.nextAction = status.canGenerate ? "generate" : "login";
-    status.message = usageMessage({ isLoggedIn: false, guestUsed: status.guestFreeUsed, dailyRemaining: 0, paidRemaining: 0 });
+    status.message = usageMessage({ isLoggedIn: false, guestUsed: status.guestFreeUsed, dailyRemaining: 0 });
     return status;
   }
 
-  const [daily, credit] = await Promise.all([
-    store.findDaily(normalizedUserId, safeDateKey),
-    store.findCredit(normalizedUserId),
-  ]);
+  const daily = await store.findDaily(normalizedUserId, safeDateKey);
   status.dailyFreeUsed = clampNonNegative(daily?.freeUsed);
   status.dailyFreeRemaining = Math.max(0, clampNonNegative(daily?.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT) - status.dailyFreeUsed);
-  status.paidCreditsRemaining = clampNonNegative(credit?.remaining);
-  status.canGenerate = status.dailyFreeRemaining > 0 || status.paidCreditsRemaining > 0;
-  status.generationSource = status.dailyFreeRemaining > 0
-    ? "daily_free"
-    : status.paidCreditsRemaining > 0 ? "paid_credit" : "blocked";
-  status.nextAction = status.canGenerate ? "generate" : "buy_credits";
+  // 무료를 다 써도 회당 결제로 계속 이용할 수 있으므로 canGenerate 는 항상 true 다.
+  // 결제 여부는 생성 요청 시점에 판정한다(진입 시 서버 이용권 선검사 금지 규칙과 같은 이유).
+  status.canGenerate = true;
+  status.generationSource = status.dailyFreeRemaining > 0 ? "daily_free" : "paid";
+  status.nextAction = status.dailyFreeRemaining > 0 ? "generate" : "purchase";
   status.message = usageMessage({
     isLoggedIn: true,
     guestUsed: 0,
     dailyRemaining: status.dailyFreeRemaining,
-    paidRemaining: status.paidCreditsRemaining,
   });
   return status;
 }
@@ -234,10 +226,6 @@ function guestKey(hash) {
 }
 
 function dailyKey(userId, dateKey) {
-  return normalizeUserId(userId);
-}
-
-function creditKey(userId) {
   return normalizeUserId(userId);
 }
 
@@ -269,15 +257,12 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
   const state = {
     guests: new Map(Object.entries(seed.guests || {})),
     daily: accountSeed,
-    credits: new Map(Object.entries(seed.credits || {})),
     attempts: new Map(Object.entries(seed.attempts || {})),
-    transactions: Array.isArray(seed.transactions) ? seed.transactions.map(clone) : [],
   };
 
   const store = {
     kind: "memory",
     state,
-    transactions: state.transactions,
     async findGuest(hash) { return state.guests.get(guestKey(hash)) || null; },
     async ensureGuest(hash, now = new Date()) {
       const key = guestKey(hash);
@@ -342,45 +327,6 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
       doc.updatedAt = now;
       return doc;
     },
-    async findCredit(userId) { return state.credits.get(creditKey(userId)) || null; },
-    async ensureCredit(userId, now = new Date()) {
-      const key = creditKey(userId);
-      if (!state.credits.has(key)) state.credits.set(key, { userId: key, remaining: 0, reserved: 0, purchasedTotal: 0, usedTotal: 0, refundedTotal: 0, updatedAt: now });
-      return state.credits.get(key);
-    },
-    async reserveCredit(userId, now = new Date()) {
-      const doc = await store.ensureCredit(userId, now);
-      if (clampNonNegative(doc.remaining) - clampNonNegative(doc.reserved) < 1) return null;
-      doc.reserved += 1;
-      doc.reservationUpdatedAt = now;
-      doc.updatedAt = now;
-      return doc;
-    },
-    async commitCredit(userId, now = new Date()) {
-      const doc = state.credits.get(creditKey(userId));
-      if (!doc || clampNonNegative(doc.reserved) < 1 || clampNonNegative(doc.remaining) < 1) return null;
-      doc.reserved -= 1;
-      doc.remaining -= 1;
-      doc.usedTotal = clampNonNegative(doc.usedTotal) + 1;
-      doc.reservationUpdatedAt = null;
-      doc.updatedAt = now;
-      return doc;
-    },
-    async releaseCredit(userId, now = new Date()) {
-      const doc = state.credits.get(creditKey(userId));
-      if (!doc || clampNonNegative(doc.reserved) < 1) return doc || null;
-      doc.reserved -= 1;
-      doc.reservationUpdatedAt = null;
-      doc.updatedAt = now;
-      return doc;
-    },
-    async rollbackCredit(userId, now = new Date()) {
-      const doc = await store.ensureCredit(userId, now);
-      doc.remaining = clampNonNegative(doc.remaining) + 1;
-      doc.usedTotal = Math.max(0, clampNonNegative(doc.usedTotal) - 1);
-      doc.updatedAt = now;
-      return doc;
-    },
     async findAttempt(requestId) { return state.attempts.get(assertRequestId(requestId)) || null; },
     async beginAttempt(data) {
       const requestId = assertRequestId(data.requestId);
@@ -396,18 +342,11 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
       Object.assign(attempt, patch, { updatedAt: patch.updatedAt || new Date() });
       return attempt;
     },
-    async createTransaction(data) {
-      if (["purchase", "refund"].includes(data.type)) throw new Error("GUARDIAN_FORTUNE_PURCHASE_TRANSACTION_NOT_ALLOWED");
-      const transaction = { ...clone(data), createdAt: data.createdAt || new Date() };
-      state.transactions.push(transaction);
-      return transaction;
-    },
     async releaseStaleReservations(now = new Date()) {
       const threshold = toDate(now).getTime() - GUARDIAN_FORTUNE_RESERVATION_TTL_MS;
       let released = 0;
       for (const doc of state.guests.values()) if (doc.reservationUpdatedAt && toDate(doc.reservationUpdatedAt).getTime() < threshold && doc.reserved > 0) { doc.reserved -= 1; released += 1; }
       for (const doc of state.daily.values()) if (doc.reservationUpdatedAt && toDate(doc.reservationUpdatedAt).getTime() < threshold && doc.reserved > 0) { doc.reserved -= 1; released += 1; }
-      for (const doc of state.credits.values()) if (doc.reservationUpdatedAt && toDate(doc.reservationUpdatedAt).getTime() < threshold && doc.reserved > 0) { doc.reserved -= 1; released += 1; }
       return released;
     },
   };
@@ -528,46 +467,6 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
         { new: true },
       ));
     },
-    async findCredit(userId) {
-      return leanQuery(GuardianFortuneChatCreditBalance.findOne({ userId: objectIdOrString(userId) }));
-    },
-    async ensureCredit(userId, now = new Date()) {
-      await connectDb(env);
-      return leanQuery(GuardianFortuneChatCreditBalance.findOneAndUpdate(
-        { userId: objectIdOrString(userId) },
-        { $setOnInsert: { userId: objectIdOrString(userId), remaining: 0, reserved: 0, purchasedTotal: 0, usedTotal: 0, refundedTotal: 0, createdAt: now, updatedAt: now } },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      ));
-    },
-    async reserveCredit(userId, now = new Date()) {
-      await store.ensureCredit(userId, now);
-      return leanQuery(GuardianFortuneChatCreditBalance.findOneAndUpdate(
-        { userId: objectIdOrString(userId), $expr: { $gte: [{ $subtract: [{ $ifNull: ["$remaining", 0] }, { $ifNull: ["$reserved", 0] }] }, 1] } },
-        { $inc: { reserved: 1 }, $set: { reservationUpdatedAt: now, updatedAt: now } },
-        { new: true },
-      ));
-    },
-    async commitCredit(userId, now = new Date()) {
-      return leanQuery(GuardianFortuneChatCreditBalance.findOneAndUpdate(
-        { userId: objectIdOrString(userId), reserved: { $gt: 0 }, remaining: { $gt: 0 } },
-        { $inc: { reserved: -1, remaining: -1, usedTotal: 1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
-        { new: true },
-      ));
-    },
-    async releaseCredit(userId, now = new Date()) {
-      return leanQuery(GuardianFortuneChatCreditBalance.findOneAndUpdate(
-        { userId: objectIdOrString(userId), reserved: { $gt: 0 } },
-        { $inc: { reserved: -1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
-        { new: true },
-      ));
-    },
-    async rollbackCredit(userId, now = new Date()) {
-      return leanQuery(GuardianFortuneChatCreditBalance.findOneAndUpdate(
-        { userId: objectIdOrString(userId) },
-        { $inc: { remaining: 1, usedTotal: -1 }, $set: { updatedAt: now } },
-        { new: true, upsert: false },
-      ));
-    },
     async findAttempt(requestId) {
       return leanQuery(GuardianFortuneGenerationAttempt.findOne({ requestId: assertRequestId(requestId) }));
     },
@@ -589,27 +488,40 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
         { new: true },
       ));
     },
-    async createTransaction(data) {
-      if (["purchase", "refund"].includes(data.type)) throw new Error("GUARDIAN_FORTUNE_PURCHASE_TRANSACTION_NOT_ALLOWED");
-      return GuardianFortuneChatCreditTransaction.create({
-        ...data,
-        userId: objectIdOrString(data.userId),
-      });
-    },
     async releaseStaleReservations(now = new Date()) {
       const before = new Date(toDate(now).getTime() - GUARDIAN_FORTUNE_RESERVATION_TTL_MS);
-      const [guest, daily, credit] = await Promise.all([
+      const [guest, daily] = await Promise.all([
         GuardianFortuneGuestUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
         GuardianFortuneAccountUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
-        GuardianFortuneChatCreditBalance.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
       ]);
-      return Number(guest.modifiedCount || 0) + Number(daily.modifiedCount || 0) + Number(credit.modifiedCount || 0);
+      return Number(guest.modifiedCount || 0) + Number(daily.modifiedCount || 0);
     },
   };
   return store;
 }
 
-export async function reserveGuardianFortuneUsage({ userId, guestIdHash, dateKey, requestId, store, now = new Date() } = {}) {
+/**
+ * 무료 횟수를 소진한 로그인 사용자를 위한 회당 결제 판정.
+ *
+ * 대화권(전용 재화)을 폐지하면서 이 자리에 표준 회당 결제가 들어왔다. 결제 증빙 조회는
+ * 워커 라우트가 소유하므로(verifyPerUsePayment 는 env 와 featureKey 를 안다) 여기서는
+ * 콜백만 호출한다 — 예약/멱등성 기록은 한곳에 유지하면서 결제 지식은 라우트에 둔다.
+ *
+ * 반환 계약: `{ ok: true }` 통과 / `{ ok: false, degraded: true }` 판단 보류(503) /
+ * 그 외 `{ ok: false }` 결제 필요(402).
+ */
+async function resolvePaidGuardianFortuneAccess(resolvePaidAccess, context) {
+  if (typeof resolvePaidAccess !== "function") return { ok: false, degraded: false };
+  try {
+    const verdict = await resolvePaidAccess(context);
+    return { ok: verdict?.ok === true, degraded: verdict?.degraded === true };
+  } catch {
+    // 예외는 "결제 안 했다"가 아니라 "확인 못 했다"이다. 402 로 내리면 결제한 사용자가 막힌다.
+    return { ok: false, degraded: true };
+  }
+}
+
+export async function reserveGuardianFortuneUsage({ userId, guestIdHash, dateKey, requestId, store, resolvePaidAccess, now = new Date() } = {}) {
   const normalizedUserId = normalizeUserId(userId);
   const normalizedGuestHash = normalizeGuestHash(guestIdHash);
   const safeDateKey = normalizeDateKey(dateKey) || getGuardianFortuneDateKey(now);
@@ -637,18 +549,27 @@ export async function reserveGuardianFortuneUsage({ userId, guestIdHash, dateKey
 
   reserved = await store.reserveDaily(normalizedUserId, safeDateKey, now);
   if (reserved) return { ok: true, source: "daily_free", requestId: safeRequestId, userId: normalizedUserId, guestIdHash: "", dateKey: safeDateKey };
-  reserved = await store.reserveCredit(normalizedUserId, now);
-  if (reserved) return { ok: true, source: "paid_credit", requestId: safeRequestId, userId: normalizedUserId, guestIdHash: "", dateKey: safeDateKey };
 
-  await store.updateAttempt(safeRequestId, { status: "blocked", errorCode: GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS });
-  return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.NO_CREDITS, status: 429 };
+  const paid = await resolvePaidGuardianFortuneAccess(resolvePaidAccess, { userId: normalizedUserId, requestId: safeRequestId });
+  if (paid.ok) {
+    // 결제분은 무료 카운터를 건드리지 않는다. 예약 자리 대신 attempt 문서가 멱등성을 맡는다.
+    return { ok: true, source: "paid", requestId: safeRequestId, userId: normalizedUserId, guestIdHash: "", dateKey: safeDateKey };
+  }
+  if (paid.degraded) {
+    await store.updateAttempt(safeRequestId, { status: "released", errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED });
+    return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED, status: 503, retryable: true };
+  }
+
+  await store.updateAttempt(safeRequestId, { status: "blocked", errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED });
+  return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, status: 402 };
 }
 
 export async function releaseGuardianFortuneUsage(reservation, { store, errorCode = "", now = new Date() } = {}) {
   if (!reservation?.ok) return null;
   if (reservation.source === "guest_free") await store.releaseGuest(reservation.guestIdHash, now);
   if (reservation.source === "daily_free") await store.releaseDaily(reservation.userId, reservation.dateKey, now);
-  if (reservation.source === "paid_credit") await store.releaseCredit(reservation.userId, now);
+  // source === "paid" 는 무료 카운터를 잡지 않았으므로 되돌릴 예약이 없다. attempt 만 풀어
+  // 같은 requestId 로 재시도할 수 있게 한다 — 이미 결제한 사용자가 결과를 받아야 하기 때문이다.
   return store.updateAttempt(reservation.requestId, { status: "released", errorCode: String(errorCode || "") });
 }
 
@@ -658,40 +579,11 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
   try {
     if (reservation.source === "guest_free") committed = await store.commitGuest(reservation.guestIdHash, now);
     if (reservation.source === "daily_free") committed = await store.commitDaily(reservation.userId, reservation.dateKey, now);
-    if (reservation.source === "paid_credit") committed = await store.commitCredit(reservation.userId, now);
+    // 결제분은 소비할 무료 예약이 없다. 차감은 결제 게이트가 이미 끝냈고, 여기서는
+    // attempt 를 completed 로 닫는 것만 남는다.
+    if (reservation.source === "paid") committed = { paid: true };
     if (!committed) throw new Error("GUARDIAN_FORTUNE_USAGE_COMMIT_FAILED");
 
-    if (reservation.source === "paid_credit") {
-      try {
-        await store.createTransaction({
-          userId: reservation.userId,
-          type: "use",
-          amount: -1,
-          balanceAfter: clampNonNegative(committed.remaining),
-          beforeBalance: clampNonNegative(committed.remaining) + 1,
-          afterBalance: clampNonNegative(committed.remaining),
-          fortuneRequestId: reservation.requestId,
-          reason: "guardian_fortune_generation",
-          createdAt: now,
-        });
-      } catch {
-        await store.rollbackCredit(reservation.userId, now).catch(() => {});
-        const rolledBack = await store.findCredit(reservation.userId).catch(() => null);
-        await store.createTransaction({
-          userId: reservation.userId,
-          type: "rollback",
-          amount: 1,
-          balanceAfter: clampNonNegative(rolledBack?.remaining),
-          beforeBalance: Math.max(0, clampNonNegative(rolledBack?.remaining) - 1),
-          afterBalance: clampNonNegative(rolledBack?.remaining),
-          fortuneRequestId: reservation.requestId,
-          reason: "guardian_fortune_commit_rollback",
-          createdAt: now,
-        }).catch(() => {});
-        await store.updateAttempt(reservation.requestId, { status: "released", errorCode: GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED }).catch(() => {});
-        return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED };
-      }
-    }
     // An attempt-status write is diagnostic/idempotency metadata. It must not turn
     // an already committed usage into a false failure response.
     await store.updateAttempt(reservation.requestId, { status: "completed", errorCode: "" }).catch(() => {});
@@ -700,8 +592,7 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
     if (reservation.source === "guest_free") await store.releaseGuest(reservation.guestIdHash, now).catch(() => {});
     if (reservation.source === "daily_free") await store.releaseDaily(reservation.userId, reservation.dateKey, now).catch(() => {});
     // A null commit means the reservation was not consumed; release only the
-    // reservation slot. Paid-credit rollback is handled only after a successful
-    // credit commit followed by a ledger write failure above.
+    // reservation slot.
     await store.updateAttempt(reservation.requestId, { status: "released", errorCode: GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED }).catch(() => {});
     return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED };
   }
@@ -709,9 +600,15 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
 
 export function buildGuardianFortuneLimitCta(errorCode, isLoggedIn) {
   if (!isLoggedIn || errorCode === GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED) {
-    return { label: "로그인하고 하루 최대 3회 보기", targetPath: "/auth/login", reason: "로그인하면 하루 최대 3번까지 연이와 네오에게 물어볼 수 있어요." };
+    return { label: "로그인하고 3회 무료로 보기", targetPath: "/auth/login", reason: "로그인하면 3번까지 연이와 네오에게 물어볼 수 있어요." };
   }
-  return { label: "대화권 보기", targetPath: "/points", reason: "무료 상담을 모두 사용한 뒤 보유 대화권으로 더 물어볼 수 있어요." };
+  // 결제창은 클라이언트의 공용 게이트(useCoinGate)가 연다. 여기서 /points 로 보내면
+  // 이용권 보유자가 결제창의 [이용권으로 구매] 카드를 만나지 못한다.
+  return {
+    label: "이어서 상담하기",
+    featureKey: GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
+    reason: "무료 상담을 모두 사용했어요. 1회 5,000원으로 이어서 물어볼 수 있어요.",
+  };
 }
 
 export function isValidGuardianFortuneRequestId(requestId) {
