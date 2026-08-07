@@ -350,3 +350,129 @@ export async function refundPaymentAsOperator({
 export function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(String(value || ""));
 }
+
+// ─── 지급 실패 시 단건 결제 자동 환불 ────────────────────────────────────────────
+// 원래 worker/routes/payments.js 안에 있었지만, AI 프롬프트 생성 실패 경로(worker/routes/fortune.js)도
+// 같은 취소·회수를 해야 한다. fortune.js 가 payments.js 를 통째로 import 하면 Worker 번들(1MB 제한)이
+// 커지므로, 이 파일 첫머리 주석의 원칙대로 "실제 취소/회수는 공용 코어에 위임"을 따라 여기로 옮겼다.
+// payments.js 는 이 모듈에서 다시 import 해 쓴다 — 동작은 그대로다.
+
+export function buildSinglePaymentRefundIdempotencyKey(payment, jobId = "no-job") {
+  const paymentId = String(payment?.impUid || payment?.merchantUid || payment?._id || "no-payment").trim();
+  const serviceId = String(payment?.pricingSnapshot?.serviceId || payment?.productId || payment?.featureKey || "unknown-service").trim();
+  return `refund:${paymentId}:${serviceId}:${jobId || "no-job"}`.slice(0, 220);
+}
+
+function logPaidServicePaymentEvent(marker, payment = {}, extras = {}) {
+  try {
+    console.info(marker, JSON.stringify({
+      userId: String(payment?.userId || extras.userId || ""),
+      profileId: String(payment?.pricingSnapshot?.profileId || extras.profileId || ""),
+      serviceId: String(payment?.pricingSnapshot?.serviceId || payment?.productId || payment?.featureKey || extras.serviceId || ""),
+      paymentId: String(payment?.impUid || payment?.merchantUid || extras.paymentId || ""),
+      merchantUid: String(payment?.merchantUid || extras.merchantUid || ""),
+      impUid: String(payment?.impUid || extras.impUid || ""),
+      jobId: String(extras.jobId || "no-job"),
+      amount: Number(payment?.paymentAmount || extras.amount || 0),
+      deliveryStatus: String(extras.deliveryStatus || ""),
+      refundStatus: String(extras.refundStatus || ""),
+      failureReason: String(extras.failureReason || payment?.failureMessage || ""),
+    }));
+  } catch (_) {
+    console.info(marker);
+  }
+}
+
+export async function autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, reasonMessage, failureStage) {
+  if (!payment?._id) return { refunded: false, reason: "PAYMENT_MISSING" };
+  if (payment.status === "cancelled" || payment.orderState === PAYMENT_ORDER_STATES.CANCELLED) {
+    logPaidServicePaymentEvent("[PaidService Duplicate Refund Blocked]", payment, {
+      deliveryStatus: "refunded",
+      refundStatus: "refunded",
+      failureReason: reasonMessage,
+    });
+    return { refunded: true, idempotent: true, payment };
+  }
+
+  const refundIdempotencyKey = buildSinglePaymentRefundIdempotencyKey(payment);
+  logPaidServicePaymentEvent("[PaidService Auto Refund Requested]", payment, {
+    deliveryStatus: "refund_pending",
+    refundStatus: "pending",
+    failureReason: reasonMessage,
+  });
+
+  try {
+    const canceledPortOne = await cancelPortOnePayment(env, {
+      impUid: payment.impUid || payment.merchantUid,
+      merchantUid: payment.merchantUid || payment.impUid,
+      reason: reasonMessage,
+      checksum: Number(payment.paymentAmount || 0) || undefined,
+      idempotencyKey: refundIdempotencyKey,
+    });
+
+    const now = new Date();
+    const revocation = await revokeSinglePaymentContentAccess(payment, {
+      status: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+      reason: reasonCode,
+    });
+    const canceledPayment = await Payment.findByIdAndUpdate(
+      payment._id,
+      {
+        $set: {
+          impUid: payment.impUid || payment.merchantUid || "",
+          merchantUid: payment.merchantUid || payment.impUid || "",
+          paymentAmount: Number(payment.paymentAmount || 0),
+          status: "cancelled",
+          orderState: PAYMENT_ORDER_STATES.CANCELLED,
+          rawPortOne: canceledPortOne,
+          failureCode: reasonCode,
+          failureMessage: reasonMessage,
+          failureStage,
+          lastErrorAt: now,
+          "metadata.deliveryStatus": "refunded",
+          "metadata.refundStatus": "refunded",
+          "metadata.refundIdempotencyKey": refundIdempotencyKey,
+          "metadata.autoRefundedAt": now,
+          "metadata.refundReason": reasonMessage,
+          "metadata.unlockRevoked": revocation.unlockRevoked === true,
+          "metadata.unlockRevocationStatus": revocation.status || CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+          "metadata.unlockRevocationError": revocation.error || "",
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+
+    logPaidServicePaymentEvent("[PaidService Auto Refund Success]", canceledPayment || payment, {
+      deliveryStatus: "refunded",
+      refundStatus: "refunded",
+      failureReason: reasonMessage,
+    });
+    return { refunded: true, payment: canceledPayment || payment };
+  } catch (error) {
+    const now = new Date();
+    const failedPayment = await Payment.findByIdAndUpdate(
+      payment._id,
+      {
+        $set: {
+          orderState: PAYMENT_ORDER_STATES.ERROR,
+          failureCode: `${reasonCode}_refund_failed`.slice(0, 120),
+          failureMessage: String(error?.message || reasonMessage || "Automatic refund failed.").slice(0, 500),
+          failureStage,
+          lastErrorAt: now,
+          "metadata.deliveryStatus": "refund_failed",
+          "metadata.refundStatus": "refund_failed",
+          "metadata.refundIdempotencyKey": refundIdempotencyKey,
+          "metadata.refundFailedAt": now,
+          "metadata.refundFailureReason": String(error?.message || error || "").slice(0, 500),
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+    logPaidServicePaymentEvent("[PaidService Auto Refund Failed]", failedPayment || payment, {
+      deliveryStatus: "refund_failed",
+      refundStatus: "refund_failed",
+      failureReason: String(error?.message || reasonMessage || ""),
+    });
+    return { refunded: false, refundFailed: true, payment: failedPayment || payment, reason: String(error?.message || error || "") };
+  }
+}

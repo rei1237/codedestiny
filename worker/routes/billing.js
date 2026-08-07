@@ -1327,6 +1327,11 @@ async function getActiveMembershipPassForUser(env, authUserId, authUserDoc = nul
   }
   let user = authUserDoc;
   if (!user) {
+    // 🔴 이 읽기를 withMongoRetry 로 감싸지 말 것. 이 함수는 resolvePaidContentAccess 의
+    // withMongoRetry 콜백 안에서도 불리므로(billing.js 의 unlock/pass 병렬 조회) 여기 감싸면
+    // 그쪽이 즉시 중첩이 된다 — verify:no-nested-retry 가 잡는다.
+    // 인증이 문서를 붙여 주는 경로(access token·refresh 폴백)에서는 애초에 여기 오지 않고,
+    // 오는 경우의 일시 실패는 호출부의 createPassLookupUnavailableMarker degrade 가 받는다.
     await connectDb(env);
     user = await User.findById(authUserId)
       .select("destinyProfilesCurrentId profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
@@ -3359,7 +3364,11 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
     return createPassLookupUnavailableMarker("profile_lookup", error);
   });
-  const subscriptionPassPromise = shouldLoadMembershipPass && authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
+  // 🔴 여기를 withMongoRetry 로 감싸지 않는다. getMembershipPassForBillingRequest 는 안쪽 모든 DB 읽기가
+  // 이미 각자 재시도를 갖는다(getActiveMembershipPassForUser 의 User 읽기 · auth.js 인증 읽기 ·
+  // fortune.js 구독상태). 밖에서 또 감싸면 레벨당 2회 × 2레벨 = 4시도 / 최대 4회 재연결이 되어
+  // 결제 임계경로가 그만큼 느려진다. 타임아웃 상한과 degrade 마커는 그대로 유지한다.
+  const subscriptionPassPromise = shouldLoadMembershipPass && authCheck?.auth?.userId ? withDbAccessTimeout(
     getMembershipPassForBillingRequest(
       request,
       env,
@@ -3369,7 +3378,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     ),
     PAID_PASS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PASS_RESOLVE_TIMEOUT",
-  )).catch((error) => {
+  ).catch((error) => {
     if (!isDatabaseUnavailableError(error)) {
       throw error;
     }

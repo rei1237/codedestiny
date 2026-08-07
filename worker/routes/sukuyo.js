@@ -248,13 +248,15 @@ function buildSukuyoCalendarMonth(yearInput, monthInput, myMansionIndex = null) 
 // 달력은 공개 화면이므로 인증/DB 실패로 절대 깨지지 않게 전부 삼킨다.
 async function resolveSukuyoViewerMansionIndex(request, env) {
   try {
-    const auth = await getOptionalUserFromRequest(request, env);
+    // 인증 조회에 projection 을 주면 이 화면이 필요로 하는 유일한 필드를 그때 함께 읽어 온다 —
+    // 공개 달력 한 번에 users 를 두 번 읽던 것이 한 번이 된다.
+    const auth = await getOptionalUserFromRequest(request, env, { userProjection: { destinyProfilesCurrentId: 1 } });
     if (!auth?.userId) return null;
     // 선행 connectDb 없이 withMongoRetry 한 번으로 묶는다. raw read 는 타임아웃 래퍼가 없어 죽은 소켓에서
     // socketTimeout(20s)까지 매달렸다 — 감싸면 상한이 11.5s 로 잡히고 일시 블립도 흡수된다.
     // 바깥 try/catch 의 삼킴은 그대로다(달력은 공개 화면이라 개인화 실패 시 조용히 비개인화로 떨어진다).
     const profile = await withMongoRetry(env, async () => {
-      const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+      const user = auth.authUserDoc || await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
       const profileId = clean(user?.destinyProfilesCurrentId);
       return profileId
         ? await ProfileCard.findOne({ userId: auth.userId, profileId }).lean()

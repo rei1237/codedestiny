@@ -813,13 +813,16 @@ export function handleSessionInvalidated(options: { redirect?: boolean } = {}) {
   }
 }
 
-async function loadMeFromServer() {
+// forceFresh: 호출자가 "지금 서버 상태"를 요구한 경우에만 클라이언트 세션 캐시(300초)를 뚫는다.
+// 예전에는 authFetch 가 /api/auth/me 에 무조건 캐시 우회 헤더를 붙여, force 여부와 무관하게
+// 부트스트랩 refreshAuth 까지 전부 실네트워크로 나갔다.
+async function loadMeFromServer(forceFresh = false) {
   const requestSeq = ++meRequestSeq;
   const requestAuthMutationSeq = authMutationSeq;
   const response = await authFetch("/api/auth/me", {
     method: "GET",
     cache: "no-store",
-  }, { retryOn401: true, clientSource: "app:auth-store" });
+  }, { retryOn401: true, clientSource: "app:auth-store", forceFresh });
 
   if (requestAuthMutationSeq !== authMutationSeq) {
     return state.user;
@@ -906,7 +909,7 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
 
   refreshInFlight = (async () => {
     try {
-      const user = await loadMeFromServer();
+      const user = await loadMeFromServer(force);
       lastRefreshCompletedAt = Date.now();
       setState({
         authReady: true,

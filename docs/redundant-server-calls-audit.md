@@ -11,19 +11,45 @@
 수정 → 해당 검증 → `npm run deploy:preview` → 사용자 확인 → **승인 후** `npm run deploy:production`.
 정본 계약은 [AGENTS.md](../AGENTS.md)의 "Delivery: Preview First, Then One Command".
 
-## 진행 상황 (2026-08-08)
-
-1차로 '권장 착수 순서' 1~7위 9건을 처리했다. 각 항목 제목 옆 표시를 참고할 것.
+## 진행 상황 (2026-08-08, 2차까지)
 
 | 상태 | 항목 |
 |---|---|
-| ✅ 완료 | SEC-1 · RC-3 · RC-5 · RC-6 · RC-7 · FE-1 · FE-2 · FE-3 |
-| ⚠️ 부분 완료 | SEC-2 — 가드 통일만 완료, **카드 환불 배선은 2차 이월** |
-| 미착수 | RC-1 · RC-2 · RC-4 · RC-8~RC-15 · FE-4~FE-10 · 죽은 코드 · 문서 정정 |
+| ✅ 완료 | SEC-1 · SEC-2 · RC-1 · RC-3 · RC-5 · RC-6 · RC-7 · RC-9 · RC-10 · RC-11 · RC-12 · FE-1 · FE-2 · FE-3 |
+| ❌ 하지 않기로 함 | **RC-15b** — 아래 참조 |
+| 미착수 | RC-2 · RC-4 · RC-8 · RC-13 · RC-14 · RC-15a/c/d · FE-4~FE-10 · 죽은 코드 · 문서 정정 |
 
-**2차의 최우선은 SEC-2 후반부다.** 카드 결제 + 생성 실패 + 재시도까지 실패한 사용자는 여전히
-자동 환불을 못 받는다(1차 전후 동일). `refundPaymentAsOperator`([worker/lib/payment-refund.js](../worker/lib/payment-refund.js#L197))를
-5개 생성실패 경로에 배선해야 하며, 실제 결제 취소를 유발하므로 별도 설계·사용자 승인이 필요하다.
+### 2차에서 바로잡은 것 (이 문서 자체의 오류 포함)
+
+**🔴 FE-1 수정안은 반쪽이었다 — 그대로 따르면 순 회귀다.**
+이 문서는 `shouldBypass(input, init)` 로 Request 헤더를 보게 하라고만 적었는데,
+[auth-client.ts](../app/_lib/auth-client.ts) `buildAuthRequest` 가 `/api/auth/me` 에 refresh 헤더를
+**force 여부와 무관하게 무조건** 붙이고 있었다(`refreshAuth({force})` 의 force 는 1.5초 쿨다운만 제어).
+그래서 shouldBypass 만 고치면 ① 인증 사용자의 300초 세션 캐시가 통째로 꺼지고
+② 게스트의 합성 응답 단축(user-session-cache.ts)까지 죽어 매번 실네트워크가 된다.
+2차에서 짝을 맞췄다 — 무조건 헤더를 없애고 `refreshAuth → loadMeFromServer → authFetch({forceFresh})` 로
+force 를 실제로 관통시켰다. 이제 force:false 는 캐시 히트(요청 감소), force:true 만 진짜 우회다.
+
+**SEC-2 는 새로 설계할 필요가 없었다.** 이 문서는 `refundPaymentAsOperator`(운영자 환불)를 가리켰지만,
+지급 실패 자동환불의 정본은 `autoRefundSinglePaymentDeliveryFailure`(당시 `worker/routes/payments.js`)였다.
+그 함수를 [worker/lib/payment-refund.js](../worker/lib/payment-refund.js) 로 옮겨 fortune.js 6경로가 공유한다.
+🔴 카드 Payment 는 **반드시 `{_id, userId, featureKey, status}` 로 재조회**한다 —
+`consumePayload.transactionId` 체인에 클라이언트가 준 `body.payment._id` 폴백이 섞여 있어,
+그대로 넘기면 남의 결제를 취소시킬 수 있다(`buildAIPromptCardRefundPaymentQuery`, 회귀 테스트 있음).
+
+**❌ RC-15b 는 하면 안 된다.** 410 톰스톤 3종을 인증 앞으로 당기면 `users` 읽기 1회를 아끼지만,
+비로그인 호출에 401 대신 410 이 나가 **미인증자에게 라우트 폐지 여부를 알려 준다**.
+[__tests__/worker/api-status-normalization.test.js](../__tests__/worker/api-status-normalization.test.js) 가
+401 을 강제하고 있고 그게 맞다. 시도했다가 되돌렸으니 다시 시도하지 말 것(코드에 주석으로 박아 뒀다).
+
+**RC-1 은 "바깥만 제거"가 정답이다.** 안쪽 `getActiveMembershipPassForUser` 의 `User.findById` 에
+재시도를 넣어 보상하려 하면 `resolvePaidContentAccess` 쪽이 즉시 중첩이 된다
+(개선된 `verify:no-nested-retry` 가 바로 잡아냈다). authUserDoc 부재 경로의 일시 실패는
+기존 `createPassLookupUnavailableMarker` degrade 가 받는다.
+
+**가드가 이제 실제로 잡는다.** `verify:no-nested-retry` 가 ①콜백 길이 제한(600자) 대신 괄호 균형 절단
+②화살표 `const` 인식 ③호출그래프 전이 폐포를 갖췄다. 인식하는 재시도 함수가 362종으로 늘었고,
+RC-1 을 되돌린 픽스처에서 `billing.js → getMembershipPassForBillingRequest → … → auth.js` 를 실제로 검출한다.
 
 ---
 
@@ -104,7 +130,7 @@ if (!deducted && isObjectIdLike(sourceTransactionId)) {
 
 ---
 
-### ⚠️ SEC-2 (부분 완료 2026-08-08). 카드결제 실패가 코인 환불 루틴으로 흘러간다
+### ✅ SEC-2 (완료 2026-08-08). 카드결제 실패가 코인 환불 루틴으로 흘러간다
 
 **심각도: 높음 (정합성 — 사용자가 환불을 못 받는다)**
 
@@ -132,7 +158,7 @@ PointHistory 매칭에 실패 → 409 → [fortune.js:3379](../worker/routes/for
 
 ## P1 — 사용자 체감이 큰 불필요 왕복
 
-### RC-1. `billing.js` 전이적 중첩 재시도 → 결제 임계경로에서 시도·재연결 4배
+### ✅ RC-1 (완료 2026-08-08). `billing.js` 전이적 중첩 재시도 → 결제 임계경로에서 시도·재연결 4배
 
 **위치**: [worker/routes/billing.js:3362](../worker/routes/billing.js#L3362)
 
@@ -287,10 +313,10 @@ const mayBeAlreadyUnlocked = resolvePaidFeatureBillingType(featureKey) !== "per-
 |---|---|---|---|---|
 | **RC-7** ✅ | [billing.js:3488-3497](../worker/routes/billing.js#L3488) | `resolvePaidContentAccess` 에 `accountUnlockedFeatures` 미전달 → `User.exists()` 추가 왕복. 결제 임계경로 | 형제 호출부 [billing.js:6015](../worker/routes/billing.js#L6015) 가 이미 넘긴다 | **하 (1줄)** |
 | **RC-8** | [billing.js:5159-5172](../worker/routes/billing.js#L5159) | `GET/POST /api/billing/access` 가 `users` **3회**(보안계층 + `getOptionalUserFromRequest` 메모 우회 + `canAccessPaidFeature` userDoc 미전달) | `dream.js:58` · `fortune-tea-house.js:1433` · `life-book-ai.js:587` · `guardian-image.js:139` 가 전부 `userDoc: auth.authUserDoc` 전달 | 중 |
-| **RC-9** | [fortune.js:6142](../worker/routes/fortune.js#L6142) + [:2189-2194](../worker/routes/fortune.js#L2189) | `GET /pig-coin/balance` 가 `userProjection: isBalanceRoute ? null : ...` 로 일부러 제외해 `users` 2회 | 바로 옆 status 경로가 같은 기법으로 이미 해소 | 하 |
-| **RC-10** | [fortune.js:6189~6279](../worker/routes/fortune.js#L6189) 10곳 | AI 프롬프트 라우트가 `resolvePaidRouteAuth(request, env)` 를 projection 없이 호출 → `authUserDoc` 미부착 → 내부 `handlePigCoinConsume` 이 또 읽음 | `sukuyo.js:1967/1996/2243` 이 `{ userProjection: ... }` 전달 | 하 (10줄 + 상수) |
-| **RC-11** | [sukuyo.js:249-262](../worker/routes/sukuyo.js#L249) | `GET /api/sukuyo/calendar`(공개 화면) 이 `users` 2회 | `getOptionalUserFromRequest` 에 `userProjection: {destinyProfilesCurrentId:1}` | **하** |
-| **RC-12** | [astrology-ai.js:614,618](../worker/routes/astrology-ai.js#L614) | `resolveStartAccess` 가 `loadUser` 로 읽고도 `canAccessPaidFeature` 에 `userDoc` 미전달 | 같은 파일 `resolveEnsureAccess`([:465,470](../worker/routes/astrology-ai.js#L465))가 넘긴다 | **하** |
+| **RC-9** ✅ | [fortune.js:6142](../worker/routes/fortune.js#L6142) + [:2189-2194](../worker/routes/fortune.js#L2189) | `GET /pig-coin/balance` 가 `userProjection: isBalanceRoute ? null : ...` 로 일부러 제외해 `users` 2회 | 바로 옆 status 경로가 같은 기법으로 이미 해소 | 하 |
+| **RC-10** ✅ | [fortune.js:6189~6279](../worker/routes/fortune.js#L6189) 10곳 | AI 프롬프트 라우트가 `resolvePaidRouteAuth(request, env)` 를 projection 없이 호출 → `authUserDoc` 미부착 → 내부 `handlePigCoinConsume` 이 또 읽음 | `sukuyo.js:1967/1996/2243` 이 `{ userProjection: ... }` 전달 | 하 (10줄 + 상수) |
+| **RC-11** ✅ | [sukuyo.js:249-262](../worker/routes/sukuyo.js#L249) | `GET /api/sukuyo/calendar`(공개 화면) 이 `users` 2회 | `getOptionalUserFromRequest` 에 `userProjection: {destinyProfilesCurrentId:1}` | **하** |
+| **RC-12** ✅ | [astrology-ai.js:614,618](../worker/routes/astrology-ai.js#L614) | `resolveStartAccess` 가 `loadUser` 로 읽고도 `canAccessPaidFeature` 에 `userDoc` 미전달 | 같은 파일 `resolveEnsureAccess`([:465,470](../worker/routes/astrology-ai.js#L465))가 넘긴다 | **하** |
 | **RC-13** | [sukuyo.js:1293,1193](../worker/routes/sukuyo.js#L1293) + [access-control.js:954](../worker/lib/access-control.js#L954) | `past-life-reading` 이 `users` 3회 | 같은 파일 `resolveSukuyoYearlyProfile`([:1442-1450](../worker/routes/sukuyo.js#L1442))이 `auth.authUserDoc` 재사용 | 중 |
 
 > ⚠️ **RC-8 선행 조건**: `BILLING_SNAPSHOT_USER_PROJECTION`([billing.js:5419~](../worker/routes/billing.js#L5419))에
@@ -318,7 +344,7 @@ const mayBeAlreadyUnlocked = resolvePaidFeatureBillingType(featureKey) !== "per-
 | # | 위치 | 내용 | 난이도 |
 |---|---|---|---|
 | RC-15a | [billing.js:1882](../worker/routes/billing.js#L1882) | `recordPassAccessIfNeeded`(FAMILY 전용)가 `delta:0` 감사행의 `balanceAfter` 에 **폐지된 코인 잔액**을 찍으려고 `User.findById(...).select("points")` 왕복 1회 | 하 |
-| RC-15b | [fortune.js:6287,6290](../worker/routes/fortune.js#L6287) | 410 톰스톤 3종(`charge-simulate`·`share-reward`·`subscribe`)이 `requireUserFromRequest` + `connectDb` **뒤에** 배치돼 410 하나에 `users` 1회 | 하 |
+| RC-15b ❌ | [fortune.js:6287,6290](../worker/routes/fortune.js#L6287) | 410 톰스톤 3종(`charge-simulate`·`share-reward`·`subscribe`)이 `requireUserFromRequest` + `connectDb` **뒤에** 배치돼 410 하나에 `users` 1회 | 하 |
 | RC-15c | [billing.js:5561](../worker/routes/billing.js#L5561) | `GET /api/billing/balance` 가 `seedLegacyCredit` 때문에 `authUserDoc` 을 버리고 `users` 2회. 실제 seed 조건은 "미시드 && points>0" 뿐이라 좁힐 수 있다. ⚠️ 조건 계산을 `withMongoRetry` **closure 안**에 둘 것(밖에서 잡으면 재시도 시 stale) | 중 |
 | RC-15d | [access-control.js:999](../worker/lib/access-control.js#L999) vs [:1062](../worker/lib/access-control.js#L1062) | 메모리에 이미 있는 `hasUnlock` 판정을 `ContentEntitlement.findOne` × N회 **뒤로** 미룬다. ⚠️ `requiredRules.length === 0` 일 때만 앞당길 수 있음(강제 결제 바인딩 우회 방지) | 중 |
 

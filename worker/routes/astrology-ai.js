@@ -612,10 +612,12 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     }
   }
 
-  const user = await withMongoRetry(env, () => loadUser(auth.userId));
+  // resolveEnsureAccess 와 같은 절약을 여기도 적용한다 — 인증이 이미 읽은 문서를 재사용하고,
+  // 그 문서를 canAccessPaidFeature 에도 넘겨 같은 User 를 세 번 읽던 것을 한 번으로 줄인다.
+  const user = auth.authUserDoc || await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
   if (decision.allowed) {
     const accessType = mapAccessType(decision, user);
     if (accessType === "subscription" && !hasMonthlyCreditBalance(user, pricing.membershipCreditCost)) return { ok: false, reason: "PAYMENT_REQUIRED" };

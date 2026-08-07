@@ -269,7 +269,7 @@ function isAuthoritativeAuthPath(url: string) {
   }
 }
 
-function buildAuthRequest(targetUrl: string, init: RequestInit = {}, clientSource?: string) {
+function buildAuthRequest(targetUrl: string, init: RequestInit = {}, clientSource?: string, forceFresh = false) {
   const headers = new Headers(init.headers || {});
   const normalizedClientSource = String(clientSource || "").trim().toLowerCase();
   if (normalizedClientSource && !headers.has("X-Code-Destiny-Client")) {
@@ -285,7 +285,14 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}, clientSourc
     // isMobileAppAuthRequest). 쿠키가 아닌 Bearer 토큰 인증이라 CSRF 가 성립하지 않는다.
     headers.set(MOBILE_APP_RUNTIME_HEADER, "mobile-app");
   }
-  if (isAuthoritativeAuthPath(targetUrl)) {
+  // 🔴 이 헤더는 user-session-cache 의 300초 세션 캐시를 뚫으라는 지시다. 예전에는
+  // isAuthoritativeAuthPath(=/api/auth/me·/api/auth/refresh) 이기만 하면 force 여부와 무관하게
+  // 무조건 붙였다. 그 시절에는 shouldBypass 가 init.headers 만 봐서 이 헤더가 Request 에 실리면
+  // 아무 효과가 없었기에 티가 안 났지만, shouldBypass 가 Request 헤더까지 보게 된 순간
+  // 세션 캐시와 게스트 단축 응답이 통째로 꺼진다(부트스트랩 refreshAuth 까지 전부 실네트워크).
+  // 그래서 "호출자가 신선한 답을 요구했을 때"에만 붙인다. /api/auth/refresh 는 애초에
+  // resolveCacheKind 대상이 아니라 캐시를 타지 않으므로 잃는 것이 없다.
+  if (forceFresh && isAuthoritativeAuthPath(targetUrl)) {
     headers.set(CACHE_REFRESH_HEADER, "1");
   }
   if (!headers.has("X-Request-ID")) {
@@ -453,7 +460,7 @@ async function refreshSession(apiBase: string, clientSource?: string) {
   return refreshInFlight;
 }
 
-function authGetDedupeKey(url: string, init: RequestInit = {}) {
+function authGetDedupeKey(url: string, init: RequestInit = {}, forceFresh = false) {
   const method = String(init.method || "GET").trim().toUpperCase();
   if (method !== "GET") return "";
   try {
@@ -478,8 +485,11 @@ function authGetDedupeKey(url: string, init: RequestInit = {}) {
     const isOrderPath = parsed.pathname === "/api/payments/orders"
       || /^\/api\/payments\/orders\/[^/]+$/.test(parsed.pathname);
     if (!safePaths.includes(parsed.pathname) && !isOrderPath) return "";
+    // force 요청이 진행 중인 non-force 요청에 병합되면 "신선한 답"을 요구한 호출자가 캐시된 응답을
+    // 받는다. forceFresh 를 키에 넣어 두 버킷을 분리한다(헤더를 직접 넣은 호출자도 그대로 존중).
     const headers = new Headers(init.headers || {});
-    return `${url}|refresh:${headers.get(CACHE_REFRESH_HEADER) || "0"}`;
+    const refresh = forceFresh || headers.get(CACHE_REFRESH_HEADER) === "1" ? "1" : "0";
+    return `${url}|refresh:${refresh}`;
   } catch (e) {
     return "";
   }
@@ -525,9 +535,9 @@ async function fetchAuthRequest(request: Request, callerControlsAbort: boolean) 
   }
 }
 
-async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string, clientSource?: string) {
+async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401: boolean, apiBase: string, clientSource?: string, forceFresh = false) {
   const callerControlsAbort = Boolean(init.signal);
-  let request = buildAuthRequest(targetUrl, init, clientSource);
+  let request = buildAuthRequest(targetUrl, init, clientSource, forceFresh);
   let response = await fetchAuthRequest(request.clone(), callerControlsAbort);
   if (
     response.status === 401
@@ -536,7 +546,8 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
   ) {
     const refreshState = await refreshSession(apiBase, clientSource);
     if (refreshState === "success") {
-      request = buildAuthRequest(targetUrl, init, clientSource);
+      // 토큰을 새로 받은 뒤의 재요청은 방금 바뀐 세션을 읽어야 하므로 항상 신선한 답을 요구한다.
+      request = buildAuthRequest(targetUrl, init, clientSource, true);
       response = await fetchAuthRequest(request.clone(), callerControlsAbort);
     } else if (refreshState === "transient") {
       return buildRefreshTransientResponse(response.status);
@@ -549,22 +560,23 @@ async function performAuthFetch(targetUrl: string, init: RequestInit, retryOn401
 export async function authFetch(
   input: string,
   init: RequestInit = {},
-  options: { retryOn401?: boolean; apiBase?: string; clientSource?: string } = {},
+  options: { retryOn401?: boolean; apiBase?: string; clientSource?: string; forceFresh?: boolean } = {},
 ) {
   const apiBase = String(options.apiBase || getApiBaseUrl() || "").trim();
   const targetUrl = toAbsoluteApiUrl(input, apiBase);
   const retryOn401 = options.retryOn401 !== false;
   const clientSource = String(options.clientSource || "").trim().toLowerCase();
+  const forceFresh = options.forceFresh === true;
 
-  const dedupeKey = authGetDedupeKey(targetUrl, init);
-  if (!dedupeKey) return performAuthFetch(targetUrl, init, retryOn401, apiBase, clientSource);
+  const dedupeKey = authGetDedupeKey(targetUrl, init, forceFresh);
+  if (!dedupeKey) return performAuthFetch(targetUrl, init, retryOn401, apiBase, clientSource, forceFresh);
 
   let pending = authGetInFlight.get(dedupeKey);
   if (!pending) {
     // A shared GET must not be cancelled by one consumer. Each caller still gets
     // its own abort race below, while the network request remains single-flight.
     const sharedInit = init.signal ? { ...init, signal: undefined } : init;
-    pending = performAuthFetch(targetUrl, sharedInit, retryOn401, apiBase, clientSource)
+    pending = performAuthFetch(targetUrl, sharedInit, retryOn401, apiBase, clientSource, forceFresh)
       .finally(() => {
         if (authGetInFlight.get(dedupeKey) === pending) authGetInFlight.delete(dedupeKey);
       });

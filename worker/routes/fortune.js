@@ -96,6 +96,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
+import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
@@ -946,7 +947,52 @@ function readSajuAIPromptPointRefundContext(consumePayload = {}, body = {}) {
   const chargedCoins = Math.max(0, Math.floor(Number(consumePayload?.chargedCoins || consume?.chargedCoins || 0)));
   const sourceTransactionId = String(consumePayload?.transactionId || consume?.transactionId || body?.transactionId || paymentContext?.transactionId || "").trim();
   const isPointSpend = paymentMode === "COIN" || accessMethod === "COIN" || String(consume?.transactionType || "").trim().toLowerCase() === "coin";
-  return { isPointSpend, chargedCoins, sourceTransactionId };
+  // 카드(PortOne 단건) 결제. 이 경우 sourceTransactionId 는 PointHistory 가 아니라 Payment _id 다
+  // (buildAIPromptVerifiedConsumePayload 의 transactionId 체인 참고) — 코인 환불로 보내면 반드시
+  // 409 로 실패하므로 PortOne 취소 경로로 보내야 한다.
+  const isCardSpend = !isPointSpend
+    && (paymentMode === "DIRECT_KRW" || accessMethod === "CARD" || String(consume?.transactionType || "").trim().toLowerCase() === "single_purchase");
+  return { isPointSpend, isCardSpend, chargedCoins, sourceTransactionId };
+}
+
+// 카드 단건 결제로 연 유료 생성이 실패했을 때의 자동 환불. 지급 실패 자동환불의 정본
+// (payment-refund.js autoRefundSinglePaymentDeliveryFailure)을 그대로 쓴다 — PortOne 취소 +
+// 콘텐츠 권한 회수 + Payment 상태 기록이 한 곳에 있다.
+//
+// 🔴 paymentId 를 그대로 넘기지 않고 반드시 사용자 스코프로 Payment 를 다시 찾는다.
+// consumePayload.transactionId 체인에는 클라이언트가 보낸 body.payment._id 폴백이 섞일 수 있어,
+// 재조회 없이 넘기면 남의 결제를 취소시킬 수 있다. 아래 조건으로 좁히면 조작해도 무해하다
+// (못 찾으면 환불하지 않고 기존 실패 처리가 그대로 돈다).
+function buildAIPromptCardRefundPaymentQuery({ userId, paymentId, featureKey }) {
+  const normalizedUserId = String(userId || "").trim();
+  const normalizedId = String(paymentId || "").trim();
+  if (!normalizedUserId || !isObjectIdLike(normalizedId)) return null;
+  const featureKeys = uniqueStrings([featureKey, normalizeFeatureKey(featureKey)]);
+  if (!featureKeys.length) return null;
+  return {
+    _id: normalizedId,
+    userId: normalizedUserId,
+    featureKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
+    status: { $in: ["paid", "success", "fulfilled"] },
+  };
+}
+
+async function refundAIPromptCardPaymentOnFailure({ env, auth, paymentId, featureKey, reasonCode, reasonMessage }) {
+  const query = buildAIPromptCardRefundPaymentQuery({ userId: auth?.userId, paymentId, featureKey });
+  if (!query) return { refunded: false, reason: "PAYMENT_MISSING" };
+
+  try {
+    await connectDb(env);
+    const payment = await Payment.findOne(query)
+      .select("_id userId impUid merchantUid paymentAmount status orderState paymentType featureKey productId pricingSnapshot")
+      .lean();
+    if (!payment) return { refunded: false, reason: "PAYMENT_NOT_FOUND" };
+
+    return await autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, reasonMessage, "ai_prompt_generation");
+  } catch (error) {
+    console.error("[fortune][ai-prompt] card auto-refund failed:", error);
+    return { refunded: false, refundFailed: true, reason: String(error?.message || error || "") };
+  }
 }
 
 function buildSajuAIPromptExecutionId({ userId, profileId, requestId }) {
@@ -2186,12 +2232,26 @@ async function handleConsume(auth) {
   });
 }
 
+const BALANCE_ROUTE_USER_PROJECTION = {
+  _id: 1,
+  points: 1,
+  unlockedFeatures: 1,
+  destinyProfilesCurrentId: 1,
+};
+
+// AI 프롬프트 라우트가 인증 조회에 넘기는 확장 필드. handlePigCoinConsume 의 subscriptionUser 가
+// 읽는 것과 정확히 같다 — 인증 왕복 하나에 얹어 오면 라우트당 users 재조회 1회가 사라진다.
+// (정답 패턴: worker/routes/sukuyo.js 의 SUKUYO_YEARLY_USER_PROJECTION)
+const AI_PROMPT_CONSUME_USER_PROJECTION = {
+  profileSubscription: 1,
+  unlockedFeatures: 1,
+};
+
+// 인증 조회에 BALANCE_ROUTE_USER_PROJECTION 을 주면 이 문서가 그때 함께 읽혀 온다 —
+// 페이지 로드마다 불리는 엔드포인트라 users 2회가 1회로 줄어드는 효과가 크다.
+// authUserDoc 이 붙지 않는 경로(리프레시 토큰 등)에서는 종전대로 직접 읽는다.
 async function handleBalance(auth, env) {
-  const user = await findUserByIdRaw(auth.userId, {
-    points: 1,
-    unlockedFeatures: 1,
-    destinyProfilesCurrentId: 1,
-  });
+  const user = auth.authUserDoc || await findUserByIdRaw(auth.userId, BALANCE_ROUTE_USER_PROJECTION);
   if (!user) {
     return json({
       ok: true,
@@ -2413,9 +2473,19 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").trim().toLowerCase() === "true";
   const requireExistingPaidAccess = body?.requireExistingPaidAccess === true
     || String(body?.requireExistingPaidAccess || "").trim().toLowerCase() === "true";
-  const subscriptionUser = await User.findById(auth.userId)
-    .select("profileSubscription unlockedFeatures")
-    .lean();
+  // AI 프롬프트 라우트 6곳은 인증 조회에 AI_PROMPT_CONSUME_USER_PROJECTION 을 넘겨 같은 문서를 이미
+  // 읽어 왔다(내부 위임에도 같은 auth 객체가 그대로 전달된다) — 있으면 재조회하지 않는다.
+  // 🔴 인증 문서에는 identity 필드(points 등)가 함께 들어 있으므로, 이 함수가 보던 두 필드만 추려
+  // 넘긴다. 그대로 쓰면 balanceAfter 계산이 조용히 바뀐다(지금까지 points 는 미조회라 0이었다).
+  const subscriptionUser = auth.authUserDoc
+    ? {
+      _id: auth.authUserDoc._id,
+      profileSubscription: auth.authUserDoc.profileSubscription,
+      unlockedFeatures: auth.authUserDoc.unlockedFeatures,
+    }
+    : await User.findById(auth.userId)
+      .select("profileSubscription unlockedFeatures")
+      .lean();
   if (!subscriptionUser) {
     return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
   }
@@ -3223,6 +3293,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   // PointHistory 차감행이 없어 코인 환불이 반드시 409로 실패하고, 그 실패가 "환불 시도했으나 실패"로
   // 기록돼 카드 환불 경로를 가린다. 사주 경로(readSajuAIPromptPointRefundContext)가 쓰던 가드와 동일.
   let isPointSpend = false;
+  let isCardSpend = false;
   const skipPaymentConsume = existing.status === "generation_failed" && storedResult?.order?.paymentStatus === "PAID";
 
   if (!skipPaymentConsume) {
@@ -3253,7 +3324,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       return mapVedicPrashnaConsumeFailure(consumeResponse, consumePayload);
     }
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
-    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
+    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     const accessMethod = readPrashnaAccessMethod(consumePayload || body);
     if (accessMethod !== "single") {
       return buildVedicPrashnaError(
@@ -3382,6 +3453,20 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       } catch (refundError) {
         console.error("[fortune][vedic-prashna] refund failed:", refundError);
       }
+    } else if (isCardSpend && sourceTransactionId) {
+      // 카드 단건 결제는 PointHistory 차감행이 없어 코인 환불이 반드시 409 로 실패한다.
+      // PortOne 취소 정본으로 보낸다(결제 후 무결과 방지). 실패하면 refundOk=false 라
+      // 기존처럼 PAID 로 남아 재시도 경로가 살아 있다.
+      refundAttempted = true;
+      const cardRefund = await refundAIPromptCardPaymentOnFailure({
+        env,
+        auth,
+        paymentId: sourceTransactionId,
+        featureKey: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+        reasonCode: "ai_prompt_generation_failed",
+        reasonMessage: "Prashna prompt generation failed auto-refund",
+      });
+      refundOk = cardRefund.refunded === true;
     }
     await PaidExecutionRecord.updateOne(
       { executionId },
@@ -3824,6 +3909,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
   let chargedCoins = 0;
   let sourceTransactionId = "";
   let isPointSpend = false;
+  let isCardSpend = false;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -3858,7 +3944,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
+    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -3917,6 +4003,20 @@ async function handleAstrologyAIPrompt(request, auth, env) {
       } catch (refundError) {
         console.error("[fortune][astrology-ai-prompt] refund failed:", refundError);
       }
+    } else if (isCardSpend && sourceTransactionId) {
+      // 카드 단건 결제는 PointHistory 차감행이 없어 코인 환불이 반드시 409 로 실패한다.
+      // PortOne 취소 정본으로 보낸다(결제 후 무결과 방지). 실패하면 refundOk=false 라
+      // 기존처럼 PAID 로 남아 재시도 경로가 살아 있다.
+      refundAttempted = true;
+      const cardRefund = await refundAIPromptCardPaymentOnFailure({
+        env,
+        auth,
+        paymentId: sourceTransactionId,
+        featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
+        reasonCode: "ai_prompt_generation_failed",
+        reasonMessage: "Astrology AI consultation generation failed auto-refund",
+      });
+      refundOk = cardRefund.refunded === true;
     }
 
     console.error("[fortune][astrology-ai-prompt] request failed:", error);
@@ -3988,6 +4088,7 @@ async function handleVedicAIPrompt(request, auth, env) {
   let chargedCoins = 0;
   let sourceTransactionId = "";
   let isPointSpend = false;
+  let isCardSpend = false;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -4022,7 +4123,7 @@ async function handleVedicAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
+    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -4082,6 +4183,20 @@ async function handleVedicAIPrompt(request, auth, env) {
       } catch (refundError) {
         console.error("[fortune][vedic-ai-prompt] refund failed:", refundError);
       }
+    } else if (isCardSpend && sourceTransactionId) {
+      // 카드 단건 결제는 PointHistory 차감행이 없어 코인 환불이 반드시 409 로 실패한다.
+      // PortOne 취소 정본으로 보낸다(결제 후 무결과 방지). 실패하면 refundOk=false 라
+      // 기존처럼 PAID 로 남아 재시도 경로가 살아 있다.
+      refundAttempted = true;
+      const cardRefund = await refundAIPromptCardPaymentOnFailure({
+        env,
+        auth,
+        paymentId: sourceTransactionId,
+        featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
+        reasonCode: "ai_prompt_generation_failed",
+        reasonMessage: "Vedic AI consultation generation failed auto-refund",
+      });
+      refundOk = cardRefund.refunded === true;
     }
 
     console.error("[fortune][vedic-ai-prompt] request failed:", error);
@@ -4527,6 +4642,18 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       } catch (refundError) {
         console.error("[fortune][saju-ai-prompt] point refund failed:", refundError);
       }
+    } else if (pointRefundContext.isCardSpend && pointRefundContext.sourceTransactionId) {
+      // 카드 단건 결제는 PointHistory 차감행이 없어 코인 환불이 반드시 409 로 실패한다.
+      // PortOne 취소 정본으로 보낸다(결제 후 무결과 방지).
+      const cardRefund = await refundAIPromptCardPaymentOnFailure({
+        env,
+        auth,
+        paymentId: pointRefundContext.sourceTransactionId,
+        featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+        reasonCode: "ai_prompt_generation_failed",
+        reasonMessage: "Saju AI prompt generation failed auto-refund",
+      });
+      pointRefund = { attempted: true, refundOk: cardRefund.refunded === true };
     }
     console.error("[fortune][saju-ai-prompt] request failed:", error);
     logSajuAIPromptStage("LLM_JOB_FAILED", {
@@ -4891,6 +5018,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
   let chargedCoins = 0;
   let sourceTransactionId = "";
   let isPointSpend = false;
+  let isCardSpend = false;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -4925,7 +5053,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
+    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -4983,6 +5111,20 @@ async function handleZiweiAIPrompt(request, auth, env) {
       } catch (refundError) {
         console.error("[fortune][ziwei-ai-prompt] refund failed:", refundError);
       }
+    } else if (isCardSpend && sourceTransactionId) {
+      // 카드 단건 결제는 PointHistory 차감행이 없어 코인 환불이 반드시 409 로 실패한다.
+      // PortOne 취소 정본으로 보낸다(결제 후 무결과 방지). 실패하면 refundOk=false 라
+      // 기존처럼 PAID 로 남아 재시도 경로가 살아 있다.
+      refundAttempted = true;
+      const cardRefund = await refundAIPromptCardPaymentOnFailure({
+        env,
+        auth,
+        paymentId: sourceTransactionId,
+        featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
+        reasonCode: "ai_prompt_generation_failed",
+        reasonMessage: "Ziwei AI consultation generation failed auto-refund",
+      });
+      refundOk = cardRefund.refunded === true;
     }
 
     console.error("[fortune][ziwei-ai-prompt] request failed:", error);
@@ -5089,6 +5231,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   let chargedCoins = 0;
   let sourceTransactionId = "";
   let isPointSpend = false;
+  let isCardSpend = false;
 
   try {
     if (SUKUYO_AI_PROMPT_PRICE <= 0) {
@@ -5161,7 +5304,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
-    isPointSpend = readSajuAIPromptPointRefundContext(consumePayload, body).isPointSpend;
+    ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -5221,6 +5364,20 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       } catch (refundError) {
         console.error("[fortune][sukuyo-ai-prompt] refund failed:", refundError);
       }
+    } else if (isCardSpend && sourceTransactionId) {
+      // 카드 단건 결제는 PointHistory 차감행이 없어 코인 환불이 반드시 409 로 실패한다.
+      // PortOne 취소 정본으로 보낸다(결제 후 무결과 방지). 실패하면 refundOk=false 라
+      // 기존처럼 PAID 로 남아 재시도 경로가 살아 있다.
+      refundAttempted = true;
+      const cardRefund = await refundAIPromptCardPaymentOnFailure({
+        env,
+        auth,
+        paymentId: sourceTransactionId,
+        featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
+        reasonCode: "ai_prompt_generation_failed",
+        reasonMessage: "Sukuyo AI consultation generation failed auto-refund",
+      });
+      refundOk = cardRefund.refunded === true;
     }
 
     console.error("[fortune][sukuyo-ai-prompt] request failed:", error);
@@ -6174,8 +6331,9 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       try {
         auth = await getOptionalUserFromRequest(request, env, {
           allowDbFallback: true,
-          // 구독 경로는 인증 조회에서 필요한 필드를 함께 받아 뒤의 재조회를 없앤다.
-          userProjection: isBalanceRoute ? null : SUBSCRIPTION_STATUS_USER_PROJECTION,
+          // 두 경로 모두 인증 조회에서 필요한 필드를 함께 받아 뒤의 재조회를 없앤다.
+          // balance 는 예전에 일부러 null 을 줘서 users 를 두 번 읽었다.
+          userProjection: isBalanceRoute ? BALANCE_ROUTE_USER_PROJECTION : SUBSCRIPTION_STATUS_USER_PROJECTION,
         });
       } catch (error) {
         if (isAuthDbInfraError(error)) {
@@ -6222,7 +6380,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/ziwei/ai-prompt") {
-      const auth = await resolvePaidRouteAuth(request, env);
+      const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -6231,7 +6389,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/sukuyo/ai-prompt") {
-      const auth = await resolvePaidRouteAuth(request, env);
+      const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildSukuyoAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -6249,7 +6407,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && (path === "/saju/ai-prompt" || path === "/saju/question-prompt" || path === "/saju-ai-consultation/create")) {
-      const auth = await resolvePaidRouteAuth(request, env);
+      const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -6276,7 +6434,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/astrology/ai-prompt") {
-      const auth = await resolvePaidRouteAuth(request, env);
+      const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildAstrologyAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -6285,7 +6443,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/vedic/ai-prompt") {
-      const auth = await resolvePaidRouteAuth(request, env);
+      const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildVedicAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -6303,7 +6461,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/vedic/prashna/generate") {
-      const auth = await resolvePaidRouteAuth(request, env);
+      const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -6320,6 +6478,9 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       return await handleVedicPrashnaResult(request, auth);
     }
 
+    // 🔴 폐지된 410 톰스톤 3종(charge-simulate·share-reward·subscribe)을 여기 인증 앞으로 당기지 말 것.
+    // users 읽기 1회를 아낄 수 있어 보이지만, 비로그인 호출에 401 대신 410 이 나가 라우트의 폐지 여부를
+    // 미인증자에게 알려 준다. __tests__/worker/api-status-normalization.test.js 가 401 을 강제한다.
     const auth = await requireUserFromRequest(request, env);
     trace.authVerified = true;
 
@@ -6359,4 +6520,6 @@ export const __fortuneAccessTestUtils = {
   isAdminPigCoinBypassEnabled: isAdminPigCoinBypassEnabledFromGuard,
   handleSubscriptionStatus,
   buildPigCoinRefundDeductQueries,
+  buildAIPromptCardRefundPaymentQuery,
+  readAIPromptRefundContext: readSajuAIPromptPointRefundContext,
 };

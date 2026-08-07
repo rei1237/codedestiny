@@ -36,22 +36,66 @@ function collectJsFiles(dir, out = []) {
   return out;
 }
 
-/** 선언부 뒤 첫 '{' 부터 중괄호 균형이 맞는 지점까지를 본문으로 잘라낸다. */
-function functionBody(source, name) {
-  const declaration = new RegExp(
-    `(?:export\\s+)?(?:async\\s+)?function\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\([^)]*\\)\\s*\\{`,
-  );
-  const match = declaration.exec(source);
-  if (!match) return null;
+function escapeRe(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** from 위치의 여는 괄호부터 짝이 맞는 닫는 괄호까지의 인덱스(포함). 못 찾으면 -1. */
+function matchBalanced(source, from, open, close) {
   let depth = 0;
-  for (let i = match.index + match[0].length - 1; i < source.length; i += 1) {
-    if (source[i] === "{") depth += 1;
-    else if (source[i] === "}") {
+  for (let i = from; i < source.length; i += 1) {
+    if (source[i] === open) depth += 1;
+    else if (source[i] === close) {
       depth -= 1;
-      if (depth === 0) return source.slice(match.index, i + 1);
+      if (depth === 0) return i;
     }
   }
-  return null;
+  return -1;
+}
+
+/**
+ * 선언부 뒤 첫 '{' 부터 중괄호 균형이 맞는 지점까지를 본문으로 잘라낸다.
+ * `function f() {}` 뿐 아니라 `const f = () => {}` / `const f = async () => expr` 도 인식한다 —
+ * 화살표 const 만 쓰는 함수를 놓치면(예: 예전의 resolveProfileIdFromDb) 후보에서 통째로 빠진다.
+ */
+function functionBody(source, name) {
+  const escaped = escapeRe(name);
+  const declaration = new RegExp(
+    `(?:export\\s+)?(?:async\\s+)?function\\s+${escaped}\\s*\\([^)]*\\)\\s*\\{`,
+  );
+  const match = declaration.exec(source);
+  if (match) {
+    const end = matchBalanced(source, match.index + match[0].length - 1, "{", "}");
+    return end < 0 ? null : source.slice(match.index, end + 1);
+  }
+
+  const arrow = new RegExp(
+    `(?:export\\s+)?(?:const|let|var)\\s+${escaped}\\s*=\\s*(?:async\\s*)?\\(`,
+  );
+  const arrowMatch = arrow.exec(source);
+  if (!arrowMatch) return null;
+  const parenOpen = source.indexOf("(", arrowMatch.index + arrowMatch[0].length - 1);
+  const parenClose = matchBalanced(source, parenOpen, "(", ")");
+  if (parenClose < 0) return null;
+  const afterArrow = source.indexOf("=>", parenClose);
+  if (afterArrow < 0) return null;
+  let cursor = afterArrow + 2;
+  while (cursor < source.length && /\s/.test(source[cursor])) cursor += 1;
+  if (source[cursor] === "{") {
+    const end = matchBalanced(source, cursor, "{", "}");
+    return end < 0 ? null : source.slice(arrowMatch.index, end + 1);
+  }
+  // 블록 없는 화살표식: 다음 문장 경계(세미콜론)까지를 본문으로 본다.
+  const semi = source.indexOf(";", cursor);
+  return source.slice(arrowMatch.index, semi < 0 ? source.length : semi + 1);
+}
+
+/** 소스에서 선언된 모든 함수 이름(함수 선언 + 화살표 const). */
+function declaredFunctionNames(source) {
+  const names = new Set();
+  for (const match of source.matchAll(/(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(/g)) names.add(match[1]);
+  for (const match of source.matchAll(/(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?\(/g)) names.add(match[1]);
+  return names;
 }
 
 const files = collectJsFiles(workerRoot);
@@ -62,46 +106,97 @@ console.log(`=== 중첩 재시도 검사 (worker/*.js ${files.length}개) ===\n`
    전역 이름 맵으로 보면 남의 파일 동명이인을 자기 것으로 착각해 오탐한다 — 반드시 모듈 스코프로 본다.
    같은 파일에 정의된 함수 + 그 파일이 명시적으로 import 한 함수만 후보로 삼는다. */
 const sources = new Map(files.map((file) => [file, readFileSync(file, "utf8")]));
-const retryFunctionsByFile = new Map();
+
+// 각 파일의 함수 본문을 한 번만 잘라 둔다(모듈 스코프 유지 — 파일마다 동명이인이 흔하다).
+const bodiesByFile = new Map();
 for (const [file, source] of sources) {
-  const local = new Map();
-  if (source.includes("withMongoRetry")) {
-    for (const match of source.matchAll(/(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(/g)) {
-      const name = match[1];
-      if (local.has(name)) continue;
-      const body = functionBody(source, name);
-      if (body && body.includes("withMongoRetry(")) local.set(name, relative(root, file).replace(/\\/g, "/"));
-    }
+  const bodies = new Map();
+  for (const name of declaredFunctionNames(source)) {
+    const body = functionBody(source, name);
+    if (body) bodies.set(name, body);
   }
-  retryFunctionsByFile.set(file, local);
+  bodiesByFile.set(file, bodies);
 }
 
-/** 이 파일이 named import 로 가져온 함수 중, 원본 모듈에서 내부 재시도를 가진 것 */
-function importedRetryFunctions(file, source) {
-  const found = new Map();
+/** 이 파일이 named import 로 가져온 이름 → 원본 파일 경로 */
+function importedNameOrigins(file, source) {
+  const origins = new Map();
   for (const match of source.matchAll(/import\s*\{([^}]+)\}\s*from\s*["']([^"']+)["']/g)) {
     const names = match[1].split(",").map((part) => part.trim().split(/\s+as\s+/)[0].trim()).filter(Boolean);
     const specifier = match[2];
     if (!specifier.startsWith(".")) continue;
     const target = resolve(file, "..", specifier.endsWith(".js") ? specifier : `${specifier}.js`);
-    const targetSource = sources.get(target);
-    if (!targetSource) continue;
-    for (const name of names) {
-      const body = functionBody(targetSource, name);
-      if (body && body.includes("withMongoRetry(")) found.set(name, relative(root, target).replace(/\\/g, "/"));
+    if (!sources.has(target)) continue;
+    for (const name of names) origins.set(name, target);
+  }
+  return origins;
+}
+
+const importOriginsByFile = new Map(
+  [...sources].map(([file, source]) => [file, importedNameOrigins(file, source)]),
+);
+
+/**
+ * "재시도를 품은 함수" 집합을 호출그래프 고정점으로 넓힌다(전이 폐포).
+ * 1-hop 만 보던 예전 판정은 본문에 withMongoRetry 문자열이 없는 중간 함수에서 끊겼다 —
+ * 예: getMembershipPassForBillingRequest 는 자기 본문엔 없고 readSubscriptionStatusSnapshot →
+ * getOptionalUserFromRequest(auth.js 재시도)로 내려간다. 그 사이에 낀 호출부가 밖에서 또 감싸도
+ * 예전 가드는 통과시켰다.
+ */
+const retryFunctionsByFile = new Map([...sources.keys()].map((file) => [file, new Map()]));
+for (const [file, bodies] of bodiesByFile) {
+  const local = retryFunctionsByFile.get(file);
+  for (const [name, body] of bodies) {
+    if (body.includes("withMongoRetry(")) local.set(name, relative(root, file).replace(/\\/g, "/"));
+  }
+}
+
+for (let pass = 0; pass < 12; pass += 1) {
+  let grew = false;
+  for (const [file, bodies] of bodiesByFile) {
+    const local = retryFunctionsByFile.get(file);
+    const imported = importOriginsByFile.get(file);
+    for (const [name, body] of bodies) {
+      if (local.has(name)) continue;
+      for (const [calleeName, calleeFile] of [
+        ...[...local.keys()].map((n) => [n, file]),
+        ...[...imported].map(([n, f]) => [n, f]),
+      ]) {
+        if (calleeName === name) continue;
+        if (!retryFunctionsByFile.get(calleeFile)?.has(calleeName)) continue;
+        if (!new RegExp(`\\b${escapeRe(calleeName)}\\s*\\(`).test(body)) continue;
+        local.set(name, retryFunctionsByFile.get(calleeFile).get(calleeName));
+        grew = true;
+        break;
+      }
     }
+  }
+  if (!grew) break;
+}
+
+/** 이 파일이 named import 로 가져온 함수 중, 원본 모듈에서 내부 재시도를 가진 것 */
+function importedRetryFunctions(file) {
+  const found = new Map();
+  for (const [name, target] of importOriginsByFile.get(file) || []) {
+    const origin = retryFunctionsByFile.get(target);
+    if (origin?.has(name)) found.set(name, origin.get(name));
   }
   return found;
 }
 
 const nested = [];
 for (const [file, source] of sources) {
-  const candidates = new Map([...retryFunctionsByFile.get(file), ...importedRetryFunctions(file, source)]);
+  const candidates = new Map([...retryFunctionsByFile.get(file), ...importedRetryFunctions(file)]);
   if (!candidates.size) continue;
-  for (const match of source.matchAll(/withMongoRetry\(\s*\w+\s*,\s*(?:async\s*)?\(\)\s*=>\s*([\s\S]{0,600}?)(?:\n\s*\}|\),\s*\{|\)\);|\)\))/g)) {
-    const callback = match[1];
+  // 🔴 콜백을 길이 제한 정규식으로 자르지 않는다. 예전에는 [\s\S]{0,600} 이라 600자를 넘는 콜백의
+  // 뒷부분이 통째로 검사에서 빠졌다. 여는 괄호부터 괄호 균형으로 정확히 잘라 전체를 본다.
+  for (const match of source.matchAll(/withMongoRetry\s*\(/g)) {
+    const open = match.index + match[0].length - 1;
+    const close = matchBalanced(source, open, "(", ")");
+    if (close < 0) continue;
+    const callback = source.slice(open + 1, close);
     for (const [name, definedIn] of candidates) {
-      if (!new RegExp(`\\b${name}\\s*\\(`).test(callback)) continue;
+      if (!new RegExp(`\\b${escapeRe(name)}\\s*\\(`).test(callback)) continue;
       nested.push({
         at: `${relative(root, file).replace(/\\/g, "/")}:${source.slice(0, match.index).split("\n").length}`,
         wraps: name,
