@@ -1281,7 +1281,7 @@ async function handleCreateProfile(request, auth) {
   }
 }
 
-async function handleUpdateCurrent(request, auth) {
+async function handleUpdateCurrent(request, auth, env) {
   const body = await readJson(request);
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
   const baseCurrentId = sanitizeProfileId(body?.baseCurrentId);
@@ -1289,14 +1289,14 @@ async function handleUpdateCurrent(request, auth) {
     return json({ ok: false, message: "currentId媛 ?꾩슂?⑸땲??" }, { status: 400 });
   }
 
-  const exists = await ProfileCard.findOne({ userId: auth.userId, profileId: requestedCurrentId }).lean();
+  const exists = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: requestedCurrentId }).lean());
   if (!exists) {
     return json({ ok: false, message: "선택한 프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const user = await User.findById(auth.userId)
+  const user = await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-    .lean();
+    .lean());
   if (!user) {
     return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
@@ -1307,7 +1307,7 @@ async function handleUpdateCurrent(request, auth) {
   const storedCurrentId = sanitizeProfileId(user.destinyProfilesCurrentId);
   const switchIsSafe = !storedCurrentId || baseCurrentId === storedCurrentId || storedCurrentId === requestedCurrentId;
   if (!switchIsSafe) {
-    const staleProfiles = await listUserProfiles(auth.userId);
+    const staleProfiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
     return json({
       ok: true,
       currentId: storedCurrentId,
@@ -1317,7 +1317,7 @@ async function handleUpdateCurrent(request, auth) {
   }
 
   const subscription = resolveSubscriptionPolicy(user);
-  const profiles = await listUserProfiles(auth.userId);
+  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
   const profileLimit = resolveProfileLimitForClient(subscription);
   const isSingleMode = false;
   const lockedId = resolveCurrentId(user.destinyProfilesLockedCurrentId, profiles);
@@ -1348,7 +1348,7 @@ async function handleUpdateCurrent(request, auth) {
     updateSet.destinyProfilesLockedAt = null;
   }
 
-  await User.updateOne({ _id: auth.userId }, { $set: updateSet });
+  await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: updateSet }));
   return json({
     ok: true,
     currentId: requestedCurrentId,
@@ -1609,7 +1609,7 @@ export async function handleProfileRoutes(request, env) {
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
     if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth, env);
-    if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth);
+    if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth, env);
 
     const profileMatch = path.match(/^\/([^/]+)$/);
     if (profileMatch && method === "GET") {
