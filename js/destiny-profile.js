@@ -8137,6 +8137,87 @@
     });
   };
 
+  /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지.
+     #dpListInner 는 페이지 로드 시점엔 <template id="dpListSheetTemplate"> 안에 있어
+     존재하지 않고, dpOpenList() 가 템플릿을 clone 할 때 비로소 생긴다. 그래서 init() 에서
+     바인딩을 시도해도 조회가 실패할 수 있어 _dpEnsureListSheetMounted() 에서도 호출한다. */
+  function _dpBindListInnerDelegation(listInner) {
+    var listTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
+    listInner.addEventListener('touchstart', function(e) {
+      _dpRecordTouchTapStart(listTouchState, e);
+    }, { passive: true });
+    listInner.addEventListener('click', function(e) {
+      var targetEl = _resolveEventElement(e.target);
+      if (!targetEl) return;
+      if (listTouchState.lastHandledAt && Date.now() - listTouchState.lastHandledAt < 700) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      var delBtn = targetEl.closest('.dp-li-del');
+      var editBtn = targetEl.closest('.dp-li-edit');
+      var actionItem = targetEl.closest('[data-profile-id]');
+      var actionPid = actionItem ? actionItem.getAttribute('data-profile-id') : '';
+      if (!actionPid) return;
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      listTouchState.lastHandledAt = Date.now();
+      listTouchState.lastHandledAction = editBtn ? 'update' : (delBtn ? 'delete' : 'select');
+      listTouchState.lastHandledProfileId = actionPid;
+      if (editBtn) dpEditProfile(actionPid);
+      else if (delBtn) dpDeleteProfile(actionPid);
+      else dpSelectProfile(actionPid);
+    }, true);
+    listInner.addEventListener('touchend', function(e) {
+      /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
+      if (!_dpIsStableTouchTap(listTouchState, e, { moveX: 10, moveY: 16 })) return;
+      var targetEl = _resolveEventElement(e.target);
+      if (!targetEl) return;
+      var delBtn = targetEl.closest('.dp-li-del');
+      var editBtn = targetEl.closest('.dp-li-edit');
+      if (editBtn) {
+        var editItem = targetEl.closest('[data-profile-id]');
+        var editPid = editItem ? editItem.getAttribute('data-profile-id') : '';
+        if (editPid) {
+          if (e.cancelable) e.preventDefault();
+          e.stopPropagation();
+          listTouchState.lastHandledAt = Date.now();
+          listTouchState.lastHandledAction = 'update';
+          listTouchState.lastHandledProfileId = editPid;
+          dpEditProfile(editPid);
+        }
+        return;
+      }
+      if (delBtn) {
+        var delItem = targetEl.closest('[data-profile-id]');
+        var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
+        if (delPid) {
+          if (e.cancelable) e.preventDefault();
+          e.stopPropagation();
+          listTouchState.lastHandledAt = Date.now();
+          listTouchState.lastHandledAction = 'delete';
+          listTouchState.lastHandledProfileId = delPid;
+          dpDeleteProfile(delPid);
+        }
+        return;
+      }
+      var item = targetEl.closest('[data-profile-id]');
+      if (item && !targetEl.closest('.dp-li-del')) {
+        var pid = item.getAttribute('data-profile-id');
+        if (pid) {
+          if (e.cancelable) e.preventDefault();
+          listTouchState.lastHandledAt = Date.now();
+          listTouchState.lastHandledAction = 'select';
+          listTouchState.lastHandledProfileId = pid;
+          dpSelectProfile(pid);
+        }
+      }
+    }, { passive: false });
+    listInner.addEventListener('touchcancel', function() {
+      _dpResetTouchTapState(listTouchState);
+    }, { passive: true });
+  }
+
   var _dpListOpenedAt = 0;
   function _dpEnsureListSheetMounted() {
     var sheet = document.getElementById('dpListSheet');
@@ -8162,6 +8243,8 @@
         e.preventDefault();
         dpCloseList();
       });
+      var listInner = sheet.querySelector('#dpListInner');
+      if (listInner) _dpBindListInnerDelegation(listInner);
     }
     return { sheet: sheet, overlay: overlay };
   }
@@ -9601,82 +9684,7 @@
 
     /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
     var listInner = document.getElementById('dpListInner');
-    if (listInner) {
-      var listTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
-      listInner.addEventListener('touchstart', function(e) {
-        _dpRecordTouchTapStart(listTouchState, e);
-      }, { passive: true });
-      listInner.addEventListener('click', function(e) {
-        var targetEl = _resolveEventElement(e.target);
-        if (!targetEl) return;
-        if (listTouchState.lastHandledAt && Date.now() - listTouchState.lastHandledAt < 700) {
-          if (e.cancelable) e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        var delBtn = targetEl.closest('.dp-li-del');
-        var editBtn = targetEl.closest('.dp-li-edit');
-        var actionItem = targetEl.closest('[data-profile-id]');
-        var actionPid = actionItem ? actionItem.getAttribute('data-profile-id') : '';
-        if (!actionPid) return;
-        if (e.cancelable) e.preventDefault();
-        e.stopPropagation();
-        listTouchState.lastHandledAt = Date.now();
-        listTouchState.lastHandledAction = editBtn ? 'update' : (delBtn ? 'delete' : 'select');
-        listTouchState.lastHandledProfileId = actionPid;
-        if (editBtn) dpEditProfile(actionPid);
-        else if (delBtn) dpDeleteProfile(actionPid);
-        else dpSelectProfile(actionPid);
-      }, true);
-      listInner.addEventListener('touchend', function(e) {
-        /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
-        if (!_dpIsStableTouchTap(listTouchState, e, { moveX: 10, moveY: 16 })) return;
-        var targetEl = _resolveEventElement(e.target);
-        if (!targetEl) return;
-        var delBtn = targetEl.closest('.dp-li-del');
-        var editBtn = targetEl.closest('.dp-li-edit');
-        if (editBtn) {
-          var editItem = targetEl.closest('[data-profile-id]');
-          var editPid = editItem ? editItem.getAttribute('data-profile-id') : '';
-          if (editPid) {
-            if (e.cancelable) e.preventDefault();
-            e.stopPropagation();
-            listTouchState.lastHandledAt = Date.now();
-            listTouchState.lastHandledAction = 'update';
-            listTouchState.lastHandledProfileId = editPid;
-            dpEditProfile(editPid);
-          }
-          return;
-        }
-        if (delBtn) {
-          var delItem = targetEl.closest('[data-profile-id]');
-          var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
-          if (delPid) {
-            if (e.cancelable) e.preventDefault();
-            e.stopPropagation();
-            listTouchState.lastHandledAt = Date.now();
-            listTouchState.lastHandledAction = 'delete';
-            listTouchState.lastHandledProfileId = delPid;
-            dpDeleteProfile(delPid);
-          }
-          return;
-        }
-        var item = targetEl.closest('[data-profile-id]');
-        if (item && !targetEl.closest('.dp-li-del')) {
-          var pid = item.getAttribute('data-profile-id');
-          if (pid) {
-            if (e.cancelable) e.preventDefault();
-            listTouchState.lastHandledAt = Date.now();
-            listTouchState.lastHandledAction = 'select';
-            listTouchState.lastHandledProfileId = pid;
-            dpSelectProfile(pid);
-          }
-        }
-      }, { passive: false });
-      listInner.addEventListener('touchcancel', function() {
-        _dpResetTouchTapState(listTouchState);
-      }, { passive: true });
-    }
+    if (listInner) _dpBindListInnerDelegation(listInner);
 
     /* 폼 변경 시 카드 자동 갱신 (저장 전이라도 장소는 반영) */
     ['birthCountry'].forEach(function(id) {

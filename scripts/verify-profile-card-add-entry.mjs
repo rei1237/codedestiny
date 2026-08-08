@@ -76,13 +76,31 @@ function jsonResponse(body) {
   return res;
 }
 
-function bootShell(source, initialPayload) {
+/**
+ * 실제 index.html(16082~16098행)과 동일하게, 목록 시트를 <template> 안에 가둬 두고
+ * dpOpenList() 가 clone 해서 mount 하는 구조. 이 지연 마운트 타이밍에서 #dpListInner 위임
+ * 리스너가 바인딩되는지(회귀 #프로필카드전환)를 보려면 flat 픽스처로는 재현이 안 된다.
+ */
+const LAZY_LIST_SHEET_MARKUP = `
+       <template id="dpListSheetTemplate">
+         <div id="dpListOverlay" class="dp-sheet-overlay"></div>
+         <div id="dpListSheet" class="dp-sheet" role="dialog" aria-modal="true" aria-hidden="true">
+           <button type="button" class="dp-sheet-close"></button>
+           <div class="dp-list-scroll"><div id="dpListInner"></div></div>
+         </div>
+       </template>`;
+
+const FLAT_LIST_SHEET_MARKUP = `
+       <div id="dpListSheet"></div>
+       <div id="dpListOverlay"></div>
+       <div class="dp-list-scroll"><div id="dpListInner"></div></div>`;
+
+function bootShell(source, initialPayload, opts = {}) {
+  const listSheetMarkup = opts.lazySheet ? LAZY_LIST_SHEET_MARKUP : FLAT_LIST_SHEET_MARKUP;
   const dom = new JSDOM(
     `<!doctype html><html><body>
        <div id="dpMasterCard"></div>
-       <div id="dpListSheet"></div>
-       <div id="dpListOverlay"></div>
-       <div class="dp-list-scroll"><div id="dpListInner"></div></div>
+       ${listSheetMarkup}
        <!-- #dpProfileQuotaText 를 일부러 넣지 않는다 — 실제 셸 6벌 어디에도 없다.
             픽스처에만 넣어 두었더니 "슬롯·편집 안내가 화면에 안 뜬다"는 실제 결함을 이 가드가 가렸다(#416).
             없는 상태에서 _dpEnsureProfileFormControls 가 만들어내는지를 봐야 의미가 있다. -->
@@ -278,6 +296,31 @@ async function runTarget(relPath) {
       "목록 추가 버튼이 생성 플로우로 배선돼 있다",
       /dpStartProfileCreate\s*\(/.test(String(addBtn?.getAttribute("onclick") || "")),
       `onclick=${addBtn?.getAttribute("onclick") || "(없음)"}`,
+    );
+    window.close();
+  }
+
+  // 8) 프로덕션과 동일한 <template> 지연 마운트 구조에서, 목록의 비활성 카드를 클릭하면
+  //    실제로 현재 프로필이 전환된다. init() 은 페이지 로드 시 1회만 도는데 이 시점엔
+  //    #dpListInner 가 <template> 안에 갇혀 있어 존재하지 않으므로, dpOpenList() 가 시트를
+  //    clone 해서 mount 하는 시점에도 위임 리스너가 바인딩돼야 한다.
+  {
+    const masterHtml = (window) => String(window.document.getElementById("dpMasterCard").innerHTML || "");
+    const { window } = bootShell(source, PREMIUM_TWO_CARDS, { lazySheet: true });
+    await wait(BOOT_WAIT_MS);
+    check("8 전제: 초기 마스터 카드는 첫째카드", masterHtml(window).includes("첫째카드"), masterHtml(window).slice(0, 200));
+
+    window.dpOpenList();
+    await wait(300);
+    const row = window.document.querySelector('#dpListInner [data-profile-id="dp_2"]');
+    check("8 전제: 지연 mount 된 목록에 둘째카드 행이 렌더된다", !!row);
+
+    if (row) row.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+    await wait(300);
+    check(
+      "지연 mount 된 목록에서 비활성 카드를 클릭하면 실제로 전환된다",
+      masterHtml(window).includes("둘째카드"),
+      `master=${masterHtml(window).slice(0, 200)}`,
     );
     window.close();
   }
