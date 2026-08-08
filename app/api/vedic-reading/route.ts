@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
-import { calculateVedicChart } from "@/lib/vedicCalculator.js";
+import { computeVedicChartSwiss } from "@/lib/vedicSwissChart.js";
 import { callLLM } from "@/lib/llm-client";
 
 export const runtime = "nodejs";
@@ -238,13 +238,16 @@ export async function POST(req: NextRequest) {
 
   let chart;
   try {
-    chart = calculateVedicChart({
-      ...dateParts,
-      ...timeParts,
-      tzOffset: finalTzOffset,
-      latitude: finalLat,
-      longitude: finalLng,
-    });
+    chart = await computeVedicChartSwiss(
+      {
+        ...dateParts,
+        ...timeParts,
+        tzOffset: finalTzOffset,
+        latitude: finalLat,
+        longitude: finalLng,
+      },
+      { origin: req.nextUrl.origin, requestUrl: req.url },
+    );
   } catch (error) {
     const message = clean((error as Error)?.message || error, 120);
     console.error("[vedic-reading] calculation failed", { message });
