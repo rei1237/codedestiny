@@ -78,8 +78,11 @@ type FormState = {
 
 const FEATURE_KEY = "astrology-ai-consultation";
 const FEATURE_TITLE = "점성술 전문가 상담";
-const FEATURE_COST = 390;
-const FEATURE_AMOUNT_KRW = 39000;
+// 가격 정본은 worker/lib/paid-feature-registry.js 의 "astrology-ai-consultation"(300코인 / 30,000원).
+// 여기 값은 서버가 runtimeGate 로 가격을 실어 주지 못했을 때의 폴백일 뿐인데, 390/39,000 으로 어긋나
+// 있어 결제창에 39,000원을 보여 주고 실제로는 30,000원이 청구될 수 있었다. 정본과 어긋나게 두지 말 것.
+const FEATURE_COST = 300;
+const FEATURE_AMOUNT_KRW = 30000;
 const API_ENDPOINTS = {
   ensureAccess: "/api/astrology-ai/ensure-access",
   start: "/api/astrology-ai/start",
