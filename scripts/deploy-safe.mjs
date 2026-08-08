@@ -2,7 +2,13 @@
 
 /*
  * Local Cloudflare release pipeline: check -> preview -> smoke -> production -> rollback.
- * The pipeline never performs payment, LLM, or database writes.
+ * The pipeline never performs payment or LLM calls. It also never holds production DB
+ * credentials itself (loadEnv() deliberately excludes MONGO_URI, AUTH_*, PORTONE_* so
+ * build/lint/typecheck children never see them) — with one scoped exception: when
+ * CD_PREVIEW_TEST_EMAIL/PASSWORD are set, openPreviewSignedIn() shells out to
+ * scripts/seed-preview-test-account.mjs as an isolated child process (which loads its own
+ * MONGO_URI) to guarantee that account has a FAMILY pass, moonstones, and a profile card
+ * before every preview open. That write only ever touches the one seed account.
  */
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -440,6 +446,12 @@ function openInBrowser(url) {
  * 붙으므로 프로덕션 세션과 섞이지 않는다.
  *
  * 자격증명이 없으면 조용히 기본 브라우저로 폴백한다 — 로그인은 편의지 검증의 전제가 아니다.
+ *
+ * 로그인 시도 전에 scripts/seed-preview-test-account.mjs 를 매번 재실행해, FAMILY 이용권·
+ * 월정석·프로필 카드(생년월일)가 항상 최신 상태로 있음을 보장한다("무조건 적용되어 열려야
+ * 한다" 요구사항). $set 멱등 upsert 라 재실행 비용은 낮다. 이 자식 프로세스만 자체적으로
+ * .env.local 에서 MONGO_URI 를 읽으며(loadEnv() 는 그대로 필터링 유지), 실패해도 로그인
+ * 시도 자체는 계속한다 — 계정이 이미 있으면 시딩 실패가 프리뷰를 막을 이유는 없다.
  */
 async function openPreviewSignedIn(url) {
   if (!openPreview || !url) return null;
@@ -449,6 +461,19 @@ async function openPreviewSignedIn(url) {
     console.log("[deploy-safe] CD_PREVIEW_TEST_EMAIL/PASSWORD not set; opening the preview signed out.");
     openInBrowser(url);
     return null;
+  }
+  console.log("[deploy-safe] ensuring preview test account has FAMILY pass + profile card (writes production DB via scripts/seed-preview-test-account.mjs)...");
+  const seed = spawnSync(process.execPath, [path.join(root, "scripts", "seed-preview-test-account.mjs")], {
+    cwd: root,
+    env: process.env,
+    encoding: "utf8",
+    windowsHide: true,
+  });
+  if (seed.status !== 0) {
+    console.log("[deploy-safe] seed-preview-test-account failed (continuing to attempt login anyway):");
+    console.log(String(seed.stderr || seed.stdout || "").trim());
+  } else {
+    console.log("[deploy-safe] preview test account seeded.");
   }
   try {
     const { chromium } = await import("@playwright/test");

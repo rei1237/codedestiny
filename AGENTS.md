@@ -62,13 +62,13 @@ git push origin main        backup
 
 A preview's `/api` is not a sandbox. `public/_worker.js` proxies it to the production Worker, which reads the production database — there is no staging DB. So a signed-out preview shows the payment dialog on every paid screen and nothing can be verified.
 
-`deploy:safe` opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`. Create that account once:
+`deploy:safe` opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`. Put those two variables in `.env.local` once — no manual seed step needed after that:
 
 ```bash
-npm run seed:preview-test-account
+npm run seed:preview-test-account   # optional: run once by hand to sanity-check credentials
 ```
 
-It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. It also seeds one `ProfileCard` with a fixed birth date (1990-01-01 09:00, solar) and sets it as the account's `destinyProfilesCurrentId`, so paid screens have real profile data selected on first load instead of an empty birth-date form. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly and cannot be injected; the cookie carries no `Domain`, so it binds to the preview host only and never mixes with a production session. Without the two variables the preview still opens, just signed out.
+`openPreviewSignedIn()` in `scripts/deploy-safe.mjs` re-runs this script automatically, as an isolated child process, right before every signed-in preview open — so the account is guaranteed fresh on every `deploy:safe`/`deploy:preview`, not just the first time. It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. It also seeds one `ProfileCard` with a fixed birth date (1990-01-01 09:00, solar) and sets it as the account's `destinyProfilesCurrentId`, so paid screens have real profile data selected on first load instead of an empty birth-date form. This is the one scoped exception to "the pipeline never performs database writes" — the child process loads its own `MONGO_URI` from `.env.local`; `deploy-safe.mjs`'s own process env, and everything else it spawns (build/lint/typecheck), never sees it. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly and cannot be injected; the cookie carries no `Domain`, so it binds to the preview host only and never mixes with a production session. Without the two variables the preview still opens, just signed out — and the seed step is skipped entirely.
 
 What that account does **not** cover:
 

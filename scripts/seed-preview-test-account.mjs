@@ -45,7 +45,7 @@ function arg(name, fallback = "") {
 
 const email = arg("email", process.env.CD_PREVIEW_TEST_EMAIL || "").toLowerCase();
 const password = arg("password", process.env.CD_PREVIEW_TEST_PASSWORD || "");
-const stones = Number(arg("stones", process.env.CD_PREVIEW_TEST_STONES || "300"));
+const stones = Number(arg("stones", process.env.CD_PREVIEW_TEST_STONES || "30000"));
 const days = Number(arg("days", process.env.CD_PREVIEW_TEST_PASS_DAYS || "3650"));
 
 function fail(message) {
