@@ -184,11 +184,12 @@ async function main() {
   });
 
   const rows = [];
+  let animals = [];
   try {
     const page = await browser.newPage();
     page.on('console', (m) => { if (m.type() === 'error') console.error('  [page]', m.text()); });
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'load' });
-    await page.evaluate(() => window.__boot());
+    animals = await page.evaluate(() => window.__boot());
 
     for (const file of files) {
       const label = relative(dir, dirname(file)) || '(라벨없음)';
@@ -216,7 +217,7 @@ async function main() {
   }
 
   report(rows);
-  if (flag('emit')) emit(rows);
+  if (flag('emit')) emit(rows, animals);
 }
 
 function report(rows) {
@@ -264,7 +265,82 @@ function report(rows) {
   console.log(`   사진 품질 중앙 ${fmt(median(rows.map((r) => r.features.qualityScore)), 0)} · 여성형 점수 중앙 ${fmt(median(rows.map((r) => r.femininity)), 0)}\n`);
 }
 
-function emit() { /* 커밋 4에서 구현 */ }
+// ── --emit: 라벨(폴더명) 사진에서 아키타입 중심점을 뽑아 붙여넣을 코드를 찍는다 ──
+// 스코어러는 이미 가중 최근접-중심점 분류기라, 손으로 찍은 중심점을 실측 중심점으로
+// 바꾸는 것은 코드가 아니라 데이터 교체다. 런타임 모델·네트워크·LLM 은 개입하지 않는다.
+function emit(rows, animals) {
+  const engineSrc = readFileSync(resolve(root, 'AnalysisEngine.js'), 'utf8');
+  // 이름→id 는 소스 정규식이 아니라 실제 animalDb 에서 받는다 (__boot 반환값).
+  const nameToId = new Map(animals.map((a) => [a.name, a.id]));
+
+  const byLabel = new Map();
+  for (const r of rows) {
+    if (r.label === '(라벨없음)') continue;
+    if (!byLabel.has(r.label)) byLabel.set(r.label, []);
+    byLabel.get(r.label).push(r);
+  }
+  if (!byLabel.size) {
+    console.log('── --emit: 라벨 폴더가 없습니다. calibration/강아지/1.jpg 처럼 동물상 이름 폴더로 나눠 주세요.\n');
+    return;
+  }
+
+  console.log('── 실측 중심점 (AnalysisEngine.js 의 archetypes 표에서 해당 행을 덮어쓰세요) ──');
+  console.log('   중앙값을 씁니다 — n이 작을 때 각도 나쁜 사진 한 장이 평균을 망가뜨립니다.\n');
+
+  const emitted = [];
+  for (const [label, group] of [...byLabel].sort()) {
+    // 폴더명이 '강아지' 여도 '강아지상' 으로 등록돼 있으므로 양쪽을 다 시도한다.
+    const id = nameToId.get(label) || nameToId.get(`${label}상`);
+    if (!id) {
+      console.log(`  ⚠ '${label}' — animalDb 에 없는 이름입니다. 폴더명을 동물상 이름으로 맞춰 주세요.`);
+      continue;
+    }
+    if (group.length < 3) {
+      console.log(`  ⚠ '${label}' n=${group.length} — 3장 미만은 중심점을 내지 않습니다.`);
+      continue;
+    }
+    const pick = (k) => median(group.map((r) => r.features[k]));
+    const row = {
+      face: pick('faceRatio'), slant: pick('eyeSlant'), dist: pick('eyeDistRatio'),
+      nose: pick('noseWidthRatio'), mouth: pick('mouthRatio'), eye: pick('eyeRatio')
+    };
+    console.log(`  '${id}': { face: ${fmt(row.face)}, slant: ${fmt(row.slant, 1)}, dist: ${fmt(row.dist)}, nose: ${fmt(row.nose)}, mouth: ${fmt(row.mouth)}, eye: ${fmt(row.eye)} },  // n=${group.length}, ${label}`);
+    emitted.push({ id, label, row, n: group.length });
+  }
+
+  // 중심점만 바꿔서는 부족한 경우가 대부분이다 — 그 동물의 보너스 블록 게이트가
+  // 새 중심점을 통과 못 하면 실제 그 얼굴에 보너스가 한 번도 지급되지 않는다.
+  const warnings = [];
+  for (const { id, label, row } of emitted) {
+    for (const g of readFaceRatioGates(engineSrc, id)) {
+      const pass = g.op === '<=' ? row.face <= g.value : row.face >= g.value;
+      if (!pass) warnings.push(`  ⚠ ${label}(${id}) 중심점 face=${fmt(row.face)} 가 AnalysisEngine.js:${g.line} 의 (faceRatio ${g.op} ${g.value}) 를 통과 못 함`);
+    }
+  }
+  if (warnings.length) {
+    console.log('\n── 임계값 정합성 경고 ──');
+    console.log('   중심점을 고쳐도 아래 게이트가 막으면 그 동물상은 여전히 안 나옵니다.\n');
+    warnings.forEach((w) => console.log(w));
+  }
+  console.log('');
+}
+
+// 특정 동물 보너스 블록 안의 faceRatio 게이트를 줄 번호와 함께 뽑는다.
+function readFaceRatioGates(src, id) {
+  const lines = src.split('\n');
+  const gates = [];
+  let depth = 0, inBlock = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!inBlock && new RegExp(`c\\.animal\\.id === '${id}'`).test(line)) { inBlock = true; depth = 0; }
+    if (!inBlock) continue;
+    depth += (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+    const m = /features\.faceRatio\s*(<=|>=)\s*([\d.]+)/.exec(line);
+    if (m) gates.push({ line: i + 1, op: m[1], value: +m[2] });
+    if (depth <= 0 && /\}/.test(line)) inBlock = false;
+  }
+  return gates;
+}
 
 main().catch((err) => {
   console.error('[physio-calibrate] 실패:', err);
