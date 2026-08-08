@@ -17,6 +17,16 @@ export type CheckoutFunnelEventName =
   | "pass_store_entered"
   | "checkout_dismissed";
 
+/**
+ * 결제창 단일 인스턴스 락 토큰. 세 렌더러(정적 셸 · React · 독립 정적)가 공유하며,
+ * 실제 상태는 window.__cdPaymentChoiceLock 에 산다(모듈 인스턴스가 둘이라 클로저에 둘 수 없다).
+ */
+export type PaymentChoiceLockToken = {
+  owner: string;
+  startedAt: number;
+  node: Element | null;
+};
+
 export type CheckoutFunnelPayload = {
   featureKey?: string;
   option?: string;
@@ -32,6 +42,18 @@ declare const checkoutEntry: {
   RETURN_TTL_MS: number;
   FUNNEL_PATH: string;
   PASS_STORE_PLAN_ORDER: CheckoutStorePlan[];
+  /** 세 렌더러가 붙이는 결제창 노드를 모두 잡는 선택자. */
+  CHOICE_MODAL_SELECTOR: string;
+  CHOICE_LOCK_TTL_MS: number;
+  /** 결제창을 열 권리. 이미 열려 있으면 null(호출부는 기존 모달에 포커스를 주고 'cancel'). */
+  acquirePaymentChoiceLock(owner: string): PaymentChoiceLockToken | null;
+  /** 결제창 노드가 실제로 붙은 뒤 락에 연결한다(스윕이 살려둘 노드로 인식). */
+  attachPaymentChoiceNode(token: PaymentChoiceLockToken | null, node: Element | null): boolean;
+  releasePaymentChoiceLock(token: PaymentChoiceLockToken | null): boolean;
+  getPaymentChoiceLockNode(): Element | null;
+  /** 살아 있는 락이 붙든 노드와 keepNode 를 뺀 결제창 노드를 전부 제거하고 개수를 돌려준다. */
+  sweepOrphanChoiceModals(keepNode?: Element | null): number;
+  hasOpenPaymentChoiceModal(): boolean;
   /**
    * 결제창 문구 조회. 세 렌더러가 같은 키·같은 사전(public/i18n)을 보게 하는 지점.
    * 한국어 fallback 이 ko 정본이므로 ko.json 과 항상 함께 맞춘다.

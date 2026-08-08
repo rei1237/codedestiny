@@ -5848,6 +5848,20 @@ function _cdAIPromptGate(input) {
       if (openResult && openResult.status === 'granted') {
         return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
       }
+      // 🔴 '이미 확인 중'은 결제 실패가 아니라 앞 시도가 아직 안 끝났다는 뜻이다. 예전에는 이것까지
+      // 같은 402 문구로 뭉개져, 결제창이 아예 안 뜬 채 "이용권 또는 단건결제 확인 후…"만 보였고
+      // 사용자에게는 원인 없는 간헐 실패로 읽혔다. 사유를 살려 다르게 안내한다.
+      if (openResult && String(openResult.reason || '') === 'already_checking') {
+        return normalize({
+          ok: false,
+          status: 409,
+          payload: {
+            code: 'PAYMENT_IN_PROGRESS',
+            message: '이전 결제 확인이 아직 진행 중입니다. 잠시 후 다시 시도해 주세요.',
+            requiredCoins: cost
+          }
+        });
+      }
       return normalize({
         ok: false,
         status: 402,

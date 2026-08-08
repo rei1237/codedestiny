@@ -2622,6 +2622,33 @@
   function _dpCheckoutEntry() {
     try { return window.__cdCheckoutEntry || null; } catch (_checkoutEntryError) { return null; }
   }
+  // 🔴 결제창 단일 인스턴스 정본도 checkout-entry 하나다. 이 렌더러는 고정 id(#cdStandalonePaymentChoice)
+  // 를 기존 노드 확인 없이 append 하고 있어, 연속 클릭이면 같은 id 오버레이가 2개 깔렸다(셸 쌍둥이엔
+  // 있는 가드가 여기만 빠져 있었다). 자체 락을 새로 만들지 않고 공용 것을 쓴다.
+  function _dpSweepOrphanChoiceModals(keepNode) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.sweepOrphanChoiceModals !== 'function') return 0;
+    try { return api.sweepOrphanChoiceModals(keepNode || null); } catch (_sweepError) { return 0; }
+  }
+  function _dpAcquireChoiceLock(node) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.acquirePaymentChoiceLock !== 'function') return null;
+    try {
+      var token = api.acquirePaymentChoiceLock('standalone');
+      if (token) api.attachPaymentChoiceNode(token, node || null);
+      return token;
+    } catch (_acquireError) { return null; }
+  }
+  function _dpReleaseChoiceLock(token) {
+    var api = _dpCheckoutEntry();
+    if (!api || !token || typeof api.releasePaymentChoiceLock !== 'function') return false;
+    try { return api.releasePaymentChoiceLock(token); } catch (_releaseError) { return false; }
+  }
+  function _dpOpenChoiceModalNode() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.getPaymentChoiceLockNode !== 'function') return null;
+    try { return api.getPaymentChoiceLockNode(); } catch (_lockNodeError) { return null; }
+  }
   // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
   function _dpShouldUseAppStoreEntry() {
     var api = _dpCheckoutEntry();
@@ -9953,6 +9980,20 @@
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
       var settled = false;
+      var choiceLockToken = null;
+      // 🔴 이미 결제창이 떠 있으면(다른 렌더러 것 포함) 두 번째를 붙이지 않는다 — 셸의
+      // __cdDirectPaymentChoiceActive 가드와 같은 계약이다. 여기만 이 확인이 빠져 있어서, 고정 id
+      // 오버레이가 두 겹으로 깔리고 아래 깔린 창이 살아 있는 keydown 리스너와 미해결 프로미스를
+      // 붙든 채 남았다(사용자가 본 "다시 누르니 다른 결제창").
+      var openChoiceNode = _dpOpenChoiceModalNode();
+      if (openChoiceNode) {
+        try {
+          var openFocus = openChoiceNode.querySelector('[data-mode]:not([disabled]), .cd-direct-payment-cancel');
+          if (openFocus && typeof openFocus.focus === 'function') openFocus.focus();
+        } catch (_openFocusError) {}
+        resolve('cancel');
+        return;
+      }
       var root = document.createElement('div');
       root.id = 'cdStandalonePaymentChoice';
       root.className = 'cd-direct-payment-modal is-open';
@@ -10078,6 +10119,8 @@
         if (settled) return;
         settled = true;
         try { document.removeEventListener('keydown', onKey, true); } catch (_) {}
+        _dpReleaseChoiceLock(choiceLockToken);
+        choiceLockToken = null;
         if (root.parentNode) root.parentNode.removeChild(root);
         var resolved = (choice === 'direct' || choice === 'monthly' || choice === 'pass') ? choice : 'cancel';
         if (resolved === 'cancel' && !leavingForPassStore) {
@@ -10158,7 +10201,11 @@
         if (e.target === root) finish('cancel'); // 배경 클릭 = 취소
       });
       document.addEventListener('keydown', onKey, true);
+      // 🔴 붙이기 직전에 남의(그리고 내 옛) 고아 결제창을 걷어낸다. 안 걷으면 같은 id 오버레이가
+      // 두 겹으로 깔려, 아래 깔린 창이 살아 있는 keydown 리스너와 미해결 프로미스를 붙든 채 남는다.
+      _dpSweepOrphanChoiceModals(root);
       document.body.appendChild(root);
+      choiceLockToken = _dpAcquireChoiceLock(root);
       // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
       _dpTrackCheckoutEvent('checkout_opened', {
         coinPrice: cost,

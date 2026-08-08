@@ -1183,8 +1183,30 @@ function renderResult(){
 }
 
 /* ═══ 10) 결제 게이트 — 이용권 선검사 → 미커버 시에만 결제창 ═══ */
+// 🔴 중복 클릭 방어가 #overlay(CSS 전면 오버레이) 하나뿐이었다. 오버레이가 늦게 붙거나 예외로 내려간
+// 사이의 두 번째 클릭은 그대로 두 번째 게이트를 열었고, requestId 도 Date.now() 뿐이라(랜덤 접미사
+// 없음) 멱등에 걸리지도, 확실히 갈라지지도 않는 어중간한 값이었다. 진행 중이면 **같은 프로미스에
+// 합류**시킨다 — 셸의 _cdJoinPaidServiceSingleFlight 와 같은 계약이다.
+var _petPaidGateInFlight = Object.create(null);
+var PET_PAID_GATE_TTL_MS = 60000;
+
 function runPaidGate(spec){
-  var requestId = "pet-" + spec.key + "-" + Date.now().toString(36);
+  var inFlightKey = String(spec && spec.key || "pet-paid");
+  var active = _petPaidGateInFlight[inFlightKey];
+  if (active && (Date.now() - active.startedAt) < PET_PAID_GATE_TTL_MS) return active.promise;
+  var promise = runPaidGateOnce(spec);
+  _petPaidGateInFlight[inFlightKey] = { promise: promise, startedAt: Date.now() };
+  var clear = function(){
+    if (_petPaidGateInFlight[inFlightKey] && _petPaidGateInFlight[inFlightKey].promise === promise) {
+      delete _petPaidGateInFlight[inFlightKey];
+    }
+  };
+  promise.then(clear, clear);
+  return promise;
+}
+
+function runPaidGateOnce(spec){
+  var requestId = "pet-" + spec.key + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
   var gatePayload = {
     categoryKey: "premium-consultation",
     featureKey: spec.key,

@@ -26,7 +26,19 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
 import checkoutEntry from "@/js/core/checkout-entry.js";
-import paymentService from "@/js/core/payment-service.js";
+import bundledPaymentService from "@/js/core/payment-service.js";
+
+// 🔴 payment-service.js 는 classic script(window.CodeDestinyPaymentService)와 webpack import 두 경로로
+// 로드돼 **인스턴스가 둘**이다. 각 인스턴스는 자기만의 paymentWindowRenderer / commandInFlight 클로저를
+// 갖기 때문에, 번들 인스턴스에 렌더러를 등록하고 셸·독립 정적이 전역 인스턴스를 읽으면 서로를 못 본다
+// (= 시도마다 다른 결제창이 뜨는 원인). 전역이 있으면 그쪽을 정본으로 쓰고, 없을 때만 번들을 쓴다.
+// pass-verdict / checkout-entry 가 쓰는 legacy-core-runtime 프록시와 같은 취지지만, 그쪽은 런타임이
+// 아직 없으면 throw 한다 — 결제 임계경로에서는 폴백이 있어야 하므로 여기서는 폴백을 둔다.
+function resolvePaymentService(): typeof bundledPaymentService {
+  if (typeof window === "undefined") return bundledPaymentService;
+  const shared = (window as unknown as { CodeDestinyPaymentService?: typeof bundledPaymentService }).CodeDestinyPaymentService;
+  return shared && typeof shared.registerPaymentWindow === "function" ? shared : bundledPaymentService;
+}
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -489,7 +501,7 @@ const billingBalanceInFlightByUser = new Map<string, Promise<BillingResult<Billi
 const billingBalanceRecentByUser = new Map<string, { result: BillingResult<BillingBalanceData>; expiresAt: number }>();
 let billingBalanceCacheVersion = 0;
 let paidServiceRuntimePromise: Promise<PaidServiceRuntimeGate | null> | null = null;
-let reactPaymentChoiceInFlight: { promise: Promise<PaymentChoiceMode>; startedAt: number } | null = null;
+let reactPaymentChoiceInFlight: { promise: Promise<PaymentChoiceMode>; startedAt: number; settled: boolean } | null = null;
 
 function resolveBillingBalanceUserKey(): string {
   if (typeof window === "undefined") return "guest";
@@ -963,8 +975,12 @@ function openMembershipPassStore(coinPrice: number, currentTier?: string, featur
   window.location.assign("/points?source=react-payment-pass-store");
 }
 
-function hasActiveReactPaymentChoiceModal() {
-  return typeof document !== "undefined" && Boolean(document.querySelector("[data-cd-react-payment-choice]"));
+// 🔴 예전에는 "[data-cd-react-payment-choice] 노드가 DOM 에 있는가"로 인플라이트를 판단했다.
+// 그 판정은 양방향으로 틀렸다 — ① close("direct") 가 노드를 최대 6초 남기므로 그 사이 재클릭이
+// **이미 끝난 옛 프로미스**를 그대로 돌려받았고 ② 라우트 전환 등으로 노드만 사라지면 아직 pending 인
+// 프로미스를 버려 영영 resolve 되지 않았다. 이제 프로미스의 settle 여부만 본다.
+function paymentChoiceSettled(state: { settled: boolean } | null) {
+  return !state || state.settled;
 }
 
 function ensureReactPaymentChoiceStyles() {
@@ -1040,15 +1056,19 @@ function ensureReactPaymentChoiceStyles() {
 
 async function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
   const now = Date.now();
-  if (reactPaymentChoiceInFlight && now - reactPaymentChoiceInFlight.startedAt < PAYMENT_CHOICE_IN_FLIGHT_TTL_MS && hasActiveReactPaymentChoiceModal()) {
+  if (reactPaymentChoiceInFlight
+    && now - reactPaymentChoiceInFlight.startedAt < PAYMENT_CHOICE_IN_FLIGHT_TTL_MS
+    && !paymentChoiceSettled(reactPaymentChoiceInFlight)) {
     return reactPaymentChoiceInFlight.promise;
   }
   reactPaymentChoiceInFlight = null;
 
   const promise = openReactPaymentChoiceModalInner(options || {});
-  reactPaymentChoiceInFlight = { promise, startedAt: now };
+  const state = { promise, startedAt: now, settled: false };
+  reactPaymentChoiceInFlight = state;
   return promise.finally(() => {
-    if (reactPaymentChoiceInFlight?.promise === promise) reactPaymentChoiceInFlight = null;
+    state.settled = true;
+    if (reactPaymentChoiceInFlight === state) reactPaymentChoiceInFlight = null;
   });
 }
 
@@ -1058,7 +1078,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   }
 
   ensureReactPaymentChoiceStyles();
-  document.querySelectorAll("[data-cd-react-payment-choice]").forEach((node) => node.parentNode?.removeChild(node));
+  // 🔴 예전에는 React 자기 노드만 지웠다. 셸(.cd-direct-payment-modal)·독립 정적(#cdStandalonePaymentChoice)
+  // 이 남긴 고아 결제창은 그대로 깔려 있어 "실패 후 다시 누르니 다른 결제창"으로 보였다.
+  // 세 렌더러 공통 스윕은 checkout-entry 하나가 소유한다.
+  checkoutEntry.sweepOrphanChoiceModals(null);
 
   const opts = options || {};
   const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
@@ -1187,6 +1210,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   return new Promise((resolve) => {
     let settled = false;
     let removeBalanceListener: (() => void) | null = null;
+    // 세 렌더러가 공유하는 결제창 락 토큰(checkout-entry 소유). append 직후 획득, close 에서 해제.
+    let sharedChoiceLockToken: ReturnType<typeof checkoutEntry.acquirePaymentChoiceLock> = null;
     const modal = document.createElement("div");
     modal.className = "cd-direct-payment-modal is-open";
     modal.dataset.cdReactPaymentChoice = "1";
@@ -1226,6 +1251,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (settled) return;
       settled = true;
       if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
+      // 단건 핸드오프로 노드를 6초 남기는 경우에도 공용 락은 반드시 푼다 — 남은 노드는 다음 결제창이
+      // 열릴 때 스윕이 걷어간다. 락을 쥔 채로 두면 재제안 자체가 막힌다(셸과 같은 계약).
+      if (sharedChoiceLockToken) {
+        checkoutEntry.releasePaymentChoiceLock(sharedChoiceLockToken);
+        sharedChoiceLockToken = null;
+      }
       unlockBodyScroll();
       // 🔴 단건만 화면에 남긴다 — 클릭한 버튼이 disabled + .is-loading 인 채로 보여
       // 'PG 결제창을 여는 중'이 그 자리에서 읽힌다(전체화면 대기 오버레이를 없앤 자리를 메운다).
@@ -1465,8 +1496,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // endPayment() 까지 살아 있어서 결제창 위에 그대로 겹쳐 보였다. 셸 경로는
     // _cdBeginPreCheckoutWaitUiSuppression()/closeSharedPaidGate() 가 같은 일을 하는데
     // 이 React 렌더러에는 닫는 호출이 아예 없었다.
+    // 스타일 준비와 append 사이에 await 가 있으므로 붙이기 직전에 한 번 더 훑는다(그 사이 다른
+    // 런타임이 결제창을 남겼을 수 있다). append 직후에는 자기 노드를 공용 락에 등록해 셸·독립 정적이
+    // 볼 수 있게 한다 — 락은 close() 에서 반드시 푼다.
+    // 🔴 emitPaymentLoadingState(false) 와 appendChild 사이에는 아무 것도 끼우지 않는다.
+    //    verify:portone-single-payment 가 두 줄의 인접을 리터럴로 고정한다(대기 오버레이 겹침 회귀).
+    checkoutEntry.sweepOrphanChoiceModals(modal);
     emitPaymentLoadingState(false);
     document.body.appendChild(modal);
+    sharedChoiceLockToken = checkoutEntry.acquirePaymentChoiceLock("react");
+    if (sharedChoiceLockToken) checkoutEntry.attachPaymentChoiceNode(sharedChoiceLockToken, modal);
     // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
     checkoutEntry.trackCheckoutEvent("checkout_opened", {
       renderer: "react",
@@ -1501,7 +1540,10 @@ function installReactPaymentChoiceBridge() {
   const runtimeWindow = window as RuntimeApiWindow;
   const canonical = runtimeWindow.__cdChooseServicePaymentModeCanonical;
   if (typeof canonical === "function" && canonical.__cdSupportsPassChoice === true && canonical.__cdReactFallback !== true) {
-    paymentService.registerPaymentWindow(canonical, "canonical-shell");
+    // 🔴 여기서 재등록하지 않는다. 셸이 이미 진짜 렌더러(_cdChooseServicePaymentMode)를
+    // 'canonical-shell' 로 등록해 두었는데, canonical 은 그걸 openPaymentWindow 로 감싼 래퍼다.
+    // 같은 owner 로 다시 넣으면 renderer 가 자기 자신을 가리켜 무한 재귀가 되거나, 최소한 셸의
+    // 실제 렌더러가 사라져 어느 결제창이 뜰지가 로드 순서에 좌우된다.
     return;
   }
   if (runtimeWindow._cdChooseServicePaymentMode?.__cdReactFallback === true) return;
@@ -1509,8 +1551,8 @@ function installReactPaymentChoiceBridge() {
   const choiceBridge: PaymentChoiceFunction = (options) => openReactPaymentChoiceModal(options || {});
   choiceBridge.__cdSupportsPassChoice = true;
   choiceBridge.__cdReactFallback = true;
-  paymentService.registerPaymentWindow(choiceBridge, "react");
-  const serviceBridge: PaymentChoiceFunction = (options) => paymentService.openPaymentWindow(options || {}) as Promise<PaymentChoiceMode>;
+  resolvePaymentService().registerPaymentWindow(choiceBridge, "react");
+  const serviceBridge: PaymentChoiceFunction = (options) => resolvePaymentService().openPaymentWindow(options || {}) as Promise<PaymentChoiceMode>;
   serviceBridge.__cdSupportsPassChoice = true;
   serviceBridge.__cdReactFallback = true;
   runtimeWindow.__cdChooseServicePaymentModeCanonical = serviceBridge;
@@ -3758,7 +3800,7 @@ function emitUnifiedPaymentSuccess(
   );
   const applied = resolveAppliedBillingPayment(data, toText(input.paymentMode), false);
   const unlockMap = asRecord(data.unlockMap) || (featureKey ? { [featureKey]: true } : {});
-  paymentService.reducePaymentSuccess({
+  resolvePaymentService().reducePaymentSuccess({
     operationId,
     requestId,
     productId: toText(input.productId),
@@ -4529,7 +4571,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
 export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
   const requestId = toText(input.requestId || resolvePaidFeatureInFlightKey(input));
   const method = normalizePaymentMode(input.paymentMode) || "PAYMENT_GATE";
-  return paymentService.executePayment({
+  return resolvePaymentService().executePayment({
     method,
     requestId,
     productId: toText(input.productId),

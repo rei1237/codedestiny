@@ -133,6 +133,117 @@
     return false;
   }
 
+  // ── 결제창 단일 인스턴스 락 ────────────────────────────────────────────────────────
+  // 🔴 세 렌더러(정적 셸 · React · 독립 정적)가 각자 자기 락만 갖고 있어 서로를 못 봤다. 그래서
+  // ① 셸이 12초 붙잡아 둔 handoff 모달 위에 재제안 결제창이 덧붙고(index.html _cdHoldHandoffChoiceModal)
+  // ② 독립 정적은 고정 id 를 확인 없이 append 해 같은 id 오버레이가 2개 생기고
+  // ③ React 가드는 DOM 결합이라 셸/독립 모달을 아예 못 봤다.
+  // 셸에만 있던 싱글턴(__cdDirectPaymentChoiceActive, TTL 120초)을 여기로 올려 정본으로 삼는다.
+  // 새 계층을 얹는 게 아니라 흩어진 같은 장치를 한 곳으로 모으는 것이다.
+  //
+  // 🔴 상태는 모듈 클로저가 아니라 window 에 둔다. 이 파일은 classic script(globalThis.__cdCheckoutEntry)
+  // 와 webpack import 두 경로로 로드돼 인스턴스가 둘이므로, 클로저에 두면 React 와 셸이 서로를 못 본다.
+  var CHOICE_LOCK_KEY = "__cdPaymentChoiceLock";
+  var CHOICE_LOCK_TTL_MS = 120000;
+  // 세 렌더러가 붙이는 결제창 노드를 모두 잡는 선택자. 새 렌더러를 만들지 말 것(정본은 셸 인라인).
+  var CHOICE_MODAL_SELECTOR = ".cd-direct-payment-modal, [data-cd-react-payment-choice], #cdStandalonePaymentChoice";
+
+  function removeNode(node) {
+    try {
+      if (node && node.parentNode) node.parentNode.removeChild(node);
+    } catch (_removeError) { /* noop */ }
+  }
+
+  function nodeAttached(node) {
+    try {
+      return !!(node && typeof document !== "undefined" && document.body && document.body.contains(node));
+    } catch (_attachedError) {
+      return false;
+    }
+  }
+
+  /** 만료됐거나 노드가 사라진 락은 스스로 비운다(형제 단일비행 가드들과 같은 계약). */
+  function readChoiceLock() {
+    var win = runtimeWindow();
+    if (!win) return null;
+    var active = win[CHOICE_LOCK_KEY];
+    if (!active) return null;
+    var expired = Date.now() - Number(active.startedAt || 0) > CHOICE_LOCK_TTL_MS;
+    // 노드를 아직 달지 않은 락(획득 직후 ~ appendChild 사이)은 노드 부재로 버리지 않는다.
+    var orphaned = active.node && !nodeAttached(active.node);
+    if (expired || orphaned) {
+      removeNode(active.node);
+      win[CHOICE_LOCK_KEY] = null;
+      return null;
+    }
+    return active;
+  }
+
+  /**
+   * 결제창을 열 권리를 얻는다. 이미 열려 있으면 null 을 돌려주고, 호출부는 기존 모달에 포커스를 주고
+   * 'cancel' 을 반환한다(셸이 이미 쓰던 계약 그대로).
+   */
+  function acquirePaymentChoiceLock(owner) {
+    var win = runtimeWindow();
+    if (!win) return null;
+    if (readChoiceLock()) return null;
+    var token = { owner: text(owner) || "anonymous", startedAt: Date.now(), node: null };
+    win[CHOICE_LOCK_KEY] = token;
+    return token;
+  }
+
+  /** 결제창 노드가 실제로 붙은 뒤 락에 연결한다. 스윕이 '살려둘 노드'로 인식하게 하는 지점. */
+  function attachPaymentChoiceNode(token, node) {
+    var win = runtimeWindow();
+    if (!win || !token) return false;
+    if (win[CHOICE_LOCK_KEY] !== token) return false;
+    token.node = node || null;
+    return true;
+  }
+
+  function releasePaymentChoiceLock(token) {
+    var win = runtimeWindow();
+    if (!win || !token) return false;
+    if (win[CHOICE_LOCK_KEY] !== token) return false;
+    win[CHOICE_LOCK_KEY] = null;
+    return true;
+  }
+
+  function getPaymentChoiceLockNode() {
+    var active = readChoiceLock();
+    return active ? active.node || null : null;
+  }
+
+  /**
+   * 지금 살아 있는 락이 붙든 노드와 keepNode 를 제외한 결제창 노드를 전부 걷어낸다.
+   * 새 결제창을 body 에 붙이기 직전에 호출한다 — 여기가 "옛 결제창이 아래 깔려 있다"를 끝내는 자리다.
+   */
+  function sweepOrphanChoiceModals(keepNode) {
+    if (typeof document === "undefined" || !document.body) return 0;
+    var lockNode = getPaymentChoiceLockNode();
+    var removed = 0;
+    try {
+      var nodes = document.querySelectorAll(CHOICE_MODAL_SELECTOR);
+      for (var i = 0; i < nodes.length; i += 1) {
+        var node = nodes[i];
+        if (node === keepNode || node === lockNode) continue;
+        removeNode(node);
+        removed += 1;
+      }
+    } catch (_sweepError) { /* noop */ }
+    return removed;
+  }
+
+  function hasOpenPaymentChoiceModal() {
+    if (readChoiceLock()) return true;
+    if (typeof document === "undefined") return false;
+    try {
+      return !!document.querySelector(CHOICE_MODAL_SELECTOR);
+    } catch (_queryError) {
+      return false;
+    }
+  }
+
   function sessionStore() {
     try {
       if (typeof sessionStorage === "undefined" || !sessionStorage) return null;
@@ -245,6 +356,14 @@
     RETURN_TTL_MS: RETURN_TTL_MS,
     FUNNEL_PATH: FUNNEL_PATH,
     PASS_STORE_PLAN_ORDER: PASS_STORE_PLAN_ORDER,
+    CHOICE_MODAL_SELECTOR: CHOICE_MODAL_SELECTOR,
+    CHOICE_LOCK_TTL_MS: CHOICE_LOCK_TTL_MS,
+    acquirePaymentChoiceLock: acquirePaymentChoiceLock,
+    attachPaymentChoiceNode: attachPaymentChoiceNode,
+    releasePaymentChoiceLock: releasePaymentChoiceLock,
+    getPaymentChoiceLockNode: getPaymentChoiceLockNode,
+    sweepOrphanChoiceModals: sweepOrphanChoiceModals,
+    hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
     text: checkoutText,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,

@@ -7297,12 +7297,26 @@ function syIsPaidGateGranted(result) {
     || !!payload.consume;
 }
 
+// 🔴 이 함수는 숙요 유료 5종(인연 레이더·인연 도감·궁합·정밀 궁합·극T 관계)의 **유일한** 게이트
+// 진입점인데, 인플라이트 플래그도 버튼 비활성도 없이 fire-and-forget 으로 열려 있었다. 게다가
+// requestId 가 매 호출 랜덤이라 payment-service 의 commandKey 디듀프(method|requestId|productId|
+// featureKey|profileId)가 아예 안 걸렸다 — 연타하면 결제창이 겹쳐 뜨고 이중결제 노출이 가장 컸다.
+// 트리거 5곳을 각각 고치는 대신 여기 한 곳에서 막는다.
+var _sySukuyoPaidGateInFlight = Object.create(null);
+var SY_SUKUYO_PAID_GATE_TTL_MS = 45000;
+
 function syOpenPaidSukuyoFeature(feature, onGranted) {
   var config = feature && typeof feature === 'object' ? feature : {};
   var cost = Math.max(0, Math.floor(Number(config.cost || 0)));
   var featureKey = String(config.key || '').trim();
   var reason = String(config.reason || '숙요점 선택 확장').trim();
   if (!cost || !featureKey || typeof window._cdOpenPaidServiceGate !== 'function') return false;
+  var profileId = syResolveCurrentProfileIdForPaidGate();
+  var inFlightKey = featureKey + '|' + String(profileId || '');
+  var startedAt = Number(_sySukuyoPaidGateInFlight[inFlightKey] || 0);
+  // 형제 가드들과 같은 계약 — 시간으로 자기치유한다(락이 새도 45초 뒤엔 다시 열린다).
+  if (startedAt && (Date.now() - startedAt) < SY_SUKUYO_PAID_GATE_TTL_MS) return true;
+  _sySukuyoPaidGateInFlight[inFlightKey] = Date.now();
   var gateOptions = {
     title: reason,
     reason: reason,
@@ -7310,9 +7324,9 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
     categoryKey: 'sukuyo',
     coinPrice: cost,
     cost: cost,
-    requestId: featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+    // 같은 기능·같은 프로필이면 같은 requestId. 연타가 commandKey 디듀프에 걸려 한 번만 결제된다.
+    requestId: 'sukuyo-paid:' + inFlightKey
   };
-  var profileId = syResolveCurrentProfileIdForPaidGate();
   if (profileId) {
     gateOptions.profileId = profileId;
     gateOptions.selectedProfileId = profileId;
@@ -7322,6 +7336,8 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
     window.alert(message);
+  }).then(function() {
+    delete _sySukuyoPaidGateInFlight[inFlightKey];
   });
   return true;
 }

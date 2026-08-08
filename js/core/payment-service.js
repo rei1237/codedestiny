@@ -230,13 +230,36 @@
     return promise;
   }
 
+  // 🔴 어느 결제창이 그려질지를 "먼저 등록한 쪽이 이김"(= 스크립트 로드 순서)으로 정하면 안 된다.
+  // 같은 페이지에서 시도 1과 시도 2가 서로 다른 렌더러를 그리는 사고가 여기서 났다(디자인은 거의 같은데
+  // 이용권 관련 UI 가 다른 결제창). 정본은 셸 인라인이므로 셸 > React > 독립 정적 순으로 고정하고,
+  // 낮은 우선순위의 등록은 거부하되 **조용히 넘어가지 않고 남긴다** — 예전에는 false 만 돌려줘서
+  // 어느 렌더러가 그렸는지 사후에 알아낼 방법이 없었다.
+  var PAYMENT_WINDOW_OWNER_RANK = { "canonical-shell": 3, react: 2, standalone: 1 };
+
+  function paymentWindowRank(owner) {
+    var rank = PAYMENT_WINDOW_OWNER_RANK[text(owner)];
+    return typeof rank === "number" ? rank : 0;
+  }
+
   function registerPaymentWindow(renderer, owner) {
     if (typeof renderer !== "function") return false;
     var nextOwner = text(owner) || "anonymous";
-    if (paymentWindowRenderer && paymentWindowOwner && paymentWindowOwner !== nextOwner) return false;
+    if (paymentWindowRenderer && paymentWindowOwner && paymentWindowOwner !== nextOwner
+      && paymentWindowRank(nextOwner) < paymentWindowRank(paymentWindowOwner)) {
+      log("PAYMENT_WINDOW_OWNER_REJECTED", { current: paymentWindowOwner, next: nextOwner });
+      return false;
+    }
+    if (paymentWindowOwner && paymentWindowOwner !== nextOwner) {
+      log("PAYMENT_WINDOW_OWNER_REPLACED", { previous: paymentWindowOwner, next: nextOwner });
+    }
     paymentWindowRenderer = renderer;
     paymentWindowOwner = nextOwner;
     return true;
+  }
+
+  function getPaymentWindowOwner() {
+    return paymentWindowOwner;
   }
 
   function openPaymentWindow(options) {
@@ -254,6 +277,7 @@
     executePayment: executePayment,
     reducePaymentSuccess: reducePaymentSuccess,
     registerPaymentWindow: registerPaymentWindow,
+    getPaymentWindowOwner: getPaymentWindowOwner,
     openPaymentWindow: openPaymentWindow,
     registerSnapshotSynchronizer: registerSnapshotSynchronizer,
     scheduleSnapshotSync: scheduleSnapshotSync,
