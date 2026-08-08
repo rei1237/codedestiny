@@ -4196,19 +4196,6 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     domain: builtPrompt.domain || "",
     category: builtPrompt.categoryRubric?.label || "",
   });
-  const factValidation = validateSajuMyeongsikTenGodText(builtPrompt.factCard || "", builtPrompt.factSnapshot);
-  if (!factValidation.ok) {
-    console.warn("[SajuMyeongsikAI] validation mismatch", {
-      requestId: String(body?.requestId || "").slice(0, 120),
-      mismatchCount: factValidation.mismatches.length,
-    });
-    return buildSajuAIPromptError("TEN_GOD_FACT_VALIDATION_FAILED", "명식 십성 기준을 확정하는 중 충돌이 발견되었습니다. 잠시 후 다시 시도해 주세요.", 500);
-  }
-  console.info("[SajuMyeongsikAI] tenGod validation passed", {
-    requestId: String(body?.requestId || "").slice(0, 120),
-    promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-  });
-
   const digestBase = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
@@ -4642,7 +4629,11 @@ async function handleSajuAIConsultationBasis(request) {
     return buildSajuAIPromptError("INVALID_INPUT", "명식 데이터가 필요합니다.", 400);
   }
   try {
-    const built = buildSajuAIPrompt({ question: String(body?.question || "").trim(), sajuResult });
+    // 대기 화면의 실시간 근거 미리보기는 질문을 아직 입력하기 전에도 호출된다(question: '').
+    // buildSajuAIPrompt 는 프롬프트용 질문 분류 때문에 5자 이상을 요구하므로, 여기서 반환하는
+    // analysisBasis(질문과 무관하게 factSnapshot에서만 파생)에는 영향 없는 자리표시 질문으로 채운다.
+    const question = String(body?.question || "").trim() || "명식 근거 확인";
+    const built = buildSajuAIPrompt({ question, sajuResult });
     if (!built?.analysisBasis) return buildSajuAIPromptError("CALCULATION_FAILED", "명식 근거를 계산하지 못했습니다.", 503);
     return json(built.analysisBasis);
   } catch (error) {

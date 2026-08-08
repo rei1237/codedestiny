@@ -4,6 +4,8 @@
 
 let sajuPrompt;
 
+const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+
 beforeAll(async () => {
   sajuPrompt = await import("../../worker/lib/saju-ai-prompt.js");
 });
@@ -94,6 +96,24 @@ describe("Saju AI prompt domain templates", () => {
     expect(built.categoryRubric.domain).toBe("life_direction");
     expect(sajuPrompt.validateSajuMyeongsikTenGodText("임수는 상관으로 작동합니다.", built.factSnapshot).ok).toBe(true);
     expect(sajuPrompt.validateSajuMyeongsikTenGodText("임수는 식신으로 작동합니다.", built.factSnapshot).ok).toBe(false);
+  });
+
+  test("일간 기준 십성 확정표(7번 섹션)는 여러 간지가 한 줄에 나열되므로, 자동 생성된 fact card 자체는 문장 근접 검증(validateSajuMyeongsikTenGodText)의 대상이 아니다", () => {
+    // 확정표는 십성이 서로 다른 10개 천간을 한 줄에 나열하는 구조라, 근접(18자) 검증기를 그대로
+    // 돌리면 모든 일간에서 항상 오탐이 난다(2026-08-08 사고: create 라우트가 100% 500으로 막힘).
+    // 실제 환각 검증은 LLM 생성 결과(validateSajuAIResultText)에서만 수행해야 하므로, 여기서는
+    // 자동 생성 factCard가 다른 일간에서도 이 함정을 그대로 재현한다는 사실만 문서화한다.
+    STEMS.forEach((dayStem) => {
+      const base = buildBaseSajuResult();
+      base.pillars = { y: { g: "戊", j: "辰" }, m: { g: "甲", j: "寅" }, d: { g: dayStem, j: "卯" }, h: { g: "壬", j: "子" } };
+      const built = sajuPrompt.buildSajuAIPromptWithDomain({
+        question: "나의 일과 돈, 관계 흐름을 명식 전체로 자세히 알려줘",
+        sajuResult: base,
+        domain: "life_direction",
+      });
+      const validation = sajuPrompt.validateSajuMyeongsikTenGodText(built.factCard, built.factSnapshot);
+      expect(validation.ok).toBe(false);
+    });
   });
 
   test("각 도메인별 상담 품질 rubric을 프롬프트에 넣는다", () => {
