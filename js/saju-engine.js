@@ -4016,9 +4016,13 @@ function detectJong(p){
   // ── 단일 오행이 70% 미만이면 절대 종격 판별 모달을 띄우지 않음 ──
   if(pct1 < JONG_GA_THRESHOLD) return{isJong:false};
   if(maxPct >= JONG_GA_THRESHOLD) {
-    var dominant = pct1>=pct2 ? dom1 : dom2;
-    var pct = maxPct;
+    // 지배 오행은 실제 최다 오행(dom1)이다. dom2 는 '자신+모오행' 합이라 pct2>=pct1 이 항상
+    // 성립해, 예전 삼항식(pct1>=pct2 ? dom1 : dom2)은 dom1 쪽이 닿지 않는 죽은 분기였다.
+    // 그 결과 동점일 때 cnt 키 순서로 엉뚱한 오행이 뽑혀 대운 길흉이 통째로 뒤집혔다.
+    var dominant = dom1;
     var parEl = parentOf(dominant);
+    // 세력 비율도 지배 오행 기준(자신+모오행)으로 맞춘다.
+    var pct = (cnt[dominant] + (parEl ? (cnt[parEl]||0) : 0)) / total * 100;
     var isGaJong = (pct < JONG_TRUE_THRESHOLD); // 70~80% = 가종격
 
     var jongName;
