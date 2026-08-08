@@ -68,7 +68,7 @@ A preview's `/api` is not a sandbox. `public/_worker.js` proxies it to the produ
 npm run seed:preview-test-account
 ```
 
-It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly and cannot be injected; the cookie carries no `Domain`, so it binds to the preview host only and never mixes with a production session. Without the two variables the preview still opens, just signed out.
+It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. It also seeds one `ProfileCard` with a fixed birth date (1990-01-01 09:00, solar) and sets it as the account's `destinyProfilesCurrentId`, so paid screens have real profile data selected on first load instead of an empty birth-date form. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly and cannot be injected; the cookie carries no `Domain`, so it binds to the preview host only and never mixes with a production session. Without the two variables the preview still opens, just signed out.
 
 What that account does **not** cover:
 

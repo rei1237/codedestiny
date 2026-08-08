@@ -4,7 +4,9 @@
  * 프리뷰 검증용 FAMILY 이용권 계정을 만든다(멱등).
  *
  * 왜 필요한가: 프리뷰의 /api 는 public/_worker.js 가 운영 Worker 로 프록시하므로,
- * 무료 계정으로는 유료 화면이 전부 결제창에서 막혀 검증이 불가능하다.
+ * 무료 계정으로는 유료 화면이 전부 결제창에서 막혀 검증이 불가능하다. 이용권/월정석뿐 아니라
+ * 고정 생년월일(1990-01-01) 프로필 카드도 함께 만들어 "현재 선택된 카드"로 지정하므로,
+ * 로그인 직후부터 화면마다 생년월일을 직접 입력하지 않아도 된다.
  *
  * 🔴 이 스크립트는 운영 MongoDB 에 쓴다. 스테이징 DB 가 없어서(프리뷰가 운영 Worker 를 본다)
  * 다른 선택지가 없다. 건드리는 것은 지정한 이메일의 사용자 문서 1건뿐이다.
@@ -23,7 +25,7 @@ import path from "node:path";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { connectDb, mongoose, resolveMongoDbName } from "../worker/lib/db.js";
-import { User } from "../worker/lib/models.js";
+import { ProfileCard, User } from "../worker/lib/models.js";
 import { grantMonthlyCreditLot } from "../worker/lib/monthly-credit-store.js";
 import { HONEY_PASS_POLICY, PASS_TIERS } from "../worker/lib/profile-limits.js";
 
@@ -108,6 +110,29 @@ async function main() {
   const user = await User.findOne({ email }).select("_id profileSubscription").lean();
   if (!user) fail("Upsert reported success but the user could not be read back.");
 
+  // 프로필 카드(생년월일)는 User.birthDate 같은 레거시 필드가 아니라 별도 ProfileCard 문서다.
+  // 이게 없으면 프리뷰 로그인 직후에도 "선택된 프로필"이 없어 유료 기능마다 생년월일을 수동 입력해야
+  // 한다. 고정 테스트 데이터라 매 실행 $set 으로 덮어써 드리프트 없이 유지한다.
+  const previewProfileId = "preview-test-card";
+  await ProfileCard.updateOne(
+    { userId: user._id, profileId: previewProfileId },
+    {
+      $set: {
+        userId: user._id,
+        profileId: previewProfileId,
+        name: "프리뷰 테스트",
+        gender: "OTHER",
+        birth: { year: 1990, month: 1, day: 1, hour: 9, minute: 0, calType: "solar" },
+        location: { label: "서울", tz: "Asia/Seoul", lng: 127.0, lat: 37.5 },
+      },
+    },
+    { upsert: true },
+  );
+  // 카드를 만드는 것과 "현재 선택된 카드"로 지정하는 것은 별개다(worker/routes/profile.js 가
+  // User.destinyProfilesCurrentId 로 선택 카드를 판정). 이걸 안 하면 카드는 목록에만 있고 화면은
+  // 여전히 미선택 상태로 뜬다.
+  await User.updateOne({ _id: user._id }, { $set: { destinyProfilesCurrentId: previewProfileId } });
+
   if (stones > 0) {
     // lotId 로 멱등하다(userId+type+sourceId 유니크 인덱스). 재실행해도 중복 적립되지 않는다.
     await grantMonthlyCreditLot({ userId: user._id, lotId: "preview-test-seed", amount: stones });
@@ -120,6 +145,7 @@ async function main() {
   console.log("  pass tier    : " + subscription.passTier + " (tier=" + subscription.tier + ")");
   console.log("  pass expires : " + new Date(subscription.expiresAt).toISOString());
   console.log("  moonstones   : " + Number(subscription.membershipCreditBalance || 0));
+  console.log("  profile card : " + previewProfileId + " (birth 1990-01-01 09:00, selected as current)");
   console.log("  profileLimit : " + subscription.profileLimit + " (0 = unlimited)");
   console.log("");
   console.log("  Family covers pass-eligible features without charge, but NOT profile card add/delete —");
