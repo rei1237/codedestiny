@@ -2305,6 +2305,12 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       disablePassChoice: input.disablePassChoice === true,
       skipPassProbe: input.skipPassProbe === true,
       internalMainGate: true,
+      // 🔴 이 호출은 언제나 runBillingCoinGate 의 paymentService.executePayment **안에서** 일어난다.
+      // 런타임 래퍼(js/destiny-profile.js)가 같은 commandKey(method|requestId|productId|featureKey|profileId)
+      // 로 경계를 한 번 더 열면, executePayment 가 in-flight 프로미스를 그대로 되돌려줘 서로를 기다리는
+      // 순환 대기가 된다 — 타임아웃이 없어 결제창이 영영 안 뜨고 "결제 진행 중"에서 멈춘다(#326 회귀).
+      // internalMainGate 를 재사용하지 않는 이유: 그 플래그는 런타임 내부 호출도 쓰고 있어 의미가 겹친다.
+      __cdPaymentCommandActive: true,
       paymentMode: requestedMode || undefined,
       forceDirectPayment: requestedMode === "DIRECT_KRW",
       __cdDirectPaymentChoiceConfirmed: requestedMode === "DIRECT_KRW",

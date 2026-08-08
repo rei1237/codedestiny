@@ -122,6 +122,11 @@ function MobileBottomNav() {
             <li key={tab.key} className="cd-mnav__item">
               <Link
                 href={tab.href}
+                // 정적 셸 홈은 클릭을 handleTabClick 이 문서 로드로 가로채므로 클라이언트 라우팅이
+                // 절대 쓰이지 않는다. 그런데 prefetch 는 살아 있어 "/" 의 RSC 페이로드(/index.txt)를
+                // 받고 그 안의 Float 힌트가 홈 전용 CSS 청크를 preload 한다 — 끝내 쓰이지 않아
+                // 브라우저 경고("preloaded but not used")와 함께 전 페이지에서 헛다운로드가 된다.
+                prefetch={targetsStaticShellHome(tab.href) ? false : undefined}
                 className={loading ? "cd-mnav__link opacity-70" : "cd-mnav__link"}
                 data-nav-key={tab.key}
                 aria-label={tab.ariaLabel}

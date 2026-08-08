@@ -4046,6 +4046,15 @@
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (coinPrice * 100))));
       var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
+      // 🔴 호출자가 이미 결제 서비스 경계 안이면(React 공용 게이트 runBillingCoinGate) 여기서 또 열지 않는다.
+      //    양쪽 commandKey 가 완전히 같아 executePayment 가 바깥 프로미스를 자기 자신에게 되돌려주고,
+      //    바깥은 이 호출이 끝나기를 기다려 영구 교착된다(결제창이 안 뜨고 "결제 진행 중"에서 멈춤).
+      //    React 쪽은 billingCoinGateInFlight + commandInFlight 두 겹으로 이미 중복을 막으므로
+      //    여기서 _dpJoinPaidServiceSingleFlight 까지 얹지 않는다(단일비행 3중 = 중첩 금지 규칙 위반).
+      //    플래그가 없는 호출(정적 셸·독립 정적 페이지)은 종전 그대로 경계를 연다.
+      if (opts.__cdPaymentCommandActive === true) {
+        return Promise.resolve(_dpOpenPaidServiceGateCore(opts));
+      }
       var service = window.CodeDestinyPaymentService;
       if (service && typeof service.executePayment === 'function') {
         return service.executePayment({
