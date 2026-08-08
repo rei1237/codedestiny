@@ -693,7 +693,7 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
 // 대신 202(진행 중)로 수렴하고, 백그라운드(waitUntil) 생성의 완료/실패도 레코드로 전달된다.
 // 식별자(executionId·requestId·profileId)와 과금 필드는 완료 저장(saveSajuAIConsultationResultRecord)의
 // $setOnInsert와 동일 정본을 쓴다 — 불일치 시 폴링이 레코드를 못 찾아 404가 재발한다.
-async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost }) {
+async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedProfileId = String(profileId || "default").trim() || "default";
   const normalizedRequestId = String(requestId || "").trim();
@@ -703,7 +703,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
   const executionId = buildSajuAIPromptExecutionId({ userId, profileId: normalizedProfileId, requestId: normalizedRequestId });
   const paymentId = String(paymentIdentity?.paymentId || "").trim();
   const orderId = String(paymentIdentity?.orderId || normalizedRequestId).trim();
-  await PaidExecutionRecord.findOneAndUpdate(
+  await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
     {
       userId,
       featureId: SAJU_AI_PROMPT_FEATURE_KEY,
@@ -738,13 +738,13 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
       $unset: { error: "", completedAt: "" },
     },
     { upsert: true },
-  ).catch((error) => {
+  )).catch((error) => {
     console.warn("[fortune][saju-ai-prompt] begin generating record failed:", error?.message || error);
   });
   return executionId;
 }
 
-async function saveSajuAIConsultationResultRecord({ auth, body, profileId, requestId, resultId, resultPayload, builtPrompt, consumePayload, paymentIdentity, promptDigest }) {
+async function saveSajuAIConsultationResultRecord({ auth, body, profileId, requestId, resultId, resultPayload, builtPrompt, consumePayload, paymentIdentity, promptDigest, env }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedProfileId = String(profileId || readSajuAIPromptProfileId(body, body?.sajuResult) || "default").trim() || "default";
   const normalizedRequestId = String(requestId || "").trim();
@@ -765,7 +765,9 @@ async function saveSajuAIConsultationResultRecord({ auth, body, profileId, reque
     profileId: normalizedProfileId,
   };
 
-  return PaidExecutionRecord.findOneAndUpdate(
+  // LLM 생성이 이미 성공한 뒤 이 저장 한 번이 흔들리면 정상 생성된 상담문이 통째로 버려지고
+  // runGeneration의 바깥 catch가 "LLM 생성 실패"로 오판해 환불 절차를 탄다 — withMongoRetry로 흡수한다.
+  return withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
     {
       userId,
       featureId: SAJU_AI_PROMPT_FEATURE_KEY,
@@ -813,7 +815,7 @@ async function saveSajuAIConsultationResultRecord({ auth, body, profileId, reque
       },
     },
     { upsert: true, new: true },
-  ).lean();
+  ).lean());
 }
 
 function readSajuAIPromptMonthlyRefundContext(consumePayload = {}, body = {}) {
@@ -3093,7 +3095,7 @@ function normalizePrashnaStoredResult(record) {
   };
 }
 
-async function handleVedicPrashnaSnapshot(request, auth) {
+async function handleVedicPrashnaSnapshot(request, auth, env) {
   const body = await readJson(request);
   let snapshot = null;
   try {
@@ -3112,16 +3114,16 @@ async function handleVedicPrashnaSnapshot(request, auth) {
   }
 
   const executionId = getPrashnaExecutionId(auth.userId, snapshot.orderId);
-  const existing = await PaidExecutionRecord.findOne({
+  const existing = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
     userId: String(auth.userId),
     featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
     orderId: snapshot.orderId,
-  }).lean();
+  }).lean());
   if (existing?.status === "completed") {
     return json(normalizePrashnaStoredResult(existing));
   }
 
-  await PaidExecutionRecord.findOneAndUpdate(
+  await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
     { executionId },
     {
       $setOnInsert: {
@@ -3156,7 +3158,7 @@ async function handleVedicPrashnaSnapshot(request, auth) {
       },
     },
     { upsert: true, returnDocument: "after" },
-  ).lean();
+  ).lean());
 
   return json({
     ok: true,
@@ -3184,11 +3186,11 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   }
 
   const executionId = getPrashnaExecutionId(auth.userId, orderId);
-  const existing = await PaidExecutionRecord.findOne({
+  const existing = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
     userId: String(auth.userId),
     featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
     orderId,
-  }).lean();
+  }).lean());
   if (!existing) {
     return buildVedicPrashnaError("SNAPSHOT_NOT_FOUND", "주문 스냅샷을 찾을 수 없습니다. 다시 생성해 주세요.", 404);
   }
@@ -3277,7 +3279,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
     sourceTransactionId = String(existing.paymentId || existing.idempotencyKey || requestId || "").trim();
   }
 
-  await PaidExecutionRecord.updateOne(
+  await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
     { executionId, status: { $in: ["paid_pending_generation", "generation_failed"] } },
     {
       $set: {
@@ -3310,7 +3312,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
         },
       },
     },
-  );
+  ));
 
   try {
     const prashnaResult = await generatePrashnaPromptResult(env, snapshot, { requestUrl: request.url });
@@ -3325,7 +3327,9 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       generationStatus: "GENERATED",
       paidAt: new Date().toISOString(),
     };
-    await PaidExecutionRecord.updateOne(
+    // 프라슈나 계산이 이미 성공한 뒤 이 저장 한 번이 흔들리면 결과가 통째로 버려지고 아래 catch가
+    // "생성 실패"로 오판해 환불 절차를 탄다(사주 AI 상담과 동일 함정) — withMongoRetry로 흡수한다.
+    await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
       { executionId },
       {
         $set: {
@@ -3347,7 +3351,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
           error: null,
         },
       },
-    );
+    ));
     return json({
       ok: true,
       order: completedOrder,
@@ -3393,7 +3397,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       });
       refundOk = cardRefund.refunded === true;
     }
-    await PaidExecutionRecord.updateOne(
+    await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
       { executionId },
       {
         $set: {
@@ -3422,7 +3426,9 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
           },
         },
       },
-    );
+    )).catch((persistError) => {
+      console.error("[fortune][vedic-prashna] failure record persist failed:", persistError);
+    });
     console.error("[fortune][vedic-prashna] generation failed:", error);
     return buildVedicPrashnaError(
       "PRASHNA_GENERATION_FAILED",
@@ -3435,17 +3441,17 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   }
 }
 
-async function handleVedicPrashnaResult(request, auth) {
+async function handleVedicPrashnaResult(request, auth, env) {
   const url = new URL(request.url);
   const orderId = String(url.searchParams.get("orderId") || "").trim();
   if (!orderId) {
     return buildVedicPrashnaError("ORDER_REQUIRED", "주문 ID가 필요합니다.", 400);
   }
-  const record = await PaidExecutionRecord.findOne({
+  const record = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
     userId: String(auth.userId),
     featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
     orderId,
-  }).lean();
+  }).lean());
   if (!record) {
     return buildVedicPrashnaError("RESULT_NOT_FOUND", "프라슈나 결과를 찾을 수 없습니다.", 404);
   }
@@ -3459,10 +3465,10 @@ async function handleVedicPrashnaResult(request, auth) {
       { orderId, status: record.status },
     );
   }
-  await PaidExecutionRecord.updateOne(
+  await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
     { _id: record._id },
     { $set: { "result.prashnaResult.lastViewedAt": new Date().toISOString() } },
-  );
+  ));
   return json(normalizePrashnaStoredResult(record));
 }
 
@@ -4206,14 +4212,15 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
 
   let preflightAccess = null;
   try {
-    preflightAccess = await findAIPromptPaidAccessEvidence({
+    // 선검사 read를 withMongoRetry로 감싸 일시적 Mongo 버스트를 흡수한다(handleZiweiAIPrompt와 동일 관례).
+    preflightAccess = await withMongoRetry(env, () => findAIPromptPaidAccessEvidence({
       auth,
       featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
       body,
       requestId,
       cost: SAJU_AI_PROMPT_PRICE,
       env,
-    });
+    }));
   } catch (error) {
     if (isSajuAIPromptDbUnavailableError(error)) {
       return buildSajuAIPromptPaidAccessRetryableError();
@@ -4310,6 +4317,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     paymentIdentity,
     chargedCoins,
     membershipCreditCost,
+    env,
   });
 
   logSajuAIPromptStage("LLM_JOB_STARTED", {
@@ -4511,6 +4519,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       consumePayload,
       paymentIdentity,
       promptDigest,
+      env,
     });
     resultPayload.saved = true;
     resultPayload.jobId = savedRecord?.executionId || resultPayload.jobId;
@@ -4577,7 +4586,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       errorMessage: error?.message || error,
     });
     // 백그라운드(waitUntil) 실행에서도 실패가 클라이언트 /status 폴링에 전달되도록 레코드에 기록한다.
-    await PaidExecutionRecord.updateOne(
+    await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
       { executionId: sajuExecutionId },
       {
         $set: {
@@ -4589,7 +4598,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           "result.progress": buildSajuAIProgress(0, "failed", "상담 생성에 실패했어요. 결제 권한은 보존되니 다시 시도해 주세요."),
         },
       },
-    ).catch(() => {});
+    )).catch(() => {});
     return buildSajuAILlmRetryableError({
       chargedCoins,
       membershipCreditCost,
@@ -6390,7 +6399,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      return await handleVedicPrashnaResult(request, auth);
+      return await handleVedicPrashnaResult(request, auth, env);
     }
 
     // 🔴 폐지된 410 톰스톤 3종(charge-simulate·share-reward·subscribe)을 여기 인증 앞으로 당기지 말 것.

@@ -1138,13 +1138,13 @@ async function handleGetCurrentProfile(auth, env) {
   });
 }
 
-async function handleCreateProfile(request, auth) {
+async function handleCreateProfile(request, auth, env) {
   try {
     const [user, count, body] = await Promise.all([
-      User.findById(auth.userId)
+      withMongoRetry(env, () => User.findById(auth.userId)
         .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-        .lean(),
-      ProfileCard.countDocuments({ userId: auth.userId }),
+        .lean()),
+      withMongoRetry(env, () => ProfileCard.countDocuments({ userId: auth.userId })),
       readJson(request),
     ]);
 
@@ -1166,7 +1166,7 @@ async function handleCreateProfile(request, auth) {
     const normalized = normalizeIncomingProfile(rawProfile, count);
     normalized.birth = birthValidation.birth;
 
-    const duplicated = await ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean();
+    const duplicated = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean());
     if (duplicated) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
@@ -1196,14 +1196,14 @@ async function handleCreateProfile(request, auth) {
 
     let created;
     try {
-      created = await ProfileCard.create({
+      created = await withMongoRetry(env, () => ProfileCard.create({
         userId: auth.userId,
         profileId: normalized.profileId,
         name: normalized.name,
         gender: normalized.gender,
         birth: normalized.birth,
         location: normalized.location,
-      });
+      }));
     } catch (error) {
       if (createPayment?.evidence) {
         await refundProfileMutationCreditIfNeeded(auth, {
@@ -1221,7 +1221,7 @@ async function handleCreateProfile(request, auth) {
     const nextCurrentId = String(profile.id || "");
 
     if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
-      await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+      await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } }));
     }
 
     if (createPayment?.requestId) {
@@ -1234,7 +1234,7 @@ async function handleCreateProfile(request, auth) {
       });
     }
 
-    const profiles = await listUserProfiles(auth.userId);
+    const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
 
     return json({
       success: true,
@@ -1362,13 +1362,13 @@ async function handleUpdateCurrent(request, auth, env) {
   });
 }
 
-async function handleUpdateProfile(request, auth, profileIdRaw) {
+async function handleUpdateProfile(request, auth, profileIdRaw, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
 
   const body = await readJson(request);
   const rawProfile = body?.profile && typeof body.profile === "object" ? body.profile : body;
-  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  const existingProfile = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId }).lean());
   if (!existingProfile) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
   const mergedProfile = {
@@ -1410,7 +1410,7 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
 
   let updated;
   try {
-    updated = await ProfileCard.findOneAndUpdate(
+    updated = await withMongoRetry(env, () => ProfileCard.findOneAndUpdate(
       { userId: auth.userId, profileId },
       {
         $set: {
@@ -1421,7 +1421,7 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
         },
       },
       { returnDocument: "after" },
-    ).lean();
+    ).lean());
   } catch (error) {
     await refundProfileMutationCreditIfNeeded(auth, {
       action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
@@ -1452,14 +1452,14 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
     evidence: authorization.evidence,
   });
 
-  const user = await User.findById(auth.userId)
+  const user = await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-    .lean();
+    .lean());
   const subscription = resolveSubscriptionPolicy(user || {});
-  const profiles = await listUserProfiles(auth.userId);
+  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
   const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profileId || profiles[0]?.id || "";
   if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {
-    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+    await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } }));
   }
 
   return json({
@@ -1483,15 +1483,15 @@ async function handleUpdateProfile(request, auth, profileIdRaw) {
   });
 }
 
-async function buildProfileDeleteResponse(auth, profileId, { policy = null, evidence = null, replayed = false } = {}) {
-  const profiles = await listUserProfiles(auth.userId);
-  const user = await User.findById(auth.userId)
+async function buildProfileDeleteResponse(auth, profileId, env, { policy = null, evidence = null, replayed = false } = {}) {
+  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
+  const user = await withMongoRetry(env, () => User.findById(auth.userId)
     .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
+    .lean());
   const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
   const subscription = resolveSubscriptionPolicy(user || {});
   if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {
-    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+    await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } }));
   }
   const metadata = evidence?.metadata || {};
   const chargedCoins = Math.max(0, Math.floor(Number(
@@ -1521,7 +1521,7 @@ async function buildProfileDeleteResponse(auth, profileId, { policy = null, evid
   });
 }
 
-async function handleDeleteProfile(request, auth, profileIdRaw, trace) {
+async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
 
@@ -1535,11 +1535,11 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace) {
   });
   if (replay) {
     if (trace) trace.stage = "delete_replay";
-    return buildProfileDeleteResponse(auth, profileId, { evidence: replay, replayed: true });
+    return buildProfileDeleteResponse(auth, profileId, env, { evidence: replay, replayed: true });
   }
 
   if (trace) trace.stage = "delete_read";
-  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  const existingProfile = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId }).lean());
   if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
   if (trace) trace.stage = "delete_policy";
@@ -1560,7 +1560,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace) {
   if (!claim.ok) return claim.response;
 
   if (trace) trace.stage = "delete_mutation";
-  const deleted = await ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean();
+  const deleted = await withMongoRetry(env, () => ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean());
   if (!deleted) {
     await refundProfileMutationCreditIfNeeded(auth, {
       action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
@@ -1581,7 +1581,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace) {
   });
 
   if (trace) trace.stage = "delete_finalize";
-  return buildProfileDeleteResponse(auth, profileId, { policy: authorization.policy });
+  return buildProfileDeleteResponse(auth, profileId, env, { policy: authorization.policy });
 }
 
 export async function handleProfileRoutes(request, env) {
@@ -1607,7 +1607,7 @@ export async function handleProfileRoutes(request, env) {
     trace.stage = "dispatch";
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
-    if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
+    if (method === "POST" && path === "/") return await handleCreateProfile(request, auth, env);
     if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth, env);
     if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth, env);
 
@@ -1616,10 +1616,10 @@ export async function handleProfileRoutes(request, env) {
       return await handleGetProfileDetail(auth, profileMatch[1], env);
     }
     if (profileMatch && (method === "PATCH" || method === "PUT")) {
-      return await handleUpdateProfile(request, auth, profileMatch[1]);
+      return await handleUpdateProfile(request, auth, profileMatch[1], env);
     }
     if (profileMatch && method === "DELETE") {
-      return await handleDeleteProfile(request, auth, profileMatch[1], trace);
+      return await handleDeleteProfile(request, auth, profileMatch[1], trace, env);
     }
 
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
