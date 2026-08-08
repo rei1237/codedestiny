@@ -1170,7 +1170,21 @@ class AnalysisEngine {
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
       ]);
       this.faceApiModelsLoaded = true;
-      
+
+      // 첫 추론은 TF.js WebGL 백엔드 초기화·셰이더 컴파일을 메인 스레드에서 동기로 치른다.
+      // 촬영 직후(startCapture)가 아니라 여기서 미리 한 번 돌려, 사용자가 사진을 고르는 동안
+      // 그 비용을 지불한다. 빈 캔버스엔 얼굴이 없어 detectSingleFace().withFaceExpressions()
+      // 체인은 표정망을 아예 실행하지 않으므로 두 net을 각각 호출해야 한다.
+      try {
+        const warmCanvas = document.createElement('canvas');
+        warmCanvas.width = 224;
+        warmCanvas.height = 224;
+        await faceapi.detectSingleFace(warmCanvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 }));
+        await faceapi.nets.faceExpressionNet.predictExpressions(warmCanvas);
+      } catch (warmErr) {
+        console.warn('[AnalysisEngine] 표정 모델 예열 실패(무시):', warmErr);
+      }
+
     } catch(e) {
       console.warn('[AnalysisEngine] face-api.js 로드 실패 (표정 분석 비활성화):', e);
     }

@@ -21,7 +21,6 @@ let _phyLongWaitTimer = null;
 let _phyVeryLongWaitTimer = null;
 let _phyAnalysisSourceEl = null;
 let _phyScrollSuppressUntil = 0;
-let _phySectionRenderTimers = [];
 let _phyActiveSectionIndex = 0;
 let _phyMediaPipeReadyPromise = null;
 let _phyActiveLandmarkToken = 0;
@@ -69,11 +68,11 @@ styleLink.textContent = `
     flex-direction: column;
     color: #fff;
     font-family: var(--font-body, 'Pretendard', sans-serif);
-    backdrop-filter: blur(8px);
     overscroll-behavior: contain;
   }
+  /* background가 알파 없는 불투명 그라디언트라 backdrop-filter는 결과가 덮여
+     보이지 않으면서 모바일 GPU 비용만 냈다. 시각 변화 없이 제거. */
   #physiognomy-app.phy-reduced-effects {
-    backdrop-filter: none;
     background: rgba(8, 11, 18, 0.97);
   }
   .phy-header {
@@ -725,11 +724,6 @@ async function ensureFaceMeshReady(timeoutMs) {
   return !!faceMesh;
 }
 
-function clearSectionRenderTimers() {
-  _phySectionRenderTimers.forEach((timerId) => clearTimeout(timerId));
-  _phySectionRenderTimers = [];
-}
-
 function showPreviewSkeleton(show) {
   const el = getEl('previewSkeleton');
   if (!el) return;
@@ -1213,51 +1207,51 @@ function triggerOgwanMoleUnlock() {
 
 function renderSectionCards(container, sections) {
   if (!container) return;
-  clearSectionRenderTimers();
   container.innerHTML = '';
   renderCategoryNav(sections);
 
+  // 카드를 setTimeout으로 하나씩 붙이면 #phyResult가 빈 채로 먼저 노출되고(팝콘),
+  // 레이아웃이 계속 자라 스크롤 목표까지 흔들린다. 리포트 HTML은 이미
+  // createExpertReportSections에서 전량 파싱되므로 쪼갤 이유가 없다.
+  // DocumentFragment로 모아 한 번에 붙여 결과 화면이 완성된 채로 한 프레임에 나타나게 한다.
+  const fragment = document.createDocumentFragment();
+
   sections.forEach((section, index) => {
-    const timerId = setTimeout(() => {
-      const card = document.createElement('section');
-      card.className = 'phy-section-card';
+    const card = document.createElement('section');
+    card.className = 'phy-section-card is-visible';
 
-      const locked = isPremiumOgwanMoleSection(section.title) && !ogwanMoleUnlocked;
+    const locked = isPremiumOgwanMoleSection(section.title) && !ogwanMoleUnlocked;
 
-      const details = document.createElement('details');
-      details.className = 'phy-section-details';
-      details.id = `phySectionDetails-${index}`;
-      if (index < 3 || locked) details.open = true; // 잠긴 프리미엄 섹션은 열어 CTA를 노출
-      details.addEventListener('toggle', () => {
-        if (details.open) setActiveSectionChip(index);
-      });
+    const details = document.createElement('details');
+    details.className = 'phy-section-details';
+    details.id = `phySectionDetails-${index}`;
+    if (index < 3 || locked) details.open = true; // 잠긴 프리미엄 섹션은 열어 CTA를 노출
+    details.addEventListener('toggle', () => {
+      if (details.open) setActiveSectionChip(index);
+    });
 
-      const hint = locked ? '🔒 프리미엄' : (index < 3 ? '핵심' : '자세히 보기');
-      const summary = document.createElement('summary');
-      summary.className = 'phy-section-summary';
-      summary.innerHTML = `<span class="phy-section-title-wrap"><span class="phy-section-index">${index + 1}</span><span class="phy-section-title">${section.title}</span></span><span class="phy-section-hint">${hint}</span>`;
+    const hint = locked ? '🔒 프리미엄' : (index < 3 ? '핵심' : '자세히 보기');
+    const summary = document.createElement('summary');
+    summary.className = 'phy-section-summary';
+    summary.innerHTML = `<span class="phy-section-title-wrap"><span class="phy-section-index">${index + 1}</span><span class="phy-section-title">${section.title}</span></span><span class="phy-section-hint">${hint}</span>`;
 
-      const body = document.createElement('div');
-      body.className = 'phy-section-body';
-      if (locked) {
-        body.innerHTML = buildLockedSectionHtml(section);
-        const cta = body.querySelector('.phy-premium-cta');
-        if (cta) cta.addEventListener('click', triggerOgwanMoleUnlock);
-      } else {
-        body.innerHTML = section.body;
-      }
+    const body = document.createElement('div');
+    body.className = 'phy-section-body';
+    if (locked) {
+      body.innerHTML = buildLockedSectionHtml(section);
+      const cta = body.querySelector('.phy-premium-cta');
+      if (cta) cta.addEventListener('click', triggerOgwanMoleUnlock);
+    } else {
+      body.innerHTML = section.body;
+    }
 
-      details.appendChild(summary);
-      details.appendChild(body);
-      card.appendChild(details);
-      container.appendChild(card);
-
-      requestAnimationFrame(() => {
-        card.classList.add('is-visible');
-      });
-    }, index * 70);
-    _phySectionRenderTimers.push(timerId);
+    details.appendChild(summary);
+    details.appendChild(body);
+    card.appendChild(details);
+    fragment.appendChild(card);
   });
+
+  container.appendChild(fragment);
 }
 
 window.cancelPhysiognomyAnalysis = function cancelPhysiognomyAnalysis() {
@@ -1514,7 +1508,6 @@ window.openPhysiognomyApp = async function() {
   canvasCtx = canvasElement.getContext('2d');
   document.getElementById('physiognomy-app').style.display = "flex";
   abortRunningAnalysis({ keepStatus: true });
-  clearSectionRenderTimers();
   updateStatus('AI 데이터 기반 관상 모델 로딩 중...');
   resetPhysiognomyApp();
   try {
@@ -1557,7 +1550,6 @@ window.closePhysiognomyApp = function() {
 window.resetPhysiognomyApp = function(preserveCompat) {
   abortRunningAnalysis({ keepStatus: true });
   _phyUploadToken += 1;
-  clearSectionRenderTimers();
   isAnalyzing = false;
   analysisComplete = false;
   landmarksData = null;
@@ -1761,7 +1753,13 @@ window.startCapture = async function() {
         ? (_phyAnalysisSourceEl || document.getElementById('phyImage'))
         : document.getElementById('phyVideo');
       if (mediaSource && window.faceAnalysisEngine.faceApiModelsLoaded) {
-        expressionData = await window.faceAnalysisEngine.detectExpressions(mediaSource);
+        // 표정은 선택 항목(exprScore 최대 220 × 0.08)이라 GPU 컨텍스트 손실 등으로 리드백이
+        // 영원히 걸리면 결과 전체를 볼모로 잡지 말고 표정 없이 진행한다.
+        expressionData = await withTimeout(
+          window.faceAnalysisEngine.detectExpressions(mediaSource),
+          5000,
+          'EXPRESSION_TIMEOUT'
+        );
       }
     } catch (exErr) {
       console.warn('표정 감지 실패(무시):', exErr);
@@ -1882,7 +1880,8 @@ function renderResult(result) {
     document.getElementById('compatStartBtn').style.display = 'block';
   }
 
-  setTimeout(scrollResultToTop, 120);
+  // 해금 재렌더는 사용자가 방금 결제한 오관·점 섹션을 보고 있으므로 맨 위로 튕기지 않는다.
+  if (!ogwanMoleUnlocked) requestAnimationFrame(scrollResultToTop);
 }
 
 /**
@@ -1900,7 +1899,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
     if (typeof window.openPastLifeFaceApp !== 'function') {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'PastLifeFaceUI.js?v=h9c01827e559e';
+        script.src = 'PastLifeFaceUI.js?v=h43a6f73e793d';
         script.onload = resolve;
         script.onerror = () => reject(new Error('PAST_LIFE_SCRIPT_LOAD_FAILED'));
         document.head.appendChild(script);
@@ -1998,7 +1997,6 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
   // 궁합 결과 렌더링
   function renderCompatResult(compatResult) {
     stopAnalysisStepFlow();
-    clearSectionRenderTimers();
     let emojiNode = document.getElementById('resEmoji');
     emojiNode.innerText = '💕';
 

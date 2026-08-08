@@ -29,6 +29,17 @@ for (const kw of ['상세 성격 분석', '점\\(痣\\)', '참고사항']) {
   assert.match(ui, new RegExp(`'${kw}'`), `headingKeywords에 '${kw}' 정합`);
 }
 
+// ── 2b. 결과 렌더는 한 프레임에 끝나야 한다 (빈 패널 → 카드 팝콘 재발 방지) ──
+// setTimeout(index*70) 스태거는 #phyResult가 빈 채로 먼저 노출되게 만들고, 레이아웃이
+// 630ms 동안 자라 스크롤 목표까지 흔들었다. 되돌리지 말 것.
+assert.doesNotMatch(ui, /index \* 70/, 'renderSectionCards 카드 지연 삽입(stagger) 재도입 금지');
+assert.match(ui, /const fragment = document\.createDocumentFragment\(\);/, '섹션 카드는 DocumentFragment로 1회 삽입');
+assert.match(ui, /if \(!ogwanMoleUnlocked\) requestAnimationFrame\(scrollResultToTop\);/, '결과 스크롤은 카드 삽입 뒤 rAF 1회 + 해금 재렌더는 튕기지 않음');
+
+// ── 2c. 표정 감지 가드 (동기 셰이더 컴파일은 예열로, 행은 타임아웃으로) ──
+assert.match(ui, /'EXPRESSION_TIMEOUT'/, '표정 감지 타임아웃 가드 유지');
+assert.match(engine, /predictExpressions\(warmCanvas\)/, 'face-api 모델 로드 직후 예열 유지');
+
 // ── 3. 문제4: 오관 5부위 + 게이트 등록 ──
 for (const f of ['browSlant: browSlant', 'BROW_TYPES_JSON', 'let bestBrow', 'EAR_TYPES_JSON', 'let bestEar', 'const renderOgwanLi']) {
   assert.match(engine, new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `AnalysisEngine: ${f}`);
