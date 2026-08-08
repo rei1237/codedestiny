@@ -39,6 +39,19 @@ const TOPICS = ["연애와 인연", "재물과 직업", "인간관계", "가까�
 const TOPIC_MAP: Record<string, string> = { "연애와 인연": "love", "재물과 직업": "money_work", "인간관계": "relationship", "가까운 미래": "daily", "마음과 선택": "mind", "종합적인 흐름": "decision" };
 
 /**
+ * 주제별 추천 질문. 🔴 입력창에 자동으로 채우지 않는다 — 사용자가 누른 것만 들어간다.
+ * 예전에는 주제 칩이 곧바로 입력창을 덮어써서, 고른 적 없는 문장이 질문으로 나갔다.
+ */
+const SUGGESTED_QUESTIONS: Record<string, string[]> = {
+  "연애와 인연": ["지금 이 인연을 계속 이어가도 될까요?", "새로운 인연은 언제쯤 올까요?", "마음을 먼저 표현해도 괜찮을까요?"],
+  "재물과 직업": ["올해 재물 흐름은 언제쯤 풀릴까요?", "지금 이직을 결정해도 될까요?", "돈이 새는 자리가 어디일까요?"],
+  "인간관계": ["어긋난 그 사람에게 먼저 다가가도 될까요?", "거리를 둬야 할 사람이 있을까요?", "오해를 푸는 데 좋은 시기는 언제일까요?"],
+  "가까운 미래": ["앞으로 석 달, 무엇을 조심하면 좋을까요?", "이번 달 가장 중요한 선택은 무엇일까요?", "지금 흐름은 언제쯤 바뀔까요?"],
+  "마음과 선택": ["왜 자꾸 같은 자리에서 망설이게 될까요?", "요즘 마음이 지치는 이유가 무엇일까요?", "둘 중 어느 쪽으로 기울어야 할까요?"],
+  "종합적인 흐름": ["지금 제 삶의 큰 흐름은 어디쯤 와 있나요?", "올해 저에게 가장 큰 변화는 무엇일까요?", "반복되는 패턴이 있다면 무엇일까요?"],
+};
+
+/**
  * 서버는 상담 체계를 하나만 받고, 고르지 않으면 400 으로 막는다.
  * 사용자가 직접 고르기 전까지는 주제에 가장 가까운 체계를 기본값으로 쓴다 — 대화 흐름을
  * 체계 선택 화면으로 끊지 않기 위해서다.
@@ -67,6 +80,25 @@ function makeRequestId() { return `${PAID_FEATURE_KEY}:${Date.now()}-${Math.rand
 
 function welcome(character: Character = "yeoni"): Message[] {
   return [{ id: id(), speaker: "assistant", text: CHARACTER_GREETING[character] }];
+}
+
+/**
+ * 서버가 한국어가 아닌 원문 에러를 흘리면 그대로 보여주지 않는다. 공용 DB 핸들러의
+ * 503 은 "Database is temporarily unavailable." 을 그대로 내려보내는데, 그게 한국어 화면에
+ * 영문으로 박혔다.
+ */
+function friendlyError(value: unknown, fallback = "상담 결과를 준비하지 못했어요. 잠시 후 다시 시도해 주세요.") {
+  const text = value instanceof Error ? value.message : String(value || "");
+  return /[가-힣]/.test(text) ? text : fallback;
+}
+
+/**
+ * 은퇴한 포맷의 상담 기록. 인사말과 안내 줄이 지금 화면과 달라, 그대로 복원하면 옛 대화가
+ * 되살아난다. 지금 클라이언트는 system 말풍선을 만들지 않고 자기소개도 바뀌었다.
+ */
+function isRetiredSessionFormat(list: Message[]) {
+  return list.some((message) => message.speaker === "system"
+    || (message.speaker === "assistant" && String(message.text || "").includes("꽃돼지예요")));
 }
 
 export default function FortuneChatClient() {
@@ -105,10 +137,13 @@ export default function FortuneChatClient() {
     if (!response.ok || !payload) throw new Error("상담방 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     if (payload.session?.sessionId) setSessionId(payload.session.sessionId);
     if (payload.usage) setUsage(payload.usage);
-    if (payload.session?.characterId === "neo") setCharacter("neo");
-    else if (payload.session?.characterId) setCharacter("yeoni");
+    const storedCharacter: Character = payload.session?.characterId === "neo" ? "neo" : "yeoni";
+    if (payload.session?.characterId) setCharacter(storedCharacter);
     if (payload.session?.selectedTopic) setTopic(payload.session.selectedTopic);
-    if (payload.session?.messages?.length) setMessages(payload.session.messages);
+    const stored = payload.session?.messages;
+    // 은퇴 포맷 기록은 복원하지 않고 지금 인사말로 새로 연다. 다음 전송의 persist 가 서버
+    // 목록을 통째로 교체하므로 여기서 따로 쓰지 않는다(판정은 멱등이라 새로고침해도 같다).
+    if (stored?.length) setMessages(isRetiredSessionFormat(stored) ? welcome(storedCharacter) : stored);
   }, [apiBase, params]);
 
   useEffect(() => { void bootstrap().catch((reason) => setError(reason instanceof Error ? reason.message : "상담방을 열지 못했어요.")); }, [bootstrap]);
@@ -209,7 +244,9 @@ export default function FortuneChatClient() {
 
     setBusy(true); setError(""); setNotice("");
     const label = concern || topic;
-    append([{ id: id(), speaker: "user", text: label }], topic);
+    const userMessageId = id();
+    append([{ id: userMessageId, speaker: "user", text: label }], topic);
+    let delivered = false;
 
     try {
       let requestId = makeRequestId();
@@ -231,11 +268,14 @@ export default function FortuneChatClient() {
         attempt = await requestReading(requestId, concern);
       }
 
-      if (attempt.status === 503 && attempt.payload?.retryable) {
-        setError(attempt.payload?.message || "잠시 후 다시 시도해 주세요. 이미 결제하셨다면 추가 결제 없이 이어집니다.");
+      // 재시도 신호는 공용 DB 핸들러에서 error 안에 중첩돼 오기도 한다 — 그때 이 분기를
+      // 놓치면 아래에서 영문 원문이 그대로 화면에 박힌다.
+      const retryable = attempt.payload?.retryable === true || attempt.payload?.error?.retryable === true;
+      if (attempt.status >= 500 || retryable) {
+        setError(friendlyError(attempt.payload?.message, "지금 상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요. 횟수나 결제는 차감되지 않았어요."));
         return;
       }
-      if (!attempt.ok || !attempt.payload?.ok) throw new Error(attempt.payload?.message || "상담 결과를 준비하지 못했어요.");
+      if (!attempt.ok || !attempt.payload?.ok) throw new Error(friendlyError(attempt.payload?.message));
 
       const result = attempt.payload.result || {};
       const evidence = Array.isArray(result.evidenceLines) ? result.evidenceLines : [];
@@ -246,11 +286,21 @@ export default function FortuneChatClient() {
         { id: id(), speaker: "assistant", kind: "cta", text: "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
       ]);
       setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
+      delivered = true;
       setQuestion("");
       await bootstrap();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "상담을 다시 시도해 주세요.");
-    } finally { setBusy(false); }
+      setError(friendlyError(reason, "상담을 다시 시도해 주세요."));
+    } finally {
+      // 결과를 받지 못한 질문은 대화에서 되돌리고 입력창에 남긴다. 예전에는 실패해도 말풍선이
+      // 남고 입력창도 안 비워져, 재시도할 때마다 같은 질문이 하나씩 쌓였다.
+      if (!delivered) setMessages((current) => {
+        const next = current.filter((item) => item.id !== userMessageId);
+        persist(next, topic);
+        return next;
+      });
+      setBusy(false);
+    }
   };
 
   const beginFusion = () => {
@@ -260,7 +310,7 @@ export default function FortuneChatClient() {
 
   const selectTopic = (nextTopic: string) => {
     setTopic(nextTopic);
-    setQuestion((current) => current || nextTopic);
+    // 입력창은 건드리지 않는다. 추천 질문은 아래 칩에서 사용자가 고른 것만 들어간다.
     window.setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -291,6 +341,12 @@ export default function FortuneChatClient() {
   };
 
   const busyLabel = isPaying ? "결제를 확인하고 있어요" : `${CHARACTER_LABEL[character]}가 답을 정리하고 있어요`;
+
+  // 상담을 한 번 받았으면 서버가 준 이어질 질문이, 아직이면 고른 주제의 기본 추천이 뜬다.
+  // 어느 쪽이든 누른 것만 입력창에 들어간다.
+  const suggestions = followUps.length > 0
+    ? { label: "이어서 물어볼까요?", items: followUps }
+    : { label: "이런 질문은 어떠세요?", items: SUGGESTED_QUESTIONS[topic] || [] };
 
   return <main className={styles.room} data-character={character}>
     <header className={styles.header}>
@@ -344,9 +400,9 @@ export default function FortuneChatClient() {
         <button className={styles.birthReload} type="button" onClick={() => { birthTouchedRef.current = false; void reloadProfileSeed(); }}>저장한 프로필에서 불러오기</button>
       </details>
 
-      {followUps.length > 0 && <div className={styles.followUps} aria-label="이어서 물어볼 질문">
-        <span>이어서 물어볼까요?</span>
-        {followUps.map((item) => <button key={item} type="button" onClick={() => { setQuestion(item); window.setTimeout(() => inputRef.current?.focus(), 0); }}>{item}</button>)}
+      {suggestions.items.length > 0 && <div className={styles.followUps} aria-label="추천 질문">
+        <span>{suggestions.label}</span>
+        {suggestions.items.map((item) => <button key={item} type="button" onClick={() => { setQuestion(item); window.setTimeout(() => inputRef.current?.focus(), 0); }}>{item}</button>)}
       </div>}
 
       <div className={styles.chips} aria-label="추천 질문 분야">{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>

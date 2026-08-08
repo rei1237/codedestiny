@@ -214,4 +214,53 @@ describe("Guardian Fortune mock generate controller", () => {
     expect(contextBuilder).not.toHaveBeenCalled();
     expect(mockGenerator).not.toHaveBeenCalled();
   });
+
+  // 예약은 생성 try 블록 바깥이라, Mongo 가 흔들리면 raw 에러가 이 계약을 통째로 건너뛰고
+  // 공용 핸들러의 영문 503("Database is temporarily unavailable.") 으로 나갔다.
+  it("turns a transient Mongo failure during reservation into a retryable Korean 503", async () => {
+    const store = createMemoryGuardianFortuneStore();
+    const contextBuilder = jest.fn(successfulContextBuilder);
+    const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
+    store.reserveGuest = async () => {
+      const error = new Error("Server selection timed out after 8000 ms");
+      error.name = "MongooseServerSelectionError";
+      throw error;
+    };
+    const response = await generateGuardianFortuneRequest({
+      input,
+      guestIdHash: "guest-db-down",
+      requestId: "generate-db-down-1",
+      dateKey: "2026-08-02",
+      store,
+      now: NOW,
+      contextBuilder,
+      mockGenerator,
+    });
+    expect(response).toMatchObject({
+      ok: false,
+      status: 503,
+      error: "GUARDIAN_FORTUNE_SERVICE_TEMPORARILY_UNAVAILABLE",
+      retryable: true,
+    });
+    expect(response.message).toMatch(/[가-힣]/);
+    expect(response.message).toMatch(/차감되지 않았어요/);
+    // 예약 이전에 끊겼으므로 상담 자체가 시작되지 않는다(모델 호출 없음).
+    expect(contextBuilder).not.toHaveBeenCalled();
+    expect(mockGenerator).not.toHaveBeenCalled();
+  });
+
+  it("rethrows a non-database failure so real bugs are not hidden behind a 503", async () => {
+    const store = createMemoryGuardianFortuneStore();
+    store.reserveGuest = async () => { throw new TypeError("reserveGuest is broken"); };
+    await expect(generateGuardianFortuneRequest({
+      input,
+      guestIdHash: "guest-real-bug",
+      requestId: "generate-real-bug-1",
+      dateKey: "2026-08-02",
+      store,
+      now: NOW,
+      contextBuilder: successfulContextBuilder,
+      mockGenerator: async () => ({ result, usedFallback: false }),
+    })).rejects.toThrow("reserveGuest is broken");
+  });
 });

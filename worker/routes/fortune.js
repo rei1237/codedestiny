@@ -4,9 +4,9 @@ import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, 
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
-import { cookieValue, createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { cookieValue, createHttpError, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { incrementRateLimit } from "../lib/rate-limit.js";
-import { generateGuardianFortuneRequest } from "../lib/guardian-fortune-generate.js";
+import { generateGuardianFortuneRequest, safeErrorMessage as guardianFortuneSafeErrorMessage } from "../lib/guardian-fortune-generate.js";
 import { generateGuardianFortuneWithMockLLM } from "../lib/guardian-fortune-mock.js";
 import {
   buildGuardianFortuneDisabledUsageStatus,
@@ -6019,24 +6019,42 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
   const rateLimitResponse = await enforceGuardianFortuneRateLimit({ request, env, identity });
   if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
 
-  await connectDb(env);
-  trace.dbConnected = true;
-  const store = createMongoGuardianFortuneStore({ env });
-  const result = await generateGuardianFortuneRequest({
-    input: body,
-    userId: identity.userId,
-    guestIdHash: identity.guestIdHash,
-    requestId,
-    dateKey: getGuardianFortuneDateKey(new Date()),
-    store,
-    resolvePaidAccess: buildGuardianFortunePaidAccessResolver(
-      env,
-      Number(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]?.cost || 0),
-    ),
-    contextOptions: { env, requestUrl: request.url, ctx },
-    // Scenario switches are test-only. Production clients cannot select a failure mode.
-    scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
-  });
+  let result;
+  try {
+    // 형제 라우트 /guardian/usage 와 같은 형태로 연결까지만 재시도한다. 맨 connectDb 는 콜드
+    // 아이솔레이트의 서버선택 타임아웃 한 번에 그대로 죽어 영문 503 이 됐다.
+    // 🔴 generateGuardianFortuneRequest 는 이 래퍼 밖에 둔다 — 안의 verifyPerUsePayment 가
+    //    이미 withMongoRetry 를 쓰고(중첩 금지), 감싸면 LLM 생성까지 재시도 대상이 된다.
+    await withMongoRetry(env, async () => { trace.dbConnected = true; });
+    const store = createMongoGuardianFortuneStore({ env });
+    result = await generateGuardianFortuneRequest({
+      input: body,
+      userId: identity.userId,
+      guestIdHash: identity.guestIdHash,
+      requestId,
+      dateKey: getGuardianFortuneDateKey(new Date()),
+      store,
+      resolvePaidAccess: buildGuardianFortunePaidAccessResolver(
+        env,
+        Number(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]?.cost || 0),
+      ),
+      contextOptions: { env, requestUrl: request.url, ctx },
+      // Scenario switches are test-only. Production clients cannot select a failure mode.
+      scenario: String(env.NODE_ENV || "").toLowerCase() === "test" ? String(body?.mockScenario || "normal") : "normal",
+    });
+  } catch (error) {
+    // 일시적 DB 장애는 이 기능의 계약 안에서 재시도 가능한 한국어 503 으로 내보낸다.
+    // 그대로 두면 공용 handleRouteError 가 코드도 retryable 도 없는 영문 503 을 낸다.
+    if (!isDbUnavailableError(error)) throw error;
+    return guardianFortuneRouteResponse({
+      ok: false,
+      status: 503,
+      error: GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE,
+      message: guardianFortuneSafeErrorMessage(GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE),
+      requestId,
+      retryable: true,
+    }, { cookie: identity.cookie });
+  }
   if (result?.ok === true && identity.userId) invalidateAccessStateCacheForUser(identity.userId);
   return guardianFortuneRouteResponse(result, { cookie: identity.cookie });
 }

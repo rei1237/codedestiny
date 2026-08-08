@@ -1,4 +1,5 @@
 import { buildGuardianFortuneContext, normalizeGuardianFortuneInput } from "./guardian-fortune-context.js";
+import { isDbUnavailableError } from "./http.js";
 import { generateGuardianFortuneWithConfiguredLLM } from "./guardian-fortune-llm.js";
 import {
   createGuardianFortuneShareDraftToken,
@@ -30,6 +31,8 @@ function safeErrorMessage(code) {
       return "지금은 귀인이 흐름을 읽는 데 문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED:
       return "상담 사용량을 확인하는 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
+    case GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE:
+      return "상담을 준비하는 중 연결이 잠시 끊겼어요. 잠시 후 다시 시도해 주세요. 횟수나 결제는 차감되지 않았어요.";
     default:
       return "오늘의 귀인 운세를 준비하는 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
   }
@@ -106,15 +109,31 @@ export async function generateGuardianFortuneRequest({
 
   const safeInput = { ...input, targetDate: effectiveDateKey };
 
-  const reservation = await reserveGuardianFortuneUsage({
-    userId: normalizedUserId,
-    guestIdHash,
-    dateKey: effectiveDateKey,
-    requestId,
-    store,
-    resolvePaidAccess,
-    now,
-  });
+  let reservation;
+  try {
+    reservation = await reserveGuardianFortuneUsage({
+      userId: normalizedUserId,
+      guestIdHash,
+      dateKey: effectiveDateKey,
+      requestId,
+      store,
+      resolvePaidAccess,
+      now,
+    });
+  } catch (error) {
+    // 예약은 아래 try 바깥이라, Mongo 가 흔들리면 raw 에러가 이 계약을 통째로 건너뛰고
+    // 공용 핸들러의 영문 503("Database is temporarily unavailable.") 으로 나갔다. 아직 예약
+    // 이전이라 되돌릴 것이 없으므로 재시도 가능한 한국어 503 으로 돌려준다.
+    // usage 는 싣지 않는다 — 같은 장애에서 buildGuardianFortuneUsageStatus 도 다시 던진다.
+    if (!isDbUnavailableError(error)) throw error;
+    return errorResponse({
+      code: GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE,
+      status: 503,
+      isLoggedIn,
+      requestId,
+      retryable: true,
+    });
+  }
   if (!reservation.ok) {
     const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
     return errorResponse({

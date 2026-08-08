@@ -17,6 +17,29 @@ test("Yeoni chat keeps a unified character choice and neutral usage label", () =
   assert.match(client, /무료 상담/);
 });
 
+test("suggested questions are offered, never typed into the box for the user", () => {
+  // 주제 칩이 입력창을 곧바로 덮어써서, 고른 적 없는 문장이 질문으로 나갔다.
+  // 이제 주제 칩은 주제만 고르고, 추천 질문은 사용자가 누른 것만 들어간다.
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+
+  assert.match(client, /const SUGGESTED_QUESTIONS: Record<string, string\[\]>/);
+  const selectTopic = client.slice(client.indexOf("const selectTopic"), client.indexOf("const editBirth"));
+  assert.doesNotMatch(selectTopic, /setQuestion/);
+  assert.match(client, /suggestions\.items\.map/);
+});
+
+test("a failed send rolls its own bubble back and keeps the question typed", () => {
+  // 실패해도 말풍선이 남고 입력창도 안 비워져, 재시도할 때마다 같은 질문이 하나씩 쌓였다.
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+
+  assert.match(client, /let delivered = false/);
+  assert.match(client, /if \(!delivered\) setMessages/);
+  assert.match(client, /item\.id !== userMessageId/);
+  // 서버가 흘리는 영문 원문(공용 DB 핸들러의 503)을 그대로 렌더하지 않는다.
+  assert.match(client, /function friendlyError/);
+  assert.doesNotMatch(client, /attempt\.payload\?\.message \|\| "/);
+});
+
 test("both personas render from their own expression sheet", () => {
   // 아바타는 장식이 아니라 누가 답하는지를 알려주는 신호다. 두 시트가 모두 걸려 있어야
   // 네오로 바꿔도 꽃돼지가 남아 있는 사고가 나지 않는다.
