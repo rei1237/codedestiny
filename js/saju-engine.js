@@ -2700,6 +2700,7 @@ var JANYEOGUN_DATA={
 
 var GENDER='F', USER_NAME='', BIRTH_YEAR=0, DAY_GAN='', JOHU_TYPE='', JOHU_SCORE=0, CURRENT_AGE=0;
 var G_POWER=null, G_JONG=null, G_JOHU=null;
+var G_JONG_VERIFIED=null; /* {key:'원국8글자', result:종격판정} — 사용자가 검증 모달에서 확정한 결과 */
 var G_PILLARS=null, G_NATAL=null, G_BAZI=null;
 window._ziweiBirth={year:0,month:0,day:0,hour:12,minute:0};
 window._astroBirth={year:0,month:0,day:0,hour:12,minute:0,lat:37.6,lon:127.0,tz:9};
@@ -2939,6 +2940,12 @@ function _clearDestinyFlowerSajuSnapshot() {
   } catch (e) {}
 }
 
+/* 종격 검증 결과의 소유자 키. detectJong 은 원국 8글자만 입력으로 쓰므로 8글자가 곧 판정 대상 식별자다. */
+function _jongChartKey(p){
+  if(!p||!p.y||!p.m||!p.d||!p.h) return '';
+  return p.y.g+p.y.j+p.m.g+p.m.j+p.d.g+p.d.j+p.h.g+p.h.j;
+}
+
 /* ── 모달 전용: 분석 페이지 이동 없이 프로필 데이터로 전역 변수 계산 ── */
 window.computeProfileForModal = function(profile) {
   if (!profile || !profile.birth) return false;
@@ -3044,7 +3051,11 @@ window.computeProfileForModal = function(profile) {
     G_PILLARS = p;  G_NATAL = natal;  G_BAZI = bazi;
     if (typeof analyzeJohu === 'function') G_JOHU = analyzeJohu(p);
     if (typeof calcPower  === 'function') G_POWER = calcPower(p);
-    if (typeof detectJong === 'function') G_JONG = detectJong(p);
+    // 사용자가 검증 모달에서 확정한 판정이 같은 원국의 것이면 그것을 쓴다 (원본 detectJong 으로 덮어쓰지 않는다)
+    var _mjKey = _jongChartKey(p);
+    if (G_JONG_VERIFIED && G_JONG_VERIFIED.key === _mjKey) G_JONG = G_JONG_VERIFIED.result;
+    else if (typeof detectJong === 'function') G_JONG = detectJong(p);
+    resetEvalDaewunMemo();
     _syncDestinyFlowerSajuSnapshot('modal-profile');
     return { p: p, natal: natal, bazi: bazi };
   } catch(e) {
@@ -4613,9 +4624,9 @@ function showJongVerificationModal(jongResult, p) {
       overlay.appendChild(box);
       document.body.appendChild(overlay);
 
-      document.getElementById('btnJongSubmit').onclick = function() {
-          var bestAns = document.querySelector('input[name="best_ans"]:checked').value;
-          var worstAns = document.querySelector('input[name="worst_ans"]:checked').value;
+      overlay.querySelector('#btnJongSubmit').onclick = function() {
+          var bestAns = overlay.querySelector('input[name="best_ans"]:checked').value;
+          var worstAns = overlay.querySelector('input[name="worst_ans"]:checked').value;
 
           document.body.removeChild(overlay);
 
@@ -4625,7 +4636,10 @@ function showJongVerificationModal(jongResult, p) {
               jongResult.verifiedText = "<span style='color:#a855f7'>[" + confirmLabel + "]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
               resolve(jongResult);
           } else {
-              resolve({isJong: false, verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."});
+              // 합화 여부는 판정이 아니라 원국 사실이므로 내격 전환 시에도 유지한다 (대운 충 무효화 판단에 쓰인다)
+              resolve({isJong: false,
+                ganHeMerged: jongResult.ganHeMerged, jiHeMerged: jongResult.jiHeMerged,
+                verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."});
           }
       };
   });
@@ -5394,9 +5408,12 @@ async function calculate(){
     G_POWER=calcPower(p);
 
     var _tj = detectJong(p);
+    G_JONG_VERIFIED = null;
     // 종격/가종격 모두 검증 모달로 사용자 확인
     if (_tj.isJong) {
       _tj = await showJongVerificationModal(_tj, p);
+      // 사용자 확정본을 원국 키와 함께 보관 — 이후 앰비언트 재계산이 되돌리지 못하게 한다
+      G_JONG_VERIFIED = { key: _jongChartKey(p), result: _tj };
     }
     G_JONG = _tj;
     G_POWER = applyRuntimeYongshinPolicy(G_POWER, G_JONG, G_JOHU);
@@ -9715,6 +9732,8 @@ function renderUkbu(p){
   var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
   var dayName=(GAN[dg]&&GAN[dg].n)||dg;
   var mjEl=(p.m&&p.m.j&&JI[p.m.j])?JI[p.m.j].e:null;
+  // 종격 검증 모달에서 사용자가 확정한 결과 안내 (예/아니오 어느 쪽이든)
+  var verifiedNote=(jg&&jg.verifiedText)?'<div class="uk-note">'+jg.verifiedText+'</div>':'';
   var html='<div class="uk-wrap">';
 
   if(jg&&jg.isJong){
@@ -9730,6 +9749,7 @@ function renderUkbu(p){
       (jg.isGaJong
         ?'<div class="uk-note">⚠️ <b>가종격(假從格)</b>입니다 — 일간을 돕는 미약한 뿌리가 남아 있어, 대운의 흐름에 따라 진종격(眞從格)으로 굳어질 수도, 일반 사주(내격)로 돌아올 수도 있습니다. 실제 살아온 길흉과 대조해 확인해 보세요.</div>'
         :'<div class="uk-note">✓ <b>진종격(眞從格)</b>에 가깝습니다 — 지배 오행에 온전히 순응하는 흐름이 뚜렷합니다.</div>')+
+      verifiedNote+
       '</div>';
   }else if(pw){
     var strong=!!pw.isStrong;
@@ -9773,6 +9793,7 @@ function renderUkbu(p){
         ?'<b>식상(食傷)·재(財)·관(官)</b> 운 — 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적 성공이 터집니다.'
         :'<b>비겁(比劫)·인성(印星)</b> 운 — 즉 나를 채우고 지지해 주는 흐름에서 자존감과 귀인이 함께 옵니다.')+
       '</div></div>'+
+      verifiedNote+
       '</div>';
   }else{
     html+='<div class="uk-card"><div class="uk-body">억부 계산 중이거나 사주 데이터가 부족합니다. 잠시 후 다시 확인해 주세요.</div></div>';

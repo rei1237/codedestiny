@@ -96,7 +96,7 @@ function resetApp(){
       if (_rz) _rz.innerHTML = '';
     } catch (_e) {}
   })();
-  G_POWER=null;G_JONG=null;G_JOHU=null;
+  G_POWER=null;G_JONG=null;G_JOHU=null;G_JONG_VERIFIED=null;
   _clearDestinyFlowerSajuSnapshot();
   requestAnimationFrame(function () {
     setTimeout(function () {
