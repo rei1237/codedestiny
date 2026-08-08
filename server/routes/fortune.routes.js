@@ -439,94 +439,6 @@ function resolveEffectiveActiveTier(user) {
   return expAt.getTime() > Date.now() ? tier : null;
 }
 
-async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
-  // Legacy coin-based subscription renewal is permanently disabled. Expired
-  // subscriptions must be renewed through the server-owned PG/monthly policy.
-  return { user, effectiveTier: resolveEffectiveActiveTier(user), autoRenewed: false };
-  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
-  const source = String(user?.profileSubscription?.source || "coin").toLowerCase();
-  if (!tier) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const expAtRaw = user?.profileSubscription?.expiresAt;
-  if (!expAtRaw) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const expAt = new Date(expAtRaw);
-  if (!Number.isFinite(expAt.getTime())) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (expAt.getTime() > Date.now()) {
-    return { user, effectiveTier: tier, autoRenewed: false };
-  }
-
-  if (source === "card") {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (!!user?.profileSubscription?.cancelAtPeriodEnd) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const plan = PROFILE_SUB_PLANS[tier];
-  if (!plan) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const requiredCoins = Number(plan.coins || 0);
-  if (!Number.isFinite(requiredCoins) || requiredCoins <= 0) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (Number(user?.points || 0) < requiredCoins) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const now = new Date();
-  const newExpAt = new Date(Math.max(expAt.getTime(), now.getTime()) + Number(plan.durationDays || 30) * 24 * 60 * 60 * 1000);
-  const nextProjection = projection || {
-    points: 1,
-    profileSubscription: 1,
-    unlockedFeatures: 1,
-    recentConsumeRequestIds: 1,
-  };
-
-  const renewedUser = await User.findOneAndUpdate(
-    { _id: userId, points: { $gte: requiredCoins } },
-    {
-      $inc: { points: -requiredCoins },
-      $set: {
-        "profileSubscription.expiresAt": newExpAt,
-        "profileSubscription.startedAt": now,
-      },
-    },
-    { new: true, projection: nextProjection },
-  ).lean();
-
-  if (!renewedUser) {
-    return {
-      user,
-      effectiveTier: resolveEffectiveActiveTier(user),
-      autoRenewed: false,
-    };
-  }
-
-  await PointHistory.create({
-    userId,
-    kind: "deduct",
-    delta: -requiredCoins,
-    balanceAfter: Number(renewedUser.points || 0),
-    reason: `${plan.name} 구독 자동 갱신`,
-    featureKey: "profile-subscription-auto-renew",
-    metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
-  }).catch(() => {});
-
-  return { user: renewedUser, effectiveTier: tier, autoRenewed: true };
-}
-
 router.use(requireAuth);
 
 router.get("/check", async (req, res) => {
@@ -822,18 +734,10 @@ async function handlePigCoinConsumeRoute(req, res, next) {
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다.", code: "USER_NOT_FOUND" });
     }
 
-    const renewState = await ensureActiveSubscriptionByAutoRenew(
-      req.auth.userId,
-      user,
-      {
-        points: 1,
-        profileSubscription: 1,
-        unlockedFeatures: 1,
-        recentConsumeRequestIds: 1,
-      },
-    );
-    const runtimeUser = renewState.user || user;
-    const effectiveTier = renewState.effectiveTier;
+    // 이용권은 자동갱신(auto-renewal)이 없다 — 만료되면 사용자가 직접 재결제한다.
+    // 레거시 코인 잔액으로 갱신을 청구하던 헬퍼를 지우고 활성 여부만 판정한다.
+    const runtimeUser = user;
+    const effectiveTier = resolveEffectiveActiveTier(user);
     const policy = getPlanPolicy(effectiveTier);
     const isIncludedBySubscription = Boolean(!forceDeductApplied && effectiveTier && cost <= policy.freeLimit);
 
@@ -850,7 +754,7 @@ async function handlePigCoinConsumeRoute(req, res, next) {
         freeLimit: policy.freeLimit,
         profileLimit: policy.profileLimit,
         recommendedCoins: policy.recommendedCoins,
-        autoRenewed: !!renewState.autoRenewed,
+        autoRenewed: false,
         user: {
           id: String(req.auth.userId),
           points: Number(runtimeUser.points || 0),
@@ -1164,51 +1068,21 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
     const expAt  = toValidDate(sub.expiresAt);
     const cancelAtPeriodEnd = !!sub.cancelAtPeriodEnd;
     const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
-    // Legacy subscription status is read-only; it never inspects or renews from User.points.
-    let points = null;
+    // 이용권은 자동갱신(auto-renewal)이 없다 — 만료되면 사용자가 직접 재결제한다.
+    // 레거시 코인 잔액으로 갱신을 청구하던 분기는 제거했다. points 는 응답 형태 유지를 위해서만 남는다.
+    const points = null;
+    // 자동갱신 경로가 없으므로 항상 false 다. 응답 필드는 계약 유지를 위해 그대로 내보낸다.
+    const autoRenewed = false;
 
-    const plan = PROFILE_SUB_PLANS[tier];
     const now  = new Date();
 
     // 만료 여부 확인
     let effectiveTier = "free";
-    let effectiveExpAt = expAt;
-    let autoRenewed = false;
+    const effectiveExpAt = expAt;
 
-    if (tier !== "free" && effectiveExpAt) {
-      if (effectiveExpAt > now) {
-        // 구독 활성
-        effectiveTier = tier;
-      } else if (source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
-        // 만료됐지만 코인 충분 → 자동 갱신
-        const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 24 * 60 * 60 * 1000);
-        const updatedUser2 = await User.findOneAndUpdate(
-          { _id: req.auth.userId, points: { $gte: plan.coins } },
-          {
-            $inc: { points: -plan.coins },
-            $set: {
-              "profileSubscription.expiresAt": newExpAt,
-              "profileSubscription.startedAt": now,
-            },
-          },
-          { new: true, projection: { points: 1 } },
-        ).lean();
-        if (updatedUser2) {
-          points = Number(updatedUser2.points || 0);
-          effectiveTier  = tier;
-          effectiveExpAt = newExpAt;
-          autoRenewed    = true;
-          await PointHistory.create({
-            userId:       req.auth.userId,
-            kind:         "deduct",
-            delta:        -plan.coins,
-            balanceAfter: Number(updatedUser2.points || 0),
-            reason:       `${plan.name} 구독 자동 갱신`,
-            featureKey:   "profile-subscription-auto-renew",
-            metadata:     { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
-          }).catch(() => {});
-        }
-      }
+    if (tier !== "free" && effectiveExpAt && effectiveExpAt > now) {
+      // 구독 활성
+      effectiveTier = tier;
     }
 
     const isActive = effectiveTier !== "free";

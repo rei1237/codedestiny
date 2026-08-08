@@ -2129,93 +2129,6 @@ function resolveEffectiveActiveTier(user) {
   return expAt.getTime() > Date.now() ? tier : null;
 }
 
-async function ensureActiveSubscriptionByAutoRenew(userId, user, projection) {
-  const tier = normalizeSubscriptionTier(user?.profileSubscription?.tier);
-  const source = String(user?.profileSubscription?.source || "coin").toLowerCase();
-  if (!tier) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const expAtRaw = user?.profileSubscription?.expiresAt;
-  if (!expAtRaw) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const expAt = new Date(expAtRaw);
-  if (!Number.isFinite(expAt.getTime())) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (expAt.getTime() > Date.now()) {
-    return { user, effectiveTier: tier, autoRenewed: false };
-  }
-
-  return { user, effectiveTier: null, autoRenewed: false, autoRenewDisabled: true };
-
-  if (source === "card") {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (Boolean(user?.profileSubscription?.cancelAtPeriodEnd)) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const plan = PROFILE_SUB_PLANS[tier];
-  if (!plan) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const requiredCoins = Number(plan.coins || 0);
-  if (!Number.isFinite(requiredCoins) || requiredCoins <= 0) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  if (Number(user?.points || 0) < requiredCoins) {
-    return { user, effectiveTier: null, autoRenewed: false };
-  }
-
-  const now = new Date();
-  const newExpAt = new Date(Math.max(expAt.getTime(), now.getTime()) + Number(plan.durationDays || 30) * 86400000);
-  const nextProjection = projection || {
-    points: 1,
-    profileSubscription: 1,
-    unlockedFeatures: 1,
-    recentConsumeRequestIds: 1,
-  };
-
-  const renewedUser = await User.findOneAndUpdate(
-    { _id: userId, points: { $gte: requiredCoins } },
-    {
-      $inc: { points: -requiredCoins },
-      $set: {
-        "profileSubscription.expiresAt": newExpAt,
-        "profileSubscription.startedAt": now,
-      },
-    },
-    { returnDocument: "after", projection: nextProjection },
-  ).lean();
-
-  if (!renewedUser) {
-    return {
-      user,
-      effectiveTier: resolveEffectiveActiveTier(user),
-      autoRenewed: false,
-    };
-  }
-
-  await PointHistory.create({
-    userId,
-    kind: "deduct",
-    delta: -requiredCoins,
-    balanceAfter: Number(renewedUser.points || 0),
-    reason: `${plan.name} subscription auto-renewal`,
-    featureKey: "profile-subscription-auto-renew",
-    metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
-  }).catch(() => {});
-
-  return { user: renewedUser, effectiveTier: tier, autoRenewed: true };
-}
-
 async function handleCheck() {
   return json({
     message: "Fortune reading is currently free.",
@@ -5527,9 +5440,9 @@ async function handleSubscriptionStatus(request, env, auth) {
   const statusIndicatesInactive = isInactiveStatus(rawSubscriptionStatus);
   const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
   const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
-  // Subscription status must not read or auto-renew from the legacy coin balance.
-  let points = null;
-  const plan = PROFILE_SUB_PLANS[tier];
+  // 이용권은 자동갱신(auto-renewal)이 없다 — 만료되면 사용자가 직접 재결제한다.
+  // 레거시 코인 잔액으로 갱신을 청구하던 분기는 제거했다. points 는 응답 형태 유지를 위해서만 남는다.
+  const points = null;
   const now = new Date();
   const canonicalEntitlement = resolveCanonicalEntitlement(user || {});
 
@@ -5537,59 +5450,14 @@ async function handleSubscriptionStatus(request, env, auth) {
   let effectiveExpAt = expAt;
   let effectivePassTier = null;
   let effectiveSource = source;
-  let autoRenewed = false;
+  // 자동갱신 경로가 없으므로 항상 false 다. 응답 필드는 계약 유지를 위해 그대로 내보낸다.
+  const autoRenewed = false;
 
   if (tier !== "free") {
     if (!statusIndicatesInactive && statusIndicatesActive) {
       effectiveTier = tier;
     } else if (effectiveExpAt && effectiveExpAt > now) {
       effectiveTier = tier;
-    } else if (effectiveExpAt && source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
-      const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 86400000);
-      // Optimistic-concurrency guard: match on the exact expiresAt we just read so only the
-      // first of several racing requests (e.g. multiple tabs/devices polling status right at
-      // expiry) can charge this renewal cycle. A losing racer gets updatedUser === null below
-      // instead of silently deducting a second time for the same cycle.
-      const priorExpiresAtFilter = sub.expiresAt ?? null;
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: auth.userId, points: { $gte: plan.coins }, "profileSubscription.expiresAt": priorExpiresAtFilter },
-        {
-          $inc: { points: -plan.coins },
-          $set: {
-            "profileSubscription.expiresAt": newExpAt,
-            "profileSubscription.startedAt": now,
-          },
-        },
-        { returnDocument: "after", projection: { points: 1 } },
-      ).lean();
-
-      if (updatedUser) {
-        points = Number(updatedUser.points || 0);
-        effectiveTier = tier;
-        effectiveExpAt = newExpAt;
-        autoRenewed = true;
-        await PointHistory.create({
-          userId: auth.userId,
-          kind: "deduct",
-          delta: -plan.coins,
-          balanceAfter: points,
-          reason: `${plan.name} subscription auto-renewal`,
-          featureKey: "profile-subscription-auto-renew",
-          metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
-          dedupeKey: `profile-subscription-auto-renew:${String(auth.userId)}:${new Date(priorExpiresAtFilter || 0).toISOString()}`,
-        }).catch(() => {});
-      } else {
-        // Insufficient balance, or a concurrent request already renewed this cycle — re-read
-        // the current state so a losing racer reports the winner's result instead of
-        // incorrectly falling through to "free".
-        const freshUser = await findUserByIdRaw(auth.userId, { points: 1, profileSubscription: 1 });
-        const freshExpAt = toValidDate(freshUser?.profileSubscription?.expiresAt);
-        if (freshExpAt && freshExpAt > now) {
-          points = Number(freshUser.points ?? points);
-          effectiveTier = tier;
-          effectiveExpAt = freshExpAt;
-        }
-      }
     }
   }
 
