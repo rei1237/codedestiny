@@ -430,6 +430,7 @@ function buildWorkersAiInput(
 async function callGeminiPrimary(
   request: LLMRequest,
   env?: CloudflareEnv,
+  attemptTimeoutMs?: number,
 ): Promise<LLMResponse> {
   const normalized = normalizeRequest(request);
   if (!normalized.prompt) throw new Error("LLM prompt is empty.");
@@ -462,7 +463,9 @@ async function callGeminiPrimary(
     };
   }
 
-  const timeout = createTimeoutSignal(normalized.timeoutMs);
+  const timeout = createTimeoutSignal(
+    Number.isFinite(attemptTimeoutMs) ? attemptTimeoutMs : normalized.timeoutMs,
+  );
   try {
     const endpointUrl = endpoint.startsWith("https://") || endpoint.startsWith("http://")
       ? new URL(endpoint)
@@ -522,6 +525,7 @@ async function callGeminiPrimary(
 async function callCloudflareWorkersAI(
   request: LLMRequest,
   env?: CloudflareEnv,
+  deadlineAt?: number,
 ): Promise<LLMResponse> {
   const normalized = normalizeRequest(request);
   if (!normalized.prompt) throw new Error("LLM prompt is empty.");
@@ -544,7 +548,11 @@ async function callCloudflareWorkersAI(
   //    평소 계측으로는 잡히지 않았다. 엣지(100초)가 요청을 끊으면 라우트의 실패 처리·정리 코드가
   //    아예 돌지 못한다. 예산은 호출자가 준 timeoutMs 를 **체인 전체**에 배분한다 — 폐기 모델은
   //    빠르게 실패하므로(5028) 체인의 목적인 폐기 대응은 그대로 유지된다.
-  const chainDeadlineAt = Date.now() + resolveTimeoutMs(normalized.timeoutMs);
+  // deadlineAt 은 callLLMUncached 가 Gemini 단계와 공유해서 넘긴다 — 여기서 새로 시계를
+  // 만들면 Gemini 재시도가 이미 쓴 시간을 무시하고 timeoutMs 를 통째로 다시 배정하게 된다.
+  const chainDeadlineAt = Number.isFinite(deadlineAt)
+    ? (deadlineAt as number)
+    : Date.now() + resolveTimeoutMs(normalized.timeoutMs);
   let fallbackBudgetExhausted = false;
   for (const model of models) {
     const remainingMs = chainDeadlineAt - Date.now();
@@ -603,19 +611,31 @@ function isTransientGeminiError(error: unknown): boolean {
 
 const GEMINI_RETRY_BACKOFF_MS = [400, 900] as const;
 
+// deadlineAt 이 없으면(직접 호출 등) request.timeoutMs 기준으로 새로 계산한다 — callLLMUncached
+// 를 거치는 정상 경로에서는 항상 공유 deadlineAt 이 전달되므로 이 분기는 방어적 기본값이다.
 async function callGeminiWithRetry(
   request: LLMRequest,
   env?: CloudflareEnv,
+  deadlineAt?: number,
 ): Promise<LLMResponse> {
+  const effectiveDeadlineAt = Number.isFinite(deadlineAt)
+    ? (deadlineAt as number)
+    : Date.now() + resolveTimeoutMs(request.timeoutMs);
   const maxAttempts = GEMINI_RETRY_BACKOFF_MS.length + 1;
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const remainingMs = effectiveDeadlineAt - Date.now();
+    if (remainingMs <= 0) {
+      throw lastError || new Error("Gemini call skipped: timeout budget exhausted before attempt.");
+    }
     try {
-      return await callGeminiPrimary(request, env);
+      return await callGeminiPrimary(request, env, remainingMs);
     } catch (error) {
       lastError = error;
       if (attempt >= maxAttempts || !isTransientGeminiError(error)) throw error;
-      await new Promise((resolve) => setTimeout(resolve, GEMINI_RETRY_BACKOFF_MS[attempt - 1]));
+      const backoffMs = GEMINI_RETRY_BACKOFF_MS[attempt - 1];
+      if (effectiveDeadlineAt - Date.now() - backoffMs <= 0) throw error;
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
     }
   }
   throw lastError;
@@ -626,8 +646,12 @@ async function callLLMUncached(
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
   const requestModel = resolveGeminiModel(request, env);
+  // Gemini 시도(재시도 포함) + Workers AI 폴백 전체가 이 하나의 시계를 공유한다 — 각 단계가
+  // timeoutMs 를 독자적으로 다시 배정하면 총 소요시간이 호출자가 준 예산을 넘어 엣지 실행
+  // 한도에 걸리고, 그 경우 앱 자체 에러 응답도 환불 처리도 돌지 못한 채 연결이 끊긴다.
+  const deadlineAt = Date.now() + resolveTimeoutMs(request.timeoutMs);
   try {
-    return await callGeminiWithRetry(request, env);
+    return await callGeminiWithRetry(request, env, deadlineAt);
   } catch (geminiError) {
     if (request.fallbackToWorkersAI === false) {
       throw geminiError;
@@ -641,7 +665,7 @@ async function callLLMUncached(
     });
 
     try {
-      return await callCloudflareWorkersAI(request, env);
+      return await callCloudflareWorkersAI(request, env, deadlineAt);
     } catch (cloudflareError) {
       throw new Error(
         `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(

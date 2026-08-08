@@ -125,6 +125,7 @@
     "verify:llm-generation-resilience": "node scripts/verify-llm-generation-resilience.mjs",
     "verify:ai-locale-pipeline": "node scripts/verify-ai-locale-pipeline.mjs",
     "verify:workers-ai-fallback": "node --experimental-strip-types --no-warnings scripts/verify-workers-ai-fallback.mjs",
+    "verify:llm-client-timeout-budget": "node --experimental-strip-types --no-warnings scripts/verify-llm-client-timeout-budget.mjs",
     "verify:fortune-chat-reading": "node scripts/verify-fortune-chat-reading.mjs",
     "verify:fusion-fortune-quality": "node scripts/verify-fusion-fortune-quality.mjs",
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
