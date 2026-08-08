@@ -393,6 +393,11 @@ class AnalysisEngine {
     const CHIN = landmarks[152];
     const JAW_LEFT = landmarks[149];
     const JAW_RIGHT = landmarks[378];
+    // 얼굴 최대 폭(관골/귀 앞). FACE_OVAL 위상에서 149/378은 턱끝(152)에서 3칸 떨어진
+    // 하관 점이라 "턱 폭"을 잰다. 아키타입 표(0.62~0.93)와 아래 임계값들은 전부
+    // 광대폭/얼굴길이 기준이라, 턱 폭을 쓰면 모든 얼굴이 표 최솟값(기린 0.62)으로 붙었다.
+    const FACE_LEFT = landmarks[234];
+    const FACE_RIGHT = landmarks[454];
     const FOREHEAD = landmarks[10];
     const MOUTH_LEFT = landmarks[61];
     const MOUTH_RIGHT = landmarks[291];
@@ -402,7 +407,8 @@ class AnalysisEngine {
     const EAR_LEFT_BOTTOM = landmarks[132];
 
     const faceLength = this.calculateDistance(FOREHEAD, CHIN);
-    const faceWidth = this.calculateDistance(JAW_LEFT, JAW_RIGHT);
+    const jawWidth = this.calculateDistance(JAW_LEFT, JAW_RIGHT);
+    const faceWidth = this.calculateDistance(FACE_LEFT, FACE_RIGHT);
 
     const leftEyeWidth = this.calculateDistance(LEFT_EYE_IN, LEFT_EYE_OUT);
     const rightEyeWidth = this.calculateDistance(RIGHT_EYE_IN, RIGHT_EYE_OUT);
@@ -462,7 +468,7 @@ class AnalysisEngine {
     const total_samjung = upper_len + middle_len + lower_len;
     const jawTilt = Math.abs((JAW_LEFT.y || 0) - (JAW_RIGHT.y || 0)) * 100;
     const faceCenterX = ((JAW_LEFT.x || 0) + (JAW_RIGHT.x || 0)) / 2;
-    const noseCenterOffset = Math.abs((NOSE_TIP.x || 0) - faceCenterX) / (faceWidth || 1);
+    const noseCenterOffset = Math.abs((NOSE_TIP.x || 0) - faceCenterX) / (jawWidth || 1);
     const faceSizeScore = clamp((faceLength / 0.32) * 100, 45, 100);
     const frontalityPenalty = Math.min(25, eyeAsymmetry * 80 + noseCenterOffset * 20 + jawTilt * 1.2);
     const slantStabilityPenalty = Math.min(20, eyeSlantDelta * 2.5);
@@ -497,7 +503,9 @@ class AnalysisEngine {
       jawSquareness: faceWidth / (faceLength || 1),
       qualityScore: qualityScore,
       // 여성형 판별용 추가 수치
-      eyeToFaceRatio: (eyeWidth * 2 + interEyeDistance) / (faceWidth || 1), // 눈이 얼굴 대비 얼마나 큰지
+      // 하관 기준 유지 — detectFeminineFace(>=0.72)의 입력이라 분모를 얼굴 최대폭으로 바꾸면
+      // 값이 ~1.2에서 ~0.75로 무너져 성별 분기가 대량으로 뒤집힌다.
+      eyeToFaceRatio: (eyeWidth * 2 + interEyeDistance) / (jawWidth || 1), // 눈이 하관 대비 얼마나 큰지
       lipThickness: this.calculateDistance(MOUTH_TOP, MOUTH_BOTTOM),
       chinLength: lower_len / (total_samjung || 1), // 하정 비율 (털선 길이)
       samjung: {
@@ -1784,6 +1792,12 @@ async analyze(landmarksData, expressionData, imageAspect) {
         const adjustedSignal = Math.max(0, c.totalScore || 0);
         const profileRaw = Math.max(0, adjustedSignal - baseScore);
         const suppressionRaw = Math.max(0, baseScore - adjustedSignal);
+        // 상한 700 × 0.10 은 실측으로 확정된 값이다(2026-08). 위 동물별 보정 450줄은
+        // 표가 불균형해서(dog 는 성별 보정까지 곱하면 raw ~8600, 대부분 동물은 200~1200)
+        // 상한을 올릴수록 승자 다양성이 단조로 나빠진다 — 700/900/1100/1500/2000 에서
+        // 25/24/23/20/18종, 2000 에서는 햄스터·기린 판정까지 깨졌다. 반면 강아지·고양이·
+        // 햄스터·기린 대표 얼굴의 판정은 700~1500 구간에서 전부 동일했다.
+        // 즉 이 값을 올려도 얻는 게 없다. 바꾸려면 verify:physiognomy-scoring 으로 먼저 재라.
         const profileBonus = Math.min(profileRaw, 700) * 0.10;
         const suppressionPenalty = Math.min(suppressionRaw, baseScore * 0.72);
         const qualityPenalty = (100 - qualityScore) * 2.4;

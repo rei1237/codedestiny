@@ -82,6 +82,14 @@ assert.match(analysis, /landmarks = landmarks\.map\(\(p\) => \(\{ x: p\.x \* A, 
 assert.match(analysis, /analyze\(landmarksData, expressionData, imageAspect\)/, 'analyze가 imageAspect 수신');
 assert.match(ui, /window\.faceAnalysisEngine\.analyze\(analysisLandmarks, expressionData, imageAspect\)/, '프론트가 imageAspect 전달');
 
+// ── 축 스케일 · 전달함수 drift 가드 (기린상 42% 쏠림 재발 방지) ──
+assert.match(analysis, /const FACE_LEFT = landmarks\[234\];/, 'faceRatio는 얼굴 최대폭(234/454) 기준');
+assert.match(analysis, /const jawWidth = this\.calculateDistance\(JAW_LEFT, JAW_RIGHT\);/, '하관 폭은 별도 변수로 보존');
+assert.match(analysis, /eyeToFaceRatio: \(eyeWidth \* 2 \+ interEyeDistance\) \/ \(jawWidth \|\| 1\)/, '여성형 판별은 하관 기준 유지');
+// 상한을 올릴수록 승자 다양성이 단조 악화된다(700→25종, 1500→20종, 2000→18종 + 판정 붕괴).
+// 바꾸려면 아래 분포 가드로 먼저 재측정할 것.
+assert.match(analysis, /const profileBonus = Math\.min\(profileRaw, 700\) \* 0\.10;/, '프로파일 보정 전달함수(실측 확정값)');
+
 const dom = new JSDOM('<!doctype html><body></body>');
 const engine = new Function('window', 'document', analysis + '\nreturn window.faceAnalysisEngine;')(dom.window, dom.window.document);
 assert.ok(engine && typeof engine.extractGeometricFeatures === 'function', '엔진 로드 실패');
@@ -90,8 +98,12 @@ const mkLm = (W, H, r) => {
   const lm = Array.from({ length: 468 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
   lm[10] = { x: 0.5, y: (500 - L / 2) / H, z: 0 };
   lm[152] = { x: 0.5, y: (500 + L / 2) / H, z: 0 };
-  lm[149] = { x: (500 - Wd / 2) / W, y: 0.6, z: 0 };
-  lm[378] = { x: (500 + Wd / 2) / W, y: 0.6, z: 0 };
+  // faceRatio 기준은 얼굴 최대 폭(234/454)이다.
+  lm[234] = { x: (500 - Wd / 2) / W, y: 0.5, z: 0 };
+  lm[454] = { x: (500 + Wd / 2) / W, y: 0.5, z: 0 };
+  // 하관(149/378)은 최대폭의 62% 지점 — jawWidth·qualityScore가 현실적인 값으로 남게 한다.
+  lm[149] = { x: (500 - Wd * 0.31) / W, y: 0.6, z: 0 };
+  lm[378] = { x: (500 + Wd * 0.31) / W, y: 0.6, z: 0 };
   return lm;
 };
 const truth = 0.72; // 실제 갸름한 얼굴
@@ -106,4 +118,56 @@ for (const [label, f] of [['정사각', sq], ['세로형보정', port], ['가로
 const spread = Math.max(sq.faceRatio, port.faceRatio, land.faceRatio) - Math.min(sq.faceRatio, port.faceRatio, land.faceRatio);
 assert.ok(spread < 0.01, `종횡비 불변(편차 ${spread.toFixed(4)})`);
 
-console.log('[verify-physiognomy-scoring] ok');
+// ── 승자 분포 붕괴 가드 ──
+// 2026-08 사고: faceRatio 축이 아키타입 표와 다른 스케일이라 기린상 42.6% + 알파카상 30.8%
+// (27종 중 실질 12종만 도달 가능)이었다. 위 복제 하네스(cat/dog/bear)는 재조합 블록을
+// 포함하지 않아 이걸 못 잡았으므로, 여기서는 실엔진 analyze()를 그대로 호출한다.
+const baseFeatures = {
+  faceRatio: 0.80, faceLength: 0.4, faceWidth: 0.32, eyeRatio: 2.7, eyeSlant: 0,
+  eyeDistRatio: 1.08, eyeDistance: 1.08, eyeAsymmetry: 0.02, eyeSlantDelta: 0.5,
+  eyeHeight: 0.012, eyeWidth: 0.032, leftEyeWidth: 0.032, rightEyeWidth: 0.032,
+  noseRatio: 1.6, noseWidthRatio: 0.92, noseZ: 0.02, noseWidth: 0.035,
+  mouthCurve: 0.001, mouthRatio: 1.35, mouthWidth: 0.047,
+  earRatio: 0.28, earPosition: 'normal', browSlant: -1, browArch: 1.2, browEyeGap: 1.5,
+  jawSquareness: 0.80, qualityScore: 92, eyeToFaceRatio: 0.9, lipThickness: 0.02,
+  chinLength: 0.34, samjung: { upper: 0.33, middle: 0.33, lower: 0.34 }
+};
+const stubLm = Array.from({ length: 478 }, (_, i) => ({ x: 0.5 + ((i * 37) % 100) / 2000, y: 0.5 + ((i * 53) % 100) / 2000, z: 0 }));
+const realExtract = engine.extractGeometricFeatures.bind(engine);
+const analyzeWith = async (over) => {
+  engine.extractGeometricFeatures = () => ({ ...baseFeatures, ...over, jawSquareness: over.faceRatio ?? baseFeatures.faceRatio });
+  try { return await engine.analyze(stubLm, null, 1); }
+  finally { engine.extractGeometricFeatures = realExtract; }
+};
+
+const wins = Object.create(null);
+let total = 0;
+for (const faceRatio of [0.70, 0.75, 0.80, 0.85, 0.90])
+  for (const eyeSlant of [-5, -2.5, 0, 2.5, 5])
+    for (const eyeDistRatio of [0.95, 1.08, 1.20])
+      for (const noseWidthRatio of [0.82, 0.95, 1.08])
+        for (const mouthRatio of [1.15, 1.35, 1.55])
+          for (const eyeRatio of [2.2, 2.7, 3.2]) {
+            const r = await analyzeWith({ faceRatio, eyeSlant, eyeDistRatio, eyeDistance: eyeDistRatio, noseWidthRatio, mouthRatio, eyeRatio });
+            wins[r.primaryAnimal] = (wins[r.primaryAnimal] || 0) + 1;
+            total += 1;
+          }
+
+const ranked = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+const [topName, topCount] = ranked[0];
+assert.ok(topCount / total <= 0.35, `단일 동물 편중: ${topName} ${(topCount * 100 / total).toFixed(1)}% — 축 스케일/전달함수 붕괴 의심`);
+assert.ok(ranked.length >= 18, `승자 다양성 ${ranked.length}/27 — 다수 동물이 도달 불가`);
+for (const name of ['강아지상', '고양이상', '햄스터상', '사슴상']) {
+  assert.ok(wins[name] > 0, `${name}이 전 구간에서 단 한 번도 1위가 아님 (도달 불가)`);
+}
+assert.ok((wins['기린상'] || 0) / total <= 0.12, `기린상은 매우 긴 얼굴에서만 나와야 함 (실제 ${((wins['기린상'] || 0) * 100 / total).toFixed(1)}%)`);
+// 갸름 + 순한 눈매 + 큰 둥근 눈 + 작은 코 → 부드러운 계열이어야 한다 (기린상 금지)
+const soft = await analyzeWith({
+  faceRatio: 0.78, eyeSlant: 1.0, eyeDistRatio: 1.12, eyeDistance: 1.12,
+  noseWidthRatio: 0.82, mouthRatio: 1.22, eyeRatio: 2.25, eyeToFaceRatio: 0.75, chinLength: 0.33
+});
+assert.notEqual(soft.primaryAnimal, '기린상', '갸름+순한 얼굴이 기린상으로 새면 안 됨');
+assert.ok(['강아지상', '햄스터상', '사슴상', '토끼상', '고양이상'].includes(soft.primaryAnimal),
+  `갸름+순한 얼굴 → 부드러운 계열이어야 함 (실제 ${soft.primaryAnimal})`);
+
+console.log(`[verify-physiognomy-scoring] ok — 승자 ${ranked.length}/27종, 최다 ${topName} ${(topCount * 100 / total).toFixed(1)}%, 갸름+순한 얼굴 → ${soft.primaryAnimal}`);
