@@ -79,7 +79,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
       ok: false,
       status: 503,
       error: FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED,
-      message: "Fusion Fortune generation is not available right now.",
+      message: "초융합 운세 생성을 지금 시작할 수 없어요. 잠시 후 다시 시도해 주세요.",
     });
   }
 
@@ -107,7 +107,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
       if (!result.ok) {
         await writeFusionFortuneSse(writer, "error", {
           error: result.error || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
-          message: result.message || "Unable to prepare the result.",
+          message: result.message || "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
           requestId: result.requestId || "",
           // 402(결제 필요)/503(판단 보류)를 클라이언트가 구분할 수 있어야 결제 게이트를 열지,
           // 재시도를 안내할지 고를 수 있다. SSE 는 HTTP 상태를 다시 줄 수 없어 본문에 싣는다.
@@ -125,7 +125,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
     } catch {
       await writeFusionFortuneSse(writer, "error", {
         error: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
-        message: "Unable to prepare the result.",
+        message: "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
       }).catch(() => {});
     } finally {
       await writer.close().catch(() => {});

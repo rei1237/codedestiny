@@ -9,6 +9,7 @@ import {
   generateFusionFortuneWithMockLLM,
   generateFusionFortuneWithRealLLM,
   getFusionFortuneDateKey,
+  isFusionFortuneRealLlmAllowed,
   selectFusionFortuneTarotSpread,
   validateFusionFortuneGroup,
   validateFusionFortuneResult,
@@ -109,6 +110,20 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 300, amountKRW: 30000 });
     // 회당 결제여야 매번 재판정된다. 영구 해금으로 등록되면 1회 결제로 무제한이 된다.
     expect(isPerUsePaidFeatureKey(FUSION_FORTUNE_PAID_FEATURE_KEY)).toBe(true);
+  });
+
+  it("🔴 opens the real LLM gate on the canonical GEMINIF_API_KEY, not only its aliases", () => {
+    // 이 게이트가 GEMINI_API_KEY/GOOGLE_API_KEY 만 보던 시절, 정본 시크릿(GEMINIF_API_KEY)만 있는
+    // 프로덕션에서 결제 성공 후 503(FEATURE_DISABLED)이 났다. 생성 경로는 pickGeminiKeys() 로
+    // 같은 키를 잘 찾았으므로, 게이트가 자기가 지키는 호출보다 엄격했던 것이다.
+    const base = { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true" };
+    expect(isFusionFortuneRealLlmAllowed({ ...base, GEMINIF_API_KEY: "test-only-key" })).toBe(true);
+    expect(isFusionFortuneRealLlmAllowed({ ...base, GEMINI_API_KEY: "test-only-key" })).toBe(true);
+    expect(isFusionFortuneRealLlmAllowed({ ...base, GOOGLE_GEMINI_API_KEY: "test-only-key" })).toBe(true);
+    // 키가 없거나 플래그가 꺼져 있으면 그대로 막힌다.
+    expect(isFusionFortuneRealLlmAllowed(base)).toBe(false);
+    expect(isFusionFortuneRealLlmAllowed({ ...base, NODE_ENV: "test", GEMINIF_API_KEY: "test-only-key" })).toBe(false);
+    expect(isFusionFortuneRealLlmAllowed({ ...base, ALLOW_FUSION_FORTUNE_REAL_LLM: "false", GEMINIF_API_KEY: "test-only-key" })).toBe(false);
   });
 
   it("refuses to generate without a payment proof", async () => {

@@ -14,6 +14,7 @@ import {
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
+import { pickGeminiKeys } from "./gemini.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 
@@ -91,11 +92,14 @@ function throwIfFusionFortuneAborted(signal) {
 export function isFusionFortuneUiEnabled(env = {}) { return flag(env, "ENABLE_FUSION_FORTUNE_UI"); }
 export function isFusionFortuneApiEnabled(env = {}) { return flag(env, "ENABLE_FUSION_FORTUNE_API"); }
 export function isFusionFortuneMockFlowEnabled(env = {}) { return flag(env, "ENABLE_FUSION_FORTUNE_MOCK_FLOW"); }
+// 🔴 키 이름은 pickGeminiKeys() 하나만 본다. 예전에는 GEMINI_API_KEY/GOOGLE_API_KEY 만 확인해서,
+//    정본 시크릿인 GEMINIF_API_KEY 만 있는 프로덕션에서 생성 경로는 키를 찾는데 이 게이트만 막혀
+//    결제 후 503(FEATURE_DISABLED)이 났다. 게이트가 자기가 지키는 호출보다 엄격하면 안 된다.
 export function isFusionFortuneRealLlmAllowed(env = {}) {
   return flag(env, "ENABLE_FUSION_FORTUNE_REAL_LLM")
     && flag(env, "ALLOW_FUSION_FORTUNE_REAL_LLM")
     && env.NODE_ENV !== "test"
-    && Boolean(env.GEMINI_API_KEY || env.GOOGLE_API_KEY);
+    && pickGeminiKeys().some((name) => Boolean(env[name]));
 }
 
 export function getFusionFortuneDateKey(date = new Date()) {

@@ -48,7 +48,8 @@ test("the final cross verdict is rendered as the last part of the result", () =>
   assert.match(client, /result\.finalVerdict/);
   assert.match(client, /STANCE_LABEL/);
   // 결론은 마지막에 온다 — 맺음말보다 앞이어야 한다.
-  assert.ok(client.indexOf("fusion-final-verdict-heading") < client.indexOf("styles.closing"));
+  assert.ok(client.indexOf("fusion-final-verdict-heading") > 0);
+  assert.ok(client.indexOf("fusion-final-verdict-heading") < client.indexOf("fusion-closing-message"));
 });
 
 test("fusion orbs come from the generated crops with a documented tarot gap", () => {
@@ -63,17 +64,20 @@ test("fusion orbs come from the generated crops with a documented tarot gap", ()
 
 test("fusion fortune mobile UI covers compact widths and reduced motion", () => {
   const css = read("app/fusion-fortune/fusion-fortune.module.css");
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
   assert.match(css, /max-width:\s*760px/);
   assert.match(css, /max-width:\s*390px/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /min-height:\s*50px/);
   assert.match(css, /\.form fieldset label[\s\S]*?min-height:\s*44px/);
-  assert.match(css, /content-visibility:\s*auto/);
+  // 상담 대화(생성·결과)는 Tailwind 로 옮겼다. 같은 계약을 새 위치에서 확인한다.
+  assert.match(client, /\[content-visibility:auto\]/);
+  assert.match(client, /motion-reduce:animate-none/);
+  assert.match(client, /min-h-11/);
 });
 
 test("fusion fortune consumes server-sent completion stages", () => {
   const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
-  const css = read("app/fusion-fortune/fusion-fortune.module.css");
   assert.match(client, /fusion-fortune\/generate\/stream/);
   assert.match(client, /consumeFusionStream/);
   assert.match(client, /FUSION_STAGES/);
@@ -81,12 +85,24 @@ test("fusion fortune consumes server-sent completion stages", () => {
   assert.match(client, /<dialog/);
   assert.match(client, /aria-expanded/);
   assert.match(client, /useAiProfileSeed/);
-  assert.match(css, /stageActive/);
-  assert.match(css, /content-visibility:\s*auto/);
+  // 진행 중인 체계는 끝난 체계와 눈으로 구분돼야 한다(대화 말풍선의 data-state).
+  assert.match(client, /dataState=\{state\}/);
+  assert.match(client, /data-state=\{dataState\}/);
   // 4그룹 병렬 생성이 실제 진행률로 보여야 한다 — 여섯 체계 계산 뒤 이 단계가 가장 길다.
   assert.match(client, /streamPayload\.stage === "compose"/);
   assert.match(client, /composeProgress/);
-  assert.match(css, /\.composeProgress/);
+  assert.match(client, /composeProgress\.completed \/ Math\.max\(1, composeProgress\.total\)/);
+});
+
+test("the generating view and the result live in one conversation thread", () => {
+  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  // 생성 화면과 결과 화면이 갈라지면 3만원짜리 상담이 "로딩 → 리포트"로 끊긴다.
+  assert.match(client, /\{\(loading \|\| result \|\| failure\) && <section/);
+  assert.match(client, /aria-label="초융합 상담 대화"/);
+  // 아직 끝나지 않은 체계에 말풍선을 미리 만들지 않는다(없는 내용을 자리로 약속하지 않기).
+  assert.match(client, /if \(state === "pending"\) return null;/);
+  // 실패는 폼이 아니라 대화 안에 남고, 결제 증빙이 있으면 그 자리에서 재시도한다.
+  assert.match(client, /추가 결제 없이 다시 시도하기/);
 });
 
 test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
