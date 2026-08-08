@@ -150,6 +150,7 @@
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",
     "verify:checkout-pass-card": "node scripts/verify-checkout-pass-card.mjs",
+    "verify:pass-check-retry": "node scripts/verify-pass-check-degraded-retry.mjs",
     "verify:pass-recovery-path": "node scripts/verify-pass-recovery-path.mjs",
     "verify:static-paid-gate-failsafe": "node scripts/verify-static-paid-gate-failsafe.mjs",
     "verify:saju-fun-content-gate": "node scripts/verify-saju-fun-content-gate.mjs",

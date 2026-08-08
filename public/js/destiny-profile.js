@@ -3580,57 +3580,92 @@
         requestId: requestId
       };
     }
-    var res;
-    try {
-      res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
-    } catch (passCheckError) {
-      // 네트워크/타임아웃 등으로 이용권 확인 자체가 실패 — '이용권 없음'으로 오인해 결제창으로 강등하지 않고 일시 오류로 표면화.
-      return { status: 'error', code: 'PASS_CHECK_UNAVAILABLE', error: passCheckError, requestId: requestId };
-    }
-    var payload = res && res.payload ? res.payload : res;
-    var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
-    var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
-    if (res && res.ok && _dpIsMembershipPassGrantedPayload(payload)) {
-      var result = { status: _dpExtractBillingData(payload).alreadyUnlocked === true ? 'already_unlocked' : 'pass_applied', payload: payload, requestId: requestId };
-      _dpStorePaidPassGateResult(cacheKey, result);
-      try {
-        if (result.status === 'pass_applied' || result.status === 'already_unlocked') {
-          if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
-          else if (typeof window._cdSetCoinGateOverlay === 'function') _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
-          else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: _dpText('subscriptionIncluded'), requiredCoins: coinPrice });
-        }
-      } catch (_) {}
-      return result;
-    }
-    if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
-      var notCovered = { status: 'payment_required', payload: payload, requestId: requestId };
-      return notCovered;
-    }
-    // 진짜 미보유(402/미커버)만 결제창으로 유도한다. 5xx·degraded·인증 일시장애·비2xx 응답을 '이용권 없음'으로
-    // 오인해 결제창으로 강등하면 이용권 보유자가 결제창으로 세탁된다 — 정상 게이트(index.html PASS_APPLY_FAILED)와
-    // 동일하게 일시 오류로 구분해 결제창 대신 재시도로 유도한다.
-    var passCheckDegraded = !!(payload && (payload.degraded === true || (payload.data && payload.data.degraded === true)));
-    // 확정 인증 실패(401/403)는 '일시 오류'가 아니다 — 로그인하지 않았다면 이용권도 있을 수 없다.
-    // 예전엔 아래 res.ok === false 가 이걸 삼켜 재시도 3회 + 백오프 700ms 를 버렸다. 단, 서버가 일시 장애를
-    // 401 로 표면화하는 코드(AUTH_STATUS_TEMPORARILY_UNAVAILABLE / AUTH_DB_UNAVAILABLE)와 degraded 응답은
-    // 계속 '일시 오류'로 남겨 이용권 보유자의 무료 통과 기회를 지킨다.
-    var passCheckAuthDefinite = (statusCode === 401 || statusCode === 403)
-      && !passCheckDegraded
-      && code !== 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
-      && code !== 'AUTH_DB_UNAVAILABLE'
-      && code !== 'AUTH_REFRESH_TEMPORARY_FAILURE';
-    if (passCheckAuthDefinite) {
-      // 401/403은 이용권 미커버가 아니다. 인증 복구 중일 수 있는 사용자를 상점으로 보내지 않고
-      // 결제창을 유지한다. 세션 흔적이 전혀 없을 때만 로그인 안내를 반환한다.
-      if (_dpHasSessionHint()) {
-        return { status: 'error', code: 'AUTH_SESSION_CHECK_UNAVAILABLE', message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.', payload: payload, requestId: requestId };
+    // 🔴 이 확인은 과금이 아니다(MEMBERSHIP_PASS, 이용권 커버는 무료). 그런데 워커-DB 일시 장애(degraded-503)로
+    // 확인이 실패하면 결제창은 '이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요.'로 끝나 사용자가
+    // 직접 다시 눌러야 했다 — 이용권 보유자가 결제창 앞에서 막히던 지점이다. degraded 일 때만 **동일 requestId 로
+    // 1회** 재요청한다. 같은 requestId 라서 서버 멱등 마커(recentConsumeRequestIds)가 중복 소비를 막고,
+    // 성공·402·확정 401/403·429/4xx 는 확정 응답이라 재시도하지 않는다.
+    // 결제 확정 POST(checkout/confirm/forceDeduct coin-gate)에는 적용하지 않는다 — 그쪽 자동 재시도는
+    // verify:paid-gate-ui 와 verify:coin-gate-degraded-preview 가 금지한다.
+    var passCheckMaxAttempts = 2;
+    var passCheckRetryDelayMs = 450;
+    var res = null;
+    var payload = null;
+    var statusCode = 0;
+    var code = '';
+    for (var passAttempt = 0; passAttempt < passCheckMaxAttempts; passAttempt += 1) {
+      if (passAttempt > 0) {
+        await new Promise(function (resolve) { setTimeout(resolve, passCheckRetryDelayMs); });
       }
-      return { status: 'error', code: code || 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.', payload: payload, requestId: requestId };
+      var passCheckThrown = null;
+      res = null;
+      try {
+        res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
+      } catch (passCheckError) {
+        passCheckThrown = passCheckError;
+      }
+      if (passCheckThrown) {
+        // 네트워크/타임아웃 등으로 이용권 확인 자체가 실패 — '이용권 없음'으로 오인해 결제창으로 강등하지 않고 일시 오류로 표면화.
+        if (passAttempt + 1 < passCheckMaxAttempts) continue;
+        return { status: 'error', code: 'PASS_CHECK_UNAVAILABLE', error: passCheckThrown, requestId: requestId };
+      }
+      payload = res && res.payload ? res.payload : res;
+      statusCode = Number((res && res.status) || (payload && payload.status) || 0);
+      code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
+      if (res && res.ok && _dpIsMembershipPassGrantedPayload(payload)) {
+        var result = { status: _dpExtractBillingData(payload).alreadyUnlocked === true ? 'already_unlocked' : 'pass_applied', payload: payload, requestId: requestId };
+        _dpStorePaidPassGateResult(cacheKey, result);
+        try {
+          if (result.status === 'pass_applied' || result.status === 'already_unlocked') {
+            if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
+            else if (typeof window._cdSetCoinGateOverlay === 'function') _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
+            else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: _dpText('subscriptionIncluded'), requiredCoins: coinPrice });
+          }
+        } catch (_) {}
+        return result;
+      }
+      if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
+        var notCovered = { status: 'payment_required', payload: payload, requestId: requestId };
+        return notCovered;
+      }
+      // 진짜 미보유(402/미커버)만 결제창으로 유도한다. 5xx·degraded·인증 일시장애·비2xx 응답을 '이용권 없음'으로
+      // 오인해 결제창으로 강등하면 이용권 보유자가 결제창으로 세탁된다 — 정상 게이트(index.html PASS_APPLY_FAILED)와
+      // 동일하게 일시 오류로 구분해 결제창 대신 재시도로 유도한다.
+      var passCheckDegraded = !!(payload && (payload.degraded === true || (payload.data && payload.data.degraded === true)));
+      // 확정 인증 실패(401/403)는 '일시 오류'가 아니다 — 로그인하지 않았다면 이용권도 있을 수 없다.
+      // 예전엔 아래 res.ok === false 가 이걸 삼켜 재시도 3회 + 백오프 700ms 를 버렸다. 단, 서버가 일시 장애를
+      // 401 로 표면화하는 코드(AUTH_STATUS_TEMPORARILY_UNAVAILABLE / AUTH_DB_UNAVAILABLE)와 degraded 응답은
+      // 계속 '일시 오류'로 남겨 이용권 보유자의 무료 통과 기회를 지킨다.
+      var passCheckAuthDefinite = (statusCode === 401 || statusCode === 403)
+        && !passCheckDegraded
+        && code !== 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
+        && code !== 'AUTH_DB_UNAVAILABLE'
+        && code !== 'AUTH_REFRESH_TEMPORARY_FAILURE';
+      if (passCheckAuthDefinite) {
+        // 401/403은 이용권 미커버가 아니다. 인증 복구 중일 수 있는 사용자를 상점으로 보내지 않고
+        // 결제창을 유지한다. 세션 흔적이 전혀 없을 때만 로그인 안내를 반환한다.
+        if (_dpHasSessionHint()) {
+          return { status: 'error', code: 'AUTH_SESSION_CHECK_UNAVAILABLE', message: '\uB85C\uADF8\uC778 \uC815\uBCF4\uB97C \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.', payload: payload, requestId: requestId };
+        }
+        return { status: 'error', code: code || 'AUTH_REQUIRED', message: '\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.', payload: payload, requestId: requestId };
+      }
+      if (statusCode >= 500 || passCheckDegraded || code === 'PASS_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'BALANCE_SNAPSHOT_UNAVAILABLE' || (res && res.ok === false)) {
+        // 재시도 대상은 '서버가 아직 답하지 못한' 신호로만 좁힌다. 429(레이트리밋)·404·400 은 다시 물어도
+        // 같은 답이고 429 는 오히려 상한을 더 태우므로, 위 분류는 그대로 두되 재시도에서만 제외한다.
+        var passCheckRetryable = statusCode === 0
+          || statusCode >= 500
+          || passCheckDegraded
+          || code === 'PASS_STATUS_TEMPORARILY_UNAVAILABLE'
+          || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
+          || code === 'BALANCE_SNAPSHOT_UNAVAILABLE'
+          || code === 'PAID_ACCESS_VERIFY_RETRYABLE';
+        if (passCheckRetryable && passAttempt + 1 < passCheckMaxAttempts) continue;
+        return { status: 'error', code: code || 'PASS_CHECK_UNAVAILABLE', payload: payload, requestId: requestId };
+      }
+      return { status: 'payment_required', payload: payload, requestId: requestId };
     }
-    if (statusCode >= 500 || passCheckDegraded || code === 'PASS_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'BALANCE_SNAPSHOT_UNAVAILABLE' || (res && res.ok === false)) {
-      return { status: 'error', code: code || 'PASS_CHECK_UNAVAILABLE', payload: payload, requestId: requestId };
-    }
-    return { status: 'payment_required', payload: payload, requestId: requestId };
+    // 루프는 위에서 항상 반환한다. 여기 도달했다면 시도 자체가 없었다는 뜻이라 확정 판정을 만들지 않는다.
+    return { status: 'error', code: 'PASS_CHECK_UNAVAILABLE', requestId: requestId };
   }
 
   async function _dpRunMonthlyCreditFromMainGate(options) {

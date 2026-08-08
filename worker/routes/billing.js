@@ -135,11 +135,24 @@ const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
 const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
 // 🔴 이 값은 속도가 아니라 정확성 장치다. 너무 짧으면 '느림'이 '이용권 미보유'로 세탁된다:
 // 이 상한에 걸리면 PASS_STATUS_TEMPORARILY_UNAVAILABLE 이 되고, 정적 셸은 그걸 '결제창 재노출'로
-// 처리해 이용권 보유자에게 결제창이 뜬다. 기존 1400ms 는 드라이버 자체 하한(serverSelection 8s,
-// 시도당 11.5s)보다 훨씬 낮아 Cloudflare 아이들 소켓 회수 뒤 첫 조회에서 헛발동했다.
-// 왕복을 줄인 뒤(요청 단위 인증 메모·User 재사용) 4초면 정상 조회는 전부 통과한다.
-const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 4000;
+// 처리해 이용권 보유자에게 결제창이 뜬다.
+//
+// 🔴 4000ms → 12000ms (2026-08-08). 이 상한은 withMongoRetry 의 **안쪽**에 들어간다
+// (resolveProfileIdFromDb·resolvePaidContentAccess). 그런데 db.js 는 시도당 상한에 하한
+// 11,500ms(serverSelection 8,000 + 쿼리 여유 3,500)를 강제하므로, 4초는 콜드 커넥션의
+// 서버선택 창조차 못 기다리고 정상 조회를 잘랐다. 게다가 이 타임아웃이 만드는 에러 메시지
+// ("Billing operation timed out after …")는 db.js 의 isTransientMongoError 정규식
+// (connection/socket/server selection … timed out)에 걸리지 않아, 감싸고 있는 withMongoRetry 가
+// 재시도조차 하지 않는다 — 즉 짧은 값은 완충이 아니라 순수한 503 생성기였다.
+// 12초로 두면 드라이버 자체 상한이 먼저 걸리고 이 상수는 backstop 으로 돌아간다.
+// 낮추지 말 것: 내려가는 만큼 그대로 이용권 보유자의 503 이 된다.
+const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 12000;
 const PAID_PASS_DECISION_DB_TIMEOUT_MS = 10000;
+// 이용권 조회가 fortune.js 라우트로 위임할 때의 자체 예산. 위 10초는 위임까지 포함한 전체
+// 상한이라, 위임 하나가 느리면 요청 전체가 503(PASS_STATUS_TEMPORARILY_UNAVAILABLE)이 됐다.
+// 위임에 별도 상한을 주면 초과 시 위임만 포기하고, 권위 판정(getActiveMembershipPassForUser 가
+// 이미 성공적으로 읽은 User 문서)으로 정상 응답한다. 상세는 readSubscriptionStatusSnapshot 참고.
+const SUBSCRIPTION_STATUS_DELEGATION_TIMEOUT_MS = 3500;
 function billingRateLimitForPath(path = "", method = "GET") {
   if (path === "/coin-gate" || path === "/checkout") return { limit: 20, windowSeconds: 60 };
   if (path === "/confirm") return { limit: 20, windowSeconds: 60 };
@@ -3798,7 +3811,19 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         });
       let passEvidence = null;
       try {
-        passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
+        // 🔴 재시도 추가(2026-08-08). recordPassAccessIfNeeded 는 connectDb + PointHistory.findOne
+        // + User.findById + PointHistory.create 를 무방비로 연달아 돈다. 한 번의 Mongo 블립이 그대로
+        // passEvidenceFailure → 503 PAID_ACCESS_VERIFY_RETRYABLE 이 됐고, 그 시점엔 이용권이 이미
+        // 소진된 뒤라 사용자는 "이용권을 썼는데 실패"를 본다. FAMILY 등급만 이 경로를 타므로
+        // (recordPassAccessIfNeeded 의 조기 반환) 300코인 초융합처럼 family 전용 커버 기능에 집중됐다.
+        // 재시도가 중복 기록을 만들지 않는 근거: 같은 함수가 metadata.requestId 로 기존 기록을 먼저
+        // 조회해 있으면 그대로 돌려준다(멱등).
+        // 🔴 여기에 withDbAccessTimeout 을 겹치지 않는다 — withMongoRetry 가 이미 시도마다 상한을
+        // 걸고(db.js attemptTimeoutMS, 하한 11.5s) 그게 이 조회에 맞는 유일한 예산이다. 밖에서 또
+        // 감싸면 둘 중 짧은 쪽이 드라이버를 앞질러 자르는 예전 패턴이 그대로 재발한다.
+        // 중첩 아님: 이 호출부는 어떤 withMongoRetry 안에도 없고 함수 내부에도 재시도가 없다
+        // (verify:no-nested-retry 로 재확인).
+        passEvidence = await withMongoRetry(env, () => recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
           ...scopedBody,
           reportId,
           sessionId: reportSessionId,
@@ -3807,7 +3832,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         }, {
           ...subscriptionPass.entitlement,
           passTier: tierPassConsume.passTier,
-        });
+        }));
       } catch (error) {
         logBillingRouteError("pass-access-record", error, request, {
           featureKey: String(pricing?.featureKey || ""),
@@ -5362,7 +5387,36 @@ async function readSubscriptionStatusSnapshot(request, env, resolvedUserDoc = nu
     }
 
     const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/profile-subscription/status", "GET");
-    const delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
+    // 🔴 위임에 자체 예산을 준다(2026-08-08). 이 조회는 coin-gate 의 이용권 예산
+    // (PAID_PASS_DECISION_DB_TIMEOUT_MS, 10초) **안에서** 실행되는데, handleFortuneRoutes 는
+    // fortune.js(264KB) 지연 임포트 + 자체 인증 왕복까지 도는 라우트 재진입이라 콜드 아이솔레이트에서
+    // 그 예산을 통째로 태웠다 → COIN_GATE_PASS_RESOLVE_TIMEOUT → 503 PASS_STATUS_TEMPORARILY_UNAVAILABLE.
+    // 월정석 잔액·만료 구독 잔재가 있는 계정은 hasResolvableSubscriptionSignal 이 항상 true 라
+    // 이용권을 확인할 때마다 이 경로를 타므로, 결제창의 '이용권으로 구매'가 간헐적으로 죽는 주범이었다.
+    //
+    // 초과 시 위임만 포기하고 아래 inactive 를 돌려주면, 호출부(getMembershipPassForBillingRequest)가
+    // directPass 로 폴백한다 — 그건 authUserDoc 으로 **이미 성공적으로** 내린 권위 판정이라
+    // 판정 근거가 사라지지 않는다. 위임 실패(!ok)와 예외는 원래부터 같은 inactive 로 처리하고
+    // 있었으므로(바로 아래 · 함수 말미 catch) 이건 새로운 '확인 실패 → 미보유' 세탁이 아니다.
+    const delegatedPromise = handleFortuneRoutes(delegatedRequest, env);
+    // race 에서 진 쪽이 나중에 거부하면 unhandled rejection 이 된다 — 분리된 no-op 핸들러로 막는다.
+    delegatedPromise.catch(() => {});
+    let delegatedResponse;
+    try {
+      delegatedResponse = await withTimeout(
+        delegatedPromise,
+        SUBSCRIPTION_STATUS_DELEGATION_TIMEOUT_MS,
+        "SUBSCRIPTION_STATUS_DELEGATION_TIMEOUT",
+      );
+    } catch (error) {
+      console.warn("[billing-subscription-delegation]", JSON.stringify({
+        code: String(error?.code || ""),
+        name: String(error?.name || ""),
+        message: String(error?.message || ""),
+        budgetMs: SUBSCRIPTION_STATUS_DELEGATION_TIMEOUT_MS,
+      }));
+      return { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
+    }
     if (!delegatedResponse.ok) {
       return { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
     }

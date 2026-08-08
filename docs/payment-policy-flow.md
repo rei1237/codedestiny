@@ -7,7 +7,9 @@
 > **개정 요지**: 이용권, 단건 결제, 월정석은 사용자가 명시적으로 선택한다.
 > 조회 화면은 snapshot으로 빠르게 표시하지만 돈과 권한이 바뀌는 각 경로는 서버가 최종 판정한다.
 
-모든 유료 결제는 다음 순서로 판정한다(구현 정본: `worker/routes/billing.js`의 `buildPassPaymentDecision`·`grantPassFreeAccessBeforeCardIfAvailable`, `worker/lib/profile-limits.js`의 `canUseByPass`/`PASS_LIMITS`):
+모든 유료 결제는 다음 순서로 판정한다(구현 정본: `worker/routes/billing.js`의 `buildPassPaymentDecision`·`processCoinGateFromPricing`, `worker/lib/profile-limits.js`의 `canUseByPass`/`PASS_LIMITS`):
+
+> 같은 파일의 `grantPassFreeAccessBeforeCardIfAvailable`은 **호출자가 없는 죽은 코드**다(2026-08-08 확인). 카드 주문 직전 이용권 재검사는 의도적으로 제거됐고 `scripts/verify-billing-pass-policy.mjs`·`verify-paid-gate-ui-regression.mjs`가 되살리는 것을 막는다 — 정본으로 참조하지 말 것.
 
 1. **로컬 스냅샷 판정** — 구독 스냅샷(`cd_subscription_snapshot_v2`, 판정 정본 `js/core/pass-verdict.js`)이 **커버를 확답하면 서버 왕복 없이 즉시 무료 통과**(낙관 grant, 서버 기록은 백그라운드). **미커버를 확답해도** 곧바로 결제창. **확답하지 못하면 기다리지 않고 결제창**을 연다 — 진입 경로에 서버 왕복은 없다.
 2. **결제창에서 이용권 확인** — 결제창의 첫 카드가 **[이용권으로 구매]**(`data-mode="pass-store"`)이고, 이것이 이용권 검사 지점이다. 누르면 그 자리에서 서버에 물어 **커버되면 결제 없이 무료로 열고**, 아니면 이용권 상점으로 인계한다(`/points?plan=…&cdco=1` → 결제 확인 모달 자동 오픈, 결제 후 원래 화면 복귀).

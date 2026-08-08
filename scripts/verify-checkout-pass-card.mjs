@@ -467,9 +467,18 @@ console.log("\n[12] 결제 서비스 경계를 중첩해도 결제창이 뜨는�
       ? () => window.CodeDestinyPaymentService.executePayment(COMMAND, () => window._cdOpenPaidServiceGate({ ...gateOptions }))
       : () => window._cdOpenPaidServiceGate({ ...gateOptions });
     Promise.resolve(invoke()).catch(() => {});
+    // 🔴 고정 틱 수(예전 12틱)로 표본을 뜨지 않는다. 그건 "결제창이 뜨는 데 걸리는 시간"에 대한 임의의
+    // 예산이라, 러너가 느린 구간(빌드 직후·다른 프로세스가 같은 파일을 쓰는 중)에 걸리면 아직 렌더 중인
+    // 정상 동작을 교착으로 오진했다. 렌더될 때까지 기다리되 상한을 두면, 진짜 교착은 그대로 실패로 잡히고
+    // (상한까지 못 뜬다) 느리기만 한 경우는 통과한다. entries 는 렌더 시점에 함께 읽으므로 정상 경로의
+    // 관측 시점은 예전과 같다 — 경계가 두 번 열리는 회귀는 여전히 잡힌다.
+    const isRendered = () => Boolean(findCard(window, "direct")) && Boolean(findCard(window, "monthly"));
+    const deadline = Date.now() + 5000;
+    while (!isRendered() && Date.now() < deadline) await flush();
+    // 렌더 직후 한 틱 안에 들어오는 두 번째 경계 진입까지 보고 세도록 여유를 준다. 렌더되자마자 읽으면
+    // '나중에 한 번 더 열리는' 회귀를 놓친다(예전 고정 12틱이 우연히 해 주던 일).
     for (let i = 0; i < 12; i += 1) await flush();
-    const rendered = Boolean(findCard(window, "direct")) && Boolean(findCard(window, "monthly"));
-    return { rendered, entries };
+    return { rendered: isRendered(), entries };
   }
 
   check("payment-service 가 실제로 설치돼 경계가 살아 있다", () => {

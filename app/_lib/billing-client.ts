@@ -444,7 +444,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-0e80aaf07557";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-4b96ba87f36f";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -2014,34 +2014,19 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || status >= 500;
 }
 
-// 코인게이트 transient 재시도 상한/백오프. 최초 1회 + 재시도 2회 = 최대 3회, 지수 백오프(0.8s→1.44s).
-// Initial request + one backoff retry. More attempts amplified Mongo pool pressure
-// during the 503 incident and did not improve the user's chance of a timely result.
-// 정적 셸 선검사 백오프(250 → 450ms)와 같은 값. 기존 800ms → 1.44s 는 선검사 예산(6초)을 재시도 대기만으로 소진했다.
-// 과금 없는 pass 확인 구간(첫 요청 + 재시도)의 벽시계 상한. 초과하면 붙잡지 않고 아래 결제 폴백으로 넘긴다.
-
-// 코인게이트가 워커-DB 일시 장애로 돌려주는 degraded-503만 재시도 대상으로 본다.
-// 확정 실패(402/401/PAYMENT_REQUIRED 등)나 성공은 재시도하지 않는다. 이용권 커버 판정은
-// 서버(canUseByPass)가 하며, 여기서는 인프라 blip만 흡수한다.
-function isRetryableBillingInfraDegraded(status: number, code?: string) {
-  const normalizedCode = toText(code).toUpperCase();
-  // 409 = 월정석 차감은 끝났는데 원장이 아직 안 보이는 짧은 창(sibling 커밋 직전). 동일 requestId로 재요청하면
-  // 서버가 원장을 찾아 idempotent 성공을 돌려주므로, 재시도가 유일한 해소 경로이며 이중 차감 위험은 없다.
-  // 여기서 재시도하지 않으면 돈은 빠진 채 dead-end가 된다.
-  if (status === 409 && normalizedCode === "MONTHLY_CREDIT_CONSUME_IN_PROGRESS") return true;
-  if (status !== 503) return false;
-  return normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"
-    || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"
-    || normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"
-    || normalizedCode === "AUTH_DB_UNAVAILABLE"
-    || normalizedCode === "DB_DEGRADED"
-    // 월정석 lot 차감이 동시 갱신과 경합해 write를 못 한 경우. 5회 write가 모두 실패한 '미차감' 상태라
-    // 재요청이 이중 차감을 만들지 않는다(차감이 끝난 replay는 서버가 409로 따로 구분해 여기 오지 않는다).
-    || normalizedCode === "MONTHLY_CREDIT_CONTENDED"
-    // 코드 없는 503(일부 AI 라우트의 degrade는 reason만 담고 code가 비어 옴)도 인프라 blip으로 보고
-    // 짧게 재시도한다. 재시도 소진 후에도 남으면 shouldOpenRuntimePaymentFallback이 결제창을 연다.
-    || normalizedCode === "";
-}
+// 🔴 이 자리에 있던 코인게이트 재시도 상수·판정 함수(isRetryableBillingInfraDegraded)는 제거됐다
+// (2026-08-08). 실제 재시도 코드는 그보다 먼저 사라졌는데 상수 주석과 판정 함수만 남아, 아래
+// runCoinGateRequest 가 "짧게 재시도한다"고 읽히는 반면 코드는 단발이었다 — 이 파일을 읽는 사람을
+// 정확히 반대로 안내하던 주석이다.
+//
+// 결제 확정 POST 를 자동 재시도하지 않는 것은 의도된 정책이며 가드 2종이 강제한다:
+//   scripts/verify-paid-gate-ui-regression.mjs  ("React payment POST is not automatically retried")
+//   scripts/verify-coin-gate-degraded-preview.mjs ("payment POST auto retry must stay removed")
+// 되살리려면 그 두 단언을 함께 뒤집어야 하므로 임의로 하지 말 것.
+//
+// 과금이 없는 이용권 확인만 degraded-503 에서 1회 재시도한다 — 위치는 여기가 아니라
+// js/destiny-profile.js 의 _dpApplyMembershipPassBeforePayment 이고,
+// npm run verify:pass-check-retry 가 그 동작(재시도 1회·동일 requestId·402/429 제외)을 고정한다.
 
 // 서버가 "확정적으로 답한" 경우만 true. 402(미커버/잔액부족)와 401/403(인증)이 여기 해당한다.
 // 나머지 실패(클라 타임아웃 BILLING_REQUEST_TIMEOUT·5xx·degraded)는 "커버되지 않음"이 아니라
@@ -4237,12 +4222,13 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
       return parseBillingResponse<BillingCoinGateData>(response);
     };
 
-    // 워커-DB 일시 장애로 인증/이용권 확인이 순간 실패(degraded-503)하면, 이용권 보유자가 무료 통과할
-    // 기회를 살리려 짧게 재시도한다(재시도-우선). degraded-503은 과금 전 확인 실패라 재요청이 안전하고,
-    // 동일 requestId를 재사용해 서버 멱등 병합과 정합을 유지한다. 재시도 중 200(pass covered)이면 아래
-    // 성공 분기로 무료 통과하고, 확정 응답(402/401 등)이면 즉시 중단해 기존 분기가 처리한다. 소진 후에도
-    // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
-    // 과금 없는 pass 확인은 재시도까지 합쳐 6초를 넘기지 않는다. 확인이 더 늦어지면 붙잡는 대신 결제창을 연다.
+    // 🔴 이 호출은 **단발이다. 자동 재시도하지 않는다** (주석 정정 2026-08-08 — 예전 주석은 "짧게
+    // 재시도한다"고 적혀 있었지만 재시도 코드는 이미 제거된 뒤였다). 이 POST 는 월정석/단건 모드에서
+    // 실제 과금을 확정하므로 자동 재요청은 결제 사고 위험이고, verify:paid-gate-ui 와
+    // verify:coin-gate-degraded-preview 가 재시도 부활을 막는다.
+    // degraded-503 이 남으면 아래 else 의 shouldOpenRuntimePaymentFallback 이 결제창(단건+월정석)을
+    // 열어 dead-end 를 막고, 이용권 보유자의 무료 통과 기회는 그 결제창의 '이용권으로 구매' 카드가
+    // 살린다(그 경로만 무과금이라 1회 재시도를 갖는다 — js/destiny-profile.js).
     // DIRECT_KRW를 이미 고른 뒤에는 coin-gate 402를 한 번 더 받을 이유가 없다.
     // 선택한 단건 결제의 checkout 경로로 곧바로 넘긴다.
     const parsed: BillingResult<BillingCoinGateData> = explicitDirectMode
