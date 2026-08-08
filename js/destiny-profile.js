@@ -762,6 +762,14 @@
       var current = DPStorage.current();
       if (current) window.__cdCurrentDestinyProfile = current;
       else delete window.__cdCurrentDestinyProfile;
+      /* 이 전역이 "언제" 채워지는지는 소비처가 알 수 없다 — init()은 defer 스크립트라
+         인라인 스크립트의 DOMContentLoaded 핸들러보다 늦게 돌 수 있고, 로그인 사용자는
+         서버 동기화 뒤에야 카드가 생긴다. 그래서 공개 시점을 알리는 신호를 따로 쏜다.
+         기존 'destinyProfileChanged'(사주·자미두수·숙요 엔진이 듣는다)를 재사용하지 않는 이유는,
+         그쪽은 "사용자가 카드를 바꿨다"는 뜻이라 공개마다 쏘면 그 엔진들이 재분석을 돈다. */
+      document.dispatchEvent(new CustomEvent('cd:profile-card-published', {
+        detail: { profile: current || null }
+      }));
     } catch (e) {}
   }
 
@@ -2202,7 +2210,7 @@
       item.style.transform = 'translateY(-8px) scale(0.97)';
       item.style.transition = 'opacity 220ms ease, transform 220ms ease';
       item.style.pointerEvents = 'auto';
-      item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">COIN NOTICE</strong>'
+      item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">PAYMENT NOTICE</strong>'
         + '<span>🪙 ' + detail + ' 이용으로 <strong>' + (amount * 100).toLocaleString('ko-KR') + '원</strong> 결제가 확인되었습니다.</span>';
 
       root.appendChild(item);

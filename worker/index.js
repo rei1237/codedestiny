@@ -444,6 +444,7 @@ const handleAuthRoutes = createLazyRouteHandler("./routes/auth.js", () => import
 const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () => import("./routes/app-store.js"), "handleAppStoreRoutes", "api/app-store");
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
+const handleFortuneTodayRoutes = createLazyRouteHandler("./routes/fortune-today.js", () => import("./routes/fortune-today.js"), "handleFortuneTodayRoutes");
 const handleFusionFortuneRoutes = createLazyRouteHandler("./routes/fusion-fortune.js", () => import("./routes/fusion-fortune.js"), "handleFusionFortuneRoutes", "api/fusion-fortune");
 const handleFortuneChatRoutes = createLazyRouteHandler("./routes/fortune-chat.js", () => import("./routes/fortune-chat.js"), "handleFortuneChatRoutes", "api/fortune-chat");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
@@ -1301,6 +1302,12 @@ export default {
       if (url.pathname === "/api/points/balance") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/points/me");
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
+      // 홈 "오늘의 운세" 허브 — 무료·무인증. Swiss WASM 을 쓰므로 별도 모듈로 떼어
+      // /api/fortune/* 본 번들(결제·상담)이 그 무게를 지지 않게 한다. 그래서 catch-all 앞에 온다.
+      if (url.pathname === "/api/fortune/today-hub") {
+        return withCorsHeaders(request, env, await handleFortuneTodayRoutes(request, env));
       }
 
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {

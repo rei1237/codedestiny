@@ -329,6 +329,7 @@ function judgeDayFortune(myMansionIndex, dayMansionIndex) {
 export {
   SUKUYO_RELATION_HAN,
   SUKUYO_ROLE_PROFILES,
+  DAY_TIER_LABEL,
   DAY_TIER_ADVICE,
   MANSION_DAY_ADVICE,
   normalizeIndex,

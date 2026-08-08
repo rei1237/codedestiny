@@ -3,7 +3,7 @@ import { Lunar, Solar } from "lunar-javascript";
 const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
 const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 const ELEMENTS = ["목", "화", "토", "금", "수"];
-const STEM_ELEMENT = {
+export const STEM_ELEMENT = {
   甲: "목", 乙: "목",
   丙: "화", 丁: "화",
   戊: "토", 己: "토",
@@ -14,11 +14,11 @@ const STEM_POLARITY = {
   甲: "yang", 丙: "yang", 戊: "yang", 庚: "yang", 壬: "yang",
   乙: "yin", 丁: "yin", 己: "yin", 辛: "yin", 癸: "yin",
 };
-const BRANCH_ELEMENT = {
+export const BRANCH_ELEMENT = {
   子: "수", 丑: "토", 寅: "목", 卯: "목", 辰: "토", 巳: "화",
   午: "화", 未: "토", 申: "금", 酉: "금", 戌: "토", 亥: "수",
 };
-const HIDDEN_STEMS = {
+export const HIDDEN_STEMS = {
   子: ["癸"],
   丑: ["己", "癸", "辛"],
   寅: ["甲", "丙", "戊"],
@@ -81,7 +81,7 @@ const STEM_CLASH_PAIRS = [
   ["丙", "壬", "병임충"],
   ["丁", "癸", "정계충"],
 ];
-const BRANCH_COMBINATION_PAIRS = [
+export const BRANCH_COMBINATION_PAIRS = [
   ["子", "丑", "자축합", "토"],
   ["寅", "亥", "인해합", "목"],
   ["卯", "戌", "묘술합", "화"],
@@ -89,7 +89,7 @@ const BRANCH_COMBINATION_PAIRS = [
   ["巳", "申", "사신합", "수"],
   ["午", "未", "오미합", "토"],
 ];
-const BRANCH_CLASH_PAIRS = [
+export const BRANCH_CLASH_PAIRS = [
   ["子", "午", "자오충"],
   ["丑", "未", "축미충"],
   ["寅", "申", "인신충"],
@@ -189,7 +189,9 @@ function addElement(counts, element, weight = 1) {
   counts[element] = Number((counts[element] + weight).toFixed(2));
 }
 
-function tenGodFor(dayStem, targetStem) {
+// 일간 대비 다른 천간의 십성. 오늘의 일진 판정(worker/lib/saju-day-fortune.js)이
+// 같은 규칙을 다시 쓰지 않도록 이 정본 하나만 내보낸다.
+export function tenGodFor(dayStem, targetStem) {
   const dayElement = STEM_ELEMENT[dayStem];
   const targetElement = STEM_ELEMENT[targetStem];
   const samePolarity = STEM_POLARITY[dayStem] === STEM_POLARITY[targetStem];

@@ -9,12 +9,12 @@ const BRANCH_KR = "자축인묘진사오미신유술해";
 // 오행 한글 키 → 발송 템플릿의 영문 키(natal.elements.{wood,...})
 const ELEMENT_KR_TO_EN = { "목": "wood", "화": "fire", "토": "earth", "금": "metal", "수": "water" };
 
-function toKrStem(ch) {
+export function toKrStem(ch) {
   const idx = STEM_CN.indexOf(ch);
   return idx >= 0 ? STEM_KR[idx] : String(ch || "");
 }
 
-function toKrBranch(ch) {
+export function toKrBranch(ch) {
   const idx = BRANCH_CN.indexOf(ch);
   return idx >= 0 ? BRANCH_KR[idx] : String(ch || "");
 }
