@@ -130,6 +130,7 @@ export default function AdminMonthlyCreditsPage() {
             <Link href="/admin/content" className="rounded-md border border-slate-700 px-3 py-2 text-slate-300 hover:border-slate-500 hover:text-white">콘텐츠</Link>
             <Link href="/admin/orders" className="rounded-md border border-slate-700 px-3 py-2 text-slate-300 hover:border-slate-500 hover:text-white">주문</Link>
             <Link href="/admin/monthly-credits" aria-current="page" className="rounded-md border border-violet-500 bg-violet-950 px-3 py-2 font-semibold text-violet-100">월정석 지급</Link>
+            <Link href="/admin/feedback" className="rounded-md border border-slate-700 px-3 py-2 text-slate-300 hover:border-slate-500 hover:text-white">버그 제보</Link>
             <button type="button" onClick={redirectToAdminLogin} className="rounded-md border border-slate-700 px-3 py-2 text-slate-400 hover:border-slate-500 hover:text-white">로그아웃</button>
           </nav>
         </header>

@@ -41,6 +41,8 @@ export interface FeedbackCategory {
   requireUrl?: boolean;
   /** 민감정보 입력 경고 배너 문구 */
   warning?: string;
+  /** 확인 시 보상이 있음을 알리는 안내 문구 */
+  rewardNote?: string;
   fields: FeedbackDetailField[];
 }
 
@@ -71,6 +73,7 @@ export const FEEDBACK_CATEGORIES: readonly FeedbackCategory[] = Object.freeze([
     label: "버그",
     hint: "동작하지 않아요",
     emphasizeAttachment: true,
+    rewardNote: "실제 버그로 확인되면 제보 1건당 월정석 300개를 드려요.",
     fields: [REPRO_FIELD, EXPECTED_FIELD, ACTUAL_FIELD],
   },
   {

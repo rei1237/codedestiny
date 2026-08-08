@@ -5109,6 +5109,13 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminMonthlyCreditRoutes("/grant", request, env, adminContext);
     }
 
+    // 버그 제보 조회·상태변경·확인 보상(월정석) 지급.
+    if (path === "/feedback" || path.startsWith("/feedback/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminFeedbackRoutes } = await import("./admin-feedback.js");
+      return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
+    }
+
     if (path === "/site-content/overrides") {
       if (method === "GET") return await handleSiteContentOverrideList(request, env);
       return methodNotAllowed();

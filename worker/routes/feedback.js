@@ -174,7 +174,7 @@ function resolveBucket(env) {
 /**
  * 첨부 오브젝트를 R2 에서 읽어 Response 로 만든다. 소유자 검사는 호출부가 한다(uploaderId 대조).
  */
-async function readFeedbackAttachmentObject(env, rawKey, { requireUploaderId = "" } = {}) {
+export async function readFeedbackAttachmentObject(env, rawKey, { requireUploaderId = "" } = {}) {
   const key = normalizeFeedbackKey(rawKey);
   if (!key) return notFound();
 
@@ -605,7 +605,7 @@ async function handleCreate(request, env, ctx) {
 
 // 사용자에게 보여줄 짧은 티켓 번호. ObjectId 는 생성 시각이 앞 4바이트에 들어 있어
 // 별도 시퀀스 없이도 "연월-일련" 형태를 만들 수 있다.
-function buildTicketNo(doc) {
+export function buildTicketNo(doc) {
   const id = String(doc?._id || "");
   if (!id) return "";
   const createdAt = doc?.createdAt ? new Date(doc.createdAt) : new Date();

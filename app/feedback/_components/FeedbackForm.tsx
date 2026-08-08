@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, m } from "framer-motion";
-import { AlertTriangle, LogIn, Send } from "lucide-react";
+import { AlertTriangle, Gift, LogIn, Send } from "lucide-react";
 
 import type { FeedbackAttachment } from "../_lib/api";
 import type { FeedbackCategory } from "../_lib/categories";
@@ -92,6 +92,16 @@ export default function FeedbackForm(props: FeedbackFormProps) {
           >
             <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
             {category.warning}
+          </p>
+        )}
+
+        {category.rewardNote && (
+          <p
+            className="flex items-start gap-2 rounded-xl border border-[#ead089] bg-[#fff9ea] p-3 text-[13px] font-bold leading-relaxed text-[#6b4a12] dark:border-[#8a6d2f] dark:bg-[#2a2210] dark:text-[#ead089]"
+            role="note"
+          >
+            <Gift aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+            {category.rewardNote}
           </p>
         )}
 

@@ -158,6 +158,16 @@ const feedbackSchema = new mongoose.Schema({
   adminNote: { type: String, default: "", trim: true, maxlength: 1000 },
   replies: { type: [feedbackReplySchema], default: [] },
 
+  // ── 버그 확인 보상(월정석). ledgerSourceId 가 MonthlyCreditLedger 의 sourceId 와 같아
+  // 같은 제보를 두 번 확정해도 중복 지급되지 않는다(grantMonthlyCreditLotDetailed 의 lotId 멱등).
+  bugReward: {
+    granted: { type: Boolean, default: false },
+    amount: { type: Number, default: 0, min: 0 },
+    grantedAt: { type: Date, default: null },
+    grantedBy: { type: String, default: "", trim: true, maxlength: 120 },
+    ledgerSourceId: { type: String, default: "", trim: true, maxlength: 160 },
+  },
+
   // ── 확장 슬롯(스키마만 선언, 이번 패스에서 쓰기 경로 없음).
   //    upvoterIds 배열은 일부러 두지 않는다 — 무한 성장 필드를 미리 심으면 문서 크기 사고가 난다.
   //    추천 기능이 실제로 필요해지면 feedback_votes 별도 컬렉션으로 붙인다.
