@@ -160,6 +160,7 @@
     "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:profile-card-add-entry": "node scripts/verify-profile-card-add-entry.mjs",
+    "verify:profile-current-switch": "node scripts/verify-profile-current-switch.mjs",
     "verify:profile-server-first": "node scripts/verify-profile-server-first.mjs",
     "verify:life-book-ai-flow": "node scripts/verify-life-book-ai-flow.mjs",
     "verify:love-secret-ai-flow": "node scripts/verify-love-secret-ai-flow.mjs",

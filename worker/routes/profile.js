@@ -407,37 +407,6 @@ function buildProfilePaymentRequestId(action, profileId) {
   return `profile-card:${String(action || "manage").trim()}:${sanitizeProfileId(profileId) || Date.now().toString(36)}`.slice(0, 120);
 }
 
-function profilePaymentRequiredResponse(action, requestId) {
-  const reason = action === "delete" ? "프로필 카드 삭제" : "프로필 카드 추가";
-  return json({
-    ok: false,
-    success: false,
-    code: "PAYMENT_REQUIRED",
-    message: "프로필 카드 추가/삭제는 5,000원 단건 결제 또는 월정석으로 진행할 수 있습니다.",
-    pricing: {
-      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-      reason,
-      cost: PROFILE_CARD_MANAGE_COST,
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-      cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-    },
-    checkout: {
-      endpoint: "/api/billing/checkout",
-      payload: {
-        paymentType: "digital_content",
-        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-        reason,
-        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-        coinPrice: PROFILE_CARD_MANAGE_COST,
-        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-        requestId,
-      },
-    },
-  }, { status: 402 });
-}
-
 function resolveProfileMutationActionType(action) {
   if (action === PROFILE_CARD_MUTATION_ACTIONS.UPDATE) return "profile_card_update";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "profile_card_delete";
@@ -503,43 +472,6 @@ function resolveProfileMutationPaymentMethod(body = {}) {
   ) return "single_purchase";
 
   return "";
-}
-
-function profileDeletePaymentRequiredResponse(action, requestId, profileId, policy = {}) {
-  const reason = resolveProfileMutationReason(action);
-  const actionType = resolveProfileMutationActionType(action);
-  return json({
-    ok: false,
-    success: false,
-    code: "PAYMENT_REQUIRED",
-    message: `${reason}는 5,000원 단건 결제 또는 월정석으로 진행할 수 있습니다.`,
-    policy,
-    pricing: {
-      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-      reason,
-      actionType,
-      cost: PROFILE_CARD_MANAGE_COST,
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-      cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-    },
-    checkout: {
-      endpoint: "/api/billing/checkout",
-      payload: {
-        paymentType: "digital_content",
-        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-        reason,
-        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-        coinPrice: PROFILE_CARD_MANAGE_COST,
-        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-        requestId,
-        profileId,
-        selectedProfileId: profileId,
-        actionType,
-      },
-    },
-  }, { status: 402 });
 }
 
 function profileCardActionPaymentRequiredResponse(action, requestId, profileId = "", policy = {}) {
@@ -1289,14 +1221,20 @@ async function handleUpdateCurrent(request, auth, env) {
     return json({ ok: false, message: "currentId媛 ?꾩슂?⑸땲??" }, { status: 400 });
   }
 
-  const exists = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: requestedCurrentId }).lean());
+  /* 🔴 두 읽기는 서로 의존하지 않으므로 같은 admission 슬롯 안에서 병렬로 낸다
+     (handleGetProfileDetail 과 같은 패턴). withMongoRetry 는 호출마다 전역 게이트 슬롯을 하나씩
+     잡는데(worker/lib/db.js, limit 5), 이 라우트는 홈 진입 팬아웃과 같은 순간에 불린다. 직렬로
+     늘어놓으면 PATCH 한 건이 슬롯을 여러 개 먹고, 초과분은 재시도 대상이 아닌
+     MongoOperationOverloadedError → 503 이 되어 degrade 하지 않는 쓰기 경로로 그대로 나간다. */
+  const [exists, user] = await withMongoRetry(env, () => Promise.all([
+    ProfileCard.findOne({ userId: auth.userId, profileId: requestedCurrentId }).lean(),
+    User.findById(auth.userId)
+      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+      .lean(),
+  ]));
   if (!exists) {
     return json({ ok: false, message: "선택한 프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
-
-  const user = await withMongoRetry(env, () => User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-    .lean());
   if (!user) {
     return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
@@ -1317,36 +1255,18 @@ async function handleUpdateCurrent(request, auth, env) {
   }
 
   const subscription = resolveSubscriptionPolicy(user);
-  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
   const profileLimit = resolveProfileLimitForClient(subscription);
+  /* single 모드(이용권 종료 후 카드 1개 확정)는 서버 전역에서 꺼져 있다 —
+     worker/lib/profile-limits.js 의 resolveSingleProfileAccess 도 같은 상수로 subscription 모드만
+     내보낸다. 여기 있던 lockedId 계산과 403 PROFILE_SINGLE_LOCKED 분기는 도달 불가능한 코드였고,
+     그 lockedId 하나를 만들려고 listUserProfiles() 를 부르느라 이 라우트가 admission 슬롯을
+     하나 더 태우고 있었다. 되살릴 때는 profile-limits.js 쪽과 함께 켜고, 목록 조회는 그 분기
+     안으로 넣을 것(성공 경로가 다시 비용을 물지 않도록). 클라이언트의 403 처리는 남아 있다. */
   const isSingleMode = false;
-  const lockedId = resolveCurrentId(user.destinyProfilesLockedCurrentId, profiles);
-
-  if (isSingleMode && lockedId && requestedCurrentId !== lockedId) {
-    return json({
-      ok: false,
-      code: "PROFILE_SINGLE_LOCKED",
-      message: "이용권 혜택 종료 후 확정된 프로필 카드만 사용할 수 있습니다.",
-      currentId: lockedId,
-      lockedProfileId: lockedId,
-      profileAccess: {
-        mode: "single",
-        selectionRequired: false,
-        locked: true,
-        lockedProfileId: lockedId,
-        profileLimit: 1,
-      },
-    }, { status: 403 });
-  }
 
   const updateSet = { destinyProfilesCurrentId: requestedCurrentId, destinyProfilesCurrentIdUpdatedAt: new Date() };
-  if (isSingleMode) {
-    updateSet.destinyProfilesLockedCurrentId = requestedCurrentId;
-    updateSet.destinyProfilesLockedAt = new Date();
-  } else {
-    updateSet.destinyProfilesLockedCurrentId = "";
-    updateSet.destinyProfilesLockedAt = null;
-  }
+  updateSet.destinyProfilesLockedCurrentId = "";
+  updateSet.destinyProfilesLockedAt = null;
 
   await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: updateSet }));
   return json({

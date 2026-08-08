@@ -1805,6 +1805,13 @@
         cache: 'no-store',
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ currentId: nextId, baseCurrentId: baseId })
+      }, {
+        /* 이 PATCH 는 멱등이다(currentId 절대값 대입). 재시도가 stale 로 반사되지도 않는다 —
+           1차 시도가 실제로 써졌는데 응답만 유실된 경우 서버의 switchIsSafe 는
+           stored === requested 로 통과하고, 쓰기 전에 끊긴 경우는 base === stored 로 통과한다.
+           새 재시도 장치를 만들지 않고 기존 _dpRunTransientRetry(503/504/네트워크) 를 켠다. */
+        retryTransient: true,
+        maxTransientRetries: 2
       }).then(function(res) {
         var data = res && res.data ? res.data : null;
         if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
@@ -1818,6 +1825,16 @@
           return;
         }
         if (!res || !res.ok || (data && data.ok === false)) {
+          /* 🔴 재시도까지 소진한 503/504/네트워크 실패는 서버가 전환을 "거절"한 게 아니라
+             "대답을 못한" 것이다 — 503 의 정체인 admission 게이트 거절은 Mongo 를 건드리기도 전에
+             떨어져 서버 값이 바뀐 적이 없다. 여기서 낙관 보호막을 걷고 서버 GET 을 다시 적용하면
+             방금 고른 카드가 이전 카드로 되돌아간다. 확정 거절(403/404/ok:false)만 정정하고,
+             일시 장애면 선택을 유지한 채 알린다. 보호막은 재시도에 소모된 시간만큼 갱신한다. */
+          if (_dpIsTransientResult(res)) {
+            _dpMarkPendingCurrentProfile(nextId);
+            _toast('프로필 전환을 서버에 저장하지 못했습니다. 연결이 회복되면 다시 선택해 주세요.', 'warn');
+            return;
+          }
           _dpClearPendingCurrentProfile(nextId);
           _dpLoadFromServer(function(loaded) {
             if (!loaded) return;
@@ -8406,7 +8423,12 @@
     var access = _dpProfileAccess || {};
     var lockedId = String(access.lockedProfileId || '').trim();
     var isServerLocked = String(access.mode || '').trim() === 'single' || access.locked === true || !!lockedId;
-    function activateSelectedProfile(serverConfirmed) {
+    /* 🔴 서버 동기화는 DPStorage.setCurrent 안의 디바운스 PATCH 하나가 정본이다. 여기서
+       _dpCommitSingleProfileSelection 으로 한 발을 더 쏘지 말 것 — 그 요청은 baseCurrentId 를
+       싣지 않아 서버의 switchIsSafe 판정(worker/routes/profile.js)에서 **항상** staleSwitchIgnored
+       로 거부된다. 즉 Mongo admission 슬롯만 두 배로 쓰면서 아무 일도 안 하고, 실패하면 방금
+       고른 카드를 이전 카드로 되돌리기까지 했다(= "카드를 눌러도 이전 프로필로 회귀"의 정체). */
+    function activateSelectedProfile() {
       DPStorage.setCurrent(profileId);
       var p = DPStorage.current() || selectedProfile;
       _dpSyncProfileFormToCurrent(p);
@@ -8417,21 +8439,6 @@
       dpCloseList();
       spawnStardust(document.getElementById('dpMasterCard'));
       _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
-      if (!serverConfirmed && _dpHasSessionHint()) {
-        _dpCommitSingleProfileSelection(profileId, function(ok) {
-          if (ok) return;
-          _dpClearPendingCurrentProfile(profileId);
-          _dpLoadFromServer(function(loaded) {
-            if (!loaded) return;
-            var restored = DPStorage.current();
-            _dpSyncProfileFormToCurrent(restored);
-            renderMasterCard(restored);
-            renderProfileList();
-            broadcastProfileChange(restored || null);
-            _dpUpdateSaveBtn();
-          });
-        });
-      }
     }
 
     if (isServerLocked && lockedId && profileId !== lockedId) {
@@ -8459,12 +8466,12 @@
         _dpProfileAccess.selectionRequired = false;
         _dpProfileAccess.locked = true;
         _dpProfileAccess.lockedProfileId = profileId;
-        activateSelectedProfile(true);
+        activateSelectedProfile();
       });
       return;
     }
 
-    activateSelectedProfile(false);
+    activateSelectedProfile();
     return;
   };
 
