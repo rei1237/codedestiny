@@ -799,6 +799,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const [accessByTrackId, setAccessByTrackId] = useState<MusicAccessMap>({});
   const [passCoversAll, setPassCoversAll] = useState(false);
   const [purchasingTrackId, setPurchasingTrackId] = useState("");
+  // 결제 중복 클릭 가드. purchasingTrackId(state)는 리렌더 뒤에야 버튼을 비활성화하므로 늦다.
+  const purchaseBusyRef = useRef(false);
   const [musicAccessMessage, setMusicAccessMessage] = useState("");
   const accessRefreshTrackIdsRef = useRef<Record<string, string>>({});
   const refreshMusicAccess = useCallback(async (tracksToRefresh: readonly Track[] = allTracks) => {
@@ -1251,6 +1253,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const handlePurchaseCurrentTrack = useCallback(async () => {
     const track = player.currentTrack;
     if (!track?.purchaseFeatureKey || canDownloadTrack(track, accessByTrackId)) return;
+    // 🔴 이 화면은 useCoinGate 를 쓰지 않아 훅의 inFlightRef 백스톱이 없고, 방어가 setPurchasingTrackId
+    //    상태 하나뿐이라 리렌더 전의 두 번째 클릭이 그대로 두 번째 결제창을 열 수 있었다.
+    if (purchaseBusyRef.current) return;
+    purchaseBusyRef.current = true;
 
     // 이용권으로 이미 재생은 열려 있는데 다운로드만 남은 경우 = 다운로드 구매.
     // 다운로드는 이용권 결제 대상이 아니므로(프로필 카드와 같은 pass 제외 유형) 이용권 선검사를 건너뛰고
@@ -1302,6 +1308,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       setMusicAccessMessage(copy.purchaseFailed);
     } finally {
       setPurchasingTrackId("");
+      purchaseBusyRef.current = false;
     }
   }, [accessByTrackId, copy.priceChanged, copy.purchaseFailed, markTrackFullAccess, passCoversAll, player.currentTrack, refreshMusicAccess]);
 

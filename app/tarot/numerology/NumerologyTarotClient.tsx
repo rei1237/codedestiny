@@ -768,6 +768,8 @@ export default function NumerologyTarotClient() {
   const [deckSeed, setDeckSeed] = useState("");
   const [reading, setReading] = useState<ReadingResponse["interpretation"] | null>(null);
   const [loading, setLoading] = useState(false);
+  // 심층 리딩(=이 화면의 유일한 결제 지점) 중복 클릭 가드. state 는 리렌더 뒤에야 먹어 늦다.
+  const deepReadingBusyRef = useRef(false);
   const [error, setError] = useState("");
   // 서버가 준 실패 코드. 실패 안내를 원인별로 다르게 쓰기 위해 따로 둔다.
   const [errorCode, setErrorCode] = useState("");
@@ -1126,6 +1128,18 @@ export default function NumerologyTarotClient() {
    * 정보 입력 · 기초 리딩 · 카드 뽑기는 결제도 로그인도 필요 없다.
    */
   async function openDeepReading() {
+    // 🔴 disabled={!readingEnabled || loading || isPaying} 는 리렌더 이후에야 먹는다. 그 사이의 두 번째
+    //    클릭이 새 readingId·requestId 로 게이트를 한 번 더 열 수 있어, 동기 ref 로 먼저 막는다.
+    if (deepReadingBusyRef.current) return;
+    deepReadingBusyRef.current = true;
+    try {
+      await openDeepReadingOnce();
+    } finally {
+      deepReadingBusyRef.current = false;
+    }
+  }
+
+  async function openDeepReadingOnce() {
     if (!numerology || cards.length < SPREAD_CARD_COUNT) {
       setError(`카드 ${SPREAD_CARD_COUNT}장을 모두 뽑아 주세요.`);
       return;

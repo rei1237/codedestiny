@@ -69,6 +69,7 @@ export default function NakshatraCompatClient() {
   // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
   const [canRetry, setCanRetry] = useState(false);
   const paidRef = useRef<{ a: unknown; b: unknown; requestId: string } | null>(null);
+  const busyRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -81,6 +82,18 @@ export default function NakshatraCompatClient() {
   }, []);
 
   async function submit() {
+    // 🔴 disabled={loading || isPaying} 는 리렌더 이후에야 먹는다. 그 한 프레임 사이의 두 번째 클릭이
+    //    새 requestId 로 게이트를 한 번 더 열 수 있어, 동기 ref 로 먼저 막는다(집안 표준: busyRef).
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      await submitOnce();
+    } finally {
+      busyRef.current = false;
+    }
+  }
+
+  async function submitOnce() {
     setError(null);
     if (!valid(a) || !valid(b)) { setError("두 사람의 생년월일을 정확히 입력해 주세요."); return; }
     // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾는다.
