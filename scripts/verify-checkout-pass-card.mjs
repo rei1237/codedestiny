@@ -19,7 +19,17 @@ import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const RUNTIME_FILES = ["js/core/pass-verdict.js", "js/core/checkout-entry.js", "js/destiny-profile.js"];
+// 🔴 payment-service.js 가 맨 앞이어야 한다 — 실제 독립 정적 페이지의 로드 순서가 그렇고
+// (__tests__/ui/payment-service.static.test.js 가 그 순서를 강제한다), 빠뜨리면 jsdom 에서
+// CodeDestinyPaymentService 가 undefined 라 게이트 래퍼가 결제 경계 대신 폴백 단일비행으로 샌다.
+// 그러면 이 가드가 **결제 경계를 한 번도 실행하지 않은 채** 통과한다 — 실제로 그래서 #326 의
+// 경계 이중 진입 교착(결제창이 영영 안 뜸)이 나흘간 이 가드를 그대로 지나갔다.
+const RUNTIME_FILES = [
+  "js/core/payment-service.js",
+  "js/core/pass-verdict.js",
+  "js/core/checkout-entry.js",
+  "js/destiny-profile.js",
+];
 
 function bootRuntime({ appRuntime = false } = {}) {
   const storeUrls = [];
@@ -412,6 +422,84 @@ console.log("\n[11] 인증 503(미확정) + 세션 흔적이면 이용권 최종
   check("서버가 커버를 확인하면 무료 통과('pass')로 닫힌다", () => {
     assert.equal(outcome, "pass");
   });
+}
+
+// ── ⑫ 🔴 결제 경계를 두 번 열면 결제창이 영영 안 뜬다 ─────────────────────
+// 2026-08-08 신고: 수비학 타로 심층 상담이 "결제 진행 중"에서 멈춰 이용권·월정석·카드 전부
+// 진행이 안 됐다. 원인은 결제수단 선택 **이전** 이다 — React 공용 게이트(runBillingCoinGate)가
+// paymentService.executePayment 로 경계를 연 채 런타임 게이트를 부르는데, 런타임 래퍼가 같은
+// commandKey(method|requestId|productId|featureKey|profileId)로 경계를 한 번 더 열면
+// executePayment 가 in-flight 프로미스를 그대로 되돌려줘 서로를 기다린다. 타임아웃이 없다.
+//
+// 문자열 단언으로는 못 잡는다(양쪽 코드가 각각은 정상이다). 그래서 같은 런타임·같은 스텁에서
+// 중첩 여부만 바꿔 실제로 돌리고, 판정은 사용자가 본 증상 그대로 "결제창이 뜨는가"로 한다.
+console.log("\n[12] 결제 서비스 경계를 중첩해도 결제창이 뜨는가(교착 회귀)");
+{
+  const GATE_OPTIONS = {
+    title: "수비학 타로 심층 상담",
+    reason: "수비학 타로 심층 상담",
+    featureKey: "tarot-numerology-reading",
+    coinPrice: 30,
+    cost: 30,
+    amountKrw: 3000,
+    requestId: "tarot-numerology-reading:req:nt_boundary_probe",
+    internalMainGate: true,
+  };
+  // React 바깥 경계가 만드는 커맨드와 **같은 키**여야 재현된다.
+  const COMMAND = {
+    method: "PAYMENT_GATE",
+    requestId: GATE_OPTIONS.requestId,
+    productId: "",
+    featureKey: GATE_OPTIONS.featureKey,
+    profileId: "",
+  };
+
+  // 게이트 프로미스는 사용자가 결제수단을 고를 때까지 정상적으로 pending 이다.
+  // 따라서 "settle 되는가"가 아니라 "결제창이 렌더되는가"를 본다.
+  async function openGate(window, gateOptions, { throughBoundary }) {
+    let entries = 0;
+    const real = window.CodeDestinyPaymentService.executePayment;
+    window.CodeDestinyPaymentService.executePayment = function (input, executor) {
+      entries += 1;
+      return real.call(this, input, executor);
+    };
+    const invoke = throughBoundary
+      ? () => window.CodeDestinyPaymentService.executePayment(COMMAND, () => window._cdOpenPaidServiceGate({ ...gateOptions }))
+      : () => window._cdOpenPaidServiceGate({ ...gateOptions });
+    Promise.resolve(invoke()).catch(() => {});
+    for (let i = 0; i < 12; i += 1) await flush();
+    const rendered = Boolean(findCard(window, "direct")) && Boolean(findCard(window, "monthly"));
+    return { rendered, entries };
+  }
+
+  check("payment-service 가 실제로 설치돼 경계가 살아 있다", () => {
+    const { window } = bootRuntime();
+    assert.equal(typeof window.CodeDestinyPaymentService?.executePayment, "function");
+  });
+
+  // ① 정적 셸·독립 정적 페이지: 게이트가 유일한 경계다.
+  {
+    const { window } = bootRuntime();
+    const { rendered, entries } = await openGate(window, GATE_OPTIONS, { throughBoundary: false });
+    check("정적 경로: 결제창이 열린다", () => assert.equal(rendered, true, "결제수단 선택창이 렌더되지 않았다"));
+    check("정적 경로: 경계 진입은 1회", () => assert.equal(entries, 1));
+  }
+
+  // ② 🔴 React 경로: 바깥 경계 안에서 열어도 결제창이 떠야 한다.
+  {
+    const { window } = bootRuntime();
+    const { rendered, entries } = await openGate(
+      window,
+      { ...GATE_OPTIONS, __cdPaymentCommandActive: true },
+      { throughBoundary: true },
+    );
+    check("React 경로: 결제창이 열린다(교착 없음)", () => {
+      assert.equal(rendered, true, "결제창이 뜨지 않았다 — 경계가 두 번 열려 서로를 기다린다");
+    });
+    check("React 경로: 경계는 바깥 1회만 열린다", () => {
+      assert.equal(entries, 1, `경계 진입 ${entries}회 — 런타임 래퍼가 __cdPaymentCommandActive 를 무시했다`);
+    });
+  }
 }
 
 if (failures.length) {
