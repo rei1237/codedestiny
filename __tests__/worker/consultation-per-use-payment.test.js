@@ -129,6 +129,63 @@ describe("이용권 커버 — 가격에 따라 등급이 갈린다", () => {
   });
 });
 
+// 🔴 family 는 canUseByPass 가 가격을 보지 않고 무조건 통과시킨다(profile-limits.js). 그래서 기간당
+// 10회 공정이용 상한이 coin-gate 소비 단계에만 있었고, 게이트를 거치지 않고 생성 라우트를 직접 부르면
+// 상한을 넘겨도 본문이 나갔다. 아래가 그 구멍을 막은 계약이다.
+describe("family 공정이용 상한(기간당 10회)이 생성 라우트에서도 지켜진다", () => {
+  const CYCLE = "2099-01-01T00:00:00.000Z";
+  const familyUser = (premiumUseCount, extra = {}) => ({
+    _id: USER_ID,
+    role: "user",
+    profileSubscription: {
+      tier: "family",
+      status: "active",
+      expiresAt: CYCLE,
+      premiumUseCycleKey: CYCLE,
+      premiumUseCount,
+      ...extra,
+    },
+  });
+
+  it("포함 횟수가 남아 있으면 통과한다", async () => {
+    userFindById.mockReturnValue(query(familyUser(9)));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: true, source: "pass" });
+  });
+
+  it("10회를 다 쓴 뒤 증빙 없이 부르면 막는다(게이트 우회 차단)", async () => {
+    userFindById.mockReturnValue(query(familyUser(10)));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: false, reason: "FAMILY_PREMIUM_QUOTA_EXHAUSTED" });
+  });
+
+  // 🔴 가장 중요한 계약. 게이트를 정상적으로 거친 family 사용은 recordPassAccessIfNeeded 가 PointHistory
+  // 증빙을 남기므로 상한 검사에 닿기 전에 이미 통과한다. 이게 깨지면 10번째 사용자가 결과를 못 받는다.
+  it("정상적으로 게이트를 거친 사용은 상한을 다 썼어도 증빙으로 통과한다", async () => {
+    userFindById.mockReturnValue(query(familyUser(10)));
+    pointHistoryFindOne.mockReturnValue(query({ _id: "ph-1", metadata: { accessType: "family", requestId: REQUEST_ID } }));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: true });
+  });
+
+  it("상한 적용 가격(300코인) 미만인 연이 상담은 상한과 무관하게 통과한다", async () => {
+    userFindById.mockReturnValue(query(familyUser(10)));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: true, source: "pass" });
+  });
+
+  // 셀 수 없는 상태(만료일 없음 → cycleKey 없음)에서 막으면 정상 이용자를 가로막는다 — 열어 두는 쪽이 정책이다.
+  it("만료일이 없어 횟수를 셀 수 없으면 막지 않는다", async () => {
+    userFindById.mockReturnValue(query({
+      _id: USER_ID,
+      role: "user",
+      profileSubscription: { tier: "family", status: "active", isActive: true, premiumUseCycleKey: CYCLE, premiumUseCount: 99 },
+    }));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: true, source: "pass" });
+  });
+});
+
 describe("증빙 실패와 판단 보류를 구분한다", () => {
   it("기록이 없으면 미결제로 판정한다", async () => {
     await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))

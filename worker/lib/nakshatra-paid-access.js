@@ -23,7 +23,11 @@ import mongoose from "mongoose";
 import { connectDb, isTransientMongoError, withMongoRetry } from "./db.js";
 import { isAuthDbInfraError } from "./auth.js";
 import { User, Payment, PointHistory, MonthlyCreditLedger } from "./models.js";
-import { normalizeHoneyPassEntitlement, canUseByPass } from "./profile-limits.js";
+import { normalizeHoneyPassEntitlement, canUseByPass, resolveFamilyPremiumQuota } from "./profile-limits.js";
+// 🔴 family 공정이용 상한의 cycleKey 는 entitlement 의 expiresAt 에서 나온다. coin-gate 가 쓰는 것과
+// **같은 생산자**를 써야 두 곳의 cycleKey 가 일치하고, 저장된 카운터를 실제로 읽을 수 있다
+// (다른 생산자를 쓰면 storedKey 불일치로 used 가 항상 0 이 되어 검사가 조용히 무력해진다).
+import { resolveCanonicalEntitlement } from "./entitlement-policy.js";
 
 const ID_MAX = 180;
 
@@ -129,6 +133,25 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
       return { proven: true, source: "admin", reason: "" };
     }
     if (canUseByPass(normalizeHoneyPassEntitlement(user), Number(coinPrice) || 0)) {
+      // 🔴 family 는 canUseByPass 가 가격을 보지 않고 무조건 통과시킨다(profile-limits.js 의
+      // "passTier === FAMILY 면 price >= 0 이기만 하면 true"). 그래서 기간당 10회 공정이용 상한
+      // (FAMILY_PREMIUM_INCLUDED_USES)이 coin-gate 의 소비 단계에만 존재했고, 게이트를 거치지 않고
+      // 이 라우트를 직접 호출하면 상한을 넘겨도 통과했다.
+      //
+      // 정상 사용자는 여기 오지 않는다: family 이용권 사용은 recordPassAccessIfNeeded 가 PointHistory
+      // 증빙을 남기므로 위 2)의 findDeduction 에서 이미 proven 으로 끝난다. 즉 이 검사가 막는 것은
+      // "증빙이 없는데 family 라서 통과하던" 우회 호출뿐이다.
+      //
+      // 판정을 못 내리면(만료일 없음 → cycleKey 없음, family 아님) applies=false 로 열어 둔다 —
+      // resolveFamilyPremiumQuota 의 문서화된 정책이며, 셀 수 없는 상태에서 막지 않는다.
+      const familyQuota = resolveFamilyPremiumQuota(
+        user?.profileSubscription || {},
+        resolveCanonicalEntitlement(user || {}),
+        Number(coinPrice) || 0,
+      );
+      if (familyQuota.applies && familyQuota.exhausted) {
+        return { proven: false, source: "", reason: "FAMILY_PREMIUM_QUOTA_EXHAUSTED" };
+      }
       return { proven: true, source: "pass", reason: "" };
     }
 
