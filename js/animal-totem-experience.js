@@ -35,7 +35,6 @@
         confirm: "로그인이 필요합니다. 로그인 페이지로 이동할까요?"
       },
       payment: {
-        openShop: "단건 결제가 필요합니다. 결제 상점을 열겠습니다.",
         retryAfterPayment: "단건 결제가 필요합니다. 결제 후 다시 시도해 주세요.",
         krwFailed: "원화 결제 확인에 실패했습니다.",
         processError: "결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
@@ -88,7 +87,6 @@
         confirm: "Login is required. Go to the login page?"
       },
       payment: {
-        openShop: "A one-time payment is needed. Opening the payment shop.",
         retryAfterPayment: "A one-time payment is needed. Please pay and try again.",
         krwFailed: "We could not confirm the KRW payment.",
         processError: "An error occurred while processing payment. Please try again shortly.",
@@ -141,7 +139,6 @@
         confirm: "ログインが必要です。ログインページへ移動しますか？"
       },
       payment: {
-        openShop: "単回決済が必要です。決済ショップを開きます。",
         retryAfterPayment: "単回決済が必要です。お支払い後にもう一度お試しください。",
         krwFailed: "ウォン決済を確認できませんでした。",
         processError: "お支払い処理中にエラーが発生しました。しばらくしてからもう一度お試しください。",
@@ -326,12 +323,10 @@
     }
   }
 
+  // 402 는 공용 게이트(_cdOpenPaidServiceGate)가 결제창(이용권/단건/월정석 3옵션)을 이미 재제안한 뒤에 올라온다.
+  // 여기서 코인 시대의 "충전 상점 열기"를 한 겹 더 붙이면 3옵션 결제창을 우회하는 별도 경로가 되므로,
+  // 자매 기능(js/tarot-*-experience.js)과 같이 안내만 남긴다.
   function openInsufficientCoinsUi() {
-    if (typeof global.__cdOpenChargeModal === "function") {
-      global.alert(animalTotemText("payment.openShop"));
-      global.__cdOpenChargeModal();
-      return;
-    }
     global.alert(animalTotemText("payment.retryAfterPayment"));
   }
 
@@ -452,7 +447,7 @@
     return false;
   }
 
-  function useSoftBodyLock() {
+  function shouldUseSoftBodyLock() {
     var mq = global.matchMedia ? global.matchMedia("(max-width: 900px)") : null;
     var coarse = global.matchMedia ? global.matchMedia("(pointer: coarse)") : null;
     return !!((mq && mq.matches) || (coarse && coarse.matches));
@@ -464,7 +459,7 @@
     bodyLockState.bodyOverflow = document.body.style.overflow || "";
     bodyLockState.htmlOverflow = (document.documentElement && document.documentElement.style.overflow) || "";
     /* 모바일: body overflow:hidden 시 iOS Safari에서 오버레이 내부 스크롤이 막힘. overscroll-behavior로 대체 */
-    if (useSoftBodyLock()) {
+    if (shouldUseSoftBodyLock()) {
       bodyLockState.mode = "soft";
       return;
     }
@@ -624,7 +619,7 @@
     if (!refs.runeField || refs.runeField.dataset.ready === "1") return;
     refs.runeField.dataset.ready = "1";
     var runes = ["ᚠ", "ᚨ", "ᚱ", "ᛟ", "ᛞ", "ᚲ", "✶", "✧", "☾"];
-    var count = useSoftBodyLock() ? 12 : 26;
+    var count = shouldUseSoftBodyLock() ? 12 : 26;
     for (var i = 0; i < count; i += 1) {
       var el = document.createElement("span");
       el.className = "totem-rune";
@@ -640,7 +635,7 @@
     if (!refs.animalFigures || refs.animalFigures.dataset.ready === "1") return;
     refs.animalFigures.dataset.ready = "1";
     var animals = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐦", "🦋", "🦉", "🐬", "🐢", "🐿️", "🦌", "🐺", "🦅"];
-    var isMobile = useSoftBodyLock();
+    var isMobile = shouldUseSoftBodyLock();
     var staticPositions = ["tl", "tr", "bl", "br", "mt"];
     staticPositions.forEach(function(pos, i) {
       var el = document.createElement("span");
@@ -670,7 +665,7 @@
     c.width = Math.max(240, Math.floor(rect.width));
     c.height = Math.max(120, Math.floor(rect.height));
     var ctx = c.getContext("2d");
-    var starCount = useSoftBodyLock() ? 20 : 48;
+    var starCount = shouldUseSoftBodyLock() ? 20 : 48;
     state.canvasStars = Array.from({ length: starCount }, function() {
       return {
         x: Math.random() * c.width,
@@ -966,7 +961,7 @@
       focusModalEntryPoint();
       /* 모바일: 애니메이션 과부하로 Main Thread 차단 방지 — 지연·분산 실행 */
       var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-      var isMobile = useSoftBodyLock();
+      var isMobile = shouldUseSoftBodyLock();
       var idle = global.requestIdleCallback || function(cb, opts) { return setTimeout(cb, (opts && opts.timeout) || 50); };
       raf(function() {
         try {

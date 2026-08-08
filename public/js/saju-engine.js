@@ -7493,7 +7493,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var monthlyCreditCost = Math.max(0, Number((payload && payload.membershipCreditCost) || consume.membershipCreditCost || consume.requiredMonthlyCredits || 0));
     var chargedCoins = Math.max(0, Number((payload && payload.chargedCoins) || consume.chargedCoins || 0));
     if (monthlyCreditCost > 0 || mode === 'MOONLIGHT_STONE' || mode === 'MONTHLY_CREDIT' || method === 'MONTHLY') {
-      return '월정석 ' + Math.floor(monthlyCreditCost || chargedCoins).toLocaleString('ko-KR') + '개 확인 완료. ';
+      // 월정석 개수 정본은 membershipCreditCost 다. 그게 없을 때 chargedCoins(코인)를 그대로 쓰면
+      // 1코인 = 월정석 10개(MEMBERSHIP_CREDIT_PER_COIN)라 10배 축소된 개수가 나온다.
+      return '월정석 ' + Math.floor(monthlyCreditCost || chargedCoins * 10).toLocaleString('ko-KR') + '개 확인 완료. ';
     }
     if ((payload && payload.freeBySubscription === true) || mode === 'MEMBERSHIP_PASS' || method === 'PASS') return '이용권 확인 완료. ';
     if (mode === 'DIRECT_KRW' || method === 'CARD') return '단건 결제 확인 완료. ';

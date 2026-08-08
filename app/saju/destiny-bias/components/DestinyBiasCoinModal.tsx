@@ -29,6 +29,11 @@ export default function DestinyBiasCoinModal({
           <p className="mt-2 text-xs font-semibold text-amber-100/90">필요 금액: {(requiredCoins * 100).toLocaleString("ko-KR")}원</p>
         ) : null}
 
+        {/*
+          결제 필요 안내에는 상점 링크를 두지 않는다. 결제 수단 선택(이용권/단건/월정석 3옵션)은
+          공용 게이트가 이미 제시했고, 여기서 맨 `/points`(플랜·cdco 파라미터 없는 레거시 충전 페이지)로
+          보내면 3옵션을 우회하는 막다른 경로가 된다. 닫고 분석을 다시 누르면 결제창이 다시 열린다.
+        */}
         <div className="mt-5 flex flex-wrap gap-2">
           {loginRequired ? (
             <Link
@@ -37,14 +42,7 @@ export default function DestinyBiasCoinModal({
             >
               로그인하고 계속하기
             </Link>
-          ) : (
-            <Link
-              href="/points"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-fuchsia-200/70 bg-fuchsia-400/25 px-4 text-sm font-bold text-white"
-            >
-              결제 페이지로 이동
-            </Link>
-          )}
+          ) : null}
 
           <button
             type="button"

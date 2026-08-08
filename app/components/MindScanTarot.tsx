@@ -1621,7 +1621,7 @@ export default function MindScanTarot() {
           return;
         }
         if (paymentResult.code === "INSUFFICIENT_COINS") {
-          setReadingError(`결제 가능 금액이 부족합니다. ${paymentResult.requiredCoins}결제가 필요합니다.`);
+          setReadingError(`결제 가능 금액이 부족합니다. ${Math.max(0, Number(paymentResult.requiredCoins || 0) * 100).toLocaleString("ko-KR")}원 결제가 필요합니다.`);
           return;
         }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) {

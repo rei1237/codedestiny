@@ -200,7 +200,7 @@
     }
     if (typeof window._cdCoinGatePerUse === 'function') {
       return new Promise(function (resolve, reject) {
-        window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다점 AI 상담 결과 생성 · 390코인', function (transactionId, data) {
+        window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다점 AI 상담 결과 생성 · 39,000원', function (transactionId, data) {
           _lastPayment = normalizePayment(Object.assign({}, data || {}, { transactionId: transactionId, requestId: requestId }));
           resolve(_lastPayment);
         }, function () {

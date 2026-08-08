@@ -353,7 +353,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     valueGuideTitle: "実践活用ガイド",
     corePoints: "注目ポイント",
     freeMainService: "FREE · 無料メインサービス",
-    paidCta: (price) => `コインで解錠 · ${price}`,
+    paidCta: (price) => `有料機能を実行 · ${price}`,
     freeCta: "機能を開く",
     insights: "関連インサイトを見る",
     paidNotice: "有料機能です。開く前にメイン画面で決済確認が表示されます。",

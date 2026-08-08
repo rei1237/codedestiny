@@ -50,19 +50,29 @@ const SERVICE_CARD_CTA: Record<LoadingLocale, string> = {
 type BadgeTone = NonNullable<Badge["tone"]> | "default";
 
 const SERVICE_CARD_BADGE_FALLBACK: Record<LoadingLocale, Record<BadgeTone, string>> = {
-  ko: { free: "무료", coin: "코인", new: "신규", soft: "안내", default: "안내" },
-  en: { free: "Free", coin: "Coin", new: "New", soft: "Guide", default: "Guide" },
-  ja: { free: "無料", coin: "コイン", new: "新着", soft: "ガイド", default: "ガイド" },
-  "zh-CN": { free: "免费", coin: "金币", new: "新", soft: "指南", default: "指南" },
-  "zh-TW": { free: "免費", coin: "金幣", new: "新", soft: "指南", default: "指南" },
-  vi: { free: "Miễn phí", coin: "Xu", new: "Mới", soft: "Gợi ý", default: "Gợi ý" },
-  hi: { free: "मुफ्त", coin: "सिक्का", new: "नया", soft: "मार्गदर्शिका", default: "मार्गदर्शिका" },
-  es: { free: "Gratis", coin: "Coin", new: "Nuevo", soft: "Guía", default: "Guía" },
-  fr: { free: "Gratuit", coin: "Coin", new: "Nouveau", soft: "Guide", default: "Guide" },
-  de: { free: "Gratis", coin: "Coin", new: "Neu", soft: "Guide", default: "Guide" },
-  nl: { free: "Gratis", coin: "Coin", new: "Nieuw", soft: "Gids", default: "Gids" },
-  ms: { free: "Percuma", coin: "Syiling", new: "Baharu", soft: "Panduan", default: "Panduan" },
+  ko: { free: "무료", coin: "유료", new: "신규", soft: "안내", default: "안내" },
+  en: { free: "Free", coin: "Paid", new: "New", soft: "Guide", default: "Guide" },
+  ja: { free: "無料", coin: "有料", new: "新着", soft: "ガイド", default: "ガイド" },
+  "zh-CN": { free: "免费", coin: "付费", new: "新", soft: "指南", default: "指南" },
+  "zh-TW": { free: "免費", coin: "付費", new: "新", soft: "指南", default: "指南" },
+  vi: { free: "Miễn phí", coin: "Trả phí", new: "Mới", soft: "Gợi ý", default: "Gợi ý" },
+  hi: { free: "मुफ्त", coin: "सशुल्क", new: "नया", soft: "मार्गदर्शिका", default: "मार्गदर्शिका" },
+  es: { free: "Gratis", coin: "De pago", new: "Nuevo", soft: "Guía", default: "Guía" },
+  fr: { free: "Gratuit", coin: "Payant", new: "Nouveau", soft: "Guide", default: "Guide" },
+  de: { free: "Gratis", coin: "Kostenpflichtig", new: "Neu", soft: "Guide", default: "Guide" },
+  nl: { free: "Gratis", coin: "Betaald", new: "Nieuw", soft: "Gids", default: "Gids" },
+  ms: { free: "Percuma", coin: "Berbayar", new: "Baharu", soft: "Panduan", default: "Panduan" },
 };
+
+// 유료 뱃지는 한국어 원문이 이미 원화 표기("3,000원", "궁합 5,000원", "3,000원~12,000원")다.
+// 비한국어 로케일에서 통째로 fallback 단어로 치환하면 가격이 사라지므로, 금액만 뽑아
+// 통화 표기(lib/payment/coin-pricing.ts의 비한국어 규칙과 동일한 "KRW 5,000")로 바꾼다.
+// 한국어 수식어(궁합/해금/1회)는 번역 자산이 없어 생략한다.
+function toLocalizedPriceBadge(text?: string) {
+  const converted = String(text || "").replace(/([\d,]+)\s*원/g, (_match, amount) => `KRW ${amount}`);
+  const priceOnly = converted.match(/KRW [\d,]+(?:\s*~\s*KRW [\d,]+)?/);
+  return priceOnly ? priceOnly[0] : "";
+}
 
 function hasKoreanText(value?: string) {
   return /[가-힣]/.test(String(value || ""));
@@ -71,6 +81,10 @@ function hasKoreanText(value?: string) {
 function resolveBadgeText(badge: Badge, locale: LoadingLocale) {
   if (locale === "ko" || !hasKoreanText(badge.text)) return badge.text;
   const tone = badge.tone || "default";
+  if (tone === "coin") {
+    const price = toLocalizedPriceBadge(badge.text);
+    if (price) return price;
+  }
   return SERVICE_CARD_BADGE_FALLBACK[locale]?.[tone] || SERVICE_CARD_BADGE_FALLBACK.en[tone];
 }
 

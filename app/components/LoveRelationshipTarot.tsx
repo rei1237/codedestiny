@@ -33,7 +33,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `우리는 무슨 사이? 타로 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`,
     authRequired: "로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-    insufficientCoins: (requiredCoins: number) => `결제 가능 금액이 부족합니다. ${requiredCoins}결제가 필요합니다.`,
+    insufficientCoins: (requiredCoins: number) => `결제 가능 금액이 부족합니다. ${Math.max(0, requiredCoins * 100).toLocaleString("ko-KR")}원 결제가 필요합니다.`,
     refunded: "리딩 생성이 완료되지 않아 이번 결제가 환불되었습니다.",
     paymentUnconfirmed: "결제 확인이 완료되지 않았습니다.",
     readingError: "해석 생성 중 오류가 발생했습니다.",
@@ -82,7 +82,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `What Are We? Tarot payment of ${Math.max(0, chargedCoins * 100).toLocaleString("en-US")} KRW was approved. Remaining KRW value: ${Math.max(0, balanceAfter * 100).toLocaleString("en-US")} KRW`,
     authRequired: "Login is required. Please sign in and try again.",
-    insufficientCoins: (requiredCoins: number) => `Your available payment balance is too low. ${requiredCoins} credits are required.`,
+    insufficientCoins: (requiredCoins: number) => `Your available payment balance is too low. ${Math.max(0, requiredCoins * 100).toLocaleString("en-US")} KRW is required.`,
     refunded: "The reading was not completed, so this payment has been refunded.",
     paymentUnconfirmed: "Payment confirmation has not been completed.",
     readingError: "An error occurred while creating the reading.",
@@ -131,7 +131,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `私たちはどんな関係？タロット ${Math.max(0, chargedCoins * 100).toLocaleString("ja-JP")}ウォンの決済が承認されました。残りのウォン相当額: ${Math.max(0, balanceAfter * 100).toLocaleString("ja-JP")}ウォン`,
     authRequired: "ログインが必要です。ログイン後にもう一度お試しください。",
-    insufficientCoins: (requiredCoins: number) => `決済可能な残高が不足しています。${requiredCoins}クレジットが必要です。`,
+    insufficientCoins: (requiredCoins: number) => `決済可能な残高が不足しています。${Math.max(0, requiredCoins * 100).toLocaleString("ja-JP")}ウォンの決済が必要です。`,
     refunded: "リーディングが完了しなかったため、今回の決済は返金されました。",
     paymentUnconfirmed: "決済確認が完了していません。",
     readingError: "解釈の生成中にエラーが発生しました。",
@@ -180,7 +180,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `我们是什么关系？塔罗 ${Math.max(0, chargedCoins * 100).toLocaleString("zh-CN")} 韩元付款已批准。剩余韩元价值：${Math.max(0, balanceAfter * 100).toLocaleString("zh-CN")} 韩元`,
     authRequired: "需要登录。请登录后重试。",
-    insufficientCoins: (requiredCoins: number) => `可用付款余额不足。需要 ${requiredCoins} 个额度。`,
+    insufficientCoins: (requiredCoins: number) => `可用付款余额不足。需要 ${Math.max(0, requiredCoins * 100).toLocaleString("zh-CN")} 韩元。`,
     refunded: "解读未完成，本次付款已退款。",
     paymentUnconfirmed: "付款确认尚未完成。",
     readingError: "生成解读时发生错误。",
@@ -229,7 +229,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `我們是什麼關係？塔羅 ${Math.max(0, chargedCoins * 100).toLocaleString("zh-TW")} 韓元付款已核准。剩餘韓元價值：${Math.max(0, balanceAfter * 100).toLocaleString("zh-TW")} 韓元`,
     authRequired: "需要登入。請登入後再試。",
-    insufficientCoins: (requiredCoins: number) => `可用付款餘額不足。需要 ${requiredCoins} 個額度。`,
+    insufficientCoins: (requiredCoins: number) => `可用付款餘額不足。需要 ${Math.max(0, requiredCoins * 100).toLocaleString("zh-TW")} 韓元。`,
     refunded: "解讀未完成，本次付款已退款。",
     paymentUnconfirmed: "付款確認尚未完成。",
     readingError: "生成解讀時發生錯誤。",

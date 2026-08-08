@@ -308,7 +308,7 @@ export default function HomePage() {
       <section className={styles.sectionBand} aria-labelledby="passHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Pass & Payment</p>
-          <h2 id="passHeading" className={styles.sectionTitle}>이용권·코인·월정석 안내를 구매 전 기준으로 정리</h2>
+          <h2 id="passHeading" className={styles.sectionTitle}>이용권·월정석 안내를 구매 전 기준으로 정리</h2>
           <p className={styles.sectionLead}>
             결제 로직과 이용권 판별은 변경하지 않고, 사용자가 구매 전에 이해해야 할 운영 기준만 React 홈에서 먼저 확인할 수 있게 했습니다.
           </p>

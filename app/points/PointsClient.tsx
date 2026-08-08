@@ -4977,7 +4977,7 @@ export default function PointsPage() {
                   원화 결제 방법 선택
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
-                  {selectedPackage.title} · 콘텐츠 기준 {selectedPackage.points.toLocaleString("ko-KR")}
+                  {getPointPackageTitle(selectedPackage, copy)}
                 </h4>
                 <p className="text-sm font-semibold text-[#7A5230]">
                   {formatWon(selectedPackage.amount)}
