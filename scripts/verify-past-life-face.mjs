@@ -9,6 +9,9 @@
 //      신분은 얼굴 기하가 정하고 동물은 "전생 수호령"으로만 등장한다. 아래 6-3 이 이걸 강제한다.
 //      예전에는 PLF_LIVES[animalId] 가 신분을 1:1로 정해서 "전생 관상 = 동물상"이 되어 있었다.
 //   4) 동물상 27종이 전부 서로 다른 리딩을 낸다(수호령·징후·부적·게이지가 갈린다).
+//   4-a) 🔴 수호령은 3령 무리다 (2026-08 3차 개편). 엔진이 주는 top3 를 주령/곁령/그림자령에 배치하고
+//        세 슬롯이 서로 다른 동물이어야 한다. 6-3a 가 이걸 강제한다 — top3 를 다시 버리면 걸린다.
+//   4-b) 분량 하한: 솔로 3,000자 / 궁합 1,800자. 서사 필드를 떼거나 장면을 합치면 걸린다.
 //   5) 전생 인연 궁합은 회당 5,000원(50코인) 유료로 남아 있고 공용 게이트를 경유한다.
 //      결제 후 뜨는 화면이므로 렌더까지 실제로 확인한다(6-6).
 //   6) 루트/public 사본이 동일하다.
@@ -197,23 +200,44 @@ const revealText = window.document.getElementById('plfRevealBody').textContent;
 for (const marker of [
   'SCENE 01',
   '얼굴의 첫인상',
+  '전생의 문 너머',
   '전생의 당신은',
+  '전생의 하루',
   '그날의 사건',
   '그리고 당신의 마지막은',
   '전생 수호령',
+  '주(主) 수호령',
+  '곁을 지킨 령',
+  '길들이지 못한 그림자',
+  '무리의 이름',
   '그래서 지금의 나는',
   '전생이 스치는 순간',
   '전생이 남긴 부적',
+  '관상 근거',
   '전생 기억의 선명도',
   '전생을 더 깊게 열어보기',
 ]) {
   assert.ok(revealText.includes(marker), `리딩 구성 누락: ${marker}`);
 }
+
+// 🔴 분량 회귀 방지 (2026-08 3차 개편). 개편 전 실측이 약 1,200자였고 개편 후가 3,400자대다.
+//    테이블에서 필드를 떼거나 장면을 도로 합치면 여기서 걸린다.
+const revealLength = revealText.replace(/\s+/g, ' ').trim().length;
+assert.ok(
+  revealLength >= 3000,
+  `전생 리딩 분량이 3,000자 미만이다 (실제 ${revealLength}자). 서사 필드(standing/day/epitaph/aftermath/detail/origin 등)가 떨어져 나갔는지 확인할 것.`,
+);
+
+// 🔴 관상 근거는 서사가 아니라 신뢰 장치다 — 장면마다 한 번씩, 최소 5개 이상 붙어야 한다.
+assert.ok(
+  window.document.querySelectorAll('.plf-evidence').length >= 5,
+  `관상 근거 각주가 부족하다 (실제 ${window.document.querySelectorAll('.plf-evidence').length}개). 서사가 어디서 나왔는지 되짚어 주지 않으면 "그럴듯한 소설"로 읽힌다.`,
+);
 assert.ok(window.document.getElementById('plfCompatBtn'), '전생 인연 궁합 CTA 가 렌더되어야 함');
 
 // 6-2a. 장면 6개 — 리포트 잔재(아코디언/칩/도시에)가 DOM 에 없어야 한다
 const sceneNodes = window.document.querySelectorAll('[data-plf-scene]');
-assert.equal(sceneNodes.length, 6, `장면은 6개여야 함 (실제 ${sceneNodes.length})`);
+assert.equal(sceneNodes.length, 9, `장면은 9개여야 함 (실제 ${sceneNodes.length})`);
 for (const legacy of ['details.plf-chapter', '.plf-chip', '.plf-dossier']) {
   assert.equal(
     window.document.querySelectorAll(legacy).length,
@@ -224,7 +248,7 @@ for (const legacy of ['details.plf-chapter', '.plf-chip', '.plf-dossier']) {
 // jsdom 에는 IntersectionObserver 가 없다 → 폴백이 전 장면을 열어야 한다.
 assert.equal(
   Array.prototype.filter.call(sceneNodes, (n) => n.classList.contains('is-revealed')).length,
-  6,
+  sceneNodes.length,
   'IntersectionObserver 가 없는 환경에서는 전 장면이 즉시 열려야 함 (콘텐츠가 숨은 채 남으면 안 된다)',
 );
 
@@ -277,6 +301,48 @@ assert.equal(
   `수호령은 동물상 27종이 전부 달라야 한다 (실제 ${guardiansForOneFace.size}종)`,
 );
 
+// ── 6-3a. 🔴 수호령 3령 무리 (2026-08 3차 개편) ──
+// 예전에는 PLF_GUARDIANS[primaryAnimal] 하나만 써서 마지막 장이 "네 동물상은 여우야"의 재탕이었다.
+// 지금은 엔진이 이미 주는 top3 를 주령/곁령/그림자령 세 슬롯에 배치한다.
+const spiritNamesOf = () =>
+  Array.prototype.map.call(
+    window.document.querySelectorAll('.plf-spirit__name'),
+    (n) => n.textContent.trim(),
+  );
+
+// (a) top3 가 없는 부분 시드 → 얼굴 해시 폴백으로도 3령이 전부 나오고 서로 겹치지 않는다
+window.openPastLifeFaceApp({ seed: seedFor(animals[0], FACE_CASES[0]) });
+const fallbackSpirits = spiritNamesOf();
+assert.equal(fallbackSpirits.length, 3, `top3 없는 시드에서도 3령이 렌더돼야 함 (실제 ${fallbackSpirits.length}령)`);
+assert.equal(
+  new Set(fallbackSpirits).size,
+  3,
+  `3령은 서로 다른 동물이어야 함 — 해시 폴백의 충돌 회피가 깨졌다: ${fallbackSpirits.join(' / ')}`,
+);
+
+// (b) top3 가 있으면 곁령·그림자령이 실제로 2위·3위 동물을 따라간다
+const withTop3 = {
+  ...seedFor(animals[0], FACE_CASES[0]),
+  top3: [{ animal: animals[0] }, { animal: animals[4] }, { animal: animals[11] }],
+};
+window.openPastLifeFaceApp({ seed: withTop3 });
+const rankedSpirits = spiritNamesOf();
+assert.equal(rankedSpirits.length, 3, 'top3 시드에서도 3령이 렌더돼야 함');
+assert.equal(
+  new Set(rankedSpirits).size,
+  3,
+  `3령은 서로 다른 동물이어야 함: ${rankedSpirits.join(' / ')}`,
+);
+assert.notDeepEqual(
+  rankedSpirits,
+  fallbackSpirits,
+  '🔴 top3 를 줬는데 해시 폴백과 같은 무리가 나왔다 — 엔진이 주는 2·3위 동물을 다시 버리고 있다',
+);
+assert.ok(
+  window.document.querySelector('.plf-pack__title').textContent.trim().length > 2,
+  '무리 칭호(주령×곁령 기질축 조합)가 렌더돼야 함',
+);
+
 // (b) 얼굴이 다르면 신분이 달라진다 — 얼굴형 12 × 레인 3 = 36 신분 전수 커버
 const sampleAnimal = animals[0];
 const rolesByFace = new Map();
@@ -320,7 +386,9 @@ const compatText = window.document.getElementById('plfRevealBody').textContent;
 for (const marker of [
   '전생 인연 궁합',
   '전생에서 두 사람은',
+  '두 사람이 함께 있던 시대',
   '두 사건이 겹친 지점',
+  '전생에서 헤어진 방식',
   '두 수호령이 함께 있을 때',
   '이번 생에 다시 만난 이유',
   '이번 생의 관계 미션',
@@ -334,8 +402,12 @@ assert.equal(
   compat.metrics.length,
   '궁합 5축 게이지가 전부 렌더되어야 함',
 );
-assert.equal(window.document.querySelectorAll('[data-plf-scene]').length, 5, '궁합은 5장면이어야 함');
-assert.ok(compatText.trim().length > 600, '궁합 결과가 비정상적으로 짧다 — 서사 조립이 깨졌는지 확인할 것');
+assert.equal(window.document.querySelectorAll('[data-plf-scene]').length, 7, '궁합은 7장면이어야 함');
+// 분량 회귀 방지 — 2026-08 3차 개편에서 5장면 900자대 → 7장면 2,100자대가 됐다.
+assert.ok(
+  compatText.replace(/\s+/g, ' ').trim().length > 1800,
+  `궁합 결과가 비정상적으로 짧다 (실제 ${compatText.replace(/\s+/g, ' ').trim().length}자) — 서사 조립이 깨졌는지 확인할 것`,
+);
 
 // 6-6. seed 없이 열면 문 앞 화면, 문구는 솔로 기본값
 window.openPastLifeFaceApp();
@@ -349,5 +421,7 @@ assert.equal(app.style.display, 'none', '닫기가 동작해야 함');
 
 console.log(
   `[verify-past-life-face] PASS — 전생 신분 ${rolesByFace.size}종(동물 무관) × 수호령 ${guardiansForOneFace.size}종, ` +
-    `${animals.length * FACE_CASES.length}개 조합 전부 고유, 유료 궁합 실렌더 통과, 관상 동시 로드 충돌 없음`,
+    `${animals.length * FACE_CASES.length}개 조합 전부 고유, 3령 무리 + 관상 근거 렌더 확인, ` +
+    `솔로 ${revealLength}자 / 궁합 ${compatText.replace(/\s+/g, ' ').trim().length}자, ` +
+    `유료 궁합 실렌더 통과, 관상 동시 로드 충돌 없음`,
 );
