@@ -107,6 +107,34 @@ worker 는 배포 경로가 달라(롤백 비용이 다름) 배치를 분리했�
 
 ---
 
+## Batch 3 — 결제·권한 인접 + 자미두수 구버전 13건 (2026-08-09)
+
+[03-report.md](../docs/cleanup-2026-08/03-report.md) 의 B-1 · B-2 · B-5. 참조는 0이지만 도메인이 결제/권한이라 배치를 분리하고 **결제 verify 17종 전건**을 함께 돌렸다.
+
+| 원 경로 | 이동일 | 사유 | 복구 명령 |
+|---|---|---|---|
+| `app/points/BillingCardModal.tsx` | 2026-08-09 | 참조 0. 30일 이용권 카드 입력 모달 (B-1) | `git mv _graveyard/20260809/app/points/BillingCardModal.tsx app/points/BillingCardModal.tsx` |
+| `app/components/PremiumFeatureCard.tsx` | 2026-08-09 | 참조 0 (B-1) | `git mv _graveyard/20260809/app/components/PremiumFeatureCard.tsx app/components/PremiumFeatureCard.tsx` |
+| `app/components/FlowerUnlockGate.jsx` | 2026-08-09 | 참조 0. 해금 게이트 (B-1) | `git mv _graveyard/20260809/app/components/FlowerUnlockGate.jsx app/components/FlowerUnlockGate.jsx` |
+| `app/_lib/featureUnlocks.js` | 2026-08-09 | 참조 0 (B-1) | `git mv _graveyard/20260809/app/_lib/featureUnlocks.js app/_lib/featureUnlocks.js` |
+| `app/_lib/models/PaymentModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/PaymentModel.js app/_lib/models/PaymentModel.js` |
+| `app/_lib/models/PaymentFailureLogModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/PaymentFailureLogModel.js app/_lib/models/PaymentFailureLogModel.js` |
+| `app/_lib/models/PointHistoryModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/PointHistoryModel.js app/_lib/models/PointHistoryModel.js` |
+| `app/_lib/models/AuditLogModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/AuditLogModel.js app/_lib/models/AuditLogModel.js` |
+| `app/_lib/models/FortuneContentModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/FortuneContentModel.js app/_lib/models/FortuneContentModel.js` |
+| `app/_lib/models/FortuneViewLogModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/FortuneViewLogModel.js app/_lib/models/FortuneViewLogModel.js` |
+| `app/_lib/models/DeletedAccountLogModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/DeletedAccountLogModel.js app/_lib/models/DeletedAccountLogModel.js` |
+| `app/_lib/models/DailyFortuneSubscriptionModel.js` | 2026-08-09 | 참조 0 (B-2) | `git mv _graveyard/20260809/app/_lib/models/DailyFortuneSubscriptionModel.js app/_lib/models/DailyFortuneSubscriptionModel.js` |
+| `app/components/AdvancedZiweiSection.tsx` | 2026-08-09 | 임포터 0. **V2 가 정본** (B-5) | `git mv _graveyard/20260809/app/components/AdvancedZiweiSection.tsx app/components/AdvancedZiweiSection.tsx` |
+
+### `AdvancedZiweiSection.tsx` 는 왜 앞 배치에서 빠졌었나
+basename 스캔이 `AdvancedZiweiSectionV2` 와 `ziwei-normalization.ts` 의 **동명 인터페이스**, `ZiweiChartClientLoader.tsx` 의 **동명 지역변수**에 걸려 "참조 있음"으로 보였다. import 경로 기준으로 다시 보니 이 파일을 import 하는 곳은 0이고, 실제 렌더되는 것은 `AdvancedZiweiSectionV2.tsx` 다.
+
+### 되돌릴 때 함께 확인할 것
+`app/_lib/models/` 에는 `UserModel.js`(스크립트 5곳 사용)와 `AppSettingsModel.js` 가 **남아 있다**. 위 8개만 격리됐다. Mongoose 모델은 import 되어야 등록되므로, 격리된 8개는 격리 전에도 이미 미등록 상태였다.
+
+---
+
 ### 주의 — 함께 지우면 안 되는 동명 항목
 - `app/hooks/useServiceExecutionGuard.ts` 를 격리했지만, **동명의 `worker/lib/service-execution-task.js:1036+` 는 살아 있다.** 이름이 같다고 함께 지우지 말 것.
 - `app/_lib/models/**` 는 이 배치에 없다(B등급). 그중 `UserModel.js` 는 스크립트 5곳이 쓰는 **살아 있는 모델**이다.
