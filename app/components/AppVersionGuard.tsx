@@ -24,7 +24,9 @@ const SW_RETIRE_VERSION = process.env.NEXT_PUBLIC_BUILD_TIME
   || process.env.NEXT_PUBLIC_APP_VERSION
   || "dev";
 const DEFER_GUARD_KEY = "app_version_defer_guard";
-const VERSION_CHECK_INTERVAL_MS = 60_000;
+// 60초 → 5분(2026-08-10). focus/visibility/online 재발사가 탭 복귀·재접속마다 이미 재검사를
+// 트리거하므로, 이 interval은 "탭을 계속 열어 둔 채 방치"할 때만 쓰인다. 짧을 이유가 없다.
+const VERSION_CHECK_INTERVAL_MS = 300_000;
 
 type RuntimeWindow = Window & Record<string, unknown>;
 

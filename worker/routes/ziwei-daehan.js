@@ -3,7 +3,7 @@ import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { json, methodNotAllowed, notFound, readJson, getRoutePath } from "../lib/http.js";
 import { User } from "../lib/models.js";
 import { hasUnlockedContent } from "../lib/content-unlocks.js";
-import { handleBillingRoutes } from "./billing.js";
+import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 
 const DAEHAN_COST = 100;
 const DAEHAN_SERVICE_KEY = "ziwei";
@@ -99,7 +99,9 @@ async function handleDaehanStatus(request, env) {
 }
 
 async function handleDaehanUnlock(request, env) {
-  const auth = await requireAuth(request, env);
+  // billing 프로젝션으로 한 번에 읽어 authUserDoc 를 확보해 두면, 아래 내부 위임(coin-gate)이
+  // users 를 다시 읽지 않고 이 인증 결과를 그대로 재사용한다(preverifiedAuth).
+  const auth = await requireAuth(request, env, { userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   const body = await readJson(request);
   await connectDb(env);
   await ensureDaehanIndexes();
@@ -134,7 +136,7 @@ async function handleDaehanUnlock(request, env) {
       selectedProfileId: profileId,
     }),
   });
-  const billingResponse = await handleBillingRoutes(billingRequest, env);
+  const billingResponse = await handleBillingRoutes(billingRequest, env, { preverifiedAuth: auth });
   if (!billingResponse.ok) return billingResponse;
 
   let billingPayload = {};

@@ -206,6 +206,7 @@ beforeAll(async () => {
       status: 200,
       headers: { "content-type": "application/json" },
     })),
+    BILLING_SNAPSHOT_USER_PROJECTION: {},
   }));
   callGeminiTextMock = jest.fn(async () => ({ ok: false, error: "blocked" }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: callGeminiTextMock }));

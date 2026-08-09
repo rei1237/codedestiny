@@ -766,6 +766,35 @@ const SUKYO_PAST_LIFE_REPORT_TYPE = "sukuyoPastLifeReading";
 const SUKYO_PAST_LIFE_LOGIC_VERSION = "sukyo-past-life-v2";
 const SUKYO_PAST_LIFE_PURPOSES = new Set(["love", "reunion", "marriage", "crush", "friend", "family", "business", "work", "general"]);
 
+// resolvePastLifeProfile 의 프로필 폴백(destinyProfiles*)과 requirePremiumReportAccess
+// (access-control.js) 의 프리미엄 판정 필드를 한 번에 커버해, handleSukuyoPastLifeReading 이
+// users 를 3회가 아니라 1회만 읽게 한다(RC-13). access-control.js 의 select 필드셋과 맞춰 둔다.
+const SUKYO_PAST_LIFE_USER_PROJECTION = {
+  destinyProfilesCurrentId: 1,
+  destinyProfilesLockedCurrentId: 1,
+  unlockedFeatures: 1,
+  profileSubscription: 1,
+  subscription: 1,
+  membership: 1,
+  membershipPass: 1,
+  pass: 1,
+  entitlement: 1,
+  licensePass: 1,
+  accessGateResult: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+};
+
 const SUKYO_PAST_LIFE_SCORE_RANGES = Object.freeze({
   "업태": { pastLifeFeeling: [85, 98], attraction: [75, 92], unfinishedTask: [80, 98], repeatPattern: [70, 90], emotionalExhaustion: [50, 75], healingPotential: [65, 85], realityPotential: [45, 70] },
   "안괴": { pastLifeFeeling: [75, 95], attraction: [85, 98], unfinishedTask: [70, 92], repeatPattern: [75, 95], emotionalExhaustion: [75, 98], healingPotential: [55, 80], realityPotential: [30, 60] },
@@ -1171,7 +1200,7 @@ function normalizeProfileCardForSukuyo(profile) {
   };
 }
 
-async function resolvePastLifeProfile(env, userId, body = {}) {
+async function resolvePastLifeProfile(env, userId, body = {}, preloadedUserDoc = null) {
   const profileId = clean(body.userProfileId || body.profileId || body.selectedProfileId);
   if (profileId) {
     const profile = await withMongoRetry(env, () => ProfileCard.findOne({ userId, profileId }).lean());
@@ -1190,9 +1219,13 @@ async function resolvePastLifeProfile(env, userId, body = {}) {
       timezone: clean(body.timezone || "Asia/Seoul") || "Asia/Seoul",
     };
   }
+  // preloadedUserDoc(_id 일치 확인된 것)이 있으면 재조회 없이 그대로 쓴다(RC-13).
+  const reusableUser = preloadedUserDoc && String(preloadedUserDoc._id || "") === String(userId || "")
+    ? preloadedUserDoc
+    : null;
   // User → ProfileCard 두 read 를 하나의 재시도 단위로 묶는다(왕복 2 → 1, 상한도 1회분).
   const profile = await withMongoRetry(env, async () => {
-    const user = await User.findById(userId).select("destinyProfilesCurrentId destinyProfilesLockedCurrentId").lean();
+    const user = reusableUser || await User.findById(userId).select("destinyProfilesCurrentId destinyProfilesLockedCurrentId").lean();
     const currentId = clean(user?.destinyProfilesLockedCurrentId || user?.destinyProfilesCurrentId);
     return currentId
       ? await ProfileCard.findOne({ userId, profileId: currentId }).lean()
@@ -1292,10 +1325,12 @@ function pastLifeErrorResponse(code, message, status = 400) {
 }
 
 async function handleSukuyoPastLifeReading(request, env) {
-  const auth = await requireAuth(request, env);
+  // 결제 판정 프로젝션으로 한 번에 읽어 두면, 아래 resolvePastLifeProfile 의 프로필 폴백과
+  // requirePremiumReportAccess 의 내부 판정이 users 를 다시 읽지 않는다(3회→1회, RC-13).
+  const auth = await requireAuth(request, env, { userProjection: SUKYO_PAST_LIFE_USER_PROJECTION });
   const body = await readJson(request);
   await connectDb(env);
-  const profile = await resolvePastLifeProfile(env, auth.userId, body);
+  const profile = await resolvePastLifeProfile(env, auth.userId, body, auth.authUserDoc || null);
   const partnerRaw = normalizePastLifePartner(body);
   if (!parseDateParts(profile.birthDate)) return pastLifeErrorResponse("INVALID_BIRTH_DATE", "내 생년월일 형식을 확인해 주세요.", 400);
   if (!parseDateParts(partnerRaw.birthDate)) return pastLifeErrorResponse("INVALID_BIRTH_DATE", "상대 생년월일 형식을 확인해 주세요.", 400);
@@ -1352,6 +1387,7 @@ async function handleSukuyoPastLifeReading(request, env) {
     featureKey: SUKYO_PAST_LIFE_FEATURE_KEY,
     reportType: SUKYO_PAST_LIFE_REPORT_TYPE,
     mode: "past-life-reading",
+    _userDoc: auth.authUserDoc || null,
     purpose,
     _accessRoute: "/api/sukuyo/past-life-reading",
   });

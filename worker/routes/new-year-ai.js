@@ -11,7 +11,7 @@ import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { handleBillingRoutes } from "./billing.js";
+import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { Lunar, Solar } from "lunar-javascript";
 
 const SERVICE_KEY = "new-year-ai";
@@ -2074,7 +2074,7 @@ function cloneBillingHeaders(request) {
   return headers;
 }
 
-async function callDeferredUsageRoute({ request, env, path, idempotencyKey, sessionId, code = "", message = "" }) {
+async function callDeferredUsageRoute({ request, env, auth, path, idempotencyKey, sessionId, code = "", message = "" }) {
   const url = new URL(request.url);
   url.pathname = `/api/billing/coin-gate/deferred/${path}`;
   url.search = "";
@@ -2093,7 +2093,7 @@ async function callDeferredUsageRoute({ request, env, path, idempotencyKey, sess
       code,
       message,
     }),
-  }), env);
+  }), env, { preverifiedAuth: auth });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload?.ok === false) {
     const error = new Error(clean(payload?.message || payload?.error?.message || `Deferred usage ${path} failed.`, 500));
@@ -2214,7 +2214,9 @@ async function handleStart(request, env, ctx) {
   logNewYearAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // billing 프로젝션으로 한 번에 읽어 두면, 아래 callDeferredUsageRoute 의 내부 coin-gate 위임이
+  // users 를 다시 읽지 않고 이 인증 결과를 그대로 재사용한다(preverifiedAuth).
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -2240,6 +2242,7 @@ async function handleStart(request, env, ctx) {
       await callDeferredUsageRoute({
         request,
         env,
+        auth,
         path: "cancel",
         idempotencyKey,
         sessionId: idempotencyKey,
@@ -2311,7 +2314,7 @@ async function handleStart(request, env, ctx) {
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
     });
     if (access.deferredUsage) {
-      await callDeferredUsageRoute({ request, env, path: "apply", idempotencyKey, sessionId });
+      await callDeferredUsageRoute({ request, env, auth, path: "apply", idempotencyKey, sessionId });
     } else if (!access.usageAlreadyApplied && access.accessType === "pass") {
       await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing });
     } else if (!access.usageAlreadyApplied && access.accessType === "subscription") {
@@ -2380,6 +2383,7 @@ async function handleStart(request, env, ctx) {
       await callDeferredUsageRoute({
         request,
         env,
+        auth,
         path: "cancel",
         idempotencyKey,
         sessionId,

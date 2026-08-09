@@ -16,7 +16,7 @@ import {
   isHeartScentName,
 } from "../../lib/fortune-tea-house/heart-scents.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
-import { handleBillingRoutes } from "./billing.js";
+import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -1388,7 +1388,14 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
 
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    // 결제 프로젝션(BILLING_SNAPSHOT_USER_PROJECTION)을 함께 요청해, 생성 성공/실패 후 내부
+    // coin-gate/deferred 위임(callFortuneTeaDeferredUsageRoute)이 users 를 다시 읽지 않고
+    // 이 인증 결과를 그대로 재사용하게 한다(preverifiedAuth). 기존 PAID_FEATURE_ACCESS_USER_PROJECTION
+    // 필드는 그대로 유지된다(병합이지 대체가 아님).
+    auth = await getOptionalUserFromRequest(request, env, {
+      surfaceDbInfraError: true,
+      userProjection: { ...PAID_FEATURE_ACCESS_USER_PROJECTION, ...BILLING_SNAPSHOT_USER_PROJECTION },
+    });
   } catch (error) {
     // 일시적 DB 장애는 401(로그아웃 유발) 대신 재시도 가능한 degraded 응답으로 흘려보낸다.
     if (isTransientMongoError(error)) return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
@@ -4629,7 +4636,7 @@ function cloneFortuneTeaBillingHeaders(request) {
   return headers;
 }
 
-async function callFortuneTeaDeferredUsageRoute({ request, env, path, featureKey, pricing = {}, requestId = "", resultId = "", code = "", message = "" }) {
+async function callFortuneTeaDeferredUsageRoute({ request, env, auth, path, featureKey, pricing = {}, requestId = "", resultId = "", code = "", message = "" }) {
   if (!requestId) return null;
   const url = new URL(request.url);
   url.pathname = `/api/billing/coin-gate/deferred/${path}`;
@@ -4649,7 +4656,7 @@ async function callFortuneTeaDeferredUsageRoute({ request, env, path, featureKey
       code,
       message,
     }),
-  }), env);
+  }), env, { preverifiedAuth: auth });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload?.ok === false) {
     const error = new Error(cleanText(payload?.message || payload?.error?.message || `Deferred usage ${path} failed.`, 500));
@@ -4741,6 +4748,7 @@ async function handleConsult(request, env, ctx = null) {
       await callFortuneTeaDeferredUsageRoute({
         request,
         env,
+        auth: access.auth,
         path: "apply",
         featureKey: access.featureKey,
         pricing: access.pricing,
@@ -4753,6 +4761,7 @@ async function handleConsult(request, env, ctx = null) {
       await callFortuneTeaDeferredUsageRoute({
         request,
         env,
+        auth: access.auth,
         path: "cancel",
         featureKey: access.featureKey,
         pricing: access.pricing,

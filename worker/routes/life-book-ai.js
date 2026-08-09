@@ -15,7 +15,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
-import { handleBillingRoutes } from "./billing.js";
+import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 
 const SERVICE_KEY = "life-book-ai";
 const FEATURE_KEY = "life-book-ai-consultation";
@@ -1649,7 +1649,7 @@ function extractKeywords(content, topic) {
   return Array.from(new Set(picked)).slice(0, 3);
 }
 
-async function callDeferredBillingRoute({ request, env, path, body }) {
+async function callDeferredBillingRoute({ request, env, auth, path, body }) {
   const url = new URL(request.url);
   url.pathname = `/api/billing/coin-gate/deferred/${path}`;
   url.search = "";
@@ -1659,7 +1659,7 @@ async function callDeferredBillingRoute({ request, env, path, body }) {
     method: "POST",
     headers,
     body: JSON.stringify(body),
-  }), env);
+  }), env, { preverifiedAuth: auth });
 }
 
 // 🔴 과금 부작용(apply/cancel/refund)의 유일한 featureKey 원천. 중간에 다시 계산하면 레거시 세션에서 어긋난다.
@@ -1667,11 +1667,12 @@ function billingFeatureKeyOf(access = {}) {
   return clean(access.featureKey, 80) || FEATURE_KEY;
 }
 
-async function finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, orderName = ORDER_NAME }) {
+async function finalizeDeferredBillingUsage({ request, env, auth, access, idempotencyKey, sessionId, orderName = ORDER_NAME }) {
   if (access.accessSource !== "billing_gate_deferred") return true;
   const response = await callDeferredBillingRoute({
     request,
     env,
+    auth,
     path: "apply",
     body: {
       featureKey: billingFeatureKeyOf(access),
@@ -1694,11 +1695,12 @@ async function finalizeDeferredBillingUsage({ request, env, access, idempotencyK
   return true;
 }
 
-async function cancelDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, error, orderName = ORDER_NAME }) {
+async function cancelDeferredBillingUsage({ request, env, auth, access, idempotencyKey, sessionId, error, orderName = ORDER_NAME }) {
   if (access?.accessSource !== "billing_gate_deferred") return false;
   await callDeferredBillingRoute({
     request,
     env,
+    auth,
     path: "cancel",
     body: {
       featureKey: billingFeatureKeyOf(access),
@@ -1785,12 +1787,12 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
   return false;
 }
 
-async function applyUsageOnce({ request, env, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME }) {
+async function applyUsageOnce({ request, env, auth, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME }) {
   const existing = await LifeBookAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt llmMeta.pricingSnapshot").lean();
   if (existing?.usageAppliedAt) return true;
 
   if (access.accessSource === "billing_gate_deferred") {
-    await finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, orderName });
+    await finalizeDeferredBillingUsage({ request, env, auth, access, idempotencyKey, sessionId, orderName });
   } else if (access.accessSource !== "billing_gate" && access.accessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
@@ -2033,10 +2035,11 @@ function hasRequiredLifeFortuneSaju(sajuResult, birthInfo = {}) {
   return true;
 }
 
-async function restoreAccessBeforeGenerationFailure({ request, env, userId, access, idempotencyKey, sessionId, error, orderName, reason = MESSAGES.llmFailed }) {
+async function restoreAccessBeforeGenerationFailure({ request, env, auth, userId, access, idempotencyKey, sessionId, error, orderName, reason = MESSAGES.llmFailed }) {
   const deferredCanceled = await cancelDeferredBillingUsage({
     request,
     env,
+    auth,
     access,
     idempotencyKey,
     sessionId,
@@ -2114,7 +2117,13 @@ async function handleResult(request, env, pathId = "") {
   // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
   let auth = null;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    // 결제 프로젝션을 함께 요청해, stale 승격 시 restoreAccessBeforeGenerationFailure 의 내부
+    // coin-gate/deferred 위임이 users 를 다시 읽지 않게 한다(preverifiedAuth). 병합이라 기존
+    // PAID_FEATURE_ACCESS_USER_PROJECTION 필드는 그대로 유지된다.
+    auth = await getOptionalUserFromRequest(request, env, {
+      surfaceDbInfraError: true,
+      userProjection: { ...PAID_FEATURE_ACCESS_USER_PROJECTION, ...BILLING_SNAPSHOT_USER_PROJECTION },
+    });
   } catch (error) {
     return json({
       ok: false,
@@ -2154,6 +2163,7 @@ async function handleResult(request, env, pathId = "") {
       await restoreAccessBeforeGenerationFailure({
         request,
         env,
+        auth,
         userId: auth.userId,
         access: {
           accessType: clean(consultation.accessType),
@@ -2269,7 +2279,12 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
   if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
   logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  // 결제 프로젝션을 함께 요청해, 아래 applyUsageOnce/restoreAccessBeforeGenerationFailure 의 내부
+  // coin-gate/deferred 위임이 users 를 다시 읽지 않게 한다(preverifiedAuth).
+  const auth = await getOptionalUserFromRequest(request, env, {
+    surfaceDbInfraError: true,
+    userProjection: { ...PAID_FEATURE_ACCESS_USER_PROJECTION, ...BILLING_SNAPSHOT_USER_PROJECTION },
+  });
   if (!auth) return loginRequired();
   logLifeBookAction("generate_start", {
     route,
@@ -2398,6 +2413,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
         await restoreAccessBeforeGenerationFailure({
           request,
           env,
+          auth,
           userId: auth.userId,
           access,
           idempotencyKey,
@@ -2435,6 +2451,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       await restoreAccessBeforeGenerationFailure({
         request,
         env,
+        auth,
         userId: auth.userId,
         access,
         idempotencyKey,
@@ -2751,6 +2768,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
           await applyUsageOnce({
             request,
             env,
+            auth,
             userId: auth.userId,
             sessionId,
             access,
@@ -2846,6 +2864,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       const restored = await restoreAccessBeforeGenerationFailure({
         request,
         env,
+        auth,
         userId: auth.userId,
         access,
         idempotencyKey,

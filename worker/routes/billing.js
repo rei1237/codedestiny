@@ -1893,7 +1893,11 @@ async function consumeMembershipCreditIfAvailable(
   };
 }
 
-async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, body = {}, entitlement = {}) {
+// preloadedPoints: 호출부가 이미 BILLING_SNAPSHOT_USER_PROJECTION(points 포함)으로 인증을 마쳤다면
+// authUserDoc.points 를 넘겨 여기서 users 를 다시 읽지 않게 한다. 폐지된 코인 잔액을 delta:0 감사행
+// metadata 에 찍기만 하는 값이라(어떤 접근 판정에도 안 쓰인다) 약간 stale 해도 무해하다. 넘기지
+// 않으면 예전처럼 신선 조회로 폴백한다(admin/dev 인증 등 authUserDoc 미부착 경로 보호).
+async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, body = {}, entitlement = {}, preloadedPoints = undefined) {
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
   if (!authUserId || !featureKey || !normalizedRequestId) return null;
@@ -1911,7 +1915,9 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
   }).select("_id createdAt delta featureKey reason metadata").lean();
   if (existing) return existing;
 
-  const user = await User.findById(authUserId).select("points").lean();
+  const pointsForBalance = preloadedPoints !== undefined
+    ? preloadedPoints
+    : (await User.findById(authUserId).select("points").lean())?.points;
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
   const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
@@ -1921,7 +1927,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
     userId: authUserId,
     kind: "deduct",
     delta: 0,
-    balanceAfter: Number(user?.points || 0),
+    balanceAfter: Number(pointsForBalance || 0),
     reason: String(pricing?.reason || "pass_access"),
     featureKey,
     metadata: {
@@ -3864,7 +3870,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         }, {
           ...subscriptionPass.entitlement,
           passTier: tierPassConsume.passTier,
-        }));
+        }, authCheck.auth?.authUserDoc?.points));
       } catch (error) {
         logBillingRouteError("pass-access-record", error, request, {
           featureKey: String(pricing?.featureKey || ""),
@@ -5266,11 +5272,14 @@ async function handlePaidAccessCheck(request, env) {
   // 재시도 가능한 503 으로 표면화되고, 이용권 보유자가 결제창을 보는 경로 하나가 닫힌다.
   const auth = await resolveBillingRequestAuth(request, env);
   const featureKey = String(body?.featureKey || url.searchParams.get("featureKey") || "").trim();
+  // BILLING_SNAPSHOT_USER_PROJECTION 이 PAID_FEATURE_ACCESS_USER_FIELDS 를 전부 포함하므로(RC-8),
+  // 위에서 이미 읽은 문서를 그대로 넘겨 canAccessPaidFeature 내부의 세 번째 users 조회를 없앤다.
   const decision = await canAccessPaidFeature(auth?.userId || "", featureKey, {
     env,
     categoryKey: body?.categoryKey || url.searchParams.get("categoryKey") || "",
     subFeatureKey: body?.subFeatureKey || url.searchParams.get("subFeatureKey") || "",
     reason: body?.reason || url.searchParams.get("reason") || "",
+    userDoc: auth?.authUserDoc || null,
   });
   const status = decision.reason === "LOGIN_REQUIRED" ? 401 : 200;
   return json({ ok: decision.allowed, data: decision, code: decision.reason }, { status });
@@ -5575,7 +5584,7 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
 
 // 결제 스냅샷 stage-2 User 조회가 쓰는 필드. 인증 리졸버에 userProjection으로 넘겨 인증 확인과
 // 같은 조회에서 함께 읽어(authUserDoc) 인증-후 재조회(stage-2 User 왕복)를 없앤다.
-const BILLING_SNAPSHOT_USER_PROJECTION = {
+export const BILLING_SNAPSHOT_USER_PROJECTION = {
   _id: 1,
   name: 1,
   email: 1,
@@ -5608,6 +5617,15 @@ const BILLING_SNAPSHOT_USER_PROJECTION = {
   fullName: 1,
   displayName: 1,
   username: 1,
+  // paid-feature-access.js 의 PAID_FEATURE_ACCESS_USER_FIELDS 대비 빠져 있던 6개. 이게 없으면
+  // canAccessPaidFeature(handlePaidAccessCheck)에 이 스냅샷을 userDoc 으로 넘길 때 이 필드들이
+  // 비어 있어 오탐 거부가 난다 — 그래서 넘기지 못하고 users 를 다시 읽고 있었다(RC-8).
+  paidFeatures: 1,
+  licenses: 1,
+  monthlySubscription: 1,
+  membershipPass: 1,
+  licensePass: 1,
+  accessGateResult: 1,
 };
 
 async function readBillingSnapshot(request, env, options = {}) {
@@ -6602,7 +6620,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {},
   }, {
     ...subscriptionPass.entitlement,
     passTier: tierPassConsume.passTier,
-  });
+  }, authCheck.auth?.authUserDoc?.points);
   } catch (error) {
     logBillingRouteError("pass-access-record", error, request, {
       featureKey: String(pricing?.featureKey || ""),
@@ -6919,7 +6937,7 @@ async function getServiceExecutionStatus(request, env) {
   return success({ execution: result.execution || null }, "서비스 실행 상태를 조회했습니다.");
 }
 
-export async function handleBillingRoutes(request, env) {
+export async function handleBillingRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/billing");
   const trace = {
@@ -6928,6 +6946,20 @@ export async function handleBillingRoutes(request, env) {
     method,
     stage: "security",
   };
+
+  // 내부 위임(예: /api/ziwei/daehan/unlock, *-ai.js 의 deferred usage 호출)이 만드는 합성 Request는
+  // BILLING_REQUEST_AUTH_MEMO(WeakMap, request 객체 identity 기준)를 못 타 매번 users 를 다시 읽었다.
+  // 호출부가 이미 BILLING_SNAPSHOT_USER_PROJECTION 으로 인증을 마쳤다면 여기서 그 결과를 이 합성
+  // request 의 메모에 미리 채워, 아래 enforceBillingRouteSecurity 를 포함한 이번 호출 전체가
+  // resolveBillingRequestAuth 를 호출할 때마다 재조회 없이 이 값을 재사용하게 한다.
+  const preverifiedAuth = ctx && typeof ctx === "object" && ctx.preverifiedAuth && typeof ctx.preverifiedAuth === "object"
+    ? ctx.preverifiedAuth
+    : null;
+  if (preverifiedAuth?.userId) {
+    const seeded = Promise.resolve(preverifiedAuth);
+    seeded.catch(() => {});
+    BILLING_REQUEST_AUTH_MEMO.set(request, seeded);
+  }
 
   try {
     const security = await enforceBillingRouteSecurity(request, env, path, method);

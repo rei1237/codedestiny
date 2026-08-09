@@ -951,9 +951,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   await connectDb(env);
 
-  const user = await User.findById(userId)
-    .select("_id unlockedFeatures profileSubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
+  // requestBody._userDoc: 호출부가 인증 단계에서 이미 이 필드셋(또는 상위집합)으로 읽어 둔 User
+  // 문서. _id가 판정 대상 userId와 정확히 같을 때만 채택해 아래 조회를 건너뛴다(RC-13) — 다른
+  // 사용자의 문서로 프리미엄 접근이 열리는 일이 구조적으로 불가능하도록 한다.
+  const preloadedUserDoc = requestBody && typeof requestBody._userDoc === "object" ? requestBody._userDoc : null;
+  const user = (preloadedUserDoc && String(preloadedUserDoc._id || "") === String(userId || ""))
+    ? preloadedUserDoc
+    : await User.findById(userId)
+      .select("_id unlockedFeatures profileSubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+      .lean();
 
   if (!user?._id) {
     logPremiumAccessDecision({
@@ -997,6 +1003,30 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));
   const hasUnlock = unlockPolicy.some((key) => unlockSet.has(key));
+
+  // 메모리에 이미 있는 판정(hasUnlock)을 앞당겨, 그 아래 findPremiumContentEntitlement DB 조회를
+  // 건너뛴다(RC-15d). requiredRules가 있으면 앞당기지 않는다 — 그 결제 바인딩은 hasUnlock 과
+  // 무관하게 반드시 검증해야 하는 별도 요구사항이라(강제 결제 바인딩 우회 방지), 여기서 먼저
+  // return 하면 아래 requiredRules 루프의 검증·entitlement 기록이 통째로 스킵된다.
+  if (hasUnlock && !requiredRules.length) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: unlockPolicy[0] || "",
+      accessSource: "unlock",
+      entitlementId: unlockPolicy[0] || "",
+    });
+    const allowed = {
+      ok: true,
+      accessType: "unlock",
+      reportType: normalizedReportType,
+      entitlementId: unlockPolicy[0] || "",
+    };
+    logSajuAccessResolved(allowed);
+    return allowed;
+  }
+
   const profileId = extractPaidContentProfileId(requestBody);
   const entitlementCandidateKeys = buildPremiumUnlockCandidateKeys({
     unlockPolicy,
