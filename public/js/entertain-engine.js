@@ -712,122 +712,154 @@
     var style = document.createElement('style');
     style.id = RPG_STYLE_ID;
     style.textContent = [
-      '#skillTreeSection{display:block;min-height:320px;background:linear-gradient(180deg,rgba(15,10,34,.96),rgba(6,4,18,.98));border-radius:22px;padding:1px}',
+      /* ── 퀘스트 셸 — 클래스 시트와 같은 연이 Dark 토큰을 공유한다 ─────────────
+         바탕·테두리·라운드는 위쪽 #skillTreeSection 이 소유하므로 여기서는 칠하지 않는다.
+         셸이 자기 배경을 또 칠하면 한 카드 안에 바닥이 두 겹으로 겹친다(이전 버전의 결함:
+         컨테이너=다크, 클래스 시트=밝은 파스텔, 퀘스트 셸=딥퍼플로 세 개가 쌓여 있었다). */
+      '#skillTreeSection{display:block;min-height:320px}',
       '.ent-rpg-shell,.ent-rpg-shell *{box-sizing:border-box}',
-      '.ent-rpg-shell{position:relative;display:flex;flex-direction:column;gap:14px;margin-top:18px;min-height:420px;padding:14px;border-radius:24px;background:linear-gradient(180deg,rgba(24,13,52,.98),rgba(7,5,20,.99));font-family:var(--font-body,"Pretendard","Noto Sans KR",system-ui,sans-serif);color:#f8f2ff;isolation:isolate;overflow:hidden}',
-      '.ent-rpg-shell::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 0%,rgba(247,216,120,.16),transparent 34%),radial-gradient(circle at 88% 8%,rgba(56,189,248,.11),transparent 32%),linear-gradient(180deg,rgba(255,255,255,.04),transparent 38%);pointer-events:none;z-index:-1}',
-      '.ent-rpg-topline{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}',
-      '.ent-rpg-topline .ent-quest-title{font-family:var(--font-display,"Gowun Dodum","Cafe24Ssurround",serif);font-size:1.38rem;line-height:1.18;color:#fff7d8;text-shadow:0 2px 0 rgba(68,36,110,.72),0 0 18px rgba(247,216,120,.20);letter-spacing:0}',
-      '.ent-rpg-topline .ent-quest-tag{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:rgba(255,236,179,.10);border:1px solid rgba(255,236,179,.22);padding:5px 9px;color:#ffe8aa;font-size:.62rem;font-weight:950;letter-spacing:.12em}',
-      '.ent-rpg-topline .ent-quest-sub{margin-top:6px;color:rgba(241,231,255,.78);font-size:.74rem;line-height:1.55}',
-      '.ent-rpg-kst{padding:9px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(34,20,70,.92),rgba(13,11,34,.94));border:1px solid rgba(247,214,120,.24);color:#fae8b4;font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 10px 24px rgba(0,0,0,.24)}',
-      '.ent-rpg-status{display:inline-flex;align-items:center;gap:8px;min-height:28px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(236,224,255,.9);font-size:.72rem;line-height:1.4}',
-      '.ent-rpg-status.is-error{border-color:rgba(248,113,113,.28);background:rgba(127,29,29,.28);color:#fecaca}',
-      '.ent-rpg-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}',
-      '.ent-rpg-card{grid-column:span 12;position:relative;overflow:hidden;border-radius:18px;padding:16px 15px 15px;background:radial-gradient(125% 120% at 50% 0%,rgba(122,76,224,.22) 0%,rgba(25,12,52,.95) 42%,rgba(7,4,20,.98) 100%);border:1px solid rgba(201,160,255,.18);box-shadow:0 18px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05)}',
-      '.ent-rpg-card--hero{background:radial-gradient(circle at 12% 8%,rgba(255,236,179,.28),transparent 36%),linear-gradient(145deg,rgba(55,31,106,.96),rgba(14,10,40,.98))}',
-      '.ent-rpg-card--quests{background:radial-gradient(circle at 92% 4%,rgba(244,114,182,.18),transparent 30%),linear-gradient(160deg,rgba(32,20,78,.98),rgba(9,7,27,.99))}',
-      '.ent-rpg-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 18%,transparent 78%,rgba(255,255,255,.02));pointer-events:none;opacity:.75}',
+      '.ent-rpg-shell{--rpg-raised:rgba(255,241,247,.055);--rpg-raised-2:rgba(255,241,247,.09);--rpg-ink:#fff1f7;--rpg-ink-muted:rgba(255,214,232,.86);--rpg-ink-dim:rgba(255,214,232,.66);--rpg-accent:rgba(255,196,222,.96);--rpg-gold:#ead089;--rpg-border:rgba(244,190,209,.38);--rpg-border-soft:rgba(244,190,209,.18);--rpg-ease:cubic-bezier(.22,1,.36,1);position:relative;display:flex;flex-direction:column;gap:18px;padding:20px;background:none;border:0;border-radius:0;font-family:var(--font-body,"Pretendard","Noto Sans KR",system-ui,sans-serif);color:var(--rpg-ink);isolation:auto;overflow:visible}',
+      '.ent-rpg-shell::before{display:none}',
+
+      /* 상단 줄 — 제목 하나와 날짜 하나. 장식용 태그는 두지 않는다. */
+      '.ent-rpg-topline{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}',
+      '.ent-rpg-topline .ent-quest-title{font-size:1.14rem;font-weight:800;line-height:1.3;color:var(--rpg-ink);text-shadow:none;letter-spacing:0}',
+      '.ent-rpg-topline .ent-quest-sub{margin-top:6px;color:var(--rpg-ink-dim);font-size:.75rem;line-height:1.6;max-width:60ch}',
+      '.ent-rpg-kst{padding:5px 11px;border-radius:999px;background:var(--rpg-raised);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-muted);font-size:.7rem;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;box-shadow:none;white-space:nowrap}',
+      '.ent-rpg-status{display:inline-flex;align-self:flex-start;align-items:center;gap:8px;min-height:30px;padding:7px 12px;border-radius:10px;background:var(--rpg-raised);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-muted);font-size:.74rem;line-height:1.5}',
+      '.ent-rpg-status.is-error{border-color:rgba(255,158,180,.42);background:rgba(255,158,180,.12);color:#ffd9e2}',
+
+      /* 레이아웃 — DOM 순서를 그대로 두고 폭만 배분한다(읽기·탭 순서 보존).
+         hero 전폭 → 오행·고유능력 반반 → 퀘스트 전폭 → 비밀운세·성장루트. */
+      /* align-items:start — 카드는 내용만큼만 높다. stretch 로 두면 짧은 카드가 옆 카드
+         높이에 맞춰 늘어나 아래쪽에 큰 빈칸이 생긴다. */
+      '.ent-rpg-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));align-items:start;gap:14px}',
+      '.ent-rpg-card{grid-column:span 12;position:relative;overflow:hidden;border-radius:14px;padding:16px;background:var(--rpg-raised);border:1px solid var(--rpg-border-soft);box-shadow:none}',
+      '.ent-rpg-card::before{display:none}',
+      '.ent-rpg-card--hero{background:linear-gradient(180deg,rgba(234,208,137,.10),rgba(255,241,247,.045));border-color:rgba(234,208,137,.26)}',
       '.ent-rpg-card--quests{overflow:visible}',
-      '.ent-rpg-card__eyebrow{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(224,197,255,.72);font-weight:900}',
-      '.ent-rpg-card__title{margin-top:4px;font-family:var(--font-display,"Gowun Dodum","Cafe24Ssurround",serif);font-size:1.08rem;font-weight:900;color:#fff;letter-spacing:0;line-height:1.25}',
-      '.ent-rpg-card__sub{margin-top:6px;font-size:.76rem;line-height:1.6;color:rgba(208,190,234,.82)}',
-      '.ent-rpg-pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}',
-      '.ent-rpg-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(246,205,121,.16);color:#fff8d3;font-size:.73rem;font-weight:800;box-shadow:0 8px 16px rgba(0,0,0,.18)}',
-      '.ent-rpg-pill strong{color:#ffd86e;font-variant-numeric:tabular-nums}',
-      '.ent-rpg-exp-block{margin-top:14px}',
-      '.ent-rpg-exp-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.7rem;color:rgba(213,197,239,.86);font-weight:700;margin-bottom:8px}',
-      '.ent-rpg-exp-track{height:12px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,214,120,.16)}',
-      '.ent-rpg-exp-fill{display:block;height:100%;width:var(--rpg-exp-width,0%);border-radius:inherit;background:linear-gradient(90deg,#f7d878 0%,#ffe58f 42%,#ffbf57 100%);box-shadow:0 0 18px rgba(246,200,96,.42);transition:width .55s ease}',
-      '.ent-rpg-summary{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}',
-      '.ent-rpg-summary span{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(236,224,255,.88);font-size:.69rem;font-weight:700}',
-      '.ent-rpg-summary strong{color:#ffd86e}',
-      '.ent-rpg-element-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}',
-      '.ent-rpg-element-row{padding:11px 12px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.06)}',
-      '.ent-rpg-element-row.is-weak{border-color:rgba(252,165,165,.22);box-shadow:inset 0 0 0 1px rgba(252,165,165,.08)}',
-      '.ent-rpg-element-row.is-strong{border-color:rgba(253,224,71,.18)}',
-      '.ent-rpg-element-head{display:flex;align-items:center;gap:10px}',
-      '.ent-rpg-element-badge{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.24),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 16px rgba(0,0,0,.18)}',
-      '.ent-rpg-element-name{font-size:.9rem;font-weight:900;color:#fff}',
-      '.ent-rpg-element-note{font-size:.68rem;color:rgba(214,199,236,.78);margin-top:2px;line-height:1.45}',
-      '.ent-rpg-element-pct{margin-left:auto;font-size:.88rem;font-weight:900;color:#ffd86e;font-variant-numeric:tabular-nums}',
-      '.ent-rpg-mini-bar{margin-top:10px;height:7px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}',
-      '.ent-rpg-mini-bar span{display:block;height:100%;width:var(--rpg-fill,0%);border-radius:inherit;background:linear-gradient(90deg,rgba(247,216,120,.75),rgba(255,184,79,.95));box-shadow:0 0 12px rgba(245,200,88,.32)}',
-      '.ent-rpg-element-growth{margin-top:8px;font-size:.72rem;line-height:1.55;color:rgba(245,237,255,.84)}',
-      '.ent-rpg-chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}',
-      '.ent-rpg-chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#f4ebff;font-size:.72rem;font-weight:800;line-height:1.3}',
-      '.ent-rpg-chip.is-secret{border-color:rgba(246,200,96,.24);color:#ffefbe;background:linear-gradient(135deg,rgba(80,50,14,.72),rgba(37,20,7,.66))}',
-      '.ent-rpg-chip.is-lock{border-style:dashed;color:rgba(226,208,255,.72)}',
-      '.ent-rpg-today-skill{position:relative;display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;margin-top:14px;padding:13px;border-radius:18px;background:radial-gradient(circle at 12% 18%,rgba(255,255,255,.22),transparent 30%),linear-gradient(135deg,rgba(255,232,166,.18),rgba(236,72,153,.11),rgba(56,189,248,.10));border:1px solid rgba(255,232,166,.28);box-shadow:0 16px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.10);overflow:hidden}',
-      '.ent-rpg-today-skill::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 86% 18%,rgba(255,255,255,.34) 0 1px,transparent 2px),radial-gradient(circle at 72% 72%,rgba(255,232,166,.48) 0 1px,transparent 2px);pointer-events:none}',
-      '.ent-rpg-today-skill.is-complete{border-color:rgba(74,222,128,.32);background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(255,232,166,.12),rgba(56,189,248,.09))}',
-      '.ent-rpg-today-skill__orb{position:relative;z-index:1;width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.32),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 22px rgba(0,0,0,.24);font-size:1.25rem}',
+
+      /* 제목 위계 — 대문자 트래킹 킥커를 섹션마다 반복하지 않는다.
+         카드 제목이 구조를 지고, 카드 안의 소제목만 .ent-rpg-card__label 로 한 단 낮춘다. */
+      '.ent-rpg-card__title{margin:0;font-size:1rem;font-weight:800;color:var(--rpg-ink);letter-spacing:0;line-height:1.35;text-wrap:balance}',
+      '.ent-rpg-card__sub{margin-top:7px;font-size:.76rem;line-height:1.65;color:var(--rpg-ink-muted);max-width:62ch;text-wrap:pretty}',
+      '.ent-rpg-card__label{margin-top:16px;margin-bottom:8px;font-size:.73rem;font-weight:700;color:var(--rpg-ink-dim);letter-spacing:0}',
+
+      /* 상태 필 4개(LV/다음/오늘/연속)가 숫자 요약을 전담한다. 같은 값을 아래에서 또 적지 않는다. */
+      '.ent-rpg-pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}',
+      '.ent-rpg-pill{display:inline-flex;align-items:baseline;gap:6px;padding:7px 12px;border-radius:999px;background:rgba(36,8,26,.42);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-dim);font-size:.71rem;font-weight:600;box-shadow:none}',
+      '.ent-rpg-pill strong{color:var(--rpg-ink);font-size:.86rem;font-weight:800;font-variant-numeric:tabular-nums}',
+      '.ent-rpg-exp-block{margin-top:16px}',
+      '.ent-rpg-exp-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--rpg-ink-dim);font-weight:600;margin-bottom:8px;font-variant-numeric:tabular-nums}',
+      '.ent-rpg-exp-track{height:9px;border-radius:999px;overflow:hidden;background:rgba(36,8,26,.52);border:1px solid var(--rpg-border-soft)}',
+      '.ent-rpg-exp-fill{display:block;height:100%;width:var(--rpg-exp-width,0%);border-radius:inherit;background:linear-gradient(90deg,var(--rpg-accent),var(--rpg-gold));box-shadow:none;transition:width .6s var(--rpg-ease)}',
+      '.ent-rpg-summary{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}',
+      '.ent-rpg-summary span{display:inline-flex;align-items:baseline;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(36,8,26,.42);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-dim);font-size:.71rem;font-weight:600}',
+      '.ent-rpg-summary strong{color:var(--rpg-ink);font-weight:800;font-variant-numeric:tabular-nums}',
+
+      /* 오행 — 이름·비율·막대·한 줄 코멘트. 행 사이는 선 하나로 나눈다. */
+      '.ent-rpg-element-list{display:flex;flex-direction:column;margin-top:14px;border-top:1px solid var(--rpg-border-soft)}',
+      '.ent-rpg-element-row{padding:13px 0;border-bottom:1px solid var(--rpg-border-soft);border-radius:0;background:none}',
+      '.ent-rpg-element-row.is-weak .ent-rpg-element-note{color:var(--rpg-accent)}',
+      '.ent-rpg-element-row.is-strong .ent-rpg-element-note{color:var(--rpg-gold)}',
+      '.ent-rpg-element-head{display:flex;align-items:center;gap:11px}',
+      '.ent-rpg-element-badge{width:32px;height:32px;flex:0 0 32px;border-radius:10px;display:grid;place-items:center;background:var(--rpg-raised-2);border:1px solid var(--rpg-border-soft);box-shadow:none;font-size:.95rem}',
+      '.ent-rpg-element-name{font-size:.86rem;font-weight:700;color:var(--rpg-ink)}',
+      '.ent-rpg-element-note{font-size:.7rem;color:var(--rpg-ink-dim);margin-top:2px;line-height:1.45}',
+      '.ent-rpg-element-pct{margin-left:auto;font-size:.88rem;font-weight:800;color:var(--rpg-ink);font-variant-numeric:tabular-nums}',
+      '.ent-rpg-mini-bar{margin-top:9px;height:5px;border-radius:999px;background:rgba(36,8,26,.52);overflow:hidden}',
+      '.ent-rpg-mini-bar span{display:block;height:100%;width:var(--rpg-fill,0%);border-radius:inherit;background:var(--rpg-accent);box-shadow:none;transition:width .6s var(--rpg-ease)}',
+      '.ent-rpg-element-growth{margin-top:8px;font-size:.73rem;line-height:1.6;color:var(--rpg-ink-muted)}',
+
+      '.ent-rpg-chip-wrap{display:flex;flex-wrap:wrap;gap:7px}',
+      '.ent-rpg-chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:6px 11px;border-radius:999px;background:var(--rpg-raised);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-muted);font-size:.72rem;font-weight:600;line-height:1.3}',
+      '.ent-rpg-chip.is-secret{border-color:rgba(234,208,137,.32);color:var(--rpg-gold);background:rgba(234,208,137,.12)}',
+      '.ent-rpg-chip.is-lock{border-style:dashed;color:var(--rpg-ink-dim);background:none}',
+
+      /* 오늘의 스킬 — 카드 속 카드가 아니라 퀘스트 목록을 여는 띠 하나. */
+      '.ent-rpg-today-skill{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);gap:13px;margin-top:16px;padding:14px;border-radius:12px;background:rgba(234,208,137,.10);border:1px solid rgba(234,208,137,.26);box-shadow:none;overflow:hidden}',
+      '.ent-rpg-today-skill::before{display:none}',
+      '.ent-rpg-today-skill.is-complete{background:rgba(255,196,222,.10);border-color:rgba(255,196,222,.28)}',
+      '.ent-rpg-today-skill__orb{position:relative;z-index:1;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(36,8,26,.52);border:1px solid var(--rpg-border-soft);box-shadow:none;font-size:1.1rem}',
       '.ent-rpg-today-skill__body{position:relative;z-index:1;min-width:0}',
-      '.ent-rpg-today-skill__kicker{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#ffe8a3;font-size:.66rem;font-weight:950;letter-spacing:.12em;text-transform:uppercase}',
-      '.ent-rpg-today-skill__name{margin-top:5px;color:#fff;font-size:1.02rem;font-weight:950;line-height:1.28}',
-      '.ent-rpg-today-skill__copy{margin-top:5px;color:rgba(241,231,255,.86);font-size:.76rem;line-height:1.58}',
-      '.ent-rpg-today-skill__meter{margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.08);overflow:hidden}',
-      '.ent-rpg-today-skill__meter span{display:block;height:100%;width:var(--rpg-skill-progress,0%);border-radius:inherit;background:linear-gradient(90deg,#f7d878,#ec4899,#38bdf8);box-shadow:0 0 16px rgba(247,216,120,.34)}',
-      '.ent-rpg-today-skill__reward{display:inline-flex;align-items:center;gap:5px;min-height:24px;margin-top:9px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#fff7cf;font-size:.68rem;font-weight:900}',
-      '.ent-rpg-quest-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:14px}',
-      '.ent-rpg-quest-card{position:relative;overflow:hidden;padding:14px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.028));border:1px solid rgba(255,255,255,.075);box-shadow:0 14px 28px rgba(0,0,0,.2);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}',
-      '.ent-rpg-quest-card::after{content:"✦";position:absolute;right:12px;top:10px;color:rgba(255,232,166,.30);font-size:1rem}',
-      '.ent-rpg-quest-card:hover{transform:translateY(-1px);border-color:rgba(246,205,121,.24);box-shadow:0 18px 34px rgba(0,0,0,.24)}',
-      '.ent-rpg-quest-card.is-today-skill{border-color:rgba(255,232,166,.34);box-shadow:0 16px 32px rgba(0,0,0,.22),0 0 0 1px rgba(255,232,166,.08)}',
-      '.ent-rpg-quest-card.is-complete{border-color:rgba(74,222,128,.24);background:linear-gradient(180deg,rgba(34,197,94,.11),rgba(255,255,255,.03))}',
-      '.ent-rpg-quest-card.is-complete::after{content:"DONE";right:11px;top:9px;border-radius:999px;background:rgba(74,222,128,.16);border:1px solid rgba(74,222,128,.24);padding:3px 7px;color:#bbf7d0;font-size:.58rem;font-weight:950;letter-spacing:.08em}',
-      '.ent-rpg-quest-card.is-just-completed{animation:cdRpgQuestPop .75s ease}',
-      '@keyframes cdRpgQuestPop{0%{transform:scale(.98)}40%{transform:scale(1.02)}100%{transform:scale(1)}}',
-      '.ent-rpg-quest-top{display:flex;align-items:flex-start;gap:12px}',
-      '.ent-rpg-quest-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.18),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 18px rgba(0,0,0,.2)}',
-      '.ent-rpg-quest-body{flex:1;min-width:0}',
-      '.ent-rpg-quest-badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(244,235,255,.86);font-size:.62rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}',
-      '.ent-rpg-quest-title{margin-top:8px;font-size:.95rem;font-weight:900;color:#fff;line-height:1.45}',
-      '.ent-rpg-quest-desc{margin-top:7px;font-size:.78rem;line-height:1.55;color:rgba(215,199,236,.84)}',
-      '.ent-rpg-quest-skill{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:5px 9px;border-radius:999px;background:rgba(255,232,166,.10);border:1px solid rgba(255,232,166,.18);color:#fff1b8;font-size:.68rem;font-weight:900}',
-      '.ent-rpg-quest-reason{margin-top:10px;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:.72rem;line-height:1.5;color:rgba(238,230,255,.82)}',
-      '.ent-rpg-quest-reason strong{color:#ffd86e}',
-      '.ent-rpg-quest-after{margin-top:10px;padding:10px 11px;border-radius:14px;background:linear-gradient(135deg,rgba(247,216,120,.09),rgba(255,255,255,.03));border:1px solid rgba(247,214,120,.12);font-size:.74rem;line-height:1.7;color:#fff1c6}',
-      '.ent-rpg-quest-after strong{color:#ffe08a}',
-      '.ent-rpg-quest-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}',
-      '.ent-rpg-exp-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:linear-gradient(135deg,rgba(91,57,12,.9),rgba(34,20,7,.85));border:1px solid rgba(247,214,120,.2);color:#ffe7aa;font-size:.7rem;font-weight:900}',
+      '.ent-rpg-today-skill__kicker{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--rpg-ink-dim);font-size:.7rem;font-weight:600;letter-spacing:0;text-transform:none}',
+      '.ent-rpg-today-skill__name{margin-top:4px;color:var(--rpg-ink);font-size:.96rem;font-weight:800;line-height:1.35}',
+      '.ent-rpg-today-skill__copy{margin-top:5px;color:var(--rpg-ink-muted);font-size:.77rem;line-height:1.6}',
+      '.ent-rpg-today-skill__meter{margin-top:11px;height:5px;border-radius:999px;background:rgba(36,8,26,.52);overflow:hidden}',
+      '.ent-rpg-today-skill__meter span{display:block;height:100%;width:var(--rpg-skill-progress,0%);border-radius:inherit;background:linear-gradient(90deg,var(--rpg-accent),var(--rpg-gold));box-shadow:none;transition:width .6s var(--rpg-ease)}',
+      '.ent-rpg-today-skill__reward{display:inline-flex;align-items:center;gap:5px;min-height:22px;margin-top:10px;padding:0;background:none;border:0;color:var(--rpg-gold);font-size:.72rem;font-weight:700}',
+
+      /* 퀘스트 — 카드 그리드가 아니라 목록이다. 항목마다 테두리·그림자·모서리 장식을 두면
+         카드 속 카드가 되고, 세 개가 똑같이 생긴 카드 그리드로 읽힌다. */
+      '.ent-rpg-quest-grid{display:flex;flex-direction:column;margin-top:18px;border-top:1px solid var(--rpg-border-soft)}',
+      '.ent-rpg-quest-card{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px 0;border-bottom:1px solid var(--rpg-border-soft);border-radius:0;background:none;box-shadow:none;overflow:visible;transition:opacity .2s var(--rpg-ease)}',
+      '.ent-rpg-quest-card::after{display:none}',
+      '.ent-rpg-quest-card:hover{transform:none;box-shadow:none;border-color:var(--rpg-border-soft)}',
+      '.ent-rpg-quest-card.is-today-skill{box-shadow:none}',
+      '.ent-rpg-quest-card.is-complete .ent-rpg-quest-title{color:var(--rpg-ink-dim);text-decoration:line-through;text-decoration-color:rgba(255,214,232,.4);text-underline-offset:2px}',
+      '.ent-rpg-quest-card.is-just-completed{animation:cdRpgQuestPop .5s var(--rpg-ease)}',
+      '@keyframes cdRpgQuestPop{from{background:rgba(234,208,137,.16)}to{background:transparent}}',
+      '.ent-rpg-quest-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:1.02rem;background:var(--rpg-raised-2);border:1px solid var(--rpg-border-soft);box-shadow:none}',
+      '.ent-rpg-quest-body{min-width:0}',
+      '.ent-rpg-quest-title{margin:0;font-size:.9rem;font-weight:700;color:var(--rpg-ink);line-height:1.55;text-wrap:pretty}',
+      '.ent-rpg-quest-reason{margin-top:7px;padding:0;border:0;background:none;border-radius:0;font-size:.74rem;line-height:1.6;color:var(--rpg-ink-dim)}',
+      '.ent-rpg-quest-reason strong{color:var(--rpg-ink-muted);font-weight:700}',
+      '.ent-rpg-quest-after{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(234,208,137,.10);border:1px solid rgba(234,208,137,.24);font-size:.75rem;line-height:1.65;color:var(--rpg-ink-muted)}',
+      '.ent-rpg-quest-after strong{color:var(--rpg-gold);font-weight:700}',
+      '.ent-rpg-quest-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}',
+      '.ent-rpg-exp-tag{color:var(--rpg-gold);font-size:.75rem;font-weight:700;font-variant-numeric:tabular-nums;padding:0;background:none;border:0;border-radius:0}',
       /* 완료 버튼은 손가락으로 누르는 주 조작부다. 권장 터치 타깃 44px을 밑돌지 않게 한다. */
-      '.ent-rpg-complete-btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;min-height:44px;min-width:92px;background:linear-gradient(135deg,#ffe08a 0%,#ff9ecb 100%);color:#32142a;font-size:.8rem;font-weight:950;letter-spacing:0;box-shadow:0 10px 20px rgba(0,0,0,.18);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,opacity .18s ease}',
-      '.ent-rpg-complete-btn:hover{transform:translateY(-1px);box-shadow:0 14px 24px rgba(0,0,0,.22)}',
-      '.ent-rpg-complete-btn:disabled{cursor:not-allowed;opacity:.55;box-shadow:none;transform:none}',
-      '.ent-rpg-complete-btn.is-done{background:linear-gradient(135deg,#38bdf8 0%,#22c55e 100%);color:#f8fffb}',
-      '.ent-rpg-secret-panel{padding:14px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.06)}',
-      '.ent-rpg-secret-panel.is-open{border-color:rgba(247,214,120,.22);background:linear-gradient(135deg,rgba(95,61,14,.72),rgba(24,12,42,.92))}',
-      '.ent-rpg-secret-lock{display:flex;flex-direction:column;gap:10px;align-items:flex-start}',
-      '.ent-rpg-secret-lock-icon,.ent-rpg-secret-open-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.18),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.08)}',
-      '.ent-rpg-secret-open-icon{background:linear-gradient(135deg,rgba(247,216,120,.3),rgba(255,255,255,.05));border-color:rgba(247,214,120,.22)}',
-      '.ent-rpg-secret-title{font-size:1rem;font-weight:900;color:#fff}',
-      '.ent-rpg-secret-copy{margin-top:6px;font-size:.78rem;line-height:1.7;color:rgba(235,225,255,.84)}',
-      '.ent-rpg-secret-message{margin-top:10px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#fff7cf;font-size:.8rem;line-height:1.7}',
-      '.ent-rpg-secret-note{margin-top:10px;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(246,205,121,.75);font-weight:900}',
-      '.ent-rpg-route-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px;margin-top:13px}',
-      '.ent-rpg-route-card{min-height:96px;padding:12px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.075)}',
-      '.ent-rpg-route-card b{display:block;color:#fff4bd;font-size:.82rem;line-height:1.45}',
-      '.ent-rpg-route-card span{display:block;margin-top:7px;color:rgba(235,225,255,.82);font-size:.73rem;line-height:1.65}',
-      '.ent-rpg-crash{padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(127,29,29,.30),rgba(30,12,46,.92));border:1px solid rgba(248,113,113,.26);color:#fecaca;font-size:.82rem;line-height:1.7}',
-      '.ent-rpg-preview-note{margin-top:10px;padding:10px 11px;border-radius:14px;background:rgba(56,189,248,.08);border:1px solid rgba(125,211,252,.16);color:#dff7ff;font-size:.74rem;line-height:1.65}',
-      '.ent-rpg-modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,4,12,.7);backdrop-filter:blur(10px)}',
-      '.ent-rpg-modal.is-open{display:flex}',
-      '.ent-rpg-modal__panel{position:relative;max-width:430px;width:min(430px,100%);padding:18px;border-radius:24px;background:radial-gradient(120% 130% at 50% 0%,rgba(249,221,155,.18) 0%,rgba(18,10,38,.98) 46%,rgba(7,4,20,.99) 100%);border:1px solid rgba(247,214,120,.26);box-shadow:0 24px 50px rgba(0,0,0,.46)}',
-      '.ent-rpg-modal__badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(247,216,120,.28),rgba(255,255,255,.06));border:1px solid rgba(247,214,120,.24);color:#fff3c0;font-size:.7rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}',
-      '.ent-rpg-modal__title{margin-top:10px;font-size:1.18rem;font-weight:900;color:#fff;line-height:1.35}',
-      '.ent-rpg-modal__sub{margin-top:6px;font-size:.8rem;line-height:1.65;color:rgba(230,218,255,.82)}',
-      '.ent-rpg-modal__list{display:flex;flex-direction:column;gap:8px;margin-top:14px}',
-      '.ent-rpg-modal__item{padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#f5ebff;font-size:.75rem;line-height:1.65}',
-      '.ent-rpg-modal__close{margin-top:14px;display:inline-flex;align-items:center;justify-content:center;min-height:42px;width:100%;border:0;border-radius:14px;background:linear-gradient(135deg,#f7d878 0%,#ffbf57 100%);color:#271500;font-size:.85rem;font-weight:900;cursor:pointer}',
-      '.ent-rpg-empty,.ent-rpg-loading{padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.12);color:rgba(230,220,255,.74);font-size:.8rem;line-height:1.7}',
-      '.cd-rpg-spark{position:absolute;right:10px;top:10px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;animation:cdRpgSpark 1s ease forwards;pointer-events:none}',
-      '@keyframes cdRpgSpark{0%{opacity:0;transform:translateY(6px) scale(.96)}20%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-10px) scale(1.02)}}',
-      '@media (min-width: 768px){.ent-rpg-card--hero{grid-column:span 5}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 3}.ent-rpg-quest-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ent-rpg-route-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}',
-      '@media (min-width: 1100px){.ent-rpg-card--hero{grid-column:span 4}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 4}}',
-      '@media (max-width: 767px){.ent-rpg-shell{gap:12px}.ent-rpg-card{padding:14px 13px}.ent-rpg-quest-footer{flex-direction:column;align-items:stretch}.ent-rpg-complete-btn{width:100%}.ent-rpg-modal{padding:12px}}',
-      /* 모션 민감 사용자에게는 완료 팝·EXP 스파크·버튼 리프트를 재생하지 않는다. */
-      '@media (prefers-reduced-motion: reduce){.ent-rpg-complete-btn,.ent-rpg-complete-btn:hover{transition:none;transform:none}.cd-rpg-spark{animation:none;opacity:1}.ent-rpg-quest-item,.ent-rpg-quest-item.is-just-done{animation:none}}'
+      '.ent-rpg-complete-btn{appearance:none;border:0;border-radius:999px;padding:10px 20px;min-height:44px;min-width:92px;background:linear-gradient(135deg,#ffe08a 0%,#ff9ecb 100%);color:#32142a;font-size:.8rem;font-weight:800;letter-spacing:0;box-shadow:none;cursor:pointer;transition:transform .18s var(--rpg-ease),filter .18s var(--rpg-ease),opacity .18s var(--rpg-ease)}',
+      '.ent-rpg-complete-btn:hover{transform:translateY(-1px);filter:brightness(1.06)}',
+      '.ent-rpg-complete-btn:active{transform:translateY(0) scale(.985)}',
+      '.ent-rpg-complete-btn:focus-visible{outline:2px solid var(--rpg-gold);outline-offset:3px}',
+      '.ent-rpg-complete-btn:disabled{cursor:default;background:none;border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-dim);transform:none;filter:none}',
+      '.ent-rpg-complete-btn.is-done{background:none;border:1px solid rgba(255,196,222,.34);color:var(--rpg-accent)}',
+
+      /* 비밀 운세 — 잠금/해금 두 상태를 한 블록에서 톤 차이로만 구분한다. */
+      '.ent-rpg-secret-panel{margin-top:14px;padding:16px;border-radius:12px;background:var(--rpg-raised);border:1px solid var(--rpg-border-soft)}',
+      '.ent-rpg-secret-panel.is-open{border-color:rgba(234,208,137,.32);background:rgba(234,208,137,.10)}',
+      /* 잠금 상태는 아이콘과 진행도뿐이다. 세로로 쌓으면 빈 상자처럼 보여서 가로로 붙인다. */
+      '.ent-rpg-secret-lock{display:flex;flex-direction:row;flex-wrap:wrap;gap:12px;align-items:center}',
+      '.ent-rpg-secret-lock-icon,.ent-rpg-secret-open-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:1.02rem;background:var(--rpg-raised-2);border:1px solid var(--rpg-border-soft)}',
+      '.ent-rpg-secret-open-icon{background:rgba(234,208,137,.16);border-color:rgba(234,208,137,.30);color:var(--rpg-gold)}',
+      '.ent-rpg-secret-title{margin-top:11px;font-size:.94rem;font-weight:800;color:var(--rpg-ink)}',
+      '.ent-rpg-secret-lock .ent-rpg-secret-title{margin-top:0}',
+      '.ent-rpg-secret-copy{margin-top:6px;font-size:.77rem;line-height:1.7;color:var(--rpg-ink-muted);max-width:62ch}',
+      '.ent-rpg-secret-message{margin-top:12px;padding:13px 14px;border-radius:10px;background:rgba(36,8,26,.42);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink);font-size:.81rem;line-height:1.75;max-width:66ch;text-wrap:pretty}',
+      '.ent-rpg-secret-note{margin-top:11px;font-size:.71rem;letter-spacing:0;text-transform:none;color:var(--rpg-ink-dim);font-weight:500}',
+
+      /* 성장 루트 — 실제로 순서가 있는 3단계라 번호를 남긴다(장식용 01/02/03 스캐폴딩이 아니다). */
+      '.ent-rpg-route-grid{display:flex;flex-direction:column;margin-top:14px;border-top:1px solid var(--rpg-border-soft)}',
+      '.ent-rpg-route-card{min-height:0;padding:13px 0;border-bottom:1px solid var(--rpg-border-soft);border-radius:0;background:none;border-left:0;border-right:0;border-top:0}',
+      '.ent-rpg-route-card b{display:block;color:var(--rpg-ink);font-size:.84rem;font-weight:700;line-height:1.45}',
+      '.ent-rpg-route-card span{display:block;margin-top:5px;color:var(--rpg-ink-muted);font-size:.75rem;line-height:1.65}',
+
+      '.ent-rpg-crash{padding:16px;border-radius:12px;background:rgba(255,158,180,.10);border:1px solid rgba(255,158,180,.34);color:#ffd9e2;font-size:.8rem;line-height:1.7}',
+      '.ent-rpg-preview-note{margin-top:12px;padding:12px 13px;border-radius:10px;background:var(--rpg-raised);border:1px solid var(--rpg-border-soft);color:var(--rpg-ink-muted);font-size:.75rem;line-height:1.65}',
+      '.ent-rpg-empty,.ent-rpg-loading{margin-top:12px;padding:13px;border-radius:10px;background:var(--rpg-raised);border:1px dashed var(--rpg-border-soft);color:var(--rpg-ink-muted);font-size:.78rem;line-height:1.7}',
+
+      '.ent-rpg-modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(20,4,14,.72);backdrop-filter:blur(8px)}',
+      '.ent-rpg-modal.is-open{display:flex;animation:cdRpgModalIn .24s cubic-bezier(.22,1,.36,1)}',
+      '@keyframes cdRpgModalIn{from{opacity:0}to{opacity:1}}',
+      '.ent-rpg-modal__panel{position:relative;max-width:430px;width:min(430px,100%);padding:20px;border-radius:16px;background:radial-gradient(130% 80% at 50% 0%,rgba(174,45,104,.34),transparent 60%),linear-gradient(180deg,#3a0e28,#24081a);border:1px solid rgba(244,190,209,.38);box-shadow:0 24px 56px rgba(0,0,0,.52)}',
+      '.ent-rpg-modal__badge{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:rgba(234,208,137,.16);border:1px solid rgba(234,208,137,.32);color:#ead089;font-size:.71rem;font-weight:800;letter-spacing:0;text-transform:none}',
+      '.ent-rpg-modal__title{margin-top:12px;font-size:1.12rem;font-weight:800;color:#fff1f7;line-height:1.4}',
+      '.ent-rpg-modal__sub{margin-top:7px;font-size:.79rem;line-height:1.7;color:rgba(255,214,232,.86)}',
+      '.ent-rpg-modal__list{display:flex;flex-direction:column;gap:8px;margin-top:16px}',
+      '.ent-rpg-modal__item{padding:12px 13px;border-radius:10px;background:rgba(255,241,247,.055);border:1px solid rgba(244,190,209,.18);color:#fff1f7;font-size:.77rem;line-height:1.7}',
+      '.ent-rpg-modal__close{margin-top:16px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;width:100%;border:0;border-radius:12px;background:linear-gradient(135deg,#ffe08a 0%,#ff9ecb 100%);color:#32142a;font-size:.85rem;font-weight:800;cursor:pointer;transition:filter .18s cubic-bezier(.22,1,.36,1)}',
+      '.ent-rpg-modal__close:hover{filter:brightness(1.06)}',
+      '.ent-rpg-modal__close:focus-visible{outline:2px solid #ead089;outline-offset:3px}',
+
+      '.cd-rpg-spark{position:absolute;right:0;top:12px;padding:3px 9px;border-radius:999px;background:rgba(234,208,137,.18);color:#ead089;font-size:.66rem;font-weight:800;letter-spacing:0;text-transform:none;animation:cdRpgSpark 1s ease forwards;pointer-events:none}',
+      '@keyframes cdRpgSpark{0%{opacity:0;transform:translateY(6px)}20%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-10px)}}',
+
+      '@media (min-width: 760px){.ent-rpg-card--elements{grid-column:span 6}.ent-rpg-card--abilities{grid-column:span 6}.ent-rpg-card--secret{grid-column:span 7}.ent-rpg-card--closing{grid-column:span 5}}',
+      '@media (min-width: 1100px){.ent-rpg-shell{padding:24px}.ent-rpg-card{padding:18px}}',
+      '@media (max-width: 759px){.ent-rpg-shell{gap:16px;padding:16px}.ent-rpg-card{padding:15px}.ent-rpg-quest-footer{flex-direction:column;align-items:stretch}.ent-rpg-complete-btn{width:100%}.ent-rpg-modal{padding:12px}}',
+      /* 모션 민감 사용자에게는 완료 강조·EXP 스파크·버튼 리프트를 재생하지 않는다. */
+      '@media (prefers-reduced-motion: reduce){.ent-rpg-complete-btn,.ent-rpg-complete-btn:hover,.ent-rpg-complete-btn:active{transition:none;transform:none}.cd-rpg-spark{animation:none;opacity:1}.ent-rpg-quest-card.is-just-completed,.ent-rpg-modal.is-open{animation:none}.ent-rpg-exp-fill,.ent-rpg-mini-bar span,.ent-rpg-today-skill__meter span{transition:none}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -1281,21 +1313,18 @@
     return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-stable-bottom-v20260617" data-state="error">'
       + '<div class="ent-rpg-topline">'
       +   '<div>'
-      +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
-      +     '<div class="ent-quest-title">運命 클래스 시트</div>'
+      +     '<div class="ent-quest-title">오늘의 성장 기록</div>'
       +     '<div class="ent-quest-sub">잠시 흔들린 기운을 다시 정렬합니다</div>'
       +   '</div>'
-      +   '<div class="ent-rpg-kst">KST · ' + getKstDateString() + '</div>'
+      +   '<div class="ent-rpg-kst">' + getKstDateString() + '</div>'
       + '</div>'
       + '<div class="ent-rpg-crash">' + escapeRpgHtml(safeMessage) + '</div>'
       + '<div class="ent-rpg-grid">'
       +   '<section class="ent-rpg-card ent-rpg-card--hero">'
-      +     '<div class="ent-rpg-card__eyebrow">CORE CLASS</div>'
       +     '<div class="ent-rpg-card__title">운명 코어 재정렬</div>'
       +     '<div class="ent-rpg-card__sub">프로필 기운이 다시 닿는 순간, 클래스 시트의 아래 영역까지 차분히 열립니다.</div>'
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--secret">'
-      +     '<div class="ent-rpg-card__eyebrow">BOTTOM GUARD</div>'
       +     '<div class="ent-rpg-card__title">하단 수호 영역</div>'
       +     '<div class="ent-rpg-card__sub">기운의 흐름이 흔들려도 어두운 결계와 수호 문장이 먼저 머무릅니다.</div>'
       +   '</section>'
@@ -1321,8 +1350,8 @@
     var currentLevelExp = toRpgNumber(state.currentLevelExp, 0);
     var nextLevelExp = Math.max(1, toRpgNumber(state.nextLevelExp, 100));
     var todayEarnedExp = toRpgNumber(state.todayEarnedExp, 0);
-    var fallbackMaxExp = quests.reduce(function (sum, quest) { return sum + toRpgNumber(quest.expReward, 0); }, 0) || 85;
-    var todayMaxExp = Math.max(1, toRpgNumber(state.todayMaxExp, fallbackMaxExp));
+    var awardRule = getRpgQuestAwardRule();
+    var todayMaxExp = Math.max(1, toRpgNumber(state.todayMaxExp, awardRule.exp * awardRule.dailyLimit));
     var streakDays = toRpgNumber(state.streakDays, 0);
     var longestStreakDays = toRpgNumber(state.longestStreakDays, 0);
     var questCount = quests.length || 5;
@@ -1336,12 +1365,12 @@
     var classLabel = String(dayMaster.stemKo || '').trim();
     var classElementLabel = String(dayMaster.elementKo || '').trim();
     var coreClass = (classLabel || classElementLabel) ? (classLabel ? (classLabel + ' · ' + classElementLabel) : classElementLabel) : '운명 코어';
-    var heroSub = '다음 레벨까지 ' + expRemain + ' EXP · 오늘 ' + todayEarnedExp + ' / ' + todayMaxExp + ' EXP · 연속 ' + streakDays + '일';
+    var heroSub = '일간의 기운이 오늘의 클래스를 정합니다. 다음 레벨까지 ' + expRemain + ' EXP 남았습니다.';
     var todaySkill = buildTodayRpgSkill(quests, completedSet, profileDayEl, completedCount, questCount);
     var todaySkillHtml = '<div class="ent-rpg-today-skill' + (todaySkill.done ? ' is-complete' : '') + '" data-today-skill="' + escapeRpgHtml(todaySkill.questId) + '">'
       + '<div class="ent-rpg-today-skill__orb">' + escapeRpgHtml(todaySkill.icon) + '</div>'
       + '<div class="ent-rpg-today-skill__body">'
-      +   '<div class="ent-rpg-today-skill__kicker"><span>TODAY\'S SKILL</span><span>' + escapeRpgHtml(todaySkill.tierName) + '</span></div>'
+      +   '<div class="ent-rpg-today-skill__kicker"><span>오늘의 스킬</span><span>' + escapeRpgHtml(todaySkill.tierName) + '</span></div>'
       +   '<div class="ent-rpg-today-skill__name">' + escapeRpgHtml(todaySkill.title) + '</div>'
       +   '<div class="ent-rpg-today-skill__copy">' + escapeRpgHtml(todaySkill.copy) + '</div>'
       +   '<div class="ent-rpg-today-skill__meter"><span style="--rpg-skill-progress:' + todaySkill.progressPct + '%"></span></div>'
@@ -1404,24 +1433,20 @@
       var icon = getQuestIcon(String(quest.element || 'earth'), tier);
       var btnLabel = done ? '완료됨' : '완료';
       var isTodaySkill = String(todaySkill.questId || '') && String(todaySkill.questId || '') === String(quest.questId || '');
-      var questSkillLabel = isTodaySkill ? '오늘의 스킬' : '스킬 체크';
+      /* 한 항목에 배지·설명·스킬칩·이유·해석을 다 얹으면 세 항목이 똑같이 생긴 카드 더미가 된다.
+         제목 → 사주 이유 → (완료 시) 해석 → 보상/버튼 네 단으로 줄인다. */
       return '<article class="ent-rpg-quest-card' + (done ? ' is-complete' : '') + (justCompleted ? ' is-just-completed' : '') + (isTodaySkill ? ' is-today-skill' : '') + '" data-quest-id="' + escapeRpgHtml(quest.questId) + '">'
-        + '<div class="ent-rpg-quest-top">'
-        +   '<div class="ent-rpg-quest-icon">' + escapeRpgHtml(icon) + '</div>'
-        +   '<div class="ent-rpg-quest-body">'
-        +     '<div class="ent-rpg-quest-badge">' + escapeRpgHtml(String(quest.questType || tier).toUpperCase()) + '</div>'
-        +     '<div class="ent-rpg-quest-title">' + escapeRpgHtml(quest.text || '') + '</div>'
-        +     '<div class="ent-rpg-quest-desc">' + escapeRpgHtml(quest.description || '사주 구조에 맞춰 오늘의 운을 움직이는 행동입니다.') + '</div>'
-        +     '<div class="ent-rpg-quest-skill">' + escapeRpgHtml(questSkillLabel + ' · ' + ((RPG_ELEMENT_META[quest.element] && RPG_ELEMENT_META[quest.element].label) || quest.element || '운명')) + '</div>'
-        +     '<div class="ent-rpg-quest-reason"><strong>사주 이유:</strong> ' + escapeRpgHtml(quest.reason || '오늘의 기운을 맞추는 미션입니다.') + '</div>'
-        +     (done ? '<div class="ent-rpg-quest-after"><strong>완료 후 해석:</strong> ' + escapeRpgHtml(quest.afterCompleteMessage || '오늘의 행동은 운의 흐름을 바로잡는 작은 전환점이 됩니다.') + '</div>' : '')
+        + '<div class="ent-rpg-quest-icon" aria-hidden="true">' + escapeRpgHtml(icon) + '</div>'
+        + '<div class="ent-rpg-quest-body">'
+        +   '<h5 class="ent-rpg-quest-title">' + escapeRpgHtml(quest.text || '') + '</h5>'
+        +   '<div class="ent-rpg-quest-reason"><strong>' + escapeRpgHtml(((RPG_ELEMENT_META[quest.element] && RPG_ELEMENT_META[quest.element].label) || quest.element || '운명') + ' 기운') + '</strong> · ' + escapeRpgHtml(quest.reason || '오늘의 기운을 맞추는 미션입니다.') + '</div>'
+        +   (done ? '<div class="ent-rpg-quest-after"><strong>완료 후 해석</strong><br>' + escapeRpgHtml(quest.afterCompleteMessage || '오늘의 행동은 운의 흐름을 바로잡는 작은 전환점이 됩니다.') + '</div>' : '')
+        +   '<div class="ent-rpg-quest-footer">'
+        +     '<div class="ent-rpg-exp-tag">+' + escapeRpgHtml(toRpgNumber(quest.expReward, awardRule.exp)) + ' EXP</div>'
+        +     '<button type="button" class="ent-rpg-complete-btn' + (done ? ' is-done' : '') + '" data-rpg-complete="' + escapeRpgHtml(quest.questId) + '"' + ((done || isPreviewMode) ? ' disabled aria-pressed="' + (done ? 'true' : 'false') + '"' : ' aria-pressed="false"') + '>' + escapeRpgHtml(isPreviewMode ? '기록 대기' : btnLabel) + '</button>'
         +   '</div>'
         + '</div>'
-        + '<div class="ent-rpg-quest-footer">'
-        +   '<div class="ent-rpg-exp-tag">+' + escapeRpgHtml(quest.expReward) + ' EXP</div>'
-        +   '<button type="button" class="ent-rpg-complete-btn' + (done ? ' is-done' : '') + '" data-rpg-complete="' + escapeRpgHtml(quest.questId) + '"' + ((done || isPreviewMode) ? ' disabled aria-pressed="' + (done ? 'true' : 'false') + '"' : ' aria-pressed="false"') + '>' + escapeRpgHtml(isPreviewMode ? '기록 대기' : btnLabel) + '</button>'
-        + '</div>'
-        + (done ? '<span class="cd-rpg-spark">COMPLETE</span>' : '')
+        + (justCompleted ? '<span class="cd-rpg-spark">+' + escapeRpgHtml(toRpgNumber(quest.expReward, awardRule.exp)) + ' EXP</span>' : '')
         + '</article>';
     }).join('');
     var secretMessage = isUnlockedSecret
@@ -1437,11 +1462,10 @@
            로그인 계정으로 이어지는지 여부를 사실대로 밝힌다(예전 "SAVED ON SERVER"는 거짓이었다). */
         +   '<div class="ent-rpg-secret-note">' + escapeRpgHtml(getRpgStorageNotice()) + '</div>'
         + '</div>'
+      /* 카드 제목·설명이 바로 위에서 같은 말을 한다. 잠금 패널은 아이콘과 진행도만 보여준다. */
       : '<div class="ent-rpg-secret-panel">'
         +   '<div class="ent-rpg-secret-lock">'
         +     '<div class="ent-rpg-secret-lock-icon">🔒</div>'
-        +     '<div class="ent-rpg-secret-title">오늘의 비밀 운세</div>'
-        +     '<div class="ent-rpg-secret-copy">모든 미션을 완료하면 오늘의 성장 메시지가 해금됩니다.</div>'
         +     '<div class="ent-rpg-chip-wrap">'
         +       '<span class="ent-rpg-chip is-lock">진행도 ' + completedCount + ' / ' + questCount + '</span>'
         +       '<span class="ent-rpg-chip is-lock">오늘 ' + todayEarnedExp + ' / ' + todayMaxExp + ' EXP</span>'
@@ -1482,17 +1506,15 @@
     return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-stable-bottom-v20260617" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
       + '<div class="ent-rpg-topline">'
       +   '<div>'
-      +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
-      +     '<div class="ent-quest-title">運命 클래스 시트</div>'
-      +     '<div class="ent-quest-sub">오늘의 미션과 성장 기록이 이 기기에 머무릅니다 · KST 자정 기준 리셋</div>'
+      +     '<div class="ent-quest-title">오늘의 성장 기록</div>'
+      +     '<div class="ent-quest-sub">퀘스트를 완료하면 EXP가 쌓이고 레벨이 오릅니다 · KST 자정 기준 리셋</div>'
       +   '</div>'
-      +   '<div class="ent-rpg-kst">KST · ' + getKstDateString() + '</div>'
+      +   '<div class="ent-rpg-kst">' + getKstDateString() + '</div>'
       + '</div>'
       + (state.message ? '<div class="ent-rpg-status">' + escapeRpgHtml(state.message) + '</div>' : '')
       + (state.errorState ? '<div class="ent-rpg-status is-error">' + escapeRpgHtml(errText || '오늘의 기록과 연결되지 않았습니다.') + '</div>' : '')
       + '<div class="ent-rpg-grid">'
       +   '<section class="ent-rpg-card ent-rpg-card--hero">'
-      +     '<div class="ent-rpg-card__eyebrow">CORE CLASS</div>'
       +     '<div class="ent-rpg-card__title" id="entRpgCoreClass">' + escapeRpgHtml(coreClass) + '</div>'
       +     '<div class="ent-rpg-card__sub" id="entRpgHeroSub">' + escapeRpgHtml(heroSub) + '</div>'
       +     '<div class="ent-rpg-pill-row">'
@@ -1505,52 +1527,38 @@
       +       '<div class="ent-rpg-exp-line"><span>EXP BAR</span><span id="entRpgExpText">' + escapeRpgHtml(currentLevelExp + ' / ' + nextLevelExp + ' EXP') + '</span></div>'
       +       '<div class="ent-rpg-exp-track"><span class="ent-rpg-exp-fill" style="--rpg-exp-width:' + expPct + '%"></span></div>'
       +     '</div>'
+      /* 위 필 4개(LV·다음·오늘·연속)가 이미 같은 숫자를 보여준다. 최장 기록만 덧붙인다. */
       +     '<div class="ent-rpg-summary">'
-      +       '<span>오늘 획득 <strong>' + escapeRpgHtml(todayEarnedExp) + ' / ' + escapeRpgHtml(todayMaxExp) + ' EXP</strong></span>'
-      +       '<span>연속 완료 <strong>' + escapeRpgHtml(streakDays) + '일</strong></span>'
-      +       '<span>최장 기록 <strong>' + escapeRpgHtml(longestStreakDays) + '일</strong></span>'
+      +       '<span>최장 연속 <strong>' + escapeRpgHtml(longestStreakDays) + '일</strong></span>'
       +     '</div>'
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--elements">'
-      +     '<div class="ent-rpg-card__eyebrow">FIVE ELEMENTS</div>'
       +     '<div class="ent-rpg-card__title">오행 성장 포인트</div>'
       +     '<div class="ent-rpg-card__sub">오늘의 성장 포인트를 미션과 연결해, 부족한 기운은 채우고 과한 기운은 가라앉힙니다.</div>'
       +     '<div class="ent-rpg-element-list">' + elementHtml + '</div>'
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--abilities">'
-      +     '<div class="ent-rpg-card__eyebrow">INNATE ABILITY</div>'
       +     '<div class="ent-rpg-card__title">' + escapeRpgHtml(abilityTitle) + '</div>'
-      +     '<div class="ent-rpg-card__sub">용신 ' + escapeRpgHtml(yongDisplay) + ' · 희신 ' + escapeRpgHtml(heeDisplay) + ' · 기신 ' + escapeRpgHtml(giDisplay) + '</div>'
-      +     '<div class="ent-rpg-card__eyebrow" style="margin-top:14px">MASTER SKILL</div>'
-      +     '<div class="ent-rpg-card__title" style="font-size:.98rem">' + escapeRpgHtml((dayMaster.stemKo || '일간') + '의 본질') + '</div>'
-      +     '<div class="ent-rpg-card__sub">오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
-      +     '<div class="ent-rpg-card__eyebrow" style="margin-top:14px">OWNED SKILLS</div>'
+      +     '<div class="ent-rpg-card__sub">용신 ' + escapeRpgHtml(yongDisplay) + ' · 희신 ' + escapeRpgHtml(heeDisplay) + ' · 기신 ' + escapeRpgHtml(giDisplay) + '<br>오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
+      +     '<div class="ent-rpg-card__label">해금한 스킬</div>'
       +     '<div class="ent-rpg-chip-wrap">' + ownSkillHtml.join('') + '</div>'
-      +     '<div class="ent-rpg-card__eyebrow" style="margin-top:14px">LOCKED SKILLS</div>'
+      +     '<div class="ent-rpg-card__label">잠긴 스킬</div>'
       +     '<div class="ent-rpg-chip-wrap">' + lockedSkillHtml.join('') + '</div>'
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--quests">'
-      +     '<div class="ent-rpg-card__eyebrow">TODAY\'S QUESTS</div>'
       +     '<div class="ent-rpg-card__title">오늘의 일일 퀘스트</div>'
-      +     '<div class="ent-rpg-card__sub">퀘스트를 완료할수록 EXP가 누적되고, 레벨업과 내부 보상이 해금됩니다.</div>'
+      +     '<div class="ent-rpg-card__sub">' + escapeRpgHtml(completedCount + ' / ' + questCount + '개 완료 · 오늘 ' + todayEarnedExp + ' / ' + todayMaxExp + ' EXP · ' + ((RPG_ELEMENT_META[profileDayEl] && RPG_ELEMENT_META[profileDayEl].label) || profileDayEl) + ' 기운 기준') + '</div>'
       +     loadingBlock
       +     previewBlock
       +     todaySkillHtml
-      +     '<div class="ent-rpg-summary" style="margin-top:12px">'
-      +       '<span>완료 <strong>' + escapeRpgHtml(completedCount) + ' / ' + escapeRpgHtml(questCount) + '</strong></span>'
-      +       '<span>오늘 EXP <strong>' + escapeRpgHtml(todayEarnedExp) + ' / ' + escapeRpgHtml(todayMaxExp) + '</strong></span>'
-      +       '<span>사주 키워드 <strong>' + escapeRpgHtml((RPG_ELEMENT_META[profileDayEl] && RPG_ELEMENT_META[profileDayEl].label) || profileDayEl) + '</strong></span>'
-      +     '</div>'
       +     '<div class="ent-rpg-quest-grid" id="entRpgQuestList">' + questHtml + '</div>'
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--secret">'
-      +     '<div class="ent-rpg-card__eyebrow">TODAY\'S SECRET FORTUNE</div>'
       +     '<div class="ent-rpg-card__title">오늘의 비밀 운세</div>'
       +     '<div class="ent-rpg-card__sub">모든 미션을 완료하면 오늘의 성장 메시지가 해금되고 운명 기록에 새겨집니다.</div>'
       +     secretHtml
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--closing">'
-      +     '<div class="ent-rpg-card__eyebrow">GROWTH ROUTE</div>'
       +     '<div class="ent-rpg-card__title">다음 운명 루트</div>'
       +     '<div class="ent-rpg-card__sub">오늘의 EXP, 오행 균형, 비밀 운세가 하나의 성장 길로 이어집니다.</div>'
       +     '<div class="ent-rpg-route-grid">'

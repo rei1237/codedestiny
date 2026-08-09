@@ -9922,124 +9922,179 @@ function _ensureSkillTreeRpgStyle(){
   var style=document.createElement('style');
   style.id='cd-skilltree-rpg-style-v20260613';
   style.textContent=[
+    /* ── 연이 Dark(핑크 다크) 토큰 스코프 ──────────────────────────────────
+       DESIGN.md "연이 Dark" 정본(딥 플럼 #3a0e28→#24081a, 잉크 #fff1f7, 테두리 rose .38).
+       이 블록의 규칙은 전부 아래 토큰만 참조한다 — 표면·텍스트·강조를 한 세트로 묶어 두면
+       다음에 색을 바꿀 때 "배경만 갈아엎고 글자색은 그대로" 인 반쪽 오버라이드가 원천적으로
+       안 나온다. 실제로 이전 버전이 그 사고였다: 바탕만 밝은 파스텔로 칠하고 .sk-type-badge
+       (#ffe7a8)·.sk-hl(#cbffe8) 은 밝은 색 그대로 남아 대비 1.2:1 로 사실상 안 보였다. */
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{--sk-surface:#3a0e28;--sk-surface-2:#24081a;--sk-raised:rgba(255,241,247,.055);--sk-raised-2:rgba(255,241,247,.09);--sk-ink:#fff1f7;--sk-ink-muted:rgba(255,214,232,.86);--sk-ink-dim:rgba(255,214,232,.66);--sk-accent:rgba(255,196,222,.96);--sk-gold:#ead089;--sk-border:rgba(244,190,209,.38);--sk-border-soft:rgba(244,190,209,.18);--sk-glow:rgba(174,45,104,.32)}',
     '#resultPage #skillTreeCard[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{content-visibility:visible;contain-intrinsic-size:none;overflow:visible;scroll-margin-bottom:260px}',
-    '#skillTreeSection[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{overflow:visible}',
+    /* 시트의 바탕·테두리·라운드는 컨테이너 하나가 소유한다. 클래스 시트와 퀘스트 셸은
+       그 위에 얹히는 투명 블록이라, 둘 중 하나만 렌더돼도 프레임이 깨지지 않는다.
+       (예전에는 컨테이너·클래스 시트·퀘스트 셸이 각자 다른 바탕을 칠해 한 카드 안에
+       서로 다른 바닥 세 개가 겹쳐 보였다.) */
+    '#skillTreeSection[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{position:relative;isolation:isolate;overflow:hidden;border-radius:16px;background:radial-gradient(130% 70% at 50% 0%,var(--sk-glow),transparent 58%),linear-gradient(180deg,var(--sk-surface),var(--sk-surface-2) 62%,var(--sk-surface-2));border:1px solid var(--sk-border);box-shadow:inset 0 1px 0 rgba(255,241,247,.10);color:var(--sk-ink);--sk-surface:#3a0e28;--sk-surface-2:#24081a;--sk-glow:rgba(174,45,104,.32);--sk-border:rgba(244,190,209,.38)}',
     '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"],.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"] *{box-sizing:border-box;letter-spacing:0}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{position:relative;isolation:isolate;overflow:visible;padding:18px;border-radius:8px;background:radial-gradient(circle at 20% 16%,rgba(255,255,255,.38),transparent 16%),radial-gradient(circle at 82% 18%,rgba(255,216,112,.24),transparent 18%),linear-gradient(135deg,#7759c7 0%,#cc7dc3 30%,#ffd18d 62%,#7dd6df 100%);border:1px solid rgba(255,247,214,.72);box-shadow:0 22px 62px rgba(113,83,190,.34),inset 0 1px 0 rgba(255,255,255,.48);color:#2d2148}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]::before{background:radial-gradient(circle at 12% 26%,rgba(255,255,255,.72) 0 1px,transparent 2px),radial-gradient(circle at 76% 28%,rgba(255,246,189,.82) 0 1px,transparent 2px),radial-gradient(circle at 44% 68%,rgba(255,255,255,.64) 0 1px,transparent 2px),linear-gradient(120deg,rgba(255,255,255,.18),transparent 28%,rgba(125,214,223,.12) 52%,transparent 74%,rgba(255,216,112,.16));opacity:1;border-radius:inherit}',
-    '.sk-rpg-hero{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:16px;align-items:center;margin-bottom:14px;padding:16px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}',
-    '.sk-game-badge{display:inline-flex;align-items:center;min-height:24px;margin:0 0 8px 0;border-radius:6px;padding:4px 9px;background:rgba(255,255,255,.52);border:1px solid rgba(255,216,112,.72);color:#5b3a91;font-size:.66rem;font-weight:900;box-shadow:0 8px 18px rgba(91,58,145,.12)}',
-    '.sk-main-title{font-size:1.34rem;line-height:1.16;color:#4f2b91;text-shadow:0 2px 0 rgba(255,255,255,.72),0 0 18px rgba(255,255,255,.42)}',
-    '.sk-sub-title{margin-top:5px;color:rgba(68,45,111,.74);font-size:.72rem;text-transform:none;font-weight:800}',
-    '.sk-rpg-command-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}',
-    '.sk-rpg-chip{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.72);color:#4f2b91;font-size:.7rem;font-weight:850;box-shadow:0 8px 16px rgba(91,58,145,.10)}',
-    '.sk-hero-wrap{width:116px;height:136px;justify-self:end;filter:drop-shadow(0 18px 28px rgba(0,0,0,.28))}',
-    '.sk-hero-glow{inset:auto;left:8px;bottom:6px;width:96px;height:22px;border-radius:50%;opacity:.55;filter:blur(14px)}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{position:relative;isolation:auto;overflow:visible;padding:20px 20px 18px;border-radius:0;background:none;border:0;box-shadow:none;color:var(--sk-ink)}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]::before{display:none}',
+    /* 히어로: 캐릭터를 왼쪽 고정폭에 두고 정보는 오른쪽 한 흐름으로 읽힌다. */
+    '.sk-rpg-hero{position:relative;z-index:1;display:grid;grid-template-columns:116px minmax(0,1fr);gap:18px;align-items:center;margin-bottom:18px;padding:0;border:0;background:none;box-shadow:none}',
+    '.sk-rpg-copy{min-width:0}',
+    '.sk-game-badge{display:inline-flex;align-items:center;min-height:22px;margin:0 0 9px 0;border-radius:999px;padding:3px 10px;background:rgba(234,208,137,.14);border:1px solid rgba(234,208,137,.34);color:var(--sk-gold);font-size:.64rem;font-weight:800;letter-spacing:.1em;box-shadow:none}',
+    '.sk-main-title{font-size:1.42rem;font-weight:800;line-height:1.2;color:var(--sk-ink);text-shadow:none;text-wrap:balance}',
+    '.sk-sub-title{margin-top:6px;color:var(--sk-ink-muted);font-size:.76rem;line-height:1.5;text-transform:none;font-weight:500}',
+    '.sk-rpg-command-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}',
+    '.sk-rpg-chip{display:inline-flex;align-items:center;min-height:28px;padding:5px 10px;border-radius:999px;background:var(--sk-raised);border:1px solid var(--sk-border-soft);color:var(--sk-ink-muted);font-size:.71rem;font-weight:600;box-shadow:none}',
+    '.sk-rpg-chip:first-child{background:rgba(234,208,137,.14);border-color:rgba(234,208,137,.34);color:var(--sk-gold);font-weight:800}',
+    '.sk-hero-wrap{width:116px;height:136px;justify-self:start;filter:drop-shadow(0 14px 26px rgba(0,0,0,.42))}',
+    '.sk-hero-glow{inset:auto;left:10px;bottom:6px;width:96px;height:20px;border-radius:50%;opacity:.42;filter:blur(13px)}',
     '.sk-hero-svg{width:116px;height:136px;animation:skHeroBob 3.2s ease-in-out infinite}',
-    '.sk-rpg-sheet{position:relative;z-index:1;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:14px;padding:14px;border-radius:8px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10)}',
-    '.sk-class-label,.sk-stat-title,.sk-tree-label,.sk-innate-label,.sk-levelup-title{color:#6f3bb3;font-size:.68rem;font-weight:900;text-transform:none;border-color:rgba(111,59,179,.14)}',
-    '.sk-class-name{font-size:1rem;color:#33204f;line-height:1.45}',
-    '.sk-lv-badge{display:inline-flex;align-items:baseline;gap:5px;color:#d8469a;font-size:.8rem}',
-    '.sk-lv-badge span{font-size:1.35rem}',
-    '.sk-exp-wrap,.sk-stat-bar-wrap{background:rgba(255,255,255,.54);border:1px solid rgba(111,59,179,.16)}',
-    '.sk-exp-wrap{height:10px}',
-    '.sk-exp-bar{background:linear-gradient(90deg,#f7d56b,#49d6a4,#65c7ff);box-shadow:0 0 18px rgba(247,213,107,.32)}',
-    '.sk-exp-label,.sk-day-badge{color:rgba(50,32,79,.76);font-weight:800}',
-    '.sk-day-badge{border-radius:6px;background:rgba(255,255,255,.58);border-color:rgba(111,59,179,.16)}',
-    '.sk-stat-row{gap:8px;margin-bottom:9px;min-height:24px}',
-    '.sk-stat-label{width:72px;color:rgba(50,32,79,.84);font-weight:800}',
-    '.sk-stat-bar-fill{width:var(--sk-stat,0%);background:linear-gradient(90deg,var(--sk-el-color),rgba(255,255,255,.82));box-shadow:0 0 12px var(--sk-el-color)}',
-    '.sk-stat-val{width:36px;color:#6f3bb3;font-variant-numeric:tabular-nums}',
-    '.sk-orbit-map{position:relative;z-index:1;min-height:242px;margin:0 0 14px;border-radius:8px;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.82) 0 12%,rgba(255,255,255,.36) 13% 14%,transparent 15%),radial-gradient(circle at 50% 50%,transparent 0 35%,rgba(255,255,255,.42) 36% 37%,transparent 38%),linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.64);box-shadow:inset 0 1px 0 rgba(255,255,255,.52),0 16px 34px rgba(91,58,145,.16);overflow:hidden}',
-    '.sk-orbit-map::before{content:"";position:absolute;inset:28px;border-radius:50%;border:1px dashed rgba(111,59,179,.28)}',
-    '.sk-orbit-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,#fff8bf,#f7c948 54%,#e879b9);border:3px solid rgba(255,255,255,.82);box-shadow:0 0 34px rgba(255,216,112,.66);color:#5b2e91;font-size:.72rem;font-weight:950;line-height:1.15}',
-    '.sk-orbit-node{position:absolute;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;text-align:center;background:rgba(255,255,255,.76);border:2px solid var(--sk-orbit-color);box-shadow:0 10px 22px rgba(91,58,145,.16);color:#34214f;font-weight:950;font-size:.74rem;line-height:1.12}',
-    '.sk-orbit-node b{display:block;font-size:1.15rem;line-height:1}',
-    '.sk-orbit-node span{display:block;margin-top:2px;font-size:.62rem;color:rgba(50,32,79,.68)}',
-    '.sk-orbit-node--wood{left:18%;top:38%}.sk-orbit-node--fire{left:42%;bottom:9%}.sk-orbit-node--earth{right:18%;bottom:25%}.sk-orbit-node--metal{left:47%;top:9%}.sk-orbit-node--water{right:17%;top:35%}',
-    '.sk-tree-wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:12px;margin-bottom:14px}',
-    '.sk-tree-section{position:relative;overflow:hidden;border-radius:8px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.34));border:1px solid rgba(255,255,255,.70);box-shadow:inset 0 1px 0 rgba(255,255,255,.52),0 12px 24px rgba(91,58,145,.12)}',
-    '.sk-tree-section::before{content:"";position:absolute;left:14px;right:14px;top:44px;height:1px;background:linear-gradient(90deg,rgba(247,213,107,.42),transparent);pointer-events:none}',
-    '.sk-node{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:flex-start;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(111,59,179,.12);background:rgba(255,255,255,.54);min-height:76px}',
+    '.sk-rpg-sheet{position:relative;z-index:1;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-bottom:18px;padding:16px;border-radius:14px;background:var(--sk-raised);border:1px solid var(--sk-border-soft)}',
+    '.sk-class-label,.sk-stat-title,.sk-tree-label,.sk-innate-label,.sk-levelup-title{color:var(--sk-ink-dim);font-size:.7rem;font-weight:700;letter-spacing:.02em;text-transform:none;border-color:var(--sk-border-soft)}',
+    '.sk-class-name{font-size:1.02rem;color:var(--sk-ink);line-height:1.45}',
+    '.sk-lv-badge{display:inline-flex;align-items:baseline;gap:5px;color:var(--sk-accent);font-size:.78rem;font-weight:700}',
+    '.sk-lv-badge span{font-size:1.35rem;font-weight:800}',
+    '.sk-exp-wrap,.sk-stat-bar-wrap{background:rgba(255,241,247,.10);border:1px solid var(--sk-border-soft)}',
+    '.sk-exp-wrap{height:9px}',
+    '.sk-exp-bar{background:linear-gradient(90deg,var(--sk-accent),var(--sk-gold));box-shadow:none}',
+    '.sk-exp-label{color:var(--sk-ink-dim);font-weight:500;font-size:.7rem}',
+    '.sk-day-badge{margin-top:12px;border-radius:10px;background:var(--sk-raised);border:1px solid var(--sk-border-soft);color:var(--sk-ink-muted);font-weight:500}',
+    '.sk-day-badge b{color:var(--sk-ink);font-weight:800}',
+    '.sk-stat-row{gap:10px;margin-bottom:10px;min-height:24px}',
+    '.sk-stat-label{width:76px;color:var(--sk-ink-muted);font-weight:600;font-size:.73rem}',
+    '.sk-stat-bar-fill{width:var(--sk-stat,0%);background:var(--sk-el-color);box-shadow:none}',
+    '.sk-stat-val{width:38px;color:var(--sk-ink);font-weight:700;font-variant-numeric:tabular-nums}',
+    /* 오행 궤도: 밝은 원반 대신 다크 표면 위 은은한 궤도선. */
+    /* 궤도는 원형 다이어그램이다. 폭을 안 묶으면 카드 폭만큼 늘어나 타원이 되고, 노드 위치가
+       %라서 데스크탑에서 수(水)와 토(土)가 오른쪽에서 겹친다. 정사각에 가깝게 고정한다. */
+    '.sk-orbit-map{position:relative;z-index:1;width:100%;max-width:340px;aspect-ratio:1/1;min-height:248px;margin:0 auto 18px;border-radius:14px;background:radial-gradient(circle at 50% 50%,rgba(255,196,222,.10) 0 14%,transparent 15%),var(--sk-raised);border:1px solid var(--sk-border-soft);box-shadow:none;overflow:hidden}',
+    '.sk-orbit-map::before{content:"";position:absolute;inset:30px;border-radius:50%;border:1px dashed rgba(244,190,209,.26)}',
+    '.sk-orbit-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 50% 34%,rgba(234,208,137,.34),rgba(58,14,40,.96) 72%);border:1px solid rgba(234,208,137,.52);box-shadow:0 0 28px rgba(234,208,137,.16);color:var(--sk-gold);font-size:.72rem;font-weight:800;line-height:1.2}',
+    '.sk-orbit-node{position:absolute;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;text-align:center;transform:translate(-50%,-50%);background:rgba(36,8,26,.92);border:1.5px solid var(--sk-orbit-color);box-shadow:0 8px 18px rgba(0,0,0,.34);color:var(--sk-ink);font-weight:700;font-size:.72rem;line-height:1.14}',
+    '.sk-orbit-node b{display:block;font-size:1.1rem;line-height:1}',
+    '.sk-orbit-node span{display:block;margin-top:2px;font-size:.62rem;color:var(--sk-ink-dim)}',
+    /* 오행 상생 순서(목→화→토→금→수)로 정오각형에 배치한다. 중심에서 반지름 34.7%,
+       인접 노드 간격 76px. 예전 좌표는 넓은 상자에 맞춘 임의값이라 정사각형에서 수·토가
+       오른쪽에 몰려 12px 간격까지 붙었다. */
+    '.sk-orbit-node--wood{left:50%;top:15.3%}',
+    '.sk-orbit-node--fire{left:83%;top:39.3%}',
+    '.sk-orbit-node--earth{left:70.4%;top:78.1%}',
+    '.sk-orbit-node--metal{left:29.6%;top:78.1%}',
+    '.sk-orbit-node--water{left:17%;top:39.3%}',
+    '.sk-tree-wrap{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:18px}',
+    '.sk-tree-section{position:relative;overflow:hidden;border-radius:14px;padding:14px;background:var(--sk-raised);border:1px solid var(--sk-border-soft);box-shadow:none}',
+    '.sk-tree-section::before{display:none}',
+    '.sk-tree-label{margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--sk-border-soft)}',
+    '.sk-node{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr);gap:11px;align-items:flex-start;margin-bottom:8px;padding:11px;border-radius:12px;border:1px solid var(--sk-border-soft);background:var(--sk-raised);min-height:76px}',
     '.sk-node:last-child{margin-bottom:0}',
-    '.sk-node-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.12);font-size:1.25rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}',
-    '.sk-name{font-size:.86rem;color:#33204f;font-weight:900;line-height:1.35}',
-    '.sk-desc{margin-top:4px;color:rgba(50,32,79,.68);font-size:.74rem;line-height:1.55}',
-    '.sk-node--master{background:linear-gradient(135deg,rgba(255,216,112,.18),rgba(72,187,120,.08));border-color:rgba(255,216,112,.34);box-shadow:0 0 22px rgba(255,216,112,.12),inset 0 1px 0 rgba(255,255,255,.08)}',
-    '.sk-node--owned{border-color:rgba(73,214,164,.24);background:linear-gradient(135deg,rgba(73,214,164,.12),rgba(255,255,255,.03))}',
-    '.sk-node--locked{border-style:dashed;border-color:rgba(214,199,168,.18);background:rgba(255,255,255,.035);opacity:.82}',
-    '.sk-type-badge,.sk-innate-type{display:inline-flex;align-items:center;min-height:18px;margin-left:5px;padding:2px 6px;border-radius:5px;background:rgba(255,216,112,.18);color:#ffe7a8;font-size:.56rem;font-weight:900}',
-    '.sk-empty{padding:10px;border-radius:8px;border:1px dashed rgba(111,59,179,.22);color:rgba(50,32,79,.58);font-size:.76rem;line-height:1.5}',
-    '.sk-innate-section,.sk-levelup{position:relative;z-index:1;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.66),rgba(255,233,170,.38),rgba(125,214,223,.28));border:1px solid rgba(255,255,255,.70);box-shadow:inset 0 1px 0 rgba(255,255,255,.58),0 14px 30px rgba(91,58,145,.12)}',
-    '.sk-innate-item{border-radius:8px;background:rgba(255,255,255,.42);border-color:rgba(111,59,179,.14)}',
-    '.sk-innate-name{color:#0f766e;text-shadow:0 1px 0 rgba(255,255,255,.72)}',
-    '.sk-innate-sub,.sk-innate-desc{color:rgba(50,32,79,.74)}',
-    '.sk-levelup{padding:15px;background:linear-gradient(135deg,rgba(255,255,255,.70),rgba(255,216,112,.34),rgba(232,121,185,.20));border-color:rgba(255,216,112,.55);margin-bottom:10px}',
-    '.sk-levelup-text{color:rgba(50,32,79,.86);font-size:.85rem;line-height:1.75}',
-    '.sk-hl{background:rgba(73,214,164,.18);color:#cbffe8;border-radius:5px}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]+.ent-rpg-shell{margin-top:14px}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]+.ent-rpg-shell .ent-rpg-card{border-radius:8px;border-color:rgba(255,216,112,.26);background:linear-gradient(135deg,rgba(54,36,95,.96),rgba(25,78,96,.94),rgba(103,55,119,.92))}',
-    '@media(max-width:768px){.sk-rpg-hero{grid-template-columns:1fr;align-items:start}.sk-hero-wrap{justify-self:center}.sk-rpg-sheet,.sk-tree-wrap{grid-template-columns:1fr}.sk-stat-label{width:68px}.sk-main-title{font-size:1.12rem}.sk-orbit-map{min-height:222px}.sk-orbit-node{width:54px;height:54px;font-size:.66rem}.sk-orbit-node b{font-size:1rem}}'
+    '.sk-node-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:var(--sk-raised-2);border:1px solid var(--sk-border-soft);font-size:1.2rem;box-shadow:none}',
+    '.sk-name{font-size:.88rem;color:var(--sk-ink);font-weight:700;line-height:1.4}',
+    '.sk-desc{margin-top:5px;color:var(--sk-ink-muted);font-size:.75rem;line-height:1.6}',
+    '.sk-node--master{background:rgba(234,208,137,.10);border-color:rgba(234,208,137,.34);box-shadow:none}',
+    '.sk-node--owned{border-color:rgba(255,196,222,.28);background:rgba(255,196,222,.07)}',
+    '.sk-node--locked{border-style:dashed;border-color:var(--sk-border-soft);background:transparent;opacity:1}',
+    '.sk-node--locked .sk-name,.sk-node--locked .sk-desc{color:var(--sk-ink-dim)}',
+    /* 🔴 이전 버전이 놓쳐서 안 보였던 두 곳. 배경을 바꿀 때 이 둘도 반드시 같이 간다. */
+    '.sk-type-badge,.sk-innate-type{display:inline-flex;align-items:center;min-height:18px;margin-left:6px;padding:2px 7px;border-radius:999px;background:rgba(234,208,137,.16);border:1px solid rgba(234,208,137,.30);color:var(--sk-gold);font-size:.58rem;font-weight:800;letter-spacing:.06em}',
+    '.sk-hl{background:rgba(255,196,222,.16);color:var(--sk-accent);border-radius:5px;padding:1px 6px;font-weight:700}',
+    '.sk-empty{padding:12px;border-radius:12px;border:1px dashed var(--sk-border-soft);color:var(--sk-ink-dim);font-size:.76rem;line-height:1.5;background:none}',
+    '.sk-innate-section,.sk-levelup{position:relative;z-index:1;border-radius:14px;background:var(--sk-raised);border:1px solid var(--sk-border-soft);box-shadow:none}',
+    '.sk-innate-section::before{display:none}',
+    '.sk-innate-item{border-radius:12px;background:var(--sk-raised);border-color:var(--sk-border-soft);box-shadow:none}',
+    '.sk-innate-icon{color:var(--sk-ink)}',
+    '.sk-innate-name{color:var(--sk-accent);text-shadow:none;font-weight:700}',
+    '.sk-innate-sub,.sk-innate-desc{color:var(--sk-ink-muted)}',
+    '.sk-levelup{padding:16px;background:rgba(234,208,137,.09);border-color:rgba(234,208,137,.28);margin-bottom:0}',
+    '.sk-levelup-text{color:var(--sk-ink-muted);font-size:.85rem;line-height:1.8;max-width:72ch;text-wrap:pretty}',
+    '.sk-levelup-text b{color:var(--sk-ink);font-weight:700}',
+    /* 아래 퀘스트 셸과 한 장으로 이어 붙인다 — 사이는 여백이 아니라 가는 구분선 하나. */
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]+.ent-rpg-shell{margin-top:0;border-top:1px solid var(--sk-border-soft,rgba(244,190,209,.18))}',
+    '@media(max-width:768px){.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{padding:16px}.sk-rpg-hero{grid-template-columns:96px minmax(0,1fr);gap:14px}.sk-hero-wrap,.sk-hero-svg{width:96px;height:112px}.sk-hero-glow{width:80px}.sk-rpg-sheet{grid-template-columns:1fr;gap:16px}.sk-stat-label{width:70px}.sk-main-title{font-size:1.16rem}.sk-orbit-map{min-height:224px}.sk-orbit-node{width:54px;height:54px;font-size:.66rem}.sk-orbit-node b{font-size:1rem}}',
+    '@media(max-width:420px){.sk-rpg-hero{grid-template-columns:1fr;justify-items:center;text-align:center}.sk-rpg-command-row{justify-content:center}}',
+    '@media (prefers-reduced-motion: reduce){.sk-hero-svg{animation:none}}'
   ].join('');
   document.head.appendChild(style);
 }
 
+/* 오행별 치비 아바타.
+   이전 버전은 96×112 안에 망토·검·방패·흉갑·부츠까지 욱여넣은 갑옷 기사였다. 크기 대비
+   디테일이 과해 형태가 뭉개졌고, 4×5px 타원 눈에는 표정이 없었다. 2.2등신(머리가 전체의
+   약 45%)·큰 눈·볼터치의 단순한 실루엣으로 다시 그린다.
+   viewBox 는 96×112 그대로다 — .sk-hero-wrap/.sk-hero-svg 의 크기 지정과 skHeroBob
+   애니메이션이 이 비율에 맞춰져 있다. 그라디언트 id 에 오행을 섞는 것도 유지한다(한 페이지에
+   여러 아바타가 있어도 defs 가 서로를 덮어쓰지 않게 하는 장치).
+   팔레트는 딥 플럼 바탕 위에서 다시 고른 값이다. 예전 금(#8fa5b5)·토(#a07445)는 플럼 위에서
+   탁하게 가라앉아 실루엣이 안 보였다. */
 function _buildHeroSVG(elColor){
+  var CHARM={
+    wood:'<path d="M0 8 V-1" stroke="{deep}" stroke-width="1.8" stroke-linecap="round"/><path d="M0 1 C-4 1 -6 -2 -5.5 -5 C-2 -5.4 0 -3 0 1Z" fill="{main}"/><path d="M0 4 C4 4 6 1 5.5 -2 C2 -2.4 0 0 0 4Z" fill="{glow}"/>',
+    /* 불꽃은 좌우대칭으로 그리면 물방울과 구분이 안 된다. 안쪽에 말린 심지를 하나 넣는다. */
+    fire:'<path d="M.6 -9 C4 -4.6 6.2 -2 6.2 1.4 C6.2 5.2 3.4 8.4 0 8.4 C-3.4 8.4 -6.4 5.6 -6 1.6 C-5.7 -1.2 -4.2 -3 -3 -5.2 C-2.3 -2.4 -1 -1.4 .2 -2 C1 -4.4 1.2 -6.6 .6 -9Z" fill="url(#{id}Charm)"/><path d="M0 -1 C2 1 2.8 3 2.4 4.8 C2 6.6 .4 7 -.8 6.2 C-2 5.4 -2.2 3.4 -1.4 1.8 C-1 1 -.6 .2 0 -1Z" fill="{glow}" fill-opacity=".9"/>',
+    earth:'<path d="M0 -8.5 L8.5 7 H-8.5 Z" fill="url(#{id}Charm)"/><path d="M0 -8.5 L-8.5 7 H-1.4 Z" fill="{main}" fill-opacity=".55"/>',
+    metal:'<path d="M0 -7 C4 -7 6.5 -3.5 6.5 1 L7.5 4.5 H-7.5 L-6.5 1 C-6.5 -3.5 -4 -7 0 -7Z" fill="url(#{id}Charm)"/><circle cx="0" cy="6.8" r="2" fill="{deep}"/>',
+    water:'<path d="M0 -9 C5 -3 7 .5 7 3.5 C7 7.1 3.9 10 0 10 C-3.9 10 -7 7.1 -7 3.5 C-7 .5 -5 -3 0 -9Z" fill="url(#{id}Charm)"/>',
+    'void':'<path d="M0 -8 L2.2 -2.2 L8 0 L2.2 2.2 L0 8 L-2.2 2.2 L-8 0 L-2.2 -2.2Z" fill="url(#{id}Charm)"/>'
+  };
+  var key=CHARM[elColor]?elColor:'void';
   var palette={
-    wood:{c:'#2fb36d',c2:'#9be67d',c3:'#145c3b',gem:'#d9ff9f',cloak:'#1f6b4c'},
-    fire:{c:'#e24a2e',c2:'#ffb15f',c3:'#752312',gem:'#ffe08a',cloak:'#7d2d1d'},
-    earth:{c:'#a07445',c2:'#e0bd77',c3:'#4d3723',gem:'#fff0ae',cloak:'#5f4931'},
-    metal:{c:'#8fa5b5',c2:'#e5eef7',c3:'#34444e',gem:'#dff7ff',cloak:'#42515b'},
-    water:{c:'#2e83d9',c2:'#7de3ff',c3:'#123c6d',gem:'#c8fbff',cloak:'#183d73'}
-  }[elColor]||{c:'#8b5cf6',c2:'#f0abfc',c3:'#3b2269',gem:'#ffe7a8',cloak:'#38245f'};
-  var c=palette.c,c2=palette.c2,c3=palette.c3,gem=palette.gem,cloak=palette.cloak;
+    wood:{main:'#7fd88f',deep:'#2f8f56',glow:'#ddffc0'},
+    fire:{main:'#ff9e6b',deep:'#c4462c',glow:'#ffd9a8'},
+    earth:{main:'#e8c48a',deep:'#a3703e',glow:'#fff0cd'},
+    metal:{main:'#bcd6ea',deep:'#5c7c96',glow:'#f4fbff'},
+    water:{main:'#7fc8ff',deep:'#2b60a8',glow:'#d3f1ff'},
+    'void':{main:'#f0abfc',deep:'#8b5cf6',glow:'#ffe7a8'}
+  }[key];
+  var main=palette.main,deep=palette.deep,glow=palette.glow;
+  var skin='#ffe3d2',ink='#2a1520';
   var id='skHero'+String(elColor||'void').replace(/[^a-z0-9]/gi,'');
+  var charm=CHARM[key]
+    .replace(/\{id\}/g,id)
+    .replace(/\{main\}/g,main)
+    .replace(/\{deep\}/g,deep)
+    .replace(/\{glow\}/g,glow);
   return '<div class="sk-hero-wrap">'
-    +'<div class="sk-hero-glow" style="background:'+c+'"></div>'
+    +'<div class="sk-hero-glow" style="background:'+main+'"></div>'
     +'<svg class="sk-hero-svg" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' + _sajuEngineText("se_8233_attr_aria_label") + '">'
     +'<defs>'
-    +'<linearGradient id="'+id+'Armor" x1="22" y1="22" x2="78" y2="82"><stop offset="0" stop-color="'+c2+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset="1" stop-color="'+c3+'"/></linearGradient>'
-    +'<linearGradient id="'+id+'Steel" x1="64" y1="6" x2="82" y2="70"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#c8d6df"/><stop offset="1" stop-color="#596b76"/></linearGradient>'
-    +'<radialGradient id="'+id+'Gem" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="'+gem+'"/><stop offset="1" stop-color="'+c+'"/></radialGradient>'
-    +'<filter id="'+id+'Glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 1 0 0 0 0 .78 0 0 0 0 .32 0 0 0 .72 0"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+    +'<linearGradient id="'+id+'Robe" x1="24" y1="62" x2="72" y2="104"><stop offset="0" stop-color="'+main+'"/><stop offset="1" stop-color="'+deep+'"/></linearGradient>'
+    +'<linearGradient id="'+id+'Hood" x1="21" y1="14" x2="75" y2="42"><stop offset="0" stop-color="'+main+'"/><stop offset="1" stop-color="'+deep+'"/></linearGradient>'
+    +'<radialGradient id="'+id+'Charm" cx="42%" cy="30%" r="72%"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="'+glow+'"/><stop offset="1" stop-color="'+main+'"/></radialGradient>'
+    +'<filter id="'+id+'Glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
     +'</defs>'
-    +'<ellipse cx="48" cy="103" rx="28" ry="6" fill="rgba(0,0,0,.28)"/>'
-    +'<path d="M15 50 C12 30 28 14 48 14 C68 14 84 30 81 50 C79 67 70 83 48 93 C26 83 17 67 15 50Z" fill="'+cloak+'" opacity=".32"/>'
-    +'<path d="M70 15 L78 12 L61 72 L54 69Z" fill="url(#'+id+'Steel)" stroke="#fff8d6" stroke-opacity=".28" stroke-width="1"/>'
-    +'<rect x="55" y="68" width="20" height="5" rx="2.5" fill="#d8a84f"/>'
-    +'<rect x="61" y="72" width="5" height="14" rx="2.5" fill="#68472d"/>'
-    +'<path d="M18 58 C19 47 25 40 35 38 C38 48 37 62 27 74 C22 70 19 64 18 58Z" fill="'+c3+'" stroke="'+c2+'" stroke-opacity=".55" stroke-width="2"/>'
-    +'<path d="M27 45 L33 58 L27 70 L21 58Z" fill="url(#'+id+'Gem)" opacity=".92"/>'
-    +'<path d="M30 49 C26 50 23 56 22 62" fill="none" stroke="#fff8d6" stroke-opacity=".35" stroke-width="1.3" stroke-linecap="round"/>'
-    +'<rect x="33" y="74" width="10" height="20" rx="4" fill="'+c3+'"/>'
-    +'<rect x="52" y="74" width="10" height="20" rx="4" fill="'+c3+'"/>'
-    +'<path d="M27 92 H45 V99 H28 C25 99 24 96 27 92Z" fill="#3a2a1d"/>'
-    +'<path d="M51 92 H69 C72 96 71 99 68 99 H51Z" fill="#3a2a1d"/>'
-    +'<path d="M28 44 C31 35 39 29 48 29 C57 29 65 35 68 44 L64 74 C58 78 38 78 32 74Z" fill="url(#'+id+'Armor)" stroke="#fff8d6" stroke-opacity=".18" stroke-width="1"/>'
-    +'<path d="M34 45 H62 L58 58 L48 67 L38 58Z" fill="rgba(255,255,255,.12)"/>'
-    +'<path d="M48 42 L55 58 H41Z" fill="url(#'+id+'Gem)" filter="url(#'+id+'Glow)"/>'
-    +'<path d="M29 64 H67 V70 H29Z" fill="#3b2a1c"/>'
-    +'<rect x="44" y="63" width="8" height="8" rx="2" fill="#f7d56b"/>'
-    +'<path d="M31 48 C24 49 21 54 21 60" fill="none" stroke="#f4cfa4" stroke-width="6" stroke-linecap="round"/>'
-    +'<path d="M65 48 C72 49 75 54 75 60" fill="none" stroke="#f4cfa4" stroke-width="6" stroke-linecap="round"/>'
-    +'<rect x="43" y="35" width="10" height="8" rx="3" fill="#f4cfa4"/>'
-    +'<path d="M32 28 C34 18 40 12 48 12 C56 12 62 18 64 28 C66 39 59 48 48 48 C37 48 30 39 32 28Z" fill="#f4cfa4"/>'
-    +'<path d="M31 29 L21 23 L31 37Z" fill="#f4cfa4"/>'
-    +'<path d="M65 29 L75 23 L65 37Z" fill="#f4cfa4"/>'
-    +'<path d="M31 28 C33 14 42 7 53 9 C62 11 67 18 67 29 C62 23 56 22 50 25 C43 19 36 22 31 28Z" fill="'+cloak+'"/>'
-    +'<path d="M38 18 C43 4 56 3 68 11 C59 11 55 16 53 25Z" fill="'+c+'" opacity=".9"/>'
-    +'<path d="M49 10 C43 5 34 8 29 15 C36 12 42 14 47 21Z" fill="'+c2+'" opacity=".72"/>'
-    +'<ellipse cx="41" cy="31" rx="4" ry="5" fill="#172033"/>'
-    +'<ellipse cx="55" cy="31" rx="4" ry="5" fill="#172033"/>'
-    +'<circle cx="40" cy="29" r="1.4" fill="#fff"/>'
-    +'<circle cx="54" cy="29" r="1.4" fill="#fff"/>'
-    +'<path d="M41 40 C45 43 51 43 55 40" fill="none" stroke="rgba(56,32,18,.45)" stroke-width="1.4" stroke-linecap="round"/>'
-    +'<path d="M28 15 L21 8 L17 14 L25 20Z" fill="'+c+'" opacity=".9"/>'
-    +'<circle cx="17" cy="14" r="3" fill="url(#'+id+'Gem)" filter="url(#'+id+'Glow)"/>'
-    +'<path d="M17 9 V3 M13 13 H7 M21 13 H27" stroke="'+gem+'" stroke-opacity=".8" stroke-width="1.2" stroke-linecap="round"/>'
-    +'<circle cx="77" cy="10" r="2.2" fill="'+gem+'" opacity=".85"/>'
-    +'<circle cx="84" cy="27" r="1.4" fill="'+c2+'" opacity=".7"/>'
-    +'<circle cx="14" cy="36" r="1.3" fill="'+gem+'" opacity=".6"/>'
+    +'<ellipse cx="48" cy="107" rx="23" ry="4.2" fill="rgba(0,0,0,.32)"/>'
+    /* 발 → 로브 → 소매 → 손 순서. 뒤 요소가 앞 요소를 덮어 실루엣이 정리된다. */
+    +'<ellipse cx="40" cy="103.6" rx="6" ry="3.4" fill="'+deep+'"/>'
+    +'<ellipse cx="56" cy="103.6" rx="6" ry="3.4" fill="'+deep+'"/>'
+    +'<path d="M35 63 H61 C67 63 71 69 72 77 L74 95 C74.6 99 72 101.5 68 101.5 H28 C24 101.5 21.4 99 22 95 L24 77 C25 69 29 63 35 63Z" fill="url(#'+id+'Robe)"/>'
+    /* 옷깃은 턱 아래(머리 타원 y=65 바깥)에 둬야 보인다. 더 위에 그리면 머리에 가려 사라진다. */
+    +'<path d="M40 66.5 C43.4 71.8 52.6 71.8 56 66.5" fill="none" stroke="'+glow+'" stroke-opacity=".45" stroke-width="2.4" stroke-linecap="round"/>'
+    +'<path d="M25 74 C19 77 17 83 19 88" fill="none" stroke="'+main+'" stroke-width="8.5" stroke-linecap="round"/>'
+    +'<path d="M71 74 C77 77 79 83 77 88" fill="none" stroke="'+main+'" stroke-width="8.5" stroke-linecap="round"/>'
+    /* 소매 끝단 — 이게 없으면 손이 몸통에서 떨어져 나온 점처럼 보인다. */
+    +'<path d="M15.4 86.2 H22.6" stroke="'+deep+'" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>'
+    +'<path d="M73.4 86.2 H80.6" stroke="'+deep+'" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>'
+    +'<circle cx="19" cy="89.5" r="4.2" fill="'+skin+'"/>'
+    +'<circle cx="77" cy="89.5" r="4.2" fill="'+skin+'"/>'
+    /* 머리는 전체 높이의 45% — 치비 비율의 핵심이다. */
+    +'<ellipse cx="48" cy="40" rx="27" ry="25" fill="'+skin+'"/>'
+    /* 후드는 얼굴 옆으로 내려오는 자락이 있어야 모자로 읽힌다. 위만 덮으면 수영모가 된다. */
+    +'<path d="M48 12 C63.5 12 76 24.4 76 40 L76 48 C76 50.2 74.2 52 72 52 C69.8 52 68 50.2 68 48 L68 39.4 C65.6 34.4 57.6 31 48 31 C38.4 31 30.4 34.4 28 39.4 L28 48 C28 50.2 26.2 52 24 52 C21.8 52 20 50.2 20 48 L20 40 C20 24.4 32.5 12 48 12Z" fill="url(#'+id+'Hood)"/>'
+    +'<circle cx="48" cy="23.5" r="3.2" fill="'+glow+'"/>'
+    +'<circle cx="48" cy="23.5" r="1.5" fill="'+deep+'"/>'
+    +'<path d="M48 12.4 C46.6 7.6 49.6 4.2 53.4 5.2" fill="none" stroke="'+deep+'" stroke-width="2.4" stroke-linecap="round"/>'
+    +'<path d="M32.6 34.6 C35.2 32.9 39.2 32.9 42.2 34.2" fill="none" stroke="'+deep+'" stroke-opacity=".7" stroke-width="1.8" stroke-linecap="round"/>'
+    +'<path d="M53.8 34.2 C56.8 32.9 60.8 32.9 63.4 34.6" fill="none" stroke="'+deep+'" stroke-opacity=".7" stroke-width="1.8" stroke-linecap="round"/>'
+    +'<ellipse cx="38.5" cy="44" rx="5.4" ry="6.4" fill="'+ink+'"/>'
+    +'<ellipse cx="57.5" cy="44" rx="5.4" ry="6.4" fill="'+ink+'"/>'
+    +'<circle cx="36.6" cy="41.5" r="2.1" fill="#ffffff"/>'
+    +'<circle cx="55.6" cy="41.5" r="2.1" fill="#ffffff"/>'
+    +'<circle cx="40.3" cy="46.8" r="1.1" fill="#ffffff" fill-opacity=".82"/>'
+    +'<circle cx="59.3" cy="46.8" r="1.1" fill="#ffffff" fill-opacity=".82"/>'
+    +'<ellipse cx="29.6" cy="50.5" rx="4.6" ry="2.6" fill="'+main+'" fill-opacity=".55"/>'
+    +'<ellipse cx="66.4" cy="50.5" rx="4.6" ry="2.6" fill="'+main+'" fill-opacity=".55"/>'
+    +'<path d="M45 52.6 C46.6 54.8 49.4 54.8 51 52.6" fill="none" stroke="'+ink+'" stroke-width="1.8" stroke-linecap="round"/>'
+    +'<g transform="translate(80,24)" filter="url(#'+id+'Glow)">'+charm+'</g>'
     +'</svg>'
     +'</div>';
 }
@@ -10185,7 +10240,7 @@ function renderSkillTree(p, natal){
   var innateHtml='';
   if(innateData){
     innateHtml='<div class="sk-innate-section">'
-      +'<div class="sk-innate-label">🧬 INNATE ABILITY — 일주 고유능력</div>'
+      +'<div class="sk-innate-label">일주 고유능력</div>'
       +'<div class="sk-innate-item">'
       +'<span class="sk-innate-icon">'+innateData.i+'</span>'
       +'<div>'
@@ -10199,7 +10254,7 @@ function renderSkillTree(p, natal){
   area.innerHTML='<div class="skill-wrap" data-skilltree-ui-marker="skilltree-rpg-v20260613">'
     +'<div class="sk-header sk-rpg-hero">'
     +'<div class="sk-rpg-copy">'
-    +'<div class="sk-game-badge">⚡ SAJU RPG SYSTEM</div>'
+    +'<div class="sk-game-badge">사주 RPG</div>'
     +'<div class="sk-main-title">인생 스킬 트리</div>'
     +'<div class="sk-sub-title">運命 SKILL TREE · 사주 기반 캐릭터 시트</div>'
     +'<div class="sk-rpg-command-row">'
@@ -10215,7 +10270,7 @@ function renderSkillTree(p, natal){
     +'</div>'
     +'<div class="sk-sheet sk-rpg-sheet">'
     +'<div>'
-    +'<div class="sk-class-label">CORE CLASS</div>'
+    +'<div class="sk-class-label">운명 클래스</div>'
     +'<div class="sk-class-name">'+_rpgEsc(coreClass)+'</div>'
     +'<div class="sk-level-wrap">'
     +'<div class="sk-lv-badge">CH. <span>'+_rpgEsc(chapter)+'</span></div>'
@@ -10225,7 +10280,7 @@ function renderSkillTree(p, natal){
     +'<div class="sk-day-badge">일간: <b>'+_rpgEsc(dg)+'</b> ('+_rpgEsc((GAN[dg]||{}).n||'')+') &nbsp;·&nbsp; 월령 '+_rpgEsc(seasonName)+' &nbsp;·&nbsp; '+(pw&&pw.isStrong?'⬆️ 신강':'⬇️ 신약')+(jg&&jg.isJong?' &nbsp;·&nbsp; 🌀 종격':'')+'</div>'
     +'</div>'
     +'<div>'
-    +'<div class="sk-stat-title">📊 오행 스탯</div>'
+    +'<div class="sk-stat-title">오행 스탯</div>'
     +statBars
     +'</div>'
     +'</div>'
@@ -10233,15 +10288,15 @@ function renderSkillTree(p, natal){
     +innateHtml
     +'<div class="sk-tree-wrap" aria-label="' + _sajuEngineText("se_8468_attr_aria_label") + '">'
     +'<div class="sk-tree-section sk-tree-section--master">'
-    +'<div class="sk-tree-label">⭐ MASTER NODE</div>'
+    +'<div class="sk-tree-label">주력 스킬</div>'
     +'<div class="sk-item sk-master sk-node sk-node--master"><span class="sk-icon sk-node-icon">'+masterSk.i+'</span><div><div class="sk-name">'+masterSk.n+' <span class="sk-type-badge">'+(masterSk.tp||'ACTIVE')+'</span></div><div class="sk-desc">'+masterSk.d+'</div></div></div>'
     +'</div>'
     +'<div class="sk-tree-section sk-tree-section--owned">'
-    +'<div class="sk-tree-label">✅ OWNED NODES</div>'
+    +'<div class="sk-tree-label">보유 스킬</div>'
     +ownedHtml
     +'</div>'
     +'<div class="sk-tree-section sk-tree-section--locked">'
-    +'<div class="sk-tree-label">🔒 LOCKED NODES</div>'
+    +'<div class="sk-tree-label">잠긴 스킬</div>'
     +lockedHtml
     +'</div>'
     +'</div>'
