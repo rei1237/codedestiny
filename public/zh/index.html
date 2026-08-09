@@ -32066,7 +32066,16 @@ function updateBadge() {
         _cdInvokeUnlockedTileAction(action, actionNode);
         return true;
       }
-      if (!(await ensureCoinApiAuthenticated('/'))) {
+      // 🔴 스냅샷이 이 결제를 확답 커버하면(정책: "스냅샷이 커버를 확답하면 서버 왕복 없이 즉시 통과") 아래
+      // _cdResolvePaidContentAccess 가 네트워크 없이 낙관 통과를 돌려준다. 그런데 이 인증 게이트가 그 앞에서
+      // 매번 서버 인증 왕복(30초 캐시가 식으면 /api/auth/me)을 강제해 낙관 통과를 매번 인증 뒤로 미루고 있었다.
+      // 스냅샷이 확답하는 동안은 이 게이트를 건너뛴다 — 판정 로직 자체는 바꾸지 않고(아래에서 동일 조건으로
+      // 다시 확인한다), "언제 건너뛸지"만 결정한다. 확답 못하면 기존과 동일하게 인증부터 통과해야 한다.
+      var earlySnapshotCoverage = tileCoinCost > 0 && typeof _cdCoverageFromSubscriptionSnapshot === 'function'
+        ? _cdCoverageFromSubscriptionSnapshot(tileCoinCost, { allowStaleNone: false })
+        : null;
+      var snapshotConfirmsPassCoverage = !!(earlySnapshotCoverage && earlySnapshotCoverage.canUseByPass === true && earlySnapshotCoverage.hasActivePass === true && !_cdOptimisticPassDisabled());
+      if (!snapshotConfirmsPassCoverage && !(await ensureCoinApiAuthenticated('/'))) {
         _cdUpdatePaidFeatureGate({ requestId: paidGateToken.requestId, status: 'error', message: '로그인 확인이 필요합니다.', cost: tileCoinCost });
         return false;
       }

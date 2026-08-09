@@ -4095,7 +4095,12 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           scope: "monthly_atomic_transaction",
         });
       }
-      const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
+      // 🔴 이 파일의 다른 읽기 경로(resolvePaidContentAccess 등)는 withMongoRetry로 감싸 트랜지언트 DB
+      // 오류를 자동 재시도하고 admission gate에도 정상 계정된다. 이 월정석 소비 경로만 원시 호출이라
+      // 풀 경합 순간 재시도 없이 바로 실패하고, 그 실패가 아래 catch에서 미분류 500 또는(USER_NOT_FOUND는)
+      // 401 AUTH_REQUIRED로 잘못 표면화됐다 — 로그인 중인 사용자가 "로그인이 필요합니다"를 보는 원인.
+      // purchaseId/recentConsumeRequestIds 멱등성이 이미 있어 재시도로 인한 이중 차감 위험은 없다.
+      const membershipConsume = await withMongoRetry(env, () => consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
         sessionId: reportSessionId,
@@ -4114,7 +4119,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             session,
           })
           : null,
-      });
+      }));
       if (membershipConsume?.ok) {
         logPaidAccessStage("MONTHLY_DEDUCT_SUCCESS", {
           requestId,
@@ -4279,6 +4284,22 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           atomicUnavailable
             ? "월정석 결제를 안전하게 처리할 수 없어 차감하지 않았습니다. 잠시 후 다시 시도해 주세요."
             : "월정석 권한을 안전하게 저장하지 못해 차감하지 않았습니다. 잠시 후 다시 시도해 주세요.",
+          String(error?.message || ""),
+          {
+            pricing,
+            retryable: true,
+            canUseByCard: false,
+          },
+        );
+      }
+      // 🔴 트랜지언트 DB 오류(풀 경합/커넥션 재수립 등)는 로그인 사용자 확정 실패가 아니다. 이 파일의
+      // resolveBillingRequestAuth(3224행)·resolvePaidContentAccess(5640행)와 동일 판정을 여기도 적용해
+      // 재시도 가능 503으로 응답한다 — 이걸 빼면 위 withMongoRetry가 소진한 뒤의 실패가 미분류 500으로 뭉개진다.
+      if (isAuthDbInfraError(error)) {
+        return failure(
+          503,
+          "MONTHLY_CREDIT_CONSUME_INFRA_UNAVAILABLE",
+          "월정석 사용을 일시적으로 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
           String(error?.message || ""),
           {
             pricing,
