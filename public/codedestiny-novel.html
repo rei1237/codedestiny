@@ -239,7 +239,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.pje,.char.muTrue{-webkit-mask-image:linear-gradient(to bottom,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,#000 93%,transparent 100%)}
   .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(176px,21vh,214px);background-size:418% 418%;background-position:2.306% 3.145%}
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
-  .char.neoh{height:min(33vh,34vw);bottom:clamp(198px,26vh,248px)}
+  .char.neoh{width:min(22vh,23vw);bottom:clamp(198px,26vh,248px)}
   .char.moka{height:min(31vh,32vw);bottom:clamp(198px,26vh,248px)}.char.crow{height:min(33vh,32vw);bottom:clamp(198px,26vh,248px)}
   .char.mirror.pig{right:0;width:min(28vh,32vw);height:min(28vh,32vw);bottom:clamp(150px,20vh,190px)}
   .char.pig:not(.mirror){left:0;bottom:clamp(190px,26vh,232px);height:min(24vh,32vw)}
@@ -583,6 +583,7 @@ var MUSIC=PROD?"https://music.code-destiny.com/DestinyWar/"       :"/codedestiny
 var MED  =PROD?"https://music.code-destiny.com/Meditation/"       :"/codedestinyassets/music/Meditation/";
 var DNOVA=PROD?"https://music.code-destiny.com/DEST1NOVA/"        :"/codedestinyassets/music/DEST1NOVA/";
 var LUNA =PROD?"https://music.code-destiny.com/lunabloom/"        :"/codedestinyassets/music/lunabloom/";
+var DCAFE=PROD?"https://music.code-destiny.com/DestinyCafe/"      :"/codedestinyassets/music/DestinyCafe/";
 function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
 
 /* 연이(사람) 표정 스프라이트 */
@@ -728,13 +729,18 @@ var TRK={
   starsName:MED+enc("The Stars Remember Your Name.mp3"),
   zeroPoint:MED+enc("Zero Point.mp3"),
   rainWindow:MED+enc("Rain Window Renewal.mp3"),
-  firstLight:MED+enc("First Light on Water.mp3")
+  firstLight:MED+enc("First Light on Water.mp3"),
+  /* 운명 찻집(DestinyCafe) — 결혼식처럼 밝은 톤이 필요한 장면 전용, 장면 전환마다 다른 곡으로 교체 */
+  teaHouse:DCAFE+enc("Moonlit Tea House.mp3"),
+  teaKind:DCAFE+enc("Kindness.mp3"),
+  teaMoonlight:DCAFE+enc("Moonlight Tea.mp3")
 };
 /* BGM 재생 실패 시 강등 체인(유일한 폴백 레지스트리 — 새 계층 만들지 말 것).
    신규 트랙은 로컬 dev 미러에 없어 404가 나므로 반드시 여기 등록한다. */
 var RIVER_FALLBACK={riverEnter:"riverEnter2",riverEnter2:"stillLake",
   warTheme:"crisis2",templeGate:"stillLake",memWater:"stillLake",
-  starsName:"stillLake",zeroPoint:"stillLake",rainWindow:"room",firstLight:"daily"};
+  starsName:"stillLake",zeroPoint:"stillLake",rainWindow:"room",firstLight:"daily",
+  teaHouse:"daily",teaKind:"daily",teaMoonlight:"daily"};
 
 /* 네오 4×4 표정 시트 → 셀 좌표(background-position). 원본 도형 실측 위치 기준으로,
    300px 크롭창(CSS background-size:418%)을 각 프레임에 맞춰 놓은 값이다(균등 % 격자가 아니다). */
@@ -7426,7 +7432,7 @@ EPISODES.push({"no":"EP.42","tag":"최종화 · 읽는 이름, 쓰는 운명","t
 {"s":"n","t":"운명은 읽는 것이라고, 이 세계는 가르쳤다. 그러나 한 아이는 거기서 한 걸음 더 나아갔다. 읽은 이름들을 되살리고, 부서진 운명을 되쓰고, 마침내 제 손으로 자기 이야기의 첫 문장을 썼다. 봄볕 가득한 벤치에서, 사랑하는 사람과 나란히. 그리고 그 첫 문장 뒤엔, 아직 쓰지 않은 페이지가 눈부시게 펼쳐져 있었다."},
 {"s":"sys","im":true,"t":"제42화 · 읽는 이름, 쓰는 운명 — 끝. 그리고 그해 봄이 다시 돌아왔을 때, 두 사람에겐 아직 쓸 페이지가 하나 더 남아 있었다."}]});
 EPISODES.push({"no":"EP.43","tag":"제43화 · 벚꽃 강가의 약속","title":"벚꽃 강가의 약속","beats":[
-{"s":"n","bg":"bench","bgm":"firstLight","t":"그리고, 다시 봄이 왔다. 두 사람이 처음 나란히 앉았던 그 강가에, 벚꽃이 만개했다. 한 해 전 이 벤치에서 재회한 연이와 병하는, 오늘 이 강가에서 조금 특별한 페이지를 쓰기로 했다."},
+{"s":"n","bg":"bench","bgm":"teaHouse","t":"그리고, 다시 봄이 왔다. 두 사람이 처음 나란히 앉았던 그 강가에, 벚꽃이 만개했다. 한 해 전 이 벤치에서 재회한 연이와 병하는, 오늘 이 강가에서 조금 특별한 페이지를 쓰기로 했다."},
 {"s":"n","t":"강변을 따라 흰 천이 깔리고, 벚나무 가지마다 작은 등불이 걸렸다. 요란한 예식장도, 값비싼 홀도 아니었다. 그저 두 사람이 제일 좋아하는 강가, 벚꽃 아래. 소박하지만, 세상 그 어떤 예식장보다 따뜻한 자리였다."},
 {"s":"yeon","x":"soft","t":"병하야. 나 아직도 안 믿겨. 우리가 진짜 결혼을 한다는 게. 작년 이맘때만 해도 나 너 이름도 잊고 살았는데. 근데 오늘, 네 옆에서 웨딩드레스를 입고 있어. 이거 꿈 아니지?"},
 {"s":"neo","x":"hsmile","t":"꿈 아니야. 백 년을 기다린 사람이 하는 말이니까 믿어. 연이, 나 이거 하려고 시간을 거슬렀어. 네 옆자리 한 칸. 그거 하나 얻으려고, 사자도 되고 고양이도 됐어. 오늘, 드디어 그 자리에 사람으로 앉는다."},
@@ -7434,7 +7440,7 @@ EPISODES.push({"no":"EP.43","tag":"제43화 · 벚꽃 강가의 약속","title":
 {"s":"n","t":"그때, 하객석 맨 앞줄에서 한 부부가 눈시울을 붉히고 있었다. 연이의 엄마와 아빠. 갓 태어난 딸의 시간을 도둑맞고도, 그 반 박자 어긋난 아이를 이십여 년간 남몰래 지켜 온 두 사람이었다."},
 {"s":"yeon","x":"soft","t":"(엄마, 아빠. 두 분은 내가 왜 늘 반 박자 어긋났는지도 모르고, 그냥 묵묵히 날 지켜 주셨어. 시험 망친 날 삼각김밥 사다 놓던 그 손으로. 이제 알아요. 내가 왜 그렇게 자꾸 꼬였는지. 그리고 두 분이, 그런 나를 얼마나 사랑했는지.)"},
 {"s":"n","t":"연이의 엄마가 다가와, 딸의 베일을 매만졌다. 말은 없었다. 다만 그 손길이, 늘 그랬듯 먹을 것과 옷의 모양으로 오던 그 조용한 사랑을, 오늘은 온기로 직접 전하고 있었다."},
-{"s":"n","fx":"stars","im":true,"t":"바로 그때였다. 강가의 벚꽃 사이로, 익숙한 빛이 피어올랐다. 허공에 금빛 테두리가 그려지더니, 커다란 문 하나가 열렸다. 타로 문이었다. 두 세계를 잇는, 그 하나의 문."},
+{"s":"n","fx":"stars","bgm":"teaKind","im":true,"t":"바로 그때였다. 강가의 벚꽃 사이로, 익숙한 빛이 피어올랐다. 허공에 금빛 테두리가 그려지더니, 커다란 문 하나가 열렸다. 타로 문이었다. 두 세계를 잇는, 그 하나의 문."},
 {"s":"yeon","x":"surprise","t":"어? 저 빛. 타로 문이잖아! 설마. 설마 다들. 열렸어! 강 건너로 통하는 문이, 오늘 열렸어!"},
 {"s":"n","fx":"stars","im":true,"t":"문 너머에서, 그리운 얼굴들이 하나씩 걸어 나왔다. 물빛 머리의 루나, 앞치마를 두른 언니, 까마귀 후드를 벗은 무성, 기타를 멘 모카, 그리고 지팡이를 짚은 늙은 여우 — 백문. 강 건너 친구들이, 오늘 하루만은 이쪽 봄으로 건너온 것이다."},
 {"s":"ln","x":"joy","t":"연이!! 우리 왔어!! 무성이랑 나랑 물길 열고, 백문 님이 문 여시고! 오늘 하루만 열린대! 근데 언니 이 드레스 뭐야, 완전 예뻐! 나 벌써 울 거 같아!"},
@@ -7454,7 +7460,7 @@ EPISODES.push({"no":"EP.43","tag":"제43화 · 벚꽃 강가의 약속","title":
 {"s":"neo","x":"hsoft","t":"백문 님. 그리고 아버님. 연이, 제가 평생 지키겠습니다. 백 년을 지킨 것처럼, 앞으로는 사람으로. 이제 이 손, 제가 잡아도 되겠습니까?"},
 {"s":"baek","x":"read","t":"파수꾼. 아니, 이제 사람 박병하 군. 백 년을 이 아이 곁에서 지킨 자네라면, 이 늙은 아비가 더 볼 것도 없네. 자, 내 딸 손을 자네에게 맡기지. 부디, 이 아이가 쓰는 페이지마다 함께 있어 주게."},
 {"s":"n","tone":"dark","t":"백문과 연이의 인간 아버지가, 나란히 연이의 손을 병하의 손에 얹어 주었다. 두 아버지의 손과, 신랑의 손과, 신부의 손이 잠깐 한 자리에 겹쳤다. 그 순간, 네 사람의 새끼손가락 사이로 붉은 실 한 가닥이 은은하게 빛났다."},
-{"s":"neo","x":"hsmile","bgm":"starsName","t":"연이. 우리, 계약서는 안 쓰기로 했지. 우리 사이엔 실이 있으니까. 근데 오늘은 딱 하나만 쓰자. 네가 네 사주에 내 이름 새긴 거, 이제 나도 내 사주에 네 이름 새길게. 서로의 첫 글자로. 이젠 한쪽만 붙드는 실이 아니라, 서로가 서로를 붙드는 실로."},
+{"s":"neo","x":"hsmile","bgm":"teaMoonlight","t":"연이. 우리, 계약서는 안 쓰기로 했지. 우리 사이엔 실이 있으니까. 근데 오늘은 딱 하나만 쓰자. 네가 네 사주에 내 이름 새긴 거, 이제 나도 내 사주에 네 이름 새길게. 서로의 첫 글자로. 이젠 한쪽만 붙드는 실이 아니라, 서로가 서로를 붙드는 실로."},
 {"s":"yeon","x":"cry","t":"응. 서로의 사주에. 병하, 나 그때 백지 카드 받고 네 이름 새길 때, 사실 조금 무서웠어. 나 혼자 널 붙드는 거 같아서. 근데 오늘 너도 네 사주에 내 이름을 새긴다니까, 이제 안 무서워. 우리, 둘이 같이 붙드는 거니까."},
 {"s":"n","fx":"heart","im":true,"t":"두 사람이 서로의 손목에, 붉은 실로 상대의 이름 첫 글자를 감았다. 연이의 손목엔 '병'이, 병하의 손목엔 '연'이. 하늘 밖으로도, 시간 너머로도 뻗지 않는, 여기서 바로 여기로 이어진 실. 두 사람 몫의, 하나의 매듭이었다."},
 {"s":"neo","x":"hsoft","t":"연이. 나 이제 안 헤어져. 시간도, 운명도, 우리 못 갈라놔. 서로의 사주에 서로의 이름 있으니까. 여기가, 우리 둘이 있을 자리야. 벚꽃 강가, 봄볕 아래. 사랑해, 연이. 백 년 전에도, 지금도, 앞으로도."},
