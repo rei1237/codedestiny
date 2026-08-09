@@ -145,12 +145,14 @@
 .room[data-character="neo"] .welcomeCard {
   border-color: rgba(196, 181, 253, .3);
   background:
-    radial-gradient(circle at 77% 18%, rgba(125, 211, 252, .2), transparent 34%),
+    radial-gradient(circle at 92% 4%, rgba(125, 211, 252, .16), transparent 22%),
     linear-gradient(125deg, #171334 0%, #14112c 58%, #0d0a22 100%);
   box-shadow: 0 20px 44px -28px rgba(2, 0, 12, .9), inset 0 1px 0 rgba(196, 181, 253, .16);
 }
 
-.room[data-character="neo"] .welcomeCard::after { border-color: rgba(196, 181, 253, .18); }
+/* 링 장식은 네오 캐릭터 머리/갈기와 겹쳐 보여 지저분해진다 — 네오 아바타는 이미 자체
+   drop-shadow 글로우가 있어 이 원형 테두리 없이도 카드에서 떠 보인다. */
+.room[data-character="neo"] .welcomeCard::after { display: none; }
 
 /* ── 상담자 아바타 ─────────────────────────────────────────────────────────
    표정 시트 한 장에서 셀 하나를 잘라 쓴다(app/fortune-chat/personaSprite.ts).
@@ -341,7 +343,7 @@
 
 .policy { display: flex; align-items: center; gap: 6px; }
 .policy::before { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); content: ""; box-shadow: 0 0 0 3px var(--halo); }
-.chips button { border-color: var(--line); background: var(--bubble); color: var(--ink); transition: border-color 150ms cubic-bezier(.22, 1, .36, 1), background-color 150ms cubic-bezier(.22, 1, .36, 1), color 150ms cubic-bezier(.22, 1, .36, 1); }
+.chips button { flex-shrink: 0; border-color: var(--line); background: var(--bubble); color: var(--ink); transition: border-color 150ms cubic-bezier(.22, 1, .36, 1), background-color 150ms cubic-bezier(.22, 1, .36, 1), color 150ms cubic-bezier(.22, 1, .36, 1); }
 .chips button:hover { border-color: color-mix(in srgb, var(--rose) 48%, transparent); background: color-mix(in srgb, var(--rose-soft) 20%, var(--bubble)); }
 .chips button[aria-pressed=true] { border-color: var(--rose); background: color-mix(in srgb, var(--rose-soft) 30%, var(--bubble)); color: var(--rose); }
 .input input { border-color: color-mix(in srgb, var(--rose) 30%, transparent); background: var(--bubble); color: var(--ink); }
@@ -429,6 +431,7 @@
   .avatar_md { width: 46px; height: 46px; }
   .room .welcomeCard .avatar_lg { right: 2px; bottom: 6px; width: clamp(128px, 36vw, 168px); height: clamp(128px, 36vw, 168px); }
   .birthGrid { grid-template-columns: minmax(0, 1fr); }
+  .chips { flex-wrap: wrap; overflow: visible; }
 }
 
 /* 파일 앞쪽 규칙이 .room * 에 animation/transition none !important 를 이미 걸어
