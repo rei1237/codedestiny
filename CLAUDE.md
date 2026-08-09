@@ -45,15 +45,18 @@ npm run deploy:cf:opennext # OpenNext 경유 배포
 app/            # Next.js App Router (라우트, app/api/*, [locale]/)
 worker/         # Cloudflare Worker 백엔드 (routes/, lib/ — billing/AI/pdf/music)
 server/         # 레거시 Express API (routes/, models/, services/)
-lib/            # 공유 라이브러리 (llm-client, mongodb, i18n, payment)
-veda/           # 베다 점성술 엔진 (ephemeris, knowledge-base)
+lib/            # 공유 라이브러리 (llm-client, mongodb, i18n, payment, vedicSwissChart, vedicCalculator)
 components/     # 공용 React 컴포넌트 (yeon/, stories/, ui/, fortune/)
-models/         # Mongoose 모델 (Story, Chapter)
+src/features/   # 기능 단위 모듈 (fortune-tea-house, neo-war-room)
 pages/          # 레거시 Pages Router (_app, _document, 에러 페이지)
 scripts/        # 빌드/배포/검증/마이그레이션 스크립트
-apps/mobile/    # Capacitor 모바일 래퍼
+apps/mobile/    # Capacitor 래퍼 + Android 네이티브 (java/com/codedestiny/app/, proguard-rules.pro)
+js/             # 정적 셸이 동적 로드하는 레거시 브라우저 번들 (public/js/ 는 sync:public 미러)
 public/, dist/, out/   # 정적 자산 및 빌드 산출물
+_graveyard/     # 격리 보관소 — 삭제 전 대기. tsconfig exclude 대상 (_graveyard/MANIFEST.md 참조)
 ```
+
+> **없는 디렉터리 주의** — `veda/` 와 `models/` 는 **존재하지 않는다**(2026-08-09 확인). 베다/나크샤트라 엔진의 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js` 다. `tsconfig.json` `exclude` 와 `config/env.contract.json` `scanRoots` 에 남아 있던 `veda` 는 잔재이므로 새 코드의 근거로 삼지 말 것.
 
 ## Tech Stack
 
@@ -103,7 +106,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - 🔒 **[필수·예외없음] 모든 유료 결제 게이팅 순서** (2026-08-01 개정 — 축이 "언제 검사하는가"에서 "이용권 보유자가 어떤 경로로도 돈을 내지 않는가"로 바뀌었다). 신규/수정 불문 모든 유료 기능은 아래를 그대로 따른다. 벗어나는 결제 구현은 금지이며, 발견 시 즉시 사용자에게 보고한다(작업 중 우연히 마주쳐도 그냥 지나치지 말 것):
   1. **진입 판정은 로컬 스냅샷만** — 구독 스냅샷(`cd_subscription_snapshot_v2`, 판정 정본 `js/core/pass-verdict.js`)이 커버를 확답하면 서버 왕복 없이 **즉시 무료 통과**(낙관 grant, 서버 기록은 백그라운드). 확답하지 못하면 **기다리지 말고 결제창**을 연다. 🔴 **진입 시 서버 이용권 선검사를 되살리지 말 것** — 그 왕복(구 셸 6초 예산+재시도 2회, React 15초 프로브)이 결제창 앞 지연의 본체였다.
   2. **결제창이 이용권 검사 지점** — 결제창 첫 카드는 **[이용권으로 구매]**(`data-mode="pass-store"`)이고, 누르면 그 자리에서 서버에 물어 커버되면 결제 없이 무료로 열고, 아니면 이용권 상점으로 인계한다(`/points?plan=…&cdco=1` → 결제 확인 모달 자동 오픈 → 결제 후 원래 화면 복귀). 결제창에는 **[이용권으로 구매] · 단건결제(KRW, PortOne) · 월정석 3옵션이 항상 함께** 보이고, 단건/월정석은 동등 우선순위다(`equalPriorityMethods: ["DIRECT_KRW","MOONLIGHT_STONE"]`).
-  3. **스냅샷 없는 이용권 보유자의 구제 지점은 2번(결제창 이용권 카드) 하나다** (2026-08-08 정정). 새 기기·시크릿창·저장소 삭제로 스냅샷이 없는 보유자는 진입에서 커버를 확답받지 못해 결제창을 보게 되는데, 거기서 **[이용권으로 구매]를 누르면 그 자리에서 서버가 판정**해 무료로 열어 준다. 🔴 **카드 주문 직전에 서버 이용권 재검사를 넣지 말 것** — `worker/routes/billing.js`에 `grantPassFreeAccessBeforeCardIfAvailable`(6368~)이 남아 있지만 **호출자가 없는 죽은 코드**이고, `scripts/verify-billing-pass-policy.mjs`·`verify-paid-gate-ui-regression.mjs`가 checkout/confirm 경로에서 이 함수를 쓰면 **실패시킨다**("DIRECT_KRW prepare performs zero pass lookups"). 사용자가 단건을 명시적으로 고른 뒤의 왕복은 결제 임계경로를 늘리는 비용일 뿐이라 의도적으로 제거됐다. 죽은 함수를 되살리려면 그 verify 단언 4곳을 함께 뒤집어야 하며, 그건 정책 변경이므로 임의로 하지 말 것.
+  3. **스냅샷 없는 이용권 보유자의 구제 지점은 2번(결제창 이용권 카드) 하나다** (2026-08-08 정정). 새 기기·시크릿창·저장소 삭제로 스냅샷이 없는 보유자는 진입에서 커버를 확답받지 못해 결제창을 보게 되는데, 거기서 **[이용권으로 구매]를 누르면 그 자리에서 서버가 판정**해 무료로 열어 준다. 🔴 **카드 주문 직전에 서버 이용권 재검사를 넣지 말 것** — `worker/routes/billing.js`에 `grantPassFreeAccessBeforeCardIfAvailable`(6439~)이 남아 있지만 **호출자가 없는 죽은 코드**이고, `scripts/verify-billing-pass-policy.mjs`·`verify-paid-gate-ui-regression.mjs`가 checkout/confirm 경로에서 이 함수를 쓰면 **실패시킨다**("DIRECT_KRW prepare performs zero pass lookups"). 사용자가 단건을 명시적으로 고른 뒤의 왕복은 결제 임계경로를 늘리는 비용일 뿐이라 의도적으로 제거됐다. 죽은 함수를 되살리려면 그 verify 단언 4곳을 함께 뒤집어야 하며, 그건 정책 변경이므로 임의로 하지 말 것.
   4. **단건 결제(PortOne)는 사용자가 결제창에서 '단건'을 고른 이후에만** 실행(`_cdRunDirectKrwCheckout`/`_dpRunDirectKrwCheckout`에 도달).
   - **금지 패턴(=위반, 발견 시 보고 대상)**: ① 결제창에서 **[이용권으로 구매] 카드를 없애거나 단순 상점 링크로 되돌리기**(스냅샷 없는 보유자가 확인할 방법을 잃는다) ② 진입 경로에 서버 이용권 선검사 부활(`CD_PASS_FIRST_BUDGET_MS`·`CD_PASS_SLOW_NOTE` 부활 금지, `snapshotVerdictOnly` 제거 금지) ③ 카드 주문(checkout/confirm) 경로에 서버 이용권 조회 재삽입(`grantPassFreeAccessBeforeCardIfAvailable` 되살리기 포함 — verify 가드 4곳이 막는다) ④ 결제창에 단건 또는 월정석 한쪽만 노출 ⑤ 서버 runtimeGate/paymentPayload에 `paymentMode:"DIRECT_KRW"` 하드코딩(월정석 옵션 소거 — 과거 ziwei-ai에서 제거된 결함) ⑥ 공유 게이트(`useCoinGate`/`_cdOpenPaidServiceGate`/정적 결제 모달) 우회하는 커스텀 체크아웃 ⑦ 🔴 **앱에서 `/points`로 프로그래매틱 이동**(앱 번들에 없고 `app-payment-guard`는 앵커 클릭만 가로챈다 → 빈 화면). 반드시 `window.__cdOpenChargeModal`(가드가 `/app/store/`로 고정)을 먼저 타며, 판정 정본은 `js/core/checkout-entry.js`의 `shouldUseAppStoreEntry()`(애매하면 앱 경로로 폴백).
   - **예외**: 프로필 카드 추가·삭제(D유형, `passExcluded`) **모두** 이용권 결제 불가라 이용권 옵션 없이 곧바로 결제창(단건/월정석)을 연다 — 그래도 두 결제수단은 동등 노출. **family 포함 모든 등급**이 이용권 커버 대상이 아니며(서버 정본은 `isPassExcludedPricing` 하나 — featureKey별 예외 분기 금지), family 무료는 이용권 결제가 아니라 정책 계층(`profile-card-mutation-policy.js`)의 0원 바이패스로 처리된다. 계정당 첫 카드도 등급 무관 무조건 무료. 상세는 [content-access D유형](docs/payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료).
@@ -135,7 +138,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
   - 운명 찻집 타로 앨범 히어로(`src/features/fortune-tea-house/components/DestinyCafeTarotAlbum.tsx`의 `TarotAlbumHero`): 연이 스프라이트7(`fortuneTeaHouseAssets.yeoni.transparent.sprite7CharacterR2`)을 크롭+idle 애니메이션으로 표시 — 자는 연이 이미지로 바꾸지 않는다
   - 어떤 화면에 어떤 연이 자산이 맞는지 확실치 않으면 추측해서 교체하지 말고 반드시 먼저 사용자에게 확인한다(코딩 원칙 1번 참고)
 - **음악**: `app/music/` 라우트, 실제 음원은 외부 CDN(`music.code-destiny.com`)에서 서빙 (레포에는 커버아트만 `public/music-covers/`)
-- **웹소설/비주얼 노벨(브랜드 정체성)**: 텍스트 리더 `app/stories/`(원문 `lib/stories/chapters/*` + `data.ts`; `models/Story.ts`는 미사용 데드코드). 비주얼 노벨(VN) = 단일 자립형 `public/codedestiny-novel.html`(EP1~5, `/stories`에서 CTA 진입). **전체 스토리 흐름은 만화 이누야샤 구조 참조**(고유명사·설정 차용 없이 구조만) — 가이드: [docs/webnovel_review/webnovel_story_guideline.md](docs/webnovel_review/webnovel_story_guideline.md), 결말 아크 상세: [docs/webnovel_review/webnovel_ending_arc_outline.md](docs/webnovel_review/webnovel_ending_arc_outline.md)
+- **웹소설/비주얼 노벨(브랜드 정체성)**: 텍스트 리더 `app/stories/`가 실제로 읽는 원문은 **`lib/stories/vn` 의 `STORY_EPISODES`** 다. `lib/stories/chapters/*`(32파일)와 `data.ts` 는 코드 임포터가 0이며 로그라인 집필용 산문 초고로만 보존한다(`lib/stories/vn/index.ts:7` 주석). 비주얼 노벨(VN) = 단일 자립형 `public/codedestiny-novel.html`(EP1~5, `/stories`에서 CTA 진입). **전체 스토리 흐름은 만화 이누야샤 구조 참조**(고유명사·설정 차용 없이 구조만) — 가이드: [docs/webnovel_review/webnovel_story_guideline.md](docs/webnovel_review/webnovel_story_guideline.md), 결말 아크 상세: [docs/webnovel_review/webnovel_ending_arc_outline.md](docs/webnovel_review/webnovel_ending_arc_outline.md)
 - **PDF 리포트**: 인생의 책은 `/life-book-ai`(구 `app/pdf/life-book`은 리다이렉트), PDF는 클라이언트에서 `html2canvas`+`jspdf`로 생성하며 현재 Worker 쪽 PDF 보조 로직은 `worker/lib/pdf-runtime.js`를 기준으로 본다.
 - 이미지는 Next.js `<Image>` 컴포넌트 사용 (`img` 태그 금지) — 단, `next.config.mjs`에 `images.unoptimized: true` 설정됨
 - **관상(동물상/얼굴 분석)**: React가 아니라 **루트의 바닐라 JS 규칙 엔진**(`AnalysisEngine.js`=얼굴 랜드마크→하드코딩 점수/템플릿, `PhysiognomyUI.js`=DOM 렌더/결제 게이트)이며 `index.html?action=openPhysiognomyApp` 모달로 구동. **LLM 미사용**. `app/physiognomy`·`app/animal/physio`는 SEO 랜딩 껍데기. ⚠️ **두 파일은 루트와 `public/`에 별도 사본으로 존재(심링크 아님) — 수정 시 반드시 `cp`로 동기화**. 리포트 섹션은 `expertReportHtml`(엔진)을 `PhysiognomyUI.js`의 `createExpertReportSections` 파서가 헤딩 키워드로 쪼개 카드로 렌더하므로, 섹션 HTML의 헤딩 문구와 파서 `headingKeywords`를 함께 맞춰야 한다. 오관·점 정밀 분석은 프리미엄(회당 5,000원, `physiognomy-ogwan-mole-deep`). 검증: `npm run verify:physiognomy-report`(jsdom 필요 — devDependency) + `verify:physiognomy-scoring`
