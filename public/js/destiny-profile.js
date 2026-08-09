@@ -3310,6 +3310,10 @@
   function _dpPreloadPortOneV2Sdk() {
     try { _dpPortOneV2SdkPromise(); } catch (_) {}
   }
+  // React 결제수단 선택 모달은 이 파일의 _cdOpenPaidServiceGate 를 거치지 않고 _cdRunDirectKrwCheckout 을
+  // 직접 부르므로, 그 오케스트레이터 안의 예열 호출(아래 _cdOpenPaidServiceGate 정의부)이 실행되지 않는다.
+  // dp·React 도 같은 통로를 쓰도록 노출한다(구현을 세 벌 두지 않는다 — __cdShowPassCheckWaitOverlay 와 동일 관례).
+  window.__cdPreloadPortOneV2Sdk = window.__cdPreloadPortOneV2Sdk || _dpPreloadPortOneV2Sdk;
 
   // 단건 checkout 본문 정본. 명시적인 단건 선택 뒤 한 번만 주문을 발급한다.
   function _dpBuildDirectCheckoutPayload(options) {
@@ -3916,7 +3920,18 @@
       // 이탈로 이어진다. 결제수단 선택 모달이 이미 닫힌 뒤라 겹치지 않고, PG창 렌더 직전의
       // _dpSetPaymentPending(false) 가 내린다. 문구는 mode 'card' 정본 카피에 맡긴다.
       _dpSetPaymentPending(true, '', 'card');
+      // 단계별 소요 계측(셸의 _cdMarkPgStep 과 동일 목적) — "결제창이 느리다" 신고가 오면 script-load
+      // (이 파일 자체)/checkout(서버)/sdk(CDN)/config 중 어디가 범인인지 추측 없이 확인한다.
+      var _dpPgStepAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      var _dpPgStepBase = _dpPgStepAt;
+      var _dpPgSteps = [];
+      function _dpMarkPgStep(name) {
+        var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        _dpPgSteps.push(name + '=' + Math.round(now - _dpPgStepAt) + 'ms');
+        _dpPgStepAt = now;
+      }
       var checkoutRes = await checkoutPending;
+      _dpMarkPgStep('checkout');
       if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
@@ -3950,7 +3965,14 @@
         throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uacb0\uc81c \uae08\uc561\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.');
       }
       // 결제수단 모달 렌더 시점에 시작된 프리로드를 기다린다 — 정상 경로에서는 이미 resolve 상태다.
-      await _dpPortOneV2SdkPromise();
+      // 프리로드가 실패했으면 캐시는 이미 비워져 있다(_dpPortOneV2SdkPromise 의 catch). 그래서 재호출이
+      // 곧 새 요청이다 — 셸의 _cdRunDirectKrwCheckout(index.html)과 같은 자리에서 1회 재시도한다.
+      try {
+        await _dpPortOneV2SdkPromise();
+      } catch (_dpSdkFirstError) {
+        await _dpPortOneV2SdkPromise();
+      }
+      _dpMarkPgStep('sdk');
       // storeId/channelKey 는 checkout 응답에 이미 실려 온다(worker/routes/payments.js). 그걸 쓰면
       // /api/payments/config 왕복이 통째로 사라진다. 정적 셸의 _cdResolveDirectCheckoutConfig 와 같은 방식.
       // currency/payMethod/noticeUrl 도 함께 받는다 — storeId/channelKey 만 읽으면 /api/payments/config
@@ -3971,6 +3993,7 @@
       if (!config.storeId || !config.channelKey) {
         throw new Error('포트원 V2 결제 설정이 없습니다.');
       }
+      _dpMarkPgStep('config');
 
       var checkoutUser = _dpReadAuthUser() || {};
       if ((!checkoutUser.email && !checkoutUser.userEmail) && typeof _dpVerifyLoginSession === 'function') {
@@ -4103,6 +4126,17 @@
       // PG가 상위 프레임을 리다이렉트하면 아래 await 는 페이지와 함께 죽는다. 그 경우에도 결제를 확정할
       // 수 있도록 복귀 티켓을 미리 남긴다(_dpResumeDirectPaymentAfterRedirect 가 소비).
       _dpWriteDirectResumeTicket({ at: Date.now(), merchantUid: merchantUid, confirmBody: _dpDirectConfirmBody });
+      _dpMarkPgStep('customer');
+      // 🔴 한 줄 문자열로 남긴다 — 객체로 남기면 콘솔에서 'Object' 로 접혀 펼쳐 보지 않으면 못 읽는다
+      // (셸의 [direct-checkout] 계측과 동일 포맷 — React·독립 정적 신고를 같은 방식으로 진단하기 위함).
+      try {
+        console.info(
+          '[dp-direct-checkout] click→PG steps ' + _dpPgSteps.join(' ')
+          + ' total=' + Math.round(
+            ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - _dpPgStepBase
+          ) + 'ms'
+        );
+      } catch (_dpStepLogError) {}
 
       // PG의 상위 프레임 리다이렉트는 의도된 이동이다 — PaymentProcessingContext 의 beforeunload
       // 차단이 그걸 막지 않도록 이 구간만 예외로 표시한다.

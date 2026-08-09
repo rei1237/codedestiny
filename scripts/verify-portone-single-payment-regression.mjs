@@ -175,6 +175,45 @@ function runPortOneSdkLoaderResilienceTests() {
   );
 }
 
+// 🔴 "React·독립 정적에서 단건결제 클릭 시 PG창이 안 뜬다" 회귀 가드 (2026-08-10)
+// 정적 셸(index.html)은 되는데 React·독립 정적 페이지(둘 다 js/destiny-profile.js 를 결제 런타임으로
+// 공유한다)만 안 되는 신고의 근본 원인 3가지를 고정한다:
+//   ① destiny-profile.js 의 _cdRunDirectKrwCheckout 은 PortOne SDK 로드 실패 시 재시도가 없었다
+//      (셸은 1회 재시도). 네트워크 히컵 한 번에 React·독립 정적 사용자만 결제가 즉시 중단됐다.
+//   ② React 자체 결제수단 선택 모달(openReactPaymentChoiceModalInner)은 셸의 _cdOpenPaidServiceGate
+//      가 선택창을 열기 직전에 거는 SDK 예열을 타지 않아, SDK 다운로드가 클릭 시점에 콜드 스타트됐다.
+//   ③ billing-client.ts 의 loadPaidServiceRuntimeGate 가 destiny-profile.js(~400KB) 스크립트 로드를
+//      1200ms 하드 타임아웃으로 기다렸다 — 첫 로드·모바일에서 정상 진행 중인 로드도 실패로 오판해
+//      결제 게이트를 재시도 없이 영구 unavailable 로 확정시켰다(PG창이 아예 안 뜨는 채로 표면화).
+function runReactSdkPreloadAndRetryTests() {
+  const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
+
+  // ① 셸과 destiny-profile.js 양쪽 다 같은 자리(SDK 프리로드 await)에서 1회 재시도해야 한다.
+  for (const [label, source, fnMarker] of [
+    ["index.html", indexSource, "async function _cdRunDirectKrwCheckout(options) {"],
+    ["js/destiny-profile.js", destinyProfileSource, "window._cdRunDirectKrwCheckout = async function(options) {"],
+  ]) {
+    const fnBody = stripComments(sliceFunction(source, fnMarker, `${label} direct checkout`));
+    assert.ok(
+      /catch\s*\([^)]*\)\s*\{\s*await\s+_(?:cd|dp)PortOneV2SdkPromise\(\);/.test(fnBody),
+      `${label}: direct checkout must retry the PortOne SDK load once on failure (no silent hard-fail on a single network hiccup)`,
+    );
+  }
+
+  // ② React 선택 모달은 destiny-profile.js 가 노출하는 예열 트리거를, 모달이 열리는 시점에 불러야
+  // 한다(셸의 _cdOpenPaidServiceGate 와 같은 타이밍). 트리거 자체도 노출돼 있어야 React 가 부를 수 있다.
+  assertContains(destinyProfileSource, "window.__cdPreloadPortOneV2Sdk = window.__cdPreloadPortOneV2Sdk || _dpPreloadPortOneV2Sdk;", "destiny-profile.js must expose the SDK preload trigger for React (구현을 세 벌 두지 않는다 — __cdShowPassCheckWaitOverlay 와 동일 관례)");
+  const choiceModalBody = sliceFunction(billingClientSource, "async function openReactPaymentChoiceModalInner(options: Record<string, unknown>): Promise<PaymentChoiceMode> {", "React payment choice modal");
+  assertContains(choiceModalBody, "__cdPreloadPortOneV2Sdk", "React choice modal must trigger the SDK preload when it opens (parity with the shell's pre-choice warm-up)");
+
+  // ③ 런타임 게이트 스크립트 로더는 destiny-profile.js 급(~400KB) 자산에 맞는 예산을 쓰고, 실패는
+  // SDK 프리로드 캐시와 같은 자기치유 패턴(캐시 evict)을 따라야 한다.
+  const loaderBody = sliceFunction(billingClientSource, "export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | null> {", "React runtime gate loader");
+  assertNotContains(loaderBody, "setTimeout(finish, 1200)", "runtime gate loader must not use a 1200ms hard cutoff for a ~400KB script (this regressed the React/standalone PG-window bug)");
+  assert.ok(/setTimeout\(finish,\s*8000\)/.test(loaderBody), "runtime gate loader timeout should match the PortOne SDK loader's 8s budget instead of an arbitrary short cutoff");
+  assert.ok(/paidServiceRuntimePromise\s*=\s*null/.test(loaderBody), "runtime gate loader must evict a failed attempt from its cache (self-heal), mirroring the SDK preload cache eviction");
+}
+
 // 🔴 "단건결제를 눌렀는데 PG창 앞에 또 다른 화면이 뜬다" 회귀 가드 (2026-07)
 // 세 증상이 각각 다른 원인이었다: ① 셸 캐시 새니타이저가 결제용 휴대폰 번호를 화이트리스트에서
 // 빠뜨려 이미 입력한 번호를 매번 다시 물었다(그리고 dp 가 저장한 번호까지 덮어 지웠다) ② 이용권
@@ -984,6 +1023,7 @@ try {
   runClientStaticTests();
   runPortOneRequestShapeTests();
   runPortOneSdkLoaderResilienceTests();
+  runReactSdkPreloadAndRetryTests();
   runInstantPgWindowTests();
   runInstantPgLatencyTests();
   runDirectPgOverlayTests();

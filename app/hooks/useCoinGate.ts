@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
 import {
-  PAID_SERVICE_RUNTIME_SRC,
   hasClientAuthSessionHint,
   loadPaidServiceRuntimeGate,
   runPaidAccessGate,
@@ -71,12 +70,6 @@ type RuntimePaidServiceGateResult = {
   payload?: Record<string, unknown>;
   data?: Record<string, unknown>;
 };
-
-type RuntimePaidServiceGateWindow = Window & {
-  _cdOpenPaidServiceGate?: (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
-};
-
-const LEGACY_PAYMENT_RUNTIME_SRC = PAID_SERVICE_RUNTIME_SRC;
 
 const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
   paymentInProgress: string;
@@ -228,8 +221,6 @@ function coinGateText(key: keyof typeof COIN_GATE_TEXT_TRANSLATIONS.ko) {
   return COIN_GATE_TEXT_TRANSLATIONS[locale]?.[key] || COIN_GATE_TEXT_TRANSLATIONS.en[key] || COIN_GATE_TEXT_TRANSLATIONS.ko[key];
 }
 
-let legacyPaymentRuntimePromise: Promise<RuntimePaidServiceGateWindow["_cdOpenPaidServiceGate"] | null> | null = null;
-
 function toText(value: unknown): string {
   return String(value || "").trim();
 }
@@ -250,40 +241,6 @@ function firstFiniteNonNegativeNumber(...candidates: unknown[]): number | null {
 
 function normalizeCode(value: unknown): string {
   return String(value || "").trim().toUpperCase();
-}
-
-function getRuntimePaidServiceGate() {
-  if (typeof window === "undefined") return null;
-  const runtimeWindow = window as RuntimePaidServiceGateWindow;
-  return typeof runtimeWindow._cdOpenPaidServiceGate === "function" ? runtimeWindow._cdOpenPaidServiceGate : null;
-}
-
-function loadRuntimePaidServiceGate() {
-  const current = getRuntimePaidServiceGate();
-  if (current) return Promise.resolve(current);
-  if (typeof document === "undefined") return Promise.resolve(null);
-  if (legacyPaymentRuntimePromise) return legacyPaymentRuntimePromise;
-
-  legacyPaymentRuntimePromise = new Promise((resolve) => {
-    const finish = () => resolve(getRuntimePaidServiceGate());
-    const existing = document.querySelector<HTMLScriptElement>('script[src^="/js/destiny-profile.js"]');
-    if (existing) {
-      existing.addEventListener("load", finish, { once: true });
-      existing.addEventListener("error", () => resolve(null), { once: true });
-      window.setTimeout(finish, 1200);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = LEGACY_PAYMENT_RUNTIME_SRC;
-    script.async = true;
-    script.dataset.cdPaymentRuntimeLoader = "1";
-    script.onload = finish;
-    script.onerror = () => resolve(null);
-    document.head.appendChild(script);
-  });
-
-  return legacyPaymentRuntimePromise;
 }
 
 function unwrapRuntimeGatePayload(result: RuntimePaidServiceGateResult | null | undefined) {

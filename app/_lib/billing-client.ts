@@ -316,6 +316,8 @@ type RuntimeApiWindow = Window & {
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdRunDirectKrwCheckout?: PaidServiceRuntimeGate;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
+  // destiny-profile.js 가 노출하는 PortOne SDK 예열 트리거(구현은 그 파일 하나 — window.__cdPreloadPortOneV2Sdk).
+  __cdPreloadPortOneV2Sdk?: () => void;
   __cdApplyMembershipPassBeforePayment?: RuntimeMembershipPassApply;
   __cdSuppressPaymentFetchOverlayCount?: number;
   __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
@@ -1082,6 +1084,15 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 이 남긴 고아 결제창은 그대로 깔려 있어 "실패 후 다시 누르니 다른 결제창"으로 보였다.
   // 세 렌더러 공통 스윕은 checkout-entry 하나가 소유한다.
   checkoutEntry.sweepOrphanChoiceModals(null);
+
+  // 🔴 정적 셸의 _cdOpenPaidServiceGate 는 자체 선택창을 열기 직전에 PortOne SDK 를 예열해, 사용자가
+  // 카드를 읽는 동안 CDN 다운로드가 끝나 있게 한다. React 는 그 오케스트레이터를 타지 않고 이 모달을
+  // 직접 열므로, 같은 타이밍에 같은 예열을 걸어야 단건결제를 눌렀을 때 SDK 콜드 스타트가 없다.
+  // destiny-profile.js 가 아직 로드 전이면 함수가 없을 뿐이라 안전하게 no-op.
+  try {
+    const runtimeWindow = window as RuntimeApiWindow;
+    if (typeof runtimeWindow.__cdPreloadPortOneV2Sdk === "function") runtimeWindow.__cdPreloadPortOneV2Sdk();
+  } catch {}
 
   const opts = options || {};
   const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
@@ -1906,7 +1917,7 @@ export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | n
   if (typeof document === "undefined") return Promise.resolve(null);
   if (paidServiceRuntimePromise) return paidServiceRuntimePromise;
 
-  paidServiceRuntimePromise = new Promise((resolve) => {
+  const created: Promise<PaidServiceRuntimeGate | null> = new Promise((resolve) => {
     const finish = () => {
       installReactPaymentChoiceBridge();
       resolve(getPaidServiceRuntimeGate());
@@ -1915,7 +1926,10 @@ export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | n
     if (existing) {
       existing.addEventListener("load", finish, { once: true });
       existing.addEventListener("error", () => resolve(null), { once: true });
-      window.setTimeout(finish, 1200);
+      // 🔴 PortOne SDK 프리로더(destiny-profile.js _dpPortOneV2SdkPromise)와 같은 8초 예산으로 맞춘다.
+      // destiny-profile.js 자체도 ~400KB라, 예전 1200ms는 첫 로드·모바일 네트워크에서 정상 진행 중인
+      // 로드마저 "실패"로 오판해 결제 게이트를 조용히 unavailable 로 확정시켰다(PG창이 안 뜨는 원인).
+      window.setTimeout(finish, 8000);
       return;
     }
 
@@ -1928,7 +1942,14 @@ export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | n
     document.head.appendChild(script);
   });
 
-  return paidServiceRuntimePromise;
+  paidServiceRuntimePromise = created;
+  // 실패(null)로 끝난 시도는 캐시에 남기지 않는다 — SDK 프리로드 캐시와 동일한 자기치유 패턴.
+  // 남기면 한 번의 타임아웃/네트워크 실패가 그 페이지 세션 내내 결제 게이트를 영구 unavailable 로 고정한다.
+  created.then((gate) => {
+    if (!gate && paidServiceRuntimePromise === created) paidServiceRuntimePromise = null;
+  });
+
+  return created;
 }
 
 function unwrapRuntimeGatePayload(result: RuntimePaidServiceGateResult | null | undefined) {

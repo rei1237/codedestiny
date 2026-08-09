@@ -559,6 +559,14 @@ async function checks(value) {
   const sourceFiles = lintTargets(value.files);
   if (sourceFiles.length) run("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
   run("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
+  // 🔴 로그인·결제는 무엇을 고쳤든 매 프리뷰마다 상시 회귀한다(risk level·deepRequired 와 무관, 사용자
+  // 명시 요청 2026-08-10). 계기: React 환경 단건결제 PG창 미노출 사고 — 원인 파일(billing-client.ts·
+  // destiny-profile.js)은 결제 경로가 아니어도 자주 함께 바뀌는 공용 런타임이라, "이 변경은 결제와
+  // 무관해 보인다"는 판단만으로는 놓칠 수 있다. deploy:critical(15개 스크립트) 전체를 매번 돌리면
+  // 무관한 변경도 느려지므로, 여기서는 로그인+결제 핵심만 가볍게 유지한다. deepRequired 경로가
+  // 걸리면 아래에서 deploy:critical 전체가 추가로 돈다(중복이 아니라 상위 게이트로 대체).
+  run("login+payment regression (always-on): worker auth/payments", npmCommand(), ["run", "test:worker:auth-payments"], { env });
+  run("login+payment regression (always-on): PortOne single-payment", npmCommand(), ["run", "verify:portone-single-payment"], { env });
   if (value.risk.level !== "low") run("core mock smoke tests", npmCommand(), ["run", "smoke:core"], { env });
   if (value.risk.level === "medium") run("Node regression tests", npmCommand(), ["run", "test:node"], { env });
   // deep 은 risk level 과 독립이다. 결제·인증·DB 스키마·배포 인프라는 preview 스모크가
