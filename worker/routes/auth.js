@@ -2177,6 +2177,18 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
     ...extra,
   }, { status });
   appendAuthCookies(response, request, env, accessToken, refreshToken);
+  // 🔴 힌트 쿠키는 세션 쿠키와 **한 세트로** 나가야 한다. 예전에는 이 공통 경로(로그인·회원가입)가
+  // appendAuthCookies 만 부르고, appendAuthRoleCookie 는 OAuth 콜백 한 곳에서만 호출됐다.
+  //
+  // 그래서 이메일/비밀번호로 로그인하면 httpOnly 세션 쿠키는 멀쩡히 발급되는데 힌트가 없었고,
+  // 클라이언트는 힌트가 없으면 **서버에 묻지도 않고** 게스트로 단정한다
+  // (app/_lib/user-session-cache.ts 의 no_auth_hint 단축 · 셸의 __cdHasAuthToken).
+  // 결과: 세션이 살아 있는데 화면은 로그아웃 상태로 렌더된다. 평소에는 React 가 로그인 직후
+  // localStorage 를 채워 가려졌지만, 그 쓰기가 없거나 늦은 진입(리다이렉트 직후 새 문서, 프로그램적
+  // 로그인, 저장소 차단 브라우저)에서는 그대로 드러났다.
+  //
+  // 힌트를 서버가 발급하면 추측할 일이 없어진다 — 세션이 있으면 힌트도 있고, 함께 만료된다.
+  appendAuthRoleCookie(response, request, env, user);
   return response;
 }
 
@@ -2201,6 +2213,9 @@ async function createLocalDevAuthSuccessResponse(request, env, user, status = 20
   }, { status });
 
   appendAuthCookies(response, request, env, accessToken, refreshToken);
+  // 프로덕션 경로(createAuthSuccessResponse)와 같은 이유로 힌트 쿠키를 함께 발급한다 —
+  // 로컬에서만 "세션은 있는데 게스트로 보이는" 상태가 재현되면 디버깅이 헛돈다.
+  appendAuthRoleCookie(response, request, env, user);
   return response;
 }
 
