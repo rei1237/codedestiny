@@ -533,10 +533,10 @@ for (const entry of waitUiAllowLists) {
   const literal = entry.source.match(new RegExp(`${entry.name}\\s*=\\s*(/[^\\n]+/)\\s*;`))?.[1];
   assert.ok(literal, `${entry.label}: ${entry.name} 정규식 리터럴을 찾지 못했다`);
   const allowed = new Function(`return ${literal};`)();
-  for (const mode of ["pass", "monthly", "pass-applied", "payment-complete", "payment-failed"]) {
+  for (const mode of ["pass", "monthly", "card", "pass-applied", "payment-complete", "payment-failed"]) {
     assert.ok(allowed.test(mode), `${entry.label}: ${mode} 는 표시되어야 한다`);
   }
-  for (const mode of ["payment", "checkout", "card", "confirm", "subscription"]) {
+  for (const mode of ["payment", "checkout", "confirm", "subscription"]) {
     assert.ok(!allowed.test(mode), `${entry.label}: ${mode} 대기 화면은 차단되어야 한다`);
   }
 }

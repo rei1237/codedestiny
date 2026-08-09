@@ -421,9 +421,11 @@ type PaymentOverlayWindow = Window & {
 // verify:payment-choice-parity 가 동일성을 강제한다. 새 억제 창·타이머는 만들지 않는다.
 const REACT_TERMINAL_OVERLAY_MODE_RE = /payment-complete|pass-applied|payment-failed|refund|unlock-saving|confirm/;
 // 🔴 전체화면 대기/결과 오버레이 허용목록 — 셸 `CD_WAIT_UI_ALLOWED_MODE_RE` 의 거울.
-// 진행 중 표시는 이용권 확인('pass') 하나뿐이고 나머지는 결과 표시만 통과한다. 셸이 없는 Next
-// 라우트에는 정본이 없으므로 여기서 같은 규칙을 세운다(값이 갈리면 verify 가드가 잡는다).
-const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
+// 진행 중 표시는 이용권 확인('pass')·월정석('monthly')·단건 결제 준비('card', 2026-08-10 추가)만
+// 통과하고 나머지는 결과 표시만 통과한다. 셸이 없는 Next 라우트에는 정본이 없으므로 여기서 같은
+// 규칙을 세운다(값이 갈리면 verify 가드가 잡는다). 'card'도 아래 440행의 선택창-노출 검사를 그대로
+// 통과해야 하므로 선택창이 떠 있는 동안에는 여전히 막힌다.
+const REACT_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|card|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
 function isPaymentWaitUiBlocked(mode: string) {
   if (typeof window === "undefined") return false;
   const shellVerdict = (window as PaymentOverlayWindow).__cdPaymentWaitUiBlocked;

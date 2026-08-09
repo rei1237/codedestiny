@@ -448,8 +448,10 @@ function runPreCheckoutWaitUiAndArtWeightTests() {
   // 안에만 있었고, React Provider 가 그 함수를 자기 렌더러로 갈아치우는 탓에 셋 다 우회돼
   // 결제창 위에 대기 오버레이가 겹쳤다.
   assertContains(indexSource, "function _cdPaymentWaitUiBlocked(mode) {", "wait-UI block verdict must live in one shared function");
-  assertContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|", "pass and monthly wait UI must be allowed");
-  assertNotContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|card|", "direct-card wait UI must remain blocked");
+  // 2026-08-10: 사용자가 실제로 단건을 고른 뒤(선택창이 닫힌 뒤)에는 같은 진행 화면을 보여주도록
+  // 정책이 바뀌었다 — ①②③(고르기 전·선택창 노출 중·PG창 노출 중) 억제는 그대로이므로 정책 변경이
+  // 안전하다는 건 pass-wait-overlay.behavior.test.js 가 실행 기반으로 확인한다.
+  assertContains(indexSource, "var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|card|", "pass, monthly, and card wait UI must be allowed");
   assertContains(indexSource, "window.__cdPaymentWaitUiBlocked = _cdPaymentWaitUiBlocked;", "block verdict must be shared with dp/React");
   assertContains(indexSource, "if (isOpen && _cdPaymentWaitUiBlocked(mode)) return;", "shell overlay must honour the shared block verdict");
   assertContains(destinyProfileSource, "window.__cdPaymentWaitUiBlocked(mode)) return;", "dp overlay must honour the shared block verdict");

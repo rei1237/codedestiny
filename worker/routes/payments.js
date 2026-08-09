@@ -3661,11 +3661,13 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
       // sort 를 넘겨야 종전 .sort({createdAt:-1}) 의 "최신 우선" 의미가 유지된다(인덱스 생성 전 중복 행 대비).
       // $setOnInsert 에는 필터 3키를 넣지 않는다 — Mongo 가 필터 등식을 삽입 문서에 적용하므로 충돌한다.
       const { userId: _f1, idempotencyKey: _f2, paymentType: _f3, ...insertOnly } = paymentDoc;
-      const upserted = await Payment.findOneAndUpdate(
+      // 🔴 handleSubscriptionPrepare(3770/3822행)와 달리 이 세 Mongo 호출만 withMongoRetry 없이
+      // 직접 나갔다 — DB 일시 지연이 재시도 없이 그대로 503으로 터졌다(단건 결제 특유의 실패 신고와 일치).
+      const upserted = await withMongoRetry(env, () => Payment.findOneAndUpdate(
         { userId: auth.userId, idempotencyKey, paymentType: "digital_content" },
         { $setOnInsert: insertOnly },
         { upsert: true, new: true, includeResultMetadata: true, sort: { createdAt: -1 } },
-      );
+      ));
       const insertedNow = upserted?.lastErrorObject?.updatedExisting === false;
       const doc = upserted?.value || null;
       // 기존 행을 만난 경우($setOnInsert 는 no-op) 멱등 응답 또는 409.
@@ -3673,21 +3675,21 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
     } else {
       // 🔴 키가 없으면 upsert 를 쓰면 안 된다. 유니크 부분 인덱스는 idempotencyKey: "" 를 덮지 않으므로
       // 이 사용자의 키 없는 모든 prepare 가 한 문서로 접혀 버린다.
-      await Payment.create(paymentDoc);
+      await withMongoRetry(env, () => Payment.create(paymentDoc));
     }
   } catch (error) {
     if (Number(error?.code) !== 11000) throw error;
     // 동시 요청이 같은 키로 동시에 insert 를 시도하면 진 쪽이 E11000 을 받는다. 그때만 한 번 더 읽어
     // 기존 주문을 그대로 돌려준다. 예전에는 이 분기가 없어(구독 핸들러엔 있었다) 동시 요청이
     // order 없는 409 로 죽었고, 클라는 그걸 복구할 방법이 없었다.
-    const existing = await Payment.findOne({
+    const existing = await withMongoRetry(env, () => Payment.findOne({
       userId: auth.userId,
       paymentType: "digital_content",
       $or: [
         { merchantUid },
         ...(idempotencyKey ? [{ idempotencyKey }] : []),
       ],
-    }).sort({ createdAt: -1 }).lean();
+    }).sort({ createdAt: -1 }).lean());
     if (!existing) throw error;
     return buildIdempotentResponse(existing);
   }
