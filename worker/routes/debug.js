@@ -138,23 +138,18 @@ async function handleUserExists(request, env) {
 
   await connectDb(env);
 
+  // 내부 ID/role/가입일은 응답에 담지 않는다 — DEBUG_MODE 하나에만 기대는 이 라우트가
+  // 그 필드들까지 새면 프로덕션에서 열거 공격의 가치가 커진다. 존재 여부만으로 충분한
+  // 용도(scripts/test-signup.mjs 등)만 지원한다.
   const user = await User.collection.findOne(
     { email },
-    { projection: { _id: 1, email: 1, role: 1, joinedAt: 1 }, maxTimeMS: 5000 },
+    { projection: { _id: 1 }, maxTimeMS: 5000 },
   );
 
   return json({
     ok: true,
     email,
     exists: Boolean(user),
-    user: user
-      ? {
-          id: String(user._id),
-          email: String(user.email || email),
-          role: String(user.role || "user"),
-          joinedAt: user.joinedAt || null,
-        }
-      : null,
   });
 }
 
