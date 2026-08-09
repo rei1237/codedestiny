@@ -1626,50 +1626,76 @@ function buildFallbackDateContext(input, reason) {
   }
 }
 
+var _cdPrimaryCalendarContextInflight = new Map();
+
+function _cdPrimaryCalendarContextKey(norm, options) {
+  return JSON.stringify({
+    calendarType: norm.calendarType,
+    year: norm.year, month: norm.month, day: norm.day,
+    hour: norm.hour, minute: norm.minute, second: norm.second,
+    latitude: norm.latitude, longitude: norm.longitude, tzOffsetHours: norm.tzOffsetHours,
+    setCurrent: !!(options && options.setCurrent), localOnly: !!(options && options.localOnly)
+  });
+}
+
 async function resolvePrimaryCalendarContext(input, options) {
   options = options || {};
   var norm = Object.assign({}, input || {});
   norm.calendarType = normalizeCalendarTypeInput(norm.calendarType || norm.calType || 'solar');
 
-  var hasCompleteCalendar = function(ctx) {
-    return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
-  };
+  // 스킬트리·애니멀토템·자미 등 여러 위젯이 같은 프로필의 같은 날짜 컨텍스트를 거의 동시에
+  // 요청하는 경우가 많다. _fetchKasi 는 kasi API 메서드 단위로만 캐싱해 이 함수가 묶어서 부르는
+  // 여러 메서드 호출 전체를 아우르지 못하므로, 여기서 한 단계 위(호출 단위)로 in-flight 를 공유한다.
+  var inflightKey = _cdPrimaryCalendarContextKey(norm, options);
+  var inflight = _cdPrimaryCalendarContextInflight.get(inflightKey);
+  if (inflight) return inflight;
 
-  var ctx = await resolveKasiDateContextSafe(norm, options || {});
-  var isValid = hasCompleteCalendar(ctx);
-  if (isValid) {
-    ctx = repairGanjiContextFromLocal(ctx, norm);
-    try {
-      if (KasiEngine && typeof KasiEngine.registerCalendarReference === 'function') {
-        KasiEngine.registerCalendarReference({
-          solar: {
-            year: ctx.solar.year,
-            month: ctx.solar.month,
-            day: ctx.solar.day
-          },
-          lunar: {
-            year: ctx.lunar.year,
-            month: ctx.lunar.month,
-            day: ctx.lunar.day,
-            isLeap: !!ctx.lunar.isLeap
-          },
-          source: 'kasi_primary'
-        });
+  var task = (async function() {
+    var hasCompleteCalendar = function(ctx) {
+      return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
+    };
+
+    var ctx = await resolveKasiDateContextSafe(norm, options || {});
+    var isValid = hasCompleteCalendar(ctx);
+    if (isValid) {
+      ctx = repairGanjiContextFromLocal(ctx, norm);
+      try {
+        if (KasiEngine && typeof KasiEngine.registerCalendarReference === 'function') {
+          KasiEngine.registerCalendarReference({
+            solar: {
+              year: ctx.solar.year,
+              month: ctx.solar.month,
+              day: ctx.solar.day
+            },
+            lunar: {
+              year: ctx.lunar.year,
+              month: ctx.lunar.month,
+              day: ctx.lunar.day,
+              isLeap: !!ctx.lunar.isLeap
+            },
+            source: 'kasi_primary'
+          });
+        }
+      } catch (e) {
+        console.warn('[KASI] local engine sync failed:', e && e.message ? e.message : e);
       }
-    } catch (e) {
-      console.warn('[KASI] local engine sync failed:', e && e.message ? e.message : e);
+      return ctx;
     }
-    return ctx;
-  }
 
-  var fallbackCtx = buildFallbackDateContext(norm, ctx ? 'KASI_CONTEXT_INVALID' : 'KASI_CONTEXT_UNAVAILABLE');
-  if (hasCompleteCalendar(fallbackCtx)) {
-    return repairGanjiContextFromLocal(fallbackCtx, norm);
-  }
+    var fallbackCtx = buildFallbackDateContext(norm, ctx ? 'KASI_CONTEXT_INVALID' : 'KASI_CONTEXT_UNAVAILABLE');
+    if (hasCompleteCalendar(fallbackCtx)) {
+      return repairGanjiContextFromLocal(fallbackCtx, norm);
+    }
 
-  var err = new Error('KASI 기준 음양력/절기 데이터를 확인할 수 없습니다.');
-  err.code = ctx ? 'KASI_CONTEXT_INVALID' : 'KASI_CONTEXT_UNAVAILABLE';
-  throw err;
+    var err = new Error('KASI 기준 음양력/절기 데이터를 확인할 수 없습니다.');
+    err.code = ctx ? 'KASI_CONTEXT_INVALID' : 'KASI_CONTEXT_UNAVAILABLE';
+    throw err;
+  })();
+
+  _cdPrimaryCalendarContextInflight.set(inflightKey, task);
+  return task.finally(function() {
+    _cdPrimaryCalendarContextInflight.delete(inflightKey);
+  });
 }
 
 async function getActualSolarDateWithContext(dateStr, typeStr, options) {

@@ -7129,7 +7129,13 @@
     _dpLevelBootDone = true;
     _dpNoteLocalLevelUp(_cdLevelAward('checkin', _cdLevelKstDate(0)));
     _cdLevelSyncWhenIdle();
-    window.addEventListener('cd:auth-changed', function() {
+    window.addEventListener('cd:auth-changed', function(event) {
+      var detail = event && event.detail || {};
+      var source = String(detail.source || '').toLowerCase();
+      // coin-api-auth 는 세션 하트비트가 인증 상태를 재확인할 때마다 쏘는 echo 다(실제 변화가
+      // 아니다) — 이걸로 rpg 진행도까지 쿨다운 무시하고 강제 재조회하면 하트비트 주기마다
+      // /api/rpg/progress 가 불필요하게 재발화한다. 실제 로그인/로그아웃 등 다른 소스는 그대로 즉시 동기화한다.
+      if (source === 'coin-api-auth') return;
       _cdLevelSync({ force: true }).then(function() { _dpRefreshLevelStrip(); });
     });
     /* 유료 기능이 해금·열람되면 보너스 EXP. 결제 경로는 건드리지 않고 이벤트만 듣는다. */
