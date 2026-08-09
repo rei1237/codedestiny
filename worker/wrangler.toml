@@ -40,12 +40,16 @@ NODE_ENV = "production"
 ACCESS_STATE_ENABLED = "true"
 # 관리자 인증을 통과한 마케팅 월정석 예외 지급 UI/API를 운영에서 활성화한다.
 ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
-# Guardian Fortune uses the API-backed production flow with mock LLM only.
+# Guardian Fortune uses the API-backed production flow with the real Gemini LLM
+# (GUARDIAN_FORTUNE_LLM_PROVIDER gates worker/lib/guardian-fortune-llm-policy.js;
+# without it the real-LLM flags below are necessary but not sufficient and the
+# route silently falls back to the mock generator).
 ENABLE_GUARDIAN_FORTUNE_API = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
 ENABLE_GUARDIAN_FORTUNE_CREDITS = "true"
 ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "true"
 ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "true"
+GUARDIAN_FORTUNE_LLM_PROVIDER = "gemini"
 # Fusion Fortune stays fail-closed until the separate sales, API, and real-LLM
 # activation checklist has been approved and completed in production.
 ENABLE_FUSION_FORTUNE_UI = "true"
