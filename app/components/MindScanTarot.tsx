@@ -6,7 +6,7 @@ import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 const MIND_SCAN_TAROT_TEXT_TRANSLATIONS = {

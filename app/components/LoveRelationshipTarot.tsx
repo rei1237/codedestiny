@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { useAiProfileSeed } from "../../hooks/useAiProfileSeed";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
 import { authFetch } from "../../_lib/auth-client";

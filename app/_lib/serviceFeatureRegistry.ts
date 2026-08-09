@@ -1,5 +1,9 @@
-import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
+import { lookupServerCoinPrice } from "./serviceCoinPrice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+
+// 가격 조회만 필요한 클라이언트는 ./serviceCoinPrice 를 직접 import 할 것.
+// 여기서 가져오면 아래 12로케일 카피 표(약 9,000줄)까지 번들에 실린다.
+export { lookupServerCoinPrice };
 
 export type FeatureAccessType = "free" | "login_required" | "paid" | "premium_report";
 
@@ -49,16 +53,6 @@ export type ServiceFeature = {
 export const DEFAULT_SERVICE_IMAGE = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 
 const stableServiceAsset = (publicPath: string) => getAssetUrlFromPublicPath(publicPath);
-
-type PriceSpec = { cost?: number };
-
-export function lookupServerCoinPrice(featureKey?: string): number | undefined {
-  if (!featureKey) return undefined;
-  const normalized = normalizePaidFeatureKey(featureKey);
-  const direct = (FEATURE_KEY_PRICE_TABLE as Record<string, PriceSpec>)[normalized] || (FEATURE_KEY_PRICE_TABLE as Record<string, PriceSpec>)[featureKey];
-  const value = Number(direct?.cost);
-  return Number.isFinite(value) && value >= 0 ? value : undefined;
-}
 
 function withServerPrice(feature: ServiceFeature): ServiceFeature {
   const coinPrice = feature.coinPrice ?? lookupServerCoinPrice(feature.featureKey);

@@ -7,7 +7,7 @@ import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
-import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import {
   buildLocalizedRecommendedQuestionsForSpread,
   DIFFICULTY_LABEL,
