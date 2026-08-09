@@ -90,9 +90,15 @@ function renderCase(options) {
 function assertCommonHealthReport(html, label) {
   assert(html.includes('명리 헬스 리포트'), `${label}: title missing`);
   assert(html.includes('달빛 웰니스 클리닉'), `${label}: moon wellness UI missing`);
-  assert(html.includes('rounded-2xl'), `${label}: card radius class missing`);
-  assert(html.includes('backdrop-blur'), `${label}: glassmorphism class missing`);
-  assert(html.includes('text-sm') && html.includes('leading-6'), `${label}: mobile text rhythm classes missing`);
+  // 카드 계층 계약: 표면을 갖는 것은 챕터 5개뿐이고, 그 안의 소제목은 투명해야 한다.
+  // 예전 단언(rounded-2xl / backdrop-blur / text-sm)은 다크 네온 테마 시절의 Tailwind 잔재를
+  // 강제했는데, 그 클래스들은 인라인 CSS 가 전부 덮어써서 화면에 아무 영향이 없는 구현 세부였다.
+  // 그래서 "겹쳐 보이는 카드"를 하나도 막지 못했다. 실제 계약으로 바꾼다.
+  assert((html.match(/class="cd-health-chapter"/g) || []).length === 5, `${label}: expected exactly 5 chapters`);
+  assert((html.match(/class="cd-health-dial__row"/g) || []).length === 5, `${label}: element-organ dial must list all 5 elements`);
+  assert(!/class="cd-health-section [^"]/.test(html), `${label}: subsection must stay surfaceless (no extra classes)`);
+  // 다크 네온 테마 잔재가 되돌아오면 CSS 가 다시 !important 로 덮기 시작한다.
+  assert(!/bg-slate-950|text-indigo-|backdrop-blur/.test(html), `${label}: dark-neon theme remnants returned`);
   assert(!html.includes('undefined'), `${label}: rendered undefined`);
   assert(!html.includes('NaN'), `${label}: rendered NaN`);
   assert(!/(진단합니다|질환입니다|치료 처방|약물|AST\/ALT|간수치)/.test(html), `${label}: medical wording leaked`);
