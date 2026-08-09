@@ -14,6 +14,13 @@
  *
  * 🔴 이 테스트는 env 를 **설정하지 않는다** — 프로덕션 기본값을 그대로 검증하기 위해서다.
  * wrangler.toml 에 MONGO_MAX_IN_FLIGHT_OPS 가 없으므로 db.js 의 기본값이 곧 프로덕션 값이다.
+ *
+ * 🔴 2026-08-09 — 이 가드가 **한 번 뚫렸다.** 당시 팬아웃 상수(5)와 한도 기본값(5)이 같아
+ * 여유가 0 이었는데, 테스트는 "5개가 들어간다"만 보고 있어서 통과했다. 그 상태에서 6ab597c0b 가
+ * resolveActiveUserAuth 의 요청 간 dedup 을 제거하자(= 같은 라우트 중복이 더 이상 슬롯 1개로
+ * 접히지 않음) 실제 팬아웃이 한도를 넘어섰고, 프로덕션 로그인 사용자가 503 과 "로그인이 필요합니다" 를
+ * 동시에 받았다. 상수는 손으로 유지하는 값이라 드리프트를 완전히 막을 수 없으므로,
+ * **여유가 존재한다는 것 자체**(한도 > 팬아웃)를 아래에서 따로 단언한다. 두 값을 다시 같게 만들지 말 것.
  */
 
 import { jest } from "@jest/globals";
@@ -45,10 +52,16 @@ test("default admission limit admits a full entry fan-out without rejecting", as
 
   const releasers = [];
   const inFlight = [];
-  // 로그인 사용자 1명 진입의 실제 동시 op 수(auth/me 1 + profile 2 + access-state 1 + rate-limit 1).
-  const ENTRY_FANOUT_OPS = 5;
+  // 로그인 사용자 1명(1탭) 진입의 실제 동시 op 수. withMongoRetry 로 감싼 호출만 슬롯을 먹는다:
+  //   /api/auth/me 1 · /api/profile 1 · /api/me/access-state 1 · /api/billing/balance 1(내부 직렬 2)
+  //   · /api/subscription/status 1 · rate-limit AbuseScore 1(별도 레인이지만 같은 게이트를 통과)
+  const ENTRY_FANOUT_OPS = 6;
+  // 🔴 팬아웃을 딱 맞게 받는 것으로는 부족하다 — 그게 이번 사고의 형태였다. 한 칸 더 들어가는지까지
+  // 확인해 "한도 > 팬아웃"(여유 ≥ 1)을 고정한다. 기본값을 팬아웃과 같게 되돌리면 여기서 실패한다.
+  const HEADROOM_PROBE_OPS = 1;
+  const TOTAL_OPS = ENTRY_FANOUT_OPS + HEADROOM_PROBE_OPS;
 
-  for (let i = 0; i < ENTRY_FANOUT_OPS; i += 1) {
+  for (let i = 0; i < TOTAL_OPS; i += 1) {
     inFlight.push(withMongoRetry(
       env,
       () => new Promise((resolve) => { releasers.push(resolve); }),
@@ -59,10 +72,10 @@ test("default admission limit admits a full entry fan-out without rejecting", as
   // admission 타임아웃(300ms)보다 넉넉히 기다린다 — 거절될 것이었으면 이미 거절됐다.
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  expect(releasers).toHaveLength(ENTRY_FANOUT_OPS);
+  expect(releasers).toHaveLength(TOTAL_OPS);
 
   releasers.forEach((resolve) => resolve({ ok: true }));
-  await expect(Promise.all(inFlight)).resolves.toHaveLength(ENTRY_FANOUT_OPS);
+  await expect(Promise.all(inFlight)).resolves.toHaveLength(TOTAL_OPS);
 });
 
 test("a low-limit waiter does not head-of-line block higher-limit waiters", async () => {

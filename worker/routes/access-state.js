@@ -282,18 +282,17 @@ export async function handleAccessStateRoutes(request, env) {
       }, { status: 504, headers: degradedHeaders(request, "db-op-timeout") }), errorType);
     }
     if (isAuthDbInfraError(error) || isDbUnavailableError(error)) {
-      if (userId) {
-        return finish(responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_UNAVAILABLE"), true, request), errorType);
-      }
-      return finish(json({
-        ok: false,
-        code: "ACCESS_STATE_UNAVAILABLE",
-        error: buildApiError({ code: "ACCESS_STATE_UNAVAILABLE", retryable: true, message: "접근 상태를 잠시 확인할 수 없습니다.", requestId }),
-        requestId,
-        degraded: true,
-        retryable: true,
-        message: "접근 상태를 잠시 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      }, { status: 503, headers: degradedHeaders(request, "db") }), errorType);
+      // 🔴 userId 유무로 갈라 맨 503 을 내지 않는다. 여기의 userId 는 peekAccessTokenUserId 가
+      // **액세스 JWT 만** 보고 뽑은 값이고(DB 없음), 액세스 토큰 수명은 30분인데 리프레시는 14일이다.
+      // 즉 30분 지난 정상 로그인 사용자는 HttpOnly 리프레시 쿠키만 들고 있어 userId 가 "" 이 되고,
+      // 바로 위 분기가 주려던 우아한 degraded-200 대신 맨 503 을 받았다(로그인했는데 화면이 깨지는 증상).
+      //
+      // 진짜 게스트는 이 분기에 닿지 않는다 — 토큰이 없으면 requireUserFromRequest 가 401 을 던지고
+      // isAuthDbInfraError 가 그걸 걸러내 아래 handleRouteError(=401)로 간다. 284행에 오는 것은
+      // '토큰은 있었는데 DB 가 실패한' 요청뿐이므로, 신원 미상이어도 degraded 로 답하는 편이 맞다.
+      // buildDegradedAccessState 는 빈 userId 를 이미 처리하고 completeness:"degraded"/authority:"none"
+      // 을 달아서, 클라이언트가 이걸 '이용권 미보유 확정' 으로 오독할 수 없다.
+      return finish(responseFor(buildDegradedAccessState(userId, profileId, "ACCESS_STATE_UNAVAILABLE"), true, request), errorType);
     }
     return finish(handleRouteError(error, { env, request, trace }), errorType);
   }

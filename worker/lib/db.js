@@ -98,23 +98,36 @@ function releaseMongoOperationSlot() {
   drainMongoOperationWaiters();
 }
 
-// 🔴 기본값 3 → 5 (2026-08-08). 게이트가 자기가 보호하려는 자원(maxPoolSize=5)보다 엄격해서,
-// 풀이 처리할 수 있는 작업을 게이트가 먼저 거절하고 있었다.
+// 🔴 기본값 5 → 8 (2026-08-09). 5 는 **요청 간 auth dedup 이 있다는 전제**에서 나온 숫자였고,
+// 그 전제가 사라졌다.
 //
-// 프로덕션 실측(wrangler tail, 요청 13건): `[db-op-admission] {"limit":3,"active":3,"queued":2}` 가
-// 5회 나왔다 — DB 장애가 아니라 **평상시 진입 팬아웃**만으로 포화된다. 로그인 사용자 1명의 진입이
-// /api/auth/me + /api/profile(직렬 2 op) + /api/me/access-state + 구독/이용권 조회를 동시에 쏘고,
-// 여기에 rate-limit 이 AbuseScore 쓰기까지 같은 슬롯을 먹는다.
+// 경위: 6ab597c0b 가 resolveActiveUserAuth 의 in-flight dedup(globalThis 캐시)을 제거했다.
+// Cloudflare Workers 가 요청 간 Promise continuation 을 금지하기 때문에 제거 자체는 옳았다.
+// 그런데 그 dedup 은 Mongo read 만 합친 게 아니라 **admission 슬롯도 합치고 있었다** — 같은
+// 라우트를 셸과 React 가 각각 찌르던 중복이 슬롯 1개로 접히던 것이 이제 각각 1개씩 먹는다.
+// 한도는 그대로 5 인 채 팬아웃만 늘어, 배포 32a78e702 직후 로그인 사용자가 503 과
+// "로그인이 필요합니다" 를 동시에 받았다(같은 원인의 두 갈래 — worker/lib/auth.js 참고).
+//
+// 실측 진입 팬아웃(withMongoRetry 로 감싼 호출만 슬롯을 먹는다):
+//   /api/auth/me 1 · /api/profile 1 · /api/me/access-state 1 · /api/billing/balance 1(직렬 2)
+//   · /api/subscription/status 1  → 1인 1탭 피크 5~6. rate-limit 은 별도 레인(maxConcurrent 2).
+// 한도 5 에서는 5~6번째가 2500ms 대기 후 죽는다.
 //
 // 이 거절이 특히 나쁜 이유는 **재시도되지 않는다**는 것이다. MongoWaitQueueTimeoutError 는
 // transient 로 분류돼 재시도되지만(아래 isTransientMongoError), MongoOperationOverloadedError 는
 // withMongoRetry 에서 명시적으로 재시도 제외라 그대로 503 이 된다. 즉 게이트가 **복구 가능한 대기를
-// 복구 불가능한 503 으로 바꾸고 있었다.** 5 로 올리면 대기는 풀의 waitQueue(5s 상한, 재시도 대상)로
+// 복구 불가능한 503 으로 바꾼다.** 8 로 올리면 대기는 풀의 waitQueue(5s 상한, 재시도 대상)로
 // 옮겨간다 — 그게 원래 있어야 할 자리다.
 //
+// ⚠️ 8 은 1인 기준 처방이지 구조적 해결이 아니다. 동시 진입 사용자가 2명이면 다시 넘는다.
+// 근본 처방은 한도를 계속 올리는 게 아니라 **auth 를 각자 다시 푸는 진입 엔드포인트 수를 줄이는 것**이다
+// (docs/DEBUGGING_GUIDE.md: "정상 로그인 홈 진입은 GET /api/me/access-state 1회").
+//
 // maxPoolSize 는 5 로 유지한다. 전역 연결 = 아이솔레이트 수 × poolSize 이고 Atlas M0 상한이 500 이라
-// 근거 없이 올리지 않는다(아래 connectDb 주석 참고). 올리려면 `[db-connect-error]` 가 0 인 것을 먼저 볼 것.
-const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "5";
+// 근거 없이 올리지 않는다(아래 connectDb 주석 참고). 올리려면 `[db-connect-error]` 가 0 인 것을 먼저 볼 것 —
+// 지금 한도(8) > 풀(5) 이라 초과분은 waitQueue 로 가며, 그 대기가 리셋을 유발하지 않도록
+// withMongoRetry 의 isConnectionLevelFailure 에서 MongoWaitQueueTimeoutError 를 제외해 뒀다(한 세트다).
+const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "8";
 // 1500ms 는 콜드 핸드셰이크 중앙값(1497ms)보다 짧았다 — 연결 하나 세우는 시간도 못 기다렸다는 뜻이다.
 // 예산 검산: 2500(admission) + 5000(waitQueue) + 쿼리 ≈ 8s < 11.5s(시도 상한 하한). 여유 있다.
 const MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT = "2500";
@@ -126,7 +139,8 @@ async function acquireMongoOperationSlot(env, options = {}) {
       : getEnv(env, "MONGO_MAX_IN_FLIGHT_OPS", MONGO_MAX_IN_FLIGHT_OPS_DEFAULT),
     Number(MONGO_MAX_IN_FLIGHT_OPS_DEFAULT),
     1,
-    8,
+    // 상한은 기본값보다 커야 한다 — 같으면 env 노브가 아래로만 움직여 긴급 상향을 못 한다.
+    12,
   );
   const waitTimeoutMS = clampTimeoutMs(
     options.admissionTimeoutMS != null
@@ -725,8 +739,20 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // 잡히지 않아 과거엔 리셋 없이 throw됐고, 죽은 웜 커넥션이 stateless Worker 아이솔레이트에 잔존해
         // 그 아이솔레이트로 가는 모든 유료/인증 요청을 계속 11.5s hang→503/500으로 만들었다(지속성의 원인).
         const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
-        const isConnectionLevelFailure = (isOperationTimeout && resetOnOperationTimeout)
-          || isTransientMongoError(error);
+        // 🔴 대기열 타임아웃은 '연결이 죽었다'가 아니라 '풀이 바쁘다'는 신호다 — 리셋 대상이 아니다.
+        // admission 한도(8) > maxPoolSize(5) 라 초과분이 드라이버 waitQueue 로 가고, 거기서 나는
+        // MongoWaitQueueTimeoutError 는 isTransientMongoError 에 포함돼 있다. 이걸 연결 레벨 실패로
+        // 세면 consecutiveConnectionFailures 가 올라가 3회에 forceReset → 전역 disconnect 가 돌고,
+        // bufferCommands:false 라 그 순간 살아 있던 동시 요청까지 함께 죽는다. 즉 **포화가 전면 절단으로
+        // 번진다** — 위 MONGO_MAX_IN_FLIGHT_OPS 주석이 경고하는 "복구 가능한 대기를 복구 불가능한
+        // 실패로 바꾸는" 안티패턴 그 자체다. 한도를 풀 크기 위로 올린 것과 이 제외는 한 세트다.
+        //
+        // 재시도·상태코드는 건드리지 않는다: isTransientMongoError 자체는 그대로라 아래 willRetry 가
+        // 여전히 재시도하고, 라우트 계층의 503(재시도 가능) 매핑도 그대로다. 여기서 빠지는 것은
+        // '웜 커넥션 무효화 + 풀 리셋' 판정뿐이다.
+        const isWaitQueueTimeout = String(error?.name || "") === "MongoWaitQueueTimeoutError";
+        const isConnectionLevelFailure = !isWaitQueueTimeout
+          && ((isOperationTimeout && resetOnOperationTimeout) || isTransientMongoError(error));
         const willRetry = attempt < maxRetries
           && isTransientMongoError(error)
           && error?.name !== "MongoOperationOverloadedError";
