@@ -23,6 +23,18 @@ function getKstDateKey(value = Date.now()) {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+function maskEmail(value) {
+  const text = String(value || "");
+  const at = text.indexOf("@");
+  if (at <= 0) return "***";
+  const local = text.slice(0, at);
+  const domain = text.slice(at + 1);
+  const dot = domain.indexOf(".");
+  const domainHead = dot > 0 ? domain.slice(0, dot) : domain;
+  const domainTail = dot > 0 ? domain.slice(dot) : "";
+  return `${local[0] || ""}***@${domainHead[0] || ""}***${domainTail}`;
+}
+
 function isSameKstDate(value, dateKey = getKstDateKey()) {
   if (!value) return false;
   const date = value instanceof Date ? value : new Date(value);
@@ -396,7 +408,7 @@ export async function sendSingleFortune(env, sub, options = {}) {
     ).catch((error) => {
       trackingUpdated = false;
       trackingError = String(error?.message || "last_sent_update_failed").slice(0, 240);
-      console.error(`[EMAIL] Sent but failed to update daily fortune tracking for ${sub.email}:`, error);
+      console.error(`[EMAIL] Sent but failed to update daily fortune tracking for ${maskEmail(sub.email)}:`, error);
     });
 
     return {
@@ -439,17 +451,17 @@ export async function runDailyFortuneTask(env) {
 
   for (const sub of subscribers) {
     try {
-      console.log(`[CRON] Processing ${sub.email}...`);
+      console.log(`[CRON] Processing ${maskEmail(sub.email)}...`);
       const result = await sendSingleFortune(env, sub, { skipIfSentToday: true, todayKey });
       if (result.status === "skipped") {
         skippedCount += 1;
-        console.log(`[CRON] Skipped ${sub.email}: ${result.reason}`);
+        console.log(`[CRON] Skipped ${maskEmail(sub.email)}: ${result.reason}`);
         continue;
       }
       if (result.status === "error") {
         failedCount += 1;
         const mailErrorCode = String(result.errorCode || "daily_mail_failed").slice(0, 240);
-        console.error(`[CRON] Email send failed for ${sub.email}: ${mailErrorCode}`);
+        console.error(`[CRON] Email send failed for ${maskEmail(sub.email)}: ${mailErrorCode}`);
         await DailyFortuneSubscription.updateOne(
           { _id: sub._id },
           { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
@@ -457,10 +469,10 @@ export async function runDailyFortuneTask(env) {
         continue;
       }
       sentCount += 1;
-      console.log(`[CRON] Successfully sent ${sub.email}`);
+      console.log(`[CRON] Successfully sent ${maskEmail(sub.email)}`);
     } catch (err) {
       failedCount += 1;
-      console.error(`[CRON] Error processing subscriber ${sub.email}:`, err);
+      console.error(`[CRON] Error processing subscriber ${maskEmail(sub.email)}:`, err);
       await DailyFortuneSubscription.updateOne(
         { _id: sub._id },
         { $set: { lastMailError: String(err?.message || "daily_mail_failed").slice(0, 240), lastMailErrorAt: new Date() } }

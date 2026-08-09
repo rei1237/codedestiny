@@ -252,9 +252,13 @@ async function main() {
 
   console.log("[seed-test-users] completed");
   console.log(JSON.stringify(summary, null, 2));
-  console.log("[seed-test-users] plaintext passwords (print-once)");
-  for (const row of results) {
-    console.log(`${row.email} :: ${row.password}`);
+  if (process.env.CI) {
+    console.log("[seed-test-users] CI run detected — skipping plaintext password printout.");
+  } else {
+    console.log("[seed-test-users] plaintext passwords (print-once, local only)");
+    for (const row of results) {
+      console.log(`${row.email} :: ${row.password}`);
+    }
   }
 }
 
