@@ -96,12 +96,13 @@ async function connectDB() {
 
   const connectOptions = {
     dbName: process.env.MONGO_DB_NAME || undefined,
-    serverSelectionTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 5000,
     connectTimeoutMS: 15000,
     socketTimeoutMS: 20000,
     heartbeatFrequencyMS: 10000,
-    maxPoolSize: 5,
+    maxPoolSize: 10,
     bufferCommands: true,
+    autoIndex: process.env.NODE_ENV !== "production",
   };
 
   __cdConnectionPromise = mongoose.connect(mongoUri, connectOptions);

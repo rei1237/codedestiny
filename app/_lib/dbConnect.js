@@ -57,11 +57,12 @@ export async function dbConnect() {
 
   const dbName = (process.env.MONGO_DB_NAME || "").trim();
   const connectOptions = {
-    serverSelectionTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 20000,
     connectTimeoutMS: 10000,
-    maxPoolSize: 5,
+    maxPoolSize: 10,
     minPoolSize: 0,
+    autoIndex: process.env.NODE_ENV !== "production",
   };
   if (dbName) {
     connectOptions.dbName = dbName;

@@ -298,6 +298,14 @@ pointHistorySchema.index(
     },
   },
 );
+// consumption-check lookup used by worker/routes/ziwei-island-ai.js
+// ({userId, kind:"deduct", featureKey}, one call site also sorts by createdAt desc).
+// NOTE: db.js connects with autoIndex:false, so this declaration alone does not create the
+// index in production — run `npm run migrate:point-history-feature-lookup-index` once against the DB.
+pointHistorySchema.index(
+  { userId: 1, kind: 1, featureKey: 1, createdAt: -1 },
+  { name: "user_kind_feature_lookup" },
+);
 
 const monthlyCreditLedgerSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },

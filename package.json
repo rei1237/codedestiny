@@ -95,6 +95,8 @@
     "verify:fortune-chat-indexes": "node scripts/migrations/20260805-add-fortune-chat-indexes.mjs --check",
     "migrate:guardian-fortune-indexes": "node scripts/migrations/20260809-add-guardian-fortune-indexes.mjs",
     "verify:guardian-fortune-indexes": "node scripts/migrations/20260809-add-guardian-fortune-indexes.mjs --check",
+    "migrate:point-history-feature-lookup-index": "node scripts/migrations/20260810-add-point-history-feature-lookup-index.mjs",
+    "verify:point-history-feature-lookup-index": "node scripts/migrations/20260810-add-point-history-feature-lookup-index.mjs --check",
     "migrate:fix-ttl-index-drift": "node scripts/migrations/20260705-fix-ttl-index-drift.mjs",
     "migrate:monthly-credit-lot-expiry": "node scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs",
     "verify:mongo-launch-indexes": "node scripts/verify-mongo-launch-indexes.mjs",
