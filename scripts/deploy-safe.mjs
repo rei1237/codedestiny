@@ -497,6 +497,38 @@ async function openPreviewSignedIn(url) {
       console.log("[deploy-safe] signed in as " + email + " on the preview.");
     }
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+
+    // 🔴 로그인 HTTP 200 은 "화면이 로그인 상태로 뜬다"와 다른 이야기다. 세션 쿠키는 httpOnly 라
+    // 클라이언트가 못 읽고, 대신 힌트 쿠키(fortune_auth_role)를 보고 로그인 여부를 판단한다.
+    // 힌트가 없으면 클라이언트는 **서버에 묻지도 않고** 게스트로 단정한다
+    // (app/_lib/user-session-cache.ts 의 no_auth_hint 단축 · 셸의 __cdHasAuthToken).
+    //
+    // 2026-08-09 에 정확히 그 상태가 나갔다 — 서버가 로그인 응답에 힌트를 안 붙이던 시절이라
+    // 이 스크립트는 "signed in as ..." 를 찍는데 창은 로그아웃 화면이었다. 로그인 성공을
+    // **로그인 상태의 근거로 쓴 것**이 원인이었으므로, 이제 화면 쪽에서 확인한다.
+    const session = await page.evaluate(async () => {
+      const hint = /(^|;\s*)fortune_auth_role=/.test(document.cookie || "");
+      try {
+        // 캐시 우회 헤더를 줘서 클라이언트 세션 캐시가 아니라 서버 답을 받는다.
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+          headers: { "x-code-destiny-cache-refresh": "1" },
+        });
+        const payload = await response.json().catch(() => ({}));
+        return { hint, authenticated: payload?.authenticated === true };
+      } catch (error) {
+        return { hint, authenticated: false, error: String((error && error.message) || error) };
+      }
+    });
+    if (status >= 200 && status < 300 && !(session.hint && session.authenticated)) {
+      console.log(
+        "[deploy-safe] WARNING: login succeeded but the preview is not rendering signed in"
+        + " (hint cookie=" + session.hint + ", server session=" + session.authenticated + ")."
+      );
+      console.log("[deploy-safe] a missing hint cookie means the API this preview talks to does not issue fortune_auth_role on login (worker/routes/auth.js appendAuthRoleCookie).");
+    } else if (status >= 200 && status < 300) {
+      console.log("[deploy-safe] preview session verified: signed in and rendering as a logged-in user.");
+    }
     console.log("[deploy-safe] preview window is open: " + url);
     return browser;
   } catch (error) {
