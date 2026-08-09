@@ -98,10 +98,26 @@ test("헬퍼를 거치지 않은 오버레이는 결제창 위에서 여전히 �
   assert.equal(api.painted(), 0, "결제창 위로 임의 대기 화면이 뚫렸다");
 });
 
-test("단건 결제(card)는 헬퍼 경로로도 대기 화면을 얻지 못한다", () => {
+test("단건 결제(card)는 선택창이 닫힌 뒤(사용자가 이미 고른 뒤)에는 대기 화면을 얻는다", () => {
+  // 2026-08-10: 'card'가 허용목록에 추가됐다 — 결제수단을 고르기 전에 새던 과거 사고와 달리,
+  // 선택창이 이미 닫힌 뒤(_cdShowDirectPgWaitOverlay 가 실제로 부르는 시점)에는 통과해야 한다.
   const api = buildOverlayApi();
   api.raw("카드 결제 준비", "card");
-  assert.equal(api.painted(), 0, "단건 대기 화면 금지 규칙이 뚫렸다");
+  assert.equal(api.painted(), 1, "단건 결제 준비 화면이 뜨지 않았다");
+  assert.equal(api.last().mode, "card");
+});
+
+test("단건 결제(card)도 선택창·PG창이 떠 있는 동안에는 여전히 막힌다", () => {
+  // 허용목록(④)이 풀려도 ①②③ 억제는 그대로다 — 선택창을 가리거나 PG창 위에 겹치면 안 된다.
+  const api = buildOverlayApi();
+  api.set("choiceModal", true);
+  api.raw("카드 결제 준비", "card");
+  assert.equal(api.painted(), 0, "선택창이 떠 있는 동안 단건 대기 화면이 새어나갔다");
+
+  const api2 = buildOverlayApi();
+  api2.set("pgWindow", true);
+  api2.raw("카드 결제 준비", "card");
+  assert.equal(api2.painted(), 0, "PG 결제창 위로 단건 대기 화면이 겹쳤다");
 });
 
 test("PG 결제창이 열려 있는 동안에는 이용권 대기 화면도 막힌다", () => {

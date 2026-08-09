@@ -225,18 +225,21 @@ console.log("\n[6] 계측이 예외를 던져도 이용권 무료 통과는 그�
   check("계측이 터져도 'pass' 로 닫힌다", () => assert.equal(choice, "pass"));
 }
 
-// ── ⑦ 대기 화면은 이용권 확인에서만 뜬다 ──────────────────────────────────
+// ── ⑦ 대기 화면은 허용된 모드에서만 뜬다 ──────────────────────────────────
 // 2026-08 신고: 유료 기능을 누르면 결제창 대신 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드
-// 결제를 준비 중이에요' 전체화면이 떴다. 정책은 "진행 중 표시는 이용권/월정석 결과 준비에서만"이다.
+// 결제를 준비 중이에요' 전체화면이 떴다 — 결제수단을 고르기도 전에 새던 것이 문제였다.
+// 2026-08-10: 사용자가 결제수단 선택창에서 '단건'을 실제로 고른 뒤에는 같은 UI로 진행 화면을
+// 보여주도록 정책을 바꿨다(_cdShowDirectPgWaitOverlay). 여전히 막아야 하는 건 "고르기 전에 새는 것"과
+// "선택창·PG창 위에 겹치는 것"이지, "단건에는 진행 화면이 있으면 안 된다"가 아니다.
 // 독립 정적 환경의 집행 지점(window._cdSetCoinGateOverlay 심)을 실제로 눌러 확인한다.
-console.log("\n[7] 대기 오버레이가 이용권 확인 모드에서만 뜨는가");
+console.log("\n[7] 대기 오버레이가 허용된 모드(이용권·월정석·단건)에서만 뜨는가");
 {
   const { window } = bootRuntime();
   const overlayVisible = () => {
     const node = window.document.getElementById("cdStandalonePaymentOverlay");
     return Boolean(node) && node.style.display === "flex";
   };
-  for (const mode of ["payment", "checkout", "card", "confirm", "subscription"]) {
+  for (const mode of ["payment", "checkout", "confirm", "subscription"]) {
     check(`'${mode}' 진행 화면은 뜨지 않는다`, () => {
       window._cdSetCoinGateOverlay(true, "테스트", mode);
       assert.equal(overlayVisible(), false, `${mode} 오버레이가 떴다`);
@@ -245,6 +248,13 @@ console.log("\n[7] 대기 오버레이가 이용권 확인 모드에서만 뜨�
   check("'pass'(이용권 확인)는 뜬다", () => {
     window._cdSetCoinGateOverlay(true, "이용권 확인 중입니다.", "pass");
     assert.equal(overlayVisible(), true, "이용권 확인 화면이 뜨지 않았다");
+  });
+  // 2026-08-10: 'card'(단건 결제, 사용자가 이미 고른 뒤)는 이제 진행 화면을 허용한다 — 위에서 막는
+  // "결제수단을 고르기도 전에 새는 것"과는 다른 시점이다. _cdShowDirectPgWaitOverlay 가 정확히
+  // 이 mode 로 켜므로, 허용목록에서만 풀렸는지(①②③ 억제는 그대로인지)를 여기서 확인한다.
+  check("'card'(단건 결제 준비)는 뜬다", () => {
+    window._cdSetCoinGateOverlay(true, "단건 결제창을 준비 중입니다.", "card");
+    assert.equal(overlayVisible(), true, "단건 결제 준비 화면이 뜨지 않았다");
   });
   window._cdSetCoinGateOverlay(false);
   for (const mode of ["pass-applied", "payment-complete", "payment-failed"]) {

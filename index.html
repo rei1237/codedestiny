@@ -21916,7 +21916,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-6418a9de2a91" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-6418a9de2a91" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-6418a9de2a91" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -25895,9 +25895,11 @@ return you.name.restore();</span>
   var CD_DIRECT_PG_TERMINAL_STATUS_RE = /paymentSuccess|paymentFailed|error|refund|processing|savingUnlock|noEntitlement|cancelled/;
   var CD_DIRECT_PG_TERMINAL_MODE_RE = /payment-complete|pass-applied|payment-failed|refund|unlock-saving|confirm/;
   // 🔴 전체화면 대기/결과 오버레이를 띄워도 되는 모드의 **허용목록**(정본). 진행 중 표시는 이용권
-  // 이용권 확인('pass')과 월정석('monthly')만 진행 대기 화면을 허용한다.
-  // 단건 결제(card·checkout·confirm)는 PG 창을 가리지 않도록 항상 차단하고, 결과 상태만 통과시킨다.
-  var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
+  // 확인('pass')·월정석('monthly')·단건 결제 준비('card', 2026-08-10 추가)만 허용한다.
+  // 'card'는 사용자가 결제수단 선택창에서 단건을 실제로 고른 뒤(_cdShowDirectPgWaitOverlay)에만
+  // 켜지므로 ①②③(선택 전·선택창 노출 중·PG창 노출 중) 억제는 그대로 유지된다 — 이 허용목록은
+  // "무엇을"만 거르고 "언제"는 아래 ①②③이 계속 막는다. checkout/confirm 단계는 여전히 차단.
+  var CD_WAIT_UI_ALLOWED_MODE_RE = /^(pass|monthly|card|pass-applied|payment-complete|payment-failed|unlock-saving|refund|refund-pending|refunded|refund-failed)$/;
   // PG 결제창이 열려 있는 동안(카드 인증·3DS·앱 전환 포함) 수 분이 걸릴 수 있다. 준비 구간용
   // 45초 상한으로는 모자라 결제창 위로 대기 UI가 되살아나므로, PG 호출 직전에 다시 장전한다.
   // 준비 구간의 짧은 상한은 그대로 둔다 — 거기서 무언가 멈추면 화면이 오래 죽으면 안 되기 때문이다.
