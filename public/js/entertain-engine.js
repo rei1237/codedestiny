@@ -916,7 +916,7 @@
       title: meta.label + ' · ' + (nameMap[element] || '운명 정렬'),
       tierName: tierName,
       copy: focusQuest ? (focusQuest.text || focusQuest.description || '오늘의 성장을 완성할 차례입니다.') : '오늘의 체크리스트가 모두 닫히면 성장 메시지가 열립니다.',
-      expReward: focusQuest ? toRpgNumber(focusQuest.expReward, 0) : 0,
+      expReward: focusQuest ? toRpgNumber(focusQuest.expReward, getRpgQuestAwardRule().exp) : 0,
       questId: focusQuest ? String(focusQuest.questId || '') : '',
       progressPct: Math.max(0, Math.min(100, progressPct))
     };
@@ -1039,12 +1039,35 @@
     core: '중심을 세운 하루는 운의 방향을 잃지 않습니다.'
   };
 
+  /* 퀘스트 내용은 완료 기록과 같은 날짜 경계(KST)를 써야 한다. 공용 getSeed 는 기기 로컬
+     시간(todayKey)을 쓰는데, questId·완료 버킷은 KST 라서 KST 밖 사용자는 목록이 바뀌는
+     시점과 완료가 초기화되는 시점이 하루 중 몇 시간씩 어긋났다. */
+  function getRpgSeed(extra) {
+    var k = getKstDateString() + (extra || '') + (w.USER_NAME || '');
+    var s = 0;
+    for (var i = 0; i < k.length; i += 1) s += k.charCodeAt(i);
+    return s;
+  }
+
+  /* EXP 액수·하루 한도의 정본은 공용 저장소(CDLevel)이고 그 뿌리는 서버 AWARD_RULES 다.
+     시트가 자체 숫자를 들고 있으면 화면에 적힌 값과 실제 적립이 어긋난다 — 실제로 카드에는
+     퀘스트별 +10~+25 가 찍히는데 지급은 늘 15 고정이었다. */
+  function getRpgQuestAwardRule() {
+    var api = getRpgLevelApi();
+    var rule = api && api.awardRules && api.awardRules.quest;
+    return {
+      exp: Math.max(1, toRpgNumber(rule && rule.exp, 15)),
+      dailyLimit: Math.max(1, toRpgNumber(rule && rule.dailyLimit, 3))
+    };
+  }
+
   /* 오늘의 퀘스트는 날짜마다 달라져야 한다.
      예전에는 preview-* 3개가 문구까지 하드코딩돼 있어 KST 자정이 지나도 완료 표시만 풀리고
      내용은 영영 같았다. 이제 날짜를 시드로 오행별 QUEST_DB에서 매일 새로 뽑는다.
      questId에 날짜를 넣어 어제 완료가 오늘로 새지 않게 한다. */
   function buildRpgFallbackQuests(meta) {
     var dateKey = getKstDateString();
+    var awardRule = getRpgQuestAwardRule();
     var dayElement = String((meta.todayDayPillar && meta.todayDayPillar.element) || (meta.dayMaster && meta.dayMaster.element) || 'earth');
     if (!RPG_ELEMENT_META[dayElement]) dayElement = 'earth';
     var weakList = toRpgList(meta.fiveElements && meta.fiveElements.lacking).filter(function (element) { return RPG_ELEMENT_META[element]; });
@@ -1060,7 +1083,7 @@
       var tier = RPG_QUEST_TIERS[i];
       var element = RPG_ELEMENT_META[elements[i]] ? elements[i] : 'earth';
       var pool = QUEST_DB[element] || QUEST_DB.earth;
-      var ordered = seededShuffle(pool, getSeed('rpg-quest-' + tier + '-' + element));
+      var ordered = seededShuffle(pool, getRpgSeed('rpg-quest-' + tier + '-' + element));
       var pick = null;
       for (var j = 0; j < ordered.length; j += 1) {
         if (used[ordered[j].id]) continue;
@@ -1075,7 +1098,9 @@
         questType: 'daily_rpg_' + tier,
         tier: tier,
         element: element,
-        expReward: toRpgNumber(pick.exp, 15),
+        /* QUEST_DB 의 난이도별 exp 는 레거시 buildEnhancedQuestSystem 이 아직 읽으므로
+           그대로 두고, 여기서는 실제로 적립되는 값만 싣는다. */
+        expReward: awardRule.exp,
         text: pick.text,
         icon: pick.icon,
         description: getRpgElementLabel(element) + ' 기운을 오늘 하루에 실제로 옮겨 놓는 행동입니다.',
@@ -1083,7 +1108,7 @@
         afterCompleteMessage: RPG_TIER_AFTER[tier]
       });
     }
-    return quests;
+    return quests.slice(0, awardRule.dailyLimit);
   }
 
   function getRpgLocalProfileId() {
@@ -1130,9 +1155,28 @@
     });
   }
 
+  /* 화면에 그릴 퀘스트 목록은 공용 저장소가 확정한 ID 를 따른다.
+     시트가 자기 목록을 그대로 그리면, 저장소에 이미 다른 세트가 확정돼 있을 때(홈 카드가
+     먼저 열렸거나 프로필을 바꿨을 때) 버튼을 눌러도 저장소가 못 알아듣고 조용히 무시된다.
+     ID 가 맞으면 ID 로, 아니면 자리(index) 로 사주 메타를 붙여 표시 문구를 잃지 않는다. */
+  function alignRpgQuestsToStore(sajuQuests, storeQuests) {
+    if (!Array.isArray(storeQuests) || !storeQuests.length) return sajuQuests;
+    var byId = {};
+    sajuQuests.forEach(function (quest) { byId[String(quest.questId || '')] = quest; });
+    return storeQuests.map(function (stored, index) {
+      var base = byId[String(stored.id || '')] || sajuQuests[index] || sajuQuests[0] || {};
+      return Object.assign({}, base, {
+        questId: String(stored.id || ''),
+        text: String(stored.text || base.text || ''),
+        icon: String(stored.icon || base.icon || '✦')
+      });
+    });
+  }
+
   function buildRpgLocalState(p, transientState) {
     var profileId = getRpgLocalProfileId();
     var questDateKst = getKstDateString();
+    var awardRule = getRpgQuestAwardRule();
     var meta = buildRpgFallbackMeta({}, p);
     var quests = buildRpgFallbackQuests(meta);
     /* 개인화된 오늘의 퀘스트를 메인 프로필 카드에도 넘겨준다.
@@ -1141,17 +1185,14 @@
     if (api && typeof api.publishQuests === 'function') api.publishQuests(quests);
 
     var snap = getRpgLevelSnapshot();
+    quests = alignRpgQuestsToStore(quests, snap.quests);
     var completedMap = {};
     snap.completedQuestIds.forEach(function (id) { completedMap[String(id)] = true; });
     var completedQuestIds = quests
       .map(function (quest) { return String(quest.questId || ''); })
       .filter(function (id) { return completedMap[id]; });
-    var todayEarnedExp = quests.reduce(function (sum, quest) {
-      return completedMap[String(quest.questId || '')] ? sum + toRpgNumber(quest.expReward, 0) : sum;
-    }, 0);
-    var todayMaxExp = quests.reduce(function (sum, quest) {
-      return sum + toRpgNumber(quest.expReward, 0);
-    }, 0) || 45;
+    var todayEarnedExp = completedQuestIds.length * awardRule.exp;
+    var todayMaxExp = awardRule.exp * awardRule.dailyLimit;
     var allDone = completedQuestIds.length >= quests.length;
     return Object.assign({
       ok: true,
@@ -1203,6 +1244,16 @@
       return Object.assign(buildRpgLocalState(p), {
         errorState: true,
         errorMessage: '이 브라우저에 기록을 저장하지 못했습니다. 시크릿 모드라면 일반 창에서 열어주세요.'
+      });
+    }
+    /* 적립이 안 된 이유를 말해 준다. 예전에는 changed:false 를 성공처럼 흘려보내서,
+       하루 한도를 이미 채웠을 때 버튼을 눌러도 화면이 그대로였다(EXP도 에러도 없음).
+       한도는 홈 카드·운명 나침반과 공유하므로 다른 화면에서 먼저 채웠을 수 있다. */
+    if (!result.changed && result.reason === 'daily-cap') {
+      var limit = getRpgQuestAwardRule().dailyLimit;
+      return Object.assign(buildRpgLocalState(p), {
+        errorState: true,
+        errorMessage: '오늘의 성장 기록 ' + limit + '개를 이미 채웠습니다. 다른 화면에서 완료한 퀘스트도 함께 계산됩니다 · 내일 KST 자정에 다시 열립니다.'
       });
     }
 

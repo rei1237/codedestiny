@@ -6187,9 +6187,32 @@
       lastCheckinDate: '',
       lastSyncedDate: '',
       days: {},
+      /* 오늘의 퀘스트 세트. 홈 카드와 사주 RPG 시트가 같은 하루 3칸 버킷을 나눠 쓰므로
+         목록 자체도 한 곳에 고정해야 한다. 예전에는 인메모리 변수라 새로고침하면 사라졌고,
+         두 화면이 서로 다른 questId 를 들고 같은 버킷을 쳐서 완료가 조용히 무시됐다. */
+      questSet: null,
       adopted: false,
       legacyMerged: false,
       curveVersion: CD_LEVEL_CURVE_VERSION
+    };
+  }
+
+  /* 저장된 퀘스트 세트는 그날 하루만 유효하다. 날짜가 넘어갔으면 버려서 새로 뽑게 한다. */
+  function _cdLevelNormalizeQuestSet(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    if (String(raw.dateKey || '') !== _cdLevelKstDate(0)) return null;
+    var quests = (Array.isArray(raw.quests) ? raw.quests : []).map(function(quest) {
+      return {
+        id: String((quest && quest.id) || ''),
+        icon: String((quest && quest.icon) || '✦'),
+        text: String((quest && quest.text) || '')
+      };
+    }).filter(function(quest) { return quest.id && quest.text; });
+    if (!quests.length) return null;
+    return {
+      dateKey: String(raw.dateKey),
+      source: raw.source === 'saju' ? 'saju' : 'generic',
+      quests: quests
     };
   }
 
@@ -6232,6 +6255,7 @@
         };
       }
     }
+    store.questSet = _cdLevelNormalizeQuestSet(raw.questSet);
     return store;
   }
 
@@ -6310,11 +6334,14 @@
 
   /* 사주 RPG 시트는 오행 기반으로 개인화된 퀘스트를 만든다. 그쪽이 열려 있으면 그 목록을
      카드에도 그대로 쓴다 — 두 화면이 다른 퀘스트를 보여주면 같은 하루치 EXP 예산을 두고
-     서로 어긋나기 때문이다. 날짜가 바뀌면 자동으로 버린다. */
-  var _cdLevelPublished = null;
+     서로 어긋나기 때문이다.
+     🔴 저장은 반드시 localStorage 여야 한다. 예전에는 인메모리 변수 하나였고, 새로고침하면
+     시트가 만든 목록이 사라져 홈 카드는 일반 퀘스트(water/walk/…)로 되돌아갔다. 그 상태에서
+     홈에서 3개를 채우면 시트의 questId(daily-날짜-wq1 …)는 버킷 어디에도 없는데 칸은 꽉 차서,
+     [완료] 를 눌러도 changed:false 로 조용히 무시됐다(EXP도 에러도 없음). */
   function _cdLevelPublishQuests(list) {
     if (!Array.isArray(list) || !list.length) return;
-    var normalized = list.slice(0, 3).map(function(quest) {
+    var normalized = list.slice(0, CD_LEVEL_AWARD.quest.dailyLimit).map(function(quest) {
       return {
         id: String(quest.questId || quest.id || ''),
         icon: String(quest.icon || '✦'),
@@ -6322,16 +6349,51 @@
       };
     }).filter(function(quest) { return quest.id && quest.text; });
     if (!normalized.length) return;
-    _cdLevelPublished = { dateKey: _cdLevelKstDate(0), quests: normalized };
+
+    var store = _cdLevelRead();
+    var dateKey = _cdLevelKstDate(0);
+    var current = _cdLevelActiveQuestSet(store);
+    /* 같은 날 사주 세트가 이미 자리를 잡았으면 그대로 둔다. 프로필 카드를 바꿔 시트가 다른
+       목록을 만들어도 저장된 세트가 이긴다 — 하루 중 ID 가 두 번 갈리면 완료 기록이 어느
+       쪽에도 붙지 못한다. */
+    if (current && current.source === 'saju') return;
+
+    if (current) {
+      /* 홈 카드가 먼저 그린 일반 세트를 사주 세트로 승격한다. 이미 완료한 항목은 자리(index)
+         기준으로 새 ID 에 옮겨 붙여, 개인화를 살리면서도 오늘 쌓은 진행을 잃지 않게 한다. */
+      var day = _cdLevelDay(store, dateKey);
+      var oldIds = current.quests.map(function(quest) { return quest.id; });
+      var remapped = [];
+      for (var i = 0; i < day.quests.length; i += 1) {
+        var slot = oldIds.indexOf(String(day.quests[i]));
+        var moved = slot >= 0 ? normalized[slot] : null;
+        var nextId = moved ? moved.id : String(day.quests[i]);
+        if (remapped.indexOf(nextId) < 0) remapped.push(nextId);
+      }
+      day.quests = remapped;
+    }
+    store.questSet = { dateKey: dateKey, source: 'saju', quests: normalized };
+    _cdLevelWrite(store);
+  }
+
+  /* 오늘 것이 아닌 세트는 없는 것으로 친다. 날짜 검사를 파싱 시점에만 하면, 탭을 열어 둔 채
+     KST 자정을 넘겼을 때 메모리에 남은 어제 목록이 계속 나온다(완료 버킷만 초기화돼 어긋난다). */
+  function _cdLevelActiveQuestSet(store) {
+    var set = store.questSet;
+    if (!set || !set.quests.length) return null;
+    if (set.dateKey !== _cdLevelKstDate(0)) return null;
+    return set;
   }
 
   function _cdLevelTodayQuests() {
+    var store = _cdLevelRead();
+    var active = _cdLevelActiveQuestSet(store);
+    if (active) return active.quests;
     var dateKey = _cdLevelKstDate(0);
-    if (_cdLevelPublished && _cdLevelPublished.dateKey === dateKey) return _cdLevelPublished.quests;
     var picked = [];
     var used = {};
     var cursor = _cdLevelHash(dateKey);
-    while (picked.length < 3 && picked.length < CD_LEVEL_QUEST_POOL.length) {
+    while (picked.length < CD_LEVEL_AWARD.quest.dailyLimit && picked.length < CD_LEVEL_QUEST_POOL.length) {
       var idx = cursor % CD_LEVEL_QUEST_POOL.length;
       if (!used[idx]) {
         used[idx] = true;
@@ -6339,7 +6401,17 @@
       }
       cursor += 7;
     }
-    return picked;
+    /* 처음 그리는 화면이 그날의 세트를 확정한다. 시트가 나중에 열리면 위 publishQuests 가
+       사주 세트로 승격하면서 완료 기록을 함께 옮긴다. */
+    store.questSet = {
+      dateKey: dateKey,
+      source: 'generic',
+      quests: picked.map(function(quest) {
+        return { id: String(quest.id), icon: String(quest.icon), text: String(quest.text) };
+      })
+    };
+    _cdLevelWrite(store);
+    return store.questSet.quests;
   }
 
   /* 서버가 알려준 수령 상태(있으면). 없으면 레벨만 보고 낙관적으로 그린다 —
@@ -6390,16 +6462,22 @@
      서버가 실패해도 사용자 진행은 로컬에 남고, 다음 sync에서 서버값이 정본이 된다. */
   function _cdLevelAward(kind, key) {
     var rule = CD_LEVEL_AWARD[kind];
-    if (!rule) return { changed: false };
+    /* 왜 안 올랐는지를 호출부가 알아야 사용자에게 설명할 수 있다. 예전에는 이유 없이
+       changed:false 만 돌려줘서, 하루 한도를 다 쓴 경우와 중복 클릭이 구분되지 않았고
+       화면은 아무 반응 없이 그대로 다시 그려졌다. 기존 필드는 그대로 두고 reason 만 더한다. */
+    if (!rule) return { changed: false, reason: 'unknown-kind' };
     var store = _cdLevelRead();
     var dateKey = _cdLevelKstDate(0);
     var day = _cdLevelDay(store, dateKey);
     var beforeLevel = _cdLevelState(store.totalExp).currentLevel;
     var safeKey = String(key || '');
     var changed = false;
+    var reason = '';
 
     if (kind === 'checkin') {
-      if (!day.checkin) {
+      if (day.checkin) {
+        reason = 'duplicate';
+      } else {
         day.checkin = true;
         var yesterday = _cdLevelKstDate(-1);
         store.streakDays = store.lastCheckinDate === yesterday ? store.streakDays + 1 : 1;
@@ -6410,14 +6488,18 @@
       }
     } else {
       var bucket = kind === 'paid' ? day.paid : day.quests;
-      if (bucket.indexOf(safeKey) < 0 && bucket.length < rule.dailyLimit) {
+      if (bucket.indexOf(safeKey) >= 0) {
+        reason = 'duplicate';
+      } else if (bucket.length >= rule.dailyLimit) {
+        reason = 'daily-cap';
+      } else {
         bucket.push(safeKey);
         store.totalExp += rule.exp;
         changed = true;
       }
     }
 
-    if (!changed) return { changed: false };
+    if (!changed) return { changed: false, reason: reason };
 
     var written = _cdLevelWrite(store);
     var afterLevel = _cdLevelState(store.totalExp).currentLevel;
@@ -6542,6 +6624,9 @@
     award: _cdLevelAward,
     sync: _cdLevelSync,
     publishQuests: _cdLevelPublishQuests,
+    /* EXP 액수·하루 한도의 표시 정본. 다른 화면이 15/3 을 하드코딩하면 서버 규칙이 바뀔 때
+       화면에 적힌 숫자와 실제 지급이 어긋난다(사주 RPG 시트가 실제로 그랬다). */
+    awardRules: CD_LEVEL_AWARD,
     rewardTable: CD_LEVEL_REWARD_TABLE,
     buildStrip: function() { return _dpBuildLevelStrip(); },
     // 보상 안내·연출은 순수 표시 계층이다(지급은 서버만 한다). 다른 화면에서도 같은 안내를 열 수 있게 노출한다.
