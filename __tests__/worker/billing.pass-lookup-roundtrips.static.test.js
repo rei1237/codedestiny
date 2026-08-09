@@ -158,17 +158,18 @@ describe("월정석 재조회(fresh=1) 보호장치 가드", () => {
       billingSource,
       "async function handleBillingSnapshotBalance(",
     );
-    // 예전에는 cacheUserId 를 fresh 일 때 "" 로 비워, 캐시 키가 사라지면서 in-flight 합류와
-    // 성공 write-back 까지 함께 죽었다 — 재조회를 누를수록 매번 인증+조회 왕복을 새로 내고
-    // (coin-gate 와 같은 커넥션 풀을 경합) 캐시는 영영 안 채워졌다.
+    // 예전에는 cacheUserId 를 fresh 일 때 "" 로 비워, 캐시 키가 사라지면서 성공 write-back 까지
+    // 함께 죽었다 — 재조회를 누를수록 매번 인증+조회 왕복을 새로 내고(coin-gate 와 같은 커넥션 풀을
+    // 경합) 캐시는 영영 안 채워졌다.
     expect(fn).not.toMatch(/const cacheUserId = isFresh \? "" :/);
     expect(fn).toMatch(
       /const cacheUserId = await peekAccessTokenUserId\(request, env\)\.catch\(\(\) => ""\);/,
     );
     // 건너뛰는 것은 캐시 '읽기' 하나뿐이어야 한다.
     expect(fn).toMatch(/if \(cacheKey && !isFresh\) \{/);
-    // in-flight 키와 write-back 은 cacheKey 만 보고 살아 있어야 한다.
-    expect(fn).toMatch(/const snapshotInFlightKey = cacheKey/);
+    // write-back 은 cacheKey 만 보고 살아 있어야 한다.
+    // (요청 간 in-flight Promise 합류는 Workers 위법이라 제거됐다 — worker/routes/billing.js 주석 참고.)
     expect(fn).toMatch(/writeBillingBalanceToCache\(cacheKey, snapshot\);/);
+    expect(fn).not.toMatch(/billingBalanceCache\.inFlight/);
   });
 });

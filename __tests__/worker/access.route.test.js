@@ -79,7 +79,6 @@ function queryChain(rows) {
 
 beforeEach(() => {
   globalThis.__codeDestinyAccessUnlocksCache?.entries?.clear?.();
-  globalThis.__codeDestinyAccessUnlocksCache?.inFlight?.clear?.();
   requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID });
   requireUserFromRequest.mockClear();
   withMongoRetry.mockClear();
@@ -132,17 +131,18 @@ test("rejects legacy unlock reads without profileId before auth or DB lookup", a
   expect(getUnlockedContentSnapshot).not.toHaveBeenCalled();
 });
 
-test("deduplicates concurrent unlock snapshot reads for the same user and profile", async () => {
-  let release;
-  getUnlockedContentSnapshot.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));
+// 예전에는 요청 간 in-flight Promise 를 공유해 "동시 2건 → 스냅샷 조회 1회"를 고정했다. 그 공유가
+// Cloudflare Workers 가 금지하는 패턴(다른 요청 컨텍스트의 continuation)이라 제거했다 — 위반하면
+// 런타임이 취소해 그 요청이 op 타임아웃까지 끌려가 503 으로 죽는다. 재사용은 결과 TTL 캐시(15s)가
+// 담당하며, 그건 Promise 가 아니라 데이터라 요청 간 공유가 합법이다.
+test("a completed unlock snapshot read is reused from the result cache, not re-queried", async () => {
+  const first = await handleAccessRoutes(request(), {});
+  expect(first.status).toBe(200);
+  const callsAfterFirst = getUnlockedContentSnapshot.mock.calls.length;
 
-  const first = handleAccessRoutes(request(), {});
-  const second = handleAccessRoutes(request(), {});
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  release({ docs: [] });
-  await Promise.all([first, second]);
-
-  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
+  const second = await handleAccessRoutes(request(), {});
+  expect(second.status).toBe(200);
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(callsAfterFirst);
 });
 
 test("returns stale unlock snapshot instead of empty locks when DB lookup degrades", async () => {

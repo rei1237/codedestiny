@@ -65,7 +65,6 @@ const ACCESS_UNLOCKS_CACHE_MAX_ENTRIES = 2500;
 const accessUnlocksCache = globalThis.__codeDestinyAccessUnlocksCache
   || (globalThis.__codeDestinyAccessUnlocksCache = {
     entries: new Map(),
-    inFlight: new Map(),
     lastPruneAt: 0,
   });
 
@@ -527,7 +526,7 @@ async function handleStatus(request, env) {
   if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
 
   await connectDb(env);
-  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??handleUnlocks?� ?�일 ?�턴).
+  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??handleUnlocks?� ?�일 ?�턴).
   const doc = await withMongoRetry(env, async () => {
     await verifyProfileOwnership({ userId, profileId });
     return findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
@@ -644,17 +643,12 @@ async function handleUnlocks(request, env, trace) {
   const auth = await requireUserFromRequest(request, env);
   const userId = String(auth.userId || "");
 
-  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??
-  // (verifyProfileOwnership??404 ??�??�시???�러???�시???�이 즉시 ?�파?�다.)
+  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??
+  // (verifyProfileOwnership??404 ??�??�시???�러???�시???�이 즉시 ?�파?�다.)
   const cacheKey = makeAccessUnlocksCacheKey({ userId, profileId, serviceKeys });
   if (!includeBackfill) {
     const cached = readAccessUnlocksCache(cacheKey);
     if (cached) return json(cached, { headers: privateAccessHeaders(cached.source) });
-    const pending = accessUnlocksCache.inFlight.get(cacheKey);
-    if (pending) {
-      const payload = await pending;
-      return json(payload, { headers: privateAccessHeaders(payload.source) });
-    }
   }
 
   const promise = withMongoRetry(env, async () => {
@@ -676,10 +670,10 @@ async function handleUnlocks(request, env, trace) {
     return buildUnlocksPayload({ profileId, serviceKey, serviceKeys, activeDocs: docs.concat(backfilledDocs) });
   });
 
-  if (!includeBackfill) {
-    accessUnlocksCache.inFlight.set(cacheKey, promise);
-  }
-
+  // 🔴 요청 간 in-flight Promise 공유는 두지 않는다 — Cloudflare Workers 가 다른 요청 컨텍스트의
+  // continuation 을 취소해 그 요청이 op 타임아웃까지 끌려가 503 으로 죽는다(worker/lib/auth.js 의
+  // 같은 위법이 6ab597c0b 에서 제거됐다). 재사용은 위 결과 TTL 캐시(15s)가 담당한다 — 그건 Promise 가
+  // 아니라 데이터라 요청 간 공유가 합법이다.
   try {
     const payload = await promise;
     if (!includeBackfill) writeAccessUnlocksCache(cacheKey, payload);
@@ -688,10 +682,6 @@ async function handleUnlocks(request, env, trace) {
     const stale = !includeBackfill ? readAccessUnlocksCache(cacheKey, { allowStale: true }) : null;
     if (stale) return json(stale, { headers: privateAccessHeaders(stale.source) });
     throw error;
-  } finally {
-    if (!includeBackfill && accessUnlocksCache.inFlight.get(cacheKey) === promise) {
-      accessUnlocksCache.inFlight.delete(cacheKey);
-    }
   }
 }
 
@@ -711,8 +701,8 @@ export async function handleAccessRoutes(request, env) {
     if (routePath === "/unlocks") return await handleUnlocks(request, env, trace);
     return notFound();
   } catch (error) {
-    // ?�근 ?�정 ?�기(GET)???�시??Mongo 블립???�드 503?�로 죽이지 말고, ?�라가 ?�시?�할 ???�게
-    // ?��? ?�프??503(retryable/DB_DEGRADED)�??�린?? ?�기(/confirm POST)???�중?�출 방�? ?�해 ?�외.
+    // ?�근 ?�정 ?�기(GET)???�시??Mongo 블립???�드 503?�로 죽이지 말고, ?�라가 ?�시?�할 ???�게
+    // ?��? ?�프??503(retryable/DB_DEGRADED)�??�린?? ?�기(/confirm POST)???�중?�출 방�? ?�해 ?�외.
     if (request.method === "GET" && (isTransientMongoError(error) || isAuthDbInfraError(error))) {
       try {
         console.warn("[access-503]", JSON.stringify({
@@ -732,7 +722,7 @@ export async function handleAccessRoutes(request, env) {
         retryable: true,
         reason: "DB_DEGRADED",
         code: "SERVICE_UNAVAILABLE",
-        message: "?�시?�인 ?�결 문제가 ?�어?? ?�시 ???�시 ?�도??주세??",
+        message: "?�시?�인 ?�결 문제가 ?�어?? ?�시 ???�시 ?�도??주세??",
       }, { status: 503 });
     }
     return handleRouteError(error, { request, env, trace });

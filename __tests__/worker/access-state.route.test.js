@@ -168,7 +168,17 @@ test("allows an explicit emergency disable for the access-state route", async ()
   expect(response.status).toBe(404);
 });
 
-test("single-flights 50 concurrent requests before the authenticated user DB lookup", async () => {
+// 🔴 예전에는 "50 동시 요청이 auth 조회 1회로 합쳐진다"(요청 간 in-flight Promise 공유)를 고정했다.
+// 그 공유가 바로 Cloudflare Workers 가 금지하는 패턴이라 제거했다 — 런타임이 다른 요청 컨텍스트의
+// continuation 을 취소해 그 요청이 op 타임아웃까지 끌려가 503 으로 죽는다(worker/routes/access-state.js
+// 주석 참고). 정리(clear)가 finally 에 있어 클라이언트 abort 시 죽은 Promise 가 맵에 남는 고장도 있었다.
+//
+// 잃은 것은 크지 않다. 한 브라우저에서 오는 동시 중복은 이미 클라이언트 3중 dedup 이 막는다
+// (js/core/access-store.js inFlight · app/_lib/user-session-cache.ts inFlight · auth-client.ts GET dedup).
+// 서버 공유가 실제로 합치던 것은 '같은 사용자의 서로 다른 브라우저/탭' 뿐이고, 그건 드물다.
+//
+// 이제 고정하는 것: 동시 요청이 **각자 독립적으로** 풀려도 전부 올바른 응답을 받는다.
+test("concurrent requests each resolve independently and correctly", async () => {
   let releaseAuth;
   requireUserFromRequest.mockImplementationOnce(() => new Promise((resolve) => { releaseAuth = resolve; }));
   const requests = Array.from({ length: 50 }, () => handleAccessStateRoutes(request(), {}));
@@ -183,9 +193,16 @@ test("single-flights 50 concurrent requests before the authenticated user DB loo
     },
   });
   const responses = await Promise.all(requests);
+  const payloads = await Promise.all(responses.map((response) => response.json()));
+
   expect(responses.every((response) => response.status === 200)).toBe(true);
-  expect(requireUserFromRequest).toHaveBeenCalledTimes(1);
-  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(1);
+  expect(payloads.every((payload) => payload.data.userId === TEST_USER_ID)).toBe(true);
+  // 결과 TTL 캐시(60s)는 Promise 가 아니라 데이터라 그대로 살아 있다 — 버스트가 끝난 뒤의
+  // 후속 요청은 DB 를 다시 읽지 않아야 한다.
+  const callsAfterBurst = getUnlockedContentSnapshot.mock.calls.length;
+  const followUp = await handleAccessStateRoutes(request(), {});
+  expect(followUp.status).toBe(200);
+  expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(callsAfterBurst);
 });
 
 test("keeps concurrent snapshots isolated between users", async () => {
@@ -215,7 +232,9 @@ test("keeps concurrent snapshots isolated between users", async () => {
   ]);
   const payloads = await Promise.all(responses.map((response) => response.json()));
 
-  expect(requireUserFromRequest).toHaveBeenCalledTimes(2);
+  // 이 테스트의 핵심은 호출 횟수가 아니라 **사용자 간 격리**다. 요청 간 Promise 공유를 제거한 뒤로
+  // 각 요청이 자기 몫을 조회하므로 횟수는 더 이상 2 가 아니지만, 한 사용자의 스냅샷이 다른 사용자에게
+  // 새는 일은 절대 없어야 한다(캐시 키가 userId 로 스코프된다).
   expect(payloads.slice(0, 20).every((payload) => payload.data.userId === TEST_USER_ID && payload.data.coinBalance === 11)).toBe(true);
   expect(payloads.slice(20).every((payload) => payload.data.userId === secondUserId && payload.data.coinBalance === 22)).toBe(true);
 });

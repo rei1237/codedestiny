@@ -245,7 +245,10 @@ function resolveSafeUser(user: unknown): AuthUser | null {
   if (!safe) return null;
   const role = String(safe.role || "user");
   if (typeof document !== "undefined") {
-    document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
+    // 🔴 refresh 토큰(기본 14d)과 같은 수명이어야 한다. 이 쿠키는 값이 아니라 로그인 힌트라,
+    // 세션보다 먼저 죽으면 "로그인이 필요합니다" 분기가 정상 인증 사용자에게 잘못 뜬다
+    // (worker/routes/auth.js appendAuthRoleCookie 의 같은 주석 참고).
+    document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=1209600; samesite=lax`;
   }
   return safe;
 }

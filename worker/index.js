@@ -948,16 +948,26 @@ async function proxyApiRequest(request, env) {
   if (!upstreamOrigin) {
     const pathname = new URL(request.url).pathname;
     const isAdminPath = pathname.startsWith("/api/admin/") || pathname === "/api/admin";
+    // 🔴 404 다, 503 이 아니다. upstream 이 설정되지 않은 배포에서 네이티브로 없는 /api/* 경로는
+    // **일시적으로 못 쓰는 게 아니라 그냥 존재하지 않는다.** 503 으로 답하면 두 가지가 망가진다:
+    //   ① 클라이언트가 재시도할 이유가 없는 요청을 재시도한다(503 은 재시도 신호다).
+    //   ② 오타·구버전 클라이언트의 죽은 경로 호출이 "서버 장애" 처럼 보여, 진짜 인프라 503 과
+    //      구분이 안 된다 — 실제로 /api/subscription·/api/profile-cards 같은 미등록 경로가
+    //      503 을 뱉고 있었고, 이 바디에는 code 필드가 없어 셸의 재시도 허용목록에도 안 걸려
+    //      정체불명 503 으로 남았다.
+    // 알려진 prefix 의 미매칭 하위경로는 이미 각 라우터가 404 not_found 를 낸다. 여기만 어긋나 있었다.
+    // 진단 정보(requiredKeys/hint)는 그대로 둔다 — upstream 을 정말 붙일 때 필요한 단서다.
     return jsonResponse(request, env, {
       ok: false,
-      error: "api_upstream_missing",
-      message: "Set API_UPSTREAM_ORIGIN on the Cloudflare Worker.",
+      error: "not_found",
+      code: "NOT_FOUND",
+      message: "Requested API route does not exist on this deployment.",
       requiredKeys: ["API_UPSTREAM_ORIGIN"],
       impact: isAdminPath ? "미포팅 /api/admin/* 레거시 API" : "미포팅 /api/* 레거시 API",
       hint: isAdminPath
         ? "관리자 비밀번호 게이트는 /api/admin/entry/password 네이티브 지원됨. 그 외 admin API는 API_UPSTREAM_ORIGIN 필요."
         : "현재 네이티브 미포팅 API는 외부 upstream 설정이 필요합니다.",
-    }, { status: 503 });
+    }, { status: 404 });
   }
 
   if (isLoop(request.url, upstreamOrigin)) {

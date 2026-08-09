@@ -718,7 +718,13 @@ function appendAuthRoleCookie(response, request, env, user) {
   const role = String(user?.role || "user").trim() || "user";
   response.headers.append("Set-Cookie", buildCookieValue("fortune_auth_role", role, {
     path: "/",
-    maxAge: 7 * 24 * 60 * 60,
+    // 🔴 세션(refresh, 기본 14d)보다 먼저 죽으면 안 된다. 이 쿠키는 값이 아니라 **로그인 힌트**이고,
+    // 클라이언트의 "로그인이 필요합니다" 분기 4곳이 이걸 보고 갈린다(index.html hasAuthSessionHint ·
+    // js/destiny-profile.js _dpHasSessionHint · app/hooks/useCoinGate.ts · billing-client
+    // hasClientAuthSessionHint). 고정 7일이던 시절에는 localStorage 를 지운 채 8~14일차에 돌아온
+    // **정상 인증 사용자가 힌트를 잃어**, 이용권 401/403 이 그대로 "로그인이 필요합니다"로 렌더됐다.
+    // refresh 쿠키와 같은 수명을 쓰면 힌트와 세션이 항상 함께 살고 함께 죽는다.
+    maxAge: cookieOptions.refreshMaxAgeSec,
     secure: cookieOptions.secure,
     sameSite: cookieOptions.sameSite,
   }));

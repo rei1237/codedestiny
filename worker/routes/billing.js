@@ -322,10 +322,8 @@ const BILLING_BALANCE_CACHE_MAX_ENTRIES = 2500;
 const billingBalanceCache = globalThis.__billingBalanceCache
   || (globalThis.__billingBalanceCache = {
     entries: new Map(),
-    inFlight: new Map(),
     lastPruneAt: 0,
   });
-billingBalanceCache.inFlight ||= new Map();
 
 function invalidateBillingBalanceCacheForUser(userId) {
   const uid = String(userId || "").trim();
@@ -3055,9 +3053,25 @@ function mapCoinGateFailure(responseStatus, payload) {
     };
   }
 
+  // 🔴 가격표 실패를 인증 실패보다 **먼저** 분류한다. worker/routes/fortune.js 의 가격 조회 실패는
+  // status 를 `pricing.status || 403` 으로 돌려주는데(같은 파일 2365행), 아래 상태코드 폴드가 403 을
+  // 인증 실패로 읽으면 **가격표 설정 오류가 강제 로그아웃으로 둔갑한다.**
+  // 코드가 명시적이면 상태코드보다 코드를 믿는다.
+  if (
+    rawCode === "PRICE_NOT_FOUND"
+    || rawCode === "SERVER_PRICE_REQUIRED"
+    || rawCode === "UNKNOWN_FEATURE_KEY"
+  ) {
+    return {
+      status: 404,
+      code: "PRICE_NOT_FOUND",
+      message: "요청한 기능의 서버 가격표를 찾을 수 없습니다.",
+      debugMessage: message,
+    };
+  }
+
   if (
     responseStatus === 401
-    || responseStatus === 403
     || rawCode === "AUTH_REQUIRED"
     || rawCode === "LOGIN_REQUIRED"
     || rawCode === "UNAUTHORIZED"
@@ -3066,6 +3080,24 @@ function mapCoinGateFailure(responseStatus, payload) {
       status: 401,
       code: "AUTH_REQUIRED",
       message: "로그인이 필요합니다.",
+      debugMessage: message,
+    };
+  }
+
+  // 🔴 403 을 401 로 세탁하지 않는다. 여기 오는 403 은 인증 실패가 아니다 —
+  //   · MISSING_PROFILE_ID (worker/routes/access.js): 프로필을 아직 안 골랐다
+  //   · INVALID_ORIGIN     (worker/lib/security/index.js): Origin 헤더가 예상 밖이다
+  // 그런데 예전에는 이걸 전부 "로그인이 필요합니다"(401)로 접었고, 클라이언트가 401/403 을
+  // handleSessionInvalidated({redirect:true}) 로 처리해서 **멀쩡히 로그인한 사용자가 프로필을
+  // 안 골랐다는 이유로 로그아웃당하고 로그인 페이지로 튕겼다.**
+  // 원래 코드를 보존해 클라이언트가 "권한/상태 문제"와 "인증 문제"를 구분할 수 있게 한다.
+  if (responseStatus === 403) {
+    return {
+      status: 403,
+      code: rawCode || "FORBIDDEN",
+      message: rawCode === "MISSING_PROFILE_ID"
+        ? "프로필을 먼저 선택해 주세요."
+        : "이 요청을 수행할 권한이 없습니다.",
       debugMessage: message,
     };
   }
@@ -5012,35 +5044,20 @@ async function handleBillingSnapshotBalance(request, env) {
     }
   }
 
-  // Same-user bootstrap requests can arrive from the static shell, React
-  // cache and profile runtime at once. Share only the in-flight read; the
-  // healthy-result TTL cache below remains the source of truth for reuse.
-  // `fresh=1` gets its own in-flight bucket (see the `fresh:` segment) so a
-  // manual refresh never joins a cache-allowed read, but concurrent refreshes
-  // — a double-tapped "월정석 재조회" — still share one round trip.
-  const snapshotInFlightKey = cacheKey
-    ? `${cacheKey}|fresh:${isFresh ? "1" : "0"}`
-    : "";
-  let snapshotPromise = snapshotInFlightKey
-    ? billingBalanceCache.inFlight.get(snapshotInFlightKey)
-    : null;
-  if (!snapshotPromise) {
-    snapshotPromise = readBillingSnapshot(request, env, {
-      seedLegacyCredit,
-      includeUnlocks,
-      allowCache: false, // /balance는 아래 자체 표시용 캐시(compact 세그먼트 포함)를 쓰므로 함수 내부 캐시는 끈다.
-    });
-    if (snapshotInFlightKey) {
-      const joinedPromise = snapshotPromise.finally(() => {
-        if (billingBalanceCache.inFlight.get(snapshotInFlightKey) === joinedPromise) {
-          billingBalanceCache.inFlight.delete(snapshotInFlightKey);
-        }
-      });
-      billingBalanceCache.inFlight.set(snapshotInFlightKey, joinedPromise);
-      snapshotPromise = joinedPromise;
-    }
-  }
-  const snapshot = await snapshotPromise;
+  // 🔴 요청 간 in-flight Promise 공유는 두지 않는다. 예전에는 셸·React·프로필 런타임에서 동시에 오는
+  // 같은 사용자 부트스트랩을 하나의 Promise 로 합쳤는데, Cloudflare Workers 는 한 요청의 I/O 컨텍스트에서
+  // 만든 Promise 를 다른 요청이 이어받는 것을 금지한다. 위반하면 런타임이 continuation 을 취소하고
+  // 그 요청은 응답을 못 받은 채 op 타임아웃까지 끌려가 503 으로 죽는다(2026-08-09 실측 — 같은 이유로
+  // worker/lib/auth.js 의 auth dedup 이 6ab597c0b 에서 제거됐다).
+  //
+  // 대신 아래 healthy-result TTL 캐시(5s)가 재사용을 담당한다. 그건 Promise 가 아니라 데이터라 요청 간
+  // 공유가 합법이고, 버스트 직후의 반복 조회는 그쪽에서 그대로 걸린다. 한 브라우저에서 오는 동시 중복은
+  // 이미 클라이언트 dedup(app/_lib/auth-client.ts GET dedup · user-session-cache inFlight)이 막는다.
+  const snapshot = await readBillingSnapshot(request, env, {
+    seedLegacyCredit,
+    includeUnlocks,
+    allowCache: false, // /balance는 아래 자체 표시용 캐시(compact 세그먼트 포함)를 쓰므로 함수 내부 캐시는 끈다.
+  });
   if (snapshot?.degraded === true) {
     // 모달/재조회 경로(?moonlightStone=1)는 조회 실패를 '잔량 0'으로 오인하지 않도록 503으로 표면화한다
     // (클라가 '확인 필요 · 재조회'로 처리). 일반 /balance 호출은 기존처럼 200+degraded 폴백을 유지해

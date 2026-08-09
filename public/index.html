@@ -14289,7 +14289,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                       }
                       __cdMarkVerifiedAuthUser(safe || payload.user);
                       var role = String((safe && safe.role) || payload.user.role || 'user');
-                      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=604800; SameSite=Lax';
+                      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=1209600; SameSite=Lax';
                     } catch (_) {
                       __cdMarkVerifiedAuthUser(payload.user);
                     }
@@ -14712,7 +14712,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                       u = safeUser || user;
                       __cdMarkVerifiedAuthUser(u);
                       var role = String(user.role || 'user');
-                      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=604800; SameSite=Lax';
+                      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=1209600; SameSite=Lax';
                     } catch (_) {}
 
                     if (typeof window.__cdRefreshGoldenBalance === 'function') {
@@ -14993,7 +14993,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
               sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(profile));
               sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
-              document.cookie = 'fortune_auth_role=user; path=/; max-age=604800; SameSite=Lax';
+              document.cookie = 'fortune_auth_role=user; path=/; max-age=1209600; SameSite=Lax';
               window.__cdCurrentDestinyProfile = profile;
               window.__cdActiveBirthProfile = profile;
               window.__cdFamilyPassUser = authUser;
@@ -25362,7 +25362,7 @@ return you.name.restore();</span>
 
       var safe = __cdSanitizeAuthUserCache(merged) || merged;
       localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
-      document.cookie = 'fortune_auth_role=' + encodeURIComponent(String(safe.role || 'user')) + '; path=/; max-age=604800; SameSite=Lax';
+      document.cookie = 'fortune_auth_role=' + encodeURIComponent(String(safe.role || 'user')) + '; path=/; max-age=1209600; SameSite=Lax';
     } catch (_e) {}
   }
 
@@ -27390,7 +27390,7 @@ return you.name.restore();</span>
     if (!safe) return null;
     try {
       var role = String((safe && safe.role) || (user && user.role) || 'user');
-      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=604800; SameSite=Lax';
+      document.cookie = 'fortune_auth_role=' + encodeURIComponent(role) + '; path=/; max-age=1209600; SameSite=Lax';
     } catch (_) {}
     return safe;
   }

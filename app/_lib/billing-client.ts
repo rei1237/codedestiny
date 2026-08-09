@@ -2089,11 +2089,13 @@ function isDefinitiveBillingAnswer(status: number, code?: string) {
 
 // useCoinGate의 resolveLoginRequired와 동일 판정. authFetch가 401에서 세션 갱신+재시도까지
 // 마친 뒤에도 남은 "진짜 미로그인/세션 만료"만 걸러 로그인 유도한다. 일시적 503(AUTH_REFRESH_TEMPORARY_FAILURE
-// 등)은 status가 401/403이 아니고 결제 폴백(shouldOpenRuntimePaymentFallback) 대상이라 여기 걸리지 않는다.
+// 등)은 status가 401이 아니고 결제 폴백(shouldOpenRuntimePaymentFallback) 대상이라 여기 걸리지 않는다.
+//
+// 🔴 맨 403 은 제외한다 — 인증 실패가 아니라 MISSING_PROFILE_ID·INVALID_ORIGIN 같은 상태/권한
+// 문제라, 로그인 유도로 처리하면 로그인한 사용자를 로그아웃시킨다(useCoinGate 의 같은 주석 참고).
 function shouldRedirectToLoginAfterBilling(status: number, code?: string) {
   const normalizedCode = toText(code).toUpperCase();
   return status === 401
-    || status === 403
     || normalizedCode === "AUTH_REQUIRED"
     || normalizedCode === "LOGIN_REQUIRED"
     || normalizedCode === "UNAUTHORIZED";

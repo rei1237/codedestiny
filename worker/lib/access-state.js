@@ -11,9 +11,11 @@ const ACCESS_STATE_GRACE_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCESS_STATE_MAX_ENTRIES = 2500;
 const ACCESS_STATE_POLICY_VERSION = "access-state-snapshot-v2";
 
+// entries 는 평범한 데이터라 요청 간 재사용이 합법이다. 예전에는 여기에 in-flight Promise 맵도
+// 함께 있었는데, Cloudflare Workers 가 요청 간 Promise continuation 을 금지하므로 제거했다
+// (worker/routes/access-state.js 의 주석 참고 — 같은 위법이 auth 에서 503 을 냈다).
 const cache = globalThis.__codeDestinyAccessStateCache || (globalThis.__codeDestinyAccessStateCache = {
   entries: new Map(),
-  inFlight: new Map(),
   currentProfileByUser: new Map(),
 });
 if (!cache.currentProfileByUser) cache.currentProfileByUser = new Map();
@@ -373,22 +375,6 @@ export function writeAccessStateCache(userId, value, { profileId = "", include =
   return value;
 }
 
-export function readAccessStateInFlight(userId, { profileId = "", include = "" } = {}) {
-  return cache.inFlight.get(accessStateCacheKey(userId, profileId, include)) || null;
-}
-
-export function writeAccessStateInFlight(userId, promise, { profileId = "", include = "" } = {}) {
-  const key = accessStateCacheKey(userId, profileId, include);
-  if (!key || !promise) return promise;
-  cache.inFlight.set(key, promise);
-  return promise;
-}
-
-export function clearAccessStateInFlight(userId, promise, { profileId = "", include = "" } = {}) {
-  const key = accessStateCacheKey(userId, profileId, include);
-  if (cache.inFlight.get(key) === promise) cache.inFlight.delete(key);
-}
-
 export function invalidateAccessStateCacheForUser(userId) {
   const normalizedUserId = normalizeUserId(userId);
   if (!normalizedUserId) return false;
@@ -398,17 +384,11 @@ export function invalidateAccessStateCacheForUser(userId) {
       deleted = cache.entries.delete(key) || deleted;
     }
   }
-  for (const key of cache.inFlight.keys()) {
-    if (key === normalizedUserId || key.startsWith(`${normalizedUserId}::`)) cache.inFlight.delete(key);
-  }
   cache.currentProfileByUser.delete(normalizedUserId);
   const legacyUnlockCache = globalThis.__codeDestinyAccessUnlocksCache;
   const legacyPrefix = `${normalizedUserId}::`;
   for (const key of legacyUnlockCache?.entries?.keys?.() || []) {
     if (key.startsWith(legacyPrefix)) legacyUnlockCache.entries.delete(key);
-  }
-  for (const key of legacyUnlockCache?.inFlight?.keys?.() || []) {
-    if (key.startsWith(legacyPrefix)) legacyUnlockCache.inFlight.delete(key);
   }
   return deleted;
 }

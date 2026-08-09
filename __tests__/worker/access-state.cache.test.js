@@ -98,7 +98,6 @@ test("cache invalidation clears every profile snapshot and the legacy unlock rea
       [`${userId}::profile-a::saju`, { payload: {} }],
       [`${otherUserId}::profile-a::saju`, { payload: {} }],
     ]),
-    inFlight: new Map([[`${userId}::profile-b::saju`, Promise.resolve()]]),
   };
 
   invalidateAccessStateCacheForUser(userId);
@@ -106,6 +105,5 @@ test("cache invalidation clears every profile snapshot and the legacy unlock rea
   expect(readAccessStateCache(userId, { profileId: "profile-a" })).toBeNull();
   expect(readAccessStateCache(userId, { profileId: "profile-b" })).toBeNull();
   expect(globalThis.__codeDestinyAccessUnlocksCache.entries.has(`${userId}::profile-a::saju`)).toBe(false);
-  expect(globalThis.__codeDestinyAccessUnlocksCache.inFlight.has(`${userId}::profile-b::saju`)).toBe(false);
   expect(globalThis.__codeDestinyAccessUnlocksCache.entries.has(`${otherUserId}::profile-a::saju`)).toBe(true);
 });

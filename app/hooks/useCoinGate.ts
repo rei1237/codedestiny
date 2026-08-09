@@ -323,11 +323,16 @@ const TRANSIENT_BILLING_CODES = new Set([
   "MONTHLY_CREDIT_CONTENDED",
 ]);
 
+// 🔴 맨 403 은 인증 실패가 아니다 — 여기서 401 과 같이 취급하면 안 된다.
+// 서버가 403 을 내는 실제 이유는 MISSING_PROFILE_ID(프로필 미선택)·INVALID_ORIGIN(Origin 헤더)
+// 처럼 세션과 무관한 것들인데, 이 판정이 true 면 아래에서 handleSessionInvalidated({redirect:true})
+// 가 돌아 **멀쩡히 로그인한 사용자가 로그아웃되고 로그인 페이지로 튕겼다.**
+// 인증 실패는 401 이거나 명시적 auth 코드로만 판정한다(정적 셸은 이미 이 기준이다 — index.html
+// _cdIsAuthRequiredBillingError). 서버측 짝은 worker/routes/billing.js mapCoinGateFailure.
 function resolveLoginRequired(code: string, status: number) {
   const normalized = normalizeCode(code);
   return (
     status === 401
-    || status === 403
     || normalized === "AUTH_REQUIRED"
     || normalized === "LOGIN_REQUIRED"
     || normalized === "UNAUTHORIZED"
