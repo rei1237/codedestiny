@@ -520,13 +520,15 @@ async function ensurePaymentPhoneNumber(
   user: AuthUser | null,
   prefetchedSaved?: Promise<string> | null,
 ): Promise<string> {
-  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
-  const current = normalizePaymentPhoneNumber(user?.phoneNumber || user?.phone || cachedUser?.phoneNumber || cachedUser?.phone || "");
-  if (current) return current;
-  // 결제방식 모달이 열릴 때 미리 받아둔 값이 있으면 그걸 쓴다(결제창 진입 왕복 1회 절감).
+  // 서버 값이 진실의 원천이다 — localStorage(fortune_auth_user)의 phoneNumber는 결제 UX용
+  // 임시 프리필일 뿐이라 먼저 신뢰하지 않는다. 서버 조회가 비었거나 실패했을 때만(네트워크 문제 등)
+  // 결제가 완전히 막히지 않도록 로컬 값으로 최후 폴백한다.
   // prompt 는 절대 프리페치하지 않는다 — 조회분만 미리 받고, 입력이 필요하면 이 시점에 띄운다.
   const saved = await (prefetchedSaved || getSavedPaymentPhoneNumber(apiBase)).catch(() => "");
   if (saved) return saved;
+  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+  const current = normalizePaymentPhoneNumber(user?.phoneNumber || user?.phone || cachedUser?.phoneNumber || cachedUser?.phone || "");
+  if (current) return current;
   // 모달이 저장까지 끝낸 번호를 돌려준다(인앱 웹뷰에서 억제되는 window.prompt 대체).
   const nextPhone = await promptPaymentPhoneNumber({
     normalize: normalizePaymentPhoneNumber,

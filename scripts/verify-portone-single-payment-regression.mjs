@@ -191,9 +191,12 @@ function runInstantPgWindowTests() {
   assertContains(sanitizerBody, "if (user.phone) safe.phone = String(user.phone);", "shell auth-user cache must keep phone (payment phone re-prompt regression)");
   assertContains(indexSource, "window._cdReadLocalPaymentPhoneNumber = _cdReadLocalPaymentPhoneNumber;", "shell must expose the local payment-phone reader for the dp path");
 
-  // ① dp 는 서버 왕복 전에 로컬 번호를 먼저 보고, 조회 실패를 '번호 없음'으로 단정하지 않는다.
+  // ① dp 는 조회 실패를 '번호 없음'으로 단정하지 않는다.
+  // 2026-08-10: 로컬 우선 단축(캐시에 있으면 서버에 안 묻던 동작)은 제거했다 — 로컬 캐시 phoneNumber는
+  // 결제 UX 프리필일 뿐 인증/결제 검증의 source of truth가 아니다(개인정보 취급 방침, C1). 서버 값이
+  // 진실의 원천이고, 로컬 값은 서버 조회가 실패했을 때만(checked!==true) 폴백으로 쓴다.
   assertContains(destinyProfileSource, "function _dpReadLocalPaymentPhoneNumber()", "dp local payment-phone reader");
-  assertBefore(destinyProfileSource, "var localPhone = _dpReadLocalPaymentPhoneNumber();", "var current = await _dpGetPaymentPhoneStatus();", "dp must read the cached phone before the server round-trip");
+  assertBefore(destinyProfileSource, "var current = await _dpGetPaymentPhoneStatus();", "var fallbackPhone = _dpReadLocalPaymentPhoneNumber();", "dp must confirm with the server before falling back to the cached phone");
   assertContains(destinyProfileSource, "var fallbackPhone = _dpReadLocalPaymentPhoneNumber();", "dp must fall back to the cached phone when the lookup fails (503 must not mean 'no phone')");
   // ① 번호 입력창은 대기 오버레이·게이트 패널을 내린 뒤에 뜬다(가려져서 입력 불가였던 회귀).
   assertContains(destinyProfileSource, "function _dpCloseBlockingLayersBeforePhonePrompt()", "dp must close blocking layers before the phone prompt");

@@ -3217,8 +3217,7 @@
   }
 
   async function _dpEnsurePaymentPhoneNumber() {
-    var localPhone = _dpReadLocalPaymentPhoneNumber();
-    if (localPhone) return localPhone;
+    // 서버 값이 진실의 원천이다 — 로컬 캐시는 서버 조회가 실패했을 때만(아래 checked!==true 분기) 폴백으로 쓴다.
     var current = await _dpGetPaymentPhoneStatus();
     if (current && current.phoneNumber) return current.phoneNumber;
     // 조회 실패(503 등)를 '번호 없음'으로 단정하지 않는다. 확정 미보유가 아닐 때만 두 번째 소스를 본다 —

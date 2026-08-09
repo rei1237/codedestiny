@@ -23556,8 +23556,7 @@ return you.name.restore();</span>
   }
 
   async function _cdEnsureDirectCheckoutPaymentPhoneNumber() {
-    var localPhone = _cdReadLocalPaymentPhoneNumber();
-    if (localPhone) return { hasPhone: true, maskedPhone: '', phoneNumber: localPhone };
+    // 서버 값이 진실의 원천이다 — 로컬 캐시는 서버 조회가 실패했을 때만(아래 checked!==true 분기) 폴백으로 쓴다.
     var current = await _cdGetPaymentPhoneStatus();
     if (current && current.hasPhone && current.phoneNumber) return current;
     // 🔴 조회에 실패했을 때만(확정 미보유가 아닐 때만) 두 번째 소스를 본다. /api/auth/me 는 같은 번호를
