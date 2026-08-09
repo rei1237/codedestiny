@@ -84,11 +84,20 @@ if (paidCalls !== 1) {
   fail(`${CLIENT}: ensurePaidAccess 호출이 ${paidCalls}곳입니다. 결제 지점은 openDeepReading 한 곳이어야 합니다.`);
 }
 
+// cdd30e9e7 에서 더블클릭 가드가 들어가며 openDeepReading 이 래퍼가 되고 실제 본문이
+// openDeepReadingOnce 로 빠졌다. 결제 지점은 여전히 하나고 여전히 이 경로 안이므로,
+// 래퍼가 await 로 위임한 헬퍼까지 한 단계 따라가서 확인한다.
 const openDeepReading = sliceFunctionBody(client, "async function openDeepReading(");
 if (!openDeepReading) {
   fail(`${CLIENT}: openDeepReading 함수를 찾지 못했습니다.`);
 } else if (!openDeepReading.includes("ensurePaidAccess({")) {
-  fail(`${CLIENT}: 결제가 openDeepReading 밖으로 옮겨졌습니다.`);
+  const delegates = [...openDeepReading.matchAll(/\bawait\s+([A-Za-z_$][\w$]*)\s*\(/g)].map((m) => m[1]);
+  const paidDelegate = delegates.find((name) =>
+    sliceFunctionBody(client, `async function ${name}(`).includes("ensurePaidAccess({"),
+  );
+  if (!paidDelegate) {
+    fail(`${CLIENT}: 결제가 openDeepReading 경로 밖으로 옮겨졌습니다.`);
+  }
 }
 
 // ── 2) 무료 구간(입력·기초 리딩·카드 뽑기)에는 결제가 없어야 한다 ──────────
