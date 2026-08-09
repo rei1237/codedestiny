@@ -184,6 +184,62 @@ async function contextFor({ topic, category, mode, recentTurns }) {
   console.log(`[fallback-path] provider 실패 → 폴백 ${countGuardianFortuneVisibleTextLength(generated.result || {})}자 전달`);
 }
 
+// ── 폴백 사다리: Gemini → Workers AI 체인 → 결정론 템플릿 ────────────────────────
+// 예전에는 fallbackToWorkersAI:false 라 Gemini 가 죽으면 곧바로 템플릿이었다. 유료 상담이
+// 같은 골격의 문구로 나가는 셈이라 실제 리딩 한 겹을 사이에 넣었고, 그 계약을 여기 고정한다.
+{
+  const input = { ...BASE_INPUT, category: "saju", topic: "money_work", mode: "yeoni" };
+  const context = await contextFor({ topic: "money_work", category: "saju", mode: "yeoni" });
+  const env = {
+    ENABLE_GUARDIAN_FORTUNE_REAL_LLM: "true",
+    ALLOW_REAL_GUARDIAN_FORTUNE_LLM: "true",
+    ENABLE_GUARDIAN_FORTUNE_API: "true",
+    GUARDIAN_FORTUNE_LLM_PROVIDER: "gemini",
+    NODE_ENV: "staging",
+  };
+
+  let seenOptions = null;
+  await generateGuardianFortuneWithRealLLM({
+    input,
+    context,
+    env,
+    providerCall: async (_env, _prompt, options) => { seenOptions = options; return { ok: false, error: "probe" }; },
+    metricSink: () => {},
+  });
+
+  check("Workers AI 폴백이 꺼져 있지 않다", seenOptions?.fallbackToWorkersAI !== false,
+    `fallbackToWorkersAI=${String(seenOptions?.fallbackToWorkersAI)}`);
+  // 🔴 유료 라우트에 폴백을 켜면 fallbackMinChars 가 필수다(CLAUDE.md). 관례는 최소 분량 × 0.4.
+  const expectedFloor = Math.round(GUARDIAN_FORTUNE_RESULT_LENGTH.min * 0.4);
+  check("짧은 폴백 차단 문턱이 관례값(min × 0.4)으로 걸려 있다", seenOptions?.fallbackMinChars === expectedFloor,
+    `fallbackMinChars=${seenOptions?.fallbackMinChars} (기대 ${expectedFloor})`);
+
+  // Workers AI 는 JSON 을 코드펜스로 감싸 보내는 일이 잦다. 그걸 못 읽으면 폴백을 켠 의미가 없다.
+  const body = {
+    title: "지금의 일과 돈",
+    openingLine: "가".repeat(200),
+    innerState: "나".repeat(250),
+    coreReading: "다".repeat(450),
+    topicAdvice: "라".repeat(400),
+    cautionPattern: "마".repeat(200),
+    luckyAction: "바".repeat(160),
+    evidenceLines: ["근거 하나", "근거 둘", "근거 셋"],
+    followUpQuestions: ["다음 질문 하나?", "다음 질문 둘?", "다음 질문 셋?"],
+  };
+  const fenced = await generateGuardianFortuneWithRealLLM({
+    input,
+    context,
+    env,
+    providerCall: async () => ({ ok: true, text: "```json\n" + JSON.stringify(body) + "\n```", provider: "workers-ai", model: "@cf/zai-org/glm-4.7-flash" }),
+    metricSink: () => {},
+  });
+  check("코드펜스로 감싼 Workers AI JSON 을 읽어 낸다", fenced.deliverable === true && fenced.usedFallback !== true,
+    `deliverable=${fenced.deliverable} usedFallback=${fenced.usedFallback}`);
+  check("Workers AI 응답도 분량 계약을 채운다",
+    countGuardianFortuneVisibleTextLength(fenced.result || {}) >= GUARDIAN_FORTUNE_RESULT_LENGTH.min);
+  console.log(`[fallback-ladder] Workers AI 허용 · 문턱 ${expectedFloor}자 · 코드펜스 응답 ${countGuardianFortuneVisibleTextLength(fenced.result || {})}자 전달`);
+}
+
 if (failures.length) {
   console.error(`\n[verify-fortune-chat-reading] FAIL (${failures.length})`);
   for (const failure of failures) console.error(`  - ${failure}`);

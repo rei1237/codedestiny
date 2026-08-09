@@ -6,6 +6,7 @@ import {
   validateAndNormalizeGuardianFortuneResult,
 } from "./guardian-fortune-result.js";
 import { generateGuardianFortuneWithMockLLM } from "./guardian-fortune-mock.js";
+import { GUARDIAN_FORTUNE_RESULT_LENGTH } from "./guardian-fortune-runtime-contract.js";
 import {
   assertGuardianFortuneRealLLMAllowed,
   getGuardianFortuneLLMConfig,
@@ -108,7 +109,15 @@ export async function generateGuardianFortuneWithRealLLM({
       timeoutMs: config.timeoutMs,
       model: config.model,
       taskType: "fortune",
-      fallbackToWorkersAI: false,
+      // Gemini 가 죽어도 상담이 실패로 끝나지 않게 Workers AI 체인을 안전망으로 둔다
+      // (기본 체인은 lib/llm-client.ts 의 glm-4.7-flash → llama-3.3-70b).
+      // 예전에는 꺼져 있어서 Gemini 실패 = 곧바로 결정론 템플릿이었다 — 유료 상담(1회 5,000원)이
+      // 조용히 같은 골격의 문구로 나가는 셈이라, 실제 리딩 한 겹을 사이에 넣는다.
+      //
+      // 🔴 유료 라우트에 폴백을 켜면 fallbackMinChars 를 반드시 함께 준다(CLAUDE.md). 없으면
+      // 8% 분량짜리 응답도 결제 성공으로 전달된다. 관례대로 최소 분량 상수 × 0.4 를 쓴다.
+      // 문턱 미달이면 호출이 실패로 돌아 아래 결정론 폴백이 그대로 이어받는다.
+      fallbackMinChars: Math.round(GUARDIAN_FORTUNE_RESULT_LENGTH.min * 0.4),
       logContext: {
         requestId: safeMetricText(requestId, 120),
         featureKey: "guardian_fortune",
