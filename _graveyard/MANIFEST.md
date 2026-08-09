@@ -1,0 +1,87 @@
+# _graveyard — 격리 보관소
+
+> **여기 있는 파일은 아직 삭제되지 않았다.** 되돌리려면 아래 표의 복구 명령을 그대로 실행하면 된다.
+>
+> 근거 문서: [docs/cleanup-2026-08/03-report.md](../docs/cleanup-2026-08/03-report.md)
+> 승인: 2026-08-09 사용자 승인 (Phase 3 보고 후)
+> 빌드 제외: `tsconfig.json` `exclude` 에 `_graveyard` 추가됨. `next lint` 기본 경로(app/pages/components/lib/src)와 `config/env.contract.json` `scanRoots` 밖이라 별도 조치 불필요.
+
+## 판정 근거 (공통)
+
+모든 항목은 아래 스캔에서 **코드·설정 참조 0건**으로 확인됐다. 제외한 경로는 `node_modules` `.next` `out` `dist` `.git` 과, 사용이 아니라 언급일 뿐인 `docs/**` `*.md` `reports/**` `.claude/**` 뿐이다. 따라서 다음 채널이 모두 포함됐다:
+
+- `.ts .tsx .js .jsx .mjs .cjs .json .css` 소스 전체
+- 정적 셸 6종(`index.html` + `public/{,en,ja,zh,static}/index.html`)
+- Android 네이티브 `apps/mobile/android/**` (`*.java`, `AndroidManifest.xml`, `proguard-rules.pro`, `*.gradle`)
+- Worker (`worker/index.js` 디스패치, `worker/wrangler.toml` 바인딩·크론)
+- i18n 리소스 및 `js/` ↔ `public/js/` 미러
+
+이동 직전 현재 HEAD 기준으로 54건 전부 재검증했다(다른 세션이 그 사이 4커밋을 올렸기 때문).
+
+## 되돌리기
+
+개별 파일은 표의 복구 명령을, 배치 전체는 그 커밋을 되돌리면 된다.
+
+```bash
+git revert <격리 커밋 sha>      # 배치 전체 복구
+```
+
+---
+
+## Batch 1 — 비-worker 고아 49건 (2026-08-09)
+
+| 원 경로 | 이동일 | 사유 | 복구 명령 |
+|---|---|---|---|
+| `app/_locale/LocaleShellPage.js` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/_locale/LocaleShellPage.js app/_locale/LocaleShellPage.js` |
+| `app/components/AnalysisLoadingScreen.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/AnalysisLoadingScreen.tsx app/components/AnalysisLoadingScreen.tsx` |
+| `app/components/AstrologyCosmicPage.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/AstrologyCosmicPage.tsx app/components/AstrologyCosmicPage.tsx` |
+| `app/components/HwatuLifeCardTest.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/HwatuLifeCardTest.tsx app/components/HwatuLifeCardTest.tsx` |
+| `app/components/icons/AnimalSymbols.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/icons/AnimalSymbols.tsx app/components/icons/AnimalSymbols.tsx` |
+| `app/components/icons/BiasSymbols.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/icons/BiasSymbols.tsx app/components/icons/BiasSymbols.tsx` |
+| `app/components/icons/CosmicIcon.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/icons/CosmicIcon.tsx app/components/icons/CosmicIcon.tsx` |
+| `app/components/icons/FortuneSymbols.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/icons/FortuneSymbols.tsx app/components/icons/FortuneSymbols.tsx` |
+| `app/components/icons/OmikujiSymbols.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/icons/OmikujiSymbols.tsx app/components/icons/OmikujiSymbols.tsx` |
+| `app/components/lifebook/LifeFortuneGraph.jsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/lifebook/LifeFortuneGraph.jsx app/components/lifebook/LifeFortuneGraph.jsx` |
+| `app/components/luck-diary/NightReflectionPlanner.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/luck-diary/NightReflectionPlanner.tsx app/components/luck-diary/NightReflectionPlanner.tsx` |
+| `app/components/MysticalLanding.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/MysticalLanding.tsx app/components/MysticalLanding.tsx` |
+| `app/components/OhangRadarChart.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/OhangRadarChart.tsx app/components/OhangRadarChart.tsx` |
+| `app/components/PremiumPreview.jsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/PremiumPreview.jsx app/components/PremiumPreview.jsx` |
+| `app/components/PublicOptimizedImage.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/PublicOptimizedImage.tsx app/components/PublicOptimizedImage.tsx` |
+| `app/components/SajuBasicPage.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/SajuBasicPage.tsx app/components/SajuBasicPage.tsx` |
+| `app/components/ServiceCTA.js` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ServiceCTA.js app/components/ServiceCTA.js` |
+| `app/components/ServiceRenderSkeleton.jsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ServiceRenderSkeleton.jsx app/components/ServiceRenderSkeleton.jsx` |
+| `app/components/TarotReunionClient.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/TarotReunionClient.tsx app/components/TarotReunionClient.tsx` |
+| `app/components/TarotYearFortuneClient.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/TarotYearFortuneClient.tsx app/components/TarotYearFortuneClient.tsx` |
+| `app/components/TodayFortuneLeadMagnet.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/TodayFortuneLeadMagnet.tsx app/components/TodayFortuneLeadMagnet.tsx` |
+| `app/components/WebVitalsConsole.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/WebVitalsConsole.tsx app/components/WebVitalsConsole.tsx` |
+| `app/components/ziwei/ZiweiCosmicHero.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ziwei/ZiweiCosmicHero.tsx app/components/ziwei/ZiweiCosmicHero.tsx` |
+| `app/components/ziwei/ZiweiDeepChapterView.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ziwei/ZiweiDeepChapterView.tsx app/components/ziwei/ZiweiDeepChapterView.tsx` |
+| `app/components/ziwei/ZiweiPalaceOrbit.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ziwei/ZiweiPalaceOrbit.tsx app/components/ziwei/ZiweiPalaceOrbit.tsx` |
+| `app/components/ziwei/ZiweiPalaceTabs.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ziwei/ZiweiPalaceTabs.tsx app/components/ziwei/ZiweiPalaceTabs.tsx` |
+| `app/components/ziwei/ZiweiStarField.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/components/ziwei/ZiweiStarField.tsx app/components/ziwei/ZiweiStarField.tsx` |
+| `app/destiny-compass/_components/EngineGlyph.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/destiny-compass/_components/EngineGlyph.tsx app/destiny-compass/_components/EngineGlyph.tsx` |
+| `app/destiny-compass/_stage/dialogue/beatTypes.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/destiny-compass/_stage/dialogue/beatTypes.ts app/destiny-compass/_stage/dialogue/beatTypes.ts` |
+| `app/HomeClient.js` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/HomeClient.js app/HomeClient.js` |
+| `app/hooks/useServiceExecutionGuard.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/hooks/useServiceExecutionGuard.ts app/hooks/useServiceExecutionGuard.ts` |
+| `app/methodology/page.module.css` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/methodology/page.module.css app/methodology/page.module.css` |
+| `app/music/MoonAlbumArtwork.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/music/MoonAlbumArtwork.tsx app/music/MoonAlbumArtwork.tsx` |
+| `app/saju/destiny-bias/components/BiasDestinyResultTabs.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/saju/destiny-bias/components/BiasDestinyResultTabs.tsx app/saju/destiny-bias/components/BiasDestinyResultTabs.tsx` |
+| `app/saju/destiny-bias/components/BiasDestinyStageSummary.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/saju/destiny-bias/components/BiasDestinyStageSummary.tsx app/saju/destiny-bias/components/BiasDestinyStageSummary.tsx` |
+| `app/saju/destiny-bias/components/DestinyBiasDetailSections.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/saju/destiny-bias/components/DestinyBiasDetailSections.tsx app/saju/destiny-bias/components/DestinyBiasDetailSections.tsx` |
+| `app/saju/destiny-bias/engine/reportTemplates.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/saju/destiny-bias/engine/reportTemplates.ts app/saju/destiny-bias/engine/reportTemplates.ts` |
+| `app/saju/love-simulation/_components/AffinityMeter.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/saju/love-simulation/_components/AffinityMeter.tsx app/saju/love-simulation/_components/AffinityMeter.tsx` |
+| `app/saju/love-simulation/_hooks/useSimulation.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/saju/love-simulation/_hooks/useSimulation.ts app/saju/love-simulation/_hooks/useSimulation.ts` |
+| `app/tarot/mindscan/MindScanTarotClient.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/app/tarot/mindscan/MindScanTarotClient.tsx app/tarot/mindscan/MindScanTarotClient.tsx` |
+| `components/fortune/animal-twelve/AnimalResultSections.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/components/fortune/animal-twelve/AnimalResultSections.tsx components/fortune/animal-twelve/AnimalResultSections.tsx` |
+| `components/fortune/GuardianAnimalSprite.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/components/fortune/GuardianAnimalSprite.tsx components/fortune/GuardianAnimalSprite.tsx` |
+| `components/yeon/YeonCardDownloadButton.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/components/yeon/YeonCardDownloadButton.tsx components/yeon/YeonCardDownloadButton.tsx` |
+| `components/yeon/YeonShareCard.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/components/yeon/YeonShareCard.tsx components/yeon/YeonShareCard.tsx` |
+| `components/yeon/YeonTypewriterBubble.tsx` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/components/yeon/YeonTypewriterBubble.tsx components/yeon/YeonTypewriterBubble.tsx` |
+| `lib/i18n-locales.js` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/lib/i18n-locales.js lib/i18n-locales.js` |
+| `lib/yeon/generateYeonPrompt.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/lib/yeon/generateYeonPrompt.ts lib/yeon/generateYeonPrompt.ts` |
+| `lib/yeon/sampleYeonMessages.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/lib/yeon/sampleYeonMessages.ts lib/yeon/sampleYeonMessages.ts` |
+| `preview-all-features.cjs` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/preview-all-features.cjs preview-all-features.cjs` |
+
+### 주의 — 함께 지우면 안 되는 동명 항목
+- `app/hooks/useServiceExecutionGuard.ts` 를 격리했지만, **동명의 `worker/lib/service-execution-task.js:1036+` 는 살아 있다.** 이름이 같다고 함께 지우지 말 것.
+- `app/_lib/models/**` 는 이 배치에 없다(B등급). 그중 `UserModel.js` 는 스크립트 5곳이 쓰는 **살아 있는 모델**이다.
