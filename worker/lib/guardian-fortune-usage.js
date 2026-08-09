@@ -606,9 +606,15 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
     // 왕복 한 번(현재 평균 5초)을 덜어낸다. 이 쓰기가 늦어져도 같은 requestId 재전송은
     // reserveGuardianFortuneUsage 가 "released/blocked 가 아니면 409" 로 막으므로 중복 생성
     // 방향으로는 안전하다. ctx 가 없는 호출자(테스트·Express)는 종전대로 기다린다.
+    // waitUntil 자체가 던질 수 있다(요청 컨텍스트가 이미 닫힌 경우). 그걸 새어 나가게 두면
+    // **커밋에 성공한 요청이 아래 catch 로 떨어져** USAGE_COMMIT_FAILED 가 된다 — 진단용 쓰기
+    // 하나 때문에 성사된 상담을 실패로 뒤집는 것이라 반드시 여기서 삼킨다.
     const closeAttempt = () => store.updateAttempt(reservation.requestId, { status: "completed", errorCode: "" }).catch(() => {});
-    if (typeof ctx?.waitUntil === "function") ctx.waitUntil(closeAttempt());
-    else await closeAttempt();
+    if (typeof ctx?.waitUntil === "function") {
+      try { ctx.waitUntil(closeAttempt()); } catch { /* 컨텍스트가 닫혔으면 TTL 청소에 맡긴다 */ }
+    } else {
+      await closeAttempt();
+    }
     return { ok: true, committed };
   } catch (error) {
     if (reservation.source === "guest_free") await store.releaseGuest(reservation.guestIdHash, now).catch(() => {});
