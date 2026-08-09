@@ -35,6 +35,11 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function sha256Hex(raw: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function readCache(key: string): DirectionField | null {
   try {
     const raw = sessionStorage.getItem(key);
@@ -83,7 +88,7 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
 
       const dateSeed = kstDateSeed();
       const nextInput: CompassInput = { birth, emotion: DEFAULT_EMOTION, situation: concern, answers: [], dateSeed };
-      const cacheKey = "cd-compass:" + JSON.stringify({ b: birth, s: concern, d: dateSeed });
+      const cacheKey = "cd-compass:" + (await sha256Hex(JSON.stringify({ b: birth, s: concern, d: dateSeed })));
       try {
         const cached = readCache(cacheKey);
         const [result] = await Promise.all([

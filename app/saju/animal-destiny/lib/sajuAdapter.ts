@@ -88,14 +88,16 @@ function isAnimalDestinyInput(input: ResolveInput): input is AnimalDestinyInput 
   return typeof target?.birthDate === "string";
 }
 
-function stableInputKey(input: AnimalDestinyInput) {
-  return JSON.stringify({
+async function stableInputKey(input: AnimalDestinyInput) {
+  const raw = JSON.stringify({
     birthDate: input.birthDate,
     birthTime: input.birthTime || "",
     gender: input.gender || "unknown",
     calendarType: input.calendarType || "solar",
     lunarLeap: Boolean(input.lunarLeap),
   });
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
@@ -292,7 +294,7 @@ function calculateLocalResult(input: AnimalDestinyInput, kasi?: KasiPrefetchResu
  * 2) 로컬 deterministic 계산기
  */
 export async function fetchSajuEngineResult(input: AnimalDestinyInput): Promise<SajuEngineResult> {
-  const cacheKey = stableInputKey(input);
+  const cacheKey = await stableInputKey(input);
 
   if (!RESULT_CACHE.has(cacheKey)) {
     const pending = (async () => {
