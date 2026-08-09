@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 /* ════════════════════════════════════════════════════════
    SIGN TABLE
@@ -52,6 +52,186 @@ const ELEMENTS = {
   water:{name:"물(水)",emoji:"💧",faction:"포세이돈의 심해 감성",color:"#4A8FD4",dark:"#000614",
     love:"사랑하면 미쳐버림. 좋은 쪽으로든 무서운 쪽으로든.",
     oracle:"포세이돈의 심해가 너의 감정 속에 흐른다. 직관을 믿어라."},
+};
+
+/* ════════════════════════════════════════════════════════
+   운명의 수레바퀴 — 연애운 테이블 (금성=끌림 / 화성=밀당 / 달=애착)
+════════════════════════════════════════════════════════ */
+const VENUS_LOVE = {
+  aries:{tag:"선빵형 직진러",drip:"좋으면 그 자리에서 말함. 참는 걸 못 배웠음.",
+    attract:"금성 양자리는 계산 없이 먼저 다가가는 방식으로 매력을 만듭니다. 뜸 들이는 순간 본인 열정이 먼저 식기 때문에, 속도가 곧 진심의 증거가 되는 배치입니다.",
+    signal:"연락 텀이 갑자기 짧아지고 '지금 뭐 해?'가 늘어납니다. 만나자는 말을 먼저, 그것도 오늘 안에 꺼냅니다.",
+    killer:"밀당을 당하는 순간 흥미가 꺾입니다. 애매한 답장 3번이면 마음이 다음 사람에게 넘어갑니다."},
+  taurus:{tag:"국밥형 슬로우 스타터",drip:"썸 6개월은 기본. 대신 시작하면 안 흔들림.",
+    attract:"금성 황소자리는 감각과 안정으로 끌립니다. 목소리 톤, 손의 온도, 같이 먹은 음식의 기억 같은 물리적 감각이 마음을 여는 열쇠입니다.",
+    signal:"밥을 사거나 같이 먹자고 합니다. 그 사람 취향의 물건을 기억했다가 말없이 건네는 방식으로 표현합니다.",
+    killer:"불안정한 스케줄과 말 바꾸기. 약속 두 번 어기면 감정이 아니라 신뢰 계산이 먼저 무너집니다."},
+  gemini:{tag:"대화로 홀리는 썸의 신",drip:"썸 탈 땐 세상 최고. 사귀면 잡아둘 수 없음.",
+    attract:"금성 쌍둥이자리는 대화의 리듬으로 끌립니다. 말이 통하는 순간을 사랑의 증거로 읽기 때문에, 외모보다 대화 템포가 먼저 판정 기준이 됩니다.",
+    signal:"쓸데없는 이야기를 길게 합니다. 링크와 짤을 보내기 시작하면 이미 마음에 들어온 상태입니다.",
+    killer:"단답과 지루함. 대화가 정보 전달만 남으면 관심이 조용히 꺼집니다."},
+  cancer:{tag:"챙기다 정드는 유형",drip:"밥 먹었냐고 세 번 물으면 그거 고백임.",
+    attract:"금성 게자리는 보살핌으로 사랑을 표현하고, 보살핌을 받을 때 사랑을 확인합니다. 감정의 안전지대가 먼저 생겨야 마음이 열리는 배치입니다.",
+    signal:"컨디션과 끼니를 챙깁니다. 자기 가족 이야기, 어릴 적 이야기를 꺼내면 마음의 문이 열린 신호입니다.",
+    killer:"감정을 가볍게 취급당하는 것. '예민하다'는 말 한 번이 몇 달치 신뢰를 지웁니다."},
+  leo:{tag:"왕족 대우 상호계약",drip:"사랑은 받는 게 아니라 공연임. 관객이 필요함.",
+    attract:"금성 사자자리는 자랑스러운 관계를 원합니다. 상대를 치켜세우는 데 아낌이 없고, 같은 크기로 돌아오지 않으면 급격히 식는 구조입니다.",
+    signal:"자기 사람들에게 소개하려 합니다. SNS에 흔적을 남기는 것이 가장 확실한 공개 선언입니다.",
+    killer:"공개적으로 무시당하는 것. 사람 앞에서 깎이면 그 자리에서 관계가 종료됩니다."},
+  virgo:{tag:"사전 조사 완료형",drip:"고백 전에 이미 장단점 엑셀 다 짰음.",
+    attract:"금성 처녀자리는 사랑을 실무로 증명합니다. 화려한 말보다 문제를 대신 해결해 주는 행동이 애정 표현의 본체입니다.",
+    signal:"상대의 일상 불편을 기억했다가 해결책을 들고 옵니다. 잔소리가 늘어난다면 그건 관심의 다른 이름입니다.",
+    killer:"무책임과 반복되는 지각. 개선 의지가 안 보이면 감정보다 판단이 먼저 결론을 냅니다."},
+  libra:{tag:"연애 자체가 예술인 사람",drip:"밸런타인 기획 PPT 만들어 옴. 진심임.",
+    attract:"금성 천칭자리는 관계의 미학으로 끌립니다. 대화의 예의, 옷의 결, 데이트의 구성 같은 균형감이 그대로 매력 지수가 됩니다.",
+    signal:"기념일과 디테일을 챙깁니다. 상대 취향에 맞춰 자기 스타일을 미세하게 조정하기 시작합니다.",
+    killer:"무례함과 강요. 선을 넘는 언행 한 번이 미학 전체를 깨뜨립니다."},
+  scorpio:{tag:"전부 아니면 전무",drip:"2015년 게시물까지 다 봄. 그게 사랑임.",
+    attract:"금성 전갈자리는 깊이로 끌립니다. 표면적 호감을 신뢰하지 않고, 상대의 약한 부분을 알게 된 순간부터 진짜 감정이 시작됩니다.",
+    signal:"둘만 아는 이야기를 만들려 합니다. 질문이 사적인 영역으로 훅 들어오면 이미 진지한 상태입니다.",
+    killer:"거짓말. 크기와 무관하게 한 번이면 신뢰 회로가 통째로 닫힙니다."},
+  sagittarius:{tag:"자유 보장형 연애",drip:"구속하면 도망감. 풀어주면 돌아옴. 진짜임.",
+    attract:"금성 사수자리는 함께 확장되는 관계에 끌립니다. 소유가 아니라 동행이 사랑의 정의이며, 새로운 경험을 같이 만드는 사람에게 마음이 열립니다.",
+    signal:"여행과 계획을 같이 짜자고 합니다. 자기 세계관과 철학을 길게 이야기하면 마음을 연 것입니다.",
+    killer:"통제와 검열. 행동 보고를 요구받는 순간 관계가 짐이 됩니다."},
+  capricorn:{tag:"ROI 계산 후 헌신",drip:"느린데, 정하면 10년 감. 무섭게 진지함.",
+    attract:"금성 염소자리는 지속 가능성으로 판단합니다. 설렘보다 신뢰를 우선하며, 한 번 결정하면 관계를 커리어처럼 관리하는 배치입니다.",
+    signal:"미래 계획에 상대를 넣어서 말합니다. 시간과 돈을 쓰기 시작하면 그게 가장 정확한 신호입니다.",
+    killer:"무계획과 낭비. 현실 감각이 없는 상대에게는 감정 자체가 생기지 않습니다."},
+  aquarius:{tag:"베프인지 연인인지 본인도 모름",drip:"관계 정의를 안 함. 상대는 더 헷갈림.",
+    attract:"금성 물병자리는 정신적 독립성에 끌립니다. 틀에 맞추라고 요구하지 않는 상대에게만 마음을 여는, 우정과 연애의 경계가 흐린 배치입니다.",
+    signal:"자기만의 이상한 관심사를 공유합니다. 그걸 나눈다는 것 자체가 최고 수위의 애정 표현입니다.",
+    killer:"과한 감정 요구와 소유욕. 숨 막히면 설명 없이 거리를 둡니다."},
+  pisces:{tag:"존재하지 않는 이상형을 사랑함",drip:"상대가 아니라 상대에 대한 상상과 연애 중.",
+    attract:"금성 물고기자리는 감정의 공명으로 끌립니다. 말하지 않아도 알아주는 순간에 사랑을 확신하지만, 그만큼 상대를 이상화하기 쉬운 배치입니다.",
+    signal:"상대의 감정을 먼저 알아채고 위로합니다. 예술·음악·꿈 이야기를 꺼내면 마음이 열린 것입니다.",
+    killer:"냉소와 감정 무시. '그게 뭐가 중요해'라는 말 한마디에 세계가 닫힙니다."},
+};
+const MARS_LOVE = {
+  aries:{tag:"선빵 후 3분 반성",drip:"싸움 시작 공지 없음. 이미 전쟁 중임.",
+    pursuit:"화성 양자리는 밀당을 안 합니다. 원하면 바로 움직이고, 그 직진성이 상대에게는 부담이자 매력으로 동시에 작용합니다.",
+    conflict:"감정이 즉시 표면으로 올라옵니다. 말이 세게 나가지만 뒤끝이 없어 3분 뒤에는 본인이 먼저 당황합니다.",
+    makeup:"화해도 직진입니다. 사과를 길게 못 하는 대신 행동으로 바로 갚으려 하니, 말로 받아내려 하지 말고 행동을 인정해 주세요."},
+  taurus:{tag:"3일 침묵 테러",drip:"빡치면 말 안 함. 3일 뒤 '그냥 좀 생각했어'.",
+    pursuit:"화성 황소자리는 서두르지 않습니다. 확신이 설 때까지 움직이지 않지만, 한번 방향을 잡으면 밀어붙이는 힘이 가장 강한 배치입니다.",
+    conflict:"화를 즉시 내지 않고 안으로 눌러 담습니다. 그래서 폭발 시점이 늦고, 터졌을 때 되돌리기가 가장 어렵습니다.",
+    makeup:"논리보다 감각으로 풀립니다. 같이 밥을 먹거나 물리적으로 같은 공간에 있는 시간이 사과보다 효과적입니다."},
+  gemini:{tag:"논리 폭격 후 케이크",drip:"말로 조지고 5분 뒤 '케이크 먹을래?'",
+    pursuit:"화성 쌍둥이자리는 말로 거리를 조절합니다. 밀당이 전략이 아니라 습관이라, 본인은 장난인데 상대는 시험당한다고 느끼기 쉽습니다.",
+    conflict:"싸울 때 논리가 무기가 됩니다. 이기는 데는 능하지만 이긴 뒤 관계가 남지 않는 것이 이 배치의 함정입니다.",
+    makeup:"전환이 빠릅니다. 다만 상대의 감정 처리 속도는 그보다 느리다는 걸 계산에 넣어야 진짜 화해가 됩니다."},
+  cancer:{tag:"눈물 전술의 대가",drip:"울면 상대가 먼저 사과함. 계산은 아님.",
+    pursuit:"화성 게자리는 정면 돌파 대신 감정으로 접근합니다. 챙기고 스며드는 방식이라 시작은 느려도 한번 자리 잡으면 빼내기 어렵습니다.",
+    conflict:"공격보다 상처받은 티를 냅니다. 의도한 전략이 아니라 방어 기제인데, 반복되면 상대가 죄책감으로 지칩니다.",
+    makeup:"직접 사과보다 챙김으로 풉니다. 다만 무슨 일이 있었는지는 말로 한 번 정리해야 같은 싸움이 반복되지 않습니다."},
+  leo:{tag:"극장식 분노",drip:"화내는 것도 공연임. 반경 5km 다 들림.",
+    pursuit:"화성 사자자리는 드러내 놓고 구애합니다. 티 안 나게 하는 법을 모르며, 그 당당함 자체가 이 배치의 최대 무기입니다.",
+    conflict:"자존심이 걸리면 물러서지 않습니다. 내용보다 '무시당했다'는 감각이 싸움의 진짜 원인인 경우가 대부분입니다.",
+    makeup:"인정 한마디면 풀립니다. 논리적 해명보다 '네가 옳았다'는 문장이 훨씬 빠른 해결책입니다."},
+  virgo:{tag:"죄목 나열 후 판결문",drip:"싸울 때 날짜까지 기억함. 반박 불가.",
+    pursuit:"화성 처녀자리는 검증하며 접근합니다. 조심스러워 보이지만 이미 머릿속에서 관계 시뮬레이션을 여러 번 돌린 뒤의 행동입니다.",
+    conflict:"비판이 정확해서 더 아픕니다. 상대를 고치려는 의도가 아니라 문제를 해결하려는 습관인데, 받는 쪽에는 평가로 들립니다.",
+    makeup:"구체적인 개선안이 곧 화해입니다. 감정적 위로보다 '다음엔 이렇게 하자'는 합의가 훨씬 잘 듣습니다."},
+  libra:{tag:"웃으면서 빡치기",drip:"'아 괜찮아'가 가장 위험한 신호임.",
+    pursuit:"화성 천칭자리는 균형을 맞추며 다가갑니다. 상대의 속도에 맞추는 능력이 뛰어난 대신, 자기 욕구를 늦게 꺼내는 것이 약점입니다.",
+    conflict:"갈등 자체를 피하려다 감정을 쌓습니다. 표면은 평화로운데 속에서 점수를 매기고 있는 상태가 가장 위험합니다.",
+    makeup:"대화로 풀리는 배치입니다. 단 '괜찮다'는 말을 액면 그대로 받지 말고 한 번 더 물어봐야 합니다."},
+  scorpio:{tag:"1년 뒤 기습",drip:"지금 표정 안 변한 건 이미 설계 끝났다는 뜻.",
+    pursuit:"화성 전갈자리는 조용히 그러나 집요하게 접근합니다. 관심을 티 내지 않으면서 상대의 모든 것을 파악하는 방식입니다.",
+    conflict:"즉각 반응하지 않고 기억합니다. 용서는 하되 잊지 않기 때문에, 미해결 감정이 오래 남아 있는 것이 가장 큰 부담입니다.",
+    makeup:"진심의 깊이로만 풀립니다. 형식적 사과는 오히려 역효과이며, 왜 그랬는지를 끝까지 설명해야 닫힌 문이 열립니다."},
+  sagittarius:{tag:"철학적으로 화내기",drip:"싸우다가 '근본 원인이 뭘까'를 논함. 어이없음.",
+    pursuit:"화성 사수자리는 재미로 접근합니다. 무거운 관계를 본능적으로 피하고, 같이 웃을 수 있는지가 최우선 기준입니다.",
+    conflict:"싸움이 길어지면 관계 자체를 놓으려 합니다. 도망이 아니라 갇히는 것에 대한 공포 반응입니다.",
+    makeup:"공간을 주면 돌아옵니다. 쫓아가서 결론을 내려 하면 더 멀어지는 구조입니다."},
+  capricorn:{tag:"관계 ROI 종료 선언",drip:"'이 관계 수익성 없네' 하고 정리함. 진짜로.",
+    pursuit:"화성 염소자리는 목표로 삼으면 흔들리지 않습니다. 표현은 건조하지만 실행은 가장 꾸준한 배치입니다.",
+    conflict:"감정보다 사실을 따집니다. 차갑게 보이지만 실제로는 관계를 유지하려고 문제를 정리하는 중인 경우가 많습니다.",
+    makeup:"실질적 변화가 있어야 풉니다. 말로만 하는 약속은 오히려 신뢰를 더 깎습니다."},
+  aquarius:{tag:"인류애 상실 후 은둔",drip:"'역시 혼자가 답' 결론 냄. 이틀 뒤 복귀.",
+    pursuit:"화성 물병자리는 예측 불가능하게 접근합니다. 정석 코스를 거부하며, 그 낯섦 자체가 상대를 끌어당기는 방식입니다.",
+    conflict:"감정 대신 거리로 반응합니다. 싸우는 대신 사라지기 때문에 상대는 원인을 알 수 없어 더 힘듭니다.",
+    makeup:"논리로 접근해야 합니다. 감정을 호소하면 방어가 올라가고, 사실 관계를 정리해 주면 의외로 쉽게 인정합니다."},
+  pisces:{tag:"우주로 증발 1주일",drip:"연락두절 후 '응 그냥.' 미치는 유형.",
+    pursuit:"화성 물고기자리는 분위기로 스며듭니다. 명확한 신호를 안 주기 때문에 상대가 먼저 확신을 못 하는 것이 유일한 걸림돌입니다.",
+    conflict:"직접 부딪히지 못하고 회피합니다. 참다가 어느 날 갑자기 멀어지는 방식이라 상대는 이유를 끝까지 모릅니다.",
+    makeup:"몰아붙이지 않아야 돌아옵니다. 답을 요구하지 말고 감정을 먼저 받아 주면 스스로 말을 꺼냅니다."},
+};
+const MOON_ATTACH = {
+  aries:{tag:"무적인 척하는 불안형",drip:"위로해주면 '나 괜찮아 됐어' 함. 안 괜찮음.",
+    attachment:"달 양자리는 독립적으로 보이지만 확인이 필요한 애착 유형입니다. 도움을 요청하는 법을 배우지 못해 혼자 해결하려다 소진됩니다.",
+    needWord:"\"네가 알아서 잘할 거 아는데, 그래도 같이 하자.\"",
+    wound:"무시당하거나 존재감이 지워지는 순간. 반응이 없는 것이 비난보다 아픕니다."},
+  taurus:{tag:"먹으면서 감정 처리",drip:"'우울해서 치킨 시켰어' = SOS 신호임.",
+    attachment:"달 황소자리는 일관성으로 안정을 얻습니다. 같은 시간, 같은 방식의 반복이 애정의 증거이며 변화 자체가 스트레스입니다.",
+    needWord:"\"나 아무 데도 안 가.\"",
+    wound:"갑작스러운 변화와 이별 통보. 준비 없이 흔들리는 상황을 가장 견디지 못합니다."},
+  gemini:{tag:"탭 10개 열어놓은 감정",drip:"슬픈데 신남. 동시에. 본인도 정리 안 됨.",
+    attachment:"달 쌍둥이자리는 말로 감정을 처리합니다. 들어주는 사람이 있으면 회복이 빠르고, 없으면 감정이 정리되지 않은 채 쌓입니다.",
+    needWord:"\"무슨 생각 하는지 다 말해봐. 끝까지 들을게.\"",
+    wound:"말이 끊기거나 가볍게 넘겨지는 것. 진지하게 안 들어주면 마음이 닫힙니다."},
+  cancer:{tag:"세계 1위 눈물왕",drip:"광고 보다 울고, 강아지 보다 울고, 그냥도 욺.",
+    attachment:"달 게자리는 정서적 안전지대를 필요로 합니다. 감정을 판단 없이 받아 주는 사람 앞에서만 진짜 모습을 보입니다.",
+    needWord:"\"그렇게 느낄 만했어.\"",
+    wound:"감정을 과장이라고 취급당하는 것. 한 번의 무시가 몇 달간 남습니다."},
+  leo:{tag:"거울 보며 자가 충전",drip:"혼자 있을 때 '나 왜 이렇게 잘생겼지' 함.",
+    attachment:"달 사자자리는 인정으로 안정을 얻습니다. 칭찬이 사치가 아니라 정서적 생필품인 배치입니다.",
+    needWord:"\"너 진짜 대단해. 내가 다 자랑스러워.\"",
+    wound:"비교당하거나 관심이 다른 사람에게 옮겨가는 순간."},
+  virgo:{tag:"엑셀이 곧 힐링",drip:"할 일 목록을 분류하는 목록을 만듦. 그게 명상임.",
+    attachment:"달 처녀자리는 통제 가능한 환경에서 안정됩니다. 감정을 정리 가능한 형태로 바꿔야 마음이 놓이는 유형입니다.",
+    needWord:"\"완벽하지 않아도 괜찮아. 이미 충분해.\"",
+    wound:"쓸모없다는 느낌. 도움이 안 된다고 여겨지면 자존감이 급격히 떨어집니다."},
+  libra:{tag:"5시간 자기 과거 분석",drip:"'내가 그때 왜 그랬지'를 다섯 시간 함.",
+    attachment:"달 천칭자리는 관계 속에서 자기를 확인합니다. 혼자 있는 시간이 길어지면 정서적 기준점을 잃는 배치입니다.",
+    needWord:"\"네 잘못 아니야. 우리 사이는 괜찮아.\"",
+    wound:"갈등 상태로 방치되는 것. 결론 없는 냉전이 가장 큰 고통입니다."},
+  scorpio:{tag:"감정 데이터베이스 관리자",drip:"10년 전 그거 아직 저장돼 있음. 백업까지 됨.",
+    attachment:"달 전갈자리는 전부를 걸거나 아예 열지 않습니다. 중간이 없어 관계의 온도가 항상 극단으로 갑니다.",
+    needWord:"\"숨기지 않아도 돼. 그래도 안 떠나.\"",
+    wound:"배신과 은폐. 사실 자체보다 숨겼다는 점이 회복 불가능한 상처가 됩니다."},
+  sagittarius:{tag:"자유 갈망 간접 체험러",drip:"유튜브로 세계여행 보며 대리만족. 해소는 안 됨.",
+    attachment:"달 사수자리는 도망칠 문이 있어야 안정됩니다. 실제로 나가지는 않지만 문이 잠겨 있으면 숨이 막히는 유형입니다.",
+    needWord:"\"네 시간 가져도 돼. 기다릴게.\"",
+    wound:"의무와 죄책감으로 묶이는 것. 자유를 뺏겼다고 느끼면 애정도 함께 식습니다."},
+  capricorn:{tag:"울고 10분 뒤 엑셀 켬",drip:"눈물도 일정에 들어가 있음. 효율 미쳤음.",
+    attachment:"달 염소자리는 감정을 뒤로 미룹니다. 책임을 먼저 처리하느라 자기 감정을 마지막 순위에 두는 배치입니다.",
+    needWord:"\"오늘은 아무것도 안 해도 돼.\"",
+    wound:"노력이 당연시되는 것. 인정 없이 요구만 쌓이면 조용히 관계를 정리합니다."},
+  aquarius:{tag:"감정을 지적으로 처리",drip:"AI랑 철학 토론 중. 알고보면 따뜻한 사람.",
+    attachment:"달 물병자리는 감정을 분석으로 우회합니다. 왜 이런 감정이 드는지 따지는 동안 정작 감정 자체는 처리되지 않고 남습니다.",
+    needWord:"\"이해 못 해도 네 편이야.\"",
+    wound:"이상하다고 취급당하는 것. 다름을 결함으로 읽히면 마음을 완전히 닫습니다."},
+  pisces:{tag:"새벽 4시 OST 눈물 폭탄",drip:"별것 아닌 노래에 한 시간 욺. 예술가 소질 1등.",
+    attachment:"달 물고기자리는 타인의 감정을 그대로 흡수합니다. 공감 능력이 강점인 동시에 경계가 없어 쉽게 소진되는 배치입니다.",
+    needWord:"\"네 감정 다 이해돼. 이상한 거 아니야.\"",
+    wound:"현실적이지 못하다는 비난. 감수성을 결함으로 지적당하면 자기 세계로 숨습니다."},
+};
+const WHEEL_PHASES = {
+  ascent:{name:"상승 국면",icon:"📈",headline:"수레바퀴가 올라가는 구간",
+    drip:"지금 안 움직이면 이 흐름 다음엔 반년 기다려야 함.",
+    advice:"기회가 열리는 구간입니다. 확신이 60%만 서도 먼저 연락하고 먼저 제안하세요. 이 국면에서는 망설임 자체가 유일한 손실입니다."},
+  crown:{name:"정점 국면",icon:"👑",headline:"수레바퀴 꼭대기, 왕관 자리",
+    drip:"지금이 최고점임. 근데 최고점 다음이 뭔지도 알잖아.",
+    advice:"매력과 주목이 최대치인 구간입니다. 다만 정점은 오래 머무르지 않으니, 지금의 호감을 관계의 약속으로 고정해 두는 작업이 필요합니다."},
+  turning:{name:"전환 국면",icon:"🔄",headline:"수레바퀴 축이 바뀌는 순간",
+    drip:"애매한 관계 하나 정리될 거임. 좋은 쪽이든 아니든.",
+    advice:"관계의 성격이 바뀌는 구간입니다. 애매한 사이가 진전되거나 정리되며, 어느 쪽이든 미루면 결정권이 상대에게 넘어갑니다."},
+  descent:{name:"하강 국면",icon:"📉",headline:"수레바퀴가 미끄러지는 구간",
+    drip:"지금 던지는 승부수는 대체로 안 먹힘. 아껴둬.",
+    advice:"새로 벌이기보다 지키는 구간입니다. 오해가 커지기 쉬운 시기라 중요한 대화는 문자 대신 목소리로, 결론은 하루 뒤로 미루세요."},
+  nadir:{name:"침잠 국면",icon:"🌑",headline:"수레바퀴 맨 아래, 재정비 구간",
+    drip:"바닥은 나쁜 게 아님. 여기서만 방향을 바꿀 수 있음.",
+    advice:"감정 회복이 우선인 구간입니다. 관계를 늘리려 하지 말고 자기 리듬을 되찾으세요. 이 국면에서 정리한 기준이 다음 상승기의 승률을 결정합니다."},
+};
+const LOVE_WEEKDAYS = ["월요일","화요일","수요일","목요일","금요일","토요일","일요일"];
+const LOVE_HOURS = ["새벽 5–7시","오전 10–12시","오후 1–3시","해질녘 5–7시","저녁 7–9시","밤 10–12시"];
+const LOVE_MOON_PHASES = ["초승달","상현달","보름달 전후","하현달","그믐달"];
+const LOVE_CHANNELS = {
+  fire:"취미·운동·모임처럼 몸을 같이 움직이는 자리에서 먼저 눈에 띕니다.",
+  earth:"직장·거래·소개처럼 현실 접점이 분명한 경로로 들어옵니다.",
+  air:"대화형 커뮤니티, 스터디, 온라인 접점에서 말이 먼저 통하며 시작됩니다.",
+  water:"이미 알던 사이가 어느 날 다르게 보이는 방식으로 시작됩니다.",
 };
 
 /* ════════════════════════════════════════════════════════
@@ -482,50 +662,219 @@ const FAKBOK = {
 };
 
 /* ════════════════════════════════════════════════════════
-   아스트로 맵 — 일본 여행 스팟 데이터
+   아스트로 맵 — 세계 여행 스팟 데이터 (16개국 × 4스팟)
+   elems = 원소 친화도. 태양·달·상승궁 3축 점수제로 상위 8개국을 고른다.
 ════════════════════════════════════════════════════════ */
-const JAPAN_MAP = {
-  fire:{
-    city:"도쿄 시부야 / 오사카 난바",vibe:"열정·도전 에너지",
+const DESTINY_ATLAS = [
+  {
+    country:"그리스",flag:"🇬🇷",code:"ATH",city:"아테네 · 델포이 · 산토리니",
+    elems:["fire","air"],vibe:"신탁·직관 각성 에너지",
+    headline:"올림푸스 신탁의 본향. 네 차트가 처음 쓰인 땅이다.",
+    talismanName:"델포이 월계관 부적",talismanDesc:"아폴론의 예언 기운을 담은 직관·결단부. 결정을 미루는 습관을 끊어준다.",
+    luckyDay:"일요일 정오",
+    spots:[
+      {name:"델포이 아폴론 신탁소",desc:"고대의 무녀가 세상의 운명을 읽던 자리. 여기 돌계단에 앉아 던진 질문은 3개월 안에 답을 받는다.",item:"🏛️ 월계수 잎 부적",lat:38.4824,lng:22.5010,type:"파워 스팟"},
+      {name:"아테네 아크로폴리스 파르테논",desc:"아테나의 신전이 도시 전체를 내려다본다. 판을 크게 보는 눈이 여기서 열린다.",item:"🦉 아테나 올빼미 코인",lat:37.9715,lng:23.7267,type:"지성 스팟"},
+      {name:"메테오라 공중 수도원",desc:"하늘에 매달린 바위 위 수도원. 지상의 잡음이 닿지 않는 고도라 막힌 영감이 한 번에 뚫린다.",item:"📿 수도원 목각 묵주",lat:39.7217,lng:21.6306,type:"영감 스팟"},
+      {name:"산토리니 이아 절벽 일몰",desc:"에게해로 해가 떨어지는 20분. 아프로디테가 바다 거품에서 태어난 그 빛깔이다. 고백은 이 시간에.",item:"💙 산토리니 이블아이",lat:36.4618,lng:25.3753,type:"감성 스팟"},
+    ],
+  },
+  {
+    country:"일본 · 간토",flag:"🇯🇵",code:"TYO",city:"도쿄 시부야 · 하라주쿠 · 아키하바라",
+    elems:["fire","air"],vibe:"열정·창의 에너지",
+    headline:"속도가 곧 운인 도시. 망설이는 순간 흐름이 지나간다.",
+    talismanName:"빨간 실 오마모리",talismanDesc:"아레스의 기운을 담은 방위부. 승부처에서 물러서지 않게 잡아준다.",
+    luckyDay:"토요일 오후",
     spots:[
       {name:"시부야 스크램블 교차로",desc:"목성의 불꽃이 이곳에서 최고조. 군중 속 에너지가 너의 화성을 증폭시킨다.",item:"👟 나이키 시부야 한정판",lat:35.6595,lng:139.7004,type:"에너지 스팟"},
-      {name:"후시미 이나리 천본도리",desc:"아레스의 붉은 도리이 수천 개. 불의 원소인 너에게 최강 파워 스팟.",item:"⛩️ 빨간 도리이 오마모리",lat:34.9671,lng:135.7727,type:"파워 스팟"},
-      {name:"오사카 도톤보리",desc:"밤의 네온이 너의 화성 에너지를 극대화. 승부사 기질이 터지는 장소.",item:"🦀 카니도라쿠 게 요리",lat:34.6687,lng:135.5029,type:"재물 스팟"},
-    ],
-    omamori:"빨간 실 오마모리 — 아레스의 기운을 담은 방위부",
-    lucky_day:"토요일 오후"
-  },
-  earth:{
-    city:"교토 / 나라",vibe:"풍요·안정 에너지",
-    spots:[
-      {name:"교토 기온 거리",desc:"데메테르의 풍요 에너지가 가장 강한 곳. 전통과 현실이 교차하는 황금 지대.",item:"🍵 이치바 말차 세트",lat:35.0037,lng:135.7759,type:"풍요 스팟"},
-      {name:"나라 도다이지 대불",desc:"흙의 원소 에너지를 증폭시키는 최강 신전. 대불 앞에서 소원 빌면 재물운 극대화.",item:"🦌 나라 녹용 오마모리",lat:34.6888,lng:135.8398,type:"파워 스팟"},
-      {name:"아라시야마 대나무 숲",desc:"흙의 안정감을 극대화. 여기서 5분 명상하면 앞으로 6개월 멘탈이 단단해짐.",item:"🎋 대나무 행운부",lat:35.0168,lng:135.6717,type:"힐링 스팟"},
-    ],
-    omamori:"녹색 복 오마모리 — 데메테르의 풍작을 담은 재물부",
-    lucky_day:"수요일 오전"
-  },
-  air:{
-    city:"도쿄 하라주쿠 / 시모키타자와",vibe:"창의·소통 에너지",
-    spots:[
       {name:"하라주쿠 다케시타 거리",desc:"아테나의 토론 클럽 에너지가 집결. 트렌드를 만드는 자들의 성지.",item:"🎀 하라주쿠 크레페",lat:35.6702,lng:139.7024,type:"창의 스팟"},
-      {name:"시모키타자와 라이브 하우스",desc:"언어의 에너지가 음악으로 폭발하는 공간. 말빨 최강 날.",item:"🎵 인디밴드 굿즈",lat:35.6612,lng:139.6677,type:"영감 스팟"},
       {name:"아키하바라 전자거리",desc:"헤르메스의 정보 에너지가 넘치는 곳. 공기 원소가 여기서 천재성을 발휘.",item:"💻 빈티지 전자기기",lat:35.6984,lng:139.7731,type:"지성 스팟"},
+      {name:"시모키타자와 라이브 하우스",desc:"언어의 에너지가 음악으로 폭발하는 공간. 말빨 최강 날.",item:"🎵 인디밴드 굿즈",lat:35.6612,lng:139.6677,type:"영감 스팟"},
     ],
-    omamori:"파란 지혜 오마모리 — 아테나의 올빼미가 깃든 학업·언변부",
-    lucky_day:"화요일 저녁"
   },
-  water:{
-    city:"히로시마 오노미치 / 교토 수로각",vibe:"감성·치유 에너지",
+  {
+    country:"일본 · 간사이",flag:"🇯🇵",code:"KIX",city:"교토 기온 · 후시미 · 아라시야마",
+    elems:["earth","water"],vibe:"풍요·치유 에너지",
+    headline:"천 년을 버틴 도시. 급한 결정을 제 속도로 되돌려 놓는다.",
+    talismanName:"녹색 복 오마모리",talismanDesc:"데메테르의 풍작을 담은 재물부. 새는 돈이 아니라 쌓이는 돈을 부른다.",
+    luckyDay:"수요일 오전",
     spots:[
-      {name:"교토 철학의 길",desc:"포세이돈의 심해 에너지가 흐르는 수로. 물의 원소인 너에게 최강 충전 스팟.",item:"🌸 철학의 길 벚꽃 엽서",lat:35.0264,lng:135.7932,type:"힐링 스팟"},
-      {name:"히로시마 오노미치 해변",desc:"바다 에너지가 너의 감정을 정화함. 과거의 짐을 내려놓기 가장 좋은 장소.",item:"🌊 오노미치 레몬 오마모리",lat:34.4089,lng:133.2082,type:"정화 스팟"},
-      {name:"교토 후시미 수로각",desc:"물 흐르는 소리가 너의 직관을 깨움. 새벽에 혼자 오면 포세이돈의 메시지를 받음.",item:"💧 수로각 행운수",lat:34.9694,lng:135.7826,type:"파워 스팟"},
+      {name:"후시미 이나리 천본도리",desc:"아레스의 붉은 도리이 수천 개. 끝까지 올라간 사람에게만 열리는 파워 스팟.",item:"⛩️ 빨간 도리이 오마모리",lat:34.9671,lng:135.7727,type:"파워 스팟"},
+      {name:"교토 기온 거리",desc:"데메테르의 풍요 에너지가 가장 강한 곳. 전통과 현실이 교차하는 황금 지대.",item:"🍵 이치바 말차 세트",lat:35.0037,lng:135.7759,type:"풍요 스팟"},
+      {name:"아라시야마 대나무 숲",desc:"흙의 안정감을 극대화. 여기서 5분 명상하면 앞으로 6개월 멘탈이 단단해짐.",item:"🎋 대나무 행운부",lat:35.0168,lng:135.6717,type:"힐링 스팟"},
+      {name:"교토 철학의 길",desc:"포세이돈의 심해 에너지가 흐르는 수로. 결론이 안 나던 고민이 걷는 동안 정리된다.",item:"🌸 철학의 길 벚꽃 엽서",lat:35.0264,lng:135.7932,type:"감성 스팟"},
     ],
-    omamori:"남색 감성 오마모리 — 포세이돈의 물결을 담은 연애·치유부",
-    lucky_day:"금요일 새벽"
   },
-};
+  {
+    country:"이탈리아",flag:"🇮🇹",code:"ROM",city:"로마 · 피렌체 · 나폴리",
+    elems:["fire","earth"],vibe:"권위·성취 에너지",
+    headline:"제우스의 로마식 이름이 유피테르다. 야망을 크게 부를수록 잘 받는 땅.",
+    talismanName:"코르니첼로 붉은 뿔",talismanDesc:"악의를 튕겨내는 남부 이탈리아 부적. 뒷말과 시기를 막아준다.",
+    luckyDay:"목요일 오전",
+    spots:[
+      {name:"로마 판테온 오쿨루스",desc:"천장에 뚫린 구멍으로 하늘이 통째로 내려온다. 모든 신에게 한 번에 비는 자리라 소원의 스케일을 키워도 된다.",item:"🏛️ 판테온 대리석 조각",lat:41.8986,lng:12.4769,type:"파워 스팟"},
+      {name:"피렌체 두오모 쿠폴라",desc:"463개 계단을 올라야 닿는 꼭대기. 몸으로 치른 대가만큼 시야가 열리는 구조는 네 차트와 똑같다.",item:"🎨 피렌체 가죽 노트",lat:43.7731,lng:11.2560,type:"영감 스팟"},
+      {name:"베수비오 화산 분화구",desc:"도시 하나를 통째로 덮은 불의 기억. 미루던 결단을 여기 분화구 앞에서 내리면 되돌리지 않게 된다.",item:"🌋 화산석 부적",lat:40.8224,lng:14.4289,type:"에너지 스팟"},
+      {name:"트레비 분수",desc:"등을 돌리고 던진 동전은 반드시 돌아온다는 계약. 재물운은 미련이 아니라 확신에 붙는다.",item:"🪙 트레비 행운 동전",lat:41.9009,lng:12.4833,type:"재물 스팟"},
+    ],
+  },
+  {
+    country:"스페인",flag:"🇪🇸",code:"BCN",city:"바르셀로나 · 그라나다 · 세비야",
+    elems:["fire","water"],vibe:"관능·해방 에너지",
+    headline:"디오니소스가 가장 오래 머무는 나라. 억눌러 온 감정이 여기서 풀린다.",
+    talismanName:"산티아고 가리비 껍데기",talismanDesc:"순례자의 표식. 끝내지 못한 일을 완주하게 만드는 부적이다.",
+    luckyDay:"금요일 밤",
+    spots:[
+      {name:"바르셀로나 사그라다 파밀리아",desc:"140년째 짓는 중인 성당. 완성되지 않은 것도 이미 위대할 수 있다는 증거라, 완벽주의가 무너질 때 와야 한다.",item:"🕯️ 스테인드글라스 프리즘",lat:41.4036,lng:2.1744,type:"영감 스팟"},
+      {name:"그라나다 알함브라 헤네랄리페",desc:"물길이 정원 전체를 관통한다. 물소리 사이를 걷는 30분이 감정 과부하를 통째로 씻어낸다.",item:"🌺 알함브라 타일 자석",lat:37.1761,lng:-3.5881,type:"감성 스팟"},
+      {name:"세비야 트리아나 플라멩코 골목",desc:"발 구르는 소리로 감정을 밖으로 밀어내는 기술. 화성 에너지를 파괴 대신 표현으로 쓰는 법을 배운다.",item:"💃 플라멩코 부채",lat:37.3826,lng:-6.0025,type:"에너지 스팟"},
+      {name:"산티아고 데 콤포스텔라 대성당",desc:"800km를 걸어온 사람들이 마지막에 도착하는 광장. 과거를 내려놓기에 이보다 확실한 좌표는 없다.",item:"🐚 가리비 순례 목걸이",lat:42.8806,lng:-8.5449,type:"정화 스팟"},
+    ],
+  },
+  {
+    country:"튀르키예",flag:"🇹🇷",code:"IST",city:"이스탄불 · 카파도키아 · 파묵칼레",
+    elems:["air","fire"],vibe:"경계·전환 에너지",
+    headline:"두 대륙이 맞물리는 나라. 진로를 바꿀지 말지 결정할 때 오는 곳.",
+    talismanName:"나자르 본주우 (이블아이)",talismanDesc:"헤르메스의 파란 눈. 남의 시선과 뒷말로부터 판단력을 지켜준다.",
+    luckyDay:"화요일 저녁",
+    spots:[
+      {name:"이스탄불 아야소피아",desc:"신전이 성당이 되고 모스크가 된 건물. 정체성을 몇 번 바꿔도 격이 떨어지지 않는다는 실물 증거다.",item:"🔵 나자르 유리 부적",lat:41.0086,lng:28.9802,type:"지성 스팟"},
+      {name:"카파도키아 괴레메 열기구",desc:"동트기 직전 수백 개 기구가 동시에 뜬다. 공기 원소가 평생 한 번은 봐야 할 광경이라고 헤르메스가 말한다.",item:"🎈 열기구 미니어처",lat:38.6431,lng:34.8289,type:"파워 스팟"},
+      {name:"에페소스 켈수스 도서관",desc:"1만 2천 권이 있던 자리에 파사드만 남았다. 남길 것과 버릴 것을 가르는 기준이 여기서 선명해진다.",item:"📜 파피루스 필사본",lat:37.9395,lng:27.3417,type:"영감 스팟"},
+      {name:"파묵칼레 석회 계단",desc:"온천수가 수천 년간 흘러 만든 흰 계단. 반복이 지형을 바꾼다는 걸 눈으로 확인하는 자리.",item:"🤍 석회 결정 원석",lat:37.9204,lng:29.1211,type:"정화 스팟"},
+    ],
+  },
+  {
+    country:"대만",flag:"🇹🇼",code:"TPE",city:"타이베이 · 지우펀 · 화롄",
+    elems:["water","air"],vibe:"인연·회복 에너지",
+    headline:"3시간이면 닿는 가장 가까운 감성 충전소. 짧게 가서 깊게 회복한다.",
+    talismanName:"롱산사 평안부",talismanDesc:"향 연기를 세 번 통과시킨 안전부. 인연운과 이동운을 함께 잡아준다.",
+    luckyDay:"토요일 저녁",
+    spots:[
+      {name:"지우펀 아메이 찻집 홍등",desc:"산비탈에 매달린 홍등 아래 바다가 보인다. 오래된 인연을 떠올리기에 세계에서 가장 위험한 장소.",item:"🏮 지우펀 홍등 미니어처",lat:25.1097,lng:121.8447,type:"감성 스팟"},
+      {name:"타이베이 롱산사",desc:"연애운을 보는 월하노인이 따로 모셔져 있다. 붉은 실을 받아 오면 그 계절 안에 연락이 온다.",item:"🧧 월하노인 붉은 실",lat:25.0372,lng:121.4998,type:"파워 스팟"},
+      {name:"화롄 타이루거 협곡",desc:"대리석을 깎아 만든 물길. 포세이돈이 바위를 이기는 방식은 힘이 아니라 시간이었다.",item:"🪨 대리석 조약돌",lat:24.1580,lng:121.6216,type:"정화 스팟"},
+      {name:"타이베이 스린 야시장",desc:"돈이 실제로 도는 현장의 밀도. 관념적인 재테크 고민이 여기서 숫자와 감각으로 바뀐다.",item:"🍢 야시장 행운 젓가락",lat:25.0880,lng:121.5240,type:"재물 스팟"},
+    ],
+  },
+  {
+    country:"태국",flag:"🇹🇭",code:"BKK",city:"방콕 · 치앙마이 · 끄라비",
+    elems:["fire","water"],vibe:"소원·정화 에너지",
+    headline:"불과 물이 동시에 강한 드문 땅. 태우고 씻는 일이 하루 안에 끝난다.",
+    talismanName:"프라크루앙 목걸이 부적",talismanDesc:"승려의 축원을 담은 호신부. 과열된 화성을 식히지 않고 방향만 돌려준다.",
+    luckyDay:"일요일 새벽",
+    spots:[
+      {name:"방콕 왓 아룬 새벽사원",desc:"강 건너에서 첫 빛을 받는 탑. 아폴론의 전차가 지나가는 각도라 새 출발 선언은 여기서.",item:"🌅 왓 아룬 도자기 조각",lat:13.7437,lng:100.4889,type:"파워 스팟"},
+      {name:"치앙마이 도이수텝",desc:"306계단 위 황금탑. 올라가는 동안 생각이 하나로 줄어드는 구조라 결정이 단순해진다.",item:"🔔 도이수텝 청동 방울",lat:18.8047,lng:98.9217,type:"힐링 스팟"},
+      {name:"아유타야 나무뿌리 불상",desc:"보리수 뿌리가 500년에 걸쳐 불두를 감쌌다. 상처를 없애지 않고 품는 방식의 교본.",item:"🌳 보리수 잎 코팅 부적",lat:14.3567,lng:100.5680,type:"영감 스팟"},
+      {name:"끄라비 라일레이 비치",desc:"배로만 닿는 절벽 사이 해변. 연락이 안 되는 이틀이 감정 회로를 완전히 리셋한다.",item:"🐚 안다만 조개 팔찌",lat:8.0119,lng:98.8377,type:"감성 스팟"},
+    ],
+  },
+  {
+    country:"베트남",flag:"🇻🇳",code:"DAD",city:"다낭 · 호이안 · 닌빈",
+    elems:["water","earth"],vibe:"안정·재정비 에너지",
+    headline:"물과 흙이 맞물린 땅. 지친 상태로 가도 손해 보지 않는 몇 안 되는 목적지.",
+    talismanName:"호이안 등불 소원지",talismanDesc:"강에 띄우는 종이 등불. 붙잡고 있던 미련을 물살에 넘기는 의식이다.",
+    luckyDay:"수요일 저녁",
+    spots:[
+      {name:"호이안 등불 거리",desc:"강 위에 소원 등불이 떠간다. 아르테미스의 은빛 대신 사람이 만든 빛이라, 감정을 놓는 데 더 잘 듣는다.",item:"🏮 호이안 실크 등불",lat:15.8801,lng:108.3380,type:"감성 스팟"},
+      {name:"다낭 오행산",desc:"석회암 다섯 봉우리가 오행을 나눠 갖고 있다. 동굴 안 천창으로 떨어지는 빛줄기가 파워 스팟의 정중앙.",item:"⛰️ 대리석 오행 조각",lat:16.0035,lng:108.2632,type:"파워 스팟"},
+      {name:"후에 티엔무 사원",desc:"흐엉강을 내려다보는 7층탑. 왕조가 무너져도 강은 그대로 흐른다는 사실이 위안이 되는 자리.",item:"🕉️ 티엔무 향낭",lat:16.4530,lng:107.5450,type:"정화 스팟"},
+      {name:"닌빈 짱안 석회암 수로",desc:"노 젓는 배로 동굴을 통과한다. 어두운 구간이 짧다는 걸 몸으로 아는 경험이 불안 회로를 줄인다.",item:"🛶 짱안 대나무 노 미니어처",lat:20.2506,lng:105.8990,type:"힐링 스팟"},
+    ],
+  },
+  {
+    country:"페루",flag:"🇵🇪",code:"CUZ",city:"쿠스코 · 마추픽추 · 티티카카",
+    elems:["earth","fire"],vibe:"근원·재건 에너지",
+    headline:"고도 3,400m. 산소가 줄면 생각도 줄어서, 진짜 중요한 것만 남는다.",
+    talismanName:"차카나 안데스 십자가",talismanDesc:"세 세계를 잇는 잉카의 부적. 흩어진 인생 축을 하나로 꿰어준다.",
+    luckyDay:"목요일 새벽",
+    spots:[
+      {name:"마추픽추 태양의 신전",desc:"동지의 첫 빛이 정확히 창을 통과하도록 지어졌다. 타이밍을 설계하는 자가 운을 가져간다는 뜻이다.",item:"☀️ 잉카 태양 펜던트",lat:-13.1631,lng:-72.5450,type:"파워 스팟"},
+      {name:"쿠스코 코리칸차",desc:"황금으로 덮여 있던 태양 신전 위에 성당이 얹혔다. 빼앗겨도 기초는 남는다 — 재물운의 핵심 문장.",item:"🪙 잉카 금박 카드",lat:-13.5203,lng:-71.9752,type:"재물 스팟"},
+      {name:"모라이 원형 계단밭",desc:"층마다 온도가 달라 고대의 농업 실험실로 쓰였다. 한 번에 걸지 말고 층을 나눠 실험하라는 신탁.",item:"🌽 안데스 곡물 주머니",lat:-13.3300,lng:-72.1950,type:"영감 스팟"},
+      {name:"티티카카 우로스 갈대섬",desc:"갈대를 엮어 만든 섬 위에서 사람이 산다. 기반이 흔들려도 계속 엮으면 된다는 증거.",item:"🌾 토토라 갈대 배 모형",lat:-15.8402,lng:-69.9750,type:"정화 스팟"},
+    ],
+  },
+  {
+    country:"인도",flag:"🇮🇳",code:"DEL",city:"바라나시 · 리시케시 · 자이푸르",
+    elems:["water","earth"],vibe:"소멸·재생 에너지",
+    headline:"편안한 여행은 아니다. 대신 돌아올 때 사람이 바뀌어 있다.",
+    talismanName:"루드락샤 염주",talismanDesc:"강가 강물에 적신 씨앗 염주. 과잉 해석과 집착 회로를 끊는 데 쓴다.",
+    luckyDay:"월요일 새벽",
+    spots:[
+      {name:"바라나시 다샤스와메드 가트",desc:"저녁마다 불을 든 아르티 의식이 강가에서 열린다. 하데스의 영역을 살아서 보는 몇 안 되는 좌표.",item:"🪔 강가 아르티 램프",lat:25.3067,lng:83.0104,type:"정화 스팟"},
+      {name:"리시케시 강가 강변",desc:"히말라야에서 막 내려온 물은 차갑고 빠르다. 감정 과부하가 물살 속도에 씻겨 나간다.",item:"📿 루드락샤 팔찌",lat:30.0869,lng:78.2676,type:"힐링 스팟"},
+      {name:"자이푸르 하와마할",desc:"창 953개로 만든 바람의 궁전. 밖을 다 보면서도 안이 보이지 않는 구조 — 협상 전에 새길 원리다.",item:"💎 자이푸르 보석 원석",lat:26.9239,lng:75.8267,type:"재물 스팟"},
+      {name:"함피 비루팍샤 사원",desc:"거대한 바위들이 중력을 무시한 채 쌓여 있는 폐허 도시. 상식이 흔들려야 새 판이 보인다.",item:"🐘 함피 석조 코끼리",lat:15.3350,lng:76.4600,type:"파워 스팟"},
+    ],
+  },
+  {
+    country:"아이슬란드",flag:"🇮🇸",code:"KEF",city:"레이캬비크 · 요쿨살론 · 골든서클",
+    elems:["water","air"],vibe:"침묵·직관 에너지",
+    headline:"사람보다 자연이 압도적으로 많은 나라. 감정 소음이 물리적으로 사라진다.",
+    talismanName:"베그비시르 룬 부적",talismanDesc:"길을 잃지 않게 하는 북구의 표식. 방향이 흐려질 때 지니는 것.",
+    luckyDay:"금요일 자정",
+    spots:[
+      {name:"요쿨살론 빙하 석호",desc:"떨어져 나온 빙산이 바다로 흘러간다. 놓아야 할 것이 떠나는 광경을 실물로 보는 자리.",item:"🧊 다이아몬드 비치 흑사",lat:64.0784,lng:-16.2306,type:"감성 스팟"},
+      {name:"싱벨리르 대륙 균열",desc:"북미판과 유라시아판이 갈라지는 틈을 걸어서 지난다. 관계의 균열도 지형이라는 걸 받아들이게 된다.",item:"🪨 현무암 룬석",lat:64.2559,lng:-21.1300,type:"파워 스팟"},
+      {name:"게이시르 스트로퀴르 간헐천",desc:"5분마다 끓는 물이 20m를 솟는다. 참았다가 한 번에 터뜨리는 네 화성의 작동 원리 그 자체.",item:"♨️ 간헐천 유황 소금",lat:64.3130,lng:-20.3020,type:"에너지 스팟"},
+      {name:"레이캬비크 하르파 콘서트홀",desc:"현무암 기둥을 유리로 옮긴 벌집 파사드. 빛이 각도마다 다르게 꺾여 굳은 발상을 흔들어 놓는다.",item:"🎼 하르파 유리 프리즘",lat:64.1504,lng:-21.9325,type:"영감 스팟"},
+    ],
+  },
+  {
+    country:"스위스",flag:"🇨🇭",code:"ZRH",city:"인터라켄 · 체르마트 · 루체른",
+    elems:["earth","air"],vibe:"질서·조망 에너지",
+    headline:"모든 것이 제 시간에 도착하는 나라. 흐트러진 리듬을 강제로 맞춰준다.",
+    talismanName:"에델바이스 압화 부적",talismanDesc:"고산에서만 피는 꽃. 높은 기준을 유지하되 자신을 갉지 않게 지켜준다.",
+    luckyDay:"월요일 오전",
+    spots:[
+      {name:"인터라켄 하더쿨름 전망대",desc:"호수 두 개가 한 프레임에 들어온다. 양자택일로 보이던 문제가 여기선 둘 다 보이는 구도로 바뀐다.",item:"🏔️ 알프스 소 방울",lat:46.6960,lng:7.8600,type:"지성 스팟"},
+      {name:"체르마트 고르너그라트",desc:"마터호른 정면 3,089m. 크로노스가 만든 시간의 규모 앞에서 조급함이 사라진다.",item:"⛏️ 체르마트 광석 조각",lat:45.9832,lng:7.7847,type:"파워 스팟"},
+      {name:"루체른 카펠교",desc:"1333년부터 놓여 있는 목조 다리. 불타고 다시 세워졌다는 이력이 회복력의 상징이 된다.",item:"🕰️ 루체른 목각 시계추",lat:47.0517,lng:8.3076,type:"힐링 스팟"},
+      {name:"그린델발트 피르스트 절벽길",desc:"허공에 걸린 철제 통로를 걷는다. 안전장치가 있는 상태에서 두려움을 다루는 연습장.",item:"🧗 카라비너 키링",lat:46.6590,lng:8.0530,type:"에너지 스팟"},
+    ],
+  },
+  {
+    country:"이집트",flag:"🇪🇬",code:"CAI",city:"카이로 · 룩소르 · 아스완",
+    elems:["earth","fire"],vibe:"영속·야망 에너지",
+    headline:"4,500년을 버틴 구조물들. 장기전 체질에게 이보다 잘 맞는 땅은 없다.",
+    talismanName:"스카라베 풍뎅이 부적",talismanDesc:"매일 태양을 굴려 올린다는 재생의 상징. 반복 루틴에 힘을 싣는다.",
+    luckyDay:"토요일 정오",
+    spots:[
+      {name:"기자 대피라미드",desc:"정북 오차 0.05도로 세워졌다. 정밀함이 곧 영속이라는 명제를 몸으로 받아들이는 자리.",item:"🔺 피라미드 석회석 조각",lat:29.9792,lng:31.1342,type:"파워 스팟"},
+      {name:"룩소르 카르나크 신전",desc:"134개 거대 열주가 숲처럼 서 있다. 기둥 하나하나가 누군가의 30년이라는 걸 알면 조급함이 부끄러워진다.",item:"📜 히에로글리프 파피루스",lat:25.7188,lng:32.6573,type:"지성 스팟"},
+      {name:"아부심벨 대신전",desc:"1년에 두 번 햇빛이 60m 안쪽 신상까지 닿도록 설계됐다. 타이밍 설계의 최고 난도 사례.",item:"☥ 앙크 열쇠 펜던트",lat:22.3372,lng:31.6258,type:"영감 스팟"},
+      {name:"아스완 필레 신전",desc:"댐 건설 때 통째로 옮겨 섬 위에 다시 세웠다. 환경이 바뀌면 자리를 옮겨도 된다는 허락.",item:"💠 나일 청금석 부적",lat:24.0256,lng:32.8843,type:"감성 스팟"},
+    ],
+  },
+  {
+    country:"모로코",flag:"🇲🇦",code:"RAK",city:"마라케시 · 사하라 · 쉐프샤우엔",
+    elems:["fire","earth"],vibe:"감각·담대함 에너지",
+    headline:"흥정이 기본값인 나라. 원하는 걸 말하는 근육이 강제로 붙는다.",
+    talismanName:"함사(파티마의 손)",talismanDesc:"다섯 손가락으로 악의를 막는 부적. 협상 자리에서 기세를 지켜준다.",
+    luckyDay:"금요일 오후",
+    spots:[
+      {name:"마라케시 제마 엘 프나 광장",desc:"해가 지면 광장 전체가 시장이자 극장이 된다. 디오니소스가 밤마다 출근하는 좌표.",item:"🫖 모로칸 민트티 세트",lat:31.6258,lng:-7.9891,type:"에너지 스팟"},
+      {name:"사하라 메르주가 사구",desc:"별이 지평선까지 내려앉는다. 인생 스케일을 다시 재는 데 하룻밤이면 충분하다.",item:"🐪 사하라 모래병",lat:31.0819,lng:-4.0088,type:"파워 스팟"},
+      {name:"쉐프샤우엔 블루시티",desc:"골목 전체가 파란 도시. 시야에 파랑만 남으면 과열된 신경이 물리적으로 내려간다.",item:"🔷 쉐프샤우엔 청염료 타일",lat:35.1688,lng:-5.2636,type:"힐링 스팟"},
+      {name:"페스 알 카라윈",desc:"859년에 세워진 세계 최초의 대학. 지식은 오래 쌓아야 권위가 된다는 걸 증명하는 건물.",item:"📕 페스 가죽 장정 노트",lat:34.0648,lng:-4.9772,type:"지성 스팟"},
+    ],
+  },
+  {
+    country:"뉴질랜드",flag:"🇳🇿",code:"ZQN",city:"퀸스타운 · 테카포 · 밀포드사운드",
+    elems:["earth","water"],vibe:"광활·리셋 에너지",
+    headline:"지구 반대편. 물리적 거리가 그대로 심리적 거리가 되는 유일한 목적지.",
+    talismanName:"코루 나선 목걸이",talismanDesc:"펼쳐지는 고사리 순 모양. 끝난 줄 알았던 국면이 새로 감기게 한다.",
+    luckyDay:"일요일 밤",
+    spots:[
+      {name:"테카포 호수 별빛 보호구역",desc:"인공광이 법으로 통제되는 하늘. 아르테미스의 은빛이 방해 없이 내려오는 세계 몇 안 되는 좌표.",item:"⭐ 남십자성 은목걸이",lat:-44.0049,lng:170.4790,type:"감성 스팟"},
+      {name:"밀포드 사운드",desc:"1,200m 절벽이 바다로 곧장 꽂힌다. 포세이돈의 규모 앞에서 사람 사이 갈등이 제 크기로 축소된다.",item:"🌊 파우아 조개 자개",lat:-44.6414,lng:167.8974,type:"정화 스팟"},
+      {name:"퀸스타운 스카이라인",desc:"번지점프가 세계 최초로 상업화된 도시. 겁이 많아서 못 하는 게 아니라 안 해봐서 겁이 나는 거다.",item:"🪂 퀸스타운 점프 인증 뱃지",lat:-45.0244,lng:168.6510,type:"에너지 스팟"},
+      {name:"로토루아 와이오타푸 지열지대",desc:"땅이 김을 뿜고 색이 끓는다. 겉은 조용해도 속이 끓는 사람에게 가장 정확한 거울.",item:"♨️ 로토루아 유황 비누",lat:-38.3570,lng:176.3670,type:"파워 스팟"},
+    ],
+  },
+];
 
 /* ════════════════════════════════════════════════════════
    오늘의 신탁
@@ -686,7 +1035,7 @@ function calcPlacements(dateStr,timeStr,userName,sunKeyOverride,realPlacements){
     tazza,
     devil:DEVIL_MAP[sk],
     office:OFFICE_DATA[sk],
-    japan:JAPAN_MAP[sunElem],
+    atlas:buildDestinyAtlas({sun,moon,rising,elemKey:sunElem,birthDay:day,birthMonth:m}),
     fakbok:FAKBOK[sk],
     premium,
     sunKey:sk,
@@ -830,6 +1179,149 @@ function buildPremiumPlaces(ctx){
       avoidTime:p.avoidTime,
     };
   });
+}
+
+/* 운명의 좌표 — 태양(3)·달(2)·상승궁(2) 3축 점수로 16개국 중 상위 8개국을 고른다.
+   buildPremiumPlaces와 동일한 스코어링 관례를 따른다. */
+function buildDestinyAtlas(ctx){
+  const sunElem=ctx.elemKey, moonElem=ctx.moon.elem, risingElem=ctx.rising.elem;
+  const ranked=DESTINY_ATLAS.map((dest,idx)=>{
+    let raw=0;
+    if(dest.elems.includes(sunElem)) raw+=3;
+    if(dest.elems.includes(moonElem)) raw+=2;
+    if(dest.elems.includes(risingElem)) raw+=2;
+    raw+=((idx*3+ctx.birthDay+ctx.birthMonth)%4); // 동점 분산 — 생일마다 순위가 달라지게
+    return {...dest,raw};
+  }).sort((a,b)=>b.raw-a.raw);
+
+  return ranked.slice(0,8).map((dest,rank)=>{
+    const matched=[];
+    if(dest.elems.includes(sunElem)) matched.push(`태양(${ctx.sun.name})의 ${ELEMENTS[sunElem].name} 기질`);
+    if(dest.elems.includes(moonElem)) matched.push(`달(${ctx.moon.name})의 정서 리듬`);
+    if(dest.elems.includes(risingElem)) matched.push(`상승궁(${ctx.rising.name})의 대외 리듬`);
+    const matchLine=matched.length
+      ? `${matched.join("과 ")}이 이 땅의 결과 맞물립니다. 머무는 시간이 그대로 회복과 확장으로 쌓이는 구간입니다.`
+      : "원소가 정면으로 겹치지는 않지만, 그래서 오히려 평소 안 쓰던 축을 깨우는 자극형 목적지입니다.";
+    return {
+      ...dest,
+      rank:rank+1,
+      matchScore:Math.min(98,58+dest.raw*5),
+      matchLine,
+    };
+  });
+}
+
+/* 운명의 수레바퀴 — 금성·화성·달·목성·토성 배치로 연애운을 조립한다.
+   transitVenusKey는 오늘의 금성(실측 트랜짓). 없으면 네이탈만으로 계산한다. */
+const VENUS_SUPPORT_ELEM={fire:"air",air:"fire",earth:"water",water:"earth"};
+function buildWheelOfFortune(ctx,transitVenusKey){
+  const v=ctx.venus, mr=ctx.mars, mn=ctx.moon;
+  const vLove=VENUS_LOVE[v.key], mLove=MARS_LOVE[mr.key], aLove=MOON_ATTACH[mn.key];
+  const jupElem=ctx.jupiter.elem, satElem=ctx.saturn.elem;
+  const trap=SATURN_TRAP[satElem], luck=JUPITER_LUCK[jupElem];
+
+  /* ── 게이지 ── */
+  const vmRel=elementRelation(v.elem,mr.elem);
+  const vnRel=elementRelation(v.elem,mn.elem);
+  const tSign=transitVenusKey&&isValidSignKey(transitVenusKey)?SIGNS.find(s=>s.key===transitVenusKey):null;
+  const tRel=tSign?elementRelation(v.elem,tSign.elem):null;
+  const tBonus=tRel==="same"?12:tRel==="support"?7:tRel==="tension"?-9:0;
+  const gauge=Math.max(28,Math.min(97,
+    Math.round(luck.lv*0.7)
+    +(vmRel==="support"?16:vmRel==="same"?10:4)
+    +(vnRel==="support"?11:vnRel==="same"?7:3)
+    +tBonus+(ctx.birthDay%5)));
+  const phaseKey=gauge>=76?"crown":gauge>=65?"ascent":gauge>=54?"turning":gauge>=45?"descent":"nadir";
+
+  /* ── 금성 × 화성 원소 관계 ── */
+  const vmLine={
+    same:`금성과 화성이 모두 ${ELEMENTS[v.elem].name} 원소라, 끌림과 행동이 한 방향으로 갑니다. 좋아하면 바로 움직이는 대신 아니라고 판단하면 뒤도 안 돌아보는, 중간 없는 연애를 합니다.`,
+    support:`금성(${ELEMENTS[v.elem].name})과 화성(${ELEMENTS[mr.elem].name})이 서로를 밀어주는 관계라 마음과 행동의 속도가 잘 맞습니다. 표현이 자연스럽게 나오는 편이라 오해로 잃는 인연이 적습니다.`,
+    tension:`금성(${ELEMENTS[v.elem].name})과 화성(${ELEMENTS[mr.elem].name})의 결이 달라, 마음과 행동이 자주 어긋납니다. 좋아하면서도 밀어내는 행동이 나오는 것이 이 배치가 평생 풀어야 할 숙제입니다.`,
+  }[vmRel];
+
+  /* ── 인연 프로필 ── */
+  const partnerElem=VENUS_SUPPORT_ELEM[v.elem];
+  const compat=getCompat(v.elem,partnerElem);
+  const partnerSigns=SIGNS.filter(s=>s.elem===partnerElem).map(s=>s.name).join(" · ");
+
+  /* ── 럭키 윈도우 ── */
+  const idx=(key)=>SIGNS.findIndex(s=>s.key===key);
+  const luckyDay=LOVE_WEEKDAYS[idx(v.key)%7];
+  let avoidDay=LOVE_WEEKDAYS[(idx(ctx.saturn.key)+3)%7];
+  if(avoidDay===luckyDay) avoidDay=LOVE_WEEKDAYS[(idx(ctx.saturn.key)+4)%7];
+
+  return {
+    phase:{...WHEEL_PHASES[phaseKey],key:phaseKey,gauge},
+    transitNote:tSign
+      ? `오늘의 금성은 ${tSign.name}을 지나갑니다. 당신의 네이탈 금성(${v.name})과 ${tRel==="same"?"같은 원소라 매력 신호가 그대로 증폭되는":tRel==="support"?"서로 밀어주는 관계라 순풍이 붙는":"결이 어긋나 신호가 왜곡되기 쉬운"} 구간입니다.`
+      : "오늘의 금성 위치는 아직 계산 중입니다. 아래 판정은 네이탈 배치만으로 낸 값이며, 트랜짓이 도착하면 게이지가 조정됩니다.",
+    venus:{
+      tag:vLove.tag,drip:vLove.drip,
+      paragraphs:[
+        `${v.name} 금성이 당신의 끌림 언어를 정합니다. ${vLove.attract}`,
+        `호감이 생겼을 때 당신이 내보내는 신호는 이렇습니다. ${vLove.signal} 본인은 티 안 낸다고 생각하지만 ${v.god}의 방식은 생각보다 잘 읽힙니다.`,
+        `반대로 마음이 식는 지점도 분명합니다. ${vLove.killer} 이 선을 넘는 상대와는 시간을 더 써도 회복되지 않으니, 초반에 기준을 말로 정해 두는 편이 유리합니다.`,
+        vmLine,
+      ],
+    },
+    mars:{
+      tag:mLove.tag,drip:mLove.drip,
+      paragraphs:[
+        `${mr.name} 화성이 당신의 추진과 밀당을 담당합니다. ${mLove.pursuit}`,
+        `갈등 국면에서의 반응은 이렇습니다. ${mLove.conflict}`,
+        `화해의 문법은 따로 있습니다. ${mLove.makeup}`,
+        `${ctx.saturn.name} 토성이 경고하는 연애 함정은 "${trap.trap}"입니다. ${trap.txt} 관계에서도 같은 패턴이 반복되니, 감정이 올라온 날의 결정은 하루 뒤로 미루는 규칙 하나면 손실 대부분이 막힙니다.`,
+      ],
+    },
+    moon:{
+      tag:aLove.tag,drip:aLove.drip,
+      paragraphs:[
+        `${mn.name} 달이 당신의 애착 방식을 결정합니다. ${aLove.attachment}`,
+        `당신이 실제로 듣고 싶은 문장은 이것입니다. ${aLove.needWord} 이 말을 해 주는 사람 앞에서만 방어가 내려갑니다.`,
+        `상처가 나는 지점은 정해져 있습니다. ${aLove.wound}`,
+        `${ELEMENTS[mn.elem].name} 달이라 회복 속도는 ${mn.elem==="water"?"느리지만 깊습니다. 서둘러 괜찮은 척하면 다음 관계로 감정이 그대로 넘어갑니다":mn.elem==="fire"?"빠릅니다. 다만 빠른 회복을 '괜찮음'으로 착각해 같은 유형을 반복해서 만나는 것이 함정입니다":mn.elem==="earth"?"일정합니다. 시간을 정해 놓고 애도하면 그 기간 안에 실제로 정리됩니다":"머리로 먼저 끝납니다. 논리적으로 정리됐다고 감정까지 끝난 건 아니라는 점만 기억하세요"}.`,
+      ],
+    },
+    timeline:[
+      {label:"1개월",title:`${WHEEL_PHASES[phaseKey].name} 진입`,
+        text:`${WHEEL_PHASES[phaseKey].advice} 이번 달 당신의 금성(${v.name})은 ${vLove.tag} 모드로 작동하니, ${vLove.signal.split('.')[0]}는 행동이 자연스럽게 늘어납니다.`},
+      {label:"3개월",title:`${ctx.jupiter.name} 목성이 여는 구간`,
+        text:`목성이 ${ELEMENTS[jupElem].name}에 있어 기회의 형태가 정해져 있습니다. ${luck.txt} 연애에서는 ${LOVE_CHANNELS[jupElem]} 이 경로에서 온 인연은 3개월 안에 관계의 형태가 잡힙니다.`},
+      {label:"6개월",title:`${ctx.saturn.name} 토성이 거는 제동`,
+        text:`반년 안에 "${trap.trap}"이 관계의 시험대로 올라옵니다. 이 시기의 갈등은 상대의 문제가 아니라 당신의 오래된 패턴이 표면화된 것이라, 여기서 기준을 다시 쓰면 이후 흐름이 통째로 바뀝니다.`},
+      {label:"1년",title:`${ctx.sun.name} 태양과 ${mn.name} 달의 재정렬`,
+        text:`1년 사이클의 결론은 태양이 원하는 방향과 달이 필요로 하는 안정이 얼마나 맞춰졌는지로 갈립니다. ${vmRel==="tension"?"금성과 화성이 어긋나 있는 배치라, 올해는 상대를 고르는 안목보다 자기 신호를 일관되게 내는 훈련이 승부처입니다":"금성과 화성의 결이 맞는 배치라, 마음을 정하면 실제 관계까지 도달하는 확률이 높은 해입니다"}.`},
+    ],
+    encounter:{
+      elemName:ELEMENTS[partnerElem].name,
+      emoji:ELEMENTS[partnerElem].emoji,
+      signs:partnerSigns,
+      compatTitle:compat.title,
+      compatScore:compat.score,
+      channel:LOVE_CHANNELS[partnerElem],
+      love:compat.detail.love,
+      firstSignal:ELEMENTS[partnerElem].love,
+      caution:compat.detail.warning,
+    },
+    luckyWindow:{
+      day:luckyDay,
+      hours:LOVE_HOURS[idx(mr.key)%6],
+      moonPhase:LOVE_MOON_PHASES[idx(mn.key)%5],
+      avoidDay,
+    },
+    greenLights:[
+      `${ctx.jupiter.name} 목성 기운이 붙는 자리 — ${LOVE_CHANNELS[jupElem]}`,
+      `${vLove.tag} 모드가 먹히는 상대 — ${ELEMENTS[partnerElem].name} 계열(${partnerSigns})`,
+      `${WHEEL_PHASES[phaseKey].name}에서는 ${phaseKey==="crown"||phaseKey==="ascent"?"먼저 연락하는 쪽이 주도권을 가져갑니다":"관계를 늘리기보다 있는 관계를 정리하는 쪽이 이깁니다"}`,
+    ],
+    redFlags:[
+      `토성 함정 "${trap.trap}" — 이게 올라오는 날은 중요한 대화를 미루세요`,
+      `${mLove.tag} — ${mLove.conflict.split('.')[0]}. 이 패턴이 나오면 대화를 잠시 끊는 게 이득입니다`,
+      `${aLove.wound} 이 상황에 놓이면 판단력이 급격히 떨어집니다`,
+    ],
+    verdict:`${ctx.name}의 이번 사이클 판결: ${phaseKey==="crown"?"지금이 최고점입니다. 호감을 약속으로 바꾸지 않으면 이 흐름은 그냥 지나갑니다.":phaseKey==="ascent"?"흐름이 올라가는 중입니다. 확신이 다 서기를 기다리지 말고 먼저 움직이세요.":phaseKey==="turning"?"애매한 관계 하나가 이번 사이클에 결론이 납니다. 미루면 결정권이 상대에게 넘어갑니다.":phaseKey==="descent"?"새로 벌이지 말고 지키세요. 지금의 승부수는 대체로 되돌아옵니다.":"바닥에서만 방향을 바꿀 수 있습니다. 사람을 늘리기 전에 리듬부터 되찾으세요."}`,
+  };
 }
 
 function buildPremiumTazzaGuide(ctx){
@@ -995,7 +1487,7 @@ const CSS=`
 .chat-bubble-boss{background:rgba(255,255,255,.06);border-radius:14px 14px 14px 4px;padding:9px 13px;max-width:75%;border:1px solid rgba(255,255,255,.1);}
 .gauge-bar{height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.07);}
 .gauge-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.22,1,.36,1);}
-/* ── 일본 티켓 ── */
+/* ── 여행 티켓 ── */
 .ticket-bg{background:linear-gradient(135deg,rgba(20,6,0,.98),rgba(8,4,20,.98));border:1px solid rgba(201,168,76,.4);position:relative;}
 .ticket-hole{width:20px;height:20px;border-radius:50%;background:#04021A;border:1px solid rgba(201,168,76,.3);}
 .ticket-dash{border-top:2px dashed rgba(201,168,76,.25);}
@@ -1135,7 +1627,7 @@ function Intro({onStart,onOracle}){
       <div className="gbx ov-shell" style={{borderRadius:20,padding:'28px 24px',background:'rgba(4,2,26,.98)',marginBottom:22}}>
         <p className="cin ov-label" style={{letterSpacing:4,marginBottom:14}}>스위스 천문력 기반 8대 배치 분석</p>
         <div style={{marginBottom:18}}>
-          {[["☀️","태양/달/상승","나의 본질 — 실측 천문 계산"],["📐","밸런스/어스펙트","원소·모달리티와 행성 각도"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🗾","아스트로맵","오피스 생존기 & 일본 여행 스팟"]].map(([e,t,s],i,a)=>(
+          {[["☀️","태양/달/상승","나의 본질 — 실측 천문 계산"],["📐","밸런스/어스펙트","원소·모달리티와 행성 각도"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🧭","아스트로맵","오피스 생존기 & 세계 여행 스팟"]].map(([e,t,s],i,a)=>(
             <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<a.length-1?'1px solid rgba(201,168,76,.07)':'none'}}>
               <span style={{fontSize:18,minWidth:26}}>{e}</span>
               <div style={{textAlign:'left'}}>
@@ -1418,22 +1910,11 @@ function ProfileTab({result}){
       {/* SECTION 5 — K-직장인 오피스 */}
       <OfficeSection office={result.office} sunName={result.sun.name} mercName={result.mercury.name}/>
 
-      {/* SECTION 6 — 아스트로 맵 일본 */}
-      <JapanSection japan={result.japan} elemKey={result.elemKey}/>
+      {/* SECTION 6 — 아스트로 맵 세계 */}
+      <DestinySpotSection atlas={result.atlas} elemKey={result.elemKey}/>
 
-      {/* 운명의 수레바퀴 */}
-      <div className="scard gb">
-        <SectionHead icon="🎡" kicker="BONUS" title="운명의 수레바퀴"/>
-        <div style={{background:'rgba(201,168,76,.04)',borderRadius:10,padding:14,border:'1px solid rgba(201,168,76,.13)',marginBottom:12}}>
-          <p className="cin ov-label" style={{marginBottom:7}}>☽ 이번 시즌 우주 흐름</p>
-          <p style={{fontSize:14.5,color:'rgba(239,228,192,.88)',lineHeight:1.9,fontStyle:'italic'}}>{result.future}</p>
-        </div>
-        <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
-          {["이달의 럭키 데이: 보름달 전후","연락 타이밍: 오후 7–9시","피할 요일: 수요일"].map((tag,i)=>(
-            <div key={i} style={{fontSize:12,color:'rgba(201,168,76,.75)',background:'rgba(201,168,76,.05)',border:'1px solid rgba(201,168,76,.16)',borderRadius:20,padding:'5px 12px'}}>{tag}</div>
-          ))}
-        </div>
-      </div>
+      {/* BONUS — 운명의 수레바퀴 (연애운) */}
+      <WheelOfFortuneSection result={result}/>
     </div>
   );
 }
@@ -1963,15 +2444,28 @@ function OfficeSection({office,sunName,mercName}){
 }
 
 /* ════════════════════════════════════════════════════════
-   SECTION 6 — 아스트로 맵: 일본 여행
+   SECTION 6 — 아스트로 맵: 세계 여행
 ════════════════════════════════════════════════════════ */
-function JapanSection({japan,elemKey}){
+function DestinySpotSection({atlas,elemKey}){
+  const [selDest,setSelDest]=useState(0);
   const [selSpot,setSelSpot]=useState(null);
   const ec={fire:'#E85D1B',earth:'#7AB540',air:'#5BA3C9',water:'#4A8FD4'};
   const color=ec[elemKey];
+  if(!atlas||!atlas.length) return null;
+  const dest=atlas[selDest]||atlas[0];
+  const pickDest=(i)=>{setSelDest(i);setSelSpot(null);};
   return(
     <div className="scard gb">
-      <SectionHead icon="🗾" kicker="SECTION 6" title="운명의 좌표: 일본 여행 스팟"/>
+      <SectionHead icon="🧭" kicker="SECTION 6" title="운명의 좌표: 세계 여행 스팟"/>
+      <p className="ov-sub" style={{marginBottom:10}}>태양·달·상승궁 원소와 맞물리는 순서로 16개국 중 8개국을 골랐습니다. 위에 있을수록 지금의 배치와 가깝습니다.</p>
+      {/* 추천 목적지 탭 */}
+      <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
+        {atlas.map((d,i)=>(
+          <button key={d.code} className={`btn-tab${selDest===i?' act':''}`} onClick={()=>pickDest(i)} aria-label={`${d.country} 여행 스팟 보기`} style={{fontSize:12,padding:'7px 11px'}}>
+            {d.rank===1?'👑 ':''}{d.flag} {d.country}
+          </button>
+        ))}
+      </div>
       {/* 항공권 티켓 */}
       <div className="ticket-bg" style={{borderRadius:12,padding:0,marginBottom:12,overflow:'hidden'}}>
         <div style={{padding:'14px 16px',background:'rgba(201,168,76,.06)'}}>
@@ -1983,38 +2477,40 @@ function JapanSection({japan,elemKey}){
             </div>
             <div style={{textAlign:'center'}}>
               <p style={{fontSize:18,color:'rgba(201,168,76,.4)',letterSpacing:4}}>✈</p>
-              <p style={{fontSize:8,color:'rgba(201,168,76,.4)',letterSpacing:2}}>DESTINY</p>
+              <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.55)',letterSpacing:2}}>MATCH {dest.matchScore}</p>
             </div>
             <div style={{textAlign:'right'}}>
               <p className="cin" style={{fontSize:8,color:`${color}`,letterSpacing:3}}>DESTINATION</p>
-              <p className="cin" style={{fontSize:22,color:'#F5DC70',fontWeight:700,letterSpacing:2}}>JPN</p>
-              <p style={{fontSize:10,color:'rgba(239,228,192,.45)'}}>{japan.city}</p>
+              <p className="cin" style={{fontSize:22,color:'#F5DC70',fontWeight:700,letterSpacing:2}}>{dest.code}</p>
+              <p style={{fontSize:10,color:'rgba(239,228,192,.45)'}}>{dest.city}</p>
             </div>
           </div>
         </div>
         <div className="ticket-dash"/>
-        <div style={{padding:'10px 16px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div style={{padding:'10px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:10}}>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
             <div className="ticket-hole"/>
             <div>
-              <p style={{fontSize:9,color:`${color}`,marginBottom:1}}>✨ 오마모리</p>
-              <p style={{fontSize:11,color:'rgba(239,228,192,.7)'}}>{japan.omamori.split(' — ')[0]}</p>
+              <p style={{fontSize:9,color:`${color}`,marginBottom:1}}>✨ 행운 부적</p>
+              <p style={{fontSize:11,color:'rgba(239,228,192,.7)'}}>{dest.talismanName}</p>
             </div>
           </div>
           <div style={{textAlign:'right'}}>
             <p style={{fontSize:9,color:'rgba(201,168,76,.5)',marginBottom:1}}>행운의 날</p>
-            <p className="cin" style={{fontSize:11,color:'#C9A84C'}}>{japan.lucky_day}</p>
+            <p className="cin" style={{fontSize:11,color:'#C9A84C'}}>{dest.luckyDay}</p>
           </div>
         </div>
       </div>
       {/* 에너지 설명 */}
       <div style={{background:`${color}12`,borderRadius:8,padding:'10px 12px',border:`1px solid ${color}28`,marginBottom:12}}>
-        <p style={{fontSize:11,color:`${color}`,marginBottom:3}}>{ELEMENTS[elemKey].emoji} {japan.vibe}</p>
-        <p style={{fontSize:11,color:'rgba(239,228,192,.6)',lineHeight:1.7}}>{japan.omamori.split(' — ')[1]}</p>
+        <p style={{fontSize:11,color:`${color}`,marginBottom:3}}>{ELEMENTS[elemKey].emoji} {dest.vibe} · 매칭 {dest.matchScore}</p>
+        <p style={{fontSize:12.5,color:'rgba(245,220,112,.85)',lineHeight:1.7,marginBottom:5}}>{dest.headline}</p>
+        <p style={{fontSize:11,color:'rgba(239,228,192,.6)',lineHeight:1.7,marginBottom:5}}>{dest.matchLine}</p>
+        <p style={{fontSize:11,color:'rgba(239,228,192,.6)',lineHeight:1.7}}>{dest.talismanDesc}</p>
       </div>
-      {/* 스팟 카드 3개 */}
+      {/* 스팟 카드 4개 */}
       <div style={{display:'flex',flexDirection:'column',gap:8}}>
-        {japan.spots.map((spot,i)=>(
+        {dest.spots.map((spot,i)=>(
           <div key={i} className="spot-card" onClick={()=>setSelSpot(selSpot===i?null:i)}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div style={{flex:1}}>
@@ -2045,6 +2541,143 @@ function JapanSection({japan,elemKey}){
       </div>
       <div style={{marginTop:10,padding:'8px 12px',background:'rgba(201,168,76,.04)',borderRadius:8,border:'1px solid rgba(201,168,76,.1)'}}>
         <p style={{fontSize:10,color:'rgba(201,168,76,.45)',textAlign:'center'}}>📍 스팟 탭하면 상세 설명 + 구글맵 연동</p>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════
+   BONUS — 운명의 수레바퀴 (연애운)
+════════════════════════════════════════════════════════ */
+function WheelOfFortuneSection({result}){
+  const [tab,setTab]=useState('venus');
+  const [transitVenus,setTransitVenus]=useState(null);
+  useEffect(()=>{
+    let alive=true;
+    const now=new Date();
+    const payload={year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate(),hour:now.getHours(),minute:now.getMinutes(),timezone:9,lat:37.5665,lon:126.9780};
+    ensureOracleCompute()
+      .then((fn)=>fn(payload))
+      .then((r)=>{ if(alive&&r&&r.venus&&isValidSignKey(r.venus.key)) setTransitVenus(r.venus.key); })
+      .catch(()=>{});
+    return()=>{alive=false;};
+  },[]);
+  const wheel=useMemo(()=>buildWheelOfFortune(result,transitVenus),[result,transitVenus]);
+  const rose='#E8618C';
+  const tabs={
+    venus:{label:'끌림',icon:'💘',data:wheel.venus},
+    mars:{label:'밀당',icon:'🔥',data:wheel.mars},
+    moon:{label:'애착',icon:'🌙',data:wheel.moon},
+    timeline:{label:'흐름',icon:'📅',data:null},
+  };
+  const active=tabs[tab];
+  const enc=wheel.encounter;
+  const lw=wheel.luckyWindow;
+  return(
+    <div className="scard gb">
+      <SectionHead icon="🎡" kicker="BONUS" title="운명의 수레바퀴 — 연애운 정밀 판독"/>
+
+      {/* 국면 + 게이지 */}
+      <div style={{background:'rgba(232,97,140,.05)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(232,97,140,.2)',marginBottom:12}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:10,marginBottom:6}}>
+          <p className="ov-card-title" style={{fontSize:16}}>{wheel.phase.icon} {wheel.phase.name}</p>
+          <p className="mono" style={{fontSize:15,color:rose,fontWeight:700}}>{wheel.phase.gauge}</p>
+        </div>
+        <div className="gauge-bar" style={{marginBottom:8}}>
+          <div className="gauge-fill" style={{width:`${wheel.phase.gauge}%`,background:`linear-gradient(90deg,${rose}55,${rose})`}}/>
+        </div>
+        <p style={{fontSize:13,color:'#F5DC70',fontWeight:600,lineHeight:1.7,marginBottom:6}}>"{wheel.phase.drip}"</p>
+        <p className="ov-body" style={{marginBottom:8}}>{wheel.phase.advice}</p>
+        <p style={{fontSize:11.5,color:'rgba(239,228,192,.55)',lineHeight:1.7}}>☽ {wheel.transitNote}</p>
+      </div>
+
+      {/* 이번 시즌 우주 흐름 (기존 신탁 문장 유지) */}
+      <div style={{background:'rgba(201,168,76,.04)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.13)',marginBottom:12}}>
+        <p className="cin ov-label" style={{marginBottom:6}}>☽ 이번 시즌 우주 흐름</p>
+        <p style={{fontSize:14,color:'rgba(239,228,192,.88)',lineHeight:1.9,fontStyle:'italic'}}>{result.future}</p>
+      </div>
+
+      {/* 탭 */}
+      <div style={{display:'flex',gap:6,marginBottom:12,flexWrap:'wrap'}}>
+        {Object.keys(tabs).map((k)=>(
+          <button key={k} className={`btn-tab${tab===k?' act':''}`} onClick={()=>setTab(k)} aria-label={`${tabs[k].label} 해석 보기`} style={{flex:'1 1 100px'}}>
+            {tabs[k].icon} {tabs[k].label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{background:'rgba(255,255,255,.02)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.12)',marginBottom:14}}>
+        {tab==='timeline'?(
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            {wheel.timeline.map((t)=>(
+              <div key={t.label} style={{borderLeft:`2px solid ${rose}40`,paddingLeft:12}}>
+                <div style={{display:'flex',alignItems:'baseline',gap:8,marginBottom:4}}>
+                  <span className="cin" style={{fontSize:11,color:rose,letterSpacing:1}}>{t.label}</span>
+                  <span style={{fontSize:13.5,color:'#F5DC70',fontWeight:600}}>{t.title}</span>
+                </div>
+                <p className="ov-body">{t.text}</p>
+              </div>
+            ))}
+          </div>
+        ):(
+          <>
+            <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:8}}>
+              <span style={{fontSize:11.5,color:rose,background:'rgba(232,97,140,.08)',border:'1px solid rgba(232,97,140,.25)',borderRadius:20,padding:'3px 10px'}}>{active.data.tag}</span>
+            </div>
+            <p style={{fontSize:14,color:'#F5DC70',fontWeight:600,lineHeight:1.7,marginBottom:10}}>"{active.data.drip}"</p>
+            {active.data.paragraphs.map((p,i)=>(
+              <p key={i} className="ov-body" style={{marginBottom:i<active.data.paragraphs.length-1?10:0}}>{p}</p>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* 이번 사이클에 들어오는 사람 */}
+      <div style={{background:'rgba(232,97,140,.04)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(232,97,140,.18)',marginBottom:12}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:10,marginBottom:8}}>
+          <p className="cin ov-label">🎴 이번 사이클에 들어오는 사람</p>
+          <p className="mono" style={{fontSize:13,color:rose,fontWeight:700}}>궁합 {enc.compatScore}</p>
+        </div>
+        <p className="ov-card-title" style={{marginBottom:4}}>{enc.emoji} {enc.elemName} 계열 — {enc.compatTitle}</p>
+        <p style={{fontSize:12,color:'rgba(201,168,76,.7)',marginBottom:8}}>{enc.signs}</p>
+        {[["등장 경로",enc.channel],["그 사람의 연애 방식",enc.firstSignal],["관계가 흘러가는 방향",enc.love],["주의할 점",enc.caution]].map(([l,v])=>(
+          <div key={l} style={{marginBottom:6}}>
+            <p className="cin ov-label" style={{marginBottom:2}}>{l}</p>
+            <p style={{fontSize:13,color:'rgba(239,228,192,.82)',lineHeight:1.7}}>{v}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 럭키 윈도우 */}
+      <div style={{marginBottom:12}}>
+        <p className="cin ov-label" style={{marginBottom:7}}>⏰ 나만의 럭키 윈도우</p>
+        <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
+          {[`연락하기 좋은 요일: ${lw.day}`,`고백 타이밍: ${lw.hours}`,`기운이 오르는 달: ${lw.moonPhase}`,`피할 요일: ${lw.avoidDay}`].map((t,i)=>(
+            <div key={i} style={{fontSize:12,color:'rgba(201,168,76,.8)',background:'rgba(201,168,76,.05)',border:'1px solid rgba(201,168,76,.16)',borderRadius:20,padding:'5px 12px'}}>{t}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* 그린라이트 / 레드플래그 */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(230px,1fr))',gap:10,marginBottom:12}}>
+        <div style={{background:'rgba(122,181,64,.05)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(122,181,64,.22)'}}>
+          <p style={{fontSize:12.5,color:'#7AB540',fontWeight:600,marginBottom:7}}>🟢 그린라이트</p>
+          {wheel.greenLights.map((g,i)=>(
+            <p key={i} style={{fontSize:12.5,color:'rgba(239,228,192,.8)',lineHeight:1.7,marginBottom:i<wheel.greenLights.length-1?6:0}}>· {g}</p>
+          ))}
+        </div>
+        <div style={{background:'rgba(220,20,60,.05)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(220,20,60,.22)'}}>
+          <p style={{fontSize:12.5,color:'rgba(255,120,140,.95)',fontWeight:600,marginBottom:7}}>🚩 레드플래그</p>
+          {wheel.redFlags.map((r,i)=>(
+            <p key={i} style={{fontSize:12.5,color:'rgba(239,228,192,.8)',lineHeight:1.7,marginBottom:i<wheel.redFlags.length-1?6:0}}>· {r}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* 최종 판결 */}
+      <div style={{background:'rgba(12,8,2,.7)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.15)'}}>
+        <p className="cin ov-label" style={{marginBottom:7}}>🎡 수레바퀴의 최종 판결</p>
+        <p style={{fontSize:14,color:'rgba(239,228,192,.9)',lineHeight:1.9,fontStyle:'italic'}}>{wheel.verdict}</p>
       </div>
     </div>
   );
