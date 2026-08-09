@@ -111,6 +111,21 @@ for (const rel of MIRRORS) {
     );
   }
 
+  // ── 2-b) 펼쳐진 카드의 재클릭은 '닫기' — 팝업 재오픈 차단 ────────────────────
+  // 없으면 CTA 로 카드를 편 뒤 같은 버튼을 눌러도 상세 팝업만 다시 떠서 카드를 영영 못 닫는다.
+  ok(
+    html.includes('function _pvwIsOpenRptToggle(tile){'),
+    `${rel}: _pvwIsOpenRptToggle 헬퍼가 없다 (펼쳐진 카드 재클릭이 팝업을 다시 연다)`,
+  );
+  ok(
+    html.includes('if(!tile||_isPreviewCtaBypass(tile)||_pvwIsOpenRptToggle(tile))return;'),
+    `${rel}: 캡처 프리뷰 인터셉터가 펼쳐진 카드를 통과시키지 않는다`,
+  );
+  ok(
+    html.includes('if (_pvwIsOpenRptToggle(tile)) return false;'),
+    `${rel}: _cdOpenTilePreview 가 펼쳐진 카드에 false 를 돌려주지 않는다`,
+  );
+
   // ── 3) 회당결제 게이트 프리뷰 화이트리스트 ─────────────────────────────────
   const perUseWhitelistCount =
     html.split("classList.contains('lovebible-tile') || actionNode.classList.contains('rpt-v2-toggle-btn')").length - 1;
@@ -123,6 +138,7 @@ for (const rel of MIRRORS) {
     미러: rel,
     '잠금게이트 프리뷰위임': lockGateBody.includes('_lockPvwHandled') ? 'OK' : 'MISSING',
     'toggleRptCard 차단': rptBody.includes('_rptPvwHandled') ? 'OK' : 'MISSING',
+    '펼친카드 재클릭=닫기': html.includes('function _pvwIsOpenRptToggle(tile){') ? 'OK' : 'MISSING',
     '회당결제 화이트리스트': `${perUseWhitelistCount}/2`,
   });
 }

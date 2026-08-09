@@ -12,10 +12,13 @@
  * 재현 시나리오 (각각 새 페이지에서):
  *  1) 잠금 타일   : 클릭 → 상세 팝업만 뜬다(결제 게이트·토글 없음) → CTA → 결제 경로 진입
  *  2) 해금 타일   : 클릭 → 상세 팝업만 뜬다(카드 안 펼쳐짐)       → CTA → 카드 1회만 열림
+ *                 → 펼쳐진 카드 재클릭 → 팝업 없이 접힘 → 다시 클릭하면 팝업 복귀
  *  3) 회당결제 타일: 클릭 → 상세 팝업만 뜬다                       → CTA → 결제 경로 진입
  *
  * 2)의 "1회만"이 핵심이다. 예전엔 첫 클릭에서 카드가 팝업 뒤로 열리고(1회), CTA 재클릭이
  * 토글로 도로 닫아(2회) 사용자에게는 "눌러도 안 열림"으로 보였다.
+ * 2)의 재클릭 단계는 그 반대 방향 회귀를 잡는다: 펼쳐진 카드를 다시 눌렀을 때 팝업이 또 뜨면
+ * 카드를 자기 버튼으로 닫을 방법이 사라져 "영원히 못 닫는" 상태가 된다(2026-08 재발).
  *
  * 실제 사주 분석을 완주할 필요는 없다(결함은 문서 레벨 위임 로직에 있다). 대신 대시보드가
  * 만드는 것과 같은 속성의 타일을 주입하고, toggleReportFeatureCard 는 호출 횟수를 세는
@@ -87,6 +90,20 @@ try {
   assert(!unlockedCta.previewOpen, "해금 CTA → 팝업이 닫힌다", unlockedCta);
   assert(unlockedCta.toggleCalls === 1, "해금 CTA → 토글이 정확히 1회 (열렸다 닫힘 회귀 없음)", unlockedCta);
   assert(unlockedCta.blockOpen, "해금 CTA → 카드가 열린 채 유지된다", unlockedCta);
+
+  // 펼쳐진 카드의 재클릭('닫기') — 팝업이 또 뜨면 사용자는 카드를 영영 닫을 수 없다.
+  // CTA 가 다는 data-pvw-cta-bypass 는 100ms 뒤 사라지므로, 여기서는 진짜 맨클릭 상태다.
+  await delay(300);
+  const unlockedSecond = await clickTileAndRead();
+  assert(!unlockedSecond.previewOpen, "펼쳐진 카드 재클릭 → 상세 팝업이 다시 뜨지 않는다", unlockedSecond);
+  assert(unlockedSecond.toggleCalls === 2, "펼쳐진 카드 재클릭 → 토글이 1회 더 (총 2회)", unlockedSecond);
+  assert(!unlockedSecond.blockOpen, "펼쳐진 카드 재클릭 → 카드가 접힌다", unlockedSecond);
+
+  // 접힌 뒤에는 원래 계약(팝업 먼저)으로 돌아와야 한다.
+  await delay(300);
+  const unlockedThird = await clickTileAndRead();
+  assert(unlockedThird.previewOpen, "다시 접힌 카드 클릭 → 상세 팝업이 정상 복귀한다", unlockedThird);
+  assert(unlockedThird.toggleCalls === 2, "다시 접힌 카드 클릭 → 토글은 늘지 않는다(팝업 우선 유지)", unlockedThird);
 
   // ── 3) 회당결제 타일 ────────────────────────────────────────────────────────
   await resetPage();
@@ -172,6 +189,8 @@ async function installFixture({ lockKey = "", lockCost = 0, coinCost = 0, featur
       window.__cdRptToggleCalls += 1;
       const block = btn && btn.closest ? btn.closest('.rpt-v2-block') : null;
       if (block) block.classList.toggle('open');
+      // 실제 구현(reportDashboard.js)과 동일하게 열림 상태를 버튼에도 반영한다.
+      if (btn && block) btn.setAttribute('aria-expanded', block.classList.contains('open') ? 'true' : 'false');
     };
     return {
       injected: !!document.getElementById('cdRptFixtureBtn'),
