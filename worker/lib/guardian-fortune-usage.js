@@ -191,14 +191,20 @@ function emptyStatus(isLoggedIn) {
   };
 }
 
-export async function buildGuardianFortuneUsageStatus({ userId, guestIdHash, dateKey, store, now = new Date() } = {}) {
+/**
+ * snapshot 은 방금 커밋한 findOneAndUpdate({ new: true }) 가 돌려준 사용량 문서다. 주어지면
+ * 같은 값을 다시 읽지 않는다 — 지금 프로덕션에서 Mongo 왕복 한 번은 평균 5초이고, 커밋
+ * 직후의 재조회는 그 5초를 쓰고도 방금 쓴 값을 그대로 다시 가져올 뿐이다.
+ * 파생 로직(잔여·nextAction·문구)은 아래 한 벌만 유지해 읽기 경로와 커밋 경로가 갈리지 않게 한다.
+ */
+export async function buildGuardianFortuneUsageStatus({ userId, guestIdHash, dateKey, store, now = new Date(), snapshot = null } = {}) {
   const normalizedUserId = normalizeUserId(userId);
   const isLoggedIn = Boolean(normalizedUserId);
   const safeDateKey = normalizeDateKey(dateKey) || getGuardianFortuneDateKey(now);
   const status = emptyStatus(isLoggedIn);
 
   if (!isLoggedIn) {
-    const guest = await store.findGuest(normalizeGuestHash(guestIdHash));
+    const guest = snapshot || await store.findGuest(normalizeGuestHash(guestIdHash));
     status.guestFreeUsed = clampNonNegative(guest?.totalUsed);
     status.guestFreeRemaining = Math.max(0, GUARDIAN_FORTUNE_GUEST_LIMIT - status.guestFreeUsed);
     status.canGenerate = status.guestFreeRemaining > 0;
@@ -208,7 +214,7 @@ export async function buildGuardianFortuneUsageStatus({ userId, guestIdHash, dat
     return status;
   }
 
-  const daily = await store.findDaily(normalizedUserId, safeDateKey);
+  const daily = snapshot || await store.findDaily(normalizedUserId, safeDateKey);
   status.dailyFreeUsed = clampNonNegative(daily?.freeUsed);
   status.dailyFreeRemaining = Math.max(0, clampNonNegative(daily?.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT) - status.dailyFreeUsed);
   // 무료를 다 써도 회당 결제로 계속 이용할 수 있으므로 canGenerate 는 항상 true 다.
@@ -582,7 +588,7 @@ export async function releaseGuardianFortuneUsage(reservation, { store, errorCod
   return store.updateAttempt(reservation.requestId, { status: "released", errorCode: String(errorCode || "") });
 }
 
-export async function commitGuardianFortuneUsage(reservation, { store, now = new Date() } = {}) {
+export async function commitGuardianFortuneUsage(reservation, { store, now = new Date(), ctx = null } = {}) {
   if (!reservation?.ok) return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED };
   let committed;
   try {
@@ -595,7 +601,14 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
 
     // An attempt-status write is diagnostic/idempotency metadata. It must not turn
     // an already committed usage into a false failure response.
-    await store.updateAttempt(reservation.requestId, { status: "completed", errorCode: "" }).catch(() => {});
+    //
+    // 그래서 응답을 붙잡을 이유도 없다. ctx 가 있으면 waitUntil 로 넘겨 임계 경로에서 Mongo
+    // 왕복 한 번(현재 평균 5초)을 덜어낸다. 이 쓰기가 늦어져도 같은 requestId 재전송은
+    // reserveGuardianFortuneUsage 가 "released/blocked 가 아니면 409" 로 막으므로 중복 생성
+    // 방향으로는 안전하다. ctx 가 없는 호출자(테스트·Express)는 종전대로 기다린다.
+    const closeAttempt = () => store.updateAttempt(reservation.requestId, { status: "completed", errorCode: "" }).catch(() => {});
+    if (typeof ctx?.waitUntil === "function") ctx.waitUntil(closeAttempt());
+    else await closeAttempt();
     return { ok: true, committed };
   } catch (error) {
     if (reservation.source === "guest_free") await store.releaseGuest(reservation.guestIdHash, now).catch(() => {});

@@ -206,19 +206,30 @@ export async function generateGuardianFortuneRequest({
       });
     }
     throwIfGuardianFortuneAborted(abortSignal);
-    const committed = await commitGuardianFortuneUsage(reservation, { store, now });
+    const committed = await commitGuardianFortuneUsage(reservation, { store, now, ctx: contextOptions?.ctx });
     if (!committed.ok) {
-      const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
+      // 방금 Mongo 쓰기가 실패한 직후다. 여기서 usage 를 또 읽으면 같은 장애에서 왕복을
+      // 한 번 더 쓰고 대개 같이 실패한다 — 위 예약 실패 catch 와 같이 usage 없이 내려보낸다.
       return errorResponse({
         code: GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED,
         status: 503,
-        usage,
         isLoggedIn,
         requestId,
+        retryable: true,
       });
     }
 
-    const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
+    // 커밋은 findOneAndUpdate({ new: true }) 라 갱신된 사용량 문서를 이미 돌려준다. 그대로
+    // 넘겨 재조회 왕복을 없앤다. 결제분(paid)만 예외 — 무료 카운터를 건드리지 않아 커밋
+    // 문서가 없으므로 종전대로 읽는다.
+    const usage = await buildGuardianFortuneUsageStatus({
+      userId: normalizedUserId,
+      guestIdHash,
+      dateKey: effectiveDateKey,
+      store,
+      now,
+      snapshot: reservation.source === "paid" ? null : (committed.committed || null),
+    });
     let shareDraftToken;
     const shareEnv = contextOptions?.env || {};
     if (!contextOptions?.disableShare && isGuardianFortuneShareEnabled(shareEnv)) {
@@ -239,14 +250,37 @@ export async function generateGuardianFortuneRequest({
     }
     return successResponse({ result: generated.result, usage, generationSource: reservation.source, requestId, shareDraftToken });
   } catch (error) {
-    const code = error?.code === GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED
+    const cancelled = error?.code === GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED;
+
+    // 🔴 예약 **이후** 단계(context·생성·커밋)에서 Mongo 가 흔들린 경우. 이걸 SERVER_ERROR 로
+    // 뭉개면 위 예약 catch(:123)·라우트 catch(fortune.js)가 같은 장애를 재시도 가능한 503 으로
+    // 내리는 것과 어긋나, **하나의 원인이 500 과 503 으로 갈려 나간다**. 실제로 그래서 브라우저
+    // 콘솔에 500 과 503 이 섞여 찍혔다(http.js isDbUnavailableError 주석의 "500 으로 샌다"가 이것).
+    // 예약은 되돌리되(무료 횟수를 물고 있으면 안 된다) usage 재조회는 하지 않는다 — 같은 장애에서
+    // 왕복을 한 번 더 쓰고 대개 같이 실패하며, 실패 응답만 12초 늦어진다.
+    if (!cancelled && isDbUnavailableError(error)) {
+      await releaseGuardianFortuneUsage(reservation, {
+        store,
+        errorCode: GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE,
+        now,
+      }).catch(() => {});
+      return errorResponse({
+        code: GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE,
+        status: 503,
+        isLoggedIn,
+        requestId,
+        retryable: true,
+      });
+    }
+
+    const code = cancelled
       ? GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED
       : GUARDIAN_FORTUNE_ERROR_CODES.SERVER_ERROR;
     await releaseGuardianFortuneUsage(reservation, { store, errorCode: code, now }).catch(() => {});
     const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now }).catch(() => null);
     return errorResponse({
       code,
-      status: code === GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED ? 499 : 500,
+      status: cancelled ? 499 : 500,
       usage,
       isLoggedIn,
       requestId,

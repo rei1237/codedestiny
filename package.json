@@ -127,6 +127,7 @@
     "verify:workers-ai-fallback": "node --experimental-strip-types --no-warnings scripts/verify-workers-ai-fallback.mjs",
     "verify:llm-client-timeout-budget": "node --experimental-strip-types --no-warnings scripts/verify-llm-client-timeout-budget.mjs",
     "verify:fortune-chat-reading": "node scripts/verify-fortune-chat-reading.mjs",
+    "verify:guardian-fortune-failure": "node scripts/verify-guardian-fortune-failure-contract.mjs",
     "verify:fusion-fortune-quality": "node scripts/verify-fusion-fortune-quality.mjs",
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",

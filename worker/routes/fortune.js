@@ -5844,10 +5844,50 @@ function writeGuardianFortuneChatSse(writer, event, payload) {
   return writer.write(new TextEncoder().encode(formatGuardianFortuneChatSseEvent(event, payload)));
 }
 
+/**
+ * guardian 실패가 어느 단계에서 났는지 헤더 한 줄로 가른다.
+ *
+ * 공용 withCorsHeaders(worker/index.js)는 503·504 에만, 그것도 값이 없을 때 "route" 로만 채운다.
+ * 그래서 예전에는 상담 실패가 전부 stage=route 로 보여 DB·LLM·결제 어디서 샜는지 구분이 안 됐다.
+ * 여기서 코드별로 먼저 채워 두면 공용 로직이 덮어쓰지 않고(has 검사) 502·500 에도 남는다.
+ * 프롬프트·개인정보·키는 싣지 않는다 — 단계 이름만 나간다.
+ */
+function guardianFortuneErrorStage(errorCode) {
+  switch (String(errorCode || "")) {
+    case GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE:
+      return "db";
+    case GUARDIAN_FORTUNE_ERROR_CODES.USAGE_COMMIT_FAILED:
+      return "db-commit";
+    case GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED:
+      return "payment-verify";
+    case GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED:
+      return "payment-required";
+    case GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED:
+      return "context";
+    case GUARDIAN_FORTUNE_ERROR_CODES.GENERATION_FAILED:
+    case GUARDIAN_FORTUNE_ERROR_CODES.RESULT_INVALID:
+      return "llm";
+    case GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED:
+    case GUARDIAN_FORTUNE_ERROR_CODES.DAILY_LIMIT_EXCEEDED:
+    case GUARDIAN_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS:
+      return "quota";
+    case GUARDIAN_FORTUNE_ERROR_CODES.INVALID_INPUT:
+      return "input";
+    default:
+      return "route";
+  }
+}
+
 function guardianFortuneRouteResponse(result, { cookie = "" } = {}) {
   const { status = 200, ...payload } = result || {};
-  const headers = cookie ? { "Set-Cookie": cookie } : undefined;
-  return json(payload, { status, ...(headers ? { headers } : {}) });
+  const headers = {};
+  if (cookie) headers["Set-Cookie"] = cookie;
+  if (status >= 400) {
+    const stage = guardianFortuneErrorStage(payload?.error);
+    headers["X-CD-Error-Stage"] = stage;
+    headers["Server-Timing"] = `cd-error;desc="${stage}"`;
+  }
+  return json(payload, { status, ...(Object.keys(headers).length ? { headers } : {}) });
 }
 
 function guardianFortuneGuestIdFromRequest(request) {

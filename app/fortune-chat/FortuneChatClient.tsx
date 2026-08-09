@@ -288,7 +288,10 @@ export default function FortuneChatClient() {
       setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
       delivered = true;
       setQuestion("");
-      await bootstrap();
+      // 생성 응답이 갱신된 usage 를 이미 싣고 온다. 여기서 bootstrap 을 다시 부르면 턴마다
+      // 왕복이 한 번 더 늘고(현재 프로덕션에서 Mongo 조회 1건 ≈ 5초), 그 요청이 12초 op
+      // 상한에 걸리면 상담은 성공했는데 화면만 실패로 보인다.
+      if (attempt.payload.usage) setUsage(attempt.payload.usage);
     } catch (reason) {
       setError(friendlyError(reason, "상담을 다시 시도해 주세요."));
     } finally {

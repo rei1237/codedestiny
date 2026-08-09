@@ -16,6 +16,47 @@
 - `MONGO_SOCKET_TIMEOUT_MS`는 Worker 작업 제한보다 짧아야 한다. 현재 기준은 socket 11초, auth/operation 12초이며 풀 크기나 재시도 횟수를 장애 대응으로 늘리지 않는다.
 - 운영 인덱스 점검은 `npm run verify:access-unlock-indexes`의 `--check` 성격으로 먼저 수행하고, 생성은 별도 운영 DB 쓰기 승인 뒤 실행한다.
 
+### 🔴 이건 기능 버그가 아니라 DB 계층 문제다 — 먼저 계층부터 가른다 (2026-08-09 실측)
+
+"기능 X가 500/503을 낸다"는 신고를 받으면 **그 기능 코드를 읽기 전에** Mongo 계층부터 잰다.
+같은 날 「연이 운명 상담」 실패를 조사하다 원인이 상담도 Gemini도 아닌 공용 DB 계층으로 판명된 적이 있다.
+
+가르는 방법 — 인증도 LLM도 안 타는 라우트를 무료로 두드려 본다:
+
+```bash
+# Mongo를 타는 라우트 vs 안 타는 라우트를 나란히 잰다
+curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://code-destiny.com/api/fortune/guardian/usage  # Mongo O
+curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://code-destiny.com/api/reviews                 # Mongo O
+curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://code-destiny.com/api/auth/me                 # 비로그인 = Mongo X
+```
+
+2026-08-09 프로덕션 기준선(이 값에서 크게 벗어나면 계층 문제다):
+
+| 라우트 | Mongo | 측정 |
+|---|---|---|
+| `/api/fortune/guardian/usage` (인덱스된 findOne 1건) | O | 4.8~5.0초, **10회 중 1회 12.4초 → 503** |
+| `/api/reviews` | O | 4.9초 |
+| `/api/insights` | O | **22.4초 → 503** |
+| `/api/auth/me` (비로그인) | X | 0.44초 |
+| `/api/manse`, `/api/content-feed` (404) | X | 0.43초 |
+
+**Mongo를 타면 ~5초, 안 타면 ~0.44초**이면 기능 코드는 무죄다. 503 헤더가 `X-CD-Error-Stage: db-op-timeout`
+이면 `withMongoRetry`의 12초 op 상한(`MONGO_OP_ATTEMPT_TIMEOUT_MS`, 기본 12000)을 넘긴 것이다.
+
+이 상태에서는 **op를 많이 쓰는 기능일수록 먼저 죽는다.** op당 실패율이 10%면 순차 8개를 쓰는
+상담은 `0.9^8 ≈ 43%`만 성공한다. 그래서 "특정 기능만 고장난 것처럼" 보인다 — 아니다, 그 기능이
+왕복을 제일 많이 쓸 뿐이다. 고칠 때도 그 순서로 본다: **왕복 수를 줄이는 것**이 코드로 할 수 있는
+전부이고, 5초짜리 단일 조회 자체는 코드로 못 고친다.
+
+Atlas 쪽에서 확인할 것(코드로 해결되지 않을 때의 다음 단계):
+
+1. 클러스터 티어 — `worker/lib/db.js`의 admission·풀 리셋 로직은 전부 **M0(무료, 연결 상한 500)** 전제로 쓰였다. 실제 티어가 M0이면 공유 vCPU 스로틀링이 5초의 주원인일 수 있다.
+2. 현재 연결 수 / 상한 — 전역 연결 = 아이솔레이트 수 × `maxPoolSize(5)`. 상한에 근접하면 체크아웃이 굶는다.
+3. Atlas Profiler의 느린 쿼리 — 5초가 **실행 시간**인지 **큐 대기**인지 가른다. 실행이 빠른데 총합이 느리면 연결/스로틀 문제이지 인덱스 문제가 아니다(위 라우트들은 인덱스가 이미 정상이다).
+4. Worker 로그의 `[db-op-timeout]` / `[db-connect-error]` 발생률.
+
+🔴 대응으로 `maxPoolSize`나 재시도 횟수를 올리지 않는다 — `db.js` 주석이 그 자기증폭 고리를 기록해 두었다.
+
 ## 배포가 preview 단계에서 멈추는 경우
 
 - 증상: `npm run deploy:safe` 가 checks 단계에서 종료되고 preview URL 이 생기지 않는다.
