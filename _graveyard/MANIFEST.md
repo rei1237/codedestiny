@@ -82,6 +82,31 @@ git revert <격리 커밋 sha>      # 배치 전체 복구
 | `lib/yeon/sampleYeonMessages.ts` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/lib/yeon/sampleYeonMessages.ts lib/yeon/sampleYeonMessages.ts` |
 | `preview-all-features.cjs` | 2026-08-09 | 전 채널 참조 0 (A-batch1) | `git mv _graveyard/20260809/preview-all-features.cjs preview-all-features.cjs` |
 
+## Batch 2 — worker/lib 고아 5건 (2026-08-09)
+
+worker 는 배포 경로가 달라(롤백 비용이 다름) 배치를 분리했다. 이동 직전 현재 워킹트리 기준으로 5건 전부 재검증했다 — 다른 세션이 그 시각에도 `worker/lib` 를 수정 중이었기 때문이다.
+
+| 원 경로 | 이동일 | 사유 | 복구 명령 |
+|---|---|---|---|
+| `worker/lib/astro/normalizeAstroPayloadForStrictValidation.js` | 2026-08-09 | 전 채널 참조 0 (A-batch2) | `git mv _graveyard/20260809/worker/lib/astro/normalizeAstroPayloadForStrictValidation.js worker/lib/astro/normalizeAstroPayloadForStrictValidation.js` |
+| `worker/lib/astro/test.astroGeneration.js` | 2026-08-09 | 전 채널 참조 0 (A-batch2) | `git mv _graveyard/20260809/worker/lib/astro/test.astroGeneration.js worker/lib/astro/test.astroGeneration.js` |
+| `worker/lib/destiny-bias-prompts.js` | 2026-08-09 | 전 채널 참조 0 (A-batch2) | `git mv _graveyard/20260809/worker/lib/destiny-bias-prompts.js worker/lib/destiny-bias-prompts.js` |
+| `worker/lib/premium-chapter-json-contract.js` | 2026-08-09 | 전 채널 참조 0 (A-batch2) | `git mv _graveyard/20260809/worker/lib/premium-chapter-json-contract.js worker/lib/premium-chapter-json-contract.js` |
+| `worker/lib/saju-premium-chapters.js` | 2026-08-09 | 전 채널 참조 0 (A-batch2) | `git mv _graveyard/20260809/worker/lib/saju-premium-chapters.js worker/lib/saju-premium-chapters.js` |
+
+### 번들 크기 실측 — 줄지 않았다 (예상대로)
+
+`npm run build:worker` (wrangler `--dry-run`) 기준:
+
+| 시점 | Total Upload |
+|---|---:|
+| 격리 전 (2026-08-09 20:35) | 13,577.42 KiB |
+| batch2 격리 후 | 13,581.29 KiB |
+
+**+3.87 KiB.** 격리로 줄어든 것이 0이고, 그 사이 다른 세션이 guardian-fortune 코드를 늘렸다. 참조가 없던 파일은 애초에 esbuild 가 번들에 넣지 않았으므로 당연한 결과다 — [03-report.md](../docs/cleanup-2026-08/03-report.md) 의 "프로덕션 번들 감소 0 KB" 예측이 실측으로 확인됐다.
+
+---
+
 ### 주의 — 함께 지우면 안 되는 동명 항목
 - `app/hooks/useServiceExecutionGuard.ts` 를 격리했지만, **동명의 `worker/lib/service-execution-task.js:1036+` 는 살아 있다.** 이름이 같다고 함께 지우지 말 것.
 - `app/_lib/models/**` 는 이 배치에 없다(B등급). 그중 `UserModel.js` 는 스크립트 5곳이 쓰는 **살아 있는 모델**이다.
