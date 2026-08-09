@@ -2154,7 +2154,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         var res=await fetch('/api/celestial-harmony?'+q,{method:'GET',headers:headers,credentials:'include'});
         if(!res.ok) return null;
         var payload=await res.json();
-        console.log('[CelestialHarmony][Restore] response', { status: res.status, payload: payload });
+        console.log('[CelestialHarmony][Restore] response', { status: res.status, ok: Boolean(payload && payload.ok), hasResult: Boolean(payload && payload.result) });
         if(payload&&payload.ok&&payload.result){
           if(validateReadingSchema(payload.result).ok && hasPaymentProof(payload.result.payment || payload.result)) return sanitizeReadingResult(payload.result);
           if(Array.isArray(spread) && spread.length>=11 && activeAccessHasProof()) return buildCelestialLocalReading('restore-schema-fallback');
