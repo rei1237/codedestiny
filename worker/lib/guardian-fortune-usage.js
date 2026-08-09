@@ -411,9 +411,14 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
     },
     async ensureGuest(hash, now = new Date()) {
       await connectDb(env);
+      // 🔴 createdAt·updatedAt 을 $setOnInsert 에 직접 넣지 말 것. 이 스키마는 timestamps:true 라
+      // Mongoose 가 $set.updatedAt 을 **무조건** 덧붙인다(applyTimestampsToUpdate 는 $currentDate 만
+      // 확인하고 $setOnInsert 는 보지 않는다). 그러면 updatedAt 이 두 연산자에 동시에 실려 MongoDB 가
+      // ConflictingUpdateOperators(code 40)로 매번 거부한다 — 이 컬렉션에 문서가 단 하나도 생기지
+      // 못했고 상담 전체가 100% 죽어 있던 원인이다(2026-08-09). 두 필드는 timestamps 가 넣어 준다.
       return leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
         { guestIdHash: normalizeGuestHash(hash) },
-        { $setOnInsert: { guestIdHash: normalizeGuestHash(hash), totalUsed: 0, reserved: 0, firstUsedAt: null, lastUsedAt: null, reservationUpdatedAt: null, createdAt: now, updatedAt: now } },
+        { $setOnInsert: { guestIdHash: normalizeGuestHash(hash), totalUsed: 0, reserved: 0, firstUsedAt: null, lastUsedAt: null, reservationUpdatedAt: null } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       ));
     },
@@ -450,7 +455,8 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
       // a user's current three free consultations.
       return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: accountId },
-        { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, legacyMigratedAt: now, createdAt: now, updatedAt: now } },
+        // createdAt·updatedAt 은 넣지 않는다 — 위 ensureGuest 주석과 같은 이유(timestamps 충돌).
+        { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, legacyMigratedAt: now } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       ));
     },

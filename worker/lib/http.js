@@ -180,7 +180,23 @@ function publicErrorContract({ code, status, message, requestId }) {
    에러명(Mongo*)과 풀-클리어 메시지까지 보는 이유: MongoPoolClearedError 는 메시지에 "mongo" 가
    없을 수 있어 메시지 정규식만으로는 놓친다(과거 500으로 새던 원인).
    op-타임아웃("MongoDB operation timed out in Worker.")도 메시지에 mongodb 가 있어 여기 걸린다. */
+/* 서버가 요청을 **확정적으로 거부한** MongoServerError 코드. 재시도해도 결과가 같으므로
+   '일시 장애'로 분류하면 안 된다.
+   🔴 이 allowlist 가 없으면 아래 `/^Mongo/` 가 모든 MongoServerError 를 삼켜, 영구 코드 버그가
+   retryable 503("잠시 후 다시 시도")로 위장된다. 실제로 그래서 guardian ensureGuest 의
+   ConflictingUpdateOperators(40)가 며칠 동안 'DB 일시 장애'로 보였고, 그동안 상담은 100% 죽어
+   있었다(2026-08-09). 이건 인프라 신호가 아니라 코드 버그이므로 500 으로 나가야 눈에 띈다.
+   13(Unauthorized)·11000(DuplicateKey)은 호출부 기존 동작을 건드리지 않으려고 일부러 뺐다 —
+   여기 있는 넷은 전부 '요청 형태 자체가 틀렸다'는 뜻이다. */
+const PERMANENT_MONGO_ERROR_CODES = new Set([
+  2, // BadValue
+  9, // FailedToParse
+  40, // ConflictingUpdateOperators
+  121, // DocumentValidationFailure
+]);
+
 export function isDbUnavailableError(error) {
+  if (PERMANENT_MONGO_ERROR_CODES.has(Number(error?.code))) return false;
   const errorText = String(error?.message || error || "");
   return /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText)
     || /^Mongo/.test(String(error?.name || ""))

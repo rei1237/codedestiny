@@ -443,6 +443,12 @@ async function upsertBackfillUnlocksBatch(records) {
           },
         },
         upsert: true,
+        // 🔴 timestamps 주입을 끈다. 켜 두면 Mongoose 가 $set.updatedAt 을 덧붙이는데, 위
+        // $setOnInsert 에도 updatedAt 이 있어 MongoDB 가 ConflictingUpdateOperators(code 40)로
+        // 이 bulkWrite 를 통째로 거부한다 — 결제했는데 권한 행이 없는 사용자를 복구하는 경로가
+        // 조용히 죽는다. $set 으로 옮기는 대신 여기서 끄는 이유는 위 주석의 insert-only 계약
+        // 때문이다: $set 이 붙으면 이미 있는 권한 행의 updatedAt 을 매 스윕마다 덮어쓴다.
+        timestamps: false,
       },
     };
   });

@@ -38,6 +38,27 @@ function safeErrorMessage(code) {
   }
 }
 
+/**
+ * 삼키기 전에 Mongo 실패의 정체만 한 줄 남긴다.
+ *
+ * 이게 없어서 ensureGuest 의 ConflictingUpdateOperators(40)가 며칠 동안 보이지 않았다 — 두 catch 가
+ * 에러를 로그 없이 503 으로 바꿔 버리니 프로덕션 로그에 원인이 아예 안 남았다.
+ * 🔴 프롬프트·생년정보·질문·requestId 같은 사용자 데이터는 싣지 않는다. 식별에 필요한 최소 4개만.
+ */
+function logGuardianFortuneDbError(stage, error) {
+  try {
+    console.error("[guardian-fortune-db-error]", JSON.stringify({
+      stage,
+      name: String(error?.name || "Error").slice(0, 80),
+      code: error?.code ?? null,
+      codeName: String(error?.codeName || "").slice(0, 80) || null,
+      message: String(error?.message || "").slice(0, 300),
+    }));
+  } catch {
+    console.error("[guardian-fortune-db-error]", stage, error?.name, error?.code);
+  }
+}
+
 function throwIfGuardianFortuneAborted(signal) {
   if (!signal?.aborted) return;
   const error = new Error("guardian_fortune_cancelled");
@@ -125,6 +146,7 @@ export async function generateGuardianFortuneRequest({
     // 공용 핸들러의 영문 503("Database is temporarily unavailable.") 으로 나갔다. 아직 예약
     // 이전이라 되돌릴 것이 없으므로 재시도 가능한 한국어 503 으로 돌려준다.
     // usage 는 싣지 않는다 — 같은 장애에서 buildGuardianFortuneUsageStatus 도 다시 던진다.
+    logGuardianFortuneDbError("reserve", error);
     if (!isDbUnavailableError(error)) throw error;
     return errorResponse({
       code: GUARDIAN_FORTUNE_ERROR_CODES.SERVICE_TEMPORARILY_UNAVAILABLE,
@@ -251,6 +273,7 @@ export async function generateGuardianFortuneRequest({
     return successResponse({ result: generated.result, usage, generationSource: reservation.source, requestId, shareDraftToken });
   } catch (error) {
     const cancelled = error?.code === GUARDIAN_FORTUNE_ERROR_CODES.CANCELLED;
+    if (!cancelled) logGuardianFortuneDbError("generate", error);
 
     // 🔴 예약 **이후** 단계(context·생성·커밋)에서 Mongo 가 흔들린 경우. 이걸 SERVER_ERROR 로
     // 뭉개면 위 예약 catch(:123)·라우트 catch(fortune.js)가 같은 장애를 재시도 가능한 503 으로
