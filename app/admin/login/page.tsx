@@ -198,8 +198,6 @@ export default function AdminLoginPage() {
 
       try { sessionStorage.setItem("flower_admin_token", adminToken); } catch (e) {}
       try { sessionStorage.setItem("flower_admin_password_ok", "1"); } catch (e) {}
-      try { localStorage.setItem("flower_admin_token", adminToken); } catch (e) {}
-      try { localStorage.setItem("flower_admin_password_ok", "1"); } catch (e) {}
 
       const nextUrl = new URLSearchParams(window.location.search).get("next") || "/admin/content";
       window.location.assign(nextUrl.startsWith("/admin/") ? nextUrl : "/admin/content");

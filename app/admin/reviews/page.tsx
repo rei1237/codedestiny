@@ -111,11 +111,6 @@ function getFlowerAdminTokenClient(): string {
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return token;
   } catch {}
 
-  try {
-    const token = String(localStorage.getItem("flower_admin_token") || "").trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return token;
-  } catch {}
-
   return "";
 }
 
@@ -129,8 +124,6 @@ function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string
 function clearAdminToken(): void {
   try { sessionStorage.removeItem("flower_admin_token"); } catch {}
   try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
-  try { localStorage.removeItem("flower_admin_token"); } catch {}
-  try { localStorage.removeItem("flower_admin_password_ok"); } catch {}
 }
 
 function commandButtonClass(tone: "neutral" | "primary" | "success" | "warn" | "danger" = "neutral"): string {

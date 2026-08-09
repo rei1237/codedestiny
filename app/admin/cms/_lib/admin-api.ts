@@ -33,23 +33,19 @@ export function resolveAdminCredentials(apiBase: string): RequestCredentials {
 export function getFlowerAdminToken(): string {
   if (typeof window === "undefined") return "";
 
-  for (const storage of [window.sessionStorage, window.localStorage]) {
-    try {
-      const token = String(storage.getItem("flower_admin_token") || "").trim();
-      if (FLOWER_ADMIN_TOKEN_RE.test(token)) return token;
-    } catch {
-      // 스토리지 접근이 막힌 환경(시크릿 모드 등)은 다음 후보로 넘어간다.
-    }
+  try {
+    const token = String(window.sessionStorage.getItem("flower_admin_token") || "").trim();
+    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return token;
+  } catch {
+    // 스토리지 접근이 막힌 환경(시크릿 모드 등).
   }
 
   return "";
 }
 
 export function clearAdminToken(): void {
-  for (const storage of [window.sessionStorage, window.localStorage]) {
-    for (const key of ["flower_admin_token", "flower_admin_password_ok"]) {
-      try { storage.removeItem(key); } catch { /* 무시 */ }
-    }
+  for (const key of ["flower_admin_token", "flower_admin_password_ok"]) {
+    try { window.sessionStorage.removeItem(key); } catch { /* 무시 */ }
   }
 }
 

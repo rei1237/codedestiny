@@ -1157,11 +1157,6 @@ function getFlowerAdminTokenClient(): string {
     if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
   } catch {}
 
-  try {
-    const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
-  } catch {}
-
   return "";
 }
 
@@ -1213,8 +1208,6 @@ function clearFlowerAdminTokenClient(): void {
   if (typeof window === "undefined") return;
   try { sessionStorage.removeItem("flower_admin_token"); } catch {}
   try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
-  try { localStorage.removeItem("flower_admin_token"); } catch {}
-  try { localStorage.removeItem("flower_admin_password_ok"); } catch {}
 }
 
 const FILTER_OPTIONS: Array<{ key: FilterKey }> = [
