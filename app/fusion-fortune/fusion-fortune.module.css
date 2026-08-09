@@ -807,7 +807,8 @@
   border-radius: 24px;
   padding: clamp(20px, 3vw, 32px);
   background:
-    radial-gradient(circle at 90% -10%, rgba(232, 213, 163, .09), transparent 42%),
+    radial-gradient(circle at 92% -8%, rgba(232, 213, 163, .1), transparent 40%),
+    radial-gradient(circle at 3% 106%, rgba(160, 92, 214, .1), transparent 42%),
     linear-gradient(168deg, rgba(28, 22, 58, .72), rgba(14, 10, 29, .82));
   column-gap: clamp(16px, 2.2vw, 26px);
   row-gap: clamp(16px, 2vw, 22px);
@@ -820,6 +821,43 @@
 }
 .formIntro p:last-child { word-break: keep-all; }
 
+/* ── 여섯 전문가 범례 ────────────────────────────────────────────────────────
+   폼이 "입력칸 나열"로 보이지 않게, 아래 정보를 나눠 읽는 여섯 체계를 한 번만
+   보여준다. 색은 fusionOrbs.ts 의 체계별 tint 그대로 — 새 색을 만들지 않는다. */
+.systemsLegend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 12px;
+  margin: 14px 0 0;
+  color: #b7a9cc;
+  font-size: .78rem;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.systemsLegendList {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 13px;
+}
+.systemsLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #ded3ea;
+  font-weight: 700;
+}
+.systemDot {
+  --tint: #e8d5a3;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--tint);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .14);
+}
+.systemDotAll { background: linear-gradient(135deg, #e8d5a3, #a05cd6); }
+
 /* 라벨은 조용히, 값은 또렷하게. 라벨이 값보다 커 보이면 서식이 시끄러워진다. */
 .form label,
 .form fieldset {
@@ -828,6 +866,56 @@
   letter-spacing: .01em;
 }
 .form label > small { font-size: .76rem; }
+
+/* 항목별 신호 점 — 이 항목을 실제로 읽는 체계만 켜진다. 포커스에 반응해야
+   "장식"이 아니라 "지금 듣고 있다"는 상태로 읽힌다(Glow-Not-Shadow). */
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fieldSystems {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+.fieldSystems .systemDot {
+  width: 6px;
+  height: 6px;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+.form label:focus-within .fieldSystems .systemDot,
+.form fieldset:focus-within .fieldSystems .systemDot {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .22), 0 0 7px 1px var(--tint);
+  transform: scale(1.25);
+}
+
+/* 두 항목 묶음(태어난 정보 / 지금의 마음)을 가르는 얇은 금선 — ThreadBubble
+   말풍선 상단 헤어라인과 같은 문법을 폼에도 재사용해 결과 화면과 결을 맞춘다. */
+.formSectionFirst,
+.formSection {
+  grid-column: 1 / -1;
+  margin: 4px 0 -6px;
+  color: #f0dda8;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.formSection {
+  position: relative;
+  margin-top: 10px;
+  padding-top: 20px;
+}
+.formSection::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 213, 163, .55), transparent);
+}
 
 .form input,
 .form select,

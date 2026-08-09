@@ -211,25 +211,36 @@ export default function FortuneChatClient() {
     const recentTurns = messagesRef.current
       .slice(-6)
       .map((message) => ({ speaker: message.speaker === "assistant" ? "assistant" : "user", text: message.detail ? `${message.text} ${message.detail}` : message.text }));
-    const response = await fetch(`${apiBase}/api/fortune/guardian/generate`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json", "Idempotency-Key": requestId },
-      body: JSON.stringify({
-        requestId,
-        birthDate: birth.birthDate,
-        ...(birth.birthTime ? { birthTime: birth.birthTime } : {}),
-        calendarType: birth.calendarType,
-        gender: birth.gender,
-        category: activeCategory,
-        topic: topicKey,
-        mode: character === "neo" ? "neo" : "yeoni",
-        ...(concern ? { concern } : {}),
-        ...(recentTurns.length ? { recentTurns } : {}),
-      }),
-    });
-    const payload = await response.json().catch(() => null);
-    return { status: response.status, ok: response.ok, payload };
+    const controller = new AbortController();
+    // 서버 LLM 예산(worker/lib/guardian-fortune-llm-policy.js: timeoutMs 최대 45초 × maxRetries
+    // 최대 1회)을 넉넉히 덮는 안전망. 이게 없으면 연결이 끊겨도 fetch 가 끝없이 대기해
+    // "정리 중"에서 영영 빠져나오지 못한다(재시도 버튼도, 취소 버튼도 없어 새 상담 시작 외엔
+    // 방법이 없었다).
+    const timer = window.setTimeout(() => controller.abort(), 100000);
+    try {
+      const response = await fetch(`${apiBase}/api/fortune/guardian/generate`, {
+        method: "POST",
+        credentials: "include",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json", "Idempotency-Key": requestId },
+        body: JSON.stringify({
+          requestId,
+          birthDate: birth.birthDate,
+          ...(birth.birthTime ? { birthTime: birth.birthTime } : {}),
+          calendarType: birth.calendarType,
+          gender: birth.gender,
+          category: activeCategory,
+          topic: topicKey,
+          mode: character === "neo" ? "neo" : "yeoni",
+          ...(concern ? { concern } : {}),
+          ...(recentTurns.length ? { recentTurns } : {}),
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      return { status: response.status, ok: response.ok, payload };
+    } finally {
+      window.clearTimeout(timer);
+    }
   }, [apiBase, birth, activeCategory, topicKey, character]);
 
   const send = async () => {
@@ -293,7 +304,8 @@ export default function FortuneChatClient() {
       // 상한에 걸리면 상담은 성공했는데 화면만 실패로 보인다.
       if (attempt.payload.usage) setUsage(attempt.payload.usage);
     } catch (reason) {
-      setError(friendlyError(reason, "상담을 다시 시도해 주세요."));
+      const timedOut = (reason as Error)?.name === "AbortError";
+      setError(timedOut ? "응답이 오래 걸려 상담을 멈췄어요. 같은 질문으로 다시 시도해 주세요." : friendlyError(reason, "상담을 다시 시도해 주세요."));
     } finally {
       // 결과를 받지 못한 질문은 대화에서 되돌리고 입력창에 남긴다. 예전에는 실패해도 말풍선이
       // 남고 입력창도 안 비워져, 재시도할 때마다 같은 질문이 하나씩 쌓였다.

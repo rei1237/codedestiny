@@ -9,7 +9,7 @@ import { getApiBaseUrl } from "../_lib/api-config";
 import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { PriceBadge } from "../components/PriceBadge";
-import { FUSION_CORE_ORB, FUSION_ORB_BY_KEY, type FusionSystemKey } from "./fusionOrbs";
+import { FUSION_CORE_ORB, FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionVisualization, type FusionVisualizationData } from "./FusionVisualization";
 import styles from "./fusion-fortune.module.css";
 
@@ -149,6 +149,42 @@ function withAlpha(hex: string, alpha: number) {
 function tintVars(systemKey?: FusionSystemKey | "fusion") {
   const tint = (systemKey && systemKey !== "fusion" ? FUSION_ORB_BY_KEY[systemKey]?.tint : "") || "#e8d5a3";
   return { "--tint": tint, "--tint-ring": withAlpha(tint, 0.42), "--tint-veil": withAlpha(tint, 0.14) } as React.CSSProperties;
+}
+
+/**
+ * 입력폼의 각 항목을 실제로 읽는 체계. 장식이 아니라 "이 정보를 누가 쓰는가"의 축소판이다
+ * — 근거는 각 필드의 기존 안내 문구(생시=명반·라그나·상승궁·하우스, 출생지=베다점·서양
+ * 점성술)를 그대로 따른다. "all"은 여섯 체계 전부가 함께 읽는 항목(주제·고민)에 쓴다.
+ */
+const FIELD_SYSTEMS: Record<string, FusionSystemKey[] | "all"> = {
+  birthDate: ["saju", "ziwei", "vedic", "sukuyo", "astrology"],
+  birthTime: ["ziwei", "vedic", "astrology"],
+  birthPlace: ["vedic", "astrology"],
+  calendarType: ["saju", "ziwei"],
+  gender: ["ziwei"],
+  topic: "all",
+  concern: "all",
+};
+
+/** 폼 항목 옆의 작은 신호 점. 색은 fusionOrbs.ts 의 체계별 tint 그대로 — 새 색을 만들지 않는다. */
+function FieldSystems({ field }: { field: keyof typeof FIELD_SYSTEMS }) {
+  const mapped = FIELD_SYSTEMS[field];
+  if (!mapped) return null;
+  if (mapped === "all") {
+    return (
+      <span className={styles.fieldSystems} title="읽는 체계: 여섯 체계 전체">
+        <i aria-hidden className={`${styles.systemDot} ${styles.systemDotAll}`} />
+        <span className="sr-only">이 정보를 읽는 체계: 여섯 체계 전체</span>
+      </span>
+    );
+  }
+  const label = mapped.map((key) => FUSION_ORB_BY_KEY[key].label).join(" · ");
+  return (
+    <span className={styles.fieldSystems} title={`읽는 체계: ${label}`}>
+      {mapped.map((key) => <i key={key} aria-hidden className={styles.systemDot} style={{ "--tint": FUSION_ORB_BY_KEY[key].tint } as React.CSSProperties} />)}
+      <span className="sr-only">{`이 정보를 읽는 체계: ${label}`}</span>
+    </span>
+  );
 }
 
 /**
@@ -309,6 +345,9 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  /** refresh() 가 실패해 status 가 EMPTY_STATUS(nextAction:"disabled")에 갇혔을 때만 켠다 —
+   *  이때는 새로고침 없이 재확인할 방법이 폼 안에 없으면 생성 자체가 영구히 막힌다. */
+  const [statusUnavailable, setStatusUnavailable] = useState(false);
   const [birthPlaces, setBirthPlaces] = useState<BirthPlaceOption[]>(DEFAULT_BIRTH_PLACES);
   /**
    * 결제 증빙은 requestId 에 묶인다. 생성이 실패하면 **같은 id 로** 다시 보내야
@@ -333,8 +372,14 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/status`, { credentials: "include" }, { retryOn401: true, apiBase });
       const payload = await parseJson<Status & { ok?: boolean }>(response);
-      if (response.ok && payload.ok) setStatus(payload);
+      // response.ok 이지만 payload.ok 가 아닌 경우도 조용히 넘기면 status 가 EMPTY_STATUS 에
+      // 머물러 제출 버튼이 말없이 계속 비활성 상태로 남는다 — 아래 catch 로 합쳐서 항상
+      // 사용자에게 재확인할 방법을 준다.
+      if (!response.ok || !payload.ok) throw new Error("이용 상태 응답이 올바르지 않아요.");
+      setStatus(payload);
+      setStatusUnavailable(false);
     } catch {
+      setStatusUnavailable(true);
       setError("이용 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
     }
   }, [apiBase]);
@@ -570,16 +615,36 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">Fusion Core 진행 방식 보기</button>
       </div>
       {<form ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
-        <div className={styles.formIntro}><p className={styles.kicker}>Fusion AI · 상담 시작</p><h2>정확한 생시로 여섯 체계를 연결해요</h2><p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p>{guardianHandoff && <p className={styles.handoffNotice}>연이가 남긴 <strong>{guardianHandoff.topic}</strong> 주제만 이어받았어요. 개인 대화와 결과 원문은 가져오지 않았습니다.</p>}<button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>저장한 프로필 다시 불러오기</button></div>
-        <label>생년월일<input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
-        <label>생시<input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
-        <label>출생지<select value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">출생지를 몰라요</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>베다점·서양 점성술의 위치 계산에 사용해요.</small></label>
-        <fieldset><legend>달력 기준</legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> 양력</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> 음력</label></fieldset>
-        <label>성별 <em>(선택)</em><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}><option value="unspecified">선택하지 않음</option><option value="female">여성</option><option value="male">남성</option></select></label>
+        <div className={styles.formIntro}>
+          <p className={styles.kicker}>Fusion AI · 상담 시작</p><h2>정확한 생시로 여섯 체계를 연결해요</h2>
+          <p>입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.</p>
+          <p className={styles.systemsLegend}>이 상담을 나눠 읽는 여섯 전문가
+            <span className={styles.systemsLegendList}>
+              {FUSION_ORBS.map((orb) => (
+                <span key={orb.key} className={styles.systemsLegendItem}>
+                  <i aria-hidden className={styles.systemDot} style={{ "--tint": orb.tint } as React.CSSProperties} />{orb.label}
+                </span>
+              ))}
+            </span>
+          </p>
+          {guardianHandoff && <p className={styles.handoffNotice}>연이가 남긴 <strong>{guardianHandoff.topic}</strong> 주제만 이어받았어요. 개인 대화와 결과 원문은 가져오지 않았습니다.</p>}
+          <button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>저장한 프로필 다시 불러오기</button>
+        </div>
+        <p className={styles.formSectionFirst}>태어난 순간을 알려주세요</p>
+        <label><span className={styles.labelRow}>생년월일<FieldSystems field="birthDate" /></span><input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
+        <label><span className={styles.labelRow}>생시<FieldSystems field="birthTime" /></span><input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
+        <label><span className={styles.labelRow}>출생지<FieldSystems field="birthPlace" /></span><select value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">출생지를 몰라요</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>베다점·서양 점성술의 위치 계산에 사용해요.</small></label>
+        <fieldset><legend><span className={styles.labelRow}>달력 기준<FieldSystems field="calendarType" /></span></legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> 양력</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> 음력</label></fieldset>
+        <label><span className={styles.labelRow}><span>성별 <em>(선택)</em></span><FieldSystems field="gender" /></span><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}><option value="unspecified">선택하지 않음</option><option value="female">여성</option><option value="male">남성</option></select></label>
+        <p className={styles.formSection}>지금 이 마음을 들려주세요</p>
         <label>닉네임 <em>(선택)</em><input maxLength={40} value={form.nickname} onChange={(event) => setForm({ ...form, nickname: event.target.value })} placeholder="결과에서 불릴 이름" /></label>
-        <label>관심 주제<select value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })}><option>삶의 전반적인 흐름</option><option>연애와 관계</option><option>일과 돈</option><option>마음과 회복</option></select></label>
-        <label className={styles.wide}>고민 <em>(선택)</em><textarea maxLength={1000} value={form.concern} onChange={(event) => setForm({ ...form, concern: event.target.value })} placeholder="개인 식별 정보는 적지 말아 주세요." /></label>
-        {status.message && <p className={styles.notice}>{status.message}</p>}{notice && <p className={styles.success} role="status">{notice}</p>}{error && <p className={styles.error} role="alert">{error}</p>}
+        <label><span className={styles.labelRow}>관심 주제<FieldSystems field="topic" /></span><select value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })}><option>삶의 전반적인 흐름</option><option>연애와 관계</option><option>일과 돈</option><option>마음과 회복</option></select></label>
+        <label className={styles.wide}><span className={styles.labelRow}><span>고민 <em>(선택)</em></span><FieldSystems field="concern" /></span><textarea maxLength={1000} value={form.concern} onChange={(event) => setForm({ ...form, concern: event.target.value })} placeholder="개인 식별 정보는 적지 말아 주세요." /></label>
+        {status.message && <p className={styles.notice}>{status.message}</p>}{notice && <p className={styles.success} role="status">{notice}</p>}
+        {error && <div className={styles.wide}>
+          <p className={styles.error} role="alert">{error}</p>
+          {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>이용 상태 다시 확인하기</button>}
+        </div>}
         <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">{buttonLabel}</button>
       </form>}
     </section>
