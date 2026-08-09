@@ -1,4 +1,4 @@
-import { connectDb, mongoose } from "./db.js";
+import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import {
   GuardianFortuneAccountUsage,
   GuardianFortuneAnonymousMerge,
@@ -404,92 +404,106 @@ function leanQuery(query) {
 }
 
 export function createMongoGuardianFortuneStore({ env } = {}) {
+  /**
+   * 개별 Mongo 호출을 커밋 0ea717329 가 세운 정본 패턴대로 감싼다 — admission 제어, 12초 시도
+   * 상한, 일시적 오류 재시도, `[db-op-timeout]` 계측이 전부 여기서 붙는다.
+   *
+   * 감싸기 전에는 이 store 의 14개 메서드가 전부 raw 였다. 그래서 풀이 붐비면 재시도 없이
+   * waitQueueTimeoutMS(5초) 한 방에 죽었고, admission 슬롯을 잡지 않아 maxPoolSize(5) 위로
+   * 무제한 쇄도했으며, 계측에도 안 잡혀 로그에 흔적이 남지 않았다.
+   *
+   * 🔴 중첩 금지(CLAUDE.md 6번): 감싸는 것은 **말단 쿼리 하나**뿐이다. reserveGuest/reserveDaily 는
+   * 자기 자신을 감싸지 않고 ensureX(감싼 것) → 자기 쿼리(감싼 것) 순으로 **직렬** 호출한다.
+   * beginAttempt 도 create 만 감싸고, 11000 분기의 findAttempt 는 그 밖에서 별도로 돈다.
+   * withMongoRetry 가 내부에서 connectDb 를 부르므로 메서드마다 있던 connectDb 는 걷어냈다.
+   */
+  const run = (operation) => withMongoRetry(env, operation);
+
   const store = {
     kind: "mongo",
     async findGuest(hash) {
-      return leanQuery(GuardianFortuneGuestUsage.findOne({ guestIdHash: normalizeGuestHash(hash) }));
+      return run(() => leanQuery(GuardianFortuneGuestUsage.findOne({ guestIdHash: normalizeGuestHash(hash) })));
     },
     async ensureGuest(hash, now = new Date()) {
-      await connectDb(env);
       // 🔴 createdAt·updatedAt 을 $setOnInsert 에 직접 넣지 말 것. 이 스키마는 timestamps:true 라
       // Mongoose 가 $set.updatedAt 을 **무조건** 덧붙인다(applyTimestampsToUpdate 는 $currentDate 만
       // 확인하고 $setOnInsert 는 보지 않는다). 그러면 updatedAt 이 두 연산자에 동시에 실려 MongoDB 가
       // ConflictingUpdateOperators(code 40)로 매번 거부한다 — 이 컬렉션에 문서가 단 하나도 생기지
       // 못했고 상담 전체가 100% 죽어 있던 원인이다(2026-08-09). 두 필드는 timestamps 가 넣어 준다.
-      return leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
         { guestIdHash: normalizeGuestHash(hash) },
         { $setOnInsert: { guestIdHash: normalizeGuestHash(hash), totalUsed: 0, reserved: 0, firstUsedAt: null, lastUsedAt: null, reservationUpdatedAt: null } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
-      ));
+      )));
     },
     async reserveGuest(hash, now = new Date()) {
       await store.ensureGuest(hash, now);
-      return leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
         { guestIdHash: normalizeGuestHash(hash), $expr: { $lt: [{ $add: [{ $ifNull: ["$totalUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, GUARDIAN_FORTUNE_GUEST_LIMIT] } },
         { $inc: { reserved: 1 }, $set: { reservationUpdatedAt: now, updatedAt: now } },
         { new: true },
-      ));
+      )));
     },
     async commitGuest(hash, now = new Date()) {
-      return leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
         { guestIdHash: normalizeGuestHash(hash), reserved: { $gt: 0 } },
         { $inc: { reserved: -1, totalUsed: 1 }, $set: { firstUsedAt: now, lastUsedAt: now, updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
-      ));
+      )));
     },
     async releaseGuest(hash, now = new Date()) {
-      return leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
         { guestIdHash: normalizeGuestHash(hash), reserved: { $gt: 0 } },
         { $inc: { reserved: -1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
-      ));
+      )));
     },
     async findDaily(userId, dateKey) {
-      return leanQuery(GuardianFortuneAccountUsage.findOne({ userId: objectIdOrString(userId) }));
+      return run(() => leanQuery(GuardianFortuneAccountUsage.findOne({ userId: objectIdOrString(userId) })));
     },
     async ensureDaily(userId, dateKey, now = new Date()) {
-      await connectDb(env);
       const accountId = objectIdOrString(userId);
       // Account quota is lifetime-scoped. Historical per-day rows are deliberately
       // not imported: they remain legacy audit data and must never grant or remove
       // a user's current three free consultations.
-      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: accountId },
         // createdAt·updatedAt 은 넣지 않는다 — 위 ensureGuest 주석과 같은 이유(timestamps 충돌).
         { $setOnInsert: { userId: accountId, freeLimit: GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT, freeUsed: 0, reserved: 0, reservationUpdatedAt: null, legacyMigratedAt: now } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
-      ));
+      )));
     },
     async reserveDaily(userId, dateKey, now = new Date()) {
       await store.ensureDaily(userId, dateKey, now);
-      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: objectIdOrString(userId), $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }] } },
         { $inc: { reserved: 1 }, $set: { reservationUpdatedAt: now, updatedAt: now } },
         { new: true },
-      ));
+      )));
     },
     async commitDaily(userId, dateKey, now = new Date()) {
-      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: objectIdOrString(userId), reserved: { $gt: 0 } },
         { $inc: { reserved: -1, freeUsed: 1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
-      ));
+      )));
     },
     async releaseDaily(userId, dateKey, now = new Date()) {
-      return leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: objectIdOrString(userId), reserved: { $gt: 0 } },
         { $inc: { reserved: -1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
-      ));
+      )));
     },
     async findAttempt(requestId) {
-      return leanQuery(GuardianFortuneGenerationAttempt.findOne({ requestId: assertRequestId(requestId) }));
+      return run(() => leanQuery(GuardianFortuneGenerationAttempt.findOne({ requestId: assertRequestId(requestId) })));
     },
     async beginAttempt(data) {
-      await connectDb(env);
       const value = attemptValue(data);
       try {
-        const created = await GuardianFortuneGenerationAttempt.create(value);
+        // create 만 감싼다. 중복키(11000)는 isTransientMongoError 의 이름 allowlist 에 없어
+        // withMongoRetry 가 재시도하지 않고 그대로 던지므로 아래 멱등성 분기가 그대로 산다.
+        const created = await run(() => GuardianFortuneGenerationAttempt.create(value));
         return { created: true, attempt: created.toObject ? created.toObject() : created };
       } catch (error) {
         if (error?.code !== 11000) throw error;
@@ -497,17 +511,17 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
       }
     },
     async updateAttempt(requestId, patch = {}) {
-      return leanQuery(GuardianFortuneGenerationAttempt.findOneAndUpdate(
+      return run(() => leanQuery(GuardianFortuneGenerationAttempt.findOneAndUpdate(
         { requestId: assertRequestId(requestId) },
         { $set: { ...patch, updatedAt: patch.updatedAt || new Date() } },
         { new: true },
-      ));
+      )));
     },
     async releaseStaleReservations(now = new Date()) {
       const before = new Date(toDate(now).getTime() - GUARDIAN_FORTUNE_RESERVATION_TTL_MS);
       const [guest, daily] = await Promise.all([
-        GuardianFortuneGuestUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
-        GuardianFortuneAccountUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } }),
+        run(() => GuardianFortuneGuestUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } })),
+        run(() => GuardianFortuneAccountUsage.updateMany({ reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: before } }, { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } })),
       ]);
       return Number(guest.modifiedCount || 0) + Number(daily.modifiedCount || 0);
     },

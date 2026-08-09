@@ -13,6 +13,7 @@
  *
  * 사용: node scripts/verify-guardian-fortune-failure-contract.mjs
  */
+import { readFileSync } from "node:fs";
 import { generateGuardianFortuneRequest } from "../worker/lib/guardian-fortune-generate.js";
 import {
   createMemoryGuardianFortuneStore,
@@ -259,6 +260,36 @@ async function run(store, overrides = {}) {
     String(response.error),
   );
   check("예약 전 DB 장애: retryable=true", response.retryable === true);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10) mongo store 의 모든 쿼리가 withMongoRetry 로 감싸져 있는가 (정적 검사)
+//
+// 인메모리 store 로는 검증할 수 없는 계약이라 소스를 직접 본다. 커밋 0ea717329 가 "bare Mongo
+// call" 을 손으로 걷어냈지만 가드를 남기지 않아 guardian store 14곳이 그대로 남았고, 풀이 붐빌 때
+// 재시도 없이 waitQueueTimeoutMS(5초)에 죽었다. 같은 이탈이 다시 생기지 않게 고정한다.
+// ─────────────────────────────────────────────────────────────────────────────
+{
+  const source = readFileSync(new URL("../worker/lib/guardian-fortune-usage.js", import.meta.url), "utf8");
+  const start = source.indexOf("export function createMongoGuardianFortuneStore");
+  check("mongo store 팩토리를 찾았다", start !== -1);
+  if (start !== -1) {
+    const body = source.slice(start);
+    const bare = [];
+    // 모델 직접 호출 중 같은 줄에 run( 이 없는 것을 찾는다.
+    const pattern = /^(?!.*run\(\(\) =>).*GuardianFortune(?:GuestUsage|AccountUsage|GenerationAttempt)\.(create|findOne|findOneAndUpdate|updateMany|updateOne|deleteOne)\b/gm;
+    let match = pattern.exec(body);
+    while (match) {
+      bare.push(match[0].trim().slice(0, 90));
+      match = pattern.exec(body);
+    }
+    check(
+      "mongo store 에 withMongoRetry 없는 raw 쿼리가 없다",
+      bare.length === 0,
+      bare.length ? `${bare.length}건: ${bare[0]}…` : "",
+    );
+    check("withMongoRetry 를 import 한다", /import \{[^}]*withMongoRetry[^}]*\} from "\.\/db\.js"/.test(source));
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
