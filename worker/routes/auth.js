@@ -697,6 +697,20 @@ function appendAuthCookies(response, request, env, accessToken, refreshToken) {
     secure: cookieOptions.secure,
     sameSite: cookieOptions.sameSite,
   }));
+  /* 🔴 레거시 경로 사본을 같은 응답에서 만료시켜 마이그레이션을 끝낸다.
+     남겨 두면 브라우저가 두 개(Path=/ 신규, Path=/api/auth/refresh 폐기)를 함께 갖는데,
+     RFC 6265 §5.4 는 긴 path 를 먼저 보내고 readCookieFromRequest 는 첫 매치를 취하므로
+     **다음 refresh 가 방금 폐기된 토큰을 읽는다.** 그러면 회전 선점이 실패하고 grace window 도
+     넘겨 handleRefresh 가 reuse 로 판정해 revokeAllUserRefreshSessions 를 돌린다 —
+     사용자는 모든 기기에서 강제 로그아웃된다. 세션을 새로 발급하는 이 지점이 유일한 치유 시점이다.
+     설정할 때 도메인을 안 붙였으므로(host-only) 지울 때도 host-only 로 맞춘다. */
+  response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, "", {
+    path: REFRESH_COOKIE_LEGACY_PATH,
+    maxAge: 0,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
 }
 
 function appendAuthRoleCookie(response, request, env, user) {
