@@ -305,6 +305,14 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
       doc.updatedAt = now;
       return doc;
     },
+    async releaseStaleGuest(hash, before) {
+      const doc = state.guests.get(guestKey(hash));
+      if (!doc || clampNonNegative(doc.reserved) < 1) return null;
+      if (!doc.reservationUpdatedAt || toDate(doc.reservationUpdatedAt) >= toDate(before)) return null;
+      doc.reserved -= 1;
+      doc.reservationUpdatedAt = null;
+      return doc;
+    },
     async findDaily(userId, dateKey) { return state.daily.get(dailyKey(userId, dateKey)) || null; },
     async ensureDaily(userId, dateKey, now = new Date()) {
       const key = dailyKey(userId, dateKey);
@@ -334,6 +342,14 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
       doc.reserved -= 1;
       doc.reservationUpdatedAt = null;
       doc.updatedAt = now;
+      return doc;
+    },
+    async releaseStaleDaily(userId, before) {
+      const doc = state.daily.get(dailyKey(userId));
+      if (!doc || clampNonNegative(doc.reserved) < 1) return null;
+      if (!doc.reservationUpdatedAt || toDate(doc.reservationUpdatedAt) >= toDate(before)) return null;
+      doc.reserved -= 1;
+      doc.reservationUpdatedAt = null;
       return doc;
     },
     async findAttempt(requestId) { return state.attempts.get(assertRequestId(requestId)) || null; },
@@ -458,6 +474,15 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
         { new: true },
       )));
     },
+    async releaseStaleGuest(hash, before) {
+      // reservationUpdatedAt 조건을 필터에 두어 **원자적으로** 만료분만 회수한다. 먼저 읽고
+      // 나서 releaseGuest 를 부르면 그 사이 들어온 동시 요청의 **멀쩡한** 예약을 풀어 버린다.
+      return run(() => leanQuery(GuardianFortuneGuestUsage.findOneAndUpdate(
+        { guestIdHash: normalizeGuestHash(hash), reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: toDate(before) } },
+        { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } },
+        { new: true },
+      )));
+    },
     async findDaily(userId, dateKey) {
       return run(() => leanQuery(GuardianFortuneAccountUsage.findOne({ userId: objectIdOrString(userId) })));
     },
@@ -492,6 +517,14 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
       return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
         { userId: objectIdOrString(userId), reserved: { $gt: 0 } },
         { $inc: { reserved: -1 }, $set: { updatedAt: now }, $unset: { reservationUpdatedAt: 1 } },
+        { new: true },
+      )));
+    },
+    async releaseStaleDaily(userId, before) {
+      // 위 releaseStaleGuest 와 같은 이유로 만료 조건을 필터에 둔다(원자적 회수).
+      return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
+        { userId: objectIdOrString(userId), reserved: { $gt: 0 }, reservationUpdatedAt: { $lt: toDate(before) } },
+        { $inc: { reserved: -1 }, $unset: { reservationUpdatedAt: 1 } },
         { new: true },
       )));
     },
@@ -574,15 +607,33 @@ export async function reserveGuardianFortuneUsage({ userId, guestIdHash, dateKey
     });
   }
 
+  // 예약 자리를 못 받았을 때, 그게 진짜 소진인지 **죽은 예약이 물고 있는 것**인지 가른다.
+  //
+  // 예약과 커밋/해제 사이에서 요청이 죽으면(엣지 100초 컷·아이솔레이트 종료처럼 catch 가 아예
+  // 돌지 못하는 경우) reserved 가 1 오른 채로 영원히 남는다. $expr 가드가 freeUsed + reserved 로
+  // 판정하므로 게스트(한도 1)는 한 번, 계정(한도 3)은 세 번이면 무료 상담이 **영구히** 막힌다.
+  // 설계된 청소기 releaseStaleReservations 는 호출부가 없어 죽어 있었고, expiresAt TTL 인덱스는
+  // attempt 문서만 지울 뿐 사용량 문서의 reserved 는 건드리지 않는다.
+  // 만료분만 원자적으로 회수하고 한 번만 다시 시도한다 — 정상 경로에는 추가 쿼리가 없다.
+  const staleBefore = new Date(toDate(now).getTime() - GUARDIAN_FORTUNE_RESERVATION_TTL_MS);
+
   let reserved = null;
   if (!normalizedUserId) {
     reserved = await store.reserveGuest(normalizedGuestHash, now);
+    if (!reserved && typeof store.releaseStaleGuest === "function") {
+      const swept = await store.releaseStaleGuest(normalizedGuestHash, staleBefore);
+      if (swept) reserved = await store.reserveGuest(normalizedGuestHash, now);
+    }
     if (reserved) return { ok: true, source: "guest_free", requestId: safeRequestId, userId: "", guestIdHash: normalizedGuestHash, dateKey: safeDateKey };
     await store.updateAttempt(safeRequestId, { status: "blocked", errorCode: GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED });
     return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED, status: 429 };
   }
 
   reserved = await store.reserveDaily(normalizedUserId, safeDateKey, now);
+  if (!reserved && typeof store.releaseStaleDaily === "function") {
+    const swept = await store.releaseStaleDaily(normalizedUserId, staleBefore);
+    if (swept) reserved = await store.reserveDaily(normalizedUserId, safeDateKey, now);
+  }
   if (reserved) return { ok: true, source: "daily_free", requestId: safeRequestId, userId: normalizedUserId, guestIdHash: "", dateKey: safeDateKey };
 
   const paid = await resolvePaidGuardianFortuneAccess(resolvePaidAccess, { userId: normalizedUserId, requestId: safeRequestId });

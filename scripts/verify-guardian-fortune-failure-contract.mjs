@@ -263,7 +263,51 @@ async function run(store, overrides = {}) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 10) mongo store 의 모든 쿼리가 withMongoRetry 로 감싸져 있는가 (정적 검사)
+// 10) 죽은 예약(고아 reserved)이 무료 자리를 영구히 잠그지 않는다
+//
+// 예약과 커밋 사이에서 요청이 죽으면(엣지 컷·아이솔레이트 종료로 catch 조차 못 도는 경우)
+// reserved 가 1 오른 채 남는다. 게스트는 한도가 1이라 그 한 건으로 영구 차단됐다.
+// ─────────────────────────────────────────────────────────────────────────────
+{
+  const OLD = new Date(Date.now() - 60 * 60 * 1000); // TTL(10분)을 한참 넘긴 고아
+  const hash = "b".repeat(64);
+  const store = countingStore({ guests: { [hash]: { guestIdHash: hash, totalUsed: 0, reserved: 1, reservationUpdatedAt: OLD } } });
+  const response = await generateGuardianFortuneRequest({
+    input: BASE_INPUT,
+    guestIdHash: hash,
+    requestId: "fortune-chat-consultation:stale-guest-1",
+    dateKey: DATE_KEY,
+    store,
+    contextBuilder: stubContextBuilder(),
+    generator: async () => deliverableResult(),
+    contextOptions: { env: {} },
+  });
+  check("고아 예약 회수: 상담이 성공한다(고치기 전엔 429 영구 차단)", response.status === 200, `실제 ${response.status} ${response.error || ""}`);
+  check("고아 예약 회수: 만료분을 실제로 풀었다", store.calls.releaseStaleGuest >= 1, `releaseStaleGuest ${store.calls.releaseStaleGuest || 0}회`);
+  check("고아 예약 회수: 무료 1회가 정상 차감됐다", store.state.guests.get(hash)?.totalUsed === 1, JSON.stringify(store.state.guests.get(hash)));
+}
+
+// 11) 아직 살아 있는(만료 전) 예약은 절대 건드리지 않는다 — 동시 요청 보호
+{
+  const FRESH = new Date(Date.now() - 5 * 1000);
+  const hash = "c".repeat(64);
+  const store = countingStore({ guests: { [hash]: { guestIdHash: hash, totalUsed: 0, reserved: 1, reservationUpdatedAt: FRESH } } });
+  const response = await generateGuardianFortuneRequest({
+    input: BASE_INPUT,
+    guestIdHash: hash,
+    requestId: "fortune-chat-consultation:fresh-guest-1",
+    dateKey: DATE_KEY,
+    store,
+    contextBuilder: stubContextBuilder(),
+    generator: async () => deliverableResult(),
+    contextOptions: { env: {} },
+  });
+  check("신선한 예약 보호: 한도 초과로 429", response.status === 429, `실제 ${response.status}`);
+  check("신선한 예약 보호: 남의 예약을 풀지 않았다", store.state.guests.get(hash)?.reserved === 1, JSON.stringify(store.state.guests.get(hash)));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12) mongo store 의 모든 쿼리가 withMongoRetry 로 감싸져 있는가 (정적 검사)
 //
 // 인메모리 store 로는 검증할 수 없는 계약이라 소스를 직접 본다. 커밋 0ea717329 가 "bare Mongo
 // call" 을 손으로 걷어냈지만 가드를 남기지 않아 guardian store 14곳이 그대로 남았고, 풀이 붐빌 때
