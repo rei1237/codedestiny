@@ -188,6 +188,16 @@ jobs:
       - name: Verify profile card add entry point
         run: npm run verify:profile-card-add-entry
 
+      # 카드 전환이 한 번에 나가고(중복 PATCH 금지), 일시 장애에 되돌아가지 않으며, 401 은 세션
+      # 갱신 후 1회만 재시도하는지. 되돌림 회귀는 "카드를 눌러도 이전 프로필로 돌아간다"로 나타났다.
+      - name: Verify profile current switch
+        run: npm run verify:profile-current-switch
+
+      # 🔴 명시 profileId 가 빠지면 서버가 destinyProfilesCurrentId 로 폴백해 **옛 카드에 결제**된다
+      # ("이용권 있는데 결제창", "결제했는데 다른 카드에 해제"). 실제로 게이트를 열어 요청 body 를 본다.
+      - name: Verify paid gate profile scope
+        run: npm run verify:paid-gate-profile-scope
+
       # 캐시버스트 해시 merge driver 는 .gitattributes·.git/config·드라이버 스크립트 셋이 모두
       # 맞아야 돈다. 하나만 어긋나면 git 이 조용히 기본 병합으로 돌아가, 리베이스마다 해시 충돌이
       # 수백 건씩 쏟아진다(실측 240건 / 실제 내용 차이 0건).

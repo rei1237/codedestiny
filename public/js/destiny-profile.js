@@ -401,6 +401,12 @@
     return KEY_CURR_PREFIX + String(scope || 'guest');
   }
 
+  /* "아직 서버에 못 보낸 전환" 을 재부팅 너머로 들고 가는 키. 선택을 영구히 우선하는 장치가 아니라
+     미전송 쓰기를 완료시키는 장치다 — 서버가 확정 답변을 주면 즉시 비운다. */
+  function _dpGetScopedPendingCurrentKey(scope) {
+    return KEY_CURR_PREFIX + 'pending::' + String(scope || 'guest');
+  }
+
   function _dpGetScopedMetaKey(scope) {
     return KEY_META_PREFIX + String(scope || 'guest');
   }
@@ -1058,6 +1064,10 @@
   function _dpShouldTryRefresh(pathname, options) {
     var opts = options || {};
     if (opts.retryOn401 === false) return false;
+    /* 🔴 쓰기는 기본적으로 401 재시도를 하지 않는다(결제 POST 재발사 위험). 절대값 대입이고 서버
+       CAS 로 재실행이 흡수되는 **멱등 쓰기만** 호출부가 명시적으로 옵트인한다. 이 플래그를
+       다른 비-GET 요청에 붙이지 말 것. */
+    if (opts.refreshOn401 === true) return true;
     var path = String(pathname || '');
     if (!_dpIsAuthSensitivePath(path)) return false;
     if (path === '/api/auth/refresh') return false;
@@ -1428,7 +1438,12 @@
 
             lastResult = result;
 
-            if (method === 'GET' && response.status === 401 && _dpShouldTryRefresh(pathname, opts)) {
+            /* GET 은 종전대로 인증민감 경로에서 자동 갱신한다. 비-GET 은 refreshOn401 로 옵트인한
+               멱등 쓰기만 여기 들어온다 — 액세스 쿠키(30분)가 만료되면 쓰기는 스스로 회복할 방법이
+               없어 로그인 유지 내내 401 이 되기 때문이다. */
+            if (response.status === 401
+                && (method === 'GET' || opts.refreshOn401 === true)
+                && _dpShouldTryRefresh(pathname, opts)) {
               return _dpRefreshAuthSessionSilently({ timeoutMs: opts.timeoutMs }).then(function(refreshed) {
                 if (!refreshed) return result;
                 return _dpFetchWithTimeout(candidate.url, requestInit, opts.timeoutMs)
@@ -1749,26 +1764,60 @@
     return null;
   }
 
+  /* 24시간은 안전판일 뿐이다. 정상 흐름에서는 서버가 확정 답변을 주는 즉시 비워진다. */
+  var _DP_PENDING_CURRENT_TTL_MS = 24 * 60 * 60 * 1000;
+  var _dpPendingCurrentLoaded = false;
+
+  function _dpLoadPersistedPendingCurrent() {
+    if (_dpPendingCurrentLoaded) return;
+    _dpPendingCurrentLoaded = true;
+    try {
+      var raw = localStorage.getItem(_dpGetScopedPendingCurrentKey(_dpGetProfileScope()));
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      var storedId = String((parsed && parsed.id) || '').trim();
+      var storedUntil = Number((parsed && parsed.until) || 0);
+      if (!storedId || !storedUntil || Date.now() > storedUntil) {
+        localStorage.removeItem(_dpGetScopedPendingCurrentKey(_dpGetProfileScope()));
+        return;
+      }
+      _dpPendingCurrentProfileId = storedId;
+      _dpPendingCurrentProfileUntil = storedUntil;
+    } catch (_pendingLoadError) {}
+  }
+
   function _dpMarkPendingCurrentProfile(id) {
     var nextId = String(id || '').trim();
     if (!nextId) return;
+    _dpPendingCurrentLoaded = true;
     _dpPendingCurrentProfileId = nextId;
-    _dpPendingCurrentProfileUntil = Date.now() + 12000;
+    _dpPendingCurrentProfileUntil = Date.now() + _DP_PENDING_CURRENT_TTL_MS;
+    try {
+      localStorage.setItem(
+        _dpGetScopedPendingCurrentKey(_dpGetProfileScope()),
+        JSON.stringify({ id: nextId, until: _dpPendingCurrentProfileUntil })
+      );
+    } catch (_pendingSaveError) {}
   }
 
   function _dpClearPendingCurrentProfile(id) {
     var targetId = String(id || '').trim();
+    _dpLoadPersistedPendingCurrent();
     if (!targetId || _dpPendingCurrentProfileId === targetId) {
       _dpPendingCurrentProfileId = '';
       _dpPendingCurrentProfileUntil = 0;
+      try { localStorage.removeItem(_dpGetScopedPendingCurrentKey(_dpGetProfileScope())); } catch (_pendingClearError) {}
     }
   }
 
   function _dpResolveServerCurrentId(currentId, profiles) {
+    _dpLoadPersistedPendingCurrent();
     if (_dpPendingCurrentProfileId) {
       if (Date.now() > _dpPendingCurrentProfileUntil) {
         _dpClearPendingCurrentProfile();
       } else if (_dpFindProfileById(profiles, _dpPendingCurrentProfileId)) {
+        /* 아직 서버에 반영 못 한 내 선택이 서버 목록에 살아 있으면 그것을 화면의 정본으로 쓴다.
+           목록에 없으면(생성 취소·삭제) 아래 분기가 스스로 정리한다 — 이 자가치유는 유지 필수. */
         return _dpPendingCurrentProfileId;
       } else {
         _dpClearPendingCurrentProfile();
@@ -1806,12 +1855,13 @@
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ currentId: nextId, baseCurrentId: baseId })
       }, {
-        /* 이 PATCH 는 멱등이다(currentId 절대값 대입). 재시도가 stale 로 반사되지도 않는다 —
-           1차 시도가 실제로 써졌는데 응답만 유실된 경우 서버의 switchIsSafe 는
-           stored === requested 로 통과하고, 쓰기 전에 끊긴 경우는 base === stored 로 통과한다.
-           새 재시도 장치를 만들지 않고 기존 _dpRunTransientRetry(503/504/네트워크) 를 켠다. */
-        retryTransient: true,
-        maxTransientRetries: 2
+        /* 🔴 503 재시도를 켜지 않는다. 이 요청의 503 은 admission 게이트(worker/lib/db.js, 동시 5개)가
+           Mongo 를 건드리기도 전에 거절한 것이라, 재시도는 포화의 원인을 3배로 증폭할 뿐이다.
+           미전송 전환은 영속 pending 으로 남아 다음 진입의 _dpLoadFromServer 성공 직후 1회만
+           재전송된다(= 훨씬 싼 재시도).
+           401 만 갱신 후 1회 재시도한다 — 이 PATCH 는 currentId 절대값 대입이고, 1차 시도가 실제로
+           써졌는데 응답만 유실됐어도 서버 switchIsSafe 가 stored === requested 로 흡수한다. */
+        refreshOn401: true
       }).then(function(res) {
         var data = res && res.data ? res.data : null;
         if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
@@ -1831,8 +1881,10 @@
              방금 고른 카드가 이전 카드로 되돌아간다. 확정 거절(403/404/ok:false)만 정정하고,
              일시 장애면 선택을 유지한 채 알린다. 보호막은 재시도에 소모된 시간만큼 갱신한다. */
           if (_dpIsTransientResult(res)) {
+            /* 사용자에게 알리지 않는다 — 할 수 있는 행동이 없고, 게이트 거절(503)은 서버 상태를
+               바꾼 적이 없어 알릴 사실 자체가 없다. 선택은 영속 pending 으로 남아 다음 진입 때
+               자동으로 재전송된다. */
             _dpMarkPendingCurrentProfile(nextId);
-            _toast('프로필 전환을 서버에 저장하지 못했습니다. 연결이 회복되면 다시 선택해 주세요.', 'warn');
             return;
           }
           _dpClearPendingCurrentProfile(nextId);
@@ -1926,9 +1978,16 @@
         // 세션검증이 게스트→실계정으로 스코프를 채운 경우는 정상 진행하고,
         // 실계정→다른 실계정으로 바뀐 경우(계정 전환 레이스)만 폐기한다.
         if (scope !== requestScope && requestScope !== 'guest') return false;
-        var serverCurrentId = _dpResolveServerCurrentId(data.currentId || '', data.profiles);
+        var authoritativeCurrentId = String(data.currentId || '').trim();
+        var serverCurrentId = _dpResolveServerCurrentId(authoritativeCurrentId, data.profiles);
         if (!_dpSetProfileState(scope, data.profiles, serverCurrentId)) {
           return false;
+        }
+        /* 지난 세션에서 못 보낸 전환이 남아 있으면 여기서 딱 한 번 재전송한다. baseCurrentId 로
+           방금 받은 서버 실제값을 주므로 서버 CAS 가 그대로 판정한다 — 그 사이 다른 기기가 옮겼다면
+           staleSwitchIgnored 로 돌아와 기존 분기가 서버값을 채택하고 pending 을 비운다. */
+        if (serverCurrentId && authoritativeCurrentId && serverCurrentId !== authoritativeCurrentId) {
+          _dpSetCurrentOnServer(serverCurrentId, authoritativeCurrentId);
         }
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
@@ -4117,10 +4176,37 @@
     window._cdRunDirectKrwCheckout = _dpRunDirectKrwCheckoutGuarded;
   }
 
+  /* 현재 카드를 얻는 정본. 셸이 있으면 셸 리졸버를, 없으면 이 파일의 저장소를 쓴다.
+     새 리졸버를 만들지 않고 이미 있는 둘을 순서대로 본다. */
+  function _dpResolvePaidGateProfileId() {
+    try {
+      if (typeof window._cdResolveCurrentProfileIdForAccess === 'function') {
+        var shellId = String(window._cdResolveCurrentProfileIdForAccess() || '').trim();
+        if (shellId) return shellId;
+      }
+    } catch (_shellResolveError) {}
+    try {
+      var current = DPStorage.current();
+      return String((current && (current.profileId || current.id)) || '').trim();
+    } catch (_storageResolveError) {
+      return '';
+    }
+  }
+
   if (typeof window._cdOpenPaidServiceGate === 'function' && window._cdOpenPaidServiceGate.__cdSinglePaymentGuard !== true) {
     var _dpOpenPaidServiceGateCore = window._cdOpenPaidServiceGate;
     var _dpOpenPaidServiceGateGuarded = function(options) {
       var opts = options || {};
+      /* 🔴 명시 profileId 가 없으면 서버가 User.destinyProfilesCurrentId 로 폴백한다
+         (worker/routes/billing.js resolveBillingProfileId). 그 포인터는 전환 PATCH 가 실패했을 때
+         옛 카드를 가리키므로, 결제·이용권·해제가 사용자가 보고 있는 카드가 아니라 옛 카드 스코프로
+         처리된다(= "이용권 있는데 결제창", "결제했는데 다른 카드에 해제", "2만원 내고 다른 사람 명식").
+         포인터가 최신일 때 이 값은 서버 폴백과 동일하므로 정책 변화가 없고, 어긋났을 때만 교정한다.
+         명시로 넘어온 값은 절대 덮어쓰지 않는다. */
+      var gateProfileId = String(opts.profileId || opts.selectedProfileId || '').trim() || _dpResolvePaidGateProfileId();
+      if (gateProfileId && (opts.profileId !== gateProfileId || opts.selectedProfileId !== gateProfileId)) {
+        opts = Object.assign({}, opts, { profileId: gateProfileId, selectedProfileId: gateProfileId });
+      }
       var title = String(opts.title || opts.reason || '').trim();
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (coinPrice * 100))));

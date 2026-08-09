@@ -5827,6 +5827,16 @@ function _cdAIPromptGate(input) {
       requiredCoins: Number((data.pricing && (data.pricing.coinPrice || data.pricing.cost)) || data.requiredCoins || opts.cost || 0)
     };
   }
+  /* 🔴 게이트가 판정하는 프로필과 생성 POST 가 저장하는 프로필은 반드시 같아야 한다.
+     _sajuPromptPostWithPaidEvidence 가 쓰는 것과 동일한 리졸버를 여기서도 쓴다. 예전에는 게이트에만
+     이 값이 빠져 서버가 destinyProfilesCurrentId 로 폴백했고, 그 결과 결제는 옛 카드·결과 저장은
+     새 카드로 갈라졌다(사주·점성술·자미두수 AI 상담 3종 전부 이 함수를 통과한다). */
+  var gateProfileId = '';
+  try {
+    gateProfileId = String(opts.profileId || opts.selectedProfileId || _sajuPromptResolveProfileId() || '').trim();
+  } catch (_gateProfileError) {
+    gateProfileId = String(opts.profileId || opts.selectedProfileId || '').trim();
+  }
   if (typeof window._cdOpenPaidServiceGate === 'function') {
     return Promise.resolve(window._cdOpenPaidServiceGate({
       title: reason,
@@ -5839,6 +5849,8 @@ function _cdAIPromptGate(input) {
       amountKrw: amountKrw,
       amountKRW: amountKrw,
       paymentAmount: amountKrw,
+      profileId: gateProfileId || undefined,
+      selectedProfileId: gateProfileId || undefined,
       allowedPaymentModes: allowedPaymentModes,
       disablePassFirst: opts.disablePassFirst === true,
       disablePassChoice: opts.disablePassChoice === true,

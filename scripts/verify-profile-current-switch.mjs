@@ -101,13 +101,16 @@ function bootShell(source, options = {}) {
   window.Element.prototype.scrollIntoView = function scrollIntoViewStub() {};
 
   const state = {
-    payload: profilePayload(),
-    /** PATCH 응답 상태코드. 503 을 주면 일시 장애 경로가 돈다. */
+    payload: options.payload || profilePayload(),
+    /** PATCH 응답 상태코드. 503 을 주면 일시 장애 경로가 돈다. 함수면 시도 횟수(1-based)를 받는다. */
     patchStatus: options.patchStatus || 200,
     /** PATCH 응답 body. 함수면 요청 body 를 받아 계산한다. */
     patchBody: options.patchBody || ((req) => ({ ok: true, currentId: req.currentId })),
+    /** /api/auth/refresh 성공 여부. 401 갱신 경로 검증용. */
+    refreshOk: options.refreshOk !== false,
   };
   const writes = [];
+  const refreshes = [];
   const alerts = [];
   const confirms = [];
 
@@ -117,13 +120,23 @@ function bootShell(source, options = {}) {
   window.fetch = (url, init) => {
     const requestPath = String(url).replace(/^https?:\/\/[^/]+/, "").split("?")[0];
     const method = String((init && init.method) || "GET").toUpperCase();
+    if (requestPath === "/api/auth/refresh") {
+      refreshes.push({ path: requestPath, method });
+      return Promise.resolve(
+        state.refreshOk
+          ? jsonResponse({ ok: true, user: ME_PAYLOAD.user }, 200)
+          : jsonResponse({ ok: false }, 401),
+      );
+    }
     if (requestPath.startsWith("/api/auth/me")) return Promise.resolve(jsonResponse(ME_PAYLOAD));
     if (requestPath === "/api/profile/current" && method === "PATCH") {
       let body = {};
       try { body = JSON.parse((init && init.body) || "{}"); } catch (_) { body = {}; }
       writes.push({ path: requestPath, method, body });
-      const resolved = typeof state.patchBody === "function" ? state.patchBody(body) : state.patchBody;
-      return Promise.resolve(jsonResponse(resolved, state.patchStatus));
+      const attempt = writes.filter((w) => w.path === "/api/profile/current").length;
+      const status = typeof state.patchStatus === "function" ? state.patchStatus(attempt) : state.patchStatus;
+      const resolved = typeof state.patchBody === "function" ? state.patchBody(body, attempt) : state.patchBody;
+      return Promise.resolve(jsonResponse(resolved, status));
     }
     if (method !== "GET") writes.push({ path: requestPath, method, body: (init && init.body) || "" });
     if (requestPath.startsWith("/api/profile")) return Promise.resolve(jsonResponse(state.payload));
@@ -132,8 +145,22 @@ function bootShell(source, options = {}) {
 
   window.localStorage.setItem("fortune_auth_token", "tok_verify");
   window.localStorage.setItem("fortune_auth_user", JSON.stringify(ME_PAYLOAD.user));
+  /* 재부팅 시나리오: 이전 창의 localStorage 를 그대로 물려준다. */
+  for (const [key, value] of Object.entries(options.storage || {})) {
+    window.localStorage.setItem(key, value);
+  }
   window.eval(source);
-  return { window, state, writes, alerts, confirms };
+  return { window, state, writes, refreshes, alerts, confirms };
+}
+
+/** 창이 닫히기 전에 localStorage 전체를 스냅샷으로 뜬다(재부팅 케이스 입력). */
+function snapshotStorage(window) {
+  const snapshot = {};
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    snapshot[key] = window.localStorage.getItem(key);
+  }
+  return snapshot;
 }
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -198,7 +225,9 @@ async function runTarget(relPath) {
     window.close();
   }
 
-  // 3) 🔴 503(일시 장애) → 선택 유지 + alert 없음 + 재시도 상한
+  // 3) 🔴 503(일시 장애) → 선택 유지 + 재시도 0 + 아무 안내도 띄우지 않음
+  //    재시도를 켜면 admission 게이트 포화(503의 원인)를 그대로 증폭한다.
+  let rebootStorage = null;
   {
     const { window, writes, alerts } = bootShell(source, {
       patchStatus: 503,
@@ -214,11 +243,93 @@ async function runTarget(relPath) {
       masterText(window).slice(0, 160),
     );
     check("503 에 alert 을 띄우지 않는다", alerts.length === 0, JSON.stringify(alerts));
+    check(
+      "503 에 실패 안내 문구를 화면에 띄우지 않는다",
+      !String(window.document.body.textContent || "").includes("저장하지 못했"),
+      "본문에 실패 토스트가 남아 있다",
+    );
     const patches = patchWrites(writes);
     check(
-      "503 재시도에 상한이 있다(최초 1회 + 재시도 2회 이내)",
-      patches.length >= 1 && patches.length <= 3,
+      "503 을 재시도하지 않는다(게이트 포화를 증폭하지 않는다)",
+      patches.length === 1,
       `count=${patches.length}`,
+    );
+    rebootStorage = snapshotStorage(window);
+    window.close();
+  }
+
+  // 6) 🔴 503 으로 못 보낸 전환이 재부팅 뒤에도 유지되고, 정확히 1회만 재전송된다
+  {
+    const { window, writes } = bootShell(source, {
+      storage: rebootStorage || {},
+      // 서버는 아직 옛 카드를 정본으로 갖고 있다. 재전송이 성공하는 시나리오.
+      payload: profilePayload("dp_1"),
+    });
+    await wait(BOOT_WAIT_MS);
+    await wait(SETTLE_MS);
+
+    check(
+      "미전송 전환은 재부팅 뒤에도 유지된다(서버가 옛 카드를 줘도 되돌아가지 않는다)",
+      masterText(window).includes("둘째카드"),
+      masterText(window).slice(0, 160),
+    );
+    const patches = patchWrites(writes);
+    check(
+      "재부팅 시 미전송 전환을 정확히 1회 재전송한다",
+      patches.length === 1,
+      `count=${patches.length} bodies=${JSON.stringify(patches.map((p) => p.body))}`,
+    );
+    check(
+      "재전송의 baseCurrentId 는 방금 받은 서버 실제값이다(서버 CAS 가 판정할 수 있게)",
+      patches.length === 1 && patches[0].body.currentId === "dp_2" && patches[0].body.baseCurrentId === "dp_1",
+      JSON.stringify(patches.map((p) => p.body)),
+    );
+    window.close();
+  }
+
+  // 7) 🔴 401 → 세션 갱신 1회 → PATCH 1회만 재시도 (무한 루프 아님)
+  {
+    const { window, writes, refreshes } = bootShell(source, {
+      // 1차 시도는 401(쿠키 만료), 갱신 후 2차 시도는 성공.
+      patchStatus: (attempt) => (attempt === 1 ? 401 : 200),
+      patchBody: (req, attempt) => (attempt === 1
+        ? { ok: false, code: "UNAUTHORIZED", message: "Authentication is required." }
+        : { ok: true, currentId: req.currentId }),
+    });
+    await wait(BOOT_WAIT_MS);
+    window.dpSelectProfile("dp_2");
+    await wait(RETRY_SETTLE_MS);
+
+    check("401 이면 세션 갱신을 정확히 1회 시도한다", refreshes.length === 1, `count=${refreshes.length}`);
+    check(
+      "갱신 후 PATCH 를 1회만 재시도한다(총 2회, 무한 루프 아님)",
+      patchWrites(writes).length === 2,
+      `count=${patchWrites(writes).length}`,
+    );
+    check(
+      "갱신에 성공하면 전환이 확정된다",
+      masterText(window).includes("둘째카드"),
+      masterText(window).slice(0, 160),
+    );
+    window.close();
+  }
+
+  // 8) 세션 갱신마저 실패하면 재시도하지 않는다(진짜 재로그인이 필요한 상태)
+  {
+    const { window, writes, refreshes } = bootShell(source, {
+      patchStatus: 401,
+      patchBody: { ok: false, code: "UNAUTHORIZED", message: "Authentication is required." },
+      refreshOk: false,
+    });
+    await wait(BOOT_WAIT_MS);
+    window.dpSelectProfile("dp_2");
+    await wait(RETRY_SETTLE_MS);
+
+    check("갱신 실패 시 갱신 시도는 1회에 그친다", refreshes.length === 1, `count=${refreshes.length}`);
+    check(
+      "갱신 실패 시 PATCH 를 재시도하지 않는다",
+      patchWrites(writes).length === 1,
+      `count=${patchWrites(writes).length}`,
     );
     window.close();
   }

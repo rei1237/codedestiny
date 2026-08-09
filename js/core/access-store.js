@@ -1112,7 +1112,11 @@
     store.invalidateEntitlements('profile-changed');
     if (!profileId || !hasSessionHint({})) return;
     try { global.__cdCurrentProfileId = profileId; } catch (_) {}
-    store.ensureLoaded({ profileId: profileId, authenticated: true, force: true, reason: 'profile-changed' });
+    /* force 를 주지 않는다. 정합성은 캐시 키(makeCacheKey(userId, profileId))가 이미 보장한다 —
+       카드가 바뀌면 restoreCache 가 그 카드 전용 스냅샷으로 통째 교체된다. force 는 신선도만
+       담당했는데, 그 때문에 A↔B 왕복 전환이 매번 access-state 를 강제 발사해 프로필 전환 PATCH 와
+       같은 순간 Mongo admission 게이트를 함께 때리고 있었다. FRESH_TTL 과 stale 재검증에 맡긴다. */
+    store.ensureLoaded({ profileId: profileId, authenticated: true, reason: 'profile-changed' });
   }
   global.addEventListener && global.addEventListener('cd:profile-changed', handleProfileChanged);
   global.addEventListener && global.addEventListener('destinyProfileChanged', handleProfileChanged);
