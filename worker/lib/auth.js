@@ -354,21 +354,6 @@ const AUTH_USER_IDENTITY_PROJECTION = {
   status: 1,
 };
 
-// Concurrent page bootstrap requests frequently verify the same access token
-// through different routes (/profile, /billing, /auth/me). Keep this strictly
-// in-flight: it reduces duplicate Mongo reads during a burst without caching
-// an authorization result beyond the lifetime of the current lookup.
-const activeUserAuthInFlight = globalThis.__activeUserAuthInFlight
-  || (globalThis.__activeUserAuthInFlight = new Map());
-
-function authProjectionKey(projection) {
-  if (!projection || typeof projection !== "object") return "identity";
-  return Object.keys(projection)
-    .sort()
-    .map((key) => `${key}:${String(projection[key])}`)
-    .join(",");
-}
-
 async function resolveActiveUserAuth(userId, env, userProjection = null) {
   // stateless Worker 풀 초기화 시 무방비 connectDb/findOne이 정착하지 않아 요청이 hang되는 것을
   // 막는다. withMongoRetry가 각 시도를 per-attempt 타임아웃으로 감싸고 일시적 오류를 재연결·재시도한다.
@@ -376,32 +361,25 @@ async function resolveActiveUserAuth(userId, env, userProjection = null) {
   // userProjection이 주어지면 필수 identity 필드에 그 필드를 더한(superset) projection으로 한 번에 읽고,
   // 원본 User 문서를 authUserDoc로 첨부한다 — 호출자(/me·결제 스냅샷 등)가 인증 직후 같은 문서를 재조회하던
   // 두 번째 Mongo 왕복을 없앤다. userProjection이 없으면 종전과 완전히 동일(identity projection·authUserDoc 미부착).
+  //
+  // 🔴 요청 간 in-flight Promise 공유(globalThis 캐시)는 일부러 두지 않는다. Cloudflare Workers는
+  // 한 요청의 I/O 컨텍스트에서 만든 Promise를 다른 요청이 이어받는 것을 금지하는데, 예전 구현이 정확히
+  // 그걸 했다 — 런타임이 "A promise was resolved... from a different request context"로 continuation을
+  // 취소했고, 그 요청은 정상 응답을 못 받은 채 12초 op 타임아웃(withMongoRetry)까지 끌려가 503으로
+  // 죽었다(2026-08-09, /fortune-chat 진입 시 /auth/me·/profile·/billing·/guardian/generate 동시 요청에서
+  // 실측). 각 요청이 자기 몫을 독립적으로 조회하게 되돌린다 — 버스트 시 중복 Mongo 읽기가 늘 수 있지만
+  // withMongoRetry가 이미 그 비용을 감당하고, 지금 겪는 컨텍스트 위반발 503보다 훨씬 싸다.
   const projection = userProjection
     ? { ...AUTH_USER_IDENTITY_PROJECTION, ...userProjection, _id: 1, status: 1 }
     : AUTH_USER_IDENTITY_PROJECTION;
-  const lookupKey = `${String(userId || "")}|${authProjectionKey(projection)}`;
-  const existing = activeUserAuthInFlight.get(lookupKey);
-  if (existing) return existing;
-
-  const lookup = (async () => {
-    const user = await withMongoRetry(env, () => User.collection.findOne(
-      { _id: new mongoose.Types.ObjectId(userId) },
-      { projection },
-    ));
-    if (!user || isWithdrawnUser(user)) return null;
-    const authResult = normalizeAuthResultFromUser(user);
-    if (userProjection) authResult.authUserDoc = user;
-    return authResult;
-  })();
-
-  activeUserAuthInFlight.set(lookupKey, lookup);
-  try {
-    return await lookup;
-  } finally {
-    if (activeUserAuthInFlight.get(lookupKey) === lookup) {
-      activeUserAuthInFlight.delete(lookupKey);
-    }
-  }
+  const user = await withMongoRetry(env, () => User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(userId) },
+    { projection },
+  ));
+  if (!user || isWithdrawnUser(user)) return null;
+  const authResult = normalizeAuthResultFromUser(user);
+  if (userProjection) authResult.authUserDoc = user;
+  return authResult;
 }
 
 async function verifyAccessTokenToAuth(token, env, options = {}) {
