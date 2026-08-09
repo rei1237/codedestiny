@@ -4347,6 +4347,10 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     let finalAi = null;
     let finalText = "";
     let lastValidation = null;
+    // validateSajuAIResultText는 실패 분기에서 text를 채우지 않으므로(성공 시에만 정규화된
+    // 텍스트를 반환), 경량 보장 계약(품질 게이트 미통과라도 렌더 가능한 후보는 버리지 않음)의
+    // salvage 판정은 lastValidation?.text가 아니라 이 후보 텍스트를 직접 추적해야 한다.
+    let lastCandidateText = "";
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
       // 2회차 풀 시도는 예산이 실제로 남았을 때만. 1회차가 타임아웃으로 끝났다면 여기서 멈춘다.
@@ -4379,6 +4383,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         cache: sajuLlmCache,
       });
       const resultText = normalizeSajuAIResultText(ai?.text);
+      if (resultText) lastCandidateText = resultText;
       let validation = ai?.ok
         ? validateSajuAIResultText(resultText, builtPrompt.factSnapshot, {
           domain: builtPrompt.domain,
@@ -4425,6 +4430,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         });
         if (repairAi?.ok) {
           const repairedText = normalizeSajuAIResultText(`${resultText}\n\n${repairAi.text || ""}`);
+          if (repairedText) lastCandidateText = repairedText;
           const repairedValidation = validateSajuAIResultText(repairedText, builtPrompt.factSnapshot, {
             domain: builtPrompt.domain,
             categoryRubric: builtPrompt.categoryRubric,
@@ -4471,13 +4477,13 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       // 소프트 미스(십성 검증 등은 못 넘겼지만 렌더 가능한 상담문이 나옴)는 2번째 풀 생성(120s+90s repair)이
       // 같은 결정론적 이유로 또 실패할 확률이 높다 — 낭비 대신 즉시 degrade(루프 종료)로 배출한다.
       // 하드 실패(렌더 가능한 텍스트조차 없음)일 때만 다음 시도로 넘어간다.
-      if (hasRenderableLlmText(lastValidation?.text, { minChars: 400 })) break;
+      if (hasRenderableLlmText(lastCandidateText, { minChars: 400 })) break;
     }
 
     // 경량 보장 계약: 십성 검증 등 품질 기준 미통과라도, LLM이 렌더 가능한 상담문을 냈다면
     // 버리지 않고 degrade로 전달한다(결제 후 무결과 방지). 진짜 빈 결과일 때만 재시도 신호.
-    if (finalAi?.ok && !finalText && hasRenderableLlmText(lastValidation?.text, { minChars: 400 })) {
-      finalText = lastValidation.text;
+    if (finalAi?.ok && !finalText && hasRenderableLlmText(lastCandidateText, { minChars: 400 })) {
+      finalText = lastCandidateText;
     }
 
     if (!finalAi?.ok || !finalText) {

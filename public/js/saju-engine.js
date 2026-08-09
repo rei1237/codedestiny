@@ -7807,7 +7807,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
   }
 
   inputEl.addEventListener('input', function() {
-    clearPaidEvidence();
+    // 결제 후 생성 실패 → "추가 결제 없이 다시 생성" 상태에서 오타 수정 등 사소한 편집만 해도
+    // 여기서 evidence를 지우면, handleGenerate의 reusePaidEvidence 판정(질문+도메인 키 비교, 위 7694)이
+    // 실행되기도 전에 재사용 자격이 사라져 이미 결제된 요청이 새 결제 게이트를 다시 띄운다(이중 결제 위험).
+    // 질문/도메인이 실제로 바뀌었는지는 handleGenerate가 제출 시점에 key로 이미 정확히 판정하므로
+    // 여기서 미리 지울 필요가 없다.
     updateCount();
   });
   generateBtn.addEventListener('click', handleGenerate);
