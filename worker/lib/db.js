@@ -293,19 +293,8 @@ export async function resetMongooseConnection() {
   poolResetPromise = (async () => {
     try {
       if (mongoose.connection.readyState !== 0) {
-        // 🔴 2026-08-10: mongoose.disconnect() 는 force 를 못 넘긴다(Mongoose.prototype.disconnect 는
-        // 인자 없이 conn.close() 를 호출 — node_modules/mongoose/lib/mongoose.js). 그래서 예산(1.5초)
-        // 안에 못 끝나면 그냥 포기했는데, 포기해도 그 정상종료(graceful close) 자체는 백그라운드에서
-        // 계속 진행되며 이전 소켓 풀을 붙들고 있었다. MongoDB 드라이버는 각 풀 소켓에 'timeout'
-        // 리스너를 붙이는데(node_modules/mongodb/lib/cmap/connection.js), 정상종료가 안 끝난 채
-        // 방치된 소켓들이 재연결 사이클마다 쌓여 "11 timeout listeners" EventEmitter 경고로
-        // 나타났다(실측, CRON 트리거 로그). 이 함수는 이미 "연결이 이상하다"고 판정됐을 때만 불리므로
-        // 정상종료를 기다릴 이유가 없다 — 처음부터 force close 해 소켓을 즉시 정리한다.
-        // MongoClient.close() 는 자체 closeLock 단일비행을 갖고 있어(node_modules/mongodb/lib/mongo_client.js)
-        // 이미 진행 중인 close 위에 걸어도 안전하다 — 단, 먼저 시작된 close 의 force 값을 그대로
-        // 이어받으므로(나중 값은 무시된다) mongoose.disconnect() 와 동시에 부르지 않는다.
         await Promise.race([
-          mongoose.connection.close(true),
+          mongoose.disconnect(),
           new Promise((_, reject) => {
             setTimeout(() => reject(new Error("mongoose_disconnect_timeout")), disconnectTimeoutMs);
           }),
