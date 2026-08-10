@@ -93,16 +93,21 @@ const payload = {
 const versionPath = resolve(distDir, "version.json");
 const staticDir = resolve(distDir, "static");
 const staticVersionPath = resolve(staticDir, "version.json");
+// public/ 사본은 `next dev` 가 /version.json 을 서빙하도록 두는 로컬 미러이고 .gitignore 대상이다.
+// 추적하면 매 빌드가 워킹트리를 더럽혀 deploy:production 의 dirty 검사가 승격을 막는다.
 const publicVersionPath = resolve(rootDir, "public", "version.json");
+// OpenNext 경유 배포는 .open-next/assets 를 서빙한다. prepare-cloudflare-dist 가 public 을 그쪽에
+// 병합하는 시점은 여기보다 앞이라, 직접 써 주지 않으면 지난 빌드 값이 남는다.
+const openNextAssetsDir = resolve(rootDir, ".open-next", "assets");
 
 mkdirSync(staticDir, { recursive: true });
 
 const body = JSON.stringify(payload, null, 2) + "\n";
-writeFileSync(versionPath, body, "utf8");
-writeFileSync(staticVersionPath, body, "utf8");
-writeFileSync(publicVersionPath, body, "utf8");
+const targets = [versionPath, staticVersionPath, publicVersionPath];
+if (existsSync(openNextAssetsDir)) targets.push(resolve(openNextAssetsDir, "version.json"));
 
-console.log("[write-version-json] wrote " + versionPath);
-console.log("[write-version-json] wrote " + staticVersionPath);
-console.log("[write-version-json] wrote " + publicVersionPath);
+for (const target of targets) {
+  writeFileSync(target, body, "utf8");
+  console.log("[write-version-json] wrote " + target);
+}
 console.log("[write-version-json] commit=" + payload.commitShort + " branch=" + payload.branch);

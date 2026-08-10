@@ -239,7 +239,9 @@ function gitInfo(files) {
   if (!branch && !ciMode) throw new Error("Detached HEAD is not deployable.");
   // main 은 이제 정상 작업 브랜치다(2026-08-08 PR 정책 폐기). 배포를 막는 것은 브랜치 이름이
   // 아니라 아래의 dirty 검사, 아티팩트 지문 대조, 그리고 승격 직전의 명시적 확인이다.
-  if (dirtyFiles.length && !allowDirty) throw new Error("Working tree is dirty. Commit first or pass --allow-dirty.");
+  // 무엇이 더러운지 함께 보여준다. 빌드가 만든 추적 파일 하나 때문에 막히는 경우가 있었는데,
+  // 파일 이름이 없으면 "커밋하라" 는 안내가 오히려 HEAD 를 바꿔 상태 대조에서 또 막았다.
+  if (dirtyFiles.length && !allowDirty) throw new Error("Working tree is dirty. Commit first or pass --allow-dirty.\n" + dirtyFiles.slice(0, 20).map((line) => "  " + line).join("\n") + (dirtyFiles.length > 20 ? "\n  ... and " + (dirtyFiles.length - 20) + " more" : ""));
   if (!ciMode && !git(["rev-parse", "--verify", "origin/main"], { allowFailure: true })) throw new Error("origin/main is unavailable.");
   const subject = git(["log", "-1", "--pretty=%s"], { allowFailure: true });
   return { branch, head, subject, dirty: dirtyFiles.length > 0, dirtyFiles, files };

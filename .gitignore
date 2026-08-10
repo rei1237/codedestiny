@@ -11,6 +11,12 @@ test-results/
 build-cache/
 .deploy-state/
 
+# 빌드 스탬프(HEAD sha + buildTime). scripts/write-version-json.mjs 가 매 빌드마다 새로 쓴다.
+# 추적하면 모든 빌드가 트리를 더럽혀 deploy:preview 뒤의 deploy:production 이 dirty 검사에서
+# 막히고, 커밋해서 풀면 HEAD 가 바뀌어 릴리스 상태 파일과 어긋나 또 막힌다.
+# 배포되는 정본은 dist/version.json 이며 dist 조립 뒤에 새로 기록되므로 산출물은 영향 없다.
+public/version.json
+
 *.log
 *.err
 *.tsbuildinfo
