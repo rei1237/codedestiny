@@ -1846,6 +1846,16 @@
     var nextId = String(currentId || '').trim();
     var baseId = String(baseCurrentId || '').trim();
     if (!_dpHasSessionHint() || !nextId) return;
+    /* 🔴 아직 서버에 없는 낙관 생성 카드(syncStatus: 'pending')로는 보내지 않는다. 서버는 그
+       카드를 모르므로 404 로 거절하는데, 404 는 "확정 거절" 경로라 아래에서 서버 목록을 다시
+       적용해 **방금 만든 카드를 화면에서 지운다**. 콘솔에도 실패로 남는다.
+       선택은 영속 pending 으로 남겨 두면, 생성이 성공해 목록이 서버본으로 갈리는 순간
+       _dpLoadFromServer 가 1회 재전송한다(_dpResolveServerCurrentId 참고) — 유실되지 않는다. */
+    var pendingTarget = _dpFindProfileById(_dpProfiles, nextId);
+    if (pendingTarget && String(pendingTarget.syncStatus || '') === 'pending') {
+      _dpMarkPendingCurrentProfile(nextId);
+      return;
+    }
     _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) return;
       _dpFetchJsonWithFallback('/api/profile/current', {
@@ -7470,6 +7480,29 @@
     renderProfileList();
   }
 
+  /* 로딩 카드는 스스로 빠져나오지 못한다. 부트스트랩이 어느 단계에서든 조용히 끊기면
+     (네트워크 지연·앱의 교차 출처 401·콜백 미호출) 카드가 영구히 "불러오는 중"으로 남고,
+     그 아래 입력 폼과 겹쳐 보여 카드가 두 개인 것처럼 읽힌다. 실패해도 최종 상태로 내려온다.
+     🔴 로딩 카드를 그리는 곳은 반드시 이 실패안전을 함께 건다 — init 에만 걸려 있던 탓에
+     가입 직후 경로(_dpRefreshAuthScopeNow)가 무방비였다.
+     진행 중인 서버 조회를 잘라내면 안 된다 — 상한(10s)이 요청 타임아웃(20s)보다 짧아서,
+     느린 기기·콜드 워커에서는 응답이 오기도 전에 먼저 터져 빈 카드를 그렸다.
+     (앱은 후보 base 를 순회하므로 더 쉽게 걸린다.) 조회가 살아 있으면 한 번 더 기다린다. */
+  function _dpArmProfileLoadingFailsafe() {
+    var failsafeTicks = 0;
+    var runProfileLoadingFailsafe = function() {
+      var card = document.getElementById('dpMasterCard');
+      if (!card || card.className.indexOf('dp-master-card--moon-loading') < 0) return;
+      if (_dpLoadFromServerPending && failsafeTicks < 3) {
+        failsafeTicks += 1;
+        window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
+        return;
+      }
+      _dpRenderProfileSyncFallback();
+    };
+    window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
+  }
+
   function _zodiacEmoji(year) {
     var animals = ['🐀','🐂','🐅','🐇','🐉','🐍','🐎','🐑','🐒','🐓','🐕','🐖'];
     return animals[(year - 4 + 120) % 12];
@@ -9571,26 +9604,7 @@
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
 
-    // 로딩 카드는 스스로 빠져나오지 못한다. 아래 부트스트랩이 어느 단계에서든 조용히 끊기면
-    // (네트워크 지연·앱의 교차 출처 401·콜백 미호출) 카드가 영구히 "불러오는 중"으로 남고,
-    // 그 아래 입력 폼과 겹쳐 보여 카드가 두 개인 것처럼 읽힌다. 실패해도 최종 상태로 반드시 내려온다.
-    if (shouldShowProfileLoading && !initialProfile) {
-      // 진행 중인 서버 조회를 잘라내면 안 된다 — 상한(10s)이 요청 타임아웃(20s)보다 짧아서,
-      // 느린 기기·콜드 워커에서는 응답이 오기도 전에 이 실패안전이 먼저 터져 빈 카드를 그렸다.
-      // (앱은 후보 base 를 순회하므로 더 쉽게 걸린다.) 조회가 살아 있으면 한 번 더 기다린다.
-      var failsafeTicks = 0;
-      var runProfileLoadingFailsafe = function() {
-        var card = document.getElementById('dpMasterCard');
-        if (!card || card.className.indexOf('dp-master-card--moon-loading') < 0) return;
-        if (_dpLoadFromServerPending && failsafeTicks < 3) {
-          failsafeTicks += 1;
-          window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
-          return;
-        }
-        _dpRenderProfileSyncFallback();
-      };
-      window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
-    }
+    if (shouldShowProfileLoading && !initialProfile) _dpArmProfileLoadingFailsafe();
 
     /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
@@ -9829,7 +9843,10 @@
       var _dpScopedCurrent = DPStorage.current();
       if (_dpHasSessionHint()) {
         if (_dpScopedCurrent) renderMasterCard(_dpScopedCurrent);
-        else renderProfileLoadingCard();
+        else {
+          renderProfileLoadingCard();
+          _dpArmProfileLoadingFailsafe();
+        }
       } else {
         _dpEnsureScopedStorageReady();
       }
@@ -9841,7 +9858,11 @@
       // 구독 상태는 _dpLoadFromServer가 /api/profile 응답으로 갱신하므로
       // 별도 _fetchSubscription() 호출(중복 네트워크)을 제거한다.
       _dpLoadFromServer(function(loaded) {
-        if (!loaded) return;
+        /* 🔴 실패를 그냥 return 하지 말 것 — 위에서 로딩 카드를 그려 놓았으므로 아무도 다시
+           그리지 않으면 카드가 영구히 "불러오는 중"으로 남는다. 이 경로는 가입 직후
+           cd:auth-changed 로 도는 곳이라, 신규 회원이 처음 보는 화면이 그대로 멈췄다.
+           init() 과 같은 최종 상태 처리로 내려준다(캐시가 있으면 유지, 없으면 재시도 카드). */
+        if (!loaded) { _dpRenderProfileSyncFallback(); return; }
         renderMasterCard(DPStorage.current());
         renderProfileList();
         _dpUpdateSaveBtn();

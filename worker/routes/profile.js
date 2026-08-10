@@ -973,7 +973,7 @@ async function handleGetProfiles(auth, env) {
     .lean());
 
   if (!user) {
-    return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
   }
 
   const subscription = resolveSubscriptionPolicy(user);
@@ -1072,16 +1072,24 @@ async function handleGetCurrentProfile(auth, env) {
 
 async function handleCreateProfile(request, auth, env) {
   try {
-    const [user, count, body] = await Promise.all([
-      withMongoRetry(env, () => User.findById(auth.userId)
-        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-        .lean()),
-      withMongoRetry(env, () => ProfileCard.countDocuments({ userId: auth.userId })),
+    /* 🔴 두 조회는 서로 의존하지 않으므로 같은 admission 슬롯 안에서 병렬로 낸다
+       (handleUpdateCurrent·handleGetProfileDetail 과 같은 패턴). withMongoRetry 는 호출마다 전역
+       게이트 슬롯을 하나씩 잡는데(worker/lib/db.js), 이 라우트는 가입 직후 홈 진입 팬아웃과 같은
+       순간에 불린다. 호출마다 따로 감싸면 첫 카드 생성 한 건이 슬롯을 여러 개 먹고, 초과분은
+       재시도 대상이 아닌 MongoOperationOverloadedError 가 되어 신규 회원의 첫 카드가 그대로 죽는다.
+       readJson 은 Mongo 가 아니므로 슬롯 밖에 둔다. */
+    const [[user, count], body] = await Promise.all([
+      withMongoRetry(env, () => Promise.all([
+        User.findById(auth.userId)
+          .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+          .lean(),
+        ProfileCard.countDocuments({ userId: auth.userId }),
+      ])),
       readJson(request),
     ]);
 
     if (!user) {
-      return json({ ok: false, success: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+      return json({ ok: false, success: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
     }
 
     const subscription = resolveSubscriptionPolicy(user);
@@ -1098,11 +1106,8 @@ async function handleCreateProfile(request, auth, env) {
     const normalized = normalizeIncomingProfile(rawProfile, count);
     normalized.birth = birthValidation.birth;
 
-    const duplicated = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean());
-    if (duplicated) {
-      return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
-    }
-
+    /* 선행 중복검사(ProfileCard.findOne)는 제거했다 — {userId, profileId} unique 인덱스와 아래
+       11000 처리가 이미 같은 일을 하는데, 슬롯 하나와 왕복 한 번을 더 썼다. */
     const profilePolicySnapshot = buildProfilePolicySnapshot(user, { source: "profile_create" });
     const createFitsLocalPolicy = canCreateProfileWithinSubscriptionLimit(subscription, count);
     let createPayment = null;
@@ -1127,6 +1132,7 @@ async function handleCreateProfile(request, auth, env) {
     }
 
     let created;
+    let replayedCreate = false;
     try {
       created = await withMongoRetry(env, () => ProfileCard.create({
         userId: auth.userId,
@@ -1137,24 +1143,43 @@ async function handleCreateProfile(request, auth, env) {
         location: normalized.location,
       }));
     } catch (error) {
-      if (createPayment?.evidence) {
-        await refundProfileMutationCreditIfNeeded(auth, {
-          action: "create",
+      /* 🔴 중복키를 곧바로 실패로 돌리지 않는다. 이 엔드포인트는 같은 profileId 로 재시도된다
+         (클라이언트는 profileId 를 저장 시작 시 1회만 만든다, js/destiny-profile.js dpSaveProfile).
+         1차 시도가 실제로 삽입된 뒤 응답만 유실되면 재시도가 11000 을 보는데, 그때 409 를 주면
+         "카드는 만들어졌는데 실패 안내"가 뜬다. 내 소유 카드면 그것을 결과로 이어간다. */
+      if (Number(error?.code) === 11000) {
+        const existing = await withMongoRetry(env, () => ProfileCard.findOne({
+          userId: auth.userId,
           profileId: normalized.profileId,
-          requestId: createPayment.requestId,
-          evidence: createPayment.evidence,
-          reason: "프로필 카드 생성 실패 환불",
-        });
+        }).lean());
+        if (existing) created = existing;
       }
-      throw error;
+      if (!created) {
+        if (createPayment?.evidence) {
+          await refundProfileMutationCreditIfNeeded(auth, {
+            action: "create",
+            profileId: normalized.profileId,
+            requestId: createPayment.requestId,
+            evidence: createPayment.evidence,
+            reason: "프로필 카드 생성 실패 환불",
+          });
+        }
+        throw error;
+      }
+      replayedCreate = true;
     }
 
-    const profile = toClientProfile(created.toObject());
+    const profile = toClientProfile(typeof created.toObject === "function" ? created.toObject() : created);
     const nextCurrentId = String(profile.id || "");
+    const shouldMoveCurrent = nextCurrentId !== String(user.destinyProfilesCurrentId || "");
 
-    if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
-      await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } }));
-    }
+    /* currentId 이동과 목록 재조회도 서로 의존하지 않는다 — 위 조회와 같은 이유로 슬롯 하나에 합친다. */
+    const [, profiles] = await withMongoRetry(env, () => Promise.all([
+      shouldMoveCurrent
+        ? User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } })
+        : Promise.resolve(null),
+      listUserProfiles(auth.userId),
+    ]));
 
     if (createPayment?.requestId) {
       await recordProfileMutationCompleted(auth, {
@@ -1165,8 +1190,6 @@ async function handleCreateProfile(request, auth, env) {
         evidence: createPayment.evidence,
       });
     }
-
-    const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
 
     return json({
       success: true,
@@ -1180,7 +1203,7 @@ async function handleCreateProfile(request, auth, env) {
       profilePolicySnapshot,
       serverSyncedAt: new Date().toISOString(),
       canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
-    }, { status: 201 });
+    }, { status: replayedCreate ? 200 : 201 });
   } catch (error) {
     const status = Number(error?.status || 0);
     if (status >= 400 && status < 500) {
@@ -1199,16 +1222,33 @@ async function handleCreateProfile(request, auth, env) {
       }, { status: 409 });
     }
 
+    /* 🔴 DB 일시 장애를 500 으로 내리지 말 것. admission 게이트 거절·풀 리셋·op 타임아웃은
+       "서버가 거절"이 아니라 "대답을 못한" 것인데, 클라이언트의 일시 장애 재시도는 0/503/504
+       에만 붙는다(js/destiny-profile.js `_dpIsTransientResult`). 500 으로 주면 가입 직후 블립
+       한 번이 곧 "첫 카드 생성 영구 실패"가 된다. 이 catch 가 바깥 degrade 로직보다 먼저
+       잡으므로 여기서 직접 갈라 준다. */
+    if (isDbUnavailableError(error)) {
+      console.warn("[profile-create-degraded]", String(error?.message || error).slice(0, 200));
+      return json({
+        ok: false,
+        success: false,
+        code: "SERVICE_UNAVAILABLE",
+        message: "서버 연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
+
     console.error("[profile-create-error]", {
       userId: String(auth?.userId || ""),
       message: String(error?.message || error),
       stack: error?.stack || null,
     });
 
+    /* message 는 클라이언트에서 그대로 alert() 된다 — 기계 코드는 code 로 보내고 message 는 안내문. */
     return json({
       ok: false,
       success: false,
-      message: "PROFILE_CREATE_INTERNAL_ERROR",
+      code: "PROFILE_CREATE_INTERNAL_ERROR",
+      message: "프로필 카드를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     }, { status: 500 });
   }
 }
@@ -1218,7 +1258,7 @@ async function handleUpdateCurrent(request, auth, env) {
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
   const baseCurrentId = sanitizeProfileId(body?.baseCurrentId);
   if (!requestedCurrentId) {
-    return json({ ok: false, message: "currentId媛 ?꾩슂?⑸땲??" }, { status: 400 });
+    return json({ ok: false, message: "currentId가 필요합니다." }, { status: 400 });
   }
 
   /* 🔴 두 읽기는 서로 의존하지 않으므로 같은 admission 슬롯 안에서 병렬로 낸다
@@ -1236,7 +1276,7 @@ async function handleUpdateCurrent(request, auth, env) {
     return json({ ok: false, message: "선택한 프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
   if (!user) {
-    return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
   }
 
   // 스테일 탭이 오래된 currentId를 기준으로 전환을 요청하면 서버의 "현재 프로필" 포인터가
