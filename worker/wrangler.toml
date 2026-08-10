@@ -93,6 +93,12 @@ WORKERS_AI_ENABLED = "true"
 PDF_LLM_MAX_CALLS_PER_JOB = "1"
 PDF_REAL_LLM_CHAPTER_IDS = "intro"
 PDF_DEBUG_MODE = "true"
+# 신규 결제 컨텍스트(worker/payments/)를 /api/payments2/* 로만 연다. 구 /api/payments/* 는 그대로다.
+# 사용자 트래픽은 여기로 오지 않는다 — 실제 요청·실제 Mongo 위에서 왕복 예산(주문 1회 · 확정 cold 3회)과
+# 오류 분류가 지켜지는지 [pay] 로그로 확인한 뒤 엔드포인트를 하나씩 컷오버하기 위한 관측 창이다.
+# 판정은 "true" 정확 일치다("1"·"yes" 는 켜지지 않는다). 끄려면 이 줄을 지우면 되고, 꺼져 있으면
+# 모듈을 import 조차 하지 않으므로 남겨 둘 때의 비용은 0이다.
+PAYMENTS_V2_SHADOW = "true"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*
