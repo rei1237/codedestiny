@@ -1076,6 +1076,12 @@ export async function login(credentials: LoginCredentials) {
     debugAuth("[auth] user ready", resolvedUser.id || resolvedUser.userId || resolvedUser._id || resolvedUser.uid || "");
 
     markAuthUserCacheVerified((readSanitizedAuthUser() as AuthUser | null) || resolvedUser);
+    // 방금 확정한 상태에 재검증 쿨다운을 장전한다. 위에서 lastRefreshCompletedAt 을 0 으로
+    // 초기화한 뒤 성공해도 다시 채우지 않으면, 로그인 직후 마운트되는 위젯·게이트의
+    // refreshAuth({ force: false }) 가 쿨다운을 그냥 통과해 /api/auth/me 를 한 번 더 부른다 —
+    // 바로 위 주석대로 로그인 응답이 이미 같은 형태의 사용자를 실어 줬으므로 순수 낭비다.
+    // hydrateAuthSuccessUser(소셜·가입 경로)는 이미 이 값을 채우고 있다.
+    lastRefreshCompletedAt = Date.now();
 
     void syncPostLoginData(loginAuthMutationSeq).then(() => {
       if (loginAuthMutationSeq !== authMutationSeq) return;

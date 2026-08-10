@@ -366,6 +366,73 @@ record(
 );
 
 /* ------------------------------------------------------------------ *
+ * T5 — 로그인 직후 권한 조회가 두 번 나가지 않는가
+ *      login() 이 무효화 방송("login")을 syncPostLoginData 보다 늦게 보내면, 그 사이에 뜬
+ *      /api/me/access-state 응답이 "무효화 이후의 스테일 응답"으로 분류돼 캐시에 저장되지
+ *      않는다. 받아 놓고 버리므로 다음 소비자가 같은 요청을 한 번 더 쏜다.
+ * ------------------------------------------------------------------ */
+
+resetBrowserState();
+installMockFetch();
+// 실제 앱은 부트스트랩에서 세션 캐시 몽키패치가 이미 깔린 상태로 로그인한다. installMockFetch 가
+// 설치 플래그를 초기화하므로 여기서 다시 깔아야 그 조건이 재현된다 — 안 깔면 캐시가 없는 상태를
+// 재는 셈이라 "중복"이 항상 나온다(측정 오류).
+sessionCache.installUserAccessFetchCache();
+globalThis.fetch = dom.window.fetch;
+
+const loginStore = await import(`${pathToFileURL(authStoreFile).href}?page=t5`);
+await loginStore.login({ email: 'a@b.com', password: 'password123', apiBase: PAGE_ORIGIN }).catch(() => null);
+// syncPostLoginData 는 void 로 떠나므로 정착을 기다린다.
+await sleep(120);
+const accessAfterLogin = serverLog.filter((e) => e.path === '/api/me/access-state').length;
+
+// 로그인 후 화면이 권한을 필요로 하는 시점(게이트·헤더 등)을 재현한다.
+await sessionCache.ensureUserAccessLoaded();
+const accessTotal = serverLog.filter((e) => e.path === '/api/me/access-state').length;
+const noDuplicate = accessTotal === accessAfterLogin && accessAfterLogin === 1;
+
+record(
+  'T5',
+  '로그인 직후 권한 조회(/api/me/access-state)가 한 번만 나간다',
+  noDuplicate,
+  noDuplicate
+    ? null
+    : [
+        `로그인 중 요청  : ${accessAfterLogin}회`,
+        `이후 소비자까지 : ${accessTotal}회 (1회가 정상)`,
+        '→ login() 이 publishAuthSync("login") 을 syncPostLoginData 뒤에 보내, 방금 받은',
+        '  access-state 응답이 캐시 세대 불일치로 버려졌다. 같은 파일의 hydrateAuthSuccessUser 는',
+        '  이미 방송을 먼저 보내는 순서를 지키고 있다.',
+      ].join('\n'),
+);
+
+/* ------------------------------------------------------------------ *
+ * T6 — 로그인 직후 마운트되는 소비자가 /api/auth/me 를 다시 부르지 않는가
+ *      login() 은 응답에 실려 온 사용자 스냅샷을 그대로 쓰고 /api/auth/me 를 일부러 건너뛴다.
+ *      그런데 재검증 쿨다운(lastRefreshCompletedAt)을 장전하지 않으면, 직후 마운트되는
+ *      위젯·게이트의 refreshAuth({force:false}) 가 쿨다운을 통과해 같은 데이터를 다시 가져온다.
+ * ------------------------------------------------------------------ */
+
+const meBeforeMount = serverLog.filter((e) => e.path === '/api/auth/me').length;
+await loginStore.refreshAuth({ force: false });
+const meAfterMount = serverLog.filter((e) => e.path === '/api/auth/me').length;
+const noRedundantMe = meAfterMount === meBeforeMount;
+
+record(
+  'T6',
+  '로그인 직후 마운트되는 소비자가 /api/auth/me 를 다시 부르지 않는다',
+  noRedundantMe,
+  noRedundantMe
+    ? null
+    : [
+        `추가 /api/auth/me 요청 = ${meAfterMount - meBeforeMount}회`,
+        '→ login() 이 성공 후 lastRefreshCompletedAt 을 채우지 않아 재검증 쿨다운이 꺼져 있다.',
+        '  로그인 응답이 이미 같은 형태의 사용자를 실어 줬으므로 이 왕복은 순수 낭비다.',
+        '  같은 파일의 hydrateAuthSuccessUser(소셜·가입 경로)는 이미 이 값을 채운다.',
+      ].join('\n'),
+);
+
+/* ------------------------------------------------------------------ *
  * T4 — refresh 가 힌트 쿠키를 재발행하는가 (정적 단언)
  *      worker/ 는 Workers 런타임 전용이라 여기서 실행하지 않고 소스를 검사한다.
  *      이름 grep 이 아니라 중괄호 균형으로 handleRefresh 본문을 잘라 낸다(CLAUDE.md 원칙 6).
