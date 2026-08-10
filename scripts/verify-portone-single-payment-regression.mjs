@@ -260,7 +260,8 @@ function runInstantPgWindowTests() {
   assertContains(indexSource, "if (!safe.phoneNumber && previousUser && previousUser.phoneNumber) safe.phoneNumber = String(previousUser.phoneNumber);", "shell auth-cache write must carry the known phone across a degraded me response");
 
   // 이용권(구독) 주문 응답도 저장된 번호를 실어 보낸다 → 결제 직전 번호 조회 왕복 자체가 사라진다.
-  assertContains(paymentsRouteSource, "const orderCustomer = buildSinglePaymentCustomer(currentUser, auth.userId);", "membership-pass order must carry the saved customer phone");
+  // await 인 이유는 저장된 번호가 암호화 봉투일 수 있어 복호화가 필요하기 때문이다(worker/lib/pii-crypto.js).
+  assertContains(paymentsRouteSource, "const orderCustomer = await buildSinglePaymentCustomer(currentUser, auth.userId, env);", "membership-pass order must carry the saved customer phone");
   assertContains(destinyProfileSource, "orderCustomer.phoneNumber,", "dp must read the server-supplied order.customer phone");
 
   // ③ 🔴 규칙 정정(2026-07): 예전 규칙은 "클릭~PG창 사이 오버레이 0"이었다. 그 구간이 완전히 비어

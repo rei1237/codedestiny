@@ -16,7 +16,10 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, minlength: 2, maxlength: 40 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },
   profileImage: { type: String, default: "", trim: true },
-  phoneNumber: { type: String, default: "", trim: true, match: /^01\d{8,9}$/ },
+  // 평문 01… 과 AES-256-GCM 봉투(v1:<iv_b64>:<ct_b64>) 두 형태를 함께 허용한다.
+  // 신규 쓰기는 항상 봉투(worker/lib/pii-crypto.js)지만, 마이그레이션 전 기존 행은 평문이라
+  // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
+  phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },

@@ -1,0 +1,176 @@
+/**
+ * 휴대폰 번호 필드 암호화 회귀 검증 (DB·네트워크 없음).
+ *
+ * 이 가드가 지키는 것은 두 가지다.
+ *  1) 암복호화 자체의 정확성 — 왕복 일치, IV 랜덤, 잘못된 키 거부, 평문 하위호환.
+ *  2) 🔴 복호화 지점 누락 방지 — 저장값이 봉투가 되는 순간, PortOne customer.phoneNumber 를
+ *     만드는 경로에서 복호화를 빠뜨리면 단건 결제가 통째로 막힌다. 소스 단언으로 고정한다.
+ */
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+import {
+  decryptPhoneNumber,
+  encryptPhoneNumber,
+  isEncryptedPiiValue,
+  maskKoreanPhoneNumber,
+  normalizeKoreanPhoneNumber,
+} from "../worker/lib/pii-crypto.js";
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const read = (relativePath) => readFileSync(join(repoRoot, relativePath), "utf8");
+
+function assertContains(source, needle, label) {
+  assert.ok(source.includes(needle), `${label}\n  expected to find: ${needle}`);
+}
+
+const KEY_A = { PII_ENC_KEY: Buffer.alloc(32, 7).toString("base64") };
+const KEY_B = { PII_ENC_KEY: Buffer.alloc(32, 9).toString("base64") };
+const PHONE = "01012345678";
+
+// 1. 봉투 포맷 — 원본 숫자열이 저장값에 남지 않는다.
+const envelope = await encryptPhoneNumber(PHONE, KEY_A);
+assert.ok(isEncryptedPiiValue(envelope), "encrypted value must carry the v1: prefix");
+assert.equal(envelope.split(":").length, 3, "envelope must be v1:<iv>:<ciphertext>");
+assert.ok(!envelope.includes(PHONE), "ciphertext must not contain the plaintext phone number");
+assert.ok(!/\d{8,}/.test(envelope.replace(/^v1:/, "")), "envelope must not leak a long digit run");
+
+// 2. 왕복 일치.
+assert.equal(await decryptPhoneNumber(envelope, KEY_A), PHONE, "roundtrip must return the original number");
+
+// 3. 같은 입력이라도 매번 다른 암호문(랜덤 IV). 같으면 IV 재사용이라 GCM 이 깨진다.
+const envelopeAgain = await encryptPhoneNumber(PHONE, KEY_A);
+assert.notEqual(envelope, envelopeAgain, "each encryption must use a fresh random IV");
+assert.equal(await decryptPhoneNumber(envelopeAgain, KEY_A), PHONE, "second envelope must also roundtrip");
+
+// 4. 잘못된 키 — throw 가 아니라 "" 여야 한다(호출자는 "번호 없음"과 같게 처리한다).
+assert.equal(await decryptPhoneNumber(envelope, KEY_B), "", "wrong key must decrypt to an empty string");
+assert.equal(await decryptPhoneNumber("v1:bm90:YmFzZTY0", KEY_A), "", "corrupted envelope must not throw");
+assert.equal(await decryptPhoneNumber(envelope, {}), "", "missing key must not throw on read");
+
+// 5. 🔴 하위호환 — 마이그레이션 전 평문 레코드가 그대로 통과해야 한다.
+//    이게 깨지면 기존 회원 전원의 단건 결제가 막힌다.
+assert.equal(await decryptPhoneNumber(PHONE, KEY_A), PHONE, "legacy plaintext must pass through unchanged");
+assert.equal(await decryptPhoneNumber("+82 10-1234-5678", KEY_A), PHONE, "legacy plaintext must be normalized");
+assert.equal(await decryptPhoneNumber("", KEY_A), "", "empty stored value stays empty");
+assert.equal(await decryptPhoneNumber("garbage", KEY_A), "", "unusable plaintext yields an empty string");
+
+// 6. fail-closed — 키가 없으면 평문으로 폴백하지 않고 throw 한다.
+await assert.rejects(
+  () => encryptPhoneNumber(PHONE, {}),
+  /pii_encryption_key_missing/,
+  "encrypt must fail closed when PII_ENC_KEY is absent",
+);
+await assert.rejects(
+  () => encryptPhoneNumber(PHONE, { PII_ENC_KEY: "dG9vLXNob3J0" }),
+  /pii_encryption_key_invalid/,
+  "encrypt must reject a key that is not 32 bytes",
+);
+assert.equal(await encryptPhoneNumber("not-a-phone", KEY_A), "", "invalid input encrypts to an empty string");
+
+// 7. 하위 소비자 무해성 — 복호화 결과는 기존 정규화기를 그대로 통과한다.
+const decrypted = await decryptPhoneNumber(envelope, KEY_A);
+assert.equal(normalizeKoreanPhoneNumber(decrypted), PHONE, "decrypted value must survive re-normalization");
+assert.equal(maskKoreanPhoneNumber(decrypted), "010-****-5678", "masking must stay unchanged");
+
+// payments.js 의 정본 sanitizeCustomerPhone 과 같은 규칙을 복호화 결과에 적용해도 동일해야 한다.
+const paymentsSource = read("worker/routes/payments.js");
+const sanitizeCustomerPhone = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  const localDigits = digits.startsWith("82") && /^821\d{8,9}$/.test(digits) ? `0${digits.slice(2)}` : digits;
+  return /^01\d{8,9}$/.test(localDigits) ? localDigits : "";
+};
+assert.equal(sanitizeCustomerPhone(decrypted), PHONE, "PortOne customer phone must survive sanitization");
+
+// 8. 스키마가 두 형태를 모두 허용하는지.
+const modelsSource = read("worker/lib/models.js");
+const schemaMatch = modelsSource.match(/phoneNumber: \{ type: String, default: "", trim: true, match: (\/[^\n]+\/) \}/);
+assert.ok(schemaMatch, "models.js must still declare phoneNumber with a match validator");
+const schemaRegex = new RegExp(schemaMatch[1].slice(1, -1));
+assert.ok(schemaRegex.test(PHONE), "schema must still accept legacy plaintext numbers");
+assert.ok(schemaRegex.test(envelope), "schema must accept the AES-GCM envelope");
+assert.ok(schemaRegex.test(""), "schema must accept the empty default");
+
+// 9. 🔴 소스 가드 — 쓰기 경로가 암호화를 거치는지.
+const authSource = read("worker/routes/auth.js");
+assertContains(authSource, 'import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";',
+  "auth.js must import the PII crypto helpers");
+assertContains(authSource, "storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);",
+  "email signup and payment-phone save must encrypt before writing");
+assertContains(authSource, "phoneNumber: storedPhoneNumber,",
+  "email signup User.create must store the encrypted value");
+assertContains(authSource, "{ $set: { phoneNumber: storedPhoneNumber, phoneUpdatedAt: new Date() } }",
+  "raw-driver payment-phone update must store the encrypted value (Mongoose setters do not run there)");
+assertContains(authSource, "const backfill = await encryptBackfillPhoneNumber(profilePhoneNumber, env);",
+  "OAuth backfill must encrypt before writing");
+assertContains(authSource, "if (backfill) user.set(\"phoneNumber\", backfill);",
+  "OAuth backfill must skip (never store plaintext) when encryption is unavailable");
+assert.ok(
+  !/user\.set\("phoneNumber", profilePhoneNumber\)/.test(authSource),
+  "OAuth backfill must never write the raw phone number",
+);
+assertContains(authSource, "const storedPhoneNumber = profilePhoneNumber ? await encryptPhoneNumber(profilePhoneNumber, env) : \"\";",
+  "OAuth new-user creation must encrypt before writing");
+assert.ok(
+  !/phoneNumber,\n\s+passwordHash,/.test(authSource),
+  "email signup must not pass the raw phone number straight into User.create",
+);
+
+// 10. 🔴 소스 가드 — 읽기 경로가 복호화를 거치는지.
+assertContains(authSource, "async function buildPaymentPhoneResponse(user, env, extra = {}) {",
+  "buildPaymentPhoneResponse must be async so it can decrypt");
+assertContains(authSource, "async function normalizeAuthUserResponse(user, env) {",
+  "normalizeAuthUserResponse must be async so it can decrypt");
+for (const call of ["...(await buildPaymentPhoneResponse(", "await normalizeAuthUserResponse("]) {
+  assertContains(authSource, call, `auth.js callers must await the decrypting response builder: ${call}`);
+}
+assert.ok(
+  !/\.\.\.normalizeAuthUserResponse\(|\.\.\.buildPaymentPhoneResponse\(|user: normalizeAuthUserResponse\(/.test(authSource),
+  "no auth.js caller may spread the un-awaited (Promise) response builder",
+);
+
+assertContains(paymentsSource, 'import { decryptPhoneNumber } from "../lib/pii-crypto.js";',
+  "payments.js must import decryptPhoneNumber");
+assertContains(paymentsSource, "async function buildSinglePaymentCustomer(user, userId, env) {",
+  "buildSinglePaymentCustomer must be async so it can decrypt");
+assertContains(paymentsSource, "phoneNumber: sanitizeCustomerPhone(await decryptPhoneNumber(user?.phoneNumber || user?.phone, env)),",
+  "PortOne customer.phoneNumber must be decrypted — otherwise every card checkout is blocked");
+assert.ok(
+  !/[^t] buildSinglePaymentCustomer\(/.test(paymentsSource.replace(/async function buildSinglePaymentCustomer\(/g, "")),
+  "every buildSinglePaymentCustomer call site must be awaited",
+);
+
+for (const routePath of ["worker/routes/ziwei-ai.js", "worker/routes/ziwei-island-ai.js"]) {
+  const source = read(routePath);
+  assertContains(source, 'import { decryptPhoneNumber } from "../lib/pii-crypto.js";',
+    `${routePath} must import decryptPhoneNumber`);
+  assertContains(source, "async function loadBillingUser(userId, env) {",
+    `${routePath} loadBillingUser must accept env`);
+  assertContains(source, "if (user) user.phoneNumber = await decryptPhoneNumber(user.phoneNumber, env);",
+    `${routePath} must decrypt at the load site (its customerFromUser stays synchronous)`);
+  assertContains(source, "loadBillingUser(auth.userId, env)",
+    `${routePath} call sites must pass env through`);
+}
+
+// 11. 환경변수 계약에 등록되어 있는지 — 미등록이면 배포 게이트가 시크릿 누락을 못 잡는다.
+const envContract = JSON.parse(read("config/env.contract.json"));
+const entry = (envContract.keys || []).find((item) => item?.name === "PII_ENC_KEY");
+assert.ok(entry, "PII_ENC_KEY must be registered in config/env.contract.json");
+assert.equal(entry.secret, true, "PII_ENC_KEY must be marked as a secret");
+assert.ok(entry.required_in?.includes("production"), "PII_ENC_KEY must be required in production");
+assert.ok(entry.targets?.includes("worker"), "PII_ENC_KEY must target the worker");
+
+// 12. 가입 화면과 개인정보처리방침이 실제 동작(암호화 보관)을 말하는지.
+const authShellSource = read("app/components/auth/AuthShell.tsx");
+assertContains(authShellSource, "암호화(AES-256)해서 보관해요",
+  "signup phone helper text must state that the number is stored encrypted");
+assertContains(authShellSource, "휴대폰 번호(암호화 보관)",
+  "signup consent summary must state that the number is stored encrypted");
+assertContains(authShellSource, "stored encrypted",
+  "English signup copy must state that the number is stored encrypted");
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
+  "privacy policy must state that the phone number is stored encrypted");
+
+console.log("verify-phone-encryption: OK");

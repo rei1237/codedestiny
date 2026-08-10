@@ -25,6 +25,7 @@ import {
   getPortOneWebhookUrl,
 } from "../lib/portone.js";
 import { getEnv } from "../lib/env.js";
+import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -1137,12 +1138,14 @@ function sanitizeCustomerPhone(value) {
   return "";
 }
 
-function buildSinglePaymentCustomer(user, userId) {
+// 저장된 번호는 암호화 봉투일 수 있다(worker/lib/pii-crypto.js). PortOne/이니시스 결제창은
+// 구매자 번호 평문을 요구하므로 여기서 복호화한다 — 빠뜨리면 단건 결제가 통째로 막힌다.
+async function buildSinglePaymentCustomer(user, userId, env) {
   const fullName = pickFirstText([user?.fullName, user?.name, user?.displayName, user?.username, "Code Destiny 고객"]).slice(0, 40);
   return {
     fullName,
     email: sanitizeCustomerEmail(user?.email, userId),
-    phoneNumber: sanitizeCustomerPhone(user?.phoneNumber || user?.phone),
+    phoneNumber: sanitizeCustomerPhone(await decryptPhoneNumber(user?.phoneNumber || user?.phone, env)),
   };
 }
 
@@ -2217,7 +2220,7 @@ async function handleSinglePaymentStart(request, env, auth) {
   const productName = buildDigitalProductName(body, resolved.pricing);
   const orderName = trimUtf8Bytes(productName || "Code Destiny 운세", 40) || "Code Destiny";
   const user = await User.findById(auth.userId).select("name email phone phoneNumber fullName displayName username").lean();
-  const customer = buildSinglePaymentCustomer(user, auth.userId);
+  const customer = await buildSinglePaymentCustomer(user, auth.userId, env);
 
   if (idempotencyKey) {
     const existing = await Payment.findOne({
@@ -3524,7 +3527,7 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
   // 주문 응답에 customer 를 실어 보낸다. 예전에는 이 필드가 없어서 클라의 order.customer 가 항상
   // 비어 있었고, 결제마다 GET /api/me/payment-phone 을 한 번 더 타야 했다. 여기서 실어 보내면
   // 저장된 번호가 있는 사용자는 그 왕복이 통째로 사라진다(추가 조회 없음 — 위 문서를 그대로 쓴다).
-  const orderCustomer = buildSinglePaymentCustomer(paymentUser || {}, auth.userId);
+  const orderCustomer = await buildSinglePaymentCustomer(paymentUser || {}, auth.userId, env);
   const resolved = resolveDigitalContentPricing(body);
   if (!resolved.ok) {
     await writeFailureLog({
@@ -3806,7 +3809,7 @@ async function handleSubscriptionPrepare(request, env, auth) {
   // 디지털콘텐츠 응답에는 있었다) 이용권 결제는 저장된 번호가 있어도 결제 직전에 항상
   // GET /api/me/payment-phone 을 한 번 더 타야 했고, 그 조회가 실패하면 번호 입력창이 다시 떴다.
   // authUserDoc(PAYMENT_ROUTE_USER_PROJECTION)을 그대로 쓰므로 추가 조회가 0 이다.
-  const orderCustomer = buildSinglePaymentCustomer(currentUser, auth.userId);
+  const orderCustomer = await buildSinglePaymentCustomer(currentUser, auth.userId, env);
 
   const transition = evaluateSubscriptionTierTransition(currentUser?.profileSubscription, tier);
   if (!transition.allow) {

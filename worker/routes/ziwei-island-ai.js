@@ -8,6 +8,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
+import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -177,11 +178,15 @@ async function verifyAccessToken(env, token) {
   return payload;
 }
 function isAdmin(auth = {}) { return clean(auth.role).toLowerCase() === "admin"; }
-async function loadBillingUser(userId) {
+async function loadBillingUser(userId, env) {
   if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
-  return User.findById(userId)
+  const user = await User.findById(userId)
     .select("email name phoneNumber points role profileSubscription subscription membership pass entitlement paidFeatures unlockedFeatures recentConsumeRequestIds")
     .lean();
+  // 저장값이 암호화 봉투일 수 있으므로 여기서 평문으로 되돌린다(worker/lib/pii-crypto.js).
+  // 아래 customerFromUser 는 동기 함수라 그대로 두고, 로드 지점 한 곳에서만 푼다.
+  if (user) user.phoneNumber = await decryptPhoneNumber(user.phoneNumber, env);
+  return user;
 }
 function hasMonthlyCredit(user = {}, membershipCreditCost = 0) {
   const balance = Math.max(0, Math.floor(Number(user?.profileSubscription?.membershipCreditBalance || user?.profileSubscription?.monthlyStoneBalance || 0)));
@@ -549,7 +554,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-island-ai/pr
     return json({ ok: true, accessToken: await createAccessToken(env, { userId: auth.userId, accessType: "admin", idempotencyKey, inputHash: normalized.inputHash }), accessType: "admin" });
   }
   await connectDb(env);
-  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId, env));
   if (!user) return loginRequired();
   const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash }));
   if (access.ok) {
@@ -577,7 +582,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     const directVerify = await verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inputHash: normalized.inputHash, pricing });
     if (directVerify.ok) return directVerify;
   }
-  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId, env));
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
   const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }));
   if (billingAccess?.ok) return billingAccess;

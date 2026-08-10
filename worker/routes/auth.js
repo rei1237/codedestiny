@@ -25,6 +25,7 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
+import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";
 import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
@@ -1614,16 +1615,31 @@ async function fetchSocialProfile(provider, accessToken, request, env) {
   return mapped;
 }
 
+// 공급자가 준 번호를 기존 계정에 채워 넣을 때 쓰는 봉투를 만든다. 실패하면 ""를 돌려 백필을 건너뛴다.
+// 🔴 여기서 throw 하면 안 된다 — 백필은 로그인의 목적이 아니라 곁다리라, 암호화 키 문제로
+// 멀쩡한 소셜 "로그인"까지 막히는 건 과하다. 평문으로 폴백하지 않으므로 보안 성질은 그대로다
+// (번호가 안 채워지면 첫 결제 때 입력 모달을 타고, 그 경로도 동일하게 fail-closed 다).
+async function encryptBackfillPhoneNumber(value, env) {
+  try {
+    return await encryptPhoneNumber(value, env);
+  } catch (error) {
+    return "";
+  }
+}
+
 // 기존 소셜/이메일 유저 조회 + 연결 로직. findOrCreateSocialUser의 최초 조회와,
 // 동시 생성 경합(E11000) 발생 시의 재조회 양쪽에서 재사용한다.
-async function findExistingSocialUser(provider, profile, socialField) {
+async function findExistingSocialUser(provider, profile, socialField, env) {
   let user = await User.findOne({ [socialField]: profile.providerId });
   if (user) {
     if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
     const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
-    if (profilePhoneNumber && !normalizeKoreanPhoneNumber(user.phoneNumber || user.phone)) {
-      user.set("phoneNumber", profilePhoneNumber);
-      await user.save();
+    if (profilePhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
+      const backfill = await encryptBackfillPhoneNumber(profilePhoneNumber, env);
+      if (backfill) {
+        user.set("phoneNumber", backfill);
+        await user.save();
+      }
     }
     return { user, created: false };
   }
@@ -1641,8 +1657,9 @@ async function findExistingSocialUser(provider, profile, socialField) {
         user.set("profileImage", String(profile.image || "").trim());
       }
       const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
-      if (profilePhoneNumber && !normalizeKoreanPhoneNumber(user.phoneNumber || user.phone)) {
-        user.set("phoneNumber", profilePhoneNumber);
+      if (profilePhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
+        const backfill = await encryptBackfillPhoneNumber(profilePhoneNumber, env);
+        if (backfill) user.set("phoneNumber", backfill);
       }
       await user.save();
       return { user, created: false };
@@ -1663,7 +1680,7 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   const createIfMissing = options.createIfMissing !== false;
   const signupProfile = options.signupProfile || null;
 
-  const existing = await findExistingSocialUser(provider, profile, socialField);
+  const existing = await findExistingSocialUser(provider, profile, socialField, env);
   if (existing) return existing;
   if (!createIfMissing) return { user: null, created: false };
 
@@ -1673,13 +1690,15 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   // 이게 없으면 소셜 계정은 번호 없이 만들어지고, 첫 단건결제마다 별도 입력 모달을 타게 된다.
   const profilePhoneNumber = normalizeKoreanPhoneNumber(signupProfile?.phoneNumber)
     || normalizeKoreanPhoneNumber(profile.phoneNumber);
+  // 저장 전 암호화. 키가 없으면 여기서 throw 되어 소셜 가입도 fail-closed 로 막힌다.
+  const storedPhoneNumber = profilePhoneNumber ? await encryptPhoneNumber(profilePhoneNumber, env) : "";
   let createdUser;
   try {
     createdUser = await User.create({
       name: signupProfile?.name || profile.name || `${provider} user`,
       email: profile.email || fallbackEmail,
       profileImage: String(profile.image || ""),
-      ...(profilePhoneNumber ? { phoneNumber: profilePhoneNumber } : {}),
+      ...(storedPhoneNumber ? { phoneNumber: storedPhoneNumber } : {}),
       passwordHash: "",
       role: "user",
       points: 0,
@@ -1701,7 +1720,7 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
     // 동시 소셜 로그인 경합: 다른 요청이 같은 providerId/email로 먼저 유저를 만들어
     // 중복키(E11000)가 나면, 이미 생성된 유저를 재조회해 흡수한다(두 번째 요청도 정상 로그인).
     if (error && (error.code === 11000 || String(error.message || "").includes("E11000"))) {
-      const raced = await findExistingSocialUser(provider, profile, socialField);
+      const raced = await findExistingSocialUser(provider, profile, socialField, env);
       if (raced) return raced;
     }
     throw error;
@@ -2043,8 +2062,10 @@ function maskKoreanPhoneNumber(value) {
   return `${phoneNumber.slice(0, 3)}-****-${phoneNumber.slice(-4)}`;
 }
 
-function buildPaymentPhoneResponse(user, extra = {}) {
-  const phoneNumber = normalizeKoreanPhoneNumber(user?.phoneNumber || user?.phone);
+// 저장값은 암호화 봉투일 수 있으므로 응답을 만들 때 복호화한다(worker/lib/pii-crypto.js).
+// 복호화 실패는 "번호 없음"과 같게 취급돼 결제창 앞 재입력 경로가 그대로 돈다.
+async function buildPaymentPhoneResponse(user, env, extra = {}) {
+  const phoneNumber = await decryptPhoneNumber(user?.phoneNumber || user?.phone, env);
   return {
     ...extra,
     hasPhone: Boolean(phoneNumber),
@@ -2053,9 +2074,9 @@ function buildPaymentPhoneResponse(user, extra = {}) {
   };
 }
 
-function normalizeAuthUserResponse(user) {
+async function normalizeAuthUserResponse(user, env) {
   const normalized = normalizeUserResponse(user);
-  const phoneNumber = normalizeKoreanPhoneNumber(user?.phoneNumber || user?.phone);
+  const phoneNumber = await decryptPhoneNumber(user?.phoneNumber || user?.phone, env);
   return {
     ...normalized,
     profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "auth_me" }),
@@ -2166,7 +2187,7 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   const response = json({
     ok: true,
     message: status === 201 ? "Registration completed." : "Login completed.",
-    user: normalizeAuthUserResponse(user),
+    user: await normalizeAuthUserResponse(user, env),
     nextPath: sanitizeNextPath(nextPath) || "/",
     ...(isMobileAppAuthRequest(request) ? {
       accessToken,
@@ -2201,7 +2222,7 @@ async function createLocalDevAuthSuccessResponse(request, env, user, status = 20
     ok: true,
     message: "Login completed.",
     user: {
-      ...normalizeAuthUserResponse(user),
+      ...(await normalizeAuthUserResponse(user, env)),
       hasLocalAuth: true,
     },
     nextPath: sanitizeNextPath(nextPath) || "/",
@@ -2490,13 +2511,28 @@ async function handleRegister(request, env) {
     );
   }
 
+  // 🔴 키가 없으면 평문으로 폴백하지 않고 가입을 중단한다(fail-closed).
+  // "암호화해서 보관한다"는 가입 화면 문구가 조용히 거짓이 되는 쪽이 더 나쁘다.
+  let storedPhoneNumber = "";
+  try {
+    storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);
+  } catch (error) {
+    return signupErrorResponse(
+      request,
+      env,
+      503,
+      "phone_encryption_unavailable",
+      "휴대폰 번호를 안전하게 저장할 수 없어요. 잠시 후 다시 시도해 주세요.",
+    );
+  }
+
   let user;
   try {
     user = await withAuthOpTimeout(
       User.create({
         name,
         email,
-        phoneNumber,
+        phoneNumber: storedPhoneNumber,
         passwordHash,
         role: "user",
         points: 0,
@@ -2920,7 +2956,7 @@ async function handleMe(request, env) {
       authenticated: true,
       message: "Authenticated user loaded.",
       user: {
-        ...normalizeAuthUserResponse(user),
+        ...(await normalizeAuthUserResponse(user, env)),
         hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
       },
     });
@@ -3005,7 +3041,7 @@ async function handlePaymentPhoneStatus(request, env) {
 
   return json({
     ok: true,
-    ...buildPaymentPhoneResponse(user),
+    ...(await buildPaymentPhoneResponse(user, env)),
   });
 }
 
@@ -3043,19 +3079,32 @@ async function handleSavePaymentPhoneNumber(request, env) {
     return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
   }
 
-  const currentPhoneNumber = normalizeKoreanPhoneNumber(currentUser?.phoneNumber || currentUser?.phone);
+  const currentPhoneNumber = await decryptPhoneNumber(currentUser?.phoneNumber || currentUser?.phone, env);
   if (currentPhoneNumber) {
     return json({
       ok: true,
       updated: false,
-      ...buildPaymentPhoneResponse(currentUser),
+      ...(await buildPaymentPhoneResponse(currentUser, env)),
     });
+  }
+
+  // 🔴 raw driver 경로라 Mongoose setter 가 돌지 않는다 — 여기서 직접 암호화해야 한다.
+  // 키가 없으면 encryptPhoneNumber 가 throw 하고, 평문으로 폴백하지 않는다(fail-closed).
+  let storedPhoneNumber = "";
+  try {
+    storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);
+  } catch (error) {
+    return json({
+      ok: false,
+      code: "phone_encryption_unavailable",
+      message: "휴대폰 번호를 안전하게 저장할 수 없어요. 잠시 후 다시 시도해 주세요.",
+    }, { status: 503 });
   }
 
   const updatedResult = await withAuthOpTimeout(
     User.collection.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(userId) },
-      { $set: { phoneNumber, phoneUpdatedAt: new Date() } },
+      { $set: { phoneNumber: storedPhoneNumber, phoneUpdatedAt: new Date() } },
       {
         returnDocument: "after",
         projection: {
@@ -3078,7 +3127,7 @@ async function handleSavePaymentPhoneNumber(request, env) {
   return json({
     ok: true,
     updated: true,
-    ...buildPaymentPhoneResponse(user),
+    ...(await buildPaymentPhoneResponse(user, env)),
   });
 }
 
@@ -3280,7 +3329,7 @@ async function handleRefresh(request, env) {
     accessTokenExpiresInSec: accessExpiresInSec,
     ...appRefreshTokenField(request, nextRefresh.refreshToken),
     user: {
-      ...normalizeAuthUserResponse(user),
+      ...(await normalizeAuthUserResponse(user, env)),
       hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
     },
   });
@@ -3989,7 +4038,7 @@ async function handleOAuthComplete(request, env) {
         const response = json({
           ok: true,
           message: "Social login completed.",
-          user: normalizeAuthUserResponse(user),
+          user: await normalizeAuthUserResponse(user, env),
           nextPath: sanitizeOAuthNextPath(payload.nextPath),
           provider: payload.provider,
           accessToken,
@@ -4228,7 +4277,7 @@ async function handleAppExchange(request, env) {
     accessToken,
     tokenType: "Bearer",
     accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
-    user: normalizeAuthUserResponse(tokenUser),
+    user: await normalizeAuthUserResponse(tokenUser, env),
   });
 }
 

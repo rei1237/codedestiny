@@ -163,6 +163,8 @@ const SECRET_KEYS = [
   "AUTH_COOKIE_SECURE",
   "AUTH_COOKIE_SAMESITE",
   "CSRF_SECRET",
+  // 개인정보 필드 암호화 키(worker/lib/pii-crypto.js). 미설정이면 신규 가입이 fail-closed 로 막힌다.
+  "PII_ENC_KEY",
   "MONGO_URI",
   "MONGODB_URI",
   "MONGO_URL",
