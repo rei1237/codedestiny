@@ -25,6 +25,7 @@ import {
   toOrderStatus,
 } from "../../worker/payments/orders.js";
 import { PaymentError } from "../../worker/payments/errors.js";
+import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "507f1f77bcf86cd799439011";
 const OTHER_USER = "507f1f77bcf86cd799439012";
@@ -43,72 +44,7 @@ const PG = {
   summary: { paymentId: "cdorder-tx", amount: 30000, currency: "KRW" },
 };
 
-// ── 최소 인메모리 컬렉션 ────────────────────────────────────────────────
-function matches(doc, filter) {
-  return Object.entries(filter).every(([key, cond]) => {
-    if (key === "$or") return cond.some((sub) => matches(doc, sub));
-    const value = doc[key];
-    // 연산자 맵인지 값인지는 `$` 접두사 키가 있는지로 가른다. ObjectId·Date 처럼
-    // 프로퍼티를 가진 값 객체를 연산자 맵으로 오인하면 안 된다.
-    const isOperatorMap = cond && typeof cond === "object" && !Array.isArray(cond)
-      && Object.keys(cond).some((k) => k.startsWith("$"));
-    if (isOperatorMap) {
-      return Object.entries(cond).every(([op, operand]) => {
-        if (op === "$nin") return !operand.includes(value);
-        if (op === "$in") return operand.includes(value);
-        if (op === "$ne") return String(value) !== String(operand);
-        if (op === "$lt") return value != null && value < operand;
-        if (op === "$exists") return (value !== undefined) === operand;
-        throw new Error(`fake db: 미구현 연산자 ${op}`);
-      });
-    }
-    if (cond === null) return value === null || value === undefined;
-    return String(value) === String(cond);
-  });
-}
-
-function applyUpdate(doc, update) {
-  if (update.$set) Object.assign(doc, update.$set);
-  if (update.$inc) for (const [k, v] of Object.entries(update.$inc)) doc[k] = (Number(doc[k]) || 0) + v;
-  if (update.$unset) for (const k of Object.keys(update.$unset)) delete doc[k];
-  return doc;
-}
-
-function makeFakeDb() {
-  const rows = [];
-  const ctx = { ops: 0 };
-  const api = {
-    rows,
-    ctx,
-    async findOne(_Model, filter) { ctx.ops += 1; return rows.find((r) => matches(r, filter)) || null; },
-    async find(_Model, filter) { ctx.ops += 1; return rows.filter((r) => matches(r, filter)); },
-    async insertOne(_Model, doc) { ctx.ops += 1; rows.push({ ...doc }); return { insertedId: doc._id }; },
-    async updateOne(_Model, filter, update) {
-      ctx.ops += 1;
-      const hit = rows.find((r) => matches(r, filter));
-      if (!hit) return { modifiedCount: 0 };
-      applyUpdate(hit, update);
-      return { modifiedCount: 1 };
-    },
-    async findOneAndUpdate(_Model, filter, update, options = {}) {
-      ctx.ops += 1;
-      const hit = rows.find((r) => matches(r, filter));
-      if (hit) return applyUpdate(hit, update);
-      if (!options.upsert) return null;
-      const created = { _id: `oid${rows.length + 1}`, ...(update.$setOnInsert || {}) };
-      applyUpdate(created, { ...update, $setOnInsert: undefined });
-      rows.push(created);
-      return created;
-    },
-    async deleteOne(_Model, filter) {
-      ctx.ops += 1;
-      const i = rows.findIndex((r) => matches(r, filter));
-      if (i >= 0) rows.splice(i, 1);
-      return { deletedCount: i >= 0 ? 1 : 0 };
-    },
-  };
-  return api;
-}
+const makeFakeDb = makeFakePaymentDb;
 
 async function seedPaid(db, { idempotencyKey = "idem-1" } = {}) {
   const order = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey });
