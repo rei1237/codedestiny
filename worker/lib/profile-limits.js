@@ -88,14 +88,14 @@ const LEGACY_TIER_TO_PASS_TIER = Object.freeze({
   family: PASS_TIERS.FAMILY,
 });
 
+/* 정책이 실제로 발급하는 등급 이름. bronze/silver/gold 는 여기 있었지만 발급하는 코드가
+   남아 있지 않아 뺐다 — 자유 문자열(planId·productId·label)이 이 표를 타고 등급으로
+   승격되므로, 안 쓰는 이름을 남겨 두는 건 비용이 아니라 오분류 위험이다. */
 const PASS_TIER_TO_LEGACY_TIER = Object.freeze({
   standard: "standard",
   premium: "premium",
   vvip: "vvip",
   family: "family",
-  bronze: "standard",
-  silver: "premium",
-  gold: "vvip",
 });
 
 export const HONEY_PASS_POLICY = Object.freeze({
@@ -165,16 +165,18 @@ function tierFromValue(value) {
   if (compact === "codedestinyfamily" || compact === "honeyfamily" || /^family\d+m$/.test(compact)) return "family";
   if (compact === "familypass" || compact === "familyplan") return "family";
   if (text.includes("code destiny family") || text.includes("code-destiny-family")) return "family";
-  if (compact === "vipplus") return "vvip";
   if (compact === "honeyvvip" || /^vvip\d+m$/.test(compact)) return "vvip";
-  if (text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
-  if (text.includes("\uBE0C\uC774\uBE0C\uC774\uC544\uC774\uD53C") || text.includes("\uACE8\uB4DC")) return "vvip";
+  if (text === "vvip" || text.includes("vvip")) return "vvip";
   if (compact === "honeypremium" || /^premium\d+m$/.test(compact)) return "premium";
   if (text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
-  if (text.includes("\uD504\uB9AC\uBBF8\uC5C4") || text.includes("\uC2E4\uBC84")) return "premium";
   if (compact === "honeystandard" || /^standard\d+m$/.test(compact)) return "standard";
   if (text === "standard" || compact === "basic" || text.includes("standard") || text.includes("스탠다드")) return "standard";
-  if (text.includes("\uC2A4\uD0E0\uB2E4\uB4DC") || text.includes("\uBE0C\uB860\uC988")) return "standard";
+  /* 폐기 별칭(vipplus·꿀단지·브이브이아이피·골드·실버·브론즈)은 뺐다 — 발급하는 코드가 없는데,
+     이 함수는 planId·productId·label 같은 자유 문자열을 등급으로 승격시키는 유일한 지점이라
+     안 쓰는 이름이 남아 있으면 무관한 상품명이 등급을 훔칠 수 있다.
+     한글은 HONEY_PASS_POLICY 가 지금도 내보내는 표시 라벨만 남긴다(스탠다드·프리미엄·VVIP·
+     Code Destiny Family) — resolveTier 가 source.label 을 마지막 폴백으로 보므로 네 등급이
+     같은 방식으로 해석되어야 한다. 고정 가드: __tests__/worker/profile-limits.tier-aliases.test.js */
   return "";
 }
 

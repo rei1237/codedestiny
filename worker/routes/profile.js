@@ -255,13 +255,15 @@ function normalizeIncomingProfile(raw, index) {
   };
 }
 
+/* 등급 해석은 normalizeHoneyPassEntitlement(worker/lib/profile-limits.js) 하나로 일원화한다.
+   여기 있던 resolveStoredSubscriptionTier 는 같은 일을 하는 두 번째 파서였는데, 그 결과인
+   subscription.rawTier 를 읽는 곳이 서버·클라이언트 어디에도 없었다(전수 확인). 응답 계약에서
+   함께 뺐다 — 갈라진 두 파서를 남겨 두면 폐기 별칭 정리 같은 변경이 한쪽만 반영된다. */
 function resolveSubscriptionPolicy(user) {
   const entitlement = normalizeHoneyPassEntitlement(user || {});
-  const rawTier = resolveStoredSubscriptionTier(user);
 
   return {
     tier: entitlement.isActive ? entitlement.tier : "free",
-    rawTier,
     label: entitlement.label,
     isActive: entitlement.isActive,
     freeLimit: entitlement.maxCoveredCoin,
@@ -312,40 +314,6 @@ function getRemainingProfileActionCoins(user) {
   const creditBalance = Number(user?.profileSubscription?.membershipCreditBalance);
   if (Number.isFinite(creditBalance) && creditBalance > 0) return Math.max(0, Math.floor(creditBalance / 10));
   return Math.max(0, Math.floor(Number(user?.points || 0)));
-}
-
-function resolveStoredSubscriptionTier(user = {}) {
-  const sources = [
-    user?.profileSubscription,
-    user?.subscription,
-    user?.membership,
-    user?.pass,
-    user?.entitlement,
-    user,
-  ].filter((source) => source && typeof source === "object");
-
-  for (const source of sources) {
-    const values = [
-      source.tier,
-      source.plan,
-      source.planId,
-      source.productId,
-      source.subscriptionTier,
-      source.membershipTier,
-      source.passTier,
-      source.label,
-    ];
-    for (const value of values) {
-      const text = String(value || "").trim().toLowerCase();
-      if (!text || text === "free" || text === "none") continue;
-      if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
-      if (text.includes("family")) return "family";
-      if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
-      if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
-    }
-  }
-
-  return "free";
 }
 
 function toClientProfile(doc) {
