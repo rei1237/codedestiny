@@ -2788,7 +2788,7 @@ function _dfArrayCopy(v) {
   return Array.isArray(v) ? v.slice() : [];
 }
 
-var CD_SAJU_DAEWUN_YONGSHIN_FIX = 'daewun-yongshin-policy-v20260603';
+var CD_SAJU_DAEWUN_YONGSHIN_FIX = 'daewun-yongshin-policy-v20260810';
 
 function _dfUniqueElements(list) {
   var out = [];
@@ -2832,10 +2832,14 @@ function applyRuntimeYongshinPolicy(power, jong, johu) {
   var finalKijishin = eokbuKijishin;
   if (jong && jong.isJong) {
     finalYongshin = _dfUniqueElements([jong.dominant, jong.parEl].concat(johuSet.useful));
-    finalKijishin = _dfUniqueElements([whoControls(jong.dominant)].concat(johuSet.caution));
-  } else if (johuSet.useful.length) {
-    finalYongshin = _dfUniqueElements(johuSet.useful.concat(eokbuYongshin));
-    finalKijishin = _dfUniqueElements(johuSet.caution.concat(eokbuKijishin));
+    finalKijishin = _dfUniqueElements([whoControls(jong.dominant)].concat(johuSet.caution))
+      .filter(function(el) { return finalYongshin.indexOf(el) < 0; });
+  } else if (johuSet.useful.length || johuSet.caution.length) {
+    // 억부가 이미 명확히 판단한 오행은 조후로 뒤집지 않는다 (억부 우선)
+    var johuUseful = johuSet.useful.filter(function(el) { return eokbuKijishin.indexOf(el) < 0; });
+    var johuCaution = johuSet.caution.filter(function(el) { return eokbuYongshin.indexOf(el) < 0; });
+    finalYongshin = _dfUniqueElements(johuUseful.concat(eokbuYongshin));
+    finalKijishin = _dfUniqueElements(johuCaution.concat(eokbuKijishin));
   }
   power.eokbuYongshin = eokbuYongshin;
   power.eokbuKijishin = eokbuKijishin;
@@ -3918,7 +3922,7 @@ function calcPower(p){
     kijishin=[dayEl,parEl].filter(Boolean);
   }else{
     yongshin=[dayEl,parEl].filter(Boolean);
-    kijishin=[SHENG[dayEl],whoControls(dayEl)].filter(Boolean);
+    kijishin=[SHENG[dayEl],whoControls(dayEl),KE[dayEl]].filter(Boolean);
   }
   return{isStrong:isStrong,score:score,yongshin:yongshin,kijishin:kijishin,dayEl:dayEl,parEl:parEl};
 }
@@ -4167,12 +4171,11 @@ function getQuantumElType(el, p, jg, pw, jh){
   var isEokbuGood = pw && pw.yongshin.indexOf(el)>=0;
   var isEokbuBad = pw && pw.kijishin.indexOf(el)>=0;
 
-  if(isJohuGood && isEokbuGood) return 'good';
-  if(isJohuBad && isEokbuBad) return 'bad';
-  if(isJohuGood) return 'good';
-  if(isJohuBad) return 'bad';
+  // 억부 우선: 억부가 이미 판단한 오행은 조후로 뒤집지 않는다. 조후는 억부가 중립인 오행만 보정한다.
   if(isEokbuGood) return 'good';
   if(isEokbuBad) return 'bad';
+  if(isJohuGood) return 'good';
+  if(isJohuBad) return 'bad';
 
   return 'neutral';
 }
