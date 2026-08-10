@@ -28751,72 +28751,6 @@ function toggleYear(el, event){
 var _dwLifeGraphResizeObserver = null;
 var _dwLifeGraphRetryTimer = 0;
 
-function _dwLifeGraphScoreOf(pt) {
-  return pt && typeof pt.rawScore === 'number' ? pt.rawScore : (pt && typeof pt.score === 'number' ? pt.score : 50);
-}
-
-function _dwFindLifeGraphRisePivot(points) {
-  if (!Array.isArray(points) || points.length < 4) return -1;
-  for (var i = 1; i < points.length - 2; i++) {
-    var prevCount = Math.min(2, i);
-    var nextCount = Math.min(3, points.length - i);
-    if (!nextCount) continue;
-
-    var prevSum = 0;
-    for (var p = i - prevCount; p < i; p++) prevSum += _dwLifeGraphScoreOf(points[p]);
-    var nextSum = 0;
-    for (var n = i; n < i + nextCount; n++) nextSum += _dwLifeGraphScoreOf(points[n]);
-
-    var prevAvg = prevCount ? (prevSum / prevCount) : _dwLifeGraphScoreOf(points[i]);
-    var nextAvg = nextCount ? (nextSum / nextCount) : _dwLifeGraphScoreOf(points[i]);
-    var current = _dwLifeGraphScoreOf(points[i]);
-
-    if (current >= 55 && nextAvg >= prevAvg + 4 && nextAvg >= current - 6) return i;
-  }
-  return -1;
-}
-
-function _dwAdjustLifeGraphScores(points) {
-  if (!Array.isArray(points) || points.length < 2) return;
-
-  var pivot = _dwFindLifeGraphRisePivot(points);
-  if (pivot < 0) return;
-
-  var rawStart = _dwLifeGraphScoreOf(points[pivot]);
-  var laterPeak = rawStart;
-  var laterSum = 0;
-  for (var i = pivot; i < points.length; i++) {
-    var raw = _dwLifeGraphScoreOf(points[i]);
-    laterPeak = Math.max(laterPeak, raw);
-    laterSum += raw;
-  }
-
-  var laterAvg = laterSum / (points.length - pivot);
-  if (laterPeak < rawStart + 5 && laterAvg < rawStart + 3) return;
-
-  var floor = Math.max(30, Math.min(44, rawStart - 18));
-  var ceil = Math.min(94, Math.max(floor + 24, laterPeak + 6, Math.round(laterAvg + 6)));
-
-  for (var j = 0; j < pivot; j++) {
-    var base = _dwLifeGraphScoreOf(points[j]);
-    var drift = (pivot - j) * 1.5;
-    var softened = Math.round(base * 0.55 + floor * 0.45 - drift);
-    if (j > 0) softened = Math.min(softened, points[j - 1].score + 6);
-    points[j].score = Math.max(24, Math.min(58, softened));
-  }
-
-  var prev = floor;
-  for (var k = pivot; k < points.length; k++) {
-    var t = points.length - pivot > 1 ? (k - pivot) / (points.length - pivot - 1) : 1;
-    var target = floor + (ceil - floor) * t;
-    var softened = Math.round(_dwLifeGraphScoreOf(points[k]) * 0.42 + target * 0.58);
-    if (k === pivot) softened = Math.min(softened, floor + 3);
-    else softened = Math.max(softened, prev + 2);
-    points[k].score = Math.max(0, Math.min(100, softened));
-    prev = points[k].score;
-  }
-}
-
 function _dwStopLifeGraphRefreshWatch() {
   if (_dwLifeGraphResizeObserver) {
     try { _dwLifeGraphResizeObserver.disconnect(); } catch (e) {}
@@ -28890,14 +28824,14 @@ function renderLifeGraph(bazi){
       var age=dw.getStartAge();
       if(!age||age<=0)return;
       var evData=evalDaewun(gz[0],gz[1]);
-      points.push({age:age,score:evData.score,rawScore:evData.score,g:gz[0],j:gz[1],summary:evData.evalSummary});
+      points.push({age:age,score:evData.score,g:gz[0],j:gz[1],summary:evData.evalSummary});
     });
   }catch(e){}
   if(points.length<2 && Array.isArray(window.G_DAEWUN)){
     window.G_DAEWUN.forEach(function(dw){
       if(!dw || !dw.age || !dw.g || !dw.j)return;
       var evData=evalDaewun(dw.g,dw.j);
-      points.push({age:dw.age,score:evData.score,rawScore:evData.score,g:dw.g,j:dw.j,summary:evData.evalSummary});
+      points.push({age:dw.age,score:evData.score,g:dw.g,j:dw.j,summary:evData.evalSummary});
     });
   }
   if(points.length<2){
@@ -28912,17 +28846,6 @@ function renderLifeGraph(bazi){
     ctx.fillText('대운 그래프 데이터를 준비하고 있습니다', W/2, CH/2);
     return;
   }
-
-  for(var i=1; i<points.length; i++) {
-    var diff = _dwLifeGraphScoreOf(points[i]) - _dwLifeGraphScoreOf(points[i-1]);
-    if(diff > 40) points[i].rawScore = _dwLifeGraphScoreOf(points[i-1]) + 40;
-    else if(diff < -40) points[i].rawScore = _dwLifeGraphScoreOf(points[i-1]) - 40;
-    else points[i].rawScore = _dwLifeGraphScoreOf(points[i]);
-  }
-  points.forEach(function(pt){
-    pt.score = _dwLifeGraphScoreOf(pt);
-  });
-  _dwAdjustLifeGraphScores(points);
 
   var nowAge=CURRENT_AGE||30;
 
