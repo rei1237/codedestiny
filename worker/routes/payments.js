@@ -2044,7 +2044,31 @@ async function markVirtualAccountIssuedFromWebhook({ request, paymentId, body })
   });
 }
 
-async function markPaymentFailedFromWebhook({ request, paymentId, body }) {
+/* 🔴 Transaction.Failed webhook 에는 **실패 사유가 없다.**
+   본문은 {type, timestamp, data:{transactionId, paymentId, storeId}} 뿐이고, 사유는 PortOne 의
+   결제 객체(GET /payments/{id})에만 있다. 그래서 여태 DB 에 남은 failureMessage 는 우리가 만든
+   "PortOne Transaction.Failed webhook received." 한 문장뿐이었고, "결제가 왜 실패했나"를
+   물으면 답할 방법이 없었다 — 실제로 실패 9건을 조사할 때 DB 만으로는 아무것도 알 수 없었고
+   PortOne 에 직접 물어서야 "[01] 사용자가 결제를 취소 하였습니다"인 것을 알았다.
+   그 한 번의 조회를 여기서 대신 해 둔다. 실패해도 주문 상태 기록은 그대로 진행한다 —
+   진단 정보를 얻으려다 실패 기록 자체를 잃으면 더 나쁘다. */
+async function fetchPortOneFailureReason(env, paymentId) {
+  try {
+    const pg = await fetchPortOnePayment(env, paymentId);
+    const failure = pg?.rawV2?.failure || pg?.failure || null;
+    if (!failure) return null;
+    return {
+      reason: String(failure.reason || "").slice(0, 400),
+      pgCode: String(failure.pgCode || "").slice(0, 40),
+      pgMessage: String(failure.pgMessage || "").slice(0, 400),
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function markPaymentFailedFromWebhook({ request, env, paymentId, body }) {
+  const failure = env ? await fetchPortOneFailureReason(env, paymentId) : null;
   const updated = await Payment.findOneAndUpdate(
     {
       merchantUid: paymentId,
@@ -2059,9 +2083,12 @@ async function markPaymentFailedFromWebhook({ request, paymentId, body }) {
         orderState: SINGLE_PAYMENT_ORDER_STATES.FAILED,
         source: "webhook",
         rawPortOne: body,
-        failureCode: "transaction_failed",
-        failureMessage: "PortOne Transaction.Failed webhook received.",
+        // PG 가 준 코드가 있으면 그것이 정본이다(예: "01" = 사용자 취소).
+        // 못 받아왔을 때만 예전 문구로 떨어진다 — 조회 실패가 기록 자체를 지우지 않게.
+        failureCode: failure?.pgCode ? `pg_${failure.pgCode}` : "transaction_failed",
+        failureMessage: failure?.reason || failure?.pgMessage || "PortOne Transaction.Failed webhook received.",
         failureStage: "webhook_failed",
+        metadata: { portoneFailure: failure || null },
         lastErrorAt: new Date(),
       },
       $inc: { confirmAttempts: 1 },
@@ -3417,7 +3444,7 @@ async function settleReservedWebhookEvent({ request, env, eventType, paymentId, 
     } else if (eventType === PORTONE_WEBHOOK_EVENTS.VIRTUAL_ACCOUNT_ISSUED) {
       response = await markVirtualAccountIssuedFromWebhook({ request, paymentId, body });
     } else if (eventType === PORTONE_WEBHOOK_EVENTS.FAILED) {
-      response = await markPaymentFailedFromWebhook({ request, paymentId, body });
+      response = await markPaymentFailedFromWebhook({ request, env, paymentId, body });
     } else if (eventType === PORTONE_WEBHOOK_EVENTS.CANCELLED || eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED) {
       response = await markPaymentCancellationForAdminReview({
         request,
