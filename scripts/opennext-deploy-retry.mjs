@@ -1,6 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
+
+// 🔴 OpenNext 경유 배포도 프로덕션 Worker 를 갈아 끼운다. 릴리스 워크플로가 쓰는 경로는
+// 아니지만, 게이트가 없으면 "정상 경로를 우회하는 또 하나의 길"로 남는다. 빌드보다 먼저
+// 막아야 검증 없는 배포를 위해 몇 분씩 빌드하는 일이 없다.
+assertProductionDeployIsCi("OpenNext production deploy (@opennextjs/cloudflare deploy)");
 
 const rootDir = process.cwd();
 const isWindows = process.platform === "win32";

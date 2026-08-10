@@ -25,9 +25,11 @@
 - Do not write to production MongoDB without explicit user approval.
 - Do not deploy to production without explicit user approval.
 - Do not make real LLM API calls, run real payments, write to production DB, or deploy to production during ordinary coding work. Use mock/fake/stub, sandbox, local DB, or test DB validation only unless the user explicitly approves the exact live action.
-- Production promotion always needs explicit user approval for that exact run — the `[y/N]` prompt in `deploy:safe` is that approval.
-- Create a Cloudflare preview only when a release is actually intended; each run leaves a Pages deployment and a Worker version behind. `npm run deploy:check` is the no-upload way to inspect a change set.
-- Pushing to `main` deploys nothing. Git is backup, history, and the rollback reference; production is reached only by `npm run deploy:safe` (or the `deploy:production` half of the split) or the manual GitHub Actions dispatch.
+- Production is reached only by merging a PR into `main`. Merging is the user's action, and it is the approval.
+- Never push to `main` directly, never force-push a shared branch, and never bypass the branch ruleset or a failing required check.
+- Never run a production deploy locally (`wrangler deploy`, `wrangler pages deploy`, `deploy:production`, `deploy:rollback`). `scripts/lib/production-deploy-guard.mjs` blocks these — do not work around it.
+- There is no preview step before production. Merging is what makes a change live. `npm run deploy:check` is the no-upload way to inspect a change set.
+- Do not re-deploy production to test something, and do not re-run a release because a step failed. Fix it on a branch and open another PR.
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
 - Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the normal deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
 - Do not delete existing features, routes, badges, or content unless the user explicitly asks.
@@ -40,86 +42,129 @@
 - Mobile UI regressions are high risk. Preserve route behavior, safe areas, touch targets, and app payment routing.
 - 몰입형 React 운세 경험은 공용 헤더·푸터·모바일 하단 내비게이션을 렌더하지 않고, 페이지 안에서 접근 가능한 홈·뒤로가기 이탈 제어를 제공한다.
 
-## Delivery: Preview First, Then One Command
+## Delivery: Branch, PR, Merge, Deploy
 
-PR-first delivery was retired on 2026-08-08. This is a single-developer repository; the branch → PR → review → merge → deploy chain cost time and agent tokens without preventing regressions. What prevents regressions now is the pipeline: risk-scaled checks, a real preview the user inspects, and a production promotion that verifies itself and rolls back on failure.
-
-Work happens on `main` by default. `main` has no branch protection and no ruleset — nothing rejects a direct push.
+The 2026-08-08 "work on main, ship with `deploy:safe`" contract is **retired**. It made the working tree the deployable unit, and `wrangler` pushes a working tree rather than a commit — so what production ran could not be named, and merged work vanished more than once. Production is now defined by a commit that exists on `main`, and `main` is only reachable through a merged PR. GitHub is the source of truth for what is deployed.
 
 ```
-edit on main → commit
+git checkout -b fix/xxx → 코드 수정 → commit → push
    ↓
-npm run deploy:safe         checks → build → Pages preview + Worker preview version → smoke
-                            → opens the browser → WAITS at a [y/N] prompt
-   ↓                        (the user inspects the preview, then answers)
-                            y → git push origin <branch> → Worker 100% → Pages production
-                                → health check (auto-rollback on failure)
-                            N → nothing is promoted; the preview URL stays available
+Pull Request
    ↓
-git push origin main        already done by the promotion; only needed if you declined
+PR CI (자동 · 변경 경로에 따라 강도가 갈린다 · 배포하지 않는다)
+   fast     문구·CSS·이미지·문서          → typecheck · lint
+   standard 일반 프론트엔드               → + build
+   critical 결제·인증·Worker·DB·배포설정   → + 전체 테스트 · 배포 가드
+   ↓
+사용자가 Merge            ← 이 행동이 프로덕션 배포 승인이다 (= 머지가 곧 라이브)
+   ↓
+push to main
+   ↓
+Release Cloudflare Pages and Worker (자동)
+   github.sha 체크아웃 → 1회 빌드 → Worker 100% → Pages production
+   → 스모크 → Pages/Worker SHA 대조 → PR 에 결과 코멘트
+   실패하면 Pages·Worker 를 함께 자동 롤백
 ```
 
-Promotion pushes HEAD to `origin` first, so the commit Cloudflare labels always exists on GitHub. A failed push
-aborts the promotion before production is touched (the remote is ahead — `git pull --rebase` and re-run).
-`--no-push` skips it deliberately. Every Pages deployment and Worker version is labelled
-`<stage> <sha7> <commit subject>`, e.g. `prod b914081 fix(saju): give eokbu priority over johu`.
+`main` has a branch ruleset: direct pushes are rejected, force-pushes and deletion are blocked, and the PR CI checks are required.
 
-### Verifying paid features on a preview
+### Verification tiers
 
-A preview's `/api` is not a sandbox. `public/_worker.js` proxies it to the production Worker, which reads the production database — there is no staging DB. So a signed-out preview shows the payment dialog on every paid screen and nothing can be verified.
+Every PR is not worth the same amount of CI. A copy tweak and a payment-route change get different treatment, decided by **changed file paths** — never by an agent's judgement of how risky something feels.
 
-`deploy:safe` opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`. Put those two variables in `.env.local` once — no manual seed step needed after that:
+| Tier | Paths | What runs |
+|---|---|---|
+| `fast` | copy, CSS, images, docs, `index.html`, sitemap/robots/ads.txt | typecheck · lint |
+| `standard` | `app/` `components/` `src/` `lib/` `js/`, `package.json`, `next.config`, `tsconfig` | + `build:cf` · `build:worker` · worker size budget |
+| `critical` | payment, auth, `worker/`, `server/`, DB schema and migrations, `wrangler.*`, `.env*`, `.github/workflows/`, `package-lock.json` | + full test suite · deployment-config guards · ads.txt · secret scan |
 
-```bash
-npm run seed:preview-test-account   # optional: run once by hand to sanity-check credentials
-```
+- **`scripts/lib/change-risk.mjs` is the only classifier.** `scripts/resolve-ci-tier.mjs` maps its two axes (`level`, `deepRequired`) onto a tier and nothing more. `deploy-safe` and `check-changed` read the same module. Writing a second path list anywhere means CI and the release can disagree about the same commit.
+- Both axes are consulted. `app/hooks/useCoinGate.ts` is `level=medium` because it lives under `app/`, but it is the single-purchase hook, so `deepRequired` lifts it to `critical`. Either axis alone leaves a hole.
+- **If the changed-file list cannot be resolved, the tier is `critical`.** "Unknown" is not "safe".
+- 🔴 All four jobs (`Risk tier`, `Typecheck and lint`, `Build Pages and Worker`, `Critical checks`) **always run**. What the tier skips is steps, not jobs. A job gated by a top-level `if` never reports, and a required check that never reports blocks every merge forever. The job names are the ruleset's required check names — `verify:worker-single-deploy` fails if they drift.
+- The `full-ci` label lifts a PR to `critical`. Use it for changes the paths cannot see but you can — a shared utility edit that reaches payment or auth indirectly, for instance. There is no label that lowers a tier; that would be a button for turning the gate off.
+- `paid-flow-gates.yml` is separate from the tiers: on `pull_request` it runs the 36 payment/auth/fortune verifiers when those specific files change. It is not a required check.
+  - 🔴 The six static shells (`index.html` plus its five `public/**` mirrors) were added to its paths on 2026-08-11. The payment dialog has three renderers and the **source of truth is the shell inline one** (`_cdChooseServicePaymentMode`, styles in `_cdEnsureDirectPaymentStyles`) — yet that was the one renderer missing from the trigger list, so deleting the pass card or rewording the three options never woke `verify:payment-choice-parity`. The shell doubles as home content, so its PR CI tier stays `fast`; only the payment verifiers are woken here.
 
-`openPreviewSignedIn()` in `scripts/deploy-safe.mjs` re-runs this script automatically, as an isolated child process, right before every signed-in preview open — so the account is guaranteed fresh on every `deploy:safe`/`deploy:preview`, not just the first time. It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. It also seeds one `ProfileCard` with a fixed birth date (1990-01-01 09:00, solar) and sets it as the account's `destinyProfilesCurrentId`, so paid screens have real profile data selected on first load instead of an empty birth-date form. This is the one scoped exception to "the pipeline never performs database writes" — the child process loads its own `MONGO_URI` from `.env.local`; `deploy-safe.mjs`'s own process env, and everything else it spawns (build/lint/typecheck), never sees it. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly and cannot be injected; the cookie carries no `Domain`, so it binds to the preview host only and never mixes with a production session. Without the two variables the preview still opens, just signed out — and the seed step is skipped entirely.
+### What runs where
 
-What that account does **not** cover:
+| Command | Local | CI |
+|---|---|---|
+| `npm run deploy:check` | ✅ inspect a change set, uploads nothing | — |
+| `npm run deploy:preview` | ✅ local dev tool, not part of the flow | — |
+| `npm run deploy:smoke -- --base <url>` | ✅ read-only | ✅ |
+| `npm run deploy:production` / `deploy:rollback --yes` | ❌ blocked | ✅ |
+| `npm run deploy:cf:worker` / `deploy:cf:pages` / `deploy:cf:opennext` | ❌ blocked | ✅ |
+
+`scripts/lib/production-deploy-guard.mjs` enforces the ❌ rows: anything that writes to production exits unless `GITHUB_ACTIONS=true`. The break-glass path, for when GitHub Actions itself is unavailable, needs **both** `CD_BREAK_GLASS=1` and an explicit `--break-glass` flag, and prints a warning telling you to re-land the change through a PR. Skip that step and the next real release silently reverts your hotfix.
+
+Production Cloudflare credentials live in GitHub Actions secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_CACHE_PURGE_TOKEN`, `CLOUDFLARE_ZONE_ID`). Do not add them to repository files.
+
+### One SHA for both layers
+
+Pages and Worker must never point at different code — that is the shape of every payment and access-state incident this repo has had. Three things hold the invariant:
+
+1. The release checks out `ref: ${{ github.sha }}`, not a branch name, so a merge landing mid-release cannot change what ships.
+2. `CD_ALLOW_EMPTY_CHANGESET=true` makes the release treat the whole tip as the change set, so the Worker is always uploaded and promoted alongside Pages instead of being skipped by a change-set heuristic.
+3. After deploying, `npm run verify:deployed-sha` reads `<origin>/version.json` (Pages) and `<origin>/api/version` (Worker) and fails the release unless both report the release SHA. It retries for edge propagation; a mismatch that survives the retries is a real mismatch.
+
+Both SHAs are injectable and inspectable:
+
+- Pages: `NEXT_PUBLIC_GIT_SHA` comes from `GITHUB_SHA` in `next.config.mjs`; `scripts/write-version-json.mjs` writes `/version.json`. In a browser, `/version.json` answers "what is deployed", and on React routes `window.__cdBuild` answers the same.
+- Worker: the release passes `--var COMMIT_SHA:<sha>`; `/api/version` returns `{ gitSha, commit, commitShort, environment }` and contains no secrets.
+
+### Verifying paid features
+
+There is no preview environment, and there never really was one. `public/_worker.js` proxies a preview's `/api` to the production Worker, which reads the production database — no staging DB exists. A signed-out preview showed the payment dialog on every paid screen and verified nothing, and a Worker preview version is not routed, so the preview URL's `/api/*` was answered by the Worker already live. The changes most worth checking were the ones it could not exercise.
+
+Payment and auth confidence comes from three places instead:
+
+1. **Before merge** — the `critical` tier runs the full test suite, and `paid-flow-gates.yml` runs the 36 payment/auth/fortune verifiers whenever those files change. They are source- and jsdom-level guards, so they hold without touching a real payment.
+2. **During the release** — the job builds, uploads a Pages deployment, and smokes it before promoting anything.
+3. **After promotion** — production smoke, then `verify:deployed-sha` on both layers. Any failure rolls Pages and the Worker back together.
+
+`npm run deploy:preview` still exists as a local developer tool and is not part of the flow. It opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`, re-seeding that one account through `scripts/seed-preview-test-account.mjs` as an isolated child process. That is the one scoped exception to "the pipeline never writes to the database" — the child loads its own `MONGO_URI`, and `deploy-safe.mjs`'s process env never sees it. Running it leaves a Pages deployment and a Worker version on Cloudflare, so do not run it out of habit.
+
+If you do use it, remember what that account does **not** cover:
 
 - Profile card add/delete is `passExcluded` for every tier including family, so it still opens the payment dialog. That is the policy, not a bug.
 - Premium consultations above 300 coins are fair-use limited per pass cycle (`resolveFamilyPremiumQuota`).
 - **`points` is not a currency.** Nothing in `worker/lib/access-control.js` reads it and no path deducts it. Only the pass (`profileSubscription`) and moonstones (`membershipCreditLots`) open access. Granting points to a test account buys nothing.
 
-Anything you do on a preview writes to production: real unlock records, real ledger rows. Treat it as production with a comfortable account, not as a test environment.
+Anything done on a preview writes to production: real unlock records, real ledger rows.
 
-🔴 **A preview is created only as part of an actual release.** Do not run `deploy:preview` as a routine verification step — every run uploads a Pages deployment and a Worker version to Cloudflare. `deploy:safe` is the default because it puts the preview immediately before the promotion decision, with a human gate in between. Use `deploy:check` when you only want to inspect a change set.
+### Verification depth
 
-- `npm run deploy:check` prints the change set, risk, deep-verification hits, and the live Cloudflare configuration. It uploads nothing.
-- `npm run deploy:preview` / `npm run deploy:production` split the same pipeline across two commands. Reach for the split only when the inspection has to happen in a separate session from the promotion; otherwise use `deploy:safe`.
-- `npm run deploy:production` requires the recorded preview to match `HEAD` and to have passed smoke. It prompts before promoting unless `--yes` is passed. Declining is a clean exit, not an error.
-- `npm run deploy:rollback -- --list` shows recent Pages deployments and Worker versions; `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]` rolls back and then smokes production.
-- The GitHub Actions **Release Cloudflare Pages and Worker** workflow is the backup path — `Run workflow` with `mode: preview` or `mode: production`. It has no push trigger.
-
-### Verification depth instead of review
-
-`scripts/lib/change-risk.mjs` remains the single source of truth and still judges two independent axes. Run `node scripts/lib/change-risk.mjs <file...>` to see the verdict for a change set.
+`scripts/lib/change-risk.mjs` remains the single source of truth and judges two independent axes. Run `node scripts/lib/change-risk.mjs <file...>` to see the verdict for a change set.
 
 | Axis | Meaning |
 |---|---|
 | `level` (low/medium/high) | How deep the ordinary checks go |
 | `deepRequired` | Paths a preview smoke cannot validate — auth/login, payment/entitlement, DB schema and migrations, and the deployment pipeline itself |
 
-`deepRequired` used to mean "a human must review this". It now means the pipeline runs the full `deploy:critical` regression regardless of `level`, and `deploy:production` names the offending paths and asks before promoting. The reasoning is unchanged: auth and payment bugs return HTTP 200 while being wrong, migrations cannot be rolled back, and a broken pipeline destroys the recovery path.
+`deepRequired` forces the full `deploy:critical` regression regardless of `level`. The reasoning is unchanged: auth and payment bugs return HTTP 200 while being wrong, migrations cannot be rolled back, and a broken pipeline destroys the recovery path. `worker/**` remains `level=high`, so `deploy:critical` runs on it either way.
 
-The two axes stay independent. `worker/**` remains `level=high`, so `deploy:critical` runs on it either way.
+### Failure and rollback
 
-### Parallel sessions, independent deploys
+A release reports each stage separately in the Actions job summary and on the merged PR — Pages, Worker, smoke, SHA verification. One layer succeeding is never reported as success.
 
-Run each concurrent session in its own worktree. Two sessions share the main checkout only when they are editing the same files; otherwise split.
+- **During a release**: `deploy-safe` rolls Pages back first, then the Worker (the reverse of the promotion order), and says so loudly if only one side could be reverted.
+- **After a release**: Actions → *Release Cloudflare Pages and Worker* → Run workflow → `mode: rollback`, with `pages_deployment_id` and/or `worker_version_id`. The rollback smokes production afterwards. List candidate targets locally with the read-only `npm run deploy:rollback -- --list`.
+- Every production deployment is labelled `prod <sha7> <commit subject>`, so `npx wrangler deployments list` and the Pages dashboard both answer "which commit is live".
+- Tag known-good payment/auth states (`git tag -a stable-payments-<date>`) so a rollback target is nameable months later.
+
+### Parallel sessions
+
+Run each concurrent session in its own worktree so builds and previews never block each other.
 
 ```powershell
 powershell -File scripts/create-safe-worktree.ps1 -Slug <name>
 ```
 
-Work there, ship from there, and merge back with a plain `git merge` — no PR. Sessions never wait on each other to build or preview.
+Each worktree gets its own branch and its own PR. They merge through GitHub, not through a local `git merge` into `main`.
 
-A new worktree is usable immediately, which is what makes splitting the default rather than a chore:
-
-- `node_modules` is linked, not copied. It is 1.2 GB here, so nine worktrees with real copies would be 11 GB — and three of them were exactly that before this was automated. `.claude/settings.json` sets `worktree.symlinkDirectories` for worktrees Claude Code creates; `create-safe-worktree.ps1` makes a junction for the ones you create yourself.
+- `node_modules` is linked, not copied. It is 1.2 GB here, so nine worktrees with real copies would be 11 GB.
 - `.env.local` and `.env.cloudflare.local` are **hard-linked**, not copied, so there is one copy of each secret on disk and a rotation reaches every worktree at once.
-- Cloudflare credentials also resolve without any of that: `deploy-safe` reads deploy-prefixed keys (`CLOUDFLARE_`/`CF_`/`CD_`) from the primary worktree, so a worktree can promote even with no env file of its own.
 - `worktree.baseRef` is `fresh`, so a new worktree branches from `origin/main` rather than inheriting a stale local HEAD.
 
 **Removing a worktree: break the link first.** `node_modules` is a junction to the primary worktree's real directory, so deleting the worktree without unlinking risks taking the shared 1.2 GB — and every other worktree — with it.
@@ -137,30 +182,7 @@ git branch -D wt/<name>
 npm run worktree:status
 ```
 
-It reads real git state — uncommitted changes plus commits not yet in `origin/main` — across every worktree and reports files touched by more than one. Nothing to register or keep updated, so it cannot drift out of date the way a manual claim file does. Overlap is not automatically wrong; it means those worktrees must merge before the second one promotes.
-
-**What is parallel and what is serial:**
-
-| Stage | Concurrency | Why |
-|---|---|---|
-| `deploy:check`, checks, `build:cf` | fully parallel | each worktree has its own `dist/`, `out/`, `.next/` |
-| Preview upload + smoke | fully parallel | every worktree gets its own `preview-<branch>-<sha>` Pages URL and Worker preview alias |
-| **Production promotion** | **serialized** | there is exactly one production. Two promotions cannot both win |
-
-- `.deploy-state/state.json` is **per-worktree** — it records *your* preview artifact. Sharing it would let one worktree's preview overwrite another's, and the next promotion would ship the wrong artifact with a valid-looking fingerprint.
-- `promote.lock` lives in the **primary** worktree and is held only during promotion and rollback, never during build or preview, and never while the `[y/N]` prompt is waiting. A blocked worktree is told which pid, which worktree, and since when.
-
-**The regression guard is the important part.** Serialization alone does not prevent worktree B from erasing what worktree A just shipped — `wrangler` uploads the working tree, not a commit, so B's clean tree and green tests say nothing about A's work. Before promoting, `deploy-safe` reads the live commit from `/version.json` and `/api/version` and refuses unless your HEAD contains it:
-
-```
-Worker is live at 4f2a1c9b3d51, and your HEAD does not contain it.
-  Promoting now would roll production back to before that deploy — another worktree shipped it.
-  Run: git fetch origin && git merge 4f2a1c9b3d51
-```
-
-This is what actually stops the 2026-08-01 failure, where four merged changes vanished. Live is the reference, not `origin/main`, because local-first deploys mean production can be ahead of `origin/main`. `--allow-regression` overrides it and is only correct for a deliberate revert. The older `assertWorkerBaseIsFresh` (`--allow-stale`) still runs at the preview stage against `origin/main` as the earlier, cheaper warning.
-
-After promoting, push so the other worktrees can merge you: `git push origin main`.
+It reads real git state — uncommitted changes plus commits not yet in `origin/main` — across every worktree and reports files touched by more than one. Overlap is not automatically wrong; it means those branches will conflict and should be merged in a deliberate order.
 
 ## Development Workflow
 

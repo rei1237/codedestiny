@@ -268,12 +268,22 @@ Server/Worker secrets or vars:
 
 ## 배포
 
-- Pages: `npm run deploy:cf:pages`
-- Worker: `npm run deploy:cf:worker`
-- OpenNext: `npm run deploy:cf:opennext`
-- Worker versions upload: `npm run deploy:cf:versions`
+🔴 **2026-08-11 개정 — 프로덕션 배포는 GitHub Actions 에서만 일어난다.** `deploy:cf:pages`,
+`deploy:cf:worker`, `deploy:cf:opennext`, `deploy:production`, `deploy:rollback --yes` 는 전부
+`scripts/lib/production-deploy-guard.mjs` 로 막혀 있고, 로컬에서 실행하면 exit 1 이다.
 
-### Local safe deployment — what each stage guarantees
+| 목적 | 방법 |
+|---|---|
+| 프로덕션 배포 | feature 브랜치 → PR → PR CI 통과 → **사용자가 머지** → `Release Cloudflare Pages and Worker` 자동 실행 |
+| 프리뷰 확인 | PR 에 `preview` 라벨 → `PR Preview` 워크플로가 URL 을 PR 에 코멘트 |
+| 변경 집합 점검(업로드 없음) | `npm run deploy:check` |
+| 배포된 SHA 확인 | `npm run verify:deployed-sha -- --sha=<commit>` · 브라우저에서 `/version.json`(Pages) · `/api/version`(Worker) |
+| 롤백 | Actions → Release Cloudflare Pages and Worker → Run workflow → `mode: rollback` (`pages_deployment_id` / `worker_version_id`). 후보 목록은 `npm run deploy:rollback -- --list`(읽기 전용) |
+| 비상 탈출구(Actions 사용 불가 시) | `CD_BREAK_GLASS=1 npm run deploy:cf:worker -- --break-glass` — 이렇게 나간 변경은 **반드시 PR 로 다시 올려야** 다음 릴리스가 되돌리지 않는다 |
+
+`deploy:cf:versions`(raw `wrangler versions upload`)는 참조하는 곳이 없고 게이트도 없어 2026-08-11 에 제거했다.
+
+### Release stages — what each stage guarantees
 
 Cloudflare read-only API inspection on 2026-08-04 confirmed the live Pages
 project settings: project `codedestiny`, GitHub source, production branch

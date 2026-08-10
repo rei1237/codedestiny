@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 
 /*
- * Local Cloudflare release pipeline: check -> preview -> smoke -> production -> rollback.
+ * Cloudflare release pipeline: check -> preview -> smoke -> production -> rollback.
+ *
+ * 🔴 프로덕션 단계(production / rollback)는 GitHub Actions 안에서만 실행된다. 로컬에서는
+ * check·preview·smoke 까지만 돌아가고, 승격을 시도하면 production-deploy-guard 가 막는다.
+ * 프로덕션에 도달하는 경로는 하나뿐이다: PR → CI → main 머지 → 릴리스 워크플로.
+ *
  * The pipeline never performs payment or LLM calls. It also never holds production DB
  * credentials itself (loadEnv() deliberately excludes MONGO_URI, AUTH_*, PORTONE_* so
  * build/lint/typecheck children never see them) — with one scoped exception: when
@@ -20,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { classifyFile, riskOf, requiresDeepVerification } from "./lib/change-risk.mjs";
 import { assertWorkerBaseIsFresh } from "./lib/worker-deploy-base-guard.mjs";
+import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
 
 const root = process.cwd();
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -861,6 +867,9 @@ function pushHeadToOrigin(value) {
 
 async function promote(value, state, yes) {
   if (!yes) throw new Error("Production promotion requires --yes.");
+  // 🔴 프로덕션 승격은 GitHub Actions 안에서만 일어난다. 로컬에서 부르면 여기서 끝난다.
+  //    (preview·check·smoke 는 그대로 로컬에서 돌아간다 — 막는 것은 프로덕션 쓰기뿐이다.)
+  assertProductionDeployIsCi("Production promotion (Worker + Pages)");
   await assertPromotionIsNotRegression(value);
   pushHeadToOrigin(value);
   assertArtifact(state);
@@ -1035,8 +1044,11 @@ async function listRollbackTargets(value) {
 }
 async function rollbackStage() {
   const value = await checkStage();
+  // 목록 조회는 프로덕션을 바꾸지 않으므로 가드 앞에 둔다. 어느 버전으로 되돌릴지 고르는 일은
+  // 로컬에서 할 수 있어야 한다 — 되돌리는 실행만 GitHub Actions 로 보낸다.
   if (listOnly) return listRollbackTargets(value);
   if (!autoYes) throw new Error("Rollback requires --yes. Run npm run deploy:rollback -- --list to see the targets first.");
+  assertProductionDeployIsCi("Production rollback");
   const state = readState();
   // --to / --worker-version 이 있으면 기록된 직전 버전 대신 그 버전으로 되돌린다.
   const pagesTarget = cli.values.get("to") || state?.rollback?.pagesDeploymentId || "";

@@ -220,16 +220,20 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 - 5줄 이상 변경 시 코딩 전 계획(plan) 우선
 - 코딩 후: `lint` → `typecheck` → 관련 `verify:*` 스크립트 실행 → 변경 파일만 `git add` → Conventional Commits
-- **배포 흐름 (2026-08-08 개정 — PR 정책 폐기)**: `main` 에서 직접 작업하고 커밋한 뒤 **`npm run deploy:safe`** → 브라우저가 열리면 사용자가 preview 를 확인하고 `[y/N]` 에 답 → `y` 면 승격, `N` 이면 아무것도 안 나감 → `git push origin main`. **main 에 push 해도 아무것도 배포되지 않는다.** Pages 와 Worker 는 `deploy-safe.mjs` 하나가 순서대로 올린다(`deploy:cf:worker` 를 따로 부르지 않는다). 상세 계약은 [AGENTS.md](AGENTS.md) 의 "Delivery: Preview First, Then One Command".
-  - 🔴 **preview 는 실제 배포 직전에만 만든다.** 매 실행마다 Cloudflare 에 Pages 배포와 Worker 버전이 쌓이므로 `deploy:preview` 를 점검용으로 돌리지 않는다. 변경 내용만 보고 싶으면 업로드가 없는 `npm run deploy:check` 를 쓴다.
-  - **프로덕션 승격은 매번 사용자 승인을 받는다.** `deploy:safe` 의 `[y/N]` 프롬프트가 그 자리이며, 거절은 실패가 아니라 정상 종료다.
-  - 결제·인증·DB 스키마·배포 인프라 경로가 걸리면 risk level 과 무관하게 `deploy:critical` 전체가 돌고, 승격 직전에 어떤 경로가 왜 위험한지 나열한 뒤 확인을 받는다(`scripts/lib/change-risk.mjs` 의 `deepRequired`).
+- 🔴 **배포 흐름 (2026-08-11 개정 — PR 기반 CI/CD 로 전환)**: `main` 직접 작업·직접 배포는 **폐기**됐다. 흐름은 하나다.
+  ```
+  feature 브랜치 → 커밋 → push → PR → PR CI 자동 검증 → 사용자가 Merge
+    → main push → "Release Cloudflare Pages and Worker" 가 그 SHA 로 자동 배포 (= 머지가 곧 라이브)
+  ```
+  - **`main` 에 직접 push 할 수 없다** — 브랜치 룰셋이 막는다. 모든 변경은 PR 을 거친다.
+  - **로컬에서 프로덕션 배포는 불가능하다** — `scripts/lib/production-deploy-guard.mjs` 가 `deploy:safe` 승격·`deploy:rollback`·`deploy:cf:worker`·`deploy:cf:pages`·`deploy:cf:opennext` 를 모두 막는다. 로컬에 남는 것은 `deploy:check`(업로드 없음)와 `deploy:preview`·`deploy:smoke` 뿐이다.
+  - **Pages 와 Worker 는 항상 같은 SHA 로 나간다.** 릴리스는 `github.sha` 를 체크아웃해 한 번 빌드하고, 배포 후 `npm run verify:deployed-sha` 가 `/version.json`(Pages)과 `/api/version`(Worker)을 읽어 그 SHA 와 대조한다. 하나라도 다르면 릴리스는 실패다.
+  - 결제·인증·DB 스키마·배포 인프라 경로가 걸리면 risk level 과 무관하게 `deploy:critical` 전체가 돈다(`scripts/lib/change-risk.mjs` 의 `deepRequired`).
   - 작업 중 취약점, 보안 위험, 재현 가능한 버그를 발견하면 즉시 사용자에게 보고하고, 필요하면 다른 세션에서 분리 디버깅할 수 있도록 위험도와 짧은 제안도 함께 남긴다.
-  - 판단이 애매하면 배포하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
-- 🔴 **워커 배포는 커밋이 아니라 워킹트리를 민다 — 낡은 베이스면 남의 워커 커밋이 사라진다**: `wrangler deploy` 는 CI 를 안 거치고 현재 트리를 그대로 프로덕션에 올린다. 로컬이 주 배포 경로가 된 지금은 더 중요해졌다. 그래서 베이스가 낡았으면 그 사이 main 에 머지된 `worker/`·`lib/` 변경이 **즉시 조용히 증발**한다(2026-08-01 하루에 서로 다른 세션에서 3회 발생 — #222·#223·#224·#226 이 각각 사라졌다). `git status` 가 깨끗한 것과 베이스가 최신인 것은 **별개 문제**라 눈으로는 안 잡힌다.
-  - 이제 `scripts/lib/worker-deploy-base-guard.mjs` 가 배포 직전 자동으로 막는다 — "내 HEAD 에 없는데 origin/main 에는 있는 `worker/`·`lib/` 커밋"이 하나라도 있으면 사라질 커밋 목록과 함께 exit 1. 내 변경은 안 잡히고(오탐 없음), `scripts/`·`.github/` 만 바뀐 커밋도 안 잡힌다. 막히면 `git rebase origin/main` → verify 재실행 → 재배포. 의도한 롤백이면 `-- --allow-stale`.
-  - 배포에는 `--message "<sha> @<branch>"` 가 자동으로 붙는다. `npx wrangler deployments list` 로 **라이브 버전이 어느 커밋인지 확인**할 수 있다(예전엔 전부 `-` 라 "지금 뜬 게 내 코드인가"를 따질 방법이 없었고, 그게 사고를 키웠다).
-  - 가드 자체는 `npm run verify:deploy-base-guard` 가 임시 저장소를 만들어 차단·통과·오탐없음까지 실제 실행으로 검증한다(CI 포함).
+  - 판단이 애매하면 머지하지 말고 안내를 택한다(회귀 위험 상시 점검 원칙 우선).
+- 🔴 **낡은 베이스 문제는 CI 배포로 근본 해소됐다 — 되돌리지 말 것**: 예전에는 `wrangler deploy` 가 커밋이 아니라 **워킹트리**를 밀어서, 베이스가 낡으면 그 사이 머지된 `worker/`·`lib/` 변경이 조용히 증발했다(2026-08-01 하루에 3회, #222·#223·#224·#226). 지금은 릴리스가 `github.sha` 를 체크아웃해 배포하므로 워킹트리라는 개념 자체가 없다.
+  - `scripts/lib/worker-deploy-base-guard.mjs` 는 로컬 preview 단계의 조기 경보로 남아 있다(`--allow-stale` 로 우회). 가드 자체는 `npm run verify:deploy-base-guard` 가 검증한다.
+  - 배포에는 `<stage> <sha7> <커밋 제목>` 라벨이 붙는다. `npx wrangler deployments list` 로 라이브 버전이 어느 커밋인지 확인할 수 있다.
 - 🔴 **`_next/static` 404 = 파일 부재가 아닐 수 있다**: Pages 배포 전환 틈새에 나간 404 를 Cloudflare 가 `max-age=172800`(2일)로 캐시해, 오리진에 파일이 멀쩡해도 그 URL 만 이틀간 죽는다. HTML 은 `no-store` 라 새로고침해도 같은 죽은 URL 을 다시 요청한다 — **롤백해도 안 고쳐진다**(내용이 같으면 해시가 같아 같은 URL 을 가리킴). 판별은 `curl <url>` vs `curl <url>?cdcb=1` 로 하고, 다르면 엣지 캐시 오염이다. 배포 파이프라인에 가드 2종이 있다: 배포 전 `ensure:pages-single-deploy`(CF 프로덕션 Git 자동빌드가 켜지면 이중 배포 → 청크 해시 불일치, 자동으로 되끔), 배포 후 `verify:deployed-assets`(참조 자산 전량 200 확인, 죽었으면 잡 실패). 클라이언트 자가복구는 `app/layout.js` 인라인 패치(스타일시트는 error 이벤트가 리스너보다 먼저 끝나므로 사후 스윕이 필수).
   - **근본 차단**: Cache Rules 의 `URI Path starts with /_next/static/` 규칙에서 `Edge TTL → status code 404 → **No store**` 를 건다. 🔴 **"Bypass cache" 가 아니다** — 둘은 다른 계층이다. `Bypass cache` 는 캐시 **적격성**(`cache:false`) 설정이라 매칭되는 **모든** 응답(200 포함)이 캐시에서 빠지고, 내용 해시가 박힌 불변 자산이 매 요청 오리진까지 간다. 우리가 원하는 건 404 만 저장 안 되게 하는 것이므로 상태코드별 TTL 을 쓴다. API 값은 `edge_ttl.status_code_ttl: [{ status_code: 404, value: -1 }]` 이고 **`-1` = no-store, `0` = no-cache** 다(값을 양수로 넣으면 그 초만큼 404 를 캐시한다 — 2026-08-08 에 이 규칙이 `31536000`(1년)으로 들어가 있어 릴리스가 연속 실패했다. 이름은 `next-static-404-no-store` 인데 동작이 정반대였다).
     - 토큰: `CLOUDFLARE_PURGE_TOKEN` 에 Zone/Cache Rules 권한이 있다(2026-08-08 부여). 사후 대응인 자동 퍼지는 `CLOUDFLARE_CACHE_PURGE_TOKEN`·`CLOUDFLARE_ZONE_ID` GitHub 시크릿으로 이미 배선돼 있다 — 없으면 릴리스가 "퍼지 자격 없음"만 찍고 스모크에서 죽는다.
@@ -239,17 +243,35 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **파일 검색·스캔**(Glob, Grep, 코드베이스 탐색): `claude-haiku-4-5-20251001` 고정 — 검색은 정확도·속도 충분, 사용자 요청 여부 무관 반드시 Haiku 사용 및 안내 필수
   - **커밋 메시지·코드 리뷰·일상 대화**: `claude-haiku-4-5-20251001` 고정 — 토큰 효율성과 빠른 응답 속도 우선
 
-## Delivery Contract (2026-08-08 — PR 정책 폐기)
+## Delivery Contract (2026-08-11 — PR 기반 CI/CD)
 
-- This section supersedes any older PR-first, worktree-only, or Worker auto-deploy wording elsewhere in this file. The full contract lives in [AGENTS.md](AGENTS.md); this is the summary.
-- Work on `main` directly. There is no branch protection, no ruleset, and no PR requirement. Worktrees (`scripts/create-safe-worktree.ps1`) exist for parallel sessions only — they are filesystem isolation, not a review gate, and merge back with a plain `git merge`.
-- Ship with `npm run deploy:safe`: checks → build → Pages preview + Worker preview version → smoke → opens the browser → waits at a `[y/N]` prompt while the user inspects → promotes on `y`. `git push origin main` afterwards is backup only — **pushing deploys nothing**. The `deploy:preview` + `deploy:production` split exists for when inspection and promotion happen in different sessions.
-- A preview is created only as part of a real release; each run leaves a Pages deployment and a Worker version on Cloudflare. Use `deploy:check` for a no-upload inspection.
-- Production promotion needs explicit user approval for that exact run — the `[y/N]` prompt is that approval.
-- `scripts/lib/change-risk.mjs` judges two independent axes: `level` (how deep the ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level` and makes `deploy:production` list the risky paths before promoting. `worker/**` stays `level=high` either way.
-- Rollback: `npm run deploy:rollback -- --list` to see targets, then `-- --yes --to=<pagesDeploymentId> [--worker-version=<id>]`. The rollback smokes production afterwards.
-- Backup path: the GitHub Actions **Release Cloudflare Pages and Worker** workflow, `Run workflow` with `mode: preview` or `mode: production`. It has no push trigger by design.
-- Do not run real LLM API calls, real payments, production DB writes, production Pages/Worker deploys, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
+- This section supersedes every older delivery rule in this file, including the 2026-08-08 "PR 정책 폐기 / work on main / ship with `deploy:safe`" contract. That contract is retired. The full version lives in [AGENTS.md](AGENTS.md); this is the summary.
+- **GitHub is the source of truth for production.** Production only ever runs a commit that exists on `main`, and `main` is only reachable through a merged PR.
+- Never work on `main` directly. Branch (`feature/*`, `fix/*`, `refactor/*`, `chore/*`), commit, push, open a PR. A branch ruleset rejects direct pushes to `main`.
+- 🔴 **PR CI 는 변경 경로에 따라 강도가 갈린다** (`.github/workflows/pr-ci.yml`). 모든 PR 에 같은 검사를 돌리면 CSS 한 줄에 전체 회귀를 기다리게 되고, 그러면 게이트를 우회할 방법을 찾게 된다. 반대로 전부 가볍게 하면 결제·인증이 무방비가 된다.
+
+  | 티어 | 걸리는 경로 | 도는 검사 |
+  |---|---|---|
+  | `fast` | 문구·CSS·이미지·문서·`index.html`·sitemap | typecheck · lint |
+  | `standard` | `app/` `components/` `src/` `lib/` `js/` · `package.json` · `next.config` | + `build:cf` · `build:worker` · 워커 크기 |
+  | `critical` | **결제 · 인증 · `worker/` · `server/` · DB 스키마·마이그레이션 · `wrangler.*` · `.env*` · `.github/workflows/` · `package-lock.json`** | + 전체 테스트 · 배포 설정 가드 · ads.txt · 시크릿 스캔 |
+
+  - **판정 정본은 `scripts/lib/change-risk.mjs` 하나다.** `scripts/resolve-ci-tier.mjs` 는 그 두 축(`level`, `deepRequired`)을 티어로 **매핑만** 한다. 배포 파이프라인(`deploy-safe`)과 `check-changed` 도 같은 모듈을 쓴다 — 여기에 경로 목록을 다시 쓰면 CI 와 배포가 같은 커밋을 다르게 판정하고, 그 드리프트가 곧 "CI 는 초록인데 배포에서 터지는 게이트"가 된다.
+  - `deepRequired` 를 `level` 과 **함께** 본다. `app/hooks/useCoinGate.ts` 는 `app/` 이라 `level=medium` 이지만 단건 결제 훅이라 `critical` 이어야 한다. 한 축만 보면 구멍이 난다.
+  - **변경 파일을 못 구하면 `critical` 로 간다**(fail closed). "모른다"를 "안전하다"로 읽지 않는다.
+  - 🔴 **네 잡(`Risk tier`·`Typecheck and lint`·`Build Pages and Worker`·`Critical checks`)은 티어와 무관하게 항상 실행된다.** 건너뛰는 것은 잡이 아니라 그 안의 스텝이다. 잡 자체를 `if` 로 막으면 브랜치 룰셋이 오지 않는 체크를 기다리며 머지를 영영 막는다. 잡 이름 = 룰셋의 필수 체크 이름이므로 바꿀 때 룰셋도 함께 고친다(`verify:worker-single-deploy` 가 감시).
+  - **라벨 탈출구**: `full-ci` 는 티어를 `critical` 로 올린다. 경로만으로는 안 잡히는데 사람은 아는 변경에 쓴다(예: 공용 유틸을 고쳐 결제·인증에 **간접** 영향이 가는 경우). 내리는 라벨은 없다 — 그건 게이트를 끄는 버튼이다.
+- 🔴 **배포 전 프리뷰 단계는 없다(2026-08-11).** 머지하면 곧바로 라이브다. 프리뷰는 위험한 변경일수록 답을 줄 수 없었다 — Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 를 **지금 라이브인 워커**(옛 코드)가 응답하고, 그 `/api` 는 프로덕션 DB 를 본다(샌드박스가 아니다). 결제·인증·Worker 변경에는 무용했고 Cloudflare 아티팩트만 쌓였다.
+  - 대신 검증은 **머지 전 PR CI** 와 **배포 자체의 안전장치**가 나눠 맡는다. 릴리스는 승격 전에 내부적으로 Pages 배포본을 만들어 스모크를 돌리고, 승격 후에는 프로덕션 스모크 + Pages/Worker SHA 대조를 하며, 실패하면 양쪽을 함께 자동 롤백한다. 이건 사용자가 기다리는 단계가 아니라 릴리스 잡 안에서 끝난다.
+  - 로컬 `npm run deploy:preview` 는 개발용 도구로 남아 있지만 흐름의 일부가 아니다. 실행하면 Cloudflare 에 아티팩트가 남으므로 습관적으로 돌리지 않는다. 변경 집합만 보려면 업로드가 없는 `npm run deploy:check`.
+- **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 36개 검증기를 돌린다. 위 티어와 **독립**이며 필수 체크는 아니다.
+  - 🔴 **정적 셸 6종(`index.html` + 5미러)이 여기 포함된다**(2026-08-11 추가). 결제창 렌더러 3종 중 **정본이 셸 인라인**(`_cdChooseServicePaymentMode`)인데 정작 그것만 트리거 목록에서 빠져 있어, 셸에서 이용권 카드를 지우거나 3옵션 문구를 바꿔도 `verify:payment-choice-parity` 가 깨어나지 않았다. 셸은 홈 콘텐츠도 겸하므로 PR CI 티어는 `fast` 로 두고(문구 한 줄에 전체 회귀를 돌리지 않는다) 결제 검증만 이 게이트로 깨운다.
+- **Merging the PR is the deploy trigger.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, promotes the Worker then Pages, smokes production, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers and reports on the PR.
+- **Local production deploys are blocked** by `scripts/lib/production-deploy-guard.mjs`. `deploy:check`, `deploy:preview`, and `deploy:smoke` still work locally. The break-glass path — for when GitHub Actions itself is unavailable — is `CD_BREAK_GLASS=1 <command> --break-glass`, and anything shipped that way must be re-landed through a PR or the next release silently reverts it.
+- Production Cloudflare credentials belong in GitHub Actions secrets. Do not add them to CI workflows from `.env` files.
+- `scripts/lib/change-risk.mjs` judges two independent axes: `level` (how deep the ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level`. `worker/**` stays `level=high` either way.
+- Rollback: Actions → *Release Cloudflare Pages and Worker* → Run workflow → `mode: rollback` with `pages_deployment_id` and/or `worker_version_id`. Targets are listable locally with the read-only `npm run deploy:rollback -- --list`. The rollback smokes production afterwards.
+- Do not run real LLM API calls, real payments, production DB writes, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
 - Use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.
 
 ## Doc Precedence

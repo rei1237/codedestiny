@@ -155,23 +155,55 @@ describe("폐지된 코인 잔재가 만들던 왕복 가드", () => {
 });
 
 describe("월정석 재조회(fresh=1) 보호장치 가드", () => {
-  test("fresh 는 캐시 읽기만 건너뛰고 in-flight 합류와 write-back 은 유지한다", () => {
-    const fn = sliceFunction(
+  // 🔴 지켜야 할 불변식은 그대로다: fresh=1 은 캐시 **읽기**만 건너뛰고, 캐시 키와 write-back 은
+  // 살아 있어야 한다. 예전에는 fresh 일 때 캐시 사용자 ID 를 "" 로 비워 키가 사라졌고, 그러면
+  // 성공 write-back 까지 함께 죽어 재조회를 누를수록 매번 인증+조회 왕복을 새로 냈다(coin-gate 와
+  // 같은 커넥션 풀을 경합) — 연타가 곧 degraded → 503 BALANCE_SNAPSHOT_UNAVAILABLE 이었다.
+  //
+  // 캐시 소유권만 옮겨졌다. 예전에는 핸들러가 자체 캐시(`uid|c|s|u` 4세그)를 들고 있었는데, 이제
+  // readBillingSnapshot 한 곳이 `uid|s|u|b|m` 5세그 키로 소유한다. 그래서 단언도 두 함수로 나눈다.
+  // 🔴 "없어야 한다" 단언은 반드시 주석을 걷어낸 코드에만 건다. 이 파일의 주석은 옛 형태
+  // (`allowCache:false`, `cacheUserId`)를 **왜 버렸는지** 설명하느라 그 문자열을 그대로 담고 있어,
+  // 원문에 걸면 코드가 멀쩡해도 실패한다.
+  function codeOnly(source) {
+    return String(source)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  }
+
+  test("핸들러는 fresh 를 skipCacheRead 로만 넘기고 자체 캐시를 만들지 않는다", () => {
+    const fn = codeOnly(sliceFunction(
       billingSource,
       "async function handleBillingSnapshotBalance(",
-    );
-    // 예전에는 cacheUserId 를 fresh 일 때 "" 로 비워, 캐시 키가 사라지면서 성공 write-back 까지
-    // 함께 죽었다 — 재조회를 누를수록 매번 인증+조회 왕복을 새로 내고(coin-gate 와 같은 커넥션 풀을
-    // 경합) 캐시는 영영 안 채워졌다.
-    expect(fn).not.toMatch(/const cacheUserId = isFresh \? "" :/);
+    ));
+    expect(fn).toMatch(/const isFresh = billingUrl\.searchParams\.get\("fresh"\) === "1";/);
+    expect(fn).toMatch(/skipCacheRead: isFresh,/);
+    // allowCache:false 로 되돌리면 스냅샷 캐시가 통째로 꺼져 부트스트랩이 방금 채운 값을
+    // 결제창이 다시 못 쓴다(교차 히트 0). 자체 캐시 키를 다시 만드는 것도 같은 결과다.
+    expect(fn).not.toMatch(/allowCache:\s*false/);
+    expect(fn).not.toMatch(/const cacheUserId\b/);
+  });
+
+  test("readBillingSnapshot 은 캐시 읽기만 건너뛰고 write-back 은 유지한다", () => {
+    const fn = codeOnly(sliceFunction(billingSource, "async function readBillingSnapshot("));
+    // 캐시 키는 fresh 여부가 아니라 allowCache 로만 갈린다.
+    expect(fn).not.toMatch(/snapshotCacheUserId = (?:isFresh|skipCacheRead) \?/);
     expect(fn).toMatch(
-      /const cacheUserId = await peekAccessTokenUserId\(request, env\)\.catch\(\(\) => ""\);/,
+      /const snapshotCacheUserId = allowCache \? await peekAccessTokenUserId\(request, env\)\.catch\(\(\) => ""\) : "";/,
     );
-    // 건너뛰는 것은 캐시 '읽기' 하나뿐이어야 한다.
-    expect(fn).toMatch(/if \(cacheKey && !isFresh\) \{/);
-    // write-back 은 cacheKey 만 보고 살아 있어야 한다.
-    // (요청 간 in-flight Promise 합류는 Workers 위법이라 제거됐다 — worker/routes/billing.js 주석 참고.)
-    expect(fn).toMatch(/writeBillingBalanceToCache\(cacheKey, snapshot\);/);
-    expect(fn).not.toMatch(/billingBalanceCache\.inFlight/);
+    // 건너뛰는 것은 캐시 '읽기' 하나뿐이어야 한다(직접 히트 + superset 폴백).
+    expect(fn).toMatch(/if \(snapshotCacheKey && !skipCacheRead\) \{/);
+    expect(fn).toMatch(/writeBillingBalanceToCache\(snapshotCacheKey, freshSnapshot\);/);
+    // 🔴 write-back 을 감싸는 조건이 skipCacheRead 를 보기 시작하면 위 회귀가 그대로 되살아난다.
+    const writeBack = fn.indexOf("writeBillingBalanceToCache(snapshotCacheKey");
+    const writeBackGuard = fn.slice(fn.lastIndexOf("if (", writeBack), writeBack);
+    expect(writeBackGuard).toMatch(/snapshotCacheKey/);
+    expect(writeBackGuard).not.toMatch(/skipCacheRead/);
+  });
+
+  test("요청 간 in-flight Promise 공유는 되살아나지 않는다", () => {
+    // Cloudflare Workers 는 한 요청의 I/O 컨텍스트에서 만든 Promise 를 다른 요청이 이어받는 것을
+    // 금지한다. 위반하면 그 요청은 응답을 못 받고 op 타임아웃까지 끌려가 503 으로 죽는다.
+    expect(billingSource).not.toMatch(/billingBalanceCache\.inFlight/);
   });
 });

@@ -244,4 +244,41 @@ for (const locale of I18N_LOCALES) {
   }
 }
 
-console.log(`[verify-payment-choice-parity] PASS (${RENDERERS.length} renderers, ${CANONICAL_RULES.length} css rules, ${STANDALONE_REQUIRED_KEYS.length} copy keys x ${I18N_LOCALES.length} locales)`);
+// ── CI 트리거 커버리지 ────────────────────────────────────────────────────────
+//
+// 🔴 검사기가 멀쩡한 것과 검사기가 **실행되는** 것은 다른 문제다. 2026-08-11 까지 정본인
+// 셸 인라인 렌더러(index.html + 5미러)만 paid-flow-gates 트리거 목록에서 빠져 있었다.
+// 나머지 두 렌더러는 등록돼 있었기 때문에 목록만 훑어서는 정상으로 보였고, 그래서 셸에서
+// 이용권 카드를 지우거나 3옵션 문구를 바꿔도 이 스크립트가 아예 호출되지 않았다.
+//
+// 위에서 실제로 읽는 렌더러 파일은 전부 그 트리거 목록에 있어야 한다. 여기서 강제하지 않으면
+// 같은 구멍이 조용히 다시 열린다 — 증상이 "게이트가 초록"이라 아무도 눈치채지 못한다.
+const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
+const gatePatterns = read(GATE_WORKFLOW)
+  .split(/\r?\n/)
+  .map((line) => line.match(/^\s*-\s*"([^"]+)"\s*$/)?.[1])
+  .filter(Boolean);
+
+/** 글롭(`lib/payment/**`)도 커버로 인정한다. `**` 는 경계를 넘고 `*` 는 한 세그먼트 안에서만 넓힌다. */
+function gateCovers(rel) {
+  return gatePatterns.some((pattern) => {
+    if (pattern === rel) return true;
+    if (!pattern.includes("*")) return false;
+    const source = pattern
+      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+      .replace(/\*\*/g, " ")
+      .replace(/\*/g, "[^/]*")
+      .replace(/ /g, ".*");
+    return new RegExp(`^${source}$`).test(rel);
+  });
+}
+
+const GATED_RENDERERS = [...SHELL_MIRRORS, REACT_CLIENT, ...STANDALONE_FALLBACKS];
+for (const rel of GATED_RENDERERS) {
+  assert.ok(
+    gateCovers(rel),
+    `${GATE_WORKFLOW}: 트리거 경로에 ${rel} 이(가) 없습니다 — 이 파일만 바뀐 PR 에서는 결제창 검증이 아예 돌지 않습니다. paths 에 추가하세요.`,
+  );
+}
+
+console.log(`[verify-payment-choice-parity] PASS (${RENDERERS.length} renderers, ${CANONICAL_RULES.length} css rules, ${STANDALONE_REQUIRED_KEYS.length} copy keys x ${I18N_LOCALES.length} locales, ${GATED_RENDERERS.length} gate-triggered paths)`);

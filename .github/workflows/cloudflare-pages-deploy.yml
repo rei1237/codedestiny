@@ -1,34 +1,48 @@
 name: Release Cloudflare Pages and Worker
 
-# 배포 주 경로는 로컬이다 — npm run deploy:preview 로 확인하고 npm run deploy:production 으로
-# 올린다. 이 워크플로는 백업 경로다: 로컬 빌드가 안 되는 상황이거나 다른 기기에서 올려야 할 때
-# Actions 의 Run workflow 버튼으로 같은 파이프라인을 돌린다.
+# 🔴 프로덕션에 도달하는 유일한 경로다.
 #
-# push 트리거는 의도적으로 없다. main 에 push 하면 아무것도 배포되지 않는다. Git 은 백업과
-# 롤백 기준이고, 프로덕션 반영은 항상 사람이 시작하는 명시적 행위다. push 자동 배포를
-# 되살리면 로컬 승격과 이중으로 나가 같은 커밋이 두 번 배포된다.
+# feature 브랜치 → PR → PR CI 통과 → 사람이 Preview 확인 → main 머지 → **이 워크플로가 자동 배포**.
+# 로컬에서 wrangler 를 직접 부르는 길은 scripts/lib/production-deploy-guard.mjs 가 막는다.
+#
+# 배포 기준은 머지된 main 커밋의 정확한 SHA(`github.sha`) 하나이고, Pages 와 Worker 는 그 하나의
+# 체크아웃에서 함께 나간다. 두 시스템이 서로 다른 코드를 가리키는 상태가 결제·인증 사고의
+# 실제 원인이었기 때문에, 배포 후 양쪽 런타임에서 SHA 를 다시 읽어 대조한다.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       mode:
-        description: "preview = 빌드·스모크만. production = code-destiny.com 승격."
+        description: "production = code-destiny.com 승격. preview = 빌드·스모크만. rollback = 지정 버전으로 되돌리기."
         type: choice
         options:
-          - preview
           - production
+          - preview
+          - rollback
         default: preview
+      pages_deployment_id:
+        description: "rollback 전용: 되돌릴 Pages 배포 ID"
+        type: string
+        required: false
+      worker_version_id:
+        description: "rollback 전용: 되돌릴 Worker 버전 ID"
+        type: string
+        required: false
 
 # A release is an ordered Worker then Pages transaction. Never cancel a running
-# deployment midway; newer dispatches queue behind it instead.
+# deployment midway; newer merges queue behind it instead.
 concurrency:
   group: cloudflare-production-release
   cancel-in-progress: false
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   release:
+    if: github.event_name == 'push' || inputs.mode != 'rollback'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -47,16 +61,38 @@ jobs:
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
       CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
       CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
-      # 수동 디스패치에는 "직전 배포 SHA" 가 없다. 변경 집합을 좁히지 않고 전체를 다시 올린다.
+      # 릴리스는 브랜치 팁 전체를 다시 올린다. 변경 집합이 비어도 중단하지 않으며, 이 값이
+      # 켜져 있으면 Pages 와 Worker 가 **항상 함께** 나간다(같은 SHA 보장의 근거).
       CD_ALLOW_EMPTY_CHANGESET: "true"
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
+      RELEASE_MODE: ${{ github.event_name == 'push' && 'production' || inputs.mode }}
 
     steps:
+      # 🔴 push 이벤트에서 actions/checkout 은 github.sha 를 그대로 꺼낸다. 브랜치 이름이나
+      # "최신 커밋"이 아니라 **머지된 그 커밋**이 배포 대상이라는 점이 이 파이프라인의 전제다.
       - name: Checkout exact release SHA
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
+
+      - name: Record release context
+        run: |
+          {
+            echo "## 🚀 Production Deployment"
+            echo ""
+            echo "| 항목 | 값 |"
+            echo "|---|---|"
+            echo "| Deployment SHA | \`${GITHUB_SHA}\` |"
+            echo "| Short SHA | \`${GITHUB_SHA:0:7}\` |"
+            echo "| Mode | ${RELEASE_MODE} |"
+            echo "| Branch | ${GITHUB_REF_NAME} |"
+            echo "| Workflow run | [${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |"
+            echo "| Triggered by | ${GITHUB_EVENT_NAME} |"
+            echo "| Timestamp (UTC) | $(date -u +%Y-%m-%dT%H:%M:%SZ) |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -71,6 +107,8 @@ jobs:
         run: npx playwright install chromium
 
       - name: Verify release pipeline contract
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           npm run verify:deploy-safe
           npm run verify:pages-single-deploy-guard
@@ -85,8 +123,6 @@ jobs:
       - name: Verify Pages Git deployments stay disabled
         run: npm run verify:pages-single-deploy
 
-      # 예전에는 gitleaks 체크가 끝나기를 기다렸다. 로컬 승격에는 그 대기 경로가 없어
-      # deploy-safe 가 레포 내장 스캐너를 직접 돌리며, 여기서도 같은 것을 쓴다.
       - name: Scan for leaked secrets
         run: npm run verify:no-secret-leak
 
@@ -119,9 +155,166 @@ jobs:
           npm run verify:locale-main-sync
 
       - name: Preview and smoke the exact SHA
-        if: inputs.mode == 'preview'
+        if: env.RELEASE_MODE == 'preview'
         run: npm run deploy:safe -- --ci --preview-only
 
-      - name: Preview, smoke, and promote the exact SHA
-        if: inputs.mode == 'production'
+      # Worker → Pages 순서로 승격하고, 실패하면 그 역순(Pages → Worker)으로 자동 롤백한다.
+      # 순서의 근거는 scripts/deploy-safe.mjs promote() 주석 참고 — 중간 상태에서
+      # '옛 클라이언트 + 새 워커' 가 '새 클라이언트 + 옛 워커' 보다 안전하다.
+      - name: Deploy Pages and Worker at the exact SHA
+        if: env.RELEASE_MODE == 'production'
         run: npm run deploy:safe -- --ci --yes
+
+      - name: Read deployment state
+        id: state
+        if: always() && env.RELEASE_MODE == 'production'
+        continue-on-error: true
+        run: node scripts/print-deploy-state.mjs
+
+      # 🔴 배포 성공 여부와 "떠 있는 코드가 이번 커밋인가"는 다른 질문이다. Pages 와 Worker
+      # 양쪽 런타임에서 SHA 를 직접 읽어 대조한다. 하나라도 다르면 릴리스는 실패다.
+      - name: Verify deployed SHA on Pages and Worker
+        if: env.RELEASE_MODE == 'production'
+        run: |
+          npm run verify:deployed-sha -- \
+            --sha="${GITHUB_SHA}" \
+            --origin="${CD_PRODUCTION_ORIGIN}" \
+            ${{ steps.state.outputs.worker_promoted == 'false' && '--skip-worker' || '' }}
+
+      - name: Summarize the result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          PAGES_DEPLOYMENT_ID: ${{ steps.state.outputs.pages_deployment_id }}
+          WORKER_VERSION_ID: ${{ steps.state.outputs.worker_version_id }}
+          WORKER_PROMOTED: ${{ steps.state.outputs.worker_promoted }}
+        run: |
+          {
+            echo "### 결과"
+            echo ""
+            echo "| 단계 | 상태 |"
+            echo "|---|---|"
+            if [ "${RELEASE_MODE}" = "preview" ]; then
+              echo "| Preview build + smoke | ${JOB_STATUS} |"
+              echo "| Production | 승격하지 않음 (preview 모드) |"
+            else
+              echo "| Pages deployment | ${PAGES_DEPLOYMENT_ID:-기록 없음} |"
+              echo "| Worker deployment | ${WORKER_VERSION_ID:-기록 없음} (promoted=${WORKER_PROMOTED:-unknown}) |"
+              echo "| Smoke test | 배포 스텝에 포함 |"
+              echo "| SHA verification | 아래 단계 결과 참조 |"
+              echo "| Overall | **${JOB_STATUS}** |"
+            fi
+            echo ""
+            if [ "${JOB_STATUS}" != "success" ]; then
+              echo "> ❌ 실패한 단계는 위 로그에서 확인하세요. 프로덕션 승격 중 실패했다면 deploy-safe 가 Pages 와 Worker 를 함께 자동 롤백합니다."
+              echo ">"
+              echo "> 수동 롤백: Actions → Release Cloudflare Pages and Worker → Run workflow → mode: rollback"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # 머지된 PR 하나만 봐도 프로덕션 반영 상태를 알 수 있어야 한다.
+      - name: Report deployment status on the merged PR
+        if: always() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        env:
+          JOB_STATUS: ${{ job.status }}
+          PAGES_DEPLOYMENT_ID: ${{ steps.state.outputs.pages_deployment_id }}
+          WORKER_VERSION_ID: ${{ steps.state.outputs.worker_version_id }}
+        with:
+          script: |
+            const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+            const pr = pulls[0];
+            if (!pr) {
+              core.info('이 커밋과 연결된 PR 이 없습니다. 코멘트를 건너뜁니다.');
+              return;
+            }
+            const ok = process.env.JOB_STATUS === 'success';
+            const mark = ok ? '✅' : '❌';
+            const body = [
+              '<!-- cd-production-deployment -->',
+              `### ${mark} Production Deployment`,
+              '',
+              '| 항목 | 값 |',
+              '|---|---|',
+              `| SHA | \`${context.sha}\` |`,
+              `| Pages | ${process.env.PAGES_DEPLOYMENT_ID || (ok ? '배포됨' : '실패 또는 미배포')} |`,
+              `| Worker | ${process.env.WORKER_VERSION_ID || (ok ? '배포됨' : '실패 또는 미배포')} |`,
+              `| Smoke test | ${mark} |`,
+              `| SHA verification | ${mark} |`,
+              `| Run | ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId} |`,
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body,
+            });
+
+  rollback:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'rollback'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
+      CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
+      CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+      CD_ALLOW_EMPTY_CHANGESET: "true"
+      CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Require at least one rollback target
+        run: |
+          if [ -z "${{ inputs.pages_deployment_id }}" ] && [ -z "${{ inputs.worker_version_id }}" ]; then
+            echo "::error::롤백하려면 pages_deployment_id 또는 worker_version_id 중 하나는 지정해야 합니다."
+            echo "::error::대상 목록은 로컬에서 npm run deploy:rollback -- --list 로 확인할 수 있습니다(읽기 전용)."
+            exit 1
+          fi
+
+      # 롤백도 끝난 뒤 프로덕션 스모크를 돌린다. 되돌린 상태를 확인하지 않으면 롤백이 두 번째 장애가 된다.
+      #
+      # --allow-dirty 는 여기서만 안전하다. 롤백은 워킹트리를 올리지 않고 Cloudflare 에 이미
+      # 있는 배포본·버전을 가리키기만 하므로, npm ci 가 남긴 줄바꿈 차이 때문에 장애 대응이
+      # 막히는 쪽이 훨씬 위험하다.
+      - name: Roll back production
+        run: |
+          npm run deploy:rollback -- --ci --yes --allow-dirty \
+            ${{ inputs.pages_deployment_id && format('--to={0}', inputs.pages_deployment_id) || '' }} \
+            ${{ inputs.worker_version_id && format('--worker-version={0}', inputs.worker_version_id) || '' }}
+
+      - name: Summarize the rollback
+        if: always()
+        run: |
+          {
+            echo "## ⏪ Production Rollback"
+            echo ""
+            echo "| 항목 | 값 |"
+            echo "|---|---|"
+            echo "| Pages deployment | ${{ inputs.pages_deployment_id || '변경 없음' }} |"
+            echo "| Worker version | ${{ inputs.worker_version_id || '변경 없음' }} |"
+            echo "| Status | ${{ job.status }} |"
+            echo "| Run | [${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |"
+          } >> "$GITHUB_STEP_SUMMARY"
