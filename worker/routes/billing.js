@@ -1988,6 +1988,7 @@ function passEvidenceFailure(error, { pricing, requestId, profileId, stage = "pa
       requestId,
       profileId: profileId || undefined,
     }),
+    paidAccessRetryableHeaders(paidAccessErrorStage(error)),
   );
 }
 
@@ -4189,8 +4190,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               coinAmount: Number(membershipConsume.coinPrice || 0),
             });
           } catch (error) {
+            const repairIsClientFault = error?.code === "MISSING_PROFILE_ID";
             return failure(
-              error?.code === "MISSING_PROFILE_ID" ? 403 : 503,
+              repairIsClientFault ? 403 : 503,
               "UNLOCK_ENTITLEMENT_REPAIR_FAILED",
               "기존 월정석 결제의 이용 권한을 복구하지 못했습니다. 다시 결제하지 말고 잠시 후 확인해 주세요.",
               String(error?.message || ""),
@@ -4204,6 +4206,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
                   profileId: profileId || undefined,
                 },
               },
+              undefined,
+              // 403(요청이 틀림)에는 계층 라벨도 Retry-After 도 붙이지 않는다 — 재시도해도 결과가 같다.
+              repairIsClientFault ? undefined : paidAccessRetryableHeaders(paidAccessErrorStage(error)),
             );
           }
         }
@@ -4302,7 +4307,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         return failure(503, "MONTHLY_CREDIT_CONTENDED", "월정석 사용이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", undefined, {
           pricing,
           retryable: true,
-        });
+        }, undefined, paidAccessRetryableHeaders("moonstone-contention"));
       }
       if (membershipConsumeReason === "USER_NOT_FOUND") {
         return failure(401, "AUTH_REQUIRED", "로그인이 필요합니다.");
@@ -4327,6 +4332,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             retryable: true,
             canUseByCard: false,
           },
+          undefined,
+          // M0(리플리카셋 없음)에서는 이 경로가 영구 실패라, db 로 뭉뚱그리면 인프라 장애로 오독된다.
+          paidAccessRetryableHeaders("moonstone-atomic"),
         );
       }
       // 🔴 트랜지언트 DB 오류(풀 경합/커넥션 재수립 등)는 로그인 사용자 확정 실패가 아니다. 이 파일의
@@ -4343,6 +4351,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             retryable: true,
             canUseByCard: false,
           },
+          undefined,
+          paidAccessRetryableHeaders(paidAccessErrorStage(error)),
         );
       }
       return failure(
@@ -5127,6 +5137,7 @@ async function handleBillingSnapshotBalance(request, env) {
           monthlyCreditsAsCoins: 0,
         },
         snapshot?.error?.errorDetails || snapshot?.error?.details,
+        paidAccessRetryableHeaders("snapshot"),
       );
     }
     return success({
@@ -5936,7 +5947,15 @@ async function handleSajuAnalysisEntitlements(request, env) {
     return withSajuEntitlementNoStore(failure(401, "AUTH_REQUIRED", "Authentication is required."));
   }
   if (snapshot?.degraded === true) {
-    return withSajuEntitlementNoStore(failure(503, "BALANCE_SNAPSHOT_UNAVAILABLE", "Billing snapshot is temporarily unavailable."));
+    return withSajuEntitlementNoStore(failure(
+      503,
+      "BALANCE_SNAPSHOT_UNAVAILABLE",
+      "Billing snapshot is temporarily unavailable.",
+      undefined,
+      {},
+      undefined,
+      paidAccessRetryableHeaders("snapshot"),
+    ));
   }
 
   const profileId = cleanProfileId(requestedProfileId || requestedAttemptId || snapshot.currentProfileId || "");
@@ -6095,6 +6114,7 @@ async function handleMembershipStatusProbe(request, env) {
         monthlyCreditsAsCoins: 0,
       },
       data?.error?.errorDetails || data?.error?.details,
+      paidAccessRetryableHeaders("snapshot"),
     );
   }
 
@@ -6164,7 +6184,7 @@ async function handleUnlockStatus(request, env) {
       return failure(503, "BALANCE_SNAPSHOT_UNAVAILABLE", "Entitlement snapshot is temporarily unavailable.", undefined, {
         status: "error",
         degraded: true,
-      });
+      }, undefined, paidAccessRetryableHeaders("snapshot"));
     }
     return success({
       featureKey: normalizeEntitlementProbeKey(featureKey),
@@ -6197,6 +6217,7 @@ async function handleUnlockStatus(request, env) {
         monthlyCreditsAsCoins: 0,
       },
       data?.error?.errorDetails || data?.error?.details,
+      paidAccessRetryableHeaders("snapshot"),
     );
   }
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
@@ -6913,7 +6934,10 @@ async function handleConfirm(request, env) {
       orderId: String(body?.orderId || body?.merchantUid || body?.merchant_uid || ""),
       recoveryRequired: true,
       retryable: false,
-    }, { status: 503 });
+      // 🔴 이 503 은 인프라 장애가 아니다 — 카드는 승인됐고 서버도 멀쩡하며 주문도 기록돼 있다.
+      // 계층 라벨만 붙이고 **Retry-After 는 일부러 뺀다**: 본문이 retryable:false 인데 재시도 시각을
+      // 주면 클라에 정반대 지시를 두 개 보내게 된다. 신규 모듈에서 200 GRANT_PENDING 으로 바뀔 자리다.
+    }, { status: 503, headers: { "X-CD-Error-Stage": "card-confirm-pending" } });
   }
   return response;
 }
