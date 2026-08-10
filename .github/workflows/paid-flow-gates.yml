@@ -34,6 +34,8 @@ on:
       - "js/core/payment-service.js"
       - "js/core/feature-pricing-store.js"
       - "js/destiny-profile.js"
+      # 미러도 함께 건다 — verify:payment-choice-parity 가 이 사본을 실제로 열어 검사한다.
+      - "public/js/destiny-profile.js"
       # ── 정적 셸 (결제수단 선택 모달 **정본**) ───────────────
       # 🔴 결제창 렌더러는 3종이지만 정본은 셸 인라인 하나다(`_cdChooseServicePaymentMode`,
       #    CSS 는 `_cdEnsureDirectPaymentStyles`). 나머지 두 렌더러(app/_lib/billing-client.ts ·

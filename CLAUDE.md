@@ -255,14 +255,14 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   |---|---|---|
   | `fast` | 문구·CSS·이미지·문서·`index.html`·sitemap | typecheck · lint |
   | `standard` | `app/` `components/` `src/` `lib/` `js/` · `package.json` · `next.config` | + `build:cf` · `build:worker` · 워커 크기 |
-  | `critical` | **결제 · 인증 · `worker/` · `server/` · DB 스키마·마이그레이션 · `wrangler.*` · `.env*` · `.github/workflows/` · `package-lock.json`** | + 전체 테스트 · 배포 설정 가드 · ads.txt · 시크릿 스캔 · **자동 Preview** |
+  | `critical` | **결제 · 인증 · `worker/` · `server/` · DB 스키마·마이그레이션 · `wrangler.*` · `.env*` · `.github/workflows/` · `package-lock.json`** | + 전체 테스트 · 배포 설정 가드 · ads.txt · 시크릿 스캔 |
 
   - **판정 정본은 `scripts/lib/change-risk.mjs` 하나다.** `scripts/resolve-ci-tier.mjs` 는 그 두 축(`level`, `deepRequired`)을 티어로 **매핑만** 한다. 배포 파이프라인(`deploy-safe`)과 `check-changed` 도 같은 모듈을 쓴다 — 여기에 경로 목록을 다시 쓰면 CI 와 배포가 같은 커밋을 다르게 판정하고, 그 드리프트가 곧 "CI 는 초록인데 배포에서 터지는 게이트"가 된다.
   - `deepRequired` 를 `level` 과 **함께** 본다. `app/hooks/useCoinGate.ts` 는 `app/` 이라 `level=medium` 이지만 단건 결제 훅이라 `critical` 이어야 한다. 한 축만 보면 구멍이 난다.
   - **변경 파일을 못 구하면 `critical` 로 간다**(fail closed). "모른다"를 "안전하다"로 읽지 않는다.
   - 🔴 **네 잡(`Risk tier`·`Typecheck and lint`·`Build Pages and Worker`·`Critical checks`)은 티어와 무관하게 항상 실행된다.** 건너뛰는 것은 잡이 아니라 그 안의 스텝이다. 잡 자체를 `if` 로 막으면 브랜치 룰셋이 오지 않는 체크를 기다리며 머지를 영영 막는다. 잡 이름 = 룰셋의 필수 체크 이름이므로 바꿀 때 룰셋도 함께 고친다(`verify:worker-single-deploy` 가 감시).
   - **라벨 탈출구**: `full-ci` 는 티어를 `critical` 로 올린다. 경로만으로는 안 잡히는데 사람은 아는 변경에 쓴다(예: 공용 유틸을 고쳐 결제·인증에 **간접** 영향이 가는 경우). 내리는 라벨은 없다 — 그건 게이트를 끄는 버튼이다.
-- **Preview**: `critical` 티어면 자동 생성되고, 그 외에는 `preview` 라벨을 붙였을 때만 만든다. `.github/workflows/pr-preview.yml` 이 Pages 프리뷰 + Worker 프리뷰 버전을 만들고 스모크한 뒤 URL 을 PR 에 코멘트한다. 프리뷰의 `/api` 는 **프로덕션 Worker + 프로덕션 DB** 를 보므로 거기서 하는 일은 실제 기록으로 남는다. Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 는 지금 라이브인 워커가 응답한다 — 워커 변경은 프리뷰로 확인되지 않는다.
+- **Preview 는 기본 흐름에 없다.** PR 에 `preview` 라벨을 붙였을 때만 만든다. 🔴 **위험한 변경일수록 프리뷰가 답을 줄 수 없다** — Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 는 **지금 라이브인 워커**(옛 코드)가 응답하고, 그 `/api` 는 프로덕션 DB 를 본다(샌드박스가 아니다). 즉 결제·인증·Worker 변경은 프리뷰로 확인되지 않는다. 한때 critical 티어에 자동으로 걸어 두었으나 비용만 내고 얻는 것이 없어 2026-08-11 에 제거했다. 프리뷰가 값을 하는 경우는 **화면이 바뀌는 프런트엔드 변경을 눈으로 볼 때** 하나뿐이며, 그때만 라벨을 붙인다. 나머지는 PR CI 가, 배포 후 확인은 릴리스의 스모크와 SHA 대조가 맡는다.
 - **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 36개 검증기를 돌린다. 위 티어와 **독립**이며 필수 체크는 아니다.
   - 🔴 **정적 셸 6종(`index.html` + 5미러)이 여기 포함된다**(2026-08-11 추가). 결제창 렌더러 3종 중 **정본이 셸 인라인**(`_cdChooseServicePaymentMode`)인데 정작 그것만 트리거 목록에서 빠져 있어, 셸에서 이용권 카드를 지우거나 3옵션 문구를 바꿔도 `verify:payment-choice-parity` 가 깨어나지 않았다. 셸은 홈 콘텐츠도 겸하므로 PR CI 티어는 `fast` 로 두고(문구 한 줄에 전체 회귀를 돌리지 않는다) 결제 검증만 이 게이트로 깨운다.
 - **Merging the PR is the deploy trigger.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, promotes the Worker then Pages, smokes production, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers and reports on the PR.

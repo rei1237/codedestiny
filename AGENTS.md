@@ -54,9 +54,9 @@ Pull Request
 PR CI (자동 · 변경 경로에 따라 강도가 갈린다 · 배포하지 않는다)
    fast     문구·CSS·이미지·문서          → typecheck · lint
    standard 일반 프론트엔드               → + build
-   critical 결제·인증·Worker·DB·배포설정   → + 전체 테스트 · 배포 가드 · 자동 Preview
+   critical 결제·인증·Worker·DB·배포설정   → + 전체 테스트 · 배포 가드
    ↓
-Preview                   critical 이면 자동, 그 외에는 `preview` 라벨을 붙였을 때만
+(선택) `preview` 라벨      화면 확인이 필요할 때만. 기본 흐름에는 없다
    ↓
 사용자가 Merge            ← 이 행동이 프로덕션 배포 승인이다
    ↓
@@ -78,7 +78,7 @@ Every PR is not worth the same amount of CI. A copy tweak and a payment-route ch
 |---|---|---|
 | `fast` | copy, CSS, images, docs, `index.html`, sitemap/robots/ads.txt | typecheck · lint |
 | `standard` | `app/` `components/` `src/` `lib/` `js/`, `package.json`, `next.config`, `tsconfig` | + `build:cf` · `build:worker` · worker size budget |
-| `critical` | payment, auth, `worker/`, `server/`, DB schema and migrations, `wrangler.*`, `.env*`, `.github/workflows/`, `package-lock.json` | + full test suite · deployment-config guards · ads.txt · secret scan · **automatic Preview** |
+| `critical` | payment, auth, `worker/`, `server/`, DB schema and migrations, `wrangler.*`, `.env*`, `.github/workflows/`, `package-lock.json` | + full test suite · deployment-config guards · ads.txt · secret scan |
 
 - **`scripts/lib/change-risk.mjs` is the only classifier.** `scripts/resolve-ci-tier.mjs` maps its two axes (`level`, `deepRequired`) onto a tier and nothing more. `deploy-safe` and `check-changed` read the same module. Writing a second path list anywhere means CI and the release can disagree about the same commit.
 - Both axes are consulted. `app/hooks/useCoinGate.ts` is `level=medium` because it lives under `app/`, but it is the single-purchase hook, so `deepRequired` lifts it to `critical`. Either axis alone leaves a hole.
