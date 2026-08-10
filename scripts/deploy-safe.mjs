@@ -425,17 +425,6 @@ async function workerVersions(cf) {
   return Array.isArray(result?.items) ? result.items : [];
 }
 
-// 사용자가 preview 를 직접 확인한다. 파이프라인이 할 일은 URL 을 눈앞에 띄우는 것까지다.
-function openInBrowser(url) {
-  if (!openPreview || !url) return;
-  const [command, args] = process.platform === "win32"
-    ? ["cmd.exe", ["/d", "/s", "/c", "start", "", url]]
-    : process.platform === "darwin" ? ["open", [url]] : ["xdg-open", [url]];
-  const result = spawnSync(command, args, { stdio: "ignore", windowsHide: true });
-  if (result.error || result.status !== 0) console.log("[deploy-safe] could not open a browser; visit " + url + " manually.");
-  else console.log("[deploy-safe] opened " + url + " in the default browser.");
-}
-
 /**
  * 로그인된 상태로 preview 를 연다.
  *
@@ -447,7 +436,10 @@ function openInBrowser(url) {
  * 쿠키에 Domain 속성이 없어(worker/routes/auth.js appendAuthCookies) preview 호스트 전용으로
  * 붙으므로 프로덕션 세션과 섞이지 않는다.
  *
- * 자격증명이 없으면 조용히 기본 브라우저로 폴백한다 — 로그인은 편의지 검증의 전제가 아니다.
+ * 🔴 로그인하지 못하면 창을 아예 띄우지 않고 URL 만 남긴다(사용자 지시 2026-08-11). 로그아웃
+ * 상태의 창으로는 결제창·이용권·월정석 잔량·프로필 카드를 하나도 확인할 수 없어, 띄워 봐야
+ * "확인했다"는 착각만 만든다. 예전에는 자격증명이 없거나 Playwright 가 못 뜨면 기본 브라우저로
+ * 폴백해 로그아웃 창을 열었는데, 그게 정확히 그 착각이 나오던 자리다.
  *
  * 로그인 시도 전에 scripts/seed-preview-test-account.mjs 를 매번 재실행해, FAMILY 이용권·
  * 월정석·프로필 카드(생년월일)가 항상 최신 상태로 있음을 보장한다("무조건 적용되어 열려야
@@ -460,8 +452,8 @@ async function openPreviewSignedIn(url) {
   const email = String(process.env.CD_PREVIEW_TEST_EMAIL || "").trim();
   const password = String(process.env.CD_PREVIEW_TEST_PASSWORD || "").trim();
   if (!email || !password) {
-    console.log("[deploy-safe] CD_PREVIEW_TEST_EMAIL/PASSWORD not set; opening the preview signed out.");
-    openInBrowser(url);
+    console.log("[deploy-safe] CD_PREVIEW_TEST_EMAIL/PASSWORD not set; not opening a browser (a signed-out window verifies nothing).");
+    console.log("[deploy-safe] set both to get a signed-in window, or inspect manually at " + url);
     return null;
   }
   console.log("[deploy-safe] ensuring preview test account has FAMILY pass + profile card (writes production DB via scripts/seed-preview-test-account.mjs)...");
@@ -534,8 +526,8 @@ async function openPreviewSignedIn(url) {
     console.log("[deploy-safe] preview window is open: " + url);
     return browser;
   } catch (error) {
-    console.log("[deploy-safe] could not drive a browser (" + error.message + "); falling back to the default browser.");
-    openInBrowser(url);
+    console.log("[deploy-safe] could not drive a browser (" + error.message + "); not falling back to a signed-out window.");
+    console.log("[deploy-safe] inspect manually at " + url + " (run `npx playwright install chromium` if the browser is missing).");
     return null;
   }
 }
