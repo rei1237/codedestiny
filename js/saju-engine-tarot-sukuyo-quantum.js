@@ -1033,15 +1033,54 @@ function openMyeongriTarotAiPromptChat(button) {
   });
 }
 
+// 질문 영역 고정 블록. 문구는 lib/tarot/topic-lock.mjs 의 TOPIC_LOCK_PROMPT_MARKERS 와
+// 짝을 이루며, npm run verify:tarot-topic-lock 이 두 렌더러의 파리티를 강제한다.
+function buildMyeongriTarotTopicLockBlock(category) {
+  var frame = getMyeongriCategoryFrame(category);
+  var catLabel = frame.label;
+  return [
+    '[질문 영역 고정] ' + catLabel,
+    '이번 리딩에서 카드가 대답해야 하는 범위: ' + frame.theme + '. 핵심 질문은 "' + frame.question + '"입니다.',
+    '',
+    '해석 우선순위 — 위에서부터 순서대로 적용한다.',
+    '1) 사용자가 선택한 상담 주제',
+    '2) 카드의 정방향/역방향과 핵심 아키타입',
+    '3) 카드의 상징, 원소, 숫자, 인물, 상황',
+    '4) 카드의 전통적인 의미',
+    '5) 보조적인 현실 키워드',
+    '카드의 대표 키워드를 질문 분야보다 우선하지 않는다.',
+    '',
+    'cardCoreMeaning은 고정된 답변이 아니라 의미를 변환하기 위한 원재료다.',
+    'readingTopic + cardCoreMeaning + orientation + cardSymbols 를 결합해 이 질문 영역 안의 언어로 옮긴 뒤에 답을 쓴다.',
+    '카드 이름이나 키워드를 그대로 옮겨 적는 해석은 실패다. "펜타클이 나왔으므로 돈과 관련된 운입니다" 같은 직역을 쓰지 마라.',
+    '카드의 의미가 이 질문 영역과 직접 연결되지 않아 보여도 원래 분야를 설명하지 말고, 상징을 추출해 이 영역에 투영해라.',
+    '역방향은 무조건 나쁜 사건이 아니라, 정방향의 핵심 상징이 이 질문 영역에서 막히거나 왜곡되거나 지연되거나 과도하게 나타나는 방식으로 읽는다.',
+    '',
+    '답변은 다음 흐름을 지킨다.',
+    '① 이 질문 영역에 대한 핵심 메시지 ② 카드의 핵심 상징 ③ 이 영역에서 그 상징이 뜻하는 것 ④ 지금 상황에서 나타나는 방식',
+    '⑤ 긍정적인 가능성 ⑥ 주의할 부분 ⑦ 실제 행동 조언 ⑧ 한 줄 결론',
+    '카드 설명이 아니라 상담 결과가 답변의 중심이어야 한다.',
+    '최종 결론은 반드시 이 질문 영역에 대한 답이어야 한다. 카드 의미가 맞더라도 ' + catLabel + '에 대한 답이 아니면 실패다.'
+  ].join('\n');
+}
+
 function buildMyeongriTarotAiPrompt(cardsData, category, labels, readings, advice, oracle) {
   var catLabel = mapCategoryToMyeongriCategory(category);
+  // raw 키워드를 던지는 대신 주제로 한 번 번역한 원재료를 구조화해 넘긴다.
   var cardLines = cardsData.map(function(data, idx) {
     var card = data && data.card ? data.card : {};
     var reading = readings[idx] || {};
+    var readingCard = reading && reading.card ? reading.card : {};
     var direction = data && data.isReversed ? '역방향' : '정방향';
     var tenGod = reading && reading.tenGod && reading.tenGod.main ? reading.tenGod.main : '십성의 결';
-    var keyword = reading && reading.card && Array.isArray(reading.card.keywords) ? reading.card.keywords.slice(0, 4).join(' · ') : '';
-    return (idx + 1) + '. ' + (labels[idx] || '카드 자리') + ' — ' + String(card.name_kr || '타로 카드') + ' ' + direction + ' / ' + tenGod + (keyword ? ' / ' + keyword : '');
+    var tenGodMeaning = reading && reading.tenGod && reading.tenGod.meaning ? reading.tenGod.meaning : '';
+    return [
+      (idx + 1) + '. ' + (labels[idx] || '카드 자리') + ' — ' + String(card.name_kr || '타로 카드') + ' ' + direction,
+      '   - cardSymbols: ' + (readingCard.symbol || getMyeongriCardSymbol(String(card.name_kr || ''))),
+      '   - cardCoreMeaning(원재료): ' + (readingCard.coreProjection || ''),
+      '   - cardArchetype: ' + (reading.comboArchetype || ''),
+      '   - 십성: ' + tenGod + (tenGodMeaning ? ' — ' + tenGodMeaning : '')
+    ].filter(Boolean).join('\n');
   }).join('\n');
   var summary = removeRepeatedMyeongriTarotPhrases(buildMyeongriFlowSummary(category));
   var safeAdvice = removeRepeatedMyeongriTarotPhrases(advice || '');
@@ -1051,7 +1090,8 @@ function buildMyeongriTarotAiPrompt(cardsData, category, labels, readings, advic
     '아래 세 장의 흐름을 바탕으로 내담자에게 직접 말하듯 오늘부터 30일 사이의 운세를 봐주세요.',
     '문체는 어두운 보랏빛 오라클 화면에 어울리게 차분하고 신비롭게 유지하고, 말은 따뜻하되 단정은 피해주세요.',
     '',
-    '질문의 문: ' + catLabel,
+    buildMyeongriTarotTopicLockBlock(category),
+    '',
     '펼쳐진 카드:',
     cardLines,
     '',
@@ -1064,7 +1104,11 @@ function buildMyeongriTarotAiPrompt(cardsData, category, labels, readings, advic
     '2. 마음, 관계, 현실에서 조심할 흐름',
     '3. 오늘부터 7일 안에 잡을 선택',
     '4. 30일 안에 열리는 가능성',
-    '5. 마지막 한 문장'
+    '5. 마지막 한 문장',
+    '',
+    '작성한 뒤 스스로 확인하세요. 하나라도 아니면 그 부분을 다시 쓰세요.',
+    '1) ' + catLabel + '에 대한 답인가  2) 카드 의미를 이 분야에 맞게 변환했는가  3) 카드의 일반 키워드만 나열하지 않았는가',
+    '4) 다른 분야의 운세로 이탈하지 않았는가  5) 카드와 질문 분야를 잇는 논리가 있는가  6) 실제 상담처럼 자연스럽게 읽히는가'
   ].filter(Boolean).join('\n');
 }
 
@@ -2081,6 +2125,19 @@ var MYEONGRI_CATEGORY_FRAMES = {
   }
 };
 
+// 카드의 핵심 축(TAROT_CARD_DEEP_PROFILE.core)을 질문 영역의 언어로 옮긴다.
+// 같은 「소유·보존·안정」 축이라도 재회운에서는 미련으로, 재물운에서는 자산 보존으로 나타난다.
+var MYEONGRI_TOPIC_CORE_PROJECTION = {
+  daily: '오늘 하루의 일정, 기분, 결정 방식으로 나타납니다.',
+  love: '애정에서 상대와의 거리, 표현의 속도, 관계에 거는 기대로 나타납니다.',
+  reunion: '재회에서 상대가 아직 무엇에 묶여 있는지와 다시 닿기 위한 조건으로 나타납니다.',
+  career: '직장에서 맡은 역할, 성과의 기준, 조직 안의 위치로 나타납니다.',
+  money: '금전에서 수입과 지출의 구조, 지킬 돈과 움직일 돈의 경계로 나타납니다.',
+  health: '건강에서 생활 리듬, 쌓인 긴장, 회복에 필요한 여백으로 나타납니다.',
+  exam: '시험에서 준비의 밀도, 집중의 지속력, 실수가 나오는 지점으로 나타납니다.',
+  people: '대인관계에서 신뢰의 두께, 말의 거리, 갈등이 생기는 지점으로 나타납니다.'
+};
+
 function normalizeMyeongriCategoryKey(category) {
   var raw = String(category || '').trim();
   var lower = raw.toLowerCase();
@@ -2101,6 +2158,22 @@ function getMyeongriTenGodContext(category, tenGod) {
   var main = normalizeTenGod(tenGod) || '정인';
   var frame = MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS[key] || MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS.daily;
   return frame[main] || MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS.daily[main] || (main + '은 질문의 결을 현실 기준으로 가다듬습니다.');
+}
+
+function getMyeongriTopicCoreProjection(category, coreAxis) {
+  var key = normalizeMyeongriCategoryKey(category);
+  var tail = MYEONGRI_TOPIC_CORE_PROJECTION[key] || MYEONGRI_TOPIC_CORE_PROJECTION.daily;
+  var axis = String(coreAxis || '').trim() || '이 카드의 핵심 축';
+  return '이 카드의 축인 「' + axis + '」는 ' + tail;
+}
+
+// 카드의 고정 키워드를 그대로 노출하지 않고 어느 질문 영역의 관점인지 함께 붙인다.
+function buildMyeongriTopicKeyword(coreAxis, frameLabel) {
+  var axis = String(coreAxis || '').trim();
+  var label = String(frameLabel || '').trim();
+  if (!axis) return label;
+  if (!label) return axis;
+  return axis + '(' + label + ' 관점)';
 }
 
 function getMyeongriCategoryLens(category, tenGod, orientation) {
@@ -2274,9 +2347,12 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var cardSubject = cardName + ' ' + (dir === 'reversed' ? '역행' : '순행');
   var bridge = resolveCardBridge(cardName, mainTenGod, dir);
   var opening = '오늘 ' + catKo + '의 자리에서 ' + withKoreanJosa(cardSubject, '과', '와') + ' ' + mainTenGod + '의 결이 함께 움직입니다. 핵심 질문은 "' + categoryLens.question + '"입니다.';
+  // 카드의 일반 심리/그림자 문장을 그대로 쓰면 질문 영역 밖으로 새기 때문에,
+  // 핵심 축을 이 주제의 언어로 옮긴 문장을 대신 쓴다.
+  var coreProjection = getMyeongriTopicCoreProjection(category, profile.core);
   var cardMeaning = dir === 'reversed'
-    ? cardName + '의 역행은 겉으로 밀어붙일수록 마음의 압력이 커지는 장면입니다. ' + cardSymbol + ' ' + profile.shadow + ' ' + categoryLens.focus
-    : cardName + '의 순행은 이미 품고 있던 힘을 현실로 꺼내는 장면입니다. ' + cardSymbol + ' ' + profile.psych + ' ' + categoryLens.focus;
+    ? cardName + '의 역행은 이 축이 사라진 것이 아니라 막히거나 지연되거나 과도하게 나타나는 장면입니다. ' + cardSymbol + ' ' + coreProjection + ' ' + categoryLens.focus
+    : cardName + '의 순행은 이미 품고 있던 힘을 현실로 꺼내는 장면입니다. ' + cardSymbol + ' ' + coreProjection + ' ' + categoryLens.focus;
   var tenGodInterpretation = tenGodContext + ' ' + (dir === 'reversed' ? '역행이라 속도를 낮추고, 마음 안에서 꼬인 기준부터 풀어야 합니다.' : '순행이라 오늘의 말과 행동 속에서 비교적 또렷하게 드러납니다.');
 
   var combinedReading = cardSubject + '의 상징은 ' + mainTenGod + '의 결과 맞물려 ' + comboArchetype + '으로 드러납니다. ' +
@@ -2315,7 +2391,9 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
       nameKo: cardName,
       nameEn: cardEn,
       orientation: dir,
-      keywords: [comboArchetype, profile.core, tenMeta.label, frame.label, directionLabel].slice(0, 5)
+      keywords: [comboArchetype, buildMyeongriTopicKeyword(profile.core, frame.label), tenMeta.label, frame.label, directionLabel].slice(0, 5),
+      coreProjection: coreProjection,
+      symbol: cardSymbol
     },
     tenGod: {
       main: mainTenGod,

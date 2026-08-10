@@ -211,6 +211,7 @@
     "verify:www-canonical": "node scripts/verify-www-canonical.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
     "verify:tarot-love-flow": "node scripts/verify-tarot-love-instant-flow.mjs",
+    "verify:tarot-topic-lock": "node scripts/verify-tarot-topic-lock.mjs",
     "verify:sun-recovery-copy": "node scripts/verify-sun-recovery-card-copy.mjs",
     "verify:mobile-feature-coverage": "node scripts/verify-mobile-feature-coverage.mjs",
     "verify:mobile-pricing-parity": "node scripts/inspect-mobile-pricing-parity.mjs --strict",

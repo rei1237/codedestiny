@@ -32,6 +32,7 @@ import {
   buildConsultingHighlights,
   buildLegacyReadingPayload,
   drawTarotCardsForSpread,
+  getMeaningByQuestion,
   inferQuestionType,
   interpretTarotReading,
   normalizeDrawnCardsForSpread,
@@ -1262,7 +1263,7 @@ function ensureCardCountOrThrow(spreadType, cards) {
   }
 }
 
-function toUiCard(drawn, spreadType, idx) {
+function toUiCard(drawn, spreadType, idx, questionType) {
   const spread = getSpreadDefinition(spreadType);
   const position = spread?.positions?.[idx];
   const card = getTarotCardByAnyId(drawn.cardId);
@@ -1276,6 +1277,12 @@ function toUiCard(drawn, spreadType, idx) {
   }
 
   const images = buildImageCandidates(card.code);
+  // 카드 최상위 keywords 는 도메인 중립이라 질문 분야가 지워진다.
+  // 사용자가 고른 주제·정역방향에 맞춰 고른 키워드를 내보낸다.
+  const orientation = drawn.orientation === "reversed" ? "reversed" : "upright";
+  const topicKeywords = questionType
+    ? getMeaningByQuestion(card, orientation, questionType).keywords
+    : card.keywords.slice(0, 5);
   return {
     cardId: card.code,
     id: card.id,
@@ -1284,13 +1291,15 @@ function toUiCard(drawn, spreadType, idx) {
     nameKr: card.nameKo,
     nameKo: card.nameKo,
     position: drawn.positionKey || drawn.position || position?.key || `position_${idx + 1}`,
-    orientation: drawn.orientation === "reversed" ? "reversed" : "upright",
+    orientation,
     imageKey: card.imageKey || card.code.toLowerCase(),
     imageUrl: images[0],
     imageCandidates: images,
     proxyImageUrl: "",
     localImageUrl: images[0],
-    keywords: card.keywords.slice(0, 5),
+    keywords: Array.isArray(topicKeywords) && topicKeywords.length
+      ? topicKeywords.slice(0, 5)
+      : card.keywords.slice(0, 5),
   };
 }
 
@@ -1298,8 +1307,8 @@ function buildReadingPayload({ spreadType, category, cards, serviceKey, userQues
   ensureCardCountOrThrow(spreadType, cards);
 
   const normalizedDrawnCards = normalizeDrawnCardsForSpread(spreadType, cards);
-  const uiCards = normalizedDrawnCards.map((drawn, idx) => toUiCard(drawn, spreadType, idx));
   const questionType = inferQuestionType({ category, spreadId: spreadType, serviceKey });
+  const uiCards = normalizedDrawnCards.map((drawn, idx) => toUiCard(drawn, spreadType, idx, questionType));
 
   const interpreted = interpretTarotReading({
     serviceKey: serviceKey || `tarot:${spreadType}`,
@@ -1599,7 +1608,11 @@ export async function handleTarotRoutes(request, env = {}) {
       });
       payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || []);
       // LLM 상담문 생성 — 실패 시 위에서 만든 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
-      const enhanced = await enhanceLoveReadingWithLlm(payload.reading, { locale: "ko", env });
+      const enhanced = await enhanceLoveReadingWithLlm(payload.reading, {
+        locale: "ko",
+        env,
+        userQuestion: asText(body?.userQuestion),
+      });
       payload.reading = enhanced.reading;
       payload.readingSource = enhanced.source;
       payload.consultingHighlights = buildLoveConsultingHighlights(payload.reading);

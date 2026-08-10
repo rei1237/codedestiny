@@ -5,6 +5,7 @@ import {
   buildConsultingHighlights,
   buildLegacyReadingPayload,
   drawTarotCardsForSpread,
+  getMeaningByQuestion,
   inferQuestionType,
   interpretTarotReading,
   normalizeDrawnCardsForSpread,
@@ -14,12 +15,15 @@ function asText(value) {
   return String(value || "").trim();
 }
 
-function toUiCard(drawn, spreadType, idx) {
+function toUiCard(drawn, spreadType, idx, questionType) {
   const card = getTarotCardByAnyId(drawn.cardId);
   if (!card) {
     throw new Error(`CARD_DATA_MISSING:${drawn.cardId}`);
   }
   const images = buildImageCandidates(card.code);
+  // worker/routes/tarot.js 의 toUiCard 와 같은 규칙 — 도메인 중립 키워드 대신 주제별 키워드를 낸다.
+  const orientation = drawn.orientation === "reversed" ? "reversed" : "upright";
+  const topicKeywords = questionType ? getMeaningByQuestion(card, orientation, questionType).keywords : null;
 
   return {
     cardId: card.code,
@@ -29,13 +33,15 @@ function toUiCard(drawn, spreadType, idx) {
     nameKr: card.nameKo,
     nameKo: card.nameKo,
     position: drawn.positionKey || drawn.position || `position_${idx + 1}`,
-    orientation: drawn.orientation === "reversed" ? "reversed" : "upright",
+    orientation,
     imageKey: card.imageKey || card.code.toLowerCase(),
     imageUrl: images[0],
     imageCandidates: images,
     proxyImageUrl: "",
     localImageUrl: images[0],
-    keywords: card.keywords.slice(0, 5),
+    keywords: Array.isArray(topicKeywords) && topicKeywords.length
+      ? topicKeywords.slice(0, 5)
+      : card.keywords.slice(0, 5),
   };
 }
 
@@ -91,7 +97,7 @@ export function buildReadingResponse(_engine, category, spreadType, drawnCards, 
     reading = buildPremiumYearReading({ reading, year: options.year });
   }
 
-  const cards = normalizedDrawnCards.map((drawn, idx) => toUiCard(drawn, normalizedSpreadType, idx));
+  const cards = normalizedDrawnCards.map((drawn, idx) => toUiCard(drawn, normalizedSpreadType, idx, questionType));
 
   const payload = {
     ok: true,
