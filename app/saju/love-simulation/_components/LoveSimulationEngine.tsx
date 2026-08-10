@@ -15,8 +15,13 @@ import type { CompatibilityProfile } from "../_engine/compatibilityTypes";
 import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
+import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
+
+const LOVE_SIMULATION_FEATURE_KEY = "loveSimulation";
+const LOVE_SIMULATION_FEATURE_REASON = "LOVE CODE 사주 연애 시뮬레이션";
+const LOVE_SIMULATION_FEATURE_COST = 100;
 
 type PartnerCalendarType = "solar" | "lunar" | "lunar_leap";
 type PartnerGender = "female" | "male";
@@ -1410,6 +1415,7 @@ export const LoveSimulationEngine: React.FC = () => {
   const [coupleCompatibility, setCoupleCompatibility] = useState<SajuCoupleCompatibility | null>(null);
   const [matchError, setMatchError] = useState("");
   const [isMatching, setIsMatching] = useState(false);
+  const [isStartingSimulation, setIsStartingSimulation] = useState(false);
   const [initialCompatibilityNote, setInitialCompatibilityNote] = useState("");
   // Layer 1 — 두 사람의 사주만으로 결정되는 궁합 프로필. 선택지/stats와 무관하게 진입 시 1회 계산해 고정.
   const [profile, setProfile] = useState<CompatibilityProfile | null>(null);
@@ -1446,7 +1452,52 @@ export const LoveSimulationEngine: React.FC = () => {
   const secondaryMatchLabels = matchResults.slice(1, 3).map((item) => `${item.characterName}형`);
   const canMatchPartner = Boolean(partnerBirthDate && !isMatching);
 
-  const startWithCharacter = (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
+  // 유료 게이트는 이 한 곳(시뮬레이션 시작)에서만 돈다. 진입점(메인 타일·사주 분석 카드·직접 URL)에는
+  // 게이트를 걸지 않는다 — 사용자가 상대를 고르기도 전에 결제가 돌기 때문이다.
+  // 가격은 서버 정본(loveSimulation)에 맡긴다. 클라이언트 cost 를 넘기면 서버 이용권 프로브를 건너뛰고
+  // 로컬 스냅샷만 신뢰해 이용권 보유자가 확인을 못 받는다(인연의 장소와 동일 계약).
+  const startWithCharacter = async (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
+    if (isStartingSimulation) return;
+    const requestId = `love-simulation:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    setIsStartingSimulation(true);
+    try {
+      openPaidFeatureGate({
+        featureKey: LOVE_SIMULATION_FEATURE_KEY,
+        requestId,
+        cost: LOVE_SIMULATION_FEATURE_COST,
+        paymentMode: "pass",
+        message: "이용권 확인 중",
+      });
+      holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
+
+      const gate = await runPaidAccessGate({
+        featureKey: LOVE_SIMULATION_FEATURE_KEY,
+        reason: LOVE_SIMULATION_FEATURE_REASON,
+        requestId,
+      });
+
+      if (!gate.ok) {
+        const code = String(gate.error?.code || "").toUpperCase();
+        const message =
+          code === "AUTH_REQUIRED"
+            ? "로그인이 필요합니다."
+            : code === "INSUFFICIENT_COINS"
+              ? "유료 결제가 필요합니다. 결제창에서 상품을 선택해 주세요."
+              : gate.error?.message || "결제 확인에 실패했습니다.";
+        updatePaidFeatureGate({ featureKey: LOVE_SIMULATION_FEATURE_KEY, requestId, status: "error", message });
+        setMatchError(message);
+        return;
+      }
+
+      setMatchError("");
+      startSimulationScene(id, mode);
+    } finally {
+      releasePaidFeatureGate(requestId);
+      setIsStartingSimulation(false);
+    }
+  };
+
+  const startSimulationScene = (id: CharacterId, mode: "preset" | "sajuMatch") => {
     const nextCoupleCompatibility = mode === "sajuMatch" ? coupleCompatibility : null;
     setSelectedId(id);
     setEntryMode(mode);
@@ -1927,7 +1978,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       result={primaryMatch}
                       secondaryLabels={secondaryMatchLabels}
                       compatibility={coupleCompatibility}
-                      onStart={() => startWithCharacter(primaryMatch.characterId, "sajuMatch")}
+                      onStart={() => void startWithCharacter(primaryMatch.characterId, "sajuMatch")}
                     />
                   ) : null}
                 </AnimatePresence>
@@ -2058,8 +2109,9 @@ export const LoveSimulationEngine: React.FC = () => {
                             <button
                               onClick={(event) => {
                                 event.stopPropagation();
-                                startWithCharacter(item.id, "preset");
+                                void startWithCharacter(item.id, "preset");
                               }}
+                              disabled={isStartingSimulation}
                               className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${item.palette.button}`}
                             >
                               {item.name}와 대화하기

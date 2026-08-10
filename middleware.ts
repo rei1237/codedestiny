@@ -169,7 +169,6 @@ const SERVICE_ROUTE_ACTIONS = new Map([
   ["/saju/basic", "checkPrivacyAndCalculate"],
   ["/saju/basic/play", "checkPrivacyAndCalculate"],
   ["/saju/sibyl", "openSibylModal"],
-  ["/saju/love-simulation", "openLoveSimulation"],
   ["/oracle", "openHwatuModal"],
   ["/oracle/hwatu-life", "openHwatuModal"],
   ["/oracle/royal-tea", "openRoyalTeaOracle"],

@@ -122,6 +122,7 @@ var DESTINY_MEETING_PLACE_FEATURE = {
   lockKey: 'destiny_meeting_place',
   coinCost: 100,
   mainLock: false,
+  selfGated: true,
   thumb: '사주로보는 인연의 장소.webp',
   action: 'openDestinyMeetingPlaceRoute',
   target: 'destinyMeetingPlaceEntryCard'
@@ -143,6 +144,7 @@ var LOVE_CODE_FEATURE = {
   cta: _reportDashboardText("rd.cta.003"),
   lockKey: 'loveSimulation',
   coinCost: 100,
+  selfGated: true,
   thumb: 'love code.webp',
   action: 'openLoveSimulationRoute',
   target: 'loveCodeEntryCard'
@@ -164,8 +166,8 @@ var REPORT_CARDS = [
   { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축, 몰입 분야, 오늘의 미션까지 한 번에 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', coinCost:0, badge:'NEW' },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
-  { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
-  { id: LOVE_CODE_FEATURE.id, thumb: LOVE_CODE_FEATURE.thumb, label: LOVE_CODE_FEATURE.title, shortTitle: LOVE_CODE_FEATURE.shortTitle, desc: LOVE_CODE_FEATURE.description, note:'상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.', cta: LOVE_CODE_FEATURE.cta, accent:'#f472b6', glow:'rgba(244,114,182,.48)', target: LOVE_CODE_FEATURE.target, action: LOVE_CODE_FEATURE.action, lockKey: LOVE_CODE_FEATURE.lockKey, coinCost: LOVE_CODE_FEATURE.coinCost, badge: LOVE_CODE_FEATURE.badge, tags: LOVE_CODE_FEATURE.tags, group: LOVE_CODE_FEATURE.group }
+  { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, selfGated: DESTINY_MEETING_PLACE_FEATURE.selfGated, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
+  { id: LOVE_CODE_FEATURE.id, thumb: LOVE_CODE_FEATURE.thumb, label: LOVE_CODE_FEATURE.title, shortTitle: LOVE_CODE_FEATURE.shortTitle, desc: LOVE_CODE_FEATURE.description, note:'상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.', cta: LOVE_CODE_FEATURE.cta, accent:'#f472b6', glow:'rgba(244,114,182,.48)', target: LOVE_CODE_FEATURE.target, action: LOVE_CODE_FEATURE.action, lockKey: LOVE_CODE_FEATURE.lockKey, coinCost: LOVE_CODE_FEATURE.coinCost, selfGated: LOVE_CODE_FEATURE.selfGated, badge: LOVE_CODE_FEATURE.badge, tags: LOVE_CODE_FEATURE.tags, group: LOVE_CODE_FEATURE.group }
 ];
 
 (function ensureSajuAnimalCardOrder() {
@@ -229,6 +231,7 @@ var REPORT_CARDS = [
       lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey,
       coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost,
       mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock,
+      selfGated: DESTINY_MEETING_PLACE_FEATURE.selfGated,
       badge: DESTINY_MEETING_PLACE_FEATURE.badge,
       tags: DESTINY_MEETING_PLACE_FEATURE.tags,
       group: DESTINY_MEETING_PLACE_FEATURE.group
@@ -250,6 +253,7 @@ var REPORT_CARDS = [
       action: LOVE_CODE_FEATURE.action,
       lockKey: LOVE_CODE_FEATURE.lockKey,
       coinCost: LOVE_CODE_FEATURE.coinCost,
+      selfGated: LOVE_CODE_FEATURE.selfGated,
       badge: LOVE_CODE_FEATURE.badge,
       tags: LOVE_CODE_FEATURE.tags,
       group: LOVE_CODE_FEATURE.group
@@ -1318,7 +1322,8 @@ function renderReportDashboard() {
         tags: Array.isArray(c.tags) ? c.tags.slice(0, 5) : [],
         lockKey: c.lockKey || (c.target ? ('rpt_' + c.target) : ''),
         coinCost: Number(c.coinCost || 0),
-        mainLock: c.mainLock !== false
+        mainLock: c.mainLock !== false,
+        selfGated: c.selfGated === true
       };
       blocks.push(seenTargets[c.target]);
     }
@@ -1362,11 +1367,13 @@ function renderReportDashboard() {
     }
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     var lockKey = b.lockKey || ('rpt_' + b.target);
-    var shouldAttachTileLock = b.coinCost > 0 && b.mainLock !== false;
+    // selfGated 기능은 라우트 안의 실행 CTA가 직접 공용 게이트를 연다. 진입점에도 게이트를 걸면
+    // 사용자가 아무것도 실행하기 전에 결제가 돌거나(회당) 라우트 게이트와 이중으로 걸린다.
+    var shouldAttachTileLock = b.coinCost > 0 && b.mainLock !== false && !b.selfGated;
     var coinAttrs = shouldAttachTileLock ? (' data-tile-lock-key="' + lockKey + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
     // 회당결제(mainLock:false) direct-action은 타일락 속성이 안 붙어 게이트가 안 돌던 dead-end를 막는다:
     // data-coin-cost/data-feature-key를 부여해 회당결제 게이트(_cdRunPerUseCoinGate)로 라우팅한다.
-    if (!shouldAttachTileLock && b.coinCost > 0 && b.mainLock === false && _rptIsDirectAction(b.action)) {
+    if (!b.selfGated && !shouldAttachTileLock && b.coinCost > 0 && b.mainLock === false && _rptIsDirectAction(b.action)) {
       coinAttrs = ' data-coin-cost="' + b.coinCost + '" data-feature-key="' + lockKey + '"';
     }
     if (_rptIsDirectAction(b.action)) {
