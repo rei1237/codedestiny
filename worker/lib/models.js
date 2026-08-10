@@ -376,8 +376,8 @@ const contentEntitlementSchema = new mongoose.Schema({
   scope: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_SCOPES), required: true, default: CONTENT_ENTITLEMENT_SCOPES.PROFILE, index: true },
   status: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_STATUSES), required: true, default: CONTENT_ENTITLEMENT_STATUSES.ACTIVE, index: true },
   source: { type: String, enum: Object.values(CONTENT_ENTITLEMENT_SOURCES), required: true },
-  grantType: { type: String, enum: ["", "permanent_unlock"], default: "", index: true },
-  evidenceId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  grantType: { type: String, enum: ["", "permanent_unlock"], default: "" },
+  evidenceId: { type: String, default: "", trim: true, maxlength: 180 },
   unlockedBy: { type: String, default: "", trim: true, maxlength: 80, index: true },
   orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
@@ -386,7 +386,7 @@ const contentEntitlementSchema = new mongoose.Schema({
   coinPrice: { type: Number, default: 0, min: 0 },
   amountKRW: { type: Number, default: 0, min: 0 },
   unlockedAt: { type: Date, required: true, default: Date.now, index: true },
-  grantedAt: { type: Date, required: true, default: Date.now, index: true },
+  grantedAt: { type: Date, required: true, default: Date.now },
   expiresAt: { type: Date, default: null, index: true },
 }, { timestamps: true, collection: "content_entitlements" });
 
@@ -395,8 +395,12 @@ contentEntitlementSchema.index(
   { unique: true },
 );
 contentEntitlementSchema.index({ userId: 1, serviceKey: 1, status: 1, expiresAt: 1 });
+// 🔴 contentKey 가 키에 포함되어야 한다. sukyo_yearly_fortune_unlock 은 featureKey 가 상수이고
+// contentKey 만 연도별로 다르므로, contentKey 없이 unique 를 걸면 한 프로필이 두 개 연도를 보유할 수 없다.
+// db.js 가 autoIndex:false 이므로 이 선언만으로는 생성되지 않는다 —
+// 생성은 scripts/migrations/20260804-add-permanent-unlock-index.mjs (중복 사전스캔 통과 후).
 contentEntitlementSchema.index(
-  { userId: 1, profileId: 1, featureKey: 1, scope: 1 },
+  { userId: 1, profileId: 1, featureKey: 1, contentKey: 1, scope: 1 },
   {
     unique: true,
     name: "permanent_unlock_identity",
