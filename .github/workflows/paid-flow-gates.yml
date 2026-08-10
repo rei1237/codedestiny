@@ -15,6 +15,12 @@ on:
       # ── 결제 ──────────────────────────────────────────────
       - "worker/routes/billing.js"
       - "worker/routes/payments.js"
+      # 신규 결제 컨텍스트. 컷오버가 끝나면 결제의 정본이 되는 곳이라, 여기가 빠져 있으면
+      # 정작 살아 있는 구현을 고칠 때 결제 게이트가 깨어나지 않는다.
+      - "worker/payments/**"
+      # 동결 매니페스트. 구 결제 코드를 고치려면 이 파일을 같은 커밋에 담아야 하는데,
+      # 그 커밋이 게이트를 깨우지 않으면 트립와이어가 울려도 아무도 듣지 못한다.
+      - "config/payment-freeze.json"
       - "worker/lib/paid-feature-registry.js"
       - "worker/lib/billing-policy.js"
       - "worker/lib/payment-refund.js"
@@ -182,6 +188,15 @@ jobs:
       # 어떤 워크플로에서도 실행되지 않았다. 실제로 그 공백 때문에 verify:saju-unlock-entitlement-regression
       # 은 결제창 문구가 재작성된 뒤 깨진 채로 방치됐고, 아무도 알아채지 못했다.
       # 전부 현재 통과함을 확인하고 배선한다(결제 정책 · 동시성 · 보안 · 원장 순).
+      # 🔴 재작성 기간 한정 가드. worker/payments/ 로 결제를 옮기는 동안 구현이 두 벌 존재하는데,
+      # 그때 가장 비싼 사고는 충돌이 아니라 **조용한 분기**다 — 구 코드에만 얹은 정책은 컷오버
+      # 순간 소리 없이 사라진다. 이 레포에는 이미 그 흉터가 있다(결제창 렌더러 3벌의 TTL 이
+      # 5분/15분으로 갈라진 채 배포됐고, 그걸 잡으려고 verify:payment-choice-parity 를 만들었다).
+      # 막는 게 아니라 눈에 띄게 하는 장치라, 바꾸려면 매니페스트를 같은 커밋에 담기만 하면 된다.
+      # 구 결제 코드가 전부 삭제되면 이 스텝도 함께 지운다.
+      - name: Verify payment freeze manifest
+        run: npm run verify:payment-freeze
+
       - name: Verify billing pass policy
         run: npm run verify:billing-pass-policy
 
