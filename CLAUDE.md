@@ -249,8 +249,21 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 - This section supersedes every older delivery rule in this file, including the 2026-08-08 "PR 정책 폐기 / work on main / ship with `deploy:safe`" contract. That contract is retired. The full version lives in [AGENTS.md](AGENTS.md); this is the summary.
 - **GitHub is the source of truth for production.** Production only ever runs a commit that exists on `main`, and `main` is only reachable through a merged PR.
 - Never work on `main` directly. Branch (`feature/*`, `fix/*`, `refactor/*`, `chore/*`), commit, push, open a PR. A branch ruleset rejects direct pushes to `main`.
-- **PR CI** (`.github/workflows/pr-ci.yml`) runs typecheck, lint, the full test suite, the Pages build, the Worker bundle, and the deployment-configuration guards. It deploys nothing. These checks are required before merge.
-- **Preview** is label-gated: add the `preview` label to a PR and `.github/workflows/pr-preview.yml` builds a Pages preview plus a Worker preview version, smokes them, and comments the URLs. Without the label no preview artifacts are created. A preview's `/api` still reads the production Worker and the production database — treat anything you do there as production.
+- 🔴 **PR CI 는 변경 경로에 따라 강도가 갈린다** (`.github/workflows/pr-ci.yml`). 모든 PR 에 같은 검사를 돌리면 CSS 한 줄에 전체 회귀를 기다리게 되고, 그러면 게이트를 우회할 방법을 찾게 된다. 반대로 전부 가볍게 하면 결제·인증이 무방비가 된다.
+
+  | 티어 | 걸리는 경로 | 도는 검사 |
+  |---|---|---|
+  | `fast` | 문구·CSS·이미지·문서·`index.html`·sitemap | typecheck · lint |
+  | `standard` | `app/` `components/` `src/` `lib/` `js/` · `package.json` · `next.config` | + `build:cf` · `build:worker` · 워커 크기 |
+  | `critical` | **결제 · 인증 · `worker/` · `server/` · DB 스키마·마이그레이션 · `wrangler.*` · `.env*` · `.github/workflows/` · `package-lock.json`** | + 전체 테스트 · 배포 설정 가드 · ads.txt · 시크릿 스캔 · **자동 Preview** |
+
+  - **판정 정본은 `scripts/lib/change-risk.mjs` 하나다.** `scripts/resolve-ci-tier.mjs` 는 그 두 축(`level`, `deepRequired`)을 티어로 **매핑만** 한다. 배포 파이프라인(`deploy-safe`)과 `check-changed` 도 같은 모듈을 쓴다 — 여기에 경로 목록을 다시 쓰면 CI 와 배포가 같은 커밋을 다르게 판정하고, 그 드리프트가 곧 "CI 는 초록인데 배포에서 터지는 게이트"가 된다.
+  - `deepRequired` 를 `level` 과 **함께** 본다. `app/hooks/useCoinGate.ts` 는 `app/` 이라 `level=medium` 이지만 단건 결제 훅이라 `critical` 이어야 한다. 한 축만 보면 구멍이 난다.
+  - **변경 파일을 못 구하면 `critical` 로 간다**(fail closed). "모른다"를 "안전하다"로 읽지 않는다.
+  - 🔴 **네 잡(`Risk tier`·`Typecheck and lint`·`Build Pages and Worker`·`Critical checks`)은 티어와 무관하게 항상 실행된다.** 건너뛰는 것은 잡이 아니라 그 안의 스텝이다. 잡 자체를 `if` 로 막으면 브랜치 룰셋이 오지 않는 체크를 기다리며 머지를 영영 막는다. 잡 이름 = 룰셋의 필수 체크 이름이므로 바꿀 때 룰셋도 함께 고친다(`verify:worker-single-deploy` 가 감시).
+  - **라벨 탈출구**: `full-ci` 는 티어를 `critical` 로 올린다(경로로 안 잡히는 변경 — 예: 정적 셸 `index.html` 안의 결제 모달 수정). 내리는 라벨은 없다 — 그건 게이트를 끄는 버튼이다.
+- **Preview**: `critical` 티어면 자동 생성되고, 그 외에는 `preview` 라벨을 붙였을 때만 만든다. `.github/workflows/pr-preview.yml` 이 Pages 프리뷰 + Worker 프리뷰 버전을 만들고 스모크한 뒤 URL 을 PR 에 코멘트한다. 프리뷰의 `/api` 는 **프로덕션 Worker + 프로덕션 DB** 를 보므로 거기서 하는 일은 실제 기록으로 남는다. Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 는 지금 라이브인 워커가 응답한다 — 워커 변경은 프리뷰로 확인되지 않는다.
+- **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 36개 검증기를 돌린다. 위 티어와 독립이며 필수 체크는 아니다.
 - **Merging the PR is the deploy trigger.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, promotes the Worker then Pages, smokes production, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers and reports on the PR.
 - **Local production deploys are blocked** by `scripts/lib/production-deploy-guard.mjs`. `deploy:check`, `deploy:preview`, and `deploy:smoke` still work locally. The break-glass path — for when GitHub Actions itself is unavailable — is `CD_BREAK_GLASS=1 <command> --break-glass`, and anything shipped that way must be re-landed through a PR or the next release silently reverts it.
 - Production Cloudflare credentials belong in GitHub Actions secrets. Do not add them to CI workflows from `.env` files.

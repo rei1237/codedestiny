@@ -7,6 +7,13 @@ import { runProductionDeployGuardSelfTest } from "./lib/production-deploy-guard.
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const canonicalWorkflow = ".github/workflows/cloudflare-pages-deploy.yml";
+/**
+ * 브랜치 룰셋이 필수로 요구하는 체크 이름. pr-ci.yml 의 잡 이름과 **글자 그대로** 같아야 한다.
+ *
+ * 🔴 이 네 잡은 티어와 무관하게 **항상 실행**된다. 티어에 따라 건너뛰는 것은 잡이 아니라 그
+ * 안의 스텝이다. 잡 자체를 if 로 막으면 룰셋이 보고를 못 받아 머지가 영영 막히기 때문이다.
+ */
+const REQUIRED_CHECK_NAMES = ["Risk tier", "Typecheck and lint", "Build Pages and Worker", "Critical checks"];
 const forbiddenWorkerCommands = /(?:wrangler\s+deploy\b|wrangler\s+versions\s+upload|npm\s+run\s+deploy:cf:worker|npm\s+run\s+deploy:worker)/;
 
 function assert(condition, message) {
@@ -62,6 +69,28 @@ async function verifyPullRequestGate() {
   assert(!/^\s+push:/m.test(triggers), `${prWorkflow} must not run on push; the same commit would be checked twice.`);
   for (const command of ["npm run typecheck", "npm run lint", "npm test", "npm run build:cf", "npm run build:worker"]) {
     assert(workflow.includes(command), `${prWorkflow} must run ${command}.`);
+  }
+
+  // 🔴 검사 강도는 변경 경로로 갈린다. 판정을 여기서 다시 쓰지 않고 정본 한 곳을 부른다.
+  assert(
+    workflow.includes("scripts/resolve-ci-tier.mjs"),
+    `${prWorkflow} must resolve its tier with scripts/resolve-ci-tier.mjs, not an inline path list.`,
+  );
+  // 무거운 스텝은 티어 출력으로만 걸러야 한다. 이 표식이 사라지면 전부 항상 돌거나(느려짐)
+  // 전부 안 돌게(무방비) 된다.
+  assert(
+    workflow.includes("needs.classify.outputs.runs_critical == 'true'"),
+    `${prWorkflow} must gate the critical steps on the resolved tier.`,
+  );
+  assert(
+    workflow.includes("needs.classify.outputs.runs_build == 'true'"),
+    `${prWorkflow} must gate the build steps on the resolved tier.`,
+  );
+
+  // 🔴 잡 이름은 브랜치 룰셋의 필수 체크 이름이다. 바꾸면 룰셋이 영영 오지 않는 체크를
+  // 기다리며 모든 PR 의 머지를 막는다. 이름을 바꿀 때는 룰셋도 함께 고쳐야 한다.
+  for (const jobName of REQUIRED_CHECK_NAMES) {
+    assert(workflow.includes(`name: ${jobName}`), `${prWorkflow} must keep the required check job named "${jobName}" (branch ruleset depends on it).`);
   }
 }
 

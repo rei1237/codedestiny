@@ -2,15 +2,19 @@ name: PR Preview
 
 # PR 을 머지하기 전에 실제 화면을 눈으로 확인하는 자리다.
 #
-# 🔴 라벨을 붙였을 때만 돈다. 커밋마다 자동으로 돌리면 Cloudflare 에 Pages 배포와 Worker
-#    버전이 계속 쌓인다 — 한 PR 에 커밋 10개면 프리뷰 아티팩트도 10쌍이다. 확인이 필요한
-#    시점에 `preview` 라벨을 붙이고, 라벨이 붙어 있는 동안에는 새 커밋마다 갱신된다.
+# 언제 도는가 — 둘 중 하나:
+#   ① 변경이 critical 티어일 때(결제·인증·Worker·DB·배포설정). 이 경로들은 preview 로 눈으로
+#      확인하는 값이 가장 크므로 자동으로 만든다.
+#   ② `preview` 라벨이 붙었을 때. 그 외 변경에서 화면을 보고 싶을 때 쓴다.
+#
+# 🔴 문구·CSS·일반 프론트엔드 변경에는 자동으로 만들지 않는다. 커밋마다 프리뷰를 만들면
+#    Cloudflare 에 Pages 배포와 Worker 버전이 계속 쌓인다 — 한 PR 에 커밋 10개면 아티팩트도 10쌍이다.
 #
 # 프로덕션은 절대 건드리지 않는다(--preview-only). 승격은 main 머지 이후 릴리스 워크플로만 한다.
 on:
   pull_request:
     branches: [main]
-    types: [labeled, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: pr-preview-${{ github.event.pull_request.number }}
@@ -21,9 +25,48 @@ permissions:
   pull-requests: write
 
 jobs:
+  decide:
+    name: Preview needed?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      wanted: ${{ steps.decide.outputs.wanted }}
+      tier: ${{ steps.tier.outputs.tier }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # PR CI 와 같은 판정 정본(scripts/lib/change-risk.mjs)을 쓴다. 여기서 규칙을 다시 쓰면
+      # 두 워크플로가 같은 PR 을 다르게 보게 된다.
+      - name: Resolve verification tier
+        id: tier
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CD_FORCE_CRITICAL: ${{ contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: node scripts/resolve-ci-tier.mjs
+
+      - name: Decide
+        id: decide
+        run: |
+          if [ "${{ steps.tier.outputs.tier }}" = "critical" ] || [ "${{ contains(github.event.pull_request.labels.*.name, 'preview') }}" = "true" ]; then
+            echo "wanted=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wanted=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tier=${{ steps.tier.outputs.tier }} — 프리뷰를 만들지 않습니다. 필요하면 PR 에 'preview' 라벨을 붙이세요."
+          fi
+
   preview:
     name: Cloudflare preview
-    if: contains(github.event.pull_request.labels.*.name, 'preview')
+    needs: decide
+    if: needs.decide.outputs.wanted == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -32,7 +75,7 @@ jobs:
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
       CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
-      # 프리뷰는 브랜치 팁 하나를 통째로 올린다. 변경 집합이 비어도 중단하지 않는다.
+      # 프리뷰는 브랜치 팁을 통째로 올린다. 변경 집합이 비어도 중단하지 않는다.
       CD_ALLOW_EMPTY_CHANGESET: "true"
 
     steps:
@@ -67,10 +110,12 @@ jobs:
         env:
           PAGES_URL: ${{ steps.urls.outputs.pages_url }}
           WORKER_URL: ${{ steps.urls.outputs.worker_url }}
+          TIER: ${{ needs.decide.outputs.tier }}
         with:
           script: |
             const pages = process.env.PAGES_URL || '(없음)';
             const worker = process.env.WORKER_URL || '(이번 변경은 Worker 를 포함하지 않습니다)';
+            const tier = process.env.TIER || 'unknown';
             const marker = '<!-- cd-preview -->';
             const body = [
               marker,
@@ -79,8 +124,10 @@ jobs:
               `- **Pages**: ${pages}`,
               `- **Worker**: ${worker}`,
               `- **커밋**: \`${context.payload.pull_request.head.sha.slice(0, 12)}\``,
+              `- **검증 티어**: \`${tier}\``,
               '',
               '> ⚠️ 프리뷰의 `/api` 는 **프로덕션 Worker 와 프로덕션 DB** 를 봅니다. 여기서 하는 결제·해금은 실제 기록으로 남습니다.',
+              '> 또한 Worker 프리뷰 버전은 라우팅되지 않으므로, 프리뷰 URL 의 `/api/*` 는 **지금 라이브인 워커**가 응답합니다 — 워커 쪽 변경은 프리뷰로 확인되지 않습니다.',
               '',
               '확인이 끝나고 문제가 없으면 이 PR 을 머지하세요. 머지되면 같은 커밋이 자동으로 프로덕션에 배포됩니다.',
             ].join('\n');
