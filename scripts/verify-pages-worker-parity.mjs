@@ -16,6 +16,14 @@ function needsWorkerParity(files) {
   return files.some((file) => PAYMENT_BOUNDARY_FILES.has(String(file || "").trim()));
 }
 
+/**
+ * 호출자가 "이번 릴리스는 Worker 를 실제로 승격했다"고 알려 준 경우. 그러면 두 계층은 무조건
+ * 같은 커밋이어야 하므로 아래의 변경 파일 추정을 건너뛴다 — 추정은 그 사실을 모를 때만 쓰는 대용품이다.
+ */
+function parityIsMandatory(argv) {
+  return argv.includes("--worker-promoted");
+}
+
 function changedFilesForCommit(commit) {
   const result = spawnSync("git", ["diff-tree", "--no-commit-id", "--name-only", "-r", commit], {
     cwd: process.cwd(),
@@ -42,16 +50,25 @@ async function main() {
     assert(needsWorkerParity(["app/_lib/billing-client.ts"]), "billing client changes must require Worker parity");
     assert(needsWorkerParity(["worker/routes/access.js"]), "access route changes must require Worker parity");
     assert(!needsWorkerParity(["app/page.tsx"]), "unrelated Pages changes must not require Worker parity");
+    assert(parityIsMandatory(["--worker-promoted"]), "--worker-promoted must force parity regardless of changed files");
+    assert(!parityIsMandatory([]), "parity must stay heuristic when the caller says nothing");
     console.log("[verify-pages-worker-parity] self-test passed");
     return;
   }
 
   const expectedCommit = String(process.env.GITHUB_SHA || "").trim();
   assert(/^[0-9a-f]{7,64}$/i.test(expectedCommit), "GITHUB_SHA is required for Pages/Worker parity verification.");
-  const files = changedFilesForCommit(expectedCommit);
-  if (!needsWorkerParity(files)) {
-    console.log("[verify-pages-worker-parity] skipped: no payment boundary files changed.");
-    return;
+  // 🔴 변경 파일 추정은 팁 커밋 하나만 본다(diff-tree -r <sha>). 로컬 배포는 커밋 여러 개를
+  // 한 번에 내보내므로, 마지막 커밋이 결제 파일을 안 건드리면 검사가 스스로 꺼진다 —
+  // 2026-08-11 릴리스(15커밋, billing.js·payments.js 포함)가 정확히 그렇게 건너뛰었다.
+  // 팁 커밋은 조회 스크립트 하나만 바꿨기 때문이다. 그래서 Worker 승격 여부를 아는 호출자는
+  // 추정에 맡기지 말고 --worker-promoted 로 사실을 통보한다.
+  if (!parityIsMandatory(process.argv)) {
+    const files = changedFilesForCommit(expectedCommit);
+    if (!needsWorkerParity(files)) {
+      console.log(`[verify-pages-worker-parity] skipped: no payment boundary files in ${expectedCommit.slice(0, 12)} (tip commit only).`);
+      return;
+    }
   }
 
   const versionUrl = String(process.env.CD_WORKER_VERSION_URL || "https://code-destiny.com/api/version").trim();

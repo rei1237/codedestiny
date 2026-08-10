@@ -728,7 +728,13 @@ async function postDeployHealth(value, workerPromoted) {
   const env = { ...envForChecks(), CD_DEPLOY_VERIFY_ORIGIN: origin, CD_WORKER_VERSION_URL: origin + "/api/version", GITHUB_SHA: value.git.head };
   // Pages 와 Worker 가 같은 커밋인지. 결제·접근 상태처럼 양쪽이 맞물린 변경에서 어긋나면
   // 두 코드가 서로 다른 계약으로 대화한다.
-  if (workerPromoted) run("Pages/Worker commit parity", process.execPath, [path.join(scriptDir, "verify-pages-worker-parity.mjs")], { env });
+  //
+  // 🔴 --worker-promoted 를 반드시 넘긴다. 이 분기에 들어왔다는 것은 이번 릴리스가 Worker 를
+  // 승격했다는 뜻이고, 그러면 두 계층은 무조건 같은 커밋이어야 한다. 넘기지 않으면 검사가
+  // "팁 커밋이 결제 파일을 바꿨는가"로 스스로를 게이트하는데, 로컬 배포는 커밋을 묶어 내보내므로
+  // 마지막 커밋만 보고 조용히 꺼진다(2026-08-11 릴리스가 그렇게 건너뛰었다). 여기서 승격 사실을
+  // 아는데 추정에 맡기는 것은 871 줄의 needsWorker 와 같은 실수다.
+  if (workerPromoted) run("Pages/Worker commit parity", process.execPath, [path.join(scriptDir, "verify-pages-worker-parity.mjs"), "--worker-promoted"], { env });
   // 자산 검사는 여기서 하지 않는다 — promote() 가 배포본(artifact)과 별칭(alias)을 나눠
   // 이미 확인했고, 여기서 한 번 더 돌리면 별칭의 전환 구간 404 가 다시 롤백을 부른다.
 }
