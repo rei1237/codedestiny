@@ -639,6 +639,15 @@ function getAllowedOrigins(env) {
   ].filter(Boolean));
 }
 
+/* 신규 결제 컨텍스트로 넘어간 경로의 allowlist. 쉼표 구분이고, 비어 있으면 아무것도 넘어가지 않는다.
+   경로마다 이름을 두는 이유는 되돌리기 단위를 경로 하나로 유지하기 위해서다 — 컷오버가 잘못됐을 때
+   전체를 되돌리면 이미 검증된 경로까지 함께 물러난다. */
+function isPaymentsV2Route(env, routeName) {
+  const raw = String(getEnv(env, "PAYMENTS_V2_ROUTES") || "").trim();
+  if (!raw) return false;
+  return raw.split(",").map((part) => part.trim()).filter(Boolean).includes(routeName);
+}
+
 function isProductionRuntime(env) {
   const nodeEnv = String(getEnv(env, "NODE_ENV") || "").trim().toLowerCase();
   if (nodeEnv === "production") return true;
@@ -1275,6 +1284,20 @@ export default {
       }
 
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
+        /* 컷오버. 구 경로 그대로에 **신규 모듈이 답하기 시작하는** 지점이고, 어느 경로가 넘어갔는지는
+           PAYMENTS_V2_ROUTES allowlist 하나가 정한다. 목록이 비면 아무것도 안 넘어간다(fail-closed).
+           되돌리기는 목록에서 이름 하나를 빼는 것 — 코드 배포 없이 env 만으로 끝난다.
+           응답은 legacyShape 로 나간다: 서버만 바뀌고 클라이언트는 그대로인 구간에서 키가 어긋나면
+           200 이 오고 파싱도 되는데 값만 undefined 라 **에러 없이 화면이 빈다**(worker/payments/compat.js). */
+        if (isPaymentsV2Route(env, "order-detail")
+          && request.method === "GET"
+          && /^\/api\/payments\/orders\/[^/]+$/.test(url.pathname)) {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, {
+            prefix: "/api/payments",
+            legacyShape: true,
+          }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
