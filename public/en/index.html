@@ -19426,6 +19426,20 @@ return you.name.restore();</span>
         font-weight:700;font-size:clamp(1.02rem,2vw,1.28rem);line-height:1.36;letter-spacing:-.01em;
         color:var(--fb-ink);word-break:keep-all
       }
+      /* 보상 배지 — 카드가 이미 정의한 --fb-gold 만 쓴다(연이=샴페인 골드, 네오=e8d5a3).
+         align-self:start 없으면 __copy 의 flex column 때문에 칩이 가로로 늘어난다. */
+      html body .cd-feedback__reward{
+        display:inline-flex;align-items:center;gap:6px;align-self:start;
+        margin:1px 0 2px;padding:5px 12px;border-radius:999px;
+        font-family:var(--font-body)!important;
+        font-size:.78rem;font-weight:700;letter-spacing:-.01em;line-height:1.4;
+        color:var(--fb-gold);background:rgba(234,208,137,.12);
+        border:1px solid rgba(234,208,137,.42);word-break:keep-all
+      }
+      html body .cd-feedback__reward strong{font-weight:900;color:#fff6dd}
+      html.neo-mode body .cd-feedback__reward,html body.neo-mode .cd-feedback__reward{
+        background:rgba(232,213,163,.12);border-color:rgba(232,213,163,.4)
+      }
       html body .cd-feedback__body{
         margin:0;max-width:54ch;font-family:var(--font-body)!important;
         font-size:.85rem;line-height:1.7;color:var(--fb-ink-muted);word-break:keep-all
@@ -19458,6 +19472,9 @@ return you.name.restore();</span>
         <span class="cd-feedback__icon" aria-hidden="true">🐞</span>
         <div class="cd-feedback__copy">
           <h2 id="cdFeedbackGateTitle" class="cd-feedback__title">서비스를 함께 만들어 주세요.</h2>
+          <!-- 금액 정본은 worker/routes/admin-feedback.js 의 BUG_REPORT_REWARD_AMOUNT(300).
+               바꾸면 app/feedback/_lib/categories.ts 의 rewardNote 와 이 줄도 함께 고칠 것. -->
+          <p class="cd-feedback__reward"><span aria-hidden="true">🌙</span>채택된 버그 제보 1건당 <strong>월정석 300개</strong></p>
           <p class="cd-feedback__body">버그, 어색한 화면, "이런 기능이 있었으면" 하는 순간 &mdash; 무엇이든 좋습니다.<br>보내주신 의견은 하나씩 읽고 다음 업데이트에 반영합니다.</p>
         </div>
         <a class="cd-feedback__cta" href="/feedback">의견 보내기</a>
