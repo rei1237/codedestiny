@@ -7,7 +7,7 @@ An earlier version of this file claimed "GitHub Actions `wrangler pages deploy` 
 ## Current mode
 
 - Production is reached by `npm run deploy:production` from a developer machine, or by dispatching the **Release Cloudflare Pages and Worker** workflow with `mode: production`. Nothing deploys on push.
-- Cloudflare Pages **Git integration** auto-deploy is off, for production and preview alike. Previews are created by `wrangler pages deploy --branch safe-preview-<sha>`, never by Cloudflare's Git trigger.
+- Cloudflare Pages **Git integration** auto-deploy is off, for production and preview alike. Previews are created by `wrangler pages deploy --branch preview-<branch>-<sha>`, never by Cloudflare's Git trigger.
 - Cloudflare **Workers Builds** Git trigger is disconnected for `code-destiny-web` for the same reason.
 
 Both are enforced from the repo: `scripts/ensure-pages-single-deploy.mjs` (and `pages-config-guard.yml`) fail when `deployments_enabled`, `production_deployments_enabled`, or `preview_deployment_setting` drift; `scripts/verify-worker-single-deploy-guard.mjs` fails when a `Workers Builds:` check reappears or a second Worker deploy path is added.

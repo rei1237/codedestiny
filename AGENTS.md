@@ -52,11 +52,17 @@ edit on main → commit
 npm run deploy:safe         checks → build → Pages preview + Worker preview version → smoke
                             → opens the browser → WAITS at a [y/N] prompt
    ↓                        (the user inspects the preview, then answers)
-                            y → Worker 100% → Pages production → health check (auto-rollback on failure)
+                            y → git push origin <branch> → Worker 100% → Pages production
+                                → health check (auto-rollback on failure)
                             N → nothing is promoted; the preview URL stays available
    ↓
-git push origin main        backup
+git push origin main        already done by the promotion; only needed if you declined
 ```
+
+Promotion pushes HEAD to `origin` first, so the commit Cloudflare labels always exists on GitHub. A failed push
+aborts the promotion before production is touched (the remote is ahead — `git pull --rebase` and re-run).
+`--no-push` skips it deliberately. Every Pages deployment and Worker version is labelled
+`<stage> <sha7> <commit subject>`, e.g. `prod b914081 fix(saju): give eokbu priority over johu`.
 
 ### Verifying paid features on a preview
 
@@ -138,7 +144,7 @@ It reads real git state — uncommitted changes plus commits not yet in `origin/
 | Stage | Concurrency | Why |
 |---|---|---|
 | `deploy:check`, checks, `build:cf` | fully parallel | each worktree has its own `dist/`, `out/`, `.next/` |
-| Preview upload + smoke | fully parallel | every worktree gets its own `safe-preview-<sha>` Pages URL and Worker preview alias |
+| Preview upload + smoke | fully parallel | every worktree gets its own `preview-<branch>-<sha>` Pages URL and Worker preview alias |
 | **Production promotion** | **serialized** | there is exactly one production. Two promotions cannot both win |
 
 - `.deploy-state/state.json` is **per-worktree** — it records *your* preview artifact. Sharing it would let one worktree's preview overwrite another's, and the next promotion would ship the wrong artifact with a valid-looking fingerprint.

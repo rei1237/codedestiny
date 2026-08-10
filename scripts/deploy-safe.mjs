@@ -98,7 +98,7 @@ function parseArgs(argv) {
   const values = new Map();
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy", "--allow-regression"].includes(arg)) flags.add(arg);
+    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy", "--allow-regression", "--no-push"].includes(arg)) flags.add(arg);
     else if (arg.startsWith("--") && arg.includes("=")) {
       const separator = arg.indexOf("=");
       values.set(arg.slice(2, separator), arg.slice(separator + 1));
@@ -118,6 +118,7 @@ const allowNoWorkerPreview = cli.flags.has("--allow-no-worker-preview");
 const previewOnly = cli.flags.has("--preview-only");
 const listOnly = cli.flags.has("--list");
 const openPreview = !ciMode && !cli.flags.has("--no-open");
+const skipPush = cli.flags.has("--no-push");
 const allowEmptyChangeSet = ciMode && process.env.CD_ALLOW_EMPTY_CHANGESET === "true";
 
 function envForChecks() {
@@ -240,7 +241,8 @@ function gitInfo(files) {
   // 아니라 아래의 dirty 검사, 아티팩트 지문 대조, 그리고 승격 직전의 명시적 확인이다.
   if (dirtyFiles.length && !allowDirty) throw new Error("Working tree is dirty. Commit first or pass --allow-dirty.");
   if (!ciMode && !git(["rev-parse", "--verify", "origin/main"], { allowFailure: true })) throw new Error("origin/main is unavailable.");
-  return { branch, head, dirty: dirtyFiles.length > 0, dirtyFiles, files };
+  const subject = git(["log", "-1", "--pretty=%s"], { allowFailure: true });
+  return { branch, head, subject, dirty: dirtyFiles.length > 0, dirtyFiles, files };
 }
 
 async function discover(pagesLocal, workerLocal) {
@@ -587,8 +589,37 @@ function build(value) {
   return result;
 }
 
+const LABEL_MAX = 72;
+/**
+ * Cloudflare 대시보드·`wrangler deployments list` 에 새길 라벨.
+ *
+ * 예전에는 `safe-production-<sha12>` 같은 기계 문자열만 새겨서, 대시보드만 보고는 그 배포가
+ * 무슨 변경인지 알 수 없었다. 형식은 `<단계> <sha7> <커밋 제목>` 이고, 단계를 앞에 두는 이유는
+ * Worker 목록에는 브랜치 컬럼이 없어 메시지만으로 preview/prod 를 갈라야 하기 때문이다.
+ *
+ * 🔴 제목을 그대로 넣지 않는다. win32 에서는 `.cmd` 를 shell:true 로 spawn 하므로(shellArgs)
+ * 따옴표·셸 메타문자가 들어가면 인자가 쪼개져 뒷부분이 위치 인자로 오인된다. 공백은 shellArgs 가
+ * 큰따옴표로 감싸 주므로 살려 둔다.
+ */
+function deployLabel(gitState, stage) {
+  const subject = String(gitState.subject || "").replace(/["'`%^&|<>()\r\n]+/g, " ").replace(/\s+/g, " ").trim();
+  const head = stage + " " + String(gitState.head || "").slice(0, 7);
+  const text = subject ? head + " " + subject : head;
+  return text.length > LABEL_MAX ? text.slice(0, LABEL_MAX - 3).trim() + "..." : text;
+}
+/**
+ * 프리뷰 Pages 브랜치명. SHA 를 유지해 워크트리마다 고유한 프리뷰 URL 을 갖는 성질을 지키되,
+ * 실제 작업 브랜치를 이름에 넣어 대시보드에서 알아볼 수 있게 한다.
+ */
+function previewBranch(gitState, productionBranch) {
+  const safeBranch = String(gitState.branch || "detached").replace(/[^A-Za-z0-9._-]/g, "-");
+  const branch = ("preview-" + safeBranch + "-" + String(gitState.head || "").slice(0, 7)).slice(0, 120);
+  if (branch === productionBranch) throw new Error("Preview branch collided with the production branch: " + branch);
+  return branch;
+}
+
 async function deployPages(value, branch, production) {
-  const message = "safe-" + (production ? "production-" : "preview-") + value.git.head.slice(0, 12);
+  const message = deployLabel(value.git, production ? "prod" : "preview");
   const args = wrangler(["pages", "deploy", value.cf.pages.outputDir, "--project-name", value.cf.project, "--branch", branch, "--commit-hash", value.git.head, "--commit-message", message]);
   if (!production) args.push("--skip-caching");
   const text = capture("Pages " + (production ? "production" : "preview") + " deployment", npxCommand(), args, { env: envForChecks() });
@@ -600,8 +631,8 @@ async function deployPages(value, branch, production) {
   return { id: deployment?.id || "", url, branch, message };
 }
 async function uploadWorker(value) {
-  const alias = "safe-" + value.git.head.slice(0, 12);
-  const text = capture("Worker preview version upload", npxCommand(), wrangler(["versions", "upload", "--config", "worker/wrangler.toml", "--name", value.cf.worker, "--tag", alias, "--preview-alias", alias, "--message", "safe-preview-" + value.git.head.slice(0, 12), "--var", "COMMIT_SHA:" + value.git.head]), { env: envForChecks() });
+  const alias = "preview-" + value.git.head.slice(0, 12);
+  const text = capture("Worker preview version upload", npxCommand(), wrangler(["versions", "upload", "--config", "worker/wrangler.toml", "--name", value.cf.worker, "--tag", alias, "--preview-alias", alias, "--message", deployLabel(value.git, "preview"), "--var", "COMMIT_SHA:" + value.git.head]), { env: envForChecks() });
   const versionId = lastUuid(text);
   const previewUrl = parseUrls(text).find((item) => /workers\.dev/i.test(item)) || process.env.CD_WORKER_PREVIEW_ORIGIN || "";
   if (!versionId) throw new Error("Worker preview upload returned no version ID.");
@@ -722,7 +753,7 @@ async function previewStage() {
   if (!ciMode) assertWorkerBaseIsFresh(root, { argv: process.argv.slice(2) });
   await checks(value);
   const built = build(value);
-  const branch = "safe-preview-" + value.git.head.slice(0, 12);
+  const branch = previewBranch(value.git, value.cf.pages.productionBranch);
   const pages = await deployPages(value, branch, false);
   const worker = value.needsWorker ? await uploadWorker(value) : null;
   const state = {
@@ -797,9 +828,41 @@ async function assertPromotionIsNotRegression(value) {
   }
 }
 
+/**
+ * 승격 직전에 HEAD 를 origin 으로 올린다.
+ *
+ * 로컬이 주 배포 경로이므로 push 하지 않은 커밋도 그대로 프로덕션에 나간다. 그러면 Cloudflare 가
+ * 표시하는 커밋이 GitHub 에 존재하지 않아 "지금 뜬 게 무슨 변경인가"를 대시보드에서도 GitHub 에서도
+ * 확인할 수 없다. 승격 직전에 밀어 두면 라이브 커밋은 항상 GitHub 에서 열린다.
+ *
+ * push 가 실패하면 승격을 중단한다 — 대개 원격이 앞서 있다는 뜻이고, 그 상태로 밀면 다른 세션이
+ * 올린 변경을 되돌릴 위험이 있다(프로덕션은 아직 아무것도 건드리지 않은 시점이라 중단이 안전하다).
+ */
+function pushHeadToOrigin(value) {
+  if (ciMode) return;
+  if (skipPush) {
+    console.warn("[deploy-safe] --no-push: HEAD 를 origin 에 올리지 않습니다. 라이브 커밋이 GitHub 에 없을 수 있습니다.");
+    return;
+  }
+  const branch = value.git.branch;
+  if (!branch) return;
+  const remote = git(["rev-parse", "--verify", "--quiet", "origin/" + branch], { allowFailure: true });
+  const ahead = remote ? git(["rev-list", "--count", "origin/" + branch + "..HEAD"], { allowFailure: true }) : "";
+  if (remote && ahead === "0") return;
+  const args = remote ? ["push", "origin", "HEAD:" + branch] : ["push", "-u", "origin", branch];
+  console.log("[deploy-safe] pushing HEAD to origin/" + branch + " so the live commit exists on GitHub.");
+  const result = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
+  if (result.status !== 0) {
+    throw new Error("git " + args.join(" ") + " failed: " + String(result.stderr || "").trim()
+      + "\n  Production was not touched. The remote is probably ahead — run: git pull --rebase origin " + branch
+      + "\n  then re-run the release. Pass --no-push only if you deliberately ship without pushing.");
+  }
+}
+
 async function promote(value, state, yes) {
   if (!yes) throw new Error("Production promotion requires --yes.");
   await assertPromotionIsNotRegression(value);
+  pushHeadToOrigin(value);
   assertArtifact(state);
   // gitleaks 는 GitHub 체크로만 돌았다. 로컬 승격에는 그 경로가 없으므로 레포에 이미 있는
   // 시크릿 스캐너를 승격 직전에 돌린다(외부 바이너리 불필요).
@@ -819,7 +882,7 @@ async function promote(value, state, yes) {
   let pagesPromoted = false;
   try {
     if (shouldPromoteWorker) {
-      capture("Worker 100% promotion", npxCommand(), wrangler(["versions", "deploy", state.worker.versionId + "@100", "--name", value.cf.worker, "--message", "safe-production-" + value.git.head.slice(0, 12), "--yes"]), { env: envForChecks() });
+      capture("Worker 100% promotion", npxCommand(), wrangler(["versions", "deploy", state.worker.versionId + "@100", "--name", value.cf.worker, "--message", deployLabel(value.git, "prod"), "--yes"]), { env: envForChecks() });
       workerPromoted = true;
     }
     const pages = await deployPages(value, value.cf.pages.productionBranch, true);
@@ -868,7 +931,7 @@ async function promote(value, state, yes) {
 
     if (workerPromoted && oldWorker?.versionId) {
       try {
-        capture("automatic Worker rollback", npxCommand(), wrangler(["versions", "deploy", oldWorker.versionId + "@100", "--name", value.cf.worker, "--message", "safe-auto-rollback-" + value.git.head.slice(0, 12), "--yes"]), { env: envForChecks() });
+        capture("automatic Worker rollback", npxCommand(), wrangler(["versions", "deploy", oldWorker.versionId + "@100", "--name", value.cf.worker, "--message", "auto-rollback from " + value.git.head.slice(0, 7), "--yes"]), { env: envForChecks() });
         console.error("[deploy-safe] Worker rollback completed.");
       } catch (rollbackError) { console.error("[deploy-safe] Worker rollback failed: " + rollbackError.message); }
     }
@@ -981,7 +1044,7 @@ async function rollbackStage() {
   if (!pagesTarget && !workerTarget) throw new Error("No rollback target. Pass --to=<id> / --worker-version=<id>, or run a production deploy first so " + stateFile + " records one.");
   const result = {};
   if (workerTarget) {
-    capture("Worker rollback", npxCommand(), wrangler(["versions", "deploy", workerTarget + "@100", "--name", value.cf.worker, "--message", "safe-manual-rollback", "--yes"]), { env: envForChecks() });
+    capture("Worker rollback", npxCommand(), wrangler(["versions", "deploy", workerTarget + "@100", "--name", value.cf.worker, "--message", "manual-rollback to " + String(workerTarget).slice(0, 8), "--yes"]), { env: envForChecks() });
     result.workerVersionId = workerTarget;
   }
   // pagesTarget 을 쓴다(--to 오버라이드 + 기록된 직전 배포 폴백). 실제 호출은 공용 헬퍼로.
@@ -1018,6 +1081,19 @@ async function selfTest() {
   const pagesListUrl = pageDeploymentsUrl({ project: "project name" }, "preview");
   if (!pagesListUrl.includes("/project%20name/deployments?env=preview") || /[?&](?:page|per_page)=/.test(pagesListUrl)) throw new Error("Pages deployment lookup must use Cloudflare default pagination.");
   if (parseUrls("https://a.pages.dev https://b.workers.dev").length !== 2) throw new Error("URL parser failed.");
+
+  // 배포 라벨은 대시보드에서 "이 배포가 무슨 변경인가"를 답하는 유일한 단서다.
+  const sample = { head: "b914081de8712345", branch: "main", subject: "fix(saju): give eokbu priority" };
+  const label = deployLabel(sample, "prod");
+  if (!label.startsWith("prod b914081 ") || !label.includes("give eokbu priority")) throw new Error("deploy label must carry stage, short SHA, and the commit subject.");
+  // 🔴 win32 는 .cmd 를 shell:true 로 spawn 한다. 따옴표·셸 메타문자가 남으면 인자가 쪼개져 배포가 죽는다.
+  const dirty = deployLabel({ ...sample, subject: 'fix: "quoted" & piped | %VAR% (paren)' }, "preview");
+  if (/["'`%^&|<>()]/.test(dirty)) throw new Error("deploy label must strip shell metacharacters.");
+  if (deployLabel({ ...sample, subject: "x".repeat(200) }, "prod").length !== LABEL_MAX) throw new Error("deploy label must be truncated.");
+  if (previewBranch(sample, "main") !== "preview-main-b914081") throw new Error("preview branch name drifted.");
+  let collided = false;
+  try { previewBranch({ head: "abc1234", branch: "x" }, "preview-x-abc1234"); } catch { collided = true; }
+  if (!collided) throw new Error("preview branch must never equal the production branch.");
 
   // 결제·인증·DB·배포 인프라는 risk level 과 무관하게 전체 회귀를 요구해야 한다.
   if (!requiresDeepVerification(["worker/routes/payments.js"]).required) throw new Error("payment paths must require deep verification.");

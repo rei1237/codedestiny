@@ -100,7 +100,7 @@ database write is required for this activation.
 ### Pages 자동 배포 단일화
 
 - Cloudflare 대시보드의 `Deployments paused`는 이 저장소에서는 정상 운영 상태다. Pages Git 자동/프리뷰 배포를 끄고 GitHub Actions의 명시적 배포만 정본으로 쓴다.
-- Cloudflare Git preview 배포를 쓰지 않는다. preview 는 `deploy-safe.mjs` 의 preview 단계가 `wrangler pages deploy --branch safe-preview-<sha>` 로 직접 만든다. Git 연동을 되살리면 이중 배포로 청크 해시가 어긋난다.
+- Cloudflare Git preview 배포를 쓰지 않는다. preview 는 `deploy-safe.mjs` 의 preview 단계가 `wrangler pages deploy --branch preview-<branch>-<sha>` 로 직접 만든다. Git 연동을 되살리면 이중 배포로 청크 해시가 어긋난다.
 - Pages 프로젝트의 Git source config는 다음 세 값을 명시적으로 비활성화한다.
   - `deployments_enabled=false` (legacy 호환 필드)
   - `production_deployments_enabled=false`
@@ -132,7 +132,7 @@ Concurrency is split by stage, because only one of them contends:
 
 | Stage | Concurrency |
 |---|---|
-| checks, `build:cf`, preview upload, smoke | fully parallel — separate build dirs, separate `safe-preview-<sha>` URLs |
+| checks, `build:cf`, preview upload, smoke | fully parallel — separate build dirs, separate `preview-<branch>-<sha>` URLs |
 | production promotion, rollback | serialized by `promote.lock` in the primary worktree |
 
 Three failure modes the tooling handles:
