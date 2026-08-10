@@ -6163,6 +6163,9 @@
   var CD_LEVEL_PREV_GROWTH = 25;
   var CD_LEVEL_DAY_RETENTION = 14;
   var CD_LEVEL_SYNC_COOLDOWN_MS = 60000;
+  /* 쿨다운을 무시할 만한 `cd:auth-changed` source. 부분 일치로 본다(로그인 경로마다 접두·접미가 다르다).
+     여기 없는 source 도 동기화는 하되 쿨다운을 지킨다 — 목록을 좁게 두는 것이 안전한 이유다. */
+  var CD_LEVEL_IDENTITY_SOURCES = ['login', 'logout', 'signup', 'signout', 'withdraw', 'oauth', 'session-restored'];
   var CD_LEVEL_ADOPT_CAP = 5000;
   var _cdLevelStore = null;
   var _cdLevelServer = null;
@@ -7205,14 +7208,22 @@
     _dpLevelBootDone = true;
     _dpNoteLocalLevelUp(_cdLevelAward('checkin', _cdLevelKstDate(0)));
     _cdLevelSyncWhenIdle();
+    /* 🔴 신원이 **실제로 바뀐** 사건에서만 쿨다운을 무시한다.
+       RPG 진행도는 사용자 단위 데이터라, "같은 사용자의 다른 상태가 갱신됐다"는 재조회 사유가 아니다.
+       예전에는 거부 목록(`source === 'coin-api-auth'` 하나)이었는데 그 방식은 사고가 날 때마다
+       한 줄씩 늘어난다. 실제로 두 번째가 났다 — 이용권 커버리지 캐시 write 가
+       `membership-cache` source 로 같은 이벤트를 쏘는 바람에, 결제창을 열어 커버리지를 갱신할
+       때마다 /api/rpg/progress 가 **쿨다운을 무시하고** 재발화했다. 게다가 그 요청은
+       _dpRunTransientRetry 로 재시도까지 붙어서, 결제와 같은 Mongo admission 슬롯을 경합했다.
+       그래서 허용 목록으로 뒤집는다. 다만 모르는 source 를 **버리지는 않는다** — 쿨다운을 지키는
+       일반 동기화로 떨어뜨려, 새 source 가 생겨도 갱신을 놓치지 않으면서 폭주도 하지 않게 한다. */
     window.addEventListener('cd:auth-changed', function(event) {
       var detail = event && event.detail || {};
       var source = String(detail.source || '').toLowerCase();
-      // coin-api-auth 는 세션 하트비트가 인증 상태를 재확인할 때마다 쏘는 echo 다(실제 변화가
-      // 아니다) — 이걸로 rpg 진행도까지 쿨다운 무시하고 강제 재조회하면 하트비트 주기마다
-      // /api/rpg/progress 가 불필요하게 재발화한다. 실제 로그인/로그아웃 등 다른 소스는 그대로 즉시 동기화한다.
-      if (source === 'coin-api-auth') return;
-      _cdLevelSync({ force: true }).then(function() { _dpRefreshLevelStrip(); });
+      var identityChanged = CD_LEVEL_IDENTITY_SOURCES.some(function(key) { return source.indexOf(key) >= 0; });
+      _cdLevelSync(identityChanged ? { force: true } : null).then(function(res) {
+        if (res) _dpRefreshLevelStrip();
+      });
     });
     /* 유료 기능이 해금·열람되면 보너스 EXP. 결제 경로는 건드리지 않고 이벤트만 듣는다. */
     window.addEventListener('cd:unlocks-changed', function(event) {
