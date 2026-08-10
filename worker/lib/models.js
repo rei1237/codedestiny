@@ -109,6 +109,9 @@ const userSchema = new mongoose.Schema({
     // 판정 정본은 lib/profile-limits.js 의 resolveFamilyPremiumQuota.
     premiumUseCycleKey: { type: String, default: "", trim: true, maxlength: 40 },
     premiumUseCount: { type: Number, default: 0, min: 0 },
+    // 이 이용권을 켠 주문. 이용권 확정(PENDING→PAID)이 재생돼도 expiresAt 을 두 번 늘리지 않도록,
+    // 신규 컨텍스트가 CAS 조건으로 함께 본다. 기존 코드는 읽지 않는다.
+    lastPassOrderId: { type: String, default: "", trim: true, maxlength: 160 },
     // 월정석 지급분별(lot) 만료: 각 지급분이 지급일+30일에 개별 소멸, FIFO 차감.
     // lot 배열이 신뢰 원천이고 membershipCreditBalance는 "미만료 lot.remaining 합계" 파생 캐시.
     membershipCreditLots: {
@@ -262,6 +265,17 @@ const paymentSchema = new mongoose.Schema({
     default: "",
   },
   rawPortOne: { type: mongoose.Schema.Types.Mixed },
+  /* ── 신규 결제 컨텍스트(worker/payments/)용 3필드. 기존 코드는 읽지도 쓰지도 않는다. ──
+     Atlas M0 에는 리플리카셋이 없어 트랜잭션을 못 쓴다. 그래서 주문 상태기계는 전이마다
+     **단일 문서 조건부 갱신(CAS)** 으로 원자성을 얻고, 아래 세 필드가 그 CAS 의 조건이 된다. */
+  // PAID→REFUNDED 는 PortOne 호출이 끼어 있어 한 번에 못 끝낸다. A) 락을 잡고 B) PG 를 부른 뒤
+  // C) 정산한다. A~C 사이에 죽으면 이 타임스탬프가 만료(120s)되어 크론이 이어받는다.
+  // 이중 환불은 PortOne 의 Idempotency-Key(주문 id 파생, 랜덤 금지)가 막는다.
+  refundLock: { type: Date, default: null },
+  refundedAt: { type: Date, default: null },
+  // 지급까지 끝났는가. 크론이 "PAID 인데 이 값이 없는 주문"을 찾아 재지급하는 열쇠다.
+  // 돈은 받았는데 권한이 없는 상태를 사람이 찾아내지 않아도 되게 하는 것이 목적이다.
+  entitlementGrantedAt: { type: Date, default: null },
 }, { timestamps: true });
 
 paymentSchema.index({ userId: 1, createdAt: -1 });
@@ -326,6 +340,13 @@ const monthlyCreditLedgerSchema = new mongoose.Schema({
   serviceKey: { type: String, trim: true, default: "", maxlength: 120, index: true },
   profileId: { type: String, trim: true, default: "", maxlength: 120, index: true },
   metadata: { type: mongoose.Schema.Types.Mixed, default: null },
+  /* 신규 결제 컨텍스트용. **default 를 주지 않는 것이 설계의 일부다** — 없는 것과 null 인 것을
+     구분해야 `{ settledAt: { $exists: false } }` 로 미정산 예약행만 골라낼 수 있다.
+     월정석 차감은 트랜잭션 없이 "원장 예약 → 차감 → 정산" 순으로 도는데, 예약과 차감 사이에서
+     죽으면 미정산 행 + 미차감 잔액이 남는다(= 사용자는 과금되지 않았다). 그 상태는 재시도가
+     안전하고, 크론이 이 표식으로 찾아 마무리한다. 반대 순서(차감 먼저)가 트랜잭션이 가리고
+     있던 유일하게 나쁜 인터리빙이다 — 거기서 죽으면 기록 없이 차감만 남는다. */
+  settledAt: { type: Date },
 }, { timestamps: true, collection: "monthly_credit_ledger" });
 
 monthlyCreditLedgerSchema.index(
