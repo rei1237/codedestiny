@@ -276,6 +276,27 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     expect(db.ctx.ops - before).toBe(1);
   });
 
+  test("🔴 구 경로로 마운트되면 구 응답 형태로 답한다", async () => {
+    // 컷오버 구간에서 키가 어긋나면 200 이 오고 파싱도 되는데 값만 undefined 라 화면이 조용히 빈다.
+    const db = makeFakePaymentDb();
+    const order = await seedPending(db);
+    const request = new Request(`https://x.test/api/payments/orders/${order.merchantUid}`, {
+      headers: { Authorization: `Bearer ${await tokenFor(USER)}` },
+    });
+    const response = await handlePaymentsContext(request, AUTH_ENV, {
+      prefix: "/api/payments",
+      legacyShape: true,
+      withDb: (_e, _c, fn) => fn(db),
+    });
+    const payload = await response.json();
+    // PointHistoryClient 는 data.data.order 로 읽는다.
+    expect(payload.data.order.id).toBe(order.merchantUid);
+    expect(payload.data.order.paymentAmount).toBe(30000);
+    expect(payload.data.order.orderNumberMasked).toMatch(/^••••/);
+    // 섀도 경로는 신규 형태 그대로다.
+    expect(payload.order).toBeUndefined();
+  });
+
   test("남의 주문 조회는 403", async () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);

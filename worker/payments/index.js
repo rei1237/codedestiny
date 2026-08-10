@@ -28,6 +28,7 @@ import { verifyPgPayment } from "./pg.js";
 import { grantEntitlement, markUserFeatureUnlocked } from "./entitlements.js";
 import { spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
+import { legacyOrderDetailEnvelope } from "./compat.js";
 import {
   assertOrderOwner,
   createOrder,
@@ -146,10 +147,14 @@ const ROUTES = {
 
   "GET /orders/:id": {
     auth: "required",
-    async handle({ env, ctx, userId, params, withDb }) {
+    async handle({ env, ctx, userId, params, withDb, legacyShape }) {
       const order = await withDb(env, ctx, (db) => findOrder(db, { orderId: params.id }));
       assertOrderOwner(order, userId);
       ctx.orderId = params.id;
+      /* 구 경로(/api/payments)로 마운트되면 구 형태로 답한다. 컷오버는 서버만 바뀌고 클라이언트는
+         그대로인 구간을 반드시 지나는데, 그때 키가 어긋나면 200 이 오고 파싱도 되는데 값만
+         undefined 라 **에러 없이 화면이 빈다.** 마운트 지점이 형태를 결정하므로 플래그가 따로 없다. */
+      if (legacyShape) return json(legacyOrderDetailEnvelope(order));
       return json({ ok: true, order: presentOrder(order) });
     },
   },
@@ -278,7 +283,7 @@ function matchRoute(method, path) {
 /**
  * @param {Request} request
  * @param {object} env
- * @param {{ prefix?: string, withDb?: typeof withPaymentDb }} [options]
+ * @param {{ prefix?: string, withDb?: typeof withPaymentDb, legacyShape?: boolean }} [options]
  *   prefix — 마운트 지점. Phase 4 는 /api/payments2 로 섀도 마운트한다.
  *   withDb — 테스트용 주입. 실행기를 갈아끼울 수 있어야 **오류 매핑·로그·응답 계약까지
  *            전 경로를 Mongo 없이** 확인할 수 있다. 그러지 않으면 여기 테스트는
@@ -286,6 +291,8 @@ function matchRoute(method, path) {
  */
 export async function handlePaymentsContext(request, env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
+  // 구 경로로 마운트되면 구 응답 형태로 답한다(compat.js). 섀도 경로는 신규 형태 그대로.
+  const legacyShape = options.legacyShape === true;
   const prefix = options.prefix || "/api/payments";
   const url = new URL(request.url);
   const path = url.pathname.slice(prefix.length).replace(/\/+$/, "") || "/";
@@ -315,7 +322,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
     }
 
     const response = await matched.route.handle({
-      request, env, ctx, userId, body, rawBody, params: matched.params, withDb,
+      request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape,
     });
     status = response.status;
     return response;
