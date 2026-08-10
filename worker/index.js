@@ -1261,6 +1261,18 @@ export default {
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env, ctx));
       }
 
+      /* 신규 결제 컨텍스트(worker/payments/)의 섀도 마운트. **프로덕션 트래픽은 여기로 오지 않는다.**
+         구 경로(/api/payments)는 그대로 두고 별도 경로로만 열어, 실제 요청·실제 Mongo 위에서
+         왕복 예산과 오류 분류를 확인한 뒤에 하나씩 컷오버한다(계획서 Phase 4→5).
+         플래그가 없으면 import 조차 하지 않으므로 꺼져 있을 때의 비용은 0이고, 판정도 fail-closed 다. */
+      if (url.pathname === "/api/payments2" || url.pathname.startsWith("/api/payments2/")) {
+        if (String(env.PAYMENTS_V2_SHADOW || "").trim().toLowerCase() !== "true") {
+          return jsonResponse(request, env, { ok: false, error: "not_found" }, { status: 404 });
+        }
+        const { handlePaymentsContext } = await import("./payments/index.js");
+        return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments2" }));
+      }
+
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
