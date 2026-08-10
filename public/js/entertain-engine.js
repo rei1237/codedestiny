@@ -3783,7 +3783,7 @@
       water: '오늘은 무리해서 버티기보다 회복 시간을 확보해야 합니다. 밤 시간을 차분하게 정리하면 내일 몸이 훨씬 가볍습니다.'
     }[todayEl] || '오늘은 크게 무리하기보다 식사, 수면, 움직임의 기본을 차분히 맞추는 편이 좋습니다.';
 
-    var second = '오늘의 억부는 ' + EL_NAME[targetEl] + '을 먼저 챙기고, ' + EL_NAME[avoidEl] + '의 자극은 저녁부터 낮추라고 가리킵니다.';
+    var second = '오늘의 억부는 ' + getHealthElementWithParticle(targetEl, 'object') + ' 먼저 챙기고, ' + EL_NAME[avoidEl] + '의 자극은 저녁부터 낮추라고 가리킵니다.';
     if (todayEl === strongestEl) {
       second = '타고난 강점과 오늘의 일진이 겹칩니다. 익숙한 방식으로 계속 밀어붙이기 쉬우니, 일정 사이에 쉬는 칸을 먼저 남겨두세요.';
     } else if (todayEl === targetEl) {
@@ -4091,6 +4091,7 @@
     var caution = profile.cautionElements.length ? profile.cautionElements : [avoidEl].filter(Boolean);
     var supportText = support.map(function (el) { return EL_NAME[el] || el; }).join(', ') || EL_NAME[targetEl] || '토(土)';
     var cautionText = caution.map(function (el) { return EL_NAME[el] || el; }).join(', ') || EL_NAME[avoidEl] || '화(火)';
+    var johuRoutinePreview = profile.routine.slice(0, 3).join(', ');
     return '<div class="cd-health-knowledge-grid">'
       + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(support[0] || targetEl || 'earth') + '">'
       + '<div class="cd-health-card-top">'
@@ -4107,7 +4108,7 @@
       + '<div><small>건습 리듬</small><b>' + escapeHealthHtml(profile.moisture.title) + '</b></div>'
       + '</div>'
       + '<p class="cd-health-card-lead">' + escapeHealthHtml(profile.moisture.summary) + '</p>'
-      + renderHealthMiniList([profile.moisture.carePoint, '오늘은 ' + supportText + '을 먼저 보완하고, ' + cautionText + ' 쪽 자극은 오후부터 줄이는 편이 좋습니다.'], 2)
+      + renderHealthMiniList([profile.moisture.carePoint, '오늘은 ' + supportText + getHealthElementParticle(support[support.length - 1] || targetEl, 'object') + ' 먼저 보완하고, ' + cautionText + ' 쪽 자극은 오후부터 줄이는 편이 좋습니다.'], 2)
       + renderHealthChipList(profile.moisture.routine, 4)
       + '</article>'
       + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(targetEl || support[0] || 'earth') + '">'
@@ -4116,7 +4117,7 @@
       + '<div><small>조후 보완 순서</small><b>' + escapeHealthHtml(profile.label) + '</b></div>'
       + '</div>'
       + '<p class="cd-health-card-lead">' + escapeHealthHtml('조후상 먼저 챙길 자리는 ' + supportText + '입니다. 여기에 억부에서 잡힌 보완 오행 ' + getHealthElementWithParticle(targetEl, 'object') + ' 함께 보면, 오늘은 무리한 관리보다 몸을 편하게 만드는 순서가 더 중요합니다.') + '</p>'
-      + renderHealthMiniList(['줄이면 좋은 자극은 ' + cautionText + '의 과열과 과한 반복입니다.', '오늘은 ' + profile.routine.slice(0, 3).join(', ') + '을 먼저 두는 편이 몸에 편안합니다.'], 2)
+      + renderHealthMiniList(['줄이면 좋은 자극은 ' + cautionText + '의 과열과 과한 반복입니다.', '오늘은 ' + johuRoutinePreview + getHealthTextParticle(johuRoutinePreview, 'object') + ' 먼저 두는 편이 몸에 편안합니다.'], 2)
       + renderHealthChipList(profile.routine, 6)
       + '</article>'
       + '</div>';
@@ -4149,9 +4150,10 @@
           : (status === 'veryWeak' || status === 'weak'
             ? EL_NAME[el] + '의 비율이 낮아 ' + knowledge.symbolicOrganRhythm + '을 천천히 보완해야 합니다.'
             : EL_NAME[el] + '의 기운이 빠르게 쓰이니 장점과 피로 신호를 함께 봐야 합니다.');
+        var johuSupportLastEl = profile.supportElements.length ? profile.supportElements[profile.supportElements.length - 1] : ((axes && axes.targetEl) || 'earth');
         var johuLine = profile.supportElements.indexOf(el) !== -1
           ? '조후도 ' + EL_NAME[el] + ' 보완을 함께 잡고 있으니, 오늘은 이 오행을 가장 부드럽게 챙기면 좋습니다.'
-          : '조후상 보완 오행인 ' + (profile.supportElements.map(function (item) { return EL_NAME[item]; }).join(', ') || EL_NAME[axes && axes.targetEl] || '토(土)') + '을 함께 두면 ' + EL_NAME[el] + '의 부담이 줄어듭니다.';
+          : '조후상 보완 오행인 ' + (profile.supportElements.map(function (item) { return EL_NAME[item]; }).join(', ') || EL_NAME[axes && axes.targetEl] || '토(土)') + getHealthElementParticle(johuSupportLastEl, 'object') + ' 함께 두면 ' + EL_NAME[el] + '의 부담이 줄어듭니다.';
         var signals = getHealthKnowledgeSignals(el, status).slice(0, 2);
         var guide = getHealthSignalGuideV2(el, state);
         return '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(el) + '">'
@@ -4271,7 +4273,7 @@
       {
         title: _entertainText("ee_4036_prop_title"),
         value: strongName + ' 조율',
-        body: '계절이 바뀔 때는 원국에서 강한 ' + strongName + '이 먼저 반응합니다. 늘 해오던 방식만 고집하기보다 부족한 오행을 조금씩 채워야 몸이 덜 흔들립니다.',
+        body: '계절이 바뀔 때는 원국에서 강한 ' + strongName + getHealthElementParticle(strongestEl, 'subject') + ' 먼저 반응합니다. 늘 해오던 방식만 고집하기보다 부족한 오행을 조금씩 채워야 몸이 덜 흔들립니다.',
         routine: '부족한 리듬 보완',
         details: [
           strongInfo.symbolicOrganRhythm + '이 강점으로 쓰이되 과로 신호를 함께 살피세요.',
@@ -4309,6 +4311,14 @@
     return (EL_NAME[el] || '토(土)') + getHealthElementParticle(el, kind);
   }
 
+  function getHealthTextParticle(text, kind) {
+    var code = String(text || '').charCodeAt(String(text || '').length - 1) - 0xAC00;
+    var hasBatchim = code >= 0 && code <= 11171 && code % 28 !== 0;
+    if (kind === 'subject') return hasBatchim ? '이' : '가';
+    if (kind === 'object') return hasBatchim ? '을' : '를';
+    return hasBatchim ? '은' : '는';
+  }
+
   function getHealthRemedyItems(targetEl, avoidEl) {
     var targetName = EL_NAME[targetEl] || '토';
     var avoidName = EL_NAME[avoidEl] || '토';
@@ -4335,13 +4345,13 @@
     return [
       {
         label: _entertainText("ee_4101_prop_label"),
-        body: supportName + '는 ' + getHealthElementWithParticle(targetEl, 'object') + ' 생합니다. ' + getHealthElementWithParticle(targetEl, 'subject') + ' 약하거나 눌릴 때는 먼저 ' + supportName + '의 바탕을 세워야 회복이 부드럽게 이어집니다.',
+        body: supportName + getHealthElementParticle(supportEl, 'topic') + ' ' + getHealthElementWithParticle(targetEl, 'object') + ' 생합니다. ' + getHealthElementWithParticle(targetEl, 'subject') + ' 약하거나 눌릴 때는 먼저 ' + supportName + '의 바탕을 세워야 회복이 부드럽게 이어집니다.',
         details: [supportRest, ((supportInfo.recommendedTea || [])[0] || '따뜻한 물') + '를 천천히 마시기', targetName + ' 루틴은 한 번에 늘리지 말고 작게 시작하기'],
         tags: [supportName + ' 생조', targetName + ' 보완', targetInfo.symbolicOrganRhythm]
       },
       {
         label: targetName + ' 본기 보완',
-        body: targetInfo.weakMessage || (targetName + '이 부족하면 생활 리듬이 쉽게 흔들립니다. 오늘은 몸이 바로 받아들이는 행동 하나가 가장 좋습니다.'),
+        body: targetInfo.weakMessage || (targetName + getHealthElementParticle(targetEl, 'subject') + ' 부족하면 생활 리듬이 쉽게 흔들립니다. 오늘은 몸이 바로 받아들이는 행동 하나가 가장 좋습니다.'),
         details: [targetFood, targetMove, ((targetInfo.recoveryFocus || [])[0] || '반복 가능한 작은 루틴')],
         tags: [targetName, targetInfo.title, '오늘 보완']
       },
