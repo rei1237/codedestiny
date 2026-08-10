@@ -1,5 +1,6 @@
+import { Fragment } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpenText, CalendarClock, Compass, ListChecks, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpenText, Compass } from "lucide-react";
 import DeferredShareWidget from "./DeferredShareWidget";
 import {
   buildBreadcrumbJsonLd,
@@ -113,6 +114,41 @@ function buildRelatedServices(page, topicClusterLinks) {
     }));
 }
 
+/* 포커스 링은 골드 하나로 통일한다. 강조색(트와일라잇 바이올렛)은 CTA 가 이미 쓰고 있어
+   포커스까지 같은 색을 주면 "지금 어디에 포커스가 있는가"가 배경 속으로 묻힌다. */
+const FOCUS_RING =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e8d5a3]";
+
+/** 브랜드 락업의 달 마크. 장식이라 접근성 트리에서 빼고, 텍스트 분량 계산에도 잡히지 않는다. */
+function MoonMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M20.1 14.6A8.4 8.4 0 0 1 9.4 3.9a8.4 8.4 0 1 0 10.7 10.7Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/**
+ * 섹션 머리. 제목 위에 킥커를 쌓지 않고 같은 기준선 오른쪽에 라벨을 두고 골드 헤어라인으로 끊는다.
+ * (섹션마다 반복되는 작은 대문자 킥커는 PRODUCT.md anti-references 의 금지 목록이다.)
+ */
+function SectionHead({ id, title, label }) {
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-[rgba(232,213,163,0.18)] pb-4">
+      <h2
+        id={id}
+        className="font-[family-name:var(--font-serif)] text-[clamp(1.4rem,3.2vw,1.9rem)] font-bold tracking-[-0.01em] text-[#f4eeff]"
+      >
+        {title}
+      </h2>
+      {label ? <span className="text-[0.78rem] text-[rgba(200,170,255,0.78)]">{label}</span> : null}
+    </div>
+  );
+}
+
 export default function SeoLandingTemplate({ page }) {
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
   const faqs = mergeFaqs(page?.faqs);
@@ -129,29 +165,6 @@ export default function SeoLandingTemplate({ page }) {
   const disclaimer =
     page.disclaimer ||
     copy.disclaimer;
-  const overviewCards = [
-    {
-      title: copy.cards.howToUse,
-      eyebrow: "01",
-      Icon: CalendarClock,
-      items: steps,
-      tone: "border-amber-200/25 bg-amber-200/[0.07] text-amber-100",
-    },
-    {
-      title: copy.cards.result,
-      eyebrow: "02",
-      Icon: ListChecks,
-      items: resultItems,
-      tone: "border-emerald-200/20 bg-emerald-200/[0.06] text-emerald-100",
-    },
-    {
-      title: copy.cards.disclaimer,
-      eyebrow: "03",
-      Icon: ShieldCheck,
-      body: disclaimer,
-      tone: "border-rose-200/20 bg-rose-200/[0.05] text-rose-100",
-    },
-  ];
 
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
@@ -173,43 +186,58 @@ export default function SeoLandingTemplate({ page }) {
   const faqJsonLd = buildFaqPageJsonLd(faqs);
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#070812] px-4 py-6 text-slate-100 md:px-6 md:py-10">
+    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#0a0818] px-4 pb-16 pt-6 text-[#f4eeff] md:px-6 md:pb-24 md:pt-10">
+      {/* 바닥은 거의 평평한 미드나잇 잉크. 상단 한 곳만 은은히 들어올린다 —
+          채도 높은 보라 그라디언트 배경은 PRODUCT.md 가 명시적으로 거부하는 타로 사이트 클리셰다. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(145deg,rgba(7,8,18,1)_0%,rgba(17,24,39,.98)_46%,rgba(16,38,34,.92)_100%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] bg-[radial-gradient(120%_100%_at_50%_-24%,#13102a_0%,#0a0818_70%)]"
       />
-      <div className="mx-auto w-full max-w-6xl">
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap gap-2 text-sm text-slate-300">
-          {breadcrumb.map((item) => (
-            <Link
-              key={item.path}
-              href={item.path}
-              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100"
-            >
-              {item.name}
-            </Link>
+
+      <div className="mx-auto w-full max-w-5xl">
+        <nav
+          aria-label="Breadcrumb"
+          className="-my-2 flex flex-wrap items-center gap-x-2 text-[0.8rem] text-[rgba(200,170,255,0.78)]"
+        >
+          {breadcrumb.map((item, index) => (
+            <Fragment key={item.path}>
+              {index > 0 ? (
+                <span aria-hidden="true" className="text-[rgba(232,213,163,0.4)]">
+                  /
+                </span>
+              ) : null}
+              <Link
+                href={item.path}
+                className={`inline-flex items-center rounded-[4px] py-2 underline-offset-4 transition-colors duration-200 hover:text-[#e8d5a3] hover:underline ${FOCUS_RING}`}
+              >
+                {item.name}
+              </Link>
+            </Fragment>
           ))}
         </nav>
 
-        <header className="border-b border-white/10 pb-9 md:pb-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-100">Code Destiny</p>
-          <h1 className="mt-4 max-w-4xl break-keep text-4xl font-semibold leading-tight text-slate-50 md:text-6xl">
+        <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[rgba(232,213,163,0.18)] pb-[clamp(2.5rem,6vw,4rem)]">
+          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[#e8d5a3]">
+            <MoonMark />
+            <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">Code Destiny</span>
+          </p>
+          <h1 className="mt-5 max-w-[20ch] break-keep font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)] font-bold leading-[1.16] tracking-[-0.02em] text-[#f4eeff] [text-wrap:balance]">
             {page.h1}
           </h1>
-          <p className="mt-5 max-w-3xl break-keep text-base leading-8 text-slate-200 md:text-lg">
+          <p className="mt-7 max-w-[62ch] break-keep text-[1.02rem] leading-[1.9] text-[rgba(244,238,255,0.88)] [text-wrap:pretty]">
             {page.intro || page.description}
           </p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href={page.ctaHref || "/index.html"}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-amber-100 px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_50px_rgba(251,191,36,0.18)] transition hover:bg-amber-50"
+              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#c4b5fd] px-7 text-[0.94rem] font-semibold text-[#0a0818] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[#d6cbff] hover:shadow-[0_0_34px_rgba(196,181,253,0.3)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
             >
               <Compass className="h-4 w-4" aria-hidden="true" />
               {page.ctaLabel || copy.defaultCta}
             </Link>
             <Link
               href={guideHref}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[8px] border border-white/15 bg-white/[0.04] px-5 text-sm font-semibold text-slate-100 transition hover:border-emerald-200/50 hover:text-emerald-100"
+              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[rgba(232,213,163,0.5)] px-7 text-[0.94rem] font-semibold text-[#e8d5a3] transition-[background-color,border-color] duration-200 ease-out hover:border-[rgba(232,213,163,0.72)] hover:bg-[rgba(232,213,163,0.08)] ${FOCUS_RING}`}
             >
               <BookOpenText className="h-4 w-4" aria-hidden="true" />
               {guideLabel}
@@ -217,68 +245,102 @@ export default function SeoLandingTemplate({ page }) {
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-          {overviewCards.map(({ title, eyebrow, Icon, items, body, tone }) => (
-            <article key={title} className={`rounded-[8px] border p-5 shadow-[0_18px_70px_rgba(0,0,0,0.18)] ${tone}`}>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80">{eyebrow}</span>
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <h2 className="mt-4 text-lg font-semibold text-slate-50">{title}</h2>
-              {items ? (
-                <ol className="mt-4 space-y-3 text-sm leading-7 text-slate-200">
-                  {items.map((item, index) => (
-                    <li key={item} className="grid grid-cols-[24px_minmax(0,1fr)] gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-slate-50">
-                        {index + 1}
-                      </span>
-                      <span className="min-w-0 break-keep">{item}</span>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-4 break-keep text-sm leading-7 text-slate-200">{body}</p>
-              )}
-            </article>
-          ))}
+        {/* 세 덩어리는 성격이 다르다 — 순서(사용 방법), 목록(제공 결과), 각주(면책).
+            같은 크기 카드 세 장으로 찍어내면 형태가 내용을 배신한다. */}
+        <div className="mt-[clamp(3rem,7vw,5rem)] grid gap-x-14 gap-y-[clamp(2.5rem,5vw,3.5rem)] lg:grid-cols-[1.05fr_1fr]">
+          <section aria-labelledby="seoLandingSteps">
+            <SectionHead id="seoLandingSteps" title={copy.cards.howToUse} />
+            <ol className="mt-7">
+              {steps.map((item, index) => (
+                <li key={item} className="relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 pb-6 last:pb-0">
+                  {index < steps.length - 1 ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-0 left-4 top-9 w-px -translate-x-1/2 bg-[rgba(232,213,163,0.2)]"
+                    />
+                  ) : null}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(232,213,163,0.5)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[#e8d5a3]">
+                    {index + 1}
+                  </span>
+                  <p className="min-w-0 break-keep pt-[0.3rem] text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+                    {item}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section aria-labelledby="seoLandingResults">
+            <SectionHead id="seoLandingResults" title={copy.cards.result} />
+            <ul className="mt-3 divide-y divide-[rgba(244,238,255,0.09)]">
+              {resultItems.map((item) => (
+                <li key={item} className="flex gap-3 py-4">
+                  <span aria-hidden="true" className="mt-[0.66rem] h-1 w-1 shrink-0 rounded-full bg-[#e8d5a3]" />
+                  <span className="min-w-0 break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+                    {item}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
+        <section aria-labelledby="seoLandingDisclaimer" className="mt-[clamp(2.5rem,5vw,3.5rem)]">
+          <h2
+            id="seoLandingDisclaimer"
+            className="font-[family-name:var(--font-serif)] text-[0.98rem] font-bold text-[#e8d5a3]"
+          >
+            {copy.cards.disclaimer}
+          </h2>
+          <p className="mt-2 max-w-[68ch] break-keep text-[0.89rem] leading-[1.85] text-[rgba(200,170,255,0.78)]">
+            {disclaimer}
+          </p>
         </section>
 
-        <section className="mt-10">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.18em] text-emerald-100/80">{copy.relatedFlow}</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-50">{copy.relatedFeatures}</h2>
-              {topicProfile?.topicSummary ? (
-                <p className="mt-3 max-w-3xl break-keep text-sm leading-7 text-slate-300">
-                  {topicProfile.topicSummary}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
+          <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
+          {topicProfile?.topicSummary ? (
+            <p className="mt-5 max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+              {topicProfile.topicSummary}
+            </p>
+          ) : null}
+          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2">
             {relatedServices.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group flex min-h-[82px] items-center justify-between gap-4 rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-amber-200/50 hover:bg-amber-100/[0.06]"
-              >
-                <span className="min-w-0 break-keep">{item.label}</span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-amber-100 transition group-hover:translate-x-0.5" aria-hidden="true" />
-              </Link>
+              <li key={item.href} className="border-b border-[rgba(244,238,255,0.09)]">
+                <Link
+                  href={item.href}
+                  className={`group flex min-h-[3.75rem] items-center justify-between gap-4 py-4 text-[0.95rem] font-semibold text-[#f4eeff] transition-colors duration-200 hover:text-[#e8d5a3] ${FOCUS_RING}`}
+                >
+                  <span className="min-w-0 break-keep">{item.label}</span>
+                  <ArrowRight
+                    className="h-4 w-4 shrink-0 text-[rgba(232,213,163,0.62)] transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
-        <section className="mt-10 grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-amber-100/80">{copy.faqKicker}</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-50">{copy.faqTitle}</h2>
-          </div>
-          <div className="divide-y divide-white/10 rounded-[8px] border border-white/10 bg-white/[0.035]">
+        <section aria-labelledby="seoLandingFaq" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
+          <SectionHead id="seoLandingFaq" title={copy.faqTitle} label={copy.faqKicker} />
+          <div className="mt-2">
             {faqs.map((faq) => (
-              <details key={faq.question} className="px-4 py-4">
-                <summary className="cursor-pointer break-keep text-sm font-semibold text-slate-50">{faq.question}</summary>
-                <p className="mt-3 break-keep text-sm leading-7 text-slate-200">{faq.answer}</p>
+              <details key={faq.question} className="group border-b border-[rgba(244,238,255,0.09)]">
+                <summary
+                  className={`flex cursor-pointer list-none items-start justify-between gap-5 py-5 text-[0.98rem] font-semibold text-[#f4eeff] transition-colors duration-200 hover:text-[#e8d5a3] [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+                >
+                  <span className="min-w-0 break-keep">{faq.question}</span>
+                  <span
+                    aria-hidden="true"
+                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[#e8d5a3] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="max-w-[68ch] break-keep pb-6 text-[0.93rem] leading-[1.9] text-[rgba(244,238,255,0.86)]">
+                  {faq.answer}
+                </p>
               </details>
             ))}
           </div>
