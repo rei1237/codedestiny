@@ -101,15 +101,22 @@ async function verifyPackageAndDeployScript() {
 }
 
 /**
- * 프로덕션에 쓰는 모든 경로가 CI 가드를 통과하는지.
+ * 프로덕션에 쓰는 모든 경로가 **두 겹의 게이트**를 통과하는지.
  *
  * CI 에 배포 명령이 하나뿐이어도, 개발자가 로컬에서 `npm run deploy:cf:worker` 를 치면 워킹트리가
- * 그대로 프로덕션으로 나간다 — PR 도 CI 도 거치지 않고. 그게 "검증 안 된 코드가 프로덕션에
- * 쌓이는" 실제 경로였으므로 여기서 두 가지를 고정한다.
+ * 그대로 프로덕션으로 나간다 — PR 도 CI 도 지문 대조도 스모크도 자동 롤백도 없이. 그게
+ * "검증 안 된 코드가 프로덕션에 쌓이는" 실제 경로였으므로, 여기서 세 가지를 고정한다.
  *   1. package.json 스크립트가 wrangler 배포 명령을 직접 담지 않는다(전부 게이트된 .mjs 경유).
- *   2. 그 .mjs 들이 production-deploy-guard 를 계속 부른다(가드가 조용히 지워지는 것을 막는다).
+ *   2. 그 .mjs 들이 production-deploy-guard 를 계속 부른다(바깥 겹: CI 밖에서는 못 쓴다).
+ *   3. 로컬 실행 경로가 --emergency 게이트를 계속 들고 있다(안쪽 겹: 비상구를 열었더라도
+ *      지금 이 명령으로 프로덕션을 밀 작정인지 한 번 더 받는다).
+ *
+ * 겹이 둘인 이유는 막는 대상이 다르기 때문이다. 바깥은 "여기서 배포하면 안 된다"를 막고,
+ * 안쪽은 "비상구를 연 김에 무심코 눌렀다"를 막는다. 한쪽만 남기면 나머지 사고가 다시 열린다.
  */
 const guardedDeployScripts = ["scripts/deploy-safe.mjs", "scripts/deploy-worker.mjs", "scripts/deploy-pages.mjs"];
+// deploy-safe 는 제외한다 — 그쪽은 자체 승격 확인 절차를 갖고 있어 --emergency 를 요구하지 않는다.
+const gatedDeployScripts = ["scripts/deploy-worker.mjs", "scripts/deploy-pages.mjs"];
 
 function runsWranglerDeployDirectly(command) {
   const text = String(command || "");
@@ -132,11 +139,22 @@ async function verifyLocalDeployPathsAreGated() {
     throw new Error("scripts/lib/production-deploy-guard.mjs is missing; local production deploys would be unguarded.");
   });
 
+  // 바깥 겹 — CI 밖에서는 프로덕션에 쓰지 못한다.
   for (const file of guardedDeployScripts) {
     const contents = await readRepoFile(file);
     assert(
       contents.includes("assertProductionDeployIsCi"),
       `${file} must call assertProductionDeployIsCi so production deploys stay CI-only.`,
+    );
+  }
+
+  // 안쪽 겹 — 비상구로 그 경계를 뚫고 들어온 로컬 실행에도 별도 확인을 요구한다.
+  // 비상구를 여는 것과 지금 이 명령으로 프로덕션을 밀 작정인 것은 다른 결정이라 따로 받는다.
+  for (const file of gatedDeployScripts) {
+    const contents = await readRepoFile(file);
+    assert(
+      contents.includes('process.argv.includes("--emergency")'),
+      `${file} must keep its --emergency gate so manual production deploys stay blocked by default.`,
     );
   }
 }

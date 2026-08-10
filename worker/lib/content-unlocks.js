@@ -46,6 +46,10 @@ function cleanKey(value, maxLen = 160) {
   return String(value || "").trim().slice(0, maxLen);
 }
 
+function isDuplicateKeyError(error) {
+  return Number(error?.code) === 11000;
+}
+
 function uniqueKeys(values = []) {
   return Array.from(new Set(values.map((value) => cleanKey(value)).filter(Boolean)));
 }
@@ -468,7 +472,11 @@ export async function upsertContentUnlock({
         profileId: normalized.profileId,
         scope: normalized.scope,
         $or: [
-          { featureKey: normalized.featureKey },
+          // 🔴 featureKey 만으로 매칭하면 안 된다. sukyo_yearly_fortune_unlock 처럼 featureKey 는 상수이고
+          // contentKey 만 연도별로 다른 상품에서, 2027 구매가 기존 2026 행에 매칭돼 그 행의 contentKey 를
+          // 덮어써 2026 해금이 사라진다. 별칭 치유(saju.fullReading ↔ section_summary)는 유지해야 하므로
+          // 읽기 경로와 같은 buildContentKeyClause 로 별칭까지 포함해 고정한다.
+          { featureKey: normalized.featureKey, ...buildContentKeyClause(normalized.contentKey) },
           { featureKey: "", serviceKey: normalized.serviceKey, contentKey: normalized.contentKey },
           { featureKey: { $exists: false }, serviceKey: normalized.serviceKey, contentKey: normalized.contentKey },
         ],
@@ -481,25 +489,27 @@ export async function upsertContentUnlock({
         scope: normalized.scope,
       };
 
+  const setFields = {
+    serviceKey: normalized.serviceKey,
+    contentKey: normalized.contentKey,
+    featureKey: normalized.featureKey,
+    status: normalized.status,
+    source: normalized.source,
+    grantType: cleanKey(grantType, 40),
+    evidenceId: cleanKey(evidenceId, 180),
+    orderId: cleanKey(orderId, 160),
+    paymentId: cleanKey(paymentId, 160),
+    passId: cleanKey(passId, 160),
+    coinAmount: Math.max(0, Math.floor(Number(coinAmount || 0))),
+    expiresAt: effectiveExpiresAt,
+    grantedAt: effectiveGrantedAt,
+    updatedAt: now,
+  };
+
   const query = ContentEntitlement.findOneAndUpdate(
     identity,
     {
-      $set: {
-        serviceKey: normalized.serviceKey,
-        contentKey: normalized.contentKey,
-        featureKey: normalized.featureKey,
-        status: normalized.status,
-        source: normalized.source,
-        grantType: cleanKey(grantType, 40),
-        evidenceId: cleanKey(evidenceId, 180),
-        orderId: cleanKey(orderId, 160),
-        paymentId: cleanKey(paymentId, 160),
-        passId: cleanKey(passId, 160),
-        coinAmount: Math.max(0, Math.floor(Number(coinAmount || 0))),
-        expiresAt: effectiveExpiresAt,
-        grantedAt: effectiveGrantedAt,
-        updatedAt: now,
-      },
+      $set: setFields,
       $setOnInsert: {
         userId: normalized.userId,
         profileId: normalized.profileId,
@@ -511,7 +521,23 @@ export async function upsertContentUnlock({
     { upsert: true, new: true, setDefaultsOnInsert: true },
   );
   if (session) query.session(session);
-  const document = await query.lean();
+
+  let document;
+  try {
+    document = await query.lean();
+  } catch (error) {
+    // 동시 지급 경합: 우리가 읽은 뒤 다른 요청(PortOne 웹훅 vs 클라이언트 confirm)이 같은 행을 먼저 커밋했다.
+    // 유니크 인덱스가 진 쪽을 E11000 으로 막지만 엔타이틀먼트는 이미 정확히 존재하므로, 결제 실패로
+    // 표면화하면 payments.js 의 refundOrDefer 가 정상 결제를 취소하고 billing.js 가 코인을 되돌려준다.
+    if (!isDuplicateKeyError(error)) throw error;
+    // 🔴 트랜잭션 안에서는 11000 이 트랜잭션 자체를 abort 시켜 같은 세션으로는 재조회조차 불가능하다
+    // (NoSuchTransaction 으로 바뀔 뿐이다). 그대로 올려 호출부가 되돌리게 한다.
+    if (session) throw error;
+    // 같은 identity 로 upsert 없이 한 번만 다시 쓴다. 필터가 1차와 동일하므로 1차가 고르지 않았을 행을
+    // 고를 수 없다. 못 찾으면 이 필터가 애초에 소유하지 않는 행과의 진짜 데이터 충돌이므로 삼키지 않는다.
+    document = await ContentEntitlement.findOneAndUpdate(identity, { $set: setFields }, { new: true }).lean();
+    if (!document) throw error;
+  }
   invalidateAccessReadCaches(normalized.userId);
   return document;
 }

@@ -242,6 +242,21 @@
   var INDEX_BY_ID = {};
   for (var i = 0; i < ANIMALS.length; i += 1) INDEX_BY_ID[ANIMALS[i].id] = ANIMALS[i];
 
+  var SLOTS_BY_MODE = {
+    one: ["today_guide"],
+    three: ["past_wound", "present_energy", "integration_path"],
+    five: ["mind", "heart", "shadow", "gift", "next_action"]
+  };
+
+  /* 카테고리 가중치 — 균등 셔플이면 5종인 '기본'이 4종 그룹보다 자주 나와 덱이 단조로워진다.
+     서식지 그룹이 고르게 섞이도록 그룹 단위로 먼저 뽑는다. */
+  var CATEGORY_WEIGHTS = {
+    "기본": 0.2,
+    "지상": 0.33,
+    "공중": 0.27,
+    "물/기타": 0.2
+  };
+
   function copyObject(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
@@ -251,49 +266,91 @@
     return copyObject(INDEX_BY_ID[id]);
   }
 
-  function sampleUnique(size) {
-    var arr = ANIMALS.slice();
+  function shuffled(list) {
+    var arr = list.slice();
     for (var i = arr.length - 1; i > 0; i -= 1) {
       var j = Math.floor(Math.random() * (i + 1));
       var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
     }
-    return arr.slice(0, size);
+    return arr;
+  }
+
+  /* 🔴 뽑기는 진짜 무작위로 둔다 — 생년·띠로 카드를 조작하지 않는다.
+     개인화는 "무엇이 나왔나"가 아니라 "내 질문에 대해 그 카드가 무엇을 말하는가"에 건다
+     (연이 종합 해설이 그 일을 한다). 조작된 뽑기는 검증할 수 없고 들키면 신뢰만 잃는다. */
+  function sampleUnique(size) {
+    var grouped = {};
+    for (var i = 0; i < ANIMALS.length; i += 1) {
+      var cat = ANIMALS[i].category;
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(ANIMALS[i]);
+    }
+    Object.keys(grouped).forEach(function(key) { grouped[key] = shuffled(grouped[key]); });
+
+    var picked = [];
+    while (picked.length < size) {
+      var available = Object.keys(grouped).filter(function(key) { return grouped[key].length > 0; });
+      if (!available.length) break;
+      var total = available.reduce(function(sum, key) { return sum + (CATEGORY_WEIGHTS[key] || 0.1); }, 0);
+      var roll = Math.random() * total;
+      var chosen = available[available.length - 1];
+      var acc = 0;
+      for (var c = 0; c < available.length; c += 1) {
+        acc += CATEGORY_WEIGHTS[available[c]] || 0.1;
+        if (roll <= acc) { chosen = available[c]; break; }
+      }
+      picked.push(grouped[chosen].pop());
+    }
+    return picked;
   }
 
   function getRandomSpread(mode) {
-    var spreadMode = mode === "five" ? "five" : mode === "one" ? "one" : "three";
-    var size = spreadMode === "five" ? 5 : spreadMode === "one" ? 1 : 3;
-    var slots = spreadMode === "five"
-      ? ["mind", "heart", "shadow", "gift", "next_action"]
-      : spreadMode === "one"
-        ? ["today_guide"]
-        : ["past_wound", "present_energy", "integration_path"];
-    var cards = sampleUnique(size).map(function(card, idx) {
+    var spreadMode = SLOTS_BY_MODE[mode] ? mode : "three";
+    var slots = SLOTS_BY_MODE[spreadMode];
+    var cards = sampleUnique(slots.length).map(function(card, idx) {
       return { slot: slots[idx], card: copyObject(card) };
     });
     return { mode: spreadMode, cards: cards, created_at: new Date().toISOString() };
   }
 
+  var SLOT_LABEL = {
+    today_guide: "오늘의 수호 메시지",
+    past_wound: "과거 상처",
+    present_energy: "현재 에너지",
+    integration_path: "통합 방향",
+    mind: "이성/사고",
+    heart: "감정/욕구",
+    shadow: "그림자",
+    gift: "잠재 선물",
+    next_action: "다음 행동"
+  };
+
+  function trimmed(value) {
+    return String(value == null ? "" : value).trim();
+  }
+
+  /* composeConsultation 은 이제 userContext 를 실제로 쓴다.
+     예전에는 호출자가 항상 {} 를 넘겨 focus 경로가 죽어 있었고, 만들어 낸 integration_focus 는
+     화면에 렌더조차 되지 않았다. 질문이 들어오면 그 질문을 리딩의 축으로 삼는다. */
   function composeConsultation(spread, userContext) {
     var ctx = userContext || {};
-    var lines = [];
-    for (var i = 0; i < spread.cards.length; i += 1) {
-      var c = spread.cards[i];
-      lines.push(c.card.name_ko + (c.slot === "today_guide" ? "" : "(" + c.slot + ")"));
-    }
+    var question = trimmed(ctx.focus || ctx.question);
     var isOne = spread.mode === "one";
+    var names = spread.cards.map(function(c) { return c.card.name_ko; });
+
     var opening = isOne
-      ? "오늘 당신 곁에 " + (spread.cards[0] && spread.cards[0].card.name_ko) + "가 한 장의 메시지로 찾아왔어요. " +
+      ? "오늘 당신 곁에 " + names[0] + "가 한 장의 메시지로 찾아왔어요. " +
         "이 한 장이 지금의 마음에 전해주는 수호의 말을 천천히 받아보세요."
-      : "오늘 " + lines.join(", ") + "가 당신 곁에 모였어요. " +
+      : "오늘 " + names.join(", ") + "가 당신 곁에 모였어요. " +
         "작은 동물 친구들이 들려주는 따뜻한 조언을 마음에 담아보세요.";
-    var focus =
-      ctx.focus && String(ctx.focus).trim()
-        ? "'" + String(ctx.focus).trim() + "'에 대한 고민이라면, 이 조언이 도움이 될 거예요."
-        : "지금 마음에 두고 있는 고민에 이 조언을 곁에 두어 보세요.";
+
+    var focus = question
+      ? "\"" + question + "\" — 이 질문을 축에 두고 읽어 드릴게요."
+      : "지금 마음에 두고 있는 고민에 이 조언을 곁에 두어 보세요.";
 
     return {
       mode: spread.mode,
+      question: question,
       opening_message: opening,
       integration_focus: focus,
       cards: spread.cards.map(function(item) {
@@ -303,6 +360,8 @@
           layered_reading: {
             essence: item.card.essence_poetic,
             direct_message: item.card.direct_message_deep_dive,
+            /* 🔴 여기서 자르지 않는다. 예전에는 렌더러가 3개로 슬라이스하고 문장까지 잘라
+               이미 집필된 콘텐츠의 40%를 버렸다. 분량 정책은 렌더러가 아니라 모드가 정한다. */
             daily_actions: item.card.today_deep_advice.slice(),
             ritual: item.card.integration_ritual_5min,
             journaling: item.card.journaling_prompts.slice(),
@@ -319,11 +378,31 @@
     };
   }
 
+  /* 워커(/api/animal-totem/reading)로 보낼 카드 서술.
+     🔴 17종 본문을 서버로 복제하지 않기 위해 클라가 필요한 만큼만 실어 보낸다.
+        서버는 id 화이트리스트로 교차검증하고 길이 상한만 건다. */
+  function buildReadingCards(spread) {
+    return spread.cards.map(function(item) {
+      var firstSentence = String(item.card.essence_poetic || "").split(/(?<=[.!?])\s+/)[0] || "";
+      return {
+        slot: item.slot,
+        animalId: item.card.id,
+        animalName: item.card.name_ko,
+        category: item.card.category,
+        essence: firstSentence.slice(0, 200),
+        shadow: String(item.card.shadow_warning || "").slice(0, 160),
+        actions: (item.card.today_deep_advice || []).slice(0, 3)
+      };
+    });
+  }
+
   global.AnimalTotemContentEngine = {
-    version: "1.0.0",
+    version: "1.1.0",
     animals: copyObject(ANIMALS),
+    slotLabels: copyObject(SLOT_LABEL),
     getAnimalById: getAnimalById,
     getRandomSpread: getRandomSpread,
-    composeConsultation: composeConsultation
+    composeConsultation: composeConsultation,
+    buildReadingCards: buildReadingCards
   };
 })(window);

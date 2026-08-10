@@ -20,12 +20,53 @@
  * 그 분류를 검사하는 verify 스크립트가 하나도 없어서 이 파일이 유일한 안전망이다.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 let utils;
+let billingSource;
 
 beforeAll(async () => {
   const mod = await import("../../worker/routes/billing.js");
   utils = mod.__billingTestUtils;
+  billingSource = readFileSync(fileURLToPath(new URL("../../worker/routes/billing.js", import.meta.url)), "utf8");
 });
+
+/* 균형 잡힌 호출식 추출. 문자열·주석 안의 괄호는 세지 않는다 — 메시지나 주석에 짝이 맞지 않는
+   괄호가 하나라도 들어오면 단순 카운터는 조용히 엉뚱한 곳에서 끊긴다. */
+function extractBalancedCalls(source, fnName) {
+  const calls = [];
+  const needle = `${fnName}(`;
+  let idx = 0;
+  while ((idx = source.indexOf(needle, idx)) !== -1) {
+    // `function failure(` 정의나 `foo.json(` 같은 프로퍼티 접근은 건너뛴다.
+    if (/[A-Za-z0-9_$.]/.test(source[idx - 1] || "")) { idx += needle.length; continue; }
+    if (source.slice(Math.max(0, idx - 9), idx) === "function ") { idx += needle.length; continue; }
+    let depth = 0;
+    let end = -1;
+    for (let i = idx + needle.length - 1; i < source.length; i += 1) {
+      const ch = source[i];
+      const next = source[i + 1];
+      if (ch === "/" && next === "/") { i = source.indexOf("\n", i); if (i === -1) break; continue; }
+      if (ch === "/" && next === "*") { i = source.indexOf("*/", i + 2) + 1; if (i === 0) break; continue; }
+      if (ch === '"' || ch === "'" || ch === "`") {
+        const quote = ch;
+        i += 1;
+        while (i < source.length && source[i] !== quote) { if (source[i] === "\\") i += 1; i += 1; }
+        continue;
+      }
+      if (ch === "(") depth += 1;
+      else if (ch === ")") { depth -= 1; if (depth === 0) { end = i; break; } }
+    }
+    if (end === -1) break;
+    calls.push(source.slice(idx, end + 1));
+    idx = end + 1;
+  }
+  return calls;
+}
+
+// 첫 인자가 503 이거나 삼항의 else 가지가 503 인 failure() 호출.
+const FAILURE_503 = /^failure\(\s*(?:[^,]*?\?\s*\d+\s*:\s*)?503\s*,/s;
 
 describe("503 분류: 자체 예산 vs 진짜 DB 장애", () => {
   test.each([
@@ -103,6 +144,47 @@ describe("503 계측: stage 헤더", () => {
     const response = utils.buildPassStatusTemporarilyUnavailableFailure({ featureKey: "saju-deep", cost: 50 }, {});
     expect(response.headers.get("X-CD-Error-Stage")).toBe("db");
     expect(response.headers.get("Retry-After")).toBe("2");
+  });
+
+  /**
+   * 🔴 라벨이 붙지 않은 503 은 **측정 불가능한 503** 이다.
+   *
+   * 616f2c260 이 헤더를 도입했지만 부착은 pass/auth 빌더 2곳뿐이었고, 나머지 11곳(월정석 3종·
+   * 스냅샷 5곳·pass 증빙·해금 복구·카드 확정 지연)은 헤더 없이 나갔다. 그중 handleMembershipStatusProbe
+   * 는 진입 워밍이 때리는 바로 그 엔드포인트라, "결제 503 이 어느 계층에서 나는가"를 물었을 때
+   * 가장 큰 표본이 통째로 미분류였다. 그 상태로는 어떤 수정이 효과가 있었는지 판정할 수 없다.
+   *
+   * 아래 두 테스트는 소스를 실제로 파싱해 **503 을 내는 모든 호출**이 라벨을 달았는지 본다.
+   * 코드 문자열 목록이 아니라 호출식 전수라, 새 503 을 추가하면 자동으로 걸린다.
+   */
+  test("🔴 503 을 내는 failure() 호출은 하나도 빠짐없이 계층 라벨을 단다", () => {
+    const failures503 = extractBalancedCalls(billingSource, "failure").filter((call) => FAILURE_503.test(call));
+    expect(failures503.length).toBeGreaterThanOrEqual(12);
+
+    const unlabelled = failures503.filter((call) => !call.includes("paidAccessRetryableHeaders(")
+      && !call.includes("X-CD-Error-Stage"));
+    expect(unlabelled).toEqual([]);
+  });
+
+  test("🔴 503 을 내는 json() 호출도 계층 라벨을 단다", () => {
+    const json503 = extractBalancedCalls(billingSource, "json").filter((call) => /status:\s*503/.test(call));
+    expect(json503.length).toBeGreaterThanOrEqual(1);
+
+    const unlabelled = json503.filter((call) => !call.includes("paidAccessRetryableHeaders(")
+      && !call.includes("X-CD-Error-Stage"));
+    expect(unlabelled).toEqual([]);
+  });
+
+  test("돈이 빠진 뒤의 PENDING_CONFIRMATION 에는 Retry-After 를 붙이지 않는다", () => {
+    // 본문이 retryable:false 인데 Retry-After 를 주면 클라에 정반대 지시를 두 개 보내는 셈이다.
+    // (신규 결제 모듈에서 200 GRANT_PENDING 으로 바뀔 자리 — 그때 이 테스트도 함께 옮긴다.)
+    const pending = extractBalancedCalls(billingSource, "json")
+      .find((call) => call.includes("PENDING_CONFIRMATION"));
+    expect(pending).toBeDefined();
+    expect(pending).toContain('"X-CD-Error-Stage": "card-confirm-pending"');
+    // 헤더 키는 코드에서 항상 따옴표가 붙는다 — 주석 속 언급(“Retry-After 는 일부러 뺀다”)과 구분된다.
+    expect(pending).not.toMatch(/"Retry-After"/);
+    expect(pending).not.toContain("paidAccessRetryableHeaders(");
   });
 });
 

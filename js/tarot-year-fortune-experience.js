@@ -31,7 +31,35 @@
   var YEAR_COIN_COST = 100;
   var YEAR_REASON = "십이지신 천운 타로";
   var YEAR_FEATURE_KEY = "tarot-year-fortune";
-  var TAROT_API_TIMEOUT_MS = 9000;
+  // 워커의 Mongo 단일 시도 상한은 최소 11.5초다(worker/lib/db.js — serverSelection 8000 + 3500).
+  // 9초에 abort 하면 성공했을 요청까지 잘라내고 재시도로 부하만 더한다. 서버 예산 위로 둔다.
+  var TAROT_API_TIMEOUT_MS = 15000;
+  // 503/5xx·429 는 "이 주소가 틀렸다"가 아니라 "서버가 지금 바쁘다"이다. 짧은 지터 백오프로 같은
+  // 엔드포인트를 다시 부르면 워커 아이솔레이트/풀이 자가복구해 대개 성공한다.
+  var TAROT_API_MAX_ATTEMPTS = 3;
+  var TAROT_API_BACKOFF_MS = [400, 1000];
+
+  function waitMs(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function tarotHttpStatus(error) {
+    return Number(error && error.status) || 0;
+  }
+  // 401/403/400/422 등 결정적 4xx(429 제외)는 재시도해도 base 를 바꿔도 고쳐지지 않는다.
+  function isTarotNonRetryable(error) {
+    var status = tarotHttpStatus(error);
+    return status >= 400 && status < 500 && status !== 429;
+  }
+  // 시간축 재시도 대상 — 같은 base 를 백오프로 다시 부른다.
+  function isTarotTimeRetryable(error) {
+    var status = tarotHttpStatus(error);
+    return status === 429 || (status >= 500 && status < 600);
+  }
+  function tarotBackoffDelay(attemptIndex) {
+    var base = TAROT_API_BACKOFF_MS[Math.min(attemptIndex, TAROT_API_BACKOFF_MS.length - 1)];
+    return base + Math.floor(Math.random() * 200);
+  }
 
   function byId(id) {
     return document.getElementById(id);
@@ -202,7 +230,6 @@
   function callTarotApi(endpoint, payload) {
     var bases = buildTarotApiBaseCandidates();
     var body = JSON.stringify(payload || {});
-    var index = 0;
     var lastError = null;
 
     function requestWithBase(base) {
@@ -253,61 +280,57 @@
         });
     }
 
-    function isRetriableApiError(error) {
-      if (!error) return false;
-      if (error.name === "AbortError") return true;
-      var msg = String(error.message || "").toLowerCase();
-      if (msg.indexOf("timeout") !== -1) return true;
-      if (msg.indexOf("network") !== -1) return true;
+    // 🔴 base 후보 순회는 "이 API 주소가 틀렸다"를 위한 장치다. 그런데 프로덕션에서 후보
+    // ("" 와 location.origin)는 같은 워커로 귀결되므로, 워커가 낸 JSON 503 을 base 순회로 처리하면
+    // 지연 0 으로 동일 요청을 한 번 더 쏘고 즉시 포기한다 — 포화된 순간에 DB 부하만 2배로 올린다.
+    // 그래서 5xx·429 는 같은 base 를 백오프로 재시도하고, base 순회는 응답 자체가 없었을 때
+    // (네트워크/타임아웃) 또는 시간축 재시도가 소진됐을 때 마지막 수단으로 1회만 쓴다.
+    // 같은 결론이 js/destiny-profile.js·js/tarot-love-experience.js 에 이미 적용돼 있다.
+    var primaryBase = bases.length ? bases[0] : "";
+    var fallbackBases = bases.slice(1);
 
-      var status = Number(error.status || 0);
-      if (status >= 500) return true;
-      if (status === 408 || status === 425 || status === 429) return true;
-
-      if (!status && error instanceof TypeError) return true;
-      return false;
-    }
-
-    function tryNext() {
-      if (index >= bases.length) {
-        throw lastError || new Error("Tarot API request failed");
-      }
-      var base = bases[index++];
-      return requestWithBase(base).catch(function (error) {
+    function attempt(n) {
+      return requestWithBase(primaryBase).catch(function (error) {
         lastError = error;
-        if (!isRetriableApiError(error)) {
-          throw error;
-        }
-        if (index < bases.length) {
-          console.error("[Tarot API Debug] retry_next_base", {
+        if (isTarotNonRetryable(error)) throw error;
+
+        if (isTarotTimeRetryable(error) && n + 1 < TAROT_API_MAX_ATTEMPTS) {
+          var delay = tarotBackoffDelay(n);
+          console.info("[Tarot API Debug] transient_retry", {
             endpoint: endpoint,
-            failedBase: base || "(relative)",
-            nextBase: bases[index] || "(relative)",
+            status: tarotHttpStatus(error),
+            attempt: n + 1,
+            maxAttempts: TAROT_API_MAX_ATTEMPTS,
+            delayMs: delay,
           });
+          return waitMs(delay).then(function () { return attempt(n + 1); });
         }
-        return tryNext();
+
+        if (fallbackBases.length) {
+          return requestWithBase(fallbackBases[0]).catch(function () { throw error; });
+        }
+        throw error;
       });
     }
 
-    return tryNext().catch(function (error) {
+    return attempt(0).catch(function (error) {
       logTarotApiError("all_candidates_failed", {
         endpoint: endpoint,
         baseCandidates: bases,
-      }, error);
+      }, lastError || error);
       throw error;
     });
   }
 
   function callTarotYearResult(year, resultId) {
     var bases = buildTarotApiBaseCandidates();
-    var index = 0;
+    var primaryBase = bases.length ? bases[0] : "";
+    var fallbackBases = bases.slice(1);
     var query = resultId
       ? "?resultId=" + encodeURIComponent(String(resultId))
       : "?year=" + encodeURIComponent(String(year || new Date().getFullYear()));
 
-    function tryNext() {
-      if (index >= bases.length) return Promise.reject(new Error("저장된 연간 결과를 확인하지 못했습니다."));
-      var base = bases[index++];
+    function requestWithBase(base) {
       var url = (base ? base + "/api/tarot/year/result" : "/api/tarot/year/result") + query;
       var headers = { "Accept": "application/json" };
       var token = getAuthToken();
@@ -325,12 +348,27 @@
           throw error;
         }
         return res.json();
-      }).catch(function (error) {
-        if (Number(error && error.status) >= 500 || !error.status) return tryNext();
+      });
+    }
+
+    // callTarotApi 와 같은 규칙 — 5xx·429 는 같은 base 를 백오프로 재시도하고, base 순회는
+    // 마지막 수단 1회만. 예전에는 5xx 를 지연 0 으로 base 순회만 시켜, 워커가 바쁜 순간에
+    // 같은 요청을 연달아 쏘고 곧바로 포기했다.
+    function attempt(n) {
+      return requestWithBase(primaryBase).catch(function (error) {
+        if (isTarotNonRetryable(error)) throw error;
+
+        if (isTarotTimeRetryable(error) && n + 1 < TAROT_API_MAX_ATTEMPTS) {
+          return waitMs(tarotBackoffDelay(n)).then(function () { return attempt(n + 1); });
+        }
+
+        if (fallbackBases.length) {
+          return requestWithBase(fallbackBases[0]).catch(function () { throw error; });
+        }
         throw error;
       });
     }
-    return tryNext();
+    return attempt(0);
   }
 
   function getAuthToken() {
@@ -1357,11 +1395,17 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     })
       .then(function (data) {
         if (data && data.status === "generating") {
-          return new Promise(function (resolve) {
-            setTimeout(function () {
-              callTarotYearResult(state.year, data.resultId || "").then(resolve).catch(function () { resolve(null); });
-            }, 900);
-          }).then(function (stored) {
+          // 예전에는 900ms 뒤 단 한 번만 조회했다. 그 한 번을 놓치면 돈을 낸 사용자가
+          // "잠시 후 다시 시도" 안내를 받고 직접 재시도해야 했다. 늘어나는 간격으로 세 번 본다.
+          var pollDelays = [900, 1800, 3000];
+          var pollStored = function (i) {
+            if (i >= pollDelays.length) return Promise.resolve(null);
+            return waitMs(pollDelays[i])
+              .then(function () { return callTarotYearResult(state.year, data.resultId || ""); })
+              .catch(function () { return null; })
+              .then(function (stored) { return stored || pollStored(i + 1); });
+          };
+          return pollStored(0).then(function (stored) {
             if (!stored) throw new Error("Stored tarot year result is not ready");
             if (!applyYearResultData(stored)) throw new Error("No stored tarot year result");
             return stored;

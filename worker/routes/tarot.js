@@ -47,6 +47,10 @@ const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
 const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
 const YEAR_TAROT_PROFILE_PREFIX = "year:";
 const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
+// 🔴 이 경로의 요청은 이미 결제를 마쳤다. admission 슬롯을 2.5초 안에 못 받아 503 을 내는 것보다
+// 상한(db.js clampTimeoutMs 5000)까지 기다리는 편이 무조건 낫다 — MongoOperationOverloadedError 는
+// withMongoRetry 에서 재시도 제외라(db.js) 거절이 곧바로 최종 503 이 된다.
+const YEAR_TAROT_DB_OPTIONS = { admissionTimeoutMS: 5000 };
 
 function uniqueTextValues(values = []) {
   return Array.from(new Set(values.map((value) => asText(value)).filter(Boolean)));
@@ -111,7 +115,7 @@ async function findYearResult({ env, userId, year, resultId = "" }) {
   else query.profileId = yearProfileId(year);
   return withMongoRetry(env, () => PaidExecutionRecord.findOne(query)
     .sort({ completedAt: -1, updatedAt: -1, createdAt: -1 })
-    .lean());
+    .lean(), YEAR_TAROT_DB_OPTIONS);
 }
 
 async function requireYearTarotAccess(request, env) {
@@ -134,15 +138,13 @@ async function requireYearTarotAccess(request, env) {
   return { ok: true, auth, decision };
 }
 
-async function saveYearTarotResult({ env, auth, decision, payload, year, requestId }) {
+// existing 은 호출자가 이미 읽어 둔 같은 레코드다 — 여기서 다시 조회하지 않는다.
+// 같은 {userId, featureId, requestId} 를 두 번 읽으면 admission 슬롯을 하나 더 먹을 뿐이고,
+// 그 슬롯 하나가 결제 확인 직후 피크에서 503 을 만든다.
+async function saveYearTarotResult({ env, auth, decision, payload, year, requestId, existing = null }) {
   await connectDb(env);
   const executionId = yearExecutionId(auth.userId, requestId);
   const resultId = `${YEAR_TAROT_RESULT_PREFIX}${year}:${requestId}`.slice(0, 160);
-  const existing = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
-    userId: asText(auth.userId),
-    featureId: YEAR_TAROT_FEATURE_KEY,
-    requestId,
-  }).lean());
 
   if (existing?.status === "completed") return { status: "completed", payload: publicYearResult(existing) };
   if (existing?.status === "generating") return { status: "generating", record: existing };
@@ -153,46 +155,66 @@ async function saveYearTarotResult({ env, auth, decision, payload, year, request
     consultingHighlights: payload.consultingHighlights,
     engineMeta: payload.engineMeta,
   };
-  await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
-    { executionId },
-    {
-      $setOnInsert: {
-        executionId,
-        requestId,
-        userId: asText(auth.userId),
-        featureId: YEAR_TAROT_FEATURE_KEY,
-        profileId: yearProfileId(year),
-        accessMode: "per_use",
-        idempotencyKey: requestId,
+  // 🔴 예전에는 status:"generating" 을 쓴 뒤 곧바로 "completed" 로 덮었는데, 두 쓰기 사이에 비동기
+  // 작업이 하나도 없다(payload 는 LLM 없이 위에서 동기로 완성된다). 왕복만 두 배가 되면서, 두 번째
+  // 쓰기가 실패하면 레코드가 "generating" 에 영구히 갇혀 GET /year/result(status:"completed" 필터)가
+  // 계속 404 를 내는 함정까지 남겼다. 한 번의 upsert 로 곧바로 completed 를 쓴다.
+  // (읽는 쪽의 "generating" 처리는 과거 레코드 호환을 위해 위에 그대로 남겨 둔다.)
+  try {
+    const completed = await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+      { executionId },
+      {
+        $setOnInsert: {
+          executionId,
+          requestId,
+          userId: asText(auth.userId),
+          featureId: YEAR_TAROT_FEATURE_KEY,
+          profileId: yearProfileId(year),
+          accessMode: "per_use",
+          idempotencyKey: requestId,
+        },
+        $set: {
+          status: "completed",
+          accessMethod: yearAccessMethod(decision),
+          amountCoins: 100,
+          amountKRW: 10000,
+          consumedAt: new Date(),
+          completedAt: new Date(),
+          resultId,
+          result: initialResult,
+          error: null,
+        },
       },
-      $set: {
-        status: "generating",
-        accessMethod: yearAccessMethod(decision),
-        amountCoins: 100,
-        amountKRW: 10000,
-        consumedAt: new Date(),
+      { upsert: true, returnDocument: "after" },
+    ).lean(), YEAR_TAROT_DB_OPTIONS);
+    return { status: "completed", payload: publicYearResult(completed) };
+  } catch (error) {
+    // 🔴 degrade-not-throw. 결제 게이트는 이미 통과했고 리딩은 카드+requestId 로부터 결정적으로
+    // 계산돼 이미 손에 있다. 저장(DB 쓰기)이 실패했다고 돈을 낸 사용자에게서 결과를 빼앗지 않는다
+    // — /love-reading 이 LLM 실패에 대해 쓰는 것과 같은 계약이다.
+    // 보상 쓰기(status:"generation_failed")는 두지 않는다: upsert 자체가 실패한 상황이라 갱신할
+    // 문서가 없고, 포화된 아이솔레이트에서 슬롯을 하나 더 요구해 원 오류를 가리기만 했다.
+    console.error("[tarot] year result persist failed", JSON.stringify({
+      featureKey: YEAR_TAROT_FEATURE_KEY,
+      name: error?.name || "Error",
+      message: String(error?.message || "").slice(0, 200),
+    }));
+    return {
+      status: "unsaved",
+      payload: {
+        ok: true,
+        stored: false,
+        persisted: false,
         resultId,
-        result: initialResult,
-        error: null,
+        year: resolveYearValue(year),
+        cards: Array.isArray(initialResult.cards) ? initialResult.cards : [],
+        reading: initialResult.reading || null,
+        consultingHighlights: Array.isArray(initialResult.consultingHighlights) ? initialResult.consultingHighlights : [],
+        engineMeta: initialResult.engineMeta || null,
+        savedAt: null,
       },
-    },
-    { upsert: true, returnDocument: "after" },
-  ).lean());
-
-  const completed = await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
-    { executionId },
-    {
-      $set: {
-        status: "completed",
-        completedAt: new Date(),
-        resultId,
-        result: initialResult,
-        error: null,
-      },
-    },
-    { returnDocument: "after" },
-  ).lean());
-  return { status: "completed", payload: publicYearResult(completed) };
+    };
+  }
 }
 
 async function verifyNumerologyReadingAccess(request, env, body = {}) {
@@ -1479,11 +1501,19 @@ export async function handleTarotRoutes(request, env = {}) {
       });
     }
 
+    // 🔴 연간 리딩(십이지신 천운 타로)은 아래 requireYearTarotAccess 가 곧바로 다시 인증한다.
+    // auth 에는 요청 단위 메모이제이션이 없어(worker/lib/auth.js) 여기서 한 번 더 부르면 User 조회와
+    // admission 슬롯을 그대로 두 배로 먹는다. 동작은 같다 — 지금도 /reading 은 isDeterministicReading
+    // 이라 401/403 이 아닌 인증 오류를 여기서 삼키고, 곧바로 requireYearTarotAccess 가 같은 오류를
+    // 다시 던진다. 401/403 은 어느 쪽에서 던지든 결과가 동일하다.
+    const isYearReadingRequest = path === "/reading"
+      && normalizeSpreadType(body?.spreadType || "one_card") === "yearly_twelve_card";
+
     // Mindscan reading is finalized by coin-gate and must not fail at result generation
     // due to auth token drift between runtime environments.
     // /draw is a free stateless random card draw (no DB/cost) — requiring auth here
     // blocked logged-out users from ever reaching the card stage on static tarot pages.
-    if (path !== "/mindscan" && path !== "/draw") {
+    if (path !== "/mindscan" && path !== "/draw" && !isYearReadingRequest) {
       try {
         await requireAuth(request, env);
       } catch (authErr) {
@@ -1517,6 +1547,7 @@ export async function handleTarotRoutes(request, env = {}) {
       let yearAccess = null;
       let year = null;
       let requestId = "";
+      let existingYearRecord = null;
 
       if (isYearReading) {
         yearAccess = await requireYearTarotAccess(request, env);
@@ -1527,7 +1558,8 @@ export async function handleTarotRoutes(request, env = {}) {
           userId: asText(yearAccess.auth.userId),
           featureId: YEAR_TAROT_FEATURE_KEY,
           requestId,
-        }).lean());
+        }).lean(), YEAR_TAROT_DB_OPTIONS);
+        existingYearRecord = existing || null;
         if (existing?.status === "completed") return json(publicYearResult(existing));
         if (existing?.status === "generating") {
           return json({
@@ -1551,45 +1583,27 @@ export async function handleTarotRoutes(request, env = {}) {
       });
 
       if (isYearReading) {
-        try {
-          const stored = await saveYearTarotResult({
-            env,
-            auth: yearAccess.auth,
-            decision: yearAccess.decision,
-            payload,
+        // saveYearTarotResult 는 저장이 실패해도 던지지 않는다(degrade-not-throw) — 결제한 사용자는
+        // 저장 여부와 무관하게 리딩을 받는다. 자세한 근거는 그 함수의 catch 주석 참고.
+        const stored = await saveYearTarotResult({
+          env,
+          auth: yearAccess.auth,
+          decision: yearAccess.decision,
+          payload,
+          year,
+          requestId,
+          existing: existingYearRecord,
+        });
+        if (stored.status === "generating") {
+          return json({
+            ok: true,
+            status: "generating",
+            resultId: asText(stored.record?.resultId),
             year,
-            requestId,
-          });
-          if (stored.status === "generating") {
-            return json({
-              ok: true,
-              status: "generating",
-              resultId: asText(stored.record?.resultId),
-              year,
-              message: "이미 연간 리딩을 정리하고 있습니다. 잠시 후 저장된 결과를 확인해 주세요.",
-            }, { status: 202 });
-          }
-          return json(stored.payload);
-        } catch (error) {
-          await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
-            {
-              userId: asText(yearAccess.auth.userId),
-              featureId: YEAR_TAROT_FEATURE_KEY,
-              requestId,
-            },
-            {
-              $set: {
-                status: "generation_failed",
-                error: {
-                  code: "TAROT_YEAR_RESULT_SAVE_FAILED",
-                  message: asText(error?.message || error).slice(0, 300),
-                  retryEligible: true,
-                },
-              },
-            },
-          ));
-          throw error;
+            message: "이미 연간 리딩을 정리하고 있습니다. 잠시 후 저장된 결과를 확인해 주세요.",
+          }, { status: 202 });
         }
+        return json(stored.payload);
       }
 
       return json(payload);
