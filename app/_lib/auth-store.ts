@@ -850,7 +850,14 @@ async function loadMeFromServer(forceFresh = false) {
     throw new Error("auth_refresh_failed");
   }
 
-  const payload = (await response.json()) as { authenticated?: boolean; degraded?: boolean; user?: AuthUser };
+  const payload = (await response.json()) as {
+    authenticated?: boolean;
+    degraded?: boolean;
+    user?: AuthUser;
+    // user-session-cache 가 로컬 힌트 부재만 보고 합성한 응답의 표식(서버는 이 값을 보내지 않는다).
+    reason?: string;
+    guest?: boolean;
+  };
   if (requestAuthMutationSeq !== authMutationSeq) {
     return state.user;
   }
@@ -861,6 +868,17 @@ async function loadMeFromServer(forceFresh = false) {
       latestAppliedMeSeq = requestSeq;
       applyResolvedUser(cachedUser);
       return cachedUser;
+    }
+    // 🔴 user-session-cache 의 fetch 몽키패치가 로컬 힌트 부재만 보고 합성한 게스트 응답은
+    // "서버가 미인증이라고 답한 것"이 아니다 — 네트워크를 한 번도 타지 않았다. 세션 쿠키가
+    // 멀쩡히 유효해도 힌트(fortune_auth_role 쿠키 / localStorage fortune_auth_user)만 없으면
+    // 여기 도달하므로, 확정 미인증으로 처리하면 로그인한 사용자를 만료 토스트와 함께 튕겨낸다.
+    // 게스트로 표시만 하고 파기(쿠키 삭제·캐시 검증 해제·logout 방송·리다이렉트)는 하지 않는다.
+    // 정본은 정적 셸의 같은 분기(index.html: reason === 'no_auth_hint' || guest === true).
+    if (payload.reason === "no_auth_hint" || payload.guest === true) {
+      latestAppliedMeSeq = requestSeq;
+      applyResolvedUser(null);
+      return null;
     }
     latestAppliedMeSeq = requestSeq;
     handleSessionInvalidated({ redirect: false });
