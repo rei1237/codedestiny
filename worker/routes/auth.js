@@ -3500,6 +3500,12 @@ async function handleRefresh(request, env) {
     },
   });
   appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
+  // 🔴 힌트 쿠키도 함께 재발행한다. 지우지 말 것. refresh 쿠키는 회전할 때마다 수명이 리셋되는데
+  // 이 쿠키만 **최초 로그인 시각 +14일**에 고정 만료하면, 15일 넘게 연속 사용한 세션에서
+  // "세션은 살아 있는데 힌트만 먼저 죽는" 구간이 생긴다. 그 구간에 들어가면 클라이언트의
+  // user-session-cache 가 /api/auth/me 를 네트워크 없이 게스트로 합성해(hasClientAuthHint 부재)
+  // 멀쩡한 인증 사용자가 로그아웃된 것처럼 보인다. 힌트와 세션은 항상 함께 살고 함께 죽어야 한다.
+  appendAuthRoleCookie(response, request, env, user);
   return response;
 }
 
