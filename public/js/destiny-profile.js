@@ -4860,7 +4860,7 @@
     if (typeof window._cdChooseServicePaymentMode === 'function') {
       window._cdChooseServicePaymentMode({
         title: info.name + ' 영구 해금',
-        reason: info.name + ' ?곴뎄 ?닿툑',
+        reason: info.name + ' 영구 해금',
         coinPrice: info.cost,
         cost: info.cost,
         featureKey: info.key,

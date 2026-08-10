@@ -338,10 +338,10 @@ function resolveStoredSubscriptionTier(user = {}) {
     for (const value of values) {
       const text = String(value || "").trim().toLowerCase();
       if (!text || text === "free" || text === "none") continue;
-      if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("轅?⑥?")) return "vvip";
+      if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
       if (text.includes("family")) return "family";
-      if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("?꾨━誘몄뾼")) return "premium";
-      if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("?ㅽ깲?ㅻ뱶")) return "standard";
+      if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
+      if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
     }
   }
 
@@ -935,7 +935,7 @@ async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, re
     kind: "refund",
     delta: coins,
     balanceAfter: Number(updatedUser?.points || 0),
-    reason: reason || `${resolveProfileMutationReason(action)} ?ㅽ뙣 ?섎텋`,
+    reason: reason || `${resolveProfileMutationReason(action)} 실패 환불`,
     featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
     metadata: {
       source: "profile_mutation_failure",
@@ -1483,7 +1483,7 @@ async function buildProfileDeleteResponse(auth, profileId, env, { policy = null,
 
 async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
-  if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
+  if (!profileId) return json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 });
 
   const body = await readJson(request).catch(() => ({}));
   const requestId = readProfileMutationRequestId(body, PROFILE_CARD_MUTATION_ACTIONS.DELETE, profileId);

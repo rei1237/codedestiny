@@ -10,18 +10,18 @@ import { getSwissWesternChart } from "@/worker/lib/swiss-ephemeris.js";
 
 const SUKUYO_BASIC_ROUTE_TEXT_TRANSLATIONS = {
   ko: {
-    "sukuyoBasicRoute.moonPhaseUnknown": "?뺣낫 ?놁쓬",
-    "sukuyoBasicRoute.moonPhaseNew": "???좎썡)",
-    "sukuyoBasicRoute.moonPhaseCrescent": "珥덉듅",
-    "sukuyoBasicRoute.moonPhaseFirstQuarter": "?곹쁽",
+    "sukuyoBasicRoute.moonPhaseUnknown": "정보 없음",
+    "sukuyoBasicRoute.moonPhaseNew": "삭(신월)",
+    "sukuyoBasicRoute.moonPhaseCrescent": "초승",
+    "sukuyoBasicRoute.moonPhaseFirstQuarter": "상현",
     "sukuyoBasicRoute.moonPhaseWaxing": "차오름달",
-    "sukuyoBasicRoute.moonPhaseFull": "留?蹂대쫫)",
-    "sukuyoBasicRoute.moonPhaseWaning": "湲곗슦?붾떖",
-    "sukuyoBasicRoute.moonPhaseLastQuarter": "?섑쁽",
-    "sukuyoBasicRoute.moonPhaseDark": "洹몃캁",
-    "sukuyoBasicRoute.invalidInput": "year/month/day ?낅젰???꾩슂?⑸땲??",
-    "sukuyoBasicRoute.calcFailed": "?숈슂 怨꾩궛???ㅽ뙣?덉뒿?덈떎.",
-    "sukuyoBasicRoute.canonicalInvalid": "?숈슂 canonical ?곗씠??寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎.",
+    "sukuyoBasicRoute.moonPhaseFull": "망(보름)",
+    "sukuyoBasicRoute.moonPhaseWaning": "기우는달",
+    "sukuyoBasicRoute.moonPhaseLastQuarter": "하현",
+    "sukuyoBasicRoute.moonPhaseDark": "그믐",
+    "sukuyoBasicRoute.invalidInput": "year/month/day 입력이 필요합니다.",
+    "sukuyoBasicRoute.calcFailed": "숙요 계산에 실패했습니다.",
+    "sukuyoBasicRoute.canonicalInvalid": "숙요 canonical 데이터 검증에 실패했습니다.",
   },
 } as const;
 
@@ -123,10 +123,10 @@ function resolveMoonPhaseByAngle(angle: number) {
     phaseAngle: Math.round(a * 10) / 10,
     illumination,
     label,
-    cycle: waxing ? "?곹쁽 ?댁쟾(利앷?)" : "?섑쁽 ?댄썑(媛먯냼)",
-    yinYangFlow: waxing ? "?묎린 ?앹옣" : "?뚭린 ?섎졃",
+    cycle: waxing ? "상현 이전(증가)" : "하현 이후(감소)",
+    yinYangFlow: waxing ? "양기 생장" : "음기 수렴",
     waxingOrWaning: waxing ? "waxing" : "waning",
-    interpretationKey: waxing ? "?뺤옣" : "?뺣━",
+    interpretationKey: waxing ? "확장" : "정리",
   };
 }
 
