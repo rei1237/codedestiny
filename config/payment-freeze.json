@@ -1,0 +1,71 @@
+{
+  "frozenAt": "2026-08-11",
+  "reason": "결제 컨텍스트를 worker/payments/ 로 재작성하는 동안 구 구현이 조용히 갈라지는 것을 막는다. 구 코드에만 정책을 얹으면 컷오버 때 그 정책이 사라진다.",
+  "howToChange": "node scripts/verify-payment-freeze.mjs --update 후 config/payment-freeze.json 을 같은 커밋에 담을 것. env 우회는 없다.",
+  "regions": [
+    {
+      "file": "index.html",
+      "marker": "  async function _cdChooseServicePaymentMode(options) {",
+      "why": "결제수단 선택창의 정본 렌더러. 3벌 중 이것이 기준이고 나머지 2벌이 여기에 맞춰진다.",
+      "sha256": "31ba6058fe651a09"
+    },
+    {
+      "file": "index.html",
+      "marker": "  async function _cdRunDirectKrwCheckout(options) {",
+      "why": "단건 PortOne 결제 실행 경로. 호출부 6곳이 여기에 물려 있다.",
+      "sha256": "07547bce24901600"
+    },
+    {
+      "file": "index.html",
+      "marker": "  async function _cdOpenPaidServiceGate(options) {",
+      "why": "정적 셸의 유료 게이트 진입점.",
+      "sha256": "fd12bc23a1657f42"
+    },
+    {
+      "file": "js/destiny-profile.js",
+      "marker": "  function _dpRenderStandalonePaymentChoice(options) {",
+      "why": "독립 정적 폴백 렌더러. 셸 정본과 CSS·문구가 같아야 한다(verify:payment-choice-parity).",
+      "sha256": "617a1cfef7fb2e1a"
+    }
+  ],
+  "wholeFiles": [
+    {
+      "file": "app/_lib/billing-client.ts",
+      "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
+      "sha256": "92878b456653d254"
+    },
+    {
+      "file": "app/hooks/useCoinGate.ts",
+      "why": "React 유료 게이트 공개 훅.",
+      "sha256": "b389e0641c1d7dd6"
+    },
+    {
+      "file": "lib/payment/portone.ts",
+      "why": "PortOne 브라우저 SDK 로더 + 단건 결제 요청.",
+      "sha256": "b4ca9c7b162a96f8"
+    },
+    {
+      "file": "js/coin-gate-helper.js",
+      "why": "프리미엄 리포트 구매 헬퍼. 멀티호스트 재시도 루프가 여기 있다(신규 모듈에서 제거 대상).",
+      "sha256": "f4c8297af0f103a3"
+    }
+  ],
+  "growthCeilings": [
+    {
+      "file": "worker/routes/billing.js",
+      "why": "라이브 코드라 버그 수정은 계속 필요하다. 고치는 것은 되고 키우는 것은 안 된다 — 재작성의 방향은 이 파일이 0 이 되는 것이다.",
+      "maxLines": 7159
+    },
+    {
+      "file": "worker/routes/payments.js",
+      "why": "위와 같다.",
+      "maxLines": 6117
+    }
+  ],
+  "notFrozen": {
+    "worker/lib/paid-feature-registry.js": "가격 정본. 신규 catalog.js 가 감싸 쓰므로 계속 살아 있어야 하고, 상품 추가는 정상 작업이다.",
+    "worker/lib/portone.js": "PG credentials·webhook 계약. 신규 pg.js 가 그대로 import 한다.",
+    "worker/lib/db.js": "admission 게이트. 재작성의 목표는 요청당 슬롯을 줄이는 것이지 이 파일을 바꾸는 것이 아니다.",
+    "worker/lib/models.js": "스키마는 추가만 하며, 추가는 다른 기능도 계속 한다."
+  }
+}
