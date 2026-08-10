@@ -483,6 +483,7 @@ const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => impo
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
 const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
+const handleAnimalTotemRoutes = createLazyRouteHandler("./routes/animal-totem.js", () => import("./routes/animal-totem.js"), "handleAnimalTotemRoutes", "api/animal-totem");
 const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import("./routes/kasi.js"), "handleKasiRoutes");
 const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import("./routes/user.js"), "handleUserRoutes");
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
@@ -1372,6 +1373,11 @@ export default {
 
       if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {
         return withCorsHeaders(request, env, await handleTarotRoutes(request, env));
+      }
+
+      // 애니멀 토템 '연이 종합 해설'. /api/tarot 과 같은 성격(회당결제 + 서버 증빙 + 동기 LLM)이라 옆에 둔다.
+      if (url.pathname === "/api/animal-totem" || url.pathname.startsWith("/api/animal-totem/")) {
+        return withCorsHeaders(request, env, await handleAnimalTotemRoutes(request, env));
       }
 
       if (url.pathname === "/api/premium/pdf-archive" || url.pathname.startsWith("/api/premium/pdf-archive/")) {
