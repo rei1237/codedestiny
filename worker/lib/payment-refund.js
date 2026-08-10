@@ -17,6 +17,8 @@ import {
 } from "./models.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
+import { ensureLotsForBalance } from "./monthly-credit-lots.js";
+import { consumeMonthlyCreditLots } from "./monthly-credit-store.js";
 
 export const PAYMENT_ORDER_STATES = Object.freeze({
   CANCELLED: "CANCELLED",
@@ -135,15 +137,28 @@ async function revokeMembershipPassGrant(payment) {
     }).lean();
     const granted = grants.reduce((sum, row) => sum + Math.max(0, Number(row.amount || 0)), 0);
     if (granted > 0) {
-      const fresh = await User.findById(userId).select("profileSubscription.membershipCreditBalance").lean();
-      const balance = Math.max(0, Number(fresh?.profileSubscription?.membershipCreditBalance || 0));
+      // 🔴 예전에는 스칼라(membershipCreditBalance)만 읽고 $inc 로 깎았는데, 읽기 정본인
+      // ensureLotsForBalance 는 lot 배열이 비어 있지 않으면 lot 만 본다 — 회수가 실제로 반영되지 않고
+      // 다음 lot 쓰기가 스칼라를 lot 합계로 되돌려 놓았다. lot FIFO 차감 헬퍼로 통일한다.
+      // incrementUsed:false — 지급 자체가 취소된 것이지 사용자가 쓴 게 아니다.
+      const fresh = await User.findById(userId).select("profileSubscription").lean();
+      const balance = Math.max(0, Math.floor(Number(
+        ensureLotsForBalance(fresh?.profileSubscription || {}, Date.now()).balance || 0,
+      )));
       // 이미 써 버린 만큼은 되돌릴 수 없다. 있는 만큼만 회수하고 부족분은 검토 대상으로 남긴다.
       creditsRevoked = Math.min(balance, granted);
       creditShortfall = creditsRevoked < granted;
       if (creditsRevoked > 0) {
-        await User.updateOne({ _id: userId }, {
-          $inc: { "profileSubscription.membershipCreditBalance": -creditsRevoked },
+        const consumed = await consumeMonthlyCreditLots({
+          userId,
+          amount: creditsRevoked,
+          incrementUsed: false,
         });
+        if (!consumed?.ok) {
+          // 경합(다른 요청이 그 사이 소비)으로 회수가 못 돌면 실제 회수액은 0이다 — 검토로 넘긴다.
+          creditsRevoked = 0;
+          creditShortfall = true;
+        }
       }
     }
   }

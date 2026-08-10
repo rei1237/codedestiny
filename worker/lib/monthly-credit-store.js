@@ -17,7 +17,10 @@ function buildLotsVersionFilter(version) {
 // 월정석 지급분별(lot) FIFO 차감: 만료분은 제외하고 오래된 지급분부터 소진한다.
 // 여러 라우트에 흩어진 인라인 차감(구독형 접근)을 이 헬퍼로 통일해 lot/스칼라 정합을 보장한다.
 // 반환: { ok, balance(차감 후 유효잔액|부족 시 현재 유효잔액), user(갱신본|null), reason }
-export async function consumeMonthlyCreditLots({ userId, amount, pushRequestId = "" } = {}) {
+// incrementUsed:false 는 **회수**(결제 취소로 지급 자체가 무효가 된 경우)용이다 — 사용자가 쓴 게
+// 아니므로 membershipCreditUsed 를 올리면 사용량 통계가 부풀고 환불 회계가 어긋난다.
+// (restoreMonthlyCreditLot 의 decrementUsed/incrementGranted 와 같은 관례.)
+export async function consumeMonthlyCreditLots({ userId, amount, pushRequestId = "", incrementUsed = true } = {}) {
   const need = Math.max(0, Math.floor(Number(amount || 0)));
   if (!userId) return { ok: false, reason: "USER_NOT_FOUND", balance: 0, user: null };
   if (need <= 0) return { ok: true, reason: "NOOP", balance: null, user: null };
@@ -46,7 +49,7 @@ export async function consumeMonthlyCreditLots({ userId, amount, pushRequestId =
           "profileSubscription.membershipCreditBalance": deduction.balance,
         },
         $inc: {
-          "profileSubscription.membershipCreditUsed": need,
+          ...(incrementUsed ? { "profileSubscription.membershipCreditUsed": need } : {}),
           "profileSubscription.membershipCreditLotsVersion": 1,
         },
         // 중복 방지는 위 필터의 `$ne: pushRequestId` 가드가 담당한다($push는 스스로 못 막는다).

@@ -5,6 +5,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -734,16 +735,17 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
       if (!marked.modifiedCount) return false;
 
       const purchaseId = clean(access.purchaseId || ledger.sourceId || idempotencyKey, 180);
-      await User.findByIdAndUpdate(
-        userObjectId,
-        {
-          $inc: {
-            "profileSubscription.membershipCreditBalance": refundCredit,
-            "profileSubscription.membershipCreditUsed": -refundCredit,
-          },
-          ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
-        },
-      ).catch(() => {});
+      // 🔴 스칼라(membershipCreditBalance)만 $inc 하면 환불이 조용히 증발한다 — 읽기 정본인
+      // ensureLotsForBalance 는 lot 배열이 비어 있지 않으면 lot 만 보고, 다음 lot 쓰기가 스칼라를
+      // lot 합계로 덮어쓴다. 형제 라우트 9곳(ziwei-island-ai.js:445 등)이 이미 쓰는 lot 복원 헬퍼로
+      // 통일한다. membershipCreditUsed 되돌리기·recentConsumeRequestIds $pull·잔량 캐시 무효화까지
+      // 이 헬퍼가 함께 처리하므로 별도 User 쓰기가 필요 없다. lotId 로 멱등이다.
+      await restoreMonthlyCreditLot({
+        userId: userObjectId,
+        lotId: `vedic-refund:${String(ledger._id)}`,
+        amount: refundCredit,
+        pullRequestId: purchaseId || "",
+      }).catch(() => {});
 
       const clauses = pointHistoryTokenClauses([purchaseId, evidenceId, idempotencyKey].filter(Boolean));
       if (clauses.length) {

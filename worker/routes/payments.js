@@ -5427,9 +5427,12 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   const balance = Number(safeUser.points || 0);
   const profileSubscription = safeUser.profileSubscription || {};
   // 스칼라 캐시 대신 활성(미만료) lot 합계로 표시 잔액 산출 — 아직 스윕 안 된 만료분을 즉시 제외한다.
-  const monthlyCredits = Math.max(0, Math.floor(Number(ensureLotsForBalance(profileSubscription, Date.now()).balance || 0)));
+  // 🔴 소멸예정일도 잔액과 **같은 lot 집합**에서 뽑는다(원본 배열을 따로 넘기면, lot 이 비고 스칼라만
+  // 있는 미마이그레이션 계정에서 잔액은 나오는데 소멸예정일만 null 로 빠진다). lib/auth.js·access-state.js 와 동일.
+  const lotsState = ensureLotsForBalance(profileSubscription, Date.now());
+  const monthlyCredits = Math.max(0, Math.floor(Number(lotsState.balance || 0)));
   // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
-  const monthlyStoneExpiresAt = resolveNextExpiry(profileSubscription.membershipCreditLots);
+  const monthlyStoneExpiresAt = resolveNextExpiry(lotsState.lots);
   const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
   const storeSnapshot = includeStoreSnapshot
     ? buildMoonlightStoreSnapshot(env, {
