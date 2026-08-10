@@ -4,11 +4,14 @@ import styles from "../home-cosmic.module.css";
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
 const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba";
 
+// 브랜드 별칭의 대표 URL 은 홈 "/" 이고 이 페이지는 그 관계를 설명하는 보조 안내다.
+// 그래서 제목도 브랜드 헤드텀 단독이 아니라 "안내" 성격의 질문형으로 둔다 —
+// 홈과 같은 쿼리를 두고 다투면 둘 다 밀린다.
 const SEO = {
-  title: "꿀꿀운세·꽃돼지 운세 | Code Destiny 브랜드 소개",
+  title: "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
   description:
     "꿀꿀운세와 꽃돼지 운세로 기억하는 Code Destiny를 소개합니다. 사주, 만세력, 자미두수, 숙요점, 베다 점성술, 타로와 AI 상담을 질문에 맞게 연결합니다.",
-  ogTitle: "꿀꿀운세·꽃돼지 운세 | Code Destiny",
+  ogTitle: "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
   ogDescription:
     "꿀꿀운세와 꽃돼지 캐릭터로 기억하는 Code Destiny의 사주·만세력·점성술·AI 상담 서비스를 소개합니다.",
 };
@@ -201,12 +204,14 @@ export default function KkulKkulUnsePage() {
             꿀꿀 운세는 &apos;꿀꿀 만세력&apos;으로 시작해 코드 데스티니(Code Destiny)로 성장한 무료 운세 플랫폼입니다.
             사주팔자, 타로, 자미두수, 숙요점을 한곳에서 살피며 오늘의 흐름을 부드럽게 열어 줍니다.
           </p>
+          {/* 브랜드 앵커("꿀꿀 운세")는 홈으로만 보낸다. 같은 앵커로 /manse 를 가리키면
+              브랜드 쿼리에서 만세력 페이지가 홈을 밀어내는 지금 상태가 유지된다. */}
           <div className={styles.ctaRow}>
-            <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/#inputPage">
-              무료 운세 시작
+            <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/">
+              꿀꿀 운세 홈에서 무료로 시작
             </Link>
             <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/manse">
-              꿀꿀 만세력 보기
+              만세력 사주 보기
             </Link>
           </div>
         </div>
