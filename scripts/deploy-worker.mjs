@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
 import { readFileSync } from "node:fs";
 import { assertWorkerBaseIsFresh, buildDeployMessage } from "./lib/worker-deploy-base-guard.mjs";
+import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
 
 function normalizeOriginOnly(rawValue, label) {
   const value = String(rawValue || "").trim();
@@ -104,6 +105,17 @@ if (vedicForceExternal) {
     process.exit(1);
   }
 }
+
+/*
+ * 🔴 이 경로는 릴리스 경로가 아니다.
+ *
+ * `wrangler deploy` 는 현재 워킹트리를 그대로 프로덕션에 민다 — PR 도, CI 검증도, 스모크도,
+ * 자동 롤백도, Pages 짝 맞춤도 없이. 정상 경로는 feature 브랜치 → PR → CI → main 머지이고,
+ * 그 머지가 릴리스 워크플로를 깨워 Pages 와 Worker 를 같은 SHA 로 함께 내보낸다.
+ *
+ * GitHub Actions 자체가 사용 불가할 때의 핫픽스 수단으로만 남긴다 — 그래서 제거가 아니라 게이트다.
+ */
+assertProductionDeployIsCi("Worker production deploy (wrangler deploy)");
 
 // 🔴 낡은 베이스로 배포하면 그 사이 머지된 남의 워커 커밋이 조용히 사라진다. 여기서 막는다.
 assertWorkerBaseIsFresh(rootDir, { argv: process.argv });

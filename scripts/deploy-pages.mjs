@@ -157,6 +157,18 @@ if (isCloudflarePagesBuild) {
   process.exit(0);
 }
 
+/*
+ * 🔴 이 경로는 릴리스 경로가 아니다.
+ *
+ * 아래 runDeploy() 는 --commit-hash 를 붙이지 않는다. 그래서 이 경로로 올린 배포는 Cloudflare
+ * 대시보드와 API 에서 커밋 메타데이터가 비고, "지금 프로덕션에 뜬 코드가 어느 커밋인가"를
+ * 물을 방법이 사라진다 — 배포 후 SHA 대조가 원천적으로 불가능해진다.
+ * 정상 경로(릴리스 워크플로)의 Pages 배포는 --commit-hash 와 --commit-message 를 함께 넣는다.
+ *
+ * Cloudflare Pages 빌드 환경 안에서는 위에서 이미 종료하므로 게이트가 걸리지 않는다.
+ */
+assertProductionDeployIsCi("Pages production deploy (wrangler pages deploy)");
+
 if (!process.env.CLOUDFLARE_API_TOKEN) {
   console.error("[deploy-pages] CLOUDFLARE_API_TOKEN is required for direct Pages deploy.");
   process.exit(1);

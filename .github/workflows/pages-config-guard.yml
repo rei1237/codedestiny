@@ -1,9 +1,8 @@
 name: Pages Config Guard
 
+# push:main 트리거는 제거했다 — 릴리스 워크플로가 매 머지마다 같은 검사를 이미 돌린다.
+# 여기 남은 값은 릴리스 사이에 대시보드에서 설정이 바뀌는 것을 잡는 일일 점검이다.
 on:
-  push:
-    branches:
-      - main
   schedule:
     - cron: "17 0 * * *"
   workflow_dispatch:

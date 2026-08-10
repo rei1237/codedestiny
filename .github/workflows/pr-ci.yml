@@ -1,0 +1,118 @@
+name: PR CI
+
+# main 으로 가는 모든 변경이 통과해야 하는 관문이다. 프로덕션 배포는 이 워크플로가 아니라
+# main 머지 이후 "Release Cloudflare Pages and Worker" 가 수행한다 — 여기서는 아무것도 배포하지 않는다.
+#
+# 트리거는 pull_request 뿐이다. push 로도 돌리면 같은 커밋이 PR 과 브랜치에서 두 번 검사되어
+# Actions 사용량만 두 배가 된다.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+# 같은 PR 에 새 커밋이 오면 진행 중인 검사는 의미가 없다. 취소해서 러너를 비운다.
+# (프로덕션 릴리스와 달리 여기서는 취소해도 잃을 것이 없다.)
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: read
+  statuses: read
+
+jobs:
+  verify:
+    name: Lint, typecheck, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # 전체 스위트는 30초 안팎이다. 파일 목록을 손으로 관리하면 새 테스트가 조용히
+      # 실행되지 않는 상태로 남는다(2026-08 에 48개 파일이 그랬다).
+      - name: Test
+        run: npm test
+
+  build:
+    name: Build Pages and Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # build:cf 의 postbuild 가 out/ 을 읽어 AdSense 콘텐츠 게이트를 돌린다. 빌드가 끝나야만
+      # 도는 검사라 여기서 함께 잡는다 — 배포 직전에 처음 알게 되면 릴리스가 통째로 막힌다.
+      - name: Build Cloudflare Pages output
+        run: npm run build:cf
+
+      # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
+      - name: Build Worker bundle (dry run)
+        run: npm run build:worker
+
+      - name: Verify Worker size budget
+        run: npm run verify:worker-size
+
+  deploy-config:
+    name: Deployment configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 배포 파이프라인 자체의 회귀. 이 가드가 죽으면 증상이 "배포가 그냥 잘 됨"이라
+      # 아무도 모르고, 다음 사고는 프로덕션에서 코드가 사라지는 형태로 온다.
+      - name: Verify release pipeline contract
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npm run verify:deploy-safe
+          npm run verify:pages-single-deploy-guard
+          npm run verify:worker-single-deploy
+          npm run verify:pages-worker-parity-test
+          npm run verify:deployed-sha -- --self-test
+
+      - name: Verify ads.txt is present
+        run: npm run verify:ads-txt
+
+      - name: Scan for leaked secrets
+        run: npm run verify:no-secret-leak
