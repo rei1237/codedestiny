@@ -28,7 +28,7 @@
 - Production is reached only by merging a PR into `main`. Merging is the user's action, and it is the approval.
 - Never push to `main` directly, never force-push a shared branch, and never bypass the branch ruleset or a failing required check.
 - Never run a production deploy locally (`wrangler deploy`, `wrangler pages deploy`, `deploy:production`, `deploy:rollback`). `scripts/lib/production-deploy-guard.mjs` blocks these — do not work around it.
-- Create a Cloudflare preview only by adding the `preview` label to a PR, and only when a preview is actually needed; each run leaves a Pages deployment and a Worker version behind. `npm run deploy:check` is the no-upload way to inspect a change set.
+- There is no preview step before production. Merging is what makes a change live. `npm run deploy:check` is the no-upload way to inspect a change set.
 - Do not re-deploy production to test something, and do not re-run a release because a step failed. Fix it on a branch and open another PR.
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
 - Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the normal deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
@@ -56,9 +56,7 @@ PR CI (자동 · 변경 경로에 따라 강도가 갈린다 · 배포하지 않
    standard 일반 프론트엔드               → + build
    critical 결제·인증·Worker·DB·배포설정   → + 전체 테스트 · 배포 가드
    ↓
-(선택) `preview` 라벨      화면 확인이 필요할 때만. 기본 흐름에는 없다
-   ↓
-사용자가 Merge            ← 이 행동이 프로덕션 배포 승인이다
+사용자가 Merge            ← 이 행동이 프로덕션 배포 승인이다 (= 머지가 곧 라이브)
    ↓
 push to main
    ↓
@@ -93,7 +91,7 @@ Every PR is not worth the same amount of CI. A copy tweak and a payment-route ch
 | Command | Local | CI |
 |---|---|---|
 | `npm run deploy:check` | ✅ inspect a change set, uploads nothing | — |
-| `npm run deploy:preview` | ✅ but prefer the PR `preview` label | ✅ via the label workflow |
+| `npm run deploy:preview` | ✅ local dev tool, not part of the flow | — |
 | `npm run deploy:smoke -- --base <url>` | ✅ read-only | ✅ |
 | `npm run deploy:production` / `deploy:rollback --yes` | ❌ blocked | ✅ |
 | `npm run deploy:cf:worker` / `deploy:cf:pages` / `deploy:cf:opennext` | ❌ blocked | ✅ |
@@ -115,19 +113,25 @@ Both SHAs are injectable and inspectable:
 - Pages: `NEXT_PUBLIC_GIT_SHA` comes from `GITHUB_SHA` in `next.config.mjs`; `scripts/write-version-json.mjs` writes `/version.json`. In a browser, `/version.json` answers "what is deployed", and on React routes `window.__cdBuild` answers the same.
 - Worker: the release passes `--var COMMIT_SHA:<sha>`; `/api/version` returns `{ gitSha, commit, commitShort, environment }` and contains no secrets.
 
-### Verifying paid features on a preview
+### Verifying paid features
 
-A preview's `/api` is not a sandbox. `public/_worker.js` proxies it to the production Worker, which reads the production database — there is no staging DB. So a signed-out preview shows the payment dialog on every paid screen and nothing can be verified.
+There is no preview environment, and there never really was one. `public/_worker.js` proxies a preview's `/api` to the production Worker, which reads the production database — no staging DB exists. A signed-out preview showed the payment dialog on every paid screen and verified nothing, and a Worker preview version is not routed, so the preview URL's `/api/*` was answered by the Worker already live. The changes most worth checking were the ones it could not exercise.
 
-A local `deploy:preview` opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`. `openPreviewSignedIn()` in `scripts/deploy-safe.mjs` re-runs `scripts/seed-preview-test-account.mjs` as an isolated child process before every signed-in preview open, so the account is fresh every time. It upserts one user with a FAMILY pass and moonstones, and is idempotent — the moonstone grant is keyed by lot id, so re-running never double-credits. It also seeds one `ProfileCard` with a fixed birth date (1990-01-01 09:00, solar) and selects it, so paid screens have real profile data on first load. This is the one scoped exception to "the pipeline never performs database writes": the child process loads its own `MONGO_URI` from `.env.local`, and `deploy-safe.mjs`'s own process env never sees it. Login happens by calling `/api/auth/login` from inside the page rather than driving the form, because auth cookies are httpOnly; the cookie carries no `Domain`, so it binds to the preview host only. The CI label-gated preview does not sign in — it reports the URL and you sign in yourself.
+Payment and auth confidence comes from three places instead:
 
-What that account does **not** cover:
+1. **Before merge** — the `critical` tier runs the full test suite, and `paid-flow-gates.yml` runs the 36 payment/auth/fortune verifiers whenever those files change. They are source- and jsdom-level guards, so they hold without touching a real payment.
+2. **During the release** — the job builds, uploads a Pages deployment, and smokes it before promoting anything.
+3. **After promotion** — production smoke, then `verify:deployed-sha` on both layers. Any failure rolls Pages and the Worker back together.
+
+`npm run deploy:preview` still exists as a local developer tool and is not part of the flow. It opens the preview **already signed in** as a FAMILY-pass account when `CD_PREVIEW_TEST_EMAIL` and `CD_PREVIEW_TEST_PASSWORD` are in `.env.local`, re-seeding that one account through `scripts/seed-preview-test-account.mjs` as an isolated child process. That is the one scoped exception to "the pipeline never writes to the database" — the child loads its own `MONGO_URI`, and `deploy-safe.mjs`'s process env never sees it. Running it leaves a Pages deployment and a Worker version on Cloudflare, so do not run it out of habit.
+
+If you do use it, remember what that account does **not** cover:
 
 - Profile card add/delete is `passExcluded` for every tier including family, so it still opens the payment dialog. That is the policy, not a bug.
 - Premium consultations above 300 coins are fair-use limited per pass cycle (`resolveFamilyPremiumQuota`).
 - **`points` is not a currency.** Nothing in `worker/lib/access-control.js` reads it and no path deducts it. Only the pass (`profileSubscription`) and moonstones (`membershipCreditLots`) open access. Granting points to a test account buys nothing.
 
-Anything you do on a preview writes to production: real unlock records, real ledger rows. Treat it as production with a comfortable account, not as a test environment.
+Anything done on a preview writes to production: real unlock records, real ledger rows.
 
 ### Verification depth
 

@@ -222,12 +222,11 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 - 코딩 후: `lint` → `typecheck` → 관련 `verify:*` 스크립트 실행 → 변경 파일만 `git add` → Conventional Commits
 - 🔴 **배포 흐름 (2026-08-11 개정 — PR 기반 CI/CD 로 전환)**: `main` 직접 작업·직접 배포는 **폐기**됐다. 흐름은 하나다.
   ```
-  feature 브랜치 → 커밋 → push → PR → PR CI 자동 검증 → (필요하면 `preview` 라벨로 Preview 확인)
-    → 사용자가 Merge → main push → "Release Cloudflare Pages and Worker" 가 그 SHA 로 자동 배포
+  feature 브랜치 → 커밋 → push → PR → PR CI 자동 검증 → 사용자가 Merge
+    → main push → "Release Cloudflare Pages and Worker" 가 그 SHA 로 자동 배포 (= 머지가 곧 라이브)
   ```
   - **`main` 에 직접 push 할 수 없다** — 브랜치 룰셋이 막는다. 모든 변경은 PR 을 거친다.
   - **로컬에서 프로덕션 배포는 불가능하다** — `scripts/lib/production-deploy-guard.mjs` 가 `deploy:safe` 승격·`deploy:rollback`·`deploy:cf:worker`·`deploy:cf:pages`·`deploy:cf:opennext` 를 모두 막는다. 로컬에 남는 것은 `deploy:check`(업로드 없음)와 `deploy:preview`·`deploy:smoke` 뿐이다.
-  - **Preview 는 PR 라벨로 만든다.** PR 에 `preview` 라벨을 붙이면 `PR Preview` 워크플로가 Pages 프리뷰 + Worker 프리뷰 버전을 만들고 URL 을 PR 에 코멘트한다. 라벨이 없으면 프리뷰를 만들지 않는다(커밋마다 아티팩트가 쌓이는 것을 막기 위함).
   - **Pages 와 Worker 는 항상 같은 SHA 로 나간다.** 릴리스는 `github.sha` 를 체크아웃해 한 번 빌드하고, 배포 후 `npm run verify:deployed-sha` 가 `/version.json`(Pages)과 `/api/version`(Worker)을 읽어 그 SHA 와 대조한다. 하나라도 다르면 릴리스는 실패다.
   - 결제·인증·DB 스키마·배포 인프라 경로가 걸리면 risk level 과 무관하게 `deploy:critical` 전체가 돈다(`scripts/lib/change-risk.mjs` 의 `deepRequired`).
   - 작업 중 취약점, 보안 위험, 재현 가능한 버그를 발견하면 즉시 사용자에게 보고하고, 필요하면 다른 세션에서 분리 디버깅할 수 있도록 위험도와 짧은 제안도 함께 남긴다.
@@ -262,7 +261,9 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **변경 파일을 못 구하면 `critical` 로 간다**(fail closed). "모른다"를 "안전하다"로 읽지 않는다.
   - 🔴 **네 잡(`Risk tier`·`Typecheck and lint`·`Build Pages and Worker`·`Critical checks`)은 티어와 무관하게 항상 실행된다.** 건너뛰는 것은 잡이 아니라 그 안의 스텝이다. 잡 자체를 `if` 로 막으면 브랜치 룰셋이 오지 않는 체크를 기다리며 머지를 영영 막는다. 잡 이름 = 룰셋의 필수 체크 이름이므로 바꿀 때 룰셋도 함께 고친다(`verify:worker-single-deploy` 가 감시).
   - **라벨 탈출구**: `full-ci` 는 티어를 `critical` 로 올린다. 경로만으로는 안 잡히는데 사람은 아는 변경에 쓴다(예: 공용 유틸을 고쳐 결제·인증에 **간접** 영향이 가는 경우). 내리는 라벨은 없다 — 그건 게이트를 끄는 버튼이다.
-- **Preview 는 기본 흐름에 없다.** PR 에 `preview` 라벨을 붙였을 때만 만든다. 🔴 **위험한 변경일수록 프리뷰가 답을 줄 수 없다** — Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 는 **지금 라이브인 워커**(옛 코드)가 응답하고, 그 `/api` 는 프로덕션 DB 를 본다(샌드박스가 아니다). 즉 결제·인증·Worker 변경은 프리뷰로 확인되지 않는다. 한때 critical 티어에 자동으로 걸어 두었으나 비용만 내고 얻는 것이 없어 2026-08-11 에 제거했다. 프리뷰가 값을 하는 경우는 **화면이 바뀌는 프런트엔드 변경을 눈으로 볼 때** 하나뿐이며, 그때만 라벨을 붙인다. 나머지는 PR CI 가, 배포 후 확인은 릴리스의 스모크와 SHA 대조가 맡는다.
+- 🔴 **배포 전 프리뷰 단계는 없다(2026-08-11).** 머지하면 곧바로 라이브다. 프리뷰는 위험한 변경일수록 답을 줄 수 없었다 — Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 를 **지금 라이브인 워커**(옛 코드)가 응답하고, 그 `/api` 는 프로덕션 DB 를 본다(샌드박스가 아니다). 결제·인증·Worker 변경에는 무용했고 Cloudflare 아티팩트만 쌓였다.
+  - 대신 검증은 **머지 전 PR CI** 와 **배포 자체의 안전장치**가 나눠 맡는다. 릴리스는 승격 전에 내부적으로 Pages 배포본을 만들어 스모크를 돌리고, 승격 후에는 프로덕션 스모크 + Pages/Worker SHA 대조를 하며, 실패하면 양쪽을 함께 자동 롤백한다. 이건 사용자가 기다리는 단계가 아니라 릴리스 잡 안에서 끝난다.
+  - 로컬 `npm run deploy:preview` 는 개발용 도구로 남아 있지만 흐름의 일부가 아니다. 실행하면 Cloudflare 에 아티팩트가 남으므로 습관적으로 돌리지 않는다. 변경 집합만 보려면 업로드가 없는 `npm run deploy:check`.
 - **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 36개 검증기를 돌린다. 위 티어와 **독립**이며 필수 체크는 아니다.
   - 🔴 **정적 셸 6종(`index.html` + 5미러)이 여기 포함된다**(2026-08-11 추가). 결제창 렌더러 3종 중 **정본이 셸 인라인**(`_cdChooseServicePaymentMode`)인데 정작 그것만 트리거 목록에서 빠져 있어, 셸에서 이용권 카드를 지우거나 3옵션 문구를 바꿔도 `verify:payment-choice-parity` 가 깨어나지 않았다. 셸은 홈 콘텐츠도 겸하므로 PR CI 티어는 `fast` 로 두고(문구 한 줄에 전체 회귀를 돌리지 않는다) 결제 검증만 이 게이트로 깨운다.
 - **Merging the PR is the deploy trigger.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, promotes the Worker then Pages, smokes production, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers and reports on the PR.
