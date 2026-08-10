@@ -103,8 +103,25 @@ assertContains(authSource, "phoneNumber: storedPhoneNumber,",
   "email signup User.create must store the encrypted value");
 assertContains(authSource, "{ $set: { phoneNumber: storedPhoneNumber, phoneUpdatedAt: new Date() } }",
   "raw-driver payment-phone update must store the encrypted value (Mongoose setters do not run there)");
-assertContains(authSource, "const backfill = await encryptBackfillPhoneNumber(profilePhoneNumber, env);",
-  "OAuth backfill must encrypt before writing");
+// 변수명이 아니라 성질을 고정한다 — 백필에 들어가는 값은 반드시 encryptBackfillPhoneNumber 를 통과한다.
+// (예전에는 `profilePhoneNumber` 라는 이름까지 문자열로 박아 두어, 가입 입력값 우선 수정에서
+//  이름만 바뀌었는데도 실패했다.)
+assert.ok(
+  /const backfill = await encryptBackfillPhoneNumber\(\w+, env\);/.test(authSource),
+  "OAuth backfill must encrypt before writing",
+);
+assert.equal(
+  (authSource.match(/const backfill = await encryptBackfillPhoneNumber\(/g) || []).length,
+  3,
+  "backfill must stay in all three write paths (social providerId / social email / email re-signup)",
+);
+// 이메일 재가입 백필도 raw driver 라 Mongoose setter 가 돌지 않는다 — 봉투를 직접 넣어야 한다.
+assertContains(authSource, "{ $set: { phoneNumber: backfill, phoneUpdatedAt: new Date() } }",
+  "email re-signup backfill must store the encrypted envelope, not the raw number");
+assert.ok(
+  !/\$set: \{ phoneNumber: phoneNumber\b/.test(authSource),
+  "no write path may $set the raw phone number",
+);
 assertContains(authSource, "if (backfill) user.set(\"phoneNumber\", backfill);",
   "OAuth backfill must skip (never store plaintext) when encryption is unavailable");
 assert.ok(

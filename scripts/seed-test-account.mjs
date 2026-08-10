@@ -51,7 +51,9 @@ const args = parseArgs(process.argv.slice(2));
 //    points: 9999 를 "쓸 수 있는 잔액"처럼 넣었지만 그것으로 열리는 기능은 하나도 없다.
 //    실제로 접근을 여는 것은 이용권(profileSubscription)과 월정석(membershipCreditLots)뿐이다.
 const TEST_LOGIN_ID = String(args.email || "test1234@example.com").trim().toLowerCase();
-const TEST_PASSWORD = String(args.password || "test!1234").trim();
+// 🔴 기본 비밀번호를 여기 되돌리지 말 것 — 예전 기본값 "test!1234" 는 리포에 커밋된 채로
+// 프로덕션 계정에 그대로 쓰였다. --password 또는 SEED_TEST_ACCOUNT_PASSWORD 로만 받는다.
+const TEST_PASSWORD = String(args.password || process.env.SEED_TEST_ACCOUNT_PASSWORD || "").trim();
 // 폐지된 필드라 기본값은 0 이다. --points 는 레거시 데이터 재현이 필요할 때만 쓴다.
 const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 0;
 const TEST_NAME = String(args.name || "Test User").trim() || "Test User";
@@ -63,8 +65,8 @@ if (!TEST_LOGIN_ID) {
   throw new Error("--email 값이 비어 있습니다.");
 }
 
-if (!TEST_PASSWORD) {
-  throw new Error("--password 값이 비어 있습니다.");
+if (TEST_PASSWORD.length < 12) {
+  throw new Error("--password (또는 SEED_TEST_ACCOUNT_PASSWORD) 를 12자 이상으로 지정하세요. 리포에 커밋하지 마세요.");
 }
 
 if (!Number.isInteger(TEST_POINTS) || TEST_POINTS < 0) {
@@ -117,7 +119,8 @@ async function upsertTestAccount() {
   console.log("============================================");
   console.log("【계정 정보】");
   console.log(`  - Email: ${TEST_LOGIN_ID}`);
-  console.log(`  - PW: ${TEST_PASSWORD}`);
+  // 🔴 평문 출력 금지 — CI 로그·터미널 스크롤백에 그대로 남는다. 값은 실행자가 이미 알고 있다.
+  console.log(`  - PW: (설정한 값, ${TEST_PASSWORD.length}자)`);
   console.log(`  - MongoDB _id: ${String(user._id)}`);
   console.log("");
   console.log("【유료 처리 상태】");

@@ -7,7 +7,8 @@ import { connectDb, mongoose } from "../worker/lib/db.js";
 import { PointHistory, User } from "../worker/lib/models.js";
 import { hashPassword } from "../worker/lib/password.js";
 
-const PASSWORD = String(process.env.DEV_SEED_USER_PASSWORD || "CodeDestiny!2026").trim();
+// 🔴 기본 비밀번호를 여기 되돌리지 말 것 — 커밋된 값은 그 자체로 공개된 비밀번호다.
+const PASSWORD = String(process.env.DEV_SEED_USER_PASSWORD || "").trim();
 const PAID_FEATURE_KEY = String(process.env.DEV_SEED_PAID_FEATURE_KEY || "saju_ai_question").trim();
 const SINGLE_ACCOUNT_EMAIL = String(process.env.DEV_SEED_ACCOUNT_EMAIL || "").trim().toLowerCase();
 const SINGLE_ACCOUNT_SLUG = String(process.env.DEV_SEED_ACCOUNT_SLUG || "").trim();
@@ -267,6 +268,10 @@ async function main() {
   loadEnvFiles();
   enforceSafety();
 
+  if (PASSWORD.length < 12) {
+    throw new Error("Set DEV_SEED_USER_PASSWORD in .env.local (minimum 12 characters). It must not be committed.");
+  }
+
   await connectDb({
     ...process.env,
     MONGO_IP_FAMILY: process.env.MONGO_IP_FAMILY || "4",
@@ -280,7 +285,8 @@ async function main() {
 
   console.log(JSON.stringify({
     ok: true,
-    password: PASSWORD,
+    // 평문 출력 금지 — 값은 DEV_SEED_USER_PASSWORD 로 실행자가 직접 넣은 것이다.
+    password: `(DEV_SEED_USER_PASSWORD, ${PASSWORD.length}자)`,
     paidFeatureKey: PAID_FEATURE_KEY,
     accounts,
   }, null, 2));

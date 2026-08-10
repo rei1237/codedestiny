@@ -22,10 +22,15 @@ if (
 }
 
 const TEST_LOGIN_ID = "test_inicis";
-const TEST_PASSWORD = "inicis1234!";
+// 🔴 평문 비밀번호를 여기 되돌리지 말 것 — 예전의 "inicis1234!" 는 프로덕션에 실재하는 계정의
+// 비밀번호였고 리포에 그대로 커밋돼 있었다. env 로만 받는다(seed-preview-test-account.mjs 와 동일).
+const TEST_PASSWORD = String(process.env.INICIS_TEST_ACCOUNT_PASSWORD || "").trim();
 const TEST_POINTS = 9999;
 
 async function upsertInicisAccount() {
+  if (TEST_PASSWORD.length < 12) {
+    throw new Error("Set INICIS_TEST_ACCOUNT_PASSWORD in .env.local (minimum 12 characters). It must not be committed.");
+  }
   await dbConnect();
   const User = await getUserModel();
 

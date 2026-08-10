@@ -25,8 +25,9 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
+import { checkPasswordBreached } from "../lib/password-breach.js";
 import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";
-import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
+import { MIN_NEW_PASSWORD_LENGTH, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
   signSocialSignupTicket,
@@ -1113,6 +1114,7 @@ function requiresSameOriginAuthGuard(method, path) {
   return path === "/refresh"
     || path === "/logout"
     || path === "/withdraw"
+    || path === "/password"
     || path === "/oauth/complete"
     || path === "/oauth/complete-signup"
     || path === "/referral/kakao-share"
@@ -1629,13 +1631,19 @@ async function encryptBackfillPhoneNumber(value, env) {
 
 // 기존 소셜/이메일 유저 조회 + 연결 로직. findOrCreateSocialUser의 최초 조회와,
 // 동시 생성 경합(E11000) 발생 시의 재조회 양쪽에서 재사용한다.
-async function findExistingSocialUser(provider, profile, socialField, env) {
+//
+// 🔴 백필 번호는 "가입 마무리 화면에서 사용자가 직접 입력한 값"을 공급자 값보다 우선한다 —
+// 아래 신규 생성 분기(findOrCreateSocialUser)와 **같은 우선순위**여야 한다. 예전에는 이 함수만
+// profile.phoneNumber(공급자 값)를 봤는데, 구글·카카오는 번호를 거의 주지 않아서 기존 계정
+// 분기로 들어가면 방금 입력한 번호가 통째로 버려졌다 → 첫 단건결제마다 번호 입력 모달.
+async function findExistingSocialUser(provider, profile, socialField, env, signupProfile = null) {
+  const signupPhoneNumber = normalizeKoreanPhoneNumber(signupProfile?.phoneNumber)
+    || normalizeKoreanPhoneNumber(profile.phoneNumber);
   let user = await User.findOne({ [socialField]: profile.providerId });
   if (user) {
     if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
-    const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
-    if (profilePhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
-      const backfill = await encryptBackfillPhoneNumber(profilePhoneNumber, env);
+    if (signupPhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
+      const backfill = await encryptBackfillPhoneNumber(signupPhoneNumber, env);
       if (backfill) {
         user.set("phoneNumber", backfill);
         await user.save();
@@ -1656,9 +1664,8 @@ async function findExistingSocialUser(provider, profile, socialField, env) {
       if (!String(user.profileImage || "").trim() && String(profile.image || "").trim()) {
         user.set("profileImage", String(profile.image || "").trim());
       }
-      const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
-      if (profilePhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
-        const backfill = await encryptBackfillPhoneNumber(profilePhoneNumber, env);
+      if (signupPhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
+        const backfill = await encryptBackfillPhoneNumber(signupPhoneNumber, env);
         if (backfill) user.set("phoneNumber", backfill);
       }
       await user.save();
@@ -1680,7 +1687,7 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   const createIfMissing = options.createIfMissing !== false;
   const signupProfile = options.signupProfile || null;
 
-  const existing = await findExistingSocialUser(provider, profile, socialField, env);
+  const existing = await findExistingSocialUser(provider, profile, socialField, env, signupProfile);
   if (existing) return existing;
   if (!createIfMissing) return { user: null, created: false };
 
@@ -1720,7 +1727,7 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
     // 동시 소셜 로그인 경합: 다른 요청이 같은 providerId/email로 먼저 유저를 만들어
     // 중복키(E11000)가 나면, 이미 생성된 유저를 재조회해 흡수한다(두 번째 요청도 정상 로그인).
     if (error && (error.code === 11000 || String(error.message || "").includes("E11000"))) {
-      const raced = await findExistingSocialUser(provider, profile, socialField, env);
+      const raced = await findExistingSocialUser(provider, profile, socialField, env, signupProfile);
       if (raced) return raced;
     }
     throw error;
@@ -2383,6 +2390,10 @@ async function handleRegister(request, env) {
     );
   }
 
+  // 유출 목록 대조는 외부 HTTP 왕복이라 connectDb 와 **병렬로** 띄운다 — 직렬로 붙이면 가입
+  // 응답이 그만큼 통째로 늘어난다. 조회 실패는 fail-open(password-breach.js 주석 참고).
+  const breachCheck = checkPasswordBreached(validated.sanitized.password);
+
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_register_connect_db");
   } catch (error) {
@@ -2392,6 +2403,16 @@ async function handleRegister(request, env) {
       503,
       "db_connection_failed",
       toErrorMessage(error) || "Database connection failed.",
+    );
+  }
+
+  if ((await breachCheck).breached) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "breached_password",
+      "이 비밀번호는 외부 유출 목록에 있어 사용할 수 없어요. 다른 곳에서 쓰지 않는 새 비밀번호를 정해 주세요.",
     );
   }
 
@@ -2459,6 +2480,35 @@ async function handleRegister(request, env) {
       }
 
       if (existingPasswordOk) {
+        // 🔴 재제출(응답 지연 후 재시도·뒤로가기 후 재제출)로 여기 오면 예전에는 세션만 내주고
+        // 방금 입력한 번호를 버렸다. 그 계정에 번호가 없으면 첫 단건결제마다 입력 모달을 타게 된다.
+        // 이미 번호가 있으면 덮어쓰지 않고, 저장이 실패해도 로그인은 막지 않는다(백필은 곁다리다).
+        if (!(await decryptPhoneNumber(existing.phoneNumber || existing.phone, env))) {
+          const backfill = await encryptBackfillPhoneNumber(phoneNumber, env);
+          if (backfill) {
+            try {
+              // 필터에 방금 읽은 값을 함께 넣어, 그 사이 다른 요청이 번호를 채웠으면 덮어쓰지 않는다
+              // (upgradeLegacyPasswordHash 가 해시에 쓰는 것과 같은 compare-and-set).
+              await withAuthOpTimeout(
+                User.collection.updateOne(
+                  {
+                    _id: existing._id,
+                    // 값 없음은 ""·null·필드 자체 부재 세 가지로 존재한다(레거시 raw insert 포함).
+                    ...(existing.phoneNumber
+                      ? { phoneNumber: existing.phoneNumber }
+                      : { phoneNumber: { $in: ["", null] } }),
+                  },
+                  { $set: { phoneNumber: backfill, phoneUpdatedAt: new Date() } },
+                ),
+                timeoutMs,
+                "auth_register_existing_phone_backfill",
+              );
+              existing.phoneNumber = backfill;
+            } catch (backfillError) {
+              console.warn("[auth/register] phone backfill skipped:", backfillError?.message || backfillError);
+            }
+          }
+        }
         return await withAuthOpTimeout(
           createAuthSuccessResponse(request, env, existing, 200, body?.nextPath, { idempotent: true }),
           timeoutMs,
@@ -2831,6 +2881,122 @@ async function handleLogin(request, env) {
     code: "login_service_unavailable",
     message: "Login service is temporarily unavailable. Please try again.",
   }, { status: 503 });
+}
+
+/**
+ * POST /api/auth/password — 로그인 상태에서 비밀번호 변경.
+ *
+ * 🔴 이 라우트가 없던 동안, 크롬 비밀번호 검사가 "유출됐으니 지금 바꾸세요"라고 알려도 사용자가
+ * 실제로 바꿀 방법이 없었다(passwordHash 를 다루는 경로가 가입·로그인·탈퇴뿐이었다).
+ *
+ * 🔴 성공 시 기존 리프레시 세션을 **전부** 폐기한 뒤 이 기기에만 새 세션을 발급한다. 유출 대응의
+ * 핵심이 "훔친 세션을 끊는 것"이라 순서를 바꾸면 안 된다 — 새 세션을 먼저 만들면 그것까지 폐기된다.
+ */
+async function handleChangePassword(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const auth = await requireAuth(request, env);
+  const userId = String(auth.userId || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
+  }
+
+  const body = await readJson(request);
+  const currentPassword = String(body?.currentPassword || "");
+  const nextPassword = String(body?.newPassword || "");
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_password_connect_db");
+  const objectId = new mongoose.Types.ObjectId(userId);
+  const user = await withAuthOpTimeout(
+    User.collection.findOne(
+      { _id: objectId },
+      {
+        projection: { _id: 1, name: 1, email: 1, passwordHash: 1, localAuth: 1, status: 1 },
+        maxTimeMS: dbMaxTimeMs,
+      },
+    ),
+    timeoutMs,
+    "auth_password_find_user",
+  );
+
+  if (!user || isWithdrawnAuthUser(user)) {
+    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
+  }
+
+  // 소셜 전용 계정은 바꿀 비밀번호 자체가 없다. 여기서 새로 만들어 주면 소셜 계정에 이메일
+  // 로그인을 붙이는 별개 기능이 되므로(가입 흐름·약관 동의를 우회한다) 명시적으로 거절한다.
+  if (!isLocalAuthEnabled(user) || !user.passwordHash) {
+    return json({
+      ok: false,
+      code: "social_account",
+      message: "소셜 로그인으로 가입된 계정이에요. 비밀번호가 없어 변경할 수 없습니다.",
+    }, { status: 409 });
+  }
+
+  // 현재 비밀번호 추측을 로그인과 같은 한도로 막는다(세션을 탈취당한 뒤의 권한 상승 시도 방어).
+  const rateLimitState = await getLoginRateLimitState(request, user.email, env);
+  if (rateLimitState.limited) {
+    return buildLoginRateLimitedResponse(rateLimitState);
+  }
+
+  const currentOk = currentPassword.length >= 8 && await withAuthOpTimeout(
+    verifyPassword(currentPassword, user.passwordHash),
+    timeoutMs,
+    "auth_password_verify_current",
+  );
+  if (!currentOk) {
+    await recordFailedLoginAttempt(rateLimitState);
+    return json({
+      ok: false,
+      code: "invalid_current_password",
+      message: "현재 비밀번호가 올바르지 않아요.",
+    }, { status: 403 });
+  }
+
+  const policy = validateNewPassword(nextPassword, { email: user.email, name: user.name });
+  if (!policy.isValid) {
+    return json({
+      ok: false,
+      code: "weak_password",
+      message: `새 비밀번호는 ${MIN_NEW_PASSWORD_LENGTH}자 이상이어야 하고, 이메일·이름을 포함할 수 없어요.`,
+      errors: policy.errors,
+    }, { status: 400 });
+  }
+
+  if (nextPassword === currentPassword) {
+    return json({
+      ok: false,
+      code: "same_password",
+      message: "지금 쓰는 비밀번호와 다른 값을 정해 주세요.",
+    }, { status: 400 });
+  }
+
+  if ((await checkPasswordBreached(nextPassword)).breached) {
+    return json({
+      ok: false,
+      code: "breached_password",
+      message: "이 비밀번호는 외부 유출 목록에 있어 사용할 수 없어요. 다른 곳에서 쓰지 않는 새 비밀번호를 정해 주세요.",
+    }, { status: 400 });
+  }
+
+  const nextHash = await withAuthOpTimeout(hashPassword(nextPassword), timeoutMs, "auth_password_hash");
+  await withAuthOpTimeout(
+    User.collection.updateOne(
+      { _id: objectId, passwordHash: user.passwordHash },
+      { $set: { passwordHash: nextHash, passwordUpdatedAt: new Date() } },
+    ),
+    timeoutMs,
+    "auth_password_update",
+  );
+
+  await clearLoginRateLimitIfRecorded(rateLimitState);
+  await revokeAllUserRefreshSessions(objectId);
+
+  return await withAuthOpTimeout(
+    createAuthSuccessResponse(request, env, user, 200, "/", { passwordChanged: true }),
+    timeoutMs,
+    "auth_password_issue_session",
+  );
 }
 
 // /api/auth/me 응답에 필요한 User 필드. 인증 리졸버(resolveActiveUserAuth)에 userProjection으로 넘겨
@@ -4319,6 +4485,7 @@ export async function handleAuthRoutes(request, env, ctx) {
       || path === "/refresh"
       || path === "/app/exchange"
       || path === "/withdraw"
+      || path === "/password"
       || path === "/oauth/complete"
       || path === "/oauth/complete-signup"
       || path === "/referral/kakao-share"
@@ -4354,6 +4521,7 @@ export async function handleAuthRoutes(request, env, ctx) {
     if (method === "GET" && path === "/me/payment-phone") return await handlePaymentPhoneStatus(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/payment-phone") return await handleSavePaymentPhoneNumber(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/phone-number") return await handleUpdatePhoneNumber(request, env);
+    if (method === "POST" && path === "/password") return await handleChangePassword(request, env);
     if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
     if (method === "POST" && path === "/logout") return await handleLogout(request, env, ctx);
@@ -4399,9 +4567,11 @@ export async function handleAuthRoutes(request, env, ctx) {
 export const __authTestUtils = {
   handleLogin,
   handleRegister,
+  handleChangePassword,
   handleRefresh,
   handleWithdraw,
   handleWithdrawCsrfIssue,
+  findOrCreateSocialUser,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
   clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
 };

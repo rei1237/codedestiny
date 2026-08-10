@@ -9,7 +9,10 @@ import { hashPassword } from "../worker/lib/password.js";
 import { applyGrantLot } from "../worker/lib/monthly-credit-lots.js";
 
 const TARGET_EMAIL = "hanyuzu@example.com";
-const TARGET_PASSWORD = "test!1234";
+// 🔴 평문 비밀번호를 여기 되돌리지 말 것. 예전에는 "test!1234" 가 그대로 커밋돼 있었고, 이 계정은
+// 프로덕션에 실재하므로 리포를 읽을 수 있는 누구나 로그인할 수 있었다. 정본 패턴은
+// scripts/seed-preview-test-account.mjs 와 같다 — env 필수, 미설정이면 실행 자체를 거절한다.
+const TARGET_PASSWORD = String(process.env.HANYUZU_SEED_PASSWORD || "").trim();
 const TARGET_MOON_STONE_BALANCE = 999999;
 
 function loadEnvFiles() {
@@ -32,6 +35,10 @@ async function main() {
 
   if (!process.env.MONGO_URI && !process.env.MONGODB_URI && !process.env.DB_URI) {
     throw new Error("No Mongo connection env found.");
+  }
+
+  if (TARGET_PASSWORD.length < 12) {
+    throw new Error("Set HANYUZU_SEED_PASSWORD in .env.local (minimum 12 characters). It must not be committed.");
   }
 
   await connectDb({ ...process.env, MONGO_IP_FAMILY: "4" });

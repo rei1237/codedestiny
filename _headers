@@ -40,6 +40,8 @@
 # AdSense/Search: thin or input-heavy tool screens stay crawlable but out of the index.
 /account/delete*
   X-Robots-Tag: noindex, nofollow
+/account/password*
+  X-Robots-Tag: noindex, nofollow
 /animal/physio*
   X-Robots-Tag: noindex, nofollow
 # 🔴 `/maya*` 로 합치지 말 것 — 색인 대상인 `/mayan-calendar/guide` 까지 삼킨다.

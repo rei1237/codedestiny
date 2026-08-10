@@ -80,6 +80,8 @@ const privateRoutePatterns = [
   /^\/payments(?:\/|$)/,
   /^\/checkout(?:\/|$)/,
   /^\/premium-unlock(?:\/|$)/,
+  // 로그인 사용자 전용 비밀번호 변경 폼. 본문이 입력창뿐이라 색인 대상이 아니다.
+  /^\/account\/password(?:\/|$)/,
   /^\/dev-status(?:\/|$)/,
   /\/play(?:\/|$)/,
   /\/stage(?:\/|$)/,

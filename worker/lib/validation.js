@@ -110,6 +110,38 @@ export function validateBirthDateWithAge(birthDateStr, now = null) {
   return { isValid: true, age, error: null };
 }
 
+// 🔴 신규 비밀번호(가입·변경)에만 적용되는 최소 길이다. 로그인 검증기(validateLoginPayload)의
+// 8자는 절대 따라 올리지 말 것 — 올리는 순간 이미 8~9자를 쓰는 기존 회원이 전부 로그인 불가가 된다.
+export const MIN_NEW_PASSWORD_LENGTH = 10;
+
+/**
+ * 신규 비밀번호 자체 검증(길이 + 계정 정보 재사용 금지). 유출 목록 대조는 네트워크가 필요해서
+ * 여기 두지 않는다 — worker/lib/password-breach.js 의 checkPasswordBreached 가 담당한다.
+ * 가입과 비밀번호 변경이 같은 기준을 쓰도록 두 라우트가 이 함수를 공유한다.
+ */
+export function validateNewPassword(password, { email = "", name = "" } = {}) {
+  const errors = [];
+  const value = String(password || "");
+  const lowered = value.toLowerCase();
+
+  if (value.length < MIN_NEW_PASSWORD_LENGTH) {
+    errors.push(`Password must be at least ${MIN_NEW_PASSWORD_LENGTH} characters.`);
+  }
+  if (value.length > 200) errors.push("Password must be 200 characters or fewer.");
+
+  const emailLocalPart = String(email || "").trim().toLowerCase().split("@")[0] || "";
+  if (emailLocalPart.length >= 3 && lowered.includes(emailLocalPart)) {
+    errors.push("Password must not contain your email address.");
+  }
+
+  const normalizedName = String(name || "").trim().toLowerCase();
+  if (normalizedName.length >= 3 && lowered.includes(normalizedName)) {
+    errors.push("Password must not contain your name.");
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+
 export function validateRegisterPayload(payload = {}) {
   const errors = [];
 
@@ -123,7 +155,7 @@ export function validateRegisterPayload(payload = {}) {
   if (!name || name.length < 2) errors.push("Name must be at least 2 characters.");
   if (name.length > 40) errors.push("Name must be 40 characters or fewer.");
   if (!emailRegex.test(email)) errors.push("Email format is invalid.");
-  if (password.length < 8) errors.push("Password must be at least 8 characters.");
+  errors.push(...validateNewPassword(password, { email, name }).errors);
   if (!termsAccepted) errors.push("Terms acceptance is required.");
   if (!privacyAccepted) errors.push("Privacy policy acceptance is required.");
   if (!ageAttested) errors.push("Age 14 or older attestation is required.");
@@ -150,6 +182,8 @@ export function validateLoginPayload(payload = {}) {
   const password = String(payload.password || "");
 
   if (!emailRegex.test(email)) errors.push("Email format is invalid.");
+  // 🔴 8자를 MIN_NEW_PASSWORD_LENGTH 로 올리지 말 것. 이건 "가입 기준"이 아니라 "이미 존재하는
+  // 비밀번호의 하한"이라, 올리면 8~9자로 가입했던 기존 회원이 전부 로그인 불가가 된다.
   if (!password || password.length < 8) errors.push("Please check your password.");
 
   return {

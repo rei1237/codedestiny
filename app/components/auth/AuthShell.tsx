@@ -19,11 +19,14 @@ type AuthMode = "login" | "signup";
 type SocialProvider = "google" | "naver" | "kakao";
 type AuthUser = { role?: string; [key: string]: unknown };
 
+/** worker/lib/validation.js 의 MIN_NEW_PASSWORD_LENGTH 와 같은 값이어야 한다(가입·변경 전용). */
+const MIN_NEW_PASSWORD_LENGTH = 10;
+
 type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
   socialLabel: string; google: string; naver: string; kakao: string; moving: string; orEmail: string;
   email: string; password: string; name: string; phone: string; phoneHelp: string;
-  showPassword: string; hidePassword: string; capsLock: string; login: string; signup: string;
+  showPassword: string; hidePassword: string; capsLock: string; passwordHint: string; login: string; signup: string;
   processing: string; switchToSignup: string; switchToLogin: string; noAccount: string; hasAccount: string;
   privacy: string; privacySummary: string; terms: string; age: string; required: string; finishTitle: string;
   finishDescription: string; finish: string; invalidEmail: string; invalidSignup: string;
@@ -39,6 +42,7 @@ const EN: Copy = {
   email: "Email", password: "Password", name: "Name", phone: "Mobile number",
   phoneHelp: "Used only as payment-provider customer information, and stored encrypted (AES-256) on our servers.",
   showPassword: "Show password", hidePassword: "Hide password", capsLock: "Caps Lock is on.",
+  passwordHint: `At least ${MIN_NEW_PASSWORD_LENGTH} characters. Passwords found in known breaches are rejected.`,
   login: "Log in", signup: "Create account", processing: "Checking securely…",
   switchToSignup: "Create account", switchToLogin: "Log in", noAccount: "New here?", hasAccount: "Already have an account?",
   privacy: "I agree to the collection and use of personal information.",
@@ -63,6 +67,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     email: "이메일", password: "비밀번호", name: "이름", phone: "휴대폰 번호",
     phoneHelp: "PG 결제 고객정보에만 사용하고, 서버에 암호화(AES-256)해서 보관해요.",
     showPassword: "비밀번호 보기", hidePassword: "비밀번호 숨기기", capsLock: "Caps Lock이 켜져 있어요.",
+    passwordHint: `${MIN_NEW_PASSWORD_LENGTH}자 이상이어야 하고, 이미 유출된 것으로 알려진 비밀번호는 쓸 수 없어요.`,
     login: "로그인", signup: "가입하고 바로 시작하기", processing: "안전하게 확인 중…",
     switchToSignup: "회원가입", switchToLogin: "로그인", noAccount: "처음 오셨나요?", hasAccount: "이미 계정이 있나요?",
     privacy: "개인정보 수집·이용에 동의합니다.",
@@ -161,7 +166,10 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     if (busy) return;
     if (!isValidEmail(email)) { setError(copy.invalidEmail); return; }
     const phoneNumber = normalizePhone(phone);
-    if (password.length < 8 || (mode === "signup" && (name.trim().length < 2 || !phoneNumber || !privacy || !terms || !age))) {
+    // 🔴 로그인은 8자 그대로다. 기존 회원이 8~9자로 가입했을 수 있어 여기서 올리면 로그인이 막힌다.
+    // 가입만 서버(worker/lib/validation.js MIN_NEW_PASSWORD_LENGTH)와 같은 10자를 요구한다.
+    const minPasswordLength = mode === "signup" ? MIN_NEW_PASSWORD_LENGTH : 8;
+    if (password.length < minPasswordLength || (mode === "signup" && (name.trim().length < 2 || !phoneNumber || !privacy || !terms || !age))) {
       setError(mode === "login" ? copy.credentialsError : copy.invalidSignup); return;
     }
     setBusy(true); setError("");
@@ -215,7 +223,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
         <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
           {isSignup && <><Field id="auth-name" label={copy.name}><input id="auth-name" type="text" autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} className={inputClass} /></Field><Field id="auth-phone" label={copy.phone}><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="01012345678" value={phone} onChange={(event) => setPhone(event.target.value)} className={inputClass} /><p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.phoneHelp}</p></Field></>}
-          {!ticket && <><Field id="auth-email" label={copy.email}><input id="auth-email" type="email" inputMode="email" autoComplete={isSignup ? "email" : "username"} value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} /></Field><Field id="auth-password" label={copy.password}><div className="relative"><input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} className={`${inputClass} pr-14`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? copy.hidePassword : copy.showPassword} className="absolute inset-y-0 right-0 min-w-12 px-3 text-xs font-bold text-[#d6c9eb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#dbc9ff]">{showPassword ? "Hide" : "Show"}</button></div>{capsLock && <p className="mt-1.5 text-xs text-[#ffd18a]">{copy.capsLock}</p>}</Field></>}
+          {!ticket && <><Field id="auth-email" label={copy.email}><input id="auth-email" type="email" inputMode="email" autoComplete={isSignup ? "email" : "username"} value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} /></Field><Field id="auth-password" label={copy.password}><div className="relative"><input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} minLength={isSignup ? MIN_NEW_PASSWORD_LENGTH : 8} value={password} onChange={(event) => setPassword(event.target.value)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} className={`${inputClass} pr-14`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? copy.hidePassword : copy.showPassword} className="absolute inset-y-0 right-0 min-w-12 px-3 text-xs font-bold text-[#d6c9eb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#dbc9ff]">{showPassword ? "Hide" : "Show"}</button></div>{isSignup && <p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.passwordHint}</p>}{capsLock && <p className="mt-1.5 text-xs text-[#ffd18a]">{copy.capsLock}</p>}</Field></>}
           {isSignup && <fieldset className="space-y-2 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3"><legend className="px-1 text-xs font-bold text-[#cfc4e5]">{copy.required}</legend><Check id="auth-privacy" checked={privacy} onChange={setPrivacy}><Link href="/privacy" target="_blank" className="underline underline-offset-4">{copy.privacy}</Link></Check><p className="pl-9 text-[11px] leading-5 text-[#aa9fbd]">{copy.privacySummary}</p><Check id="auth-terms" checked={terms} onChange={setTerms}><Link href="/terms" target="_blank" className="underline underline-offset-4">{copy.terms}</Link></Check><Check id="auth-age" checked={age} onChange={setAge}>{copy.age}</Check></fieldset>}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
         </form>
