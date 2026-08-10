@@ -84,8 +84,9 @@ Every PR is not worth the same amount of CI. A copy tweak and a payment-route ch
 - Both axes are consulted. `app/hooks/useCoinGate.ts` is `level=medium` because it lives under `app/`, but it is the single-purchase hook, so `deepRequired` lifts it to `critical`. Either axis alone leaves a hole.
 - **If the changed-file list cannot be resolved, the tier is `critical`.** "Unknown" is not "safe".
 - 🔴 All four jobs (`Risk tier`, `Typecheck and lint`, `Build Pages and Worker`, `Critical checks`) **always run**. What the tier skips is steps, not jobs. A job gated by a top-level `if` never reports, and a required check that never reports blocks every merge forever. The job names are the ruleset's required check names — `verify:worker-single-deploy` fails if they drift.
-- The `full-ci` label lifts a PR to `critical`. Use it for changes the paths cannot see — a payment-modal edit inside the static shell `index.html`, for instance. There is no label that lowers a tier; that would be a button for turning the gate off.
-- `paid-flow-gates.yml` is separate and unchanged: on `pull_request` it runs the 36 payment/auth/fortune verifiers when those specific files change. It is not a required check.
+- The `full-ci` label lifts a PR to `critical`. Use it for changes the paths cannot see but you can — a shared utility edit that reaches payment or auth indirectly, for instance. There is no label that lowers a tier; that would be a button for turning the gate off.
+- `paid-flow-gates.yml` is separate from the tiers: on `pull_request` it runs the 36 payment/auth/fortune verifiers when those specific files change. It is not a required check.
+  - 🔴 The six static shells (`index.html` plus its five `public/**` mirrors) were added to its paths on 2026-08-11. The payment dialog has three renderers and the **source of truth is the shell inline one** (`_cdChooseServicePaymentMode`, styles in `_cdEnsureDirectPaymentStyles`) — yet that was the one renderer missing from the trigger list, so deleting the pass card or rewording the three options never woke `verify:payment-choice-parity`. The shell doubles as home content, so its PR CI tier stays `fast`; only the payment verifiers are woken here.
 
 ### What runs where
 
