@@ -93,6 +93,9 @@ type PrepareSubscriptionOrderResponse = {
   order?: {
     merchantUid: string;
     customerUid: string;
+    // 서버가 결제창용 구매자 정보를 주문 응답에 실어 보낸다(worker/routes/payments.js buildSinglePaymentCustomer).
+    // 이걸 쓰면 결제창 직전의 GET /api/me/payment-phone 왕복이 통째로 사라진다.
+    customer?: { fullName?: string; email?: string; phoneNumber?: string };
     tier: "standard" | "premium" | "vvip" | "family";
     planId: string;
     durationMonths: number;
@@ -1550,6 +1553,12 @@ function clearPendingSubscriptionOrder() {
   localStorage.removeItem("fortune_pending_subscription_pass");
 }
 
+/** PG 결제창에서 페이지가 통째로 리다이렉트돼 돌아온 복귀인지. 낙관 이용권 표시의 유일한 발동 조건이다. */
+function isPortOneSubscriptionRedirectReturn() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("portone_subscription_redirect") === "1";
+}
+
 function acquirePaymentRedirectLock(key: string) {
   if (typeof window === "undefined") return false;
   const lockKey = `${PAYMENT_REDIRECT_LOCK_PREFIX}${key}`;
@@ -1599,12 +1608,22 @@ function savePendingSubscriptionPass(tier: PendingSubscriptionPass["tier"], merc
   localStorage.setItem("fortune_pending_subscription_pass", JSON.stringify(payload));
 }
 
+// 낙관 이용권은 "PG 결제창에 다녀오는 동안"만 유효하다. 결제창에서 탭을 닫는 등으로 정리 코드가
+// 돌지 못하면 키가 그대로 남는데, TTL 이 없으면 며칠 뒤 재방문에도 이용권 보유로 보인다.
+const PENDING_SUBSCRIPTION_PASS_TTL_MS = 15 * 60 * 1000;
+
 function readPendingSubscriptionPass() {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem("fortune_pending_subscription_pass");
     if (!raw) return null;
-    return JSON.parse(raw) as PendingSubscriptionPass;
+    const parsed = JSON.parse(raw) as PendingSubscriptionPass;
+    const startedAt = Number(parsed?.startedAt || 0);
+    if (!Number.isFinite(startedAt) || Date.now() - startedAt > PENDING_SUBSCRIPTION_PASS_TTL_MS) {
+      localStorage.removeItem("fortune_pending_subscription_pass");
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -2950,6 +2969,12 @@ export default function PointsPage() {
     freeLimit: 0,
   });
 
+  // 낙관 이용권을 덮어쓰기 직전의 상태를 보관해 두고, 결제가 취소·실패하면 그대로 되돌린다.
+  // 예전에는 취소 시 localStorage 만 지워서 화면은 계속 "이용권 적용됨"으로 남았다.
+  const subscriptionRef = useRef(subscription);
+  useEffect(() => { subscriptionRef.current = subscription; }, [subscription]);
+  const optimisticPassBackupRef = useRef<SubscriptionStatus | null>(null);
+
   /** Toast 알림 목록 */
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   useEffect(() => {
@@ -3028,13 +3053,29 @@ export default function PointsPage() {
 
   useEffect(() => {
     setIsSubscriptionRefundAgreed(false);
-    // 결제 모달을 여는 것만으로는 결제 준비 API를 호출하지 않는다.
-    // SDK/config/prepare/payment-phone은 실제 원화 결제 버튼을 누른 뒤에만 준비한다.
+    // 결제 모달을 여는 것만으로는 결제 준비 API를 호출하지 않는다 —
+    // config/prepare/payment-phone은 실제 원화 결제 버튼을 누른 뒤에만 준비한다.
     if (!pendingSubscriptionPaymentPlan) {
       subscriptionPrepareRef.current = null;
       return;
     }
+    // 예외는 PortOne SDK 스크립트 하나다. 우리 API 호출도 주문 생성도 아닌 CDN 다운로드일 뿐이고,
+    // 이걸 버튼 클릭 뒤로 미루면 콜드 다운로드 시간이 그대로 결제창 오픈 지연이 된다.
+    void ensurePortoneSdk().catch(() => {});
   }, [pendingSubscriptionPaymentPlan?.id]);
+
+  // 결제창 오픈 임계경로에서 DNS+TLS 를 걷어낸다. 정적 셸(index.html)에는 이미 있고 /points 에만 없었다.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    for (const rel of ["preconnect", "dns-prefetch"]) {
+      if (document.head.querySelector(`link[rel="${rel}"][href="https://cdn.portone.io"]`)) continue;
+      const link = document.createElement("link");
+      link.rel = rel;
+      link.href = "https://cdn.portone.io";
+      if (rel === "preconnect") link.crossOrigin = "anonymous";
+      document.head.appendChild(link);
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3189,6 +3230,19 @@ export default function PointsPage() {
         channel.close();
       }
     } catch { /* noop */ }
+  }, []);
+
+  /**
+   * 결제가 취소·실패했을 때의 정리. localStorage 를 비우는 것만으로는 부족하다 —
+   * 낙관 이용권으로 이미 뒤집어 놓은 화면 상태까지 원래대로 되돌려야 한다.
+   * 되돌리지 않으면 이용권이 적용된 것처럼 보이고, 티어 랭크 비교 때문에 재구매까지 막힌다.
+   */
+  const discardPendingSubscriptionPass = useCallback(() => {
+    clearPendingSubscriptionOrder();
+    const backup = optimisticPassBackupRef.current;
+    if (!backup) return;
+    optimisticPassBackupRef.current = null;
+    setSubscription(backup);
   }, []);
 
   /* ── 서버에서 주문/이용권 상태 조회 ─────────────────────────────── */
@@ -3411,8 +3465,13 @@ export default function PointsPage() {
   /* ── 이용권 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
     if (isBooting) return;
-    const pendingPass = readPendingSubscriptionPass();
+    // 🔴 낙관 이용권 표시는 **PG 리다이렉트 복귀**에서만 쓴다. 페이지가 통째로 떠났다 돌아온 뒤
+    // confirm 이 끝나기 전까지의 공백을 메우는 장치이기 때문이다. 같은 페이지에서 결제창을 연
+    // 데스크탑 흐름은 confirm 응답으로 실제 상태를 받으므로 낙관 적용이 애초에 필요 없고,
+    // 예전에는 그 흐름에서도 발동해 "취소했는데 이용권이 적용된 것처럼 보이는" 버그가 됐다.
+    const pendingPass = isPortOneSubscriptionRedirectReturn() ? readPendingSubscriptionPass() : null;
     if (pendingPass && pendingPass.tier !== "free") {
+      optimisticPassBackupRef.current = subscriptionRef.current;
       setSubscription((prev) => prev.isActive ? prev : ({
         ...prev,
         tier: pendingPass.tier,
@@ -3609,6 +3668,7 @@ export default function PointsPage() {
       const data = await confirmSubscriptionWithServer(pending.payload);
       pendingSubscriptionConfirmRef.current = null;
       clearPendingSubscriptionOrder();
+      optimisticPassBackupRef.current = null;
       await syncSubscriptionAppliedStage(data.subscription?.tier || pending.payload.tier);
       pushToast("success", data.message || "이용권 결제가 확인되어 이용권이 활성화되었습니다.");
       setShowStarBurst(true);
@@ -3622,7 +3682,7 @@ export default function PointsPage() {
         markSubscriptionPaymentUnknown();
       } else {
         pendingSubscriptionConfirmRef.current = null;
-        clearPendingSubscriptionOrder();
+        discardPendingSubscriptionPass();
         setIsProcessing(false);
         pushToast("error", getErrorMessage(error, "결제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요."));
       }
@@ -3631,6 +3691,7 @@ export default function PointsPage() {
     }
   }, [
     confirmSubscriptionWithServer,
+    discardPendingSubscriptionPass,
     markSubscriptionPaymentUnknown,
     pushToast,
     setProcessingAction,
@@ -3897,7 +3958,7 @@ export default function PointsPage() {
 
     if (!effectiveImpUid || impSuccess === "false") {
       clearPendingOrder();
-      clearPendingSubscriptionOrder();
+      discardPendingSubscriptionPass();
       clearPendingSinglePaymentSession();
 
       const failMessage = mapPaymentErrorMessage(
@@ -3934,7 +3995,7 @@ export default function PointsPage() {
       const merchantUid = merchantUidFromQuery || pendingSub?.merchantUid;
 
       if (!pendingSub || !merchantUid) {
-        clearPendingSubscriptionOrder();
+        discardPendingSubscriptionPass();
         pushToast("error", "이용권 결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
         if (window.location.search) {
           window.history.replaceState({}, "", window.location.pathname);
@@ -3983,6 +4044,7 @@ export default function PointsPage() {
           }
 
           clearPendingSubscriptionOrder();
+          optimisticPassBackupRef.current = null;
           pendingSubscriptionConfirmRef.current = null;
           await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub.tier);
           pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
@@ -3998,6 +4060,7 @@ export default function PointsPage() {
             return;
           }
           pendingSubscriptionConfirmRef.current = null;
+          discardPendingSubscriptionPass();
           reportPaymentFailureToServer({
             merchantUid,
             impUid: effectiveImpUid,
@@ -4045,6 +4108,7 @@ export default function PointsPage() {
   }, [
     confirmPendingSinglePayment,
     confirmSubscriptionWithServer,
+    discardPendingSubscriptionPass,
     isBooting,
     markSubscriptionPaymentUnknown,
     persistSubscriptionCache,
@@ -4231,6 +4295,11 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     const prepareEntry = startSubscriptionPrepare(plan);
+    // SDK 로드·config 조회는 prepare 결과와 아무 의존이 없다. 예전에는 prepare 뒤로 직렬화돼 있어
+    // 결제창 오픈이 두 홉을 기다렸다 — 같은 클릭에서 함께 발사해 한 홉으로 접는다.
+    // prepare 실패로 아래에서 조기 return 될 때 unhandled rejection 이 되지 않도록 catch 를 먼저 건다.
+    const checkoutAssets = Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
+    checkoutAssets.catch(() => {});
 
     setPendingSubscriptionPaymentPlan(null);
     setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "checkout");
@@ -4261,8 +4330,8 @@ export default function PointsPage() {
         return;
       }
 
-      // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.
-      const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
+      // 클릭 시점에 prepare 와 함께 발사해 둔 것을 여기서 회수한다(대개 이미 끝나 있다).
+      const [, paymentConfig] = await checkoutAssets;
       if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
 
       // prepareData 가 재시도로 재대입될 수 있어(let) 타입 내로잉이 유지되지 않는다 — 명시적으로 좁힌다.
@@ -4276,8 +4345,10 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
 
-      // 저장된 번호가 없으면 실제 결제 버튼을 누른 이 시점에만 결제용 번호를 조회한다.
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
+      // prepare 응답이 이미 구매자 번호를 실어 왔으면 그걸 쓴다 — 결제창 직전의 왕복 1회가 통째로 사라진다.
+      // 서버가 못 준 경우(미저장·복호화 실패)에만 조회하고, 그래도 없으면 입력 모달을 띄운다.
+      const customerPhoneNumber = normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")
+        || await ensurePaymentPhoneNumber(apiBase, authUser, null);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -4323,7 +4394,7 @@ export default function PointsPage() {
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
       if (!rsp || rsp.code || !paymentId) {
-        clearPendingSubscriptionOrder();
+        discardPendingSubscriptionPass();
         const message = mapPaymentErrorMessage(
           rsp?.message || rsp?.error_msg || rsp?.errorMsg || "이용권 결제가 취소되었습니다.",
         );
@@ -4381,6 +4452,7 @@ export default function PointsPage() {
         }
 
         clearPendingSubscriptionOrder();
+        optimisticPassBackupRef.current = null;
         pendingSubscriptionConfirmRef.current = null;
         await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
         pushToast("success", confirmData.message || `${copy.planTitles[plan.tier]} ${copy.activePassLabel}`);
@@ -4392,7 +4464,7 @@ export default function PointsPage() {
           return;
         }
         pendingSubscriptionConfirmRef.current = null;
-        clearPendingSubscriptionOrder();
+        discardPendingSubscriptionPass();
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
           impUid: paymentId,
@@ -4404,7 +4476,7 @@ export default function PointsPage() {
       }
     } catch (error: unknown) {
       const message = getErrorMessage(error, "이용권 처리 중 오류가 발생했습니다.");
-      clearPendingSubscriptionOrder();
+      discardPendingSubscriptionPass();
       if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
         pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
         return;
