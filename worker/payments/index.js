@@ -1,0 +1,353 @@
+/**
+ * 결제 컨텍스트의 **유일한 진입점이자 합성 루트**.
+ *
+ * ## if 체인이 아니라 표다
+ *
+ * 구 라우터(worker/index.js:1029)는 수동 if 체인이라 어떤 경로가 무엇을 하는지 알려면 수천 줄을
+ * 따라가야 했다. 여기서는 라우트가 객체 리터럴 하나이고, **표를 읽으면 전체 표면이 보인다.**
+ *
+ * ## 형제 파일은 서로를 부르지 않는다
+ *
+ * catalog·orders·pg·entitlements·moonstone 은 서로를 import 하지 않는다. 확정처럼 여럿을 엮는
+ * 흐름은 **여기서만** 조립된다. 그래서 "PG 검증을 건너뛰는 지름길"이나 "권한만 따로 주는 경로"가
+ * 생길 자리가 구조적으로 없다 — 구 코드에서 확정 경로가 셋으로 갈라졌던 원인이 그 자리였다.
+ *
+ * ## 요청 하나 = 슬롯 하나 = 로그 한 줄
+ *
+ * 모든 Mongo 작업이 withPaymentDb 콜백 하나 안에서 돌고, try/finally 가 성공·실패 무관하게
+ * 정확히 한 줄을 남긴다. mongoOps 가 그 줄에 실리므로 왕복 예산 회귀는 코드 리뷰가 아니라
+ * 로그가 잡는다.
+ */
+import { getRequestMeta, json } from "../lib/http.js";
+import { peekAccessTokenUserId } from "../lib/auth.js";
+import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
+import { createPaymentContext, withPaymentDb } from "./db.js";
+import { logPayment } from "./log.js";
+import { listProducts, resolveProduct } from "./catalog.js";
+import { verifyPgPayment } from "./pg.js";
+import { grantEntitlement, markUserFeatureUnlocked } from "./entitlements.js";
+import { spendMoonstone } from "./moonstone.js";
+import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
+import {
+  assertOrderOwner,
+  createOrder,
+  findOrder,
+  markEntitlementGranted,
+  markOrderFailed,
+  markOrderPaid,
+  toOrderStatus,
+} from "./orders.js";
+
+function requireUser(userId) {
+  if (!userId) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+  return userId;
+}
+
+/** 주문을 클라이언트가 읽는 형태로. 내부 필드(rawPortOne·pricingSnapshot 등)는 내보내지 않는다. */
+function presentOrder(order) {
+  return {
+    orderId: String(order.merchantUid || ""),
+    status: toOrderStatus(order),
+    productId: String(order.productId || ""),
+    featureKey: String(order.featureKey || ""),
+    amountKRW: Number(order.paymentAmount || 0),
+    paidAt: order.paidAt || null,
+    entitlementGranted: Boolean(order.entitlementGrantedAt),
+    createdAt: order.createdAt || null,
+  };
+}
+
+/**
+ * 확정 — **클라이언트 · webhook · 크론이 모두 이 함수를 탄다.** 주체별 분기는 없다.
+ *
+ * 순서가 계약이다: PG 검증 → 주문 PAID → 권한. 마지막 단계가 실패해도 **200 으로 성공을 알린다** —
+ * 카드는 승인됐고 주문도 기록됐으므로 장애가 아니라 부작용이 덜 끝난 성공이고, 크론이 마무리한다.
+ * 구 코드는 이 자리에서 `503 + retryable:false` 를 냈는데, 클라이언트가 행동할 수 없는 모순이었다.
+ */
+async function confirmOrder(env, db, ctx, { orderId, actorUserId = "" }, deps = {}) {
+  const order = await findOrder(db, { orderId });
+  if (!order) throw paymentError("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다.", { orderId });
+  if (actorUserId) assertOrderOwner(order, actorUserId);
+  ctx.productId = String(order.productId || "");
+
+  const status = toOrderStatus(order);
+  if (status === "PAID") {
+    // 재생. PG 를 다시 부르지 않는다 — PortOne 지연이 확정 경로의 지배적 비용이다.
+    return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt) };
+  }
+  if (status !== "PENDING") {
+    throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status });
+  }
+
+  let pg;
+  try {
+    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(order.paymentAmount || 0) }, deps);
+  } catch (error) {
+    const contract = classify(error);
+    // 사실이 어긋난 것(422)은 주문을 실패로 확정한다. 닿지 못한 것(503)은 상태를 건드리지 않는다 —
+    // PG 가 살아나면 그대로 확정될 주문이다.
+    if (contract.status === 422) {
+      await markOrderFailed(db, {
+        orderId, failureCode: contract.code, failureMessage: error.message, failureStage: "pg-verify",
+      });
+    }
+    throw error;
+  }
+
+  const paid = await markOrderPaid(db, { orderId, order, pg });
+  if (!paid) {
+    // CAS 를 졌다 = 다른 주체가 방금 확정했다. 재조회해 그 결과를 그대로 쓴다.
+    const current = await findOrder(db, { orderId });
+    return { order: current || order, replayed: true, granted: Boolean(current?.entitlementGrantedAt) };
+  }
+  ctx.pgTransactionId = pg.pgTransactionId;
+
+  const granted = await grantOrderEntitlement(db, paid);
+  return { order: paid, replayed: false, granted };
+}
+
+/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다. */
+async function grantOrderEntitlement(db, order) {
+  try {
+    const snapshot = order.pricingSnapshot || {};
+    const product = resolveProduct({
+      productId: String(order.productId || ""),
+      featureKey: String(order.featureKey || ""),
+    });
+    await grantEntitlement(db, {
+      userId: String(order.userId || ""),
+      product,
+      orderId: String(order.merchantUid || ""),
+      paymentId: String(order.impUid || ""),
+      profileId: String(snapshot.profileId || ""),
+      contentKey: String(snapshot.contentKey || ""),
+      scope: String(snapshot.scope || ""),
+    });
+    await markUserFeatureUnlocked(db, { userId: String(order.userId || ""), featureKey: String(order.featureKey || "") });
+    await markEntitlementGranted(db, { orderId: String(order.merchantUid || "") });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/* ── 라우트 표 ───────────────────────────────────────────────────────────
+   키는 `METHOD /path` 이고, `:id` 자리는 하나의 세그먼트를 받는다.
+   auth: "required" 면 토큰에서 userId 를 뽑아 넘긴다(**Mongo 읽기 0회**),
+         "none" 이면 신원을 보지 않는다(webhook·카탈로그). */
+const ROUTES = {
+  "GET /features": {
+    auth: "none",
+    // Mongo 를 아예 열지 않는다 — 슬롯 0개.
+    async handle() {
+      return json({ ok: true, products: listProducts() });
+    },
+  },
+
+  "GET /orders/:id": {
+    auth: "required",
+    async handle({ env, ctx, userId, params, withDb }) {
+      const order = await withDb(env, ctx, (db) => findOrder(db, { orderId: params.id }));
+      assertOrderOwner(order, userId);
+      ctx.orderId = params.id;
+      return json({ ok: true, order: presentOrder(order) });
+    },
+  },
+
+  "POST /orders": {
+    auth: "required",
+    async handle({ env, ctx, userId, body, withDb }) {
+      const product = resolveProduct({
+        productId: body.productId, featureKey: body.featureKey, reason: body.reason,
+      });
+      ctx.productId = product.productId;
+      const order = await withDb(env, ctx, (db) => createOrder(db, {
+        userId,
+        product,
+        idempotencyKey: body.idempotencyKey,
+        profileId: body.profileId,
+        contentKey: body.contentKey,
+        scope: body.scope,
+        returnPath: body.returnPath,
+      }));
+      ctx.orderId = String(order.merchantUid || "");
+      return json({ ok: true, order: presentOrder(order), amountKRW: product.priceKRW });
+    },
+  },
+
+  "POST /orders/:id/confirm": {
+    auth: "required",
+    async handle({ env, ctx, userId, params, withDb }) {
+      ctx.orderId = params.id;
+      const result = await withDb(env, ctx, (db) => confirmOrder(env, db, ctx, {
+        orderId: params.id, actorUserId: userId,
+      }));
+      ctx.paymentStatus = "PAID";
+      if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
+      // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
+      return json({
+        ok: true,
+        order: presentOrder(result.order),
+        entitlementStatus: "pending",
+        code: "GRANT_PENDING",
+        pollUrl: `/api/payments/orders/${encodeURIComponent(params.id)}`,
+        message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+      });
+    },
+  },
+
+  "POST /moonstone/spend": {
+    auth: "required",
+    async handle({ env, ctx, userId, body, withDb }) {
+      const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
+      if (product.passExcluded) {
+        throw paymentError("PASS_NOT_APPLICABLE", "이 기능은 월정석으로 결제할 수 없습니다.");
+      }
+      ctx.productId = product.productId;
+      const purchaseId = String(body.idempotencyKey || "").trim();
+      const result = await withDb(env, ctx, async (db) => {
+        const spend = await spendMoonstone(db, { userId, product, purchaseId, profileId: body.profileId });
+        await grantEntitlement(db, {
+          userId, product, orderId: purchaseId, profileId: body.profileId,
+          contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
+        });
+        await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+        return spend;
+      });
+      return json({ ok: true, balance: result.balance, replayed: result.replayed });
+    },
+  },
+
+  "POST /webhook": {
+    auth: "none",
+    // 🔴 본문을 **원문 그대로** 읽어야 한다. JSON 파싱 후 재직렬화하면 서명이 깨진다.
+    rawBody: true,
+    async handle({ env, ctx, rawBody, request, withDb }) {
+      const outcome = await withDb(env, ctx, async (db) => {
+        const accepted = await acceptWebhook(env, db, { rawBody, headers: request.headers });
+        ctx.orderId = accepted.paymentId;
+        // 중복은 조용히 성공이다 — PortOne 에 재전송을 요구할 이유가 없다.
+        if (!accepted.claimed) return { duplicate: true };
+
+        if (accepted.eventType && !/paid/i.test(accepted.eventType)) {
+          // 지금 다루는 것은 결제 완료뿐이다. 나머지는 받았다는 사실만 남긴다.
+          await markEventProcessed(db, { eventId: accepted.eventId });
+          return { ignored: true };
+        }
+
+        try {
+          await confirmOrder(env, db, ctx, { orderId: accepted.paymentId });
+          await markEventProcessed(db, { eventId: accepted.eventId });
+          return { confirmed: true };
+        } catch (error) {
+          /* 실패를 기록하고 **그대로 올린다.** 200 을 주면 PortOne 이 재전송을 멈춰 그 결제가
+             영영 미확정으로 남는다 — PortOne 의 재전송이 우리의 재시도 장치다. */
+          await markEventFailed(db, { eventId: accepted.eventId, reason: error?.message });
+          throw error;
+        }
+      });
+      return json({ ok: true, ...outcome });
+    },
+  },
+};
+
+/** `GET /orders/abc` → 표의 `GET /orders/:id` + { id: "abc" } */
+function matchRoute(method, path) {
+  const direct = ROUTES[`${method} ${path}`];
+  if (direct) return { route: direct, params: {} };
+
+  const segments = path.split("/").filter(Boolean);
+  for (const key of Object.keys(ROUTES)) {
+    const [routeMethod, routePath] = key.split(" ");
+    if (routeMethod !== method) continue;
+    const routeSegments = routePath.split("/").filter(Boolean);
+    if (routeSegments.length !== segments.length) continue;
+    const params = {};
+    const matched = routeSegments.every((segment, index) => {
+      if (segment.startsWith(":")) {
+        params[segment.slice(1)] = decodeURIComponent(segments[index]);
+        return true;
+      }
+      return segment === segments[index];
+    });
+    if (matched) return { route: ROUTES[key], params };
+  }
+  return null;
+}
+
+/**
+ * @param {Request} request
+ * @param {object} env
+ * @param {{ prefix?: string, withDb?: typeof withPaymentDb }} [options]
+ *   prefix — 마운트 지점. Phase 4 는 /api/payments2 로 섀도 마운트한다.
+ *   withDb — 테스트용 주입. 실행기를 갈아끼울 수 있어야 **오류 매핑·로그·응답 계약까지
+ *            전 경로를 Mongo 없이** 확인할 수 있다. 그러지 않으면 여기 테스트는
+ *            "던지지 않았다" 수준에 머물러 사실상 아무것도 검증하지 못한다.
+ */
+export async function handlePaymentsContext(request, env, options = {}) {
+  const withDb = options.withDb || withPaymentDb;
+  const prefix = options.prefix || "/api/payments";
+  const url = new URL(request.url);
+  const path = url.pathname.slice(prefix.length).replace(/\/+$/, "") || "/";
+  const method = request.method.toUpperCase();
+  const meta = getRequestMeta(request);
+  const ctx = createPaymentContext({ requestId: meta.requestId, route: `${method} ${prefix}${path}` });
+
+  const matched = matchRoute(method, path);
+  if (!matched) return json({ ok: false, code: "NOT_FOUND", message: "Not found." }, { status: 404 });
+
+  let status = 200;
+  let errorCode = "";
+  let stage = "";
+  try {
+    const userId = matched.route.auth === "required"
+      ? requireUser(await peekAccessTokenUserId(request, env)) // JWT 만 본다 — Mongo 읽기 0회
+      : "";
+    ctx.userId = userId;
+
+    const rawBody = matched.route.rawBody ? await request.text() : "";
+    let body = {};
+    if (!matched.route.rawBody && method !== "GET") {
+      const text = await request.text();
+      if (text.trim()) {
+        try { body = JSON.parse(text); } catch { throw paymentError("INVALID_REQUEST", "요청 본문이 올바르지 않습니다."); }
+      }
+    }
+
+    const response = await matched.route.handle({
+      request, env, ctx, userId, body, rawBody, params: matched.params, withDb,
+    });
+    status = response.status;
+    return response;
+  } catch (error) {
+    const contract = classify(error);
+    status = contract.status;
+    errorCode = contract.code;
+    stage = contract.stage || "";
+    return json({
+      ok: false,
+      code: contract.code,
+      message: error?.message || "요청을 처리하지 못했습니다.",
+      retryable: contract.retryable,
+      requestId: meta.requestId,
+      ...(Object.keys(contract.meta).length ? { details: contract.meta } : {}),
+    }, { status: contract.status, headers: responseHeadersFor(contract) });
+  } finally {
+    logPayment({
+      requestId: meta.requestId,
+      route: ctx.route,
+      userId: ctx.userId,
+      orderId: ctx.orderId,
+      productId: ctx.productId,
+      paymentStatus: ctx.paymentStatus,
+      pgTransactionId: ctx.pgTransactionId,
+      status,
+      errorCode,
+      stage,
+      durationMs: Date.now() - ctx.startedAt,
+      mongoOps: ctx.mongoOps,
+    });
+  }
+}
+
+export const __paymentsContextTestUtils = { ROUTES, matchRoute, presentOrder, confirmOrder, contractFor };
