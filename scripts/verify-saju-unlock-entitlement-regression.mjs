@@ -642,10 +642,22 @@ assert.ok(billingClientSource.includes("cd:auth-changed"), "billing-client.ts가
 
 assert.ok(fs.existsSync(path.join(root, "app/_lib/use-content-unlock.ts")), "공용 useContentUnlock 훅 파일이 존재한다");
 
+// 예전 계약은 "확정(ready) 상태에서만 미구매 리다이렉트를 판단한다" 였다. 2026-08-10 에
+// 진입 리다이렉트 자체를 걷어내면서(셸의 openLoveSimulation 액션이 이 라우트로 되돌려 두
+// 화면이 무한 왕복했다) 그 단언은 의미를 잃었다. 지금 지켜야 할 것은 더 강한 계약이다 —
+// 진입에서는 아예 판단하지 않고, 결제는 실행 CTA 한 곳에서 공용 게이트로만 돈다.
 const loveSimulationSource = fs.readFileSync(path.join(root, "app/saju/love-simulation/LoveSimulationClient.tsx"), "utf8");
 assert.ok(
-  loveSimulationSource.includes('status === "ready"'),
-  "LoveSimulationClient가 확정(ready) 상태에서만 미구매 리다이렉트를 판단한다",
+  !/window\.location\.replace|useContentUnlock/.test(loveSimulationSource),
+  "LoveSimulationClient가 진입 시 해금을 검사하거나 리다이렉트하지 않는다(무한 왕복 재발 방지)",
 );
+
+const loveSimulationEngineSource = fs.readFileSync(path.join(root, "app/saju/love-simulation/_components/LoveSimulationEngine.tsx"), "utf8");
+for (const marker of ["runPaidAccessGate", "openPaidFeatureGate", "LOVE_SIMULATION_FEATURE_KEY"]) {
+  assert.ok(
+    loveSimulationEngineSource.includes(marker),
+    `러브 코드 결제가 실행 CTA 에서 공용 게이트로 돈다: ${marker}`,
+  );
+}
 
 console.log("[saju-unlock-entitlement-regression] OK");
