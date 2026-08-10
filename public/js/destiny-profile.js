@@ -3465,8 +3465,40 @@
     if (!paymentId || failed) {
       // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
       _dpClearDirectResumeTicket();
+      /* 🔴 실패 이유를 버리지 않는다.
+         PG 는 리다이렉트 URL 에 code(예: FAILURE_TYPE_PG_PROVIDER)와 message 를 실어 보내는데,
+         예전에는 message 만 읽고 code 는 통째로 버렸다. message 가 비어 오는 코드가 많아서
+         사용자에게는 "결제가 완료되지 않았습니다"만 뜨고, 서버에도 콘솔에도 아무 기록이 남지
+         않았다. 그래서 "결제가 안 된다"는 신고가 들어와도 **왜인지 알 방법이 없었다** —
+         서버 500/503 이 하나도 없는데 결제만 실패하는 상태가 정확히 이것이다. */
+      var failCode = String(query.get('code') || query.get('error_code') || '').trim();
       var failMessage = String(query.get('message') || query.get('error_msg') || '').trim();
-      window.alert(failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.');
+      var failOrderId = String(ticket.merchantUid || query.get('paymentId') || query.get('imp_uid') || '').trim();
+      try {
+        console.error('[direct-payment-failed]', JSON.stringify({
+          code: failCode, message: failMessage.slice(0, 200), orderId: failOrderId,
+        }));
+      } catch (_) {}
+      // 서버에도 남긴다(PaymentFailureLog). 실패해도 사용자 안내를 막지 않는다 — 보고는 부수 작업이다.
+      try {
+        if (failCode || failMessage) {
+          _dpPaymentFetchJson('/api/payments/report-failure', {
+            method: 'POST',
+            body: JSON.stringify({
+              stage: 'pg_redirect_return',
+              code: failCode || 'PG_REDIRECT_FAILED',
+              message: failMessage,
+              orderId: failOrderId,
+              merchantUid: failOrderId,
+            }),
+          }).catch(function () {});
+        }
+      } catch (_) {}
+      // 코드가 있으면 함께 보여 준다 — 고객 문의에서 이 한 줄이 원인 특정의 유일한 근거가 된다.
+      window.alert(
+        (failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.')
+        + (failCode ? '\n(' + failCode + ')' : ''),
+      );
       return;
     }
 
