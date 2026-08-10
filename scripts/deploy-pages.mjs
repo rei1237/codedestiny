@@ -1,7 +1,8 @@
 /**
  * Deploy static assets to Cloudflare Pages.
- * For API routes (e.g. /api/tarot/draw) to work, use deploy:cf:worker instead:
- *   npm run deploy:cf:worker
+ *
+ * 이 스크립트는 긴급용 폴백이다(--emergency 필요). 정상 경로는 `npm run deploy:safe` 이며
+ * Pages 와 Worker 를 같은 커밋으로 함께 내보낸다.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -145,6 +146,28 @@ function runBuildFresh() {
   const verified = verifyDistVersionMatchesHead();
   console.log(`[deploy-pages] Commit verification result: ${verified}`);
   return verified;
+}
+
+/*
+ * 🔴 이 경로는 릴리스 경로가 아니다.
+ *
+ * 아래 runDeploy() 는 --commit-hash 를 붙이지 않는다. 그래서 이 경로로 올린 배포는
+ * Cloudflare 대시보드와 API 에서 커밋 메타데이터가 비고, `npx wrangler deployments list` 의
+ * Pages↔Worker 짝 대조가 원천적으로 불가능해진다 — 어느 코드가 떠 있는지 물을 방법이 사라진다.
+ * deploy-safe.mjs 의 Pages 배포는 --commit-hash 와 --commit-message 를 함께 넣는다.
+ *
+ * Cloudflare Pages 빌드 환경 안에서는 어차피 아래에서 배포하지 않고 종료하므로 게이트를 걸지 않는다.
+ */
+const emergencyDeploy = process.argv.includes("--emergency");
+if (!emergencyDeploy && !isCloudflarePagesBuild) {
+  console.error("[deploy-pages] BLOCKED: 수동 Pages 배포는 기본 차단입니다.");
+  console.error("[deploy-pages] 정상 배포 경로는 `npm run deploy:safe` 입니다 (Worker 가 안 바뀌면 Pages 만 나갑니다).");
+  console.error("[deploy-pages] 이 경로는 배포에 커밋을 새기지 않아 `npx wrangler deployments list` 의 Pages↔Worker 짝 대조를 무력화합니다.");
+  console.error("[deploy-pages] deploy:safe 가 동작하지 않는 긴급 상황이면 `npm run deploy:cf:pages -- --emergency` 로 실행하세요.");
+  process.exit(1);
+}
+if (emergencyDeploy && !isCloudflarePagesBuild) {
+  console.warn("[deploy-pages] ⚠ EMERGENCY MODE: 커밋 메타데이터 없이 Pages 를 올립니다. 이후 배포 목록의 Pages 커밋은 비어 보입니다.");
 }
 
 if (!runBuildFresh()) {

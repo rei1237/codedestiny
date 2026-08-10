@@ -10,7 +10,7 @@ import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
 import { readFileSync } from "node:fs";
 import { assertWorkerBaseIsFresh, buildDeployMessage } from "./lib/worker-deploy-base-guard.mjs";
-import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
+import { assertProductionDeployIsCi, resolveProductionDeployPermission } from "./lib/production-deploy-guard.mjs";
 
 function normalizeOriginOnly(rawValue, label) {
   const value = String(rawValue || "").trim();
@@ -114,8 +114,30 @@ if (vedicForceExternal) {
  * 그 머지가 릴리스 워크플로를 깨워 Pages 와 Worker 를 같은 SHA 로 함께 내보낸다.
  *
  * GitHub Actions 자체가 사용 불가할 때의 핫픽스 수단으로만 남긴다 — 그래서 제거가 아니라 게이트다.
+ *
+ * 게이트는 **두 겹**이고 역할이 다르다.
+ *   바깥: assertProductionDeployIsCi — "CI 가 아니면 프로덕션에 못 쓴다"는 경계.
+ *         뚫으려면 CD_BREAK_GLASS=1 과 --break-glass 가 **둘 다** 필요하다.
+ *   안쪽: --emergency — 그 경계를 뚫고 들어온 **로컬 실행에만** 적용되는 확인.
+ *         비상구를 열었다는 것과 지금 이 명령으로 프로덕션을 밀 작정이라는 것은 다른 결정이라
+ *         따로 받는다.
+ * 🔴 안쪽 게이트는 CI 에서 건너뛴다. CI 에도 걸면 릴리스 워크플로가 자기 가드에 막힌다.
  */
 assertProductionDeployIsCi("Worker production deploy (wrangler deploy)");
+
+const runningInCi = resolveProductionDeployPermission({ env: process.env, argv: process.argv }).reason === "ci";
+if (!runningInCi) {
+  if (!process.argv.includes("--emergency")) {
+    console.error("[deploy-worker] BLOCKED: 수동 Worker 배포는 기본 차단입니다.");
+    console.error("[deploy-worker] 정상 배포 경로: feature 브랜치 → PR → CI 통과 → main 머지 → GitHub Actions 자동 배포.");
+    console.error("[deploy-worker] 로컬에서 할 수 있는 것: npm run deploy:check (업로드 없음) · PR 에 `preview` 라벨.");
+    console.error("[deploy-worker] 이 경로에 없는 것: PR·CI 검증, 배포 후 스모크, 실패 시 자동 롤백, Pages 짝 맞춤.");
+    console.error("[deploy-worker] 비상 상황이면: CD_BREAK_GLASS=1 npm run deploy:cf:worker -- --break-glass --emergency");
+    process.exit(1);
+  }
+  console.warn("[deploy-worker] ⚠ EMERGENCY MODE: 검증 없이 워킹트리를 프로덕션 Worker 로 밉니다.");
+  console.warn("[deploy-worker] ⚠ 끝난 뒤 같은 내용을 반드시 PR 로 main 에 반영하세요 — 안 하면 다음 정식 배포가 이 변경을 되돌립니다.");
+}
 
 // 🔴 낡은 베이스로 배포하면 그 사이 머지된 남의 워커 커밋이 조용히 사라진다. 여기서 막는다.
 assertWorkerBaseIsFresh(rootDir, { argv: process.argv });
@@ -127,7 +149,9 @@ if (workerName.trim()) {
 }
 
 // 배포에 커밋을 새겨 `wrangler deployments list` 에서 "지금 뜬 게 어느 코드인지" 보이게 한다.
-const deployMessage = buildDeployMessage(rootDir);
+// 접두사에 공백을 넣지 않는다 — win32 는 shell:true 로 spawn 해서 공백이 인자를 쪼갠다
+// (scripts/lib/worker-deploy-base-guard.mjs 의 buildDeployMessage 주석 참고).
+const deployMessage = "emergency-" + buildDeployMessage(rootDir);
 const deployCommit = String(
   process.env.GITHUB_SHA
   || spawnSync("git", ["rev-parse", "HEAD"], { cwd: rootDir, encoding: "utf8" }).stdout
