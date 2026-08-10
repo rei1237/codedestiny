@@ -5163,9 +5163,22 @@ async function handleBillingSnapshotBalance(request, env) {
   }, "Billing balance loaded.");
 }
 
+/* 개발 환경이라는 **증거가 있을 때만** 연다.
+   🔴 예전 판정은 `if (!isProductionRuntime(env)) return null` 이라, "프로덕션이라는 증거가 없으면
+   허용"이었다. 이 엔드포인트는 이용권·licenses·월정석 999999 를 무조건 기록하므로, 그 기본값은
+   판정이 안 되는 모든 환경에서 무제한 재화 지급구를 열어 둔다는 뜻이다.
+   지금 프로덕션이 막혀 있는 근거는 worker/wrangler.toml 의 `NODE_ENV = "production"` 한 줄뿐인데,
+   그 파일은 대시보드 전용 바인딩이 배포 때 사라진 전례가 있고 NODE_ENV 는 env 계약에도 없어
+   verify:env-parity 가 지켜 주지도 않는다. 한 줄이 사라지는 것으로 열려서는 안 된다.
+   ⚠️ 그래서 로컬에서 이 도구를 쓰려면 아래 표식 중 하나를 **명시적으로** 설정해야 한다. */
+const DEV_PAYMENT_TESTER_ENVS = new Set(["development", "dev", "local", "test", "preview", "staging"]);
+
 function requireDevPaymentTesterAccess(env) {
-  if (!isProductionRuntime(env)) return null;
-  return failure(403, "FORBIDDEN", "Development payment tester is disabled in production.");
+  const marker = String(
+    env?.NODE_ENV || env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "",
+  ).trim().toLowerCase();
+  if (DEV_PAYMENT_TESTER_ENVS.has(marker)) return null;
+  return failure(403, "FORBIDDEN", "Development payment tester is disabled outside an explicit development runtime.");
 }
 
 function buildDevPassPatch(tier, now) {
