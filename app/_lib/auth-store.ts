@@ -1092,7 +1092,20 @@ export async function login(credentials: LoginCredentials) {
 export async function logout(apiBase?: string) {
   clearAuthStateHard();
   publishAuthSync("logout");
-  void logoutWithServer(apiBase);
+  // 🔴 await 를 다시 void 로 되돌리지 말 것. access/refresh 는 HttpOnly 라 **서버 응답의
+  // Set-Cookie(Max-Age=0)로만** 지워진다. 기다리지 않고 화면을 이동하면 그 응답이 뒤늦게 도착해,
+  // 그 사이에 끝난 재로그인의 세션 쿠키까지 지운다 — 로그아웃 정착 대기 상한(auth-client
+  // PERSISTED_LOGOUT_SETTLE_CAP_MS=800ms)이 로그아웃 요청 상한(LOGOUT_TIMEOUT_MS=3500ms)보다
+  // 짧아서, 응답이 800ms 를 넘기면 로그인은 기다리기를 포기하고 진행하기 때문이다.
+  // 증상은 "로그아웃 후 재로그인이 됐다 안 됐다" + 이용권 조회 401(결제한 기능이 안 열림)이었다.
+  // 정적 셸(index.html `_logoutRequest`)은 이미 응답을 기다린 뒤 이동한다 — 두 경로를 맞춘다.
+  // 실패해도 삼킨다: 유일한 호출부(AuthWidget.handleLogout)가 이 뒤에 화면을 이동시키므로,
+  // 예외를 올려보내면 사용자가 로그아웃 화면에 갇힌다.
+  try {
+    await logoutWithServer(apiBase);
+  } catch (e) {
+    void e;
+  }
 }
 
 export function clearAuthError() {
