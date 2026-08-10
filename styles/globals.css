@@ -13,16 +13,35 @@
 
 :root,
 .font-noto-sans-kr-offline {
-	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-	--font-display: "CodeDestinyDisplay", var(--font-body);
-	--font-premium: "CodeDestinyPremium", var(--font-display);
-	--font-playful: "CodeDestinyPlayful", var(--font-display);
-	--font-decorative: "CodeDestinyDecorative", var(--font-display);
+	--font-body: "CodeDestinyHan", "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	/* CodeDestinyHan 을 각 스택 맨 앞에 둔다 — unicode-range 로 한자에만 걸리므로 한글·라틴은
+	   여전히 브랜드 서체가 쓰이고, 한자만 OS 한자 폰트로 확정된다. 뒤에 두면 Mulmaru·Jamsil 이
+	   가진 불완전한 한자 글리프가 먼저 이겨서 화면마다 결과가 달라진다. */
+	--font-display: "CodeDestinyHan", "CodeDestinyDisplay", var(--font-body);
+	--font-premium: "CodeDestinyHan", "CodeDestinyPremium", var(--font-display);
+	--font-playful: "CodeDestinyHan", "CodeDestinyPlayful", var(--font-display);
+	--font-decorative: "CodeDestinyHan", "CodeDestinyDecorative", var(--font-display);
 	/* Latin 을 앞에 둔다: Cinzel 의 unicode-range 에 한글이 없어 한글은 자동으로 KR 로 내려가고,
 	   영문 킥커(The Crossroad 등)는 의도한 Cinzel 로 렌더된다. 순서를 뒤집으면 KR 청크 중
 	   ASCII 를 포함한 것이 먼저 걸려 영문까지 명조로 렌더된다. */
-	--font-serif: "CodeDestinySerifLatin", "CodeDestinySerifKR", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif;
+	--font-serif: "CodeDestinySerifLatin", "CodeDestinySerifKR", "CodeDestinyHan", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif;
 	--font-noto-sans-kr: var(--font-body);
+}
+
+/* 한자 전용 폴백. Pretendard(=CodeDestinyBody)·Mulmaru(display)·Jamsil(premium)·Nanum Myeongjo(serif)
+   에는 한자 글리프가 없거나 불완전해, 작명첩의 한자 이름·자미두수의 命宮/紫微斗數 같은 병기가
+   두부(□)로 뜨거나 폰트마다 제각각으로 렌더됐다. unicode-range 로 한자 블록에만 걸리므로
+   한글·라틴 렌더링은 그대로다. OS 내장 폰트만 쓰므로 CSP(font-src)·R2 업로드가 필요 없고,
+   설치된 폰트가 하나도 없으면 이 패밀리만 조용히 실패해 뒤 폴백으로 넘어간다. */
+@font-face {
+	font-family: "CodeDestinyHan";
+	src: local("Malgun Gothic"), local("Apple SD Gothic Neo"), local("Noto Sans CJK KR"), local("Noto Sans KR"),
+		local("Source Han Sans KR"), local("PingFang SC"), local("Hiragino Sans GB"), local("Microsoft YaHei"),
+		local("Noto Sans SC");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+2E80-2FDF, U+3005-3007, U+3021-3029, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF;
 }
 
 @font-face {
