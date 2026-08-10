@@ -84,6 +84,10 @@ jest.unstable_mockModule("../../worker/lib/password.js", () => ({
 const ENV = {
   JWT_ACCESS_SECRET: "test-access-secret",
   JWT_REFRESH_SECRET: "test-refresh-secret",
+  // 가입은 휴대폰 번호를 암호화해 저장한다(worker/lib/pii-crypto.js). 키가 없으면 평문으로
+  // 폴백하지 않고 503 phone_encryption_unavailable 로 막히므로, 여기 없으면 아래 register
+  // 테스트가 201 대신 503 을 받는다. 값은 32바이트면 무엇이든 되고 테스트 밖으로 나가지 않는다.
+  PII_ENC_KEY: Buffer.alloc(32, 7).toString("base64"),
 };
 
 const APP_ORIGIN = "https://localhost";
