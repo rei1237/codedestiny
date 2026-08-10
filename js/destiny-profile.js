@@ -2757,6 +2757,17 @@
     if (!api || typeof api.text !== 'function') return _dpInterpolateText(fallback, vars);
     try { return api.text(key, fallback, vars); } catch (_checkoutTextError) { return _dpInterpolateText(fallback, vars); }
   }
+  // 추천 선택지 판정 위임. 모듈이 없으면 종전 동작(등급 미상이면 이용권이 첫 카드)으로 물러난다.
+  function _dpResolveCheckoutRecommendation(input) {
+    var api = _dpCheckoutEntry();
+    if (api && typeof api.resolveCheckoutRecommendation === 'function') {
+      try { return api.resolveCheckoutRecommendation(input || {}); } catch (_dpRecommendError) { /* 폴백으로 흡수 */ }
+    }
+    var opts = input || {};
+    var fallback = opts.hasActivePassTier === true ? 'direct' : 'pass';
+    var rest = ['direct', 'monthly', 'pass'].filter(function(option) { return option !== fallback; });
+    return { recommended: fallback, order: [fallback].concat(rest), monthlyCovers: false };
+  }
   function _dpTrackCheckoutEvent(name, payload) {
     var api = _dpCheckoutEntry();
     if (!api || typeof api.trackCheckoutEvent !== 'function') return;
@@ -10121,66 +10132,81 @@
     var style = document.createElement('style');
     style.id = 'cdDirectPaymentStyles';
     style.textContent = [
-      ".cd-direct-payment-modal{position:fixed;inset:0;z-index:2147483004;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:radial-gradient(circle at 50% 2%,rgba(250,230,160,.2),transparent 30%),radial-gradient(circle at 16% 18%,rgba(147,197,253,.14),transparent 28%),radial-gradient(circle at 88% 74%,rgba(196,181,253,.16),transparent 30%),linear-gradient(145deg,rgba(7,11,34,.86),rgba(13,18,52,.88) 48%,rgba(21,16,42,.9));backdrop-filter:blur(16px) saturate(130%);overflow:auto}",
-      ".cd-direct-payment-modal.is-open{display:flex}",
-      ".cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid rgba(255,242,184,.34);border-radius:24px;background:radial-gradient(circle at 50% -8%,rgba(250,230,160,.16),transparent 34%),radial-gradient(circle at 18% 20%,rgba(147,197,253,.1),transparent 32%),linear-gradient(155deg,rgba(7,12,34,.98),rgba(14,22,56,.985) 48%,rgba(33,24,64,.97));color:#f8fafc;box-shadow:0 30px 80px rgba(0,0,0,.56),0 0 46px rgba(147,197,253,.14),0 0 34px rgba(250,230,160,.1),inset 0 1px 0 rgba(255,255,255,.16);padding:18px 20px 20px;position:relative;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}",
-      ".cd-direct-payment-dialog::before{content:\"\";position:absolute;right:-38px;top:-50px;width:166px;height:166px;border-radius:999px;background:radial-gradient(circle at 64% 35%,rgba(8,12,32,.96) 0 33%,transparent 34%),radial-gradient(circle at 38% 32%,rgba(255,242,184,.66) 0 18%,rgba(247,215,122,.28) 19% 38%,rgba(219,234,254,.09) 39% 66%,transparent 68%);filter:blur(.3px);opacity:.7;box-shadow:0 0 42px rgba(250,230,160,.16),0 0 70px rgba(147,197,253,.08);pointer-events:none}",
-      ".cd-direct-payment-dialog::after{content:\"\";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.8) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.72) 0 1px,transparent 2px),radial-gradient(circle at 20% 58%,rgba(221,214,254,.58) 0 1px,transparent 2px),radial-gradient(circle at 88% 70%,rgba(254,243,199,.62) 0 1px,transparent 2px),radial-gradient(circle at 44% 3%,rgba(255,242,184,.16),transparent 24%);pointer-events:none;opacity:.78}",
-      ".cd-direct-payment-moon-header{position:relative;z-index:2;width:112px;height:96px;margin:0 auto 8px;pointer-events:none;animation:cdDirectPaymentMoonFloat 6.8s ease-in-out infinite}",
-      ".cd-direct-payment-moon-aura,.cd-direct-payment-moon-glass,.cd-direct-payment-moon-crescent,.cd-direct-payment-moon-stars,.cd-direct-payment-moon-reflect{position:absolute;pointer-events:none}",
-      ".cd-direct-payment-moon-aura{border-radius:999px;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 24px rgba(147,197,253,.1)}",
-      ".cd-direct-payment-moon-aura--outer{width:94px;height:94px;background:radial-gradient(circle,rgba(219,234,254,.05),rgba(196,181,253,.06) 48%,transparent 70%)}",
-      ".cd-direct-payment-moon-aura--inner{width:72px;height:72px;border-color:rgba(255,242,184,.24);background:radial-gradient(circle,rgba(250,230,160,.08),transparent 64%);box-shadow:0 0 30px rgba(250,230,160,.14)}",
-      ".cd-direct-payment-moon-glass{left:16px;top:8px;width:80px;height:80px;border-radius:999px;background:radial-gradient(circle at 35% 26%,rgba(255,255,255,.18),transparent 24%),linear-gradient(145deg,rgba(219,234,254,.09),rgba(196,181,253,.04));border:1px solid rgba(219,234,254,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(3px)}",
-      ".cd-direct-payment-moon-crescent{left:32px;top:22px;width:50px;height:50px;border-radius:999px;background:radial-gradient(circle at 32% 28%,#fff7d6 0 20%,#fff2b8 21% 42%,#f7d77a 58%,#dbeafe 100%);box-shadow:0 0 22px rgba(250,230,160,.32),0 0 40px rgba(147,197,253,.13),inset -7px -5px 12px rgba(196,181,253,.18)}",
-      ".cd-direct-payment-moon-crescent::before{content:\"\";position:absolute;left:19px;top:3px;width:48px;height:48px;border-radius:999px;background:linear-gradient(145deg,rgba(7,11,34,.96),rgba(24,21,56,.92));box-shadow:-8px 3px 14px rgba(7,11,34,.22),inset 7px 0 16px rgba(147,197,253,.06)}",
-      ".cd-direct-payment-moon-crescent::after{content:\"\";position:absolute;left:10px;top:11px;width:4px;height:4px;border-radius:999px;background:rgba(255,255,255,.78);box-shadow:14px 25px 0 rgba(255,242,184,.54),22px 7px 0 rgba(219,234,254,.4);opacity:.72}",
-      ".cd-direct-payment-moon-stars{left:22px;top:20px;width:3px;height:3px;border-radius:999px;background:rgba(219,234,254,.92);box-shadow:52px -6px 0 rgba(255,242,184,.78),70px 23px 0 rgba(196,181,253,.66),8px 46px 0 rgba(255,255,255,.54),58px 54px 0 rgba(186,230,253,.55)}",
-      ".cd-direct-payment-moon-reflect{left:27px;right:27px;bottom:3px;height:12px;border-radius:999px;background:radial-gradient(ellipse,rgba(250,230,160,.18),rgba(147,197,253,.08) 48%,transparent 72%);filter:blur(3px)}",
-      "@keyframes cdDirectPaymentMoonFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}",
-      ".cd-direct-payment-title{position:relative;z-index:1;margin:0 0 6px;font-size:22px;font-weight:950;letter-spacing:0;color:#fff7db;text-shadow:0 0 22px rgba(245,219,154,.24)}",
-      ".cd-direct-payment-sub{position:relative;z-index:1;margin:0 0 12px;color:#dbeafe;font-size:13px;line-height:1.55}",
-      ".cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:10px;position:relative;z-index:1}",
-      ".cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:13px 14px;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 10px 26px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease}",
-      ".cd-direct-payment-option::before{content:\"\";position:absolute;inset:0;background:radial-gradient(circle at 92% 16%,rgba(255,242,184,.1),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.06),transparent 42%);pointer-events:none}",
-      ".cd-direct-payment-option:hover{border-color:rgba(255,242,184,.64);transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 16px 34px rgba(2,6,23,.34),0 0 24px rgba(250,230,160,.12)}",
-      ".cd-direct-payment-option:focus{outline:0}",
-      ".cd-direct-payment-option:focus-visible{outline:2px solid rgba(255,242,184,.84);outline-offset:3px;border-color:rgba(255,242,184,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 5px rgba(250,230,160,.1),0 0 24px rgba(147,197,253,.14)}",
-      ".cd-direct-payment-option[data-mode=\"pass\"]{border-color:rgba(255,242,184,.62);background:linear-gradient(145deg,rgba(54,43,96,.84),rgba(15,34,72,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 34px rgba(23,13,58,.3),0 0 24px rgba(250,230,160,.12)}",
-      ".cd-direct-payment-option[data-mode=\"pass-store\"]{border-color:rgba(255,242,184,.66);background:linear-gradient(145deg,rgba(46,42,30,.84),rgba(28,32,66,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 34px rgba(23,13,58,.28),0 0 24px rgba(250,230,160,.12)}",
-      ".cd-direct-payment-option[data-mode=\"direct\"]{border-color:rgba(247,215,122,.42);background:linear-gradient(145deg,rgba(45,37,30,.82),rgba(31,27,43,.82))}",
-      ".cd-direct-payment-option[data-mode=\"monthly\"]{border-color:rgba(147,197,253,.42);background:linear-gradient(145deg,rgba(12,40,67,.82),rgba(22,27,58,.82))}",
-      ".cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;line-height:1.28;color:#ffffff}",
-      ".cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#e5ecff}",
-      ".cd-direct-payment-option br{display:none}",
-      ".cd-direct-payment-option .cd-direct-payment-cardhead{position:relative;display:flex;align-items:center;gap:8px;margin:0 0 9px}",
-      ".cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,242,184,.28);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);font-size:11px;font-weight:900;color:#fff7db;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}",
-      ".cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:12px;line-height:1;filter:drop-shadow(0 0 6px rgba(250,230,160,.32))}",
-      ".cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#f6be6a);color:#3a2606;font-size:10.5px;font-weight:900;letter-spacing:.02em;box-shadow:0 4px 12px rgba(246,190,106,.34)}",
-      ".cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#ffe9a8;font-size:16.5px;font-weight:900;letter-spacing:.01em;text-shadow:0 0 14px rgba(250,220,150,.3)}",
-      ".cd-direct-payment-option .cd-direct-payment-moonbal-current{display:block;margin-top:4px;color:rgba(191,219,254,.94);font-weight:800;font-size:12px}",
-      ".cd-direct-payment-option--recommended{border-color:rgba(255,224,130,.74)!important;background:linear-gradient(145deg,rgba(255,247,219,.16),rgba(250,230,160,.06))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 16px 34px rgba(2,6,23,.3),0 0 26px rgba(250,220,150,.18)!important}",
-      ".cd-direct-payment-option--recommended:hover{border-color:rgba(255,232,150,.9)!important}",
-      ".cd-direct-payment-option[disabled]{opacity:.45;cursor:not-allowed}",
-      ".cd-direct-payment-option.is-disabled{cursor:not-allowed;opacity:.62;border-color:rgba(148,163,184,.3)!important;background:linear-gradient(145deg,rgba(30,37,54,.74),rgba(22,27,44,.74))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}",
-      ".cd-direct-payment-option.is-disabled:hover{transform:none;border-color:rgba(148,163,184,.3)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}",
-      ".cd-direct-payment-option.is-disabled strong .cd-direct-payment-amount{color:rgba(226,232,240,.64);text-shadow:none}",
-      ".cd-direct-payment-option.is-loading{pointer-events:none;opacity:.72}",
-      ".cd-direct-payment-balance-check{position:relative;z-index:1;margin:10px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(147,197,253,.24);background:linear-gradient(135deg,rgba(8,47,73,.42),rgba(30,27,75,.34));color:#dbeafe;font-size:12.5px;line-height:1.45;font-weight:800}",
-      ".cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:space-between;gap:10px}",
-      ".cd-direct-payment-balance-check__text{min-width:0}",
-      ".cd-direct-payment-refresh{flex:0 0 auto;border:1px solid rgba(255,242,184,.38);border-radius:999px;background:rgba(255,255,255,.1);padding:7px 10px;color:#fff7db;font-size:12px;font-weight:900;cursor:pointer}",
-      ".cd-direct-payment-refresh:disabled{cursor:wait;opacity:.62}",
-      ".cd-direct-payment-balance-check[data-state=\"fresh\"]{border-color:rgba(110,231,183,.34);color:#d1fae5;background:linear-gradient(135deg,rgba(6,78,59,.34),rgba(30,41,59,.32))}",
-      ".cd-direct-payment-balance-check[data-state=\"error\"]{border-color:rgba(248,113,113,.36);color:#fee2e2;background:linear-gradient(135deg,rgba(127,29,29,.34),rgba(30,41,59,.34))}",
-      ".cd-direct-payment-status{min-height:16px;margin:9px 0 0;color:#f3dd9a;font-size:12px;line-height:1.4;position:relative;z-index:1}",
-      ".cd-direct-payment-note{position:relative;z-index:1;margin:0 0 10px;padding:11px 13px;border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.76),rgba(20,28,66,.6));border:1px solid rgba(219,234,254,.22);color:#dbeafe;font-size:12.5px;line-height:1.45;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(147,197,253,.06)}",
-      ".cd-direct-payment-note strong{display:block;margin-bottom:3px;color:#ffffff;font-size:15px;line-height:1.28}",
-      ".cd-direct-payment-legal{position:relative;z-index:1;margin:8px 0 0;padding:0;color:rgba(219,234,254,.68);font-size:11px;line-height:1.42}",
-      ".cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}",
-      ".cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}",
-      "@media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option .cd-direct-payment-cardhead{margin-bottom:8px}.cd-direct-payment-cardhead .cd-direct-payment-badge{min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-option strong .cd-direct-payment-amount{font-size:15.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}",
-      "@media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}}"
+      '.cd-direct-payment-modal{position:fixed;inset:0;z-index:2147483004;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:radial-gradient(circle at 50% 2%,rgba(250,230,160,.2),transparent 30%),radial-gradient(circle at 16% 18%,rgba(147,197,253,.14),transparent 28%),radial-gradient(circle at 88% 74%,rgba(196,181,253,.16),transparent 30%),linear-gradient(145deg,rgba(7,11,34,.86),rgba(13,18,52,.88) 48%,rgba(21,16,42,.9));backdrop-filter:blur(16px) saturate(130%);overflow:auto}',
+      '.cd-direct-payment-modal.is-open{display:flex}',
+      '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid rgba(255,242,184,.34);border-radius:24px;background:radial-gradient(circle at 50% -8%,rgba(250,230,160,.16),transparent 34%),radial-gradient(circle at 18% 20%,rgba(147,197,253,.1),transparent 32%),linear-gradient(155deg,rgba(7,12,34,.98),rgba(14,22,56,.985) 48%,rgba(33,24,64,.97));color:#f8fafc;box-shadow:0 30px 80px rgba(0,0,0,.56),0 0 46px rgba(147,197,253,.14),0 0 34px rgba(250,230,160,.1),inset 0 1px 0 rgba(255,255,255,.16);padding:18px 20px 20px;position:relative;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}',
+      '.cd-direct-payment-dialog::before{content:"";position:absolute;right:-38px;top:-50px;width:166px;height:166px;border-radius:999px;background:radial-gradient(circle at 64% 35%,rgba(8,12,32,.96) 0 33%,transparent 34%),radial-gradient(circle at 38% 32%,rgba(255,242,184,.66) 0 18%,rgba(247,215,122,.28) 19% 38%,rgba(219,234,254,.09) 39% 66%,transparent 68%);filter:blur(.3px);opacity:.7;box-shadow:0 0 42px rgba(250,230,160,.16),0 0 70px rgba(147,197,253,.08);pointer-events:none}',
+      '.cd-direct-payment-dialog::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.8) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.72) 0 1px,transparent 2px),radial-gradient(circle at 20% 58%,rgba(221,214,254,.58) 0 1px,transparent 2px),radial-gradient(circle at 88% 70%,rgba(254,243,199,.62) 0 1px,transparent 2px),radial-gradient(circle at 44% 3%,rgba(255,242,184,.16),transparent 24%);pointer-events:none;opacity:.78}',
+      '.cd-direct-payment-moon-header{position:relative;z-index:2;width:112px;height:96px;margin:0 auto 8px;pointer-events:none;animation:cdDirectPaymentMoonFloat 6.8s ease-in-out infinite}',
+      '.cd-direct-payment-moon-aura,.cd-direct-payment-moon-glass,.cd-direct-payment-moon-crescent,.cd-direct-payment-moon-stars,.cd-direct-payment-moon-reflect{position:absolute;pointer-events:none}',
+      '.cd-direct-payment-moon-aura{border-radius:999px;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 24px rgba(147,197,253,.1)}',
+      '.cd-direct-payment-moon-aura--outer{width:94px;height:94px;background:radial-gradient(circle,rgba(219,234,254,.05),rgba(196,181,253,.06) 48%,transparent 70%)}',
+      '.cd-direct-payment-moon-aura--inner{width:72px;height:72px;border-color:rgba(255,242,184,.24);background:radial-gradient(circle,rgba(250,230,160,.08),transparent 64%);box-shadow:0 0 30px rgba(250,230,160,.14)}',
+      '.cd-direct-payment-moon-glass{left:16px;top:8px;width:80px;height:80px;border-radius:999px;background:radial-gradient(circle at 35% 26%,rgba(255,255,255,.18),transparent 24%),linear-gradient(145deg,rgba(219,234,254,.09),rgba(196,181,253,.04));border:1px solid rgba(219,234,254,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(3px)}',
+      '.cd-direct-payment-moon-crescent{left:32px;top:22px;width:50px;height:50px;border-radius:999px;background:radial-gradient(circle at 32% 28%,#fff7d6 0 20%,#fff2b8 21% 42%,#f7d77a 58%,#dbeafe 100%);box-shadow:0 0 22px rgba(250,230,160,.32),0 0 40px rgba(147,197,253,.13),inset -7px -5px 12px rgba(196,181,253,.18)}',
+      '.cd-direct-payment-moon-crescent::before{content:"";position:absolute;left:19px;top:3px;width:48px;height:48px;border-radius:999px;background:linear-gradient(145deg,rgba(7,11,34,.96),rgba(24,21,56,.92));box-shadow:-8px 3px 14px rgba(7,11,34,.22),inset 7px 0 16px rgba(147,197,253,.06)}',
+      '.cd-direct-payment-moon-crescent::after{content:"";position:absolute;left:10px;top:11px;width:4px;height:4px;border-radius:999px;background:rgba(255,255,255,.78);box-shadow:14px 25px 0 rgba(255,242,184,.54),22px 7px 0 rgba(219,234,254,.4);opacity:.72}',
+      '.cd-direct-payment-moon-stars{left:22px;top:20px;width:3px;height:3px;border-radius:999px;background:rgba(219,234,254,.92);box-shadow:52px -6px 0 rgba(255,242,184,.78),70px 23px 0 rgba(196,181,253,.66),8px 46px 0 rgba(255,255,255,.54),58px 54px 0 rgba(186,230,253,.55)}',
+      '.cd-direct-payment-moon-reflect{left:27px;right:27px;bottom:3px;height:12px;border-radius:999px;background:radial-gradient(ellipse,rgba(250,230,160,.18),rgba(147,197,253,.08) 48%,transparent 72%);filter:blur(3px)}',
+      '@keyframes cdDirectPaymentMoonFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}',
+      '.cd-direct-payment-title{position:relative;z-index:1;margin:0 0 6px;font-size:22px;font-weight:950;letter-spacing:0;color:#fff7db;text-shadow:0 0 22px rgba(245,219,154,.24)}',
+      '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 0 12px;color:#dbeafe;font-size:13px;line-height:1.55}',
+      '.cd-direct-payment-guide{position:relative;z-index:2;display:flex;align-items:center;gap:10px;margin:0 0 12px}',
+      '.cd-direct-payment-guide__pig{flex:0 0 auto;width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(250,220,150,.26))}',
+      '.cd-direct-payment-guide .cd-direct-payment-sub{margin:0;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,242,184,.26);background:linear-gradient(135deg,rgba(255,247,219,.12),rgba(147,197,253,.06));color:#f2f6ff;font-size:13px;line-height:1.5}',
+      '.cd-direct-payment-guide .cd-direct-payment-sub::before{content:"";position:absolute;left:-6px;top:21px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid rgba(255,242,184,.26);border-bottom:1px solid rgba(255,242,184,.26);background:linear-gradient(135deg,rgba(255,247,219,.14),rgba(147,197,253,.07))}',
+      '.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:10px;position:relative;z-index:1}',
+      '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:13px 14px;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 10px 26px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease}',
+      '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 16%,rgba(255,242,184,.1),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.06),transparent 42%);pointer-events:none}',
+      '.cd-direct-payment-option:hover{border-color:rgba(255,242,184,.64);transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 16px 34px rgba(2,6,23,.34),0 0 24px rgba(250,230,160,.12)}',
+      '.cd-direct-payment-option:focus{outline:0}',
+      '.cd-direct-payment-option:focus-visible{outline:2px solid rgba(255,242,184,.84);outline-offset:3px;border-color:rgba(255,242,184,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 5px rgba(250,230,160,.1),0 0 24px rgba(147,197,253,.14)}',
+      '.cd-direct-payment-option[data-mode="pass"]{border-color:rgba(255,242,184,.62);background:linear-gradient(145deg,rgba(54,43,96,.84),rgba(15,34,72,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 34px rgba(23,13,58,.3),0 0 24px rgba(250,230,160,.12)}',
+      '.cd-direct-payment-option[data-mode="pass-store"]{border-color:rgba(255,242,184,.66);background:linear-gradient(145deg,rgba(46,42,30,.84),rgba(28,32,66,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 34px rgba(23,13,58,.28),0 0 24px rgba(250,230,160,.12)}',
+      '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(247,215,122,.42);background:linear-gradient(145deg,rgba(45,37,30,.82),rgba(31,27,43,.82))}',
+      '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(147,197,253,.42);background:linear-gradient(145deg,rgba(12,40,67,.82),rgba(22,27,58,.82))}',
+      '.cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;line-height:1.28;color:#ffffff}',
+      '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#e5ecff}',
+      '.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#e5ecff}',
+      '.cd-direct-payment-option br{display:none}',
+      '.cd-direct-payment-option .cd-direct-payment-cardhead{position:relative;display:flex;align-items:center;gap:8px;margin:0 0 9px}',
+      '.cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,242,184,.28);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);font-size:11px;font-weight:900;color:#fff7db;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}',
+      '.cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:12px;line-height:1;filter:drop-shadow(0 0 6px rgba(250,230,160,.32))}',
+      '.cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#f6be6a);color:#3a2606;font-size:10.5px;font-weight:900;letter-spacing:.02em;box-shadow:0 4px 12px rgba(246,190,106,.34)}',
+      '.cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#ffe9a8;font-size:16.5px;font-weight:900;letter-spacing:.01em;text-shadow:0 0 14px rgba(250,220,150,.3)}',
+      '.cd-direct-payment-option .cd-direct-payment-moonbal-current{display:block;margin-top:4px;color:rgba(191,219,254,.94);font-weight:800;font-size:12px}',
+      '.cd-direct-payment-option--recommended{border-color:rgba(255,224,130,.74)!important;background:linear-gradient(145deg,rgba(255,247,219,.16),rgba(250,230,160,.06))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 16px 34px rgba(2,6,23,.3),0 0 26px rgba(250,220,150,.18)!important}',
+      '.cd-direct-payment-option--recommended:hover{border-color:rgba(255,232,150,.9)!important}',
+      '.cd-direct-payment-option--recommended{padding:16px 15px}',
+      '.cd-direct-payment-option--recommended strong{font-size:17px;margin-bottom:5px}',
+      '.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:19px}',
+      '.cd-direct-payment-option--recommended .cd-direct-payment-desc{font-size:13px;color:#f4f7ff}',
+      '.cd-direct-payment-option--secondary{padding:11px 12px}',
+      '.cd-direct-payment-option--secondary .cd-direct-payment-cardhead{margin-bottom:6px}',
+      '.cd-direct-payment-option--secondary strong{font-size:13.5px;margin-bottom:2px}',
+      '.cd-direct-payment-option--secondary strong .cd-direct-payment-amount{font-size:14.5px}',
+      '.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11.5px;color:rgba(219,234,254,.82);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}',
+      '.cd-direct-payment-option[disabled]{opacity:.45;cursor:not-allowed}',
+      '.cd-direct-payment-option.is-disabled{cursor:not-allowed;opacity:.62;border-color:rgba(148,163,184,.3)!important;background:linear-gradient(145deg,rgba(30,37,54,.74),rgba(22,27,44,.74))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}',
+      '.cd-direct-payment-option.is-disabled:hover{transform:none;border-color:rgba(148,163,184,.3)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}',
+      '.cd-direct-payment-option.is-disabled strong .cd-direct-payment-amount{color:rgba(226,232,240,.64);text-shadow:none}',
+      '.cd-direct-payment-option.is-loading{pointer-events:none;opacity:.72}',
+      '.cd-direct-payment-balance-check{position:relative;z-index:1;margin:10px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(147,197,253,.24);background:linear-gradient(135deg,rgba(8,47,73,.42),rgba(30,27,75,.34));color:#dbeafe;font-size:12.5px;line-height:1.45;font-weight:800}',
+      '.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:space-between;gap:10px}',
+      '.cd-direct-payment-balance-check__text{min-width:0}',
+      '.cd-direct-payment-refresh{flex:0 0 auto;border:1px solid rgba(255,242,184,.38);border-radius:999px;background:rgba(255,255,255,.1);padding:7px 10px;color:#fff7db;font-size:12px;font-weight:900;cursor:pointer}',
+      '.cd-direct-payment-refresh:disabled{cursor:wait;opacity:.62}',
+      '.cd-direct-payment-balance-check[data-state="fresh"]{border-color:rgba(110,231,183,.34);color:#d1fae5;background:linear-gradient(135deg,rgba(6,78,59,.34),rgba(30,41,59,.32))}',
+      '.cd-direct-payment-balance-check[data-state="error"]{border-color:rgba(248,113,113,.36);color:#fee2e2;background:linear-gradient(135deg,rgba(127,29,29,.34),rgba(30,41,59,.34))}',
+      '.cd-direct-payment-status{min-height:16px;margin:9px 0 0;color:#f3dd9a;font-size:12px;line-height:1.4;position:relative;z-index:1}',
+      '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 10px;padding:11px 13px;border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.76),rgba(20,28,66,.6));border:1px solid rgba(219,234,254,.22);color:#dbeafe;font-size:12.5px;line-height:1.45;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(147,197,253,.06)}',
+      '.cd-direct-payment-note strong{display:block;margin-bottom:3px;color:#ffffff;font-size:15px;line-height:1.28}',
+      '.cd-direct-payment-note span{display:block}',
+      '.cd-direct-payment-legal{position:relative;z-index:1;margin:8px 0 0;padding:0;color:rgba(219,234,254,.68);font-size:11px;line-height:1.42}',
+      '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}',
+      '.cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}',
+      '@media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-guide{gap:8px;margin-bottom:9px}.cd-direct-payment-guide__pig{width:50px;height:50px}.cd-direct-payment-guide .cd-direct-payment-sub{padding:8px 10px;font-size:12px;line-height:1.45}.cd-direct-payment-guide .cd-direct-payment-sub::before{top:17px}.cd-direct-payment-option--recommended{padding:13px 12px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-option--recommended .cd-direct-payment-desc{font-size:12px}.cd-direct-payment-option--secondary{padding:9px 11px}.cd-direct-payment-option--secondary .cd-direct-payment-cardhead{margin-bottom:5px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-option--secondary strong .cd-direct-payment-amount{font-size:14px}.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option .cd-direct-payment-cardhead{margin-bottom:8px}.cd-direct-payment-cardhead .cd-direct-payment-badge{min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-option strong .cd-direct-payment-amount{font-size:15.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}',
+      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}}'
     ].join('\n');
     document.head.appendChild(style);
   }
@@ -10202,40 +10228,57 @@
     var tierName = String((coverage && (coverage.tier || coverage.passTier)) || '').trim();
     // 무료/미보유 등급을 등급명으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
     var hasActivePassTier = !!(tierName && tierName.toLowerCase() !== 'free');
-    // 이용권 카드는 결제창의 첫 선택지이자 이용권 검사 지점이라 항상 맨 위 + '추천'이다
-    // (단건/월정석 동등 노출은 그대로 유지 — 세 카드가 모두 보인다).
-    var passStoreFirst = !hasActivePassTier;
+    // 어느 카드를 '추천'으로 올릴지는 셸·React 와 공유하는 순수 함수 하나가 정한다.
+    // 🔴 서버를 부르지 않는다. 여기서는 잔량을 아직 모르므로(마운트 후 조회) 월정석 추천은 성립하지 않고,
+    // 사실상 종전과 같이 '등급 미상이면 이용권이 첫 카드'가 된다 — 무회귀다.
+    var checkoutRecommendation = _dpResolveCheckoutRecommendation({
+      allowPass: true,
+      allowDirect: true,
+      allowMonthly: true,
+      hasActivePassTier: hasActivePassTier,
+      monthlyBalanceFresh: false,
+      monthlyBalance: 0,
+      requiredMonthlyCredits: monthlyStones
+    });
+    var recommendedOption = checkoutRecommendation.recommended;
+    var passStoreFirst = recommendedOption === 'pass';
     // 🔴 결제창 문구는 셸·React 와 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
     // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
     var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '달빛 이용권');
     var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' ' + passBadgeLabel) : passBadgeLabel;
     var passTitle = hasActivePassTier
-      ? _dpCheckoutText('payment.directModal.passUpgradeTitle', '달빛 이용권 업그레이드')
-      : _dpCheckoutText('payment.directModal.passBuyTitle', '이용권으로 구매');
+      ? _dpCheckoutText('payment.directModal.passUpgradeTitle', '이용권 등급 올리기')
+      : _dpCheckoutText('payment.directModal.passBuyTitle', '이용권으로 열기');
     var passHint = hasActivePassTier
-      ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.')
-      : _dpCheckoutText('payment.directModal.passHint.store', '30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.');
-    // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
+      ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
+      : _dpCheckoutText('payment.directModal.passHint.store', '한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
+    // 🔴 소비자에게 PG사 이름을 보여주지 않는다(내부 결제 인프라). 앱만 'Google Play 결제'를 유지한다 —
+    // 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
     var directUsesAppStore = _dpShouldUseAppStoreEntry();
     var directBadge = directUsesAppStore
       ? _dpCheckoutText('payment.directModal.pgBadgeApp', 'Google Play 결제')
-      : _dpCheckoutText('payment.directModal.pgBadge', 'PortOne V2 · KG이니시스');
+      : _dpCheckoutText('payment.directModal.pgBadge', '카드 · 간편결제');
     var directHint = directUsesAppStore
-      ? _dpCheckoutText('payment.directModal.directHintApp', '지금 이 결과 하나만. Google Play 결제로 바로 열립니다.')
-      : _dpCheckoutText('payment.directModal.directHint', '지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.');
-    var directTitleLabel = _dpCheckoutText('payment.directModal.directTitleLabel', '단건 결제');
-    var monthlyHintChecking = _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.');
+      ? _dpCheckoutText('payment.directModal.directHintApp', '지금 보고 있는 콘텐츠 하나만. Google Play 결제로 바로 열려요.')
+      : _dpCheckoutText('payment.directModal.directHint', '지금 보고 있는 콘텐츠 하나만 바로 열려요.');
+    var directTitleLabel = _dpCheckoutText('payment.directModal.directTitleLabel', '이번 콘텐츠만');
+    var monthlyHintChecking = _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요.');
     // 잔량 표기는 셸 formatMonthlyCreditValueWon 과 같은 키를 쓴다(코인 수치를 그대로 노출하지 않는 규칙).
     var formatMonthlyCredits = function(value) {
       var creditValue = Math.max(0, Math.floor(Number(value || 0)));
       return _dpCheckoutText('payment.currency.monthlyCredits', '{count}개', { count: creditValue.toLocaleString('ko-KR') });
     };
-    var moonTitleText = _dpCheckoutText('payment.directModal.moonTitle', '달빛 결제 방식 선택');
-    var recommendBadgeText = _dpCheckoutText('payment.directModal.recommendBadge', '추천');
-    var monthlyBadgeText = _dpCheckoutText('payment.directModal.monthlyBadge', '월정석 사용');
-    var monthlyTitleText = _dpCheckoutText('payment.directModal.monthlyTitle', '월정석 사용');
+    var moonTitleText = _dpCheckoutText('payment.directModal.moonTitle', '이 콘텐츠를 열어볼까요?');
+    var recommendBadgeText = _dpCheckoutText('payment.directModal.recommendBadge', '꽃돼지 추천');
+    var monthlyBadgeText = _dpCheckoutText('payment.directModal.monthlyBadge', '월정석');
+    var monthlyTitleText = _dpCheckoutText('payment.directModal.monthlyTitle', '월정석으로 열기');
     var monthlyUnitText = _dpCheckoutText('payment.directModal.monthlyUnit', '이벤트 재화');
-    var monthlyOwnedUnknownText = _dpCheckoutText('payment.directModal.monthlyBalance.ownedUnknown', '보유 월정석 · 확인 필요');
+    var monthlyOwnedUnknownText = _dpCheckoutText('payment.directModal.monthlyBalance.ownedUnknown', '잔량 확인 중');
+    var guideBubbleText = recommendedOption === 'monthly'
+      ? _dpCheckoutText('payment.directModal.guide.monthly', '가지고 있는 월정석으로 추가 지출 없이 열 수 있어요!')
+      : (recommendedOption === 'pass'
+        ? _dpCheckoutText('payment.directModal.guide.pass', '이용권이 있다면 결제 없이 바로 열려요. 먼저 확인해 볼까요?')
+        : _dpCheckoutText('payment.directModal.guide.direct', '이번 콘텐츠 하나만 바로 열어볼 수 있어요.'));
     var monthlyCheckingText = _dpCheckoutText('payment.directModal.monthlyBalance.checking', '월정석 잔여를 확인하고 있습니다.');
     var monthlyRefreshText = _dpCheckoutText('payment.directModal.monthlyBalance.refresh', '월정석 재조회');
     function esc(value) {
@@ -10243,22 +10286,35 @@
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
       });
     }
-    var passButtonHtml = '<button type="button" class="cd-direct-payment-option is-store' + (passStoreFirst ? ' cd-direct-payment-option--recommended' : '') + '" data-mode="pass-store">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + (passStoreFirst ? '<span class="cd-direct-payment-recommend">' + esc(recommendBadgeText) + '</span>' : '') + '</span>' +
+    // 추천 카드 하나만 크게, 나머지 둘은 컴팩트 행. 🔴 숨기거나 접지 않는다 — 세 옵션은 항상 함께 보인다.
+    function optionVariantClass(option) {
+      return option === recommendedOption ? ' cd-direct-payment-option--recommended' : ' cd-direct-payment-option--secondary';
+    }
+    function optionRecommendHtml(option) {
+      return option === recommendedOption
+        ? '<span class="cd-direct-payment-recommend">' + esc(recommendBadgeText) + '</span>'
+        : '';
+    }
+    var passButtonHtml = '<button type="button" class="cd-direct-payment-option is-store' + optionVariantClass('pass') + '" data-mode="pass-store">' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + optionRecommendHtml('pass') + '</span>' +
         '<strong>' + esc(passTitle) + '</strong>' +
-        '<span>' + esc(passHint) + '</span>' +
+        '<span class="cd-direct-payment-desc">' + esc(passHint) + '</span>' +
       '</button>';
-    var directButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span></span>' +
+    var directButtonHtml = '<button type="button" class="cd-direct-payment-option' + optionVariantClass('direct') + '" data-mode="direct">' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span>' + optionRecommendHtml('direct') + '</span>' +
         '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutText('payment.currency.krw', '{amount}원', { amount: amountKrw.toLocaleString('ko-KR') })) + '</span></strong>' +
-        '<span>' + esc(directHint) + '</span>' +
+        '<span class="cd-direct-payment-desc">' + esc(directHint) + '</span>' +
       '</button>';
-    var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option" data-mode="monthly" data-monthly-option>' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span></span>' +
+    var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option' + optionVariantClass('monthly') + '" data-mode="monthly" data-monthly-option>' +
+        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span>' + optionRecommendHtml('monthly') + '</span>' +
         '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
-        '<span data-monthly-hint>' + esc(monthlyHintChecking) + '</span>' +
+        '<span class="cd-direct-payment-desc" data-monthly-hint>' + esc(monthlyHintChecking) + '</span>' +
         '<span class="cd-direct-payment-moonbal-current" data-monthly-current>' + esc(monthlyOwnedUnknownText) + '</span>' +
       '</button>';
+    var choiceCardHtmlByOption = { pass: passButtonHtml, direct: directButtonHtml, monthly: monthlyButtonHtml };
+    var orderedChoiceCardsHtml = (checkoutRecommendation.order || []).map(function(option) {
+      return choiceCardHtmlByOption[option] || '';
+    }).join('');
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
       var settled = false;
@@ -10294,15 +10350,18 @@
             '<span class="cd-direct-payment-moon-reflect"></span>' +
           '</div>' +
           '<h2 class="cd-direct-payment-title">' + esc(moonTitleText) + '</h2>' +
-          '<p class="cd-direct-payment-sub">' + esc(_dpCheckoutText('payment.directModal.moonSubtitle', '이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.')) + '</p>' +
+          // 꽃돼지 연이 안내자. 같은 출처(/public) 자산만 쓴다 — 결제 경로에 교차출처 이미지를 두면
+          // PortOne SDK 와 대역폭을 다툰다(verify-portone-single-payment 가 막는 회귀).
+          '<div class="cd-direct-payment-guide">' +
+            '<img class="cd-direct-payment-guide__pig" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="" width="64" height="64" loading="eager" decoding="async">' +
+            '<p class="cd-direct-payment-sub">' + esc(guideBubbleText) + '</p>' +
+          '</div>' +
           '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
-            esc(_dpCheckoutText('payment.directModal.note.basis', '월정석 이벤트 재화 기준 · {amount}', { amount: amountKrw.toLocaleString('ko-KR') + '원' })) + '<br>' +
-            esc(_dpCheckoutText('payment.directModal.note.withPass', '한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다.')) +
+            '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: amountKrw.toLocaleString('ko-KR') + '원' })) + '</span>' +
+            '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
           '</div>' +
           '<div class="cd-direct-payment-choice-grid">' +
-            (passStoreFirst
-              ? (passButtonHtml + directButtonHtml + monthlyButtonHtml)
-              : (directButtonHtml + monthlyButtonHtml + passButtonHtml)) +
+            orderedChoiceCardsHtml +
           '</div>' +
           '<div class="cd-direct-payment-balance-check" data-monthly-balance-status data-state="checking">' +
             '<span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>' + esc(monthlyCheckingText) + '</span>' +
@@ -10339,21 +10398,24 @@
                 ? _dpCheckoutText('payment.directModal.monthlyBalance.staleAfterError', '월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 {balance}', { balance: balanceLabel })
                 : _dpCheckoutText('payment.directModal.monthlyBalance.unconfirmed', '월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.'))
               : known
-                ? _dpCheckoutText('payment.directModal.monthlyBalance.ready', '월정석 잔여 확인 완료 · 현재 {balance}', { balance: balanceLabel })
+                ? _dpCheckoutText('payment.directModal.monthlyBalance.ready', '내 월정석 {balance}', { balance: balanceLabel })
                 : monthlyCheckingText;
         }
         if (moonbalStatus) moonbalStatus.setAttribute('data-state', fresh ? 'fresh' : (state === 'fresh' ? 'checking' : state));
+        // 카드에는 '충분/모자람'만 싣는다. 정확한 잔량은 바로 위 재조회 바가 이미 보여 준다.
         if (monthlyCurrent) {
           monthlyCurrent.textContent = known
-            ? _dpCheckoutText('payment.directModal.monthlyBalance.owned', '보유 월정석 {balance}', { balance: balanceLabel })
+            ? (insufficient
+              ? _dpCheckoutText('payment.directModal.monthlyBalance.short', '모자라요')
+              : _dpCheckoutText('payment.directModal.monthlyBalance.owned', '충분해요'))
             : monthlyOwnedUnknownText;
         }
         if (monthlyHintNode) {
           monthlyHintNode.textContent = !known
             ? monthlyHintChecking
             : (insufficient
-              ? _dpCheckoutText('payment.directModal.monthlyHint.insufficient', '월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.')
-              : _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.'));
+              ? _dpCheckoutText('payment.directModal.monthlyHint.insufficient', '월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.')
+              : _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.'));
         }
         if (monthlyBtn) {
           // 미인증은 월정석 결제 자체가 불가능하므로 비활성한다(React 결제창과 같은 계약).

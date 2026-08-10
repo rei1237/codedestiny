@@ -602,7 +602,9 @@ assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무
 assertContains(statusCardSource, "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.", "non-family paid service/PDF status policy");
 assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance": 0,\n        "profileSubscription.membershipCreditGranted": 0,\n        "profileSubscription.membershipCreditUsed": 0,', "card pass confirm must preserve monthly credit ledger");
 
-assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
+// 단건 결제 CTA. 클래스는 추천/보조 위계에 따라 런타임에 갈리므로(optionVariantClass) 고정 문자열이
+// 아니라 '결제 옵션 버튼 + data-mode=direct' 조합을 고정한다 — 지키려는 성질은 카드의 존재이지 클래스가 아니다.
+assertContains(indexSource, `cd-direct-payment-option' + optionVariantClass('direct') + '" data-mode="direct"`, "single payment CTA");
 assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment CTA restored");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly payment includes profile add/delete");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "payment modal pass option is available by default unless explicitly disabled");
@@ -744,7 +746,9 @@ assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, cached.re
 assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, result)", "paid precheck does not store stale pass payment-required results");
 assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
 assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
-assertContains(indexSource, "월정석 이벤트 재화 기준", "main shell monthly event currency basis copy");
+// 결제창 상단 요약은 '무엇을 얼마에 여는가'만 말한다. 예전 문구("월정석 이벤트 재화 기준 · N원")는
+// 내부 재화 단위를 기준처럼 노출해 오히려 혼란스러웠고 2026-08-11 개편에서 금액 표기로 바뀌었다.
+assertContains(indexSource, "결제 금액 {amount}", "main shell payment amount summary copy");
 assertContains(indexSource, "directPaymentBasisLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
 assertContains(indexSource, "passButtonHtml", "pass retry/store card remains in the payment modal");

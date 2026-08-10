@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "Elige método de pago",
       "readyMessage": "Elige entre créditos mensuales y pago único.",
-      "directHint": "Solo este resultado, ahora. Se abre al instante con tarjeta o pago rápido.",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "directHint": "Abre solo el contenido que estás viendo ahora.",
+      "pgBadge": "Tarjeta · Pago rápido",
       "directTitle": "Pago único en KRW · {amount}",
       "amountLabel": "Monto del pago",
       "monthlyBasisLabel": "Base de crédito mensual",
-      "monthlyBadge": "Créditos mensuales disponibles",
-      "monthlyTitle": "Pago de crédito mensual",
+      "monthlyBadge": "Piedra lunar",
+      "monthlyTitle": "Abrir con piedras lunares",
       "requiredMonthly": "Créditos requeridos",
       "currentMonthly": "Saldo actual",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "El monto mostrado coincide con el crédito mensual en KRW. Puedes continuar con un pago único con tarjeta."
       },
       "note": {
-        "basis": "Base de crédito mensual · {amount}",
-        "withPass": "Los servicios generales pagos se abren con un pase cuando están dentro del límite. Los archivos PDF y los servicios que superan el límite utilizan un pago único en KRW por producto.",
-        "directOnly": "Esta acción se confirma con un pago único en KRW.",
+        "basis": "Importe {amount}",
+        "withPass": "Elige entre pase, piedras lunares o tarjeta.",
+        "directOnly": "Este contenido se abre con pago con tarjeta.",
         "passUnknown": "Si tienes un pase, toca la tarjeta de pase de abajo y lo comprobamos aquí mismo.",
         "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago."
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "Tienda de pases a la luz de la luna",
       "passRetryTitle": "Verificar pase nuevamente",
       "passHint": {
-        "store": "30 días de acceso ilimitado a funciones bajo el límite, sin pasar por caja. ¿Ya tienes pase? Toca para comprobarlo aquí.",
+        "store": "Paga una vez y abre muchos contenidos durante 30 días. ¿Ya tienes uno? Toca para comprobarlo.",
         "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
-        "upgrade": "Tu nivel actual no cubre esta función. Echa un vistazo a un pase superior."
+        "upgrade": "Tu nivel actual no abre este contenido. Echa un vistazo a un nivel superior."
       },
       "applyMethod": {
         "label": "Aplicar método",
@@ -1811,40 +1811,46 @@
         "checking": "Comprobando la cobertura del pase"
       },
       "monthlyHint": {
-        "use": "Paga con las piedras lunares que ya tienes. Se abre sin gasto adicional.",
-        "insufficient": "Su saldo de crédito mensual es bajo. Puede continuar con el pago único en KRW.",
-        "checking": "Necesitamos comprobar tu saldo de piedras lunares. El pago único en KRW sigue disponible.",
+        "use": "Usa las piedras lunares que ya tienes. Sin gasto adicional.",
+        "insufficient": "No tienes suficientes piedras lunares. Puedes abrirlo con una compra única.",
+        "checking": "Comprobando tu saldo de piedras lunares. Puedes tocar igualmente.",
         "after": "Quedarán {balance} después de usarlo."
       },
       "monthlyBalance": {
         "needCheck": "Cheque necesario",
-        "ready": "Saldo de crédito mensual verificado · actual {balance}",
+        "ready": "Mis piedras lunares {balance}",
         "checking": "Comprobando el saldo de crédito mensual.",
         "refresh": "Actualizar créditos",
         "refreshing": "Saldo de crédito mensual actualizado.",
         "refreshed": "Saldo de crédito mensual verificado nuevamente. El saldo actual es {balance}.",
         "notFound": "Aún no se encontraron créditos/pase mensuales activos. Actualice nuevamente después de completar el pago.",
-        "owned": "Piedras lunares: {balance}",
-        "ownedUnknown": "Piedras lunares · falta comprobar",
+        "owned": "Suficiente",
+        "ownedUnknown": "Comprobando",
         "signedOut": "Inicia sesión para consultar tu saldo de Piedra Lunar.",
         "unconfirmed": "No pudimos confirmar tu saldo de Piedra Lunar. Puedes intentarlo igualmente; te avisaremos al pagar si no alcanza.",
-        "staleAfterError": "No se pudo actualizar tu saldo de Piedra Lunar; se muestra el último valor confirmado · actualmente {balance}"
+        "staleAfterError": "No se pudo actualizar tu saldo de Piedra Lunar; se muestra el último valor confirmado · actualmente {balance}",
+        "short": "Insuficiente"
       },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico."
       },
-      "passUpgradeTitle": "Mejorar el pase Moonlight",
+      "passUpgradeTitle": "Mejorar tu pase",
       "recommendBadge": "Recomendado",
-      "moonTitle": "Elige cómo pagar",
-      "moonSubtitle": "Elige la opción que mejor te convenga.",
-      "directTitleLabel": "Pago único",
+      "moonTitle": "¿Cómo quieres abrir este contenido?",
+      "moonSubtitle": "Lo abriremos de la forma más cómoda para ti.",
+      "directTitleLabel": "Solo este contenido",
       "monthlyUnit": "moneda de evento",
-      "passBuyTitle": "Comprar con pase",
+      "passBuyTitle": "Abrir con un pase",
       "passChecking": "Comprobando tu pase…",
       "passMissGoStore": "Tu pase no cubre esto, te llevamos a la tienda de pases.",
       "passCheckRetry": "No pudimos verificar el estado de tu pase. Vuelve a pulsar en un momento.",
-      "directHintApp": "Solo este resultado, ahora. Se abre al instante con la facturación de Google Play.",
-      "pgBadgeApp": "Facturación de Google Play"
+      "directHintApp": "Solo este contenido: se abre al instante con la facturación de Google Play.",
+      "pgBadgeApp": "Facturación de Google Play",
+      "guide": {
+        "pass": "Si tienes un pase, se abre sin pagar. ¿Lo comprobamos?",
+        "monthly": "¡Puedes abrirlo con las piedras lunares que ya tienes, sin gasto extra!",
+        "direct": "Puedes abrir solo este contenido ahora mismo."
+      }
     },
     "overlay": {
       "unlockPreparing": {

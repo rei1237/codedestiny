@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "Zahlungsmethode auswählen",
       "readyMessage": "Wählen Sie zwischen monatlichem Guthaben und einmaliger Zahlung.",
-      "directHint": "Nur dieses eine Ergebnis. Öffnet sofort per Karte oder Express-Zahlung.",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "directHint": "Öffnet nur den Inhalt, den du gerade ansiehst.",
+      "pgBadge": "Karte · Express-Zahlung",
       "directTitle": "Einmalige KRW-Zahlung · {amount}",
       "amountLabel": "Zahlungsbetrag",
       "monthlyBasisLabel": "Monatliche Kreditbasis",
-      "monthlyBadge": "Verfügbare monatliche Credits",
-      "monthlyTitle": "Monatliche Kreditzahlung",
+      "monthlyBadge": "Mondstein",
+      "monthlyTitle": "Mit Mondsteinen öffnen",
       "requiredMonthly": "Erforderliche Credits",
       "currentMonthly": "Aktueller Kontostand",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "Der angezeigte Betrag entspricht der monatlichen Kreditbasis KRW. Sie können mit einer einmaligen Kartenzahlung fortfahren."
       },
       "note": {
-        "basis": "Monatliche Kreditbasis · {amount}",
-        "withPass": "Allgemeine kostenpflichtige Dienste werden mit einem Pass geöffnet, wenn sie innerhalb des Limits liegen. Für PDFs und Dienste über dem Limit ist eine einmalige KRW-Zahlung pro Produkt erforderlich.",
-        "directOnly": "Diese Aktion wird mit einer einmaligen KRW-Zahlung bestätigt.",
+        "basis": "Betrag {amount}",
+        "withPass": "Wähle zwischen Pass, Mondsteinen oder Karte.",
+        "directOnly": "Dieser Inhalt öffnet sich per Kartenzahlung.",
         "passUnknown": "Wenn du einen Pass hast, tippe unten auf die Pass-Karte – wir prüfen ihn sofort.",
         "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen."
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Überprüfen Sie erneut, ob die Prüfung bestanden hat",
       "passHint": {
-        "store": "30 Tage unbegrenzt alle Funktionen unter dem Limit, ohne Checkout. Schon einen Pass? Tippen und direkt prüfen.",
+        "store": "Einmal zahlen und 30 Tage lang viele Inhalte öffnen. Schon einen? Tippen zum Prüfen.",
         "retry": "Wir prüfen erneut auf dem Server, ob Ihr Pass dies ohne Bezahlung öffnen kann.",
-        "upgrade": "Deine aktuelle Stufe deckt diese Funktion nicht ab. Sieh dir einen höheren Pass an."
+        "upgrade": "Deine aktuelle Stufe öffnet diesen Inhalt nicht. Sieh dir eine höhere Stufe an."
       },
       "applyMethod": {
         "label": "Methode anwenden",
@@ -1811,40 +1811,46 @@
         "checking": "Überprüfung der Passabdeckung"
       },
       "monthlyHint": {
-        "use": "Bezahlt mit bereits vorhandenen Mondsteinen. Öffnet ohne zusätzliche Ausgaben.",
-        "insufficient": "Ihr monatliches Guthaben ist niedrig. Sie können mit der einmaligen KRW-Zahlung fortfahren.",
-        "checking": "Dein Mondstein-Guthaben muss geprüft werden. Einmalzahlung in KRW bleibt möglich.",
+        "use": "Nutzt deine vorhandenen Mondsteine. Keine Zusatzkosten.",
+        "insufficient": "Nicht genug Mondsteine. Du kannst ihn mit einem Einzelkauf öffnen.",
+        "checking": "Dein Mondstein-Guthaben wird geprüft. Du kannst trotzdem tippen.",
         "after": "Danach verbleiben {balance}."
       },
       "monthlyBalance": {
         "needCheck": "Überprüfung erforderlich",
-        "ready": "Monatliches Guthaben geprüft · aktuell {balance}",
+        "ready": "Meine Mondsteine {balance}",
         "checking": "Überprüfung des monatlichen Guthabens.",
         "refresh": "Credits aktualisieren",
         "refreshing": "Erfrischender monatlicher Guthabensaldo.",
         "refreshed": "Monatliches Guthaben erneut überprüft. Der aktuelle Kontostand ist {balance}.",
         "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist.",
-        "owned": "Mondsteine: {balance}",
-        "ownedUnknown": "Mondsteine · Prüfung nötig",
+        "owned": "Ausreichend",
+        "ownedUnknown": "Wird geprüft",
         "signedOut": "Melde dich an, um dein Mondstein-Guthaben zu sehen.",
         "unconfirmed": "Wir konnten dein Mondstein-Guthaben nicht bestätigen. Du kannst es trotzdem versuchen – bei zu wenig Guthaben melden wir uns beim Bezahlen.",
-        "staleAfterError": "Mondstein-Guthaben konnte nicht aktualisiert werden, zuletzt bestätigter Wert wird angezeigt · aktuell {balance}"
+        "staleAfterError": "Mondstein-Guthaben konnte nicht aktualisiert werden, zuletzt bestätigter Wert wird angezeigt · aktuell {balance}",
+        "short": "Nicht genug"
       },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
       },
-      "passUpgradeTitle": "Moonlight Pass upgraden",
+      "passUpgradeTitle": "Pass hochstufen",
       "recommendBadge": "Empfohlen",
-      "moonTitle": "Zahlungsart wählen",
-      "moonSubtitle": "Wähle die Option, die am besten zu dir passt.",
-      "directTitleLabel": "Einmalzahlung",
+      "moonTitle": "Wie möchtest du diesen Inhalt öffnen?",
+      "moonSubtitle": "Wir öffnen ihn auf dem für dich einfachsten Weg.",
+      "directTitleLabel": "Nur dieser Inhalt",
       "monthlyUnit": "Event-Währung",
-      "passBuyTitle": "Mit Pass kaufen",
+      "passBuyTitle": "Mit Pass öffnen",
       "passChecking": "Pass wird geprüft …",
       "passMissGoStore": "Dein Pass deckt das nicht ab – wir bringen dich zum Pass-Shop.",
       "passCheckRetry": "Der Status deines Passes konnte nicht geprüft werden. Bitte tippe gleich noch einmal.",
-      "directHintApp": "Nur dieses eine Ergebnis. Öffnet sofort über Google Play.",
-      "pgBadgeApp": "Google Play-Abrechnung"
+      "directHintApp": "Nur dieser Inhalt – öffnet sofort über Google Play Abrechnung.",
+      "pgBadgeApp": "Google Play-Abrechnung",
+      "guide": {
+        "pass": "Mit einem Pass öffnet sich das ohne Zahlung. Sollen wir nachsehen?",
+        "monthly": "Du kannst ihn mit deinen vorhandenen Mondsteinen öffnen – ohne Zusatzkosten!",
+        "direct": "Du kannst nur diesen einen Inhalt sofort öffnen."
+      }
     },
     "overlay": {
       "unlockPreparing": {

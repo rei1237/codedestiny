@@ -108,6 +108,52 @@
   }
 
   /**
+   * 결제창에서 어느 선택지를 '추천'으로 올릴지. 🔴 세 렌더러가 같은 답을 내야 하므로 여기 하나만 둔다
+   * (분기를 3벌 복제하면 어느 한쪽만 고쳐질 때 같은 사용자가 기기마다 다른 추천을 본다).
+   *
+   * 🔴 순수 함수다 — 서버를 부르지 않는다. 입력은 전부 렌더러가 결제창을 여는 시점에 **이미 갖고 있는**
+   * 값이라 API 왕복이 늘지 않는다. 이용권 최종 판정은 여전히 카드를 눌렀을 때 서버가 한다
+   * (verify-pass-recovery-path·verify-checkout-pass-card 가 그 클릭 시 1회 조회를 강제한다).
+   * 여기서 나오는 것은 '표시 우선순위'일 뿐 접근 권한 판정이 아니다.
+   *
+   * 규칙 1 은 종전 passStoreFirst 와 같다 — 등급 미상(대다수)에게는 지금과 똑같이 이용권이 추천이라
+   * 회귀 면적이 작다. 실제로 순서가 달라지는 것은 '등급은 있는데 이 가격을 못 덮고 + 월정석이 충분한'
+   * 경우뿐이고, 그때 월정석을 올리는 이유는 그 사용자에게 추가 지출이 0 이기 때문이다.
+   */
+  function resolveCheckoutRecommendation(input) {
+    var opts = input || {};
+    var allowPass = opts.allowPass !== false;
+    var allowDirect = opts.allowDirect !== false;
+    var allowMonthly = opts.allowMonthly !== false;
+    var monthlyBalance = Number(opts.monthlyBalance);
+    var requiredMonthlyCredits = Number(opts.requiredMonthlyCredits);
+    var monthlyCovers = opts.monthlyBalanceFresh === true
+      && Number.isFinite(monthlyBalance)
+      && Number.isFinite(requiredMonthlyCredits)
+      && requiredMonthlyCredits > 0
+      && monthlyBalance >= requiredMonthlyCredits;
+
+    var recommended = "";
+    if (allowPass && opts.hasActivePassTier !== true) recommended = "pass";
+    else if (allowMonthly && monthlyCovers) recommended = "monthly";
+    else if (allowDirect) recommended = "direct";
+    else if (allowMonthly) recommended = "monthly";
+    else if (allowPass) recommended = "pass";
+
+    // 추천이 맨 앞, 나머지는 종전 비추천 순서(direct → monthly → pass)를 그대로 지킨다.
+    var rest = [];
+    if (allowDirect && recommended !== "direct") rest.push("direct");
+    if (allowMonthly && recommended !== "monthly") rest.push("monthly");
+    if (allowPass && recommended !== "pass") rest.push("pass");
+
+    return {
+      recommended: recommended,
+      order: recommended ? [recommended].concat(rest) : rest,
+      monthlyCovers: monthlyCovers,
+    };
+  }
+
+  /**
    * 이용권 상점 진입 URL. cdco=1 이 붙은 진입만 /points 가 결제 확인 모달을 자동으로 연다
    * (app/points/PointsClient.tsx) — 그냥 상점 구경으로 들어온 사용자에게는 열지 않는다.
    */
@@ -365,6 +411,7 @@
     sweepOrphanChoiceModals: sweepOrphanChoiceModals,
     hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
     text: checkoutText,
+    resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,
     shouldUseAppStoreEntry: shouldUseAppStoreEntry,

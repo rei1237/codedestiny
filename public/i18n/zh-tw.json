@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "选择支付方式",
       "readyMessage": "请选择月定石或单次支付。",
-      "directHint": "只要這一份結果，用信用卡或快捷支付立即開啟。",
-      "pgBadge": "PortOne V2·KG Inicis",
+      "directHint": "只打開你正在看的這個內容。",
+      "pgBadge": "信用卡 · 便捷支付",
       "directTitle": "韩元单次支付 · {amount}",
       "amountLabel": "支付金额",
       "monthlyBasisLabel": "月定石基准",
-      "monthlyBadge": "持有月定石",
-      "monthlyTitle": "月定石支付",
+      "monthlyBadge": "月精石",
+      "monthlyTitle": "用月精石打開",
       "requiredMonthly": "所需月定石",
       "currentMonthly": "当前余额",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "显示金额与月定石基准相同。可继续银行卡单次支付。"
       },
       "note": {
-        "basis": "月定石基准 · {amount}",
-        "withPass": "一般付费服务在限额内可用通行券开启，PDF和超出限额的服务按商品使用韩元单次支付。",
-        "directOnly": "此操作将通过韩元单次支付确认。",
+        "basis": "付款金額 {amount}",
+        "withPass": "可以在通行證、月精石和信用卡中選擇。",
+        "directOnly": "此內容透過信用卡付款打開。",
         "passUnknown": "如果你有通行證，點擊下方通行證卡片即可當場確認。",
         "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。"
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "30 天內額度以內的功能無限使用，無須再次付款。已有通行證？點一下即可當場確認。",
+        "store": "支付一次，30天內可打開多個內容。已經有了？點一下即可確認。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
-        "upgrade": "目前等級無法免費開啟此功能，請查看更高等級的通行證。"
+        "upgrade": "目前等級無法打開此內容。看看更高的等級吧。"
       },
       "applyMethod": {
         "label": "适用方式",
@@ -1811,40 +1811,46 @@
         "checking": "正在确认通行券范围"
       },
       "monthlyHint": {
-        "use": "使用你已獲得的月定石付款，無需額外花費即可開啟。",
-        "insufficient": "月定石余额不足。可继续韩元单次支付。",
-        "checking": "需要確認月定石餘額。韓元單次付款仍可使用。",
+        "use": "使用你已有的月精石打開，無需額外支出。",
+        "insufficient": "月精石不足。可以只購買這個內容來打開。",
+        "checking": "正在確認月精石餘量。直接點也沒關係。",
         "after": "使用後將剩餘 {balance}。"
       },
       "monthlyBalance": {
         "needCheck": "需要确认",
-        "ready": "月定石余额确认完成 · 当前 {balance}",
+        "ready": "我的月精石 {balance}",
         "checking": "正在确认月定石余额。",
         "refresh": "重新查询月定石",
         "refreshing": "正在重新查询月定石余额。",
         "refreshed": "已重新确认月定石余额。当前为 {balance}。",
         "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。",
-        "owned": "持有月定石 {balance}",
-        "ownedUnknown": "持有月定石 · 需確認",
+        "owned": "足夠",
+        "ownedUnknown": "確認中",
         "signedOut": "登入後即可查看月定石餘額。",
         "unconfirmed": "未能確認月定石餘額。您仍可繼續嘗試，若餘額不足會在結帳時提示。",
-        "staleAfterError": "未能重新確認月定石餘額，顯示上次確認值 · 目前 {balance}"
+        "staleAfterError": "未能重新確認月定石餘額，顯示上次確認值 · 目前 {balance}",
+        "short": "不足"
       },
       "legal": {
         "provisionTiming": "本服務於付款完成後立即提供。服務將於確認付款時開始使用，已開始提供的內容根據電子商務法可能限制撤銷訂單。"
       },
-      "passUpgradeTitle": "月光通行券升級",
+      "passUpgradeTitle": "升級通行證",
       "recommendBadge": "推薦",
-      "moonTitle": "選擇付款方式",
-      "moonSubtitle": "請選擇最適合你的方式開啟內容。",
-      "directTitleLabel": "單次付款",
+      "moonTitle": "要打開這個內容嗎？",
+      "moonSubtitle": "我們會用最方便的方式為你打開。",
+      "directTitleLabel": "只買這個內容",
       "monthlyUnit": "活動貨幣",
-      "passBuyTitle": "用通行證購買",
+      "passBuyTitle": "用通行證打開",
       "passChecking": "正在確認你的通行證。",
       "passMissGoStore": "你的通行證無法開啟此內容，正在前往通行證商店。",
       "passCheckRetry": "未能確認您的通行證狀態，請稍後再點擊一次。",
-      "directHintApp": "只要這一份結果，透過 Google Play 結算立即開啟。",
-      "pgBadgeApp": "Google Play 結算"
+      "directHintApp": "只買這個內容。透過 Google Play 付款立即打開。",
+      "pgBadgeApp": "Google Play 結算",
+      "guide": {
+        "pass": "如果你有通行證，無需付款即可打開。先確認一下？",
+        "monthly": "可以用你已有的月精石打開，無需額外支出！",
+        "direct": "可以只打開你正在看的這一個內容。"
+      }
     },
     "overlay": {
       "unlockPreparing": {

@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "Choose payment method",
       "readyMessage": "Choose between monthly credits and one-time payment.",
-      "directHint": "Just this one result, right now. Opens instantly with card or easy pay.",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "directHint": "Opens only the content you're looking at right now.",
+      "pgBadge": "Card · Easy pay",
       "directTitle": "One-time KRW payment · {amount}",
       "amountLabel": "Payment amount",
       "monthlyBasisLabel": "Monthly credit basis",
-      "monthlyBadge": "Available monthly credits",
-      "monthlyTitle": "Monthly credit payment",
+      "monthlyBadge": "Moonstone",
+      "monthlyTitle": "Open with moonstones",
       "requiredMonthly": "Required credits",
       "currentMonthly": "Current balance",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "The displayed amount matches the monthly credit KRW basis. You can continue with a one-time card payment."
       },
       "note": {
-        "basis": "Monthly credit basis · {amount}",
-        "withPass": "General paid services open with a pass when they are within the limit. PDFs and services above the limit use one-time KRW payment by product.",
-        "directOnly": "This action is confirmed with a one-time KRW payment.",
+        "basis": "Amount {amount}",
+        "withPass": "Choose from a pass, moonstones, or card.",
+        "directOnly": "This content opens with card payment.",
         "passUnknown": "If you have a pass, tap the pass card below and we'll check it right here.",
         "passMiss": "Your pass does not open this content for free, so here are the payment options."
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "Moonlight Pass Shop",
       "passRetryTitle": "Check pass again",
       "passHint": {
-        "store": "Unlimited access to features under the limit for 30 days, with no checkout. Already have a pass? Tap to check right here.",
+        "store": "Pay once and open many contents for 30 days. Already have one? Tap to check.",
         "retry": "We will check the server again to see whether your pass can open this without payment.",
-        "upgrade": "Your current tier does not cover this feature. Take a look at a higher pass."
+        "upgrade": "Your current tier doesn't open this one. Take a look at a wider tier."
       },
       "applyMethod": {
         "label": "Apply method",
@@ -1811,40 +1811,46 @@
         "checking": "Checking pass coverage"
       },
       "monthlyHint": {
-        "use": "Pays with moonstones you already have. Opens with no extra spending.",
-        "insufficient": "Your monthly credit balance is low. You can continue with one-time KRW payment.",
-        "checking": "We need to check your moonstone balance. One-time KRW payment stays available.",
+        "use": "Uses the moonstones you already have. No extra spending.",
+        "insufficient": "Not enough moonstones. You can open it with a single purchase.",
+        "checking": "Checking your moonstone balance. It's fine to tap anyway.",
         "after": "{balance} will remain after use."
       },
       "monthlyBalance": {
         "needCheck": "Check needed",
-        "ready": "Monthly credit balance checked · current {balance}",
+        "ready": "My moonstones {balance}",
         "checking": "Checking monthly credit balance.",
         "refresh": "Refresh credits",
         "refreshing": "Refreshing monthly credit balance.",
         "refreshed": "Monthly credit balance checked again. Current balance is {balance}.",
         "notFound": "No active monthly credits/pass were found yet. Please refresh again after payment is complete.",
-        "owned": "Moonstones held: {balance}",
-        "ownedUnknown": "Moonstones held · needs checking",
+        "owned": "Enough",
+        "ownedUnknown": "Checking",
         "signedOut": "Sign in to check your Moonstone balance.",
         "unconfirmed": "We couldn't confirm your Moonstone balance. You can still try it — we'll tell you at checkout if it's short.",
-        "staleAfterError": "Couldn't refresh your Moonstone balance, showing the last confirmed value · currently {balance}"
+        "staleAfterError": "Couldn't refresh your Moonstone balance, showing the last confirmed value · currently {balance}",
+        "short": "Not enough"
       },
       "legal": {
         "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and cancellation of subscription may be restricted for content already provided, in accordance with e-commerce laws."
       },
-      "passUpgradeTitle": "Upgrade Moonlight Pass",
+      "passUpgradeTitle": "Upgrade your pass",
       "recommendBadge": "Recommended",
-      "moonTitle": "Choose how to pay",
-      "moonSubtitle": "Pick the option that suits you best.",
-      "directTitleLabel": "One-time payment",
+      "moonTitle": "How would you like to open this?",
+      "moonSubtitle": "We'll open it the easiest way for you.",
+      "directTitleLabel": "Just this content",
       "monthlyUnit": "event currency",
-      "passBuyTitle": "Buy with a pass",
+      "passBuyTitle": "Open with a pass",
       "passChecking": "Checking your pass…",
       "passMissGoStore": "Your pass does not cover this, so we're taking you to the pass shop.",
       "passCheckRetry": "We couldn't check your pass status. Please tap again in a moment.",
-      "directHintApp": "Just this one result, right now. Opens instantly via Google Play billing.",
-      "pgBadgeApp": "Google Play billing"
+      "directHintApp": "Just this content — opens right away with Google Play billing.",
+      "pgBadgeApp": "Google Play billing",
+      "guide": {
+        "pass": "If you have a pass, this opens with no payment. Shall we check?",
+        "monthly": "You can open this with the moonstones you already have — no extra cost!",
+        "direct": "You can open just this one piece of content right away."
+      }
     },
     "overlay": {
       "unlockPreparing": {

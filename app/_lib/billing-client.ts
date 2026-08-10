@@ -42,8 +42,8 @@ function resolvePaymentService(): typeof bundledPaymentService {
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
-    "billingClient.text.001": "달빛 결제 방식 선택",
-    "billingClient.text.002": "달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.",
+    "billingClient.text.001": "이 콘텐츠를 열어볼까요?",
+    "billingClient.text.002": "가장 편한 방법으로 열어 드릴게요.",
     "billingClient.text.003": "PortOne V2 · KG이니시스",
     "billingClient.text.004": "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.",
     "billingClient.text.005": "월정석 사용",
@@ -1011,6 +1011,10 @@ function ensureReactPaymentChoiceStyles() {
 @keyframes cdDirectPaymentMoonFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}
 .cd-direct-payment-title{position:relative;z-index:1;margin:0 0 6px;font-size:22px;font-weight:950;letter-spacing:0;color:#fff7db;text-shadow:0 0 22px rgba(245,219,154,.24)}
 .cd-direct-payment-sub{position:relative;z-index:1;margin:0 0 12px;color:#dbeafe;font-size:13px;line-height:1.55}
+.cd-direct-payment-guide{position:relative;z-index:2;display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.cd-direct-payment-guide__pig{flex:0 0 auto;width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(250,220,150,.26))}
+.cd-direct-payment-guide .cd-direct-payment-sub{margin:0;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,242,184,.26);background:linear-gradient(135deg,rgba(255,247,219,.12),rgba(147,197,253,.06));color:#f2f6ff;font-size:13px;line-height:1.5}
+.cd-direct-payment-guide .cd-direct-payment-sub::before{content:"";position:absolute;left:-6px;top:21px;width:10px;height:10px;transform:rotate(45deg);border-left:1px solid rgba(255,242,184,.26);border-bottom:1px solid rgba(255,242,184,.26);background:linear-gradient(135deg,rgba(255,247,219,.14),rgba(147,197,253,.07))}
 .cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:10px;position:relative;z-index:1}
 .cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:13px 14px;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 10px 26px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease}
 .cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 16%,rgba(255,242,184,.1),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.06),transparent 42%);pointer-events:none}
@@ -1023,6 +1027,7 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(147,197,253,.42);background:linear-gradient(145deg,rgba(12,40,67,.82),rgba(22,27,58,.82))}
 .cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;line-height:1.28;color:#ffffff}
 .cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#e5ecff}
+.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#e5ecff}
 .cd-direct-payment-option br{display:none}
 .cd-direct-payment-option .cd-direct-payment-cardhead{position:relative;display:flex;align-items:center;gap:8px;margin:0 0 9px}
 .cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,242,184,.28);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);font-size:11px;font-weight:900;color:#fff7db;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}
@@ -1032,6 +1037,15 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-option .cd-direct-payment-moonbal-current{display:block;margin-top:4px;color:rgba(191,219,254,.94);font-weight:800;font-size:12px}
 .cd-direct-payment-option--recommended{border-color:rgba(255,224,130,.74)!important;background:linear-gradient(145deg,rgba(255,247,219,.16),rgba(250,230,160,.06))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 16px 34px rgba(2,6,23,.3),0 0 26px rgba(250,220,150,.18)!important}
 .cd-direct-payment-option--recommended:hover{border-color:rgba(255,232,150,.9)!important}
+.cd-direct-payment-option--recommended{padding:16px 15px}
+.cd-direct-payment-option--recommended strong{font-size:17px;margin-bottom:5px}
+.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:19px}
+.cd-direct-payment-option--recommended .cd-direct-payment-desc{font-size:13px;color:#f4f7ff}
+.cd-direct-payment-option--secondary{padding:11px 12px}
+.cd-direct-payment-option--secondary .cd-direct-payment-cardhead{margin-bottom:6px}
+.cd-direct-payment-option--secondary strong{font-size:13.5px;margin-bottom:2px}
+.cd-direct-payment-option--secondary strong .cd-direct-payment-amount{font-size:14.5px}
+.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11.5px;color:rgba(219,234,254,.82);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .cd-direct-payment-option[disabled]{opacity:.45;cursor:not-allowed}
 .cd-direct-payment-option.is-disabled{cursor:not-allowed;opacity:.62;border-color:rgba(148,163,184,.3)!important;background:linear-gradient(145deg,rgba(30,37,54,.74),rgba(22,27,44,.74))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
 .cd-direct-payment-option.is-disabled:hover{transform:none;border-color:rgba(148,163,184,.3)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
@@ -1047,10 +1061,11 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-status{min-height:16px;margin:9px 0 0;color:#f3dd9a;font-size:12px;line-height:1.4;position:relative;z-index:1}
 .cd-direct-payment-note{position:relative;z-index:1;margin:0 0 10px;padding:11px 13px;border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.76),rgba(20,28,66,.6));border:1px solid rgba(219,234,254,.22);color:#dbeafe;font-size:12.5px;line-height:1.45;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(147,197,253,.06)}
 .cd-direct-payment-note strong{display:block;margin-bottom:3px;color:#ffffff;font-size:15px;line-height:1.28}
+.cd-direct-payment-note span{display:block}
 .cd-direct-payment-legal{position:relative;z-index:1;margin:8px 0 0;padding:0;color:rgba(219,234,254,.68);font-size:11px;line-height:1.42}
 .cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}
 .cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}
-@media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option .cd-direct-payment-cardhead{margin-bottom:8px}.cd-direct-payment-cardhead .cd-direct-payment-badge{min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-option strong .cd-direct-payment-amount{font-size:15.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}
+@media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-guide{gap:8px;margin-bottom:9px}.cd-direct-payment-guide__pig{width:50px;height:50px}.cd-direct-payment-guide .cd-direct-payment-sub{padding:8px 10px;font-size:12px;line-height:1.45}.cd-direct-payment-guide .cd-direct-payment-sub::before{top:17px}.cd-direct-payment-option--recommended{padding:13px 12px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-option--recommended .cd-direct-payment-desc{font-size:12px}.cd-direct-payment-option--secondary{padding:9px 11px}.cd-direct-payment-option--secondary .cd-direct-payment-cardhead{margin-bottom:5px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-option--secondary strong .cd-direct-payment-amount{font-size:14px}.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option .cd-direct-payment-cardhead{margin-bottom:8px}.cd-direct-payment-cardhead .cd-direct-payment-badge{min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-option strong .cd-direct-payment-amount{font-size:15.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}}
 `;
   document.head.appendChild(style);
@@ -1162,60 +1177,113 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
   const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} ${passBadgeLabel}` : passBadgeLabel;
   const passStoreTitle = hasActivePassTier
-    ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "달빛 이용권 업그레이드")
-    : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 구매");
+    ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
+    : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
   const passStoreHint = hasActivePassTier
-    ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 기능이 무료로 열리지 않습니다. 상위 이용권을 확인해 주세요.")
-    : checkoutEntry.text("payment.directModal.passHint.store", "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.");
+    ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
+    : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
   // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
   // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
   const passHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
 
-  // 앱(Play Billing)에서는 외부 PG를 안내하면 사실과도 다르고 Play 정책에도 걸린다 — 배지·설명을 함께 바꾼다.
+  // 🔴 소비자에게 PG사 이름(PortOne·KG이니시스)을 보여주지 않는다 — 구매 결정에 도움이 안 되는 내부 인프라다.
+  // 앱(Play Billing)만 'Google Play 결제'를 유지한다: 외부 PG 안내는 사실과도 다르고 Play 정책에도 걸린다.
   const directUsesAppStore = checkoutEntry.shouldUseAppStoreEntry();
   const directBadgeLabel = directUsesAppStore
     ? checkoutEntry.text("payment.directModal.pgBadgeApp", "Google Play 결제")
-    : checkoutEntry.text("payment.directModal.pgBadge", "PortOne V2 · KG이니시스");
+    : checkoutEntry.text("payment.directModal.pgBadge", "카드 · 간편결제");
   const directHintLabel = directUsesAppStore
-    ? checkoutEntry.text("payment.directModal.directHintApp", "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.")
-    : checkoutEntry.text("payment.directModal.directHint", "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.");
-  const directTitleLabel = checkoutEntry.text("payment.directModal.directTitleLabel", "단건 결제");
+    ? checkoutEntry.text("payment.directModal.directHintApp", "지금 보고 있는 콘텐츠 하나만. Google Play 결제로 바로 열려요.")
+    : checkoutEntry.text("payment.directModal.directHint", "지금 보고 있는 콘텐츠 하나만 바로 열려요.");
+  const directTitleLabel = checkoutEntry.text("payment.directModal.directTitleLabel", "이번 콘텐츠만");
+  const monthlyBadgeLabel = checkoutEntry.text("payment.directModal.monthlyBadge", "월정석");
+  const monthlyTitleLabel = checkoutEntry.text("payment.directModal.monthlyTitle", "월정석으로 열기");
+  const monthlyUnitLabel = checkoutEntry.text("payment.directModal.monthlyUnit", "이벤트 재화");
+  // 어느 카드를 추천으로 올릴지는 셸·독립 정적과 공유하는 순수 함수 하나가 정한다. 서버를 부르지 않는다.
+  const checkoutRecommendation = checkoutEntry.resolveCheckoutRecommendation({
+    allowPass: canShowPassStore,
+    allowDirect: canShowDirect,
+    allowMonthly: canShowMonthly,
+    hasActivePassTier,
+    monthlyBalanceFresh: hasProvidedMonthlyBalance,
+    monthlyBalance,
+    requiredMonthlyCredits: monthlyCost,
+  });
+  const recommendedOption = checkoutRecommendation.recommended;
+  const recommendBadgeLabel = checkoutEntry.text("payment.directModal.recommendBadge", "꽃돼지 추천");
+  // 꽃돼지 연이가 지금 상황에서 가장 나은 방법을 한 줄로 말해 준다.
+  // 음원은 이용권/다운로드 조건이 따로라 기존 전용 안내문을 그대로 쓴다.
+  const guideBubbleText = isMusicTrackPayment
+    ? paymentChoiceSub
+    : (recommendedOption === "monthly"
+      ? checkoutEntry.text("payment.directModal.guide.monthly", "가지고 있는 월정석으로 추가 지출 없이 열 수 있어요!")
+      : recommendedOption === "pass"
+        ? checkoutEntry.text("payment.directModal.guide.pass", "이용권이 있다면 결제 없이 바로 열려요. 먼저 확인해 볼까요?")
+        : checkoutEntry.text("payment.directModal.guide.direct", "이번 콘텐츠 하나만 바로 열어볼 수 있어요."));
+  // 추천 카드 하나만 크게, 나머지 둘은 컴팩트 행. 🔴 숨기거나 접지 않는다 — 세 옵션은 항상 함께 보인다.
+  const optionVariantClass = (option: string) =>
+    option === recommendedOption ? " cd-direct-payment-option--recommended" : " cd-direct-payment-option--secondary";
+  const optionRecommendHtml = (option: string) =>
+    option === recommendedOption ? `<span class="cd-direct-payment-recommend">${escapePaymentText(recommendBadgeLabel)}</span>` : "";
+  const optionRecommendAria = (option: string) => (option === recommendedOption ? ` (${recommendBadgeLabel})` : "");
   const directButtonHtml = canShowDirect ? `
-          <button type="button" class="cd-direct-payment-option" data-mode="direct" aria-label="${escapePaymentText(directTitleLabel)} ${formatPaymentWon(directAmount)}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${escapePaymentText(directBadgeLabel)}</span></span>
+          <button type="button" class="cd-direct-payment-option${optionVariantClass("direct")}" data-mode="direct" aria-label="${escapePaymentText(directTitleLabel)} ${formatPaymentWon(directAmount)}${escapePaymentText(optionRecommendAria("direct"))}">
+            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${escapePaymentText(directBadgeLabel)}</span>${optionRecommendHtml("direct")}</span>
             <strong>${escapePaymentText(directTitleLabel)} · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
-            <span>${escapePaymentText(directHintLabel)}</span>
+            <span class="cd-direct-payment-desc">${escapePaymentText(directHintLabel)}</span>
           </button>` : "";
-  const monthlyCurrentLabel = hasProvidedMonthlyBalance ? `보유 월정석 ${monthlyBalance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+  // 🔴 카드에는 정확한 보유량을 싣지 않는다 — 내부 재화 규모(예: 993,799)를 노출하면 오히려 혼란스럽다.
+  // 사용자가 결제 직전에 알아야 하는 건 '이걸로 열 수 있나'뿐이고, 정확한 숫자는 아래 재조회 바에만 둔다.
+  const monthlyCurrentLabel = hasProvidedMonthlyBalance
+    ? (monthlyCanUse
+      ? checkoutEntry.text("payment.directModal.monthlyBalance.owned", "충분해요")
+      : checkoutEntry.text("payment.directModal.monthlyBalance.short", "모자라요"))
+    : checkoutEntry.text("payment.directModal.monthlyBalance.ownedUnknown", "잔량 확인 중");
   // 🔴 3렌더러(셸 index.html · 이 파일 · js/destiny-profile.js)가 같은 문구를 써야 한다.
   // 예전에는 이 카드만 "사용 후 N이 남습니다" 예측 문장을 더 달고 있어 셸과 눈에 띄게 달랐다.
   const monthlyDescInitial = monthlyCanUse
-    ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString("ko-KR") })}`
+    ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString("ko-KR") })}`
     : (hasProvidedMonthlyBalance
-      ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요.")
-      : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요."));
+      ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.")
+      : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요."));
   const monthlyButtonHtml = canShowMonthly ? `
-          <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="월정석 사용${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span></span>
-            <strong>월정석 사용 · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString("ko-KR")}</span> 이벤트 재화</strong>
-            <span data-monthly-hint>${monthlyDescInitial}</span>
-            <span class="cd-direct-payment-moonbal-current" data-monthly-current>${monthlyCurrentLabel}</span>
+          <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}${optionVariantClass("monthly")}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="${escapePaymentText(monthlyTitleLabel)}${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}${escapePaymentText(optionRecommendAria("monthly"))}">
+            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${escapePaymentText(monthlyBadgeLabel)}</span>${optionRecommendHtml("monthly")}</span>
+            <strong>${escapePaymentText(monthlyTitleLabel)} · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString("ko-KR")}</span> ${escapePaymentText(monthlyUnitLabel)}</strong>
+            <span class="cd-direct-payment-desc" data-monthly-hint>${monthlyDescInitial}</span>
+            <span class="cd-direct-payment-moonbal-current" data-monthly-current>${escapePaymentText(monthlyCurrentLabel)}</span>
           </button>` : "";
-  const passStoreFirst = canShowPassStore && !hasActivePassTier;
   const passStoreButtonHtml = canShowPassStore ? `
-          <button type="button" class="cd-direct-payment-option is-store${passStoreFirst ? " cd-direct-payment-option--recommended" : ""}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${passStoreFirst ? " (추천)" : ""}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>${passStoreFirst ? '<span class="cd-direct-payment-recommend">추천</span>' : ""}</span>
+          <button type="button" class="cd-direct-payment-option is-store${optionVariantClass("pass")}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${escapePaymentText(optionRecommendAria("pass"))}">
+            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>${optionRecommendHtml("pass")}</span>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
-            <span>${escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint)}</span>
+            <span class="cd-direct-payment-desc">${escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint)}</span>
           </button>` : "";
-  const paymentChoiceButtonsHtml = passStoreFirst
-    ? `${passStoreButtonHtml}${directButtonHtml}${monthlyButtonHtml}`
-    : `${directButtonHtml}${monthlyButtonHtml}${passStoreButtonHtml}`;
+  const choiceCardHtmlByOption: Record<string, string> = {
+    pass: passStoreButtonHtml,
+    direct: directButtonHtml,
+    monthly: monthlyButtonHtml,
+  };
+  const paymentChoiceButtonsHtml = (checkoutRecommendation.order || [])
+    .map((option) => choiceCardHtmlByOption[option] || "")
+    .join("");
   // 월정석이 결제 옵션인 한 잔량 상태 + '월정석 재조회' 버튼을 항상 노출한다(결제 버튼 바깥이라 비활성과 무관히 동작).
+  // 🔴 아래 문구들은 템플릿 리터럴 **바깥**에서 만든다. scripts/lib/js-source-slice.mjs 의 스캐너는
+  // 백틱을 단순 따옴표로 처리해 중첩 템플릿을 못 읽고, 중첩하면 결제 가드 2종이 "중괄호 불균형"으로 죽는다.
+  const moonlightBalanceReadyText = checkoutEntry.text("payment.directModal.monthlyBalance.ready", "내 월정석 {balance}", {
+    balance: `${monthlyBalance.toLocaleString("ko-KR")} ${monthlyUnitLabel}`,
+  });
+  const moonlightBalanceRowText = hasProvidedMonthlyBalance
+    ? moonlightBalanceReadyText
+    : checkoutEntry.text("payment.directModal.monthlyBalance.checking", "월정석 잔여를 확인하고 있습니다.");
+  const moonlightRefreshLabel = checkoutEntry.text("payment.directModal.monthlyBalance.refresh", "월정석 재조회");
+  const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
+  const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
+  const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
   const moonlightRefreshRowHtml = canShowMonthly ? `
         <div class="cd-direct-payment-balance-check" data-monthly-balance-status data-state="${hasProvidedMonthlyBalance ? "fresh" : "checking"}">
-          <span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>${escapePaymentText(hasProvidedMonthlyBalance ? `월정석 잔여 확인 완료 · 현재 ${monthlyBalance.toLocaleString("ko-KR")} 이벤트 재화` : "월정석 잔여를 확인하고 있습니다.")}</span>
-          <button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">월정석 재조회</button>
+          <span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>${escapePaymentText(moonlightBalanceRowText)}</span>
+          <button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">${escapePaymentText(moonlightRefreshLabel)}</button>
         </div>` : "";
 
   return new Promise((resolve) => {
@@ -1240,8 +1308,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           <span class="cd-direct-payment-moon-reflect"></span>
         </div>
         <h2 class="cd-direct-payment-title">${billingClientText("billingClient.text.001")}</h2>
-        <p class="cd-direct-payment-sub">${escapePaymentText(paymentChoiceSub)}</p>
-        <div class="cd-direct-payment-note"><strong>${escapePaymentText(title)}</strong>월정석 이벤트 재화 기준 · ${formatPaymentWon(directAmount)}${canShowPassStore ? "<br>한도 이하 서비스는 이용권으로 열리고, 월정석 잔량이 충분하면 보유 월정석에서 차감됩니다." : ""}</div>
+        <div class="cd-direct-payment-guide">
+          <img class="cd-direct-payment-guide__pig" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="" width="64" height="64" loading="eager" decoding="async">
+          <p class="cd-direct-payment-sub">${escapePaymentText(guideBubbleText)}</p>
+        </div>
+        <div class="cd-direct-payment-note"><strong>${escapePaymentText(title)}</strong><span>${escapePaymentText(noteBasisText)}</span>${noteWithPassHtml}</div>
         <div class="cd-direct-payment-choice-grid">
           ${paymentChoiceButtonsHtml}
         </div>
@@ -1352,7 +1423,14 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       const descNode = modal.querySelector<HTMLElement>("[data-monthly-hint]");
       const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
       const balanceStatus = modal.querySelector<HTMLElement>("[data-monthly-balance-status]");
-      if (currentNode) currentNode.textContent = known ? `보유 월정석 ${balance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+      // 카드는 '충분/모자람'만, 정확한 잔량은 아래 재조회 바에만 — 최초 렌더와 같은 규칙이다.
+      if (currentNode) {
+        currentNode.textContent = known
+          ? (insufficient
+            ? checkoutEntry.text("payment.directModal.monthlyBalance.short", "모자라요")
+            : checkoutEntry.text("payment.directModal.monthlyBalance.owned", "충분해요"))
+          : checkoutEntry.text("payment.directModal.monthlyBalance.ownedUnknown", "잔량 확인 중");
+      }
       // 상태 표시가 초기 렌더값('checking')에 굳어 실패해도 '확인하고 있습니다'로 남던 문제(셸은 갱신함).
       if (balanceStatus) balanceStatus.setAttribute("data-state", fresh ? "fresh" : state);
       if (balanceText) {
@@ -1362,19 +1440,21 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             ? (known
               ? `월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`
               : "월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.")
-            : `월정석 잔여 확인 완료 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`;
+            : checkoutEntry.text("payment.directModal.monthlyBalance.ready", "내 월정석 {balance}", { balance: `${balance.toLocaleString("ko-KR")} ${monthlyUnitLabel}` });
       }
       if (monthlyButton) {
         monthlyButton.disabled = !canUse;
         monthlyButton.classList.toggle("is-disabled", !canUse);
         monthlyButton.setAttribute("aria-disabled", canUse ? "false" : "true");
-        monthlyButton.setAttribute("aria-label", `월정석 사용${canUse ? "" : (insufficient ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
+        monthlyButton.setAttribute("aria-label", `${monthlyTitleLabel}${canUse ? "" : (insufficient ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
+        // 🔴 fallback 문구는 최초 렌더(monthlyDescInitial)와 같은 키·같은 문장을 쓴다. 예전에는 여기만
+        // 만료 정책까지 덧붙인 다른 문장이라, 잔량을 한 번 재조회했을 뿐인데 안내가 통째로 바뀌었다.
         if (descNode) {
           descNode.textContent = insufficient
-            ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
+            ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.")
             : (known
-              ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${afterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
-              : "월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
+              ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: afterBalance.toLocaleString("ko-KR") })}`
+              : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요."));
         }
       }
     };

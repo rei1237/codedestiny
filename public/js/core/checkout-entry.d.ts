@@ -3,6 +3,9 @@
 
 export type CheckoutStorePlan = "standard" | "premium" | "vvip" | "family";
 
+/** 결제창 선택지 3종. data-mode 값('pass-store'|'direct'|'monthly')과는 별개인 내부 키다. */
+export type CheckoutOptionKey = "pass" | "direct" | "monthly";
+
 export type CheckoutReturnPoint = {
   /** 이용권 구매 후 돌아갈 화면. rememberCheckoutReturn 이 남긴 값 그대로다. */
   url: string;
@@ -59,6 +62,25 @@ declare const checkoutEntry: {
    * 한국어 fallback 이 ko 정본이므로 ko.json 과 항상 함께 맞춘다.
    */
   text(key: string, fallback: string, vars?: Record<string, string | number>): string;
+  /**
+   * 결제창의 추천 선택지와 카드 순서. 순수 함수이며 서버를 부르지 않는다 —
+   * 표시 우선순위일 뿐 접근 권한 판정이 아니다(이용권 판정은 카드 클릭 시 서버가 한다).
+   */
+  resolveCheckoutRecommendation(input: {
+    allowPass?: boolean;
+    allowDirect?: boolean;
+    allowMonthly?: boolean;
+    /** 로컬 구독 스냅샷이 알려준 활성 등급 보유 여부. 미상이면 false. */
+    hasActivePassTier?: boolean;
+    monthlyBalanceFresh?: boolean;
+    monthlyBalance?: number;
+    requiredMonthlyCredits?: number;
+  }): {
+    recommended: CheckoutOptionKey | "";
+    order: CheckoutOptionKey[];
+    /** 확인된 잔량이 필요량을 덮는가. '미확정'은 false 다. */
+    monthlyCovers: boolean;
+  };
   /** 이 금액을 덮는 가장 낮은 이용권 등급(보유 등급 이하는 제외). 판정 불가 시 빈 문자열. */
   resolveStorePlan(costCoins: number, currentTier?: unknown): CheckoutStorePlan | "";
   buildPassStoreUrl(options: {

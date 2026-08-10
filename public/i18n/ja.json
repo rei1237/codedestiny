@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "決済方法を選択",
       "readyMessage": "月定石と単発決済のどちらかを選んでください。",
-      "directHint": "今回の結果ひとつだけ。カード・簡単決済ですぐ開きます。",
-      "pgBadge": "PortOne V2 · KGイニシス",
+      "directHint": "今見ているコンテンツだけがすぐ開きます。",
+      "pgBadge": "カード · 簡単決済",
       "directTitle": "ウォン単発決済 · {amount}",
       "amountLabel": "決済金額",
       "monthlyBasisLabel": "月定石基準",
-      "monthlyBadge": "保有月定石",
-      "monthlyTitle": "月定石決済",
+      "monthlyBadge": "月精石",
+      "monthlyTitle": "月精石で開く",
       "requiredMonthly": "必要月定石",
       "currentMonthly": "現在残高",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "表示金額は月定石基準と同じウォン基準です。カード単発決済で進めます。"
       },
       "note": {
-        "basis": "月定石基準 · {amount}",
-        "withPass": "通常の有料サービスは上限内なら利用券で開き、PDFと上限超過サービスは商品別のウォン単発決済で利用できます。",
-        "directOnly": "この操作はウォン単発決済で確定します。",
+        "basis": "決済金額 {amount}",
+        "withPass": "利用券 · 月精石 · カードから選べます。",
+        "directOnly": "このコンテンツはカード決済で開きます。",
         "passUnknown": "利用券をお持ちなら、下の利用券カードを押すとその場で確認できます。",
         "passMiss": "お持ちの利用券ではこのコンテンツが無料になりません。決済方法をお選びください。"
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "月光利用券ショップ",
       "passRetryTitle": "利用券を再確認",
       "passHint": {
-        "store": "30日間、上限以下の機能を決済画面なしで無制限に。すでに利用券をお持ちならタップですぐ確認できます。",
+        "store": "一度の決済で30日間いろいろなコンテンツを開けます。すでにお持ちならタップで確認できます。",
         "retry": "保有利用券で決済なしに開けるかサーバーで再確認します。",
-        "upgrade": "現在の等級ではこの機能は無料になりません。上位の利用券をご確認ください。"
+        "upgrade": "今の等級ではこのコンテンツは開きません。上位の等級をご確認ください。"
       },
       "applyMethod": {
         "label": "適用方式",
@@ -1811,40 +1811,46 @@
         "checking": "利用券範囲を確認中"
       },
       "monthlyHint": {
-        "use": "すでにお持ちの月定石でお支払いします。追加の出費なしで開きます。",
-        "insufficient": "月定石残高が不足しています。ウォン単発決済で進めます。",
-        "checking": "月定石残高の確認が必要です。ウォン単発決済は続けられます。",
+        "use": "すでにお持ちの月精石で開きます。追加の出費はありません。",
+        "insufficient": "月精石が足りません。このコンテンツだけの購入で開けます。",
+        "checking": "月精石の残量を確認しています。そのままタップしても大丈夫です。",
         "after": "使用後は {balance} が残ります。"
       },
       "monthlyBalance": {
         "needCheck": "確認必要",
-        "ready": "月定石残高確認完了 · 現在 {balance}",
+        "ready": "所持月精石 {balance}",
         "checking": "月定石残高を確認しています。",
         "refresh": "月定石を再照会",
         "refreshing": "月定石残高を再照会しています。",
         "refreshed": "月定石残高を再確認しました。現在 {balance}です。",
         "notFound": "有効な月定石/利用券をまだ確認できません。決済完了後に再照会してください。",
-        "owned": "保有月定石 {balance}",
-        "ownedUnknown": "保有月定石 · 確認が必要",
+        "owned": "十分です",
+        "ownedUnknown": "残量を確認中",
         "signedOut": "ログイン後に月定石の残高を確認できます。",
         "unconfirmed": "月定石の残高を確認できませんでした。そのままお試しいただけます。不足していれば決済時にお知らせします。",
-        "staleAfterError": "月定石の残高を再確認できず、前回の確認値を表示しています · 現在 {balance}"
+        "staleAfterError": "月定石の残高を再確認できず、前回の確認値を表示しています · 現在 {balance}",
+        "short": "足りません"
       },
       "legal": {
         "provisionTiming": "本サービスは決済完了後すぐに提供されます。決済確認時点からサービス利用が開始され、サービス提供が開始されたコンテンツは電子商取引法に基づき、申し込み撤回が制限される場合があります。"
       },
-      "passUpgradeTitle": "月光利用券アップグレード",
+      "passUpgradeTitle": "利用券をアップグレード",
       "recommendBadge": "おすすめ",
-      "moonTitle": "決済方法を選択",
-      "moonSubtitle": "ご自身に合った方法でコンテンツを開いてください。",
-      "directTitleLabel": "単発決済",
+      "moonTitle": "このコンテンツを開きますか？",
+      "moonSubtitle": "いちばん便利な方法で開きます。",
+      "directTitleLabel": "このコンテンツだけ",
       "monthlyUnit": "イベント通貨",
-      "passBuyTitle": "利用券で購入",
+      "passBuyTitle": "利用券で開く",
       "passChecking": "利用券を確認しています。",
       "passMissGoStore": "お持ちの利用券では開けないため、利用券ショップへ移動します。",
       "passCheckRetry": "利用券の状態を確認できませんでした。しばらくしてからもう一度押してください。",
-      "directHintApp": "今回の結果ひとつだけ。Google Play 決済ですぐ開きます。",
-      "pgBadgeApp": "Google Play 決済"
+      "directHintApp": "今見ているコンテンツだけ。Google Play決済ですぐ開きます。",
+      "pgBadgeApp": "Google Play 決済",
+      "guide": {
+        "pass": "利用券があれば決済なしですぐ開きます。まず確認しましょうか？",
+        "monthly": "お持ちの月精石で追加の出費なしに開けます！",
+        "direct": "今見ているコンテンツだけをすぐ開けます。"
+      }
     },
     "overlay": {
       "unlockPreparing": {
