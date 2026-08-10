@@ -3329,10 +3329,14 @@ async function handleWebhook(request, env, ctx) {
       stage: "webhook_auth",
       code: "missing_webhook_secret",
       message: "PORTONE_webhook is required.",
-      status: 503,
+      status: 500,
       payload: { rawBodyBytes: new TextEncoder().encode(rawBody).length },
     });
-    return json({ message: "Webhook verification is not configured." }, { status: 503 });
+    /* 503 이 아니라 500 이다. 503 은 "의존 서비스가 잠깐 죽었다"는 뜻이라 재시도가 언젠가
+       성공한다는 약속인데, 시크릿 누락은 사람이 값을 넣기 전까지 영원히 그대로다.
+       2xx 로 답할 수도 없다 — 검증하지 못한 이벤트를 ack 하면 그 결제는 영영 미확정으로 사라진다.
+       그래서 재전송은 계속 오게 두되, 상태코드만은 "우리 설정이 틀렸다"를 정확히 말한다. */
+    return json({ message: "Webhook verification is not configured." }, { status: 500 });
   }
 
   const verifiedWebhook = await verifyPortOneWebhookSignature(webhookSecret, rawBody, request.headers);

@@ -6934,10 +6934,15 @@ async function handleConfirm(request, env) {
       orderId: String(body?.orderId || body?.merchantUid || body?.merchant_uid || ""),
       recoveryRequired: true,
       retryable: false,
-      // 🔴 이 503 은 인프라 장애가 아니다 — 카드는 승인됐고 서버도 멀쩡하며 주문도 기록돼 있다.
-      // 계층 라벨만 붙이고 **Retry-After 는 일부러 뺀다**: 본문이 retryable:false 인데 재시도 시각을
-      // 주면 클라에 정반대 지시를 두 개 보내게 된다. 신규 모듈에서 200 GRANT_PENDING 으로 바뀔 자리다.
-    }, { status: 503, headers: { "X-CD-Error-Stage": "card-confirm-pending" } });
+      /* 🔴 202 다. 예전에는 `503 + retryable:false` 였는데, 그건 클라이언트가 행동할 수 없는
+         모순이다 — 503 은 "나중에 다시 오라", retryable:false 는 "오지 마라"를 동시에 말한다.
+         실제 상태는 *서버 정상 + 카드 승인됨 + 주문 기록됨* 이므로 장애가 아니라 **접수됐고
+         이행이 덜 끝난 것**이고, 202 가 정확히 그 뜻이다.
+         200 으로 올리지는 않는다 — ok:true 로 보이면 클라가 성공으로 읽고 아직 열리지 않은
+         콘텐츠를 렌더하려 든다. 여기서는 "받았다, 다시 결제하지 마라"까지만 말한다.
+         부수 효과로 이 응답이 더는 서비스 장애로 집계되지 않는다(503 이던 시절에는 결제가
+         정상 접수된 건까지 가용성 지표를 깎았다). Retry-After 는 여전히 붙이지 않는다. */
+    }, { status: 202, headers: { "X-CD-Error-Stage": "card-confirm-pending" } });
   }
   return response;
 }
