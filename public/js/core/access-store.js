@@ -474,6 +474,51 @@
     return result;
   }
 
+  /**
+   * access-state 응답의 이용권 정보를 pass-verdict 스냅샷에도 흘린다. **추가 요청이 0건**이다 —
+   * 이미 받은 응답을 버리지 않을 뿐이다(js/destiny-profile.js 가 /api/billing/balance 의 membership 에
+   * 대해 하고 있는 것과 같은 패턴).
+   *
+   * 이 응답만이 completeness:'full' + authority:'server' 를 실어서, 만료된 이용권을 올바르게 'none' 으로
+   * 내릴 수 있는 유일한 경로다(pass-verdict storeStatus 의 다운그레이드 가드). balance 응답의 membership
+   * 에는 그 두 필드가 없어 기존 active 를 덮지 못한다.
+   *
+   * 🔴 entitlementSnapshot 을 **그대로 넘기면 안 된다.** 그 안의 expiresAt 은 이용권 만료일이 아니라
+   * access-state 캐시 만료(worker/lib/access-state.js)라서, buildSnapshotFromStatus 가 그걸 이용권
+   * 만료일로 읽어 몇 분짜리 active 스냅샷을 만든다. 진짜 만료일은 activePasses[0].expiresAt 이다.
+   */
+  function syncPassVerdictSnapshot(userId, payload) {
+    try {
+      var verdict = globalThis.__cdPassVerdict;
+      if (!verdict || typeof verdict.storeStatus !== 'function') return;
+      var uid = String(userId || '').trim();
+      if (!uid || uid === 'anonymous') return;
+      var source = payload && typeof payload === 'object' ? payload : null;
+      var snap = source && source.entitlementSnapshot && typeof source.entitlementSnapshot === 'object'
+        ? source.entitlementSnapshot
+        : null;
+      if (!snap) return;
+      // applyAccessStateSnapshot 의 authoritativeFull 과 같은 기준을 쓴다(새 기준을 만들지 않는다).
+      if (source.degraded === true || snap.degraded === true) return;
+      var completeness = String(source.completeness || snap.completeness || '').toLowerCase();
+      var authority = String(source.authority || snap.authority || '').toLowerCase();
+      if (completeness !== 'full' || authority !== 'server') return;
+      var tier = String(snap.tier || '').trim().toLowerCase();
+      var hasActivePass = Boolean(tier) && tier !== 'free' && tier !== 'none';
+      var activePass = Array.isArray(snap.activePasses) && snap.activePasses[0] ? snap.activePasses[0] : null;
+      verdict.storeStatus(uid, {
+        tier: tier,
+        hasActivePass: hasActivePass,
+        expiresAt: (activePass && activePass.expiresAt) || null,
+        completeness: 'full',
+        authority: 'server',
+        degraded: false
+      }, 'access-state');
+    } catch (e) {
+      // 스냅샷 반영 실패가 접근 상태 갱신을 막아서는 안 된다.
+    }
+  }
+
   function applyServerPayload(payload, context) {
     var serverUnlocks = extractUnlockMap(payload);
     Object.keys(serverUnlocks).forEach(function (key) { state.confirmedUnlocks[key] = true; });
@@ -507,6 +552,7 @@
     if (payload && payload.entitlementSnapshot) {
       state.membership = copyObject(payload.entitlementSnapshot);
     }
+    syncPassVerdictSnapshot(context.userId, payload);
     state.status = 'ready';
     state.error = null;
     state.checkedAt = Date.now();
@@ -577,6 +623,8 @@
       state.entitlementSnapshot = incomingEntitlement;
       state.membership = copyObject(incomingEntitlement) || state.membership;
     }
+    // 신원 검사는 위 :532 에서 이미 끝났다(requestedUserId 불일치면 여기 도달하지 않는다).
+    syncPassVerdictSnapshot(sourceUserId, source);
     var incomingMonthlyBalance = source.monthlyBalance || source.monthlyBalanceSummary
       || incomingEntitlement && incomingEntitlement.monthlyBalance;
     if (incomingMonthlyBalance && typeof incomingMonthlyBalance === 'object'

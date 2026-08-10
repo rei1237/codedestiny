@@ -19,9 +19,11 @@
  * COIN_GATE_PASS_RESOLVE_TIMEOUT → isDatabaseUnavailableError → 503
  * PASS_STATUS_TEMPORARILY_UNAVAILABLE 이 된다.
  *
- * 이 경로가 선택되는 조건 hasResolvableSubscriptionSignal 은 "월정석 잔량 > 0" 또는
- * "만료 구독 잔재(expiresAt·planId·customerUid…)"라 **계정 문서의 속성**이다 — 즉 매 요청
- * 재현된다. 그래서 증상이 "간헐적"이 아니라 "항상"이었다.
+ * 이 경로가 선택되는 조건 hasResolvableSubscriptionSignal 은 "만료 구독 잔재(expiresAt·planId·
+ * customerUid…)" 같은 **계정 문서의 속성**이라 매 요청 재현된다. 그래서 증상이 "간헐적"이 아니라
+ * "항상"이었다. ("월정석 잔량 > 0" 도 신호로 세던 것은 2026-08-10 에 제거했다 — 위임은 tier 없이
+ * active 를 낼 수 없어 월정석 보유자 전원이 결과가 정해진 위임을 타고 있었다.
+ * 분류·신호 판정의 동작 가드는 __tests__/worker/billing.503-classification.test.js 에 있다.)
  */
 
 import fs from "node:fs";

@@ -1,4 +1,4 @@
-import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { getRequestMeta, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
@@ -205,27 +205,20 @@ async function enforceBillingRouteSecurity(request, env, path, method) {
   });
 }
 
-const PAID_ACCESS_DB_ERROR_SIGNATURES = [
-  "temporarily unavailable",
-  "temporarily_unavailable",
-  "server is unavailable",
-  "database is temporarily unavailable",
-  "connection",
-  "connect",
-  "server selection",
-  "selection timeout",
-  "timed out",
-  "timeout",
-  "econnrefused",
-  "enotfound",
-  "enotconn",
-  "econnreset",
-  "etimedout",
-  "mongo",
-  "mongoose",
-  "mongodb",
-  "network",
-];
+/* 🔴 우리가 **스스로 건** 예산 상한이 던지는 코드. 이름이 전부 withDbAccessTimeout 의 message 인자다.
+   예전에는 이 코드들을 "connection"/"timeout"/"network" 같은 일반 단어 목록으로 잡았는데, 그 목록이
+   두 가지를 동시에 망가뜨렸다:
+     ① Mongo 가 죽지 않고 그냥 느렸을 뿐인 요청이 "DB 장애"로 세탁돼 503 이 됐다(사용자가 겪은 결제 503).
+     ② 메시지에 "connection"/"network" 가 우연히 든 **비-DB 코드 버그**까지 재시도 가능 503 으로 위장됐다.
+        http.js:185-188 이 바로 그 안티패턴이 며칠간 장애를 가린 사례(guardian ensureGuest)를 기록해 뒀다.
+   그래서 자체 예산은 **정확 일치**로만 잡고, 진짜 인프라 장애는 http.js 의 단일 정의를 재사용한다
+   (isDbUnavailableError — PERMANENT_MONGO_ERROR_CODES allowlist 까지 포함된 쪽). 판정기를 새로 만들지 않는다. */
+const PAID_ACCESS_SELF_BUDGET_CODES = new Set([
+  "COIN_GATE_PASS_RESOLVE_TIMEOUT",
+  "COIN_GATE_PROFILE_RESOLVE_TIMEOUT",
+  "UNLOCK_ACCESS_DECISION_TIMEOUT",
+  "UNLOCK_DB_TIMEOUT",
+]);
 
 const LEGACY_COIN_PAYMENT_MODES = new Set([
   "coin",
@@ -1078,6 +1071,8 @@ function buildTemporaryUnavailableAccessDecision(pricing, profileSubscription = 
     scope: String(extras?.scope || "").trim() || undefined,
     errorCode: String(extras?.errorCode || "PASS_STATUS_TEMPORARILY_UNAVAILABLE").trim(),
     errorDetails: extras?.errorDetails || null,
+    // 503 계층 라벨. 응답 본문이 아니라 헤더로 나가므로 여기서 끝까지 실어 나른다.
+    cause: String(extras?.cause || "").trim() || undefined,
   };
 }
 
@@ -1121,6 +1116,7 @@ function buildPassStatusTemporarilyUnavailableFailure(pricing, options = {}) {
     undefined,
     detail,
     options?.errorDetails || null,
+    paidAccessRetryableHeaders(options?.cause),
   );
 }
 
@@ -1318,6 +1314,7 @@ async function resolvePaidContentAccess(env, {
     // temporary_unavailable 은 클라가 last-known(해금 유지)로 처리하므로 오탐 재잠금을 막는다.
     return buildTemporaryUnavailableAccessDecision(pricing, null, {
       scope: "resolve_paid_content_access",
+      cause: paidAccessErrorStage(error),
       errorDetails: buildBillingErrorDetails("resolve-paid-content-access", error, {
         featureKey,
         requestId,
@@ -2729,7 +2726,9 @@ function toIso(value) {
   return date.toISOString();
 }
 
-function failure(status, code, message, debugMessage, extras = {}, errorDetails) {
+// responseHeaders: 503 계층 라벨(X-CD-Error-Stage)·Retry-After 처럼 **본문에 넣으면 안 되는** 진단 정보만
+// 싣는다. extras 는 그대로 본문에 스프레드되므로 헤더를 그쪽에 태우면 응답 스키마가 오염된다.
+function failure(status, code, message, debugMessage, extras = {}, errorDetails, responseHeaders) {
   const normalizedCode = normalizeBillingErrorCode(code);
   const responseStatus = extras?.status || (Number(status) === 402 ? "payment_required" : "error");
   const responseReason = extras?.reason || (responseStatus === "payment_required" ? resolvePaymentRequiredReason(normalizedCode, extras) : normalizedCode);
@@ -2750,7 +2749,10 @@ function failure(status, code, message, debugMessage, extras = {}, errorDetails)
       ...(debugMessage ? { debugMessage: String(debugMessage).slice(0, 300) } : {}),
       ...(errorDetails && typeof errorDetails === "object" ? { details: errorDetails } : {}),
     },
-  }, { status });
+  }, {
+    status,
+    ...(responseHeaders && typeof responseHeaders === "object" ? { headers: responseHeaders } : {}),
+  });
 }
 
 function buildRoutedRequest(request, targetPath, method, body) {
@@ -2842,16 +2844,29 @@ function shouldRetryCoinConsumeException(error) {
     || message.includes("TOPOLOGY CLOSED");
 }
 
-function hasDbErrorSignature(rawText) {
-  const text = String(rawText || "").trim().toLowerCase();
-  if (!text) return false;
-  return PAID_ACCESS_DB_ERROR_SIGNATURES.some((needle) => text.includes(needle));
+function isPaidAccessSelfBudgetError(error) {
+  return PAID_ACCESS_SELF_BUDGET_CODES.has(String(error?.message || "").trim())
+    || PAID_ACCESS_SELF_BUDGET_CODES.has(String(error?.code || "").trim());
 }
 
 function isDatabaseUnavailableError(error) {
-  const message = String(error?.message || "").toLowerCase();
-  const code = String(error?.code || error?.name || "").toLowerCase();
-  return hasDbErrorSignature(message) || hasDbErrorSignature(code);
+  // 자체 예산 초과는 여전히 degrade 대상이다(호출부 동작 불변). 달라지는 것은 **왜** degrade 됐는지를
+  // 헤더/로그로 구분할 수 있게 된 것과, 일반 단어에 걸린 비-DB 오류가 더는 여기 섞이지 않는다는 것뿐이다.
+  return isPaidAccessSelfBudgetError(error) || isDbUnavailableError(error);
+}
+
+/* 503 을 낸 계층 라벨. 우리 예산으로 자른 것(billing-pass-budget)과 진짜 인프라 장애(db)를 가른다.
+   지금까지 billing 이 내는 503 에는 stage 헤더도 Retry-After 도 없어서, DEBUGGING_GUIDE 의 계층 판별
+   절차가 결제 503 에 대해서만 작동하지 않았다(= 어떤 수정이 효과가 있었는지 측정할 수단이 없었다). */
+function paidAccessErrorStage(error) {
+  return isPaidAccessSelfBudgetError(error) ? "billing-pass-budget" : "db";
+}
+
+function paidAccessRetryableHeaders(stage) {
+  return {
+    "X-CD-Error-Stage": String(stage || "db"),
+    "Retry-After": "2",
+  };
 }
 
 function withDbAccessTimeout(promise, timeoutMs, message) {
@@ -2954,6 +2969,8 @@ function logPaidAccessStage(stage, details = {}) {
     // 503 진단용: 어느 체크포인트(httpStatus)에서, 어떤 조회 범위(scope)가,
     // 얼마나(elapsedMs) 걸려 실패했는지 정량화하기 위한 필드.
     scope: String(details.scope || ""),
+    // 503 이 우리 예산(billing-pass-budget) 때문인지 진짜 인프라(db/auth) 때문인지. X-CD-Error-Stage 와 같은 값.
+    cause: String(details.cause || ""),
     httpStatus: Number(details.httpStatus || 0),
     elapsedMs: Number(details.elapsedMs || 0),
     errorName: String(details.errorName || ""),
@@ -3238,6 +3255,7 @@ async function requireBillingAuth(request, env, pricing = {}) {
         featureKey: String(pricing?.featureKey || ""),
         httpStatus: 503,
         scope: "auth",
+        cause: "auth",
         errorName: String(error?.name || ""),
         errorMessage: String(error?.message || ""),
       });
@@ -3249,6 +3267,9 @@ async function requireBillingAuth(request, env, pricing = {}) {
           "로그인 상태를 일시적으로 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
           undefined,
           { retryable: true },
+          null,
+          // http.js resolveErrorStage 와 같은 라벨을 쓴다 — 결제 503 과 인증 503 을 헤더 하나로 가른다.
+          paidAccessRetryableHeaders("auth"),
         ),
       };
     }
@@ -3486,12 +3507,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       featureKey: pricing?.featureKey,
       httpStatus: 503,
       scope: lookupUnavailable.scope,
+      cause: paidAccessErrorStage(lookupUnavailable.error),
       elapsedMs: lookupElapsedMs,
       errorName: String(lookupUnavailable.error?.name || ""),
       errorMessage: String(lookupUnavailable.error?.message || ""),
     });
     return buildPassStatusTemporarilyUnavailableFailure(pricing, {
       scope: lookupUnavailable.scope,
+      cause: paidAccessErrorStage(lookupUnavailable.error),
       errorDetails: buildBillingErrorDetails("coin-gate-pass-lookup", lookupUnavailable.error, {
         featureKey: String(pricing?.featureKey || ""),
         requestId,
@@ -3593,6 +3616,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       profileId: profileId || undefined,
       httpStatus: 503,
       scope: accessDecision.scope || "coin_gate_access_decision",
+      cause: accessDecision.cause || "",
       elapsedMs: accessDecisionElapsedMs,
       errorName: String(accessDecision.errorDetails?.name || ""),
       errorMessage: String(accessDecision.errorDetails?.message || accessDecision.reason || ""),
@@ -3602,6 +3626,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       profileSubscription: subscriptionPassForDecision?.profileSubscription || null,
       paymentOptions: accessDecision.paymentOptions || undefined,
       scope: accessDecision.scope || "coin_gate_access_decision",
+      cause: accessDecision.cause,
       errorDetails: accessDecision.errorDetails || null,
     });
   }
@@ -5382,9 +5407,21 @@ function hasResolvableSubscriptionSignal(user) {
   const sub = user.profileSubscription;
   if (sub && typeof sub === "object") {
     if (sub.expiresAt || sub.planId || sub.plan || sub.productId || sub.startedAt || sub.customerUid) return true;
-    const subTier = String(sub.tier || sub.passTier || "").trim().toLowerCase();
+    // 🔴 tier 후보는 entitlement-policy.js activeCandidate 가 읽는 것과 **같은 집합**이어야 한다.
+    // 그쪽은 passTier|tier|subscriptionTier|membershipTier|plan|planId|productId 를 보고 하나도 없으면
+    // if (!tier) return null 로 비활성을 확정한다. 여기서 두 필드를 빠뜨리면 위임만이 활성이라고
+    // 판단할 수 있는 계정을 놓친다.
+    const subTier = String(
+      sub.tier || sub.passTier || sub.subscriptionTier || sub.membershipTier || "",
+    ).trim().toLowerCase();
     if (subTier && subTier !== "free") return true;
-    if (Number(sub.membershipCreditBalance || 0) > 0) return true;
+    // 🔴 membershipCreditBalance > 0 은 신호가 아니다(2026-08-10 제거).
+    // 월정석 잔액은 이벤트 지급 재화라 이용권과 무관한데, 이 한 줄 때문에 **월정석 보유·이용권 미보유
+    // 사용자 전원**이 coin-gate 마다 fortune.js 라우트 재진입(264KB 지연 임포트 + 인증 op + User read +
+    // 3500ms 예산)을 탔다. 그리고 위임은 tier 없이는 절대 active 를 낼 수 없다:
+    //   fortune.js  handleSubscriptionStatus : if (tier !== "free")  — tier 필수
+    //   entitlement-policy.js activeCandidate: if (!tier) return null — tier 필수
+    // 즉 tier 류 필드가 하나도 없는 계정은 위임해 봐야 결과가 inactive 로 정해져 있다.
   }
   if (user.subscription || user.membership || user.pass || user.entitlement) return true;
   if (user.plan || user.planId || user.productId || user.subscriptionTier || user.membershipTier || user.passTier || user.expiresAt) return true;
@@ -6212,6 +6249,7 @@ async function handleUnlockStatus(request, env) {
       profileSubscription: subscriptionPass?.profileSubscription || null,
       paymentOptions: accessDecision.paymentOptions || undefined,
       scope: accessDecision.scope || "unlock_status_access_decision",
+      cause: accessDecision.cause,
       errorDetails: accessDecision.errorDetails || null,
     });
   }
@@ -7090,6 +7128,11 @@ export const __billingTestUtils = {
   buildRefundedSpendSourceId,
   isPassExcludedPricing,
   isExplicitLegacyCoinPaymentMode,
+  // 503 분류 3종. 정적 문자열 매칭으로는 "무엇을 DB 장애로 볼 것인가"를 검증할 수 없어 실제로 호출한다.
+  isDatabaseUnavailableError,
+  paidAccessErrorStage,
+  hasResolvableSubscriptionSignal,
+  buildPassStatusTemporarilyUnavailableFailure,
   shouldCreateDirectPortOneOrder,
   shouldApplyMembershipPassBeforeCard,
   requiresMeteredPassWrite,

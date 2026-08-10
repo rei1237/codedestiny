@@ -323,13 +323,34 @@ function runInstantPgLatencyTests() {
   assertContains(indexSource, "return status === 'payment_required' || status === 'already_unlocked' || status === 'pass_applied';", "pass-applied snapshot prechecks must be cached during the short precheck window");
   assertContains(indexSource, "if (cachedStatus === 'pass_applied') return false;", "cached pass-applied prechecks must not be force-refreshed into intermittent 503 failures");
 
-  // ② 진입 경로에는 서버 왕복이 없다 — 두 진입점 모두 snapshotVerdictOnly 로 스냅샷 판정만 쓴다.
-  //    (메인 게이트 _cdOpenPaidServiceGate, 결제창 직행 경로 _cdResolvePassBeforePaymentChoice)
-  assertContains(indexSource, "snapshotVerdictOnly: true,", "entry pass check must be snapshot-only");
+  // ② 진입 경로에는 서버 왕복이 없다 — 스냅샷 fast-path 를 켠 **모든** 진입점이 snapshotVerdictOnly 도 켠다.
+  //    🔴 예전에는 파일 전체에서 "snapshotVerdictOnly: true," 개수가 2 이상인지만 셌다. 정본 진입점 2곳
+  //    (_cdOpenPaidServiceGate, _cdResolvePassBeforePaymentChoice)만 통과하면 나머지가 플래그를 빠뜨려도
+  //    통과했고, 실제로 레거시 진입점 3곳(유료 섹션 해제·메인 타일 per-use·타일 잠금)이 빠져 있어
+  //    첫 방문·새 기기·스냅샷 만료 상태의 유료 클릭이 전부 coin-gate 왕복을 강제했다(2026-08-10 발견).
+  //    개수가 아니라 지점별로 센다.
+  assertContains(indexSource, "snapshotVerdictOnly: true", "entry pass check must be snapshot-only");
+  const snapshotFastPathOffsets = [];
+  for (
+    let cursor = indexSource.indexOf("allowSnapshotFastPath: true");
+    cursor >= 0;
+    cursor = indexSource.indexOf("allowSnapshotFastPath: true", cursor + 1)
+  ) {
+    snapshotFastPathOffsets.push(cursor);
+  }
   assert.ok(
-    indexSource.split("snapshotVerdictOnly: true,").length - 1 >= 2,
-    "both entry paths (main gate and payment-choice shortcut) must opt into the snapshot-only verdict",
+    snapshotFastPathOffsets.length >= 5,
+    `expected at least 5 snapshot fast-path entry points, found ${snapshotFastPathOffsets.length}`,
   );
+  for (const offset of snapshotFastPathOffsets) {
+    // 옵션 객체는 리터럴 하나이고 snapshotVerdictOnly 는 항상 allowSnapshotFastPath 뒤에 온다.
+    // 앞쪽을 보지 않으므로 인접한 다른 호출부의 플래그를 잘못 집어오지 않는다.
+    const optionTail = indexSource.slice(offset, offset + 700);
+    assert.ok(
+      optionTail.includes("snapshotVerdictOnly: true"),
+      `every snapshot fast-path entry point must also opt into snapshotVerdictOnly (offset ${offset})`,
+    );
+  }
   assertContains(
     indexSource,
     "if (item.snapshotVerdictOnly === true && !isBackgroundPassRecord) {",
