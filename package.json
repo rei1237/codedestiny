@@ -78,6 +78,7 @@
     "verify:public-parity": "node scripts/verify-public-parity.mjs",
     "verify:today-hub-gate": "node scripts/verify-today-hub-gate.mjs",
     "verify:auth-event-loop": "node scripts/verify-auth-event-loop-guard.mjs",
+    "verify:auth-session-stability": "node scripts/verify-auth-session-stability.mjs",
     "migrate:withdraw": "node scripts/migrate-withdraw-indexes.mjs",
     "migrate:payments-read-indexes": "node scripts/migrate-payments-read-indexes.mjs",
     "migrate:auth-core-indexes": "node scripts/migrations/20260705-add-auth-core-indexes.mjs",
