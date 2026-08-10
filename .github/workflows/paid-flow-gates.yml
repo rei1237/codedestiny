@@ -240,15 +240,11 @@ jobs:
       - name: Verify astrology sectioned generation
         run: npm run verify:astrology-sectioned
 
+      # 목록 정본은 package.json 의 verify:ai-consultation-flows 하나다. 여기에 다시 늘어놓으면
+      # 배포 경로(deploy:critical)와 CI 가 서로 다른 목록을 갖게 되고, 그 드리프트가 곧
+      # "CI 에서만 터지는 게이트"가 된다 — life-book 서명 가드가 정확히 그렇게 늦게 드러났다.
       - name: Verify AI consultation flows
-        run: |
-          npm run verify:astrology-ai-flow
-          npm run verify:ziwei-ai-consultation-flow
-          npm run verify:karma-destiny-ai-flow
-          npm run verify:vedic-ai-flow
-          npm run verify:life-book-ai-flow
-          npm run verify:new-year-ai-flow
-          npm run verify:love-secret-ai-flow
+        run: npm run verify:ai-consultation-flows
 
       # verify:all-paid-services-payment-flow 는 여기 넣지 않는다 — 코드 가드가 아니라 MONGO_URI
       # 실환경을 요구하는 라이브 점검이라, 시크릿 없는 PR 러너에서는 항상 실패한다.
