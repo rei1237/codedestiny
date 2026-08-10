@@ -12798,6 +12798,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             .oracle-front-m {
               z-index: 1; transform: rotateY(180deg); background-size: cover; background-position: center;
               border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+              /* 카드 이미지가 로드되기 전 앞면이 비치지 않도록 하는 바탕. .tarot-face-img 와 같은 색 */
+              background-color: #1a1530;
             }
             .tarot-face-img {
               width: 100%; height: 100%; object-fit: cover; display: block;

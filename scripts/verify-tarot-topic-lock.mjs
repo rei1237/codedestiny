@@ -114,6 +114,64 @@ function verifyMyeongriTarot() {
   check("AI 프롬프트에 자가 검증 문항 포함", prompt.includes("다른 분야의 운세로 이탈하지 않았는가"));
 }
 
+// ── 1-b. 카드 앞면 이미지 ──────────────────────────────────────────────────
+// .tarot-face-img 는 앞면을 완전히 덮는 레이어라, src 에 남은 그림이 그대로 먼저 보인다.
+// 예전에는 마크업이 연애타로 홍보 이미지(/fuctionassets/tarolove.webp)를 기본 src 로
+// 달고 있어서, 카드를 뒤집으면 그 그림이 먼저 뜬 뒤 진짜 카드로 바뀌었다.
+function verifyCardFaceImages() {
+  console.log("\n[1-b] 명리학 타로 — 카드 앞면 이미지");
+
+  const shells = [
+    "index.html",
+    "public/index.html",
+    "public/static/index.html",
+    "public/en/index.html",
+    "public/ja/index.html",
+    "public/zh/index.html",
+  ];
+  const decoys = [];
+  const unhidden = [];
+  for (const shell of shells) {
+    let html;
+    try {
+      html = readFileSync(shell, "utf8");
+    } catch {
+      continue;
+    }
+    const faces = html.match(/<img[^>]*class="tarot-face-img"[^>]*>/g) || [];
+    if (faces.length !== 4) {
+      decoys.push(`${shell}: 카드 앞면 img 가 4개가 아님(${faces.length})`);
+      continue;
+    }
+    for (const tag of faces) {
+      if (/\ssrc=/.test(tag)) decoys.push(`${shell}: 마크업에 기본 src 가 박혀 있음 — ${tag.slice(0, 90)}`);
+      if (!/visibility:hidden/.test(tag)) unhidden.push(`${shell}: 초기 상태가 감춰져 있지 않음`);
+    }
+  }
+  check("6개 셸 카드 앞면에 기본 src 없음", decoys.length === 0, decoys.slice(0, 2).join(" | "));
+  check("6개 셸 카드 앞면이 로드 전까지 감춰짐", unhidden.length === 0, unhidden.slice(0, 2).join(" | "));
+
+  // 재추첨 시 직전 카드가 남아 보이지 않아야 한다.
+  let engine;
+  try {
+    engine = loadMyeongriEngine();
+  } catch (error) {
+    check("이미지 검증용 엔진 로드", false, error.message);
+    return;
+  }
+  const doc = engine.document;
+  const frontEl = doc.createElement("div");
+  const imgEl = doc.createElement("img");
+  imgEl.setAttribute("src", "/tarot-cards/thefool.jpeg");
+  imgEl.style.visibility = "visible";
+  frontEl.appendChild(imgEl);
+
+  engine.applyTarotImageToFace(frontEl, imgEl, "thedevil", "악마 (The Devil)");
+  check("새 카드 적용 즉시 직전 카드가 감춰짐", imgEl.style.visibility === "hidden", `visibility=${imgEl.style.visibility}`);
+  check("새 카드 src 로 교체됨", imgEl.getAttribute("src").includes("thedevil"), imgEl.getAttribute("src"));
+  check("앞면 배경도 새 카드로 교체됨", String(frontEl.style.backgroundImage).includes("thedevil"), frontEl.style.backgroundImage);
+}
+
 // ── 2. 78장 결정론 경로 ────────────────────────────────────────────────────
 function verifyQuestionTypePrecedence() {
   console.log("\n[2] 78장 덱 — 질문 유형 우선순위");
@@ -270,6 +328,7 @@ function verifyDriftDetection() {
 
 console.log("타로 해석 Topic Lock 검증 (LLM 미호출)");
 verifyMyeongriTarot();
+verifyCardFaceImages();
 verifyQuestionTypePrecedence();
 verifyPrompts();
 verifyDriftDetection();

@@ -1536,9 +1536,17 @@ function applyTarotImageToFace(frontEl, imgEl, shortName, altText) {
     imgEl.alt = altText || 'Tarot card image';
     imgEl.loading = 'eager';
     imgEl.decoding = 'async';
-    // 이미지 onload 이벤트 누락/지연 시에도 공백이 되지 않도록 기본은 보이게 유지
-    imgEl.style.visibility = 'visible';
+    // .tarot-face-img 는 앞면을 완전히 덮는 레이어다. 직전 추첨의 카드가 src 에 남아 있으면
+    // 뒤집는 순간 그 그림이 먼저 보이고 나서 진짜 카드로 바뀐다. 새 카드가 실제로 로드될
+    // 때까지 감춰 두고, 그동안은 앞면 배경색(#1a1530)만 보이게 한다.
+    imgEl.style.visibility = 'hidden';
     imgEl.style.opacity = '1';
+  }
+
+  function revealIfCurrent(url) {
+    // 늦게 도착한 이전 후보의 onload 가 현재 카드를 덮어쓰지 않도록 src 를 대조한다.
+    if (!imgEl || imgEl.getAttribute('src') !== url) return;
+    imgEl.style.visibility = 'visible';
   }
 
   function applyUrl(url) {
@@ -1548,11 +1556,9 @@ function applyTarotImageToFace(frontEl, imgEl, shortName, altText) {
       frontEl.style.backgroundPosition = 'center';
     }
     if (imgEl) {
+      imgEl.onload = function() { revealIfCurrent(url); };
       imgEl.src = url;
-      if (imgEl.complete && imgEl.naturalWidth > 0) {
-        imgEl.style.visibility = 'visible';
-        imgEl.style.opacity = '1';
-      }
+      if (imgEl.complete && imgEl.naturalWidth > 0) revealIfCurrent(url);
     }
   }
 
