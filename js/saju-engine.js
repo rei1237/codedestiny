@@ -2966,10 +2966,11 @@ function _clearDestinyFlowerSajuSnapshot() {
   } catch (e) {}
 }
 
-/* 종격 검증 결과의 소유자 키. detectJong 은 원국 8글자만 입력으로 쓰므로 8글자가 곧 판정 대상 식별자다. */
-function _jongChartKey(p){
-  if(!p||!p.y||!p.m||!p.d||!p.h) return '';
-  return p.y.g+p.y.j+p.m.g+p.m.j+p.d.g+p.d.j+p.h.g+p.h.j;
+/* 종격 검증 결과의 소유자 키. 재계산 경로(KASI 비동기 vs 로컬 동기)가 달라 원국 간지가
+   미세하게 어긋나도 깨지지 않도록, 파생된 간지가 아니라 원본 생년월일시 입력을 식별자로 쓴다. */
+function _jongVerifiedKey(dateStr, calType, hour, minute){
+  if(!dateStr) return '';
+  return dateStr+'|'+(calType||'solar')+'|'+hour+'|'+minute;
 }
 
 /* ── 모달 전용: 분석 페이지 이동 없이 프로필 데이터로 전역 변수 계산 ── */
@@ -2993,6 +2994,11 @@ window.computeProfileForModal = function(profile) {
   var hasBirthLocation = l.lat != null && l.lng != null;
   var hour   = hasBirthHour ? b.hour   : 12;
   var minute = hasBirthMinute ? b.minute : 0;
+  // b.year/b.month/b.day 는 이 시점까지 음력→양력 변환의 영향을 받지 않은 원본 값이다(변환은 위의
+  // 로컬 year/month/day 변수만 덮어쓴다) — calculate() 가 저장한 원본 입력 기반 키와 맞추기 위해 이 값을 쓴다.
+  var _mjKey = (b.year!=null && b.month!=null && b.day!=null)
+    ? _jongVerifiedKey(String(b.year)+String(b.month).padStart(2,'0')+String(b.day).padStart(2,'0'), calType, hour, minute)
+    : '';
   var lat    = hasBirthLocation ? l.lat    : 37.6;
   var lng    = hasBirthLocation ? l.lng    : 127.0;
   var baseTzOff = (l.baseTzOffset != null) ? l.baseTzOffset : ((l.tzOffset != null) ? l.tzOffset : 9);
@@ -3077,8 +3083,7 @@ window.computeProfileForModal = function(profile) {
     G_PILLARS = p;  G_NATAL = natal;  G_BAZI = bazi;
     if (typeof analyzeJohu === 'function') G_JOHU = analyzeJohu(p);
     if (typeof calcPower  === 'function') G_POWER = calcPower(p);
-    // 사용자가 검증 모달에서 확정한 판정이 같은 원국의 것이면 그것을 쓴다 (원본 detectJong 으로 덮어쓰지 않는다)
-    var _mjKey = _jongChartKey(p);
+    // 사용자가 검증 모달에서 확정한 판정이 같은 생년월일시 입력이면 그것을 쓴다 (원본 detectJong 으로 덮어쓰지 않는다)
     if (G_JONG_VERIFIED && G_JONG_VERIFIED.key === _mjKey) G_JONG = G_JONG_VERIFIED.result;
     else if (typeof detectJong === 'function') G_JONG = detectJong(p);
     resetEvalDaewunMemo();
@@ -5442,8 +5447,8 @@ async function calculate(){
     // 종격/가종격 모두 검증 모달로 사용자 확인
     if (_tj.isJong) {
       _tj = await showJongVerificationModal(_tj, p);
-      // 사용자 확정본을 원국 키와 함께 보관 — 이후 앰비언트 재계산이 되돌리지 못하게 한다
-      G_JONG_VERIFIED = { key: _jongChartKey(p), result: _tj };
+      // 사용자 확정본을 원본 생년월일시 입력 키와 함께 보관 — 이후 앰비언트 재계산이 되돌리지 못하게 한다
+      G_JONG_VERIFIED = { key: _jongVerifiedKey(bd, calType, hour, minute), result: _tj };
     }
     G_JONG = _tj;
     G_POWER = applyRuntimeYongshinPolicy(G_POWER, G_JONG, G_JOHU);
