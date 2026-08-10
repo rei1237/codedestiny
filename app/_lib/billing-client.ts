@@ -1388,8 +1388,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (balanceText) balanceText.textContent = "월정석 잔량을 확인하고 있습니다.";
       try {
         // 수동 재조회는 서버 캐시까지 우회(fresh)해 항상 최신값을 읽고, 자동 조회는 신선한 클라 캐시를 존중해 빠르게 응답한다.
-        // (force를 fresh에 연동: 수동=강제 재조회, 자동=클라 캐시 히트 시 여분 /balance 왕복 생략.)
-        const result = await fetchBillingBalance({ force: refreshOpts.fresh === true, fresh: refreshOpts.fresh === true });
+        // 🔴 force 를 함께 넘기지 않는다. force 는 invalidateBillingBalanceCache() 를 불러 balance 뿐 아니라
+        // paymentEligibilityRecent/InFlight 와 accessDecision 까지 **전역으로** 비운다 — 재조회 한 번에
+        // 다음 유료 클릭의 이용권 프로브(6초)가 콜드로 다시 도는 대가를 치렀다. fresh 만으로 충분하다:
+        // fetchBillingBalance 가 fresh 일 때 이 유저의 balance 캐시 엔트리만 좁게 버린다.
+        const result = await fetchBillingBalance({ fresh: refreshOpts.fresh === true });
         if (settled) return;
         if (!result.ok || !result.data || result.data.degraded === true) {
           applyMoonlightBalance(null, "error");
@@ -4649,6 +4652,9 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
 }>> {
   const userKey = resolveBillingBalanceUserKey();
   if (options.force === true) invalidateBillingBalanceCache();
+  // fresh(수동 재조회)는 이 유저의 balance 캐시만 좁게 버린다. 전역 invalidateBillingBalanceCache 는
+  // 이용권 판정 캐시까지 함께 날려서, 재조회 한 번이 다음 유료 클릭의 6초 프로브를 콜드로 되돌린다.
+  else if (options.fresh === true) billingBalanceRecentByUser.delete(userKey);
   const now = Date.now();
   const recent = billingBalanceRecentByUser.get(userKey);
   if (recent && recent.expiresAt > now) {

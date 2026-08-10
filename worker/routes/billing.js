@@ -5081,27 +5081,17 @@ async function handleBillingSnapshotBalance(request, env) {
   // 수동 "재조회"(fresh=1)는 항상 서버 캐시를 우회해 최신값을 읽는다. 자동 조회는 캐시를 허용해 빠르게 응답한다.
   const isFresh = billingUrl.searchParams.get("fresh") === "1";
 
-  // 표시용 잔량 캐시: 유효 access 토큰이 있으면 Mongo 없이 로컬 JWT 검증만으로 userId를 얻어 캐시 키를 만든다.
-  // 토큰이 없으면(게스트) 캐시를 쓰지 않는다.
-  // 🔴 재조회(fresh=1)는 캐시 **읽기만** 건너뛴다. 예전에는 캐시 키 자체를 비워서 in-flight 합류와
-  // 성공 결과 write-back 까지 함께 죽었다 — "월정석 재조회"를 누를수록 매번 인증+조회 왕복을 새로 내고
-  // (전역 Mongo 슬롯 5개를 coin-gate 와 경합) 캐시는 영영 안 채워져, 연타가 곧 degraded →
-  // 503 BALANCE_SNAPSHOT_UNAVAILABLE 로 이어졌다. peek 은 로컬 JWT 검증이라 Mongo 왕복이 0회다.
-  const cacheUserId = await peekAccessTokenUserId(request, env).catch(() => "");
-  const cacheKey = cacheUserId
-    ? `${cacheUserId}|${isCompactRequest ? "c" : "f"}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}`
-    : "";
-  if (cacheKey && !isFresh) {
-    const cachedSnapshot = readBillingBalanceFromCache(cacheKey);
-    if (cachedSnapshot) {
-      // 캐시에는 healthy(비degraded) 스냅샷만 들어오므로 정상 응답 경로로만 되돌린다(Mongo 0회).
-      return success({
-        ...cachedSnapshot,
-        raw: { source: "billing_snapshot", degraded: false, cached: true },
-      }, "Billing balance loaded.");
-    }
-  }
-
+  // 🔴 표시용 잔량 캐시를 이 핸들러가 따로 갖지 않는다. 예전에는 `uid|c|s|u` 4세그 키로 자체 캐시를 두고
+  // readBillingSnapshot 에는 allowCache:false 를 넘겼는데, 그쪽 내부 캐시 키는 `uid|s|u|b|m` 5세그라
+  // **같은 Map 을 쓰면서 네임스페이스만 갈라져** 교차 히트가 구조적으로 0이었다. 그 결과 부트스트랩의
+  // /unlock-status 가 방금 만들어 둔 스냅샷을 결제창의 /balance 가 전혀 못 쓰고 인증+Mongo 왕복을
+  // 매번 새로 냈고, readBillingSnapshot 안에 이미 구현돼 있던 superset 폴백(`|u`→`|-`)도 사문화됐다.
+  // 이제 캐시는 readBillingSnapshot 한 곳이 소유한다. 키 매핑은 무손실이다 — 옛 `c/f` 세그먼트는
+  // includeUnlocks 와 1:1 이고(isCompactRequest ⟺ !includeUnlocks), 이 라우트에서
+  // includeLegacyCoinBalance 는 항상 false, includeMonthlyCreditBalance 는 항상 true 다.
+  // 재조회(fresh=1)는 캐시 **읽기만** 건너뛴다(skipCacheRead) — 키를 비우면 write-back 까지 죽어
+  // 연타가 곧 degraded → 503 BALANCE_SNAPSHOT_UNAVAILABLE 로 이어졌던 회귀가 되살아난다.
+  //
   // 🔴 요청 간 in-flight Promise 공유는 두지 않는다. 예전에는 셸·React·프로필 런타임에서 동시에 오는
   // 같은 사용자 부트스트랩을 하나의 Promise 로 합쳤는데, Cloudflare Workers 는 한 요청의 I/O 컨텍스트에서
   // 만든 Promise 를 다른 요청이 이어받는 것을 금지한다. 위반하면 런타임이 continuation 을 취소하고
@@ -5114,7 +5104,8 @@ async function handleBillingSnapshotBalance(request, env) {
   const snapshot = await readBillingSnapshot(request, env, {
     seedLegacyCredit,
     includeUnlocks,
-    allowCache: false, // /balance는 아래 자체 표시용 캐시(compact 세그먼트 포함)를 쓰므로 함수 내부 캐시는 끈다.
+    allowCache: true,
+    skipCacheRead: isFresh,
   });
   if (snapshot?.degraded === true) {
     // 모달/재조회 경로(?moonlightStone=1)는 조회 실패를 '잔량 0'으로 오인하지 않도록 503으로 표면화한다
@@ -5148,23 +5139,15 @@ async function handleBillingSnapshotBalance(request, env) {
       },
     }, "Billing balance fallback loaded.");
   }
-  // healthy(비degraded·로그인) 스냅샷만 캐시에 저장한다. degraded/게스트를 캐시하면 "확인 필요"가 굳는다.
-  // 신원 일치 확인: 스냅샷의 실제 인증 유저가 캐시 키(로컬 JWT peek) userId와 같을 때만 저장한다
-  // — flower-admin 토큰 등으로 peek 신원과 스냅샷 신원이 어긋나는 경우 교차 캐시를 원천 차단.
-  if (
-    cacheKey
-    && snapshot
-    && snapshot.authenticated !== false
-    && snapshot.degraded !== true
-    && String(snapshot.authUserId || "") === cacheUserId
-  ) {
-    writeBillingBalanceToCache(cacheKey, snapshot);
-  }
+  // 캐시 write-back(healthy·신원일치 조건 포함)은 readBillingSnapshot 이 소유한다 — 여기서 또 쓰지 않는다.
+  // snapshotCacheHit 은 내부 표식이므로 응답에 싣지 않고 raw.cached 로만 옮긴다.
+  const { snapshotCacheHit = false, ...snapshotBody } = snapshot;
   return success({
-    ...snapshot,
+    ...snapshotBody,
     raw: {
       source: "billing_snapshot",
       degraded: Boolean(snapshot.degraded),
+      cached: Boolean(snapshotCacheHit),
     },
   }, "Billing balance loaded.");
 }
@@ -5679,27 +5662,31 @@ async function readBillingSnapshot(request, env, options = {}) {
     includeLegacyCoinBalance = false,
     includeMonthlyCreditBalance = true,
     allowCache = true,
+    // 캐시 **읽기만** 건너뛰고 write-back 은 유지한다(/balance?fresh=1 의 계약).
+    // 키를 비워 버리면 성공 결과가 영영 안 실려 재조회를 누를수록 매번 전체 조회가 나간다.
+    skipCacheRead = false,
   } = options || {};
 
   // 스냅샷 캐시(표시·판정 공용): 유효 access 토큰이 있으면 Mongo 없이 로컬 JWT로 userId를 얻어 캐시 키를 만든다.
   // 히트 시 인증·조회 왕복 전부 스킵(Mongo 0회) — 503 주범인 인증 라운드트립까지 회피. 게스트/allowCache:false는 미사용.
   // 키에 seed/unlocks 플래그를 넣어(멱등 seed 스킵 방지·unlock 유무 구분) 다른 옵션 결과가 섞이지 않게 한다.
-  // (/balance는 자체 표시용 캐시가 있어 allowCache:false로 넘겨 이중 캐시를 피한다.)
+  // 🔴 /balance 도 이 캐시를 쓴다(예전에는 핸들러가 `uid|c|s|u` 4세그 키로 **같은 Map 에 다른 네임스페이스**를
+  // 만들어, 부트스트랩이 방금 채운 스냅샷을 결제창이 절대 못 쓰고 매번 인증+Mongo 왕복을 새로 냈다).
   const snapshotCacheUserId = allowCache ? await peekAccessTokenUserId(request, env).catch(() => "") : "";
   const snapshotCacheKey = snapshotCacheUserId
     ? `${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}|${includeLegacyCoinBalance ? "b" : "-"}|${includeMonthlyCreditBalance ? "m" : "-"}`
     : "";
-  if (snapshotCacheKey) {
+  if (snapshotCacheKey && !skipCacheRead) {
     const cachedSnapshot = readBillingBalanceFromCache(snapshotCacheKey);
-    if (cachedSnapshot) return cachedSnapshot;
+    if (cachedSnapshot) return { ...cachedSnapshot, snapshotCacheHit: true };
   }
   // 🔴 캐시 키 파편화 해소: unlock 포함본(`|u`)은 미포함본(`|-`)의 **상위집합**이라 그대로 답이 된다.
   // 예전에는 진입 프로브(`uid|-|-`)와 유료 클릭(`uid|-|u`)이 절대 서로를 못 써서, 방금 서버가 만든
   // 스냅샷을 두고도 첫 클릭이 전체 조회를 다시 냈다. 반대 방향(미포함본으로 포함본 대체)은 unlock 이
   // 비어 잘못된 답이 되므로 하지 않는다.
-  if (snapshotCacheUserId && !includeUnlocks) {
+  if (snapshotCacheUserId && !skipCacheRead && !includeUnlocks) {
     const supersetSnapshot = readBillingBalanceFromCache(`${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|u|${includeLegacyCoinBalance ? "b" : "-"}|${includeMonthlyCreditBalance ? "m" : "-"}`);
-    if (supersetSnapshot) return supersetSnapshot;
+    if (supersetSnapshot) return { ...supersetSnapshot, snapshotCacheHit: true };
   }
 
   // 인증 해석 중 일시적 DB 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 infra 에러로
@@ -5810,11 +5797,16 @@ async function readBillingSnapshot(request, env, options = {}) {
     const unlockMap = { ...scopedUnlocks.unlockMap };
     const balance = includeLegacyCoinBalance ? Number(effectiveUser?.points || 0) : null;
     // 스칼라 캐시 대신 활성(미만료) lot 합계로 표시 잔액 산출 — 아직 스윕 안 된 만료분을 즉시 제외한다.
+    // 🔴 소멸예정일도 **잔액과 같은 lot 집합**에서 뽑는다. 예전에는 원본 sub.membershipCreditLots 를
+    // 따로 넘겨서, lot 이 비어 있고 스칼라만 있는 미마이그레이션 계정(ensureLotsForBalance 가 30일
+    // lot 을 백필해 주는 경우)에서 잔액은 나오는데 소멸예정일만 null 로 빠졌다.
+    // access-state.js buildMonthlyBalance · lib/auth.js normalizeAuthProfileSubscription 과 같은 규율.
+    const lotsState = ensureLotsForBalance(sub || {}, Date.now());
     const membershipCreditBalance = includeMonthlyCreditBalance
-      ? Math.max(0, Math.floor(Number(ensureLotsForBalance(sub || {}, Date.now()).balance || 0)))
+      ? Math.max(0, Math.floor(Number(lotsState.balance || 0)))
       : 0;
     // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
-    const monthlyStoneExpiresAt = resolveNextExpiry(sub?.membershipCreditLots);
+    const monthlyStoneExpiresAt = resolveNextExpiry(lotsState.lots);
     const membership = {
       tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
       passTier: entitlement.passTier || null,
@@ -5866,8 +5858,9 @@ async function readBillingSnapshot(request, env, options = {}) {
     };
     }, { attemptTimeoutMS: 11000 });
     // healthy(로그인·비degraded)이고 신원(로컬 JWT peek == 실제 authUserId)이 일치할 때만 캐시에 저장한다
-    // — flower-admin 등으로 peek 신원과 스냅샷 신원이 어긋나면 교차 캐시를 원천 차단. 다른 3개 호출자
-    // (probe·saju-entitlements·unlock-status)도 이 캐시로 인증·조회 왕복을 절감한다. TTL이 stale 상한.
+    // — flower-admin 등으로 peek 신원과 스냅샷 신원이 어긋나면 교차 캐시를 원천 차단. 나머지 호출자
+    // (/balance·probe·saju-entitlements·unlock-status)도 이 캐시로 인증·조회 왕복을 절감한다. TTL이 stale 상한.
+    // skipCacheRead(fresh=1)여도 write-back 은 반드시 한다 — 읽기만 건너뛰는 것이 그 플래그의 계약이다.
     if (
       snapshotCacheKey
       && freshSnapshot
