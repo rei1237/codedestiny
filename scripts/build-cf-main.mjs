@@ -18,6 +18,9 @@ const npmArgs = (args) => (canRunNpmCliWithNode ? [npmCli, ...args] : args);
 // CI 게이트 정리에서 없앴고, 필요하면 `npm run verify:locale-main-sync` 등을 수동으로 돌린다.
 // 되돌리려면 optional 플래그만 지우면 된다.
 const steps = [
+  // 🔴 clean:build 보다 먼저 와야 한다 — dev 서버가 떠 있으면 clean 이 그 발밑의 .next 를
+  // 지우고, 이후 두 프로세스가 같은 경로를 번갈아 쓰면서 빌드가 조용히 멈춘다.
+  { command: process.execPath, args: ["scripts/verify-no-dev-server.mjs"] },
   { command: npmCommand, args: npmArgs(["run", "clean:build"]) },
   { command: npmCommand, args: npmArgs(["run", "sync:public"]) },
   { command: npmCommand, args: npmArgs(["run", "sitemap:generate"]) },
