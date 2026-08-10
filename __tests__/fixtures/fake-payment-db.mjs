@@ -55,14 +55,30 @@ export function applyUpdate(doc, update) {
   return doc;
 }
 
+function duplicateKeyError() {
+  const error = new Error("E11000 duplicate key error");
+  error.code = 11000;
+  return error;
+}
+
 /**
- * @param {{ onDuplicate?: (filter: object) => boolean }} [options]
- *   onDuplicate 가 true 를 주면 insert 대신 E11000 을 던진다 — 동시 upsert 경합을 재현하는 용도.
+ * @param {{ onDuplicate?: (filter: object) => boolean, uniqueKeys?: string[][] }} [options]
+ *   uniqueKeys  — unique 인덱스를 모사한다. 결제 설계가 기대는 제약을 fixture 가 갖고 있지 않으면
+ *                 "중복이 막힌다"는 테스트가 아무것도 검증하지 않는다.
+ *   onDuplicate — upsert 경합을 임의 시점에 재현하는 용도.
  */
 export function makeFakePaymentDb(options = {}) {
   const rows = [];
   const ctx = { ops: 0 };
+  const uniqueKeys = options.uniqueKeys || [];
   let nextId = 1;
+
+  function violatesUnique(doc) {
+    return uniqueKeys.some((keys) => {
+      if (keys.some((key) => doc[key] === undefined)) return false;
+      return rows.some((row) => keys.every((key) => String(row[key]) === String(doc[key])));
+    });
+  }
 
   return {
     rows,
@@ -72,6 +88,7 @@ export function makeFakePaymentDb(options = {}) {
     async countDocuments(_Model, filter) { ctx.ops += 1; return rows.filter((r) => matches(r, filter)).length; },
     async insertOne(_Model, doc) {
       ctx.ops += 1;
+      if (violatesUnique(doc)) throw duplicateKeyError();
       const created = { _id: `oid${nextId += 1}`, ...doc };
       rows.push(created);
       return { insertedId: created._id };
@@ -92,11 +109,7 @@ export function makeFakePaymentDb(options = {}) {
         return opts.returnDocument === "before" ? before : hit;
       }
       if (!opts.upsert) return null;
-      if (options.onDuplicate?.(filter)) {
-        const error = new Error("E11000 duplicate key error");
-        error.code = 11000;
-        throw error;
-      }
+      if (options.onDuplicate?.(filter)) throw duplicateKeyError();
       const created = { _id: `oid${nextId += 1}`, ...(update.$setOnInsert || {}) };
       applyUpdate(created, { ...update, $setOnInsert: undefined });
       rows.push(created);
