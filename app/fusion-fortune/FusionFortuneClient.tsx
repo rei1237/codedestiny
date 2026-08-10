@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { authFetch } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
@@ -337,8 +336,6 @@ async function consumeFusionStream(
 
 export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) {
   const apiBase = getApiBaseUrl();
-  const searchParams = useSearchParams();
-  const fortuneChatSessionId = searchParams?.get("fortuneChatSession") || "";
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
@@ -445,6 +442,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(""); setNotice(""); setFailure(null);
+    // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지 전체가 CSR 로 떨어져
+    // (BAILOUT_TO_CLIENT_SIDE_RENDERING) 히어로 H1 을 포함한 서버 렌더 HTML 이 통째로 사라진다.
+    // 이 값은 제출 시점에만 필요하므로 그때 URL 에서 직접 읽는다.
+    const fortuneChatSessionId = new URLSearchParams(window.location.search).get("fortuneChatSession") || "";
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
     if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError("생년월일과 생시를 입력하거나, 생시를 모르는 경우를 선택해 주세요."); return; }
 
