@@ -1156,16 +1156,27 @@ async function updateActiveGoogleEntitlement({ payment, googlePurchase, notifica
 
 async function revokeGoogleEntitlement({ payment, googlePurchase, notification }) {
   const featureKey = cleanText(payment.featureKey);
-  await Payment.findByIdAndUpdate(payment._id, {
-    $set: {
-      status: "cancelled",
-      orderState: "CANCELLED",
-      "metadata.googlePurchase": googlePurchase || null,
-      "metadata.googleRtdn": notification.raw,
-      "rawPortOne.googlePurchase": googlePurchase || null,
-      "rawPortOne.googleRtdn": notification.raw,
+  /* 🔴 회수는 **한 번만** 돈다. RTDN 에는 이벤트 중복 방지 테이블이 없어서 Google 이 같은
+     voided 알림을 재전송하면 이 함수가 다시 불린다. $pull 자체는 멱등이라 그대로도 무해해
+     보이지만, 그 사이 사용자가 **재구매**했다면 이야기가 다르다 — 재구매는 새 purchaseToken
+     이라 다른 Payment 문서를 만들지만, 이 함수는 옛 Payment 의 featureKey 로 $pull 하므로
+     방금 다시 산 권한을 도로 뺏는다.
+     그래서 "취소 아님 → 취소" 전이에 성공한 요청만 사용자 문서를 건드린다. 진 요청은
+     이미 처리된 재전송이므로 조용히 끝낸다. */
+  const claimed = await Payment.findOneAndUpdate(
+    { _id: payment._id, status: { $ne: "cancelled" } },
+    {
+      $set: {
+        status: "cancelled",
+        orderState: "CANCELLED",
+        "metadata.googlePurchase": googlePurchase || null,
+        "metadata.googleRtdn": notification.raw,
+        "rawPortOne.googlePurchase": googlePurchase || null,
+        "rawPortOne.googleRtdn": notification.raw,
+      },
     },
-  });
+  ).lean();
+  if (!claimed) return;
   const update = featureKey
     ? { $pull: { unlockedFeatures: featureKey, paidFeatures: featureKey } }
     : {};

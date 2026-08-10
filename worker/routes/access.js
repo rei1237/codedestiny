@@ -532,7 +532,8 @@ async function handleStatus(request, env) {
   if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
 
   await connectDb(env);
-  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??handleUnlocks?� ?�일 ?�턴).
+  // 콜드 아이솔레이트 초기화 중에도 잠금 상태를 정확히 반환하도록 조회를 재시도로 감싼다
+  // (handleUnlocks 와 같은 패턴).
   const doc = await withMongoRetry(env, async () => {
     await verifyProfileOwnership({ userId, profileId });
     return findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
@@ -649,8 +650,8 @@ async function handleUnlocks(request, env, trace) {
   const auth = await requireUserFromRequest(request, env);
   const userId = String(auth.userId || "");
 
-  // ?�시???� 초기?�에???�금 ?�태�??�확??반환?�도�?조회�??�시?�로 감싼??
-  // (verifyProfileOwnership??404 ??�??�시???�러???�시???�이 즉시 ?�파?�다.)
+  // 콜드 아이솔레이트 초기화 중에도 잠금 상태를 정확히 반환하도록 조회를 재시도로 감싼다.
+  // (verifyProfileOwnership 의 404 처럼 확정된 오류는 transient 가 아니므로 재시도 없이 즉시 전파된다.)
   const cacheKey = makeAccessUnlocksCacheKey({ userId, profileId, serviceKeys });
   if (!includeBackfill) {
     const cached = readAccessUnlocksCache(cacheKey);
@@ -707,8 +708,9 @@ export async function handleAccessRoutes(request, env) {
     if (routePath === "/unlocks") return await handleUnlocks(request, env, trace);
     return notFound();
   } catch (error) {
-    // ?�근 ?�정 ?�기(GET)???�시??Mongo 블립???�드 503?�로 죽이지 말고, ?�라가 ?�시?�할 ???�게
-    // ?��? ?�프??503(retryable/DB_DEGRADED)�??�린?? ?�기(/confirm POST)???�중?�출 방�? ?�해 ?�외.
+    // 접근 상태 읽기(GET)는 일시적 Mongo 블립을 하드 503으로 죽이지 않고, 클라이언트가 다시
+    // 물어볼 수 있게 retryable/DB_DEGRADED 로 내린다.
+    // 쓰기(/confirm POST)는 제외한다 — 확정 요청을 재시도 가능으로 표시하면 이중 지출이 열린다.
     if (request.method === "GET" && (isTransientMongoError(error) || isAuthDbInfraError(error))) {
       try {
         console.warn("[access-503]", JSON.stringify({
@@ -728,7 +730,7 @@ export async function handleAccessRoutes(request, env) {
         retryable: true,
         reason: "DB_DEGRADED",
         code: "SERVICE_UNAVAILABLE",
-        message: "?�시?�인 ?�결 문제가 ?�어?? ?�시 ???�시 ?�도??주세??",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
       }, { status: 503 });
     }
     return handleRouteError(error, { request, env, trace });

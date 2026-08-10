@@ -56,6 +56,9 @@ const mockPaymentFindOne = jest.fn();
 const mockPaymentCreate = jest.fn();
 const mockPaymentFind = jest.fn();
 const mockPaymentFindByIdAndUpdate = jest.fn(async () => ({}));
+// 회수 claim 은 "취소 아님 → 취소" 전이에 성공한 요청만 통과시킨다. 기본값은 성공(문서 반환),
+// 재전송을 흉내낼 때는 null 을 돌려주면 된다.
+const mockPaymentFindOneAndUpdate = jest.fn(() => ({ lean: async () => ({ _id: "pay-1" }) }));
 const mockUserFindById = jest.fn();
 const mockUserFindByIdAndUpdate = jest.fn();
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
@@ -64,6 +67,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     create: mockPaymentCreate,
     find: mockPaymentFind,
     findByIdAndUpdate: mockPaymentFindByIdAndUpdate,
+    findOneAndUpdate: mockPaymentFindOneAndUpdate,
   },
   User: {
     findById: mockUserFindById,
@@ -446,10 +450,41 @@ describe("rtdn — 환불 회수", () => {
     const publisherCalls = global.fetch.mock.calls.filter(([url]) => String(url).includes("androidpublisher"));
     expect(publisherCalls).toHaveLength(0);
 
-    const paymentUpdate = mockPaymentFindByIdAndUpdate.mock.calls[0][1];
+    // 회수는 "취소 아님 → 취소" CAS 로 claim 한다(중복 수신 방지).
+    const [claimFilter, paymentUpdate] = mockPaymentFindOneAndUpdate.mock.calls[0];
+    expect(claimFilter.status).toEqual({ $ne: "cancelled" });
     expect(paymentUpdate.$set.status).toBe("cancelled");
     const userUpdate = mockUserFindByIdAndUpdate.mock.calls[0][1];
     expect(userUpdate.$pull.unlockedFeatures).toBe(unlock.key);
+  });
+
+  test("🔴 같은 voided 알림이 재전송돼도 회수를 두 번 돌리지 않는다", async () => {
+    /* RTDN 에는 이벤트 중복 방지 테이블이 없어 Google 이 같은 알림을 다시 보낼 수 있다.
+       $pull 자체는 멱등이라 무해해 보이지만, 그 사이 사용자가 **재구매**했다면 재전송이
+       방금 다시 산 권한을 도로 뺏는다(재구매는 새 purchaseToken → 다른 Payment 문서를
+       만들지만, 회수는 옛 Payment 의 featureKey 로 $pull 하기 때문이다). */
+    mockPaymentFindOne.mockReturnValue({
+      lean: async () => ({
+        _id: "pay-refunded",
+        userId: USER_ID,
+        featureKey: unlock.key,
+        productId: unlock.tier.productId,
+        paymentType: "digital_content",
+      }),
+    });
+    // 이미 취소된 주문이라 claim 이 실패한다(CAS 가 null 을 돌려준다).
+    mockPaymentFindOneAndUpdate.mockReturnValueOnce({ lean: async () => null });
+
+    const { status, payload } = await callRoute(rtdnRequest({
+      packageName: "com.codedestiny.app",
+      voidedPurchaseNotification: { purchaseToken: "tok-unlock-1", orderId: "GPA.1", productType: 1 },
+    }));
+
+    // Google 에는 정상 ack 한다 — 실패로 답하면 재전송이 무한히 이어진다.
+    expect(status).toBe(200);
+    expect(payload.data.voided).toBe(true);
+    // 🔴 핵심: 사용자 문서를 건드리지 않는다.
+    expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
   });
 
   test("이용권 환불은 paymentType으로 판정해 구독 상태도 끊는다", async () => {

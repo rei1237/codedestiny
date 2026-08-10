@@ -168,23 +168,27 @@ describe("503 계측: stage 헤더", () => {
 
   test("🔴 503 을 내는 json() 호출도 계층 라벨을 단다", () => {
     const json503 = extractBalancedCalls(billingSource, "json").filter((call) => /status:\s*503/.test(call));
-    expect(json503.length).toBeGreaterThanOrEqual(1);
-
+    // 현재는 0곳이다(카드 확정 지연이 202 로 내려간 뒤). 생기면 반드시 라벨을 달아야 한다.
     const unlabelled = json503.filter((call) => !call.includes("paidAccessRetryableHeaders(")
       && !call.includes("X-CD-Error-Stage"));
     expect(unlabelled).toEqual([]);
   });
 
-  test("돈이 빠진 뒤의 PENDING_CONFIRMATION 에는 Retry-After 를 붙이지 않는다", () => {
-    // 본문이 retryable:false 인데 Retry-After 를 주면 클라에 정반대 지시를 두 개 보내는 셈이다.
-    // (신규 결제 모듈에서 200 GRANT_PENDING 으로 바뀔 자리 — 그때 이 테스트도 함께 옮긴다.)
+  test("🔴 돈이 빠진 뒤의 확정 지연은 503 이 아니라 202 다", () => {
+    /* `503 + retryable:false` 는 클라이언트가 행동할 수 없는 모순이었다 — 503 은 "나중에 다시
+       오라", retryable:false 는 "오지 마라"를 동시에 말한다. 실제 상태는 서버 정상 + 카드 승인 +
+       주문 기록이므로 장애가 아니라 접수됐고 이행이 덜 끝난 것이고, 202 가 그 뜻이다.
+       200 으로 올리지 않는 것도 계약이다 — 성공으로 보이면 아직 열리지 않은 콘텐츠를 렌더한다. */
     const pending = extractBalancedCalls(billingSource, "json")
       .find((call) => call.includes("PENDING_CONFIRMATION"));
     expect(pending).toBeDefined();
+    expect(pending).toMatch(/status:\s*202/);
+    expect(pending).not.toMatch(/status:\s*503/);
+    expect(pending).toContain("ok: false");
+    expect(pending).toContain("recoveryRequired: true");
     expect(pending).toContain('"X-CD-Error-Stage": "card-confirm-pending"');
-    // 헤더 키는 코드에서 항상 따옴표가 붙는다 — 주석 속 언급(“Retry-After 는 일부러 뺀다”)과 구분된다.
+    // 헤더 키는 코드에서 항상 따옴표가 붙는다 — 주석 속 언급과 구분된다.
     expect(pending).not.toMatch(/"Retry-After"/);
-    expect(pending).not.toContain("paidAccessRetryableHeaders(");
   });
 });
 
