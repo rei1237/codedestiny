@@ -99,7 +99,10 @@ export async function runAccessCheckWithTransientRetry<T extends AccessCheckAtte
     if (last?.data && (last.data as { reason?: unknown }).reason === PASS_CHECK_BUDGET_EXCEEDED_REASON) return last;
     // 일시적 실패가 아니면(확정 실패/성공) 재시도하지 않는다.
     if (!isRetriableResultPollFailure(readAttemptStatus(last), last?.data ?? null)) return last;
-    const delayMs = Math.round(baseDelayMs * Math.pow(1.8, i - 1));
+    // 지수 백오프에 완전 지터(0~100% 랜덤)를 곱한다 — 동시에 실패한 여러 사용자가 정확히 같은
+    // 시점에 함께 재시도하면(동기화된 재시도 파도) 막 회복 중인 풀을 다시 포화시킨다. 상한
+    // (baseDelayMs * 1.8^(i-1))은 그대로라 개별 사용자의 예산 안 시도 횟수는 줄지 않는다.
+    const delayMs = Math.round(Math.random() * baseDelayMs * Math.pow(1.8, i - 1));
     // 다음 시도를 예산 안에 넣을 수 없으면 기다리지 않고 지금 결과로 끝낸다.
     if (Date.now() + delayMs >= deadline) return last;
     options.onRetry?.({ attempt: i, delayMs });

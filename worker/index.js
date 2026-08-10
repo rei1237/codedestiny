@@ -1266,7 +1266,7 @@ export default {
       }
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
-        return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
+        return withCorsHeaders(request, env, await handleBillingRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/music" || url.pathname.startsWith("/api/music/")) {

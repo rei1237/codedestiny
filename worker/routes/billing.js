@@ -2794,10 +2794,16 @@ function resolveRequestId(request, body) {
 }
 
 function shouldRetryCoinConsume(responseStatus, payload) {
+  const code = String(toCode(payload) || "").trim().toUpperCase();
+  // AUTH_STATUS_TEMPORARILY_UNAVAILABLE/SERVICE_UNAVAILABLE는 안쪽 인증 재시도
+  // (resolveActiveUserAuth의 withMongoRetry)가 이미 소진된 뒤에만 나온다 — 여기서 위임
+  // 라우트를 통째로 다시 돌리면 같은 인증 조회를 반복해 풀이 가장 바쁜 순간 비용만
+  // 두 배가 된다(중첩 재시도). MongoTopologyClosedError 등 진짜 예외 경로는
+  // shouldRetryCoinConsumeException이 별도로 계속 처리하므로 여기서는 손대지 않는다.
+  if (code === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE" || code === "SERVICE_UNAVAILABLE") return false;
   const status = Number(responseStatus || 0);
   if (status >= 500) return true;
-  const code = String(toCode(payload) || "").trim().toUpperCase();
-  return code === "SERVICE_UNAVAILABLE" || code === "WORKER_UNHANDLED_EXCEPTION";
+  return code === "WORKER_UNHANDLED_EXCEPTION";
 }
 
 function sleep(ms) {
@@ -6973,7 +6979,7 @@ export async function handleBillingRoutes(request, env, ctx) {
     if ((method === "GET" || method === "POST") && path === "/access") return await handlePaidAccessCheck(request, env);
     if ((method === "GET" || method === "POST") && path === "/dev-payment-tester") return await handleDevPaymentTester(request, env);
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
-    if (method === "POST" && path === "/funnel-event") return await handleCheckoutFunnelEvent(request, env);
+    if (method === "POST" && path === "/funnel-event") return await handleCheckoutFunnelEvent(request, env, ctx);
 
     if (method === "POST" && path === "/coin-gate") {
       trace.stage = "coin_gate";
@@ -7017,6 +7023,21 @@ const CHECKOUT_FUNNEL_EVENT_NAMES = new Set([
 ]);
 const CHECKOUT_FUNNEL_MAX_BODY_BYTES = 1024;
 
+// 🔴 이 쓰기는 auth·결제 인증 조회와 같은 5-커넥션 풀을 두고 경쟁하면 안 된다.
+// worker/lib/security/index.js의 SECURITY_DB_* 우선순위 레인과 동일한 값을 그대로 재사용한다 —
+// 풀이 조금이라도 바쁘면(active>=2) 250ms만 기다리고 곧바로 포기한다(이 라우트는 원래
+// 실패를 밖으로 내보내지 않으므로 포기해도 안전하다). resetOnOperationTimeout:false는 필수 —
+// 이 저우선순위 쓰기의 타임아웃이 전역 풀 리셋을 걸어 동시 결제 요청의 소켓까지 끊으면 안 된다.
+const FUNNEL_EVENT_DB_OPERATION_OPTIONS = Object.freeze({
+  retries: 0,
+  attemptTimeoutMS: 1000,
+  minAttemptTimeoutMS: 1000,
+  respectServerSelectionFloor: false,
+  resetOnOperationTimeout: false,
+  maxConcurrent: 2,
+  admissionTimeoutMS: 250,
+});
+
 function clampFunnelText(value, maxLength) {
   return String(value === null || value === undefined ? "" : value).trim().slice(0, maxLength);
 }
@@ -7027,7 +7048,7 @@ function clampFunnelNumber(value, max) {
   return Math.min(parsed, max);
 }
 
-async function handleCheckoutFunnelEvent(request, env) {
+async function handleCheckoutFunnelEvent(request, env, ctx = null) {
   const noContent = () => new Response(null, { status: 204 });
   try {
     const raw = await request.text();
@@ -7035,18 +7056,25 @@ async function handleCheckoutFunnelEvent(request, env) {
     const body = JSON.parse(raw);
     const name = clampFunnelText(body?.name, 60);
     if (!CHECKOUT_FUNNEL_EVENT_NAMES.has(name)) return noContent();
-    await connectDb(env);
-    await CheckoutFunnelEvent.create({
-      name,
-      featureKey: clampFunnelText(body?.featureKey, 120),
-      option: clampFunnelText(body?.option, 40),
-      renderer: clampFunnelText(body?.renderer, 40),
-      runtime: clampFunnelText(body?.runtime, 20),
-      coinPrice: clampFunnelNumber(body?.coinPrice, 1000000),
-      hasPassHint: clampFunnelText(body?.hasPassHint, 20),
-      dwellMs: clampFunnelNumber(body?.dwellMs, 24 * 60 * 60 * 1000),
-      createdAt: new Date(),
-    });
+    const write = withMongoRetry(env, async () => {
+      await connectDb(env);
+      await CheckoutFunnelEvent.create({
+        name,
+        featureKey: clampFunnelText(body?.featureKey, 120),
+        option: clampFunnelText(body?.option, 40),
+        renderer: clampFunnelText(body?.renderer, 40),
+        runtime: clampFunnelText(body?.runtime, 20),
+        coinPrice: clampFunnelNumber(body?.coinPrice, 1000000),
+        hasPassHint: clampFunnelText(body?.hasPassHint, 20),
+        dwellMs: clampFunnelNumber(body?.dwellMs, 24 * 60 * 60 * 1000),
+        createdAt: new Date(),
+      });
+    }, FUNNEL_EVENT_DB_OPERATION_OPTIONS).catch(() => {});
+    if (typeof ctx?.waitUntil === "function") {
+      try { ctx.waitUntil(write); } catch { /* 컨텍스트가 이미 닫혔으면 유실을 허용한다 */ }
+    } else {
+      await write;
+    }
   } catch (_funnelEventError) {
     // 계측 유실은 허용한다. 로그도 남기지 않는다 — 비정상 트래픽이 로그를 밀어내면 그게 더 나쁘다.
   }
