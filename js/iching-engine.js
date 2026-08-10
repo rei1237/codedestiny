@@ -95,6 +95,52 @@
     '화수미제': {summary:'아직 완성되지 않았지만 희망이 있는 운입니다. 끝까지 최선을 다하면 이루어집니다.', advice:'마지막 고비에서 포기하지 마십시오. 완성이 눈앞에 있습니다.'}
   };
 
+  /* ── 팔괘 → 오행 배속 (상괘=표면, 하괘=뿌리의 체용 관계 판별용) ── */
+  var TRIGRAM_ELEMENT = {
+    '하늘': 'metal', '연못': 'metal', '불': 'fire', '우레': 'wood',
+    '바람': 'wood', '물': 'water', '산': 'earth', '땅': 'earth'
+  };
+  var ELEMENT_LABEL = { wood: '목(木)', fire: '화(火)', earth: '토(土)', metal: '금(金)', water: '수(水)' };
+  var ELEMENT_SHENG = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
+  var ELEMENT_KE = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
+
+  function _tcElementRelation(upper, lower) {
+    var up = TRIGRAM_ELEMENT[upper.elem];
+    var lo = TRIGRAM_ELEMENT[lower.elem];
+    if (!up || !lo) return null;
+    var upName = ELEMENT_LABEL[up];
+    var loName = ELEMENT_LABEL[lo];
+
+    if (up === lo) {
+      return {
+        title: '비화(比和) · 안팎이 한 기운으로 맞물립니다',
+        text: '상괘와 하괘가 모두 <strong>' + upName + '</strong>의 기운입니다. 겉으로 드러나는 형세와 속에서 밀어 올리는 힘이 어긋나지 않으니, 지금 당신이 밖으로 하는 말과 안으로 품은 뜻이 같습니다. 이런 국면에서는 설득이 빨리 되고 일이 순하게 붙습니다. 다만 같은 기운끼리는 서로를 견제하지 못해 <strong>한쪽으로 치우치기 쉽습니다</strong> — 반대 의견을 말해 줄 사람 하나쯤은 일부러 곁에 두십시오.'
+      };
+    }
+    if (ELEMENT_SHENG[lo] === up) {
+      return {
+        title: '하생상(下生上) · 뿌리가 표면을 밀어 올립니다',
+        text: '하괘의 <strong>' + loName + '</strong>가 상괘의 <strong>' + upName + '</strong>을 낳아 올리는 형세입니다. 안에 쌓인 것이 바깥의 결과로 흘러나가는 때이니, 지금 드러나는 성과는 요행이 아니라 <strong>그동안 쌓아 둔 것의 이자</strong>입니다. 나서기를 주저하지 마십시오. 다만 생(生)하는 쪽은 동시에 덜어내는 쪽이기도 하니, 안을 다시 채우는 일 — 쉼과 공부와 사람 — 을 함께 잡아 두어야 이 흐름이 오래 갑니다.'
+      };
+    }
+    if (ELEMENT_SHENG[up] === lo) {
+      return {
+        title: '상생하(上生下) · 바깥의 기운이 속을 기릅니다',
+        text: '상괘의 <strong>' + upName + '</strong>이 하괘의 <strong>' + loName + '</strong>를 기르는 형세입니다. 주변의 조건과 사람의 도움이 당신의 내실로 흘러들어오고 있습니다. 지금은 성과를 뽑아내는 국면이 아니라 <strong>받아서 채우는 국면</strong>이니, 도움을 사양하지 말고 배우는 자리에 앉으십시오. 이 시기에 채운 것이 다음 국면에서 그대로 밖으로 나옵니다.'
+      };
+    }
+    if (ELEMENT_KE[lo] === up) {
+      return {
+        title: '하극상(下剋上) · 속뜻이 지금의 겉모습을 밀어냅니다',
+        text: '하괘의 <strong>' + loName + '</strong>가 상괘의 <strong>' + upName + '</strong>을 치는 형세입니다. 속으로 품은 뜻이 지금의 자리·직함·관계의 틀을 이미 견디지 못하고 있습니다. 이 어긋남은 참는다고 사라지지 않으니, 무너뜨리기 전에 <strong>먼저 말로 꺼내 조건을 고쳐 쓰는 편</strong>이 낫습니다. 감정이 앞선 상태에서의 통보만 피하면, 이 극(剋)은 파국이 아니라 자리를 바꾸는 힘이 됩니다.'
+      };
+    }
+    return {
+      title: '상극하(上剋下) · 바깥의 조건이 속을 누릅니다',
+      text: '상괘의 <strong>' + upName + '</strong>이 하괘의 <strong>' + loName + '</strong>를 누르는 형세입니다. 일정과 사람과 돈, 남의 기대가 당신의 본심보다 앞에 서 있습니다. 지금 정면으로 맞서면 힘만 상하니, <strong>끝까지 지킬 것과 내어줄 것을 종이에 나누어 적으십시오</strong>. 눌리는 국면은 대개 오래가지 않으며, 그 사이 지켜낸 한 가지가 다음 판의 밑천이 됩니다.'
+    };
+  }
+
   /* ── 질문 분석 → 맞춤 동양 지혜 ── */
   function _analyzeQuestion(qStr) {
     if (!qStr) return null;
@@ -496,6 +542,23 @@
     }, 600);
   }
 
+  /* 공용 AI 프롬프트 카드 모듈(compat-llm-prompts.js)은 사주 코어 로드 체인에만 들어 있다.
+     거북점만 단독으로 연 경우엔 window.cdEnsureCompatLlmReady 자체가 없어 카드가 조용히 사라지므로,
+     여기서 한 번만 주입한다. 이미 실린 태그가 있으면 그 로드를 기다리고 새로 넣지 않는다. */
+  function _tcEnsureLlmReady(done) {
+    if (window.cdEnsureCompatLlmReady) { window.cdEnsureCompatLlmReady(done); return; }
+    var tag = document.querySelector('script[src*="compat-llm-prompts"]');
+    if (!tag) {
+      tag = document.createElement('script');
+      tag.src = '/js/compat-llm-prompts.js';
+      tag.async = true;
+      document.head.appendChild(tag);
+    }
+    tag.addEventListener('load', function () {
+      if (window.cdEnsureCompatLlmReady) window.cdEnsureCompatLlmReady(done);
+    });
+  }
+
   function _renderResult(upper, lower, hexChar, hexName, wisdom, qStr, qAnalysis) {
     var resultEl = _tcEl('tcResult');
     if (!resultEl) return;
@@ -544,20 +607,73 @@
     ];
     var aIdx = hexName ? hexName.charCodeAt(0) % aphorisms.length : 0;
 
-    // ── AI(ChatGPT) 심층 상담용 주역 전문가 프롬프트 (무료 · 결제 게이트 없음) ──
-    var _tcAiPrompt =
-      '당신은 30년 경력의 주역(周易)·64괘 해석 전문가입니다. 아래는 한 사람이 거북점(龜卜)으로 뽑은 괘와 그 물음입니다. ' +
-      '이 괘의 상·하 성분과 괘상(卦象)의 원리에 근거해, 점술이 아니라 삶의 지침으로서 따뜻하되 직설적인 존댓말 조언을 해 주세요.\n\n' +
-      '[질문] ' + (qStr || '(구체적 질문 없이 오늘의 길을 물음)') + '\n' +
-      '[뽑힌 대성괘] ' + hexName + '\n' +
-      '[상괘(현재의 표면)] ' + upper.name + ' (' + upper.nat + '/' + upper.elem + ')\n' +
-      '[하괘(내면의 뿌리)] ' + lower.name + ' (' + lower.nat + '/' + lower.elem + ')\n' +
-      '[괘의 핵심] ' + wisdom.summary + '\n' +
-      '[전해진 조언] ' + wisdom.advice + '\n' +
-      '[기운의 방향] ' + (isAdvance ? '나아감(進)' : '멈춤(止)') + '\n' +
-      '[갈무리 격언] ' + aphorisms[aIdx] + '\n\n' +
-      '위 정보만 근거로 다음을 다뤄 주세요: ① 이 괘가 질문에 대해 지금 무엇을 말하는지 ② 당장 취할 행동과 피할 행동 ' +
-      '③ 시기·흐름의 조언(참고) ④ 마음가짐 한 줄. 없는 사실은 지어내지 말고, 마지막에 전통 주역 관점의 참고 해석임을 한 문장으로 밝혀 주세요.';
+    // ── Section 5: 체용(體用) — 상·하괘 오행 관계 ──
+    var relation = _tcElementRelation(upper, lower);
+
+    // ── Section 6: 분야별 통변(通變) — 상괘가 그리는 형세 / 하괘가 받치는 힘 ──
+    var catRows = [
+      { label: '💕 연애·인연', up: upper.love, lo: lower.love },
+      { label: '💼 진로·성취', up: upper.career, lo: lower.career },
+      { label: '💰 재물·거래', up: upper.wealth, lo: lower.wealth },
+      { label: '📚 시험·심사', up: upper.exam, lo: lower.exam },
+      { label: '📜 문서·계약', up: upper.doc, lo: lower.doc }
+    ];
+
+    // ── Section 7: 물음에 답하는 옛 지혜 (질문 분류 실패 시 일반 지침) ──
+    var qWisdom = qAnalysis || {
+      keyword: '🌗 아직 좁혀지지 않은 물음',
+      advice: '《주역》 계사전(繫辭傳)은 말합니다 — "역(易)은 고요히 움직이지 않다가, 감응하여 마침내 천하의 연고를 통한다." 지금 답이 흐릿하다면 길이 없어서가 아니라 <strong>물음이 아직 한 문장으로 좁혀지지 않았기</strong> 때문입니다. 무엇을 얻고 싶은지보다 <strong>무엇을 놓지 못하고 있는지</strong>를 먼저 적어 보십시오. 물음이 선명해지는 순간, 이 괘는 훨씬 또렷하게 읽힙니다.'
+    };
+
+    function _tcPlain(html) {
+      return String(html || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    // ── AI 심층 상담용 주역 전문가 프롬프트 (무료 · 결제 게이트 없음) ──
+    var _tcAiPrompt = [
+      '[역할]',
+      '당신은 30년 경력의 주역(周易)·64괘 해석 전문가입니다. 괘상(卦象)과 상·하괘의 오행 관계를 읽어, 점술의 언어를 현실의 언어로 번역해 질문자가 오늘 실제로 움직일 수 있도록 돕는 것이 당신의 일입니다.',
+      '',
+      '[나의 질문]',
+      qStr || '(구체적 질문 없이 오늘의 길을 물었습니다)',
+      '',
+      '[거북점으로 뽑힌 괘]',
+      '대성괘: ' + hexName,
+      '상괘(현재의 표면): ' + upper.name + ' ' + upper.sym + ' — ' + upper.nat + ' / ' + upper.elem,
+      '하괘(내면의 뿌리): ' + lower.name + ' ' + lower.sym + ' — ' + lower.nat + ' / ' + lower.elem,
+      '괘의 핵심: ' + wisdom.summary,
+      '전해진 조언: ' + wisdom.advice,
+      '',
+      '[체용(體用)의 형세 — 상·하괘 오행 관계]',
+      relation ? relation.title : '(판별 불가)',
+      relation ? _tcPlain(relation.text) : '',
+      '',
+      '[기운의 방향]',
+      (isAdvance ? '나아감(進)' : '멈춤(止)') + ' — ' + _tcPlain(biStrategy),
+      '변효의 기운: ' + _tcPlain(changingNote),
+      '',
+      '[분야별 통변]',
+      catRows.map(function(r) {
+        return '- ' + r.label + ': 겉으로 드러나는 형세는 ' + r.up + ', 속에서 받치는 힘은 ' + r.lo;
+      }).join('\n'),
+      '',
+      '[물음에 대한 옛 지혜]',
+      qWisdom.keyword + ' — ' + _tcPlain(qWisdom.advice),
+      '',
+      '[갈무리 격언]',
+      aphorisms[aIdx],
+      '',
+      '[답변 지침]',
+      '위에 적힌 내용만을 근거로, 다음 순서와 원칙으로 답해 주세요.',
+      '1. 첫 문단에서 내 질문에 대한 답을 결론부터 분명하게 말해 주세요. 얼버무리거나 양쪽을 다 열어두는 화법은 쓰지 마세요.',
+      '2. 상괘와 하괘를 따로 나열하지 말고, 두 기운이 맞물려 만드는 하나의 형세로 읽어 내 상황에 비추어 해석해 주세요. 위 문구를 그대로 옮겨 적지 마세요.',
+      '3. 체용의 오행 관계가 이 질문에서 구체적으로 어떤 장면으로 나타나는지 예를 들어 설명해 주세요.',
+      '4. 지금이 나아갈 때인지 멈출 때인지 한쪽을 골라 말하고, 그 판단의 근거와 조심할 점을 함께 짚어 주세요.',
+      '5. 오늘 바로 실행할 수 있는 행동 한 가지와, 지금 하지 말아야 할 행동 한 가지를 각각 명확하게 제시해 주세요.',
+      '6. 마지막은 이 괘를 한 문장으로 갈무리하는 말로 맺어 주세요.',
+      '문체: 따뜻한 존댓말로, 돌려 말하지 않는 직설적인 조언체를 쓰세요. 고전의 무게는 지키되 뜬구름 잡는 추상적 표현 대신 현실의 단어를 쓰세요. 분량은 1500~2000자 내외.',
+      '없는 사실·수치·날짜는 지어내지 말고, 의학·법률·투자를 단정하지 마세요. 마지막에 전통 주역 관점의 참고 해석임을 한 문장으로 밝혀 주세요.'
+    ].join('\n');
 
     var html = ''
       + '<div class="tc-ink-bloom-wrap">'
@@ -587,8 +703,17 @@
         + '<div class="tc-oracle-quote">"' + wisdom.advice + '"</div>'
       + '</div>'
 
-      // 🔥 Section 3: 비책
-      + '<div class="tc-section" style="border-left:3px solid #f08080;animation-delay:.25s">'
+      // ☯️ Section 3: 체용(體用)의 형세
+      + (relation
+        ? '<div class="tc-section" style="border-left:3px solid #82ccdd;animation-delay:.25s">'
+          + '<div class="tc-section-title" style="color:#a9dce8;">☯️ 체용(體用)의 형세: 겉과 속의 관계</div>'
+          + '<div style="font-size:0.88rem;color:#cfe6ee;line-height:1.8;margin-bottom:10px;font-weight:700;word-break:keep-all;">' + relation.title + '</div>'
+          + '<div style="font-size:0.9rem;color:#D1D5DB;line-height:1.85;word-break:keep-all;">' + relation.text + '</div>'
+        + '</div>'
+        : '')
+
+      // 🔥 Section 4: 비책
+      + '<div class="tc-section" style="border-left:3px solid #f08080;animation-delay:.35s">'
         + '<div class="tc-section-title" style="color:#f08080;">🔥 집중된 통찰: 비책(秘策)</div>'
         + '<div style="font-size:0.9rem;color:#D1D5DB;line-height:1.85;margin-bottom:12px;word-break:keep-all;">' + biStrategy + '</div>'
         + '<div style="background:rgba(255,200,80,0.06);border:1px dashed rgba(255,200,80,0.3);border-radius:9px;padding:12px 14px;font-size:0.87rem;color:#e8d090;line-height:1.75;word-break:keep-all;">'
@@ -596,8 +721,26 @@
         + '</div>'
       + '</div>'
 
-      // 📿 Section 4: 갈무리
-      + '<div class="tc-section" style="border-left:3px solid #c792ea;animation-delay:.35s">'
+      // 📊 Section 5: 분야별 통변
+      + '<div class="tc-section" style="border-left:3px solid #e8b840;animation-delay:.45s">'
+        + '<div class="tc-section-title" style="color:#f0c95c;">📊 분야별 통변(通變): 다섯 갈래의 형세</div>'
+        + '<div style="font-size:0.85rem;color:#b9a887;line-height:1.7;word-break:keep-all;">같은 괘라도 무엇을 묻느냐에 따라 읽는 법이 달라집니다. 상괘가 그리는 겉의 형세와 하괘가 받치는 속의 힘을 갈래별로 나누어 봅니다.</div>'
+        + '<div class="tc-cat-grid">'
+          + catRows.map(function(r) {
+            return _tcCat(r.label, '겉으로 드러나는 형세는 <strong style="color:#e8c98a;">' + r.up + '</strong>, 속에서 받치는 힘은 <strong style="color:#e8c98a;">' + r.lo + '</strong>입니다.');
+          }).join('')
+        + '</div>'
+      + '</div>'
+
+      // 🧭 Section 6: 물음에 답하는 옛 지혜
+      + '<div class="tc-section" style="border-left:3px solid #d9b38c;animation-delay:.55s">'
+        + '<div class="tc-section-title" style="color:#e8c9a0;">🧭 물음에 답하는 옛 지혜</div>'
+        + '<div style="font-size:0.86rem;color:#c9b493;font-weight:700;margin-bottom:8px;">' + qWisdom.keyword + '</div>'
+        + '<div style="font-size:0.9rem;color:#D1D5DB;line-height:1.85;word-break:keep-all;">' + qWisdom.advice + '</div>'
+      + '</div>'
+
+      // 📿 Section 7: 갈무리
+      + '<div class="tc-section" style="border-left:3px solid #c792ea;animation-delay:.65s">'
         + '<div class="tc-section-title" style="color:#c792ea;">📿 갈무리: 운명의 한 줄</div>'
         + '<div style="background:rgba(199,146,234,0.07);border-left:3px solid rgba(199,146,234,0.5);padding:14px 16px;border-radius:0 10px 10px 0;font-size:0.9rem;color:#e8d8f0;line-height:1.85;font-style:italic;word-break:keep-all;">'
           + '&ldquo;' + aphorisms[aIdx] + '&rdquo;'
@@ -615,19 +758,17 @@
     resultEl.classList.add('show');
     resultEl.scrollTop = 0;
 
-    // 공용 AI 프롬프트 카드(복사 + ChatGPT 열기) 마운트 — 무료, 결제 게이트 미호출
-    if (window.cdEnsureCompatLlmReady) {
-      window.cdEnsureCompatLlmReady(function () {
-        var host = _tcEl('tcAiPrompt');
-        if (host && window.CompatLlm && window.CompatLlm.mountCard) {
-          window.CompatLlm.mountCard(host, {
-            idPrefix: 'cdLlmJuyuk',
-            title: '🔮 이 괘를 AI에게 더 물어보기',
-            getPrompt: function () { return _tcAiPrompt; }
-          });
-        }
-      });
-    }
+    // 공용 AI 프롬프트 카드(복사 + ChatGPT·제미나이·클로드·그록 열기) 마운트 — 무료, 결제 게이트 미호출
+    _tcEnsureLlmReady(function () {
+      var host = _tcEl('tcAiPrompt');
+      if (host && window.CompatLlm && window.CompatLlm.mountCard) {
+        window.CompatLlm.mountCard(host, {
+          idPrefix: 'cdLlmJuyuk',
+          title: '🔮 이 괘를 AI에게 더 깊이 물어보기 (ChatGPT · 제미나이 · 클로드 · 그록)',
+          getPrompt: function () { return _tcAiPrompt; }
+        });
+      }
+    });
 
     // 결과 표시 후 shell 버튼 touch-action 해제 → CSS 클래스 + inline style 이중으로 완전 보장
     var shellBtn = _tcEl('tcShellBtn');
