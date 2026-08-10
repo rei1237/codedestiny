@@ -77,6 +77,31 @@ function excludes(file, text, marker) {
   assert(!text.includes(marker), `${file} contains retired marker: ${marker}`);
 }
 
+/**
+ * 구조분해 인자를 받는 함수가 '필요한 키를 실제로 받는지'만 본다.
+ *
+ * 예전에는 서명을 문자열 통째로 고정했다. 그래서 c4fada81c 가 성능 개선으로 auth 를 하나
+ * 끼워 넣자 코드는 멀쩡한데 게이트만 깨졌고, 로컬 배포 경로에는 이 검사가 없어 CI 에서야
+ * 드러났다(2026-08-10). 지켜야 할 것은 서명의 글자 모양이 아니라 idempotencyKey·sessionId
+ * 같은 키가 청구 경로까지 전달되는가다 — 키 순서는 구조분해라 의미가 없고, 키가 늘어나는
+ * 것은 깨뜨릴 이유가 없다.
+ *
+ * 🔴 위치 인자 함수에는 쓰지 말 것 — 그쪽은 순서가 곧 의미라 문자열 고정이 맞다.
+ */
+function declaresParams(file, text, fnName, requiredKeys) {
+  const declaration = new RegExp(`function\\s+${fnName}\\s*\\(\\s*\\{([^}]*)\\}`).exec(text);
+  if (!declaration) {
+    assert(false, `${file} missing destructured declaration: ${fnName}({ ... })`);
+    return;
+  }
+  const declared = new Set(
+    declaration[1].split(",").map((part) => part.split("=")[0].trim()).filter(Boolean),
+  );
+  for (const key of requiredKeys) {
+    assert(declared.has(key), `${file} ${fnName}({ ... }) must still receive: ${key}`);
+  }
+}
+
 function repeatedText(seed, minLength) {
   const text = [
     seed,
@@ -295,7 +320,6 @@ for (const marker of [
   "deferUsage: true",
   "billingContractMatches",
   "billingContractEvidenceClauses",
-  "resolveBillingGateAccess({ env, auth, body, idempotencyKey = \"\", inputHash = \"\", consultationType = \"\", acceptedFeatureKeys = [FEATURE_KEY] })",
   "hasRequiredLifeFortuneSaju",
   "SAJU_CALCULATION_FAILED",
   "restoreAccessBeforeGenerationFailure",
@@ -306,9 +330,6 @@ for (const marker of [
   "LIFE_FORTUNE_EVIDENCE_REF_ROOTS",
   "hasValidEvidenceRefs",
   "evidenceRefs",
-  "finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, orderName = ORDER_NAME })",
-  "cancelDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, error, orderName = ORDER_NAME })",
-  "applyUsageOnce({ request, env, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME })",
   "reserveProviderCallOnce",
   "providerCallCount",
   "PROVIDER_DUPLICATE_BLOCKED",
@@ -322,6 +343,17 @@ for (const marker of [
   "fallbackMinChars: Math.round(section.minChars * 0.4)",
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
+}
+
+// 청구 경로 함수는 서명 글자가 아니라 '필요한 키를 받는가'로 고정한다(declaresParams 주석 참고).
+// 여기 나열된 키가 빠지면 중복 청구·미차감·주문명 유실이 조용히 지나간다.
+for (const [fnName, requiredKeys] of [
+  ["resolveBillingGateAccess", ["env", "auth", "body", "idempotencyKey", "inputHash", "consultationType", "acceptedFeatureKeys"]],
+  ["finalizeDeferredBillingUsage", ["request", "env", "access", "idempotencyKey", "sessionId", "orderName"]],
+  ["cancelDeferredBillingUsage", ["request", "env", "access", "idempotencyKey", "sessionId", "error", "orderName"]],
+  ["applyUsageOnce", ["request", "env", "userId", "sessionId", "access", "idempotencyKey", "pricing", "orderName"]],
+]) {
+  declaresParams("worker/routes/life-book-ai.js", route, fnName, requiredKeys);
 }
 
 excludes("app/premium-unlock/PremiumSalesContent.tsx", premiumClient, "forceDeduct");
