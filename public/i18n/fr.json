@@ -1850,7 +1850,8 @@
         "pass": "Avec un pass, ce contenu s'ouvre sans paiement. On vérifie ?",
         "monthly": "Vous pouvez l'ouvrir avec vos pierres de lune, sans frais supplémentaires !",
         "direct": "Vous pouvez ouvrir uniquement ce contenu tout de suite."
-      }
+      },
+      "goLabel": "Ouvrir ainsi"
     },
     "overlay": {
       "unlockPreparing": {

@@ -1850,7 +1850,8 @@
         "pass": "Mit einem Pass öffnet sich das ohne Zahlung. Sollen wir nachsehen?",
         "monthly": "Du kannst ihn mit deinen vorhandenen Mondsteinen öffnen – ohne Zusatzkosten!",
         "direct": "Du kannst nur diesen einen Inhalt sofort öffnen."
-      }
+      },
+      "goLabel": "So öffnen"
     },
     "overlay": {
       "unlockPreparing": {

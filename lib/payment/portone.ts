@@ -76,6 +76,10 @@ declare global {
 }
 
 const SDK_SCRIPT_ID = "portone-v2-sdk";
+/* 클릭 핸들러 안에서 기다릴 수 있는 상한. 이보다 오래 끌면 브라우저가 사용자 제스처로 보지 않아
+   결제창 팝업이 차단된다 — 기다린 끝에 창이 안 열리는 것이 가장 나쁜 결과다.
+   모달을 열 때 SDK 를 미리 받아 두므로(예열), 클릭 시점에는 대개 이미 준비돼 있다. */
+const SDK_READY_TIMEOUT_MS = 1500;
 const PORTONE_CURRENCY = "CURRENCY_KRW";
 const EMAIL_REGEX = /^[^@\s]+@[^\s@]+\.[^\s@]+$/;
 
@@ -273,36 +277,48 @@ function ensurePortoneSdk() {
       return;
     }
 
-    const existingScript = document.getElementById(SDK_SCRIPT_ID) as HTMLScriptElement | null;
-    if (existingScript) {
-      existingScript.addEventListener(
-        "load",
-        () => {
-          if (window.PortOne?.requestPayment) resolve();
-          else reject(new Error(portoneText("sdkLoadFailed")));
-        },
-        { once: true },
-      );
-      existingScript.addEventListener(
-        "error",
-        () => {
-          reject(new Error(portoneText("sdkLoadFailed")));
-        },
-        { once: true },
-      );
-      return;
-    }
+    /* 🔴 `load` 이벤트에만 기대면 안 된다. 이미 로드를 끝낸 <script> 에 리스너를 달면 그 이벤트는
+       **영영 울리지 않는다.** 예전에는 태그가 이미 있을 때 리스너만 걸고 return 했고 타임아웃도
+       없어서, 그 경우 이 Promise 가 영원히 풀리지 않았다 — 사용자에게는 "단건결제를 눌렀는데
+       결제창이 안 뜬다"로 보인다. 태그가 이미 있었는지에 따라 갈리므로 간헐적이었다.
+       그래서 준비 여부를 직접 폴링한다. load/error 리스너는 첫 로드 경로의 가장 빠른 신호라 함께 둔다.
 
-    const script = document.createElement("script");
-    script.id = SDK_SCRIPT_ID;
-    script.src = "https://cdn.portone.io/v2/browser-sdk.js";
-    script.async = true;
-    script.onload = () => {
-      if (window.PortOne?.requestPayment) resolve();
+       상한도 짧아야 한다. 이 함수는 클릭 핸들러 안에서 돌고, 오래 기다리면 브라우저가 더는
+       사용자 제스처로 보지 않아 팝업이 차단된다 — 기다린 끝에 결제창이 안 열리는 최악이 된다.
+       늦으면 조용히 멈추는 대신 실패로 알리는 편이 낫다. */
+    let settled = false;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let capTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      if (pollTimer) clearInterval(pollTimer);
+      if (capTimer) clearTimeout(capTimer);
+      if (ok && window.PortOne?.requestPayment) resolve();
       else reject(new Error(portoneText("sdkLoadFailed")));
     };
-    script.onerror = () => reject(new Error(portoneText("sdkLoadFailed")));
-    document.body.appendChild(script);
+
+    const existingScript = document.getElementById(SDK_SCRIPT_ID) as HTMLScriptElement | null;
+    const script = existingScript || document.createElement("script");
+    if (!existingScript) {
+      script.id = SDK_SCRIPT_ID;
+      script.src = "https://cdn.portone.io/v2/browser-sdk.js";
+      script.async = true;
+    }
+
+    script.addEventListener("load", () => finish(true), { once: true });
+    script.addEventListener("error", () => {
+      // 죽은 태그를 남기면 다음 시도가 그것을 물려받아 새 요청 없이 상한까지 기다린다.
+      try { script.parentNode?.removeChild(script); } catch { /* 제거 실패는 무시 */ }
+      finish(false);
+    }, { once: true });
+
+    // 이미 로드가 끝난 태그를 구제하는 경로. 50ms 는 클릭 반응으로 체감되지 않는 간격이다.
+    pollTimer = setInterval(() => { if (window.PortOne?.requestPayment) finish(true); }, 50);
+    capTimer = setTimeout(() => finish(false), SDK_READY_TIMEOUT_MS);
+
+    if (!existingScript) document.body.appendChild(script);
   });
 }
 

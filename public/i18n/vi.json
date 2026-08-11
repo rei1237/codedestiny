@@ -1850,7 +1850,8 @@
         "pass": "Nếu bạn có vé, nội dung mở mà không cần thanh toán. Kiểm tra nhé?",
         "monthly": "Bạn có thể mở bằng nguyệt tinh thạch đang có mà không tốn thêm!",
         "direct": "Bạn có thể mở ngay riêng nội dung này."
-      }
+      },
+      "goLabel": "Mở theo cách này"
     },
     "overlay": {
       "unlockPreparing": {

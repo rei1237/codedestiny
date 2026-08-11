@@ -1850,7 +1850,8 @@
         "pass": "Jika anda ada pas, ini terbuka tanpa bayaran. Mahu semak?",
         "monthly": "Anda boleh membukanya dengan batu bulan sedia ada — tanpa kos tambahan!",
         "direct": "Anda boleh buka kandungan ini sahaja dengan segera."
-      }
+      },
+      "goLabel": "Buka begini"
     },
     "overlay": {
       "unlockPreparing": {
