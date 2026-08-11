@@ -1,5 +1,5 @@
-import type { Metadata, MetadataRoute } from "next";
-import { ROUTES, BASE_URL, type SitemapRouteEntry } from "./seo-site-urls";
+import type { Metadata } from "next";
+import { BASE_URL } from "./seo-site-urls";
 import { isNoindexPath, normalizeSeoPath, siteSeo, toCanonicalUrl } from "./seo/siteSeo";
 
 export const SEO_V2_SITE = {
@@ -191,29 +191,6 @@ export function buildSeoMetadataV2(content: SeoV2Content): Metadata {
     publisher: SEO_V2_SITE.publisher,
     category: content.category,
   };
-}
-
-export function getIndexableRouteEntries(): SitemapRouteEntry[] {
-  const seen = new Set<string>();
-  const entries: SitemapRouteEntry[] = [];
-
-  for (const route of ROUTES) {
-    const path = normalizePath(route.path);
-    if (!isIndexableRoute(path) || seen.has(path)) continue;
-    seen.add(path);
-    entries.push({ ...route, path });
-  }
-
-  return entries;
-}
-
-export function buildSitemapEntriesV2(date = new Date()): MetadataRoute.Sitemap {
-  return getIndexableRouteEntries().map((route) => ({
-    url: getCanonicalUrl(route.path),
-    lastModified: date,
-    changeFrequency: route.changeFrequency || "weekly",
-    priority: route.priority ?? 0.7,
-  }));
 }
 
 export function buildWebPageJsonLdV2(content: SeoV2Content) {

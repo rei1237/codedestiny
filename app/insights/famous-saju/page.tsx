@@ -132,6 +132,13 @@ export default function FamousSajuInsightIndexPage() {
           <p className="mt-5 text-base leading-8 text-slate-300">
             {famousSajuInsightCopy.intro}
           </p>
+          <p className="mt-3 text-sm text-slate-400">
+            카테고리별로 살펴보려면{" "}
+            <Link href="/famous-saju" className="text-amber-100 underline">
+              유명인 사주 분석 아카이브
+            </Link>
+            도 함께 확인해 보세요.
+          </p>
         </div>
 
         <section className="mt-8 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
