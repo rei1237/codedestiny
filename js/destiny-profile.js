@@ -3349,13 +3349,16 @@
       existing.addEventListener('load', clearPoll, { once: true });
       existing.addEventListener('error', clearPoll, { once: true });
 
-      /* 상한을 8000ms 에서 내렸다. 클릭 핸들러 안에서 8초를 기다리면 브라우저가 더는 사용자
-         제스처로 보지 않아, 기다린 끝에 팝업이 차단된다 — 늦게 열리는 게 아니라 안 열린다.
-         늦으면 조용히 멈추는 대신 실패로 알리는 편이 사용자에게 낫다. */
+      /* 🔴 2026-08-11 에 8000ms→1500ms 로 줄였다가(user-gesture 소멸 우려) 원복했다(2026-08-12). 위 폴링이
+         "이미 로드 끝난 태그를 물려받는" 원래 버그를 이미 완전히 해결했으므로, 예열(모달 오픈 시점에
+         시작)이 끝나 있는 정상 경로는 폴링이 즉시 resolve 한다 — 이 상한은 SDK가 실제로 느리거나
+         실패한 드문 경우의 안전망일 뿐이다. 1500ms 는 그 안전망을 CDN 왕복이 1.5초를 넘는 네트워크
+         (모바일 등)에서 매번 발동시켜 결제창을 원천 차단했다(만료 시 미완료 태그를 제거하고 새로
+         시작하므로 재시도도 같은 상한에 다시 걸린다). 8000ms 는 오래 실사용된 값이다(#243). */
       setTimeout(function() {
         clearPoll();
         finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function'));
-      }, 1500);
+      }, 8000);
     });
   }
 
@@ -3604,10 +3607,17 @@
     return [feature || 'paid-service', label, cost, amount, profile].join('|');
   }
 
-  function _dpJoinPaidServiceSingleFlight(slotName, key, ttlMs, producer) {
+  function _dpJoinPaidServiceSingleFlight(slotName, key, ttlMs, producer, opts) {
     var now = Date.now();
     var active = window[slotName];
-    if (active && active.promise && active.key === key && now - Number(active.startedAt || 0) < ttlMs) {
+    // 🔴 내부 재시도(idempotency 충돌/중복 paymentId/전화번호 재확보)는 자기 자신이 아직 진행 중인
+    // 슬롯과 합류시키면 안 된다 — 그 재시도 자체가 원본 호출의 완료를 기다리는 중이므로, 여기서
+    // 원본의 promise를 그대로 돌려주면 "재시도가 원본을 기다리고 원본은 재시도를 기다리는" 순환
+    // 대기가 성립해 둘 다 영원히 settle되지 않는다(결제창이 아예 안 뜨는 채로 무한 대기, 2026-08-12
+    // 재현: 체크아웃 409 IDEMPOTENCY_CONFLICT 직후 100% 재현). dedup 키가 idempotencyKey를 반영하지
+    // 않아 재시도도 원본과 같은 키를 갖기 때문 — 내부 재시도만 이 합류를 건너뛰고 새로 실행한다.
+    var isInternalRetry = !!(opts && (opts.__cdIdempotencyConflictRetry === true || opts.__cdDuplicatePaymentRetry === true || opts.__cdPaymentPhoneResume === true));
+    if (!isInternalRetry && active && active.promise && active.key === key && now - Number(active.startedAt || 0) < ttlMs) {
       return active.promise;
     }
     var promise = Promise.resolve().then(producer);
@@ -4318,7 +4328,7 @@
           _dpSetPaymentPending(false);
           throw _dpDirectCheckoutError;
         });
-      });
+      }, opts);
     };
     _dpRunDirectKrwCheckoutGuarded.__cdSinglePaymentGuard = true;
     window._cdRunDirectKrwCheckout = _dpRunDirectKrwCheckoutGuarded;
