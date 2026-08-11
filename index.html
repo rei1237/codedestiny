@@ -24854,12 +24854,23 @@ return you.name.restore();</span>
   }
 
   function _cdStartDirectCheckoutPreflight() {
+    // 🔴 지연 평가(2026-08-12): 주문(checkout) 응답이 storeId/channelKey 를 인라인으로 실어 오므로
+    // 이 config GET 은 거의 항상 버려졌는데, 클릭 순간 무조건 발사돼 checkout POST 와 대역폭·DB
+    // admission 슬롯을 다퉜다(실측 워터폴: 결제 임계경로 초기 연결 23초). dp(_dpRunDirectKrwCheckout)
+    // 와 같은 패턴으로, 인라인 config 가 불완전한 드문 경우에만 첫 await(_cdResolveDirectCheckoutConfig)
+    // 시점에 나간다. getter 라 소비부 계약(await preflight.config)은 그대로다.
+    var pending = null;
     return {
-      config: fetchJsonWithAuth('/api/payments/config', { method: 'GET' }).then(function(result) {
-        return { ok: true, result: result };
-      }, function(error) {
-        return { ok: false, error: error };
-      })
+      get config() {
+        if (!pending) {
+          pending = fetchJsonWithAuth('/api/payments/config', { method: 'GET' }).then(function(result) {
+            return { ok: true, result: result };
+          }, function(error) {
+            return { ok: false, error: error };
+          });
+        }
+        return pending;
+      }
     };
   }
 

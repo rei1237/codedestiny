@@ -33,7 +33,11 @@ var APP_VERSION_DEFER_GUARD = 'app_version_defer_guard';
 var SW_PURGED_VERSION_KEY = 'app_sw_purged_version';
 var SW_RETIRE_ONCE_KEY = 'app_sw_retire_once';
 var VERSION_GUARD_BANNER_ID = 'cd-version-update-banner';
-var VERSION_CHECK_INTERVAL_MS = 15000;
+// 🔴 요청 다이어트(2026-08-12): 15초 폴링 + focus + visibility 가 version.json 을 상시 때려
+// 결제 임계경로(checkout POST·PortOne SDK)와 연결·대역폭을 다퉜다(실측 워터폴: 초기 연결 23초).
+// 60초로 늘리고, 트리거 중첩은 아래 VERSION_GUARD_MIN_GAP_MS 쿨다운이 30초 1회로 묶는다.
+var VERSION_CHECK_INTERVAL_MS = 60000;
+var VERSION_GUARD_MIN_GAP_MS = 30000;
 var SW_CACHE_PREFIXES = [
   'kkul-mansaeryeok-',
   'workbox',
@@ -54,7 +58,9 @@ function pickRuntimeVersion(payload) {
 }
 
 function resolveRuntimeVersion() {
-  return fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+  // no-store 가 이미 브라우저 캐시를 우회한다 — ?t= 캐시버스트는 캐시 키만 무한 분열시켜 매 요청을
+  // 오리진까지 보냈다. 고정 URL 이면 중간 계층이 짧게라도 흡수할 수 있고, 응답 본문 계약은 동일하다.
+  return fetch('/version.json', { cache: 'no-store' })
     .then(function(res) {
       if (!res.ok) return null;
       return res.json().catch(function() { return null; });
@@ -340,9 +346,18 @@ function showVersionUpdateBanner(version, reason) {
 }
 
 var __versionGuardInFlight = false;
+var __versionGuardLastStartedAt = 0;
 function runNuclearVersionGuard() {
   // focus·visibilitychange·interval·이벤트가 겹쳐 version.json을 중복 요청하지 않도록 단일 실행 보장.
   if (__versionGuardInFlight) return Promise.resolve();
+  // 🔴 ① 트리거가 겹쳐도 30초(VERSION_GUARD_MIN_GAP_MS)에 1회를 넘지 않는다 ② 결제 등 critical
+  // operation 중에는 fetch 자체를 내보내지 않는다 — 예전에는 리로드만 막고 요청은 그대로 나가서
+  // 결제 네트워크와 경쟁했다. 상태가 풀리면 cd:critical-operation-state 리스너와 60초 폴링이
+  // 늦어도 한 주기 안에 재검사한다(자동 리로드는 이미 폐지, 배너 안내라 지연 비용이 없다).
+  var now = Date.now();
+  if (now - __versionGuardLastStartedAt < VERSION_GUARD_MIN_GAP_MS) return Promise.resolve();
+  if (isCriticalOperationInProgress()) return Promise.resolve();
+  __versionGuardLastStartedAt = now;
   __versionGuardInFlight = true;
   return resolveRuntimeVersion().then(function(version) {
     // dev 버전 또는 fetch 실패 시 아무 작업 안 함

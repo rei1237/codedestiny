@@ -22064,7 +22064,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-36bfceb8571f" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-36bfceb8571f" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-36bfceb8571f" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -23995,12 +23995,23 @@ return you.name.restore();</span>
   }
 
   function _cdStartDirectCheckoutPreflight() {
+    // 🔴 지연 평가(2026-08-12): 주문(checkout) 응답이 storeId/channelKey 를 인라인으로 실어 오므로
+    // 이 config GET 은 거의 항상 버려졌는데, 클릭 순간 무조건 발사돼 checkout POST 와 대역폭·DB
+    // admission 슬롯을 다퉜다(실측 워터폴: 결제 임계경로 초기 연결 23초). dp(_dpRunDirectKrwCheckout)
+    // 와 같은 패턴으로, 인라인 config 가 불완전한 드문 경우에만 첫 await(_cdResolveDirectCheckoutConfig)
+    // 시점에 나간다. getter 라 소비부 계약(await preflight.config)은 그대로다.
+    var pending = null;
     return {
-      config: fetchJsonWithAuth('/api/payments/config', { method: 'GET' }).then(function(result) {
-        return { ok: true, result: result };
-      }, function(error) {
-        return { ok: false, error: error };
-      })
+      get config() {
+        if (!pending) {
+          pending = fetchJsonWithAuth('/api/payments/config', { method: 'GET' }).then(function(result) {
+            return { ok: true, result: result };
+          }, function(error) {
+            return { ok: false, error: error };
+          });
+        }
+        return pending;
+      }
     };
   }
 
