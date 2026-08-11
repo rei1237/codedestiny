@@ -312,8 +312,6 @@
     if (user.name) safe.name = String(user.name);
     if (user.email) safe.email = String(user.email);
     if (user.userEmail) safe.userEmail = String(user.userEmail);
-    if (user.phoneNumber) safe.phoneNumber = String(user.phoneNumber);
-    if (user.phone) safe.phone = String(user.phone);
     if (user.role) safe.role = String(user.role);
     if (user.plan) safe.plan = String(user.plan);
     if (typeof user.hasLocalAuth === 'boolean') safe.hasLocalAuth = user.hasLocalAuth;
