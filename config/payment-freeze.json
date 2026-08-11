@@ -13,7 +13,7 @@
       "file": "index.html",
       "marker": "  async function _cdRunDirectKrwCheckout(options) {",
       "why": "단건 PortOne 결제 실행 경로. 호출부 6곳이 여기에 물려 있다.",
-      "sha256": "f5901afad043eb96"
+      "sha256": "b754cff5772c15ab"
     },
     {
       "file": "index.html",

@@ -25252,9 +25252,15 @@ return you.name.restore();</span>
       _cdHideDirectPgWaitOverlay();
       _cdEndDirectPgWindowSuppression();
     }
-    try { sessionStorage.removeItem('cd_direct_payment_resume'); } catch (_resumeClearErr) {}
+    // 🔴 복귀 티켓은 여기서 지우지 않는다(2026-08-12). requestPayment 직후 지우면 카드 승인은
+    // 났는데 confirm 이 5xx/202 로 밀린 순간 복구 수단이 통째로 사라졌다(돈은 나가고 지급은 안 됨).
+    // dp(_dpRunDirectKrwCheckout)와 같은 계약으로 confirm 성공 뒤에만 회수하고, 취소·실패 분기는
+    // 아래에서 즉시 정리한다. 티켓은 30분 TTL 로 스스로 만료되므로 남아도 되살아나지 않는다.
     var paymentId = String((rsp && rsp.paymentId) || order.merchantUid || '').trim();
     if (!rsp || rsp.code || !paymentId) {
+      // 이 시도는 죽었다(취소 또는 PG 거절) — 티켓을 남기면 30분 안의 새로고침이 죽은 결제를
+      // 재확인하려 든다. 중복 paymentId 재시도 분기는 새 키로 새 티켓을 다시 쓴다.
+      try { sessionStorage.removeItem('cd_direct_payment_resume'); } catch (_resumeClearErr) {}
       // 🔴 PortOne V2 SDK 는 실패를 reject 하지 않고 {code, message} 로 resolve 한다 — 요청 검증
       // 실패(예: orderName 길이 초과)가 정확히 이 경로다. 예전에는 이걸 전부 __cdPaymentAborted 로
       // 표시해 상위에서 "결제를 취소했습니다."로 세탁하고 실제 message 를 버렸다. 그래서 결제창이
@@ -25326,6 +25332,18 @@ return you.name.restore();</span>
       var confirmMessage = (confirmRes.payload && (confirmRes.payload.message || (confirmRes.payload.error && confirmRes.payload.error.message))) || '결제 검증에 실패했습니다.';
       throw new Error(confirmMessage);
     }
+    // 🔴 202 PENDING_CONFIRMATION(카드 승인 완료·지급 마무리만 남음, 웹훅·10분 크론이 마무리)을
+    // 아래 일반 실패 문구로 세탁하면 안 된다 — "결제가 완료되지 않았어요"는 재결제를 유도해
+    // 이중결제가 된다. 서버 안내("다시 결제하지 마세요")를 그대로 전하고 복귀 티켓은 유지한다
+    // (모바일 리다이렉트 복귀·새로고침이 멱등 confirm 으로 마무리를 재시도할 수 있다).
+    // 코드가 재제안 목록에 없으므로 결제창도 다시 열리지 않는다(_cdShouldReofferPaymentChoice).
+    var _cdConfirmPendingCode = String((confirmRes.payload && (confirmRes.payload.code || (confirmRes.payload.error && confirmRes.payload.error.code))) || '').toUpperCase();
+    if (_cdConfirmPendingCode === 'PENDING_CONFIRMATION' || _cdConfirmPendingCode === 'GRANT_PENDING' || (confirmRes.payload && confirmRes.payload.recoveryRequired === true)) {
+      var _cdConfirmPendingError = new Error(String((confirmRes.payload && confirmRes.payload.message) || '결제는 완료됐어요. 콘텐츠 준비가 끝나는 대로 자동으로 열립니다. 다시 결제하지 말아 주세요.'));
+      _cdConfirmPendingError.code = 'PENDING_CONFIRMATION';
+      _cdConfirmPendingError.status = Number(confirmRes.status || 202);
+      throw _cdConfirmPendingError;
+    }
     if (!_cdHasVerifiedServerAccess(confirmRes.payload, order.featureKey || checkoutPayload.featureKey || directFeatureKey || '')) {
       throw new Error('결제가 완료되지 않았어요. 금액이 차감되었다면 잠시 후 자동 확인되며, 계속 문제가 있으면 문의해주세요.');
     }
@@ -25341,6 +25359,8 @@ return you.name.restore();</span>
     }
     _cdPersistPremiumAccessTokenFromPayload(confirmRes.payload);
     _cdClearPaidPrecheckCache('single-payment-success');
+    // 확정이 검증까지 끝났다 — 이제서야 복귀 티켓을 회수한다(위 requestPayment 직후 회수 금지 주석 참고).
+    try { sessionStorage.removeItem('cd_direct_payment_resume'); } catch (_resumeDoneErr) {}
     return confirmRes.payload;
   }
 

@@ -129,6 +129,7 @@
     "verify:admin-feedback-bug-reward": "node scripts/verify-admin-feedback-bug-reward.mjs",
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
     "verify:checkout-auth-recovery": "node scripts/verify-checkout-auth-recovery.mjs",
+    "verify:direct-confirm-pending-recovery": "node scripts/verify-direct-confirm-pending-recovery.mjs",
     "verify:payment-service-boundary": "node scripts/verify-payment-service-boundary.mjs",
     "verify:pass-snapshot": "node scripts/verify-pass-snapshot-single-source.mjs",
     "verify:paid-feature-billing-policy": "node scripts/verify-paid-feature-billing-policy.mjs",
