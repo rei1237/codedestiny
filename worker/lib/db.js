@@ -682,7 +682,24 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   const forcedResetMinIntervalMS = Math.min(poolResetCooldownMS, 1000);
 
   let lastError = null;
-  const releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
+  // 🔴 admission 거절(MongoOperationOverloadedError)은 아래 재시도 루프 **이전**에 던져져 willRetry
+  // 에 닿지 않는다 — 그래서 이 에러만 "transient 로 분류되는데 재시도는 불가능"한 유일한 부류였고,
+  // 순간 포화(1인 팬아웃 5~6슬롯 × 동시 사용자 2명)가 곧바로 하드 503 이 됐다(체크아웃 실측, 상단
+  // MONGO_MAX_IN_FLIGHT_OPS 주석). 호출부가 retryAdmissionOnOverload 로 옵트인한 결제·인증
+  // 크리티컬 읽기에 한해 짧은 지터 후 **슬롯 획득만 1회** 재시도한다. 예산 검산: 2500(1차 admission)
+  // + ≤300(지터) + 2500(2차) ≈ 5.3s < 11.5s(시도 상한 하한). 전면 기본화하지 않는 이유: 모든
+  // 대기자가 재진입하면 진짜 지속 포화에서 대기열 압력만 두 배가 된다 — 순간 버스트를 흡수하는
+  // 장치이지 용량을 늘리는 장치가 아니다.
+  let releaseMongoOpSlot;
+  try {
+    releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
+  } catch (admissionError) {
+    if (options.retryAdmissionOnOverload !== true || admissionError?.name !== "MongoOperationOverloadedError") {
+      throw admissionError;
+    }
+    await sleep(150 + Math.floor(Math.random() * 150));
+    releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
+  }
   const pendingAttemptTasks = new Set();
   let admissionReleased = false;
   let operationFinalized = false;
