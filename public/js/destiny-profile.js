@@ -4032,7 +4032,22 @@
       }
       var checkoutRes = await checkoutPending;
       _dpMarkPgStep('checkout');
-      if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
+      if (!checkoutRes.ok) {
+        var checkoutErrCode = String((checkoutRes.payload && (checkoutRes.payload.code || (checkoutRes.payload.error && checkoutRes.payload.error.code))) || '').trim();
+        // 🔴 requestId 를 세션/기간 단위로 캐시해 재사용하는 호출부가 있으면, 이전 시도에서 가격
+        // 판정이 달랐던 pending 주문과 같은 idempotency-key로 충돌해 체크아웃 POST 가 409 로 거절된다.
+        // 새 키로 1회 재시도하지 않으면 사용자는 몇 번을 다시 눌러도 결제창이 안 뜨는 상태에 영구히
+        // 갇힌다(실제 증상). PG 창이 열리기 전이라 이중결제 위험은 없다.
+        if (checkoutErrCode === 'IDEMPOTENCY_CONFLICT' && opts.__cdIdempotencyConflictRetry !== true) {
+          var _dpConflictRetryKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '') + ':c' + Date.now().toString(36);
+          return await window._cdRunDirectKrwCheckout(Object.assign({}, opts, {
+            idempotencyKey: _dpConflictRetryKey,
+            checkoutPayload: Object.assign({}, opts.checkoutPayload || {}, { idempotencyKey: _dpConflictRetryKey }),
+            __cdIdempotencyConflictRetry: true
+          }));
+        }
+        throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
+      }
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
       var order = _dpFindCheckoutOrder(checkoutData);

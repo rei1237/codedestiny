@@ -85,6 +85,9 @@ type PrepareOrderResponse = {
     coinPrice?: number;
     amountKRW?: number;
     productName: string;
+    // 서버가 결제창용 구매자 정보를 주문 응답에 실어 보낸다(worker/routes/payments.js buildSinglePaymentCustomer).
+    // 이걸 쓰면 결제창 직전의 GET /api/me/payment-phone 왕복이 통째로 사라진다.
+    customer?: { fullName?: string; email?: string; phoneNumber?: string };
   };
 };
 
@@ -4214,8 +4217,10 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
-      // 저장된 번호가 없으면 실제 결제 버튼을 누른 이 시점에만 결제용 번호를 조회한다.
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, null);
+      // prepare 응답이 이미 구매자 번호를 실어 왔으면 그걸 쓴다 — 결제창 직전의 왕복 1회가 통째로 사라진다.
+      // 서버가 못 준 경우(미저장·복호화 실패)에만 조회하고, 그래도 없으면 입력 모달을 띄운다.
+      const customerPhoneNumber = normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")
+        || await ensurePaymentPhoneNumber(apiBase, authUser, null);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
