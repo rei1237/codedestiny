@@ -103,6 +103,8 @@
     "migrate:fix-ttl-index-drift": "node scripts/migrations/20260705-fix-ttl-index-drift.mjs",
     "migrate:monthly-credit-lot-expiry": "node scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs",
     "verify:mongo-launch-indexes": "node scripts/verify-mongo-launch-indexes.mjs",
+    "audit:mongo-collections": "node scripts/audit-mongo-collections.mjs",
+    "audit:user-fields": "node scripts/audit-user-fields.mjs",
     "migrate:insights-to-content": "node scripts/migrate-insights-to-content.mjs",
     "migrate:encrypt-user-phone": "node scripts/migrate-encrypt-user-phone.mjs",
     "seed:inicis-test-account": "node scripts/seed-inicis-test-account.mjs",

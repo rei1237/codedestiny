@@ -1,0 +1,2174 @@
+{
+  "generatedAt": "2026-08-11T23:32:38.935Z",
+  "database": "code_destiny",
+  "collection": "users",
+  "totalDocuments": 245,
+  "fields": [
+    {
+      "path": "email",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 245,
+      "presentPct": 100,
+      "meaningfulPct": 100,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "joinedAt",
+      "types": [
+        "date"
+      ],
+      "present": 245,
+      "meaningful": 245,
+      "presentPct": 100,
+      "meaningfulPct": 100,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "localAuth",
+      "types": [
+        "object"
+      ],
+      "present": 245,
+      "meaningful": 245,
+      "presentPct": 100,
+      "meaningfulPct": 100,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "name",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 245,
+      "presentPct": 100,
+      "meaningfulPct": 100,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "role",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 245,
+      "presentPct": 100,
+      "meaningfulPct": 100,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "birthDate",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 240,
+      "presentPct": 100,
+      "meaningfulPct": 98,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "birthTime",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 240,
+      "presentPct": 100,
+      "meaningfulPct": 98,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "gender",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 240,
+      "presentPct": 100,
+      "meaningfulPct": 98,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription",
+      "types": [
+        "object"
+      ],
+      "present": 219,
+      "meaningful": 219,
+      "presentPct": 89.4,
+      "meaningfulPct": 89.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "updatedAt",
+      "types": [
+        "date"
+      ],
+      "present": 219,
+      "meaningful": 219,
+      "presentPct": 89.4,
+      "meaningfulPct": 89.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.tier",
+      "types": [
+        "string"
+      ],
+      "present": 218,
+      "meaningful": 218,
+      "presentPct": 89,
+      "meaningfulPct": 89,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "createdAt",
+      "types": [
+        "date"
+      ],
+      "present": 214,
+      "meaningful": 214,
+      "presentPct": 87.3,
+      "meaningfulPct": 87.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts",
+      "types": [
+        "object"
+      ],
+      "present": 214,
+      "meaningful": 214,
+      "presentPct": 87.3,
+      "meaningfulPct": 87.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.google",
+      "types": [
+        "object"
+      ],
+      "present": 214,
+      "meaningful": 214,
+      "presentPct": 87.3,
+      "meaningfulPct": 87.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.kakao",
+      "types": [
+        "object"
+      ],
+      "present": 214,
+      "meaningful": 214,
+      "presentPct": 87.3,
+      "meaningfulPct": 87.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.naver",
+      "types": [
+        "object"
+      ],
+      "present": 214,
+      "meaningful": 214,
+      "presentPct": 87.3,
+      "meaningfulPct": 87.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "status",
+      "types": [
+        "string"
+      ],
+      "present": 208,
+      "meaningful": 208,
+      "presentPct": 84.9,
+      "meaningfulPct": 84.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "twoFA",
+      "types": [
+        "object"
+      ],
+      "present": 205,
+      "meaningful": 205,
+      "presentPct": 83.7,
+      "meaningfulPct": 83.7,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.source",
+      "types": [
+        "string"
+      ],
+      "present": 195,
+      "meaningful": 195,
+      "presentPct": 79.6,
+      "meaningfulPct": 79.6,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.lastBillingStatus",
+      "types": [
+        "string"
+      ],
+      "present": 194,
+      "meaningful": 194,
+      "presentPct": 79.2,
+      "meaningfulPct": 79.2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "localAuth.activatedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 245,
+      "meaningful": 181,
+      "presentPct": 100,
+      "meaningfulPct": 73.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "localAuth.enabled",
+      "types": [
+        "bool"
+      ],
+      "present": 245,
+      "meaningful": 181,
+      "presentPct": 100,
+      "meaningfulPct": 73.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "passwordHash",
+      "types": [
+        "string"
+      ],
+      "present": 245,
+      "meaningful": 181,
+      "presentPct": 100,
+      "meaningfulPct": 73.9,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "points",
+      "types": [
+        "int"
+      ],
+      "present": 245,
+      "meaningful": 160,
+      "presentPct": 100,
+      "meaningfulPct": 65.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.membershipCreditGranted",
+      "types": [
+        "int"
+      ],
+      "present": 99,
+      "meaningful": 95,
+      "presentPct": 40.4,
+      "meaningfulPct": 38.8,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.legacyCoinCreditSeeded",
+      "types": [
+        "bool"
+      ],
+      "present": 97,
+      "meaningful": 94,
+      "presentPct": 39.6,
+      "meaningfulPct": 38.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.profileLimit",
+      "types": [
+        "int"
+      ],
+      "present": 87,
+      "meaningful": 81,
+      "presentPct": 35.5,
+      "meaningfulPct": 33.1,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "licenses",
+      "types": [
+        "object"
+      ],
+      "present": 75,
+      "meaningful": 75,
+      "presentPct": 30.6,
+      "meaningfulPct": 30.6,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "monthlySubscription",
+      "types": [
+        "object"
+      ],
+      "present": 75,
+      "meaningful": 75,
+      "presentPct": 30.6,
+      "meaningfulPct": 30.6,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.membershipCreditLotsVersion",
+      "types": [
+        "int"
+      ],
+      "present": 95,
+      "meaningful": 71,
+      "presentPct": 38.8,
+      "meaningfulPct": 29,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.kakao.connectedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 214,
+      "meaningful": 49,
+      "presentPct": 87.3,
+      "meaningfulPct": 20,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.kakao.id",
+      "types": [
+        "string"
+      ],
+      "present": 214,
+      "meaningful": 49,
+      "presentPct": 87.3,
+      "meaningfulPct": 20,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "destinyProfilesCurrentId",
+      "types": [
+        "string"
+      ],
+      "present": 201,
+      "meaningful": 43,
+      "presentPct": 82,
+      "meaningfulPct": 17.6,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "phoneNumber",
+      "types": [
+        "string"
+      ],
+      "present": 89,
+      "meaningful": 33,
+      "presentPct": 36.3,
+      "meaningfulPct": 13.5,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "destinyProfilesLockedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 95,
+      "meaningful": 27,
+      "presentPct": 38.8,
+      "meaningfulPct": 11,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "destinyProfilesLockedCurrentId",
+      "types": [
+        "string"
+      ],
+      "present": 95,
+      "meaningful": 27,
+      "presentPct": 38.8,
+      "meaningfulPct": 11,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.membershipCreditBalance",
+      "types": [
+        "int"
+      ],
+      "present": 99,
+      "meaningful": 27,
+      "presentPct": 40.4,
+      "meaningfulPct": 11,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.membershipCreditLots",
+      "types": [
+        "array"
+      ],
+      "present": 95,
+      "meaningful": 27,
+      "presentPct": 38.8,
+      "meaningfulPct": 11,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "recentConsumeRequestIds",
+      "types": [
+        "array"
+      ],
+      "present": 202,
+      "meaningful": 21,
+      "presentPct": 82.4,
+      "meaningfulPct": 8.6,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.legacyCoinCreditSeededAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 95,
+      "meaningful": 17,
+      "presentPct": 38.8,
+      "meaningfulPct": 6.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.legacyCoinCreditSeededPoints",
+      "types": [
+        "int"
+      ],
+      "present": 97,
+      "meaningful": 17,
+      "presentPct": 39.6,
+      "meaningfulPct": 6.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.google.connectedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 214,
+      "meaningful": 17,
+      "presentPct": 87.3,
+      "meaningfulPct": 6.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.google.id",
+      "types": [
+        "string"
+      ],
+      "present": 214,
+      "meaningful": 17,
+      "presentPct": 87.3,
+      "meaningfulPct": 6.9,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "profileImage",
+      "types": [
+        "string"
+      ],
+      "present": 143,
+      "meaningful": 16,
+      "presentPct": 58.4,
+      "meaningfulPct": 6.5,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.planId",
+      "types": [
+        "string"
+      ],
+      "present": 87,
+      "meaningful": 15,
+      "presentPct": 35.5,
+      "meaningfulPct": 6.1,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.membershipCreditUsed",
+      "types": [
+        "int"
+      ],
+      "present": 93,
+      "meaningful": 13,
+      "presentPct": 38,
+      "meaningfulPct": 5.3,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.startedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 216,
+      "meaningful": 11,
+      "presentPct": 88.2,
+      "meaningfulPct": 4.5,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "guardianConsent",
+      "types": [
+        "object"
+      ],
+      "present": 10,
+      "meaningful": 10,
+      "presentPct": 4.1,
+      "meaningfulPct": 4.1,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "guardianConsent.status",
+      "types": [
+        "string"
+      ],
+      "present": 10,
+      "meaningful": 10,
+      "presentPct": 4.1,
+      "meaningfulPct": 4.1,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.expiresAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 217,
+      "meaningful": 10,
+      "presentPct": 88.6,
+      "meaningfulPct": 4.1,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "unlockedFeatures",
+      "types": [
+        "array"
+      ],
+      "present": 207,
+      "meaningful": 10,
+      "presentPct": 84.5,
+      "meaningfulPct": 4.1,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "lastLoginAt",
+      "types": [
+        "date"
+      ],
+      "present": 9,
+      "meaningful": 9,
+      "presentPct": 3.7,
+      "meaningfulPct": 3.7,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.firstSubAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 216,
+      "meaningful": 9,
+      "presentPct": 88.2,
+      "meaningfulPct": 3.7,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.status",
+      "types": [
+        "string"
+      ],
+      "present": 9,
+      "meaningful": 9,
+      "presentPct": 3.7,
+      "meaningfulPct": 3.7,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "legalConsents",
+      "types": [
+        "object"
+      ],
+      "present": 7,
+      "meaningful": 7,
+      "presentPct": 2.9,
+      "meaningfulPct": 2.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.maxCoveredCoin",
+      "types": [
+        "int"
+      ],
+      "present": 79,
+      "meaningful": 7,
+      "presentPct": 32.2,
+      "meaningfulPct": 2.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.passTier",
+      "types": [
+        "string"
+      ],
+      "present": 79,
+      "meaningful": 7,
+      "presentPct": 32.2,
+      "meaningfulPct": 2.9,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "destinyProfiles",
+      "types": [
+        "array"
+      ],
+      "present": 199,
+      "meaningful": 6,
+      "presentPct": 81.2,
+      "meaningfulPct": 2.4,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "destinyProfilesCurrentIdUpdatedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 36,
+      "meaningful": 5,
+      "presentPct": 14.7,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "legalConsents.age14AttestedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 7,
+      "meaningful": 5,
+      "presentPct": 2.9,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "legalConsents.privacyAcceptedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 7,
+      "meaningful": 5,
+      "presentPct": 2.9,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "legalConsents.privacyVersion",
+      "types": [
+        "string"
+      ],
+      "present": 7,
+      "meaningful": 5,
+      "presentPct": 2.9,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "legalConsents.termsAcceptedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 7,
+      "meaningful": 5,
+      "presentPct": 2.9,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "legalConsents.termsVersion",
+      "types": [
+        "string"
+      ],
+      "present": 7,
+      "meaningful": 5,
+      "presentPct": 2.9,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "metadata",
+      "types": [
+        "object"
+      ],
+      "present": 5,
+      "meaningful": 5,
+      "presentPct": 2,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.durationMonths",
+      "types": [
+        "int"
+      ],
+      "present": 79,
+      "meaningful": 5,
+      "presentPct": 32.2,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.freeLimit",
+      "types": [
+        "int"
+      ],
+      "present": 79,
+      "meaningful": 5,
+      "presentPct": 32.2,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.passLimit",
+      "types": [
+        "int"
+      ],
+      "present": 79,
+      "meaningful": 5,
+      "presentPct": 32.2,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.productType",
+      "types": [
+        "string"
+      ],
+      "present": 79,
+      "meaningful": 5,
+      "presentPct": 32.2,
+      "meaningfulPct": 2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.lastBillingAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 187,
+      "meaningful": 4,
+      "presentPct": 76.3,
+      "meaningfulPct": 1.6,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.paymentMethod",
+      "types": [
+        "string"
+      ],
+      "present": 192,
+      "meaningful": 4,
+      "presentPct": 78.4,
+      "meaningfulPct": 1.6,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.updatedAt",
+      "types": [
+        "date"
+      ],
+      "present": 4,
+      "meaningful": 4,
+      "presentPct": 1.6,
+      "meaningfulPct": 1.6,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "phoneUpdatedAt",
+      "types": [
+        "date"
+      ],
+      "present": 3,
+      "meaningful": 3,
+      "presentPct": 1.2,
+      "meaningfulPct": 1.2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.customerUid",
+      "types": [
+        "string"
+      ],
+      "present": 192,
+      "meaningful": 3,
+      "presentPct": 78.4,
+      "meaningfulPct": 1.2,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "referralCode",
+      "types": [
+        "string"
+      ],
+      "present": 3,
+      "meaningful": 3,
+      "presentPct": 1.2,
+      "meaningfulPct": 1.2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "referralCodeCreatedAt",
+      "types": [
+        "date"
+      ],
+      "present": 3,
+      "meaningful": 3,
+      "presentPct": 1.2,
+      "meaningfulPct": 1.2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "referralProgram",
+      "types": [
+        "object"
+      ],
+      "present": 3,
+      "meaningful": 3,
+      "presentPct": 1.2,
+      "meaningfulPct": 1.2,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "licenses.status",
+      "types": [
+        "string"
+      ],
+      "present": 75,
+      "meaningful": 2,
+      "presentPct": 30.6,
+      "meaningfulPct": 0.8,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "monthlySubscription.source",
+      "types": [
+        "string"
+      ],
+      "present": 75,
+      "meaningful": 2,
+      "presentPct": 30.6,
+      "meaningfulPct": 0.8,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "monthlySubscription.status",
+      "types": [
+        "string"
+      ],
+      "present": 75,
+      "meaningful": 2,
+      "presentPct": 30.6,
+      "meaningfulPct": 0.8,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "paidFeatures",
+      "types": [
+        "array"
+      ],
+      "present": 76,
+      "meaningful": 1,
+      "presentPct": 31,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.passRemainingUses",
+      "types": [
+        "int"
+      ],
+      "present": 40,
+      "meaningful": 1,
+      "presentPct": 16.3,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.passTotalUses",
+      "types": [
+        "int"
+      ],
+      "present": 40,
+      "meaningful": 1,
+      "presentPct": 16.3,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.premiumUseCount",
+      "types": [
+        "int"
+      ],
+      "present": 10,
+      "meaningful": 1,
+      "presentPct": 4.1,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "profileSubscription.premiumUseCycleKey",
+      "types": [
+        "string"
+      ],
+      "present": 10,
+      "meaningful": 1,
+      "presentPct": 4.1,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.naver.connectedAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 214,
+      "meaningful": 1,
+      "presentPct": 87.3,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "socialAccounts.naver.id",
+      "types": [
+        "string"
+      ],
+      "present": 214,
+      "meaningful": 1,
+      "presentPct": 87.3,
+      "meaningfulPct": 0.4,
+      "pii": true,
+      "allDefault": false
+    },
+    {
+      "path": "withdrawnAt",
+      "types": [
+        "date",
+        "null"
+      ],
+      "present": 193,
+      "meaningful": 1,
+      "presentPct": 78.8,
+      "meaningfulPct": 0.4,
+      "pii": false,
+      "allDefault": false
+    },
+    {
+      "path": "adminLastActivityAt",
+      "types": [
+        "null"
+      ],
+      "present": 205,
+      "meaningful": 0,
+      "presentPct": 83.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "adminRefreshTokenHash",
+      "types": [
+        "string"
+      ],
+      "present": 205,
+      "meaningful": 0,
+      "presentPct": 83.7,
+      "meaningfulPct": 0,
+      "pii": true,
+      "allDefault": true
+    },
+    {
+      "path": "bannedAt",
+      "types": [
+        "null"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "banReason",
+      "types": [
+        "string"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "destinyCurrentProfileId",
+      "types": [
+        "string"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "first_service_access_date",
+      "types": [
+        "null"
+      ],
+      "present": 212,
+      "meaningful": 0,
+      "presentPct": 86.5,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.consentedAt",
+      "types": [
+        "null"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.consentIp",
+      "types": [
+        "string"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": true,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.guardianEmail",
+      "types": [
+        "string"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": true,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.method",
+      "types": [
+        "string"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.requestedAt",
+      "types": [
+        "null"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.required",
+      "types": [
+        "bool"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "guardianConsent.revokedAt",
+      "types": [
+        "null"
+      ],
+      "present": 10,
+      "meaningful": 0,
+      "presentPct": 4.1,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "has_started_paid_service",
+      "types": [
+        "bool"
+      ],
+      "present": 213,
+      "meaningful": 0,
+      "presentPct": 86.9,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "licenses.expiresAt",
+      "types": [
+        "null"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "licenses.premium",
+      "types": [
+        "int"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "licenses.standard",
+      "types": [
+        "int"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "licenses.vvip",
+      "types": [
+        "int"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "monthlySubscription.active",
+      "types": [
+        "bool"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "monthlySubscription.expiresAt",
+      "types": [
+        "null"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "monthlySubscription.startedAt",
+      "types": [
+        "null"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "monthlySubscription.tier",
+      "types": [
+        "string"
+      ],
+      "present": 75,
+      "meaningful": 0,
+      "presentPct": 30.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileMe",
+      "types": [
+        "null"
+      ],
+      "present": 1,
+      "meaningful": 0,
+      "presentPct": 0.4,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.autoRenewEnabled",
+      "types": [
+        "bool"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.cancelAtPeriodEnd",
+      "types": [
+        "bool"
+      ],
+      "present": 203,
+      "meaningful": 0,
+      "presentPct": 82.9,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.cancelRequestedAt",
+      "types": [
+        "null"
+      ],
+      "present": 201,
+      "meaningful": 0,
+      "presentPct": 82,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.currentPeriodEnd",
+      "types": [
+        "null"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.currentPeriodStart",
+      "types": [
+        "null"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.freeServiceThresholdCoins",
+      "types": [
+        "int"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.lastBillingError",
+      "types": [
+        "string"
+      ],
+      "present": 192,
+      "meaningful": 0,
+      "presentPct": 78.4,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.lastRenewalFailedAt",
+      "types": [
+        "null"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.lastRenewedAt",
+      "types": [
+        "null"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.nextBillingAt",
+      "types": [
+        "null"
+      ],
+      "present": 190,
+      "meaningful": 0,
+      "presentPct": 77.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.passUsedCount",
+      "types": [
+        "int"
+      ],
+      "present": 40,
+      "meaningful": 0,
+      "presentPct": 16.3,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.priceCoins",
+      "types": [
+        "int"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "profileSubscription.renewalFailReason",
+      "types": [
+        "string"
+      ],
+      "present": 9,
+      "meaningful": 0,
+      "presentPct": 3.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "tamagotchi",
+      "types": [
+        "null"
+      ],
+      "present": 92,
+      "meaningful": 0,
+      "presentPct": 37.6,
+      "meaningfulPct": 0,
+      "pii": true,
+      "allDefault": true
+    },
+    {
+      "path": "twoFA.backupCodesHash",
+      "types": [
+        "array"
+      ],
+      "present": 205,
+      "meaningful": 0,
+      "presentPct": 83.7,
+      "meaningfulPct": 0,
+      "pii": true,
+      "allDefault": true
+    },
+    {
+      "path": "twoFA.enabled",
+      "types": [
+        "bool"
+      ],
+      "present": 205,
+      "meaningful": 0,
+      "presentPct": 83.7,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    },
+    {
+      "path": "twoFA.totpSecret",
+      "types": [
+        "string"
+      ],
+      "present": 205,
+      "meaningful": 0,
+      "presentPct": 83.7,
+      "meaningfulPct": 0,
+      "pii": true,
+      "allDefault": true
+    },
+    {
+      "path": "usagePasses",
+      "types": [
+        "array"
+      ],
+      "present": 48,
+      "meaningful": 0,
+      "presentPct": 19.6,
+      "meaningfulPct": 0,
+      "pii": false,
+      "allDefault": true
+    }
+  ],
+  "arrays": [
+    {
+      "path": "recentConsumeRequestIds",
+      "maxLength": 224,
+      "avgLength": 3.84,
+      "nonEmptyDocs": 21
+    },
+    {
+      "path": "unlockedFeatures",
+      "maxLength": 22,
+      "avgLength": 0.3,
+      "nonEmptyDocs": 10
+    },
+    {
+      "path": "paidFeatures",
+      "maxLength": 2,
+      "avgLength": 0.01,
+      "nonEmptyDocs": 1
+    },
+    {
+      "path": "destinyProfiles",
+      "maxLength": 1,
+      "avgLength": 0.02,
+      "nonEmptyDocs": 6
+    },
+    {
+      "path": "twoFA.backupCodesHash",
+      "maxLength": 0,
+      "avgLength": 0,
+      "nonEmptyDocs": 0
+    },
+    {
+      "path": "profileSubscription.membershipCreditLots",
+      "maxLength": 1,
+      "avgLength": 0.11,
+      "nonEmptyDocs": 27
+    }
+  ],
+  "distributions": [
+    {
+      "path": "status",
+      "values": [
+        {
+          "value": "active",
+          "count": 207
+        },
+        {
+          "value": null,
+          "count": 37
+        },
+        {
+          "value": "withdrawn",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "role",
+      "values": [
+        {
+          "value": "user",
+          "count": 245
+        }
+      ]
+    },
+    {
+      "path": "gender",
+      "values": [
+        {
+          "value": "OTHER",
+          "count": 218
+        },
+        {
+          "value": "F",
+          "count": 16
+        },
+        {
+          "value": "M",
+          "count": 6
+        },
+        {
+          "value": "",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "path": "localAuth.enabled",
+      "values": [
+        {
+          "value": true,
+          "count": 181
+        },
+        {
+          "value": false,
+          "count": 64
+        }
+      ]
+    },
+    {
+      "path": "guardianConsent.status",
+      "values": [
+        {
+          "value": null,
+          "count": 235
+        },
+        {
+          "value": "none",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "path": "guardianConsent.required",
+      "values": [
+        {
+          "value": null,
+          "count": 235
+        },
+        {
+          "value": false,
+          "count": 10
+        }
+      ]
+    },
+    {
+      "path": "twoFA.enabled",
+      "values": [
+        {
+          "value": false,
+          "count": 205
+        },
+        {
+          "value": null,
+          "count": 40
+        }
+      ]
+    },
+    {
+      "path": "has_started_paid_service",
+      "values": [
+        {
+          "value": false,
+          "count": 213
+        },
+        {
+          "value": null,
+          "count": 32
+        }
+      ]
+    },
+    {
+      "path": "licenses.status",
+      "values": [
+        {
+          "value": null,
+          "count": 170
+        },
+        {
+          "value": "",
+          "count": 73
+        },
+        {
+          "value": "none",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "monthlySubscription.active",
+      "values": [
+        {
+          "value": null,
+          "count": 170
+        },
+        {
+          "value": false,
+          "count": 75
+        }
+      ]
+    },
+    {
+      "path": "monthlySubscription.status",
+      "values": [
+        {
+          "value": null,
+          "count": 170
+        },
+        {
+          "value": "",
+          "count": 73
+        },
+        {
+          "value": "none",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "monthlySubscription.tier",
+      "values": [
+        {
+          "value": null,
+          "count": 170
+        },
+        {
+          "value": "",
+          "count": 75
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.tier",
+      "values": [
+        {
+          "value": "free",
+          "count": 208
+        },
+        {
+          "value": null,
+          "count": 27
+        },
+        {
+          "value": "family",
+          "count": 7
+        },
+        {
+          "value": "premium",
+          "count": 2
+        },
+        {
+          "value": "vvip",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.passTier",
+      "values": [
+        {
+          "value": null,
+          "count": 166
+        },
+        {
+          "value": "",
+          "count": 72
+        },
+        {
+          "value": "family",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.source",
+      "values": [
+        {
+          "value": "coin",
+          "count": 110
+        },
+        {
+          "value": "event",
+          "count": 80
+        },
+        {
+          "value": null,
+          "count": 50
+        },
+        {
+          "value": "pass",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.productType",
+      "values": [
+        {
+          "value": null,
+          "count": 166
+        },
+        {
+          "value": "",
+          "count": 74
+        },
+        {
+          "value": "membership_pass",
+          "count": 3
+        },
+        {
+          "value": "family",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.lastBillingStatus",
+      "values": [
+        {
+          "value": "idle",
+          "count": 188
+        },
+        {
+          "value": null,
+          "count": 51
+        },
+        {
+          "value": "success",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.paymentMethod",
+      "values": [
+        {
+          "value": "",
+          "count": 188
+        },
+        {
+          "value": null,
+          "count": 53
+        },
+        {
+          "value": "monthly_credit",
+          "count": 3
+        },
+        {
+          "value": "seed-dev-users",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.cancelAtPeriodEnd",
+      "values": [
+        {
+          "value": false,
+          "count": 203
+        },
+        {
+          "value": null,
+          "count": 42
+        }
+      ]
+    },
+    {
+      "path": "profileSubscription.legacyCoinCreditSeeded",
+      "values": [
+        {
+          "value": null,
+          "count": 148
+        },
+        {
+          "value": true,
+          "count": 94
+        },
+        {
+          "value": false,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "path": "legalConsents.termsVersion",
+      "values": [
+        {
+          "value": null,
+          "count": 238
+        },
+        {
+          "value": "2026-04-11",
+          "count": 5
+        },
+        {
+          "value": "",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "legalConsents.privacyVersion",
+      "values": [
+        {
+          "value": null,
+          "count": 238
+        },
+        {
+          "value": "2026-08-04",
+          "count": 5
+        },
+        {
+          "value": "",
+          "count": 2
+        }
+      ]
+    }
+  ],
+  "policyMetrics": {
+    "total": 245,
+    "withdrawn": 1,
+    "admins": 0,
+    "localAuthUsers": 181,
+    "googleLinked": 17,
+    "naverLinked": 1,
+    "kakaoLinked": 49,
+    "phonePlaintext": 32,
+    "phoneEncrypted": 1,
+    "phoneEmpty": 212,
+    "pointsPositive": 160,
+    "pointsTotal": 2002956304,
+    "passActive": 7,
+    "passExpired": 3,
+    "creditBalancePositive": 27,
+    "creditBalanceTotal": 1035099,
+    "creditGrantedTotal": 21350444,
+    "creditUsedTotal": 303250,
+    "hasUnlocks": 10,
+    "hasDestinyProfiles": 6,
+    "hasCreditLots": 27,
+    "licensesNonZero": 0
+  },
+  "topUnlockedFeatures": [
+    {
+      "featureKey": "flower-fc",
+      "accounts": 4
+    },
+    {
+      "featureKey": "section_daewun",
+      "accounts": 4
+    },
+    {
+      "featureKey": "rpt_skillTreeCard",
+      "accounts": 4
+    },
+    {
+      "featureKey": "section_summary",
+      "accounts": 3
+    },
+    {
+      "featureKey": "rpt_specialCharmCard",
+      "accounts": 3
+    },
+    {
+      "featureKey": "flower-sukuyo",
+      "accounts": 3
+    },
+    {
+      "featureKey": "section_compat",
+      "accounts": 3
+    },
+    {
+      "featureKey": "rpt_secretHouseEntryCard",
+      "accounts": 3
+    },
+    {
+      "featureKey": "flower-destiny",
+      "accounts": 3
+    },
+    {
+      "featureKey": "rpt_luckSyncDiaryEntryCard",
+      "accounts": 3
+    },
+    {
+      "featureKey": "flower-ziwei",
+      "accounts": 3
+    },
+    {
+      "featureKey": "rpt_healthReportCard",
+      "accounts": 3
+    },
+    {
+      "featureKey": "olympus-fc",
+      "accounts": 3
+    },
+    {
+      "featureKey": "animal-destiny-unlock",
+      "accounts": 3
+    },
+    {
+      "featureKey": "flower-astro",
+      "accounts": 3
+    },
+    {
+      "featureKey": "rpt_villainCard",
+      "accounts": 2
+    },
+    {
+      "featureKey": "rpt_energyCoordCard",
+      "accounts": 2
+    },
+    {
+      "featureKey": "olympus-profile-fc",
+      "accounts": 2
+    },
+    {
+      "featureKey": "premium-ziwei",
+      "accounts": 2
+    },
+    {
+      "featureKey": "rpgCharacter",
+      "accounts": 2
+    },
+    {
+      "featureKey": "rpt_quantumCard",
+      "accounts": 2
+    },
+    {
+      "featureKey": "ziwei_love_deep",
+      "accounts": 1
+    },
+    {
+      "featureKey": "music-track-0dm3afl",
+      "accounts": 1
+    },
+    {
+      "featureKey": "premium-sibyl-dominator",
+      "accounts": 1
+    },
+    {
+      "featureKey": "tarot-love-relationship",
+      "accounts": 1
+    },
+    {
+      "featureKey": "astro_stellar_career_room",
+      "accounts": 1
+    },
+    {
+      "featureKey": "astro_talent_attraction_deep",
+      "accounts": 1
+    },
+    {
+      "featureKey": "music-track-0obaten",
+      "accounts": 1
+    },
+    {
+      "featureKey": "music-track-0x4o1iz",
+      "accounts": 1
+    },
+    {
+      "featureKey": "saju-guardian-unlock",
+      "accounts": 1
+    },
+    {
+      "featureKey": "astro_stellar_talent_room",
+      "accounts": 1
+    },
+    {
+      "featureKey": "astro_career_talent_deep",
+      "accounts": 1
+    },
+    {
+      "featureKey": "loveSimulation",
+      "accounts": 1
+    },
+    {
+      "featureKey": "music-track-1hku1xb",
+      "accounts": 1
+    }
+  ],
+  "allDefaultFields": [
+    "adminLastActivityAt",
+    "adminRefreshTokenHash",
+    "bannedAt",
+    "banReason",
+    "destinyCurrentProfileId",
+    "first_service_access_date",
+    "guardianConsent.consentedAt",
+    "guardianConsent.consentIp",
+    "guardianConsent.guardianEmail",
+    "guardianConsent.method",
+    "guardianConsent.requestedAt",
+    "guardianConsent.required",
+    "guardianConsent.revokedAt",
+    "has_started_paid_service",
+    "licenses.expiresAt",
+    "licenses.premium",
+    "licenses.standard",
+    "licenses.vvip",
+    "monthlySubscription.active",
+    "monthlySubscription.expiresAt",
+    "monthlySubscription.startedAt",
+    "monthlySubscription.tier",
+    "profileMe",
+    "profileSubscription.autoRenewEnabled",
+    "profileSubscription.cancelAtPeriodEnd",
+    "profileSubscription.cancelRequestedAt",
+    "profileSubscription.currentPeriodEnd",
+    "profileSubscription.currentPeriodStart",
+    "profileSubscription.freeServiceThresholdCoins",
+    "profileSubscription.lastBillingError",
+    "profileSubscription.lastRenewalFailedAt",
+    "profileSubscription.lastRenewedAt",
+    "profileSubscription.nextBillingAt",
+    "profileSubscription.passUsedCount",
+    "profileSubscription.priceCoins",
+    "profileSubscription.renewalFailReason",
+    "tamagotchi",
+    "twoFA.backupCodesHash",
+    "twoFA.enabled",
+    "twoFA.totpSecret",
+    "usagePasses"
+  ]
+}
