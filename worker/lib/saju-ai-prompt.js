@@ -1899,7 +1899,7 @@ function buildSajuCategoryRubricLines(rubric) {
   return [
     "[카테고리별 상담 품질 기준]",
     `- 선택 카테고리: ${data.label || "인생"}`,
-    `- 반드시 다룰 주제: ${(data.requiredSections || []).join(" / ") || DEFAULT_TEXT}`,
+    `- 반드시 다룰 주제(한국어 참고 표기 — 출력 언어가 한국어가 아니면 소제목도 해당 언어로 번역): ${(data.requiredSections || []).join(" / ") || DEFAULT_TEXT}`,
     `- 우선 연결할 명식 축: ${(data.tenGodFocus || []).join(" / ") || DEFAULT_TEXT}`,
     "- 글자수를 채우기 위해 반복하지 말고, 위 주제가 명식 사실 카드와 어떻게 이어지는지 실제 상담처럼 풀어주세요.",
     "- 질문과 직접 관련이 깊은 주제는 자세히, 직접 관련이 약한 주제는 명식 이해에 필요한 만큼만 간결하게 다룹니다.",

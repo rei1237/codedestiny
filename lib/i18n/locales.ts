@@ -1,17 +1,19 @@
-export type Locale = "ko" | "ja" | "zh" | "en";
+export type Locale = "ko" | "ja" | "zh" | "zh-TW" | "en";
 
-export const LOCALES = ["ko", "ja", "zh", "en"] as const;
-export const PUBLIC_LOCALES = ["ja", "zh", "en"] as const;
+export const LOCALES = ["ko", "ja", "zh", "zh-TW", "en"] as const;
+export const PUBLIC_LOCALES = ["ja", "zh", "zh-TW", "en"] as const;
 // 2026-07: 일본 오가닉 유입 확보를 위해 다국어 색인 개방.
-// ja/zh/en SSR 페이지(app/[locale]/*)는 네이티브 품질 번역이 완료된 상태
+// 2026-08: 대만 번체(zh-TW)를 zh(중국 간체)와 분리된 별도 로케일로 개방.
+// ja/zh/zh-TW/en SSR 페이지(app/[locale]/*)는 네이티브 품질 번역이 완료된 상태
 // (lib/seo/i18nKeywords.ts, lib/seo/i18nInsights.ts 참고).
-export const SEO_INDEXABLE_LOCALES = ["ko", "ja", "zh", "en"] as const;
+export const SEO_INDEXABLE_LOCALES = ["ko", "ja", "zh", "zh-TW", "en"] as const;
 export const LOCALE_NAVIGATION_LOCALES = LOCALES;
 
 const LOCALE_LABELS_TEXT_TRANSLATIONS = {
   ko: "한국어",
   ja: "日本語",
-  zh: "中文",
+  zh: "中文(简体)",
+  "zh-TW": "中文(繁體)",
   en: "English",
 } as const;
 
@@ -49,7 +51,16 @@ export const LOCALE_CONFIG: Record<Locale, {
     siteName: "Code Destiny China",
     ogLocale: "zh_CN",
     hrefLang: "zh-CN",
-    hrefLangAliases: ["zh", "zh-Hans", "zh-TW", "zh-Hant"],
+    hrefLangAliases: ["zh", "zh-Hans"],
+  },
+  "zh-TW": {
+    label: LOCALE_LABELS_TEXT_TRANSLATIONS["zh-TW"],
+    htmlLang: "zh-TW",
+    pathPrefix: "/zh-tw",
+    siteName: "Code Destiny Taiwan",
+    ogLocale: "zh_TW",
+    hrefLang: "zh-TW",
+    hrefLangAliases: ["zh-Hant"],
   },
   en: {
     label: LOCALE_LABELS_TEXT_TRANSLATIONS.en,
@@ -63,13 +74,15 @@ export const LOCALE_CONFIG: Record<Locale, {
 };
 
 export function isLocale(value: string): value is Locale {
-  return (LOCALES as readonly string[]).includes(String(value || "").toLowerCase());
+  const normalized = String(value || "").toLowerCase();
+  return (LOCALES as readonly string[]).some((locale) => locale.toLowerCase() === normalized);
 }
 
 export function toLocale(value?: string): Locale | null {
   const normalized = String(value || "").trim().toLowerCase();
   if (!normalized) return null;
-  return isLocale(normalized) ? normalized : null;
+  if (!isLocale(normalized)) return null;
+  return (LOCALES as readonly string[]).find((locale) => locale.toLowerCase() === normalized) as Locale;
 }
 
 export function normalizePath(path: string): string {

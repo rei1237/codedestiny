@@ -218,33 +218,34 @@ const coreRoutes = [
 const localeHreflangAliases = {
   ko: ["ko", "ko-KR"],
   ja: ["ja", "ja-JP"],
-  zh: ["zh-CN", "zh", "zh-Hans", "zh-TW", "zh-Hant"],
+  zh: ["zh-CN", "zh", "zh-Hans"],
+  "zh-TW": ["zh-TW", "zh-Hant"],
   en: ["en", "en-US"],
 };
 
 const i18nRouteGroups = [
   {
-    paths: { ko: "/", ja: "/ja", zh: "/zh", en: "/en" },
+    paths: { ko: "/", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },
     changefreq: "daily",
     priority: 1.0,
   },
   {
-    paths: { ko: "/ziwei", ja: "/ja/ziwei", zh: "/zh/ziwei", en: "/en/ziwei" },
+    paths: { ko: "/ziwei", ja: "/ja/ziwei", zh: "/zh/ziwei", "zh-TW": "/zh-tw/ziwei", en: "/en/ziwei" },
     changefreq: "weekly",
     priority: 0.95,
   },
   {
-    paths: { ko: "/sukuyo", ja: "/ja/sukuyo", zh: "/zh/sukuyo", en: "/en/sukuyo" },
+    paths: { ko: "/sukuyo", ja: "/ja/sukuyo", zh: "/zh/sukuyo", "zh-TW": "/zh-tw/sukuyo", en: "/en/sukuyo" },
     changefreq: "weekly",
     priority: 0.94,
   },
   {
-    paths: { ko: "/today", ja: "/ja/today", zh: "/zh/today", en: "/en/today" },
+    paths: { ko: "/today", ja: "/ja/today", zh: "/zh/today", "zh-TW": "/zh-tw/today", en: "/en/today" },
     changefreq: "daily",
     priority: 0.97,
   },
   {
-    paths: { ko: "/insights", ja: "/ja/insights", zh: "/zh/insights", en: "/en/insights" },
+    paths: { ko: "/insights", ja: "/ja/insights", zh: "/zh/insights", "zh-TW": "/zh-tw/insights", en: "/en/insights" },
     changefreq: "weekly",
     priority: 0.9,
   },
@@ -253,6 +254,7 @@ const i18nRouteGroups = [
       ko: "/insights/ziwei-basics",
       ja: "/ja/insights/ziwei-basics-jp",
       zh: "/zh/insights/ziwei-basics-zh",
+      "zh-TW": "/zh-tw/insights/ziwei-basics-tw",
       en: "/en/insights/ziwei-basics-en",
     },
     changefreq: "monthly",
@@ -263,6 +265,7 @@ const i18nRouteGroups = [
       ko: "/insights/sukuyo-basics",
       ja: "/ja/insights/sukuyo-basics-jp",
       zh: "/zh/insights/sukuyo-basics-zh",
+      "zh-TW": "/zh-tw/insights/sukuyo-basics-tw",
       en: "/en/insights/sukuyo-basics-en",
     },
     changefreq: "monthly",
@@ -448,7 +451,7 @@ function buildI18nAlternates(paths) {
   const links = [];
   const seen = new Set();
 
-  for (const locale of ["ko", "ja", "zh", "en"]) {
+  for (const locale of ["ko", "ja", "zh", "zh-TW", "en"]) {
     const path = paths[locale];
     if (!path) continue;
     const href = toUrl(normalizeSitemapPath(path));
@@ -468,7 +471,7 @@ function buildI18nAlternates(paths) {
 function buildI18nRouteEntries() {
   const entries = [];
 
-  // SEO_INDEXABLE_LOCALES=["ko","ja","zh","en"] — 전체 로케일 URL을 hreflang alternates 와
+  // SEO_INDEXABLE_LOCALES=["ko","ja","zh","zh-TW","en"] — 전체 로케일 URL을 hreflang alternates 와
   // 함께 싣는다 (lib/i18n/locales.ts 와 동기화 유지).
   for (const group of i18nRouteGroups) {
     const alternates = buildI18nAlternates(group.paths);

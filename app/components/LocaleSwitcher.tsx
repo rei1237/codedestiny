@@ -6,7 +6,7 @@ import * as React from "react";
 import { getRouteKeyByLocalizedPath, I18N_ROUTE_MAP } from "../../lib/i18n/routes";
 
 type LocaleCode = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
-type RouteLocaleCode = "ko" | "en" | "ja" | "zh";
+type RouteLocaleCode = "ko" | "en" | "ja" | "zh" | "zh-TW";
 type LocaleItem = { code: LocaleCode; slug: string; label: string; shortLabel: string; hrefLang: string; routeLocale?: RouteLocaleCode };
 
 const LOCALE_SWITCHER_LABELS: LocaleItem[] = [
@@ -14,7 +14,7 @@ const LOCALE_SWITCHER_LABELS: LocaleItem[] = [
   { code: "en", slug: "/en", label: "English", shortLabel: "ENG", hrefLang: "en", routeLocale: "en" },
   { code: "ja", slug: "/ja", label: "日本語", shortLabel: "JPN", hrefLang: "ja", routeLocale: "ja" },
   { code: "zh-CN", slug: "/zh", label: "简体中文", shortLabel: "CHN", hrefLang: "zh-CN", routeLocale: "zh" },
-  { code: "zh-TW", slug: "", label: "繁體中文", shortLabel: "TWN", hrefLang: "zh-TW" },
+  { code: "zh-TW", slug: "/zh-tw", label: "繁體中文", shortLabel: "TWN", hrefLang: "zh-TW", routeLocale: "zh-TW" },
   { code: "vi", slug: "", label: "Tiếng Việt", shortLabel: "VIE", hrefLang: "vi" },
   { code: "hi", slug: "", label: "हिन्दी", shortLabel: "HIN", hrefLang: "hi" },
   { code: "es", slug: "", label: "Español", shortLabel: "ESP", hrefLang: "es" },

@@ -10,6 +10,7 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { AI_OUTPUT_LOCALES, buildOutputLanguageDirective } from "../lib/i18n/ai-locale.js";
 
 const root = process.cwd();
 const failures = [];
@@ -129,10 +130,58 @@ function assert(condition, message) {
   }
 }
 
+// (9) 지시문 빌더 자체가 5개 AI 출력 로케일 전부에서 올바른 모양을 낸다.
+//     실제 모델(Gemini/Workers AI) 호출 없이도 검증 가능한 순수 문자열 조립 단언이다 —
+//     "모델이 지시를 따르는지"는 이 스크립트로 확인할 수 없고(그건 실호출 영역), 이건
+//     "지시문 자체가 깨지지 않았는지"만 본다. zh-TW 는 2026-08 에 신설된 로케일이라
+//     번체 표기(繁體中文)가 깨지면 en/ja/zh-CN 은 멀쩡한데 zh-TW 만 조용히 무력화된다.
+{
+  assert(
+    buildOutputLanguageDirective("ko") === "",
+    "buildOutputLanguageDirective('ko') 는 빈 문자열이어야 한다 (기존 트래픽 100% 보존)",
+  );
+
+  const nonKoLocales = AI_OUTPUT_LOCALES.filter((locale) => locale !== "ko");
+  assert(nonKoLocales.length === 4, "AI_OUTPUT_LOCALES 는 ko 외 4개(en/ja/zh-CN/zh-TW)여야 한다");
+
+  for (const locale of nonKoLocales) {
+    const directive = buildOutputLanguageDirective(locale);
+    assert(
+      directive.startsWith("[OUTPUT LANGUAGE — HIGHEST PRIORITY]"),
+      `buildOutputLanguageDirective('${locale}') 가 HIGHEST PRIORITY 헤더로 시작해야 한다`,
+    );
+    assert(
+      /overrides every other language instruction above/.test(directive),
+      `buildOutputLanguageDirective('${locale}') 에 기존 한국어 리터럴 지시를 무효화하는 문구가 있어야 한다`,
+    );
+    assert(
+      /한국어로 작성/.test(directive),
+      `buildOutputLanguageDirective('${locale}') 가 "한국어로 작성" 리터럴을 명시적으로 겨냥해야 한다`,
+    );
+  }
+
+  assert(
+    /Write the ENTIRE response in English only\./.test(buildOutputLanguageDirective("en")),
+    "en 지시문이 손상되었다",
+  );
+  assert(
+    /日本語のみで書いてください/.test(buildOutputLanguageDirective("ja")),
+    "ja 지시문이 손상되었다",
+  );
+  assert(
+    /请全文只用简体中文书写/.test(buildOutputLanguageDirective("zh-CN")),
+    "zh-CN 지시문이 손상되었다",
+  );
+  assert(
+    /請全文只用繁體中文書寫/.test(buildOutputLanguageDirective("zh-TW")),
+    "zh-TW 지시문이 손상되었다",
+  );
+}
+
 if (failures.length) {
   console.error("[verify:ai-locale-pipeline] FAILED");
   for (const message of failures) console.error(`  - ${message}`);
   process.exit(1);
 }
 
-console.log("[verify:ai-locale-pipeline] ok (8 invariants)");
+console.log("[verify:ai-locale-pipeline] ok (9 invariants)");
