@@ -270,17 +270,19 @@ const i18nRouteGroups = [
     priority: 0.8,
   },
   // PG 심사용 다국어 약관/정책 페이지 (app/[locale]/{terms-of-service,privacy-policy,refund-policy}).
-  // ko는 기존 페이지(각각 /terms-of-service, /privacy-policy)를 그대로 가리킨다 — 새 ko 페이지를
-  // 만들지 않았다. refund-policy는 ko 전용 URL이 없으므로(실질은 /terms-of-service 12조에 있음)
-  // ko를 이 그룹에 넣지 않는다 — sitemap URL과 hreflang 안전을 위해 fragment(#)를 <loc>으로
-  // 넣지 않는다. x-default는 이 그룹만 "/"로 폴백된다(buildI18nAlternates 참고).
+  // ko는 /terms-of-service·/privacy-policy 가 아니라 짧은 별칭 /terms·/privacy 를 가리킨다 —
+  // 두 URL이 완전히 같은 컴포넌트를 렌더해 title/description이 동일하므로, sitemap에 두 개를
+  // 함께 넣으면 verify-adsense-readiness.mjs 의 "duplicate sitemap title" 검사에 걸린다.
+  // /terms-of-service 자신도 canonical 을 /terms 로 잡아 이 dedup 을 이미 따르고 있다(coreRoutes
+  // 참고). refund-policy는 ko 전용 URL이 없으므로(실질은 /terms-of-service 12조에 있음) 이 그룹에
+  // ko를 넣지 않는다 — x-default는 이 그룹만 "/"로 폴백된다(buildI18nAlternates 참고).
   {
-    paths: { ko: "/terms-of-service", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", en: "/en/terms-of-service" },
+    paths: { ko: "/terms", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", en: "/en/terms-of-service" },
     changefreq: "yearly",
     priority: 0.55,
   },
   {
-    paths: { ko: "/privacy-policy", ja: "/ja/privacy-policy", zh: "/zh/privacy-policy", en: "/en/privacy-policy" },
+    paths: { ko: "/privacy", ja: "/ja/privacy-policy", zh: "/zh/privacy-policy", en: "/en/privacy-policy" },
     changefreq: "yearly",
     priority: 0.55,
   },
