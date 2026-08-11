@@ -90,6 +90,13 @@ export default function FamousSajuPage() {
           <p className="text-sm font-semibold text-amber-100/80">Famous Saju Archive</p>
           <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">{famousSajuPageCopy.title}</h1>
           <p className="mt-5 text-base leading-8 text-slate-300">{famousSajuPageCopy.intro}</p>
+          <p className="mt-3 text-sm text-slate-400">
+            이름이나 태그로 찾고 싶다면{" "}
+            <Link href="/insights/famous-saju" className="text-amber-100 underline">
+              유명인 사주 인사이트 아카이브
+            </Link>
+            도 함께 확인해 보세요.
+          </p>
         </div>
         <nav className="mt-8 flex flex-wrap gap-2" aria-label={famousSajuPageCopy.categoryAria}>
           {famousSajuCategories.map((category) => (
