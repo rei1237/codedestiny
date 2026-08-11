@@ -17592,6 +17592,24 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           classifyCards();
           return card;
         };
+        // IntersectionObserver 가 자리표시자를 실카드로 바꾸는 건 스크롤과 비동기로 경합한다 —
+        // 메인스레드가 바쁘거나(롱태스크) 빠르게 스크롤 후 바로 탭하면, 화면엔 보여도 아직
+        // 자리표시자인 카드를 누르게 된다(자리표시자는 aria-hidden 빈 span이라 아무 반응이 없다).
+        // 핀 카드(15504행)가 쓰는 것과 같은 "지금 마운트하고 그 카드를 대신 누른다" 패턴을
+        // 그리드의 자리표시자 자체에도 그대로 적용한다.
+        document.addEventListener('click', function(event){
+          if (!isMobileView()) return;
+          var placeholder = event.target instanceof Element ? event.target.closest('.cd-mobile-card-placeholder') : null;
+          if (!placeholder) return;
+          var collection = placeholder.closest('.feat-collection[id],.tarot-collection[id]');
+          var index = Number(placeholder.getAttribute('data-cd-card-index'));
+          var card = collection && Array.isArray(collection.__cdLazyCards) ? collection.__cdLazyCards[index] : null;
+          if (!card) return;
+          event.preventDefault();
+          event.stopPropagation();
+          var mounted = typeof window.__cdMountMobileCardForIntent === 'function' ? window.__cdMountMobileCardForIntent(card) : card;
+          if (mounted && mounted.parentNode) mounted.click();
+        }, true);
         function keepOpenCollectionAboveBottomNav(collection){
           if (!collection || !isMobileView() || String(collection.getAttribute('data-collection-open')) !== 'true') return;
           var nav = document.getElementById('cdMobileBottomNav');
