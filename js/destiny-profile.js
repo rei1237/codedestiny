@@ -2761,10 +2761,37 @@
     if (api && typeof api.resolveCheckoutRecommendation === 'function') {
       try { return api.resolveCheckoutRecommendation(input || {}); } catch (_dpRecommendError) { /* 폴백으로 흡수 */ }
     }
+    // 🔴 /js/core/checkout-entry.js 가 아직 안 붙었을 때만 도는 최후 폴백이다 — 정본 함수와
+    // 다른 답을 내면 기기마다 다른 추천을 보게 되므로, 정본과 동일한 알고리즘을 그대로 따른다.
     var opts = input || {};
-    var fallback = opts.hasActivePassTier === true ? 'direct' : 'pass';
-    var rest = ['direct', 'monthly', 'pass'].filter(function(option) { return option !== fallback; });
-    return { recommended: fallback, order: [fallback].concat(rest), monthlyCovers: false };
+    var allowPass = opts.allowPass !== false;
+    var allowDirect = opts.allowDirect !== false;
+    var allowMonthly = opts.allowMonthly !== false;
+    var monthlyBalance = Number(opts.monthlyBalance);
+    var requiredMonthlyCredits = Number(opts.requiredMonthlyCredits);
+    var monthlyCovers = opts.monthlyBalanceFresh === true
+      && Number.isFinite(monthlyBalance)
+      && Number.isFinite(requiredMonthlyCredits)
+      && requiredMonthlyCredits > 0
+      && monthlyBalance >= requiredMonthlyCredits;
+
+    var recommended = "";
+    if (allowPass && opts.hasActivePassTier !== true) recommended = "pass";
+    else if (allowMonthly && monthlyCovers) recommended = "monthly";
+    else if (allowDirect) recommended = "direct";
+    else if (allowMonthly) recommended = "monthly";
+    else if (allowPass) recommended = "pass";
+
+    var rest = [];
+    if (allowDirect && recommended !== "direct") rest.push("direct");
+    if (allowMonthly && recommended !== "monthly") rest.push("monthly");
+    if (allowPass && recommended !== "pass") rest.push("pass");
+
+    return {
+      recommended: recommended,
+      order: recommended ? [recommended].concat(rest) : rest,
+      monthlyCovers: monthlyCovers,
+    };
   }
   function _dpTrackCheckoutEvent(name, payload) {
     var api = _dpCheckoutEntry();
