@@ -222,12 +222,17 @@ function runReactSdkPreloadAndRetryTests() {
 // paymentPreparing 대기 오버레이를 띄웠고, access_check.single("단건으로 카드 결제를 준비 중이에요")
 // 카피가 접근 확인 단계에 물려 있었다.
 function runInstantPgWindowTests() {
-  // ① 셸 캐시 새니타이저는 결제용 번호를 반드시 통과시킨다(dp 새니타이저와 대칭).
+  // ① 🔴 정책 정정(2026-08-11): 결제용 번호를 fortune_auth_user 로컬스토리지에 평문 캐시하던
+  // 관행을 PII 노출 경로로 보고 폐지했다(셸·dp·React 새니타이저 세 곳 모두, 아래 carry-forward
+  // 되살림 로직 포함). 이 캐시가 없어도 결제창이 막히지 않는 이유: GET /api/me/payment-phone 이
+  // 항상 1차 소스이고(_cdGetPaymentPhoneStatus), 그게 실패했을 때만(checked!==true) 재입력
+  // 모달로 폴백한다 — 아래 read-side 단언들은 그대로 유지한다. 알려진 트레이드오프: 서버 조회가
+  // 일시적으로 실패하는 드문 경우 재입력 모달이 다시 뜰 수 있다(의도된 동작, 회귀 아님).
   const sanitizerIndex = indexSource.indexOf("function __cdSanitizeAuthUserCache(");
   assert.ok(sanitizerIndex >= 0, "shell auth-user cache sanitizer must exist");
   const sanitizerBody = indexSource.slice(sanitizerIndex, sanitizerIndex + 4000);
-  assertContains(sanitizerBody, "if (user.phoneNumber) safe.phoneNumber = String(user.phoneNumber);", "shell auth-user cache must keep phoneNumber (payment phone re-prompt regression)");
-  assertContains(sanitizerBody, "if (user.phone) safe.phone = String(user.phone);", "shell auth-user cache must keep phone (payment phone re-prompt regression)");
+  assertNotContains(sanitizerBody, "if (user.phoneNumber) safe.phoneNumber = String(user.phoneNumber);", "shell auth-user cache must not write phoneNumber to localStorage (PII policy 2026-08-11)");
+  assertNotContains(sanitizerBody, "if (user.phone) safe.phone = String(user.phone);", "shell auth-user cache must not write phone to localStorage (PII policy 2026-08-11)");
   assertContains(indexSource, "window._cdReadLocalPaymentPhoneNumber = _cdReadLocalPaymentPhoneNumber;", "shell must expose the local payment-phone reader for the dp path");
 
   // ① dp 는 조회 실패를 '번호 없음'으로 단정하지 않는다.
@@ -242,13 +247,12 @@ function runInstantPgWindowTests() {
   assertBefore(destinyProfileSource, "_dpCloseBlockingLayersBeforePhonePrompt();", "window._cdPromptDirectCheckoutPhoneNumber()", "dp must close blocking layers before opening the phone prompt");
   assertBefore(indexSource, "if (typeof _cdClosePaidFeatureGate === 'function') _cdClosePaidFeatureGate(); } catch (_) {}", "var overlay = document.createElement('div');", "shell phone prompt must close the gate before rendering its input");
 
-  // 🔴 ①-b "사이트를 나갔다 다시 들어오면 번호를 또 묻는다" 회귀 가드 (2026-07-30)
-  // 셸·dp 두 새니타이저만 대칭으로 맞췄고 세 번째(React app/_lib/auth-storage.ts)를 놓쳐서,
-  // readSanitizedAuthUser 가 읽을 때마다 정제본을 되쓰며 셸이 저장해 둔 번호를 지웠다. 가입 시
-  // 받은 번호도 persistSanitizedAuthUser 를 지나며 버려져 캐시에는 처음부터 번호가 없었다.
+  // ①-b 🔴 정책 정정(2026-08-11): React 새니타이저도 셸·dp 와 대칭으로 phoneNumber/phone 을
+  // 더 이상 캐시에 쓰지 않는다(위 PII 정책과 동일 사유). readSanitizedAuthUser 는 계속 서버
+  // 조회 실패 시의 최후 폴백으로만 쓰이며, 캐시에 값이 없으면 자연히 다음 폴백 단계로 넘어간다.
   const authStorageSource = readFileSync(resolve(root, "app/_lib/auth-storage.ts"), "utf8");
-  assertContains(authStorageSource, 'copyString(source, "phoneNumber", safe);', "React auth-user cache must keep phoneNumber (payment phone re-prompt regression)");
-  assertContains(authStorageSource, 'copyString(source, "phone", safe);', "React auth-user cache must keep phone (payment phone re-prompt regression)");
+  assertNotContains(authStorageSource, 'copyString(source, "phoneNumber", safe);', "React auth-user cache must not write phoneNumber to localStorage (PII policy 2026-08-11)");
+  assertNotContains(authStorageSource, 'copyString(source, "phone", safe);', "React auth-user cache must not write phone to localStorage (PII policy 2026-08-11)");
 
   // 조회 실패(401/503/쿨다운)를 '번호 없음'으로 세탁하지 않는다 — 확정 미보유일 때만 입력창을 띄운다.
   assertContains(indexSource, "savedState.checked = true;", "shell payment-phone lookup must mark a definitive answer");
@@ -256,8 +260,9 @@ function runInstantPgWindowTests() {
   assertContains(destinyProfileSource, "state.checked = true;", "dp payment-phone lookup must mark a definitive answer");
   assertContains(destinyProfileSource, "if (current && current.checked !== true) {", "dp must not treat a failed payment-phone lookup as 'no phone'");
 
-  // degraded /api/auth/me(토큰 폴백)에는 phoneNumber 가 없다 — 전체 교체 캐시 쓰기가 번호를 지우면 안 된다.
-  assertContains(indexSource, "if (!safe.phoneNumber && previousUser && previousUser.phoneNumber) safe.phoneNumber = String(previousUser.phoneNumber);", "shell auth-cache write must carry the known phone across a degraded me response");
+  // 🔴 정책 정정(2026-08-11): degraded 응답에서 이전 캐시의 phoneNumber 를 되살리던 carry-forward
+  // 로직도 함께 제거했다 — 되살릴 "이전 캐시값" 자체가 더 이상 존재하지 않는다(위 PII 정책).
+  assertNotContains(indexSource, "if (!safe.phoneNumber && previousUser && previousUser.phoneNumber) safe.phoneNumber = String(previousUser.phoneNumber);", "shell auth-cache write must not carry a cached phone forward (PII policy 2026-08-11 retired this cache)");
 
   // 이용권(구독) 주문 응답도 저장된 번호를 실어 보낸다 → 결제 직전 번호 조회 왕복 자체가 사라진다.
   // await 인 이유는 저장된 번호가 암호화 봉투일 수 있어 복호화가 필요하기 때문이다(worker/lib/pii-crypto.js).
