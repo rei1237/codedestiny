@@ -2308,11 +2308,15 @@ function buildGuardianConsentLoginBlock(user) {
 
 function signupErrorResponse(request, env, status, code, message, extra = {}) {
   logSignupFailure(request, env, code, message);
+  // requestId 는 logSignupFailure 가 남기는 것과 같은 값이다. 응답에도 실어야 사용자가 알려준
+  // 값으로 워커 로그의 그 한 줄을 바로 찾을 수 있다(민감정보 아님, 요청마다 새로 생성).
+  const requestId = String(getRequestMeta(request)?.requestId || "");
   return json({
     ok: false,
     message,
     code,
     error: code,
+    ...(requestId ? { requestId } : {}),
     ...extra,
   }, { status });
 }
@@ -2614,10 +2618,13 @@ async function handleRegister(request, env) {
       );
     }
 
+    // 풀 클리어·서버 선택 실패·op 타임아웃(auth_register_create_user_timeout)은 재시도가 의미 있는
+    // 인프라 실패다. 예전에는 이것까지 500 으로 나가 소셜 가입 경로(handleOAuthCompleteSignup 는
+    // 같은 상황을 503 으로 낸다)와 어긋났고, 클라이언트의 재시도 판단(retryable)도 못 받았다.
     return signupErrorResponse(
       request,
       env,
-      500,
+      isAuthDbInfraError(error) ? 503 : 500,
       "db_write_failed",
       toErrorMessage(error) || "Failed to create user.",
     );
@@ -2979,7 +2986,20 @@ async function handleChangePassword(request, env) {
     }, { status: 400 });
   }
 
-  const nextHash = await withAuthOpTimeout(hashPassword(nextPassword), timeoutMs, "auth_password_hash");
+  // 해싱 실패는 라우터 최상위 catch 로 새면 내부 오류 문구가 그대로 실린 500 이 된다.
+  // 가입 경로(handleRegister)와 같은 자리에서 같은 모양으로 처리한다.
+  let nextHash = "";
+  try {
+    nextHash = await withAuthOpTimeout(hashPassword(nextPassword), timeoutMs, "auth_password_hash");
+  } catch (error) {
+    console.error("[auth/password] hash failed:", String(error?.message || error).slice(0, 240));
+    return json({
+      ok: false,
+      code: "password_hash_failed",
+      message: "비밀번호를 안전하게 저장할 수 없어요. 잠시 후 다시 시도해 주세요.",
+    }, { status: isAuthDbInfraError(error) ? 503 : 500 });
+  }
+
   await withAuthOpTimeout(
     User.collection.updateOne(
       { _id: objectId, passwordHash: user.passwordHash },

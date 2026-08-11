@@ -94,6 +94,14 @@ function normalizePhone(value: string) {
   return /^01\d{8,9}$/.test(local) ? local : "";
 }
 function isValidEmail(value: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()); }
+// 5xx 는 사용자가 고칠 수 없는 서버 문제라 안내 문구는 그대로 두되, 서버가 준 code·requestId 만
+// 괄호로 덧붙인다. 이게 없으면 원인을 알아내려고 개발자도구를 열어야 한다(2026-08 가입 500 사례:
+// 화면에는 "일시적으로 사용할 수 없다"만 뜨고 진짜 원인은 응답 본문에만 있었다).
+// 🔴 서버 내부 메시지·스택은 절대 싣지 않는다.
+function withServerDiagnostics(message: string, payload: { code?: string; requestId?: string }) {
+  const parts = [payload?.code, payload?.requestId].filter(Boolean).map(String);
+  return parts.length > 0 ? `${message} (${parts.join(" · ")})` : message;
+}
 export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -184,8 +192,11 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
         body: JSON.stringify({ name: name.trim(), phoneNumber, email: email.trim(), password, privacyAccepted: privacy, termsAccepted: terms, ageAttested: age, nextPath: nextPath(), referralCode: current.get("ref") || undefined, referralShareToken: current.get("rs") || undefined, referralSource: current.get("via") || undefined }),
       });
-      const payload = await response.json().catch(() => ({})) as { message?: string; nextPath?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
-      if (!response.ok) throw new Error(response.status >= 500 ? copy.unavailable : (payload.message || copy.invalidSignup));
+      const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
+      // 🔴 5xx 를 throw 로 넘기지 않는다 — 아래 catch 의 /failed|invalid|.../ 정규식이 진단 꼬리표
+      // (예: db_write_failed)에 걸려 문구를 통째로 갈아치운다.
+      if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
+      if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
       redirect(payload.nextPath, payload.user?.role);
     } catch (reason) {
@@ -205,8 +216,9 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
         body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), phoneNumber, privacyAccepted: privacy, termsAccepted: terms, ageAttested: age, nextPath: nextPath() }),
       });
-      const payload = await response.json().catch(() => ({})) as { message?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
-      if (!response.ok) throw new Error(response.status >= 500 ? copy.unavailable : (payload.message || copy.invalidSignup));
+      const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
+      if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
+      if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
       if (payload.appRedirectUrl) window.location.assign(payload.appRedirectUrl); else redirect(payload.nextPath, payload.user?.role);
     } catch (reason) { setError(reason instanceof Error ? reason.message : copy.network); }

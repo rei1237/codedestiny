@@ -13,6 +13,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { checkPasswordBreached, isLocallyBlockedPassword } from "../worker/lib/password-breach.js";
+import { PBKDF2_MAX_ITERATIONS, hashPassword, verifyPassword } from "../worker/lib/password.js";
 import {
   MIN_NEW_PASSWORD_LENGTH,
   validateLoginPayload,
@@ -160,6 +161,22 @@ check("🔴 비밀번호 변경은 새 세션 발급 전에 기존 세션을 전
   const issueAt = fn.indexOf("createAuthSuccessResponse(");
   assert.ok(revokeAt > 0, "기존 세션 폐기가 없습니다 — 훔친 세션이 그대로 살아남습니다.");
   assert.ok(issueAt > revokeAt, "새 세션을 먼저 만들면 그 세션까지 폐기됩니다. 순서를 지키세요.");
+});
+
+check("🔴 PBKDF2 반복수가 Cloudflare Workers 상한(100,000)을 넘지 않는다", async () => {
+  // 워커의 WebCrypto 는 100,000 초과를 거부한다("Pbkdf2 failed: iteration counts above 100000...").
+  // Node 에는 그 상한이 없어서 jest 도 이 스크립트도 그냥 돌아가므로, **값 자체**를 단언한다.
+  // 600,000 으로 올렸다가 이메일 회원가입이 프로덕션에서 500 으로 죽은 적이 있다(2026-08-12).
+  assert.equal(PBKDF2_MAX_ITERATIONS, 100000);
+
+  const hash = await hashPassword("Quiet!Harbor42");
+  const [prefix, iterationsRaw] = hash.split("$");
+  assert.equal(prefix, "pbkdf2-sha256", `해시 포맷이 바뀌었습니다: ${prefix}`);
+  assert.ok(
+    Number(iterationsRaw) > 0 && Number(iterationsRaw) <= PBKDF2_MAX_ITERATIONS,
+    `반복수 ${iterationsRaw} 는 워커에서 동작하지 않습니다(상한 ${PBKDF2_MAX_ITERATIONS}).`,
+  );
+  assert.equal(await verifyPassword("Quiet!Harbor42", hash), true, "방금 만든 해시를 검증하지 못했습니다.");
 });
 
 check("시드 스크립트에 평문 비밀번호가 되살아나지 않았다", () => {

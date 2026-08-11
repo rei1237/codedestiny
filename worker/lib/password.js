@@ -5,10 +5,14 @@ const PBKDF2_PREFIX = "pbkdf2-sha256";
 const PBKDF2_LEGACY_PREFIX = "pbkdf2$sha256";
 const PBKDF2_SALT_BYTES = 16;
 const PBKDF2_KEY_BYTES = 32;
-// OWASP 권고치(PBKDF2-HMAC-SHA256). 실측 ~89ms 로 bcrypt cost 12(~270ms)의 1/3 이라
-// CPU 헤드룸을 확보하면서도 강도를 낮추지 않는다. 반복수는 해시 문자열에 함께 저장되므로
-// 이 값을 올려도 기존 해시 검증은 그대로 동작한다.
-const PBKDF2_ITERATIONS = 600000;
+// 🔴 Cloudflare Workers 의 WebCrypto 는 PBKDF2 반복수를 100,000 으로 **하드 제한**한다.
+// 초과하면 crypto.subtle.deriveBits 가 그 자리에서 throw 한다:
+//   `Pbkdf2 failed: iteration counts above 100000 are not supported (requested 600000).`
+// 이 값을 올리지 말 것. 2026-07 에 OWASP 권고치(600,000)로 넣었다가 이메일 회원가입이
+// 500(unknown_error)으로 죽었고, jest 는 Node 에서 돌아 상한이 없으니 아무도 못 잡았다.
+// (bcrypt 로 되돌리는 것도 금지 — 아래 hashPassword 주석의 1102 사유 참고.)
+export const PBKDF2_MAX_ITERATIONS = 100000;
+const PBKDF2_ITERATIONS = PBKDF2_MAX_ITERATIONS;
 
 function toBase64Url(uint8Array) {
   if (typeof btoa !== "function" && typeof Buffer !== "undefined") {
@@ -90,7 +94,8 @@ export async function hashPassword(password) {
   // 🔴 신규 해시는 PBKDF2 다. bcryptjs(순수 JS, rounds 12)로 돌아가지 말 것 —
   // 이 워커에서 cost 12 검증이 ~270ms CPU 를 먹어 로그인이 간헐적으로
   // `error code: 1102`(Worker exceeded resource limits)로 죽었다(worker/routes/admin.js:51-56).
-  // PBKDF2 는 crypto.subtle 네이티브라 같은 자리에서 훨씬 싸다(실측: 100k≈18ms / 600k≈89ms).
+  // PBKDF2 는 crypto.subtle 네이티브라 같은 자리에서 훨씬 싸다(실측: 100k≈18ms).
+  // 반복수 상한 사유는 PBKDF2_MAX_ITERATIONS 주석 참고.
   const startedAt = Date.now();
   const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
   const derived = await derivePbkdf2Key(password, salt, PBKDF2_ITERATIONS);
