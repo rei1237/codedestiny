@@ -1,48 +1,29 @@
+/* 팔레트 정본은 이용권 상점(app/points, styles/globals.css .moon-shop)과 값을 맞춘다 —
+   이 화면은 상점과 짝을 이루는 화면이라 시스템 라이트/다크와 무관하게 항상 다크다. */
 .page {
-  --moon-bg: #0a0d1c;
-  --moon-bg-raised: #111527;
-  --moon-bg-sunken: #070915;
-  --moon-ink: #f4f1ea;
-  --moon-ink-muted: #a8a596;
-  --moon-ink-subtle: #777567;
-  --moon-line: rgba(244, 241, 234, 0.1);
-  --moon-line-strong: rgba(244, 241, 234, 0.18);
-  --moon-gold: #e8d5a3;
-  --moon-gold-deep: #b99b56;
-  --moon-accent: #9db4d8;
-  --moon-on-gold: #241f2e;
+  --moon-bg: #08091a;
+  --moon-bg-raised: #0e1030;
+  --moon-bg-sunken: #05060f;
+  --moon-ink: #c8ceff;
+  --moon-ink-muted: #7b82c4;
+  --moon-ink-subtle: #7b82c4;
+  --moon-line: rgba(42, 47, 110, 0.6);
+  --moon-line-strong: rgba(42, 47, 110, 0.88);
+  --moon-gold: #f4c86a;
+  --moon-gold-deep: #c79a3d;
+  --moon-accent: #a78bfa;
+  --moon-on-gold: #151832;
   min-height: 100dvh;
   padding: calc(24px + env(safe-area-inset-top)) 16px calc(36px + env(safe-area-inset-bottom));
   color: var(--moon-ink);
   background:
-    radial-gradient(120% 70% at 50% -12%, rgba(232, 213, 163, 0.09), transparent 58%),
-    radial-gradient(70% 50% at 12% 12%, rgba(157, 180, 216, 0.07), transparent 55%),
-    linear-gradient(180deg, #0c0f20 0%, var(--moon-bg) 42%, var(--moon-bg-sunken) 100%);
+    radial-gradient(120% 70% at 50% -12%, rgba(30, 27, 96, 0.55), transparent 58%),
+    radial-gradient(70% 50% at 12% 12%, rgba(244, 200, 106, 0.05), transparent 55%),
+    linear-gradient(180deg, #0b0c24 0%, var(--moon-bg) 42%, var(--moon-bg-sunken) 100%);
   font-family: var(--font-body, "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif);
   line-height: 1.7;
   letter-spacing: -0.015em;
   -webkit-font-smoothing: antialiased;
-}
-
-@media (prefers-color-scheme: light) {
-  .page {
-    --moon-bg: #f7f5f0;
-    --moon-bg-raised: #fffdf8;
-    --moon-bg-sunken: #efece4;
-    --moon-ink: #241f2e;
-    --moon-ink-muted: #5f5866;
-    --moon-ink-subtle: #77707e;
-    --moon-line: rgba(36, 31, 46, 0.1);
-    --moon-line-strong: rgba(36, 31, 46, 0.18);
-    --moon-gold: #9a7b31;
-    --moon-gold-deep: #7d6224;
-    --moon-accent: #4a6491;
-    --moon-on-gold: #fffdf8;
-    background:
-      radial-gradient(120% 70% at 50% -12%, rgba(154, 123, 49, 0.07), transparent 58%),
-      radial-gradient(70% 50% at 12% 12%, rgba(74, 100, 145, 0.05), transparent 55%),
-      linear-gradient(180deg, #fffdf8 0%, var(--moon-bg) 46%, var(--moon-bg-sunken) 100%);
-  }
 }
 
 .container {
@@ -246,6 +227,67 @@
   font-size: 0.68rem;
 }
 
+/* 이용권 월 누적 한도 카드. 등급별 강조색은 이용권 상점(app/points/PointsClient.tsx
+   planThemeMap)의 amber/rose/purple 값을 그대로 재사용해 상점과 같은 등급 아이덴티티를 준다. */
+.passCycleCard {
+  padding: 20px;
+  border: 1px solid var(--pass-accent-border, var(--moon-line));
+  border-radius: 20px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--pass-accent, var(--moon-gold)) 14%, var(--moon-bg-raised)), var(--moon-bg-raised));
+}
+
+.passCycleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.passCycleTier {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--pass-accent, var(--moon-gold));
+  background: color-mix(in srgb, var(--pass-accent, var(--moon-gold)) 16%, transparent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.passCycleAmounts {
+  margin: 14px 0 0;
+  color: var(--moon-ink);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.passCycleTrack {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--moon-line-strong);
+  overflow: hidden;
+}
+
+.passCycleFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pass-accent, var(--moon-gold));
+}
+
+.passCycleRemaining {
+  margin: 10px 0 0;
+  color: var(--moon-ink-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.passCycleAmber { --pass-accent: #f5df9d; --pass-accent-border: rgba(233, 209, 138, 0.55); }
+.passCycleRose { --pass-accent: #cab8ff; --pass-accent-border: rgba(202, 184, 255, 0.55); }
+.passCyclePurple { --pass-accent: #8cb8ff; --pass-accent-border: rgba(140, 184, 255, 0.55); }
+
 .sectionHeader {
   display: flex;
   align-items: flex-start;
@@ -422,7 +464,8 @@
 .statusCompleted { color: #a9e8bf; background: rgba(53, 142, 83, 0.18); }
 .statusPending { color: #f6d58a; background: rgba(185, 139, 35, 0.2); }
 .statusFailed { color: #ffb2b2; background: rgba(176, 59, 59, 0.2); }
-.statusCancelled { color: var(--moon-ink-muted); background: rgba(128, 128, 128, 0.16); }
+/* moon-ink-muted를 그대로 쓰면 새 강조색(보라, --moon-accent)과 겹쳐 보여 독립 톤을 쓴다. */
+.statusCancelled { color: #a0a4c8; background: rgba(123, 130, 196, 0.18); }
 .statusRefunded { color: #b8d9ff; background: rgba(74, 121, 181, 0.2); }
 
 .error {
