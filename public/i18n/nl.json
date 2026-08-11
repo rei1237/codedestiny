@@ -1850,7 +1850,8 @@
         "pass": "Met een pas gaat dit open zonder betaling. Zullen we kijken?",
         "monthly": "Je kunt dit openen met je huidige maanstenen — zonder extra kosten!",
         "direct": "Je kunt alleen dit ene item meteen openen."
-      }
+      },
+      "goLabel": "Zo openen"
     },
     "overlay": {
       "unlockPreparing": {

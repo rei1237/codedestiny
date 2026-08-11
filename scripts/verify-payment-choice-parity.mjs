@@ -95,7 +95,11 @@ for (const needle of [
   ".cd-direct-payment-moonbal-current",
   ".cd-direct-payment-option--recommended",
   ".cd-direct-payment-balance-check",
-  ".cd-direct-payment-moon-crescent",
+  // 2026-08-11: 떠다니는 CSS 달(moon-crescent)을 걷어내고 상단 골드 헤어라인 + 꽃돼지 안내자로 대체했다.
+  // 장식 초점이 둘이면 서로를 깎아먹는다. 마커를 지우지 않고 새 요소로 **교체**해 3렌더러 보호는 유지한다.
+  ".cd-direct-payment-hairline",
+  ".cd-direct-payment-guide__pig",
+  ".cd-direct-payment-go",
 ]) {
   assert.ok(CANONICAL_CSS.includes(needle), `정본 CSS에 ${needle} 규칙이 없습니다`);
 }
@@ -113,7 +117,9 @@ assert.ok(
 // ── 2) 구조 마커 · 3옵션 패리티 ──────────────────────────────────────────────────────────
 const STRUCTURE_MARKERS = [
   "cd-direct-payment-dialog",
-  "cd-direct-payment-moon-header",
+  // 달 헤더를 대신하는 상단 골드 헤어라인 + 꽃돼지 헤더 행(제목·안내문을 감싸는 copy 래퍼).
+  "cd-direct-payment-hairline",
+  "cd-direct-payment-guide__copy",
   "cd-direct-payment-cardhead",
   "cd-direct-payment-badge",
   "cd-direct-payment-glyph",
@@ -122,6 +128,7 @@ const STRUCTURE_MARKERS = [
   "cd-direct-payment-balance-check",
   "cd-direct-payment-legal",
   "cd-direct-payment-recommend",
+  "cd-direct-payment-go",
   // 추천 1개(큰 카드) + 보조 2개(컴팩트 행)의 시각 위계. 셋 다 같은 클래스로 그려야
   // 한 렌더러만 '카드 3개가 전부 동등해 보이는' 예전 모습으로 되돌아가는 일이 없다.
   "cd-direct-payment-option--secondary",
@@ -219,6 +226,8 @@ const STANDALONE_REQUIRED_KEYS = [
   "payment.directModal.guide.direct",
   "payment.directModal.guide.monthly",
   "payment.directModal.recommendBadge",
+  // 추천 카드 하단 골드 액션 스트립 문구.
+  "payment.directModal.goLabel",
   "payment.directModal.monthlyBadge",
   "payment.directModal.monthlyTitle",
   "payment.directModal.monthlyUnit",

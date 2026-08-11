@@ -1188,6 +1188,18 @@ function mapAuthRefreshTemporaryFailureMessage() {
   return "로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
 }
 
+/* PortOne 브라우저 SDK 가 돌려준 실패의 **원문**을 뽑는다.
+   🔴 mapPaymentErrorMessage 는 표시용이고 판정용이 아니다. 그 함수는 문자열에 "취소"가 들어 있으면
+   취소로 접는데, 예전 호출부가 rsp.message 가 비었을 때의 기본값으로 "…결제가 취소되었습니다"를
+   넘겼다. 그래서 **원인 불명 실패가 전부 "사용자 취소"로 기록**됐고, 실제로 그 기록을 근거로
+   원인을 잘못 짚었다. 원문은 여기서 따로 보존해 서버에 그대로 넘긴다. */
+function describePortOneSdkFailure(rsp: unknown): { code: string; message: string } {
+  const r = isRecord(rsp) ? rsp : {};
+  const code = String(r.code ?? r.errorCode ?? r.error_code ?? "").trim().slice(0, 60);
+  const message = String(r.message ?? r.error_msg ?? r.errorMsg ?? "").trim().slice(0, 400);
+  return { code, message };
+}
+
 function mapPaymentErrorMessage(rawMessage: string) {
   const text = String(rawMessage || "").toLowerCase();
   if (text.includes("취소") || text.includes("cancel"))
@@ -4225,14 +4237,13 @@ export default function PointsPage() {
       if (!rsp || rsp.code || !paymentId) {
         clearPendingOrder();
         clearPendingSinglePaymentSession();
-        const message = mapPaymentErrorMessage(
-          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "결제가 취소되었습니다.",
-        );
+        const raw = describePortOneSdkFailure(rsp);
+        const message = mapPaymentErrorMessage(raw.message || "결제를 완료하지 못했습니다.");
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
           impUid: paymentId || undefined,
-          reasonCode: "client_cancel_or_fail",
-          reasonMessage: message,
+          reasonCode: raw.code ? `pg_${raw.code}` : "client_cancel_or_fail",
+          reasonMessage: raw.message || message,
           paymentMethod: selectedMethod,
         });
         pushToast("error", message);
@@ -4395,14 +4406,14 @@ export default function PointsPage() {
 
       if (!rsp || rsp.code || !paymentId) {
         discardPendingSubscriptionPass();
-        const message = mapPaymentErrorMessage(
-          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "이용권 결제가 취소되었습니다.",
-        );
+        const raw = describePortOneSdkFailure(rsp);
+        const message = mapPaymentErrorMessage(raw.message || "이용권 결제를 완료하지 못했습니다.");
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
           impUid: paymentId || undefined,
-          reasonCode: "subscription_client_cancel_or_fail",
-          reasonMessage: message,
+          reasonCode: raw.code ? `pg_${raw.code}` : "subscription_client_cancel_or_fail",
+          // 표시용 문장이 아니라 PG 원문을 남긴다 — 매핑된 문장은 원인을 지운다.
+          reasonMessage: raw.message || message,
           paymentMethod: selectedMethod || "card_general",
         });
         pushToast("error", message);
