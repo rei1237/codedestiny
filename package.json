@@ -115,6 +115,7 @@
     "verify:inicis-local-auth": "node scripts/verify-inicis-local-auth.mjs",
     "verify:portone-single-payment": "node scripts/verify-portone-single-payment-regression.mjs",
     "verify:password-policy": "node scripts/verify-password-policy.mjs",
+    "audit:legacy-password-hashes": "node scripts/audit-legacy-pbkdf2-hashes.mjs",
     "verify:phone-encryption": "node scripts/verify-phone-encryption.mjs",
     "verify:payment-concurrency-guards": "node scripts/verify-payment-concurrency-guards.mjs",
     "check:quick": "node scripts/check-changed.mjs",
