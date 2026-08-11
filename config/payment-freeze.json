@@ -25,14 +25,14 @@
       "file": "js/destiny-profile.js",
       "marker": "  function _dpRenderStandalonePaymentChoice(options) {",
       "why": "독립 정적 폴백 렌더러. 셸 정본과 CSS·문구가 같아야 한다(verify:payment-choice-parity).",
-      "sha256": "4516524336a3312e"
+      "sha256": "d9eb0eeacfedbe26"
     }
   ],
   "wholeFiles": [
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "38ad67706d9ba379"
+      "sha256": "3d932a3fb8baae8c"
     },
     {
       "file": "app/hooks/useCoinGate.ts",

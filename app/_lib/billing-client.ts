@@ -1452,7 +1452,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         // paymentEligibilityRecent/InFlight 와 accessDecision 까지 **전역으로** 비운다 — 재조회 한 번에
         // 다음 유료 클릭의 이용권 프로브(6초)가 콜드로 다시 도는 대가를 치렀다. fresh 만으로 충분하다:
         // fetchBillingBalance 가 fresh 일 때 이 유저의 balance 캐시 엔트리만 좁게 버린다.
-        const result = await fetchBillingBalance({ fresh: refreshOpts.fresh === true });
+        const result = await fetchBillingBalance({ fresh: refreshOpts.fresh === true, moonlightStoneOnly: true });
         if (settled) return;
         if (!result.ok || !result.data || result.data.degraded === true) {
           applyMoonlightBalance(null, "error");
@@ -1600,11 +1600,15 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       };
       window.addEventListener("cd:billing-balance-updated", onBalanceEvent);
       removeBalanceListener = () => window.removeEventListener("cd:billing-balance-updated", onBalanceEvent);
-      // 자동 1회 재조회: 월정석이 선택지인 한 항상 최신 잔량을 확인한다. 예전에는 잔량이 '제공되지 않았을 때'만
-      // 돌아서, 호출부가 하드 0(예: buildRecoverablePaymentEligibility 의 401 복구 경로)을 넘기면 '잔량 부족'으로
-      // 굳고 자가치유 기회조차 없었다. 클라 15초 캐시 + in-flight dedup(fetchBillingBalance) 이 이미 있어
-      // 왕복이 늘지 않는다 — 새 캐시/재시도 계층을 얹지 않는다.
-      void refreshMonthlyBalance();
+      // 자동 1회 재조회: 예전에는 이용권 카드 노출 여부와 무관하게 항상 쐈다. 셸(index.html)은 이용권 카드가
+      // 함께 뜨면(정책상 D유형 제외 거의 항상 그렇다) 이 자동조회를 생략한다 — "이용권 확인과 balance 조회가
+      // 동시에 발생해 로그인 직후 중복 인증/DB 요청이 생기던" 문제 때문이다(월정석 최종 선택은 서버 coin-gate가
+      // 원자적으로 검증하므로 이용권 흐름에는 이 조회가 필요 없다). 게이팅 없이 매번 쏘던 자동조회가 결제창을
+      // 연 대다수 화면에서 "월정석 잔량을 확인하고 있습니다"에 멈춘 채 재조회 버튼까지 비활성으로 묶는 원인이었다.
+      // !canShowPassStore로 셸과 같은 계약을 맞춘다(이미 canShowMonthly 블록 안). hasProvidedMonthlyBalance는
+      // 넣지 않는다 — 회당결제(per-use)가 401 복구 경로에서 넘기는 하드 0도 '제공됨'으로 잡혀, 그 조건을 넣으면
+      // 자가치유용 자동 재조회가 막혀 월정석 버튼이 영구 회색으로 굳는다(1142-1157행 계약).
+      if (!canShowPassStore) void refreshMonthlyBalance();
     }
   });
 }
@@ -4699,7 +4703,7 @@ export async function purchaseFeature(input: {
   return runPaidAccessGate(input as Parameters<typeof runPaidAccessGate>[0]);
 }
 
-export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean; fresh?: boolean; clientSource?: string } = {}): Promise<BillingResult<{
+export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean; fresh?: boolean; clientSource?: string; moonlightStoneOnly?: boolean } = {}): Promise<BillingResult<{
   authenticated: boolean;
   degraded?: boolean;
   balance: number;
@@ -4711,23 +4715,33 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
   unlockMap: Record<string, boolean>;
 }>> {
   const userKey = resolveBillingBalanceUserKey();
+  // moonlightStoneOnly(?moonlightStone=1&compact=1)는 unlockedFeatures/unlockMap이 비어 오는 다른 응답
+  // shape이다 — user-session-cache.ts의 부트스트랩(full) 호출과 같은 캐시 키를 쓰면 교차 히트로
+  // 한쪽이 다른 쪽의 응답을 잘못 받아먹는다(worker/routes/billing.js의 과거 네임스페이스 사고와 동일 클래스).
+  // 그래서 이 variant만 별도 네임스페이스를 쓴다.
+  const cacheKey = options.moonlightStoneOnly === true ? `${userKey}|compact` : userKey;
   if (options.force === true) invalidateBillingBalanceCache();
   // fresh(수동 재조회)는 이 유저의 balance 캐시만 좁게 버린다. 전역 invalidateBillingBalanceCache 는
   // 이용권 판정 캐시까지 함께 날려서, 재조회 한 번이 다음 유료 클릭의 6초 프로브를 콜드로 되돌린다.
-  else if (options.fresh === true) billingBalanceRecentByUser.delete(userKey);
+  else if (options.fresh === true) billingBalanceRecentByUser.delete(cacheKey);
   const now = Date.now();
-  const recent = billingBalanceRecentByUser.get(userKey);
+  const recent = billingBalanceRecentByUser.get(cacheKey);
   if (recent && recent.expiresAt > now) {
     if (options.emit !== false) emitBillingBalanceUpdated(recent.result.data as Record<string, unknown> | null, "balance-cache");
     return recent.result;
   }
-  const pending = billingBalanceInFlightByUser.get(userKey);
+  const pending = billingBalanceInFlightByUser.get(cacheKey);
   if (pending) return pending;
 
   const cacheVersion = billingBalanceCacheVersion;
   const inFlightPromise = (async () => {
     // fresh=1은 서버의 표시용 잔량 캐시를 우회한다(수동 "재조회"에서만 사용). 자동 조회는 캐시를 허용해 빠르게 응답.
-    const balanceUrl = options.fresh === true ? "/api/billing/balance?fresh=1" : "/api/billing/balance";
+    // moonlightStone=1&compact=1은 셸/독립 정적 폴백과 같은 경량 경로(worker: includeUnlocks:false)를 타고,
+    // degraded 시에도 200+degraded 로 조용히 폴백하지 않고 503 BALANCE_SNAPSHOT_UNAVAILABLE로 표면화된다.
+    const balanceParams = options.moonlightStoneOnly === true ? "moonlightStone=1&compact=1" : "";
+    const freshParam = options.fresh === true ? "fresh=1" : "";
+    const balanceQuery = [balanceParams, freshParam].filter(Boolean).join("&");
+    const balanceUrl = balanceQuery ? `/api/billing/balance?${balanceQuery}` : "/api/billing/balance";
     const response = await authFetchBilling(balanceUrl, { method: "GET" }, {
       clientSource: options.clientSource || "app:billing-client",
     });
@@ -4746,7 +4760,7 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
       const cacheableBalance = parsed.data.authenticated !== false && parsed.data.degraded !== true;
       if (cacheableBalance && options.emit !== false) emitBillingBalanceUpdated(parsed.data as BillingBalanceData & Record<string, unknown>, "balance");
       if (cacheableBalance && cacheVersion === billingBalanceCacheVersion) {
-        billingBalanceRecentByUser.set(userKey, {
+        billingBalanceRecentByUser.set(cacheKey, {
           result: parsed,
           expiresAt: Date.now() + BILLING_BALANCE_RECENT_TTL_MS,
         });
@@ -4755,10 +4769,10 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
 
     return parsed;
   })().finally(() => {
-    if (cacheVersion === billingBalanceCacheVersion) billingBalanceInFlightByUser.delete(userKey);
+    if (cacheVersion === billingBalanceCacheVersion) billingBalanceInFlightByUser.delete(cacheKey);
   });
 
-  billingBalanceInFlightByUser.set(userKey, inFlightPromise);
+  billingBalanceInFlightByUser.set(cacheKey, inFlightPromise);
   return inFlightPromise;
 }
 

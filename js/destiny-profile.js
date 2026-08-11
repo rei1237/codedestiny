@@ -10556,8 +10556,11 @@
         featureKey: opts.featureKey,
         hasPassHint: hasActivePassTier ? 'active' : 'unknown'
       });
-      // 자동 1회 재조회: 열리는 즉시 최신 월정석 잔량을 채운다(수동 버튼과 별개).
-      refreshStandaloneMoonbal();
+      // 자동 1회 재조회: 이용권 카드가 함께 뜨면 생략한다(셸 index.html의 allowMonthlyChoice && !allowPassChoice
+      // 계약과 동일 — 이용권 확인과 balance 조회가 동시에 발생해 로그인 직후 중복 인증/DB 요청이 생기던 문제 방지).
+      // 이 렌더러는 opts.disablePassChoice를 읽어 이용권 카드 표시 자체를 분기하지 않고 항상 그리므로,
+      // disablePassChoice가 사실상 유일하게 신뢰 가능한 '이용권 카드 없음' 신호다.
+      if (opts.disablePassChoice === true) refreshStandaloneMoonbal();
     });
   }
 
