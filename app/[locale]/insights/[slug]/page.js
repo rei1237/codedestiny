@@ -22,6 +22,11 @@ const INSIGHT_UI_COPY = {
     moreInsights: "查看更多文章",
     faq: "常见问题",
   },
+  "zh-TW": {
+    relatedService: "相關服務",
+    moreInsights: "查看更多文章",
+    faq: "常見問題",
+  },
   en: {
     relatedService: "Related Service",
     moreInsights: "More Insights",
@@ -33,6 +38,7 @@ const INSIGHT_SEO_KEYWORDS = {
   ko: ["운세 인사이트", "자미두수", "숙요점", "무료 운세"],
   ja: ["占い 解説", "紫微斗数", "宿曜", "無料占い"],
   zh: ["占卜文章", "紫微斗数", "宿曜", "免费算命"],
+  "zh-TW": ["占卜文章", "紫微斗數", "宿曜", "免費算命"],
   en: ["fortune insights", "zi wei dou shu", "sukuyo", "free fortune reading"],
 };
 
