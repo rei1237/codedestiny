@@ -730,7 +730,23 @@ assertContains(indexSource, "__cdDuplicatePaymentRetry", "the duplicate-paymentI
 // 503 폭풍에서 주문 발급 POST 가 브레이크 없이 재발사되지 않게 한다(쿨다운은 원래 GET 전용이었다).
 assertContains(indexSource, "normalizedMethod === 'POST' && String(pathname || '').indexOf('/api/billing/checkout') === 0) return true", "checkout POST needs a 503 breaker (cooldown used to be GET-only)");
 assertContains(indexSource, "if (normalizedMethod !== 'GET' && normalizedMethod !== 'HEAD') return false;", "automatic network retries must be limited to read requests");
-assertContains(indexSource, "if (response.status === 401 && (normalizedMethod === 'GET' || normalizedMethod === 'HEAD'))", "401 refresh replay must not repeat payment POST requests");
+// 🔴 2026-08-12 개정: 401 리프레시 복구를 결제 POST 중 주문 발급(checkout)·확정(confirm) 둘에만 연다.
+// 근거는 서버 멱등 — prepare 의 {userId, idempotencyKey, paymentType} 업서트 / confirm 의 alreadyUnlocked.
+// 같은 키·같은 body 재전송이라 이중 주문·이중 확정이 없다. coin-gate(월정석 차감)는 POST 이전의
+// 세션 사전검사(_cdPrepareMembershipPassAuth)가 복구를 담당하므로 화이트리스트 진입 금지(부정 단언).
+assertContains(indexSource, "var isAuthRecoverableCheckoutPost = normalizedMethod === 'POST'", "payment-POST 401 recovery must flow through the explicit whitelist variable");
+assertContains(indexSource, "if (response.status === 401 && (normalizedMethod === 'GET' || normalizedMethod === 'HEAD' || isAuthRecoverableCheckoutPost))", "401 refresh replay covers reads plus only the idempotent checkout/confirm POSTs");
+{
+  const whitelistStart = indexSource.indexOf("var isAuthRecoverableCheckoutPost");
+  const whitelistEnd = indexSource.indexOf("if (response.status === 401", whitelistStart);
+  assert.ok(whitelistStart >= 0 && whitelistEnd > whitelistStart, "401 recovery whitelist block must exist ahead of the 401 branch");
+  assertNotContains(indexSource.slice(whitelistStart, whitelistEnd), "coin-gate", "coin-gate must never enter the 401 recovery whitelist (deduction path — its pre-check owns recovery)");
+}
+assertContains(indexSource, "function _cdHandleDirectCheckoutAuthFailure(error)", "terminal checkout 401 must route through the login-required modal helper");
+assertContains(indexSource, "throw _cdHandleDirectCheckoutAuthFailure(_cdDirectCheckoutError);", "the single-flight wrapper must surface terminal 401s via the login prompt helper");
+assertContains(destinyProfileSource, "}, { retryOn401: true, refreshOn401: true });", "dp checkout must opt into the sanctioned 401 refresh recovery");
+assertContains(destinyProfileSource, "{ method: 'POST', body: dpConfirmBody }, { retryOn401: true, refreshOn401: true })", "dp confirm must opt into the sanctioned 401 refresh recovery");
+assertContains(destinyProfileSource, "{ method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true })", "dp redirect-resume confirm must opt into the sanctioned 401 refresh recovery");
 assertContains(destinyProfileSource, "retryTransient: requestMethod === 'GET' && opts.retryTransient === true", "React payment POST requests must not opt into transient retries");
 // 진단 로그는 콘솔에서 'Object' 로 접히면 쓸모가 없다 — 한 줄 문자열이어야 한다.
 assertContains(indexSource, "'[direct-checkout] PortOne requestPayment failed'\n            + ' code='", "PortOne failure must be logged as one flat line (an object collapses to 'Object' in the console)");

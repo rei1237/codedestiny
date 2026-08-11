@@ -22895,7 +22895,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-2764451ba86b" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-2764451ba86b" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-2764451ba86b" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -25855,6 +25855,28 @@ return you.name.restore();</span>
     }
   }
 
+  // 🔴 fetchJsonWithAuth 의 1회 리프레시-재시도까지 실패한 '확정 401'만 여기 온다. 재제안 루프는
+  // 401 을 재제안하지 않으므로(_cdShouldReofferPaymentChoice — verify-static-paid-gate-failsafe 고정),
+  // 여기서 로그인 모달을 열지 않으면 사용자는 로그인돼 보이는 화면(로컬 힌트 캐시)에서 일반 오류
+  // 문구만 받고 끝난다(2026-08-12 라이브 증상: 세션은 죽었는데 UI 는 로그인 상태 — 결제만 401).
+  function _cdHandleDirectCheckoutAuthFailure(error) {
+    if (!error || error.__cdLoginPromptShown === true) return error;
+    var status = Number(error.status || 0);
+    var code = String(error.code || '').toUpperCase();
+    if (status !== 401 && code !== 'AUTH_REQUIRED' && code !== 'NOT_LOGGED_IN' && code !== 'TOKEN_EXPIRED') return error;
+    error.__cdLoginPromptShown = true;
+    error.message = '로그인이 만료되어 결제를 시작하지 못했어요. 다시 로그인한 뒤 이용해 주세요.';
+    try {
+      if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+        window.__cdOpenLoginRequiredModal({
+          reason: 'direct_checkout_401',
+          nextPath: window.location.pathname + window.location.search
+        });
+      }
+    } catch (_cdLoginPromptError) {}
+    return error;
+  }
+
   var _cdRunDirectKrwCheckoutCore = _cdRunDirectKrwCheckout;
   _cdRunDirectKrwCheckout = function(options) {
     var opts = options || {};
@@ -25871,7 +25893,7 @@ return you.name.restore();</span>
         // 준비 구간에서 던지면 core 의 finally 까지 못 가므로 억제 창(과 그 CSS 거울인
         // body.cd-direct-pg-open)이 남는다 — 쿠키 배너·테마 스위치가 계속 숨겨지지 않게 여기서 푼다.
         _cdEndDirectPgWindowSuppression();
-        throw _cdDirectCheckoutError;
+        throw _cdHandleDirectCheckoutAuthFailure(_cdDirectCheckoutError);
       });
     }, opts);
   };
@@ -28232,6 +28254,8 @@ return you.name.restore();</span>
     if (desc) {
       if (reason === 'mobile_auth_resync') {
         desc.textContent = '모바일 브라우저에서 세션을 다시 확인했습니다. 로그인 후 이어서 명상 콘텐츠를 바로 시작할 수 있어요.';
+      } else if (reason === 'direct_checkout_401') {
+        desc.textContent = '로그인이 만료되어 결제를 진행할 수 없었어요. 다시 로그인하면 이어서 결제할 수 있습니다.';
       } else {
         desc.textContent = '1초만에 로그인하고 모든 명상 콘텐츠와 프리미엄 리딩을 이어서 만나보세요.';
       }
@@ -32016,7 +32040,17 @@ return you.name.restore();</span>
           }
         }
 
-        if (response.status === 401 && (normalizedMethod === 'GET' || normalizedMethod === 'HEAD')) {
+        // 🔴 401 복구(리프레시→같은 요청 1회 재전송)를 허용하는 결제 POST 는 주문 발급(checkout)·
+        // 확정(confirm) 둘뿐이다. checkout 401 은 requireBillingAuth 가 delegateToPayments **이전**에
+        // 내므로 Payment 문서가 아직 없고, 재전송은 같은 body·같은 Idempotency-Key 라 서버 prepare 의
+        // {userId, idempotencyKey, paymentType} 멱등 업서트가 같은 주문을 돌려준다(이중 주문 없음).
+        // confirm 은 서버가 멱등(alreadyUnlocked)이고, 401 로 버리면 돈만 빠지고 지급이 안 되는
+        // 방향이라 재시도가 오히려 의무다. coin-gate(월정석 차감)는 절대 넣지 말 것 — 그 경로는
+        // POST 이전의 세션 사전검사(_cdPrepareMembershipPassAuth)가 401 복구를 담당한다(중첩 금지).
+        var isAuthRecoverableCheckoutPost = normalizedMethod === 'POST'
+          && (String(path || '').indexOf('/api/billing/checkout') === 0
+            || String(path || '').indexOf('/api/billing/confirm') === 0);
+        if (response.status === 401 && (normalizedMethod === 'GET' || normalizedMethod === 'HEAD' || isAuthRecoverableCheckoutPost)) {
           var refreshed = await refreshAuthSessionForCoinApi(candidateBase);
           if (refreshed) {
             var retryInit = Object.assign({}, requestInit);

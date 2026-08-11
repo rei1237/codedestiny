@@ -1064,7 +1064,10 @@
     if (opts.retryOn401 === false) return false;
     /* 🔴 쓰기는 기본적으로 401 재시도를 하지 않는다(결제 POST 재발사 위험). 절대값 대입이고 서버
        CAS 로 재실행이 흡수되는 **멱등 쓰기만** 호출부가 명시적으로 옵트인한다. 이 플래그를
-       다른 비-GET 요청에 붙이지 말 것. */
+       다른 비-GET 요청에 붙이지 말 것. 승인된 옵트인: /api/profile/current PATCH(절대값 대입),
+       /api/billing/checkout(서버 prepare 가 {userId, idempotencyKey, paymentType} 멱등 업서트 —
+       같은 키 재전송 = 같은 주문), /api/billing/confirm(서버 멱등 alreadyUnlocked — 401 로 버리면
+       돈만 빠지고 지급이 안 되는 방향이라 재시도가 의무). coin-gate 는 옵트인 금지. */
     if (opts.refreshOn401 === true) return true;
     var path = String(pathname || '');
     if (!_dpIsAuthSensitivePath(path)) return false;
@@ -3430,13 +3433,15 @@
   }
 
   // 결제 POST는 사전발급하거나 자동 재시도하지 않는다. 클릭 한 번과 주문 한 번을 대응시킨다.
+  // 401 리프레시 복구만 예외로 옵트인한다(_dpShouldTryRefresh 의 승인 목록 참고) — 같은 키
+  // 재전송이라 주문은 한 번만 발급되고, 셸 경로(fetchJsonWithAuth)와 같은 복구 계약을 갖는다.
   function _dpTakeDirectCheckoutResponse(checkoutPayload) {
     var key = String((checkoutPayload && checkoutPayload.idempotencyKey) || '').trim();
     return _dpPaymentFetchJson('/api/billing/checkout', {
       method: 'POST',
       headers: key ? { 'Idempotency-Key': key } : undefined,
       body: JSON.stringify(checkoutPayload),
-    });
+    }, { retryOn401: true, refreshOn401: true });
   }
 
   // 서버 trimUtf8Bytes(worker/routes/payments.js)와 같은 규칙. 이니시스 orderName 제한은
@@ -3570,7 +3575,7 @@
         impUid: paymentId,
         paymentId: paymentId,
       }));
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody });
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true });
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
         window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
@@ -4299,7 +4304,7 @@
         impUid: paymentId,
         paymentId: paymentId,
       }));
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody });
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody }, { retryOn401: true, refreshOn401: true });
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
       // 확정됐으니 이제 복귀 티켓을 회수한다.
       _dpClearDirectResumeTicket();
