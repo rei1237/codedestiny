@@ -9614,6 +9614,17 @@
     _injectAndRun(p, 'saju');
   };
 
+  /* '오늘의 한 걸음' → '무료 사주 원국' 카드 진입점. cdSajuTabEntry와 달리 로그인 게이트가 없다
+     — 게스트가 로컬에만 저장한 프로필 카드도 커버해야 하기 때문. */
+  window.cdOneStepFreeSajuEntry = function() {
+    var cached = _dpResolveCurrentProfileForSaju('');
+    if (cached && cached.birth && cached.birth.year) {
+      _injectAndRun(cached, 'saju');
+      return;
+    }
+    if (typeof window.dpStartProfileCreate === 'function') window.dpStartProfileCreate();
+  };
+
   /**
    * 모바일 하단 네비 '사주' 탭 진입점.
    * 로그인 + 대표 프로필이 있으면 재입력 없이 곧바로 사주를 계산한다.

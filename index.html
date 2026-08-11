@@ -6704,8 +6704,8 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   }
   html.cd-mobile-runtime #inputPage :is(#animalCollection,#meditationCollection,#tarotCollection,#oracleCollection,#cosmicCollection,#flowerCollection,#miscCollection) :is(.feat-collection__header,.tarot-collection__header) {
     box-sizing: border-box !important;
-    height: 100% !important;
-    max-height: 100% !important;
+    height: auto !important;
+    max-height: none !important;
     min-height: 142px !important;
     padding: 14px 14px 16px !important;
     display: grid !important;
@@ -13513,7 +13513,13 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               desc.textContent = __cdHeroText(step.dk, step.d);
               a.setAttribute('aria-label', (idx + 1) + '단계 · ' + title.textContent);
               a.appendChild(num); a.appendChild(title); a.appendChild(desc);
-              a.addEventListener('click', function(){ __cdJourneyMark(step.href); }, false);
+              a.addEventListener('click', function(e){
+                __cdJourneyMark(step.href);
+                if (idx === 0 && typeof window.cdOneStepFreeSajuEntry === 'function') {
+                  e.preventDefault();
+                  window.cdOneStepFreeSajuEntry();
+                }
+              }, false);
               oneStepSteps.appendChild(a);
             });
             oneStepInner.appendChild(oneStepSteps);
@@ -33732,6 +33738,9 @@ function updateBadge() {
     }
 
     function applyCollectionToggle(toggle, event, source) {
+      // 모바일 "모든 운세" 오버레이가 이미 이 컬렉션을 열고 있으면 그쪽이 유일한 소유자다 —
+      // 여기서 한 번 더 토글하면 오버레이의 data-collection-open/스크롤 기억과 어긋난다.
+      if (window.cdMobileCollectionFullscreen && window.cdMobileCollectionFullscreen.isOpen()) return false;
       var targetId = String(toggle.getAttribute('data-target') || '').trim();
       var collection = targetId ? document.getElementById(targetId) : null;
       if (!collection) return false;
