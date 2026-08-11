@@ -20,8 +20,12 @@ const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"]);
 
 // Map supported browser languages to public locale roots.
+// zh-tw/zh-hant must be listed before the generic "zh" prefix so Traditional
+// Chinese browsers resolve to /zh-tw instead of falling through to /zh (Simplified).
 const ACCEPT_LANG_MAP = [
   { prefix: "ja", slug: "/ja" },
+  { prefix: "zh-tw", slug: "/zh-tw" },
+  { prefix: "zh-hant", slug: "/zh-tw" },
   { prefix: "zh", slug: "/zh" },
   { prefix: "en", slug: "/en" },
 ];
@@ -36,7 +40,7 @@ const LEGACY_LOCALE_REDIRECTS = new Map([
 const COUNTRY_TRANSLATE_LANG = new Map([
   ["US", "en"], ["GB", "en"], ["AU", "en"], ["NZ", "en"], ["IE", "en"], ["SG", "en"], ["PH", "en"],
   ["JP", "ja"],
-  ["CN", "zh-CN"], ["HK", "zh-CN"], ["MO", "zh-CN"], ["TW", "zh-CN"],
+  ["CN", "zh-CN"], ["HK", "zh-CN"], ["MO", "zh-CN"], ["TW", "zh-TW"],
   ["IN", "hi"],
   ["ES", "es"], ["MX", "es"], ["AR", "es"], ["CO", "es"], ["CL", "es"], ["PE", "es"], ["VE", "es"], ["UY", "es"], ["PY", "es"], ["BO", "es"], ["EC", "es"], ["GT", "es"], ["CR", "es"], ["PA", "es"], ["DO", "es"], ["HN", "es"], ["NI", "es"], ["SV", "es"], ["CU", "es"],
   ["FR", "fr"], ["MC", "fr"], ["LU", "fr"],
@@ -67,6 +71,7 @@ function getTranslateLangFromAcceptLang(acceptLang) {
     .filter(Boolean);
   for (const lang of langs) {
     if (lang.startsWith("ko")) return null;
+    if (lang.startsWith("zh-tw") || lang.startsWith("zh-hant")) return "zh-TW";
     if (lang.startsWith("zh")) return "zh-CN";
     if (lang.startsWith("en")) return "en";
     if (lang.startsWith("ja")) return "ja";
@@ -630,7 +635,7 @@ export function middleware(request) {
     });
 
     const musicPath = request.nextUrl.pathname || "/";
-    if (musicPath.startsWith("/music") || /^\/(?:en|ja|zh)\/music(?:\/|$)/.test(musicPath)) {
+    if (musicPath.startsWith("/music") || /^\/(?:en|ja|zh|zh-tw)\/music(?:\/|$)/.test(musicPath)) {
       const cspHeader = response.headers.get("Content-Security-Policy");
       response.headers.set("Content-Security-Policy", mergeMusicCspForAudio(cspHeader));
     }

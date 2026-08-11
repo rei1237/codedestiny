@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-import { LOCALE_CONFIG, PUBLIC_LOCALES } from "../../../lib/i18n/locales";
+import { LOCALE_CONFIG, PUBLIC_LOCALES, localeUrlSegment } from "../../../lib/i18n/locales";
 import { TERMS_CONTENT } from "../../../lib/legal/legalContent";
 import { REFUND_INTRO, REFUND_JURISDICTION_NOTES, getRefundSection } from "../../../lib/legal/refundContent";
 import LegalDocumentBody from "../../components/LegalDocumentBody";
@@ -35,9 +35,9 @@ const PAGE_COPY = {
     translationNotice: "本页面为参考用的机器辅助翻译。如与韩语原文（服务条款第12条）存在出入，以韩语原文为准。",
   },
   "zh-TW": {
-    title: "退款政策 | Code Destiny",
+    title: "退款與撤回政策 | Code Destiny",
     description: "Code Destiny 關於30天通行證與單次付款商品之退款與撤回條款說明，包含數位內容提供後撤回限制之詳細規則。",
-    heading: "退款政策",
+    heading: "退款與撤回政策",
     dateLabel: "生效日期",
     related: "相關文件",
     terms: "服務條款",
@@ -46,7 +46,7 @@ const PAGE_COPY = {
 };
 
 export function generateStaticParams() {
-  return PUBLIC_LOCALES.map((locale) => ({ locale }));
+  return PUBLIC_LOCALES.map((locale) => ({ locale: localeUrlSegment(locale) }));
 }
 
 export async function generateMetadata({ params }) {

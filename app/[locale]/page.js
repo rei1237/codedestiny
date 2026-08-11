@@ -1,12 +1,12 @@
 import I18nSeoPageTemplate from "../components/I18nSeoPageTemplate";
-import { PUBLIC_LOCALES, LOCALE_CONFIG } from "../../lib/i18n/locales";
+import { PUBLIC_LOCALES, LOCALE_CONFIG, localeUrlSegment } from "../../lib/i18n/locales";
 import { createI18nMetadata } from "../../lib/seo/createI18nMetadata";
 import { getAlternatesByRouteKey, getLocaleLinksForRoute } from "../../lib/i18n/routes";
 import { I18N_SEO_PAGES } from "../../lib/seo/i18nKeywords";
 import { resolveLocale } from "./_lib";
 
 export function generateStaticParams() {
-  return PUBLIC_LOCALES.map((locale) => ({ locale }));
+  return PUBLIC_LOCALES.map((locale) => ({ locale: localeUrlSegment(locale) }));
 }
 
 export async function generateMetadata({ params }) {

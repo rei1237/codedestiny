@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PUBLIC_LOCALES, LOCALE_CONFIG } from "../../../../lib/i18n/locales";
+import { PUBLIC_LOCALES, LOCALE_CONFIG, localeUrlSegment } from "../../../../lib/i18n/locales";
 import { createI18nMetadata } from "../../../../lib/seo/createI18nMetadata";
 import { getLocaleLinksForRoute, I18N_ROUTE_MAP } from "../../../../lib/i18n/routes";
 import { I18N_INSIGHT_ARTICLES, getLocalizedInsightBySlug } from "../../../../lib/seo/i18nInsights";
@@ -22,6 +22,11 @@ const INSIGHT_UI_COPY = {
     moreInsights: "查看更多文章",
     faq: "常见问题",
   },
+  "zh-TW": {
+    relatedService: "相關服務",
+    moreInsights: "查看更多文章",
+    faq: "常見問題",
+  },
   en: {
     relatedService: "Related Service",
     moreInsights: "More Insights",
@@ -33,6 +38,7 @@ const INSIGHT_SEO_KEYWORDS = {
   ko: ["운세 인사이트", "자미두수", "숙요점", "무료 운세"],
   ja: ["占い 解説", "紫微斗数", "宿曜", "無料占い"],
   zh: ["占卜文章", "紫微斗数", "宿曜", "免费算命"],
+  "zh-TW": ["占卜文章", "紫微斗數", "宿曜", "免費算命"],
   en: ["fortune insights", "zi wei dou shu", "sukuyo", "free fortune reading"],
 };
 
@@ -45,7 +51,7 @@ export function generateStaticParams() {
   const params = [];
   for (const locale of PUBLIC_LOCALES) {
     for (const article of I18N_INSIGHT_ARTICLES) {
-      params.push({ locale, slug: article.slugByLocale[locale] });
+      params.push({ locale: localeUrlSegment(locale), slug: article.slugByLocale[locale] });
     }
   }
   return params;

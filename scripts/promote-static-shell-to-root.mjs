@@ -20,6 +20,7 @@ const staticShellRouteHtmlFiles = new Set([
   "en/index.html",
   "ja/index.html",
   "zh/index.html",
+  "zh-tw/index.html",
 ]);
 
 function stripLeadingBom(buffer) {
@@ -131,7 +132,7 @@ function restoreGeneratedRouteHtml() {
 
 function restoreStaticShellLocaleHtml() {
   for (const routeFile of staticShellRouteHtmlFiles) {
-    if (!/^(en|ja|zh)\/index\.html$/.test(routeFile)) continue;
+    if (!/^(en|ja|zh|zh-tw)\/index\.html$/.test(routeFile)) continue;
     const sourcePath = resolve(publicDir, routeFile);
     if (!existsSync(sourcePath)) continue;
     const destinationPath = resolve(rootDir, "dist", routeFile);
