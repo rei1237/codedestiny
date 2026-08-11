@@ -31,8 +31,9 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
 import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
-import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
+import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS, resolveMonthlySpendQuota } from "../lib/profile-limits.js";
 import {
+  resolveCanonicalEntitlement,
   validatePurchasePolicy,
   resolveServerProductType,
 } from "../lib/entitlement-policy.js";
@@ -5465,6 +5466,17 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
   const monthlyStoneExpiresAt = resolveNextExpiry(lotsState.lots);
   const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
+  // 이용권 월 누적 한도 잔여(원화 환산). 건당 상한(passLimit)과 별개의 정보라 여기서 새로
+  // 계산한다 — coinCost=0으로 호출해 exceeded 판정 없이 limit/used 만 읽는다. 이용권이
+  // 없거나 사이클을 셀 수 없으면(만료일 없음 등) applies=false 라 필드를 전부 null 로 둔다
+  // (주문 내역 화면은 이 셋이 모두 값일 때만 "이번 사이클 사용" 카드를 그린다).
+  const canonicalEntitlement = resolveCanonicalEntitlement(safeUser);
+  const passCycleQuota = resolveMonthlySpendQuota(profileSubscription, canonicalEntitlement, 0);
+  const passCycleTier = passCycleQuota.applies
+    ? normalizePassTier(canonicalEntitlement?.passTier || canonicalEntitlement?.tier)
+    : null;
+  const passCycleCapWon = passCycleQuota.applies ? calculateKrwAmountFromCoins(passCycleQuota.limitCoin) : null;
+  const passCycleSpentWon = passCycleQuota.applies ? calculateKrwAmountFromCoins(passCycleQuota.usedCoin) : null;
   const storeSnapshot = includeStoreSnapshot
     ? buildMoonlightStoreSnapshot(env, {
       generatedAt,
@@ -5487,6 +5499,9 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
       membershipCreditBalance: monthlyCredits,
       monthlyStoneExpiresAt,
       monthlyCreditLedgers: mappedMonthlyCreditLedgers,
+      passCycleTier,
+      passCycleCapWon,
+      passCycleSpentWon,
       ...(storeSnapshot ? { storeSnapshot } : {}),
     },
     user: {

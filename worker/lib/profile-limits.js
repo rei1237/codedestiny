@@ -8,21 +8,30 @@ export const PASS_TIERS = Object.freeze({
 export const FAMILY_PASS_MAX_COVERED_COIN = 999999999;
 export const KRW_PER_COIN = 100;
 
-// ── Family 공정이용: 프리미엄 상담 포함 횟수 ──────────────────────────────
-// Family 는 10,000원 이하 기능을 무제한 커버하고, 그 위(300코인=30,000원 이상)의
-// 프리미엄 상담은 이용권 기간당 정해진 횟수만 포함한다. 초과분은 차단이 아니라
-// 단건/월정석 결제로 넘긴다 — 막다른 길을 만들지 않는 것이 이 설계의 핵심이다.
+// ── 공정이용: 프리미엄 상담 포함 횟수 + 월 누적 한도 ──────────────────────
+// Family/VVIP 는 각자의 건당 상한 이하 기능을 무제한 커버하고, 그 위(300코인=
+// 30,000원 이상)의 프리미엄 상담은 이용권 기간당 정해진 횟수만 포함한다(Family
+// 10회 · VVIP 3회). 모든 등급은 여기에 더해 30일 사이클 동안 이용권으로 커버된
+// 거래의 합계가 등급별 월 누적 한도(MONTHLY_PASS_LIMITS)를 넘으면 그 사이클
+// 안에서는 커버가 끊긴다. 어느 쪽이든 초과분은 차단이 아니라 단건/월정석 결제로
+// 넘긴다 — 막다른 길을 만들지 않는 것이 이 설계의 핵심이다.
 //
 // 카운터는 profileSubscription 안에 둔다. 이용권 판정이 이미 그 문서를 읽고,
 // 소비 시 이미 findOneAndUpdate 를 돌리므로 왕복도 쓰기도 늘지 않는다.
-export const FAMILY_PREMIUM_MIN_COIN_COST = 300;
-export const FAMILY_PREMIUM_INCLUDED_USES = 10;
+export const PREMIUM_QUOTA_MIN_COIN_COST = 300;
+
+export const PREMIUM_QUOTA_INCLUDED_USES_BY_TIER = Object.freeze({
+  [PASS_TIERS.FAMILY]: 10,
+  [PASS_TIERS.VVIP]: 3,
+});
 
 /**
  * 사이클 키 = 이용권 만료일. 이용권을 새로 사면 만료일이 바뀌어 키가 달라지고,
  * 카운터가 자동으로 0부터 다시 센다. 별도의 리셋 크론이 필요 없다.
+ * 상담 포함횟수(premiumUseCount)와 월 누적 한도(monthlySpendCoin) 두 카운터가
+ * 이 사이클 키(premiumUseCycleKey)를 공유한다 — 리셋 트리거가 동일하기 때문이다.
  */
-export function resolveFamilyPremiumCycleKey(entitlement) {
+export function resolvePremiumQuotaCycleKey(entitlement) {
   const raw = entitlement?.expiresAt;
   if (!raw) return "";
   const expiresAt = new Date(raw);
@@ -30,34 +39,39 @@ export function resolveFamilyPremiumCycleKey(entitlement) {
 }
 
 /**
- * 이 요청이 Family 프리미엄 포함 횟수의 적용 대상인지, 남은 횟수가 얼마인지.
+ * 이 요청이 프리미엄 상담 포함 횟수의 적용 대상인지, 남은 횟수가 얼마인지.
+ * 등급별 포함 횟수는 PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 를 따른다(Family 10회,
+ * VVIP 3회 — 나머지 등급은 이 혜택 자체가 없음).
  *
  * 판정 단계(buildPassPaymentDecision)와 소비 단계(consumeTierPassIfAvailable)가
  * 같은 답을 내야 한다 — 판정이 "커버"라 해놓고 소비가 거부하면 결제수단이 전부
  * 숨겨진 막다른 길이 된다(billing.js 의 과거 사고 주석 참고). 그래서 두 곳이
  * 이 함수 하나를 공유한다.
  *
- * cycleKey 를 못 구하면(만료일 없음) 적용하지 않는다 — 셀 수 없는 상태에서
- * 막으면 정상 이용자를 가로막게 되므로 열어두는 쪽이 맞다.
+ * `eligible`(등급·가격만으로 판정, cycleKey 불필요)과 `applies`(eligible 이면서
+ * cycleKey 까지 구해져 실제로 횟수를 셀 수 있는 상태)를 분리한다. 호출부가 canUseByPass
+ * (건당 상한)와 OR 로 묶어 "포함횟수 대상이면 상한을 우회"할 때는 반드시 `eligible`을 써야
+ * 한다 — `applies`를 쓰면 cycleKey 를 못 구했을 때(만료일 없음) 상한 우회 자체가 막혀버려서
+ * "셀 수 없으면 막지 않는다"는 정책이 VVIP 처럼 상한이 있는 등급에서 정반대로 뒤집힌다
+ * (family 는 상한이 없어 이 차이가 드러나지 않았다). 소진 여부 판정(`applies && exhausted`)은
+ * 그대로 `applies`를 쓴다 — cycleKey 를 못 구한 상태에서 소진을 확정할 수는 없기 때문이다.
  */
-export function resolveFamilyPremiumQuota(profileSubscription, entitlement, coinCost) {
+export function resolvePremiumQuota(profileSubscription, entitlement, coinCost) {
   const price = Number(coinCost || 0);
   const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
-  const cycleKey = resolveFamilyPremiumCycleKey(entitlement);
-  const included = FAMILY_PREMIUM_INCLUDED_USES;
-  const applies = tier === PASS_TIERS.FAMILY
-    && Number.isFinite(price)
-    && price >= FAMILY_PREMIUM_MIN_COIN_COST
-    && Boolean(cycleKey);
+  const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
+  const included = PREMIUM_QUOTA_INCLUDED_USES_BY_TIER[tier] || 0;
+  const eligible = included > 0 && Number.isFinite(price) && price >= PREMIUM_QUOTA_MIN_COIN_COST;
+  const applies = eligible && Boolean(cycleKey);
   if (!applies) {
-    return { applies: false, cycleKey, included, used: 0, remaining: included, exhausted: false };
+    return { applies: false, eligible, cycleKey, included, used: 0, remaining: included, exhausted: false };
   }
   const storedKey = String(profileSubscription?.premiumUseCycleKey || "");
   const used = storedKey === cycleKey
     ? Math.max(0, Math.floor(Number(profileSubscription?.premiumUseCount || 0)))
     : 0;
   const remaining = Math.max(0, included - used);
-  return { applies: true, cycleKey, included, used, remaining, exhausted: remaining <= 0 };
+  return { applies: true, eligible, cycleKey, included, used, remaining, exhausted: remaining <= 0 };
 }
 
 export const PASS_LIMITS = Object.freeze({
@@ -73,6 +87,48 @@ export const PASS_LIMITS_KRW = Object.freeze({
   [PASS_TIERS.VVIP]: PASS_LIMITS[PASS_TIERS.VVIP] * KRW_PER_COIN,
   [PASS_TIERS.FAMILY]: PASS_LIMITS[PASS_TIERS.FAMILY] * KRW_PER_COIN,
 });
+
+// ── 월 누적 한도(신규) ────────────────────────────────────────────────────
+// 건당 상한(PASS_LIMITS)과는 별개의 AND 게이트. 30일 사이클 동안 이용권으로
+// 커버된 거래의 코인가 합계가 이 값을 넘으면, 건당 상한을 통과하는 건이라도
+// 그 사이클 안에서는 이용권으로 커버되지 않는다. coin 단위(1코인=100원).
+export const MONTHLY_PASS_LIMITS = Object.freeze({
+  [PASS_TIERS.STANDARD]: 300,   // 30,000원
+  [PASS_TIERS.PREMIUM]: 1000,   // 100,000원
+  [PASS_TIERS.VVIP]: 2000,      // 200,000원
+  [PASS_TIERS.FAMILY]: 5000,    // 500,000원
+});
+
+export const MONTHLY_PASS_LIMITS_KRW = Object.freeze({
+  [PASS_TIERS.STANDARD]: MONTHLY_PASS_LIMITS[PASS_TIERS.STANDARD] * KRW_PER_COIN,
+  [PASS_TIERS.PREMIUM]: MONTHLY_PASS_LIMITS[PASS_TIERS.PREMIUM] * KRW_PER_COIN,
+  [PASS_TIERS.VVIP]: MONTHLY_PASS_LIMITS[PASS_TIERS.VVIP] * KRW_PER_COIN,
+  [PASS_TIERS.FAMILY]: MONTHLY_PASS_LIMITS[PASS_TIERS.FAMILY] * KRW_PER_COIN,
+});
+
+/**
+ * 이 요청이 월 누적 한도 안에 드는지, 남은 한도가 얼마인지.
+ * 사이클 키는 resolvePremiumQuota 와 공유(premiumUseCycleKey) — 리셋 트리거가
+ * 같기 때문에 별도 필드를 두지 않는다. cycleKey 를 못 구하면(만료일 없음)
+ * 적용하지 않는다(셀 수 없는 상태는 막지 않는다).
+ */
+export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinCost) {
+  const price = Math.max(0, Math.floor(Number(coinCost || 0)));
+  const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
+  const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
+  const limitCoin = tier ? Number(MONTHLY_PASS_LIMITS[tier] || 0) : 0;
+  const applies = Boolean(tier) && limitCoin > 0 && Boolean(cycleKey);
+  if (!applies) {
+    return { applies: false, cycleKey, limitCoin, usedCoin: 0, remainingCoin: limitCoin, exceeded: false };
+  }
+  const storedKey = String(profileSubscription?.premiumUseCycleKey || "");
+  const usedCoin = storedKey === cycleKey
+    ? Math.max(0, Math.floor(Number(profileSubscription?.monthlySpendCoin || 0)))
+    : 0;
+  const remainingCoin = Math.max(0, limitCoin - usedCoin);
+  const exceeded = price > 0 && (usedCoin + price) > limitCoin;
+  return { applies: true, cycleKey, limitCoin, usedCoin, remainingCoin, exceeded };
+}
 
 export const PASS_TIER_UI = Object.freeze({
   [PASS_TIERS.STANDARD]: { tone: "standard", color: "warm_copper" },
@@ -102,30 +158,35 @@ export const HONEY_PASS_POLICY = Object.freeze({
   none: {
     label: "이용권 없음",
     maxCoveredCoin: 0,
+    monthlyCoveredCoin: 0,
     maxProfiles: 1,
   },
   standard: {
     passTier: PASS_TIERS.STANDARD,
     label: "스탠다드",
     maxCoveredCoin: PASS_LIMITS.standard,
+    monthlyCoveredCoin: MONTHLY_PASS_LIMITS.standard,
     maxProfiles: 3,
   },
   premium: {
     passTier: PASS_TIERS.PREMIUM,
     label: "프리미엄",
     maxCoveredCoin: PASS_LIMITS.premium,
+    monthlyCoveredCoin: MONTHLY_PASS_LIMITS.premium,
     maxProfiles: 7,
   },
   vvip: {
     passTier: PASS_TIERS.VVIP,
     label: "VVIP",
     maxCoveredCoin: PASS_LIMITS.vvip,
+    monthlyCoveredCoin: MONTHLY_PASS_LIMITS.vvip,
     maxProfiles: 15,
   },
   family: {
     passTier: PASS_TIERS.FAMILY,
     label: "Code Destiny Family",
     maxCoveredCoin: PASS_LIMITS.family,
+    monthlyCoveredCoin: MONTHLY_PASS_LIMITS.family,
     maxProfiles: 0,
   },
 });

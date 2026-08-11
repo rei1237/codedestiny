@@ -155,7 +155,7 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(points, /초융합 제외/);
   assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
-  assert.match(html, /3만원 미만 기능 무제한 · 초융합 포함 전문가 상담 10회/);
+  assert.match(html, /3만원 미만 기능 무제한\(월 누적 50만원까지\) · 초융합 포함 전문가 상담 10회/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
 });
 
