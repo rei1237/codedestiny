@@ -12258,10 +12258,11 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
            걸어 rem 이 12.5% 줄어든다. 카드 본문이 10px 대로 떨어지던 원인. */
         .cd-sig{max-width:1240px;margin:20px auto 0;padding:0 20px;--cd-sig-stagger:140ms}
         .cd-sig__head{margin:0 0 16px;text-align:center}
-        .cd-sig__title{margin:0;font-size:clamp(20px,4.6vw,28px);font-weight:800;letter-spacing:-.012em;line-height:1.3;color:var(--cd-text,#3c1830);text-wrap:balance}
+        .cd-sig__title{margin:0;font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--cd-text,#3c1830);word-break:keep-all;text-wrap:balance}
+        .cd-sig__title::after{content:"";display:block;width:52px;height:2px;margin:14px auto 0;border-radius:999px;background:linear-gradient(90deg,var(--cd-accent,#b31955),#ead089)}
         /* fortune-ui.css:791 의 `.logo-area p{color:#bbb;font-size:.85rem}` 가 (0,1,1) 로 이겨서
            이 섹션의 <p> 를 회색 13.6px 로 끌어내린다 — 클래스를 겹쳐 특이도를 (0,2,0) 으로 올린다. */
-        html body .cd-sig .cd-sig__sub{margin:8px auto 0;max-width:38ch;font-size:14px;line-height:1.62;color:color-mix(in srgb,var(--cd-text,#3c1830) 80%,transparent);text-wrap:pretty}
+        html body .cd-sig .cd-sig__sub{margin:8px auto 0;max-width:38ch;font-size:14px;line-height:1.62;color:color-mix(in srgb,var(--cd-text,#3c1830) 80%,transparent);word-break:keep-all;text-wrap:pretty}
         .cd-sig__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
         .cd-sig-card{position:relative;display:flex;flex-direction:column;overflow:hidden;border-radius:22px;text-decoration:none;border:1px solid var(--cd-border,rgba(216,63,120,.16));background:color-mix(in srgb,var(--cd-surface,#fff) 68%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 12px 28px -24px color-mix(in srgb,var(--cd-accent,#b31955) 62%,transparent);transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s ease,box-shadow .3s ease}
         .cd-sig-card:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
@@ -12343,7 +12344,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           .cd-sig-card:hover,.cd-sig-card--featured,.cd-sig-card--featured:hover{transform:none}
           .cd-sig-card:hover .cd-sig-card__img{transform:none}
         }
-        html.neo-mode body .cd-sig__title{color:#f4eeff}
+        html.neo-mode body .cd-sig__title{color:#f4eeff;text-shadow:0 0 22px rgba(196,181,253,.32)}
+        html.neo-mode body .cd-sig__title::after{background:linear-gradient(90deg,#c4b5fd,#e8d5a3)}
         html.neo-mode body .cd-sig__sub{color:rgba(244,238,255,.82)!important}
         html.neo-mode body .cd-sig-card{border-color:rgba(196,181,253,.28);background:rgba(19,16,42,.56);box-shadow:0 12px 28px -24px rgba(0,0,0,.7)}
         html.neo-mode body .cd-sig-card__media{box-shadow:inset 0 0 0 1px rgba(232,213,163,.44)}
