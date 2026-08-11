@@ -1333,8 +1333,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (settled) return;
       settled = true;
       if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
-      // 단건 핸드오프로 노드를 6초 남기는 경우에도 공용 락은 반드시 푼다 — 남은 노드는 다음 결제창이
-      // 열릴 때 스윕이 걷어간다. 락을 쥔 채로 두면 재제안 자체가 막힌다(셸과 같은 계약).
+      // 공용 락은 어느 경로로 닫히든 반드시 푼다. 락을 쥔 채로 두면 재제안 자체가 막힌다(셸과 같은 계약).
       if (sharedChoiceLockToken) {
         checkoutEntry.releasePaymentChoiceLock(sharedChoiceLockToken);
         sharedChoiceLockToken = null;
