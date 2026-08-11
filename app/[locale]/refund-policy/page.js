@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-import { LOCALE_CONFIG, PUBLIC_LOCALES } from "../../../lib/i18n/locales";
+import { LOCALE_CONFIG, PUBLIC_LOCALES, localeUrlSegment } from "../../../lib/i18n/locales";
 import { TERMS_CONTENT } from "../../../lib/legal/legalContent";
 import { REFUND_INTRO, REFUND_JURISDICTION_NOTES, getRefundSection } from "../../../lib/legal/refundContent";
 import LegalDocumentBody from "../../components/LegalDocumentBody";
@@ -46,7 +46,7 @@ const PAGE_COPY = {
 };
 
 export function generateStaticParams() {
-  return PUBLIC_LOCALES.map((locale) => ({ locale }));
+  return PUBLIC_LOCALES.map((locale) => ({ locale: localeUrlSegment(locale) }));
 }
 
 export async function generateMetadata({ params }) {

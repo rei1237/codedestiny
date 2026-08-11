@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PUBLIC_LOCALES, LOCALE_CONFIG } from "../../../../lib/i18n/locales";
+import { PUBLIC_LOCALES, LOCALE_CONFIG, localeUrlSegment } from "../../../../lib/i18n/locales";
 import { createI18nMetadata } from "../../../../lib/seo/createI18nMetadata";
 import { getLocaleLinksForRoute, I18N_ROUTE_MAP } from "../../../../lib/i18n/routes";
 import { I18N_INSIGHT_ARTICLES, getLocalizedInsightBySlug } from "../../../../lib/seo/i18nInsights";
@@ -51,7 +51,7 @@ export function generateStaticParams() {
   const params = [];
   for (const locale of PUBLIC_LOCALES) {
     for (const article of I18N_INSIGHT_ARTICLES) {
-      params.push({ locale, slug: article.slugByLocale[locale] });
+      params.push({ locale: localeUrlSegment(locale), slug: article.slugByLocale[locale] });
     }
   }
   return params;

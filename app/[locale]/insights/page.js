@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PUBLIC_LOCALES, LOCALE_CONFIG } from "../../../lib/i18n/locales";
+import { PUBLIC_LOCALES, LOCALE_CONFIG, localeUrlSegment } from "../../../lib/i18n/locales";
 import { createI18nMetadata } from "../../../lib/seo/createI18nMetadata";
 import { getAlternatesByRouteKey, getLocaleLinksForRoute } from "../../../lib/i18n/routes";
 import { getLocalizedInsightList } from "../../../lib/seo/i18nInsights";
@@ -41,7 +41,7 @@ const INSIGHTS_COPY = {
 };
 
 export function generateStaticParams() {
-  return PUBLIC_LOCALES.map((locale) => ({ locale }));
+  return PUBLIC_LOCALES.map((locale) => ({ locale: localeUrlSegment(locale) }));
 }
 
 export async function generateMetadata({ params }) {

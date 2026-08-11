@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-import { LOCALE_CONFIG, PUBLIC_LOCALES } from "../../../lib/i18n/locales";
+import { LOCALE_CONFIG, PUBLIC_LOCALES, localeUrlSegment } from "../../../lib/i18n/locales";
 import { TERMS_CONTENT } from "../../../lib/legal/legalContent";
 import LegalDocumentBody from "../../components/LegalDocumentBody";
 import { resolveLocale } from "../_lib";
@@ -62,7 +62,7 @@ const PAGE_COPY = {
 };
 
 export function generateStaticParams() {
-  return PUBLIC_LOCALES.map((locale) => ({ locale }));
+  return PUBLIC_LOCALES.map((locale) => ({ locale: localeUrlSegment(locale) }));
 }
 
 export async function generateMetadata({ params }) {

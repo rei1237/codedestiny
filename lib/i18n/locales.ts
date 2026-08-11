@@ -94,6 +94,22 @@ export function normalizePath(path: string): string {
   return withSlash.replace(/\/+$/, "") || "/";
 }
 
+/**
+ * app/[locale]/**\/page.js 의 generateStaticParams() 전용.
+ *
+ * 🔴 `PUBLIC_LOCALES` 의 원소를 그대로 `{ locale }` 로 반환하지 말 것 — Next.js 정적
+ * export 는 그 문자열을 URL 세그먼트 그대로 쓴다. "zh-TW" 는 대문자 T/W 를 포함하는데
+ * pathPrefix/sitemap/canonical 은 전부 소문자 "/zh-tw" 다. Windows(NTFS)는 경로 조회가
+ * 대소문자 무관이라 로컬 빌드에서는 안 걸리지만, Linux CI 러너(대소문자 구분 파일시스템)
+ * 에서는 실제 산출물이 /zh-TW/... 에 있고 sitemap 은 /zh-tw/... 를 가리켜 404 로 잡힌다
+ * (verify-adsense-readiness.mjs: "sitemap route has no generated artifact").
+ * 이 함수로 만든 소문자 세그먼트를 쓰면 산출물 경로와 sitemap 이 항상 일치하고,
+ * 페이지 쪽 resolveLocale()/toLocale() 이 대소문자 무관 매칭이라 되돌아 정상 인식된다.
+ */
+export function localeUrlSegment(locale: Locale): string {
+  return LOCALE_CONFIG[locale].pathPrefix.replace(/^\//, "");
+}
+
 export function localizePath(locale: Locale, routePath: string): string {
   const normalized = normalizePath(routePath);
   const prefix = LOCALE_CONFIG[locale].pathPrefix;
