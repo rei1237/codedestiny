@@ -898,11 +898,24 @@
     var top = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(px, py) : null;
     var direct = findCollectionToggleFromOrigin(top);
     if (direct) return direct;
+    // 🔴 아래 두 폴백은 "좌표에 걸리기만 하면" 토글로 인정한다 — elementsFromPoint 는 가려진 요소까지
+    // 전부 돌려주고, rect 스캔은 스태킹을 아예 보지 않는다. 그래서 기능 모달(예: #hwatuModalOverlay,
+    // z-index 100000)이 열린 상태에서 그 아래 깔린 컬렉션 헤더(min-height 142px, 가로 전체)와 좌표가
+    // 겹치면, 모달 안의 버튼 탭이 컬렉션 토글로 오판돼 toggleMobileCollection 이 touchend 를
+    // preventDefault+stopPropagation 으로 삼켰다 — click 이 아예 합성되지 않아 기능 화면의 버튼이
+    // 통째로 죽었다(650ms 가드 때문에 연타해도 계속 막힘).
+    // 폴백의 원래 목적은 "같은 컬렉션 안의 장식 요소가 헤더를 덮어 closest 가 실패한 경우" 구제이므로,
+    // 최상단 실히트가 그 컬렉션 밖이면 다른 레이어가 주인이라고 보고 넘긴다.
+    function occludedByOtherLayer(candidate) {
+      if (!top || !candidate || !candidate.closest) return false;
+      var owner = candidate.closest('.feat-collection[id],.tarot-collection[id]');
+      return !!(owner && !owner.contains(top));
+    }
     if (typeof document.elementsFromPoint === 'function') {
       var stack = document.elementsFromPoint(px, py);
       for (var i = 0; i < stack.length; i += 1) {
         var stacked = findCollectionToggleFromOrigin(stack[i]);
-        if (stacked) return stacked;
+        if (stacked && !occludedByOtherLayer(stacked)) return stacked;
       }
     }
     var toggles = document.querySelectorAll('[data-action="toggleCollection"][data-target]');
@@ -913,6 +926,7 @@
       if (px < rect.left || px > rect.right || py < rect.top || py > rect.bottom) continue;
       var style = window.getComputedStyle ? window.getComputedStyle(toggle) : null;
       if (style && (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none')) continue;
+      if (occludedByOtherLayer(toggle)) continue;
       return toggle;
     }
     return null;
