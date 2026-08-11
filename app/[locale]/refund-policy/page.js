@@ -27,7 +27,7 @@ const PAGE_COPY = {
   },
   zh: {
     title: "退款政策 | Code Destiny",
-    description: "Code Destiny 关于30天通行证与单次付费的退款与撤回条款，含数字内容撤回限制说明。",
+    description: "Code Destiny 关于30天通行证与单次付费商品的退款与撤回条款说明，包含数字内容提供后撤回限制的详细规则。",
     heading: "退款政策",
     dateLabel: "生效日期",
     related: "相关文档",
@@ -36,7 +36,7 @@ const PAGE_COPY = {
   },
   "zh-TW": {
     title: "退款政策 | Code Destiny",
-    description: "Code Destiny 關於30天通行證與單次付款之退款與撤回條款，含數位內容撤回限制說明。",
+    description: "Code Destiny 關於30天通行證與單次付款商品之退款與撤回條款說明，包含數位內容提供後撤回限制之詳細規則。",
     heading: "退款政策",
     dateLabel: "生效日期",
     related: "相關文件",
