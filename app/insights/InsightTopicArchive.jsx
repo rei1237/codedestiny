@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { INSIGHT_ARTICLES, getArticlesByTopic } from "./articles";
+import { INSIGHT_ARTICLES, getArticlesByTopic, getArticleBySlug } from "./articles";
 import { getFeatureGuidesByTopic } from "./feature-guides";
 
 function topicMatcher(topic) {
@@ -93,6 +93,13 @@ const TOPIC_GUIDES = {
       "그래서 이 허브의 글은 상징 풀이를 소개하되 그것을 확정으로 제시하지 않습니다. 꿈에서 무엇을 봤는지보다 그 장면에서 어떤 기분이었는지, 요즘 무엇이 마음에 걸려 있었는지를 함께 적어 두면 해석의 폭이 좁아집니다. 반복해서 꾸는 꿈이라면 특히 그 기록이 도움이 됩니다.",
     ],
   },
+  fusion: {
+    heading: "초융합 인사이트를 읽는 법",
+    paragraphs: [
+      "초융합은 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로처럼 기준이 서로 다른 여섯 체계를 한 사람에게 나란히 적용해, 어디서 같은 신호가 겹치고 어디서 다르게 읽히는지를 확인하는 방식입니다. 한 체계만 보면 우연으로 넘길 수 있는 흐름도, 기준이 다른 여러 체계가 같은 결론에 도달하면 훨씬 뚜렷한 신호로 드러납니다.",
+      "이 허브는 두 체계씩 짝지어 재물·관계·시기 같은 같은 주제를 각자 어떤 기준으로 다르게 정의하는지 비교하는 글을 모았습니다. 아래 글로 각 체계의 차이와 접점을 먼저 확인한 뒤, 자신의 생년월일시로 여섯 체계를 한 번에 교차 분석하는 AI 리포트는 초융합 운세 서비스에서 이어볼 수 있습니다.",
+    ],
+  },
 };
 
 /**
@@ -125,6 +132,7 @@ const TOPIC_SOURCES = {
     { name: "숙요경", note: "27수 사이의 거리로 관계의 결을 읽는 동아시아 궁합법의 출처." },
   ],
   dream: [],
+  fusion: [],
 };
 
 /** 아크별 스토리 링크 — 신규 텍스트 리더(/stories)에 주제 관련 인바운드를 공급한다. */
@@ -135,16 +143,19 @@ const TOPIC_STORY_LINKS = {
   compatibility: { href: "/stories/ep-38/", label: "끊을 수 없는 실 — 관계를 다루는 화" },
 };
 
-export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath }) {
+export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath, curatedSlugs }) {
   const topicKey = String(topic || "").toLowerCase();
   const guide = TOPIC_GUIDES[topicKey];
   const sources = TOPIC_SOURCES[topicKey] || [];
   const storyLink = TOPIC_STORY_LINKS[topicKey] || null;
   const featureGuides = getFeatureGuidesByTopic(topic);
+  const curated = Array.isArray(curatedSlugs) && curatedSlugs.length > 0
+    ? curatedSlugs.map(getArticleBySlug).filter(Boolean)
+    : null;
   const matcher = topicMatcher(topic);
   const topicItems = getArticlesByTopic(topic);
   const matched = topicItems.length > 0 ? topicItems : INSIGHT_ARTICLES.filter(matcher);
-  const items = matched.length > 0 ? matched : INSIGHT_ARTICLES.slice(0, 12);
+  const items = curated && curated.length > 0 ? curated : (matched.length > 0 ? matched : INSIGHT_ARTICLES.slice(0, 12));
   const representativeTags = Array.from(new Set(items.flatMap((item) => item.tags || item.keywords || []).filter(Boolean))).slice(0, 12);
   const beginnerGuides = items.filter((item) => /기초|입문|처음|보는 법|란\?/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
   const practicalGuides = items.filter((item) => /해석|실전|흐름|관계|재물|사랑|직업/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);

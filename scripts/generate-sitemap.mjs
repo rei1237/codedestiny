@@ -170,6 +170,7 @@ const coreRoutes = [
   { path: "/contact", changefreq: "yearly", priority: 0.6 },
   { path: "/privacy", changefreq: "yearly", priority: 0.55 },
   { path: "/terms", changefreq: "yearly", priority: 0.55 },
+  { path: "/ja/tokushoho", changefreq: "yearly", priority: 0.5 },
   { path: "/account/delete", changefreq: "yearly", priority: 0.5 },
   { path: "/disclaimer", changefreq: "yearly", priority: 0.54 },
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
@@ -187,6 +188,7 @@ const coreRoutes = [
   { path: "/insights/vedic", changefreq: "weekly", priority: 0.83 },
   { path: "/insights/dream", changefreq: "weekly", priority: 0.82 },
   { path: "/insights/compatibility", changefreq: "weekly", priority: 0.82 },
+  { path: "/insights/fusion", changefreq: "weekly", priority: 0.83 },
   { path: "/famous-saju", changefreq: "weekly", priority: 0.88 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/high-value/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
@@ -267,6 +269,26 @@ const i18nRouteGroups = [
     },
     changefreq: "monthly",
     priority: 0.8,
+  },
+  // PG 심사용 다국어 약관/정책 페이지 (app/[locale]/{terms-of-service,privacy-policy,refund-policy}).
+  // ko는 기존 페이지(각각 /terms-of-service, /privacy-policy)를 그대로 가리킨다 — 새 ko 페이지를
+  // 만들지 않았다. refund-policy는 ko 전용 URL이 없으므로(실질은 /terms-of-service 12조에 있음)
+  // ko를 이 그룹에 넣지 않는다 — sitemap URL과 hreflang 안전을 위해 fragment(#)를 <loc>으로
+  // 넣지 않는다. x-default는 이 그룹만 "/"로 폴백된다(buildI18nAlternates 참고).
+  {
+    paths: { ko: "/terms-of-service", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", en: "/en/terms-of-service" },
+    changefreq: "yearly",
+    priority: 0.55,
+  },
+  {
+    paths: { ko: "/privacy-policy", ja: "/ja/privacy-policy", zh: "/zh/privacy-policy", en: "/en/privacy-policy" },
+    changefreq: "yearly",
+    priority: 0.55,
+  },
+  {
+    paths: { ja: "/ja/refund-policy", zh: "/zh/refund-policy", en: "/en/refund-policy" },
+    changefreq: "yearly",
+    priority: 0.5,
   },
 ];
 
