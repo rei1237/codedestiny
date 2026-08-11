@@ -17602,6 +17602,24 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           classifyCards();
           return card;
         };
+        // IntersectionObserver 가 자리표시자를 실카드로 바꾸는 건 스크롤과 비동기로 경합한다 —
+        // 메인스레드가 바쁘거나(롱태스크) 빠르게 스크롤 후 바로 탭하면, 화면엔 보여도 아직
+        // 자리표시자인 카드를 누르게 된다(자리표시자는 aria-hidden 빈 span이라 아무 반응이 없다).
+        // 핀 카드(15504행)가 쓰는 것과 같은 "지금 마운트하고 그 카드를 대신 누른다" 패턴을
+        // 그리드의 자리표시자 자체에도 그대로 적용한다.
+        document.addEventListener('click', function(event){
+          if (!isMobileView()) return;
+          var placeholder = event.target instanceof Element ? event.target.closest('.cd-mobile-card-placeholder') : null;
+          if (!placeholder) return;
+          var collection = placeholder.closest('.feat-collection[id],.tarot-collection[id]');
+          var index = Number(placeholder.getAttribute('data-cd-card-index'));
+          var card = collection && Array.isArray(collection.__cdLazyCards) ? collection.__cdLazyCards[index] : null;
+          if (!card) return;
+          event.preventDefault();
+          event.stopPropagation();
+          var mounted = typeof window.__cdMountMobileCardForIntent === 'function' ? window.__cdMountMobileCardForIntent(card) : card;
+          if (mounted && mounted.parentNode) mounted.click();
+        }, true);
         function keepOpenCollectionAboveBottomNav(collection){
           if (!collection || !isMobileView() || String(collection.getAttribute('data-collection-open')) !== 'true') return;
           var nav = document.getElementById('cdMobileBottomNav');
@@ -22071,7 +22089,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-572608ebaf65" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-572608ebaf65" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-572608ebaf65" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -24164,6 +24182,20 @@ return you.name.restore();</span>
       var checkoutError = new Error(checkoutMessage);
       checkoutError.status = Number(checkoutRes.status || (checkoutRes.payload && checkoutRes.payload.status) || 0);
       checkoutError.code = String((checkoutRes.payload && (checkoutRes.payload.code || (checkoutRes.payload.error && checkoutRes.payload.error.code))) || '').trim();
+      // 🔴 requestId 를 세션/기간 단위로 캐시해 재사용하는 호출부(예: 연간 타로의 뽑기 시드 겸용
+      // requestId)가 있으면, 예전 시도에서 가격 판정이 달랐던 pending 주문과 같은 idempotency-key로
+      // 충돌해 체크아웃 POST 자체가 409 로 거절된다. PortOne SDK 단계의 "중복 paymentId" 재시도
+      // (아래)와 같은 이유로, 여기서도 새 키로 1회 재시도하지 않으면 사용자는 몇 번을 다시 눌러도
+      // 결제창이 안 뜨는 상태에 영구히 갇힌다(실제 증상). PG 창이 열리기 전이라 이중결제 위험은 없다.
+      if (checkoutError.code === 'IDEMPOTENCY_CONFLICT' && opts.__cdIdempotencyConflictRetry !== true) {
+        var _cdConflictRetryKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '') + ':c' + Date.now().toString(36);
+        return await (window._cdRunDirectKrwCheckout || _cdRunDirectKrwCheckout)(Object.assign({}, opts, {
+          idempotencyKey: _cdConflictRetryKey,
+          checkoutPayload: Object.assign({}, opts.checkoutPayload || {}, { idempotencyKey: _cdConflictRetryKey }),
+          __cdIdempotencyConflictRetry: true,
+          __cdDirectPaymentChoiceConfirmed: true
+        }));
+      }
       throw checkoutError;
     }
     var checkoutData = _cdExtractBillingData(checkoutRes.payload);
