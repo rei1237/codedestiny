@@ -188,6 +188,7 @@ const coreRoutes = [
   { path: "/insights/vedic", changefreq: "weekly", priority: 0.83 },
   { path: "/insights/dream", changefreq: "weekly", priority: 0.82 },
   { path: "/insights/compatibility", changefreq: "weekly", priority: 0.82 },
+  { path: "/insights/fusion", changefreq: "weekly", priority: 0.83 },
   { path: "/famous-saju", changefreq: "weekly", priority: 0.88 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/high-value/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
