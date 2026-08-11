@@ -577,6 +577,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     features:     [
       "profile3",
       "under3000",
+      "monthlyCap",
       "over3000Single",
       "pdfSingle",
       "activeImmediately",
@@ -593,6 +594,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     features:     [
       "profile7",
       "under5000",
+      "monthlyCap",
       "over5000Single",
       "pdfSingle",
       "activeImmediately",
@@ -610,6 +612,8 @@ const SUBSCRIPTION_BASE_PLANS = [
     features:     [
       "profile15",
       "under10000",
+      "monthlyCap",
+      "vvipConsult",
       "over10000Single",
       "pdfSingle",
       "activeImmediately",
@@ -627,6 +631,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     features:     [
       "profileUnlimited",
       "allPaidPdf",
+      "monthlyCap",
       "familyIncluded",
       "activeImmediately",
       "notAutoBilling",
@@ -775,7 +780,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "회원",
     duration30: "30일",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "3만원 미만 무제한 · 초융합 포함 전문가 상담 10회",
+    allPaidPdfPolicy: "3만원 미만 무제한(월 50만원까지) · 초융합 포함 전문가 상담 10회",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
     familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
@@ -798,6 +803,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       standard: {
         profile3: "프로필 최대 3개 생성",
         under3000: "3,000원 이하 유료 기능 횟수 제한 없이 이용",
+        monthlyCap: "월 누적 3만원까지 이용 가능",
         over3000Single: "30일 동안 스탠다드 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -806,6 +812,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       premium: {
         profile7: "프로필 최대 7개 생성",
         under5000: "5,000원 이하 유료 기능 횟수 제한 없이 이용",
+        monthlyCap: "월 누적 10만원까지 이용 가능",
         over5000Single: "30일 동안 프리미엄 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -814,6 +821,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       vvip: {
         profile15: "프로필 최대 15개 생성",
         under10000: "10,000원 이하 유료 기능 횟수 제한 없이 이용",
+        monthlyCap: "월 누적 20만원까지 이용 가능",
+        vvipConsult: "전문가 상담 30일 3회 포함 (초과분 단건 결제)",
         over10000Single: "30일 동안 VVIP 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -822,6 +831,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
         allPaidPdf: "3만원 미만 무제한 · 초융합 포함 10회",
+        monthlyCap: "월 누적 50만원까지 이용 가능",
         familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
         notAutoBilling: "원화 단건 결제로 구매 가능",
@@ -881,7 +891,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "Member",
     duration30: "30 days",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "Fusion Fortune excluded · Unlimited under KRW 30,000 · 10 expert consultations",
+    allPaidPdfPolicy: "Fusion Fortune excluded · Unlimited under KRW 30,000 (up to KRW 500,000/month) · 10 expert consultations",
     generalLimitPolicy: (value) => `General services up to ${value}`,
     familyValueLine: (duration) => `All Family benefits / ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
@@ -904,6 +914,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       standard: {
         profile3: "Create up to 3 profiles",
         under3000: "Unlimited use of paid features up to KRW 3,000",
+        monthlyCap: "Up to KRW 30,000 total per month",
         over3000Single: "Standard benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -912,6 +923,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       premium: {
         profile7: "Create up to 7 profiles",
         under5000: "Unlimited use of paid features up to KRW 5,000",
+        monthlyCap: "Up to KRW 100,000 total per month",
         over5000Single: "Premium benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -920,6 +932,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       vvip: {
         profile15: "Create up to 15 profiles",
         under10000: "Unlimited use of paid features up to KRW 10,000",
+        monthlyCap: "Up to KRW 200,000 total per month",
+        vvipConsult: "3 expert consultations per 30 days (extra via single payment)",
         over10000Single: "VVIP benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -928,6 +942,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       family: {
         profileUnlimited: "Unlimited profile add/edit/delete",
         allPaidPdf: "Fusion Fortune excluded · Unlimited for features under KRW 30,000",
+        monthlyCap: "Up to KRW 500,000 total per month",
         familyIncluded: "10 expert consultations per 30 days (extra via single payment)",
         activeImmediately: "30-day pass activates after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
@@ -1920,7 +1935,7 @@ function SubscriptionSection({
                 {plan.features.map((f) => {
                   const translatedFeature = copy.planFeatures[plan.tier]?.[f] || f;
                   const isBonus = f.startsWith("bonus");
-                  const isKey = ["under3000", "under5000", "under10000", "allPaidPdf", "familyIncluded"].includes(f);
+                  const isKey = ["under3000", "under5000", "under10000", "allPaidPdf", "familyIncluded", "monthlyCap", "vvipConsult"].includes(f);
                   return (
                     <li
                       key={f}

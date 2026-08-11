@@ -170,6 +170,7 @@ const coreRoutes = [
   { path: "/contact", changefreq: "yearly", priority: 0.6 },
   { path: "/privacy", changefreq: "yearly", priority: 0.55 },
   { path: "/terms", changefreq: "yearly", priority: 0.55 },
+  { path: "/ja/tokushoho", changefreq: "yearly", priority: 0.5 },
   { path: "/account/delete", changefreq: "yearly", priority: 0.5 },
   { path: "/disclaimer", changefreq: "yearly", priority: 0.54 },
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
@@ -270,6 +271,28 @@ const i18nRouteGroups = [
     },
     changefreq: "monthly",
     priority: 0.8,
+  },
+  // PG 심사용 다국어 약관/정책 페이지 (app/[locale]/{terms-of-service,privacy-policy,refund-policy}).
+  // ko는 /terms-of-service·/privacy-policy 가 아니라 짧은 별칭 /terms·/privacy 를 가리킨다 —
+  // 두 URL이 완전히 같은 컴포넌트를 렌더해 title/description이 동일하므로, sitemap에 두 개를
+  // 함께 넣으면 verify-adsense-readiness.mjs 의 "duplicate sitemap title" 검사에 걸린다.
+  // /terms-of-service 자신도 canonical 을 /terms 로 잡아 이 dedup 을 이미 따르고 있다(coreRoutes
+  // 참고). refund-policy는 ko 전용 URL이 없으므로(실질은 /terms-of-service 12조에 있음) 이 그룹에
+  // ko를 넣지 않는다 — x-default는 이 그룹만 "/"로 폴백된다(buildI18nAlternates 참고).
+  {
+    paths: { ko: "/terms", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", en: "/en/terms-of-service" },
+    changefreq: "yearly",
+    priority: 0.55,
+  },
+  {
+    paths: { ko: "/privacy", ja: "/ja/privacy-policy", zh: "/zh/privacy-policy", en: "/en/privacy-policy" },
+    changefreq: "yearly",
+    priority: 0.55,
+  },
+  {
+    paths: { ja: "/ja/refund-policy", zh: "/zh/refund-policy", en: "/en/refund-policy" },
+    changefreq: "yearly",
+    priority: 0.5,
   },
 ];
 

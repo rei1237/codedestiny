@@ -7,10 +7,13 @@ import { __billingTestUtils } from "../worker/routes/billing.js";
 import {
   canUseByPass,
   HONEY_PASS_POLICY,
+  MONTHLY_PASS_LIMITS_KRW,
   normalizePassTier,
   PASS_LIMITS,
   PASS_LIMITS_KRW,
   PASS_TIERS,
+  PREMIUM_QUOTA_INCLUDED_USES_BY_TIER,
+  PREMIUM_QUOTA_MIN_COIN_COST,
 } from "../worker/lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../worker/lib/pdf-pass-discount.js";
 import {
@@ -56,7 +59,11 @@ function activePass(passTier, expiresAt = futureDate()) {
   };
 }
 
-function decision({ pass = null, coinCost, monthlyBalance = 0 }) {
+function decision({ pass = null, coinCost, monthlyBalance = 0, monthlySpendCoin, premiumUseCycleKey, premiumUseCount }) {
+  const profileSubscription = { membershipCreditBalance: monthlyBalance };
+  if (monthlySpendCoin !== undefined) profileSubscription.monthlySpendCoin = monthlySpendCoin;
+  if (premiumUseCycleKey !== undefined) profileSubscription.premiumUseCycleKey = premiumUseCycleKey;
+  if (premiumUseCount !== undefined) profileSubscription.premiumUseCount = premiumUseCount;
   return __billingTestUtils.buildPassPaymentDecision(
     pass || { isActive: false },
     {
@@ -65,7 +72,7 @@ function decision({ pass = null, coinCost, monthlyBalance = 0 }) {
       membershipCreditCost: coinCost * 10,
       featureKey: `test-${coinCost}`,
     },
-    { membershipCreditBalance: monthlyBalance },
+    profileSubscription,
   );
 }
 
@@ -287,7 +294,13 @@ for (const featureKey of listServerPricedFeatureKeys()) {
   } else {
     assert.equal(standardDecision.canUseByPass, coinCost <= PASS_LIMITS.standard, `${featureKey}: standard pass limit`);
     assert.equal(premiumDecision.canUseByPass, coinCost <= PASS_LIMITS.premium, `${featureKey}: premium pass limit`);
-    assert.equal(vvipDecision.canUseByPass, coinCost <= PASS_LIMITS.vvip, `${featureKey}: vvip pass limit`);
+    // vvip는 건당 상한(100코인) 이하거나, 상담 포함횟수 기준가(300코인) 이상이면(=미소진 상태의
+    // 신선한 이용권이라 항상 미소진) 포함횟수로 커버된다. 101~299코인 구간은 계속 미커버.
+    assert.equal(
+      vvipDecision.canUseByPass,
+      coinCost <= PASS_LIMITS.vvip || coinCost >= PREMIUM_QUOTA_MIN_COIN_COST,
+      `${featureKey}: vvip pass limit (건당 상한 이하 또는 상담 포함횟수 기준가 이상)`,
+    );
   }
 }
 
@@ -517,8 +530,12 @@ assertContains(billingSource, "recordPassAccessIfNeeded", "PASS usage evidence")
 assertContains(billingSource, "PASS_ACCESS_GRANTED", "30-day tier pass grants access without service-use deduction");
 assertNotContains(billingSource, "PASS_DEDUCT_SUCCESS", "30-day tier pass does not use service-use deduction logs");
 assertNotContains(billingSource, "PASS_DEDUCT_DUPLICATE_RETURNED", "30-day tier pass duplicate path does not use deduction logs");
-assertNotContains(billingSource, "pass_used_up", "tier pass is not blocked by service-use counters");
-assertNotContains(billingSource, `"profileSubscription.${["pass", "Remaining", "Uses"].join("")}"`, "tier pass updates do not store service-use counters");
+// 🔴 2026-08 부터 이 레이블은 더 이상 "이용권이 카운터로 막히지 않는다"는 뜻이 아니다 — 월 누적
+// 한도(monthlySpendCoin)가 처음으로 이용권 소비를 카운터 기반으로 제한하기 시작했다. 아래 두 단언은
+// 여전히 유효한 검사다: 옛 레거시 카운터 이름(pass_used_up, passRemainingUses)이 되살아나지 않는지만
+// 본다 — 새 필드명(monthlySpendCoin, MONTHLY_PASS_LIMIT_EXCEEDED)은 이 리터럴을 포함하지 않는다.
+assertNotContains(billingSource, "pass_used_up", "tier pass consumption never revives the legacy pass_used_up reason code");
+assertNotContains(billingSource, `"profileSubscription.${["pass", "Remaining", "Uses"].join("")}"`, "tier pass updates never revive the legacy passRemainingUses field name");
 assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
 assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI only for FAMILY tier");
@@ -830,5 +847,87 @@ assertContains(billingClientSource, "deniedStatuses.has(status)", "runtime gate 
 assertContains(billingClientSource, "isPositiveObject(payload.consume)", "runtime gate validates consume object");
 assertNotContains(billingClientSource, "|| Boolean(payload.consume)", "runtime gate must not accept consume object alone");
 assertContains(headersSource, "https://pagead2.googlesyndication.com", "AdSense script domain allowed by CSP");
+
+// ── 월 누적 한도(2026-08 도입): 등급별 값 고정 + 소진 임계 동작 ────────────
+// 건당 상한(PASS_LIMITS)과는 별개의 AND 게이트. 마지막 1건까지는 통과하고, 그 다음 1건은
+// MONTHLY_PASS_LIMIT_EXCEEDED 로 거부하되 결제수단은 계속 동등 노출되어야 한다(막다른 길 금지).
+assert.equal(MONTHLY_PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 30000, "standard monthly cap is 30,000 KRW");
+assert.equal(MONTHLY_PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 100000, "premium monthly cap is 100,000 KRW");
+assert.equal(MONTHLY_PASS_LIMITS_KRW[PASS_TIERS.VVIP], 200000, "vvip monthly cap is 200,000 KRW");
+assert.equal(MONTHLY_PASS_LIMITS_KRW[PASS_TIERS.FAMILY], 500000, "family monthly cap is 500,000 KRW");
+
+const MONTHLY_CAP_ITEM_COIN = {
+  [PASS_TIERS.STANDARD]: PASS_LIMITS.standard,
+  [PASS_TIERS.PREMIUM]: PASS_LIMITS.premium,
+  [PASS_TIERS.VVIP]: PASS_LIMITS.vvip,
+  [PASS_TIERS.FAMILY]: 690,
+};
+
+for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
+  const cycle = futureDate();
+  const itemCoin = MONTHLY_CAP_ITEM_COIN[tier];
+  const capCoin = MONTHLY_PASS_LIMITS_KRW[tier] / 100;
+
+  const withinCap = decision({
+    pass: activePass(tier, cycle),
+    coinCost: itemCoin,
+    monthlySpendCoin: capCoin - itemCoin,
+    premiumUseCycleKey: cycle,
+  });
+  assert.equal(withinCap.canUseByPass, true, `${tier}: 월 누적 한도 마지막 1건은 통과해야 한다`);
+  assert.equal(withinCap.decisionReason, "PASS_COVERED", `${tier}: 월 누적 한도 이내는 PASS_COVERED`);
+
+  const overCap = decision({
+    pass: activePass(tier, cycle),
+    coinCost: itemCoin,
+    monthlySpendCoin: capCoin - itemCoin + 1,
+    premiumUseCycleKey: cycle,
+  });
+  assert.equal(overCap.canUseByPass, false, `${tier}: 월 누적 한도를 넘는 건은 거부해야 한다`);
+  assert.equal(overCap.decisionReason, "MONTHLY_PASS_LIMIT_EXCEEDED", `${tier}: 초과 사유는 MONTHLY_PASS_LIMIT_EXCEEDED`);
+  assert.deepEqual(overCap.hiddenMethods, [], `${tier}: 월 한도 초과여도 결제수단은 숨기면 안 된다`);
+  assert.deepEqual(overCap.equalPriorityMethods, ["DIRECT_KRW", "MOONLIGHT_STONE"], `${tier}: 월 한도 초과 시에도 단건/월정석 동등 노출`);
+
+  // 새 사이클(premiumUseCycleKey 불일치)이면 누적치를 0으로 되돌려야 한다 — 리셋 크론 없이
+  // 이용권 재구매만으로 카운터가 다시 시작되는 게 이 설계의 핵심이다.
+  const newCycleReset = decision({
+    pass: activePass(tier, cycle),
+    coinCost: itemCoin,
+    monthlySpendCoin: capCoin, // 이전 사이클엔 한도를 이미 다 썼지만
+    premiumUseCycleKey: pastDate(60), // 사이클 키가 달라 무효
+  });
+  assert.equal(newCycleReset.canUseByPass, true, `${tier}: 사이클 키가 바뀌면 이전 누적치를 무시하고 리셋해야 한다`);
+}
+
+// ── 상담 포함횟수(family 10회 · vvip 3회, 2026-08 VVIP 확장) ────────────────
+// VVIP 는 건당 상한(100코인=10,000원)이 포함횟수 기준가(300코인=30,000원)보다 낮아, 포함횟수
+// 대상 건은 건당 상한 검사를 우회해서 판정해야 한다 — canUseByPass 만 보면 죽은 코드가 된다.
+for (const [tier, included] of [[PASS_TIERS.VVIP, 3], [PASS_TIERS.FAMILY, 10]]) {
+  const cycle = futureDate();
+  const withinQuota = decision({
+    pass: activePass(tier, cycle),
+    coinCost: 300,
+    premiumUseCycleKey: cycle,
+    premiumUseCount: included - 1,
+  });
+  assert.equal(withinQuota.canUseByPass, true, `${tier}: 포함횟수(${included}회) 중 마지막 1회는 통과해야 한다`);
+  assert.equal(withinQuota.familyPremiumIncluded, included, `${tier}: 포함횟수는 ${included}회`);
+  assert.equal(withinQuota.familyPremiumRemaining, 1, `${tier}: ${included - 1}회 사용 후 잔여 1회`);
+
+  const exhaustedQuota = decision({
+    pass: activePass(tier, cycle),
+    coinCost: 300,
+    premiumUseCycleKey: cycle,
+    premiumUseCount: included,
+  });
+  assert.equal(exhaustedQuota.canUseByPass, false, `${tier}: 포함횟수를 다 쓰면 다음 상담은 거부해야 한다`);
+  assert.equal(exhaustedQuota.decisionReason, "PREMIUM_QUOTA_EXHAUSTED", `${tier}: 소진 사유는 PREMIUM_QUOTA_EXHAUSTED`);
+  assert.deepEqual(exhaustedQuota.hiddenMethods, [], `${tier}: 포함횟수 소진이어도 결제수단은 숨기면 안 된다`);
+}
+
+// vvip 는 건당 상한(100코인) 초과 · 포함횟수 기준가(300코인) 미만인 101~299코인 구간이 계속
+// 미커버로 남는다 — 포함횟수 대상 확장이 건당 상한 자체를 올린 것은 아니다.
+const vvipGapZone = decision({ pass: activePass(PASS_TIERS.VVIP), coinCost: 150 });
+assert.equal(vvipGapZone.canUseByPass, false, "vvip: 101~299코인 구간은 건당 상한도 포함횟수 기준가도 충족 못해 미커버");
 
 console.log("billing pass policy regression checks passed");

@@ -46,11 +46,20 @@
   var FUTURE_CLOCK_SKEW_MAX_MS = 24 * 60 * 60 * 1000;
 
   var PASS_LIMIT_BY_TIER = { family: 999999999, vvip: 100, premium: 50, standard: 30, free: 0 };
-  // 서버 정본은 lib/profile-limits.js 의 FAMILY_PREMIUM_MIN_COIN_COST. 이 값 이상의 기능은
-  // family 라도 포함 횟수(기간당 N회)를 다 썼을 수 있어 스냅샷만으로 커버를 단정할 수 없다.
-  // 남은 횟수는 서버만 안다 — 그래서 '커버 확정'도 '커버 불가'도 아닌 미확정으로 두어
-  // 호출부가 서버에 물어보게 한다. 여기서 커버로 단정하면 결제창 없이 진행하다 402 를 맞는다.
-  var FAMILY_PREMIUM_MIN_COIN_COST = 300;
+  // 서버 정본은 lib/profile-limits.js 의 MONTHLY_PASS_LIMITS(월 누적 한도, coin 단위).
+  // 건당 상한과는 별개의 AND 게이트 — 이번 건이 건당 상한을 통과해도 이번 사이클
+  // 누적 사용액이 이 값을 넘으면 이용권으로 커버되지 않는다.
+  var MONTHLY_PASS_LIMIT_BY_TIER = { family: 5000, vvip: 2000, premium: 1000, standard: 300, free: 0 };
+  // 월 누적 잔여 캐시(monthlySpendRemainingCoin)를 신선하다고 볼 상한. 이 안에서는 서버
+  // 왕복 없이 로컬 값으로 판정하고, 넘기면 "모름"으로 남겨 서버 최종 판정으로 넘긴다.
+  var MONTHLY_QUOTA_CACHE_TTL_MS = ACTIVE_TTL_MS;
+  // 서버 정본은 lib/profile-limits.js 의 PREMIUM_QUOTA_MIN_COIN_COST. 이 값 이상의 기능은
+  // family/vvip 라도 포함 횟수(기간당 N회 — family 10회, vvip 3회)를 다 썼을 수 있어
+  // 스냅샷만으로 커버를 단정할 수 없다. 남은 횟수는 서버만 안다 — 그래서 '커버 확정'도
+  // '커버 불가'도 아닌 미확정으로 두어 호출부가 서버에 물어보게 한다. 여기서 커버로
+  // 단정하면 결제창 없이 진행하다 402 를 맞는다.
+  var PREMIUM_QUOTA_MIN_COIN_COST = 300;
+  var PREMIUM_QUOTA_TIERS = { family: true, vvip: true };
   var ACTIVE_STATUS_RE = /^(active|subscribed|paid|success|succeeded|complete|completed|confirmed|approved)$/i;
   var INACTIVE_STATUS_RE = /^(none|free|inactive|expired|canceled|cancelled|refunded|failed|paused)$/i;
 
@@ -80,6 +89,11 @@
 
   function passLimitForTier(tier) {
     var limit = PASS_LIMIT_BY_TIER[normalizeTier(tier)];
+    return Number.isFinite(limit) ? limit : 0;
+  }
+
+  function monthlyLimitForTier(tier) {
+    var limit = MONTHLY_PASS_LIMIT_BY_TIER[normalizeTier(tier)];
     return Number.isFinite(limit) ? limit : 0;
   }
 
@@ -148,6 +162,8 @@
       var tier = normalizeTier(parsed.tier);
       var checkedAt = Number(parsed.checkedAt);
       var expiresAt = normalizeDate(parsed.expiresAt);
+      var monthlySpendRemainingCoin = Number(parsed.monthlySpendRemainingCoin);
+      var monthlyCheckedAt = Number(parsed.monthlyCheckedAt);
       if (snapshotUserId !== uid || !state || !Number.isFinite(checkedAt) || (state === "active" && tier === "free")) {
         removeSnapshot(uid);
         return null;
@@ -199,6 +215,8 @@
         completeness: text(parsed.completeness),
         authority: text(parsed.authority),
         stale: stale,
+        monthlySpendRemainingCoin: state === "active" && Number.isFinite(monthlySpendRemainingCoin) ? monthlySpendRemainingCoin : null,
+        monthlyCheckedAt: state === "active" && Number.isFinite(monthlyCheckedAt) ? monthlyCheckedAt : null,
       };
     } catch (_readError) {
       removeSnapshot(uid);
@@ -256,6 +274,13 @@
     var state = tier !== "free" && !expiredByDate && !explicitInactive && (explicitActive || isFutureDate(expiresAt))
       ? "active"
       : "none";
+    // 월 누적 한도 잔여(coin). buildPassPaymentDecision(billing.js)의 monthlySpendRemaining이
+    // 호출부의 `...data, ...options` 스프레드를 거쳐 여기 도달한다 — 값이 있을 때만 신선한
+    // 캐시로 반영하고(monthlyCheckedAt=지금), 없으면 null로 남겨 resolveVerdict가 "모름"으로 처리한다.
+    var monthlySpendRemainingRaw = data.monthlySpendRemaining ?? nested.monthlySpendRemaining
+      ?? membership.monthlySpendRemaining ?? membershipPass.monthlySpendRemaining;
+    var monthlySpendRemainingCoin = Number(monthlySpendRemainingRaw);
+    var hasMonthlySpendRemaining = state === "active" && Number.isFinite(monthlySpendRemainingCoin);
     return {
       userId: normalizeUserId(userId),
       state: state,
@@ -270,6 +295,8 @@
       completeness: text(data.completeness || nested.completeness),
       authority: text(data.authority || nested.authority),
       stale: false,
+      monthlySpendRemainingCoin: hasMonthlySpendRemaining ? Math.max(0, Math.floor(monthlySpendRemainingCoin)) : null,
+      monthlyCheckedAt: hasMonthlySpendRemaining ? Date.now() : null,
     };
   }
 
@@ -278,6 +305,26 @@
     var uid = normalizeUserId(userId);
     if (!storage || !uid || !snapshot) return null;
     try {
+      var monthlySpendRemainingCoin = Number(snapshot.monthlySpendRemainingCoin);
+      var monthlyCheckedAt = Number(snapshot.monthlyCheckedAt);
+      var hasMonthly = Number.isFinite(monthlySpendRemainingCoin) && Number.isFinite(monthlyCheckedAt);
+      // 이번 갱신에 월 한도 정보가 없으면(예: 이용권 정보만 담은 다른 상태 응답) 무작정 지우지
+      // 않는다 — 같은 이용권(같은 등급·만료일)이면 기존 캐시를 그대로 보존한다. 등급/만료일이
+      // 바뀌면(=다른 이용권) 보존하지 않는다 — 새 사이클의 잔여 한도를 옛 캐시로 오판할 수 있다.
+      if (!hasMonthly && snapshot.state === "active") {
+        var prior = readSnapshot(uid, { allowStaleNone: true });
+        if (
+          prior && prior.state === "active"
+          && prior.tier === snapshot.tier
+          && prior.expiresAt === (snapshot.expiresAt || null)
+          && Number.isFinite(prior.monthlySpendRemainingCoin)
+          && Number.isFinite(prior.monthlyCheckedAt)
+        ) {
+          monthlySpendRemainingCoin = prior.monthlySpendRemainingCoin;
+          monthlyCheckedAt = prior.monthlyCheckedAt;
+          hasMonthly = true;
+        }
+      }
       var payload = {
         userId: uid,
         state: snapshot.state,
@@ -288,6 +335,8 @@
         source: text(snapshot.source) || "client",
         completeness: text(snapshot.completeness),
         authority: text(snapshot.authority),
+        monthlySpendRemainingCoin: hasMonthly ? Math.max(0, Math.floor(monthlySpendRemainingCoin)) : null,
+        monthlyCheckedAt: hasMonthly ? Math.floor(monthlyCheckedAt) : null,
       };
       storage.setItem(snapshotKey(uid), JSON.stringify(payload));
       return Object.assign({}, payload, { stale: false });
@@ -362,13 +411,33 @@
     result.passLimit = limit;
     result.hasActivePass = true;
     if (!(limit > 0)) return result;
-    if (snapshot.tier !== "family" && cost > limit) {
+    // 상담 포함횟수 대상(family/vvip, 300코인 이상)이면 건당 상한 확정 거부를 건너뛴다 — VVIP는
+    // 건당 상한(100코인=10,000원)이 포함횟수 기준가(300코인=30,000원)보다 낮아서, 순서를
+    // 바꾸지 않으면 여기서 무조건 cannotCover가 확정돼 버려 서버가 판정할 기회조차 없다.
+    var isPremiumQuotaEligible = Boolean(PREMIUM_QUOTA_TIERS[snapshot.tier]) && cost >= PREMIUM_QUOTA_MIN_COIN_COST;
+    if (snapshot.tier !== "family" && !isPremiumQuotaEligible && cost > limit) {
       result.cannotCover = true;
       return result;
     }
-    // family 의 프리미엄 상담은 포함 횟수 소진 여부를 서버만 안다 → 미확정으로 남긴다.
-    // (coversNow=false, cannotCover=false = "모름". 호출부는 서버 판정을 기다린다.)
-    if (snapshot.tier === "family" && cost >= FAMILY_PREMIUM_MIN_COIN_COST) return result;
+    // family/vvip 의 프리미엄 상담은 포함 횟수(family 10회 · vvip 3회) 소진 여부를 서버만
+    // 안다 → 미확정으로 남긴다. (coversNow=false, cannotCover=false = "모름". 호출부는
+    // 서버 판정을 기다린다.)
+    if (isPremiumQuotaEligible) return result;
+    // 월 누적 한도: 로컬 캐시가 신선하고(TTL 이내) 남은 한도가 이번 건보다 적다는 게 확인될
+    // 때만 확정 거부한다. 캐시가 없거나 낡았으면 검사를 건너뛰고 기존처럼 낙관 통과시킨다 —
+    // "캐시가 없으면 결제창으로" 를 택하면, 캐시가 아직 한 번도 채워지지 않은 모든 사용자가
+    // 매번 서버 왕복을 타게 되어 이 파일이 막으려는 바로 그 회귀(TTL 초과 시 재왕복)가 다시
+    // 생긴다. 최종 확정은 실제 소비 시점의 서버 재검사(consumeTierPassIfAvailable)가 맡는다.
+    var monthlyLimit = monthlyLimitForTier(snapshot.tier);
+    if (monthlyLimit > 0) {
+      var monthlyRemaining = Number(snapshot.monthlySpendRemainingCoin);
+      var monthlyAge = Date.now() - Number(snapshot.monthlyCheckedAt);
+      var monthlyFresh = Number.isFinite(snapshot.monthlyCheckedAt) && monthlyAge >= 0 && monthlyAge <= MONTHLY_QUOTA_CACHE_TTL_MS;
+      if (Number.isFinite(monthlyRemaining) && monthlyFresh && monthlyRemaining < cost) {
+        result.cannotCover = true;
+        return result;
+      }
+    }
     // 커버 확정. TTL 을 넘겼어도 이용권 만료일이 아직 남아 있으면 판정은 그대로 유효하다.
     result.coversNow = !snapshot.stale || isFutureDate(snapshot.expiresAt);
     return result;
@@ -405,6 +474,7 @@
     ACTIVE_STALE_MAX_MS: ACTIVE_STALE_MAX_MS,
     normalizeTier: normalizeTier,
     passLimitForTier: passLimitForTier,
+    monthlyLimitForTier: monthlyLimitForTier,
     normalizeUserId: normalizeUserId,
     snapshotKey: snapshotKey,
     normalizeDate: normalizeDate,

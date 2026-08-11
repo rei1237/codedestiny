@@ -53,9 +53,8 @@ import {
   PASS_LIMITS,
   HONEY_PASS_POLICY,
   resolveActivePassPolicy,
-  resolveFamilyPremiumQuota,
-  FAMILY_PREMIUM_INCLUDED_USES,
-  FAMILY_PREMIUM_MIN_COIN_COST,
+  resolveMonthlySpendQuota,
+  resolvePremiumQuota,
 } from "../lib/profile-limits.js";
 import {
   getProfileCardMutationPolicy,
@@ -747,7 +746,18 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   if (!entitlement?.isActive || !usage || !policy) {
     return { ok: false, reason: "no_active_pass", featureKey, coinCost, amountKRW };
   }
-  if (usage.tier !== "family" && (!Number.isFinite(coinCost) || coinCost <= 0 || coinCost > Number(policy.maxCoinLimit || 0))) {
+  // 공정이용 대상 여부를 건당 상한 검사보다 먼저 구한다 — VVIP 는 건당 상한(10,000원)이
+  // 상담 포함횟수 기준가(300코인=30,000원)보다 낮아서, 순서를 바꾸지 않으면 상한 검사가
+  // 상담을 먼저 걸러버려 포함횟수 자체가 죽은 코드가 된다(family 는 건당 상한이 없어
+  // 이 문제가 없었다). eligible=true 인 건은 건당 상한 대신 포함횟수로 판정한다 — cycleKey
+  // 를 못 구해도(만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(주석은
+  // profile-limits.js의 resolvePremiumQuota 참고).
+  const familyQuota = resolvePremiumQuota(user?.profileSubscription || {}, entitlement, coinCost);
+  if (
+    usage.tier !== "family"
+    && !familyQuota.eligible
+    && (!Number.isFinite(coinCost) || coinCost <= 0 || coinCost > Number(policy.maxCoinLimit || 0))
+  ) {
     return {
       ok: false,
       reason: "price_exceeds_pass_limit",
@@ -759,15 +769,15 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     };
   }
 
-  // Family 공정이용: 포함 횟수를 다 썼으면 이용권으로는 통과시키지 않는다.
-  // 판정 단계(buildPassPaymentDecision)가 같은 헬퍼로 미리 같은 답을 내므로, 여기 도달할 때는
-  // 이미 결제창이 떠 있는 게 정상이다. 그래도 두 단계 사이에 횟수가 소진될 수 있어(동시 요청)
-  // 소비 단계에도 둔다 — 이건 이중 방어가 아니라 판정·소비 2단계 구조의 필수 짝이다.
-  const familyQuota = resolveFamilyPremiumQuota(user?.profileSubscription || {}, entitlement, coinCost);
+  // 공정이용: 프리미엄 상담 포함 횟수(family 10회 · vvip 3회)를 다 썼으면 이용권으로는
+  // 통과시키지 않는다. 판정 단계(buildPassPaymentDecision)가 같은 헬퍼로 미리 같은 답을
+  // 내므로, 여기 도달할 때는 이미 결제창이 떠 있는 게 정상이다. 그래도 두 단계 사이에
+  // 횟수가 소진될 수 있어(동시 요청) 소비 단계에도 둔다 — 이건 이중 방어가 아니라
+  // 판정·소비 2단계 구조의 필수 짝이다.
   if (familyQuota.applies && familyQuota.exhausted) {
     return {
       ok: false,
-      reason: "family_premium_quota_exhausted",
+      reason: "premium_quota_exhausted",
       featureKey,
       coinCost,
       amountKRW,
@@ -775,6 +785,23 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
       familyPremiumIncluded: familyQuota.included,
       familyPremiumUsed: familyQuota.used,
       familyPremiumRemaining: 0,
+    };
+  }
+
+  // 월 누적 한도: 이번 사이클 동안 이용권으로 커버된 거래의 합계가 등급별 한도를 넘으면
+  // 통과시키지 않는다. 위 상담 쿼터와 마찬가지로 판정·소비 2단계가 같은 답을 내야 한다.
+  const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, entitlement, coinCost);
+  if (monthlyQuota.applies && monthlyQuota.exceeded) {
+    return {
+      ok: false,
+      reason: "monthly_pass_limit_exceeded",
+      featureKey,
+      coinCost,
+      amountKRW,
+      passTier: usage.tier,
+      monthlyPassLimit: monthlyQuota.limitCoin,
+      monthlySpendUsed: monthlyQuota.usedCoin,
+      monthlySpendRemaining: 0,
     };
   }
 
@@ -846,8 +873,22 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           "profileSubscription.freeLimit": coveredCoinLimit,
           "profileSubscription.passLimit": coveredCoinLimit,
           "profileSubscription.updatedAt": now,
-          // Family 프리미엄 포함 횟수 차감. 이미 도는 파이프라인 안에서 함께 증가시키므로
-          // 쓰기가 늘지 않고, 통과와 차감이 한 번의 원자적 write 로 묶인다.
+          // 월 누적 한도 가산. 이미 도는 파이프라인 안에서 함께 증가시키므로 쓰기가 늘지 않고,
+          // 통과와 가산이 한 번의 원자적 write 로 묶인다. 사이클 키가 다르면(=새 이용권)
+          // 이번 건 가격부터 다시 센다. premiumUseCycleKey 는 상담 포함횟수와 공유하는 필드라
+          // 아래 familyQuota 블록과 같은 값을 쓴다(리셋 트리거가 동일).
+          ...(monthlyQuota.applies ? {
+            "profileSubscription.premiumUseCycleKey": monthlyQuota.cycleKey,
+            "profileSubscription.monthlySpendCoin": {
+              $cond: [
+                { $eq: [{ $ifNull: ["$profileSubscription.premiumUseCycleKey", ""] }, monthlyQuota.cycleKey] },
+                { $add: [{ $ifNull: ["$profileSubscription.monthlySpendCoin", 0] }, coinCost] },
+                coinCost,
+              ],
+            },
+          } : {}),
+          // 프리미엄 상담 포함 횟수(family 10회 · vvip 3회) 차감. 이미 도는 파이프라인 안에서
+          // 함께 증가시키므로 쓰기가 늘지 않고, 통과와 차감이 한 번의 원자적 write 로 묶인다.
           // 사이클 키가 다르면(=새 이용권) 1부터 다시 센다.
           ...(familyQuota.applies ? {
             "profileSubscription.premiumUseCycleKey": familyQuota.cycleKey,
@@ -943,11 +984,16 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     productId: pricing?.productId || pricing?.featureKey,
   });
   const passExcluded = isPassExcludedPricing(pricing) || isPassLikeProductType(targetProductType);
-  // Family 공정이용: 프리미엄 상담(300코인 이상)은 이용권 기간당 포함 횟수까지만 커버한다.
-  // 소비 단계(consumeTierPassIfAvailable)와 반드시 같은 답을 내야 한다 — 여기서 커버라 해놓고
-  // 소비가 거부하면 결제수단이 전부 숨겨진 막다른 길이 된다(바로 위 프로필 카드 사고와 같은 형태).
-  const familyPremiumQuota = resolveFamilyPremiumQuota(profileSubscription, activeEntitlement, coinCost);
+  // 공정이용: 프리미엄 상담(300코인 이상)은 이용권 기간당 포함 횟수까지만 커버한다(family
+  // 10회 · vvip 3회). 소비 단계(consumeTierPassIfAvailable)와 반드시 같은 답을 내야 한다 —
+  // 여기서 커버라 해놓고 소비가 거부하면 결제수단이 전부 숨겨진 막다른 길이 된다(바로 위
+  // 프로필 카드 사고와 같은 형태).
+  const familyPremiumQuota = resolvePremiumQuota(profileSubscription, activeEntitlement, coinCost);
   const familyQuotaExhausted = familyPremiumQuota.applies && familyPremiumQuota.exhausted;
+  // 월 누적 한도: 이번 사이클 동안 이용권으로 커버된 거래의 합계가 등급별 한도를 넘으면
+  // 건당 상한을 통과하는 건이라도 커버하지 않는다. 소비 단계와 반드시 같은 답을 내야 한다.
+  const monthlySpendQuota = resolveMonthlySpendQuota(profileSubscription, activeEntitlement, coinCost);
+  const monthlyQuotaExceeded = monthlySpendQuota.applies && monthlySpendQuota.exceeded;
   const featureAccess = resolveFeatureAccessPolicy({
     user: {
       profileSubscription: {
@@ -959,7 +1005,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     coinCost,
     passExcluded,
   });
-  const passCovered = featureAccess.allowed && !familyQuotaExhausted;
+  const passCovered = featureAccess.allowed && !familyQuotaExhausted && !monthlyQuotaExceeded;
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
   // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다.
@@ -993,13 +1039,23 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
       familyPremiumUsed: familyPremiumQuota.used,
       familyPremiumRemaining: familyPremiumQuota.remaining,
     } : {}),
+    // 월 누적 한도도 같은 이유로 사유·잔여 한도를 함께 내린다. 클라이언트 이용권 판정 정본
+    // (js/core 의 구독 스냅샷 모듈)이 이 monthlySpendRemaining 을 그대로 캐시해 다음 낙관
+    // 판정에 쓴다 — 필드명을 바꾸면 그쪽 파서도 함께 고쳐야 한다.
+    ...(monthlySpendQuota.applies ? {
+      monthlyPassLimit: monthlySpendQuota.limitCoin,
+      monthlySpendUsed: monthlySpendQuota.usedCoin,
+      monthlySpendRemaining: monthlyQuotaExceeded ? 0 : monthlySpendQuota.remainingCoin,
+    } : {}),
     decisionReason: passCovered
       ? "PASS_COVERED"
       : (passExcluded
         ? "PASS_EXCLUDED_PAYMENT_REQUIRED"
         : (familyQuotaExhausted
-          ? "FAMILY_PREMIUM_QUOTA_EXHAUSTED"
-          : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"))),
+          ? "PREMIUM_QUOTA_EXHAUSTED"
+          : (monthlyQuotaExceeded
+            ? "MONTHLY_PASS_LIMIT_EXCEEDED"
+            : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")))),
     ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }
@@ -2911,7 +2967,10 @@ function shouldApplyMembershipPassBeforeCard(body = {}) {
 }
 
 function requiresMeteredPassWrite(tier) {
-  return normalizePassTier(tier) === "family";
+  // 월 누적 한도(monthlySpendCoin)를 모든 등급이 추적하므로, 이용권 소비는 이제 등급과
+  // 무관하게 항상 원자적 write 를 거친다(과거엔 family 만 카운터가 있어 나머지 등급은
+  // read-only 로 조기 반환했다).
+  return Boolean(normalizePassTier(tier));
 }
 
 function isSajuPdfGenerationFeatureKey(featureKey) {

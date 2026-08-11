@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
 import { getApiBaseUrl } from "../../_lib/api-config";
-import { resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
+import { normalizeMonthlyStoneBalance, resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { readServiceJson } from "../../_lib/service-read-client";
 import { remoteQueryKeyToString, remoteQueryKeys } from "../../_lib/remote-query-keys";
@@ -61,6 +61,9 @@ type MeResponse = {
     degradedPayments?: boolean;
     degradedTransactions?: boolean;
     degradedMonthlyCredits?: boolean;
+    passCycleTier?: string | null;
+    passCycleCapWon?: number | null;
+    passCycleSpentWon?: number | null;
   };
   message?: string;
   user?: {
@@ -156,6 +159,11 @@ type PointHistoryCopy = {
   approvalNumber: (value: string) => string;
   guideTitle: string;
   guideItems: string[];
+  passCycleAria: string;
+  passCycleTitle: string;
+  passCycleTierLabel: Record<"standard" | "premium" | "vvip" | "family", string>;
+  passCycleSummary: (spent: string, cap: string) => string;
+  passCycleRemaining: (remaining: string) => string;
 };
 
 const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
@@ -239,6 +247,16 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.",
       "민원담당자: 박병하 (050-6664-7398) · admin@code-destiny.com",
     ],
+    passCycleAria: "이번 사이클 이용권 사용 한도",
+    passCycleTitle: "이번 사이클 이용권 사용",
+    passCycleTierLabel: {
+      standard: "스탠다드 꿀",
+      premium: "프리미엄 꿀",
+      vvip: "VVIP 꿀단지",
+      family: "Code Destiny Family",
+    },
+    passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
+    passCycleRemaining: (remaining) => `${remaining} 남음`,
   },
   en: {
     defaultUserName: "User",
@@ -320,6 +338,16 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "Pass benefit activity and payment history show up to the latest 20 records. Contact support if you need older records.",
       "Support contact: Byeongha Park (050-6664-7398) · admin@code-destiny.com",
     ],
+    passCycleAria: "This cycle's pass usage limit",
+    passCycleTitle: "This cycle's pass usage",
+    passCycleTierLabel: {
+      standard: "Standard Honey",
+      premium: "Premium Honey",
+      vvip: "VVIP Honey Jar",
+      family: "Code Destiny Family",
+    },
+    passCycleSummary: (spent, cap) => `${spent} of ${cap} used`,
+    passCycleRemaining: (remaining) => `${remaining} left`,
   },
   ja: null as unknown as PointHistoryCopy,
   "zh-CN": null as unknown as PointHistoryCopy,
@@ -461,12 +489,20 @@ function normalizePointPayload(payload: MeResponse, copy: PointHistoryCopy) {
   const monthlyCreditLedgers = Array.isArray(dataNode.monthlyCreditLedgers)
     ? dataNode.monthlyCreditLedgers
     : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
+  // 이용권 월 누적 한도. normalizeMonthlyStoneBalance 와 같은 정규화 규칙(0 이상 정수 또는 null)을
+  // 재사용한다 — 서버가 안 내려주면(이용권 없음 등) null 로 남아 카드 자체를 숨긴다.
+  const passCycleTier = typeof dataNode.passCycleTier === "string" ? dataNode.passCycleTier : null;
+  const passCycleCapWon = normalizeMonthlyStoneBalance(dataNode.passCycleCapWon);
+  const passCycleSpentWon = normalizeMonthlyStoneBalance(dataNode.passCycleSpentWon);
 
   return {
     userName: payload?.user?.name || copy.defaultUserName,
     balance: monthlyStoneBalance,
     pointHistories: monthlyCreditLedgers,
     message: payload?.message || "",
+    passCycleTier,
+    passCycleCapWon,
+    passCycleSpentWon,
   };
 }
 
@@ -531,6 +567,55 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg"; 
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   서브 컴포넌트: PassCycleCard — 이용권 월 누적 한도 잔여
+══════════════════════════════════════════════════════════════════ */
+
+// 등급별 강조색은 이용권 상점(app/points/PointsClient.tsx planThemeMap)의
+// amber/rose/purple 배정을 그대로 따른다(vvip·family 공유).
+const PASS_CYCLE_THEME_BY_TIER: Record<string, string> = {
+  standard: styles.passCycleAmber,
+  premium: styles.passCycleRose,
+  vvip: styles.passCyclePurple,
+  family: styles.passCyclePurple,
+};
+
+function PassCycleCard({
+  tier,
+  capWon,
+  spentWon,
+  remainingWon,
+  percent,
+  copy,
+  formatLocale,
+}: {
+  tier: string;
+  capWon: number;
+  spentWon: number;
+  remainingWon: number;
+  percent: number;
+  copy: PointHistoryCopy;
+  formatLocale: string;
+}) {
+  const theme = PASS_CYCLE_THEME_BY_TIER[tier] || styles.passCycleAmber;
+  const tierLabel = copy.passCycleTierLabel[tier as "standard" | "premium" | "vvip" | "family"] || tier;
+  return (
+    <section aria-label={copy.passCycleAria} className={`${styles.passCycleCard} ${theme}`}>
+      <div className={styles.passCycleHeader}>
+        <p className={styles.sectionLabel}>{copy.passCycleTitle}</p>
+        <span className={styles.passCycleTier}>{tierLabel}</span>
+      </div>
+      <p className={styles.passCycleAmounts}>
+        {copy.passCycleSummary(formatWon(spentWon, copy, formatLocale), formatWon(capWon, copy, formatLocale))}
+      </p>
+      <div className={styles.passCycleTrack}>
+        <div className={styles.passCycleFill} style={{ width: `${percent}%` }} />
+      </div>
+      <p className={styles.passCycleRemaining}>{copy.passCycleRemaining(formatWon(remainingWon, copy, formatLocale))}</p>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    메인 페이지
 ══════════════════════════════════════════════════════════════════ */
 
@@ -550,6 +635,9 @@ export default function PointHistoryPage() {
 
   const [userName, setUserName] = useState(() => copy.defaultUserName);
   const [currentMonthlyStoneBalance, setCurrentMonthlyStoneBalance] = useState(0);
+  const [passCycleTier, setPassCycleTier] = useState<string | null>(null);
+  const [passCycleCapWon, setPassCycleCapWon] = useState<number | null>(null);
+  const [passCycleSpentWon, setPassCycleSpentWon] = useState<number | null>(null);
   const [pointSnapshotReady, setPointSnapshotReady] = useState(false);
   const [histories, setHistories] = useState<MonthlyCreditLedgerItem[]>([]);
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
@@ -667,6 +755,9 @@ export default function PointHistoryPage() {
         setCurrentMonthlyStoneBalance(normalized.balance);
         setHistories(Array.isArray(normalized.pointHistories) ? normalized.pointHistories.filter(Boolean) : []);
         setPointSnapshotReady(true);
+        setPassCycleTier(normalized.passCycleTier);
+        setPassCycleCapWon(normalized.passCycleCapWon);
+        setPassCycleSpentWon(normalized.passCycleSpentWon);
       }
       setPointsError(degradedLedger ? copy.temporaryServerError : null);
     } catch (e: unknown) {
@@ -792,6 +883,14 @@ export default function PointHistoryPage() {
     [histories],
   );
 
+  /* 이용권 월 누적 한도 잔여/진행률. 셋 다 값이 있을 때만(이용권 보유 + 서버가 캡을 내려줄 때만) 카드를 그린다. */
+  const passCycleRemainingWon = useMemo(() => (
+    passCycleCapWon === null || passCycleSpentWon === null ? null : Math.max(0, passCycleCapWon - passCycleSpentWon)
+  ), [passCycleCapWon, passCycleSpentWon]);
+  const passCyclePercent = useMemo(() => (
+    !passCycleCapWon ? 0 : Math.min(100, Math.round(((passCycleSpentWon ?? 0) / passCycleCapWon) * 100))
+  ), [passCycleCapWon, passCycleSpentWon]);
+
   /* ── 부팅 중 ─────────────────────────────────────────────────── */
   if (isBooting) {
     return (
@@ -867,6 +966,19 @@ export default function PointHistoryPage() {
             </button>
           )}
         </section>
+
+        {/* 이용권 월 누적 한도 — 이용권 보유 + 서버가 캡을 내려줄 때만 표시 */}
+        {passCycleTier && passCycleCapWon !== null && passCycleSpentWon !== null && passCycleRemainingWon !== null && (
+          <PassCycleCard
+            tier={passCycleTier}
+            capWon={passCycleCapWon}
+            spentWon={passCycleSpentWon}
+            remainingWon={passCycleRemainingWon}
+            percent={passCyclePercent}
+            copy={copy}
+            formatLocale={formatLocale}
+          />
+        )}
 
         {/* 요약 통계 */}
         <section

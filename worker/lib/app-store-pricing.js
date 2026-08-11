@@ -44,10 +44,12 @@ const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_13", amountKRW: 89000, webAmountKRW: 70000, coinPrices: Object.freeze([690, 700]) },
 ]);
 
-// 이용권: 30일, 자동갱신 없음, **사용 횟수 제한 없음**(커버 범위 안이면 몇 번이든).
+// 이용권: 30일, 자동갱신 없음. 건당 커버 범위 안이면 몇 번이든 무료지만, 등급별 월 누적
+// 한도(coin 단위, 웹 정본 MONTHLY_PASS_LIMITS)를 넘으면 그 사이클 안에서는 커버가 끊긴다.
 // 앱 가격은 그 등급이 커버하는 금액이 오른 비율만큼 올린다 — 값과 혜택이 비례해야
-// "앱은 왜 더 비싼가"가 설명된다. coinLimit은 웹 정본(PASS_LIMITS)과 같은 값이며,
-// 커버 기능 집합은 앱·웹이 동일하다(canUseByPass가 코인으로 판정하므로).
+// "앱은 왜 더 비싼가"가 설명된다. coinLimit은 웹 정본(PASS_LIMITS, 건당 상한)과 같은 값이며,
+// 커버 기능 집합은 앱·웹이 동일하다(canUseByPass가 코인으로 판정하므로). 월 누적 한도는
+// 앱 SKU 필드로는 노출하지 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
 const PASS_TIER_TABLE = Object.freeze([
   // 커버 3,000→3,900(+30.0%) → 이용권도 9,900→13,000(+31.3%)
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 13000, webAmountKRW: 9900, coinLimit: 30 },

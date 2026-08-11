@@ -95,7 +95,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
@@ -1507,7 +1507,17 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
       .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
       .lean();
     const passEntitlement = normalizeHoneyPassEntitlement(passUser || {});
-    if (canUseByPass(passEntitlement, cost)) {
+    // 🔴 이 경로는 코인게이트를 거치지 않는 자체 증빙 제출이라, canUseByPass(건당 상한)만 보면
+    // 상담 포함횟수(family 10회·vvip 3회)와 월 누적 한도를 우회할 수 있다 — 두 검사를 여기서도
+    // 나란히 돌린다(worker/lib/nakshatra-paid-access.js 의 같은 패턴 참고). 판정을 못 내리면
+    // (만료일 없음 등) applies=false 로 열어 둔다 — 셀 수 없는 상태에서 막지 않는다.
+    const canonicalEntitlement = resolveCanonicalEntitlement(passUser || {});
+    const premiumQuota = resolvePremiumQuota(passUser?.profileSubscription || {}, canonicalEntitlement, cost);
+    const monthlyQuota = resolveMonthlySpendQuota(passUser?.profileSubscription || {}, canonicalEntitlement, cost);
+    // premiumQuota.eligible 인 건은 canUseByPass(건당 상한)를 통과 못해도 커버 대상이다 — VVIP는
+    // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
+    // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
+    if ((canUseByPass(passEntitlement, cost) || premiumQuota.eligible) && !(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
       return {
         source: "pass_payload",
         record: {

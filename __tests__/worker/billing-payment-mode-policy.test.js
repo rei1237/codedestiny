@@ -46,11 +46,11 @@ describe("billing payment mode boundary", () => {
     expect(policy.monthlyAppliesPass).toBe(false);
   });
 
-  test("only family access requires a synchronous metered pass write", () => {
+  test("every valid tier requires a synchronous metered pass write (monthly spend cap tracking)", () => {
     expect(Object.fromEntries(policy.meteredWrites)).toEqual({
-      standard: false,
-      premium: false,
-      vvip: false,
+      standard: true,
+      premium: true,
+      vvip: true,
       family: true,
     });
   });

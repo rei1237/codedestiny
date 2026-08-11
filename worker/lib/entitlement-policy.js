@@ -3,7 +3,8 @@ import {
   HONEY_PASS_POLICY,
   normalizePassTier,
   PASS_LIMITS,
-  resolveFamilyPremiumQuota,
+  resolveMonthlySpendQuota,
+  resolvePremiumQuota,
 } from "./profile-limits.js";
 
 export const PURCHASE_POLICY_VERSION = "pass-purchase-v2";
@@ -252,12 +253,20 @@ export function resolveFeatureAccessPolicy({
 
   if (entitlement.conflict || !entitlement.isActive || passExcluded || !Number.isFinite(price) || price <= 0) return base;
 
-  const familyQuota = resolveFamilyPremiumQuota(user.profileSubscription || {}, entitlement, price);
+  const familyQuota = resolvePremiumQuota(user.profileSubscription || {}, entitlement, price);
   if (familyQuota.applies && familyQuota.exhausted) {
-    return { ...base, reason: "FAMILY_PREMIUM_QUOTA_EXHAUSTED", familyQuota };
+    return { ...base, reason: "PREMIUM_QUOTA_EXHAUSTED", familyQuota };
   }
-  if (!canUseByPass(entitlement, price)) {
+  // familyQuota.eligible 인 건은 건당 상한 대신 포함횟수로 판정한다 — VVIP 는 건당 상한
+  // (10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮아서, canUseByPass 만 보면
+  // 포함횟수가 죽은 코드가 된다(family 는 건당 상한이 없어 이 문제가 없다). eligible(등급·가격만)을
+  // 쓰고 applies(+cycleKey)를 쓰지 않는 이유는 profile-limits.js의 resolvePremiumQuota 주석 참고.
+  if (!familyQuota.eligible && !canUseByPass(entitlement, price)) {
     return { ...base, reason: "PRICE_EXCEEDS_PASS_LIMIT", familyQuota };
+  }
+  const monthlyQuota = resolveMonthlySpendQuota(user.profileSubscription || {}, entitlement, price);
+  if (monthlyQuota.applies && monthlyQuota.exceeded) {
+    return { ...base, reason: "MONTHLY_PASS_LIMIT_EXCEEDED", familyQuota, monthlyQuota };
   }
 
   const isFamily = entitlement.passTier === "family";
@@ -268,6 +277,7 @@ export function resolveFeatureAccessPolicy({
     accessType: isFamily ? "family" : "membership_pass",
     reason: isFamily ? "FAMILY_FEATURE_ACCESS" : "PASS_FEATURE_ACCESS",
     familyQuota,
+    monthlyQuota,
   };
 }
 

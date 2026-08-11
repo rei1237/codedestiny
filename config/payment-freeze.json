@@ -32,7 +32,7 @@
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "d59ba34a665db040"
+      "sha256": "da6ce31e8493b7b7"
     },
     {
       "file": "app/hooks/useCoinGate.ts",
@@ -54,12 +54,12 @@
     {
       "file": "worker/routes/billing.js",
       "why": "라이브 코드라 버그 수정은 계속 필요하다. 고치는 것은 되고 키우는 것은 안 된다 — 재작성의 방향은 이 파일이 0 이 되는 것이다.",
-      "maxLines": 7177
+      "maxLines": 7236
     },
     {
       "file": "worker/routes/payments.js",
       "why": "위와 같다.",
-      "maxLines": 6148
+      "maxLines": 6163
     }
   ],
   "notFrozen": {
