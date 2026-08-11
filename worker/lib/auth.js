@@ -372,10 +372,13 @@ async function resolveActiveUserAuth(userId, env, userProjection = null) {
   const projection = userProjection
     ? { ...AUTH_USER_IDENTITY_PROJECTION, ...userProjection, _id: 1, status: 1 }
     : AUTH_USER_IDENTITY_PROJECTION;
+  // retryAdmissionOnOverload: 인증 신원 읽기는 결제 checkout 의 첫 관문이라, admission 순간 포화가
+  // 이 읽기를 거절하면 그대로 503/401 이 된다(worker/lib/db.js 의 옵션 주석 참고). 읽기 전용이라
+  // 획득 재시도에 부작용이 없다.
   const user = await withMongoRetry(env, () => User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(userId) },
     { projection },
-  ));
+  ), { retryAdmissionOnOverload: true });
   if (!user || isWithdrawnUser(user)) return null;
   const authResult = normalizeAuthResultFromUser(user);
   if (userProjection) authResult.authUserDoc = user;
@@ -444,7 +447,7 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
     // 각 read를 withMongoRetry로 감싸 풀 초기화 순간의 hang을 per-attempt 타임아웃으로 끊고
     // 일시적 오류를 재연결·재시도한다(withMongoRetry가 내부에서 connectDb 호출).
     const tokenHash = hashRefreshToken(refreshToken, env);
-    const session = await withMongoRetry(env, () => RefreshTokenSession.findOne({ tokenHash }).lean());
+    const session = await withMongoRetry(env, () => RefreshTokenSession.findOne({ tokenHash }).lean(), { retryAdmissionOnOverload: true });
     if (!session) return null;
     // 🔴 회전 직후의 옛 쿠키를 하드 401 로 떨어뜨리지 않는다. 형제 탭이 /api/auth/refresh 로 회전을
     // 끝낸 순간, 아직 새 쿠키를 못 받은 다른 요청(멀티탭·프리페치·진입 팬아웃)이 옛 refresh 쿠키로
@@ -465,7 +468,7 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
     const user = await withMongoRetry(env, () => User.collection.findOne(
       { _id: new mongoose.Types.ObjectId(userId) },
       { projection },
-    ));
+    ), { retryAdmissionOnOverload: true });
     if (!user || isWithdrawnUser(user)) return null;
 
     const authResult = normalizeAuthResultFromUser(user);

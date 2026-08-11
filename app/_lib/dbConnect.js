@@ -60,7 +60,11 @@ export async function dbConnect() {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 20000,
     connectTimeoutMS: 10000,
-    maxPoolSize: 10,
+    // 🔴 10 → 5 (2026-08-12): Worker 쪽 maxPoolSize(worker/lib/db.js, 5)와 같은 계수로 정렬한다.
+    // 전역 연결 수 = 인스턴스 수 × poolSize 이고 Atlas M0 상한이 500 이라, 이쪽만 2배 풀을 잡으면
+    // 같은 클러스터를 쓰는 Worker 의 연결 예산을 조용히 잠식한다. 올리려면 Worker 쪽 주석의 조건
+    // ([db-connect-error] 0 확인)과 함께 양쪽을 같이 판단할 것.
+    maxPoolSize: 5,
     minPoolSize: 0,
     autoIndex: process.env.NODE_ENV !== "production",
   };
