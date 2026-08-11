@@ -27,7 +27,11 @@ import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, MonthlyCreditLedger, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { canUseByPass, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
+// 🔴 상담 포함횟수/월 누적 한도의 cycleKey 는 entitlement 의 expiresAt 에서 나온다. coin-gate(billing.js)가
+// 쓰는 것과 같은 생산자를 써야 두 곳의 cycleKey 가 일치하고, 저장된 카운터를 실제로 읽을 수 있다
+// (다른 생산자를 쓰면 storedKey 불일치로 used 가 항상 0 이 되어 검사가 조용히 무력해진다).
+import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -791,7 +795,21 @@ async function handleEnsureAccess(request, env) {
   if (clean(user?.role).toLowerCase() === "admin") return grant("admin");
 
   // 이용권 선검사 — 커버되면 결제창 없이 무료 통과한다.
-  if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), pricing.coinPrice)) return grant("pass");
+  // canUseByPass(건당 상한)만 보면 상담 포함횟수(family 10회·vvip 3회)와 월 누적 한도를 우회할
+  // 수 있어 두 검사를 나란히 돌린다(worker/lib/nakshatra-paid-access.js 의 같은 패턴 참고).
+  {
+    const canonicalEntitlement = resolveCanonicalEntitlement(user || {});
+    const premiumQuota = resolvePremiumQuota(user?.profileSubscription || {}, canonicalEntitlement, pricing.coinPrice);
+    // premiumQuota.eligible 인 건은 canUseByPass(건당 상한)를 통과 못해도 커버 대상이다 — VVIP는
+    // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
+    // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
+    if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), pricing.coinPrice) || premiumQuota.eligible) {
+      const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, canonicalEntitlement, pricing.coinPrice);
+      if (!(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
+        return grant("pass");
+      }
+    }
+  }
 
   return paymentRequired(pricing, idempotencyKey);
 }
@@ -830,8 +848,19 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (clean(user?.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", billingRequestId: idempotencyKey };
-  if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), getPricing(normalized.mode).coinPrice)) {
-    return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
+  const startCoinCost = getPricing(normalized.mode).coinPrice;
+  {
+    const canonicalEntitlement = resolveCanonicalEntitlement(user || {});
+    const premiumQuota = resolvePremiumQuota(user?.profileSubscription || {}, canonicalEntitlement, startCoinCost);
+    // premiumQuota.eligible 인 건은 canUseByPass(건당 상한)를 통과 못해도 커버 대상이다 — VVIP는
+    // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
+    // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
+    if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), startCoinCost) || premiumQuota.eligible) {
+      const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, canonicalEntitlement, startCoinCost);
+      if (!(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
+        return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
+      }
+    }
   }
   return { ok: false };
 }
