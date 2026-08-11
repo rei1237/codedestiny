@@ -122,6 +122,14 @@ const STRUCTURE_MARKERS = [
   "cd-direct-payment-balance-check",
   "cd-direct-payment-legal",
   "cd-direct-payment-recommend",
+  // 추천 1개(큰 카드) + 보조 2개(컴팩트 행)의 시각 위계. 셋 다 같은 클래스로 그려야
+  // 한 렌더러만 '카드 3개가 전부 동등해 보이는' 예전 모습으로 되돌아가는 일이 없다.
+  "cd-direct-payment-option--secondary",
+  "cd-direct-payment-desc",
+  // 결제창 안내자 꽃돼지. 🔴 같은 출처(/public) 자산이어야 한다 — 결제 경로의 교차출처 이미지는
+  // PortOne SDK 와 대역폭을 다툰다(verify-portone-single-payment 가 R2 URL 을 따로 막는다).
+  "cd-direct-payment-guide",
+  "/images/fortune-tea-house/flower-pig-honey-hug.webp",
   'data-mode="pass-store"',
   'data-mode="direct"',
   'data-mode="monthly" data-monthly-option',
@@ -132,21 +140,22 @@ const STRUCTURE_MARKERS = [
   "data-monthly-hint",
   "data-payment-status",
   "월정석 재조회",
-  // 🔴 이용권 카드는 '상점 바로가기'가 아니라 '이용권으로 구매'(= 이용권 검사 지점)다.
+  // 🔴 이용권 카드는 '상점 바로가기'가 아니라 '이용권으로 열기'(= 이용권 검사 지점)다.
   // 진입 선검사를 없애면서 세 렌더러가 같은 라벨·같은 동작을 갖도록 고정한다.
-  "이용권으로 구매",
-  "달빛 이용권 업그레이드",
-  "추천",
+  "이용권으로 열기",
+  "이용권 등급 올리기",
+  "꽃돼지 추천",
   // 3옵션 설명 문구 통일. 예전에는 이 문구들이 렌더러마다 미묘하게 달랐고(월정석 설명·단건 설명),
   // 마커가 없어 패리티 검사를 그대로 통과했다.
-  "30일간 한도 이하 기능을 결제창 없이 무제한. 이미 이용권이 있으면 눌러서 바로 확인됩니다.",
-  "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.",
-  "이미 받아 두신 월정석으로 결제합니다. 추가 지출 없이 열립니다.",
-  "월정석 이벤트 재화 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.",
+  // 🔴 소비자에게 PG사(PortOne·KG이니시스)를 노출하지 않는 문구로 2026-08-11 개정됐다.
+  "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.",
+  "지금 보고 있는 콘텐츠 하나만 바로 열려요.",
+  "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.",
+  "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요.",
 ];
 
 // 셸은 i18n 헬퍼 경유라 제목이 키+폴백 형태로 들어간다. 셋 다 같은 정본 문구를 써야 한다.
-const TITLE_MARKER = "달빛 결제 방식 선택";
+const TITLE_MARKER = "이 콘텐츠를 열어볼까요?";
 
 const RENDERERS = [
   ...SHELL_MIRRORS.map((rel) => ({ rel, label: "정적 셸" })),
@@ -204,14 +213,20 @@ for (const rel of ["celestial-harmony.html", "public/celestial-harmony.html"]) {
 // 그대로 쓰게 하고, 되돌아가지 않도록 키 사용을 강제한다. 키 자체의 12로케일 존재는 아래에서 확인.
 const STANDALONE_REQUIRED_KEYS = [
   "payment.directModal.moonTitle",
-  "payment.directModal.moonSubtitle",
+  // 꽃돼지 말풍선 문구 3종(추천 상태별). moonSubtitle 을 대체했다 — 이제 결제창 소개문은
+  // 고정 안내가 아니라 "지금 당신에게 무엇이 가장 나은가"를 말한다.
+  "payment.directModal.guide.pass",
+  "payment.directModal.guide.direct",
+  "payment.directModal.guide.monthly",
   "payment.directModal.recommendBadge",
   "payment.directModal.monthlyBadge",
   "payment.directModal.monthlyTitle",
   "payment.directModal.monthlyUnit",
   "payment.directModal.note.basis",
   "payment.directModal.note.withPass",
+  // owned/short = 카드에 싣는 '충분/모자람'. 정확한 잔량은 ready(재조회 바)에만 남는다.
   "payment.directModal.monthlyBalance.owned",
+  "payment.directModal.monthlyBalance.short",
   "payment.directModal.monthlyBalance.ownedUnknown",
   "payment.directModal.monthlyBalance.ready",
   "payment.directModal.monthlyBalance.checking",

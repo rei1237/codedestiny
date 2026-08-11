@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "Pilih kaedah pembayaran",
       "readyMessage": "Pilih antara kredit bulanan dan pembayaran sekali.",
-      "directHint": "Hanya satu keputusan ini. Terbuka serta-merta dengan kad atau bayaran mudah.",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "directHint": "Membuka hanya kandungan yang anda lihat sekarang.",
+      "pgBadge": "Kad · Bayaran pantas",
       "directTitle": "Bayaran KRW sekali · {amount}",
       "amountLabel": "Amaun bayaran",
       "monthlyBasisLabel": "Asas kredit bulanan",
-      "monthlyBadge": "Kredit bulanan tersedia",
-      "monthlyTitle": "Pembayaran kredit bulanan",
+      "monthlyBadge": "Batu bulan",
+      "monthlyTitle": "Buka dengan batu bulan",
       "requiredMonthly": "Kredit yang diperlukan",
       "currentMonthly": "Baki semasa",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh meneruskan dengan pembayaran kad sekali sahaja."
       },
       "note": {
-        "basis": "Asas kredit bulanan · {amount}",
-        "withPass": "Perkhidmatan berbayar am dibuka dengan pas apabila ia berada dalam had. PDF dan perkhidmatan melebihi had menggunakan pembayaran KRW sekali mengikut produk.",
-        "directOnly": "Tindakan ini disahkan dengan pembayaran KRW sekali.",
+        "basis": "Jumlah {amount}",
+        "withPass": "Pilih antara pas, batu bulan atau kad.",
+        "directOnly": "Kandungan ini dibuka dengan bayaran kad.",
         "passUnknown": "Jika anda ada pas, ketik kad pas di bawah dan kami semak terus di sini.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran."
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "Kedai Moonlight Pass",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
-        "store": "Akses tanpa had kepada ciri di bawah had selama 30 hari, tanpa pembayaran. Sudah ada pas? Ketik untuk semak di sini.",
+        "store": "Bayar sekali dan buka banyak kandungan selama 30 hari. Sudah ada? Ketik untuk semak.",
         "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
-        "upgrade": "Tahap semasa anda tidak meliputi ciri ini. Lihat pas yang lebih tinggi."
+        "upgrade": "Tahap semasa anda tidak membuka kandungan ini. Lihat tahap lebih luas."
       },
       "applyMethod": {
         "label": "Gunakan kaedah",
@@ -1811,40 +1811,46 @@
         "checking": "Menyemak perlindungan pas"
       },
       "monthlyHint": {
-        "use": "Dibayar dengan batu bulan yang sudah anda miliki. Terbuka tanpa perbelanjaan tambahan.",
-        "insufficient": "Baki kredit bulanan anda adalah rendah. Anda boleh meneruskan pembayaran KRW sekali.",
-        "checking": "Kami perlu semak baki batu bulan anda. Bayaran sekali KRW masih tersedia.",
+        "use": "Menggunakan batu bulan sedia ada anda. Tiada perbelanjaan tambahan.",
+        "insufficient": "Batu bulan tidak mencukupi. Anda boleh membukanya dengan pembelian tunggal.",
+        "checking": "Menyemak baki batu bulan anda. Anda masih boleh mengetik.",
         "after": "{balance} akan berbaki selepas digunakan."
       },
       "monthlyBalance": {
         "needCheck": "Cek diperlukan",
-        "ready": "Baki kredit bulanan disemak · semasa {balance}",
+        "ready": "Batu bulan saya {balance}",
         "checking": "Menyemak baki kredit bulanan.",
         "refresh": "Muat semula kredit",
         "refreshing": "Menyegarkan baki kredit bulanan.",
         "refreshed": "Baki kredit bulanan disemak semula. Baki semasa ialah {balance}.",
         "notFound": "Tiada kredit/pas bulanan aktif ditemui lagi. Sila muat semula semula selepas pembayaran selesai.",
-        "owned": "Batu bulan dimiliki: {balance}",
-        "ownedUnknown": "Batu bulan · perlu disemak",
+        "owned": "Mencukupi",
+        "ownedUnknown": "Menyemak",
         "signedOut": "Log masuk untuk menyemak baki Batu Bulan anda.",
         "unconfirmed": "Kami tidak dapat mengesahkan baki Batu Bulan anda. Anda masih boleh mencuba — kami akan maklumkan semasa pembayaran jika tidak mencukupi.",
-        "staleAfterError": "Gagal menyegar semula baki Batu Bulan, memaparkan nilai sahih terakhir · kini {balance}"
+        "staleAfterError": "Gagal menyegar semula baki Batu Bulan, memaparkan nilai sahih terakhir · kini {balance}",
+        "short": "Tidak cukup"
       },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."
       },
-      "passUpgradeTitle": "Naik taraf Moonlight Pass",
+      "passUpgradeTitle": "Naik taraf pas",
       "recommendBadge": "Disyorkan",
-      "moonTitle": "Pilih cara pembayaran",
-      "moonSubtitle": "Pilih pilihan yang paling sesuai untuk anda.",
-      "directTitleLabel": "Bayaran sekali",
+      "moonTitle": "Bagaimana anda mahu membukanya?",
+      "moonSubtitle": "Kami akan membukanya dengan cara paling mudah.",
+      "directTitleLabel": "Kandungan ini sahaja",
       "monthlyUnit": "mata wang acara",
-      "passBuyTitle": "Beli dengan pas",
+      "passBuyTitle": "Buka dengan pas",
       "passChecking": "Menyemak pas anda…",
       "passMissGoStore": "Pas anda tidak meliputi ini, kami bawa anda ke kedai pas.",
       "passCheckRetry": "Kami tidak dapat menyemak status pas anda. Sila tekan semula sebentar lagi.",
-      "directHintApp": "Hanya satu keputusan ini. Terbuka serta-merta melalui pengebilan Google Play.",
-      "pgBadgeApp": "Pengebilan Google Play"
+      "directHintApp": "Kandungan ini sahaja — terbuka serta-merta dengan bil Google Play.",
+      "pgBadgeApp": "Pengebilan Google Play",
+      "guide": {
+        "pass": "Jika anda ada pas, ini terbuka tanpa bayaran. Mahu semak?",
+        "monthly": "Anda boleh membukanya dengan batu bulan sedia ada — tanpa kos tambahan!",
+        "direct": "Anda boleh buka kandungan ini sahaja dengan segera."
+      }
     },
     "overlay": {
       "unlockPreparing": {

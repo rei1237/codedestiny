@@ -111,15 +111,83 @@ console.log("\n[1] 결제창에 이용권/단건/월정석 3옵션이 모두 보
   check("이용권 카드", () => assert.ok(findCard(window, "pass-store"), "data-mode=pass-store 없음"));
   check("단건 결제 카드", () => assert.ok(findCard(window, "direct"), "data-mode=direct 없음"));
   check("월정석 카드", () => assert.ok(findCard(window, "monthly"), "data-mode=monthly 없음"));
-  check("이용권 카드 라벨이 '이용권으로 구매'", () => {
-    assert.match(findCard(window, "pass-store").textContent, /이용권으로 구매/);
+  check("이용권 카드 라벨이 '이용권으로 열기'", () => {
+    assert.match(findCard(window, "pass-store").textContent, /이용권으로 열기/);
   });
   check("이용권 카드가 첫 옵션(추천)", () => {
     const first = window.document.querySelector(".cd-direct-payment-choice-grid [data-mode]");
     assert.equal(first?.getAttribute("data-mode"), "pass-store");
   });
+  check("추천 카드는 크게, 나머지 둘은 컴팩트 행으로 위계가 갈린다", () => {
+    assert.ok(
+      findCard(window, "pass-store").classList.contains("cd-direct-payment-option--recommended"),
+      "추천 카드에 --recommended 가 없다",
+    );
+    for (const mode of ["direct", "monthly"]) {
+      assert.ok(
+        findCard(window, mode).classList.contains("cd-direct-payment-option--secondary"),
+        `${mode} 카드에 --secondary 가 없다(3카드가 다시 동등해 보인다)`,
+      );
+    }
+  });
+  check("추천 배지는 추천 카드 하나에만 붙는다", () => {
+    const badges = window.document.querySelectorAll(".cd-direct-payment-recommend");
+    assert.equal(badges.length, 1, `추천 배지가 ${badges.length}개`);
+    assert.equal(badges[0].closest("[data-mode]")?.getAttribute("data-mode"), "pass-store");
+  });
+  check("결제창 안내자 꽃돼지는 같은 출처 자산이다", () => {
+    const pig = window.document.querySelector(".cd-direct-payment-guide__pig");
+    assert.ok(pig, ".cd-direct-payment-guide__pig 없음");
+    const src = pig.getAttribute("src") || "";
+    assert.ok(src.startsWith("/images/"), `같은 출처 자산이 아니다: ${src}`);
+    // 🔴 모달 자체가 온디맨드 생성이라 이미 지연 게이트다. lazy 를 겹치면 요청이 영영 안 나간다.
+    assert.equal(pig.getAttribute("loading"), "eager", "지연 장치가 중첩됐다(loading=lazy)");
+    assert.equal(pig.getAttribute("alt"), "", "장식 이미지이므로 alt 는 비어 있어야 한다(말풍선이 같은 내용을 읽는다)");
+  });
   findCard(window, "cancel")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   await choicePromise;
+}
+
+// ── ①-b 추천은 사용자 상태를 따라간다 ─────────────────────────────────────
+// 🔴 이 블록이 지키는 것: '등급은 있는데 이 가격을 못 덮고 + 월정석이 충분한' 사용자에게는
+// 월정석이 1순위가 된다(그에게는 추가 지출이 0이므로). 카드 순서가 실제로 달라지는 유일한 조합이라
+// 여기 고정해 두지 않으면 아무 가드도 이 경로를 보지 않는다.
+// 독립 정적 렌더러는 마운트 후에 잔량을 조회하므로, 렌더 시점 잔량은 정본 순수 함수로 직접 확인한다.
+console.log("\n[1-b] 추천 선택지가 이용권 등급·월정석 잔량에 따라 바뀌는가");
+{
+  const { window } = bootRuntime();
+  const resolve = window.__cdCheckoutEntry.resolveCheckoutRecommendation;
+  const base = { allowPass: true, allowDirect: true, allowMonthly: true, requiredMonthlyCredits: 500 };
+
+  check("등급 미상 → 이용권 추천(종전과 동일, 무회귀)", () => {
+    const out = resolve({ ...base, hasActivePassTier: false, monthlyBalanceFresh: true, monthlyBalance: 99999 });
+    assert.equal(out.recommended, "pass");
+    // jsdom 렐름의 배열이라 그대로 deepEqual 하면 프로토타입이 달라 실패한다 — 호스트 배열로 옮겨 비교한다.
+    assert.deepEqual([...out.order], ["pass", "direct", "monthly"]);
+  });
+  check("등급 보유 + 이 가격 미커버 + 월정석 충분 → 월정석이 1순위", () => {
+    const out = resolve({ ...base, hasActivePassTier: true, monthlyBalanceFresh: true, monthlyBalance: 500 });
+    assert.equal(out.recommended, "monthly");
+    assert.equal(out.order[0], "monthly");
+    assert.ok(out.order.includes("pass") && out.order.includes("direct"), "세 옵션이 모두 남아야 한다");
+  });
+  check("등급 보유 + 월정석 부족 → 단건 추천", () => {
+    const out = resolve({ ...base, hasActivePassTier: true, monthlyBalanceFresh: true, monthlyBalance: 499 });
+    assert.equal(out.recommended, "direct");
+  });
+  check("잔량 미확정은 '충분'으로 치지 않는다", () => {
+    const out = resolve({ ...base, hasActivePassTier: true, monthlyBalanceFresh: false, monthlyBalance: 99999 });
+    assert.equal(out.recommended, "direct");
+    assert.equal(out.monthlyCovers, false);
+  });
+  check("추천이 무엇이든 세 옵션은 항상 order 에 남는다", () => {
+    for (const hasActivePassTier of [true, false]) {
+      for (const monthlyBalance of [0, 500, 99999]) {
+        const out = resolve({ ...base, hasActivePassTier, monthlyBalanceFresh: true, monthlyBalance });
+        assert.deepEqual([...out.order].sort(), ["direct", "monthly", "pass"], "옵션이 사라졌다(정책 위반)");
+      }
+    }
+  });
 }
 
 // ── ② 이용권이 커버하면 결제 없이 무료로 통과한다 ──────────────────────────

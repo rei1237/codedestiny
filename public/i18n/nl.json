@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "Kies betaalmethode",
       "readyMessage": "Kies tussen maandelijkse tegoeden en eenmalige betaling.",
-      "directHint": "Alleen dit ene resultaat. Opent meteen met kaart of snelbetaling.",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "directHint": "Opent alleen de content die je nu bekijkt.",
+      "pgBadge": "Kaart · Snel betalen",
       "directTitle": "Eenmalige KRW-betaling · {amount}",
       "amountLabel": "Betalingsbedrag",
       "monthlyBasisLabel": "Maandelijkse kredietbasis",
-      "monthlyBadge": "Beschikbare maandelijkse tegoeden",
-      "monthlyTitle": "Maandelijkse kredietbetaling",
+      "monthlyBadge": "Maansteen",
+      "monthlyTitle": "Openen met maanstenen",
       "requiredMonthly": "Vereiste tegoeden",
       "currentMonthly": "Huidig saldo",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "Het weergegeven bedrag komt overeen met de maandelijkse KRW-kredietbasis. U kunt doorgaan met een eenmalige kaartbetaling."
       },
       "note": {
-        "basis": "Maandelijkse kredietbasis · {amount}",
-        "withPass": "Algemene betaalde diensten worden geopend met een pas als ze binnen de limiet vallen. PDF's en services boven de limiet maken gebruik van eenmalige KRW-betaling per product.",
-        "directOnly": "Deze actie wordt bevestigd met een eenmalige betaling in KRW.",
+        "basis": "Bedrag {amount}",
+        "withPass": "Kies uit een pas, maanstenen of kaart.",
+        "directOnly": "Deze content gaat open met kaartbetaling.",
         "passUnknown": "Heb je een pas? Tik hieronder op de paskaart, dan controleren we hem meteen.",
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties."
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "Moonlight Pass-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
-        "store": "30 dagen onbeperkt toegang tot functies onder de limiet, zonder afrekenen. Heb je al een pas? Tik om het hier te controleren.",
+        "store": "Betaal één keer en open 30 dagen lang veel content. Heb je er al een? Tik om te checken.",
         "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen.",
-        "upgrade": "Je huidige niveau dekt deze functie niet. Bekijk een hogere pas."
+        "upgrade": "Je huidige niveau opent dit niet. Bekijk een ruimer niveau."
       },
       "applyMethod": {
         "label": "Methode toepassen",
@@ -1811,40 +1811,46 @@
         "checking": "Pasdekking controleren"
       },
       "monthlyHint": {
-        "use": "Betaalt met maanstenen die je al hebt. Opent zonder extra uitgaven.",
-        "insufficient": "Uw maandelijkse tegoed is laag. U kunt doorgaan met een eenmalige betaling in KRW.",
-        "checking": "We moeten je maansteensaldo controleren. Eenmalige KRW-betaling blijft beschikbaar.",
+        "use": "Gebruikt je huidige maanstenen. Geen extra uitgaven.",
+        "insufficient": "Niet genoeg maanstenen. Je kunt het openen met een eenmalige aankoop.",
+        "checking": "Je maansteensaldo wordt gecontroleerd. Je mag toch tikken.",
         "after": "Er blijft {balance} over na gebruik."
       },
       "monthlyBalance": {
         "needCheck": "Controle nodig",
-        "ready": "Maandelijks tegoed gecontroleerd · huidig {balance}",
+        "ready": "Mijn maanstenen {balance}",
         "checking": "Maandelijks tegoedsaldo controleren.",
         "refresh": "Credits vernieuwen",
         "refreshing": "Maandelijks tegoedsaldo vernieuwen.",
         "refreshed": "Maandelijks tegoed opnieuw gecontroleerd. Het huidige saldo is {balance}.",
         "notFound": "Er zijn nog geen actieve maandelijkse tegoeden/pas gevonden. Vernieuw de pagina opnieuw nadat de betaling is voltooid.",
-        "owned": "Maanstenen in bezit: {balance}",
-        "ownedUnknown": "Maanstenen · controle nodig",
+        "owned": "Genoeg",
+        "ownedUnknown": "Controleren",
         "signedOut": "Log in om je Maansteen-saldo te bekijken.",
         "unconfirmed": "We konden je Maansteen-saldo niet bevestigen. Je kunt het toch proberen — bij te weinig saldo laten we het weten bij het afrekenen.",
-        "staleAfterError": "Maansteen-saldo kon niet worden ververst, laatst bevestigde waarde wordt getoond · nu {balance}"
+        "staleAfterError": "Maansteen-saldo kon niet worden ververst, laatst bevestigde waarde wordt getoond · nu {balance}",
+        "short": "Niet genoeg"
       },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."
       },
-      "passUpgradeTitle": "Moonlight Pass upgraden",
+      "passUpgradeTitle": "Je pas upgraden",
       "recommendBadge": "Aanbevolen",
-      "moonTitle": "Kies een betaalwijze",
-      "moonSubtitle": "Kies de optie die het beste bij je past.",
-      "directTitleLabel": "Eenmalige betaling",
+      "moonTitle": "Hoe wil je dit openen?",
+      "moonSubtitle": "We openen het op de makkelijkste manier voor je.",
+      "directTitleLabel": "Alleen deze content",
       "monthlyUnit": "eventvaluta",
-      "passBuyTitle": "Kopen met pas",
+      "passBuyTitle": "Openen met een pas",
       "passChecking": "Je pas wordt gecontroleerd…",
       "passMissGoStore": "Je pas dekt dit niet, we brengen je naar de paswinkel.",
       "passCheckRetry": "We konden je passtatus niet controleren. Tik zo meteen opnieuw.",
-      "directHintApp": "Alleen dit ene resultaat. Opent meteen via Google Play-facturering.",
-      "pgBadgeApp": "Google Play-facturering"
+      "directHintApp": "Alleen deze content — gaat direct open via Google Play-facturering.",
+      "pgBadgeApp": "Google Play-facturering",
+      "guide": {
+        "pass": "Met een pas gaat dit open zonder betaling. Zullen we kijken?",
+        "monthly": "Je kunt dit openen met je huidige maanstenen — zonder extra kosten!",
+        "direct": "Je kunt alleen dit ene item meteen openen."
+      }
     },
     "overlay": {
       "unlockPreparing": {

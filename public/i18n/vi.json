@@ -1770,13 +1770,13 @@
     "directModal": {
       "title": "Chọn phương thức thanh toán",
       "readyMessage": "Chọn giữa tín dụng hàng tháng và thanh toán một lần.",
-      "directHint": "Chỉ một kết quả này thôi. Mở ngay bằng thẻ hoặc thanh toán nhanh.",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "directHint": "Chỉ mở nội dung bạn đang xem.",
+      "pgBadge": "Thẻ · Thanh toán nhanh",
       "directTitle": "Thanh toán KRW một lần · {amount}",
       "amountLabel": "Số tiền thanh toán",
       "monthlyBasisLabel": "Cơ sở tín dụng hàng tháng",
-      "monthlyBadge": "Tín dụng hàng tháng có sẵn",
-      "monthlyTitle": "Thanh toán tín dụng hàng tháng",
+      "monthlyBadge": "Nguyệt tinh thạch",
+      "monthlyTitle": "Mở bằng nguyệt tinh thạch",
       "requiredMonthly": "Tín dụng bắt buộc",
       "currentMonthly": "Số dư hiện tại",
       "subtitle": {
@@ -1784,9 +1784,9 @@
         "directOnly": "Số tiền được hiển thị khớp với cơ sở tín dụng KRW hàng tháng. Bạn có thể tiếp tục thanh toán bằng thẻ một lần."
       },
       "note": {
-        "basis": "Cơ sở tín dụng hàng tháng · {amount}",
-        "withPass": "Các dịch vụ trả phí chung mở bằng thẻ khi chúng nằm trong giới hạn. Các tệp PDF và dịch vụ vượt quá giới hạn sẽ sử dụng khoản thanh toán KRW một lần cho từng sản phẩm.",
-        "directOnly": "Hành động này được xác nhận bằng khoản thanh toán KRW một lần.",
+        "basis": "Số tiền {amount}",
+        "withPass": "Chọn giữa vé, nguyệt tinh thạch hoặc thẻ.",
+        "directOnly": "Nội dung này mở bằng thanh toán thẻ.",
         "passUnknown": "Nếu bạn có vé, hãy chạm vào thẻ vé bên dưới, chúng tôi sẽ kiểm tra ngay.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán."
       },
@@ -1794,9 +1794,9 @@
       "passStoreTitle": "Cửa hàng vé ánh trăng",
       "passRetryTitle": "Kiểm tra lại thẻ",
       "passHint": {
-        "store": "Truy cập không giới hạn các tính năng dưới hạn mức trong 30 ngày, không cần thanh toán. Đã có vé? Chạm để kiểm tra ngay.",
+        "store": "Thanh toán một lần và mở nhiều nội dung trong 30 ngày. Đã có rồi? Chạm để kiểm tra.",
         "retry": "Chúng tôi sẽ kiểm tra lại máy chủ để xem thẻ của bạn có thể mở cái này mà không cần thanh toán hay không.",
-        "upgrade": "Hạng hiện tại của bạn không bao gồm tính năng này. Hãy xem vé cao hơn."
+        "upgrade": "Hạng hiện tại không mở được nội dung này. Hãy xem hạng cao hơn."
       },
       "applyMethod": {
         "label": "Áp dụng phương pháp",
@@ -1811,40 +1811,46 @@
         "checking": "Kiểm tra mức độ phù hợp của thẻ"
       },
       "monthlyHint": {
-        "use": "Thanh toán bằng nguyệt thạch bạn đã có. Mở mà không tốn thêm chi phí.",
-        "insufficient": "Số dư tín dụng hàng tháng của bạn thấp. Bạn có thể tiếp tục thanh toán KRW một lần.",
-        "checking": "Chúng tôi cần kiểm tra số dư nguyệt thạch. Thanh toán một lần bằng KRW vẫn khả dụng.",
+        "use": "Dùng nguyệt tinh thạch bạn đang có. Không tốn thêm.",
+        "insufficient": "Không đủ nguyệt tinh thạch. Bạn có thể mở bằng một lần mua.",
+        "checking": "Đang kiểm tra số dư nguyệt tinh thạch. Bạn vẫn có thể chạm.",
         "after": "Còn lại {balance} sau khi dùng."
       },
       "monthlyBalance": {
         "needCheck": "Cần kiểm tra",
-        "ready": "Đã kiểm tra số dư tín dụng hàng tháng · hiện tại {balance}",
+        "ready": "Nguyệt tinh thạch của tôi {balance}",
         "checking": "Kiểm tra số dư tín dụng hàng tháng.",
         "refresh": "Làm mới tín dụng",
         "refreshing": "Làm mới số dư tín dụng hàng tháng.",
         "refreshed": "Số dư tín dụng hàng tháng được kiểm tra lại. Số dư hiện tại là {balance}.",
         "notFound": "Chưa tìm thấy tín dụng/thẻ hoạt động hàng tháng nào. Vui lòng làm mới lại sau khi thanh toán hoàn tất.",
-        "owned": "Nguyệt thạch hiện có: {balance}",
-        "ownedUnknown": "Nguyệt thạch · cần kiểm tra",
+        "owned": "Đủ",
+        "ownedUnknown": "Đang kiểm tra",
         "signedOut": "Đăng nhập để xem số dư Nguyệt Định Thạch.",
         "unconfirmed": "Không xác nhận được số dư Nguyệt Định Thạch. Bạn vẫn có thể thử — nếu thiếu, chúng tôi sẽ báo ở bước thanh toán.",
-        "staleAfterError": "Không làm mới được số dư Nguyệt Định Thạch, đang hiển thị giá trị xác nhận gần nhất · hiện tại {balance}"
+        "staleAfterError": "Không làm mới được số dư Nguyệt Định Thạch, đang hiển thị giá trị xác nhận gần nhất · hiện tại {balance}",
+        "short": "Không đủ"
       },
       "legal": {
         "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
       },
-      "passUpgradeTitle": "Nâng cấp Vé Ánh Trăng",
+      "passUpgradeTitle": "Nâng cấp vé",
       "recommendBadge": "Đề xuất",
-      "moonTitle": "Chọn cách thanh toán",
-      "moonSubtitle": "Chọn phương án phù hợp nhất với bạn.",
-      "directTitleLabel": "Thanh toán một lần",
+      "moonTitle": "Bạn muốn mở nội dung này thế nào?",
+      "moonSubtitle": "Chúng tôi sẽ mở theo cách tiện nhất cho bạn.",
+      "directTitleLabel": "Chỉ nội dung này",
       "monthlyUnit": "tiền sự kiện",
-      "passBuyTitle": "Mua bằng vé",
+      "passBuyTitle": "Mở bằng vé",
       "passChecking": "Đang kiểm tra vé của bạn…",
       "passMissGoStore": "Vé của bạn không bao gồm mục này, chúng tôi sẽ đưa bạn đến cửa hàng vé.",
       "passCheckRetry": "Không thể kiểm tra trạng thái vé của bạn. Vui lòng nhấn lại sau giây lát.",
-      "directHintApp": "Chỉ một kết quả này thôi. Mở ngay qua thanh toán Google Play.",
-      "pgBadgeApp": "Thanh toán Google Play"
+      "directHintApp": "Chỉ nội dung này — mở ngay bằng thanh toán Google Play.",
+      "pgBadgeApp": "Thanh toán Google Play",
+      "guide": {
+        "pass": "Nếu bạn có vé, nội dung mở mà không cần thanh toán. Kiểm tra nhé?",
+        "monthly": "Bạn có thể mở bằng nguyệt tinh thạch đang có mà không tốn thêm!",
+        "direct": "Bạn có thể mở ngay riêng nội dung này."
+      }
     },
     "overlay": {
       "unlockPreparing": {
