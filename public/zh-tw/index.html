@@ -15121,7 +15121,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
 
     <!-- ═══ Sticky CTA (cd-sticky-cta-v20260723) — 히어로 CTA 화면 밖일 때 하단탭 위로 등장 ═══ -->
     <div class="cd-sticky-cta" id="cdStickyCta" aria-hidden="true">
-      <a class="cd-sticky-cta__btn" href="/saju/basic#destinyCardForm" data-cd-mobile-scroll="destinyCardForm" data-cd-trans data-key="home.hero2.primaryCta" aria-label="무료 운세 시작하기" data-cd-trans-attr="aria-label:shell.cdStickyCta.k1uaylpd.ariaLabel">✦ 무료 운세 시작하기</a>
+      <a class="cd-sticky-cta__btn" href="/saju/basic#destinyCardForm" data-cd-mobile-scroll="destinyCardForm" data-cd-trans data-key="home.hero2.primaryCta" aria-label="무료 운세 시작하기" data-cd-trans-attr="aria-label:shell.cdStickyCta.k1uaylpd.ariaLabel" tabindex="-1">✦ 무료 운세 시작하기</a>
     </div>
 
     <nav class="cd-mobile-bottom-nav" id="cdMobileBottomNav" aria-label="모바일 빠른 탐색" data-marker="mobile-bottom-navigation-v20260701 mobile-scroll-readable-v20260703 mobile-flower-readable-v20260704 mobile-flower-sections-v20260704 mobile-mode-toggle-in-nav-v20260704 mobile-premium-yeoni-garden-v20260704" data-cd-trans-attr="aria-label:shell.inputPage.k85zbld.ariaLabel">
@@ -15143,7 +15143,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         <a class="cd-mobile-bottom-nav__item" data-nav-key="saju" data-nav-icon="命" href="/?action=cdSajuTabEntry" data-action="cdSajuTabEntry" aria-label="내 프로필로 사주 보기" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio">사주</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="fortunes" data-nav-icon="✦" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" aria-label="모든 운세 둘러보기">모든 운세</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="pass" data-nav-icon="◈" href="/points" aria-label="이용권 상점">이용권</a>
-        <a class="cd-mobile-bottom-nav__item" data-nav-key="my" data-nav-icon="☰" href="/?action=dpOpenList" data-action="dpOpenList" aria-controls="dpListSheet" aria-label="마이페이지" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s">마이</a>
+        <a class="cd-mobile-bottom-nav__item" data-nav-key="my" data-nav-icon="☰" href="/?action=dpOpenList" data-action="dpOpenList" aria-label="마이페이지" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s">마이</a>
       </div>
     </nav>
 
@@ -35032,7 +35032,7 @@ function updateBadge() {
 
 <!-- ═══ 유명인 사주 분석 패널 스크립트 ═══ -->
 
-<script src="/js/inline/saju-core-bootstrap.js?v=build-36bfceb8571f"></script>
+<script defer src="/js/inline/saju-core-bootstrap.js?v=build-36bfceb8571f"></script>
 <!-- ═══ 유명인 사주 분석 패널 스크립트 끝 ═══ -->
 
 <script>
@@ -35760,11 +35760,12 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
     var sticky = document.getElementById('cdStickyCta');
     var heroCta = document.querySelector('.moon-hero__cta--primary');
     if (!sticky || !heroCta || !('IntersectionObserver' in window)) return;
+    var stickyLink = sticky.querySelector('.cd-sticky-cta__btn');
     var io = new IntersectionObserver(function(entries){
       var en = entries[0];
       if (!en) return;
-      if (!isMobile() || en.isIntersecting) { sticky.classList.remove('is-visible'); sticky.setAttribute('aria-hidden', 'true'); }
-      else { sticky.classList.add('is-visible'); sticky.setAttribute('aria-hidden', 'false'); }
+      if (!isMobile() || en.isIntersecting) { sticky.classList.remove('is-visible'); sticky.setAttribute('aria-hidden', 'true'); if (stickyLink) stickyLink.setAttribute('tabindex', '-1'); }
+      else { sticky.classList.add('is-visible'); sticky.setAttribute('aria-hidden', 'false'); if (stickyLink) stickyLink.removeAttribute('tabindex'); }
     }, { threshold: 0 });
     io.observe(heroCta);
   }

@@ -978,7 +978,7 @@ function _renderDetail(card, pillars, elRatios, dominant, content) {
 }
 
 function _buildCard(idx, card) {
-  var art = document.createElement('article');
+  var art = document.createElement('li');
   art.className = 'fsp-card';
   art.setAttribute('role', 'listitem');
   art.setAttribute('data-idx', idx);
@@ -1141,13 +1141,21 @@ function initFspGrid() {
   }
 }
 
-/* ─── 그리드에 카드 동적 렌더링 ─── */
+/* ─── 그리드에 카드 동적 렌더링 (유휴 시간에 청크 단위로, 메인스레드 롱태스크 방지) ─── */
 function renderFspGrid() {
   var grid = document.getElementById('fsp-grid');
   if (!grid) return;
-  FAMOUS_DATA.forEach(function(card, idx) {
-    grid.appendChild(_buildCard(idx, card));
-  });
+  var scheduleIdle = window.requestIdleCallback || function(fn) { return setTimeout(fn, 0); };
+  var CHUNK_SIZE = 8;
+  var i = 0;
+  function renderChunk() {
+    var end = Math.min(i + CHUNK_SIZE, FAMOUS_DATA.length);
+    for (; i < end; i += 1) {
+      grid.appendChild(_buildCard(i, FAMOUS_DATA[i]));
+    }
+    if (i < FAMOUS_DATA.length) scheduleIdle(renderChunk);
+  }
+  renderChunk();
 }
 
 /* ─── 생년월일 생년월일 입력 분석 (시주 없음 — 3기둥) ─── */
