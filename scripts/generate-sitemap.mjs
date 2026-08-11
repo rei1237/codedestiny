@@ -280,17 +280,17 @@ const i18nRouteGroups = [
   // 참고). refund-policy는 ko 전용 URL이 없으므로(실질은 /terms-of-service 12조에 있음) 이 그룹에
   // ko를 넣지 않는다 — x-default는 이 그룹만 "/"로 폴백된다(buildI18nAlternates 참고).
   {
-    paths: { ko: "/terms", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", en: "/en/terms-of-service" },
+    paths: { ko: "/terms", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", "zh-TW": "/zh-tw/terms-of-service", en: "/en/terms-of-service" },
     changefreq: "yearly",
     priority: 0.55,
   },
   {
-    paths: { ko: "/privacy", ja: "/ja/privacy-policy", zh: "/zh/privacy-policy", en: "/en/privacy-policy" },
+    paths: { ko: "/privacy", ja: "/ja/privacy-policy", zh: "/zh/privacy-policy", "zh-TW": "/zh-tw/privacy-policy", en: "/en/privacy-policy" },
     changefreq: "yearly",
     priority: 0.55,
   },
   {
-    paths: { ja: "/ja/refund-policy", zh: "/zh/refund-policy", en: "/en/refund-policy" },
+    paths: { ja: "/ja/refund-policy", zh: "/zh/refund-policy", "zh-TW": "/zh-tw/refund-policy", en: "/en/refund-policy" },
     changefreq: "yearly",
     priority: 0.5,
   },

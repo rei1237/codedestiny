@@ -35,9 +35,9 @@ const PAGE_COPY = {
     translationNotice: "本页面为参考用的机器辅助翻译。如与韩语原文（服务条款第12条）存在出入，以韩语原文为准。",
   },
   "zh-TW": {
-    title: "退款政策 | Code Destiny",
+    title: "退款與撤回政策 | Code Destiny",
     description: "Code Destiny 關於30天通行證與單次付款商品之退款與撤回條款說明，包含數位內容提供後撤回限制之詳細規則。",
-    heading: "退款政策",
+    heading: "退款與撤回政策",
     dateLabel: "生效日期",
     related: "相關文件",
     terms: "服務條款",
