@@ -250,7 +250,7 @@
     "smoke:oauth:prod": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny.com",
     "smoke:oauth:worker": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny-web.bulegyung.workers.dev",
     "test:auth-session": "node scripts/auth-wrong-password-smoke.mjs",
-    "test:worker:auth-payments": "cross-env NODE_OPTIONS=--experimental-vm-modules jest __tests__/worker/auth.login-security.test.js __tests__/worker/auth.app-refresh-token.test.js __tests__/worker/auth.withdraw.test.js __tests__/worker/payments.webhook-ledger.test.js __tests__/worker/payments.prepare-idempotency.test.js __tests__/worker/app-store.google-billing.test.js --runInBand --testEnvironment node",
+    "test:worker:auth-payments": "cross-env NODE_OPTIONS=--experimental-vm-modules jest __tests__/worker/auth.login-security.test.js __tests__/worker/auth.app-refresh-token.test.js __tests__/worker/auth.withdraw.test.js __tests__/worker/payments.webhook-ledger.test.js __tests__/worker/payments.prepare-idempotency.test.js __tests__/worker/app-store.google-billing.test.js __tests__/worker/payments-v2. --runInBand --testEnvironment node",
     "smoke:premium:timeout-rate": "node scripts/smoke-premium-timeout-rate-limit.mjs",
     "test:signup": "node scripts/test-signup.mjs",
     "perf:psi": "node scripts/measure-psi.mjs",
