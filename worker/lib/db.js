@@ -127,7 +127,13 @@ function releaseMongoOperationSlot() {
 // 근거 없이 올리지 않는다(아래 connectDb 주석 참고). 올리려면 `[db-connect-error]` 가 0 인 것을 먼저 볼 것 —
 // 지금 한도(8) > 풀(5) 이라 초과분은 waitQueue 로 가며, 그 대기가 리셋을 유발하지 않도록
 // withMongoRetry 의 isConnectionLevelFailure 에서 MongoWaitQueueTimeoutError 를 제외해 뒀다(한 세트다).
-const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "8";
+// 🔴 8 → 12 (2026-08-12). 단건결제 체크아웃에서 resolveActiveUserAuth 가 이 게이트에 걸려
+// MongoOperationOverloadedError(재시도 제외) → 503 AUTH_STATUS_TEMPORARILY_UNAVAILABLE 로
+// 죽는 것을 프로덕션에서 실측(Network 탭 "checkout" 요청 그대로 재현) — 결제창이 대부분 안 뜨고
+// 가끔만 뜨던 원인이었다. 12는 위 클램프가 이미 허용하는 상한이라 새 장치가 아니라 기존 노브를
+// 돌리는 것뿐이다. 예산은 그대로 여유 있다(2500ms admission + 5000ms waitQueue + 쿼리 ≈ 8s <
+// 11.5s 시도 상한).
+const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "12";
 // 1500ms 는 콜드 핸드셰이크 중앙값(1497ms)보다 짧았다 — 연결 하나 세우는 시간도 못 기다렸다는 뜻이다.
 // 예산 검산: 2500(admission) + 5000(waitQueue) + 쿼리 ≈ 8s < 11.5s(시도 상한 하한). 여유 있다.
 const MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT = "2500";
