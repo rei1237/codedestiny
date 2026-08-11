@@ -22065,7 +22065,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4afbe4795598" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-4afbe4795598" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-4afbe4795598" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -22625,11 +22625,37 @@ return you.name.restore();</span>
     if (api && typeof api.resolveCheckoutRecommendation === 'function') {
       try { return api.resolveCheckoutRecommendation(input || {}); } catch (_recommendError) { /* 폴백으로 흡수 */ }
     }
+    // 🔴 /js/core/checkout-entry.js 가 아직 안 붙었을 때만 도는 최후 폴백이다 — 정본 함수와
+    // 다른 답을 내면 기기마다 다른 추천을 보게 되므로, 정본과 동일한 알고리즘을 그대로 따른다.
     var opts = input || {};
-    var fallback = (opts.allowPass !== false && opts.hasActivePassTier !== true)
-      ? 'pass'
-      : (opts.allowDirect !== false ? 'direct' : 'monthly');
-    return { recommended: fallback, order: [fallback], monthlyCovers: false };
+    var allowPass = opts.allowPass !== false;
+    var allowDirect = opts.allowDirect !== false;
+    var allowMonthly = opts.allowMonthly !== false;
+    var monthlyBalance = Number(opts.monthlyBalance);
+    var requiredMonthlyCredits = Number(opts.requiredMonthlyCredits);
+    var monthlyCovers = opts.monthlyBalanceFresh === true
+      && Number.isFinite(monthlyBalance)
+      && Number.isFinite(requiredMonthlyCredits)
+      && requiredMonthlyCredits > 0
+      && monthlyBalance >= requiredMonthlyCredits;
+
+    var recommended = "";
+    if (allowPass && opts.hasActivePassTier !== true) recommended = "pass";
+    else if (allowMonthly && monthlyCovers) recommended = "monthly";
+    else if (allowDirect) recommended = "direct";
+    else if (allowMonthly) recommended = "monthly";
+    else if (allowPass) recommended = "pass";
+
+    var rest = [];
+    if (allowDirect && recommended !== "direct") rest.push("direct");
+    if (allowMonthly && recommended !== "monthly") rest.push("monthly");
+    if (allowPass && recommended !== "pass") rest.push("pass");
+
+    return {
+      recommended: recommended,
+      order: recommended ? [recommended].concat(rest) : rest,
+      monthlyCovers: monthlyCovers,
+    };
   }
   // 🔴 결제창 단일 인스턴스 정본도 /js/core/checkout-entry.js 하나다(React·독립 정적과 공유).
   // 셸은 ① 새 결제창을 붙이기 직전에 남의 고아 노드를 걷어내고 ② 자기 모달을 거기 등록해 다른 두
