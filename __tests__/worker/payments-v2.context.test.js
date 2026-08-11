@@ -48,6 +48,8 @@ describe("라우트 표", () => {
       "POST /moonstone/spend",
       "POST /orders",
       "POST /orders/:id/confirm",
+      // 주문 발급 컷오버 어댑터 — 구 /api/payments/prepare · /api/billing/checkout(재작성)이 여기로 온다.
+      "POST /prepare",
       "POST /webhook",
     ]);
   });

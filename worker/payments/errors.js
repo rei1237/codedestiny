@@ -56,6 +56,10 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 409 — 대상은 있는데 지금 그 상태에서는 못 한다.
   ORDER_NOT_CONFIRMABLE: { status: 409 },
   DUPLICATE_ORDER: { status: 409 },
+  // 구 prepare 계약 승계(컷오버 어댑터): 같은 멱등키의 기존 주문이 현재 가격·기능과 다르다.
+  // 클라이언트의 새-키 1회 재시도(index.html `:c<ts>` 키)가 정확히 이 코드에 걸려 있다 —
+  // retryable 이 아니다(같은 요청 재전송이 아니라 **새 키**로 다시 와야 풀린다).
+  IDEMPOTENCY_CONFLICT: { status: 409 },
   // 아래 셋은 "지금은 안 되지만 곧 된다" — 장애가 아니라 동시성이라 409 이면서 retryable 이다.
   REFUND_IN_PROGRESS: { status: 409, retryable: true },
   MOONSTONE_CONTENDED: { status: 409, retryable: true },
@@ -63,6 +67,9 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
 
   // 422 — 형식은 맞는데 PG 가 말하는 사실과 우리 주문이 안 맞는다. 절대 자동 재시도하지 않는다.
   AMOUNT_MISMATCH: { status: 422 },
+  // 구 prepare 계약 승계: 클라이언트가 낡은 가격으로 주문을 요청했다(가격 개정 직후 스테일 화면).
+  // 400 이다 — 그 금액으로는 어떤 재시도도 성립하지 않고, 화면 갱신이 유일한 해법이다.
+  CLIENT_AMOUNT_MISMATCH: { status: 400 },
   CURRENCY_MISMATCH: { status: 422 },
   PAYMENT_ID_MISMATCH: { status: 422 },
   PG_PAYMENT_NOT_PAID: { status: 422 },

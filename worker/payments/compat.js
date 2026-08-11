@@ -80,6 +80,66 @@ export function legacyOrderDetailEnvelope(order) {
   return { ok: true, success: true, data: { order: toLegacyOrderDetail(order) } };
 }
 
+/* ── 주문 발급(prepare/checkout) 컷오버 어댑터 ─────────────────────────────
+   구 /api/payments/prepare 의 201 응답 order 키 전부(2026-08-12 소비자 전수 조사).
+   소비자 3곳이 실제로 읽는 키: 셸 _cdFindCheckoutOrder(merchantUid·paymentAmount 필수, config 5키,
+   customer 폰·이메일·이름, coinPrice·featureKey), dp 폴백(같은 집합의 부분), PointsClient(merchantUid·
+   paymentAmount·productName·coinPrice·customer.phoneNumber). 나머지는 구 응답과의 키 패리티 유지용 —
+   빠지면 "200 인데 화면만 비는" 부류가 되므로 **초집합**으로 항상 전부 내보낸다. */
+export function toLegacyPrepareOrder(order, { config = {}, customer = null, pricing = null, body = {} } = {}) {
+  const amount = Number(order?.paymentAmount || 0);
+  const coins = Number(order?.expectedChargedPoints ?? order?.coinPrice ?? 0);
+  const snapshot = (order?.pricingSnapshot && typeof order.pricingSnapshot === "object") ? order.pricingSnapshot : {};
+  return {
+    // PG 클라이언트 config 블록 — 셸이 이걸 인라인으로 받으면 /api/payments/config 왕복을 건너뛴다.
+    storeId: String(config.storeId || ""),
+    channelKey: String(config.channelKey || ""),
+    currency: String(config.currency || "CURRENCY_KRW"),
+    payMethod: String(config.payMethod || "CARD"),
+    noticeUrl: String(config.noticeUrl || ""),
+    merchantUid: String(order?.merchantUid || ""),
+    paymentAmount: amount,
+    amountKRW: amount,
+    amountKrw: amount,
+    coinPrice: coins,
+    costCoins: coins,
+    membershipCreditCost: Number(order?.membershipCreditCost || 0),
+    featureKey: String(order?.featureKey || ""),
+    accessType: "single_purchase",
+    profileId: String(snapshot.profileId || body.profileId || body.selectedProfileId || ""),
+    profileCardId: String(body.profileCardId || snapshot.profileId || body.profileId || ""),
+    productType: String(body.productType || body.serviceType || "digital_content"),
+    serviceType: String(body.serviceType || body.productType || "digital_content"),
+    actionType: String(body.actionType || ""),
+    idempotencyKey: String(order?.idempotencyKey || ""),
+    orderId: String(order?.merchantUid || ""),
+    productName: String(body.productName || pricing?.label || order?.featureKey || "Code Destiny"),
+    customer: customer && typeof customer === "object" ? customer : { fullName: "", email: "", phoneNumber: "" },
+    pricing: pricing || snapshot || null,
+  };
+}
+
+/** 구 /api/payments/prepare 봉투. PointsClient 가 `payload.order` 로 읽는다(중첩 없음). */
+export function legacyPrepareEnvelope(legacyOrder, { idempotent = false } = {}) {
+  return {
+    message: idempotent
+      ? "Product payment preparation already completed."
+      : "Product payment preparation completed.",
+    idempotent: idempotent === true,
+    order: legacyOrder,
+  };
+}
+
+/** 구 /api/billing/checkout 봉투(delegateToPayments 의 success 래핑 승계).
+    셸·dp 는 `payload.data.order` 에서 주문을 찾는다 — data 중첩이 계약이다. */
+export function legacyBillingCheckoutEnvelope(prepareEnvelope) {
+  return {
+    ok: true,
+    message: "결제 요청이 성공했습니다.",
+    data: prepareEnvelope,
+  };
+}
+
 /** adaptOrderToViewModel + resolveType + resolveStatus 가 읽는 키 전부. 테스트가 이 목록을 강제한다. */
 export const LEGACY_ORDER_DETAIL_KEYS = Object.freeze([
   "approvalNumberMasked",

@@ -20,15 +20,23 @@
  */
 import { getRequestMeta, json } from "../lib/http.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
+import { User } from "../lib/models.js";
+import { getPortOnePublicConfig } from "../lib/portone.js";
+import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
-import { createPaymentContext, withPaymentDb } from "./db.js";
+import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
 import { grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
-import { legacyOrderDetailEnvelope } from "./compat.js";
+import {
+  legacyBillingCheckoutEnvelope,
+  legacyOrderDetailEnvelope,
+  legacyPrepareEnvelope,
+  toLegacyPrepareOrder,
+} from "./compat.js";
 import {
   assertOrderOwner,
   createOrder,
@@ -98,6 +106,33 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
     return { event: "cancelled", refunded, revoked, reviewRequired: !revoked };
   }
   return { ignored: true, status };
+}
+
+/**
+ * 컷오버 어댑터 전용(POST /prepare). 구 prepare 는 주문 응답에 customer(이름·이메일·전화 평문)를
+ * 실어 보냈고, 셸은 그 인라인 값 덕분에 결제 직전의 /api/auth/me·/api/me/payment-phone 왕복을
+ * 건너뛴다(RC-8). 순수 V2 라우트(POST /orders)는 Mongo 읽기 0회가 계약이라 이걸 하지 않는다 —
+ * 레거시 마운트에서만 User 1읽기+복호화 비용을 낸다. 정제 규칙은 구 buildSinglePaymentCustomer
+ * (payments.js:1144)와 동일: 이름 40자, 이메일 불량 시 합성 주소, 전화는 01x 로컬 숫자만.
+ */
+async function buildLegacyPrepareCustomer(env, user, userId) {
+  const fullName = [user?.fullName, user?.name, user?.displayName, user?.username, "Code Destiny 고객"]
+    .map((value) => String(value || "").trim())
+    .find(Boolean)
+    .slice(0, 40);
+  const emailRaw = String(user?.email || "").trim().toLowerCase();
+  const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)
+    ? emailRaw.slice(0, 120)
+    : `buyer-${String(userId || "").replace(/[^a-zA-Z0-9]/g, "").slice(-10) || "guest"}@code-destiny.com`;
+  let phoneNumber = "";
+  try {
+    const digits = String((await decryptPhoneNumber(user?.phoneNumber || user?.phone, env)) || "").replace(/\D/g, "");
+    const localDigits = digits.startsWith("82") && /^821\d{8,9}$/.test(digits) ? `0${digits.slice(2)}` : digits;
+    if (/^01\d{8,9}$/.test(localDigits)) phoneNumber = localDigits;
+  } catch {
+    phoneNumber = ""; // 복호화 실패는 결제를 막지 않는다 — 셸이 자체 번호 확보 경로로 폴백한다.
+  }
+  return { fullName, email, phoneNumber };
 }
 
 /** 주문을 클라이언트가 읽는 형태로. 내부 필드(rawPortOne·pricingSnapshot 등)는 내보내지 않는다. */
@@ -236,6 +271,83 @@ const ROUTES = {
     },
   },
 
+  /**
+   * 🔴 컷오버 어댑터 — 구 주문 발급 URL(/api/payments/prepare · /api/billing/checkout 재작성)을
+   * V2 createOrder 로 잇는다. 클라이언트는 그대로이므로 응답 키가 계약이다(compat.js 초집합).
+   * 구 prepare 와의 의도적 차이 없음 · 승계한 계약 셋:
+   *   ① CLIENT_AMOUNT_MISMATCH(400) — 낡은 가격의 요청으로 결제창을 열지 않는다
+   *   ② IDEMPOTENCY_CONFLICT(409) — 같은 키의 기존 주문이 현재 가격·기능과 다르면 옛 주문을
+   *      조용히 돌려주지 않는다(V2 createOrder 단독이면 그렇게 된다). 클라이언트의 새-키 1회
+   *      재시도가 이 코드에 걸려 있다.
+   *   ③ 멱등키 부재 시(구 PointsClient) 합성 키 — 구 partial 인덱스의 "키 없음 = 클릭마다 새 주문"
+   *      의미를 보존한다.
+   */
+  "POST /prepare": {
+    auth: "required",
+    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope }) {
+      const product = resolveProduct({
+        productId: body.productId,
+        featureKey: body.featureKey || body.subFeatureKey || body.paidFeatureKey || body.serviceKey,
+        reason: body.reason,
+      });
+      ctx.productId = product.productId;
+
+      const clientAmount = Number(body.paymentAmount ?? body.amount);
+      if (Number.isFinite(clientAmount) && clientAmount > 0 && Math.floor(clientAmount) !== Number(product.priceKRW)) {
+        throw paymentError("CLIENT_AMOUNT_MISMATCH", "결제 금액이 현재 가격과 다릅니다. 화면을 새로고침한 뒤 다시 시도해 주세요.", {
+          expectedAmount: Number(product.priceKRW),
+          clientAmount,
+        });
+      }
+
+      const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
+      let idempotencyKey = String(body.idempotencyKey || "").trim()
+        || headerKey
+        || String(body.orderId || body.requestId || "").trim();
+      if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
+
+      const { order, user } = await withDb(env, ctx, async (db) => {
+        const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
+        const profileId = String(body.profileId || body.selectedProfileId || userDoc?.destinyProfilesCurrentId || "");
+        const created = await createOrder(db, {
+          userId,
+          product,
+          idempotencyKey,
+          profileId,
+          contentKey: body.contentKey,
+          scope: body.scope,
+          returnPath: body.returnPath,
+          paymentMethod: String(body.paymentMethod || body.payMethod || "card_general"),
+        });
+        if (
+          Number(created.paymentAmount) !== Number(product.priceKRW)
+          || Number(created.expectedChargedPoints ?? created.coinPrice ?? 0) !== Number(product.priceCoins)
+          || (String(created.featureKey || "") && String(product.featureKey || "") && String(created.featureKey) !== String(product.featureKey))
+        ) {
+          throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {
+            orderId: String(created.merchantUid || ""),
+          });
+        }
+        return { order: created, user: userDoc };
+      });
+      ctx.orderId = String(order.merchantUid || "");
+
+      // 어떤 소비자도 idempotent 값·201/200 구분을 읽지 않는다(전수 조사). 생성 직후(10초 이내)만
+      // 신규로 표기한다 — 정확한 created 신호를 위해 createOrder 반환 형태를 바꾸지 않는다.
+      const idempotent = Date.now() - new Date(order.createdAt || 0).getTime() > 10_000;
+      const customer = await buildLegacyPrepareCustomer(env, user, userId);
+      const legacyOrder = toLegacyPrepareOrder(order, {
+        config: getPortOnePublicConfig(env),
+        customer,
+        pricing: { ...product },
+        body,
+      });
+      const envelope = legacyPrepareEnvelope(legacyOrder, { idempotent });
+      if (legacyEnvelope === "billing-checkout") return json(legacyBillingCheckoutEnvelope(envelope));
+      return json(envelope, { status: idempotent ? 200 : 201 });
+    },
+  },
+
   "POST /orders/:id/confirm": {
     auth: "required",
     async handle({ env, ctx, userId, params, withDb }) {
@@ -351,6 +463,8 @@ export async function handlePaymentsContext(request, env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
   // 구 경로로 마운트되면 구 응답 형태로 답한다(compat.js). 섀도 경로는 신규 형태 그대로.
   const legacyShape = options.legacyShape === true;
+  // 주문 발급 어댑터의 봉투 선택: "billing-checkout" 이면 구 delegateToPayments 래핑({ok,data:{…}})을 승계.
+  const legacyEnvelope = String(options.legacyEnvelope || "");
   const prefix = options.prefix || "/api/payments";
   const url = new URL(request.url);
   const path = url.pathname.slice(prefix.length).replace(/\/+$/, "") || "/";
@@ -380,7 +494,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
     }
 
     const response = await matched.route.handle({
-      request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape,
+      request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape, legacyEnvelope,
     });
     status = response.status;
     return response;
