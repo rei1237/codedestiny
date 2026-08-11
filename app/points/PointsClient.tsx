@@ -3160,12 +3160,41 @@ export default function PointsPage() {
     if (typeof window === "undefined") return false;
     const target = checkoutEntry.consumeCheckoutReturn();
     if (!target?.url) return false;
-    // 방금 산 이용권을 목적지가 서버에서 새로 읽도록 스냅샷을 버린다(옛 'none' 이 남으면 결제창이 또 뜬다).
-    try { clearSubscriptionSnapshotForUser(); } catch { /* 스냅샷 정리 실패는 복귀를 막지 않는다 */ }
     pushToast("success", "달빛 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
-    window.setTimeout(() => { window.location.assign(target.url); }, 1200);
+    // 🔴 예전에는 스냅샷을 지우고 떠났다. 그러면 목적지의 재예열이 idle(1200~2200ms)이라, 도착 직후
+    // 첫 클릭이 snapshotVerdictOnly 진입 판정에서 indeterminate 로 떨어져 **방금 이용권을 산 사용자에게
+    // 결제창이 다시 뜨는** 레이스가 났다(이중구매 노출). 인증이 가장 뜨거운 지금 서버 정본을 직접 받아
+    // 신선한 스냅샷을 심어 두고 떠난다 — 실패·지연(상한 2.5s)일 때만 종전대로 삭제 폴백(오염된 옛
+    // 'none' 잔존 방지). 토스트 최소 체류 1.2s 는 유지된다.
+    const departAt = Date.now() + 1200;
+    const warmFreshSnapshot = async (): Promise<boolean> => {
+      const response = await authFetch(`${apiBase}/api/subscription/status`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "x-code-destiny-cache-refresh": "1" },
+      }, { retryOn401: true, apiBase, clientSource: "app:points-checkout-return" });
+      const payload = await safeParseJson<Record<string, unknown>>(response);
+      if (!response.ok || (payload as { degraded?: boolean }).degraded === true) return false;
+      const normalized = normalizeSubscriptionStatusFromPayload(payload);
+      if (!normalized) return false;
+      saveSubscriptionSnapshotForUser(undefined, normalized, "checkout-return");
+      return true;
+    };
+    void (async () => {
+      let warmed = false;
+      try {
+        warmed = await Promise.race([
+          warmFreshSnapshot(),
+          new Promise<boolean>((resolve) => { window.setTimeout(() => resolve(false), 2500); }),
+        ]);
+      } catch { warmed = false; }
+      if (!warmed) {
+        try { clearSubscriptionSnapshotForUser(); } catch { /* 스냅샷 정리 실패는 복귀를 막지 않는다 */ }
+      }
+      window.setTimeout(() => { window.location.assign(target.url); }, Math.max(0, departAt - Date.now()));
+    })();
     return true;
-  }, [pushToast]);
+  }, [apiBase, pushToast]);
 
   const acquirePaymentActionLock = useCallback((key: string) => {
     const now = Date.now();
