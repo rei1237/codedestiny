@@ -235,6 +235,9 @@ const SECRET_KEYS = [
   "POINT_CHARGE_PACKAGES",
   "PIG_COIN_PAYMENT_API_READY",
   "DEFAULT_FORTUNE_COST_POINTS",
+  // 결제 V2 컷오버 라우트 allowlist(worker/index.js isPaymentsV2Route). wrangler.toml 은 수정 금지라
+  // 이 스크립트가 컷오버 활성/롤백의 정본 경로다 — 라우트 이름 하나 넣고 빼는 것으로 배포 없이 전환한다.
+  "PAYMENTS_V2_ROUTES",
 ];
 
 const SECRET_KEY_ALIASES = {

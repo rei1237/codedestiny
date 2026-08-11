@@ -247,6 +247,31 @@ export async function releaseRefundLock(db, { orderId }) {
   await db.updateOne(Payment, { merchantUid: orderId }, { $unset: { refundLock: "" }, $set: { updatedAt: new Date() } });
 }
 
+/**
+ * PG 웹훅발 취소의 관리자 검토 마커. 상태 전이는 markOrderCancelled(T4)·settleRefund(T5)가
+ * 담당하고, 여기는 구 웹훅의 admin-review 시맨틱(어떤 취소였고 사람 확인이 필요한지)만 승계한다 —
+ * /admin/orders 화면이 이 필드들로 검토 대상을 찾는다.
+ */
+export async function recordPgCancellationMarkers(db, { orderId, partial, reviewRequired, now = new Date() }) {
+  await db.updateOne(
+    Payment,
+    { merchantUid: String(orderId || "").trim() },
+    {
+      $set: {
+        failureCode: partial ? "partial_cancel_admin_review" : "cancel_admin_review",
+        failureMessage: partial
+          ? "Partial cancellation webhook received. Unlock is not revoked automatically."
+          : (reviewRequired
+            ? "Cancellation webhook received. Unlock revocation requires administrator review."
+            : "Cancellation webhook received. Unlock was revoked."),
+        failureStage: reviewRequired ? "webhook_cancel_admin_review" : "webhook_cancel_unlock_revoked",
+        "metadata.cancellationReviewRequired": reviewRequired === true,
+        updatedAt: now,
+      },
+    },
+  );
+}
+
 /** 지급 완료 표식. 크론이 "PAID 인데 이 값이 없는 주문"을 찾는 근거가 된다. */
 export async function markEntitlementGranted(db, { orderId, now = new Date() }) {
   await db.updateOne(

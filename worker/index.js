@@ -1265,6 +1265,14 @@ export default {
       }
 
       if (url.pathname === "/api/webhooks/portone" || url.pathname === "/api/payments/portone/webhook") {
+        // 🔴 이 얼라이어스 블록은 /api/payments 블록보다 **먼저** 평가된다 — PortOne 콘솔의 실제
+        // Endpoint URL 이 /api/webhooks/portone 이라, 아래 /api/payments 블록에만 컷오버 훅을 두면
+        // 웹훅 트래픽 전부가 훅을 우회해 구 핸들러로 간다. 두 진입을 여기서 같은 판정으로 묶는다.
+        if (isPaymentsV2Route(env, "webhook") && request.method === "POST") {
+          const rewrittenV2Request = rewriteRequestPath(request, "/api/payments/webhook");
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenV2Request, env, { prefix: "/api/payments" }));
+        }
         // ctx: 단건 결제(Transaction.Paid) 웹훅을 즉시-2xx ack + waitUntil 백그라운드 처리로 돌려
         // 포트원 웹훅 타임아웃(재전송 실패)을 없애기 위해 전달한다.
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
@@ -1297,6 +1305,14 @@ export default {
             prefix: "/api/payments",
             legacyShape: true,
           }));
+        }
+        // 웹훅은 서버-서버 경로라 legacyShape 이 필요 없다(PortOne 은 HTTP 상태만 본다).
+        // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위 :1267 블록이 같은 판정으로 처리한다.
+        if (isPaymentsV2Route(env, "webhook")
+          && request.method === "POST"
+          && url.pathname === "/api/payments/webhook") {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
