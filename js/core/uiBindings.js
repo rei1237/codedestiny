@@ -704,6 +704,8 @@ export function bindGlobalActions(root) {
     }
 
     if (action === 'toggleCollection') {
+      // 모바일 "모든 운세" 오버레이가 이미 이 컬렉션을 열고 있으면 그쪽이 유일한 소유자다.
+      if (window.cdMobileCollectionFullscreen && window.cdMobileCollectionFullscreen.isOpen()) return;
       const targetId = actionEl.getAttribute('data-target');
       const collection = document.getElementById(targetId);
       if (!collection) return;

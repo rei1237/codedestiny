@@ -2934,6 +2934,8 @@ function __cdBindGlobalActionsFallback() {
     }
 
     if (action === 'toggleCollection') {
+      // 모바일 "모든 운세" 오버레이가 이미 이 컬렉션을 열고 있으면 그쪽이 유일한 소유자다.
+      if (window.cdMobileCollectionFullscreen && window.cdMobileCollectionFullscreen.isOpen()) return;
       var targetId = actionEl.getAttribute('data-target');
       var collection = targetId ? document.getElementById(targetId) : null;
       if (!collection) return;
