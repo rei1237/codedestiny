@@ -103,12 +103,14 @@ const userSchema = new mongoose.Schema({
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },
-    // Family 공정이용: 이용권 기간당 프리미엄 상담(300코인 이상) 사용 횟수.
+    // 공정이용 공유 카운터: 이용권 기간당 프리미엄 상담(300코인 이상) 사용 횟수(Family
+    // 10회 · VVIP 3회)와 이용권으로 커버된 거래의 월 누적 코인가 합계를 함께 담는다.
     // cycleKey 는 이용권 만료일 ISO 문자열이라, 이용권을 새로 사면 키가 바뀌어
-    // 카운터가 자동으로 0부터 다시 센다(리셋 크론 불필요).
-    // 판정 정본은 lib/profile-limits.js 의 resolveFamilyPremiumQuota.
+    // 두 카운터가 자동으로 0부터 다시 센다(리셋 크론 불필요) — 리셋 트리거가 같아 키를 공유한다.
+    // 판정 정본은 lib/profile-limits.js 의 resolvePremiumQuota / resolveMonthlySpendQuota.
     premiumUseCycleKey: { type: String, default: "", trim: true, maxlength: 40 },
     premiumUseCount: { type: Number, default: 0, min: 0 },
+    monthlySpendCoin: { type: Number, default: 0, min: 0 },
     // 이 이용권을 켠 주문. 이용권 확정(PENDING→PAID)이 재생돼도 expiresAt 을 두 번 늘리지 않도록,
     // 신규 컨텍스트가 CAS 조건으로 함께 본다. 기존 코드는 읽지 않는다.
     lastPassOrderId: { type: String, default: "", trim: true, maxlength: 160 },
