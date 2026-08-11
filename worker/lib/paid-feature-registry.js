@@ -68,6 +68,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "sukuyo-symbolic-comparison",
   "sukuyo-extreme-t-relationship",
   "sukuyo-relationship-encyclopedia",
+  "sukuyo-nature-deep-dive",
   "sukuyo-past-life-reading",
   "sukuyo-monthly-fortune",
   "sukuyo-compatibility-ai",
@@ -140,7 +141,7 @@ export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "자미두수 궁합 분석": 50,
   "사주 궁합 분석": 50,
   "숙요점 유명인 궁합": 100,
-  "숙요점 궁합 분석": 100,
+  "숙요점 궁합 분석": 50,
   "사주 신년운세 PDF 리포트 생성": 300,
   "사주 신년운세 AI 상담": 300,
   "운명의 업 생성": 690,
@@ -205,6 +206,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "sukuyo-symbolic-comparison": { cost: 50, reason: "숙요 인연 레이더" },
   "sukuyo-extreme-t-relationship": { cost: 50, reason: "극T 관계 회로 확장" },
   "sukuyo-relationship-encyclopedia": { cost: 50, reason: "숙요 인연 도감" },
+  "sukuyo-nature-deep-dive": { cost: 50, reason: "본성 심화 해석" },
   "sukuyo-past-life-reading": { cost: 100, reason: "숙요 전생 인연 리딩" },
   "sukuyo-monthly-fortune": { cost: 30, reason: "월별 숙요 운세 확장" },
   "sukuyo-compatibility-ai": { cost: 300, amountKRW: 30000, reason: "숙요점 궁합 전문가 상담" },
@@ -213,7 +215,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "compat-astro-direct-synastry": { cost: 50, reason: "점성술 직접 입력 시나스트리 궁합" },
   "compat-ziwei-compatibility": { cost: 50, reason: "자미두수 궁합 분석" },
   "compat-saju-compatibility": { cost: 50, reason: "사주 궁합 분석" },
-  "compat-sukuyo-compatibility": { cost: 100, reason: "숙요점 궁합 분석" },
+  "compat-sukuyo-compatibility": { cost: 50, reason: "숙요점 궁합 분석" },
   "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
   "nakshatra-compat": { cost: 100, amountKRW: 10000, reason: "나크샤트라 동서 통합 궁합" },
   "nakshatra-compat-ai": { cost: 300, amountKRW: 30000, reason: "나크샤트라 통합 궁합 전문가 상담" },
@@ -523,6 +525,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",
+  "sukuyo-nature-deep-dive",
   // 극T 관계 회로 확장 — 사주에서 결정론으로 산출되는 고정 콘텐츠(LLM 미사용)라 재열람이 전제.
   // 회당 결제로 등록돼 있었으나 클라는 영구 해금으로 동작해 양쪽이 어긋나 있었고, 그 탓에
   // 서버가 unlockedFeatures 를 기록하지 않아 새로고침하면 결제한 잠금이 다시 닫혔다.

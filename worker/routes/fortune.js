@@ -1935,6 +1935,7 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "animal-destiny-unlock",
   "loveSimulation",
   "sukuyo-relationship-encyclopedia",
+  "sukuyo-nature-deep-dive",
   "premiumDivinationPack",
   "rpt_specialCharmCard",
   "rpt_quantumCard",
