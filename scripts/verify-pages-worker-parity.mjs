@@ -1,5 +1,12 @@
 import { spawnSync } from "node:child_process";
 
+// Worker 승격(`wrangler versions deploy`)이 성공을 반환해도 전 세계 엣지에 퍼지는 데는 초 단위
+// 지연이 있다 — Pages 별칭 전환(verify-deployed-assets.mjs)과 같은 성질이다. 같은 이유로 같은
+// /api/version 엔드포인트를 재는 verify-deployed-sha.mjs 가 이미 6회×10초 재시도 예산으로
+// 이 문제를 풀어 두었으므로 그 값을 그대로 쓴다(예산을 갈라 둘 근거가 없다).
+const PARITY_ATTEMPTS = 6;
+const PARITY_DELAY_MS = 10_000;
+
 const PAYMENT_BOUNDARY_FILES = new Set([
   "app/_lib/billing-client.ts",
   "js/core/access-store.js",
@@ -33,7 +40,11 @@ function changedFilesForCommit(commit) {
   return String(result.stdout || "").split(/\r?\n/).map((file) => file.trim()).filter(Boolean);
 }
 
-async function verifyRuntimeCommit(expectedCommit, versionUrl) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function readRuntimeCommit(versionUrl) {
   const response = await fetch(versionUrl, {
     headers: { Accept: "application/json", "Cache-Control": "no-store" },
     cache: "no-store",
@@ -42,7 +53,34 @@ async function verifyRuntimeCommit(expectedCommit, versionUrl) {
   const payload = await response.json();
   const actualCommit = String(payload?.commit || payload?.gitSha || "").trim();
   assert(actualCommit, "Worker version endpoint did not expose a commit SHA.");
-  assert(actualCommit === expectedCommit, `Worker commit ${actualCommit.slice(0, 12)} does not match Pages commit ${expectedCommit.slice(0, 12)}.`);
+  return actualCommit;
+}
+
+/**
+ * 첫 응답만 보고 실패시키면, 방금 정상적으로 승격된 Worker 를 전파 지연 때문에 되돌리게 된다
+ * (2026-08-11 PR #466 릴리스: Worker 는 이미 새 커밋으로 100% 승격됐지만, 승격 28초 뒤 이
+ * 검사가 아직 옛 커밋을 서빙하던 엣지를 만나 FAIL 했고, 그 결과 정상 배포가 자동 롤백됐다).
+ * 재시도 예산을 다 써도 다르면 그건 전파 지연이 아니라 실제 불일치이므로 그대로 실패한다.
+ */
+async function verifyRuntimeCommit(expectedCommit, versionUrl) {
+  let lastError = "";
+  for (let attempt = 1; attempt <= PARITY_ATTEMPTS; attempt += 1) {
+    try {
+      const actualCommit = await readRuntimeCommit(versionUrl);
+      if (actualCommit === expectedCommit) {
+        if (attempt > 1) console.log(`[verify-pages-worker-parity] PASS on attempt ${attempt}/${PARITY_ATTEMPTS}.`);
+        return;
+      }
+      lastError = `Worker commit ${actualCommit.slice(0, 12)} does not match Pages commit ${expectedCommit.slice(0, 12)}.`;
+    } catch (error) {
+      lastError = error.message;
+    }
+    if (attempt < PARITY_ATTEMPTS) {
+      console.log(`[verify-pages-worker-parity] 대기 ${attempt}/${PARITY_ATTEMPTS}: ${lastError}`);
+      await sleep(PARITY_DELAY_MS);
+    }
+  }
+  throw new Error(lastError);
 }
 
 async function main() {
