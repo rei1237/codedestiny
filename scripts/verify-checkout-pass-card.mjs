@@ -17,6 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
+import { sliceFunction } from "./lib/js-source-slice.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // 🔴 payment-service.js 가 맨 앞이어야 한다 — 실제 독립 정적 페이지의 로드 순서가 그렇고
@@ -188,6 +189,50 @@ console.log("\n[1-b] 추천 선택지가 이용권 등급·월정석 잔량에 �
       }
     }
   });
+}
+
+// ── ①-c 정본 모듈이 아직 안 붙었을 때(폴백)도 같은 답을 내는가 ─────────────
+// 🔴 셸(index.html)·독립 정적(js/destiny-profile.js) 각각 "정본 로드 실패/캐시 스큐/레이스 컨디션"
+// 대비용 폴백 래퍼를 갖고 있다. 정본이 항상 로드된 이 하네스는 그 분기를 절대 실행하지 않으므로,
+// 소스에서 함수 본문만 잘라(js-source-slice) 정본을 일부러 없앤 채로 직접 호출해 검증한다.
+// 이게 없어서 폴백의 monthlyCovers 하드코딩 버그가 프로덕션까지 갔다.
+console.log("\n[1-c] 정본 모듈 미로딩 폴백도 셸·독립 정적 렌더러가 같은 추천을 내는가");
+{
+  const indexHtmlSource = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  const destinyProfileSource = fs.readFileSync(path.join(ROOT, "js/destiny-profile.js"), "utf8");
+
+  function loadFallbackResolver(source, fnName, entryParamName) {
+    const fnSource = sliceFunction(source, `function ${fnName}(`, fnName);
+    const factory = new Function(entryParamName, `${fnSource}\nreturn ${fnName};`);
+    return (entryProvider) => factory(entryProvider);
+  }
+
+  const renderers = [
+    ["셸(index.html) _cdResolveCheckoutRecommendation", loadFallbackResolver(indexHtmlSource, "_cdResolveCheckoutRecommendation", "_cdCheckoutEntry")],
+    ["독립 정적(js/destiny-profile.js) _dpResolveCheckoutRecommendation", loadFallbackResolver(destinyProfileSource, "_dpResolveCheckoutRecommendation", "_dpCheckoutEntry")],
+  ];
+  const base = { allowPass: true, allowDirect: true, allowMonthly: true, requiredMonthlyCredits: 500 };
+
+  for (const [label, load] of renderers) {
+    check(`${label} — 정본이 있으면 그대로 위임한다`, () => {
+      const sentinel = { recommended: "sentinel", order: ["sentinel"], monthlyCovers: "sentinel" };
+      const resolveFn = load(() => ({ resolveCheckoutRecommendation: () => sentinel }));
+      assert.deepEqual(resolveFn(base), sentinel);
+    });
+    check(`${label} — 정본 미로딩 + 등급 보유 + 미커버 + 월정석 충분 → 월정석이 1순위`, () => {
+      const resolveFn = load(() => null);
+      const out = resolveFn({ ...base, hasActivePassTier: true, monthlyBalanceFresh: true, monthlyBalance: 500 });
+      assert.equal(out.recommended, "monthly", "monthlyCovers 하드코딩 버그가 재발했다");
+      assert.equal(out.monthlyCovers, true);
+      assert.deepEqual([...out.order].sort(), ["direct", "monthly", "pass"], "폴백에서 옵션이 사라졌다(정책 위반)");
+    });
+    check(`${label} — 정본 미로딩 + 잔량 미확정은 커버로 치지 않는다`, () => {
+      const resolveFn = load(() => null);
+      const out = resolveFn({ ...base, hasActivePassTier: true, monthlyBalanceFresh: false, monthlyBalance: 99999 });
+      assert.equal(out.monthlyCovers, false);
+      assert.equal(out.recommended, "direct");
+    });
+  }
 }
 
 // ── ② 이용권이 커버하면 결제 없이 무료로 통과한다 ──────────────────────────
