@@ -200,6 +200,12 @@ jobs:
       - name: Verify billing pass policy
         run: npm run verify:billing-pass-policy
 
+      # 결제 POST(checkout·confirm)의 401 리프레시 복구 계약 — fetchJsonWithAuth 본문을 실제로
+      # 구동해 같은 키·같은 body 1회 재전송(이중 주문 금지)과 coin-gate 제외, 확정 401 의
+      # 로그인 모달 종단, PR #470 단일비행 바이패스 회귀까지 실행으로 확인한다.
+      - name: Verify checkout auth recovery (executed harness)
+        run: npm run verify:checkout-auth-recovery
+
       - name: Verify PortOne single payment regression
         run: npm run verify:portone-single-payment
 

@@ -3339,6 +3339,7 @@ async function requireBillingAuth(request, env, pricing = {}) {
     return { ok: true, auth };
   }
 
+  logPaidAccessStage("AUTH_401", { featureKey: String(pricing?.featureKey || ""), httpStatus: 401, scope: "auth", cause: [request?.headers?.get?.("Authorization") ? "bearer" : "", String(request?.headers?.get?.("Cookie") || "").includes("fortune_auth_token=") ? "access" : "", String(request?.headers?.get?.("Cookie") || "").includes("fortune_auth_refresh=") ? "refresh" : ""].filter(Boolean).join("+") || "none" });
   return {
     ok: false,
     response: failure(401, "AUTH_REQUIRED", "로그인이 필요합니다."),
