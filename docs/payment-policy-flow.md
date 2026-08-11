@@ -7,7 +7,9 @@
 > **개정 요지**: 이용권, 단건 결제, 월정석은 사용자가 명시적으로 선택한다.
 > 조회 화면은 snapshot으로 빠르게 표시하지만 돈과 권한이 바뀌는 각 경로는 서버가 최종 판정한다.
 
-모든 유료 결제는 다음 순서로 판정한다(구현 정본: `worker/routes/billing.js`의 `buildPassPaymentDecision`·`processCoinGateFromPricing`, `worker/lib/profile-limits.js`의 `canUseByPass`/`PASS_LIMITS`):
+모든 유료 결제는 다음 순서로 판정한다(구현 정본: `worker/routes/billing.js`의 `buildPassPaymentDecision`·`processCoinGateFromPricing`, `worker/lib/profile-limits.js`의 `canUseByPass`/`PASS_LIMITS`(건당 상한)·`resolveMonthlySpendQuota`/`MONTHLY_PASS_LIMITS`(월 누적 한도, 2026-08 도입)·`resolvePremiumQuota`(상담 포함횟수, family 10회·vvip 3회)):
+
+> **월 누적 한도**(2026-08): 건당 상한을 통과해도 이번 사이클 누적 사용액이 등급별 한도(스탠다드 3만원·프리미엄 10만원·VVIP 20만원·family 50만원)를 넘으면 `decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED"`로 미커버 처리된다. 상담 포함횟수 소진은 `"PREMIUM_QUOTA_EXHAUSTED"`(구 `FAMILY_PREMIUM_QUOTA_EXHAUSTED`), 건당 상한 초과는 기존과 동일하게 `"PRICE_EXCEEDS_PASS_LIMIT"`. VVIP는 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮아, 상담 포함횟수 대상 건은 건당 상한 검사를 우회하고 포함횟수로만 판정한다(`familyQuota.applies` 체크가 `canUseByPass` 앞선다) — family는 건당 상한이 없어 이 문제가 없었다.
 
 > 같은 파일의 `grantPassFreeAccessBeforeCardIfAvailable`은 **호출자가 없는 죽은 코드**다(2026-08-08 확인). 카드 주문 직전 이용권 재검사는 의도적으로 제거됐고 `scripts/verify-billing-pass-policy.mjs`·`verify-paid-gate-ui-regression.mjs`가 되살리는 것을 막는다 — 정본으로 참조하지 말 것.
 

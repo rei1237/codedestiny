@@ -20,7 +20,7 @@
 
 ## B. 이용할 때마다 구매 (Per-Use Payment / 회당 결제)
 
-- **정의**: 사용할 때마다 매번 단건 결제(코인/원화)하는 것이 기본이나, **이용권(구독 패스)이 있고 그 가격이 이용권의 커버 한도 이내이면 이용권으로 무료 처리**한다(2026-07-04 재확정). 즉 이용권 보유·티어(standard/premium/vvip/family)에 따라 무료 커버 여부가 달라진다 — family는 무제한 커버. 이용권이 없거나 가격이 한도를 초과하면 단건 결제로 진행. 결과를 저장하지 않으므로 매 사용마다 이 판정을 다시 거친다.
+- **정의**: 사용할 때마다 매번 단건 결제(코인/원화)하는 것이 기본이나, **이용권(구독 패스)이 있고 그 가격이 이용권의 커버 한도 이내이면 이용권으로 무료 처리**한다(2026-07-04 재확정, 2026-08 월 누적 한도 추가). 즉 이용권 보유·티어(standard/premium/vvip/family)에 따라 무료 커버 여부가 달라진다 — family는 건당 상한이 없어 사실상 전부 커버되지만, **모든 등급에 등급별 30일 누적 한도**(스탠다드 3만원·프리미엄 10만원·VVIP 20만원·family 50만원)가 함께 적용된다(`MONTHLY_PASS_LIMITS`). 이용권이 없거나 가격이 건당 상한을 초과하거나 이번 사이클 누적 한도를 넘으면 단건 결제로 진행. 결과를 저장하지 않으므로 매 사용마다 이 판정을 다시 거친다.
 - **식별 마커**: `PER_USE_PAID_FEATURE_KEY_LIST`/`RAW_FEATURE_KEY_PRICE_TABLE`에 등록(`unlock.` 접두 없음, `forceDeduct` 플래그 없음), `PERSISTENT_UNLOCK_KEY_SET` 미포함. 결제/이용권/월정석 판정과 차감은 `worker/lib/payment-service.js` 경계와 `worker/routes/billing.js` 어댑터에서 수행하고, 각 `worker/routes/*-ai.js`는 검증된 access grant만 소비한다.
 - **현재 예시**:
   - 궁합 분석 전체: `compat-saju-compatibility`, `compat-ziwei-compatibility`, `compat-sukuyo-compatibility`, `vedic-compatibility-per-use`, `compat-astro-synastry` 등
@@ -28,7 +28,7 @@
   - 타로 전체: `tarot-year-fortune`, `tarot-love-relationship`, `tarot-reunion-reading` 등 `tarot-*`
   - AI 상담 전반: 인생의 책, 연애 비책, 신년운세, 운명 찻집, 팩폭 전략실(`life-book-ai`, `love-secret-ai`, `new-year-ai`, `fortune-tea-house`, `neo-operation-room` 등), 숙요점 궁합 AI 상담(`sukuyo-compatibility-ai`) — 위 이용권 커버 규칙 동일 적용
   - **연이 운명 상담(`fortune-chat-consultation`, 50코인=5,000원)** — `/fortune-chat`. 하루 무료 3회를 소진한 뒤부터 회당 결제. 매 턴이 새로 생성되는 개인화 상담이라 B유형이다
-  - **초융합 심층 리딩(`fusion-fortune-consultation`, 300코인=30,000원)** — `/fusion-fortune`. 여섯 체계를 한 번에 엮어 20,000자 이상을 새로 쓴다. 🔴 30,000원이라 `PASS_LIMITS` 상 **family 이용권만 커버**되고 `FAMILY_PREMIUM_MIN_COIN_COST`(300)에 걸려 이용권 기간당 10회 정책이 적용된다. 선착순 하루 100자리는 결제와 별개 장치이며, **마감 검사가 결제보다 먼저** 돌아야 한다(결제 후 마감은 자동 환불 경로가 없다)
+  - **초융합 심층 리딩(`fusion-fortune-consultation`, 300코인=30,000원)** — `/fusion-fortune`. 여섯 체계를 한 번에 엮어 20,000자 이상을 새로 쓴다. 🔴 30,000원이라 `PASS_LIMITS`(건당 상한) 상 **family 이용권만 커버**되고 `PREMIUM_QUOTA_MIN_COIN_COST`(300)에 걸려 family는 이용권 기간당 10회, **VVIP는 이용권 기간당 3회**(2026-08 추가, VVIP 건당 상한은 10,000원이라 원래 이 가격대는 못 커버했으나 이 상담만 예외로 포함횟수를 받는다) 정책이 적용된다. 선착순 하루 100자리는 결제와 별개 장치이며, **마감 검사가 결제보다 먼저** 돌아야 한다(결제 후 마감은 자동 환불 경로가 없다)
   - ⚠️ 위 두 기능은 2026-08-08까지 전용 재화(대화권 / 초융합 상담권)로 굴러갔다. 그 재화는 폐지됐으니 되살리지 말 것 — 판매 라우트·잔액 컬렉션·전용 상점을 모두 제거했고 컬렉션 드롭 마이그레이션(`scripts/migrations/20260808-drop-legacy-consultation-currencies.mjs`)까지 준비돼 있다
   - 숙요점 기본 궁합(`compat-sukuyo-compatibility`, 100코인=10,000원): **콘텐츠는 잠금 UI 없이 노출**되지만 궁합 계산 실행 시마다 회당 결제(위 이용권 커버 규칙 적용). "비잠금"이 "무료"를 뜻하지 않음에 주의
   - **숙요 인연 레이더(`sukuyo-past-life-reading`, 100코인=10,000원)** — 상대의 생년월일을 넣을 때마다 새로 산출되는 관계 리포트라 **상대 1명당 1결제**다. 같은 상대·같은 관계목적은 서버 아카이브(`readSukuyoPastLifeArchive`)가 영수증 역할을 해 재결제 없이 다시 열린다. ⚠️ 이 키를 `PREMIUM_UNLOCK_POLICY`(영구 해금 후보)나 클라 `syMarkPaidSukuyoFeatureUnlocked` 에 되살리지 말 것 — 그러면 1회 결제로 모든 상대가 무료가 된다(2026-08-01 정정). 구 `sukuyo-symbolic-comparison`(인연 레이더 5,000원)은 이 기능에 통합돼 UI 미사용, 과거 결제 이력 보존용으로 레지스트리에만 남는다
