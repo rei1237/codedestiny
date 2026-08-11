@@ -25,7 +25,7 @@ import { createPaymentContext, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
-import { grantEntitlement, markUserFeatureUnlocked } from "./entitlements.js";
+import { grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
 import { legacyOrderDetailEnvelope } from "./compat.js";
@@ -34,14 +34,70 @@ import {
   createOrder,
   findOrder,
   markEntitlementGranted,
+  markOrderCancelled,
   markOrderFailed,
   markOrderPaid,
+  recordPgCancellationMarkers,
+  settleRefund,
   toOrderStatus,
 } from "./orders.js";
 
 function requireUser(userId) {
   if (!userId) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   return userId;
+}
+
+/**
+ * 🔴 컷오버 패리티(2026-08-12): 구 웹훅은 Paid 외에 Failed·Cancelled·PartialCancelled 를 처리했다.
+ * 그대로 컷오버하면 PG 발 취소·실패 상태 전이가 사라지므로 시맨틱을 여기서 승계한다:
+ *   Failed          = 결제 완료 주문 보호(PENDING 한정 CAS) 하에 실패 마킹
+ *   Cancelled       = PENDING 이면 취소(T4), PAID 면 환불 정산(T5)+권한 회수+검토 마커
+ *   PartialCancelled= 자동 회수 없이 관리자 검토 마커만(구 시맨틱 그대로)
+ * VirtualAccountIssued 는 **의도적 미지원**: 클라이언트 전체에 가상계좌·계좌이체 노출이 0건인
+ * 카드 전용 서비스임을 확인했다(2026-08-12). 가상계좌를 판매하게 되면 이 결정을 다시 볼 것.
+ * 미지원 타입은 받았다는 사실만 남기고 200 으로 끝낸다(재전송 요구 없음).
+ */
+async function applyNonPaidPgEvent(db, { eventType, orderId }) {
+  const type = String(eventType || "").trim().toLowerCase();
+
+  if (type === "transaction.failed") {
+    const marked = await markOrderFailed(db, {
+      orderId,
+      failureCode: "pg_webhook_failed",
+      failureMessage: "PortOne Transaction.Failed webhook received.",
+      failureStage: "webhook",
+    });
+    return { event: "failed", marked };
+  }
+
+  const partial = type === "transaction.partialcancelled";
+  const full = type === "transaction.cancelled";
+  if (!partial && !full) return { ignored: true, type };
+
+  const order = await findOrder(db, { orderId });
+  if (!order) return { ignored: true, reason: "ORDER_NOT_FOUND" };
+
+  if (partial) {
+    // 부분취소는 금액 사실이 주문 문서와 어긋난 상태다 — 자동으로 상태·권한을 건드리지 않고
+    // 사람이 판단한다(미결제 건의 부분취소는 PG 상 존재하지 않으므로 상태 전이 자체가 없다).
+    await recordPgCancellationMarkers(db, { orderId, partial: true, reviewRequired: true });
+    return { event: "partial-cancelled", reviewRequired: true };
+  }
+
+  const status = toOrderStatus(order);
+  if (status === "PENDING") {
+    const cancelled = await markOrderCancelled(db, { orderId, reason: "PG_CANCELLED" });
+    return { event: "cancelled", cancelled };
+  }
+  if (status === "PAID") {
+    // PG 콘솔 전액 취소 = 돈이 이미 돌아갔다. 주문을 환불로 정산하고 권한을 회수한다.
+    // 회수가 매칭되지 않으면(이미 회수됨·비활성) 사람이 확인하도록 검토 마커를 남긴다.
+    const refunded = await settleRefund(db, { orderId });
+    const revoked = await revokeEntitlementForOrder(db, { orderId });
+    await recordPgCancellationMarkers(db, { orderId, partial: false, reviewRequired: !revoked });
+    return { event: "cancelled", refunded, revoked, reviewRequired: !revoked };
+  }
+  return { ignored: true, status };
 }
 
 /** 주문을 클라이언트가 읽는 형태로. 내부 필드(rawPortOne·pricingSnapshot 등)는 내보내지 않는다. */
@@ -235,9 +291,11 @@ const ROUTES = {
         if (!accepted.claimed) return { duplicate: true };
 
         if (accepted.eventType && !/paid/i.test(accepted.eventType)) {
-          // 지금 다루는 것은 결제 완료뿐이다. 나머지는 받았다는 사실만 남긴다.
+          // 비-Paid 이벤트(실패·취소·부분취소)는 위 applyNonPaidPgEvent 가 구 웹훅 시맨틱을 승계한다.
+          // 그 밖의 타입(가상계좌 등 카드 전용 서비스의 미지원 계열)은 받았다는 사실만 남긴다.
+          const applied = await applyNonPaidPgEvent(db, { eventType: accepted.eventType, orderId: accepted.paymentId });
           await markEventProcessed(db, { eventId: accepted.eventId });
-          return { ignored: true };
+          return applied;
         }
 
         try {
