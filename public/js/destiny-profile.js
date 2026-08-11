@@ -4693,6 +4693,7 @@
           window._cdCoinGatePerUseInFlight = false;
           window.__cdCoinGatePerUseLockAt = 0;
           _dpSetPaymentPending(false);
+          console.error('[direct-checkout-choice]', error);
           window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
           if (typeof onCancel === 'function') onCancel(error);
         });

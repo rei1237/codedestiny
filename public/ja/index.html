@@ -23495,9 +23495,12 @@ return you.name.restore();</span>
     if (window.PortOne && typeof window.PortOne.requestPayment === 'function') return;
     await new Promise(function(resolve, reject) {
       var settled = false;
+      var pollTimer = null;
+      function clearPoll() { try { if (pollTimer) clearInterval(pollTimer); } catch (_pollError) {} }
       function finish(ok) {
         if (settled) return;
         settled = true;
+        clearPoll();
         if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') {
           resolve();
           return;
@@ -23518,8 +23521,16 @@ return you.name.restore();</span>
       }
       existing.addEventListener('load', function() { finish(true); }, { once: true });
       existing.addEventListener('error', function() { finish(false); }, { once: true });
-      // 이미 발화가 끝난 태그를 물려받았을 때의 유일한 탈출구. 값은 dp 와 같은 8초.
-      setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, 8000);
+      // 🔴 `load` 이벤트에만 기대면 안 된다. 이미 로드를 끝낸 <script> 에 리스너를 달면 그 이벤트는
+      // 영영 울리지 않는다 — 유일한 탈출구가 아래 상한뿐이면 그때까지 클릭이 멈춰 있는다(dp 와 동일 원인,
+      // js/destiny-profile.js 의 _dpLoadPortOneV2Sdk 참고). 준비 여부를 직접 폴링해 이미 로드된 태그도
+      // 즉시 해소되게 한다.
+      pollTimer = setInterval(function() {
+        if (window.PortOne && typeof window.PortOne.requestPayment === 'function') finish(true);
+      }, 50);
+      // 상한을 8000ms 에서 내렸다(dp 와 같은 1500ms). 클릭 핸들러 안에서 오래 기다리면 브라우저가 더는
+      // 사용자 제스처로 보지 않아 팝업이 차단된다 — 기다린 끝에 결제창이 안 열리는 것이 최악이다.
+      setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, 1500);
     });
     if (!window.PortOne || typeof window.PortOne.requestPayment !== 'function') {
       throw new Error('PORTONE_SDK_UNAVAILABLE');
