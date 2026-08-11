@@ -22046,7 +22046,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-aee78fe7d1ab" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-aee78fe7d1ab" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-aee78fe7d1ab" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -27487,12 +27487,6 @@ return you.name.restore();</span>
     if (user.uid) safe.uid = String(user.uid);
     if (user.name) safe.name = String(user.name);
     if (user.email) safe.email = String(user.email);
-    // 🔴 결제용 휴대폰 번호는 반드시 통과시킨다. 예전에는 이 두 필드가 화이트리스트에 없어서
-    // _cdPersistCoinApiUser({ phoneNumber }) 가 채운 값이 여기서 전부 버려졌고(→ 셸은 번호를
-    // 절대 기억하지 못함), 게다가 이후 셸의 아무 캐시 쓰기가 dp(_dpSanitizeAuthUser 는 두 필드를
-    // 통과시킨다)가 저장해 둔 번호까지 덮어써서 지웠다 — 이미 입력한 번호를 매번 다시 묻던 원인.
-    if (user.phoneNumber) safe.phoneNumber = String(user.phoneNumber);
-    if (user.phone) safe.phone = String(user.phone);
     if (user.role) safe.role = String(user.role);
     if (user.plan) safe.plan = String(user.plan);
     if (typeof user.hasLocalAuth === 'boolean') safe.hasLocalAuth = user.hasLocalAuth;
@@ -27594,14 +27588,6 @@ return you.name.restore();</span>
         return null;
       }
       var nextScope = __cdResolveAuthScopeId(safe);
-      // 🔴 이 함수는 병합이 아니라 전체 교체다. DB 일시 장애에서 /api/auth/me 는 토큰 폴백 사용자를
-      // 돌려주는데 액세스 토큰 페이로드에는 phoneNumber 가 없어(buildTokenFallbackUser) 응답에서
-      // 번호가 빠진다 — 그대로 쓰면 이미 저장해 둔 결제용 번호가 캐시에서 사라져 결제마다 다시 묻게 된다.
-      // 같은 계정일 때만 이전 번호를 물려준다(계정 전환 시 남의 번호가 새면 안 된다).
-      if (previousScope && nextScope && previousScope === nextScope) {
-        if (!safe.phoneNumber && previousUser && previousUser.phoneNumber) safe.phoneNumber = String(previousUser.phoneNumber);
-        if (!safe.phone && previousUser && previousUser.phone) safe.phone = String(previousUser.phone);
-      }
       localStorage.setItem('fortune_auth_user', JSON.stringify(safe));
       if (previousScope && nextScope && previousScope !== nextScope) {
         _cdClearPaidPrecheckCache('auth-user-changed');

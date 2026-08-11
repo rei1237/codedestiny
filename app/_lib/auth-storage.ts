@@ -52,12 +52,6 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
   copyString(source, "uid", safe);
   copyString(source, "name", safe);
   copyString(source, "email", safe);
-  // 🔴 결제용 휴대폰 번호는 반드시 통과시킨다. 셸(__cdSanitizeAuthUserCache)·dp(_dpSanitizeAuthUser)는
-  // 이미 두 필드를 보존하는데 여기만 빠져 있었다. readSanitizedAuthUser 가 읽을 때마다 정제본을
-  // localStorage 에 되쓰기 때문에, React 화면을 한 번 지나가는 것만으로 셸이 저장해 둔 번호가
-  // 지워졌다 — 가입 때 받은 번호가 캐시에 남지 않아 결제마다 다시 묻던 원인.
-  copyString(source, "phoneNumber", safe);
-  copyString(source, "phone", safe);
   copyString(source, "image", safe);
   copyString(source, "role", safe);
   copyString(source, "plan", safe);
