@@ -108,6 +108,11 @@ MONGO_MAX_IDLE_TIME_MS = "60000"
 MONGO_PING_MIN_INTERVAL_MS = "50000"
 # 동시에 새로 여는 커넥션 수. 15/s 예산에 직접 대응하는 유일한 드라이버 노브다.
 MONGO_MAX_CONNECTING = "2"
+# 🔴 poll 모니터가 노드마다 hello 를 던지는 주기(드라이버 기본 10000). M10 은 3노드라 클라이언트
+# 하나당 초당 0.3회가 **요청과 무관하게** 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
+# (트래픽 없는 새벽에도 Atlas Opcounters 가 평평하게 떠 있는 성분). 30000 으로 3분의 1로 줄인다.
+# 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면 즉시 모니터 확인이 트리거된다.
+MONGO_HEARTBEAT_FREQUENCY_MS = "30000"
 # 자작 admission 게이트. 한도 > 풀 이어야 초과분이 재시도 가능한 waitQueue 로 간다.
 MONGO_MAX_IN_FLIGHT_OPS = "24"
 MONGO_PAYMENT_MAX_IN_FLIGHT_OPS = "12"

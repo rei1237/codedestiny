@@ -636,6 +636,14 @@ export async function connectDb(env = {}) {
           // 재사용할 때 "Cannot perform I/O on behalf of a different request"(→ Mongo 에러로 분류 안 돼 500)를
           // 유발했다. 'poll' 모드는 짧은 개별 하트비트만 써 이 지속 스트림을 만들지 않는다(서버리스/엣지 권장).
           serverMonitoringMode: "poll",
+          // 🔴 poll 모니터는 노드마다 주기적으로 hello 를 던진다. M10 은 3노드라 클라이언트 하나당
+          // 초당 0.3회가 요청과 무관하게 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
+          // (M0 는 1노드였으므로 M10 전환만으로 3배가 됐다 — Atlas Opcounters 가 트래픽 없는
+          // 새벽에도 평평하게 떠 있는 성분이 이것이다). 드라이버 기본값 10000 을 30000 으로 늘려
+          // 3분의 1로 줄인다. 진행 중인 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면
+          // 드라이버가 즉시 모니터 확인을 트리거하기 때문이다(minHeartbeatFrequency 500ms).
+          // 늦어지는 것은 **유휴 상태에서의 토폴로지 변화 발견**뿐이다.
+          heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
           // commandStarted/Succeeded 이벤트를 켠다 — '명령이 나갔는지'와 '서버가 늦는지'를
           // 가르는 유일한 신호다. 카운터만 올리므로 비용은 무시할 수준이다.
           monitorCommands: true,
@@ -795,6 +803,9 @@ export async function connectPaymentDb(env = {}) {
     autoIndex: false,
     // 공유 커넥션과 같은 이유(Workers 요청 간 I/O 격리)로 poll 모니터링을 쓴다 — connectDb 주석 참고.
     serverMonitoringMode: "poll",
+    // 🔴 하트비트 주기도 공유 커넥션과 같은 값을 쓴다(근거는 connectDb 쪽 주석). 레인을 켜면
+    // 아이솔레이트당 클라이언트가 둘이 되어 이 상시 부하가 그대로 2배가 되므로 특히 여기서 중요하다.
+    heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
     // 🔴 공유 커넥션에는 있고 여기엔 없던 계측을 맞춘다. instrumentMongoClient 가 붙지 않으면
     // `[db-op-timeout]` 의 checkOutFailed/checkedOut 카운터가 **가장 사고가 잦은 결제 경로를
     // 보지 못한다** — 진단할 때마다 공유 커넥션 수치를 결제 수치로 착각하게 된다.
