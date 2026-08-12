@@ -109,6 +109,57 @@ __tests__/worker/db.transaction-budget.test.js
 
 ---
 
+---
+
+## 🔴 사고 기록 — 릴리스가 막혔다 (2026-08-12 23:00 KST경)
+
+**증상**: `495653dff` 이후 릴리스가 **연속 실패**했다. 그 커밋 이후 아무것도 배포되지 않았다.
+
+**프로덕션 피해는 없었다.** 라이브 워커는 `495653dff` 에 머물러 있었고, 실패한 릴리스들이 **깨진 커밋의 승격을 막아 준 것**이다. 가드가 제 역할을 했다.
+
+**원인은 두 개, 둘 다 "각 PR 은 정합했는데 합쳐진 main 에서만 깨지는" 형태였다.**
+
+### 사고 1 — `PAYMENT_ROUTE_USER_PROJECTION` 미정의 (배포됐다면 결제 라우터 전체 다운)
+
+`worker/routes/payments.js` 의 `handlePaymentRoutes` **주 요청 경로**가 삭제된 상수를 참조했다.
+
+```js
+: await requireUserFromRequest(request, env, {
+    userProjection: PAYMENT_ROUTE_USER_PROJECTION,   // ← ReferenceError
+```
+
+죽은 핸들러를 줄 범위로 잘라낼 때, 블록 끝의 `};` 를 `handlePaymentConfig` 의 끝으로 보고 잘랐다. 그건 **바로 뒤에 붙어 있던 const 객체의 끝**이었다. 함수와 상수를 한 번에 지웠다.
+
+- **테스트가 못 잡은 이유**: 테스트는 핸들러를 직접 호출한다. 이 줄은 **라우터 경로에만** 있다.
+- **잡은 것**: `verify:worker-no-undef`(#548 이 추가). `deploy:critical` 에는 있지만 그 PR 의 PR CI 가 돌린 범위에는 없었다 → **G-6 이 말하는 커버리지 차이가 실제로 사고를 통과시켰다.**
+
+### 사고 2 — env 계약에 죽은 소비자 9건
+
+`config/env.contract.json` 이 `app/_lib/csrf.js` · `app/_lib/legacyApiProxy.js` 를 9개 변수의 소비자로 등재한 채 남았다.
+
+계약을 정리한 시점에 그 두 파일은 **아직 머지되지 않은 다른 브랜치**에서 삭제될 예정이었다. 정리 스크립트는 "디스크에 존재하는 파일만 남긴다" 필터였으므로 **그때는 존재해서 그대로 뒀다.** 두 PR 이 모두 들어온 뒤에야 어긋났다.
+
+### 왜 브랜치 단위 검증으로는 구조적으로 못 잡나
+
+각 PR 은 **자기 base 에서** 검증된다. A 가 심볼을 지우고 B 가 그 심볼의 참조·등재를 지우는데 둘이 서로의 변경을 보지 못하면, **A 도 통과하고 B 도 통과하는데 A+B 는 깨진다.** 브랜치 룰셋이 "최신 base 유지"를 강제하지 않으므로(그리고 강제하면 순차 머지가 되어 느려진다) 이 창은 항상 열려 있다.
+
+### 그래서 하는 것
+
+🔴 **여러 PR 에 걸친 삭제 작업을 마쳤으면, 마지막에 머지된 `main` 을 받아 `npm run check:critical` 을 한 번 돌린다.**
+
+```bash
+git fetch origin main && git checkout origin/main
+npm run check:critical      # 릴리스가 돌리는 그 체인 (exit 0 이어야 한다)
+```
+
+- **언제**: 한 작업 단위가 2개 이상의 PR 로 나뉘고, 그중 하나라도 **심볼·파일을 삭제**할 때.
+- **왜 `check:critical` 인가**: 릴리스가 실제로 돌리는 체인이라, 여기서 통과하면 릴리스도 통과한다. 이번 두 사고는 각각 `verify:worker-no-undef` 와 `verify:env-parity` 가 잡았고 **둘 다 이 체인에 있다.**
+- **발견하면**: 릴리스가 이미 막혀 있는 상태이므로 **핫픽스가 최우선**이다. 라이브 SHA 는 `curl https://code-destiny.com/api/version` 으로 확인한다 — 실패한 릴리스는 승격을 안 했으므로 보통 프로덕션은 무사하다.
+
+> 이걸 사람 규율이 아니라 자동 검사로 만들고 싶다면 **G-6** 을 먼저 해결하는 편이 낫다. `deploy:critical` 의 검증기가 PR CI 에서 하나도 빠지지 않도록 보장하면, 사고 1 은 애초에 PR 단계에서 걸린다.
+
+---
+
 ## 이 감사에서 반복해서 나온 교훈
 
 **1. 부분 테스트 실행은 삭제 작업에서 위험하다.**
@@ -125,3 +176,13 @@ __tests__/worker/db.transaction-budget.test.js
 
 **5. 가드는 fail-closed 여야 한다.**
 G-1 의 "매핑 없으면 throw" 는 옳았다(고장이 드러났다). G-2 의 "산출물 없으면 exit 0" 은 틀렸다(고장이 숨었다). 대상이 없을 때 **통과시키는 가드는 가드가 아니다.**
+
+**6. 🔴 여러 PR 에 걸친 삭제는 합쳐진 `main` 에서 `check:critical` 을 한 번 돌린다.**
+브랜치 단위 검증은 이 부류를 **구조적으로** 못 잡는다 — 각 PR 이 자기 base 에서만 검증되므로 A 도 통과, B 도 통과인데 A+B 가 깨진다. 위 사고 기록의 두 건이 정확히 이 형태였고, 그 결과 릴리스가 연속 실패해 **아무것도 배포되지 않는 상태**가 됐다. 삭제가 2개 이상의 PR 로 나뉘면 마지막에 반드시:
+
+```bash
+git fetch origin main && git checkout origin/main && npm run check:critical
+```
+
+**7. 줄 범위로 코드를 자를 때 블록의 끝을 눈으로 믿지 않는다.**
+`};` 를 함수의 끝으로 봤는데 바로 뒤 const 객체의 끝이었다(사고 1). 자른 뒤에는 잘라낸 **첫 줄과 마지막 줄을 출력해 확인**하고, 워커라면 `verify:worker-no-undef` 를 바로 돌린다.
