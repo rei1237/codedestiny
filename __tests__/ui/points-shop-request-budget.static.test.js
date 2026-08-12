@@ -132,16 +132,9 @@ test("uncertain subscription confirmation stays locked and exposes a status chec
   assert.match(pointsSource, /isUncertainSubscriptionConfirmError/);
 });
 
-test("single payment shows the shared wait UI before checkout and confirms after PG return", () => {
-  const startPaymentBlock = between(pointsSource, "const startPayment = async", "const handleSubscribe = async");
-
-  assert.match(startPaymentBlock, /단건 결제를 준비하고 있어요/);
-  assert.match(startPaymentBlock, /"checkout"/);
-  assert.match(startPaymentBlock, /ensurePaymentPhoneNumber\(apiBase, authUser, null\)/);
-  assert.match(startPaymentBlock, /closeProcessingOverlayBeforeExternalCheckout/);
-  assert.match(startPaymentBlock, /confirmPendingSinglePayment/);
-  assert.doesNotMatch(startPaymentBlock, /setProcessingStage\("결제가 완료됐어요/);
-});
+// 폐지된 상점 포인트충전 결제창(startPayment + 결제수단 모달)을 지키던 테스트는 그 코드와 함께
+// 제거했다. 모달을 여는 setIsMethodModalOpen(true) 가 어디에도 없어 진입 자체가 불가능했다.
+// 아래 테스트가 검사하는 확인·복구 배관은 남아 있으므로 그대로 둔다.
 
 test("single payment keeps uncertain confirmation locked and supports same-tab recovery", () => {
   const successBlock = between(pointsSource, "const handleConfirmSuccess", "const requestCancelPayment");
