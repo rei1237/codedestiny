@@ -602,4 +602,141 @@ for (const [feature, path, namespace] of [
   );
 }
 
+// ── LLM 호출부 전수 스캔 ────────────────────────────────────────────────────
+// 위 검사들은 "열거된 기능"만 본다. 그래서 pet-saju-ai·ziwei-deep-report·neo-operation-room·
+// celestial-harmony·yoga-guru·oracle 여섯 곳이 폴백 게이트 없이 몇 달을 살아 있었다.
+// 여기서는 호출부를 이름으로 세지 않고 **괄호 균형으로 옵션 객체를 잘라 내부를 실제로 열어본다**
+// (verify-no-nested-retry.mjs 와 같은 방식 — 이름 grep 은 주석·문자열을 오탐한다).
+
+/** from 위치의 여는 괄호부터 짝이 맞는 닫는 괄호까지의 인덱스(포함). 못 찾으면 -1. */
+function matchBalanced(source, from, open, close) {
+  let depth = 0;
+  for (let i = from; i < source.length; i += 1) {
+    if (source[i] === open) depth += 1;
+    else if (source[i] === close) {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+/** callGeminiText(env, …) / callGeminiJsonWithRetry(env, …) 호출의 옵션 객체 리터럴 목록. */
+function llmCallOptionLiterals(source) {
+  const found = [];
+  for (const match of source.matchAll(/callGemini(?:Text|JsonWithRetry)\s*\(\s*env\b/g)) {
+    const open = source.indexOf("(", match.index);
+    const close = matchBalanced(source, open, "(", ")");
+    if (close < 0) continue;
+    const args = source.slice(open + 1, close);
+    const brace = args.indexOf("{");
+    const line = source.slice(0, match.index).split("\n").length;
+    // 옵션이 변수(스프레드 포함 객체 등)면 정적으로 판단하지 않는다 — 거짓 실패를 만들지 않는다.
+    if (brace < 0) { found.push({ line, options: null }); continue; }
+    const end = matchBalanced(args, brace, "{", "}");
+    found.push({ line, options: end < 0 ? null : args.slice(brace, end + 1) });
+  }
+  return found;
+}
+
+const LLM_CALL_FILES = [
+  "worker/routes/admin.js", "worker/routes/animal-totem.js", "worker/routes/astrology-ai.js",
+  "worker/routes/celestial-harmony.js", "worker/routes/destiny-compass-ai.js", "worker/routes/destiny-compass.js",
+  "worker/routes/dream.js", "worker/routes/fortune-tea-house.js", "worker/routes/fortune.js",
+  "worker/routes/karma-destiny-ai.js", "worker/routes/life-book-ai.js", "worker/routes/love-secret-ai.js",
+  "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/routes/naming-prompt.js",
+  "worker/routes/neo-operation-room.js", "worker/routes/new-year-ai.js", "worker/routes/oracle.js",
+  "worker/routes/pet-saju-ai.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
+  "worker/routes/yoga-guru.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
+  "worker/routes/ziwei-island-ai.js", "worker/lib/fusion-fortune.js", "worker/lib/palm-vision.js",
+];
+
+// 죽은 옵션: callGeminiText/callGeminiJsonWithRetry 가 읽지 않는 키. 지정하면 "설정했다"는
+// 착각만 남고 동작은 기본값 그대로다(실제로 yoga-guru·oracle 의 topP 는 적용된 적이 없다).
+const DEAD_LLM_OPTION_KEYS = ["topP", "modelEnvKeys", "maxAttemptsPerPair", "totalTimeoutMs"];
+
+// 이 파일들의 LLM 호출은 결과가 그대로 사용자에게 배달되므로 폴백 게이트가 반드시 있어야 한다.
+// (fallbackToWorkersAI: false 로 폴백 자체를 끈 호출은 예외 — 짧은 폴백이 애초에 생기지 않는다.)
+const GATE_REQUIRED_FILES = [
+  "worker/routes/pet-saju-ai.js",
+  "worker/routes/ziwei-deep-report.js",
+  "worker/routes/neo-operation-room.js",
+  "worker/routes/celestial-harmony.js",
+  "worker/routes/yoga-guru.js",
+  "worker/routes/oracle.js",
+];
+
+// 게이트를 두지 않는 것이 옳은 곳. 사유 없이 등재하지 말 것 — 사유가 곧 다음 사람의 판단 근거다.
+// 각 항목은 "그 사유가 코드에 아직 살아 있는지"를 앵커 문자열로 확인한다. 사유가 사라지면
+// 면제도 사라져야 하므로 여기서 실패한다.
+const GATE_EXEMPT = [
+  [
+    "worker/routes/dream.js",
+    "evaluatePsychoMarkdownQuality",
+    "정신분석 해몽은 5장 구조·450자 하한을 라우트가 직접 검사한다 — 게이트를 겹쳐 걸지 않는다",
+  ],
+  [
+    "worker/routes/master-love-codex.js",
+    "짧은 장이",
+    "짧은 장이 사과문보다 낫다는 의도적 결정(라우트 주석). 정책 재검토 전에는 게이트를 넣지 않는다",
+  ],
+];
+
+const llmCallSiteCounts = new Map();
+for (const path of LLM_CALL_FILES) {
+  const source = read(path);
+  const calls = llmCallOptionLiterals(source);
+  llmCallSiteCounts.set(path, calls.length);
+
+  for (const call of calls) {
+    if (!call.options) continue;
+    for (const key of DEAD_LLM_OPTION_KEYS) {
+      checks += 1;
+      assert(
+        !new RegExp(`(^|[{,\\s])${key}\\s*:`).test(call.options),
+        `${path}:${call.line}: 죽은 옵션 \`${key}\` — callGeminiText 가 읽지 않는다. `
+        + "모델 오버라이드는 `model`, 타임아웃은 `timeoutMs` 를 쓴다",
+      );
+    }
+    if (!GATE_REQUIRED_FILES.includes(path)) continue;
+    checks += 1;
+    assert(
+      /fallbackMinChars\s*:/.test(call.options) || /fallbackToWorkersAI\s*:\s*false/.test(call.options),
+      `${path}:${call.line}: 폴백이 켜져 있는데 fallbackMinChars 가 없다 — `
+      + "짧은 Workers AI 응답이 정상 결과로 사용자에게 전달된다(관례: 그 기능 최소 분량 × 0.4)",
+    );
+  }
+}
+
+for (const [path, anchor, reason] of GATE_EXEMPT) {
+  checks += 1;
+  assert(
+    read(path).includes(anchor),
+    `${path}: 게이트 면제 근거("${anchor}")가 사라졌다 — ${reason}`,
+  );
+}
+
+// 새 LLM 호출부 트립와이어. 호출이 늘거나 줄면 실패한다 — 새로 추가한 호출이 게이트가 필요한지
+// 사람이 한 번 판단하고 이 표를 갱신하게 만드는 것이 목적이다(줄 번호가 아니라 개수라 잘 안 깨진다).
+const EXPECTED_LLM_CALL_SITES = {
+  "worker/routes/admin.js": 1, "worker/routes/animal-totem.js": 1, "worker/routes/astrology-ai.js": 4,
+  "worker/routes/celestial-harmony.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1,
+  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 4,
+  "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
+  "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/routes/naming-prompt.js": 1,
+  "worker/routes/neo-operation-room.js": 1, "worker/routes/new-year-ai.js": 2, "worker/routes/oracle.js": 1,
+  "worker/routes/pet-saju-ai.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 2,
+  "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 3, "worker/routes/ziwei-deep-report.js": 1,
+  "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
+};
+for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {
+  const actual = llmCallSiteCounts.get(path) ?? 0;
+  checks += 1;
+  assert(
+    actual === expected,
+    `${path}: LLM 호출부가 ${expected}건 → ${actual}건으로 바뀌었다. `
+    + "새 호출이면 fallbackMinChars 필요 여부를 판단한 뒤 EXPECTED_LLM_CALL_SITES 를 갱신하라",
+  );
+}
+
 console.log(`${LABEL} ok (${checks} checks)`);

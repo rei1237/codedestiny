@@ -15,6 +15,7 @@
  */
 
 import { callLLM } from "../lib/llm-client.ts";
+import { callGeminiText } from "../worker/lib/gemini.js";
 
 // Gemini 를 확실히 실패시켜(키 없음) 폴백만 타게 한다 — fetch 가 나가지 않는다.
 delete process.env.GEMINIF_API_KEY;
@@ -194,10 +195,33 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   assert(unhandled === null, `레이스에서 진 프라미스의 거부가 새어 나왔다 (${unhandled?.message || unhandled})`);
 }
 
+// (12) 🔴 짧은 폴백은 유료 결과로 나가면 안 된다.
+//      70B 는 장문 지시에도 ~1,700자에서 스스로 멈춘다. 그런 응답이 2만자 상품의 결과로
+//      전달되면 "정상 결제 + 8% 분량"이 되고 재시도·환불 경로가 사라진다.
+//      fallbackMinChars 를 준 호출은 미달 시 실패로 돌아 라우트의 기존 실패 처리를 타야 한다.
+{
+  const { env } = stubEnv(() => ({ response: "짧은 폴백 본문." }));
+  const rejected = await callGeminiText(env, "테스트", { fallbackMinChars: 400 });
+  assert(rejected?.ok === false, "짧은 폴백이 성공으로 통과했다 — 유료 결과로 나간다");
+  assert(rejected?.error === "fallback_output_too_short", `실패 사유가 fallback_output_too_short 여야 한다 (실제: ${rejected?.error})`);
+  assert(rejected?.status === 503, `재시도 가능한 503 이어야 한다 (실제: ${rejected?.status})`);
+
+  // 문턱을 넘는 폴백은 종전대로 통과해야 한다 — 게이트가 정상 폴백까지 막으면 안 된다.
+  const longEnough = "폴백 본문 ".repeat(200);
+  const { env: okEnv } = stubEnv(() => ({ response: longEnough }));
+  const accepted = await callGeminiText(okEnv, "테스트", { fallbackMinChars: 400 });
+  assert(accepted?.ok === true, "문턱을 넘는 폴백까지 거부됐다 — 게이트가 과대하다");
+
+  // 게이트를 주지 않은 호출의 동작은 바뀌지 않아야 한다(기존 라우트 보호).
+  const { env: bareEnv } = stubEnv(() => ({ response: "짧은 폴백 본문." }));
+  const bare = await callGeminiText(bareEnv, "테스트", {});
+  assert(bare?.ok === true, "게이트 없는 호출의 기존 동작이 바뀌었다");
+}
+
 if (failures.length) {
   console.error("❌ Workers AI 폴백 가드 실패:");
   for (const failure of failures) console.error(`  - ${failure}`);
   process.exit(1);
 }
 
-console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한)");
+console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한·분량 게이트)");

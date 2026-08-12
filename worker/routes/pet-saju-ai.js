@@ -285,7 +285,7 @@ function parseJsonLoose(text) {
   }
 }
 
-async function generateNarration(env, prompt, cacheKeyExtra, baseTokens) {
+async function generateNarration(env, prompt, cacheKeyExtra, baseTokens, minChars) {
   const ai = await callGeminiJsonWithRetry(env, prompt, {
     systemPrompt: SYSTEM_PROMPT,
     taskType: "fortune",
@@ -294,6 +294,9 @@ async function generateNarration(env, prompt, cacheKeyExtra, baseTokens) {
     baseTokens,
     capTokens: Math.round(baseTokens * 1.8),
     fallbackToWorkersAI: true,
+    // 짧은 폴백 응답이 정상 리포트로 팔리지 않게 막는다(관례: 최소 분량 × 0.4).
+    // 미달이면 호출이 실패로 돌아 아래 degraded 템플릿(fallbackReport/fallbackCompat)이 대신한다.
+    fallbackMinChars: Math.round(minChars * 0.4),
     cache: {
       store: createLlmCacheStore(env),
       deterministic: true,
@@ -323,6 +326,7 @@ async function handleReport(request, env) {
     buildReportPrompt(blueprint),
     `pet-report-v1-${blueprint.petKey}-${date}`,
     3400,
+    1400, // 리포트 문장 스펙 합산(성격 문단 + 명당 5곳 + 코칭/케어/맺음) 최소치
   );
   const report = normalizeReport(parsed, blueprint) || fallbackReport(blueprint);
 
@@ -347,6 +351,7 @@ async function handleCompat(request, env) {
     buildCompatPrompt(compat, blueprintA, blueprintB),
     `pet-compat-v1-${blueprintA.petKey}-${blueprintB.petKey}-${date}`,
     3000,
+    1200, // 궁합 문장 스펙 합산(차원 리딩 + 공유 명당 + 주의/루틴) 최소치
   );
   const reading = normalizeCompat(parsed, compat) || fallbackCompat(compat);
 

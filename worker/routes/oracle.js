@@ -1,5 +1,6 @@
 import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+import { REASONING_OUTPUT_RULE_LINES } from "../lib/fortune-reasoning-contract.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
@@ -136,6 +137,9 @@ function buildGeomancyPrompt({ question, theme, cause, flow, judge }) {
     "JSON 스키마:",
     '{"answer":"","keyJudgement":"","energyFlow":"","risk":"","timing":"","actionTip":"","advice":""}',
     "작성 규칙:",
+    // 유료 상담 공통 출력 계약(worker/lib/fortune-reasoning-contract.js) — 근거 먼저·사고과정 비노출·경향 표현.
+    ...REASONING_OUTPUT_RULE_LINES.map((line) => `- ${line}`),
+    "- 아래 카드 데이터에 실제로 있는 3형상(원인/흐름/신탁)의 이름을 그대로 인용해 근거로 삼는다. 카드에 없는 상징은 새로 만들지 않는다.",
     "- answer: 최소 5~7문장, 원인->흐름->신탁의 인과를 명확히 연결",
     "- keyJudgement: 핵심 결론 2~3문장",
     "- energyFlow: 현재 에너지 구조와 방향성 3~4문장",
@@ -158,12 +162,14 @@ async function buildGeomancyOracle(env, payload) {
   const prompt = buildGeomancyPrompt(payload);
 
   const ai = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["GEOMANCY_GEMINI_MODEL"],
+    // modelEnvKeys/topP/maxAttemptsPerPair 는 callGeminiText 가 읽지 않는 옵션이었다
+    // (지정해도 적용된 적이 없다). 모델 오버라이드 의도만 살아있는 `model` 로 옮긴다.
+    model: clean(env.GEOMANCY_GEMINI_MODEL),
     temperature: 0.83,
-    topP: 0.92,
     maxOutputTokens: 4096,
     timeoutMs: Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS || 45000),
-    maxAttemptsPerPair: 2,
+    // 필드별 최소 분량 합(220+70+90+70+50+45+40=585) × 0.4. 미달이면 buildFallbackOracle 로.
+    fallbackMinChars: 240,
     // 동일 질문+카드 조합 재시도 시 캐시 + in-flight dedup으로 중복 과금 방지
     cache: {
       store: createLlmCacheStore(env),

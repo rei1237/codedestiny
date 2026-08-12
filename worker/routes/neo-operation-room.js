@@ -842,6 +842,9 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig) {
         temperature: 0.65,
         thinkingBudget: 0,
         timeoutMs: 45000,
+        // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
+        // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
+        fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
       const needsRetry = ai?.ok && (ai.truncated === true || Object.keys(parseNeoSectionResponse(ai.text)).length === 0);
