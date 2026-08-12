@@ -43,11 +43,6 @@
       "file": "lib/payment/portone.ts",
       "why": "PortOne 브라우저 SDK 로더 + 단건 결제 요청.",
       "sha256": "24c8d6d0ddc6ca67"
-    },
-    {
-      "file": "js/coin-gate-helper.js",
-      "why": "프리미엄 리포트 구매 헬퍼. 멀티호스트 재시도 루프가 여기 있다(신규 모듈에서 제거 대상).",
-      "sha256": "f4c8297af0f103a3"
     }
   ],
   "growthCeilings": [
