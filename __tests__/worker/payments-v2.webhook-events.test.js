@@ -14,7 +14,7 @@ import { CONTENT_ENTITLEMENT_STATUSES } from "../../worker/lib/models.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const SECRET = "whsec_dGVzdC1zZWNyZXQtdmFsdWU=";
-const ENV = { PORTONE_webhook: SECRET, PORTONE_WEBHOOK_SECRET: SECRET, PAYMENTS_V2_SHADOW: "true" };
+const ENV = { PORTONE_webhook: SECRET, PORTONE_WEBHOOK_SECRET: SECRET };
 const PAID_STATUS = __ordersTestUtils.PAID_RAW_STATUSES[0];
 
 let eventSeq = 0;

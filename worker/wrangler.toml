@@ -68,9 +68,15 @@ NAVER_OAUTH_CALLBACK = "https://code-destiny.com/api/auth/oauth/naver/callback"
 KAKAO_OAUTH_CALLBACK = "https://code-destiny.com/api/auth/oauth/kakao/callback"
 AUTH_SIGNUP_BONUS_POINTS = "50"
 AUTH_OPERATION_TIMEOUT_MS = "12000"
-MONGO_SERVER_SELECTION_TIMEOUT_MS = "8000"
-MONGO_CONNECT_TIMEOUT_MS = "8000"
-MONGO_SOCKET_TIMEOUT_MS = "11000"
+# 🔴 아래 세 값과 MONGO_WAIT_QUEUE_TIMEOUT_MS 는 worker/lib/db.js 의 코드 기본값과 **한 세트**다
+#    (2026-08-13 정렬). 앞선 커밋이 코드 기본값만 낮추고 여기를 안 고쳐서, env 가 코드를 이기는 바람에
+#    슬롯 점유 단축이 프로덕션에서 통째로 무효였다. 지렛대는 파생 하한이다 —
+#    attemptTimeoutFloor = serverSelectionTimeoutMS + 3500 (db.js). 8000 이면 하한이 11500 이라
+#    op 예산 8000 을 무시하고 시도당 11.5초를 점유하고, 3000 이면 하한이 6500 이라 8000 이 실효가 된다.
+#    되올리려면 db.js 의 기본값도 같이 올릴 것. 한쪽만 올리면 조용히 원래 병목으로 돌아간다.
+MONGO_SERVER_SELECTION_TIMEOUT_MS = "3000"
+MONGO_CONNECT_TIMEOUT_MS = "5000"
+MONGO_SOCKET_TIMEOUT_MS = "7000"
 MONGO_WORKER_CONNECT_GUARD_MS = "10000"
 MONGO_WORKER_CONNECT_RETRIES = "2"
 MONGO_PING_TIMEOUT_MS = "3500"
@@ -102,10 +108,16 @@ MONGO_MAX_IDLE_TIME_MS = "60000"
 MONGO_PING_MIN_INTERVAL_MS = "50000"
 # 동시에 새로 여는 커넥션 수. 15/s 예산에 직접 대응하는 유일한 드라이버 노브다.
 MONGO_MAX_CONNECTING = "2"
+# 🔴 poll 모니터가 노드마다 hello 를 던지는 주기(드라이버 기본 10000). M10 은 3노드라 클라이언트
+# 하나당 초당 0.3회가 **요청과 무관하게** 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
+# (트래픽 없는 새벽에도 Atlas Opcounters 가 평평하게 떠 있는 성분). 30000 으로 3분의 1로 줄인다.
+# 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면 즉시 모니터 확인이 트리거된다.
+MONGO_HEARTBEAT_FREQUENCY_MS = "30000"
 # 자작 admission 게이트. 한도 > 풀 이어야 초과분이 재시도 가능한 waitQueue 로 간다.
 MONGO_MAX_IN_FLIGHT_OPS = "24"
 MONGO_PAYMENT_MAX_IN_FLIGHT_OPS = "12"
-MONGO_WAIT_QUEUE_TIMEOUT_MS = "5000"
+# 위 세 타임아웃과 한 세트(2026-08-13). 소켓 대기 상한이며 op 예산(8000) 안쪽에 있어야 한다.
+MONGO_WAIT_QUEUE_TIMEOUT_MS = "4000"
 # 결제 레인 수립 재시도. 이게 없던 것이 "결제가 한 번에 안 되고 재시도하면 되는" 증상이었다.
 MONGO_PAYMENT_CONNECT_RETRIES = "1"
 MONGO_PAYMENT_CONNECT_GUARD_MS = "9000"
@@ -128,12 +140,6 @@ WORKERS_AI_ENABLED = "true"
 PDF_LLM_MAX_CALLS_PER_JOB = "1"
 PDF_REAL_LLM_CHAPTER_IDS = "intro"
 PDF_DEBUG_MODE = "true"
-# 신규 결제 컨텍스트(worker/payments/)를 /api/payments2/* 로만 연다. 구 /api/payments/* 는 그대로다.
-# 사용자 트래픽은 여기로 오지 않는다 — 실제 요청·실제 Mongo 위에서 왕복 예산(주문 1회 · 확정 cold 3회)과
-# 오류 분류가 지켜지는지 [pay] 로그로 확인한 뒤 엔드포인트를 하나씩 컷오버하기 위한 관측 창이다.
-# 판정은 "true" 정확 일치다("1"·"yes" 는 켜지지 않는다). 끄려면 이 줄을 지우면 되고, 꺼져 있으면
-# 모듈을 import 조차 하지 않으므로 남겨 둘 때의 비용은 0이다.
-PAYMENTS_V2_SHADOW = "true"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*

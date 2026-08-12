@@ -17,6 +17,9 @@
  *     원장 예약(미정산) → lot 차감 → 원장 정산 → 권한 지급
  *
  * 1↔2 사이에서 죽으면 **미정산 원장 + 미차감 잔액** 이 남는다. 사용자는 과금되지 않았고 재시도가 안전하다.
+ * 그 잔상은 두 곳이 걷는다: 같은 requestId 로 다시 온 요청이 그 자리에서 이어받고
+ * (STALE_RESERVATION_TAKEOVER_MS), 아무도 다시 오지 않은 것은 크론(settleOrphanSpends)이 정리한다.
+ * 크론만 있던 시절에는 재시도가 최대 10분 동안 409 만 받았다.
  * 반대 순서(차감 먼저)가 트랜잭션이 가리고 있던 **유일하게 나쁜 인터리빙**이다 — 거기서 죽으면
  * 기록 없이 차감만 남아 사람이 찾아내기 전까지 복구가 안 된다.
  *
@@ -39,8 +42,33 @@ const SPEND = "MONTHLY_CREDIT_SPEND";
 /** 미정산 예약행을 골라내는 조건. `settledAt` 에 default 를 두지 않은 이유가 이것이다. */
 export const UNSETTLED_FILTER = Object.freeze({ settledAt: { $exists: false } });
 
+/**
+ * 🔴 미정산 예약을 "주인이 죽은 것"으로 보고 이어받는 나이.
+ *
+ * 이 시스템에서 요청 하나가 살아 있을 수 있는 최대 시간은 셸의 checkout 상한 25초이고, 서버 예산
+ * (시도 8초 × 2 + admission 대기)도 그 안쪽이다. 90초를 넘긴 미정산 예약의 주인은 살아 있을 수 없다.
+ * 그보다 짧게 잡으면 **진행 중인 형제를 가로챌** 수 있으므로 예산 상한 아래로 내리지 말 것.
+ */
+const STALE_RESERVATION_TAKEOVER_MS = 90_000;
+
 function ledgerFilter(uid, sourceId) {
   return { userId: uid, type: SPEND, sourceId };
+}
+
+/**
+ * 차감이 실제로 일어났는가. 증거는 `recentConsumeRequestIds` 하나뿐이다 — lot CAS 가 차감과 **같은
+ * 갱신에서** 넣으므로 둘은 한 세트이고, 따라서 이 배열에 sourceId 가 있으면 잔액은 이미 깎였다.
+ * 인라인 인수와 크론이 같은 판정을 써야 한다(둘이 갈라지면 한쪽은 정산, 한쪽은 되돌림을 한다).
+ */
+async function readSpendEvidence(db, userId, sourceId) {
+  const user = await db.findOne(User, { _id: userId }, {
+    projection: { recentConsumeRequestIds: 1, "profileSubscription.membershipCreditBalance": 1 },
+  });
+  return {
+    deducted: Array.isArray(user?.recentConsumeRequestIds)
+      && user.recentConsumeRequestIds.includes(String(sourceId)),
+    balance: Number(user?.profileSubscription?.membershipCreditBalance || 0),
+  };
 }
 
 /**
@@ -71,34 +99,62 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   // ── 1. 원장 예약. **효과보다 의도를 먼저 남긴다.**
   //    unique {userId,type,sourceId} 가 프로덕션에 실제로 존재함을 확인했으므로(2026-08-11 실측)
   //    여기서의 중복 판정은 DB 가 보장한다.
-  let reserved = true;
-  try {
-    await db.insertOne(MonthlyCreditLedger, {
-      userId: uid,
-      type: SPEND,
-      amount: cost,
-      sourceId,
-      serviceKey: String(product.featureKey || ""),
-      profileId: String(profileId || ""),
-      reason: String(product.label || ""),
-      metadata: { purchaseId: sourceId, productId: String(product.productId || "") },
-      createdAt: now,
-      updatedAt: now,
-      // settledAt 은 일부러 넣지 않는다 — 이 순간의 이 행이 '미정산 예약'이라는 표식이다.
-    });
-  } catch (error) {
-    if (Number(error?.code) !== 11000) throw error;
-    reserved = false;
-  }
+  const inProgress = () => paymentError(
+    "MOONSTONE_IN_PROGRESS", "월정석 사용을 처리하는 중입니다. 잠시 후 다시 시도해 주세요.", { sourceId },
+  );
+  const reserve = async () => {
+    try {
+      await db.insertOne(MonthlyCreditLedger, {
+        userId: uid,
+        type: SPEND,
+        amount: cost,
+        sourceId,
+        serviceKey: String(product.featureKey || ""),
+        profileId: String(profileId || ""),
+        reason: String(product.label || ""),
+        metadata: { purchaseId: sourceId, productId: String(product.productId || "") },
+        createdAt: now,
+        updatedAt: now,
+        // settledAt 은 일부러 넣지 않는다 — 이 순간의 이 행이 '미정산 예약'이라는 표식이다.
+      });
+      return true;
+    } catch (error) {
+      if (Number(error?.code) !== 11000) throw error;
+      return false;
+    }
+  };
 
-  if (!reserved) {
+  if (!(await reserve())) {
     // 이미 같은 purchaseId 로 진행됐거나 진행 중이다. 어느 쪽인지는 정산 여부가 말해 준다.
     const existing = await db.findOne(MonthlyCreditLedger, ledgerFilter(uid, sourceId));
     if (existing?.settledAt) {
       return { balance: Number(existing.afterBalance || 0), replayed: true, ledgerId: String(existing._id || "") };
     }
-    // 형제 요청이 아직 차감 중이다. 402(잔액부족)로 내면 사용자가 카드로 또 결제해 이중과금이 된다.
-    throw paymentError("MOONSTONE_IN_PROGRESS", "월정석 사용을 처리하는 중입니다. 잠시 후 다시 시도해 주세요.", { sourceId });
+
+    /* 🔴 여기는 오래 막다른 길이었다. 형제 요청이 예약만 남기고 죽으면(아이솔레이트 종료·op 타임아웃)
+       그 미정산 행이 unique 인덱스를 계속 점유해, 같은 requestId 로 오는 재시도는 크론 sweep(5분,
+       최대 10분)까지 409 만 받았다. 호출부는 requestId 를 세션 단위로 캐시하므로 사용자에게는
+       "월정석이 한동안 안 되는" 상태다. 주인이 확실히 죽었다면 그 자리에서 이어받는다. */
+    const ageMs = now.getTime() - new Date(existing?.createdAt || now).getTime();
+    if (!existing || ageMs < STALE_RESERVATION_TAKEOVER_MS) throw inProgress();
+
+    const evidence = await readSpendEvidence(db, uid, sourceId);
+    if (evidence.deducted) {
+      // 형제가 차감까지 하고 원장을 못 닫았다. 다시 깎지 않고 정산만 마무리한다(크론과 같은 판정).
+      await db.updateOne(
+        MonthlyCreditLedger,
+        { ...ledgerFilter(uid, sourceId), ...UNSETTLED_FILTER },
+        { $set: { beforeBalance: evidence.balance + cost, afterBalance: evidence.balance, settledAt: new Date(), updatedAt: new Date() } },
+      );
+      return { balance: evidence.balance, replayed: true, ledgerId: String(existing._id || "") };
+    }
+
+    /* 차감은 없었다 = 사용자는 과금되지 않았다. 죽은 예약을 걷어내고 이 요청이 이어받는다.
+       삭제는 _id + 미정산 조건부라, 같은 순간 다른 요청이 먼저 이어받았으면 0건이 나오고 그때는
+       진짜로 진행 중인 형제가 있는 것이므로 기존대로 409 다. */
+    const removed = await db.deleteOne(MonthlyCreditLedger, { _id: existing._id, ...UNSETTLED_FILTER });
+    if (Number(removed?.deletedCount || 0) !== 1) throw inProgress();
+    if (!(await reserve())) throw inProgress();
   }
 
   // ── 2. lot 차감. 이미 올바른 CAS 를 **그대로** 쓴다(동결 대상 — 여기서 재구현하지 않는다).
@@ -161,14 +217,9 @@ export async function settleOrphanSpends(db, { now = new Date(), olderThanMs = 5
   let settled = 0;
   let reverted = 0;
   for (const row of orphans) {
-    const user = await db.findOne(User, { _id: row.userId }, {
-      projection: { recentConsumeRequestIds: 1, "profileSubscription.membershipCreditBalance": 1 },
-    });
-    const deducted = Array.isArray(user?.recentConsumeRequestIds)
-      && user.recentConsumeRequestIds.includes(String(row.sourceId));
+    const { deducted, balance } = await readSpendEvidence(db, row.userId, row.sourceId);
 
     if (deducted) {
-      const balance = Number(user?.profileSubscription?.membershipCreditBalance || 0);
       await db.updateOne(MonthlyCreditLedger, { _id: row._id }, {
         $set: { beforeBalance: balance + Number(row.amount || 0), afterBalance: balance, settledAt: now, updatedAt: now },
       });

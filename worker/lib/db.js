@@ -613,9 +613,12 @@ export async function connectDb(env = {}) {
           // 콜드 아이솔레이트가 풀을 한꺼번에 채우지 않고 2개씩 계단식으로 연다.
           maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
           // 🔴 M10 은 3노드 리플리카셋이다(M0 에는 리플리카셋이 없어 이 두 옵션이 무의미했다).
-          // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다 —
-          // 그게 serverSelectionTimeoutMS(8초)를 줄이면 안 되는 이유와 한 세트다: 선택창은
-          // 선거가 끝날 때까지 기다려 주는 시간이고, 재시도는 그 사이 실패한 op 를 살리는 장치다.
+          // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다.
+          // 🔴 선거 내성을 담당하는 것은 **이 두 옵션과 withMongoRetry 의 재시도**이지 긴 선택창이
+          // 아니다(2026-08-13 정정). 예전 주석은 serverSelectionTimeoutMS 8000 을 "선거가 끝날
+          // 때까지 기다려 주는 시간"이라 적었지만, 그 값은 파생 하한(+3500)을 통해 모든 요청의
+          // 시도 예산을 11.5초로 밀어 올려 슬롯을 붙들었다 — 드문 선거를 위해 상시 비용을 냈다.
+          // 지금은 3000 이며(코드·wrangler [vars] 동일), 되올리려면 양쪽을 함께 올려야 한다.
           retryWrites: true,
           retryReads: true,
           // Atlas Query Profiler / Real-Time Panel 에서 부하 주체를 구분하기 위한 라벨.
@@ -633,6 +636,14 @@ export async function connectDb(env = {}) {
           // 재사용할 때 "Cannot perform I/O on behalf of a different request"(→ Mongo 에러로 분류 안 돼 500)를
           // 유발했다. 'poll' 모드는 짧은 개별 하트비트만 써 이 지속 스트림을 만들지 않는다(서버리스/엣지 권장).
           serverMonitoringMode: "poll",
+          // 🔴 poll 모니터는 노드마다 주기적으로 hello 를 던진다. M10 은 3노드라 클라이언트 하나당
+          // 초당 0.3회가 요청과 무관하게 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
+          // (M0 는 1노드였으므로 M10 전환만으로 3배가 됐다 — Atlas Opcounters 가 트래픽 없는
+          // 새벽에도 평평하게 떠 있는 성분이 이것이다). 드라이버 기본값 10000 을 30000 으로 늘려
+          // 3분의 1로 줄인다. 진행 중인 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면
+          // 드라이버가 즉시 모니터 확인을 트리거하기 때문이다(minHeartbeatFrequency 500ms).
+          // 늦어지는 것은 **유휴 상태에서의 토폴로지 변화 발견**뿐이다.
+          heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
           // commandStarted/Succeeded 이벤트를 켠다 — '명령이 나갔는지'와 '서버가 늦는지'를
           // 가르는 유일한 신호다. 카운터만 올리므로 비용은 무시할 수준이다.
           monitorCommands: true,
@@ -792,6 +803,9 @@ export async function connectPaymentDb(env = {}) {
     autoIndex: false,
     // 공유 커넥션과 같은 이유(Workers 요청 간 I/O 격리)로 poll 모니터링을 쓴다 — connectDb 주석 참고.
     serverMonitoringMode: "poll",
+    // 🔴 하트비트 주기도 공유 커넥션과 같은 값을 쓴다(근거는 connectDb 쪽 주석). 레인을 켜면
+    // 아이솔레이트당 클라이언트가 둘이 되어 이 상시 부하가 그대로 2배가 되므로 특히 여기서 중요하다.
+    heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
     // 🔴 공유 커넥션에는 있고 여기엔 없던 계측을 맞춘다. instrumentMongoClient 가 붙지 않으면
     // `[db-op-timeout]` 의 checkOutFailed/checkedOut 카운터가 **가장 사고가 잦은 결제 경로를
     // 보지 못한다** — 진단할 때마다 공유 커넥션 수치를 결제 수치로 착각하게 된다.
@@ -868,9 +882,9 @@ const SELF_INFLICTED_FAILURE_WINDOW_MS = 3000;
  *
  *   node_modules/mongodb/lib/sessions.js — `const MAX_TIMEOUT = 120000;`
  *   `withTransaction` 은 TransientTransactionError·UnknownTransactionCommitResult 를
- *   **최대 120초** 동안 내부 재시도한다. 우리 op 예산은 12초(MONGO_OP_ATTEMPT_TIMEOUT_MS)다.
+ *   **최대 120초** 동안 내부 재시도한다. 우리 op 예산은 8초(MONGO_OP_ATTEMPT_TIMEOUT_MS)다.
  *
- * 즉 우리가 12초에 잘라 사용자에게 "실패"를 응답한 뒤에도 트랜잭션은 살아서 최대 108초를 더
+ * 즉 우리가 그 예산에서 잘라 사용자에게 "실패"를 응답한 뒤에도 트랜잭션은 살아서 100초 넘게 더
  * 재시도하다 **커밋될 수 있다.** "실패했다고 안내했는데 돈은 움직인 상태"가 그 결과다.
  * 같은 드라이버 주석이 경고하는 또 하나: 콜백 안에서 에러를 삼키면 드라이버가 트랜잭션이
  * abort 됐는지 알 수 없어 **무한 재시도**한다.

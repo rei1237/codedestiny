@@ -149,39 +149,24 @@ const PAYMENT_DB_OPTIONS = Object.freeze({
      수혜자가 **다음 요청**이라 성공↔실패가 교대로 나왔다 — 사용자에겐 "될 때도 있고 안 될 때도
      있는 결제창"이다. 켜면 그 리셋을 자기 요청이 써서 하드 503 이 느린 성공으로 바뀐다.
      결제는 요청당 슬롯도 op 도 하나뿐이라(withPaymentDb) 누적 걱정이 없고, 최악 16초도
-     셸 checkout 상한(25초) 안이다(시도 상한 8초 × 2). */
+     셸 checkout 상한(25초) 안이다(시도 상한 8초 × 2).
+     🔴 이 산식은 db.js 코드 기본값과 wrangler.toml [vars] 가 **일치할 때만** 성립한다. 둘이 갈라지면
+     env 가 이기고, serverSelectionTimeoutMS 가 크면 파생 하한(+3500)이 시도 상한을 8초 위로 밀어
+     올려 이 주석이 조용히 거짓이 된다(2026-08-13 정렬 전 실제 상황: 8초가 아니라 11.5초였다). */
   retryOnOperationTimeout: true,
 });
 
-/**
- * 🔴 PG 검증을 콜백 **안에서** 하는 호출부(=확정)의 시도 예산.
- *
- * 공유 기본값(8000)은 "waitQueue + Mongo 쿼리"만 담는 예산이다. 그런데 confirmOrder 는
- * verifyPgPayment(PortOne REST, PORTONE_API_TIMEOUT_MS 기본 8000)를 withPaymentDb 콜백 안에서
- * 돌린다. 한 시도의 최악 비용이 waitQueue 4000 + PortOne 8000 + 쿼리 4~5회 ≈ 14초라, 기본값으로
- * 두면 **PG 가 느린 순간마다** op-타임아웃이 난다.
- *
- * 그 실패가 특히 나쁜 이유: 카드는 이미 승인됐는데 주문이 PENDING 으로 남는다. 재조정 크론
- * (worker/lib/payment-reconcile-task.js reconcilePendingPayments)이 PortOne 에 다시 물어 정산하므로
- * 돈이 사라지지는 않지만, 사용자는 그 사이 "결제 실패"를 본다. 되돌리지 말 것.
- *
- * retryOnOperationTimeout 을 끄는 이유: 여기서의 op-타임아웃은 죽은 커넥션이 아니라 **PG 지연**이
- * 지배적이라 재시도해도 같은 이유로 또 기다린다. 게다가 15000 × 2 = 30초는 셸 confirm 상한(25초,
- * index.html 의 요청 타임아웃 표)을 넘겨, 서버가 아직 붙들고 있는 요청을 클라가 먼저 포기하게 된다.
- * 커넥션 문제의 복구는 재조정 크론과 클라이언트의 재확정 티켓이 맡는다.
- *
- * 🔴 15000 은 **시도 상한 clamp(18000)** 안이어야 하고 셸 상한(25000)보다 작아야 한다.
- * PORTONE_API_TIMEOUT_MS 를 올리면 여기도 함께 올려야 한다(둘은 한 세트다).
- */
-export const CONFIRM_DB_OPTIONS = Object.freeze({
-  attemptTimeoutMS: 15000,
-  retryOnOperationTimeout: false,
-});
+/* 🔴 확정 전용 예산(CONFIRM_DB_OPTIONS, attemptTimeoutMS 15000)은 **제거됐다**(2026-08-13).
+   그건 "PG 검증이 슬롯 안에서 돈다"는 전제 위에 세운 예산이었는데, 확정이 판정 · PG · 정산으로
+   갈라지면서 그 전제가 사라졌다(worker/payments/index.js confirmOrder 머리주석).
+   이제 두 슬롯 모두 기본값(8000)을 쓰고, 확정 한 건의 최악 비용은 8000(판정) + 8000(PG, 슬롯 밖)
+   + 8000(정산) = 24초로 셸 confirm 상한 25초 안이다.
+   🔴 다시 넣지 말 것 — 예산을 늘리는 것으로 보이지만 실제로는 PG 를 슬롯 안으로 되돌렸다는 신호다.
 
-/* 소켓 레인을 켠 경우에만 공유 핸드셰이크를 끈다. 두 커넥션을 직렬로 세우면 콜드 아이솔레이트가
+   소켓 레인을 켠 경우에만 공유 핸드셰이크를 끈다. 두 커넥션을 직렬로 세우면 콜드 아이솔레이트가
    op 예산을 넘기기 때문이다(레인이 켜져 있을 때만 성립하는 이야기다).
-   overrides 는 호출부별 예산 조정용이다 — 지금은 CONFIRM_DB_OPTIONS 하나뿐이고, 새 키를
-   자유롭게 받는 확장점이 아니다(admissionLane 을 덮으면 레인 분리가 조용히 무너진다). */
+   overrides 는 호출부별 예산 조정용이며 새 키를 자유롭게 받는 확장점이 아니다
+   (admissionLane 을 덮으면 레인 분리가 조용히 무너진다). */
 function paymentDbOptions(env, overrides) {
   const base = isSocketLaneEnabled(env)
     ? { ...PAYMENT_DB_OPTIONS, skipSharedConnect: true }
@@ -196,7 +181,7 @@ function paymentDbOptions(env, overrides) {
  * @param {object} env
  * @param {ReturnType<typeof createPaymentContext>} ctx
  * @param {(db: ReturnType<typeof makeCountingDb>) => Promise<any>} fn
- * @param {object} [overrides] 호출부별 예산(CONFIRM_DB_OPTIONS). 생략하면 결제 기본값.
+ * @param {object} [overrides] 호출부별 예산. 생략하면 결제 기본값(현재 모든 호출부가 기본값이다).
  */
 export async function withPaymentDb(env, ctx, fn, overrides) {
   if (ctx.inDb) {

@@ -10649,6 +10649,9 @@
         return canonical(options || {});
       }
       // canonical 모달이 없는 독립(정적) 페이지: 정책준수 자체 결제 선택 모달(단건/월정석 동등)을 연다.
+      // 🔴 예열은 여기서 한다(2026-08-13). _dpOpenPaidServiceGate 를 거치지 않고 이 통로로 바로 들어오는
+      // 독립 페이지는 SDK 다운로드가 클릭 핸들러 안(최대 8초)으로 밀려 결제창이 늦게 떴다.
+      _dpPreloadPortOneV2Sdk();
       return _dpRenderStandalonePaymentChoice(options || {});
     };
     _dpCanonicalPaymentChoice.__cdSupportsPassChoice = true;

@@ -328,8 +328,10 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     const order = await prepareOrder(db, "vvip", "sub-webhook-actor");
 
     const { confirmOrder } = __paymentsContextTestUtils;
+    const runConfirm = (handle, ctx, input, deps) =>
+      confirmOrder(ENV, ctx, input, { withDb: (_env, _ctx, fn) => fn(handle), deps });
     const ctx = { mongoOps: 0 };
-    const result = await confirmOrder(ENV, db, ctx, { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctx, { orderId: order.merchantUid }, {
       fetchPayment: async () => ({
         paymentId: order.merchantUid, status: "paid", amount: 59000, currency: "KRW",
         pay_method: "card", paid_at: Math.floor(Date.now() / 1000),
@@ -358,6 +360,45 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(payload.subscription.isActive).toBe(true);
     expect(user.profileSubscription.tier).toBe("standard");
     expect(row.entitlementGrantedAt).toBeTruthy();
+  });
+
+  /* 🔴 카드는 이미 승인됐다. 여기서 503 을 내면 사용자는 결제된 돈에 대해 "실패"를 보고, 재시도해도
+     주문이 PAID 라 같은 답만 돌아온다 — confirmOrder 머리주석이 "구 코드의 모순"이라며 제거를 선언한
+     그 패턴이 이용권 경로에만 남아 있었다. 마무리는 웹훅 재생과 재조정 크론이 맡는다. */
+  test("활성화 쓰기가 실패해도 200 GRANT_PENDING — 결제된 돈에 실패를 답하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-grant-fails");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, { status: "paid", paidAt: new Date(), entitlementGrantedAt: null });
+
+    // 활성화 쓰기만 죽인다(다른 읽기·쓰기는 정상) — confirmOrder 안팎의 두 번의 지급 시도가 모두 실패한다.
+    const failing = {
+      ...db,
+      async findOneAndUpdate(Model, filter, update, opts) {
+        if (update?.$set?.["profileSubscription.tier"]) throw new Error("connection timed out");
+        return db.findOneAndUpdate(Model, filter, update, opts);
+      },
+    };
+    const request = new Request("https://code-destiny.com/api/payments/subscription/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await tokenFor(USER)}` },
+      body: JSON.stringify(passBody("standard", { impUid: order.merchantUid, merchantUid: order.merchantUid })),
+    });
+    const response = await handlePaymentsContext(request, ENV, {
+      prefix: "/api/payments",
+      withDb: (_env, _ctx, fn) => fn(failing),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.code).toBe("GRANT_PENDING");
+    expect(payload.activationPending).toBe(true);
+    expect(payload.pollUrl).toContain(order.merchantUid);
+    expect(payload.payment.status).toBe("paid");
+    // 주문은 paid + 미지급으로 남아야 크론 regrantUnfulfilledOrders 가 집어간다.
+    expect(row.status).toBe("paid");
+    expect(row.entitlementGrantedAt).toBeFalsy();
   });
 });
 
