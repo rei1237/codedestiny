@@ -7047,9 +7047,12 @@ function _sajuPromptShouldRetryPaidGeneration(result) {
   var reason = String(details.reason || payload.reason || '').trim().toUpperCase();
   var message = String(payload.message || details.message || '').trim();
   var status = Number(result && result.status);
+  // 524 는 Cloudflare 가 동기 생성 도중 연결을 끊은 것이다. 재-POST 는 서버의 재연결 분기를 타
+  // (완료면 저장분, 진행 중이면 202) 재차감 없이 폴링으로 전환된다.
   return status === 503
     || status === 502
     || status === 504
+    || status === 524
     || code === 'SERVICE_UNAVAILABLE'
     || code === 'PAID_ACCESS_VERIFY_RETRYABLE'
     || code === 'LLM_GENERATION_RETRYABLE'
@@ -7163,7 +7166,9 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
   if (typeof opts.onJobRequestReady === 'function') {
     try {
       opts.onJobRequestReady({
-        requestId: body.requestId,
+        // 서버(readAIPromptRequestId)는 idempotencyKey 를 우선해 레코드를 키잉한다.
+        // 폴링 키를 여기서 맞춰 두지 않으면 카드 경로에서 /status 가 404 로 샌다.
+        requestId: String((body.idempotencyKey || body.requestId) || '').trim() || body.requestId,
         profileId: profileId,
         question: question,
         domain: String(domain || '').trim(),
@@ -7441,6 +7446,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var POLL_MAX_ATTEMPTS = 120; // 1.5s * 120 ≈ 3분 상한 — 무한 폴링(Cloudflare 1015) 방지
   var pollAttempts = 0;
   var pollErrorStreak = 0;
+  // 404(JOB_NOT_FOUND)는 에러가 아니라 정상 응답이라 pollErrorStreak 에 잡히지 않아, 폴링 키가
+  // 서버 레코드와 어긋나면 3분 내내 조용히 404 만 치다 끝났다. 짧게 끊고 재생성으로 인계한다.
+  var pollNotFoundStreak = 0;
   var lastPaidEvidence = null;
   var lastPaidEvidenceKey = '';
   // 게이트(이용권/결제) 확인이 끝나기 전에는 진행바가 '생성 단계'로 앞서 나가지 않게 막는 플래그.
@@ -7501,7 +7509,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }
     var urls = _sajuPromptApiUrls('/api/fortune/saju-ai-consultation/basis');
     _cdAIPromptRequestJson(urls[0], { method: 'POST', body: JSON.stringify(payload) }).then(function(result) {
-      var data = result && result.data;
+      // 두 전송 경로 모두 { ok, status, payload } 를 돌려준다 — result.data 는 항상 undefined 였다.
+      var data = result && result.payload;
       if (!result || !result.ok || !data || !Array.isArray(data.groups) || !data.groups.length) return;
       liveBasis = data;
       renderLiveBasis();
@@ -7557,6 +7566,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     pollTimer = null;
     pollAttempts = 0;
     pollErrorStreak = 0;
+    pollNotFoundStreak = 0;
   }
   function setLoading(next) {
     isLoading = !!next;
@@ -7660,6 +7670,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     if (immediate) {
       pollAttempts = 0;
       pollErrorStreak = 0;
+      pollNotFoundStreak = 0;
     }
     clearTimeout(pollTimer);
     pollTimer = null;
@@ -7677,6 +7688,15 @@ function _bindSajuQuestionPromptCard(rootEl) {
       _sajuPromptFetchStatus(activePendingJob).then(function(result) {
         pollErrorStreak = 0;
         var payload = result && result.payload ? result.payload : {};
+        if (Number(result && result.status) === 404) {
+          pollNotFoundStreak += 1;
+          if (pollNotFoundStreak >= 4) {
+            markFailedForRetry(activePendingJob, '이전 상담 생성 기록을 찾지 못했어요. 결제가 확인된 경우 추가 결제 없이 다시 생성할 수 있습니다.', 'JOB_NOT_FOUND');
+            return;
+          }
+        } else {
+          pollNotFoundStreak = 0;
+        }
         if (payload.jobId || payload.executionId || payload.resultId) {
           rememberPendingJob(Object.assign({}, activePendingJob, {
             jobId: payload.jobId || payload.executionId || activePendingJob.jobId,
@@ -7821,8 +7841,28 @@ function _bindSajuQuestionPromptCard(rootEl) {
         _sajuPromptSetStatus(statusEl, message, 'error');
         return;
       }
+      // 결제는 끝났는데 서버가 5xx(또는 엣지 절단)로 답한 경우. 여기서 증거를 놓으면 다음 클릭이
+      // 결제창을 다시 열어 같은 상담에 두 번 결제하게 된다 — 재생성 버튼으로 인계한다.
+      if (result && result._sajuPaidEvidence && (!Number(result.status) || Number(result.status) >= 500)) {
+        lastPaidEvidence = result._sajuPaidEvidence;
+        lastPaidEvidenceKey = key;
+        rememberPendingJob(Object.assign({}, activePendingJob || {}, {
+          requestId: payload.requestId || (activePendingJob && activePendingJob.requestId),
+          profileId: (activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId(),
+          question: question,
+          domain: domain,
+          privacyOptions: privacyOptions,
+          paidEvidence: result._sajuPaidEvidence
+        }));
+        markFailedForRetry(activePendingJob, message, code || ('HTTP_' + (Number(result.status) || 0)));
+        return;
+      }
       _sajuPromptSetStatus(statusEl, message, 'error');
     }).catch(function() {
+      if (activePendingJob && activePendingJob.paidEvidence) {
+        markFailedForRetry(activePendingJob, '네트워크 오류가 발생했어요. 결제가 확인된 경우 추가 결제 없이 다시 생성할 수 있습니다.', 'NETWORK_ERROR');
+        return;
+      }
       _sajuPromptSetStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
     }).finally(function() {
       if (!keepWaiting) setLoading(false);
