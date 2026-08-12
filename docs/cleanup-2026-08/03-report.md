@@ -123,8 +123,8 @@ A/B 항목 중 Android 채널에 참조가 걸린 것은 **0건**(전수 스캔 
 
 | # | 항목 | 문제 |
 |---|---|---|
-| W-1 | `worker/routes/auth.js:3657` `/api/auth/app/exchange` — **호출자 0** | 앱은 액세스 토큰(30분) 만료 후 갱신 수단이 없다(쿠키가 `SameSite=Lax` 라 앱 출처에 안 실림). 슬라이딩 갱신 엔드포인트가 서버에 이미 있는데 아무도 안 부른다 → **앱 사용자가 30분 뒤 로그아웃된다** (AUDIT.md A1, P1) |
-| W-2 | `npm run verify:worker-size` — **아무것도 검사하지 않음** | `handler.mjs not found. Skipping size budget check.` 후 exit 0. Worker 번들이 2주 만에 +18.3%(11,478→13,577 KiB) 늘었는데 예산 가드가 침묵했다 |
+| ~~W-1~~ **해소됨 (2026-08-13 확인)** | `/api/auth/app/exchange` — 호출자 0 | 원 서술("앱은 30분 뒤 갱신 수단이 없어 로그아웃된다")은 **더 이상 사실이 아니다.** 앱 갱신은 이 엔드포인트가 아니라 **다른 방식으로 이미 배선됐다**: 앱 로그인·회원가입 응답이 본문에 `refreshToken` 을 싣고, 클라이언트가 `mobileAppAuthHeaders()` 로 `x-code-destiny-refresh-token` 헤더에 실어 `/api/auth/refresh` 를 부른다. 회전된 토큰은 `persistMobileAppRefreshToken` 이 즉시 갈아끼운다(`app/_lib/auth-client.ts`, `worker/routes/auth.js` `APP_REFRESH_TOKEN_HEADER`, 가드 `__tests__/worker/auth.app-refresh-token.test.js`). 따라서 `app/exchange` 는 "배선해야 할 것"이 아니라 **그냥 죽은 코드**이며 삭제 대상이다 |
+| ~~W-2~~ **해소됨 (2026-08-13)** | `npm run verify:worker-size` — 아무것도 검사하지 않음 | 원인은 OpenNext 산출물(`handler.mjs`)을 찾은 것이었다. 프로덕션 워커는 `wrangler deploy --config worker/wrangler.toml` 로 빌드되므로 그 파일은 애초에 없다. 이제 `build:worker` 의 `--outdir` 산출물을 재고, 없으면 통과가 아니라 **실패**한다. 고친 뒤 첫 실측: **gzip 2.89 MiB / 무료 플랜 3 MiB = 96.3%** |
 | W-3 | `__tests__/guardian-fortune/contract.test.js` — **어느 러너에서도 안 돎** | jest `testPathIgnorePatterns` 제외 + `test:node` 글롭 미포함. 파일은 2026-08-08 에 수정됐다 |
 | W-4 | `server/services/kasi-calendar.service.js` 가 **미설치 `redis`** 를 import | 레거시 Express 경로. 실행 즉시 실패 |
 | W-5 | 배선된 verify 2개가 미선언 의존성 의존 | `verify:mobile-cdp-smoke`→`ws`, `verify:i18n-no-hardcoded-korean`→`@babel/parser`. transitive 해결이 끊기면 조용히 깨진다 |
