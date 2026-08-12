@@ -229,7 +229,6 @@ function stripLeadingBom(buffer) {
 }
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
-const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-payment-wasm";
 // 이 상수가 셸의 ?v= 를 빌드 때 덮어쓰므로, js/mobile-interaction-patch.js 를 수정하면
 // 반드시 여기도 함께 올려야 한다. 올리지 않으면 파일만 바뀌고 URL 이 그대로라 재방문
 // 사용자는 옛 캐시를 계속 쓴다(2026-07-02 값이 07-22 수정본까지 그대로 붙잡고 있었다).
@@ -420,23 +419,15 @@ function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
   const html = String(source || "");
   return html.replace(
     /(\/js\/[^"'\s`)]+\.js\?v=)([a-zA-Z0-9_-]+)/g,
-    (match, prefix) => {
-      if (prefix.includes("/js/vedic-ai-consultation.js?v=")) return `${prefix}${VEDIC_AI_CONSULTATION_CACHE_KEY}`;
-      return `${prefix}${buildTimestamp}`;
-    },
+    (match, prefix) => `${prefix}${buildTimestamp}`,
   );
 }
 
-function preserveVedicAIConsultationCacheKey(source) {
-  return String(source || "")
-    .replace(
-      /(\/js\/vedic-ai-consultation\.js\?v=)[a-zA-Z0-9_-]+/g,
-      `$1${VEDIC_AI_CONSULTATION_CACHE_KEY}`,
-    )
-    .replace(
-      /(\/js\/mobile-interaction-patch\.js\?v=)[a-zA-Z0-9_-]+/g,
-      `$1${MOBILE_INTERACTION_PATCH_CACHE_KEY}`,
-    );
+function preserveIndependentCacheKeys(source) {
+  return String(source || "").replace(
+    /(\/js\/mobile-interaction-patch\.js\?v=)[a-zA-Z0-9_-]+/g,
+    `$1${MOBILE_INTERACTION_PATCH_CACHE_KEY}`,
+  );
 }
 
 function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
@@ -814,7 +805,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 
   // Auto cache-bust all static asset query strings (?v=...)
   const buildTimestamp = resolveDeterministicCacheKey();
-  const cacheBustedIndexHtml = preserveVedicAIConsultationCacheKey(
+  const cacheBustedIndexHtml = preserveIndependentCacheKeys(
     baseIndexHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
   );
   if (cacheBustedIndexHtml !== baseIndexHtml) {
@@ -825,7 +816,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const inlineRuntimePath = resolve(publicDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(inlineRuntimePath)) {
     let runtimeJs = readFileSync(inlineRuntimePath, "utf8");
-    const bustedRuntimeJs = preserveVedicAIConsultationCacheKey(
+    const bustedRuntimeJs = preserveIndependentCacheKeys(
       runtimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
     );
     if (bustedRuntimeJs !== runtimeJs) {
@@ -892,7 +883,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const rootInlineRuntimePath = resolve(rootDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(rootInlineRuntimePath)) {
     let rootRuntimeJs = readFileSync(rootInlineRuntimePath, "utf8");
-    const bustedRootRuntimeJs = preserveVedicAIConsultationCacheKey(
+    const bustedRootRuntimeJs = preserveIndependentCacheKeys(
       rootRuntimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
     );
     if (bustedRootRuntimeJs !== rootRuntimeJs) {
@@ -923,7 +914,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 
   if (existsSync(rootIndexPath)) {
     let rootHtml = readFileSync(rootIndexPath, "utf8");
-    const bustedRootHtml = preserveVedicAIConsultationCacheKey(
+    const bustedRootHtml = preserveIndependentCacheKeys(
       rootHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
     );
     if (bustedRootHtml !== rootHtml) {

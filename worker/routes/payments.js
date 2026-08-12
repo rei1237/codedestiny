@@ -39,6 +39,7 @@ import {
 } from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import {
   formatPermanentUnlockGrant,
   grantPermanentUnlock,
@@ -349,11 +350,12 @@ function buildDigitalProductName(body = {}, pricing = {}) {
   return label.slice(0, 80) || "디지털 운세 콘텐츠";
 }
 
+// 월 가격 정본은 lib/payment/pass-pricing.js 하나다(숫자를 다시 적으면 prepare/confirm 이 갈려 400).
 const SUBSCRIPTION_BASE_PLANS = {
-  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: HONEY_PASS_POLICY.standard.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.standard.maxCoveredCoin },
-  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: HONEY_PASS_POLICY.premium.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.premium.maxCoveredCoin },
-  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin },
-  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "Code Destiny Family 30일", monthlyWonPrice: 149000, profileLimit: HONEY_PASS_POLICY.family.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.family.maxCoveredCoin },
+  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "스탠다드 꿀 30일", monthlyWonPrice: PASS_MONTHLY_WON.standard, profileLimit: HONEY_PASS_POLICY.standard.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.standard.maxCoveredCoin },
+  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "프리미엄 꿀 30일", monthlyWonPrice: PASS_MONTHLY_WON.premium, profileLimit: HONEY_PASS_POLICY.premium.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.premium.maxCoveredCoin },
+  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "VVIP 꿀단지 30일", monthlyWonPrice: PASS_MONTHLY_WON.vvip, profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin },
+  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "Code Destiny Family 30일", monthlyWonPrice: PASS_MONTHLY_WON.family, profileLimit: HONEY_PASS_POLICY.family.maxProfiles, maxCoveredCoin: HONEY_PASS_POLICY.family.maxCoveredCoin },
 };
 
 const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({

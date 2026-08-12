@@ -1190,60 +1190,6 @@
       "music": "운세·명상 음악"
     }
   },
-  "pricing": {
-    "currencies": {
-      "KRW": {
-        "rate": 1
-      },
-      "USD": {
-        "rate": 0.00074
-      },
-      "EUR": {
-        "rate": 0.00068
-      },
-      "JPY": {
-        "rate": 0.11
-      },
-      "CNY": {
-        "rate": 0.0053
-      },
-      "GBP": {
-        "rate": 0.00058
-      },
-      "AUD": {
-        "rate": 0.0012
-      },
-      "CAD": {
-        "rate": 0.001
-      },
-      "INR": {
-        "rate": 0.062
-      },
-      "SGD": {
-        "rate": 0.00099
-      },
-      "MYR": {
-        "rate": 0.0035
-      }
-    },
-    "tiers": [
-      {
-        "krwPrice": 9900,
-        "coins": 10,
-        "popular": false
-      },
-      {
-        "krwPrice": 29000,
-        "coins": 35,
-        "popular": true
-      },
-      {
-        "krwPrice": 59000,
-        "coins": 80,
-        "popular": false
-      }
-    ]
-  },
   "common": {
     "cancel": "취소",
     "close": "닫기",

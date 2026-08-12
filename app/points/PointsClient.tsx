@@ -11,6 +11,7 @@ import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
@@ -572,7 +573,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "standard",
     title:        "standard",
-    baseWonPrice: 9900,
+    baseWonPrice: PASS_MONTHLY_WON.standard,
     profileLimit: 3,
     freeUpTo:     30,
     theme:        "amber",
@@ -590,7 +591,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "premium",
     title:        "premium",
-    baseWonPrice: 29900,
+    baseWonPrice: PASS_MONTHLY_WON.premium,
     profileLimit: 7,
     freeUpTo:     50,
     theme:        "rose",
@@ -608,7 +609,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "vvip",
     title:        "vvip",
-    baseWonPrice: 59000,
+    baseWonPrice: PASS_MONTHLY_WON.vvip,
     profileLimit: 15,
     freeUpTo:     100,
     theme:        "purple",
@@ -627,7 +628,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "family",
     title:        "family",
-    baseWonPrice: 149000,
+    baseWonPrice: PASS_MONTHLY_WON.family,
     profileLimit: null,
     freeUpTo:     null,
     theme:        "purple",

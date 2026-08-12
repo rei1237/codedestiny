@@ -108,7 +108,7 @@ const MAIN_LANDING_COPY_EN: MainLandingCopy = {
   premiumSubtitle: "From introduction to deeper VVIP reports",
   premiumDescription: "Premium readings are provided in KRW, and result reports can be viewed again from your account.",
   paymentHeading: "Premium / Payment Information",
-  paymentDescription: "Check pricing, payment, and trust information below, then start a premium report only when you need it.",
+  paymentDescription: "Check payment and trust information below, then start a premium report only when you need it.",
   missingTranslation: "Translation unavailable",
   text: {
     "화투 인생패": "Hwatu Life Cards",
@@ -229,7 +229,7 @@ const MAIN_LANDING_COPY_KO: MainLandingCopy = {
   premiumSubtitle: "소개 보기부터 심화 분석까지 이어지는 VVIP 리포트",
   premiumDescription: "프리미엄 분석은 원화 기준으로 제공되며 결과 리포트는 계정에서 다시 확인할 수 있습니다.",
   paymentHeading: "Premium / Payment Information",
-  paymentDescription: "하단에서 가격, 결제, 신뢰 정보를 한 번에 확인하고 필요할 때만 프리미엄 리포트를 시작할 수 있습니다.",
+  paymentDescription: "하단에서 결제와 신뢰 정보를 확인하고 필요할 때만 프리미엄 리포트를 시작할 수 있습니다.",
   missingTranslation: "번역 문구를 확인해주세요",
   text: {},
 };
@@ -395,10 +395,6 @@ const DeferredServiceCollectionSection = dynamic(() => import("./ServiceCollecti
   loading: () => null,
 });
 const DeferredFeatureUnlockShowcase = dynamic(() => import("./FeatureUnlockShowcase"), {
-  ssr: false,
-  loading: () => null,
-});
-const DeferredGlobalPricingCard = dynamic(() => import("./GlobalPricingCard"), {
   ssr: false,
   loading: () => null,
 });
@@ -642,7 +638,6 @@ export default function MainLandingPage() {
             {copy.paymentDescription}
           </p>
         </div>
-        <DeferredGlobalPricingCard locale={locale === "ko" ? "ko" : "en"} />
         <DeferredGlobalTrustSection compact showFooter={false} locale={locale === "ko" ? "ko" : "en"} />
       </LazySection>
 

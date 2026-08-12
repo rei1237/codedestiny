@@ -60,5 +60,12 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
 | 레거시 사주 궁합 | `compat-saju-compatibility` | 5,000원 | 50 | 현행 유지 · 운명 찻집과 무관 |
-| 레거시 숙요점 궁합 | `compat-sukuyo-compatibility` | 10,000원 | 100 | 현행 유지 · 운명 찻집과 무관 |
+| 레거시 숙요점 궁합 | `compat-sukuyo-compatibility` | 5,000원 | 50 | 현행 유지 · 운명 찻집과 무관 |
 | 숙요점 궁합 AI | `sukuyo-compatibility-ai` | 30,000원 | 300 | 현행 유지 · 운명 찻집과 무관 |
+
+> **2026-08-12 — `compat-sukuyo-compatibility` 10,000원(100) → 5,000원(50)**
+> 이 한 건은 예외적으로 **코드가 아니라 이 문서를 고쳤다.** 인하가 의도된 정책 결정이고
+> ([docs/payment-policy-content-access.md](docs/payment-policy-content-access.md) B유형 항목에 기록됨)
+> 코드(`worker/lib/paid-feature-registry.js`)는 이미 반영돼 있었는데 이 가드 표만 갱신이 누락돼
+> `verify:payment-policy-md`가 실패하고 있었다. 위 "이 문서가 정본" 규칙은 그대로 유효하며,
+> 앞으로 이 표의 값을 바꿀 때는 **정책 결정을 먼저 문서에 적고 코드를 맞추는** 순서를 지킨다.

@@ -19,7 +19,6 @@ const files = {
   loveSimulation: "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
   destinyProfile: "js/destiny-profile.js",
   mainRuntime: "js/core/index-inline-runtime.js",
-  vedicBook: "js/vedic-book.js",
   olympusOracle: "js/olympus-oracle.js",
   shareRuntime: "js/share.js",
   mobileTabs: "app/_lib/mobile-tabs.ts",
@@ -347,12 +346,10 @@ const cases = [
   {
     name: "static premium runtimes accept YYYYMMDD birth date fallback",
     includes: [
-      ["vedicBook", "var dateParts = _parseBirthDateParts(birthDateEl.value);"],
       ["olympusOracle", "var digits = birthDate.replace(/\\D/g, '');"],
       ["shareRuntime", "var birthDateDigits = String(birthDate || '').replace(/\\D/g, '');"],
     ],
     excludes: [
-      ["vedicBook", "birthDateEl.value.split('-')"],
       ["olympusOracle", "birthDate.split('-')"],
       ["shareRuntime", "birthDate.split('-')[0]"],
     ],
