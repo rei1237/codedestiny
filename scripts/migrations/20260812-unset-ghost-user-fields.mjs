@@ -8,9 +8,10 @@
  *
  * 남은 19개 경로만 지운다. 그룹 단위로 나눠 실행하며, 한 번에 전부 지우지 않는다.
  *
- * 🔴 재생성 차단이 선행돼야 한다: app/_lib/models/UserModel.js 가 세 번째 User 스키마를
- * 갖고 있어 시드 스크립트 실행마다 third-schema 그룹이 되살아났다. 그 파일은 워커 모델로
- * 위임하도록 바뀌었으므로(같은 정리 작업의 앞 단계) 이제 다시 새겨지지 않는다.
+ * 🔴 재생성 차단이 선행돼야 한다: 예전에는 App Router 쪽에 세 번째 User 스키마 모듈이 있어
+ * 시드 스크립트를 돌릴 때마다 third-schema 그룹이 되살아났다. 그 모듈은 삭제됐고
+ * __tests__/worker/user-model-single-source.static.test.js 가 부활을 막으므로 이제 다시
+ * 새겨지지 않는다. User 스키마 정본은 worker/lib/models.js 하나다.
  *
  * 실행:
  *   node scripts/migrations/20260812-unset-ghost-user-fields.mjs                     # 전 그룹 dry-run
@@ -55,7 +56,7 @@ const GROUPS = [
   },
   {
     name: "third-schema",
-    why: "app/_lib/models/UserModel.js(세 번째 User 스키마)를 쓰던 시드 스크립트가 새긴 잔재. banReason/bannedAt 은 존재하지 않는 회원 잠금 기능이 있는 것처럼 오해를 부른다.",
+    why: "지금은 삭제된 세 번째 User 스키마(App Router 쪽 모듈)를 쓰던 시드 스크립트가 새긴 잔재. banReason/bannedAt 은 존재하지 않는 회원 잠금 기능이 있는 것처럼 오해를 부른다.",
     paths: [
       "lastLoginAt",
       "bannedAt",
