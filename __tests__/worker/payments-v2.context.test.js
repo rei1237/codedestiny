@@ -45,6 +45,8 @@ describe("라우트 표", () => {
     expect(Object.keys(ROUTES).sort()).toEqual([
       "GET /features",
       "GET /orders/:id",
+      // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
+      "POST /coin-gate/moonstone",
       // 확정 컷오버 어댑터 — 구 /api/billing/confirm(재작성)이 여기로 온다.
       "POST /confirm",
       "POST /moonstone/spend",
