@@ -188,6 +188,60 @@ describe("재생과 동시성", () => {
     expect(db.rows[0].settledAt).toBeInstanceOf(Date);
     expect(db.rows[0].afterBalance).toBe(4200);
   });
+
+  /* 죽은 형제가 남긴 예약의 인수. 이게 없으면 unique 인덱스를 점유한 미정산 행 때문에 같은
+     requestId 재시도가 크론 sweep(최대 10분)까지 409 만 받았다 — 호출부가 requestId 를 세션 단위로
+     캐시하므로 사용자에게는 "월정석이 한동안 안 되는" 상태였다. */
+  const DEAD = new Date(Date.now() - 5 * 60_000);
+
+  test("🔴 죽은 형제의 예약(미차감)은 이어받아 진행한다 — 크론까지 기다리지 않는다", async () => {
+    const db = makeLedgerDb();
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: DEAD });
+    await db.insertOne({}, { _id: USER, recentConsumeRequestIds: [] });
+    db.rows[1]._id = USER;
+
+    const consumeLots = consumeReturning(OK);
+    const result = await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots });
+
+    expect(result.replayed).toBe(false);
+    expect(result.balance).toBe(5000);
+    expect(consumeLots.calls).toHaveLength(1); // 이어받았으니 차감이 실제로 일어난다
+    const ledger = db.rows.filter((r) => r.type === __moonstoneTestUtils.SPEND);
+    expect(ledger).toHaveLength(1); // 죽은 예약은 사라지고 새 예약이 정산까지 갔다
+    expect(ledger[0].settledAt).toBeInstanceOf(Date);
+  });
+
+  test("🔴 죽은 형제가 차감까지 했다면 정산만 마무리한다 — 두 번 깎지 않는다", async () => {
+    const db = makeLedgerDb();
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: DEAD });
+    await db.insertOne({}, { _id: USER, recentConsumeRequestIds: [PURCHASE], profileSubscription: { membershipCreditBalance: 4200 } });
+    db.rows[1]._id = USER;
+
+    const consumeLots = consumeReturning(OK);
+    const result = await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots });
+
+    expect(result).toMatchObject({ replayed: true, balance: 4200 });
+    expect(consumeLots.calls).toHaveLength(0); // 🔴 재차감 금지
+    const ledger = db.rows.filter((r) => r.type === __moonstoneTestUtils.SPEND);
+    expect(ledger).toHaveLength(1);
+    expect(ledger[0].settledAt).toBeInstanceOf(Date);
+    expect(ledger[0].afterBalance).toBe(4200);
+  });
+
+  test("🔴 아직 어린 예약은 이어받지 않는다 — 살아 있는 형제를 가로채면 안 된다", async () => {
+    const db = makeLedgerDb();
+    await db.insertOne({}, {
+      userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: new Date(),
+    });
+    const consumeLots = consumeReturning(OK);
+    await expectError(
+      () => spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots }),
+      "MOONSTONE_IN_PROGRESS",
+      409,
+    );
+    expect(consumeLots.calls).toHaveLength(0);
+    expect(db.rows).toHaveLength(1); // 형제의 예약은 그대로 남는다
+  });
 });
 
 describe("크론: 고아 예약 정리", () => {

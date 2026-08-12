@@ -1234,10 +1234,9 @@ export async function runPaymentsV2Reconcile(env) {
         }),
       });
       /* 월정석 고아 예약 정리. spendMoonstone 은 원장 예약을 효과보다 먼저 쓰므로, 그 사이에서
-         죽으면 **미정산 예약 + 미차감 잔액** 이 남는다(사용자는 과금되지 않았다). 원장의
-         unique{userId,type,sourceId} 때문에 같은 requestId 재시도는 그 뒤로 계속 409
-         MOONSTONE_IN_PROGRESS 를 받고, requestId 를 세션 단위로 캐시하는 호출부는 거기서 막힌다.
-         집행자가 없으면 그 상태가 영구다 — 그래서 이미 만들어져 있던 스윕을 여기 배선한다.
+         죽으면 **미정산 예약 + 미차감 잔액** 이 남는다(사용자는 과금되지 않았다).
+         재시도가 오는 경우는 spendMoonstone 이 그 자리에서 이어받으므로(90초 나이 게이트), 여기 남는
+         것은 **아무도 다시 오지 않은** 잔상이다 — 그건 사용자가 아니라 크론이 걷어야 한다.
          같은 슬롯·같은 커넥션에서 이어 돌고, 실패해도 위 주문 재조정 결과는 잃지 않는다. */
       let moonstone = null;
       try {
