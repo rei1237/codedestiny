@@ -35,14 +35,23 @@ import { runPaymentReconcile } from "./reconcile.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
 import {
   activatePassSubscription,
+  buildPassConsumeMarker,
   buildPassCustomerUid,
   computePassExpiry,
+  consumePassCoverage,
   createPassOrder,
+  evaluatePassCoverage,
   evaluatePassTierTransition,
   presentPassSubscription,
+  recordPassUsageEvidence,
   resolvePassPlan,
 } from "./passes.js";
-import { isPassLikeProductType, resolveServerProductType, validatePurchasePolicy } from "../lib/entitlement-policy.js";
+import {
+  isPassLikeProductType,
+  resolveCanonicalEntitlement,
+  resolveServerProductType,
+  validatePurchasePolicy,
+} from "../lib/entitlement-policy.js";
 import { writeSecurityLog } from "../lib/security/index.js";
 import {
   buildPremiumAccessCookie,
@@ -54,6 +63,7 @@ import {
   legacyMoonstoneEnvelope,
   legacyOrderDetailEnvelope,
   legacyConfirmEnvelope,
+  legacyPassCheckEnvelope,
   legacyPrepareEnvelope,
   toLegacyPrepareOrder,
 } from "./compat.js";
@@ -250,6 +260,62 @@ async function enforcePassPurchasePolicy(env, request, { userId, plan, paymentMe
   } catch { /* 감사 로그 실패가 정책 판정을 막지 않는다 */ }
   const reason = String(decision?.denialReason || "PURCHASE_POLICY_DENIED");
   throw paymentError("PURCHASE_POLICY_DENIED", PASS_POLICY_MESSAGES[reason] || "이용권은 원화 단건 결제로만 구매할 수 있습니다.", { reason });
+}
+
+/* ── 이용권 검사 응답 헬퍼 (구 billing.js failure/success 봉투 승계) ───────────── */
+
+const PASS_FAILURE_CODES = Object.freeze({
+  price_exceeds_pass_limit: "PRICE_EXCEEDS_PASS_LIMIT",
+  monthly_pass_limit_exceeded: "MEMBERSHIP_PASS_NOT_COVERED",
+  pass_access_conflict: "MEMBERSHIP_PASS_NOT_COVERED",
+  no_active_pass: "MEMBERSHIP_PASS_NOT_COVERED",
+  invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
+});
+
+const PASS_FAILURE_MESSAGES = Object.freeze({
+  monthly_pass_limit_exceeded: "이번 이용권 기간의 무료 한도를 모두 사용했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
+  pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
+});
+
+function passFailureCode(reason) {
+  return PASS_FAILURE_CODES[String(reason || "")] || "MEMBERSHIP_PASS_NOT_COVERED";
+}
+
+function passFailureMessage(reason) {
+  return PASS_FAILURE_MESSAGES[String(reason || "")]
+    || "현재 이용권 한도 밖 서비스입니다. 원화 단건 결제로 이용해 주세요.";
+}
+
+/** 구 failure(402, …) 봉투 그대로 — 셸은 402 를 받으면 코드와 무관하게 결제창으로 인계한다. */
+function passGateFailure(code, message, extras = {}) {
+  return json({
+    ok: false,
+    code,
+    message,
+    status: "payment_required",
+    reason: code,
+    ...extras,
+    accessGrant: null,
+    balance: null,
+    error: { code, message },
+  }, { status: 402 });
+}
+
+function presentMembershipPass(entitlement, coverage = {}) {
+  const tier = String(coverage.tier || entitlement?.passTier || entitlement?.tier || "") || null;
+  const limit = Number(coverage.perItemLimit ?? entitlement?.maxCoveredCoin ?? 0);
+  return {
+    tier,
+    passTier: tier,
+    freeLimit: limit,
+    passLimit: limit,
+    maxCoveredCoin: limit,
+    ...(coverage.budgetCoin !== undefined ? {
+      monthlyPassLimit: coverage.budgetCoin,
+      monthlySpendUsed: coverage.usedCoin,
+      monthlySpendRemaining: coverage.remainingCoin,
+    } : {}),
+  };
 }
 
 async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
@@ -797,6 +863,124 @@ const ROUTES = {
         })
         : "";
       const envelope = legacyMoonstoneEnvelope({ product, requestId, profileId, spend, unlock, premiumAccessToken });
+      if (!premiumAccessToken) return json(envelope);
+      return json(envelope, {
+        headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
+      });
+    },
+  },
+
+  /**
+   * 🔴 이용권 검사 컷오버 — 구 /api/billing/coin-gate 의 MEMBERSHIP_PASS 분기(재작성)를 V2 로 잇는다.
+   *
+   * 이 경로가 남은 503·"로그인이 필요합니다" 오탐의 최대 지점이었다: 구 분기는 인증 조회 + 이용권
+   * 조회 + 프로필 조회 + 소비 CAS 로 **왕복 4회**를 공유 풀에서 썼고, M0 에서 그 팬아웃이 곧
+   * 커넥션 기아였다. V2 는 신원을 JWT 로만 풀고(Mongo 0회) **User 1읽기 + CAS 1쓰기**로 끝낸다.
+   *
+   * 판정 정책은 2규칙(건당 상한 + 단일 월 예산)으로 단순화했다 — 근거·승계 범위는 passes.js
+   * evaluatePassCoverage 머리주석. 응답 계약은 구 successWithPremiumAccess 봉투를 그대로 승계한다:
+   * 셸 판정기 `_cdIsMembershipFreePayload`(index.html)가 data.consume.accessType 을 읽고,
+   * 미커버는 402(코드 무관하게 결제창으로 인계)로 나간다 — 막다른 길을 만들지 않는 것이 핵심이다.
+   */
+  "POST /coin-gate/pass-check": {
+    auth: "required",
+    async handle({ env, ctx, userId, body, withDb }) {
+      const product = resolveLegacyProduct(body);
+      ctx.productId = product.productId;
+      const requestId = String(body.requestId || body.idempotencyKey || body.purchaseId || "").trim()
+        || `pass-${crypto.randomUUID()}`;
+      ctx.orderId = requestId;
+
+      // 이용권으로 결제할 수 없는 상품(프로필 카드 관리·음악 등)은 등급과 무관하게 즉시 인계한다.
+      // 정본은 카탈로그의 passExcluded 하나다 — featureKey 별 예외 분기를 두지 말 것.
+      let billingType = "per_use";
+      let passExcluded = false;
+      try {
+        const catalogItem = resolveProduct({ featureKey: product.featureKey });
+        billingType = String(catalogItem.billingType || "per_use");
+        passExcluded = catalogItem.passExcluded === true;
+      } catch { /* 카탈로그 미등재는 아래 일반 경로로 */ }
+      if (passExcluded) {
+        return passGateFailure("MEMBERSHIP_PASS_NOT_ALLOWED", "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", { featureKey: product.featureKey });
+      }
+
+      const profileId = String(body.profileId || body.selectedProfileId || "").trim();
+      const marker = buildPassConsumeMarker(product.featureKey, requestId);
+      const unlock = billingType !== "per_use";
+
+      const outcome = await withDb(env, ctx, async (db) => {
+        const user = await db.findOne(User, { _id: toObjectId(userId) });
+        const entitlement = resolveCanonicalEntitlement(user || {});
+        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
+        if (!coverage.covered) return { coverage, entitlement };
+
+        // 멱등: 같은 (기능, requestId) 로 이미 통과했으면 예산을 다시 깎지 않는다.
+        const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
+        if (marker && markers.includes(marker)) {
+          return { coverage, entitlement, user, replayed: true };
+        }
+
+        const updated = await consumePassCoverage(db, {
+          userId, coverage, marker, existingMarkers: markers,
+        });
+        if (!updated) {
+          // CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계한다.
+          return { coverage: { covered: false, reason: "pass_access_conflict", tier: coverage.tier }, entitlement };
+        }
+        // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
+        //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
+        await recordPassUsageEvidence(db, { userId, product, requestId, profileId, coverage, user: updated });
+        if (unlock) {
+          await grantEntitlement(db, {
+            userId, product, orderId: requestId, profileId,
+            contentKey: body.contentKey, scope: body.scope, source: "PASS",
+          });
+          await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+        }
+        return { coverage, entitlement, user: updated };
+      });
+
+      if (!outcome.coverage.covered) {
+        ctx.paymentStatus = "PASS_NOT_COVERED";
+        return passGateFailure(passFailureCode(outcome.coverage.reason), passFailureMessage(outcome.coverage.reason), {
+          featureKey: product.featureKey,
+          membershipPass: presentMembershipPass(outcome.entitlement, outcome.coverage),
+          ...(outcome.coverage.perItemLimit !== undefined ? { passLimit: outcome.coverage.perItemLimit } : {}),
+          ...(outcome.coverage.budgetCoin !== undefined ? {
+            monthlyPassLimit: outcome.coverage.budgetCoin,
+            monthlySpendUsed: outcome.coverage.usedCoin,
+            monthlySpendRemaining: outcome.coverage.remainingCoin,
+          } : {}),
+        });
+      }
+
+      ctx.paymentStatus = "PASS";
+      // 표시용 잔액 스냅샷에 이용권 커버 사용량이 반영된다 — 45s TTL 이라 무효화가 필수다.
+      invalidateBalanceSnapshot(userId);
+      const reason = String(body.reason || "");
+      const reportType = resolvePremiumAccessReportType(product.featureKey, reason);
+      const premiumAccessToken = reportType
+        ? await createPremiumAccessToken(env, {
+          userId: String(userId || ""),
+          reportType,
+          featureKey: product.featureKey,
+          reason,
+          transactionId: requestId,
+          requestId,
+          purchaseId: requestId,
+          chargedCoins: 0,
+          freeBySubscription: true,
+        })
+        : "";
+      const envelope = legacyPassCheckEnvelope({
+        product, requestId, profileId, unlock, premiumAccessToken,
+        coverage: outcome.coverage,
+        entitlement: outcome.entitlement,
+        user: outcome.user,
+        replayed: outcome.replayed === true,
+        sessionId: String(body.sessionId || body.reportSessionId || ""),
+        reportId: String(body.reportId || ""),
+      });
       if (!premiumAccessToken) return json(envelope);
       return json(envelope, {
         headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },

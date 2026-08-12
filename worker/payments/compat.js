@@ -248,6 +248,88 @@ export function legacyMoonstoneEnvelope({ product, requestId, profileId = "", sp
   };
 }
 
+/**
+ * 이용권 무료 통과 봉투 — 구 coin-gate MEMBERSHIP_PASS 성공 응답(successWithPremiumAccess) 승계.
+ *
+ * 🔴 셸 판정기 `_cdIsMembershipFreePayload` 는 `_cdToCoinPayload` 로 **data.consume 을 최상위로
+ * 병합한 뒤** accessType/accessMethod 를 본다. 즉 `consume.accessType = "membership_pass"`(family 는
+ * "family")가 무료 통과의 증거이고, 이게 빠지면 결제는 면제됐는데 화면은 "결제가 완료되지 않았어요"로
+ * 뜬다. data.freeBySubscription 도 같은 판정기의 첫 조건이라 함께 싣는다(둘 중 하나만 맞아도 통과하지만
+ * 구 봉투가 둘 다 실었으므로 초집합을 유지한다).
+ */
+export function legacyPassCheckEnvelope({
+  product, requestId, profileId = "", unlock = false, premiumAccessToken = "",
+  coverage = {}, entitlement = {}, user = null, replayed = false, sessionId = "", reportId = "",
+}) {
+  const featureKey = String(product.featureKey || "");
+  const isFamily = String(coverage.tier || "") === "family";
+  const accessType = isFamily ? "family" : "membership_pass";
+  const accessMethod = isFamily ? "FAMILY" : "PASS";
+  const evidenceId = `membership:${String(coverage.tier || "pass")}:${requestId}`;
+  const limit = Number(coverage.perItemLimit ?? entitlement?.maxCoveredCoin ?? 0);
+  return {
+    ok: true,
+    message: "이용권 무료 한도 조건으로 서비스를 열었습니다.",
+    data: {
+      pricing: product.pricing || null,
+      accessMethod: "PASS",
+      charged: 0,
+      consume: {
+        ok: true,
+        transactionType: isFamily ? "family_pass" : "membership_pass",
+        accessType,
+        accessMethod,
+        paymentMethod: accessMethod,
+        requestId,
+        transactionId: evidenceId,
+        purchaseId: requestId,
+        featureKey,
+        profileId: profileId || undefined,
+        coinPrice: Number(product.priceCoins || 0),
+        amountCoins: Number(product.priceCoins || 0),
+        amountKRW: Number(product.priceKRW || 0),
+        passTier: coverage.tier || null,
+        idempotent: replayed === true,
+        chargedCoins: 0,
+        membershipCreditCost: 0,
+      },
+      accessGrant: {
+        ok: true,
+        accessType,
+        accessMethod,
+        featureKey,
+        requestId,
+        purchaseId: requestId,
+        evidenceId,
+        profileId: profileId || undefined,
+        sessionId: sessionId || undefined,
+        reportId: reportId || undefined,
+        paidAt: new Date().toISOString(),
+      },
+      balance: null,
+      membershipPass: {
+        tier: coverage.tier || null,
+        passTier: coverage.tier || null,
+        freeLimit: limit,
+        passLimit: limit,
+        maxCoveredCoin: limit,
+        ...(coverage.budgetCoin !== undefined ? {
+          monthlyPassLimit: coverage.budgetCoin,
+          monthlySpendUsed: coverage.usedCoin,
+          monthlySpendRemaining: coverage.remainingCoin,
+        } : {}),
+      },
+      user: {
+        id: String(user?._id || ""),
+        profileSubscription: user?.profileSubscription || null,
+      },
+      freeBySubscription: true,
+      ...(unlock ? { unlockedFeatures: [featureKey], unlockMap: { [featureKey]: true } } : {}),
+      ...(premiumAccessToken ? { premiumAccessToken } : {}),
+    },
+  };
+}
+
 /** adaptOrderToViewModel + resolveType + resolveStatus 가 읽는 키 전부. 테스트가 이 목록을 강제한다. */
 export const LEGACY_ORDER_DETAIL_KEYS = Object.freeze([
   "approvalNumberMasked",
