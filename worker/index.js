@@ -1204,11 +1204,6 @@ export default {
         return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));
       }
 
-      if (url.pathname === "/api/session") {
-        const rewrittenRequest = rewriteRequestPath(request, "/api/auth/session");
-        return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));
-      }
-
       // /sitemap.xml 은 정적 종합 사이트맵(scripts/generate-sitemap.mjs 산출물)이 Pages 정적 자산으로 서빙됨.
       // Worker 는 MongoDB Insight 글 전용 사이트맵을 /sitemap-insights.xml 에서만 동적 생성한다.
       if (url.pathname === "/sitemap-insights.xml" || url.pathname === "/rss.xml" || url.pathname === "/insights/rss.xml") {

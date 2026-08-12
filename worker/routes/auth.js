@@ -4444,34 +4444,6 @@ async function handleOAuthCompleteSignup(request, env) {
   );
 }
 
-async function handleAppExchange(request, env) {
-  const auth = await requireAuth(request, env);
-  const tokenUser = {
-    _id: auth.userId,
-    id: auth.userId,
-    email: auth.email || "",
-    name: auth.name || "",
-    role: auth.role || "user",
-    image: auth.image || "",
-    profileImage: auth.image || "",
-    birthDate: auth.birthDate || "",
-    birthTime: auth.birthTime || "",
-    gender: auth.gender || "OTHER",
-    points: Number(auth.points || 0),
-    joinedAt: auth.joinedAt || null,
-    profileSubscription: auth.profileSubscription || null,
-  };
-  const accessToken = await signAuthToken(tokenUser, env);
-  return json({
-    ok: true,
-    runtimeTarget: "mobile-app",
-    accessToken,
-    tokenType: "Bearer",
-    accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
-    user: await normalizeAuthUserResponse(tokenUser, env),
-  });
-}
-
 // ctx 는 로그아웃의 세션 폐기를 waitUntil 백그라운드로 넘기기 위해서만 쓴다(없으면 종전대로 동기 처리).
 export async function handleAuthRoutes(request, env, ctx) {
   let path = "";
@@ -4479,36 +4451,10 @@ export async function handleAuthRoutes(request, env, ctx) {
     const method = request.method.toUpperCase();
     path = getRoutePath(request, "/api/auth");
 
-    const providerAliasMatch = path.match(/^\/(google|naver|kakao)$/);
-    if (method === "GET" && providerAliasMatch) {
-      return await handleOAuthStart(request, env, String(providerAliasMatch[1] || "").toLowerCase());
-    }
-
-    const providerCallbackAliasMatch = path.match(/^\/(google|naver|kakao)\/callback$/);
-    if (method === "GET" && providerCallbackAliasMatch) {
-      return await handleOAuthCallback(request, env, String(providerCallbackAliasMatch[1] || "").toLowerCase());
-    }
-
-    const legacySignInMatch = path.match(/^\/signin\/([^/]+)$/);
-    if (method === "GET" && legacySignInMatch) {
-      return await handleOAuthStart(request, env, String(legacySignInMatch[1] || "").toLowerCase());
-    }
-
-    const legacyCallbackMatch = path.match(/^\/callback\/([^/]+)$/);
-    if (method === "GET" && legacyCallbackMatch) {
-      return await handleOAuthCallback(request, env, String(legacyCallbackMatch[1] || "").toLowerCase());
-    }
-
-    if (method === "GET" && path === "/session") {
-      return await handleMe(request, env);
-    }
-
     if (
       path === "/register"
-      || path === "/signup"
       || path === "/login"
       || path === "/refresh"
-      || path === "/app/exchange"
       || path === "/withdraw"
       || path === "/password"
       || path === "/oauth/complete"
@@ -4538,10 +4484,8 @@ export async function handleAuthRoutes(request, env, ctx) {
     }
 
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
-    if (method === "POST" && path === "/signup") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
-    if (method === "POST" && path === "/app/exchange") return await handleAppExchange(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);
     if (method === "GET" && path === "/me/payment-phone") return await handlePaymentPhoneStatus(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/payment-phone") return await handleSavePaymentPhoneNumber(request, env);
