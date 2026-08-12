@@ -80,6 +80,9 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   resolveMongoDbName: jest.fn(() => "test"),
   withMongoRetry: jest.fn(async (env, fn) => fn()),
   isTransientMongoError: jest.fn(() => false),
+  // withTransaction 의 드라이버 기본 상한(120초)을 우리 op 예산 안으로 묶는 옵션.
+  // 실제 값은 db.js 가 정하고 __tests__/worker/db.transaction-budget.test.js 가 고정한다.
+  mongoTransactionOptions: jest.fn(() => ({ timeoutMS: 8000 })),
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
