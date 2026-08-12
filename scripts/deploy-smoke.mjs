@@ -65,6 +65,16 @@ async function checkApi(pathname) {
   }
 }
 
+// Cloudflare Image Resizing(/cdn-cgi/image/<옵션>/<원본경로>)은 존(zone) 기능이라 *.pages.dev
+// 프리뷰 호스트에는 존재하지 않아 무조건 404 가 난다. 셸 <img> 는 onerror 로 원본 경로에 폴백하므로
+// 화면은 성립한다 — 이 검사가 증명해야 할 사실은 "변환 엔드포인트"가 아니라 "원본 자산이 빌드에
+// 있는가"다. 이 구분이 없으면 홈 셸이 리사이징 URL 을 참조하는 한 모든 릴리스가 승격 전 스모크에서
+// 차단된다(2026-08-12 릴리스 연속 실패의 원인 — #490 자산 다이어트 이후 전 릴리스가 여기서 죽었다).
+function imageResizingOriginalPath(pathname) {
+  const match = /^\/cdn-cgi\/image\/[^/]+(\/.+)$/.exec(pathname);
+  return match ? match[1] : "";
+}
+
 async function checkAssets(page) {
   const html = await page.content();
   const paths = [...new Set([...html.matchAll(/(?:src|href)=[\"'](\/[^\"'#?]+)[\"']/gi)].map((m) => m[1]))]
@@ -73,7 +83,19 @@ async function checkAssets(page) {
   for (const pathname of paths) {
     try {
       const response = await fetch(new URL(pathname, base), { headers: { "Cache-Control": "no-store" }, signal: AbortSignal.timeout(15000) });
-      if (response.status >= 500 || response.status === 404) fail("asset " + pathname + " returned HTTP " + response.status);
+      if (response.status >= 500 || response.status === 404) {
+        const original = imageResizingOriginalPath(pathname);
+        if (!original) {
+          fail("asset " + pathname + " returned HTTP " + response.status);
+          continue;
+        }
+        const fallback = await fetch(new URL(original, base), { headers: { "Cache-Control": "no-store" }, signal: AbortSignal.timeout(15000) });
+        if (fallback.status >= 500 || fallback.status === 404) {
+          fail("asset " + pathname + " returned HTTP " + response.status + " and its original " + original + " returned HTTP " + fallback.status);
+        } else {
+          console.log("[deploy-smoke] image resizing unavailable on this host (HTTP " + response.status + "); original asset OK: " + original);
+        }
+      }
     } catch (error) {
       fail("asset " + pathname + " request failed: " + error.message);
     }
