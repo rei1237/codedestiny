@@ -738,8 +738,16 @@ const ROUTES = {
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
 
       const { order, user } = await withDb(env, ctx, async (db) => {
-        const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
-        const profileId = String(body.profileId || body.selectedProfileId || userDoc?.destinyProfilesCurrentId || "");
+        /* 🔴 사용자 조회와 주문 발급을 겹친다. 이 두 왕복은 서로를 기다릴 이유가 없다 — 사용자 문서는
+           응답 봉투의 customer 조립(아래 buildLegacyPrepareCustomer)에만 쓰이고, 주문 발급이 그걸
+           참조하는 유일한 지점은 profileId 폴백뿐이다. 셸·React 는 profileId 를 실어 보내므로
+           일반 경로에서는 폴백이 필요 없고, 두 왕복이 겹쳐 **결제창 앞 대기가 한 왕복만큼 짧아진다**
+           (클릭→PG창 사이 서버 왕복은 이 prepare 하나뿐이라 그만큼이 그대로 체감 지연이다).
+           바디에 profileId 가 없으면 예전처럼 사용자 문서를 먼저 기다린다 — 그때만 직렬이다. */
+        const userPromise = db.findOne(User, { _id: toObjectId(userId) });
+        userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
+        const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
+        const profileId = bodyProfileId || String((await userPromise)?.destinyProfilesCurrentId || "");
         let created = await createOrder(db, {
           userId,
           product,
@@ -770,7 +778,7 @@ const ROUTES = {
           }
           created = repriced;
         }
-        return { order: created, user: userDoc };
+        return { order: created, user: await userPromise };
       });
       ctx.orderId = String(order.merchantUid || "");
 
