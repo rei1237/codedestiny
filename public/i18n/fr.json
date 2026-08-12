@@ -1731,6 +1731,13 @@
         "checking": "Vérification de votre solde de pierres de lune. Vous pouvez toucher quand même.",
         "after": "Il restera {balance} après utilisation."
       },
+      "monthlyBalance": {
+        "checkButton": "Voir mes pierres de lune",
+        "recheckButton": "Vérifier à nouveau",
+        "checking": "Vérification…",
+        "error": "Vérification impossible. Réessayez dans un instant.",
+        "signedOut": "Connectez-vous pour voir votre solde."
+      },
       "legal": {
         "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique."
       },

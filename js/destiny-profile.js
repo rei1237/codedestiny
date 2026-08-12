@@ -10374,6 +10374,11 @@
       '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
       '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}',
       '.cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}',
+      '.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:9px 12px;border:1px solid rgba(232,200,138,.3);border-radius:999px;background:rgba(232,200,138,.06);color:#E8C88A;font-size:12.5px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color 170ms ease,background 170ms ease}',
+      '.cd-direct-payment-balance-check:hover{border-color:rgba(232,200,138,.55);background:rgba(232,200,138,.12)}',
+      '.cd-direct-payment-balance-check[disabled]{opacity:.6;cursor:default}',
+      '.cd-direct-payment-balance-value{display:block;margin:6px 2px 0;color:rgba(237,232,245,.86);font-size:12.5px;line-height:1.45;text-align:center;word-break:keep-all}',
+      '.cd-direct-payment-balance-value.is-error{color:#FCA5A5}',
       '.cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}',
       '.cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}',
       '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
@@ -10503,7 +10508,13 @@
         '<span class="cd-direct-payment-desc" data-monthly-hint>' + esc(monthlyHintText) + '</span>' +
         optionGoHtml('monthly') +
       '</button>';
-    var choiceCardHtmlByOption = { pass: passButtonHtml, direct: directButtonHtml, monthly: monthlyButtonHtml };
+    // 🔴 온디맨드 잔량 확인(2026-08-13, 셸 index.html bindMonthlyBalanceCheck 와 같은 계약).
+    // 결제창은 열릴 때 잔량을 조회하지 않는다 — 사용자가 눌러야만 조회하고, 실패해도 월정석 카드의
+    // disabled 는 건드리지 않는다. data-mode 를 주지 않는다(아래 델리게이션이 "고르면 닫는" 동작이라
+    // 붙이면 창이 닫힌다). <button> 중첩도 금지라 카드 아래 형제로 놓는다(그리드가 1열).
+    var monthlyBalanceCheckHtml = '<button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>' + esc(_dpCheckoutText('payment.directModal.monthlyBalance.checkButton', '보유 월정석 확인')) + '</button>' +
+      '<span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>';
+    var choiceCardHtmlByOption = { pass: passButtonHtml, direct: directButtonHtml, monthly: monthlyButtonHtml + monthlyBalanceCheckHtml };
     var orderedChoiceCardsHtml = (checkoutRecommendation.order || []).map(function(option) {
       return choiceCardHtmlByOption[option] || '';
     }).join('');
@@ -10592,7 +10603,43 @@
         try { if (typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; } } catch (_) {}
         try { window.location.assign('/points?source=standalone-payment-pass-store'); } catch (_) { window.location.href = '/points?source=standalone-payment-pass-store'; }
       }
+      // 🔴 온디맨드 잔량 확인. 열릴 때는 조회하지 않고, 이 버튼을 눌렀을 때만 확인한다. 첫 클릭은
+      // fresh 없이 보내 서버 표시용 잔량 캐시를 허용하고, 두 번째부터만 fresh 로 최신값을 강제한다.
+      var monthlyBalanceShown = false;
       root.addEventListener('click', async function(e) {
+        var balanceHit = e.target && e.target.closest ? e.target.closest('[data-monthly-balance-check]') : null;
+        if (balanceHit) {
+          e.preventDefault();
+          if (balanceHit.hasAttribute('disabled')) return;
+          var balanceOut = root.querySelector('[data-monthly-balance-text]');
+          var wasShown = monthlyBalanceShown;
+          balanceHit.setAttribute('disabled', 'disabled');
+          balanceHit.textContent = _dpCheckoutText('payment.directModal.monthlyBalance.checking', '확인 중…');
+          var balanceResult = null;
+          try {
+            balanceResult = await _dpFetchMoonlightStoneBalance({ fresh: wasShown });
+          } catch (_balanceCheckError) { balanceResult = null; }
+          if (balanceOut) {
+            var balanceIsError = true;
+            var balanceMessage = _dpCheckoutText('payment.directModal.monthlyBalance.error', '확인하지 못했어요. 잠시 후 다시 눌러 주세요.');
+            if (balanceResult && balanceResult.ok && !balanceResult.signedOut) {
+              monthlyBalanceShown = true;
+              balanceIsError = false;
+              balanceMessage = _dpCheckoutText('payment.directModal.currentMonthly', '현재 잔여') + ' ' + Math.max(0, Math.floor(Number(balanceResult.balance) || 0)).toLocaleString('ko-KR');
+            } else if (balanceResult && balanceResult.signedOut) {
+              balanceMessage = _dpCheckoutText('payment.directModal.monthlyBalance.signedOut', '로그인 후 확인할 수 있어요.');
+            }
+            balanceOut.textContent = balanceMessage;
+            balanceOut.hidden = false;
+            if (balanceIsError) balanceOut.classList.add('is-error');
+            else balanceOut.classList.remove('is-error');
+          }
+          balanceHit.textContent = monthlyBalanceShown
+            ? _dpCheckoutText('payment.directModal.monthlyBalance.recheckButton', '다시 확인')
+            : _dpCheckoutText('payment.directModal.monthlyBalance.checkButton', '보유 월정석 확인');
+          balanceHit.removeAttribute('disabled');
+          return;
+        }
         var hit = e.target && e.target.closest ? e.target.closest('[data-mode]') : null;
         if (hit) {
           var act = hit.getAttribute('data-mode');
@@ -10657,7 +10704,7 @@
         hasPassHint: hasActivePassTier ? 'active' : 'unknown'
       });
       // 🔴 결제창은 월정석 잔량을 조회하지 않는다(재조회 바·자동 조회 제거, 2026-08-12 — 셸·React 와 같은
-      // 계약). 간헐 503/타임아웃의 원인이던 /api/billing/balance 왕복을 없앴다 — 최종 판정은 어차피 월정석
+      // 계약). 그 왕복은 결제창이 열릴 때 나가지 않는다(잔량 표시는 [보유 월정석 확인] 온디맨드) — 최종 판정은 어차피 월정석
       // 선택 시 서버 coin-gate 가 원자적으로 확인+차감하고, 부족하면 lot 정본 잔량을 실은 402 로 되돌아온다.
     });
   }

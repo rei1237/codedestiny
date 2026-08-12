@@ -1042,6 +1042,11 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}
 .cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}
 .cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}
+.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:9px 12px;border:1px solid rgba(232,200,138,.3);border-radius:999px;background:rgba(232,200,138,.06);color:#E8C88A;font-size:12.5px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color 170ms ease,background 170ms ease}
+.cd-direct-payment-balance-check:hover{border-color:rgba(232,200,138,.55);background:rgba(232,200,138,.12)}
+.cd-direct-payment-balance-check[disabled]{opacity:.6;cursor:default}
+.cd-direct-payment-balance-value{display:block;margin:6px 2px 0;color:rgba(237,232,245,.86);font-size:12.5px;line-height:1.45;text-align:center;word-break:keep-all}
+.cd-direct-payment-balance-value.is-error{color:#FCA5A5}
 .cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}
 .cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}
 .cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}
@@ -1244,10 +1249,17 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
             <span class="cd-direct-payment-desc">${escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint)}</span>${optionGoHtml("pass")}
           </button>` : "";
+  // 🔴 온디맨드 잔량 확인(2026-08-13). 결제창은 **열릴 때 잔량을 조회하지 않는다** — 그 자동 왕복 금지는
+  // 2026-08-12 그대로다. 사용자가 눌러야만 조회하고, 실패해도 월정석 카드의 disabled 는 건드리지 않는다.
+  // data-mode 를 주지 않는다 — [data-mode] 일괄 리스너가 "고르면 모달을 닫는" 동작이라 붙이면 창이 닫힌다.
+  // <button> 중첩도 금지라 카드 안이 아니라 카드 아래 형제로 놓는다(그리드가 1열이라 바로 밑에 온다).
+  const monthlyBalanceCheckHtml = canShowMonthly ? `
+          <button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>${escapePaymentText(checkoutEntry.text("payment.directModal.monthlyBalance.checkButton", "보유 월정석 확인"))}</button>
+          <span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>` : "";
   const choiceCardHtmlByOption: Record<string, string> = {
     pass: passStoreButtonHtml,
     direct: directButtonHtml,
-    monthly: monthlyButtonHtml,
+    monthly: monthlyButtonHtml + monthlyBalanceCheckHtml,
   };
   const paymentChoiceButtonsHtml = (checkoutRecommendation.order || [])
     .map((option) => choiceCardHtmlByOption[option] || "")
@@ -1324,6 +1336,46 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       statusNode.textContent = message;
       statusNode.style.color = error ? "#fca5a5" : "#fde68a";
     };
+    // 🔴 온디맨드 잔량 확인(2026-08-13, 셸 index.html bindMonthlyBalanceCheck 와 같은 계약).
+    // 결제창은 열릴 때 잔량을 조회하지 않는다 — 첫 클릭은 fetchBillingBalance 의 recent 캐시를 그대로
+    // 허용해 값이 신선하면 네트워크 0회로 끝나고, 두 번째부터만 fresh 로 서버 표시용 캐시까지 우회한다.
+    // 실패는 문구로만 알린다(월정석 카드의 disabled 를 건드리지 않는다 — 미확정 ≠ 부족).
+    let monthlyBalanceShown = false;
+    const bindMonthlyBalanceCheck = () => {
+      const button = modal.querySelector<HTMLButtonElement>("[data-monthly-balance-check]");
+      const output = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
+      if (!button || !output) return;
+      const paint = (text: string, isError: boolean) => {
+        output.textContent = text;
+        output.hidden = false;
+        output.classList.toggle("is-error", isError);
+      };
+      button.addEventListener("click", async () => {
+        if (button.disabled) return;
+        const wasShown = monthlyBalanceShown;
+        button.disabled = true;
+        button.textContent = checkoutEntry.text("payment.directModal.monthlyBalance.checking", "확인 중…");
+        let result: Awaited<ReturnType<typeof fetchBillingBalance>> | null = null;
+        try {
+          result = await fetchBillingBalance({ moonlightStoneOnly: true, fresh: wasShown, clientSource: "app:payment-modal-balance-check" });
+        } catch {
+          result = null;
+        }
+        const balance = toNumber(result?.data?.monthlyStoneBalance ?? result?.data?.membershipCreditBalance, Number.NaN);
+        if (result?.ok && result.data?.authenticated !== false && result.data?.degraded !== true && Number.isFinite(balance) && balance >= 0) {
+          monthlyBalanceShown = true;
+          paint(`${checkoutEntry.text("payment.directModal.currentMonthly", "현재 잔여")} ${Math.floor(balance).toLocaleString("ko-KR")}`, false);
+        } else if (result?.data?.authenticated === false) {
+          paint(checkoutEntry.text("payment.directModal.monthlyBalance.signedOut", "로그인 후 확인할 수 있어요."), true);
+        } else {
+          paint(checkoutEntry.text("payment.directModal.monthlyBalance.error", "확인하지 못했어요. 잠시 후 다시 눌러 주세요."), true);
+        }
+        button.textContent = monthlyBalanceShown
+          ? checkoutEntry.text("payment.directModal.monthlyBalance.recheckButton", "다시 확인")
+          : checkoutEntry.text("payment.directModal.monthlyBalance.checkButton", "보유 월정석 확인");
+        button.disabled = false;
+      });
+    };
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
       if (mode === "monthly") {
@@ -1344,6 +1396,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close("cancel");
     });
+    bindMonthlyBalanceCheck();
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
       button.addEventListener("click", async () => {
         const rawMode = toText(button.dataset.mode);
@@ -1454,9 +1507,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
     (modal.querySelector<HTMLButtonElement>(".cd-direct-payment-option")
       || modal.querySelector<HTMLButtonElement>('[data-mode="direct"]'))?.focus();
-    // 🔴 결제창은 월정석 잔량을 조회하지 않는다(재조회 바·자동 조회 제거, 2026-08-12 — 셸 index.html 과 같은
-    // 계약). 간헐 503/타임아웃의 원인이던 /api/billing/balance 왕복을 없앴다 — 최종 판정은 어차피 월정석
-    // 선택 시 서버 coin-gate 가 원자적으로 확인+차감하고, 부족하면 lot 정본 잔량을 실은 402 로 되돌아온다.
+    // 🔴 결제창은 열릴 때 월정석 잔량을 조회하지 않는다(자동 조회·잔여바 제거, 2026-08-12 — 셸 index.html 과
+    // 같은 계약). 간헐 503/타임아웃의 원인이던 그 /api/billing/balance 왕복은 여기서 나가지 않는다 — 최종
+    // 판정은 어차피 월정석 선택 시 서버 coin-gate 가 원자적으로 확인+차감하고, 부족하면 lot 정본 잔량을 실은
+    // 402 로 되돌아온다. 잔량 표시는 사용자가 [보유 월정석 확인] 을 누를 때만 도는 온디맨드다(2026-08-13).
   });
 }
 

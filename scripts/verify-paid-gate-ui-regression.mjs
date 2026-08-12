@@ -222,9 +222,10 @@ assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILA
 // degraded-503은 결제창을 열기 전에 먼저 재시도해 이용권 보유자의 무료 통과를 살린다(재시도-우선).
 assertNotContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React payment POST is not automatically retried");
 
-// 🔴 결제창은 월정석 잔량을 조회하지 않는다(2026-08-12). 그 왕복(/api/billing/balance, 22초 예산·재시도
-// 없음)이 간헐 503·"잔량 확인 중" 고착의 원인이었고, 월정석을 고르면 서버 coin-gate 가 같은 1왕복 안에서
-// 확인+차감하므로 표시용 조회는 순수 부가 비용이었다. 세 렌더러 모두 호출부가 넘긴 잔량만 쓴다 —
+// 🔴 결제창은 **열릴 때** 월정석 잔량을 조회하지 않는다(2026-08-12). 그 왕복(/api/billing/balance, 22초
+// 예산·재시도 없음)이 간헐 503·"잔량 확인 중" 고착의 원인이었고, 월정석을 고르면 서버 coin-gate 가 같은
+// 1왕복 안에서 확인+차감하므로 열 때의 표시용 조회는 순수 부가 비용이었다. 세 렌더러 모두 **열 때는**
+// 호출부가 넘긴 잔량만 쓴다(사용자가 누르는 온디맨드 확인은 아래 2026-08-13 절 참고) —
 // 그래서 '조회 실패를 잔량 부족으로 오인'하는 경로 자체가 없어졌고, 남은 계약은 하나다:
 // **확인된 잔량이 필요분보다 적을 때만 비활성**(402 후 재노출 경로가 lot 정본 잔량을 실어 보낸다).
 assertContains(
@@ -243,17 +244,31 @@ assertContains(
   "var monthlyInsufficient = monthlyBalanceFresh && Math.floor(providedMonthlyBalance) < monthlyStones;",
   "standalone moonlight disable is decided by confirmed shortage only",
 );
-// 되살아나면 안 되는 것: 결제창 안에서의 잔량 조회. 세 렌더러 전부.
-for (const [label, source] of [
-  ["React", billingClientSource],
-  ["shell", indexSource],
-  ["standalone", destinyProfileSource],
-]) {
+// 🔴 2026-08-13 개정: 잔량 표시는 **사용자가 누르는 온디맨드**로만 돌아왔다. 위의 "열 때 조회 금지"는
+// 그대로다 — 아래 세 단언이 그 경계를 지킨다.
+//   1) 잔여바 자동 조회 시절의 마커는 계속 금지(특히 data-mode="monthly-refresh" — 세 렌더러가 [data-mode]
+//      를 "고르면 모달을 닫는" 노드로 일괄 처리하므로, 확인 버튼에 그 값을 주면 누를 때 결제창이 닫힌다).
+//   2) 각 렌더러의 잔량 조회 호출은 **파일 전체에서 정확히 1개**여야 한다(결제창 안에 두 번째 경로 금지).
+//   3) 그 호출은 [보유 월정석 확인] 버튼 마크업보다 **뒤**에 온다 = 열림 경로가 아니라 핸들러 안이다.
+//      마크업은 모달 HTML 을 만드는 시점, 핸들러는 그 뒤에 바인딩되므로 이 순서가 깨지면 자동 조회다.
+const ON_DEMAND_BALANCE_CHECKS = [
+  ["React", billingClientSource, "moonlightStoneOnly: true"],
+  ["shell", indexSource, "reason: 'payment-modal-balance-check'"],
+  ["standalone", destinyProfileSource, "_dpFetchMoonlightStoneBalance({ fresh: wasShown })"],
+];
+for (const [label, source, fetchMarker] of ON_DEMAND_BALANCE_CHECKS) {
   assertNotContains(source, 'data-mode="monthly-refresh"', `${label} payment choice must not render a balance refresh button`);
-  assertNotContains(source, "data-monthly-balance-text", `${label} payment choice must not render a balance row`);
+  assertNotContains(source, "cd-direct-payment-moonbal-current", `${label} payment choice must not render the old auto-query balance bar`);
+  assertContains(source, "data-monthly-balance-check", `${label} payment choice renders the on-demand moonstone balance button`);
+  assertContains(source, "data-monthly-balance-text", `${label} payment choice renders the on-demand moonstone balance output`);
+  const fetchHits = source.split(fetchMarker).length - 1;
+  assert.equal(fetchHits, 1, `${label} payment choice must fetch the moonstone balance from exactly one place (found ${fetchHits}): ${fetchMarker}`);
+  assert.ok(
+    source.indexOf(fetchMarker) > source.indexOf("data-monthly-balance-check"),
+    `${label} payment choice must fetch the moonstone balance only behind the check button, never while opening`,
+  );
 }
-assertNotContains(billingClientSource, "moonlightStoneOnly: true", "React payment choice must not fetch the moonstone balance");
-assertNotContains(indexSource, "reason: 'payment-modal-refresh'", "shell payment choice must not fetch the moonstone balance");
+assertNotContains(indexSource, "reason: 'payment-modal-refresh'", "shell payment choice must not restore the old auto balance refresh");
 
 // 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — 상한 회귀 방지.
 //

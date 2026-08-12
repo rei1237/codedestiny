@@ -1731,6 +1731,13 @@
         "checking": "正在确认月精石余量。直接点也没关系。",
         "after": "使用后将剩余 {balance}。"
       },
+      "monthlyBalance": {
+        "checkButton": "查看我的月精石",
+        "recheckButton": "重新查看",
+        "checking": "查询中…",
+        "error": "暂时无法查询，请稍后再点一次。",
+        "signedOut": "登录后即可查看余量。"
+      },
       "legal": {
         "provisionTiming": "本服务在支付完成后立即提供。服务使用从支付确认时开始，根据电子商务法，已开始提供的內容可能限制撤销。"
       },

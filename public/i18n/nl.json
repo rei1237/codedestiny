@@ -1731,6 +1731,13 @@
         "checking": "Je maansteensaldo wordt gecontroleerd. Je mag toch tikken.",
         "after": "Er blijft {balance} over na gebruik."
       },
+      "monthlyBalance": {
+        "checkButton": "Mijn maanstenen bekijken",
+        "recheckButton": "Opnieuw controleren",
+        "checking": "Bezig met controleren…",
+        "error": "Kon niet controleren. Tik zo meteen nog eens.",
+        "signedOut": "Log in om je saldo te bekijken."
+      },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."
       },
