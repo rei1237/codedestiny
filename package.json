@@ -100,6 +100,8 @@
     "verify:guardian-fortune-indexes": "node scripts/migrations/20260809-add-guardian-fortune-indexes.mjs --check",
     "migrate:point-history-feature-lookup-index": "node scripts/migrations/20260810-add-point-history-feature-lookup-index.mjs",
     "verify:point-history-feature-lookup-index": "node scripts/migrations/20260810-add-point-history-feature-lookup-index.mjs --check",
+    "migrate:checkout-funnel-ttl": "node scripts/migrations/20260812-add-checkout-funnel-ttl-index.mjs",
+    "verify:checkout-funnel-ttl": "node scripts/migrations/20260812-add-checkout-funnel-ttl-index.mjs --check",
     "migrate:fix-ttl-index-drift": "node scripts/migrations/20260705-fix-ttl-index-drift.mjs",
     "migrate:monthly-credit-lot-expiry": "node scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs",
     "migrate:admin-audit-log-indexes": "node scripts/migrations/20260812-add-admin-audit-log-indexes.mjs",
