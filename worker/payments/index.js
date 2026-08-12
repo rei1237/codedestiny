@@ -937,7 +937,10 @@ const ROUTES = {
 
         /* 🔴 영구 해금형은 **소유 여부를 먼저** 확정한다. 뒤로 미루면 이미 가진 콘텐츠를 다시 열
            때마다 월 예산이 또 깎여, 재열람이 사실상 반복 과금이 된다(구 accessDecision 의
-           already_unlocked 분기 승계). grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복은 늘지 않는다. */
+           already_unlocked 분기 승계). grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복은 늘지 않는다.
+           🔴 지급은 **여기 한 번뿐**이다. 소유 확인을 앞으로 옮긴 리팩터가 뒤쪽 지급 쌍을 지우지 않아
+           한동안 같은 upsert + $addToSet 가 예산 차감 뒤에 한 번 더 돌았다 — 결과는 같지만 unlock 형
+           이용권 검사마다 왕복 2회를 그냥 버렸다. 뒤에 다시 넣지 말 것. */
         if (unlock) {
           const granted = await grantEntitlement(db, {
             userId, product, orderId: requestId, profileId,
@@ -957,13 +960,6 @@ const ROUTES = {
         // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
         //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
         await recordPassUsageEvidence(db, { userId, product, requestId, profileId, coverage, user: updated });
-        if (unlock) {
-          await grantEntitlement(db, {
-            userId, product, orderId: requestId, profileId,
-            contentKey: body.contentKey, scope: body.scope, source: "PASS",
-          });
-          await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
-        }
         return { coverage, entitlement, user: updated };
       });
 
