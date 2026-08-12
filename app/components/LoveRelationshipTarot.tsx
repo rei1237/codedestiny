@@ -32,6 +32,9 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     subscriptionReason: "우리는 무슨 사이 타로",
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `우리는 무슨 사이? 타로 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`,
+    // 월정석 1개 = 10원(MEMBERSHIP_CREDIT_PER_COIN 10). 이용권과 다른 재화이므로 문구를 섞지 않는다.
+    stoneOpened: (spentCredits: number, balanceCredits: number | null) =>
+      `월정석 ${Math.max(0, spentCredits * 10).toLocaleString("ko-KR")}원 상당으로 우리는 무슨 사이? 타로가 열렸습니다.${typeof balanceCredits === "number" ? ` 남은 월정석: ${Math.max(0, balanceCredits * 10).toLocaleString("ko-KR")}원 상당` : ""}`,
     authRequired: "로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
     insufficientCoins: (requiredCoins: number) => `결제 가능 금액이 부족합니다. ${Math.max(0, requiredCoins * 100).toLocaleString("ko-KR")}원 결제가 필요합니다.`,
     refunded: "리딩 생성이 완료되지 않아 이번 결제가 환불되었습니다.",
@@ -81,6 +84,8 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     subscriptionReason: "What Are We Tarot",
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `What Are We? Tarot payment of ${Math.max(0, chargedCoins * 100).toLocaleString("en-US")} KRW was approved. Remaining KRW value: ${Math.max(0, balanceAfter * 100).toLocaleString("en-US")} KRW`,
+    stoneOpened: (spentCredits: number, balanceCredits: number | null) =>
+      `What Are We? Tarot opened with Moonlight Stones worth ${Math.max(0, spentCredits * 10).toLocaleString("en-US")} KRW.${typeof balanceCredits === "number" ? ` Remaining Moonlight Stones: ${Math.max(0, balanceCredits * 10).toLocaleString("en-US")} KRW value` : ""}`,
     authRequired: "Login is required. Please sign in and try again.",
     insufficientCoins: (requiredCoins: number) => `Your available payment balance is too low. ${Math.max(0, requiredCoins * 100).toLocaleString("en-US")} KRW is required.`,
     refunded: "The reading was not completed, so this payment has been refunded.",
@@ -130,6 +135,8 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     subscriptionReason: "私たちはどんな関係タロット",
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `私たちはどんな関係？タロット ${Math.max(0, chargedCoins * 100).toLocaleString("ja-JP")}ウォンの決済が承認されました。残りのウォン相当額: ${Math.max(0, balanceAfter * 100).toLocaleString("ja-JP")}ウォン`,
+    stoneOpened: (spentCredits: number, balanceCredits: number | null) =>
+      `月精石 ${Math.max(0, spentCredits * 10).toLocaleString("ja-JP")}ウォン相当で「私たちはどんな関係？タロット」が開きました。${typeof balanceCredits === "number" ? ` 残りの月精石: ${Math.max(0, balanceCredits * 10).toLocaleString("ja-JP")}ウォン相当` : ""}`,
     authRequired: "ログインが必要です。ログイン後にもう一度お試しください。",
     insufficientCoins: (requiredCoins: number) => `決済可能な残高が不足しています。${Math.max(0, requiredCoins * 100).toLocaleString("ja-JP")}ウォンの決済が必要です。`,
     refunded: "リーディングが完了しなかったため、今回の決済は返金されました。",
@@ -179,6 +186,8 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     subscriptionReason: "我们是什么关系塔罗",
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `我们是什么关系？塔罗 ${Math.max(0, chargedCoins * 100).toLocaleString("zh-CN")} 韩元付款已批准。剩余韩元价值：${Math.max(0, balanceAfter * 100).toLocaleString("zh-CN")} 韩元`,
+    stoneOpened: (spentCredits: number, balanceCredits: number | null) =>
+      `已使用价值 ${Math.max(0, spentCredits * 10).toLocaleString("zh-CN")} 韩元的月精石开启“我们是什么关系？塔罗”。${typeof balanceCredits === "number" ? ` 剩余月精石：${Math.max(0, balanceCredits * 10).toLocaleString("zh-CN")} 韩元价值` : ""}`,
     authRequired: "需要登录。请登录后重试。",
     insufficientCoins: (requiredCoins: number) => `可用付款余额不足。需要 ${Math.max(0, requiredCoins * 100).toLocaleString("zh-CN")} 韩元。`,
     refunded: "解读未完成，本次付款已退款。",
@@ -228,6 +237,8 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     subscriptionReason: "我們是什麼關係塔羅",
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `我們是什麼關係？塔羅 ${Math.max(0, chargedCoins * 100).toLocaleString("zh-TW")} 韓元付款已核准。剩餘韓元價值：${Math.max(0, balanceAfter * 100).toLocaleString("zh-TW")} 韓元`,
+    stoneOpened: (spentCredits: number, balanceCredits: number | null) =>
+      `已使用價值 ${Math.max(0, spentCredits * 10).toLocaleString("zh-TW")} 韓元的月精石開啟「我們是什麼關係？塔羅」。${typeof balanceCredits === "number" ? ` 剩餘月精石：${Math.max(0, balanceCredits * 10).toLocaleString("zh-TW")} 韓元價值` : ""}`,
     authRequired: "需要登入。請登入後再試。",
     insufficientCoins: (requiredCoins: number) => `可用付款餘額不足。需要 ${Math.max(0, requiredCoins * 100).toLocaleString("zh-TW")} 韓元。`,
     refunded: "解讀未完成，本次付款已退款。",
@@ -493,12 +504,18 @@ export default function LoveRelationshipTarot() {
         reason: copy.paymentReason,
         requestId: `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
-        onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {
-          if (chargedCoins <= 0 && requiredCoins > 0) {
+        onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
+          // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라
+          // (useCoinGate 의 chargedCoins 계산) 이용권 여부를 가릴 수 없다.
+          if (accessSource === "subscription") {
             showSubscriptionIncludedNotice({
               message: copy.subscriptionIncluded,
               reason: copy.subscriptionReason,
             });
+            return;
+          }
+          if (accessSource === "moonlight_stone") {
+            showToast(copy.stoneOpened(monthlyCreditsSpent, monthlyBalanceAfter), "info");
             return;
           }
           if (chargedCoins > 0) {

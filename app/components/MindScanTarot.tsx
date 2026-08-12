@@ -7,6 +7,7 @@ import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 const MIND_SCAN_TAROT_TEXT_TRANSLATIONS = {
@@ -1595,12 +1596,18 @@ export default function MindScanTarot() {
         reason: "말과 행동 사이 타로 리딩",
         requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
-        onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {
-          if (chargedCoins <= 0 && requiredCoins > 0) {
+        onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
+          // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라
+          // (useCoinGate 의 chargedCoins 계산) 이용권 여부를 가릴 수 없다.
+          if (accessSource === "subscription") {
             showSubscriptionIncludedNotice({
               message: mindScanTarotText("mindScanTarot.016"),
               reason: "말과 행동 사이 타로",
             });
+            return;
+          }
+          if (accessSource === "moonlight_stone") {
+            showToast(`월정석 ${formatKrwFromMonthlyCredits(monthlyCreditsSpent)} 상당으로 말과 행동 사이 타로가 열렸습니다.${typeof monthlyBalanceAfter === "number" ? ` 남은 월정석: ${formatKrwFromMonthlyCredits(monthlyBalanceAfter)} 상당` : ""}`, "info");
             return;
           }
           if (chargedCoins > 0) {

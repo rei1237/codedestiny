@@ -69,9 +69,10 @@ type PromptMakerFeedbackCopy = {
   lenormandCompleteToast: string;
   subscriptionPromptComplete: string;
   subscriptionReason: string;
-  passBenefit: string;
-  passRemaining: (amount: string) => string;
-  passOpened: (spent: string, balance: string) => string;
+  // 월정석 분기 전용 카피. 이용권(subscriptionPromptComplete)과 섞어 쓰지 않는다.
+  stoneBenefit: string;
+  stoneRemaining: (amount: string) => string;
+  stoneOpened: (spent: string, balance: string) => string;
   paidApproved: (balance: string) => string;
   loginRequired: string;
   insufficientCoins: (amount: string) => string;
@@ -187,9 +188,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "무료 레노먼드 프롬프트가 완성되었습니다.",
     subscriptionPromptComplete: "이용권 혜택이 적용되어 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
     subscriptionReason: "타로 프롬프트 라이브러리",
-    passBenefit: "보유 이용권 혜택",
-    passRemaining: (amount) => ` 남은 이용권 혜택: ${amount}`,
-    passOpened: (spent, balance) => `이용권 혜택 ${spent}으로 타로 프롬프트 라이브러리가 열렸습니다.${balance}`,
+    stoneBenefit: "보유분",
+    stoneRemaining: (amount) => ` 남은 월정석: ${amount}`,
+    stoneOpened: (spent, balance) => `월정석 ${spent}으로 타로 프롬프트 라이브러리가 열렸습니다.${balance}`,
     paidApproved: (balance) => `타로 프롬프트 라이브러리 이용이 승인되었습니다. 잔여 원화 가치: ${balance}`,
     loginRequired: "로그인이 필요합니다.",
     insufficientCoins: (amount) => `결제 가능 금액이 부족합니다. ${amount} 결제가 필요합니다.`,
@@ -230,9 +231,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "Your free Lenormand prompt is ready.",
     subscriptionPromptComplete: "Your pass benefit opened the Tarot Prompt Library. The AI oracle prompt is complete in the moonlit flow.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "available pass benefit",
-    passRemaining: (amount) => ` Remaining pass benefit: ${amount}`,
-    passOpened: (spent, balance) => `The Tarot Prompt Library opened with ${spent}.${balance}`,
+    stoneBenefit: "an available balance",
+    stoneRemaining: (amount) => ` Remaining Moonlight Stones: ${amount}`,
+    stoneOpened: (spent, balance) => `The Tarot Prompt Library opened with Moonlight Stones (${spent}).${balance}`,
     paidApproved: (balance) => `Tarot Prompt Library access was approved. Remaining KRW value: ${balance}`,
     loginRequired: "Login is required.",
     insufficientCoins: (amount) => `Your available balance is not enough. ${amount} is required.`,
@@ -273,9 +274,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "無料ルノルマンプロンプトが完成しました。",
     subscriptionPromptComplete: "利用券特典が適用され、タロットプロンプトライブラリが開きました。月明かりの流れの中でAIオラクルプロンプトが完成しました。",
     subscriptionReason: "タロットプロンプトライブラリ",
-    passBenefit: "保有中の利用券特典",
-    passRemaining: (amount) => ` 残り利用券特典: ${amount}`,
-    passOpened: (spent, balance) => `利用券特典 ${spent} でタロットプロンプトライブラリが開きました。${balance}`,
+    stoneBenefit: "保有分",
+    stoneRemaining: (amount) => ` 残りの月精石: ${amount}`,
+    stoneOpened: (spent, balance) => `月精石 ${spent} でタロットプロンプトライブラリが開きました。${balance}`,
     paidApproved: (balance) => `タロットプロンプトライブラリの利用が承認されました。残りウォン価値: ${balance}`,
     loginRequired: "ログインが必要です。",
     insufficientCoins: (amount) => `決済可能な残高が不足しています。${amount} の決済が必要です。`,
@@ -316,9 +317,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "免费雷诺曼提示词已完成。",
     subscriptionPromptComplete: "已应用通行权益并开启塔罗提示词库。AI神谕提示词已在月光流动中完成。",
     subscriptionReason: "塔罗提示词库",
-    passBenefit: "持有的通行权益",
-    passRemaining: (amount) => ` 剩余通行权益：${amount}`,
-    passOpened: (spent, balance) => `已使用通行权益 ${spent} 开启塔罗提示词库。${balance}`,
+    stoneBenefit: "持有余额",
+    stoneRemaining: (amount) => ` 剩余月精石：${amount}`,
+    stoneOpened: (spent, balance) => `已使用月精石 ${spent} 开启塔罗提示词库。${balance}`,
     paidApproved: (balance) => `塔罗提示词库使用已通过。剩余韩元价值：${balance}`,
     loginRequired: "需要登录。",
     insufficientCoins: (amount) => `可支付余额不足。需要支付 ${amount}。`,
@@ -359,9 +360,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "免費雷諾曼提示詞已完成。",
     subscriptionPromptComplete: "已套用通行權益並開啟塔羅提示詞庫。AI神諭提示詞已在月光流動中完成。",
     subscriptionReason: "塔羅提示詞庫",
-    passBenefit: "持有的通行權益",
-    passRemaining: (amount) => ` 剩餘通行權益：${amount}`,
-    passOpened: (spent, balance) => `已使用通行權益 ${spent} 開啟塔羅提示詞庫。${balance}`,
+    stoneBenefit: "持有餘額",
+    stoneRemaining: (amount) => ` 剩餘月精石：${amount}`,
+    stoneOpened: (spent, balance) => `已使用月精石 ${spent} 開啟塔羅提示詞庫。${balance}`,
     paidApproved: (balance) => `塔羅提示詞庫使用已通過。剩餘韓元價值：${balance}`,
     loginRequired: "需要登入。",
     insufficientCoins: (amount) => `可付款餘額不足。需要支付 ${amount}。`,
@@ -402,9 +403,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "Prompt Lenormand miễn phí đã hoàn tất.",
     subscriptionPromptComplete: "Quyền lợi đã được áp dụng và Tarot Prompt Library đã mở. Prompt AI oracle đã hoàn tất trong dòng trăng.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "quyền lợi hiện có",
-    passRemaining: (amount) => ` Quyền lợi còn lại: ${amount}`,
-    passOpened: (spent, balance) => `Tarot Prompt Library đã mở bằng quyền lợi ${spent}.${balance}`,
+    stoneBenefit: "số dư hiện có",
+    stoneRemaining: (amount) => ` Moonlight Stone còn lại: ${amount}`,
+    stoneOpened: (spent, balance) => `Tarot Prompt Library đã mở bằng Moonlight Stone (${spent}).${balance}`,
     paidApproved: (balance) => `Quyền dùng Tarot Prompt Library đã được duyệt. Giá trị KRW còn lại: ${balance}`,
     loginRequired: "Cần đăng nhập.",
     insufficientCoins: (amount) => `Số dư khả dụng không đủ. Cần thanh toán ${amount}.`,
@@ -445,9 +446,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "Free Lenormand prompt तैयार है.",
     subscriptionPromptComplete: "Pass benefit लागू हुआ और Tarot Prompt Library खुल गई. AI oracle prompt moonlit flow में पूरा हुआ.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "available pass benefit",
-    passRemaining: (amount) => ` Remaining pass benefit: ${amount}`,
-    passOpened: (spent, balance) => `Tarot Prompt Library ${spent} pass benefit से खुल गई.${balance}`,
+    stoneBenefit: "उपलब्ध बैलेंस",
+    stoneRemaining: (amount) => ` शेष मूनलाइट स्टोन: ${amount}`,
+    stoneOpened: (spent, balance) => `Tarot Prompt Library मूनलाइट स्टोन (${spent}) से खुल गई.${balance}`,
     paidApproved: (balance) => `Tarot Prompt Library access approved. Remaining KRW value: ${balance}`,
     loginRequired: "Login आवश्यक है.",
     insufficientCoins: (amount) => `Available balance कम है. ${amount} required है.`,
@@ -488,9 +489,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "El prompt Lenormand gratis está listo.",
     subscriptionPromptComplete: "Se aplicó tu pase y se abrió Tarot Prompt Library. El prompt de oráculo AI está completo bajo la luz lunar.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "beneficio disponible del pase",
-    passRemaining: (amount) => ` Beneficio restante: ${amount}`,
-    passOpened: (spent, balance) => `Tarot Prompt Library se abrió con ${spent}.${balance}`,
+    stoneBenefit: "saldo disponible",
+    stoneRemaining: (amount) => ` Moonlight Stones restantes: ${amount}`,
+    stoneOpened: (spent, balance) => `Tarot Prompt Library se abrió con Moonlight Stones (${spent}).${balance}`,
     paidApproved: (balance) => `Acceso aprobado a Tarot Prompt Library. Valor KRW restante: ${balance}`,
     loginRequired: "Debes iniciar sesión.",
     insufficientCoins: (amount) => `Tu saldo disponible no alcanza. Se requiere ${amount}.`,
@@ -531,9 +532,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "Le prompt Lenormand gratuit est prêt.",
     subscriptionPromptComplete: "Votre pass a ouvert Tarot Prompt Library. Le prompt d'oracle IA est complet dans le flux lunaire.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "avantage de pass disponible",
-    passRemaining: (amount) => ` Avantage restant: ${amount}`,
-    passOpened: (spent, balance) => `Tarot Prompt Library s'est ouvert avec ${spent}.${balance}`,
+    stoneBenefit: "solde disponible",
+    stoneRemaining: (amount) => ` Moonlight Stones restantes: ${amount}`,
+    stoneOpened: (spent, balance) => `Tarot Prompt Library s'est ouvert avec des Moonlight Stones (${spent}).${balance}`,
     paidApproved: (balance) => `Accès approuvé à Tarot Prompt Library. Valeur KRW restante: ${balance}`,
     loginRequired: "Connexion requise.",
     insufficientCoins: (amount) => `Votre solde disponible est insuffisant. ${amount} est requis.`,
@@ -574,9 +575,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "Der kostenlose Lenormand-Prompt ist fertig.",
     subscriptionPromptComplete: "Dein Passvorteil hat die Tarot Prompt Library geöffnet. Der KI-Orakel-Prompt ist im Mondlichtfluss fertig.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "verfügbarer Passvorteil",
-    passRemaining: (amount) => ` Verbleibender Passvorteil: ${amount}`,
-    passOpened: (spent, balance) => `Die Tarot Prompt Library wurde mit ${spent} geöffnet.${balance}`,
+    stoneBenefit: "verfügbares Guthaben",
+    stoneRemaining: (amount) => ` Verbleibende Moonlight Stones: ${amount}`,
+    stoneOpened: (spent, balance) => `Die Tarot Prompt Library wurde mit Moonlight Stones (${spent}) geöffnet.${balance}`,
     paidApproved: (balance) => `Zugang zur Tarot Prompt Library genehmigt. Verbleibender KRW-Wert: ${balance}`,
     loginRequired: "Login erforderlich.",
     insufficientCoins: (amount) => `Dein verfügbares Guthaben reicht nicht aus. ${amount} ist erforderlich.`,
@@ -617,9 +618,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "De gratis Lenormand-prompt is klaar.",
     subscriptionPromptComplete: "Je passvoordeel opende de Tarot Prompt Library. De AI-orakelprompt is klaar in de maanlichtstroom.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "beschikbaar passvoordeel",
-    passRemaining: (amount) => ` Resterend passvoordeel: ${amount}`,
-    passOpened: (spent, balance) => `Tarot Prompt Library is geopend met ${spent}.${balance}`,
+    stoneBenefit: "beschikbaar saldo",
+    stoneRemaining: (amount) => ` Resterende Moonlight Stones: ${amount}`,
+    stoneOpened: (spent, balance) => `Tarot Prompt Library is geopend met Moonlight Stones (${spent}).${balance}`,
     paidApproved: (balance) => `Toegang tot Tarot Prompt Library goedgekeurd. Resterende KRW-waarde: ${balance}`,
     loginRequired: "Inloggen is vereist.",
     insufficientCoins: (amount) => `Je beschikbare saldo is niet genoeg. ${amount} is vereist.`,
@@ -660,9 +661,9 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     lenormandCompleteToast: "Prompt Lenormand percuma sudah siap.",
     subscriptionPromptComplete: "Manfaat pas digunakan dan Tarot Prompt Library dibuka. Prompt oracle AI siap dalam aliran cahaya bulan.",
     subscriptionReason: "Tarot Prompt Library",
-    passBenefit: "manfaat pas tersedia",
-    passRemaining: (amount) => ` Baki manfaat pas: ${amount}`,
-    passOpened: (spent, balance) => `Tarot Prompt Library dibuka dengan manfaat ${spent}.${balance}`,
+    stoneBenefit: "baki tersedia",
+    stoneRemaining: (amount) => ` Baki Moonlight Stone: ${amount}`,
+    stoneOpened: (spent, balance) => `Tarot Prompt Library dibuka dengan Moonlight Stone (${spent}).${balance}`,
     paidApproved: (balance) => `Akses Tarot Prompt Library diluluskan. Nilai KRW berbaki: ${balance}`,
     loginRequired: "Log masuk diperlukan.",
     insufficientCoins: (amount) => `Baki tersedia tidak mencukupi. ${amount} diperlukan.`,
@@ -2747,9 +2748,13 @@ export default function TarotPromptMakerPage() {
         cost: lookupServerCoinPrice("tarot-prompt-maker"),
         reason: feedbackCopy.subscriptionReason,
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        onPaid: ({ chargedCoins, requiredCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
+        onPaid: ({ chargedCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           pendingGenerate = generate().then(() => {
-            if (accessSource === "subscription" || (chargedCoins <= 0 && requiredCoins > 0 && billingPassIncluded)) {
+            // 🔴 판정은 accessSource 로만 한다. 예전에는 `chargedCoins <= 0 && billingPassIncluded` 폴백이
+            // 함께 걸려 있었는데, 월정석 결제도 chargedCoins 가 0 이고 billingPassIncluded 는 이용권을
+            // 보유하기만 하면(커버 여부와 무관하게) true 라, 월정석 결제가 아래 월정석 분기에 닿기 전에
+            // 이용권 모달로 새 나갔다.
+            if (accessSource === "subscription") {
               showSubscriptionIncludedNotice({
                 message: feedbackCopy.subscriptionPromptComplete,
                 reason: feedbackCopy.subscriptionReason,
@@ -2758,9 +2763,9 @@ export default function TarotPromptMakerPage() {
               return;
             }
             if (accessSource === "moonlight_stone") {
-              const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent, uiCopy) : feedbackCopy.passBenefit;
-              const balanceText = typeof monthlyBalanceAfter === "number" ? feedbackCopy.passRemaining(formatMonthlyCreditValue(monthlyBalanceAfter, uiCopy)) : "";
-              showToast(feedbackCopy.passOpened(spentText, balanceText), "info");
+              const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent, uiCopy) : feedbackCopy.stoneBenefit;
+              const balanceText = typeof monthlyBalanceAfter === "number" ? feedbackCopy.stoneRemaining(formatMonthlyCreditValue(monthlyBalanceAfter, uiCopy)) : "";
+              showToast(feedbackCopy.stoneOpened(spentText, balanceText), "info");
               return;
             }
             if (chargedCoins > 0) showToast(feedbackCopy.paidApproved(formatCoinValue(balanceAfter, uiCopy)), "info");
