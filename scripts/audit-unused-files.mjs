@@ -64,7 +64,6 @@ const PROTECTED_PREFIXES = [
   "worker/",
   "utils/astrology/",
   "fortune/",
-  "veda/",
 ];
 
 const LARGE_FILE_THRESHOLD = 512 * 1024;

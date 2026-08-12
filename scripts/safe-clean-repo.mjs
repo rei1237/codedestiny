@@ -37,7 +37,6 @@ const PROTECTED_PREFIXES = [
   "worker/",
   "utils/astrology/",
   "fortune/",
-  "veda/",
 ];
 
 const LOG_FILE_REGEX = [
