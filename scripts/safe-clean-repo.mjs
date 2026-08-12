@@ -28,7 +28,6 @@ const PROTECTED_EXACT = new Set([
   "worker/wrangler.toml",
   "next.config.mjs",
   "middleware.js",
-  "auth.config.ts",
 ]);
 
 const PROTECTED_PREFIXES = [
