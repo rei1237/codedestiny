@@ -136,7 +136,7 @@ const STRUCTURE_MARKERS = [
   // 결제창 안내자 꽃돼지. 🔴 같은 출처(/public) 자산이어야 한다 — 결제 경로의 교차출처 이미지는
   // PortOne SDK 와 대역폭을 다툰다(verify-portone-single-payment 가 R2 URL 을 따로 막는다).
   "cd-direct-payment-guide",
-  "/images/fortune-tea-house/flower-pig-honey-hug.webp",
+  "/images/fortune-tea-house/checkout-guide-pig.webp",
   'data-mode="pass-store"',
   'data-mode="direct"',
   'data-mode="monthly" data-monthly-option',

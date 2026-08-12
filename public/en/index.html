@@ -22748,7 +22748,7 @@ return you.name.restore();</span>
   // 예전에 R2(assets.code-destiny.com)의 742KB PNG 를 결제 경로에 두었다가 PortOne SDK 와 대역폭을
   // 다투어 "network error 로 PG 창이 안 뜨는" 사고가 났고, verify-portone-single-payment 가 그 회귀를 막는다.
   // 이 파일은 독립 정적 결제 오버레이(js/destiny-profile.js)가 이미 쓰는 것과 같은 자산이다.
-  var CD_CHECKOUT_GUIDE_PIG_SRC = '/images/fortune-tea-house/flower-pig-honey-hug.webp';
+  var CD_CHECKOUT_GUIDE_PIG_SRC = '/images/fortune-tea-house/checkout-guide-pig.webp';
   // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
   // 셸은 화면 상태가 해시·쿼리에 있으므로 셋 다 담는다.
   function _cdRememberCheckoutReturn(label) {
@@ -22773,7 +22773,7 @@ return you.name.restore();</span>
       '.cd-direct-payment-hairline{display:block;position:relative;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,200,138,.85) 50%,transparent)}',
       '.cd-direct-payment-hairline::after{content:"";position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f4bed1 0%,rgba(244,190,209,.55) 55%,rgba(244,190,209,0) 80%);box-shadow:0 0 8px 2px rgba(244,190,209,.4);opacity:.6;animation:cdMoonlitPetalDrift 7s ease-in-out infinite}',
       '.cd-direct-payment-guide{display:flex;align-items:center;gap:14px;margin:0 0 16px}',
-      '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;filter:drop-shadow(0 12px 22px rgba(0,0,0,.45))}',
+      '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;filter:drop-shadow(0 0 16px rgba(244,190,209,.38))}',
       '.cd-direct-payment-guide__copy{min-width:0}',
       '.cd-direct-payment-title{margin:0 0 5px;font-family:\'CodeDestinySerifLatin\',\'CodeDestinySerifKR\',\'Nanum Myeongjo\',\'Gowun Batang\',var(--font-body);font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.32;color:#F6EFE0;word-break:keep-all}',
       '.cd-direct-payment-sub{margin:0;font-size:13px;line-height:1.5;color:rgba(237,232,245,.82);word-break:keep-all}',
@@ -23226,11 +23226,11 @@ return you.name.restore();</span>
           // 장식 초점이 둘(달·꽃돼지)이면 서로를 깎아먹는다 — 안내자 하나만 남긴다.
           '<span class="cd-direct-payment-hairline" aria-hidden="true"></span>' +
           // 꽃돼지 연이가 지금 상황에서 가장 나은 방법을 한 줄로 말해 준다. 이미지는 장식이라 alt 는 비우고
-          // (옆 문장이 같은 내용을 이미 읽어 준다), 같은 출처 22.9KB webp 를 eager 로 받는다 —
+          // (옆 문장이 같은 내용을 이미 읽어 준다), 같은 출처 12.6KB webp 를 eager 로 받는다 —
           // 🔴 모달 자체가 온디맨드 생성이라 이미 지연 게이트다. lazy 를 겹치면 요청이 영영 안 나간다.
-          // width/height 는 원본 비율(361:411)을 그대로 준다 — 정사각 상자에 가두면 레터박싱돼 작아 보인다.
+          // width/height 는 원본 비율(264:306)을 그대로 준다 — 정사각 상자에 가두면 레터박싱돼 작아 보인다.
           '<div class="cd-direct-payment-guide">' +
-            '<img class="cd-direct-payment-guide__pig" src="' + CD_CHECKOUT_GUIDE_PIG_SRC + '" alt="" width="88" height="100" loading="eager" decoding="async">' +
+            '<img class="cd-direct-payment-guide__pig" src="' + CD_CHECKOUT_GUIDE_PIG_SRC + '" alt="" width="88" height="102" loading="eager" decoding="async">' +
             '<div class="cd-direct-payment-guide__copy">' +
               '<h2 class="cd-direct-payment-title" id="cdDirectPaymentTitle">' + escapeHtml(_cdPaymentI18n('payment.directModal.moonTitle', '이 콘텐츠를 열어볼까요?')) + '</h2>' +
               '<p class="cd-direct-payment-sub" id="cdDirectPaymentSub">' + escapeHtml(allowPassChoice ? guideBubbleText : _cdPaymentI18n('payment.directModal.subtitle.directOnly', '월정석은 이벤트성 선불 재화입니다. 원화 단건 결제로도 진행할 수 있어요.')) + '</p>' +
