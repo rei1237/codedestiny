@@ -96,6 +96,6 @@ grep -rl "<해당 청크 파일명>" out/tarot/*/index.html          # 참조 0 
 |---|---|
 | **B-6** 결제 게이팅 중복 175줄 통합 (`fortune-access-guard.js` ↔ `worker/routes/fortune.js`) | **이번 회차 제외.** 이용권 판정 경로라 잘못 합치면 결제가 갈리고, 롤백에 Worker 재배포가 필요하다. 별도 세션에서 집중 처리 |
 | **B-3** animal-destiny 다마고치 UI 11건 / **B-4** 찻집 내러티브 9건 | **보류.** 참조는 0이지만 하나의 미완성 기능 세트라 살릴지 접을지는 제품 판단이다. 특히 B-4 는 2026-07-25 선행 감사가 "keep" 으로 결정한 항목이라 임의로 뒤집지 않는다 |
-| **W-1** 앱 세션 30분 만료 (`/api/auth/app/exchange` 호출자 0) | **별도 작업으로 분리.** 정리가 아니라 인증 버그 수정이고, auth 는 `deepRequired` 경로라 `deploy:critical` 전체와 앱 실기 검증이 필요하다 |
+| ~~**W-1** 앱 세션 30분 만료~~ (`/api/auth/app/exchange` 호출자 0) | **2026-08-13 확인: 만료 문제는 이미 해소됐다.** 앱 갱신은 이 엔드포인트가 아니라 `x-code-destiny-refresh-token` 헤더 + 앱 로그인 응답 본문의 `refreshToken` 으로 배선돼 있다(`__tests__/worker/auth.app-refresh-token.test.js` 가 지킨다). 남은 것은 인증 버그가 아니라 **호출자 없는 죽은 엔드포인트**뿐이다. 자세한 근거는 [03-report.md](03-report.md) W-1 참고 |
 | **C-1** ts-prune 830 / knip export 690 + types 182 | 개별 동적 참조 검증 미실시. 다음 회차 과제 |
 | **Phase 6** 물리 삭제 | 관측 기간(프로덕션 배포 후 1주, 오류 0건) 전이다. `_graveyard/` 67파일은 그대로 둔다 |
