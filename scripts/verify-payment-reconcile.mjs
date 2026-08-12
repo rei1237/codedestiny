@@ -49,6 +49,20 @@ assert.ok(
   scheduledBody.includes("Promise.allSettled"),
   "일일 태스크는 allSettled 로 격리해야 한다(하나가 throw 해도 나머지가 죽지 않게)",
 );
+// V2 자가치유 배선(2026-08-12) — V2 confirm 의 GRANT_PENDING 계약은 크론이 마무리한다는 약속이라,
+// 이 배선이 빠지면 약속만 있고 집행자가 없다(컷오버 직후 실제로 그랬다). 두 크론의 이중 처리
+// 경계는 status:"paid"(V2 전용 기록값) — regrant 필터가 레거시 상태로 넓어지면 역사적 주문
+// 전체가 재지급 스캔에 걸린다.
+assert.ok(scheduledBody.includes("runPaymentsV2Reconcile"), "V2 재조정(runPaymentsV2Reconcile)이 10분 크론에 배선돼야 한다");
+{
+  const v2Reconcile = read("worker/payments/reconcile.js");
+  const regrantBody = v2Reconcile.slice(
+    v2Reconcile.indexOf("export async function regrantUnfulfilledOrders"),
+    v2Reconcile.indexOf("export async function expireStalePendingOrders"),
+  );
+  assert.ok(regrantBody.includes('status: "paid"'), "V2 regrant 는 status:\"paid\" 정확 일치여야 한다(레거시 주문 이중 처리 금지)");
+  assert.ok(!regrantBody.includes("PAID_RAW_STATUSES"), "V2 regrant 가 레거시 상태(success/fulfilled)로 넓어지면 안 된다");
+}
 
 // ── 3. 재조정 태스크는 절대 환불하지 않는다 ──────────────────────────────
 for (const banned of ["cancelPortOnePayment", "refundPaymentAsOperator", "autoRefund"]) {

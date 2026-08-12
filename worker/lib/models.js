@@ -560,6 +560,31 @@ securityEventSchema.index({ userId: 1, createdAt: -1 });
 securityEventSchema.index({ ipHash: 1, createdAt: -1 });
 securityEventSchema.index({ reason: 1, createdAt: -1 });
 
+/**
+ * 관리자 행위 감사 로그.
+ *
+ * 컬렉션명은 레거시 Express 의 server/models/AdminAuditLog.js 와 같은 `adminauditlogs` 를
+ * 재사용한다 — 그쪽은 배포되지 않아 프로덕션 문서가 0건이므로 충돌할 데이터가 없다.
+ *
+ * 🔴 그 스키마를 그대로 쓰지 않는 이유: actorUserId 가 ObjectId 인데 현재 행위자는 공유
+ * 비밀번호 세션(`flower-admin:<jti>`)이라 전부 null 이 된다. 사람을 특정할 수 있는
+ * actorLabel 을 따로 둔다. role:"admin" JWT 로 들어온 경우에만 actorUserId 가 채워진다.
+ */
+const adminAuditLogSchema = new mongoose.Schema({
+  action: { type: String, required: true, trim: true, maxlength: 200 },
+  actorLabel: { type: String, trim: true, maxlength: 120, default: "" },
+  actorUserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  mode: { type: String, enum: ["flower", "jwt", "anonymous"], default: "flower" },
+  outcome: { type: String, enum: ["attempted", "granted", "denied"], default: "attempted" },
+  ip: { type: String, trim: true, maxlength: 64, default: "" },
+  userAgent: { type: String, trim: true, maxlength: 300, default: "" },
+  requestId: { type: String, trim: true, maxlength: 120, default: "" },
+  meta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { collection: "adminauditlogs", timestamps: { createdAt: true, updatedAt: false } });
+
+adminAuditLogSchema.index({ createdAt: -1 });
+adminAuditLogSchema.index({ actorLabel: 1, createdAt: -1 });
+
 const idempotencyKeySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
   endpoint: { type: String, trim: true, maxlength: 160, required: true, index: true },
@@ -1506,6 +1531,8 @@ export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
 export const CheckoutFunnelEvent = mongoose.models.CheckoutFunnelEvent
   || mongoose.model("CheckoutFunnelEvent", checkoutFunnelEventSchema);
 export const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema);
+
+export const AdminAuditLog = mongoose.models.AdminAuditLog || mongoose.model("AdminAuditLog", adminAuditLogSchema);
 export const IdempotencyKey = mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema);
 export const AbuseScore = mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema);
 export const LlmResponseCache = mongoose.models.LlmResponseCache

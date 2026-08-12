@@ -26,13 +26,20 @@ export const PENDING_EXPIRY_MS = 30 * 60_000;
  *
  * @param {(order: object) => Promise<void>} grant 지급 실행자. orders/entitlements 를 아는 쪽이 넘긴다 —
  *   여기서 직접 부르면 크론이 상품 해석·권한 규칙까지 알아야 해서 책임이 번진다.
+ *
+ * 🔴 status 는 **"paid" 정확 일치**다(레거시 success/fulfilled 제외, 2026-08-12 크론 배선 시 확정).
+ * "paid" 는 V2 markOrderPaid 만 쓰는 값이라 이 필터가 곧 "V2 가 확정한 주문"이다. 레거시 성공
+ * 주문은 entitlementGrantedAt 을 쓴 적이 없어 전부 null 이므로, PAID_RAW_STATUSES 로 훑으면
+ * **역사적 주문 전체가 매 크론 재지급 스캔**에 걸리고, 구 해금 신원과 V2 신원이 다른 상품은
+ * 중복 entitlement 문서까지 만든다. 레거시 주문의 지급 복구는 구 크론(payment-reconcile-task)이
+ * 계속 담당한다 — 두 크론이 같은 주문을 이중 처리하지 않는 경계가 바로 이 status 값이다.
  */
 export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), limit = 50, minAgeMs = 60_000 } = {}) {
   const cutoff = new Date(now.getTime() - minAgeMs);
   const orders = await db.find(
     Payment,
     {
-      status: { $in: PAID_RAW_STATUSES },
+      status: "paid",
       entitlementGrantedAt: null,
       // 방금 확정된 주문은 건드리지 않는다 — 정상 흐름이 지급을 마무리하는 중일 수 있다.
       updatedAt: { $lt: cutoff },

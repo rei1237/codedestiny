@@ -31,6 +31,7 @@ import { verifyPgPayment } from "./pg.js";
 import { grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
+import { runPaymentReconcile } from "./reconcile.js";
 import {
   legacyBillingCheckoutEnvelope,
   legacyOrderDetailEnvelope,
@@ -546,6 +547,41 @@ export async function handlePaymentsContext(request, env, options = {}) {
       status,
       errorCode,
       stage,
+      durationMs: Date.now() - ctx.startedAt,
+      mongoOps: ctx.mongoOps,
+    });
+  }
+}
+
+/**
+ * 🔴 크론 진입점 — V2 자가치유 3종(미지급 재지급 · 30분 PENDING 만료 · 죽은 환불락 해제).
+ * V2 확정(confirmOrder)은 지급 실패를 200 GRANT_PENDING 으로 알리고 **여기에 마무리를 맡긴다** —
+ * 이 배선이 없으면 그 계약은 약속만 있고 집행자가 없는 상태가 된다(컷오버 활성 직후의 실제 갭).
+ * grant 를 여기서 조립해 넘기므로 reconcile.js 는 상품 해석·권한 규칙을 모른다.
+ * 레거시 주문의 복구는 구 크론(payment-reconcile-task)이 계속 담당한다 — 경계는 status:"paid"
+ * (reconcile.js regrantUnfulfilledOrders 주석 참고).
+ */
+export async function runPaymentsV2Reconcile(env) {
+  const ctx = createPaymentContext({ requestId: `cron-${Date.now().toString(36)}`, route: "CRON payments-v2-reconcile" });
+  let status = 200;
+  let errorCode = "";
+  try {
+    return await withPaymentDb(env, ctx, (db) => runPaymentReconcile(db, {
+      grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
+        if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
+      }),
+    }));
+  } catch (error) {
+    const contract = classify(error);
+    status = contract.status;
+    errorCode = contract.code;
+    throw error;
+  } finally {
+    logPayment({
+      requestId: ctx.requestId,
+      route: ctx.route,
+      status,
+      errorCode,
       durationMs: Date.now() - ctx.startedAt,
       mongoOps: ctx.mongoOps,
     });

@@ -53,13 +53,20 @@ describe("PAID 인데 권한이 없는 주문", () => {
     expect((await regrantUnfulfilledOrders(db, { grant: async () => {}, now: NOW })).scanned).toBe(0);
   });
 
-  test("구 코드가 쓴 success/fulfilled 도 복구 대상이다", async () => {
+  test("🔴 구 코드가 쓴 success/fulfilled 는 재지급 대상이 **아니다** (2026-08-12 크론 배선 시 확정)", async () => {
+    // 레거시 성공 주문은 entitlementGrantedAt 을 쓴 적이 없어 전부 null 이다 — 레거시 상태를
+    // 포함하면 역사적 주문 전체가 매 크론 재지급 스캔에 걸리고, 구 해금 신원과 V2 신원이 다른
+    // 상품은 중복 entitlement 문서를 만든다. 레거시 복구는 구 크론(payment-reconcile-task) 몫이고,
+    // 두 크론의 이중 처리 경계가 status:"paid"(V2 전용 기록값)다.
     const db = makeFakePaymentDb();
     await seed(db, [
       { merchantUid: "cd1", status: "success", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
       { merchantUid: "cd2", status: "fulfilled", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
+      { merchantUid: "cd3", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
     ]);
-    expect((await regrantUnfulfilledOrders(db, { grant: async () => {}, now: NOW })).repaired).toBe(2);
+    const result = await regrantUnfulfilledOrders(db, { grant: async () => {}, now: NOW });
+    expect(result.scanned).toBe(1);
+    expect(result.repaired).toBe(1);
   });
 
   test("PENDING·환불 주문은 지급 대상이 아니다", async () => {

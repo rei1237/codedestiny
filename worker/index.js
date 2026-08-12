@@ -1797,6 +1797,14 @@ export default {
       ctx.waitUntil(runPaymentReconcileTask(env).catch((error) => {
         console.error("[payment-reconcile] task failed:", error?.message || error);
       }));
+      // V2 자가치유 — 컷오버로 V2 confirm 이 GRANT_PENDING(지급 마무리는 크론 몫) 계약을 쓰기
+      // 시작했으므로, 그 집행자를 같은 10분 주기에 함께 돌린다. 경계: V2 는 status:"paid" 주문만,
+      // 구 태스크는 레거시 상태 주문만 본다 — 같은 주문의 이중 처리가 구조적으로 없다.
+      // 한쪽 실패가 다른 쪽을 죽이지 않도록 각자 waitUntil·catch 로 격리한다.
+      const { runPaymentsV2Reconcile } = await import("./payments/index.js");
+      ctx.waitUntil(runPaymentsV2Reconcile(env).catch((error) => {
+        console.error("[payments-v2-reconcile] task failed:", error?.message || error);
+      }));
       return;
     }
 
