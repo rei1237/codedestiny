@@ -13,7 +13,7 @@
 - 수정 전 주의사항: retry wrapper를 새로 감싸기 전에 기존 `withMongoRetry`, timeout, request memo를 확인한다.
 - 503/504 응답에서 `X-Request-ID`, `X-CD-Error-Stage`, `Server-Timing`, `Retry-After`를 함께 기록한다. `X-CD-Error-Stage`는 `auth`, `db-op-admission`, `db-op-timeout`, `db`, `payment-provider`, `route` 중 하나다.
 - 홈에서 `/api/access/unlocks`, `/api/sukuyo/yearly-fortune`, `/api/billing/checkout`가 보이면 잘못된 자동 호출이다. 각각 잠금 화면 진입, 숙요 1년운 보기, 단건 결제 클릭 전에는 0회여야 한다.
-- `MONGO_SOCKET_TIMEOUT_MS`는 Worker 작업 제한보다 짧아야 한다. 현재 기준은 socket 11초, auth/operation 12초이며 풀 크기나 재시도 횟수를 장애 대응으로 늘리지 않는다.
+- `MONGO_SOCKET_TIMEOUT_MS`는 Worker 작업 제한보다, 그리고 **시도 상한보다** 짧아야 한다. 현재 기준은 socket 7초 / op 시도 8초이며(2026-08-12 M10 재조정, 아래 "M10 재조정의 두 축" 참고) 풀 크기나 재시도 횟수를 장애 대응으로 늘리지 않는다. 예외는 확정(confirm) 경로 하나로, PortOne 검증 HTTP를 콜백 안에서 돌아 시도 상한이 15초다.
 - 운영 인덱스 점검은 `npm run verify:access-unlock-indexes`의 `--check` 성격으로 먼저 수행하고, 생성은 별도 운영 DB 쓰기 승인 뒤 실행한다.
 
 ### 🔴 이건 기능 버그가 아니라 DB 계층 문제다 — 먼저 계층부터 가른다 (2026-08-09 실측)
@@ -50,12 +50,27 @@ curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://code-destiny.com
 
 Atlas 쪽에서 확인할 것(코드로 해결되지 않을 때의 다음 단계):
 
-1. 클러스터 티어 — `worker/lib/db.js`의 admission·풀 리셋 로직은 전부 **M0(무료, 연결 상한 500)** 전제로 쓰였다. 실제 티어가 M0이면 공유 vCPU 스로틀링이 5초의 주원인일 수 있다.
-2. 현재 연결 수 / 상한 — 전역 연결 = 아이솔레이트 수 × `maxPoolSize(5)`. 상한에 근접하면 체크아웃이 굶는다.
+1. 클러스터 티어 — **2026-08-12 에 M0 → M10 으로 올렸다.** 위 기준선은 M0 시절 측정치다. M10 은 전용 노드·리플리카셋이고 연결 상한이 노드당 1,490 이라 그 숫자를 그대로 기대하지 말 것.
+2. 현재 연결 수 / 상한 — 전역 연결 = 아이솔레이트 수 × `maxPoolSize`. M10 에서 새로 생긴 벽은 총량이 아니라 **신규 커넥션 생성률(노드당 초당 15개, M10·M20 한정)** 이다. 초과분은 큐잉·드롭된다.
 3. Atlas Profiler의 느린 쿼리 — 5초가 **실행 시간**인지 **큐 대기**인지 가른다. 실행이 빠른데 총합이 느리면 연결/스로틀 문제이지 인덱스 문제가 아니다(위 라우트들은 인덱스가 이미 정상이다).
-4. Worker 로그의 `[db-op-timeout]` / `[db-connect-error]` 발생률.
+4. Worker 로그의 `[db-op-timeout]` / `[db-connect-error]` / `[db-op-admission]` 발생률.
 
-🔴 대응으로 `maxPoolSize`나 재시도 횟수를 올리지 않는다 — `db.js` 주석이 그 자기증폭 고리를 기록해 두었다.
+🔴 **한도·풀·재시도를 올리는 것은 마지막 수단이다.** 자기증폭 고리의 기록은 `db.js` 주석에 있다. 먼저 볼 것은 **왕복 수**(진입 엔드포인트를 줄인다)와 **점유 시간**(슬롯 하나가 붙잡히는 시간을 줄인다)이다.
+
+### M10 재조정의 두 축 (2026-08-12)
+
+같은 날 두 번에 나눠 들어갔다. 값을 바꿀 때 어느 축인지부터 가른다.
+
+| 축 | 무엇을 바꿨나 | 값 |
+|---|---|---|
+| **용량** | admission 한도 · 풀 크기 · 유휴 회전 | 공유 한도 12→24, 결제 6→12, `maxPoolSize` 5→10, 결제 4→6, `maxIdleTimeMS` 20s→**60s** |
+| **점유 시간** | 슬롯 하나가 붙잡히는 최대 시간 | `serverSelectionTimeoutMS` 8000→**3000**, `connectTimeoutMS` 8000→5000, `socketTimeoutMS` 11000→7000, `waitQueueTimeoutMS` 5000→4000, `MONGO_OP_ATTEMPT_TIMEOUT_MS` 12000→**8000** |
+
+🔴 `serverSelectionTimeoutMS` 는 자기 자신보다 **파생값** 때문에 중요하다. `withMongoRetry` 의 시도 상한 하한이 `serverSelectionTimeoutMS + 3500` 이라, 8000 일 때는 11500 아래로 내려갈 수 없어 시도 상한이 12000 에 묶여 있었다. 3000 이면 하한이 6500 이 되어 8000 으로 낮출 수 있다. **`connectDb` 와 `withMongoRetry` 두 곳의 기본값이 반드시 같아야 한다** — 한쪽만 옛 값이면 하한이 실제 서버선택창보다 커져 효과가 통째로 사라진다.
+
+예산 검산: `waitQueue 4000 + 쿼리 0.5초 ≈ 4.5초 < 8000`. admission 대기(2500)는 시도 타이머 **밖**이라 여기 안 들어간다(슬롯 획득이 attempt 루프보다 앞이다).
+
+🔴 **확정(confirm)만 시도 상한이 15000 이다** (`worker/payments/db.js` `CONFIRM_DB_OPTIONS`). `confirmOrder` 가 PortOne 검증 HTTP(`PORTONE_API_TIMEOUT_MS`, 기본 8000)를 `withPaymentDb` 콜백 **안에서** 돌리기 때문이다 — 한 시도의 비용이 "쿼리"가 아니라 "쿼리 + 외부 HTTP"다. 공유 기본값으로 되돌리면 PG 가 느린 순간마다 op-타임아웃이 나고, 카드는 승인됐는데 주문이 PENDING 으로 남는다(재조정 크론이 정산하므로 돈은 잃지 않지만 사용자는 "결제 실패"를 본다). 이 경로만 `retryOnOperationTimeout` 이 꺼져 있다 — 재시도해도 같은 PG 지연을 다시 기다리고, 15000×2=30초는 셸 confirm 상한(25초)을 넘긴다. 계약은 `__tests__/worker/payments-v2.confirm-budget.test.js` 가 부등식으로 고정한다.
 
 ## 배포가 preview 단계에서 멈추는 경우
 

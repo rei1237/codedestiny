@@ -24,7 +24,7 @@ import { User } from "../lib/models.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
-import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
+import { CONFIRM_DB_OPTIONS, createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
@@ -372,6 +372,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   ctx.orderId = orderId;
   const customerUid = String(body.customerUid || "").trim() || buildPassCustomerUid(userId);
 
+  // CONFIRM_DB_OPTIONS: 아래 confirmOrder 가 PortOne 검증 HTTP(최대 8s)를 이 콜백 안에서 돈다.
   const { user, idempotent } = await withDb(env, ctx, async (db) => {
     const order = await findOrder(db, { orderId });
     if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
@@ -405,7 +406,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
     }
     const finalUser = await db.findOne(User, { _id: toObjectId(userId) });
     return { user: finalUser, idempotent: result.replayed };
-  });
+  }, CONFIRM_DB_OPTIONS);
   ctx.paymentStatus = "PAID";
 
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
@@ -730,9 +731,10 @@ const ROUTES = {
     auth: "required",
     async handle({ env, ctx, userId, params, withDb }) {
       ctx.orderId = params.id;
+      // CONFIRM_DB_OPTIONS: 이 콜백 안에서 PortOne 검증 HTTP(최대 8s)가 돈다 — db.js 참고.
       const result = await withDb(env, ctx, (db) => confirmOrder(env, db, ctx, {
         orderId: params.id, actorUserId: userId,
-      }));
+      }), CONFIRM_DB_OPTIONS);
       ctx.paymentStatus = "PAID";
       if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
       // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
@@ -763,9 +765,10 @@ const ROUTES = {
       const orderId = String(body.merchantUid || body.orderId || body.paymentId || "").trim();
       if (!orderId) throw paymentError("INVALID_REQUEST", "merchantUid 가 필요합니다.");
       ctx.orderId = orderId;
+      // CONFIRM_DB_OPTIONS: 이 콜백 안에서 PortOne 검증 HTTP(최대 8s)가 돈다 — db.js 참고.
       const result = await withDb(env, ctx, (db) => confirmOrder(env, db, ctx, {
         orderId, actorUserId: userId,
-      }));
+      }), CONFIRM_DB_OPTIONS);
       ctx.paymentStatus = "PAID";
       const envelope = legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
@@ -1061,6 +1064,9 @@ const ROUTES = {
     // 🔴 본문을 **원문 그대로** 읽어야 한다. JSON 파싱 후 재직렬화하면 서명이 깨진다.
     rawBody: true,
     async handle({ env, ctx, rawBody, request, withDb }) {
+      // CONFIRM_DB_OPTIONS: 아래 confirmOrder 가 PortOne 검증 HTTP(최대 8s)를 이 콜백 안에서 돈다.
+      // 웹훅은 사용자가 기다리지 않지만, 예산을 넘겨 실패하면 PortOne 이 재전송할 뿐이라 같은 비용을
+      // 다시 낸다 — 한 번에 끝내는 편이 싸다.
       const outcome = await withDb(env, ctx, async (db) => {
         const accepted = await acceptWebhook(env, db, { rawBody, headers: request.headers });
         ctx.orderId = accepted.paymentId;
@@ -1085,7 +1091,7 @@ const ROUTES = {
           await markEventFailed(db, { eventId: accepted.eventId, reason: error?.message });
           throw error;
         }
-      });
+      }, CONFIRM_DB_OPTIONS);
       return json({ ok: true, ...outcome });
     },
   },
