@@ -42,9 +42,9 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "오늘의 운세",
-      "short_name": "운세",
-      "description": "오늘 하루의 흐름을 바로 비춥니다.",
+      "name": "Today's Fortune",
+      "short_name": "Fortune",
+      "description": "See today's flow at a glance.",
       "url": "/#today",
       "icons": [
         {
