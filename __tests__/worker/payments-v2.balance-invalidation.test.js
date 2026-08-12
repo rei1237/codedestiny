@@ -13,6 +13,8 @@ import { createOrder } from "../../worker/payments/orders.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const { confirmOrder } = __paymentsContextTestUtils;
+const runConfirm = (db, ctx, input, deps) =>
+  confirmOrder(ENV, ctx, input, { withDb: (_env, _ctx, fn) => fn(db), deps });
 
 const USER = "64b000000000000000000001";
 const ENV = { PORTONE_API_SECRET: "s", PORTONE_STORE_ID: "st" };
@@ -47,7 +49,7 @@ test("단건 확정 지급 후 해당 유저의 잔액 스냅샷을 무효화한
   const db = makeFakePaymentDb();
   db.rows.push({ _id: USER, unlockedFeatures: [] });
   const order = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "inv-1" });
-  const result = await confirmOrder(ENV, db, { mongoOps: 0 }, { orderId: order.merchantUid }, pgDeps(order.merchantUid, 30000));
+  const result = await runConfirm(db, { mongoOps: 0 }, { orderId: order.merchantUid }, pgDeps(order.merchantUid, 30000));
   expect(result.granted).toBe(true);
   expect(invalidated).toContain(USER);
 });
@@ -60,7 +62,7 @@ test("이용권 주문 활성화 후에도 무효화한다 (구독 블록이 스
     subscriptionTier: "standard", paymentAmount: 9900, status: "pending", orderState: "PENDING",
     metadata: { durationMonths: 1 }, createdAt: new Date(),
   });
-  const result = await confirmOrder(ENV, db, { mongoOps: 0 }, { orderId: "sub_s1m_invalidation000000000000000" }, pgDeps("sub_s1m_invalidation000000000000000", 9900));
+  const result = await runConfirm(db, { mongoOps: 0 }, { orderId: "sub_s1m_invalidation000000000000000" }, pgDeps("sub_s1m_invalidation000000000000000", 9900));
   expect(result.granted).toBe(true);
   expect(invalidated).toContain(USER);
 });
@@ -70,7 +72,7 @@ test("지급 실패(granted=false)면 무효화하지 않는다 — 상태가 �
   db.rows.push({ _id: USER });
   const order = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "inv-2" });
   db.rows.find((r) => r.merchantUid === order.merchantUid).featureKey = "no-such-feature-xyz";
-  const result = await confirmOrder(ENV, db, { mongoOps: 0 }, { orderId: order.merchantUid }, pgDeps(order.merchantUid, 30000));
+  const result = await runConfirm(db, { mongoOps: 0 }, { orderId: order.merchantUid }, pgDeps(order.merchantUid, 30000));
   expect(result.granted).toBe(false);
   expect(invalidated).toEqual([]);
 });

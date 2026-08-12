@@ -15,6 +15,11 @@ import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const { ROUTES, matchRoute, presentOrder, confirmOrder } = __paymentsContextTestUtils;
 
+/* 확정은 슬롯을 여러 번 잡는다(판정 → PG 는 슬롯 밖 → 정산). 실행기를 주입해 그 구성 그대로
+   테스트한다 — 여기서 단계를 직접 부르면 프로덕션이 실제로 타는 조립을 검증하지 못한다. */
+const runConfirm = (db, ctx, input, deps) =>
+  confirmOrder(ENV, ctx, input, { withDb: (_env, _ctx, fn) => fn(db), deps });
+
 const ENV = { PORTONE_API_SECRET: "s", PORTONE_STORE_ID: "st" };
 const USER = "507f1f77bcf86cd799439011";
 const OTHER = "507f1f77bcf86cd799439012";
@@ -112,7 +117,7 @@ describe("확정 오케스트레이션", () => {
     await db.insertOne({}, { _id: USER });
     db.rows[1]._id = USER;
 
-    const result = await confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid, actorUserId: USER }, {
+    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid, actorUserId: USER }, {
       fetchPayment: async () => pgReply({ paymentId: order.merchantUid }),
     });
     expect(result.replayed).toBe(false);
@@ -130,7 +135,7 @@ describe("확정 오케스트레이션", () => {
     });
 
     let called = 0;
-    const result = await confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid, actorUserId: USER }, {
+    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid, actorUserId: USER }, {
       fetchPayment: async () => { called += 1; return pgReply(); },
     });
     expect(called).toBe(0);
@@ -141,7 +146,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     await expect(
-      confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid, actorUserId: OTHER }, {
+      runConfirm(db, ctxOf(), { orderId: order.merchantUid, actorUserId: OTHER }, {
         fetchPayment: async () => pgReply({ paymentId: order.merchantUid }),
       }),
     ).rejects.toThrow(/접근할 수 없습니다/);
@@ -151,7 +156,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     let caught = null;
     try {
-      await confirmOrder(ENV, db, ctxOf(), { orderId: "cd-nope" }, { fetchPayment: async () => pgReply() });
+      await runConfirm(db, ctxOf(), { orderId: "cd-nope" }, { fetchPayment: async () => pgReply() });
     } catch (error) { caught = error; }
     expect(classify(caught).status).toBe(404);
   });
@@ -162,7 +167,7 @@ describe("확정 오케스트레이션", () => {
     db.rows[0].status = "cancelled";
     let caught = null;
     try {
-      await confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid }, { fetchPayment: async () => pgReply() });
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, { fetchPayment: async () => pgReply() });
     } catch (error) { caught = error; }
     expect(classify(caught).status).toBe(409);
   });
@@ -172,7 +177,7 @@ describe("확정 오케스트레이션", () => {
     const order = await seedPending(db);
     let caught = null;
     try {
-      await confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid }, {
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
         fetchPayment: async () => pgReply({ paymentId: order.merchantUid, amount: 100 }),
       });
     } catch (error) { caught = error; }
@@ -186,7 +191,7 @@ describe("확정 오케스트레이션", () => {
     const order = await seedPending(db);
     let caught = null;
     try {
-      await confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid }, {
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
         fetchPayment: async () => { throw new Error("PortOne payment lookup failed: request timed out after 8000ms"); },
       });
     } catch (error) { caught = error; }
@@ -199,7 +204,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     db.rows[0].featureKey = "totally-made-up"; // resolveProduct 가 던지게 만든다
-    const result = await confirmOrder(ENV, db, ctxOf(), { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
       fetchPayment: async () => pgReply({ paymentId: order.merchantUid }),
     });
     expect(result.granted).toBe(false);
@@ -211,7 +216,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     const ctx = ctxOf();
-    const result = await confirmOrder(ENV, db, ctx, { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctx, { orderId: order.merchantUid }, {
       fetchPayment: async () => {
         // PG 검증 도중 형제가 먼저 확정한 상황을 만든다.
         db.rows[0].status = "paid";

@@ -24,7 +24,7 @@ import { User } from "../lib/models.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
-import { CONFIRM_DB_OPTIONS, createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
+import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
@@ -372,8 +372,9 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   ctx.orderId = orderId;
   const customerUid = String(body.customerUid || "").trim() || buildPassCustomerUid(userId);
 
-  // CONFIRM_DB_OPTIONS: 아래 confirmOrder 가 PortOne 검증 HTTP(최대 8s)를 이 콜백 안에서 돈다.
-  const { user, idempotent, activationPending } = await withDb(env, ctx, async (db) => {
+  /* 이용권 고유의 사전 검증(등급 일치·구매 정책·하위등급 차단)을 판정 슬롯 안에서 함께 끝낸다.
+     주문은 여기서 한 번만 읽고 그 문서를 evaluateConfirmable 에 그대로 넘긴다. */
+  const begun = await withDb(env, ctx, async (db) => {
     const order = await findOrder(db, { orderId });
     if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
     assertOrderOwner(order, userId);
@@ -390,19 +391,27 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
         throw paymentError("SUBSCRIPTION_DOWNGRADE_BLOCKED", "이미 더 높은 등급의 이용권이 활성화되어 있습니다.", { activeTier: transition.activeTier });
       }
     }
+    return evaluateConfirmable(ctx, order, { orderId, actorUserId: userId });
+  });
 
-    // 확정·활성화는 제네릭 confirmOrder 하나를 탄다 — grantOrderEntitlement 의 이용권 분기가
-    // 클라이언트·webhook·크론 세 주체 모두에 같은 활성화를 보장한다(주체별 분기 없음 원칙).
-    const result = await confirmOrder(env, db, ctx, { orderId, actorUserId: userId });
-    let activationPending = false;
-    if (!result.granted) {
-      // 결제는 됐는데 활성화가 미완(그랜트 실패 또는 webhook 선확정 후 활성화 대기).
-      // 활성화는 lastPassOrderId 가드로 멱등이므로 여기서 한 번 마무리를 시도한다.
-      activationPending = !(await grantOrderEntitlement(db, result.order));
-    }
-    const finalUser = await db.findOne(User, { _id: toObjectId(userId) });
-    return { user: finalUser, idempotent: result.replayed, activationPending };
-  }, CONFIRM_DB_OPTIONS);
+  // 확정·활성화는 제네릭 confirmOrder 하나를 탄다 — grantOrderEntitlement 의 이용권 분기가
+  // 클라이언트·webhook·크론 세 주체 모두에 같은 활성화를 보장한다(주체별 분기 없음 원칙).
+  let user = null;
+  let activationPending = false;
+  const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, {
+    withDb,
+    begun,
+    // 정산과 같은 슬롯에서 마무리한다 — 지급 재시도와 최종 사용자 조회에 슬롯을 더 쓰지 않는다.
+    afterSettle: async (db, settled) => {
+      if (!settled.granted) {
+        // 결제는 됐는데 활성화가 미완(그랜트 실패 또는 webhook 선확정 후 활성화 대기).
+        // 활성화는 lastPassOrderId 가드로 멱등이므로 여기서 한 번 마무리를 시도한다.
+        activationPending = !(await grantOrderEntitlement(db, settled.order));
+      }
+      user = await db.findOne(User, { _id: toObjectId(userId) });
+    },
+  });
+  const idempotent = result.replayed;
   ctx.paymentStatus = "PAID";
 
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
@@ -449,14 +458,11 @@ function presentOrder(order) {
 }
 
 /**
- * 확정 — **클라이언트 · webhook · 크론이 모두 이 함수를 탄다.** 주체별 분기는 없다.
- *
- * 순서가 계약이다: PG 검증 → 주문 PAID → 권한. 마지막 단계가 실패해도 **200 으로 성공을 알린다** —
- * 카드는 승인됐고 주문도 기록됐으므로 장애가 아니라 부작용이 덜 끝난 성공이고, 크론이 마무리한다.
- * 구 코드는 이 자리에서 `503 + retryable:false` 를 냈는데, 클라이언트가 행동할 수 없는 모순이었다.
+ * 확정 1단계 — 이 주문을 확정해도 되는가. Mongo 를 쓰지 않는 순수 판정이라 호출부가 이미 읽어 둔
+ * 주문을 그대로 넘길 수 있다(이용권 확정처럼 자기 검증 때문에 어차피 한 번 읽는 경로의 중복 방지).
+ * `settled: true` 는 "PG 를 부를 필요가 없다"는 뜻이다.
  */
-async function confirmOrder(env, db, ctx, { orderId, actorUserId = "" }, deps = {}) {
-  const order = await findOrder(db, { orderId });
+function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
   if (!order) throw paymentError("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다.", { orderId });
   if (actorUserId) assertOrderOwner(order, actorUserId);
   ctx.productId = String(order.productId || "");
@@ -464,27 +470,17 @@ async function confirmOrder(env, db, ctx, { orderId, actorUserId = "" }, deps = 
   const status = toOrderStatus(order);
   if (status === "PAID") {
     // 재생. PG 를 다시 부르지 않는다 — PortOne 지연이 확정 경로의 지배적 비용이다.
-    return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt) };
+    return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt), settled: true };
   }
   if (status !== "PENDING") {
     throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status });
   }
+  return { order, settled: false };
+}
 
-  let pg;
-  try {
-    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(order.paymentAmount || 0) }, deps);
-  } catch (error) {
-    const contract = classify(error);
-    // 사실이 어긋난 것(422)은 주문을 실패로 확정한다. 닿지 못한 것(503)은 상태를 건드리지 않는다 —
-    // PG 가 살아나면 그대로 확정될 주문이다.
-    if (contract.status === 422) {
-      await markOrderFailed(db, {
-        orderId, failureCode: contract.code, failureMessage: error.message, failureStage: "pg-verify",
-      });
-    }
-    throw error;
-  }
-
+/** 확정 3단계 — PG 사실을 주문에 반영하고 권한을 지급한다. 직렬화 지점은 markOrderPaid 의 CAS 다. */
+async function settleVerifiedOrder(db, ctx, { order, pg }) {
+  const orderId = String(order.merchantUid || "");
   const paid = await markOrderPaid(db, { orderId, order, pg });
   if (!paid) {
     // CAS 를 졌다 = 다른 주체가 방금 확정했다. 재조회해 그 결과를 그대로 쓴다.
@@ -495,6 +491,58 @@ async function confirmOrder(env, db, ctx, { orderId, actorUserId = "" }, deps = 
 
   const granted = await grantOrderEntitlement(db, paid);
   return { order: paid, replayed: false, granted };
+}
+
+/**
+ * 확정 — **클라이언트 · webhook 이 모두 이 함수를 탄다.** 주체별 분기는 없다.
+ *
+ * 순서가 계약이다: PG 검증 → 주문 PAID → 권한. 마지막 단계가 실패해도 **200 으로 성공을 알린다** —
+ * 카드는 승인됐고 주문도 기록됐으므로 장애가 아니라 부작용이 덜 끝난 성공이고, 크론이 마무리한다.
+ * 구 코드는 이 자리에서 `503 + retryable:false` 를 냈는데, 클라이언트가 행동할 수 없는 모순이었다.
+ *
+ * 🔴 **PG 검증은 DB 슬롯 밖에서 돈다**(2026-08-13). 예전에는 세 단계가 한 콜백 안에 있어서,
+ * PortOne 이 응답하는 8초 내내 결제 레인의 admission 슬롯과 Mongo 소켓을 하나씩 붙들고 있었다.
+ * 레인 한도가 12 라 PG 가 느려지는 순간 확정 12건이 레인을 통째로 채우고 **그 뒤의 결제창 요청이
+ * 하드 503** 을 받는다(admission 거절은 재시도 대상이 아니다). verifyPgPayment 는 Mongo 를 건드리지
+ * 않으므로(pg.js) 슬롯 안에 있을 이유가 애초에 없었다.
+ *
+ * 대신 확정 하나가 슬롯을 두 번 잡는다(판정 · 정산). 둘 다 짧고, 그 사이 주문 상태가 바뀌어도
+ * markOrderPaid 의 CAS 가 직렬화 지점이라 결과는 같다(CAS 를 지면 이긴 쪽 결과를 그대로 쓴다).
+ *
+ * @param {{ withDb: Function, deps?: object, begun?: object, afterSettle?: Function }} options
+ *   begun — 호출부가 자기 슬롯에서 이미 evaluateConfirmable 을 돌렸을 때. 판정 슬롯을 건너뛴다.
+ *   afterSettle — 정산과 **같은 슬롯**에서 이어 돌 마무리(웹훅의 이벤트 처리 표시 등). 재생 경로에도 돈다.
+ */
+async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {}) {
+  const { withDb, deps = {}, afterSettle } = options;
+  const begun = options.begun
+    || await withDb(env, ctx, async (db) => evaluateConfirmable(ctx, await findOrder(db, { orderId }), { orderId, actorUserId }));
+
+  if (begun.settled) {
+    if (afterSettle) await withDb(env, ctx, (db) => afterSettle(db, begun));
+    return begun;
+  }
+
+  let pg;
+  try {
+    pg = await verifyPgPayment(env, { orderId, expectedAmountKRW: Number(begun.order.paymentAmount || 0) }, deps);
+  } catch (error) {
+    const contract = classify(error);
+    // 사실이 어긋난 것(422)은 주문을 실패로 확정한다. 닿지 못한 것(503)은 상태를 건드리지 않는다 —
+    // PG 가 살아나면 그대로 확정될 주문이다.
+    if (contract.status === 422) {
+      await withDb(env, ctx, (db) => markOrderFailed(db, {
+        orderId, failureCode: contract.code, failureMessage: error.message, failureStage: "pg-verify",
+      }));
+    }
+    throw error;
+  }
+
+  return withDb(env, ctx, async (db) => {
+    const result = await settleVerifiedOrder(db, ctx, { order: begun.order, pg });
+    if (afterSettle) await afterSettle(db, result);
+    return result;
+  });
 }
 
 /**
@@ -746,10 +794,7 @@ const ROUTES = {
     auth: "required",
     async handle({ env, ctx, userId, params, withDb }) {
       ctx.orderId = params.id;
-      // CONFIRM_DB_OPTIONS: 이 콜백 안에서 PortOne 검증 HTTP(최대 8s)가 돈다 — db.js 참고.
-      const result = await withDb(env, ctx, (db) => confirmOrder(env, db, ctx, {
-        orderId: params.id, actorUserId: userId,
-      }), CONFIRM_DB_OPTIONS);
+      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb });
       ctx.paymentStatus = "PAID";
       if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
       // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
@@ -780,10 +825,7 @@ const ROUTES = {
       const orderId = String(body.merchantUid || body.orderId || body.paymentId || "").trim();
       if (!orderId) throw paymentError("INVALID_REQUEST", "merchantUid 가 필요합니다.");
       ctx.orderId = orderId;
-      // CONFIRM_DB_OPTIONS: 이 콜백 안에서 PortOne 검증 HTTP(최대 8s)가 돈다 — db.js 참고.
-      const result = await withDb(env, ctx, (db) => confirmOrder(env, db, ctx, {
-        orderId, actorUserId: userId,
-      }), CONFIRM_DB_OPTIONS);
+      const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, { withDb });
       ctx.paymentStatus = "PAID";
       const envelope = legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
@@ -1075,35 +1117,40 @@ const ROUTES = {
     // 🔴 본문을 **원문 그대로** 읽어야 한다. JSON 파싱 후 재직렬화하면 서명이 깨진다.
     rawBody: true,
     async handle({ env, ctx, rawBody, request, withDb }) {
-      // CONFIRM_DB_OPTIONS: 아래 confirmOrder 가 PortOne 검증 HTTP(최대 8s)를 이 콜백 안에서 돈다.
-      // 웹훅은 사용자가 기다리지 않지만, 예산을 넘겨 실패하면 PortOne 이 재전송할 뿐이라 같은 비용을
-      // 다시 낸다 — 한 번에 끝내는 편이 싸다.
-      const outcome = await withDb(env, ctx, async (db) => {
-        const accepted = await acceptWebhook(env, db, { rawBody, headers: request.headers });
-        ctx.orderId = accepted.paymentId;
+      /* 첫 슬롯에서 이벤트 청구·비-Paid 처리·확정 판정까지 함께 끝낸다. 확정 판정을 여기서 같이
+         내려 두면(begun) confirmOrder 가 판정 슬롯을 따로 잡지 않아, 카드 결제마다 오는 웹훅이
+         결제 레인에서 쓰는 슬롯이 둘로 유지된다. */
+      const accepted = await withDb(env, ctx, async (db) => {
+        const event = await acceptWebhook(env, db, { rawBody, headers: request.headers });
+        ctx.orderId = event.paymentId;
         // 중복은 조용히 성공이다 — PortOne 에 재전송을 요구할 이유가 없다.
-        if (!accepted.claimed) return { duplicate: true };
+        if (!event.claimed) return { ...event, outcome: { duplicate: true } };
 
-        if (accepted.eventType && !/paid/i.test(accepted.eventType)) {
+        if (event.eventType && !/paid/i.test(event.eventType)) {
           // 비-Paid 이벤트(실패·취소·부분취소)는 위 applyNonPaidPgEvent 가 구 웹훅 시맨틱을 승계한다.
           // 그 밖의 타입(가상계좌 등 카드 전용 서비스의 미지원 계열)은 받았다는 사실만 남긴다.
-          const applied = await applyNonPaidPgEvent(db, { eventType: accepted.eventType, orderId: accepted.paymentId });
-          await markEventProcessed(db, { eventId: accepted.eventId });
-          return applied;
+          const applied = await applyNonPaidPgEvent(db, { eventType: event.eventType, orderId: event.paymentId });
+          await markEventProcessed(db, { eventId: event.eventId });
+          return { ...event, outcome: applied };
         }
+        const order = await findOrder(db, { orderId: event.paymentId });
+        return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId }) };
+      });
+      if (accepted.outcome) return json({ ok: true, ...accepted.outcome });
 
-        try {
-          await confirmOrder(env, db, ctx, { orderId: accepted.paymentId });
-          await markEventProcessed(db, { eventId: accepted.eventId });
-          return { confirmed: true };
-        } catch (error) {
-          /* 실패를 기록하고 **그대로 올린다.** 200 을 주면 PortOne 이 재전송을 멈춰 그 결제가
-             영영 미확정으로 남는다 — PortOne 의 재전송이 우리의 재시도 장치다. */
-          await markEventFailed(db, { eventId: accepted.eventId, reason: error?.message });
-          throw error;
-        }
-      }, CONFIRM_DB_OPTIONS);
-      return json({ ok: true, ...outcome });
+      try {
+        await confirmOrder(env, ctx, { orderId: accepted.paymentId }, {
+          withDb,
+          begun: accepted.begun,
+          afterSettle: (db) => markEventProcessed(db, { eventId: accepted.eventId }),
+        });
+      } catch (error) {
+        /* 실패를 기록하고 **그대로 올린다.** 200 을 주면 PortOne 이 재전송을 멈춰 그 결제가
+           영영 미확정으로 남는다 — PortOne 의 재전송이 우리의 재시도 장치다. */
+        await withDb(env, ctx, (db) => markEventFailed(db, { eventId: accepted.eventId, reason: error?.message }));
+        throw error;
+      }
+      return json({ ok: true, confirmed: true });
     },
   },
 };
@@ -1263,4 +1310,6 @@ export async function runPaymentsV2Reconcile(env) {
   }
 }
 
-export const __paymentsContextTestUtils = { ROUTES, matchRoute, presentOrder, confirmOrder, contractFor };
+export const __paymentsContextTestUtils = {
+  ROUTES, matchRoute, presentOrder, confirmOrder, evaluateConfirmable, settleVerifiedOrder, contractFor,
+};

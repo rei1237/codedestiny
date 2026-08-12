@@ -882,9 +882,9 @@ const SELF_INFLICTED_FAILURE_WINDOW_MS = 3000;
  *
  *   node_modules/mongodb/lib/sessions.js — `const MAX_TIMEOUT = 120000;`
  *   `withTransaction` 은 TransientTransactionError·UnknownTransactionCommitResult 를
- *   **최대 120초** 동안 내부 재시도한다. 우리 op 예산은 12초(MONGO_OP_ATTEMPT_TIMEOUT_MS)다.
+ *   **최대 120초** 동안 내부 재시도한다. 우리 op 예산은 8초(MONGO_OP_ATTEMPT_TIMEOUT_MS)다.
  *
- * 즉 우리가 12초에 잘라 사용자에게 "실패"를 응답한 뒤에도 트랜잭션은 살아서 최대 108초를 더
+ * 즉 우리가 그 예산에서 잘라 사용자에게 "실패"를 응답한 뒤에도 트랜잭션은 살아서 100초 넘게 더
  * 재시도하다 **커밋될 수 있다.** "실패했다고 안내했는데 돈은 움직인 상태"가 그 결과다.
  * 같은 드라이버 주석이 경고하는 또 하나: 콜백 안에서 에러를 삼키면 드라이버가 트랜잭션이
  * abort 됐는지 알 수 없어 **무한 재시도**한다.
