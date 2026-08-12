@@ -354,7 +354,6 @@
     "helmet": "^8.1.0",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
-    "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.577.0",
     "lunar-javascript": "^1.7.7",
