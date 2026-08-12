@@ -787,9 +787,6 @@ function buildEntitlementUpdate({ product, googlePurchase, now }) {
       "profileSubscription.planId": product.productId,
       "profileSubscription.productType": "membership_pass",
       "profileSubscription.passTier": passTier,
-      "profileSubscription.status": "active",
-      "profileSubscription.subscriptionStatus": "active",
-      "profileSubscription.membershipStatus": "active",
       "profileSubscription.startedAt": now,
       "profileSubscription.expiresAt": expiresAt,
       "profileSubscription.paymentMethod": "GOOGLE_PLAY",
@@ -1141,9 +1138,6 @@ async function updateActiveGoogleEntitlement({ payment, googlePurchase, notifica
   };
   if (notification.productType === "subs") {
     update.$set = {
-      "profileSubscription.status": "active",
-      "profileSubscription.subscriptionStatus": "active",
-      "profileSubscription.membershipStatus": "active",
       "profileSubscription.lastBillingStatus": "success",
       "profileSubscription.lastBillingAt": new Date(),
     };
@@ -1184,9 +1178,6 @@ async function revokeGoogleEntitlement({ payment, googlePurchase, notification }
   // paymentType으로 판정해야 한다(subs로 보면 이용권 환불 시 구독이 안 끊긴다).
   if (payment.paymentType === "membership_pass" || notification.productType === "subs") {
     update.$set = {
-      "profileSubscription.status": "cancelled",
-      "profileSubscription.subscriptionStatus": "cancelled",
-      "profileSubscription.membershipStatus": "cancelled",
       "profileSubscription.lastBillingStatus": "cancelled",
       "profileSubscription.lastBillingAt": new Date(),
     };
