@@ -54,6 +54,9 @@ describe("라우트 표", () => {
       "POST /orders/:id/confirm",
       // 주문 발급 컷오버 어댑터 — 구 /api/payments/prepare · /api/billing/checkout(재작성)이 여기로 온다.
       "POST /prepare",
+      // 이용권(구독) 컷오버 — 구 /api/payments/subscription/prepare|confirm(재작성)이 여기로 온다.
+      "POST /subscription/confirm",
+      "POST /subscription/prepare",
       "POST /webhook",
     ]);
   });

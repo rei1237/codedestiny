@@ -41,6 +41,13 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   UNAUTHORIZED: { status: 401 },
   WEBHOOK_SIGNATURE_INVALID: { status: 401 },
 
+  // 400 — 이용권(구독) 요청 검증(구 계약 승계). 전부 "요청이 틀렸다"이지 서버 장애가 아니다.
+  INVALID_SUBSCRIPTION_DURATION: { status: 400 },
+  INVALID_SUBSCRIPTION_TIER: { status: 400 },
+  SUBSCRIPTION_PLAN_MISMATCH: { status: 400 },
+  SUBSCRIPTION_PRICE_MISMATCH: { status: 400 },
+  SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED: { status: 400 },
+
   // 402 — 신원은 맞는데 낼 것이 부족하다.
   INSUFFICIENT_MOONSTONE: { status: 402 },
 
@@ -48,6 +55,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   ORDER_FORBIDDEN: { status: 403 },
   MINOR_PAYMENT_BLOCKED: { status: 403 },
   PASS_NOT_APPLICABLE: { status: 403 },
+  // 구매 정책 거부(entitlement-policy.validatePurchasePolicy). 구체 사유는 meta.reason 에 싣는다.
+  PURCHASE_POLICY_DENIED: { status: 403 },
 
   // 404 — 대상이 없다.
   PRODUCT_NOT_FOUND: { status: 404 },
@@ -60,6 +69,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 클라이언트의 새-키 1회 재시도(index.html `:c<ts>` 키)가 정확히 이 코드에 걸려 있다 —
   // retryable 이 아니다(같은 요청 재전송이 아니라 **새 키**로 다시 와야 풀린다).
   IDEMPOTENCY_CONFLICT: { status: 409 },
+  // 활성 이용권 보유 중 하위 등급 구매 — 클라이언트는 409 를 "이미 활성 이용권"으로 안내한다.
+  SUBSCRIPTION_DOWNGRADE_BLOCKED: { status: 409 },
   // 아래 셋은 "지금은 안 되지만 곧 된다" — 장애가 아니라 동시성이라 409 이면서 retryable 이다.
   REFUND_IN_PROGRESS: { status: 409, retryable: true },
   MOONSTONE_CONTENDED: { status: 409, retryable: true },

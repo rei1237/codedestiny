@@ -36,13 +36,27 @@ export function matches(doc, filter) {
   });
 }
 
+/* Mongo 의 dot notation $set 시맨틱: "a.b" 는 중첩 필드를 갱신한다. 이용권 활성화
+   (worker/payments/passes.js activatePassSubscription)가 flat 19경로 $set 을 실사용하므로,
+   평면 키로 흉내내면 "갱신됐다"는 테스트가 아무것도 검증하지 않는다. */
+function setPath(doc, key, value) {
+  if (!key.includes(".")) { doc[key] = value; return; }
+  const parts = key.split(".");
+  let node = doc;
+  for (const part of parts.slice(0, -1)) {
+    if (!node[part] || typeof node[part] !== "object") node[part] = {};
+    node = node[part];
+  }
+  node[parts[parts.length - 1]] = value;
+}
+
 export function applyUpdate(doc, update) {
   for (const op of Object.keys(update)) {
     if (!["$set", "$inc", "$unset", "$setOnInsert", "$addToSet"].includes(op)) {
       throw new Error(`fake-payment-db: 미구현 갱신 연산자 ${op}`);
     }
   }
-  if (update.$set) Object.assign(doc, update.$set);
+  if (update.$set) for (const [k, v] of Object.entries(update.$set)) setPath(doc, k, v);
   if (update.$inc) for (const [k, v] of Object.entries(update.$inc)) doc[k] = (Number(doc[k]) || 0) + v;
   if (update.$unset) for (const k of Object.keys(update.$unset)) delete doc[k];
   if (update.$addToSet) {
