@@ -71,6 +71,7 @@ import {
 import {
   PAYMENT_METHODS,
   createInactiveMembershipPass,
+  isTransactionUnsupported,
   resolvePaymentCommand,
   runAtomicMonthlyPayment,
   shouldCreateDirectPortOneOrder,
@@ -239,11 +240,14 @@ const paidAccessDecisionCache = globalThis.__paidAccessDecisionCache
     lastPruneAt: 0,
   });
 
-function buildPaidAccessDecisionCacheKey({ userId, profileId, featureKey, coinPrice, requestedPaymentMode, allowPassAutoUnlock }) {
+// contentKey 세그먼트가 없으면 연도별 상품에서 2026 의 already_unlocked 판정이 2027 요청에도
+// 그대로 나간다(featureKey 는 두 해가 같다).
+function buildPaidAccessDecisionCacheKey({ userId, profileId, featureKey, contentKey, coinPrice, requestedPaymentMode, allowPassAutoUnlock }) {
   return [
     String(userId || ""),
     String(profileId || ""),
     String(featureKey || ""),
+    String(contentKey || ""),
     Math.max(0, Math.floor(Number(coinPrice || 0))),
     String((requestedPaymentMode || "")).toLowerCase(),
     allowPassAutoUnlock === false ? "0" : "1",
@@ -436,9 +440,32 @@ function createUnlockEntitlementSaveError(error) {
   return wrapped;
 }
 
-async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }) {
+// 읽기 전용 contentKey 해석. 쓰기용 resolveSajuProfileUnlockContentKey 를 그대로 쓰면 안 된다 —
+// 그쪽 두 번째 분기(알려진 contentKey 면 무조건 수용)는 결제한 만큼만 쓰는 쓰기에선 안전하지만,
+// 읽기에서는 같은 serviceKey 의 다른 해금(예: saju.daeunAnalysis)을 근거로 아직 안 산 콘텐츠가
+// already_unlocked 로 열린다. 연도별 상품만 클라이언트 contentKey 를 반영한다.
+function resolveSajuProfileUnlockReadContentKey(featureKey, contentKey = "") {
+  const explicitContentKey = String(contentKey || "").trim();
+  if (
+    String(featureKey || "").trim() === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY
+    && explicitContentKey.startsWith(`${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:`)
+  ) {
+    return explicitContentKey;
+  }
+  return "";
+}
+
+// contentKey 를 안 넘기면 featureKey 로 유도된 키(연도 없음)로 조회한다 — 1년운은 행이 연도별이라
+// 그 조회가 절대 매칭되지 않아 이미 산 연도를 다시 결제시킨다.
+async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey, contentKey = "" }) {
   await connectDb(env);
-  return findActivePaidContentUnlock({ userId, profileId, featureKey });
+  const readContentKey = resolveSajuProfileUnlockReadContentKey(featureKey, contentKey);
+  return findActivePaidContentUnlock({
+    userId,
+    profileId,
+    featureKey,
+    ...(readContentKey ? { contentKey: readContentKey } : {}),
+  });
 }
 
 // unlockedFeatures: 이번 요청의 인증 조회가 이미 읽어 온 User.unlockedFeatures.
@@ -1260,10 +1287,12 @@ async function resolvePaidContentAccess(env, {
 } = {}) {
   const priceCoin = resolvePricingCoinCost(pricing);
   const featureKey = String(pricing?.featureKey || "").trim();
+  const unlockReadContentKey = resolveSajuProfileUnlockReadContentKey(featureKey, body?.contentKey);
   const cacheKey = buildPaidAccessDecisionCacheKey({
     userId,
     profileId,
     featureKey,
+    contentKey: unlockReadContentKey,
     coinPrice: priceCoin,
     requestedPaymentMode,
     allowPassAutoUnlock,
@@ -1289,7 +1318,7 @@ async function resolvePaidContentAccess(env, {
     // 결제 게이팅의 핵심 판정(이미 해금됐는지·이용권이 커버하는지). 일시적 풀 초기화에도
     // '일시 불가'로 떨어지지 않고 정확히 판정하도록 재시도로 감싼다(타임아웃 degrade는 유지).
     const [existingUnlock, userPermanentUnlock, existingPass] = await withMongoRetry(env, () => withDbAccessTimeout(Promise.all([
-      findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }),
+      findActiveSajuProfileUnlock(env, { userId, profileId, featureKey, contentKey: unlockReadContentKey }),
       hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures: accountUnlockedFeatures }),
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
     ]), PAID_ACCESS_DECISION_DB_TIMEOUT_MS, "UNLOCK_ACCESS_DECISION_TIMEOUT"));
@@ -6615,6 +6644,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {},
       userId: authCheck.auth.userId,
       profileId,
       featureKey: pricing?.featureKey,
+      contentKey: body?.contentKey,
     });
     if (existingProfileUnlock) {
       return successWithPremiumAccess(env, authCheck.auth.userId, {
