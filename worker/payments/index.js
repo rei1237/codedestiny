@@ -159,6 +159,21 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
  * 레거시 마운트에서만 User 1읽기+복호화 비용을 낸다. 정제 규칙은 구 buildSinglePaymentCustomer
  * (payments.js:1144)와 동일: 이름 40자, 이메일 불량 시 합성 주소, 전화는 01x 로컬 숫자만.
  */
+/* 이 함수와 prepare 의 profileId 폴백이 읽는 필드 전부. 투영 없이 읽으면 destinyProfiles[]·
+   unlockedFeatures[]·membershipCreditLots[]·recentConsumeRequestIds[] 까지 딸려와, 결제 임계경로가
+   쓰지도 않을 배열들을 M0 에서 실어오며 소켓을 더 오래 붙잡는다. 필드를 추가하면 여기도 함께 늘릴 것
+   — 빠뜨리면 undefined 로 조용히 폴백한다(예: 이름이 "Code Destiny 고객"으로 떨어진다). */
+const LEGACY_PREPARE_USER_PROJECTION = Object.freeze({
+  fullName: 1,
+  name: 1,
+  displayName: 1,
+  username: 1,
+  email: 1,
+  phoneNumber: 1,
+  phone: 1,
+  destinyProfilesCurrentId: 1,
+});
+
 async function buildLegacyPrepareCustomer(env, user, userId) {
   const fullName = [user?.fullName, user?.name, user?.displayName, user?.username, "Code Destiny 고객"]
     .map((value) => String(value || "").trim())
@@ -674,7 +689,9 @@ const ROUTES = {
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
 
       const { order, user } = await withDb(env, ctx, async (db) => {
-        const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
+        const userDoc = await db.findOne(User, { _id: toObjectId(userId) }, {
+          projection: LEGACY_PREPARE_USER_PROJECTION,
+        });
         const profileId = String(body.profileId || body.selectedProfileId || userDoc?.destinyProfilesCurrentId || "");
         let created = await createOrder(db, {
           userId,

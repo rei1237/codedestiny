@@ -22,7 +22,14 @@
  * **스키마에 없는 필드를 조용히 버리는** 함정을 아예 통과하지 않는다. 대신 캐스팅이 없으므로
  * 타입은 호출부가 책임진다 — 아래 toObjectId/toUserIdString 를 반드시 경유할 것.
  */
-import { connectPaymentDb, withMongoRetry, mongoose } from "../lib/db.js";
+import {
+  connectDb,
+  connectPaymentDb,
+  isTransientMongoError,
+  mongoose,
+  resetPaymentConnection,
+  withMongoRetry,
+} from "../lib/db.js";
 
 /* 🔴 ContentEntitlement.userId 는 String 이고 나머지 결제 컬렉션은 전부 ObjectId 다
    (worker/lib/models.js). 네이티브 드라이버는 캐스팅을 해 주지 않으므로, auth 의 userId 를
@@ -115,6 +122,12 @@ const PAYMENT_DB_OPTIONS = Object.freeze({
      다시 잡는다(예산: 2500+≤300+2500 ≈ 5.3s < 11.5s 시도 상한). 전용 레인이라 지속 포화
      가능성이 낮아 대기열 압력이 배가되는 부작용도 제한적이다. */
   retryAdmissionOnOverload: true,
+  /* 🔴 공유 커넥션을 시도마다 세우지 않는다. 이게 빠지면 레인을 분리해 놓고도 결제 요청이
+     매 시도마다 connectDb(공유) 를 건드려, 부팅 폭풍이 공유 커넥션을 흔들 때 결제가 같이
+     흔들린다. 더 중요한 절반은 **실패 시의 공유 풀 리셋을 끄는 것**이다 — 레인에서 난 실패로
+     전역 disconnect 를 걸면 자기 레인은 안 낫고 bufferCommands:false 때문에 그 순간 살아 있던
+     부팅 요청만 통째로 죽는다. 레인의 회복은 아래 resetPaymentConnection 이 직접 맡는다. */
+  skipSharedConnect: true,
 });
 
 /**
@@ -136,10 +149,23 @@ export async function withPaymentDb(env, ctx, fn) {
       // 재시도가 일어나면 이전 시도의 왕복은 세지 않는다 — 예산은 '성공한 시도'의 비용이다.
       ctx.mongoOps = 0;
       // 결제 전용 레인. 수립 실패는 결제를 막지 않는다 — 공유 커넥션으로 폴백해 종전과 동일하게 동작.
+      // 폴백이 성립하려면 그 공유 커넥션이 실제로 서 있어야 한다: skipSharedConnect 로 withMongoRetry
+      // 의 connectDb 를 껐으므로, 레인이 죽은 이 경로에서만 우리가 직접 세운다.
       let paymentConn = null;
-      try { paymentConn = await connectPaymentDb(env); } catch { paymentConn = null; }
+      try {
+        paymentConn = await connectPaymentDb(env);
+      } catch {
+        paymentConn = null;
+        await connectDb(env);
+      }
       return fn(makeCountingDb(ctx, paymentConn));
     }, PAYMENT_DB_OPTIONS);
+  } catch (error) {
+    // 레인은 공유 풀의 리셋 기계장치 밖에 있다(skipSharedConnect). 일시적 실패 뒤 죽은 커넥션을
+    // 그대로 두면 이 아이솔레이트의 결제가 계속 같은 소켓에 매달리므로 여기서 직접 버린다.
+    // 다음 요청의 connectPaymentDb 가 새로 세운다.
+    if (isTransientMongoError(error)) await resetPaymentConnection();
+    throw error;
   } finally {
     ctx.inDb = false;
   }
