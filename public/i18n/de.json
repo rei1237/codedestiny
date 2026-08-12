@@ -1816,21 +1816,6 @@
         "checking": "Dein Mondstein-Guthaben wird geprüft. Du kannst trotzdem tippen.",
         "after": "Danach verbleiben {balance}."
       },
-      "monthlyBalance": {
-        "needCheck": "Überprüfung erforderlich",
-        "ready": "Meine Mondsteine {balance}",
-        "checking": "Überprüfung des monatlichen Guthabens.",
-        "refresh": "Credits aktualisieren",
-        "refreshing": "Erfrischender monatlicher Guthabensaldo.",
-        "refreshed": "Monatliches Guthaben erneut überprüft. Der aktuelle Kontostand ist {balance}.",
-        "notFound": "Es wurden noch keine aktiven Monatsguthaben/Abonnements gefunden. Bitte aktualisieren Sie erneut, nachdem die Zahlung abgeschlossen ist.",
-        "owned": "Ausreichend",
-        "ownedUnknown": "Wird geprüft",
-        "signedOut": "Melde dich an, um dein Mondstein-Guthaben zu sehen.",
-        "unconfirmed": "Wir konnten dein Mondstein-Guthaben nicht bestätigen. Du kannst es trotzdem versuchen – bei zu wenig Guthaben melden wir uns beim Bezahlen.",
-        "staleAfterError": "Mondstein-Guthaben konnte nicht aktualisiert werden, zuletzt bestätigter Wert wird angezeigt · aktuell {balance}",
-        "short": "Nicht genug"
-      },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
       },

@@ -1816,21 +1816,6 @@
         "checking": "Comprobando tu saldo de piedras lunares. Puedes tocar igualmente.",
         "after": "Quedarán {balance} después de usarlo."
       },
-      "monthlyBalance": {
-        "needCheck": "Cheque necesario",
-        "ready": "Mis piedras lunares {balance}",
-        "checking": "Comprobando el saldo de crédito mensual.",
-        "refresh": "Actualizar créditos",
-        "refreshing": "Saldo de crédito mensual actualizado.",
-        "refreshed": "Saldo de crédito mensual verificado nuevamente. El saldo actual es {balance}.",
-        "notFound": "Aún no se encontraron créditos/pase mensuales activos. Actualice nuevamente después de completar el pago.",
-        "owned": "Suficiente",
-        "ownedUnknown": "Comprobando",
-        "signedOut": "Inicia sesión para consultar tu saldo de Piedra Lunar.",
-        "unconfirmed": "No pudimos confirmar tu saldo de Piedra Lunar. Puedes intentarlo igualmente; te avisaremos al pagar si no alcanza.",
-        "staleAfterError": "No se pudo actualizar tu saldo de Piedra Lunar; se muestra el último valor confirmado · actualmente {balance}",
-        "short": "Insuficiente"
-      },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico."
       },

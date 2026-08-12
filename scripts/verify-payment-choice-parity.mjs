@@ -6,7 +6,7 @@
 //
 // 여기서 강제하는 계약:
 //   1) 세 구현 모두 동일한 정본 CSS(index.html의 _cdEnsureDirectPaymentStyles 규칙 배열)를 주입한다.
-//   2) 세 구현 모두 동일한 구조 마커(달 헤더/카드헤드/추천 배지/금액 강조/월정석 재조회)를 렌더한다.
+//   2) 세 구현 모두 동일한 구조 마커(달 헤더/카드헤드/추천 배지/금액 강조)를 렌더한다.
 //   3) 세 구현 모두 이용권 상점 · 단건 결제 · 월정석 세 옵션을 모두 렌더한다.
 //   4) 폐기된 별도 디자인(.cdpc-*, .celestial-pay-*, .cd-react-payment-choice-*)이 되살아나지 않는다.
 import assert from "node:assert/strict";
@@ -92,9 +92,7 @@ for (const needle of [
   ".cd-direct-payment-cardhead",
   ".cd-direct-payment-recommend",
   ".cd-direct-payment-amount",
-  ".cd-direct-payment-moonbal-current",
   ".cd-direct-payment-option--recommended",
-  ".cd-direct-payment-balance-check",
   // 2026-08-11: 떠다니는 CSS 달(moon-crescent)을 걷어내고 상단 골드 헤어라인 + 꽃돼지 안내자로 대체했다.
   // 장식 초점이 둘이면 서로를 깎아먹는다. 마커를 지우지 않고 새 요소로 **교체**해 3렌더러 보호는 유지한다.
   ".cd-direct-payment-hairline",
@@ -124,8 +122,6 @@ const STRUCTURE_MARKERS = [
   "cd-direct-payment-badge",
   "cd-direct-payment-glyph",
   "cd-direct-payment-amount",
-  "cd-direct-payment-moonbal-current",
-  "cd-direct-payment-balance-check",
   "cd-direct-payment-legal",
   "cd-direct-payment-recommend",
   "cd-direct-payment-go",
@@ -140,13 +136,9 @@ const STRUCTURE_MARKERS = [
   'data-mode="pass-store"',
   'data-mode="direct"',
   'data-mode="monthly" data-monthly-option',
-  'data-mode="monthly-refresh"',
   'data-mode="cancel"',
-  "data-monthly-balance-text",
-  "data-monthly-current",
   "data-monthly-hint",
   "data-payment-status",
-  "월정석 재조회",
   // 🔴 이용권 카드는 '상점 바로가기'가 아니라 '이용권으로 열기'(= 이용권 검사 지점)다.
   // 진입 선검사를 없애면서 세 렌더러가 같은 라벨·같은 동작을 갖도록 고정한다.
   "이용권으로 열기",
@@ -158,7 +150,18 @@ const STRUCTURE_MARKERS = [
   "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.",
   "지금 보고 있는 콘텐츠 하나만 바로 열려요.",
   "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.",
-  "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요.",
+  "월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요.",
+];
+
+// 🔴 결제창은 월정석 잔량을 조회하지 않는다(2026-08-12). /api/billing/balance 왕복이 간헐 503·22초
+// 타임아웃의 원인이었고, 월정석을 고르면 서버 coin-gate 가 어차피 같은 왕복 안에서 확인+차감한다.
+// 잔여바·재조회 버튼이 어느 렌더러에서든 되살아나면 그 왕복도 함께 돌아온다.
+const BANNED_BALANCE_MARKERS = [
+  "cd-direct-payment-balance-check",
+  "cd-direct-payment-moonbal-current",
+  'data-mode="monthly-refresh"',
+  "data-monthly-balance-text",
+  "data-monthly-current",
 ];
 
 // 셸은 i18n 헬퍼 경유라 제목이 키+폴백 형태로 들어간다. 셋 다 같은 정본 문구를 써야 한다.
@@ -175,6 +178,12 @@ for (const renderer of RENDERERS) {
   assert.ok(source.includes(TITLE_MARKER), `${renderer.label} ${renderer.rel}: 정본 제목("${TITLE_MARKER}") 없음`);
   for (const marker of STRUCTURE_MARKERS) {
     assert.ok(source.includes(marker), `${renderer.label} ${renderer.rel}: 구조 마커 누락 — ${marker}`);
+  }
+  for (const marker of BANNED_BALANCE_MARKERS) {
+    assert.ok(
+      !source.includes(marker),
+      `${renderer.label} ${renderer.rel}: 제거된 월정석 잔량 UI 가 되살아났습니다 — ${marker} (결제창은 /api/billing/balance 를 부르지 않는다)`,
+    );
   }
   // 상점 카드는 결제 처리 없이 이용권 상점으로 보내야 한다(모든 결제창의 이용권 전환 경로).
   assert.ok(
@@ -233,19 +242,10 @@ const STANDALONE_REQUIRED_KEYS = [
   "payment.directModal.monthlyUnit",
   "payment.directModal.note.basis",
   "payment.directModal.note.withPass",
-  // owned/short = 카드에 싣는 '충분/모자람'. 정확한 잔량은 ready(재조회 바)에만 남는다.
-  "payment.directModal.monthlyBalance.owned",
-  "payment.directModal.monthlyBalance.short",
-  "payment.directModal.monthlyBalance.ownedUnknown",
-  "payment.directModal.monthlyBalance.ready",
-  "payment.directModal.monthlyBalance.checking",
-  "payment.directModal.monthlyBalance.refresh",
-  "payment.directModal.monthlyBalance.refreshing",
-  "payment.directModal.monthlyBalance.signedOut",
-  "payment.directModal.monthlyBalance.unconfirmed",
-  "payment.directModal.monthlyBalance.staleAfterError",
+  // 잔량 문구 키(monthlyBalance.*)는 2026-08-12 에 사라졌다 — 결제창이 잔량을 조회하지 않으므로
+  // 표시할 값 자체가 없다. 월정석 카드는 monthlyHint.* 로만 설명한다.
+  "payment.directModal.monthlyHint.checking",
   "payment.currency.krw",
-  "payment.currency.monthlyCredits",
   "common.cancel",
 ];
 for (const rel of STANDALONE_FALLBACKS) {

@@ -98,13 +98,14 @@ test("the pass wait overlay is not silently blocked by the payment-choice modal 
   assert.match(verdict, /if \(_cdPassCheckAllowOwnOverlay\) return _cdDirectPgWindowSuppressedMode\(mode\);/);
 });
 
-test("pass-first payment modal does not start a parallel monthly balance probe", () => {
+test("payment modal never probes the monthly balance", () => {
   const modalTailStart = shellSource.indexOf("window.__cdDirectPaymentChoiceActive = { modal: modal");
   const modalTailEnd = shellSource.indexOf("    });\n  }", modalTailStart);
   assert.ok(modalTailStart >= 0 && modalTailEnd > modalTailStart);
   const modalTail = shellSource.slice(modalTailStart, modalTailEnd);
-  assert.match(modalTail, /if \(allowMonthlyChoice && !allowPassChoice && !monthlyBalanceFresh\)/);
-  assert.match(modalTail, /refreshDirectMonthlyBalance\(\{ silent: true \}\)/);
+  // 2026-08-12: 결제창의 잔량 조회를 통째로 없앴다. 예전에는 이용권 카드가 없을 때만 자동 1회 조회했는데,
+  // 그 왕복이 간헐 503·"잔량 확인 중" 고착의 원인이었고 월정석 선택 시 서버가 어차피 재확인한다.
+  assert.doesNotMatch(modalTail, /refreshDirectMonthlyBalance/);
 });
 
 test("home header renders cached identity without starting auth or subscription probes", () => {

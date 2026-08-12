@@ -1816,21 +1816,6 @@
         "checking": "正在確認月精石餘量。直接點也沒關係。",
         "after": "使用後將剩餘 {balance}。"
       },
-      "monthlyBalance": {
-        "needCheck": "需要确认",
-        "ready": "我的月精石 {balance}",
-        "checking": "正在确认月定石余额。",
-        "refresh": "重新查询月定石",
-        "refreshing": "正在重新查询月定石余额。",
-        "refreshed": "已重新确认月定石余额。当前为 {balance}。",
-        "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。",
-        "owned": "足夠",
-        "ownedUnknown": "確認中",
-        "signedOut": "登入後即可查看月定石餘額。",
-        "unconfirmed": "未能確認月定石餘額。您仍可繼續嘗試，若餘額不足會在結帳時提示。",
-        "staleAfterError": "未能重新確認月定石餘額，顯示上次確認值 · 目前 {balance}",
-        "short": "不足"
-      },
       "legal": {
         "provisionTiming": "本服務於付款完成後立即提供。服務將於確認付款時開始使用，已開始提供的內容根據電子商務法可能限制撤銷訂單。"
       },
