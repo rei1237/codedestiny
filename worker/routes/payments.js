@@ -5724,6 +5724,52 @@ async function handleMe(auth, env, request) {
     return json(body);
   }
 }
+
+// 결제 라우트 핸들러가 인증 직후 곧바로 필요로 하는 User 필드. 인증 리졸버에 userProjection으로
+// 넘기면 인증 조회와 같은 왕복에서 함께 읽어 authUserDoc로 돌려준다(두 번째 Mongo 왕복 제거).
+// 인증할 때 어차피 User 를 한 번 읽으므로, 결제 핸들러가 곧바로 쓰는 필드를 그때 함께 읽는다.
+// Atlas 공유혀에서는 왕복 1회가 곧 체감 지연이라, 왕복 수를 줄이는 것이 유일하게 효과가 큰 레버다.
+// 아래 두 묶음이 여기 있는 이유:
+//  - pass/구독 필드: 구 handleDigitalContentPrepare 가 이걸 위해 별도 User.findById 를 또 했다.
+//  - customer 필드(phone/이름): 주문 응답의 customer 를 만들기 위해 필요하다. 이게 없어서
+//    order.customer 가 아예 비어 있었고, 그 결과 클라가 결제마다 GET /api/me/payment-phone 을 탔다.
+const PAYMENT_ROUTE_USER_PROJECTION = {
+  _id: 1,
+  name: 1,
+  email: 1,
+  points: 1,
+  joinedAt: 1,
+  birthDate: 1,
+  unlockedFeatures: 1,
+  profileSubscription: 1,
+  // pass/구독 판정용
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  // PortOne customer 구성용
+  phoneNumber: 1,
+  phone: 1,
+  fullName: 1,
+  displayName: 1,
+  username: 1,
+  // 주문 스냅샷 profileId 폴백용. 없으면 프로필 스코프 상품이 프로필 결손 상태로 결제돼
+  // 정산이 관리자 검토로 빠진다.
+  destinyProfilesCurrentId: 1,
+};
+
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
 // 가능해(민법 제5조) 결제창이 뜨기 전 단계에서 막는다. 이미 승인된 결제의 완료(/confirm,
 // /single/complete)는 막지 않는다 — 돈만 빠져나가고 지급이 안 되는 상태가 더 나쁘다.
