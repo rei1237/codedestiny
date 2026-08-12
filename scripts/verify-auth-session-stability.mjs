@@ -91,6 +91,9 @@ function emit(name, code) {
 // 의존 모듈 스텁. auth-client 가 실제로 쓰는 표면만 만든다.
 emit('stub-api-config.js', `export function getApiBaseUrl() { return "${PAGE_ORIGIN}"; }\n`);
 emit('stub-pass-verdict.js', `export default { KEY_PREFIX: "cd_subscription_snapshot_v2::" };\n`);
+// auth-client 가 쓰는 표면은 isApp() 하나뿐이다(isMobileAppRuntime). 이 하네스는 **웹** 세션의
+// 안정성을 재현하므로 false 로 고정한다 — true 면 Bearer 토큰 경로가 켜져 쿠키 재현이 무의미해진다.
+emit('stub-app-context.js', `export default { isApp() { return false; } };\n`);
 emit('stub-toast.js', `
 export const shownToasts = [];
 export function showToast(message, type) { shownToasts.push({ message, type }); }
@@ -113,6 +116,7 @@ const authClientFile = emit('auth-client.js', transpile('app/_lib/auth-client.ts
   './http-client': './http-client.js',
   './auth-storage': './auth-storage.js',
   '@/js/core/pass-verdict.js': './stub-pass-verdict.js',
+  '@/js/core/app-context.js': './stub-app-context.js',
   '@/lib/i18n/ai-locale': './stub-ai-locale.js',
   '@/lib/i18n/dictionary': './stub-dictionary.js',
 }));
