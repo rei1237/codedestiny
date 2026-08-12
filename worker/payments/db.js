@@ -139,25 +139,55 @@ const PAYMENT_DB_OPTIONS = Object.freeze({
      남은 절반이었다(worker/lib/db.js mongoPaymentAdmission 주석). */
   admissionLane: "payment",
   /* 결제는 임계경로다. 순간 버스트로 슬롯을 못 잡았을 때 하드 503 대신 짧은 지터 뒤 1회만
-     다시 잡는다(예산: 2500+≤300+2500 ≈ 5.3s < 11.5s 시도 상한). 전용 레인이라 지속 포화
-     가능성이 낮아 대기열 압력이 배가되는 부작용도 제한적이다. */
+     다시 잡는다(예산: 2500+≤300+2500 ≈ 5.3s). admission 대기는 시도 타이머 **밖**이라
+     시도 상한을 잡아먹지 않는다. 전용 레인이라 지속 포화 가능성이 낮아 대기열 압력이
+     배가되는 부작용도 제한적이다. */
   retryAdmissionOnOverload: true,
   /* 🔴 op-타임아웃을 이 요청 안에서 한 번 더 시도한다(결제 전용 예외 — db.js
      retryOnOperationTimeout 선언부 주석에 근거와 다른 라우트를 끄는 이유가 있다).
      실측(2026-08-12, 18요청): 실패는 정확히 예산(12.2초)에서 나고 풀 리셋만 남기는데, 그 리셋의
      수혜자가 **다음 요청**이라 성공↔실패가 교대로 나왔다 — 사용자에겐 "될 때도 있고 안 될 때도
      있는 결제창"이다. 켜면 그 리셋을 자기 요청이 써서 하드 503 이 느린 성공으로 바뀐다.
-     결제는 요청당 슬롯도 op 도 하나뿐이라(withPaymentDb) 누적 걱정이 없고, 최악 24초도
-     셸 checkout 상한(25초) 안이다. 기대값은 12초+새 연결 2초 ≈ 14초다. */
+     결제는 요청당 슬롯도 op 도 하나뿐이라(withPaymentDb) 누적 걱정이 없고, 최악 16초도
+     셸 checkout 상한(25초) 안이다(시도 상한 8초 × 2). */
   retryOnOperationTimeout: true,
 });
 
+/**
+ * 🔴 PG 검증을 콜백 **안에서** 하는 호출부(=확정)의 시도 예산.
+ *
+ * 공유 기본값(8000)은 "waitQueue + Mongo 쿼리"만 담는 예산이다. 그런데 confirmOrder 는
+ * verifyPgPayment(PortOne REST, PORTONE_API_TIMEOUT_MS 기본 8000)를 withPaymentDb 콜백 안에서
+ * 돌린다. 한 시도의 최악 비용이 waitQueue 4000 + PortOne 8000 + 쿼리 4~5회 ≈ 14초라, 기본값으로
+ * 두면 **PG 가 느린 순간마다** op-타임아웃이 난다.
+ *
+ * 그 실패가 특히 나쁜 이유: 카드는 이미 승인됐는데 주문이 PENDING 으로 남는다. 재조정 크론
+ * (worker/lib/payment-reconcile-task.js reconcilePendingPayments)이 PortOne 에 다시 물어 정산하므로
+ * 돈이 사라지지는 않지만, 사용자는 그 사이 "결제 실패"를 본다. 되돌리지 말 것.
+ *
+ * retryOnOperationTimeout 을 끄는 이유: 여기서의 op-타임아웃은 죽은 커넥션이 아니라 **PG 지연**이
+ * 지배적이라 재시도해도 같은 이유로 또 기다린다. 게다가 15000 × 2 = 30초는 셸 confirm 상한(25초,
+ * index.html 의 요청 타임아웃 표)을 넘겨, 서버가 아직 붙들고 있는 요청을 클라가 먼저 포기하게 된다.
+ * 커넥션 문제의 복구는 재조정 크론과 클라이언트의 재확정 티켓이 맡는다.
+ *
+ * 🔴 15000 은 **시도 상한 clamp(18000)** 안이어야 하고 셸 상한(25000)보다 작아야 한다.
+ * PORTONE_API_TIMEOUT_MS 를 올리면 여기도 함께 올려야 한다(둘은 한 세트다).
+ */
+export const CONFIRM_DB_OPTIONS = Object.freeze({
+  attemptTimeoutMS: 15000,
+  retryOnOperationTimeout: false,
+});
+
 /* 소켓 레인을 켠 경우에만 공유 핸드셰이크를 끈다. 두 커넥션을 직렬로 세우면 콜드 아이솔레이트가
-   12초 op 예산을 넘기기 때문이다(레인이 켜져 있을 때만 성립하는 이야기다). */
-function paymentDbOptions(env) {
-  return isSocketLaneEnabled(env)
+   op 예산을 넘기기 때문이다(레인이 켜져 있을 때만 성립하는 이야기다).
+   overrides 는 호출부별 예산 조정용이다 — 지금은 CONFIRM_DB_OPTIONS 하나뿐이고, 새 키를
+   자유롭게 받는 확장점이 아니다(admissionLane 을 덮으면 레인 분리가 조용히 무너진다). */
+function paymentDbOptions(env, overrides) {
+  const base = isSocketLaneEnabled(env)
     ? { ...PAYMENT_DB_OPTIONS, skipSharedConnect: true }
     : PAYMENT_DB_OPTIONS;
+  if (!overrides) return base;
+  return { ...base, ...overrides, admissionLane: PAYMENT_DB_OPTIONS.admissionLane };
 }
 
 /**
@@ -166,8 +196,9 @@ function paymentDbOptions(env) {
  * @param {object} env
  * @param {ReturnType<typeof createPaymentContext>} ctx
  * @param {(db: ReturnType<typeof makeCountingDb>) => Promise<any>} fn
+ * @param {object} [overrides] 호출부별 예산(CONFIRM_DB_OPTIONS). 생략하면 결제 기본값.
  */
-export async function withPaymentDb(env, ctx, fn) {
+export async function withPaymentDb(env, ctx, fn, overrides) {
   if (ctx.inDb) {
     // 중첩은 슬롯을 2개 먹고, 바깥 재시도가 안쪽을 통째로 재실행해 시도 수를 곱한다.
     // 이 레포에는 그 사고 이력이 있다(CLAUDE.md 코딩 원칙 6번).
@@ -201,7 +232,7 @@ export async function withPaymentDb(env, ctx, fn) {
         }
         throw error;
       }
-    }, paymentDbOptions(env));
+    }, paymentDbOptions(env, overrides));
   } finally {
     ctx.inDb = false;
   }

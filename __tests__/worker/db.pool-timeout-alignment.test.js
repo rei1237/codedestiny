@@ -23,7 +23,11 @@
 import { jest } from "@jest/globals";
 
 // withMongoRetry 의 시도 상한 기본값(= MONGO_OP_ATTEMPT_TIMEOUT_MS).
-const OP_ATTEMPT_TIMEOUT_MS = 12000;
+// 🔴 12000 → 8000 (2026-08-12, M10 전환의 **점유 시간 축**). serverSelectionTimeoutMS 가 8000 → 3000
+// 으로 내려가면서 파생 하한(serverSelection + 3500)이 11500 → 6500 이 되어 비로소 낮출 수 있게 됐다.
+// 이 상수가 db.js 기본값과 어긋나면 아래 정렬 단언이 **실제보다 느슨해진다**(옛 12000 을 그대로 두면
+// socket 11000 도 통과해 버린다) — 반드시 함께 움직인다.
+const OP_ATTEMPT_TIMEOUT_MS = 8000;
 
 test("socketTimeoutMS 와 waitQueueTimeoutMS 가 op 예산 안으로 정렬되어 있다", async () => {
   const connection = {

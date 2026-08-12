@@ -441,19 +441,31 @@ export async function connectDb(env = {}) {
   installProcessEnv(env);
 
   const guardTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"), 10000, 3000, 20000);
-  const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
-  const connectTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
-  // 🔴 op 예산(withMongoRetry 의 attemptTimeoutMS, 기본 12000)보다 **짧게** 잡는다.
-  // 예전엔 20000 이라, op-타임아웃(12초)이 난 뒤에도 드라이버 작업은 취소되지 않아 소켓이 8초를
-  // 더 풀에 묶여 있었다. maxPoolSize 가 작아(M0 예산 때문에 의도적으로 작다) 멈춘 op 몇 개면 풀이 마비되고,
-  // 그 사이 들어온 요청은 체크아웃 큐에서 굶다가 또 12초에 걸리는 자기증폭 고리가 됐다
+  // 🔴 8000 → 3000 (2026-08-12, M10 전환의 두 번째 축). 8000 의 근거는 **M0 의 공유 vCPU 스로틀링**
+  // 이었다. M10 은 전용 노드라 서버선택 자체가 sub-second 이고, Cloudflare 엣지에서 실제로 드는
+  // 비용은 서버선택이 아니라 TLS+인증 핸드셰이크(실측 중앙값 1497ms)다 — 3000 은 그 2배 여유다.
+  //
+  // 이 값이 중요한 이유는 자기 자신이 아니라 **파생값** 때문이다. withMongoRetry 의 시도 상한 하한이
+  // `serverSelectionTimeoutMS + 3500` 이라, 8000 일 때는 11500 아래로 내려갈 수 없어 슬롯 하나가
+  // 최대 12초를 붙잡았다. 3000 이면 하한이 6500 이 되어 시도 상한을 8000 으로 낮출 수 있다.
+  // 앞선 M10 조정이 **용량 축**(한도 12→24 · 풀 5→10 · maxIdleTime 20s→60s)을 열었다면 이건
+  // **점유 시간 축**이다 — 같은 한도로 처리량을 올리므로 전역 연결 예산을 한 개도 더 쓰지 않는다.
+  const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "3000"), 3000, 2000, 15000);
+  // TLS+인증까지 덮으므로 serverSelection 보다는 여유를 남긴다(콜드 핸드셰이크 1497ms 의 3배).
+  const connectTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "5000"), 5000, 2000, 15000);
+  // 🔴 op 예산(withMongoRetry 의 attemptTimeoutMS, 기본 8000)보다 **짧게** 잡는다.
+  // 예전엔 20000 이라, op-타임아웃이 난 뒤에도 드라이버 작업은 취소되지 않아 소켓이 8초를
+  // 더 풀에 묶여 있었다. 멈춘 op 몇 개면 풀이 마비되고, 그 사이 들어온 요청은 체크아웃 큐에서
+  // 굶다가 또 예산에 걸리는 자기증폭 고리가 됐다
   // (2026-08-01 [db-op-timeout] 실측: 체크아웃 대기 최대 10,383ms, 한 창에서 41건 시작/4건 성사).
-  // 서버 명령 실행은 250~417ms 라 11초도 20배 이상 여유다.
-  const socketTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "11000"), 11000, 5000, 45000);
+  // 11000 → 7000: 시도 상한이 8000 으로 내려갔으므로 이 부등식을 유지하려면 함께 내려야 한다.
+  // 서버 명령 실행은 250~417ms 라 7초도 15배 이상 여유다.
+  const socketTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "7000"), 7000, 5000, 45000);
   // 커넥션을 못 받고 큐에서 기다리는 상한. 이걸 넘겨 기다려봐야 어차피 op 예산을 넘기므로,
-  // 12초 stall 대신 빠른 실패로 바꿔 호출부가 즉시 degrade 하게 한다(연결 수 1.5초 + 큐 5초 +
-  // 쿼리 0.5초 = 7초라, 기다렸다 성공하는 op 는 여전히 예산 안에 들어온다).
-  const waitQueueTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "5000"), 5000, 1000, 15000);
+  // 긴 stall 대신 빠른 실패로 바꿔 호출부가 즉시 degrade 하게 한다.
+  // 5000 → 4000: 시도 상한(8000) 안에 큐 대기 + 쿼리가 함께 들어가야 한다
+  // (예산 검산: 큐 4초 + 쿼리 0.5초 = 4.5초 < 8초. admission 대기는 이 타이머 **밖**이다).
+  const waitQueueTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "4000"), 4000, 1000, 15000);
   // 유휴 소켓을 드라이버가 능동적으로 닫아, Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓을 풀이
   // 보유하는 것을 근절한다(Atlas 유휴 컷보다 짧게). 이 설정 부재가 '웜 쿼리 op-타임아웃 다발·콜드 성공'의
   // 1차 근본 원인이었다 — 유휴 후 재개된 아이솔레이트가 죽은 소켓 위에서 쿼리를 매달았기 때문.
@@ -763,10 +775,12 @@ export async function connectPaymentDb(env = {}) {
     minPoolSize: 0,
     // 공유 커넥션과 같은 이유로 명시한다 — connectDb 의 maxConnecting 주석 참고.
     maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
-    serverSelectionTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
-    connectTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
-    socketTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "11000"), 11000, 5000, 45000),
-    waitQueueTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "5000"), 5000, 1000, 15000),
+    // 🔴 아래 넷은 **공유 레인(connectDb)과 같은 env·같은 기본값**이어야 한다. 한쪽만 옛 값으로
+    // 남으면 같은 이름의 env 가 레인마다 다른 값을 뜻하게 되어 추적이 불가능해진다.
+    serverSelectionTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "3000"), 3000, 2000, 15000),
+    connectTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "5000"), 5000, 2000, 15000),
+    socketTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "7000"), 7000, 5000, 45000),
+    waitQueueTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "4000"), 4000, 1000, 15000),
     // 공유 커넥션과 같은 값·같은 이유(M10 의 신규 커넥션 생성률 예산) — connectDb 주석 참고.
     maxIdleTimeMS: clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "60000"), 60000, 10000, 300000),
     // M10 리플리카셋에서 primary 교체 시 결제 op 를 드라이버가 살려 준다 — connectDb 주석 참고.
@@ -928,10 +942,12 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   // 존재하므로, 죽은 소켓에서 Mongo 작업 프로미스가 멈춰도 Cloudflare의 "hung"(대기 I/O 없는 미해결
   // 프로미스) 데드락 감지가 발동하지 않는다. 상한 초과 시 즉시 예외를 던져 호출부의 degraded 폴백이
   // 빠르게 응답하게 하고(재시도로 또 hang을 만들지 않도록 타임아웃은 재시도하지 않는다).
-  // op-래퍼 상한이 서버선택 타임아웃보다 짧으면, 콜드 아이솔레이트에서 연결이 자기 선택창(기본 8s)
+  // op-래퍼 상한이 서버선택 타임아웃보다 짧으면, 콜드 아이솔레이트에서 연결이 자기 선택창(기본 3s)
   // 안인데도 op-래퍼가 먼저 잘라 "MongoDB operation timed out"으로 무조건 실패한다(→ 전 라우트 503).
   // 서버선택창 + 쿼리 여유(3.5s)를 하한으로 강제해, env 설정과 무관하게 이 미스매치를 구조적으로 차단한다.
-  const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
+  // 🔴 기본값은 connectDb 와 **반드시 같아야 한다**(둘 다 3000). 여기만 옛 값(8000)으로 남으면
+  // 하한이 실제 서버선택창보다 5초 커져, 시도 상한을 낮춘 효과가 통째로 사라진다.
+  const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "3000"), 3000, 2000, 15000);
   const attemptTimeoutFloorMS = options.respectServerSelectionFloor === false
     ? 0
     : serverSelectionTimeoutMS + 3500;
@@ -941,11 +957,20 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     250,
     18000,
   );
+  // 🔴 12000 → 8000 (2026-08-12, M10 전환의 점유 시간 축). 이 값은 **슬롯 하나가 붙잡히는 최대
+  // 시간**이라 admission 레인의 실효 처리량을 직접 정한다(한도를 올리지 않고 얻는 이득이다).
+  // 12000 은 위 하한(구 serverSelection 8000 + 3500 = 11500)에 눌려 있던 값이고, 서버선택을 3000 으로
+  // 낮추면서 하한이 6500 이 되어 비로소 내릴 수 있게 됐다. 한 시도의 실제 비용은
+  // waitQueue(4000) + 쿼리(실측 250~417ms)라 8000 은 2배 가까운 여유다
+  // (admission 대기는 이 타이머 **밖**에서 일어난다 — 슬롯 획득이 attempt 루프보다 앞이다).
+  //
+  // ⚠️ 콜백 안에서 외부 HTTP 를 부르는 호출부는 이 기본값으로는 모자란다. 결제 confirm 이 그렇고
+  // (PortOne 검증 최대 8s), 그쪽은 worker/payments/db.js 가 attemptTimeoutMS 를 따로 준다.
   const attemptTimeoutMS = Math.max(
     attemptTimeoutFloorMS,
     clampTimeoutMs(
-      options.attemptTimeoutMS != null ? options.attemptTimeoutMS : getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS", "12000"),
-      12000,
+      options.attemptTimeoutMS != null ? options.attemptTimeoutMS : getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS", "8000"),
+      8000,
       attemptTimeoutMinimumMS,
       18000,
     ),
