@@ -8,6 +8,12 @@
 //      requestPayment 직후의 무조건 회수가 부활하면 회수 지점 수가 달라져 여기서 잡힌다.
 //   ② PENDING_CONFIRMATION/GRANT_PENDING 분기가 _cdHasVerifiedServerAccess 판정보다 먼저 온다.
 //      그 분기 안에서는 티켓을 지우지 않는다(복귀·새로고침이 멱등 confirm 으로 마무리를 재시도).
+//
+// 추가(2026-08-13) ③ 중복 결제 코드(ALREADY_PAID 등)에서 **결제창을 다시 열지 않는다**.
+//   예전에는 그 자리에서 새 Idempotency-Key 로 checkout 을 통째로 재실행했는데, 키가 바뀌면
+//   서버 deriveOrderId 가 다른 주문을 낳아 CAS 가 막지 못하고 이미 승인된 카드에 **한 번 더**
+//   결제창이 떴다. 이제 기존 주문으로 confirm 을 먼저 태우고(멱등 200), PG 가 미결제라고 확정한
+//   422 에서만 새 키로 재시도한다. 이 순서가 뒤집히면 이중결제가 되돌아온다.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -55,6 +61,28 @@ for (const file of SHELL_FILES) {
   // PENDING 분기 안에서는 티켓을 지우지 않는다(분기 시작~throw 사이 슬라이스 검사).
   const pendingSlice = core.slice(pendingBranchAt, core.indexOf("throw _cdConfirmPendingError;", pendingBranchAt));
   assert.ok(!pendingSlice.includes(REMOVE_MARKER), `${file}: PENDING 분기에서 복귀 티켓을 지우면 복구 경로가 사라진다`);
+
+  // ③ 중복 결제 코드는 확정을 먼저 태운다 — 새 키 재시도는 confirm 뒤 422 에서만.
+  const duplicateCheckAt = core.indexOf("_cdIsPortOneDuplicatePaymentCode(");
+  const duplicateRetryAt = core.indexOf("__cdDuplicatePaymentRetry: true");
+  const fallbackGuardAt = core.indexOf("if (!_cdDuplicateConfirmFallback) {");
+  assert.ok(duplicateCheckAt >= 0, `${file}: 중복 결제 코드 판정이 사라졌다 — ALREADY_PAID 가 일반 실패로 닫히면 재결제를 유도한다`);
+  assert.ok(
+    duplicateCheckAt < confirmPostAt,
+    `${file}: 중복 결제 판정은 confirm 호출보다 먼저 와야 한다(확정으로 흘려보낼지 결정하는 분기다)`,
+  );
+  assert.ok(
+    duplicateRetryAt > confirmPostAt,
+    `${file}: 중복 결제 시 새 키 재시도가 confirm 보다 먼저 오면 결제창이 다시 떠 이중결제가 된다`,
+  );
+  assert.ok(
+    core.includes("_cdDuplicateConfirmFallback && Number(confirmRes.status) === 422"),
+    `${file}: 새 키 재시도는 422(PG 가 미결제로 확정)에서만 허용해야 한다 — 503 은 결제 여부를 모른다`,
+  );
+  assert.ok(
+    fallbackGuardAt >= 0 && fallbackGuardAt < firstRemovalAt,
+    `${file}: 중복 결제 폴백에서는 복귀 티켓을 지우면 안 된다(돈이 이미 나갔을 수 있다)`,
+  );
 }
 
 // dp 폴백은 원래 올바른 순서(성공 후 회수)였다 — 그 계약이 유지되는지 함께 고정한다.
@@ -63,6 +91,16 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
   assert.ok(
     source.includes("// 확정됐으니 이제 복귀 티켓을 회수한다."),
     `${file}: dp 의 confirm-후-회수 계약 주석이 사라졌다 — 순서 회귀 여부를 확인할 것`,
+  );
+  // dp 는 새 키 재시도를 가진 적이 없다(추가하지 말 것). 대신 중복 결제 코드에서 티켓을 지우고
+  // 실패로 닫으면 복구 수단 없이 "결제가 완료되지 않았습니다"가 떠 사용자가 다시 결제한다.
+  assert.ok(
+    source.includes("_dpIsPortOneDuplicatePaymentCode("),
+    `${file}: dp 의 중복 결제 코드 판정이 사라졌다 — ALREADY_PAID 가 일반 실패로 닫힌다`,
+  );
+  assert.ok(
+    source.includes("if (!dpDuplicateConfirm) {"),
+    `${file}: dp 의 티켓 회수·실패 throw 는 중복 결제 폴백에서 제외돼야 한다`,
   );
 }
 
