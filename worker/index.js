@@ -1314,10 +1314,32 @@ export default {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        // 주문 발급 컷오버 — 구 prepare 봉투(평면 {message,idempotent,order})를 어댑터가 재현한다.
+        if (isPaymentsV2Route(env, "prepare")
+          && request.method === "POST"
+          && url.pathname === "/api/payments/prepare") {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, {
+            prefix: "/api/payments",
+            legacyEnvelope: "prepare",
+          }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
+        // 주문 발급 컷오버 — 구 /api/billing/checkout 은 prepare 를 위임 래핑({ok,data:{…,order}})해
+        // 답하던 경로라, 같은 어댑터를 billing 봉투로 마운트한다. 롤백은 env 에서 "checkout" 제거.
+        if (isPaymentsV2Route(env, "checkout")
+          && request.method === "POST"
+          && url.pathname === "/api/billing/checkout") {
+          const rewrittenCheckout = rewriteRequestPath(request, "/api/payments/prepare");
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenCheckout, env, {
+            prefix: "/api/payments",
+            legacyEnvelope: "billing-checkout",
+          }));
+        }
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env, ctx));
       }
 
