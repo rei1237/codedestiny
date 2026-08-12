@@ -306,10 +306,10 @@ function writePaidAccessDecisionToCache(cacheKey, decision, priceCoin) {
 
 // ── 결제창 월정석 잔량 표시용 짧은 TTL 캐시 ──────────────────────────────
 // /api/billing/balance는 결제창을 열 때마다 Mongo를 신선 조회한다(인증 1회 + User.findById 1회 = 2 왕복,
-// 각 ~11.5s 상한). op-timeout 시 즉시 503으로 표면화돼 잔량이 "확인 필요"로 뜬다. 유저별로 healthy 응답을
-// 몇 초 캐시해 재개폐/버스트를 collapse한다(paidAccessDecisionCache와 동일 패턴, globalThis 공유).
-// 정확성: healthy(authenticated·비degraded)만 저장하고, 결제/환불 시 payments.js가 invalidateForUser로 즉시 무효화한다.
-const BILLING_BALANCE_CACHE_TTL_MS = 5000;
+// 각 ~11.5s 상한). 45초 캐시로 재개폐·버스트뿐 아니라 페이지 세션 내 반복 잔액 조회까지 collapse한다
+// (2026-08-12 5s→45s: 반복 잔액 조회가 M0 부하 상위 요인인데 5s 창은 실호출 간격보다 짧아 대부분 미스였다).
+// 정확성: healthy만 저장 + 잔액이 변하는 모든 쓰기(구 payments.js·환불·월정석 lot·V2 grant/spend/refund)가
+const BILLING_BALANCE_CACHE_TTL_MS = 45000; // invalidateForUser로 유저별 즉시 무효화. fresh=1은 캐시 읽기를 우회한다.
 const BILLING_BALANCE_CACHE_MAX_ENTRIES = 2500;
 const billingBalanceCache = globalThis.__billingBalanceCache
   || (globalThis.__billingBalanceCache = {
