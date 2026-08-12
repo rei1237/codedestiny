@@ -9,6 +9,8 @@ import { readdirSync, statSync } from "node:fs";
 import { join, extname, relative } from "node:path";
 import * as acorn from "acorn";
 
+import { BUILD_ARTIFACT_DIRS } from "./source-scan-ignore.mjs";
+
 /** 모듈 KO 테이블/상대 키가 어느 사전 네임스페이스로 들어가는지 (자동 유도 실패분만). */
 export const MANUAL_NAMESPACE = {
   "js/tarot-self-esteem-experience.js": "home.tarotSelfEsteem",
@@ -33,13 +35,14 @@ export const PREFIXED_WRAPPERS = {
 /** 모듈별 KO 테이블 변수명 패턴. */
 export const TABLE_NAME_RE = /(?:_TEXT_TRANSLATIONS|_TRANSLATIONS|_COPY_BY_LOCALE|_BY_LOCALE|_LOCALE_COPY)$/;
 
-const SKIP_DIR = /^(node_modules|\.git|\.next|out|dist|coverage|reports|apps)$/;
+// 빌드 산출물(공용 목록) + 이 스캔만의 제외(reports·apps). 합집합이다.
+const SKIP_DIR_NAMES = new Set([...BUILD_ARTIFACT_DIRS, "reports", "apps"]);
 
 export function* walkSourceFiles(rootDir, { extensions, includePublic = false } = {}) {
   const exts = new Set(extensions || [".js", ".mjs", ".ts", ".tsx", ".jsx"]);
   function* recurse(dir) {
     for (const name of readdirSync(dir)) {
-      if (SKIP_DIR.test(name)) continue;
+      if (SKIP_DIR_NAMES.has(name)) continue;
       const p = join(dir, name);
       if (statSync(p).isDirectory()) {
         const rel = relative(rootDir, p).split("\\").join("/");

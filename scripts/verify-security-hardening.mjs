@@ -18,6 +18,8 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { BUILD_ARTIFACT_DIRS } from "./lib/source-scan-ignore.mjs";
+
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const failures = [];
 
@@ -100,7 +102,7 @@ function functionBody(text, signature) {
 /** worker/ 의 .js 파일을 훑는다(빌드 산출물·의존성 제외). */
 function listSourceFiles(dirs) {
   const out = [];
-  const skip = new Set(["node_modules", ".wrangler", "dist", "out", ".next", ".git"]);
+  const skip = new Set(BUILD_ARTIFACT_DIRS);
   const walk = (dir) => {
     let entries = [];
     try {

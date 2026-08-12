@@ -19,6 +19,8 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
+
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const SCAN_ROOTS = ["worker", "server", "app", "lib", "scripts"];
 const ALLOWED = new Set(["worker/lib/db.js"]);
@@ -39,7 +41,9 @@ function walk(dir, out = []) {
     return out;
   }
   for (const entry of entries) {
-    if (entry === "node_modules" || entry === ".next" || entry === "dist" || entry === "out") continue;
+    // 번들에는 db.js 본문이 인라인돼 있어, 산출물을 훑으면 resetMongooseConnection() 직접
+    // 호출을 라우트 위반으로 신고한다(.wrangler·build-cache 가 빠져 있어 실제로 뚫렸다).
+    if (isBuildArtifactDir(entry)) continue;
     const full = join(dir, entry);
     let st;
     try {

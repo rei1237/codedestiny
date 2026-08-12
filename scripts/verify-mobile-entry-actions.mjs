@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
+
 const root = process.cwd();
 const registryPath = path.join(root, "MOBILE_FEATURE_REGISTRY.md");
 const registryText = readRequired(registryPath);
@@ -203,8 +205,12 @@ function collectFiles(dir, pattern) {
   const output = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) output.push(...collectFiles(full, pattern));
-    else if (pattern.test(entry.name)) output.push(full);
+    if (entry.isDirectory()) {
+      // 여기서 번들을 읽으면 실패가 아니라 **거짓 통과**가 난다: 라우트가 사라져도 번들 안의
+      // 옛 문자열이 workerRouteMentions() 를 만족시켜 "구현 있음"으로 보고된다.
+      if (isBuildArtifactDir(entry.name)) continue;
+      output.push(...collectFiles(full, pattern));
+    } else if (pattern.test(entry.name)) output.push(full);
   }
   return output;
 }

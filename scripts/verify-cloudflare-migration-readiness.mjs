@@ -1,6 +1,8 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
+import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
+
 const rootDir = process.cwd();
 
 const REQUIRED_FILES = [
@@ -46,6 +48,9 @@ async function listFilesRecursive(absDir) {
     for (const entry of entries) {
       const abs = path.join(currentDir, entry.name);
       if (entry.isDirectory()) {
+        // 번들에는 node:fs 등이 그대로 인라인돼 있어, 산출물이 worker/ 안에 있으면
+        // worker-node-incompatible-imports 블로커로 잡힌다(소스는 멀쩡한데 실패한다).
+        if (isBuildArtifactDir(entry.name)) continue;
         await walk(abs);
         continue;
       }

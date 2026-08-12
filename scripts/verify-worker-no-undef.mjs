@@ -22,6 +22,8 @@ import { ESLint } from "eslint";
 import { relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { BUILD_ARTIFACT_DIRS } from "./lib/source-scan-ignore.mjs";
+
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 // 호출자가 없어 런타임에 닿지 않는 기지 위반. 새로 추가하려면 "왜 안 고치고 통과시키는지"를 함께 적는다.
@@ -53,6 +55,9 @@ const eslint = new ESLint({
       "WebSocketPair", "process", "Buffer", "Intl", "WebAssembly",
     ].map((name) => [name, "readonly"])),
     rules: { "no-undef": "error" },
+    // 레포에 .eslintignore 가 없어서, 산출물이 worker/ 안에 떨어지면 13 MiB 번들을 그대로
+    // lint 한다(번들에는 window·document 가 인라인돼 있어 no-undef 가 수백 건 터진다).
+    ignorePatterns: BUILD_ARTIFACT_DIRS.map((dir) => `**/${dir}/**`),
   },
 });
 
