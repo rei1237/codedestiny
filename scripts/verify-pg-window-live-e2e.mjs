@@ -105,11 +105,15 @@ try {
     ]);
     try {
       const out = await withCap(window._cdRunDirectKrwCheckout({
-        featureKey: "fortune-fish-gacha",
+        // 프로브 SKU 는 "레지스트리에 있는 가장 싼 항목"이면 된다. 결제창을 띄우기 전에
+        // PortOne.requestPayment 를 스텁으로 가로채므로 실제 청구는 발생하지 않지만,
+        // 서버 prepare 가 클라이언트 금액을 레지스트리와 대조하므로(CLIENT_AMOUNT_MISMATCH)
+        // featureKey 와 금액은 반드시 정본과 일치해야 한다.
+        featureKey: "tarot-numerology-reading",
         title: "PG E2E probe",
-        coinPrice: 5,
-        cost: 5,
-        amountKrw: 500,
+        coinPrice: 30,
+        cost: 30,
+        amountKrw: 3000,
         requestId: "pg-e2e-probe-1",
         idempotencyKey: "pg-e2e-probe-" + Date.now().toString(36),
         skipPassProbe: true,

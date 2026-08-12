@@ -61,7 +61,7 @@ const MODE_SPEC = Object.freeze({
     size: 5,
     slots: Object.freeze(["mind", "heart", "shadow", "gift", "next_action"]),
     featureKey: DEEP_FEATURE_KEY,
-    coinPrice: 60,
+    coinPrice: 50,
     minBodyChars: 800,
     fallbackMinChars: 560,
     baseTokens: 4800,

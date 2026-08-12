@@ -8,8 +8,8 @@ import { CrossSell, GenderPrompt, NatalBar, NeedBirth, SectionCards, UnlockGate,
 
 const PRODUCT = {
   featureKey: "nakshatra-dasha-map",
-  coinPrice: 150,
-  amountKRW: 15000,
+  coinPrice: 100,
+  amountKRW: 10000,
   reason: "나크샤트라 다샤 인생지도 해금",
   endpoint: "/api/nakshatra-premium/dasha-map",
 } as const;

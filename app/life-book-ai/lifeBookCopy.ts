@@ -19,8 +19,8 @@ export const MODE_TITLE: Record<LifeBookMode, string> = {
 // 서버 레지스트리(worker/lib/paid-feature-registry.js)와 같은 값. degraded 로 서버 금액을
 // 못 받았을 때만 쓰는 폴백이며, 실제 금액은 coin-gate 가 featureKey 로 재확정한다.
 export const MODE_FALLBACK_PRICE: Record<LifeBookMode, { coinPrice: number; amountKRW: number; membershipCreditCost: number }> = {
-  lifeBook: { coinPrice: 300, amountKRW: 30000, membershipCreditCost: 3000 },
-  lifeFortune: { coinPrice: 500, amountKRW: 50000, membershipCreditCost: 5000 },
+  lifeBook: { coinPrice: 200, amountKRW: 20000, membershipCreditCost: 2000 },
+  lifeFortune: { coinPrice: 300, amountKRW: 30000, membershipCreditCost: 3000 },
 };
 
 export const PHASE_COPY: Record<string, string> = {

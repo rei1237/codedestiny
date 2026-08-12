@@ -52,35 +52,28 @@
 |---|---|---|---|
 | `cd_content_tier_01` | `3900` | 운세 콘텐츠 3,900원 | 선택하신 운세·타로·사주 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_02` | `6000` | 운세 콘텐츠 6,000원 | 선택하신 운세·타로·관상 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_03` | `7500` | 운세 콘텐츠 7,500원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_04` | `8900` | 운세 콘텐츠 8,900원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_05` | `10900` | 운세 콘텐츠 10,900원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_06` | `13000` | 운세 콘텐츠 13,000원 | 선택하신 운세·상담 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_07` | `15000` | 운세 콘텐츠 15,000원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_08` | `19000` | 운세 콘텐츠 19,000원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_09` | `25000` | 운세 콘텐츠 25,000원 | 선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_10` | `39000` | AI 상담 39,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_11` | `49000` | 프리미엄 해금 49,000원 | 선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다. |
-| `cd_content_tier_12` | `65000` | AI 상담 65,000원 | 선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_13` | `89000` | 프리미엄 전체 해금 89,000원 | 선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다. |
+
+> **2026-08-12 가격 티어 정비로 6개 SKU(`tier_03`·`04`·`05`·`07`·`08`·`12`)가 판매 중단됐다.**
+> 대응하는 코인가가 레지스트리에서 사라졌기 때문이며, 남은 SKU의 **가격은 한 건도 바뀌지 않았다.**
+> 비활성화 절차와 기존 구매자 영향은 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 참고.
+> 🔴 폐기한 productId 는 **재사용 금지** — Play 는 상품 ID 를 영구 점유한다.
 
 **각 티어가 실제로 커버하는 기능** (레지스트리 실측 — 참고용, Play Console 입력 불필요)
 
-| 상품 ID | 웹가 | 인상률 | 대상 기능 수 | 구성 | 대표 기능 |
-|---|---|---|---|---|---|
-| `cd_content_tier_01` | 3,000 | +30.0% | 19 | 회당 16 / 해금 3 | tarot-year-fortune |
-| `cd_content_tier_02` | 5,000 | +20.0% | 51 | 회당 31 / 해금 20 | tarot-love-relationship, royal-tea-oracle, physiognomy-* |
-| `cd_content_tier_03` | 6,000 | +25.0% | 1 | 회당 1 | animal-totem-deep |
-| `cd_content_tier_04` | 7,000 | +27.1% | 1 | 회당 1 | stonehenge-runes-deep |
-| `cd_content_tier_05` | 9,000 | +21.1% | 2 | 해금 2 | destiny-bias-deep-profile |
-| `cd_content_tier_06` | 10,000 | +30.0% | 31 | 회당 10 / 해금 21 | tarot-celestial-harmony, fortune-tea-house-saju-consultation |
-| `cd_content_tier_07` | 12,000 | +25.0% | 3 | 회당 1 / 해금 2 | premium-sukuyo-compat-extra |
-| `cd_content_tier_08` | 15,000 | +26.7% | 4 | 해금 4 | ziwei_love_deep |
-| `cd_content_tier_09` | 20,000 | +25.0% | 7 | 회당 4 / 해금 3 | cosmic-soul-meditation, saju_ai_question_prompt |
-| `cd_content_tier_10` | 30,000 | +30.0% | 12 | 회당 11 / 해금 1 | vedic-ai-consultation, life-book-ai-consultation |
-| `cd_content_tier_11` | 39,000 | +25.6% | 3 | 해금 3 | unlock.premium_astrology / _sukuyo / _veda |
-| `cd_content_tier_12` | 50,000 | +30.0% | 1 | 회당 1 | karma-destiny-ai-consultation |
-| `cd_content_tier_13` | 69,000·70,000 | +27.1~29.0% | 2 | 해금 2 | unlock.all_paid_saju, unlock.premium_naming |
+| 상품 ID | 웹가 | 인상률 | 대상 기능 수 | 대표 기능 |
+|---|---|---|---|---|
+| `cd_content_tier_01` | 3,000 | +30.0% | 18 | tarot-numerology-reading, animal-totem-basic |
+| `cd_content_tier_02` | 5,000 | +20.0% | 58 | tarot-love-relationship, royal-tea-oracle, physiognomy-*, animal-totem-deep |
+| `cd_content_tier_06` | 10,000 | +30.0% | 50 | tarot-year-fortune, fortune-tea-house-saju-consultation, ziwei_love_deep |
+| `cd_content_tier_09` | 20,000 | +25.0% | 10 | cosmic-soul-meditation, life-book-ai-consultation, master-love-codex |
+| `cd_content_tier_10` | 30,000 | +30.0% | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, fusion-fortune-consultation |
+| `cd_content_tier_11` | 39,000 | +25.6% | 3 | unlock.premium_astrology / _sukuyo / _veda |
+| `cd_content_tier_13` | 70,000 | +27.1% | 2 | unlock.all_paid_saju, unlock.premium_naming |
 
 ### 2-2. 이용권 4개
 

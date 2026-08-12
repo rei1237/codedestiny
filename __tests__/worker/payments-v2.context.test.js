@@ -336,7 +336,8 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     expect(response.status).toBe(200);
     expect(db.ctx.ops).toBe(1);
     const payload = await response.json();
-    expect(payload.amountKRW).toBe(30000);
+    // 위 PRODUCT 스텁이 아니라 paid-feature-registry 의 실제 가격이 나온다.
+    expect(payload.amountKRW).toBe(20000);
     expect(payload.order.status).toBe("PENDING");
   });
 

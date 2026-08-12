@@ -25,8 +25,8 @@ export const MASTER_LOVE_CODEX_META = Object.freeze({
   label: "마스터 인연의 서",
   narrator: "연애 고수",
   paymentType: "per-use", // 회당 결제 (B유형)
-  costCoins: 300,
-  amountKRW: 30000,
+  costCoins: 200,
+  amountKRW: 20000,
   totalCharTarget: 50000,
   minTotalChars: 46000,
 });

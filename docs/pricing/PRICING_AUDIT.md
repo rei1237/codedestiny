@@ -1,7 +1,9 @@
 # 가격 인벤토리 감사 (Phase 1) — 2026-08-12
 
-> 가격 체계를 6개 고정 티어(상한 ₩29,000)로 수렴시키기 위한 **진단 문서**. 코드 변경 0줄.
-> 다음 단계(Phase 2 티어 매핑 제안)는 이 문서 승인 후에 착수한다.
+> ⚠️ **이 문서는 정비 착수 시점(2026-08-12)의 진단 스냅샷이다.** 여기 적힌 가격은 **정비 전 값**이며 현행이 아니다.
+> **확정된 현행 티어는 [PRICING_TIERS.md](PRICING_TIERS.md)** 를 보고, Play Console 작업은 [PLAY_CONSOLE_TASKS.md](PLAY_CONSOLE_TASKS.md) 를 본다.
+>
+> 가격 체계를 고정 티어로 수렴시키기 위한 **진단 문서**. 코드 변경 0줄.
 >
 > 조사 방법: 가격 정본 키워드(`paid-feature-registry`, `KRW_PER_COIN`, `PASS_MONTHLY_WON`, `CONTENT_TIER_TABLE`)로 SSOT 계층을 먼저 특정한 뒤, 원화 리터럴(`\d{1,3},\d{3}\s*원`, `₩`, `KRW`)·코인 상수(`cost:`, `coinPrice`, `amountKRW`)로 사용처를 역추적했다.
 
