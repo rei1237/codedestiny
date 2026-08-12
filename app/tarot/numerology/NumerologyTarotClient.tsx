@@ -9,6 +9,7 @@ import { useAiProfileSeed } from "../../hooks/useAiProfileSeed";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
+import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 import { authFetch } from "../../_lib/auth-client";
 import styles from "./numerology-tarot.module.css";
 import {
@@ -1221,13 +1222,21 @@ export default function NumerologyTarotClient() {
       setEntitlement(paidEntitlement);
       setReadingId(nextReadingId);
       persistJson(READING_ENTITLEMENT_STORAGE_KEY, paidEntitlement);
-      if (paymentResult.chargedCoins > 0) {
-        showToast(`수비학 타로 심층 상담 ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 승인되었습니다.`, "info");
-      } else {
+      // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라
+      // (useCoinGate 의 chargedCoins 계산) 이용권 여부를 가릴 수 없다.
+      // 재열람(already_unlocked)은 결제 이벤트가 아니므로 아무 안내도 띄우지 않는다.
+      if (paymentContext.accessSource === "subscription") {
         showSubscriptionIncludedNotice({
           message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
           reason: "수비학 타로 심층 상담",
         });
+      } else if (paymentContext.accessSource === "moonlight_stone") {
+        const remaining = typeof paymentContext.monthlyBalanceAfter === "number"
+          ? ` 남은 월정석: ${formatKrwFromMonthlyCredits(paymentContext.monthlyBalanceAfter)} 상당`
+          : "";
+        showToast(`월정석 ${formatKrwFromMonthlyCredits(paymentContext.monthlyCreditsSpent)} 상당으로 수비학 타로 심층 상담이 열렸습니다.${remaining}`, "info");
+      } else if (paymentResult.chargedCoins > 0) {
+        showToast(`수비학 타로 심층 상담 ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 승인되었습니다.`, "info");
       }
       await runReading(paidEntitlement, nextReadingId);
     } catch (paymentError) {

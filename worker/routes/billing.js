@@ -4151,7 +4151,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           ensureLotsForBalance(currentUser?.profileSubscription || {}, Date.now()).balance || 0,
         )));
         if (monthlyCredits < requiredMonthlyCredits) {
-          return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 선택액이 부족합니다.", undefined, {
+          return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "월정석이 부족합니다.", undefined, {
             pricing,
             requiredMonthlyCredits,
             currentMonthlyCredits: monthlyCredits,
@@ -4406,7 +4406,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       return failure(
         500,
         "MEMBERSHIP_CREDIT_CONSUME_FAILED",
-        "이용권 혜택 처리 중 오류가 발생했습니다.",
+        "월정석 사용 처리 중 오류가 발생했습니다.",
         String(error?.message || ""),
       );
     }
@@ -4441,7 +4441,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         monthlyBalanceAfter: monthlyCredits,
         idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
       });
-      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 혜택이 부족합니다.", undefined, {
+      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "월정석이 부족합니다.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: {
