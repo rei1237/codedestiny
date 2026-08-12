@@ -137,9 +137,9 @@ describe("log: 개인정보는 구조적으로 실리지 않는다", () => {
 describe("catalog: 가격 정본과 어긋나지 않는다", () => {
   test("회당결제 상품", () => {
     const product = resolveProduct({ featureKey: "master-love-codex" });
-    expect(product.priceCoins).toBe(300);
-    expect(product.priceKRW).toBe(30000);
-    expect(product.monthlyCost).toBe(3000); // MEMBERSHIP_CREDIT_PER_COIN = 10
+    expect(product.priceCoins).toBe(200);
+    expect(product.priceKRW).toBe(20000);
+    expect(product.monthlyCost).toBe(2000); // MEMBERSHIP_CREDIT_PER_COIN = 10
     expect(product.passExcluded).toBe(false);
   });
 

@@ -39,7 +39,7 @@ function assertNotIncludes(source, needle, label) {
 assertIncludes(indexSource, 'href="/karma-destiny-ai"', "main entry");
 assertIncludes(indexSource, 'data-feature-key="karma-destiny-ai-consultation"', "main entry feature key");
 assertIncludes(indexSource, "/fuctionassets/soul-origin-cover.webp", "image asset preserved");
-assertIncludes(indexSource, "전문가 상담 · 50,000원", "price marker");
+assertIncludes(indexSource, "전문가 상담 · 30,000원", "price marker");
 assertNotIncludes(indexSource, "openSoulOriginModal", "legacy modal action removed");
 assertNotIncludes(indexSource, "soulOriginModal", "legacy modal removed");
 assertNotIncludes(indexSource, "/js/soul-origin-book.js", "legacy client script removed");
@@ -118,7 +118,7 @@ assertIncludes(modelSource, "qualityCheck", "quality check storage");
 assertIncludes(modelSource, "generationProgress", "generation progress storage");
 assertIncludes(modelSource, "schemaVersion", "report schema version storage");
 assertIncludes(modelSource, "lensContribution", "lens contribution storage");
-assertIncludes(registrySource, "\"karma-destiny-ai-consultation\": { cost: 500, amountKRW: 50000", "pricing");
+assertIncludes(registrySource, "\"karma-destiny-ai-consultation\": { cost: 300, amountKRW: 30000", "pricing");
 
 assert.ok(!existsSync(resolve(root, "js/soul-origin-book.js")), "legacy soul-origin client should be deleted");
 assert.ok(!existsSync(resolve(root, "worker/lib/pdf-v2/soul-origin")), "legacy soul-origin service directory should be deleted");
@@ -244,7 +244,7 @@ try {
     auth: { userId: "verify-user-without-billing-evidence" },
     body: directStartBody,
     normalized: directStartNormalized,
-    pricing: { coinPrice: 500, membershipCreditCost: 500, amountKRW: 50000 },
+    pricing: { coinPrice: 300, membershipCreditCost: 3000, amountKRW: 30000 },
     idempotencyKey: directStartBody.idempotencyKey,
   });
 } catch (error) {

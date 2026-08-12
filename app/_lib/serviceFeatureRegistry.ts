@@ -801,7 +801,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "시기별 주의 구간과 기회 구간"
         }
       ],
-      "priceLabel": "3,000원~12,000원",
+      "priceLabel": "3,000원~10,000원",
       "seo": {
         "title": "스톤헨지 룬점 소개 | Code Destiny",
         "description": "고대 룬 상징으로 선택과 시기를 해석하는 스톤헨지 룬 오라클 소개 페이지입니다.",
@@ -844,7 +844,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "오늘 시도하면 좋은 루틴"
         }
       ],
-      "priceLabel": "3,000원~6,000원",
+      "priceLabel": "3,000원~5,000원",
       "seo": {
         "title": "애니멀 토템 소개 | Code Destiny",
         "description": "수호 동물 상징으로 현재 흐름을 읽는 애니멀 토템 서비스 소개 페이지입니다.",

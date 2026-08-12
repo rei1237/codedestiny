@@ -281,7 +281,7 @@ window.setAnimalTotemSpreadMode("five");
 window.drawAnimalTotemSpread();
 await sleep(60);
 check("5장 모드 featureKey = animal-totem-deep", gateCalls[0]?.opts?.featureKey === "animal-totem-deep");
-check("5장 모드 cost = 60", gateCalls[0]?.cost === 60);
+check("5장 모드 cost = 50", gateCalls[0]?.cost === 50);
 check("5장 렌더", $$(".totem-draw-card").length === 5);
 
 for (let i = 0; i < 5; i += 1) {

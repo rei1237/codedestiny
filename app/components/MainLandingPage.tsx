@@ -298,7 +298,7 @@ const ORACLE_ITEMS_COPY: ServiceCardModel[] = [
   { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", emoji: "🎴", badges: [{ text: "무료", tone: "free" }] },
   { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "3,000원", tone: "coin" }] },
   { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", emoji: "ᚱ", badges: [{ text: "3,000원~12,000원", tone: "coin" }, { text: "NEW", tone: "new" }] },
+  { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", emoji: "ᚱ", badges: [{ text: "3,000원~10,000원", tone: "coin" }, { text: "NEW", tone: "new" }] },
   { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "5,000원", tone: "coin" }] },
   { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", emoji: "🃏", badges: [{ text: "무료", tone: "free" }] },
   { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/ifa-oracle.html", emoji: "🪬", badges: [{ text: "3,000원", tone: "coin" }] },
@@ -317,7 +317,7 @@ const COSMIC_ITEMS_COPY: ServiceCardModel[] = [
 const ANIMAL_ITEMS_COPY: ServiceCardModel[] = [
   { title: "전문가 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-guardian", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
   { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/animal/mbti", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
-  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "3,000원~6,000원", tone: "coin" }] },
+  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "3,000원~5,000원", tone: "coin" }] },
   { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", emoji: "🥚", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "포춘텔러 물고기", description: "상징 움직임 운세 리딩", href: "/fortune-teller-fish.html", emoji: "🐟", badges: [{ text: "무료", tone: "free" }] },
   { title: "사주 가디언 아트", description: "수호 동물 아트 생성", href: "/saju-guardian", emoji: "🐲", badges: [{ text: "무료", tone: "free" }] },

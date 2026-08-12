@@ -36,7 +36,7 @@ const expectedCosts = {
   openJuyukModal: 30,
   openKemetModal: 30,
   "animal-totem-basic": 30,
-  "animal-totem-deep": 60,
+  "animal-totem-deep": 50,
   "flower-studio-per-use": 50,
   "sukuyo-symbolic-comparison": 50,
   "compat-astro-synastry": 50,
@@ -44,7 +44,7 @@ const expectedCosts = {
   "compat-ziwei-compatibility": 50,
   "compat-saju-compatibility": 50,
   "compat-sukuyo-compatibility": 50,
-  "premium-sukuyo-compat-extra": 120,
+  "premium-sukuyo-compat-extra": 100,
   "sukuyo-relationship-encyclopedia": 50,
   "physiognomy-compatibility": 50,
   "physiognomy-pastlife-compatibility": 50,
@@ -174,9 +174,9 @@ for (const text of ["점성술 셜럭 시나스트리 궁합", "점성술 직접
 assert.match(sukuyoEngineSource, /SY_PAID_FEATURES/, "Sukuyo runtime must centralize paid feature metadata");
 assert.match(sukuyoEngineSource, /sukuyo-symbolic-comparison/, "Sukuyo symbolic comparison must use its canonical featureKey");
 assert.match(sukuyoEngineSource, /compat-sukuyo-compatibility/, "Sukuyo base compatibility must use its 50-coin featureKey");
-assert.match(sukuyoEngineSource, /premium-sukuyo-compat-extra/, "Sukuyo precision compatibility must use its 120-coin featureKey");
+assert.match(sukuyoEngineSource, /premium-sukuyo-compat-extra/, "Sukuyo precision compatibility must use its 100-coin featureKey");
 assert.match(sukuyoEngineSource, /syRequirePaidSukuyoFeature/, "Sukuyo paid extensions must pass through the paid gate");
-assert.doesNotMatch(workerAccessSource, /featureKey:\s*["']premium-sukuyo-compat-extra["']/, "120-coin Sukuyo precision add-on must not authorize premium PDF access");
+assert.doesNotMatch(workerAccessSource, /featureKey:\s*["']premium-sukuyo-compat-extra["']/, "100-coin Sukuyo precision add-on must not authorize premium PDF access");
 
 assert.match(indexRuntimeSource, /애니멀 토템 리딩/, "animal totem runtime must still call common paid gate");
 assert.match(kemetSource, /_cdCoinGatePerUse/, "Kemet oracle must still call common paid gate");

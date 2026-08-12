@@ -19,29 +19,28 @@ export const APP_STORE_PRODUCT_TYPE_INAPP = "inapp";
 export const APP_PASS_DURATION_DAYS = 30;
 
 // 이 코인가 이하 콘텐츠는 앱에서 무료로 통과시킨다.
-// 웹 ₩500(fortune-fish-gacha)은 인상해도 ₩625라 Play KRW 최저 판매가를 밑돌 수 있어
-// SKU를 만들지 않는다. 웹은 ₩500 유료 그대로다.
-// 음악 트랙 다운로드(10코인/₩1,000, lib/music-access-policy.js)도 같은 이유로 여기에 포함한다 —
-// 웹가 인상분 ₩1,250 은 여전히 Play 최저가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
+// 현재 해당하는 것은 음악 트랙 다운로드 하나뿐이다(10코인/₩1,000, lib/music-access-policy.js).
+// 웹가 인상분 ₩1,250 은 Play KRW 최저 판매가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
 // (웹 ₩300 → ₩1,000 인상 전에도 3코인이라 앱 무료였다. 이 값을 5로 되돌리면 앱에서 음악 구매가
 //  Play 티어 미등록 503 으로 하드블록된다 — 되돌리지 말 것.)
+// 2026-08-12: 여기 함께 있던 fortune-fish-gacha(5코인/₩500)는 무료로 전환돼 레지스트리에서 빠졌다.
 export const APP_FREE_MAX_COIN_PRICE = 10;
 
+// 2026-08-12 가격 티어 정비: 웹 가격 포인트가 16종 → 7종으로 줄면서 SKU 도 13개 → 7개가 됐다.
+// 폐기된 6개(tier_03·04·05·07·08·12)는 대응하는 코인가가 레지스트리에서 사라졌기 때문이며,
+// verify-app-store-pricing.mjs 가 "레지스트리에 없는 코인가만 가진 티어"를 실패시킨다.
+// 🔴 productId 는 재사용 금지 — Play 는 한 번 만든 상품 ID 를 영구 점유한다. 폐기 SKU 를
+// 다른 가격으로 되살리면 과거 구매자의 영수증이 새 가격을 가리키게 된다.
+// 남은 티어의 amountKRW/webAmountKRW 는 손대지 않았다(인상률 20~30% 밴드 유지).
 const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_01", amountKRW: 3900, webAmountKRW: 3000, coinPrices: Object.freeze([30]) },
   { productId: "cd_content_tier_02", amountKRW: 6000, webAmountKRW: 5000, coinPrices: Object.freeze([50]) },
-  { productId: "cd_content_tier_03", amountKRW: 7500, webAmountKRW: 6000, coinPrices: Object.freeze([60]) },
-  { productId: "cd_content_tier_04", amountKRW: 8900, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
-  { productId: "cd_content_tier_05", amountKRW: 10900, webAmountKRW: 9000, coinPrices: Object.freeze([90]) },
   { productId: "cd_content_tier_06", amountKRW: 13000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
-  { productId: "cd_content_tier_07", amountKRW: 15000, webAmountKRW: 12000, coinPrices: Object.freeze([120]) },
-  { productId: "cd_content_tier_08", amountKRW: 19000, webAmountKRW: 15000, coinPrices: Object.freeze([150]) },
   { productId: "cd_content_tier_09", amountKRW: 25000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
   { productId: "cd_content_tier_10", amountKRW: 39000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
+  // 아래 둘은 티어 사다리 밖 "전체 해금형 번들" 전용이다(상한 예외).
   { productId: "cd_content_tier_11", amountKRW: 49000, webAmountKRW: 39000, coinPrices: Object.freeze([390]) },
-  { productId: "cd_content_tier_12", amountKRW: 65000, webAmountKRW: 50000, coinPrices: Object.freeze([500]) },
-  // 690코인(₩69,000)과 700코인(₩70,000)은 확정가가 ₩100 차이라 한 티어로 병합했다.
-  { productId: "cd_content_tier_13", amountKRW: 89000, webAmountKRW: 70000, coinPrices: Object.freeze([690, 700]) },
+  { productId: "cd_content_tier_13", amountKRW: 89000, webAmountKRW: 70000, coinPrices: Object.freeze([700]) },
 ]);
 
 // 이용권: 30일, 자동갱신 없음. 건당 커버 범위 안이면 몇 번이든 무료지만, 등급별 월 누적

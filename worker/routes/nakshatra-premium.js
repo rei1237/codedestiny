@@ -1,7 +1,7 @@
 // 나크샤트라 결정판 — 영구 해금 심화 리포트 2종 배달 라우트.
 //
 //   POST /api/nakshatra-premium/lord-report  : 지배성 심화 리포트 (₩10,000)
-//   POST /api/nakshatra-premium/dasha-map    : 다샤 인생지도 (₩15,000)
+//   POST /api/nakshatra-premium/dasha-map    : 다샤 인생지도 (₩10,000)
 //
 // 이 라우트는 "이미 해금된 사용자에게 본문을 준다"만 한다.
 // 🔒 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등)은 공용 결제 게이트(/api/billing/coin-gate)가
@@ -37,8 +37,8 @@ const PRODUCTS = Object.freeze({
   }),
   "dasha-map": Object.freeze({
     featureKey: "nakshatra-dasha-map",
-    coinPrice: 150,
-    amountKRW: 15000,
+    coinPrice: 100,
+    amountKRW: 10000,
     orderName: "나크샤트라 다샤 인생지도",
   }),
 });
@@ -220,7 +220,7 @@ const MUHURTA_MAX_DAYS = 60;
 // 회당 결제 상품 — 레지스트리 등록값과 일치해야 한다(이용권 커버 판정에 코인가가 필요).
 const PER_USE_PRODUCTS = Object.freeze({
   muhurta: Object.freeze({ featureKey: "nakshatra-muhurta", coinPrice: 50 }),
-  "vvip-codex": Object.freeze({ featureKey: "nakshatra-vvip-codex", coinPrice: 500 }),
+  "vvip-codex": Object.freeze({ featureKey: "nakshatra-vvip-codex", coinPrice: 300 }),
 });
 
 // 🔴 1단계는 관측 전용이다 — 증빙 결과를 로그로만 남기고 아무것도 막지 않는다.

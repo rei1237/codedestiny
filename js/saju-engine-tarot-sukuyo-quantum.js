@@ -7341,7 +7341,7 @@ var SY_PAID_FEATURES = Object.freeze({
   pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 인연 레이더' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
-  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 120, reason: '숙요점 정밀 궁합 확장 분석' }
+  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 100, reason: '숙요점 정밀 궁합 확장 분석' }
 });
 
 function syResolveCurrentProfileIdForPaidGate() {

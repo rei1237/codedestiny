@@ -24981,7 +24981,7 @@ function renderZiwei(p, natal, targetId) {
         +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
           +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 궁합·대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
-          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 15,000원', zwBasicPaidGateHtml('ziwei_love_deep', 150, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
+          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 10,000원', zwBasicPaidGateHtml('ziwei_love_deep', 100, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
           +zwReadingPanel('궁합 보기', '상대 비교', sec_compat, false, '#c084fc', '상대 정보를 넣었을 때만 열리는 선택 장입니다. 이용 전 원화 금액이 안내됩니다.')
           +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 10,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 100, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')

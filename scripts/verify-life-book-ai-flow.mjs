@@ -252,10 +252,10 @@ for (const shellFile of SHELL_FILES) {
   const cardStart = shell.indexOf("tarot-tile--life-fortune-ai");
   const cardEnd = shell.indexOf("</a>", cardStart);
   const card = cardStart >= 0 && cardEnd > cardStart ? shell.slice(cardStart, cardEnd) : "";
-  // 인생 총운은 인생의 책과 별도 SKU(500코인=50,000원) — 분량이 3배라 2026-08-01 분리.
+  // 인생 총운은 인생의 책과 별도 SKU(300코인=30,000원) — 분량이 3배라 2026-08-01 분리.
   assert(card && card.includes('data-feature-key="life-fortune-ai-consultation"'), `${shellFile}: life fortune card must carry the dedicated SKU`);
-  assert(card && card.includes('data-coin-cost="500"'), `${shellFile}: life fortune card must carry coin cost data attribute`);
-  assert(card && card.includes("전문가 상담 · 50,000원"), `${shellFile}: life fortune card must show the KRW price`);
+  assert(card && card.includes('data-coin-cost="300"'), `${shellFile}: life fortune card must carry coin cost data attribute`);
+  assert(card && card.includes("전문가 상담 · 30,000원"), `${shellFile}: life fortune card must show the KRW price`);
 }
 
 for (const marker of [
@@ -420,8 +420,8 @@ includes("worker/lib/life-book-ai-saju.js", saju, "getYun");
   const lifeBook = FEATURE_KEY_PRICE_TABLE["life-book-ai-consultation"];
   const lifeFortune = FEATURE_KEY_PRICE_TABLE["life-fortune-ai-consultation"];
   assert(FRONTEND_PAID_FEATURE_KEYS.includes("life-fortune-ai-consultation"), "life-fortune-ai-consultation must be exposed to the frontend gate");
-  assert(lifeBook?.cost === 300 && lifeBook?.amountKRW === 30000, "life-book-ai-consultation must stay at 300 coins / 30,000 KRW");
-  assert(lifeFortune?.cost === 500 && lifeFortune?.amountKRW === 50000, "life-fortune-ai-consultation must be 500 coins / 50,000 KRW");
+  assert(lifeBook?.cost === 200 && lifeBook?.amountKRW === 20000, "life-book-ai-consultation must stay at 200 coins / 20,000 KRW");
+  assert(lifeFortune?.cost === 300 && lifeFortune?.amountKRW === 30000, "life-fortune-ai-consultation must be 300 coins / 30,000 KRW");
   assert(isPerUsePaidFeatureKey("life-fortune-ai-consultation") === true, "life-fortune-ai-consultation must be registered as a per-use paid feature");
 }
 
