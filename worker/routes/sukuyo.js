@@ -1491,7 +1491,7 @@ async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
     if (!profileId) return { profileId: "", profile: null };
     const profile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
     return { profileId, profile };
-  });
+  }, { retryAdmissionOnOverload: true });
 
   // 404/403 은 재시도해도 결과가 바뀌지 않으므로 콜백 바깥에서 던진다(재시도 대상 제외).
   if (!resolved.profileId) {
@@ -1991,14 +1991,19 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
   };
 }
 
+// featureKey 는 빼지 말 것 — 없으면 resolvePaidContentUnlockTarget 이 연도 접미사 contentKey 를
+// 프로필 상품으로 못 알아보고 계정(USER) 스코프로 떨어져, 쓰기(upsertSukuyoYearlyUnlockFromEvidence)가
+// 남긴 PROFILE 스코프 행을 영영 못 찾는다(=결제해도 계속 잠김).
+// 이 조회는 결제 게이트보다 먼저 도는 선행 읽기라 admission 포화를 하드 503 으로 흘리면 안 된다.
 async function findSukuyoYearlyUnlock({ userId, profileId, targetYear, env = {} }) {
   const contentKey = sukuyoYearlyContentKey(targetYear);
   return withMongoRetry(env, () => findActivePaidContentUnlockByServiceKeys({
     userId,
     profileId,
-    serviceKeys: [SUKUYO_YEARLY_FORTUNE_SERVICE_KEY, "ziwei", "saju"],
+    featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+    serviceKeys: [SUKYO_YEARLY_FORTUNE_SERVICE_KEY, "ziwei", "saju"],
     contentKey,
-  }));
+  }), { retryAdmissionOnOverload: true });
 }
 
 async function handleSukuyoYearlyFortune(request, env) {

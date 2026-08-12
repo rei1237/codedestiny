@@ -634,6 +634,7 @@ async function runMonthlyCreditRefund({
   featureKey,
   sourceTransactionId,
   executionId,
+  requestId,
   reason,
   execution,
 }) {
@@ -931,6 +932,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       featureKey: execution.featureKey,
       sourceTransactionId: execution.sourceTransactionId,
       executionId: String(execution._id),
+      requestId,
       execution,
       reason: `${reason.message}`.slice(0, 120),
     });
