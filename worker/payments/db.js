@@ -22,7 +22,7 @@
  * **스키마에 없는 필드를 조용히 버리는** 함정을 아예 통과하지 않는다. 대신 캐스팅이 없으므로
  * 타입은 호출부가 책임진다 — 아래 toObjectId/toUserIdString 를 반드시 경유할 것.
  */
-import { withMongoRetry, mongoose } from "../lib/db.js";
+import { connectPaymentDb, withMongoRetry, mongoose } from "../lib/db.js";
 
 /* 🔴 ContentEntitlement.userId 는 String 이고 나머지 결제 컬렉션은 전부 ObjectId 다
    (worker/lib/models.js). 네이티브 드라이버는 캐스팅을 해 주지 않으므로, auth 의 userId 를
@@ -50,38 +50,52 @@ export function createPaymentContext({ requestId, route }) {
   };
 }
 
+/* 결제 전용 커넥션(connectPaymentDb)의 컬렉션 해석. 전용 레인이 아직 없거나 실패한 경우
+   공유 커넥션(Model.collection)으로 폴백한다 — 레인 분리는 기아 방지 최적화이지 가용성
+   조건이 아니다("PG 결제창이 안 뜬다" 2026-08-12, worker/lib/db.js 결제 레인 주석 참고). */
+function resolveCollection(Model, paymentConn) {
+  if (paymentConn && paymentConn.readyState === 1) {
+    try {
+      const name = Model.collection.collectionName || Model.collection.name;
+      if (name) return paymentConn.db.collection(name);
+    } catch { /* 공유 커넥션 폴백 */ }
+  }
+  return Model.collection;
+}
+
 /* 왕복 카운터. 예산(계획서: orders 1회 · confirm cold 3회)이 지켜지는지 **실측으로** 보기 위한 것이지
    장식이 아니다. 회귀는 코드 리뷰가 아니라 이 숫자가 잡는다. */
-function makeCountingDb(ctx) {
+function makeCountingDb(ctx, paymentConn = null) {
   const count = () => { ctx.mongoOps += 1; };
+  const col = (Model) => resolveCollection(Model, paymentConn);
   return {
     findOne(Model, filter, options) {
       count();
-      return Model.collection.findOne(filter, options);
+      return col(Model).findOne(filter, options);
     },
     find(Model, filter, options) {
       count();
-      return Model.collection.find(filter, options).toArray();
+      return col(Model).find(filter, options).toArray();
     },
     insertOne(Model, doc) {
       count();
-      return Model.collection.insertOne(doc);
+      return col(Model).insertOne(doc);
     },
     updateOne(Model, filter, update, options) {
       count();
-      return Model.collection.updateOne(filter, update, options);
+      return col(Model).updateOne(filter, update, options);
     },
     findOneAndUpdate(Model, filter, update, options) {
       count();
-      return Model.collection.findOneAndUpdate(filter, update, options);
+      return col(Model).findOneAndUpdate(filter, update, options);
     },
     deleteOne(Model, filter) {
       count();
-      return Model.collection.deleteOne(filter);
+      return col(Model).deleteOne(filter);
     },
     countDocuments(Model, filter, options) {
       count();
-      return Model.collection.countDocuments(filter, options);
+      return col(Model).countDocuments(filter, options);
     },
   };
 }
@@ -111,11 +125,14 @@ export async function withPaymentDb(env, ctx, fn) {
     return await withMongoRetry(env, async () => {
       // 재시도가 일어나면 이전 시도의 왕복은 세지 않는다 — 예산은 '성공한 시도'의 비용이다.
       ctx.mongoOps = 0;
-      return fn(makeCountingDb(ctx));
+      // 결제 전용 레인. 수립 실패는 결제를 막지 않는다 — 공유 커넥션으로 폴백해 종전과 동일하게 동작.
+      let paymentConn = null;
+      try { paymentConn = await connectPaymentDb(env); } catch { paymentConn = null; }
+      return fn(makeCountingDb(ctx, paymentConn));
     }, PAYMENT_DB_OPTIONS);
   } finally {
     ctx.inDb = false;
   }
 }
 
-export const __paymentDbTestUtils = { makeCountingDb, PAYMENT_DB_OPTIONS };
+export const __paymentDbTestUtils = { makeCountingDb, resolveCollection, PAYMENT_DB_OPTIONS };
