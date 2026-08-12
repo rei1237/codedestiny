@@ -140,6 +140,57 @@ export function legacyBillingCheckoutEnvelope(prepareEnvelope) {
   };
 }
 
+/**
+ * 구 /api/billing/confirm 성공 봉투. 셸 판정기 `_cdHasVerifiedServerAccess` 가 읽는 것:
+ * top-level `accessGrant` 에서 ok !== false · (evidenceId|purchaseId|paymentId|merchantUid 중 하나) ·
+ * featureKey(별칭 일치). 증빙 폴백 경로는 unlockedFeatures/unlockMap/status 를 본다 — 전부 싣는다.
+ * granted=false(지급 마무리 대기)는 성공 봉투가 아니라 GRANT_PENDING 으로 나가야 한다:
+ * 셸 PR #478 분기가 top-level code 로 그 상태를 "다시 결제하지 마세요" UX 로 처리한다.
+ */
+export function legacyConfirmEnvelope(order, { granted = false, replayed = false } = {}) {
+  const merchantUid = String(order?.merchantUid || "");
+  const featureKey = String(order?.featureKey || "");
+  const impUid = String(order?.impUid || "");
+  const snapshot = (order?.pricingSnapshot && typeof order.pricingSnapshot === "object") ? order.pricingSnapshot : {};
+  if (!granted) {
+    return {
+      ok: true,
+      code: "GRANT_PENDING",
+      recoveryRequired: true,
+      status: "paid",
+      merchantUid,
+      featureKey,
+      message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+    };
+  }
+  return {
+    ok: true,
+    status: "paid",
+    alreadyUnlocked: replayed === true,
+    message: "결제가 확인되어 콘텐츠 이용 권한이 적용되었습니다.",
+    accessGrant: {
+      ok: true,
+      accessType: "single_purchase",
+      featureKey,
+      merchantUid,
+      purchaseId: merchantUid,
+      evidenceId: merchantUid,
+      paymentId: impUid || merchantUid,
+      profileId: String(snapshot.profileId || ""),
+      paidAt: order?.paidAt || null,
+    },
+    unlockedFeatures: featureKey ? [featureKey] : [],
+    unlockMap: featureKey ? { [featureKey]: true } : {},
+    payment: {
+      merchantUid,
+      paymentId: impUid || merchantUid,
+      transactionId: impUid || merchantUid,
+      status: "paid",
+      paymentAmount: Number(order?.paymentAmount || 0),
+    },
+  };
+}
+
 /** adaptOrderToViewModel + resolveType + resolveStatus 가 읽는 키 전부. 테스트가 이 목록을 강제한다. */
 export const LEGACY_ORDER_DETAIL_KEYS = Object.freeze([
   "approvalNumberMasked",
