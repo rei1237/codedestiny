@@ -40,7 +40,6 @@ describe("legacy COIN removal regression guards", () => {
   test.each([
     ["worker/routes/billing.js", 'legacyCoinDisabled: true', "$inc: { points: -requiredCoins"],
     ["worker/routes/fortune.js", 'reason: "LEGACY_COIN_DISABLED"', "$inc: { points: -cost"],
-    ["server/routes/fortune.routes.js", 'reason: "LEGACY_COIN_DISABLED"', "$inc: { points: -cost"],
   ])("%s rejects legacy debit before the old mutation marker", (relativePath, guardMarker, mutationMarker) => {
     const source = read(relativePath);
     const guardIndex = source.indexOf(guardMarker);

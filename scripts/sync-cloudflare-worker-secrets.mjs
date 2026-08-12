@@ -18,8 +18,6 @@ const envFiles = [
   ".env.cloudflare.local",
   ".env.cloudflare",
   ".env",
-  "server/.env.local",
-  "server/.env",
 ];
 
 function isUsableEnvValue(rawValue) {

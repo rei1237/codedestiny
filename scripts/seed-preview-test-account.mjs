@@ -16,9 +16,9 @@
  *     (seed-test-account.mjs 가 points 를 넣는 것은 폐지된 코인 모델의 잔재다.)
  *   - 실제로 접근을 여는 것은 이용권(profileSubscription)과 월정석(membershipCreditLots)뿐이다.
  *
- * 모델 주의: app/_lib/models/UserModel.js 를 쓰지 않는다. 그쪽 profileSubscription 은
- * passTier 필드가 없고 tier enum 도 폐기된 honey_* 에 멈춰 있어 family 를 저장할 수 없다.
- * 정본은 worker/lib/models.js 다.
+ * 모델 주의: User 스키마 정본은 worker/lib/models.js 하나다. 예전에는 스크립트 전용 사본이
+ * 따로 있었는데 passTier 가 없고 tier enum 도 폐기된 honey_* 에 멈춰 있어 family 를 저장할 수
+ * 없었다. 그 사본은 삭제됐고, 재발은 __tests__/worker/user-model-single-source.static.test.js 가 막는다.
  */
 import fs from "node:fs";
 import path from "node:path";

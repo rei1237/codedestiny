@@ -34,7 +34,6 @@ const REPO_PREFIXES = [
   'apps/',
   'components/',
   'worker/',
-  'server/',
   'lib/',
   'js/',
   'styles/',

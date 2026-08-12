@@ -43,10 +43,6 @@ WORKING_ON.md
 .env.*
 !.env.example
 !.env.*.example
-server/.env
-server/.env.local
-server/.env.*
-!server/.env.example
 
 # Cloudflare local deploy secrets
 .env.cloudflare

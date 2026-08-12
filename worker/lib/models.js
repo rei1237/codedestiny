@@ -7,9 +7,9 @@ const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 // recentConsumeRequestIds(멱등 마커)를 최근 N개로 제한한다. 상한이 없으면 무제한 누적되는데,
 // 이 배열은 결제 차감 핫패스에서 매 재시도마다 통째로 조회된다(applyLotDeduction). 특히 이용권
 // 무료 통과도 마커를 남겨 돈 한 푼 안 쓰고 배열이 계속 커진다.
-// 200은 server/routes/fortune.routes.js(같은 User 문서를 쓰는 레거시)의 $slice 수치와 반드시 같아야
-// 한다 — 갈라지면 작은 쪽이 큰 쪽의 유효 마커를 축출한다.
 // 강제 수단은 $slice뿐이다: 스키마 배열 validator는 findOneAndUpdate 같은 업데이트 연산자에서 실행되지 않는다.
+// (예전에는 같은 User 문서를 쓰는 레거시 Express 의 $slice 수치와 맞춰야 했다. 그쪽은 삭제됐고,
+//  이제 이 컬렉션에 쓰는 곳은 워커 하나뿐이라 이 상수가 유일한 정본이다.)
 export const RECENT_CONSUME_REQUEST_ID_CAP = 200;
 
 const userSchema = new mongoose.Schema({
