@@ -815,17 +815,26 @@ const ROUTES = {
       const unlock = billingType !== "per_use";
 
       let spend;
+      let alreadyUnlocked = false;
       try {
         spend = await withDb(env, ctx, async (db) => {
-          const result = await spendMoonstone(db, { userId, product, purchaseId: requestId, profileId });
+          /* 🔴 영구 해금형은 **소유 여부를 차감보다 먼저** 확정한다. 한 번 결제해 해금한 콘텐츠는
+             이후 재열람이 무료여야 하고, 이건 결제수단과 무관한 규칙이다(이용권 pass-check 와 대칭).
+             뒤로 미루면 다시 열 때마다 월정석이 또 빠져 재열람이 반복 과금이 된다.
+             grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복이 늘지 않고, 재열람은 차감·원장
+             기록을 통째로 건너뛰므로 **더 빨라진다**(왕복 6회 → 2회). */
           if (unlock) {
-            await grantEntitlement(db, {
+            const granted = await grantEntitlement(db, {
               userId, product, orderId: requestId, profileId,
               contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
             });
+            if (granted.alreadyOwned) {
+              alreadyUnlocked = true;
+              return { balance: null, replayed: true, ledgerId: "" };
+            }
             await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
           }
-          return result;
+          return spendMoonstone(db, { userId, product, purchaseId: requestId, profileId });
         });
       } catch (error) {
         // 레거시 오류 계약 — 코드·필드가 셸의 재시도(409)·재제안(402)·월정석 옵션 비활성 판정에 걸려 있다.
@@ -846,8 +855,9 @@ const ROUTES = {
         throw error;
       }
 
-      ctx.paymentStatus = "MONTHLY";
-      invalidateBalanceSnapshot(userId); // 월정석 차감 반영 — 45s TTL 캐시가 옛 잔량을 물고 있으면 안 된다
+      ctx.paymentStatus = alreadyUnlocked ? "ALREADY_UNLOCKED" : "MONTHLY";
+      // 재열람은 잔액을 바꾸지 않는다 — 스냅샷을 굳이 비우면 다음 조회가 Mongo 를 다시 탄다.
+      if (!alreadyUnlocked) invalidateBalanceSnapshot(userId);
       const reason = String(body.reason || "");
       const reportType = resolvePremiumAccessReportType(product.featureKey, reason);
       const premiumAccessToken = reportType
@@ -862,7 +872,9 @@ const ROUTES = {
           chargedCoins: Number(product.priceCoins || 0),
         })
         : "";
-      const envelope = legacyMoonstoneEnvelope({ product, requestId, profileId, spend, unlock, premiumAccessToken });
+      const envelope = legacyMoonstoneEnvelope({
+        product, requestId, profileId, spend, unlock, premiumAccessToken, alreadyUnlocked,
+      });
       if (!premiumAccessToken) return json(envelope);
       return json(envelope, {
         headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
