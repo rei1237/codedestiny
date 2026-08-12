@@ -30,6 +30,7 @@ const SHELLS = [
   'public/en/index.html',
   'public/ja/index.html',
   'public/zh/index.html',
+  'public/zh-tw/index.html',
 ];
 
 const RUNTIMES = ['js/core/index-inline-runtime.js', 'public/js/core/index-inline-runtime.js'];
