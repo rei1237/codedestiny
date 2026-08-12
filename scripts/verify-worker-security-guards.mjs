@@ -32,11 +32,11 @@ const billing = source("worker/routes/billing.js");
 const profile = source("worker/routes/profile.js");
 const workerIndex = source("worker/index.js");
 
+// enforceIdempotency/completeIdempotency 는 목록에서 제거됐다(2026-08-12) — 호출 0곳인 사어를
+// 삭제했기 때문. 결제 멱등성의 실제 담당은 prepare 유니크 업서트와 V2 파생 주문 id 다.
 [
   "validateSensitiveRequest",
   "enforceRateLimit",
-  "enforceIdempotency",
-  "completeIdempotency",
   "writeSecurityLog",
   "detectAbusePattern",
   "addAbuseScore",
