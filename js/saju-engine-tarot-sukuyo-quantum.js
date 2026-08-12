@@ -7611,6 +7611,238 @@ function syCanonicalPhaseApproxFromDaily(dailyMoon) {
   return { phaseName: label || '미확인', rhythmLight: '미확인', rhythmPosition: '미확인', waxingOrWaning: '미확인' };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 달 컨셉 인라인 SVG (2026-08-12)
+// 신규 def id 는 전부 `sym-<크레스트>-<역할>` 접두사로 네임스페이스한다.
+// 이 파일은 React 가 아니라 useId() 가 없고, 각 크레스트는 화면에 한 번만 렌더된다.
+// 반짝임은 SMIL <animate> 가 아니라 CSS animation 으로 건다 — SMIL 은
+// prefers-reduced-motion 으로 멈출 수 없기 때문이다.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 위상 → 기하. lit: 밝은 면 비율(0~1), side: 밝은 쪽(1=오른쪽=차오름, -1=왼쪽=기울음).
+// 우선순위는 삭망각 > 조도 > 라벨이다. canonical.lunarPhase 는 서버(app/api/sukuyo-basic)에서
+// elongationAngle·illumination 실수치를 실어 오므로, 있으면 라벨로 어림잡지 않는다.
+// 라벨 폴백은 로컬 5종(보름달·상현달·반달·초승달·그믐달)과 서버 9종
+// (정보 없음·삭(신월)·초승·상현·차오름달·망(보름)·기우는달·하현·그믐)을 모두 덮어야 한다.
+function syCanonicalMoonGeometry(phase, phaseLabel) {
+  var src = (phase && typeof phase === 'object') ? phase : {};
+  var label = String(phaseLabel != null ? phaseLabel : (src.phaseName || ''));
+  var flow = String(src.waxingOrWaning || '');
+  var side = 0;
+  if (flow === 'waxing' || flow.indexOf('차오') >= 0) side = 1;
+  else if (flow === 'waning' || flow.indexOf('기울') >= 0) side = -1;
+
+  var angle = Number(src.elongationAngle);
+  if (isFinite(angle)) {
+    var a = ((angle % 360) + 360) % 360;
+    return { lit: (1 - Math.cos(a * Math.PI / 180)) / 2, side: a < 180 ? 1 : -1 };
+  }
+  var pct = Number(src.illumination);
+  if (isFinite(pct)) return { lit: Math.max(0, Math.min(1, pct / 100)), side: side || 1 };
+
+  if (label.indexOf('보름') >= 0 || label.indexOf('만월') >= 0) return { lit: 1, side: side || 1 };
+  if (label.indexOf('그믐') >= 0) return { lit: 0.1, side: -1 };
+  if (label.indexOf('삭') >= 0 || label.indexOf('신월') >= 0) return { lit: 0.04, side: side || 1 };
+  if (label.indexOf('초승') >= 0) return { lit: 0.18, side: side || 1 };
+  if (label.indexOf('하현') >= 0) return { lit: 0.5, side: -1 };
+  if (label.indexOf('상현') >= 0) return { lit: 0.5, side: side || 1 };
+  if (label.indexOf('차오') >= 0) return { lit: 0.74, side: 1 };
+  if (label.indexOf('기우') >= 0) return { lit: 0.74, side: -1 };
+  if (label.indexOf('반달') >= 0) return { lit: 0.5, side: side || 1 };
+  return { lit: 0.5, side: side || 1 };
+}
+
+// 밝은 면 실루엣 경로. 바깥 윤곽은 반원, 터미네이터(명암경계)는 반지름 rx = r*|2*lit-1| 인
+// 타원호다 — 실제 달의 명암경계가 타원이기 때문. lit=0.5 면 rx=0 이 되어 SVG 규격상
+// 직선으로 그려지므로 반달의 경계가 정확히 곧게 떨어진다.
+// (원 두 개를 겹쳐 깎는 흔한 기법은 반달 경계가 호로 휘어 반달처럼 보이지 않는다.)
+function syMoonPhasePath(cx, cy, r, lit, side) {
+  var rx = (r * Math.abs(2 * lit - 1)).toFixed(3);
+  var limbSweep = side >= 0 ? 1 : 0;
+  var termSweep = ((lit > 0.5) === (side >= 0)) ? 1 : 0;
+  return 'M ' + cx + ' ' + (cy - r)
+    + ' A ' + r + ' ' + r + ' 0 0 ' + limbSweep + ' ' + cx + ' ' + (cy + r)
+    + ' A ' + rx + ' ' + r + ' 0 0 ' + termSweep + ' ' + cx + ' ' + (cy - r) + ' Z';
+}
+
+// 같은 문서에 이 SVG 가 둘 이상 놓여도 defs 가 서로를 덮어쓰지 않도록 인스턴스마다 id 를 붙인다
+// (React 의 useId 대응). 실제로 5개를 나란히 렌더해 보고 첫 clipPath 가 나머지를 먹는 것을 확인했다.
+var _syMoonSvgSeq = 0;
+
+function syCanonicalMoonSvg(phase, phaseLabel) {
+  var geo = syCanonicalMoonGeometry(phase, phaseLabel);
+  var r = 26;
+  var uid = 'sym-canon-' + (_syMoonSvgSeq += 1);
+  return ''
+    + '<svg class="sy-canon-moon-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' + syCanonicalEsc(phaseLabel) + '">'
+    + '<defs>'
+    + '<radialGradient id="' + uid + '-disc" cx="38%" cy="30%" r="72%">'
+    + '<stop offset="0%" stop-color="#fffdf4"/><stop offset="44%" stop-color="#f8e7b7"/><stop offset="100%" stop-color="#dcc999"/>'
+    + '</radialGradient>'
+    + '<radialGradient id="' + uid + '-earthshine" cx="50%" cy="50%" r="50%">'
+    + '<stop offset="52%" stop-color="rgba(196,181,253,0.06)"/><stop offset="100%" stop-color="rgba(196,181,253,0.4)"/>'
+    + '</radialGradient>'
+    + '<filter id="' + uid + '-glow" x="-45%" y="-45%" width="190%" height="190%">'
+    + '<feGaussianBlur stdDeviation="2.6" result="b"/>'
+    + '<feColorMatrix in="b" type="matrix" values="1 0 0 0 .96  0 1 0 0 .84  0 0 1 0 .62  0 0 0 .5 0" result="g"/>'
+    + '<feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    + '</filter>'
+    + '<clipPath id="' + uid + '-lit"><path d="' + syMoonPhasePath(36, 36, r, geo.lit, geo.side) + '"/></clipPath>'
+    + '</defs>'
+    // 그림자 면 — 사라지지 않고 바이올렛 지구조(earthshine)로 남는다
+    + '<circle cx="36" cy="36" r="' + r + '" fill="rgba(26,22,54,0.82)"/>'
+    + '<circle cx="36" cy="36" r="' + r + '" fill="url(#' + uid + '-earthshine)"/>'
+    // 밝은 면 + 바다(mare) 음영. 글로우가 실루엣 밖으로 번지도록 clip 은 안쪽 g, filter 는 바깥 g 에 건다
+    + '<g filter="url(#' + uid + '-glow)">'
+    + '<g clip-path="url(#' + uid + '-lit)">'
+    + '<circle cx="36" cy="36" r="' + r + '" fill="url(#' + uid + '-disc)"/>'
+    + '<ellipse cx="29" cy="29" rx="7.4" ry="5.4" fill="rgba(146,128,94,0.20)"/>'
+    + '<ellipse cx="43" cy="41" rx="6" ry="4.2" fill="rgba(146,128,94,0.16)"/>'
+    + '<circle cx="32" cy="46" r="3" fill="rgba(146,128,94,0.14)"/>'
+    + '<circle cx="41" cy="27" r="1.9" fill="rgba(146,128,94,0.13)"/>'
+    + '</g>'
+    + '</g>'
+    // 골드 헤어라인 림 + 바깥 점선 궤도
+    + '<circle cx="36" cy="36" r="' + r + '" fill="none" stroke="rgba(232,213,163,0.55)" stroke-width="0.9"/>'
+    + '<circle cx="36" cy="36" r="' + (r + 4) + '" fill="none" stroke="rgba(232,213,163,0.18)" stroke-width="0.7" stroke-dasharray="1.5 4"/>'
+    + '</svg>';
+}
+
+// ── 크레스트 밴드 캔버스 규격 ────────────────────────────────────────────────
+// 밴드 폭은 데스크탑에서 정확히 1080px 까지 벌어진다
+// (.modal-content-inner-wide width:1200px − inner 32 − .sy-container 48 − .sy-card 40).
+// 그래서 캔버스를 1080×88 로 잡고 slice 를 쓴다. 폭이 1080 이하로 줄면 세로는 그대로 두고
+// 가운데만 남기고 좌우가 잘리므로, **의미를 지는 요소는 전부 코어 존 안에** 두고
+// 바깥은 잘려도 되는 장식만 놓는다.
+//   코어 존   x 323~757 (≤430px 모바일에서 보이는 구간)
+//   확장 존   x 190~890 (≈768px)
+//   전체      x 0~1080  (데스크탑)
+// 세로는 어느 폭에서도 잘리지 않는다(1080 이 상한이라 scale ≤ 1).
+var SY_CREST_W = 1080;
+var SY_CREST_MID = 540;
+
+// 인연의 끈 궁합 — 두 개의 달을 잇는 금실. 결과 화면의 붉은 실 다이어그램
+// (.sy-compat-fate-svg)과 겹치지 않게 색을 골드로 낮춘 조용한 예고편이다.
+function syCompatBandSvg() {
+  var lx = 404;
+  var rx = 676;
+  var mr = 20;
+  return ''
+    + '<svg class="sy-crest-svg" viewBox="0 0 ' + SY_CREST_W + ' 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
+    + '<defs>'
+    + '<radialGradient id="sym-compat-halo" cx="50%" cy="50%" r="50%">'
+    + '<stop offset="0%" stop-color="rgba(248,231,183,0.34)"/><stop offset="100%" stop-color="rgba(248,231,183,0)"/>'
+    + '</radialGradient>'
+    + '<linearGradient id="sym-compat-thread" x1="0" y1="0" x2="1" y2="0">'
+    + '<stop offset="0%" stop-color="rgba(232,213,163,0.12)"/><stop offset="50%" stop-color="rgba(248,231,183,0.92)"/><stop offset="100%" stop-color="rgba(196,181,253,0.34)"/>'
+    + '</linearGradient>'
+    + '<linearGradient id="sym-compat-tail" x1="0" y1="0" x2="1" y2="0">'
+    + '<stop offset="0%" stop-color="rgba(232,213,163,0)"/><stop offset="100%" stop-color="rgba(232,213,163,0.42)"/>'
+    + '</linearGradient>'
+    + '</defs>'
+    // 날개 — 실이 밴드 전체를 가로질러 짜여 나가는 리본. 잘려도 의미가 사라지지 않는다.
+    + '<path d="M40 44 Q' + (lx / 2) + ' 20 ' + (lx - mr) + ' 44" fill="none" stroke="url(#sym-compat-tail)" stroke-width="1.1" stroke-linecap="round"/>'
+    + '<path d="M40 44 Q' + (lx / 2) + ' 68 ' + (lx - mr) + ' 44" fill="none" stroke="url(#sym-compat-tail)" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="3 6"/>'
+    + '<path d="M' + (SY_CREST_W - 40) + ' 44 Q' + (SY_CREST_W - lx / 2) + ' 20 ' + (rx + mr) + ' 44" fill="none" stroke="url(#sym-compat-tail)" stroke-width="1.1" stroke-linecap="round"/>'
+    + '<path d="M' + (SY_CREST_W - 40) + ' 44 Q' + (SY_CREST_W - lx / 2) + ' 68 ' + (rx + mr) + ' 44" fill="none" stroke="url(#sym-compat-tail)" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="3 6"/>'
+    + '<circle cx="202" cy="44" r="1.8" fill="rgba(232,213,163,0.42)"/>'
+    + '<circle cx="878" cy="44" r="1.8" fill="rgba(196,181,253,0.45)"/>'
+    // 코어 — 두 초승달은 서로를 향해 밝은 면을 돌린다
+    + '<circle cx="' + lx + '" cy="44" r="36" fill="url(#sym-compat-halo)"/>'
+    + '<circle cx="' + rx + '" cy="44" r="36" fill="url(#sym-compat-halo)"/>'
+    + '<path d="M' + (lx + mr) + ' 44 Q' + SY_CREST_MID + ' 12 ' + (rx - mr) + ' 44" fill="none" stroke="url(#sym-compat-thread)" stroke-width="1.7" stroke-linecap="round"/>'
+    + '<path d="M' + (lx + mr) + ' 44 Q' + SY_CREST_MID + ' 76 ' + (rx - mr) + ' 44" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="3 5"/>'
+    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="3.6" fill="#f8e7b7"/>'
+    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="9" fill="none" stroke="rgba(248,231,183,0.36)" stroke-width="0.8" stroke-dasharray="2 3"/>'
+    + '<circle cx="' + lx + '" cy="44" r="' + mr + '" fill="rgba(22,19,46,0.6)"/>'
+    + '<circle cx="' + rx + '" cy="44" r="' + mr + '" fill="rgba(22,19,46,0.6)"/>'
+    + '<path d="' + syMoonPhasePath(lx, 44, mr, 0.32, 1) + '" fill="#f6ead0"/>'
+    + '<path d="' + syMoonPhasePath(rx, 44, mr, 0.32, -1) + '" fill="#f6ead0"/>'
+    + '<circle cx="' + lx + '" cy="44" r="' + mr + '" fill="none" stroke="rgba(232,213,163,0.44)" stroke-width="0.8"/>'
+    + '<circle cx="' + rx + '" cy="44" r="' + mr + '" fill="none" stroke="rgba(232,213,163,0.44)" stroke-width="0.8"/>'
+    + '<circle class="sy-crest-spark" cx="472" cy="20" r="1.7" fill="rgba(255,255,255,0.8)"/>'
+    + '<circle class="sy-crest-spark sy-crest-spark--b" cx="612" cy="70" r="1.4" fill="rgba(232,213,163,0.75)"/>'
+    + '<circle class="sy-crest-spark sy-crest-spark--c" cx="352" cy="66" r="1.5" fill="rgba(196,181,253,0.7)"/>'
+    + '</svg>';
+}
+
+// 숙요 인연 레이더 — 27숙을 옆에서 본 큰 궤도(타원) 위에 늘어놓고, 두 숙만 밝혀 현(弦)으로 잇는다.
+// 밝힌 두 숙(litA·litB)은 모바일 코어 존 안에 들어오는 인덱스로 골랐다.
+function syBondBandSvg() {
+  var rx = 420;
+  var ry = 28;
+  var litA = 25;
+  var litB = 14;
+  var dots = '';
+  var ax = 0;
+  var ay = 0;
+  var bx = 0;
+  var by = 0;
+  for (var i = 0; i < 27; i += 1) {
+    var rad = (i / 27) * Math.PI * 2 - Math.PI / 2;
+    var x = SY_CREST_MID + Math.cos(rad) * rx;
+    var y = 44 + Math.sin(rad) * ry;
+    if (i === litA) { ax = x; ay = y; }
+    if (i === litB) { bx = x; by = y; }
+    var isLit = (i === litA || i === litB);
+    dots += '<circle cx="' + x.toFixed(2) + '" cy="' + y.toFixed(2) + '" r="' + (isLit ? '3.2' : '1.6')
+      + '" fill="' + (isLit ? '#c4b5fd' : 'rgba(219,234,254,0.4)') + '"/>';
+  }
+  return ''
+    + '<svg class="sy-crest-svg" viewBox="0 0 ' + SY_CREST_W + ' 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
+    + '<defs>'
+    + '<radialGradient id="sym-bond-core" cx="50%" cy="50%" r="50%">'
+    + '<stop offset="0%" stop-color="rgba(196,181,253,0.26)"/><stop offset="100%" stop-color="rgba(196,181,253,0)"/>'
+    + '</radialGradient>'
+    + '</defs>'
+    + '<ellipse cx="' + SY_CREST_MID + '" cy="44" rx="300" ry="40" fill="url(#sym-bond-core)"/>'
+    + '<ellipse cx="' + SY_CREST_MID + '" cy="44" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="rgba(219,234,254,0.2)" stroke-width="0.9"/>'
+    + '<ellipse cx="' + SY_CREST_MID + '" cy="44" rx="' + (rx - 96) + '" ry="' + (ry - 10) + '" fill="none" stroke="rgba(232,213,163,0.18)" stroke-width="0.7" stroke-dasharray="2 5"/>'
+    + '<line x1="' + ax.toFixed(2) + '" y1="' + ay.toFixed(2) + '" x2="' + bx.toFixed(2) + '" y2="' + by.toFixed(2) + '" stroke="rgba(196,181,253,0.75)" stroke-width="1.5" stroke-linecap="round"/>'
+    + dots
+    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="2.4" fill="rgba(248,231,183,0.9)"/>'
+    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="7" fill="none" stroke="rgba(248,231,183,0.3)" stroke-width="0.7" stroke-dasharray="2 3"/>'
+    + '<circle class="sy-crest-spark" cx="418" cy="14" r="1.6" fill="rgba(196,181,253,0.7)"/>'
+    + '<circle class="sy-crest-spark sy-crest-spark--b" cx="668" cy="76" r="1.4" fill="rgba(232,213,163,0.7)"/>'
+    + '<circle class="sy-crest-spark sy-crest-spark--c" cx="836" cy="20" r="1.2" fill="rgba(255,255,255,0.6)"/>'
+    + '</svg>';
+}
+
+// 숙요 인연 도감 — 삭에서 삭까지 한 주기(9상)가 낮은 호를 그린다("전체 지도").
+// 모바일에서는 코어 존만 남아 가운데 5상(상현→보름→하현)이 보인다.
+function syDogamBandSvg() {
+  var count = 9;
+  var xs = [180, 270, 360, 450, 540, 630, 720, 810, 900];
+  var ys = [58, 54, 50, 45, 40, 45, 50, 54, 58];
+  var rr = [9, 10, 12, 13, 15, 13, 12, 10, 9];
+  var discs = '';
+  for (var j = 0; j < count; j += 1) {
+    // 차오르는 동안은 오른쪽이, 보름을 지나 기우는 동안은 왼쪽이 밝다.
+    var lit = (1 - Math.cos((2 * Math.PI * j) / (count - 1))) / 2;
+    var side = j <= (count - 1) / 2 ? 1 : -1;
+    discs += '<circle cx="' + xs[j] + '" cy="' + ys[j] + '" r="' + rr[j] + '" fill="rgba(24,20,48,0.62)"/>'
+      + '<path d="' + syMoonPhasePath(xs[j], ys[j], rr[j], lit, side) + '" fill="url(#sym-dogam-disc)"/>'
+      + '<circle cx="' + xs[j] + '" cy="' + ys[j] + '" r="' + rr[j] + '" fill="none" stroke="rgba(232,213,163,0.34)" stroke-width="0.7"/>';
+  }
+  return ''
+    + '<svg class="sy-crest-svg" viewBox="0 0 ' + SY_CREST_W + ' 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
+    + '<defs>'
+    + '<radialGradient id="sym-dogam-disc" cx="38%" cy="30%" r="72%">'
+    + '<stop offset="0%" stop-color="#fffdf6"/><stop offset="52%" stop-color="#f4e3b6"/><stop offset="100%" stop-color="#d6c396"/>'
+    + '</radialGradient>'
+    + '<radialGradient id="sym-dogam-glow" cx="50%" cy="58%" r="52%">'
+    + '<stop offset="0%" stop-color="rgba(248,231,183,0.22)"/><stop offset="100%" stop-color="rgba(248,231,183,0)"/>'
+    + '</radialGradient>'
+    + '</defs>'
+    + '<ellipse cx="' + SY_CREST_MID + '" cy="50" rx="430" ry="40" fill="url(#sym-dogam-glow)"/>'
+    + '<path d="M120 62 Q' + SY_CREST_MID + ' 22 960 62" fill="none" stroke="rgba(196,181,253,0.28)" stroke-width="0.9" stroke-dasharray="3 6"/>'
+    + discs
+    + '<circle class="sy-crest-spark" cx="384" cy="18" r="1.5" fill="rgba(232,213,163,0.7)"/>'
+    + '<circle class="sy-crest-spark sy-crest-spark--b" cx="700" cy="20" r="1.3" fill="rgba(196,181,253,0.68)"/>'
+    + '<circle class="sy-crest-spark sy-crest-spark--c" cx="' + SY_CREST_MID + '" cy="76" r="1.2" fill="rgba(255,255,255,0.55)"/>'
+    + '</svg>';
+}
+
 function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
   if (!sData) return null;
 
@@ -9071,14 +9303,6 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
   var integratedGuardianLabel = reading && reading.guardian
     ? String(reading.guardian.name || '달빛 지표')
     : '달빛 지표';
-  var moonPhaseSeal = phaseLabel.indexOf('보름') >= 0 || phaseLabel.indexOf('만월') >= 0
-    ? '●'
-    : (phaseLabel.indexOf('초승') >= 0
-      ? '☾'
-      : (phaseLabel.indexOf('하현') >= 0
-        ? '◑'
-        : (phaseLabel.indexOf('상현') >= 0 ? '◐' : '◯')));
-
   var renderTagList = function (items) {
     return items.map(function (item) {
       return '<span class="sy-canon-chip">' + syCanonicalEsc(item) + '</span>';
@@ -9113,7 +9337,7 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '</div>'
     + '<div class="sy-canon-moon-stage" aria-hidden="true">'
     + '<div class="sy-canon-moon-orbit"><span></span><i></i><b></b></div>'
-    + '<div class="sy-canon-moon-core">' + syCanonicalEsc(moonPhaseSeal) + '</div>'
+    + '<div class="sy-canon-moon-core">' + syCanonicalMoonSvg(phase, phaseLabel) + '</div>'
     + '<div class="sy-canon-moon-label">' + syCanonicalEsc(phaseLabel) + '</div>'
     + '<div class="sy-canon-moon-illum">' + syCanonicalEsc(illum) + '</div>'
     + '</div>'
@@ -9497,7 +9721,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         @keyframes syHeaderMoonGlow { 0%,100% { opacity:0.32; transform:translateX(-50%) scale(0.96); } 50% { opacity:0.5; transform:translateX(-50%) scale(1.04); } }
         @keyframes syLunarRimFloat { 0%,100% { transform:translate3d(0,0,0); opacity:0.72; } 50% { transform:translate3d(-4px,5px,0); opacity:0.96; } }
         @keyframes syMoonOrbitDrift { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-        @keyframes syMoonCoreGlow { 0%,100% { box-shadow:0 0 30px rgba(248,250,252,0.4), 0 0 54px rgba(147,197,253,0.22); } 50% { box-shadow:0 0 38px rgba(248,250,252,0.5), 0 0 68px rgba(248,231,183,0.18); } }
+        @keyframes syMoonCoreGlow { 0%,100% { opacity:0.6; transform:scale(0.95); } 50% { opacity:1; transform:scale(1.06); } }
+        @keyframes syCrestSparkle { 0%,100% { opacity:0.25; } 50% { opacity:1; } }
         @keyframes syStarBlink { 0%,100% { opacity:0.3; transform:scale(0.8); } 50% { opacity:1; transform:scale(1.1); } }
         .sy-star { display:inline-block; animation: syStarBlink 2s infinite; }
         .sy-star:nth-child(2) { animation-delay:0.5s; }
@@ -9617,7 +9842,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-moon-orbit span { left:13px; top:20px; }
         .sy-canon-moon-orbit i { right:10px; top:42px; }
         .sy-canon-moon-orbit b { left:48px; bottom:8px; }
-        .sy-canon-moon-core { position:relative; z-index:2; width:62px; height:62px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-size:1.5rem; font-weight:900; background:radial-gradient(circle at 35% 28%, #ffffff 0%, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 30px rgba(248,250,252,0.4), 0 0 54px rgba(147,197,253,0.22); animation:syMoonCoreGlow 4.8s ease-in-out infinite; }
+        /* 배경/글리프 색은 인라인 SVG(syCanonicalMoonSvg)가 대신하므로 여기는 크기 컨테이너로만 남긴다.
+           글로우는 box-shadow(항상 원형) 대신 drop-shadow 로 — 위상 실루엣을 따라가야 자연스럽다. */
+        .sy-canon-moon-core { position:relative; z-index:2; width:72px; height:72px; display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 0 16px rgba(232,213,163,0.34)) drop-shadow(0 0 34px rgba(156,135,212,0.24)); }
+        .sy-canon-moon-core::before { content:''; position:absolute; inset:-18px; border-radius:999px; pointer-events:none; background:radial-gradient(circle, rgba(248,231,183,0.22) 0%, rgba(156,135,212,0.12) 46%, transparent 70%); animation:syMoonCoreGlow 4.8s ease-in-out infinite; }
+        .sy-canon-moon-svg { position:relative; z-index:1; width:100%; height:100%; display:block; overflow:visible; }
         .sy-canon-moon-label { position:relative; z-index:2; margin-top:8px; color:#f8e7b7; font-size:0.78rem; font-weight:900; text-align:center; }
         .sy-canon-moon-illum { position:relative; z-index:2; margin-top:2px; color:#bfdbfe; font-size:0.72rem; font-weight:800; }
         .sy-lunar-year-card { position:relative; overflow:hidden; border-color:rgba(248,231,183,0.34)!important; border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 9%, rgba(248,250,252,0.2), transparent 25%), radial-gradient(circle at 15% 82%, rgba(45,212,191,0.12), transparent 34%), linear-gradient(145deg,rgba(26,24,52,0.9),rgba(7,12,28,0.96))!important; box-shadow:0 20px 48px rgba(2,6,23,0.44),0 0 34px rgba(248,231,183,0.07),inset 0 1px 0 rgba(255,255,255,0.07); }
@@ -9649,6 +9878,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-lunar-month-item .sy-lunar-note--relation { color:#bfdbfe; }
         .sy-lunar-month-item .sy-lunar-note--work { color:#fde68a; }
         .sy-lunar-month-item .sy-lunar-note--caution { color:#fed7aa; margin-bottom:0; }
+        /* 결제 전 진입 카드의 상단 크레스트 밴드. 래퍼+SVG 구조는 결과 화면의
+           .sy-compat-fate-wrap / .sy-compat-fate-svg 관례를 그대로 따른다. */
+        /* 밴드 폭은 데스크탑에서 정확히 1080px 이 상한이라(.modal-content-inner-wide 1200px −
+           안쪽 패딩들) 캔버스를 1080×88 로 잡고 slice 를 쓴다. 폭이 줄면 세로는 그대로 두고
+           좌우만 잘리므로 아트의 코어 존이 항상 살아남는다. box-sizing 은 이 스타일시트에
+           전역 리셋이 없어서 직접 준다(안 주면 border 1px 때문에 90px 이 된다). */
+        .sy-crest-band { position:relative; box-sizing:border-box; width:100%; height:88px; margin:0 0 13px; border-radius:14px; overflow:hidden; border:1px solid rgba(219,234,254,0.18); background:radial-gradient(circle at 50% 118%, rgba(196,181,253,0.16), transparent 58%), rgba(2,6,23,0.26); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-crest-svg { display:block; width:100%; height:100%; }
+        .sy-crest-spark { animation:syCrestSparkle 3.4s ease-in-out infinite; }
+        .sy-crest-spark--b { animation-duration:4.6s; animation-delay:0.8s; }
+        .sy-crest-spark--c { animation-duration:2.9s; animation-delay:1.6s; }
         .sy-paid-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:9px; flex-wrap:wrap; }
         .sy-paid-kicker { display:inline-flex; align-items:center; gap:6px; margin-bottom:5px; color:#f8e7b7; font-size:0.7rem; font-weight:900; letter-spacing:0; }
         .sy-paid-status { display:inline-flex; align-items:center; justify-content:center; min-height:30px; padding:5px 11px; border-radius:999px; border:1px solid rgba(248,231,183,0.44); background:rgba(120,53,15,0.18); color:#fef3c7; font-size:0.73rem; font-weight:900; line-height:1.35; }
@@ -9923,6 +10163,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-wheel-meta-grid { grid-template-columns:1fr; }
           .sy-canon-hero { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:128px; }
+          .sy-canon-moon-core { width:64px; height:64px; }
           .sy-guardian-head { font-size:0.82rem; }
           .sy-guardian-main-name { font-size:1.11rem; }
           .sy-guardian-main-emoji { font-size:2.42rem; }
@@ -9952,6 +10193,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-past-life-score-grid { grid-template-columns:1fr; }
           .sy-dogam-score-mini { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:116px; }
+          .sy-canon-moon-core { width:58px; height:58px; }
+          .sy-crest-band { height:68px; margin-bottom:11px; }
           .sy-lunar-year-grid { grid-template-columns:1fr; }
           .sy-lunar-score-orb { min-height:116px; }
           .sy-mini-grid { grid-template-columns:1fr; }
@@ -9961,6 +10204,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-guardian-detail-item h5 { font-size:0.68rem; }
           .sy-guardian-art-copy-btn { font-size:0.75rem; padding:8px 10px; }
           .sy-ntab, .sy-rel-tab, .sy-canon-tab { min-height:44px; }
+        }
+        /* 2026-08-12 신규 달 SVG·크레스트 밴드의 모션만 감축한다.
+           기존 엔진 애니메이션은 건드리지 않는다(가산적 변경). */
+        @media (prefers-reduced-motion: reduce) {
+          .sy-crest-spark, .sy-canon-moon-core::before { animation:none!important; }
+          .sy-canon-moon-core::before { opacity:0.8; transform:none; }
         }
         `;
         document.head.appendChild(_sySt);
@@ -10104,6 +10353,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     html += `<div class="sy-card sy-compat-card" data-sy-compat-moonlight="20260603" style="margin-top: 15px;">
+        <div class="sy-crest-band" aria-hidden="true">${syCompatBandSvg()}</div>
         <h4 class="sy-compat-title">인연의 끈 궁합</h4>
         <p class="sy-compat-lede">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
                               
@@ -10151,6 +10401,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     const _radarBirthDigits = _radarBirth.replace(/\D/g, '').slice(0, 8);
     const _radarHasSelf = !!sData;
     html += `<div class="sy-card sy-past-life-card sy-bond-card" data-sy-bond-card="20260801-sukyo-bond-report-v1" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
+        <div class="sy-crest-band" aria-hidden="true">${syBondBandSvg()}</div>
         <div class="sy-paid-card-head">
           <div>
             <div class="sy-paid-kicker">숙요 관계 심층 · ${syPaidPriceLabel(SY_PAID_FEATURES.pastLifeReading)}</div>
@@ -10186,6 +10437,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     </div>`;
 
     html += `<div class="sy-card sy-dogam-card" data-sy-dogam-card="20260616-sukyo-relationship-encyclopedia" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipEncyclopedia.key}">
+        <div class="sy-crest-band" aria-hidden="true">${syDogamBandSvg()}</div>
         <div class="sy-paid-card-head">
           <div>
             <div class="sy-paid-kicker">숙요 관계 도감 · ${syPaidPriceLabel(SY_PAID_FEATURES.relationshipEncyclopedia)}</div>
