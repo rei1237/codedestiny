@@ -63,6 +63,7 @@ on:
       - "public/en/index.html"
       - "public/ja/index.html"
       - "public/zh/index.html"
+      - "public/zh-tw/index.html"
       - "public/static/index.html"
       # ── 로그인 / 인증 ──────────────────────────────────────
       - "worker/routes/auth.js"
@@ -140,6 +141,16 @@ jobs:
       # 미커버→상점 인계)가 갈라지는지와 앱에서 /points 로 새지 않는지를 실행으로 확인한다.
       - name: Verify checkout pass card behaviour (jsdom)
         run: npm run verify:checkout-pass-card
+
+      # 홈 진입 팬아웃 계약. 진입에서 없앤 두 호출(/api/subscription/status 워밍 · POST /api/rpg/adopt)이
+      # 되살아나면 콜드 아이솔레이트에서 공유 admission 레인이 다시 포화되고, 넘친 요청은
+      # MongoOperationOverloadedError(재시도 **불가**) → 503 이 된다.
+      # 결제 게이트에 두는 이유: 워밍이 채우던 것이 **이용권 스냅샷**이라, 이 계약이 깨지면
+      # 결제창 fast-path 와 이용권 판정이 함께 흔들린다. 특히 auth/me 의 degraded 응답을
+      # 스냅샷에 쓰면 tier:"free" 가 굳어 **이용권 보유자에게 결제창이 뜬다** — 돈 문제다.
+      # 문자열 검사에 그치지 않고 판정 정본(js/core/pass-verdict.js)을 실제로 실행해 확인한다.
+      - name: Verify home entry fan-out contract
+        run: npm run verify:entry-fanout
 
       # 이용권 구제 경로(결제창에서 보유 이용권이 그 자리에서 적용되는 길)의 회귀 방지.
       # 과거 두 사고가 모두 "핸들러·소비자는 남고 진입점만 사라진" 형태라 이름 grep 으로는 정상으로

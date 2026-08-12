@@ -186,6 +186,21 @@ Atlas 쪽에서 확인할 것(코드로 해결되지 않을 때의 다음 단계
 - 동일 사용자 auth/snapshot 조회는 in-flight single-flight로 합치고, Mongo 작업 admission을 `MONGO_MAX_IN_FLIGHT_OPS`와 `MONGO_OP_ADMISSION_TIMEOUT_MS`로 제한한다.
 - 복구 검증은 결제/LLM 실호출 없이 mock 또는 dry-run으로 진행하고, 배포 후 tail에서 checkout 실패율·503율·중복 호출 수를 다시 비교한다.
 
+### 홈 진입 팬아웃 계약 (2026-08-12)
+
+정적 셸 홈에 로그인 사용자가 진입할 때 나가도 되는 호출은 아래가 전부다. 가드는 `npm run verify:entry-fanout`.
+
+| 시점 | 호출 | 비고 |
+|---|---|---|
+| DOMContentLoaded | `GET /api/auth/me` + `GET /api/profile` (병렬) | auth/me 가 `profileSubscription`(등급·만료·월정석 잔량)을 함께 싣고 온다 |
+| idle | `GET /api/rpg/progress` | 서버 캐시 5초, 실패 시 degraded 200 |
+| 5분 주기 | `GET /api/auth/me` (세션 하트비트) | 보이는 탭만 |
+
+🔴 **아래 둘을 진입에 되살리지 말 것.** 둘 다 2026-08-12 에 제거했고, 그 전에는 1인 1탭이 admission 슬롯을 5~8개 먹어 콜드 아이솔레이트에서 동시 진입 2명이면 한도를 넘겼다.
+
+- `GET /api/subscription/status` (구 `reason:'app-entry'` 워밍) — 그 응답의 `profileSubscription`·`membershipCreditBalance` 는 `/api/auth/me` 가 이미 싣고 오는 **같은 users 문서의 같은 필드**다. 이제 `verifyAuthSessionForCoinApi` 가 auth/me 도착 시점에 `_cdStoreSubscriptionSnapshot(sub, 'auth-me')` 로 이용권 스냅샷을 채우고, 남은 idle·pointerdown 워밍이 그 스냅샷을 보고 no-op 한다. **degraded 응답은 `tier:"free"` 라 스냅샷에 쓰면 안 된다** — 이용권 보유자가 무료로 굳어 결제창이 뜬다.
+- `POST /api/rpg/adopt` — 서버 캐시 없이 Mongo 4~5 왕복 + 인덱스 init. 레벨 보상 시트를 여는 시점(`_dpOpenLevelRewardSheet`)으로 옮겼다. 로컬 EXP 는 보존되고 `store.adopted` 플래그와 서버 rewardLog 가 1회성을 보장한다. 서버는 DB 장애에 503 대신 `200 {ok:false, degraded:true, code:"RPG_ADOPT_DEGRADED"}` 로 답하며, **`ok:false` 가 필수**다 — 클라의 `res.ok` 는 HTTP 상태라 `ok:true` 를 주면 이관되지 않은 EXP 에 `adopted` 를 찍는다.
+
 ### 로그인 직후 access-state/Guardian 진단
 
 - 정상 로그인 홈 진입은 `GET /api/me/access-state?include=guardian` 1회이며 `/api/fortune/guardian/usage`, `/api/billing/balance`, `/api/billing/coin-gate`는 0회다. 비로그인 Guardian usage는 섹션 viewport 진입 또는 첫 상호작용 뒤 1회만 허용한다.
