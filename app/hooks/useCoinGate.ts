@@ -278,6 +278,11 @@ const TRANSIENT_BILLING_CODES = new Set([
   "AUTH_DB_UNAVAILABLE",
   "SERVICE_UNAVAILABLE",
   "MONTHLY_CREDIT_CONTENDED",
+  // 🔴 월정석 경합의 **현행** 코드. 구 billing.js 는 경합을 503 MONTHLY_CREDIT_CONTENDED 로 냈지만
+  // V2(worker/payments/index.js)는 409 MONTHLY_CREDIT_CONSUME_IN_PROGRESS 하나로 접어서 낸다.
+  // 이게 빠져 있어서 409 가 transient 로 안 잡혔고, 사용자에게 "단건 결제가 필요합니다"라는
+  // **틀린 문구**가 떴다 — 실제로는 아무것도 차감되지 않았고 잠시 뒤 되는 상태다.
+  "MONTHLY_CREDIT_CONSUME_IN_PROGRESS",
 ]);
 
 // 🔴 맨 403 은 인증 실패가 아니다 — 여기서 401 과 같이 취급하면 안 된다.
