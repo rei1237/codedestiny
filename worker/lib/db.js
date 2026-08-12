@@ -139,25 +139,36 @@ function releaseMongoOperationSlot(lane) {
 // 근본 처방은 한도를 계속 올리는 게 아니라 **auth 를 각자 다시 푸는 진입 엔드포인트 수를 줄이는 것**이다
 // (docs/DEBUGGING_GUIDE.md: "정상 로그인 홈 진입은 GET /api/me/access-state 1회").
 //
-// maxPoolSize 는 5 로 유지한다. 전역 연결 = 아이솔레이트 수 × poolSize 이고 Atlas M0 상한이 500 이라
-// 근거 없이 올리지 않는다(아래 connectDb 주석 참고). 올리려면 `[db-connect-error]` 가 0 인 것을 먼저 볼 것 —
-// 지금 한도(8) > 풀(5) 이라 초과분은 waitQueue 로 가며, 그 대기가 리셋을 유발하지 않도록
+// 한도 > 풀 이어야 한다. 초과분은 waitQueue 로 가며, 그 대기가 리셋을 유발하지 않도록
 // withMongoRetry 의 isConnectionLevelFailure 에서 MongoWaitQueueTimeoutError 를 제외해 뒀다(한 세트다).
 // 🔴 8 → 12 (2026-08-12). 단건결제 체크아웃에서 resolveActiveUserAuth 가 이 게이트에 걸려
 // MongoOperationOverloadedError(재시도 제외) → 503 AUTH_STATUS_TEMPORARILY_UNAVAILABLE 로
 // 죽는 것을 프로덕션에서 실측(Network 탭 "checkout" 요청 그대로 재현) — 결제창이 대부분 안 뜨고
-// 가끔만 뜨던 원인이었다. 12는 위 클램프가 이미 허용하는 상한이라 새 장치가 아니라 기존 노브를
-// 돌리는 것뿐이다. 예산은 그대로 여유 있다(2500ms admission + 5000ms waitQueue + 쿼리 ≈ 8s <
-// 11.5s 시도 상한).
-const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "12";
+// 가끔만 뜨던 원인이었다.
+//
+// 🔴 12 → 24 (2026-08-12, Atlas M0 → M10 전환). 위 "⚠️ 8 은 1인 기준 처방" 경고가 예고한 지점에
+// 실제로 도달했다 — 팬아웃 6 × 동시 진입 2명 = 12 라 한도와 정확히 같아져 여유가 0 이었다.
+// M0 에서는 그 이상 올릴 수 없었다(공유 vCPU 라 동시 op 를 늘리면 op 당 지연이 같이 늘어 예산을
+// 넘겼다). M10 은 전용 노드라 그 제약이 사라졌고, 커넥션 상한도 노드당 1,490 으로 M0(500 공유)의
+// 3배다. 24 = 팬아웃 6 × 동시 4명. 이건 용량을 늘린 게 아니라 **M0 때문에 눌러 둔 값을 티어에
+// 맞게 되돌린 것**이다. 근본 처방(진입 엔드포인트 수 줄이기)은 여전히 유효하며 이걸로 대체되지 않는다.
+//
+// 🔴 M10 에서도 이 한도를 **무한정 올리면 안 된다** — 새 벽은 총량이 아니라 **신규 커넥션 생성률
+// (노드당 초당 15개, M10·M20 전용)** 이다. 한도를 올려 풀이 더 많은 소켓을 열게 되는 것 자체는
+// 괜찮지만(소켓은 재사용된다), 그 소켓이 자주 버려졌다 다시 열리면 그 예산을 태운다.
+// 그래서 이 값과 maxIdleTimeMS(아래 connectDb) 는 **반대 방향으로 함께** 움직여야 한다.
+const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "24";
 // 1500ms 는 콜드 핸드셰이크 중앙값(1497ms)보다 짧았다 — 연결 하나 세우는 시간도 못 기다렸다는 뜻이다.
 // 예산 검산: 2500(admission) + 5000(waitQueue) + 쿼리 ≈ 8s < 11.5s(시도 상한 하한). 여유 있다.
 const MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT = "2500";
 
 // 결제 레인의 한도. 위 공유 레인 주석과 같은 논리로 **한도 > 풀** 이어야 한다 — 초과분이
 // admission(2500ms, 재시도 **불가**)이 아니라 드라이버 waitQueue(5000ms, 재시도 가능)에서
-// 기다리게 하는 것이 요점이다. 결제 레인 풀은 4(MONGO_PAYMENT_POOL_SIZE)라 6으로 둔다.
-const MONGO_PAYMENT_MAX_IN_FLIGHT_OPS_DEFAULT = "6";
+// 기다리게 하는 것이 요점이다.
+// 🔴 6 → 12 (M10 전환). 결제 레인 풀도 4 → 6 으로 올렸다(MONGO_PAYMENT_POOL_SIZE). 결제는
+// 임계경로라 여유를 공유 레인보다 후하게 잡는다 — 여기서 한 번 거절되면 사용자에게는 "결제창이
+// 안 뜬다" 로 보이고, 그 복구는 재시도 버튼뿐이다.
+const MONGO_PAYMENT_MAX_IN_FLIGHT_OPS_DEFAULT = "12";
 
 async function acquireMongoOperationSlot(env, options = {}) {
   const lane = resolveAdmissionLane(options);
@@ -176,7 +187,9 @@ async function acquireMongoOperationSlot(env, options = {}) {
     Number(limitDefault),
     1,
     // 상한은 기본값보다 커야 한다 — 같으면 env 노브가 아래로만 움직여 긴급 상향을 못 한다.
-    isPaymentLane ? 10 : 12,
+    // 🔴 2026-08-12 이전에는 상한이 기본값과 **같아서**(12/12) 이 규칙이 이미 깨져 있었다.
+    // M10 전환으로 기본값을 24/12 로 올리면서 상한도 함께 벌려 노브를 되살린다.
+    isPaymentLane ? 24 : 48,
   );
   const waitTimeoutMS = clampTimeoutMs(
     options.admissionTimeoutMS != null
@@ -444,12 +457,21 @@ export async function connectDb(env = {}) {
   // 유휴 소켓을 드라이버가 능동적으로 닫아, Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓을 풀이
   // 보유하는 것을 근절한다(Atlas 유휴 컷보다 짧게). 이 설정 부재가 '웜 쿼리 op-타임아웃 다발·콜드 성공'의
   // 1차 근본 원인이었다 — 유휴 후 재개된 아이솔레이트가 죽은 소켓 위에서 쿼리를 매달았기 때문.
-  // 🔴 M0(무료 티어)의 **총 연결 상한은 500**이고, 총 연결 = 아이솔레이트 수 × maxPoolSize 다.
-  // 유휴 커넥션을 오래 붙들수록 '지금 일하지 않는 아이솔레이트'가 전역 예산을 점유해,
-  // 정작 요청을 처리 중인 아이솔레이트가 커넥션을 못 받는다(= 체크아웃 굶음).
-  // 60초는 그 점유가 너무 길다. Atlas 유휴 리핑보다는 여전히 짧게 두면서 20초로 당겨
-  // 전역 예산 회전율을 3배로 올린다(좀비 소켓 근절이라는 원래 목적은 그대로 유지된다).
-  const maxIdleTimeMS = clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "20000"), 20000, 10000, 300000);
+  //
+  // 🔴 20000 → 60000 (2026-08-12, Atlas M0 → M10 전환). **이 값의 방향이 티어와 함께 뒤집혔다.**
+  // 20초를 고른 근거는 "M0 총 연결 상한 500 을 아이솔레이트들이 나눠 쓰므로 회전율을 3배로 올린다"
+  // 였다. 그 전제가 두 군데서 무너진다:
+  //   1. M10 의 상한은 노드당 1,490(3노드) 이라 총량이 더 이상 병목이 아니다.
+  //   2. 대신 M10·M20 에는 M0 에 없던 **신규 커넥션 생성률 제한(노드당 초당 15개)** 이 있다.
+  //      초과분은 큐잉되고, 포화가 지속되면 드롭된다.
+  // 즉 "회전율을 3배로 올린다" = "커넥션 생성률을 3배로 올린다" 이고, 그건 M0 에서는 이득이었지만
+  // M10 에서는 정확히 새 상한을 향해 돌진하는 설정이다. 살아 있는 아이솔레이트가 20초마다 소켓을
+  // 버리고 다시 여는 톱니(sawtooth) churn 이 그 증상이다(Atlas Metrics → Connections 로 확인).
+  //
+  // 60000 은 임의 값이 아니라 **이 코드가 M0 튜닝 전에 실제로 쓰던 값**이라 프로덕션 검증을 이미
+  // 거쳤다. 좀비 소켓 근절이라는 원래 목적(Atlas 유휴 컷보다 짧게)도 그대로 만족한다.
+  // 🔴 여기서 더 올리려면 좀비 소켓 재발 여부를 먼저 실측할 것 — 그게 이 옵션이 존재하는 이유다.
+  const maxIdleTimeMS = clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "60000"), 60000, 10000, 300000);
   const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
@@ -538,9 +560,37 @@ export async function connectDb(env = {}) {
           // 고정비가 아니라 커넥션 확보가 병목임이 같은 측정에서 함께 확인된다.
           // 전역 예산은 여전히 여유가 있다(총 연결 = 아이솔레이트 수 × 10, M0 상한 500).
           // env(MONGO_MAX_POOL_SIZE)로 배포 없이 되돌릴 수 있다.
-          maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "10")),
+          //
+          // 🔴 M10 전환 후에도 10 을 유지한다(2026-08-12). 위 두 덩어리(5.1초/14초) 증상의 원인은
+          // 소켓 부족 그 자체가 아니라 **M0 에서 op 하나가 소켓을 오래 물고 있던 것**이었다
+          // (서버 명령 실행은 250~417ms 인데 체크아웃 대기가 최대 10,383ms). M10 전용 노드에서
+          // 점유 시간이 짧아지면 같은 10 소켓의 회전율이 올라가 자연히 해소된다. 여기서 더 올리면
+          // 아이솔레이트당 소켓만 늘어 **신규 커넥션 생성률(노드당 15/s)** 예산을 더 먹는다.
+          // 올리기 전에 반드시 Atlas Metrics 의 커넥션 그래프와 `[db-op-timeout]` 의 checkOutFailed 를
+          // 먼저 볼 것 — 지금 필요한 것은 소켓 수가 아니라 소켓 회전율이다.
+          //
+          // clampInt 를 쓴다: 예전엔 이 줄만 raw Number() 라 비숫자 env 가 NaN 으로 드라이버에
+          // 그대로 들어갔다(이웃 옵션은 전부 clamp 를 탄다).
+          maxPoolSize: clampInt(getEnv(env, "MONGO_MAX_POOL_SIZE", "10"), 10, 1, 50),
           // 유휴 시 커넥션을 하나도 붙들지 않는다(드라이버 기본값이지만 전역 예산에 직결되므로 명시).
+          // 🔴 M10 에서도 0 을 유지한다. minPoolSize > 0 은 아이솔레이트가 뜰 때마다 그 수만큼
+          // 핸드셰이크를 **미리** 하게 만드는데, 서버리스는 아이솔레이트가 수시로 생기고 죽으므로
+          // 그게 곧 15/s 예산을 태우는 행위다. 예열은 장수명 런타임에서만 의미가 있다.
           minPoolSize: 0,
+          // 🔴 동시에 새로 여는 커넥션 수의 상한(드라이버 기본값 2). M10·M20 의 신규 커넥션
+          // 생성률 제한(노드당 초당 15개)에 직접 대응하는 유일한 드라이버 노브라 기본값에 맡기지
+          // 않고 명시한다 — 드라이버 버전이 기본값을 바꿔도 우리 예산이 흔들리지 않게 한다.
+          // 콜드 아이솔레이트가 풀을 한꺼번에 채우지 않고 2개씩 계단식으로 연다.
+          maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
+          // 🔴 M10 은 3노드 리플리카셋이다(M0 에는 리플리카셋이 없어 이 두 옵션이 무의미했다).
+          // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다 —
+          // 그게 serverSelectionTimeoutMS(8초)를 줄이면 안 되는 이유와 한 세트다: 선택창은
+          // 선거가 끝날 때까지 기다려 주는 시간이고, 재시도는 그 사이 실패한 op 를 살리는 장치다.
+          retryWrites: true,
+          retryReads: true,
+          // Atlas Query Profiler / Real-Time Panel 에서 부하 주체를 구분하기 위한 라벨.
+          // 이게 없으면 공유 커넥션과 결제 레인이 같은 익명 클라이언트로 뭉쳐 보인다.
+          appName: String(getEnv(env, "MONGO_APP_NAME", "code-destiny-worker") || "code-destiny-worker").slice(0, 128),
           serverSelectionTimeoutMS,
           connectTimeoutMS,
           socketTimeoutMS,
@@ -688,32 +738,88 @@ export async function connectPaymentDb(env = {}) {
     // 왕복 예산이 아니라 점유 시간이 상한을 정한다. 여기를 키우면 전역 연결 예산(아이솔레이트 ×
     // (5 공유 + 이 값), M0 상한 500)을 그만큼 먹는다 — 더 올리려면 [db-connect-error] 가 0 인 것을
     // 먼저 확인할 것(위 connectDb 주석과 같은 기준).
-    maxPoolSize: clampInt(getEnv(env, "MONGO_PAYMENT_POOL_SIZE", "4"), 4, 1, 5),
+    // 🔴 4 → 6 (2026-08-12, M10 전환). 위 진단(점유 시간이 상한을 정한다)이 그대로 유효하고,
+    // M10 의 커넥션 상한(노드당 1,490)에서는 2소켓 더 쓰는 비용이 사실상 0 이다. 동시 confirm
+    // 4건이 곧 포화이던 것을 6건으로 벌린다.
+    maxPoolSize: clampInt(getEnv(env, "MONGO_PAYMENT_POOL_SIZE", "6"), 6, 1, 10),
     minPoolSize: 0,
+    // 공유 커넥션과 같은 이유로 명시한다 — connectDb 의 maxConnecting 주석 참고.
+    maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
     serverSelectionTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
     connectTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
     socketTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "11000"), 11000, 5000, 45000),
     waitQueueTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "5000"), 5000, 1000, 15000),
-    maxIdleTimeMS: clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "20000"), 20000, 10000, 300000),
+    // 공유 커넥션과 같은 값·같은 이유(M10 의 신규 커넥션 생성률 예산) — connectDb 주석 참고.
+    maxIdleTimeMS: clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "60000"), 60000, 10000, 300000),
+    // M10 리플리카셋에서 primary 교체 시 결제 op 를 드라이버가 살려 준다 — connectDb 주석 참고.
+    retryWrites: true,
+    retryReads: true,
+    // Atlas Profiler 에서 결제 부하를 공유 트래픽과 분리해 보기 위한 라벨.
+    appName: String(getEnv(env, "MONGO_PAYMENT_APP_NAME", "code-destiny-payments") || "code-destiny-payments").slice(0, 128),
     bufferCommands: false,
     autoIndex: false,
     // 공유 커넥션과 같은 이유(Workers 요청 간 I/O 격리)로 poll 모니터링을 쓴다 — connectDb 주석 참고.
     serverMonitoringMode: "poll",
+    // 🔴 공유 커넥션에는 있고 여기엔 없던 계측을 맞춘다. instrumentMongoClient 가 붙지 않으면
+    // `[db-op-timeout]` 의 checkOutFailed/checkedOut 카운터가 **가장 사고가 잦은 결제 경로를
+    // 보지 못한다** — 진단할 때마다 공유 커넥션 수치를 결제 수치로 착각하게 된다.
+    monitorCommands: true,
     ...(family === 4 || family === 6 ? { family } : {}),
   };
   const startedAt = Date.now();
-  paymentConnectionPromise = mongoose.createConnection(uri, options).asPromise()
-    .then((conn) => {
-      paymentConnection = conn;
-      console.log(`[db-connect] payment lane connected. elapsedMs=${Date.now() - startedAt} pool=${options.maxPoolSize}`);
-      return conn;
-    })
-    .catch((error) => {
-      console.error(`[db-connect-error] payment lane failed: ${String(error?.message || error).slice(0, 200)}`);
-      throw error;
-    })
-    .finally(() => { paymentConnectionPromise = null; });
-  return paymentConnectionPromise;
+  // 🔴 레인 수립에 재시도가 없던 것이 "결제가 한 번에 안 되고 재시도하면 되는" 증상의 마지막 조각이다
+  // (2026-08-12). connectDb 는 IP family 후보 × MONGO_WORKER_CONNECT_RETRIES(2회)로 총 6번까지
+  // 시도하는데, 이 레인은 **단 한 번** 시도하고 실패하면 그대로 null 을 돌려줬다. 그러면 호출부
+  // (worker/payments/db.js)가 공유 커넥션 폴백으로 넘어가 **핸드셰이크를 처음부터 다시** 하고,
+  // 그 둘을 더한 시간이 op 예산(12s)을 넘겨 503 → 사용자가 재시도 → 그때는 웜이라 성공한다.
+  // 즉 사용자에게 보이던 "1회 실패 후 성공"은 대부분 이 비대칭이었다. 한 번의 일시적 실패
+  // (SRV 조회 흔들림·IPv4 경로 문제·순간 거절)를 사용자에게 그대로 내보내지 않는다.
+  //
+  // 예산 검산: 시도당 serverSelection 8s 가 상한이지만 M10 전용 노드의 실측 핸드셰이크는 그보다
+  // 훨씬 짧다. 그래도 최악을 대비해 **가드 타임아웃으로 전체를 묶는다** — 재시도가 op 예산을
+  // 넘겨 버리면 재시도가 없느니만 못하다. 가드는 connectDb 와 같은 노브를 공유한다.
+  const laneRetryCount = clampInt(getEnv(env, "MONGO_PAYMENT_CONNECT_RETRIES", "1"), 1, 0, 3);
+  const laneGuardMS = clampTimeoutMs(getEnv(env, "MONGO_PAYMENT_CONNECT_GUARD_MS", "9000"), 9000, 3000, 15000);
+  const laneFamilies = family === 4 && isTruthyLike(getEnv(env, "MONGO_IP_FAMILY_AUTO_FALLBACK"))
+    ? [4, 0]
+    : [family];
+
+  const establishLane = async () => {
+    let lastError = null;
+    for (const candidate of laneFamilies) {
+      const attemptOptions = { ...options };
+      if (candidate === 4 || candidate === 6) attemptOptions.family = candidate;
+      else delete attemptOptions.family;
+      for (let attempt = 0; attempt <= laneRetryCount; attempt += 1) {
+        try {
+          const conn = await mongoose.createConnection(uri, attemptOptions).asPromise();
+          paymentConnection = conn;
+          console.log(`[db-connect] payment lane connected. elapsedMs=${Date.now() - startedAt} pool=${attemptOptions.maxPoolSize} family=${candidate} attempt=${attempt + 1}`);
+          return conn;
+        } catch (error) {
+          lastError = error;
+          console.error(`[db-connect-error] payment lane failed (family=${candidate} attempt=${attempt + 1}): ${String(error?.message || error).slice(0, 200)}`);
+          // 마지막 시도가 아니면 짧은 지터 후 재시도한다. connectDb 와 같은 근거·같은 노브.
+          if (attempt < laneRetryCount) await sleep(clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000) * (attempt + 1));
+        }
+      }
+    }
+    throw lastError || new Error("Payment lane connection failed.");
+  };
+
+  const establishPromise = establishLane();
+  // 🔴 withTimeout 은 Promise.race 라 가드가 먼저 끊겨도 **수립 자체는 계속 진행된다.**
+  // 그래서 in-flight 표식(paymentConnectionPromise)은 가드 시점이 아니라 수립이 **실제로** 끝날 때
+  // 비운다. 가드에서 비우면 다음 요청이 '진행 중인 수립'을 못 보고 두 번째 핸드셰이크를 시작하는데,
+  // 그게 M10 의 신규 커넥션 생성률(노드당 15/s) 예산을 태우는 정확히 그 행동이다.
+  // 여기서 거절을 흡수(→ null)하는 것은 unhandled rejection 방지 겸, 이 표식을 먼저 받아 가는
+  // 동시 호출자에게 "연결 없음"을 정상 값으로 넘기기 위해서다 — worker/payments/db.js 는
+  // null 을 받으면 공유 커넥션으로 폴백한다(그 경로가 이미 있다).
+  paymentConnectionPromise = establishPromise.then(
+    (conn) => conn,
+    () => null,
+  ).finally(() => { paymentConnectionPromise = null; });
+  return withTimeout(establishPromise, laneGuardMS, "Payment lane connection timed out in Worker.");
 }
 
 // 우리가 방금 부른 disconnect 의 '메아리'로 볼 실패의 시간 창.

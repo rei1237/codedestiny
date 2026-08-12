@@ -89,6 +89,13 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - 🔴 **폴백을 켠 유료 라우트는 `fallbackMinChars`를 반드시 함께 준다** (`worker/lib/gemini.js`의 `rejectShortFallback`). 이 라우트들은 "경량 보장 계약"으로 렌더 가능한 텍스트(≥400자)면 결제 성공으로 전달하기 때문에, 그냥 켜면 **2만자 상품이 8% 분량으로 정상 결제 처리**되고 재시도·환불 경로가 사라진다. 관례는 **그 기능의 최소 분량 상수 × 0.4**이며, 문턱 미달이면 호출이 실패로 돌아 각 라우트의 기존 실패 처리가 그대로 돈다. **Gemini 응답에는 적용되지 않는다**(기존 동작 불변).
 - JSON 구조화 상담은 `callGeminiJsonWithRetry`가 폴백 응답의 코드펜스·설명문을 자동 정화하므로(`worker/lib/structured-consultation.js`) 라우트별 파서를 고칠 필요가 없다. 그 헬퍼를 안 쓰는 경로만 첫 `{`~마지막 `}` 슬라이스를 직접 넣는다.
 - **MongoDB**: 연결 env는 `MONGO_URI`/`MONGODB_URI`. 신규 코드는 기존 두 싱글턴 패턴(`worker/lib/db.js` 또는 `app/_lib/dbConnect.js`) 중 이미 쓰이는 쪽을 따를 것 — 새 패턴 추가 금지.
+- 🔴 **Atlas 티어는 M10 이다(2026-08-12, M0 에서 전환). 커넥션 튜닝의 방향이 그때 뒤집혔다 — 되돌리지 말 것.**
+  - **M0 의 벽**: 총 연결 500(공유). → 처방은 "커넥션을 **아껴 쓴다**"(작은 풀, 짧은 `maxIdleTimeMS` 로 회전율↑).
+  - **M10 의 벽**: 총 연결은 노드당 1,490(3노드)로 널널해진 대신, **신규 커넥션 생성률이 노드당 초당 15개**로 제한된다(M10·M20 전용. M30 이상엔 없다). 초과분은 큐잉되고 포화가 지속되면 드롭된다. → 처방은 "커넥션을 **자주 새로 만들지 않는다**".
+  - 그래서 **짧은 `maxIdleTimeMS` 는 M0 의 정답이자 M10 의 오답이다.** 유휴 상한을 줄이는 것은 곧 생성률을 올리는 것이다. 현재 값 60000(`worker/lib/db.js`·`worker/wrangler.toml [vars]` 양쪽). 🔴 **20000 으로 되돌리지 말 것** — `__tests__/worker/db.pool-timeout-alignment.test.js` 가 하한으로 막는다(그 단언은 예전에 `<=30000` 상한이었고, 티어와 함께 방향이 뒤집혔다).
+  - 진단은 코드를 읽기 전에 **Atlas Metrics → Connections 그래프 모양**부터 본다: 톱니(sawtooth)면 churn(유휴 상한이 짧다), 계단식 상승이면 누수, 평탄이면 커넥션 문제가 아니다.
+  - **M10 은 3노드 리플리카셋이다.** M0 에는 리플리카셋이 없어 `startSession().withTransaction()` 이 영구 503(`MONTHLY_ATOMIC_UNAVAILABLE`)이었고 코드가 그걸 우회하도록 쓰였다. 이제 그 경로 9곳이 **배포 없이 실제로 열린다** — 회귀 위험이므로 결제 경로를 만질 때 이 사실을 전제하라. `retryWrites`/`retryReads` 도 이제부터 실효가 있다.
+  - `serverSelectionTimeoutMS`(8000)를 **줄이지 말 것** — 리플리카셋 primary 교체(election) 가 끝날 때까지 기다려 주는 시간이다. M0 엔 선거가 없어 이 값이 그냥 지연이었지만 M10 에선 가용성 장치다.
 - 🔴 **User 스키마 정본은 `worker/lib/models.js` 하나다.** 예전에 같은 `users` 컬렉션에 스키마가 3벌 있었고(레거시 Express·스크립트 전용 사본) 제약이 서로 달라 조용한 데이터 손상이 났다. 스크립트든 라우트든 User 를 쓸 때는 이 모듈에서 import 한다 — 새 `mongoose.model("User", …)` 선언을 만들지 말 것(`__tests__/worker/user-model-single-source.static.test.js` 가 막는다).
 - **Cloudflare Workers 제약**: `worker/` 디렉토리는 Node 내장 API(`fs`, `net` 등) 사용 금지, 순수 fetch/Web API 기반 유지. `app/api/*` 라우트 중 Node API가 필요하면 `export const runtime = "nodejs"` 명시.
 - **결제**: 클라이언트는 `lib/payment/portone.ts`(PortOne V2 브라우저 SDK 동적 로드), 서버는 `worker/lib/portone.js`(PortOne REST API) — 결제 로직은 SDK 패키지가 아닌 raw fetch로 구현되어 있음.
@@ -161,7 +168,9 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 ## Forbidden (수정 금지)
 
-- `.wrangler/`, `worker/wrangler.toml`
+- `.wrangler/`
+- `worker/wrangler.toml` — **단, `[vars]` 항목 추가·수정은 허용**(2026-08-12 사용자 승인). 라우트·크론·바인딩·`compatibility_*` 등 **구조는 여전히 손대지 않는다.** 허용한 이유: 튜닝 노브가 코드에만 있으면 값 하나 바꾸는 데도 PR+CI+배포 사이클이 필요해, 장애 중에 되돌릴 방법이 없었다.
+  - 🔴 `[vars]` 에 노브를 올리면 **그 값이 프로덕션 값이 되고 코드 기본값은 죽는다.** 그 노브를 지키던 테스트가 있으면 함께 갱신할 것 — 안 그러면 가드가 프로덕션이 안 읽는 값을 지킨다(`__tests__/worker/db.admission-headroom.test.js` 가 그 대응 예시다).
 - `package-lock.json`
 - `.env*` 패턴의 모든 환경변수 파일 (절대로 깃허브에 업로드 금지 — `.env.local`, `.env`, 서버 전용 env 파일 등)
 - `dist/`, `out/` (빌드 산출물)

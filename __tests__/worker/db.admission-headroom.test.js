@@ -12,8 +12,13 @@
  * withMongoRetry 에서 명시적 재시도 제외 → 그대로 503). 그래서 게이트는 최소한 풀 크기(5)만큼은
  * 받아 줘야 하고, 넘치는 대기는 풀의 waitQueue(재시도 대상)로 넘어가야 한다.
  *
- * 🔴 이 테스트는 env 를 **설정하지 않는다** — 프로덕션 기본값을 그대로 검증하기 위해서다.
- * wrangler.toml 에 MONGO_MAX_IN_FLIGHT_OPS 가 없으므로 db.js 의 기본값이 곧 프로덕션 값이다.
+ * 🔴 이 테스트는 env 를 **설정하지 않는다** — 코드 기본값을 그대로 검증하기 위해서다.
+ *
+ * 🔴 2026-08-12 부터 그것만으로는 부족하다. M10 전환과 함께 MONGO_MAX_IN_FLIGHT_OPS 를
+ * wrangler.toml `[vars]` 에도 올렸다(장애 중 배포 없이 되돌리기 위해서다). 그 순간
+ * **프로덕션이 읽는 값은 코드 기본값이 아니라 wrangler 값**이 되므로, 코드 기본값만 지키는
+ * 가드는 프로덕션을 더 이상 지키지 않는다. 그래서 아래에 wrangler.toml 값을 직접 읽어
+ * 같은 여유 조건을 거는 테스트를 함께 둔다. 두 값 중 하나만 낮춰도 잡힌다.
  *
  * 🔴 2026-08-09 — 이 가드가 **한 번 뚫렸다.** 당시 팬아웃 상수(5)와 한도 기본값(5)이 같아
  * 여유가 0 이었는데, 테스트는 "5개가 들어간다"만 보고 있어서 통과했다. 그 상태에서 6ab597c0b 가
@@ -76,6 +81,47 @@ test("default admission limit admits a full entry fan-out without rejecting", as
 
   releasers.forEach((resolve) => resolve({ ok: true }));
   await expect(Promise.all(inFlight)).resolves.toHaveLength(TOTAL_OPS);
+});
+
+test("wrangler.toml 의 프로덕션 값도 진입 팬아웃보다 여유가 있다", async () => {
+  // 🔴 위 테스트는 코드 기본값을 본다. 프로덕션이 실제로 읽는 값은 wrangler.toml `[vars]` 이므로
+  // 여기서 그 파일을 직접 읽는다. 두 곳 중 한쪽만 낮춰도 이 쌍 중 하나가 실패한다.
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const wranglerPath = fileURLToPath(new URL("../../worker/wrangler.toml", import.meta.url));
+  const toml = readFileSync(wranglerPath, "utf8");
+
+  const readVar = (name) => {
+    const match = toml.match(new RegExp(`^${name}\\s*=\\s*"([^"]*)"`, "m"));
+    return match ? Number(match[1]) : null;
+  };
+
+  // 1인 1탭 진입 팬아웃(위 상수와 같은 근거). 한도는 여기에 여유가 있어야 한다.
+  const ENTRY_FANOUT_OPS = 6;
+
+  const shared = readVar("MONGO_MAX_IN_FLIGHT_OPS");
+  if (shared !== null) {
+    expect(Number.isFinite(shared)).toBe(true);
+    // 동시 진입 2명(12) 을 넘겨야 한다 — 12 는 예전 값이자 정확히 포화점이었다.
+    expect(shared).toBeGreaterThan(ENTRY_FANOUT_OPS * 2);
+  }
+
+  const payment = readVar("MONGO_PAYMENT_MAX_IN_FLIGHT_OPS");
+  const paymentPool = readVar("MONGO_PAYMENT_POOL_SIZE");
+  if (payment !== null && paymentPool !== null) {
+    // 🔴 한도 > 풀. 같거나 작으면 초과분이 재시도 가능한 waitQueue 가 아니라
+    // 재시도 **불가**인 admission 거절(하드 503)로 간다 — 그게 "결제창이 안 뜬다"의 형태였다.
+    expect(payment).toBeGreaterThan(paymentPool);
+  }
+
+  const sharedPool = readVar("MONGO_MAX_POOL_SIZE");
+  if (shared !== null && sharedPool !== null) {
+    expect(shared).toBeGreaterThan(sharedPool);
+  }
+
+  // M10 의 신규 커넥션 생성률(노드당 15/s) 예산을 지키는 하한. M0 시절 값(20000)으로 되돌리면 실패한다.
+  const idle = readVar("MONGO_MAX_IDLE_TIME_MS");
+  if (idle !== null) expect(idle).toBeGreaterThanOrEqual(60000);
 });
 
 test("a low-limit waiter does not head-of-line block higher-limit waiters", async () => {
