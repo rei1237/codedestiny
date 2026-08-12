@@ -1,4 +1,7 @@
 import { getEnv } from "./lib/env.js";
+// 결제수단 판정 정본. coin-gate 의 갈래를 billing.js 와 같은 규칙으로 정하기 위해 여기서 쓴다
+// (라우터에 별칭 목록을 복제하지 않는다 — 그 복제가 신·구 구현이 갈리던 원인이었다).
+import { PAYMENT_METHODS, resolvePaymentCommandFromBody } from "./lib/payment-service.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
 import { resolveAiLocaleFromRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 
@@ -1351,14 +1354,21 @@ export default {
         if (request.method === "POST"
           && url.pathname === "/api/billing/coin-gate") {
           let coinGateBodyText = "";
-          let coinGatePaymentMode = "";
+          let coinGateMethod = "";
           try {
             coinGateBodyText = await request.clone().text();
-            coinGatePaymentMode = String(JSON.parse(coinGateBodyText || "{}")?.paymentMode || "").trim().toUpperCase();
-          } catch { coinGatePaymentMode = ""; }
-          const coinGateV2Path = coinGatePaymentMode === "MOONLIGHT_STONE"
+            /* 🔴 판정은 **billing.js 와 같은 함수**로 한다(2026-08-13). 예전에는 여기서 `paymentMode` 를
+               대문자 정확 일치로만 봤는데, 핸들러는 resolvePaymentCommand 의 별칭 집합(monthly ·
+               monthly_credit · membership_credit · membership …)과 `accessMode` 필드까지 받는다.
+               그래서 같은 월정석·이용권 결제가 **필드 철자에 따라** 신·구 구현으로 갈렸고, 별칭으로 온
+               요청은 우리가 방금 고친 결함(CAS 패배 503 · 고아 예약 409)이 남아 있는 구 코드로 갔다.
+               단건 신호(forceDirectPayment·provider 조합 등)가 있으면 DIRECT_KRW 로 확정돼 여기서
+               걸러진다 — 그 판정도 같은 함수 안에 있다. */
+            coinGateMethod = resolvePaymentCommandFromBody(JSON.parse(coinGateBodyText || "{}")).method;
+          } catch { coinGateMethod = ""; }
+          const coinGateV2Path = coinGateMethod === PAYMENT_METHODS.MONTHLY
             ? "/api/payments/coin-gate/moonstone"
-            : coinGatePaymentMode === "MEMBERSHIP_PASS"
+            : coinGateMethod === PAYMENT_METHODS.MEMBERSHIP_PASS
               ? "/api/payments/coin-gate/pass-check"
               : "";
           if (coinGateV2Path) {

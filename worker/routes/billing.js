@@ -73,6 +73,7 @@ import {
   createInactiveMembershipPass,
   resolvePaymentCommand,
   runAtomicMonthlyPayment,
+  shouldCreateDirectPortOneOrder,
   shouldVerifyMembershipPass,
 } from "../lib/payment-service.js";
 import "../lib/access-state.js";
@@ -2944,21 +2945,8 @@ function isProductionRuntime(env) {
   return appEnv === "prod" || appEnv === "production";
 }
 
-function isTruthyFlag(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
-}
-
-function shouldCreateDirectPortOneOrder(body = {}) {
-  const paymentMode = String(body?.paymentMode || body?.accessMode || body?.mode || "").trim().toLowerCase();
-  const provider = String(body?.provider || body?.paymentProvider || "").trim().toLowerCase();
-  const pg = String(body?.pg || body?.pgProvider || "").trim().toLowerCase();
-  return paymentMode === "direct_krw"
-    || paymentMode === "single_payment"
-    || paymentMode === "single"
-    || isTruthyFlag(body?.forceDirectPayment)
-    || (provider === "portone_v2" && (pg === "kg_inicis" || pg === "kg-inicis" || pg === "inicis"));
-}
+// shouldCreateDirectPortOneOrder 는 worker/lib/payment-service.js 로 옮겼다 — 라우터(worker/index.js)가
+// coin-gate 갈래를 정할 때 이 판정과 **같은 답**을 내야 하기 때문이다. 복제하면 다시 갈라진다.
 
 function shouldApplyMembershipPassBeforeCard(body = {}) {
   if (shouldCreateDirectPortOneOrder(body)) return false;
