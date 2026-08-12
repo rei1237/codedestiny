@@ -22,7 +22,7 @@ import {
   heartbeatServiceExecution,
   startServiceExecution,
 } from "../lib/service-execution-task.js";
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
@@ -1866,7 +1866,7 @@ async function consumeMembershipCreditIfAvailable(
   // Atomic path: monthly-stone deduction + point-history + spend-ledger commit together, so an
   // isolate kill can never leave the balance debited without its ledger/history rows.
   const runSpend = () => runAtomicMonthlyPayment({
-    mongoose,
+    mongoose, transactionOptions: mongoTransactionOptions(),
     operation: async (session) => {
       const deducted = await applyLotDeduction(session);
       if (!deducted?.ok) {
@@ -4752,7 +4752,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           const coinBalance = Math.max(0, Math.floor(Number(updatedUser?.points || 0)));
           const [coinHistory] = await PointHistory.create([buildCoinHistoryPayload(coinBalance)], { session });
           outcome = { updatedUser, coinBalance, coinHistory };
-        });
+        }, mongoTransactionOptions());
         return outcome;
       } finally {
         await session.endSession();

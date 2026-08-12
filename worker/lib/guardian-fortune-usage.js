@@ -1,4 +1,4 @@
-import { connectDb, mongoose, withMongoRetry } from "./db.js";
+import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "./db.js";
 import {
   GuardianFortuneAccountUsage,
   GuardianFortuneAnonymousMerge,
@@ -404,7 +404,7 @@ export async function mergeGuardianFortuneAnonymousUsage({ userId, guestIdHash, 
         await GuardianFortuneAnonymousMerge.create([{ userId: accountId, guestIdHash: normalizedGuestHash, mergedGuestUsed: guestUsed }], { session });
         merged = true; freeUsed = nextUsed;
       } else freeUsed = clampNonNegative(account?.freeUsed);
-    });
+    }, mongoTransactionOptions());
     return { ok: true, merged, guestUsed, freeUsed, remaining: Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - freeUsed) };
   } finally { await session.endSession(); }
 }

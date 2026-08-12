@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { Solar } from "lunar-javascript";
 
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import {
   MonthlyCreditLedger,
   Payment,
@@ -1389,7 +1389,7 @@ async function completeDailyQuest(request, env) {
         title: reward.meta?.title || "",
         description: reward.meta?.description || "",
       }));
-    });
+    }, mongoTransactionOptions());
 
     const refreshedProgress = await UserRpgProgress.findOne({
       userId: auth.userId,
