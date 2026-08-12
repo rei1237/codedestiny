@@ -373,7 +373,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   const customerUid = String(body.customerUid || "").trim() || buildPassCustomerUid(userId);
 
   // CONFIRM_DB_OPTIONS: 아래 confirmOrder 가 PortOne 검증 HTTP(최대 8s)를 이 콜백 안에서 돈다.
-  const { user, idempotent } = await withDb(env, ctx, async (db) => {
+  const { user, idempotent, activationPending } = await withDb(env, ctx, async (db) => {
     const order = await findOrder(db, { orderId });
     if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
     assertOrderOwner(order, userId);
@@ -394,26 +394,41 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
     // 확정·활성화는 제네릭 confirmOrder 하나를 탄다 — grantOrderEntitlement 의 이용권 분기가
     // 클라이언트·webhook·크론 세 주체 모두에 같은 활성화를 보장한다(주체별 분기 없음 원칙).
     const result = await confirmOrder(env, db, ctx, { orderId, actorUserId: userId });
+    let activationPending = false;
     if (!result.granted) {
       // 결제는 됐는데 활성화가 미완(그랜트 실패 또는 webhook 선확정 후 활성화 대기).
-      // 활성화는 lastPassOrderId 가드로 멱등이므로 여기서 한 번 마무리를 시도하고,
-      // 그래도 안 되면 재시도 가능 실패로 응답한다(passes.js 머리주석의 계약 — 자동 환불 없음,
-      // 클라이언트의 '결제 상태 다시 확인'·redirect 복귀·크론이 이어받는다).
-      const completed = await grantOrderEntitlement(db, result.order);
-      if (!completed) {
-        throw paymentError("DB_UNAVAILABLE", "이용권 활성화를 반영하지 못했습니다. 잠시 후 '결제 상태 다시 확인'으로 재시도해 주세요.", { orderId });
-      }
+      // 활성화는 lastPassOrderId 가드로 멱등이므로 여기서 한 번 마무리를 시도한다.
+      activationPending = !(await grantOrderEntitlement(db, result.order));
     }
     const finalUser = await db.findOne(User, { _id: toObjectId(userId) });
-    return { user: finalUser, idempotent: result.replayed };
+    return { user: finalUser, idempotent: result.replayed, activationPending };
   }, CONFIRM_DB_OPTIONS);
   ctx.paymentStatus = "PAID";
 
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
+  const payment = { merchantUid: orderId, impUid, paymentAmount: plan.wonPrice, paymentType: "membership_pass", status: "paid" };
+  if (activationPending) {
+    /* 🔴 200 이다. 카드는 승인됐고 주문도 PAID 로 기록됐다 — 남은 것은 활성화 반영뿐이라 장애가 아니라
+       마무리가 덜 끝난 성공이다. 여기는 오래 503 을 냈는데, 그건 confirmOrder 머리주석이 "구 코드의
+       모순"이라며 제거를 선언한 바로 그 패턴이 이용권 경로에만 남아 있던 것이다. 클라이언트는 재시도해도
+       같은 결과를 받고(주문은 이미 PAID) 사용자는 결제된 돈에 대해 실패 화면을 본다.
+       마무리 주체는 둘이다: webhook 의 Transaction.Paid 재생과 재조정 크론의 regrantUnfulfilledOrders
+       (paid + entitlementGrantedAt 없음 → 같은 grantOrderEntitlement). 자동 환불은 없다(passes.js 계약). */
+    return json({
+      message: "이용권 결제가 확인됐어요. 활성화를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+      idempotent,
+      code: "GRANT_PENDING",
+      activationPending: true,
+      pollUrl: `/api/payments/orders/${encodeURIComponent(orderId)}`,
+      payment,
+      subscription,
+      user: { id: String(userId || ""), points: Number(user?.points || 0) },
+    });
+  }
   return json({
     message: idempotent ? "Membership pass payment already processed." : "30-day membership pass has been activated.",
     idempotent,
-    payment: { merchantUid: orderId, impUid, paymentAmount: plan.wonPrice, paymentType: "membership_pass", status: "paid" },
+    payment,
     subscription,
     user: { id: String(userId || ""), points: Number(user?.points || 0) },
   });
