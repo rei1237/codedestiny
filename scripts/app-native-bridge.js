@@ -553,7 +553,74 @@
   // --- 4) 안드로이드 하드웨어 백버튼 ---------------------------------------
   //
   // 처리하지 않으면 어느 화면에서든 백버튼이 앱을 즉시 종료시킨다.
-  // 뒤로 갈 곳이 있으면 뒤로 가고, 루트에서만 2초 내 두 번 눌러야 종료한다.
+  // 계약: ① 열린 모달/오버레이가 있으면 '뒤로'는 닫기다 ② 페이지 레이어(React 앱 셸)가
+  // 등록한 인터셉트가 있으면 그다음 ③ 뒤로 갈 곳이 있으면 뒤로 ④ 루트에서만 2회 종료.
+  //
+  // 오버레이 id 목록·가시성 판정은 셸의 mobile-bottom-navigation 스크립트(overlayOpen)와
+  // 같은 규칙을 따른다 — 로더 오버레이(sajuLoaderOverlay)는 "닫기" 대상이 아니라 제외.
+  var BACK_CLOSE_OVERLAY_IDS = [
+    "tilePvwOverlay", "privacy-modal-overlay", "goldenGrainChargeModalRoot",
+    "cdPaidFeatureGate", "dreamModalOverlay", "psychoDreamModalOverlay",
+    "juyukModalOverlay", "sukuyoModalOverlay", "astroModalOverlay", "ziweiModalOverlay",
+    "tarotModalOverlay", "tarotLoveOverlay", "tarotReunionOverlay", "tarotYearFortuneOverlay",
+    "animalTotemOverlay", "kemetOracleOverlay", "destinyFlowerStudioOverlay",
+    "cdLoginRequiredModal",
+  ];
+
+  function isOverlayVisible(node) {
+    if (!node || !node.ownerDocument || !node.ownerDocument.documentElement.contains(node)) return false;
+    if (node.getAttribute && node.getAttribute("aria-hidden") === "true") return false;
+    var style;
+    try { style = window.getComputedStyle(node); } catch (e) {}
+    if (!style || style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+    return !!(node.offsetWidth || node.offsetHeight || (node.getClientRects && node.getClientRects().length));
+  }
+
+  function dispatchEscapeKey() {
+    try {
+      document.dispatchEvent(new KeyboardEvent("keydown", {
+        key: "Escape", code: "Escape", keyCode: 27, which: 27, bubbles: true, cancelable: true,
+      }));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function closeOverlayNode(rootEl) {
+    // 각 오버레이의 자기 닫기 버튼을 그대로 누른다 — 정리 로직(스크롤락 해제 등)을 재사용.
+    var closeEl = null;
+    try {
+      closeEl = rootEl.querySelector('[data-action^="close"], .modal-nav-close, [data-cd-login-close]');
+    } catch (e) {}
+    if (closeEl && typeof closeEl.click === "function") { closeEl.click(); return true; }
+    return dispatchEscapeKey();
+  }
+
+  function closeTopOverlay() {
+    // 결제수단 선택 모달 — 상태 전역이 정본. 닫기 = 취소 버튼과 동일 경로.
+    try {
+      var choice = window.__cdDirectPaymentChoiceActive;
+      if (choice && choice.modal && document.body.contains(choice.modal)) {
+        var cancel = choice.modal.querySelector(".cd-direct-payment-cancel");
+        if (cancel) { cancel.click(); return true; }
+      }
+    } catch (e) {}
+    for (var i = 0; i < BACK_CLOSE_OVERLAY_IDS.length; i += 1) {
+      try {
+        var rootEl = document.getElementById(BACK_CLOSE_OVERLAY_IDS[i]);
+        if (isOverlayVisible(rootEl)) return closeOverlayNode(rootEl);
+      } catch (e) {}
+    }
+    // React 계열 모달(role=dialog/aria-modal)은 Escape 로 닫는 계약이다
+    // (예: FeatureMarketingDetailModal 의 window keydown 핸들러).
+    try {
+      var dialogs = document.querySelectorAll('[aria-modal="true"]');
+      for (var j = 0; j < dialogs.length; j += 1) {
+        if (isOverlayVisible(dialogs[j])) return dispatchEscapeKey();
+      }
+    } catch (e) {}
+    return false;
+  }
+
   function isRootScreen() {
     var path = String(window.location.pathname || "/").replace(/\/index\.html$/, "").replace(/\/+$/, "");
     return path === "" || path === "/";
@@ -583,6 +650,13 @@
     var app = appPlugin();
     if (!app || !app.addListener) return;
     app.addListener("backButton", function (event) {
+      // ① 열린 모달/오버레이가 있으면 '뒤로'는 닫기다 — 이탈·종료보다 먼저.
+      if (closeTopOverlay()) return;
+      // ② React 앱 셸(useAndroidBackButton)이 등록한 인터셉트 — /app 라우트의 루트 판정을
+      //    페이지 레이어가 소유한다. 여기서 리스너를 하나 더 달면 백 1회에 2단계 후퇴한다.
+      try {
+        if (typeof window.__cdAppBackIntercept === "function" && window.__cdAppBackIntercept() === true) return;
+      } catch (e) {}
       if (event && event.canGoBack && !isRootScreen()) {
         window.history.back();
         return;

@@ -114,6 +114,25 @@ function injectGuardTag(html) {
   return { html: `${GUARD_TAG}${html}`, changed: true };
 }
 
+// 루트 단독 HTML(예: destiny-island.html)은 확장자 없는 링크(`/destiny-island`)로도 참조된다.
+// Capacitor 로컬 서버·RouteProcessor 는 그 경로를 destiny-island/index.html 로 해석하는데,
+// 별칭 파일이 없으면 RouteProcessor 폴백이 홈 셸을 돌려줘 "홈으로 튕김"이 된다.
+// 별칭을 만들어 두면 classifyRoute 도 "real"로 판정해 링크 재작성까지 함께 동작한다.
+const STANDALONE_HTML_ROUTE_ALIASES = ["destiny-island"];
+
+async function aliasStandaloneHtmlRoutes() {
+  const aliased = [];
+  for (const route of STANDALONE_HTML_ROUTE_ALIASES) {
+    const source = path.join(DIST, `${route}.html`);
+    if (!(await exists(source))) continue;
+    const dir = path.join(DIST, route);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.copyFile(source, path.join(dir, "index.html"));
+    aliased.push(`${route}/index.html`);
+  }
+  return aliased;
+}
+
 async function removeAppForbiddenRoutes() {
   const removed = [];
   for (const prefix of LOCALE_PREFIXES) {
@@ -374,6 +393,9 @@ async function main() {
 
   const removed = await removeAppForbiddenRoutes();
   console.log(`  ✅ 앱에 없는 라우트 제거: ${removed.length ? removed.join(", ") : "(없음)"}`);
+
+  const aliased = await aliasStandaloneHtmlRoutes();
+  console.log(`  ✅ 단독 HTML 라우트 별칭: ${aliased.length ? aliased.join(", ") : "(없음)"}`);
 
   // 라우트를 지운 뒤에 색인을 만든다 — 지워진 SEO 페이지가 참조하던 자산까지 죽은 것으로 잡히게.
   const referenced = await buildReferencedNameIndex();

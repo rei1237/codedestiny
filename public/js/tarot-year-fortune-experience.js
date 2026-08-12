@@ -147,6 +147,10 @@
       var host = String(parsed.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return true;
       if (typeof window === "undefined") return false;
+      // 앱(Capacitor WebView)은 출처가 https://localhost 라 아래 동일출처 비교가 항상 실패한다.
+      // 빌드 주입 전역(CODE_DESTINY_API_BASE_URL)과 일치하는 base 는 안전으로 본다.
+      var injectedBase = normalizeApiBase(window.CODE_DESTINY_API_BASE_URL || "");
+      if (injectedBase && normalizeApiBase(parsed.origin || "") === injectedBase) return true;
       var sameOrigin = normalizeApiBase(location.origin || "");
       return normalizeApiBase(parsed.origin || "") === sameOrigin;
     } catch (e) {
