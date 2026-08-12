@@ -593,6 +593,62 @@ export async function connectDb(env = {}) {
 // stateless Worker에서 웜 연결을 재사용하다 백그라운드 모니터 타임아웃 등으로 풀이 초기화되면
 // (MongoPoolClearedError) 확립된 풀 위에서 실행되던 쿼리가 실패한다. 이런 '일시적' 에러는
 // 재연결 후 재시도하면 대개 성공하므로 여기서 판별한다.
+// ── 결제 전용 커넥션 레인 ──────────────────────────────────────────────
+// "PG 결제창이 아예 안 뜬다"(2026-08-12 실브라우저 재현)의 원인: 페이지 부팅 요청 폭풍이 공유
+// 풀(maxPoolSize 5)의 소켓을 선점·장점유(M0 지연 시 op 당 최대 11s)하면, 결제 checkout 이
+// waitQueue(5s)×재시도까지 굶다가 "Timed out while checking out a connection" → DB_BUSY 503.
+// admission 노브(8→12)로는 드라이버 풀 자체의 기아를 못 막는다. 그래서 결제 컨텍스트
+// (worker/payments/, 네이티브 컬렉션 호출만 사용)에 전용 소켓 풀을 분리한다 — 결제는 배경
+// 트래픽과 커넥션을 두고 경쟁하지 않는다. 전역 연결 예산은 아이솔레이트 × (5+2)로 늘지만
+// 실측상 여유가 있다(2026-08-01: 풀 5 전 구간 [db-connect-error] 0건). 이 연결이 실패하면
+// 호출부(worker/payments/db.js)가 공유 커넥션으로 폴백하므로 오늘보다 나빠지는 경로는 없다.
+let paymentConnection = null;
+let paymentConnectionPromise = null;
+
+export async function connectPaymentDb(env = {}) {
+  installProcessEnv(env);
+  if (paymentConnection && paymentConnection.readyState === 1) return paymentConnection;
+  if (paymentConnectionPromise) return paymentConnectionPromise;
+  const uri = (
+    getEnv(env, "MONGO_URI")
+    || getEnv(env, "MONGODB_URI")
+    || getEnv(env, "MONGO_URL")
+    || getEnv(env, "DATABASE_URL")
+  );
+  if (!uri) throw new Error("Missing MongoDB URI for the payment connection.");
+  const family = clampInt(getEnv(env, "MONGO_IP_FAMILY", "4"), 4, 0, 6);
+  const options = {
+    dbName: resolveMongoDbName(env) || undefined,
+    // 결제 어댑터의 왕복 예산은 요청당 1~4회라 2소켓이면 동시 결제 수 명까지 감당한다.
+    // 여기를 키우면 전역 연결 예산(M0 상한 500)을 그만큼 먹는다 — 근거 없이 올리지 말 것.
+    maxPoolSize: clampInt(getEnv(env, "MONGO_PAYMENT_POOL_SIZE", "2"), 2, 1, 5),
+    minPoolSize: 0,
+    serverSelectionTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
+    connectTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
+    socketTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "11000"), 11000, 5000, 45000),
+    waitQueueTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_WAIT_QUEUE_TIMEOUT_MS", "5000"), 5000, 1000, 15000),
+    maxIdleTimeMS: clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "20000"), 20000, 10000, 300000),
+    bufferCommands: false,
+    autoIndex: false,
+    // 공유 커넥션과 같은 이유(Workers 요청 간 I/O 격리)로 poll 모니터링을 쓴다 — connectDb 주석 참고.
+    serverMonitoringMode: "poll",
+    ...(family === 4 || family === 6 ? { family } : {}),
+  };
+  const startedAt = Date.now();
+  paymentConnectionPromise = mongoose.createConnection(uri, options).asPromise()
+    .then((conn) => {
+      paymentConnection = conn;
+      console.log(`[db-connect] payment lane connected. elapsedMs=${Date.now() - startedAt} pool=${options.maxPoolSize}`);
+      return conn;
+    })
+    .catch((error) => {
+      console.error(`[db-connect-error] payment lane failed: ${String(error?.message || error).slice(0, 200)}`);
+      throw error;
+    })
+    .finally(() => { paymentConnectionPromise = null; });
+  return paymentConnectionPromise;
+}
+
 // 우리가 방금 부른 disconnect 의 '메아리'로 볼 실패의 시간 창.
 // disconnect 는 bufferCommands:false 라 그 순간 살아 있던 동시 요청의 작업을 함께 죽인다.
 // 그 직후 쏟아지는 실패는 새로운 진단 정보가 아니라 우리 행동의 결과다.
