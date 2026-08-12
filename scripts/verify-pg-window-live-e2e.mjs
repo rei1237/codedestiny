@@ -97,8 +97,14 @@ try {
     } else {
       trace.push("PortOne SDK 미로드 상태로 진입");
     }
+    // 🔴 반드시 판정을 낸다. 파이프라인이 매달리면(느린 checkout·오버레이 대기) 그 자체가
+    // 결론이므로, 무한 대기 대신 상한을 걸어 "매달림"을 결과로 보고한다.
+    const withCap = (promise, ms) => Promise.race([
+      promise,
+      new Promise((resolve) => setTimeout(() => resolve({ __pgE2eTimedOut: true, ms }), ms)),
+    ]);
     try {
-      const out = await window._cdRunDirectKrwCheckout({
+      const out = await withCap(window._cdRunDirectKrwCheckout({
         featureKey: "fortune-fish-gacha",
         title: "PG E2E probe",
         coinPrice: 5,
@@ -111,8 +117,10 @@ try {
         internalMainGate: true,
         __cdPaymentGateAuthorized: true,
         __cdDirectPaymentChoiceConfirmed: true,
-      });
-      trace.push("파이프라인 반환: " + JSON.stringify(out || {}).slice(0, 200));
+      }), 45000);
+      trace.push(out && out.__pgE2eTimedOut
+        ? `파이프라인이 ${out.ms}ms 안에 반환하지 않음 — 결제창 직전에서 매달린다(느린 checkout·대기 오버레이 의심)`
+        : "파이프라인 반환: " + JSON.stringify(out || {}).slice(0, 200));
     } catch (error) {
       trace.push("파이프라인 예외: " + String(error?.message || error).slice(0, 300) + (error?.code ? ` code=${error.code}` : "") + (error?.status ? ` status=${error.status}` : ""));
     }
