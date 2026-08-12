@@ -11,7 +11,7 @@
 :root {
 	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, -apple-system, sans-serif;
 	--font-display: "CodeDestinyDisplay", var(--font-body);
-	--font-premium: "CodeDestinyPremium", var(--font-display);
+	--font-premium: "CodeDestinySerifKR", var(--font-display);
 	--font-playful: "CodeDestinyPlayful", var(--font-display);
 	--font-decorative: "CodeDestinyDecorative", var(--font-display);
 }

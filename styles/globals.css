@@ -18,7 +18,7 @@
 	   여전히 브랜드 서체가 쓰이고, 한자만 OS 한자 폰트로 확정된다. 뒤에 두면 Mulmaru·Jamsil 이
 	   가진 불완전한 한자 글리프가 먼저 이겨서 화면마다 결과가 달라진다. */
 	--font-display: "CodeDestinyHan", "CodeDestinyDisplay", var(--font-body);
-	--font-premium: "CodeDestinyHan", "CodeDestinyPremium", var(--font-display);
+	--font-premium: "CodeDestinyHan", "CodeDestinySerifKR", var(--font-display);
 	--font-playful: "CodeDestinyHan", "CodeDestinyPlayful", var(--font-display);
 	--font-decorative: "CodeDestinyHan", "CodeDestinyDecorative", var(--font-display);
 	/* Latin 을 앞에 둔다: Cinzel 의 unicode-range 에 한글이 없어 한글은 자동으로 KR 로 내려가고,
@@ -69,21 +69,7 @@
 	font-display: optional;
 }
 
-@font-face {
-	font-family: "CodeDestinyPremium";
-	src: url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");
-	font-weight: 500;
-	font-style: normal;
-	font-display: optional;
-}
 
-@font-face {
-	font-family: "CodeDestinyPlayful";
-	src: url("https://assets.code-destiny.com/netmarbleM.ttf") format("truetype");
-	font-weight: 500;
-	font-style: normal;
-	font-display: optional;
-}
 
 /* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
 @layer base {

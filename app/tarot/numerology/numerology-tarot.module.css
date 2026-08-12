@@ -6,14 +6,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: "CodeDestinyNumerologyPremium";
-  src: url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
 .screen {
   --nt-bg-0: #040514;
   --nt-bg-1: #0b0f35;
@@ -29,7 +21,7 @@
   --nt-text-dim: rgba(247, 241, 225, 0.74);
   min-height: 100dvh;
   color: var(--nt-text);
-  font-family: "CodeDestinyNumerologyPremium", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-family: "CodeDestinySerifKR", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   background:
     radial-gradient(64rem 64rem at 12% 8%, rgba(98, 76, 222, 0.25), transparent 64%),
     radial-gradient(48rem 48rem at 84% 10%, rgba(66, 102, 255, 0.2), transparent 68%),
@@ -731,7 +723,7 @@
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 30px 90px rgba(2, 3, 18, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  font-family: "CodeDestinyNumerologyPremium", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-family: "CodeDestinySerifKR", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   letter-spacing: 0;
 }
 

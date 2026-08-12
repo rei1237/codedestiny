@@ -141,19 +141,17 @@ if (!manifestRaw) {
 /* ─────────────── B. R2 실제 존재 검사 ─────────────── */
 
 // 고정 이름으로 서빙되는 기존 폰트들.
+//
+// 🔴 The Jamsil OTF 4 Medium.otf / netmarbleM.ttf 는 여기서 뺐다. 두 폰트의 라이선스가
+//    "수정·다른 포맷으로의 변환"을 금지해 woff2 로도 서브셋으로도 줄일 수 없었고(각각
+//    935KB·846KB 원본을 그대로 내려보내고 있었다), netmarble 은 임베디드 사용에 사전
+//    허가까지 요구한다. 둘 다 OFL 폰트로 교체했다 — premium 은 CodeDestinySerifKR,
+//    playful 은 Gowun Dodum(같은 CodeDestinyPlayful 이름으로 청크 미러링).
+//    R2 오브젝트 자체는 아직 남아 있지만 어떤 @font-face 도 참조하지 않으므로,
+//    여기서 존재를 강제하면 정리할 수 없는 자산이 된다.
 const fixedFonts = [
   { file: "Mulmaru.woff2", role: "display", formats: ["font/woff2"] },
   { file: "Galmuri11-Bold.woff2", role: "decorative", formats: ["font/woff2"] },
-  {
-    file: "The Jamsil OTF 4 Medium.otf",
-    role: "premium",
-    formats: ["font/otf", "application/vnd.ms-opentype", "application/octet-stream"],
-  },
-  {
-    file: "netmarbleM.ttf",
-    role: "playful",
-    formats: ["font/ttf", "application/x-font-ttf", "application/octet-stream"],
-  },
 ];
 
 // 브랜드 세리프는 내용 해시 키의 청크 묶음이라 매니페스트가 목록의 정본이다.
