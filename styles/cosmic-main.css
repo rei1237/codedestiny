@@ -1317,6 +1317,8 @@ body:not(.neo-mode) .moon-hero{
           color:#fff1bd!important;
           letter-spacing:0!important;
           text-transform:none!important;
+          /* 글로우는 여기서 고정한다 — 키프레임은 밝기(filter)만 맥동시킨다. */
+          text-shadow:0 1px 10px rgba(0,0,0,.78),0 0 22px rgba(255,225,162,.61),0 0 40px rgba(167,139,250,.29)!important;
           animation:cdB89TextGlow 2.8s ease-in-out infinite!important;
         }
         body:not(.neo-mode) .moon-hero__brand-line{
@@ -1626,8 +1628,13 @@ body:not(.neo-mode) .moon-hero{
         @keyframes cdHeroPearlPortalBreathe{0%,100%{filter:brightness(1) saturate(1)}50%{filter:brightness(1.1) saturate(1.08)}}
         @keyframes cdHeroPortalStardust{0%,100%{opacity:.88;filter:brightness(1)}50%{opacity:1;filter:brightness(1.18)}}
         @keyframes cdHeroPortalSeamGlow{0%,100%{opacity:.68;filter:blur(.1px)}50%{opacity:1;filter:blur(0)}}
-        @keyframes cdB89TitleGlow{0%,100%{filter:brightness(1);text-shadow:0 2px 18px rgba(0,0,0,.42),0 0 18px rgba(255,220,143,.38),0 0 34px rgba(167,139,250,.22)}50%{filter:brightness(1.08);text-shadow:0 2px 18px rgba(0,0,0,.44),0 0 26px rgba(255,229,170,.64),0 0 48px rgba(196,181,253,.36)}}
-        @keyframes cdB89TextGlow{0%,100%{text-shadow:0 1px 10px rgba(0,0,0,.78),0 0 18px rgba(255,220,143,.5),0 0 34px rgba(167,139,250,.24)}50%{text-shadow:0 1px 10px rgba(0,0,0,.78),0 0 26px rgba(255,230,180,.72),0 0 46px rgba(167,139,250,.34)}}
+        /* 🔴 text-shadow 를 애니메이션하지 말 것 — 매 프레임 paint 를 유발한다.
+           히어로 제목(17k px²)·아이브로는 초기 뷰포트 애니메이션 19개 중 유일하게 합성을
+           못 타던 둘이었다. 글로우는 요소의 정적 text-shadow 로 고정하고, 밝기 맥동만
+           filter 로 준다 — filter 는 컴포지터가 처리하므로 메인 스레드를 쓰지 않는다.
+           정적 값은 원래 0%↔50% 의 중간이라 육안 인상이 유지된다. */
+        @keyframes cdB89TitleGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
+        @keyframes cdB89TextGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.14)}}
         @keyframes cdHeroMoonCrescentFloat{0%,100%{transform:translate3d(0,0,0) rotate(-3deg)}50%{transform:translate3d(0,-6px,0) rotate(-1deg)}}
         @keyframes cdHeroMoonHaloPulse{0%,100%{opacity:.72;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
         @media(max-width:860px){
