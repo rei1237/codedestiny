@@ -477,7 +477,25 @@ export async function connectDb(env = {}) {
 
   if (mongoose.connection.readyState === 1) {
     // 최근에 건강을 확인했다면(유휴 임계 이내) ping 왕복을 생략해 요청 지연을 줄인다.
-    const pingMinIntervalMS = clampTimeoutMs(getEnv(env, "MONGO_PING_MIN_INTERVAL_MS", "20000"), 20000, 0, 60000);
+    //
+    // 🔴 20000 → 50000 (2026-08-12, M0 → M10 전환의 후속). 이 값은 maxIdleTimeMS 와 한 세트로
+    // 움직여야 하는데, 그것만 20s → 60s 로 올리고 여기를 두면 계산이 어긋난다.
+    //
+    // 이 ping 이 존재하는 이유는 **Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓**을 쿼리
+    // 전에 걸러내는 것이다. 그런데 그 1차 방어선은 ping 이 아니라 maxIdleTimeMS 다 — 드라이버가
+    // Atlas 유휴 컷보다 **먼저** 유휴 소켓을 닫아 좀비가 생길 창 자체를 없앤다. 즉 지금 풀에 남아
+    // 있는 소켓은 정의상 유휴 60초 미만이고, 그 구간에서 20초마다 ping 을 한 번 더 던지는 것은
+    // 좀비를 잡는 게 아니라 대부분 **살아 있는 소켓에 왕복 한 번을 더 얹는 것**이다.
+    //
+    // 이 서비스는 저트래픽이라 그 비용이 특히 크다. 요청 간격이 20초를 넘는 일이 흔해서, 웜
+    // 아이솔레이트로 들어온 사용자 요청이 자기 쿼리 앞에 ping 왕복을 먼저 치르는 경우가 많다.
+    // 50000 은 maxIdleTimeMS(60000) 바로 안쪽이라 "소켓 한 생애당 최대 한 번"으로 수렴한다.
+    //
+    // 안전한 이유: ping 실패는 연결을 끊지 않는다(아래 catch — readyState 가 1 이면 그대로 반환하고
+    // lastHealthyAt 만 무효화한다). 게다가 드라이버 SDAM 하트비트가 별도로 서버 상태를 감시한다.
+    // 즉 이 값을 늘려도 잃는 것은 "죽은 소켓을 조금 늦게 발견"뿐이고, 그 소켓은 어차피 쿼리가
+    // 실패하면 withMongoRetry 가 재시도·재연결로 복구한다.
+    const pingMinIntervalMS = clampTimeoutMs(getEnv(env, "MONGO_PING_MIN_INTERVAL_MS", "50000"), 50000, 0, 60000);
     if (lastHealthyAt && Date.now() - lastHealthyAt < pingMinIntervalMS) {
       return mongoose.connection;
     }
