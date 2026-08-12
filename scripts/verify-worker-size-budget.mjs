@@ -24,10 +24,14 @@ import { gzipSync } from "node:zlib";
 const rootDir = process.cwd();
 
 // build:worker 가 여기에 번들을 쓴다. 바꿀 때는 package.json 의 --outdir 도 함께 바꿀 것.
+//
 // 🔴 wrangler 는 --outdir 를 **설정 파일이 있는 디렉터리**(worker/) 기준으로 푼다. 그래서
-// package.json 에 적은 "build-cache/worker-bundle" 이 실제로는 worker/build-cache/worker-bundle 이
-// 된다 — 루트 기준으로 찾으면 영원히 빈 디렉터리를 본다.
-const bundleDir = resolve(rootDir, process.env.CF_WORKER_BUNDLE_DIR || "worker/build-cache/worker-bundle");
+// package.json 의 값이 `../build-cache/worker-bundle` — 앞의 `../` 가 저장소 루트로 되돌리는
+// 부분이다. 이걸 빼면 산출물이 `worker/build-cache/` 에 떨어지는데, **그러면 안 된다**:
+// 13 MiB 짜리 번들이 worker/ 안에 생기면 worker/ 전체를 훑는 정적 가드들이 번들 안의 코드를
+// 진짜 소스로 착각한다(`__tests__/worker/db.transaction-budget.test.js` 가 번들에 섞인
+// withTransaction 호출을 "시간 상한 없는 위반"으로 신고하며 실제로 깨졌다).
+const bundleDir = resolve(rootDir, process.env.CF_WORKER_BUNDLE_DIR || "build-cache/worker-bundle");
 
 // Cloudflare Workers 무료 플랜: 3 MiB 압축(gzip). 유료 플랜이면 env 로 올린다.
 const CF_FREE_LIMIT_BYTES = 3 * 1024 * 1024;
