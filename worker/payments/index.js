@@ -34,6 +34,17 @@ import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js
 import { runPaymentReconcile } from "./reconcile.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
 import {
+  activatePassSubscription,
+  buildPassCustomerUid,
+  computePassExpiry,
+  createPassOrder,
+  evaluatePassTierTransition,
+  presentPassSubscription,
+  resolvePassPlan,
+} from "./passes.js";
+import { isPassLikeProductType, resolveServerProductType, validatePurchasePolicy } from "../lib/entitlement-policy.js";
+import { writeSecurityLog } from "../lib/security/index.js";
+import {
   buildPremiumAccessCookie,
   createPremiumAccessToken,
   resolvePremiumAccessReportType,
@@ -144,6 +155,189 @@ async function buildLegacyPrepareCustomer(env, user, userId) {
   return { fullName, email, phoneNumber };
 }
 
+/* ── 이용권(구독) 구매 — 구 subscription/prepare·confirm 계약 승계 ─────────────
+   검증 순서·오류 코드는 구 핸들러(payments.js:3773-4431)와 같다. 자동갱신·구매시 월정석 지급은
+   구 핸들러에도 없었음이 전수 조사로 확정됐다(passes.js 머리주석). */
+
+/** 구 billing.js handleCheckout/handleConfirm 의 isSubscription 판별과 같은 정본을 쓴다. */
+function isPassLikeBody(body = {}) {
+  return isPassLikeProductType(resolveServerProductType({
+    body,
+    paymentType: body?.paymentType,
+    productId: body?.productId || body?.planId,
+  }))
+    || Boolean(body?.subscriptionTier)
+    || String(body?.paymentType || "").trim().toLowerCase() === "subscription";
+}
+
+const PASS_POLICY_MESSAGES = Object.freeze({
+  CANNOT_BUY_PASS_WITH_PASS: "이용권 상품은 보유 이용권으로 구매할 수 없습니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.",
+  FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS: "패밀리 이용권은 기능 이용 권한이며, 더 높은 가격의 이용권 구매 수단으로 사용할 수 없습니다.",
+});
+
+function resolvePassRequest(body = {}) {
+  const durationMonths = Number(body?.durationMonths || 1);
+  const durationDays = Number(body?.durationDays ?? 30);
+  if (durationMonths !== 1 || durationDays !== 30) {
+    throw paymentError("INVALID_SUBSCRIPTION_DURATION", "이용권 기간이 올바르지 않습니다.");
+  }
+  const plan = resolvePassPlan(body?.tier || body?.passTier || body?.subscriptionTier, durationMonths);
+  if (!plan) throw paymentError("INVALID_SUBSCRIPTION_TIER", "이용권 등급이 올바르지 않습니다.");
+  const planId = String(body?.planId || "").trim().toLowerCase();
+  const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
+  if ((planId && planId !== plan.planId) || productType !== plan.productType) {
+    throw paymentError("SUBSCRIPTION_PLAN_MISMATCH", "이용권 상품 정보가 일치하지 않습니다.");
+  }
+  const amount = body?.amount === undefined || body?.amount === null ? null : Number(body.amount);
+  const currency = String(body?.currency || "KRW").trim().toUpperCase();
+  if ((amount !== null && amount !== plan.wonPrice) || !["KRW", "CURRENCY_KRW"].includes(currency)) {
+    throw paymentError("SUBSCRIPTION_PRICE_MISMATCH", "이용권 가격 정보가 일치하지 않습니다.");
+  }
+  const paymentMethod = String(body?.paymentMethod || "card_general").trim().toLowerCase();
+  if (/monthly|credit|moonlight|stone/.test(paymentMethod)) {
+    // 문구는 구 핸들러 고정 계약(payments.subscription-purchase.test.js:501)과 동일하게 유지한다.
+    throw paymentError("SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED", "이용권은 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.");
+  }
+  return { plan, paymentMethod };
+}
+
+async function enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc, route }) {
+  const decision = validatePurchasePolicy({
+    userId,
+    sku: plan.planId,
+    productId: plan.planId,
+    productType: resolveServerProductType({
+      body,
+      paymentType: "membership_pass",
+      serverProductType: plan.productType,
+      productId: plan.planId,
+    }),
+    price: plan.wonPrice,
+    requestedPaymentMethod: paymentMethod,
+    currentSubscription: userDoc?.profileSubscription || null,
+    familyPlanInfo: userDoc?.profileSubscription || null,
+    orderContext: {
+      route,
+      coveredByPass: body?.coveredByPass === true,
+      userEntitlement: body?.userEntitlement,
+    },
+  });
+  if (decision?.allowed) return;
+  try {
+    await writeSecurityLog({
+      env,
+      request,
+      level: "warn",
+      reason: decision?.auditCode || decision?.denialReason || "PURCHASE_POLICY_DENIED",
+      userId,
+      endpoint: route,
+      metadata: { policyVersion: decision?.policyVersion || "", sku: plan.planId, requestedPaymentMethod: paymentMethod },
+    });
+  } catch { /* 감사 로그 실패가 정책 판정을 막지 않는다 */ }
+  const reason = String(decision?.denialReason || "PURCHASE_POLICY_DENIED");
+  throw paymentError("PURCHASE_POLICY_DENIED", PASS_POLICY_MESSAGES[reason] || "이용권은 원화 단건 결제로만 구매할 수 있습니다.", { reason });
+}
+
+async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
+  const { plan, paymentMethod } = resolvePassRequest(body);
+  ctx.productId = plan.planId;
+
+  const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
+  let idempotencyKey = String(body.idempotencyKey || "").trim() || headerKey || String(body.requestId || "").trim();
+  if (!idempotencyKey) idempotencyKey = `pass-${crypto.randomUUID()}`;
+
+  const { order, user } = await withDb(env, ctx, async (db) => {
+    const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
+    await enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc, route: "subscription_prepare" });
+    const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
+    if (transition.code === "DOWNGRADE_BLOCKED") {
+      throw paymentError("SUBSCRIPTION_DOWNGRADE_BLOCKED", "이미 더 높은 등급의 이용권이 활성화되어 있습니다.", { activeTier: transition.activeTier });
+    }
+    const created = await createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod });
+    return { order: created, user: userDoc };
+  });
+  ctx.orderId = String(order.merchantUid || "");
+
+  const idempotent = Date.now() - new Date(order.createdAt || 0).getTime() > 10_000;
+  const customer = await buildLegacyPrepareCustomer(env, user, userId);
+  return json({
+    message: idempotent
+      ? "Membership pass payment preparation already completed."
+      : "Membership pass payment preparation completed.",
+    idempotent,
+    order: {
+      merchantUid: String(order.merchantUid || ""),
+      customerUid: buildPassCustomerUid(userId),
+      customer,
+      tier: plan.tier,
+      planId: plan.planId,
+      durationMonths: plan.durationMonths,
+      paymentAmount: Number(order.paymentAmount || plan.wonPrice),
+      productName: plan.name,
+      productType: plan.productType,
+      profileLimit: plan.profileLimit,
+      durationDays: plan.durationDays,
+      recurring: false,
+    },
+  }, { status: idempotent ? 200 : 201 });
+}
+
+async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
+  const { plan, paymentMethod } = resolvePassRequest(body);
+  ctx.productId = plan.planId;
+  const impUid = String(body.impUid || body.paymentId || "").trim();
+  if (!impUid) throw paymentError("INVALID_REQUEST", "impUid 가 필요합니다.");
+  // 구 계약 승계: merchantUid 부재 시 impUid 로 조회한다(V2 는 paymentId=merchantUid 라 동치).
+  const orderId = String(body.merchantUid || body.merchant_uid || impUid).trim();
+  ctx.orderId = orderId;
+  const customerUid = String(body.customerUid || "").trim() || buildPassCustomerUid(userId);
+
+  const { user, idempotent } = await withDb(env, ctx, async (db) => {
+    const order = await findOrder(db, { orderId });
+    if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
+    assertOrderOwner(order, userId);
+    if (String(order.subscriptionTier || "") !== plan.tier) {
+      throw paymentError("SUBSCRIPTION_PLAN_MISMATCH", "이용권 주문의 등급이 일치하지 않습니다.");
+    }
+    const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
+    await enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc, route: "subscription_confirm" });
+    if (toOrderStatus(order) === "PENDING") {
+      // 활성화 전 하위등급 차단(구 계약). 이미 PAID 인 재생은 통과한다 — 구 confirm 도 재생을
+      // 멱등 응답으로 흘려보냈고, 여기서 막으면 정상 결제의 재확인이 409 로 오탐된다.
+      const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
+      if (transition.code === "DOWNGRADE_BLOCKED") {
+        throw paymentError("SUBSCRIPTION_DOWNGRADE_BLOCKED", "이미 더 높은 등급의 이용권이 활성화되어 있습니다.", { activeTier: transition.activeTier });
+      }
+    }
+
+    // 확정·활성화는 제네릭 confirmOrder 하나를 탄다 — grantOrderEntitlement 의 이용권 분기가
+    // 클라이언트·webhook·크론 세 주체 모두에 같은 활성화를 보장한다(주체별 분기 없음 원칙).
+    const result = await confirmOrder(env, db, ctx, { orderId, actorUserId: userId });
+    if (!result.granted) {
+      // 결제는 됐는데 활성화가 미완(그랜트 실패 또는 webhook 선확정 후 활성화 대기).
+      // 활성화는 lastPassOrderId 가드로 멱등이므로 여기서 한 번 마무리를 시도하고,
+      // 그래도 안 되면 재시도 가능 실패로 응답한다(passes.js 머리주석의 계약 — 자동 환불 없음,
+      // 클라이언트의 '결제 상태 다시 확인'·redirect 복귀·크론이 이어받는다).
+      const completed = await grantOrderEntitlement(db, result.order);
+      if (!completed) {
+        throw paymentError("DB_UNAVAILABLE", "이용권 활성화를 반영하지 못했습니다. 잠시 후 '결제 상태 다시 확인'으로 재시도해 주세요.", { orderId });
+      }
+    }
+    const finalUser = await db.findOne(User, { _id: toObjectId(userId) });
+    return { user: finalUser, idempotent: result.replayed };
+  });
+  ctx.paymentStatus = "PAID";
+
+  const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
+  return json({
+    message: idempotent ? "Membership pass payment already processed." : "30-day membership pass has been activated.",
+    idempotent,
+    payment: { merchantUid: orderId, impUid, paymentAmount: plan.wonPrice, paymentType: "membership_pass", status: "paid" },
+    subscription,
+    user: { id: String(userId || ""), points: Number(user?.points || 0) },
+  });
+}
+
 /** 주문을 클라이언트가 읽는 형태로. 내부 필드(rawPortOne·pricingSnapshot 등)는 내보내지 않는다. */
 function presentOrder(order) {
   return {
@@ -207,9 +401,43 @@ async function confirmOrder(env, db, ctx, { orderId, actorUserId = "" }, deps = 
   return { order: paid, replayed: false, granted };
 }
 
+/**
+ * 이용권 주문의 지급 = profileSubscription 활성화. confirmOrder 를 타는 세 주체(클라이언트 확정 ·
+ * webhook · 크론) 모두 이 분기로 온다 — 이용권 결제의 webhook 이 카탈로그 지급 경로에 빠지면
+ * 활성화 없이 entitlementGranted 만 실패로 남는다.
+ * 하위등급 전이는 활성화하지 않고 false 를 돌려준다(재생 제외) — prepare 가 하위등급 주문 생성을
+ * 막으므로 결제 후 그 사이 상위 이용권이 생긴 극단 케이스뿐이고, 상위 이용권을 하위로 덮어쓰는
+ * 쪽이 더 큰 사고다. 주문은 paid+미지급으로 남아 reconcile 로그에 계속 드러난다(사람이 환불 판단).
+ */
+async function grantPassOrderEntitlement(db, order) {
+  const plan = resolvePassPlan(order.subscriptionTier, Number(order?.metadata?.durationMonths || 1));
+  if (!plan) return false;
+  const userId = String(order.userId || "");
+  const orderId = String(order.merchantUid || "");
+  const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
+  const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId;
+  const paidAt = order.paidAt || new Date();
+  const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
+  if (transition.code === "DOWNGRADE_BLOCKED" && !replay) return false;
+  await activatePassSubscription(db, {
+    userId,
+    plan,
+    orderId,
+    customerUid: buildPassCustomerUid(userId),
+    paymentMethod: String(order.paymentMethod || "card_general"),
+    paidAt,
+    expiresAt: computePassExpiry({ transition, paidAt }),
+  });
+  await markEntitlementGranted(db, { orderId });
+  return true;
+}
+
 /** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다. */
 async function grantOrderEntitlement(db, order) {
   try {
+    if (String(order?.paymentType || "") === "membership_pass") {
+      return await grantPassOrderEntitlement(db, order);
+    }
     const snapshot = order.pricingSnapshot || {};
     const product = resolveProduct({
       productId: String(order.productId || ""),
@@ -294,6 +522,9 @@ const ROUTES = {
   "POST /prepare": {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope }) {
+      // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
+      // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
+      if (isPassLikeBody(body)) return handlePassPrepare({ request, env, ctx, userId, body, withDb });
       // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
@@ -387,7 +618,9 @@ const ROUTES = {
    */
   "POST /confirm": {
     auth: "required",
-    async handle({ env, ctx, userId, body, withDb }) {
+    async handle({ request, env, ctx, userId, body, withDb }) {
+      // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleConfirm 의 isSubscription 분기 승계.
+      if (isPassLikeBody(body)) return handlePassConfirm({ request, env, ctx, userId, body, withDb });
       const orderId = String(body.merchantUid || body.orderId || body.paymentId || "").trim();
       if (!orderId) throw paymentError("INVALID_REQUEST", "merchantUid 가 필요합니다.");
       ctx.orderId = orderId;
@@ -494,6 +727,26 @@ const ROUTES = {
       return json(envelope, {
         headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
       });
+    },
+  },
+
+  /**
+   * 🔴 이용권(구독) 컷오버 — 구 /api/payments/subscription/prepare|confirm(재작성)을 V2 로 잇는다.
+   * 검증·오류 코드·응답 키는 구 핸들러 승계(위 handlePassPrepare/Confirm 머리주석), 주문·활성화는
+   * passes.js(파생 멱등 주문 id · CAS · lastPassOrderId 재실행 가드). 자동갱신·월정석 지급 없음이
+   * 구 동작과 동일함은 전수 조사로 확정(passes.js 머리주석).
+   */
+  "POST /subscription/prepare": {
+    auth: "required",
+    async handle(args) {
+      return handlePassPrepare(args);
+    },
+  },
+
+  "POST /subscription/confirm": {
+    auth: "required",
+    async handle(args) {
+      return handlePassConfirm(args);
     },
   },
 

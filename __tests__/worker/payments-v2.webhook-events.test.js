@@ -100,7 +100,8 @@ test("Transaction.Cancelled: 회수할 활성 권한이 없으면 관리자 검�
   const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date() });
   const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } });
   expect(payload).toMatchObject({ ok: true, event: "cancelled", refunded: true, revoked: false, reviewRequired: true });
-  expect(order["metadata.cancellationReviewRequired"]).toBe(true);
+  // fixture 가 Mongo dot notation $set 을 중첩으로 반영한다(실제 드라이버 시맨틱과 동일).
+  expect(order.metadata.cancellationReviewRequired).toBe(true);
   expect(order.failureStage).toBe("webhook_cancel_admin_review");
 });
 
