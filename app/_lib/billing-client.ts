@@ -459,7 +459,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-4b96ba87f36f";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8b105f8297fe";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -4195,6 +4195,36 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
       return parseBillingResponse<BillingCoinGateData>(response);
     };
 
+    /* 🔴 월정석 409 만의 좁은 재시도. 위 "이 호출은 단발이다" 규칙의 **예외가 아니라 보완**이다 —
+       그 규칙이 막는 것은 답이 확정된 POST 를 자동으로 다시 쏘는 것이고, 여기 409 는 확정된 답이
+       아니다. 서버는 "차감이 아직 확정되지 않았다"는 뜻으로만 이 코드를 쓰며 retryable 로 표시한다
+       (MOONSTONE_IN_PROGRESS · MOONSTONE_CONTENDED 가 이 하나로 접힌다). 세 경우 모두 **아무것도
+       차감되지 않은 상태**다.
+
+       🔴 requestId 를 재발급하지 않는 것이 이 재시도의 안전 근거 전부다. gateRequestId 는 게이트
+       호출당 1회 고정이고 그 값이 원장 sourceId 라, 형제 요청이 이미 차감을 끝냈으면 서버가 그
+       결과를 replayed 로 돌려준다. 새 키로 다시 부르면 원장 행이 따로 생겨 **두 번 차감된다** —
+       서버가 이 상황에서 402 가 아니라 409 를 내는 이유가 정확히 그것이다.
+
+       이걸 넣기 전에는 월정석 409 가 dead-end 였다. 아래 결제창 폴백은 explicitPaymentMode 인
+       월정석을 애초에 제외하므로(그 조건이 맞다 — 사용자가 이미 수단을 골랐다), 재시도가 없으면
+       확정 실패로 끝났다. 정적 셸(_cdRunMonthlyCreditGate)은 처음부터 같은 계약이었고 이제 셋이
+       같다(3회 · 250ms 배수 대기 · 동일 requestId). */
+    const MOONSTONE_IN_PROGRESS_MAX_ATTEMPTS = 3;
+    const isMoonstoneRetryable = (result: BillingResult<BillingCoinGateData>) => (
+      result.status === 409
+      || String(result.error?.code || "").trim().toUpperCase() === "MONTHLY_CREDIT_CONSUME_IN_PROGRESS"
+    );
+    const runMoonstoneRequestWithRetry = async () => {
+      let result = await runCoinGateRequest();
+      for (let attempt = 1; attempt < MOONSTONE_IN_PROGRESS_MAX_ATTEMPTS; attempt += 1) {
+        if (result.ok || !isMoonstoneRetryable(result)) break;
+        await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, 250 * attempt); });
+        result = await runCoinGateRequest();
+      }
+      return result;
+    };
+
     // 🔴 이 호출은 **단발이다. 자동 재시도하지 않는다** (주석 정정 2026-08-08 — 예전 주석은 "짧게
     // 재시도한다"고 적혀 있었지만 재시도 코드는 이미 제거된 뒤였다). 이 POST 는 월정석/단건 모드에서
     // 실제 과금을 확정하므로 자동 재요청은 결제 사고 위험이고, verify:paid-gate-ui 와
@@ -4213,7 +4243,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
           error: { code: "PAYMENT_REQUIRED", message: "단건 결제를 진행합니다." },
           raw: {},
         }
-      : await runCoinGateRequest();
+      : (explicitMonthlyMode ? await runMoonstoneRequestWithRetry() : await runCoinGateRequest());
 
     if (parsed.ok && parsed.data) {
       if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {

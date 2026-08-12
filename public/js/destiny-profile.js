@@ -3075,6 +3075,44 @@
     return String(fallback || '결제 처리에 실패했습니다.');
   }
 
+  /* 🔴 월정석 409(MONTHLY_CREDIT_CONSUME_IN_PROGRESS)는 확정 실패가 아니다.
+     서버는 "차감이 아직 확정되지 않았다"는 뜻으로만 이 코드를 쓰고 retryable 로 표시한다
+     (worker/payments/errors.js — MOONSTONE_IN_PROGRESS · MOONSTONE_CONTENDED 둘 다 여기로 접힌다).
+     세 경우 모두 **아무것도 차감되지 않은 상태**라 재요청이 안전하다.
+
+     🔴 재시도는 반드시 **같은 requestId** 로 한다. 그 값이 원장의 sourceId 이고, 형제 요청이
+     이미 차감을 끝냈다면 서버가 그 결과를 그대로(replayed) 돌려주므로 이중차감이 원천 봉쇄된다.
+     새 requestId 를 발급하면 원장 행이 따로 생겨 **두 번 차감된다** — 서버가 이 상황에서
+     402 가 아니라 409 를 내는 이유가 정확히 그것이다(worker/payments/moonstone.js).
+     정적 셸 _cdRunMonthlyCreditGate 와 같은 계약이다(3회 · 250ms 배수 대기). */
+  var _DP_MOONSTONE_RETRY_ATTEMPTS = 3;
+
+  function _dpIsMoonstoneRetryable(status, code) {
+    return Number(status) === 409
+      || String(code || '').trim().toUpperCase() === 'MONTHLY_CREDIT_CONSUME_IN_PROGRESS';
+  }
+
+  // runOnce: 요청 1회를 도는 thunk(같은 requestId 를 닫아 두어야 한다)
+  // readResult: 응답에서 { ok, status, code } 를 뽑는 함수(호출부마다 응답 shape 이 다르다)
+  async function _dpRunMoonstoneWithRetry(runOnce, readResult) {
+    var res = null;
+    for (var attempt = 0; attempt < _DP_MOONSTONE_RETRY_ATTEMPTS; attempt += 1) {
+      if (attempt > 0) {
+        await new Promise(function (resolve) { window.setTimeout(resolve, 250 * attempt); });
+      }
+      res = await runOnce();
+      var info = readResult(res) || {};
+      if (info.ok) break;
+      if (!_dpIsMoonstoneRetryable(info.status, info.code)) break;
+    }
+    return res;
+  }
+
+  function _dpReadBillingCode(payload) {
+    if (!payload || typeof payload !== 'object') return '';
+    return String(payload.code || payload.errorCode || (payload.error && payload.error.code) || '');
+  }
+
   function _dpToText(value) {
     return String(value === undefined || value === null ? '' : value).trim();
   }
@@ -3901,7 +3939,14 @@
     var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
     var featureKey = _dpResolvePaidGateFeatureKey(opts, title);
     var requestId = String(opts.requestId || '').trim() || ('monthly-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MOONLIGHT_STONE')) });
+    var res = await _dpRunMoonstoneWithRetry(
+      function () {
+        return _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MOONLIGHT_STONE')) });
+      },
+      function (r) {
+        return { ok: !!(r && r.ok), status: r && r.status, code: _dpReadBillingCode(r && r.payload) };
+      },
+    );
     if (!res || !res.ok) throw new Error(_dpReadBillingMessage(res && res.payload, '\uC6D4\uC815\uC11D \uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
     return res.payload || res;
   }
@@ -10720,32 +10765,38 @@
       var pendingLabel = String(reason || '').trim() || '유료 서비스';
       _dpSetPaymentPending(true, pendingLabel + ' 결제 권한을 확인하고 있습니다.', 'monthly');
       return _dpWaitForPaymentOverlayPaint().then(function() {
-        return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
-          method: 'POST',
-          headers: consumeHeaders,
-          credentials: 'include',
-          cache: 'no-store',
-          body: JSON.stringify({
-            cost: cost,
-            reason: reason,
-            featureKey: normalizedFeatureKey || undefined,
-            reportType: optionBag.reportType,
-            serviceKey: optionBag.serviceKey,
-            reportId: optionBag.reportId,
-            sessionId: optionBag.sessionId,
-            reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
-            purchaseId: optionBag.purchaseId,
-            actionType: optionBag.actionType,
-            profileAction: optionBag.profileAction,
-            action: optionBag.action,
-            profileId: optionBag.profileId,
-            selectedProfileId: optionBag.selectedProfileId,
-            paymentMode: 'MOONLIGHT_STONE',
-            requestId: requestId
-          })
-        }, {
-          retryOn401: true,
-          timeoutMs: _DP_FETCH_TIMEOUT_MS,
+        return _dpRunMoonstoneWithRetry(function () {
+          return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
+            method: 'POST',
+            headers: consumeHeaders,
+            credentials: 'include',
+            cache: 'no-store',
+            body: JSON.stringify({
+              cost: cost,
+              reason: reason,
+              featureKey: normalizedFeatureKey || undefined,
+              reportType: optionBag.reportType,
+              serviceKey: optionBag.serviceKey,
+              reportId: optionBag.reportId,
+              sessionId: optionBag.sessionId,
+              reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
+              purchaseId: optionBag.purchaseId,
+              actionType: optionBag.actionType,
+              profileAction: optionBag.profileAction,
+              action: optionBag.action,
+              profileId: optionBag.profileId,
+              selectedProfileId: optionBag.selectedProfileId,
+              paymentMode: 'MOONLIGHT_STONE',
+              requestId: requestId
+            })
+          }, {
+            retryOn401: true,
+            timeoutMs: _DP_FETCH_TIMEOUT_MS,
+          });
+        }, function (r) {
+          var raw = (r && r.data && typeof r.data === 'object') ? r.data : {};
+          var inner = (raw.data && typeof raw.data === 'object') ? raw.data : raw;
+          return { ok: !!(r && r.ok), status: r && r.status, code: _dpReadBillingCode(inner) || _dpReadBillingCode(raw) };
         });
       })
       .then(function(res) {
