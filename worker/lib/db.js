@@ -58,6 +58,22 @@ const mongoOperationAdmission = globalThis.__mongoOperationAdmission
     waiters: [],
   });
 
+// 🔴 결제 전용 admission 레인. 아래 connectPaymentDb 의 소켓 레인과 **한 세트**다.
+// 2c2a16205 는 소켓만 나누고 이 게이트를 공유한 채 뒀는데, 그러면 부팅 폭풍이 공유 한도(12)를
+// 채우는 순간 checkout 이 여전히 2500ms 뒤 MongoOperationOverloadedError → 재시도 제외 →
+// 하드 503 이 된다(= "PG 결제창이 안 뜬다"의 남은 절반). maxConcurrent 옵션으로는 못 고친다 —
+// 그 옵션은 같은 active 카운터의 한도만 낮출 뿐이라 카운터가 이미 차 있으면 소용이 없다.
+// 카운터 자체를 분리해야 "부팅 트래픽이 결제 슬롯을 먹는" 경로가 구조적으로 사라진다.
+const mongoPaymentAdmission = globalThis.__mongoPaymentAdmission
+  || (globalThis.__mongoPaymentAdmission = {
+    active: 0,
+    waiters: [],
+  });
+
+function resolveAdmissionLane(options = {}) {
+  return options.admissionLane === "payment" ? mongoPaymentAdmission : mongoOperationAdmission;
+}
+
 function createMongoOperationOverloadedError() {
   const error = new Error("MongoDB operation capacity is temporarily saturated.");
   error.name = "MongoOperationOverloadedError";
@@ -65,7 +81,7 @@ function createMongoOperationOverloadedError() {
   return error;
 }
 
-function drainMongoOperationWaiters() {
+function drainMongoOperationWaiters(lane) {
   // 🔴 대기열 선두에서 멈추지 않고 **스캔**한다.
   // 예전에는 선두 대기자가 못 들어가면 곧바로 return 했다. 모든 대기자의 limit 이 같을 때는 그게
   // 맞았지만, 지금은 낮은 limit 을 쓰는 우선순위 레인이 있다(worker/lib/security: maxConcurrent 2).
@@ -75,27 +91,27 @@ function drainMongoOperationWaiters() {
   // 그 실패는 fail-open 이라 정책에 영향이 없다.
   // 같은 limit 끼리는 배열 순서를 그대로 따르므로 FIFO 가 유지된다.
   let index = 0;
-  while (index < mongoOperationAdmission.waiters.length) {
-    const waiter = mongoOperationAdmission.waiters[index];
+  while (index < lane.waiters.length) {
+    const waiter = lane.waiters[index];
     if (waiter.settled) {
-      mongoOperationAdmission.waiters.splice(index, 1);
+      lane.waiters.splice(index, 1);
       continue;
     }
-    if (mongoOperationAdmission.active >= waiter.limit) {
+    if (lane.active >= waiter.limit) {
       index += 1;
       continue;
     }
-    mongoOperationAdmission.waiters.splice(index, 1);
+    lane.waiters.splice(index, 1);
     waiter.settled = true;
     clearTimeout(waiter.timer);
-    mongoOperationAdmission.active += 1;
-    waiter.resolve(() => releaseMongoOperationSlot());
+    lane.active += 1;
+    waiter.resolve(() => releaseMongoOperationSlot(lane));
   }
 }
 
-function releaseMongoOperationSlot() {
-  mongoOperationAdmission.active = Math.max(0, mongoOperationAdmission.active - 1);
-  drainMongoOperationWaiters();
+function releaseMongoOperationSlot(lane) {
+  lane.active = Math.max(0, lane.active - 1);
+  drainMongoOperationWaiters(lane);
 }
 
 // 🔴 기본값 5 → 8 (2026-08-09). 5 는 **요청 간 auth dedup 이 있다는 전제**에서 나온 숫자였고,
@@ -138,15 +154,29 @@ const MONGO_MAX_IN_FLIGHT_OPS_DEFAULT = "12";
 // 예산 검산: 2500(admission) + 5000(waitQueue) + 쿼리 ≈ 8s < 11.5s(시도 상한 하한). 여유 있다.
 const MONGO_OP_ADMISSION_TIMEOUT_MS_DEFAULT = "2500";
 
+// 결제 레인의 한도. 위 공유 레인 주석과 같은 논리로 **한도 > 풀** 이어야 한다 — 초과분이
+// admission(2500ms, 재시도 **불가**)이 아니라 드라이버 waitQueue(5000ms, 재시도 가능)에서
+// 기다리게 하는 것이 요점이다. 결제 레인 풀은 4(MONGO_PAYMENT_POOL_SIZE)라 6으로 둔다.
+const MONGO_PAYMENT_MAX_IN_FLIGHT_OPS_DEFAULT = "6";
+
 async function acquireMongoOperationSlot(env, options = {}) {
+  const lane = resolveAdmissionLane(options);
+  const isPaymentLane = lane === mongoPaymentAdmission;
+  const limitDefault = isPaymentLane
+    ? MONGO_PAYMENT_MAX_IN_FLIGHT_OPS_DEFAULT
+    : MONGO_MAX_IN_FLIGHT_OPS_DEFAULT;
   const limit = clampInt(
     options.maxConcurrent != null
       ? options.maxConcurrent
-      : getEnv(env, "MONGO_MAX_IN_FLIGHT_OPS", MONGO_MAX_IN_FLIGHT_OPS_DEFAULT),
-    Number(MONGO_MAX_IN_FLIGHT_OPS_DEFAULT),
+      : getEnv(
+        env,
+        isPaymentLane ? "MONGO_PAYMENT_MAX_IN_FLIGHT_OPS" : "MONGO_MAX_IN_FLIGHT_OPS",
+        limitDefault,
+      ),
+    Number(limitDefault),
     1,
     // 상한은 기본값보다 커야 한다 — 같으면 env 노브가 아래로만 움직여 긴급 상향을 못 한다.
-    12,
+    isPaymentLane ? 10 : 12,
   );
   const waitTimeoutMS = clampTimeoutMs(
     options.admissionTimeoutMS != null
@@ -157,9 +187,9 @@ async function acquireMongoOperationSlot(env, options = {}) {
     5000,
   );
 
-  if (mongoOperationAdmission.active < limit) {
-    mongoOperationAdmission.active += 1;
-    return () => releaseMongoOperationSlot();
+  if (lane.active < limit) {
+    lane.active += 1;
+    return () => releaseMongoOperationSlot(lane);
   }
 
   return new Promise((resolve, reject) => {
@@ -173,22 +203,23 @@ async function acquireMongoOperationSlot(env, options = {}) {
     waiter.timer = setTimeout(() => {
       if (waiter.settled) return;
       waiter.settled = true;
-      const index = mongoOperationAdmission.waiters.indexOf(waiter);
-      if (index >= 0) mongoOperationAdmission.waiters.splice(index, 1);
+      const index = lane.waiters.indexOf(waiter);
+      if (index >= 0) lane.waiters.splice(index, 1);
       try {
         console.warn("[db-op-admission]", JSON.stringify({
+          lane: isPaymentLane ? "payment" : "shared",
           limit,
           waitTimeoutMS,
-          active: mongoOperationAdmission.active,
-          queued: mongoOperationAdmission.waiters.length,
+          active: lane.active,
+          queued: lane.waiters.length,
         }));
       } catch (e) {
         // Diagnostics must never change the failure path.
       }
       reject(createMongoOperationOverloadedError());
     }, waitTimeoutMS);
-    mongoOperationAdmission.waiters.push(waiter);
-    drainMongoOperationWaiters();
+    lane.waiters.push(waiter);
+    drainMongoOperationWaiters(lane);
   });
 }
 
@@ -605,10 +636,26 @@ export async function connectDb(env = {}) {
 let paymentConnection = null;
 let paymentConnectionPromise = null;
 
+// 레인 커넥션을 버린다. 공유 풀의 resetMongooseConnection 은 기본 커넥션만 건드리므로
+// (withMongoRetry 의 skipSharedConnect 참고) 레인은 자기 회복 경로가 따로 있어야 한다.
+// close 를 빠뜨리면 죽은 커넥션이 아이솔레이트에 그대로 남아 M0 연결 예산만 먹는다.
+export async function resetPaymentConnection() {
+  const stale = paymentConnection;
+  paymentConnection = null;
+  if (!stale) return;
+  try {
+    await stale.close(false);
+  } catch (e) {
+    // 이미 끊긴 커넥션을 닫는 실패는 정보가 없다 — 참조를 놓은 것으로 목적은 달성됐다.
+  }
+}
+
 export async function connectPaymentDb(env = {}) {
   installProcessEnv(env);
   if (paymentConnection && paymentConnection.readyState === 1) return paymentConnection;
   if (paymentConnectionPromise) return paymentConnectionPromise;
+  // readyState 가 1 이 아닌 커넥션이 남아 있으면 재할당 전에 닫는다(그냥 덮으면 소켓이 샌다).
+  if (paymentConnection) await resetPaymentConnection();
   const uri = (
     getEnv(env, "MONGO_URI")
     || getEnv(env, "MONGODB_URI")
@@ -736,6 +783,13 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   const forceResetAfter = clampInt(getEnv(env, "MONGO_POOL_FORCE_RESET_AFTER", "3"), 3, 1, 10);
   // 강행 리셋이 폭주하지 않도록 최소 간격만 남긴다(쿨다운 자체는 우회한다).
   const forcedResetMinIntervalMS = Math.min(poolResetCooldownMS, 1000);
+  // 🔴 자기 커넥션을 따로 세우는 호출자(결제 레인 — worker/payments/db.js)는 공유 커넥션의
+  // **대상도 주체도 아니다**. 이 플래그는 두 가지를 함께 끈다: ① 시도마다의 connectDb(env)
+  // ② 실패 시의 공유 풀 리셋 부기(consecutiveConnectionFailures / resetMongooseConnection).
+  // ②가 더 중요하다 — 공유 커넥션을 안 쓰는 실패로 전역 disconnect 를 걸면 자기 레인은 안 낫고
+  // bufferCommands:false 때문에 그 순간 살아 있던 **부팅 트래픽만 통째로 죽는다**. 결제 기아를
+  // 없애려다 기아의 원인 쪽을 절단하는 셈이다. 레인의 회복은 resetPaymentConnection() 이 맡는다.
+  const ownsSharedConnection = options.skipSharedConnect !== true;
 
   let lastError = null;
   // 🔴 admission 거절(MongoOperationOverloadedError)은 아래 재시도 루프 **이전**에 던져져 willRetry
@@ -785,7 +839,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
       let connectFinishedAt = 0;
       try {
         const attemptTask = (async () => {
-          await connectDb(env);
+          if (ownsSharedConnection) await connectDb(env);
           connectFinishedAt = Date.now();
           return await operation();
         })();
@@ -807,8 +861,11 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         );
         // 이 연결 위에서 실제로 작업이 성공했다 = 연결은 살아 있다. 다른 요청이 예약해 둔 전역
         // disconnect가 있다면 취소한다 — 멀쩡한 연결을 끊어 다음 요청을 콜드 재연결로 몰지 않는다.
-        pendingPoolReset = false;
-        consecutiveConnectionFailures = 0;
+        // 전용 레인의 성공은 공유 커넥션에 대해 아무것도 증명하지 않으므로 취소 권한도 없다.
+        if (ownsSharedConnection) {
+          pendingPoolReset = false;
+          consecutiveConnectionFailures = 0;
+        }
         return result;
       } catch (error) {
         lastError = error;
@@ -830,7 +887,8 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // 여전히 재시도하고, 라우트 계층의 503(재시도 가능) 매핑도 그대로다. 여기서 빠지는 것은
         // '웜 커넥션 무효화 + 풀 리셋' 판정뿐이다.
         const isWaitQueueTimeout = String(error?.name || "") === "MongoWaitQueueTimeoutError";
-        const isConnectionLevelFailure = !isWaitQueueTimeout
+        const isConnectionLevelFailure = ownsSharedConnection
+          && !isWaitQueueTimeout
           && ((isOperationTimeout && resetOnOperationTimeout) || isTransientMongoError(error));
         const willRetry = attempt < maxRetries
           && isTransientMongoError(error)

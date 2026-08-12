@@ -27,6 +27,11 @@ export function matches(doc, filter) {
         if (op === "$ne") return String(value) !== String(operand);
         if (op === "$lt") return value != null && value < operand;
         if (op === "$gt") return value != null && value > operand;
+        // $lte/$gte 는 이용권 예산 CAS 가 쓴다(passes.js consumePassCoverage). 값이 없으면
+        // 아직 0 이라는 뜻이므로 통과시킨다 — 실드라이버는 missing 을 비교에서 제외하지만,
+        // 이 픽스처의 소비 CAS 는 항상 cycleKey 일치 필터와 AND 라 그 조합에서만 도달한다.
+        if (op === "$lte") return value == null ? operand >= 0 : value <= operand;
+        if (op === "$gte") return value == null ? operand <= 0 : value >= operand;
         if (op === "$exists") return (value !== undefined) === operand;
         throw new Error(`fake-payment-db: 미구현 연산자 ${op}`);
       });

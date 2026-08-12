@@ -15,8 +15,15 @@
  * 구 파일은 동결이라 옮기지 못하므로 여기 리터럴을 두고, 패리티 테스트가 셸 정본과 대조한다
  * (payments.subscription-purchase.test.js 가 쓰는 것과 같은 기법).
  */
-import { Payment, User } from "../lib/models.js";
-import { HONEY_PASS_POLICY, normalizePassTier } from "../lib/profile-limits.js";
+import { Payment, PointHistory, User } from "../lib/models.js";
+import {
+  HONEY_PASS_POLICY,
+  MONTHLY_PASS_LIMITS,
+  PASS_LIMITS,
+  PREMIUM_QUOTA_MIN_COIN_COST,
+  normalizePassTier,
+  resolvePremiumQuotaCycleKey,
+} from "../lib/profile-limits.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 
@@ -227,4 +234,204 @@ export function presentPassSubscription(profileSubscription, plan, { customerUid
   };
 }
 
-export const __passesTestUtils = { PASS_MONTHLY_WON, PASS_TIER_RANK };
+/* ── 이용권 커버 판정·소비 (구 coin-gate MEMBERSHIP_PASS 분기 승계) ──────────────
+ *
+ * ## 3중 쿼터 → 2규칙 단순화 (2026-08-12 사용자 승인)
+ * 구 판정은 ①건당 상한 ②프리미엄 상담 포함횟수(family 10회·vvip 3회) ③월 누적 한도의 3중이었다.
+ * ②와 ③을 **단일 월 예산(코인)** 하나로 합친다 — 카운터가 하나면 판정과 소비가 같은 수를 보므로
+ * "판정은 커버라 했는데 소비가 거부"하는 막다른 길(과거 프로필카드 실사고와 동형)이 구조적으로
+ * 사라진다. 예산 수치는 현행 월 누적 한도(MONTHLY_PASS_LIMITS)를 그대로 승계하므로 체감 변화가 없고,
+ * 고가 상담도 코인 예산에서 자연히 차단된다(vvip 2,000코인 = 20만원).
+ * 건당 상한 우회는 유지한다: 프리미엄 상담(300코인 이상)을 포함 혜택으로 갖던 등급(family·vvip)은
+ * 상한 대신 예산으로만 판정한다 — 이걸 빼면 vvip 상한(100코인)이 상담을 전부 막아 혜택이 사라진다.
+ *
+ * ## 왕복 예산
+ * 판정은 넘겨받은 User 문서 하나로 끝나고(추가 조회 0), 소비는 CAS 1회다. 구 경로는 인증 조회 +
+ * 이용권 조회 + 프로필 조회 + 소비 CAS 로 4왕복이었고, 그 팬아웃이 M0 풀 기아·503·"로그인 필요"
+ * 오탐의 최대 지점이었다(worker/lib/db.js 결제 레인 주석과 한 세트다).
+ */
+const PASS_MARKER_CAP = 40;
+
+/** 프리미엄 상담 건당-상한 우회 대상 등급. 구 PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 의 키와 같다. */
+const PREMIUM_BYPASS_TIERS = new Set(["family", "vvip"]);
+
+export function buildPassConsumeMarker(featureKey, requestId) {
+  const key = String(featureKey || "").trim();
+  const id = String(requestId || "").trim();
+  return key && id ? `tier-pass:${key}:${id}` : "";
+}
+
+/**
+ * 커버 판정. **읽기 0회** — 호출부가 이미 읽은 User 문서로만 판단한다.
+ * @returns {{ covered: boolean, reason?: string, tier?: string, ... }}
+ */
+export function evaluatePassCoverage({ user, entitlement, coinCost }) {
+  const cost = Math.max(0, Math.floor(Number(coinCost || 0)));
+  const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {};
+  const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
+  if (!entitlement?.isActive || !tier) return { covered: false, reason: "no_active_pass" };
+  if (!Number.isFinite(cost) || cost <= 0) return { covered: false, reason: "invalid_price", tier };
+
+  const perItemLimit = Math.max(0, Math.floor(Number(PASS_LIMITS[tier] || 0)));
+  const budgetCoin = Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0)));
+  const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
+  // 예산은 사이클 키(=이용권 만료일)가 있어야 셀 수 있다. 못 세는 상태는 막지 않는다(구 정책 승계).
+  const budgetApplies = Boolean(cycleKey) && budgetCoin > 0;
+  const usedCoin = String(sub.premiumUseCycleKey || "") === cycleKey
+    ? Math.max(0, Math.floor(Number(sub.monthlySpendCoin || 0)))
+    : 0;
+
+  const premiumBypass = PREMIUM_BYPASS_TIERS.has(tier) && cost >= PREMIUM_QUOTA_MIN_COIN_COST;
+  if (!premiumBypass && cost > perItemLimit) {
+    return { covered: false, reason: "price_exceeds_pass_limit", tier, perItemLimit, coinCost: cost };
+  }
+  if (budgetApplies && usedCoin + cost > budgetCoin) {
+    return {
+      covered: false, reason: "monthly_pass_limit_exceeded", tier,
+      budgetCoin, usedCoin, remainingCoin: Math.max(0, budgetCoin - usedCoin), coinCost: cost,
+    };
+  }
+  return {
+    covered: true, tier, perItemLimit, coinCost: cost,
+    budgetApplies, budgetCoin, usedCoin, cycleKey,
+    remainingCoin: budgetApplies ? Math.max(0, budgetCoin - usedCoin - cost) : budgetCoin,
+    sameCycle: budgetApplies && String(sub.premiumUseCycleKey || "") === cycleKey,
+  };
+}
+
+/**
+ * 소비 CAS. **쓰기 1회**(경합 시 반대 분기로 1회 재시도).
+ * 필터가 예산을 다시 검사하므로 동시 요청이 예산을 초과해 통과할 수 없고, 멱등 마커가 있으면
+ * 같은 요청의 재시도가 예산을 두 번 깎지 않는다. null = 경합에서 졌다 → 호출부가 재판정한다.
+ */
+export async function consumePassCoverage(db, { userId, coverage, marker, existingMarkers = [], now = new Date() }) {
+  const uid = toObjectId(userId);
+  if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+  const cost = Math.max(0, Math.floor(Number(coverage?.coinCost || 0)));
+  const markerSet = { ...(marker ? { recentConsumeRequestIds: { $ne: marker } } : {}) };
+  const markerWrite = !marker
+    ? {}
+    : existingMarkers.length < PASS_MARKER_CAP
+      ? { $addToSet: { recentConsumeRequestIds: marker } }
+      : { $set: { recentConsumeRequestIds: [...existingMarkers.slice(-(PASS_MARKER_CAP - 1)), marker] } };
+
+  const baseSet = {
+    "profileSubscription.passTier": coverage.tier,
+    "profileSubscription.maxCoveredCoin": coverage.perItemLimit,
+    "profileSubscription.updatedAt": now,
+  };
+
+  // 예산을 못 세는 상태(만료일 없음)면 카운터를 건드리지 않고 마커만 남긴다.
+  if (!coverage.budgetApplies) {
+    const updated = await db.findOneAndUpdate(
+      User, { _id: uid, ...markerSet },
+      mergeUpdate({ $set: baseSet }, markerWrite),
+      { returnDocument: "after" },
+    );
+    return unwrapUser(updated);
+  }
+
+  // 같은 사이클이면 증분(예산 잔량을 필터로 재검사), 새 사이클이면 이번 건부터 다시 센다.
+  const attempts = coverage.sameCycle
+    ? [
+      {
+        filter: {
+          _id: uid, ...markerSet,
+          "profileSubscription.premiumUseCycleKey": coverage.cycleKey,
+          "profileSubscription.monthlySpendCoin": { $lte: coverage.budgetCoin - cost },
+        },
+        update: mergeUpdate({ $set: baseSet, $inc: { "profileSubscription.monthlySpendCoin": cost } }, markerWrite),
+      },
+    ]
+    : [
+      {
+        filter: { _id: uid, ...markerSet, "profileSubscription.premiumUseCycleKey": { $ne: coverage.cycleKey } },
+        update: mergeUpdate({
+          $set: {
+            ...baseSet,
+            "profileSubscription.premiumUseCycleKey": coverage.cycleKey,
+            "profileSubscription.monthlySpendCoin": cost,
+          },
+        }, markerWrite),
+      },
+      // 읽은 뒤 다른 요청이 사이클을 먼저 열었다면 증분 분기로 한 번 더 시도한다.
+      {
+        filter: {
+          _id: uid, ...markerSet,
+          "profileSubscription.premiumUseCycleKey": coverage.cycleKey,
+          "profileSubscription.monthlySpendCoin": { $lte: coverage.budgetCoin - cost },
+        },
+        update: mergeUpdate({ $set: baseSet, $inc: { "profileSubscription.monthlySpendCoin": cost } }, markerWrite),
+      },
+    ];
+
+  for (const attempt of attempts) {
+    const updated = unwrapUser(await db.findOneAndUpdate(User, attempt.filter, attempt.update, { returnDocument: "after" }));
+    if (updated) return updated;
+  }
+  return null;
+}
+
+/**
+ * 이용권 사용 증빙(PointHistory delta 0) 기록.
+ *
+ * 🔴 이게 없으면 지연차감(deferUsage) 흐름이 결제 뒤에 막힌다. 클라이언트는 coin-gate 성공 직후
+ * 구 `/api/billing/coin-gate/deferred/register` 를 부르고, 그 핸들러는 PointHistory·원장·Payment
+ * 중 하나에서 증빙을 찾지 못하면 402(PAYMENT_VERIFICATION_FAILED)로 응답한다 — V2 가 이용권을
+ * 이미 소비했는데도 기능이 열리지 않는 최악의 조합이 된다(2026-08-12 감사에서 발견).
+ * 구 코드는 FAMILY 등급만 이 행을 남겼고 나머지 등급은 사용 이력 자체가 없었다 — 여기서는
+ * 모든 등급에 남긴다(감사 추적이 생기고, 위 지연차감 연결이 등급과 무관하게 성립한다).
+ * delta 0 이라 잔액에 영향이 없다(구 recordPassAccessIfNeeded 와 같은 형태).
+ */
+export async function recordPassUsageEvidence(db, { userId, product, requestId, profileId = "", coverage = {}, user = null }) {
+  const uid = toObjectId(userId);
+  if (!uid || !requestId) return null;
+  const isFamily = String(coverage.tier || "") === "family";
+  const now = new Date();
+  try {
+    await db.insertOne(PointHistory, {
+      userId: uid,
+      kind: "deduct",
+      delta: 0,
+      balanceAfter: Math.max(0, Math.floor(Number(user?.points || 0))),
+      reason: String(product?.label || "pass_access"),
+      featureKey: String(product?.featureKey || ""),
+      metadata: {
+        accessType: isFamily ? "family" : "membership_pass",
+        accessMethod: isFamily ? "FAMILY" : "PASS",
+        paymentMethod: isFamily ? "FAMILY" : "PASS",
+        requestId: String(requestId),
+        purchaseId: String(requestId),
+        profileId: String(profileId || ""),
+        featureKey: String(product?.featureKey || ""),
+        coinCost: Number(product?.priceCoins || 0),
+        coinPrice: Number(product?.priceCoins || 0),
+        passTier: coverage.tier || null,
+        passLimit: Number(coverage.perItemLimit || 0),
+        monthlySpendUsed: Number(coverage.usedCoin || 0) + Number(coverage.coinCost || 0),
+      },
+      createdAt: now,
+      updatedAt: now,
+    });
+  } catch {
+    // 증빙 기록 실패가 이미 소비된 이용권 접근을 막지 않는다. 지연차감 연결은 못 하지만
+    // 그 경우 register 가 402 를 주고 클라이언트가 다른 결제수단으로 인계한다(무료 누수 없음).
+    return null;
+  }
+  return true;
+}
+
+function mergeUpdate(base, extra) {
+  const merged = { ...base };
+  for (const [op, value] of Object.entries(extra || {})) {
+    merged[op] = { ...(merged[op] || {}), ...value };
+  }
+  return merged;
+}
+
+function unwrapUser(result) {
+  if (result && typeof result === "object" && "value" in result && !("_id" in result)) return result.value;
+  return result || null;
+}
+
+export const __passesTestUtils = { PASS_MONTHLY_WON, PASS_TIER_RANK, PASS_MARKER_CAP };

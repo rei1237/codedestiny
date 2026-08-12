@@ -1385,6 +1385,24 @@ export default {
             }));
           }
         }
+        // 이용권 검사 컷오버 — 같은 coin-gate 라우트의 MEMBERSHIP_PASS 분기만 V2 로 보낸다.
+        // 월정석과 별도 이름(pass-check)이라 한쪽만 켜고 끌 수 있다. 롤백은 env 에서 이름 제거.
+        if (isPaymentsV2Route(env, "pass-check")
+          && request.method === "POST"
+          && url.pathname === "/api/billing/coin-gate") {
+          let passGateMode = "";
+          try {
+            const passGateBodyText = await request.clone().text();
+            passGateMode = String(JSON.parse(passGateBodyText || "{}")?.paymentMode || "").trim().toUpperCase();
+          } catch { passGateMode = ""; }
+          if (passGateMode === "MEMBERSHIP_PASS") {
+            const rewrittenPassCheck = rewriteRequestPath(request, "/api/payments/coin-gate/pass-check");
+            const { handlePaymentsContext } = await import("./payments/index.js");
+            return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenPassCheck, env, {
+              prefix: "/api/payments",
+            }));
+          }
+        }
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env, ctx));
       }
 

@@ -49,6 +49,8 @@ describe("라우트 표", () => {
       "GET /orders/:id",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
       "POST /coin-gate/moonstone",
+      // 이용권 검사 컷오버 — 구 coin-gate 의 MEMBERSHIP_PASS 분기(재작성)가 여기로 온다.
+      "POST /coin-gate/pass-check",
       // 확정 컷오버 어댑터 — 구 /api/billing/confirm(재작성)이 여기로 온다.
       "POST /confirm",
       "POST /moonstone/spend",
