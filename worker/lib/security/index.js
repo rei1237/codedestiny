@@ -6,7 +6,6 @@ import { getRequestMeta, json } from "../http.js";
 import {
   AbuseScore,
   ContentEntitlement,
-  IdempotencyKey,
   PaidExecutionRecord,
   Payment,
   ProfileCard,
@@ -499,55 +498,11 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
   return { ok: true };
 }
 
-export async function enforceIdempotency({
-  env,
-  userId = "",
-  endpoint = "",
-  idempotencyKey = "",
-  requestPayload = null,
-  ttlSeconds = 10 * 60,
-} = {}) {
-  const key = cleanText(idempotencyKey, 240);
-  if (!key || getSecurityGuardMode(env) === "off") return { ok: true, applied: false };
-  await connectDb(env);
-  const keyHash = hashValue(key, getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
-  const requestHash = hashValue(JSON.stringify(safeObject(requestPayload || {})), keyHash).slice(0, 96);
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + Math.max(1, Number(ttlSeconds || 600)) * 1000);
-  const existing = await IdempotencyKey.findOne({ userId: objectIdOrNull(userId), endpoint: cleanText(endpoint), keyHash }).lean();
-  if (existing) {
-    if (existing.requestHash && existing.requestHash !== requestHash) {
-      return { ok: false, response: securityResponse(409, "IDEMPOTENCY_CONFLICT", SECURITY_MESSAGES.IDEMPOTENCY_PROCESSING) };
-    }
-    if (existing.status === "processing" && existing.expiresAt > now) {
-      return { ok: false, response: securityResponse(409, "IDEMPOTENCY_PROCESSING", SECURITY_MESSAGES.IDEMPOTENCY_PROCESSING) };
-    }
-    return { ok: true, applied: true, existing };
-  }
-  await IdempotencyKey.create({
-    userId: objectIdOrNull(userId),
-    endpoint: cleanText(endpoint),
-    keyHash,
-    requestHash,
-    status: "processing",
-    expiresAt,
-    createdAt: now,
-    updatedAt: now,
-  });
-  return { ok: true, applied: true };
-}
-
-export async function completeIdempotency({ env, userId = "", endpoint = "", idempotencyKey = "", status = "success", responseRef = null } = {}) {
-  const key = cleanText(idempotencyKey, 240);
-  if (!key || getSecurityGuardMode(env) === "off") return;
-  try {
-    const keyHash = hashValue(key, getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
-    await IdempotencyKey.updateOne(
-      { userId: objectIdOrNull(userId), endpoint: cleanText(endpoint), keyHash },
-      { $set: { status: status === "failed" ? "failed" : "success", responseRef: safeObject(responseRef || null), updatedAt: new Date() } },
-    );
-  } catch (_) {}
-}
+/* enforceIdempotency/completeIdempotency 는 여기 있었으나 삭제됐다(2026-08-12).
+   어떤 라우트에도 배선된 적이 없는 사어였고(호출 0곳), 실제 결제 멱등성은 두 곳이 담당한다 —
+   구 prepare 의 {userId, idempotencyKey, paymentType} 유니크 업서트, V2 orders.js 의 파생 주문 id.
+   requestHash 불일치 409 에 만료 검사가 없어 배선했다면 영구 409 를 만들 결함도 있었다.
+   IdempotencyKey 모델·TTL 인덱스는 남는다(과거 데이터 정리). 복원은 git 히스토리에서. */
 
 export async function requireOwnership({ env, request, userId, resourceType, resourceId, endpoint = "" } = {}) {
   const id = cleanText(resourceId, 180);
