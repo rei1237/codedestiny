@@ -116,8 +116,8 @@ type ConsultationResult = {
 
 const FEATURE_KEY = "karma-destiny-ai-consultation";
 const FEATURE_REASON = "운명의 업 전문가 상담";
-const FEATURE_COST = 500;
-const FEATURE_AMOUNT_KRW = 50000;
+const FEATURE_COST = 300;
+const FEATURE_AMOUNT_KRW = 30000;
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "운명의 업 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";

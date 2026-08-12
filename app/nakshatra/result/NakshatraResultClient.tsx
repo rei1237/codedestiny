@@ -395,10 +395,10 @@ function TodayMoonCard({ sukuyoIndex }: { sukuyoIndex: number }) {
 const PAID_PRODUCTS: { title: string; price: string; desc: string; href?: string }[] = [
   { title: "동서 통합 궁합", price: "10,000원", desc: "인도 아쉬타쿠타 36점 × 동양 숙요 격각", href: "/nakshatra/compat" },
   { title: "지배성 심화 리포트", price: "10,000원", desc: "지배성·파다·나바암샤 성격/재능/그림자 심층", href: "/nakshatra/lord-report" },
-  { title: "다샤 인생지도", price: "15,000원", desc: "비쇼타리 120년 타임라인 + 동양 대운 병렬", href: "/nakshatra/dasha-map" },
+  { title: "다샤 인생지도", price: "10,000원", desc: "비쇼타리 120년 타임라인 + 동양 대운 병렬", href: "/nakshatra/dasha-map" },
   { title: "택일(무후르타)", price: "5,000원", desc: "목적별 길일 — 무후르타 × 숙요 길흉 교집합", href: "/nakshatra/muhurta" },
   { title: "전문가 심화 상담", price: "30,000원", desc: "숙요·베다 두 대가가 각각 장문으로 (2관점 상담)", href: "/nakshatra/ai" },
-  { title: "VVIP 결정판 통합서", price: "50,000원", desc: "전체 통합 + 서사 + PDF 소장본", href: "/nakshatra/vvip" },
+  { title: "VVIP 결정판 통합서", price: "30,000원", desc: "전체 통합 + 서사 + PDF 소장본", href: "/nakshatra/vvip" },
 ];
 
 function PaidUpsell() {

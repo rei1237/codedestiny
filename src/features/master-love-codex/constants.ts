@@ -2,14 +2,14 @@
 export const MASTER_LOVE_CODEX_FEATURE_KEY = "master-love-codex";
 export const MASTER_LOVE_CODEX_TITLE = "마스터 인연의 서";
 /** 서버 가격 조회 실패 시에만 쓰는 폴백값 — 정본은 worker/lib/paid-feature-registry.js */
-export const MASTER_LOVE_CODEX_FEATURE_COST = 300;
-export const MASTER_LOVE_CODEX_FEATURE_AMOUNT_KRW = 30000;
+export const MASTER_LOVE_CODEX_FEATURE_COST = 200;
+export const MASTER_LOVE_CODEX_FEATURE_AMOUNT_KRW = 20000;
 
-/** 궁합판 — 상대 정보를 넣으면 이 SKU 로 전환된다(네 장을 겹쳐 읽으므로 상위 가격) */
+/** 궁합판 — 상대 정보를 넣으면 이 SKU 로 전환된다(네 장을 겹쳐 읽는다. 2026-08-12 부터 개인판과 동가) */
 export const MASTER_LOVE_CODEX_COMPAT_FEATURE_KEY = "master-love-codex-compat";
 export const MASTER_LOVE_CODEX_COMPAT_TITLE = "마스터 인연의 서 · 궁합";
-export const MASTER_LOVE_CODEX_COMPAT_FEATURE_COST = 500;
-export const MASTER_LOVE_CODEX_COMPAT_FEATURE_AMOUNT_KRW = 50000;
+export const MASTER_LOVE_CODEX_COMPAT_FEATURE_COST = 300;
+export const MASTER_LOVE_CODEX_COMPAT_FEATURE_AMOUNT_KRW = 30000;
 
 export type MasterLoveCodexMode = "solo" | "compat";
 

@@ -64,7 +64,7 @@ const SERVICE_CARD_BADGE_FALLBACK: Record<LoadingLocale, Record<BadgeTone, strin
   ms: { free: "Percuma", coin: "Berbayar", new: "Baharu", soft: "Panduan", default: "Panduan" },
 };
 
-// 유료 뱃지는 한국어 원문이 이미 원화 표기("3,000원", "궁합 5,000원", "3,000원~12,000원")다.
+// 유료 뱃지는 한국어 원문이 이미 원화 표기("3,000원", "궁합 5,000원", "3,000원~10,000원")다.
 // 비한국어 로케일에서 통째로 fallback 단어로 치환하면 가격이 사라지므로, 금액만 뽑아
 // 통화 표기(lib/payment/coin-pricing.ts의 비한국어 규칙과 동일한 "KRW 5,000")로 바꾼다.
 // 한국어 수식어(궁합/해금/1회)는 번역 자산이 없어 생략한다.

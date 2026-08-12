@@ -627,7 +627,7 @@
     five: {
       subFeatureKey: "deep",
       featureKey: "animal-totem-deep",
-      cost: 60,
+      cost: 50,
       reasonKey: "billing.reasonDeep",
       labelKey: "billing.fiveLabel"
     }

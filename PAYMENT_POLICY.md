@@ -36,14 +36,14 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
 | 타로 상담 (3카드) | `fortune-tea-house-tarot-consultation` | 5,000원 | 50 | 단건 · 3카드 스프레드 |
-| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 7,000원 | 70 | 단건 · 5카드 스프레드 |
+| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 10,000원 | 100 | 단건 · 5카드 스프레드 |
 | 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 10,000원 | 100 | 단건 |
 | 사주 궁합 상담 | `fortune-tea-house-saju-compatibility-consultation` | 20,000원 | 200 | 단건 · 본인+상대 두 명식 |
 | 숙요점 궁합 상담 | `fortune-tea-house-sukuyo-compatibility-consultation` | 20,000원 | 200 | 단건 |
 
 ## 분리 원칙
 
-- **타로 3카드(5,000원)** 와 **타로 5카드 프리미엄(7,000원)** 은 **별도 featureKey**다. 두 상품은
+- **타로 3카드(5,000원)** 와 **타로 5카드 프리미엄(10,000원)** 은 **별도 featureKey**다. 두 상품은
   해석 품질(카드별 상세 해석·카드 간 상호작용·종합 해석·마음의 향)이 동일하고, **카드 장수와 그에 따른
   분량·깊이만** 다르다. 서버는 요청의 `tarotSpread` 값에서 featureKey를 결정하며, 클라이언트가 보낸
   featureKey가 스프레드와 불일치하면 **거부한다**(금액 조작 차단).
