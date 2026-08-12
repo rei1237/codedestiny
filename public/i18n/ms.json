@@ -1731,6 +1731,13 @@
         "checking": "Menyemak baki batu bulan anda. Anda masih boleh mengetik.",
         "after": "{balance} akan berbaki selepas digunakan."
       },
+      "monthlyBalance": {
+        "checkButton": "Semak batu bulan saya",
+        "recheckButton": "Semak semula",
+        "checking": "Sedang menyemak…",
+        "error": "Tidak dapat menyemak. Sila ketik lagi sebentar.",
+        "signedOut": "Log masuk untuk melihat baki anda."
+      },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."
       },

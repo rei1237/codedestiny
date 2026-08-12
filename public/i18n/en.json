@@ -1731,6 +1731,13 @@
         "checking": "Checking your moonstone balance. It's fine to tap anyway.",
         "after": "{balance} will remain after use."
       },
+      "monthlyBalance": {
+        "checkButton": "Check my moonstones",
+        "recheckButton": "Check again",
+        "checking": "Checking…",
+        "error": "Couldn't check just now. Please tap again in a moment.",
+        "signedOut": "Sign in to check your balance."
+      },
       "legal": {
         "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and cancellation of subscription may be restricted for content already provided, in accordance with e-commerce laws."
       },

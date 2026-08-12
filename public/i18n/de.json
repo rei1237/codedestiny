@@ -1731,6 +1731,13 @@
         "checking": "Dein Mondstein-Guthaben wird geprüft. Du kannst trotzdem tippen.",
         "after": "Danach verbleiben {balance}."
       },
+      "monthlyBalance": {
+        "checkButton": "Meine Mondsteine prüfen",
+        "recheckButton": "Erneut prüfen",
+        "checking": "Wird geprüft…",
+        "error": "Konnte nicht geprüft werden. Bitte gleich noch einmal tippen.",
+        "signedOut": "Melde dich an, um dein Guthaben zu sehen."
+      },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein."
       },

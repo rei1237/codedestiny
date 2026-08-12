@@ -1731,6 +1731,13 @@
         "checking": "Đang kiểm tra số dư nguyệt tinh thạch. Bạn vẫn có thể chạm.",
         "after": "Còn lại {balance} sau khi dùng."
       },
+      "monthlyBalance": {
+        "checkButton": "Xem nguyệt tinh thạch của tôi",
+        "recheckButton": "Kiểm tra lại",
+        "checking": "Đang kiểm tra…",
+        "error": "Chưa kiểm tra được. Vui lòng chạm lại sau giây lát.",
+        "signedOut": "Đăng nhập để xem số dư."
+      },
       "legal": {
         "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
       },

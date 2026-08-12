@@ -98,6 +98,9 @@ for (const needle of [
   ".cd-direct-payment-hairline",
   ".cd-direct-payment-guide__pig",
   ".cd-direct-payment-go",
+  // 2026-08-13: 월정석 카드 아래 온디맨드 [보유 월정석 확인] 버튼 + 결과 줄.
+  ".cd-direct-payment-balance-check",
+  ".cd-direct-payment-balance-value",
 ]) {
   assert.ok(CANONICAL_CSS.includes(needle), `정본 CSS에 ${needle} 규칙이 없습니다`);
 }
@@ -151,16 +154,26 @@ const STRUCTURE_MARKERS = [
   "지금 보고 있는 콘텐츠 하나만 바로 열려요.",
   "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.",
   "월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요.",
+  // 2026-08-13: 월정석 카드 아래 온디맨드 확인 버튼 + 결과 줄. 세 렌더러가 같은 훅을 써야
+  // paid-gate-ui 의 "열 때는 조회 0회, 버튼 뒤에서만 조회" 단언이 세 곳 모두에 걸린다.
+  "cd-direct-payment-balance-check",
+  "data-monthly-balance-check",
+  "data-monthly-balance-text",
+  "payment.directModal.monthlyBalance.checkButton",
 ];
 
-// 🔴 결제창은 월정석 잔량을 조회하지 않는다(2026-08-12). /api/billing/balance 왕복이 간헐 503·22초
-// 타임아웃의 원인이었고, 월정석을 고르면 서버 coin-gate 가 어차피 같은 왕복 안에서 확인+차감한다.
-// 잔여바·재조회 버튼이 어느 렌더러에서든 되살아나면 그 왕복도 함께 돌아온다.
+// 🔴 결제창은 **열릴 때** 월정석 잔량을 조회하지 않는다(2026-08-12). /api/billing/balance 왕복이 간헐
+// 503·22초 타임아웃과 "잔량 확인 중" 고착의 원인이었고, 월정석을 고르면 서버 coin-gate 가 어차피 같은
+// 왕복 안에서 확인+차감한다. 그 금지는 그대로다.
+//
+// 2026-08-13 개정: 사용자가 **직접 누르는** [보유 월정석 확인] 버튼은 허용한다. 모달 열림을 막지 않고,
+// 실패해도 사용자가 누른 결과라 원인이 분명하며, 월정석 카드의 활성 상태를 건드리지 않기 때문이다.
+// 아래 목록에 남은 것은 **자동 조회 시절의 잔여바** 형태다 — 이게 돌아오면 열 때의 왕복도 함께 돌아온다.
+// `data-mode="monthly-refresh"` 는 특히 금지 유지: 세 렌더러 모두 [data-mode] 를 "고르면 모달을 닫는"
+// 노드로 일괄 처리하므로, 확인 버튼에 그 값을 주면 누를 때 결제창이 닫힌다.
 const BANNED_BALANCE_MARKERS = [
-  "cd-direct-payment-balance-check",
   "cd-direct-payment-moonbal-current",
   'data-mode="monthly-refresh"',
-  "data-monthly-balance-text",
   "data-monthly-current",
 ];
 
@@ -242,9 +255,15 @@ const STANDALONE_REQUIRED_KEYS = [
   "payment.directModal.monthlyUnit",
   "payment.directModal.note.basis",
   "payment.directModal.note.withPass",
-  // 잔량 문구 키(monthlyBalance.*)는 2026-08-12 에 사라졌다 — 결제창이 잔량을 조회하지 않으므로
-  // 표시할 값 자체가 없다. 월정석 카드는 monthlyHint.* 로만 설명한다.
   "payment.directModal.monthlyHint.checking",
+  // 잔량 문구 키(monthlyBalance.*)는 2026-08-12 에 자동 조회와 함께 사라졌다가, 2026-08-13 에
+  // **온디맨드 확인 버튼** 용도로 돌아왔다. 열 때가 아니라 누를 때만 쓰이는 문구다.
+  "payment.directModal.monthlyBalance.checkButton",
+  "payment.directModal.monthlyBalance.recheckButton",
+  "payment.directModal.monthlyBalance.checking",
+  "payment.directModal.monthlyBalance.error",
+  "payment.directModal.monthlyBalance.signedOut",
+  "payment.directModal.currentMonthly",
   "payment.currency.krw",
   "common.cancel",
 ];

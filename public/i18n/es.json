@@ -1731,6 +1731,13 @@
         "checking": "Comprobando tu saldo de piedras lunares. Puedes tocar igualmente.",
         "after": "Quedarán {balance} después de usarlo."
       },
+      "monthlyBalance": {
+        "checkButton": "Ver mis piedras lunares",
+        "recheckButton": "Comprobar de nuevo",
+        "checking": "Comprobando…",
+        "error": "No se pudo comprobar. Vuelve a tocar en un momento.",
+        "signedOut": "Inicia sesión para ver tu saldo."
+      },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico."
       },
