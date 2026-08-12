@@ -3538,6 +3538,9 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   body.cd-mobile-nav-exiting #cdMobileBottomNav,body.cd-mobile-nav-hidden #cdMobileBottomNav{transform:translateY(calc(100% + 18px));opacity:0;pointer-events:none}
   body.cd-mobile-nav-hidden #cdMobileBottomNav{display:none}
   body.cd-mobile-nav-hidden #langWrap{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+  /* 테마 토글은 fixed(우하단)라 하단 네비 4·5번째 탭('이용권'·'마이')을 덮어 클릭을 막는다 —
+     네비가 보이는 동안은 네비 높이(패딩 15px + 아이템 52px ≈ 67px) 위로 올린다. */
+  body:not(.cd-mobile-nav-hidden):not(.cd-all-fortunes-fullscreen) .theme-switch-wrapper{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   .result-home-shortcut{display:none}
 }
 body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
@@ -20237,7 +20240,7 @@ return you.name.restore();</span>
 
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
-        <div style="position:absolute; top:20px; right:20px; z-index:100000;">
+        <div style="position:absolute; top:calc(20px + env(safe-area-inset-top, 0px)); right:calc(20px + env(safe-area-inset-right, 0px)); z-index:100000;">
           <button data-action="closeTarotModal" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         </div>
 
@@ -20661,7 +20664,7 @@ return you.name.restore();</span>
 
     <!-- ═══ 이집트 신탁 운세 (The Oracle of Kemet) ═══ -->
     <div id="kemetOracleOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,12,18,0.95); backdrop-filter:blur(10px); overflow-y:auto; animation: kemetFadeIn 0.4s ease-out;">
-      <div style="position:absolute; top:20px; right:20px; z-index:100000;">
+      <div style="position:absolute; top:calc(20px + env(safe-area-inset-top, 0px)); right:calc(20px + env(safe-area-inset-right, 0px)); z-index:100000;">
         <button data-action="closeKemetModal" aria-label="닫기" data-cd-trans-attr="aria-label:common.close" style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.4); color:#d4af37; font-size:1.8rem; width:45px; height:45px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.3s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
       </div>
       <div style="padding: 20px;">
