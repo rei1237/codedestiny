@@ -302,5 +302,6 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 - For Codex work, `AGENTS.md` is the active execution contract.
 - `docs/CURRENT_DEV_BASELINE.md` is the latest working summary for current service development focus.
+- 🔴 [docs/guard-integrity-2026-08-13.md](docs/guard-integrity-2026-08-13.md) — **가드가 초록불인데 아무것도 안 지키던 사례 모음.** 이번 감사에서 3건을 고쳤고(인증 세션 안정성·워커 크기 예산·셸 커버리지) **3건이 미조치로 남아 있다**(`worker/` 안 빌드 산출물을 소스로 오인하는 정적 스캐너 / `verify:*` 177개 중 54개 미배선 / `deploy:critical`↔paid-flow-gates 커버리지 미검증). **워커 크기는 무료 플랜 한도의 96.3%** 다. 가드를 만지거나 검증기를 지우기 전에 읽을 것.
 - `CLAUDE.md` is project context and reference material.
 - If these docs disagree, do not merge the rules silently. Reconcile the mismatch in `docs/CONTEXT_AUDIT.md` before coding.
