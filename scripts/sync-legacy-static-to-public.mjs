@@ -465,6 +465,19 @@ const LOCALE_SHELL_SEO = {
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
     dictionaryFile: "zh-cn.json",
   },
+  // zh-TW 는 zh(간체)와 분리된 별도 로케일이다(lib/i18n/locales.ts). 문구를 zh 에서
+  // 물려주면 대만 사용자에게 간체가 그대로 나가므로 번체 문구를 따로 둔다.
+  "/zh-tw": {
+    lang: "zh-TW",
+    ogLocale: "zh_TW",
+    language: "Chinese",
+    title: "免費算命 | 八字·塔羅·紫微斗數·今日運勢 — CODE DESTINY",
+    description:
+      "輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。",
+    keywords:
+      "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
+    dictionaryFile: "zh-tw.json",
+  },
   "/en": {
     lang: "en",
     ogLocale: "en_US",
@@ -509,18 +522,45 @@ const LOCALE_MANIFEST = {
     short_name: "CODE DESTINY",
     description: "今日の運勢と四柱推命、相性とタロットの流れが静かに開きます。",
     lang: "ja",
+    shortcut: {
+      name: "今日の運勢",
+      short_name: "運勢",
+      description: "今日一日の流れをすぐに照らします。",
+    },
   },
   "/zh": {
     name: "CODE DESTINY — 免费算命",
     short_name: "CODE DESTINY",
     description: "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
     lang: "zh-CN",
+    shortcut: {
+      name: "今日运势",
+      short_name: "运势",
+      description: "立即照见今天一整天的流向。",
+    },
+  },
+  // 기존 public/manifest.zh-tw.json 의 문구를 그대로 유지한다(재생성해도 값이 바뀌지 않게).
+  "/zh-tw": {
+    name: "CODE DESTINY — 免費算命",
+    short_name: "CODE DESTINY",
+    description: "今日運勢與四柱八字、合婚配對和塔羅的流向靜靜展開。",
+    lang: "zh-TW",
+    shortcut: {
+      name: "今日運勢",
+      short_name: "運勢",
+      description: "立即照見今天一整天的流向。",
+    },
   },
   "/en": {
     name: "CODE DESTINY — Free Fortune Readings",
     short_name: "CODE DESTINY",
     description: "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
     lang: "en",
+    shortcut: {
+      name: "Today's Fortune",
+      short_name: "Fortune",
+      description: "See today's flow at a glance.",
+    },
   },
 };
 
@@ -533,7 +573,14 @@ function writeLocaleManifest(localePath) {
   const base = JSON.parse(stripLeadingBom(readFileSync(basePath)).toString("utf8"));
   const localeCode = localePath.replace("/", "");
   const fileName = `manifest.${localeCode}.json`;
-  const merged = { ...base, ...override, start_url: `${localePath}/`, scope: "/" };
+  // 🔴 shortcuts 는 통째로 갈아끼우지 않는다 — 아이콘·url 구조는 한국어 기준 매니페스트에서
+  // 물려받고 사용자에게 보이는 문구만 로케일 것으로 바꾼다. 예전에는 이 병합이 문구를
+  // 건드리지 않아 ja/zh/en 홈화면 바로가기에 한국어가 그대로 나갔다.
+  const { shortcut, ...manifestOverride } = override;
+  const merged = { ...base, ...manifestOverride, start_url: `${localePath}/`, scope: "/" };
+  if (shortcut && Array.isArray(base.shortcuts) && base.shortcuts.length) {
+    merged.shortcuts = base.shortcuts.map((entry, index) => (index === 0 ? { ...entry, ...shortcut } : entry));
+  }
   writeFileSyncWithRetry(resolve(publicDir, fileName), Buffer.from(`${JSON.stringify(merged, null, 2)}\n`, "utf8"));
   return fileName;
 }
@@ -743,12 +790,17 @@ if (!existsSync(rootAdsTxt) && existsSync(buildAdsTxt)) {
   console.log("[sync-legacy-static-to-public] Fallback copied build/ads.txt -> public/ads.txt");
 }
 
-// Retained locale landing paths (ko is root '/', plus en/ja/zh locale slugs).
+// Retained locale landing paths (ko is root '/', plus en/ja/zh/zh-tw locale slugs).
 // Ensures Cloudflare Pages / asset-first hosts return 200 for retained locale roots.
+//
+// 🔴 lib/i18n/locales.ts 의 PUBLIC_LOCALES 와 같은 집합을 유지할 것.
+// zh-tw 가 빠져 있던 동안 public/zh-tw/index.html 은 루트 셸에서 재생성되지 않아
+// 조용히 낡아 갔다(셸 변경이 그 로케일에만 전파되지 않는다).
 const localeLandingDirs = [
   "en",
   "ja",
   "zh",
+  "zh-tw",
 ];
 const legacyLocaleLandingDirs = ["en-us", "ja-jp", "zh-cn"];
 const publicIndex = resolve(publicDir, "index.html");
