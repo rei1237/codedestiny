@@ -91,7 +91,6 @@ function buildSignupProfileSubscription(now = new Date()) {
       expiresAt: new Date(grantedAt.getTime() + MONTHLY_CREDIT_TTL_MS),
     }],
     membershipCreditLotsVersion: 0,
-    signupMembershipCreditGrantedAt: now,
     legacyCoinCreditSeeded: true,
     legacyCoinCreditSeededPoints: 0,
   };

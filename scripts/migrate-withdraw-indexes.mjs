@@ -9,7 +9,16 @@
  *   - deleted_account_logs  : 탈퇴 감사 로그 TTL 인덱스 (5년 자동 삭제)
  *   - users                 : 탈퇴 계정 조회/차단용 인덱스
  *   - payments              : 익명화 필드 인덱스
- *   - point_histories       : 사용자별 포인트 이력 삭제 인덱스
+ *   - pointhistories        : 사용자별 포인트 이력 삭제 인덱스
+ *
+ * 🔴 컬렉션명 주의 (2026-08-12 수정): 예전에는 `point_histories`·`fortune_view_logs` 에
+ * 인덱스를 만들었는데, 런타임(worker/routes/auth.js handleWithdraw)이 쓰는 이름은
+ * `pointhistories` 다. 프로덕션 실측 결과 `point_histories`·`fortune_view_logs`·
+ * `fortuneviewlogs` 는 셋 다 존재하지 않았다 — 이 스크립트가 한 번도 실행되지 않은
+ * 덕분에 빈 컬렉션이 생기지 않았을 뿐이다. 이름을 런타임과 맞췄고,
+ * fortune view log 섹션은 대상 컬렉션 자체가 없어 삭제했다.
+ *
+ * 존재하지 않는 컬렉션에는 인덱스를 만들지 않는다(createIndex 는 컬렉션을 새로 만든다).
  */
 
 import mongoose from "mongoose";
@@ -56,6 +65,21 @@ async function ensureIndex(collection, spec, options = {}) {
       console.error(`  ❌ 인덱스 생성 실패 [${collection.collectionName}] ${name}:`, err.message);
     }
   }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 유틸: 컬렉션이 이미 있을 때만 인덱스 생성
+// createIndex 는 대상 컬렉션이 없으면 새로 만들어 버린다. 오탈자 하나로 유령 컬렉션이
+// 생기는 것을 막기 위해, 런타임이 쓰는 컬렉션에만 인덱스를 건다.
+// ─────────────────────────────────────────────────────────────────
+async function ensureIndexIfExists(db, collectionName, spec, options = {}) {
+  const found = await db.listCollections({ name: collectionName }, { nameOnly: true }).toArray();
+  if (!found.length) {
+    console.warn(`  ⏭️  건너뜀 — 컬렉션 없음: [${collectionName}] (인덱스를 만들면 빈 컬렉션이 생긴다)`);
+    return false;
+  }
+  await ensureIndex(db.collection(collectionName), spec, options);
+  return true;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -143,40 +167,31 @@ async function migrate() {
     },
   );
 
-  // ── 4. point_histories ────────────────────────────────────────
-  console.log("\n📋 [point_histories] 인덱스 설정");
-  const pointHistories = db.collection("point_histories");
+  // ── 4. pointhistories ─────────────────────────────────────────
+  // 런타임(handleWithdraw)이 deleteMany 하는 컬렉션명과 동일해야 한다.
+  console.log("\n📋 [pointhistories] 인덱스 설정");
 
   // userId 기준 일괄 삭제 성능 최적화
-  await ensureIndex(
-    pointHistories,
+  await ensureIndexIfExists(
+    db,
+    "pointhistories",
     { userId: 1, createdAt: -1 },
     { name: "idx_user_point_created" },
   );
 
-  // ── 5. fortune_view_logs ──────────────────────────────────────
-  console.log("\n📋 [fortune_view_logs] 인덱스 설정");
-  const viewLogs = db.collection("fortune_view_logs");
-
-  // userId 기반 익명화 작업 성능 최적화
-  await ensureIndex(
-    viewLogs,
-    { userId: 1 },
-    {
-      name:   "idx_user_fortune_view",
-      sparse: true,
-    },
-  );
-
-  // ── 6. 현재 인덱스 목록 출력 ─────────────────────────────────
+  // ── 5. 현재 인덱스 목록 출력 ─────────────────────────────────
   console.log("\n📊 인덱스 현황 요약");
   for (const colName of [
     "deleted_account_logs",
     "users",
     "payments",
-    "point_histories",
-    "fortune_view_logs",
+    "pointhistories",
   ]) {
+    const found = await db.listCollections({ name: colName }, { nameOnly: true }).toArray();
+    if (!found.length) {
+      console.log(`\n  [${colName}] (컬렉션 없음)`);
+      continue;
+    }
     const col = db.collection(colName);
     const indexes = await col.indexes();
     console.log(`\n  [${colName}] (${indexes.length}개)`);

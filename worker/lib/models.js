@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   // 신규 쓰기는 항상 봉투(worker/lib/pii-crypto.js)지만, 마이그레이션 전 기존 행은 평문이라
   // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
   phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
+  phoneUpdatedAt: { type: Date },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },
@@ -146,6 +147,9 @@ const userSchema = new mongoose.Schema({
       default: "idle",
     },
     lastBillingError: { type: String, default: "" },
+    // consumeTierPassIfAvailable(billing.js) 이 이용권 소비마다 갱신한다. default 없음은 의도적
+    // — 이용권을 쓴 적 없는 계정에 빈 값을 만들지 않기 위해서다.
+    updatedAt: { type: Date },
   },
   monthlySubscription: {
     active: { type: Boolean, default: false },
@@ -157,6 +161,31 @@ const userSchema = new mongoose.Schema({
   },
   has_started_paid_service: { type: Boolean, default: false, index: true },
   first_service_access_date: { type: Date, default: null },
+  // 카카오 추천 보상(worker/routes/auth.js:222~486). 실제 쓰기는 전부 User.collection 네이티브
+  // 드라이버라 선언 없이도 저장돼 왔지만, 선언이 없으면 mongoose 경유 쓰기가 strict 에 걸려
+  // 조용히 버려진다(app-store.js 가 같은 함정에 빠져 있었다).
+  // 🔴 하위 필드에 default 를 주지 않는 것은 의도적이다 — default 가 있으면 minimize 가 걷어내지
+  // 못해 추천을 쓴 적 없는 전 계정에 빈 껍데기가 생긴다. 읽는 쪽은 이미 $ifNull 로 방어한다.
+  referralCode: { type: String, trim: true },
+  referralCodeCreatedAt: { type: Date },
+  referralProgram: {
+    kakaoShareRewardEnabled: { type: Boolean },
+    kakaoShareLastPreparedAt: { type: Date },
+    rewardDayKey: { type: String, trim: true },
+    rewardedToday: { type: Number, min: 0 },
+    totalRewardCredit: { type: Number, min: 0 },
+    lastRewardedAt: { type: Date },
+  },
+  // 초대받은 쪽에 남는 보상 처리 상태. 현재 프로덕션에 데이터 0건이지만 쓰는 코드는 살아 있다.
+  referralReward: {
+    status: { type: String, trim: true },
+    channel: { type: String, trim: true },
+    referralCode: { type: String, trim: true },
+    inviterUserId: { type: String, trim: true },
+    capturedAt: { type: Date },
+    completedAt: { type: Date },
+    rewardMonthlyCredit: { type: Number, min: 0 },
+  },
 }, { timestamps: true });
 
 const profileCardBirthSchema = new mongoose.Schema({

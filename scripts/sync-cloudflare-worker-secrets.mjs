@@ -225,6 +225,9 @@ const SECRET_KEYS = [
   "KAKAO_OAUTH_CALLBACK",
   "SUBSCRIPTION_LINK_SECRET",
   "ADMIN_SECRET_HASH",
+  // 관리자 진입 비밀번호 해시. 이게 없으면 worker/routes/admin.js 의 verifyAdminEntryPassword
+  // 가 fail-closed 로 막혀 /admin 전체가 잠긴다 — 실제 게이트인데 오래 목록에서 빠져 있었다.
+  "ADMIN_ENTRY_PASSWORD_HASH",
   "FLOWER_ADMIN_SECRET",
   "RESEND_API_KEY",
   "ADMIN_SMTP_HOST",
