@@ -4,6 +4,10 @@
 > 도구: `npm run audit:mongo-collections` · `npm run audit:user-fields` (둘 다 쓰기 연산 0건)
 > 원자료: [raw/collections.json](raw/collections.json) · [raw/users-fields.json](raw/users-fields.json)
 
+> 🔴 **이 문서(01~04)의 수치는 정리 작업 *이전* 기준선이다.** 2026-08-12 에 마이그레이션 4종을
+> 실행해 현재 DB 상태는 다르다 — 무엇을 돌렸고 무엇이 남았는지는 [05-execution-log.md](05-execution-log.md)
+> 를 볼 것. 여기 적힌 "37건", "160계정" 같은 숫자를 지금 상태로 오해하지 말 것.
+
 ## 이 문서는 무엇이고, 무엇이 아닌가
 
 **이다** — 현재 DB에 실제로 무엇이 있고 코드가 그중 무엇을 쓰는지에 대한 증거 보고서.
@@ -62,6 +66,7 @@
 | [02-users-fields.md](02-users-fields.md) | ② users field 전체 분석 · ③ 실제 사용 중인 field · ④ legacy 의심 field · ⑤ 삭제하면 안 되는 field · ⑥ 현재 정책과 맞지 않는 데이터 |
 | [03-target-model-and-admin.md](03-target-model-and-admin.md) | ⑦ 새롭게 권장하는 schema · ⑧ 관리자 회원관리 화면 구조 · ⑨ 필요한 index |
 | [04-migration-and-rollback.md](04-migration-and-rollback.md) | ⑩ migration 계획 · ⑪ 예상 위험 · ⑫ rollback 계획 |
+| [05-execution-log.md](05-execution-log.md) | **실제 실행 기록**(2026-08-12) · 전후 대조 · 복구 자료 위치 · 미실행 항목 |
 
 ## 감사 도구의 안전성
 

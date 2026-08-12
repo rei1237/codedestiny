@@ -1,8 +1,11 @@
 # ②③④⑤⑥ users 필드 전체 분석
 
-> 실측: `users` 245건 (탈퇴 1건 포함), 실재 필드 경로 **129개** (2026-08-12)
+> 실측: `users` 245건 (탈퇴 1건 포함), 실재 필드 경로 **129개** (2026-08-12, **정리 이전**)
 > 원자료: [raw/users-fields.json](raw/users-fields.json)
 > 스키마 정본: [worker/lib/models.js:15-160](../../worker/lib/models.js)
+
+> 🔴 **정리 이전 기준선이다.** 아래 `SAFE_TO_REMOVE` 19개 경로는 2026-08-12 에 실제로 제거됐고
+> `status` 결손 37건과 레거시 코인 잔액도 정리됐다. 현재 상태는 [05-execution-log.md](05-execution-log.md) 참조.
 
 ## 표 읽는 법
 
