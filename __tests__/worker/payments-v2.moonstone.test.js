@@ -301,6 +301,30 @@ describe("실제 lot CAS — 결제 컨텍스트의 db 핸들 위에서 돈다",
     expect(ledgerRow(db).afterBalance).toBe(5000);
   });
 
+  test("🔴 버전 필드가 아예 없는 계정도 차감된다 — 없으면 잔량이 충분해도 영구 409 였다", async () => {
+    /* lot 마이그레이션 이전 계정: 스칼라 잔액만 있고 membershipCreditLots·LotsVersion 이 없다
+       (ensureLotsForBalance 가 lot 을 합성해 주는 바로 그 집단). version 계산은 필드 부재를 0 으로
+       읽는데 Mongo 의 `{f: 0}` 은 f 가 없는 문서를 매칭하지 않으므로, 버전 가드에 $exists:false
+       갈래가 없으면 CAS 가 5회 전부 지고 MOONSTONE_CONTENDED(409) 로 끝난다 — 잔량 조회는 정상이라
+       "충분한데 결제만 계속 실패"로 보였던 2026-08-12 장애가 이것이다. */
+    const db = makeLedgerDb();
+    await db.insertOne({}, {
+      _id: USER,
+      recentConsumeRequestIds: [],
+      profileSubscription: { membershipCreditBalance: 8000, membershipCreditUsed: 0 },
+    });
+
+    const result = await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE });
+
+    expect(result.balance).toBe(5000);
+    const sub = userRow(db).profileSubscription;
+    expect(sub.membershipCreditBalance).toBe(5000);
+    expect(sub.membershipCreditUsed).toBe(3000);
+    // $inc 가 없던 필드를 만들어 준다 — 이후 CAS 는 정상 버전 체인을 탄다.
+    expect(sub.membershipCreditLotsVersion).toBe(1);
+    expect(ledgerRow(db).settledAt).toBeInstanceOf(Date);
+  });
+
   test("🔴 원장을 잃은 뒤 같은 requestId 로 재시도해도 두 번 차감되지 않는다", async () => {
     const db = await makeDbWithUser();
     await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE });

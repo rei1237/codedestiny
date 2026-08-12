@@ -20,10 +20,16 @@ function buildLotsVersionFilter(version) {
 const consumeReadOptions = () => ({ projection: { profileSubscription: 1, recentConsumeRequestIds: 1 } });
 const consumeWriteOptions = () => ({ returnDocument: "after", projection: { points: 1, profileSubscription: 1 } });
 
+// 🔴 버전 가드는 반드시 buildLotsVersionFilter 를 경유한다. version 계산이
+// `Number(sub.membershipCreditLotsVersion || 0)` 이라 **필드가 아예 없는 문서도 0** 인데,
+// Mongo 의 `{f: 0}` 은 f 가 없는 문서를 매칭하지 않는다. 그 갈래를 빠뜨렸던 탓에 lot 마이그레이션
+// 이전 계정(스칼라 잔액만 있고 ensureLotsForBalance 가 lot 을 합성해 주는 그 집단)은 CAS 가
+// 5회 전부 null → CONTENDED → **잔량이 충분한데도 결정론적 409** 였다(2026-08-12).
+// 환불 경로(restoreMonthlyCreditLot)는 처음부터 이 필터를 써서 같은 사고를 겪지 않았다.
 function buildConsumeFilter(userId, version, pushRequestId) {
   return {
     _id: userId,
-    "profileSubscription.membershipCreditLotsVersion": version,
+    ...buildLotsVersionFilter(version),
     ...(pushRequestId ? { recentConsumeRequestIds: { $ne: pushRequestId } } : {}),
   };
 }
