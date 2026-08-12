@@ -827,6 +827,41 @@ export async function connectPaymentDb(env = {}) {
 // 그 직후 쏟아지는 실패는 새로운 진단 정보가 아니라 우리 행동의 결과다.
 const SELF_INFLICTED_FAILURE_WINDOW_MS = 3000;
 
+/**
+ * `session.withTransaction(fn, mongoTransactionOptions())` 로 쓴다.
+ *
+ * 🔴 왜 필요한가 — M0 에는 리플리카셋이 없어 `startSession().withTransaction()` 이 **한 번도 열린
+ * 적이 없었다**(영구 503 MONTHLY_ATOMIC_UNAVAILABLE). M10 은 3노드라 2026-08-12 티어 전환과 함께
+ * 그 경로 9곳이 **배포 없이** 살아났다. 그런데 드라이버의 기본 동작이 우리 예산과 정면으로 어긋난다:
+ *
+ *   node_modules/mongodb/lib/sessions.js — `const MAX_TIMEOUT = 120000;`
+ *   `withTransaction` 은 TransientTransactionError·UnknownTransactionCommitResult 를
+ *   **최대 120초** 동안 내부 재시도한다. 우리 op 예산은 12초(MONGO_OP_ATTEMPT_TIMEOUT_MS)다.
+ *
+ * 즉 우리가 12초에 잘라 사용자에게 "실패"를 응답한 뒤에도 트랜잭션은 살아서 최대 108초를 더
+ * 재시도하다 **커밋될 수 있다.** "실패했다고 안내했는데 돈은 움직인 상태"가 그 결과다.
+ * 같은 드라이버 주석이 경고하는 또 하나: 콜백 안에서 에러를 삼키면 드라이버가 트랜잭션이
+ * abort 됐는지 알 수 없어 **무한 재시도**한다.
+ *
+ * 같은 파일이 그 상한을 우리가 정할 길도 함께 열어 둔다:
+ *   `const timeoutMS = options?.timeoutMS ?? this.timeoutMS ?? null;`
+ *   그리고 MAX_TIMEOUT 은 `!this.timeoutContext?.csotEnabled()` 일 때만 쓰인다.
+ * 즉 timeoutMS 를 주면 120초 상한이 **우리 값으로 대체된다**(CSOT, 드라이버 7.1).
+ *
+ * 8000ms 인 이유: 이 트랜잭션들의 콜백은 전부 순수 Mongo 연산이다(PortOne 검증 같은 외부 HTTP 는
+ * 트랜잭션 **밖**에서 끝난다). 문서 26k 규모라 실제 소요는 밀리초 단위이므로 8초는 대단히 넉넉하고,
+ * 동시에 12초 op 예산 안에 확실히 들어온다. 이건 튜닝 노브가 아니라 **안전 상한**이다.
+ *
+ * 🔴 이 옵션을 빼지 말 것 — 빼면 조용히 120초로 돌아간다.
+ */
+export function mongoTransactionOptions(env = {}) {
+  // env 를 안 넘겨도 된다: connectDb/connectPaymentDb 가 installProcessEnv 로 process.env 를
+  // 채워 두므로 getEnv 가 거기서 읽는다. 호출부(라우트 깊숙한 클로저)에 env 가 없는 곳이 있다.
+  return {
+    timeoutMS: clampTimeoutMs(getEnv(env, "MONGO_TXN_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
+  };
+}
+
 export function isTransientMongoError(error) {
   if (!error) return false;
   const name = String(error.name || "");
