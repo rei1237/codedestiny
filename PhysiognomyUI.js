@@ -616,12 +616,18 @@ document.body.insertAdjacentHTML('beforeend', appHtml);
    기본 모드가 카메라라서 관상에 들어오자마자 오류 문구를 보게 된다.
    앱에서는 탭 자체를 감추고 사진 업로드를 기본으로 둔다. 웹은 그대로다. */
 function isPhysiognomyAppRuntime() {
+  /* 🔴 판별 정본은 js/core/app-context.js 하나다(docs/app-audit/APP_UIUX_SPEC.md §2). */
+  try {
+    const ctx = window.__cdAppContext;
+    if (ctx && typeof ctx.isApp === 'function') return ctx.isApp();
+  } catch (e) {}
+  /* 정본 미로딩 폴백 — 정본과 같은 신호만 본다. `!!window.Capacitor` 로 넓히지 말 것(과대판정). */
   try {
     if (window.__CODE_DESTINY_RUNTIME_TARGET === 'mobile-app') return true;
-    if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function') {
-      return !!window.Capacitor.isNativePlatform();
-    }
-    return !!window.Capacitor;
+    if (document.documentElement
+      && document.documentElement.getAttribute('data-runtime-target') === 'mobile-app') return true;
+    const cap = window.Capacitor;
+    return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
   } catch (e) {
     return false;
   }

@@ -13,7 +13,7 @@ import { SHELL_HOME_PATH, hardNavigateToShellHome } from "@/lib/navigation/shell
 
 const HOME_ROUTE = SHELL_HOME_PATH;
 
-// /app/** 은 자체 하단 탭바(app/app/_components/AppTabBar.tsx)를 이미 갖고 있다.
+// /app/** 은 AppShell 이 같은 MobileBottomNav 를 직접 렌더한다(앱 팔레트 스킨은 app-shell.css).
 // 여기서 또 깔면 탭바가 두 겹으로 쌓인다.
 const APP_SHELL_ROUTE = "/app";
 const AUTH_ROUTES = ["/login", "/signup", "/auth"];

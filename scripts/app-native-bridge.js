@@ -52,6 +52,27 @@
       // 상단 앱바(연이/네오 토글이 있는 줄)가 상태바·노치에 가린다.
       // 웹은 그대로 두고 앱에서만 top 을 채운다 — 셸 규칙(0,0,1)보다 특이도가 높아 확실히 이긴다.
       'html[data-runtime-target="mobile-app"] body{padding-top:env(safe-area-inset-top,0px)}',
+
+      // 길게 눌러 "이미지 저장/링크 열기" 메뉴가 뜨면 앱 같지 않다. 텍스트 선택은 건드리지
+      // 않는다 — 사용자가 운세 결과를 복사해 저장하는 경로라 user-select 로 막으면 안 된다.
+      'html[data-runtime-target="mobile-app"]{-webkit-touch-callout:none}',
+      'html[data-runtime-target="mobile-app"] img{-webkit-user-drag:none;user-drag:none}',
+
+      // 하단 네비(#cdMobileBottomNav, 고정 56px+inset)에 마지막 줄이 가리는 것을 막는다.
+      // 셸은 #inputPage 에만 여백을 줬는데 네비는 결과 화면에서도 떠 있다.
+      'html[data-runtime-target="mobile-app"] #resultPage{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}',
+      // sticky CTA 는 제스처바 위로 올린다(셸 규칙에 inset 이 빠져 있다).
+      'html[data-runtime-target="mobile-app"] .tile-pvw-cta-sticky{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}',
+      // 라벨이 길면(en/ja) 잘리기만 하고 끝나므로 말줄임을 준다.
+      'html[data-runtime-target="mobile-app"] .cd-mobile-bottom-nav__item{text-overflow:ellipsis}',
+
+      // 화면 전환 — 이 사이트는 다중 페이지 정적 export 라 문서 간 이동이 풀 페이지 로드다.
+      // JS 로 슬라이드를 넣을 수 없으므로 크로스도큐먼트 View Transition 으로 흰 화면 깜빡임만
+      // 없앤다. 미지원 웹뷰는 이 규칙을 통째로 무시하고 지금과 똑같이 동작한다(점진적 향상).
+      // 이 스타일은 앱 번들 HTML 에만 주입되므로 @view-transition 이 문서 전역이어도 웹은 무관하다.
+      "@view-transition{navigation:auto}",
+      "::view-transition-old(root),::view-transition-new(root){animation-duration:240ms;animation-timing-function:cubic-bezier(.2,0,0,1)}",
+      "@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}",
     ].join("");
     (document.head || document.documentElement).appendChild(appChromeStyle);
   } catch (e) { /* noop */ }
@@ -645,6 +666,81 @@
     window.setTimeout(function () { hint.remove(); }, 2000);
   }
 
+  // --- 4-b) 오프라인 안내 ----------------------------------------------------
+  //
+  // 앱은 번들 자산을 https://localhost 에서 서빙하므로 오프라인에서도 화면 자체는 그대로 뜬다.
+  // 끊기는 것은 /api/* 뿐이다. 그래서 "오프라인 전용 화면"으로 본문을 덮지 않는다 — 저장된
+  // 결과·정적 콘텐츠는 계속 볼 수 있어야 하고, 덮으면 그것까지 못 보게 된다.
+  // 대신 하단 네비 위에 안내 바를 띄워 상태와 재시도만 제공한다.
+  function cdAppText(key, fallback) {
+    try {
+      if (typeof window.cdTranslate === "function") return window.cdTranslate(key, {}, fallback);
+    } catch (e) { /* 사전 미로딩 */ }
+    return fallback;
+  }
+
+  function offlineNoticeNode() {
+    var existing = document.getElementById("cdAppOfflineNotice");
+    if (existing) return existing;
+
+    var bar = document.createElement("div");
+    bar.id = "cdAppOfflineNotice";
+    bar.setAttribute("role", "status");
+    bar.setAttribute("aria-live", "polite");
+    bar.style.cssText = [
+      "position:fixed", "left:12px", "right:12px",
+      "bottom:calc(72px + env(safe-area-inset-bottom,0px))",
+      "z-index:2147482000", "display:flex", "align-items:center", "gap:10px",
+      "padding:10px 14px", "border-radius:14px",
+      // DESIGN.md 연이 Ink(#3c1830) + Glow-Not-Shadow. 잉크 위 크림 글자로 대비를 확보한다.
+      "background:#3c1830", "color:#fffaf7", "font-size:13px", "font-weight:700",
+      "line-height:1.5", "word-break:keep-all",
+      "box-shadow:0 12px 24px rgba(150,72,104,.18)",
+    ].join(";");
+
+    var message = document.createElement("span");
+    message.style.cssText = "flex:1;min-width:0";
+    // 연이 톤: 따뜻하게 상황만 알리고 단정하지 않는다.
+    message.textContent = cdAppText("app.offline.message", "인터넷 연결이 끊겼어요. 연결되면 이어서 볼 수 있어요.");
+
+    var retry = document.createElement("button");
+    retry.type = "button";
+    retry.textContent = cdAppText("app.offline.retry", "다시 시도");
+    retry.style.cssText = [
+      "flex:0 0 auto", "min-height:44px", "padding:0 14px", "border-radius:999px",
+      "border:1px solid rgba(244,190,209,.5)", "background:transparent", "color:#ffd9e7",
+      "font:inherit", "font-weight:800", "touch-action:manipulation",
+      "-webkit-tap-highlight-color:transparent",
+    ].join(";");
+    retry.addEventListener("click", function () {
+      try { window.location.reload(); } catch (e) { /* noop */ }
+    });
+
+    bar.appendChild(message);
+    bar.appendChild(retry);
+    document.body.appendChild(bar);
+    return bar;
+  }
+
+  function syncOfflineNotice() {
+    try {
+      if (!document.body) return;
+      var offline = window.navigator && window.navigator.onLine === false;
+      var existing = document.getElementById("cdAppOfflineNotice");
+      if (!offline) {
+        if (existing) existing.remove();
+        return;
+      }
+      offlineNoticeNode();
+    } catch (e) { /* noop */ }
+  }
+
+  function installOfflineNotice() {
+    window.addEventListener("online", syncOfflineNotice);
+    window.addEventListener("offline", syncOfflineNotice);
+    syncOfflineNotice();
+  }
+
   var exitArmedAt = 0;
   function installBackButton() {
     var app = appPlugin();
@@ -855,6 +951,7 @@
   function boot() {
     installAppUrlListener();
     installBackButton();
+    installOfflineNotice();
     installExternalLinkGuard();
     installDiagnosticsGesture();
     installProfileSheetProbe();

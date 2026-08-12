@@ -20,6 +20,9 @@ const SHELL_FILES = [
   "public/en/index.html",
   "public/ja/index.html",
   "public/zh/index.html",
+  // zh-TW 는 나중에 열린 로케일(lib/i18n/locales.ts)이라 이 목록에서 빠져 있었다 —
+  // 그 셸의 탭이 어긋나도 검사가 통과했다.
+  "public/zh-tw/index.html",
 ];
 
 const failures = [];

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import AppTabBar from "@/app/app/_components/AppTabBar";
+import MobileBottomNav from "@/app/components/MobileBottomNav";
 import { useAndroidBackButton } from "@/app/app/_lib/useAndroidBackButton";
 import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 
@@ -41,12 +41,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="cd-app-shell">
       <div className="cd-app-scroll mx-auto flex w-full max-w-[560px] flex-col">{children}</div>
-      <AppTabBar />
+      {/* 🔴 탭 정의 정본은 app/_lib/mobile-tabs.ts 하나다. 앱 셸 전용 탭바를 다시 만들지 말 것 —
+          예전 AppTabBar 는 5탭 중 4탭이 이 셸을 벗어나(미들웨어가 정적 셸로 리다이렉트) 한 번
+          누르면 탭바가 사라졌다. 스킨만 app-shell.css 가 앱 팔레트로 덮는다. */}
+      <MobileBottomNav />
       {exitHint ? (
         <div
           className="cd-app-enter fixed inset-x-0 z-50 mx-auto w-fit rounded-[var(--cd-app-radius-pill)] px-4 py-2 text-xs font-bold"
           style={{
-            bottom: "calc(var(--cd-app-tab-h) + 20px + env(safe-area-inset-bottom))",
+            bottom: "calc(var(--cd-mnav-offset) + 20px)",
             background: "var(--cd-app-bg-raised)",
             color: "var(--cd-app-ink)",
             border: "1px solid var(--cd-app-line-strong)",

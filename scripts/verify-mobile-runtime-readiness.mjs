@@ -59,7 +59,10 @@ check("bottom navigation covers main slots", includesAll(index, [
   "data-nav-key=\"saju\" data-nav-icon=\"命\" href=\"/?action=cdSajuTabEntry\"",
   "data-nav-key=\"fortunes\" data-nav-icon=\"✦\" href=\"/?action=cdOpenAllFortunes\"",
   "data-nav-key=\"pass\" data-nav-icon=\"◈\" href=\"/points\"",
-  "data-nav-key=\"my\" data-nav-icon=\"☰\" href=\"/me\"",
+  // 마이 탭은 라우트가 아니라 셸 프로필 시트를 연다(정본: app/_lib/mobile-tabs.ts 의
+  // PROFILE_SHEET_ACTION). React /me 는 중복 구현이라 제거됐고 되살리는 것은
+  // verify-profile-card-action-policy.mjs 가 막는다 — 여기서 /me 를 요구하면 두 가드가 충돌한다.
+  "data-nav-key=\"my\" data-nav-icon=\"☰\" href=\"/?action=dpOpenList\"",
 ]));
 // 셸에서 모든 운세·마이 탭이 이동 대신 실행하는 인페이지 동작 (오버레이 / 프로필 시트)
 check("bottom navigation keeps shell in-page actions", includesAll(index, [
@@ -70,7 +73,7 @@ check("bottom navigation keeps shell in-page actions", includesAll(index, [
   "'cdMobileFortuneOverview'",
   "window.cdOpenAllFortunes",
 ]));
-check("profile sheet exposes my-page entry", includesAll(index, ["dp-sheet-foot", "href=\"/me\""]));
+check("profile sheet exposes my-page entry", includesAll(index, ["dp-sheet-foot", "dp-sheet-foot__link"]));
 check("bottom navigation has requested quick categories", includesAny(index, ["꽃/해몽", "꽃·해몽"]) && includesAll(index, ["data-nav-key=\"free\"", "data-nav-key=\"oracle\"", "data-nav-key=\"cosmic\"", "data-nav-key=\"music\"", "data-nav-key=\"vvip\""]));
 check("home exposes representative internal features", includesAll(index, ["href=\"/fortune-tea-house\"", "href=\"/neo-operation-room\"", "href=\"/music\"", "data-action=\"openTarotModal\"", "destinyCardForm"]));
 check("global touch targets use 44px and manipulation", includesAll(index, ["min-height:44px", "min-width:44px", "touch-action:manipulation"]));
