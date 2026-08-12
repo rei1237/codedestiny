@@ -76,6 +76,18 @@ function requireUser(userId) {
 }
 
 /**
+ * 표시용 잔액 스냅샷(/api/billing/balance·unlock-status 공용, billing.js) 유저별 무효화.
+ * 정본 패턴은 worker/lib/monthly-credit-store.js 와 동일 — globalThis 공유 객체라 임포트가 없다.
+ * 🔴 TTL 이 45초로 늘어난 뒤에는(2026-08-12) 잔액·해금·구독을 바꾸는 **모든** V2 쓰기가 이걸
+ * 불러야 한다 — 빠뜨리면 결제 직후 새로고침에서 옛 잔량·미해금 상태가 최대 45초 보인다.
+ */
+function invalidateBalanceSnapshot(userId) {
+  try {
+    globalThis.__billingBalanceCache?.invalidateForUser?.(String(userId || ""));
+  } catch { /* 표시 캐시 무효화 실패는 결제를 막지 않는다 */ }
+}
+
+/**
  * 🔴 컷오버 패리티(2026-08-12): 구 웹훅은 Paid 외에 Failed·Cancelled·PartialCancelled 를 처리했다.
  * 그대로 컷오버하면 PG 발 취소·실패 상태 전이가 사라지므로 시맨틱을 여기서 승계한다:
  *   Failed          = 결제 완료 주문 보호(PENDING 한정 CAS) 하에 실패 마킹
@@ -123,6 +135,7 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
     const refunded = await settleRefund(db, { orderId });
     const revoked = await revokeEntitlementForOrder(db, { orderId });
     await recordPgCancellationMarkers(db, { orderId, partial: false, reviewRequired: !revoked });
+    invalidateBalanceSnapshot(order?.userId);
     return { event: "cancelled", refunded, revoked, reviewRequired: !revoked };
   }
   return { ignored: true, status };
@@ -436,7 +449,10 @@ async function grantPassOrderEntitlement(db, order) {
 async function grantOrderEntitlement(db, order) {
   try {
     if (String(order?.paymentType || "") === "membership_pass") {
-      return await grantPassOrderEntitlement(db, order);
+      const granted = await grantPassOrderEntitlement(db, order);
+      // 구독 활성화는 잔액 스냅샷의 subscription/membership 블록을 바꾼다 — 45s TTL 이라 필수.
+      if (granted) invalidateBalanceSnapshot(order?.userId);
+      return granted;
     }
     const snapshot = order.pricingSnapshot || {};
     const product = resolveProduct({
@@ -454,6 +470,7 @@ async function grantOrderEntitlement(db, order) {
     });
     await markUserFeatureUnlocked(db, { userId: String(order.userId || ""), featureKey: String(order.featureKey || "") });
     await markEntitlementGranted(db, { orderId: String(order.merchantUid || "") });
+    invalidateBalanceSnapshot(order?.userId); // 해금 스냅샷(unlockedFeatures/unlockMap) 갱신 반영
     return true;
   } catch (error) {
     return false;
@@ -752,6 +769,7 @@ const ROUTES = {
       }
 
       ctx.paymentStatus = "MONTHLY";
+      invalidateBalanceSnapshot(userId); // 월정석 차감 반영 — 45s TTL 캐시가 옛 잔량을 물고 있으면 안 된다
       const reason = String(body.reason || "");
       const reportType = resolvePremiumAccessReportType(product.featureKey, reason);
       const premiumAccessToken = reportType
@@ -812,6 +830,7 @@ const ROUTES = {
         await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
         return spend;
       });
+      invalidateBalanceSnapshot(userId); // 월정석 차감 반영
       return json({ ok: true, balance: result.balance, replayed: result.replayed });
     },
   },
