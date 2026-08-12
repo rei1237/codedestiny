@@ -6,8 +6,13 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..", "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
+// 화면이 세 파일로 나뉘어 있다: 오케스트레이터(Client) · 표현 계층(thread) · 결과 본문(ResultThread).
+const CLIENT = "app/fusion-fortune/FusionFortuneClient.tsx";
+const THREAD = "app/fusion-fortune/fusion-thread.tsx";
+const RESULT = "app/fusion-fortune/FusionResultThread.tsx";
+
 test("fusion fortune renders the premium flow and optimized hero asset", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const client = read(CLIENT);
   assert.match(client, /여섯 체계 교차 판정/);
   assert.match(client, /여섯 체계 · 20,000자 이상/);
   assert.match(client, /fusion-guardian-celestial-hero\.webp/);
@@ -16,7 +21,7 @@ test("fusion fortune renders the premium flow and optimized hero asset", () => {
 });
 
 test("fusion fortune charges through the shared coin gate, not its own PortOne flow", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const client = read(CLIENT);
   // 전용 상담권을 폐지하고 표준 회당 결제로 옮겼다(300코인 = 30,000원).
   assert.match(client, /PAID_FEATURE_KEY = "fusion-fortune-consultation"/);
   assert.match(client, /useCoinGate/);
@@ -30,7 +35,7 @@ test("fusion fortune charges through the shared coin gate, not its own PortOne f
 });
 
 test("the retired daily quota leaves no sell-out path behind", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const client = read(CLIENT);
   const lib = read("worker/lib/fusion-fortune.js");
   // 선착순 하루 100명은 비용 통제 장치였고 폐지됐다. 마감 상태를 되살리지 말 것.
   assert.doesNotMatch(client, /isSoldOut|dailyLimit|선착순/);
@@ -40,16 +45,16 @@ test("the retired daily quota leaves no sell-out path behind", () => {
 });
 
 test("the final cross verdict is rendered as the last part of the result", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const resultThread = read(RESULT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 여섯 해석이 아니라 그 여섯이 만나 남긴 답 하나가 이 상품이 파는 것이다.
   assert.match(prompt, /FUSION_FINAL_VERDICT_SCHEMA/);
   assert.match(prompt, /systemVerdicts/);
-  assert.match(client, /result\.finalVerdict/);
-  assert.match(client, /STANCE_LABEL/);
+  assert.match(resultThread, /result\.finalVerdict/);
+  assert.match(read(THREAD), /STANCE_LABEL/);
   // 결론은 마지막에 온다 — 맺음말보다 앞이어야 한다.
-  assert.ok(client.indexOf("fusion-final-verdict-heading") > 0);
-  assert.ok(client.indexOf("fusion-final-verdict-heading") < client.indexOf("fusion-closing-message"));
+  assert.ok(resultThread.indexOf("fusion-final-verdict-heading") > 0);
+  assert.ok(resultThread.indexOf("fusion-final-verdict-heading") < resultThread.indexOf("fusion-closing-message"));
 });
 
 test("fusion orbs come from the generated crops with a documented tarot gap", () => {
@@ -64,30 +69,33 @@ test("fusion orbs come from the generated crops with a documented tarot gap", ()
 
 test("fusion fortune mobile UI covers compact widths and reduced motion", () => {
   const css = read("app/fusion-fortune/fusion-fortune.module.css");
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const thread = read(THREAD);
+  const resultThread = read(RESULT);
   assert.match(css, /max-width:\s*760px/);
   assert.match(css, /max-width:\s*390px/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /min-height:\s*50px/);
   assert.match(css, /\.form fieldset label[\s\S]*?min-height:\s*44px/);
   // 상담 대화(생성·결과)는 Tailwind 로 옮겼다. 같은 계약을 새 위치에서 확인한다.
-  assert.match(client, /\[content-visibility:auto\]/);
-  assert.match(client, /motion-reduce:animate-none/);
-  assert.match(client, /min-h-11/);
+  assert.match(thread, /\[content-visibility:auto\]/);
+  assert.match(thread, /motion-reduce:animate-none/);
+  assert.match(resultThread, /min-h-11/);
 });
 
 test("fusion fortune consumes server-sent completion stages", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const client = read(CLIENT);
+  const thread = read(THREAD);
   assert.match(client, /fusion-fortune\/generate\/stream/);
   assert.match(client, /consumeFusionStream/);
   assert.match(client, /FUSION_STAGES/);
   assert.match(client, /Fusion Core 진행 방식 보기/);
   assert.match(client, /<dialog/);
-  assert.match(client, /aria-expanded/);
+  // 접히는 섹션은 결과 본문이 소유한다.
+  assert.match(read(RESULT), /aria-expanded/);
   assert.match(client, /useAiProfileSeed/);
   // 진행 중인 체계는 끝난 체계와 눈으로 구분돼야 한다(대화 말풍선의 data-state).
   assert.match(client, /dataState=\{state\}/);
-  assert.match(client, /data-state=\{dataState\}/);
+  assert.match(thread, /data-state=\{dataState\}/);
   // 4그룹 병렬 생성이 실제 진행률로 보여야 한다 — 여섯 체계 계산 뒤 이 단계가 가장 길다.
   assert.match(client, /streamPayload\.stage === "compose"/);
   assert.match(client, /composeProgress/);
@@ -95,7 +103,7 @@ test("fusion fortune consumes server-sent completion stages", () => {
 });
 
 test("the generating view and the result live in one conversation thread", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const client = read(CLIENT);
   // 생성 화면과 결과 화면이 갈라지면 3만원짜리 상담이 "로딩 → 리포트"로 끊긴다.
   assert.match(client, /\{\(loading \|\| result \|\| failure\) && <section/);
   assert.match(client, /aria-label="초융합 상담 대화"/);
@@ -107,7 +115,7 @@ test("the generating view and the result live in one conversation thread", () =>
 
 test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
   const visual = read("app/fusion-fortune/FusionVisualization.tsx");
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const resultThread = read(RESULT);
   // 🔴 canvas 기반 차트는 html2canvas 캡처에서 빈 상자로 남는다. recharts 를 새로 들이지 말 것.
   assert.match(visual, /<svg/);
   assert.doesNotMatch(visual, /from "recharts"|<canvas/);
@@ -122,11 +130,11 @@ test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
   assert.match(visual, /aria-label=/);
   // 점수를 사람의 우열로 읽히게 두지 않는다.
   assert.match(visual, /사람을 평가하는 점수가 아닙니다/);
-  assert.match(client, /<FusionVisualization data=/);
+  assert.match(resultThread, /<FusionVisualization data=/);
 });
 
 test("fusion hero states the raised length contract", () => {
-  const client = read("app/fusion-fortune/FusionFortuneClient.tsx");
+  const client = read(CLIENT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 30,000원으로 오른 만큼 분량 계약도 함께 올렸다. 화면 문구와 서버 계약이 어긋나면 안 된다.
   assert.match(client, /20,000자 이상/);
@@ -166,4 +174,55 @@ test("the destiny gate states the free quota before the paid price", () => {
   assert.match(html, /<b>무료 3회<\/b>/);
   assert.match(html, /비로그인 1회 · 이후 1회 5,000원/);
   assert.doesNotMatch(html, /매일 무료|하루 무료|매일 3회/);
+});
+
+test("a finished reading is saved and can be reopened without paying again", () => {
+  const client = read(CLIENT);
+  const route = read("worker/routes/fusion-fortune.js");
+  const store = read("worker/lib/fusion-fortune-consultation.js");
+
+  // 예전에는 결과가 어디에도 남지 않아 새로고침 한 번에 3만원짜리 리딩이 사라졌다.
+  assert.match(route, /GET" && path === "\/result"/);
+  assert.match(route, /persistFusionDelivery/);
+  // 저장은 SSE 배달보다 먼저 — 마지막 write 직전 연결이 끊겨도 결과가 남아야 한다.
+  assert.ok(route.indexOf("consultationId = await persistFusionDelivery") < route.indexOf('writeFusionFortuneSse(writer, "result"'));
+  // 저장 실패가 배달을 막으면 안 된다.
+  assert.match(route, /\[fusion-fortune-persist-failed\]/);
+  // 재열람은 생성 플래그와 무관하게 열려 있어야 한다(이미 결제해 받은 결과다).
+  assert.match(route, /재열람은 생성 플래그와 무관/);
+
+  // 결제 1회 = 보관본 1개. 같은 requestId 재시도는 같은 문서를 갱신한다.
+  assert.match(store, /idempotencyKey/);
+  assert.match(store, /upsert: true/);
+  // 🔴 프라이버시 경계 — 생년월일·고민 원문은 보관본에 넣지 않는다.
+  assert.doesNotMatch(store, /birthDate:|concern:/);
+
+  // 클라이언트는 목록·딥링크(?cid=)로 저장본을 연다.
+  assert.match(client, /\/api\/fusion-fortune\/result/);
+  assert.match(client, /get\("cid"\)/);
+  assert.match(client, /rememberConsultationUrl/);
+  assert.match(client, /FusionRecentList/);
+  // page.tsx 의 "저장하지 않는다" 카피는 사실과 어긋나므로 남아 있으면 안 된다.
+  assert.doesNotMatch(read("app/fusion-fortune/page.tsx"), /재열람하는 상품이 아닙니다/);
+});
+
+test("the result screen can be exported to PDF without blank pages", () => {
+  const client = read(CLIENT);
+  const resultThread = read(RESULT);
+  const thread = read(THREAD);
+
+  // 공용 PDF 유틸을 쓴다(13개 기능이 공유). 페이지 전용 PDF 구현을 새로 만들지 말 것.
+  assert.match(client, /exportResultPdf\(/);
+  assert.match(client, /lib\/pdf\/export-result-pdf/);
+  assert.match(client, /data-fusion-pdf-section/);
+  assert.match(resultThread, /data-fusion-pdf-section/);
+
+  // 🔴 캡처 전에 접힌 섹션을 모두 펼치고 두 프레임을 기다린다 — 접힌 섹션은 display:none 이
+  //    아니라 아예 렌더되지 않으므로 그냥 캡처하면 본문이 통째로 빠진다.
+  assert.match(client, /requestAnimationFrame\(\(\) => requestAnimationFrame/);
+  assert.match(resultThread, /exporting \|\| openSection === key/);
+
+  // 🔴 content-visibility 와 진입 애니메이션은 html2canvas 클론에서 빈 상자·백지를 만든다.
+  assert.match(thread, /deferRender && !exporting/);
+  assert.match(thread, /exporting \? "" : "animate-fade-in-up opacity-0/);
 });

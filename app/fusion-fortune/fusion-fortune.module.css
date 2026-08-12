@@ -223,37 +223,72 @@
   .orbRing,
   .orbCore { animation: none; }
 }
-.value,
+.readingFlow,
 .panel,
 .ticket,
 .seoGuide {
   max-width: 1080px;
   margin: 0 auto 26px;
 }
-.value {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
+
+/* ── 이 상담이 지나가는 길 ──────────────────────────────────────────────────
+   같은 크기 카드 세 장으로 가치를 나열하는 대신, 여섯 체계가 실제로 지나가는
+   순서를 한 줄로 보여 준다. 색은 fusionOrbs.ts 의 tint 그대로라, 아래 생성 화면의
+   말풍선에서 같은 색이 다시 등장해 진입-생성-결과가 한 흐름으로 읽힌다. */
+.readingFlow {
   border: 1px solid rgba(200, 177, 235, 0.22);
   border-radius: 24px;
-  background: rgba(192, 169, 226, 0.22);
-  overflow: hidden;
+  background: linear-gradient(150deg, rgba(24, 19, 48, 0.9), rgba(13, 11, 29, 0.94));
+  padding: clamp(20px, 3vw, 30px);
 }
-.value > div {
-  min-height: 150px;
-  background: #121025;
-  padding: 25px;
-}
-.value strong {
-  display: block;
-  margin-bottom: 10px;
-  color: #f1d99b;
+.readingFlowLead {
+  margin: 0 0 16px;
+  color: #f0dda8;
+  font-family: var(--font-display);
   font-size: 1rem;
+  font-weight: 700;
 }
-.value p {
+.readingFlowList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
   margin: 0;
-  color: #d9cee8;
-  line-height: 1.75;
+  padding: 0;
+  list-style: none;
+}
+.readingFlowList > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(232, 213, 163, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 9px 15px;
+  color: #ded3ea;
+  font-size: 0.9rem;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.readingFlowList > li .systemDot {
+  width: 9px;
+  height: 9px;
+  box-shadow: 0 0 10px -1px var(--tint);
+}
+.readingFlowFinal {
+  flex: 1 1 22ch;
+  flex-wrap: wrap;
+  border-color: rgba(232, 213, 163, 0.42) !important;
+  border-radius: 18px !important;
+  background: rgba(232, 213, 163, 0.09) !important;
+}
+.readingFlowFinal strong {
+  color: #f6e8b4;
+}
+.readingFlowFinal span {
+  color: #bdb0d4;
+  font-weight: 400;
+  line-height: 1.6;
 }
 .panel,
 .ticket,
@@ -674,15 +709,9 @@
     margin: 28px 18px 0 0;
     opacity: 0.9;
   }
-  .value {
-    grid-template-columns: 1fr;
-  }
   .seoGuideGrid,
   .seoSystemLinks {
     grid-template-columns: 1fr;
-  }
-  .value > div {
-    min-height: auto;
   }
   .status,
   .ticket {

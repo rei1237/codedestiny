@@ -1494,6 +1494,40 @@ const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
 }, { timestamps: true, collection: "fusionFortuneGenerationAttempts" });
 fusionFortuneGenerationAttemptSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
+// 초융합 상담 보관본 — 위 attempt(10분 TTL 중복요청 락)와는 목적이 다르다. 여기에는 TTL 이 없다.
+// 3만원짜리 결과가 새로고침 한 번에 사라지던 것을 막고 재열람·PDF 를 가능하게 한다.
+//
+// 🔴 프라이버시 경계: 생년월일·생시·출생지·고민 원문은 저장하지 않는다
+//    (worker/lib/fusion-fortune.js 의 buildFusionFortuneContext 가 지키는 것과 같은 선).
+//    화면에 다시 보여 줄 결과 본문과, 목록에서 구분할 최소 정보만 남긴다.
+const fusionFortuneConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  // 결제 증빙이 묶인 requestId. 같은 요청을 재시도해도 문서는 하나다(결제 1회 = 보관본 1개).
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  title: { type: String, default: "", trim: true, maxlength: 200 },
+  inputSummary: {
+    topic: { type: String, default: "", trim: true, maxlength: 80 },
+    calendarType: { type: String, default: "solar", trim: true, maxlength: 10 },
+    gender: { type: String, default: "unspecified", trim: true, maxlength: 20 },
+    nickname: { type: String, default: "", trim: true, maxlength: 40 },
+    birthTimeKnown: { type: Boolean, default: true },
+    birthPlaceKnown: { type: Boolean, default: false },
+  },
+  // 클라이언트가 스트림에서 받는 것과 같은 구조. 재열람 시 그대로 돌려줘 렌더 경로를 하나로 유지한다.
+  result: { type: mongoose.Schema.Types.Mixed, required: true },
+  visibleTextLength: { type: Number, default: 0 },
+  generationSource: { type: String, default: "", trim: true, maxlength: 40 },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "completed", index: true },
+  featureKey: { type: String, default: "fusion-fortune-consultation", trim: true, maxlength: 80 },
+  accessType: { type: String, default: "paid", trim: true, maxlength: 40 },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "fusionFortuneConsultations" });
+// NOTE: db.js 는 autoIndex:false 로 연결하므로 이 선언만으로는 인덱스가 생기지 않는다 —
+// scripts/migrations/20260812-add-fusion-fortune-consultation-indexes.mjs 를 1회 실행할 것.
+fusionFortuneConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+fusionFortuneConsultationSchema.index({ userId: 1, createdAt: -1 });
+
 // socialAccounts.<provider>.id defaults to "" (not absent), so a plain sparse index wouldn't
 // exclude non-social users — a partial filter on non-empty values keeps these lean the same
 // way pointHistorySchema's dedupeKey index does. findOrCreateSocialUser (worker/routes/auth.js)
@@ -1582,6 +1616,8 @@ export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneShar
   || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
 export const FusionFortuneGenerationAttempt = mongoose.models.FusionFortuneGenerationAttempt
   || mongoose.model("FusionFortuneGenerationAttempt", fusionFortuneGenerationAttemptSchema);
+export const FusionFortuneConsultation = mongoose.models.FusionFortuneConsultation
+  || mongoose.model("FusionFortuneConsultation", fusionFortuneConsultationSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
