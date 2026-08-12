@@ -3527,6 +3527,19 @@
     return normalized.indexOf('CANCEL') === 0 || normalized.indexOf('USER_CANCEL') === 0 || normalized === 'PAYMENT_CANCELLED';
   }
 
+  // 셸의 _cdIsPortOneDuplicatePaymentCode 와 같은 판정이다 — PG 가 "그 paymentId 는 이미 쓰였다"고
+  // 거절한 경우. 이때 그 주문은 결제됐을 수 있으므로 실패로 닫으면 안 된다(아래 확정 우선 분기).
+  function _dpIsPortOneDuplicatePaymentCode(code, message) {
+    var haystack = (String(code || '') + ' ' + String(message || '')).trim().toUpperCase();
+    if (!haystack) return false;
+    return haystack.indexOf('ALREADY_PAID') >= 0
+      || haystack.indexOf('ALREADY_EXISTS') >= 0
+      || haystack.indexOf('ALREADY_PROCESSED') >= 0
+      || haystack.indexOf('DUPLICATE') >= 0
+      || haystack.indexOf('PAYMENT_ID') >= 0 && haystack.indexOf('EXIST') >= 0
+      || haystack.indexOf('이미') >= 0 && (haystack.indexOf('결제') >= 0 || haystack.indexOf('주문') >= 0);
+  }
+
   // ── 모바일 리다이렉트 복귀 처리 ──────────────────────────────────────────────
   // PortOne V2 는 모바일에서 결제를 상위 프레임 리다이렉트로 처리할 수 있다. 그러면 await 중이던
   // requestPayment 프로미스가 페이지와 함께 죽어 /api/billing/confirm 이 호출되지 않는다 —
@@ -4336,9 +4349,18 @@
       window.__cdSuppressPaymentUnloadBlock = false;
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
-        // 승인 자체가 나지 않았으니 복귀 티켓은 의미가 없다 — 여기서만 회수한다.
-        _dpClearDirectResumeTicket();
         var dpRspCode = String((rsp && rsp.code) || '').trim();
+        // 🔴 중복 결제 코드(ALREADY_PAID 등)는 승인이 "나지 않은" 것이 아니다 — 그 주문은 PG 에
+        // 이미 있고 돈이 들어갔을 수 있다. 여기서 티켓을 지우고 실패로 닫으면 복구 수단이 사라진
+        // 채 "결제가 완료되지 않았습니다"가 떠서 사용자가 다시 결제한다(이중결제). 기존 주문으로
+        // 확정을 먼저 태워 서버가 멱등 200 으로 마무리하게 한다.
+        var dpDuplicateConfirm = !_dpIsPortOneUserCancelCode(dpRspCode)
+          && !!String(merchantUid || '').trim()
+          && _dpIsPortOneDuplicatePaymentCode(dpRspCode, rsp && rsp.message);
+        if (!dpDuplicateConfirm) {
+          // 승인 자체가 나지 않았으니 복귀 티켓은 의미가 없다 — 여기서만 회수한다.
+          _dpClearDirectResumeTicket();
+        }
         if (!_dpIsPortOneUserCancelCode(dpRspCode)) {
           try {
             console.error('[dp-direct-checkout] PortOne requestPayment failed', {
@@ -4351,7 +4373,12 @@
             });
           } catch (_dpLogErr) {}
         }
-        throw new Error(String((rsp && rsp.message) || dpRspCode || '결제가 완료되지 않았습니다.'));
+        if (!dpDuplicateConfirm) {
+          throw new Error(String((rsp && rsp.message) || dpRspCode || '결제가 완료되지 않았습니다.'));
+        }
+        // 서버 검증 조건이 paymentId === orderId 라(worker/payments/pg.js) 주문 id 를 그대로 넘긴다.
+        // 결제창은 다시 열지 않고 아래 confirm 으로 흘려보낸다.
+        paymentId = String(merchantUid || '').trim();
       }
 
       _dpSetPaymentPending(true, '\uB2E8\uAC74 \uACB0\uC81C \uC2B9\uC778\uACFC \uCF58\uD150\uCE20 \uC774\uC6A9 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'confirm');
