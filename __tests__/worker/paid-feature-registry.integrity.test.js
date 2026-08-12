@@ -36,7 +36,7 @@ describe("Paid feature registry integrity", () => {
   test("fortune tea house and neo paid consultation prices are canonical", () => {
     const expected = {
       "fortune-tea-house-tarot-consultation": { cost: 50, amountKRW: 5000 },
-      "fortune-tea-house-tarot-five-consultation": { cost: 70, amountKRW: 7000 },
+      "fortune-tea-house-tarot-five-consultation": { cost: 100, amountKRW: 10000 },
       "fortune-tea-house-saju-consultation": { cost: 100, amountKRW: 10000 },
       "fortune-tea-house-saju-compatibility-consultation": { cost: 200, amountKRW: 20000 },
       "fortune-tea-house-sukuyo-compatibility-consultation": { cost: 200, amountKRW: 20000 },

@@ -1,6 +1,6 @@
 "use client";
 
-// VVIP 결정판 통합서 — 회당 결제(₩50,000).
+// VVIP 결정판 통합서 — 회당 결제(₩30,000).
 //
 // 흩어져 있던 것을 한 권으로 묶는 소장본이다. LLM 을 쓰지 않으므로 같은 명식이면 언제나 같은 책이 나온다.
 // 🔴 결제 계약은 택일과 같다 — 공용 게이트(useCoinGate, pass-first, forceDeduct 없음)에만 맡기고
@@ -18,8 +18,8 @@ import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
 
 const FEATURE_KEY = "nakshatra-vvip-codex";
-const COIN_PRICE = 500;
-const AMOUNT_KRW = 50000;
+const COIN_PRICE = 300;
+const AMOUNT_KRW = 30000;
 const REASON = "나크샤트라 결정판 VVIP 통합서";
 const ENDPOINT = "/api/nakshatra-premium/vvip-codex";
 
@@ -28,7 +28,7 @@ const GATE_BULLETS = [
   "제2장 세 대가의 목소리 — 숙요 대가 · 베다 대가 · 두 전통을 잇는 통합 해석",
   "제3장 27수 전체 지형 — 스물일곱 자리 전부와 나의 격각 관계(사람·날짜에 평생 쓰는 지도)",
   "제4장 지배성 심화 리포트 전문 (단품 10,000원)",
-  "제5장 다샤 인생지도 전문 — 마하 전 구간 + 안타르다샤 90구간 (단품 15,000원)",
+  "제5장 다샤 인생지도 전문 — 마하 전 구간 + 안타르다샤 90구간 (단품 10,000원)",
   "PDF 소장본 저장",
 ];
 
@@ -211,7 +211,7 @@ export default function VvipClient() {
       return;
     }
 
-    // 🔴 결제가 끝났다(₩50,000). 여기서부터는 실패해도 재결제를 요구하지 않는다.
+    // 🔴 결제가 끝났다(₩30,000). 여기서부터는 실패해도 재결제를 요구하지 않는다.
     paidRef.current = { birth, requestId };
     await fetchCodex({ birth, requestId });
   }, [birth, ensurePaidAccess, fetchCodex, isPaying, loading]);
@@ -259,7 +259,7 @@ export default function VvipClient() {
         {!birth && <NeedBirth />}
 
         {/* 🔴 성별은 제5장(동양 대운)에만 쓰이는데, 없으면 그 축이 통째로 빠진다.
-            VVIP 는 회당 결제라 다시 받으려면 또 50,000원이므로 반드시 **결제 전에** 묻는다.
+            VVIP 는 회당 결제라 다시 받으려면 또 30,000원이므로 반드시 **결제 전에** 묻는다.
             (영구 해금인 다샤 인생지도는 결제 뒤에 물어도 재열람이 무료라 사정이 달랐다.) */}
         {birth && !report && !birth.gender && (
           <GenderPrompt
@@ -271,9 +271,9 @@ export default function VvipClient() {
 
         {birth && !report && (
           <div className={styles.gate}>
-            <p className={styles.gatePrice}>50,000원</p>
+            <p className={styles.gatePrice}>30,000원</p>
             <p className={styles.gateNote}>
-              단품 지배성 리포트(10,000원)와 다샤 인생지도(15,000원)를 통째로 담고,
+              단품 지배성 리포트(10,000원)와 다샤 인생지도(10,000원)를 통째로 담고,
               27수 전체 지형과 세 대가의 해설을 더한 소장본입니다.
             </p>
             <ul className={styles.bullets}>

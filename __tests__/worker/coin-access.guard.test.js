@@ -71,7 +71,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(500);
+    expect(priced.cost).toBe(300);
     expect(priced.pricingSource).toBe("coin-gate-reason");
   });
 
@@ -177,7 +177,7 @@ describe("Fortune coin access guard", () => {
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
-  test("애니멀 토템 심화 reason은 서버 가격표 60코인으로 처리해야 한다", () => {
+  test("애니멀 토템 심화 reason은 서버 가격표 50코인으로 처리해야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },
       productSpec: null,
@@ -187,7 +187,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(60);
+    expect(priced.cost).toBe(50);
     expect(priced.featureKey).toBe("animal-totem-deep");
   });
 

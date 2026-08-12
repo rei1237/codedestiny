@@ -15,8 +15,8 @@ export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
   },
   tarotFive: {
     featureKey: "fortune-tea-house-tarot-five-consultation",
-    amountKRW: 7000,
-    label: "7,000원",
+    amountKRW: 10000,
+    label: "10,000원",
   },
   saju: {
     featureKey: "fortune-tea-house-saju-consultation",

@@ -45,8 +45,8 @@ const { FEATURE_KEY_PRICE_TABLE, getPaidFeatureBillingType, PAID_FEATURE_BILLING
 
 // 개인판(solo) / 궁합판(compat) 두 SKU. 궁합은 상대 명식·명반까지 4장을 근거로 삼아 상위 가격이다.
 const SKUS = [
-  { key: FEATURE_KEY, cost: 300, amountKRW: 30000, label: "개인판" },
-  { key: COMPAT_FEATURE_KEY, cost: 500, amountKRW: 50000, label: "궁합판" },
+  { key: FEATURE_KEY, cost: 200, amountKRW: 20000, label: "개인판" },
+  { key: COMPAT_FEATURE_KEY, cost: 300, amountKRW: 30000, label: "궁합판" },
 ];
 
 for (const sku of SKUS) {
@@ -101,7 +101,7 @@ assertIncludes(routeFile, routeSource, "collectBillingTokens");
 assertIncludes(routeFile, routeSource, "metadata.requestId");
 
 // 🔴 결제 증빙 조회는 이 요청의 모드 featureKey 로 해야 한다. 상수(개인판)로 박으면 궁합판
-//    (500코인) 결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어,
+//    (300코인) 결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어,
 //    결제를 마친 사용자가 /start 에서 402 를 받는다(돈만 나간다).
 assert(
   /findBillingEvidence\([\s\S]{0,260}?featureKey:\s*resolveMode\(normalized\.mode\)\.featureKey/.test(routeSource),
@@ -225,8 +225,8 @@ const {
 } = await import("../worker/lib/master-love-codex-compat-prompt.mjs");
 
 const CHAPTER_SETS = [
-  { label: "개인판", chapters: MASTER_LOVE_CODEX_CHAPTERS, meta: MASTER_LOVE_CODEX_META, plan: getMasterLoveCodexPlan(), costCoins: 300 },
-  { label: "궁합판", chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS, meta: MASTER_LOVE_CODEX_COMPAT_META, plan: getMasterLoveCodexCompatPlan(), costCoins: 500 },
+  { label: "개인판", chapters: MASTER_LOVE_CODEX_CHAPTERS, meta: MASTER_LOVE_CODEX_META, plan: getMasterLoveCodexPlan(), costCoins: 200 },
+  { label: "궁합판", chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS, meta: MASTER_LOVE_CODEX_COMPAT_META, plan: getMasterLoveCodexCompatPlan(), costCoins: 300 },
 ];
 
 for (const set of CHAPTER_SETS) {

@@ -400,7 +400,7 @@ console.log("\n[7] 라우트 계약 — 결제 게이팅 원칙 준수");
 console.log("\n[8] 레지스트리 정합 — 가격·과금유형");
 {
   const routeSource = readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8");
-  for (const [key, coin, krw] of [["nakshatra-lord-report", 100, 10000], ["nakshatra-dasha-map", 150, 15000]]) {
+  for (const [key, coin, krw] of [["nakshatra-lord-report", 100, 10000], ["nakshatra-dasha-map", 100, 10000]]) {
     check(`${key} 가 UNLOCK(영구해금) 유형으로 등록돼 있다`, isUnlockPaidFeatureKey(key));
     const product = UNLOCK_PRODUCT_BY_FEATURE_KEY[key];
     check(`${key} 레지스트리 코인가 ${coin} (unlock accessModel, no forceDeduct)`,
@@ -447,7 +447,7 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
 
   for (const [relative, featureKey, coin, krw] of [
     ["app/nakshatra/lord-report/LordReportClient.tsx", "nakshatra-lord-report", 100, 10000],
-    ["app/nakshatra/dasha-map/DashaMapClient.tsx", "nakshatra-dasha-map", 150, 15000],
+    ["app/nakshatra/dasha-map/DashaMapClient.tsx", "nakshatra-dasha-map", 100, 10000],
   ]) {
     let source = "";
     try { source = readFileSync(path.join(repoRoot, relative), "utf8"); } catch { /* 아래에서 실패 처리 */ }
@@ -493,9 +493,9 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   check("VVIP 화면: 공용 게이트(useCoinGate) 사용", /useCoinGate/.test(vvipCode));
   check("VVIP 화면: 🔴 회당 결제이므로 forceDeduct 를 주지 않는다", !/forceDeduct/.test(vvipCode));
   check("VVIP 화면: paymentMode 를 강제하지 않는다", !/paymentMode/.test(vvipCode));
-  check("VVIP 화면: featureKey nakshatra-vvip-codex · 500코인 · 50,000원",
+  check("VVIP 화면: featureKey nakshatra-vvip-codex · 300코인 · 30,000원",
     /FEATURE_KEY = "nakshatra-vvip-codex"/.test(vvipCode)
-    && /COIN_PRICE = 500/.test(vvipCode) && /AMOUNT_KRW = 50000/.test(vvipCode));
+    && /COIN_PRICE = 300/.test(vvipCode) && /AMOUNT_KRW = 30000/.test(vvipCode));
   check("VVIP 화면: PDF 는 공용 헬퍼를 쓴다(새 PDF 파이프라인 추가 금지)",
     /@\/lib\/pdf\/export-result-pdf/.test(vvipCode) && /data-pdf-section/.test(vvipCode));
 
@@ -541,7 +541,7 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   check("compat 라우트가 결제 증빙을 확인한다", /verifyPerUsePayment\(env, \{/.test(compat) && /COMPAT_FEATURE_KEY/.test(compat));
   check("회당결제 상품 코인가가 레지스트리와 일치(이용권 커버 판정 근거)",
     /featureKey: "nakshatra-muhurta", coinPrice: 50/.test(premium)
-    && /featureKey: "nakshatra-vvip-codex", coinPrice: 500/.test(premium)
+    && /featureKey: "nakshatra-vvip-codex", coinPrice: 300/.test(premium)
     && /COMPAT_COIN_PRICE = 100/.test(compat));
 
   // 1단계는 관측 전용 — 차단 스위치가 꺼져 있어야 한다. 2단계에서 true 로 바꾸면서 이 단언도 뒤집는다.
@@ -594,7 +594,7 @@ console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않
   // 🔴 회당결제는 재시도 = 재결제다. 결제 성공 뒤 본문을 못 받으면 돈만 나간다.
   for (const [relative, label] of [
     ["app/nakshatra/muhurta/MuhurtaClient.tsx", "택일(5,000원)"],
-    ["app/nakshatra/vvip/VvipClient.tsx", "VVIP(50,000원)"],
+    ["app/nakshatra/vvip/VvipClient.tsx", "VVIP(30,000원)"],
     ["app/nakshatra/compat/NakshatraCompatClient.tsx", "궁합(10,000원)"],
   ]) {
     const src = stripComments(readFileSync(path.join(repoRoot, relative), "utf8"));
