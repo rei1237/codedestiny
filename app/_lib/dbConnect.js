@@ -66,7 +66,13 @@ export async function dbConnect() {
     // ([db-connect-error] 0 확인)과 함께 양쪽을 같이 판단할 것.
     maxPoolSize: 5,
     minPoolSize: 0,
-    autoIndex: process.env.NODE_ENV !== "production",
+    // 🔴 false 고정 (2026-08-12): 이 헬퍼를 쓰는 스크립트들이 worker/lib/models.js 를 통째로
+    // import 하도록 바뀌면서 모델 45개가 컴파일된다. autoIndex 가 켜져 있으면 그중 선언만 되고
+    // 아직 만들어지지 않은 인덱스(2026-08 감사 기준 72개)가 로컬 실행 한 번에 프로덕션으로
+    // 나간다 — unique 인 permanent_unlock_identity 는 기존 중복이 있으면 실패하고,
+    // checkout_funnel_events 의 90일 TTL 은 그 순간부터 문서를 지우기 시작한다.
+    // 인덱스 생성 주체는 scripts/migrations/*.mjs 하나뿐이다(worker/lib/db.js 도 같은 이유로 false).
+    autoIndex: false,
   };
   if (dbName) {
     connectOptions.dbName = dbName;
