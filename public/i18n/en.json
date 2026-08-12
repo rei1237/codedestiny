@@ -1816,21 +1816,6 @@
         "checking": "Checking your moonstone balance. It's fine to tap anyway.",
         "after": "{balance} will remain after use."
       },
-      "monthlyBalance": {
-        "needCheck": "Check needed",
-        "ready": "My moonstones {balance}",
-        "checking": "Checking monthly credit balance.",
-        "refresh": "Refresh credits",
-        "refreshing": "Refreshing monthly credit balance.",
-        "refreshed": "Monthly credit balance checked again. Current balance is {balance}.",
-        "notFound": "No active monthly credits/pass were found yet. Please refresh again after payment is complete.",
-        "owned": "Enough",
-        "ownedUnknown": "Checking",
-        "signedOut": "Sign in to check your Moonstone balance.",
-        "unconfirmed": "We couldn't confirm your Moonstone balance. You can still try it — we'll tell you at checkout if it's short.",
-        "staleAfterError": "Couldn't refresh your Moonstone balance, showing the last confirmed value · currently {balance}",
-        "short": "Not enough"
-      },
       "legal": {
         "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and cancellation of subscription may be restricted for content already provided, in accordance with e-commerce laws."
       },

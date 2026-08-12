@@ -1816,21 +1816,6 @@
         "checking": "Vérification de votre solde de pierres de lune. Vous pouvez toucher quand même.",
         "after": "Il restera {balance} après utilisation."
       },
-      "monthlyBalance": {
-        "needCheck": "Chèque nécessaire",
-        "ready": "Mes pierres de lune {balance}",
-        "checking": "Vérification du solde créditeur mensuel.",
-        "refresh": "Actualiser les crédits",
-        "refreshing": "Actualisation du solde créditeur mensuel.",
-        "refreshed": "Solde créditeur mensuel vérifié à nouveau. Le solde actuel est de {balance}.",
-        "notFound": "Aucun crédit/pass mensuel actif n'a encore été trouvé. Veuillez actualiser à nouveau une fois le paiement terminé.",
-        "owned": "Suffisant",
-        "ownedUnknown": "Vérification",
-        "signedOut": "Connectez-vous pour consulter votre solde de Pierre de Lune.",
-        "unconfirmed": "Nous n'avons pas pu confirmer votre solde de Pierre de Lune. Vous pouvez tout de même essayer : nous vous préviendrons au paiement s'il est insuffisant.",
-        "staleAfterError": "Impossible d'actualiser votre solde de Pierre de Lune, dernière valeur confirmée affichée · actuellement {balance}",
-        "short": "Insuffisant"
-      },
       "legal": {
         "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique."
       },

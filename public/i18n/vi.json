@@ -1816,21 +1816,6 @@
         "checking": "Đang kiểm tra số dư nguyệt tinh thạch. Bạn vẫn có thể chạm.",
         "after": "Còn lại {balance} sau khi dùng."
       },
-      "monthlyBalance": {
-        "needCheck": "Cần kiểm tra",
-        "ready": "Nguyệt tinh thạch của tôi {balance}",
-        "checking": "Kiểm tra số dư tín dụng hàng tháng.",
-        "refresh": "Làm mới tín dụng",
-        "refreshing": "Làm mới số dư tín dụng hàng tháng.",
-        "refreshed": "Số dư tín dụng hàng tháng được kiểm tra lại. Số dư hiện tại là {balance}.",
-        "notFound": "Chưa tìm thấy tín dụng/thẻ hoạt động hàng tháng nào. Vui lòng làm mới lại sau khi thanh toán hoàn tất.",
-        "owned": "Đủ",
-        "ownedUnknown": "Đang kiểm tra",
-        "signedOut": "Đăng nhập để xem số dư Nguyệt Định Thạch.",
-        "unconfirmed": "Không xác nhận được số dư Nguyệt Định Thạch. Bạn vẫn có thể thử — nếu thiếu, chúng tôi sẽ báo ở bước thanh toán.",
-        "staleAfterError": "Không làm mới được số dư Nguyệt Định Thạch, đang hiển thị giá trị xác nhận gần nhất · hiện tại {balance}",
-        "short": "Không đủ"
-      },
       "legal": {
         "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
       },

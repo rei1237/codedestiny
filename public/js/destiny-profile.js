@@ -10254,7 +10254,6 @@
       '.cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:11.5px;line-height:1}',
       '.cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid rgba(244,190,209,.55);background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:10.5px;font-weight:800;letter-spacing:.01em;box-shadow:0 0 10px rgba(244,190,209,.35)}',
       '.cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#E8C88A;font-size:17px;font-weight:800;letter-spacing:.01em}',
-      '.cd-direct-payment-option .cd-direct-payment-moonbal-current{display:inline-flex;align-items:center;margin-top:7px;padding:2px 9px;border-radius:999px;border:1px solid rgba(232,200,138,.22);background:#1E1836;color:#F0DFB8;font-size:11.5px;font-weight:700}',
       '.cd-direct-payment-option--recommended{padding:16px;border-color:rgba(232,200,138,.55);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 45%),linear-gradient(150deg,#2E2650,#251F45);box-shadow:0 0 34px rgba(232,200,138,.2),inset 0 1px 0 rgba(253,242,217,.12)}',
       '.cd-direct-payment-option--recommended:hover{border-color:rgba(232,200,138,.78)}',
       '.cd-direct-payment-option--recommended strong{font-size:17px}',
@@ -10270,14 +10269,6 @@
       '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
       '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}',
       '.cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}',
-      '.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 0;padding:10px 12px;border-radius:12px;border:1px solid rgba(232,200,138,.16);background:#201A3A;color:#9B92B8;font-size:12.5px;line-height:1.45;font-weight:700}',
-      '.cd-direct-payment-balance-check__text{min-width:0}',
-      '.cd-direct-payment-balance-check[data-state="fresh"]{border-color:rgba(110,231,183,.28);color:#bfead6}',
-      '.cd-direct-payment-balance-check[data-state="error"]{border-color:rgba(248,113,113,.3);color:#f2c6c6}',
-      '.cd-direct-payment-refresh{flex:0 0 auto;border:1px solid rgba(232,200,138,.34);border-radius:999px;background:#1E1836;padding:7px 12px;color:#E8C88A;font-size:12px;font-weight:700;cursor:pointer;transition:border-color 170ms ease,filter 170ms ease}',
-      '.cd-direct-payment-refresh:hover{border-color:rgba(232,200,138,.6);filter:brightness(1.06)}',
-      '.cd-direct-payment-refresh:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
-      '.cd-direct-payment-refresh:disabled{cursor:wait;filter:saturate(.5)}',
       '.cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}',
       '.cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}',
       '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
@@ -10291,7 +10282,7 @@
       '@keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}',
       '@keyframes cdMoonlitPetalDrift{0%{left:2%;opacity:0}10%{opacity:.6}50%{left:94%;opacity:.75}90%{opacity:.5}100%{left:2%;opacity:0}}',
       '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
-      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-refresh,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}'
+      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}'
     ].join('\n');
     document.head.appendChild(style);
   }
@@ -10308,6 +10299,11 @@
     // 월정석 필요분 = 코인 × MEMBERSHIP_CREDIT_PER_COIN(10). *10이 빠지면 500석짜리를 50석으로 표시하고
     // 아래 insufficient 판정까지 오염돼 '잔량 충분'으로 오인 → 클릭 → 서버 402가 된다.
     var monthlyStones = Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10))));
+    // 결제창은 잔량을 조회하지 않는다(2026-08-12). 호출부가 넘겨준 잔량만 쓴다 — 402 부족 후 재노출
+    // 경로가 lot 정본 잔량을 실어 보내므로, 그때만 '모자라요 + 회색'이 되고 평소에는 미확정으로 열린다.
+    var providedMonthlyBalance = Number(opts.monthlyBalance !== undefined ? opts.monthlyBalance : opts.membershipCreditBalance);
+    var monthlyBalanceFresh = isFinite(providedMonthlyBalance) && providedMonthlyBalance >= 0;
+    var monthlyInsufficient = monthlyBalanceFresh && Math.floor(providedMonthlyBalance) < monthlyStones;
     var title = String(opts.title || opts.reason || '유료 서비스').trim();
     var coverage = opts.membershipCoverage && typeof opts.membershipCoverage === 'object' ? opts.membershipCoverage : null;
     var tierName = String((coverage && (coverage.tier || coverage.passTier)) || '').trim();
@@ -10347,26 +10343,23 @@
       ? _dpCheckoutText('payment.directModal.directHintApp', '지금 보고 있는 콘텐츠 하나만. Google Play 결제로 바로 열려요.')
       : _dpCheckoutText('payment.directModal.directHint', '지금 보고 있는 콘텐츠 하나만 바로 열려요.');
     var directTitleLabel = _dpCheckoutText('payment.directModal.directTitleLabel', '이번 콘텐츠만');
-    var monthlyHintChecking = _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요.');
-    // 잔량 표기는 셸 formatMonthlyCreditValueWon 과 같은 키를 쓴다(코인 수치를 그대로 노출하지 않는 규칙).
-    var formatMonthlyCredits = function(value) {
-      var creditValue = Math.max(0, Math.floor(Number(value || 0)));
-      return _dpCheckoutText('payment.currency.monthlyCredits', '{count}개', { count: creditValue.toLocaleString('ko-KR') });
-    };
+    // 🔴 셸·React 와 같은 3분기·같은 문구다(verify-payment-choice-parity 가 문구 동일성을 강제).
+    var monthlyHintText = monthlyInsufficient
+      ? _dpCheckoutText('payment.directModal.monthlyHint.insufficient', '월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.')
+      : (monthlyBalanceFresh
+        ? _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.')
+        : _dpCheckoutText('payment.directModal.monthlyHint.checking', '월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요.'));
     var moonTitleText = _dpCheckoutText('payment.directModal.moonTitle', '이 콘텐츠를 열어볼까요?');
     var recommendBadgeText = _dpCheckoutText('payment.directModal.recommendBadge', '꽃돼지 추천');
     var goLabelText = _dpCheckoutText('payment.directModal.goLabel', '이 방법으로 열기');
     var monthlyBadgeText = _dpCheckoutText('payment.directModal.monthlyBadge', '월정석');
     var monthlyTitleText = _dpCheckoutText('payment.directModal.monthlyTitle', '월정석으로 열기');
     var monthlyUnitText = _dpCheckoutText('payment.directModal.monthlyUnit', '이벤트 재화');
-    var monthlyOwnedUnknownText = _dpCheckoutText('payment.directModal.monthlyBalance.ownedUnknown', '잔량 확인 중');
     var guideBubbleText = recommendedOption === 'monthly'
       ? _dpCheckoutText('payment.directModal.guide.monthly', '가지고 있는 월정석으로 추가 지출 없이 열 수 있어요!')
       : (recommendedOption === 'pass'
         ? _dpCheckoutText('payment.directModal.guide.pass', '이용권이 있다면 결제 없이 바로 열려요. 먼저 확인해 볼까요?')
         : _dpCheckoutText('payment.directModal.guide.direct', '이번 콘텐츠 하나만 바로 열어볼 수 있어요.'));
-    var monthlyCheckingText = _dpCheckoutText('payment.directModal.monthlyBalance.checking', '월정석 잔여를 확인하고 있습니다.');
-    var monthlyRefreshText = _dpCheckoutText('payment.directModal.monthlyBalance.refresh', '월정석 재조회');
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
@@ -10399,11 +10392,10 @@
         '<span class="cd-direct-payment-desc">' + esc(directHint) + '</span>' +
         optionGoHtml('direct') +
       '</button>';
-    var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option' + optionVariantClass('monthly') + '" data-mode="monthly" data-monthly-option>' +
+    var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option' + (monthlyInsufficient ? ' is-disabled' : '') + optionVariantClass('monthly') + '" data-mode="monthly" data-monthly-option' + (monthlyInsufficient ? ' disabled aria-disabled="true"' : '') + '>' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span>' + optionRecommendHtml('monthly') + '</span>' +
         '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
-        '<span class="cd-direct-payment-desc" data-monthly-hint>' + esc(monthlyHintChecking) + '</span>' +
-        '<span class="cd-direct-payment-moonbal-current" data-monthly-current>' + esc(monthlyOwnedUnknownText) + '</span>' +
+        '<span class="cd-direct-payment-desc" data-monthly-hint>' + esc(monthlyHintText) + '</span>' +
         optionGoHtml('monthly') +
       '</button>';
     var choiceCardHtmlByOption = { pass: passButtonHtml, direct: directButtonHtml, monthly: monthlyButtonHtml };
@@ -10455,98 +10447,10 @@
           '<div class="cd-direct-payment-choice-grid">' +
             orderedChoiceCardsHtml +
           '</div>' +
-          '<div class="cd-direct-payment-balance-check" data-monthly-balance-status data-state="checking">' +
-            '<span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>' + esc(monthlyCheckingText) + '</span>' +
-            '<button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">' + esc(monthlyRefreshText) + '</button>' +
-          '</div>' +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
           '<p class="cd-direct-payment-legal">' + _dpText('paymentBeforeWarning') + '</p>' +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';
-      var monthlyBtn = root.querySelector('[data-monthly-option]');
-      var moonbalText = root.querySelector('[data-monthly-balance-text]');
-      var moonbalStatus = root.querySelector('[data-monthly-balance-status]');
-      var monthlyCurrent = root.querySelector('[data-monthly-current]');
-      var monthlyHintNode = root.querySelector('[data-monthly-hint]');
-      var moonbalBusy = false;
-      // 한 번이라도 확인에 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을
-      // '확인 필요'로 되돌리지 않게 한다(셸·React 결제창의 sticky 계약과 동일).
-      var lastKnownStandaloneBalance = null;
-      // 월정석 잔량을 모달을 닫지 않고 제자리 갱신한다. 미확정/실패는 '확인 필요'로 두고(0으로 오인 금지),
-      // 알려진 잔량이 필요분보다 적을 때만 월정석 버튼을 비활성화한다(단건 결제는 항상 가능).
-      function applyStandaloneMoonbal(state, balance) {
-        var fresh = state === 'fresh' && isFinite(balance) && balance >= 0;
-        if (fresh) lastKnownStandaloneBalance = Math.floor(balance);
-        if (state === 'signed-out') lastKnownStandaloneBalance = null;
-        if (!fresh && state === 'error' && lastKnownStandaloneBalance !== null) balance = lastKnownStandaloneBalance;
-        var known = fresh || (state === 'error' && lastKnownStandaloneBalance !== null);
-        var insufficient = known && balance < monthlyStones;
-        var balanceLabel = known ? formatMonthlyCredits(balance) : '';
-        if (moonbalText) {
-          moonbalText.textContent = state === 'signed-out'
-            ? _dpCheckoutText('payment.directModal.monthlyBalance.signedOut', '로그인 후 월정석 잔량을 확인할 수 있어요.')
-            : state === 'error'
-              ? (known
-                ? _dpCheckoutText('payment.directModal.monthlyBalance.staleAfterError', '월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 {balance}', { balance: balanceLabel })
-                : _dpCheckoutText('payment.directModal.monthlyBalance.unconfirmed', '월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.'))
-              : known
-                ? _dpCheckoutText('payment.directModal.monthlyBalance.ready', '내 월정석 {balance}', { balance: balanceLabel })
-                : monthlyCheckingText;
-        }
-        if (moonbalStatus) moonbalStatus.setAttribute('data-state', fresh ? 'fresh' : (state === 'fresh' ? 'checking' : state));
-        // 카드에는 '충분/모자람'만 싣는다. 정확한 잔량은 바로 위 재조회 바가 이미 보여 준다.
-        if (monthlyCurrent) {
-          monthlyCurrent.textContent = known
-            ? (insufficient
-              ? _dpCheckoutText('payment.directModal.monthlyBalance.short', '모자라요')
-              : _dpCheckoutText('payment.directModal.monthlyBalance.owned', '충분해요'))
-            : monthlyOwnedUnknownText;
-        }
-        if (monthlyHintNode) {
-          monthlyHintNode.textContent = !known
-            ? monthlyHintChecking
-            : (insufficient
-              ? _dpCheckoutText('payment.directModal.monthlyHint.insufficient', '월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.')
-              : _dpCheckoutText('payment.directModal.monthlyHint.use', '이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.'));
-        }
-        if (monthlyBtn) {
-          // 미인증은 월정석 결제 자체가 불가능하므로 비활성한다(React 결제창과 같은 계약).
-          // 조회 실패(error)는 비활성 사유가 아니다 — 확인된 부족일 때만 잠근다.
-          var blocked = insufficient || state === 'signed-out';
-          if (blocked) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('is-disabled'); }
-          else { monthlyBtn.removeAttribute('disabled'); monthlyBtn.classList.remove('is-disabled'); }
-        }
-      }
-      function refreshStandaloneMoonbal(fresh) {
-        if (settled || moonbalBusy) return;
-        moonbalBusy = true;
-        var refreshBtn = root.querySelector('[data-mode="monthly-refresh"]');
-        if (refreshBtn) refreshBtn.disabled = true;
-        if (moonbalText) {
-          moonbalText.textContent = fresh === true
-            ? _dpCheckoutText('payment.directModal.monthlyBalance.refreshing', '월정석 잔량을 다시 조회하고 있습니다.')
-            : monthlyCheckingText;
-        }
-        // 수동 재조회(fresh=true)는 서버 캐시를 우회해 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
-        var fetcher = (typeof window._dpFetchMoonlightStoneBalance === 'function')
-          ? window._dpFetchMoonlightStoneBalance({ fresh: fresh === true })
-          : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
-        fetcher.then(function(res) {
-          if (settled) return;
-          // 🔴 signedOut 을 ok 보다 먼저 본다. 서버는 게스트/만료 토큰에 200 + authenticated:false + 잔액 0 을
-          // 주는데(billing.js readBillingSnapshot 의 비인증 분기), ok 를 먼저 검사하면 그 0 이 '잔여 확인 완료 ·
-          // 현재 0개'라는 확신에 찬 거짓으로 렌더되고 월정석 버튼이 잠겼다 — signed-out 분기는 401/403 일 때만
-          // 도달했다. 로그인 안내를 띄우는 게 맞다.
-          if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
-          else if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
-          else applyStandaloneMoonbal('error', 0);
-        }).catch(function() {
-          if (!settled) applyStandaloneMoonbal('error', 0);
-        }).finally(function() {
-          moonbalBusy = false;
-          if (refreshBtn && !settled) refreshBtn.disabled = false;
-        });
-      }
       var modalOpenedAt = Date.now();
       // 이용권 상점으로 떠날 때도 finish('cancel') 로 닫는다(호출부 계약 유지) — 그건 이탈이 아니므로
       // 계측에서 제외한다. pass_store_entered 가 그 전이를 이미 남긴다.
@@ -10587,7 +10491,6 @@
         var hit = e.target && e.target.closest ? e.target.closest('[data-mode]') : null;
         if (hit) {
           var act = hit.getAttribute('data-mode');
-          if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(true); return; }
           // 🔴 '이용권으로 구매' = 이용권 검사 지점(셸 index.html 과 같은 계약). 진입 선검사가 사라졌으므로
           // 결제창을 여는 시점에는 보유 여부를 모른다 — 여기서 서버에 한 번 묻고, 커버되면 결제 없이
           // 'pass' 로 닫아 호출부가 무료로 열게 하고, 아니면 이용권 상점으로 보낸다.
@@ -10648,11 +10551,9 @@
         featureKey: opts.featureKey,
         hasPassHint: hasActivePassTier ? 'active' : 'unknown'
       });
-      // 자동 1회 재조회: 이용권 카드가 함께 뜨면 생략한다(셸 index.html의 allowMonthlyChoice && !allowPassChoice
-      // 계약과 동일 — 이용권 확인과 balance 조회가 동시에 발생해 로그인 직후 중복 인증/DB 요청이 생기던 문제 방지).
-      // 이 렌더러는 opts.disablePassChoice를 읽어 이용권 카드 표시 자체를 분기하지 않고 항상 그리므로,
-      // disablePassChoice가 사실상 유일하게 신뢰 가능한 '이용권 카드 없음' 신호다.
-      if (opts.disablePassChoice === true) refreshStandaloneMoonbal();
+      // 🔴 결제창은 월정석 잔량을 조회하지 않는다(재조회 바·자동 조회 제거, 2026-08-12 — 셸·React 와 같은
+      // 계약). 간헐 503/타임아웃의 원인이던 /api/billing/balance 왕복을 없앴다 — 최종 판정은 어차피 월정석
+      // 선택 시 서버 coin-gate 가 원자적으로 확인+차감하고, 부족하면 lot 정본 잔량을 실은 402 로 되돌아온다.
     });
   }
 

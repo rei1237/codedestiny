@@ -1026,7 +1026,6 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:11.5px;line-height:1}
 .cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid rgba(244,190,209,.55);background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:10.5px;font-weight:800;letter-spacing:.01em;box-shadow:0 0 10px rgba(244,190,209,.35)}
 .cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#E8C88A;font-size:17px;font-weight:800;letter-spacing:.01em}
-.cd-direct-payment-option .cd-direct-payment-moonbal-current{display:inline-flex;align-items:center;margin-top:7px;padding:2px 9px;border-radius:999px;border:1px solid rgba(232,200,138,.22);background:#1E1836;color:#F0DFB8;font-size:11.5px;font-weight:700}
 .cd-direct-payment-option--recommended{padding:16px;border-color:rgba(232,200,138,.55);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 45%),linear-gradient(150deg,#2E2650,#251F45);box-shadow:0 0 34px rgba(232,200,138,.2),inset 0 1px 0 rgba(253,242,217,.12)}
 .cd-direct-payment-option--recommended:hover{border-color:rgba(232,200,138,.78)}
 .cd-direct-payment-option--recommended strong{font-size:17px}
@@ -1042,14 +1041,6 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}
 .cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}
 .cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}
-.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 0;padding:10px 12px;border-radius:12px;border:1px solid rgba(232,200,138,.16);background:#201A3A;color:#9B92B8;font-size:12.5px;line-height:1.45;font-weight:700}
-.cd-direct-payment-balance-check__text{min-width:0}
-.cd-direct-payment-balance-check[data-state="fresh"]{border-color:rgba(110,231,183,.28);color:#bfead6}
-.cd-direct-payment-balance-check[data-state="error"]{border-color:rgba(248,113,113,.3);color:#f2c6c6}
-.cd-direct-payment-refresh{flex:0 0 auto;border:1px solid rgba(232,200,138,.34);border-radius:999px;background:#1E1836;padding:7px 12px;color:#E8C88A;font-size:12px;font-weight:700;cursor:pointer;transition:border-color 170ms ease,filter 170ms ease}
-.cd-direct-payment-refresh:hover{border-color:rgba(232,200,138,.6);filter:brightness(1.06)}
-.cd-direct-payment-refresh:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}
-.cd-direct-payment-refresh:disabled{cursor:wait;filter:saturate(.5)}
 .cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}
 .cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}
 .cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}
@@ -1063,7 +1054,7 @@ function ensureReactPaymentChoiceStyles() {
 @keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}
 @keyframes cdMoonlitPetalDrift{0%{left:2%;opacity:0}10%{opacity:.6}50%{left:94%;opacity:.75}90%{opacity:.5}100%{left:2%;opacity:0}}
 @media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}
-@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-refresh,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}
 `;
   document.head.appendChild(style);
 }
@@ -1233,26 +1224,18 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <strong>${escapePaymentText(directTitleLabel)} · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
             <span class="cd-direct-payment-desc">${escapePaymentText(directHintLabel)}</span>${optionGoHtml("direct")}
           </button>` : "";
-  // 🔴 카드에는 정확한 보유량을 싣지 않는다 — 내부 재화 규모(예: 993,799)를 노출하면 오히려 혼란스럽다.
-  // 사용자가 결제 직전에 알아야 하는 건 '이걸로 열 수 있나'뿐이고, 정확한 숫자는 아래 재조회 바에만 둔다.
-  const monthlyCurrentLabel = hasProvidedMonthlyBalance
-    ? (monthlyCanUse
-      ? checkoutEntry.text("payment.directModal.monthlyBalance.owned", "충분해요")
-      : checkoutEntry.text("payment.directModal.monthlyBalance.short", "모자라요"))
-    : checkoutEntry.text("payment.directModal.monthlyBalance.ownedUnknown", "잔량 확인 중");
   // 🔴 3렌더러(셸 index.html · 이 파일 · js/destiny-profile.js)가 같은 문구를 써야 한다.
   // 예전에는 이 카드만 "사용 후 N이 남습니다" 예측 문장을 더 달고 있어 셸과 눈에 띄게 달랐다.
   const monthlyDescInitial = monthlyCanUse
     ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString("ko-KR") })}`
     : (hasProvidedMonthlyBalance
       ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.")
-      : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요."));
+      : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요."));
   const monthlyButtonHtml = canShowMonthly ? `
           <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}${optionVariantClass("monthly")}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="${escapePaymentText(monthlyTitleLabel)}${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}${escapePaymentText(optionRecommendAria("monthly"))}">
             <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${escapePaymentText(monthlyBadgeLabel)}</span>${optionRecommendHtml("monthly")}</span>
             <strong>${escapePaymentText(monthlyTitleLabel)} · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString("ko-KR")}</span> ${escapePaymentText(monthlyUnitLabel)}</strong>
-            <span class="cd-direct-payment-desc" data-monthly-hint>${monthlyDescInitial}</span>
-            <span class="cd-direct-payment-moonbal-current" data-monthly-current>${escapePaymentText(monthlyCurrentLabel)}</span>${optionGoHtml("monthly")}
+            <span class="cd-direct-payment-desc" data-monthly-hint>${monthlyDescInitial}</span>${optionGoHtml("monthly")}
           </button>` : "";
   const passStoreButtonHtml = canShowPassStore ? `
           <button type="button" class="cd-direct-payment-option is-store${optionVariantClass("pass")}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${escapePaymentText(optionRecommendAria("pass"))}">
@@ -1268,28 +1251,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const paymentChoiceButtonsHtml = (checkoutRecommendation.order || [])
     .map((option) => choiceCardHtmlByOption[option] || "")
     .join("");
-  // 월정석이 결제 옵션인 한 잔량 상태 + '월정석 재조회' 버튼을 항상 노출한다(결제 버튼 바깥이라 비활성과 무관히 동작).
-  // 🔴 아래 문구들은 템플릿 리터럴 **바깥**에서 만든다. scripts/lib/js-source-slice.mjs 의 스캐너는
-  // 백틱을 단순 따옴표로 처리해 중첩 템플릿을 못 읽고, 중첩하면 결제 가드 2종이 "중괄호 불균형"으로 죽는다.
-  const moonlightBalanceReadyText = checkoutEntry.text("payment.directModal.monthlyBalance.ready", "내 월정석 {balance}", {
-    balance: `${monthlyBalance.toLocaleString("ko-KR")} ${monthlyUnitLabel}`,
-  });
-  const moonlightBalanceRowText = hasProvidedMonthlyBalance
-    ? moonlightBalanceReadyText
-    : checkoutEntry.text("payment.directModal.monthlyBalance.checking", "월정석 잔여를 확인하고 있습니다.");
-  const moonlightRefreshLabel = checkoutEntry.text("payment.directModal.monthlyBalance.refresh", "월정석 재조회");
   const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
   const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
   const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
-  const moonlightRefreshRowHtml = canShowMonthly ? `
-        <div class="cd-direct-payment-balance-check" data-monthly-balance-status data-state="${hasProvidedMonthlyBalance ? "fresh" : "checking"}">
-          <span class="cd-direct-payment-balance-check__text" data-monthly-balance-text>${escapePaymentText(moonlightBalanceRowText)}</span>
-          <button type="button" class="cd-direct-payment-refresh" data-mode="monthly-refresh">${escapePaymentText(moonlightRefreshLabel)}</button>
-        </div>` : "";
 
   return new Promise((resolve) => {
     let settled = false;
-    let removeBalanceListener: (() => void) | null = null;
     // 세 렌더러가 공유하는 결제창 락 토큰(checkout-entry 소유). append 직후 획득, close 에서 해제.
     let sharedChoiceLockToken: ReturnType<typeof checkoutEntry.acquirePaymentChoiceLock> = null;
     const modal = document.createElement("div");
@@ -1312,7 +1279,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         <div class="cd-direct-payment-choice-grid">
           ${paymentChoiceButtonsHtml}
         </div>
-        ${moonlightRefreshRowHtml}
         <div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>
         <p class="cd-direct-payment-legal">${billingClientText("billingClient.text.006")}</p>
         <div class="cd-direct-payment-actions">
@@ -1328,7 +1294,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const close = (mode: PaymentChoiceMode) => {
       if (settled) return;
       settled = true;
-      if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
       // 공용 락은 어느 경로로 닫히든 반드시 푼다. 락을 쥔 채로 두면 재제안 자체가 막힌다(셸과 같은 계약).
       if (sharedChoiceLockToken) {
         checkoutEntry.releasePaymentChoiceLock(sharedChoiceLockToken);
@@ -1374,98 +1339,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       }
     };
 
-    let moonlightRefreshBusy = false;
-    // 조회에 한 번이라도 성공했으면 그 값을 들고 있다가, 뒤이은 조회 실패가 이미 확인된 잔량을 지우지 않게 한다
-    // (셸 index.html 의 sticky 계약과 동일). 초기값은 호출부/로컬 스냅샷이 준 잔량.
-    let lastKnownMonthlyBalance: number | null = hasProvidedMonthlyBalance ? monthlyBalance : null;
-    // 월정석 잔량 UI를 모달을 닫지 않고 제자리 갱신한다. state!=="fresh"면 '확인 필요'로 두어 조회 실패를 0으로 오인하지 않는다.
-    // 단건 결제 버튼은 어떤 상태에서도 건드리지 않아 사용자가 막히지 않는다(CLAUDE.md 동등 노출).
-    const applyMoonlightBalance = (rawBalance: number | null, state: "fresh" | "error" | "signed-out") => {
-      if (settled) return;
-      const fresh = state === "fresh" && typeof rawBalance === "number" && Number.isFinite(rawBalance) && rawBalance >= 0;
-      if (fresh) lastKnownMonthlyBalance = Math.floor(rawBalance as number);
-      if (state === "signed-out") lastKnownMonthlyBalance = null;
-      const known = fresh || (state === "error" && lastKnownMonthlyBalance !== null);
-      const balance = known ? (lastKnownMonthlyBalance as number) : 0;
-      // 🔴 미확정(조회 실패) ≠ 잔량 부족. 확인된 잔량이 필요분보다 적을 때만 비활성한다 —
-      // 조회 실패까지 비활성으로 묶으면 재조회가 계속 실패할 때 월정석이 영구 회색이 돼 결제 자체가
-      // 불가능해진다(위 초기 렌더 monthlyCanUse·독립 정적 렌더러 applyStandaloneMoonbal 과 같은 계약).
-      // 실제로 부족하면 서버 coin-gate 가 lot 정본 잔량을 실은 402 로 되돌려 1왕복에 수렴하고, 차감은 없다.
-      const insufficient = known && balance < monthlyCost;
-      const canUse = monthlyCost > 0 && state !== "signed-out" && !insufficient;
-      const afterBalance = Math.max(0, balance - monthlyCost);
-      const monthlyButton = modal.querySelector<HTMLButtonElement>('[data-mode="monthly"]');
-      const currentNode = modal.querySelector<HTMLElement>("[data-monthly-current]");
-      const descNode = modal.querySelector<HTMLElement>("[data-monthly-hint]");
-      const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
-      const balanceStatus = modal.querySelector<HTMLElement>("[data-monthly-balance-status]");
-      // 카드는 '충분/모자람'만, 정확한 잔량은 아래 재조회 바에만 — 최초 렌더와 같은 규칙이다.
-      if (currentNode) {
-        currentNode.textContent = known
-          ? (insufficient
-            ? checkoutEntry.text("payment.directModal.monthlyBalance.short", "모자라요")
-            : checkoutEntry.text("payment.directModal.monthlyBalance.owned", "충분해요"))
-          : checkoutEntry.text("payment.directModal.monthlyBalance.ownedUnknown", "잔량 확인 중");
-      }
-      // 상태 표시가 초기 렌더값('checking')에 굳어 실패해도 '확인하고 있습니다'로 남던 문제(셸은 갱신함).
-      if (balanceStatus) balanceStatus.setAttribute("data-state", fresh ? "fresh" : state);
-      if (balanceText) {
-        balanceText.textContent = state === "signed-out"
-          ? "로그인 후 월정석 잔량을 확인할 수 있어요."
-          : state === "error"
-            ? (known
-              ? `월정석 잔량을 다시 확인하지 못해 직전 확인값을 표시합니다 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`
-              : "월정석 잔량을 확인하지 못했어요. 그대로 사용해 볼 수 있고, 부족하면 결제 단계에서 알려드려요.")
-            : checkoutEntry.text("payment.directModal.monthlyBalance.ready", "내 월정석 {balance}", { balance: `${balance.toLocaleString("ko-KR")} ${monthlyUnitLabel}` });
-      }
-      if (monthlyButton) {
-        monthlyButton.disabled = !canUse;
-        monthlyButton.classList.toggle("is-disabled", !canUse);
-        monthlyButton.setAttribute("aria-disabled", canUse ? "false" : "true");
-        monthlyButton.setAttribute("aria-label", `${monthlyTitleLabel}${canUse ? "" : (insufficient ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
-        // 🔴 fallback 문구는 최초 렌더(monthlyDescInitial)와 같은 키·같은 문장을 쓴다. 예전에는 여기만
-        // 만료 정책까지 덧붙인 다른 문장이라, 잔량을 한 번 재조회했을 뿐인데 안내가 통째로 바뀌었다.
-        if (descNode) {
-          descNode.textContent = insufficient
-            ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.")
-            : (known
-              ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: afterBalance.toLocaleString("ko-KR") })}`
-              : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요."));
-        }
-      }
-    };
-    // '월정석 재조회': 정본 잔량 fetcher를 강제 재조회(캐시 무효·degrade 미캐시)해 제자리 갱신. degrade/미인증은 '확인 필요'로.
-    const refreshMonthlyBalance = async (refreshOpts: { fresh?: boolean } = {}) => {
-      if (settled || moonlightRefreshBusy) return;
-      moonlightRefreshBusy = true;
-      const refreshBtn = modal.querySelector<HTMLButtonElement>('[data-mode="monthly-refresh"]');
-      const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
-      if (refreshBtn) refreshBtn.disabled = true;
-      if (balanceText) balanceText.textContent = "월정석 잔량을 확인하고 있습니다.";
-      try {
-        // 수동 재조회는 서버 캐시까지 우회(fresh)해 항상 최신값을 읽고, 자동 조회는 신선한 클라 캐시를 존중해 빠르게 응답한다.
-        // 🔴 force 를 함께 넘기지 않는다. force 는 invalidateBillingBalanceCache() 를 불러 balance 뿐 아니라
-        // paymentEligibilityRecent/InFlight 와 accessDecision 까지 **전역으로** 비운다 — 재조회 한 번에
-        // 다음 유료 클릭의 이용권 프로브(6초)가 콜드로 다시 도는 대가를 치렀다. fresh 만으로 충분하다:
-        // fetchBillingBalance 가 fresh 일 때 이 유저의 balance 캐시 엔트리만 좁게 버린다.
-        const result = await fetchBillingBalance({ fresh: refreshOpts.fresh === true, moonlightStoneOnly: true });
-        if (settled) return;
-        if (!result.ok || !result.data || result.data.degraded === true) {
-          applyMoonlightBalance(null, "error");
-        } else if (result.data.authenticated === false) {
-          applyMoonlightBalance(null, "signed-out");
-        } else {
-          const bal = toNumber(result.data.monthlyStoneBalance ?? result.data.membershipCreditBalance ?? result.data.balance, 0);
-          applyMoonlightBalance(bal, "fresh");
-        }
-      } catch {
-        if (!settled) applyMoonlightBalance(null, "error");
-      } finally {
-        moonlightRefreshBusy = false;
-        if (refreshBtn && !settled) refreshBtn.disabled = false;
-      }
-    };
-
     lockBodyScroll();
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close("cancel");
@@ -1473,12 +1346,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
       button.addEventListener("click", async () => {
         const rawMode = toText(button.dataset.mode);
-        if (rawMode === "monthly-refresh") {
-          // 월정석 재조회는 모달을 닫지 않고 잔량만 제자리 갱신한다(결제 선택 모드가 아님).
-          // 사용자가 직접 눌렀으므로 서버 캐시를 우회(fresh)해 최신값을 읽는다.
-          void refreshMonthlyBalance({ fresh: true });
-          return;
-        }
         const mode = rawMode as PaymentChoiceMode;
         if (mode === "cancel") {
           close("cancel");
@@ -1586,26 +1453,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
     (modal.querySelector<HTMLButtonElement>(".cd-direct-payment-option")
       || modal.querySelector<HTMLButtonElement>('[data-mode="direct"]'))?.focus();
-    if (canShowMonthly) {
-      // 다른 화면(내 정보/포인트)이나 재조회가 잔량을 갱신하면 결제창도 제자리 반영한다.
-      const onBalanceEvent = (event: Event) => {
-        const detail = (event as CustomEvent).detail as Record<string, unknown> | undefined;
-        if (!detail) return;
-        const bal = resolveMonthlyStoneBalance(detail);
-        if (typeof bal === "number" && Number.isFinite(bal) && bal >= 0) applyMoonlightBalance(bal, "fresh");
-      };
-      window.addEventListener("cd:billing-balance-updated", onBalanceEvent);
-      removeBalanceListener = () => window.removeEventListener("cd:billing-balance-updated", onBalanceEvent);
-      // 자동 1회 재조회: 예전에는 이용권 카드 노출 여부와 무관하게 항상 쐈다. 셸(index.html)은 이용권 카드가
-      // 함께 뜨면(정책상 D유형 제외 거의 항상 그렇다) 이 자동조회를 생략한다 — "이용권 확인과 balance 조회가
-      // 동시에 발생해 로그인 직후 중복 인증/DB 요청이 생기던" 문제 때문이다(월정석 최종 선택은 서버 coin-gate가
-      // 원자적으로 검증하므로 이용권 흐름에는 이 조회가 필요 없다). 게이팅 없이 매번 쏘던 자동조회가 결제창을
-      // 연 대다수 화면에서 "월정석 잔량을 확인하고 있습니다"에 멈춘 채 재조회 버튼까지 비활성으로 묶는 원인이었다.
-      // !canShowPassStore로 셸과 같은 계약을 맞춘다(이미 canShowMonthly 블록 안). hasProvidedMonthlyBalance는
-      // 넣지 않는다 — 회당결제(per-use)가 401 복구 경로에서 넘기는 하드 0도 '제공됨'으로 잡혀, 그 조건을 넣으면
-      // 자가치유용 자동 재조회가 막혀 월정석 버튼이 영구 회색으로 굳는다(1142-1157행 계약).
-      if (!canShowPassStore) void refreshMonthlyBalance();
-    }
+    // 🔴 결제창은 월정석 잔량을 조회하지 않는다(재조회 바·자동 조회 제거, 2026-08-12 — 셸 index.html 과 같은
+    // 계약). 간헐 503/타임아웃의 원인이던 /api/billing/balance 왕복을 없앴다 — 최종 판정은 어차피 월정석
+    // 선택 시 서버 coin-gate 가 원자적으로 확인+차감하고, 부족하면 lot 정본 잔량을 실은 402 로 되돌아온다.
   });
 }
 
@@ -2405,7 +2255,6 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       paymentOptions: runtimePaymentOptions,
       equalPriorityMethods: runtimePaymentOptions.equalPriorityMethods,
       recommendedMethods: runtimePaymentOptions.recommendedMethods,
-      skipBalanceRefresh: passAlreadyChecked,
       allowedPaymentModes: input.allowedPaymentModes,
       // 🔴 이중 이용권 프로브 방지. 스냅샷 즉시판정 경로에서는 eligibility 가 null 이라 passAlreadyChecked 가
       // false 였고, 그러면 레거시 런타임이 __cdApplyMembershipPassBeforePayment 로 **같은 검사를 또** 돌렸다
