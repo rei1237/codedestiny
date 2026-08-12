@@ -122,6 +122,17 @@ test("wrangler.toml 의 프로덕션 값도 진입 팬아웃보다 여유가 있
   // M10 의 신규 커넥션 생성률(노드당 15/s) 예산을 지키는 하한. M0 시절 값(20000)으로 되돌리면 실패한다.
   const idle = readVar("MONGO_MAX_IDLE_TIME_MS");
   if (idle !== null) expect(idle).toBeGreaterThanOrEqual(60000);
+
+  // 🔴 ping 간격은 maxIdleTimeMS 와 **한 세트**다. 좀비 소켓의 1차 방어선은 ping 이 아니라
+  // maxIdleTimeMS(Atlas 유휴 컷보다 먼저 닫는다)이므로, ping 을 그보다 훨씬 짧게 두면 대부분
+  // 살아 있는 소켓에 왕복만 하나 더 얹는다. 저트래픽에서는 그게 사용자 요청마다 붙는다.
+  // 상한(maxIdleTimeMS)을 넘지 않는 선에서 최대한 붙여 "소켓 한 생애당 ping 최대 1회"로 만든다.
+  const ping = readVar("MONGO_PING_MIN_INTERVAL_MS");
+  if (ping !== null && idle !== null) {
+    expect(ping).toBeLessThanOrEqual(idle);
+    // 한쪽만 되돌리는 드리프트를 막는다 — 20000 으로 회귀하면 여기서 잡힌다.
+    expect(ping).toBeGreaterThanOrEqual(Math.floor(idle * 0.5));
+  }
 });
 
 test("a low-limit waiter does not head-of-line block higher-limit waiters", async () => {
