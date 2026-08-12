@@ -191,6 +191,63 @@ export function legacyConfirmEnvelope(order, { granted = false, replayed = false
   };
 }
 
+/**
+ * 구 /api/billing/coin-gate 월정석(MOONLIGHT_STONE) 성공 봉투.
+ * 셸 판정기 두 개가 계약이다: _cdHasVerifiedMonthlyConsumption 은 data.consume 에서
+ * ledgerId|transactionId · accessType "membership_credit" · membershipCreditCost>0 · featureKey 를
+ * 요구하고, _cdToCoinPayload 는 data.consume 을 우선 병합한다. 잔액 동기화는
+ * consume.monthlyStoneBalance/remainingMembershipCredit, 재제안 판정은 402/409 코드·필드가 담당.
+ */
+export function legacyMoonstoneEnvelope({ product, requestId, profileId = "", spend, unlock = false, premiumAccessToken = "" }) {
+  const balance = Number(spend?.balance || 0);
+  const evidenceId = String(spend?.ledgerId || requestId);
+  const consume = {
+    ok: true,
+    transactionType: "membership_credit",
+    accessType: "membership_credit",
+    accessMethod: "MONTHLY",
+    paymentMethod: "MONTHLY",
+    requestId,
+    transactionId: evidenceId,
+    ledgerId: String(spend?.ledgerId || ""),
+    purchaseId: requestId,
+    featureKey: String(product.featureKey || ""),
+    profileId: profileId || undefined,
+    coinPrice: Number(product.priceCoins || 0),
+    chargedCoins: Number(product.priceCoins || 0),
+    membershipCreditCost: Number(product.monthlyCost || 0),
+    requiredMonthlyCredits: Number(product.monthlyCost || 0),
+    remainingMembershipCredit: balance,
+    monthlyStoneBalance: balance,
+    idempotent: spend?.replayed === true,
+  };
+  return {
+    ok: true,
+    status: "paid",
+    message: "월정석으로 결제가 완료되었습니다.",
+    data: {
+      pricing: product.pricing || null,
+      charged: Number(product.priceCoins || 0),
+      accessMethod: "MONTHLY",
+      consume,
+      accessGrant: {
+        ok: true,
+        accessType: "membership_credit",
+        accessMethod: "MONTHLY",
+        featureKey: String(product.featureKey || ""),
+        requestId,
+        purchaseId: requestId,
+        evidenceId,
+        profileId: profileId || undefined,
+        paidAt: new Date().toISOString(),
+      },
+      balance,
+      ...(unlock ? { unlockedFeatures: [String(product.featureKey || "")], unlockMap: { [String(product.featureKey || "")]: true } } : {}),
+      ...(premiumAccessToken ? { premiumAccessToken } : {}),
+    },
+  };
+}
+
 /** adaptOrderToViewModel + resolveType + resolveStatus 가 읽는 키 전부. 테스트가 이 목록을 강제한다. */
 export const LEGACY_ORDER_DETAIL_KEYS = Object.freeze([
   "approvalNumberMasked",
