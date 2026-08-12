@@ -149,7 +149,10 @@ const PAYMENT_DB_OPTIONS = Object.freeze({
      수혜자가 **다음 요청**이라 성공↔실패가 교대로 나왔다 — 사용자에겐 "될 때도 있고 안 될 때도
      있는 결제창"이다. 켜면 그 리셋을 자기 요청이 써서 하드 503 이 느린 성공으로 바뀐다.
      결제는 요청당 슬롯도 op 도 하나뿐이라(withPaymentDb) 누적 걱정이 없고, 최악 16초도
-     셸 checkout 상한(25초) 안이다(시도 상한 8초 × 2). */
+     셸 checkout 상한(25초) 안이다(시도 상한 8초 × 2).
+     🔴 이 산식은 db.js 코드 기본값과 wrangler.toml [vars] 가 **일치할 때만** 성립한다. 둘이 갈라지면
+     env 가 이기고, serverSelectionTimeoutMS 가 크면 파생 하한(+3500)이 시도 상한을 8초 위로 밀어
+     올려 이 주석이 조용히 거짓이 된다(2026-08-13 정렬 전 실제 상황: 8초가 아니라 11.5초였다). */
   retryOnOperationTimeout: true,
 });
 

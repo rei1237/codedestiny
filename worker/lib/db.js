@@ -613,9 +613,12 @@ export async function connectDb(env = {}) {
           // 콜드 아이솔레이트가 풀을 한꺼번에 채우지 않고 2개씩 계단식으로 연다.
           maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
           // 🔴 M10 은 3노드 리플리카셋이다(M0 에는 리플리카셋이 없어 이 두 옵션이 무의미했다).
-          // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다 —
-          // 그게 serverSelectionTimeoutMS(8초)를 줄이면 안 되는 이유와 한 세트다: 선택창은
-          // 선거가 끝날 때까지 기다려 주는 시간이고, 재시도는 그 사이 실패한 op 를 살리는 장치다.
+          // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다.
+          // 🔴 선거 내성을 담당하는 것은 **이 두 옵션과 withMongoRetry 의 재시도**이지 긴 선택창이
+          // 아니다(2026-08-13 정정). 예전 주석은 serverSelectionTimeoutMS 8000 을 "선거가 끝날
+          // 때까지 기다려 주는 시간"이라 적었지만, 그 값은 파생 하한(+3500)을 통해 모든 요청의
+          // 시도 예산을 11.5초로 밀어 올려 슬롯을 붙들었다 — 드문 선거를 위해 상시 비용을 냈다.
+          // 지금은 3000 이며(코드·wrangler [vars] 동일), 되올리려면 양쪽을 함께 올려야 한다.
           retryWrites: true,
           retryReads: true,
           // Atlas Query Profiler / Real-Time Panel 에서 부하 주체를 구분하기 위한 라벨.
