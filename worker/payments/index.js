@@ -34,6 +34,7 @@ import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js
 import {
   legacyBillingCheckoutEnvelope,
   legacyOrderDetailEnvelope,
+  legacyConfirmEnvelope,
   legacyPrepareEnvelope,
   toLegacyPrepareOrder,
 } from "./compat.js";
@@ -366,6 +367,28 @@ const ROUTES = {
         pollUrl: `/api/payments/orders/${encodeURIComponent(params.id)}`,
         message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
       });
+    },
+  },
+
+  /**
+   * 🔴 컷오버 어댑터 — 구 확정 URL(/api/billing/confirm 재작성)을 confirmOrder 로 잇는다.
+   * 주문 id 는 body.merchantUid(구 클라이언트가 checkout 응답에서 받아 되돌려주는 값 = V2 주문 id).
+   * 금액·impUid 는 클라 값을 믿지 않는다 — verifyPgPayment 가 주문 문서와 PortOne 사실을 대조한다.
+   * 성공 봉투는 셸 판정기(_cdHasVerifiedServerAccess)가 읽는 accessGrant·해금 증빙 초집합을 싣고,
+   * 지급 마무리 대기(granted=false)는 GRANT_PENDING 으로 나간다 — 셸의 PENDING 분기(PR #478)가
+   * 복귀 티켓을 유지한 채 "다시 결제하지 마세요" UX 로 처리한다.
+   */
+  "POST /confirm": {
+    auth: "required",
+    async handle({ env, ctx, userId, body, withDb }) {
+      const orderId = String(body.merchantUid || body.orderId || body.paymentId || "").trim();
+      if (!orderId) throw paymentError("INVALID_REQUEST", "merchantUid 가 필요합니다.");
+      ctx.orderId = orderId;
+      const result = await withDb(env, ctx, (db) => confirmOrder(env, db, ctx, {
+        orderId, actorUserId: userId,
+      }));
+      ctx.paymentStatus = "PAID";
+      return json(legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed }));
     },
   },
 
