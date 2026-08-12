@@ -679,7 +679,14 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
   const clauses = [];
   if (jobId) clauses.push({ executionId: String(jobId).trim() });
   if (resultId) clauses.push({ resultId: String(resultId).trim() });
-  if (requestId) clauses.push({ requestId: String(requestId).trim() });
+  // 레코드 키는 readAIPromptRequestId 가 idempotencyKey 를 우선하는데(카드 경로는 requestId + ":a0"),
+  // 클라이언트는 접미사 없는 requestId 로 폴링해 404 로 새는 조합이 있다. 쓰기 키를 바꾸면 재접속이
+  // 다른 멱등키로 돌아 이중 차감 위험이 있으므로, 읽기에서만 접두 일치를 함께 본다.
+  if (requestId) {
+    const normalizedRequestId = String(requestId).trim();
+    clauses.push({ requestId: normalizedRequestId });
+    clauses.push({ requestId: { $regex: `^${normalizedRequestId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}:` } });
+  }
   if (!userId || !clauses.length) return null;
   return PaidExecutionRecord.findOne({
     userId,
@@ -1022,10 +1029,13 @@ async function markSajuAIPromptStaleExecutionFailed(execution, details = {}) {
     {
       $set: {
         status: "generation_failed",
+        // code/message 는 buildSajuAIStatusPayload 가 그대로 사용자에게 내보낸다(errorCode/errorMessage).
         error: {
           name: "STALE_GENERATING_RECOVERY",
-          message: "Previous saju AI prompt generation lease expired before completion.",
+          code: "STALE_GENERATION_RECOVERED",
+          message: "상담 생성이 중간에 끊겨 대기 상태를 정리했어요. 결제 권한은 보존되어 추가 결제 없이 다시 생성할 수 있어요.",
         },
+        "result.progress": buildSajuAIProgress(0, "failed", "상담 생성이 중단되어 다시 생성이 필요해요."),
         updatedAt: new Date(),
       },
     },
@@ -1036,6 +1046,15 @@ async function markSajuAIPromptStaleExecutionFailed(execution, details = {}) {
     executionStatus: "generation_failed",
   });
   return { ...execution, status: "generation_failed" };
+}
+
+// 생성은 동기라 요청이 끊기면(엣지 데드라인/탭 종료/isolate 회수) 레코드가 generating 으로 남고
+// /status 는 영원히 202 를 답한다 — 결제는 됐는데 결과도 환불도 없이 폴링만 돌다 끝난다.
+// 읽기 시점에 정리해 terminal 상태로 내보내면 클라이언트의 기존 failed 처리(결제 보존 재생성)가 인계한다.
+async function reapStaleSajuAIExecution(execution, details = {}) {
+  if (!isSajuAIPromptStaleGeneratingExecution(execution)) return execution;
+  const recovered = await markSajuAIPromptStaleExecutionFailed(execution, details).catch(() => null);
+  return recovered || { ...execution, status: "generation_failed" };
 }
 
 async function findSajuAIPromptDuplicateExecution({ auth, profileId, requestId, paymentId, orderId }) {
@@ -4305,8 +4324,9 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   // 같은 requestId 재-POST는 완료본 재열람(즉시 200) 또는 진행 중 재연결(202)로 흡수한다.
   // 위 소비 위임은 requestId 멱등이라 재차감이 없고, stale(생성 최악치 초과) 레코드만 아래 begin이 인계한다.
   const sajuExecutionId = buildSajuAIPromptExecutionId({ userId: String(auth?.userId || "").trim(), profileId, requestId });
+  let existingExecution = null;
   try {
-    const existingExecution = await findSajuAIExecutionForRead({ auth, jobId: sajuExecutionId, resultId, requestId, profileId });
+    existingExecution = await findSajuAIExecutionForRead({ auth, jobId: sajuExecutionId, resultId, requestId, profileId });
     if (existingExecution?.status === "completed") {
       const stored = normalizeSajuAIStoredResult(existingExecution);
       if (stored) return json(stored);
@@ -4343,11 +4363,17 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
 
   // 결정적(생년월일 기반) 사주 해석 → LLM 응답 캐시 + in-flight dedup.
   // 차감(위)·저장(아래)은 그대로 실행되고 캐시 히트 시 Gemini 호출만 건너뛴다.
+  // 이미 한 번 실패한 requestId 는 캐시를 읽지 않는다. 캐시는 품질 검증 이전 단계라 검증에서 떨어진
+  // 응답도 저장되고, 무료 재생성이 같은 키로 그 응답을 다시 받아 30일 내내 같은 실패를 반복한다.
+  // 쓰기는 그대로 둔다 — 성공한 재생성이 같은 키를 덮어써 스스로 낫는다.
+  const retryAfterFailure = existingExecution?.status === "generation_failed"
+    || (existingExecution?.status === "generating" && isSajuAIPromptStaleGeneratingExecution(existingExecution));
   const sajuLlmCache = {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    skipRead: retryAfterFailure || undefined,
   };
 
   // LLM 생성 전체(성공 저장·실패 환불·레코드 마킹 포함)를 클로저로 묶는다 — ctx가 있으면 즉시 202 후
@@ -4640,10 +4666,11 @@ async function handleSajuAIConsultationStatus(request, auth, path = "") {
   const jobId = decodeURIComponent(String(url.searchParams.get("jobId") || pathJobId || "").trim());
   const requestId = String(url.searchParams.get("requestId") || "").trim();
   const profileId = String(url.searchParams.get("profileId") || url.searchParams.get("selectedProfileId") || "").trim();
-  const record = await findSajuAIExecutionForRead({ auth, jobId, requestId, profileId });
-  if (!record) {
+  const found = await findSajuAIExecutionForRead({ auth, jobId, requestId, profileId });
+  if (!found) {
     return buildSajuAIPromptError("JOB_NOT_FOUND", "상담 생성 상태를 찾을 수 없습니다.", 404);
   }
+  const record = await reapStaleSajuAIExecution(found, { requestId, jobId, route: "status" });
   return json(buildSajuAIStatusPayload(record), { status: record.status === "completed" ? 200 : record.status === "generation_failed" ? 503 : 202 });
 }
 
@@ -4675,10 +4702,11 @@ async function handleSajuAIConsultationResult(request, auth, path = "") {
   const jobId = String(url.searchParams.get("jobId") || "").trim();
   const requestId = String(url.searchParams.get("requestId") || "").trim();
   const profileId = String(url.searchParams.get("profileId") || url.searchParams.get("selectedProfileId") || "").trim();
-  const record = await findSajuAIExecutionForRead({ auth, jobId, resultId, requestId, profileId });
-  if (!record) {
+  const found = await findSajuAIExecutionForRead({ auth, jobId, resultId, requestId, profileId });
+  if (!found) {
     return buildSajuAIPromptError("RESULT_NOT_FOUND", "저장된 사주 전문가 상담 결과를 찾을 수 없습니다.", 404);
   }
+  const record = await reapStaleSajuAIExecution(found, { requestId, jobId, resultId, route: "result" });
   if (record.status !== "completed") {
     return json(buildSajuAIStatusPayload(record), { status: record.status === "generation_failed" ? 503 : 202 });
   }
@@ -6504,4 +6532,8 @@ export const __fortuneAccessTestUtils = {
   buildPigCoinRefundDeductQueries,
   buildAIPromptCardRefundPaymentQuery,
   readAIPromptRefundContext: readSajuAIPromptPointRefundContext,
+  isSajuAIPromptStaleGeneratingExecution,
+  mapSajuAIExecutionStatus,
+  buildSajuAIStatusPayload,
+  readAIPromptRequestId,
 };

@@ -10,6 +10,10 @@ export interface LLMCacheConfig {
   deterministic?: boolean;
   ttlSeconds?: number;
   keyExtra?: string;
+  // 이번 호출만 캐시 조회를 건너뛴다(쓰기는 유지). 캐시는 기능별 품질 검증 이전 단계라
+  // 검증에서 떨어진 응답도 저장되는데, 그 뒤 재시도가 같은 키로 같은 실패를 반복한다.
+  // 쓰기를 살려 두면 성공한 재시도가 그 키를 덮어써 스스로 낫는다.
+  skipRead?: boolean;
 }
 
 const DEFAULT_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -120,7 +124,7 @@ export async function withLLMCache(
   }
 
   // 1. 캐시 조회 (결정적 호출만). 저장소가 느리면 타임아웃하고 생성으로 진행한다.
-  if (deterministic && store) {
+  if (deterministic && store && config?.skipRead !== true) {
     try {
       const cached = await withTimeout(store.get(cacheKey), CACHE_GET_TIMEOUT_MS, null);
       if (cached && cached.text) {
