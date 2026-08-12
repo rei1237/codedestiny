@@ -3,10 +3,9 @@ import path from "node:path";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-// 연결은 getUserModel() 이 worker/lib/db.js 의 connectDb(autoIndex:false)로 처리한다.
-// app/_lib/dbConnect.js 로 따로 붙지 말 것 — 비프로덕션에서 autoIndex 가 켜져 워커 모델
-// 45개의 인덱스 생성이 프로덕션 DB 로 나간다.
-import { getUserModel } from "../app/_lib/models/UserModel.js";
+import { dbConnect } from "../app/_lib/dbConnect.js";
+// User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
+import { User } from "../worker/lib/models.js";
 
 function parseArgs(argv) {
   const result = {};
@@ -76,7 +75,7 @@ if (!Number.isInteger(TEST_POINTS) || TEST_POINTS < 0) {
 }
 
 async function upsertTestAccount() {
-  const User = await getUserModel();
+  await dbConnect();
 
   const now = new Date();
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 12);

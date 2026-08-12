@@ -334,7 +334,7 @@ assert.doesNotMatch(
 assert.match(
   modelsSource,
   /export const RECENT_CONSUME_REQUEST_ID_CAP = 200;/,
-  "마커 상한은 models.js의 단일 정본(200 — server/routes/fortune.routes.js와 동일)이어야 한다",
+  "마커 상한은 models.js의 단일 정본(200)이어야 한다",
 );
 for (const [label, source] of Object.entries(MARKER_WRITE_SOURCES)) {
   assert.doesNotMatch(

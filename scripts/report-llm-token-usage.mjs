@@ -14,7 +14,7 @@
  *
  * 🔴 로그 형식을 바꾸면(emitTokenUsageLog) 이 파서도 함께 고쳐야 한다.
  * 🔴 lib/llm-client.ts 를 안 거치는 경로는 여기 안 잡힌다:
- *    lib/tarot/mindscan-reading.mjs · lib/tarot/love-reading-llm.mjs · server/routes/*.js
+ *    lib/tarot/mindscan-reading.mjs · lib/tarot/love-reading-llm.mjs
  */
 
 import { readFileSync } from "node:fs";

@@ -62,7 +62,6 @@ const PROTECTED_PREFIXES = [
   "public/",
   "app/",
   "worker/",
-  "server/",
   "utils/astrology/",
   "fortune/",
   "veda/",
@@ -275,8 +274,6 @@ function collectEntryPoints(allFiles, allFilesSet) {
     "public/index.html",
     "next.config.mjs",
     "middleware.js",
-    "server/server.js",
-    "server/app.js",
     "worker/index.js",
     "package.json",
   ].forEach((rel) => {

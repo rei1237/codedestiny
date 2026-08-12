@@ -45,6 +45,8 @@ describe("라우트 표", () => {
     expect(Object.keys(ROUTES).sort()).toEqual([
       "GET /features",
       "GET /orders/:id",
+      // 확정 컷오버 어댑터 — 구 /api/billing/confirm(재작성)이 여기로 온다.
+      "POST /confirm",
       "POST /moonstone/spend",
       "POST /orders",
       "POST /orders/:id/confirm",

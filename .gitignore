@@ -43,10 +43,6 @@ WORKING_ON.md
 .env.*
 !.env.example
 !.env.*.example
-server/.env
-server/.env.local
-server/.env.*
-!server/.env.example
 
 # Cloudflare local deploy secrets
 .env.cloudflare
@@ -78,6 +74,8 @@ audit_phase1/
 _tmp_*
 reports/*.tmp.json
 backups/mongodb/
+# scripts/backup-mongo.mjs 산출물 — 개인정보가 그대로 들어가므로 어떤 하위 경로도 커밋 금지
+backups/
 
 # one-time patch/fix scripts archive (not needed in repo)
 _scripts-archive/

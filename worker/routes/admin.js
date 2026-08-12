@@ -53,7 +53,7 @@ function adminMongoRead(env, operation) {
 // 간헐적으로 `error code: 1102`(Worker exceeded resource limits)로 죽었다(2026-07-31 실측).
 // PBKDF2 는 crypto.subtle 네이티브라 같은 강도에서 ~15ms 다. worker/lib/password.js 의
 // verifyPassword 가 두 포맷을 모두 받으므로 bcrypt 를 넣어도 "동작은 하다가 가끔 죽는" 형태가 되어
-// 원인을 찾기 어렵다. 레거시 server/routes/admin.routes.js 도 PBKDF2 를 우선 처리한다.
+// 원인을 찾기 어렵다.
 const ADMIN_ENTRY_PASSWORD_HASH_KEY = "ADMIN_ENTRY_PASSWORD_HASH";
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;

@@ -97,7 +97,7 @@ function functionBody(text, signature) {
   throw new Error(`함수 본문이 닫히지 않았습니다 -> ${signature}`);
 }
 
-/** worker/ 와 server/ 의 .js 파일을 훑는다(빌드 산출물·의존성 제외). */
+/** worker/ 의 .js 파일을 훑는다(빌드 산출물·의존성 제외). */
 function listSourceFiles(dirs) {
   const out = [];
   const skip = new Set(["node_modules", ".wrangler", "dist", "out", ".next", ".git"]);
@@ -129,7 +129,6 @@ function listSourceFiles(dirs) {
 // 주석을 그대로 두면 두 방향으로 틀린다: 금지 패턴을 설명한 주석이 위반으로 잡히고(오탐),
 // 필수 호출을 언급한 주석이 존재 검사를 통과시킨다(오통과). 둘 다 실제로 일어날 수 있다.
 const adminWorker = stripComments(source("worker/routes/admin.js"));
-const adminExpress = stripComments(source("server/routes/admin.routes.js"));
 const http = stripComments(source("worker/lib/http.js"));
 const workerIndex = stripComments(source("worker/index.js"));
 const payments = stripComments(source("worker/routes/payments.js"));
@@ -139,22 +138,18 @@ const workerSources = listSourceFiles(["worker"]);
    사고 내용: 평문 주석 + salt 없는 SHA-256 이 공개 레포에 커밋돼 있었고, 그 값 하나로
    8시간 관리자 토큰 → 전 유료기능 무료 통과 + 임의 고객 결제 취소까지 이어졌다. */
 check("R1a 관리자 비밀번호 상수 배열 재도입", () => {
-  for (const [label, text] of [["worker/routes/admin.js", adminWorker], ["server/routes/admin.routes.js", adminExpress]]) {
-    assert.ok(
-      !text.includes("ADMIN_ENTRY_PASSWORD_SHA256_LIST"),
-      `${label}: 하드코딩 비밀번호 해시 배열이 되살아났습니다. 정본은 env ADMIN_ENTRY_PASSWORD_HASH 입니다.`,
-    );
-  }
+  assert.ok(
+    !adminWorker.includes("ADMIN_ENTRY_PASSWORD_SHA256_LIST"),
+    "worker/routes/admin.js: 하드코딩 비밀번호 해시 배열이 되살아났습니다. 정본은 env ADMIN_ENTRY_PASSWORD_HASH 입니다.",
+  );
 });
 
 check("R1b 관리자 파일의 64자 hex 문자열 리터럴", () => {
   // 변수명을 바꿔 우회해도 걸리도록, 이름이 아니라 "형태"를 본다.
   // 정규식 리터럴(/^[a-f0-9]{64}$/)은 문자열이 아니므로 걸리지 않는다.
   const hexLiteral = /["'`][a-f0-9]{64}["'`]/;
-  for (const [label, text] of [["worker/routes/admin.js", adminWorker], ["server/routes/admin.routes.js", adminExpress]]) {
-    const hit = text.match(hexLiteral);
-    assert.ok(!hit, `${label}: 64자 hex 문자열 리터럴이 있습니다(${String(hit?.[0]).slice(0, 12)}…). 비밀번호 해시를 소스에 두지 마세요.`);
-  }
+  const hit = adminWorker.match(hexLiteral);
+  assert.ok(!hit, `worker/routes/admin.js: 64자 hex 문자열 리터럴이 있습니다(${String(hit?.[0]).slice(0, 12)}…). 비밀번호 해시를 소스에 두지 마세요.`);
 });
 
 check("R1c 관리자 진입 비밀번호 env 배선 + fail-closed", () => {
@@ -162,12 +157,6 @@ check("R1c 관리자 진입 비밀번호 env 배선 + fail-closed", () => {
   assert.ok(body.includes("ADMIN_ENTRY_PASSWORD_HASH_KEY"), "worker: env 키를 읽지 않습니다.");
   assert.ok(body.includes("verifyPassword("), "worker: 공용 verifyPassword 를 쓰지 않습니다.");
   assert.ok(body.includes("return false"), "worker: 시크릿 미설정 시 fail-closed 경로가 없습니다.");
-
-  const expressBody = functionBody(adminExpress, "async function verifyAdminEntryPassword(");
-  assert.ok(expressBody.includes("ADMIN_ENTRY_PASSWORD_HASH_KEY"), "express: env 키를 읽지 않습니다.");
-  // PBKDF2 가 정본이다 — 같은 시크릿을 워커가 읽는데, 워커에서 bcrypt(순수 JS, cost 12)는
-  // CPU 한도(1102)를 간헐적으로 넘긴다. Express 가 PBKDF2 를 못 읽으면 한 시크릿 공유가 깨진다.
-  assert.ok(expressBody.includes("pbkdf2"), "express: PBKDF2 검증 경로가 없습니다.");
 });
 
 check("R1d 관리자 해시 포맷 경고 유지", () => {

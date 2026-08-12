@@ -7,9 +7,9 @@ const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 // recentConsumeRequestIds(멱등 마커)를 최근 N개로 제한한다. 상한이 없으면 무제한 누적되는데,
 // 이 배열은 결제 차감 핫패스에서 매 재시도마다 통째로 조회된다(applyLotDeduction). 특히 이용권
 // 무료 통과도 마커를 남겨 돈 한 푼 안 쓰고 배열이 계속 커진다.
-// 200은 server/routes/fortune.routes.js(같은 User 문서를 쓰는 레거시)의 $slice 수치와 반드시 같아야
-// 한다 — 갈라지면 작은 쪽이 큰 쪽의 유효 마커를 축출한다.
 // 강제 수단은 $slice뿐이다: 스키마 배열 validator는 findOneAndUpdate 같은 업데이트 연산자에서 실행되지 않는다.
+// (예전에는 같은 User 문서를 쓰는 레거시 Express 의 $slice 수치와 맞춰야 했다. 그쪽은 삭제됐고,
+//  이제 이 컬렉션에 쓰는 곳은 워커 하나뿐이라 이 상수가 유일한 정본이다.)
 export const RECENT_CONSUME_REQUEST_ID_CAP = 200;
 
 const userSchema = new mongoose.Schema({
@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   // 신규 쓰기는 항상 봉투(worker/lib/pii-crypto.js)지만, 마이그레이션 전 기존 행은 평문이라
   // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
   phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
+  phoneUpdatedAt: { type: Date },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },
@@ -146,6 +147,9 @@ const userSchema = new mongoose.Schema({
       default: "idle",
     },
     lastBillingError: { type: String, default: "" },
+    // consumeTierPassIfAvailable(billing.js) 이 이용권 소비마다 갱신한다. default 없음은 의도적
+    // — 이용권을 쓴 적 없는 계정에 빈 값을 만들지 않기 위해서다.
+    updatedAt: { type: Date },
   },
   monthlySubscription: {
     active: { type: Boolean, default: false },
@@ -157,6 +161,31 @@ const userSchema = new mongoose.Schema({
   },
   has_started_paid_service: { type: Boolean, default: false, index: true },
   first_service_access_date: { type: Date, default: null },
+  // 카카오 추천 보상(worker/routes/auth.js:222~486). 실제 쓰기는 전부 User.collection 네이티브
+  // 드라이버라 선언 없이도 저장돼 왔지만, 선언이 없으면 mongoose 경유 쓰기가 strict 에 걸려
+  // 조용히 버려진다(app-store.js 가 같은 함정에 빠져 있었다).
+  // 🔴 하위 필드에 default 를 주지 않는 것은 의도적이다 — default 가 있으면 minimize 가 걷어내지
+  // 못해 추천을 쓴 적 없는 전 계정에 빈 껍데기가 생긴다. 읽는 쪽은 이미 $ifNull 로 방어한다.
+  referralCode: { type: String, trim: true },
+  referralCodeCreatedAt: { type: Date },
+  referralProgram: {
+    kakaoShareRewardEnabled: { type: Boolean },
+    kakaoShareLastPreparedAt: { type: Date },
+    rewardDayKey: { type: String, trim: true },
+    rewardedToday: { type: Number, min: 0 },
+    totalRewardCredit: { type: Number, min: 0 },
+    lastRewardedAt: { type: Date },
+  },
+  // 초대받은 쪽에 남는 보상 처리 상태. 현재 프로덕션에 데이터 0건이지만 쓰는 코드는 살아 있다.
+  referralReward: {
+    status: { type: String, trim: true },
+    channel: { type: String, trim: true },
+    referralCode: { type: String, trim: true },
+    inviterUserId: { type: String, trim: true },
+    capturedAt: { type: Date },
+    completedAt: { type: Date },
+    rewardMonthlyCredit: { type: Number, min: 0 },
+  },
 }, { timestamps: true });
 
 const profileCardBirthSchema = new mongoose.Schema({

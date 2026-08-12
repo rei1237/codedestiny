@@ -2,9 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-// 연결은 getUserModel() 이 worker/lib/db.js 의 connectDb(autoIndex:false)로 처리한다.
-import { getUserModel } from "../app/_lib/models/UserModel.js";
-import { PointHistory } from "../worker/lib/models.js";
+import { dbConnect } from "../app/_lib/dbConnect.js";
+// User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
+import { PointHistory, User } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
 import { handleBillingRoutes } from "../worker/routes/billing.js";
 
@@ -42,7 +42,7 @@ function getEnvForWorker() {
 }
 
 async function main() {
-  const User = await getUserModel();
+  await dbConnect();
 
   const normalizedEmail = TEST_LOGIN_ID.toLowerCase();
   const user = await User.findOne({ email: normalizedEmail }).select("_id email role points").lean();

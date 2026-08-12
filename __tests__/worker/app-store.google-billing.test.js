@@ -504,8 +504,11 @@ describe("rtdn — 환불 회수", () => {
     }));
     expect(status).toBe(200);
     const userUpdate = mockUserFindByIdAndUpdate.mock.calls[0][1];
-    expect(userUpdate.$set["profileSubscription.status"]).toBe("cancelled");
-    expect(userUpdate.$set["profileSubscription.subscriptionStatus"]).toBe("cancelled");
+    // 취소 표시는 스키마에 선언된 lastBillingStatus 로만 남긴다. 예전에는 status/
+    // subscriptionStatus/membershipStatus 도 함께 $set 했지만 셋 다 userSchema 에 없어
+    // mongoose strict 가 조용히 버렸다(프로덕션 실측 0건) — 저장되지 않는 값을 단언하고 있었다.
+    expect(userUpdate.$set["profileSubscription.lastBillingStatus"]).toBe("cancelled");
+    expect(userUpdate.$set["profileSubscription.subscriptionStatus"]).toBeUndefined();
   });
 
   test("토큰이 틀리면 401, 미설정이면 503으로 닫힌다", async () => {

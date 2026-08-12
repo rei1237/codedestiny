@@ -35,7 +35,6 @@ const PROTECTED_PREFIXES = [
   "public/",
   "app/",
   "worker/",
-  "server/",
   "utils/astrology/",
   "fortune/",
   "veda/",

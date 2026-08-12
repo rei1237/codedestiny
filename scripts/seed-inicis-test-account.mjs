@@ -2,8 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-// 연결은 getUserModel() 이 worker/lib/db.js 의 connectDb(autoIndex:false)로 처리한다.
-import { getUserModel } from "../app/_lib/models/UserModel.js";
+import { dbConnect } from "../app/_lib/dbConnect.js";
+// User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
+import { User } from "../worker/lib/models.js";
 
 for (const fileName of [".env.local", ".env"]) {
   const envPath = path.join(process.cwd(), fileName);
@@ -31,7 +32,7 @@ async function upsertInicisAccount() {
   if (TEST_PASSWORD.length < 12) {
     throw new Error("Set INICIS_TEST_ACCOUNT_PASSWORD in .env.local (minimum 12 characters). It must not be committed.");
   }
-  const User = await getUserModel();
+  await dbConnect();
 
   const now = new Date();
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 12);
