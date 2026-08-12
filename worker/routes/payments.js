@@ -783,36 +783,6 @@ function formatPaymentSummaryResponse(payment) {
   };
 }
 
-function formatOrderDetailResponse(payment) {
-  const detail = formatPaymentResponse(payment);
-  if (!detail) return null;
-  return {
-    id: detail.id,
-    paymentAmount: detail.paymentAmount,
-    coinPrice: detail.coinPrice,
-    membershipCreditCost: detail.membershipCreditCost,
-    chargedPoints: detail.chargedPoints,
-    featureKey: detail.featureKey,
-    productId: detail.productId,
-    accessType: detail.accessType,
-    paymentMethod: detail.paymentMethod,
-    paymentMethodLabel: detail.paymentMethodLabel,
-    paymentType: detail.paymentType,
-    subscriptionTier: detail.subscriptionTier,
-    status: detail.status,
-    orderState: detail.orderState,
-    createdAt: detail.createdAt,
-    updatedAt: detail.updatedAt,
-    paidAt: detail.paidAt,
-    orderNumberMasked: maskPaymentIdentifier(detail.merchantUid || detail.id),
-    approvalNumberMasked: maskPaymentIdentifier(detail.approvalNumber),
-    receiptUrl: detail.receiptUrl || null,
-    receiptAvailable: Boolean(detail.receiptUrl),
-    cancelAmount: detail.cancelAmount,
-    cancelledAt: detail.cancelledAt,
-  };
-}
-
 const SENSITIVE_PAYLOAD_KEYS = new Set([
   "authorization",
   "card",
@@ -5593,114 +5563,6 @@ function buildDegradedPaymentsMeResponse(auth, {
   return body;
 }
 
-async function handleOrderDetail(request, env, auth, path) {
-  const startedAt = Date.now();
-  const requestId = createPaymentRequestId(request);
-  const encodedId = String(path || "").replace(/^\/orders\//, "").trim();
-  let orderId = "";
-  try {
-    orderId = decodeURIComponent(encodedId);
-  } catch {
-    orderId = encodedId;
-  }
-  if (!mongoose.Types.ObjectId.isValid(orderId)) {
-    return json({
-      ok: false,
-      success: false,
-      code: "INVALID_ORDER_ID",
-      error: buildApiError({ code: "INVALID_ORDER_ID", retryable: false, message: "주문을 확인할 수 없습니다.", requestId }),
-      requestId,
-    }, { status: 400 });
-  }
-
-  const normalizedUserId = String(auth?.userId || "").trim();
-  const userObjectId = mongoose.Types.ObjectId.isValid(normalizedUserId)
-    ? new mongoose.Types.ObjectId(normalizedUserId)
-    : null;
-  if (!userObjectId) {
-    return json({
-      ok: false,
-      success: false,
-      code: "UNAUTHORIZED",
-      error: buildApiError({ code: "UNAUTHORIZED", retryable: false, message: "로그인이 필요합니다.", requestId }),
-      requestId,
-    }, { status: 401 });
-  }
-
-  const payment = await withMongoRetry(env, () => mongoose.connection.collection("payments").findOne(
-    {
-      _id: new mongoose.Types.ObjectId(orderId),
-      userId: { $in: [userObjectId, normalizedUserId] },
-    },
-    {
-      projection: {
-        _id: 1,
-        merchantUid: 1,
-        impUid: 1,
-        paymentAmount: 1,
-        coinPrice: 1,
-        expectedChargedPoints: 1,
-        membershipCreditCost: 1,
-        chargedPoints: 1,
-        featureKey: 1,
-        productId: 1,
-        accessType: 1,
-        requestId: 1,
-        paymentMethod: 1,
-        paymentType: 1,
-        subscriptionTier: 1,
-        status: 1,
-        orderState: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        paidAt: 1,
-        rawPortOne: 1,
-      },
-    },
-  ));
-
-  if (!payment) {
-    logPaymentOrderTrace("warn", {
-      requestId,
-      userHash: hashPaymentLogValue(auth?.userId),
-      orderHash: hashPaymentLogValue(orderId),
-      status: 404,
-      durationMs: Date.now() - startedAt,
-      dbQueryCount: 1,
-      cache: "miss",
-      result: "order_not_found",
-      commitSha: getPaymentDeploySha(env),
-    });
-    return json({
-      ok: false,
-      success: false,
-      code: "ORDER_NOT_FOUND",
-      error: buildApiError({ code: "ORDER_NOT_FOUND", retryable: false, message: "주문을 찾을 수 없습니다.", requestId }),
-      requestId,
-    }, { status: 404 });
-  }
-
-  const generatedAt = new Date().toISOString();
-  logPaymentOrderTrace("info", {
-    requestId,
-    userHash: hashPaymentLogValue(auth?.userId),
-    orderHash: hashPaymentLogValue(orderId),
-    status: 200,
-    durationMs: Date.now() - startedAt,
-    dbQueryCount: 1,
-    cache: "miss",
-    result: "ok",
-    commitSha: getPaymentDeploySha(env),
-  });
-  return json({
-    ok: true,
-    success: true,
-    data: { order: formatOrderDetailResponse(payment) },
-    meta: buildApiMeta({ generatedAt, stale: false, source: "db" }),
-    requestId,
-  });
-}
-
 async function handleMe(auth, env, request) {
   const startedAt = Date.now();
   const requestId = createPaymentRequestId(request);
@@ -5862,157 +5724,6 @@ async function handleMe(auth, env, request) {
     return json(body);
   }
 }
-async function handlePointsMe(auth, env) {
-  try {
-    await connectDb(env);
-    const user = await findUserByIdRaw(auth.userId, {
-      name: 1,
-      email: 1,
-      points: 1,
-    });
-
-    const pointHistories = await PointHistory.find({ userId: auth.userId })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
-
-    const transactions = Array.isArray(pointHistories)
-      ? pointHistories.map((entry) => formatPointHistoryEntry(entry)).filter((entry) => entry.id)
-      : [];
-    const balance = Number(user?.points || 0);
-
-    return json({
-      success: true,
-      ok: true,
-      data: {
-        balance,
-        transactions,
-        payments: [],
-        subscriptions: [],
-      },
-      user: {
-        id: String(auth.userId),
-        name: user?.name || "",
-        email: user?.email || "",
-        points: balance,
-      },
-      pointHistories: transactions,
-      transactions,
-    });
-  } catch (error) {
-    console.warn("[payments/points-me] degraded fallback to token:", String(error?.message || "unknown"));
-    const fallbackBody = buildTokenFallbackPaymentsMe(auth, "Point history is temporarily unavailable. Loaded safe account data from token.");
-    return json({
-      success: true,
-      ok: true,
-      source: fallbackBody.source,
-      message: fallbackBody.message,
-      data: {
-        balance: fallbackBody.data.balance,
-        transactions: [],
-        payments: [],
-        subscriptions: [],
-      },
-      user: {
-        id: fallbackBody.user.id,
-        name: fallbackBody.user.name,
-        email: fallbackBody.user.email,
-        points: fallbackBody.user.points,
-      },
-      pointHistories: [],
-      transactions: [],
-    });
-  }
-}
-
-function handlePaymentConfig(env) {
-  const config = getPortOnePublicConfig(env);
-  if (!config.configured) {
-    console.warn("[payments/config] PORTONE config is not ready", {
-      storeId: Boolean(config.storeId),
-      channelKey: Boolean(config.channelKey),
-      serverVerification: Boolean(config.serverVerificationConfigured),
-      inicis: Boolean(config.inicisConfigured),
-    });
-    return json({
-      message: "PortOne V2 KG Inicis public payment config is missing.",
-      code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
-      missing: {
-        storeId: !config.storeId,
-        channelKey: !config.channelKey,
-        serverVerification: !config.serverVerificationConfigured,
-        inicisMid: !config.inicisMidConfigured,
-        inicisSignKey: !config.inicisSignKeyConfigured,
-        inicisApiKey: !config.inicisApiKeyConfigured,
-        inicisApiIv: !config.inicisApiIvConfigured,
-      },
-    }, { status: 503 });
-  }
-
-  return json({
-    ok: true,
-    configured: config.configured,
-    serverVerificationConfigured: Boolean(config.serverVerificationConfigured),
-    inicisConfigured: Boolean(config.inicisConfigured),
-    inicisMidConfigured: Boolean(config.inicisMidConfigured),
-    inicisSignKeyConfigured: Boolean(config.inicisSignKeyConfigured),
-    inicisApiKeyConfigured: Boolean(config.inicisApiKeyConfigured),
-    inicisApiIvConfigured: Boolean(config.inicisApiIvConfigured),
-    provider: config.provider,
-    pg: config.pg,
-    storeId: config.storeId,
-    channelKey: config.channelKey,
-    currency: config.currency,
-    payMethod: config.payMethod,
-    noticeUrl: config.noticeUrl,
-  });
-}
-
-// 결제 라우트 핸들러가 인증 직후 곧바로 필요로 하는 User 필드. 인증 리졸버에 userProjection으로
-// 넘기면 인증 조회와 같은 왕복에서 함께 읽어 authUserDoc로 돌려준다(두 번째 Mongo 왕복 제거).
-// 인증할 때 어차피 User 를 한 번 읽으므로, 결제 핸들러가 곧바로 쓰는 필드를 그때 함께 읽는다.
-// Atlas 공유혀에서는 왕복 1회가 곧 체감 지연이라, 왕복 수를 줄이는 것이 유일하게 효과가 큰 레버다.
-// 아래 두 묶음이 여기 있는 이유:
-//  - pass/구독 필드: handleDigitalContentPrepare 가 이걸 위해 별도 User.findById 를 또 했다.
-//  - customer 필드(phone/이름): 주문 응답의 customer 를 만들기 위해 필요하다. 이게 없어서
-//    order.customer 가 아예 비어 있었고, 그 결과 클라가 결제마다 GET /api/me/payment-phone 을 탔다.
-const PAYMENT_ROUTE_USER_PROJECTION = {
-  _id: 1,
-  name: 1,
-  email: 1,
-  points: 1,
-  joinedAt: 1,
-  birthDate: 1,
-  unlockedFeatures: 1,
-  profileSubscription: 1,
-  // pass/구독 판정용
-  subscription: 1,
-  membership: 1,
-  pass: 1,
-  entitlement: 1,
-  plan: 1,
-  planId: 1,
-  productId: 1,
-  subscriptionTier: 1,
-  membershipTier: 1,
-  passTier: 1,
-  status: 1,
-  subscriptionStatus: 1,
-  membershipStatus: 1,
-  isActive: 1,
-  isSubscribed: 1,
-  expiresAt: 1,
-  // PortOne customer 구성용
-  phoneNumber: 1,
-  phone: 1,
-  fullName: 1,
-  displayName: 1,
-  username: 1,
-  // 주문 스냅샷 profileId 폴백용(handleDigitalContentPrepare). 없으면 프로필 스코프 상품이
-  // 프로필 결손 상태로 결제돼 정산이 관리자 검토로 빠진다.
-  destinyProfilesCurrentId: 1,
-};
-
 // 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
 // 가능해(민법 제5조) 결제창이 뜨기 전 단계에서 막는다. 이미 승인된 결제의 완료(/confirm,
 // /single/complete)는 막지 않는다 — 돈만 빠져나가고 지급이 안 되는 상태가 더 나쁘다.
@@ -6075,8 +5786,6 @@ export async function handlePaymentRoutes(request, env, ctx) {
   };
 
   try {
-    if (method === "GET" && path === "/config") return handlePaymentConfig(env);
-
     const keyFeature = "auth-basic";
     const keyHealth = evaluateFeatureKeyHealth(env, keyFeature);
     if (!keyHealth.ok) {
@@ -6114,8 +5823,6 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (minorBlocked) return minorBlocked;
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
-    if (method === "GET" && /^\/orders\/[^/]+$/.test(path)) return await handleOrderDetail(request, env, auth, path);
-    if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);
 
     await connectDb(env);
     trace.dbConnected = true;
@@ -6151,9 +5858,7 @@ export const __paymentsTestUtils = {
   handleSubscriptionPrepare,
   handleSubscriptionConfirm,
   handleMe,
-  handleOrderDetail,
   formatPaymentSummaryResponse,
-  formatOrderDetailResponse,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
   signStandardWebhookPayload,
