@@ -59,39 +59,6 @@ type AuthUser = {
   };
 };
 
-type PointPackage = {
-  id: string;
-  title: string;
-  amount: number;
-  points: number;
-  featureKey: string;
-  description: string;
-  productType: "paid_content" | "pdf_report";
-};
-
-type PaymentMethodOption = {
-  id: string;
-  label: string;
-  logo: string;
-  desc: string;
-  group: "domestic" | "global";
-};
-
-type PrepareOrderResponse = {
-  message?: string;
-  order?: {
-    merchantUid: string;
-    paymentAmount: number;
-    chargePoints?: number;
-    coinPrice?: number;
-    amountKRW?: number;
-    productName: string;
-    // 서버가 결제창용 구매자 정보를 주문 응답에 실어 보낸다(worker/routes/payments.js buildSinglePaymentCustomer).
-    // 이걸 쓰면 결제창 직전의 GET /api/me/payment-phone 왕복이 통째로 사라진다.
-    customer?: { fullName?: string; email?: string; phoneNumber?: string };
-  };
-};
-
 type PrepareSubscriptionOrderResponse = {
   message?: string;
   order?: {
@@ -691,10 +658,6 @@ function getSubscriptionPolicyProfileLimit(tier: SubscriptionTier | string | nul
   return 1;
 }
 
-const POINT_PACKAGES: PointPackage[] = [
-  { id: "direct_paid_service", title: "directPaidService", amount: 3000, points: 30, featureKey: "direct-paid-service", description: "directPaidServiceDescription", productType: "paid_content" },
-];
-
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 
 function hasFlowerAdminPasswordSession(): boolean {
@@ -733,10 +696,6 @@ function getFlowerAdminTokenClient(): string {
   } catch {}
   return "";
 }
-
-const PAYMENT_METHODS: PaymentMethodOption[] = [
-  { id: "card_general", label: "cardGeneral", logo: "CARD", desc: "portoneV2", group: "domestic" },
-];
 
 type PointsPageCopy = {
   defaultUserName: string;
@@ -1097,10 +1056,6 @@ function isPassCoveredPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" 
 
 function langSensitiveLabel(copy: PointsPageCopy, ko: string, en: string) {
   return copy === POINTS_PAGE_COPY.ko ? ko : en;
-}
-
-function getPointPackageTitle(pack: Pick<PointPackage, "title">, copy: PointsPageCopy) {
-  return copy.pointPackages[pack.title]?.title || pack.title;
 }
 
 function formatPaymentMethodLabel(payment: PaymentHistoryItem, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
@@ -1550,11 +1505,6 @@ function readPendingOrder() {
     if (!raw) return null;
     return JSON.parse(raw) as PendingOrder;
   } catch { return null; }
-}
-
-function savePendingOrder(order: PendingOrder) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("fortune_pending_order", JSON.stringify(order));
 }
 
 function clearPendingOrder() {
@@ -2852,72 +2802,6 @@ function MoonlightPaymentNotice() {
   );
 }
 
-function PackageCard({
-  pkg,
-  selected,
-  onSelect,
-}: {
-  pkg: PointPackage;
-  selected: boolean;
-  onSelect: (pkg: PointPackage) => void;
-}) {
-  const isBest = false;
-  const listPrice = pkg.points * 100;
-  const discountRate = listPrice > 0 ? Math.max(0, Math.round((1 - pkg.amount / listPrice) * 100)) : 0;
-
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(pkg)}
-      className={[
-        "relative w-full rounded-[20px] border p-4 text-left",
-        "transition-all duration-200 active:scale-[0.97] active:shadow-none",
-        selected
-          ? "border-[#f3dd9a] bg-white/[0.14] shadow-[0_14px_34px_rgba(202,184,255,0.22)] -translate-y-0.5 ring-2 ring-[#cab8ff]/45"
-          : "border-white/12 bg-white/[0.08] shadow-[0_8px_22px_rgba(7,10,28,0.18)] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(202,184,255,0.20)] hover:border-[#cab8ff]/60",
-      ].join(" ")}
-    >
-      {/* BEST 뱃지 */}
-      {isBest && (
-        <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[11px] font-black text-[#151832] shadow-[0_4px_12px_rgba(202,184,255,0.32)]">
-          추천 결제 기준
-        </span>
-      )}
-
-      {/* 상단 행: 상품명 + 콘텐츠 기준 가격 */}
-      <div className={`flex items-center justify-between gap-2 ${isBest ? "pr-[90px]" : ""}`}>
-        <span className="text-[15px] font-bold text-white">{pkg.title}</span>
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#f3dd9a]">
-          <CoinIcon size="md" />
-          콘텐츠 기준 {pkg.points.toLocaleString("ko-KR")}
-        </span>
-      </div>
-      <p className="mt-1 text-[11.5px] font-semibold text-slate-200">{pkg.description}</p>
-
-      {/* 하단 행: 원화 금액 + 정책 */}
-      <div className="mt-1.5 flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5 text-sm font-semibold text-[#7A5230]">
-          <span className="text-[11px] text-slate-400 line-through">{formatWon(listPrice)}</span>
-          {formatWon(pkg.amount)}
-        </span>
-        <span className="text-sm font-bold text-[#f3dd9a]">
-          {discountRate}% 할인
-        </span>
-      </div>
-      <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[12px] font-black text-[#151832] shadow-[0_3px_10px_rgba(202,184,255,0.24)]">
-        원화 결제
-      </span>
-
-      {/* 선택 체크마크 */}
-      {selected && (
-        <span className="absolute bottom-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white shadow-[0_2px_8px_rgba(180,130,0,0.4)]">
-          ✓
-        </span>
-      )}
-    </button>
-  );
-}
-
 /* ══════════════════════════════════════════════════════════════════
    메인 페이지 컴포넌트: PointsPage
 ══════════════════════════════════════════════════════════════════ */
@@ -2957,11 +2841,9 @@ export default function PointsPage() {
 
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [selectedPackage] = useState<PointPackage>(POINT_PACKAGES[0]);
-  const [selectedMethod, setSelectedMethod] = useState<string>("card_general");
+  const [selectedMethod] = useState<string>("card_general");
 
   const [isBooting, setIsBooting] = useState(true);
-  const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("subscription");
   const [processingText, setProcessingText] = useState(
@@ -4178,158 +4060,6 @@ export default function PointsPage() {
     syncSubscriptionAppliedStage,
   ]);
 
-  /* ── 이용권 결제 시작 ───────────────────────────────────────────── */
-  const startPayment = async () => {
-    if (pendingSinglePaymentConfirmRef.current) return;
-
-    if (!authUser) {
-      router.replace("/login?next=%2Fpoints");
-      return;
-    }
-
-    const actionLockKey = `point:${selectedPackage.id}:${selectedMethod}`;
-    if (!acquirePaymentActionLock(actionLockKey)) return;
-
-    setIsProcessing(true);
-    setProcessingStage(
-      "단건 결제를 준비하고 있어요.\n주문 정보와 결제창을 확인하고 있어요.",
-      "checkout",
-    );
-
-    try {
-      const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          paymentAmount: selectedPackage.amount,
-          paymentType: "digital_content",
-          productId: selectedPackage.id,
-          featureKey: selectedPackage.featureKey,
-          coinPrice: selectedPackage.points,
-          paymentMethod: selectedMethod,
-          productName: getPointPackageTitle(selectedPackage, copy),
-        }),
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
-
-      // Content-Type 검증 후 JSON 파싱
-      const preparePayload = await safeParseJson<PrepareOrderResponse & { message?: string }>(
-        prepareResponse,
-      );
-      if (!prepareResponse.ok || !preparePayload.order) {
-        throw new Error(preparePayload.message || "결제 준비에 실패했습니다.");
-      }
-
-      const order = preparePayload.order;
-      savePendingOrder({
-        merchantUid: order.merchantUid,
-        paymentAmount: order.paymentAmount,
-        chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
-        coinPrice: order.coinPrice ?? selectedPackage.points,
-        productId: selectedPackage.id,
-        featureKey: selectedPackage.featureKey,
-        productName: order.productName || getPointPackageTitle(selectedPackage, copy),
-        paymentMethod: selectedMethod,
-      });
-
-      // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.
-      const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
-
-      if (!window.PortOne?.requestPayment) {
-        throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
-      }
-
-      const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
-      redirectUrl.searchParams.set("portone_redirect", "1");
-
-      // prepare 응답이 이미 구매자 번호를 실어 왔으면 그걸 쓴다 — 결제창 직전의 왕복 1회가 통째로 사라진다.
-      // 서버가 못 준 경우(미저장·복호화 실패)에만 조회하고, 그래도 없으면 입력 모달을 띄운다.
-      const customerPhoneNumber = normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")
-        || await ensurePaymentPhoneNumber(apiBase, authUser, null);
-      setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
-      const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
-
-      const requestData: PortOnePaymentRequest = {
-        storeId: paymentConfig.storeId,
-        channelKey: paymentConfig.channelKey,
-        paymentId: order.merchantUid,
-        orderName: order.productName,
-        totalAmount: order.paymentAmount,
-        currency: paymentConfig.currency || "CURRENCY_KRW",
-        payMethod: paymentConfig.payMethod || "CARD",
-        redirectUrl: redirectUrl.toString(),
-        customer,
-        customData: {
-          userId: authUser.id,
-          packageId: selectedPackage.id,
-          coinPrice: order.coinPrice ?? selectedPackage.points,
-          featureKey: selectedPackage.featureKey,
-          paymentMethod: selectedMethod,
-        },
-      };
-
-      if (paymentConfig.noticeUrl) {
-        requestData.noticeUrls = [paymentConfig.noticeUrl];
-      }
-
-      // 🔴 PG 창을 여는 직전에는 대기 UI를 새로 띄우지 않는다. 예전에는 "원화 결제 준비 중" 문구를
-      // 찍은 뒤 바로 아래에서 닫아서, 실제로는 보이지도 않는 오버레이 때문에 프레임만 낭비했다.
-      // 대기 UI는 PG 응답 이후 승인 확인 단계에서만 띄운다.
-      closeProcessingOverlayBeforeExternalCheckout();
-      const rsp = await window.PortOne.requestPayment(requestData);
-      const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
-
-      if (!rsp || rsp.code || !paymentId) {
-        clearPendingOrder();
-        clearPendingSinglePaymentSession();
-        const raw = describePortOneSdkFailure(rsp);
-        const message = mapPaymentErrorMessage(raw.message || "결제를 완료하지 못했습니다.");
-        reportPaymentFailureToServer({
-          merchantUid: order.merchantUid,
-          impUid: paymentId || undefined,
-          reasonCode: raw.code ? `pg_${raw.code}` : "client_cancel_or_fail",
-          reasonMessage: raw.message || message,
-          paymentMethod: selectedMethod,
-        });
-        pushToast("error", message);
-        setIsProcessing(false);
-        return;
-      }
-
-      const confirmStatus = await confirmPendingSinglePayment({
-        impUid: paymentId,
-        merchantUid: order.merchantUid,
-        paymentAmount: order.paymentAmount,
-        chargePoints: order.chargePoints ?? order.coinPrice ?? selectedPackage.points,
-        paymentType: "digital_content",
-        productId: selectedPackage.id,
-        featureKey: selectedPackage.featureKey,
-        productName: order.productName || getPointPackageTitle(selectedPackage, copy),
-        paymentMethod: selectedMethod,
-      });
-      if (confirmStatus === "success") {
-        setIsMethodModalOpen(false);
-      }
-    } catch (error: unknown) {
-      clearPendingOrder();
-      clearPendingSinglePaymentSession();
-      reportPaymentFailureToServer({
-        reasonCode: "prepare_or_sdk_failed",
-        reasonMessage: getErrorMessage(error, "결제를 시작하지 못했습니다."),
-        paymentMethod: selectedMethod,
-      });
-      setIsProcessing(false);
-      pushToast("error", getErrorMessage(error, "결제를 시작하지 못했습니다."));
-    } finally {
-      releasePaymentActionLock(actionLockKey);
-    }
-  };
-
   /* ── 이용권(30일) 결제 핸들러 — PortOne V2 · KG이니시스 ─────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     if (pendingSubscriptionConfirmRef.current) return;
@@ -5084,90 +4814,6 @@ export default function PointsPage() {
           </div>
         </section>
       </div>
-
-      {/* ══ 결제 방법 모달 ══════════════════════════════════════ */}
-      {isMethodModalOpen && (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(20,10,5,0.65)] px-4 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !isProcessing) setIsMethodModalOpen(false);
-          }}
-        >
-          <div className="w-full max-w-lg rounded-[28px] overflow-hidden shadow-[0_24px_70px_rgba(80,40,5,0.42)]">
-            {/* 모달 식별 골드 바 */}
-            <div
-              className="h-[3px] w-full"
-              style={{ background: "linear-gradient(90deg, #A0680A 0%, #FFD060 30%, #FFFFFF 50%, #FFD060 70%, #A0680A 100%)" }}
-              aria-hidden="true"
-            />
-            <div
-              className="border border-t-0 border-[#EDDBA3] rounded-b-[28px] p-6"
-              style={{ background: "linear-gradient(160deg, #FFFDF5 0%, #FFF6E0 50%, #FFF1CC 100%)" }}
-            >
-
-            {/* 모달 헤더 */}
-            <div className="mb-5 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">
-                  원화 결제 방법 선택
-                </p>
-                <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
-                  {getPointPackageTitle(selectedPackage, copy)}
-                </h4>
-                <p className="text-sm font-semibold text-[#7A5230]">
-                  {formatWon(selectedPackage.amount)}
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={isProcessing}
-                onClick={() => setIsMethodModalOpen(false)}
-                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#EDDBA3] bg-white/90 text-lg font-bold text-[#7A5230] transition-colors hover:bg-white disabled:opacity-50"
-                aria-label="닫기"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* 결제 방법 그리드 */}
-            <div className="grid gap-2 sm:grid-cols-2">
-              {PAYMENT_METHODS.map((method) => {
-                const sel = method.id === selectedMethod;
-                return (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setSelectedMethod(method.id)}
-                    className={[
-                      "rounded-[16px] border p-3 text-left transition-all active:scale-[0.97]",
-                      sel
-                        ? "border-[#C9A84C] bg-[rgba(255,240,190,0.9)] shadow-[0_6px_16px_rgba(180,130,30,0.22)]"
-                        : "border-[#EDDBA3] bg-white/80 hover:border-[#C9A84C]/80",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{method.logo}</span>
-                      <span className="text-sm font-semibold text-[#5C3A1E]">{method.label}</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-[#7A5230]">{method.desc}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 결제 진행 버튼 */}
-            <button
-              type="button"
-              onClick={startPayment}
-              disabled={isProcessing}
-              className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] via-[#DFB84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_28px_rgba(160,120,20,0.45)] transition-all hover:-translate-y-0.5 hover:from-[#D4B050] hover:to-[#F0CD6A] hover:shadow-[0_14px_32px_rgba(160,120,20,0.55)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isProcessing ? "🐷 연결 중..." : "원화 결제를 진행합니다"}
-            </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ══ 회원 탈퇴 모달 ══════════════════════════════════════════ */}
       <WithdrawModal
