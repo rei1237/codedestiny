@@ -105,7 +105,17 @@ function makeCountingDb(ctx, paymentConn = null) {
    사용자가 금지한 "숨기는 재시도"는 **라우트·클라이언트 레벨**의 것이고, 드라이버 한 단계 재연결은
    그것과 다르다(연결이 끊긴 것과 요청이 실패한 것은 다른 사건이다). 여기서 0 으로 낮추면 콜드
    아이솔레이트의 첫 요청이 핸드셰이크 중 끊길 때마다 사용자에게 그대로 나간다. */
-const PAYMENT_DB_OPTIONS = Object.freeze({});
+const PAYMENT_DB_OPTIONS = Object.freeze({
+  /* 🔴 결제 전용 admission 레인. 소켓 레인(connectPaymentDb)과 **한 세트**다 — 소켓만 나누고
+     이 게이트를 공유하면, 부팅 폭풍이 공유 한도를 채우는 순간 결제가 여전히 2500ms 뒤
+     MongoOperationOverloadedError(재시도 제외) → 하드 503 이 된다. 그게 "PG 결제창이 안 뜬다"의
+     남은 절반이었다(worker/lib/db.js mongoPaymentAdmission 주석). */
+  admissionLane: "payment",
+  /* 결제는 임계경로다. 순간 버스트로 슬롯을 못 잡았을 때 하드 503 대신 짧은 지터 뒤 1회만
+     다시 잡는다(예산: 2500+≤300+2500 ≈ 5.3s < 11.5s 시도 상한). 전용 레인이라 지속 포화
+     가능성이 낮아 대기열 압력이 배가되는 부작용도 제한적이다. */
+  retryAdmissionOnOverload: true,
+});
 
 /**
  * 이 요청의 **모든** Mongo 작업을 한 슬롯 안에서 실행한다.
