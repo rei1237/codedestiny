@@ -206,17 +206,41 @@ console.log("\n[2-c] 셸 결제 호출부가 window 값을 우선 쓰는가");
 // /me 는 공용 게이트를 거치지 않는 자체 PortOne 체크아웃(prepare→requestPayment→confirm)을
 // 갖고 있다. 앱에서 그 경로를 타면 Play 결제 정책 위반이고, 실제로는 가드가 window.PortOne 을
 // 봉인해 둬서 카드 추가·삭제가 그냥 먹통이 된다. 앱 분기가 PortOne 호출보다 앞에 있어야 한다.
-console.log("\n[2-d] /me 프로필 카드 결제가 앱에서 Play Billing 을 타는가");
+console.log("\n[2-d] 프로필 카드 결제가 앱에서 Play Billing 을 타는가");
 {
-  const meSource = await fs.readFile(path.join(ROOT, "app", "me", "MeClient.tsx"), "utf8").catch(() => "");
-  check("MeClient 소스를 읽을 수 있음", Boolean(meSource));
-  if (meSource) {
-    const appBranch = meSource.indexOf("_cdRunDirectKrwCheckout");
-    const portoneCall = meSource.indexOf(".requestPayment(");
-    check("앱 런타임 분기가 있음", appBranch !== -1, "isMobileAppRuntime + _cdRunDirectKrwCheckout 경로 필요");
+  // 이 검사는 예전에 app/me/MeClient.tsx 를 봤다. 그 React 화면은 프로필 카드 관리의 두 번째
+  // 구현이라 제거됐고(정본은 정적 셸 하단 시트), 부활은 verify-profile-card-action-policy.mjs 가
+  // 막는다. 그런데 여기서는 그 파일을 계속 요구해 **두 가드가 서로 충돌**했고, 이 스크립트는
+  // 항상 실패 상태라 실질적으로 아무것도 지키지 못했다. 실제 구현 위치로 옮긴다.
+  check(
+    "React /me 프로필 결제 화면이 되살아나지 않았다",
+    !(await exists(path.join(ROOT, "app", "me"))),
+    "프로필 카드 관리 정본은 정적 셸 하단 시트 하나다(verify-profile-card-action-policy 와 같은 계약)",
+  );
+
+  const profileSource = await fs.readFile(path.join(ROOT, "js", "destiny-profile.js"), "utf8").catch(() => "");
+  check("js/destiny-profile.js 소스를 읽을 수 있음", Boolean(profileSource));
+  if (profileSource) {
+    // 이용권 상점 인계 지점. 앱은 /points 가 번들에 없어 반드시 인앱 상점을 먼저 타야 한다.
+    const goPassStoreAt = profileSource.indexOf("function goPassStore()");
+    check("이용권 상점 인계 경로가 있다", goPassStoreAt !== -1);
+    if (goPassStoreAt !== -1) {
+      const body = profileSource.slice(goPassStoreAt, goPassStoreAt + 2000);
+      const appBranch = body.indexOf("__cdOpenChargeModal");
+      const webStoreNav = body.indexOf("_dpBuildPassStoreUrl(");
+      check("앱 런타임 분기가 있음", appBranch !== -1, "_dpShouldUseAppStoreEntry + __cdOpenChargeModal 경로 필요");
+      check(
+        "앱 분기가 웹 /points 이동보다 먼저 실행됨",
+        appBranch !== -1 && (webStoreNav === -1 || appBranch < webStoreNav),
+        "앱에서 /points 로 먼저 가면 번들에 없는 라우트라 빈 화면이 된다",
+      );
+    }
+    // 단건(PortOne)은 사용자가 결제창에서 명시적으로 고른 뒤에만 실행돼야 한다.
+    const portoneCall = profileSource.indexOf("window.PortOne.requestPayment(");
+    const appEntryHelper = profileSource.indexOf("_dpShouldUseAppStoreEntry");
     check(
-      "앱 분기가 PortOne 호출보다 먼저 실행됨",
-      appBranch !== -1 && (portoneCall === -1 || appBranch < portoneCall),
+      "앱 판별 헬퍼가 PortOne 호출보다 먼저 정의됨",
+      appEntryHelper !== -1 && (portoneCall === -1 || appEntryHelper < portoneCall),
       "앱에서 외부 PG가 먼저 호출되면 정책 위반이다",
     );
   }
@@ -229,9 +253,12 @@ console.log("\n[2-d] /me 프로필 카드 결제가 앱에서 Play Billing 을 �
 // 던짐 → 사용자가 앱 밖 웹사이트에 갇히고 세션도 앱에 남지 않았다. 앱이 통째로 못 쓰는 상태였다.
 // 앱 분기가 location.href 보다 **앞에** 있어야 한다.
 console.log("\n[2-e] 소셜 로그인/회원가입이 앱에서 네이티브 브릿지를 타는가");
+// 🔴 로그인·회원가입 화면은 둘 다 app/components/auth/AuthShell.tsx 한 벌에 위임한다
+// (LoginClient/SignupClient 는 7줄짜리 래퍼다). 예전에는 래퍼를 검사해서, 구현이 AuthShell 로
+// 옮겨간 뒤로는 "CodeDestinyNative 없음"이 되어 이 검사가 늘 실패했다 — 늘 실패하는 가드는
+// 아무도 안 보게 되므로 실제 구현 파일을 본다.
 for (const [rel, label] of [
-  ["app/login/LoginClient.tsx", "로그인"],
-  ["app/signup/SignupClient.tsx", "회원가입"],
+  ["app/components/auth/AuthShell.tsx", "로그인·회원가입 공용 셸"],
 ]) {
   const source = await fs.readFile(path.join(ROOT, rel), "utf8").catch(() => "");
   if (!source) {
@@ -239,7 +266,8 @@ for (const [rel, label] of [
     continue;
   }
   const nativeBranch = source.indexOf("CodeDestinyNative");
-  const escapeNav = source.search(/window\.location\.href\s*=\s*startUrl/);
+  // 네이티브 브릿지가 없을 때의 폴백. assign/href 어느 쪽으로 써도 잡는다.
+  const escapeNav = source.search(/window\.location\.(assign\(|href\s*=)/);
   check(`${label}: 네이티브 분기가 있음`, nativeBranch !== -1, "openAuth 경로가 없다");
   check(
     `${label}: 네이티브 분기가 절대 URL 이동보다 먼저 실행됨`,

@@ -5,7 +5,12 @@
   min-height: 100dvh;
   background: var(--cd-bg-gradient);
   color: var(--cd-text);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* 전역 하단 네비(.cd-mnav)가 이 라우트에도 렌더된다 — AppChrome 의 면제 목록은
+     몰입형 운세(fusion-fortune·fortune-chat)뿐이고 나침반은 거기 없다.
+     safe-area 만 잡으면 네비 56px 아래로 마지막 줄이 깔린다.
+     --cd-mnav-offset(styles/mobile-bottom-nav.css)은 이미 safe-area 를 포함하고,
+     네비가 없는 뷰포트에서는 0 이라 데스크톱에는 영향이 없다. */
+  padding-bottom: var(--cd-mnav-offset, env(safe-area-inset-bottom, 0px));
 }
 .wrap {
   max-width: var(--cd-w-wide, 1440px);
