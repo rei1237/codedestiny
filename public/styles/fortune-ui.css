@@ -968,6 +968,10 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
   font-weight:700;
   cursor:pointer;
   padding:10px 4px;
+  /* 형제인 .modal-nav-close 에만 44px 하한이 있어 좌우가 비대칭이었다. 모바일 재정의
+     (styles/core-ui.css 의 font-size:.78rem/padding:8px 2px)가 걸리면 실높이 ≈31px 로
+     떨어진다 — 같은 줄의 닫기 버튼과 같은 하한을 준다. */
+  min-height:44px;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
   letter-spacing:.5px;
@@ -12764,6 +12768,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
               color: #d8b4fe; padding: 8px 14px; border-radius: 99px; font-size: 0.82rem;
               cursor: pointer; transition: all 0.3s ease; font-family: 'Gowun Batang', serif;
+              /* 실높이가 ≈32px 라 터치 하한(44px)에 못 미쳤다. 폰트·여백은 그대로 두고
+                 하한만 준다 — 칩이 커지는 게 아니라 누를 수 있는 영역이 커진다. */
+              min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
             }
             .oracle-cat-btn-m:hover, .oracle-cat-btn-m.active {
               background: rgba(139, 92, 246, 0.25); border-color: #a78bfa; color: #fff;
@@ -12814,6 +12821,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               padding: 8px 18px; border-radius: 999px; font-size: 0.88rem; font-weight: 700;
               background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
               color: #a5b4fc; cursor: pointer; transition: all 0.3s; touch-action: manipulation;
+              /* 실높이 ≈33px → 터치 하한만 44px 로. 보이는 크기는 그대로다. */
+              min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
             }
             .tarot-mode-btn:hover { background: rgba(255,255,255,0.12); color: #c4b5fd; }
             .tarot-mode-btn.active {

@@ -1664,7 +1664,9 @@
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  /* 하단 네비(.cd-mnav) 위로 띄운다. --cd-mnav-offset 은 safe-area 포함이고
+     네비가 없는 뷰포트에서는 0 이라 데스크톱은 종전과 같은 22px 위치를 유지한다. */
+  bottom: calc(22px + var(--cd-mnav-offset, env(safe-area-inset-bottom, 0px)));
   transform: translateX(-50%);
   z-index: 20;
   max-width: min(90vw, 420px);

@@ -59,39 +59,39 @@ function TodayMoonStrip() {
   if (!moon?.todayNakshatra?.nameKo) return null;
 
   return (
-    <p className="mt-4 break-keep rounded-2xl border border-indigo-200/70 bg-indigo-50/70 px-4 py-3 text-sm leading-7 text-indigo-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-indigo-50">
+    <p className="mt-4 break-keep rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm leading-7 text-indigo-50">
       <span className="font-semibold">🌙 오늘 달이 머무는 자리 </span>
-      <span className="font-semibold text-indigo-700 dark:text-amber-100">{moon.todayNakshatra.nameKo}</span>
+      <span className="font-semibold text-amber-100">{moon.todayNakshatra.nameKo}</span>
       {moon.todaySukuyo && (
         <>
           {" · "}
-          <span className="font-semibold text-indigo-700 dark:text-blue-100">
+          <span className="font-semibold text-blue-100">
             {moon.todaySukuyo.nameKo}({moon.todaySukuyo.nameHan})
           </span>
         </>
       )}
-      {moon.todayNakshatra.lordKo && <span className="text-indigo-800/80 dark:text-indigo-100/70">{` · 지배성 ${moon.todayNakshatra.lordKo}`}</span>}
+      {moon.todayNakshatra.lordKo && <span className="text-indigo-100/70">{` · 지배성 ${moon.todayNakshatra.lordKo}`}</span>}
     </p>
   );
 }
 
 function FortuneCard({ fortune }: { fortune: DailyFortune }) {
   return (
-    <article className="flex min-h-[11.5rem] flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
+    <article className="flex min-h-[11.5rem] flex-col rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition-shadow hover:shadow-md">
       <div className="flex items-center gap-2">
         <span aria-hidden="true" className="text-lg">
           {fortune.emoji}
         </span>
-        <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">{fortune.label}</h3>
+        <h3 className="text-sm font-extrabold text-slate-100">{fortune.label}</h3>
         {fortune.personalized && (
-          <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700 dark:bg-rose-400/15 dark:text-rose-200">
+          <span className="ml-auto rounded-full bg-rose-400/15 px-2 py-0.5 text-[11px] font-bold text-rose-200">
             내 생일 반영
           </span>
         )}
       </div>
-      <p className="mt-3 text-xs font-semibold tracking-tight text-rose-700 dark:text-rose-200">{fortune.anchor}</p>
-      <p className="mt-1 break-keep text-base font-bold leading-relaxed text-slate-900 dark:text-slate-50">{fortune.headline}</p>
-      <p className="mt-2 max-w-[68ch] break-keep text-sm leading-7 text-slate-600 dark:text-slate-300">{fortune.body}</p>
+      <p className="mt-3 text-xs font-semibold tracking-tight text-rose-200">{fortune.anchor}</p>
+      <p className="mt-1 break-keep text-base font-bold leading-relaxed text-slate-50">{fortune.headline}</p>
+      <p className="mt-2 max-w-[68ch] break-keep text-sm leading-7 text-slate-300">{fortune.body}</p>
     </article>
   );
 }
@@ -188,9 +188,9 @@ export default function TodayHubClient() {
         </div>
 
         {ready && !personalized && (
-          <p className="mt-6 break-keep rounded-2xl border border-rose-200/80 bg-rose-50/70 px-4 py-3 text-sm leading-7 text-rose-950 dark:border-rose-300/20 dark:bg-rose-400/10 dark:text-rose-50">
+          <p className="mt-6 break-keep rounded-2xl border border-rose-300/20 bg-rose-400/10 px-4 py-3 text-sm leading-7 text-rose-50">
             지금은 오늘 하루 전체의 흐름입니다. 프로필 카드에 생년월일을 넣어 두면 내 일간과 견주어 읽어 드려요.{" "}
-            <Link href="/#dpMasterCard" className="font-bold text-rose-700 underline underline-offset-2 dark:text-rose-200">
+            <Link href="/#dpMasterCard" className="font-bold text-rose-200 underline underline-offset-2">
               프로필 만들기
             </Link>
           </p>
