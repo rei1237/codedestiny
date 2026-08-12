@@ -66,6 +66,7 @@ import {
   markOrderFailed,
   markOrderPaid,
   recordPgCancellationMarkers,
+  repricePendingOrder,
   settleRefund,
   toOrderStatus,
 } from "./orders.js";
@@ -609,7 +610,7 @@ const ROUTES = {
       const { order, user } = await withDb(env, ctx, async (db) => {
         const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
         const profileId = String(body.profileId || body.selectedProfileId || userDoc?.destinyProfilesCurrentId || "");
-        const created = await createOrder(db, {
+        let created = await createOrder(db, {
           userId,
           product,
           idempotencyKey,
@@ -619,14 +620,25 @@ const ROUTES = {
           returnPath: body.returnPath,
           paymentMethod: String(body.paymentMethod || body.payMethod || "card_general"),
         });
-        if (
-          Number(created.paymentAmount) !== Number(product.priceKRW)
-          || Number(created.expectedChargedPoints ?? created.coinPrice ?? 0) !== Number(product.priceCoins)
-          || (String(created.featureKey || "") && String(product.featureKey || "") && String(created.featureKey) !== String(product.featureKey))
-        ) {
-          throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {
-            orderId: String(created.merchantUid || ""),
-          });
+        const priceDrift = Number(created.paymentAmount) !== Number(product.priceKRW)
+          || Number(created.expectedChargedPoints ?? created.coinPrice ?? 0) !== Number(product.priceCoins);
+        const featureDrift = Boolean(String(created.featureKey || "") && String(product.featureKey || "")
+          && String(created.featureKey) !== String(product.featureKey));
+        if (priceDrift || featureDrift) {
+          // 🔴 같은 기능의 미결제(PENDING) 주문이 옛 가격으로 남은 경우는 충돌이 아니라 승계 대상이다.
+          // 가격 해석 정본 교체(#492)·가격 개정 뒤 세션 고정 requestId 조합이 셸·React·정적 외부
+          // 전 환경에서 결제창을 영구 409 로 막았다(2026-08-12 실장애 — 클라이언트 새-키 재시도가
+          // 없는 환경은 자력 복구 불가). 서버가 재가격해 돌려주면 환경 무관하게 해소된다.
+          // 다른 기능으로의 키 재사용(featureDrift)·이미 결제된 주문은 종전대로 409 다.
+          const repriced = !featureDrift && toOrderStatus(created) === "PENDING"
+            ? await repricePendingOrder(db, { orderId: String(created.merchantUid || ""), product })
+            : null;
+          if (!repriced) {
+            throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {
+              orderId: String(created.merchantUid || ""),
+            });
+          }
+          created = repriced;
         }
         return { order: created, user: userDoc };
       });

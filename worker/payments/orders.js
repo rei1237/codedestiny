@@ -168,6 +168,37 @@ export async function markOrderPaid(db, { orderId, order, pg }) {
   return unwrap(result); // null = 누군가 이미 PENDING 밖으로 옮겼다 → 호출부가 재조회해 분기한다
 }
 
+/**
+ * T1b · 미결제 주문의 가격 승계. 같은 멱등키의 PENDING 주문이 **옛 가격**으로 남아 있으면
+ * 충돌(409)이 아니라 현재 정본 가격으로 갱신해 돌려준다 — 가격 개정·해석 정본 교체(#492) 뒤
+ * 세션 고정 requestId 를 쓰는 클라이언트가 모든 환경에서 결제창 영구 409 에 갇히는 실장애의
+ * 근본 수정(2026-08-12). `status: "pending"` 정확 일치 CAS 라 결제 완료·실패 주문은 절대
+ * 재가격되지 않는다. null = 그 사이 PENDING 밖으로 이동 — 호출부가 409 로 처리한다.
+ */
+export async function repricePendingOrder(db, { orderId, product, now = new Date() }) {
+  const result = await db.findOneAndUpdate(
+    Payment,
+    { merchantUid: orderId, status: "pending" },
+    {
+      $set: {
+        paymentAmount: product.priceKRW,
+        expectedChargedPoints: product.priceCoins,
+        coinPrice: product.priceCoins,
+        membershipCreditCost: product.monthlyCost,
+        featureKey: product.featureKey,
+        productId: product.productId,
+        "pricingSnapshot.priceKRW": product.priceKRW,
+        "pricingSnapshot.priceCoins": product.priceCoins,
+        "pricingSnapshot.monthlyCost": product.monthlyCost,
+        "pricingSnapshot.repricedAt": now.toISOString(),
+        updatedAt: now,
+      },
+    },
+    { returnDocument: "after" },
+  );
+  return unwrap(result);
+}
+
 /** T3 · PENDING → FAILED. `status: "pending"` 정확 일치 — **PAID 는 절대 FAILED 가 될 수 없다.** */
 export async function markOrderFailed(db, { orderId, failureCode, failureMessage, failureStage }) {
   const result = await db.updateOne(

@@ -130,7 +130,9 @@ test("billing-checkout 봉투: 셸이 읽는 payload.data.order 중첩을 재현
   expect(order.customer && typeof order.customer === "object").toBe(true);
 });
 
-test("같은 키·다른 가격의 기존 주문: 옛 주문을 조용히 돌려주지 않고 409 IDEMPOTENCY_CONFLICT", async () => {
+test("🔴 같은 기능·미결제·옛 가격 주문: 409 가 아니라 현재 정본 가격으로 승계(재가격)한다", async () => {
+  // 가격 해석 정본 교체(#492)·가격 개정 뒤 세션 고정 requestId 조합이 전 환경에서 결제창을
+  // 영구 409 로 막았던 실장애(2026-08-12)의 회귀 방지. 결제 전 주문은 서버가 재가격해 돌려준다.
   const db = makeFakePaymentDb();
   seedUser(db);
   db.rows.push({
@@ -142,6 +144,7 @@ test("같은 키·다른 가격의 기존 주문: 옛 주문을 조용히 돌려
     expectedChargedPoints: PRODUCT.priceCoins + 50,
     featureKey: PRODUCT.featureKey,
     status: "pending",
+    pricingSnapshot: {},
     createdAt: new Date(Date.now() - 60_000),
   });
   const { response, payload } = await postPrepare(db, {
@@ -149,8 +152,46 @@ test("같은 키·다른 가격의 기존 주문: 옛 주문을 조용히 돌려
     featureKey: PRODUCT.featureKey,
     idempotencyKey: "stable-key",
   });
+  expect(response.status).toBe(200);
+  expect(payload.order.merchantUid).toBe("cdstaleorder000000000000000000000000000"); // 같은 주문 승계
+  expect(payload.order.paymentAmount).toBe(PRODUCT.priceKRW); // 현재 정본 가격
+  const row = db.rows.find((r) => r.merchantUid === "cdstaleorder000000000000000000000000000");
+  expect(row.paymentAmount).toBe(PRODUCT.priceKRW);
+  expect(row.expectedChargedPoints).toBe(PRODUCT.priceCoins);
+  expect(row.pricingSnapshot.repricedAt).toBeTruthy();
+});
+
+test("다른 기능으로 같은 키 재사용: 종전대로 409 IDEMPOTENCY_CONFLICT (재가격 금지)", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  db.rows.push({
+    userId: USER, idempotencyKey: "stable-key-2", paymentType: "digital_content",
+    merchantUid: "cdstaleorder111111111111111111111111111",
+    paymentAmount: 99000, expectedChargedPoints: 990,
+    featureKey: "some-other-feature-key", status: "pending", createdAt: new Date(Date.now() - 60_000),
+  });
+  const { response, payload } = await postPrepare(db, {
+    paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "stable-key-2",
+  });
   expect(response.status).toBe(409);
   expect(payload.code).toBe("IDEMPOTENCY_CONFLICT"); // 클라 새-키 재시도가 이 top-level code 에 걸려 있다
+});
+
+test("이미 결제된 주문과의 가격 불일치: 종전대로 409 (결제 완료 주문은 절대 재가격하지 않는다)", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  db.rows.push({
+    userId: USER, idempotencyKey: "stable-key-3", paymentType: "digital_content",
+    merchantUid: "cdstaleorder222222222222222222222222222",
+    paymentAmount: PRODUCT.priceKRW + 5000, expectedChargedPoints: PRODUCT.priceCoins + 50,
+    featureKey: PRODUCT.featureKey, status: "paid", createdAt: new Date(Date.now() - 60_000),
+  });
+  const { response, payload } = await postPrepare(db, {
+    paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "stable-key-3",
+  });
+  expect(response.status).toBe(409);
+  expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
+  expect(db.rows.find((r) => r.merchantUid === "cdstaleorder222222222222222222222222222").paymentAmount).toBe(PRODUCT.priceKRW + 5000);
 });
 
 test("낡은 가격의 클라이언트 금액: 400 CLIENT_AMOUNT_MISMATCH (주문을 만들지 않는다)", async () => {
