@@ -1340,6 +1340,17 @@ export default {
             legacyEnvelope: "billing-checkout",
           }));
         }
+        // 확정 컷오버 — 구 /api/billing/confirm 을 V2 confirmOrder 로. 구 /api/payments/confirm
+        // (PointsClient 상점 경로)은 응답 계약이 달라 아직 구 핸들러에 남는다(별도 라우트 이름으로 후속).
+        if (isPaymentsV2Route(env, "confirm")
+          && request.method === "POST"
+          && url.pathname === "/api/billing/confirm") {
+          const rewrittenConfirm = rewriteRequestPath(request, "/api/payments/confirm");
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenConfirm, env, {
+            prefix: "/api/payments",
+          }));
+        }
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env, ctx));
       }
 
