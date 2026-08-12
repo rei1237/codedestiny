@@ -1368,9 +1368,15 @@ export default {
         }
         // 월정석 컷오버 — coin-gate 는 다중 결제수단 라우트라 paymentMode 를 본문에서 판별해
         // MOONLIGHT_STONE 만 V2 로 보낸다(이용권 검사·deferred 는 구 로직 유지). clone 읽기라
-        // 원 요청 본문은 그대로 전달된다. 롤백은 env 에서 "moonstone" 제거.
-        if (isPaymentsV2Route(env, "moonstone")
-          && request.method === "POST"
+        // 원 요청 본문은 그대로 전달된다.
+        //
+        // 🔴 이 라우트만 PAYMENTS_V2_ROUTES 게이트가 없다(2026-08-12). 구 월정석은 lot 차감·원장·
+        // 권한을 startSession().withTransaction() 으로 묶는데 Atlas M0 에는 리플리카셋이 없어 세션이
+        // 아예 안 열린다 → 503 MONTHLY_ATOMIC_UNAVAILABLE, **재시도로 절대 성공하지 않는다**
+        // (worker/payments/moonstone.js 머리주석). 즉 allowlist 에서 "moonstone" 을 빼는 것은
+        // 롤백이 아니라 결제수단 중단이므로, 되돌릴 수 있는 척하는 게이트를 두지 않는다.
+        // 정말 되돌려야 하면 코드 롤백(PR revert)이다. 다른 라우트의 게이트는 그대로 둔다.
+        if (request.method === "POST"
           && url.pathname === "/api/billing/coin-gate") {
           let coinGatePaymentMode = "";
           try {

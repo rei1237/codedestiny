@@ -26,7 +26,7 @@
  * MonthlyCreditLedger 하나다. 구 데이터는 그대로 보존되며 아무것도 지우지 않는다.
  */
 import { MonthlyCreditLedger, User } from "../lib/models.js";
-import { consumeMonthlyCreditLots } from "../lib/monthly-credit-store.js";
+import { consumeMonthlyCreditLotsWithDb } from "../lib/monthly-credit-store.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 
@@ -44,14 +44,17 @@ function ledgerFilter(uid, sourceId) {
  *
  * @param {object} db withPaymentDb 가 준 핸들(왕복이 계수된다)
  * @param {{ userId: string, product: object, purchaseId: string, profileId?: string }} input
- * @param {{ consumeLots?: typeof consumeMonthlyCreditLots }} [deps] 테스트용 주입.
- *   consumeMonthlyCreditLots 는 mongoose 모델을 직접 쓰므로 주입 없이는 Mongo 없이 검증할 수 없다.
- *   여기서 검증해야 하는 것은 lot 산수가 아니라 **쓰기 순서와 실패 시 되돌림**이다 — 그게
- *   트랜잭션을 대체하는 부분이고, 틀리면 돈이 사라진다.
+ * @param {{ consumeLots?: (input: object) => Promise<object> }} [deps] 테스트용 주입 — 차감 결과를
+ *   고정해 **쓰기 순서와 실패 시 되돌림**만 따로 보기 위한 것이다. 그게 트랜잭션을 대체하는
+ *   부분이고, 틀리면 돈이 사라진다. 주입하지 않으면 실제 CAS 가 아래 db 핸들로 그대로 돈다.
  * @returns {Promise<{ balance: number, replayed: boolean, ledgerId: string }>}
  */
 export async function spendMoonstone(db, { userId, product, purchaseId, profileId = "" }, deps = {}) {
-  const consumeLots = deps.consumeLots || consumeMonthlyCreditLots;
+  /* 🔴 mongoose 판(consumeMonthlyCreditLots)이 아니라 db 핸들 판이다. 결제 컨텍스트는 공유
+     핸드셰이크를 건너뛸 수 있어(worker/payments/db.js), mongoose 모델을 부르면 콜드
+     아이솔레이트에서 bufferCommands:false 때문에 즉시 죽어 503 이 된다 — 잔량이 충분해도
+     월정석만 실패하던 원인이다(2026-08-12). 회계 로직은 두 판이 같은 CAS 를 공유한다. */
+  const consumeLots = deps.consumeLots || ((input) => consumeMonthlyCreditLotsWithDb(db, input));
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const sourceId = String(purchaseId || "").trim();
