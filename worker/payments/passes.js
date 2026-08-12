@@ -11,9 +11,9 @@
  *     경로("결제 상태 다시 확인"·리다이렉트 복귀·replay)가 마무리하게 한다. 환불은 사람이 결정한다.
  *
  * ## 가격 정본
- * 월 가격 리터럴은 구 payments.js(352-356)·PointsClient(571-644)·셸 goldenPackages 와 3중 미러다.
- * 구 파일은 동결이라 옮기지 못하므로 여기 리터럴을 두고, 패리티 테스트가 셸 정본과 대조한다
- * (payments.subscription-purchase.test.js 가 쓰는 것과 같은 기법).
+ * 월 가격은 `lib/payment/pass-pricing.js` 하나가 정본이며 구 payments.js·PointsClient 도 같은 모듈을
+ * import 한다(2026-08-12 에 4중 미러를 정리했다). 유일하게 남은 사본은 import 가 불가능한 정적 셸
+ * 인라인(`index.html` goldenPackages)이고, payments.subscription-purchase.test.js 가 셸과 대조한다.
  */
 import { Payment, PointHistory, User } from "../lib/models.js";
 import {
@@ -24,10 +24,10 @@ import {
   normalizePassTier,
   resolvePremiumQuotaCycleKey,
 } from "../lib/profile-limits.js";
+import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 
-const PASS_MONTHLY_WON = Object.freeze({ standard: 9900, premium: 29900, vvip: 59000, family: 149000 });
 const PASS_PRODUCT_TYPE = "membership_pass";
 const PASS_TIER_RANK = Object.freeze({ free: 0, standard: 1, premium: 2, vvip: 3, family: 4 });
 const DAY_MS = 86_400_000;

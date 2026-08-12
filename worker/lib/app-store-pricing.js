@@ -53,7 +53,7 @@ const CONTENT_TIER_TABLE = Object.freeze([
 const PASS_TIER_TABLE = Object.freeze([
   // 커버 3,000→3,900(+30.0%) → 이용권도 9,900→13,000(+31.3%)
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 13000, webAmountKRW: 9900, coinLimit: 30 },
-  // 커버 5,000→6,000(+20.0%) → 이용권도 +20.1%
+  // 커버 5,000→6,000(+20.0%) → 이용권도 +20.4%
   { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 36000, webAmountKRW: 29900, coinLimit: 50 },
   // 커버 10,000→13,000(+30.0%) → 이용권도 +28.6%
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 75900, webAmountKRW: 59000, coinLimit: 100 },

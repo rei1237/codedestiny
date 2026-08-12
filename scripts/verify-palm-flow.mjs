@@ -101,10 +101,18 @@ assert.match(route, /AUTH_TEMPORARILY_UNAVAILABLE/, 'worker/routes/palm.js: 인�
 // ── 8. 결제: 단일 SKU, 가격 정합 ──
 const generalCost = Number(paidRegistry.match(/"palm-reading-general":\s*\{\s*cost:\s*(\d+)/)[1]);
 assert.equal(generalCost, 100, 'palm-reading-general 은 100코인(10,000원)이어야 함');
-const billingCost = Number(
-  billingRegistry.match(/featureKey:\s*"palm-reading-general",\s*cost:\s*(\d+)/)[1],
+// billing-feature-registry 는 가격을 재기입하지 않고 paid-feature-registry 에서 파생한다.
+// 리터럴이 되살아나면 두 표가 조용히 갈라지므로 소스에서 먼저 막고, 실제 해석값으로 한 번 더 본다.
+assert.doesNotMatch(
+  billingRegistry,
+  /featureKey:\s*"palm-reading-general",\s*cost:/,
+  'billing-feature-registry: 손금 가격을 리터럴로 재기입하지 말 것(FEATURE_KEY_PRICE_TABLE 파생 유지)',
 );
-assert.equal(billingCost, generalCost, '두 레지스트리의 손금 가격이 일치해야 함');
+const { getBillingFeaturePricing } = await import('../worker/lib/billing-feature-registry.js');
+const billingPalm = getBillingFeaturePricing({ categoryKey: 'palm-reading', subFeatureKey: 'general' });
+assert.equal(billingPalm?.ok, true, 'palm-reading.general 이 카테고리 경로로 해석돼야 함');
+assert.equal(billingPalm.pricing.cost, generalCost, '두 레지스트리의 손금 가격이 일치해야 함');
+assert.equal(billingPalm.pricing.amountKRW, generalCost * 100, '손금 원화가는 코인×100 이어야 함');
 assert.match(
   paidRegistry,
   /PER_USE_PAID_FEATURE_KEY_LIST[\s\S]*?"palm-reading-general"/,

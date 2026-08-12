@@ -36,7 +36,6 @@ const MODULE_SLUG = {
   "js/iching-engine.js": "iching",
   "js/compat-llm-prompts.js": "compatPrompt",
   "js/coin-gate-helper.js": "coinGate",
-  "js/vedic-book.js": "vedicBook",
   "js/fate-scroll-reveal.js": "fateScrollReveal",
   "js/fate-scroll-top.js": "fateScrollTop",
   "js/share-reward.js": "shareReward",

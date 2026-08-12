@@ -14,15 +14,18 @@ import {
 } from "./billing-policy.js";
 import { resolveMusicTrackUnlockPricing } from "../../lib/music-access-policy.js";
 
+// 이 표가 소유하는 고유 정보는 (categoryKey, subFeatureKey) → featureKey 매핑과 카테고리 라벨뿐이다.
+// 가격(cost)과 사유(reason)는 FEATURE_KEY_PRICE_TABLE 에서 파생한다 — 여기에 숫자를 다시 적으면
+// 정본과 조용히 갈라진다(아래 FEATURE_REASON_PRICING_MAP 이 이미 같은 방식으로 파생하고 있다).
 const BILLING_FEATURE_CATEGORIES = Object.freeze({
   "palm-reading": Object.freeze({
     categoryKey: "palm-reading",
     label: "손금 분석",
     featureKey: "palm-reading",
     subFeatures: Object.freeze({
-      // 판독 + 심층 해석 통합 상품(100코인 = 10,000원). aiConsult 는 레거시 호환용으로만 남는다.
-      general: Object.freeze({ featureKey: "palm-reading-general", cost: 100, reason: "손금 정밀 판독 + 심층 해석" }),
-      aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult", cost: 50, reason: "손금 전문가 상담 생성" }),
+      // 판독 + 심층 해석 통합 상품. aiConsult 는 레거시 호환용으로만 남는다.
+      general: Object.freeze({ featureKey: "palm-reading-general" }),
+      aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult" }),
     }),
   }),
   "stonehenge-runes": Object.freeze({
@@ -30,11 +33,11 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
     label: "스톤헨지 룬점",
     featureKey: "stonehenge-runes",
     subFeatures: Object.freeze({
-      "spread-1": Object.freeze({ featureKey: "stonehenge-runes-single", cost: 30, reason: "스톤헨지 룬 1-룬 리딩" }),
-      "spread-3": Object.freeze({ featureKey: "stonehenge-runes-triad", cost: 50, reason: "스톤헨지 룬 3-룬 리딩" }),
-      "spread-5": Object.freeze({ featureKey: "stonehenge-runes-deep", cost: 70, reason: "스톤헨지 룬 5-룬 리딩" }),
-      "spread-12": Object.freeze({ featureKey: "stonehenge-runes-yearly", cost: 100, reason: "스톤헨지 룬 12-룬 리딩" }),
-      "ai-prompt": Object.freeze({ featureKey: "stonehenge-runes-ai-prompt", cost: 30, reason: "스톤헨지 룬 AI 질문문 생성" }),
+      "spread-1": Object.freeze({ featureKey: "stonehenge-runes-single" }),
+      "spread-3": Object.freeze({ featureKey: "stonehenge-runes-triad" }),
+      "spread-5": Object.freeze({ featureKey: "stonehenge-runes-deep" }),
+      "spread-12": Object.freeze({ featureKey: "stonehenge-runes-yearly" }),
+      "ai-prompt": Object.freeze({ featureKey: "stonehenge-runes-ai-prompt" }),
     }),
   }),
   "animal-totem": Object.freeze({
@@ -42,11 +45,28 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
     label: "애니멀 토템",
     featureKey: "animal-totem",
     subFeatures: Object.freeze({
-      basic: Object.freeze({ featureKey: "animal-totem-basic", cost: 30, reason: "애니멀 토템 리딩" }),
-      deep: Object.freeze({ featureKey: "animal-totem-deep", cost: 60, reason: "애니멀 토템 심화 리딩" }),
+      basic: Object.freeze({ featureKey: "animal-totem-basic" }),
+      deep: Object.freeze({ featureKey: "animal-totem-deep" }),
     }),
   }),
 });
+
+/**
+ * 카테고리 서브피처의 가격 정본은 FEATURE_KEY_PRICE_TABLE 하나다.
+ * 못 찾으면 조용히 null 을 돌려주지 않고 터뜨린다 — resolveCategorySubFeature 가
+ * resolveByFeatureKey 보다 먼저 타므로, 키 오타로 null 이 떨어지면 legacy-pricing 의
+ * 13후보 폴백이 "다른 상품의 가격"을 집어 든다.
+ */
+function requireSubFeaturePricing(categoryKey, subFeatureKey, subFeature) {
+  const spec = FEATURE_KEY_PRICE_TABLE[subFeature?.featureKey] || null;
+  if (!spec) {
+    throw new Error(
+      `[billing-feature-registry] ${categoryKey}.${subFeatureKey} 가 가리키는 ` +
+        `featureKey "${subFeature?.featureKey}" 가 FEATURE_KEY_PRICE_TABLE 에 없습니다.`,
+    );
+  }
+  return spec;
+}
 
 const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   // Palm
@@ -164,13 +184,16 @@ function resolveCategorySubFeature(categoryKey, subFeatureKey) {
   const subFeature = category.subFeatures[normalizedSubFeature] || null;
   if (!subFeature) return null;
 
+  const spec = requireSubFeaturePricing(category.categoryKey, normalizedSubFeature, subFeature);
+
   return toPricingShape({
     categoryKey: category.categoryKey,
     categoryLabel: category.label,
     subFeatureKey: normalizedSubFeature,
     featureKey: subFeature.featureKey,
-    cost: subFeature.cost,
-    reason: subFeature.reason,
+    cost: spec.cost,
+    amountKRW: spec.amountKRW,
+    reason: spec.reason,
   });
 }
 
@@ -382,7 +405,8 @@ export function assertFeatureEnabled(pricing) {
 
 function toCategoryResponse(category) {
   const subFeatures = Object.entries(category.subFeatures).map(([subFeatureKey, subFeature]) => {
-    const pricing = normalizePaidFeaturePricingShape(subFeature);
+    const spec = requireSubFeaturePricing(category.categoryKey, subFeatureKey, subFeature);
+    const pricing = normalizePaidFeaturePricingShape(spec);
     return {
       subFeatureKey,
       featureKey: subFeature.featureKey,
@@ -392,7 +416,7 @@ function toCategoryResponse(category) {
       cashPrice: pricing.amountKRW,
       krwAmount: pricing.amountKRW,
       paymentAmount: pricing.amountKRW,
-      reason: String(subFeature.reason || ""),
+      reason: String(spec.reason || ""),
       currency: "KRW",
       pricingBasis: "KRW",
     };
