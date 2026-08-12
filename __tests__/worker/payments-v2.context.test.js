@@ -43,6 +43,8 @@ async function seedPending(db, key = "idem-1") {
 describe("라우트 표", () => {
   test("표를 읽으면 전체 표면이 보인다", () => {
     expect(Object.keys(ROUTES).sort()).toEqual([
+      // 결제 공개 설정 컷오버 어댑터 — 구 GET /api/payments/config 가 여기로 온다.
+      "GET /config",
       "GET /features",
       "GET /orders/:id",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
@@ -68,9 +70,9 @@ describe("라우트 표", () => {
     expect(matchRoute("DELETE", "/orders/cd123")).toBeNull();
   });
 
-  test("🔴 카탈로그와 webhook 만 신원을 보지 않는다", () => {
+  test("🔴 카탈로그·결제 설정·webhook 만 신원을 보지 않는다", () => {
     const anonymous = Object.entries(ROUTES).filter(([, r]) => r.auth === "none").map(([k]) => k).sort();
-    expect(anonymous).toEqual(["GET /features", "POST /webhook"]);
+    expect(anonymous).toEqual(["GET /config", "GET /features", "POST /webhook"]);
   });
 
   test("🔴 webhook 만 원문 본문을 읽는다 — 재직렬화하면 서명이 깨진다", () => {

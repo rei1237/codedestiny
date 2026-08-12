@@ -1324,6 +1324,13 @@ export default {
             legacyEnvelope: "prepare",
           }));
         }
+        // 결제 공개 설정 컷오버 — Mongo 0회 무인증 조회. 봉투는 구 handlePaymentConfig 와 동일.
+        if (isPaymentsV2Route(env, "config")
+          && request.method === "GET"
+          && url.pathname === "/api/payments/config") {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         // 이용권(구독) 컷오버 — prepare·confirm 을 subscription 이름 하나로 묶는다. 두 단계는 같은
         // 주문 계약을 공유하므로 활성·되돌리기도 한 단위여야 한다(한쪽만 V2 면 주문 스킴이 갈린다).
         if (isPaymentsV2Route(env, "subscription")
