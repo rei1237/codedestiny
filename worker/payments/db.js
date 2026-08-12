@@ -22,6 +22,7 @@
  * **스키마에 없는 필드를 조용히 버리는** 함정을 아예 통과하지 않는다. 대신 캐스팅이 없으므로
  * 타입은 호출부가 책임진다 — 아래 toObjectId/toUserIdString 를 반드시 경유할 것.
  */
+import { getEnv } from "../lib/env.js";
 import {
   connectDb,
   connectPaymentDb,
@@ -112,6 +113,25 @@ function makeCountingDb(ctx, paymentConn = null) {
    사용자가 금지한 "숨기는 재시도"는 **라우트·클라이언트 레벨**의 것이고, 드라이버 한 단계 재연결은
    그것과 다르다(연결이 끊긴 것과 요청이 실패한 것은 다른 사건이다). 여기서 0 으로 낮추면 콜드
    아이솔레이트의 첫 요청이 핸드셰이크 중 끊길 때마다 사용자에게 그대로 나간다. */
+/**
+ * 🔴 소켓 레인은 **기본 꺼짐**이다(2026-08-12 실측 후 결정).
+ *
+ * 레인을 켠 채 프로덕션을 재면 요청의 약 1/3 이 **정확히 op 예산(12.2초)에서** DB_UNAVAILABLE 로
+ * 죽었고(성공 요청은 1.3~3.6초), 경로와 무관했다. 특정 아이솔레이트의 레인 커넥션이 좀비가 되면
+ * 그 아이솔레이트로 라우팅된 결제가 계속 예산까지 매달린다는 뜻이다 — 공유 커넥션에는 이 상황을
+ * 위한 복구 기계장치(연속 실패 카운터 · 풀 리셋 · 쿨다운)가 있지만 **레인에는 없었다.**
+ * 게다가 skipSharedConnect 는 그 부기까지 꺼서, 레인이 죽으면 아무도 고치지 않는 상태가 된다.
+ *
+ * 그래서 커넥션 처리는 검증된 공유 경로로 되돌리고, 정작 효과가 확인된 **admission 레인만** 남긴다
+ * (부팅 폭풍이 결제 슬롯을 먹는 문제는 그쪽이 해결했다 — 카운터 분리는 커넥션을 늘리지 않는다).
+ * 아래 자가복구(resetPaymentConnection)를 배선해 두었으므로, Mongo 티어를 올린 뒤
+ * `PAYMENTS_DB_SOCKET_LANE=1` 로 다시 켜서 재실측할 수 있다.
+ */
+function isSocketLaneEnabled(env) {
+  const raw = String(getEnv(env, "PAYMENTS_DB_SOCKET_LANE", "") || "").trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "on" || raw === "yes";
+}
+
 const PAYMENT_DB_OPTIONS = Object.freeze({
   /* 🔴 결제 전용 admission 레인. 소켓 레인(connectPaymentDb)과 **한 세트**다 — 소켓만 나누고
      이 게이트를 공유하면, 부팅 폭풍이 공유 한도를 채우는 순간 결제가 여전히 2500ms 뒤
@@ -122,15 +142,15 @@ const PAYMENT_DB_OPTIONS = Object.freeze({
      다시 잡는다(예산: 2500+≤300+2500 ≈ 5.3s < 11.5s 시도 상한). 전용 레인이라 지속 포화
      가능성이 낮아 대기열 압력이 배가되는 부작용도 제한적이다. */
   retryAdmissionOnOverload: true,
-  /* 🔴 공유 커넥션 핸드셰이크를 타지 않는다. 이게 없으면 **콜드 아이솔레이트에서 핸드셰이크를
-     두 번** 한다 — withMongoRetry 가 시도마다 connectDb(공유)를 부르고, 그 뒤 아래 콜백이
-     connectPaymentDb(레인)를 또 세운다. M0 서버선택이 최대 8초라 둘을 직렬로 하면 12초 op
-     예산을 넘겨 DB_UNAVAILABLE(op timeout)이 된다. 2026-08-12 배포 직후 실측: 같은 핸들러인데
-     웜 아이솔레이트로 간 /api/payments/prepare 는 201, 콜드로 간 /api/billing/checkout 은 503.
-     실패 시의 공유 풀 리셋 부기도 함께 꺼진다 — 레인 실패로 전역 disconnect 를 걸면 레인은
-     안 낫고 그 순간 살아 있던 부팅 트래픽만 죽는다(worker/lib/db.js ownsSharedConnection 주석). */
-  skipSharedConnect: true,
 });
+
+/* 소켓 레인을 켠 경우에만 공유 핸드셰이크를 끈다. 두 커넥션을 직렬로 세우면 콜드 아이솔레이트가
+   12초 op 예산을 넘기기 때문이다(레인이 켜져 있을 때만 성립하는 이야기다). */
+function paymentDbOptions(env) {
+  return isSocketLaneEnabled(env)
+    ? { ...PAYMENT_DB_OPTIONS, skipSharedConnect: true }
+    : PAYMENT_DB_OPTIONS;
+}
 
 /**
  * 이 요청의 **모든** Mongo 작업을 한 슬롯 안에서 실행한다.
@@ -146,23 +166,39 @@ export async function withPaymentDb(env, ctx, fn) {
     throw new Error("withPaymentDb is already active for this request; do not nest it.");
   }
   ctx.inDb = true;
+  const laneEnabled = isSocketLaneEnabled(env);
   try {
     return await withMongoRetry(env, async () => {
       // 재시도가 일어나면 이전 시도의 왕복은 세지 않는다 — 예산은 '성공한 시도'의 비용이다.
       ctx.mongoOps = 0;
-      /* 결제 전용 레인이 이 요청의 **유일한** 핸드셰이크다(위 skipSharedConnect).
-         레인 수립에 실패한 경우에만 공유 커넥션을 세워 폴백한다 — 그때는 핸드셰이크 비용을
-         내야 하지만, 그건 '레인이 죽었을 때'로 한정된 예외 경로이고 가용성이 지연보다 중요하다.
-         🔴 폴백에서 connectDb 를 빠뜨리면 안 된다: bufferCommands:false 라 연결이 없는 상태의
-         Model.collection 호출은 버퍼링 없이 즉시 실패한다. */
+      /* 레인이 꺼져 있으면(기본) 공유 커넥션만 쓴다 — withMongoRetry 가 이미 connectDb 를
+         부르므로 여기서 할 일이 없고, 커넥션 처리는 복구 기계장치가 있는 검증된 경로를 탄다.
+         레인을 켠 경우에는 레인이 이 요청의 유일한 핸드셰이크이고, 수립 실패 시에만 공유
+         커넥션으로 폴백한다(bufferCommands:false 라 연결 없이 Model.collection 을 부르면
+         버퍼링 없이 즉시 실패하므로 폴백 경로에는 connectDb 가 반드시 필요하다). */
       let paymentConn = null;
-      try { paymentConn = await connectPaymentDb(env); } catch { paymentConn = null; }
-      if (!paymentConn) await connectDb(env);
-      return fn(makeCountingDb(ctx, paymentConn));
-    }, PAYMENT_DB_OPTIONS);
+      if (laneEnabled) {
+        try { paymentConn = await connectPaymentDb(env); } catch { paymentConn = null; }
+        if (!paymentConn) await connectDb(env);
+      }
+      try {
+        return await fn(makeCountingDb(ctx, paymentConn));
+      } catch (error) {
+        /* 🔴 레인 자가복구. 좀비 커넥션(readyState 는 1인데 실제로는 죽은 소켓)이 되면 그
+           아이솔레이트로 오는 결제가 계속 op 예산까지 매달린다 — 공유 풀에는 리셋 기계장치가
+           있지만 레인에는 없어서, 이 배선이 없으면 **영구 실패**가 된다. 연결성 실패일 때만
+           참조를 놓아 다음 요청이 새로 세우게 한다(정상 오류는 그대로 통과). */
+        if (paymentConn && isTransientMongoError(error)) {
+          try { await resetPaymentConnection(); } catch { /* 참조를 놓은 것으로 목적 달성 */ }
+        }
+        throw error;
+      }
+    }, paymentDbOptions(env));
   } finally {
     ctx.inDb = false;
   }
 }
 
-export const __paymentDbTestUtils = { makeCountingDb, resolveCollection, PAYMENT_DB_OPTIONS };
+export const __paymentDbTestUtils = {
+  makeCountingDb, resolveCollection, PAYMENT_DB_OPTIONS, paymentDbOptions, isSocketLaneEnabled,
+};
