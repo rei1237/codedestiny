@@ -105,6 +105,17 @@
         overlayWatch.active = false;
         overlayWatch.startedAt = 0;
       }
+      /* 🔴 단건 결제창을 여는 동안은 시계를 계속 되감는다.
+         이 감시견은 "멈춘 로더"를 구제하려는 것인데, 카드 결제의 대기 화면은 멈춘 게 아니라
+         **설계상 오래 걸리는 것**이다 — checkout(클라 예산 25초) → SDK → 주문 설정 → PortOne
+         requestPayment 까지 한 번도 내리지 않고 붙든다(index.html 의 '오버레이는 finally 에서만
+         내린다' 주석). 8초에 강제로 끄면 사용자는 대기 화면이 사라졌다가 다음 단계에서 다시 뜨는
+         것을 보고 **결제 대기가 두 번 뜬다**고 느낀다. 느릴수록 반드시 겪는다.
+         정지가 아니라 리셋인 이유: 플래그가 걸린 채 잊혀도 결국 8초 뒤 구제가 돌아온다. 플래그
+         자체도 억제 창(45초·600초 상한)과 수명이 같아 영구히 남지 않는다. */
+      if (overlayWatch.active && document.body && document.body.classList.contains('cd-direct-pg-open')) {
+        overlayWatch.startedAt = now();
+      }
       if (overlayWatch.active && now() - overlayWatch.startedAt > MAX_OVERLAY_MS) {
         stopBlockingOverlays('loader-timeout');
         overlayWatch.active = false;

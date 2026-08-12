@@ -19,7 +19,7 @@
       "file": "index.html",
       "marker": "  async function _cdOpenPaidServiceGate(options) {",
       "why": "정적 셸의 유료 게이트 진입점.",
-      "sha256": "fd12bc23a1657f42"
+      "sha256": "8c1f1f21e114912c"
     },
     {
       "file": "js/destiny-profile.js",
@@ -32,7 +32,7 @@
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "5bb97d1b725686b6"
+      "sha256": "5b2bdce7c228355f"
     },
     {
       "file": "app/hooks/useCoinGate.ts",
@@ -54,7 +54,7 @@
     {
       "file": "worker/routes/billing.js",
       "why": "라이브 코드라 버그 수정은 계속 필요하다. 고치는 것은 되고 키우는 것은 안 된다 — 재작성의 방향은 이 파일이 0 이 되는 것이다.",
-      "maxLines": 7237
+      "maxLines": 7225
     },
     {
       "file": "worker/routes/payments.js",

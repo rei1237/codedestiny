@@ -41,6 +41,42 @@ export function shouldVerifyMembershipPass(method) {
   return method === PAYMENT_METHODS.MEMBERSHIP_PASS;
 }
 
+function isTruthyFlag(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+/**
+ * 이 요청이 "사용자가 단건 카드 결제를 명시적으로 골랐다"인가.
+ *
+ * 🔴 결제수단 판정의 입력은 `paymentMode` 하나가 아니다 — `accessMode`·`mode` 도 같은 축이고,
+ * `forceDirectPayment` 와 PortOne/Inicis provider 조합은 다른 값이 뭐라 적혀 있든 단건으로 확정한다.
+ * 이 함수가 billing.js 안에만 있던 동안 라우터는 `paymentMode` 대문자 정확 일치로만 갈래를 정했고,
+ * 그래서 같은 결제가 URL 이 아니라 **필드 철자에 따라** 신·구 구현으로 갈렸다. 판정을 여기 한 곳에
+ * 두는 이유가 그것이다 — 라우터와 핸들러가 같은 답을 내야 한다. 복제하지 말 것.
+ */
+export function shouldCreateDirectPortOneOrder(body = {}) {
+  const paymentMode = String(body?.paymentMode || body?.accessMode || body?.mode || "").trim().toLowerCase();
+  const provider = String(body?.provider || body?.paymentProvider || "").trim().toLowerCase();
+  const pg = String(body?.pg || body?.pgProvider || "").trim().toLowerCase();
+  return paymentMode === "direct_krw"
+    || paymentMode === "single_payment"
+    || paymentMode === "single"
+    || isTruthyFlag(body?.forceDirectPayment)
+    || (provider === "portone_v2" && (pg === "kg_inicis" || pg === "kg-inicis" || pg === "inicis"));
+}
+
+/**
+ * 본문 하나로 결제수단을 확정한다. billing.js 의 coin-gate 진입 판정(별칭·accessMode·단건 신호)과
+ * **같은 답**을 내야 하는 곳이 쓴다(worker/index.js 의 V2 라우팅).
+ */
+export function resolvePaymentCommandFromBody(body = {}) {
+  return resolvePaymentCommand({
+    paymentMode: String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase(),
+    directPaymentRequested: shouldCreateDirectPortOneOrder(body),
+  });
+}
+
 export function createInactiveMembershipPass() {
   return {
     isActive: false,
