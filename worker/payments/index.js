@@ -29,7 +29,7 @@ import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
 import { grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
-import { spendMoonstone } from "./moonstone.js";
+import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
 import { runPaymentReconcile } from "./reconcile.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
@@ -1195,11 +1195,26 @@ export async function runPaymentsV2Reconcile(env) {
   let status = 200;
   let errorCode = "";
   try {
-    return await withPaymentDb(env, ctx, (db) => runPaymentReconcile(db, {
-      grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
-        if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
-      }),
-    }));
+    return await withPaymentDb(env, ctx, async (db) => {
+      const report = await runPaymentReconcile(db, {
+        grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
+          if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
+        }),
+      });
+      /* 월정석 고아 예약 정리. spendMoonstone 은 원장 예약을 효과보다 먼저 쓰므로, 그 사이에서
+         죽으면 **미정산 예약 + 미차감 잔액** 이 남는다(사용자는 과금되지 않았다). 원장의
+         unique{userId,type,sourceId} 때문에 같은 requestId 재시도는 그 뒤로 계속 409
+         MOONSTONE_IN_PROGRESS 를 받고, requestId 를 세션 단위로 캐시하는 호출부는 거기서 막힌다.
+         집행자가 없으면 그 상태가 영구다 — 그래서 이미 만들어져 있던 스윕을 여기 배선한다.
+         같은 슬롯·같은 커넥션에서 이어 돌고, 실패해도 위 주문 재조정 결과는 잃지 않는다. */
+      let moonstone = null;
+      try {
+        moonstone = await settleOrphanSpends(db);
+      } catch (error) {
+        console.error("[payments-v2-reconcile] moonstone orphan sweep failed:", String(error?.message || error));
+      }
+      return { ...report, moonstone };
+    });
   } catch (error) {
     const contract = classify(error);
     status = contract.status;

@@ -6,7 +6,7 @@
  * 여기서는 실제로 쓰는 연산자를 전부 구현한다. 통과시켜 주는 스텁이면 검증하는 게 없다.
  *
  * 지원: $nin · $in · $ne · $lt · $exists · $or · $set · $inc · $unset · $setOnInsert · $addToSet
- *       · upsert · returnDocument(before|after)
+ *       · $push($each/$slice) · upsert · returnDocument(before|after) · dot notation(필터·$set·$inc·$push)
  * 미구현 연산자를 만나면 **조용히 통과시키지 않고 던진다** — 조용한 통과가 가짜 초록불을 만든다.
  */
 
@@ -15,16 +15,35 @@ function isOperatorMap(cond) {
     && Object.keys(cond).some((key) => key.startsWith("$"));
 }
 
+/* 필터도 dot notation 을 읽어야 한다. 결제의 CAS 는 전부 중첩 필드를 조건으로 건다
+   (예: "profileSubscription.membershipCreditLotsVersion" 낙관적 버전 가드). 평면 키로만 읽으면
+   그 조건이 항상 undefined 와 비교돼 **CAS 가 검증되는 척만 한다.** */
+function getPath(doc, key) {
+  if (!key.includes(".")) return doc[key];
+  let node = doc;
+  for (const part of key.split(".")) {
+    if (node === null || node === undefined || typeof node !== "object") return undefined;
+    node = node[part];
+  }
+  return node;
+}
+
 export function matches(doc, filter) {
   return Object.entries(filter).every(([key, cond]) => {
     if (key === "$or") return cond.some((sub) => matches(doc, sub));
-    const value = doc[key];
+    const value = getPath(doc, key);
     // ObjectId·Date 처럼 프로퍼티를 가진 '값 객체'를 연산자 맵으로 오인하면 안 된다.
     if (isOperatorMap(cond)) {
       return Object.entries(cond).every(([op, operand]) => {
         if (op === "$nin") return !operand.includes(value);
         if (op === "$in") return operand.includes(value);
-        if (op === "$ne") return String(value) !== String(operand);
+        /* 배열 필드의 $ne 는 "어떤 원소도 일치하지 않음"이다. 문자열화해 비교하면
+           ["a","b"] 에 $ne:"a" 가 통과해 버리고, 그러면 월정석 이중차감을 막는
+           recentConsumeRequestIds 가드를 검증하는 테스트가 아무것도 검증하지 않는다. */
+        if (op === "$ne") {
+          if (Array.isArray(value)) return !value.some((item) => String(item) === String(operand));
+          return String(value) !== String(operand);
+        }
         if (op === "$lt") return value != null && value < operand;
         if (op === "$gt") return value != null && value > operand;
         // $lte/$gte 는 이용권 예산 CAS 가 쓴다(passes.js consumePassCoverage). 값이 없으면
@@ -55,22 +74,44 @@ function setPath(doc, key, value) {
   node[parts[parts.length - 1]] = value;
 }
 
+/* $push 의 $each/$slice. 월정석 멱등 마커(recentConsumeRequestIds)가 상한을 이 조합으로 강제한다
+   — 스키마 배열 validator 는 업데이트 연산자에서 실행되지 않아 $slice 가 유일한 수단이기 때문이다
+   (worker/lib/models.js). 모르는 수정자는 조용히 무시하지 않고 던진다. */
+function applyPush(doc, key, spec) {
+  const current = getPath(doc, key);
+  const list = Array.isArray(current) ? current.slice() : [];
+  if (!isOperatorMap(spec)) {
+    setPath(doc, key, list.concat([spec]));
+    return;
+  }
+  const unknown = Object.keys(spec).filter((op) => op !== "$each" && op !== "$slice");
+  if (unknown.length) throw new Error(`fake-payment-db: 미구현 $push 수정자 ${unknown.join(",")}`);
+  let next = list.concat(Array.isArray(spec.$each) ? spec.$each : []);
+  if (typeof spec.$slice === "number") {
+    next = spec.$slice >= 0 ? next.slice(0, spec.$slice) : next.slice(spec.$slice);
+  }
+  setPath(doc, key, next);
+}
+
 export function applyUpdate(doc, update) {
   for (const op of Object.keys(update)) {
-    if (!["$set", "$inc", "$unset", "$setOnInsert", "$addToSet"].includes(op)) {
+    if (!["$set", "$inc", "$unset", "$setOnInsert", "$addToSet", "$push"].includes(op)) {
       throw new Error(`fake-payment-db: 미구현 갱신 연산자 ${op}`);
     }
   }
   if (update.$set) for (const [k, v] of Object.entries(update.$set)) setPath(doc, k, v);
-  if (update.$inc) for (const [k, v] of Object.entries(update.$inc)) doc[k] = (Number(doc[k]) || 0) + v;
+  // $inc 도 dot notation 을 따라야 한다 — 평면 키로 쓰면 필터가 보는 중첩 필드와 갈라져
+  // 낙관적 버전 가드가 영원히 0 을 읽는다(= 경합 테스트가 통과하는 척만 한다).
+  if (update.$inc) for (const [k, v] of Object.entries(update.$inc)) setPath(doc, k, (Number(getPath(doc, k)) || 0) + v);
   if (update.$unset) for (const k of Object.keys(update.$unset)) delete doc[k];
   if (update.$addToSet) {
     for (const [k, v] of Object.entries(update.$addToSet)) {
-      const list = Array.isArray(doc[k]) ? doc[k] : [];
+      const list = Array.isArray(getPath(doc, k)) ? getPath(doc, k) : [];
       if (!list.includes(v)) list.push(v);
-      doc[k] = list;
+      setPath(doc, k, list);
     }
   }
+  if (update.$push) for (const [k, spec] of Object.entries(update.$push)) applyPush(doc, k, spec);
   return doc;
 }
 
