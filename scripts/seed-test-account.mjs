@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { dbConnect } from "../app/_lib/dbConnect.js";
-import { getUserModel } from "../app/_lib/models/UserModel.js";
+// User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
+import { User } from "../worker/lib/models.js";
 
 function parseArgs(argv) {
   const result = {};
@@ -75,7 +76,6 @@ if (!Number.isInteger(TEST_POINTS) || TEST_POINTS < 0) {
 
 async function upsertTestAccount() {
   await dbConnect();
-  const User = await getUserModel();
 
   const now = new Date();
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 12);

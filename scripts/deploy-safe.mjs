@@ -290,7 +290,7 @@ async function discover(pagesLocal, workerLocal) {
 }
 function needsWorker(files) {
   return allowEmptyChangeSet || files.some((file) =>
-    file.startsWith("worker/") || file.startsWith("server/") || file.includes("wrangler") ||
+    file.startsWith("worker/") || file.includes("wrangler") ||
     file === "app/_lib/billing-client.ts" || file === "js/core/access-store.js"
   );
 }
@@ -320,7 +320,7 @@ async function workerBehindHead(cf, head) {
     return "";
   }
   if (!live || live === head) return "";
-  const drift = git(["diff", "--name-only", live + ".." + head, "--", "worker/", "lib/", "server/"], { allowFailure: true });
+  const drift = git(["diff", "--name-only", live + ".." + head, "--", "worker/", "lib/"], { allowFailure: true });
   return drift.trim() ? live : "";
 }
 
@@ -350,7 +350,7 @@ function printContext(value) {
   console.log("[deploy-safe] Pages Functions=" + value.pagesLocal.functions + " _routes=" + value.pagesLocal.routes);
   if (value.staleWorkerCommit) {
     console.log("[deploy-safe] 라이브 Worker 가 " + value.staleWorkerCommit.slice(0, 12)
-      + " 에 머물러 있고 그 뒤로 worker/·lib/·server/ 변경이 있습니다 — 이번 릴리스에 Worker 를 함께 올립니다.");
+      + " 에 머물러 있고 그 뒤로 worker/·lib/ 변경이 있습니다 — 이번 릴리스에 Worker 를 함께 올립니다.");
   }
   console.log("[deploy-safe] Worker included in this release: " + value.needsWorker);
 }

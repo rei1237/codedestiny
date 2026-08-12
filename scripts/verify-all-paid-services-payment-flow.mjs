@@ -3,8 +3,8 @@ import path from "node:path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { dbConnect } from "../app/_lib/dbConnect.js";
-import { getUserModel } from "../app/_lib/models/UserModel.js";
-import { PointHistory } from "../worker/lib/models.js";
+// User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
+import { PointHistory, User } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
 import { handleBillingRoutes } from "../worker/routes/billing.js";
 import {
@@ -173,7 +173,6 @@ function requiresProfileScope(testCase) {
 
 async function prepareTestUser(email, points) {
   await dbConnect();
-  const User = await getUserModel();
 
   const existing = await User.findOne({ email }).select("_id email").lean();
   if (!existing) {
@@ -278,7 +277,6 @@ async function main() {
     requestIds.push(result.requestId);
   }
 
-  const User = await getUserModel();
   const afterUser = await User.findById(user._id).select("points").lean();
   const expectedPoints = TEST_POINTS - totalCharged;
   const actualPoints = Number(afterUser?.points || 0);

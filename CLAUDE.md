@@ -8,7 +8,6 @@
 ```bash
 npm run dev            # 로컬 개발 서버 (local-auth 포함)
 npm run dev:next       # Next.js dev 서버만
-npm run api            # server/ Express API 서버
 npm run build          # UTF-8 콘솔 + Cloudflare 빌드
 npm run build:cf       # prebuild:cf && build
 npm run lint           # next lint
@@ -44,7 +43,6 @@ npm run deploy:cf:opennext # OpenNext 경유 배포
 ```
 app/            # Next.js App Router (라우트, app/api/*, [locale]/)
 worker/         # Cloudflare Worker 백엔드 (routes/, lib/ — billing/AI/pdf/music)
-server/         # 레거시 Express API (routes/, models/, services/)
 lib/            # 공유 라이브러리 (llm-client, mongodb, i18n, payment, vedicSwissChart, vedicCalculator)
 components/     # 공용 React 컴포넌트 (yeon/, stories/, ui/, fortune/)
 src/features/   # 기능 단위 모듈 (fortune-tea-house, neo-war-room)
@@ -63,7 +61,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 - **Framework**: Next.js 15 (App Router, `output: "export"` 정적 빌드), React 18.3.1
 - **언어/스타일**: TypeScript 5.5 (`strict: false`, `strictNullChecks: true`), Tailwind 3.4
-- **DB**: MongoDB — native driver(`lib/mongodb.ts`)와 Mongoose(`app/_lib/dbConnect.js`) 이중 연결
+- **DB**: MongoDB (Mongoose) — 프로덕션 경로는 `worker/lib/db.js`, App Router 잔여 경로는 `app/_lib/dbConnect.js`
 - **AI**: Gemini REST 직접 호출(`gemini-2.5-flash`) + 실패 시 Cloudflare Workers AI 폴백
 - **배포**: Cloudflare Pages + Workers (wrangler 4.73, `@opennextjs/cloudflare`)
 - **결제**: PortOne V2 (+ Inicis 일부 연동), 포인트/코인 기반 유료 기능
@@ -90,7 +88,8 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - **폴백 품질 한계(2026-07-30 실측)**: 70B는 장문 지시에도 **목표 분량의 60~77%만 쓰고 스스로 멈춘다**(`finish_reason: "stop"`, `completion_tokens` 840 / 상한 8,000). **`maxOutputTokens`를 올려도 늘지 않으므로 다시 재지 말 것.** 이 한계가 1차 glm-4.7-flash 에서도 같은지는 **아직 실측 전**이다 — 아래 `fallbackMinChars` 게이트가 그대로 안전장치가 된다. 그럼에도 폴백은 켜 두는 쪽이 맞다 — 끄면 Gemini 장애 시 사용자가 받는 것은 짧은 결과가 아니라 실패 안내 문구다.
 - 🔴 **폴백을 켠 유료 라우트는 `fallbackMinChars`를 반드시 함께 준다** (`worker/lib/gemini.js`의 `rejectShortFallback`). 이 라우트들은 "경량 보장 계약"으로 렌더 가능한 텍스트(≥400자)면 결제 성공으로 전달하기 때문에, 그냥 켜면 **2만자 상품이 8% 분량으로 정상 결제 처리**되고 재시도·환불 경로가 사라진다. 관례는 **그 기능의 최소 분량 상수 × 0.4**이며, 문턱 미달이면 호출이 실패로 돌아 각 라우트의 기존 실패 처리가 그대로 돈다. **Gemini 응답에는 적용되지 않는다**(기존 동작 불변).
 - JSON 구조화 상담은 `callGeminiJsonWithRetry`가 폴백 응답의 코드펜스·설명문을 자동 정화하므로(`worker/lib/structured-consultation.js`) 라우트별 파서를 고칠 필요가 없다. 그 헬퍼를 안 쓰는 경로만 첫 `{`~마지막 `}` 슬라이스를 직접 넣는다.
-- **MongoDB**: 연결 env는 `MONGO_URI`/`MONGODB_URI`. 신규 코드는 기존 두 싱글턴 패턴(`lib/mongodb.ts` 또는 `app/_lib/dbConnect.js`) 중 이미 쓰이는 쪽을 따를 것 — 새 패턴 추가 금지.
+- **MongoDB**: 연결 env는 `MONGO_URI`/`MONGODB_URI`. 신규 코드는 기존 두 싱글턴 패턴(`worker/lib/db.js` 또는 `app/_lib/dbConnect.js`) 중 이미 쓰이는 쪽을 따를 것 — 새 패턴 추가 금지.
+- 🔴 **User 스키마 정본은 `worker/lib/models.js` 하나다.** 예전에 같은 `users` 컬렉션에 스키마가 3벌 있었고(레거시 Express·스크립트 전용 사본) 제약이 서로 달라 조용한 데이터 손상이 났다. 스크립트든 라우트든 User 를 쓸 때는 이 모듈에서 import 한다 — 새 `mongoose.model("User", …)` 선언을 만들지 말 것(`__tests__/worker/user-model-single-source.static.test.js` 가 막는다).
 - **Cloudflare Workers 제약**: `worker/` 디렉토리는 Node 내장 API(`fs`, `net` 등) 사용 금지, 순수 fetch/Web API 기반 유지. `app/api/*` 라우트 중 Node API가 필요하면 `export const runtime = "nodejs"` 명시.
 - **결제**: 클라이언트는 `lib/payment/portone.ts`(PortOne V2 브라우저 SDK 동적 로드), 서버는 `worker/lib/portone.js`(PortOne REST API) — 결제 로직은 SDK 패키지가 아닌 raw fetch로 구현되어 있음.
 
@@ -267,7 +266,7 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   |---|---|---|
   | `fast` | 문구·CSS·이미지·문서·`index.html`·sitemap | typecheck · lint |
   | `standard` | `app/` `components/` `src/` `lib/` `js/` · `package.json` · `next.config` | + `build:cf` · `build:worker` · 워커 크기 |
-  | `critical` | **결제 · 인증 · `worker/` · `server/` · DB 스키마·마이그레이션 · `wrangler.*` · `.env*` · `.github/workflows/` · `package-lock.json`** | + 전체 테스트 · 배포 설정 가드 · ads.txt · 시크릿 스캔 |
+  | `critical` | **결제 · 인증 · `worker/` · DB 스키마·마이그레이션 · `wrangler.*` · `.env*` · `.github/workflows/` · `package-lock.json`** | + 전체 테스트 · 배포 설정 가드 · ads.txt · 시크릿 스캔 |
 
   - **판정 정본은 `scripts/lib/change-risk.mjs` 하나다.** `scripts/resolve-ci-tier.mjs` 는 그 두 축(`level`, `deepRequired`)을 티어로 **매핑만** 한다. 배포 파이프라인(`deploy-safe`)과 `check-changed` 도 같은 모듈을 쓴다 — 여기에 경로 목록을 다시 쓰면 CI 와 배포가 같은 커밋을 다르게 판정하고, 그 드리프트가 곧 "CI 는 초록인데 배포에서 터지는 게이트"가 된다.
   - `deepRequired` 를 `level` 과 **함께** 본다. `app/hooks/useCoinGate.ts` 는 `app/` 이라 `level=medium` 이지만 단건 결제 훅이라 `critical` 이어야 한다. 한 축만 보면 구멍이 난다.

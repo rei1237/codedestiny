@@ -3,8 +3,8 @@ import path from "node:path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { dbConnect } from "../app/_lib/dbConnect.js";
-import { getUserModel } from "../app/_lib/models/UserModel.js";
-import { PointHistory } from "../worker/lib/models.js";
+// User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
+import { PointHistory, User } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
 import { handleBillingRoutes } from "../worker/routes/billing.js";
 
@@ -43,7 +43,6 @@ function getEnvForWorker() {
 
 async function main() {
   await dbConnect();
-  const User = await getUserModel();
 
   const normalizedEmail = TEST_LOGIN_ID.toLowerCase();
   const user = await User.findOne({ email: normalizedEmail }).select("_id email role points").lean();

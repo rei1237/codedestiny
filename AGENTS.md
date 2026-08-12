@@ -10,7 +10,7 @@
 
 - Frontend: Next.js 15 App Router, React 18, TypeScript, JavaScript, Tailwind CSS.
 - Runtime: Node.js 20+, Cloudflare Pages, Cloudflare Workers.
-- API: Worker-native `/api/*` routing from `worker/index.js`; some `app/api/*`; legacy Express under `server/**`.
+- API: Worker-native `/api/*` routing from `worker/index.js`; some `app/api/*`.
 - DB: MongoDB Atlas with Mongoose models, primarily `worker/lib/models.js`.
 - Payment: PortOne V2 with KG Inicis channel.
 - LLM: Gemini REST primary, Cloudflare Workers AI fallback.
@@ -76,7 +76,7 @@ Every PR is not worth the same amount of CI. A copy tweak and a payment-route ch
 |---|---|---|
 | `fast` | copy, CSS, images, docs, `index.html`, sitemap/robots/ads.txt | typecheck · lint |
 | `standard` | `app/` `components/` `src/` `lib/` `js/`, `package.json`, `next.config`, `tsconfig` | + `build:cf` · `build:worker` · worker size budget |
-| `critical` | payment, auth, `worker/`, `server/`, DB schema and migrations, `wrangler.*`, `.env*`, `.github/workflows/`, `package-lock.json` | + full test suite · deployment-config guards · ads.txt · secret scan |
+| `critical` | payment, auth, `worker/`, DB schema and migrations, `wrangler.*`, `.env*`, `.github/workflows/`, `package-lock.json` | + full test suite · deployment-config guards · ads.txt · secret scan |
 
 - **`scripts/lib/change-risk.mjs` is the only classifier.** `scripts/resolve-ci-tier.mjs` maps its two axes (`level`, `deepRequired`) onto a tier and nothing more. `deploy-safe` and `check-changed` read the same module. Writing a second path list anywhere means CI and the release can disagree about the same commit.
 - Both axes are consulted. `app/hooks/useCoinGate.ts` is `level=medium` because it lives under `app/`, but it is the single-purchase hook, so `deepRequired` lifts it to `critical`. Either axis alone leaves a hole.
@@ -318,7 +318,6 @@ For main static shell changes:
 - Runtime JS/CSS for shell: `js/**`, `styles/**`
 - Build/deploy scripts: `scripts/**`, `package.json`
 - Generated mirrors: `public/**/index.html` are not primary source.
-- Legacy server: `server/**` is fallback/legacy when Worker equivalent exists.
 
 ## How To Answer The User
 

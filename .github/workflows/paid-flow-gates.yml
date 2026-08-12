@@ -60,7 +60,6 @@ on:
       - "worker/lib/auth.js"
       - "app/_lib/auth-client.ts"
       - "app/_lib/auth-store.ts"
-      - "server/routes/admin.routes.js"
       # ── 운세 로직 ─────────────────────────────────────────
       - "worker/routes/fortune.js"
       - "worker/routes/*-ai.js"

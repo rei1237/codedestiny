@@ -18,7 +18,7 @@
  */
 
 const highPatterns = [
-  /^worker\//i, /^server\//i, /(^|\/)(payment|billing|auth|login|signup|access|unlock|entitlement|mongo|database|migration|migrate|kv|d1|r2|durable)/i,
+  /^worker\//i, /(^|\/)(payment|billing|auth|login|signup|access|unlock|entitlement|mongo|database|migration|migrate|kv|d1|r2|durable)/i,
   /(^|\/)wrangler\.(toml|jsonc?)$/i, /(^|\/)\.env/i, /^\.github\/workflows\//i,
   /(^|\/)package-lock\.json$/i, /(^|\/)scripts\/deploy/i,
 ];
@@ -49,7 +49,6 @@ const deepVerificationRules = [
   // ── 인증·세션
   [/^worker\/routes\/auth\.js$/i, "인증 라우트"],
   [/^worker\/lib\/(auth|jwt|session|token)[^/]*\.(js|mjs|ts)$/i, "인증 라이브러리"],
-  [/^server\/routes\/auth[^/]*\.js$/i, "레거시 인증 라우트"],
   [/(^|\/)(login|oauth|signup|withdraw)[^/]*\.(js|mjs|jsx|ts|tsx)$/i, "로그인·가입·탈퇴 경로"],
   [/^js\/core\/access-store\.js$/i, "접근 상태 저장소"],
 
