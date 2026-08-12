@@ -25,6 +25,7 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
+import appContext from "@/js/core/app-context.js";
 import checkoutEntry from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
 
@@ -2420,17 +2421,12 @@ function toQuery(input: Record<string, unknown>) {
   return params.toString();
 }
 
-/** 앱(Capacitor) 런타임 판별 — 결제·표시 분기의 단일 진입점. 사본을 만들지 말 것. */
+/**
+ * 앱(Capacitor) 런타임 판별 — 결제·표시 분기의 단일 진입점. 사본을 만들지 말 것.
+ * 🔴 판정 규칙 자체는 js/core/app-context.js 가 소유한다(셸·독립 정적과 공유).
+ */
 export function isMobileAppRuntime() {
-  if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") return true;
-  if (typeof window === "undefined") return false;
-  const runtimeWindow = window as RuntimeApiWindow;
-  if (runtimeWindow.__CODE_DESTINY_RUNTIME_TARGET === "mobile-app") return true;
-  try {
-    return runtimeWindow.Capacitor?.isNativePlatform?.() === true;
-  } catch (e) {
-    return false;
-  }
+  return appContext.isApp();
 }
 
 /**

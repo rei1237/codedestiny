@@ -168,6 +168,14 @@
   }
 
   function shouldUseAppStoreEntry() {
+    // 🔴 앱 판별 정본은 js/core/app-context.js 하나다. 여기서 자체 판정을 되살리지 말 것 —
+    // 예전에는 "가드 설치 여부"만 봐서, 주입이 어긋나면 앱인데도 /points(앱 번들에 없음)로 갔다.
+    try {
+      var ctx = typeof globalThis !== "undefined" ? globalThis.__cdAppContext : null;
+      if (ctx && typeof ctx.isApp === "function") return ctx.isApp();
+    } catch (_ctxError) { /* noop */ }
+
+    // 정본 미로딩 폴백. 정본과 같은 신호만 보되 Capacitor 존재 여부로 넓히지 않는다.
     var win = runtimeWindow();
     if (!win) return false;
     try {
@@ -175,6 +183,8 @@
       if (text(win.__CODE_DESTINY_RUNTIME_TARGET) === "mobile-app") return true;
       if (typeof document !== "undefined" && document.documentElement
         && text(document.documentElement.getAttribute("data-runtime-target")) === "mobile-app") return true;
+      var capacitor = win.Capacitor;
+      if (capacitor && typeof capacitor.isNativePlatform === "function" && capacitor.isNativePlatform() === true) return true;
     } catch (_appError) { /* noop */ }
     return false;
   }

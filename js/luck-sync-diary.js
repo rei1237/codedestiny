@@ -806,6 +806,16 @@ return true;
     // 실제 접근 권한 판단은 기존 unlock 저장소를 읽기만 하며, 결제/권한 로직은 새로 만들지 않는다.
     var card = document.getElementById('lsdPwaInstallCard');
     if (!card) return;
+    /* 앱(Android WebView)에는 "홈 화면에 추가"가 성립하지 않는다 — beforeinstallprompt 가 오지
+       않아 항상 안내 문구만 남고, 이미 설치된 앱 안에서 설치를 권하는 꼴이라 Play 심사에도 걸린다.
+       판별 정본은 js/core/app-context.js(docs/app-audit/APP_UIUX_SPEC.md §2). */
+    try {
+      var ctx = window.__cdAppContext;
+      if (ctx && typeof ctx.isApp === 'function' && ctx.isApp()) {
+        card.style.display = 'none';
+        return;
+      }
+    } catch (_) {}
     var unlocked = isLuckSyncDiaryUnlocked();
     var prompt = getLsdPwaPrompt();
     var installed = _lsdPwaInstalled || isLsdStandaloneMode();

@@ -8,6 +8,8 @@
  * Local development can override this with window.CODE_DESTINY_API_BASE_URL.
  */
 
+import appContext from "@/js/core/app-context.js";
+
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const API_BASE = process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL || "";
 
@@ -20,19 +22,14 @@ if (process.env.NODE_ENV === "production" && !API_BASE) {
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
-  Capacitor?: { isNativePlatform?: () => boolean };
 };
 
 const NATIVE_APP_API_FALLBACK = "https://code-destiny.com";
 
+/** 🔴 판정 규칙 자체는 js/core/app-context.js 가 소유한다(셸·독립 정적과 공유). */
 function isCapacitorNativeRuntime(): boolean {
   if (typeof window === "undefined") return false;
-  const cap = (window as RuntimeApiWindow).Capacitor;
-  try {
-    return !!(cap && typeof cap.isNativePlatform === "function" && cap.isNativePlatform());
-  } catch (e) {
-    return false;
-  }
+  return appContext.isApp();
 }
 
 export function normalizeBaseUrl(rawValue?: string | null): string {

@@ -2,6 +2,7 @@ import { getApiBaseUrl } from "./api-config";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
 import passVerdict from "@/js/core/pass-verdict.js";
+import appContext from "@/js/core/app-context.js";
 import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 import { detectLocale } from "@/lib/i18n/dictionary";
 
@@ -141,12 +142,9 @@ function clearLegacyClientAccessToken() {
   }
 }
 
+/** 🔴 판정 규칙 자체는 js/core/app-context.js 가 소유한다(셸·독립 정적과 공유). */
 export function isMobileAppRuntime() {
-  if (typeof window === "undefined") return process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app";
-  const runtimeTarget = (window as unknown as { __CODE_DESTINY_RUNTIME_TARGET?: string }).__CODE_DESTINY_RUNTIME_TARGET
-    || document.documentElement.dataset.runtimeTarget
-    || process.env.NEXT_PUBLIC_RUNTIME_TARGET;
-  return runtimeTarget === "mobile-app";
+  return appContext.isApp();
 }
 
 function readMobileAppAccessToken() {

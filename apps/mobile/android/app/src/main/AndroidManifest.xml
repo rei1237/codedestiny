@@ -92,6 +92,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 촉각 피드백. 웹 Vibration API(navigator.vibrate)가 이 권한 없이는 조용히 무시된다.
+         호출부는 이미 있다 — js/touch-perf.js 의 safeVibrate(8) 가 버튼·카드 터치에 걸려 있고
+         사용자 제스처(userActivation) 안에서만 울린다. 런타임 동의가 필요 없는 normal 권한. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- 잠금화면(네이티브 오버레이) 기능 권한 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
