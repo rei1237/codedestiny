@@ -644,6 +644,11 @@ async function enrichCelestialReading(env, reading, goldenCard) {
     // AI 보강이 침묵 폴백(json_parse_failed)으로 빠졌다.
     maxOutputTokens: boundedNumber(env.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS, 24000, 4096, 32000),
     timeoutMs: boundedNumber(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS, 35000, 5000, 90000),
+    // 🔴 게이트가 없으면 짧은 폴백 JSON이 부분 파싱돼 base 필드로 11카드를 채우고도
+    // apiUsed:true 로 나간다(= 거의 0% AI 콘텐츠가 "AI 보강됨"으로 표시). 목표 분량
+    // 하한 12,000자 × 0.4. 미달이면 아래 !ai.ok 경로로 내려가 정직한 로컬 리딩
+    // (apiUsed:false + aiFallbackReason)이 대신한다.
+    fallbackMinChars: 4800,
     // 결정적 입력(출생차트+카드) → 캐시 + in-flight dedup으로 중복 과금 방지
     cache: {
       store: createLlmCacheStore(env),

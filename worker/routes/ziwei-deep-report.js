@@ -205,7 +205,15 @@ async function generateChapter(env, chart, birthInfo, chapter) {
     keyExtra: "ziwei-deep-report-v1",
   };
   try {
-    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 4096, temperature: 0.72, timeoutMs: 60000, cache: chapterLlmCache });
+    const ai = await callGeminiText(env, prompt, {
+      maxOutputTokens: 4096,
+      temperature: 0.72,
+      timeoutMs: 60000,
+      cache: chapterLlmCache,
+      // Workers AI 폴백이 챕터 최소 분량(2,200~3,000자)의 40% 미만이면 실패로 돌린다.
+      // 아래 200자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 본문" 하한.
+      fallbackMinChars: Math.round((chapter.minChars || 2200) * 0.4),
+    });
     const body = clean(ai?.text || "");
     if (body.length >= 200) {
       return { id: chapter.id, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini"), ok: true };

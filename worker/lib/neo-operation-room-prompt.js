@@ -1,3 +1,5 @@
+import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
+
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
   ziwei: "자미두수",
@@ -619,6 +621,10 @@ const NEO_COMMON_RULES = Object.freeze([
   "개발자식 장애 지점 표현은 쓰지 말고 '막힌 지점', '흔들리는 자리', '어긋난 흐름', '운이 새는 틈', '전선이 밀리는 곳', '반복되는 선택', '흐려진 판단', '놓친 신호', '다시 잡아야 할 기준' 같은 상담 언어를 쓴다.",
   "mock, dry-run, provider, system, prompt 같은 내부 구현 단어를 결과에 쓰지 않는다.",
   "이 기능은, 이 결과는, 분석 결과는, 리포트 항목, 콘텐츠 블록 같은 제품 설명식 문장을 쓰지 않는다.",
+  // 유료 상담 공통 출력 계약(worker/lib/fortune-reasoning-contract.js). 어조는 아래
+  // [팩폭 강도 지침]이 그대로 결정하고, 이 세 줄은 "무엇을 근거로 어떤 확신으로 말하는가"만 정한다.
+  ...REASONING_OUTPUT_RULE_LINES,
+  "해석 문단마다 [계산 요약 데이터]에 실제로 있는 항목명을 최소 1개, 데이터에 적힌 이름 그대로 인용한다.",
   "반드시 JSON 객체 하나만 반환한다. 마크다운 코드블록과 설명 문장은 금지한다.",
 ]);
 

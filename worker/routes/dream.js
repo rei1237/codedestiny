@@ -15,6 +15,15 @@ const DREAM_PSYCHO_GEMINI_MODEL_KEYS = Object.freeze([
   "GEMINI_MODEL",
 ]);
 
+/** 첫 번째로 값이 있는 env 키를 고른다. callGeminiText 는 `model`(문자열) 하나만 읽는다. */
+function firstDreamPsychoModel(env = {}) {
+  for (const key of DREAM_PSYCHO_GEMINI_MODEL_KEYS) {
+    const value = typeof env?.[key] === "string" ? env[key].trim() : "";
+    if (value) return value;
+  }
+  return "";
+}
+
 let dreamGeminiCaller = callGeminiText;
 let dreamPsychoAccessVerifier = verifyPsychoDreamAccess;
 
@@ -1254,14 +1263,17 @@ async function handlePsychoAnalysis(request, env = {}) {
 
   const aiResult = await dreamGeminiCaller(env, prompt, {
     systemPrompt,
-    modelEnvKeys: DREAM_PSYCHO_GEMINI_MODEL_KEYS,
+    // modelEnvKeys 는 callGeminiText 가 읽지 않는 옵션이라 모델 오버라이드가 적용된 적이 없었다.
+    model: firstDreamPsychoModel(env),
     temperature: 0.72,
     maxOutputTokens: 6144,
     // thinking 예산을 끄지 않으면 긴 마크다운 출력이 thinking 토큰에 밀려 잘려 나가
     // 뒷장(Chapter 5 등)이 누락되고 품질 게이트에서 탈락해 폴백으로 새는 경우가 있었다.
     thinkingBudget: 0,
     timeoutMs: Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS || 55000),
-    totalTimeoutMs: Number(env.DREAM_PSYCHO_TOTAL_TIMEOUT_MS || 30000),
+    // fallbackMinChars 를 두지 않는다 — 아래 evaluatePsychoMarkdownQuality 가 이미
+    // 5장 구조·필수 헤더·450자 하한을 검사해 짧은 폴백을 로컬 마크다운으로 강등시킨다.
+    // 게이트를 겹쳐 걸면 같은 판정을 두 곳에서 하게 된다(CLAUDE.md 중첩 사전검사).
   });
 
   let markdown = extractPsychoMarkdownCandidate(aiResult);

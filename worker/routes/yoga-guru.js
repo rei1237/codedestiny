@@ -352,12 +352,14 @@ async function handleGenerateYogaCourse(request, env) {
   ].join("\n");
 
   const ai = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["YOGA_GURU_GEMINI_MODEL"],
+    // modelEnvKeys/topP/maxAttemptsPerPair 는 callGeminiText 가 읽지 않는 옵션이었다
+    // (지정해도 적용된 적이 없다). 모델 오버라이드 의도만 살아있는 `model` 로 옮긴다.
+    model: clean(env.YOGA_GURU_GEMINI_MODEL),
     temperature: 0.72,
-    topP: 0.92,
     maxOutputTokens: 8192,
     timeoutMs: Number(env.YOGA_GURU_PROVIDER_TIMEOUT_MS || 55000),
-    maxAttemptsPerPair: 2,
+    // 짧은 Workers AI 폴백은 코스가 성립하지 않는다 — 미달이면 로컬 폴백 코스(source:"fallback")로.
+    fallbackMinChars: 800,
     // 동일 입력 재시도 시 캐시 + in-flight dedup으로 중복 과금 방지
     cache: {
       store: createLlmCacheStore(env),

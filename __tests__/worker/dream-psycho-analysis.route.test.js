@@ -193,7 +193,10 @@ describe("worker /api/dream/psycho-analysis", () => {
     expect(captured.prompt).toMatch(/관계에서 같은 갈등 반복/);
     expect(captured.prompt).toMatch(/업무 과부하와 수면 부족/);
     expect(captured.prompt).toMatch(/감정 조절과 대화 전략/);
-    expect(Array.isArray(captured.options.modelEnvKeys)).toBe(true);
+    // callGeminiText 가 실제로 읽는 옵션만 넘긴다(modelEnvKeys/totalTimeoutMs 는 무시되던 죽은 옵션).
+    expect(typeof captured.options.model).toBe("string");
+    expect(captured.options.totalTimeoutMs).toBeUndefined();
+    expect(captured.options.timeoutMs).toBeGreaterThan(0);
   });
 
   test("LLM 실패 시 fallback과 오류 메타를 반환한다", async () => {
