@@ -259,7 +259,8 @@ export function legacyMoonstoneEnvelope({ product, requestId, profileId = "", sp
  */
 export function legacyPassCheckEnvelope({
   product, requestId, profileId = "", unlock = false, premiumAccessToken = "",
-  coverage = {}, entitlement = {}, user = null, replayed = false, sessionId = "", reportId = "",
+  coverage = {}, entitlement = {}, user = null, replayed = false, alreadyUnlocked = false,
+  sessionId = "", reportId = "",
 }) {
   const featureKey = String(product.featureKey || "");
   const isFamily = String(coverage.tier || "") === "family";
@@ -290,6 +291,9 @@ export function legacyPassCheckEnvelope({
         amountKRW: Number(product.priceKRW || 0),
         passTier: coverage.tier || null,
         idempotent: replayed === true,
+        // 이미 소유한 영구 해금 콘텐츠의 재열람. 셸은 이 값을 먼저 보고 already_unlocked 로
+        // 처리하므로(예산 차감 없이 콘텐츠를 연다) accessType 은 그대로 둔다.
+        alreadyUnlocked: alreadyUnlocked === true,
         chargedCoins: 0,
         membershipCreditCost: 0,
       },

@@ -153,6 +153,29 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     expect(user.profileSubscription.monthlySpendCoin).toBe(spentOnce);
   });
 
+  test("🔴 이미 해금한 영구 콘텐츠 재열람: 예산을 다시 깎지 않는다(재열람=반복 과금 금지)", async () => {
+    // 영구 해금형 상품 하나를 고른다. 없으면 이 계약은 검증 대상이 아니다.
+    const { listProducts: list } = await import("../../worker/payments/catalog.js");
+    const unlockItem = list().find((p) => p.billingType !== "per_use" && Number(p.priceCoins) > 0
+      && Number(p.priceCoins) <= PASS_LIMITS.family);
+    if (!unlockItem) return;
+    const db = makeFakePaymentDb();
+    const user = seedUser(db, activePass("family"));
+    const first = await postPassCheck(db, {
+      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-1",
+    });
+    expect(first.response.status).toBe(200);
+    const spentOnce = Number(user.profileSubscription.monthlySpendCoin || 0);
+
+    // 다른 requestId(=새 클릭)로 다시 열어도 이미 소유한 콘텐츠라 예산이 늘지 않아야 한다.
+    const second = await postPassCheck(db, {
+      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-2",
+    });
+    expect(second.response.status).toBe(200);
+    expect(second.payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(spentOnce);
+  });
+
   test("🔴 미커버는 402 로 인계한다 — 막다른 길(4xx 아닌 실패·빈 화면) 금지", async () => {
     const db = makeFakePaymentDb();
     seedUser(db, { tier: "free", expiresAt: null });

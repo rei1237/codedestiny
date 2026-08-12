@@ -920,6 +920,18 @@ const ROUTES = {
           return { coverage, entitlement, user, replayed: true };
         }
 
+        /* 🔴 영구 해금형은 **소유 여부를 먼저** 확정한다. 뒤로 미루면 이미 가진 콘텐츠를 다시 열
+           때마다 월 예산이 또 깎여, 재열람이 사실상 반복 과금이 된다(구 accessDecision 의
+           already_unlocked 분기 승계). grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복은 늘지 않는다. */
+        if (unlock) {
+          const granted = await grantEntitlement(db, {
+            userId, product, orderId: requestId, profileId,
+            contentKey: body.contentKey, scope: body.scope, source: "PASS",
+          });
+          if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
+          await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+        }
+
         const updated = await consumePassCoverage(db, {
           userId, coverage, marker, existingMarkers: markers,
         });
@@ -978,6 +990,7 @@ const ROUTES = {
         entitlement: outcome.entitlement,
         user: outcome.user,
         replayed: outcome.replayed === true,
+        alreadyUnlocked: outcome.alreadyUnlocked === true,
         sessionId: String(body.sessionId || body.reportSessionId || ""),
         reportId: String(body.reportId || ""),
       });

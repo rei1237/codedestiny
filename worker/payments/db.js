@@ -22,7 +22,14 @@
  * **스키마에 없는 필드를 조용히 버리는** 함정을 아예 통과하지 않는다. 대신 캐스팅이 없으므로
  * 타입은 호출부가 책임진다 — 아래 toObjectId/toUserIdString 를 반드시 경유할 것.
  */
-import { connectPaymentDb, withMongoRetry, mongoose } from "../lib/db.js";
+import {
+  connectDb,
+  connectPaymentDb,
+  isTransientMongoError,
+  mongoose,
+  resetPaymentConnection,
+  withMongoRetry,
+} from "../lib/db.js";
 
 /* 🔴 ContentEntitlement.userId 는 String 이고 나머지 결제 컬렉션은 전부 ObjectId 다
    (worker/lib/models.js). 네이티브 드라이버는 캐스팅을 해 주지 않으므로, auth 의 userId 를
@@ -115,6 +122,14 @@ const PAYMENT_DB_OPTIONS = Object.freeze({
      다시 잡는다(예산: 2500+≤300+2500 ≈ 5.3s < 11.5s 시도 상한). 전용 레인이라 지속 포화
      가능성이 낮아 대기열 압력이 배가되는 부작용도 제한적이다. */
   retryAdmissionOnOverload: true,
+  /* 🔴 공유 커넥션 핸드셰이크를 타지 않는다. 이게 없으면 **콜드 아이솔레이트에서 핸드셰이크를
+     두 번** 한다 — withMongoRetry 가 시도마다 connectDb(공유)를 부르고, 그 뒤 아래 콜백이
+     connectPaymentDb(레인)를 또 세운다. M0 서버선택이 최대 8초라 둘을 직렬로 하면 12초 op
+     예산을 넘겨 DB_UNAVAILABLE(op timeout)이 된다. 2026-08-12 배포 직후 실측: 같은 핸들러인데
+     웜 아이솔레이트로 간 /api/payments/prepare 는 201, 콜드로 간 /api/billing/checkout 은 503.
+     실패 시의 공유 풀 리셋 부기도 함께 꺼진다 — 레인 실패로 전역 disconnect 를 걸면 레인은
+     안 낫고 그 순간 살아 있던 부팅 트래픽만 죽는다(worker/lib/db.js ownsSharedConnection 주석). */
+  skipSharedConnect: true,
 });
 
 /**
@@ -135,9 +150,14 @@ export async function withPaymentDb(env, ctx, fn) {
     return await withMongoRetry(env, async () => {
       // 재시도가 일어나면 이전 시도의 왕복은 세지 않는다 — 예산은 '성공한 시도'의 비용이다.
       ctx.mongoOps = 0;
-      // 결제 전용 레인. 수립 실패는 결제를 막지 않는다 — 공유 커넥션으로 폴백해 종전과 동일하게 동작.
+      /* 결제 전용 레인이 이 요청의 **유일한** 핸드셰이크다(위 skipSharedConnect).
+         레인 수립에 실패한 경우에만 공유 커넥션을 세워 폴백한다 — 그때는 핸드셰이크 비용을
+         내야 하지만, 그건 '레인이 죽었을 때'로 한정된 예외 경로이고 가용성이 지연보다 중요하다.
+         🔴 폴백에서 connectDb 를 빠뜨리면 안 된다: bufferCommands:false 라 연결이 없는 상태의
+         Model.collection 호출은 버퍼링 없이 즉시 실패한다. */
       let paymentConn = null;
       try { paymentConn = await connectPaymentDb(env); } catch { paymentConn = null; }
+      if (!paymentConn) await connectDb(env);
       return fn(makeCountingDb(ctx, paymentConn));
     }, PAYMENT_DB_OPTIONS);
   } finally {
