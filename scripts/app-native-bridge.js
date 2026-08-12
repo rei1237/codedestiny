@@ -606,14 +606,23 @@
     } catch (e) { return false; }
   }
 
+  // 🔴 실제로 닫혔을 때만 true 를 돌려준다. 예전에는 Escape 를 쏘고 무조건 true 였는데,
+  // Escape 핸들러가 없는 오버레이(예: destiny-island.html 의 .sheet 들 — aria-modal 이지만
+  // Escape 배선은 dlgWrap 에만 있다)에서는 백 이벤트만 삼키고 아무 일도 일어나지 않아
+  // 사용자가 그 화면에 갇힌다. 못 닫으면 false 를 돌려 평소의 뒤로가기가 이어지게 한다.
   function closeOverlayNode(rootEl) {
-    // 각 오버레이의 자기 닫기 버튼을 그대로 누른다 — 정리 로직(스크롤락 해제 등)을 재사용.
     var closeEl = null;
     try {
-      closeEl = rootEl.querySelector('[data-action^="close"], .modal-nav-close, [data-cd-login-close]');
-    } catch (e) {}
-    if (closeEl && typeof closeEl.click === "function") { closeEl.click(); return true; }
-    return dispatchEscapeKey();
+      closeEl = rootEl.querySelector(
+        '[data-action^="close"], [data-close], .sheet-close, .modal-nav-close, [data-cd-login-close]'
+      );
+    } catch (e) { /* noop */ }
+    if (closeEl && typeof closeEl.click === "function") {
+      closeEl.click();
+      return true;
+    }
+    dispatchEscapeKey();
+    return !isOverlayVisible(rootEl);
   }
 
   function closeTopOverlay() {
@@ -631,14 +640,15 @@
         if (isOverlayVisible(rootEl)) return closeOverlayNode(rootEl);
       } catch (e) {}
     }
-    // React 계열 모달(role=dialog/aria-modal)은 Escape 로 닫는 계약이다
-    // (예: FeatureMarketingDetailModal 의 window keydown 핸들러).
+    // 나머지 모달(React 의 role=dialog/aria-modal, 정적 페이지의 시트 등).
+    // 뒤에 붙은 것이 위에 있을 가능성이 높으므로 역순으로 본다.
     try {
       var dialogs = document.querySelectorAll('[aria-modal="true"]');
-      for (var j = 0; j < dialogs.length; j += 1) {
-        if (isOverlayVisible(dialogs[j])) return dispatchEscapeKey();
+      for (var j = dialogs.length - 1; j >= 0; j -= 1) {
+        if (!isOverlayVisible(dialogs[j])) continue;
+        return closeOverlayNode(dialogs[j]);
       }
-    } catch (e) {}
+    } catch (e) { /* noop */ }
     return false;
   }
 

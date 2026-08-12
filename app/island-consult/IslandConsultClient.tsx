@@ -637,7 +637,10 @@ export default function IslandConsultClient() {
 }
 
 const CSS = `
-.ic-root{min-height:100vh;padding:calc(24px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));color:#241f47;
+/* dvh: 100vh 는 주소창/시스템 바 높이를 빼지 않아 앱(edge-to-edge)에서 화면보다 커진다.
+   하단 패딩은 전역 네비(.cd-mnav)까지 감안한다 — --cd-mnav-offset 은 safe-area 를 이미
+   포함하고 네비가 없는 뷰포트에서는 0 이라 데스크톱 여백은 종전과 같다. */
+.ic-root{min-height:100dvh;padding:calc(24px + env(safe-area-inset-top)) 16px calc(32px + var(--cd-mnav-offset, env(safe-area-inset-bottom)));color:#241f47;
   font-family:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
   background:radial-gradient(130% 100% at 50% 0%,#cbd0f5 0%,#b9b3ea 42%,#a99fdd 100%)}
 .ic-head{max-width:760px;margin:0 auto 20px;text-align:center}

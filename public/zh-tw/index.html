@@ -505,15 +505,172 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <link rel="preload" as="image" href="/icons/app-logo-512.webp" fetchpriority="high">
 <link rel="stylesheet" href="/styles/theme-tokens.css?v=build-36bfceb8571f">
 <link rel="stylesheet" href="/styles/core-ui.css?v=build-36bfceb8571f">
- <link rel="stylesheet" href="/styles/fortune-ui.css?v=build-36bfceb8571f">
+ <!-- fortune-ui.css(583KB, brotli 127KB)는 셸에서 가장 큰 렌더 차단 자원이었고
+      모바일 FCP 의 최대 단일 원인이었다. 렌더는 막지 않되 높은 우선순위로 받는다.
+      바로 아래 cd-fortune-ui-critical 블록은 그 파일에서 이 홈 문서에 실제로 매칭되는
+      규칙만 뽑은 것이다(전체 3,713개 중 715개). 눈대중이 아니라 실제 렌더에서 CSSOM 을
+      순회해 element.matches() 가 참인 규칙만 고른 결과다.
+      재생성: 홈을 띄운 뒤 fortune-ui.css 의 CSSRule 을 순회해 문서 요소에 매칭되는 것만 수집.
+      주의 1: 뷰포트 안 요소만으로 좁히면 안 된다 — 숨김 규칙이 빠져 개인정보 동의 모달이
+              그대로 노출되고, 스크롤 아래가 재배치되어 CLS 가 터진다(실측 0.006 → 0.265).
+      주의 2: 지연 로더(data-cd-noncritical-style-src)로 바꾸지 말 것. 그 로더는 모달 전용
+              CSS 를 모바일 45초까지 미루는 장치라, 홈 본문 전체 스타일에는 맞지 않는다.
+      주의 3: fortune-ui.css 를 수정하면 이 블록도 재생성해야 한다. -->
+ <style id="cd-fortune-ui-critical">
+button, [role="button"], input[type="button"], input[type="submit"], label[for] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+:root { --radius-lg: 20px; --spacing-md: 16px; --card-shadow: var(--cd-elev-1, 0 8px 30px rgba(0,0,0,0.05)); --pink: #FF8BA7; --pink-l: #FFB7B2; --peach: #FFDAC1; --wood-bg: #E8F5E9; --wood-tx: #2E7D32; --fire-bg: #FFEBEE; --fire-tx: #C62828; --earth-bg: #FFF8E1; --earth-tx: #E65100; --metal-bg: #F5F5F5; --metal-tx: #546E7A; --water-bg: #E3F2FD; --water-tx: #1565C0; --radius: 16px; --shadow: 0 4px 20px rgba(255,139,167,.13); }
+* { margin: 0px; padding: 0px; box-sizing: border-box; font-family: var(--font-body); }
+html { text-size-adjust: 100%; }
+@media (prefers-reduced-motion: no-preference) {
+html { scroll-behavior: smooth; }
+}
+body { background: var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%)); min-height: 100dvh; color: var(--text-main, #3D3D3D); padding: 0px; overflow-x: hidden; transition: background 0.4s, color 0.4s; position: relative; overscroll-behavior-y: none; touch-action: pan-y; }
+@media (max-width: 480px) {
+html { font-size: 14px; }
+}
+.wrap { width: 100%; max-width: var(--cd-w-wide,960px); margin: 0px auto; position: relative; overflow-x: hidden; padding-top: ; padding-right: ; padding-left: ; padding-bottom: max(22px, calc(22px + env(safe-area-inset-bottom))); display: flex; flex-direction: column; z-index: 1; isolation: isolate; touch-action: pan-y; min-height: 100dvh; }
+img, canvas, svg, video { max-width: 100%; height: auto; }
+img { background-color: rgb(229, 229, 229); }
+#inputPage, .wrap > footer { width: 100%; max-width: var(--cd-w-wide, 960px); margin-left: auto; margin-right: auto; }
+.theme-switch-wrapper { left: auto; right: max(12px, env(safe-area-inset-right, 0px)); top: auto; bottom: max(10px, env(safe-area-inset-bottom, 0px)); transform: none; z-index: 2147483000; display: flex; align-items: center; justify-content: center; pointer-events: auto; isolation: isolate; padding: 0px; border-radius: 0px; margin-bottom: 0px; border: 0px; background: transparent; box-shadow: none; backdrop-filter: none; transition: none; position: fixed !important; }
+.theme-switch-wrapper > * { pointer-events: auto; }
+.theme-toggle-label, .tsw-input { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0px !important; margin: -1px !important; overflow: hidden !important; clip: rect(0px, 0px, 0px, 0px) !important; white-space: nowrap !important; border: 0px !important; }
+.theme-switch-pill { --seg: 78px; --pad: 4px; display: inline-flex; align-items: center; padding: var(--pad); border-radius: 999px; position: relative; overflow: hidden; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; background: linear-gradient(120deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 246, 250, 0.92) 100%); border: 1.5px solid rgba(179, 25, 85, 0.22); box-shadow: rgba(179, 25, 85, 0.16) 0px 12px 26px, rgba(0, 0, 0, 0.07) 0px 3px 10px, rgba(255, 255, 255, 0.95) 0px 1px 0px inset; transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.42s, border-color 0.42s, box-shadow 0.42s; }
+.tsp-option { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: var(--seg, 78px); padding: 10px 0px; border-radius: 999px; font-size: 0.83rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; pointer-events: none; transition: color 0.32s, transform 0.32s; }
+.tsp-icon { font-size: 1.08rem; line-height: 1; pointer-events: none; transition: transform 0.32s, filter 0.32s; }
+.tsp-name { pointer-events: none; }
+.tsp-pig { color: rgb(255, 246, 249); text-shadow: rgba(150, 20, 68, 0.3) 0px 1px 4px; }
+.tsp-lion { color: rgb(141, 134, 173); }
+@media (max-width: 640px) {
+.theme-switch-pill { --seg: 66px; --pad: 3px; }
+.tsp-option { gap: 4px; padding: 9px 0px; font-size: 0.76rem; }
+.tsp-icon { font-size: 0.95rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+.theme-switch-pill, .theme-switch-pill::before, .tsp-option, .tsp-icon { transition: none !important; }
+}
+.tarot-focus-overlay { position: fixed; inset: 0px; background: rgba(10, 10, 20, 0.6); backdrop-filter: blur(15px) brightness(0.3); z-index: 9998; visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), visibility linear 0.6s; }
+#privacy-modal-overlay { position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+.privacy-modal-card { background: var(--card-bg, #ffffff); width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; box-shadow: rgba(0, 0, 0, 0.25) 0px 20px 40px; transform: translateY(20px) scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid var(--border-color, rgba(255,183,178,.15)); }
+.privacy-title { font-size: 1.35rem; font-weight: 700; color: var(--point-color, #FF8BA7); margin-bottom: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.privacy-title span { font-size: 2.2rem; }
+.privacy-content { font-size: 0.92rem; color: var(--text-main, #4A4A4A); line-height: 1.6; background: var(--bg-color, #f9fafb); padding: 18px; border-radius: 12px; margin-bottom: 24px; word-break: keep-all; }
+.privacy-content p { margin-bottom: 12px; }
+.privacy-content p:last-child { margin-bottom: 0px; }
+.privacy-content strong { color: var(--point-color, #FF8BA7); font-weight: 700; }
+.privacy-btns { display: flex; gap: 12px; }
+.btn-cancel { flex: 1 1 0%; padding: 14px; background: transparent; color: var(--text-main, #6b7280); border: 1px solid var(--border-color, #d1d5db); border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: inherit; }
+.btn-agree { flex: 2 1 0%; padding: 14px; background: linear-gradient(135deg, var(--point-color, #FF8BA7), var(--point-color, #FFB7B2)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: rgba(255, 139, 167, 0.3) 0px 4px 12px; transition: 0.2s; font-family: inherit; }
+.logo-area { text-align: center; padding: 20px 0px 28px; }
+.honeypig-logo-icon, .normal-logo .pig-svg-wrap img { display: block; width: 130px; height: 130px; object-fit: contain; border-radius: 50%; box-shadow: rgba(255, 139, 167, 0.3) 0px 4px 12px; }
+.logo-area h1 { font-family: "Noto Serif KR", serif; color: var(--pink); font-size: 1.9rem; font-weight: 700; margin-top: 8px; }
+.logo-area p { color: rgb(187, 187, 187); font-size: 0.85rem; margin-top: 4px; }
+@media (max-width: 768px) {
+input, select, textarea { font-size: max(1rem, 16px) !important; }
+}
+.form-lunar-preview { font-size: 0.85rem; color: var(--point-color, #FF8BA7); margin-top: 4px; display: none; }
+.time-correction-info { font-size: 0.85rem; color: rgb(71, 85, 105); line-height: 1.4; display: none; }
+.modal-overlay-shell { display: none; width: 100%; }
+button, .dw-item, .year-row, .fortune-tab, .mystic-tab-btn, .lang-btn, .tog-btn, .oracle-cat-btn-m, .oracle-card-m, .iching-btn, .celeb-tab-btn, .celeb-btn, .feature-card, .tarot-cat-btn, .btn-kakao, .btn-insta { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button, .tog-btn, .btn-main, .btn-sub, .feature-card { min-height: 48px; }
+.dw-detail { margin-top: 12px; padding: 20px; background: rgb(255, 251, 248); border-radius: 15px; border: 2px solid rgb(255, 224, 214); display: none; max-width: 100%; box-sizing: border-box; }
+.modal { display: none; position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.45); z-index: 1000; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+.dream-ledger-overlay { position: fixed; inset: 0px; width: 100vw; height: 100dvh; max-height: 100dvh; z-index: 100001; padding: 0px; overflow: hidden auto; scroll-behavior: smooth; overscroll-behavior: contain; touch-action: auto; background: radial-gradient(circle at 12% 14%, rgba(248, 193, 113, 0.25), transparent 35%), radial-gradient(circle at 82% 75%, rgba(126, 177, 255, 0.22), transparent 42%), linear-gradient(165deg, rgba(12, 16, 30, 0.96), rgba(22, 24, 41, 0.98)); opacity: 0; transition: opacity 0.32s; }
+.dream-card-count-control input { position: absolute; inset: 0px; opacity: 0; cursor: pointer; }
+.graph-tooltip { position: absolute; background: rgba(35, 26, 34, 0.92); color: rgb(255, 255, 255); padding: 9px 12px; border-radius: 12px; font-size: 0.75rem; pointer-events: none; display: none; box-shadow: rgba(44, 29, 34, 0.28) 0px 12px 30px; z-index: 10; min-width: 132px; max-width: min(240px, 100% - 20px); line-height: 1.5; border: 1px solid rgba(255, 220, 155, 0.38); backdrop-filter: blur(10px); }
+.share-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(50, 50, 50, 0.9); color: rgb(255, 255, 255); padding: 10px 22px; border-radius: 99px; font-size: 0.85rem; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.cd-section-gate__badge { display: none !important; }
+.fortune-panel { display: none; }
+.lang-toggle-wrap { position: fixed; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); z-index: 10030; display: block !important; }
+.lang-trigger { display: flex; align-items: center; justify-content: flex-start; gap: 10px; min-width: 286px; min-height: 56px; padding: 7px 13px; border-radius: 999px; border: 1px solid rgba(208, 186, 255, 0.46); background: radial-gradient(150% 170% at 12% -18%, rgba(194, 171, 255, 0.35) 0%, rgba(194, 171, 255, 0) 52%), radial-gradient(130% 170% at 120% 132%, rgba(88, 182, 255, 0.28) 0%, rgba(88, 182, 255, 0) 50%), linear-gradient(118deg, rgba(33, 12, 66, 0.98) 0%, rgba(63, 28, 122, 0.96) 54%, rgba(44, 58, 144, 0.95) 100%); box-shadow: rgba(7, 6, 24, 0.58) 0px 16px 38px, rgba(123, 99, 234, 0.35) 0px 0px 34px, rgba(255, 255, 255, 0.16) 0px 1px 0px inset, rgba(3, 6, 31, 0.26) 0px -10px 26px inset; backdrop-filter: blur(14px) saturate(1.12); cursor: pointer; transition: transform 0.24s, box-shadow 0.24s, border-color 0.24s, filter 0.24s, background 0.24s; color: rgb(247, 241, 255); user-select: none; overflow: hidden; }
+.lang-trigger .lang-icon { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 0.9rem; background: radial-gradient(circle at 26% 24%, rgba(239, 251, 255, 0.98) 0%, rgba(150, 213, 255, 0.9) 48%, rgba(71, 120, 230, 0.96) 100%); box-shadow: rgba(255, 255, 255, 0.46) 0px 0px 0px 1px inset, rgba(115, 206, 255, 0.54) 0px 0px 18px, rgba(10, 36, 88, 0.44) 0px 5px 14px; flex: 0 0 auto; position: relative; z-index: 1; }
+.lang-icon-svg { width: 28px; height: 28px; display: block; }
+.lang-main { min-width: 0px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; position: relative; z-index: 1; }
+.lang-main-row { display: inline-flex; align-items: center; gap: 6px; }
+.lang-trigger .lang-label { flex: 0 0 auto; font-size: 0.96rem; font-family: Cinzel, "Noto Serif KR", serif; font-weight: 700; letter-spacing: 0.08em; text-shadow: rgba(255, 235, 255, 0.52) 0px 0px 14px; }
+.lang-trigger .lang-arrow { display: none; font-size: 0.75rem; transition: transform 0.24s; color: rgba(248, 230, 255, 0.92); }
+.lang-dropdown { position: absolute; top: calc(100% + 9px); right: 0px; display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 6px; padding: 10px; min-width: 232px; max-width: 280px; border-radius: 18px; border: 1px solid rgba(224, 197, 255, 0.28); background: linear-gradient(160deg, rgba(11, 9, 28, 0.98) 0%, rgba(24, 14, 58, 0.98) 56%, rgba(16, 31, 77, 0.98) 100%); box-shadow: rgba(6, 4, 18, 0.66) 0px 24px 56px, rgba(166, 102, 255, 0.22) 0px 0px 28px; backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transform: translateY(-8px) scale(0.96); transition: opacity 0.22s, transform 0.22s, visibility 0.22s; }
+@media (max-width: 680px) {
+.lang-toggle-wrap { top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); }
+.lang-trigger { min-width: 166px; min-height: 42px; padding: 5px 9px; gap: 8px; }
+.lang-trigger .lang-icon { width: 26px; height: 26px; }
+.lang-icon-svg { width: 18px; height: 18px; }
+.lang-trigger .lang-label { font-size: 0.76rem; letter-spacing: 0.06em; }
+}
+#google_translate_element { position: fixed !important; left: -9999px !important; top: auto !important; width: 1px !important; height: 1px !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important; }
+body { top: 0px !important; position: static !important; }
+html { margin-top: 0px !important; }
+.neo-glitch-wrap { position: fixed; inset: 0px; z-index: 9996; pointer-events: none; display: none; }
+.neo-logo { display: none; flex-direction: column; align-items: center; padding: 20px 0px 28px; }
+.normal-logo { display: flex; flex-direction: column; align-items: center; }
+.neo-only { display: none; }
+.q-dashboard { margin-top: -18px; padding-top: 36px; opacity: 0; transform: translateY(20px); transition: 0.75s cubic-bezier(0.4, 0, 0.2, 1); display: none; }
+.q-chip .q-tooltip { visibility: hidden; width: 142px; background: rgba(8, 18, 47, 0.96); color: rgb(248, 251, 255); text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%) translateY(10px); opacity: 0; transition: opacity 0.28s, transform 0.28s; border: 1px solid rgba(185, 212, 255, 0.28); font-size: 0.74rem; line-height: 1.45; pointer-events: none; }
+.df-studio-overlay { position: fixed; inset: 0px; z-index: 2900; padding: max(10px, env(safe-area-inset-top, 0px))
+    max(10px, env(safe-area-inset-right, 0px))
+    max(10px, env(safe-area-inset-bottom, 0px))
+    max(10px, env(safe-area-inset-left, 0px)); background: radial-gradient(circle at 14% 18%, rgba(244, 114, 182, 0.4), transparent 42%), radial-gradient(circle at 84% 10%, rgba(56, 189, 248, 0.34), transparent 40%), radial-gradient(circle at 52% 94%, rgba(255, 198, 112, 0.22), transparent 42%), rgba(241, 248, 255, 0.66); backdrop-filter: blur(9px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; scrollbar-gutter: stable both-edges; min-height: 100svh; opacity: 0; transition: opacity 0.24s; animation: 12s ease-in-out 0s infinite normal none running dfStudioAuroraShift; }
+.df-panel:has(#dfStudioGuidance), .df-studio-panels > .df-panel:nth-child(3) { display: none; }
+.privacy-content-note { font-size: 0.85rem; color: rgb(136, 136, 136); margin-top: 16px; }
+@media (pointer: coarse) {
+.wrap { contain: layout; }
+}
+#sajuLoaderOverlay { position: fixed; inset: 0px; background: radial-gradient(circle, rgb(27, 23, 37) 0%, rgb(5, 5, 5) 100%); z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column; color: rgb(229, 192, 123); font-family: "Noto Serif KR", serif; overflow: hidden; }
+:root { --dp-gold: #FFD700; --dp-gold-dim: rgba(255,215,0,0.55); --dp-gold-glow: rgba(255,215,0,0.25); --dp-space: #0B0E14; --dp-glass: rgba(255,255,255,0.05); --dp-glass-border: rgba(255,215,0,0.18); --dp-purple: rgba(120,80,220,0.35); }
+.dp-qp[hidden] { display: none; }
+.dp-form-quota[hidden] { display: none !important; }
+.oracle-result-box-m.is-empty .oracle-result-inner { display: none; }
+.kemet-loading { padding: 60px 20px; text-align: center; display: none; position: relative; z-index: 1; }
+.kemet-result-area { padding: 40px 30px; display: none; animation: 1s ease 0s 1 normal forwards running kemetFadeIn; border-top: 1px solid rgba(184, 134, 11, 0.3); position: relative; z-index: 1; }
+.mystic-tab-content { display: none; animation: 0.5s ease-out 0s 1 normal forwards running fadeSlideIn; }
+.tc-press-ring { position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; border-radius: 50%; border: 2px solid rgba(255, 180, 50, 0.55); transform: translate(-50%, -50%) scale(0.45); pointer-events: none; opacity: 0; }
+.tc-heat-bar-wrap { position: relative; z-index: 2; height: 6px; background: rgba(60, 30, 5, 0.5); border-radius: 3px; overflow: hidden; margin-bottom: 18px; display: none; }
+.tc-result { position: relative; z-index: 2; display: none; animation: 0.7s ease-out 0s 1 normal none running resultFadeIn; padding-bottom: 1.5rem; word-break: keep-all; overflow-wrap: break-word; overflow-x: hidden; }
+:root { --gold: #D4AF37; --gold-dim: rgba(212, 175, 55, 0.3); --deep-space: #0f172a; --starlight: rgba(255, 255, 255, 0.8); --blood-ink: #0a0a0a; --blood-paper: #fffdf8; --blood-cream: #f5f2ed; --blood-pink: #ffb3c6; --blood-orange: #ffd4a0; --blood-sky: #b8d8ff; --blood-yellow: #fff4a0; }
+.astral-ritual-bar { position: relative; bottom: auto; margin: 0px 20px 18px; transform: translateY(14px); width: calc(100% - 40px); min-width: 0px; background: rgba(255, 253, 248, 0.96); backdrop-filter: blur(8px); border: 2.5px solid var(--blood-ink); border-radius: 18px; padding: 8px 12px 8px 20px; display: flex; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 6px 6px 0 var(--blood-ink); z-index: 1000; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.ritual-bg-glow { position: absolute; inset: 0px; background: radial-gradient(circle at 50% 40%, rgba(255, 179, 198, 0.55) 0%, rgba(255, 212, 160, 0.22) 52%, transparent 70%); opacity: 0; transition: opacity 1s; }
+.ritual-flash { position: absolute; inset: 0px; background: rgb(255, 255, 255); opacity: 0; pointer-events: none; z-index: 10; }
+.mirror-inner-ani { position: absolute; inset: 8px; border-radius: 50%; background: conic-gradient(rgba(255, 179, 198, 0.4), transparent, rgba(184, 216, 255, 0.45), transparent, rgba(255, 212, 160, 0.45)); opacity: 0; transition: opacity 0.6s; animation: 3s linear 0s infinite normal none running spinConic; }
+.ritual-message { font-family: "Noto Sans KR", sans-serif; color: rgb(17, 17, 17); font-size: 1.1rem; opacity: 0; margin-top: 10px; transition: opacity 0.5s; text-align: center; letter-spacing: -0.01em; font-weight: 900; }
+.ritual-sub-msg { font-family: "Noto Sans KR", sans-serif; color: rgb(93, 93, 93); font-size: 0.85rem; margin-top: 8px; opacity: 0; transition: opacity 0.5s; text-align: center; }
+@media (orientation: landscape) and (max-height: 500px) {
+.wrap { padding-top: 8px; }
+}
+@media (prefers-color-scheme: dark) {
+:root:not(.theme-pig) { color-scheme: dark; }
+}
+@media (prefers-reduced-motion: reduce) {
+:not(#sajuLoaderOverlay):not(#sajuLoaderOverlay *), :not(#sajuLoaderOverlay)::before, :not(#sajuLoaderOverlay)::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+@media (max-width: 380px) {
+.theme-switch-wrapper { top: auto; right: max(8px, env(safe-area-inset-right, 0px)); transform: translateX(calc(100% - 56px)); padding: 5px 8px; gap: 6px; }
+}
+@media (max-width: 768px) {
+.wrap, #inputPage, #resultPage { width: 100%; max-width: 100%; overflow-x: hidden; }
+.wrap { padding-left: 12px; padding-right: 12px; }
+.feature-card-grid, .fg-group__cards, .fg-group__cards--2col, .fg-group__cards--tile, .fg-group__cards--tile-2, .form-radio-row, .auth-quick-links, .privacy-btns, .fortune-tab-wrap, .mystic-tab-nav { flex-wrap: wrap; }
+img, video, canvas, svg { max-width: 100%; height: auto; }
+button, .btn-main, .btn-sub, .feature-card__cta, .feature-card__launch { max-width: 100%; white-space: normal; word-break: keep-all; }
+}
+a, button, [role="button"], select, label, .ts-card, .dw-item, .feature-card, .tarot-card, .oracle-card-m, .palace-block, .fortune-tab, .mystic-tab-btn, .lang-btn, .ctg-btn, .sz-country-tab, .sy-card, .celeb-tab-btn, .celeb-btn, [onclick] { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .mystic-tab-btn, .tarot-cat-btn, .celeb-tab-btn, .celeb-btn, .ctg-btn, .lang-btn, .oracle-cat-btn-m, .iching-btn, .sz-country-tab, .ts-card, [role="button"] { user-select: none; }
+:is(.logo-area h1, .moon-topbar__brand strong, .moon-hero h1, .moon-section-head h2, .post-saju-services-intro strong, .feat-collection__title, .feature-card__title, .tarot-tile__title, .fortune-score, .fortune-oneliner, .fortune-sec-title, .oracle-title-m, #tarotModalOverlay #tarotCardName, #tarotModalOverlay .tarot-card-name, .res-title, .df-studio-hero h2, .ilju-v2-hero h2, .t-hero-copy h1, .t-hero-copy h2, .t-hero-copy h3) { font-family: var(--font-display); letter-spacing: 0px; word-break: keep-all; overflow-wrap: break-word; text-wrap: balance; font-feature-settings: "palt"; }
+:is(.moon-hero__lead, .moon-section-head p, .post-saju-services-intro span, .feature-card__desc, .feature-card__detail-text, .tarot-tile__desc, .fortune-section, .sub-desc, .sub-daily-note, #tarotModalOverlay .oracle-text-m, #tarotModalOverlay .ritual-text-m, .result-content, .res-text--keyword, .villain-v2-section p, .villain-zone-card p, .villain-one-line, .villain-profile-card .villain-quote) { font-family: var(--font-body); letter-spacing: 0px; word-break: keep-all; overflow-wrap: break-word; }
+:is(.feature-card__launch, .feature-card__cta, .moon-hero__cta, .mystic-summon-btn, .btn-subscribe, .villain-copy-btn, .lotto-draw-btn) { font-family: var(--font-body); font-weight: 800; letter-spacing: 0px; word-break: keep-all; overflow-wrap: break-word; }
+.moon-hero h1, .moon-topbar__brand strong, .moon-section-head h2, .feat-collection__title, .post-saju-services-intro strong, .fortune-score, .fortune-oneliner, .fortune-sec-title, .feature-card--tarot .feature-card__title, .feature-card--sukuyo .feature-card__title, .feature-card--astro-fc .feature-card__title, .feature-card--ziwei .feature-card__title, .feature-card--juyuk .feature-card__title, .feature-card--egypt .feature-card__title, .oracle-title-m, #tarotModalOverlay #tarotCardName, #tarotModalOverlay .tarot-card-name, .kemet-title, .res-title { font-weight: 700; word-break: keep-all; overflow-wrap: break-word; text-wrap: balance; font-family: var(--font-display) !important; letter-spacing: 0px !important; }
+.moon-hero__lead, .moon-section-head p, .feature-card__desc, .feature-card__detail-text, .tarot-tile__desc, .fortune-section, .sub-desc, .sub-daily-note, #tarotModalOverlay .oracle-text-m, #tarotModalOverlay .ritual-text-m, .result-content, .villain-v2-section p, .villain-zone-card p, .villain-one-line, .villain-profile-card .villain-quote { word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
+.feature-card__launch, .feature-card__cta, .moon-hero__cta, .mystic-summon-btn, .btn-subscribe, .membership-recap-cta__btn, .villain-copy-btn, .lotto-draw-btn { font-weight: 800; word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
+ </style>
+ <link rel="preload" as="style" href="/styles/fortune-ui.css?v=build-36bfceb8571f" onload="this.onload=null;this.rel='stylesheet'">
+ <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-36bfceb8571f"></noscript>
  <link rel="stylesheet" href="/styles/fortune-gateway.css?v=build-36bfceb8571f">
 <link rel="stylesheet" href="/styles/mobile-lite.css?v=build-36bfceb8571f" media="all" data-cd-mobile-runtime-css="1">
 <!-- 브랜드 세리프 @font-face(R2 미러 청크). font-display:swap 이라 렌더를 막지 않는다. -->
 <link rel="stylesheet" href="/styles/fonts-serif.css?v=build-36bfceb8571f">
 <link rel="preload" href="/styles/cosmic-main.css?v=build-36bfceb8571f" as="style">
 
-<title>CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 每日運勢</title>
-<link rel="preload" as="image" href="https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp" imagesrcset="https://assets.code-destiny.com/cdn-cgi/image/width=480,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 480w, https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w" imagesizes="100vw" fetchpriority="high">
+<title>CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢</title>
+<link rel="preload" as="image" href="https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp" imagesrcset="https://assets.code-destiny.com/cdn-cgi/image/width=480,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 480w, https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w" imagesizes="(max-width: 480px) 78vw, (max-width: 1600px) 86vw, 1260px" fetchpriority="high">
 
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="Code Destiny & 꿀꿀 운세 RSS" data-cd-trans-attr="title:seo.rssTitle" href="https://code-destiny.com/rss.xml">
@@ -533,10 +690,10 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/">
 
 <!-- ═══ SEO: 기본 메타 (한국어 + 다국어 키워드) ═══ -->
-<meta name="description" content="輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細膩解讀每日運勢與感情走向。"/>
+<meta name="description" content="輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。"/>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="Seongbae">
-<meta name="language" content="Chinese (Traditional)">
+<meta name="language" content="Chinese">
 <meta name="geo.region" content="KR">
 <meta name="geo.placename" content="South Korea">
 <meta name="geo.position" content="37.5665;126.9780">
@@ -549,7 +706,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CODE DESTINY">
 <meta property="og:title" content="免費算命 | 八字·塔羅·紫微斗數·今日運勢 — CODE DESTINY">
-<meta property="og:description" content="輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細膩解讀每日運勢與感情走向。">
+<meta property="og:description" content="輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。">
 <meta property="og:url" content="https://code-destiny.com/zh-tw/">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-36bfceb8571f">
@@ -560,7 +717,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <!-- ═══ Twitter Card ═══ -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="免費算命 | 八字·塔羅·紫微斗數·今日運勢 — CODE DESTINY">
-<meta name="twitter:description" content="輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細膩解讀每日運勢與感情走向。">
+<meta name="twitter:description" content="輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。">
 <meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-36bfceb8571f">
 <meta name="twitter:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
@@ -942,12 +1099,10 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 @font-face{font-family:'CodeDestinyBody';src:local('Pretendard'),local('Apple SD Gothic Neo'),local('Malgun Gothic');font-weight:400 900;font-style:normal;font-display:swap}
 @font-face{font-family:'CodeDestinyDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'CodeDestinyDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
-@font-face{font-family:'CodeDestinyPremium';src:url('https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:optional}
-@font-face{font-family:'CodeDestinyPlayful';src:url('https://assets.code-destiny.com/netmarbleM.ttf') format('truetype');font-weight:500;font-style:normal;font-display:optional}
 /* 브랜드 세리프(CodeDestinySerifLatin/KR)는 /styles/fonts-serif.css 로 분리했다 —
    R2 미러 청크 94개를 unicode-range 로 나눠 선언하므로 크리티컬 인라인에 두기엔 너무 길다.
    생성물이라 손으로 고치지 말 것: node scripts/build-serif-font-assets.mjs */
-:root{--font-body:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;--font-display:'CodeDestinyDisplay',var(--font-body);--font-premium:'CodeDestinyPremium',var(--font-display);--font-playful:'CodeDestinyPlayful',var(--font-display);--font-decorative:'CodeDestinyDecorative',var(--font-display)}
+:root{--font-body:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;--font-display:'CodeDestinyDisplay',var(--font-body);--font-premium:'CodeDestinySerifKR',var(--font-display);--font-playful:'CodeDestinyPlayful',var(--font-display);--font-decorative:'CodeDestinyDecorative',var(--font-display)}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
 body{margin:0;padding:0;font-family:var(--font-body);font-size:16px;line-height:1.62;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-overflow-scrolling:touch;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -6707,8 +6862,8 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   }
   html.cd-mobile-runtime #inputPage :is(#animalCollection,#meditationCollection,#tarotCollection,#oracleCollection,#cosmicCollection,#flowerCollection,#miscCollection) :is(.feat-collection__header,.tarot-collection__header) {
     box-sizing: border-box !important;
-    height: 100% !important;
-    max-height: 100% !important;
+    height: auto !important;
+    max-height: none !important;
     min-height: 142px !important;
     padding: 14px 14px 16px !important;
     display: grid !important;
@@ -11669,8 +11824,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
         <div class="cd-hero-island" aria-hidden="true">
           <img class="cd-hero-island__img" alt="" width="1600" height="900"
             src="https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp"
-            srcset="https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w"
-            sizes="100vw" loading="eager" fetchpriority="high" decoding="async"
+            srcset="https://assets.code-destiny.com/cdn-cgi/image/width=480,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 480w, https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w"
+            sizes="(max-width: 480px) 78vw, (max-width: 1600px) 86vw, 1260px" loading="eager" fetchpriority="high" decoding="async"
             onerror="this.onerror=null;this.src='https://assets.code-destiny.com/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp';this.removeAttribute('srcset');">
           <span class="cd-hero-island__veil" aria-hidden="true"></span>
         </div>
@@ -13294,7 +13449,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           <span class="cd-diary-planner-entry__moon"></span>
           <span class="cd-diary-planner-entry__orbit cd-diary-planner-entry__orbit--one"></span>
           <span class="cd-diary-planner-entry__orbit cd-diary-planner-entry__orbit--two"></span>
-          <img src="/fuctionassets/luck-sync-diary-v2.webp" alt="" width="1440" height="1080" loading="lazy" decoding="async">
+          <img src="/cdn-cgi/image/width=320,quality=80,format=auto/fuctionassets/luck-sync-diary-v2.webp" srcset="/cdn-cgi/image/width=320,quality=80,format=auto/fuctionassets/luck-sync-diary-v2.webp 1x, /cdn-cgi/image/width=640,quality=80,format=auto/fuctionassets/luck-sync-diary-v2.webp 2x" alt="" width="1440" height="1080" loading="lazy" decoding="async" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/luck-sync-diary-v2.webp'}">
         </div>
       </section>
       <section class="fortune-gateway" id="fortuneGatewayEntry" data-fortune-gateway-entry aria-labelledby="fortuneGatewayTitle">
@@ -13319,7 +13474,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             <a class="fortune-gateway__door fortune-gateway__door--fusion" href="/fusion-fortune">
               <span class="fortune-gateway__door-art" aria-hidden="true">
                 <span class="fortune-gateway__door-halo"></span>
-                <img src="/images/fusion-fortune/orbs/core.webp" alt="" width="512" height="512" loading="lazy" decoding="async">
+                <img src="/cdn-cgi/image/width=224,quality=80,format=auto/images/fusion-fortune/orbs/core.webp" srcset="/cdn-cgi/image/width=224,quality=80,format=auto/images/fusion-fortune/orbs/core.webp 1x, /cdn-cgi/image/width=448,quality=80,format=auto/images/fusion-fortune/orbs/core.webp 2x" alt="" width="512" height="512" loading="lazy" decoding="async" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/images/fusion-fortune/orbs/core.webp'}">
               </span>
               <span class="fortune-gateway__door-kicker">FUSION FORTUNE</span>
               <strong class="fortune-gateway__door-title">초융합 심층 리딩</strong>
@@ -13509,7 +13664,13 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               desc.textContent = __cdHeroText(step.dk, step.d);
               a.setAttribute('aria-label', (idx + 1) + '단계 · ' + title.textContent);
               a.appendChild(num); a.appendChild(title); a.appendChild(desc);
-              a.addEventListener('click', function(){ __cdJourneyMark(step.href); }, false);
+              a.addEventListener('click', function(e){
+                __cdJourneyMark(step.href);
+                if (idx === 0 && typeof window.cdOneStepFreeSajuEntry === 'function') {
+                  e.preventDefault();
+                  window.cdOneStepFreeSajuEntry();
+                }
+              }, false);
               oneStepSteps.appendChild(a);
             });
             oneStepInner.appendChild(oneStepSteps);
@@ -14702,7 +14863,6 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 window.__cdAuthSubscriptionSyncPending = __cdSubscriptionSyncPending;
                 return __cdSubscriptionSyncPending;
               };
-
 
               var __cdScheduleSubscriptionRetry = function (delayMs) {
                 if (__cdAuthCardResolved || __cdAuthRetryTimer || !__cdIsCurrentAuthRun()) return;
@@ -16192,19 +16352,19 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           <em data-cd-trans data-key="home.fortunePick.cta">시작하기 →</em>
         </a>
         <a class="cd-pick-card" href="/astrology/cosmic" data-action="openAstroModal" aria-label="서양 점성술 출생차트 보기" data-cd-trans-attr="aria-label:shell.cdFortunePick.cdFortunePickGrid.k16fnr7j.ariaLabel">
-          <span class="cd-pick-card__media"><img src="/fuctionassets/jumsung.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236"></span>
+          <span class="cd-pick-card__media"><img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/jumsung.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/jumsung.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/jumsung.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/jumsung.webp'}"></span>
           <strong data-cd-trans data-key="home.fortunePick.astrology">점성술</strong>
           <span data-cd-trans data-key="home.fortunePick.astrologyDesc">별이 말해주는 당신의 성격과 운명의 패턴을 발견해요.</span>
           <em data-cd-trans data-key="home.fortunePick.cta">시작하기 →</em>
         </a>
         <a class="cd-pick-card" href="/oracle/sukuyo" data-action="openSukuyoModal" aria-label="숙요점 보기" data-cd-trans-attr="aria-label:shell.cdFortunePick.cdFortunePickGrid.kzkddyf.ariaLabel">
-          <span class="cd-pick-card__media"><img src="/fuctionassets/sukyo.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236"></span>
+          <span class="cd-pick-card__media"><img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/sukyo.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/sukyo.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/sukyo.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/sukyo.webp'}"></span>
           <strong data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</strong>
           <span data-cd-trans data-key="home.fortunePick.sukuyoDesc">고대 인도의 지혜로 삶의 과제를 풀어봐요.</span>
           <em data-cd-trans data-key="home.fortunePick.cta">시작하기 →</em>
         </a>
         <a class="cd-pick-card" href="/vedic/jyotish" aria-label="베다 점성술 보기" data-cd-trans-attr="aria-label:shell.cdFortunePick.cdFortunePickGrid.k1yi7np5.ariaLabel">
-          <span class="cd-pick-card__media"><img src="/fuctionassets/veda.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236"></span>
+          <span class="cd-pick-card__media"><img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/veda.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/veda.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/veda.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/veda.webp'}"></span>
           <strong data-cd-trans data-key="home.fortunePick.vedic">베다점</strong>
           <span data-cd-trans data-key="home.fortunePick.vedicDesc">베다 점성술로 보는 당신의 삶의 방향.</span>
           <em data-cd-trans data-key="home.fortunePick.cta">시작하기 →</em>
@@ -16370,7 +16530,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         </a>
         <a class="moon-start-card moon-start-card--sun moon-preview-card" href="/vedic/jyotish" aria-label="베다점으로 이동" data-cd-trans-attr="aria-label:home.startCards.vedicAria">
           <span class="moon-start-card__media">
-            <img src="/fuctionassets/veda.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236">
+            <img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/veda.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/veda.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/veda.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/veda.webp'}">
           </span>
           <span class="moon-start-card__badge" data-cd-trans data-key="home.startCards.vedicBadge">추천 02</span>
           <strong data-cd-trans data-key="home.startCards.vedicTitle">베다점</strong>
@@ -16379,7 +16539,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         </a>
         <a class="moon-start-card moon-start-card--star" href="/astrology/cosmic" data-action="openAstroModal" aria-label="서양 점성술 기본 출생차트로 이동" data-cd-trans-attr="aria-label:home.startCards.astrologyAria">
           <span class="moon-start-card__media">
-            <img src="/fuctionassets/jumsung.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236">
+            <img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/jumsung.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/jumsung.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/jumsung.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/jumsung.webp'}">
           </span>
           <span class="moon-start-card__badge" data-cd-trans data-key="home.startCards.astrologyBadge">추천 03</span>
           <strong data-cd-trans data-key="home.startCards.astrologyTitle">점성술</strong>
@@ -16388,7 +16548,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         </a>
         <a class="moon-start-card moon-start-card--insight moon-preview-card" href="/oracle/sukuyo" data-action="openSukuyoModal" aria-label="숙요점으로 이동" data-cd-trans-attr="aria-label:home.startCards.sukuyoAria">
           <span class="moon-start-card__media">
-            <img src="/fuctionassets/sukyo.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236">
+            <img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/sukyo.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/sukyo.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/sukyo.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/sukyo.webp'}">
           </span>
           <span class="moon-start-card__badge" data-cd-trans data-key="home.startCards.sukuyoBadge">추천 04</span>
           <strong data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</strong>
@@ -20086,7 +20246,7 @@ return you.name.restore();</span>
           <button data-action="closeTarotModal" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         </div>
 
-        <div id="tarotInnerContainer" class="tarot-inner-shell" style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
+        <div id="tarotInnerContainer" class="tarot-inner-shell" style="max-width:420px; margin:calc(60px + env(safe-area-inset-top, 0px)) auto calc(40px + env(safe-area-inset-bottom, 0px)); padding:0 20px; position:relative;">
 
           <!-- Glass Oracle Design Inside Modal -->
 
@@ -22420,10 +22580,10 @@ return you.name.restore();</span>
   syncUnlockedFeatureMapGlobal();
 
   var goldenPackages = [
-    { id: 'standard', name: '스탠다드 꿀 30일', nameKey: 'payment.passShop.packages.standard.name', price: 9900, desc: '30일 · 3,000원 이하 기능 이용 가능 · 프로필 3개', descKey: 'payment.passShop.packages.standard.desc', freeLimit: 30, profileLimit: 3 },
-    { id: 'premium', name: '프리미엄 꿀 30일', nameKey: 'payment.passShop.packages.premium.name', price: 29900, desc: '30일 · 5,000원 이하 기능 이용 가능 · 프로필 7개', descKey: 'payment.passShop.packages.premium.desc', freeLimit: 50, profileLimit: 7 },
-    { id: 'vvip', name: 'VVIP 꿀단지 30일', nameKey: 'payment.passShop.packages.vvip.name', price: 59000, desc: '30일 · 10,000원 이하 기능 이용 가능 · 프로필 15개', descKey: 'payment.passShop.packages.vvip.desc', freeLimit: 100, profileLimit: 15 },
-    { id: 'family', name: 'Code Destiny Family 30일', nameKey: 'payment.passShop.packages.family.name', price: 149000, desc: '30일 · 3만원 미만 기능 무제한 · 초융합 포함 전문가 상담 10회 · 프로필 제한 없음', descKey: 'payment.passShop.packages.family.desc', freeLimit: 999999999, profileLimit: null }
+    { id: 'standard', name: '스탠다드 꿀 30일', nameKey: 'payment.passShop.packages.standard.name', price: 9900, desc: '30일 · 3,000원 이하 기능 이용 가능(월 누적 3만원까지) · 프로필 3개', descKey: 'payment.passShop.packages.standard.desc', freeLimit: 30, monthlyLimit: 300, profileLimit: 3 },
+    { id: 'premium', name: '프리미엄 꿀 30일', nameKey: 'payment.passShop.packages.premium.name', price: 29900, desc: '30일 · 5,000원 이하 기능 이용 가능(월 누적 10만원까지) · 프로필 7개', descKey: 'payment.passShop.packages.premium.desc', freeLimit: 50, monthlyLimit: 1000, profileLimit: 7 },
+    { id: 'vvip', name: 'VVIP 꿀단지 30일', nameKey: 'payment.passShop.packages.vvip.name', price: 59000, desc: '30일 · 10,000원 이하 기능 이용 가능(월 누적 20만원까지) · 전문가 상담 3회 포함 · 프로필 15개', descKey: 'payment.passShop.packages.vvip.desc', freeLimit: 100, monthlyLimit: 2000, profileLimit: 15 },
+    { id: 'family', name: 'Code Destiny Family 30일', nameKey: 'payment.passShop.packages.family.name', price: 149000, desc: '30일 · 3만원 미만 기능 무제한(월 누적 50만원까지) · 초융합 포함 전문가 상담 10회 · 프로필 제한 없음', descKey: 'payment.passShop.packages.family.desc', freeLimit: 999999999, monthlyLimit: 5000, profileLimit: null }
   ];
 
   function _cdDisplayLocale() {
@@ -22612,60 +22772,69 @@ return you.name.restore();</span>
     var style = document.createElement('style');
     style.id = 'cdDirectPaymentStyles';
     style.textContent = [
-      '.cd-direct-payment-modal{position:fixed;inset:0;z-index:2147483004;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:rgba(4,3,12,.86);backdrop-filter:blur(14px);overflow:auto}',
+      '.cd-direct-payment-modal{position:fixed;inset:0;z-index:2147483004;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:rgba(10,7,20,.86);backdrop-filter:blur(14px);overflow:auto}',
       '.cd-direct-payment-modal.is-open{display:flex}',
-      '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid rgba(232,213,163,.28);border-radius:20px;background:linear-gradient(160deg,#13102a,#0d0b22 52%,#0a0818);color:#f2ecff;box-shadow:0 26px 78px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,242,198,.1);padding:0 20px 20px;position:relative;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}',
-      '.cd-direct-payment-hairline{display:block;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,213,163,.85) 50%,transparent)}',
+      '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid rgba(232,200,138,.28);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 30%),linear-gradient(160deg,#241D40,#1A1530 52%,#100C1E);color:#EDE8F5;box-shadow:0 26px 78px rgba(0,0,0,.55),inset 0 1px 0 rgba(253,242,217,.1);padding:0 20px 20px;position:relative;z-index:1;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}',
+      '.cd-direct-payment-hairline{display:block;position:relative;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,200,138,.85) 50%,transparent)}',
+      '.cd-direct-payment-hairline::after{content:"";position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f4bed1 0%,rgba(244,190,209,.55) 55%,rgba(244,190,209,0) 80%);box-shadow:0 0 8px 2px rgba(244,190,209,.4);opacity:.6;animation:cdMoonlitPetalDrift 7s ease-in-out infinite}',
       '.cd-direct-payment-guide{display:flex;align-items:center;gap:14px;margin:0 0 16px}',
       '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;border-radius:22px;filter:drop-shadow(0 0 16px rgba(244,190,209,.38))}',
       '.cd-direct-payment-guide__copy{min-width:0}',
-      '.cd-direct-payment-title{margin:0 0 5px;font-family:\'CodeDestinySerifLatin\',\'CodeDestinySerifKR\',\'Nanum Myeongjo\',\'Gowun Batang\',var(--font-body);font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.32;color:#f6efdc;word-break:keep-all}',
-      '.cd-direct-payment-sub{margin:0;font-size:13px;line-height:1.5;color:#cfc7e8;word-break:keep-all}',
-      '.cd-direct-payment-sub--reason{margin:10px 0 0;padding:9px 11px;border-radius:10px;border:1px solid rgba(232,213,163,.22);background:#0e0b20;color:#e6dfc6;font-size:12.5px}',
-      '.cd-direct-payment-note{position:relative;margin:0 0 14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(232,213,163,.16);background:#12102b;color:#b9b1d4;font-size:12.5px;line-height:1.5}',
-      '.cd-direct-payment-note strong{display:block;margin-bottom:4px;color:#fbf7ef;font-size:15px;font-weight:700;line-height:1.32;word-break:keep-all}',
+      '.cd-direct-payment-title{margin:0 0 5px;font-family:\'CodeDestinySerifLatin\',\'CodeDestinySerifKR\',\'Nanum Myeongjo\',\'Gowun Batang\',var(--font-body);font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.32;color:#F6EFE0;word-break:keep-all}',
+      '.cd-direct-payment-sub{margin:0;font-size:13px;line-height:1.5;color:rgba(237,232,245,.82);word-break:keep-all}',
+      '.cd-direct-payment-sub--reason{margin:10px 0 0;padding:9px 11px;border-radius:10px;border:1px solid rgba(232,200,138,.22);background:#1E1836;color:#F0DFB8;font-size:12.5px}',
+      '.cd-direct-payment-note{position:relative;margin:0 0 14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(232,200,138,.16);background:#201A3A;color:#9B92B8;font-size:12.5px;line-height:1.5}',
+      '.cd-direct-payment-note strong{display:block;margin-bottom:4px;color:#F5F1FB;font-size:15px;font-weight:700;line-height:1.32;word-break:keep-all}',
       '.cd-direct-payment-note span{display:block}',
       '.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:9px}',
-      '.cd-direct-payment-option{width:100%;margin:0;padding:14px;border:1px solid rgba(232,213,163,.16);border-radius:14px;background:#1b1638;color:inherit;text-align:left;cursor:pointer;position:relative;transition:border-color 170ms ease,filter 170ms ease,transform 170ms ease}',
-      '.cd-direct-payment-option:hover{border-color:rgba(232,213,163,.44);filter:brightness(1.04)}',
+      '.cd-direct-payment-option{width:100%;margin:0;padding:14px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden;transition:border-color 170ms ease,filter 170ms ease,transform 170ms ease,box-shadow 170ms ease}',
+      '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(237,232,245,.10) 46%,rgba(232,200,138,.20) 50%,rgba(237,232,245,.10) 54%,transparent 70%);transform:translateX(-120%);transition:transform 520ms ease;pointer-events:none}',
+      '.cd-direct-payment-option:hover::before{transform:translateX(120%)}',
+      '.cd-direct-payment-option:hover{border-color:rgba(232,200,138,.44);filter:brightness(1.04)}',
       '.cd-direct-payment-option:focus{outline:0}',
-      '.cd-direct-payment-option:focus-visible{outline:2px solid #fff2c6;outline-offset:3px}',
+      '.cd-direct-payment-option:focus-visible{outline:2px solid #E8C88A;outline-offset:3px}',
       '.cd-direct-payment-option:active{transform:scale(.986)}',
-      '.cd-direct-payment-option[data-mode="pass-store"]{border-color:rgba(232,213,163,.3)}',
-      '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(232,213,163,.18)}',
-      '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(232,213,163,.18)}',
-      '.cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;font-weight:700;line-height:1.32;color:#fbf7ef;word-break:keep-all}',
-      '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#b9b1d4}',
+      '.cd-direct-payment-option[data-mode="pass-store"]{border-color:rgba(232,200,138,.3)}',
+      '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(232,200,138,.18)}',
+      '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(232,200,138,.18)}',
+      '.cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;font-weight:700;line-height:1.32;color:#F5F1FB;word-break:keep-all}',
+      '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8}',
       '.cd-direct-payment-option br{display:none}',
-      '.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#b9b1d4;word-break:keep-all}',
+      '.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8;word-break:keep-all}',
       '.cd-direct-payment-option .cd-direct-payment-cardhead{display:flex;align-items:center;gap:8px;margin:0 0 9px}',
-      '.cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 10px;border-radius:999px;border:1px solid rgba(232,213,163,.3);background:#0e0b20;font-size:11px;font-weight:700;letter-spacing:.01em;color:#f4e9c8}',
+      '.cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 11px 0 15px;border-radius:6px;border:1px solid rgba(232,200,138,.32);background:#1E1836;font-size:11px;font-weight:700;letter-spacing:.01em;color:#E8C88A;clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%);-webkit-clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%)}',
       '.cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:11.5px;line-height:1}',
-      '.cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,#fff2c6,#e8d5a3);color:#12061f;font-size:10.5px;font-weight:800;letter-spacing:.01em}',
-      '.cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#f4e9c8;font-size:17px;font-weight:800;letter-spacing:.01em}',
-      '.cd-direct-payment-option--recommended{padding:16px;border-color:rgba(232,213,163,.55);background:linear-gradient(150deg,#241c40,#1b1638);box-shadow:0 0 34px rgba(232,213,163,.2),inset 0 1px 0 rgba(255,242,198,.12)}',
-      '.cd-direct-payment-option--recommended:hover{border-color:rgba(232,213,163,.78)}',
+      '.cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid rgba(244,190,209,.55);background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:10.5px;font-weight:800;letter-spacing:.01em;box-shadow:0 0 10px rgba(244,190,209,.35)}',
+      '.cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#E8C88A;font-size:17px;font-weight:800;letter-spacing:.01em}',
+      '.cd-direct-payment-option--recommended{padding:16px;border-color:rgba(232,200,138,.55);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 45%),linear-gradient(150deg,#2E2650,#251F45);box-shadow:0 0 34px rgba(232,200,138,.2),inset 0 1px 0 rgba(253,242,217,.12)}',
+      '.cd-direct-payment-option--recommended:hover{border-color:rgba(232,200,138,.78)}',
       '.cd-direct-payment-option--recommended strong{font-size:17px}',
       '.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:19px}',
-      '.cd-direct-payment-option--recommended .cd-direct-payment-desc{color:#cfc7e8}',
-      '.cd-direct-payment-go{display:flex;align-items:center;justify-content:center;margin-top:12px;padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,#fff2c6,#e8d5a3);color:#12061f;font-size:13.5px;font-weight:800;letter-spacing:.01em}',
+      '.cd-direct-payment-option--recommended .cd-direct-payment-desc{color:rgba(237,232,245,.82)}',
+      '.cd-direct-payment-go{display:flex;align-items:center;justify-content:center;margin-top:12px;padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:13.5px;font-weight:800;letter-spacing:.01em}',
       '.cd-direct-payment-option--secondary{padding:11px 13px}',
       '.cd-direct-payment-option--secondary .cd-direct-payment-cardhead{margin-bottom:6px}',
       '.cd-direct-payment-option--secondary strong{font-size:13.5px;margin-bottom:2px}',
       '.cd-direct-payment-option--secondary strong .cd-direct-payment-amount{font-size:14.5px}',
-      '.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11.5px;color:#9d95bb;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}',
+      '.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11.5px;color:rgba(155,146,184,.85);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}',
       '.cd-direct-payment-option[disabled]{cursor:not-allowed}',
-      '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,213,163,.1)}',
-      '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,213,163,.1);transform:none}',
+      '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
+      '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}',
       '.cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}',
-      '.cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#f4e9c8;font-size:12px;line-height:1.45}',
-      '.cd-direct-payment-legal{margin:12px 0 0;padding:0;color:#8e87a8;font-size:11px;line-height:1.5;word-break:keep-all}',
+      '.cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}',
+      '.cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}',
       '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
-      '.cd-direct-payment-cancel{border:1px solid rgba(232,213,163,.2);border-radius:999px;background:transparent;color:#cfc7e8;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
-      '.cd-direct-payment-cancel:hover{border-color:rgba(232,213,163,.4);color:#f2ecff}',
-      '.cd-direct-payment-cancel:focus-visible{outline:2px solid #fff2c6;outline-offset:2px}',
+      '.cd-direct-payment-cancel{border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
+      '.cd-direct-payment-cancel:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
+      '.cd-direct-payment-cancel:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
+      '.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#E8C88A 0%,rgba(232,200,138,.5) 55%,rgba(232,200,138,0) 78%);box-shadow:0 0 10px 2px rgba(232,200,138,.45);opacity:.5}',
+      '.cd-direct-payment-modal.is-open::before{left:20%;top:24%;animation:cdMoonlitFireflyA 9s ease-in-out infinite}',
+      '.cd-direct-payment-modal.is-open::after{right:18%;bottom:22%;animation:cdMoonlitFireflyB 12s ease-in-out infinite 1.6s}',
+      '@keyframes cdMoonlitFireflyA{0%,100%{transform:translate3d(0,0,0);opacity:.32}25%{opacity:.68}50%{transform:translate3d(16px,-20px,0);opacity:.48}75%{opacity:.6}}',
+      '@keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}',
+      '@keyframes cdMoonlitPetalDrift{0%{left:2%;opacity:0}10%{opacity:.6}50%{left:94%;opacity:.75}90%{opacity:.5}100%{left:2%;opacity:0}}',
       '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
-      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}}'
+      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -33582,6 +33751,9 @@ function updateBadge() {
     }
 
     function applyCollectionToggle(toggle, event, source) {
+      // 모바일 "모든 운세" 오버레이가 이미 이 컬렉션을 열고 있으면 그쪽이 유일한 소유자다 —
+      // 여기서 한 번 더 토글하면 오버레이의 data-collection-open/스크롤 기억과 어긋난다.
+      if (window.cdMobileCollectionFullscreen && window.cdMobileCollectionFullscreen.isOpen()) return false;
       var targetId = String(toggle.getAttribute('data-target') || '').trim();
       var collection = targetId ? document.getElementById(targetId) : null;
       if (!collection) return false;
