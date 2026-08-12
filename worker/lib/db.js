@@ -630,9 +630,13 @@ export async function connectDb(env = {}) {
 // waitQueue(5s)×재시도까지 굶다가 "Timed out while checking out a connection" → DB_BUSY 503.
 // admission 노브(8→12)로는 드라이버 풀 자체의 기아를 못 막는다. 그래서 결제 컨텍스트
 // (worker/payments/, 네이티브 컬렉션 호출만 사용)에 전용 소켓 풀을 분리한다 — 결제는 배경
-// 트래픽과 커넥션을 두고 경쟁하지 않는다. 전역 연결 예산은 아이솔레이트 × (5+2)로 늘지만
+// 트래픽과 커넥션을 두고 경쟁하지 않는다. 전역 연결 예산은 아이솔레이트 × (5+4)로 늘지만
 // 실측상 여유가 있다(2026-08-01: 풀 5 전 구간 [db-connect-error] 0건). 이 연결이 실패하면
 // 호출부(worker/payments/db.js)가 공유 커넥션으로 폴백하므로 오늘보다 나빠지는 경로는 없다.
+//
+// 🔴 이 소켓 레인만으로는 절반이다 — 위 mongoPaymentAdmission(전용 admission 레인)과 반드시
+// 한 세트로 본다. 소켓만 나누고 게이트를 공유하면 부팅 폭풍이 공유 한도를 채우는 순간 결제는
+// 소켓을 기다려 보지도 못하고 admission 에서 하드 503 이 된다.
 let paymentConnection = null;
 let paymentConnectionPromise = null;
 
@@ -666,9 +670,13 @@ export async function connectPaymentDb(env = {}) {
   const family = clampInt(getEnv(env, "MONGO_IP_FAMILY", "4"), 4, 0, 6);
   const options = {
     dbName: resolveMongoDbName(env) || undefined,
-    // 결제 어댑터의 왕복 예산은 요청당 1~4회라 2소켓이면 동시 결제 수 명까지 감당한다.
-    // 여기를 키우면 전역 연결 예산(M0 상한 500)을 그만큼 먹는다 — 근거 없이 올리지 말 것.
-    maxPoolSize: clampInt(getEnv(env, "MONGO_PAYMENT_POOL_SIZE", "2"), 2, 1, 5),
+    // 🔴 2 → 4 (2026-08-12). 왕복 수(요청당 1~5회)만 보면 2로 충분한데, confirm 이 PortOne
+    // 검증 HTTP(최대 8s)를 withPaymentDb 콜백 **안에서** 돌려 그동안 소켓 하나를 유휴 점유한다
+    // (worker/payments/index.js 의 confirmOrder). 즉 2소켓은 "동시 confirm 2건"이 곧 포화라는 뜻이라
+    // 왕복 예산이 아니라 점유 시간이 상한을 정한다. 여기를 키우면 전역 연결 예산(아이솔레이트 ×
+    // (5 공유 + 이 값), M0 상한 500)을 그만큼 먹는다 — 더 올리려면 [db-connect-error] 가 0 인 것을
+    // 먼저 확인할 것(위 connectDb 주석과 같은 기준).
+    maxPoolSize: clampInt(getEnv(env, "MONGO_PAYMENT_POOL_SIZE", "4"), 4, 1, 5),
     minPoolSize: 0,
     serverSelectionTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
     connectTimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
