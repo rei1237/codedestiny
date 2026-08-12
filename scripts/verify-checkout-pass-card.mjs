@@ -140,7 +140,9 @@ console.log("\n[1] 결제창에 이용권/단건/월정석 3옵션이 모두 보
     const pig = window.document.querySelector(".cd-direct-payment-guide__pig");
     assert.ok(pig, ".cd-direct-payment-guide__pig 없음");
     const src = pig.getAttribute("src") || "";
-    assert.ok(src.startsWith("/images/"), `같은 출처 자산이 아니다: ${src}`);
+    // 막으려는 것은 R2·CDN 절대 URL 이지 특정 디렉터리가 아니다 — 교차출처 이미지는 결제 경로에서
+    // PortOne SDK 와 대역폭을 다툰다. 루트 상대 경로면 어느 디렉터리든 같은 출처다(?v= 캐시 키 허용).
+    assert.ok(/^\/(?!\/)/.test(src) && !src.includes("://"), `같은 출처 자산이 아니다: ${src}`);
     // 🔴 모달 자체가 온디맨드 생성이라 이미 지연 게이트다. lazy 를 겹치면 요청이 영영 안 나간다.
     assert.equal(pig.getAttribute("loading"), "eager", "지연 장치가 중첩됐다(loading=lazy)");
     assert.equal(pig.getAttribute("alt"), "", "장식 이미지이므로 alt 는 비어 있어야 한다(말풍선이 같은 내용을 읽는다)");

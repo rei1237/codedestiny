@@ -10226,7 +10226,7 @@
       '.cd-direct-payment-hairline{display:block;position:relative;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,200,138,.85) 50%,transparent)}',
       '.cd-direct-payment-hairline::after{content:"";position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f4bed1 0%,rgba(244,190,209,.55) 55%,rgba(244,190,209,0) 80%);box-shadow:0 0 8px 2px rgba(244,190,209,.4);opacity:.6;animation:cdMoonlitPetalDrift 7s ease-in-out infinite}',
       '.cd-direct-payment-guide{display:flex;align-items:center;gap:14px;margin:0 0 16px}',
-      '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;filter:drop-shadow(0 0 16px rgba(244,190,209,.38))}',
+      '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;border-radius:22px;filter:drop-shadow(0 0 16px rgba(244,190,209,.38))}',
       '.cd-direct-payment-guide__copy{min-width:0}',
       '.cd-direct-payment-title{margin:0 0 5px;font-family:\'CodeDestinySerifLatin\',\'CodeDestinySerifKR\',\'Nanum Myeongjo\',\'Gowun Batang\',var(--font-body);font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.32;color:#F6EFE0;word-break:keep-all}',
       '.cd-direct-payment-sub{margin:0;font-size:13px;line-height:1.5;color:rgba(237,232,245,.82);word-break:keep-all}',
@@ -10440,9 +10440,9 @@
           '<span class="cd-direct-payment-hairline" aria-hidden="true"></span>' +
           // 꽃돼지 연이 안내자. 같은 출처(/public) 자산만 쓴다 — 결제 경로에 교차출처 이미지를 두면
           // PortOne SDK 와 대역폭을 다툰다(verify-portone-single-payment 가 막는 회귀).
-          // width/height 는 원본 비율(264:306)대로 — 정사각 상자에 가두면 레터박싱돼 작아 보인다.
+          // 헤더 로고와 같은 마스코트 아트(정사각 176px)라 width/height 는 88:88 이다.
           '<div class="cd-direct-payment-guide">' +
-            '<img class="cd-direct-payment-guide__pig" src="/images/fortune-tea-house/checkout-guide-pig.webp" alt="" width="88" height="102" loading="eager" decoding="async">' +
+            '<img class="cd-direct-payment-guide__pig" src="/icons/app-logo-176.webp?v=build-269f04a25a8b" alt="" width="88" height="88" loading="eager" decoding="async">' +
             '<div class="cd-direct-payment-guide__copy">' +
               '<h2 class="cd-direct-payment-title">' + esc(moonTitleText) + '</h2>' +
               '<p class="cd-direct-payment-sub">' + esc(guideBubbleText) + '</p>' +
