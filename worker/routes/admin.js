@@ -6,7 +6,7 @@ import { requireAuth } from "../lib/auth.js";
 import { verifyPassword } from "../lib/password.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { ContentOverride, Insight, PointHistory, User } from "../lib/models.js";
+import { AdminAuditLog, ContentOverride, Insight, PointHistory, User } from "../lib/models.js";
 import {
   REVIEW_BODY_MAX_LENGTH,
   REVIEW_STATUSES,
@@ -2976,10 +2976,44 @@ async function verifyFlowerAdminToken(request, env) {
   return payload;
 }
 
+/**
+ * 관리자 행위를 adminauditlogs 에 남긴다.
+ *
+ * 🔴 절대 throw 하지 않는다. 감사 로그 쓰기가 실패했다고 관리 작업이 막히면 안 된다
+ * (Atlas 가 흔들리는 순간 관리자 화면 전체가 죽는 경로를 만들지 않는다).
+ *
+ * 기록 시점은 인가 직후 = **시도** 시점이다. 결과가 아니라 의도를 남긴다 — 핸들러가
+ * 부분 쓰기 후 500 이 나도 기록이 남는 쪽이 1인 운영 콘솔에서는 맞다.
+ */
+async function writeAdminAuditLog(request, env, { actorLabel, actorUserId, mode, outcome, meta }) {
+  try {
+    const meta_ = getRequestMeta(request);
+    const url = new URL(request.url);
+    await connectDb(env);
+    await AdminAuditLog.create({
+      action: `${request.method.toUpperCase()} ${url.pathname}`.slice(0, 200),
+      actorLabel: String(actorLabel || "").slice(0, 120),
+      // ObjectId 가 아닌 행위자(flower-admin:<jti>)는 actorLabel 로만 남는다.
+      actorUserId: mongoose.Types.ObjectId.isValid(actorUserId || "") ? actorUserId : null,
+      mode: mode || "flower",
+      outcome: outcome || "attempted",
+      ip: meta_.ip,
+      userAgent: meta_.userAgent,
+      requestId: meta_.requestId,
+      meta: meta || null,
+    });
+  } catch (error) {
+    console.error("[admin-audit] write failed", error?.message || error);
+  }
+}
+
 async function authorizeAdminRequest(request, env) {
   const authHeader = String(request.headers.get("authorization") || "").trim();
   const cookieHeader = String(request.headers.get("cookie") || "");
-  const hasSessionCookie = /(?:^|;\s*)(cd_access_token|cd_refresh_token)=/i.test(cookieHeader);
+  // 실제 세션 쿠키 이름은 worker/lib/auth.js 의 ACCESS_COOKIE_NAME/REFRESH_COOKIE_NAME 이다.
+  // cd_* 만 보던 시절에는 쿠키만 가진 role:"admin" 세션이 이 사전 게이트에서 401 로 튕겨,
+  // JWT 관리자 경로가 사실상 Bearer 전용이었다. 구 이름도 함께 남겨 둔다.
+  const hasSessionCookie = /(?:^|;\s*)(fortune_auth_token|fortune_auth_refresh|cd_access_token|cd_refresh_token)=/i.test(cookieHeader);
   const hasFlowerCredential = Boolean(extractFlowerAdminToken(request));
   const hasAnyCredential = Boolean(authHeader) || hasSessionCookie || hasFlowerCredential;
 
@@ -3000,6 +3034,15 @@ async function authorizeAdminRequest(request, env) {
     // 그대로 저장하므로, 호출부를 하나도 건드리지 않고 세션 단위 감사 추적이 살아난다.
     const sessionId = String(flowerTokenPayload.jti || "").slice(0, 16);
     const actorId = sessionId ? `flower-admin:${sessionId}` : "flower-admin";
+    // 조회(GET)는 남기지 않는다 — 관리 콘솔은 목록·상세를 계속 폴링해 로그가 조회로 덮인다.
+    if (request.method.toUpperCase() !== "GET") {
+      await writeAdminAuditLog(request, env, {
+        actorLabel: actorId,
+        actorUserId: null,
+        mode: "flower",
+        outcome: "granted",
+      });
+    }
     return {
       mode: "flower",
       auth: { userId: actorId, role: "admin", isAdmin: true },
@@ -3021,7 +3064,24 @@ async function authorizeAdminRequest(request, env) {
     const role = String(auth.role || "user").toLowerCase();
     const isAdmin = role === "admin" || auth.isAdmin === true;
     if (!isAdmin) {
+      // 권한 없는 로그인 사용자가 관리자 경로를 두드린 것 — 침입 시도 신호라 GET 도 남긴다.
+      await writeAdminAuditLog(request, env, {
+        actorLabel: String(auth.userId || ""),
+        actorUserId: String(auth.userId || ""),
+        mode: "jwt",
+        outcome: "denied",
+        meta: { role },
+      });
       throw createHttpError(403, "관리자 권한이 필요합니다.", { code: "FORBIDDEN" });
+    }
+
+    if (request.method.toUpperCase() !== "GET") {
+      await writeAdminAuditLog(request, env, {
+        actorLabel: String(auth.email || auth.userId || ""),
+        actorUserId: String(auth.userId || ""),
+        mode: "jwt",
+        outcome: "granted",
+      });
     }
 
     return {
@@ -4328,10 +4388,25 @@ async function handleEntryPassword(request, env) {
   const body = await readJson(request);
   const password = String(body?.password || "");
   if (!await verifyAdminEntryPassword(password, env)) {
+    // 관리자 진입은 공유 비밀번호 하나가 전부라, 실패 시도가 가장 가치 높은 감사 기록이다.
+    await writeAdminAuditLog(request, env, {
+      actorLabel: "",
+      actorUserId: null,
+      mode: "anonymous",
+      outcome: "denied",
+      meta: { reason: "bad_password" },
+    });
     return json({ message: "Not found" }, { status: 404 });
   }
 
   const adminToken = await issueFlowerAdminToken(env);
+  await writeAdminAuditLog(request, env, {
+    actorLabel: "flower-admin",
+    actorUserId: null,
+    mode: "anonymous",
+    outcome: "granted",
+    meta: { reason: "entry_password_ok" },
+  });
 
   const expectedHash = getEnv(env, "ADMIN_SECRET_HASH");
   const response = json({

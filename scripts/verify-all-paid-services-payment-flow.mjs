@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { dbConnect } from "../app/_lib/dbConnect.js";
+// 연결은 getUserModel() 이 worker/lib/db.js 의 connectDb(autoIndex:false)로 처리한다.
 import { getUserModel } from "../app/_lib/models/UserModel.js";
 import { PointHistory } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
@@ -172,7 +172,6 @@ function requiresProfileScope(testCase) {
 }
 
 async function prepareTestUser(email, points) {
-  await dbConnect();
   const User = await getUserModel();
 
   const existing = await User.findOne({ email }).select("_id email").lean();

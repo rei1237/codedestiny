@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { dbConnect } from "../app/_lib/dbConnect.js";
+// 연결은 getUserModel() 이 worker/lib/db.js 의 connectDb(autoIndex:false)로 처리한다.
 import { getUserModel } from "../app/_lib/models/UserModel.js";
 import { PointHistory } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
@@ -42,7 +42,6 @@ function getEnvForWorker() {
 }
 
 async function main() {
-  await dbConnect();
   const User = await getUserModel();
 
   const normalizedEmail = TEST_LOGIN_ID.toLowerCase();
