@@ -113,6 +113,52 @@ const cases = [
   },
 ];
 
+/* ── 월정석 409 재시도 계약 ────────────────────────────────────────────
+   위 골격이 다루는 "자동 재시도 없음"은 **답이 확정된 POST** 를 다시 쏘지 않는다는 뜻이다.
+   월정석 409(MONTHLY_CREDIT_CONSUME_IN_PROGRESS)는 확정된 답이 아니라 "차감이 아직 확정되지
+   않았다"이고, 서버가 retryable 로 표시한다(worker/payments/errors.js). 재시도가 없으면
+   dead-end 였다 — 결제창 폴백은 월정석(explicitPaymentMode)을 애초에 제외하기 때문이다.
+
+   여기서 못박는 것은 그 재시도의 **안전 근거**다: 같은 requestId 를 다시 써야 서버 원장이
+   재차감을 막는다. 새 키를 발급하면 원장 행이 따로 생겨 두 번 차감된다. 이 세 줄 중 하나라도
+   무너지면 이 가드가 실패해야 한다. */
+const moonstoneRetrySource = sliceBetween(
+  billingClientSource,
+  "const MOONSTONE_IN_PROGRESS_MAX_ATTEMPTS",
+  "const parsed: BillingResult<BillingCoinGateData>",
+);
+assert.ok(
+  /MOONSTONE_IN_PROGRESS_MAX_ATTEMPTS = [1-5];/.test(moonstoneRetrySource),
+  "월정석 재시도는 유한해야 한다(1~5회)",
+);
+assert.ok(
+  moonstoneRetrySource.includes('"MONTHLY_CREDIT_CONSUME_IN_PROGRESS"') && moonstoneRetrySource.includes("status === 409"),
+  "월정석 재시도는 409/MONTHLY_CREDIT_CONSUME_IN_PROGRESS 에만 걸려야 한다",
+);
+assert.ok(
+  !/requestId\s*[:=]/.test(moonstoneRetrySource),
+  "월정석 재시도는 requestId 를 새로 만들면 안 된다 — 같은 키를 그대로 다시 써야 원장 멱등이 이중차감을 막는다",
+);
+assert.ok(
+  billingClientSource.includes("explicitMonthlyMode ? await runMoonstoneRequestWithRetry() : await runCoinGateRequest()"),
+  "월정석 재시도는 월정석 모드에만 적용되어야 한다(일반 coin-gate POST 는 종전대로 단발)",
+);
+
+// 독립 정적 런타임(js/destiny-profile.js)도 같은 계약을 갖는다 — 셸·React·정적 셋이 같아야 한다.
+const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
+assert.ok(
+  /_DP_MOONSTONE_RETRY_ATTEMPTS = [1-5];/.test(destinyProfileSource),
+  "정적 런타임의 월정석 재시도도 유한해야 한다",
+);
+for (const caller of ["_dpRunMonthlyCreditFromMainGate", "runMonthlyCreditGate"]) {
+  const start = destinyProfileSource.indexOf(caller);
+  assert.ok(start >= 0, `source drift: ${caller} 를 destiny-profile.js 에서 찾지 못함`);
+  assert.ok(
+    destinyProfileSource.slice(start, start + 3000).includes("_dpRunMoonstoneWithRetry"),
+    `${caller} 의 월정석 요청이 재시도 없이 단발로 돌아가 있다(409 가 확정 실패가 된다)`,
+  );
+}
+
 // ── 실행 & 리포트 ───────────────────────────────────────────────────
 let failed = 0;
 const rows = cases.map((c) => {
