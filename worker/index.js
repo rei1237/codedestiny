@@ -1351,6 +1351,25 @@ export default {
             prefix: "/api/payments",
           }));
         }
+        // 월정석 컷오버 — coin-gate 는 다중 결제수단 라우트라 paymentMode 를 본문에서 판별해
+        // MOONLIGHT_STONE 만 V2 로 보낸다(이용권 검사·deferred 는 구 로직 유지). clone 읽기라
+        // 원 요청 본문은 그대로 전달된다. 롤백은 env 에서 "moonstone" 제거.
+        if (isPaymentsV2Route(env, "moonstone")
+          && request.method === "POST"
+          && url.pathname === "/api/billing/coin-gate") {
+          let coinGatePaymentMode = "";
+          try {
+            const coinGateBodyText = await request.clone().text();
+            coinGatePaymentMode = String(JSON.parse(coinGateBodyText || "{}")?.paymentMode || "").trim().toUpperCase();
+          } catch { coinGatePaymentMode = ""; }
+          if (coinGatePaymentMode === "MOONLIGHT_STONE") {
+            const rewrittenMoonstone = rewriteRequestPath(request, "/api/payments/coin-gate/moonstone");
+            const { handlePaymentsContext } = await import("./payments/index.js");
+            return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenMoonstone, env, {
+              prefix: "/api/payments",
+            }));
+          }
+        }
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env, ctx));
       }
 

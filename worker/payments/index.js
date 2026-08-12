@@ -32,8 +32,15 @@ import { grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } 
 import { spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
 import { runPaymentReconcile } from "./reconcile.js";
+import { resolveLegacyProduct } from "./legacy-pricing.js";
+import {
+  buildPremiumAccessCookie,
+  createPremiumAccessToken,
+  resolvePremiumAccessReportType,
+} from "../lib/premium-access-token.js";
 import {
   legacyBillingCheckoutEnvelope,
+  legacyMoonstoneEnvelope,
   legacyOrderDetailEnvelope,
   legacyConfirmEnvelope,
   legacyPrepareEnvelope,
@@ -287,11 +294,10 @@ const ROUTES = {
   "POST /prepare": {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope }) {
-      const product = resolveProduct({
-        productId: body.productId,
-        featureKey: body.featureKey || body.subFeatureKey || body.paidFeatureKey || body.serviceKey,
-        reason: body.reason,
-      });
+      // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
+      // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
+      // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
+      const product = resolveLegacyProduct(body);
       ctx.productId = product.productId;
 
       const clientAmount = Number(body.paymentAmount ?? body.amount);
@@ -341,7 +347,7 @@ const ROUTES = {
       const legacyOrder = toLegacyPrepareOrder(order, {
         config: getPortOnePublicConfig(env),
         customer,
-        pricing: { ...product },
+        pricing: product.pricing || { ...product },
         body,
       });
       const envelope = legacyPrepareEnvelope(legacyOrder, { idempotent });
@@ -389,7 +395,105 @@ const ROUTES = {
         orderId, actorUserId: userId,
       }));
       ctx.paymentStatus = "PAID";
-      return json(legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed }));
+      const envelope = legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed });
+      // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
+      // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
+      const featureKey = String(result.order?.featureKey || "");
+      const reason = String(body.reason || result.order?.pricingSnapshot?.reason || "");
+      const reportType = result.granted ? resolvePremiumAccessReportType(featureKey, reason) : "";
+      if (!reportType) return json(envelope);
+      const premiumAccessToken = await createPremiumAccessToken(env, {
+        userId: String(userId || ""),
+        reportType,
+        featureKey,
+        reason,
+        transactionId: orderId,
+        requestId: String(body.requestId || ""),
+        purchaseId: orderId,
+        chargedCoins: Number(result.order?.chargedPoints || 0),
+      });
+      if (!premiumAccessToken) return json(envelope);
+      envelope.premiumAccessToken = premiumAccessToken;
+      return json(envelope, {
+        headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
+      });
+    },
+  },
+
+  /**
+   * 🔴 월정석 컷오버 어댑터 — 구 /api/billing/coin-gate 의 MOONLIGHT_STONE 분기(재작성)를 V2
+   * spendMoonstone 으로 잇는다. 구 월정석의 고질병(M0 트랜잭션 불가 → MONTHLY_ATOMIC_UNAVAILABLE
+   * 영구 503)이 이 전환의 이유다 — V2 는 원장 예약→lot CAS→정산 순서로 트랜잭션 없이 원자성을 얻는다.
+   * 계약: 성공은 legacyMoonstoneEnvelope(셸 판정기 2종 충족), 부족은 402 INSUFFICIENT_MONTHLY_CREDITS
+   * (+잔액 필드 — 월정석 옵션 비활성 판정), 경합·진행중은 409 MONTHLY_CREDIT_CONSUME_IN_PROGRESS
+   * (셸이 같은 requestId 로 3회 재시도 — 원장 replay 라 이중차감 없음). 영구 해금형만 지급을 남기고
+   * 회당(per_use)은 차감+증빙만 — 구 분기와 같은 경계다.
+   */
+  "POST /coin-gate/moonstone": {
+    auth: "required",
+    async handle({ env, ctx, userId, body, withDb }) {
+      const requestId = String(body.requestId || body.purchaseId || "").trim();
+      if (!requestId) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "requestId 가 필요합니다.");
+      const product = resolveLegacyProduct(body);
+      ctx.productId = product.productId;
+      ctx.orderId = requestId;
+      const profileId = String(body.profileId || body.selectedProfileId || "").trim();
+      let billingType = "per_use";
+      try { billingType = String(resolveProduct({ featureKey: product.featureKey }).billingType || "per_use"); } catch { billingType = "per_use"; }
+      const unlock = billingType !== "per_use";
+
+      let spend;
+      try {
+        spend = await withDb(env, ctx, async (db) => {
+          const result = await spendMoonstone(db, { userId, product, purchaseId: requestId, profileId });
+          if (unlock) {
+            await grantEntitlement(db, {
+              userId, product, orderId: requestId, profileId,
+              contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
+            });
+            await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+          }
+          return result;
+        });
+      } catch (error) {
+        // 레거시 오류 계약 — 코드·필드가 셸의 재시도(409)·재제안(402)·월정석 옵션 비활성 판정에 걸려 있다.
+        if (error?.code === "MOONSTONE_IN_PROGRESS" || error?.code === "MOONSTONE_CONTENDED") {
+          return json({ ok: false, code: "MONTHLY_CREDIT_CONSUME_IN_PROGRESS", message: String(error.message || "월정석 사용을 처리하는 중입니다. 잠시 후 다시 시도해 주세요.") }, { status: 409 });
+        }
+        if (error?.code === "INSUFFICIENT_MOONSTONE") {
+          return json({
+            ok: false,
+            code: "INSUFFICIENT_MONTHLY_CREDITS",
+            message: String(error.message || "월정석이 부족합니다."),
+            monthlyBalance: Number(error?.meta?.balance ?? 0),
+            currentMonthlyCredits: Number(error?.meta?.balance ?? 0),
+            requiredMonthlyCredits: Number(error?.meta?.required ?? product.monthlyCost),
+            membershipCreditCost: Number(product.monthlyCost || 0),
+          }, { status: 402 });
+        }
+        throw error;
+      }
+
+      ctx.paymentStatus = "MONTHLY";
+      const reason = String(body.reason || "");
+      const reportType = resolvePremiumAccessReportType(product.featureKey, reason);
+      const premiumAccessToken = reportType
+        ? await createPremiumAccessToken(env, {
+          userId: String(userId || ""),
+          reportType,
+          featureKey: product.featureKey,
+          reason,
+          transactionId: String(spend.ledgerId || requestId),
+          requestId,
+          purchaseId: requestId,
+          chargedCoins: Number(product.priceCoins || 0),
+        })
+        : "";
+      const envelope = legacyMoonstoneEnvelope({ product, requestId, profileId, spend, unlock, premiumAccessToken });
+      if (!premiumAccessToken) return json(envelope);
+      return json(envelope, {
+        headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
+      });
     },
   },
 
