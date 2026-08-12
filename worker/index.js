@@ -1405,18 +1405,6 @@ export default {
         return withCorsHeaders(request, env, await handleRpgRoutes(request, env));
       }
 
-      // Legacy compatibility: singular payment namespace.
-      if (url.pathname === "/api/payment" || url.pathname.startsWith("/api/payment/")) {
-        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/payment", "/api/payments"));
-        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
-      }
-
-      // Legacy compatibility: checkout namespace mapped to payments handlers.
-      if (url.pathname === "/api/checkout" || url.pathname.startsWith("/api/checkout/")) {
-        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/checkout", "/api/payments"));
-        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
-      }
-
       if (url.pathname === "/api/points/me") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/points/me");
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
