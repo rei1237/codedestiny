@@ -152,6 +152,13 @@ function ensurePageJsFallback(filePath) {
   // 커스텀 404(pages/404.tsx)가 프레임워크 기본 404 로 바뀐다.
   // 실물을 본 적 있는 경로는 건드리지 않고, 한 번도 못 본 경우(빌드 초반 크래시 방어)에만 채운다.
   if (realErrorPageBundlesSeen.has(filePath)) return;
+  // 🔴 per-path seen 가드는 폴링이 실물을 한 번도 관찰하지 못한 타이밍에 뚫린다 — unlink 가
+  // 두 폴링 틱 사이에 끝나면 seen 이 비어 있어 스텁이 들어가고, 커스텀 404 가 기본 404 로
+  // 내보내져 adsense-readiness 게이트가 릴리스를 통째로 막는다(2026-08-12 #496 릴리스 실패 실측).
+  // routes-manifest 는 컴파일 완료 후에 쓰이고 unlink 는 항상 그 뒤(static generation 이후)이므로,
+  // 그 존재 = "빈 자리는 크래시가 아니라 Next 의 의도적 unlink"다. 이때는 스텁을 쓰지 않는다.
+  // 빌드 초반 크래시 방어(routes-manifest 이전)는 그대로 유지된다.
+  if (hasCoreRoutesManifest()) return;
 
   mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, ERROR_PAGE_STUB_SOURCE, "utf8");

@@ -134,11 +134,27 @@ async function checkPages() {
     browserErrors.push("requestfailed: " + request.url() + " " + errorText);
   });
 
+  // 셸은 로드 중 스스로 재네비게이션할 수 있다(자가복구 스윕·로케일 처리 등). 그 순간의 goto 는
+  // "interrupted by another navigation" 으로 끊기는데, 페이지는 곧 정상 도착하므로 실패가 아니라
+  // 정착 대기 대상이다(2026-08-12 #495 릴리스가 이 경합 한 번으로 롤백된 실사고). 다른 오류는 그대로 실패다.
+  async function gotoSettled(route) {
+    try {
+      const response = await page.goto(base + route, { waitUntil: "domcontentloaded", timeout: 30000 });
+      return { response, interrupted: false };
+    } catch (error) {
+      if (!/interrupted by another navigation/i.test(String(error?.message || ""))) throw error;
+      await page.waitForLoadState("domcontentloaded", { timeout: 30000 }).catch(() => {});
+      return { response: null, interrupted: true };
+    }
+  }
+
   const routes = ["/", "/login", "/saju/basic", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
   for (const route of routes) {
     try {
-      const response = await page.goto(base + route, { waitUntil: "domcontentloaded", timeout: 30000 });
-      if (!response || response.status() >= 500) fail("route " + route + " returned HTTP " + (response?.status() || "no response"));
+      const nav = await gotoSettled(route);
+      if (!nav.interrupted && (!nav.response || nav.response.status() >= 500)) {
+        fail("route " + route + " returned HTTP " + (nav.response?.status() || "no response"));
+      }
       await page.waitForTimeout(250);
       if (route === "/") await checkAssets(page);
     } catch (error) {
@@ -147,7 +163,7 @@ async function checkPages() {
   }
 
   try {
-    await page.goto(base + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
+    await gotoSettled("/");
     const cookieAccept = page.locator("#cdCookieAcceptBtn, #cdCookieEssentialBtn").first();
     if (await cookieAccept.isVisible().catch(() => false)) {
       await cookieAccept.click({ timeout: 10000 });
