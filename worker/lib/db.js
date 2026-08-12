@@ -787,6 +787,15 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   const resetOnOperationTimeout = options.resetOnOperationTimeout != null
     ? options.resetOnOperationTimeout !== false
     : !isTruthyLike(getEnv(env, "MONGO_DISABLE_RESET_ON_OPERATION_TIMEOUT", "false"));
+  /* 🔴 op-타임아웃을 재시도할 것인가. 기본은 **아니오**이고 그 이유는 아래 catch 주석에 있다
+     (인증처럼 한 요청이 조회를 여러 번 하는 라우트는 11.5s×N 이 누적돼 워커 hung 감지를 부른다).
+     결제 컨텍스트만 예외로 켠다 — withPaymentDb 는 요청당 슬롯도 op 도 **하나**라 누적이 없고,
+     실패 시 이미 웜 커넥션 참조를 무효화하므로 재시도는 새 연결로 간다.
+     이걸 켜지 않으면 다음이 실측된다(2026-08-12, 18요청): 실패 요청은 정확히 예산(12.2초)에서
+     죽고 리셋만 남기며, **그 리셋의 수혜자는 다음 요청**이다. 그래서 성공↔실패가 교대로 나오고
+     사용자 입장에서는 "결제창이 될 때도 있고 안 될 때도 있다"가 된다. 재시도를 켜면 그 리셋을
+     자기 요청이 쓰므로, 하드 503 이 '조금 느린 성공'으로 바뀐다. */
+  const retryOnOperationTimeout = options.retryOnOperationTimeout === true;
   // 연속 실패가 이 횟수를 넘으면 동시 요청이 있어도 리셋을 강행한다(아래 catch 참고).
   const forceResetAfter = clampInt(getEnv(env, "MONGO_POOL_FORCE_RESET_AFTER", "3"), 3, 1, 10);
   // 강행 리셋이 폭주하지 않도록 최소 간격만 남긴다(쿨다운 자체는 우회한다).
@@ -899,7 +908,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           && !isWaitQueueTimeout
           && ((isOperationTimeout && resetOnOperationTimeout) || isTransientMongoError(error));
         const willRetry = attempt < maxRetries
-          && isTransientMongoError(error)
+          && (isTransientMongoError(error) || (isOperationTimeout && retryOnOperationTimeout))
           && error?.name !== "MongoOperationOverloadedError";
         if (isOperationTimeout) {
           // 이 한 줄이 세 후보를 가른다:
@@ -973,8 +982,12 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
             }
           }
         }
-        // op-타임아웃은 재시도하지 않는다(인증 다중조회 라우트에서 11.5s×N 누적 → hung-detection 재유발
-        // 방지). 리셋만 하고 즉시 던져 이 요청은 빠르게 degrade시키되, 다음 요청이 깨끗한 연결로 복구된다.
+        // op-타임아웃은 기본적으로 재시도하지 않는다(인증 다중조회 라우트에서 11.5s×N 누적 →
+        // hung-detection 재유발 방지). 리셋만 하고 즉시 던져 이 요청은 빠르게 degrade시키되,
+        // 다음 요청이 깨끗한 연결로 복구된다.
+        // 🔴 예외는 retryOnOperationTimeout 을 켠 호출자(결제)뿐이다 — 위 선언부 주석 참고.
+        // 그 경우 방금 무효화한 웜 참조 덕에 재시도가 **새 연결**로 가므로, 리셋의 수혜자가
+        // 다음 요청이 아니라 자기 자신이 된다(= 하드 503 이 느린 성공으로 바뀐다).
         if (!willRetry) throw error;
         await sleep(baseDelayMS * (attempt + 1));
       }
