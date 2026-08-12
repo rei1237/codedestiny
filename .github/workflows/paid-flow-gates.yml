@@ -117,6 +117,12 @@ jobs:
       - name: Verify auth event loop guard
         run: npm run verify:auth-event-loop
 
+      # 형제 가드인데 여기 빠져 있어서, 하네스가 깨진 채로 방치됐다(auth-client 가 새 모듈을
+      # import 하자 import 매핑 표에 없어 스크립트가 그냥 던졌다). 아무도 부르지 않는 가드는
+      # 지키는 게 없으면서 지키는 것처럼 보인다.
+      - name: Verify auth session stability
+        run: npm run verify:auth-session-stability
+
       - name: Verify paid feature billing policy
         run: npm run verify:paid-feature-billing-policy
 
