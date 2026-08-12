@@ -60,11 +60,12 @@ export async function dbConnect() {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 20000,
     connectTimeoutMS: 10000,
-    // 🔴 10 → 5 (2026-08-12): Worker 쪽 maxPoolSize(worker/lib/db.js, 5)와 같은 계수로 정렬한다.
-    // 전역 연결 수 = 인스턴스 수 × poolSize 이고 Atlas M0 상한이 500 이라, 이쪽만 2배 풀을 잡으면
-    // 같은 클러스터를 쓰는 Worker 의 연결 예산을 조용히 잠식한다. 올리려면 Worker 쪽 주석의 조건
-    // ([db-connect-error] 0 확인)과 함께 양쪽을 같이 판단할 것.
-    maxPoolSize: 5,
+    // 🔴 Worker 쪽 maxPoolSize(worker/lib/db.js)와 **같은 계수로 정렬한다.** 전역 연결 수 =
+    // 인스턴스 수 × poolSize 이고 같은 클러스터를 Worker 와 공유하므로, 이쪽만 큰 풀을 잡으면
+    // Worker 의 연결 예산을 조용히 잠식한다. 10 → 5 (2026-08-12, Atlas M0 상한 500 기준) →
+    // 다시 10 (2026-08-12, M10 전환으로 상한이 1500 이 되어 Worker 쪽이 5 → 10 으로 올랐다).
+    // 더 올리려면 Worker 쪽 주석의 조건([db-connect-error] 0 확인)과 함께 양쪽을 같이 판단할 것.
+    maxPoolSize: 10,
     minPoolSize: 0,
     // 🔴 false 고정 (2026-08-12): 이 헬퍼를 쓰는 스크립트들이 worker/lib/models.js 를 통째로
     // import 하도록 바뀌면서 모델 45개가 컴파일된다. autoIndex 가 켜져 있으면 그중 선언만 되고
