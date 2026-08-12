@@ -67,21 +67,37 @@ const FONT_SOURCES = Object.freeze([
     keyPrefix: "fonts/serif-kr",
     upstream: "Nanum Myeongjo (OFL)",
   },
+  /*
+    CodeDestinyPlayful 은 원래 netmarbleM.ttf(846KB, 비압축 TTF)였다. 넷마블체 라이선스가
+    "수정, 변형, 임대, 재판매를 금지"하므로 woff2 변환도 서브셋도 할 수 없어, 줄이는 길이
+    아예 없었다(3자 폰트 아카이브들이 OFL 로 표기하지만 공식 CI 페이지와 폰트 name 테이블
+    모두 OFL 이 아니다). 같은 성격의 둥근 고딕인 고운돋움으로 갈아탄다.
+    family 이름을 그대로 두는 것이 핵심이다 — 이 이름을 직접 참조하는 20여 곳이 손대지 않고
+    새 폰트를 쓰게 되고, OFL 이 요구하는 Reserved Font Name 회피도 동시에 충족된다.
+  */
+  {
+    family: "CodeDestinyPlayful",
+    googleQuery: "Gowun+Dodum",
+    keyPrefix: "fonts/playful",
+    upstream: "Gowun Dodum (OFL)",
+  },
 ]);
 
 const OFL_NOTICE = `Code Destiny brand serif webfonts
 ================================
 
-The woff2 files under fonts/serif-latin/ and fonts/serif-kr/ are subsets of:
+The woff2 files under fonts/serif-latin/, fonts/serif-kr/ and fonts/playful/ are
+subsets of:
 
   - Cinzel          (c) Natanael Gama,  SIL Open Font License 1.1
   - Nanum Myeongjo  (c) NAVER Corp.,    SIL Open Font License 1.1
+  - Gowun Dodum     (c) Yanghee Ryu,    SIL Open Font License 1.1
 
 They are redistributed here under the terms of the SIL Open Font License 1.1
 (https://openfontlicense.org). Because these files are modified (subset) copies,
-they are renamed to "CodeDestinySerifLatin" and "CodeDestinySerifKR" so that the
-Reserved Font Names "Cinzel" and "Nanum Myeongjo" are not used, as the license
-requires.
+they are renamed to "CodeDestinySerifLatin", "CodeDestinySerifKR" and
+"CodeDestinyPlayful" so that the Reserved Font Names "Cinzel", "Nanum Myeongjo"
+and "Gowun Dodum" are not used, as the license requires.
 
 Full license text: https://openfontlicense.org/open-font-license-official-text/
 `;

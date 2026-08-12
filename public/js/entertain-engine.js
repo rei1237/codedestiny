@@ -4443,7 +4443,11 @@
       if (!w.document || document.getElementById('cd-health-r2-fonts')) return;
       var style = document.createElement('style');
       style.id = 'cd-health-r2-fonts';
-      style.textContent = '@font-face{font-family:"CDHealthReadable";src:url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");font-weight:500;font-style:normal;font-display:swap}'
+      // CDHealthReadable(더잠실체)의 @font-face 는 제거했다 — 그 라이선스가 수정·포맷
+      // 변환을 금지해 846KB 원본 TTF 를 그대로 내려보내는 것 말고는 선택지가 없었다.
+      // 참조는 아래에서 CodeDestinySerifKR 로 바뀌며, 그 폰트는 fonts-serif.css 가
+      // unicode-range 청크로 이미 선언해 둔 것이라 여기서 다시 선언할 필요가 없다.
+      style.textContent = ''
         + '@font-face{font-family:"CDHealthDisplay";src:url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}';
       document.head.appendChild(style);
     } catch (_) {}
@@ -4484,14 +4488,14 @@
       + 'border:0;box-shadow:none;'
       + 'background:linear-gradient(180deg,#fffaf7 0%,#fff3f8 100%);'
       + 'color:var(--h-ink);'
-      + 'font-family:"CDHealthReadable",var(--font-body,"Pretendard","Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif);'
+      + 'font-family:"CodeDestinySerifKR",var(--font-body,"Pretendard","Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif);'
       + '-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}'
       + '.cd-health-wellness-v20260607:before,.cd-health-wellness-v20260607:after{content:none}'
       + '.cd-health-wellness-v20260607 *{box-sizing:border-box;min-width:0}'
 
       /* ── 타이포 ───────────────────────────────────────────────────────── */
       + '.cd-health-wellness-v20260607 h3,.cd-health-wellness-v20260607 h4{'
-      + 'margin:0;font-family:"CDHealthReadable","Nanum Myeongjo","Noto Serif KR",serif;'
+      + 'margin:0;font-family:"CodeDestinySerifKR","Nanum Myeongjo","Noto Serif KR",serif;'
       + 'font-weight:700;letter-spacing:-.02em;color:var(--h-ink);text-shadow:none;text-wrap:balance}'
       + '.cd-health-wellness-v20260607 h3{font-size:clamp(24px,3.2vw,32px);line-height:1.26}'
       + '.cd-health-wellness-v20260607 h4{font-size:17px;line-height:1.4}'
@@ -4558,7 +4562,7 @@
       + 'padding:18px 20px;cursor:pointer;list-style:none}'
       + '.cd-health-chapter__head::-webkit-details-marker{display:none}'
       + '.cd-health-chapter__head:focus-visible{outline:2px solid var(--h-accent);outline-offset:-3px;border-radius:20px}'
-      + '.cd-health-chapter__title{display:block;font-family:"CDHealthReadable","Nanum Myeongjo","Noto Serif KR",serif;'
+      + '.cd-health-chapter__title{display:block;font-family:"CodeDestinySerifKR","Nanum Myeongjo","Noto Serif KR",serif;'
       + 'font-size:19px;font-weight:700;line-height:1.35;color:var(--h-ink);letter-spacing:-.02em}'
       + '.cd-health-chapter__lede{display:block;margin-top:5px;font-size:13px;line-height:1.65;color:var(--h-ink-muted)}'
       /* 목차는 접혔을 때만 — 펼치면 바로 아래에 같은 제목들이 실제로 나온다 */
