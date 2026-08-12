@@ -77,6 +77,36 @@ MONGO_PING_TIMEOUT_MS = "3500"
 MONGO_IP_FAMILY = "4"
 MONGO_IP_FAMILY_AUTO_FALLBACK = "true"
 MONGODB_DB_NAME = "code_destiny"
+# ── Atlas M10 커넥션 예산 (2026-08-12 M0 → M10 전환) ──────────────────────────
+# 🔴 여기 값이 곧 프로덕션 값이다. 이 줄들을 지우면 worker/lib/db.js 의 코드 기본값으로 떨어진다
+#    (같은 값으로 맞춰 뒀으니 지워도 동작은 같다). 여기 두는 이유는 하나다 — 장애 중에 배포 없이
+#    되돌릴 수 있어야 하기 때문이다. M0 시절엔 이 노브들이 코드에만 있어서 값 하나 바꾸는 데도
+#    PR + CI + 배포 사이클이 필요했다.
+#
+# M10 의 제약은 M0 와 종류가 다르다:
+#   · 총 연결: 노드당 1,490 (M0 는 500 공유) → 총량은 더 이상 병목이 아니다
+#   · 🔴 신규 커넥션 생성률: **노드당 초당 15개** (M0 에는 없던 제약, M30 이상엔 다시 없다)
+#     초과분은 큐잉되고 포화가 지속되면 드롭된다.
+# 그래서 튜닝 방향이 "커넥션을 아껴 쓴다"에서 "커넥션을 자주 새로 만들지 않는다"로 바뀐다.
+# 아래 값을 만질 때는 항상 Atlas Metrics → Connections 그래프를 함께 볼 것 —
+# 톱니(sawtooth)면 churn 이고, 계단식 상승이면 누수다.
+MONGO_MAX_POOL_SIZE = "10"
+MONGO_PAYMENT_POOL_SIZE = "6"
+# 유휴 소켓 상한. 짧을수록 커넥션 생성률이 올라간다(= 15/s 예산을 태운다).
+# M0 시절 20000 이었던 것을 M10 전환과 함께 되돌렸다. 더 줄이지 말 것.
+MONGO_MAX_IDLE_TIME_MS = "60000"
+# 동시에 새로 여는 커넥션 수. 15/s 예산에 직접 대응하는 유일한 드라이버 노브다.
+MONGO_MAX_CONNECTING = "2"
+# 자작 admission 게이트. 한도 > 풀 이어야 초과분이 재시도 가능한 waitQueue 로 간다.
+MONGO_MAX_IN_FLIGHT_OPS = "24"
+MONGO_PAYMENT_MAX_IN_FLIGHT_OPS = "12"
+MONGO_WAIT_QUEUE_TIMEOUT_MS = "5000"
+# 결제 레인 수립 재시도. 이게 없던 것이 "결제가 한 번에 안 되고 재시도하면 되는" 증상이었다.
+MONGO_PAYMENT_CONNECT_RETRIES = "1"
+MONGO_PAYMENT_CONNECT_GUARD_MS = "9000"
+# Atlas Query Profiler 에서 부하 주체를 가르는 라벨. 둘을 다르게 유지할 것.
+MONGO_APP_NAME = "code-destiny-worker"
+MONGO_PAYMENT_APP_NAME = "code-destiny-payments"
 GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
 ZIWEI_PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
