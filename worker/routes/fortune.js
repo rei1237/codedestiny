@@ -1,4 +1,4 @@
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -2641,7 +2641,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         if (!user) { outcome = null; return; }
         const [history] = await PointHistory.create([buildCoinHistoryDoc(user.points)], { session });
         outcome = { updatedUser: user, history };
-      });
+      }, mongoTransactionOptions());
       return outcome;
     } finally {
       await session.endSession();

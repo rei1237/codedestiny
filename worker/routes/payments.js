@@ -1,4 +1,4 @@
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
@@ -3294,7 +3294,7 @@ async function settlePaymentByImpUid({
           status: 410,
           message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
         };
-      });
+      }, mongoTransactionOptions());
 
       return txResult;
     } finally {
@@ -4314,7 +4314,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
         ).lean();
         if (!updatedUser) throw new Error("subscription_activation_failed");
         activation = { ok: true, payment, updatedUser };
-      });
+      }, mongoTransactionOptions());
       return activation;
     } finally {
       await session.endSession();
@@ -4635,7 +4635,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
         }
 
         txPayload = { canceledPayment, updatedPoints };
-      });
+      }, mongoTransactionOptions());
 
       return txPayload;
     } finally {

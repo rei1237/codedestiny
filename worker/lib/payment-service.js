@@ -98,7 +98,14 @@ function emitPaymentLog(context, payload) {
   }
 }
 
-export async function runAtomicMonthlyPayment({ mongoose, operation } = {}) {
+// 🔴 withTransaction 의 드라이버 기본 상한은 120초다(mongodb/lib/sessions.js `MAX_TIMEOUT`).
+// 우리 op 예산은 12초라, 이 값을 주지 않으면 "사용자에겐 실패라고 답했는데 트랜잭션은 뒤에서
+// 최대 108초를 더 재시도하다 커밋" 이 가능해진다. 이 모듈은 의존성 주입식(mongoose 를 받는다)이라
+// db.js 를 import 하지 않으므로 상수를 여기 한 벌 더 둔다 — 두 값이 어긋나지 않는지는
+// __tests__/worker/db.transaction-budget.test.js 가 고정한다.
+const DEFAULT_TRANSACTION_OPTIONS = Object.freeze({ timeoutMS: 8000 });
+
+export async function runAtomicMonthlyPayment({ mongoose, operation, transactionOptions = DEFAULT_TRANSACTION_OPTIONS } = {}) {
   if (!mongoose?.startSession || typeof operation !== "function") {
     throw createMonthlyAtomicUnavailableError(new Error("Mongo transaction API is unavailable."));
   }
@@ -120,7 +127,7 @@ export async function runAtomicMonthlyPayment({ mongoose, operation } = {}) {
   try {
     await session.withTransaction(async () => {
       outcome = await operation(session);
-    });
+    }, transactionOptions);
     return outcome;
   } catch (error) {
     if (isTransactionUnsupported(error)) throw createMonthlyAtomicUnavailableError(error);

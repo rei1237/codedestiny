@@ -27,6 +27,15 @@ on:
       - "worker/lib/content-unlocks.js"
       - "worker/lib/profile-limits.js"
       - "worker/lib/portone.js"
+      # 🔴 결제 **레인**이 사는 곳이다(2026-08-12 추가). connectPaymentDb(전용 소켓 풀) ·
+      #    mongoPaymentAdmission(전용 admission 레인) · withMongoRetry 의 skipSharedConnect 가
+      #    전부 여기 있고, worker/payments/** 는 이 셋 위에서만 동작한다. 그런데 정작 이 파일이
+      #    트리거에 없어서, 결제가 죽고 살아나는 실제 원인 파일을 고칠 때 결제 게이트가 깨어나지
+      #    않았다 — 정본(셸 인라인)이 빠져 있던 것과 같은 형태의 구멍이다.
+      #    2026-08-12 하루에 난 결제 사고 3건이 전부 이 파일의 변경이었다:
+      #      · 2c2a16205 부팅 폭풍이 결제 소켓을 굶김  · de8c65440 콜드 아이솔레이트 이중 핸드셰이크
+      #      · bbea34aed admission 포화가 checkout 을 하드 503 으로
+      - "worker/lib/db.js"
       - "worker/lib/nakshatra-paid-access.js"
       - "worker/lib/profile-card-mutation-policy.js"
       - "worker/routes/access.js"
