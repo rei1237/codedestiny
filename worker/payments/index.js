@@ -1124,11 +1124,14 @@ function matchRoute(method, path) {
 /**
  * @param {Request} request
  * @param {object} env
- * @param {{ prefix?: string, withDb?: typeof withPaymentDb, legacyShape?: boolean }} [options]
- *   prefix — 마운트 지점. Phase 4 는 /api/payments2 로 섀도 마운트한다.
+ * @param {{ prefix?: string, withDb?: typeof withPaymentDb, legacyShape?: boolean, bodyText?: string }} [options]
+ *   prefix — 마운트 지점(구 경로 /api/payments 에 마운트된다).
  *   withDb — 테스트용 주입. 실행기를 갈아끼울 수 있어야 **오류 매핑·로그·응답 계약까지
  *            전 경로를 Mongo 없이** 확인할 수 있다. 그러지 않으면 여기 테스트는
  *            "던지지 않았다" 수준에 머물러 사실상 아무것도 검증하지 못한다.
+ *   bodyText — 라우터가 갈래를 정하느라 이미 읽은 본문. coin-gate 처럼 paymentMode 로 분기하는
+ *            진입은 본문을 읽어야 라우트를 고를 수 있는데, 그대로 두면 같은 본문을 라우터에서 한 번
+ *            (clone) 컨텍스트에서 또 한 번 읽는다. 넘어오면 재사용한다(rawBody 라우트는 해당 없음).
  */
 export async function handlePaymentsContext(request, env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
@@ -1158,7 +1161,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
     const rawBody = matched.route.rawBody ? await request.text() : "";
     let body = {};
     if (!matched.route.rawBody && method !== "GET") {
-      const text = await request.text();
+      const text = typeof options.bodyText === "string" ? options.bodyText : await request.text();
       if (text.trim()) {
         try { body = JSON.parse(text); } catch { throw paymentError("INVALID_REQUEST", "요청 본문이 올바르지 않습니다."); }
       }

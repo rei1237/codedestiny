@@ -639,15 +639,6 @@ function getAllowedOrigins(env) {
   ].filter(Boolean));
 }
 
-/* 신규 결제 컨텍스트로 넘어간 경로의 allowlist. 쉼표 구분이고, 비어 있으면 아무것도 넘어가지 않는다.
-   경로마다 이름을 두는 이유는 되돌리기 단위를 경로 하나로 유지하기 위해서다 — 컷오버가 잘못됐을 때
-   전체를 되돌리면 이미 검증된 경로까지 함께 물러난다. */
-function isPaymentsV2Route(env, routeName) {
-  const raw = String(getEnv(env, "PAYMENTS_V2_ROUTES") || "").trim();
-  if (!raw) return false;
-  return raw.split(",").map((part) => part.trim()).filter(Boolean).includes(routeName);
-}
-
 function isProductionRuntime(env) {
   const nodeEnv = String(getEnv(env, "NODE_ENV") || "").trim().toLowerCase();
   if (nodeEnv === "production") return true;
@@ -1268,7 +1259,7 @@ export default {
         // 🔴 이 얼라이어스 블록은 /api/payments 블록보다 **먼저** 평가된다 — PortOne 콘솔의 실제
         // Endpoint URL 이 /api/webhooks/portone 이라, 아래 /api/payments 블록에만 컷오버 훅을 두면
         // 웹훅 트래픽 전부가 훅을 우회해 구 핸들러로 간다. 두 진입을 여기서 같은 판정으로 묶는다.
-        if (isPaymentsV2Route(env, "webhook") && request.method === "POST") {
+        if (request.method === "POST") {
           const rewrittenV2Request = rewriteRequestPath(request, "/api/payments/webhook");
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenV2Request, env, { prefix: "/api/payments" }));
@@ -1279,26 +1270,15 @@ export default {
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env, ctx));
       }
 
-      /* 신규 결제 컨텍스트(worker/payments/)의 섀도 마운트. **프로덕션 트래픽은 여기로 오지 않는다.**
-         구 경로(/api/payments)는 그대로 두고 별도 경로로만 열어, 실제 요청·실제 Mongo 위에서
-         왕복 예산과 오류 분류를 확인한 뒤에 하나씩 컷오버한다(계획서 Phase 4→5).
-         플래그가 없으면 import 조차 하지 않으므로 꺼져 있을 때의 비용은 0이고, 판정도 fail-closed 다. */
-      if (url.pathname === "/api/payments2" || url.pathname.startsWith("/api/payments2/")) {
-        if (String(env.PAYMENTS_V2_SHADOW || "").trim().toLowerCase() !== "true") {
-          return jsonResponse(request, env, { ok: false, error: "not_found" }, { status: 404 });
-        }
-        const { handlePaymentsContext } = await import("./payments/index.js");
-        return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments2" }));
-      }
-
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
-        /* 컷오버. 구 경로 그대로에 **신규 모듈이 답하기 시작하는** 지점이고, 어느 경로가 넘어갔는지는
-           PAYMENTS_V2_ROUTES allowlist 하나가 정한다. 목록이 비면 아무것도 안 넘어간다(fail-closed).
-           되돌리기는 목록에서 이름 하나를 빼는 것 — 코드 배포 없이 env 만으로 끝난다.
+        /* 컷오버 완료(2026-08-13). 아래 경로들은 **신규 모듈(worker/payments/)이 정본**이며 env 게이트가
+           없다. 예전에는 PAYMENTS_V2_ROUTES allowlist 로 하나씩 열었고 되돌리기는 이름 제거였는데,
+           그 구조의 실제 기본값은 "구 코드"였다 — 대시보드 변수가 비거나 오타 하나만 나도 결제 전체가
+           조용히 구 로직으로 떨어졌고, 구 로직의 결함(reprice 없는 하드 409·CAS 패배 503)이 바로 그
+           장애의 원인이었다. 지금 되돌리기는 PR revert 다(월정석이 2026-08-12 에 먼저 밟은 선례).
            응답은 legacyShape 로 나간다: 서버만 바뀌고 클라이언트는 그대로인 구간에서 키가 어긋나면
            200 이 오고 파싱도 되는데 값만 undefined 라 **에러 없이 화면이 빈다**(worker/payments/compat.js). */
-        if (isPaymentsV2Route(env, "order-detail")
-          && request.method === "GET"
+        if (request.method === "GET"
           && /^\/api\/payments\/orders\/[^/]+$/.test(url.pathname)) {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, {
@@ -1308,15 +1288,13 @@ export default {
         }
         // 웹훅은 서버-서버 경로라 legacyShape 이 필요 없다(PortOne 은 HTTP 상태만 본다).
         // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위 :1267 블록이 같은 판정으로 처리한다.
-        if (isPaymentsV2Route(env, "webhook")
-          && request.method === "POST"
+        if (request.method === "POST"
           && url.pathname === "/api/payments/webhook") {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
         // 주문 발급 컷오버 — 구 prepare 봉투(평면 {message,idempotent,order})를 어댑터가 재현한다.
-        if (isPaymentsV2Route(env, "prepare")
-          && request.method === "POST"
+        if (request.method === "POST"
           && url.pathname === "/api/payments/prepare") {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, {
@@ -1325,16 +1303,14 @@ export default {
           }));
         }
         // 결제 공개 설정 컷오버 — Mongo 0회 무인증 조회. 봉투는 구 handlePaymentConfig 와 동일.
-        if (isPaymentsV2Route(env, "config")
-          && request.method === "GET"
+        if (request.method === "GET"
           && url.pathname === "/api/payments/config") {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
-        // 이용권(구독) 컷오버 — prepare·confirm 을 subscription 이름 하나로 묶는다. 두 단계는 같은
-        // 주문 계약을 공유하므로 활성·되돌리기도 한 단위여야 한다(한쪽만 V2 면 주문 스킴이 갈린다).
-        if (isPaymentsV2Route(env, "subscription")
-          && request.method === "POST"
+        // 이용권(구독) — prepare·confirm 은 같은 주문 계약을 공유하므로 한 단위로 다룬다
+        // (한쪽만 V2 면 주문 스킴이 갈린다).
+        if (request.method === "POST"
           && (url.pathname === "/api/payments/subscription/prepare" || url.pathname === "/api/payments/subscription/confirm")) {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
@@ -1343,10 +1319,9 @@ export default {
       }
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
-        // 주문 발급 컷오버 — 구 /api/billing/checkout 은 prepare 를 위임 래핑({ok,data:{…,order}})해
-        // 답하던 경로라, 같은 어댑터를 billing 봉투로 마운트한다. 롤백은 env 에서 "checkout" 제거.
-        if (isPaymentsV2Route(env, "checkout")
-          && request.method === "POST"
+        // 주문 발급 — 구 /api/billing/checkout 은 prepare 를 위임 래핑({ok,data:{…,order}})해
+        // 답하던 경로라, 같은 어댑터를 billing 봉투로 마운트한다.
+        if (request.method === "POST"
           && url.pathname === "/api/billing/checkout") {
           const rewrittenCheckout = rewriteRequestPath(request, "/api/payments/prepare");
           const { handlePaymentsContext } = await import("./payments/index.js");
@@ -1355,10 +1330,9 @@ export default {
             legacyEnvelope: "billing-checkout",
           }));
         }
-        // 확정 컷오버 — 구 /api/billing/confirm 을 V2 confirmOrder 로. 구 /api/payments/confirm
+        // 확정 — 구 /api/billing/confirm 을 V2 confirmOrder 로. 구 /api/payments/confirm
         // (PointsClient 상점 경로)은 응답 계약이 달라 아직 구 핸들러에 남는다(별도 라우트 이름으로 후속).
-        if (isPaymentsV2Route(env, "confirm")
-          && request.method === "POST"
+        if (request.method === "POST"
           && url.pathname === "/api/billing/confirm") {
           const rewrittenConfirm = rewriteRequestPath(request, "/api/payments/confirm");
           const { handlePaymentsContext } = await import("./payments/index.js");
@@ -1366,46 +1340,33 @@ export default {
             prefix: "/api/payments",
           }));
         }
-        // 월정석 컷오버 — coin-gate 는 다중 결제수단 라우트라 paymentMode 를 본문에서 판별해
-        // MOONLIGHT_STONE 만 V2 로 보낸다(이용권 검사·deferred 는 구 로직 유지). clone 읽기라
-        // 원 요청 본문은 그대로 전달된다.
-        //
-        // 🔴 이 라우트만 PAYMENTS_V2_ROUTES 게이트가 없다(2026-08-12). 구 월정석은 lot 차감·원장·
-        // 권한을 startSession().withTransaction() 으로 묶는데 Atlas M0 에는 리플리카셋이 없어 세션이
-        // 아예 안 열린다 → 503 MONTHLY_ATOMIC_UNAVAILABLE, **재시도로 절대 성공하지 않는다**
-        // (worker/payments/moonstone.js 머리주석). 즉 allowlist 에서 "moonstone" 을 빼는 것은
-        // 롤백이 아니라 결제수단 중단이므로, 되돌릴 수 있는 척하는 게이트를 두지 않는다.
-        // 정말 되돌려야 하면 코드 롤백(PR revert)이다. 다른 라우트의 게이트는 그대로 둔다.
+        /* coin-gate 는 다중 결제수단 라우트라 본문의 paymentMode 로 갈래를 정한다. 월정석(MOONLIGHT_STONE)
+           과 이용권 검사(MEMBERSHIP_PASS)는 V2 가 정본이고, 나머지 모드(DIRECT_KRW·deferred 등)는 아래
+           구 billing 핸들러가 계속 답한다.
+
+           🔴 본문은 **여기서 한 번만** 읽는다(2026-08-13). 예전에는 두 갈래가 각자 clone().text() +
+           JSON.parse 를 해서 요청 하나에 clone 2회·parse 2회가 붙었고, 그 뒤 컨텍스트가 또 읽어 3회째였다.
+           결제 임계경로에서 같은 본문을 세 번 사는 비용이라 읽은 문자열을 bodyText 로 넘겨 재사용한다
+           (원 요청은 읽지 않은 채로 남아 구 핸들러 폴스루가 그대로 동작한다). */
         if (request.method === "POST"
           && url.pathname === "/api/billing/coin-gate") {
+          let coinGateBodyText = "";
           let coinGatePaymentMode = "";
           try {
-            const coinGateBodyText = await request.clone().text();
+            coinGateBodyText = await request.clone().text();
             coinGatePaymentMode = String(JSON.parse(coinGateBodyText || "{}")?.paymentMode || "").trim().toUpperCase();
           } catch { coinGatePaymentMode = ""; }
-          if (coinGatePaymentMode === "MOONLIGHT_STONE") {
-            const rewrittenMoonstone = rewriteRequestPath(request, "/api/payments/coin-gate/moonstone");
+          const coinGateV2Path = coinGatePaymentMode === "MOONLIGHT_STONE"
+            ? "/api/payments/coin-gate/moonstone"
+            : coinGatePaymentMode === "MEMBERSHIP_PASS"
+              ? "/api/payments/coin-gate/pass-check"
+              : "";
+          if (coinGateV2Path) {
+            const rewrittenCoinGate = rewriteRequestPath(request, coinGateV2Path);
             const { handlePaymentsContext } = await import("./payments/index.js");
-            return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenMoonstone, env, {
+            return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenCoinGate, env, {
               prefix: "/api/payments",
-            }));
-          }
-        }
-        // 이용권 검사 컷오버 — 같은 coin-gate 라우트의 MEMBERSHIP_PASS 분기만 V2 로 보낸다.
-        // 월정석과 별도 이름(pass-check)이라 한쪽만 켜고 끌 수 있다. 롤백은 env 에서 이름 제거.
-        if (isPaymentsV2Route(env, "pass-check")
-          && request.method === "POST"
-          && url.pathname === "/api/billing/coin-gate") {
-          let passGateMode = "";
-          try {
-            const passGateBodyText = await request.clone().text();
-            passGateMode = String(JSON.parse(passGateBodyText || "{}")?.paymentMode || "").trim().toUpperCase();
-          } catch { passGateMode = ""; }
-          if (passGateMode === "MEMBERSHIP_PASS") {
-            const rewrittenPassCheck = rewriteRequestPath(request, "/api/payments/coin-gate/pass-check");
-            const { handlePaymentsContext } = await import("./payments/index.js");
-            return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenPassCheck, env, {
-              prefix: "/api/payments",
+              bodyText: coinGateBodyText,
             }));
           }
         }
