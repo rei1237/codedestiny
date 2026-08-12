@@ -185,6 +185,7 @@
     "verify:security-hardening": "node scripts/verify-security-hardening.mjs",
     "verify:no-nested-retry": "node scripts/verify-no-nested-retry.mjs",
     "verify:mongo-reset-callers": "node scripts/verify-mongo-reset-callers.mjs",
+    "verify:entry-fanout": "node scripts/verify-entry-fanout.mjs",
     "verify:payment-freeze": "node scripts/verify-payment-freeze.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",

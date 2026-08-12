@@ -1655,19 +1655,41 @@ async function applyRpgAward(env, userId, kind, rawKey = "", expOverride = null)
    보내온 EXP는 상한을 두고, 서버 값보다 클 때만 반영한다(줄어드는 방향으로는 절대 덮어쓰지 않는다). */
 async function adoptLocalRpgProgress(request, env) {
   const auth = await requireAuth(request, env);
-  await connectDb(env);
-  await ensureRpgIndexes();
-
   const body = await readJson(request);
   const localTotalExp = Math.min(Math.max(0, toSafeNumber(body?.localTotalExp, 0)), AWARD_LOCAL_ADOPT_CAP);
   const localStreakDays = Math.max(0, toSafeNumber(body?.localStreakDays, 0));
   const localLongestStreakDays = Math.max(localStreakDays, toSafeNumber(body?.localLongestStreakDays, 0));
 
-  const progress = await withMongoRetry(env, () => loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE));
+  try {
+    return await runLocalRpgAdopt(env, auth.userId, localTotalExp, localStreakDays, localLongestStreakDays);
+  } catch (error) {
+    /* 일시적 DB 장애를 503 으로 터뜨리지 않는다. 이 호출은 사용자가 기다리는 동작이 아니라 로컬
+       EXP 를 계정으로 옮기는 배경 작업이고, 클라이언트(_cdLevelAdopt)는 실패를 삼키고 로컬 값을
+       그대로 쓴다 — /progress 와 같은 계약이다(위 RPG_PROGRESS_DEGRADED 참고).
+       🔴 여기만은 ok:false 여야 한다. /progress 는 읽기라 ok:true 로 degrade 해도 되지만 adopt 는
+       쓰기이므로, ok:true 를 주면 클라가 store.adopted 를 찍고 **실제로 옮겨지지 않은 EXP 를
+       영영 못 넘긴다**. 클라 가드(js/destiny-profile.js _cdLevelAdopt)가 이 필드를 본다. */
+    console.warn("[RPG][AdoptDegraded]", { message: String(error?.message || error || "") });
+    return json({
+      ok: false,
+      degraded: true,
+      code: "RPG_ADOPT_DEGRADED",
+      adopted: false,
+      progress: null,
+      message: "성장 기록을 잠시 옮기지 못했습니다.",
+    });
+  }
+}
+
+async function runLocalRpgAdopt(env, userId, localTotalExp, localStreakDays, localLongestStreakDays) {
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const progress = await withMongoRetry(env, () => loadRpgProgress(userId, ACCOUNT_PROFILE_SCOPE));
 
   try {
     await UserRpgRewardLog.create([{
-      userId: auth.userId,
+      userId,
       profileId: ACCOUNT_PROFILE_SCOPE,
       rewardType: "local_adopt",
       rewardKey: "v1",
@@ -1693,7 +1715,7 @@ async function adoptLocalRpgProgress(request, env) {
   const now = new Date();
 
   await withMongoRetry(env, () => UserRpgProgress.updateOne(
-    { userId: auth.userId, profileId: ACCOUNT_PROFILE_SCOPE },
+    { userId, profileId: ACCOUNT_PROFILE_SCOPE },
     {
       $set: {
         currentLevel: nextState.currentLevel,
@@ -1710,7 +1732,7 @@ async function adoptLocalRpgProgress(request, env) {
     },
   ));
 
-  invalidateRpgProgressCacheForUser(auth.userId);
+  invalidateRpgProgressCacheForUser(userId);
 
   return json({
     ok: true,

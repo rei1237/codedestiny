@@ -1700,6 +1700,15 @@
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
         }
         _dpPersistSessionUser(user);
+        // 🔴 이 응답의 profileSubscription 으로 이용권 스냅샷을 채운다. 예전에는 진입 직후 스냅샷이
+        // 비어 있어서 셸의 setTimeout(0) 워밍이 /api/subscription/status 를 한 번 더 냈는데, 그 응답은
+        // 여기 있는 것과 같은 users 문서의 같은 필드다. 셸이 없는 독립 정적 페이지에서도 같은 효과를
+        // 얻으려면 이쪽에도 있어야 한다(셸과 같은 저장키라 중복 호출이 아니라 같은 값의 재기록이다).
+        // degraded 응답은 tier:"free" 라 쓰면 이용권 보유자가 무료로 굳는다 — 반드시 걸러낸다.
+        if (payload.degraded !== true && payload.code !== 'AUTH_ME_DEGRADED'
+          && user.profileSubscription && typeof user.profileSubscription === 'object') {
+          try { _dpWriteSubscriptionSnapshot(user.profileSubscription, 'auth-me'); } catch (_) {}
+        }
       }
       _dpMarkSessionVerify(ok, userId);
       return ok;
@@ -6782,10 +6791,14 @@
         localLongestStreakDays: store.longestStreakDays
       })
     }, { timeoutMs: 8000 }).then(function(res) {
-      if (res && res.ok) {
+      // 🔴 res.ok 는 **HTTP 상태**다(_dpFetchJsonWithFallback: `ok: response.ok && !looksHtml`).
+      // 서버는 DB 일시 장애를 503 이 아니라 200 + {ok:false, degraded:true} 로 돌려주므로
+      // (worker/routes/rpg.js — /progress 와 같은 형태), HTTP 200 만 보고 adopted 를 찍으면
+      // 실제로는 이관되지 않은 로컬 EXP 를 **영영 못 넘긴다**. 본문 ok 까지 함께 본다.
+      if (res && res.ok && res.data && res.data.ok !== false) {
         store.adopted = true;
         _cdLevelWrite(store);
-        if (res.data && res.data.progress) _cdLevelApplyServer(res.data.progress);
+        if (res.data.progress) _cdLevelApplyServer(res.data.progress);
       }
       return res;
     }).catch(function() { return null; });
@@ -6794,7 +6807,14 @@
   /* 메인 홈은 트래픽이 가장 높은 화면이라 여기서 서버를 자주 부르면 그 자체가 부하가 된다.
      그래서 세 겹으로 막는다 — in-flight 병합, 60초 쿨다운, 그리고 같은 날 이미 맞췄으면 스킵.
      renderMasterCard()가 프로필 저장·전환·삭제마다 다시 불리는 것도 이 가드가 흡수한다.
-     읽는 값은 누적 EXP·스트릭 셋뿐이라 /status가 아니라 경량 /progress를 쓴다. */
+     읽는 값은 누적 EXP·스트릭 셋뿐이라 /status가 아니라 경량 /progress를 쓴다.
+
+     🔴 adopt 는 opts.adopt === true 일 때만 붙인다 — 홈 진입(idle)에서는 부르지 않는다.
+     /progress 는 서버 캐시 5초 + 실패 시 degraded 200 이라 싼 호출이지만, POST /api/rpg/adopt 는
+     캐시가 없고 인덱스 init 을 포함해 Mongo 4~5 왕복을 한다. 홈은 트래픽이 가장 높은 화면이라
+     그 무게가 콜드 아이솔레이트에서 공유 admission 레인을 포화시키는 팬아웃의 일부였다.
+     로컬 EXP 는 _cdLevelRead() 에 그대로 남고 store.adopted 플래그와 서버 rewardLog 가 1회성을
+     보장하므로, 레벨 UI 를 실제로 여는 시점까지 미뤄도 손실이 없다. */
   function _cdLevelSync(options) {
     var opts = options || {};
     if (!_dpIsLoggedInScope()) return Promise.resolve(null);
@@ -6804,7 +6824,8 @@
       if (_cdLevelRead().lastSyncedDate === _cdLevelKstDate(0)) return Promise.resolve(null);
     }
     _cdLevelSyncAt = Date.now();
-    _cdLevelSyncPromise = _cdLevelAdopt().then(function() {
+    var adoptStep = opts.adopt === true ? _cdLevelAdopt() : Promise.resolve(null);
+    _cdLevelSyncPromise = adoptStep.then(function() {
       return _dpFetchJsonWithFallback('/api/rpg/progress', { method: 'GET' }, { timeoutMs: 8000 });
     }).then(function(res) {
       if (res && res.ok && res.data && res.data.progress) {
@@ -7114,6 +7135,12 @@
   function _dpOpenLevelRewardSheet() {
     if (document.querySelector('.dp-lvlrw')) return;
     _dpEnsureLevelStyles();
+
+    // 🔴 로컬 EXP 를 서버로 넘기는 유일한 지점이다. 예전에는 홈 진입 idle 에서 무조건 돌았는데,
+    // POST /api/rpg/adopt 는 서버 캐시가 없고 Mongo 4~5 왕복이라 홈 팬아웃의 무게 대부분을
+    // 차지했다. 레벨 UI 를 실제로 여는 사용자에게만 붙인다 — _cdLevelSync 의 in-flight 병합·
+    // 60초 쿨다운·하루 1회 가드가 그대로 걸리므로 여기서 또 감싸지 않는다.
+    try { _cdLevelSync({ force: true, adopt: true }).then(function(res) { if (res) _dpRefreshLevelStrip(); }); } catch (_) {}
 
     var snap = _cdLevelSnapshot();
     var overlay = document.createElement('div');
