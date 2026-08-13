@@ -8663,7 +8663,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       .membership-recap-cta__point::before{content:'';display:inline-flex;align-items:center;justify-content:center;width:8px;height:8px;border-radius:999px;background:#F5DB9A;box-shadow:0 0 14px rgba(245,219,154,.52)}
       .membership-recap-cta__mascot{position:relative;width:100%;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:10px;padding:12px;border:none;border-radius:22px;background:linear-gradient(145deg,rgba(255,248,226,.11),rgba(159,122,234,.13) 46%,rgba(10,11,26,.38));box-shadow:inset 0 1px 0 rgba(240,238,232,.14),0 20px 44px rgba(4,5,18,.44),0 0 26px rgba(245,219,154,.12);cursor:pointer;backdrop-filter:blur(12px);overflow:hidden;text-align:left;text-decoration:none;color:inherit}
       .membership-recap-cta__mascot::before{content:'';position:absolute;inset:0;border-radius:22px;border:1px solid rgba(245,219,154,.38);box-shadow:inset 0 0 28px rgba(201,168,76,.08);pointer-events:none}
-      .membership-recap-cta__mascot-img{position:relative;z-index:1;display:block;width:100%;height:auto;aspect-ratio:91/64;min-width:0;object-fit:cover;object-position:center;background:#140d35;border-radius:18px;border:1px solid rgba(245,219,154,.46);box-shadow:0 18px 34px rgba(4,5,18,.46),0 0 0 1px rgba(240,238,232,.05),0 0 24px rgba(245,219,154,.14)}
+      .membership-recap-cta__mascot-img{position:relative;z-index:1;display:block;width:100%;height:auto;aspect-ratio:1/1;min-width:0;object-fit:cover;object-position:center;background:#140d35;border-radius:18px;border:1px solid rgba(245,219,154,.46);box-shadow:0 18px 34px rgba(4,5,18,.46),0 0 0 1px rgba(240,238,232,.05),0 0 24px rgba(245,219,154,.14)}
       .membership-recap-cta__mascot-copy{position:relative;z-index:1;display:grid;gap:7px;min-width:0;width:100%;max-width:100%;text-align:left;overflow:hidden}
       .membership-recap-cta__mascot-kicker{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-width:0;color:#F5DB9A;font-size:.68rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:anywhere;text-shadow:0 0 14px rgba(245,219,154,.22)}
       .membership-recap-cta__mascot-text{display:flex;align-items:center;justify-content:flex-start;width:100%;min-width:0;min-height:clamp(50px,12vw,58px);padding:11px 13px;border-radius:17px;border:1px solid rgba(245,219,154,.34);background:linear-gradient(135deg,rgba(10,11,26,.94),rgba(42,23,101,.72));color:#FFF7DA;font-size:clamp(.78rem,2.5vw,.88rem);font-weight:850;line-height:1.52;letter-spacing:0;white-space:normal;word-break:keep-all;overflow-wrap:break-word;box-shadow:0 12px 24px rgba(4,5,18,.34),inset 0 1px 0 rgba(240,238,232,.12);animation:membershipMascotPulse 2.2s ease-in-out infinite}
@@ -8689,6 +8689,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         .membership-recap-cta{max-width:1180px;margin:18px auto 18px!important;padding:24px}
         .membership-recap-cta__content{grid-template-columns:minmax(0,.92fr) minmax(390px,1.08fr);align-items:stretch}
         .membership-recap-cta__mascot{min-height:100%;align-content:start}
+        .membership-recap-cta__mascot-img{max-width:440px;margin-inline:auto}
       }
       @media (max-width: 860px){
         .honey-membership-mini__plans{grid-template-columns:1fr}
@@ -19149,7 +19150,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               </div>
             </div>
             <a class="membership-recap-cta__mascot" href="/points?source=main-membership" aria-label="문라이트 패스 혜택 보기 · 달빛 이용권 상점" data-cd-trans-attr="aria-label:home.passFooter.mascotAria">
-              <img class="membership-recap-cta__mascot-img" src="/icons/code-destiny-moonlight-pass.webp?v=build-049eb2634963" alt="문라이트 패스 혜택 이미지" data-cd-trans-attr="alt:home.passFooter.mascotAlt" data-retired-asset="membership-honey-kkulkkul.webp" width="1456" height="1024" loading="lazy" decoding="async">
+              <img class="membership-recap-cta__mascot-img" src="https://assets.code-destiny.com/cdn-cgi/image/width=640,quality=78,format=auto/%EB%AC%B8%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%ED%8C%A8%EC%8A%A4.webp" alt="문라이트 패스 혜택 이미지" data-cd-trans-attr="alt:home.passFooter.mascotAlt" data-retired-asset="membership-honey-kkulkkul.webp code-destiny-moonlight-pass.webp" width="1254" height="1254" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=&#39;https://assets.code-destiny.com/%EB%AC%B8%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%ED%8C%A8%EC%8A%A4.webp&#39;;">
               <span class="membership-recap-cta__mascot-copy">
                 <span class="membership-recap-cta__mascot-kicker" data-cd-trans data-key="home.passFooter.mascotKicker">Moonlight Pass Guide</span>
                 <span class="membership-recap-cta__mascot-text" data-cd-trans data-key="home.passFooter.mascotText">한 달에 몇 번, 얼마짜리를 보는지 — 그 두 가지만 정하면 맞는 범위가 나와요.</span>
