@@ -20,6 +20,17 @@
 /oracle/ifa/                   /ifa-oracle.html          301
 /oracle/ifa/*                  /ifa-oracle.html          301
 
+# 유명인 사주 상세의 중복 경로 제거 (2026-08-13)
+# 같은 인물 페이지가 /famous-saju/<slug> 와 /insights/famous-saju/<slug> 두 URL 로
+# 빌드되어 130개가 중복 크롤됐다. 정본은 insights 쪽이고 alias 는 이미 그쪽을
+# canonical 로 가리키고 있었으므로 라우트를 지우고 301 로 대체한다.
+# ⚠️ :slug 는 한 세그먼트만 매칭하므로 /famous-saju/category/<x>/ 를 삼키지 않는다.
+#    splat(*) 로 바꾸면 사이트맵에 있는 카테고리 12개가 리다이렉트로 사라진다.
+#    아래 category 규칙이 먼저 와야 /famous-saju/category/ (끝 세그먼트 없음)도 안전하다.
+/famous-saju/category/         /famous-saju/                        301
+/famous-saju/:slug             /insights/famous-saju/:slug/         301
+/famous-saju/:slug/            /insights/famous-saju/:slug/         301
+
 # 폐지된 React /me → 달빛 이용권 상점
 # 프로필 카드 관리가 정적 셸로 이관되며(bd54e99eb) /me 라우트가 빌드에서 사라졌다. 오리진은
 # 한동안 옛 HTML 을 200 으로 계속 내려줬지만(실측 Age: 5256, ?cdcb= 우회는 404) 그 캐시가

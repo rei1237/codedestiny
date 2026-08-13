@@ -31,6 +31,37 @@ Disallow: /mypage/private/
 Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
+# AdSense 크롤러. app/robots.ts 가 생성하는 /robots.txt 와 동일하게 유지한다
+# (이 정적 파일은 배포 산출물에서 생성본에 덮이는 폴백이지만,
+#  verify-sitemap-integrity 가 루트 robots.txt 를 읽어 disallow 충돌을 검사한다).
+User-agent: Mediapartners-Google
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /points/
+Disallow: /premium-unlock/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
 
 Host: code-destiny.com
 

@@ -2985,10 +2985,6 @@ export function getCelebrityRelatedList(celebrity: CelebritySajuSeed, limit = 6)
   return [...sameCategory, ...sameTags].slice(0, limit);
 }
 
-export function getPublishedCelebrityRoutes() {
-  return publishedCelebritySajuSeeds.map((item) => `/famous-saju/${item.slug}`);
-}
-
 export function getPublishedCelebrityStaticSlugs() {
   return getCelebrityStaticSlugs();
 }
