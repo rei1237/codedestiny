@@ -897,8 +897,12 @@ async function refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, req
   const userId = String(auth?.userId || "").trim();
   if (!userId) return { attempted: true, refundOk: false };
 
+  // monthlyCreditRefundedForUnlockFailure 는 이름과 달리 "이 환불은 유니크 키를 놓는다"는 계약 마커다
+  // (love-secret-ai.js 가 쓰는 관례). 이게 없으면 billing.js readIdempotentSpendResult 의 PointHistory
+  // 갈래가 환불된 이력을 "이미 결제됨"으로 되돌려, 재구매가 E11000 복구(=키 해제)에 도달조차 못 한다.
   const marker = {
     "metadata.monthlyCreditRefundedForServiceExecution": true,
+    "metadata.monthlyCreditRefundedForUnlockFailure": true,
     "metadata.monthlyCreditRefundedAt": new Date(),
     "metadata.serviceExecutionFailureMessage": String(error?.message || error || "").slice(0, 500),
     "metadata.serviceExecutionRequestId": String(requestId || "").slice(0, 120),
@@ -917,6 +921,9 @@ async function refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, req
         $set: {
           ...marker,
           "metadata.refundedForServiceExecution": true,
+          // 원장 쪽 키 해제 계약 표식 — releaseRefundedSpendSourceId(billing.js)가 이 표식으로만
+          // 환불 원장을 골라 sourceId 를 비운다. 없으면 같은 purchaseId 재구매가 영구 E11000 이다.
+          "metadata.refundedForUnlockFailure": true,
           "metadata.refundedAt": new Date(),
         },
       },
