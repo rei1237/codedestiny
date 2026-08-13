@@ -301,6 +301,8 @@ type RuntimeApiWindow = Window & {
       aborted?: boolean;
     }>;
     invalidateAccessDecision?: () => void;
+    // localStorage 로 지속되는 영구 해금 스냅샷의 동기 판정(js/core/access-store.js isUnlocked).
+    isUnlocked?: (featureKey: string) => boolean;
   };
   CODE_DESTINY_API_BASE_URL?: string;
   __CODE_DESTINY_RUNTIME_TARGET?: string;
@@ -3311,6 +3313,25 @@ function buildRecoverablePaymentEligibility(input: {
   };
 }
 
+/**
+ * 이미 영구 해금한 콘텐츠인가 — **동기·왕복 0회**.
+ *
+ * 정본은 access-store 의 localStorage 스냅샷(js/core/access-store.js isUnlocked)이고, 그 스냅샷은
+ * GET /api/me/access-state 로 채워진다(허용목록 없이 계정의 전 해금을 내려주는 유일한 엔드포인트).
+ * 셸에는 isTileKeyUnlocked 라는 같은 역할의 로컬 판정이 있는데 React 게이트에는 그게 없어서,
+ * 소유 확인을 서버 왕복 하나에만 의존하고 있었다 — 그 왕복이 꺼지는 조건이 하나라도 걸리면
+ * 이미 산 콘텐츠에 결제창이 떴다.
+ */
+function readAccessStoreUnlocked(featureKey: string): boolean {
+  const key = toText(featureKey);
+  if (!key || typeof window === "undefined") return false;
+  try {
+    return (window as RuntimeApiWindow).CodeDestinyAccessStore?.isUnlocked?.(key) === true;
+  } catch {
+    return false;
+  }
+}
+
 async function fetchPaymentEligibilityUncached(input: {
   productId?: string;
   serviceType?: string;
@@ -3928,13 +3949,19 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
     // "이미 해금한 콘텐츠인가"(access.canAccess)도 함께 답하는데, React 쪽에는 셸의 isTileKeyUnlocked 같은
     // 로컬 해금 상태가 없다. 빼 버리면 이미 구매한 콘텐츠를 다시 열 때 결제창이 뜬다. 회당 결제(per-use)는
     // 애초에 '이미 해금' 상태가 존재하지 않으므로 그대로 건너뛴다 — 전환 퍼널의 대부분이 여기 해당한다.
-    // 기존 스킵 조건은 그대로 두고 조건 하나만 더한다 — 이 변경은 왕복을 줄이기만 하고 늘리지 않는다.
     //
     // 남아 있는 unlock/pdf 조회는 결제창을 '막고' 기다리므로 상한을 짧게 유지한다
     // (GATE_PASS_PROBE_TIMEOUT_MS). 예산을 넘겨 null 이 되어도 '미커버'로 단정하지 않는다 —
     // 아래 런타임 게이트의 이용권 재검사가 그대로 살아 있다(지연을 미커버 근거로 쓰지 않는다).
     const mayBeAlreadyUnlocked = resolvePaidFeatureBillingType(input.featureKey || featureId) !== "per-use";
-    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || snapshotSaysNoPassFast || !mayBeAlreadyUnlocked
+    /* 🔴 소유는 **로컬 스냅샷에 먼저 묻는다**(왕복 0회). 이게 참이면 아래 조회 자체가 필요 없다. */
+    const ownedFromSnapshot = mayBeAlreadyUnlocked && readAccessStoreUnlocked(input.featureKey || featureId);
+    /* 🔴 snapshotSaysNoPassFast 를 스킵 조건에서 뺐다(2026-08-13).
+       그건 "이용권이 없다"는 판정인데, 여기 조회는 이용권만이 아니라 **이미 샀는가**(access.canAccess)도
+       함께 답한다. 이용권 없이 단건으로 산 사용자가 정확히 이 조건에 걸려, 재열람마다 결제창을 봤다.
+       스냅샷이 소유를 알면 위에서 이미 걸러졌으므로, 여기까지 오는 것은 스냅샷이 모르는 경우
+       (새 기기·시크릿창·저장소 삭제)뿐이고 그들에겐 이 조회가 유일한 구제 지점이다. */
+    const eligibilityResult = ownedFromSnapshot || explicitPaymentMode || snapshotPassServerCheckFirst || !mayBeAlreadyUnlocked
       ? null
       : await fetchPaymentEligibility(eligibilityInput, { phase: "full", timeoutMs: GATE_PASS_PROBE_TIMEOUT_MS }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
@@ -3944,7 +3971,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
     // 끝난 뒤에 또 뜨는 그 화면이 정확히 이것이다. 미커버가 확정된 순간 할 일은 결제창을 여는 것뿐이므로
     // 중간 대기 UI를 없앤다(이용권 선검사 자체와 그 확인 화면은 그대로 유지된다).
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
-    const accessAlreadyGranted = eligibility?.access.canAccess === true;
+    const accessAlreadyGranted = ownedFromSnapshot || eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || (!passDisabled && eligibility?.pass.canUse === true);
     const passAccessEligible = !passDisabled && (explicitPassMode || snapshotPassServerCheckFirst || eligibility?.pass.canUse === true);
     console.log("[이용권 체크]", {
