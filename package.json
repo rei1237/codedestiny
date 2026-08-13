@@ -199,6 +199,7 @@
     "verify:pass-recovery-path": "node scripts/verify-pass-recovery-path.mjs",
     "verify:static-paid-gate-failsafe": "node scripts/verify-static-paid-gate-failsafe.mjs",
     "verify:saju-fun-content-gate": "node scripts/verify-saju-fun-content-gate.mjs",
+    "verify:hour-pillar-parity": "node scripts/verify-hour-pillar-parity.mjs",
     "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:profile-card-add-entry": "node scripts/verify-profile-card-add-entry.mjs",

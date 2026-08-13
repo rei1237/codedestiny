@@ -226,8 +226,10 @@ function normalizeGender(value) {
 function normalizeHourPillarTimePolicy(value) {
   const text = String(value || "").trim().toUpperCase();
   if (text === HOUR_PILLAR_TIME_POLICIES.KST_CLOCK_TIME) return HOUR_PILLAR_TIME_POLICIES.KST_CLOCK_TIME;
-  if (text === HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME) return HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME;
-  return HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME;
+  if (text === HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME) return HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME;
+  // 기본값은 평균태양시(경도 보정만). 균시차(±16분)까지 더하면 시지 경계가 밀려
+  // 정적 셸(js/saju-engine.js)·모던 엔진(localSajuCalculator.ts)과 시주가 갈린다.
+  return HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME;
 }
 
 function normalizeDayChangePolicy(value) {
@@ -955,7 +957,11 @@ export function buildSajuProfile(rawPerson) {
       policy: hourPillarTimePolicy,
       clockTimeKst: solarToDateTimeKstString(solarClock),
       longitudeCorrectionMinutes: Math.round(correctedClock.longitudeCorrectionMinutes * 1000) / 1000,
-      equationOfTimeMinutes: Math.round(correctedClock.equationOfTimeMinutes * 1000) / 1000,
+      // 균시차는 TRUE_SOLAR_TIME 일 때만 실제로 더해진다. 안 쓴 값을 그대로 실어 보내면
+      // 보정 내역을 읽는 쪽이 적용된 것으로 오해한다(이 착시가 시주 불일치 신고의 원인이었다).
+      equationOfTimeMinutes: hourPillarTimePolicy === HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME
+        ? Math.round(correctedClock.equationOfTimeMinutes * 1000) / 1000
+        : 0,
       correctedDateTime: solarToDateTimeKstString(correctedSolar),
     },
     policies: {

@@ -5,6 +5,7 @@ import Module from "node:module";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { Solar, Lunar } from "lunar-javascript";
+import { loadTsModule } from "./lib/load-ts-module.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -121,24 +122,6 @@ function loadKasiEngineModule() {
   return sandbox.window.KasiEngine || sandbox.module.exports.KasiEngine;
 }
 
-function loadTsModule(relativePath) {
-  const fullPath = path.join(root, relativePath);
-  const source = fs.readFileSync(fullPath, "utf8");
-  const compiled = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2020,
-      esModuleInterop: true,
-    },
-    fileName: fullPath,
-  }).outputText;
-  const mod = new Module(fullPath);
-  mod.filename = fullPath;
-  mod.paths = Module._nodeModulePaths(path.dirname(fullPath));
-  mod._compile(compiled, fullPath);
-  return mod.exports;
-}
-
 function shiftDatePartsByDays(year, month, day, dayOffset) {
   const shifted = new Date(Date.UTC(year, month - 1, day) + dayOffset * 86400000);
   return { year: shifted.getUTCFullYear(), month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
@@ -248,6 +231,11 @@ function runLocalCase(input) {
     hasTime: true,
     calendarType: "solar",
     timezone: "Asia/Seoul",
+    // 이 파일의 고정 명식들은 시각 보정 정책이 아니라 절기·십성·형충·대운 로직을 검증한다.
+    // 런타임 기본값(평균태양시)이 바뀌어도 고정 명식이 흔들리지 않도록 보정 없는 시계로 못박고,
+    // 보정 자체를 검증하는 케이스만 명시로 정책/플래그를 넘긴다.
+    // 세 엔진의 보정 정책 일치는 scripts/verify-hour-pillar-parity.mjs 가 따로 본다.
+    ...(input.useTrueSolarTime || input.hourPillarTimePolicy ? {} : { hourPillarTimePolicy: "KST_CLOCK_TIME" }),
     ...input,
   });
 }

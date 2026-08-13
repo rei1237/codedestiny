@@ -440,7 +440,7 @@ export default function NamingAiClient() {
             gender: form.gender,
             timezone: form.timezone,
             birthPlace: form.birthPlace,
-            hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+            hourPillarTimePolicy: "LOCAL_MEAN_TIME",
             dayChangePolicy: "MIDNIGHT",
             birth: {
               year,

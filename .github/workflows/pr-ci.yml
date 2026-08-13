@@ -96,6 +96,13 @@ jobs:
       - name: Verify mobile detail wrapper is non-intrusive
         run: npm run verify:mobile-detail-nonintrusive
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 시주를 세는 엔진이 런타임별로 3벌인데(정적 셸 / 워커 /
+      # 앱 라우터) 앱 라우터 엔진만 고치면 티어가 standard 라 critical 잡이 통째로 스킵된다 —
+      # 즉 거기 두면 세 벌 중 하나가 조용히 갈라지는 경로를 못 잡는다. 세 엔진을 실제로 돌려
+      # 같은 시주가 나오는지 보는 검사이고 네트워크 없이 5초면 끝난다.
+      - name: Verify hour pillar parity across saju engines
+        run: npm run verify:hour-pillar-parity
+
       # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
       # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
       - name: Verify guard wiring
