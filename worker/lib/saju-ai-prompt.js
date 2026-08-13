@@ -20,8 +20,85 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = 200;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v5";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v6";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
+
+// ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
+//
+// 🔴 한 번의 호출로 1만자 이상을 요구하면 모델이 6천자 근처에서 스스로 멈춘다. 예산을 늘려
+//    해결할 수도 없다 — FEATURE_AI_LLM_BUDGET_MS(80s)는 엣지 응답 데드라인(100s)에서 뒤처리
+//    20s를 뺀 값이라 이미 상한이고, gemini-2.5-flash 는 비스트리밍 ~200tok/s 다.
+//    그래서 벽시계를 늘리지 않고 분량만 늘리는 유일한 길이 그룹 병렬이다
+//    (같은 결론의 선례: worker/routes/astrology-ai.js, worker/routes/life-book-ai.js).
+//
+// 🔴 title 문자열은 서버 검증(SAJU_AI_REQUIRED_CHAPTER_PATTERNS)과 클라이언트 렌더러
+//    (js/saju-engine.js `_sajuPromptChapterTitle`)가 함께 보는 계약이다. 한 글자도 바꾸지 말 것 —
+//    바꾸면 렌더러가 전 챕터를 '핵심 상담' 하나로 뭉갠다.
+export const SAJU_AI_SECTION_GROUPS = Object.freeze([
+  Object.freeze({
+    key: "answer_core",
+    label: "질문에 대한 답과 명식의 중심",
+    chapters: Object.freeze([
+      Object.freeze({ no: 1, title: "질문에 대한 핵심 답변" }),
+      Object.freeze({ no: 2, title: "이 명식의 중심 성향" }),
+    ]),
+    minChars: 3000,
+    maxChars: 4600,
+    guide: "사용자의 질문에 첫 문단에서 바로 답한 뒤, 이 명식이 반복시키는 중심 성향과 그것이 삶에서 드러나는 장면을 풀어 주세요.",
+  }),
+  Object.freeze({
+    key: "structure_reading",
+    label: "십성 구조와 오행 균형",
+    chapters: Object.freeze([
+      Object.freeze({ no: 3, title: "십성 구조 해석" }),
+      Object.freeze({ no: 4, title: "오행 균형 해석" }),
+    ]),
+    minChars: 3000,
+    maxChars: 4600,
+    guide: "확정표에 적힌 십성만 써서 구조를 읽고, 오행의 과한 곳과 부족한 곳이 일상에서 어떻게 함께 드러나는지 이어 주세요.",
+  }),
+  Object.freeze({
+    key: "life_domains",
+    label: "현재 고민과 생활 영역별 리듬",
+    chapters: Object.freeze([
+      Object.freeze({ no: 5, title: "현재 고민과 명식의 연결" }),
+      Object.freeze({ no: 6, title: "일/돈/관계/연애/건강 리듬" }),
+    ]),
+    minChars: 3200,
+    maxChars: 4800,
+    guide: "지금의 고민을 명식의 어느 자리가 만들고 있는지 짚고, 일·돈·관계·연애·건강 다섯 영역의 리듬을 각각 구체적 장면으로 보여 주세요.",
+  }),
+  Object.freeze({
+    key: "strategy_action",
+    label: "패턴과 전략, 실천과 마무리",
+    chapters: Object.freeze([
+      Object.freeze({ no: 7, title: "조심해야 할 패턴" }),
+      Object.freeze({ no: 8, title: "살리는 전략" }),
+      Object.freeze({ no: 9, title: "30일 실천 가이드" }),
+      Object.freeze({ no: 10, title: "마지막 한마디" }),
+    ]),
+    minChars: 3000,
+    maxChars: 4600,
+    guide: "반복되는 손해 패턴을 먼저 짚고, 그것을 뒤집는 전략과 30일 안에 실제로 해볼 행동으로 좁힌 뒤, 마지막 한마디로 따뜻하지만 가볍지 않게 닫아 주세요.",
+  }),
+]);
+
+/**
+ * 그룹 하나의 LLM 출력 상한. charsAllowedByTokens(9600) ≈ 6,400자로 그룹 maxChars(4,400)를
+ * 2,000자 덮는다 — 소제목·줄바꿈 몫과 토크나이저 오차를 흡수하는 완충이다.
+ * (같은 값의 선례: worker/routes/astrology-ai.js ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS)
+ */
+export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 9600;
+
+/**
+ * 조립본의 유료 배달 하한. 그룹 minChars 합(12,200)의 약 74%다
+ * (인생의 책 80% / 자미두수 55% 사이).
+ *
+ * 🔴 이 값은 "배달을 막는 문턱"이 아니라 "웨이브2를 돌게 만드는 신호"다. 미달이어도 기존
+ *    경량 보장(렌더 가능 텍스트 ≥400자 salvage)이 그대로 결과를 전달하므로 환불률을 올리지
+ *    않는다. salvage 를 지우면 이 상수가 곧바로 환불 문턱으로 돌변한다.
+ */
+export const SAJU_AI_MIN_RESULT_CHARS = 9000;
 
 export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
   career: Object.freeze({
@@ -2115,7 +2192,7 @@ export function buildSajuAIPromptWithDomain({
     "아래 제공된 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다.",
     "LLM은 십성/오행/천간/지지 관계를 직접 계산하지 말고, 제공된 내부 계산값만 근거로 상담문을 작성합니다.",
     "상담문은 질문에만 짧게 답하지 말고 명식 전체의 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 포함합니다.",
-    "고정 글자수를 채우려 하지 말고, 선택 카테고리의 상담 품질 기준을 빠짐없이 다뤄 완성된 유료 상담문처럼 마무리합니다.",
+    "선택 카테고리의 상담 품질 기준을 빠짐없이 다뤄 완성된 유료 상담문처럼 마무리합니다.",
     ...categoryRubricLines,
     "",
     factCard,
