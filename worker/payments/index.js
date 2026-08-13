@@ -28,7 +28,7 @@ import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
-import { grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
+import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
 import { runPaymentReconcile } from "./reconcile.js";
@@ -891,6 +891,7 @@ const ROUTES = {
              뒤로 미루면 다시 열 때마다 월정석이 또 빠져 재열람이 반복 과금이 된다.
              grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복이 늘지 않고, 재열람은 차감·원장
              기록을 통째로 건너뛰므로 **더 빨라진다**(왕복 6회 → 2회). */
+          let grantedIdentity = null;
           if (unlock) {
             const granted = await grantEntitlement(db, {
               userId, product, orderId: requestId, profileId,
@@ -900,9 +901,26 @@ const ROUTES = {
               alreadyUnlocked = true;
               return { balance: null, replayed: true, ledgerId: "" };
             }
-            await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+            grantedIdentity = granted.identity;
           }
-          return spendMoonstone(db, { userId, product, purchaseId: requestId, profileId });
+          /* 🔴 차감이 실패하면 위에서 만든 지급을 되돌린다. withPaymentDb 는 트랜잭션이 아니라
+             (worker/payments/db.js) 아무도 대신 걷어 주지 않는다 — 이게 없으면 **잔액이 부족해
+             402 를 받은 사용자에게 영구 해금이 그대로 남아** 재진입이 무료가 된다.
+             spendMoonstone 은 자기 원장 예약을 스스로 지우므로(moonstone.js) 여기서 되돌릴 것은
+             권한뿐이다. */
+          let result;
+          try {
+            result = await spendMoonstone(db, { userId, product, purchaseId: requestId, profileId });
+          } catch (error) {
+            if (grantedIdentity) {
+              await dropEntitlementByIdentity(db, { userId, identity: grantedIdentity, orderId: requestId });
+            }
+            throw error;
+          }
+          /* 🔴 계정 해금 목록은 **차감이 끝난 뒤에** 적는다. 실패했을 때 $pull 로 되돌리면 카드 결제 등
+             다른 경로로 얻은 같은 featureKey 까지 지우게 되므로, 애초에 늦게 쓰는 쪽이 맞다. */
+          if (unlock) await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+          return result;
         });
       } catch (error) {
         // 레거시 오류 계약 — 코드·필드가 셸의 재시도(409)·재제안(402)·월정석 옵션 비활성 판정에 걸려 있다.
@@ -1006,22 +1024,30 @@ const ROUTES = {
            🔴 지급은 **여기 한 번뿐**이다. 소유 확인을 앞으로 옮긴 리팩터가 뒤쪽 지급 쌍을 지우지 않아
            한동안 같은 upsert + $addToSet 가 예산 차감 뒤에 한 번 더 돌았다 — 결과는 같지만 unlock 형
            이용권 검사마다 왕복 2회를 그냥 버렸다. 뒤에 다시 넣지 말 것. */
+        let grantedIdentity = null;
         if (unlock) {
           const granted = await grantEntitlement(db, {
             userId, product, orderId: requestId, profileId,
             contentKey: body.contentKey, scope: body.scope, source: "PASS",
           });
           if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
-          await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+          grantedIdentity = granted.identity;
         }
 
         const updated = await consumePassCoverage(db, {
           userId, coverage, marker, existingMarkers: markers,
         });
         if (!updated) {
-          // CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계한다.
+          /* CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계하되,
+             🔴 위에서 만든 지급은 반드시 되돌린다 — 남기면 예산을 못 깎고도 영구 해금이 성립해
+             그 다음 진입이 무료가 된다(월정석 경로와 같은 결함). */
+          if (grantedIdentity) {
+            await dropEntitlementByIdentity(db, { userId, identity: grantedIdentity, orderId: requestId });
+          }
           return { coverage: { covered: false, reason: "pass_access_conflict", tier: coverage.tier }, entitlement };
         }
+        // 계정 해금 목록은 예산 차감이 확정된 뒤에 적는다($pull 로 되돌리면 다른 경로의 권한까지 지운다).
+        if (unlock) await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
         // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
         //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
         await recordPassUsageEvidence(db, { userId, product, requestId, profileId, coverage, user: updated });

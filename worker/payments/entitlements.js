@@ -166,6 +166,32 @@ export async function markUserFeatureUnlocked(db, { userId, featureKey, now = ne
 }
 
 /**
+ * 🔴 **차감 실패 보상 전용.** 방금 이 요청이 만든 지급을 없던 일로 되돌린다.
+ *
+ * 환불이 아니다 — 환불은 revokeEntitlementForOrder(상태만 REFUNDED) 를 쓴다. 여기서 상태 변경이
+ * 아니라 **삭제**인 이유는 grantEntitlement 의 alreadyOwned 판정이 status 가 아니라 **문서 존재
+ * 여부**이기 때문이다(위 findOneAndUpdate 의 returnDocument:"before"). 남겨 두면 다음 시도가
+ * alreadyOwned=true 로 접혀 차감 없이 무료로 열린다 — 고치려던 문제가 더 나빠진다.
+ *
+ * orderId 를 필터에 함께 거는 것이 안전장치다. 호출부는 alreadyOwned===false 인 경우에만 부르므로
+ * 그 문서의 orderId 는 이번 요청의 것이고, 동시에 들어온 다른 주문이 만든 문서는 지우지 않는다.
+ */
+export async function dropEntitlementByIdentity(db, { userId, identity, orderId }) {
+  const uid = toUserIdString(userId);
+  const order = clean(orderId, 160);
+  if (!uid || !identity || !order) return false;
+  const result = await db.deleteOne(ContentEntitlement, {
+    userId: uid,
+    profileId: identity.profileId,
+    serviceKey: identity.serviceKey,
+    contentKey: identity.contentKey,
+    scope: identity.scope,
+    orderId: order,
+  });
+  return Number(result?.deletedCount || 0) === 1;
+}
+
+/**
  * 환불 시 권한 회수. 문서를 지우지 않고 상태만 바꾼다 —
  * 사용자가 무엇을 언제 샀다가 환불했는지는 남아야 하고, 다시 사면 같은 문서가 되살아난다.
  */

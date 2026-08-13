@@ -63,6 +63,25 @@ async function postMoonstone(db, requestId) {
 }
 
 const ledgerCount = (db) => db.rows.filter((row) => row.type === "MONTHLY_CREDIT_SPEND").length;
+const entitlementCount = (db) => db.rows.filter((row) => row.grantType === "permanent_unlock").length;
+
+function seedBrokeUser(db) {
+  const user = {
+    _id: USER,
+    points: 0,
+    unlockedFeatures: [],
+    paidFeatures: [],
+    profileSubscription: {
+      membershipCreditBalance: 0,
+      membershipCreditGranted: 0,
+      membershipCreditUsed: 0,
+      membershipCreditLotsVersion: 0,
+      membershipCreditLots: [],
+    },
+  };
+  db.rows.push(user);
+  return user;
+}
 
 test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 다시 깎지 않는다", async () => {
   if (!UNLOCK_ITEM) return;
@@ -88,6 +107,34 @@ test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 
   expect(ledgerCount(db)).toBe(ledgerAfterPurchase);
   // 재열람은 차감·원장을 건너뛰므로 왕복이 확 준다(= 더 빠르다).
   expect(second.ops).toBeLessThan(first.ops);
+});
+
+/**
+ * 🔴 위 규칙의 뒷면. "한 번 결제하면 계속 열린다"는 **결제가 실제로 일어났을 때만** 성립한다.
+ *
+ * 지급(grantEntitlement)이 차감보다 먼저 일어나는데 차감이 실패하면, 되돌리지 않는 한 사용자는
+ * 402 를 받고도 영구 해금을 갖는다 — 잔액 0 인 계정이 유료 콘텐츠를 무료로 여는 경로다.
+ * withPaymentDb 는 트랜잭션이 아니므로 아무도 대신 걷어 주지 않는다.
+ */
+test("🔴 월정석 잔액이 부족하면 해금이 남지 않는다 — 402 를 받고 무료로 열리면 안 된다", async () => {
+  if (!UNLOCK_ITEM) return;
+  const db = makeFakePaymentDb();
+  const user = seedBrokeUser(db);
+
+  const denied = await postMoonstone(db, "broke-attempt-1");
+  expect(denied.response.status).toBe(402);
+  expect(denied.payload.code).toBe("INSUFFICIENT_MONTHLY_CREDITS");
+
+  // 지급이 남아 있으면 다음 진입이 무료가 된다. 권한·해금목록·원장 어디에도 흔적이 없어야 한다.
+  expect(entitlementCount(db)).toBe(0);
+  expect(user.unlockedFeatures || []).not.toContain(UNLOCK_ITEM.featureKey);
+  expect(user.paidFeatures || []).not.toContain(UNLOCK_ITEM.featureKey);
+  expect(ledgerCount(db)).toBe(0);
+
+  // 새 requestId 로 다시 눌러도 alreadyUnlocked 무료 경로로 접히지 않는다.
+  const retry = await postMoonstone(db, "broke-attempt-2");
+  expect(retry.response.status).toBe(402);
+  expect(entitlementCount(db)).toBe(0);
 });
 
 test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해금 증빙은 그대로 싣는다", async () => {
