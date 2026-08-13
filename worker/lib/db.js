@@ -1017,6 +1017,11 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   // bufferCommands:false 때문에 그 순간 살아 있던 **부팅 트래픽만 통째로 죽는다**. 결제 기아를
   // 없애려다 기아의 원인 쪽을 절단하는 셈이다. 레인의 회복은 resetPaymentConnection() 이 맡는다.
   const ownsSharedConnection = options.skipSharedConnect !== true;
+  /* 🔴 선택적 계측 싱크. 호출부가 객체를 주면 성공한 시도의 admission/connect/op 소요를 채운다.
+     안 주면 아무 것도 하지 않는다 — 이 함수는 전 라우트가 지나므로 기본 경로에 비용을 얹지 않는다.
+     같은 값을 이미 [db-op-timeout] 로그가 계산하고 있는데(아래 catch) 그건 **타임아웃일 때만**이라,
+     "느린데 성공하는" 요청은 여전히 durationMs 한 덩어리로만 보였다. 그 공백을 메우는 것이 목적이다. */
+  const timings = options.timings && typeof options.timings === "object" ? options.timings : null;
 
   let lastError = null;
   // 🔴 admission 거절(MongoOperationOverloadedError)은 아래 재시도 루프 **이전**에 던져져 willRetry
@@ -1028,15 +1033,20 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   // 대기자가 재진입하면 진짜 지속 포화에서 대기열 압력만 두 배가 된다 — 순간 버스트를 흡수하는
   // 장치이지 용량을 늘리는 장치가 아니다.
   let releaseMongoOpSlot;
+  const admissionStartedAt = Date.now();
   try {
     releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
   } catch (admissionError) {
     if (options.retryAdmissionOnOverload !== true || admissionError?.name !== "MongoOperationOverloadedError") {
+      if (timings) timings.admissionMs = Date.now() - admissionStartedAt;
       throw admissionError;
     }
     await sleep(150 + Math.floor(Math.random() * 150));
     releaseMongoOpSlot = await acquireMongoOperationSlot(env, options);
+    if (timings) timings.admissionRetried = true;
   }
+  // 지터·2차 획득까지 포함한 실제 대기. 이 대기는 attempt 타이머 밖이라 attemptMs 에 안 잡힌다.
+  if (timings) timings.admissionMs = Date.now() - admissionStartedAt;
   const pendingAttemptTasks = new Set();
   let admissionReleased = false;
   let operationFinalized = false;
@@ -1092,6 +1102,12 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         if (ownsSharedConnection) {
           pendingPoolReset = false;
           consecutiveConnectionFailures = 0;
+        }
+        if (timings) {
+          // [db-op-timeout] 이 실패 때 쓰는 것과 같은 두 경계값이다(새 계산식을 만들지 않는다).
+          timings.attempts = attempt + 1;
+          timings.connectMs = connectFinishedAt ? connectFinishedAt - attemptStartedAt : 0;
+          timings.opMs = connectFinishedAt ? Date.now() - connectFinishedAt : Date.now() - attemptStartedAt;
         }
         return result;
       } catch (error) {

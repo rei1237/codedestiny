@@ -519,6 +519,24 @@
     }
   }
 
+  /**
+   * 🔴 이 응답의 해금 목록을 **정본으로 믿어도 되는가.**
+   *
+   * 서버는 Mongo 가 흔들려도 200 으로 답한다(worker/routes/fortune.js buildDbFallbackBalance,
+   * worker/lib/access-state.js degraded). 그때 실려 오는 빈 목록은 "아무것도 안 샀다"가 아니라
+   * "지금은 모른다"인데, 아래 persistentUnlocks 통째 교체가 그걸 구분하지 않으면 **이미 산 콘텐츠가
+   * 잠긴 것으로 바뀌고 결제창이 다시 뜬다.** 모를 때는 알던 것을 지우지 않는다.
+   */
+  function payloadCarriesUnlockAuthority(payload) {
+    if (!payload || typeof payload !== 'object') return false;
+    var source = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+    if (String(source.unlocksAuthority || '').trim().toLowerCase() === 'none') return false;
+    if (String(source.authority || '').trim().toLowerCase() === 'none') return false;
+    if (String(source.completeness || '').trim().toLowerCase() === 'degraded') return false;
+    if (source.degraded === true) return false;
+    return true;
+  }
+
   function applyServerPayload(payload, context) {
     var serverUnlocks = extractUnlockMap(payload);
     Object.keys(serverUnlocks).forEach(function (key) { state.confirmedUnlocks[key] = true; });
@@ -527,7 +545,12 @@
     Object.keys(state.optimistic).forEach(function (key) {
       if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
     });
-    state.persistentUnlocks = copyMap(serverUnlocks);
+    if (payloadCarriesUnlockAuthority(payload)) {
+      state.persistentUnlocks = copyMap(serverUnlocks);
+    } else {
+      // 권위 없는 응답: 알려 준 해금만 더하고, 알던 것은 그대로 둔다.
+      Object.keys(serverUnlocks).forEach(function (key) { state.persistentUnlocks[key] = true; });
+    }
     state.optimistic = Object.keys(state.optimistic).reduce(function (accumulator, key) {
       if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) accumulator[key] = state.optimistic[key];
       return accumulator;

@@ -2282,6 +2282,21 @@
     }
   }
 
+  /* 이 파일의 로컬 해금 기록(cd_tile_locks_v2)은 **결제 성공 시에만** 쓰이고 서버에서 채워지는
+     경로가 없다. 그래서 새 기기·저장소 삭제 후에는 이미 산 콘텐츠도 잠금으로 보였다.
+     access-store 는 GET /api/me/access-state 로 채워지는 계정 전체 해금 스냅샷을 갖고 있고
+     판정이 동기(localStorage)라 왕복이 없다 — 로컬 기록이 모를 때 여기에 한 번 더 묻는다. */
+  function _dpIsUnlockedByAccessStore(aliasKeys) {
+    try {
+      var store = window.CodeDestinyAccessStore;
+      if (!store || typeof store.isUnlocked !== 'function') return false;
+      for (var i = 0; i < aliasKeys.length; i += 1) {
+        if (store.isUnlocked(aliasKeys[i]) === true) return true;
+      }
+    } catch (_accessStoreError) {}
+    return false;
+  }
+
   function _dpIsFeatureLocked(lockKey) {
     if (!_dpHasAuthToken()) return true;
 
@@ -2294,6 +2309,8 @@
         break;
       }
     }
+
+    if (!unlocked && _dpIsUnlockedByAccessStore(aliases)) unlocked = true;
 
     if (!unlocked && String(lockKey || '') === 'flower-fc') {
       var required = (_DP_FEATURE_LOCKS.flower && _DP_FEATURE_LOCKS.flower.extraUnlockKeys) || [];
@@ -10341,10 +10358,46 @@
     }, { passive: true });
   }
 
+  /* 독립 정적 페이지(셸 밖)에는 access-store 가 없어서, 이 파일의 로컬 해금 기록만으로 잠금을
+     판정했다 — 새 기기·저장소 삭제 후에는 이미 산 콘텐츠도 잠금으로 보였고, 소유를 확인할 방법이
+     결제 게이트를 열어 coin-gate 를 쏘는 것뿐이었다. 여기서 한 번만 스토어를 세워
+     _dpIsUnlockedByAccessStore 가 답을 갖게 한다. 실패해도 기존 동작 그대로다(전부 catch). */
+  var _dpAccessStoreBootstrapped = false;
+  function _dpBootstrapAccessStore() {
+    if (_dpAccessStoreBootstrapped) return;
+    _dpAccessStoreBootstrapped = true;
+    try {
+      if (!_dpHasAuthToken()) return;
+      var hydrate = function() {
+        try {
+          var store = window.CodeDestinyAccessStore;
+          if (!store || typeof store.ensureLoaded !== 'function') return;
+          var profileId = String(_dpResolvePaidGateProfileId() || '');
+          if (!profileId) return;
+          Promise.resolve(store.ensureLoaded({
+            profileId: profileId,
+            authenticated: true,
+            reason: 'destiny-profile-unlock-hydrate'
+          })).catch(function() {});
+        } catch (_hydrateError) {}
+      };
+      /* 셸 안에서 로드된 경우 스토어는 이미 있고 하이드레이션도 셸이 소유한다
+         (_cdShouldFetchSajuAccessUnlocks). 여기서 또 부르면 같은 조회를 두 주인이 트리거한다. */
+      if (window.CodeDestinyAccessStore) return;
+      var script = document.createElement('script');
+      script.src = '/js/core/access-store.js';
+      script.async = true;
+      script.onload = hydrate;
+      script.onerror = function() {};
+      document.head.appendChild(script);
+    } catch (_bootstrapError) {}
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() { init(); _dpBootstrapAccessStore(); });
   } else {
     init();
+    _dpBootstrapAccessStore();
   }
 
   /* 외부 노출 */

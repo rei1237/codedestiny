@@ -2223,6 +2223,8 @@ async function handleBalance(auth, env) {
       walletCreated: false,
       message: "Payment value initialized with safe default.",
       user: userPayload(auth, 0, []),
+      // 인증은 됐는데 사용자 문서를 못 읽은 상태다 — 빈 목록을 소유 판정 근거로 쓰면 안 된다.
+      unlocksAuthority: "none",
       unlockedFeatures: [],
       unlockMap: {},
     });
@@ -2266,6 +2268,10 @@ function buildDbFallbackBalance(auth, error) {
       code: error?.code || "DB_FALLBACK",
     },
     user: userPayload(auth, points, []),
+    /* 🔴 아래 빈 목록은 "아무것도 안 샀다"가 아니라 "지금은 모른다"이다. 이 봉투는 200 이라
+       클라이언트가 그대로 소유 판정에 쓰면 이미 산 콘텐츠에 결제창을 다시 띄운다.
+       이 표식을 보는 쪽은 빈 목록을 근거로 잠금을 그리지 않는다(js/core/access-store.js). */
+    unlocksAuthority: "none",
     unlockedFeatures: [],
     unlockMap: {},
   });
