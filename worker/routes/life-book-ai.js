@@ -1028,7 +1028,13 @@ export function getDefaultSystemPrompt() {
    options.variant 로 고른 장의 프롬프트를 만든다. */
 export function buildAdminLabPrompt(body = {}, options = {}) {
   // 분야는 프로덕션에서 사용자가 화면에서 고르는 값이라 랩에서는 기본값으로 채운다.
-  const normalized = normalizeConsultationInput({ focusArea: "overall", ...body });
+  // 이 기능의 "질문"은 상담 주제(topic)로 들어간다 — 프롬프트 안에서 그 이름으로 쓰인다.
+  const question = String(body?.question || "").trim();
+  const normalized = normalizeConsultationInput({
+    focusArea: "overall",
+    ...body,
+    ...(question ? { topic: question } : {}),
+  });
   if (!normalized.ok) {
     throw new Error(normalized.message || "인생의 책 프롬프트에 필요한 입력이 부족합니다.");
   }

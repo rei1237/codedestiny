@@ -67,11 +67,22 @@ export async function buildPromptLabResult(key, body = {}, options = {}) {
   const systemPrompt = String(built?.systemPrompt || "");
   const prompt = String(built?.prompt || "");
 
+  /* 질문을 받아 놓고 아무 데도 안 쓰면 운영자는 "입력했는데 왜 그대로지?" 만 남는다.
+     기능마다 질문 슬롯이 있는지 다르므로(리포트·장 단위 기능은 아예 없다) 손으로 표시하지 않고
+     실제 결과에 질문이 들어갔는지 보고 판정한다. 조립기를 늘려도 이 판정은 그대로 맞는다. */
+  const askedQuestion = String(body?.question || "").trim();
+  const questionUsed = Boolean(askedQuestion) && prompt.includes(askedQuestion);
+
   // 시스템·사용자 프롬프트가 모두 비면 화면에 보여 줄 것이 없다 — 조립 실패로 본다.
   if (!systemPrompt.trim() && !prompt.trim() && !Array.isArray(built?.variants)) {
     const error = new Error("프롬프트 본문을 만들지 못했습니다.");
     error.code = "PROMPT_BODY_EMPTY";
     throw error;
+  }
+
+  const notes = Array.isArray(built?.notes) ? [...built.notes] : [];
+  if (askedQuestion && !questionUsed) {
+    notes.push("이 기능의 프롬프트에는 질문이 그대로 실리지 않습니다 — 장·섹션 단위로 쓰거나(리포트형), 질문을 인용하지 않고 답변 방향만 잡도록 설계된 기능입니다.");
   }
 
   return {
@@ -81,6 +92,7 @@ export async function buildPromptLabResult(key, body = {}, options = {}) {
     partialReason: String(built?.partialReason || ""),
     variantKey: String(built?.variantKey || ""),
     variants: Array.isArray(built?.variants) ? built.variants : [],
-    notes: Array.isArray(built?.notes) ? built.notes : [],
+    notes,
+    questionUsed,
   };
 }

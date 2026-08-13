@@ -249,11 +249,25 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const modes = Object.keys(MODE_SYSTEM_PROMPTS);
   const mode = modes.includes(options.variant) ? options.variant : modes[0];
 
+  // 질문은 프로덕션에서 concern 으로 들어가 buildFortuneQuestionFocus 가 답변 프레임을 만든다.
+  // 체계는 하나만 고를 수 있으므로(어댑터 우선순위 계약) 미리보기는 사주로 고정한다.
+  const previewCategory = "saju";
+  let prompt = "";
+  try {
+    const built = buildGuardianFortunePrompt({
+      input: { mode, concern: body?.question || "", topic: "daily" },
+      context: { inputSummary: { mode, topic: "daily", category: previewCategory } },
+    });
+    prompt = String(built?.userPrompt || "");
+  } catch (error) {
+    prompt = "";
+  }
+
   return {
     systemPrompt: buildGuardianSystemPrompt(mode),
-    prompt: "",
+    prompt,
     partial: true,
-    partialReason: "사용자 프롬프트는 서버가 계산한 체계별 구조화 근거를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    partialReason: `계산 근거 칸은 비어 있습니다 — 실제 상담에서는 서버가 계산한 체계별 구조화 근거가 들어갑니다. 미리보기 체계는 ${previewCategory} 고정입니다.`,
     variantKey: mode,
     variants: modes.map((key) => ({ key, label: key === "yeoni" ? "연이" : "네오" })),
   };

@@ -846,11 +846,23 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const methods = Object.keys(NEO_EXPERT_PERSONA);
   const method = methods.includes(options.variant) ? options.variant : methods[0];
 
+  // 이 기능은 사용자 질문을 프롬프트 안에서 직접 인용한다("neoOpening 의 첫 두 문장 안에서
+  // question 을 직접 짚는다"). 계산 요약은 비워 두고 질문이 들어간 실제 프롬프트를 만든다.
+  const prompt = buildNeoOperationRoomInitialPrompt(
+    {
+      selectedMethod: method,
+      topic: body?.topic || "",
+      question: body?.question || "",
+      birthInfo: { birthTimeUnknown: Boolean(body?.birthTimeUnknown) },
+    },
+    {},
+  );
+
   return {
     systemPrompt: NEO_EXPERT_PERSONA[method],
-    prompt: "",
+    prompt,
     partial: true,
-    partialReason: "섹션별 사용자 프롬프트는 계산된 체계 요약 데이터를 입력으로 받습니다. 체계별 페르소나(시스템 프롬프트)만 표시합니다.",
+    partialReason: "[계산 요약 데이터] 칸은 비어 있습니다 — 실제 상담에서는 선택한 체계의 계산 결과가 들어갑니다. 질문과 지시문은 프로덕션과 같습니다.",
     variantKey: method,
     variants: methods.map((key) => ({ key, label: key })),
     notes: NEO_DOMAIN_COVERAGE[method] ? [`${method} 근거 범위: ${NEO_DOMAIN_COVERAGE[method]}`] : [],

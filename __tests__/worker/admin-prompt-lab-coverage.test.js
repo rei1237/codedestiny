@@ -65,6 +65,15 @@ describe("프롬프트 랩 레지스트리", () => {
     }
   });
 
+  /* 운영자가 어느 운세를 고르든 질문을 적을 수 있어야 한다. 질문 칸이 없으면 그 기능은
+     "프롬프트를 뽑아 보는" 용도로 반쪽이 된다. 화면은 이 선언만 보고 칸을 그린다. */
+  test("모든 서비스가 질문 입력을 받는다", () => {
+    const missing = ADMIN_PROMPT_LAB_SERVICES
+      .filter((service) => !service.inputs.includes("question"))
+      .map((service) => service.key);
+    expect(missing).toEqual([]);
+  });
+
   // 로더만 있고 레지스트리에 없으면 화면 셀렉트에 안 뜬다 — 만들어 놓고 못 쓰는 상태가 된다.
   test("로더 키가 전부 레지스트리에 선언돼 있다", () => {
     for (const key of listPromptLabLoaderKeys()) {
@@ -103,6 +112,27 @@ describe("프롬프트 랩 조립기", () => {
         expect(result.partialReason.trim().length).toBeGreaterThan(0);
       } else {
         expect(result.prompt.trim().length).toBeGreaterThan(0);
+      }
+    },
+    BUILD_TIMEOUT_MS,
+  );
+
+  /* 질문을 받아 놓고 조용히 버리면 운영자는 알 수 없다. 조립기가 질문을 실제로 실었는지
+     결과에서 판정해 돌려주므로, 그 판정이 사실과 맞는지 본다. */
+  test.each(LOADER_SERVICES.map((service) => [service.key]))(
+    "%s 는 질문 반영 여부(questionUsed)를 사실대로 보고한다",
+    async (key) => {
+      const marker = "제가올해이직해도될까요";
+      const result = await buildPromptLabResult(
+        key,
+        { ...PROFILE, ...(EXTRA_BODY[key] || {}), question: marker },
+        { env: {} },
+      );
+
+      expect(result.questionUsed).toBe(result.prompt.includes(marker));
+      // 안 실렸다면 왜 그런지 화면에 띄울 안내가 있어야 한다.
+      if (!result.questionUsed) {
+        expect(result.notes.length).toBeGreaterThan(0);
       }
     },
     BUILD_TIMEOUT_MS,
