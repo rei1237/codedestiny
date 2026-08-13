@@ -35,10 +35,6 @@ export const metadata: Metadata = {
     description: PAGE_DESCRIPTION,
     images: [siteSeo.defaultOgImage],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
 };
 
 const newYearFaqItems = [
