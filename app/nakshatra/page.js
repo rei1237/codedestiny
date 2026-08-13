@@ -30,7 +30,6 @@ export const metadata = {
     description: page.description,
     images: [NAKSHATRA_OG_IMAGE],
   },
-  robots: { index: true, follow: true },
 };
 
 export default function NakshatraLandingPage() {

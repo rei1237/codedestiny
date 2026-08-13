@@ -55,7 +55,6 @@ export function generateMetadata({ params }: { params: { index: string } }) {
       siteName: "Code Destiny",
       images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: title }],
     },
-    robots: { index: true, follow: true },
   };
 }
 
