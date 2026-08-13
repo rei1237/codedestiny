@@ -9,6 +9,7 @@ import {
   buildWebPageJsonLd,
 } from "../../lib/structured-data";
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
+import SeoLandingBirthForm from "./SeoLandingBirthForm";
 
 const DEFAULT_FAQS = [
   {
@@ -227,6 +228,28 @@ export default function SeoLandingTemplate({ page }) {
           <p className="mt-7 max-w-[62ch] break-keep text-[1.02rem] leading-[1.9] text-[rgba(244,238,255,0.88)] [text-wrap:pretty]">
             {page.intro || page.description}
           </p>
+          {/* 생년 입력이 있는 허브는 CTA 링크 대신 폼이 그 자리를 맡는다 — 검색으로 들어온
+              사람이 첫 화면에서 산문이 아니라 도구를 만나게 하는 것이 이 섹션의 목적이다.
+              해설 본문은 그대로 서버 렌더되므로 배포 게이트의 분량 기준에는 영향이 없다. */}
+          {page.heroForm ? (
+            <>
+              <SeoLandingBirthForm
+                heading={page.heroForm.heading}
+                submitLabel={page.ctaLabel || copy.defaultCta}
+                submitHref={page.ctaHref || "/"}
+                fields={page.heroForm.fields}
+              />
+              <div className="mt-5">
+                <Link
+                  href={guideHref}
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[rgba(232,213,163,0.5)] px-7 text-[0.94rem] font-semibold text-[#e8d5a3] transition-[background-color,border-color] duration-200 ease-out hover:border-[rgba(232,213,163,0.72)] hover:bg-[rgba(232,213,163,0.08)] ${FOCUS_RING}`}
+                >
+                  <BookOpenText className="h-4 w-4" aria-hidden="true" />
+                  {guideLabel}
+                </Link>
+              </div>
+            </>
+          ) : (
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href={page.ctaHref || "/"}
@@ -243,6 +266,7 @@ export default function SeoLandingTemplate({ page }) {
               {guideLabel}
             </Link>
           </div>
+          )}
         </header>
 
         {/* 세 덩어리는 성격이 다르다 — 순서(사용 방법), 목록(제공 결과), 각주(면책).
