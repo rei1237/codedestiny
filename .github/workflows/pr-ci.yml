@@ -29,6 +29,7 @@ permissions:
   contents: read
   checks: read
   statuses: read
+  pull-requests: read
 
 jobs:
   classify:
@@ -65,6 +66,43 @@ jobs:
           node scripts/lib/change-risk.mjs --self-test
           node scripts/resolve-ci-tier.mjs --self-test
           node scripts/resolve-ci-tier.mjs
+
+  # 🔴 스택 PR 을 부모(→main)부터 머지하면 자식의 머지 커밋은 목적지를 잃은 브랜치로 들어간다.
+  # GitHub 은 자식을 "Merged" 로 칠하지만 그 커밋은 main 의 조상이 아니고, 아무 신호도 남지
+  # 않는다. 전수조사에서 그렇게 좌초한 PR 이 9건 나왔고 복구 PR 을 세 번 만들었다(#591·#593·#600).
+  # 사고는 전부 부모가 자식보다 12~16초 먼저 머지되며 일어났다 — 사람이 조심해서 막을 간격이 아니다.
+  #
+  # 그래서 순서를 기계로 고정한다: 자식이 열려 있는 동안 부모는 머지되지 않는다. 스택은 바닥
+  # 브랜치에 전부 쌓인 뒤 main 으로 한 번에 들어가므로 경합 구간 자체가 사라진다.
+  #
+  # 자식을 부모 브랜치에 머지하면 그것이 곧 부모 PR 의 head 갱신이라 부모 PR 에 synchronize 가
+  # 발생해 이 검사가 자동으로 다시 돈다. 자식을 머지 없이 닫았을 때만 수동 재실행이 필요하다.
+  #
+  # classify 에 의존하지 않는다 — 티어와 무관하게 항상 돌아야 하고, 먼저 끝날수록 좋다.
+  landing-order:
+    name: Landing order
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse to merge a parent before its stacked children
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PR_HEAD_REF:-}" ]; then
+            echo "::notice::PR 컨텍스트가 없어 착지 순서를 검사하지 않습니다."
+            exit 0
+          fi
+          children=$(gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&base=${PR_HEAD_REF}&per_page=100" \
+            --jq '.[] | "  - #\(.number) \(.title)"')
+          if [ -z "$children" ]; then
+            echo "이 브랜치(${PR_HEAD_REF})를 base 로 하는 열린 PR 이 없습니다. 지금 머지해도 좌초하지 않습니다."
+            exit 0
+          fi
+          echo "::error::이 PR 을 먼저 머지하면 아래 PR 들의 머지 커밋이 main 에 도달하지 못합니다. 아래를 먼저 머지하세요."
+          echo "$children"
+          exit 1
 
   fast:
     name: Typecheck and lint
@@ -195,6 +233,7 @@ jobs:
           npm run verify:worker-single-deploy
           npm run verify:pages-worker-parity-test
           npm run verify:deployed-sha -- --self-test
+          npm run verify:merge-landed-test
 
       - name: Verify ads.txt is present
         if: needs.classify.outputs.runs_critical == 'true'

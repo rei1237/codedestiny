@@ -42,9 +42,27 @@ async function verifyCanonicalWorkflow() {
   // 머지해도 아무것도 배포되지 않고, 그 상태는 "배포가 조용히 안 된다"로만 드러난다.
   assert(/^\s+push:/m.test(triggers), `${canonicalWorkflow} must deploy on push to main; that merge is the only production trigger.`);
   assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(triggers), `${canonicalWorkflow} push trigger must be limited to the main branch.`);
-  // PR 이벤트에서 배포하면 머지 전 코드가 프로덕션에 나간다. 스케줄 배포는 사람이 시작하지
-  // 않은 릴리스라 어느 커밋이 왜 나갔는지 아무도 모른다.
-  assert(!/^\s+(pull_request|schedule|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on pull_request, schedule, or workflow_call.`);
+  // PR 이벤트에서 배포하면 머지 전 코드가 프로덕션에 나간다. workflow_call 을 열면 아무
+  // 워크플로나 릴리스를 부를 수 있게 된다. 둘 다 예외 없이 금지다.
+  assert(!/^\s+(pull_request|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on pull_request or workflow_call.`);
+  // 🔴 2026-08-14: schedule 은 조건부 허용으로 바뀌었다(이전에는 전면 금지였다).
+  //
+  // 금지했던 이유는 "사람이 시작하지 않은 릴리스라 어느 커밋이 왜 나갔는지 모른다" 였는데,
+  // 그 사이 정반대 방향의 사고가 더 잦았다 — concurrency 그룹이 대기 런을 취소해 **머지가
+  // 배포로 이어지지 않는데 아무 신호도 없는** 경우가 최근 60런 중 8건이었다.
+  //
+  // 그래서 규칙을 없애는 대신 좁혔다. 스케줄 릴리스는 드리프트 게이트를 통과해야만 도달할 수
+  // 있고, 게이트는 "프로덕션이 main HEAD 와 다른가"만 본다. 즉 나가는 커밋은 **항상 main
+  // HEAD**이고 이유는 "push 릴리스가 실패했거나 취소됐다" 하나뿐이다. 어느 커밋이 왜 나갔는지
+  // 모르는 상태가 아니다.
+  //
+  // 게이트 없이 schedule 만 남으면 원래 금지하려던 그 상황이 되므로 배선을 함께 강제한다.
+  if (/^\s+schedule:/m.test(triggers)) {
+    assert(/^\s{2}gate:/m.test(workflow), `${canonicalWorkflow} has a schedule trigger, so it must define the drift gate job.`);
+    assert(/--check=drift/.test(workflow), `${canonicalWorkflow} gate must decide with the drift check, not deploy unconditionally.`);
+    assert(/needs:\s*gate/.test(workflow), `${canonicalWorkflow} release job must depend on the drift gate.`);
+    assert(/if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(workflow), `${canonicalWorkflow} release job must only run when the gate says production needs this commit.`);
+  }
   assert(workflow.includes("CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}"), `${canonicalWorkflow} must target the configured Worker.`);
   assert(workflow.includes("npm run deploy:safe -- --ci --preview-only"), `${canonicalWorkflow} must offer a preview-only run.`);
   assert(workflow.includes("npm run deploy:safe -- --ci --yes"), `${canonicalWorkflow} must use the integrated SHA release command.`);
@@ -186,7 +204,16 @@ function runSelfTest() {
   assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(releaseTriggers), "release fixture must limit push to main");
   assert(!/^\s+push:/m.test(deploymentTriggerBlock(dispatchOnly)), "dispatch-only fixture must be detected as missing the push trigger");
   assert(!/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(deploymentTriggerBlock(pushAnyBranch)), "a multi-branch push trigger must not satisfy the main-only rule");
-  assert(/^\s+(pull_request|schedule|workflow_call):/m.test(deploymentTriggerBlock(prTriggered)), "pull request trigger fixture should be detected");
+  assert(/^\s+(pull_request|workflow_call):/m.test(deploymentTriggerBlock(prTriggered)), "pull request trigger fixture should be detected");
+
+  // 게이트 없는 스케줄 배포는 여전히 막혀야 한다 — 그게 원래 이 규칙이 지키려던 것이다.
+  const scheduleOnly = `on:\n  push:\n    branches: [main]\n  schedule:\n    - cron: "*/20 * * * *"\n  workflow_dispatch:\n\njobs:\n  release:\n    runs-on: ubuntu-latest\n`;
+  const scheduleGated = `${scheduleOnly}    needs: gate\n    if: needs.gate.outputs.proceed == 'true'\n  gate:\n    steps:\n      - run: node x.js --check=drift\n`;
+  const gateWired = (text) =>
+    /^\s{2}gate:/m.test(text) && /--check=drift/.test(text) && /needs:\s*gate/.test(text) && /if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(text);
+  assert(/^\s+schedule:/m.test(deploymentTriggerBlock(scheduleOnly)), "schedule fixture should be detected");
+  assert(!gateWired(scheduleOnly), "a schedule trigger without the drift gate must be rejected");
+  assert(gateWired(scheduleGated), "a schedule trigger wired to the drift gate must be accepted");
 
   assert(runsWranglerDeployDirectly("npx wrangler deploy --config worker/wrangler.toml"), "a raw worker deploy script should be detected");
   assert(runsWranglerDeployDirectly("npx wrangler versions upload --config worker/wrangler.toml"), "a raw versions upload script should be detected");

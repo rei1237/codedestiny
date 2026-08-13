@@ -8,9 +8,18 @@ name: Release Cloudflare Pages and Worker
 # 배포 기준은 머지된 main 커밋의 정확한 SHA(`github.sha`) 하나이고, Pages 와 Worker 는 그 하나의
 # 체크아웃에서 함께 나간다. 두 시스템이 서로 다른 코드를 가리키는 상태가 결제·인증 사고의
 # 실제 원인이었기 때문에, 배포 후 양쪽 런타임에서 SHA 를 다시 읽어 대조한다.
+#
+# 🔴 schedule 이 붙어 있는 이유 — 머지가 배포로 이어지지 않는 구간이 실제로 존재한다.
+# concurrency 그룹은 실행 1 + 대기 1 만 유지하므로, 연속 머지 시 **대기 중이던 런이 취소된다**
+# (최근 60런 중 8건). 취소된 런은 잡이 시작조차 안 해서 PR 코멘트도 메일도 없다.
+# 2026-08-12 에는 8건 연속 머지 동안 성공한 배포가 0건이었고 프로덕션이 46분간 옛 SHA 에 머물렀다.
+# 20분마다 "프로덕션이 main HEAD 인가"를 확인해 아니면 스스로 수렴한다. 취소·[skip ci]·
+# 일시적 실패가 어떤 조합으로 오든 최대 20분 뒤에는 복구된다.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "*/20 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -41,8 +50,62 @@ permissions:
   pull-requests: write
 
 jobs:
+  # 릴리스가 정말 필요한지 먼저 싼 값에 판정한다.
+  #
+  # 20분 주기가 매번 npm ci + build:cf 를 돌면 하루 72회의 낭비가 된다. 이 잡은 curl 2회와
+  # git 만 쓰므로, 드리프트가 없으면 30초 안에 릴리스 전체를 건너뛴다.
+  #
+  # 🔴 판정 실패 시 방향이 이벤트마다 다르다.
+  #   push·수동 실행 — 사람이 의도한 배포다. 판정하지 않고 통과시킨다(fail open).
+  #                    여기서 막으면 정상 머지가 배포되지 않는, 고치려던 바로 그 문제가 된다.
+  #   schedule       — 판정하지 못하면 배포하지 않는다(fail closed). 20분 뒤 다시 온다.
+  gate:
+    name: Resolve release necessity
+    if: github.event_name != 'workflow_dispatch' || inputs.mode != 'rollback'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      proceed: ${{ steps.decide.outputs.proceed }}
+    steps:
+      - name: Checkout release SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Decide whether production needs this commit
+        id: decide
+        env:
+          CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+        run: |
+          set -uo pipefail
+          if [ "${GITHUB_EVENT_NAME}" != "schedule" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${GITHUB_EVENT_NAME} 이벤트 — 드리프트 판정 없이 배포합니다."
+            exit 0
+          fi
+          # 얕은 체크아웃이라 origin/main 이 없다. HEAD 가 곧 main tip 이다.
+          if ! OUT=$(node scripts/verify-merge-landed.mjs --check=drift --json --base=HEAD --origin="${CD_PRODUCTION_ORIGIN}"); then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::드리프트를 판정하지 못했습니다. 이번 주기는 건너뜁니다."
+            exit 0
+          fi
+          DRIFTED=$(printf '%s' "$OUT" | jq -r '.drifted // "error"')
+          if [ "${DRIFTED}" = "true" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::프로덕션이 main HEAD 와 다릅니다. 자동으로 재배포합니다."
+          else
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "프로덕션이 main HEAD 와 같습니다. 배포할 것이 없습니다."
+          fi
+
   release:
-    if: github.event_name == 'push' || inputs.mode != 'rollback'
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -66,7 +129,9 @@ jobs:
       CD_ALLOW_EMPTY_CHANGESET: "true"
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
-      RELEASE_MODE: ${{ github.event_name == 'push' && 'production' || inputs.mode }}
+      # schedule 은 push 와 같은 취급이다 — 드리프트가 확인됐을 때만 여기까지 오고,
+      # 그때 필요한 것은 정확히 프로덕션 승격이다.
+      RELEASE_MODE: ${{ (github.event_name == 'push' || github.event_name == 'schedule') && 'production' || inputs.mode }}
 
     steps:
       # 🔴 push 이벤트에서 actions/checkout 은 github.sha 를 그대로 꺼낸다. 브랜치 이름이나
@@ -173,8 +238,14 @@ jobs:
 
       # 🔴 배포 성공 여부와 "떠 있는 코드가 이번 커밋인가"는 다른 질문이다. Pages 와 Worker
       # 양쪽 런타임에서 SHA 를 직접 읽어 대조한다. 하나라도 다르면 릴리스는 실패다.
+      #
+      # 🔴 !cancelled() 인 이유: 승격이 실패하면 deploy-safe 가 Pages 와 Worker 를 자동
+      # 롤백하는데, 이 스텝이 건너뛰어지면 **롤백 뒤 실제로 떠 있는 SHA 가 어디에도 기록되지
+      # 않는다.** 그러면 다음 사람은 프로덕션이 어느 커밋인지 알 방법이 없다.
+      # continue-on-error 를 붙이지 않는 것도 의도다 — 붙이면 "배포는 됐는데 다른 코드가 떠
+      # 있다"를 통과시키게 된다. 실패 경로에서는 잡이 이미 빨간불이라 결과가 달라지지 않는다.
       - name: Verify deployed SHA on Pages and Worker
-        if: env.RELEASE_MODE == 'production'
+        if: ${{ !cancelled() && env.RELEASE_MODE == 'production' }}
         run: |
           npm run verify:deployed-sha -- \
             --sha="${GITHUB_SHA}" \

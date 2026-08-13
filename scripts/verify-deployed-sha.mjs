@@ -17,7 +17,15 @@
  *
  * 기존 scripts/verify-pages-worker-parity.mjs 는 "Worker 가 Pages 커밋과 같은가"만 본다.
  * 여기서는 기대 SHA(=이번에 머지된 main 커밋)를 바깥에서 주입해 **양쪽 모두**를 대조한다.
+ *
+ * 🔴 이 파일은 다른 스크립트가 import 하는 모듈이기도 하다(verify-merge-landed.mjs 가
+ * readProductionShas 를 쓴다). 그래서 맨 아래 main() 호출에 엔트리포인트 가드가 있다 —
+ * 가드를 빼면 import 하는 순간 main() 이 돌아 "기대 SHA 가 필요합니다"로 던지고
+ * process.exitCode = 1 을 남긴다. 부르는 쪽은 자기가 실패한 줄 알게 된다.
  */
+
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DEFAULT_ORIGIN = "https://code-destiny.com";
 const DEFAULT_ATTEMPTS = 6;
@@ -52,7 +60,7 @@ export function readShaFromPayload(payload) {
   return normalizeSha(payload?.gitSha || payload?.commit || payload?.commitShort || "");
 }
 
-async function fetchSha(url) {
+export async function fetchSha(url) {
   const response = await fetch(url, {
     headers: { Accept: "application/json", "Cache-Control": "no-store" },
     cache: "no-store",
@@ -89,6 +97,52 @@ async function verifyTarget(label, url, expected, attempts, delayMs) {
   return { ok: false, actual: last };
 }
 
+/**
+ * "지금 프로덕션에 떠 있는 것은 무엇인가"를 한 번 읽는다.
+ *
+ * verifyTarget() 과 재시도의 의미가 다르다. 저쪽은 기대 SHA 가 나타날 때까지 전파를 기다리지만,
+ * 여기서는 **불일치가 곧 답**이라 기다릴 이유가 없다. 그래서 네트워크 실패에만 재시도한다.
+ * 드리프트 감시가 "잠깐 기다리면 맞겠지" 하고 늘어지면 감시의 의미가 없어진다.
+ */
+export async function readProductionShas({
+  origin = DEFAULT_ORIGIN,
+  skipWorker = false,
+  attempts = 2,
+  delayMs = 5_000,
+} = {}) {
+  const base = String(origin || DEFAULT_ORIGIN).replace(/\/+$/, "");
+  const read = async (url) => {
+    let error = "";
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return { sha: await fetchSha(url), error: null };
+      } catch (cause) {
+        error = cause.message;
+        if (attempt < attempts) await sleep(delayMs);
+      }
+    }
+    return { sha: null, error };
+  };
+
+  return {
+    origin: base,
+    pages: await read(`${base}/version.json`),
+    worker: skipWorker ? { sha: null, error: null, skipped: true } : await read(`${base}/api/version`),
+  };
+}
+
+/**
+ * 직접 실행인가, import 인가. win32 는 호출 경로에 따라 드라이브 문자 대소문자가 달라진다.
+ */
+function isEntrypoint() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const self = fileURLToPath(import.meta.url);
+  const invoked = resolve(entry);
+  if (invoked === self) return true;
+  return process.platform === "win32" && invoked.toLowerCase() === self.toLowerCase();
+}
+
 function selfTest() {
   const cases = [
     [shaMatches("abcdef1234567890", "abcdef1234567890"), true, "동일한 전체 SHA 는 일치"],
@@ -106,10 +160,25 @@ function selfTest() {
     [argValue("sha", ["--sha=abc123"]) === "abc123", true, "--sha=값 형식"],
     [argValue("sha", ["--sha", "abc123"]) === "abc123", true, "--sha 값 형식"],
     [argValue("sha", []) === "", true, "인자가 없으면 빈 문자열"],
+    [typeof fetchSha === "function", true, "fetchSha 는 재사용 가능하게 export 된다"],
+    [typeof readProductionShas === "function", true, "readProductionShas 는 재사용 가능하게 export 된다"],
+    // self-test 는 직접 실행으로만 도달하므로 여기서는 항상 참이어야 한다.
+    [isEntrypoint(), true, "직접 실행이면 엔트리포인트로 인식한다"],
   ];
   for (const [actual, expected, label] of cases) {
     if (actual !== expected) throw new Error(`self-test 실패: ${label}`);
   }
+
+  // 🔴 반대 방향이 진짜로 지켜야 할 쪽이다. 다른 스크립트가 이 모듈을 import 하면
+  // argv[1] 은 그 스크립트가 되고, 그때 main() 이 돌면 부르는 쪽이 exit 1 을 뒤집어쓴다.
+  const realEntry = process.argv[1];
+  try {
+    process.argv[1] = resolve("scripts", "some-other-script.mjs");
+    if (isEntrypoint()) throw new Error("self-test 실패: import 경로를 엔트리포인트로 오인한다");
+  } finally {
+    process.argv[1] = realEntry;
+  }
+
   console.log("[verify-deployed-sha] self-test passed");
 }
 
@@ -149,7 +218,9 @@ async function main() {
   console.log(`[verify-deployed-sha] PASS: Pages 와 Worker 모두 ${expected.slice(0, 12)} 입니다.`);
 }
 
-main().catch((error) => {
-  console.error(`[verify-deployed-sha] FAIL: ${error.message}`);
-  process.exitCode = 1;
-});
+if (isEntrypoint()) {
+  main().catch((error) => {
+    console.error(`[verify-deployed-sha] FAIL: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
