@@ -65,6 +65,32 @@ describe("신원 키는 결정적이다", () => {
   test("featureKey 가 없으면 만들지 않는다", () => {
     expect(() => resolveEntitlementIdentity({})).toThrow(PaymentError);
   });
+
+  /* 🔴 serviceKey 는 featureKey 로 접지 않고 정본 유도표(worker/lib/content-unlocks.js
+     resolvePaidContentServiceKey)를 따른다. featureKey 로 접던 동안 V2 가 쓴 행은 리더가
+     ["sukuyo"]/["ziwei"]/["saju"] 로 필터해 영영 못 찾았다 — 결제해도 계속 잠긴 상태.
+     레포에 serviceKey === featureKey 로 조회하는 리더는 하나도 없다. */
+  describe("serviceKey 는 정본 유도표를 따른다", () => {
+    test.each([
+      ["sukyo_yearly_fortune_unlock", "sukuyo"],
+      ["ziwei_decade_luck", "ziwei"],
+      ["section_daewun", "saju"],
+      ["premium-fpti-report", "fpti"],
+    ])("%s → %s", (featureKey, expected) => {
+      expect(resolveEntitlementIdentity({ featureKey }).serviceKey).toBe(expected);
+    });
+
+    test("호출부가 serviceKey 를 명시하면 그것이 이긴다", () => {
+      const identity = resolveEntitlementIdentity({ featureKey: "sukyo_yearly_fortune_unlock", serviceKey: "custom" });
+      expect(identity.serviceKey).toBe("custom");
+    });
+
+    test("🔴 매핑 없는 기능은 건드리지 않는다 — paid_content 로 뭉뚱그리지 않는다", () => {
+      // resolvePaidContentServiceKey 를 fallback 없이 부르면 여기서 "paid_content" 가 나온다.
+      // 그러면 이미 지급된 모든 미매핑 권한의 신원이 통째로 이동해 백필 범위가 폭발한다.
+      expect(resolveEntitlementIdentity({ featureKey: "master-love-codex" }).serviceKey).toBe("master-love-codex");
+    });
+  });
 });
 
 describe("지급은 멱등이다", () => {

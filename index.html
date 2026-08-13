@@ -24096,6 +24096,13 @@ return you.name.restore();</span>
       provider: 'PORTONE_V2',
       pg: 'KG_INICIS',
       featureKey: directFeatureKey,
+      // 🔴 contentKey 를 흘려보내지 않으면 /api/payments/prepare 가 빈 contentKey 로 주문을 만들고,
+      // 확정 시 지급되는 권한이 featureKey 로 접힌다. 연도별 상품(숙요 1년운 sukyo_yearly_fortune_unlock:2026)은
+      // 그 순간 조회 키와 어긋나 "결제했는데 계속 잠김"이 된다. 형제 게이트(_cdRunMonthlyCreditGate)는
+      // 이미 같은 형태로 넘기고 있었고 단건 경로만 빠져 있었다.
+      // base 에 두어 opts.checkoutPayload 우선순위를 유지한다. undefined 는 JSON.stringify 가 떨구므로
+      // contentKey 를 안 쓰는 상품의 전송 본문은 그대로다.
+      contentKey: opts.contentKey || undefined,
       reason: String(opts.reason || opts.title || '유료 서비스').trim(),
       paymentAmount: amountKrw,
       amountKrw: amountKrw,

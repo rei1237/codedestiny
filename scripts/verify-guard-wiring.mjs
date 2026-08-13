@@ -49,6 +49,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:compass-report-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:access-unlock-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:permanent-unlock-index", "실 DB 인덱스 점검 — MONGO_URI 필요"],
+  ["verify:v2-entitlement-service-keys", "실 DB 권한 행 점검(V2 serviceKey 백필) — MONGO_URI 필요"],
   ["verify:fusion-fortune-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:fusion-consultation-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:fortune-chat-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
