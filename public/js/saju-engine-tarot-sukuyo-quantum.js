@@ -9852,6 +9852,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-lunar-year-card { position:relative; overflow:hidden; border-color:rgba(248,231,183,0.34)!important; border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 9%, rgba(248,250,252,0.2), transparent 25%), radial-gradient(circle at 15% 82%, rgba(45,212,191,0.12), transparent 34%), linear-gradient(145deg,rgba(26,24,52,0.9),rgba(7,12,28,0.96))!important; box-shadow:0 20px 48px rgba(2,6,23,0.44),0 0 34px rgba(248,231,183,0.07),inset 0 1px 0 rgba(255,255,255,0.07); }
         .sy-lunar-year-card::before { content:''; position:absolute; inset:0 0 auto; height:1px; background:linear-gradient(90deg,transparent,rgba(248,231,183,0.72),rgba(125,211,252,0.52),transparent); pointer-events:none; }
         .sy-lunar-year-card > * { position:relative; z-index:1; }
+        .sy-lunar-year-card.is-collapsed #syYearlyFortuneContent { display:none; }
         .sy-lunar-overline { display:inline-flex; align-items:center; width:max-content; max-width:100%; font-size:0.72rem; color:#f8e7b7; letter-spacing:0; text-transform:uppercase; font-weight:900; margin-bottom:8px; border:1px solid rgba(248,231,183,0.26); border-radius:999px; background:rgba(248,231,183,0.08); padding:4px 10px; }
         .sy-lunar-year-head { display:grid; grid-template-columns:minmax(0,1fr) minmax(118px,152px); gap:14px; align-items:stretch; margin-bottom:13px; }
         .sy-lunar-year-copy h4 { margin:0 0 7px; color:#fff7d6; font-size:1.12rem; line-height:1.38; text-shadow:0 0 22px rgba(248,231,183,0.12); }
@@ -13966,20 +13967,22 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       + '</div>';
   }
 
-  // 🔴 조회가 실패해도 잠금 CTA 는 남아야 한다. 종전에는 실패 시 이 컨테이너를 에러 박스로 통째로
-  // 덮어 해금 버튼까지 지웠고, 그래서 GET 이 한 번 실패하면 결제 자체가 불가능했다.
-  // 미리보기 없이도 그릴 수 있는 최소 잠금 패널이라, 실패 원인과 무관하게 구매 경로가 살아 있다.
-  // (이미 결제한 사용자가 눌러도 /unlock 이 alreadyUnlocked 로 답해 재하이드레이션한다 — 이중 결제 없음.)
-  function syRenderSukuyoYearlyLockedFallback(targetYear, notice, canRetry) {
-    return ''
-      + (notice
-        ? '<div class="sy-yearly-empty-state" role="status" style="color:#fecaca;">'
-          + syCanonicalEsc(notice)
-          + (canRetry
-            ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
-            : '')
-          + '</div>'
+  // 본문 조회가 실패했을 때의 안내. 🔴 여기에 잠금 CTA 를 붙이지 말 것 — 이 화면은 **이미 해금한**
+  // 사용자에게만 뜬다(잠긴 연도는 애초에 조회하지 않는다). 산 사람에게 '10,000원 잠금 해제' 를
+  // 다시 들이미는 화면이 되고, 종전에는 그렇게 에러 박스와 잠금 패널이 한 카드에 겹쳐 보였다.
+  function syRenderSukuyoYearlyNotice(notice, canRetry) {
+    if (!notice) return '';
+    return '<div class="sy-yearly-empty-state" role="status" style="color:#fecaca;">'
+      + syCanonicalEsc(notice)
+      + (canRetry
+        ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
         : '')
+      + '</div>';
+  }
+
+  // 결제 전에 보이는 유일한 화면. 서버 프리뷰 없이 그려지므로 조회 0회로 즉시 렌더할 수 있다.
+  function syRenderSukuyoYearlyLockedFallback(targetYear) {
+    return ''
       + '<div class="sy-month-lock-panel">'
       + '<div class="sy-month-lock-orbit" aria-hidden="true">☾</div>'
       + '<div class="sy-month-lock-body">'
@@ -14228,20 +14231,118 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
   }
 
-  // 자동 하이드레이션이 실패 직후 곧바로 재발사되지 않도록 두는 최소 간격.
-  // (수동 경로 — 보기 버튼·Enter·다시 시도·해금 직후 — 는 이 쿨다운을 보지 않는다.)
-  var SY_YEARLY_AUTO_RETRY_COOLDOWN_MS = 5000;
-
   function syBuildSukuyoYearlyHydrateKey(profileId, targetYear) {
     return String(profileId || '') + ':' + String(targetYear || '');
   }
 
-  // options.openCheckoutWhenLocked: '보기'·Enter 처럼 열람 의사가 분명한 진입에서만 true.
-  // 잠금이 확인되면 그 자리에서 결제창을 연다. 조회 실패 경로는 자동으로 열지 않는다 —
-  // 잠금 여부를 모르는 채 결제창을 띄우는 대신, 폴백 패널의 CTA(왕복 0회)를 남겨 사용자가 고르게 한다.
-  function syHydrateSukuyoYearlyFortune(reading, options) {
+  // 🔴 해금 판정은 반드시 **연도별 contentKey** 로 한다. 연도 없는 featureKey 로 물으면
+  // "아무 해나 하나 샀는가" 가 되어, 2026 년만 산 사용자에게 2027 년이 열린 것처럼 보인다.
+  // 서버 왕복은 없다 — 결제가 남긴 ContentEntitlement 는 /api/me/access-state 를 거쳐
+  // AccessStore 의 persistentUnlocks 에 연도별 키로 이미 들어와 있다.
+  function syIsSukuyoYearlyUnlockedLocally(targetYear) {
+    var contentKey = syBuildSukuyoYearlyContentKey(targetYear);
+    try {
+      var store = window.CodeDestinyAccessStore;
+      if (store && typeof store.isUnlocked === 'function' && store.isUnlocked(contentKey)) return true;
+    } catch (_) {}
+    return syIsPaidSukuyoFeatureUnlocked(contentKey);
+  }
+
+  function syMarkSukuyoYearlyUnlockedLocally(targetYear) {
+    var contentKey = syBuildSukuyoYearlyContentKey(targetYear);
+    try {
+      var store = window.CodeDestinyAccessStore;
+      if (store && typeof store.markConfirmedUnlocked === 'function') store.markConfirmedUnlocked(contentKey);
+    } catch (_) {}
+    try { syMarkPaidSukuyoFeatureUnlocked(contentKey); } catch (_) {}
+  }
+
+  function syReadSukuyoYearlyInputYear() {
+    var input = document.querySelector('[data-sy-yearly-input]');
+    var raw = input ? String(input.value || '').trim() : '';
+    return /^\d{4}$/.test(raw) ? Number(raw) : 0;
+  }
+
+  function syIsSukuyoYearlyCardOpen() {
+    var card = document.querySelector('[data-sy-yearly-fortune-card]');
+    return !!card && !card.classList.contains('is-collapsed');
+  }
+
+  function sySetSukuyoYearlyCardOpen(isOpen) {
+    var card = document.querySelector('[data-sy-yearly-fortune-card]');
+    var viewBtn = document.querySelector('[data-sy-yearly-view]');
+    if (card) card.classList.toggle('is-collapsed', !isOpen);
+    if (viewBtn) {
+      viewBtn.textContent = isOpen ? '접기' : '보기';
+      viewBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+  }
+
+  function syRenderSukuyoYearlyLockedPanel(targetYear) {
+    var target = document.getElementById('syYearlyFortuneContent');
+    if (!target) return;
+    target.innerHTML = syRenderSukuyoYearlyLockedFallback(targetYear);
+    sySetSukuyoYearlyUnlockStateV2(false, targetYear);
+    syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
+  }
+
+  // 스토어가 아직 판정을 못 내린 상태(첫 방문·로그인 직후)에서 잠금 패널을 그렸을 때,
+  // 기다리게 하지 않고 뒤에서 확정을 받아 해금이면 본문으로 갈아 끼운다.
+  // ensureLoaded 는 앱 전역 공유 호출(60초 캐시)이라 이 기능만의 왕복이 생기지 않는다.
+  var _sySukuyoYearlyAccessProbe = 0;
+
+  function syRefreshSukuyoYearlyAccessInBackground(targetYear) {
+    var store = null;
+    try { store = window.CodeDestinyAccessStore; } catch (_) {}
+    if (!store || typeof store.ensureLoaded !== 'function') return;
+    try {
+      var snapshot = typeof store.getSnapshot === 'function' ? store.getSnapshot() : null;
+      if (snapshot && snapshot.status === 'ready') return;
+    } catch (_) {}
+    var probe = ++_sySukuyoYearlyAccessProbe;
+    Promise.resolve(store.ensureLoaded({ reason: 'sukuyo-yearly-unlock' })).then(function() {
+      if (probe !== _sySukuyoYearlyAccessProbe) return;
+      if (!syIsSukuyoYearlyCardOpen()) return;
+      if (syReadSukuyoYearlyInputYear() !== targetYear) return;
+      if (!syIsSukuyoYearlyUnlockedLocally(targetYear)) return;
+      syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading);
+    }).catch(function() {});
+  }
+
+  // 카드를 펼칠 때의 유일한 진입점.
+  // 🔴 잠긴 연도에는 서버를 부르지 않는다. 잠금 콘텐츠는 결제 전에 가져올 것이 없고, 그 왕복이
+  // 실패하던 탓에 카드가 "지금 서버가 잠시 붐벼요" 에러 박스와 잠금 패널로 두 겹이 됐다.
+  // 해제는 잠금 패널의 [data-sy-yearly-unlock] 하나가 담당한다.
+  function syOpenSukuyoYearlyPanel(reading) {
     var state = reading || window._sySukuyoYearlyReading || {};
-    var openCheckoutWhenLocked = !!(options && options.openCheckoutWhenLocked);
+    var target = document.getElementById('syYearlyFortuneContent');
+    if (!target) return;
+    var targetYear = syResolveSukuyoYearlyTargetYear(state);
+    if (!targetYear) return;
+    var profileId = syResolveSukuyoYearlyProfileId(state);
+    if (!profileId) {
+      sySetSukuyoYearlyUnlockStateV2(false, targetYear, '프로필 선택 필요');
+      target.innerHTML = '<div class="sy-yearly-empty-state">프로필 카드를 먼저 선택하면 숙요점 1년운이 열립니다.</div>';
+      return;
+    }
+    window._sySukuyoYearlyReading = Object.assign({}, state, {
+      profileId: profileId,
+      selectedProfileId: profileId,
+      contentKey: syBuildSukuyoYearlyContentKey(targetYear),
+      targetYear: targetYear
+    });
+    _sySukuyoYearlyAccessProbe += 1;
+    if (syIsSukuyoYearlyUnlockedLocally(targetYear)) {
+      syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading);
+      return;
+    }
+    syRenderSukuyoYearlyLockedPanel(targetYear);
+    syRefreshSukuyoYearlyAccessInBackground(targetYear);
+  }
+
+  // 해금이 확인된 뒤의 **본문 조회**. 잠긴 연도에서는 호출되지 않는다.
+  function syHydrateSukuyoYearlyFortune(reading) {
+    var state = reading || window._sySukuyoYearlyReading || {};
     var target = document.getElementById('syYearlyFortuneContent');
     var status = document.querySelector('[data-sy-monthly-status]');
     if (!target) return;
@@ -14260,7 +14361,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (window._sySukuyoYearlyInFlightKey === hydrateKey) return;
     window._sySukuyoYearlyInFlightKey = hydrateKey;
     target.removeAttribute('data-sy-yearly-rendered');
-    target.innerHTML = '<div class="sy-yearly-empty-state is-loading">숙요점 1년운을 열고 있어요. 결제 승인과 잠금 해제를 확인하는 중입니다.</div>';
+    target.innerHTML = '<div class="sy-yearly-empty-state is-loading">숙요점 1년운을 불러오는 중입니다.</div>';
     syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune?profileId=' + encodeURIComponent(profileId || '') + '&year=' + encodeURIComponent(targetYear), { method: 'GET' })
       .then(function(pack) {
         var payload = pack && pack.payload ? pack.payload : {};
@@ -14291,9 +14392,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         // 이 함수를 호출한다(하이드레이트 → 바인딩 → 하이드레이트 재귀). 새로 그려진 잠금 버튼에
         // 리스너만 다시 붙인다.
         syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
-        if (!payload.unlocked && openCheckoutWhenLocked) {
-          syOpenSukuyoYearlyCheckout(window._sySukuyoYearlyReading, targetYear, resolvedProfileId);
-        }
       })
       .catch(function(error) {
         // 분류 순서는 레포 하우스룰을 따른다(app/_lib/consultationResultPolling.ts):
@@ -14317,28 +14415,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             ? ('숙요점 1년운을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.' + (requestId ? ' (오류 코드 ' + requestId + ')' : ''))
             : ((error && error.message) || '숙요점 1년운을 불러오지 못했습니다.');
         }
-        // 🔴 실패해도 잠금 패널과 해금 버튼은 남긴다 — 안내만 위에 얹는다.
-        // 컨테이너를 에러 박스로 덮으면 결제 경로가 사라져 "결제가 진행되지 않는다"가 된다.
-        target.innerHTML = syRenderSukuyoYearlyLockedFallback(targetYear, notice, !isPaymentRequired);
-        // 잠금 패널을 그렸으니 배지도 잠금으로 맞춘다(직전 성공이 '해금 완료'를 남겼을 수 있다).
-        sySetSukuyoYearlyUnlockStateV2(false, targetYear);
-        // 실패는 렌더 완료로 치지 않는다(다시 열면 재시도 가능). 대신 자동 경로만 잠깐 쉬게 해
-        // 렌더가 반복될 때 같은 실패 요청이 연달아 나가지 않도록 한다.
-        window._sySukuyoYearlyAutoRetryAt = Date.now() + SY_YEARLY_AUTO_RETRY_COOLDOWN_MS;
-        var retryButton = target.querySelector('[data-sy-yearly-retry]');
-        if (retryButton) {
-          retryButton.addEventListener('click', function() {
-            syHydrateSukuyoYearlyFortune(state);
-          }, { once: true });
+        // 🔴 여기는 **이미 해금한** 사용자에게만 뜬다(잠긴 연도는 조회 자체를 하지 않는다).
+        // 그래서 안내와 '다시 시도'만 남기고 잠금 CTA 는 그리지 않는다 — 산 사람에게 다시
+        // 사라고 하는 화면이 되고, 배지도 '잠금 콘텐츠'로 되돌리지 않는다.
+        // 402 는 서버가 미결제라고 답한 경우라 잠금 패널 쪽이 맞다.
+        if (isPaymentRequired) {
+          syRenderSukuyoYearlyLockedPanel(targetYear);
+        } else {
+          target.innerHTML = syRenderSukuyoYearlyNotice(notice, true);
+          var retryButton = target.querySelector('[data-sy-yearly-retry]');
+          if (retryButton) {
+            retryButton.addEventListener('click', function() {
+              syHydrateSukuyoYearlyFortune(state);
+            }, { once: true });
+          }
         }
-        // 새로 그린 해금 버튼에 리스너를 붙인다(성공 경로와 동일). 이게 없으면 CTA 가 죽은 버튼이 된다.
-        window._sySukuyoYearlyReading = Object.assign({}, state, {
-          profileId: profileId,
-          selectedProfileId: profileId,
-          contentKey: syBuildSukuyoYearlyContentKey(targetYear),
-          targetYear: targetYear
-        });
-        syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
       })
       .then(function() {
         if (window._sySukuyoYearlyInFlightKey === hydrateKey) window._sySukuyoYearlyInFlightKey = '';
@@ -14352,23 +14443,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     var input = document.querySelector('[data-sy-yearly-input]');
     var viewBtn = document.querySelector('[data-sy-yearly-view]');
-    // 🔴 '보기' 는 열람 의사 표시다 — 잠긴 연도면 조회로 끝내지 말고 그 자리에서 결제창까지 간다.
-    // 종전에는 조회만 하고 멈춰, 사용자가 잠금 패널의 CTA 를 한 번 더 찾아 눌러야 결제가 시작됐다.
+    // 🔴 '보기' 는 접기/펼치기 토글일 뿐이다 — 결제도, 네트워크도 부르지 않는다.
+    // 해제는 잠금 패널의 [data-sy-yearly-unlock] 하나가 담당한다.
     if (input && !input._syYearlyInputBound) {
       input._syYearlyInputBound = true;
       input.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading, { openCheckoutWhenLocked: true });
-        }
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        sySetSukuyoYearlyCardOpen(true);
+        syOpenSukuyoYearlyPanel(window._sySukuyoYearlyReading || reading);
+      });
+      // 연도를 바꾸면 펼쳐져 있을 때만 다시 판정한다(접혀 있으면 다음 펼침에서 반영된다).
+      input.addEventListener('change', function() {
+        if (!syIsSukuyoYearlyCardOpen()) return;
+        syOpenSukuyoYearlyPanel(window._sySukuyoYearlyReading || reading);
       });
     }
     if (viewBtn && !viewBtn._syYearlyViewBound) {
       viewBtn._syYearlyViewBound = true;
       viewBtn.addEventListener('click', function() {
-        syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading, { openCheckoutWhenLocked: true });
+        var nextOpen = !syIsSukuyoYearlyCardOpen();
+        sySetSukuyoYearlyCardOpen(nextOpen);
+        if (nextOpen) syOpenSukuyoYearlyPanel(window._sySukuyoYearlyReading || reading);
       });
     }
+    // 라벨·aria 를 마크업의 실제 접힘 상태에 맞춘다(카드는 접힌 채로 그려진다).
+    sySetSukuyoYearlyCardOpen(syIsSukuyoYearlyCardOpen());
     var stateForHydrate = window._sySukuyoYearlyReading || reading || {};
     syBindSukuyoYearlyUnlockButton(stateForHydrate);
   }
@@ -14442,7 +14542,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         featureKey: 'sukyo_yearly_fortune_unlock'
       }, result).then(function(verifyPayload) {
         if (!verifyPayload || verifyPayload.unlocked !== true) throw new Error('해금 기록이 아직 확인되지 않았습니다.');
-        // 해금 직후 재조회는 플래그 없이 부른다 — 결제 → 하이드레이트 → 결제 루프를 만들지 않는다.
+        // 로컬에도 그 연도의 해금을 남긴다. 다음 펼침이 AccessStore 재검증을 기다리지 않고
+        // 곧바로 본문을 연다(서버 기록이 정본이고 이건 그 반영을 앞당길 뿐이다).
+        syMarkSukuyoYearlyUnlockedLocally(targetYear);
         syHydrateSukuyoYearlyFortune(Object.assign({}, source, { profileId: profileId, targetYear: targetYear }));
         return true;
       });
@@ -14480,16 +14582,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (typeof window !== 'undefined') window._sySukuyoYearlyReading = reading;
     var year = Number(reading.targetYear || new Date().getFullYear());
     return ''
-      + '<div class="sy-card sy-lunar-year-card is-locked" data-sy-yearly-fortune-card data-sy-year-fortune="20260627-sukuyo-yearly-v3" data-sy-year-moon-ui="20260627-sukuyo-year-moon-premium">'
+      + '<div class="sy-card sy-lunar-year-card is-locked is-collapsed" data-sy-yearly-fortune-card data-sy-year-fortune="20260627-sukuyo-yearly-v3" data-sy-year-moon-ui="20260627-sukuyo-year-moon-premium">'
       + '<div class="sy-lunar-overline">Annual Sukuyo Fortune</div>'
       + '<div class="sy-lunar-month-titlebar">'
         + '<div>'
           + '<h4>숙요점 1년운</h4>'
           + '<p class="sy-lunar-month-copy">원하는 연도를 직접 열어 본명숙의 12개월 달빛 흐름을 비춥니다.</p>'
         + '</div>'
-        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
+        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view aria-expanded="false" aria-controls="syYearlyFortuneContent" style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
       + '</div>'
-      + '<div id="syYearlyFortuneContent"><div class="sy-yearly-empty-state is-loading">숙요점 1년운을 열고 있어요.</div></div>'
+      // 접힌 채로 시작한다. 비어 있는 것이 맞다 — 펼치기 전에는 조회도 결제도 하지 않으므로
+      // 로딩 문구를 두면 아무 일도 안 하면서 무언가 기다리는 것처럼 보인다.
+      + '<div id="syYearlyFortuneContent"></div>'
       + '</div>';
   }
 
