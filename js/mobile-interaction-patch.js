@@ -1146,7 +1146,7 @@
   var LAZY_LOAD_ACTIONS = {
     openPhysiognomyApp: [
       'AnalysisEngine.js?v=ha8cb319b39b1',
-      'PhysiognomyUI.js?v=hd5d618075526'
+      'PhysiognomyUI.js?v=h94ee3c337128'
     ],
     openPastLifeFaceApp: [
       'AnalysisEngine.js?v=ha8cb319b39b1',
