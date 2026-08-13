@@ -13,9 +13,14 @@
 | G-1 | `verify:auth-session-stability` | 단언 0개 실행하고 throw | ✅ PR #547 |
 | G-2 | `verify:worker-size` | 항상 `exit 0`, 검사 0 | ✅ PR #549 |
 | G-3 | `verify-auth-event-loop-guard` SHELLS | 셸 1종 미커버 | ✅ PR #540 |
-| G-4 | `db.transaction-budget.test.js` | 빌드 산출물을 소스로 오인 | ❌ **미조치** |
-| G-5 | `verify:*` 177개 중 **54개** 미배선 | 존재하나 아무도 호출 안 함 | ❌ **미조치** |
-| G-6 | `deploy:critical` ↔ paid-flow-gates 커버리지 차이 | 검증 안 됨 | ❌ **미조치** |
+| G-4 | `db.transaction-budget.test.js` 외 10곳 | 빌드 산출물을 소스로 오인 | ✅ PR #557 |
+| G-5 | `verify:*` 미배선 다수 | 존재하나 아무도 호출 안 함 | ✅ PR #558 |
+| G-6 | `deploy:critical` ↔ paid-flow-gates 커버리지 차이 | 검증 안 됨 | ✅ PR #558 (G-5 와 같은 가드) |
+
+> **G-5·G-6 후속 정정 (2026-08-13)**
+> - 위 "54개"는 손으로 센 값이라 **믿지 말 것.** 정본은 `npm run verify:guard-wiring` 이 계산한다(실측: `verify:*` 178개 중 88개 배선 / 90개 미배선 선언).
+> - 아래 G-5 표의 `verify:public-parity` 는 **오류**였다 — 실제로는 `scripts/build-cf-main.mjs` 안에서 `build:cf` 의 blocking 스텝으로 이미 돌고 있었다. 이런 "파일·배열 형태의 배선"을 손으로 세다 놓친 것이 애초에 숫자가 틀린 이유다.
+> - 배선한 것은 `verify:mobile-detail-nonintrusive` 하나뿐이다(문서가 이미 "CI 차단"이라 약속하고 있었다). 나머지는 사유와 함께 **미배선으로 선언**했다 — 게이트 추가는 사용자 승인 사항이기 때문이다.
 
 ---
 

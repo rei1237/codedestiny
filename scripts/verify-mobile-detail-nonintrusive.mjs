@@ -31,6 +31,9 @@ const SHELL_FILES = [
   "public/en/index.html",
   "public/ja/index.html",
   "public/zh/index.html",
+  // zh-tw 는 뒤늦게 추가된 미러라 이 목록에서 빠져 있었다. 같은 구멍이 auth-event-loop 가드에도
+  // 있었다(2026-08-11 수정). 미러가 하나라도 빠지면 "초록불인데 거기는 안 본다"가 된다.
+  "public/zh-tw/index.html",
 ];
 
 /** 이 셀렉터 토큰 중 하나라도 포함하면 "공용 래퍼 규칙"으로 보고 검사한다. */

@@ -221,7 +221,7 @@
 - AI and profile feature routes consume the access grant produced by the billing Payment Service. They do not import `consumeMonthlyCreditLots` or create a `MONTHLY_CREDIT_SPEND` ledger.
 - A legacy monthly request without a billing grant fails closed with `PAYMENT_ACCESS_GRANT_REQUIRED` or the existing payment-required response. It must not inspect a balance and deduct locally.
 - Refund and recovery paths may read spend evidence and create an idempotent restore/grant ledger, but those operations are not new payment execution and remain evidence-bound.
-- `npm run verify:payment-service-boundary` fails when a UI screen calls coin-gate outside the compatibility adapters, or when a feature route reintroduces a direct monthly lot deduction/spend-ledger write.
+- `npm run verify:payment-service-boundary` fails when a UI screen calls coin-gate outside the compatibility adapters, or when a feature route reintroduces a direct monthly lot deduction/spend-ledger write. It is **not wired into CI** — run it by hand (see the unwired declaration in `scripts/verify-guard-wiring.mjs`).
 
 ## International payment market gate
 

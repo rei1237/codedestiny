@@ -90,6 +90,19 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
+      # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,
+      # 그게 정확히 지키려는 경로다. 둘 다 node 내장 모듈만 쓰는 정적 파일 읽기라 1초 미만이다.
+      - name: Verify mobile detail wrapper is non-intrusive
+        run: npm run verify:mobile-detail-nonintrusive
+
+      # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
+      # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
+      - name: Verify guard wiring
+        run: |
+          npm run verify:guard-wiring -- --self-test
+          npm run verify:guard-wiring
+
   build:
     name: Build Pages and Worker
     needs: classify
