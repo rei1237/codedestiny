@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, BookOpenText, FileText, ShieldCheck } from "lucide-react";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import DeferredShareWidget from "../../components/DeferredShareWidget";
 import { HIGH_VALUE_PAGES, getHighValuePageBySlug } from "../content";
 
@@ -244,6 +245,10 @@ export default function HighValueDetailPage({ params }) {
             </div>
           </div>
         </article>
+
+        {/* 광고 게재 대상이면서 제작·검수 고지가 없던 유일한 장문 템플릿이었다.
+            /insights 아티클과 같은 고지를 같은 근거로 붙인다. */}
+        <ContentIntegrityNote contentSource="authored" datePublished={page.publishedAt} dateModified={page.updatedAt} />
 
         <DeferredShareWidget
           title={page.title}

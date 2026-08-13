@@ -74,6 +74,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:r2-fonts", "R2 실요청 — 네트워크 필요"],
   ["verify:r2-public-cache", "R2 실요청 — 네트워크 필요"],
   ["verify:www-canonical", "프로덕션 도메인 실요청 — 배포 후 수동 확인"],
+  ["verify:i18n-rendered-korean", "실브라우저(playwright)로 언어 전환 후 한국어 계수 — 모든 PR 에 브라우저 기동 비용을 얹지 않는다. 게이트 승격은 사용자 승인 사항"],
   ["verify:novel-runtime", "실브라우저 필요"],
   ["verify:novel-player-start", "실브라우저 필요"],
   ["verify:test-account-payment-flow", "테스트 계정 실결제 — 사용자 승인 후 수동"],
