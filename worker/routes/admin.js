@@ -35,7 +35,7 @@ import { buildVedicAIPrompt } from "../lib/vedic-ai-prompt.js";
 import { calculateZiweiAiChart, describeBrightness } from "../lib/ziwei-ai-chart.js";
 import { primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { buildPromptLabResult, hasPromptLabLoader } from "../lib/admin-prompt-lab-loaders.js";
-import { getAdminPromptLabService, promptLabServiceNeeds } from "../../lib/admin/prompt-lab-registry.mjs";
+import { getAdminPromptLabService, isBuiltInPromptLabService, promptLabServiceNeeds } from "../../lib/admin/prompt-lab-registry.mjs";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSajuQuantumDaewunRows, buildSajuQuantumElementMap, normalizeElementKeys } from "../lib/saju-quantum-myeongri.js";
 import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
@@ -294,8 +294,9 @@ function adminTimezoneOffsetHours(value) {
 function normalizeAdminTimeCorrectionPolicy(value) {
   const text = String(value || "").trim().toLowerCase();
   if (text === "clock" || text === "kst_clock_time") return "KST_CLOCK_TIME";
-  if (text === "local_mean" || text === "local_mean_time") return "LOCAL_MEAN_TIME";
-  return "TRUE_SOLAR_TIME";
+  if (text === "true_solar" || text === "true_solar_time") return "TRUE_SOLAR_TIME";
+  // 시주 시각 보정 기본값은 평균태양시(경도 보정만) — 런타임 엔진 3종의 공통 기본값과 같다.
+  return "LOCAL_MEAN_TIME";
 }
 
 function normalizeAdminDayChangePolicy(value) {
@@ -1849,6 +1850,10 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, partne
     variantKey: String(built?.variantKey || ""),
     variants,
     notes: Array.isArray(built?.notes) ? built.notes : [],
+    // 내장 6종은 질문을 프롬프트 본문에 직접 박아 넣으므로 항상 반영된다.
+    questionUsed: built?.questionUsed !== undefined
+      ? Boolean(built.questionUsed)
+      : Boolean(question && prompt.includes(question)),
     summaryIntent: built?.summaryIntent || "",
     analysisAngles: Array.isArray(built?.analysisAngles) ? built.analysisAngles : [],
     recommendedFollowUpQuestions: Array.isArray(built?.recommendedFollowUpQuestions) ? built.recommendedFollowUpQuestions : [],
@@ -1898,10 +1903,12 @@ async function handleAdminPromptLabGenerate(request, env) {
     throw createHttpError(400, "점술 종류를 선택해 주세요.", { code: "INVALID_PROMPT_SERVICE" });
   }
 
-  // 질문을 쓰지 않는 운세(꿈해몽·반려동물 사주 등)까지 질문을 강제하면 프롬프트를 뽑을 수 없다.
-  // 무엇을 요구하는지는 레지스트리의 inputs 선언이 정본이다.
+  /* 질문은 이제 모든 운세가 받는다(레지스트리 inputs 참고). 다만 "받는 것"과 "없으면 거절하는 것"은
+     다르다 — 꿈해몽·반려동물 사주처럼 프로덕션 프롬프트에 질문 슬롯이 없는 기능까지 강제하면
+     프롬프트를 아예 못 뽑는다. 그래서 빈 질문으로도 조립이 되지 않는 6종(질문을 프롬프트 본문에
+     직접 박아 넣는 기존 경로)만 예전처럼 요구한다. */
   const question = normalizeAdminQuestion(body.question);
-  if (promptLabServiceNeeds(service, "question") && question.length < 5) {
+  if (isBuiltInPromptLabService(service) && question.length < 5) {
     throw createHttpError(400, "질문을 조금 더 구체적으로 입력해 주세요.", { code: "INVALID_PROMPT_QUESTION" });
   }
 

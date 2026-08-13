@@ -47,11 +47,21 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const palace = isValidPalace(options.variant) ? String(options.variant) : PALACE_KEYS[0];
   const config = getPalaceConfig(palace);
 
+  // 이 빌더는 input.question 을 그대로 프롬프트에 싣는다. 명반(chart) 없이도 뼈대는 만들어지므로
+  // 질문이 들어간 실제 프롬프트를 보여 주고, 명반 칸이 비었다는 것만 알린다.
+  let prompt = "";
+  try {
+    const built = buildPalaceFirstPrompt(palace, { question: body?.question || "", birthInfo: body || {} }, null);
+    prompt = String(built?.prompt || built || "");
+  } catch (error) {
+    prompt = "";
+  }
+
   return {
     systemPrompt: buildSystemPrompt(),
-    prompt: "",
+    prompt,
     partial: true,
-    partialReason: "궁별 사용자 프롬프트는 계산된 자미두수 명반을 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    partialReason: "명반 데이터 칸은 비어 있습니다 — 실제 상담에서는 계산된 자미두수 명반이 들어갑니다. 질문과 지시문은 프로덕션과 같습니다.",
     variantKey: palace,
     variants: PALACE_KEYS.map((key) => ({
       key,

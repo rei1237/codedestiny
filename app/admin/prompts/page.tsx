@@ -46,6 +46,7 @@ interface LabResult {
   variantKey: string;
   variants: LabVariant[];
   notes: string[];
+  questionUsed: boolean;
 }
 
 const SERVICES = ADMIN_PROMPT_LAB_SERVICES as unknown as LabService[];
@@ -438,6 +439,15 @@ export default function AdminPromptLabPage() {
                   rows={3}
                   className={fieldClass()}
                 />
+                {/* 질문을 받아 놓고 아무 데도 안 쓰면 "입력했는데 왜 그대로지?"만 남는다.
+                    서버가 실제 결과를 보고 판정한 값을 그대로 보여 준다. */}
+                {result?.service === form.service && form.question.trim() ? (
+                  <span className={`mt-1 block text-[11px] ${result.questionUsed ? "text-emerald-300" : "text-slate-500"}`}>
+                    {result.questionUsed
+                      ? "이 질문이 아래 프롬프트에 반영됐습니다."
+                      : "이 기능의 프롬프트에는 질문이 그대로 실리지 않습니다."}
+                  </span>
+                ) : null}
               </label>
             ) : null}
 
