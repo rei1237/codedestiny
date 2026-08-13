@@ -1337,6 +1337,12 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     userId,
     kind: "deduct",
     featureKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
+    // 월정석 환불은 kind:"refund" 행을 만들지 않고 원본 차감에 표식만 남기므로, 아래 refund 조회로는
+    // 구조적으로 안 걸린다. 형제 findAIPromptMonthlyCreditEvidence 와 같은 목록으로 맞춰 배제한다.
+    "metadata.refundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForServiceExecution": { $ne: true },
     $or: clauses,
   };
   const minCost = Math.floor(Number(cost || 0));
