@@ -1,6 +1,8 @@
 import TodayHubClient from "./TodayHubClient";
 import TodayReadingGuide from "./TodayReadingGuide";
 import { buildSeoMetadata } from "../../lib/seo";
+import { createHreflangFromRoutes } from "../../lib/seo/createHreflang";
+import { getAlternatesByRouteKey } from "../../lib/i18n/routes";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import {
   buildBreadcrumbJsonLd,
@@ -16,11 +18,15 @@ const page = SEO_LANDING_PAGES.today || {
   keywords: ["오늘의운세", "일일운세", "재물운", "연애운", "코드데스티니"],
 };
 
+// /ja/today·/zh/today·/zh-tw/today·/en/today 는 이 페이지를 ko alternate 로 지목하는데
+// 정작 이쪽은 페이지 태그를 내지 않았다(사이트맵 xhtml:link 로만 선언됨).
+// /ziwei·/sukuyo 와 같은 클러스터를 페이지에도 낸다.
 export const metadata = buildSeoMetadata({
   path: page.path,
   title: page.title,
   description: page.description,
   keywords: page.keywords,
+  hreflang: createHreflangFromRoutes(getAlternatesByRouteKey("today")),
 });
 
 // 다른 SEO 랜딩 6종은 SeoLandingTemplate 을 통해 WebPage/Service/BreadcrumbList/FAQPage 를 낸다.
