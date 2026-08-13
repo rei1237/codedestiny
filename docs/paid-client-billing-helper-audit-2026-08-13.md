@@ -45,27 +45,57 @@ CLAUDE.md 코딩 원칙 6이 요구하는 방식대로, 함수 **본문을 중�
 `extractPayment` 가 만드는 페이로드는 서버가 받아 결제 증거로 검증한다. 하나로 합치면 여섯 개
 유료 기능의 증거 모양이 한꺼번에 바뀐다 — 이득(약 5KB)에 비해 위험이 크게 어긋난다.
 
-## 미조치로 남긴 잠재 결함 2건
+## 미조치 2건 후속 검증 결과 (2026-08-13, 같은 날 추가)
 
-사용자 확인 후 **이번에는 고치지 않기로** 했다. 둘 다 결제 판정·증거를 바꾸는 변경이라
-별도 PR 에서 해당 기능의 결제 동작을 함께 검증하며 다루는 것이 맞다.
+이 감사는 아래 두 건을 "미조치 잠재 결함"으로 남겼다가 곧바로 후속 검증했다.
+**둘 다 런타임 결함이 아니었다.** 다시 조사하지 않도록 근거를 남긴다.
 
-### ① `NamingAiClient` 의 `isPaymentGranted` 가 축소형이다
+### ① `NamingAiClient` 의 축소형 `isPaymentGranted` — 판정은 표준형과 동일했다
 
-표준형에 있는 두 가지가 없다:
+표준형에만 있는 두 분기(`denied` 상태 집합, 명시적 승인 상태 조기 통과)는
+**나머지 6곳에서도 이미 도달하지 않는 죽은 분기였다.**
 
-- `denied` 상태 집합(`failed`·`cancelled`·`payment_required` 등) 검사
-- `granted`·`paid`·`succeeded` 등 **명시적 승인 상태**의 조기 통과
+```ts
+const status = toText(record.status || payload.status || payload.paymentStatus).toLowerCase();
+```
 
-그 결과 `status: "failed"` 인 응답이라도 `paymentId` 가 실려 있으면 **승인으로 읽을 수 있다.**
-반대로 이용권으로 무료 통과해 id 가 하나도 없는 응답은 거부로 읽는다.
-표준형(나머지 6곳)이 더 안전하다.
+`record` 는 `BillingResult` 이고 그 `status` 는 **HTTP 상태 숫자**다(`app/_lib/billing-client.ts`
+`parseBillingResponse` 2458줄 · 런타임 게이트 2352·2417줄 · `buildOptimisticPassGrant` 3751줄 ·
+`nativeAppStoreFailure` 2577줄 — 생성 경로 전부가 값을 채운다). 그래서 이 식은 항상 `"200"`/`"402"` 로
+단락되고, `payload.status` 는 읽히지 않는다. 같은 이유로 `record.transactionId`·`paymentId`·`purchaseId`
+검사도 무의미하다 — `BillingResult` 타입에 그런 필드가 없다(101~109줄).
 
-### ② `SukuyoCompatibilityAiClient` 의 `extractPayment` 가 `billingEvidence` 를 안 실는다
+감사가 우려한 두 시나리오도 재현되지 않는다:
 
-다른 라우트는 전부 `billingEvidence` 를 함께 보낸다. 숙요점 궁합만 빠져 있다.
-의도인지 누락인지는 이 감사에서 결론 내지 못했다 — 서버가 그 필드를 어떻게 쓰는지
-(`worker/routes/sukuyo-compatibility-ai.js`) 확인이 선행되어야 한다.
+- **"`status: "failed"` 인데 `paymentId` 가 있으면 승인으로 읽는다"** — 실패 응답은 예외 없이
+  `ok: false` 다(`parseBillingResponse` 는 `response.ok && payload.ok === true` 로만 참을 만든다).
+  두 구현 모두 첫 줄에서 거부한다.
+- **"이용권 무료 통과 시 id 가 없어 거부한다"** — `buildOptimisticPassGrant` 가 `consume`(5개 키)을
+  항상 싣고, 축소형도 `consume` 을 본다. 승인으로 읽는다.
+
+실제 응답 8종(코인 차감 / 월정석 차감 / 이용권 낙관 통과 / 402 결제필요 / 결제취소 / 앱스토어 503 /
+런타임 게이트 승인 / 빈 응답)으로 구·신 판정을 대조해 **전부 동일**함을 확인했다.
+
+**그럼에도 표준형으로 정렬했다.** 결함을 고치려는 게 아니라, 7곳 중 1곳만 다른 상태가
+같은 재조사를 반복시키기 때문이다(이 감사 자체가 그 반복이었다). 동작은 바뀌지 않는다.
+🔴 **표준형의 `record.status` 단락을 "고쳐서" status 검사를 실제로 살리지 말 것** —
+유료 기능 7개의 승인 판정이 한꺼번에 바뀐다. 하려면 각 기능의 결제 동작을 함께 검증하는 별도 작업이어야 한다.
+
+### ② `SukuyoCompatibilityAiClient` 의 `billingEvidence` 누락 — 서버가 그 필드를 읽지 않는다. 조치 불필요
+
+`worker/routes/sukuyo-compatibility-ai.js` 의 `collectBillingEvidenceIds`(980줄)는 **평면 필드 목록만**
+읽는다 — `body.paymentId`·`transactionId`·`purchaseId`·`ledgerId`·`requestId`·`idempotencyKey`·`orderId`
+와 `billingGate.*`·`payment.*`·`accessGrant.*`·`consume.*`. `body.billingEvidence` 는 방문 대상이 아니다.
+
+클라이언트는 `startConsultation` 이 `{ ...payload, ...access, idempotencyKey }` 로 본문 최상위에 펼쳐
+보내므로(1367줄) 서버가 읽는 필드는 이미 전부 도달한다. `billingEvidence` 를 추가하면 서버가 무시하는
+죽은 필드가 요청 본문만 키운다.
+
+**수집기 방식이 라우트마다 다른 것이 정상이다** — 숙요점은 평면 목록, `love-secret-ai.js`(497줄)는
+중첩 키를 따라가는 재귀형이다(그래서 love-secret 은 `attemptId` 같은 자기 고유 필드도 주워 간다).
+`billingEvidence` 를 보내는 클라이언트(`ZiweiDeepPdf`·`Island`·`ZiweiAi`)는 그 필드를 실제로 읽는
+라우트를 상대한다. 클라이언트만 보고 "빠졌다"고 판단하면 안 되고, **짝이 되는 워커 라우트의 수집기를
+먼저 열어 봐야 한다.**
 
 ## 확인했으나 문제가 아니었던 것
 
