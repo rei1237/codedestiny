@@ -175,7 +175,9 @@ const SAJU_AI_RESULT_SYSTEM_PROMPT = [
   "당신은 최고 수준의 명리학 상담가입니다.",
   "십성, 오행, 천간/지지 관계는 절대 직접 추측하거나 재계산하지 않습니다.",
   "제공된 내부 명식 사실 카드와 일간 기준 십성 확정표만 절대 기준으로 사용합니다.",
-  "내부 데이터와 다른 십성을 말하면 안 됩니다. 예를 들어 신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관입니다.",
+  // 🔴 예시로 특정 일간(辛)을 박아 두면 일간이 다른 사용자에게는 무관한 규칙이 들어가 혼선만 준다.
+  // 사실 카드에 그 사용자의 일간 기준 십성 확정표가 이미 들어 있으므로 그것을 가리키게 한다.
+  "내부 데이터와 다른 십성을 말하면 안 됩니다. 십성은 제공된 확정표에 적힌 그대로만 쓰고, 표에 없는 관계는 단정하지 않습니다.",
   "천간, 지지, 십성, 오행, 합충형해파, 지장간, 투간/투출, 대운/세운 정보가 제공되면 그 데이터만 근거로 상담합니다.",
   "상담은 짧은 운세 문장이 아니라 실제 유료 명리 상담처럼 깊이 있게 작성합니다.",
   "질문에 먼저 답하되 명식 전체의 중심 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 일·돈·관계·연애·건강 리듬, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 챕터별로 풀어 줍니다.",
@@ -185,14 +187,17 @@ const SAJU_AI_RESULT_SYSTEM_PROMPT = [
   "근거가 강한 해석과 참고 수준의 해석을 문장 안에서 구분하고, 마무리 근처에서 이 상담이 삶을 비추는 참고용 도구라는 점을 자연스럽게 한 번 담으세요.",
   "개발 문서, 기능 설명, 프롬프트 설명처럼 쓰지 말고 명리학자가 직접 상담하듯 작성하세요.",
 ].join("\n");
+// 🔴 "개발 문서처럼 쓰지 마라"를 강제하는 목록이지, 한국어 상담 문장을 걸러내는 목록이 아니다.
+// 여기 걸리면 validation.incomplete 가 아니라서 repair pass 를 못 받고 곧장 전체 재생성(최대 60초)이 돈다.
+// 빠진 둘: /분석\s*결과는/ 은 "분석 결과는 다음과 같습니다"처럼 지극히 자연스러운 상담 문장을 떨궜고,
+// /feature/i 는 대소문자 무시 부분일치라 영문 단어가 스치기만 해도 멀쩡한 결과를 탈락시켰다.
+// 개발 문서 티를 막는 본래 의도는 남은 다섯이 그대로 지킨다(특히 한국어 '기능'은 /이\s*기능은/ 이 담당).
 const SAJU_AI_RESULT_FORBIDDEN_PATTERNS = [
   /프롬프트/,
   /내부\s*지시문/,
   /이\s*기능은/,
-  /분석\s*결과는/,
   /생성\s*결과/,
   /content\s*block/i,
-  /feature/i,
 ];
 const SAJU_AI_PROGRESS_STEPS = Object.freeze([
   { progress: 0, key: "payment", message: "결제/이용권 확인 중" },
@@ -257,8 +262,11 @@ function buildSajuAIResultPrompt(builtPrompt, options = {}) {
   return [
     "아래 내부 프롬프트는 사용자에게 보여주지 않는 생성 지시문입니다.",
     "이 지시문을 바탕으로 최종 사주 상담 결과만 한국어로 작성하세요.",
-    "내부 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다. 다른 십성으로 바꾸거나 재계산하지 마세요.",
-    "특히 신금(辛) 일간에게 임수(壬)는 상관이고 계수(癸)는 식신입니다.",
+    // 🔴 사실 카드가 비면 아래 블록이 .filter(Boolean) 로 사라지는데, 이 지시문만 남으면
+    // "존재하지 않는 표를 절대 기준으로 삼으라"가 되어 오히려 환각을 유도한다 — 카드와 생사를 같이한다.
+    // 일간별 예시(辛/壬)를 박아 두던 줄은 제거했다. 확정표가 이미 그 사용자의 일간으로 계산돼 있다.
+    factCard ? "내부 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다. 다른 십성으로 바꾸거나 재계산하지 마세요." : "",
+    factCard ? "십성은 확정표에 적힌 그대로만 쓰고, 표에 없는 관계는 단정하지 마세요." : "",
     "형식은 반드시 1. 질문에 대한 핵심 답변, 2. 이 명식의 중심 성향, 3. 십성 구조 해석, 4. 오행 균형 해석, 5. 현재 고민과 명식의 연결, 6. 일/돈/관계/연애/건강 리듬, 7. 조심해야 할 패턴, 8. 살리는 전략, 9. 30일 실천 가이드, 10. 마지막 한마디 순서로 구성하세요.",
     "고정 글자수를 채우려 하지 말고, 카테고리별 상담 품질 기준을 모두 다룬 뒤 마지막 한마디까지 자연스럽게 완성하세요.",
     "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 끝맺음 문장은 상담자가 직접 건네는 말처럼 완결하세요.",
@@ -1275,6 +1283,10 @@ function isAIPromptPassAccessPayload(body = {}) {
       || "",
   ).trim().toLowerCase();
 
+  // 🔴 family 이용권은 accessType "family" / accessMethod "FAMILY" 로 내려온다
+  // (worker/payments/compat.js 의 legacyPassCheckEnvelope). 이 두 철자가 빠져 있으면 family 보유자는
+  // 이용권 분기를 못 타고 PointHistory·직접결제·월정석까지 전부 미스해 402 가 난다.
+  // 증빙 행도 membership_pass 와 같은 계약(delta 0, recordPassAccessIfNeeded)이라 금액 하한 면제도 동일하다.
   return body?.freeBySubscription === true
     || (
       accessDecision.accessGranted === true
@@ -1284,14 +1296,17 @@ function isAIPromptPassAccessPayload(body = {}) {
         || accessReason === "pass_free"
         || accessType === "membership_pass"
         || accessType === "subscription_pass"
+        || accessType === "family"
         || paymentMode === "membership_pass"
         || accessMethod === "PASS"
+        || accessMethod === "FAMILY"
       )
     )
     || accessType === "membership_pass"
     || accessType === "pass"
     || accessType === "membership"
     || accessType === "subscription_pass"
+    || accessType === "family"
     || paymentMode === "membership_pass"
     || paymentMode === "membership"
     || accessStatus === "pass_applied"
@@ -1299,7 +1314,8 @@ function isAIPromptPassAccessPayload(body = {}) {
     || accessReason === "pass_applied"
     || accessReason === "pass_covered"
     || accessReason === "pass_free"
-    || accessMethod === "PASS";
+    || accessMethod === "PASS"
+    || accessMethod === "FAMILY";
 }
 
 async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost }) {

@@ -30617,9 +30617,14 @@ return you.name.restore();</span>
   function _cdNormalizeServerAccessFeatureKey(featureKey) {
     var key = String(featureKey || '').trim();
     var lower = key.toLowerCase();
+    // 🔴 서버는 결제 처리 시 featureKey 를 canonical 로 정규화해 응답한다
+    // (worker/lib/paid-feature-registry.js 의 PAID_FEATURE_KEY_ALIASES). 여기 alias 가 빠지면
+    // 차감이 끝난 뒤 _cdHasVerifiedServerAccess/_cdHasVerifiedMonthlyConsumption 가 false 를 내고,
+    // MONTHLY_ACCESS_UNVERIFIED 가 재제안 루프에 걸려 결제창이 문구 없이 다시 열린다(사주 AI 상담 실사고).
     var aliases = {
       premium_pdf_vedic: 'premium-vedic-report',
-      premium_pdf_vedic_compat: 'premium-vedic-report-compat'
+      premium_pdf_vedic_compat: 'premium-vedic-report-compat',
+      saju_ai_prompt_generator: 'saju_ai_question_prompt'
     };
     return aliases[lower] || key;
   }

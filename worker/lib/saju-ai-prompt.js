@@ -1537,6 +1537,13 @@ function ensureSajuResultPresence(sajuResult) {
   if (!pillars || typeof pillars !== "object" || !pillars.d) {
     throw new Error("MISSING_SAJU_RESULT");
   }
+  // 🔴 pillars.d 가 객체이기만 하면 통과하던 시절에는, 일간(d.g)이 없어도 normalizePillars 가 "-" 로
+  // 채워 사실상 빈 명식으로 20,000원 과금 + LLM 호출이 끝까지 돌았다. 일간은 십성 확정표의 기준축이라
+  // 이게 없으면 상담 자체가 성립하지 않는다 — 결제 검증(handleSajuAIPrompt)보다 먼저 도는 이 지점에서
+  // 막아야 과금 전에 400 으로 끝난다.
+  if (!String(pillars.d.g || "").trim() || !String(pillars.d.j || "").trim()) {
+    throw new Error("MISSING_SAJU_RESULT");
+  }
 }
 
 export function classifySajuPromptQuestionType(question) {
@@ -2096,7 +2103,8 @@ export function buildSajuAIPromptWithDomain({
     kijishin: power.kijishin,
   });
   const purposePrompt = [
-    "[명식이 답하는 사주 AI 상담 v4]",
+    // 헤더 문자열은 SAJU_AI_PROMPT_VERSION(= promptVersion, 캐시 키 keyExtra)과 같은 세대를 가리켜야 한다.
+    `[명식이 답하는 사주 AI 상담 ${SAJU_AI_PROMPT_VERSION.replace(/^saju-myeongsik-ai-/, "")}]`,
     "아래 제공된 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다.",
     "LLM은 십성/오행/천간/지지 관계를 직접 계산하지 말고, 제공된 내부 계산값만 근거로 상담문을 작성합니다.",
     "상담문은 질문에만 짧게 답하지 말고 명식 전체의 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 포함합니다.",
