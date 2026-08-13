@@ -2,9 +2,9 @@
   "note": "머지됐지만 그 커밋이 main 의 조상이 되지 못한 PR 중, 내용은 확실히 main 에 있다고 사람이 확인한 것들. scripts/verify-merge-landed.mjs 가 읽어 critical 대신 info 로 낮춘다. 조상 관계는 의미론이 아니라서(내용이 다른 PR 로 회수돼도 커밋은 영영 고아다) 이 대장이 없으면 감시기가 상시 빨간불이 되고, 그러면 진짜 경보도 무시된다. 복구 PR 은 자기 항목을 같은 PR 에 담는 것이 규약이다. 확인 없이 여기 적어서 경보를 끄지 말 것 — 그건 감시기를 끄는 것과 같다.",
   "recovered": {
     "503": {
-      "reason": "부분 유실. 워커 레인 코드는 후속 PR 들이 재구현해 main 에 살아 있으나(admissionLane·retryAdmissionOnOverload·retryOnOperationTimeout·skipSharedConnect 모두 확인), 레거시 prepare 의 User 투영과 부팅 출석 POST 지연은 아직 없다. 재이식 완료 전까지 의도적으로 critical 로 남긴다.",
+      "reason": "부분 유실이었고 재이식으로 마무리됐다. 워커 레인 코드 자체는 후속 PR 들이 재구현해 이미 main 에 있었고(admissionLane·retryAdmissionOnOverload·retryOnOperationTimeout·skipSharedConnect 확인), 빠져 있던 셋을 다시 넣었다 — 레인 분리 행동 테스트(공유 레인 포화 시 결제가 통과하는지, 옵션 값만 보던 기존 세 테스트가 못 잡던 것), 레거시 prepare 의 User 투영 8필드, 부팅 출석 POST 의 idle 지연. #503 원본의 153줄 테스트 파일은 되살리지 않았다 — 옵션 단언은 이미 세 파일이 커버해 중복이었다.",
       "verifiedAt": "2026-08-14",
-      "acknowledged": false
+      "acknowledged": true
     },
     "520": {
       "reason": "내용 전부 main 에 존재. mongoTransactionOptions 를 쓰는 6개 파일과 __tests__/worker/db.transaction-budget.test.js 를 파일별로 대조했다. 커밋만 고아다.",
