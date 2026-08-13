@@ -249,6 +249,7 @@
     "verify:i18n-ko-coverage": "node scripts/verify-i18n-ko-coverage.mjs",
     "verify:i18n-no-fallback": "node scripts/verify-i18n-no-fallback.mjs",
     "verify:i18n-no-hardcoded-korean": "node scripts/verify-i18n-no-hardcoded-korean.mjs",
+    "verify:i18n-rendered-korean": "node scripts/verify-i18n-rendered-korean.mjs",
     "verify:i18n-runtime": "node scripts/verify-i18n-runtime-readiness.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
     "verify:www-canonical": "node scripts/verify-www-canonical.mjs",

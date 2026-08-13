@@ -18,7 +18,8 @@
 | `app/insights/adsense-ready-articles.js`/`methodology-articles.js` | 최초 죽은 코드로 의심됐으나 조사 결과 **둘 다 실사용**(`articles.js`/`seo-growth-articles.js`가 import해 렌더 파이프라인에 병합) | — | 조치 없음 — 삭제 대상 아님 | — | 확인 완료(취소) |
 | famous-saju 카니발라이제이션 | [04-url-architecture.md §3](04-url-architecture.md) | 중간 | GSC 데이터 확보 후 판단 | `verify:adsense-readiness` | 확정 대기 |
 | ~~로케일 셸 본문 미번역~~ | **2026-08-13 해결** — 프리렌더가 마커 문법 2종 중 `data-cd-trans="키"` 만 처리해 `data-cd-trans data-key="키"` 802개(전체의 68%)를 건너뛰었고, `zh-tw` 는 대상 로케일 목록에 아예 없었다. 실측 잔존 한국어 `/ja`·`/zh`·`/en` 각 10,102자·`/zh-tw` 13,963자 | 높음(색인 대상 로케일 홈이 선언한 `lang` 과 다른 언어를 렌더) | 두 문법 모두 처리 + `zh-tw` 추가 + 마커 없던 문구 140개 신규 키 작성 | `i18n:check` | **완료** |
-| 🔴 `verify:i18n-rendered-korean` 미배선 | 헤드리스로 **실제 렌더 후** 한국어를 세는 유일한 검증기인데 어떤 npm 스크립트에도 CI 에도 걸려 있지 않다. 위 미번역 사고를 잡았을 도구가 잠들어 있었다 | 중간(정적 분석은 "번역이 걸릴 준비"만 보고 실제 렌더 결과는 못 본다) | 배선하려면 `playwright` 를 devDependency 로 선언해야 하는데 그 변경은 `package-lock.json` 수정을 수반한다 — **수정 금지 파일**이라 이번에 하지 않았다. 로컬 수동 실행은 가능: `node scripts/verify-i18n-rendered-korean.mjs --locales ja,en` | — | 미착수(차단됨) |
+| ~~`verify:i18n-rendered-korean` 미배선~~ | **2026-08-13 배선.** 헤드리스로 **실제 렌더 후** 한국어를 세는 유일한 검증기인데 어떤 npm 스크립트에도 없었다 — 위 미번역 사고를 잡았을 도구가 잠들어 있었다. 처음엔 `playwright` 미선언으로 `package-lock.json`(수정 금지) 변경이 필요해 보였으나, **`@playwright/test` 가 이미 devDependency 이고 `playwright` 는 그 하위로 호이스트**돼 lock 변경이 전혀 필요 없었다. CI 도 이미 `npx playwright install chromium` 을 돌린다(`cloudflare-pages-deploy.yml`) | — | `npm run verify:i18n-rendered-korean -- --locales ja,en`. **상시 CI 게이트로는 걸지 않았다** — 브라우저 기동 비용을 모든 PR 에 얹는 판단은 별도 지시가 필요하다 | `i18n:check`(별개) | **배선됨(수동)** |
+| 실측(2026-08-13, 렌더 기준) | 언어 전환 후 남는 한국어 **181자**, 누락 키 0. 정적 측정 364자와 차이 나는 이유는 정적 쪽이 숨은 노드와 속성값까지 세기 때문이다. 남은 181자는 전부 마커가 없는 노드(`.cd-sig-card__glyph`·`__cta`, `.cd-pick-why__text`)로, 자식 엘리먼트 옆 텍스트라 마킹하면 런타임이 자식을 지운다 | 낮음 | `<span>` 래핑 선행 필요 — 별도 작업 | `verify:i18n-rendered-korean` | 미착수 |
 
 ## 2. 기존 `verify:*`/`seo:*` 스크립트 인벤토리
 
