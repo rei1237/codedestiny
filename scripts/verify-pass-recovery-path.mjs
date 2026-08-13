@@ -100,6 +100,13 @@ for (const rel of SHELL_MIRRORS) {
   must(authPrepareIndex >= 0, `${label}: 결제창 이용권 선택이 인증 준비 single-flight를 기다리지 않습니다`);
   must(passPostIndex >= 0 && authPrepareIndex < passPostIndex, `${label}: 인증 준비보다 MEMBERSHIP_PASS final POST가 먼저 나갑니다`);
   must(!finalPass.includes("status: 'payment_required', reason: 'auth_recovered_payment_required'"), `${label}: 인증 401을 이용권 미커버/상점 이동으로 바꿉니다`);
+
+  // 연도·회차별 contentKey 상품(sukyo_yearly_fortune_unlock:2026 등)을 featureKey 로 판정하면
+  // 한 해를 산 사용자에게 다른 해가 already_unlocked 로 통과해, 결제도 해금도 없이 막다른 길이 된다.
+  must(
+    finalPass.includes("isTileKeyUnlocked(unlockProbeKey)") && finalPass.includes("indexOf(featureKey + ':') === 0"),
+    `${label}: already_unlocked fast-path 가 연도별 contentKey 대신 featureKey 로 판정합니다`,
+  );
 }
 
 // ── A~C, E: React 렌더러 ─────────────────────────────────────────────────────────────────
