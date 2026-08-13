@@ -22119,7 +22119,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-13411c3f8f9b" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-f0bd3d38a646" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-13411c3f8f9b" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-13411c3f8f9b" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -28600,8 +28600,16 @@ return you.name.restore();</span>
     var featureKey = _cdResolvePaidGateFeatureKey(item, item.title || item.reason || '');
     var requestFeatureId = featureKey || String(item.reason || item.title || item.subFeatureKey || item.categoryKey || 'coin-gate-per-use').trim();
     var requestId = String(item.requestId || '').trim() || ('pass:' + requestFeatureId + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9));
+    // 🔴 연도·회차별 contentKey 를 쓰는 상품(예: sukyo_yearly_fortune_unlock:2026)을 featureKey 로 물으면
+    // "아무 해나 하나 샀는가"를 묻는 셈이 된다. 2026 년을 산 사용자가 2027 년을 누르면 결제창이 아예
+    // 열리지 않고 already_unlocked 로 통과하는데, 그 통과는 결제도 해금 기록도 남기지 않아 이후 검증이
+    // 실패한다 — 둘째 해부터 상품을 살 방법이 사라진다. contentKey 가 featureKey 의 접미사 변형이면
+    // 그 키로 묻는다(서버 resolveSajuProfileUnlockContentKey 와 같은 조건).
+    var unlockProbeKey = featureKey;
+    var scopedUnlockContentKey = String(item.contentKey || item.contentId || '').trim();
+    if (featureKey && scopedUnlockContentKey.indexOf(featureKey + ':') === 0) unlockProbeKey = scopedUnlockContentKey;
     try {
-      if (!_cdIsPerUseAIPromptFeatureKey(featureKey) && (item.alreadyUnlocked === true || (featureKey && typeof isTileKeyUnlocked === 'function' && isTileKeyUnlocked(featureKey)))) {
+      if (!_cdIsPerUseAIPromptFeatureKey(featureKey) && (item.alreadyUnlocked === true || (unlockProbeKey && typeof isTileKeyUnlocked === 'function' && isTileKeyUnlocked(unlockProbeKey)))) {
         return { status: 'already_unlocked', requestId: requestId };
       }
     } catch (_unlockCheckError) {}

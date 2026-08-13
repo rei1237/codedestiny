@@ -6775,7 +6775,7 @@
 
   /* 로컬에 먼저 반영하고(=낙관적) 서버에는 뒤따라 알린다.
      서버가 실패해도 사용자 진행은 로컬에 남고, 다음 sync에서 서버값이 정본이 된다. */
-  function _cdLevelAward(kind, key) {
+  function _cdLevelAward(kind, key, opts) {
     var rule = CD_LEVEL_AWARD[kind];
     /* 왜 안 올랐는지를 호출부가 알아야 사용자에게 설명할 수 있다. 예전에는 이유 없이
        changed:false 만 돌려줘서, 하루 한도를 다 쓴 경우와 중복 클릭이 구분되지 않았고
@@ -6818,13 +6818,21 @@
 
     var written = _cdLevelWrite(store);
     var afterLevel = _cdLevelState(store.totalExp).currentLevel;
-    _cdLevelPostAward(kind, safeKey || dateKey);
+    /* opts.deferPost 는 부팅 경로만 쓴다. 부팅 폭풍(auth·profile·access-state·subscription)이
+       Mongo admission 을 가장 심하게 먹는 그 순간에 쓰기를 하나 더 얹지 않기 위해서다. 게다가
+       레벨업이 걸리면 이 POST 는 서버에서 Payment.find 와 월정석 정산까지 끌고 가는데, 그 순간이
+       사용자가 결제창을 여는 순간과 겹친다.
+       인자를 안 주는 기존 호출부(quest·paid, React 브리지 포함)는 종전대로 즉시 발송한다. */
+    var postKey = safeKey || dateKey;
+    var post = function() { return _cdLevelPostAward(kind, postKey); };
+    if (!opts || !opts.deferPost) post();
     return {
       changed: true,
       written: written,
       leveledUp: afterLevel > beforeLevel,
       level: afterLevel,
-      gainedExp: rule.exp
+      gainedExp: rule.exp,
+      post: (opts && opts.deferPost) ? post : null
     };
   }
 
@@ -6933,8 +6941,20 @@
   }
 
   /* 첫 페인트를 밀어내지 않도록 한가할 때로 미룬다(runVersionProbe와 같은 방식). */
-  function _cdLevelSyncWhenIdle() {
-    var run = function() { _cdLevelSync().then(function(res) { if (res) _dpRefreshLevelStrip(); }); };
+  function _cdLevelSyncWhenIdle(pendingPost) {
+    /* 🔴 pendingPost 가 있으면 sync **앞에 직렬로** 돌린다. 동시에 쏘면 부팅 직후 admission
+       슬롯을 두 개 잡고, 순서도 award → progress 가 맞다(적립 전 상태를 먼저 읽어 오면 화면이
+       한 박자 옛 값을 보여 준다). 실패해도 sync 는 그대로 진행한다 — 로컬 적립은 이미 끝났고
+       서버 병합이 Math.max 라 다음 부팅에서 따라잡는다.
+       🔴 새 지연 장치를 만들지 않는다. 이미 있는 idle 콜백 안으로 들어갈 뿐이다. */
+    var run = function() {
+      var first = typeof pendingPost === 'function'
+        ? Promise.resolve().then(pendingPost).catch(function() { return null; })
+        : Promise.resolve(null);
+      first.then(function() {
+        return _cdLevelSync().then(function(res) { if (res) _dpRefreshLevelStrip(); });
+      });
+    };
     if (typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(run, { timeout: 4000 });
     } else {
@@ -7460,8 +7480,12 @@
   function _dpBootLevelDaily() {
     if (_dpLevelBootDone) return;
     _dpLevelBootDone = true;
-    _dpNoteLocalLevelUp(_cdLevelAward('checkin', _cdLevelKstDate(0)));
-    _cdLevelSyncWhenIdle();
+    /* 로컬 적립·스트립 렌더·레벨업 토스트는 그대로 동기다 — 화면 동작은 바뀌지 않는다.
+       서버로 나가는 쓰기만 idle 로 미룬다. 하루 첫 적립은 로컬 day.checkin 이 중복을 막고
+       서버는 questId 로 멱등하므로, 미뤄도 이 POST 가 그날의 유일한 발송이다. */
+    var checkin = _cdLevelAward('checkin', _cdLevelKstDate(0), { deferPost: true });
+    _dpNoteLocalLevelUp(checkin);
+    _cdLevelSyncWhenIdle(checkin && checkin.post);
     /* 🔴 신원이 **실제로 바뀐** 사건에서만 쿨다운을 무시한다.
        RPG 진행도는 사용자 단위 데이터라, "같은 사용자의 다른 상태가 갱신됐다"는 재조회 사유가 아니다.
        예전에는 거부 목록(`source === 'coin-api-auth'` 하나)이었는데 그 방식은 사고가 날 때마다
