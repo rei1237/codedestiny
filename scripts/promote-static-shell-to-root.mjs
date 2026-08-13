@@ -57,6 +57,23 @@ function assertShellLooksReady(html, options = {}) {
   }
 }
 
+/**
+ * `/static/` 는 `/` 와 바이트까지 동일한 사본이다(홈 셸이 승격되기 전 시절의 폴백 경로).
+ * 그래서 크롤러 눈에는 홈의 완전한 중복 URL 이고, 실제로 `/about` 이 `/static/#…` 앵커
+ * 4개로 링크해 발견 가능하다. 지금은 cross-canonical 하나만 그걸 막고 있다.
+ *
+ * 원본(`public/static/index.html`)은 건드리지 않는다 — 검증기 여러 개가 그 파일을 셸
+ * 사본으로 대조한다. 배포 산출물의 `/static/` 사본에서만 robots 를 noindex 로 바꾼다.
+ * 루프 가드 폴백 기능에는 영향이 없다.
+ */
+function withNoindexRobots(html) {
+  const pattern = /(<meta\s+name="robots"\s+content=")[^"]*(")/i;
+  if (!pattern.test(html)) {
+    throw new Error("[promote-static-shell] robots meta not found in the static shell copy");
+  }
+  return html.replace(pattern, "$1noindex, follow$2");
+}
+
 function writeHtml(sourcePath, destinationPath, label, options = {}) {
   if (!existsSync(sourcePath)) {
     throw new Error(`[promote-static-shell] Missing source: ${sourcePath}`);
@@ -66,8 +83,8 @@ function writeHtml(sourcePath, destinationPath, label, options = {}) {
   const html = buffer.toString("utf8");
   assertShellLooksReady(html, options);
   mkdirSync(dirname(destinationPath), { recursive: true });
-  writeFileSync(destinationPath, buffer);
-  console.log(`[promote-static-shell] ${label}: ${sourcePath} -> ${destinationPath}`);
+  writeFileSync(destinationPath, options.noindex ? Buffer.from(withNoindexRobots(html), "utf8") : buffer);
+  console.log(`[promote-static-shell] ${label}: ${sourcePath} -> ${destinationPath}${options.noindex ? " (noindex)" : ""}`);
 }
 
 function relativePath(from, to) {
@@ -217,7 +234,7 @@ if (existsSync(publicDir)) {
 writeHtml(publicIndexPath, distIndexPath, "root");
 
 if (existsSync(publicStaticIndexPath)) {
-  writeHtml(publicStaticIndexPath, distStaticIndexPath, "legacy static", { allowStaticSelfRedirect: true });
+  writeHtml(publicStaticIndexPath, distStaticIndexPath, "legacy static", { allowStaticSelfRedirect: true, noindex: true });
 }
 
 writeStaticShellCanonicalRoutes();
