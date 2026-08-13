@@ -518,6 +518,20 @@
     }
   }
 
+  /* "이 스코프는 서버 상태를 받아 저장한 적이 있다"를 판별한다.
+     🔴 카드 0장은 "없음이 확정"이고, 저장분이 아예 없는 것은 "아직 모름"이다. 지금까지 저장 계층이
+     둘을 구분하지 못해(_dpReadStoredProfileState 는 둘 다 profiles: [] 를 돌려준다) 카드가 0장인
+     계정은 재진입·인증 이벤트마다 "아직 모름"으로 취급돼 **로딩 카드로 되돌아갔다.**
+     메타 키는 _dpWriteStoredProfileState 가 성공적으로 상태를 쓸 때만 남으므로 그 구분이 이미
+     저장돼 있다 — 새 저장 키를 만들지 않고 그것을 읽는다. */
+  function _dpHasSyncedScopeState(scope) {
+    try {
+      return !!localStorage.getItem(_dpGetScopedMetaKey(String(scope || 'guest')));
+    } catch (e) {
+      return false;
+    }
+  }
+
   function _dpWriteStoredProfileState(scope, profiles, currentId) {
     var safeScope = String(scope || 'guest');
     try {
@@ -7718,6 +7732,9 @@
     _dpClearCooldown('/api/auth/me');
     _dpSessionVerify.checkedAt = 0;
     renderProfileLoadingCard();
+    // 🔴 로딩 카드를 그리는 곳은 반드시 실패안전을 함께 건다(아래 _dpArmProfileLoadingFailsafe 주석).
+    // 여기만 빠져 있었다 — 콜백이 끝내 안 오면(응답이 영영 안 오는 fetch) 상한이 아예 없는 유일한 경로였다.
+    _dpArmProfileLoadingFailsafe();
     _dpLoadFromServer(function(loaded) {
       if (loaded) {
         renderMasterCard(DPStorage.current());
@@ -7753,13 +7770,20 @@
      가입 직후 경로(_dpRefreshAuthScopeNow)가 무방비였다.
      진행 중인 서버 조회를 잘라내면 안 된다 — 상한(10s)이 요청 타임아웃(20s)보다 짧아서,
      느린 기기·콜드 워커에서는 응답이 오기도 전에 먼저 터져 빈 카드를 그렸다.
-     (앱은 후보 base 를 순회하므로 더 쉽게 걸린다.) 조회가 살아 있으면 한 번 더 기다린다. */
+     (앱은 후보 base 를 순회하므로 더 쉽게 걸린다.) 조회가 살아 있으면 한 번 더 기다린다.
+     🔴 단 "조회가 살아 있는가"는 **자기가 기다리던 그 조회**로 판단한다. 예전에는 모듈 전역
+     _dpLoadFromServerPending 을 그냥 봤는데, 그러면 **남의 갱신이 띄운 요청**이 살아 있는 동안
+     3틱을 다 태워 구조가 10초가 아니라 40초로 늘어났다. 그 40초가 인증 이벤트 주기보다 길면
+     카드는 사실상 영구히 로딩 상태가 된다. */
   function _dpArmProfileLoadingFailsafe() {
     var failsafeTicks = 0;
+    var watchedRequest = _dpLoadFromServerPending;
     var runProfileLoadingFailsafe = function() {
       var card = document.getElementById('dpMasterCard');
       if (!card || card.className.indexOf('dp-master-card--moon-loading') < 0) return;
-      if (_dpLoadFromServerPending && failsafeTicks < 3) {
+      if (!watchedRequest) watchedRequest = _dpLoadFromServerPending;
+      var stillWaiting = !!watchedRequest && _dpLoadFromServerPending === watchedRequest;
+      if (stillWaiting && failsafeTicks < 3) {
         failsafeTicks += 1;
         window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
         return;
@@ -9880,7 +9904,11 @@
     // (아래 _dpLoadFromServer 는 그대로 돌아 서버 결과로 정정한다.)
     var freshSignup = hasInitialSessionHint && !initialProfile
       && _dpConsumeFreshSignupHint(_dpGetProfileScope());
-    var shouldShowProfileLoading = hasInitialSessionHint && !freshSignup;
+    // 이미 동기화한 적 있는 스코프에서 카드가 없다면 "없음이 확정"이다 — 재진입마다 로딩 카드를
+    // 다시 보여 줄 이유가 없다(서버 조회는 아래에서 그대로 돌아 정정한다).
+    var confirmedEmpty = hasInitialSessionHint && !initialProfile && !freshSignup
+      && _dpHasSyncedScopeState(_dpGetProfileScope());
+    var shouldShowProfileLoading = hasInitialSessionHint && !freshSignup && !confirmedEmpty;
     if (initialProfile) renderMasterCard(initialProfile);
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
@@ -10106,17 +10134,30 @@
     }
 
     function _dpRefreshAuthScopeNow() {
-      _dpScopedStorageReadyScope = '';
-      _dpProfileMemoryScope = '';
-      _dpProfiles = [];
-      _dpCurrentId = '';
-      _dpSessionVerify.checkedAt = 0;
-      _dpSessionVerify.ok = false;
-      _dpSessionVerify.userId = '';
-      _dpSessionVerify.signature = '';
-      _dpSessionVerify.pending = null;
-      _dpClearGlobalProfileBridge();
-      _dpPublishCurrentProfile();
+      /* 🔴 계정이 실제로 바뀌었을 때만 스코프 상태를 버린다.
+         예전에는 무조건 버렸는데, _dpSessionVerify.userId 까지 지우면 **쿠키 전용 세션**에서
+         _dpResolveProfileScope 의 폴백이 사라져 스코프가 guest 로 붕괴한다(웹은 로그인 후
+         localStorage 토큰을 지우고 HttpOnly 쿠키만 남긴다 — index.html 주석 참고). 그러면
+         DPStorage.current() 가 guest 키를 읽어 null 이 되고, 카드가 있는 계정까지 로딩 카드로
+         떨어졌다. 같은 계정이면 버릴 이유가 없다 — 아래 _dpLoadFromServer 가 SWR 로 갱신한다. */
+      var _dpNextScope = _dpGetProfileScope();
+      var _dpScopeChanged = _dpNextScope !== _dpProfileMemoryScope;
+      if (_dpScopeChanged) {
+        _dpScopedStorageReadyScope = '';
+        _dpProfileMemoryScope = '';
+        _dpProfiles = [];
+        _dpCurrentId = '';
+        _dpSessionVerify.checkedAt = 0;
+        _dpSessionVerify.ok = false;
+        _dpSessionVerify.userId = '';
+        _dpSessionVerify.signature = '';
+        _dpSessionVerify.pending = null;
+        _dpClearGlobalProfileBridge();
+        _dpPublishCurrentProfile();
+      } else {
+        // 같은 계정의 재검증이면 세션 검증 TTL 만 만료시켜 다음 조회가 나가게 한다.
+        _dpSessionVerify.checkedAt = 0;
+      }
 
       // init()과 동일하게 SWR식으로: 스코프 캐시가 있으면 로딩 카드로 되돌리지 않고
       // 마스터 카드를 유지한 채 백그라운드 갱신만 한다(이미 본 카드가 재로딩되는 증상 방지).
@@ -10126,6 +10167,8 @@
         if (_dpScopedCurrent) renderMasterCard(_dpScopedCurrent);
         // 가입 직후면 카드 0장이 확정이므로 로딩 카드를 건너뛰고 작성 유도 카드를 즉시 그린다.
         else if (_dpConsumeFreshSignupHint(_dpGetProfileScope())) renderMasterCard(null);
+        // 이미 동기화한 적 있는 스코프에서 카드가 없다면 "없음이 확정"이다 — 로딩이 아니라 작성 유도.
+        else if (_dpHasSyncedScopeState(_dpNextScope)) renderMasterCard(null);
         else {
           renderProfileLoadingCard();
           _dpArmProfileLoadingFailsafe();
@@ -10156,7 +10199,34 @@
     // 대해 거의 동시에 발화하므로, 트레일링 디바운스로 1회 실행으로 합쳐
     // 프로필+구독 재조회 중복을 막는다(최종 인증 상태 기준으로 실행).
     var _dpAuthScopeRefreshTimer = null;
-    function _dpScheduleAuthScopeRefresh() {
+
+    /* 🔴 자격(entitlement) 갱신이 스스로 쏘는 되울림은 **인증 변경이 아니다.**
+       subscription-sync(index.html 의 __cdSyncSubscription) 와 membership-cache
+       (_cdStoreMembershipStatusToCache) 는 이용권 커버리지를 갱신할 때마다 cd:auth-changed 를
+       발행하는데, 계정이 바뀐 것이 아니므로 프로필 목록은 그대로다. 이걸 인증 변경으로 처리하면
+       _dpRefreshAuthScopeNow 가 스코프 상태를 통째로 버리고 **로딩 카드를 다시 그린다.**
+       카드가 0장인 계정은 되돌아갈 캐시가 없어서 매번 로딩 카드로 떨어지고, 5분 세션 하트비트와
+       탭 재포커스가 이 이벤트를 계속 만들어내므로 사용자 눈에는 무한 로딩이 된다.
+       (실측: 이벤트 2발에 로딩 카드 재그림 3회 + /api/profile 3회.)
+       같은 이벤트를 듣는 다른 리스너 4곳(index.html:400 · :15035 ·
+       js/core/index-inline-runtime.js · js/core/access-store.js)은 전부 이 필터를 갖고 있었고
+       여기만 빠져 있었다. 필터의 축은 event 가 아니라 **source** 다.
+       가드: scripts/verify-auth-event-loop-guard.mjs */
+    function _dpIsEntitlementEchoAuthEvent(detail) {
+      if (!detail || typeof detail !== 'object') return false;
+      var source = String(detail.source || '').toLowerCase();
+      var ev = String(detail.event || detail.type || '').toLowerCase();
+      return (source === 'subscription-sync' || source === 'membership-cache') && ev === 'subscription';
+    }
+
+    function _dpScheduleAuthScopeRefresh(detail) {
+      /* 자격 되울림이면 프로필 상태를 건드리지 않는다. 다만 이용권 한도에 걸린 저장 버튼은
+         최신으로 유지해야 하므로 **네트워크 0회짜리 로컬 갱신만** 수행한다. */
+      if (_dpIsEntitlementEchoAuthEvent(detail)) {
+        _dpLoadSubCache();
+        _dpUpdateSaveBtn();
+        return;
+      }
       // 인증이 바뀌면 이용권 판정 근거(스냅샷·미커버 캐시)가 다른 계정 것이 된다 — 즉시 버린다.
       try { if (typeof _dpClearPaidPassGateCache === 'function') _dpClearPaidPassGateCache('auth-changed'); } catch (_) {}
       try { window.__cdSubscriptionSnapshotPrewarmed = false; } catch (_) {}
@@ -10167,13 +10237,17 @@
       }, 150);
     }
 
-    window.addEventListener('cd:auth-changed', _dpScheduleAuthScopeRefresh);
+    window.addEventListener('cd:auth-changed', function(event) {
+      _dpScheduleAuthScopeRefresh(event && event.detail);
+    });
 
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         var authSyncChannel = new BroadcastChannel('code-destiny-auth-sync');
-        authSyncChannel.onmessage = function() {
-          _dpScheduleAuthScopeRefresh();
+        // BroadcastChannel 은 _cdPublishAuthSync 가 같은 payload 를 그대로 실어 보내므로
+        // 같은 필터를 태운다(안 그러면 필터를 우회하는 두 번째 통로가 된다).
+        authSyncChannel.onmessage = function(message) {
+          _dpScheduleAuthScopeRefresh(message && message.data);
         };
       }
     } catch (e) {}
