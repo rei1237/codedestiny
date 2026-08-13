@@ -28,7 +28,7 @@ import {
   ContentEntitlement,
   User,
 } from "../lib/models.js";
-import { USER_SCOPE_PROFILE_ID } from "../lib/content-unlocks.js";
+import { USER_SCOPE_PROFILE_ID, resolvePaidContentServiceKey } from "../lib/content-unlocks.js";
 import { paymentError } from "./errors.js";
 import { toObjectId, toUserIdString } from "./db.js";
 
@@ -49,9 +49,15 @@ export function resolveEntitlementIdentity({ featureKey, profileId, serviceKey, 
   return {
     userId: "", // 호출부가 채운다(타입 실수를 막으려고 여기서 만들지 않는다)
     profileId: wantsProfile ? clean(profileId, 80) : USER_SCOPE_PROFILE_ID,
-    // serviceKey·contentKey 가 없으면 featureKey 로 접는다. 연도별 상품처럼 contentKey 가 실제로
-    // 다른 것들은 호출부가 반드시 넘겨야 한다 — 안 넘기면 한 프로필이 두 해를 보유하지 못한다.
-    serviceKey: clean(serviceKey, 80) || feature,
+    /* 🔴 serviceKey 는 featureKey 로 접지 않고 **정본 유도표**로 접는다(content-unlocks.js).
+       featureKey 로 접던 동안 V2 가 쓴 행은 serviceKey 가 "sukyo_yearly_fortune_unlock" 이었는데,
+       리더는 전부 정본 serviceKey("sukuyo"/"ziwei"/"saju"…)로 조회한다 — 레포에 serviceKey===featureKey
+       로 찾는 리더는 하나도 없다. 그래서 결제해도 영영 안 읽히는 권한이 쌓였다.
+       fallback 인자에 feature 를 넘기는 것이 중요하다: 안 넘기면 매핑 없는 기능이 "paid_content" 로
+       뭉뚱그려져 신원이 불필요하게 이동한다. 이러면 **명시 매핑이 있는 기능만** 바뀐다.
+       contentKey 는 종전대로 featureKey 로 접는다 — 연도별 상품처럼 실제로 다른 것들은 호출부가
+       반드시 넘겨야 한다(안 넘기면 한 프로필이 두 해를 보유하지 못한다). */
+    serviceKey: clean(serviceKey, 80) || resolvePaidContentServiceKey(feature, feature),
     contentKey: clean(contentKey, 120) || feature,
     scope: resolvedScope,
     featureKey: feature,
@@ -80,6 +86,23 @@ export async function grantEntitlement(db, {
     contentKey: identity.contentKey,
     scope: identity.scope,
   };
+
+  /* 🔴 과도기 가드 (2026-08-13 도입, 백필 후 제거 예정).
+     serviceKey 유도가 'featureKey 접기'에서 '정본 유도'로 바뀌기 **전에** 지급된 행은 옛
+     serviceKey(=featureKey)로 저장돼 있다. 그 행을 못 본 채 새 신원으로 upsert 하면
+     ① 유니크 인덱스가 없는 환경: 새 행이 생겨 alreadyOwned=false → 월정석·이용권 경로가 **재차감**
+     ② 있는 환경: E11000 → 아래 catch 의 재조회가 새 필터로 돌아 doc=null → 영구 잠금
+     둘 다 사용자 손해다. 신원이 실제로 바뀌는 기능에 한해 옛 신원을 1회만 확인한다.
+     REFUNDED 행은 소유로 치지 않는다(다시 사면 되살아나야 한다).
+     제거 조건: scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --check 가 0건. */
+  if (identity.serviceKey !== identity.featureKey) {
+    const legacyTwin = await db.findOne(ContentEntitlement, {
+      ...filter,
+      serviceKey: identity.featureKey,
+      status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    });
+    if (legacyTwin) return { alreadyOwned: true, identity, entitlement: legacyTwin };
+  }
 
   /* 이미 있으면 그대로 둔다. 재생 시 grantedAt·orderId 를 덮어쓰면 "언제 무엇으로 샀는가"라는
      회계 사실이 재생 때마다 바뀐다 — 환불 근거가 흔들린다. $setOnInsert 만 쓰는 이유다.

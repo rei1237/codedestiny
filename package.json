@@ -91,6 +91,8 @@
     "verify:access-unlock-indexes": "node scripts/migrations/20260802-add-access-unlock-indexes.mjs --check",
     "migrate:permanent-unlock-index": "node scripts/migrations/20260804-add-permanent-unlock-index.mjs",
     "verify:permanent-unlock-index": "node scripts/migrations/20260804-add-permanent-unlock-index.mjs --check",
+    "migrate:v2-entitlement-service-keys": "node scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --apply",
+    "verify:v2-entitlement-service-keys": "node scripts/migrations/20260813-normalize-v2-entitlement-service-keys.mjs --check",
     "migrate:fusion-fortune-indexes": "node scripts/migrations/20260804-add-fusion-fortune-indexes.mjs",
     "verify:fusion-fortune-indexes": "node scripts/migrations/20260804-add-fusion-fortune-indexes.mjs --check",
     "migrate:fusion-consultation-indexes": "node scripts/migrations/20260812-add-fusion-fortune-consultation-indexes.mjs",

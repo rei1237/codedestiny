@@ -201,6 +201,94 @@ describe("sukuyo yearly fortune", () => {
     expect(result.wrongYear).toBe(false);
   });
 
+  // 🔴 500 회귀 가드. Solar.fromYmdHms 는 범위를 벗어난 인자에 status 없는 맨 Error("wrong month 0")를
+  // 던지고, 그 에러는 라우트의 4xx 분기에도 503 분기에도 안 걸려 그대로 500 이 됐다. 클라이언트는
+  // 500 을 '서버 혼잡'으로 표시했으므로 원인 추적이 막힌 채 결제 경로까지 죽었다.
+  test("out-of-range birth date fails as 422, never as a status-less throw", () => {
+    const result = runSukuyoProbe(`
+      function attempt(birth) {
+        try {
+          utils.buildSukuyoYearlyFortuneResult({
+            auth: { userId: "user-yearly-1" },
+            profile: buildProfile({ birth }),
+            targetYear: 2026,
+          });
+          return { ok: true };
+        } catch (error) {
+          return { ok: false, status: Number(error && error.status) || 0, code: String((error && error.code) || ""), message: String((error && error.message) || "") };
+        }
+      }
+      const base = { year: 1992, month: 7, day: 14, hour: 12, minute: 0, calType: "solar" };
+      return {
+        monthZero: attempt({ ...base, month: 0 }),
+        monthNull: attempt({ ...base, month: null }),
+        dayZero: attempt({ ...base, day: 0 }),
+        monthThirteen: attempt({ ...base, month: 13 }),
+        lunarMonthZero: attempt({ ...base, month: 0, calType: "lunar" }),
+        missing: attempt({}),
+      };
+    `);
+
+    for (const key of ["monthZero", "monthNull", "dayZero", "monthThirteen", "lunarMonthZero", "missing"]) {
+      expect(result[key].ok).toBe(false);
+      expect(result[key].status).toBe(422);
+      expect(result[key].code).toBe("INVALID_PROFILE_BIRTH");
+      // "wrong month 0" 같은 라이브러리 원문이 새어 나오면 곧 500 이라는 뜻이다.
+      expect(result[key].message).not.toMatch(/wrong (month|day|hour)/);
+    }
+  });
+
+  test("out-of-range birth clock is clamped, not rejected", () => {
+    // 시·분은 본명숙 판정의 신원 값이 아니다. 거부하면 정상 프로필까지 막히므로 정오로 접는다.
+    const result = runSukuyoProbe(`
+      function attempt(birth) {
+        try {
+          const full = utils.buildSukuyoYearlyFortuneResult({
+            auth: { userId: "user-yearly-1" },
+            profile: buildProfile({ birth }),
+            targetYear: 2026,
+          });
+          return { ok: true, natal: full.calculationBasis.natalSukuyo.nameKo };
+        } catch (error) {
+          return { ok: false, message: String((error && error.message) || "") };
+        }
+      }
+      const base = { year: 1992, month: 7, day: 14, hour: 12, minute: 0, calType: "solar" };
+      return {
+        negativeHour: attempt({ ...base, hour: -1 }),
+        hour24: attempt({ ...base, hour: 24 }),
+        minute99: attempt({ ...base, minute: 99 }),
+        noon: attempt(base),
+      };
+    `);
+
+    for (const key of ["negativeHour", "hour24", "minute99", "noon"]) {
+      expect(result[key].ok).toBe(true);
+    }
+    // 정오로 접히므로 정오 프로필과 같은 본명숙이 나와야 한다.
+    expect(result.negativeHour.natal).toBe(result.noon.natal);
+    expect(result.hour24.natal).toBe(result.noon.natal);
+  });
+
+  test("V2 order evidence passes on contentKey alone, without targetYear", () => {
+    // 셸이 contentKey 를 실어 보내게 된 뒤의 실제 주문 스냅샷 모양이다(worker/payments/orders.js
+    // pricingSnapshot 에는 targetYear 가 없다 — contentKey 에서 유도되는 사실을 두 번 저장하지 않는다).
+    const result = runSukuyoProbe(`
+      const contentKey = utils.sukuyoYearlyContentKey(2026);
+      const v2Order = {
+        status: "paid",
+        paymentAmount: 10000,
+        featureKey: "sukyo_yearly_fortune_unlock",
+        pricingSnapshot: { profileId: "profile-yearly-1", contentKey, scope: "" },
+      };
+      return {
+        v2Order: utils.isSukuyoYearlyPaymentEvidence(v2Order, { profileId: "profile-yearly-1", contentKey, targetYear: 2026 }),
+      };
+    `);
+
+    expect(result.v2Order).toBe(true);
+  });
+
   test("collects current paid gate access evidence from nested payload", () => {
     const result = runSukuyoProbe(`
       return utils.collectSukuyoYearlyEvidenceIds({
