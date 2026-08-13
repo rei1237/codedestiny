@@ -251,6 +251,7 @@
     "verify:mobile-entry-actions": "node scripts/verify-mobile-entry-actions.mjs",
     "verify:mobile-runtime-readiness": "node scripts/verify-mobile-runtime-readiness.mjs",
     "verify:mobile-bottom-nav-sync": "node scripts/verify-mobile-bottom-nav-sync.mjs",
+    "verify:guard-wiring": "node scripts/verify-guard-wiring.mjs",
     "verify:mobile-detail-nonintrusive": "node scripts/verify-mobile-detail-nonintrusive.mjs",
     "verify:mobile-detail-render": "node scripts/verify-mobile-detail-render.mjs",
     "verify:mobile-cdp-smoke": "node scripts/verify-mobile-cdp-smoke.mjs",

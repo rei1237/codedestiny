@@ -125,7 +125,7 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - 프로필: `User.destinyProfiles`, `ProfileCard`, `/api/profile/*`, `/api/user/destiny-profiles`
 - 권한: `worker/lib/permission-service.js`가 paid feature registry의 access model과 로그인 access snapshot을 판정한다. 영구 해금 정본은 `ContentEntitlement`, 회당 실행 정본은 `PaidExecutionRecord`다.
 - 결제 쓰기 정본은 `worker/lib/payment-service.js`다. 이용권 검증, 월정석 lot 차감, 결제 원장과 access grant 발급을 담당한다.
-- 기능 라우트는 결제 Payment Service가 발급한 access grant만 소비하며 월정석 저장소를 직접 차감하지 않는다. 직접 차감 재도입은 `verify:payment-service-boundary`가 차단한다.
+- 기능 라우트는 결제 Payment Service가 발급한 access grant만 소비하며 월정석 저장소를 직접 차감하지 않는다. 직접 차감 재도입은 `npm run verify:payment-service-boundary`가 잡아낸다 — 단 **CI 에 배선돼 있지 않아 수동 실행**이다(`scripts/verify-guard-wiring.mjs` 의 미배선 선언 참고).
 
 ## 에셋/R2 구조
 
