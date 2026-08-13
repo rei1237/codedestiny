@@ -251,6 +251,18 @@
 /sample/today                   /today/                        301
 /sample/today/                  /today/       301
 
+# 인사이트 통합 리다이렉트 (docs/insight-hub-authoring.md §1-3 · §2)
+# 본문이 buildMysticSections 템플릿으로 조립되던 마지막 3편을 정본 아티클로 합친다.
+# 글 객체의 category 를 "통합 리다이렉트" 로 바꿔 렌더·사이트맵에서 빠졌으므로
+# 이 301 이 실제로 적용된다. noindex 대신 통합을 택한 이유는 링크 자산이 버려지지 않고
+# 정본으로 모이기 때문이다.
+/insights/sukuyo-compatibility-rhythm-guide     /insights/sukuyo-compatibility-guide/  301
+/insights/sukuyo-compatibility-rhythm-guide/    /insights/sukuyo-compatibility-guide/  301
+/insights/sukuyo-compatibility-simple-checklist /insights/sukuyo-compatibility-guide/  301
+/insights/sukuyo-compatibility-simple-checklist/ /insights/sukuyo-compatibility-guide/ 301
+/insights/how-to-ask-better-fortune-questions   /insights/tarot-how-to-read/           301
+/insights/how-to-ask-better-fortune-questions/  /insights/tarot-how-to-read/           301
+
 # SPA 폴백 (Next.js가 처리하지 않는 경로)
 # Next.js App Router와 Pages 출력 Worker가 /api/* 를 동일 오리진에서 처리하므로
 # 외부 Worker로의 200 프록시 규칙은 두지 않습니다.

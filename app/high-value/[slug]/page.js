@@ -248,7 +248,7 @@ export default function HighValueDetailPage({ params }) {
 
         {/* 광고 게재 대상이면서 제작·검수 고지가 없던 유일한 장문 템플릿이었다.
             /insights 아티클과 같은 고지를 같은 근거로 붙인다. */}
-        <ContentIntegrityNote datePublished={page.publishedAt} dateModified={page.updatedAt} />
+        <ContentIntegrityNote contentSource="authored" datePublished={page.publishedAt} dateModified={page.updatedAt} />
 
         <DeferredShareWidget
           title={page.title}

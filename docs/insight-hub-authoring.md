@@ -85,13 +85,13 @@
 ### 숙요점 (현 26편) — 이미 2편 저자 투입 완료
 - 완료: `sukuyo-what-is`, `sukuyo-bonmyeongsuk-how-to-find`
 - 입문 중복 정리 **[확정필요]**: `sukuyo-what-is` ⟵ `sukuyo-lunar-mansion-primer`, `sukuyo-what-is-27-lunar-mansions`
-- 궁합 개요 `sukuyo-compatibility-guide` ⟵ `sukuyo-compatibility-simple-checklist`, `sukuyo-compatibility-rhythm-guide` **[확정필요]**
+- 궁합 개요 `sukuyo-compatibility-guide` ⟵ `sukuyo-compatibility-simple-checklist`, `sukuyo-compatibility-rhythm-guide` [통합 완료 2026-08-14]
 - 관계 유형 개별 유지: `sukuyo-eishin`, `sukuyo-antai`, `sukuyo-ankai`, `sukuyo-27-mansions`, `sukuyo-bonmyeongsuk-vs-wolmyeongsuk`
 - 나머지 실용편 유지: `sukuyo-love`, `sukuyo-marriage`, `sukuyo-vs-saju-compatibility`, `sukuyo-three-group-types-guide`, `sukuyo-love-communication-rules`, `sukuyo-friendship-teamwork-guide`, `sukuyo-day-by-day-rhythm-usage`, `sukuyo-beginner-terms-easy-dictionary`, `sukuyo-qa-most-asked-questions`, `sukuyo-27-guardian-animals-origin-guide`, `sukuyo-conflict-repair-dialogue-templates`, `sukuyo-boundary-setting-practical-guide`, `sukuyo-couple-finance-rhythm-guide`, `relationship-luck-and-communication-rules`
 
 ### 타로 (14/14 완료 — 통합 맵 확정·실행 완료 2026-07-11)
 - `tarot-major-arcana-22-complete-meanings` ⟵ `tarot-major-arcana-symbols`, `tarot-major-arcana-0-to-21-with-images` [완료]
-- `tarot-how-to-read` ⟵ `tarot-love-question-design` [완료. `how-to-ask-better-fortune-questions`는 코드베이스에 존재하지 않아 병합 대상 없었음]
+- `tarot-how-to-read` ⟵ `tarot-love-question-design`, `how-to-ask-better-fortune-questions` [둘 다 통합 완료. 🔴 이 줄은 오래 틀려 있었다 — `how-to-ask-better-fortune-questions` 는 `app/insights/adsense-ready-articles.js` 에 실재했고 사이트맵에도 올라가 있었다. "존재하지 않는다"는 메모 때문에 마지막 템플릿 조립물로 남아 2026-08-14 까지 색인됐다]
 - `saju-and-tarot-combined-reading-framework` ⟵ `tarot-vs-saju` [완료]
 - 개별 유지(전부 저자/AI 원고 완료): `tarot-reversed-card-framework`, `tarot-spread-design-principles`, `tarot-minor-arcana-four-suits-practical-guide`, `tarot-court-cards-personality-and-relationship-guide`, `tarot-practical-reading-casebook-by-question`, `tarot-career-reading-7-question-framework`, `tarot-anxiety-safe-reading-method`, `tarot-reunion-reading`, `tarot-partner-mind-reading`, `tarot-compatibility-reading-game`, `today-tarot-routine`
 - 재분류: `europe-divination-traditions-deep-guide` → **기타**. 제외 검토: `adsense-ready-content-checklist`(§3)
@@ -183,7 +183,7 @@
 
 ### 숙요점 (재정비, 완료 2편 제외 21 + 확장분 4, 22편 전체 완료 2026-07-10)
 - [x] `sukuyo-what-is` 재정비 [통합 완료: sukuyo-lunar-mansion-primer, sukuyo-what-is-27-lunar-mansions]
-- [x] `sukuyo-compatibility-guide` — 궁합 총정리(6유형 개관, "우쇠"로 용어 통일) [통합 대상 sukuyo-compatibility-simple-checklist, sukuyo-compatibility-rhythm-guide는 아직 미통합]
+- [x] `sukuyo-compatibility-guide` — 궁합 총정리(6유형 개관, "우쇠"로 용어 통일) [통합 완료 2026-08-14: sukuyo-compatibility-simple-checklist, sukuyo-compatibility-rhythm-guide]
 - [x] `sukuyo-27-mansions` — 27수 전체 해석
 - [x] `sukuyo-eishin` — 영친관계 / [x] `sukuyo-antai` — 업태관계 / [x] `sukuyo-ankai` — 안괴관계
 - [x] `sukuyo-bonmyeongsuk-vs-wolmyeongsuk` — 본명숙 vs 월명숙
@@ -209,7 +209,7 @@
 
 ### 타로 (14/14 완료 2026-07-11)
 - [x] `tarot-major-arcana-22-complete-meanings` — 메이저 22장 완전 해설 [통합 완료: tarot-major-arcana-symbols, tarot-major-arcana-0-to-21-with-images]
-- [x] `tarot-how-to-read` — 타로 보는 법·질문 설계 [통합 완료: tarot-love-question-design. how-to-ask-better-fortune-questions는 코드베이스에 존재하지 않아 병합 대상 없음]
+- [x] `tarot-how-to-read` — 타로 보는 법·질문 설계 [통합 완료: tarot-love-question-design, how-to-ask-better-fortune-questions(2026-08-14)]
 - [x] `tarot-reversed-card-framework` — 역방향 프레임
 - [x] `tarot-spread-design-principles` — 스프레드 설계 원칙
 - [x] `tarot-minor-arcana-four-suits-practical-guide` — 마이너 4수트
@@ -256,3 +256,39 @@ AI가 직접 저술해 달라고 명시적으로 요청(기존 "저자 직접 �
 
 > 실제 리다이렉트·소스 제거는 각 canonical 글을 공급받아 삽입할 때 함께 실행한다(§1-3 절차).
 > 그때까지 흡수 대상 old 슬러그는 템플릿으로 정상 노출 유지.
+
+---
+
+## 5. 색인 정책 (2026-08-14)
+
+`buildMysticSections` 로 조립되는 글은 **검색 색인 대상이 아니다.** 3개 문안을 슬러그 해시로
+골라 6섹션을 찍어내는 구조라, 1,800자 지문 검사는 어휘 주입 때문에 통과하지만 Google 의
+scaled content abuse 기준에서는 대량 자동생성물이다. `/editorial-policy` 도 "얇은 자동 생성
+문서, 문장만 바꾼 중복 페이지는 게시 기준에 맞지 않습니다" 라고 스스로 밝히고 있다.
+
+**남은 조립물은 0편이다**(2026-08-14 기준, 아티클 106편 중 103편이 저자 원고였고 마지막 3편을
+§2 절차로 통합했다). 앞으로 조립물이 다시 생기면 두 갈래 중 하나로 처리한다.
+
+1. **정본이 있으면 통합** — §1-3 절차(`category: "통합 리다이렉트"` + `_redirects` 301).
+   링크 자산이 정본으로 모이므로 이쪽이 낫다.
+2. **정본이 없으면** 저자 원고로 교체할 때까지 색인에서 뺀다.
+
+### 조립물이 남아 있는지 확인하는 법
+
+빌드 산출물에서 템플릿 헤딩 3종이 모두 있는 글을 센다. 소스 스캔은
+`ORIGINAL_CONTENT_SLUGS` 만 보고 오판하기 쉽다 — 판정 관문은 **둘**이다
+(`seed-articles.js:859`: `ORIGINAL_CONTENT_SLUGS.has(slug) || article?.useOriginalContent === true`).
+2026-08-13 감사에서 앞쪽 관문만 보고 "33편만 저자 원고" 로 잘못 셌던 적이 있다.
+
+```bash
+node -e '
+const fs=require("fs"),path=require("path");
+const M=["한눈에 보는 핵심","처음엔 이 순서로 읽어보세요","많이 헷갈리는 포인트"];
+for (const e of fs.readdirSync("dist/insights",{withFileTypes:true})) {
+  if (!e.isDirectory()) continue;
+  const f=path.join("dist/insights",e.name,"index.html");
+  if (!fs.existsSync(f)) continue;
+  const h=fs.readFileSync(f,"utf8");
+  if (M.every(m=>h.includes(m))) console.log("template:", e.name);
+}'
+```
