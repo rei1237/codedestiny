@@ -101,12 +101,16 @@ function _lsdText(key) {
   }
 
   /* ─── 오행 메타 ─────────────────────────────────────────────── */
+  /* color/neon 은 룰렛 볼 그라디언트·글로우 같은 장식 전용이라 밝아도 된다.
+     밝은 카드 위 텍스트에는 ink 를 쓴다 — neon 을 글자색으로 쓰면 크림 배경
+     대비가 1.4~2.2:1 로 떨어져 특히 금(金)은 사실상 보이지 않는다.
+     ink 는 계열(hue)을 유지한 채 명도만 낮춘 값이다(DESIGN.md Hue-Stays Rule). */
   var ELEM = {
-    wood:  { cn: '목(木)', ko: '木', short: '목', color: '#4ade80', neon: '#22d876', badge: '🌱', lotto: '민트', bg: 'rgba(16,185,129,0.10)' },
-    fire:  { cn: '화(火)', ko: '火', short: '화', color: '#f97316', neon: '#fb923c', badge: '🔥', lotto: '코랄', bg: 'rgba(249,115,22,0.10)' },
-    earth: { cn: '토(土)', ko: '土', short: '토', color: '#d97706', neon: '#fbbf24', badge: '🤎', lotto: '베이지', bg: 'rgba(217,119,6,0.10)' },
-    metal: { cn: '금(金)', ko: '金', short: '금', color: '#94a3b8', neon: '#cbd5e1', badge: '⚡', lotto: '실버', bg: 'rgba(148,163,184,0.10)' },
-    water: { cn: '수(水)', ko: '水', short: '수', color: '#60a5fa', neon: '#7dd3fc', badge: '💧', lotto: '네이비', bg: 'rgba(96,165,250,0.10)' }
+    wood:  { cn: '목(木)', ko: '木', short: '목', color: '#4ade80', neon: '#22d876', ink: '#2f7d5a', badge: '🌱', lotto: '민트', bg: 'rgba(16,185,129,0.10)' },
+    fire:  { cn: '화(火)', ko: '火', short: '화', color: '#f97316', neon: '#fb923c', ink: '#b3402c', badge: '🔥', lotto: '코랄', bg: 'rgba(249,115,22,0.10)' },
+    earth: { cn: '토(土)', ko: '土', short: '토', color: '#d97706', neon: '#fbbf24', ink: '#8a6212', badge: '🤎', lotto: '베이지', bg: 'rgba(217,119,6,0.10)' },
+    metal: { cn: '금(金)', ko: '金', short: '금', color: '#94a3b8', neon: '#cbd5e1', ink: '#6b6470', badge: '⚡', lotto: '실버', bg: 'rgba(148,163,184,0.10)' },
+    water: { cn: '수(水)', ko: '水', short: '수', color: '#60a5fa', neon: '#7dd3fc', ink: '#2f5a8f', badge: '💧', lotto: '네이비', bg: 'rgba(96,165,250,0.10)' }
   };
 
   /* ─── 행운 아이템 풀 ─────────────────────────────────────────── */
@@ -2093,7 +2097,7 @@ return true;
       : '실천도 ' + effort.pct + '% 구간이라 내일은 루틴 수를 줄이고 핵심 2개만 끝내는 전략이 효율적입니다.';
 
     return ''
-      + '오늘 <b>' + escHtml(doneHeadline) + '</b>를 실천하셨으니, 내일은 <b style="color:' + tomorrowInfo.neon + '">' + tomorrowInfo.cn + '</b> 기운이 들어올 때 <b>' + escHtml(themeText) + '</b> 행동으로 시너지를 키우세요.<br>'
+      + '오늘 <b>' + escHtml(doneHeadline) + '</b>를 실천하셨으니, 내일은 <b style="color:' + tomorrowInfo.ink + '">' + tomorrowInfo.cn + '</b> 기운이 들어올 때 <b>' + escHtml(themeText) + '</b> 행동으로 시너지를 키우세요.<br>'
       + '보완 포인트는 <b>' + escHtml(pendingHeadline) + '</b>입니다. 오전/저녁 중 고정 슬롯 1개를 지정하면 운의 편차를 줄일 수 있습니다.<br>'
       + memoSignal + '<br>'
       + liftLine;
@@ -2469,7 +2473,7 @@ return true;
       if (doneCount >= Math.max(5, Math.floor(allChallenges.length * 0.75)) && allChallenges.length > 0) {
         var luckyInfo = ELEM[luckyEl] || ELEM.earth;
         var ts = (mainTenStar && TENSTAR_GUIDE[mainTenStar]) ? TENSTAR_GUIDE[mainTenStar] : null;
-        congratsEl.innerHTML = '운기 실천 기록이 충분히 쌓였습니다. 오늘은 <b style="color:' + luckyInfo.neon + '">' + luckyInfo.cn + '</b> 기운을 몸에 남긴 날이에요.'
+        congratsEl.innerHTML = '운기 실천 기록이 충분히 쌓였습니다. 오늘은 <b style="color:' + luckyInfo.ink + '">' + luckyInfo.cn + '</b> 기운을 몸에 남긴 날이에요.'
           + (ts ? ' <br>' + mainTenStar + ' 흐름에 맞춰 <b>' + ts.vibe + '</b>를 내일도 작은 행동으로 이어가 보세요.' : ' <br>지금의 루틴을 하나만 더 이어가면 내일의 시작이 한결 가벼워집니다.');
         congratsEl.style.display = 'block';
       } else {
@@ -3308,7 +3312,7 @@ return true;
       + '  </div>'
       + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
       + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">💓 감정 리듬</p>'
-      + '    <p style="margin:0;color:#334155">컬러: <b style="color:' + luckyInfo.neon + '">' + (colorGuide[luckyEl] || luckyInfo.lotto) + '</b><br>장소: ' + (placeGuide[luckyEl] || '편안하고 조용한 자리') + '</p>'
+      + '    <p style="margin:0;color:#334155">컬러: <b style="color:' + luckyInfo.ink + '">' + (colorGuide[luckyEl] || luckyInfo.lotto) + '</b><br>장소: ' + (placeGuide[luckyEl] || '편안하고 조용한 자리') + '</p>'
       + '  </div>'
       + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
       + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🤝 관계 흐름</p>'
@@ -3325,7 +3329,7 @@ return true;
       + '</div>'
       + '<div style="margin-top:8px;border:1px solid #dbeafe;background:#eff6ff;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.55;color:#1e3a8a">'
       + '  <p style="margin:0 0 4px;font-weight:900">운기 타이밍</p>'
-      + '  <p style="margin:0">핵심 행동 시간: <b>' + todayTime + '</b> · 오행 부스팅: <b>' + todayElemTime + '</b><br>일진: <b style="color:' + todayInfo.neon + '">' + todayGZ.g + todayGZ.j + '</b> (' + todayInfo.cn + ')</p>'
+      + '  <p style="margin:0">핵심 행동 시간: <b>' + todayTime + '</b> · 오행 부스팅: <b>' + todayElemTime + '</b><br>일진: <b style="color:' + todayInfo.ink + '">' + todayGZ.g + todayGZ.j + '</b> (' + todayInfo.cn + ')</p>'
       + '</div>'
       + '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef2ff;border:1px solid #c7d2fe;font-size:.73rem;color:#3730a3;line-height:1.55">'
       + '<p style="margin:0 0 6px;font-weight:900">내일의 작은 설계 · ' + ((tomorrowGZ && tomorrowGZ.g) || '—') + ((tomorrowGZ && tomorrowGZ.j) || '') + ' (' + tomorrowInfo.cn + ')</p>'
@@ -3347,6 +3351,51 @@ return true;
       var st = document.createElement('style');
       st.id = 'lsd-tw-styles';
       st.textContent = [
+        /* ─── 디자인 토큰 ────────────────────────────────────────────
+           팔레트 정본은 DESIGN.md 의 「연이」 절이다. 헤더는 연이 Dark(딥 플럼),
+           본문은 연이 크림, 강조는 로즈 크림슨 하나(One Accent Rule).
+           아래 규칙들은 이 토큰만 참조한다 — 새 색을 직접 적지 말 것. */
+        '.lsd-shell{',
+        /* 헤더 — 연이 딥 플럼 */
+        '--lsd-head-bg:linear-gradient(168deg,#3a0e28 0%,#310b22 54%,#24081a 100%);',
+        '--lsd-head-ink:#fff1f7;--lsd-head-ink-muted:rgba(255,214,232,.86);',
+        '--lsd-head-border:rgba(244,190,209,.38);--lsd-head-surface:rgba(255,241,247,.07);',
+        /* 본문 — 연이 크림 */
+        '--lsd-bg:linear-gradient(180deg,#fffaf7 0%,#fff6f9 46%,#fff3f8 100%);',
+        '--lsd-surface:#fffdfb;--lsd-surface-2:#fff7fa;--lsd-surface-3:rgba(255,247,250,.72);',
+        '--lsd-ink:#3c1830;--lsd-ink-muted:#70445c;--lsd-ink-faint:#8f6279;',
+        '--lsd-border:rgba(216,63,120,.16);--lsd-border-strong:rgba(216,63,120,.30);',
+        /* 강조 · 골드 */
+        '--lsd-accent:#b31955;--lsd-accent-ink:#8d1243;',
+        '--lsd-accent-soft:#f4bed1;--lsd-accent-wash:rgba(179,25,85,.07);',
+        '--lsd-gold:#ead089;--lsd-gold-soft:#fff8dc;--lsd-gold-ink:#7a5a12;',
+        '--lsd-danger:#a4245c;',
+        /* 운세 등급 — 무지개 대신 골드↔플럼 발산형 램프 */
+        '--lsd-grade-vg-bg:#fdf3dd;--lsd-grade-vg-ink:#7a5a12;',
+        '--lsd-grade-g-bg:#fdf8ec;--lsd-grade-g-ink:#8a6a2a;',
+        '--lsd-grade-n-bg:#fdf6f8;--lsd-grade-n-ink:#70445c;',
+        '--lsd-grade-b-bg:#fbe6ee;--lsd-grade-b-ink:#a4245c;',
+        '--lsd-grade-vb-bg:#f6d3e0;--lsd-grade-vb-ink:#7c0f3c;',
+        /* radius — 16종을 6종으로 */
+        '--lsd-r-xs:4px;--lsd-r-sm:8px;--lsd-r-md:12px;',
+        '--lsd-r-lg:16px;--lsd-r-xl:22px;--lsd-r-pill:999px;',
+        /* 그림자 — 브랜드 색 글로우, 회색 드롭섀도 금지 */
+        '--lsd-sh-1:0 1px 2px rgba(88,32,60,.06);',
+        '--lsd-sh-2:0 4px 12px rgba(88,32,60,.08);',
+        '--lsd-sh-3:0 12px 28px rgba(88,32,60,.16);',
+        '--lsd-ring:0 0 0 2px rgba(179,25,85,.30);',
+        /* 타이포 — 모바일 기준값, 데스크탑에서 확대 */
+        '--lsd-t-caption:11px;--lsd-t-micro:12px;--lsd-t-body-s:13px;--lsd-t-body:14px;',
+        '--lsd-t-lead:16px;--lsd-t-title:17px;--lsd-t-section:21px;--lsd-t-display:28px;',
+        '--lsd-w-regular:400;--lsd-w-medium:500;--lsd-w-semibold:600;--lsd-w-bold:700;',
+        /* 공간 */
+        '--lsd-pad-panel:14px;--lsd-gap-card:12px;',
+        '}',
+        '@media (min-width:1024px){.lsd-shell{',
+        '--lsd-t-body:15px;--lsd-t-lead:17px;--lsd-t-title:19px;',
+        '--lsd-t-section:24px;--lsd-t-display:34px;',
+        '--lsd-pad-panel:24px;--lsd-gap-card:16px;',
+        '}}',
         '@keyframes lsdGlobeSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}',
         '@keyframes lsdPopIn{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}',
         '@keyframes lsdSlideUp{0%{transform:translateY(16px);opacity:0}100%{transform:translateY(0);opacity:1}}',
@@ -3866,7 +3915,7 @@ return true;
       var dg = pillars.d.g;
       var dEl = GAN_ELEM[dg] || 'earth';
       var eInfo = ELEM[dEl];
-      dayMasterEl.innerHTML = '<span style="color:' + eInfo.neon + ';font-size:2rem">' + dg + '</span>' +
+      dayMasterEl.innerHTML = '<span style="color:' + eInfo.ink + ';font-size:2rem">' + dg + '</span>' +
         ' <small style="color:' + eInfo.color + '">' + (GAN_KO[dg] || dg) + ' · ' + eInfo.cn + '</small>';
     } else {
       dayMasterEl.textContent = '사주 리딩 후 표시됩니다';
@@ -3908,7 +3957,7 @@ return true;
     var tEl = todayGZ ? (GAN_ELEM[todayGZ.g] || 'earth') : 'earth';
     var tInfo = ELEM[tEl];
     if (energyIljinEl && todayGZ) {
-      energyIljinEl.innerHTML = '오늘 일진 <b style="color:' + tInfo.neon + ';font-size:1.3em">' +
+      energyIljinEl.innerHTML = '오늘 일진 <b style="color:' + tInfo.ink + ';font-size:1.3em">' +
         todayGZ.g + todayGZ.j + '</b><span class="lsd-iljin-elem"> ' + tInfo.badge + ' ' + tInfo.cn + ' 에너지</span>';
     }
 
@@ -3939,13 +3988,13 @@ return true;
     var luckRow = document.getElementById('lsdLuckElemRow');
     if (luckRow) {
       var ei = ELEM[_luckyEl] || ELEM.earth;
-      luckRow.innerHTML = '오늘의 행운 오행: <span style="color:' + ei.neon + ';font-weight:700">' +
+      luckRow.innerHTML = '오늘의 행운 오행: <span style="color:' + ei.ink + ';font-weight:700">' +
         ei.badge + ' ' + ei.cn + ' (' + ei.lotto + ')</span>';
     }
     var hintEl = document.getElementById('lsdLuckyElemHint');
     if (hintEl) {
       var ei2 = ELEM[_luckyEl] || ELEM.earth;
-      hintEl.innerHTML = '🎯 오늘의 행운 오행: <b style="color:' + ei2.neon + '">' + ei2.badge + ' ' + ei2.cn + '</b>';
+      hintEl.innerHTML = '🎯 오늘의 행운 오행: <b style="color:' + ei2.ink + '">' + ei2.badge + ' ' + ei2.cn + '</b>';
     }
 
     var headerDate = document.getElementById('lsdHeaderDate');
