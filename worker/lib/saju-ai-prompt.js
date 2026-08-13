@@ -1473,26 +1473,29 @@ function normalizeBirthInfo(profile, snapshot) {
   };
 }
 
+/* 🔴 기둥 표기는 한 가지가 아니다 — 엔진은 {g, j} 로 주고 다른 호출부·계약 픽스처는 {ganji:"丙子"} 로
+   준다. readPillar 가 그 둘을 모두 읽는 이 파일의 정본 리더인데(analysisBasis 는 그걸 쓴다) 여기만
+   {g, j} 를 직접 읽어서, ganji 표기로 들어오면 같은 입력이 근거에는 丙子 로 실리면서 프롬프트의
+   명식 블록에는 "--" 로 찍혔다. 리더를 하나로 맞춰 그 갈라짐을 없앤다. */
 function normalizePillars(pillars) {
   const p = pillars && typeof pillars === "object" ? pillars : {};
-  const y = p.y && typeof p.y === "object" ? p.y : {};
-  const m = p.m && typeof p.m === "object" ? p.m : {};
-  const d = p.d && typeof p.d === "object" ? p.d : {};
-  const h = p.h && typeof p.h === "object" ? p.h : {};
-
-  const yearPillar = `${toText(y.g, "-")}${toText(y.j, "-")}`;
-  const monthPillar = `${toText(m.g, "-")}${toText(m.j, "-")}`;
-  const dayPillar = `${toText(d.g, "-")}${toText(d.j, "-")}`;
-  const hourPillar = `${toText(h.g, "-")}${toText(h.j, "-")}`;
+  const y = readPillar(p.y || p.year);
+  const m = readPillar(p.m || p.month);
+  const d = readPillar(p.d || p.day);
+  const h = readPillar(p.h || p.hour);
+  const join = (row) => `${toText(row.stem, "-")}${toText(row.branch, "-")}`;
 
   return {
-    yearPillar,
-    monthPillar,
-    dayPillar,
-    hourPillar,
-    dayStem: toText(d.g, DEFAULT_TEXT),
-    dayStemElement: toText(d.gE || ELEMENT_KO_BY_KEY[STEM_ELEMENT_KEY[d.g]], DEFAULT_TEXT),
-    dayStemPolarity: STEM_POLARITY_KO[STEM_POLARITY[d.g]] || DEFAULT_TEXT,
+    yearPillar: join(y),
+    monthPillar: join(m),
+    dayPillar: join(d),
+    hourPillar: join(h),
+    dayStem: toText(d.stem, DEFAULT_TEXT),
+    dayStemElement: toText(
+      ELEMENT_KO_BY_KEY[d.stemElement] || ELEMENT_KO_BY_KEY[STEM_ELEMENT_KEY[d.stem]],
+      DEFAULT_TEXT,
+    ),
+    dayStemPolarity: STEM_POLARITY_KO[STEM_POLARITY[d.stem]] || DEFAULT_TEXT,
   };
 }
 
@@ -1534,14 +1537,18 @@ function ensureSajuResultPresence(sajuResult) {
     throw new Error("MISSING_SAJU_RESULT");
   }
   const pillars = sajuResult.pillars;
-  if (!pillars || typeof pillars !== "object" || !pillars.d) {
+  const dayPillar = pillars && typeof pillars === "object" ? (pillars.d || pillars.day) : null;
+  if (!dayPillar) {
     throw new Error("MISSING_SAJU_RESULT");
   }
-  // 🔴 pillars.d 가 객체이기만 하면 통과하던 시절에는, 일간(d.g)이 없어도 normalizePillars 가 "-" 로
+  // 🔴 pillars.d 가 객체이기만 하면 통과하던 시절에는, 일간이 없어도 normalizePillars 가 "-" 로
   // 채워 사실상 빈 명식으로 20,000원 과금 + LLM 호출이 끝까지 돌았다. 일간은 십성 확정표의 기준축이라
   // 이게 없으면 상담 자체가 성립하지 않는다 — 결제 검증(handleSajuAIPrompt)보다 먼저 도는 이 지점에서
   // 막아야 과금 전에 400 으로 끝난다.
-  if (!String(pillars.d.g || "").trim() || !String(pillars.d.j || "").trim()) {
+  // 🔴 판정은 readPillar 로 한다 — d.g/d.j 를 직접 읽으면 {ganji:"丙子"} 표기를 빈 명식으로 오인해
+  // 정상 입력을 400 으로 막는다(계약 검증 verify:analysis-basis-contract 가 그 표기를 쓴다).
+  const day = readPillar(dayPillar);
+  if (!day.stem || !day.branch) {
     throw new Error("MISSING_SAJU_RESULT");
   }
 }
