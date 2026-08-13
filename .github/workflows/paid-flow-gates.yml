@@ -185,6 +185,12 @@ jobs:
       - name: Verify fresh-signup profile card renders without a roundtrip
         run: npm run verify:profile-fresh-signup
 
+      # 이용권 갱신이 스스로 쏘는 cd:auth-changed 되울림에 프로필 카드가 로딩으로 되돌아가지
+      # 않는지. verify:auth-event-loop 가 "필터가 소스에 있는가"를 본다면 이쪽은 "그래서 실제로
+      # 카드가 안 흔들리는가"를 jsdom 에서 실행해 본다 — 필터가 있어도 배선이 어긋나면 무효다.
+      - name: Verify profile card never falls back to infinite loading
+        run: npm run verify:profile-loading-stability
+
       # 아래 두 가드는 package.json 에만 있고 어떤 워크플로에서도 실행되지 않아, 지금까지
       # PR 을 한 번도 막은 적이 없었다(paths 에 src/** 가 없어 트리거조차 되지 않았다).
       # 둘 다 "이용권 선검사 → 미커버 시에만 결제창" 순서를 소스 순서로 못박는 가드다.

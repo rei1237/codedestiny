@@ -35,6 +35,13 @@ const SHELLS = [
 
 const RUNTIMES = ['js/core/index-inline-runtime.js', 'public/js/core/index-inline-runtime.js'];
 
+/* 🔴 이 파일은 원래 검사 대상이 아니었고, 그 사각지대에서 실제 사고가 났다(2026-08-13).
+   프로필 카드의 cd:auth-changed 리스너만 두 source 를 거르지 않아서, 이용권 갱신이 스스로 쏘는
+   되울림마다 프로필 스코프를 통째로 버리고 **로딩 카드를 다시 그렸다.** 카드가 0장인 계정은
+   되돌아갈 캐시가 없어 매번 로딩으로 떨어졌고, 5분 하트비트·탭 재포커스가 그 이벤트를 계속
+   만들어 사용자에게는 무한 로딩으로 보였다. 가드는 내내 초록불이었다 — 이 파일을 열지 않았으니까. */
+const PROFILE_CLIENTS = ['js/destiny-profile.js', 'public/js/destiny-profile.js'];
+
 const failures = [];
 const fail = (file, message) => failures.push(`${file}: ${message}`);
 
@@ -171,6 +178,36 @@ for (const runtime of RUNTIMES) {
   }
 }
 
+for (const client of PROFILE_CLIENTS) {
+  if (!existsSync(resolve(repoRoot, client))) {
+    fail(client, '프로필 클라이언트 파일이 없다 (sync:public 미실행?)');
+    continue;
+  }
+  const js = read(client);
+  const echoBlock = blockAfter(js, 'function _dpIsEntitlementEchoAuthEvent');
+  if (!echoBlock) {
+    fail(client, '_dpIsEntitlementEchoAuthEvent 를 찾을 수 없다 — 프로필 리스너의 source 필터가 사라졌다');
+  } else if (!SOURCE_FILTER.test(echoBlock)) {
+    fail(client, '프로필 리스너가 두 source 를 걸러내지 않는다 — 이용권 되울림마다 로딩 카드가 다시 그려진다');
+  }
+
+  const scheduleBlock = blockAfter(js, 'function _dpScheduleAuthScopeRefresh');
+  if (!scheduleBlock) {
+    fail(client, '_dpScheduleAuthScopeRefresh 를 찾을 수 없다');
+  } else if (!/_dpIsEntitlementEchoAuthEvent\s*\(/.test(scheduleBlock)) {
+    fail(client, '_dpScheduleAuthScopeRefresh 가 필터를 호출하지 않는다 — 필터가 있어도 배선되지 않으면 소용없다');
+  }
+
+  /* 리스너가 detail 을 넘기지 않으면 필터는 항상 undefined 를 받아 무조건 통과한다.
+     "필터가 있는데 안 먹는" 가장 흔한 형태라 배선까지 본다. */
+  if (!/addEventListener\('cd:auth-changed',\s*function\s*\(event\)[\s\S]{0,200}?_dpScheduleAuthScopeRefresh\(\s*event\s*&&\s*event\.detail\s*\)/.test(js)) {
+    fail(client, "cd:auth-changed 리스너가 event.detail 을 필터에 넘기지 않는다");
+  }
+  if (!/onmessage\s*=\s*function\s*\(message\)[\s\S]{0,200}?_dpScheduleAuthScopeRefresh\(\s*message\s*&&\s*message\.data\s*\)/.test(js)) {
+    fail(client, 'BroadcastChannel 핸들러가 message.data 를 필터에 넘기지 않는다 — 필터를 우회하는 두 번째 통로가 된다');
+  }
+}
+
 if (failures.length) {
   console.error('[verify-auth-event-loop-guard] FAIL');
   for (const line of failures) console.error('  - ' + line);
@@ -178,4 +215,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`[verify-auth-event-loop-guard] PASS (shells=${SHELLS.length}, runtimes=${RUNTIMES.length})`);
+console.log(`[verify-auth-event-loop-guard] PASS (shells=${SHELLS.length}, runtimes=${RUNTIMES.length}, profileClients=${PROFILE_CLIENTS.length})`);
