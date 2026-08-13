@@ -229,7 +229,7 @@ export default function SeoLandingTemplate({ page }) {
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
-              href={page.ctaHref || "/index.html"}
+              href={page.ctaHref || "/"}
               className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#c4b5fd] px-7 text-[0.94rem] font-semibold text-[#0a0818] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[#d6cbff] hover:shadow-[0_0_34px_rgba(196,181,253,0.3)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
             >
               <Compass className="h-4 w-4" aria-hidden="true" />
