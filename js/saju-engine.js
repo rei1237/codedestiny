@@ -1384,18 +1384,11 @@ function _shiftDatePartsByDays(year, month, day, dayOffset) {
   };
 }
 
-function _getDayOfYearUtc(year, month, day) {
-  var current = Date.UTC(year, month - 1, day, 0, 0, 0);
-  var start = Date.UTC(year, 0, 1, 0, 0, 0);
-  return Math.floor((current - start) / 86400000) + 1;
-}
-
-function _calculateEquationOfTimeMinutes(year, month, day) {
-  var n = _getDayOfYearUtc(year, month, day);
-  var b = (2 * Math.PI * (n - 81)) / 364;
-  return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
-}
-
+// 시주(時柱) 시간 보정 정책: 평균태양시(LOCAL_MEAN_TIME) — 경도 보정만 적용하고 균시차는 쓰지 않는다.
+// 균시차(±16분)까지 더하면 서울 13:20 출생이 13:04(未시)가 되어 오시(午時)를 놓치고,
+// 프로필 카드·입력 미리보기가 표시하는 보정 시각(경도만, 12:48)과도 어긋난다.
+// 워커(destiny-bias-engine.js)·모던 엔진(localSajuCalculator.ts)도 같은 정책이며
+// scripts/verify-hour-pillar-parity.mjs 가 세 엔진의 시주 일치를 강제한다.
 function _applyTrueSolarTimeCorrection(input) {
   var year = Number(input && input.year);
   var month = Number(input && input.month);
@@ -1411,8 +1404,7 @@ function _applyTrueSolarTimeCorrection(input) {
 
   var clockTotalMinutes = hour * 60 + minute;
   var longitudeCorrectionMinutes = (longitude - standardMeridian) * 4;
-  var equationOfTimeMinutes = _calculateEquationOfTimeMinutes(year, month, day);
-  var correctedTotal = clockTotalMinutes + longitudeCorrectionMinutes + equationOfTimeMinutes;
+  var correctedTotal = clockTotalMinutes + longitudeCorrectionMinutes;
   var roundedTotal = Math.round(correctedTotal);
   var dayOffset = Math.floor(roundedTotal / 1440);
   var minuteOfDay = ((roundedTotal % 1440) + 1440) % 1440;
@@ -1428,13 +1420,12 @@ function _applyTrueSolarTimeCorrection(input) {
     correctedMinute: correctedMinute,
     dayOffset: dayOffset,
     longitudeCorrectionMinutes: longitudeCorrectionMinutes,
-    equationOfTimeMinutes: equationOfTimeMinutes,
-    totalCorrectionMinutes: longitudeCorrectionMinutes + equationOfTimeMinutes
+    totalCorrectionMinutes: longitudeCorrectionMinutes
   };
 }
 
 // ── 일주(日柱)·시주(時柱) 민용일 기준 계산 헬퍼 ──
-// 정책: 일주는 KST 민용일(달력 날짜) 기준으로 판정하고, 진태양시/균시차 보정은 시주에만 적용한다.
+// 정책: 일주는 KST 민용일(달력 날짜) 기준으로 판정하고, 경도(평균태양시) 보정은 시주에만 적용한다.
 // _applyTrueSolarTimeCorrection 이 자정을 넘겨 전날로 밀어낸 보정일(dayOffset)이 일주로 새면
 // 하루 밀림(예: 1981-01-27 00:30 → 을사가 정답이나 전날 갑진으로 오출력)이 발생하므로,
 // 일진은 항상 원본 달력 날짜로 계산한다(60갑자는 연속 순환이라 절기/음력과 달리 예외가 없음).
@@ -5196,7 +5187,6 @@ async function calculate(){
     finalAdjustedTime: '',
     offsetDetails: {
       longitudeOffset: Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000,
-      equationOfTimeOffset: Math.round(correction.equationOfTimeMinutes * 1000) / 1000,
       dstOffset: tzResolved.dstMinutes,
       totalCorrection: Math.round(correction.totalCorrectionMinutes * 1000) / 1000,
       isDstApplied: tzResolved.isDstApplied,
@@ -5210,7 +5200,6 @@ async function calculate(){
                 + `<li>출생지: ${opt ? opt.text : bTz}</li>`
                 + `<li>시간대: UTC${bTzOff >= 0 ? '+' : ''}${bTzOff} (표준 UTC${tzResolved.baseOffsetHours >= 0 ? '+' : ''}${tzResolved.baseOffsetHours})</li>`
                 + `<li>경도 보정: ${(Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000)}분 (기준경도 ${stdLong}° vs 실제경도 ${bLong}°)</li>`
-                + `<li>균시차 보정: ${(Math.round(correction.equationOfTimeMinutes * 1000) / 1000)}분</li>`
                 + `<li>서머타임(DST) 적용: ${tzResolved.dstMinutes}분</li>`
                 + `<li>총 보정 시간: ${(Math.round(correction.totalCorrectionMinutes * 1000) / 1000)}분</li>`
                 + `<li>보정 후 기준일: ${correctedYear}-${String(correctedMonth).padStart(2,'0')}-${String(correctedDay).padStart(2,'0')}</li>`;
@@ -5267,41 +5256,23 @@ async function calculate(){
   } catch (eDispatch) {
     console.warn('[saju] destinyProfileChanged dispatch skipped:', eDispatch);
   }
-  BIRTH_YEAR=correctedYear;
+  // 대운 연도 계산(startYear = BIRTH_YEAR + age - 1)의 기준 해. 바로 아래 CURRENT_AGE 와 같은
+  // 원본 출생년을 쓴다 — 보정 시각을 쓰면 1/1 00:15 출생이 전년으로 밀려 대운 연표가 1년 어긋난다.
+  BIRTH_YEAR=year;
   CURRENT_AGE=new Date().getFullYear()-year+1;
 
   try{
-    var pillarDateCtx = primaryDateCtx;
-    if (
-      correctedYear !== year ||
-      correctedMonth !== month ||
-      correctedDay !== day ||
-      correctedHour !== hour ||
-      correctedMinute !== minute
-    ) {
-      try {
-        var correctedCtx = await resolvePrimaryCalendarContext({
-          calendarType: 'solar',
-          year: correctedYear,
-          month: correctedMonth,
-          day: correctedDay,
-          hour: correctedHour,
-          minute: correctedMinute,
-          second: 0,
-          latitude: bLat,
-          longitude: bLong,
-          tzOffsetHours: bTzOff
-        }, { setCurrent: true });
-        if (correctedCtx && correctedCtx.ganji) pillarDateCtx = correctedCtx;
-      } catch (_correctedCtxErr) {}
-    }
-
-    pillarDateCtx = repairGanjiContextFromLocal(pillarDateCtx, {
-      year: correctedYear,
-      month: correctedMonth,
-      day: correctedDay,
-      hour: correctedHour,
-      minute: correctedMinute,
+    // 연주·월주(절기 판정)와 대운은 KASI 가 돌려주는 절입 시각과 같은 축에서 비교해야 한다.
+    // KASI 는 절입 시각을 KST 로 준다(worker/routes/kasi.js 가 CST→KST 로 보정해 `kst` 필드로 반환).
+    // 그래서 출생 시각도 보정 전 KST 원본을 넘긴다 — 한쪽만 경도 보정하면 두 축을 섞는 셈이라
+    // 절기 경계 ±32분 출생의 월주(입춘 근처면 연주)가 통째로 밀린다.
+    // 경도 보정 시각(correctedHour)은 아래에서 시주(時柱) 산출에만 쓴다.
+    var pillarDateCtx = repairGanjiContextFromLocal(primaryDateCtx, {
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
       second: 0
     });
     var kasiResponseReceived = !!(
@@ -5320,22 +5291,22 @@ async function calculate(){
       try {
         var localPillarCtx = await resolvePrimaryCalendarContext({
           calendarType: 'solar',
-          year: correctedYear,
-          month: correctedMonth,
-          day: correctedDay,
-          hour: correctedHour,
-          minute: correctedMinute,
+          year: year,
+          month: month,
+          day: day,
+          hour: hour,
+          minute: minute,
           second: 0,
           latitude: bLat,
           longitude: bLong,
           tzOffsetHours: bTzOff
         }, { setCurrent: true, localOnly: true });
         pillarDateCtx = repairGanjiContextFromLocal(localPillarCtx, {
-          year: correctedYear,
-          month: correctedMonth,
-          day: correctedDay,
-          hour: correctedHour,
-          minute: correctedMinute,
+          year: year,
+          month: month,
+          day: day,
+          hour: hour,
+          minute: minute,
           second: 0
         });
         normalizedKasiPillars = normalizeKasiSajuPillars(pillarDateCtx || {});
@@ -5353,11 +5324,11 @@ async function calculate(){
       } catch (localPillarErr) {
         console.error('[saju] local pillar context failed', {
           input: {
-            year: correctedYear,
-            month: correctedMonth,
-            day: correctedDay,
-            hour: correctedHour,
-            minute: correctedMinute,
+            year: year,
+            month: month,
+            day: day,
+            hour: hour,
+            minute: minute,
             timezone: bTz || 'Asia/Seoul'
           },
           reason: localPillarErr && localPillarErr.message ? localPillarErr.message : String(localPillarErr || '')
@@ -5372,11 +5343,11 @@ async function calculate(){
         missingPillars: missingPillars,
         kasiResponseReceived: kasiResponseReceived,
         input: {
-          year: correctedYear,
-          month: correctedMonth,
-          day: correctedDay,
-          hour: correctedHour,
-          minute: correctedMinute,
+          year: year,
+          month: month,
+          day: day,
+          hour: hour,
+          minute: minute,
           timezone: bTz || 'Asia/Seoul'
         },
         pillars: normalizedKasiPillars,
@@ -5414,12 +5385,13 @@ async function calculate(){
       getTimeGan: function() { return kasiHourPair.g; },
       getTimeZhi: function() { return kasiHourPair.j; }
     };
+    // 대운 시작은 절입까지의 거리로 세므로 절기와 같은 KST 축을 쓴다(위 연·월주와 동일 이유).
     attachKasiDaewunBridge(bazi, {
-      year: correctedYear,
-      month: correctedMonth,
-      day: correctedDay,
-      hour: correctedHour,
-      minute: correctedMinute,
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
       second: 0
     });
 

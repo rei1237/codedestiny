@@ -176,7 +176,7 @@ function hasPartnerSignal(source = {}) {
 }
 
 /**
- * 시주 시각 보정. destiny-bias-engine 의 기본 정책(진태양시 + 자정 기준 일자 변경)과 같다.
+ * 시주 시각 보정. destiny-bias-engine 의 기본 정책(평균태양시 + 자정 기준 일자 변경)과 같다.
  *
  * 시지는 보정된 시각에서, 시간은 일간에서 도출한다 — 그 엔진의 산출 순서 그대로다.
  * 보정이 자정을 넘겨도(dayOffset ≠ 0) 일주는 건드리지 않는다. 야자시로 일자를 넘기는 것은
@@ -190,7 +190,7 @@ function resolveCorrectedHourPillar(info, dayStem) {
   const correction = applyHourPillarTimeCorrection(
     { year: info.birth.year, month: info.birth.month, day: info.birth.day, hour: time.hour, minute: time.minute },
     DEFAULT_LOCATION,
-    HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME,
+    HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME,
   );
   const branch = getHourBranchByClock(correction.correctedHour);
   const stem = getHourStemByDayStem(clean(dayStem, 4), branch);
@@ -199,12 +199,11 @@ function resolveCorrectedHourPillar(info, dayStem) {
   return {
     pillar: `${stem}${branch}`,
     correction: {
-      policy: HOUR_PILLAR_TIME_POLICIES.TRUE_SOLAR_TIME,
+      policy: HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME,
       dayChangePolicy: DAY_CHANGE_POLICIES.MIDNIGHT,
       clockTime: time.birthTime,
       correctedTime: `${String(correction.correctedHour).padStart(2, "0")}:${String(correction.correctedMinute).padStart(2, "0")}`,
       longitudeCorrectionMinutes: Math.round(correction.longitudeCorrectionMinutes * 100) / 100,
-      equationOfTimeMinutes: Math.round(correction.equationOfTimeMinutes * 100) / 100,
       dayOffset: correction.dayOffset,
     },
   };

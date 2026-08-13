@@ -493,7 +493,7 @@ function buildProfileSignature(profile) {
     timezone: toSafeString(profile?.timezone || profile?.birth?.timezone || "Asia/Seoul", 40),
     birth: profile?.birth || {},
     location: profile?.location || {},
-    hourPillarTimePolicy: toSafeString(profile?.hourPillarTimePolicy || profile?.birth?.hourPillarTimePolicy || "TRUE_SOLAR_TIME", 40),
+    hourPillarTimePolicy: toSafeString(profile?.hourPillarTimePolicy || profile?.birth?.hourPillarTimePolicy || "LOCAL_MEAN_TIME", 40),
     dayChangePolicy: toSafeString(profile?.dayChangePolicy || profile?.birth?.dayChangePolicy || "MIDNIGHT", 40),
   };
   return stableHash(JSON.stringify(payload)).slice(0, 12);
@@ -514,7 +514,7 @@ function buildSajuContext(profile) {
         longitude: Number.isFinite(Number(location.longitude)) ? Number(location.longitude) : Number(profile?.birth?.longitude || 126.978),
         timezone: toSafeString(location.timezone || profile?.birth?.timezone || profile?.timezone || "Asia/Seoul", 40) || "Asia/Seoul",
       },
-      hourPillarTimePolicy: toSafeString(profile?.hourPillarTimePolicy || profile?.birth?.hourPillarTimePolicy || "TRUE_SOLAR_TIME", 40) || "TRUE_SOLAR_TIME",
+      hourPillarTimePolicy: toSafeString(profile?.hourPillarTimePolicy || profile?.birth?.hourPillarTimePolicy || "LOCAL_MEAN_TIME", 40) || "LOCAL_MEAN_TIME",
       dayChangePolicy: toSafeString(profile?.dayChangePolicy || profile?.birth?.dayChangePolicy || "MIDNIGHT", 40) || "MIDNIGHT",
     });
 

@@ -438,7 +438,7 @@ function buildFallbackSajuContext(input) {
       gender: input.gender,
       timezone: input.timezone,
       birthPlace: input.birthPlace,
-      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      hourPillarTimePolicy: "LOCAL_MEAN_TIME",
       dayChangePolicy: "MIDNIGHT",
       birth: {
         year: input.year,

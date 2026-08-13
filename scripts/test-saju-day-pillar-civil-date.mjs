@@ -1,7 +1,8 @@
 // 사주 일주(日柱) 날짜 경계 회귀 테스트
 //
 // 정책: 일주는 KST 민용일(달력 날짜) 기준으로 판정하고,
-//       진태양시/균시차 보정은 시주(時柱)에만 적용한다.
+//       시주 시각 보정(기본 평균태양시 = 경도만, 명시하면 진태양시 = 경도+균시차)은
+//       시주(時柱)에만 적용한다. 보정이 자정을 넘겨도 일주는 밀리지 않는다.
 //
 // 재현 버그: 1981-01-27 00:30 대구(경도 128.60°E)에서 진태양시 보정이
 //           자정을 넘겨(00:30 → 전날 23:52) 일주를 을사(乙巳) 대신 갑진(甲辰)으로 냈다.
@@ -12,10 +13,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import Module from "node:module";
 import { fileURLToPath } from "node:url";
-import ts from "typescript";
 import { Solar } from "lunar-javascript";
+import { loadTsModule } from "./lib/load-ts-module.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -30,25 +30,9 @@ function assert(condition, label) {
   if (!condition) throw new Error(label);
 }
 
-function loadTsModule(relativePath) {
-  const fullPath = path.join(root, relativePath);
-  const source = fs.readFileSync(fullPath, "utf8");
-  const compiled = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2020,
-      esModuleInterop: true,
-    },
-    fileName: fullPath,
-  }).outputText;
-  const mod = new Module(fullPath);
-  mod.filename = fullPath;
-  mod.paths = Module._nodeModulePaths(path.dirname(fullPath));
-  mod._compile(compiled, fullPath);
-  return mod.exports;
-}
-
-// 정적 엔진 js/saju-engine.js 의 _applyTrueSolarTimeCorrection 을 그대로 복제(로직 대조용)
+// 진태양시(경도 + 균시차) 보정 — 이 테스트가 재현하려는 "자정을 넘겨 일주가 밀리는" 상황을
+// 만들려면 균시차까지 더한 최대 보정이 필요하다. 런타임 기본 정책은 평균태양시(경도만)이며
+// 세 엔진의 정책 일치는 scripts/verify-hour-pillar-parity.mjs 가 따로 검사한다.
 function getDayOfYearUtc(year, month, day) {
   return Math.floor((Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 1)) / 86400000) + 1;
 }
@@ -152,6 +136,25 @@ for (const [h, m, expectedDay] of [[23, 30, "1/26 야자시"], [0, 30, "1/27 자
   assertEqual(r2330.pillars.day.ganji, "을사", "1981-01-27 23:30 대구 일주(민용일 을사, 진태양시가 다음날로 넘기지 않음)");
 }
 
+// 정책 미지정(런타임 기본 = 평균태양시)에서도 자정을 넘기는 보정이 일주를 밀지 않는지.
+// 대구 경도 보정 -25.6분이라 00:15 출생이 전날 23:49 가 된다.
+{
+  const lmt = calculateLocalSaju({
+    hasTime: true, calendarType: "solar", timezone: "Asia/Seoul",
+    year: 1981, month: 1, day: 27, hour: 0, minute: 15, gender: "male",
+    longitude: daegu.lon, latitude: daegu.lat,
+  });
+  const corr = lmt.calculationEvidence.correctedClock;
+  console.log(
+    `기본 정책(${lmt.hourPillarTimePolicy}) 대구 00:15: 일주=${lmt.pillars.day.ganji} 시주=${lmt.pillars.hour?.ganji} ` +
+    `| 보정시각=${corr.year}-${corr.month}-${corr.day} ${String(corr.hour).padStart(2, "0")}:${String(corr.minute).padStart(2, "0")}`,
+  );
+  assertEqual(lmt.hourPillarTimePolicy, "LOCAL_MEAN_TIME", "정책 미지정 시 기본값은 평균태양시");
+  assertEqual(corr.day, 26, "평균태양시 보정도 자정을 넘기는지(재현 전제)");
+  assertEqual(lmt.pillars.day.ganji, "을사", "기본 정책 대구 00:15 일주(민용일 을사)");
+  assertEqual(lmt.pillars.hour?.ganji, "병자", "기본 정책 대구 00:15 시주(오자둔 병자)");
+}
+
 console.log("\n=== [검증] 정적 엔진 js/saju-engine.js 헬퍼(_cdCivilDayPillar / _cdHourPillarFromDayStem) ===");
 // 실제 엔진 소스에서 순수 헬퍼를 추출해 lunar-javascript 및 오자둔 기준값과 대조한다.
 const engineSrc = fs.readFileSync(path.join(root, "js/saju-engine.js"), "utf8");
@@ -163,10 +166,12 @@ function extractTopLevel(pattern) {
 const helperSrc = [
   extractTopLevel(/^var _CD_STEMS_HANJA = .*$/m),
   extractTopLevel(/^var _CD_BRANCHES_HANJA = .*$/m),
+  extractTopLevel(/^function _shiftDatePartsByDays[\s\S]*?^}/m),
+  extractTopLevel(/^function _applyTrueSolarTimeCorrection[\s\S]*?^}/m),
   extractTopLevel(/^function _cdCivilDayPillar[\s\S]*?^}/m),
   extractTopLevel(/^function _cdHourPillarFromDayStem[\s\S]*?^}/m),
 ].join("\n");
-const engineHelpers = new Function(`${helperSrc}\nreturn { _cdCivilDayPillar, _cdHourPillarFromDayStem };`)();
+const engineHelpers = new Function(`${helperSrc}\nreturn { _applyTrueSolarTimeCorrection, _cdCivilDayPillar, _cdHourPillarFromDayStem };`)();
 
 // (1) 민용일 일주가 lunar-javascript 일진과 모든 날짜에서 일치하는지 (에포크 오프셋 정합성)
 {
@@ -210,7 +215,7 @@ const engineHelpers = new Function(`${helperSrc}\nreturn { _cdCivilDayPillar, _c
   console.log(`오자둔 시주 파생(자/축/해시) OK`);
 }
 
-// (4) 정적 엔진 버그 케이스 end-to-end: 1981-01-27 00:30 대구
+// (4) 정적 엔진 버그 케이스 end-to-end: 1981-01-27 00:30 대구 (진태양시 = 경도+균시차, 최대 보정)
 {
   const daeguLon = 128.6014;
   const corr = applyTrueSolarTimeCorrection({
@@ -220,9 +225,25 @@ const engineHelpers = new Function(`${helperSrc}\nreturn { _cdCivilDayPillar, _c
   // (수정 전) 보정일 기준이면 갑진, (수정 후) 민용일 기준이면 을사
   const day = engineHelpers._cdCivilDayPillar(1981, 1, 27, 0); // 민용일
   const hour = engineHelpers._cdHourPillarFromDayStem(day.g, corr.hour); // 보정 시각(23:52)
+  assertEqual(corr.dayOffset, -1, "진태양시 보정이 자정을 넘겨 전날로 밀렸는지(재현 전제)");
   assertEqual(day.g + day.j, "乙巳", "정적 엔진 대구 00:30 일주(민용일 을사)");
   assertEqual(hour.g + hour.j, "丙子", "정적 엔진 대구 00:30 시주(오자둔 병자)");
-  console.log(`정적 엔진 대구 00:30 → 일주=乙巳 시주=丙子 OK (보정시각 ${corr.hour}:${String(corr.minute).padStart(2, "0")})`);
+  console.log(`정적 엔진 대구 00:30 진태양시 → 일주=乙巳 시주=丙子 OK (보정시각 ${corr.hour}:${String(corr.minute).padStart(2, "0")})`);
+}
+
+// (5) 현행 정적 엔진(평균태양시)로도 자정을 넘기는 케이스에서 일주가 밀리지 않는지
+//     대구 경도 보정은 -25.6분이라 00:15 출생이 전날 23:49 가 된다.
+{
+  const corr = engineHelpers._applyTrueSolarTimeCorrection({
+    year: 1981, month: 1, day: 27, hour: 0, minute: 15,
+    longitude: 128.6014, standardMeridian: STD_MERIDIAN,
+  });
+  const day = engineHelpers._cdCivilDayPillar(1981, 1, 27, 0);
+  const hour = engineHelpers._cdHourPillarFromDayStem(day.g, corr.correctedHour);
+  assertEqual(corr.dayOffset, -1, "평균태양시 보정도 자정을 넘기는지(재현 전제)");
+  assertEqual(day.g + day.j, "乙巳", "정적 엔진 대구 00:15 일주(민용일 을사 — 전날 갑진으로 밀리면 실패)");
+  assertEqual(hour.g + hour.j, "丙子", "정적 엔진 대구 00:15 시주(오자둔 병자)");
+  console.log(`정적 엔진 대구 00:15 평균태양시 → 일주=乙巳 시주=丙子 OK (보정시각 ${corr.correctedHour}:${String(corr.correctedMinute).padStart(2, "0")})`);
 }
 
 console.log("\n=== [검증] 출생지 복원 최근접 매칭(_dpSelectBirthPlaceOption) — 대구/부산 및 전 지역 ===");

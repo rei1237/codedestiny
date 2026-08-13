@@ -248,7 +248,7 @@ export function calculateSajuSourceFromBirth(input: FptiFormInput): FptiSourceDa
         name: birthRegion,
         timezone: "Asia/Seoul",
       },
-      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      hourPillarTimePolicy: "LOCAL_MEAN_TIME",
       dayChangePolicy: "MIDNIGHT",
       birth: {
         calendarType,
