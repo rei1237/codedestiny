@@ -848,7 +848,14 @@ assertContains(billingSource, "transactionType: usage.tier === \"family\" ? \"fa
 assertContains(billingClientSource, "buildLicensePassOverlayMessage", "React billing client builds license pass overlay copy");
 assertContains(billingClientSource, 'snapshot.state !== "none" || !hasServerLookupKey', "React billing client does not let inactive snapshots skip server pass checks");
 assertContains(billingClientSource, "snapshotPassServerCheckFirst", "React billing client sends active pass snapshots directly to server pass check");
-assertContains(billingClientSource, "eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst", "React billing client skips duplicate eligibility lookup before server pass check");
+assertContains(billingClientSource, "explicitPaymentMode || snapshotPassServerCheckFirst", "React billing client skips duplicate eligibility lookup before server pass check");
+/* 🔴 소유 판정은 조회보다 **앞**에 온다. access-store 는 localStorage 기반 동기 판정이라 왕복이 0회이고,
+   이미 산 콘텐츠는 여기서 끝나야 결제창이 뜨지 않는다. 이 두 줄이 빠지면 재열람마다 결제창이 뜬다. */
+assertContains(billingClientSource, "const ownedFromSnapshot = mayBeAlreadyUnlocked && readAccessStoreUnlocked(", "React billing client checks the local unlock snapshot before any eligibility lookup");
+assertContains(billingClientSource, "accessAlreadyGranted = ownedFromSnapshot ||", "React billing client treats a locally known unlock as access granted");
+/* 🔴 snapshotSaysNoPassFast('이용권 없음')가 소유 확인까지 끄면, 이용권 없이 단건으로 산 사용자가
+   재열람마다 결제창을 본다. 스킵 조건에 다시 넣지 말 것(2026-08-13). */
+assertNotContains(billingClientSource, "snapshotPassServerCheckFirst || snapshotSaysNoPassFast", "React billing client must not let a no-pass snapshot cancel the already-unlocked lookup");
 assertContains(billingClientSource, "passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst", "React billing client prioritizes pass before payment processing");
 assertContains(billingClientSource, "shouldOpenRuntimePaymentFallback", "React billing client opens the unified payment gate after pass-first payment-required responses");
 assertContains(billingClientSource, "coin-gate-runtime-fallback", "React payment fallback normalizes runtime payment success");
