@@ -31,7 +31,7 @@
 
 ### 1-2. 인증
 
-**방법 A — DNS TXT (도메인 속성, 권장)**
+**방법 A — DNS TXT (도메인 속성, 권장)** — ✅ **2026-08-13 완료.** 존에 TXT 레코드가 반영되어 있으므로 아래는 재등록·다른 도메인 추가 시 참고용입니다. 방법 B 는 쓰지 않습니다.
 1. [search.google.com/search-console](https://search.google.com/search-console) → 속성 추가 → "도메인" 선택 → `code-destiny.com` 입력
 2. 표시되는 `google-site-verification=XXXX` TXT 값을 복사
 3. Cloudflare 대시보드 → code-destiny.com zone → **DNS → Records → Add record** → Type `TXT`, Name `@`, Content에 복사한 값 붙여넣기
