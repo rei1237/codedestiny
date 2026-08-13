@@ -24,11 +24,17 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { isBuildArtifactDir } from "../../scripts/lib/source-scan-ignore.mjs";
+
 const WORKER_DIR = fileURLToPath(new URL("../../worker", import.meta.url));
 
 function walk(dir) {
   const out = [];
   for (const entry of readdirSync(dir)) {
+    // 번들은 소스가 아니다. 산출물이 worker/ 안에 떨어지면(--outdir 은 설정 파일 기준으로
+    // 풀리므로 상대경로를 쓰면 그렇게 된다) 번들에 섞인 withTransaction 호출을 "상한 없는
+    // 위반"으로 신고한다 — 2026-08-13 에 실제로 그렇게 깨졌다.
+    if (isBuildArtifactDir(entry)) continue;
     const full = path.join(dir, entry);
     if (statSync(full).isDirectory()) out.push(...walk(full));
     else if (entry.endsWith(".js")) out.push(full);

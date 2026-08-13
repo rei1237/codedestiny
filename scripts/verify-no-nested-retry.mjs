@@ -22,13 +22,16 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
+
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const workerRoot = resolve(root, "worker");
 
 function collectJsFiles(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     // 빌드 산출물은 원본이 아니라 번들이라 검사 대상이 아니다.
-    if (entry === ".wrangler" || entry === "node_modules") continue;
+    // (.wrangler·node_modules 만 막고 있었는데, --outdir 이 만드는 build-cache 로 실제로 뚫렸다.)
+    if (isBuildArtifactDir(entry)) continue;
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) collectJsFiles(full, out);
     else if (entry.endsWith(".js")) out.push(full);

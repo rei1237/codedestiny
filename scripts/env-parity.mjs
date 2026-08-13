@@ -22,6 +22,8 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
+
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
 const strict = args.has("--strict");
@@ -72,7 +74,9 @@ function collectSourceFiles(roots) {
   const visit = (dir) => {
     if (!existsSync(dir)) return;
     for (const name of readdirSync(dir)) {
-      if (name === "node_modules" || name.startsWith(".")) continue;
+      // 점으로 시작하는 이름(.wrangler 등)은 이미 걸러지지만 build-cache·dist 는 아니었다.
+      // 번들에는 env 참조가 전부 인라인돼 있어 계약 대조가 통째로 어긋난다.
+      if (name.startsWith(".") || isBuildArtifactDir(name)) continue;
       const full = join(dir, name);
       if (statSync(full).isDirectory()) visit(full);
       else if (SOURCE_EXTENSIONS.test(name)) files.push(full);

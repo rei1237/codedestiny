@@ -19,11 +19,12 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { BUILD_ARTIFACT_DIRS } from "../../scripts/lib/source-scan-ignore.mjs";
+
 const root = process.cwd();
-const SKIP_DIRS = new Set([
-  "node_modules", ".git", ".next", ".wrangler", "dist", "out", "coverage",
-  "reports", "docs", ".claude", "apps",
-]);
+// 빌드 산출물(공용 목록) + 이 스캔만의 제외. 합집합이다 — 공용 목록으로 갈아치우면
+// docs/apps/reports 가 다시 스캔 대상이 되어 무관한 실패가 난다.
+const SKIP_DIRS = new Set([...BUILD_ARTIFACT_DIRS, "reports", "docs", ".claude", "apps"]);
 const SOURCE_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx"]);
 
 function listSourceFiles(dir = root, out = []) {

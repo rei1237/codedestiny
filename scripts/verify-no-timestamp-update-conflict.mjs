@@ -25,9 +25,11 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
+import { BUILD_ARTIFACT_DIRS } from "./lib/source-scan-ignore.mjs";
+
 const ROOTS = ["worker", "lib", "server", "app", "models"];
 const EXTENSIONS = new Set([".js", ".mjs", ".ts", ".tsx"]);
-const SKIP_DIRECTORIES = new Set(["node_modules", ".next", "dist", "out", ".git", ".wrangler"]);
+const SKIP_DIRECTORIES = new Set(BUILD_ARTIFACT_DIRS);
 const MARKER = "$setOnInsert";
 
 function walk(dir, files = []) {
