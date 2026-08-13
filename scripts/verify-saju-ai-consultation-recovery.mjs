@@ -63,11 +63,11 @@ assert(
   "캐시 쓰기 조건이 바뀌었다 — skipRead 는 읽기만 막아야 자가 치유가 된다",
 );
 assert(
-  /const retryAfterFailure = existingExecution\?\.status === "generation_failed"/.test(route),
-  "재시도 판정(retryAfterFailure)이 없다",
+  /function resolveSajuAIPromptFailureBilling\(execution/.test(route),
+  "실패 시 과금 판정(resolveSajuAIPromptFailureBilling)이 없다",
 );
 assert(
-  /skipRead: retryAfterFailure \|\| undefined/.test(route),
+  /skipRead: skipCacheRead \|\| undefined/.test(route),
   "사주 상담 캐시가 skipRead 를 넘기지 않는다 — 불량 응답이 30일간 고정된다",
 );
 
@@ -101,6 +101,52 @@ assert(
 assert(
   /pollNotFoundStreak >= 4/.test(client),
   "폴링 404 연속 상한이 없다 — 기록을 못 찾아도 3분간 조용히 폴링만 돈다",
+);
+
+// 4-1) 2-스트라이크 환불 계약.
+// 실패 즉시 환불하면 환불된 차감이 결제 증빙 조회에서 제외돼(findAIPrompt*Evidence) 자동 재시도와
+// "추가 결제 없이 다시 생성"이 전부 402 로 떨어진다 — 결제 후 생성 실패 루프의 정체다.
+// 1차 실패는 결제 보존(무료 재시도 실동작), 재시도까지 실패하면 그때 환불하고 그 사실을 정직하게 알린다.
+// 한 번의 사용자 클릭이 두 스트라이크를 다 쓸 수 있다(클라이언트 자동 재시도가 2차 POST) — 의도된 동작이다.
+assert(
+  /const monthlyRefund = refundOnFailure\s*\n\s*\? await refundSajuAIPromptMonthlyCredit/.test(route),
+  "월정석 환불이 refundOnFailure 로 게이트되지 않았다 — 1차 실패에서 환불되면 무료 재시도가 402 가 된다",
+);
+assert(
+  /if \(!refundOnFailure\) \{[\s\S]{0,160}\} else if \(pointRefundContext\.isPointSpend/.test(route),
+  "코인·카드 환불이 refundOnFailure 로 게이트되지 않았다",
+);
+assert(
+  /const refunded = refundOnFailure && Boolean\(monthlyRefund\.refundOk \|\| pointRefund\.refundOk\)/.test(route),
+  "환불 '시도'와 '성공'을 구분하지 않는다 — 실패한 환불을 환불됐다고 답하면 살아 있는 결제가 미아가 된다",
+);
+assert(
+  /code: refunded \? "GENERATION_FAILED_REFUNDED" : "LLM_GENERATION_RETRYABLE"/.test(route),
+  "실행 레코드가 환불 여부를 코드로 구분하지 않는다 — /status 폴링이 거짓 재생성 안내를 내보낸다",
+);
+assert(
+  /\.\.\.\(refunded \? \{ "result\.order\.paymentStatus": "REFUNDED" \} : \{\}\)/.test(route),
+  "환불 시 paymentStatus 가 REFUNDED 로 갱신되지 않는다 — buildSajuAIStatusPayload 가 retryable:true 를 유지한다",
+);
+assert(
+  /paymentRetainedForRetry: !refunded/.test(route),
+  "환불한 응답이 결제 보존이라고 답한다 — 클라이언트가 죽은 증거로 재시도해 402 를 맞는다",
+);
+assert(
+  /if \(payload\.refundOk === true \|\| details\.refundOk === true\) return false;/.test(client),
+  "클라이언트 자동 재시도가 환불된 실패를 걸러 내지 않는다",
+);
+assert(
+  /function finishAfterAutoRefund\(message\)[\s\S]{0,400}_sajuPromptClearPendingJob/.test(client),
+  "환불 종결 처리가 없거나 pending job(=저장된 결제 증거)을 지우지 않는다",
+);
+assert(
+  /if \(payload\.refundOk === true\) \{\s*\n\s*finishAfterAutoRefund\(message\);/.test(client),
+  "환불 확정 분기가 결제 보존 분기보다 먼저 걸러지지 않는다",
+);
+assert(
+  /=== 'GENERATION_FAILED_REFUNDED'\) \{[\s\S]{0,120}finishAfterAutoRefund/.test(client),
+  "폴링 실패 경로가 환불된 실패를 무료 재생성으로 잘못 인계한다",
 );
 
 // 5) 대기 화면의 명식 근거 미리보기는 실제 응답 형태를 읽어야 한다.
