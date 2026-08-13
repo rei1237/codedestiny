@@ -7026,6 +7026,9 @@ function _sajuPromptShouldRetryPaidGeneration(result) {
   var reason = String(details.reason || payload.reason || '').trim().toUpperCase();
   var message = String(payload.message || details.message || '').trim();
   var status = Number(result && result.status);
+  // 🔴 환불이 끝난 실패는 재시도 대상이 아니다. 서버는 환불된 차감을 결제 증빙으로 인정하지 않으므로
+  // 같은 증빙으로 재-POST 하면 무조건 402 가 오고, 사용자에게는 "결제했는데 또 결제창"으로 보인다.
+  if (payload.refundOk === true || details.refundOk === true) return false;
   // 524 는 Cloudflare 가 동기 생성 도중 연결을 끊은 것이다. 재-POST 는 서버의 재연결 분기를 타
   // (완료면 저장분, 진행 중이면 202) 재차감 없이 폴링으로 전환된다.
   return status === 503
@@ -7625,6 +7628,19 @@ function _bindSajuQuestionPromptCard(rootEl) {
     setProgress(Math.max(progressPercent || 0, 85), '상담문 생성 중 문제가 발생했어요', false);
     _sajuPromptSetStatus(statusEl, (message || '상담문 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 다시 생성할 수 있습니다.') + (code ? ' (' + code + ')' : ''), 'error');
   }
+  // 서버가 결제를 자동 환불한 실패의 종결 처리. markFailedForRetry 와 달리 결제 증빙을 반드시 버린다 —
+  // 환불된 차감은 서버 증빙 조회에서 제외되므로 그대로 두면 다음 클릭이 402 를 맞고 결제창이 다시 열린다.
+  function finishAfterAutoRefund(message) {
+    stopPolling();
+    stopProgress();
+    setLoading(false);
+    clearPaidEvidence();
+    _sajuPromptClearPendingJob((activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId());
+    activePendingJob = null;
+    regenerateBtn.style.display = 'none';
+    setProgress(-1, '', false);
+    _sajuPromptSetStatus(statusEl, message || '상담문 생성에 거듭 실패해 결제를 자동 환불했어요. 잔액 반영에는 잠시 걸릴 수 있고, 다시 시도하시면 새로 결제됩니다.', 'error');
+  }
   function handleCompletedPayload(payload, pendingJob) {
     var resultText = String(payload && payload.resultText || '').trim();
     if (!resultText) return false;
@@ -7699,6 +7715,12 @@ function _bindSajuQuestionPromptCard(rootEl) {
           return;
         }
         if (status === 'failed') {
+          // 서버가 환불까지 끝낸 실패(2스트라이크)는 무료 재생성으로 인계하면 안 된다 — 402 만 돌아온다.
+          // errorMessage 는 LLM 원문 오류라 사용자에게 그대로 보이면 안 된다 — 기본 안내 문구를 쓴다.
+          if (String(payload.errorCode || '').trim() === 'GENERATION_FAILED_REFUNDED') {
+            finishAfterAutoRefund('');
+            return;
+          }
           markFailedForRetry(activePendingJob, String(payload.errorMessage || '상담문 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 다시 생성할 수 있습니다.'), String(payload.errorCode || 'GENERATION_FAILED'));
           return;
         }
@@ -7787,6 +7809,12 @@ function _bindSajuQuestionPromptCard(rootEl) {
 
       var code = String(payload.code || '').trim();
       var message = String(payload.message || '').trim() || '상담문 생성 중 오류가 발생했습니다.';
+      // 환불이 끝난 실패는 아래 보존 분기·5xx 분기보다 먼저 걸러 낸다. 두 분기 모두 결제 증거를
+      // 보존해 "추가 결제 없이 다시 생성"을 띄우는데, 환불된 증거로는 402 밖에 오지 않는다.
+      if (payload.refundOk === true) {
+        finishAfterAutoRefund(message);
+        return;
+      }
       if (result && result._sajuPaidEvidence && code === 'LLM_GENERATION_RETRYABLE' && payload.refundOk !== true) {
         lastPaidEvidence = result._sajuPaidEvidence;
         lastPaidEvidenceKey = key;
@@ -7832,7 +7860,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
           markFailedForRetry(activePendingJob, message, code || 'PAYMENT_REQUIRED');
           return;
         }
+        // 저장된 pending job 까지 지운다. clearPaidEvidence 는 메모리 사본만 비우므로, 새로고침하면
+        // localStorage 의 paidEvidence 가 복원돼(restore 경로) 죽은 증거로 같은 402 를 다시 맞는다.
         clearPaidEvidence();
+        _sajuPromptClearPendingJob((activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId());
+        activePendingJob = null;
         _sajuPromptSetStatus(statusEl, message, 'error');
         return;
       }

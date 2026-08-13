@@ -425,9 +425,14 @@ function buildSajuAIPromptPaymentRequiredError() {
 }
 
 function buildSajuAILlmRetryableError(details = {}) {
+  // 🔴 환불했으면 "결제는 확인되었고 … 다시 시도" 라고 답하지 않는다. 그 문구를 믿은 클라이언트가
+  // 같은 증빙으로 재시도하면 서버는 환불된 차감을 증빙으로 인정하지 않아 402 를 답한다(결제창 재오픈).
+  const refunded = details.refunded === true;
   return buildSajuAIPromptError(
     "LLM_GENERATION_RETRYABLE",
-    "결제는 확인되었고 상담문 생성만 다시 맞추고 있습니다. 잠시 후 다시 시도해 주세요.",
+    refunded
+      ? "상담문 생성에 거듭 실패해 결제를 자동 환불했어요. 다시 시도하시면 새로 결제됩니다."
+      : "결제는 확인되었고 상담문 생성만 다시 맞추고 있습니다. 잠시 후 다시 시도해 주세요.",
     503,
     {
       featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
@@ -439,7 +444,7 @@ function buildSajuAILlmRetryableError(details = {}) {
       refundAttempted: details.refundAttempted === true,
       refundOk: details.refundOk === true,
       retryable: true,
-      paymentRetainedForRetry: true,
+      paymentRetainedForRetry: !refunded,
       requestId: String(details.requestId || "").trim() || undefined,
       jobId: String(details.jobId || "").trim() || undefined,
       executionId: String(details.jobId || details.executionId || "").trim() || undefined,
@@ -1035,6 +1040,31 @@ function isSajuAIPromptStaleGeneratingExecution(execution, now = new Date()) {
   );
   if (!Number.isFinite(updatedAtMs) || updatedAtMs <= 0) return false;
   return now.getTime() - updatedAtMs > SAJU_AI_PROMPT_STALE_GENERATING_MS;
+}
+
+/**
+ * 결제 1건에 생성 기회를 2번 준다(2-스트라이크).
+ *
+ * 🔴 실패 즉시 환불하면 안 된다 — 환불된 차감행은 결제 증빙 조회에서 제외되므로
+ * (findAIPromptPaymentEvidence / findAIPromptMonthlyCreditEvidence), 클라이언트의 자동 재시도와
+ * "추가 결제 없이 다시 생성"이 전부 402 로 떨어져 결제창이 다시 열린다. 그게 "결제했는데 생성 안 됨"의 정체다.
+ * 1차 실패는 결제를 보존해 무료 재시도를 실제로 열어 주고, 그 재시도까지 실패하면 그때 환불한다.
+ *
+ * - 이미 환불한 실패 레코드는 스트라이크로 세지 않는다. requestId 는 질문+명식으로 결정적이라
+ *   같은 질문을 재결제하면 같은 레코드를 만나는데, 세면 새 결제의 첫 실패가 즉시 환불돼 영원히 1스트라이크가 된다.
+ * - stale(엣지 절단으로 끊긴 generating)은 스트라이크가 아니다. 그 사용자는 in-band 실패를 본 적이 없고,
+ *   회수 안내(markSajuAIPromptStaleExecutionFailed)가 "결제 권한은 보존되어"라고 이미 약속했다.
+ *   다만 캐시 건너뛰기는 stale 에도 필요하다(검증 실패 응답이 캐시에 남아 30일 고정되는 문제).
+ */
+function resolveSajuAIPromptFailureBilling(execution, now = new Date()) {
+  const status = String(execution?.status || "").trim();
+  const stale = isSajuAIPromptStaleGeneratingExecution(execution, now);
+  const previouslyRefunded = String(execution?.error?.code || "").trim() === "GENERATION_FAILED_REFUNDED"
+    || String(execution?.result?.order?.paymentStatus || "").trim().toUpperCase() === "REFUNDED";
+  return {
+    refundOnFailure: status === "generation_failed" && !previouslyRefunded,
+    skipCacheRead: status === "generation_failed" || stale,
+  };
 }
 
 async function markSajuAIPromptStaleExecutionFailed(execution, details = {}) {
@@ -4416,14 +4446,14 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   // 이미 한 번 실패한 requestId 는 캐시를 읽지 않는다. 캐시는 품질 검증 이전 단계라 검증에서 떨어진
   // 응답도 저장되고, 무료 재생성이 같은 키로 그 응답을 다시 받아 30일 내내 같은 실패를 반복한다.
   // 쓰기는 그대로 둔다 — 성공한 재생성이 같은 키를 덮어써 스스로 낫는다.
-  const retryAfterFailure = existingExecution?.status === "generation_failed"
-    || (existingExecution?.status === "generating" && isSajuAIPromptStaleGeneratingExecution(existingExecution));
+  // 같은 판정에서 환불 스트라이크도 함께 결정한다(아래 catch). 캐시 건너뛰기보다 좁다 — 상세는 헬퍼 주석.
+  const { refundOnFailure, skipCacheRead } = resolveSajuAIPromptFailureBilling(existingExecution);
   const sajuLlmCache = {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-    skipRead: retryAfterFailure || undefined,
+    skipRead: skipCacheRead || undefined,
   };
 
   // LLM 생성 전체(성공 저장·실패 환불·레코드 마킹 포함)를 클로저로 묶는다 — ctx가 있으면 즉시 202 후
@@ -4631,13 +4661,18 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     });
     return json(resultPayload);
   } catch (error) {
-    const monthlyRefund = await refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, requestId, error }).catch((refundError) => {
-      console.error("[fortune][saju-ai-prompt] monthly credit refund failed:", refundError);
-      return { attempted: true, refundOk: false };
-    });
+    // 2-스트라이크: 1차 실패는 결제를 그대로 두고 무료 재시도를 연다(resolveSajuAIPromptFailureBilling 주석).
+    const monthlyRefund = refundOnFailure
+      ? await refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, requestId, error }).catch((refundError) => {
+        console.error("[fortune][saju-ai-prompt] monthly credit refund failed:", refundError);
+        return { attempted: true, refundOk: false };
+      })
+      : { attempted: false, refundOk: false };
     const pointRefundContext = readSajuAIPromptPointRefundContext(consumePayload, body);
     let pointRefund = { attempted: false, refundOk: false };
-    if (pointRefundContext.isPointSpend && pointRefundContext.chargedCoins > 0 && pointRefundContext.sourceTransactionId) {
+    if (!refundOnFailure) {
+      // 결제 보존 — 아래 두 갈래(코인 환불 / 카드 취소)를 건너뛴다.
+    } else if (pointRefundContext.isPointSpend && pointRefundContext.chargedCoins > 0 && pointRefundContext.sourceTransactionId) {
       pointRefund = { attempted: true, refundOk: false };
       try {
         const refundRequest = new Request(request.url, {
@@ -4678,6 +4713,9 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       errorName: error?.name || error?.code || "Error",
       errorMessage: error?.message || error,
     });
+    // 🔴 환불을 "시도"한 것과 "성공"한 것을 구분한다. 시도만 하고 실패했다면 결제행은 그대로 유효하므로
+    // 환불됐다고 답하면 거짓이고, 증빙을 버리게 만들면 살아 있는 결제가 미아가 된다 — 보존 계약으로 답한다.
+    const refunded = refundOnFailure && Boolean(monthlyRefund.refundOk || pointRefund.refundOk);
     // 백그라운드(waitUntil) 실행에서도 실패가 클라이언트 /status 폴링에 전달되도록 레코드에 기록한다.
     await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
       { executionId: sajuExecutionId },
@@ -4685,10 +4723,20 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         $set: {
           status: "generation_failed",
           error: {
-            code: "LLM_GENERATION_RETRYABLE",
+            // 이 코드는 /status 폴링으로 그대로 나가 클라이언트의 종결 처리를 가른다
+            // (보존=추가 결제 없이 재생성 / 환불=일반 구매 흐름 복귀).
+            code: refunded ? "GENERATION_FAILED_REFUNDED" : "LLM_GENERATION_RETRYABLE",
             message: String(error?.message || error || "generation failed").slice(0, 500),
           },
-          "result.progress": buildSajuAIProgress(0, "failed", "상담 생성에 실패했어요. 결제 권한은 보존되니 다시 시도해 주세요."),
+          // paymentStatus 는 buildSajuAIStatusPayload 의 retryable 판정 근거다(PAID 일 때만 true).
+          ...(refunded ? { "result.order.paymentStatus": "REFUNDED" } : {}),
+          "result.progress": buildSajuAIProgress(
+            0,
+            "failed",
+            refunded
+              ? "상담 생성에 거듭 실패해 결제를 자동 환불했어요. 다시 시도하면 새로 결제됩니다."
+              : "상담 생성에 실패했어요. 결제 권한은 보존되니 다시 시도해 주세요.",
+          ),
         },
       },
     )).catch(() => {});
@@ -4698,7 +4746,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       accessMethod: consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
       paymentMode: consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
       refundAttempted: Boolean(monthlyRefund.attempted || pointRefund.attempted),
-      refundOk: Boolean(monthlyRefund.refundOk || pointRefund.refundOk),
+      refundOk: refunded,
+      refunded,
       requestId,
       resultId,
     });
@@ -6591,6 +6640,7 @@ export const __fortuneAccessTestUtils = {
   buildAIPromptCardRefundPaymentQuery,
   readAIPromptRefundContext: readSajuAIPromptPointRefundContext,
   isSajuAIPromptStaleGeneratingExecution,
+  resolveSajuAIPromptFailureBilling,
   mapSajuAIExecutionStatus,
   buildSajuAIStatusPayload,
   readAIPromptRequestId,

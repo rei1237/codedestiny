@@ -12,6 +12,7 @@
  */
 
 let isSajuAIPromptStaleGeneratingExecution;
+let resolveSajuAIPromptFailureBilling;
 let mapSajuAIExecutionStatus;
 let buildSajuAIStatusPayload;
 let readAIPromptRequestId;
@@ -23,6 +24,7 @@ beforeAll(async () => {
   const mod = await import("../../worker/routes/fortune.js");
   ({
     isSajuAIPromptStaleGeneratingExecution,
+    resolveSajuAIPromptFailureBilling,
     mapSajuAIExecutionStatus,
     buildSajuAIStatusPayload,
     readAIPromptRequestId,
@@ -52,6 +54,43 @@ describe("끊긴 생성 레코드 판정", () => {
   });
 });
 
+describe("2-스트라이크 환불 판정", () => {
+  const now = new Date("2026-08-14T00:10:00.000Z");
+  const at = (msAgo) => new Date(now.getTime() - msAgo).toISOString();
+
+  test("첫 시도의 실패는 환불하지 않는다 — 결제를 보존해야 무료 재시도가 실제로 열린다", () => {
+    expect(resolveSajuAIPromptFailureBilling(null, now).refundOnFailure).toBe(false);
+    expect(resolveSajuAIPromptFailureBilling({ status: "generating", updatedAt: at(1000) }, now).refundOnFailure).toBe(false);
+  });
+
+  test("이미 실패한 기록이 있으면(=재시도) 그 실패는 환불한다", () => {
+    const decision = resolveSajuAIPromptFailureBilling({ status: "generation_failed", updatedAt: at(60000) }, now);
+    expect(decision.refundOnFailure).toBe(true);
+    expect(decision.skipCacheRead).toBe(true);
+  });
+
+  test("이미 환불한 실패는 스트라이크로 세지 않는다(재결제가 첫 실패에 즉시 환불되면 안 된다)", () => {
+    // requestId 는 질문+명식으로 결정적이라 같은 질문을 재결제하면 같은 레코드를 다시 만난다.
+    expect(resolveSajuAIPromptFailureBilling({
+      status: "generation_failed",
+      error: { code: "GENERATION_FAILED_REFUNDED" },
+      updatedAt: at(60000),
+    }, now).refundOnFailure).toBe(false);
+    expect(resolveSajuAIPromptFailureBilling({
+      status: "generation_failed",
+      result: { order: { paymentStatus: "REFUNDED" } },
+      updatedAt: at(60000),
+    }, now).refundOnFailure).toBe(false);
+  });
+
+  test("끊긴 generating 은 환불 스트라이크가 아니다 — 다만 오염된 캐시는 건너뛴다", () => {
+    // 회수 안내가 "결제 권한은 보존되어 추가 결제 없이 다시 생성"이라고 이미 약속했다.
+    const decision = resolveSajuAIPromptFailureBilling({ status: "generating", updatedAt: at(STALE_MS + 1000) }, now);
+    expect(decision.refundOnFailure).toBe(false);
+    expect(decision.skipCacheRead).toBe(true);
+  });
+});
+
 describe("회수된 레코드가 클라이언트에 전달되는 모양", () => {
   test("generation_failed 는 failed 로 매핑된다", () => {
     expect(mapSajuAIExecutionStatus("generation_failed")).toBe("failed");
@@ -71,6 +110,21 @@ describe("회수된 레코드가 클라이언트에 전달되는 모양", () => 
     expect(payload.retryable).toBe(true);
     expect(payload.errorCode).toBe("STALE_GENERATION_RECOVERED");
     expect(payload.errorMessage).toContain("끊겨");
+  });
+
+  test("환불까지 끝난 실패는 retryable 이 아니고 환불 코드를 그대로 내보낸다", () => {
+    const payload = buildSajuAIStatusPayload({
+      executionId: "exec-2",
+      requestId: "saju-ai-prompt:def",
+      status: "generation_failed",
+      error: { code: "GENERATION_FAILED_REFUNDED", message: "generation failed" },
+      result: { order: { paymentStatus: "REFUNDED" } },
+    });
+
+    expect(payload.status).toBe("failed");
+    // 이 두 필드가 클라이언트를 "무료 재생성" 대신 "환불 안내 + 일반 구매 흐름"으로 보낸다.
+    expect(payload.retryable).toBe(false);
+    expect(payload.errorCode).toBe("GENERATION_FAILED_REFUNDED");
   });
 });
 
