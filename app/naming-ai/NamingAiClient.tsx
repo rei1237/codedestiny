@@ -11,6 +11,7 @@ import {
 } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { toDisplayText } from "@/lib/llm-text";
 import {
   buildRecommendationBundle,
   STYLE_PRESETS,
@@ -107,6 +108,10 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
+function toText(value: unknown) {
+  return toDisplayText(value);
+}
+
 // 🔴 /generate 는 요청 안에서 LLM 생성을 끝내는 동기 라우트다(worker/routes/naming-prompt.js —
 // waitUntil 백그라운드 폴링은 Workers 요청 간 I/O 격리로 결과가 고착돼 의도적으로 배제됐다).
 // 서버 예산은 엣지 한계 100초 / LLM 85초인데 authFetch 는 자체 AbortController 로 22초에 끊는다
@@ -164,13 +169,21 @@ function runtimePayload(result: unknown): Record<string, unknown> {
   return Object.keys(data).length ? data : record;
 }
 
+// 다른 여섯 유료 화면(ZiweiAi·ZiweiDeepPdf·Island·LoveSecret·Sukuyo·Vedic)과 본문이 같아야 한다.
+// 예전에는 여기만 축소형이라 감사할 때마다 "이 한 곳만 왜 다른가"를 다시 추적하게 됐다.
 function isPaymentGranted(result: unknown): boolean {
   const record = asRecord(result);
   const payload = runtimePayload(result);
-  if (record.ok === false || payload.ok === false) return false;
+  const status = toText(record.status || payload.status || payload.paymentStatus).toLowerCase();
+  const denied = new Set(["error", "failed", "failure", "payment_required", "cancelled", "canceled"]);
+  if (record.ok === false || payload.ok === false || denied.has(status)) return false;
+  if (["granted", "paid", "success", "succeeded", "confirmed", "complete", "completed", "approved"].includes(status)) return true;
   return Boolean(
-    payload.paymentId
+    record.transactionId
+    || record.paymentId
+    || record.purchaseId
     || payload.transactionId
+    || payload.paymentId
     || payload.purchaseId
     || Object.keys(asRecord(payload.accessGrant)).length
     || Object.keys(asRecord(payload.consume)).length,
