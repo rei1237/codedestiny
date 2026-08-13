@@ -130,6 +130,31 @@ test("desktop tier lays the shell out as a rail beside the content", () => {
   }
 });
 
+test("panel columns are assigned by identity, never by child position", () => {
+  const { doc } = openDiary({ desktop: true });
+  const css = doc.getElementById("lsd-tw-styles")?.textContent || "";
+  const tier = css.slice(css.indexOf("@media (min-width:1024px){.lsd-shell{display:grid"));
+
+  // ensureMzBlocks() 는 #lsdEmotionCard 를 history 의 첫 자식으로 밀어 넣는다.
+  // 위치 기반 선택자를 쓰면 그 순간 모든 배정이 한 칸씩 밀린다.
+  const assignments = [...tier.matchAll(/([^{};]+)\{[^}]*grid-column:/g)].map((m) => m[1]);
+  assert.ok(assignments.length >= 8, `expected column assignments, found ${assignments.length}`);
+  for (const sel of assignments) {
+    assert.ok(
+      !/:nth-child|:nth-of-type|:first-of-type|:last-of-type|:first-child|:last-child/.test(sel),
+      `position-based selector used for a column assignment: ${sel.trim()}`,
+    );
+  }
+
+  // 런타임에 삽입되는 카드들도 배정을 받아야 한다 — 안 그러면 자동 배치로 흘러간다
+  for (const id of ["#lsdMzVisualCard", "#lsdEmotionCard", "#lsdReviewCard", "#lsdMemoCard"]) {
+    assert.ok(tier.includes(id), `runtime-inserted ${id} has no column assignment`);
+  }
+
+  // 카드에 박힌 margin-bottom 이 살아 있으면 grid gap 과 이중으로 벌어진다
+  assert.ok(tier.includes(".lsd-panel > *{margin-bottom:0}"), "panel children keep their stacked margins");
+});
+
 test("diary injects its token block before any rule can reference it", () => {
   const { doc } = openDiary();
 
