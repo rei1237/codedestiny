@@ -106,11 +106,11 @@ function _lsdText(key) {
      대비가 1.4~2.2:1 로 떨어져 특히 금(金)은 사실상 보이지 않는다.
      ink 는 계열(hue)을 유지한 채 명도만 낮춘 값이다(DESIGN.md Hue-Stays Rule). */
   var ELEM = {
-    wood:  { cn: '목(木)', ko: '木', short: '목', color: '#4ade80', neon: '#22d876', ink: '#2f7d5a', badge: '🌱', lotto: '민트', bg: 'rgba(16,185,129,0.10)' },
-    fire:  { cn: '화(火)', ko: '火', short: '화', color: '#f97316', neon: '#fb923c', ink: '#b3402c', badge: '🔥', lotto: '코랄', bg: 'rgba(249,115,22,0.10)' },
-    earth: { cn: '토(土)', ko: '土', short: '토', color: '#d97706', neon: '#fbbf24', ink: '#8a6212', badge: '🤎', lotto: '베이지', bg: 'rgba(217,119,6,0.10)' },
-    metal: { cn: '금(金)', ko: '金', short: '금', color: '#94a3b8', neon: '#cbd5e1', ink: '#6b6470', badge: '⚡', lotto: '실버', bg: 'rgba(148,163,184,0.10)' },
-    water: { cn: '수(水)', ko: '水', short: '수', color: '#60a5fa', neon: '#7dd3fc', ink: '#2f5a8f', badge: '💧', lotto: '네이비', bg: 'rgba(96,165,250,0.10)' }
+    wood:  { cn: '목(木)', ko: '木', short: '목', color: '#4ade80', neon: '#22d876', ink: '#2f7d5a', badge: '🌱', lotto: '민트' },
+    fire:  { cn: '화(火)', ko: '火', short: '화', color: '#f97316', neon: '#fb923c', ink: '#b3402c', badge: '🔥', lotto: '코랄' },
+    earth: { cn: '토(土)', ko: '土', short: '토', color: '#d97706', neon: '#fbbf24', ink: '#8a6212', badge: '🤎', lotto: '베이지' },
+    metal: { cn: '금(金)', ko: '金', short: '금', color: '#94a3b8', neon: '#cbd5e1', ink: '#6b6470', badge: '⚡', lotto: '실버' },
+    water: { cn: '수(水)', ko: '水', short: '수', color: '#60a5fa', neon: '#7dd3fc', ink: '#2f5a8f', badge: '💧', lotto: '네이비' }
   };
 
   /* ─── 행운 아이템 풀 ─────────────────────────────────────────── */
@@ -1075,9 +1075,9 @@ return true;
     var modal = document.getElementById('luckSyncDiaryModal');
     if (!modal) return;
     var e = ELEM[luckyEl] || ELEM.earth;
-    var header = modal.querySelector('header');
-    if (header) {
-      header.style.background = 'linear-gradient(135deg,#eff6ff 0%,' + e.bg + ' 52%,#ffffff 100%)';
+    var shell = modal.querySelector('.lsd-shell');
+    if (shell) {
+      shell.style.setProperty('--lsd-elem-tint', e.color);
     }
     var themed = modal.querySelectorAll('.lsd-theme-fx');
     themed.forEach(function (el) {
@@ -3371,6 +3371,8 @@ return true;
         '--lsd-accent-soft:#f4bed1;--lsd-accent-wash:rgba(179,25,85,.07);',
         '--lsd-gold:#ead089;--lsd-gold-soft:#fff8dc;--lsd-gold-ink:#7a5a12;',
         '--lsd-danger:#a4245c;',
+        /* applyElementTheme() 이 오늘의 행운 오행 색으로 덮어쓴다 */
+        '--lsd-elem-tint:var(--lsd-accent);',
         /* 운세 등급 — 무지개 대신 골드↔플럼 발산형 램프 */
         '--lsd-grade-vg-bg:#fdf3dd;--lsd-grade-vg-ink:#7a5a12;',
         '--lsd-grade-g-bg:#fdf8ec;--lsd-grade-g-ink:#8a6a2a;',
@@ -3534,12 +3536,20 @@ return true;
         '.lsd-drag-handle{display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;position:relative;z-index:2;background:var(--lsd-head-1)}.lsd-drag-handle span{width:42px;height:4px;border-radius:var(--lsd-r-pill);background:rgba(255,255,255,.42)}',
         '.lsd-close-btn{position:absolute;top:12px;right:14px;z-index:20;width:34px;height:34px;border-radius:var(--lsd-r-pill);border:1px solid rgba(255,224,247,.52);background:rgba(78,28,108,.74);color:var(--lsd-head-ink);font-size:var(--lsd-t-body);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 8px 18px rgba(24,12,54,.22)}',
         '.lsd-close-btn:hover{background:var(--lsd-surface-2);color:var(--lsd-accent-ink);transform:rotate(90deg)}',
-        '.lsd-hero{padding:17px 19px 16px;background:linear-gradient(135deg,#331766 0%,#6d2a8d 54%,#bf4ea4 100%);border-bottom:1px solid rgba(255,224,247,.34);position:relative;overflow:hidden;flex-shrink:0}',
-        '.lsd-hero:before{content:"";position:absolute;left:18px;right:18px;bottom:8px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,244,205,.72),transparent);pointer-events:none}',
-        '.lsd-hero-grid{position:relative;display:grid;gap:13px}.lsd-hero-main{display:flex;align-items:flex-start;gap:14px;min-width:0}.lsd-hero-icon{width:56px;height:56px;border-radius:var(--lsd-r-lg);overflow:hidden;flex:none;border:1px solid rgba(255,224,247,.58);box-shadow:0 10px 26px rgba(255,154,210,.28),inset 0 0 0 1px rgba(255,255,255,.36)}.lsd-hero-icon img{width:100%;height:100%;object-fit:cover}',
-        '.lsd-hero-kicker{display:inline-flex;align-items:center;border-radius:var(--lsd-r-pill);border:1px solid rgba(255,224,247,.42);background:rgba(49,20,91,.42);padding:4px 9px;font-size:var(--lsd-t-caption);letter-spacing:.12em;color:var(--lsd-head-ink-muted);margin:0 0 6px;font-weight:var(--lsd-w-semibold);text-transform:uppercase}.lsd-hero-title{font-size:var(--lsd-t-section);font-weight:var(--lsd-w-semibold);color:var(--lsd-head-ink);margin:0;line-height:1.16;text-shadow:0 3px 12px rgba(31,13,64,.36)}.lsd-hero-title strong{font-weight:var(--lsd-w-semibold);color:var(--lsd-gold)}.lsd-hero-date{font-size:var(--lsd-t-body-s);color:var(--lsd-head-ink-muted);margin:5px 0 0;font-weight:var(--lsd-w-medium)}',
-        '.lsd-hero-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lsd-hero-stat{border:1px solid rgba(255,224,247,.44);background:rgba(255,250,255,.16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--lsd-r-lg);padding:9px 10px;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}.lsd-hero-stat span{display:block;font-size:var(--lsd-t-caption);font-weight:var(--lsd-w-medium);color:var(--lsd-head-ink-muted);margin-bottom:3px}.lsd-hero-stat b{display:block;font-size:var(--lsd-t-body);font-weight:var(--lsd-w-semibold);color:var(--lsd-head-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-        '.lsd-hero-line{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border:1px solid rgba(255,224,247,.45);background:rgba(255,250,255,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--lsd-r-lg);padding:10px 12px;color:var(--lsd-head-ink);font-size:var(--lsd-t-body);line-height:1.48;font-weight:var(--lsd-w-medium)}.lsd-hero-note{margin-top:8px;border:1px solid rgba(255,224,247,.4);background:rgba(42,18,78,.34);border-radius:var(--lsd-r-lg);padding:9px 11px;color:var(--lsd-head-ink-muted);font-size:var(--lsd-t-body-s);line-height:1.45;font-weight:var(--lsd-w-medium)}.lsd-device-badge{display:none;align-items:center;justify-content:center;white-space:nowrap;border:1px solid rgba(20,184,166,.28);background:var(--lsd-grade-vg-bg);color:var(--lsd-gold-ink);border-radius:var(--lsd-r-pill);padding:6px 9px;font-size:var(--lsd-t-micro);font-weight:var(--lsd-w-semibold)}',
+        '.lsd-hero{position:relative;overflow:hidden;flex-shrink:0;padding:20px 20px 18px;background:radial-gradient(120% 90% at 88% 0%,color-mix(in srgb,var(--lsd-elem-tint) 18%,transparent),transparent 56%),var(--lsd-head-bg);border-bottom:1px solid var(--lsd-head-border);color:var(--lsd-head-ink)}',
+        '.lsd-hero:after{content:"";position:absolute;left:20px;right:20px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--lsd-gold),transparent);opacity:.5;pointer-events:none}',
+        '.lsd-hero-grid{position:relative;display:grid;gap:14px}',
+        '.lsd-hero-main{min-width:0}',
+        '.lsd-hero-kicker{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0 0 10px;font-size:var(--lsd-t-caption);font-weight:var(--lsd-w-medium);letter-spacing:.12em;text-transform:uppercase;color:var(--lsd-gold)}',
+        '.lsd-hero-kicker span{letter-spacing:0;text-transform:none;color:var(--lsd-head-ink-muted)}',
+        '.lsd-hero-title{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin:0;line-height:1.05}',
+        '.lsd-hero-date-num{font-size:var(--lsd-t-display);font-weight:var(--lsd-w-bold);letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--lsd-head-ink)}',
+        '.lsd-hero-date-day{font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-medium);color:var(--lsd-gold)}',
+        '.lsd-hero-meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin:0}',
+        '.lsd-hero-meta div{min-width:0}',
+        '.lsd-hero-meta dt{margin:0 0 2px;font-size:var(--lsd-t-caption);font-weight:var(--lsd-w-medium);letter-spacing:.06em;color:var(--lsd-head-ink-muted)}',
+        '.lsd-hero-meta dd{margin:0;font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-semibold);color:var(--lsd-head-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+        '.lsd-hero-line{margin:12px 0 0;padding:0 0 0 12px;border-left:2px solid var(--lsd-head-border);color:var(--lsd-head-ink-muted);font-size:var(--lsd-t-body);line-height:1.55;font-weight:var(--lsd-w-regular)}',
         '.lsd-tabs{display:flex;gap:8px;padding:11px 14px;overflow-x:auto;background:linear-gradient(180deg,var(--lsd-surface-2),var(--lsd-surface-2));border-bottom:1px solid var(--lsd-border);flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none}.lsd-tabs::-webkit-scrollbar{display:none}',
         '.lsd-tab{background:var(--lsd-surface);border:1px solid var(--lsd-border);color:var(--lsd-accent-ink);min-height:40px;padding:9px 14px;border-radius:var(--lsd-r-pill);font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-semibold);box-shadow:0 5px 14px rgba(146,75,130,.08)}.lsd-tab:hover{background:var(--lsd-surface-2);color:var(--lsd-accent-ink);border-color:var(--lsd-border-strong)}.lsd-tab.is-active{background:linear-gradient(135deg,var(--lsd-accent),var(--lsd-accent));color:var(--lsd-head-ink);border-color:transparent;box-shadow:0 8px 20px rgba(217,70,158,.28)}',
         '.lsd-scroll-area{flex:1;overflow-y:auto;background:linear-gradient(180deg,var(--lsd-surface-2),var(--lsd-surface-2) 44%,var(--lsd-surface));scrollbar-width:thin}.lsd-panel{padding:14px;animation:lsdSlideUp .24s ease}.lsd-panel-intro{background:linear-gradient(135deg,var(--lsd-surface),var(--lsd-surface-2));border:1px solid var(--lsd-border);border-radius:var(--lsd-r-lg);padding:11px 13px;margin-bottom:12px;color:var(--lsd-ink-muted);font-size:var(--lsd-t-body);font-weight:var(--lsd-w-medium);line-height:1.45;box-shadow:0 8px 18px rgba(146,75,130,.06)}',
@@ -3561,8 +3571,8 @@ return true;
         '.lsd-diary-toast{position:absolute;left:50%;bottom:68px;z-index:35;max-width:min(320px,calc(100% - 32px));transform:translate(-50%,12px);opacity:0;pointer-events:none;border:1px solid rgba(99,102,241,.22);background:rgba(15,23,42,.92);color:var(--lsd-head-ink);border-radius:var(--lsd-r-pill);padding:10px 14px;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);line-height:1.35;box-shadow:0 16px 32px rgba(15,23,42,.22);transition:opacity .2s ease,transform .2s ease}.lsd-diary-toast.is-show{opacity:1;transform:translate(-50%,0)}',
         '.lsd-confirm-overlay{position:absolute;inset:0;z-index:34;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.42);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.lsd-confirm-card{width:min(340px,100%);border-radius:var(--lsd-r-xl);border:1px solid var(--lsd-border);background:var(--lsd-surface);padding:18px;box-shadow:0 24px 56px rgba(15,23,42,.28)}.lsd-confirm-title{margin:0 0 6px;font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-semibold);color:var(--lsd-ink)}.lsd-confirm-copy{margin:0;font-size:var(--lsd-t-body);line-height:1.55;color:var(--lsd-ink-muted);font-weight:var(--lsd-w-regular)}.lsd-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.lsd-confirm-cancel,.lsd-confirm-delete{border-radius:var(--lsd-r-pill);padding:9px 14px;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);cursor:pointer}.lsd-confirm-cancel{border:1px solid var(--lsd-border-strong);background:var(--lsd-surface);color:var(--lsd-ink-muted)}.lsd-confirm-delete{border:1px solid var(--lsd-danger);background:var(--lsd-grade-vb-bg);color:var(--lsd-danger)}',
         '@keyframes lsdSoftCheck{0%{transform:scale(.78)}70%{transform:scale(1.12)}100%{transform:scale(1)}}',
-        '@media (min-width:760px){.lsd-hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr);align-items:start}.lsd-panel{padding:16px 18px 18px}.lsd-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.lsd-hero-title{font-size:var(--lsd-t-section)}.lsd-mood-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.lsd-sats-player{height:230px}}',
-        '@media (max-width:420px){.lsd-hero-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lsd-hero-line{display:block}.lsd-device-badge{margin-top:8px;width:max-content;max-width:100%}.lsd-routine-head{display:grid}.lsd-mini-grid{grid-template-columns:1fr 1fr}.lsd-sats-track{grid-template-columns:52px minmax(0,1fr);align-items:start}.lsd-sats-track-actions{grid-column:2}.lsd-sats-play-btn{width:100%}}',
+        '@media (min-width:760px){.lsd-hero-grid{grid-template-columns:minmax(0,1fr) minmax(260px,auto);align-items:end;gap:28px}.lsd-panel{padding:16px 18px 18px}.lsd-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.lsd-mood-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.lsd-sats-player{height:230px}}',
+        '@media (max-width:420px){.lsd-routine-head{display:grid}.lsd-mini-grid{grid-template-columns:1fr 1fr}.lsd-sats-track{grid-template-columns:52px minmax(0,1fr);align-items:start}.lsd-sats-track-actions{grid-column:2}.lsd-sats-play-btn{width:100%}}',
         '.lsd-confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:1000001}',
         '.lsd-confetti-bit{position:absolute;top:42vh;width:8px;height:14px;border-radius:var(--lsd-r-xs);opacity:.9;animation:lsdConfettiDrop .95s ease-out forwards}',
         '@keyframes lsdConfettiDrop{0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}100%{transform:translate3d(calc((var(--x,0) - 30) * 1px),220px,0) rotate(420deg);opacity:0}}',
@@ -3583,20 +3593,21 @@ return true;
       '<div class="lsd-shell">',
       '<div class="lsd-drag-handle"><span></span></div>',
       '<button class="lsd-close-btn" data-action="closeLuckSyncDiary" aria-label="' + _lsdText("lsd.aria-label.003") + '">✕</button>',
+      /* 다이어리의 주인공은 오늘 날짜다. 날짜를 매스트헤드로 올리고 제목은 킥커로 내린다.
+         #lsdTodayDate 와 #lsdHeaderDate 는 예전에 같은 날짜를 두 번 보여줬는데,
+         이제 숫자 날짜와 요일로 역할을 나눠 갖는다(포맷은 openDiary 에서 결정). */
       '<header class="lsd-hero">',
       '<div class="lsd-hero-grid">',
       '<div class="lsd-hero-main">',
-      '<div class="lsd-hero-icon"><img src="/fuctionassets/godlife.webp" alt="" width="52" height="52" loading="lazy" decoding="async"></div>',
-      '<div style="flex:1;min-width:0"><p class="lsd-hero-kicker">Luck-Sync Diary</p><h2 class="lsd-hero-title">매일 <strong>감성 운기</strong> 다이어리</h2><p class="lsd-hero-date" id="lsdTodayDate"></p></div>',
+      '<p class="lsd-hero-kicker">Luck-Sync Diary <span>매일 감성 운기 다이어리</span></p>',
+      '<h2 class="lsd-hero-title"><span class="lsd-hero-date-num" id="lsdTodayDate">—</span><span class="lsd-hero-date-day" id="lsdHeaderDate">—</span></h2>',
       '</div>',
       '<div class="lsd-hero-side">',
-      '<div class="lsd-hero-stat-grid">',
-      '<div class="lsd-hero-stat"><span>현재 날짜</span><b id="lsdHeaderDate">—</b></div>',
-      '<div class="lsd-hero-stat"><span>오늘 일진</span><b id="lsdHeaderIljin">—</b></div>',
-      '<div class="lsd-hero-stat"><span>핵심 오행</span><b id="lsdHeaderElement">—</b></div>',
-      '</div>',
-      '<div class="lsd-hero-line" style="margin-top:8px"><span id="lsdHeaderOneLine">오늘의 운기 문장이 조용히 떠오릅니다.</span></div>',
-      '<div class="lsd-hero-note">나의 하루가 내일의 운을 빚습니다.</div>',
+      '<dl class="lsd-hero-meta">',
+      '<div><dt>오늘 일진</dt><dd id="lsdHeaderIljin">—</dd></div>',
+      '<div><dt>핵심 오행</dt><dd id="lsdHeaderElement">—</dd></div>',
+      '</dl>',
+      '<p class="lsd-hero-line" id="lsdHeaderOneLine">오늘의 운기 문장이 조용히 떠오릅니다.</p>',
       '</div>',
       '</div></header>',
       '<nav class="lsd-tabs" role="tablist" aria-label="' + _lsdText("lsd.aria-label.004") + '">',
@@ -3882,7 +3893,7 @@ return true;
     _lsdMonthCalendarState.selectedKey = getTodayKey();
     var dateEl = document.getElementById('lsdTodayDate');
     if (dateEl) {
-      dateEl.textContent = now.getFullYear() + '년 ' + (now.getMonth()+1) + '월 ' + now.getDate() + '일 (' + days[now.getDay()] + ')';
+      dateEl.textContent = now.getFullYear() + '. ' + String(now.getMonth() + 1).padStart(2, '0') + '. ' + String(now.getDate()).padStart(2, '0');
     }
 
     /* 사주 엔진 데이터 */
@@ -3991,7 +4002,6 @@ return true;
     var headerIljin = document.getElementById('lsdHeaderIljin');
     var headerElement = document.getElementById('lsdHeaderElement');
     var headerOneLine = document.getElementById('lsdHeaderOneLine');
-    var deviceBadge = document.getElementById('lsdDeviceBadge');
     var miniIljin = document.getElementById('lsdMiniIljin');
     var miniIljinSub = document.getElementById('lsdMiniIljinSub');
     var miniTenstar = document.getElementById('lsdMiniTenstar');
@@ -4006,7 +4016,7 @@ return true;
     var cautionInfo = cautionEl ? (ELEM[cautionEl] || null) : null;
     var tenInfo = mainTenStar ? (TENSTAR_GUIDE[mainTenStar] || {}) : {};
 
-    if (headerDate) headerDate.textContent = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + days[now.getDay()] + '요일';
+    if (headerDate) headerDate.textContent = days[now.getDay()] + '요일';
     if (headerIljin) headerIljin.textContent = todayGZ ? (todayGZ.g + todayGZ.j) : '—';
     if (headerElement) headerElement.textContent = (tInfo ? tInfo.cn : '—');
     if (headerOneLine) {
@@ -4014,7 +4024,6 @@ return true;
         ? '오늘은 ' + tenInfo.vibe + ' 감각을 조용히 실천으로 옮기기 좋은 날입니다.'
         : '오늘은 작은 루틴 하나가 하루의 결을 바꾸는 날입니다.';
     }
-    if (deviceBadge) deviceBadge.style.display = isLuckSyncDiaryUnlocked() ? 'inline-flex' : 'none';
     if (miniIljin) miniIljin.textContent = todayGZ ? (todayGZ.g + todayGZ.j) : '—';
     if (miniIljinSub) miniIljinSub.textContent = tInfo ? (tInfo.badge + ' ' + tInfo.cn + ' 기운') : '오늘의 일진';
     if (miniTenstar) miniTenstar.textContent = mainTenStar || '—';
