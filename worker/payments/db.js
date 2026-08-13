@@ -55,6 +55,8 @@ export function createPaymentContext({ requestId, route }) {
     startedAt: Date.now(),
     mongoOps: 0,
     inDb: false,
+    // withPaymentDb 가 채운다. Mongo 를 안 타는 라우트(config 등)에서는 비어 있다.
+    dbTimings: null,
   };
 }
 
@@ -191,6 +193,10 @@ export async function withPaymentDb(env, ctx, fn, overrides) {
   }
   ctx.inDb = true;
   const laneEnabled = isSocketLaneEnabled(env);
+  /* 이 요청의 Mongo 소요를 admission / connect / query 로 갈라 담는다. [pay] 한 줄과 응답
+     Server-Timing 이 같은 객체를 읽으므로 계측 채널이 갈라지지 않는다. withMongoRetry 가 채운다. */
+  const timings = {};
+  ctx.dbTimings = timings;
   try {
     return await withMongoRetry(env, async () => {
       // 재시도가 일어나면 이전 시도의 왕복은 세지 않는다 — 예산은 '성공한 시도'의 비용이다.
@@ -217,7 +223,7 @@ export async function withPaymentDb(env, ctx, fn, overrides) {
         }
         throw error;
       }
-    }, paymentDbOptions(env, overrides));
+    }, { ...paymentDbOptions(env, overrides), timings });
   } finally {
     ctx.inDb = false;
   }
